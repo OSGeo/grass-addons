@@ -1,0 +1,31 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.strahler</em> calculates the Strahler Order for all lines of a given dendritic network. The input vector map must be free of cycles. More than one tree in the input data is allowed. No given flow direction is needed. To find the outlet of each tree, a DEM must be given.
+
+<h2>NOTES</h2>
+<h3>Problems</h3>
+This program is in alpha status. It has the following shortcomings: <br />
+- Robust calculation of Strahler Order is not guaranteed <br />
+- Strahler Order is not attached as a layer, it is merely written to an ASCII file <br />
+- The input data has to be topologically clean. <br />
+- Source code comments are not doxydized. <br />
+...
+
+<h3>How the algorithm works</h3>
+In a first step, <em>v.strahler</em> identifies all separate networks in the input dataset. That means, all connected lines are assigned a common <em>Basin ID</em>.<br />
+Consequently, the lowest leaf of each tree is identified as outlet. An auxiliary DEM is needed at this point. <br />
+Strahler ordering begins at each leaf of the tree with order N=1 (excluding the outlet). At a confluence, the order N(r) of the resulting stream is equal to the highest order N(max) of the joining streams or is raised by one if there are two or more joining streams of order N(max).
+
+<h2>EXAMPLE</h2>
+
+TODO
+
+<h2>SEE ALSO</h2>
+
+
+<h2>AUTHOR</h2>
+
+Florian Kindl, Univ. Innsbruck
+
+
+<p><i>Last changed: $Date: 2006/08/05 15:29:16 $</i>
