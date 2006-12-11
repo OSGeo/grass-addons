@@ -2,7 +2,7 @@
  * 
  *  MODULE:       v.strahler
  *  
- *  AUTHOR(S):    Florian Kindl, Norbert Pfeifer
+ *  AUTHOR(S):    Florian Kindl, Norbert Pfeifer, The GRASS development team
  *                
  *  PURPOSE:      Assign Strahler order to dendritic network
  *                
@@ -14,6 +14,20 @@
  *                for details.
  * 
  **************************************************************/
+
+/*! \file main.c
+\brief Assign Strahler order to dendritic network
+\author Florian Kindl
+
+\todo Add clean way to write output to *Out
+  \li Outpout is now text-only
+  \li Add fields in table for Strahler Order and BasinID
+\todo Deal with poor topology 
+  \li implemement sloppy mode or
+  \li force clean topology
+\todo ...
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
