@@ -1,0 +1,167 @@
+GRASS Addons SVN: Subversion repository at grasssvn.itc.it
+##########################################################
+
+0. Install the svn client software
+
+    Linux:   * 'subversion' package (RPM for your distro, should
+               be on the CDROMs/DVD)
+
+    MacOSX:  * http://subversion.tigris.org/
+               -> Downloads
+
+    Windows: * http://tortoisesvn.tigris.org/
+               -> Downloads
+               If you want a pretty Win32 GUI, 'TortoiseSVN'
+               integrates nicely with the Windows Explorer.
+
+
+1. How to get the grassaddons from the SVN repository
+
+1a) Command line:
+ svn co https://grasssvn.itc.it/svn/grassaddons/trunk/grassaddons grassaddons
+
+ -> first it shows you the certificate (not validated which is ok),
+    enter 'p' to accept it permanently
+ -> then enter your password (get from Markus)
+
+1b) TortoiseSVN:
+ Just enter this url:
+    https://grasssvn.itc.it/svn/grassaddons/trunk/grassaddons
+
+ and your user/password combination.
+
+
+2. This will check out the grassaddons into the directory grassaddons/
+
+3. cd grassaddons/
+
+4. Now work on the repository (see below).
+
+########################
+
+We also have a nice Web interface for *reading* (not submitting):
+ https://grasssvn.itc.it/grasssvn/grassaddons/trunk/grassaddons/
+
+If you want a graphical tool for SVN, get it here:
+ http://en.wikipedia.org/wiki/Subversion_%28software%29#GUI_front-ends.2Fclients
+
+ (MN prefers command line since this is fast and easy...).
+
+########################
+Change notification:
+ Every change in the repository issues an email which indicates
+ - date
+ - author
+ - commit comment
+ - list of changed lines
+
+ The SVN change notification is better than that of the old CVS.
+
+########################
+Some commands (commands are pretty much the same as for CVS!):
+
+- Help:
+    svn help
+    svn help up
+    svn help mv
+    ...
+
+- Update from SVN server:
+    svn up
+
+  This can happen:
+    A  Added
+    D  Deleted
+    U  Updated
+    C  Conflict - ZAP! Here check for problems (same as in old CVS)
+    G  merGed
+
+
+- Find out if you have uncommitted changes on your disk:
+    svn status
+
+  If no output, everything was uploaded to SVN. Congrats.
+
+- Verify changes before submitting:
+    svn diff
+
+- Commit changes to SVN server:
+  individual file commit:
+    svn ci -m "Some useful comment" file1 [file2 ...]
+
+  or (for global commit of all changes), simply:
+    svn ci -m "Some useful comment"
+
+- Add new file/directory to SVN repository:
+    svn add file
+    svn ci -m "Some useful comment" file
+
+    svn add directory
+    svn ci -m "Some useful comment" directory
+
+- Remove file from SVN server (careful!):
+    svn rm file
+    svn ci -m "Some useful comment" file
+
+- Move file to another directory (this is the cool feature of SVN):
+    svn mv file ../some_dir/
+    cd ..
+    svn ci -m "file moved because ..."
+
+- Make new directory (see also svn add above for simplicity):
+    svn mkdir newdirectory
+    svn ci -m "we need a new directory" newdirectory
+
+- Oops - submitted a wrong change? Revert!
+    svn revert file
+
+- See last changes after updating:
+    (BASE: the revision you updated to, PREV: previous)
+    svn diff -r PREV:BASE
+    svn diff -r PREV:BASE file
+
+- Check history of changes:
+  (see http://svngrassaddons.red-bean.com/nightly/en/svn.tour.history.html for details)
+    svn log file
+
+  ... on all files:
+    svn log
+
+  ... create ChangeLog file:
+    svn log > ChangeLog
+
+- Handling SVN conflicts (please read the svngrassaddons if unsure!):
+  http://svngrassaddons.red-bean.com/en/1.1/ch03s05.html
+  
+    Whenever a conflict occurs, three things typically occur to assist you in
+    noticing and resolving that conflict:
+    * Subversion prints a C during the update, and remembers that the file is
+       in a state of conflict.
+    * For every conflicted file, Subversion places up to three extra
+      unversioned files in your working copy
+    * At this point, Subversion will not allow you to commit the file until
+      the three temporary files are removed.
+       $ svn commit --message "Add a few more things"
+       svn: Commit failed (details follow):
+       svn: Aborting commit: '/home/sally/svn-work/sandwich.txt' remains in conflict
+
+    * If you get a conflict, you need to do *one* of three things:
+       *  Merge the conflicted text 'by hand' (by examining and editing the
+          conflict markers (<<<<< and >>>>>) within the file).
+       * or: Copy one of the temporary files on top of your working file.
+       * or: Run svn revert <filename> to throw away all of your local changes.
+
+      Once you've resolved the conflict, you need to let Subversion know by running
+      svn resolved. This removes the three temporary files and Subversion no longer
+      considers the file to be in a state of conflict:
+
+        $ svn resolved sandwich.txt
+          Resolved conflicted state of 'sandwich.txt'
+
+
+##########
+Reference (really good:)
+
+ http://svnbook.red-bean.com/nightly/en/index.html
+ Version Control with Subversion
+
