@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<TITLE>i.atcorr</TITLE>
+
+<body bgcolor="white">
+
+<img src="grass.smlogo.gif">
+
+<hr width="100%" align=center size=6 noshade>
+
+<H2>NAME</H2>
+
+<EM><b>i.atcorr</b></EM>  - Atmospheric correction (6S) program for image processing.
+
+<BR>
+
+<EM>(GRASS Geographic Resource Analysis Support System)</EM>
+
+<H2>SYNOPSIS</H2>
+
+<B>i.atcorr</B>
+
+<BR>
+
+<B>i.atcorr help</B>
+
+<BR>
+<DL>
+<DT> <B>i.atcorr</B>
+[<B>-frab</B>] <BR>
+<DD> <B>iimg=</B><EM>name</EM> 
+<B>icnd=</B><EM>name</EM>
+<B>oimg=</B><EM>name</EM> <BR>
+[<B>ialt=</B><EM>name</EM>] 
+[<B>ivis=</B><EM>name</EM>] 
+[<B>iscl=</B><EM>input scale range</EM>]
+[<B>oscl=</B><EM>output scale range</EM>]
+</DL>
+
+<H2>DESCRIPTION</H2>
+
+<B>i.atcorr</B> does atmospheric corrections on an input raster. A detailed 
+description can be obtained at <a href=http://www.ltid.inpe.br/dsr/mauro/6s/index.html>
+http://www.ltid.inpe.br/dsr/mauro/6s/</a>. 
+
+<H3>Flags:</H3>
+
+<DL>
+
+<DT><B>-f</B>
+
+<DD>Force data to be output as FCELL or DCELL values. Default is CELL.
+Use this if output scale is chosen to be [0,1].
+
+<DT><B>-r</B>
+
+<DD>Input data converted to reflectance, otherwise data 
+will be treated as radiance values and will first be
+converted to reflectance before it is transformed. The output data
+is always reflectance values. 
+
+<DT><B>-a</B>
+
+<DD>Input raster is from an Landsat etm+ satellite image taken <EM>after July 1, 2000</EM>. The
+necesary conversions will be made. 
+
+<DT><B>-b</B>
+
+<DD>Input raster is from an etm+ satelite image taken <EM>before July 1, 2000</EM>. The
+necesary conversions will be made.
+ 
+<DT><B>-o</B>
+<DD>Because using a continues elevation or visibility map makes execution time much longer, it is advised to use categorized maps instead. This options tells <EM>i.atcorr</EM> to try and speedup calculations. It is applicable if only one of the two kinds are maps are used and not the other. NOTE: this option under certain conditions can make execution time longer.
+</DL>
+ 
+
+<H3>Parameters:</H3>
+
+<DL>
+
+<DT><B>iimg=</B><EM>name</EM> 
+
+<DD>Name of the input raster to do the atmospheric correction on. 
+The input raster should contain values with in the range specified.
+
+<DT><B>icnd=</B><EM>name</EM> 
+
+<DD>Name of the ASCII file that contains input conditions used in the calculation.
+<br><a href="Parameter Choices.html">Input conditions file format.</a>
+
+<DT><B>oimg=</B><EM>name</EM> 
+
+<DD>Output raster file name. The generated output raster will be scaled to the
+values specified by the oscl field.
+
+<DT><B>ialt=</B><EM>name</EM> 
+
+<DD>Name of a raster that contains elevation data to be used in the calculation.
+This will cause the calculation to take significantly longer. The elevation values
+should be in km.
+
+<DT><B>ivis=</B><EM>name</EM> 
+
+<DD>Name of a raster that contains visibility data to be used in the calculation.
+This will cause the calculation to take significantly longer. The visibility values
+should be in km.
+
+<DT><B>iscl=</B><EM>input scale range</EM> 
+
+<DD>Range to which data is scaled. By default this range is [0,255] since data 
+used to be read from .RAW files containing unsigned chars.
+ 
+<DT><B>oscl=</B><EM>output scale range</EM> 
+
+<DD>Range to which output data will be scaled. The default is [0,255] to match
+tihs input default. 
+
+</DL>
+
+<H2>NOTES</H2>
+
+<EM>i.atcorr</EM> ignores the current region setting and adjusts the region
+to the whole image before the atmospheric corrections are made. This should
+not affect the user's region setting.
+
+
+<H2>AUTHORS</H2>
+
+<p> Christo Zietsman (13422863@sun.ac.za) <br>
+http://www.cs.sun.ac.za/~caz/index.html
+
+<p>Vermote, E.F., Tanre, D., Deuze, J.L., Herman, M., and Morcrette, 
+    J.J., (1997), Second simulation of the satellite signal in 
+    the solar spectrum (6S User Guide Version 2)
+
+<br>
+<a href="http://www.cs.sun.ac.za/~caz/6S/6smanv2.0_P1.pdf">6s manual (part 1)</a><br>
+<a href="http://www.cs.sun.ac.za/~caz/6S/6smanv2.0_P2.pdf">6s manual (part 1)</a><br>
+<a href="http://www.cs.sun.ac.za/~caz/6S/6smanv2.0_P3.pdf">6s manual (part 1)</a><br>
+
+<p>Mauro A. Homem Antunes <br>
+http://www.ltid.inpe.br/dsr/mauro/6s/index.html
+
+<p>Vermote, E.F., Tanre, D., Deuze, J.L., Herman, M., and Morcrette, 
+    J.J., (1997), Second simulation of the satellite signal in 
+    the solar spectrum, 6S: An overview., IEEE Trans. Geosc. 
+    and Remote Sens. 35(3):675-686. <br>
+http://loasys.univ-lille1.fr/informatique/sixs_gb.html
+
+<p><i>Last changed: $Date: 2003/05/30 15:51:00 $</i>
+</body>
+</html>
