@@ -36,6 +36,7 @@ typedef struct {	/* keep track of lowest leaf (=outlet) of each tree */
 	int    leaf;		/* line-id of outlet leaf */
 } OUTLETS;
 
+/* in forest2tree.c */
 /*! \fn int StrahForestToTrees( struct Map_info *In, struct Map_info *Out, DBBUF *dbbuf );
     \brief Returns the number of trees in *In
     \param *In The input map
@@ -43,6 +44,8 @@ typedef struct {	/* keep track of lowest leaf (=outlet) of each tree */
     \param *dbbuf The buffer table for line orders
 */
 
+
+/* in strahler.c */
 /*! \fn int StrahFindLeaves( struct Map_info *In, DBBUF *dbbuf, NODEV *nodev, int ntrees, int fdrast );
     \brief Identifies all leaves of each tree and the one that lies lowest
     \param *In The input map
@@ -59,6 +62,8 @@ typedef struct {	/* keep track of lowest leaf (=outlet) of each tree */
     \param *nodev The buffer table for node valency
 */
 
+
+/* in write.c */
 /*! \fn int StrahWriteToFile( DBBUF *dbbuf, int nlines, FILE *txout );
     \brief Writes ASCII representation of calculated order to file
     \param *dbbuf The buffer table for line orders
@@ -66,6 +71,8 @@ typedef struct {	/* keep track of lowest leaf (=outlet) of each tree */
 	\param *txout ASCII output file name
 */
 
+
+/* in helper.c */
 /*! \fn int StrahGetDegr( struct Map_info *In, int node );
     \brief Get degree of node (for sloppy mode)
     \param *In The input map

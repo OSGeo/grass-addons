@@ -52,11 +52,11 @@ Vect_list_append ( StNodes, node2 );
 
 int StrahGetNodeLine( struct Map_info *In, int node, int d ) {
 
-	G_debug(3, "StrahGetNodeLine!");
     extern double sloppy;
 	int aline;
 
 	if ( sloppy != 0.0 ) {
+		G_debug(4, "StrahGetNodeLine at node %d", node);
 		/* 
 		get all nodes within sloppy from node -> from table StrahGetDegr has written
 		get all lines for each found node -> Vect_get_node_line(In, foundnode, df)

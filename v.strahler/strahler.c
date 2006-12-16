@@ -98,6 +98,8 @@ int StrahOrder( struct Map_info *In, DBBUF *dbbuf, NODEV *nodev )
 
 	nlines =  Vect_get_num_lines ( In );
 
+	G_debug( 1, "reached StrahOrder");
+
 	for (line = 1; line <= nlines; line++) { 
 		if (dbbuf[line].sorder == 1) {				/* get lines of order 1 */
 															

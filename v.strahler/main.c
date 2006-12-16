@@ -40,7 +40,9 @@
 #include <grass/glocale.h>
 #include "strahler.h"
 
-#define OPYBLAH 1
+#define COPYBLAH 1
+#define ADDFIELDBLAH 1
+#define BADDCOLUMNBLAH 1
 #define RITEDBLAH 1
 #define EBUG 1
 #define REATEDBLAH 1
@@ -56,7 +58,7 @@ int main(int argc, char **argv)
     int    nnodes, nlines, tlines;
 	DBBUF  *dbbuf;
 	NODEV  *nodev;
-    struct Option *input, *output, *dem_opt, *txout_opt, *sloppy_opt;
+    struct Option *input, *output, *dem_opt, *txout_opt, *sloppy_opt, *field_opt;
     struct GModule *module;
     char   *inputset, *demset;
     struct Map_info In, Out;
@@ -75,6 +77,7 @@ int main(int argc, char **argv)
 	dbColumn *column;
 	
     struct field_info *Fi;
+	int field;
 
     /* Initialize the GIS calls */
     G_gisinit (argv[0]) ;
@@ -110,6 +113,9 @@ option sloppy for bad topology
     sloppy_opt->multiple = NO;
     sloppy_opt->description = _("Threshold for distance within different nodes are considered the same node");
 
+
+    field_opt = G_define_standard_option(G_OPT_V_FIELD);
+    field = atoi (field_opt->answer);
 
     if(G_parser(argc,argv)) exit (EXIT_FAILURE);
     
@@ -158,31 +164,48 @@ option sloppy for bad topology
     Vect_hist_command( &Out );
 	
 #ifdef COPYBLAH
+	/* this works, we want to continue here and ADD two columns to the &Out */
     /* Copy input to output (from v.clean/main.c) */
-    G_message( "Copying vector lines ..." );
+    G_debug( 1, "Copying vector lines to Output" );
 
     /* This works for both level 1 and 2 */
     Vect_copy_map_lines ( &In, &Out );
-    Vect_copy_tables ( &In, &Out, 0 ); /* 0: copy all fields, else field number */
+    Vect_copy_tables ( &In, &Out, 0 );
+	/* 0: copy all fields, else field number */
 #endif
 
-#ifdef COPYTABLESLINEBYLINE
-	Vect_get_column_names_types( In, c );
-#endif
 
-#ifdef ADDFIELDBLAH
-	/* Create table (from v.net.path/path.c) */
+#ifdef ADDFIELDBLAH /* Create table (from v.net.path/path.c) */
 	/* or: add fields to existing table? */
 	/*							*Map, field, field_name, type */
-    Fi = Vect_default_field_info ( &Out, 2, NULL, GV_1TABLE );
-    Vect_map_add_dblink ( &Out, 2, NULL, Fi->table, "cat", Fi->database, Fi->driver);
+
+    Fi = Vect_default_field_info ( &Out, field, NULL, GV_1TABLE );
+    Vect_map_add_dblink ( &Out, field, NULL, Fi->table, "cat", Fi->database, Fi->driver);
 
     driver = db_start_driver_open_database ( Fi->driver, Fi->database );
+	    driver = db_start_driver_open_database ( Fi->driver, Vect_subst_var(Fi->database, &Out) );
+		/* from v.reclass/main.c :
+		*/
+
     if ( driver == NULL ) {
     	G_fatal_error ( "Cannot open database %s by driver %s", Fi->database, Fi->driver );
 	}
+
+
 	/* store the statement to create a table with category, basin ID and strahler order of the arc */
     sprintf ( buf, "CREATE TABLE %s ( cat integer, bsnid integer, sorder integer )", Fi->table );
+
+		/* from v.reclass/main.c :*/
+	    dbString stmt;
+	    db_init_string ( &stmt );
+	    db_set_string ( &stmt, buf);
+
+	    if (db_execute_immediate (driver, &stmt) != DB_OK ) {
+			Vect_close (&Out);
+			db_close_database_shutdown_driver ( driver );
+			G_fatal_error ( "Cannot create table: %s", db_get_string (&stmt) );
+	    }
+
 	/*
 	sprintf ( buf, "ALTER TABLE %s ADD COLUMN cat integer", Fi->table );
 	sprintf ( buf, "ALTER TABLE %s ADD COLUMN bsnid integer", Fi->table );
@@ -196,7 +219,7 @@ option sloppy for bad topology
 	column->columnName = sql;
 	column->sqlDataType = 1;
 	sprintf ( buf, "%s", Fi->table );
-    db_set_string ( &sql, buf );
+    /*db_set_string ( &sql, buf );*/
 	/* why such complicated arguments for db_add_column???
 	dbDriver, dbString, dbColumn*/
 	if ( db_add_column( driver, &sql, column ) != DB_OK ) {
@@ -293,7 +316,7 @@ option sloppy for bad topology
 
     /* Write text file for results if given */
     if ( txout_opt->answer )
-		    StrahWriteToFile( dbbuf, nlines, txout );
+		StrahWriteToFile( dbbuf, nlines, txout );
 
     Vect_close( &In );
     G_close_cell( fdrast );
