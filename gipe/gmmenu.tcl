@@ -573,10 +573,13 @@ set descmenu [subst  {
 	}}
 	{cascad {[G_msg "Basic RS processing"]} {} "" $tmenu {
 			{command {[G_msg "Vegetation Indices (13 types)"]} {} "r.vi" {} -command {execute r.vi }}
+			{command {[G_msg "Vegetation Indices (13 types) cluster"]} {} "r.vi.mpi" {} -command {execute r.vi.mpi }}
+			{command {[G_msg "Vegetation Indices (13 types) grid"]} {} "r.vi.grid" {} -command {execute r.vi.grid }}
 			{command {[G_msg "Albedo"]} {} "r.albedo" {} -command {execute r.albedo }}
 			{command {[G_msg "Latitude map"]} {} "r.latitude" {} -command {execute r.latitude }}
 			{command {[G_msg "Potential ET (Radiative)"]} {} "r.evapo.potrad" {} -command {execute r.evapo.potrad }}
 			{command {[G_msg "Potential ET (Radiative) from L7DN (.met)"]} {} "r.dn2potrad.l7" {} -command {execute r.dn2potrad.l7 }}
+			{command {[G_msg "Potential ET (Penman-Monteith)"]} {} "r.evapo.PM" {} -command {execute r.evapo.PM }}
 	}}
 	{separator}
 	{cascad {[G_msg "Energy Balance"]} {} "" $tmenu {
