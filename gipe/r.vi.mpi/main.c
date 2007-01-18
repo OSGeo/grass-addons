@@ -45,14 +45,14 @@ int main(int argc, char *argv[])
 	if(!me)
 	{
 
-		printf("I am Master\n");
+	//	printf("I am Master\n");
 		struct Cell_head cellhd; //region+header info
 		char *mapset; // mapset name
 		int row,col,row_n;
 		int verbose=1;
 		char *viflag;// Switch for particular index
 		struct GModule *module;
-		struct Option *input1, *input2,*input3,*input4,*input5,*input6,*input7, *output;
+		struct Option *input1, *input2,*input3,*input4,*input5,*input6,*input7,*input8, *output;
 	
 		struct Flag *flag1;	
 		struct History history; //metadata
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	
 		char  *bluechan, *greenchan,*redchan, *nirchan, *chan5chan, *chan7chan;
 	
-		int i=0,j=0;
+		int i=0,j=0,temp;
 	
 		void *inrast_redchan, *inrast_nirchan, *inrast_greenchan, *inrast_bluechan, *inrast_chan5chan, *inrast_chan7chan;
 		unsigned char *outrast;
@@ -144,6 +144,15 @@ int main(int argc, char *argv[])
 		input7->description=_("Name of the CHAN7 Channel surface reflectance map [0.0;1.0]");
 	//	input7->answer     =_("chan7chan");
 
+		input8 = G_define_option() ;
+                input8->key        =_("tmp");
+                input8->type       = TYPE_INTEGER;
+                input8->required   = NO;
+                input8->gisprompt  =_("no of operation value");
+                input8->description=_("User input for number of operation");
+	//	input8->answer     =_("1");
+        
+
 		output= G_define_option() ;
 		output->key        =_("vi");
 		output->type       = TYPE_STRING;
@@ -166,6 +175,7 @@ int main(int argc, char *argv[])
 		bluechan	= input5->answer;
 		chan5chan	= input6->answer;
 		chan7chan	= input7->answer;
+		temp            = atoi(input8->answer);
 
 		result  = output->answer;
 		verbose = (!flag1->answer);
@@ -258,12 +268,14 @@ int main(int argc, char *argv[])
 		if ( (outfd = G_open_raster_new (result,data_type_output)) < 0)
 			G_fatal_error(_("Could not open <%s>"),result);
 
-		double db0[ncols],db1[ncols], db2[ncols],db3[ncols],db4[ncols],db5[ncols],R[ncols],outputImage[NUM_HOSTS][ncols];
-		int I[ncols];
+		double db[6][ncols],R[ncols+1],outputImage[NUM_HOSTS][ncols];
+		int I[ncols+1];
 		host_n=1;
-
+		
+		printf("%d", temp);
 		for(i=1;i<NUM_HOSTS;i++){
-
+			
+ 			MPI_Send(&temp,1,MPI_INT,i,1,MPI_COMM_WORLD);
 			MPI_Send(&nrows,1,MPI_INT,i,1,MPI_COMM_WORLD);
                 	MPI_Send(&ncols,1,MPI_INT,i,1,MPI_COMM_WORLD);
 		}
@@ -287,7 +299,7 @@ int main(int argc, char *argv[])
 				DCELL d_chan7chan;
 				if(verbose)
 					G_percent(row,nrows,2);
-				printf("r=%d, k=%d, row=%d\n",r,k,row);
+				//printf("r=%d, k=%d, row=%d\n",r,k,row);
 				/* read soil input maps */	
 				if(G_get_raster_row(infd_redchan,inrast_redchan,row,data_type_redchan)<0)
 					G_fatal_error(_("Could not read from <%s>"),redchan);
@@ -388,12 +400,12 @@ int main(int argc, char *argv[])
 						}
 					}
 			
-					db0[col]= d_redchan;
-					db1[col]= d_nirchan;
-					db2[col]= d_greenchan;
-					db3[col]= d_bluechan;
-					db4[col]= d_chan5chan;
-					db5[col]= d_chan7chan;			
+					db[0][col]= d_redchan;
+					db[1][col]= d_nirchan;
+					db[2][col]= d_greenchan;
+					db[3][col]= d_bluechan;
+					db[4][col]= d_chan5chan;
+					db[5][col]= d_chan7chan;			
 
 		
 				// to change to multiple to output files.
@@ -470,20 +482,22 @@ int main(int argc, char *argv[])
 				}//col
 				//printf("Row data has genareted\n");
 				row_n=k-1;
-				MPI_Send(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD);
-				MPI_Send(I,ncols,MPI_INT,k,1,MPI_COMM_WORLD);
-				MPI_Send(db0,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-				MPI_Send(db1,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-				//MPI_Send(db2,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-				//MPI_Send(db3,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-				//MPI_Send(db4,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-				//MPI_Send(db5,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-						
+				I[ncols]=row_n;
+				//MPI_Send(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD);
+				MPI_Send(I,ncols+1,MPI_INT,k,1,MPI_COMM_WORLD);
+				MPI_Send(db,6*ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+				/*MPI_Send(db1,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+				MPI_Send(db2,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+				MPI_Send(db3,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+				MPI_Send(db4,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+				MPI_Send(db5,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+				*/		
 	
 			}//k				
 			for(k=1;k<NUM_HOSTS;k++){
-				MPI_Recv(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD,&status);
-				MPI_Recv(R,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD,&status);
+				//MPI_Recv(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD,&status);
+				MPI_Recv(R,ncols+1,MPI_DOUBLE,k,1,MPI_COMM_WORLD,&status);
+				row_n=R[ncols];
 				for (cn=0;cn<ncols;cn++)
 					outputImage[row_n][cn]=R[cn];
 			}
@@ -505,7 +519,7 @@ int main(int argc, char *argv[])
 		{	
 
 			
-                          printf("row %d, node %d\n",r,k);
+                         // printf("row %d, node %d\n",r,k);
                         	DCELL d_bluechan;
                         	DCELL d_greenchan;
                                 DCELL d_redchan;
@@ -617,12 +631,12 @@ int main(int argc, char *argv[])
                                                 }
                                         }
 
-                                        db0[col]= d_redchan;
-                                        db1[col]= d_nirchan;
-                                        db2[col]= d_greenchan;
-                                        db3[col]= d_bluechan;
-                                        db4[col]= d_chan5chan;
-                                        db5[col]= d_chan7chan;
+                                        db[0][col]= d_redchan;
+                                        db[1][col]= d_nirchan;
+                                        db[2][col]= d_greenchan;
+                                        db[3][col]= d_bluechan;
+                                        db[4][col]= d_chan5chan;
+                                        db[5][col]= d_chan7chan;
 
 
                                 // to change to multiple to output files.
@@ -697,22 +711,25 @@ int main(int argc, char *argv[])
                                                 I[col]=i;
 				}//col
                       		row_n=k-1;
-                                MPI_Send(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD);
-                                MPI_Send(I,ncols,MPI_INT,k,1,MPI_COMM_WORLD);
-                                MPI_Send(db0,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-                                MPI_Send(db1,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-                                //MPI_Send(db2,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-                                //MPI_Send(db3,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-                                //MPI_Send(db4,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
-                                //MPI_Send(db5,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+                                I[ncols]=row_n;
+				//MPI_Send(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD);
+                                MPI_Send(I,ncols+1,MPI_INT,k,1,MPI_COMM_WORLD);
+                                MPI_Send(db,6*ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+                                /*MPI_Send(db1,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+                                MPI_Send(db2,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+                                MPI_Send(db3,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+                                MPI_Send(db4,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+                                MPI_Send(db5,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
+				*/
 				k++;
 				lm=1;		
 			}//r 
 			if(lm)
 			{	
 				for(nh=1;nh<k;nh++){
-                                	MPI_Recv(&row_n,1,MPI_INT,nh,1,MPI_COMM_WORLD,&status);
-                                	MPI_Recv(R,ncols,MPI_DOUBLE,nh,1,MPI_COMM_WORLD,&status);
+                                //	MPI_Recv(&row_n,1,MPI_INT,nh,1,MPI_COMM_WORLD,&status);
+                                	MPI_Recv(R,ncols+1,MPI_DOUBLE,nh,1,MPI_COMM_WORLD,&status);
+					row_n=R[ncols];
                                 	for (cn=0;cn<ncols;cn++)
                                         	outputImage[row_n][cn]=R[cn];
                         	}
@@ -761,45 +778,59 @@ int main(int argc, char *argv[])
 	}//if end	
 	else if(me){
 
-		int col,n_rows,i,row_n,modv,nrows,ncols;
+		int col,n_rows,i,row_n,modv,nrows,ncols,t,temp;
 		int *I;
 		double *a, *b, *c, *d, *e, *f, *r;
+		//double *r;
+		
+		MPI_Recv(&temp,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
 		MPI_Recv(&nrows,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
         	MPI_Recv(&ncols,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
-		printf("Slave->%d: nrows=%d, ncols=%d \n",me,nrows,ncols);
+		//printf("Slave->%d: nrows=%d, ncols=%d \n",me,nrows,ncols);
  	
-		I=(int *)malloc((ncols+1)*sizeof(int));
+		I=(int *)malloc((ncols+2)*sizeof(int));
         	a=(double *)malloc((ncols+1)*sizeof(double));
         	b=(double *)malloc((ncols+1)*sizeof(double));
         	c=(double *)malloc((ncols+1)*sizeof(double));
        		d=(double *)malloc((ncols+1)*sizeof(double));
         	e=(double *)malloc((ncols+1)*sizeof(double));
         	f=(double *)malloc((ncols+1)*sizeof(double));
-        	r=(double *)malloc((ncols+1)*sizeof(double));
-	
+		
+        	r=(double *)malloc((ncols+2)*sizeof(double));
+		double db[6][ncols];
 		n_rows=nrows/(NUM_HOSTS-1);
 		modv=nrows%(NUM_HOSTS-1);
-	
-		int temp;	
+		//temp=10;
+		//printf("%d\n",temp);	
+		
+		//int temp;	
 		if(modv>=me)
 			n_rows++;
 		for(i=0;i<n_rows;i++)
 		{
 				
-			MPI_Recv(&row_n,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
-			MPI_Recv(I,ncols,MPI_INT,0,1,MPI_COMM_WORLD,&status);
-			MPI_Recv(a,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
+			//MPI_Recv(&row_n,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
+			MPI_Recv(I,ncols+1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
+			MPI_Recv(db,6*ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
+		/*	MPI_Recv(a,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
 			MPI_Recv(b,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
-			//MPI_Recv(c,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
-			//MPI_Recv(d,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
-			//MPI_Recv(e,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
-			//MPI_Recv(f,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
-			
+			MPI_Recv(c,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
+			MPI_Recv(d,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
+			MPI_Recv(e,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
+			MPI_Recv(f,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
+		*/	
 			for (col=0; col<ncols; col++)
 			{
 	
-				for(temp=0;temp<2000;temp++)
-				{//increase arbirtrarily the number of operations for testing MPI		
+				a[col]=db[0][col];
+				b[col]=db[1][col];
+				c[col]=db[2][col];
+				d[col]=db[3][col];
+				e[col]=db[4][col];
+				f[col]=db[5][col];
+
+				for(t=0;t<temp;t++)
+				{		
 			
 				if (I[col]==0) r[col]=-999.99;
 				else if (I[col]==1){
@@ -906,12 +937,13 @@ int main(int argc, char *argv[])
 					r[col] = ( b[col] - (c[col]-(d[col] - a[col]))) / ( b[col] + (c[col]-(d[col] - a[col]))) ;
 				}
 
-				} //for temp
+			} //for temp
 
 		}// col end
+		r[ncols]=I[ncols];
 	
-		MPI_Send(&row_n,1,MPI_INT,0,1,MPI_COMM_WORLD);
-		MPI_Send(r,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD);
+		//MPI_Send(&row_n,1,MPI_INT,0,1,MPI_COMM_WORLD);
+		MPI_Send(r,ncols+1,MPI_DOUBLE,0,1,MPI_COMM_WORLD);
 	}//row end
 
 	free(I);
