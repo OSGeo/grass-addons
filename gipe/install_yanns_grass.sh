@@ -7,29 +7,32 @@
 #CHANGE THIS TO YOUR CVS TREE DIRECTORY 
 GRASSCVSDIR=/home/yann/tmp/grass
 
+GIPEDIR=$('pwd')
+
 #INSTALL GUI MODIFICATIONS
-cp gui_Makefile $GRASSCVSDIR/gui/Makefile -f
-cp gmmenu.tcl $GRASSCVSDIR/gui/tcltk/gis.m/gmmenu.tcl
+cp -f $GIPEDIR/gui_Makefile $GRASSCVSDIR/gui/Makefile 
+cp -f $GIPEDIR/gmmenu.tcl $GRASSCVSDIR/gui/tcltk/gis.m/gmmenu.tcl
 cd $GRASSCVSDIR/gui/
 make 
 
 #INSTALL MODULES
-cp r.*.tar.gz $GRASSCVSDIR/raster/ -f
-cp Makefile $GRASSCVSDIR/raster/ -f
+cd $GIPEDIR/
+for directory in r.*
+do
+	cp -rf $GIPEDIR/$directory $GRASSCVSDIR/raster/
+done
+cp -f $GIPEDIR/Makefile $GRASSCVSDIR/raster/ 
 cd $GRASSCVSDIR/raster/
-for file in r.*.tar.gz
-	do
-		tar xvzf $file
-	done
 make
-cp i.*.tar.gz $GRASSCVSDIR/imagery/ -f
-cp Makefile $GRASSCVSDIR/imagery/ -f
+
+for directory in i.*
+do
+	cp -rf $GIPEDIR/$directory $GRASSCVSDIR/imagery/ 
+done
+cp -f $GIPEDIR/imagery_Makefile $GRASSCVSDIR/imagery/Makefile 
 cd $GRASSCVSDIR/imagery/
-for file in i.*.tar.gz
-	do
-		tar xvzf $file
-	done
 make
+
 cd $GRASSCVSDIR
 make install
 

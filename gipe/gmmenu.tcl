@@ -152,6 +152,7 @@ set descmenu [subst  {
 			{command {[G_msg "DXF file (ASCII)"]} {} "v.out.dxf" {} -command { execute v.out.dxf }}
 			{command {[G_msg "ASCII vector or point file/old GRASS ASCII vector file"]} {} "v.out.ascii" {} -command { execute v.out.ascii }}
 			{command {[G_msg "POV-Ray format"]} {} "v.out.pov" {} -command { execute v.out.pov }}
+			{command {[G_msg "SVG file"]} {} "v.out.svg" {} -command { execute v.out.svg }}
 			{command {[G_msg "VTK ASCII file"]} {} "v.out.vtk" {} -command { execute v.out.vtk }}
 		}}
 		{cascad {[G_msg "Grid 3D"]} {} "" $tmenu {
@@ -182,6 +183,8 @@ set descmenu [subst  {
 	}}
 	{separator}
 	{command {[G_msg "Georectify"]} {} "Georectify raster map in xy location" {} -command { GRMap::startup }}
+	{separator}
+	{command {[G_msg "Convert between bearing/distance and coordinates"]} {} "m.cogo" {} -command { execute m.cogo }}
 	{separator}
 	{command {[G_msg "Create ps.map file for postscript printing"]} {} "ps.map" {} -command { execute ps.map }}
 	{separator}
@@ -235,6 +238,7 @@ set descmenu [subst  {
 			{command {[G_msg "Resample using regularized spline with tension method"]} {} "r.resamp.rst" {} -command {execute r.resamp.rst }}
 	    }}
 		{command {[G_msg "Support file creation and maintenance"]} {} "r.support" {} -command {term r.support }}
+		{command {[G_msg "Update raster map statistics"]} {} "r.support.stats" {} -command {execute r.support.stats }}
 		{separator}
 		{command {[G_msg "Reproject raster from other location"]} {} "r.proj" {} -command {execute r.proj }}
 		{command {[G_msg "Generate tiling for other projection"]} {} "r.tileset" {} -command {execute r.tileset }}
@@ -343,6 +347,7 @@ set descmenu [subst  {
 	}}
 	{command {[G_msg "Generate vector contour lines"]} {} "r.contour" {} -command { execute r.contour }}
 	{cascad {[G_msg "Interpolate surfaces"]} {} "" $tmenu {			
+		{command {[G_msg "Bicubic and bilinear interpolation with Tykhonov regularization from vector points"]} {} "v.surf.bspline" {} -command { execute v.surf.bspline }}
 		{command {[G_msg "Bilinear interpolation from raster points"]} {} "r.bilinear" {} -command { execute r.bilinear }}
 		{command {[G_msg "Inverse distance weighted interpolation from raster points"]} {} "r.surf.idw" {} -command { execute r.surf.idw }}
 		{command {[G_msg "Interpolation from raster contours"]} {} "r.surf.contour" {} -command { execute r.surf.contour }}
@@ -364,7 +369,7 @@ set descmenu [subst  {
 		{command {[G_msg "Summary statistics for clumped cells (works with r.clump)"]} {} "r.volume" {} -command {execute r.volume }}
 		{command {[G_msg "Total surface area corrected for topography"]} {} "r.surf.area" {} -command {execute r.surf.area }}
 		{command {[G_msg "Univariate statistics"]} {} "r.univar" {} -command {execute r.univar }}
-		{command {[G_msg "Univariate statistics (script version)"]} {} " r.univar.sh" {} -command {execute r.univar.sh }}
+		{command {[G_msg "Univariate statistics (script version)"]} {} " r.univar" {} -command {execute r.univar }}
 		{separator}
 		{command {[G_msg "Sample values along transects"]} {} "r.profile" {} -command {execute r.profile }}
 		{command {[G_msg "Sample values along transects (use azimuth, distance)"]} {} " r.transect" {} -command {execute r.transect }}
@@ -396,7 +401,10 @@ set descmenu [subst  {
 		{command {[G_msg "Reproject vector from other location"]} {} "v.proj" {} -command {execute v.proj }}
 	}}
 	{cascad {[G_msg "Vector<->database connections"]} {} "" $tmenu {			
+		{command {[G_msg "Create and add new attribute table to vector map"]} {} "v.db.addtable" {} -command {execute v.db.addtable }}
 		{command {[G_msg "Create new vector as link to external OGR layer"]} {} "v.external" {} -command {execute v.external }}
+		{command {[G_msg "Reconnect vector map to attribute database"]} {} "v.db.reconnect.all" {} -command {execute v.db.reconnect.all }}
+		{command {[G_msg "Remove existing table for vector map"]} {} "v.db.droptable" {} -command {execute v.db.droptable }}
 		{command {[G_msg "Set database connection for vector attributes"]} {} "v.db.connect" {} -command {execute v.db.connect }}
 	}}
 	{command {[G_msg "Rectify and georeference vector map"]} {} "v.transform" {} -command {execute v.transform }}
@@ -406,6 +414,11 @@ set descmenu [subst  {
 	{command {[G_msg "Query by map features"]} {} " v.select" {} -command {execute v.select }}
 	{separator}
 	{command {[G_msg "Create vector buffers"]} {} "v.buffer" {} -command {execute v.buffer }}
+	{cascad {[G_msg "Lidar object filtering and detection"]} {} "" $tmenu {			
+		{command {[G_msg "Detect object edges in LIdar data"]} {} "v.lidar.edgedetection" {} -command {execute v.lidar.edgedetection }}
+		{command {[G_msg "Detect interior of objects in Lidar data"]} {} "v.lidar.growing" {} -command {execute v.lidar.growing }}
+		{command {[G_msg "Correct and reclassify objected detected in Lidar data"]} {} "v.lidar.correction" {} -command {execute v.lidar.correction }}
+	}}
 	{cascad {[G_msg "Linear referencing for vectors"]} {} "" $tmenu {			
 		{command {[G_msg "Create linear reference system"]} {} "v.lrs.create" {} -command {execute v.lrs.create }}
 		{command {[G_msg "Create stationing from imput lines, and linear reference system"]} {} "v.lrs.label" {} -command {execute v.lrs.label }}
@@ -455,6 +468,7 @@ set descmenu [subst  {
  			{command {[G_msg "Sample raster neighborhood around points"]} {} "v.sample" {} -command {execute v.sample }}
  		}}
  		{command {[G_msg "Partition points into test/training sets for k-fold cross validatation"]} {} "v.kcv" {} -command {execute v.kcv }}
+ 		{command {[G_msg "Remove outliers from vector point set"]} {} "v.outlier" {} -command {execute v.outlier }}
  		{command {[G_msg "Transfer attribute data from queried vector map to points"]} {} "v.what.vect" {} -command {execute v.what.vect }}
 	}}
 	{separator}
