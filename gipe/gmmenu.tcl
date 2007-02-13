@@ -178,15 +178,15 @@ set descmenu [subst  {
 		{command {[G_msg "Vector to vector"]} {} "v.type" {} -command {execute v.type }}
 		{command {[G_msg "Vector lines to points"]} {} "v.to.points" {} -command {execute v.to.points }}
 		{command {[G_msg "Vector 3D points to volume voxels"]} {} "v.to.rast3" {} -command {execute v.to.rast3 }}
-		{command {[G_msg "Sites (GRASS 5.x) to vector"]} {} "v.in.sites" {} -command {execute v.in.sites }}
+		{command {[G_msg "Sites (GRASS 5) to vector"]} {} "v.in.sites" {} -command {execute v.in.sites }}
 		{command {[G_msg "Volumes to raster map series"]} {} "r3.to.rast" {} -command {execute r3.to.rast }}
 	}}
 	{separator}
-	{command {[G_msg "Georectify"]} {} "Georectify raster map in xy location" {} -command { GRMap::startup }}
+	{command {[G_msg "Georectify"]} {} "Georectify raster map in XY location" {} -command { GRMap::startup }}
 	{separator}
 	{command {[G_msg "Convert between bearing/distance and coordinates"]} {} "m.cogo" {} -command { execute m.cogo }}
 	{separator}
-	{command {[G_msg "Create ps.map file for postscript printing"]} {} "ps.map" {} -command { execute ps.map }}
+	{command {[G_msg "Create cartographic PostScript plot"]} {} "ps.map" {} -command { execute ps.map }}
 	{separator}
 	{command {[G_msg "E&xit"]} {} "Exit GIS Manager" {} -accelerator $keyctrl-Q -command { exit } }
  }
@@ -311,6 +311,23 @@ set descmenu [subst  {
 		{command {[G_msg "Analyze landscape patch characteristics"]} {} " r.le.patch" {} -command {execute r.le.patch }}
 		{command {[G_msg "Output landscape patch information"]} {} "r.le.trace" {} -command {execute r.le.trace }}
 	}}
+	{cascad {[G_msg "Landscape patch analysis"]} {} "" $tmenu {			
+		{command {[G_msg "Configure and create patch map for analysis"]} {} "r.li.setup" {} -command {execute r.li.setup }}
+		{separator}
+		{command {[G_msg "Calculate contrast weighted edge density index"]} {} "r.li.cwed" {} -command {execute r.li.cwed }}
+		{command {[G_msg "Calculate dominance's diversity index"]} {} "r.li.dominance" {} -command {execute r.li.dominance }}
+		{command {[G_msg "Calculate edge density index using a 4 neighbour algorithm"]} {} "r.li.edgedensity" {} -command {execute r.li.edgedensity }}
+		{command {[G_msg "Calculate mean patch size index using a 4 neighbour algorithm"]} {} " r.li.mps" {} -command {execute r.li.mps }}
+		{command {[G_msg "Calculate coefficient of variation of patch area"]} {} "	r.li.padcv" {} -command {execute r.li.padcv }}
+ 		{command {[G_msg "Calculate range of patch area size"]} {} "r.li.padrange" {} -command {execute r.li.padrange }}
+ 		{command {[G_msg "Calculate standard deviation of patch area"]} {} "r.li.padsd" {} -command {execute r.li.padsd }}
+ 		{command {[G_msg "Calculate patch density index using a 4 neighbour algorithm"]} {} "r.li.patchdensity" {} -command {execute r.li.patchdensity }}
+ 		{command {[G_msg "Calculate patch number index using a 4 neighbour algorithm"]} {} "r.li.patchnum" {} -command {execute r.li.patchnum }}
+ 		{command {[G_msg "Calculate dominance's diversity index"]} {} "r.li.shannon" {} -command {execute r.li.shannon }}
+		{command {[G_msg "Calculate Shannon's diversity index"]} {} "r.li.richness" {} -command {execute r.li.richness }}
+ 		{command {[G_msg "Calculate shape index"]} {} "r.li.shape" {} -command {execute r.li.shape }}
+ 		{command {[G_msg "Calculate Simpson's diversity index"]} {} "r.li.simpson" {} -command {execute r.li.simpson }}
+	}}
 	{cascad {[G_msg "Wildfire modeling"]} {} "" $tmenu {			
 		{command {[G_msg "Generate rate of spread (ROS) maps"]} {} "r.ros" {} -command {execute r.ros }}
 		{command {[G_msg "Generate least-cost spread paths"]} {} "r.spreadpath" {} -command {execute r.spreadpath }}
@@ -417,7 +434,7 @@ set descmenu [subst  {
 	{cascad {[G_msg "Lidar object filtering and detection"]} {} "" $tmenu {			
 		{command {[G_msg "Detect object edges in LIdar data"]} {} "v.lidar.edgedetection" {} -command {execute v.lidar.edgedetection }}
 		{command {[G_msg "Detect interior of objects in Lidar data"]} {} "v.lidar.growing" {} -command {execute v.lidar.growing }}
-		{command {[G_msg "Correct and reclassify objected detected in Lidar data"]} {} "v.lidar.correction" {} -command {execute v.lidar.correction }}
+		{command {[G_msg "Correct and reclassify objects detected in Lidar data"]} {} "v.lidar.correction" {} -command {execute v.lidar.correction }}
 	}}
 	{cascad {[G_msg "Linear referencing for vectors"]} {} "" $tmenu {			
 		{command {[G_msg "Create linear reference system"]} {} "v.lrs.create" {} -command {execute v.lrs.create }}
@@ -614,6 +631,7 @@ set descmenu [subst  {
 			{separator}
 			{command {[G_msg "evaporative fraction"]} {} "r.eb.evapfr" {} -command {execute r.eb.evapfr }}
 			{command {[G_msg "Actual ET (SEBAL)"]} {} "r.eb.eta" {} -command {execute r.eb.eta }}
+			{command {[G_msg "Actual ET (TSA)"]} {} "r.evapo.TSA" {} -command {execute r.evapo.TSA }}
 	}}
 	{cascad {[G_msg "Biomass"]} {} "" $tmenu {
 			{command {[G_msg "Biomass growth"]} {} "r.biomass" {} -command {execute r.biomass }}
