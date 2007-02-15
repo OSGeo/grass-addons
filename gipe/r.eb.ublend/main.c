@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	input1->key	   = _("u_hm");
 	input1->type       = TYPE_STRING;
 	input1->required   = YES;
-	input1->gisprompt  =_("old,dcell,raster") ;
+	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the wind speed at momentum height map (2.0m height in Pawan, 2004)");
 	input1->answer     =_("u_hm");
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	input3->key        =_("disp");
 	input3->type       = TYPE_STRING;
 	input3->required   = YES;
-	input3->gisprompt  =_("old,dcell,raster");
+	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the displacement height map");
 	input3->answer     =_("disp");
 
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 	input4->key        =_("z0m");
 	input4->type       = TYPE_STRING;
 	input4->required   = YES;
-	input4->gisprompt  =_("old,dcell,raster");
+	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the surface roughness for momentum map");
 	input4->answer     =_("z0m");
 	
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 	output1->key        =_("ublend");
 	output1->type       = TYPE_STRING;
 	output1->required   = YES;
-	output1->gisprompt  =_("new,dcell,raster");
+	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output ublend layer");
 	output1->answer     =_("ublend");
 

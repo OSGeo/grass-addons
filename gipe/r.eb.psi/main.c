@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	input1->key	   = _("disp");
 	input1->type       = TYPE_STRING;
 	input1->required   = YES;
-	input1->gisprompt  =_("old,dcell,raster") ;
+	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the displacement height map");
 	input1->answer     =_("disp");
 

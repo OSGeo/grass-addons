@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	input1->key	   = _("rohair");
 	input1->type       = TYPE_STRING;
 	input1->required   = YES;
-	input1->gisprompt  =_("old,dcell,raster") ;
+	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the air density map ~[0.9;1.5]");
 	input1->answer     =_("rohair");
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 	input3->key        =_("ustar");
 	input3->type       = TYPE_STRING;
 	input3->required   = YES;
-	input3->gisprompt  =_("old,dcell,raster");
+	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the ustar map");
 	input3->answer     =_("ustar");
 
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	input4->key        =_("tempk");
 	input4->type       = TYPE_STRING;
 	input4->required   = YES;
-	input4->gisprompt  =_("old,dcell,raster");
+	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the surface skin temperature map [degrees Kelvin]");
 	input4->answer     =_("tempk");
 	
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	input5->key        =_("h0");
 	input5->type       = TYPE_STRING;
 	input5->required   = YES;
-	input5->gisprompt  =_("new,dcell,raster");
+	input5->gisprompt  =_("new,cell,raster");
 	input5->description=_("Name of the sensible heat flux map");
 	input5->answer     =_("h0");
 
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 	output1->key        =_("molength");
 	output1->type       = TYPE_STRING;
 	output1->required   = YES;
-	output1->gisprompt  =_("new,dcell,raster");
+	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output Monin-Obukov Length layer");
 	output1->answer     =_("molength");
 	

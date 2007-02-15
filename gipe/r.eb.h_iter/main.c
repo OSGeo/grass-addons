@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	input1->key	   = _("rohair");
 	input1->type       = TYPE_STRING;
 	input1->required   = YES;
-	input1->gisprompt  =_("old,dcell,raster") ;
+	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the air density map ~[0.9;1.5], Pawan (2004) use 1.12 constant value");
 	input1->answer     =_("rohair");
 
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 	input3->key        =_("dtair");
 	input3->type       = TYPE_STRING;
 	input3->required   = NO;
-	input3->gisprompt  =_("old,dcell,raster");
+	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the skin-air Surface temperature difference map ~[0.0-80.0]");
 //	input3->answer     =_("dtair");
 
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 	input4->key        =_("tempk");
 	input4->type       = TYPE_STRING;
 	input4->required   = NO;
-	input4->gisprompt  =_("old,dcell,raster");
+	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the surface skin temperature map [degrees Kelvin],if used with -s flag and affine coefs, it disables dtair input");
 	input4->answer     =_("tempk");
 
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	input7->key        =_("disp");
 	input7->type       = TYPE_STRING;
 	input7->required   = YES;
-	input7->gisprompt  =_("old,dcell,raster");
+	input7->gisprompt  =_("old,cell,raster");
 	input7->description=_("Name of the displacement height input layer (m)");
 	input7->answer     =_("disp");
 	
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 	input8->key        =_("z0m");
 	input8->type       = TYPE_STRING;
 	input8->required   = YES;
-	input8->gisprompt  =_("old,dcell,raster");
+	input8->gisprompt  =_("old,cell,raster");
 	input8->description=_("Name of the z0m input layer (s/m)");
 	input8->answer     =_("z0m");
 	
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 	input9->key        =_("z0h");
 	input9->type       = TYPE_STRING;
 	input9->required   = YES;
-	input9->gisprompt  =_("old,dcell,raster");
+	input9->gisprompt  =_("old,cell,raster");
 	input9->description=_("Name of the z0h input layer (s/m)");
 	input9->answer     =_("z0h");
 	
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 	input10->key        =_("u2m");
 	input10->type       = TYPE_STRING;
 	input10->required   = YES;
-	input10->gisprompt  =_("old,dcell,raster");
+	input10->gisprompt  =_("old,cell,raster");
 	input10->description=_("Name of the wind speed at 2m height input layer (m/s)");
 	input10->answer     =_("u2m");
 		
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 	output1->key        =_("h0");
 	output1->type       = TYPE_STRING;
 	output1->required   = YES;
-	output1->gisprompt  =_("new,dcell,raster");
+	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output h0 layer");
 	output1->answer     =_("h0");
 
