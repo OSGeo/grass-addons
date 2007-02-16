@@ -429,7 +429,7 @@ struct Options define_options()
 	opts.icnd->key		= "icnd";
 	opts.icnd->type		= TYPE_STRING;
 	opts.icnd->required	= YES;
-	opts.icnd->gisprompt	= "old,file,input";
+	opts.icnd->gisprompt	= "old_file,file,file";
 	opts.icnd->answer	= "ETM4_atmospheric_input_GRASS.txt";
 	opts.icnd->description	= "6S input text file";
 

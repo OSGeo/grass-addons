@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 	input->key        = _("metfile");
 	input->type       = TYPE_STRING;
 	input->required   = YES;
-	input->gisprompt  = _(".met file");
+	input->gisprompt  = _("old_file,file,file");
 	input->description= _("Landsat 7ETM+ Header File (.met)");
 
 	output = G_define_option() ;
