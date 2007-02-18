@@ -110,6 +110,7 @@ SUBDIRS = \
 	r.stats \
 	r.sum \
 	r.sun \
+	r.sunhours \
 	r.sunmask \
 	r.support \
 	r.support.stats \

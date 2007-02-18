@@ -131,7 +131,7 @@ set descmenu [subst  {
 			{command {[G_msg "ASCII grid (for GRASS, Surfer, Modflow, etc)"]} {} "r.out.ascii" {} -command { execute r.out.ascii }}
 			{command {[G_msg "ASCII x,y,z values of cell centers"]} {} "r.out.xyz" {} -command { execute r.out.xyz }}
 			{separator}
-			{command {[G_msg "ESRI ARC/INFO ASCII grid"]} {} "r.out.arc" {} -command { execute r.out.arc }}
+			{command {[G_msg "ESRI Arc/Info ASCII grid"]} {} "r.out.arc" {} -command { execute r.out.arc }}
 			{command {[G_msg "GRIDATB.FOR map file (TOPMODEL)"]} {} "r.out.gridatb" {} -command { execute r.out.gridatb }}
 			{command {[G_msg "MAT-File (v.4) array (Matlab or Octave)"]} {} "r.out.mat" {} -command { execute r.out.mat }}
 			{separator}
@@ -209,10 +209,6 @@ set descmenu [subst  {
 		{command {[G_msg "Show projection information and create projection files"]} {} "g.proj" {} -command {execute g.proj }}
 		{separator}
 		{command {[G_msg "Convert coordinates from one projection to another"]} {} "m.proj" {} -command {execute m.proj }}
-	}}
-	{cascad {[G_msg "Text"]} {} "" $tmenu {
-		{command {[G_msg "Select default text font"]} {} "d.font" {} -command {execute d.font }}
-		{command {[G_msg "Select default freetype text font"]} {} "" {} -command {execute d.font.freetype }}
 	}}
 	{cascad {[G_msg "X-monitor displays"]} {} "" $tmenu {
 		{command {[G_msg "Configure xmonitor displays"]} {} "d.mon" {} -command {execute d.mon }}
@@ -608,11 +604,17 @@ set descmenu [subst  {
 			{command {[G_msg "Vegetation Indices (13 types) grid"]} {} "r.vi.grid" {} -command {execute r.vi.grid }}
 			{command {[G_msg "Albedo"]} {} "r.albedo" {} -command {execute r.albedo }}
 			{command {[G_msg "Latitude map"]} {} "r.latitude" {} -command {execute r.latitude }}
+			{command {[G_msg "Sunshine hours (potential)"]} {} "r.sunhours" {} -command {execute r.sunhours }}
+	}}
+	{separator}
+	{cascad {[G_msg "ETP & ETa"]} {} "" $tmenu {
 			{command {[G_msg "Potential ET (Radiative)"]} {} "r.evapo.potrad" {} -command {execute r.evapo.potrad }}
 			{command {[G_msg "Potential ET (Radiative) from L7DN (.met)"]} {} "r.dn2potrad.l7" {} -command {execute r.dn2potrad.l7 }}
 			{command {[G_msg "Potential ET (Penman-Monteith)"]} {} "r.evapo.PM" {} -command {execute r.evapo.PM }}
+			{separator}
+			{command {[G_msg "Actual ET (SEBAL)"]} {} "r.eb.eta" {} -command {execute r.eb.eta }}
+			{command {[G_msg "Actual ET (TSA)"]} {} "r.evapo.TSA" {} -command {execute r.evapo.TSA }}
 	}}
-	{separator}
 	{cascad {[G_msg "Energy Balance"]} {} "" $tmenu {
 			{command {[G_msg "surface roughness"]} {} "r.eb.z0m" {} -command {execute r.eb.z0m }}
 			{command {[G_msg "delta T"]} {} "r.eb.deltat" {} -command {execute r.eb.deltat }}
@@ -630,9 +632,8 @@ set descmenu [subst  {
 			{command {[G_msg "sensible heat flux iteration (fixed delta T)"]} {} "r.eb.h_iter" {} -command {execute r.eb.h_iter }}
 			{separator}
 			{command {[G_msg "evaporative fraction"]} {} "r.eb.evapfr" {} -command {execute r.eb.evapfr }}
-			{command {[G_msg "Actual ET (SEBAL)"]} {} "r.eb.eta" {} -command {execute r.eb.eta }}
-			{command {[G_msg "Actual ET (TSA)"]} {} "r.evapo.TSA" {} -command {execute r.evapo.TSA }}
 	}}
+	{separator}
 	{cascad {[G_msg "Biomass"]} {} "" $tmenu {
 			{command {[G_msg "Biomass growth"]} {} "r.biomass" {} -command {execute r.biomass }}
 	}}
