@@ -135,7 +135,6 @@ int main(int argc, char *argv[])
 	{
 		DCELL d;
 		DCELL d_da;
-		DCELL d_E0;
 		DCELL d_delta;
 		DCELL d_Ws;
 		DCELL d_N;
@@ -175,9 +174,8 @@ int main(int argc, char *argv[])
 					break;
 			}
 			d_da = 2 * PI * ( d_doy - 1 ) / 365.0;
-			d_E0 = 1.00011+0.034221*cos(d_da)+0.00128*sin(d_da)+0.000719*cos(2*d_da)+0.000077*sin(2*d_da);
 			d_delta = 0.006918-0.399912*cos(d_da)+0.070257*sin(d_da)-0.006758*cos(2*d_da)+0.000907*sin(2*d_da)-0.002697*cos(3*d_da)+0.00148*sin(3*d_da);
-			d_Ws = 1.0/(cos(-tan(d_lat)*tan(d_delta)));
+			d_Ws = acos(-tan(d_lat)*tan(d_delta));
 			d_N = ( 360.0 / ( 15.0 * PI ) ) * d_Ws;
 			((DCELL *) outrast1)[col] = d_N;
 		}
