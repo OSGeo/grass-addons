@@ -595,18 +595,23 @@ int main(int argc, char *argv[])
 	system(sys_8);
 
 	//Calculate ETa after Two-Source Algorithm (Chen et al., 2005)
+	system("echo \"\" >> temp.txt");
+	system("echo \"#TWO-SOURCE ALGORITHM\" >> temp.txt");
+	system("echo \"\" >> temp.txt");
 	system("echo \"r.mapcalc u2=2.0\" >> temp.txt");
 	system("echo \"r.mapcalc z0s=0.002\" >> temp.txt");
 	system("echo \"r.mapcalc z0=ndvi*2.0 \" >> temp.txt");
+	system("echo \"\" >> temp.txt");
 	sprintf(sys_9,"echo \"r.sunhours doy=%s.doy lat=%s.latitude sunh=%s.sunh\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_9);
 	sprintf(sys_11,"echo \"r.mapcalc %s.phi=%f\" >> temp.txt",basedate,sun_elevation);
 	system(sys_11);
-
+	system("echo \"\" >> temp.txt");
 	sprintf(sys_12," echo \"r.sattime doy=%s.doy lat=%s.latitude sun_elev=%s.phi sath=%s.sath\" >> temp.txt",basedate,basedate,basedate,basedate);
 	system(sys_12);
 	sprintf(sys_13," echo \"r.eb.deltat -w tempk=%s.61 delta=%s.delta\" >> temp.txt",basedate,basedate);
 	system(sys_13);
+	system("echo \"\" >> temp.txt");
 	sprintf(sys_14," echo \"r.mapcalc %s.tempka=%s.61+%s.delta\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_14);
 	sprintf(sys_10,"echo \"r.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=z0 Z0S=z0s W=5 TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
