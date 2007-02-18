@@ -30,11 +30,11 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
+	int verbose=1, wim=0;
 	struct GModule *module;
 	struct Option *input1, *output1;
 	
-	struct Flag *flag1;	
+	struct Flag *flag1, *flag2;	
 	struct History history; //metadata
 	
 	/************************************/
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
 	module = G_define_module();
 	module->keywords = _("delta T, energy balance, SEBAL");
-	module->description = _("difference of temperature between two heights as seen in Pawan (2004), this is part of sensible heat flux calculations, as in SEBAL (Bastiaanssen, 1995)");
+	module->description = _("difference of temperature between two heights as seen in Pawan (2004), this is part of sensible heat flux calculations, as in SEBAL (Bastiaanssen, 1995). A 'w' flag allows for a very generic approximation.");
 
 	/* Define the different options */
 	input1 = G_define_option() ;
@@ -82,14 +82,19 @@ int main(int argc, char *argv[])
 	flag1->key = 'q';
 	flag1->description = _("Quiet");
 
+	flag2 = G_define_flag();
+	flag2->key = 'w';
+	flag2->description = _("Wim's generic table");
+
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
 
 	tempk	 	= input1->answer;
 		
-	result1  = output1->answer;
-	verbose = (!flag1->answer);
+	result1  	= output1->answer;
+	verbose 	= (!flag1->answer);
+	wim 		= flag2->answer;
 	/***************************************************/
 	mapset = G_find_cell2(tempk, "");
 	if (mapset == NULL) {
@@ -129,7 +134,11 @@ int main(int argc, char *argv[])
 			}else {
 				/****************************/
 				/* calculate delta T	    */
-				d = delta_t(d_tempk);
+				if(wim){
+					d = -0.3225 * d_tempk + 91.743;
+				}else{
+					d = delta_t(d_tempk);
+				}
 				((DCELL *) outrast1)[col] = d;
 			}
 		}
