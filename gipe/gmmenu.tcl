@@ -603,8 +603,10 @@ set descmenu [subst  {
 			{command {[G_msg "Vegetation Indices (13 types) cluster"]} {} "r.vi.mpi" {} -command {execute r.vi.mpi }}
 			{command {[G_msg "Vegetation Indices (13 types) grid"]} {} "r.vi.grid" {} -command {execute r.vi.grid }}
 			{command {[G_msg "Albedo"]} {} "r.albedo" {} -command {execute r.albedo }}
+			{separator}
 			{command {[G_msg "Latitude map"]} {} "r.latitude" {} -command {execute r.latitude }}
 			{command {[G_msg "Sunshine hours (potential)"]} {} "r.sunhours" {} -command {execute r.sunhours }}
+			{command {[G_msg "Satellite overpass time"]} {} "r.sattime" {} -command {execute r.sattime }}
 	}}
 	{separator}
 	{cascad {[G_msg "ETP & ETa"]} {} "" $tmenu {

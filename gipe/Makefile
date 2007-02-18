@@ -104,6 +104,7 @@ SUBDIRS = \
 	r.resamp.stats \
 	r.rescale \
 	r.rescale.eq \
+	r.sattime \
 	r.series \
 	r.slope.aspect \
 	r.statistics \
