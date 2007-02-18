@@ -1,9 +1,6 @@
 /*Copyright (C) Yann Chemin
-ychemin@gmail.com
-Asian Institute of Technology,
-PO Box 4, Klong Luang,
-12120 Pathum Thani,
-Thailand
+yann.chemin@gmail.com
+GRASS Development Team
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -22,11 +19,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 Thanks to Brad Douglas <rez@touchofmadness.com> to fix the .tif filename issue
 */
 
-//WARNING: This is quite ugly string coding, i did not clean it yet (15Nov2006)
 //This is auto-generating an image processing script for GRASS GIS.
-//It is created by extracting useful information from the .met metadata file of Landsat 7
-//It runs several GRASS GIS modules to calculate (hopefully) automagically ET Potential
-//It assumes you just downloaded *.gz Landsat images from public repositories such as www.landsat.org or other and run this code in that directory from the GRASS GIS shell
+//It is created by extracting useful information from the .met metadata
+//file of Landsat 7
+//It runs several GRASS GIS modules to calculate (hopefully) 
+//automagically ET Potential
+//It assumes you just downloaded *.gz Landsat images from public 
+//repositories such as www.landsat.org or other and run this code 
+//in that directory from the GRASS GIS shell
  
 #include<stdio.h>
 #include<stdlib.h>
@@ -75,11 +75,13 @@ int main(int argc, char *argv[])
 	char	sys_qcalmax[80];
 	char	sys_basedate[80];//catenate of path and row (i.e.p127r050)
 	char	sys_b1[80],sys_b2[80],sys_b3[80];
+	char	sys_0[100],sys_00[100];
 	char	sys_b4[80],sys_b5[80],sys_b61[80];
 	char	sys_b62[80],sys_b7[80],sys_b8[80]; //Load .tif file names
 	char	sys_1[1000],sys_2[1000],sys_3[1000],sys_4[1000];
 	char	sys_5[1000],sys_6[1000],sys_7[1000],sys_8[1000];
-	char	sys_9[1000],sys_10[1000],sys_100[1000],sys_12[1000];
+	char	sys_9[1000],sys_10[1000],sys_100[1000];
+	char	sys_11[1000],sys_12[1000],sys_13[1000],sys_14[1000];
 
 
 	if(argc < 1){
@@ -545,6 +547,10 @@ int main(int argc, char *argv[])
 	//import the Landsat 7 files
 	system("echo \"\" >> temp.txt");
 	system("echo \"#IMPORT IN GRASS GIS\" >> temp.txt");
+	sprintf(sys_0,"echo \"for file in *10.tif; do r.in.gdal input=\\$file output=\\$file title=Landsat7ETM\\$file location=landsat\\%s ; done\" >> temp.txt",basedate);
+	system(sys_0);
+	sprintf(sys_00,"echo \"g.mapset location=landsat\\%s mapset=PERMANENT\" >> temp.txt", basedate);
+	system(sys_00);
 	system("echo \"for file in *.tif; do r.in.gdal input=\\$file output=\\$file title=Landsat7ETM\\$file ; done\" >> temp.txt");
 	//Set region to Temperature map
 	system("echo \"\" >> temp.txt");
@@ -588,6 +594,23 @@ int main(int argc, char *argv[])
 	snprintf(sys_8,1000,"echo \"r.vi viname=ndvi red=%s.3 nir=%s.4 vi=%s.ndvi --overwrite ; r.null map=%s.ndvi setnull=-1.0 ; r.colors map=%s.ndvi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_8);
 
+	//Calculate ETa after Two-Source Algorithm (Chen et al., 2005)
+	system("echo \"r.mapcalc u2=2.0\" >> temp.txt");
+	system("echo \"r.mapcalc z0s=0.002\" >> temp.txt");
+	system("echo \"r.mapcalc z0=ndvi*2.0 \" >> temp.txt");
+	sprintf(sys_9,"echo \"r.sunhours doy=%s.doy lat=%s.latitude sunh=%s.sunh\" >> temp.txt",basedate,basedate,basedate);
+	system(sys_9);
+	sprintf(sys_11,"echo \"r.mapcalc %s.phi=%f\" >> temp.txt",basedate,sun_elevation);
+	system(sys_11);
+
+	sprintf(sys_12," echo \"r.sattime doy=%s.doy lat=%s.latitude sun_elev=%s.phi sath=%s.sath\" >> temp.txt",basedate,basedate,basedate,basedate);
+	system(sys_12);
+	sprintf(sys_13," echo \"r.eb.deltat -w tempk=%s.61 delta=%s.delta\" >> temp.txt",basedate,basedate);
+	system(sys_13);
+	sprintf(sys_14," echo \"r.mapcalc %s.tempka=%s.61+%s.delta\" >> temp.txt",basedate,basedate,basedate);
+	system(sys_14);
+	sprintf(sys_10,"echo \"r.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=z0 Z0S=z0s W=5 TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	system(sys_10);
 	//clean maps
 // 	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
 
