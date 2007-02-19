@@ -6,8 +6,7 @@
  * PURPOSE:      Calculates USLE R factor 
  * 		 Rainfall Erosion index according to four methods 
  *
- * COPYRIGHT:    (C) 2006 by the SIC-ISDC, Ashgabat, Turkmenistan
- * 		 (C) 2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS

@@ -4,8 +4,7 @@
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculate TOA Reflectance for Landsat7 from DN.
  *
- * COPYRIGHT:    (C) 2006 by the Asian Institute of Technology, Thailand
- * 		 (C) 2002 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
  *
  *               This program is free software under the GNU Lesser General Public
  *   	    	 License. Read the file COPYING that comes with GRASS for details.

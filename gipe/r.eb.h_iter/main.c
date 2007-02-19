@@ -9,7 +9,7 @@
  *               of surface temperature as used in his SEBAL model.
  *               This has been seen in Pawan (2004).
  *
- * COPYRIGHT:    (C) 2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS

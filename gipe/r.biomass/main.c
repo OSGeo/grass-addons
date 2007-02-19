@@ -6,8 +6,7 @@
  *               the condition that all net radiation becomes ET
  *               (thus it can be called a "radiative ET pot")
  *
- * COPYRIGHT:    (C) 2006 by the Asian Institute of Technology, Thailand
- * 		 (C) 2002 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS

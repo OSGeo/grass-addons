@@ -6,8 +6,7 @@
  * PURPOSE:      Run SWAP model in an optimization mode from a real-coded
  *               genetic algorithm (Michalewicz,1996).
  *
- * COPYRIGHT:    (C) 2004-2006 by the Asian Institute of Technology, Thailand
- * 		 (C) 2002 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2007 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS

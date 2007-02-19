@@ -8,7 +8,7 @@
 *		of of a Two-Source Algorithm from Chen et al. (2005).
 *		IJRS, 26(8):1755-1762
 *
-* COPYRIGHT:	(C) 2007 by the GRASS Development Team
+* COPYRIGHT:	(C) 2002-2007 by the GRASS Development Team
 *
 *		This program is free software under the GNU General Public
 *		Licence (>=2). Read the file COPYING that cames with GRASS
