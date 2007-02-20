@@ -5,7 +5,7 @@
  * PURPOSE:      Calculates the time of satellite overpass
  * 		 using sun elevation angle, latitude and DOY.
  *
- * COPYRIGHT:    (C) 2002-2007 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2007 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	input1->type       = TYPE_STRING;
 	input1->required   = YES;
 	input1->gisprompt  =_("old,cell,raster") ;
-	input1->description=_("Name of the latitude input map");
+	input1->description=_("Name of the DOY input map");
 	input1->answer     =_("doy");
 
 	input2 = G_define_option() ;
@@ -102,12 +102,12 @@ int main(int argc, char *argv[])
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
 
-	lat	 	= input1->answer;
-	doy	 	= input2->answer;
+	doy	 	= input1->answer;
+	lat	 	= input2->answer;
 	phi	 	= input3->answer;
 		
-	result1  = output1->answer;
-	verbose = (!flag1->answer);
+	result1  	= output1->answer;
+	verbose 	= (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(doy, "");
 	if (mapset == NULL) {
@@ -171,7 +171,6 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Could not read from <%s>"),phi);
 		for (col=0; col < ncols; col++)
 		{
-			
 			switch(data_type_doy){
 				case CELL_TYPE:
 					d_doy = (double) ((CELL *) inrast_doy)[col];

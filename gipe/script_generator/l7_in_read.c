@@ -594,7 +594,7 @@ int main(int argc, char *argv[])
 	//Calculate NDVI 
 	snprintf(sys_8,1000,"echo \"r.vi viname=ndvi red=%s.3 nir=%s.4 vi=%s.ndvi --overwrite ; r.null map=%s.ndvi setnull=-1.0 ; r.colors map=%s.ndvi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_8);
-	snprintf(sys_16,1000,"echo \"r.vi viname=savi red=%s.3 nir=%s.4 vi=%s.ndvi --overwrite ; r.null map=%s.savi setnull=-1.0 ; r.colors map=%s.savi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
+	snprintf(sys_16,1000,"echo \"r.vi viname=savi red=%s.3 nir=%s.4 vi=%s.savi --overwrite ; r.null map=%s.savi setnull=-1.0 ; r.colors map=%s.savi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_16);
 
 	//Calculate ETa after Two-Source Algorithm (Chen et al., 2005)
@@ -603,22 +603,22 @@ int main(int argc, char *argv[])
 	system("echo \"\" >> temp.txt");
 	system("echo \"r.mapcalc u2=2.0\" >> temp.txt");
 	system("echo \"r.mapcalc z0s=0.002\" >> temp.txt");
-	sprintf(sys_15,"echo \"r.eb.z0m savi=%s.savi coef=0.1 z0m=%s.z0m z0h=%s.z0h\" >> temp.txt",basedate,basedate,basedate);
+	sprintf(sys_15,"echo \"r.eb.z0m savi=%s.savi coef=0.1 z0m=%s.z0m z0h=%s.z0h --overwrite\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_15);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_9,"echo \"r.sunhours doy=%s.doy lat=%s.latitude sunh=%s.sunh\" >> temp.txt",basedate,basedate,basedate);
+	sprintf(sys_9,"echo \"r.sunhours doy=%s.doy lat=%s.latitude sunh=%s.sunh --overwrite\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_9);
-	sprintf(sys_11,"echo \"r.mapcalc %s.phi=%f\" >> temp.txt",basedate,sun_elevation);
+	sprintf(sys_11,"echo \"r.mapcalc \"%s.phi=%f\"\" >> temp.txt",basedate,sun_elevation);
 	system(sys_11);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_12," echo \"r.sattime doy=%s.doy lat=%s.latitude sun_elev=%s.phi sath=%s.sath\" >> temp.txt",basedate,basedate,basedate,basedate);
+	sprintf(sys_12," echo \"r.sattime doy=%s.doy lat=%s.latitude sun_elev=%s.phi sath=%s.sath --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate);
 	system(sys_12);
-	sprintf(sys_13," echo \"r.eb.deltat -w tempk=%s.61 delta=%s.delta\" >> temp.txt",basedate,basedate);
+	sprintf(sys_13," echo \"r.eb.deltat -w tempk=%s.61 delta=%s.delta --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_13);
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_14," echo \"r.mapcalc %s.tempka=%s.61+%s.delta\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_14);
-	sprintf(sys_10,"echo \"r.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=5 TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_10,"echo \"r.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=5 TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_10);
 	//clean maps
 // 	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
