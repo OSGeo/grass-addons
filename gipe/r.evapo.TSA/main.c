@@ -8,7 +8,7 @@
 *		of of a Two-Source Algorithm from Chen et al. (2005).
 *		IJRS, 26(8):1755-1762
 *
-* COPYRIGHT:	(C) 2002-2007 by the GRASS Development Team
+* COPYRIGHT:	(C) 2007 by the GRASS Development Team
 *
 *		This program is free software under the GNU General Public
 *		Licence (>=2). Read the file COPYING that cames with GRASS
@@ -50,7 +50,9 @@ int main(int argc, char *argv[])
 	/* buffer for input-output rasters */
 	DCELL *inrast_FV,*inrast_TEMPK,*inrast_TEMPKA,*inrast_ALB,*inrast_NDVI,*inrast_RNET;
 	DCELL *inrast_UZ,*inrast_DISP,*inrast_Z0,*inrast_HV;
-	DCELL *inrast_Z0S,*inrast_W,*inrast_TIME,*inrast_SUNH,*outrast;
+	DCELL *inrast_Z0S,*inrast_W,*inrast_TIME,*inrast_SUNH;
+	
+	unsigned char *outrast;
 	
 	/* pointers to input-output raster files */
 	int infd_FV,infd_TEMPK,infd_TEMPKA,infd_ALB,infd_NDVI,infd_RNET;
@@ -93,7 +95,24 @@ int main(int argc, char *argv[])
 	struct Flag *flag1, *zero;
 	struct Colors color;
 	struct History history;
-			
+
+	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
+	RASTER_MAP_TYPE data_type_fv;
+	RASTER_MAP_TYPE data_type_tempk;
+	RASTER_MAP_TYPE data_type_tempka;
+	RASTER_MAP_TYPE data_type_alb;
+	RASTER_MAP_TYPE data_type_ndvi;
+	RASTER_MAP_TYPE data_type_rnet;
+	RASTER_MAP_TYPE data_type_uz;
+	RASTER_MAP_TYPE data_type_disp;
+	RASTER_MAP_TYPE data_type_z0;
+	RASTER_MAP_TYPE data_type_hv;
+	RASTER_MAP_TYPE data_type_w;
+	RASTER_MAP_TYPE data_type_time;
+	RASTER_MAP_TYPE data_type_sunh;
+	RASTER_MAP_TYPE data_type_z0s;
+	RASTER_MAP_TYPE data_type_eta;
+
 	/* Initialize the GIS calls */
 	G_gisinit(argv[0]);
 	
@@ -319,8 +338,27 @@ int main(int argc, char *argv[])
 			G_fatal_error (_("[%s] is an illegal name"), ETa);
 		
 	/* determine the input map type (CELL/FCELL/DCELL) */
-	//data_type = G_raster_map_type(T, mapset);
-
+	data_type_rnet = G_raster_map_type(RNET,mapset_RNET);
+	data_type_fv = G_raster_map_type(FV,mapset_FV);
+	data_type_tempk = G_raster_map_type(TEMPK,mapset_TEMPK);
+	data_type_tempka = G_raster_map_type(TEMPKA,mapset_TEMPKA);
+	data_type_alb = G_raster_map_type(ALB,mapset_ALB);
+	data_type_ndvi = G_raster_map_type(NDVI,mapset_NDVI);
+	data_type_uz = G_raster_map_type(UZ,mapset_UZ);
+	if(DISP){
+		data_type_disp = G_raster_map_type(DISP,mapset_DISP);
+	}
+	if(Z0){
+		data_type_z0 = G_raster_map_type(Z0,mapset_Z0);
+	}
+	if(HV){
+		data_type_hv = G_raster_map_type(HV,mapset_HV);
+	}
+	data_type_z0s = G_raster_map_type(Z0S,mapset_Z0S);
+	data_type_w = G_raster_map_type(W,mapset_W);
+	data_type_time = G_raster_map_type(TIME,mapset_TIME);
+	data_type_sunh = G_raster_map_type(SUNH,mapset_SUNH);
+	
 	/* open pointers to input raster files */
 	if ( (infd_RNET = G_open_cell_old (RNET, mapset_RNET)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), RNET);
@@ -382,30 +420,30 @@ int main(int argc, char *argv[])
 		G_fatal_error (_("Cannot read file header of [%s]"), SUNH);
 
 	/* Allocate input buffer */
-	inrast_RNET  = G_allocate_d_raster_buf();
-	inrast_FV = G_allocate_d_raster_buf();
-	inrast_TEMPK = G_allocate_d_raster_buf();
-	inrast_TEMPKA = G_allocate_d_raster_buf();
-	inrast_ALB = G_allocate_d_raster_buf();
-	inrast_NDVI = G_allocate_d_raster_buf();
-	inrast_UZ = G_allocate_d_raster_buf();
+	inrast_RNET  = G_allocate_raster_buf(data_type_rnet);
+	inrast_FV = G_allocate_raster_buf(data_type_fv);
+	inrast_TEMPK = G_allocate_raster_buf(data_type_tempk);
+	inrast_TEMPKA = G_allocate_raster_buf(data_type_tempka);
+	inrast_ALB = G_allocate_raster_buf(data_type_alb);
+	inrast_NDVI = G_allocate_raster_buf(data_type_ndvi);
+	inrast_UZ = G_allocate_raster_buf(data_type_uz);
 	if(DISP)
-		inrast_DISP = G_allocate_d_raster_buf();
+		inrast_DISP = G_allocate_raster_buf(data_type_disp);
 	if(Z0)
-		inrast_Z0 = G_allocate_d_raster_buf();
+		inrast_Z0 = G_allocate_raster_buf(data_type_z0);
 	if(HV)
-		inrast_HV = G_allocate_d_raster_buf();
-	inrast_Z0S = G_allocate_d_raster_buf();
-	inrast_W = G_allocate_d_raster_buf();
-	inrast_TIME = G_allocate_d_raster_buf();
-	inrast_SUNH = G_allocate_d_raster_buf();
+		inrast_HV = G_allocate_raster_buf(data_type_hv);
+	inrast_Z0S = G_allocate_raster_buf(data_type_z0s);
+	inrast_W = G_allocate_raster_buf(data_type_w);
+	inrast_TIME = G_allocate_raster_buf(data_type_time);
+	inrast_SUNH = G_allocate_raster_buf(data_type_sunh);
 	
 	/* get rows and columns number of the current region */
 	nrows = G_window_rows();
 	ncols = G_window_cols();
 
 	/* allocate output buffer */
-	outrast = G_allocate_d_raster_buf();
+	outrast = G_allocate_raster_buf(data_type_output);
 
 	/* open pointers to output raster files */
 	if ( (outfd = G_open_raster_new (ETa,DCELL_TYPE)) < 0)
@@ -449,32 +487,172 @@ int main(int argc, char *argv[])
 		for (col=0; col < ncols; col++)
 		{
 			/* read current cell from line buffer */
-			d_rnet		= ((DCELL *) inrast_RNET)[col];
-			d_fv		= ((DCELL *) inrast_FV)[col];
-			d_tempk		= ((DCELL *) inrast_TEMPK)[col];
-			d_tempka	= ((DCELL *) inrast_TEMPKA)[col];
-			d_alb		= ((DCELL *) inrast_ALB)[col];
-			d_ndvi		= ((DCELL *) inrast_NDVI)[col];
-			d_uz		= ((DCELL *) inrast_UZ)[col];
+			switch(data_type_rnet){
+				case CELL_TYPE:
+					d_rnet	= (double) ((CELL *) inrast_RNET)[col];
+					break;
+				case FCELL_TYPE:
+					d_rnet	= (double) ((FCELL *) inrast_RNET)[col];
+					break;
+				case DCELL_TYPE:
+					d_rnet	= ((DCELL *) inrast_RNET)[col];
+					break;
+			}
+			switch(data_type_fv){
+				case CELL_TYPE:
+					d_fv = (double) ((CELL *) inrast_FV)[col];
+					break;
+				case FCELL_TYPE:
+					d_fv = (double) ((FCELL *) inrast_FV)[col];
+					break;
+				case DCELL_TYPE:
+					d_fv = ((DCELL *) inrast_FV)[col];
+					break;
+			}
+			switch(data_type_tempk){
+				case CELL_TYPE:
+					d_tempk	= (double) ((CELL *) inrast_TEMPK)[col];
+					break;
+				case FCELL_TYPE:
+					d_tempk	= (double) ((FCELL *) inrast_TEMPK)[col];
+					break;
+				case DCELL_TYPE:
+					d_tempk	= ((DCELL *) inrast_TEMPK)[col];
+					break;
+			}
+			switch(data_type_tempka){
+				case CELL_TYPE:
+					d_tempka = (double) ((CELL *) inrast_TEMPKA)[col];
+					break;
+				case FCELL_TYPE:
+					d_tempka = (double) ((FCELL *) inrast_TEMPKA)[col];
+					break;
+				case DCELL_TYPE:
+					d_tempka = ((DCELL *) inrast_TEMPKA)[col];
+					break;
+			}
+			switch(data_type_alb){
+				case CELL_TYPE:
+					d_alb = (double) ((CELL *) inrast_ALB)[col];
+					break;
+				case FCELL_TYPE:
+					d_alb = (double) ((FCELL *) inrast_ALB)[col];
+					break;
+				case DCELL_TYPE:
+					d_alb = ((DCELL *) inrast_ALB)[col];
+					break;
+			}
+			switch(data_type_ndvi){
+				case CELL_TYPE:
+					d_ndvi 	= (double) ((CELL *) inrast_NDVI)[col];
+					break;
+				case FCELL_TYPE:
+					d_ndvi 	= (double) ((FCELL *) inrast_NDVI)[col];
+					break;
+				case DCELL_TYPE:
+					d_ndvi 	= ((DCELL *) inrast_NDVI)[col];
+					break;
+			}
+			switch(data_type_uz){
+				case CELL_TYPE:
+					d_uz = (double) ((CELL *) inrast_UZ)[col];
+					break;
+				case FCELL_TYPE:
+					d_uz = (double) ((FCELL *) inrast_UZ)[col];
+					break;
+				case DCELL_TYPE:
+					d_uz = ((DCELL *) inrast_UZ)[col];
+					break;
+			}
 			if(DISP){
-				d_disp	= ((DCELL *) inrast_DISP)[col];
+				switch(data_type_tempk){
+					case CELL_TYPE:
+						d_disp	= (double) ((CELL *) inrast_DISP)[col];
+						break;
+					case FCELL_TYPE:
+						d_disp	= (double) ((FCELL *) inrast_DISP)[col];
+						break;
+					case DCELL_TYPE:
+						d_disp	= ((DCELL *) inrast_DISP)[col];
+						break;
+				}
 			}else{
 				d_disp	= -10.0;//negative, see inside functions
 			}
 			if(Z0){
-				d_z0	= ((DCELL *) inrast_Z0)[col];
+			switch(data_type_z0){
+				case CELL_TYPE:
+					d_z0 = (double) ((CELL *) inrast_Z0)[col];
+					break;
+				case FCELL_TYPE:
+					d_z0 = (double) ((FCELL *) inrast_Z0)[col];
+					break;
+				case DCELL_TYPE:
+					d_z0	= ((DCELL *) inrast_Z0)[col];
+					break;
+			}
 			}else{
 				d_z0	= -10.0;//negative, see inside functions
 			}
 			if(HV){
-				d_hv	= ((DCELL *) inrast_HV)[col];
+			switch(data_type_hv){
+				case CELL_TYPE:
+					d_hv	= (double) ((CELL *) inrast_HV)[col];
+					break;
+				case FCELL_TYPE:
+					d_hv	= (double) ((FCELL *) inrast_HV)[col];
+					break;
+				case DCELL_TYPE:
+					d_hv	= ((DCELL *) inrast_HV)[col];
+					break;
+			}
 			}else{
 				d_hv	= -10.0;//negative, see inside functions
 			}
-			d_z0s	= ((DCELL *) inrast_Z0S)[col];
-			d_w	= ((DCELL *) inrast_W)[col];
-			d_time	= ((DCELL *) inrast_TIME)[col];
-			d_sunh	= ((DCELL *) inrast_SUNH)[col];
+			switch(data_type_z0s){
+				case CELL_TYPE:
+					d_z0s	= (double) ((CELL *) inrast_Z0S)[col];
+					break;
+				case FCELL_TYPE:
+					d_z0s	= (double) ((FCELL *) inrast_Z0S)[col];
+					break;
+				case DCELL_TYPE:
+					d_z0s	= ((DCELL *) inrast_Z0S)[col];
+					break;
+			}
+			switch(data_type_w){
+				case CELL_TYPE:
+					d_w = (double) ((CELL *) inrast_W)[col];
+					break;
+				case FCELL_TYPE:
+					d_w = (double) ((FCELL *) inrast_W)[col];
+					break;
+				case DCELL_TYPE:
+					d_w = ((DCELL *) inrast_W)[col];
+					break;
+			}
+			switch(data_type_time){
+				case CELL_TYPE:
+					d_time	= (double) ((CELL *) inrast_TIME)[col];
+					break;
+				case FCELL_TYPE:
+					d_time	= (double) ((FCELL *) inrast_TIME)[col];
+					break;
+				case DCELL_TYPE:
+					d_time	= ((DCELL *) inrast_TIME)[col];
+					break;
+			}
+			switch(data_type_sunh){
+				case CELL_TYPE:
+					d_sunh	= (double) ((CELL *) inrast_SUNH)[col];
+					break;
+				case FCELL_TYPE:
+					d_sunh	= (double) ((FCELL *) inrast_SUNH)[col];
+					break;
+				case DCELL_TYPE:
+					d_sunh	= ((DCELL *) inrast_SUNH)[col];
+					break;
+			}
 
 			//Calculate Net radiation fractions
 			d_rn_g 		= rn_g( d_rnet, d_fv);
@@ -516,8 +694,8 @@ int main(int argc, char *argv[])
 		if (!flag1->answer) G_percent(row, nrows, 2);
 
 		/* write output line buffer to output raster file */
-		if (G_put_d_raster_row (outfd, outrast) < 0)
-			G_fatal_error (_("Cannot write to <%s>"),ETa);
+		if (G_put_raster_row (outfd, ETa, data_type_output) < 0)
+			G_fatal_error (_("Cannot write to <%s>"), ETa);
 			
 	}
 	/* free buffers and close input maps */
@@ -552,11 +730,11 @@ int main(int argc, char *argv[])
 	
 	/* generate color table between -20 and 20 */
 	G_make_rainbow_colors(&color, -20, 20);
-	G_write_colors(outrast,G_mapset(),&color);
+	G_write_colors(ETa,G_mapset(),&color);
 
-	G_short_history(outrast,"raster", &history);
+	G_short_history(ETa,"raster", &history);
 	G_command_history(&history);
-	G_write_history(outrast, &history);
+	G_write_history(ETa, &history);
 
 	/* free buffers and close output map */
 	G_free(outrast);

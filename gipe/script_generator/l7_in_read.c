@@ -615,6 +615,8 @@ int main(int argc, char *argv[])
 	system(sys_12);
 	sprintf(sys_13," echo \"r.eb.deltat -w tempk=%s.61 delta=%s.delta --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_13);
+	sprintf(sys_18,"r.null map=%s.delta setnull=-999.99\" >> temp.txt",basedate,basedate,basedate,basedate);
+	system(sys_18);
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_14," echo \"r.mapcalc %s.tempka=%s.61+%s.delta\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_14);

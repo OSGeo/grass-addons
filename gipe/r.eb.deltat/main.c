@@ -149,6 +149,9 @@ int main(int argc, char *argv[])
 				}else{
 					d = delta_t(d_tempk);
 				}
+				if(abs(d)>50.0){
+					d = -999.99;
+				}
 				((DCELL *) outrast1)[col] = d;
 			}
 		}
