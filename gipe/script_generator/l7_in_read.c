@@ -603,7 +603,7 @@ int main(int argc, char *argv[])
 	system("echo \"\" >> temp.txt");
 	system("echo \"r.mapcalc u2=2.0\" >> temp.txt");
 	system("echo \"r.mapcalc z0s=0.002\" >> temp.txt");
-	sprintf(sys_15,"echo \"r.eb.z0m savi=%s.savi coef=0.1 z0m=%s.z0m z0h=%s.z0h --overwrite\" >> temp.txt",basedate,basedate,basedate);
+	sprintf(sys_15,"echo \"r.eb.z0m -h savi=%s.savi coef=0.1 z0m=%s.z0m z0h=%s.z0h --overwrite\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_15);
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_9,"echo \"r.sunhours doy=%s.doy lat=%s.latitude sunh=%s.sunh --overwrite\" >> temp.txt",basedate,basedate,basedate);
@@ -618,7 +618,9 @@ int main(int argc, char *argv[])
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_14," echo \"r.mapcalc %s.tempka=%s.61+%s.delta\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_14);
-	sprintf(sys_10,"echo \"r.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=5 TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_17," echo \"r.mapcalc %s.w=5.0\" >> temp.txt",basedate);
+	system(sys_17);
+	sprintf(sys_10,"echo \"r.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=%s.w TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_10);
 	//clean maps
 // 	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
