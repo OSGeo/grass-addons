@@ -15,8 +15,17 @@ GRASS Addons SVN: Subversion repository at grasssvn.itc.it
                integrates nicely with the Windows Explorer.
 
 
-1. How to get the grassaddons from the SVN repository
+PROXY:
+SVN is a tricky software. It ignores any enviroment variables for proxy.
+If you have to use a proxy server, edit
+  $HOME/.subversion/servers
+and add:
 
+[global]
+http-proxy-host = proxy.yourdomain.xyz
+http-proxy-port = 3128
+
+1. How to get the grassaddons from the SVN repository
 1a) Command line:
  svn co https://grasssvn.itc.it/svn/grassaddons/trunk/grassaddons grassaddons
 
