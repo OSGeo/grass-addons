@@ -48,9 +48,9 @@ double daily_et(double et_instantaneous, double time, double sunshine_hours);
 int main(int argc, char *argv[])
 {	
 	/* buffer for input-output rasters */
-	DCELL *inrast_FV,*inrast_TEMPK,*inrast_TEMPKA,*inrast_ALB,*inrast_NDVI,*inrast_RNET;
-	DCELL *inrast_UZ,*inrast_DISP,*inrast_Z0,*inrast_HV;
-	DCELL *inrast_Z0S,*inrast_W,*inrast_TIME,*inrast_SUNH;
+	void *inrast_FV,*inrast_TEMPK,*inrast_TEMPKA,*inrast_ALB,*inrast_NDVI,*inrast_RNET;
+	void *inrast_UZ,*inrast_DISP,*inrast_Z0,*inrast_HV;
+	void *inrast_Z0S,*inrast_W,*inrast_TIME,*inrast_SUNH;
 	
 	unsigned char *outrast;
 	
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	DCELL d_rn_g,d_rn_v;
 	DCELL d_tempk_g,d_tempk_v;
 	DCELL d_g0_g,d_g0_v;
-	DCELL d_ra,d_h;
+	DCELL d_ra;
 	DCELL d_z0s;
 	DCELL d_rg,d_rv;
 	DCELL d_h_g,d_h_v;
@@ -282,7 +282,6 @@ int main(int argc, char *argv[])
 	
 	ETa	= output->answer;
 	
-	
 	/* find maps in mapset */
 	mapset_RNET = G_find_cell2 (RNET, "");
 	if (mapset_RNET == NULL)
@@ -305,17 +304,17 @@ int main(int argc, char *argv[])
 	mapset_UZ = G_find_cell2 (UZ, "");
 	if (mapset_UZ == NULL)
 	        G_fatal_error (_("cell file [%s] not found"), UZ);
-	if(DISP){
+	if(DISP!=NULL){
 		mapset_DISP = G_find_cell2 (DISP, "");
 		if (mapset_DISP == NULL)
 	        	G_fatal_error (_("cell file [%s] not found"), DISP);
 	}
-	if(Z0){
+	if(Z0!=NULL){
 		mapset_Z0 = G_find_cell2 (Z0, "");
 		if (Z0 && mapset_Z0 == NULL)
 	       		G_fatal_error (_("cell file [%s] not found"), Z0);
 	}
-	if(HV){
+	if(HV!=NULL){
 		mapset_HV = G_find_cell2 (HV, "");
 		if (HV && mapset_HV == NULL)
 	       		G_fatal_error (_("cell file [%s] not found"), HV);
@@ -345,13 +344,13 @@ int main(int argc, char *argv[])
 	data_type_alb = G_raster_map_type(ALB,mapset_ALB);
 	data_type_ndvi = G_raster_map_type(NDVI,mapset_NDVI);
 	data_type_uz = G_raster_map_type(UZ,mapset_UZ);
-	if(DISP){
+	if(DISP!=NULL){
 		data_type_disp = G_raster_map_type(DISP,mapset_DISP);
 	}
-	if(Z0){
+	if(Z0!=NULL){
 		data_type_z0 = G_raster_map_type(Z0,mapset_Z0);
 	}
-	if(HV){
+	if(HV!=NULL){
 		data_type_hv = G_raster_map_type(HV,mapset_HV);
 	}
 	data_type_z0s = G_raster_map_type(Z0S,mapset_Z0S);
@@ -374,11 +373,11 @@ int main(int argc, char *argv[])
 		G_fatal_error (_("Cannot open cell file [%s]"), NDVI);
 	if ( (infd_UZ = G_open_cell_old (UZ, mapset_UZ)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), UZ);
-	if (DISP && (infd_DISP = G_open_cell_old (DISP, mapset_DISP)) < 0)
+	if ((DISP!=NULL) && (infd_DISP = G_open_cell_old (DISP, mapset_DISP)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), DISP);
-	if (Z0 && (infd_Z0 = G_open_cell_old (Z0, mapset_Z0)) < 0)
+	if ((Z0!=NULL) && (infd_Z0 = G_open_cell_old (Z0, mapset_Z0)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), Z0);
-	if (HV && (infd_HV = G_open_cell_old (HV, mapset_HV)) < 0)
+	if ((HV!=NULL) && (infd_HV = G_open_cell_old (HV, mapset_HV)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), HV);
 	if ( (infd_Z0S = G_open_cell_old (Z0S, mapset_Z0S)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), SUNH);
@@ -404,11 +403,11 @@ int main(int argc, char *argv[])
 		G_fatal_error (_("Cannot read file header of [%s]"), NDVI);
 	if (G_get_cellhd (UZ, mapset_UZ, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), UZ);
-	if (DISP && G_get_cellhd (DISP, mapset_DISP, &cellhd) < 0)
+	if ((DISP!=NULL) && G_get_cellhd (DISP, mapset_DISP, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), DISP);
-	if (Z0 && G_get_cellhd (Z0, mapset_Z0, &cellhd) < 0)
+	if ((Z0!=NULL) && G_get_cellhd (Z0, mapset_Z0, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), Z0);
-	if (HV && G_get_cellhd (HV, mapset_HV, &cellhd) < 0)
+	if ((HV!=NULL) && G_get_cellhd (HV, mapset_HV, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), HV);
 	if (G_get_cellhd (Z0S, mapset_Z0S, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), Z0S);
@@ -427,12 +426,15 @@ int main(int argc, char *argv[])
 	inrast_ALB = G_allocate_raster_buf(data_type_alb);
 	inrast_NDVI = G_allocate_raster_buf(data_type_ndvi);
 	inrast_UZ = G_allocate_raster_buf(data_type_uz);
-	if(DISP)
+	if(DISP!=NULL){
 		inrast_DISP = G_allocate_raster_buf(data_type_disp);
-	if(Z0)
+	}
+	if(Z0!=NULL){
 		inrast_Z0 = G_allocate_raster_buf(data_type_z0);
-	if(HV)
+	}
+	if(HV!=NULL){
 		inrast_HV = G_allocate_raster_buf(data_type_hv);
+	}
 	inrast_Z0S = G_allocate_raster_buf(data_type_z0s);
 	inrast_W = G_allocate_raster_buf(data_type_w);
 	inrast_TIME = G_allocate_raster_buf(data_type_time);
@@ -446,7 +448,7 @@ int main(int argc, char *argv[])
 	outrast = G_allocate_raster_buf(data_type_output);
 
 	/* open pointers to output raster files */
-	if ( (outfd = G_open_raster_new (ETa,DCELL_TYPE)) < 0)
+	if ( (outfd = G_open_raster_new (ETa,data_type_output)) < 0)
 		G_fatal_error (_("Could not open <%s>"),ETa);
 	
 
@@ -455,33 +457,33 @@ int main(int argc, char *argv[])
 	{
 				
 		/* read input raster row into line buffer*/	
-		if (G_get_d_raster_row (infd_RNET, inrast_RNET, row) < 0)
+		if (G_get_raster_row (infd_RNET, inrast_RNET, row,data_type_rnet) < 0)
 			G_fatal_error (_("Could not read from <%s>"),RNET);
-		if (G_get_d_raster_row (infd_FV, inrast_FV, row) < 0)
+		if (G_get_raster_row (infd_FV, inrast_FV, row,data_type_fv) < 0)
 			G_fatal_error (_("Could not read from <%s>"),FV);
-		if (G_get_d_raster_row (infd_TEMPK, inrast_TEMPK, row) < 0)
+		if (G_get_raster_row (infd_TEMPK, inrast_TEMPK, row,data_type_tempk) < 0)
 			G_fatal_error (_("Could not read from <%s>"),TEMPK);
-		if (G_get_d_raster_row (infd_TEMPKA, inrast_TEMPKA, row) < 0)
+		if (G_get_raster_row (infd_TEMPKA, inrast_TEMPKA, row,data_type_tempka) < 0)
 			G_fatal_error (_("Could not read from <%s>"),TEMPKA);
-		if (G_get_d_raster_row (infd_ALB, inrast_ALB, row) < 0)
+		if (G_get_raster_row (infd_ALB, inrast_ALB, row,data_type_alb) < 0)
 			G_fatal_error (_("Could not read from <%s>"),ALB);
-		if (G_get_d_raster_row (infd_NDVI, inrast_NDVI, row) < 0)
+		if (G_get_raster_row (infd_NDVI, inrast_NDVI, row,data_type_ndvi) < 0)
 			G_fatal_error (_("Could not read from <%s>"),NDVI);
-		if (G_get_d_raster_row (infd_UZ, inrast_UZ, row) < 0)
+		if (G_get_raster_row (infd_UZ, inrast_UZ, row,data_type_uz) < 0)
 			G_fatal_error (_("Could not read from <%s>"),UZ);
-		if (DISP && G_get_d_raster_row (infd_DISP, inrast_DISP, row) < 0)
+		if ((DISP!=NULL) && G_get_raster_row (infd_DISP, inrast_DISP, row,data_type_disp) < 0)
 			G_fatal_error (_("Could not read from <%s>"),DISP);
-		if (Z0 && G_get_d_raster_row (infd_Z0, inrast_Z0, row) < 0)
+		if ((Z0!=NULL) && G_get_raster_row (infd_Z0, inrast_Z0, row,data_type_z0) < 0)
 			G_fatal_error (_("Could not read from <%s>"),Z0);
-		if (HV && G_get_d_raster_row (infd_HV, inrast_HV, row) < 0)
+		if ((HV!=NULL) && G_get_raster_row (infd_HV, inrast_HV, row,data_type_hv) < 0)
 			G_fatal_error (_("Could not read from <%s>"),HV);
-		if (G_get_d_raster_row (infd_Z0S, inrast_Z0S, row) < 0)
+		if (G_get_raster_row (infd_Z0S, inrast_Z0S, row,data_type_z0s) < 0)
 			G_fatal_error (_("Could not read from <%s>"),Z0S);
-		if (G_get_d_raster_row (infd_W, inrast_W, row) < 0)
+		if (G_get_raster_row (infd_W, inrast_W, row,data_type_w) < 0)
 			G_fatal_error (_("Could not read from <%s>"),W);
-		if (G_get_d_raster_row (infd_TIME, inrast_TIME, row) < 0)
+		if (G_get_raster_row (infd_TIME, inrast_TIME, row,data_type_time) < 0)
 			G_fatal_error (_("Could not read from <%s>"),TIME);
-		if (G_get_d_raster_row (infd_SUNH, inrast_SUNH, row) < 0)
+		if (G_get_raster_row (infd_SUNH, inrast_SUNH, row,data_type_sunh) < 0)
 			G_fatal_error (_("Could not read from <%s>"),SUNH);
 		
 		for (col=0; col < ncols; col++)
@@ -564,7 +566,7 @@ int main(int argc, char *argv[])
 					d_uz = ((DCELL *) inrast_UZ)[col];
 					break;
 			}
-			if(DISP){
+			if(DISP!=NULL){
 				switch(data_type_tempk){
 					case CELL_TYPE:
 						d_disp	= (double) ((CELL *) inrast_DISP)[col];
@@ -579,7 +581,7 @@ int main(int argc, char *argv[])
 			}else{
 				d_disp	= -10.0;//negative, see inside functions
 			}
-			if(Z0){
+			if(Z0!=NULL){
 			switch(data_type_z0){
 				case CELL_TYPE:
 					d_z0 = (double) ((CELL *) inrast_Z0)[col];
@@ -594,7 +596,7 @@ int main(int argc, char *argv[])
 			}else{
 				d_z0	= -10.0;//negative, see inside functions
 			}
-			if(HV){
+			if(HV!=NULL){
 			switch(data_type_hv){
 				case CELL_TYPE:
 					d_hv	= (double) ((CELL *) inrast_HV)[col];
@@ -667,10 +669,13 @@ int main(int argc, char *argv[])
 			d_g0_v 		= g_0v( d_alb, d_ndvi, d_tempk_v, d_rnet);
 			
 			//Data necessary for sensible heat flux calculations
-			d_ra 		= ra( d_disp, d_z0, d_h, d_z, d_uz, d_tempka, d_tempk_v);
-			d_rg 		= rg( d_disp, d_z0, d_z0s, d_h, d_z, d_w, d_uz, d_tempka, d_tempk_v);
-			d_rv 		= rv( d_disp, d_z0, d_h, d_z, d_w, d_uz, d_tempka, d_tempk_v);
-			
+			if(d_disp<0.0&&d_z0<0.0&&d_hv<0.0){
+				G_fatal_error (_("DISP, Z0 and HV are all negative, cannot continue, bailing out... Check your optional input files again"));
+			}else{
+				d_ra	= ra( d_disp, d_z0, d_hv, d_z, d_uz, d_tempka, d_tempk_v);
+				d_rg	= rg( d_disp, d_z0, d_z0s, d_hv, d_z, d_w, d_uz, d_tempka, d_tempk_v);
+				d_rv	= rv( d_disp, d_z0, d_hv, d_z, d_w, d_uz, d_tempka, d_tempk_v);
+			}
 			//Calculate sensible heat flux fractions
 			d_h_g 		= h_g( d_tempk_g, d_tempk_v, d_tempka, d_rg, d_rv, d_ra );
 			d_h_v 		= h_v( d_tempk_g, d_tempk_v, d_tempka, d_rg, d_rv, d_ra );
@@ -694,37 +699,46 @@ int main(int argc, char *argv[])
 		if (!flag1->answer) G_percent(row, nrows, 2);
 
 		/* write output line buffer to output raster file */
-		if (G_put_raster_row (outfd, ETa, data_type_output) < 0)
+		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
 			G_fatal_error (_("Cannot write to <%s>"), ETa);
 			
 	}
 	/* free buffers and close input maps */
+
 	G_free(inrast_RNET);
 	G_free(inrast_FV);
 	G_free(inrast_TEMPK);
 	G_free(inrast_TEMPKA);
 	G_free(inrast_ALB);
+	G_free(inrast_NDVI);
 	G_free(inrast_UZ);
-	if(DISP)
+	if(DISP!=NULL){
 		G_free(inrast_DISP);
-	if(Z0)
+	}
+	if(Z0!=NULL){
 		G_free(inrast_Z0);
-	if(HV)
+	}
+	if(HV!=NULL){
 		G_free(inrast_HV);
+	}
 	G_free(inrast_TIME);
 	G_free(inrast_SUNH);
 	G_close_cell (infd_RNET);
 	G_close_cell (infd_FV);
+	G_close_cell (infd_TEMPK);
 	G_close_cell (infd_TEMPKA);
 	G_close_cell (infd_ALB);
 	G_close_cell (infd_NDVI);
 	G_close_cell (infd_UZ);
-	if(DISP)
+	if(DISP!=NULL){
 		G_close_cell (infd_DISP);
-	if(Z0)
+	}
+	if(Z0!=NULL){
 		G_close_cell (infd_Z0);
-	if(HV)
+	}
+	if(HV!=NULL){
 		G_close_cell (infd_HV);
+	}
 	G_close_cell (infd_TIME);
 	G_close_cell (infd_SUNH);
 	
