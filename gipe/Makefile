@@ -46,6 +46,7 @@ SUBDIRS = \
 	r.eb.z0m \
 	r.evapo.potrad \
 	r.evapo.PM \
+	r.evapo.PT \
 	r.fill.dir \
 	r.flow \
 	r.gaswap.serial \
