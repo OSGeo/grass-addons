@@ -41,7 +41,7 @@
 #include "strahler.h"
 
 #define COPYBLAH 1
-#define ADDFIELDBLAH 1
+#define DDFIELDBLAH 1
 #define BADDCOLUMNBLAH 1
 #define RITEDBLAH 1
 #define EBUG 1
@@ -109,9 +109,9 @@ option sloppy for bad topology
 	sloppy_opt->key = "sloppy";
     sloppy_opt->type = TYPE_DOUBLE;
     sloppy_opt->required = NO;
-	sloppy_opt->answer = "0.01";
+	sloppy_opt->answer = "0.0";
     sloppy_opt->multiple = NO;
-    sloppy_opt->description = _("Threshold for distance within different nodes are considered the same node");
+    sloppy_opt->description = _("Threshold for distance within different nodes are considered the same node - may not work");
 
 
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
