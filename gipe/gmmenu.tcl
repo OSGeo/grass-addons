@@ -394,7 +394,7 @@ set descmenu [subst  {
  } 
  {[G_msg "&Vector"]} all options $tmenu {
 	{cascad {[G_msg "Develop map"]} {} "" $tmenu {			
-		{command {[G_msg "Digitize"]} {} "v.digit" {} -command {guarantee_xmon; execute v.digit }}
+		{command {[G_msg "Digitize"]} {} "v.digit" {} -command {execute v.digit }}
 		{separator}
 		{command {[G_msg "Create/rebuild topology"]} {} "v.build" {} -command {execute v.build }}
 		{command {[G_msg "Clean vector files"]} {} "v.clean" {} -command {execute v.clean }}
@@ -409,16 +409,11 @@ set descmenu [subst  {
 		{command {[G_msg "Convert 2D vector to 3D by sampling raster"]} {} "v.drape" {} -command {execute v.drape }}
 		{command {[G_msg "Extrude 2D vector into 3D vector"]} {} "v.extrude" {} -command {execute v.extrude }}
 		{separator}
+		{command {[G_msg "Create new vector as link to external OGR layer"]} {} "v.external" {} -command {execute v.external }}
+		{separator}
 		{command {[G_msg "Create text label file for vector features"]} {} "v.label" {} -command {execute v.label }}
 		{separator}
 		{command {[G_msg "Reproject vector from other location"]} {} "v.proj" {} -command {execute v.proj }}
-	}}
-	{cascad {[G_msg "Vector<->database connections"]} {} "" $tmenu {			
-		{command {[G_msg "Create and add new attribute table to vector map"]} {} "v.db.addtable" {} -command {execute v.db.addtable }}
-		{command {[G_msg "Create new vector as link to external OGR layer"]} {} "v.external" {} -command {execute v.external }}
-		{command {[G_msg "Reconnect vector map to attribute database"]} {} "v.db.reconnect.all" {} -command {execute v.db.reconnect.all }}
-		{command {[G_msg "Remove existing table for vector map"]} {} "v.db.droptable" {} -command {execute v.db.droptable }}
-		{command {[G_msg "Set database connection for vector attributes"]} {} "v.db.connect" {} -command {execute v.db.connect }}
 	}}
 	{command {[G_msg "Rectify and georeference vector map"]} {} "v.transform" {} -command {execute v.transform }}
 	{separator}
@@ -441,13 +436,13 @@ set descmenu [subst  {
 	{cascad {[G_msg "Neighborhood analysis"]} {} "" $tmenu {			
 		{command {[G_msg "Locate nearest features to points or centroids"]} {} "v.distance" {} -command {execute v.distance }}
 		{command {[G_msg "Generate Thiessen polygons around points (Voronoi diagram)"]} {} "v.voronoi" {} -command {execute v.voronoi }}
-		{command {[G_msg "Connect points to create Delaunay triangles"]} {} "v.delauney" {} -command {execute v.delaunay }}
+		{command {[G_msg "Connect points to create Delaunay triangles"]} {} "v.delaunay" {} -command {execute v.delaunay }}
 	}}
 	{cascad {[G_msg "Network analysis"]} {} "" $tmenu {			
 		{command {[G_msg "Allocate subnets"]} {} "v.net.alloc" {} -command {execute v.net.alloc }}
 		{command {[G_msg "Network maintenance"]} {} "v.net" {} -command {execute v.net }}
 		{command {[G_msg "Shortest route"]} {} "v.net.path" {} -command {execute v.net.path }}
-		{command {[G_msg "Shortest route (visualization only)"]} {} "d.path" {} -command {guarantee_xmon; execute d.path }}
+		{command {[G_msg "Shortest route (visualization only)"]} {} "d.path" {} -command {guarantee_xmon; spawn d.path.sh -b --ui }}
 		{command {[G_msg "Split net to bands between cost isolines"]} {} "v.net.iso" {} -command {execute v.net.iso }}
 		{command {[G_msg "Steiner tree"]} {} "v.net.steiner" {} -command {execute v.net.steiner }}
 		{command {[G_msg "Traveling salesman analysis"]} {} "v.net.salesman" {} -command {execute v.net.salesman }}
@@ -568,9 +563,12 @@ set descmenu [subst  {
 		{command {[G_msg "Connect to database"]} {} "db.connect" {} -command {execute db.connect }}
 		{command {[G_msg "Login to database"]} {} "db.login" {} -command {execute db.login }}
 		{separator}
+		{command {[G_msg "Create and add new attribute table to vector map"]} {} "v.db.addtable" {} -command {execute v.db.addtable }}
 		{command {[G_msg "Copy table"]} {} "db.copy" {} -command {execute db.copy }}
 		{command {[G_msg "Add columns to table"]} {} "v.db.addcol" {} -command {execute v.db.addcol }}
 		{command {[G_msg "Change values in a column"]} {} "v.db.update" {} -command {execute v.db.update }}
+		{command {[G_msg "Remove existing table for vector map"]} {} "v.db.droptable" {} -command {execute v.db.droptable }}
+		{separator}
 		{command {[G_msg "Test database"]} {} "db.test" {} -command {execute db.test }}
 	}}
 	{cascad {[G_msg "Database information"]} {} "" $tmenu {			
@@ -581,8 +579,13 @@ set descmenu [subst  {
 	}}
 	{separator}
 	{cascad {[G_msg "Query"]} {} "" $tmenu {			
-		{command {[G_msg "Query data (SQL select)"]} {} "db.select" {} -command {execute db.select }}
+		{command {[G_msg "Query data in any table"]} {} "db.select" {} -command {execute db.select }}
+		{command {[G_msg "Query vector attribute data"]} {} "db.select" {} -command {execute v.db.select }}
 		{command {[G_msg "Execute SQL statement"]} {} "db.execute" {} -command {execute db.execute }}
+	}}
+	{cascad {[G_msg "Vector<->database connections"]} {} "" $tmenu {			
+		{command {[G_msg "Reconnect vector map to attribute database"]} {} "v.db.reconnect.all" {} -command {execute v.db.reconnect.all }}
+		{command {[G_msg "Set database connection for vector attributes"]} {} "v.db.connect" {} -command {execute v.db.connect }}
 	}}
  } 
  {[G_msg "&USLE"]} all options $tmenu {
@@ -609,10 +612,11 @@ set descmenu [subst  {
 			{command {[G_msg "Satellite overpass time"]} {} "r.sattime" {} -command {execute r.sattime }}
 	}}
 	{separator}
-	{cascad {[G_msg "ETP & ETa"]} {} "" $tmenu {
+	{cascad {[G_msg "ETP and ETa"]} {} "" $tmenu {
 			{command {[G_msg "Potential ET (Radiative)"]} {} "r.evapo.potrad" {} -command {execute r.evapo.potrad }}
 			{command {[G_msg "Potential ET (Radiative) from L7DN (.met)"]} {} "r.dn2potrad.l7" {} -command {execute r.dn2potrad.l7 }}
 			{command {[G_msg "Potential ET (Penman-Monteith)"]} {} "r.evapo.PM" {} -command {execute r.evapo.PM }}
+			{command {[G_msg "Potential ET (Prestley and Taylor)"]} {} "r.evapo.PT" {} -command {execute r.evapo.PT }}
 			{separator}
 			{command {[G_msg "Actual ET (SEBAL)"]} {} "r.eb.eta" {} -command {execute r.eb.eta }}
 			{command {[G_msg "Actual ET (TSA)"]} {} "r.evapo.TSA" {} -command {execute r.evapo.TSA }}
