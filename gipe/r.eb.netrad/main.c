@@ -1,12 +1,12 @@
 /****************************************************************************
  *
  * MODULE:       r.eb.netrad
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the instantaneous net radiation at 
  *               as seen in Bastiaanssen (1995) using time of
  *               satellite overpass.
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2006-2007 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
 	void *inrast_doy, *inrast_sunzangle;
 
 	unsigned char *outrast;
+	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_albedo;
 	RASTER_MAP_TYPE data_type_ndvi;
 	RASTER_MAP_TYPE data_type_tempk;
@@ -166,7 +167,11 @@ int main(int argc, char *argv[])
 	tempk		= input3->answer;
 	time	 	= input4->answer;
 	dtair	 	= input5->answer;
-	
+	emissivity	= input6->answer;
+	tsw		= input7->answer;
+	doy		= input8->answer;
+	sunzangle	= input9->answer;
+
 	result  = output1->answer;
 	verbose = (!flag1->answer);
 	/***************************************************/
@@ -252,7 +257,7 @@ int main(int argc, char *argv[])
 		G_fatal_error(_("Cell file [%s] not found"), doy);
 	}
 	data_type_doy = G_raster_map_type(doy,mapset);
-	if ( (infd_time = G_open_cell_old (doy,mapset)) < 0)
+	if ( (infd_doy = G_open_cell_old (doy,mapset)) < 0)
 		G_fatal_error(_("Cannot open cell file [%s]"), doy);
 	if (G_get_cellhd (doy, mapset, &cellhd) < 0)
 		G_fatal_error(_("Cannot read file header of [%s]"), doy);
@@ -272,9 +277,9 @@ int main(int argc, char *argv[])
 	G_debug(3, "number of rows %d",cellhd.rows);
 	nrows = G_window_rows();
 	ncols = G_window_cols();
-	outrast = G_allocate_raster_buf(data_type_albedo);
+	outrast = G_allocate_raster_buf(data_type_output);
 	/* Create New raster files */
-	if ( (outfd = G_open_raster_new (result,data_type_albedo)) < 0)
+	if ( (outfd = G_open_raster_new (result,data_type_output)) < 0)
 		G_fatal_error(_("Could not open <%s>"),result);
 	/* Process pixels */
 	for (row = 0; row < nrows; row++)
@@ -291,8 +296,7 @@ int main(int argc, char *argv[])
 		DCELL d_sunzangle;
 		if(verbose)
 			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
-		/* read soil input maps */	
+		/* read input maps */	
 		if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
 			G_fatal_error(_("Could not read from <%s>"),albedo);
 		if(G_get_raster_row(infd_ndvi,inrast_ndvi,row,data_type_ndvi)<0)
@@ -303,36 +307,116 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Could not read from <%s>"),dtair);
 		if(G_get_raster_row(infd_time,inrast_time,row,data_type_time)<0)
 			G_fatal_error(_("Could not read from <%s>"),time);
-		if(G_get_raster_row(infd_time,inrast_time,row,data_type_emissivity)<0)
+		if(G_get_raster_row(infd_emissivity,inrast_emissivity,row,data_type_emissivity)<0)
 			G_fatal_error(_("Could not read from <%s>"),emissivity);
-		if(G_get_raster_row(infd_time,inrast_time,row,data_type_tsw)<0)
+		if(G_get_raster_row(infd_tsw,inrast_tsw,row,data_type_tsw)<0)
 			G_fatal_error(_("Could not read from <%s>"),tsw);
-		if(G_get_raster_row(infd_time,inrast_time,row,data_type_doy)<0)
+		if(G_get_raster_row(infd_doy,inrast_doy,row,data_type_doy)<0)
 			G_fatal_error(_("Could not read from <%s>"),doy);
-		if(G_get_raster_row(infd_time,inrast_time,row,data_type_sunzangle)<0)
+		if(G_get_raster_row(infd_sunzangle,inrast_sunzangle,row,data_type_sunzangle)<0)
 			G_fatal_error(_("Could not read from <%s>"),sunzangle);
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-		//	printf("col=%i/%i ",col,ncols);
-			d_albedo = ((DCELL *) inrast_albedo)[col];
- 		//	printf("albedo = %5.3f", d_albedo);
-			d_ndvi = ((DCELL *) inrast_ndvi)[col];
- 		//	printf(" ndvi = %5.3f", d_ndvi);
-			d_tempk = ((DCELL *) inrast_tempk)[col];
- 		//	printf(" tempk = %5.3f", d_tempk);
-			d_dtair = ((DCELL *) inrast_dtair)[col];
- 		//	printf("inrast_dtair = %f\n", d_dtair);
-			d_time = ((DCELL *) inrast_time)[col];
- 		//	printf("inrast_time = %f\n", d_time);
-			d_emissivity = ((DCELL *) inrast_emissivity)[col];
- 		//	printf("inrast_emissivity = %f\n", d_emissivity);
-			d_tsw = ((DCELL *) inrast_tsw)[col];
- 		//	printf("inrast_tsw = %f\n", d_tsw);
-			d_doy = ((DCELL *) inrast_doy)[col];
- 		//	printf("inrast_doy = %f\n", d_doy);
-			d_sunzangle = ((DCELL *) inrast_sunzangle)[col];
- 		//	printf("inrast_sunzangle = %f\n", d_sunzangle);
+			switch(data_type_albedo){
+				case CELL_TYPE:
+					d_albedo = (double) ((CELL *) inrast_albedo)[col];
+					break;
+				case FCELL_TYPE:
+					d_albedo = (double) ((FCELL *) inrast_albedo)[col];
+					break;
+				case DCELL_TYPE:
+					d_albedo = ((DCELL *) inrast_albedo)[col];
+					break;
+			}
+			switch(data_type_ndvi){
+				case CELL_TYPE:
+					d_ndvi = (double) ((CELL *) inrast_ndvi)[col];
+					break;
+				case FCELL_TYPE:
+					d_ndvi = (double) ((FCELL *) inrast_ndvi)[col];
+					break;
+				case DCELL_TYPE:
+					d_ndvi = ((DCELL *) inrast_ndvi)[col];
+					break;
+			}
+			switch(data_type_tempk){
+				case CELL_TYPE:
+					d_tempk = (double) ((CELL *) inrast_tempk)[col];
+					break;
+				case FCELL_TYPE:
+					d_tempk = (double) ((FCELL *) inrast_tempk)[col];
+					break;
+				case DCELL_TYPE:
+					d_tempk = ((DCELL *) inrast_tempk)[col];
+					break;
+			}
+			switch(data_type_dtair){
+				case CELL_TYPE:
+					d_dtair = (double) ((CELL *) inrast_dtair)[col];
+					break;
+				case FCELL_TYPE:
+					d_dtair = (double) ((FCELL *) inrast_dtair)[col];
+					break;
+				case DCELL_TYPE:
+					d_dtair = ((DCELL *) inrast_dtair)[col];
+					break;
+			}
+			switch(data_type_time){
+				case CELL_TYPE:
+					d_time = (double) ((CELL *) inrast_time)[col];
+					break;
+				case FCELL_TYPE:
+					d_time = (double) ((FCELL *) inrast_time)[col];
+					break;
+				case DCELL_TYPE:
+					d_time = ((DCELL *) inrast_time)[col];
+					break;
+			}
+			switch(data_type_emissivity){
+				case CELL_TYPE:
+					d_emissivity = (double) ((CELL *) inrast_emissivity)[col];
+					break;
+				case FCELL_TYPE:
+					d_emissivity = (double) ((FCELL *) inrast_emissivity)[col];
+					break;
+				case DCELL_TYPE:
+					d_emissivity = ((DCELL *) inrast_emissivity)[col];
+					break;
+			}
+			switch(data_type_tsw){
+				case CELL_TYPE:
+					d_tsw = (double) ((CELL *) inrast_tsw)[col];
+					break;
+				case FCELL_TYPE:
+					d_tsw = (double) ((FCELL *) inrast_tsw)[col];
+					break;
+				case DCELL_TYPE:
+					d_tsw = ((DCELL *) inrast_tsw)[col];
+					break;
+			}
+			switch(data_type_doy){
+				case CELL_TYPE:
+					d_doy = (double) ((CELL *) inrast_doy)[col];
+					break;
+				case FCELL_TYPE:
+					d_doy = (double) ((FCELL *) inrast_doy)[col];
+					break;
+				case DCELL_TYPE:
+					d_doy = ((DCELL *) inrast_doy)[col];
+					break;
+			}
+			switch(data_type_sunzangle){
+				case CELL_TYPE:
+					d_sunzangle = (double) ((CELL *) inrast_sunzangle)[col];
+					break;
+				case FCELL_TYPE:
+					d_sunzangle = (double) ((FCELL *) inrast_sunzangle)[col];
+					break;
+				case DCELL_TYPE:
+					d_sunzangle = ((DCELL *) inrast_sunzangle)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_albedo)){
 				((DCELL *) outrast)[col] = -999.99;
 			}else if(G_is_d_null_value(&d_ndvi)){
@@ -363,7 +447,7 @@ int main(int argc, char *argv[])
 		//		exit(EXIT_SUCCESS);
 		//	}
 		}
-		if (G_put_raster_row (outfd, outrast, data_type_albedo) < 0)
+		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
 	}
 
