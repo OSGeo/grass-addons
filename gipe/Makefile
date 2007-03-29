@@ -44,9 +44,11 @@ SUBDIRS = \
 	r.eb.ublend \
 	r.eb.ustar \
 	r.eb.z0m \
+	r.emissivity \
 	r.evapo.potrad \
 	r.evapo.PM \
 	r.evapo.PT \
+	r.evapo.TSA \
 	r.fill.dir \
 	r.flow \
 	r.gaswap.serial \
