@@ -1,12 +1,12 @@
 /****************************************************************************
  *
  * MODULE:       r.eb.g0
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates an approximation of soil heat flux
  *               as seen in Bastiaanssen (1995) using time of
  *               satellite overpass.
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2006-2007 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 	
 	void *inrast_albedo, *inrast_ndvi, *inrast_tempk, *inrast_rnet, *inrast_time;
 	unsigned char *outrast;
+	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_albedo;
 	RASTER_MAP_TYPE data_type_ndvi;
 	RASTER_MAP_TYPE data_type_tempk;
@@ -194,9 +195,9 @@ int main(int argc, char *argv[])
 	G_debug(3, "number of rows %d",cellhd.rows);
 	nrows = G_window_rows();
 	ncols = G_window_cols();
-	outrast = G_allocate_raster_buf(data_type_albedo);
+	outrast = G_allocate_raster_buf(data_type_output);
 	/* Create New raster files */
-	if ( (outfd = G_open_raster_new (result,data_type_albedo)) < 0)
+	if ( (outfd = G_open_raster_new (result,data_type_output)) < 0)
 		G_fatal_error(_("Could not open <%s>"),result);
 	/* Process pixels */
 	for (row = 0; row < nrows; row++)
@@ -224,17 +225,61 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-		//	printf("col=%i/%i ",col,ncols);
-			d_albedo = ((DCELL *) inrast_albedo)[col];
- 		//	printf("albedo = %5.3f", d_albedo);
-			d_ndvi = ((DCELL *) inrast_ndvi)[col];
- 		//	printf(" ndvi = %5.3f", d_ndvi);
-			d_tempk = ((DCELL *) inrast_tempk)[col];
- 		//	printf(" tempk = %5.3f", d_tempk);
-			d_rnet = ((DCELL *) inrast_rnet)[col];
- 		//	printf("inrast_rnet = %f\n", d_rnet);
-			d_time = ((DCELL *) inrast_time)[col];
- 		//	printf("inrast_time = %f\n", d_time);
+			switch(data_type_albedo){
+				case CELL_TYPE:
+					d_albedo = (double) ((CELL *) inrast_albedo)[col];
+					break;
+				case FCELL_TYPE:
+					d_albedo = (double) ((FCELL *) inrast_albedo)[col];
+					break;
+				case DCELL_TYPE:
+					d_albedo = ((DCELL *) inrast_albedo)[col];
+					break;
+			}
+			switch(data_type_ndvi){
+				case CELL_TYPE:
+					d_ndvi = (double) ((CELL *) inrast_ndvi)[col];
+					break;
+				case FCELL_TYPE:
+					d_ndvi = (double) ((FCELL *) inrast_ndvi)[col];
+					break;
+				case DCELL_TYPE:
+					d_ndvi = ((DCELL *) inrast_ndvi)[col];
+					break;
+			}
+			switch(data_type_tempk){
+				case CELL_TYPE:
+					d_tempk = (double) ((CELL *) inrast_tempk)[col];
+					break;
+				case FCELL_TYPE:
+					d_tempk = (double) ((FCELL *) inrast_tempk)[col];
+					break;
+				case DCELL_TYPE:
+					d_tempk = ((DCELL *) inrast_tempk)[col];
+					break;
+			}
+			switch(data_type_rnet){
+				case CELL_TYPE:
+					d_rnet = (double) ((CELL *) inrast_rnet)[col];
+					break;
+				case FCELL_TYPE:
+					d_rnet = (double) ((FCELL *) inrast_rnet)[col];
+					break;
+				case DCELL_TYPE:
+					d_rnet = ((DCELL *) inrast_rnet)[col];
+					break;
+			}
+			switch(data_type_time){
+				case CELL_TYPE:
+					d_time = (double) ((CELL *) inrast_time)[col];
+					break;
+				case FCELL_TYPE:
+					d_time = (double) ((FCELL *) inrast_time)[col];
+					break;
+				case DCELL_TYPE:
+					d_time = ((DCELL *) inrast_time)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_albedo)){
 				((DCELL *) outrast)[col] = -999.99;
 			}else if(G_is_d_null_value(&d_ndvi)){
@@ -257,7 +302,7 @@ int main(int argc, char *argv[])
 		//		exit(EXIT_SUCCESS);
 		//	}
 		}
-		if (G_put_raster_row (outfd, outrast, data_type_albedo) < 0)
+		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
 	}
 

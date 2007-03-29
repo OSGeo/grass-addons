@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
 	/* parser stuctures definition */
 	struct GModule *module;
-	struct Option *input_RNET,*input_TEMPKA, *input_PATM, *input_G0;
+	struct Option *input_RNET,*input_TEMPKA, *input_PATM, *input_G0, *input_PT;
 	struct Option *output;
 	struct Flag *flag1, *zero;
 	struct Colors color;
@@ -118,6 +118,15 @@ int main(int argc, char *argv[])
 	input_PATM->gisprompt		= "old,cell,raster";
 	input_PATM->description		= _("Name of Atmospheric Pressure raster map");
 	
+	input_PT = G_define_option();
+	input_PT->key			= "PT";
+	input_PT->key_desc		= "[-]";
+	input_PT->type			= TYPE_DOUBLE;
+	input_PT->required		= YES;
+	input_PT->gisprompt		= "old,cell,raster";
+	input_PT->description		= _("Prestley-Taylor Coefficient");
+	input_PT->answer		= "1.26";
+	
 	output = G_define_option() ;
 	output->key			= "output";
 	output->key_desc		= "[mm/d]";
@@ -143,6 +152,7 @@ int main(int argc, char *argv[])
 	TEMPKA	= input_TEMPKA->answer;
 	PATM	= input_PATM->answer;
 	G0	= input_G0->answer;
+	d_pt_alpha = atof(input_PT->answer);
 	
 	ETa	= output->answer;
 	
