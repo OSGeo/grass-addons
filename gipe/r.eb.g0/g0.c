@@ -21,7 +21,6 @@ double g_0(double bbalb, double ndvi, double tempk, double rnet, double time, in
 	
 	// Spain (Bastiaanssen, 1995)
 	result = (rnet * (tempk-273.15) / bbalb) * a * b ;
-// 	printf("plga_g_0: result = %5.3f\n",result);
 	
 	// HAPEX-Sahel (Roerink, 1995)
 	if(roerink){

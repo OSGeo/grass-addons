@@ -294,13 +294,8 @@ int main(int argc, char *argv[])
 				/************************************/
 				/* calculate soil heat flux	    */
 				d = g_0(d_albedo,d_ndvi,d_tempk,d_rnet,d_time,roerink);
-		//		printf(" || d=%5.3f",d);
 				((DCELL *) outrast)[col] = d;
-		//		printf(" -> %5.3f\n",d);
 			}
-		//	if(row==50){
-		//		exit(EXIT_SUCCESS);
-		//	}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
