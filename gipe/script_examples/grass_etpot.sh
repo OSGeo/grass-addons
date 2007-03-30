@@ -11,6 +11,9 @@
 base=p127r050
 date=20001104
 doy=311.0
+time=11.07
+sunza=45.7
+patm=1010.0
 
 # From here and onward dont change anything!
 #-------------------------------------------
@@ -73,3 +76,18 @@ r.vi viname=ndvi red=$inplandsat3F nir=$inplandsat4F vi=$base$date\ndvi --overwr
 #clean maps
 r.null map=$base$date\ndvi setnull=-1.0
 r.colors map=$base$date\ndvi rules=ndvi
+
+
+#create precursor of ET Prestley-Taylor
+r.mapcalc $base$date\patm=$patm
+r.mapcalc $base$date\time=$time
+r.mapcalc $base$date\sunza=$sunza
+r.emissivity ndvi=$base$date\ndvi emissivity=$base$date\e0 --overwrite
+r.eb.deltat -w tempk=$base$date\.61 delta=$base$date\delta --overwrite
+r.mapcalc $base$date\tempka=$base$date\delta+$base$date\.61
+
+r.eb.netrad albedo=$base$date\albedo ndvi=$base$date\ndvi tempk=$base$date\.61 time=$base$date\time dtair=$base$date\delta emissivity=$base$date\e0 tsw=$base$date\tsw doy=doy sunzangle=$base$date\sunza rnet=$base$date\rnet --overwrite 
+r.eb.g0 albedo=$base$date\albedo ndvi=$base$date\ndvi tempk=$base$date\.61 rnet=$base$date\rnet time=$base$date\time g0=$base$date\g0 --overwrite
+
+#calculate ET Prestley-Taylor
+r.evapo.PT -z RNET=$base$date\rnetd G0=$base$date\g0 TEMPKA=$base$date\tempka PATM=$base$date\patm PT=1.26 output=$base$date\ETA_PT --overwrite 
