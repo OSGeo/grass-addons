@@ -1,0 +1,198 @@
+#!/bin/sh
+
+# $Id: i.tm.dehaze,v 1.5 2002/10/30 08:51:49 markus Exp $
+# copyright Markus Neteler <neteler geog.uni-hannover.de| neteler itc.it>
+# License: GNU GPL
+#
+# Methodology:
+# Bandwise correction using tasscap4 (haze) and linear regression.
+# (Crippen 1987 approach)
+#
+# The regression based technique which determines a 'best fit' line for
+# multispectral plots of pixels within homogenous cover types. The slope of
+# the plot is proportional to the ratio of the reflective material (Crippen
+# 1987).
+#
+# http://www.forestry.umt.edu/academics/courses/FOR503/rs1.htm:
+# The correction technique is based on the fact that Thematic Mapper (TM)
+# band 7 is essentially free from atmospheric effects. Upon examining an
+# area in the image that is in deep shadow or a body of homogeneous deep
+# nonturbid water, the resulting reflectance value in band 7 is either 0 or
+# 1. A histogram of the reflectivity values in band 7 for this area starts
+# from 0 or 1. On the contrary, a histogram of the reflectivity values in
+# bands 1, 2 and 3 for the same area starts from much higher values as a
+# result of haze. This offset, characteristic for each one of the three
+# bands is subtracted from the initial reflectance values and the result is
+# a haze corrected image (Sabins 1987).
+#
+#       The formular of linear regression is (r.linear.regression):
+#                                y=a[0]x[0] + a[1]
+
+
+#%Module
+#% description: De-hazing of a LANDSAT scene
+#% keywords: raster, imagery, dehaze
+#%End
+#%Option
+#% key: band1
+#% type: string
+#% required: yes
+#% multiple: no
+#% description: LANDSAT TM1 channel
+#% gisprompt: old,cell,raster
+#%End
+#%Option
+#% key: band2
+#% type: string
+#% required: yes
+#% multiple: no
+#% description: LANDSAT TM2 channel
+#% gisprompt: old,cell,raster
+#%End
+#%Option
+#% key: band3
+#% type: string
+#% required: yes
+#% multiple: no
+#% description: LANDSAT TM3 channel
+#% gisprompt: old,cell,raster
+#%End
+#%Option
+#% key: band4
+#% type: string
+#% required: yes
+#% multiple: no
+#% description: LANDSAT TM4 channel
+#% gisprompt: old,cell,raster
+#%End
+#%Option
+#% key: band5
+#% type: string
+#% required: yes
+#% multiple: no
+#% description: LANDSAT TM5 channel
+#% gisprompt: old,cell,raster
+#%End
+#%Option
+#% key: band7
+#% type: string
+#% required: yes
+#% multiple: no
+#% description: LANDSAT TM7 channel
+#% gisprompt: old,cell,raster
+#%End
+#%Option
+#% key: tasscap4
+#% type: string
+#% required: yes
+#% multiple: no
+#% description: Tasseled Cap 4 haze map
+#% gisprompt: old,cell,raster
+#%End
+
+if [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program." 1>&2
+    exit 1
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+    exec g.parser "$0" "$@"
+fi
+
+# setting environment, so that awk works properly in all languages
+unset LC_ALL
+LC_NUMERIC=C
+export LC_NUMERIC
+
+PROG=`basename $0`
+
+#define the names:
+tm1=$GIS_OPT_band1
+tm2=$GIS_OPT_band2
+tm3=$GIS_OPT_band3
+tm4=$GIS_OPT_band4
+tm5=$GIS_OPT_band5
+tm7=$GIS_OPT_band7
+tasscap=$GIS_OPT_tasscap4
+
+#test for file:
+eval `g.findfile el=cell file=$GIS_OPT_band1`
+if [ ! "$file" ] ; then
+   echo "Raster map '$GIS_OPT_band1' not found in mapset search path"
+   exit 1
+fi
+eval `g.findfile el=cell file=$GIS_OPT_tasscap4`
+if [ ! "$file" ] ; then
+   echo "Raster map '$GIS_OPT_tasscap4' not found in mapset search path"
+  echo "Did you run i.tasscap?"
+  exit 1
+fi
+
+#get the stats:
+getstats()
+{
+ r.stats -1 $tasscap,$1 > $2
+ r.linear.regression in=$2 out=$3
+ if [ $? -eq 1 ] ; then
+  echo "An error occurred. Stop."
+  exit
+ fi
+# result="`tail $3 | grep a\[1\] | cut -d' ' -f2,3 | tr -s '=' ' '`"
+ result="`tail $3 | grep "a\[1\]" | tr -s '=' ' '`"
+}
+
+
+getstats $tm1 $tasscap.plot1 $tasscap.regress1
+slope_tm1=`echo $result | cut -d' ' -f2`
+intercept_tm1=`echo $result | cut -d' ' -f4`
+# clean up the tmp stuff:
+rm -f $tasscap.plot1 $tasscap.regress1
+echo "Result for channel $tm1: sl:$slope_tm1 i:$intercept_tm1"
+echo ""
+
+getstats $tm2 $tasscap.plot2 $tasscap.regress2
+slope_tm2=`echo $result | cut -d' ' -f2`
+intercept_tm2=`echo $result | cut -d' ' -f4`
+# clean up the tmp stuff:
+rm -f $tasscap.plot2 $tasscap.regress2
+echo "Result for channel $tm2: $slope_tm2 i:$intercept_tm2"
+echo ""
+
+getstats $tm3 $tasscap.plot3 $tasscap.regress3
+slope_tm3=`echo $result | cut -d' ' -f2`
+intercept_tm3=`echo $result | cut -d' ' -f4`
+# clean up the tmp stuff:
+rm -f $tasscap.plot3 $tasscap.regress3
+echo "Result for channel $tm3: $slope_tm3 i:$intercept_tm3"
+echo ""
+
+getstats $tm4 $tasscap.plot4 $tasscap.regress4
+slope_tm4=`echo $result | cut -d' ' -f2`
+intercept_tm4=`echo $result | cut -d' ' -f4`
+# clean up the tmp stuff:
+rm -f $tasscap.plot4 $tasscap.regress4
+echo "Result for channel $tm4: $slope_tm4 i:$intercept_tm4"
+echo ""
+
+getstats $tm5 $tasscap.plot5 $tasscap.regress5
+slope_tm5=`echo $result | cut -d' ' -f2`
+intercept_tm5=`echo $result | cut -d' ' -f4`
+# clean up the tmp stuff:
+rm -f $tasscap.plot5 $tasscap.regress5
+echo "Result for channel $tm5: $slope_tm5 i:$intercept_tm5"
+echo ""
+
+# do the correction:
+echo "Running the dehaze formula: tm.dehaze = tm - [ (tass4 - tm_i) * tm_s]"
+echo "                   with internally calculated i:intercept, s: slope"
+
+r.mapcalc $tm1.dehaze="$tm1 - ( ($tasscap - $intercept_tm1) * $slope_tm1)"
+r.mapcalc $tm2.dehaze="$tm2 - ( ($tasscap - $intercept_tm2) * $slope_tm2)"
+r.mapcalc $tm3.dehaze="$tm3 - ( ($tasscap - $intercept_tm3) * $slope_tm3)"
+r.mapcalc $tm4.dehaze="$tm4 - ( ($tasscap - $intercept_tm4) * $slope_tm4)"
+r.mapcalc $tm5.dehaze="$tm5 - ( ($tasscap - $intercept_tm5) * $slope_tm5)"
+echo ""
+echo "The new dehazed bands are: "
+echo "$tm1.dehaze, $tm2.dehaze, $tm3.dehaze, $tm4.dehaze, $tm5.dehaze"
+echo ""
+echo "Consider to run r.colors or i.grey.scale to set a grey color table"

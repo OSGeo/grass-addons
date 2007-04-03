@@ -1,0 +1,36 @@
+<H2>DESCRIPTION</H2>
+
+<EM>i.landsat.dehaze</EM> applies a bandwise haze correction using tasscap4 (haze) 
+and linear regression.
+
+<H2>NOTES</H2>
+
+The regression based technique which determines a 'best fit' line for
+multispectral plots of pixels within homogenous cover types. The slope of
+the plot is proportional to the ratio of the reflective material (Crippen
+1987).
+
+<H2>EXAMPLE</H2>
+
+<div class="code"><pre>
+# preparation of Tasseled Cap "haze" map
+i.tasscap -7 band1=tm.10 band2=tm.20 band3=tm.30 band4=tm.40 band5=tm.50 band7=tm.70 out=tasscap
+
+# De-hazing
+i.landsat.dehaze band1=tm.10 band2=tm.20 band3=tm.30 band4=tm.40 band5=tm.50 band7=tm.70 tasscap4=tasscap.4
+</pre></div>
+
+
+<H2>SEE ALSO</H2>
+
+<EM><A HREF="d.rgb.html">d.rgb</A></EM>,
+<EM><A HREF="g.region.html">g.region</A></EM>,
+<EM><A HREF="i.tasscap.html">i.tasscap</A></EM>,
+<EM><A HREF="r.colors.html">r.colors</A></EM>,
+<EM><A HREF="r.composite.html">r.composite</A></EM>
+
+<H2>AUTHOR</H2>
+
+Markus Neteler
+
+<p><i>Last changed: $Date: 2006/09/07 09:24:10 $</i>
