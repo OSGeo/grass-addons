@@ -83,7 +83,8 @@ int main(int argc, char *argv[])
 	char	sys_9[1000],sys_10[1000],sys_100[1000];
 	char	sys_11[1000],sys_12[1000],sys_13[1000],sys_14[1000];
 	char	sys_15[1000],sys_16[1000],sys_17[1000],sys_18[1000];
-
+	char	sys_19[1000],sys_20[1000],sys_21[1000],sys_22[1000];
+	char	sys_23[1000];
 
 	if(argc < 1){
 		usage();
@@ -624,6 +625,17 @@ int main(int argc, char *argv[])
 	system(sys_17);
 	sprintf(sys_10,"echo \"r.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=%s.w TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_10);
+	sprintf(sys_19,"echo \"r.mapcalc %s.patm=1010.0\" >> temp.txt",basedate);
+	system(sys_19);
+	sprintf(sys_20,"echo \"r.emissivity ndvi=%s.ndvi emissivity=%s.e0 --overwrite\" >> temp.txt",basedate,basedate);
+	system(sys_20);
+	sprintf(sys_21,"echo \"r.eb.netrad albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 time=%s.time dtair=%s.delta emissivity=%s.e0 tsw=%s.tsw doy=%s.doy sunzangle=%s.sunza rnet=%s.rnet --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	system(sys_21);
+	sprintf(sys_22,"echo \"r.eb.g0 albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 rnet=%s.rnet time=%s.time g0=%s.g0 --overwrite\"",basedate,basedate,basedate,basedate,basedate,basedate);
+	system(sys_22);
+	sprintf(sys_23,"echo \"r.evapo.PT -z RNET=%s.rnetd G0=%s.g0 TEMPKA=%s.tempka PATM=%s.patm PT=1.26 output=%s.ETA_PT --overwrite\"",basedate,basedate,basedate,basedate,basedate);
+	system(sys_23);
+
 	//clean maps
 // 	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
 
