@@ -45,6 +45,7 @@ SUBDIRS = \
 	r.eb.ustar \
 	r.eb.z0m \
 	r.emissivity \
+	r.evapo.MH \
 	r.evapo.potrad \
 	r.evapo.PM \
 	r.evapo.PT \
