@@ -564,10 +564,12 @@ set descmenu [subst  {
 		{command {[G_msg "Login to database"]} {} "db.login" {} -command {execute db.login }}
 		{separator}
 		{command {[G_msg "Create and add new attribute table to vector map"]} {} "v.db.addtable" {} -command {execute v.db.addtable }}
-		{command {[G_msg "Copy table"]} {} "db.copy" {} -command {execute db.copy }}
+		{command {[G_msg "Copy attribute table"]} {} "db.copy" {} -command {execute db.copy }}
+		{command {[G_msg "Remove existing attribute table for vector map"]} {} "v.db.droptable" {} -command {execute v.db.droptable }}
+		{separator}
 		{command {[G_msg "Add columns to table"]} {} "v.db.addcol" {} -command {execute v.db.addcol }}
 		{command {[G_msg "Change values in a column"]} {} "v.db.update" {} -command {execute v.db.update }}
-		{command {[G_msg "Remove existing table for vector map"]} {} "v.db.droptable" {} -command {execute v.db.droptable }}
+		{command {[G_msg "Rename a column"]} {} "v.db.renamecol" {} -command {execute v.db.renamecol }}
 		{separator}
 		{command {[G_msg "Test database"]} {} "db.test" {} -command {execute db.test }}
 	}}
@@ -614,11 +616,13 @@ set descmenu [subst  {
 			{command {[G_msg "Satellite overpass time"]} {} "r.sattime" {} -command {execute r.sattime }}
 	}}
 	{separator}
-	{cascad {[G_msg "ETP and ETa"]} {} "" $tmenu {
-			{command {[G_msg "Potential ET (Radiative)"]} {} "r.evapo.potrad" {} -command {execute r.evapo.potrad }}
-			{command {[G_msg "Potential ET (Radiative) from L7DN (.met)"]} {} "r.dn2potrad.l7" {} -command {execute r.dn2potrad.l7 }}
+	{cascad {[G_msg "ETo, ETP, ETa"]} {} "" $tmenu {
+			{command {[G_msg "Reference ET (Hargreaves)"]} {} "r.evapo.MH" {} -command {execute r.evapo.MH }}
+			{separator}
 			{command {[G_msg "Potential ET (Penman-Monteith)"]} {} "r.evapo.PM" {} -command {execute r.evapo.PM }}
 			{command {[G_msg "Potential ET (Prestley and Taylor)"]} {} "r.evapo.PT" {} -command {execute r.evapo.PT }}
+			{command {[G_msg "Potential ET (Radiative)"]} {} "r.evapo.potrad" {} -command {execute r.evapo.potrad }}
+			{command {[G_msg "Potential ET (Radiative) from L7DN (.met)"]} {} "r.dn2potrad.l7" {} -command {execute r.dn2potrad.l7 }}
 			{separator}
 			{command {[G_msg "Actual ET (SEBAL)"]} {} "r.eb.eta" {} -command {execute r.eb.eta }}
 			{command {[G_msg "Actual ET (TSA)"]} {} "r.evapo.TSA" {} -command {execute r.evapo.TSA }}
