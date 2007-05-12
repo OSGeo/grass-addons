@@ -16,3 +16,11 @@ must be requested.
 Checkout of repository:
  svn co https://grasssvn.itc.it/svn/grassaddons/trunk/grassaddons grassaddons
 
+#########################################
+# To avoid PDF mime-type recognition problems,
+# each new (!) PDF file has to be modified like this:
+# (unsure how to exclude PDF from the 'diff' email
+
+svn propset svn:mime-type application/x-pdf *.pdf
+svn commit *.pdf
+
