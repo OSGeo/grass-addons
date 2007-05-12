@@ -1,0 +1,395 @@
+This is pdfeTeX, Version 3.141592-1.21a-2.2 (Web2C 7.5.4) (format=pdflatex 2007.4.21)  1 MAY 2007 21:50
+entering extended mode
+**grassflyer.tex
+(./grassflyer.tex
+LaTeX2e <2003/12/01>
+Babel <v3.8d> and hyphenation patterns for american, french, german, ngerman, b
+ahasa, basque, bulgarian, catalan, croatian, czech, danish, dutch, esperanto, e
+stonian, finnish, greek, icelandic, irish, italian, latin, magyar, norsk, polis
+h, portuges, romanian, russian, serbian, slovak, slovene, spanish, swedish, tur
+kish, ukrainian, nohyphenation, loaded.
+(./leaflet.cls
+Document Class: leaflet 2004/12/22 v1.0d LaTeX document class (JS,WaS,RN,HjG)
+(/usr/share/texmf-tetex/tex/latex/etex/etex.sty
+Package: etex 1998/03/26 v2.0 eTeX basic definition package (PEB)
+\et@xins=\count79
+)
+\@@@out@mark=\marks1
+\c@@@total@outs=\count80
+\c@@@last@exec=\count81
+
+(/usr/share/texmf-tetex/tex/latex/base/article.cls
+Document Class: article 2004/02/16 v1.4f Standard LaTeX document class
+(/usr/share/texmf-tetex/tex/latex/base/size10.clo
+File: size10.clo 2004/02/16 v1.4f Standard LaTeX file (size option)
+)
+\c@part=\count82
+\c@section=\count83
+\c@subsection=\count84
+\c@subsubsection=\count85
+\c@paragraph=\count86
+\c@subparagraph=\count87
+\c@figure=\count88
+\c@table=\count89
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/share/texmf-tetex/tex/latex/ms/everyshi.sty
+Package: everyshi 2001/05/15 v3.00 EveryShipout Package (MS)
+)
+(/usr/share/texmf-tetex/tex/latex/tools/calc.sty
+Package: calc 1998/07/07 v4.1b Infix arithmetic (KKT,FJ)
+\calc@Acount=\count90
+\calc@Bcount=\count91
+\calc@Adimen=\dimen103
+\calc@Bdimen=\dimen104
+\calc@Askip=\skip43
+\calc@Bskip=\skip44
+LaTeX Info: Redefining \setlength on input line 59.
+LaTeX Info: Redefining \addtolength on input line 60.
+\calc@denominator=\count92
+)
+(/usr/share/texmf-tetex/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-tetex/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(/usr/share/texmf-tetex/tex/latex/graphics/graphics.sty
+Package: graphics 2001/07/07 v1.0n Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-tetex/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/share/texmf-tetex/tex/latex/graphics/graphics.cfg
+File: graphics.cfg 2005/02/03 v1.3 graphics configuration of teTeX/TeXLive
+)
+Package graphics Info: Driver file: pdftex.def on input line 80.
+
+(/usr/share/texmf-tetex/tex/latex/graphics/pdftex.def
+File: pdftex.def 2002/06/19 v0.03k graphics/color for pdftex
+\Gread@gobject=\count93
+))
+\Gin@req@height=\dimen105
+\Gin@req@width=\dimen106
+)
+Class leaflet Info: Generating code for pdfTeX on input line 257.
+
+(/usr/share/texmf-tetex/tex/latex/psnfss/pifont.sty
+Package: pifont 2004/09/15 PSNFSS-v9.2 Pi font support (SPQR) 
+LaTeX Font Info:    Try loading font information for U+pzd on input line 63.
+
+(/usr/share/texmf-tetex/tex/latex/psnfss/upzd.fd
+File: upzd.fd 2001/06/04 font definitions for U/pzd.
+)
+LaTeX Font Info:    Try loading font information for U+psy on input line 64.
+
+(/usr/share/texmf-tetex/tex/latex/psnfss/upsy.fd
+File: upsy.fd 2001/06/04 font definitions for U/psy.
+))
+\c@LL@page=\count94
+)
+(/usr/share/texmf-tetex/tex/latex/base/inputenc.sty
+Package: inputenc 2004/02/05 v1.0d Input encoding file
+
+(/usr/share/texmf-tetex/tex/latex/base/latin1.def
+File: latin1.def 2004/02/05 v1.0d Input encoding file
+))
+(/usr/share/texmf-tetex/tex/latex/base/fontenc.sty
+Package: fontenc 2004/02/22 v1.99f Standard LaTeX package
+
+(/usr/share/texmf-tetex/tex/latex/base/t1enc.def
+File: t1enc.def 2004/02/22 v1.99f Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 43.
+))
+(/usr/share/texmf-tetex/tex/generic/babel/babel.sty
+Package: babel 2004/11/20 v3.8d The Babel package
+
+(/usr/share/texmf-tetex/tex/generic/babel/ngermanb.ldf
+Language: ngermanb 2004/02/20 v2.6m new German support from the babel system
+
+(/usr/share/texmf-tetex/tex/generic/babel/babel.def
+File: babel.def 2004/11/20 v3.8d Babel common definitions
+\babel@savecnt=\count95
+\U@D=\dimen107
+)
+\l@naustrian = a dialect from \language\l@ngerman 
+Package babel Info: Making " an active character on input line 92.
+))
+(/usr/share/texmf-tetex/tex/latex/psnfss/helvet.sty
+Package: helvet 2004/09/15 PSNFSS-v9.2 (WaS) 
+)
+(/usr/share/texmf-tetex/tex/latex/psnfss/courier.sty
+Package: courier 2004/09/15 PSNFSS-v9.2 (WaS) 
+)
+(/usr/share/texmf/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2004/07/04 v2.00 LaTeX color extensions (UK)
+
+(/usr/share/texmf-tetex/tex/latex/graphics/color.cfg
+File: color.cfg 2005/02/03 v1.3 color configuration of teTeX/TeXLive
+)
+Package xcolor Info: Driver file: pdftex.def on input line 136.
+Package xcolor Info: Color model `cmy' added on input line 972.
+Package xcolor Info: Color model `hsb' added on input line 980.
+Package xcolor Info: Color model `HTML' added on input line 1000.
+Package xcolor Info: Color model `HSB' added on input line 1006.
+Package xcolor Info: Color model `Gray' added on input line 1012.
+) (./caption.sty
+Package: caption 2004/07/16 v3.0c Customising captions (AS)
+\captionmargin=\dimen108
+\captionwidth=\dimen109
+\captionindent=\dimen110
+\captionparindent=\dimen111
+\captionhangindent=\dimen112
+)
+(/usr/share/texmf-tetex/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2003/11/30 v6.74m Hypertext links for LaTeX
+\@linkdim=\dimen113
+\Hy@linkcounter=\count96
+\Hy@pagecounter=\count97
+
+(/usr/share/texmf-tetex/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2003/11/30 v6.74m Hyperref: PDFDocEncoding definition (HO)
+)
+(/usr/share/texmf-tetex/tex/latex/hyperref/hyperref.cfg
+File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive and teTeX
+)
+Package hyperref Info: Hyper figures OFF on input line 1880.
+Package hyperref Info: Link nesting OFF on input line 1885.
+Package hyperref Info: Hyper index ON on input line 1888.
+Package hyperref Info: Plain pages ON on input line 1893.
+Package hyperref Info: Backreferencing OFF on input line 1900.
+
+Implicit mode ON; LaTeX internals redefined
+Package hyperref Info: Bookmarks ON on input line 2004.
+(/usr/share/texmf-tetex/tex/latex/url/url.sty
+\Urlmuskip=\muskip10
+Package: url 2004/03/15  ver 3.1  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 2143.
+\Fld@menulength=\count98
+\Field@Width=\dimen114
+\Fld@charsize=\dimen115
+\Choice@toks=\toks15
+\Field@toks=\toks16
+Package hyperref Info: Hyper figures OFF on input line 2618.
+Package hyperref Info: Link nesting OFF on input line 2623.
+Package hyperref Info: Hyper index ON on input line 2626.
+Package hyperref Info: backreferencing OFF on input line 2633.
+Package hyperref Info: Link coloring OFF on input line 2638.
+\c@Item=\count99
+\c@Hfootnote=\count100
+)
+*hyperref using default driver hpdftex*
+(/usr/share/texmf-tetex/tex/latex/hyperref/hpdftex.def
+File: hpdftex.def 2003/11/30 v6.74m Hyperref driver for pdfTeX
+\Fld@listcount=\count101
+\@outlinefile=\write3
+)
+Package hyperref Info: Option `colorlinks' set `true' on input line 52.
+Package hyperref Info: Option `breaklinks' set `true' on input line 52.
+Package hyperref Info: Option `plainpages' set `false' on input line 52.
+ (./grassflyer.aux)
+\openout1 = `grassflyer.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 61.
+LaTeX Font Info:    ... okay on input line 61.
+LaTeX Font Info:    Try loading font information for T1+phv on input line 61.
+
+(/usr/share/texmf-tetex/tex/latex/psnfss/t1phv.fd
+File: t1phv.fd 2001/06/04 scalable font definitions for T1/phv.
+)
+ABD: EveryShipout initializing macros
+(/usr/share/texmf-tetex/tex/context/base/supp-pdf.tex
+(/usr/share/texmf-tetex/tex/context/base/supp-mis.tex
+loading : Context Support Macros / Miscellaneous (2004.10.26)
+\protectiondepth=\count102
+\scratchcounter=\count103
+\scratchtoks=\toks17
+\scratchdimen=\dimen116
+\scratchskip=\skip45
+\scratchmuskip=\muskip11
+\scratchbox=\box26
+\scratchread=\read1
+\scratchwrite=\write4
+\zeropoint=\dimen117
+\onepoint=\dimen118
+\onebasepoint=\dimen119
+\minusone=\count104
+\thousandpoint=\dimen120
+\onerealpoint=\dimen121
+\emptytoks=\toks18
+\nextbox=\box27
+\nextdepth=\dimen122
+\everyline=\toks19
+\!!counta=\count105
+\!!countb=\count106
+\recursecounter=\count107
+)
+loading : Context Support Macros / PDF (2004.03.26)
+\nofMPsegments=\count108
+\nofMParguments=\count109
+\MPscratchCnt=\count110
+\MPscratchDim=\dimen123
+\MPnumerator=\count111
+\everyMPtoPDFconversion=\toks20
+) (/usr/share/texmf-tetex/tex/latex/ms/ragged2e.sty
+Package: ragged2e 2003/03/25 v2.04 ragged2e Package (MS)
+
+(/usr/share/texmf-tetex/tex/latex/ms/everysel.sty
+Package: everysel 1999/06/08 v1.03 EverySelectfont Package (MS)
+LaTeX Info: Redefining \selectfont on input line 125.
+)
+\CenteringLeftskip=\skip46
+\RaggedLeftLeftskip=\skip47
+\RaggedRightLeftskip=\skip48
+\CenteringRightskip=\skip49
+\RaggedLeftRightskip=\skip50
+\RaggedRightRightskip=\skip51
+\CenteringParfillskip=\skip52
+\RaggedLeftParfillskip=\skip53
+\RaggedRightParfillskip=\skip54
+\JustifyingParfillskip=\skip55
+\CenteringParindent=\skip56
+\RaggedLeftParindent=\skip57
+\RaggedRightParindent=\skip58
+\JustifyingParindent=\skip59
+)
+Package hyperref Info: Link coloring ON on input line 61.
+
+(/usr/share/texmf-tetex/tex/latex/hyperref/nameref.sty
+Package: nameref 2003/12/03 v2.21 Cross-referencing by name of section
+\c@section@level=\count112
+)
+LaTeX Info: Redefining \ref on input line 61.
+LaTeX Info: Redefining \pageref on input line 61.
+ (./grassflyer.out)
+(./grassflyer.out)
+\openout3 = `grassflyer.out'.
+
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <17.28> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 64.
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <20.74> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 64.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 64.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 64.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 64.
+
+<pix/grasslogo_vector.pdf, id=87, 201.75375pt x 223.83624pt>
+File: pix/grasslogo_vector.pdf Graphic file (type pdf)
+
+<use pix/grasslogo_vector.pdf>
+LaTeX Font Info:    Try loading font information for T1+pcr on input line 64.
+
+(/usr/share/texmf-tetex/tex/latex/psnfss/t1pcr.fd
+File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
+)
+
+\LL@boxI=\box28
+
+    [1] ==> [I]
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <12> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 68.
+
+Underfull \hbox (badness 1097) in paragraph at lines 70--71
+\T1/phv/m/n/10 GRASS (Geo-gra-phic Re-sources Ana-ly-sis Sup-port
+ []
+
+<pix/visibility.png, id=88, 685.56125pt x 503.8825pt>
+File: pix/visibility.png Graphic file (type png)
+ <use pix/visibility.png>
+LaTeX Font Info:    Font shape `T1/phv/m/it' in size <9> not available
+(Font)              Font shape `T1/phv/m/sl' tried instead on input line 79.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 80.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 80.
+\LL@boxII=\box29
+
+    [2] ==> [II]
+LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <10> not available
+(Font)              Font shape `T1/phv/b/n' tried instead on input line 87.
+LaTeX Font Info:    Try loading font information for OMS+phv on input line 98.
+(/usr/share/texmf-tetex/tex/latex/psnfss/omsphv.fd
+File: omsphv.fd 
+)
+LaTeX Font Info:    Font shape `OMS/phv/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 98.
+\LL@boxIII=\box30
+
+    [3] ==> [III]
+<pix/trento3d.pdf, id=89, 937.5025pt x 741.77126pt>
+File: pix/trento3d.pdf Graphic file (type pdf)
+ <use pix/trento3d.pdf>
+Underfull \hbox (badness 1895) in paragraph at lines 130--131
+\T1/phv/m/n/10 GPS-ASCII USGS-DEM, IDRI-SI, MOSS, Ma-p-In-fo
+ []
+
+<pix/isodist.png, id=90, 866.23625pt x 522.95375pt>
+File: pix/isodist.png Graphic file (type png)
+ <use pix/isodist.png>
+\LL@boxIV=\box31
+
+    [4] ==> [IV]
+<pix/ndvi.png, id=91, 313.17pt x 246.1998pt>
+File: pix/ndvi.png Graphic file (type png)
+ <use pix/ndvi.png>
+\LL@boxV=\box32
+
+    [5] ==> [V]
+
+Underfull \hbox (badness 10000) in paragraph at lines 184--186
+[][]$\T1/pcr/m/n/10 http : / / grass . itc . it / community /
+ []
+
+<pix/Logo_GAV.png, id=92, 236.8047pt x 88.4103pt>
+File: pix/Logo_GAV.png Graphic file (type png)
+ <use pix/Logo_GAV.png>
+<pix/OSGeo_CMYK.pdf, id=93, 795.97375pt x 355.3275pt>
+File: pix/OSGeo_CMYK.pdf Graphic file (type pdf)
+ <use pix/OSGeo_CMYK.pdf>
+\LL@boxVI=\box33
+
+    [6] ==> [VI]
+(./grassflyer.aux)
+[V VI I] ==>
+[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./pix/ndvi.png> <./pix/L
+ogo_GAV.png> <./pix/OSGeo_CMYK.pdf> <./pix/grasslogo_vector.pdf>]
+[II III IV] ==>
+[2 <./pix/visibility.png> <./pix/trento3d.pdf> <./pix/isodist.png>] ) 
+Here is how much of TeX's memory you used:
+ 4310 strings out of 94500
+ 57986 string characters out of 1175788
+ 120539 words of memory out of 1000000
+ 7375 multiletter control sequences out of 10000+50000
+ 34178 words of font info for 47 fonts, out of 500000 for 2000
+ 580 hyphenation exceptions out of 8191
+ 32i,6n,38p,625b,303s stack positions out of 1500i,500n,5000p,200000b,5000s
+PDF statistics:
+ 146 PDF objects out of 300000
+ 31 named destinations out of 131072
+ 212 words of extra memory for PDF output out of 65536
+{/usr/shar
+e/texmf-tetex/fonts/enc/dvips/psnfss/8r.enc}</usr/share/texmf-tetex/fonts/type1
+/urw/courier/ucrr8a.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmsy10.p
+fb></usr/share/texmf-tetex/fonts/type1/urw/helvetic/uhvro8a.pfb></usr/share/tex
+mf-tetex/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/share/texmf-tetex/fonts/type
+1/urw/helvetic/uhvb8a.pfb>
+Output written on grassflyer.pdf (2 pages, 1470460 bytes).
