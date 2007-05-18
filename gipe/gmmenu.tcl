@@ -286,6 +286,11 @@ set descmenu [subst  {
 		{command {[G_msg "Thin linear features"]} {} "r.thin" {} -command {execute r.thin }}
 	}}
 	{separator}
+	{cascad {[G_msg "Universal Soil Loss Equation (USLE)"]} {} "" $tmenu {			
+		{command {[G_msg "Rainfall Erosivity (R)"]} {} "r.usler" {} -command {execute r.usler }}
+		{command {[G_msg "Soil Erodibility (K)"]} {} "r.uslek" {} -command {execute r.uslek }}
+		{command {[G_msg "Length Slope and Slope (LS)"]} {} "r.watershed" {} -command {execute r.watershed }}
+	}}
 	{cascad {[G_msg "Hydrologic modeling"]} {} "" $tmenu {			
 		{command {[G_msg "Carve stream channels into elevation map using vector streams map"]} {} "r.carve" {} -command {execute r.carve }}
 		{command {[G_msg "Depressionless elevation map and flowline map"]} {} "r.fill.dir" {} -command {execute r.fill.dir }}
@@ -589,11 +594,6 @@ set descmenu [subst  {
 		{command {[G_msg "Reconnect vector map to attribute database"]} {} "v.db.reconnect.all" {} -command {execute v.db.reconnect.all }}
 		{command {[G_msg "Set database connection for vector attributes"]} {} "v.db.connect" {} -command {execute v.db.connect }}
 	}}
- } 
- {[G_msg "&USLE"]} all options $tmenu {
-		{command {[G_msg "USLE R"]} {} "r.usler" {} -command {execute r.usler }}
-		{command {[G_msg "USLE K"]} {} "r.uslek" {} -command {execute r.uslek }}
-		{command {[G_msg "USLE LS"]} {} "r.watershed" {} -command {execute r.watershed }}
  }
  {[G_msg "&GIPE"]} all options $tmenu {
 	 {cascad {[G_msg "DN2Rad2Ref"]} {} "" $tmenu {
@@ -628,22 +628,22 @@ set descmenu [subst  {
 			{command {[G_msg "Actual ET (TSA)"]} {} "r.evapo.TSA" {} -command {execute r.evapo.TSA }}
 	}}
 	{cascad {[G_msg "Energy Balance"]} {} "" $tmenu {
-			{command {[G_msg "surface roughness"]} {} "r.eb.z0m" {} -command {execute r.eb.z0m }}
-			{command {[G_msg "delta T"]} {} "r.eb.deltat" {} -command {execute r.eb.deltat }}
-			{command {[G_msg "net radiation"]} {} "r.eb.netrad" {} -command {execute r.eb.netrad }}
+			{command {[G_msg "Surface roughness"]} {} "r.eb.z0m" {} -command {execute r.eb.z0m }}
+			{command {[G_msg "Delta T"]} {} "r.eb.deltat" {} -command {execute r.eb.deltat }}
+			{command {[G_msg "Net radiation"]} {} "r.eb.netrad" {} -command {execute r.eb.netrad }}
 			{separator}
 			{command {[G_msg "Displacement height"]} {} "r.eb.disp" {} -command {execute r.eb.disp }}
 			{command {[G_msg "Monin-Obukov Length"]} {} "r.eb.molength" {} -command {execute r.eb.molength }}
-			{command {[G_msg "psichrometric param. for heat"]} {} "r.eb.psi" {} -command {execute r.eb.psi }}
-			{command {[G_msg "blending height wind speed"]} {} "r.eb.ublend" {} -command {execute r.eb.ublend }}
-			{command {[G_msg "nominal wind speed"]} {} "r.eb.ustar" {} -command {execute r.eb.ustar }}
-			{command {[G_msg "aerod. resis. to heat transp."]} {} "r.eb.rah" {} -command {execute r.eb.rah }}
+			{command {[G_msg "Psichrometric param. for heat"]} {} "r.eb.psi" {} -command {execute r.eb.psi }}
+			{command {[G_msg "Blending height wind speed"]} {} "r.eb.ublend" {} -command {execute r.eb.ublend }}
+			{command {[G_msg "Nominal wind speed"]} {} "r.eb.ustar" {} -command {execute r.eb.ustar }}
+			{command {[G_msg "Aerod. resis. to heat transp."]} {} "r.eb.rah" {} -command {execute r.eb.rah }}
 			{separator}
-			{command {[G_msg "soil heat flux"]} {} "r.eb.g0" {} -command {execute r.eb.g0 }}
-			{command {[G_msg "sensible heat flux"]} {} "r.eb.h0" {} -command {execute r.eb.h0 }}
-			{command {[G_msg "sensible heat flux iteration (fixed delta T)"]} {} "r.eb.h_iter" {} -command {execute r.eb.h_iter }}
+			{command {[G_msg "Soil heat flux"]} {} "r.eb.g0" {} -command {execute r.eb.g0 }}
+			{command {[G_msg "Sensible heat flux"]} {} "r.eb.h0" {} -command {execute r.eb.h0 }}
+			{command {[G_msg "Sensible heat flux iteration (fixed delta T)"]} {} "r.eb.h_iter" {} -command {execute r.eb.h_iter }}
 			{separator}
-			{command {[G_msg "evaporative fraction"]} {} "r.eb.evapfr" {} -command {execute r.eb.evapfr }}
+			{command {[G_msg "Evaporative fraction"]} {} "r.eb.evapfr" {} -command {execute r.eb.evapfr }}
 	}}
 	{separator}
 	{cascad {[G_msg "Biomass"]} {} "" $tmenu {
