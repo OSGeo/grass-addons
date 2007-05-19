@@ -1,6 +1,6 @@
 <H2>DESCRIPTION</H2>
 
-<EM>r.dn2full.l7</EM> This module is a full import module for Landsat 7. It corrects every band (1,2,3,4,5,6L,6H,7,8Pan) from DN to either reflectance at top of Atmosphere or Kinetic Temperature. 
+<EM>i.dn2full.l7</EM> This module is a full import module for Landsat 7. It corrects every band (1,2,3,4,5,6L,6H,7,8Pan) from DN to either reflectance at top of Atmosphere or Kinetic Temperature. 
 It is useful after importing your Landsat 7 imagery from storage format that is generally in standard DN values range.
 
 <H2>NOTES</H2>
@@ -10,14 +10,14 @@ Run this shell command: "for file in *.gz; do gzip -d $file; done"
 
 then run this GRASS module: "for file in *.tif; do r.in.gdal input=$file output=$file title=Landsat7ETM$file ; done"
 
-Finally run this GRASS module: "r.dn2full.l7 metfile.met output=base_ouput_name"
+Finally run this GRASS module: "i.dn2full.l7 metfile.met output=base_ouput_name"
 <H2>TODO</H2>
 
 <H2>SEE ALSO</H2>
 
 <em>
 <A HREF="r.in.gdal.html">r.in.gdal</A><br>
-<A HREF="r.dn2ref.l7.html">r.dn2ref.l7</A><br>
+<A HREF="i.dn2ref.l7.html">i.dn2ref.l7</A><br>
 </em>
 
 
