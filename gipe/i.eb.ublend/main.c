@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.ublend
+ * MODULE:       i.eb.ublend
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the wind speed at blendiong height
  * 		 as seen in Pawan (2004)

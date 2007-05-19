@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.rah
+ * MODULE:       i.eb.rah
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates aerodynamic resistance to heat transport
  *               This has been seen in Pawan (2004).

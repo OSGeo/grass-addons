@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.h0
+ * MODULE:       i.eb.h0
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates sensible heat flux
  *               a flag allows the Bastiaanssen (1995) affine transform 

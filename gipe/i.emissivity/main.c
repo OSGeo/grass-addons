@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.emissivity
+ * MODULE:       i.emissivity
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the emissivity from NDVI (empirical)
  *                as seen in Caselles and Colles (1997). 

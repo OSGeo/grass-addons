@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.disp
+ * MODULE:       i.eb.disp
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the displacement height above skin surface
  *                as seen in Pawan (2004) 

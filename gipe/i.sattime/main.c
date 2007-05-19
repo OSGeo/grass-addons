@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.sattime
+ * MODULE:       i.sattime
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the time of satellite overpass
  * 		 using sun elevation angle, latitude and DOY.

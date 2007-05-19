@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.dn2full.l7
+ * MODULE:       i.dn2full.l7
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculate TOA Reflectance&Temperature for Landsat7 from DN.
  *

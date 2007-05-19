@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.z0m
+ * MODULE:       i.eb.z0m
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the momentum roughness length
  *               as seen in Bastiaanssen (1995) 

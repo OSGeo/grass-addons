@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.dn2potrad.l7
+ * MODULE:       i.dn2potrad.l7
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculate ETpot radiative for Landsat7 from DN.
  *

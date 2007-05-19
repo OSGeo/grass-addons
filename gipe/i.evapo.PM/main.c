@@ -1,6 +1,6 @@
 /*****************************************************************************
 *
-* MODULE:	r.evapo.PM
+* MODULE:	i.evapo.PM
 * AUTHOR:	Massimiliano Cannata - massimiliano.cannata@supsi.ch (2005)
 * 		included in GIPE by Yann Chemin - ychemin_AT_gmail.com (2006)
 *

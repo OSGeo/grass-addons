@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.sunhours
+ * MODULE:       i.sunhours
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the sunshine hours (also called daytime period)
  * 		 under a perfect clear sky condition.

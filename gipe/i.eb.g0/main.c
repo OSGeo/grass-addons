@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.g0
+ * MODULE:       i.eb.g0
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates an approximation of soil heat flux
  *               as seen in Bastiaanssen (1995) using time of

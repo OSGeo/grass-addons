@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.latitude
+ * MODULE:       i.latitude
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the latitude of the pixels in the map. 
  *

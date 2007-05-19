@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.dn2ref.l7
+ * MODULE:       i.dn2ref.l7
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculate TOA Reflectance for Landsat7 from DN.
  *

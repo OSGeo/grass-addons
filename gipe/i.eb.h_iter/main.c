@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.h_iter
+ * MODULE:       i.eb.h_iter
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates sensible heat flux by SEBAL iteration
  *               if your DeltaT (or eq. to make it from surf.temp) is validated.

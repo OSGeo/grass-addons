@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:     r.vi.mpi
+ * MODULE:     i.vi.mpi
  * AUTHOR(S):  Shamim Akhter shamimakhter@gmail.com
 		 Baburao Kamble baburaokamble@gmail.com
  *		 Yann Chemin - ychemin@gmail.com

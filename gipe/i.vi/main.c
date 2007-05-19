@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.vi
+ * MODULE:       i.vi
  * AUTHOR(S):    Baburao Kamble baburaokamble@gmail.com
  *		 Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates 13 vegetation indices 

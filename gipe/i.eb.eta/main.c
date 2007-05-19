@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.eta
+ * MODULE:       i.eb.eta
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the actual evapotranspiration for diurnal period
  *               as seen in Bastiaanssen (1995) 

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.deltat
+ * MODULE:       i.eb.deltat
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the difference of temperature between 2 heights
  *                as seen in Pawan (2004) 

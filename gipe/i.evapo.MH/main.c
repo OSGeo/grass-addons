@@ -1,6 +1,6 @@
 /*****************************************************************************
 *
-* MODULE:	r.evapo.MH
+* MODULE:	i.evapo.MH
 * AUTHOR:	Yann Chemin (2007)
 * 		yann.chemin_AT_gmail.com 
 *

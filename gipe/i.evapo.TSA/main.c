@@ -1,6 +1,6 @@
 /*****************************************************************************
 *
-* MODULE:	r.evapo.TSA
+* MODULE:	i.evapo.TSA
 * AUTHOR:	Yann Chemin (2007)
 * 		yann.chemin_AT_gmail.com 
 *

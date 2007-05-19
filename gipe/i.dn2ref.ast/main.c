@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.dn2ref.ast
+ * MODULE:       i.dn2ref.ast
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculate TOA Reflectance for Aster from DN.
  * 		 Input 9 bands (VNIR and SWIR).

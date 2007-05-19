@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.ustar
+ * MODULE:       i.eb.ustar
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the nominal wind speed
  *

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.netrad
+ * MODULE:       i.eb.netrad
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the instantaneous net radiation at 
  *               as seen in Bastiaanssen (1995) using time of

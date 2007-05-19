@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.psi
+ * MODULE:       i.eb.psi
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the psichrometric parameter for heat,
  *               a flag permits output for momentum.

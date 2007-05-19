@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.albedo
+ * MODULE:       i.albedo
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculate Broadband Albedo (0.3-3 Micrometers)
  *               from Surface Reflectance (Modis, AVHRR, Landsat, Aster).

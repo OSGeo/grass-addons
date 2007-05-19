@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.evapfr
+ * MODULE:       i.eb.evapfr
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the evaporative fraction
  *               as seen in Bastiaanssen (1995) 

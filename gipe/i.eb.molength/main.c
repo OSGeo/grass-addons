@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.eb.molength
+ * MODULE:       i.eb.molength
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the Monin-Obukov Length
  *

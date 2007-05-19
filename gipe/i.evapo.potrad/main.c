@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       r.evapo.potrad
+ * MODULE:       i.evapo.potrad
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Creates a map of potential evapotranspiration following
  *               the condition that all net radiation becomes ET
