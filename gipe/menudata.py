@@ -371,7 +371,7 @@ class Data:
 	      ("DN2Rad2Ref", (
 	        ("Landsat 7 ETM+", "Landsat 7 ETM+", "self.runMenuCmd", "r.dn2ref.l7"),
 	        ("Landsat 7 ETM+ (from .met)", "Landsat 7 ETM+ (from .met)", "self.runMenuCmd", "r.dn2full.l7"),
-	        ("Terra-Aster", "Terra-Aster", "self.runMenuCmd", "r.dn2rast.ast"),
+	        ("Terra-Aster", "Terra-Aster", "self.runMenuCmd", "r.dn2ref.ast"),
 	        ("","","", ""),
 	        ("Atmospheric correction", "Atmospheric correction", "self.runMenuCmd", "i.atcorr"),
 		)),

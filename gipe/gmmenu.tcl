@@ -599,7 +599,7 @@ set descmenu [subst  {
 	 {cascad {[G_msg "DN2Rad2Ref"]} {} "" $tmenu {
 			 {command {[G_msg "Landsat 7 ETM+"]} {} "r.dn2ref.l7" {} -command {execute r.dn2ref.l7 }}
 			 {command {[G_msg "Landsat 7 ETM+ (from .met)"]} {} "r.dn2full.l7" {} -command {execute r.dn2full.l7 }}
-			 {command {[G_msg "Terra-Aster"]} {} "r.dn2rast.ast" {} -command {execute r.dn2ref.ast }}
+			 {command {[G_msg "Terra-Aster"]} {} "r.dn2ref.ast" {} -command {execute r.dn2ref.ast }}
 			 {separator}
 	 		 {command {[G_msg "Atmospheric correction"]} {} "i.atcorr" {} -command {execute i.atcorr }}
 	}}
