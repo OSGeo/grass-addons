@@ -3,11 +3,9 @@ MODULE_TOPDIR = ..
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 SUBDIRS = \
-	r.albedo \
 	r.average \
 	r.basins.fill \
 	r.bilinear \
-	r.biomass \
 	r.bitpattern \
 	r.buffer \
 	r.carve \
@@ -26,30 +24,6 @@ SUBDIRS = \
 	r.digit \
 	r.distance \
 	r.drain \
-	r.dn2full.l7 \
-	r.dn2potrad.l7 \
-	r.dn2ref.ast \
-	r.dn2ref.l7 \
-	r.eb.disp \
-	r.eb.deltat \
-	r.eb.eta \
-	r.eb.evapfr \
-	r.eb.g0 \
-	r.eb.h0 \
-	r.eb.h_iter \
-	r.eb.molength \
-	r.eb.netrad \
-	r.eb.psi \
-	r.eb.rah \
-	r.eb.ublend \
-	r.eb.ustar \
-	r.eb.z0m \
-	r.emissivity \
-	r.evapo.MH \
-	r.evapo.potrad \
-	r.evapo.PM \
-	r.evapo.PT \
-	r.evapo.TSA \
 	r.fill.dir \
 	r.flow \
 	r.gaswap.serial \
@@ -66,7 +40,6 @@ SUBDIRS = \
 	r.in.xyz \
 	r.kappa \
 	r.lake \
-	r.latitude \
 	r.le \
 	r.li \
 	r.los \
@@ -108,14 +81,12 @@ SUBDIRS = \
 	r.resamp.stats \
 	r.rescale \
 	r.rescale.eq \
-	r.sattime \
 	r.series \
 	r.slope.aspect \
 	r.statistics \
 	r.stats \
 	r.sum \
 	r.sun \
-	r.sunhours \
 	r.sunmask \
 	r.support \
 	r.support.stats \
@@ -137,8 +108,6 @@ SUBDIRS = \
 	r.univar2 \
 	r.uslek \
 	r.usler \
-	r.vi \
-	r.vi.mpi \
 	r.volume \
 	r.walk \
 	r.water.outlet \

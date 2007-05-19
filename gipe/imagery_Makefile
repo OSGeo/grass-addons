@@ -3,22 +3,53 @@ MODULE_TOPDIR = ..
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
 SUBDIRS1 = \
+	i.albedo \
 	i.ask \
 	i.atcorr \
+	i.biomass \
 	i.class \
 	i.cluster \
+	i.dn2full.l7 \
+	i.dn2potrad.l7 \
+	i.dn2ref.ast \
+	i.dn2ref.l7 \
+	i.eb.disp \
+	i.eb.deltat \
+	i.eb.eta \
+	i.eb.evapfr \
+	i.eb.g0 \
+	i.eb.h0 \
+	i.eb.h_iter \
+	i.eb.molength \
+	i.eb.netrad \
+	i.eb.psi \
+	i.eb.rah \
+	i.eb.ublend \
+	i.eb.ustar \
+	i.eb.z0m \
+	i.emissivity \
+	i.evapo.MH \
+	i.evapo.potrad \
+	i.evapo.PM \
+	i.evapo.PT \
+	i.evapo.TSA \
 	i.find \
 	i.gensig \
 	i.gensigset \
 	i.group \
 	i.his.rgb \
+	i.latitude \
 	i.maxlik \
 	i.ortho.photo \
 	i.points \
 	i.rectify \
 	i.rgb.his \
+	i.sattime \
 	i.smap \
+	i.sunhours \
 	i.target \
+	i.vi \
+	i.vi.mpi \
 	i.vpoints \
 	i.pca \
 	i.cca
