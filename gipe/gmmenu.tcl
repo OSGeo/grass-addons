@@ -517,6 +517,60 @@ set descmenu [subst  {
 		{command {[G_msg "Ortho photo rectification"]} {} "i.ortho.photo" {} -command {term i.ortho.photo }}
 	}}
 	{separator}
+	{cascad {[G_msg "GIPE"]} {} "" $tmenu {
+		{cascad {[G_msg "DN2Rad2Ref"]} {} "" $tmenu {
+				{command {[G_msg "Landsat 7 ETM+"]} {} "i.dn2ref.l7" {} -command {execute i.dn2ref.l7 }}
+				{command {[G_msg "Landsat 7 ETM+ (from .met)"]} {} "i.dn2full.l7" {} -command {execute i.dn2full.l7 }}
+				{command {[G_msg "Terra-Aster"]} {} "i.dn2ref.ast" {} -command {execute i.dn2ref.ast }}
+				{separator}
+				{command {[G_msg "Atmospheric correction"]} {} "i.atcorr" {} -command {execute i.atcorr }}
+		}}
+		{cascad {[G_msg "Basic RS processing"]} {} "" $tmenu {
+				{command {[G_msg "Vegetation Indices (13 types)"]} {} "i.vi" {} -command {execute i.vi }}
+				{command {[G_msg "Vegetation Indices (13 types) cluster"]} {} "i.vi.mpi" {} -command {execute i.vi.mpi }}
+				{separator}
+				{command {[G_msg "Albedo"]} {} "i.albedo" {} -command {execute i.albedo }}
+				{command {[G_msg "Emissivity (generic from NDVI)"]} {} "i.emissivity" {} -command {execute i.emissivity }}
+				{separator}
+				{command {[G_msg "Latitude map"]} {} "i.latitude" {} -command {execute i.latitude }}
+				{command {[G_msg "Sunshine hours (potential)"]} {} "i.sunhours" {} -command {execute i.sunhours }}
+				{command {[G_msg "Satellite overpass time"]} {} "i.sattime" {} -command {execute i.sattime }}
+		}}
+		{separator}
+		{cascad {[G_msg "ETo, ETP, ETa"]} {} "" $tmenu {
+				{command {[G_msg "Reference ET (Hargreaves)"]} {} "i.evapo.MH" {} -command {execute i.evapo.MH }}
+				{separator}
+				{command {[G_msg "Potential ET (Penman-Monteith)"]} {} "i.evapo.PM" {} -command {execute i.evapo.PM }}
+				{command {[G_msg "Potential ET (Prestley and Taylor)"]} {} "i.evapo.PT" {} -command {execute i.evapo.PT }}
+				{command {[G_msg "Potential ET (Radiative)"]} {} "i.evapo.potrad" {} -command {execute i.evapo.potrad }}
+				{command {[G_msg "Potential ET (Radiative) from L7DN (.met)"]} {} "i.dn2potrad.l7" {} -command {execute i.dn2potrad.l7 }}
+				{separator}
+				{command {[G_msg "Actual ET (SEBAL)"]} {} "i.eb.eta" {} -command {execute i.eb.eta }}
+				{command {[G_msg "Actual ET (TSA)"]} {} "i.evapo.TSA" {} -command {execute i.evapo.TSA }}
+		}}
+		{cascad {[G_msg "Energy Balance"]} {} "" $tmenu {
+				{command {[G_msg "Surface roughness"]} {} "i.eb.z0m" {} -command {execute i.eb.z0m }}
+				{command {[G_msg "Delta T"]} {} "i.eb.deltat" {} -command {execute i.eb.deltat }}
+				{command {[G_msg "Net radiation"]} {} "i.eb.netrad" {} -command {execute i.eb.netrad }}
+				{separator}
+				{command {[G_msg "Displacement height"]} {} "i.eb.disp" {} -command {execute i.eb.disp }}
+				{command {[G_msg "Monin-Obukov Length"]} {} "i.eb.molength" {} -command {execute i.eb.molength }}
+				{command {[G_msg "Psichrometric param. for heat"]} {} "i.eb.psi" {} -command {execute i.eb.psi }}
+				{command {[G_msg "Blending height wind speed"]} {} "i.eb.ublend" {} -command {execute i.eb.ublend }}
+				{command {[G_msg "Nominal wind speed"]} {} "i.eb.ustar" {} -command {execute i.eb.ustar }}
+				{command {[G_msg "Aerod. resis. to heat transp."]} {} "i.eb.rah" {} -command {execute i.eb.rah }}
+				{separator}
+				{command {[G_msg "Soil heat flux"]} {} "i.eb.g0" {} -command {execute i.eb.g0 }}
+				{command {[G_msg "Sensible heat flux"]} {} "i.eb.h0" {} -command {execute i.eb.h0 }}
+				{command {[G_msg "Sensible heat flux iteration (fixed delta T)"]} {} "i.eb.h_iter" {} -command {execute i.eb.h_iter }}
+				{separator}
+				{command {[G_msg "Evaporative fraction"]} {} "i.eb.evapfr" {} -command {execute i.eb.evapfr }}
+		}}
+		{separator}
+		{cascad {[G_msg "Biomass"]} {} "" $tmenu {
+				{command {[G_msg "Biomass growth"]} {} "i.biomass" {} -command {execute r.biomass }}
+		}}
+	}}
 	{command {[G_msg "Brovey transformation and pan sharpening"]} {} "i.fusion.brovey" {} -command {execute i.fusion.brovey }}
 	{cascad {[G_msg "Classify image"]} {} "" $tmenu {			
 		{command {[G_msg "Clustering input for unsupervised classification"]} {} "i.cluster" {} -command {execute i.cluster }}
@@ -593,61 +647,6 @@ set descmenu [subst  {
 	{cascad {[G_msg "Vector<->database connections"]} {} "" $tmenu {			
 		{command {[G_msg "Reconnect vector map to attribute database"]} {} "v.db.reconnect.all" {} -command {execute v.db.reconnect.all }}
 		{command {[G_msg "Set database connection for vector attributes"]} {} "v.db.connect" {} -command {execute v.db.connect }}
-	}}
- }
- {[G_msg "&GIPE"]} all options $tmenu {
-	 {cascad {[G_msg "DN2Rad2Ref"]} {} "" $tmenu {
-			 {command {[G_msg "Landsat 7 ETM+"]} {} "r.dn2ref.l7" {} -command {execute r.dn2ref.l7 }}
-			 {command {[G_msg "Landsat 7 ETM+ (from .met)"]} {} "r.dn2full.l7" {} -command {execute r.dn2full.l7 }}
-			 {command {[G_msg "Terra-Aster"]} {} "r.dn2ref.ast" {} -command {execute r.dn2ref.ast }}
-			 {separator}
-	 		 {command {[G_msg "Atmospheric correction"]} {} "i.atcorr" {} -command {execute i.atcorr }}
-	}}
-	{cascad {[G_msg "Basic RS processing"]} {} "" $tmenu {
-			{command {[G_msg "Vegetation Indices (13 types)"]} {} "r.vi" {} -command {execute r.vi }}
-			{command {[G_msg "Vegetation Indices (13 types) cluster"]} {} "r.vi.mpi" {} -command {execute r.vi.mpi }}
-			{command {[G_msg "Vegetation Indices (13 types) grid"]} {} "r.vi.grid" {} -command {execute r.vi.grid }}
-			{separator}
-			{command {[G_msg "Albedo"]} {} "r.albedo" {} -command {execute r.albedo }}
-			{command {[G_msg "Emissivity (generic from NDVI)"]} {} "r.emissivity" {} -command {execute r.emissivity }}
-			{separator}
-			{command {[G_msg "Latitude map"]} {} "r.latitude" {} -command {execute r.latitude }}
-			{command {[G_msg "Sunshine hours (potential)"]} {} "r.sunhours" {} -command {execute r.sunhours }}
-			{command {[G_msg "Satellite overpass time"]} {} "r.sattime" {} -command {execute r.sattime }}
-	}}
-	{separator}
-	{cascad {[G_msg "ETo, ETP, ETa"]} {} "" $tmenu {
-			{command {[G_msg "Reference ET (Hargreaves)"]} {} "r.evapo.MH" {} -command {execute r.evapo.MH }}
-			{separator}
-			{command {[G_msg "Potential ET (Penman-Monteith)"]} {} "r.evapo.PM" {} -command {execute r.evapo.PM }}
-			{command {[G_msg "Potential ET (Prestley and Taylor)"]} {} "r.evapo.PT" {} -command {execute r.evapo.PT }}
-			{command {[G_msg "Potential ET (Radiative)"]} {} "r.evapo.potrad" {} -command {execute r.evapo.potrad }}
-			{command {[G_msg "Potential ET (Radiative) from L7DN (.met)"]} {} "r.dn2potrad.l7" {} -command {execute r.dn2potrad.l7 }}
-			{separator}
-			{command {[G_msg "Actual ET (SEBAL)"]} {} "r.eb.eta" {} -command {execute r.eb.eta }}
-			{command {[G_msg "Actual ET (TSA)"]} {} "r.evapo.TSA" {} -command {execute r.evapo.TSA }}
-	}}
-	{cascad {[G_msg "Energy Balance"]} {} "" $tmenu {
-			{command {[G_msg "Surface roughness"]} {} "r.eb.z0m" {} -command {execute r.eb.z0m }}
-			{command {[G_msg "Delta T"]} {} "r.eb.deltat" {} -command {execute r.eb.deltat }}
-			{command {[G_msg "Net radiation"]} {} "r.eb.netrad" {} -command {execute r.eb.netrad }}
-			{separator}
-			{command {[G_msg "Displacement height"]} {} "r.eb.disp" {} -command {execute r.eb.disp }}
-			{command {[G_msg "Monin-Obukov Length"]} {} "r.eb.molength" {} -command {execute r.eb.molength }}
-			{command {[G_msg "Psichrometric param. for heat"]} {} "r.eb.psi" {} -command {execute r.eb.psi }}
-			{command {[G_msg "Blending height wind speed"]} {} "r.eb.ublend" {} -command {execute r.eb.ublend }}
-			{command {[G_msg "Nominal wind speed"]} {} "r.eb.ustar" {} -command {execute r.eb.ustar }}
-			{command {[G_msg "Aerod. resis. to heat transp."]} {} "r.eb.rah" {} -command {execute r.eb.rah }}
-			{separator}
-			{command {[G_msg "Soil heat flux"]} {} "r.eb.g0" {} -command {execute r.eb.g0 }}
-			{command {[G_msg "Sensible heat flux"]} {} "r.eb.h0" {} -command {execute r.eb.h0 }}
-			{command {[G_msg "Sensible heat flux iteration (fixed delta T)"]} {} "r.eb.h_iter" {} -command {execute r.eb.h_iter }}
-			{separator}
-			{command {[G_msg "Evaporative fraction"]} {} "r.eb.evapfr" {} -command {execute r.eb.evapfr }}
-	}}
-	{separator}
-	{cascad {[G_msg "Biomass"]} {} "" $tmenu {
-			{command {[G_msg "Biomass growth"]} {} "r.biomass" {} -command {execute r.biomass }}
 	}}
  }
 {[G_msg "&Help"]} all options $tmenu {
