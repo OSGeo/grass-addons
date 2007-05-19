@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.dn2ref.ast
+PGM = i.dn2ref.ast
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

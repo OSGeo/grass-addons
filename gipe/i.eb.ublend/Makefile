@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.eb.ublend
+PGM = i.eb.ublend
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

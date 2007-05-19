@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.sunhours
+PGM = i.sunhours
 
 LIBES =  $(GPROJLIB) $(GISLIB)
 DEPENDENCIES = $(GPROJDEP) $(GISDEP)

@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.eb.molength
+PGM = i.eb.molength
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

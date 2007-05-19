@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.sattime
+PGM = i.sattime
 
 LIBES =  $(GPROJLIB) $(GISLIB)
 DEPENDENCIES = $(GPROJDEP) $(GISDEP)

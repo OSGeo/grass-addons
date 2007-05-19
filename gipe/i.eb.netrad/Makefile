@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.eb.netrad
+PGM = i.eb.netrad
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

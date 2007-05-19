@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 CC=mpicc --static
-PGM = r.vi.mpi
+PGM = i.vi.mpi
 
 LIBES = $(GISLIB) $(GMATHLIB)
 DEPENDENCIES = $(GISDEP) $(GMATHDEP)

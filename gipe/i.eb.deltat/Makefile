@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.eb.deltat
+PGM = i.eb.deltat
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

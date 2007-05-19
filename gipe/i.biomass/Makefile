@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.biomass
+PGM = i.biomass
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

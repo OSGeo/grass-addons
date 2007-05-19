@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.emissivity
+PGM = i.emissivity
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

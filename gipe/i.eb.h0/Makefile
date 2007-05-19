@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.eb.h0
+PGM = i.eb.h0
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

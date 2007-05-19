@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.dn2potrad.l7
+PGM = i.dn2potrad.l7
 
 LIBES = $(GPROJLIB) $(GISLIB) $(OPENMP)
 DEPENDENCIES = $(GPROJDEP) $(GISDEP)
