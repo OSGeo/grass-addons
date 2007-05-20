@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 	
 	input_T = G_define_option();
 	input_T->key			= "T";
-	input_T->key_desc		= "[°C]";
+	input_T->key_desc		= "[Celsius]";
 	input_T->type			= TYPE_STRING;
 	input_T->required		= YES;
 	input_T->gisprompt		= "old,cell,raster";
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 	
 	input_Rn = G_define_option();
 	input_Rn->key			= "NSR";
-	input_Rn->key_desc		= "[MJ/(m2*h)]";
+	input_Rn->key_desc		= "[MJ/m2/h]";
 	input_Rn->type			= TYPE_STRING;
 	input_Rn->required		= YES;
 	input_Rn->gisprompt		= "old,cell,raster";
