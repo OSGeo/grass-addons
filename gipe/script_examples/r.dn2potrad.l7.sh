@@ -57,6 +57,6 @@ done
 
 
 #Process
-r.dn2potrad.l7 metfile=p126r050_7x20001231.met tsw=0.7 roh_w=1010.0 tempk_band=5 output=etpot --overwrite 
+i.dn2potrad.l7 metfile=p126r050_7x20001231.met tsw=0.7 roh_w=1010.0 tempk_band=5 output=etpot --overwrite 
 
 echo "Job Done"
