@@ -568,34 +568,34 @@ int main(int argc, char *argv[])
 	//calibrate DN to TOA Reflectance
 	system("echo \"\" >> temp.txt");
 	system("echo \"#DN2REF\" >> temp.txt");
-	snprintf(sys_1,1000,"echo \"r.dn2full.l7 metfile=%s output=%s --overwrite\" >> temp.txt",metfName,basedate);
+	snprintf(sys_1,1000,"echo \"i.dn2full.l7 metfile=%s output=%s --overwrite\" >> temp.txt",metfName,basedate);
 	system(sys_1);
 	//Calculate Albedo
 	system("echo \"\" >> temp.txt");
 	system("echo \"#ALBEDO\" >> temp.txt");
-	snprintf(sys_2,1000,"echo \"r.albedo -l input=%s.1,%s.2,%s.3,%s.4,%s.5,%s.7 output=%s.albedo --overwrite\" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate);
+	snprintf(sys_2,1000,"echo \"i.albedo -l input=%s.1,%s.2,%s.3,%s.4,%s.5,%s.7 output=%s.albedo --overwrite\" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate);
 	system(sys_2);
 	snprintf(sys_3,1000,"r.null map=%s.albedo setnull=0.0\" >> temp.txt",basedate);
 	system(sys_3);
 	//Calculate Latitude
 	system("echo \"\" >> temp.txt");
 	system("echo \"#LATITUDE, DOY, TSW\" >> temp.txt");
-	snprintf(sys_4,1000,"echo \"r.latitude input=%s.albedo latitude=%s.latitude --overwrite ; r.mapcalc %s.doy=%d ; r.mapcalc %s.tsw=0.7\" >> temp.txt", basedate, basedate, basedate, doy, basedate);
+	snprintf(sys_4,1000,"echo \"i.latitude input=%s.albedo latitude=%s.latitude --overwrite ; r.mapcalc %s.doy=%d ; r.mapcalc %s.tsw=0.7\" >> temp.txt", basedate, basedate, basedate, doy, basedate);
 	//Create a doy layer
 	system(sys_4);
 	//Calculate ETPOT (and Rnetd for future ETa calculations)
 	system("echo \"\" >> temp.txt");
 	system("echo \"#ETPOT\" >> temp.txt");
-	snprintf(sys_5,1000,"echo \"r.evapo.potrad -r albedo=%s.albedo tempk=%s.61 lat=%s.latitude doy=%s.doy tsw=%s.tsw etpot=%s.etpot rnetd=%s.rnetd --overwrite\" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate);
+	snprintf(sys_5,1000,"echo \"i.evapo.potrad -r albedo=%s.albedo tempk=%s.61 lat=%s.latitude doy=%s.doy tsw=%s.tsw etpot=%s.etpot rnetd=%s.rnetd --overwrite\" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate);
 	system(sys_5);
 	snprintf(sys_7,1000,"echo \"r.colors map=%s.etpot color=grey ; r.null map=%s.etpot setnull=-999.99\" >> temp.txt", basedate, basedate);
 	system(sys_7);
 	system("echo \"\" >> temp.txt");
 	system("echo \"#NDVI\" >> temp.txt");
 	//Calculate NDVI 
-	snprintf(sys_8,1000,"echo \"r.vi viname=ndvi red=%s.3 nir=%s.4 vi=%s.ndvi --overwrite ; r.null map=%s.ndvi setnull=-1.0 ; r.colors map=%s.ndvi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
+	snprintf(sys_8,1000,"echo \"i.vi viname=ndvi red=%s.3 nir=%s.4 vi=%s.ndvi --overwrite ; r.null map=%s.ndvi setnull=-1.0 ; r.colors map=%s.ndvi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_8);
-	snprintf(sys_16,1000,"echo \"r.vi viname=savi red=%s.3 nir=%s.4 vi=%s.savi --overwrite ; r.null map=%s.savi setnull=-1.0 ; r.colors map=%s.savi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
+	snprintf(sys_16,1000,"echo \"i.vi viname=savi red=%s.3 nir=%s.4 vi=%s.savi --overwrite ; r.null map=%s.savi setnull=-1.0 ; r.colors map=%s.savi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_16);
 
 	//Calculate ETa after Two-Source Algorithm (Chen et al., 2005)
@@ -604,17 +604,17 @@ int main(int argc, char *argv[])
 	system("echo \"\" >> temp.txt");
 	system("echo \"r.mapcalc u2=2.0\" >> temp.txt");
 	system("echo \"r.mapcalc z0s=0.002\" >> temp.txt");
-	sprintf(sys_15,"echo \"r.eb.z0m -h savi=%s.savi coef=0.1 z0m=%s.z0m z0h=%s.z0h --overwrite\" >> temp.txt",basedate,basedate,basedate);
+	sprintf(sys_15,"echo \"i.eb.z0m -h savi=%s.savi coef=0.1 z0m=%s.z0m z0h=%s.z0h --overwrite\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_15);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_9,"echo \"r.sunhours doy=%s.doy lat=%s.latitude sunh=%s.sunh --overwrite\" >> temp.txt",basedate,basedate,basedate);
+	sprintf(sys_9,"echo \"i.sunhours doy=%s.doy lat=%s.latitude sunh=%s.sunh --overwrite\" >> temp.txt",basedate,basedate,basedate);
 	system(sys_9);
 	sprintf(sys_11,"echo \"r.mapcalc \"%s.phi=%f\"\" >> temp.txt",basedate,sun_elevation);
 	system(sys_11);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_12," echo \"r.sattime doy=%s.doy lat=%s.latitude sun_elev=%s.phi sath=%s.sath --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate);
+	sprintf(sys_12," echo \"i.sattime doy=%s.doy lat=%s.latitude sun_elev=%s.phi sath=%s.sath --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate);
 	system(sys_12);
-	sprintf(sys_13," echo \"r.eb.deltat -w tempk=%s.61 delta=%s.delta --overwrite\" >> temp.txt",basedate,basedate);
+	sprintf(sys_13," echo \"i.eb.deltat -w tempk=%s.61 delta=%s.delta --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_13);
 	sprintf(sys_18,"r.null map=%s.delta setnull=-999.99\" >> temp.txt",basedate,basedate,basedate,basedate);
 	system(sys_18);
@@ -623,17 +623,17 @@ int main(int argc, char *argv[])
 	system(sys_14);
 	sprintf(sys_17," echo \"r.mapcalc %s.w=5.0\" >> temp.txt",basedate);
 	system(sys_17);
-	sprintf(sys_10,"echo \"r.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=%s.w TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_10,"echo \"i.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=%s.w TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_10);
 	sprintf(sys_19,"echo \"r.mapcalc %s.patm=1010.0\" >> temp.txt",basedate);
 	system(sys_19);
-	sprintf(sys_20,"echo \"r.emissivity ndvi=%s.ndvi emissivity=%s.e0 --overwrite\" >> temp.txt",basedate,basedate);
+	sprintf(sys_20,"echo \"i.emissivity ndvi=%s.ndvi emissivity=%s.e0 --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_20);
-	sprintf(sys_21,"echo \"r.eb.netrad albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 time=%s.time dtair=%s.delta emissivity=%s.e0 tsw=%s.tsw doy=%s.doy sunzangle=%s.sunza rnet=%s.rnet --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_21,"echo \"i.eb.netrad albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 time=%s.time dtair=%s.delta emissivity=%s.e0 tsw=%s.tsw doy=%s.doy sunzangle=%s.sunza rnet=%s.rnet --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_21);
-	sprintf(sys_22,"echo \"r.eb.g0 albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 rnet=%s.rnet time=%s.time g0=%s.g0 --overwrite\"",basedate,basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_22,"echo \"i.eb.g0 albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 rnet=%s.rnet time=%s.time g0=%s.g0 --overwrite\"",basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_22);
-	sprintf(sys_23,"echo \"r.evapo.PT -z RNET=%s.rnetd G0=%s.g0 TEMPKA=%s.tempka PATM=%s.patm PT=1.26 output=%s.ETA_PT --overwrite\"",basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_23,"echo \"i.evapo.PT -z RNET=%s.rnetd G0=%s.g0 TEMPKA=%s.tempka PATM=%s.patm PT=1.26 output=%s.ETA_PT --overwrite\"",basedate,basedate,basedate,basedate,basedate);
 	system(sys_23);
 
 	//clean maps
