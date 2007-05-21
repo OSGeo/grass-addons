@@ -13,6 +13,7 @@ class Data:
               ("Region", "Set region", "self.runMenuCmd", "g.region"),
               ("","","", ""),
               ("Set display font", "Set default font for GRASS displays", "self.DefaultFont", ""),
+              ("Add a GRASS Extension", "Add a GRASS Extension", "self.runMenuCmd", "scripts/m.gem")
               )),
           ("Raster", (
               ("Develop map", (
