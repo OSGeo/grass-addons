@@ -217,6 +217,8 @@ set descmenu [subst  {
 		{command {[G_msg "Set active xmonitor to specified size"]} {} "d.resize" {} -command {execute d.resize }}
 		{command {[G_msg "Display information about active xmonitor"]} {} "d.info" {} -command {execute d.info }}
 	}}
+	{separator}
+	{command {[G_msg "Install GRASS Extensions"]} {} "m.gem" {} -command {execute m.gem }}
  } 
  {[G_msg "&Raster"]} all options $tmenu {
 	{cascad {[G_msg "Develop map"]} {} "" $tmenu {			

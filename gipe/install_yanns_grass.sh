@@ -33,6 +33,12 @@ cp -f $GIPEDIR/imagery_Makefile $GRASSCVSDIR/imagery/Makefile
 cd $GRASSCVSDIR/imagery/
 make
 
+#Install m.gem in /scripts
+cp -rf $GIPEDIR/m.gem $GRASSCVSDIR/scripts/ 
+cp -f $GIPEDIR/scripts_Makefile $GRASSCVSDIR/scripts/Makefile 
+cd $GRASSCVSDIR/scripts/
+make
+
 cd $GRASSCVSDIR
 make install
 

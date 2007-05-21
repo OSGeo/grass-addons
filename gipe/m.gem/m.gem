@@ -4,7 +4,7 @@
 #
 # MODULE:	m.gem
 # AUTHOR(S):	Yann Chemin - yann.chemin@gmail.com
-# PURPOSE:	downloads/installs predefined GRASS extensions
+# PURPOSE:	downloads/install/remove predefined GRASS extensions
 # COPYRIGHT:	(C) 2007 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
@@ -14,7 +14,7 @@
 #############################################################################
 
 #%Module
-#%  description: Downloads/install GRASS Extensions
+#%  description: Downloads/install GRASS Extensions (-u to uninstall)
 #%  keywords: miscellaneous, GEM, Extensions
 #%End
 #%flag
@@ -33,6 +33,10 @@
 #%  key: d
 #%  description: Dempster-Shafer Theory (Spatial Predictive Modeling)
 #%end
+#%flag
+#%  key: u
+#%  description: UNINSTALL selected GRASS Extension
+#%end
 
 if test "$GISBASE" = ""; then
     echo "You must be in GRASS GIS to run this program." >&2
@@ -48,40 +52,82 @@ fi
 #echo $GIS_FLAG_G
 #echo $GIS_FLAG_D
 
+http1='http://www.uni-kiel.de/ufg/dateienDucke/'
+nameXtn1='AdvancedViewshedAnalysis.tar.gz'
+nameXtn2='RasterTools.tar.gz'
+nameXtn3='GeneralStatistics.tar.gz'
+nameXtn4='DempsterShaferTheory.tar.gz'
+
+# Install codes
+installXtn1='gem6 -i '$nameXtn1
+installXtn2='gem6 -i '$nameXtn2
+installXtn3='gem6 -i '$nameXtn3
+installXtn4='gem6 -i '$nameXtn4
+
+#echo $installXtn1
+#echo $installXtn2
+#echo $installXtn3
+#echo $installXtn4
+
+# Uninstall codes
+unXtn1='\"gem6 -u '$nameXtn1'\"'
+unXtn2='gem6 -u '$nameXtn2
+unXtn3='gem6 -u '$nameXtn3
+unXtn4='gem6 -u '$nameXtn4
+
+#echo $unXtn1
+#echo $unXtn2
+#echo $unXtn3
+#echo $unXtn4
+
+su -c "You are entering into a root area"
+
 if [ $GIS_FLAG_A = 1 ]
 then
-    wget -c http://www.uni-kiel.de/ufg/dateienDucke/AdvancedViewshedAnalysis.tar.gz
-    gem6 -i AdvancedViewshedAnalysis.tar.gz
-    rm -f AdvancedViewshedAnalysis.tar.gz
-else 
-    echo "Check: AVA not selected"
+    if [ $GIS_FLAG_U = 1 ]
+    then
+        $unXtn1
+    else
+        wget -c $http1\$nameXtn1
+        $installXtn1
+        rm -f $nameXtn1
+    fi
 fi
 
 if [ $GIS_FLAG_R = 1 ]
 then
-    wget -c http://www.uni-kiel.de/ufg/dateienDucke/RasterTools.tar.gz
-    gem6 -i RasterTools.tar.gz
-    rm -f RasterTools.tar.gz
-else 
-    echo "Check: RT not selected"
+    if [ $GIS_FLAG_U = 1 ]
+    then
+        $unXtn2
+    else
+        wget -c $http1\$nameXtn2
+        $installXtn2
+        rm -f $nameXtn2
+    fi
 fi
 
 if [ $GIS_FLAG_G = 1 ]
 then
-    wget -c http://www.uni-kiel.de/ufg/dateienDucke/GeneralStatistics.tar.gz
-    gem6 -i GeneralStatistics.tar.gz
-    rm -f GeneralStatistics.tar.gz
-else 
-    echo "Check: GS not selected"
+    if [ $GIS_FLAG_U = 1 ]
+    then
+        $unXtn3
+    else
+        wget -c $http1\$nameXtn3
+        $installXtn3
+        rm -f $nameXtn3
+    fi
 fi
     
 if [ $GIS_FLAG_D = 1 ]
 then
-    wget -c http://www.uni-kiel.de/ufg/dateienDucke/DempsterShaferTheory.tar.gz
-    gem6 -i DempsterShaferTheory.tar.gz
-    rm -f DempsterShaferTheory.tar.gz
-else
-    echo "Check: DST not selected"
+    if [ $GIS_FLAG_U = 1 ]
+    then
+        $unXtn4
+    else
+        wget -c $http1\$nameXtn4
+        $installXtn4
+        rm -f $nameXtn4
+    fi
 fi
 
 
