@@ -14,7 +14,7 @@ LIBRARY_GIS = $(INST_DIR)/lib
 OBJARCH=OBJ.$(ARCH)
 
 $(OBJARCH)/%.o:%.cpp
-	$(CXX) -c $< -o $@ -I $(INCLUDE_GIS) -L $(LIBRARY_GIS)
+	$(CXX) -c $< -o $@ -I$(INCLUDE_GIS) -L$(LIBRARY_GIS)
 
 WARNING_FLAGS   = -Wformat  -Wparentheses  -Wpointer-arith -Wno-conversion \
   -Wimplicit-int -Wimplicit-function-declaration -Wreturn-type	\
