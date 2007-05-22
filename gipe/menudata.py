@@ -353,10 +353,6 @@ class Data:
               	("","","", ""),
                 ("Kappa classification accuracy assessment", "Kappa classification accuracy assessment", "self.runMenuCmd", "r.kappa"),
                 )),
-              ("Filter image", (
-                ("Zero edge crossing detection", "Zero edge crossing detection", "self.runMenuCmd", "i.zc"),
-                ("User defined matrix/convolving filter", "User defined matrix/convolving filter", "self.runMenuCmd", "r.mfilter"),
-                )),
               ("Transform image", (
               	("Brovey transformation and pan sharpening", "Brovey transformation and pan sharpening", "self.runMenuCmd", "i.fusion.brovey"),
               	("","","", ""),
@@ -364,6 +360,10 @@ class Data:
                 ("Principal component", "Principal component", "self.runMenuCmd", "i.pca"),
                 ("Fast Fourier Transform", "Fast Fourier Transform", "self.runMenuCmd", "i.fft"),
                 ("Inverse Fast Fourier Transform", "Inverse Fast Fourier Transform", "self.runMenuCmd", "i.ifft"),
+                )),
+              ("Filter image", (
+                ("Zero edge crossing detection", "Zero edge crossing detection", "self.runMenuCmd", "i.zc"),
+                ("User defined matrix/convolving filter", "User defined matrix/convolving filter", "self.runMenuCmd", "r.mfilter"),
                 )),
               ("","","", ""),
               ("Quality Analysis", (
