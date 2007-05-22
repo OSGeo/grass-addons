@@ -274,13 +274,13 @@ class Data:
                 ("Mosaic up to 4 adjacent images", "Mosaic up to 4 adjacent images", "self.runMenuCmd", "i.image.mosaic"),
                 )),
               ("Manage image colors", (
-                ("Color balance and enhance color tables of multiband imagery for rgb display", "Color balance and enhance color tables of multiband imagery for rgb display", "self.runMenuCmd", "i.landsat.rgb"),
-                ("Transform HIS (Hue/Intensity/Saturation) color image to RGB (Red/Green/Blue)", "Transform HIS (Hue/Intensity/Saturation) color image to RGB (Red/Green/Blue)", "self.runMenuCmd", "i.his.rgb"),
-                ("Transform RGB (Red/Green/Blue) color image to HIS (Hue/Intensity/Saturation)", "Transform RGB (Red/Green/Blue) color image to HIS (Hue/Intensity/Saturation)", "self.runMenuCmd", "i.rgb.his"),
+                ("Color auto-balance for rgb", "Color auto-balance for rgb", "self.runMenuCmd", "i.landsat.rgb"),
+                ("Transform HIS to RGB", "Transform HIS to RGB", "self.runMenuCmd", "i.his.rgb"),
+                ("Transform RGB to HIS", "Transform RGB to HIS", "self.runMenuCmd", "i.rgb.his"),
                 )),
               ("Rectify and georeference image group", (
-                ("Set ground control points (GCP's) from raster map or keyboard entry", "Set ground control points (GCP's) from raster map or keyboard entry", "self.runMenuCmd", "i.points"),
-                ("Set ground control points (GCP's) from vector map or keyboard entry", "Set ground control points (GCP's) from vector map or keyboard entry", "self.runMenuCmd", "i.vpoints"),
+                ("Set GCPs from raster map or keyboard entry", "Set GCPs from raster map or keyboard entry", "self.runMenuCmd", "i.points"),
+                ("Set GCPs from vector map or keyboard entry", "Set GCPs from vector map or keyboard entry", "self.runMenuCmd", "i.vpoints"),
                 ("Affine and Polynomial rectification (rubber sheet)", "Affine and Polynomial rectification (rubber sheet)", "self.runMenuCmd", "i.rectify"),
                 ("Ortho Photo rectification", "Ortho Photo rectification", "self.runMenuCmd", "i.ortho.photo"),
                 )),
