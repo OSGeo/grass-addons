@@ -30,7 +30,6 @@ SUBDIRS1 = \
 	i.emissivity \
 	i.evapo.MH \
 	i.evapo.potrad \
-	i.evapo.PM \
 	i.evapo.PT \
 	i.evapo.TSA \
 	i.find \

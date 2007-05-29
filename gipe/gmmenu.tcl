@@ -542,7 +542,7 @@ set descmenu [subst  {
 		{cascad {[G_msg "ETo, ETP, ETa"]} {} "" $tmenu {
 				{command {[G_msg "Reference ET (Hargreaves)"]} {} "i.evapo.MH" {} -command {execute i.evapo.MH }}
 				{separator}
-				{command {[G_msg "Potential ET (Penman-Monteith)"]} {} "i.evapo.PM" {} -command {execute i.evapo.PM }}
+				{command {[G_msg "Potential ET (Penman-Monteith)"]} {} "r.evapo.PM" {} -command {execute r.evapo.PM }}
 				{command {[G_msg "Potential ET (Prestley and Taylor)"]} {} "i.evapo.PT" {} -command {execute i.evapo.PT }}
 				{command {[G_msg "Potential ET (Radiative)"]} {} "i.evapo.potrad" {} -command {execute i.evapo.potrad }}
 				{command {[G_msg "Potential ET (Radiative) from L7DN (.met)"]} {} "i.dn2potrad.l7" {} -command {execute i.dn2potrad.l7 }}
