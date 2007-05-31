@@ -1,5 +1,4 @@
-#MODULE_TOPDIR = ../..
-MODULE_TOPDIR = /home/neteler/grass63
+MODULE_TOPDIR = ../..
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
