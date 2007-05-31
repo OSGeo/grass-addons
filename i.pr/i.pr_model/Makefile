@@ -1,0 +1,14 @@
+MODULE_TOPDIR = ../../..
+
+PRINCLUDE = ../include/
+EXTRA_CFLAGS = -I$(PRINCLUDE)
+PRLIB = -lgrass_pr
+
+PGM = i.pr_model
+
+LIBES     = $(SITESLIB) $(PRLIB) $(IMAGERYLIB) $(D_LIB) $(DISPLAYLIB) $(RASTERLIB) $(GISLIB) $(DATETIMELIB)
+DEPENDENCIES= $(SITESDEP) $(PRDEP) $(IMAGERYDEP) $(D_DEP) $(DISPLAYDEP) $(RASTERDEP) $(GISDEP) $(DATETIMEDEP)
+
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
