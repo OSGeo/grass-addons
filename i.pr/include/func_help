@@ -118,7 +118,7 @@ double Entropy(data,n,zero)
      double *data;
      int n;
      double zero;
-double clog(x,zero)
+double Clog(x,zero)
      double x;
      double zero;
 void histo(data,n,h,nbin)

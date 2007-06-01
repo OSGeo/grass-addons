@@ -1,6 +1,5 @@
 #include "globals.h"
 #include <grass/raster.h>
-#include <grass/D.h>
 #include <grass/display.h>
 #include "loc_func.h"
 
@@ -47,10 +46,10 @@ void Init_graphics2()
     /*
     R_color_table_fixed();
     */
-    R_color_offset (0);
+/*    R_color_offset (0);
 
     Dscreen();
-
+*/
 
     SCREEN_TOP    = R_screen_top();
     SCREEN_BOTTOM = R_screen_bot();
@@ -92,10 +91,10 @@ void Init_graphics()
     /*
     R_color_table_fixed();
     */
-    R_color_offset (0);
+/*    R_color_offset (0);
 
     Dscreen();
-
+*/
 
     SCREEN_TOP    = R_screen_top();
     SCREEN_BOTTOM = R_screen_bot();
@@ -229,7 +228,7 @@ void drawcell(view)
 
     display_title (view);
 
-    D_set_colors (colors);
+/*    D_set_colors (colors);*/
 
     G_set_window (&view->cell.head);
     nrows = G_window_rows();
@@ -260,13 +259,13 @@ void drawcell(view)
 	if(G_get_map_row_nomask(fd, cell, row) < 0)
 	    break;
 	repeat = G_row_repeat_nomask (fd, row);
-	D_raster (cell, ncols, repeat, colors);
+/*	D_raster (cell, ncols, repeat, colors); */
     }
     G_close_cell (fd);
     G_free (cell);
-    if(colors != &VIEW_MAP1->cell.colors)
+/*    if(colors != &VIEW_MAP1->cell.colors)
 	D_set_colors(&VIEW_MAP1->cell.colors);
-
+*/
     return row==nrows;
 }
 

@@ -57,7 +57,7 @@ entropy.c
 */
 
 double Entropy();
-double clog();
+double Clog();
 void histo();
 void histo1();
 

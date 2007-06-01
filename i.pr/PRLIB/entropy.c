@@ -26,12 +26,12 @@ double Entropy(data,n,zero)
   else{
     e=0.0;
     for(i=0;i<n;i++)
-      e += clog(data[i],zero);
+      e += Clog(data[i],zero);
   }
   return(e);
 }
 
-double clog(x,zero)
+double Clog(x,zero)
      double x;
      double zero;
 {

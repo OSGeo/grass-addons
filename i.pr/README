@@ -15,7 +15,7 @@ Compilation
 The easiest way to compile this module set is to
 tell 'make' where to find GRASS:
 
-  make MODULE_TOPDIR=/bartok0/ssi/neteler/software/cvsgrass63/
+  make MODULE_TOPDIR=$HOME/grass63/
 
 (adapt to your /path/to/grass6/ )
 

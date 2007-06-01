@@ -1,8 +1,10 @@
-#include <grass/gis.h>
-#include "global.h"
-#include <grass/raster.h>
-#include <math.h>
 #include <stdlib.h>
+#include <math.h>
+#include <grass/gis.h>
+#include <grass/raster.h>
+#include "global.h"
+/*#include "edit.h"*/
+#include "localproto.h"
 
 #define TINY 1.0e-20
 #define MAXLIMITS 10000
