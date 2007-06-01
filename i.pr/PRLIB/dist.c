@@ -6,8 +6,8 @@
   Distance between arrays computation
 */
 
-#include "global.h"
 #include <math.h>
+#include "global.h"
 
 
 double squared_distance(x,y,n)

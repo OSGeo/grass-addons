@@ -4,7 +4,7 @@ PRINCLUDE = ../include/
 EXTRA_CFLAGS = -I$(PRINCLUDE)
 PRLIB = -lgrass_pr
 
-PGM = i.pr_features_additional
+PGM = i.pr.features_additional
 
 LIBES     = $(SITESLIB) $(PRLIB) $(IMAGERYLIB) $(D_LIB) $(DISPLAYLIB) $(RASTERLIB) $(GISLIB) $(DATETIMELIB)
 DEPENDENCIES= $(SITESDEP) $(PRDEP) $(IMAGERYDEP) $(D_DEP) $(DISPLAYDEP) $(RASTERDEP) $(GISDEP) $(DATETIMEDEP)
