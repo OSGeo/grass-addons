@@ -1,8 +1,8 @@
-#include <grass/site.h>
 #include <grass/gis.h>
+#include <grass/site.h>
 #include "func.h"
 
-#define PIG 3.141593
+#define PIG M_PI
 
 #define TRUE 1
 #define FALSE 0
