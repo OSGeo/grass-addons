@@ -7,7 +7,7 @@
 */
 
 
-#include "gis.h"
+#include <grass/gis.h>
 #include "global.h"
 #include <stdio.h>
 #include <math.h>

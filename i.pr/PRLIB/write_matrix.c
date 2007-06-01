@@ -1,4 +1,4 @@
-#include "gis.h"
+#include <grass/gis.h>
 #include <stdio.h>
 
 void write_matrix(outfile,matrix,r,c)

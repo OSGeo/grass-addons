@@ -1,9 +1,9 @@
-#include "gis.h"
+#include <grass/gis.h>
 #include "global.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "Vect.h"
+#include <grass/Vect.h>
 
 
 #define MAXPNTS 1000

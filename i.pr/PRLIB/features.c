@@ -5,7 +5,7 @@
   
   structure Feature management
 */
-#include "gis.h"
+#include <grass/gis.h>
 #include "global.h"
 #include <stdlib.h>
 #include <string.h>

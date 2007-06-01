@@ -2,7 +2,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include "globals.h"
-#include "glocale.h"
+#include <grass/glocale.h>
 
 void write_map(cellhd, name, mapset, dest)
      struct Cell_head *cellhd;

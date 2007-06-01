@@ -1,6 +1,6 @@
-#include "gis.h"
+#include <grass/gis.h>
 #include "global.h"
-#include "raster.h"
+#include <grass/raster.h>
 #include <math.h>
 #include <stdlib.h>
 

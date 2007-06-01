@@ -1,7 +1,7 @@
 #include "globals.h"
-#include "raster.h"
-#include "D.h"
-#include "display.h"
+#include <grass/raster.h>
+#include <grass/D.h>
+#include <grass/display.h>
 #include "loc_func.h"
 
 static View * makeview(double bottom, double top, double left, double right)

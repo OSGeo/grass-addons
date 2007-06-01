@@ -13,7 +13,7 @@
 */
 
 #include <math.h>
-#include "gis.h"
+#include <grass/gis.h>
 #include "global.h"
 
 #define EPS1 0.001
