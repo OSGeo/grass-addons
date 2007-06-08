@@ -28,7 +28,6 @@ SUBDIRS1 = \
 	i.eb.ustar \
 	i.eb.z0m \
 	i.emissivity \
-	i.evapo.MH \
 	i.evapo.potrad \
 	i.evapo.PT \
 	i.evapo.TSA \

@@ -316,9 +316,9 @@ class Data:
 		)),
               ("","","", ""),
 	      ("ETo, ETP, ETa", (
-		("Reference ET (Hargreaves)", "Reference ET (Hargreaves)", "self.runMenuCmd", "i.evapo.MH"),
+		("Reference ET (Hargreaves)", "Reference ET (Hargreaves)", "self.runMenuCmd", "r.evapo.MH"),
         	("","","", ""),
-		("Potential ET (Penman-Monteith)", "Potential ET (Penman-Monteith)", "self.runMenuCmd", "i.evapo.PM"),
+		("Potential ET (Penman-Monteith)", "Potential ET (Penman-Monteith)", "self.runMenuCmd", "r.evapo.PM"),
 		("Potential ET (Prestley and Taylor)", "Potential ET (Prestley and Taylor)", "self.runMenuCmd", "i.evapo.PT"),
 		("Potential ET (Radiative)", "Potential ET (Radiative)", "self.runMenuCmd", "i.evapo.potrad"),
 		("Potential ET (Radiative) from L7DN (.met)", "Potential ET (Radiative) from L7DN (.met)", "self.runMenuCmd", "i.dn2potrad.l7"),
