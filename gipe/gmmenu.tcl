@@ -506,9 +506,9 @@ set descmenu [subst  {
 		{command {[G_msg "Mosaic up to 4 adjacent images"]} {} "i.image.mosaic" {} -command {execute i.image.mosaic }}
 	}}
 	{cascad {[G_msg "Manage image colors"]} {} "" $tmenu {			
-		{command {[G_msg "Color balance and enhance color tables of multiband imagery for rgb display"]} {} "i.landsat.rgb" {} -command {execute i.landsat.rgb }}
-		{command {[G_msg "Transform HIS (Hue/Intensity/Saturation) color image to RGB (Red/Green/Blue)"]} {} "i.his.rgb" {} -command {execute i.his.rgb }}
-		{command {[G_msg "Transform RGB (Red/Green/Blue) color image to HIS (Hue/Intensity/Saturation)"]} {} "i.rgb.his" {} -command {execute i.rgb.his }}
+		{command {[G_msg "Color balance/enhance color tables for rgb display"]} {} "i.landsat.rgb" {} -command {execute i.landsat.rgb }}
+		{command {[G_msg "Transform HIS to RGB"]} {} "i.his.rgb" {} -command {execute i.his.rgb }}
+		{command {[G_msg "Transform RGB to HIS"]} {} "i.rgb.his" {} -command {execute i.rgb.his }}
 	}}
 	{cascad {[G_msg "Rectify and georeference image group"]} {} "" $tmenu {			
 		{command {[G_msg "Set ground control points (GCP's) from raster map or keyboard entry"]} {} "i.points" {} \
@@ -526,8 +526,10 @@ set descmenu [subst  {
 				{command {[G_msg "Terra-Aster"]} {} "i.dn2ref.ast" {} -command {execute i.dn2ref.ast }}
 				{separator}
 				{command {[G_msg "Atmospheric correction"]} {} "i.atcorr" {} -command {execute i.atcorr }}
+				{command {[G_msg "Dehaze Landsat"]} {} "i.landsat.dehaze" {} -command {execute i.landsat.dehaze }}
 		}}
 		{cascad {[G_msg "Basic RS processing"]} {} "" $tmenu {
+				{command {[G_msg "Tassled cap vegetation index"]} {} "i.tasscap" {} -command {execute i.tasscap }}
 				{command {[G_msg "Vegetation Indices (13 types)"]} {} "i.vi" {} -command {execute i.vi }}
 				{command {[G_msg "Vegetation Indices (13 types) cluster"]} {} "i.vi.mpi" {} -command {execute i.vi.mpi }}
 				{separator}
@@ -540,7 +542,7 @@ set descmenu [subst  {
 		}}
 		{separator}
 		{cascad {[G_msg "ETo, ETP, ETa"]} {} "" $tmenu {
-				{command {[G_msg "Reference ET (Hargreaves)"]} {} "r.evapo.MH" {} -command {execute i.evapo.MH }}
+				{command {[G_msg "Reference ET (Hargreaves)"]} {} "r.evapo.MH" {} -command {execute r.evapo.MH }}
 				{separator}
 				{command {[G_msg "Potential ET (Penman-Monteith)"]} {} "r.evapo.PM" {} -command {execute r.evapo.PM }}
 				{command {[G_msg "Potential ET (Prestley and Taylor)"]} {} "i.evapo.PT" {} -command {execute i.evapo.PT }}
@@ -573,8 +575,21 @@ set descmenu [subst  {
 				{command {[G_msg "Biomass growth"]} {} "i.biomass" {} -command {execute r.biomass }}
 		}}
 	}}
-	{command {[G_msg "Brovey transformation and pan sharpening"]} {} "i.fusion.brovey" {} -command {execute i.fusion.brovey }}
 	{cascad {[G_msg "Classify image"]} {} "" $tmenu {			
+		{cascad {[G_msg "Classify image using pr library"]} {} "" $tmenu {			
+                  {command {[G_msg "pr_blob"]} {} "i.pr_blob" {} -command {execute i.pr_blob }}
+                  {command {[G_msg "pr_classify"]} {} "pr_classify" {} -command {execute i.pr_classify}}
+                  {command {[G_msg "pr_features"]} {} "pr_features" {} -command {execute i.pr_features}}
+                  {command {[G_msg "pr_features_additional"]} {} "pr_features_additional" {} -command {execute i.pr_features_additional}}
+                  {command {[G_msg "pr_features_extract"]} {} "pr_features_extract" {} -command {execute i.pr_features_extract}}
+		  {command {[G_msg "pr_features_selection"]} {} "pr_features_selection" {} -command {execute i.pr_features_selection}}
+                  {command {[G_msg "pr_model"]} {} "pr_model" {} -command {execute i.pr_model}}
+                  {command {[G_msg "pr_sites_aggregate"]} {} "pr_sites_aggregate" {} -command {execute i.pr_sites_aggregate}}
+                  {command {[G_msg "pr_statistics"]} {} "pr_statistics" {} -command {execute i.pr_statistics}}
+                  {command {[G_msg "pr_subsets"]} {} "pr_subsets" {} -command {execute i.pr_subsets}}
+                  {command {[G_msg "pr_training"]} {} "pr_training" {} -command {execute i.pr_training}}
+                  {command {[G_msg "pr_uxb"]} {} "pr_uxb" {} -command {execute i.pr_uxb}}
+		}}
 		{command {[G_msg "Clustering input for unsupervised classification"]} {} "i.cluster" {} -command {execute i.cluster }}
 		{separator}
 		{command {[G_msg "Maximum likelyhood classification (MLC)"]} {} "i.maxlik" {} -command {execute i.maxlik }}
@@ -583,14 +598,17 @@ set descmenu [subst  {
 		{command {[G_msg "Interactive input for supervised classification"]} {} "i.class" {} -command {term i.class }}
 		{command {[G_msg "Non-interactive input for supervised classification (MLC)"]} {} "i.gensig" {} -command {execute i.gensig }}
 		{command {[G_msg "Non-interactive input for supervised classification (SMAP)"]} {} "i.gensigset" {} -command {execute i.gensigset }}
+		{separator}
+		{command {[G_msg "Kappa classification accuracy assessment"]} {} "r.kappa" {} -command {execute r.kappa }}
 	}}
 	{cascad {[G_msg "Filter image"]} {} "" $tmenu {			
 		{command {[G_msg "Zero edge crossing detection"]} {} "i.zc" {} -command {execute i.zc }}
 		{command {[G_msg "User defined matrix/convolving filter"]} {} "r.mfilter" {} -command {execute r.mfilter }}
 	}}
 	{command {[G_msg "Spectral response"]} {} "i.spectral" {} -command {execute i.spectral }}
-	{command {[G_msg "Tassled cap vegetation index"]} {} "i.tasscap" {} -command {execute i.tasscap }}
 	{cascad {[G_msg "Transform image"]} {} "" $tmenu {			
+		{command {[G_msg "Brovey pan sharpening"]} {} "i.fusion.brovey" {} -command {execute i.fusion.brovey }}
+		{separator}
 		{command {[G_msg "Canonical component"]} {} "i.cca" {} -command {execute i.cca }}
 		{command {[G_msg "Principal component"]} {} "i.pca" {} -command {execute i.pca }}
 		{command {[G_msg "Fast Fourier Transform"]} {} "i.fft" {} -command {execute i.fft }}
@@ -600,9 +618,9 @@ set descmenu [subst  {
 	{cascad {[G_msg "Reports and statistics"]} {} "" $tmenu {			
 		{command {[G_msg "Report basic file information"]} {} "r.info" {} -command {execute r.info }}
 		{command {[G_msg "Range of image values"]} {} "r.describe" {} -command {execute r.describe }}
-		{separator}
+	}}
+	{cascad {[G_msg "Quality Assessment"]} {} "" $tmenu {			
 		{command {[G_msg "Bit pattern comparison for ID of low quality pixels"]} {} "r.bitpattern" {} -command {execute r.bitpattern }}
-		{command {[G_msg "Kappa classification accuracy assessment"]} {} "r.kappa" {} -command {execute r.kappa }}
 		{command {[G_msg "Optimum index factor for LandSat TM"]} {} "i.oif" {} -command {execute i.oif }}
 	}}
  } 
