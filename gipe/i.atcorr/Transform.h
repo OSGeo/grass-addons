@@ -30,11 +30,11 @@ struct TransformInput
 enum InputMask
 {
     REFLECTANCE     = 0,  
-    RADIANCE        = 1,  // the default
-    ETM_BEFORE      = 2,  // etm+ taken before July 1, 2000
+    RADIANCE        = 1,  /* the default */
+    ETM_BEFORE      = 2,  /* etm+ taken before July 1, 2000 */
     REF_ETM_BEFORE  = 2,
     RAD_ETM_BEFORE  = 3,
-    ETM_AFTER       = 4,  // etm+ taken after July 1, 2000
+    ETM_AFTER       = 4,  /* etm+ taken after July 1, 2000 */
     REF_ETM_AFTER   = 4,
     RAD_ETM_AFTER   = 5
 };
@@ -44,4 +44,4 @@ if rad is true, idn should first be converted to a reflectance value
 returns adjusted value also between 0 and 1 */
 extern float transform(const TransformInput ti, InputMask imask, float idn);
 
-#endif // TRANSFORM_H
+#endif /* TRANSFORM_H */
