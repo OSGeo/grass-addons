@@ -37,7 +37,7 @@ static IWave iwave;
 static AtmosModel original_atms;
 int init_6S(char* icnd_name)
 {
-	// (atmospheric conditions input text file)
+	/* (atmospheric conditions input text file) */
     ifstream inText;
 	inText.open(icnd_name);
 	if(!inText.is_open()) {
@@ -45,27 +45,27 @@ int init_6S(char* icnd_name)
 		return -1;
 	}
 
-	// redirect cin to the input text file
+	/* redirect cin to the input text file */
 	cin.rdbuf(inText.rdbuf());
 
-	// read the input geometrical conditions
+	/* read the input geometrical conditions */
 	geom = GeomCond::Parse();
 
-	// read atmospheric model
+	/* read atmospheric model */
 	original_atms = AtmosModel::Parse();
-    atms = original_atms; // making a copy
+    atms = original_atms; /* making a copy */
 
-	// read aerosol model
+	/* read aerosol model */
 	aero = AerosolModel::Parse(geom.xmud);
 
-    // read aerosol concentration
+    /* read aerosol concentration */
     aerocon = AerosolConcentration::Parse(aero.iaer, atms);
     
-	// read altitude
+	/* read altitude */
 	alt = Altitude::Parse();
     alt.init(atms, aerocon);
 
-	// read iwave stuff
+	/* read iwave stuff */
 	iwave = IWave::Parse();
    
 	/**********************************************************************c
@@ -155,29 +155,29 @@ void printOutput()
 	cout << endl << endl << endl;
 	Output::Begin(); Output::Repeat(30,'*'); Output::Print(head); Output::Repeat(30,'*'); Output::End();
 
-	// ---- geometrical conditions ----
+	/* ---- geometrical conditions ---- */
 	geom.print();
 
-	// --- atmospheric model ----
+	/* --- atmospheric model ---- */
 	atms.print();
 
-	// --- aerosols model (type) ----
+	/* --- aerosols model (type) ---- */
 	aero.print();
 
-    // --- aerosols model (concentration) ----
+    /* --- aerosols model (concentration) ---- */
     aerocon.print();
 
-	// --- spectral condition ----
+	/* --- spectral condition ---- */
 	iwave.print();
 
-	// --- ground reflectance (type and spectral variation) ----
+	/* --- ground reflectance (type and spectral variation) ---- */
 
 	Output::Ln();
 	Output::WriteLn(22," target type  ");
 	Output::WriteLn(22," -----------  ");
 	Output::WriteLn(10," homogeneous ground ");
 
-	//12x a39 f6.3
+	/* 12x a39 f6.3 */
 	static const string reflec[8] = {
 		string(" user defined spectral reflectance     "),
 		string(" monochromatic reflectance "),
@@ -189,7 +189,7 @@ void printOutput()
 		string(" spectral volcanic debris reflectance  ")
 	};
 
-    float rocave = 0;       // block of code in Fortran will always compute 0
+    float rocave = 0;       /* block of code in Fortran will always compute 0 */
 	ostringstream s;
 	s.setf(ios::fixed, ios::floatfield);
 	s << setprecision(3);
@@ -197,7 +197,7 @@ void printOutput()
 	Output::WriteLn(12, s.str());
 
 
-	// --- pressure at ground level (174) and altitude (175) ----
+	/* --- pressure at ground level (174) and altitude (175) ---- */
 	Output::Ln();
 	Output::WriteLn(22," target elevation description ");
 	Output::WriteLn(22," ---------------------------- ");
@@ -228,7 +228,7 @@ void printOutput()
 
 	alt.print();
 
-	// ---- atmospheric correction  ----
+	/* ---- atmospheric correction  ---- */
 	Output::Ln();
 	Output::WriteLn(23," atmospheric correction activated ");
 	Output::WriteLn(23," -------------------------------- ");
@@ -237,7 +237,7 @@ void printOutput()
 TransformInput compute()
 {
 	const float accu3 = 1e-07;
-// ---- initilialization	// very liberal :)
+/* ---- initilialization	 very liberal :) */
 	int i, j;
 
 	float fr = 0;
@@ -311,7 +311,7 @@ TransformInput compute()
 			ainr[i][j] = 0;
 		}
 
-	// ---- spectral loop ----
+	/* ---- spectral loop ---- */
     if (iwave.iwave == -2)
 	{
 		Output::WriteLn(1,"wave   total  total  total  total  atm.   swl    step   sbor   dsol   toar ");
@@ -327,12 +327,12 @@ TransformInput compute()
         if(l == iwave.iinf || l == iwave.isup) sbor *= 0.5f;
         if(iwave.iwave == -1) sbor = 1.0f / step;
 
-        float roc = 0; // rocl[l];
-        float roe = 0; // roel[l];
+        float roc = 0; /* rocl[l]; */
+        float roe = 0; /* roel[l]; */
         float wl = 0.25f + l * step;
 
 		AbstraStruct as;
-		float uwus, uo3us;		// initialized in abstra
+		float uwus, uo3us;		/* initialized in abstra */
 
 		abstra(atms, alt, wl, (float)geom.xmus, (float)geom.xmuv, atms.uw / 2.0f, atms.uo3,
 			   uwus, uo3us, alt.puw / 2.0f, alt.puo3, alt.puwus, alt.puo3us, as);
@@ -392,7 +392,7 @@ TransformInput compute()
         float romeas2 = ratm2 + rsurf * tgtot;
         float romeas3 = ratm3 + rsurf * tgtot;
 
-		// computing integrated values over the spectral band
+		/* computing integrated values over the spectral band */
         if (iwave.iwave == -2)
 		{
 			Output::Begin();
@@ -468,7 +468,7 @@ TransformInput compute()
         sb = sb + sbor * step;
         seb = seb + coef;
 
-		// output at the ground level.
+		/* output at the ground level. */
         float tdir = (float)exp(-(is.tray + is.taer) / geom.xmus);
         float tdif = is.dtott - tdir;
         float etn = is.dtott * dgtot / (1 - avr * is.astot);
@@ -503,7 +503,7 @@ TransformInput compute()
           aini[1][j] = aini[1][j] + ani[1][j] * sbor * step;
 		}
 
-		// output at satellite level
+		/* output at satellite level */
         float tmdir = (float)exp(-(is.tray + is.taer) / geom.xmuv);
         float tmdif = is.utott - tmdir;
         float xla0n = ratm2;
@@ -527,8 +527,8 @@ TransformInput compute()
 	}
 
 
-	// ---- integrated values of apparent reflectance, radiance          ----
-	// ---- and gaseous transmittances (total,downward,separately gases) ----
+	/* ---- integrated values of apparent reflectance, radiance          ----*/
+	/* ---- and gaseous transmittances (total,downward,separately gases) ----*/
     refet = refet / seb;
 	refet1 = refet1 / seb;
 	refet2 = refet2 / seb;

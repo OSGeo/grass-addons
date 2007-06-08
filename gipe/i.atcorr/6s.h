@@ -39,4 +39,4 @@ struct TransformInput;
 */
 extern TransformInput compute();
 
-#endif // _6S_H
+#endif /* _6S_H */

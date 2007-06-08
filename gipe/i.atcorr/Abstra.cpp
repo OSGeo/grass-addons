@@ -1,6 +1,6 @@
 #ifdef WIN32
 #pragma warning (disable : 4305)
-#endif // WIN32
+#endif /* WIN32 */
 #include "common.h"
 #include "Abstra.h"
 #include "AtmosModel.h"
@@ -10235,13 +10235,13 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 		return;
 	}
 		
-	// constants determination
+	/* constants determination */
 	const float p0 = 1013.25f;
 	const float g = 98.1f;
 
 	const float t0 = 250.f;
  
-	// volumic mass in kilogrammes per m3
+	/* volumic mass in kilogrammes per m3 */
 	ds = 0;
 	te = 0;
 	roair = 0;
@@ -10353,7 +10353,7 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 
 		if(to270) for(int i = 0; i < 8; i++) a[i] = 0;
  
-		// mixing ratio calculation for each gaseous constituents
+		/* mixing ratio calculation for each gaseous constituents */
 		int k;
 		for(k = 0; k < 33; k++)
 		{
@@ -10389,7 +10389,7 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 		udtp = 0;
 		updtp = 0;
  
-		// pressure scale integration sigma = atms.p / p0
+		/* pressure scale integration sigma = atms.p / p0 */
 		for(k = 1; k < 33; k++)
 		{
 			ds = (atms.p[k-1] - atms.p[k]) / atms.p[0];
@@ -10409,7 +10409,7 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 		if(idgaz == 6) uu = 1000 * uu / rmch4;
 		if(idgaz == 7) uu = 1000 * uu / rmco;
  
-		// mixing ratio for plane calculation for each gaseous constituents
+		/* mixing ratio for plane calculation for each gaseous constituents */
 		if ((alt.idatmp == 0) || (alt.idatmp == 4)) 
 		{
 			uupl = uu;
@@ -10442,7 +10442,7 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 			upl = 0;
 			uppl = 0;
 			
-			// update ratio plane
+			/* update ratio plane */
 			for(int i = 0; i < 10; i++)	ratpl[i] = 1;
 
 			if (alt.idatmp == 8) 
@@ -10459,8 +10459,8 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 				ratpl[9] = uwpl / uwusp;
 			}
 
-			// pressure scale integration sigma = atms.p / p0
-			// *  all gases
+			/* pressure scale integration sigma = atms.p / p0 */
+			/* * all gases*/
 
 			for(k = 1; k < 33; k++)
 			{
@@ -10483,13 +10483,13 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 			if(idgaz == 6) uupl = 1000 * uupl / rmch4;
 			if(idgaz == 7) uupl = 1000 * uupl / rmco;
 		
-		} // endif test atms.idatm  = 0,4
+		} /* endif test atms.idatm  = 0,4 */
  
-		// downward path
+		/* downward path */
 		uud	= uu / xmus;
-		// upward path
+		/* upward path */
 		uuu = uupl / xmuv;
-		// total(down + up) path
+		/* total(down + up) path */
 		uut = uu / xmus + uupl / xmuv;
  
 		if((idgaz == 2 && iv > 9620) || (idgaz == 3 && iv > 15920))
@@ -10536,7 +10536,7 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 				test2 = ako3 * uuu;
 				test3 = ako3 * uut;
  
-				// exponential overflow test
+				/* exponential overflow test */
  
 				if(test1 > 86.0) test1 = 86.0;
 				if(test2 > 86.0) test2 = 86.0;
@@ -10557,7 +10557,7 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 			continue;
 		}
 			
-		// downward path
+		/* downward path */
 		ud = u / xmus;
 		upd = up / xmus;
 		udt = ud;
@@ -10573,7 +10573,7 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 		tnu[idgaz-1][0] = (float)exp(y);
 		
 			
-		// upward path modified to take account for plane content
+		/* upward path modified to take account for plane content */
 		udp = upl / xmuv;
 		updp = uppl / xmuv;
 		udtp = udp;
@@ -10588,7 +10588,7 @@ void abstra (const AtmosModel& atms, const Altitude& alt,
 		if(idgaz == 1) y = (float)(-a[0] * udp / sqrt(1 + (a[0] / atest) * (udp * udp / updtp)));
 		tnu[idgaz-1][1] = (float)exp(y);
 
-		// total(down + up) path modified on the way up
+		/* total(down + up) path modified on the way up */
 		ut = u / xmus + upl / xmuv;
 		upt = up / xmus + uppl / xmuv;
 		utt = ut;
