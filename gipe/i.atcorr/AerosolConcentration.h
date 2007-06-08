@@ -31,7 +31,7 @@ struct AtmosModel;
 
 struct AerosolConcentration
 {
-	// aerosol concentration parameters
+	/* aerosol concentration parameters */
     float taer55;
 
 private:
@@ -47,5 +47,5 @@ public:
     static AerosolConcentration Parse(const long int iaer, const AtmosModel &atms);
 };
 
-#endif // AEROSOLCONCENTRATION_H
+#endif /* AEROSOLCONCENTRATION_H */
 

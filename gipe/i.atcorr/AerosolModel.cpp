@@ -2,8 +2,8 @@
 #include "AerosolModel.h"
 #include "AtmosModel.h"
 #ifdef WIN32
-#pragma warning(disable:4305)	// disable warning about initialization of a float by a double
-#endif // WIN32
+#pragma warning(disable:4305)	/* disable warning about initialization of a float by a double */
+#endif /* WIN32 */
 
 /* (background desert model...) */
 void AerosolModel::bdm()
@@ -59,7 +59,7 @@ void AerosolModel::mie(float (&ex)[4][10], float (&sc)[4][10], float (&asy)[4][1
 	double sca[10][4];
 	double p1[10][4][83];
 
-	const double rmul = 0.99526231496887960135245539673954; //rlogpas = 0.030; // (10**rlogpas-1.D+00)
+	const double rmul = 0.99526231496887960135245539673954; /*rlogpas = 0.030;  (10**rlogpas-1.D+00)*/
 
 	int i;
 	for(i = 0; i < mie_in.icp; i++)
@@ -81,23 +81,23 @@ void AerosolModel::mie(float (&ex)[4][10], float (&sc)[4][10], float (&asy)[4][1
 	double r;
 	double dr;
 	double nr = 0;
-	// LOOPS ON THE NUMBER OF PARTICLE TYPE (4 max)
+	/* LOOPS ON THE NUMBER OF PARTICLE TYPE (4 max) */
 	for(i = 0; i < mie_in.icp; i++)
 	{
 		r = mie_in.rmin;
 		dr = r*rmul;
 		
-		// LOOPS ON THE RADIUS OF THE PARTICLE     
+		/* LOOPS ON THE RADIUS OF THE PARTICLE */    
 		do {
 
-			// call of the size distribution nr. For our computation, we need dn/dr for
-			// all functions except for sun-photometer inputs for which we need dV/dlog(r)
+			/* call of the size distribution nr. For our computation, we need dn/dr for */
+			/* all functions except for sun-photometer inputs for which we need dV/dlog(r) */
 
 			switch(iaer-7)
 			{
 			case 1: 
 				{
-					// --- Mixture of particles (Log-Normal distribution functions, up to 5)
+					/* --- Mixture of particles (Log-Normal distribution functions, up to 5)*/
 					const double sqrt2PI =	2.506628274631000502415765284811;
 					const double ln10 =		2.3025850929940456840179914546844;
 					double log10_x2 = log10(mie_in.x2[i]);
@@ -108,7 +108,7 @@ void AerosolModel::mie(float (&ex)[4][10], float (&sc)[4][10], float (&asy)[4][1
 				}
 			case 2:
 				{
-					// --- Modified Gamma distribution function
+					/* --- Modified Gamma distribution function */
 					const double ldexp = -300.;
 					double arg=-mie_in.x2[i]*pow(r,(double)mie_in.x3[i]);
 					if(arg > ldexp) nr = pow(r,(double)mie_in.x1[i])*exp(arg);
@@ -117,14 +117,14 @@ void AerosolModel::mie(float (&ex)[4][10], float (&sc)[4][10], float (&asy)[4][1
 				}
 			case 3: 
 				{
-					// --- Junge power-law function
+					/* --- Junge power-law function */
 					nr = pow(0.1,-(double)mie_in.x1[i]);
 					if(r > 0.1) nr = pow(r,-(double)mie_in.x1[i]);
 					break;
 				}
 			case 4:
 				{
-					// --- from sun photometer
+					/* --- from sun photometer */
 					nr = 0;
 					for(int j = 1; j < mie_in.irsunph; j++)
 						if((r-mie_in.rsunph[j]) < 0.000001)
@@ -136,13 +136,13 @@ void AerosolModel::mie(float (&ex)[4][10], float (&sc)[4][10], float (&asy)[4][1
 				}
 			}
 
-			// The Mie's calculations have to be called several times (min=2, max=10 for
-			// each type of particle): at wavelengths bounding the range of the selected
-			// wavelengths,and at 0.550 microns to normalized the extinction coefficient 
-			// (if it's not in the selected range of wavelengths).
+			/* The Mie's calculations have to be called several times (min=2, max=10 for
+			 each type of particle): at wavelengths bounding the range of the selected
+			 wavelengths,and at 0.550 microns to normalized the extinction coefficient 
+			 (if it's not in the selected range of wavelengths). */
        
 			double xndpr2 = nr * dr * M_PI * (r * r);
-			// relatif number of particle for each type of particle (has to be equal to 1)
+			/* relatif number of particle for each type of particle (has to be equal to 1) */
 			np[i]+= nr * dr;
 
 			for(int j = 0; j < 10; j++)
@@ -156,7 +156,7 @@ void AerosolModel::mie(float (&ex)[4][10], float (&sc)[4][10], float (&asy)[4][1
 				ext[j][i] += xndpr2 * Qext;
 				sca[j][i] += xndpr2 * Qsca;
 
-				// phase function for each type of particle
+				/* phase function for each type of particle */
 				for(int k = 0; k < 83; k++) p1[j][i][k] += p11[k]*xndpr2;
 			}
 
@@ -166,9 +166,9 @@ void AerosolModel::mie(float (&ex)[4][10], float (&sc)[4][10], float (&asy)[4][1
 	}
 
 
-	// NOW WE MIXTE THE DIFFERENT TYPES OF PARTICLE
-	// computation of the scattering and extinction coefficients. We first start
-	// at 0.550 micron (the extinction coefficient is normalized at 0.550 micron)
+	/* NOW WE MIXTE THE DIFFERENT TYPES OF PARTICLE
+	 computation of the scattering and extinction coefficients. We first start
+	 at 0.550 micron (the extinction coefficient is normalized at 0.550 micron) */
 	int j;
 	for(j = 0; j < 10; j++)
 		for(int i = 0; i < mie_in.icp; i++)
@@ -179,8 +179,8 @@ void AerosolModel::mie(float (&ex)[4][10], float (&sc)[4][10], float (&asy)[4][1
 			sc[0][j] += (float)(mie_in.cij[i] * sca[j][i]);
 		}
 
-	// computation of the phase function and the asymetry coefficient
-	// of the mixture of particles
+	/* computation of the phase function and the asymetry coefficient
+	 of the mixture of particles */
 
 	for(j = 0; j < 10; j++)
 	{
@@ -216,9 +216,9 @@ void AerosolModel::exscphase(const double X, const double nr,
 	double Ren=nr/(nr*nr+ni*ni);
 	double Imn=ni/(nr*nr+ni*ni);
 
-	// ---Identification of the greater order of computation (=mu)
-	//    as defined by F.J. Corbato, J. Assoc. Computing Machinery, 1959,
-	//    6, 366-375
+	/* ---Identification of the greater order of computation (=mu)
+	    as defined by F.J. Corbato, J. Assoc. Computing Machinery, 1959,
+	    6, 366-375 */
     int N=int(0.5*(-1+sqrt(1+4*X*X)))+1;
     if (N == 1) N = 2;
 
@@ -233,12 +233,12 @@ void AerosolModel::exscphase(const double X, const double nr,
 		mu2 = int(Np + 30. * (0.1 + 0.35 * Up * (2 - Up * Up)/ 2 / (1 - Up)));
 	}
 
-	int mu = (mu1 < mu2) ? mu1 : mu2;	// min(mu1, mu2)
+	int mu = (mu1 < mu2) ? mu1 : mu2;	/* min(mu1, mu2) */
 
-	// --- Identification of the transition line. Below this line the Bessel 
-	//     function j behaves as oscillating functions. Above the behavior 
-	//     becomes monotonic. We start at a order greater than this transition 
-	//     line (order max=mu) because a downward recursion is called for.
+	/* --- Identification of the transition line. Below this line the Bessel 
+	     function j behaves as oscillating functions. Above the behavior 
+	     becomes monotonic. We start at a order greater than this transition 
+	     line (order max=mu) because a downward recursion is called for. */
 
 	double Rn[10001], xj[10001];
 	int k = mu + 1;
@@ -271,8 +271,8 @@ void AerosolModel::exscphase(const double X, const double nr,
 	for(k = mub; k >= 1; k--) xj[k-1] = (2 * k + 1) * xj[k] / X - xj[k+1];
 	double coxj = xj[0] - X * xj[1] * cos(X) + X * xj[0] * sin(X);
 
-	// --- Computation Dn(alpha) and Dn(alpha*m) (cf MIE's theory) 
-	//     downward recursion    - real and imaginary parts
+	/* --- Computation Dn(alpha) and Dn(alpha*m) (cf MIE's theory) 
+	     downward recursion    - real and imaginary parts */
 
 	double RDnY[10001];
 	double IDnY[10001];
@@ -292,8 +292,8 @@ void AerosolModel::exscphase(const double X, const double nr,
 		IDnY[k-1] = k * Imn / X + XnumIDnY / XdenDnY;
 	}
 
-	// --- Initialization of the upward recursions
-	// macro to help keep indexing correct, can't be to safe
+	/* --- Initialization of the upward recursions
+	 macro to help keep indexing correct, can't be to safe */
 	#define INDEX(X) ((X)+1)
 	double xy[10002];
 	xy[INDEX(-1)] = sin(X) / X;
@@ -316,16 +316,16 @@ void AerosolModel::exscphase(const double X, const double nr,
 		if (k <= mub) xj[k] /= coxj;
 		else xj[k] = Rn[k-1] * xj[k-1];
 		
-		// --- Computation of bessel's function y(alpha)
+		/* --- Computation of bessel's function y(alpha) */
 		xy[INDEX(k)] = (2 * k - 1) * xy[INDEX(k-1)] / X - xy[INDEX(k-2)];
 		double xJonH = xj[k] / ( xj[k] * xj[k] + xy[INDEX(k)] * xy[INDEX(k)] );
 
-		//  --- Computation of Gn(alpha), Real and Imaginary part
+		/*  --- Computation of Gn(alpha), Real and Imaginary part */
 		double XdenGNX = (RGnX[k-1] - k/X)*(RGnX[k-1] - k/X) + IGnX[k-1] * IGnX[k-1];
 		RGnX[k] = (k / X - RGnX[k-1])/XdenGNX - k / X;
 		IGnX[k] = IGnX[k-1] / XdenGNX;
 
-		// --- Computation of An(alpha) and Bn(alpha), Real and Imaginary part
+		/* --- Computation of An(alpha) and Bn(alpha), Real and Imaginary part */
 		double Xnum1An = RDnY[k] - nr * RDnX[k];
 		double Xnum2An = IDnY[k] + ni * RDnX[k];
 		double Xden1An = RDnY[k] - nr * RGnX[k] - ni * IGnX[k];
@@ -346,8 +346,8 @@ void AerosolModel::exscphase(const double X, const double nr,
 		RBn[k] = xJonH * (xj[k] * RBnb - xy[INDEX(k)] * IBnb);
 		IBn[k] = xJonH * (xy[INDEX(k)] * RBnb + xj[k] * IBnb);
 
-		// ---Criterion on the recursion formulas as defined by D. Deirmendjian 
-		//    et al., J. Opt. Soc. Am., 1961, 51, 6, 620-633
+		/* ---Criterion on the recursion formulas as defined by D. Deirmendjian 
+		    et al., J. Opt. Soc. Am., 1961, 51, 6, 620-633 */
 		double temp = RAn[k] * RAn[k] + IAn[k] * IAn[k] + RBn[k] * RBn[k] + IBn[k] * IBn[k];
 		if((temp/k) < 1e-14)
 		{
@@ -355,16 +355,16 @@ void AerosolModel::exscphase(const double X, const double nr,
 			break;		
 		}
 		
-		// --- Computation of the scattering and extinction efficiency factor
+		/* --- Computation of the scattering and extinction efficiency factor */
 		double xpond =  2 / X / X * (2 * k + 1);
 		Qsca = Qsca + xpond * temp;
 		Qext = Qext + xpond * (RAn[k] + RBn[k]);
 	}
 
 
-	// --- Computation of the amplitude functions S1 and S2 (cf MIE's theory)
-	//     defined by PIn, TAUn, An and Bn with PIn and TAUn related to the 
-	//     Legendre polynomials.
+	/* --- Computation of the amplitude functions S1 and S2 (cf MIE's theory)
+	     defined by PIn, TAUn, An and Bn with PIn and TAUn related to the 
+	     Legendre polynomials. */
 	for(int j = 0; j < 83; j++)
 	{
 		double RS1 = 0;
@@ -390,18 +390,18 @@ void AerosolModel::exscphase(const double X, const double nr,
 			TAUn[k+1] = (k + 1) * sixs_sos.cgaus[j] * PIn[k + 1] - (k + 2) * PIn[k];
 		}
 
-		// --- Computation of the scattering intensity efficiency
+		/* --- Computation of the scattering intensity efficiency */
 		p11[j] = 2 * (RS1 *RS1 + IS1 * IS1 + RS2 * RS2 + IS2 * IS2)/X/X;
 	}
 }
 
 
-// load parameters from .mie file
+/* load parameters from .mie file */
 void AerosolModel::load()
 {
 	int i;
 	ifstream in(filename.c_str());
-	cin.ignore(numeric_limits<int>::max(),'\n');	// ignore this line
+	cin.ignore(numeric_limits<int>::max(),'\n');	/* ignore this line */
 		
 	in.ignore(8);
 	for(i = 0; i < 10; i++)
@@ -415,13 +415,13 @@ void AerosolModel::load()
 		in.ignore(6);
 		in >> sixs_aer.gasym[i];
 		in.ignore(3);
-		cin.ignore(numeric_limits<int>::max(),'\n');	// ignore the rest
+		cin.ignore(numeric_limits<int>::max(),'\n');	/* ignore the rest */
 	}
 	
-	// ignore 3 lines
-	cin.ignore(numeric_limits<int>::max(),'\n');	// ignore this line
-	cin.ignore(numeric_limits<int>::max(),'\n');	// ignore this line
-	cin.ignore(numeric_limits<int>::max(),'\n');	// ignore this line
+	/* ignore 3 lines */
+	cin.ignore(numeric_limits<int>::max(),'\n');	/* ignore this line */
+	cin.ignore(numeric_limits<int>::max(),'\n');	/* ignore this line */
+	cin.ignore(numeric_limits<int>::max(),'\n');	/* ignore this line */
 
 	for(i = 0; i < 83; i++)
 	{
@@ -431,21 +431,21 @@ void AerosolModel::load()
 			in.ignore(1);
 			in >> sixs_sos.phasel[j][i];
 		}
-		cin.ignore(numeric_limits<int>::max(),'\n');	// ignore the rest
+		cin.ignore(numeric_limits<int>::max(),'\n');	/* ignore the rest */
 	}
 }
 
 
-// do we wish to save this?
+/* do we wish to save this? */
 void AerosolModel::save()
 {
 	ofstream out(filename.c_str());
-	// output header
+	/* output header */
 	out << "   Wlgth  Nor_Ext_Co  Nor_Sca_Co  Sg_Sca_Alb  Asymm_Para  Extinct_Co  Scatter_Co" << endl;
     int i;
     for(i = 0; i < 10; i++)
 	{
-		out << setprecision(4); // set the required precision
+		out << setprecision(4); /* set the required precision */
 		out << "  " << setw(10) << sixs_disc.wldis[0] 
 			<< "   " << setw(10) << sixs_aer.ext[i]
 			<< "      " << setw(10) << sca[i]
@@ -580,7 +580,7 @@ void AerosolModel::aeroso(const float xmud)
 	static const float asy3[10] = { .704f, .69f, .686f, .68f, .667f, .659f, .637f, .541f, .437f, .241f };
 	static const float asy4[10] = { .705f, .744f, .751f, .757f, .762f, .759f, .737f, .586f, .372f, .139f };
 
-	// local
+	/* local */
 	double coef;
 	float sigm;
 	double sumni;
@@ -591,8 +591,8 @@ void AerosolModel::aeroso(const float xmud)
 	float sc[4][10];
 	float asy[4][10];
 
-	int i;	// crappy VS6
-	// initialize ex, sc & asy
+	int i;	/* crappy VS6 */
+	/* initialize ex, sc & asy */
 	for(i = 0; i < 4; i++) 
 	{
 		int j;
@@ -614,20 +614,20 @@ void AerosolModel::aeroso(const float xmud)
 		for (int k = 1; k <= 83; ++k) sixs_sos.phasel[i][k] = 0.f;
     }
 	
-	// return if iear = 0
+	/* return if iear = 0 */
 	if(iaer == 0) return;
 
-	// look for an interval in cgaus
+	/* look for an interval in cgaus */
 	long int j1 = -1;
 	for (i = 0; i < 82; ++i)
 		if (xmud >= sixs_sos.cgaus[i] && xmud < sixs_sos.cgaus[i+1])  {  j1 = i; break; }
-	if(j1 == -1) return; // unable to find interval
+	if(j1 == -1) return; /* unable to find interval */
 
 	coef = -(xmud - sixs_sos.cgaus[j1]) / (sixs_sos.cgaus[j1+1] - sixs_sos.cgaus[j1]);
 
 	switch(iaer)
 	{
-	case 12: // read from file
+	case 12: /* read from file */
 		{
 			load();
 			for(i = 0; i < 10; i++) 
@@ -784,7 +784,7 @@ void AerosolModel::parse(const float xmud)
 	cin >> iaer;
 	cin.ignore(numeric_limits<int>::max(),'\n');
 
-	// initialize vars;
+	/* initialize vars; */
 	mie_in.rmin = 0.f;
 	mie_in.rmax = 0.f;
 	mie_in.icp = 1;
@@ -817,7 +817,7 @@ void AerosolModel::parse(const float xmud)
 	case 0:
 	case 5:
 	case 6:
-	case 7: break;		// do nothing
+	case 7: break;		/* do nothing */
 
 	case 1: 
 		{
@@ -948,7 +948,7 @@ void AerosolModel::parse(const float xmud)
 			break;
 		}
 	case 12:
-		{	// read file name
+		{	/* read file name */
 			getline(cin,filename);
 			filename = filename.substr(0, filename.find(" "));
 			break;
@@ -959,7 +959,7 @@ void AerosolModel::parse(const float xmud)
 	if(iaer >= 8 && iaer <= 11) 
 	{
 		cin >> iaerp;
-		if( iaerp == 1 ) // read file name
+		if( iaerp == 1 ) /* read file name */
 		{
 			getline(cin,filename);
 			filename = filename.substr(0, filename.find(" "));
@@ -970,7 +970,7 @@ void AerosolModel::parse(const float xmud)
 	aeroso(xmud);
 }
 
-// format 132
+/* format 132 */
 void AerosolModel::print132(string s)
 {
 	Output::Begin(); 
@@ -980,10 +980,10 @@ void AerosolModel::print132(string s)
 	Output::End();
 }
 
-// --- aerosols model ----
+/* --- aerosols model ---- */
 void AerosolModel::print()
 {
-	// --- aerosols model (type) ----
+	/* --- aerosols model (type) ---- */
 	Output::Begin(); 
 	Output::Repeat(10, ' ');
 	Output::Print(" aerosols type identity :");

@@ -26,12 +26,12 @@ void AerosolConcentration::parse(const long int _iaer, const AtmosModel& atms)
 
 	taer55 = 0.f;
 	cin >> v;
-	cin.ignore(numeric_limits<int>::max(),'\n');	// ignore comments
+	cin.ignore(numeric_limits<int>::max(),'\n');	/* ignore comments */
 
 	if(v == 0)
 	{
 		cin >> taer55;
-		cin.ignore(numeric_limits<int>::max(),'\n');	// ignore comments
+		cin.ignore(numeric_limits<int>::max(),'\n');	/* ignore comments */
 		v = (float)(exp(-log(taer55/2.7628f)/0.79902f));
 	}
 	else if(v > 0) oda550(v, atms);
@@ -39,9 +39,9 @@ void AerosolConcentration::parse(const long int _iaer, const AtmosModel& atms)
 
 void AerosolConcentration::oda550(const float v, const AtmosModel& atms)
 {
-	// aerosol optical depth at wl=550nm
-	// vertical repartition of aerosol density for v=23km
-	//                ( in nbr of part/cm3 )
+	/* aerosol optical depth at wl=550nm */
+	/* vertical repartition of aerosol density for v=23km */
+	/*                ( in nbr of part/cm3 ) */
 	static const float an23[34] = {
 		2.828e+03,1.244e+03,5.371e+02,2.256e+02,1.192e+02,
 		8.987e+01,6.337e+01,5.890e+01,6.069e+01,5.818e+01,
@@ -53,8 +53,8 @@ void AerosolConcentration::oda550(const float v, const AtmosModel& atms)
 	};
 
 
-	// vertical repartition of aerosol density for v=5km
-	//                ( in nbr of part/cm3 )
+	/* vertical repartition of aerosol density for v=5km */
+	/*                ( in nbr of part/cm3 ) */
 	static const float an5[34] = {
 		1.378e+04,5.030e+03,1.844e+03,6.731e+02,2.453e+02,
 		8.987e+01,6.337e+01,5.890e+01,6.069e+01,5.818e+01,
@@ -88,7 +88,7 @@ void AerosolConcentration::oda550(const float v, const AtmosModel& atms)
 
 void AerosolConcentration::print()
 {
-	// --- aerosol model (concentration) ----
+	/* --- aerosol model (concentration) ---- */
 	Output::Begin();
 	Output::End();
 	if(iaer == 0) return;

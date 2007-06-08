@@ -84,7 +84,7 @@
 
 struct AerosolModel
 {
-	long int iaer;	// aerosol model
+	long int iaer;	/* aerosol model */
 	float c[4];
 
 private:
@@ -92,14 +92,14 @@ private:
 	float sca[10];
 	long int iaerp;
 
-	// methods
+	/* methods */
 	void aeroso(const float xmud);
 
 	string filename;
 	void load();
-	void save();	// .mie file
+	void save();	/* .mie file */
 
-	// defined models' initilizations
+	/* defined models' initilizations */
 	void bdm();
 	void bbm();
 	void stm();
@@ -133,7 +133,7 @@ private:
 
 	void parse(const float xmud);
 
-	// format 132
+	/* format 132 */
 	void print132(string s);
 public:
 	void print();
@@ -142,4 +142,4 @@ public:
 
 
 
-#endif // AEROSOL_MODEL_H
+#endif /* AEROSOL_MODEL_H */
