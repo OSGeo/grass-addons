@@ -10,28 +10,28 @@ class Output
 	static unsigned int pos;
 
 public:
-	// begin a line
+	/* begin a line */
 	static void Begin()					
 	{ 
 		pos += 2; 
 		fprintf(stderr, "* "); 
 	}
 
-	// print a string
+	/* print a string */
 	static void Print(std::string x)			
 	{ 
 		pos += x.length();
         fprintf(stderr, "%s", x.c_str());
 	}
 
-	// print c, cnt times
+	/* print c, cnt times */
 	static void Repeat(int cnt, char c) 
 	{ 
 		pos += cnt; 
 		for(int i = 0; i < cnt; i++) fprintf(stderr, "%c", c);
 	}
 	
-	// end the line
+	/* end the line */
 
 
 	static void End() 
@@ -41,7 +41,7 @@ public:
 		pos = 0; 
 	}
 
-	// position the stream upto, but excluding p
+	/* position the stream upto, but excluding p */
 	static void Position(unsigned int p)
 	{
 		if(p < pos) return;
@@ -49,7 +49,7 @@ public:
 		pos = p - 1;
 	}
 
-	// write a s after cnt spaces
+	/* write a s after cnt spaces */
 	static void WriteLn(int cnt, std::string s)
 	{
 		Begin();
@@ -58,7 +58,7 @@ public:
 		End();
 	}
 
-	// write a blank line
+	/* write a blank line */
 	static void Ln()
 	{
 		Begin();
@@ -66,4 +66,4 @@ public:
 	}
 };
 
-#endif // MY_OUTPUT
+#endif /* MY_OUTPUT */
