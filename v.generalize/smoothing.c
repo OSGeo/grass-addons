@@ -81,10 +81,10 @@ int distance_weighting(struct line_pnts *Points, double slide, int look_ahead,
     };
 
     res = (POINT *) G_malloc(sizeof(POINT) * n);
-    if (!res){
-        G_fatal_error(_("Out of memory"));
-        return n;
-    };  
+    if (!res) {
+	G_fatal_error(_("Out of memory"));
+	return n;
+    };
 
     point_assign(Points, 0, with_z, &res[0]);
 
@@ -190,6 +190,113 @@ int chaiken(struct line_pnts *Points, double thresh, int with_z)
 	G_fatal_error(_("Out of Memory"));
 	exit(1);
     };
+    point_list_free(head);
+    return Points->n_points;
+};
 
+
+/* use for refining tangent in hermite interpolation */
+void refine_tangent(POINT * p)
+{
+    double l = point_dist2(*p);
+    if (l < 0.0000001)
+	return;
+    point_scalar(*p, 1 / sqrt(sqrt(sqrt(l))), p);
+    return;
+};
+
+/* approximates given line using hermite cubic spline
+ * interpolates by steps of length step
+ * returns the number of point in result
+ */
+int hermite(struct line_pnts *Points, double step, int with_z)
+{
+    POINT_LIST head, *last;
+    POINT p0, p1, t0, t1, tmp, res;
+    double length, next, length_begin, l;
+    double s;
+    double h1, h2, h3, h4;
+    int n, i;
+    int ni;
+
+    n = Points->n_points;
+
+    /* line is too short */
+    if (n <= 2) {
+	return 1;
+    };
+
+    head.next = NULL;
+    last = &head;
+
+    /* length of p[0]..p[i+1] */
+    i = 0;
+    point_assign(Points, 0, with_z, &p0);
+    point_assign(Points, 1, with_z, &p1);
+    /* length of line 0..i */
+    length_begin = 0;
+    /* length of line from point 0 to i+1 */
+    length = point_dist(p0, p1);
+    next = 0;
+    /* tangent at p0, p1 */
+    point_subtract(p1, p0, &t0);
+    refine_tangent(&t0);
+    point_assign(Points, 2, with_z, &tmp);
+    point_subtract(tmp, p0, &t1);
+    refine_tangent(&t1);
+
+
+    /* we always operate on the segment point[i]..point[i+1] */
+    while (i < n - 1) {
+	if (next > length || (length - length_begin < 0.0000001)) {	/* segmet i..i+1 is finished or too short */
+	    i++;
+	    if (i >= n - 1)
+		break;		/* we are already out out of line */
+	    point_assign(Points, i, with_z, &p0);
+	    point_assign(Points, i + 1, with_z, &p1);
+	    length_begin = length;
+	    length += point_dist(p0, p1);
+	    ni = i + 2;
+	    if (ni > n - 1)
+		ni = n - 1;	/* ensure that we are in the line */
+	    t0 = t1;
+	    point_assign(Points, ni, with_z, &tmp);
+	    point_subtract(tmp, p0, &t1);
+	    refine_tangent(&t1);
+	}
+	else {
+	    l = length - length_begin;	/* length of actual segment */
+	    s = (next - length_begin) / l;	/* 0<=s<=1 where we want to add new point on the line */
+
+	    /* then we need to calculate 4 control polynomials */
+	    h1 = 2 * s * s * s - 3 * s * s + 1;
+	    h2 = -2 * s * s * s + 3 * s * s;
+	    h3 = s * s * s - 2 * s * s + s;
+	    h4 = s * s * s - s * s;
+
+	    point_scalar(p0, h1, &res);
+	    point_scalar(p1, h2, &tmp);
+	    point_add(res, tmp, &res);
+	    point_scalar(t0, h3, &tmp);
+	    point_add(res, tmp, &res);
+	    point_scalar(t1, h4, &tmp);
+	    point_add(res, tmp, &res);
+	    point_list_add(last, res);
+	    last = last->next;
+
+	    next += step;
+	};
+    };
+
+
+    point_assign(Points, n - 1, with_z, &p0);
+    point_list_add(last, p0);
+
+    if (point_list_copy_to_line_pnts(head, Points) == -1) {
+	G_fatal_error(_("Out of memory"));
+	exit(1);
+    };
+
+    point_list_free(head);
     return Points->n_points;
 };

@@ -28,17 +28,17 @@ int douglass_peucker(struct line_pnts *Points, double thresh, int with_z)
 {
     int *stack = G_malloc(sizeof(int) * Points->n_points * 2);
 
-    if (!stack){
-        G_fatal_error(_("Out of memory"));
-        return Points->n_points; 
+    if (!stack) {
+	G_fatal_error(_("Out of memory"));
+	return Points->n_points;
     };
 
     int *index = G_malloc(sizeof(int) * Points->n_points);	/* Indices of points in output line */
 
-    if (!index){
-        G_fatal_error(_("Out of memory"));
-        G_fre(stack);
-        return Points->n_points;
+    if (!index) {
+	G_fatal_error(_("Out of memory"));
+	G_fre(stack);
+	return Points->n_points;
     };
 
     int top = 2;		/* first free slot in the stack */

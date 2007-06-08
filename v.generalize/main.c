@@ -21,6 +21,7 @@
 #include <grass/gis.h>
 #include <grass/Vect.h>
 #include <grass/glocale.h>
+#include "misc.h"
 
 #define DOUGLASS 0
 #define LANG 1
@@ -29,20 +30,25 @@
 #define BOYLE 4
 #define DISTANCE_WEIGHTING 5
 #define CHAIKEN 6
+#define HERMITE 7
 
 int main(int argc, char *argv[])
 {
     struct Map_info In, Out;
     static struct line_pnts *Points;
     struct line_cats *Cats;
-    int i, type, cat;
+    int i, type, cat, iter;
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
-    struct Option *map_in, *map_out, *thresh_opt, *method_opt;
+    struct Option *map_in, *map_out, *thresh_opt, *method_opt, *look_ahead_opt;
+    struct Option *iterations_opt, *cat_opt;
     int with_z;
     int total_input, total_output;	/* Number of points in the input/output map respectively */
     double thresh;
     int method;
+    int look_ahead, iterations;
+    RANGE *ranges;
+    int n_ranges;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -62,7 +68,7 @@ int main(int argc, char *argv[])
     method_opt->required = YES;
     method_opt->multiple = NO;
     method_opt->options =
-	"douglas,lang,reduction,reumann,boyle,distance_weighting,chaiken";
+	"douglas,lang,reduction,reumann,boyle,distance_weighting,chaiken,hermite";
     method_opt->answer = "douglas";
     method_opt->descriptions = "douglas;Douglass-Peucker Algorithm;"
 	"lang;Lang Simplification Algorithm;"
@@ -70,7 +76,8 @@ int main(int argc, char *argv[])
 	"reumann;Reumann-Witkam Algorithm;"
 	"boyle;Boyle's Forward-Looking Algorithm;"
 	"distance_weighting;McMaster's Distance-Weighting Algorithm;"
-	"chaiken;Chaiken's Algorithm;";
+	"chaiken;Chaiken's Algorithm;"
+	"hermite;Interpolation by Cubic Hermite Splines;";
     method_opt->description = _("Line simplification/smoothing algorithm");
 
     thresh_opt = G_define_option();
@@ -78,13 +85,52 @@ int main(int argc, char *argv[])
     thresh_opt->type = TYPE_DOUBLE;
     thresh_opt->required = YES;
     thresh_opt->options = "0-1000000000";
+    thresh_opt->answer = "1.0";
     thresh_opt->description = _("Maximal tolerance value");
+
+    look_ahead_opt = G_define_option();
+    look_ahead_opt->key = "look_ahead";
+    look_ahead_opt->type = TYPE_INTEGER;
+    look_ahead_opt->required = YES;
+    look_ahead_opt->answer = "7";
+    look_ahead_opt->description = _("Look-ahead parameter");
+
+    iterations_opt = G_define_option();
+    iterations_opt->key = "iterations";
+    iterations_opt->type = TYPE_INTEGER;
+    iterations_opt->required = YES;
+    iterations_opt->answer = "1";
+    iterations_opt->description = _("Number of iterations");
+
+    cat_opt = G_define_option();
+    cat_opt->key = "category";
+    cat_opt->type = TYPE_STRING;
+    cat_opt->required = NO;
+    cat_opt->multiple = YES;
+    cat_opt->key_desc = "range";
+    cat_opt->description = _("Category ranges: e.g. 1,3-8,13");
 
     /* options and flags parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
     thresh = atof(thresh_opt->answer);
+    look_ahead = atoi(look_ahead_opt->answer);
+    iterations = atoi(iterations_opt->answer);
+
+
+    /* check and store category ranges */
+    if (cat_opt->answer != NULL) {
+	for (i = 0; cat_opt->answers[i]; i++)
+	    if (!check_range(cat_opt->answers[i])) {
+		G_fatal_error(_("Bad category range in (%s)"),
+			      cat_opt->answers[i]);
+		exit(-1);
+	    };
+	get_ranges(cat_opt->answers, &ranges, &n_ranges);
+    }
+    else
+	ranges = NULL;
 
     G_message(method_opt->answer);
 
@@ -106,8 +152,11 @@ int main(int argc, char *argv[])
     else if (method_opt->answer[0] == 'd') {
 	method = DISTANCE_WEIGHTING;
     }
-    else {
+    else if (method_opt->answer[0] == 'c') {
 	method = CHAIKEN;
+    }
+    else {
+	method = HERMITE;
     };
 
     Points = Vect_new_line_struct();
@@ -140,42 +189,52 @@ int main(int argc, char *argv[])
     i = 1;
     while ((type = Vect_read_next_line(&In, Points, Cats)) > 0) {
 	total_input += Points->n_points;
-	if (type == GV_LINE || 1 == 1) {
+	if ((type == GV_LINE || 1 == 1) &&
+	    (ranges == NULL || cat_test(Cats, ranges, n_ranges))) {
 	    int after = 0;
-
-	    if (method == DOUGLASS) {
-		after = douglass_peucker(Points, thresh, with_z);
-	    }
-	    else if (method == LANG) {
-		after = lang(Points, thresh, 7, with_z);
-	    }
-	    else if (method == VERTEX_REDUCTION) {
-		after = vertex_reduction(Points, thresh, with_z);
-	    }
-	    else if (method == REUMANN) {
-		after = reumann_witkam(Points, thresh, with_z);
-	    }
-	    else if (method == BOYLE) {
-		after = boyle(Points, 5, with_z);
-	    }
-	    else if (method == DISTANCE_WEIGHTING) {
-		after = distance_weighting(Points, thresh, 11, with_z);
-	    }
-	    else {
-		after = chaiken(Points, thresh, with_z);
+	    for (iter = 0; iter < iterations; iter++) {
+		if (method == DOUGLASS) {
+		    after = douglass_peucker(Points, thresh, with_z);
+		}
+		else if (method == LANG) {
+		    after = lang(Points, thresh, look_ahead, with_z);
+		}
+		else if (method == VERTEX_REDUCTION) {
+		    after = vertex_reduction(Points, thresh, with_z);
+		}
+		else if (method == REUMANN) {
+		    after = reumann_witkam(Points, thresh, with_z);
+		}
+		else if (method == BOYLE) {
+		    after = boyle(Points, look_ahead, with_z);
+		}
+		else if (method == DISTANCE_WEIGHTING) {
+		    after =
+			distance_weighting(Points, thresh, look_ahead, with_z);
+		}
+		else if (method == CHAIKEN) {
+		    after = chaiken(Points, thresh, with_z);
+		}
+		else {
+		    after = hermite(Points, thresh, with_z);
+		};
 	    };
 
+	    after = Points->n_points;
 	    total_output += after;
 	    Vect_write_line(&Out, type, Points, Cats);
 
 	}
 	else {
-	    total_output += Vect_write_line(&Out, type, Points, Cats);
+	    total_output += Points->n_points;
+	    Vect_write_line(&Out, type, Points, Cats);
 	};
     }
 
     G_message("Number of vertices was reduced from %d to %d[%d%%]", total_input,
 	      total_output, (total_output * 100) / total_input);
+
+    G_free(ranges);
 
     Vect_build(&Out, stdout);
     Vect_close(&In);

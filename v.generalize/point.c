@@ -98,6 +98,8 @@ POINT_LIST *point_list_new(POINT p)
     };
 
     pl->next = NULL;
+    if (p.x < 10)
+	printf("%lf\n", p.x);
     pl->p = p;
     return pl;
 };
@@ -117,7 +119,7 @@ int point_list_copy_to_line_pnts(POINT_LIST l, struct line_pnts *Points)
     int length, i;
     POINT_LIST *cur;
 
-    cur = &l;
+    cur = l.next;
     length = 0;
 
     while (cur != NULL) {
@@ -130,7 +132,7 @@ int point_list_copy_to_line_pnts(POINT_LIST l, struct line_pnts *Points)
 
     Points->n_points = length;
 
-    cur = &l;
+    cur = l.next;
     for (i = 0; i < length; i++) {
 	Points->x[i] = cur->p.x;
 	Points->y[i] = cur->p.y;
@@ -139,4 +141,15 @@ int point_list_copy_to_line_pnts(POINT_LIST l, struct line_pnts *Points)
     };
 
     return 0;
+};
+
+void point_list_free(POINT_LIST l)
+{
+    POINT_LIST *p, *n;
+    p = l.next;
+    while (p != NULL) {
+	n = p->next;
+	G_free(p);
+	p = n;
+    };
 };
