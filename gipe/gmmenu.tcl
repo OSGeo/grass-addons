@@ -249,17 +249,15 @@ set descmenu [subst  {
 		{command {[G_msg "Create color image from RGB files"]} {} "r.composite" {} -command {execute r.composite }}
 		{command {[G_msg "Create 3 RGB (red, green, blue) maps from 3 HIS (hue, intensity, saturation) maps"]} {} "r.his" {} -command {execute r.his }}
 	}}
-	{separator}
-	{command {[G_msg "Query by coordinate(s)"]} {} "r.what" {} -command { execute r.what }}
-	{separator}
-	{command {[G_msg "Create raster buffers"]} {} "r.buffer" {} -command { execute r.buffer }}
-	{command {[G_msg "Create raster MASK"]} {} "r.mask" {} -command { execute r.mask }}
-	{command {[G_msg "Locate closest points between areas in 2 raster maps"]} {} "r.distance" {} -command { execute r.distance }}
-	{command {[G_msg "Map calculator"]} {} "r.mapcalculator" {} -command { execute r.mapcalculator }}
-	{cascad {[G_msg "Neighborhood analysis"]} {} "" $tmenu {			
-		{command {[G_msg "Moving window analysis of raster cells"]} {} "r.neighbors" {} -command { execute r.neighbors }}
-		{command {[G_msg "Analyze vector points in neighborhood of raster cells"]} {} "v.neighbors" {} -command { execute v.neighbors }}
+	{cascad {[G_msg "Query/Profile"]} {} "" $tmenu {			
+		{command {[G_msg "Query by coordinate(s)"]} {} "r.what" {} -command { execute r.what }}
+		{command {[G_msg "Profile analysis"]} {} "d.profile" {} -command {guarantee_xmon; execute d.profile }}
 	}}
+	{separator}
+	{command {[G_msg "Create raster MASK"]} {} "r.mask" {} -command { execute r.mask }}
+	{command {[G_msg "Create raster buffers"]} {} "r.buffer" {} -command { execute r.buffer }}
+	{command {[G_msg "Map calculator"]} {} "r.mapcalculator" {} -command { execute r.mapcalculator }}
+	{separator}
 	{cascad {[G_msg "Overlay maps"]} {} "" $tmenu {			
 		{command {[G_msg "Cross product"]} {} "r.cross" {} -command {execute r.cross }}
 		{command {[G_msg "Function of map series (time series)"]} {} "r.series" {} -command {execute r.series }}
@@ -267,33 +265,19 @@ set descmenu [subst  {
 		{separator}
 		{command {[G_msg "Statistical calculations for cover map over base map"]} {} "r.statistics" {} -command {execute r.statistics }}
 	}}
-	{cascad {[G_msg "Solar radiance and shadows"]} {} "" $tmenu {			
-		{command {[G_msg "Solar irradiance and daily irradiation"]} {} "r.sun" {} -command {execute r.sun }}
-		{command {[G_msg "Shadows map for sun position or date/time"]} {} "r.sunmask" {} -command {execute r.sunmask }}
-	}}
-	{cascad {[G_msg "Terrain analysis"]} {} "" $tmenu {			
-		{command {[G_msg "Calculate cumulative movement costs between locales"]} {} "r.walk" {} -command {execute r.walk }}
-		{command {[G_msg "Cost surface"]} {} "r.cost" {} -command {execute r.cost }}
-		{command {[G_msg "Least cost route or flow"]} {} "r.drain" {} -command {execute r.drain }}
-		{command {[G_msg "Profile analysis"]} {} "d.profile" {} -command {guarantee_xmon; execute d.profile }}
-		{command {[G_msg "Shaded relief map"]} {} "r.shaded.relief" {} -command {execute r.shaded.relief }}
-		{command {[G_msg "Slope and aspect"]} {} "r.slope.aspect" {} -command {execute r.slope.aspect }}
-		{command {[G_msg "Terrain parameters"]} {} "r.param.scale" {} -command {execute r.param.scale }}
-		{command {[G_msg "Textural features"]} {} "r.texture" {} -command {execute r.texture }}
-		{command {[G_msg "Visibility/line of sight"]} {} "r.los" {} -command {execute r.los }}
-	}}
 	{cascad {[G_msg "Transform features"]} {} "" $tmenu {			
 		{command {[G_msg "Clump small areas (statistics calculated by r.volume)"]} {} "r.clump" {} -command {execute r.clump }}
 		{command {[G_msg "Grow areas"]} {} "r.grow" {} -command {execute r.grow }}
 		{command {[G_msg "Thin linear features"]} {} "r.thin" {} -command {execute r.thin }}
 	}}
-	{separator}
-	{cascad {[G_msg "Universal Soil Loss Equation (USLE)"]} {} "" $tmenu {			
-		{command {[G_msg "Rainfall Erosivity (R)"]} {} "r.usler" {} -command {execute r.usler }}
-		{command {[G_msg "Soil Erodibility (K)"]} {} "r.uslek" {} -command {execute r.uslek }}
-		{command {[G_msg "Length Slope and Slope (LS)"]} {} "r.watershed" {} -command {execute r.watershed }}
+	{cascad {[G_msg "Proximity/Neighborhood analysis"]} {} "" $tmenu {
+		{command {[G_msg "Moving window analysis of raster cells"]} {} "r.neighbors" {} -command { execute r.neighbors }}
+		{command {[G_msg "Analyze vector points in neighborhood of raster cells"]} {} "v.neighbors" {} -command { execute v.neighbors }}
+		{separator}
+		{command {[G_msg "Locate closest points between areas in 2 raster maps"]} {} "r.distance" {} -command { execute r.distance }}
 	}}
-	{cascad {[G_msg "Hydrologic modeling"]} {} "" $tmenu {			
+	{separator}
+	{cascad {[G_msg " Modeling: Hydrologic"]} {} "" $tmenu {
 		{command {[G_msg "Carve stream channels into elevation map using vector streams map"]} {} "r.carve" {} -command {execute r.carve }}
 		{command {[G_msg "Depressionless elevation map and flowline map"]} {} "r.fill.dir" {} -command {execute r.fill.dir }}
 		{command {[G_msg "Fill lake from seed point to specified level"]} {} "r.lake" {} -command {execute r.lake }}
@@ -307,12 +291,33 @@ set descmenu [subst  {
 		{command {[G_msg "Watershed analysis"]} {} "r.watershed" {} -command {execute r.watershed }}
 		{command {[G_msg "Watershed basin creation"]} {} "r.water.outlet" {} -command {execute r.water.outlet }}
 	}}
-	{cascad {[G_msg "Landscape structure modeling"]} {} "" $tmenu {			
+	{cascad {[G_msg "Modeling: Landscape structure"]} {} "" $tmenu {			
 		{command {[G_msg "Set up sampling and analysis framework"]} {} "r.le.setup" {} -command {guarantee_xmon; term r.le.setup }}
 		{separator}
 		{command {[G_msg "Analyze landscape characteristics"]} {} "r.le.pixel" {} -command {execute r.le.pixel }}
 		{command {[G_msg "Analyze landscape patch characteristics"]} {} " r.le.patch" {} -command {execute r.le.patch }}
 		{command {[G_msg "Output landscape patch information"]} {} "r.le.trace" {} -command {execute r.le.trace }}
+	}}
+	{cascad {[G_msg "Modeling: Solar radiance and shadows"]} {} "" $tmenu {
+		{command {[G_msg "Solar irradiance and daily irradiation"]} {} "r.sun" {} -command {execute r.sun }}
+		{command {[G_msg "Shadows map for sun position or date/time"]} {} "r.sunmask" {} -command {execute r.sunmask }}
+	}}
+	{cascad {[G_msg "Modeling: Terrain and solar"]} {} "" $tmenu {			
+		{command {[G_msg "Calculate cumulative movement costs between locales"]} {} "r.walk" {} -command {execute r.walk }}
+		{command {[G_msg "Cost surface"]} {} "r.cost" {} -command {execute r.cost }}
+		{command {[G_msg "Least cost route or flow"]} {} "r.drain" {} -command {execute r.drain }}
+		{separator}
+		{command {[G_msg "Shaded relief map"]} {} "r.shaded.relief" {} -command {execute r.shaded.relief }}
+		{command {[G_msg "Slope and aspect"]} {} "r.slope.aspect" {} -command {execute r.slope.aspect }}
+		{command {[G_msg "Terrain parameters"]} {} "r.param.scale" {} -command {execute r.param.scale }}
+		{command {[G_msg "Textural features"]} {} "r.texture" {} -command {execute r.texture }}
+		{command {[G_msg "Visibility/line of sight"]} {} "r.los" {} -command {execute r.los }}
+	}}
+	{separator}
+	{cascad {[G_msg "Universal Soil Loss Equation (USLE)"]} {} "" $tmenu {			
+		{command {[G_msg "Rainfall Erosivity (R)"]} {} "r.usler" {} -command {execute r.usler }}
+		{command {[G_msg "Soil Erodibility (K)"]} {} "r.uslek" {} -command {execute r.uslek }}
+		{command {[G_msg "Length Slope and Slope (LS)"]} {} "r.watershed" {} -command {execute r.watershed }}
 	}}
 	{cascad {[G_msg "Landscape patch analysis"]} {} "" $tmenu {			
 		{command {[G_msg "Configure and create patch map for analysis"]} {} "r.li.setup" {} -command {execute r.li.setup }}
