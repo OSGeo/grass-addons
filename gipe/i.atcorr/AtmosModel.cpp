@@ -325,7 +325,7 @@ void AtmosModel::us62()
 void AtmosModel::parse()
 {
 	cin >> idatm;
-	cin.ignore(numeric_limits<int>::max(),'\n'); // read the rest of the scraps, like comments
+	cin.ignore(numeric_limits<int>::max(),'\n'); /* read the rest of the scraps, like comments */
 
 	uw = 0.;
 	uo3 = 0.;
@@ -341,7 +341,7 @@ void AtmosModel::parse()
 	case 6: us62();	    break;
 	case 7: 
 		{
-			// read input
+			/* read input */
 			for(int i = 0; i < 34; i++)
 			{
 				cin >> z[i];
@@ -349,7 +349,7 @@ void AtmosModel::parse()
 				cin >> t[i];
 				cin >> wh[i];
 				cin >> wo[i];
-				cin.ignore(numeric_limits<int>::max(),'\n'); // read the rest of the scraps, like comments
+				cin.ignore(numeric_limits<int>::max(),'\n'); /* read the rest of the scraps, like comments */
 			}
 			break;
 		}
@@ -357,7 +357,7 @@ void AtmosModel::parse()
 		{
 			cin >> uw;
 			cin >> uo3;
-			cin.ignore(numeric_limits<int>::max(),'\n'); // read the rest of the scraps, like comments
+			cin.ignore(numeric_limits<int>::max(),'\n'); /* read the rest of the scraps, like comments */
 			us62();
             break;
 		}
@@ -365,7 +365,7 @@ void AtmosModel::parse()
 	}
 }
 
-// --- atmospheric model ----
+/* --- atmospheric model ---- */
 void AtmosModel::print()
 {	
 	static const string head(" atmospheric model description  ");

@@ -27,9 +27,9 @@ c                  in kilometers units                                 c
 C     this altitude is relative to the target altitude                 c
 c                                                                      c
 c     for aircraft simulations only, you have to give                  c
-c	puw,po3   (water vapor content,ozone content between the		   c
+c	puw,po3   (water vapor content,ozone content between the       c
 c                  aircraft and the surface)                           c
-c	taerp     (the aerosol optical thickness at 550nm between the	   c
+c	taerp     (the aerosol optical thickness at 550nm between the  c
 c                  aircraft and the surface)                           c
 c    if these data are not available, enter negative values for all    c
 c    of them, puw,po3 will then be interpolated from the us62 standard c
@@ -44,7 +44,7 @@ struct Altitude
 	float xps;
 	float xpp;
 
-	// some vars
+	/* some vars */
 	mutable float palt;
 	float pps;
 	int	  idatmp;
@@ -66,9 +66,9 @@ struct Altitude
 	} plane_sim;
 
 private:
-    // remember the original input values
-    // these values are set the first time when parse is called
-    // and used in subsequent calls to init to set xps and xpp
+    /* remember the original input values
+     these values are set the first time when parse is called
+     and used in subsequent calls to init to set xps and xpp */
     float original_xps;
     float original_xpp;
 
@@ -91,4 +91,4 @@ public:
 };
 
 
-#endif // ALTITUDE_H
+#endif /* ALTITUDE_H */

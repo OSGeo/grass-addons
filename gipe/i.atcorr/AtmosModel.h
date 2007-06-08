@@ -36,13 +36,13 @@
 
 struct AtmosModel
 {
-	long int idatm;	// atmospheric model
+	long int idatm;	/* atmospheric model*/
 
-	// secondary
+	/* secondary */
     float uw;
     float uo3;
 
-	// primary
+	/* primary */
 	float z[34];
 	float p[34];
 	float t[34];
@@ -50,7 +50,7 @@ struct AtmosModel
 	float wo[34];
 
 private:
-	// methods to initialize each model
+	/* methods to initialize each model */
 	void us62();
 	void tropic();
 	void midsum();
@@ -65,4 +65,4 @@ public:
 	static AtmosModel Parse();
 };
 
-#endif // ATMOSPHERIC_MODEL_H
+#endif /* ATMOSPHERIC_MODEL_H */
