@@ -277,7 +277,7 @@ set descmenu [subst  {
 		{command {[G_msg "Locate closest points between areas in 2 raster maps"]} {} "r.distance" {} -command { execute r.distance }}
 	}}
 	{separator}
-	{cascad {[G_msg " Modeling: Hydrologic"]} {} "" $tmenu {
+	{cascad {[G_msg "Modeling: Hydrologic"]} {} "" $tmenu {
 		{command {[G_msg "Carve stream channels into elevation map using vector streams map"]} {} "r.carve" {} -command {execute r.carve }}
 		{command {[G_msg "Depressionless elevation map and flowline map"]} {} "r.fill.dir" {} -command {execute r.fill.dir }}
 		{command {[G_msg "Fill lake from seed point to specified level"]} {} "r.lake" {} -command {execute r.lake }}
@@ -298,28 +298,7 @@ set descmenu [subst  {
 		{command {[G_msg "Analyze landscape patch characteristics"]} {} " r.le.patch" {} -command {execute r.le.patch }}
 		{command {[G_msg "Output landscape patch information"]} {} "r.le.trace" {} -command {execute r.le.trace }}
 	}}
-	{cascad {[G_msg "Modeling: Solar radiance and shadows"]} {} "" $tmenu {
-		{command {[G_msg "Solar irradiance and daily irradiation"]} {} "r.sun" {} -command {execute r.sun }}
-		{command {[G_msg "Shadows map for sun position or date/time"]} {} "r.sunmask" {} -command {execute r.sunmask }}
-	}}
-	{cascad {[G_msg "Modeling: Terrain and solar"]} {} "" $tmenu {			
-		{command {[G_msg "Calculate cumulative movement costs between locales"]} {} "r.walk" {} -command {execute r.walk }}
-		{command {[G_msg "Cost surface"]} {} "r.cost" {} -command {execute r.cost }}
-		{command {[G_msg "Least cost route or flow"]} {} "r.drain" {} -command {execute r.drain }}
-		{separator}
-		{command {[G_msg "Shaded relief map"]} {} "r.shaded.relief" {} -command {execute r.shaded.relief }}
-		{command {[G_msg "Slope and aspect"]} {} "r.slope.aspect" {} -command {execute r.slope.aspect }}
-		{command {[G_msg "Terrain parameters"]} {} "r.param.scale" {} -command {execute r.param.scale }}
-		{command {[G_msg "Textural features"]} {} "r.texture" {} -command {execute r.texture }}
-		{command {[G_msg "Visibility/line of sight"]} {} "r.los" {} -command {execute r.los }}
-	}}
-	{separator}
-	{cascad {[G_msg "Universal Soil Loss Equation (USLE)"]} {} "" $tmenu {			
-		{command {[G_msg "Rainfall Erosivity (R)"]} {} "r.usler" {} -command {execute r.usler }}
-		{command {[G_msg "Soil Erodibility (K)"]} {} "r.uslek" {} -command {execute r.uslek }}
-		{command {[G_msg "Length Slope and Slope (LS)"]} {} "r.watershed" {} -command {execute r.watershed }}
-	}}
-	{cascad {[G_msg "Landscape patch analysis"]} {} "" $tmenu {			
+	{cascad {[G_msg "Modeling: Landscape patch analysis"]} {} "" $tmenu {			
 		{command {[G_msg "Configure and create patch map for analysis"]} {} "r.li.setup" {} -command {execute r.li.setup }}
 		{separator}
 		{command {[G_msg "Calculate contrast weighted edge density index"]} {} "r.li.cwed" {} -command {execute r.li.cwed }}
@@ -336,7 +315,28 @@ set descmenu [subst  {
  		{command {[G_msg "Calculate shape index"]} {} "r.li.shape" {} -command {execute r.li.shape }}
  		{command {[G_msg "Calculate Simpson's diversity index"]} {} "r.li.simpson" {} -command {execute r.li.simpson }}
 	}}
-	{cascad {[G_msg "Wildfire modeling"]} {} "" $tmenu {			
+	{cascad {[G_msg "Modeling: Terrain and solar"]} {} "" $tmenu {			
+		{command {[G_msg "Calculate cumulative movement costs between locales"]} {} "r.walk" {} -command {execute r.walk }}
+		{command {[G_msg "Cost surface"]} {} "r.cost" {} -command {execute r.cost }}
+		{command {[G_msg "Least cost route or flow"]} {} "r.drain" {} -command {execute r.drain }}
+		{separator}
+		{command {[G_msg "Shaded relief map"]} {} "r.shaded.relief" {} -command {execute r.shaded.relief }}
+		{command {[G_msg "Slope and aspect"]} {} "r.slope.aspect" {} -command {execute r.slope.aspect }}
+		{command {[G_msg "Terrain parameters"]} {} "r.param.scale" {} -command {execute r.param.scale }}
+		{separator}
+		{command {[G_msg "Textural features"]} {} "r.texture" {} -command {execute r.texture }}
+		{command {[G_msg "Visibility/line of sight"]} {} "r.los" {} -command {execute r.los }}
+		{separator}
+		{command {[G_msg "Solar irradiance and daily irradiation"]} {} "r.sun" {} -command {execute r.sun }}
+		{command {[G_msg "Shadows map for sun position or date/time"]} {} "r.sunmask" {} -command {execute r.sunmask }}
+	}}
+	{separator}
+	{cascad {[G_msg "Modeling: Universal Soil Loss Equation (USLE)"]} {} "" $tmenu {			
+		{command {[G_msg "Rainfall Erosivity (R)"]} {} "r.usler" {} -command {execute r.usler }}
+		{command {[G_msg "Soil Erodibility (K)"]} {} "r.uslek" {} -command {execute r.uslek }}
+		{command {[G_msg "Length Slope and Slope (LS)"]} {} "r.watershed" {} -command {execute r.watershed }}
+	}}
+	{cascad {[G_msg "Modeling: Wildfire modeling"]} {} "" $tmenu {			
 		{command {[G_msg "Generate rate of spread (ROS) maps"]} {} "r.ros" {} -command {execute r.ros }}
 		{command {[G_msg "Generate least-cost spread paths"]} {} "r.spreadpath" {} -command {execute r.spreadpath }}
 		{command {[G_msg "Simulate anisotropic spread phenomena"]} {} "r.spread" {} -command {execute r.spread }}
@@ -357,20 +357,20 @@ set descmenu [subst  {
 		{command {[G_msg "Rescale categories with equalized histogram (create new map)"]} {} "r.rescale.eq" {} -command {execute r.rescale.eq }}
 	}}
 	{separator}
-	{command {[G_msg "Generate concentric circles around points"]} {} "r.circle" {} -command { execute r.circle }}
-	{cascad {[G_msg "Generate random raster cells"]} {} "" $tmenu {			
-		{command {[G_msg "Generate random cells"]} {} "r.random.cells" {} -command {execute r.random.cells }}
-		{command {[G_msg "Generate random cells and vector points from raster map"]} {} "r.random" {} -command {execute r.random }}
+	{cascad {[G_msg "Generate"]} {} "" $tmenu {
+		{command {[G_msg "Concentric circles around points"]} {} "r.circle" {} -command { execute r.circle }}
+		{command {[G_msg "Density surface using moving Gausian kernal"]} {} "v.kernel" {} -command {execute v.kernel }}
+		{command {[G_msg "Fractal surface"]} {} "r.surf.fractal" {} -command {execute r.surf.fractal }}
+		{command {[G_msg "Gaussian deviates surface"]} {} "r.surf.gauss" {} -command {execute r.surf.gauss }}
+		{command {[G_msg "Plane"]} {} "r.plane" {} -command {execute r.plane }}
+		{separator}
+		{command {[G_msg "Random cells"]} {} "r.random.cells" {} -command {execute r.random.cells }}
+		{command {[G_msg "Random cells and vector points from raster map"]} {} "r.random" {} -command {execute r.random }}
+		{command {[G_msg "Random deviates surface"]} {} "r.surf.random" {} -command {execute r.surf.random }}
+		{command {[G_msg "Random surface with spatial dependence"]} {} "r.random.surface" {} -command {execute r.random.surface }}
+		{separator}
+		{command {[G_msg "Vector contour lines"]} {} "r.contour" {} -command { execute r.contour }}
 	}}
-	{cascad {[G_msg "Generate surfaces"]} {} "" $tmenu {			
-		{command {[G_msg "Generate density surface using moving Gausian kernal"]} {} "v.kernel" {} -command {execute v.kernel }}
-		{command {[G_msg "Generate fractal surface"]} {} "r.surf.fractal" {} -command {execute r.surf.fractal }}
-		{command {[G_msg "Generate gaussian deviates surface"]} {} "r.surf.gauss" {} -command {execute r.surf.gauss }}
-		{command {[G_msg "Generate plane"]} {} "r.plane" {} -command {execute r.plane }}
-		{command {[G_msg "Generate random deviates surface"]} {} "r.surf.random" {} -command {execute r.surf.random }}
-		{command {[G_msg "Generate random surface with spatial dependence"]} {} "r.random.surface" {} -command {execute r.random.surface }}
-	}}
-	{command {[G_msg "Generate vector contour lines"]} {} "r.contour" {} -command { execute r.contour }}
 	{cascad {[G_msg "Interpolate surfaces"]} {} "" $tmenu {			
 		{command {[G_msg "Bicubic and bilinear interpolation with Tykhonov regularization from vector points"]} {} "v.surf.bspline" {} -command { execute v.surf.bspline }}
 		{command {[G_msg "Bilinear interpolation from raster points"]} {} "r.bilinear" {} -command { execute r.bilinear }}
@@ -392,6 +392,7 @@ set descmenu [subst  {
 		{command {[G_msg "Sum all cell category values"]} {} "r.sum" {} -command {execute r.sum }}
 		{command {[G_msg "Sum area by map and category"]} {} "r.report" {} -command {execute r.report }}
 		{command {[G_msg "Summary statistics for clumped cells (works with r.clump)"]} {} "r.volume" {} -command {execute r.volume }}
+		{separator}
 		{command {[G_msg "Total surface area corrected for topography"]} {} "r.surf.area" {} -command {execute r.surf.area }}
 		{command {[G_msg "Univariate statistics"]} {} "r.univar" {} -command {execute r.univar }}
 		{command {[G_msg "Univariate statistics (script version)"]} {} " r.univar" {} -command {execute r.univar }}
