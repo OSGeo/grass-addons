@@ -13,7 +13,7 @@ using namespace std;
 
 #ifndef M_PI
 #define M_PI 3.1415926535897932384626433832795
-#endif // M_PI
+#endif /* M_PI */
 #define M_PI2 6.283185307179586476925286766559
 #define MIN(X,Y) ((X) <= (Y) ? (X) : (Y))
 #define ROUND(X) ((X) - (int)(X) < 0.5 ? (int)(X) : (int)((X)+1))
@@ -28,7 +28,7 @@ const float step	= 0.0025f;
 
 
 /* Globals */
-// not sure what the name stands for
+/* not sure what the name stands for */
 struct Sixs_sos
 {
 	float phasel[10][83];
@@ -46,16 +46,16 @@ struct Sixs_aer
 
 struct Sixs_aerbas
 {
-	float bdm_ph[10][83];		// background desert model...
-	float bbm_ph[10][83];		// biomass burning model...
-	float stm_ph[10][83];		// stratospherique aerosol model...
-	float dust_ph[10][83];		// dust model 
-	float wate_ph[10][83];		// water model
-	float ocea_ph[10][83];		// ocean model
-	float soot_ph[10][83];		// soot model 
+	float bdm_ph[10][83];		/* background desert model... */
+	float bbm_ph[10][83];		/* biomass burning model... */
+	float stm_ph[10][83];		/* stratospherique aerosol model... */
+	float dust_ph[10][83];		/* dust model */
+	float wate_ph[10][83];		/* water model */
+	float ocea_ph[10][83];		/* ocean model */
+	float soot_ph[10][83];		/* soot model */
 
-	float usr_ph[10][83];		// user defined model from size distribution
-	float (*ph)[10][83];		// pointer to current active model
+	float usr_ph[10][83];		/* user defined model from size distribution */
+	float (*ph)[10][83];		/* pointer to current active model */
 };
 
 struct Sixs_trunc
@@ -83,4 +83,4 @@ extern Sixs_aerbas sixs_aerbas;
 extern Sixs_trunc sixs_trunc;
 extern Sixs_disc sixs_disc;
 
-#endif // MY_COMMON_H
+#endif /* MY_COMMON_H */

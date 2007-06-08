@@ -1,15 +1,15 @@
 #include "common.h"
 #ifdef WIN32
-#pragma warning(disable:4305)	// disable warning about initialization of a float by a double
+#pragma warning(disable:4305)	/* disable warning about initialization of a float by a double */
 #endif
 
-Sixs_aer sixs_aer;	// will be initialized in AerosolModel
-Sixs_trunc sixs_trunc; // initialized in discom global routine
+Sixs_aer sixs_aer;	/* will be initialized in AerosolModel */
+Sixs_trunc sixs_trunc; /* initialized in discom global routine */
 
 Sixs_disc sixs_disc = 
 	{
 	{0}, {0}, {0}, {0}, {0}, {0}, 
-	{ .4f, .488f, .515f, .55f, .633f, .694f, .86f, 1.536f, 2.25f, 3.75f },// wldis
+	{ .4f, .488f, .515f, .55f, .633f, .694f, .86f, 1.536f, 2.25f, 3.75f },/* wldis */
 	{0},
 	{0}
 	};
@@ -45,10 +45,10 @@ Sixs_sos sixs_sos =
 };
 
 
-// only used in aerosol model
+/* only used in aerosol model */
 Sixs_aerbas sixs_aerbas =
 	{
-		// background desert model...
+		/* background desert model... */
 		{{
 			0.8352,0.8057,0.7377,0.6569,0.5760,0.5032,0.4427,0.3969,
 
@@ -183,7 +183,7 @@ Sixs_aerbas sixs_aerbas =
 			13.032,13.853,14.061
 		}},
 
-		// biomass burning model...
+		/* biomass burning model... */
 		{{
 			0.2150,0.2122,0.2027,0.1928,0.1884,0.1905,0.1952,0.1983,
 			0.1980,0.1954,0.1918,0.1874,0.1819,0.1752,0.1680,0.1612,
@@ -318,9 +318,9 @@ Sixs_aerbas sixs_aerbas =
 			2.5283,2.5355,2.5372
 		}},
 
-		// stratospherique aerosol model...
-		//  model: Stratospheric aerosol as follow king's model 
-		//	Journal of Climate and Applied Meteorology, Vol23, No7, pp=1121-1137, 1984
+		/* stratospherique aerosol model...
+		  model: Stratospheric aerosol as follow king's model 
+		  Journal of Climate and Applied Meteorology, Vol23, No7, pp=1121-1137, 1984 */
 		{{
 			  .4482,  .4378,  .3984,  .3460,  .3030,  .2864,  .3011,  .3393,
 			  .3852,  .4224,  .4395,  .4332,  .4068,  .3674,  .3232,  .2806,
@@ -452,7 +452,7 @@ Sixs_aerbas sixs_aerbas =
 			 2.0370, 2.0419, 2.0431
 		}},
 
-		// dust model
+		/* dust model */
 		{{
 			0.2021E+00,0.2079E+00,0.2462E+00,0.2310E+00,0.2069E+00,0.1883E+00,
 			0.1750E+00,0.1624E+00,0.1458E+00,0.1241E+00,0.1013E+00,0.8379E-01,
@@ -614,7 +614,7 @@ Sixs_aerbas sixs_aerbas =
 			0.2699E+02,0.4205E+02,0.7598E+02,0.1847E+03,0.5926E+03
 		}},
 
-		// water model
+		/* water model */
 		{{
 			0.4115E+00,0.4045E+00,0.3805E+00,0.3495E+00,0.3192E+00,0.2943E+00,
 			0.2768E+00,0.2659E+00,0.2592E+00,0.2538E+00,0.2479E+00,0.2411E+00,
@@ -776,7 +776,7 @@ Sixs_aerbas sixs_aerbas =
 			0.6262E+01,0.6528E+01,0.6740E+01,0.6876E+01,0.6911E+01
 		}},
 
-		// ocean model
+		/* ocean model */
 		{{
 			0.7855E+00,0.6283E+00,0.5465E+00,0.4693E+00,0.4153E+00,0.3917E+00,
 			0.3657E+00,0.3378E+00,0.3161E+00,0.3025E+00,0.2972E+00,0.2990E+00,
@@ -938,7 +938,7 @@ Sixs_aerbas sixs_aerbas =
 			0.1816E+02,0.2237E+02,0.2799E+02,0.3517E+02,0.3934E+02
 		}},
 
-		// soot model
+		/* soot model */
 		{{
 			0.4897E+00,0.4896E+00,0.4890E+00,0.4881E+00,0.4867E+00,0.4849E+00,
 			0.4827E+00,0.4802E+00,0.4773E+00,0.4743E+00,0.4709E+00,0.4675E+00,
@@ -1101,10 +1101,10 @@ Sixs_aerbas sixs_aerbas =
 			0.1685E+01,0.1694E+01,0.1701E+01,0.1704E+01,0.1705E+01
 		}},
 
-		// user defined model
+		/* user defined model */
 		{{0},{0},{0},{0},{0},{0},{0},{0}},	
 
-		// pointer to current active model
+		/* pointer to current active model */
 		0		
 	};
 

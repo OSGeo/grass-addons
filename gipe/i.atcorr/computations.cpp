@@ -23,11 +23,11 @@ struct OpticalAtmosProperties
 	float sphalbr, sphalbt, sphalba;
 };
 
-// To compute the molecular optical depth as a function of wavelength for any
-// atmosphere defined by the pressure and temperature profiles. 
+/* To compute the molecular optical depth as a function of wavelength for any
+ atmosphere defined by the pressure and temperature profiles. */
 float odrayl(const AtmosModel &atms, const float wl)
 {
-	// air refraction index edlen 1966 / metrologia,2,71-80  putting pw=0
+	/* air refraction index edlen 1966 / metrologia,2,71-80  putting pw=0 */
 	float ak=1/wl;
     double awl= wl*wl*wl*wl;
 	double a1 = 130 - ak * ak;
@@ -175,7 +175,7 @@ float discre(const float ta, const float ha, const float tr, const float hr,
 	if( it == 0 ) dt = 1e-17;
 	else dt = 2 * (ta + tr - yy) / (nt - it + 1);
 	
-	float zx; // return value
+	float zx; /* return value */
 	float ecart = 0;
 	do { 
 		dt = dt / 2;
@@ -208,7 +208,7 @@ float discre(const float ta, const float ha, const float tr, const float hr,
 }
 
 
-// indexing macro for the psl variable
+/* indexing macro for the psl variable */
 #define PSI(X) ((X)+1)
 /*
 Compute the values of Legendre polynomials used in the successive order of
@@ -255,7 +255,7 @@ void kernel(const int is, float (&xpl)[2*mu + 1], float (&bp)[26][2*mu + 1], Gau
 	{
 		double a = 1;
 		for(int i = 1; i <= is; i++) a *= sqrt((double)(i + is) / (double)i) * 0.5;
-//		double b = a * sqrt((double)is / (is + 1.)) * sqrt((is - 1.) / (is + 2.));
+/*		double b = a * sqrt((double)is / (is + 1.)) * sqrt((is - 1.) / (is + 2.));*/
 
 		for(int j = 0; j <= mu; j++)
 		{
@@ -327,17 +327,17 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 	float tap = tamoy - tamoyp;
 	int iplane = 0;
 
-	// if plane observations recompute scale height for aerosol knowing:
-	// the aerosol optical depth as measure from the plane 	= tamoyp
-	// the rayleigh scale   height = 			= hr (8km)
-	// the rayleigh optical depth  at plane level 		= trmoyp
-	// the altitude of the plane 				= palt
-	// the rayleigh optical depth for total atmos		= trmoy
-	// the aerosol  optical depth for total atmos		= tamoy
-	// if not plane observations then ha is equal to 2.0km
-	// ntp local variable: if ntp=nt     no plane observation selected
-	//                        ntp=nt-1   plane observation selected
-	//    it's a mixing rayleigh+aerosol
+	/* if plane observations recompute scale height for aerosol knowing:
+	 the aerosol optical depth as measure from the plane 	= tamoyp
+	 the rayleigh scale   height = 			= hr (8km)
+	 the rayleigh optical depth  at plane level 		= trmoyp
+	 the altitude of the plane 				= palt
+	 the rayleigh optical depth for total atmos		= trmoy
+	 the aerosol  optical depth for total atmos		= tamoy
+	 if not plane observations then ha is equal to 2.0km
+	 ntp local variable: if ntp=nt     no plane observation selected
+	                        ntp=nt-1   plane observation selected
+	    it's a mixing rayleigh+aerosol */
 
 	float ha = 2;
 	int snt = nt;
@@ -350,10 +350,10 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 
 	float xmus = -gauss.rm[STDI(0)];
 
-	// compute mixing rayleigh, aerosol
-	// case 1: pure rayleigh
-	// case 2: pure aerosol
-	// case 3: mixing rayleigh-aerosol
+	/* compute mixing rayleigh, aerosol
+	 case 1: pure rayleigh
+	 case 2: pure aerosol
+	 case 3: mixing rayleigh-aerosol */
 
 	float h[31];
     memset(h, 0, sizeof(h));
@@ -426,15 +426,15 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 		}
 	}
 
-	// update plane layer if necessary
+	/* update plane layer if necessary */
 	if (ntp == (snt - 1)) 
 	{
-		// compute position of the plane layer
+		/* compute position of the plane layer */
         float taup = tap + trp;
         iplane = -1;
 		for(int i = 0; i <= ntp; i++) if (taup >= h[i]) iplane = i;
 
-		// update the layer from the end to the position to update if necessary
+		/* update the layer from the end to the position to update if necessary */
 		float xt1 = (float)fabs(h[iplane] - taup);
         float xt2 = (float)fabs(h[iplane+1] - taup);
 
@@ -492,17 +492,17 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 	int i;
 	for(i = 0; i < np; i++) for(int m = -mu; m <= mu; m++) xl[STDI(m)][i] = 0;
 
-	// ************ incident angle mus *******
+	/* ************ incident angle mus ******* */
 
     float aaaa = delta / (2 - delta);
     float ron = (1 - aaaa) / (1 + 2 * aaaa);
 
-	// rayleigh phase function
+	/* rayleigh phase function */
 
     float beta0 = 1;
 	float beta2 = 0.5f * ron;
 
-	// fourier decomposition
+	/* fourier decomposition */
 	float i1[31][2*mu + 1];
 	float i2[31][2*mu + 1];
 	float i3[2*mu + 1];
@@ -517,7 +517,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
    
 	for(int is = 0; is <= iborm; is++)
 	{
-		// primary scattering
+		/* primary scattering */
 		int ig = 1;
 		float roavion0 = 0;
 		float roavion1 = 0;
@@ -527,7 +527,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 		int j;
 		for(j = -mu; j <= mu; j++) i3[STDI(j)] = 0;
 
-		// kernel computations
+		/* kernel computations */
 		float xpl[2*mu + 1];
 		float bp[26][2*mu + 1];
 		memset(xpl, 0, sizeof(float)*(2*mu+1));
@@ -553,7 +553,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 				sa2 = bp[0][STDI(j)];
 				sa1 = 0;
 			}
-			// primary scattering source function at every level within the layer
+			/* primary scattering source function at every level within the layer */
 
 			for(int k = 0; k <= snt; k++)
 			{
@@ -565,7 +565,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 		}
 	  
 		int k;
-		// vertical integration, primary upward radiation
+		/* vertical integration, primary upward radiation */
 		for(k = 1; k <= mu; k++)
 		{
 			i1[snt][STDI(k)] = 0;
@@ -584,7 +584,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 			}
 		}
 
-		// vertical integration, primary downward radiation
+		/* vertical integration, primary downward radiation */
 		for(k = -mu; k <= -1; k++)
 		{
 			i1[0][STDI(k)] = 0;
@@ -602,8 +602,8 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 			}
 		}
 
-		// inm2 is inialized with scattering computed at n-2
-		// i3 is inialized with primary scattering
+		/* inm2 is inialized with scattering computed at n-2
+		 i3 is inialized with primary scattering */
 		for(k = -mu; k <= mu; k++)
 		{
 			if(k < 0) 
@@ -624,13 +624,13 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 
         do
 		{
-			// loop on successive order
+			/* loop on successive order */
 			ig++;
 		
-			// successive orders
-			// multiple scattering source function at every level within the laye
-			// if is < ou = 2 kernels are a mixing of aerosols and molecules kern
-			// if is >2 aerosols kernels only
+			/* successive orders
+			 multiple scattering source function at every level within the laye
+			 if is < ou = 2 kernels are a mixing of aerosols and molecules kern
+			 if is >2 aerosols kernels only */
 
 			if(is - 2 <= 0)
 			{
@@ -689,7 +689,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 			}
 
 			
-			// vertical integration, upward radiation
+			/* vertical integration, upward radiation */
 			int k;
 			for(k = 1; k <= mu; k++)
 			{
@@ -709,7 +709,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 				}
 			}
 
-			// vertical integration, downward radiation
+			/* vertical integration, downward radiation */
 			for(k = -mu; k <= -1; k++)
 			{
 				i1[0][STDI(k)] = 0;
@@ -729,7 +729,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 				}
 			}
 
-			// in is the nieme scattering order
+			/* in is the nieme scattering order */
 			for(k = -mu; k <= mu; k++)
 			{
 				if(k < 0) in[STDI(k)] = i1[snt][STDI(k)];
@@ -737,7 +737,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 			}
 			roavion0 = i1[iplane][STDI(mu)];
 
-			//  convergence test (geometrical serie)
+			/*  convergence test (geometrical serie) */
 			if(ig > 2)
 			{
 				float a1 = roavion2;
@@ -771,7 +771,7 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 
 				if(z < 0.0001)
 				{
-					// successful test (geometrical serie)
+					/* successful test (geometrical serie) */
 					float y1;
 
 					for(int l = -mu; l <= mu; l++)
@@ -801,23 +801,23 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 						roavion += g1;
 					}
 
-					break;	// break out of the while loop
+					break;	/* break out of the while loop */
 				}
 
-				// inm2 is the (n-2)ieme scattering order
+				/* inm2 is the (n-2)ieme scattering order */
 				for(int k = -mu; k <= mu; k++) inm2[STDI(k)] = inm1[STDI(k)];
 				roavion2 = roavion1;
 			}
 
-			// inm1 is the (n-1)ieme scattering order
+			/* inm1 is the (n-1)ieme scattering order */
 			for(k = -mu; k <= mu; k++) inm1[STDI(k)] = in[STDI(k)];
 			roavion1 = roavion0;
 
-			// sum of the n-1 orders
+			/* sum of the n-1 orders */
 			for(k = -mu; k <= mu; k++) i3[STDI(k)] += in[STDI(k)];
 			roavion += roavion0;
 
-			// stop if order n is less than 1% of the sum
+			/* stop if order n is less than 1% of the sum */
 			double z = 0;
 			for(k = -mu; k <= mu; k++)
 			{
@@ -829,14 +829,14 @@ void os(const float tamoy, const float trmoy, const float pizmoy,
 			}
 			if(z < 0.00001) break;
 
-		} while( ig <= 20 );	// stop if order n is greater than 20 in any case
+		} while( ig <= 20 );	/* stop if order n is greater than 20 in any case */
         
-		// sum of the fourier component s
+		/* sum of the fourier component s */
 		float delta0s = 1;
 		if(is != 0) delta0s = 2;
 		for(k = -mu; k <= mu; k++) i4[STDI(k)] += delta0s * i3[STDI(k)];
 
-		// stop of the fourier decomposition
+		/* stop of the fourier decomposition */
 		int l;
 		for(l = 0; l < np; l++)
 		{
@@ -877,26 +877,26 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 		 const float tamoyp, const float trmoyp, float (&xf)[3],
          Gauss &gauss, const Altitude &alt)
 {
-	// molecular ratio within the layer
-	// computations are performed assuming a scale of 8km for
-	// molecules and 2km for aerosols
+	/* molecular ratio within the layer
+	 computations are performed assuming a scale of 8km for
+	 molecules and 2km for aerosols */
 
-	// the optical thickness above plane are recomputed to give o.t above pla
+	/* the optical thickness above plane are recomputed to give o.t above pla */
     float trp = trmoy - trmoyp;
     float tap = tamoy - tamoyp;
 
-	// if plane observations recompute scale height for aerosol knowing:
-	// the aerosol optical depth as measure from the plane 	= tamoyp
-	// the rayleigh scale   height = 			= hr (8km)
-	// the rayleigh optical depth  at plane level 		= trmoyp
-	// the altitude of the plane 				= palt
-	// the rayleigh optical depth for total atmos		= trmoy
-	// the aerosol  optical depth for total atmos		= tamoy
-	// if not plane observations then ha is equal to 2.0km
-	// sntp local variable: if sntp=snt     no plane observation selected
-	//                        sntp=snt-1   plane observation selected
+	/* if plane observations recompute scale height for aerosol knowing:
+	 the aerosol optical depth as measure from the plane 	= tamoyp
+	 the rayleigh scale   height = 			= hr (8km)
+	 the rayleigh optical depth  at plane level 		= trmoyp
+	 the altitude of the plane 				= palt
+	 the rayleigh optical depth for total atmos		= trmoy
+	 the aerosol  optical depth for total atmos		= tamoy
+	 if not plane observations then ha is equal to 2.0km
+	 sntp local variable: if sntp=snt     no plane observation selected
+	                        sntp=snt-1   plane observation selected */
 	
-	// it's a mixing rayleigh+aerosol
+	/* it's a mixing rayleigh+aerosol */
 	int snt = nt;
 	int iplane = 0;
 	int ntp = snt;
@@ -908,10 +908,10 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 		ntp = snt - 1;
 	} 
 
-	// compute mixing rayleigh, aerosol
-	// case 1: pure rayleigh
-	// case 2: pure aerosol
-	// case 3: mixing rayleigh-aerosol
+	/* compute mixing rayleigh, aerosol
+	 case 1: pure rayleigh
+	 case 2: pure aerosol
+	 case 3: mixing rayleigh-aerosol */
 
 	float h[31];
 	float ydel[31];
@@ -970,15 +970,15 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 		}
 	}
     
-	// update plane layer if necessary
+	/* update plane layer if necessary */
 	if (ntp == (snt-1))
 	{
-		// compute position of the plane layer
+		/* compute position of the plane layer */
 		float taup = tap + trp;
         iplane = -1;
         for(int i = 0; i <= ntp; i++) if (taup >= h[i]) iplane = i;
 
-		// update the layer from the end to the position to update if necessary
+		/* update the layer from the end to the position to update if necessary */
         float xt1 = (float)fabs(h[iplane] - taup);
         float xt2 = (float)fabs(h[iplane + 1] - taup);
         if ((xt1 > 0.005) && (xt2 > 0.005))
@@ -1031,11 +1031,11 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 	float aaaa = delta / (2-delta);
 	float ron = (1 - aaaa) / (1 + 2 * aaaa);
 
-	// rayleigh phase function
+	/* rayleigh phase function */
 	float beta0 = 1;
 	float beta2 = 0.5f * ron;
 
-	// primary scattering
+	/* primary scattering */
 	int ig = 1;
 	float tavion0 = 0;
 	float tavion1 = 0;
@@ -1051,7 +1051,7 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 	int j;
 	for(j = -mu; j <= mu; j++) i3[STDI(j)] = 0;
 
-	// kernel computations
+	/* kernel computations */
 	float xpl[2*mu + 1];
 	float bp[26][2*mu + 1];
 	kernel(0, xpl, bp, gauss);
@@ -1059,7 +1059,7 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 	for(j = -mu; j <= mu; j++)
 		for(int k = 0; k <= snt; k++) i2[k][STDI(j)] = 0;
 
-	// vertical integration, primary upward radiation
+	/* vertical integration, primary upward radiation */
 	int k;
 	for(k = 1; k <= mu; k++)
 	{
@@ -1069,12 +1069,12 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 	}
 
 
-	// vertical integration, primary downward radiation
+	/* vertical integration, primary downward radiation */
 	for(k = -mu; k <= -1; k++)
 		for(int i = 0; i <= snt; i++) i1[i][STDI(k)] = 0.0;
 
-	// inm2 is inialized with scattering computed at n-2
-	// i3 is inialized with primary scattering
+	/* inm2 is inialized with scattering computed at n-2
+	 i3 is inialized with primary scattering */
 	for(k = -mu; k <= mu; k++)
 	{
 		if(k == 0) continue;
@@ -1095,11 +1095,11 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 	tavion2 = i1[iplane][STDI(mu)];
 
 	do {
-		// loop on successive order
+		/* loop on successive order */
 		ig = ig++;
 
-		// successive orders
-		//  multiple scattering source function at every level within the laye
+		/* successive orders
+		  multiple scattering source function at every level within the laye */
 		for(k = 1; k <= mu; k++)
 		{
 			for(int i = 0; i <= snt; i++)
@@ -1122,7 +1122,7 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 			}
 		}
 
-		// vertical integration, upward radiation
+		/* vertical integration, upward radiation */
 		for(k = 1; k <= mu; k++)
 		{
 			i1[snt][STDI(k)] = 0.0;
@@ -1141,7 +1141,7 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 			}
 		}
 
-		// vertical integration, downward radiation
+		/* vertical integration, downward radiation */
 		for(k = -mu; k <= -1; k++)
 		{
 			i1[0][STDI(k)] = 0;
@@ -1159,7 +1159,7 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 			}
 		}
    
-		// in is the nieme scattering order
+		/* in is the nieme scattering order */
 		for(k = -mu; k <= mu; k++)
 		{
 			if(k == 0) continue;
@@ -1168,7 +1168,7 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 		}
 		tavion0 = i1[iplane][STDI(mu)];
 
-		// convergence test (geometrical serie)
+		/* convergence test (geometrical serie) */
 	    if(ig > 2) 
 		{
 			float z = 0;
@@ -1199,7 +1199,7 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
       
 			if(z < 0.0001)
 			{
-				// successful test (geometrical serie)
+				/* successful test (geometrical serie) */
 
 				for(int l = -mu; l <= mu; l++)
 				{
@@ -1226,23 +1226,23 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 
 				}
 
-				break; // go to 505
+				break; /* go to 505 */
 			}
 
-			// inm2 is the (n-2)ieme scattering order
+			/* inm2 is the (n-2)ieme scattering order */
 			for(k = -mu; k <= mu; k++) inm2[STDI(k)] = inm1[STDI(k)];
 			tavion2 = tavion1;
 		}
 
-		// inm1 is the (n-1)ieme scattering order
+		/* inm1 is the (n-1)ieme scattering order */
 		for(k = -mu; k <= mu; k++) inm1[STDI(k)] = in[STDI(k)];
 		tavion1 = tavion0;
 
-		// sum of the n-1 orders
+		/* sum of the n-1 orders */
 		for(k = -mu; k <= mu; k++) i3[STDI(k)] += in[STDI(k)];
 		tavion = tavion + tavion0;
 
-		// stop if order n is less than 1% of the sum
+		/* stop if order n is less than 1% of the sum */
 		float z = 0;
 		for(k = -mu; k <= mu; k++)
 		{
@@ -1254,10 +1254,10 @@ void iso(const float tamoy, const float trmoy, const float pizmoy,
 		}
 		if(z < 0.00001) break;
 
-		// stop if order n is greater than 20 in any case
+		/* stop if order n is greater than 20 in any case */
 	} while(ig <= 20);
 
-	// dimension for os computation
+	/* dimension for os computation */
     xf[0] = tavion;
 	xf[1] = 0;
 	xf[2] = 0;
@@ -1273,15 +1273,14 @@ case of satellite observation.
 */
 float chand(const float xtau, const GeomCond &geom)
 {
-	// input parameters: xphi,xmus,xmuv,xtau
-	// xphi: azimuthal difference between sun and observation (xphi=0,
-	// in backscattering) and expressed in degree (0.:360.)
-	// xmus: cosine of the sun zenith angle
-	// xmuv: cosine of the observation zenith angle
-	// xtau: molecular optical depth
-	// output parameter: xrray : molecular reflectance (0.:1.)
-
-	// constant : xdep: depolarization factor (0.0279)
+	/* input parameters: xphi,xmus,xmuv,xtau
+	 xphi: azimuthal difference between sun and observation (xphi=0,
+	 in backscattering) and expressed in degree (0.:360.)
+	 xmus: cosine of the sun zenith angle
+	 xmuv: cosine of the observation zenith angle
+	 xtau: molecular optical depth
+	 output parameter: xrray : molecular reflectance (0.:1.)
+	 constant : xdep: depolarization factor (0.0279) */
 
 	const float xdep = 0.0279;
 
@@ -1366,11 +1365,11 @@ void atmref(const float tamoy, const float trmoy, const float pizmoy,
     float xlm1[2 * mu + 1][np];
     float xlm2[2 * mu + 1][np];
     
-	// atmospheric reflectances	
+	/* atmospheric reflectances */	
 	oap.rorayl = 0;
 	oap.roaero = 0;
 
-	// rayleigh reflectance 3 cases (satellite,plane,ground)
+	/* rayleigh reflectance 3 cases (satellite,plane,ground) */
 	if(alt.palt < 900 && alt.palt > 0)
 	{
 		gauss.rm[STDI(-mu)] = -(float)geom.xmuv;
@@ -1390,9 +1389,9 @@ void atmref(const float tamoy, const float trmoy, const float pizmoy,
 		return;
 	}
 
-	// rayleigh+aerosol=romix,aerosol=roaero reflectance computed
-	// using sucessive order of scattering method
-	// 3 cases: satellite,plane,ground
+	/* rayleigh+aerosol=romix,aerosol=roaero reflectance computed
+	 using sucessive order of scattering method
+	 3 cases: satellite,plane,ground */
 	if (alt.palt > 0) 
 	{
 		gauss.rm[STDI(-mu)] = -(float)geom.xmuv;
@@ -1415,7 +1414,7 @@ void atmref(const float tamoy, const float trmoy, const float pizmoy,
 
 float fintexp1(const float xtau)
 {
-	// accuracy 2e-07... for 0<xtau<1
+	/* accuracy 2e-07... for 0<xtau<1 */
 	float a[6] = { -.57721566,0.99999193,-0.24991055,0.05519968,-0.00976004,0.00107857 };
 	float xftau = 1;
 	float xx = a[0];
@@ -1444,8 +1443,8 @@ void scatra(const float taer, const float taerp,
 			const float piza, OpticalAtmosProperties& oap,
             Gauss &gauss, const GeomCond &geom, const Altitude &alt)
 {
-	// computations of the direct and diffuse transmittances
-	// for downward and upward paths , and spherical albedo
+	/* computations of the direct and diffuse transmittances
+	 for downward and upward paths , and spherical albedo */
 	float tamol,tamolp;
 	float xtrans[3];
 
@@ -1462,10 +1461,10 @@ void scatra(const float taer, const float taerp,
 	for(int it = 1; it <= 3; it++)
 
 	{
-		// it=1 rayleigh only, it=2 aerosol only, it=3 rayleigh+aerosol
+		/* it=1 rayleigh only, it=2 aerosol only, it=3 rayleigh+aerosol */
 		if (it == 2 && taer <= 0) continue;
 
-		// compute upward,downward diffuse transmittance for rayleigh,aerosol
+		/* compute upward,downward diffuse transmittance for rayleigh,aerosol */
 		if (it == 1)
 		{
 			if (alt.palt > 900)
@@ -1596,12 +1595,12 @@ void discom(const GeomCond &geom, const AtmosModel &atms,
     memset(&oap, 0, sizeof(oap));
 
     Gauss gauss;
-    gauss.init();   // discom is the only function that uses the gauss data
-    memset(&sixs_trunc, 0, sizeof(sixs_trunc));  // clear this to keep preconditions the same and output consistent
+    gauss.init();   /* discom is the only function that uses the gauss data */
+    memset(&sixs_trunc, 0, sizeof(sixs_trunc));  /* clear this to keep preconditions the same and output consistent */
 
-//    computation of all scattering parameters at wavelength
-//    discrete values,so we
-//    can interpolate at any wavelength
+/*    computation of all scattering parameters at wavelength 
+    discrete values,so we
+    can interpolate at any wavelength */
 	int i;
 	for(i = 0; i < 10; i++)
 	{
@@ -1610,11 +1609,11 @@ void discom(const GeomCond &geom, const AtmosModel &atms,
 			    ((i > 0) && (sixs_disc.wldis[i] > iwave.ffu.wlsup) && (sixs_disc.wldis[i-1] > iwave.ffu.wlsup))) continue;
 
 		float wl = sixs_disc.wldis[i];
-		// computation of rayleigh optical depth at wl
+		/* computation of rayleigh optical depth at wl */
 		float tray = odrayl(atms, wl);
 		float trayp;
 
-		// plane case discussed here above
+		/* plane case discussed here above */
 		if (alt.idatmp == 0) trayp = 0;
 		else if (alt.idatmp == 4) trayp = tray;
 		else trayp = tray * alt.ftray;
@@ -1622,17 +1621,17 @@ void discom(const GeomCond &geom, const AtmosModel &atms,
 		sixs_disc.trayl[i] = tray;
 		sixs_disc.traypl[i] = trayp;
 
-		// computation of aerosol optical properties at wl
+		/* computation of aerosol optical properties at wl */
 
 		float taer = aerocon.taer55 * sixs_aer.ext[i] / sixs_aer.ext[3];
 		float taerp = alt.taer55p * sixs_aer.ext[i] / sixs_aer.ext[3];
 		float piza = sixs_aer.ome[i];
  
-		// computation of atmospheric reflectances
+		/* computation of atmospheric reflectances
 
-		//            rorayl is rayleigh ref
-		//            roaero is aerosol ref
-		// call plegen to decompose aerosol phase function in Betal
+		            rorayl is rayleigh ref
+		            roaero is aerosol ref
+		 call plegen to decompose aerosol phase function in Betal */
 		
 		float coeff = 0;
 		if(aero.iaer != 0)
@@ -1647,8 +1646,8 @@ void discom(const GeomCond &geom, const AtmosModel &atms,
 
 		atmref(tamoy, tray, pizmoy, tamoyp, trayp, oap, gauss, geom, aero, alt);
 
-		// computation of scattering transmitances (direct and diffuse)
-		// first time for rayleigh ,next total (rayleigh+aerosols)
+		/* computation of scattering transmitances (direct and diffuse)
+		 first time for rayleigh ,next total (rayleigh+aerosols) */
 
 		scatra(tamoy, tamoyp, tray, trayp, pizmoy, oap, gauss, geom, alt);
 		
@@ -1762,11 +1761,11 @@ void enviro (const float difr, const float difa, const float r, const float palt
 	};
 
 
-//     calculation of the environmental function for
-//     rayleigh and aerosols contribution.
-//
-//     this calculation have been done for nadir observation
-//    and are corrected of the effect of the view zenith angle.
+/*     calculation of the environmental function for
+     rayleigh and aerosols contribution.
+
+     this calculation have been done for nadir observation
+    and are corrected of the effect of the view zenith angle. */
 
 	const float a0 = 1.3347;
 	const float b0 = 0.57757;
@@ -1808,7 +1807,7 @@ void enviro (const float difr, const float difa, const float r, const float palt
 		fae0 = (float)(1. - xcfa1 * exp(-r * xcfa2) - (1. - xcfa1) * exp(-r * xcfa3));
 	}
 
-	// correction of the effect of the view zenith angle
+	/* correction of the effect of the view zenith angle */
 	xlnv = (float)log(xmuv);
 	fra = (float)(fra0 * (xlnv * (1 - fra0) + 1));
 	fae = (float)(fae0 * ((1 + a0 * xlnv + b0 * xlnv * xlnv) + fae0 * (a1 * xlnv + b1 * xlnv * xlnv) + 
