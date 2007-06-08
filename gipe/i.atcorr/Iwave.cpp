@@ -2,11 +2,11 @@
 #include "Iwave.h"
 
 #ifdef WIN32
-#pragma warning(disable:4305)	// disable warning about initialization of a float by a double
+#pragma warning(disable:4305)	/* disable warning about initialization of a float by a double */
 #endif
-//
-//    spectral band of meteosat
-//
+/*
+    spectral band of meteosat
+*/
 void IWave::meteo()
 {
 	static const float sr[305] = {
@@ -68,7 +68,7 @@ void IWave::meteo()
 
 void IWave::goes_east()
 {
-	// spectral band of goes east
+	/* spectral band of goes east */
 	static const float sr[165] = {
 	    .00,    .00,    .00,    .01,    .01,    .03,    .05,
 	    .09,    .13,    .22,    .30,    .38,    .46,    .52,
@@ -105,7 +105,7 @@ void IWave::goes_east()
 
 void IWave::goes_west()
 {
-	// spectral band of goes west
+	/* spectral band of goes west */
 	
 	static const float sr[165] = {
 	    .00,    .00,    .00,    .00,    .00,    .01,    .02,
@@ -143,7 +143,7 @@ void IWave::goes_west()
 
 void IWave::avhrr(int iwa)
 {
-	// 1st spectral band of avhrr  (noaa 6)
+	/* 1st spectral band of avhrr  (noaa 6) */
 	static const float sr1[80] = {
 	 .0000, .0178, .0355, .0533, .0710, .1655, .2600, .3545,
 	 .4490, .5215, .5940, .6665, .7390, .7575, .7760, .7945,
@@ -157,7 +157,7 @@ void IWave::avhrr(int iwa)
 	 .0130, .0115, .0100, .0085, .0070, .0052, .0035, .0017
 	};
 
-	// 2nd spectral band of avhrr  (noaa 6)
+	/* 2nd spectral band of avhrr  (noaa 6) */
 	static const float sr2[173] = {
 
 	 .0000, .0020, .0040, .0060, .0080, .0710, .1340, .1970,
@@ -185,7 +185,7 @@ void IWave::avhrr(int iwa)
 	};
 
 
-	// 1st spectral band of avhrr (noaa 7)
+	/* 1st spectral band of avhrr (noaa 7) */
 	static const float sr3[121] = {
 	 .0000, .0008, .0016, .0024, .0032, .0032, .0031, .0030,
 	 .0030, .0029, .0029, .0028, .0028, .0027, .0027, .0026,
@@ -205,7 +205,7 @@ void IWave::avhrr(int iwa)
 	 .0000 
 	};
 
-	// 2nd spectral band of avhrr  (noaa 7)
+	/* 2nd spectral band of avhrr  (noaa 7) */
 	static const float sr4[213] = {
 	 .0000, .0018, .0035, .0053, .0070, .0068, .0065, .0063,
 	 .0060, .0058, .0055, .0052, .0050, .0050, .0050, .0050,
@@ -236,7 +236,7 @@ void IWave::avhrr(int iwa)
 	 .0018, .0013, .0009, .0004, .0000 
 	};
 
-	// 1st spectral band of avhrr (noaa 8)
+	/* 1st spectral band of avhrr (noaa 8) */
 	static const float sr5[189] = {
 	 .0000, .0012, .0024, .0036, .0048, .0223, .0399, .0574,
 	 .0749, .1633, .2517, .3400, .4284, .4937, .5590, .6243,
@@ -265,7 +265,7 @@ void IWave::avhrr(int iwa)
 	};
 
 
-	//  2nd spectral band of avhrr  (noaa 8)
+	/*  2nd spectral band of avhrr  (noaa 8) */
 	static const float sr6[177] = { 
 	 .0000, .0095, .0190, .0285, .0381, .0476, .0571, .0666,
 	 .0761, .1559, .2358, .3156, .3954, .4855, .5756, .6658,
@@ -292,7 +292,7 @@ void IWave::avhrr(int iwa)
 	 .0000
 	};
 
-	// 1st spectral band of avhrr (noaa 9)
+	/* 1st spectral band of avhrr (noaa 9) */
 	static const float sr7[113] = {
 	 .0000, .0001, .0003, .0004, .0006, .0040, .0074, .0108,
 	 .0142, .0622, .1101, .1581, .2060, .2810, .3561, .4311,
@@ -311,7 +311,7 @@ void IWave::avhrr(int iwa)
 	 .0000
 	};
 
-	// 2nd spectral band of avhrr  (noaa 9)
+	/* 2nd spectral band of avhrr  (noaa 9) */
 	static const float sr8[197] = {
 	 .0000, .0011, .0022, .0033, .0044, .0207, .0369, .0532,
 	 .0694, .1410, .2127, .2843, .3559, .4388, .5217, .6047,
@@ -340,7 +340,7 @@ void IWave::avhrr(int iwa)
 	 .0014, .0010, .0007, .0003, .0000
 	};
 
-	// 1st spectral band of avhrr (noaa 10)
+	/* 1st spectral band of avhrr (noaa 10) */
 	static const float sr9[101] = {
 	 .0000, .0005, .0010, .0015, .0020, .0023, .0025, .0028,
 	 .0030, .0239, .0448, .0657, .0866, .1852, .2838, .3824,
@@ -357,7 +357,7 @@ void IWave::avhrr(int iwa)
 	 .0010, .0007, .0005, .0002, .0000
 	};
 
-	// 2nd spectral band of avhrr  (noaa 10)
+	/* 2nd spectral band of avhrr  (noaa 10) */
 	static const float sr10[237] = {
 	 .0000, .0006, .0012, .0018, .0024, .0030, .0036, .0042,
 	 .0048, .0049, .0049, .0050, .0051, .0051, .0052, .0052,
@@ -391,7 +391,7 @@ void IWave::avhrr(int iwa)
 	 .0015, .0011, .0008, .0004, .0000
 	};
  
-	// 1st spectral band of avhrr (noaa 11)
+	/* 1st spectral band of avhrr (noaa 11) */
 	static const float sr11[113] = {
 	 .0000, .0033, .0065, .0098, .0130, .0500, .0870, .1240,
 	 .1610, .2385, .3160, .3935, .4710, .5150, .5590, .6030,
@@ -410,7 +410,7 @@ void IWave::avhrr(int iwa)
 	 .0000
 	};
 
-	// 2nd spectral band of avhrr  (noaa 11)
+	/* 2nd spectral band of avhrr  (noaa 11) */
 	static const float sr12[209] = {
 	 .0000, .0005, .0010, .0015, .0020, .0025, .0030, .0035,
 	 .0040, .0039, .0037, .0036, .0035, .0034, .0032, .0031,
@@ -441,7 +441,7 @@ void IWave::avhrr(int iwa)
 	 .0000
 	};
 
-	// 1st spectral band of avhrr (noaa 12) 
+	/* 1st spectral band of avhrr (noaa 12) */
 	static const float sr13[201] = {
 	 .0000, .0000, .0000, .0000, .0000, .0000, .0000, .0000,
 	 .0000, .0000, .0000, .0000, .0000, .0000, .0000, .0000,
@@ -472,7 +472,7 @@ void IWave::avhrr(int iwa)
 	 .0000
 	};
 
-	// 2nd spectral band of avhrr  (noaa 12)
+	/* 2nd spectral band of avhrr  (noaa 12) */
 	static const float sr14[189] = {
 	 .0000, .0000, .0000, .0000, .0000, .0000, .0000, .0000,
 	 .0000, .0050, .0111, .0162, .0180, .0153, .0097, .0038,
@@ -500,7 +500,7 @@ void IWave::avhrr(int iwa)
 	 .0000, .0000, .0000, .0000, .0000
 	};
 
-	// 1st spectral band of avhrr (noaa 14) -from NOAA/POD Guide 
+	/* 1st spectral band of avhrr (noaa 14) -from NOAA/POD Guide */
 	static const float sr15[241] = {
 	 .0000, .0000, .0000, .0000, .0000, .0000, .0000, .0000,
 	 .0000, .0000, .0000, .0000, .0000, .0000, .0000, .0000,
@@ -535,7 +535,7 @@ void IWave::avhrr(int iwa)
 	 .0010
 	};
 
-	// 2nd spectral band of avhrr (noaa 14)
+	/* 2nd spectral band of avhrr (noaa 14) */
 	static const float sr16[176] = {
 	 .0000,.0000,.0000,.0000,.0000,.0000,.0022,.0045,
 	 .0067,.0090,.0107,.0125,.0143,.0160,.0543,.0925,
@@ -609,7 +609,7 @@ void IWave::avhrr(int iwa)
 void IWave::hrv(int iwa)
 {
 
-	// 1st spectral band of hrv1
+	/* 1st spectral band of hrv1 */
 	static const float sr1[73] = {
        .0010, .0023, .0035, .0048, .0060, .0492, .0925, .1357,
        .1790, .2598, .3405, .4213, .5020, .5575, .6130, .6685,
@@ -623,7 +623,7 @@ void IWave::hrv(int iwa)
        .0000
 	};
 
-    // 2nd spectral band of hrv1
+    /* 2nd spectral band of hrv1 */
 	static const float sr2[49] = {
        .0190, .0845, .1500, .2155, .2810, .3870, .4930, .5990,
        .7050, .7663, .8275, .8888, .9500, .9557, .9615, .9672,
@@ -634,7 +634,7 @@ void IWave::hrv(int iwa)
        .0030
 	};
 
-    // 3rd spectral band of hrv1
+    /* 3rd spectral band of hrv1 */
 	static const float sr3[81] = {
        .0010, .0033, .0055, .0078, .0100, .0238, .0375, .0513,
        .0650, .0953, .1255, .1558, .1860, .2470, .3080, .3690,
@@ -649,7 +649,7 @@ void IWave::hrv(int iwa)
        .0010
 	};
 
-    // panchromatic band of hrv1
+    /* panchromatic band of hrv1 */
 	static const float sr4[129] = {
        .0000, .0013, .0025, .0038, .0050, .0322, .0595, .0867,
        .1140, .1723, .2305, .2888, .3470, .3748, .4025, .4303,
@@ -670,7 +670,7 @@ void IWave::hrv(int iwa)
        .0020
 	};
 
-    // 1st spectral band of hrv2
+    /* 1st spectral band of hrv2 */
 	static const float sr5[73] = {
        .0010, .0015, .0020, .0025, .0030, .0040, .0050, .0060,
        .0070, .0850, .1630, .2410, .3190, .3918, .4645, .5373,
@@ -684,7 +684,7 @@ void IWave::hrv(int iwa)
        .0000
 	};
 
-    // 2nd spectral band of hrv2
+    /* 2nd spectral band of hrv2 */
 	static const float sr6[57] = {	
        .0040, .0045, .0050, .0055, .0060, .0115, .0170, .0225,
        .0280, .0893, .1505, .2118, .2730, .3593, .4455, .5318,
@@ -696,7 +696,7 @@ void IWave::hrv(int iwa)
        .0100
 	};
 
-    // 3rd spectral band of hrv2
+    /* 3rd spectral band of hrv2 */
 	static const float sr7[81] = {	
        .0020, .0030, .0040, .0050, .0060, .0105, .0150, .0195,
        .0240, .0380, .0520, .0660, .0800, .1140, .1480, .1820,
@@ -711,7 +711,7 @@ void IWave::hrv(int iwa)
        .0010
 	};
  
-    // panchromatic spectral band of hrv2
+    /* panchromatic spectral band of hrv2 */
 	static const float sr8[129] = {	
        .0010, .0013, .0015, .0018, .0020, .0137, .0255, .0372,
        .0490, .0898, .1305, .1713, .2120, .2468, .2815, .3163,
@@ -765,7 +765,7 @@ void IWave::hrv(int iwa)
 
 void IWave::tm(int iwa)
 {
-    // 1st spectral band of thematic mapper
+    /* 1st spectral band of thematic mapper */
 	static const float sr1[53] = {		
        .0030, .0085, .0140, .0255, .0370, .0500, .0630, .2010,
        .3390, .5030, .6670, .6935, .7200, .7525, .7850, .8030,
@@ -776,7 +776,7 @@ void IWave::tm(int iwa)
        .0050, .0045, .0040, .0035, .0030
 	};
 
-    // 2nd spectral band of thematic mapper
+    /* 2nd spectral band of thematic mapper */
 	static const float sr2[61] = {
        .0010, .0055, .0100, .0165, .0230, .0305, .0380, .1010,
        .1640, .2710, .3780, .4750, .5720, .6150, .6580, .6945,
@@ -788,7 +788,7 @@ void IWave::tm(int iwa)
        .0120, .0090, .0060, .0030, .0000
 	};
 
-    // 3rd spectral band of thematic mapper
+    /* 3rd spectral band of thematic mapper */
 	static const float sr3[65] = { 
        .0020, .0020, .0020, .0020, .0020, .0030, .0040, .0060,
        .0080, .0140, .0200, .0290, .0380, .0730, .1080, .2020,
@@ -801,7 +801,7 @@ void IWave::tm(int iwa)
        .0030
 	};
 
-    // 4th spectral band of thematic mapper
+    /* 4th spectral band of thematic mapper */
 	static const float sr4[89] = {  
        .0020, .0035, .0050, .0060, .0070, .0080, .0090, .0140,
        .0190, .0260, .0330, .0520, .0710, .1035, .1360, .2055,
@@ -817,7 +817,7 @@ void IWave::tm(int iwa)
        .0000
 	};
 	 
-    // 5th spectral band of thematic mapper
+    /* 5th spectral band of thematic mapper */
 	static const float sr5[156] = { 
        .0000, .0003, .0007, .0010, .0013, .0015, .0018, .0020,
        .0038, .0055, .0073, .0090, .0123, .0155, .0188, .0220,
@@ -841,7 +841,7 @@ void IWave::tm(int iwa)
        .0015, .0010, .0005, .0000
 	};
 
-    // 7th spectral band of thematic mapper
+    /* 7th spectral band of thematic mapper */
  	static const float sr6[185] = { 
        .0000, .0005, .0010, .0015, .0020, .0025, .0030, .0035,
        .0040, .0043, .0045, .0048, .0050, .0055, .0060, .0065,
@@ -897,7 +897,7 @@ void IWave::tm(int iwa)
 
 void IWave::mss(int iwa)
 {
-    // 1st spectral band of multi spectral scanner
+    /* 1st spectral band of multi spectral scanner */
  	static const float sr1[67] = { 
           .00,    .01,    .01,    .01,    .02,    .04,    .05,
           .09,    .13,    .21,    .29,    .45,    .61,    .72,
@@ -911,7 +911,7 @@ void IWave::mss(int iwa)
           .02,    .02,    .02,    .01
 	};
 
-    // 2nd spectral band of multi spectral scanner
+    /* 2nd spectral band of multi spectral scanner */
  	static const float sr2[69] = { 
           .01,    .01,    .01,    .01,    .01,    .01,    .02,
           .03,    .04,    .08,    .13,    .21,    .29,    .43,
@@ -925,7 +925,7 @@ void IWave::mss(int iwa)
           .05,    .05,    .04,    .04,    .03,    .03
 	 };
 
-    // 3rd spectral band of multi spectral scanner
+    /* 3rd spectral band of multi spectral scanner */
  	static const float sr3[81] = { 
           .01,    .01,    .01,    .02,    .02,    .02,    .02,
           .03,    .03,    .05,    .07,    .10,    .14,    .17,
@@ -941,7 +941,7 @@ void IWave::mss(int iwa)
           .01,    .01,    .01,    .01
 	};
 
-	 // 4th spectral band of multi spectral scanner
+	 /* 4th spectral band of multi spectral scanner */
  	static const float sr4[127] = { 
           .01,    .02,    .02,    .04,    .06,    .14,    .21,
           .45,    .68,    .76,    .83,    .89,    .94,    .94,
@@ -988,7 +988,7 @@ void IWave::mss(int iwa)
 
 void IWave::mas(int iwa)
 {
-    //first spectral band of Modis airborne simulator
+    /* first spectral band of Modis airborne simulator */
  	static const float sr1[35] = {
        .0244, .0338, .0536, .1052, .1941, .3166, .4797, .6893,
        .9417,1.2218,1.4890,1.7202,1.9194,2.0812,2.1934,2.2580,
@@ -997,7 +997,7 @@ void IWave::mas(int iwa)
        .0473, .0308, .0248
 	};
 
-	 //second spectral band of Modis airborne simulator
+	 /* second spectral band of Modis airborne simulator */
  	static const float sr2[38] = {
        .0197, .0223, .0298, .0481, .0877, .1645, .2829, .4699,
        .7101, .9752,1.2209,1.4459,1.6307,1.7482,1.8092,1.8370,
@@ -1006,7 +1006,7 @@ void IWave::mas(int iwa)
        .4250, .2204, .0947, .0447, .0253, .0209
 	};
 
-	 //third spectral band of Modis airborne simulator
+	 /* third spectral band of Modis airborne simulator */
  	static const float sr3[34] = {
        .0273, .0357, .0560, .1265, .3269, .6239, .9777,1.3481,
       1.7037,2.0081,2.1885,2.2765,2.3178,2.3474,2.3777,2.4053,
@@ -1015,7 +1015,7 @@ void IWave::mas(int iwa)
        .0333, .0270
 	};
 
-	 //fourth spectral band of Modis airborne simulator
+	 /* fourth spectral band of Modis airborne simulator */
  	static const float sr4[40] = {
        .0242, .0276, .0364, .0505, .0717, .1058, .1841, .3889,
        .7570,1.1872,1.6245,1.9511,2.0986,2.1652,2.2058,2.2430,
@@ -1024,7 +1024,7 @@ void IWave::mas(int iwa)
        .0926, .0830, .0720, .0590, .0476, .0377, .0300, .0245
 	};
 
-	 //fifth spectral band of Modis airborne simulator
+	 /* fifth spectral band of Modis airborne simulator */
 
  	static const float sr5[56] = {
        .0232, .0234, .0254, .0259, .0300, .0313, .0325, .0368,
@@ -1037,7 +1037,7 @@ void IWave::mas(int iwa)
 	};
 
     
-     //sixth spectral band of Modis airborne simulator
+     /* sixth spectral band of Modis airborne simulator */
  	static const float sr6[40] = {
        .0229, .0271, .0404, .0690, .1237, .2051, .3206, .4619,
        .6269, .8073,1.0025,1.2045,1.4075,1.5980,1.7690,1.9111,
@@ -1046,7 +1046,7 @@ void IWave::mas(int iwa)
        .5164, .3475, .2148, .1205, .0665, .0376, .0254, .0211
 	};
 
-   //seventh spectral band of Modis airborne simulator
+   /* seventh spectral band of Modis airborne simulator */
  	static const float sr7[117] = {
        .0075, .0087, .0108, .0133, .0168, .0208, .0257, .0312,
        .0379, .0456, .0540, .0629, .0728, .0828, .0937, .1054,
@@ -1065,13 +1065,13 @@ void IWave::mas(int iwa)
        .0151, .0117, .0093, .0076, .0070
 	};
     
-	// third band of MODIS (469nm) soil and vegetation differences
+	/* third band of MODIS (469nm) soil and vegetation differences */
  	static const float sr8[13] = {
        .0732, .8372,3.6403,4.9195,5.0091,5.0102,5.0102,5.0099,
       4.9670,4.0931,1.2880, .1186, .0237
 	};
 
-	 // fifth band of MODIS ( 1.24micron)  leaf and canopy properties
+	 /* fifth band of MODIS ( 1.24micron)  leaf and canopy properties */
  	static const float sr9[25] = {
        .0094, .0143, .0248, .0457, .0902, .1928, .4494,1.1087,
       2.4282,3.6387,4.5556,4.9434,4.9975,4.9434,4.5556,3.6387,
@@ -1079,7 +1079,7 @@ void IWave::mas(int iwa)
        .0094
 	};
 
-	 // sixth band of MODIS ( 1.64microns) snow and cloud differences
+	 /* sixth band of MODIS ( 1.64microns) snow and cloud differences */
  	static const float sr10[27] = {
        .0215, .0307, .0493, .0827, .1454, .2693, .5240,1.0412,
       1.9431,2.6724,3.3494,3.8269,4.0296,4.0624,4.0296,3.8269,
@@ -1123,7 +1123,7 @@ void IWave::mas(int iwa)
 
 void IWave::modis(int iwa)
 {
-    //band 1 of MODIS (vegetation monitoring at 250m)
+    /* band 1 of MODIS (vegetation monitoring at 250m) */
  	static const float sr1[31] = {
        .0000, .0000, .0101, .0984, .2914, .5020, .6564, .6881,
        .7064, .7114, .7292, .7523, .7721, .7852, .8112, .8664,
@@ -1131,7 +1131,7 @@ void IWave::modis(int iwa)
        .3996, .2327, .1024, .0369, .0157, .0092, .0000
 	   };
 
-	 //band 2 of MODIS (vegetation monitoring at 250m)
+	 /* band 2 of MODIS (vegetation monitoring at 250m) */
  	static const float sr2[34] = {
        .0000, .0216, .0502, .0923, .1431, .1938, .2713, .4292,
        .6543, .8606, .9672, .9609, .9418, .9273, .9311, .9550,
@@ -1140,26 +1140,26 @@ void IWave::modis(int iwa)
        .0076, .0000
 	  };
 
-	 //band 3 of MODIS (vegetation monitoring at 500m / MVI)
+	 /* band 3 of MODIS (vegetation monitoring at 500m / MVI) */
  	static const float sr3[14] = {
        .0000, .0222, .2021, .7451,1.0141, .9036, .8745, .9242,
       1.0009, .9305, .5877, .1496, .0170, .0000
 	  };
 
-	 //band 4 of MODIS (green channel at 500m )
+	 /* band 4 of MODIS (green channel at 500m ) */
  	static const float sr4[13] = {
        .0286, .2645, .7583, .9889,1.0002, .9750, .9726, .9878,
        .9622, .7041, .2147, .0163, .0000
 	  };
 
-	 //band 5 of MODIS (cloud channel at 500m )
+	 /* band 5 of MODIS (cloud channel at 500m ) */
  	static const float sr5[23] = {
        .0000, .0188, .0381, .0984, .1872, .3188, .4933, .6582,
        .8046, .8877, .9564, .9973,1.0000, .9451, .8172, .6366,
        .3949, .2260, .1218, .0623, .0253, .0173, .0000
 	  };
 
-	 //band 6 of MODIS (snow/ice channel at 500m )
+	 /* band 6 of MODIS (snow/ice channel at 500m ) */
  	static const float sr6[27] = {
        .0000, .0580, .0910, .1611, .2705, .4289, .6049, .7688,
        .8948, .9729,1.0000, .9969, .9875, .9648, .9278, .8629,
@@ -1167,7 +1167,7 @@ void IWave::modis(int iwa)
        .0162, .0108, .0000
 	  };
 
-	   //band 7 of MODIS (liquid water absorption channel at 500m )
+	   /* band 7 of MODIS (liquid water absorption channel at 500m ) */
  	static const float sr7[51] = {
        .0000, .0124, .0165, .0229, .0317, .0444, .0630, .0918,
        .1358, .2006, .2904, .4032, .5329, .6632, .7775, .8680,
@@ -1208,7 +1208,7 @@ void IWave::modis(int iwa)
 
 void IWave::polder(int iwa)
 {
-    //band 1 of POLDER (443 mic, polarized channel)
+    /* band 1 of POLDER (443 mic, polarized channel) */
  	static const float sr1[27] = {
        .0003, .0042, .0028, .0036, .0060, .0134, .0430, .1284,
        .3394, .6162, .8056, .9060, .9656, .9968, .9880, .8944,
@@ -1217,7 +1217,7 @@ void IWave::polder(int iwa)
        .0040, .0000, .0000 
 	};
 
-	 // band 2 of POLDER (490 mic)
+	 /* band 2 of POLDER (490 mic) */
  	static const float sr2[46] = {
        .0000, .0000, .0000, .0000, .0000, .0000, .0000, .0000,
        .0000, .0000, .0000, .0000, .0000, .0000, .0000, .0000,
@@ -1227,7 +1227,7 @@ void IWave::polder(int iwa)
        .0304, .0170, .0102, .0070, .0000, .0000
 	  };
 
-	 // band 3 of POLDER (565 mic)
+	 /* band 3 of POLDER (565 mic) */
  	static const float sr3[26] = {
        .0000, .0016, .0048, .0074, .0130, .0258, .0566, .1368,
        .3294, .6592, .9270, .9946, .9798, .9544, .9262, .8814,
@@ -1235,7 +1235,7 @@ void IWave::polder(int iwa)
        .0038, .0000
 	  };
 
-	 // band 4 of POLDER (670 P1, polarized channel)
+	 /* band 4 of POLDER (670 P1, polarized channel) */
  	static const float sr4[30] = {
        .0000, .0000, .0000, .0000, .0010, .0044, .0022, .0140,
        .0176, .0394, .1004, .2476, .5462, .8672, .9902, .9874,
@@ -1243,13 +1243,13 @@ void IWave::polder(int iwa)
        .0224, .0186, .0160, .0072, .0000, .0000
 	  };
 
-	 // band 5 of POLDER (763 mic, oxygen absorption channel)
+	 /* band 5 of POLDER (763 mic, oxygen absorption channel) */
  	static const float sr5[15] = {
        .0000, .0004, .0046, .0134, .0834, .4148, .8056, .9274,
        .9880, .7488, .2416, .0416, .0094, .0008, .0000
 	  };
 
-	 // band 6 of POLDER (765 mic, oxygen absorption channel)
+	 /* band 6 of POLDER (765 mic, oxygen absorption channel) */
  	static const float sr6[53] = {
        .0000, .0000, .0010, .0018, .0010, .0030, .0046, .0080,
        .0096, .0140, .0202, .0300, .0410, .0622, .0958, .1516,
@@ -1260,7 +1260,7 @@ void IWave::polder(int iwa)
        .0028, .0022, .0000, .0000, .0000
 	  };
 
-	 // band 7 of POLDER (865 P1, polarized channel)
+	 /* band 7 of POLDER (865 P1, polarized channel) */
  	static const float sr7[45] = {
        .0000, .0004, .0008, .0024, .0030, .0056, .0102, .0186,
        .0338, .0622, .1110, .1974, .3410, .5432, .7610, .9218,
@@ -1270,7 +1270,7 @@ void IWave::polder(int iwa)
        .0014, .0006, .0000, .0000, .0000
 	  };
 
-	 // band 8 of POLDER (910 mic, water vapor absorption channel)
+	 /* band 8 of POLDER (910 mic, water vapor absorption channel) */
  	static const float sr8[31] = {
        .0000, .0000, .0000, .0012, .0016, .0018, .0032, .0046,
        .0082, .0158, .0354, .0876, .2242, .5142, .8436, .9848,
@@ -1310,10 +1310,10 @@ void IWave::polder(int iwa)
 
 void IWave::etmplus(int iwa)
 {
-    // Spectral filter data found on the following page:
-    // http://ltpwww.gsfc.nasa.gov/IAS/handbook/handbook_toc.html
- 
-    // 1st spectral band of enhanced thematic mapper plus
+    /* Spectral filter data found on the following page:
+     http://ltpwww.gsfc.nasa.gov/IAS/handbook/handbook_toc.html
+ 	*/
+    /* 1st spectral band of enhanced thematic mapper plus */
 	static const float sr1[35] = {
       .0160, .0710, .2870, .6665, .7920, .8570, .8390, .8060,
       .7790, .8460, .9010, .8995, .8900, .8510, .8750, .8930,
@@ -1322,7 +1322,7 @@ void IWave::etmplus(int iwa)
       .2930, .0545, .0090
 	};
 
-	// 2nd spectral band of enhanced thematic mapper plus
+	/* 2nd spectral band of enhanced thematic mapper plus */
 	static const float sr2[50] = {
       .0006, .0015, .0030, .0117, .0260, .0740, .1740, .3480,
       .5520, .6960, .7590, .7845, .8220, .8695, .9050, .9285,
@@ -1333,7 +1333,7 @@ void IWave::etmplus(int iwa)
       .0048, .0021
 	};
 
-	// 3rd spectral band of enhanced thematic mapper plus
+	/* 3rd spectral band of enhanced thematic mapper plus */
 	static const float sr3[36] = {
       .0001, .0006, .0020, .0095, .0470, .1740, .4190, .7310,
       .9210, .9425, .9370, .9365, .9490, .9645, .9730, .9705,
@@ -1342,7 +1342,7 @@ void IWave::etmplus(int iwa)
       .1830, .0660, .0250, .0121
 	};
 
-    // 4th spectral band of enhanced thematic mapper plus
+    /* 4th spectral band of enhanced thematic mapper plus */
 	static const float sr4[70] = {
       .0004, .0021, .0037, .0024, .0010, .0199, .0315, .0518,
       .0690, .1100, .1750, .2710, .4020, .5555, .7050, .8120,
@@ -1356,7 +1356,7 @@ void IWave::etmplus(int iwa)
 
 	};
 
-	// 5th spectral band of enhanced thematic mapper plus
+	/* 5th spectral band of enhanced thematic mapper plus */
 	static const float sr5[116] = {
       .0015, .0000, .0010, .0112, .0120, .0060, .0135, .0210,
       .0400, .0530, .0760, .1028, .1480, .2052, .2740, .3660,
@@ -1375,7 +1375,7 @@ void IWave::etmplus(int iwa)
       .0110, .0100, .0060, .0020
 	};
 
-	// 7th spectral band of enhanced thematic mapper plus
+	/* 7th spectral band of enhanced thematic mapper plus */
 	static const float sr6[147] = {
       .0020, .0020, .0120, .0085, .0090, .0177, .0170, .0313,
       .0370, .0458, .0580, .0762, .0880, .1097, .1490, .1960,
@@ -1398,7 +1398,7 @@ void IWave::etmplus(int iwa)
       .0130, .0065, .0150
 	};
 
-	// 8th spectral band of enhanced thematic mapper plus (Pan)
+	/* 8th spectral band of enhanced thematic mapper plus (Pan) */
 	static const float sr7[164] = {
       .0028, .0175, .0563, .1500, .3285, .5015, .5845, .5990,
       .6018, .6095, .6143, .6100, .6035, .6035, .6118, .6270,
@@ -1452,10 +1452,10 @@ void IWave::etmplus(int iwa)
 
 float IWave::solirr(const float wl) const
 {
-//    si (in w/m2/micron) contains the values of the solar
-//    irradiance between 0.25 and 4.0 microns, by step of 0.0025 m.
-//    the value of the total irradiance is 1372 w/m2 on the whole
-//    spectrum (1358 w/m2 between 0.25 and 4.0 microns)
+/*    si (in w/m2/micron) contains the values of the solar
+    irradiance between 0.25 and 4.0 microns, by step of 0.0025 m.
+    the value of the total irradiance is 1372 w/m2 on the whole
+    spectrum (1358 w/m2 between 0.25 and 4.0 microns) */
 
 	static const float si[1501] = {
         69.30,  77.65,  86.00, 100.06, 114.12, 137.06, 160.00,
@@ -1720,7 +1720,7 @@ void IWave::parse()
 		cin >> ffu.wlsup;
 		cin.ignore(numeric_limits<int>::max(),'\n');
 	}  
-	else if(iwave < 0)	// excludes -2
+	else if(iwave < 0)	/* excludes -2 */
 	{
 		cin >> wl;
 		cin.ignore(numeric_limits<int>::max(),'\n');
@@ -1729,13 +1729,13 @@ void IWave::parse()
 	} 
 	else
 	{
-		// da big switch
+		/* da big switch */
 		if(iwave == 1)
 		{
 			cin >> ffu.wlinf;
 			cin >> ffu.wlsup;
 			cin.ignore(numeric_limits<int>::max(),'\n');
-			// moved rest further on
+			/* moved rest further on */
 		}
 		else if(iwave == 2)		meteo();
 		else if(iwave == 3)		goes_east();
@@ -1752,17 +1752,17 @@ void IWave::parse()
 		else fprintf(stderr, "Unsupported iwave value: %d\n", iwave);
 	}
 
-	iinf = (int)((ffu.wlinf - 0.25f) / 0.0025f + 1.5f) - 1;	// remember indexing
-	isup = (int)((ffu.wlsup - 0.25f) / 0.0025f + 1.5f) - 1;	//		   "
+	iinf = (int)((ffu.wlinf - 0.25f) / 0.0025f + 1.5f) - 1;	/* remember indexing*/
+	isup = (int)((ffu.wlsup - 0.25f) / 0.0025f + 1.5f) - 1;	/*		   "*/
 
-	if(iwave == 1)	// moved here to avoid unnecessery gotos
+	if(iwave == 1)	/* moved here to avoid unnecessery gotos */
 	{
 		for(int i = iinf; i <= isup; i++) cin >> ffu.s[i];
 		cin.ignore(numeric_limits<int>::max(),'\n');
 	}
 }
 
-// --- spectral condition ----
+/* --- spectral condition ---- */
 void IWave::print()
 {
 	static const string nsat[68] = {

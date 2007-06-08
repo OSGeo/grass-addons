@@ -33,4 +33,4 @@ void interp (const int iaer, const int idatmp,
 			 const float taer55p, const float xmud, 
 			 InterpStruct& is);
 
-#endif // INTERP_H
+#endif /* INTERP_H */

@@ -6,31 +6,31 @@ void interp (const int iaer, const int idatmp,
 			 const float taer55p, const float xmud, 
 			 InterpStruct& is)
 {
-//     that for the atmosphere :
-//     the reflectances
-//                     rayleigh                             = rorayl
-//                     aerosols                             = roaero
-//                     mixing                               = romix
-//     the downward transmittances
-//                     rayleigh                             = dtotr
-//                     aerosols                             = dtota
-//                     total                                = dtott
-//     the upward transmittances
-//                     rayleigh                             = utotr
-//                     aerosols                             = utota
-//                     total                                = utott
-//     the spherical albedos
-//                     rayleigh                             = asray
-//                     aerosols                             = asaer
-//                     total                                = astot
-//     the optical thickness of total atmosphere
-//                     rayleigh                             = tray
-//                     aerosols                             = taer
-//     the optical thickness of the atmosphere above the plane
-//                     rayleigh                             = is.trayp
-//                     aerosols                             = taerp
-//     the tsca of the aerosols (god dammed it)
-//                     total atmosphere                     = tsca
+/*     that for the atmosphere :
+     the reflectances
+                     rayleigh                             = rorayl
+                     aerosols                             = roaero
+                     mixing                               = romix
+     the downward transmittances
+                     rayleigh                             = dtotr
+                     aerosols                             = dtota
+                     total                                = dtott
+     the upward transmittances
+                     rayleigh                             = utotr
+                     aerosols                             = utota
+                     total                                = utott
+     the spherical albedos
+                     rayleigh                             = asray
+                     aerosols                             = asaer
+                     total                                = astot
+     the optical thickness of total atmosphere
+                     rayleigh                             = tray
+                     aerosols                             = taer
+     the optical thickness of the atmosphere above the plane
+                     rayleigh                             = is.trayp
+                     aerosols                             = taerp
+     the tsca of the aerosols (god dammed it)
+                     total atmosphere                     = tsca */
       
 	int linf = 0;
 	for(int i = 0; i < 9; i++) if(wl > sixs_disc.wldis[i] && wl <= sixs_disc.wldis[i+1]) linf = i;
@@ -39,8 +39,8 @@ void interp (const int iaer, const int idatmp,
 	int lsup = linf + 1;
 
 
-	//    interpolation in function of wavelength for scattering
-	//    atmospheric functions from discrete values at sixs_disc.wldis
+	/*    interpolation in function of wavelength for scattering
+	    atmospheric functions from discrete values at sixs_disc.wldis */
  
 	float alphaa = 0;
 	float betaa = 0;

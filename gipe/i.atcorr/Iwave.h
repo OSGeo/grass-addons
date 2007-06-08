@@ -140,4 +140,4 @@ public:
 	static IWave Parse();
 };
 
-#endif // IWAVE_H
+#endif /* IWAVE_H */
