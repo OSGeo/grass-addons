@@ -57,9 +57,9 @@
 
 struct GeomCond
 {
-	long int igeom;	// geometrical conditions
+	long int igeom;	/* geometrical conditions */
 
-	// primary
+	/* primary */
 	float asol;
 	float phi0;
 	float avis;
@@ -69,7 +69,7 @@ struct GeomCond
 	float xlon;
 	float xlat;
 
-	// some vars
+	/* some vars */
 	float phi;
 	float phirad;
 	float xmus; 
@@ -83,7 +83,7 @@ struct GeomCond
 	void  print();
 
 private:
-	// conversion routines
+	/* conversion routines */
 	void possol(float tu);
 	void landsat(float tu);
 	void posobs(float tu, int nc, int nl);
@@ -92,10 +92,10 @@ private:
 	void day_number(long int ia, long int& j);
 	void pos_fft (long int j, float tu);
 
-	float varsol();	// returns dsol as in fortran proggie
+	float varsol();	/* returns dsol as in fortran proggie */
 	void parse();
 public:
 	static GeomCond Parse();
 };
 
-#endif // GEOMETRICAL_CONTITIONS_H
+#endif /* GEOMETRICAL_CONTITIONS_H */

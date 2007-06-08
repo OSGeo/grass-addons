@@ -12,11 +12,11 @@ void Gauss::init()
 {
 	int j;   
 
-	// convert angphi and angmu to radians
+	/* convert angphi and angmu to radians */
 	for (j = 0; j < 13; ++j) angphi[j] = (float)(angphi[j] * M_PI / 180.f);
 	for (j = 0; j < 10; ++j) angmu[j] =	 (float)cos(angmu[j] * M_PI / 180.f);
 
-	// calculate rm & gb
+	/* calculate rm & gb */
 	
 	float anglem[mu2];
 	float weightm[mu2];
@@ -28,7 +28,7 @@ void Gauss::init()
     rm[STDI(-mu)]   = 0;
     rm[STDI(0)]     = 0;
     rm[STDI(mu)]    = 0;
-	// do shift into rm & gb
+	/* do shift into rm & gb */
 	for (j = -mu+1; j <= -1; ++j)
     {
       rm[-j] = anglem[mu + j - 1];
@@ -41,7 +41,7 @@ void Gauss::init()
       gb[2*mu - j] = weightm[mu + j - 2];
     }
 
-	// calculate rp & gp
+	/* calculate rp & gp */
 	gauss (0.f, (float)2 * M_PI, rp, gp, np);
 }
 

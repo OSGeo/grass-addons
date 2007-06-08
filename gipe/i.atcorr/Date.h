@@ -52,4 +52,4 @@ public:
 	}
 };
 
-#endif // MY_DATE_H
+#endif /* MY_DATE_H */

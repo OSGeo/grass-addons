@@ -98,7 +98,7 @@ void GeomCond::day_number(long int ia, long int& j)
 	if (ia != 0 && ia % 4 == 0) ++j;
 }
 
-// returns the sign of the element
+/* returns the sign of the element */
 #define SIGN(X) (((X) >= 0) ? 1. : -1.) 
 
 void GeomCond::pos_fft (long int j, float tu)
@@ -166,19 +166,19 @@ void GeomCond::posobs(float tu, int nc, int nl)
 {
 	double yr, xr, alti;
 
-	if(igeom == 1) // meteosat observation 
+	if(igeom == 1) /* meteosat observation */
 	{
 		yr = nl - 1250.5;
 		xr = nc - 2500.5;
 		alti = 42164.0 - 6378.155;
 	} 
-	else if(igeom == 2) // goes east observation
+	else if(igeom == 2) /* goes east observation */
 	{
 		yr = nl - 8665.5;
 		xr = nc - 6498.5;
 		alti = 42107.0 - 6378.155;
 	}
-	else // goes west observation
+	else /* goes west observation */
 	{
       yr = nl - 8665.5;
       xr = nc - 6498.5;
@@ -253,11 +253,11 @@ void GeomCond::posobs(float tu, int nc, int nl)
 
 void GeomCond::posnoa(float tu, int nc, float xlonan, float campm, float hna)
 {
-//     noaa 6 definition
-//     orbite inclination ai in radians
-//     hor mouv in rad/s  an
-//     h/r=860/6378
-//     campm allows the user to switch to pm platforms
+/*     noaa 6 definition
+     orbite inclination ai in radians
+     hor mouv in rad/s  an
+     h/r=860/6378
+     campm allows the user to switch to pm platforms */
  
       const double r = 860. / 6378.155;
       const double ai = 98.96 * M_PI / 180.;
@@ -308,15 +308,15 @@ void GeomCond::posnoa(float tu, int nc, float xlonan, float campm, float hna)
 void GeomCond::parse()
 {
 	cin >> igeom;
-	cin.ignore(numeric_limits<int>::max(),'\n');  // read the rest of the scraps, like comments
+	cin.ignore(numeric_limits<int>::max(),'\n');  /* read the rest of the scraps, like comments */
 
-	float campm = -1.0f;	// initialize in case igeom == 5
+	float campm = -1.0f;	/* initialize in case igeom == 5 */
 	float tu, xlonan, hna;
 	int nc, nl;
 
 	switch(igeom)
 	{
-	case 0: // internal format
+	case 0: /* internal format */
 		{
 			cin >> asol;
 			cin >> phi0;
@@ -324,12 +324,12 @@ void GeomCond::parse()
 			cin >> phiv;
 			cin >> month;
 			cin >> jday;
-			cin.ignore(numeric_limits<int>::max(),'\n');  // read the rest of the scraps, like comments
+			cin.ignore(numeric_limits<int>::max(),'\n');  /* read the rest of the scraps, like comments */
 			break;
 		}
-	case 1: // meteosat observation
-	case 2: // goes east observation
-	case 3: // goes west observation
+	case 1: /* meteosat observation */
+	case 2: /* goes east observation */
+	case 3: /* goes west observation  */
 		{
 			cin >> month;
 			cin >> jday;
@@ -353,16 +353,16 @@ void GeomCond::parse()
 			posnoa(tu, nc, xlonan, campm, hna);
 			break;
 		}
-	case 6: // hrv   ( spot )    * enter month,day,hh.ddd,long.,lat.
-	case 7: // tm    ( landsat ) * enter month,day,hh.ddd,long.,lat.
-	case 8: // etm+  ( landsat7) * enter month,day,hh.ddd,long.,lat.
+	case 6: /* hrv   ( spot )    * enter month,day,hh.ddd,long.,lat. */
+	case 7: /* tm    ( landsat ) * enter month,day,hh.ddd,long.,lat. */
+	case 8: /* etm+  ( landsat7) * enter month,day,hh.ddd,long.,lat. */
 		{
 			cin >> month;
 			cin >> jday;
 			cin >> tu;
 			cin >> xlon;
 			cin >> xlat;
-			cin.ignore(numeric_limits<int>::max(),'\n');  // read the rest of the scraps, like comments
+			cin.ignore(numeric_limits<int>::max(),'\n');  /* read the rest of the scraps, like comments */
 			landsat(tu);
 			break;
 		}
@@ -398,7 +398,7 @@ void GeomCond::parse()
     dsol = varsol();
 }
 
-// ---- print geometrical conditions ----
+/* ---- print geometrical conditions ---- */
 void GeomCond::print()
 {
 	static const string etiq1[9] = {

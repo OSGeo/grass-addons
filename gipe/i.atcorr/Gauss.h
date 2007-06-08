@@ -4,7 +4,7 @@
 const long int mu	= 25;
 const long int np	= 49;
 
-// index standard interval [-1,1]
+/* index standard interval [-1,1] */
 #define STDI(X) ((X)+mu)
 
 struct Gauss
@@ -14,15 +14,15 @@ private:
 	static float angphi[13];
 
 public:
-	// [a,b] = [0,2*Pi]
-	float rp[np];			// gaussian angles
-	float gp[np];			// gaussian weights
+	/* [a,b] = [0,2*Pi] */
+	float rp[np];			/* gaussian angles */
+	float gp[np];			/* gaussian weights */
 
 	// [a,b] = [-1,1]
-	float rm[2*mu+1];		// shifted gaussian angles
-	float gb[2*mu+1];		// shifted gaussian weights
-							// with the ends zeroed as well as the center
-							// [0 ? ? ? ? 0 ? ? ? ? 0]
+	float rm[2*mu+1];		/* shifted gaussian angles */
+	float gb[2*mu+1];		/* shifted gaussian weights */
+					/* with the ends zeroed as well as the center */
+					/* [0 ? ? ? ? 0 ? ? ? ? 0] */
 
     /*  preliminary computations for gauss integration */
 	void init();
@@ -33,4 +33,4 @@ public:
 	static void gauss (float a, float b, float *x, float *w, long int n);
 };
 
-#endif // MY_GAUSS_H
+#endif /* MY_GAUSS_H */
