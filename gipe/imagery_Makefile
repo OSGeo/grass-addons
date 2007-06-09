@@ -37,6 +37,7 @@ SUBDIRS1 = \
 	i.group \
 	i.his.rgb \
 	i.latitude \
+	i.landsat.dehaze \
 	i.maxlik \
 	i.ortho.photo \
 	i.points \
