@@ -13,7 +13,7 @@ cd ..
 SVNDIR=$('pwd')
 cd HydroFOSS
 HFDIR=$('pwd')
-cd ../GUI 
+cd ../gui 
 WXDIR=$('pwd')
 
 #INSTALL GUI MODIFICATIONS
@@ -54,11 +54,11 @@ done
 cd $SVNDIR/
 for directory in i.*
 do
-	cp -rf $GIPEDIR/$directory $GRASSCVSDIR/imagery/ 
+	cp -rf $SVNDIR/$directory $GRASSCVSDIR/imagery/ 
 done
 
-cd $SVNDIR/
-for directory in i.pr/i.*
+cd $SVNDIR/i.pr/
+for directory in i.*
 do
 	cp -rf $SVNDIR/i.pr/$directory $GRASSCVSDIR/imagery/ 
 done

@@ -25,6 +25,7 @@ SUBDIRS = \
 	r.distance \
 	r.drain \
 	r.evapo.MH \
+	r.evapo.PM \
 	r.fill.dir \
 	r.flow \
 	r.gaswap.serial \
