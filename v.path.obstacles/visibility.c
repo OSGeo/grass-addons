@@ -100,22 +100,21 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 	int j;
 	int current = 0;
 	int null=0;
-	double x;
+	double y;
 	
 	for ( i = 0 ; i < num ; i++ )
 	{
 		for ( j = 1 ; j < num/2 ; j++ )
 		{
 			
-			if ( points[i].x < lines[j].p1->x && points[i].x < lines[j].p2->x )
+			if ( points[i].y < lines[j].p1->y && points[i].y < lines[j].p2->y )
 			{
-				if ( lines[current].p1->x < lines[current].p2->x )
-					x = lines[current].p1->x;
+				if ( lines[current].p1->y < lines[current].p2->y )
+					y = lines[current].p1->y;
 				else
-					x = lines[current].p2->x;
+					y = lines[current].p2->y;
 
-					
-				if ( lines[j].p1->x < x || lines[j].p2->x < x )
+				if ( lines[j].p1->y < y || lines[j].p2->y < y )
 				{
 					current = j;
 					null =1;
@@ -229,12 +228,9 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 	
 	for ( i = 0; i < num_points ; i ++ )
 	{
-		if ( i != num_points-1 )
-			add_leftof( &points[i], &points[i+1] );
-			
-		add_rightmost( &points[i], p_ninfinity );
+		add_rightmost( &points[i], p_ninfinity );	
 	}
-	
+		
 	push( &points[0] );
 	
 

@@ -18,14 +18,50 @@
 
 void add_rightmost(struct Point* p, struct Point* q)
 {
-	q->rightmost_son = p;
+	struct Point * right;
+	
+	p->left_brother = NULL;
+	p->right_brother = NULL;
+	
+	if ( q->rightmost_son == NULL )
+	{
+		q->rightmost_son = p;
+	}
+	else
+	{
+		right = q->rightmost_son;
+		
+		right->right_brother = p;
+		p->left_brother = right;
+		
+		q->rightmost_son = p;
+	}
+	
 	p->father = q;
+	
+
 }
 
 void add_leftof(struct Point* p, struct Point* q)
 {
-	q->left_brother = p;
-	p->right_brother = q;
+	struct Point * left;
+
+	if ( q->left_brother == NULL )
+	{
+		p->left_brother = NULL;
+		q->left_brother = p;
+		p->right_brother = q;
+	}
+	else
+	{
+		left = q->left_brother;
+		p->left_brother = left;
+		left->right_brother = p;
+		p->right_brother = q;
+		q->left_brother = p;
+	}
+
+	
 	p->father = q->father;
 }
 
@@ -46,8 +82,8 @@ void remove_point(struct Point* p)
 	p->father = NULL;
 	p->left_brother = NULL;
 	p->right_brother = NULL;
-	p->rightmost_son = NULL;
-	
+	/*p->rightmost_son = NULL;*/
+
 }
 
 struct Point* right_brother(struct Point* p)
@@ -90,9 +126,9 @@ int before( struct Point * p, struct Point * q, struct Line * e )
 	if ( e == NULL )
 		return 1;
 	
-	double pq = p->x * q->x + p->y*q->y;
-	double pe1 = p->x * e->p1->x + p->y*e->p1->y;
-	double pe2 = p->x * e->p2->x + p->y*e->p2->y;
+	double pq = (p->x - q->x)*(p->x - q->x) + (p->y - q->y)*(p->y - q->y);
+	double pe1 = (p->x - e->p1->x)*(p->x - e->p1->x) + ( p->y - e->p1->y)*( p->y - e->p1->y) ;
+	double pe2 = (p->x - e->p2->x)*(p->x - e->p2->x) + (p->y - e->p2->y)*(p->y - e->p2->y);
 	
 	
 	return ( pq < pe1 && pq < pe2 );
