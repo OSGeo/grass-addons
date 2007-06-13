@@ -578,25 +578,25 @@ v.out.ogr input=streams type=line dsn=QGISDATA
  layer=1 format=ESRI_Shapefile
 \end{smallverbatim}
 
-Additional processing.....
+Bonus de traitement de donn\'ees.....
 
-The pickled strumpet is quite intolerant of edge disturbances, so you would like to weight interior areas of the habitat clumps more highly than edge areas. Create interior 100-meter-interval buffers within the large habitat clumps, where interior pixels within 100 meters of a clump edge have a weight of 1, interior pixels 100-200 meters from a clump edge have a weight of 2, interior pixels 200-300 meters from a clump edge have a weight of 3, etc., and pixels outside the largest clumps have a weight of zero.
+Cette esp\`ece est assez intol\'erante des perturbations aux fronti\`eres de zones, donc vous devriez faire un poids plus lourd pour les zones internes que frontali\`eres des blocs d'habitat. Cr\'eez des buffers internes concentriques de 100 m\`etres pour chaque bloc, avec un poids de 1 pour le premier buffer en fronti\`ere (0-100 m\`etres internes), 2 pour le second vers l'interieur (100-200 m\`etres), 3 pour 200-300 m\`etres, etc..., quand aux pixels en dehors des blocs, leurs valeurs sont de z\'ero.
 
-Use \textit{r.mapcalc} to multiply the aggregate habitat score map by these interior buffer weights.
-Now run \textit{r.volume }on this buffer-weighted habitat score map to obtain the sum and average of each clump s cell habitat scores.
-Use \textit{awk} to create reclass rules files, then use \textit{r.reclass} to map the largest clumps by sum and average habitat scores.
-Which clump has the highest weighted total habitat score? Which has the highest weighted average habitat score?
-Use \textit{r.grow} to create a map of clump edges only (subtracting the input map from the output map).
-Use the edge map to index the perimeter of each of the major clumps. 
-Calculate the compactness (area divided by perimeter squared) of each clump. 
-Map the largest clumps by compactness. Create a jazzy display script to demonstrate your procedures and explain your findings.
-(See \href{http://www.udel.edu/johnmack/frec682/script_ideas.html})
+Utilisez \textit{r.mapcalc} pour multiplier la carte d'habitat par les poids des buffers internes.
+Maintenant lancez \textit{r.volume }sur cette carte r\'esultante pour obtenir la somme et la moyenne de chaque bloc.
+Utilisez  \textit{awk} pour cr\'eer des fichiers de r\`egles de r\'eclassification, puis utilisez \textit{r.reclass} pour cartographier les blocs par somme et moyenne.
+Quel bloc a le nouveau total maximum? Lequel a la nouvelle moyenne maximum?
+Utilisez \textit{r.grow} pour cr\'eer une carte de fronti\`eres de blocs (soustraire les cartes d'origines aux cartes r\'esultantes).
+Utilisez les cartes de fronti\`eres de blocs pour indexer le p\'erimetre de chaque bloc majeur. 
+Calculez la compacit\'e (surface divis\'ee par le carr\'e du p\'erimetre) de chaque bloc. 
+Cartographiez les blocs par compacit\'e. Cr\'eez un script d'affichage cool pour d\'emontrer vos proc\'edures et expliquez ce que vous avez trouv\'e.
+(Pour cel\`a voyez: \href{http://www.udel.edu/johnmack/frec682/script_ideas.html})
 
-A script for some parts of the Lab is in \textbf{Appendix B} \ref{appendixB}.
+Un script de quelques pqrties de cet exercice est dans l'\textbf{Appendice B} \ref{appendixB}.
 
 \newpage
 
-\subsection{Appendix A: Overview of Grass GUI}
+\subsection{Appendice A: Overview of Grass GUI}
 \label{appendixA}
 
 Overview of the available commands in the modules:Fig.~\ref{fig:grass025} Fig.~\ref{fig:grass026} Fig.~\ref{fig:grass027}
