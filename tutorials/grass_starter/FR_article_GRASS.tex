@@ -596,10 +596,10 @@ Un script de quelques pqrties de cet exercice est dans l'\textbf{Appendice B} \r
 
 \newpage
 
-\subsection{Appendice A: Overview of Grass GUI}
+\subsection{Appendice A: SUrvol de l'interface principale de GRASS}
 \label{appendixA}
 
-Overview of the available commands in the modules:Fig.~\ref{fig:grass025} Fig.~\ref{fig:grass026} Fig.~\ref{fig:grass027}
+Survol des commandes disponibles dans les modules:Fig.~\ref{fig:grass025} Fig.~\ref{fig:grass026} Fig.~\ref{fig:grass027}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -636,25 +636,25 @@ Overview of the available commands in the modules:Fig.~\ref{fig:grass025} Fig.~\
 
 \newpage
 
-\subsection{Appendix B: GRASS SCRIPT}
+\subsection{Appendice B: SCRIPT dans GRASS}
 \label{appendixB}
 
-Please put this into a file that you may name \textit{script.sh}\textup{and from a }\textit{Terminal}\textup{ type: ``chmod 0755}\textit{script.sh''}\textup{. Then you can run the script }by typing the command: ``./script.sh''.
+Veuillez mettre ceci dans un fichier \textit{script.sh}\textup{et dans un }\textit{Terminal}\textup{ \'ecrivez: ``chmod 0755}\textit{script.sh''}\textup{. Ensuite vous pouvez lancer le script }en \'ecrivant la commande: ``./script.sh''.
 
 \begin{smallverbatim}
 #!/bin/bash
-# main map names variables
+# Noms des variables de cartes
 dem=elevation.dem
 r=roads
 s=streams
-# buffer streams and roads variables
+# buffer cours d'eau et routes
 _bs=_bstreams500
 _br=_broads500
-# reclassed buffer streams and roads variables
+# reclassement des buffer cours d'eau et routes
 _rbs=_rbstreams500
 _rbr=_rbroads500
 #--------------------------------------------------
-# General Presentation: Start Monitor 0
+# Pr\'esentation g\'en\'erale: D\'ebut Affichage 0
 #--------------------------------------------------
 d.mon start=x0
 d.erase color=grey
@@ -667,7 +667,7 @@ sleep 1
 d.barscale bcolor=white tcolor=black at=30.0,95.0
 sleep 2
 #--------------------------------------------------
-# Buffering: Start Monitor 1
+# Cr\'eation de buffer: D\'ebut Affichage 1
 #--------------------------------------------------
 d.mon start=x1
 d.mon select=x1
@@ -685,12 +685,12 @@ d.rast map=\$_br
 d.vect map=\$s color=blue
 d.barscale bcolor=white tcolor=black at=30.0,95.0
 #--------------------------------------------------
-# Reclassification: Start Monitor 2
+# Reclassification: D\'ebut Affichage 2
 #--------------------------------------------------
 d.mon start=x2
 d.mon select=x2
 d.erase color=grey
-echo "...Reclassify..."
+echo "...Reclassification..."
 r.mapcalc \$_rbs="if(\$_bs==2,1,0)"
 r.mapcalc _s_sl="if(\$_rbs==1,if(slope<=5,2,5),0)"
 r.mapcalc \$_rbr="float(if(\$_br==2,-5.0,0))"
@@ -713,7 +713,7 @@ r.mapcalc _add="float(_s_sl+\$_rbr+_for+_for1+
  _exp1+_exp2+_exp3+_elev1+_elev2+_elev3)"
 r.mapcalc _clas="if(_add{>9,1,null())"
 r.mapcalc _class="if(_clas==1&&_br100==0,1,null())"
-echo "Reclassification...done."
+echo "Reclassification...Fin."
 d.rast map="\$_rbs"
 sleep 1
 d.rast map="_s_sl"
@@ -747,10 +747,10 @@ rast="_elev2,_elev3,_br100,_add"}
 g.remove rast="\$_bs,\$_br,_clas"}
 sleep 1
 echo ""
-echo "finished"
+echo "fin"
 sleep 1
 #--------------------------------------------------
-# Clumping: Start Monitor 3
+# Mettre en bloc: D\'ebut Affichage 3
 #--------------------------------------------------
 d.mon start=x3
 d.mon select=x3
@@ -772,7 +772,7 @@ d.barscale bcolor=white tcolor=black at=30.0,95.0
 sleep 1
 g.remove rast="_clump,_class"
 #--------------------------------------------------
-# R2V and Export: Start Monitor 4
+# R2V et Export: D\'ebut Affichage 4
 #--------------------------------------------------
 d.mon start=x4
 d.mon select=x4
