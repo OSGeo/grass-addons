@@ -364,29 +364,28 @@ Num\'ero de carte Conditions environnementales Score \`a donner
 9 1400-1600 m\`etres d'altitude +4 points
 10 over 1600 m\`etres d'altitude +2 points
 
-Use r.buffer (..=> Create buffers) and r.mapcalc (..=> Map calculator) to create an aggregate habitat score map of the entire area, summing all the partial scores as defined above. (hint: you have to convert all null values of buffer output maps into zero values)
-When finished with numbers 1 to 10 above, sum all the maps in a map that you may call scoreindivsum. Then identify suitable habitat areas by converting to zeroes all cells with overall habitat scores below 9, and all cells within 100 meters of a road (hint: you have to make a new buffer map here, and remove its null values for calculations). Make a final scoring map that you may call scorefinal and change 0 values to NULL (..=>Manage null values) for next laboratory part.
+Utilisez r.buffer (..=> Create buffers) et r.mapcalc (..=> Map calculator) pour cr\'eer une carte de score d'habitat pour toute la zone, en additionnant tous les scores partiels comme d\'efinis ci-dessus. (conseil: vous devez convertir toutes les valuers nulles des cartes de r\'esultats de buffer en valuers z\'ero)
+Quand vous serez termin\'e avec les cartes 1 \`a 10 ci-dessus, additionnez-les toutes en une seule carte que vous pourriez appeler "scoreindivsum". Ensuite, identifiez une zone d'habitat souhaitable en convertissant les valeurs z\'ero des pixels pour tout r\'esultat inf\'erieur \`a 9, et tout pixel dans les 100 m\`etres d'une route (conseil: vous devz faire une nouvelle carte de buffer ici, et enlever ses valeurs nulles pour les calculs). Faites une carte finale que vous pourriez appeler "scorefinal" et changez en les valeurs z\'ero en NULL (..=>Manage null values) pour atteindre la prochaine partie de cet exercice.
 
-\subsection{PROCESSING THE SCORING MAPS}
+\subsection{PREPARATION DES CARTES DE SCORE}
 
-In the processing of number 1 and 2, please use the Map Calculator with an input following an 'if statement'. The structure goes this
-way:
+Pour calculer les cartes 1 et 2, utilisez le "Map Calculator" avec un syntaxte comprenant une structure conditionnelle (if). Cel\`a se trouve \^etre dans l'exemple suivant:
 \begin{smallverbatim}
-if(condition, action_if_true, action_if_not_true)
+if(condition, action_si_vrai, action_si_faux)
 \end{smallverbatim}
-In the case of a map application use it this way:
+Dans le cas d'une carte:
 \begin{smallverbatim}
-if(MapA==value1, score_value1, score_value2)
+if(CarteA==valeur1, score_valeur1, score_valeur2)
 \end{smallverbatim}
-Since one may want to give two input maps together, a double if statement can be formulated this way:
+Dans le cas ou deux cartes sont utilis\'ees ensemble, un syst\`eme conditionnel double peut \^etre d\'ecrit comme ceci:
 
-A practical example for number 1:
+Un exemple pratique pour la carte num\'ero 1:
 \begin{smallverbatim}
 if(stream_buff_500==2,if(slope=5,2,0),0)
 \end{smallverbatim}
-In case one wants to select a range of values (inclusive or exclusive), use of OR and AND is necessary. Query to check aspect map (..=>Query with mouse), East=1 and North=+90 degrees.
+Dans le cas o\'u l'on voudrait s\'electionner une gamme de valeurs (inclusive ou exclusive), utilisez les op\'erants "OR" et "AND". Questionnez la carte d'aspect (..=>Query with mouse), Est=1 et Nord=+90 degr\'es.
 
-Practical examples for 7a and 7b:
+Exemples practiques pour 7a et 7b:
 \begin{smallverbatim}
 7a) if(aspect<225 && aspect>135, 1, 0)
 
