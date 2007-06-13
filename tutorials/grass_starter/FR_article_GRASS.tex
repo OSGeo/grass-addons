@@ -391,17 +391,16 @@ Exemples practiques pour 7a et 7b:
 
 7b) if(aspect<45 || aspect>314 && aspect!=0, 1, 0)
 \end{smallverbatim}
-Example 7b has an added constraint ``\&\& aspect !=0'' because aspect value 0 means no aspect was calculated (usually out of data boundary in
-the image).
+L'exemple 7b a une contrainte additionnelle ``\&\& aspect !=0'' car la valeur d'aspect 0 veut dire pas d'aspect calcul\'e (g\'en\'eralement en dehors de la zone de donn\'ees de l'image).
 
-This Set of instructions shows how GRASS GIS does the reclassification work under scripting mode. This is useful when you need to reuse the same set of GIS manipulations/models several times on different or new datasets.
+Ce jeu d'instructions montre comment le SIG GRASS produit une reclassification en mode "script". Ceci devient tr\`es utile quand vous avez besoin de r\'e-utiliser une analyse SIG complex plusieurs fois de suite sur d'autre jeux de donn\'ees par exemple.
 
 \subsection{HABITAT SCORING SCRIPT}
 
-Map number Environmental conditions Score to be given:
+Num\'ero de carte Conditions environnementales Score \`a donner:
 
 \textbf{
-1) within 500 meters of streams where slope <= 5 degrees: +2 points}
+1) Dans 500 m\`etres des cours d'eau o\`u la pente <= 5 degr\'es: +2 points}
 \begin{smallverbatim}
 r.buffer input=streams output=_bstreams500
  distances=500 units=meters --overwrite
@@ -414,7 +413,7 @@ r.null map=_rbstreams500 null=0
 \end{smallverbatim}
 
 \textbf{
-2) within 500 meters of streams where slope >5 degrees: +5 points}
+2) Dans 500 m\`etres des cours d'eau o\`u la pente >5 degr\'es: +5 points}
 \begin{smallverbatim}
 r.buffer input=roads output=_broads500 distances=500
  units=meters --overwrite
@@ -424,59 +423,59 @@ r.mapcalc _s_sl="if(_rbstreams500==1,if(
 \end{smallverbatim}
 
 \textbf{
-3) within 500 meters of a road: -5 points}
+3) Dans 500 m\`etres d'une route: -5 points}
 \begin{smallverbatim}
 r.mapcalc _rbroads500="float(if(
  _broads500==2,-5.0,0))"
 \end{smallverbatim}
 
 \textbf{
-4) coniferous forest: +4 points}
+4) for\^et de conif\`eres: +4 points}
 \begin{smallverbatim}
 r.mapcalc _for="if(vegcover==3,4,0)"
 \end{smallverbatim}
 
 \textbf{
-5) mixed forest: +1 point}
+5) for\^et mixte: +1 point}
 \begin{smallverbatim}
 r.mapcalc _for1="if(vegcover==5,1,0)"
 \end{smallverbatim}
 
 \textbf{
-6) northern exposure (aspect from NW to NE): +3 points}
+6) Exposition Nord (aspect de NO \`a NE): +3 points}
 \begin{smallverbatim}
 r.mapcalc _exp3="if(aspect<=135.0 && aspect>=45.0
  && aspect != 0,3,0)"
 \end{smallverbatim}
 
 \textbf{
-7a) western or eastern exposure (SW to NW or SE to NE): +1 point}
+7a) Exposition Ouest ou Est (SO \`a NO ou SE \`a NE): +1 point}
 \begin{smallverbatim}
 r.mapcalc _exp1="if(aspect<45.0 || aspect>314.0,1,0)"
 r.mapcalc _exp2="if(aspect<225.0 && aspect>135.0,1,0)"
 \end{smallverbatim}
 
 \textbf{
-7b) 1200-1400 meters elevation: +2 points}
+7b) 1200-1400 m\`etres d'altitude: +2 points}
 \begin{smallverbatim}
 r.mapcalc _elev1="if(elevation.10m<1400
  && elevation.10m>1200,2,0)"
 \end{smallverbatim}
 
 \textbf{
-8) 1400-1600 meters elevation: +4 points}
+8) 1400-1600 m\`etres d'altitude: +4 points}
 \begin{smallverbatim}
 r.mapcalc _elev2="if(elevation.10m<1600
  && elevation.10m>=1400,4,0)"
 \end{smallverbatim}
 
 \textbf{
-9) over 1600 meters elevation: +2 points}
+9) plus de 1600 m\`etres d'altitude: +2 points}
 \begin{smallverbatim}
 r.mapcalc _elev3="if(elevation.10m>=1600,2,0)"
 \end{smallverbatim}
 
-\subsection{FINALIZING THE SCORING MAP}
+\subsection{FINALISATION DE LA CARTE DE SCORE}
 
 \begin{smallverbatim}
 r.buffer input=roads output=_br100
@@ -498,7 +497,7 @@ r.mapcalc _class="if(_clas==1&&_br100==0,1,null())"
    %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
    \includegraphics[scale=0.35]{grass021.png}
    %caption of the figure
-   \caption{Scoring Map}
+   \caption{Carte de score}
    %label of the figure, which has to correspond to \ref{}:
    \label{fig:grass021}
 \end{figure}
