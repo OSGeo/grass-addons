@@ -407,12 +407,7 @@ Mettez en place l'environnement du plugin GRASS pour le traitement de donn\'ees.
    \label{fig:qgis029}
 \end{figure}
 
-Following this, select the 3rd icon from the left on
-the GRASS toolbar. This will open the GRASS processing tool as shown
-(mostly) in the next three pages. This GRASS tool is a thin
-representation of the GRASS GIS capacities, but it will serve the
-purpose of this introduction. It comes with a browser of the GRASS
-mapset used. It also acts as a data management interface. Fig.~\ref{fig:qgis030}
+Suivant ceci, s\'electionnez la 3\`eme ic\^one de gauche sur la barre d'outil GRASS. Cel\`a ouvrira l'outil de traitement de donn\'ees comme vu plus ou moins dans les 3 prochaines pages. Cet outil GRASS est une repr\'esentation mince des capacit\'es de GRASS, mais il va suffir aux besoins de cette introduction. Il est fournit avec un navigateur de jeu de cartes GRASS. Il agit aussi en temps qu'interface de gestion de donn\'ees. Fig.~\ref{fig:qgis030}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -425,8 +420,7 @@ mapset used. It also acts as a data management interface. Fig.~\ref{fig:qgis030}
    \label{fig:qgis030}
 \end{figure}
 
-The browser has the capacity to expand header information and metadata
-pertaining to the layer selected Fig.~\ref{fig:qgis031}
+Le navigateur a la capacit\'e d'ouvrir les informations d'en-t\^ete et de m\'eta-donn\'ees contenues dans les couches s\'electionn\'ees Fig.~\ref{fig:qgis031}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -439,10 +433,7 @@ pertaining to the layer selected Fig.~\ref{fig:qgis031}
    \label{fig:qgis031}
 \end{figure}
 
-The GRASS modules available are listed in the next two pages. More are
-being ported everyday, The actual number of GRASS GIS modules exceeds
-400, you can see that there is still some work to do, and the community
-of volunteers are working on it Fig.~\ref{fig:qgis032} Fig.~\ref{fig:qgis033}
+Les modules GRASS disponibles sont list\'es dans les deux prochaines pages. Plus de modules sont int\'egr\'es tous les jours, le nombre actuel de modules de GRASS d\'epasse les 400, vous pouvez voir qu'il y a toujours du travail \`a faire, et que la communaut\'e de volontaires y travaillent Fig.~\ref{fig:qgis032} Fig.~\ref{fig:qgis033}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -466,11 +457,9 @@ of volunteers are working on it Fig.~\ref{fig:qgis032} Fig.~\ref{fig:qgis033}
    \label{fig:qgis033}
 \end{figure}
 
-\subsection{GRASS PLUGIN PROCESSING}
+\subsection{TRAITEMENT DE DONNEES AVEC LE PLUGIN GRASS}
 
-Let us create some buffers... Select buffering of vectors from the
-Modules list. It should looks like this. Choose 500 meters buffer
-size Fig.~\ref{fig:qgis034}
+Cr\'eons quelques buffers (zones tampon)... S\'electionnez ``buffering of vectors'' dans la liste des modules. Cel\`a devrait ressembler \`a ceci. Choisissez ue taille de zone tampon de 500 m\`etres Fig.~\ref{fig:qgis034}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -483,7 +472,7 @@ size Fig.~\ref{fig:qgis034}
    \label{fig:qgis034}
 \end{figure}
 
-Processing is going on... Fig.~\ref{fig:qgis035}
+Traitement de donn\'ees en cours... Fig.~\ref{fig:qgis035}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -496,7 +485,7 @@ Processing is going on... Fig.~\ref{fig:qgis035}
    \label{fig:qgis035}
 \end{figure}
 
-Finishing the processing Fig.~\ref{fig:qgis036}
+Fin du traitement de donn\'ees Fig.~\ref{fig:qgis036}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -509,7 +498,7 @@ Finishing the processing Fig.~\ref{fig:qgis036}
    \label{fig:qgis036}
 \end{figure}
 
-Result should look like this (you have to load the map yourself!) Fig.~\ref{fig:qgis037}
+Le r\'esultat devrait ressembler \`a cel\`a (Vous devrez charger la carte vous-m\^eme!) Fig.~\ref{fig:qgis037}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -522,8 +511,7 @@ Result should look like this (you have to load the map yourself!) Fig.~\ref{fig:
    \label{fig:qgis037}
 \end{figure}
 
-Now create another buffer from streams but this time at 100 meters...
-Like this Fig.~\ref{fig:qgis038}
+Maintenant cr\'eez une autre zone tampon \`a partir de ``streams'' mais cette fois de 100 m\`etres... Comme ceci Fig.~\ref{fig:qgis038}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -536,9 +524,7 @@ Like this Fig.~\ref{fig:qgis038}
    \label{fig:qgis038}
 \end{figure}
 
-Now we are going to subtract the 100m buffer to the 500m buffer, because
-we want to exclude the streams and its proximity from our area of
-selection. Find this module! Fig.~\ref{fig:qgis039}
+Maintenant nous allons soustraire le buffer de 100m au buffer de 500m, car nous voulons exclure le cours d'eau et sa zone de proximit\'e de notre zone de s\'election. Trouvez ce module! Fig.~\ref{fig:qgis039}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -551,7 +537,7 @@ selection. Find this module! Fig.~\ref{fig:qgis039}
    \label{fig:qgis039}
 \end{figure}
 
-Processing the overlay with boolean operator ``NOT'' Fig.~\ref{fig:qgis040}
+Traitement de la superimposition de couches avec l'op\'erateur bool\'een ``NOT'' Fig.~\ref{fig:qgis040}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -564,8 +550,7 @@ Processing the overlay with boolean operator ``NOT'' Fig.~\ref{fig:qgis040}
    \label{fig:qgis040}
 \end{figure}
 
-Result is discarding all under 100m from the streams, and all above 500
-meters from the streams. Fig.~\ref{fig:qgis041}
+Le r\'esultat est d'enlever tout dans les 100m des cours d'eau, et tout au-del\`a des 500m des cours d'eau. Fig.~\ref{fig:qgis041}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -578,7 +563,7 @@ meters from the streams. Fig.~\ref{fig:qgis041}
    \label{fig:qgis041}
 \end{figure}
 
-Process an aspect map from the elevation map Fig.~\ref{fig:qgis042}
+Traitement d'un carte d'aspect \`a partir de la carte d'altitude Fig.~\ref{fig:qgis042}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -591,7 +576,7 @@ Process an aspect map from the elevation map Fig.~\ref{fig:qgis042}
    \label{fig:qgis042}
 \end{figure}
 
-Processing... Fig.~\ref{fig:qgis043}
+Traitement en cours... Fig.~\ref{fig:qgis043}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
