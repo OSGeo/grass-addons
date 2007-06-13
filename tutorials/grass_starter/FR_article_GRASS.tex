@@ -502,20 +502,20 @@ r.mapcalc _class="if(_clas==1&&_br100==0,1,null())"
    \label{fig:grass021}
 \end{figure}
 
-\subsection{CLUMPING SUITABLE AREAS}
-WARNING: This part of the Laboratory involves the use of the command line (command prompt).
+\subsection{METTRE EN BLOC LES ZONES SOUHAITABLES}
+ATTENTION: Cette partie demande l'utilisation du prompt/terminal avec des commandes en ligne.
 
-What is ``clumping''?
-Recategorizes data in a raster map layer by grouping cells that form physically discrete areas into unique categories.
+Qu'est-ce que ``mettre en bloc''?
+Re-cat\'egoriser les donn\'ees dans une carte raster en groupant les pixels qui form des surfaces continues physiquement en d'uniques cat\'egories.
 
-Now find the discrete areas (clumps) of aggregated habitat scores. 
-Run \textit{r.clump (..=>Clump Small Areas) }on the ``\textit{score\_final}'' map to give each clump its own category number. You may call the output ``\textit{score\_clumped}''.
+Maintenant, trouvez les zones discr\`etes/continues (ou clumps) des scores d'aggr\'egation d'habitat. 
+Lancez \textit{r.clump (..=>Clump Small Areas) }sur la carte ``\textit{score\_final}'' pour donner \`a chaque bloc son propre num\'ero de cat\'egorie. Vous pourriez appeler la carte r\'esultante ``\textit{score\_clumped}''.
 
 \begin{smallverbatim}
 r.clump input=score_final output=score_clumped 
 \end{smallverbatim}
 
-Display your newly clumped map ``\textit{score\_clumped}''. It should somewhat look like this one:Fig.~\ref{fig:grass022}
+Affichez votre nouvelle carte de blocs ``\textit{score\_clumped}''. Elle devrait plus ou moins ressembler \`a cel\`a:Fig.~\ref{fig:grass022}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -523,20 +523,20 @@ Display your newly clumped map ``\textit{score\_clumped}''. It should somewhat l
    %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
    \includegraphics[scale=0.35]{grass022.png}
    %caption of the figure
-   \caption{Clumped map}
+   \caption{Carte des blocs}
    %label of the figure, which has to correspond to \ref{}:
    \label{fig:grass022}
 \end{figure}
 
 
-Since this species is most viable in larger clumps, extract the clumps greater than 50 hectares to a separate map. You may use the command line for reclassification by area threshold to select area superior to 50 hectares:
+Puisque cette esp\`ece est mieux dans de larges blocs, faites une extraction des blocs sup\'erieurs a 50 hectares dans une carte sp\'epar\'ee. Vous pourriez utilisez le terminal pour reclassifier par seuil de surface sup\'erieur \`a 50 hectares:
 
 \begin{smallverbatim}
 r.reclass.area input = score_final greater=50 
  output=selected_habitat_area
 \end{smallverbatim}
 
-Output ``selected\_habitat\_area'' at this level should be similar to this one:Fig.~\ref{fig:grass023}
+R\'esultat ``selected\_habitat\_area'' \`a ce niveau devrait \^etre similaire \`a ceci:Fig.~\ref{fig:grass023}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -544,16 +544,15 @@ Output ``selected\_habitat\_area'' at this level should be similar to this one:F
    %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
    \includegraphics[scale=0.35]{grass023.png}
    %caption of the figure
-   \caption{Seleceted Habitat Areas}
+   \caption{Zones d'habitat s\'electionn\'ees}
    %label of the figure, which has to correspond to \ref{}:
    \label{fig:grass023}
 \end{figure}
 
-\subsection{EXPORT RESULTS TO VECTOR}
-Since the users work in vector GIS, we are going to convert the results in vector format and export them from GRASS GIS to shapefile.
+\subsection{EXPORT DES RESULTATS SOUS FORMAT VECTORIEL}
+Puisque nos clients travaillent sous SIG \`a format vectoriel, nous allons convertir les r\'esultats en format vectoriel et les exporter de GRASS \`a ESRI shapefile.
 
-Vectorize the clumped map you just produced (File/Map type conversion/raster to vector) and check that you
-have effectively created a polygon vector map by displaying your vector using random colors.Fig.~\ref{fig:grass024}
+Vectorisez larte de blocs que vous venez de produire (File/Map type conversion/raster to vector) et v\'erifiez que vous avez effectivement cr\'ee une carte vectorielle \`a \'el\'ements de type polygones en affichant votre couche vectorielle avec des couleurs al\'eatoires.Fig.~\ref{fig:grass024}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -561,12 +560,12 @@ have effectively created a polygon vector map by displaying your vector using ra
    %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
    \includegraphics[scale=0.35]{grass024.png}
    %caption of the figure
-   \caption{Vector Export}
+   \caption{Export de fichier vectoriel}
    %label of the figure, which has to correspond to \ref{}:
    \label{fig:grass024}
 \end{figure}
 
-Export this selected habitat vector file along with the ``\textit{roads}'' and ``\textit{streams}'' vector files into shapefile. Please be sure that you export the same type of vectors (areas for ``\textit{selected\_habitat\_area}'' and lines for ``\textit{roads}'' and ``\textit{streams}''). Display and query them using Quantum GIS.
+Exportez ce fichier vectoriel d'habitat avec ``\textit{roads}'' et ``\textit{streams}'' aussi en format shapefile. Soyez s\^ur que vous exportez le m\^eme type d'\'el\'ements vectoriels (area pour ``\textit{selected\_habitat\_area}'' et lines pour ``\textit{roads}'' et ``\textit{streams}''). Affichez et questionnez ces fichiers dans le SIG Quantum.
 
 \begin{smallverbatim}
 v.out.ogr input=selected_habitat_area type=area
