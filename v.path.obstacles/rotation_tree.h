@@ -49,6 +49,8 @@ struct Line * segment( struct Point * p );
 struct Point * other( struct Point * p );
 int before( struct Point * p, struct Point * q, struct Line * e );
 
+double segment_sqdistance( struct Point * p, struct Line * e );
+
 
 
 

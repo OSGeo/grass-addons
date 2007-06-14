@@ -96,43 +96,50 @@ int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
 
 void init_vis( struct Point * points, struct Line * lines, int num )
 {
+	/* this algorithm can be optimised with a scan line technic which runs in O( n log n ) instead of O( n^2 ); */
 	int i;
 	int j;
-	int current = 0;
-	int null=0;
-	double y;
+	int current = -1;
+	double current_distance = PORT_DOUBLE_MAX;
+	double s;
 	
 	for ( i = 0 ; i < num ; i++ )
 	{
-		for ( j = 1 ; j < num/2 ; j++ )
+		for ( j = 0 ; j < num/2 ; j++ )
 		{
 			
+			if ( &lines[j] == segment( &points[i]) )
+				continue;
+
 			if ( points[i].y < lines[j].p1->y && points[i].y < lines[j].p2->y )
 			{
-				if ( lines[current].p1->y < lines[current].p2->y )
-					y = lines[current].p1->y;
-				else
-					y = lines[current].p2->y;
-
-				if ( lines[j].p1->y < y || lines[j].p2->y < y )
+				//G_message("considering line %d", &lines[j]);
+				
+				s = segment_sqdistance( &points[i], &lines[j]);
+				
+				//G_message("Distance to considered line is %f and to current line is %f", s,current_distance);
+				
+				if(  s < current_distance)
 				{
 					current = j;
-					null =1;
+					current_distance = s;
 				}
 			}
 		}
 		
-		if ( null == 0 )
+		if ( current == -1 )
 		{
 			points[i].vis = NULL;
 		}
 		else
 		{
 			points[i].vis = &lines[current];
+			current = -1;
+			current_distance = PORT_DOUBLE_MAX;
 		}
 		
-		current = 0;
-		null = 0;
+		G_message("VIS of point %d is %d", &points[i], points[i].vis );
+
 	}
 }
 
@@ -140,15 +147,18 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 {	
 	if ( q == other(p) )
 	{
+		G_message("It's the other");
 		report( p, q, out );
 	}
 	else if ( segment(q) == p->vis )
 	{
+		G_message("Its the vis!!!!");
 		p->vis = q->vis ;
 		report( p,q, out );
 	}
 	else if ( before(p,q, p->vis ) )
 	{
+		G_message("before!!");
 		p->vis = segment(q);
 		report(p,q,out);
 	}
@@ -234,7 +244,7 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 	push( &points[0] );
 	
 
-	G_message("p_infinity is %d and p_ninfinity is %d ", p_infinity, p_ninfinity );
+	//G_message("p_infinity is %d and p_ninfinity is %d ", p_infinity, p_ninfinity );
 	
 	while( !empty_stack() )
 	{
@@ -243,8 +253,8 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 		p_r = right_brother(p);
 		q = father(p);
 		
-		G_message("---------");
-		G_message("p is %d and q is %d and p_r is %d", p, q ,p_r);
+		//G_message("---------");
+		//G_message("p is %d and q is %d and p_r is %d", p, q ,p_r);
 		
 		if ( q != p_ninfinity )
 		{
@@ -254,14 +264,14 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 			
 		z = left_brother(q);
 		
-		G_message("z is %d", z );
-		if ( z!= NULL ) G_message("father(z) is %d", father(z) );
+		//G_message("z is %d", z );
+		//if ( z!= NULL ) G_message("father(z) is %d", father(z) );
 		
 		remove_point(p);
 		
 		if ( z == NULL || !left_turn(p,z, father(z) ) )
 		{
-			G_message("adding p leftof q ");
+			//G_message("adding p leftof q ");
 			add_leftof(p,q);
 		}
 		else
@@ -272,27 +282,27 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 			
 			add_rightmost(p,z);
 			
-			G_message("add p as rightmost son of z which is %d", z);
+			//G_message("add p as rightmost son of z which is %d", z);
 			
 			if ( z == top() )
 				z = pop();
 		}
 		
-		G_message("father(p) is now %d", father(p) );
+		//G_message("father(p) is now %d", father(p) );
 		
 		if ( left_brother(p) == NULL && father(p) != p_infinity )
 		{
-			G_message("pushing p");
+			//G_message("pushing p");
 			push(p);
 		}
 		
 		if ( p_r != NULL )
 		{
 			push(p_r);
-			G_message("pushing p_r ");
+			//G_message("pushing p_r ");
 		}
 		
-		G_message("The stack has %d points", stack_index);
+		//G_message("The stack has %d points", stack_index);
 	}
 }
 

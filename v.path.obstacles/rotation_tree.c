@@ -119,18 +119,45 @@ struct Point * other( struct Point * p )
 		return p->line->p1;
 }
 
+double segment_sqdistance( struct Point * q, struct Line * e )
+{
+	double e2e1x =  e->p1->x - e->p2->x ;
+	double e2e1y = e->p1->y - e->p2->y;
+	
+	double qe1x = q->x - e->p1->x;
+	double qe1y = q->y - e->p1->y;
+	
+	double qe2x = q->x - e->p2->x;
+	double qe2y = q->y - e->p2->y;
+	
+	double s = e2e1x * qe2x + e2e1y * qe2y;
+	double t;
+	
+	if ( s <= 0 )
+		return qe2x * qe2x + qe2y * qe2y;
+		
+	t = e2e1x * e2e1x + e2e1y * e2e1y;
+	
+	if ( s >= t )
+		return qe1x * qe1x + qe1y * qe1y;
+	
+	 return qe2x * qe2x + qe2y * qe2y - s * s / t ;
+
+}
+
 int before( struct Point * p, struct Point * q, struct Line * e )
 {
 	/* true if q lies nearer to p than segment e*/
 	
-	if ( e == NULL )
+	/* first determine the square distance between p and e */
+	
+	G_message("Computing distances with line %d", e);
+	
+	//if ( e == NULL )
 		return 1;
 	
-	double pq = (p->x - q->x)*(p->x - q->x) + (p->y - q->y)*(p->y - q->y);
-	double pe1 = (p->x - e->p1->x)*(p->x - e->p1->x) + ( p->y - e->p1->y)*( p->y - e->p1->y) ;
-	double pe2 = (p->x - e->p2->x)*(p->x - e->p2->x) + (p->y - e->p2->y)*(p->y - e->p2->y);
-	
-	
-	return ( pq < pe1 && pq < pe2 );
+	/*double e_distance = segment_sqdistance(p, e);
+	double pq_distance = ( p->x - q->x ) * ( p->x - q->x ) + ( p->y - q->y ) * ( p->y - q->y );
+	*/
 }
 
