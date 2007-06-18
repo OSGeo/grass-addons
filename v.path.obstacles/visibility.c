@@ -32,6 +32,8 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 	*points = (struct Point * ) G_malloc( nb_lines*2*sizeof(struct Point) );
 	*lines = ( struct Line * ) G_malloc( nb_lines*sizeof(struct Line) );
 	
+	/* TODO here is only the first segment of a line that is copied, need to fix that 
+	 each point is associated with two segments except for the starting and ending point ( for line and boundary ) */
 	
 	while( ( type = Vect_read_next_line( map, sites, cats) ) > -1 )
 	{
@@ -67,7 +69,7 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 		index_line++;
 		index_point++;
 		
-		G_message("Line %d with points : %f %f %f %f", index_line, (*points)[index_point-1].x, (*points)[index_point-1].y, (*points)[index_point-2].x, (*points)[index_point-2].y );
+		G_message("Line %d with points : %f %f %f %f", &((*lines)[index_line-1]), (*points)[index_point-1].x, (*points)[index_point-1].y, (*points)[index_point-2].x, (*points)[index_point-2].y );
 		
 	}
 	
@@ -78,6 +80,7 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
 {
     double a, b, c, d;
+	double r;
 	
 	if ( p3 == p_infinity )
 	{
@@ -89,8 +92,8 @@ int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
 		b = p1->y - p2->y;
 		c = p3->x - p2->x;
 		d = p3->y - p2->y;
-	
-		return a*d - b*c < 0;	
+			
+		return a*d-b*c < 0.0;
 	}
 }
 
@@ -108,16 +111,17 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 		for ( j = 0 ; j < num/2 ; j++ )
 		{
 			
-			if ( &lines[j] == segment( &points[i]) )
-				continue;
+			
+			//if ( &lines[j] == segment( &points[i]) )
+			//	continue;
 
-			if ( points[i].y < lines[j].p1->y && points[i].y < lines[j].p2->y )
-			{
-				//G_message("considering line %d", &lines[j]);
-				
+			//G_message("For point %d with height %f we're considering line %d width height between %f and %f", &points[i], points[i].y, &lines[j], lines[j].p1->y, lines[j].p2->y );
+			
+			if ( points[i].y > lines[j].p1->y && points[i].y > lines[j].p2->y && ( points[i].x < lines[j].p1->x || points[i].x < lines[j].p2->x ))
+			{				
 				s = segment_sqdistance( &points[i], &lines[j]);
 				
-				//G_message("Distance to considered line is %f and to current line is %f", s,current_distance);
+				//G_message("The line is below the point and its distance is %f", s);
 				
 				if(  s < current_distance)
 				{
@@ -134,31 +138,36 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 		else
 		{
 			points[i].vis = &lines[current];
-			current = -1;
-			current_distance = PORT_DOUBLE_MAX;
 		}
 		
-		G_message("VIS of point %d is %d", &points[i], points[i].vis );
+		current = -1;
+		current_distance = PORT_DOUBLE_MAX;
+		
+		G_message("VIS of point %d, ( %f ; %f)  is %d", &points[i], points[i].x, points[i].y, points[i].vis );
 
 	}
 }
 
 void handle( struct Point* p, struct Point* q, struct Map_info * out )
-{	
+{
+	//G_message("Handling (  %f ; %f ) and ( %f ; %f )", p->x, p->y, q->x, q->y);
+	G_message("Handling %d and %d Point %d with VIS %d and segment(q) = %d", p,q,p, p->vis, segment(q) );
+	
 	if ( q == other(p) )
 	{
-		G_message("It's the other");
+		//G_message("It's the other");
+		//p->vis = q->vis ;
 		report( p, q, out );
 	}
 	else if ( segment(q) == p->vis )
 	{
-		G_message("Its the vis!!!!");
-		p->vis = q->vis ;
+		//G_message("Its the vis!!!! New VIS is %d", q->vis);
+		//p->vis = q->vis ;
 		report( p,q, out );
 	}
 	else if ( before(p,q, p->vis ) )
 	{
-		G_message("before!!");
+		//G_message("before!! New VIS %d", segment(q));
 		p->vis = segment(q);
 		report(p,q,out);
 	}
@@ -185,7 +194,7 @@ void report( struct Point * p, struct Point * q, struct Map_info * out )
 }
 
 
-int cmp_points(const void* v1, const void* v2) {
+int cmp_points(struct Point * v1, struct Point* v2) {
     struct Point *p1, *p2;
     p1 = (struct Point*) v1;
     p2 = (struct Point*) v2;
@@ -225,14 +234,14 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 	p_infinity->left_brother = NULL;
 	p_infinity->right_brother = NULL;
 	p_infinity->rightmost_son = NULL;
-
-	
-	init_vis( points, lines, num_points );
 	
 	init_stack(num_points);
 
 	/* sort points in decreasing x order*/
-    qsort(points, num_points, sizeof(struct Point), cmp_points);
+    //qsort(points, num_points, sizeof(struct Point), cmp_points);
+	quickSort( points, 0, num_points-1 );
+	
+	init_vis( points, lines, num_points );
 	
 	add_rightmost( p_ninfinity, p_infinity );
 	
@@ -258,7 +267,6 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 		
 		if ( q != p_ninfinity )
 		{
-			G_message("Handling %d and %d", p,q);
 			handle(p,q, out);
 		}
 			
@@ -334,5 +342,60 @@ void init_stack(int size)
 {
 	stack_index = 0;
 	stack = G_malloc( size * sizeof( struct Point ) );
+}
+
+
+void quickSort( struct Point a[], int l, int r)
+{
+   int j;
+
+   if( l < r ) 
+   {
+		// divide and conquer
+		j = partition( a, l, r);
+		quickSort( a, l, j-1);
+		quickSort( a, j+1, r);
+   }
+	
+}
+
+/* TODO take in account if it is long/lat projection */
+
+int partition( struct Point a[], int l, int r)
+{
+	int i, j;
+   
+	struct Point t,pivot;
+   
+	pivot = a[l];
+	i = l; j = r+1;
+		
+	while( 1)
+	{
+		do ++i; while( cmp_points(&a[i], &pivot) < 1 && i <= r );
+		do --j; while( cmp_points(&a[j], &pivot) == 1 );
+
+		if( i >= j ) break;
+		
+		if ( a[i].line->p1 == &a[i] ) a[i].line->p1 = &a[j];
+		else a[i].line->p2 = &a[j];
+		
+		if ( a[j].line->p1 == &a[j] ) a[j].line->p1 = &a[i];
+		else a[j].line->p2 = &a[i];		
+		
+		t = a[i]; a[i] = a[j]; a[j] = t;
+		
+	}
+
+	if ( a[l].line->p1 == &a[l] ) a[l].line->p1 = &a[j];
+	else a[l].line->p2 = &a[j];
+		
+	if ( a[j].line->p1 == &a[j] ) a[j].line->p1 = &a[l];
+	else a[j].line->p2 = &a[l];
+
+	t = a[l]; a[l] = a[j]; a[j] = t;
+	
+
+	return j;
 }
 

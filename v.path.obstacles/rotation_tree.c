@@ -70,11 +70,11 @@ void remove_point(struct Point* p)
 	struct Point * f = p->father;
 	struct Point * l = p->left_brother;
 	struct Point * r = p->right_brother;
-	
+
 	if ( l != NULL )
-		l->right_brother = NULL;
+		l->right_brother = r;
 	if ( r != NULL )
-		r->left_brother = NULL;
+		r->left_brother = l;
 	
 	if ( f->rightmost_son == p )
 		f->rightmost_son = NULL;
@@ -82,7 +82,6 @@ void remove_point(struct Point* p)
 	p->father = NULL;
 	p->left_brother = NULL;
 	p->right_brother = NULL;
-	/*p->rightmost_son = NULL;*/
 
 }
 
@@ -145,19 +144,49 @@ double segment_sqdistance( struct Point * q, struct Line * e )
 
 }
 
+
+double segment_sqdistance2( struct Point * q, struct Line * e )
+{
+
+	double dx = e->p1->x - e->p2->x;
+	double dy = e->p1->y - e->p2->y;
+	
+	double t = t = (dx * (q->x - e->p2->x) + dy * (q->y - e->p2->y)) / (dx * dx + dy * dy);
+
+	if (t < 0.0) 
+	{			
+		t = 0.0;
+	} 
+	else if (t > 1.0)
+	{		
+	    t = 1.0;
+	}
+
+	dx = dx * t + e->p2->x - q->x;
+	dy = dy * t + e->p2->y - q->y;
+
+    return (dx * dx + dy * dy);
+
+}
+
+
 int before( struct Point * p, struct Point * q, struct Line * e )
 {
 	/* true if q lies nearer to p than segment e*/
 	
 	/* first determine the square distance between p and e */
 	
-	G_message("Computing distances with line %d", e);
-	
-	//if ( e == NULL )
+	if ( e == NULL )
 		return 1;
 	
-	/*double e_distance = segment_sqdistance(p, e);
-	double pq_distance = ( p->x - q->x ) * ( p->x - q->x ) + ( p->y - q->y ) * ( p->y - q->y );
-	*/
+	double e_distance = segment_sqdistance2(p, e);
+	//double e_distance = dig_distance2_point_to_line( p->x, p->y, 0, e->p1->x, e->p1->y, 0, e->p2->x, e->p2->y, 0, 0, 0, 0, 0, 0, 0 );
+	double pqx =  q->x - p->x;
+	double pqy = q->y - p->y;
+	double pq_distance = pqx*pqx + pqy*pqy;
+	
+	G_message("Distances with line %f and with point %f", e_distance, pq_distance);
+	
+	return pq_distance < e_distance ;
 }
 

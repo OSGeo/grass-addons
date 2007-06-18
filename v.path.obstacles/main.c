@@ -67,6 +67,10 @@ int main( int argc, char* argv[])
 		G_fatal_error(_("Could not open output"));
     }
 
+	 
+	if (G_projection () == PROJECTION_LL)
+		G_warning("We are in LL projection");
+
 	index = load_lines( &in, &points, &lines);
 	
 	G_message("We have %d lines", index );

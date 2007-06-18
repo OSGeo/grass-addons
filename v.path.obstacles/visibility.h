@@ -25,7 +25,7 @@
 
 int load_lines( struct Map_info *map, struct Point ** points, struct Line ** lines );
 int construct_visibility( struct Point * points, struct Line * lines, int num_lines, struct Map_info* out );
-int cmp_points(const void* v1, const void* v2);
+int cmp_points(struct Point * v1, struct Point* v2);
 
 int turn_left( struct Point p1, struct Point p2, struct Point p3 );
 
@@ -39,6 +39,9 @@ struct Point * top();
 void push(struct Point * p);
 int empty_stack();
 void init_stack();
+
+void quickSort( struct Point a[], int l, int r);
+int partition( struct Point a[], int l, int r);
 
 static int stack_index;
 static struct Point ** stack;
