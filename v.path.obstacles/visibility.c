@@ -97,6 +97,20 @@ int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
 	}
 }
 
+
+int in_between( struct Point * p, struct Line * e )
+{
+	int a =  e->p1->x < p->x && e->p2->x > p->x ;
+	int b = e->p2->x < p->x && e->p1->x > p->x;
+	
+	return a || b;
+}
+
+int below( struct Point * p, struct Line * e )
+{
+	return e->p1->y < p->y || e->p2->y < p->y ;
+}
+
 void init_vis( struct Point * points, struct Line * lines, int num )
 {
 	/* this algorithm can be optimised with a scan line technic which runs in O( n log n ) instead of O( n^2 ); */
@@ -117,7 +131,7 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 
 			//G_message("For point %d with height %f we're considering line %d width height between %f and %f", &points[i], points[i].y, &lines[j], lines[j].p1->y, lines[j].p2->y );
 			
-			if ( points[i].y > lines[j].p1->y && points[i].y > lines[j].p2->y && ( points[i].x < lines[j].p1->x || points[i].x < lines[j].p2->x ))
+			if ( below( &points[i], &lines[j] ) && in_between( &points[i], &lines[j] ) )
 			{				
 				s = segment_sqdistance( &points[i], &lines[j]);
 				
@@ -162,7 +176,7 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 	else if ( segment(q) == p->vis )
 	{
 		//G_message("Its the vis!!!! New VIS is %d", q->vis);
-		//p->vis = q->vis ;
+		p->vis = q->vis ;
 		report( p,q, out );
 	}
 	else if ( before(p,q, p->vis ) )
@@ -252,6 +266,7 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 		
 	push( &points[0] );
 	
+	int count = 0;
 
 	//G_message("p_infinity is %d and p_ninfinity is %d ", p_infinity, p_ninfinity );
 	
@@ -268,6 +283,7 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 		if ( q != p_ninfinity )
 		{
 			handle(p,q, out);
+			count++;
 		}
 			
 		z = left_brother(q);
@@ -312,6 +328,8 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 		
 		//G_message("The stack has %d points", stack_index);
 	}
+	
+	G_warning("There was %d comparisons for %d points", count, num_points);
 }
 
 
