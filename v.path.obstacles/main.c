@@ -73,8 +73,6 @@ int main( int argc, char* argv[])
 
 	index = load_lines( &in, &points, &lines);
 	
-	G_message("We have %d lines", index );
-	
 	construct_visibility( points, lines, index, &out );
 	
 	Vect_build(&out, stdout);

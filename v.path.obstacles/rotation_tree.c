@@ -180,13 +180,10 @@ int before( struct Point * p, struct Point * q, struct Line * e )
 		return 1;
 	
 	double e_distance = segment_sqdistance2(p, e);
-	//double e_distance = dig_distance2_point_to_line( p->x, p->y, 0, e->p1->x, e->p1->y, 0, e->p2->x, e->p2->y, 0, 0, 0, 0, 0, 0, 0 );
 	double pqx =  q->x - p->x;
 	double pqy = q->y - p->y;
 	double pq_distance = pqx*pqx + pqy*pqy;
-	
-	G_message("Distances with line %f and with point %f", e_distance, pq_distance);
-	
+
 	return pq_distance < e_distance ;
 }
 

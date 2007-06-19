@@ -13,8 +13,16 @@
  *
  ****************************************************************/
  
+ 
+/* TODO take in account if it is long/lat projection */
+/* TODO here is only the first segment of a line that is copied, need to fix that 
+each point is associated with two segments except for the starting and ending point ( for line and boundary ) */
+/* TODO vis initialisation algorithm can be optimised with a scan line technic which runs in O( n log n ) instead of O( n^2 ); */
+
 #include "visibility.h"
 
+/** Get the lines from the map and load them in an array
+*/
 int load_lines( struct Map_info * map, struct Point ** points, struct Line ** lines )
 {
 	int index_line = 0;
@@ -31,9 +39,6 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 	nb_lines = Vect_get_num_lines(map);
 	*points = (struct Point * ) G_malloc( nb_lines*2*sizeof(struct Point) );
 	*lines = ( struct Line * ) G_malloc( nb_lines*sizeof(struct Line) );
-	
-	/* TODO here is only the first segment of a line that is copied, need to fix that 
-	 each point is associated with two segments except for the starting and ending point ( for line and boundary ) */
 	
 	while( ( type = Vect_read_next_line( map, sites, cats) ) > -1 )
 	{
@@ -77,6 +82,8 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 }
 
 
+/** returns true if p3 is left of the directed line p1p2
+*/
 int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
 {
     double a, b, c, d;
@@ -97,7 +104,8 @@ int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
 	}
 }
 
-
+/** returns true if p is inbetween the segment e along the x axis
+*/
 int in_between( struct Point * p, struct Line * e )
 {
 	int a =  e->p1->x < p->x && e->p2->x > p->x ;
@@ -106,14 +114,19 @@ int in_between( struct Point * p, struct Line * e )
 	return a || b;
 }
 
+/** returns true if p is above the segment e ( y axis )
+*/
 int below( struct Point * p, struct Line * e )
 {
 	return e->p1->y < p->y || e->p2->y < p->y ;
 }
 
+
+/** for all points initiate their vis line to the one directly below
+*/
 void init_vis( struct Point * points, struct Line * lines, int num )
 {
-	/* this algorithm can be optimised with a scan line technic which runs in O( n log n ) instead of O( n^2 ); */
+
 	int i;
 	int j;
 	int current = -1;
@@ -126,16 +139,13 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 		{
 			
 			
-			//if ( &lines[j] == segment( &points[i]) )
-			//	continue;
-
-			//G_message("For point %d with height %f we're considering line %d width height between %f and %f", &points[i], points[i].y, &lines[j], lines[j].p1->y, lines[j].p2->y );
+			if ( &lines[j] == segment( &points[i]) )
+				continue;
 			
+			/* if it's directly below, compute its distance to the last smallest found */
 			if ( below( &points[i], &lines[j] ) && in_between( &points[i], &lines[j] ) )
 			{				
 				s = segment_sqdistance( &points[i], &lines[j]);
-				
-				//G_message("The line is below the point and its distance is %f", s);
 				
 				if(  s < current_distance)
 				{
@@ -156,37 +166,32 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 		
 		current = -1;
 		current_distance = PORT_DOUBLE_MAX;
-		
-		G_message("VIS of point %d, ( %f ; %f)  is %d", &points[i], points[i].x, points[i].y, points[i].vis );
-
 	}
 }
 
+/** for a pair (p, q) of points, add the edge pq if their are visibile to each other
+*/
 void handle( struct Point* p, struct Point* q, struct Map_info * out )
 {
-	//G_message("Handling (  %f ; %f ) and ( %f ; %f )", p->x, p->y, q->x, q->y);
-	G_message("Handling %d and %d Point %d with VIS %d and segment(q) = %d", p,q,p, p->vis, segment(q) );
 	
 	if ( q == other(p) )
 	{
-		//G_message("It's the other");
-		//p->vis = q->vis ;
 		report( p, q, out );
 	}
 	else if ( segment(q) == p->vis )
 	{
-		//G_message("Its the vis!!!! New VIS is %d", q->vis);
 		p->vis = q->vis ;
 		report( p,q, out );
 	}
 	else if ( before(p,q, p->vis ) )
 	{
-		//G_message("before!! New VIS %d", segment(q));
 		p->vis = segment(q);
 		report(p,q,out);
 	}
 }
 
+/** add the edge pq to the map out 
+*/
 void report( struct Point * p, struct Point * q, struct Map_info * out )
 {
 	struct line_pnts* sites;
@@ -208,6 +213,8 @@ void report( struct Point * p, struct Point * q, struct Map_info * out )
 }
 
 
+/** compare the points along the x axis
+*/
 int cmp_points(struct Point * v1, struct Point* v2) {
     struct Point *p1, *p2;
     p1 = (struct Point*) v1;
@@ -225,7 +232,8 @@ int cmp_points(struct Point * v1, struct Point* v2) {
 		return 0;
 }
 
-
+/** the algorithm that computes the visibility graph
+*/
 int construct_visibility ( struct Point * points, struct Line * lines, int num_lines, struct Map_info * out )
 {
 	int num_points = 2*num_lines;
@@ -252,7 +260,6 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 	init_stack(num_points);
 
 	/* sort points in decreasing x order*/
-    //qsort(points, num_points, sizeof(struct Point), cmp_points);
 	quickSort( points, 0, num_points-1 );
 	
 	init_vis( points, lines, num_points );
@@ -267,9 +274,9 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 	push( &points[0] );
 	
 	int count = 0;
-
-	//G_message("p_infinity is %d and p_ninfinity is %d ", p_infinity, p_ninfinity );
 	
+	
+	/* main loop */
 	while( !empty_stack() )
 	{
 		
@@ -277,9 +284,7 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 		p_r = right_brother(p);
 		q = father(p);
 		
-		//G_message("---------");
-		//G_message("p is %d and q is %d and p_r is %d", p, q ,p_r);
-		
+		/* if the father is not -infinity, handle p and q */
 		if ( q != p_ninfinity )
 		{
 			handle(p,q, out);
@@ -288,14 +293,11 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 			
 		z = left_brother(q);
 		
-		//G_message("z is %d", z );
-		//if ( z!= NULL ) G_message("father(z) is %d", father(z) );
-		
 		remove_point(p);
 		
+		/* remove and reattach p to the tree */
 		if ( z == NULL || !left_turn(p,z, father(z) ) )
 		{
-			//G_message("adding p leftof q ");
 			add_leftof(p,q);
 		}
 		else
@@ -306,30 +308,22 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 			
 			add_rightmost(p,z);
 			
-			//G_message("add p as rightmost son of z which is %d", z);
-			
 			if ( z == top() )
 				z = pop();
 		}
 		
-		//G_message("father(p) is now %d", father(p) );
-		
+		/* if p not attached to infinity, then p has more points to visit */
 		if ( left_brother(p) == NULL && father(p) != p_infinity )
 		{
-			//G_message("pushing p");
 			push(p);
 		}
 		
+		/* and continue with the next one ( from left to right )*/
 		if ( p_r != NULL )
 		{
 			push(p_r);
-			//G_message("pushing p_r ");
 		}
-		
-		//G_message("The stack has %d points", stack_index);
 	}
-	
-	G_warning("There was %d comparisons for %d points", count, num_points);
 }
 
 
@@ -377,7 +371,6 @@ void quickSort( struct Point a[], int l, int r)
 	
 }
 
-/* TODO take in account if it is long/lat projection */
 
 int partition( struct Point a[], int l, int r)
 {
