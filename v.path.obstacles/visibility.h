@@ -45,7 +45,5 @@ int partition( struct Point a[], int l, int r);
 
 static int stack_index;
 static struct Point ** stack;
-static struct Point * p_ninfinity;
-static struct Point * p_infinity;
 
 #endif

@@ -23,7 +23,9 @@ struct Point
 {
 	double x;
 	double y;
-	struct Line * line;
+	struct Line * line1;
+	struct Line * line2;
+
 	struct Line * vis;
 	struct Point * left_brother;
 	struct Point * right_brother;
@@ -45,8 +47,10 @@ struct Point* left_brother(struct Point* p);
 struct Point* father( struct Point* p);
 struct Point* rightmost_son( struct Point * p );
 
-struct Line * segment( struct Point * p );
-struct Point * other( struct Point * p );
+struct Line * segment1( struct Point * p );
+struct Line * segment2( struct Point * p );
+struct Point * other1( struct Point * p );
+struct Point * other2( struct Point * p );
 int before( struct Point * p, struct Point * q, struct Line * e );
 
 double segment_sqdistance( struct Point * p, struct Line * e );

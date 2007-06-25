@@ -28,6 +28,7 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 	int index_line = 0;
 	int index_point = 0;
 	struct line_pnts* sites;
+	int i;
 	struct line_cats* cats;
 	int cat,type;
 	
@@ -48,35 +49,57 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 		
 		Vect_cat_get (cats, 1, &cat);
 		
-		(*points)[index_point].x = sites->x[0];
-		(*points)[index_point].y = sites->y[0];
-		(*points)[index_point].line = &((*lines)[index_line]);
-		(*points)[index_point].left_brother = NULL;
-		(*points)[index_point].right_brother = NULL;
-		(*points)[index_point].father = NULL;
-		(*points)[index_point].rightmost_son = NULL;
+		G_message("This line has %d points", sites->n_points);
+		
+		for ( i = 0; i < sites->n_points-1; i++ )
+		{
+		
+			(*points)[index_point].x = sites->x[i];
+			(*points)[index_point].y = sites->y[i];
+			
+			if ( i == 0 )
+				(*points)[index_point].line1 = NULL;
+			else
+				(*points)[index_point].line1 = &((*lines)[index_line-1]);
+
+			(*points)[index_point].line2 = &((*lines)[index_line]);
+			
+			(*points)[index_point].left_brother = NULL;
+			(*points)[index_point].right_brother = NULL;
+			(*points)[index_point].father = NULL;
+			(*points)[index_point].rightmost_son = NULL;
 		
 		
-		index_point++;
+			index_point++;
 		
-		(*points)[index_point].x = sites->x[1];
-		(*points)[index_point].y = sites->y[1];
-		(*points)[index_point].line = &((*lines)[index_line]);
-		(*points)[index_point].left_brother = NULL;
-		(*points)[index_point].right_brother = NULL;
-		(*points)[index_point].father = NULL;
-		(*points)[index_point].rightmost_son = NULL;
+			(*points)[index_point].x = sites->x[i+1];
+			(*points)[index_point].y = sites->y[i+1];
+			
+			(*points)[index_point].line1 = &((*lines)[index_line]);
+			
+			if ( i == sites->n_points-1 )
+				(*points)[index_point].line2 = NULL;
+			else
+				(*points)[index_point].line2 = &((*lines)[index_line+1]);
+			
+			(*points)[index_point].left_brother = NULL;
+			(*points)[index_point].right_brother = NULL;
+			(*points)[index_point].father = NULL;
+			(*points)[index_point].rightmost_son = NULL;
 		
 		
-		(*lines)[index_line].p1 = &((*points)[index_point-1]);
-		(*lines)[index_line].p2 = &((*points)[index_point]);
+			(*lines)[index_line].p1 = &((*points)[index_point-1]);
+			(*lines)[index_line].p2 = &((*points)[index_point]);
 				
-		index_line++;
-		index_point++;
+			index_line++;
+			index_point++;
 		
-		G_message("Line %d with points : %f %f %f %f", &((*lines)[index_line-1]), (*points)[index_point-1].x, (*points)[index_point-1].y, (*points)[index_point-2].x, (*points)[index_point-2].y );
+			G_message("Segment %d with points : %f %f %f %f", &((*lines)[index_line-1]), (*points)[index_point-2].x, (*points)[index_point-2].y, (*points)[index_point-1].x, (*points)[index_point-1].y );
+		}
 		
 	}
+	
+	G_message("End of load lines, total segments : %d", index_line);
 	
 	return index_line;
 }
@@ -89,7 +112,7 @@ int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
     double a, b, c, d;
 	double r;
 	
-	if ( p3 == p_infinity )
+	if ( p3->y == PORT_DOUBLE_MAX)
 	{
 		return ( p1->x < p2->x || (p1->x == p2->x && p1->y < p2->y ) );
 	}
@@ -139,7 +162,7 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 		{
 			
 			
-			if ( &lines[j] == segment( &points[i]) )
+			if ( &lines[j] == segment1( &points[i]) || &lines[j] == segment2( &points[i]))
 				continue;
 			
 			/* if it's directly below, compute its distance to the last smallest found */
@@ -173,19 +196,35 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 */
 void handle( struct Point* p, struct Point* q, struct Map_info * out )
 {
+	G_message("Handling %d and %d", p, q );
 	
-	if ( q == other(p) )
+	if ( q == other1(p) || q == other2(p) )
 	{
 		report( p, q, out );
 	}
-	else if ( segment(q) == p->vis )
+	else if ( segment1(q) == p->vis && segment1(q) != NULL)
 	{
-		p->vis = q->vis ;
+		if ( segment2(q) != NULL && left_turn(p, q, other2(q)))
+			p->vis = segment2(q);
+		else
+			p->vis = q->vis ;
+
 		report( p,q, out );
+	}
+	else if ( segment2(q) == p->vis && segment1(q) != NULL )
+	{
+		if ( segment1(q) != NULL && left_turn(p, q, other1(q) ))
+			p->vis = segment1(q);
+		else
+			p->vis = q->vis;
 	}
 	else if ( before(p,q, p->vis ) )
 	{
-		p->vis = segment(q);
+		if ( segment1(q) != NULL && left_turn(p, q, segment1(q)) )
+			p->vis = segment1(q);
+		else
+			p->vis = segment2(q);
+
 		report(p,q,out);
 	}
 }
@@ -236,13 +275,20 @@ int cmp_points(struct Point * v1, struct Point* v2) {
 */
 int construct_visibility ( struct Point * points, struct Line * lines, int num_lines, struct Map_info * out )
 {
+
+	G_message("Entering contruct_visibility");
+	
 	int num_points = 2*num_lines;
 	struct Point * p, * p_r, * q, * z;
+	struct Point * p_infinity,* p_ninfinity;
 	int i;
 	
-	p_ninfinity = G_malloc( sizeof(struct Point ));
-	p_infinity = G_malloc( sizeof(struct Point ));
+	G_message("Why is the malloc fucking up?");
 	
+	p_ninfinity = (struct Point * ) G_malloc( sizeof(struct Point ));
+	p_infinity = (struct Point * ) G_malloc( sizeof(struct Point ));
+	
+	G_message("Or maybe this part?");
 	p_ninfinity->x = PORT_DOUBLE_MAX;
 	p_ninfinity->y = -PORT_DOUBLE_MAX;
 	p_ninfinity->father = NULL;
@@ -257,13 +303,20 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 	p_infinity->right_brother = NULL;
 	p_infinity->rightmost_son = NULL;
 	
+	
+	G_message("Initialisation of the stack ... ");
 	init_stack(num_points);
 
+	G_message("Sorting the points by decreasing order...");
 	/* sort points in decreasing x order*/
 	quickSort( points, 0, num_points-1 );
 	
+	
+	G_message("initialisation of the vis...");
 	init_vis( points, lines, num_points );
 	
+	
+	G_message("Initialisation of the rotation tree...");
 	add_rightmost( p_ninfinity, p_infinity );
 	
 	for ( i = 0; i < num_points ; i ++ )
@@ -275,6 +328,7 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 	
 	int count = 0;
 	
+	G_message("Start of the main loop ... ");
 	
 	/* main loop */
 	while( !empty_stack() )
@@ -388,21 +442,33 @@ int partition( struct Point a[], int l, int r)
 
 		if( i >= j ) break;
 		
-		if ( a[i].line->p1 == &a[i] ) a[i].line->p1 = &a[j];
-		else a[i].line->p2 = &a[j];
+		if ( a[i].line1 != NULL && a[i].line1->p1 == &a[i] ) a[i].line1->p1 = &a[j];
+		else a[i].line1->p2 = &a[j];
 		
-		if ( a[j].line->p1 == &a[j] ) a[j].line->p1 = &a[i];
-		else a[j].line->p2 = &a[i];		
+		if ( a[j].line1 != NULL && a[j].line1->p1 == &a[j] ) a[j].line1->p1 = &a[i];
+		else a[j].line1->p2 = &a[i];
+	
+		if ( a[i].line2 != NULL && a[i].line2->p1 == &a[i] ) a[i].line2->p1 = &a[j];
+		else a[i].line2->p2 = &a[j];
+		
+		if ( a[j].line2 != NULL && a[j].line2->p1 == &a[j] ) a[j].line2->p1 = &a[i];
+		else a[j].line2->p2 = &a[i];
 		
 		t = a[i]; a[i] = a[j]; a[j] = t;
 		
 	}
 
-	if ( a[l].line->p1 == &a[l] ) a[l].line->p1 = &a[j];
-	else a[l].line->p2 = &a[j];
+	if ( a[l].line1 != NULL && a[l].line1->p1 == &a[l] ) a[l].line1->p1 = &a[j];
+	else a[l].line1->p2 = &a[j];
 		
-	if ( a[j].line->p1 == &a[j] ) a[j].line->p1 = &a[l];
-	else a[j].line->p2 = &a[l];
+	if ( a[j].line1 != NULL && a[j].line1->p1 == &a[j] ) a[j].line1->p1 = &a[l];
+	else a[j].line1->p2 = &a[l];
+	
+	if ( a[l].line2 != NULL && a[l].line2->p1 == &a[l] ) a[l].line2->p1 = &a[j];
+	else a[l].line2->p2 = &a[j];
+		
+	if ( a[j].line2 != NULL && a[j].line2->p1 == &a[j] ) a[j].line2->p1 = &a[l];
+	else a[j].line2->p2 = &a[l];
 
 	t = a[l]; a[l] = a[j]; a[j] = t;
 	

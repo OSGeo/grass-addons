@@ -105,17 +105,31 @@ struct Point* rightmost_son( struct Point * p )
 	return p->rightmost_son;
 }
 
-struct Line * segment( struct Point * p )
+struct Line * segment1( struct Point * p )
 {
-	return p->line;
+	return p->line1;
 }
 
-struct Point * other( struct Point * p )
+
+struct Line * segment2( struct Point * p )
+{
+	return p->line2;
+}
+
+struct Point * other1( struct Point * p )
 {	
-	if ( p->line->p1 == p )
-		return p->line->p2;
+	if ( p->line1->p1 == p )
+		return p->line1->p2;
 	else
-		return p->line->p1;
+		return p->line1->p1;
+}
+
+struct Point * other2( struct Point * p )
+{	
+	if ( p->line2->p1 == p )
+		return p->line2->p2;
+	else
+		return p->line2->p1;
 }
 
 double segment_sqdistance( struct Point * q, struct Line * e )
@@ -151,7 +165,7 @@ double segment_sqdistance2( struct Point * q, struct Line * e )
 	double dx = e->p1->x - e->p2->x;
 	double dy = e->p1->y - e->p2->y;
 	
-	double t = t = (dx * (q->x - e->p2->x) + dy * (q->y - e->p2->y)) / (dx * dx + dy * dy);
+	double t = (dx * (q->x - e->p2->x) + dy * (q->y - e->p2->y)) / (dx * dx + dy * dy);
 
 	if (t < 0.0) 
 	{			
