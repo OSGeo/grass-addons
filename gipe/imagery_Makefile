@@ -5,7 +5,6 @@ include $(MODULE_TOPDIR)/include/Make/Dir.make
 SUBDIRS1 = \
 	i.albedo \
 	i.ask \
-	i.atcorr \
 	i.biomass \
 	i.class \
 	i.cluster \
