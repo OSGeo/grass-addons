@@ -75,6 +75,9 @@ int main( int argc, char* argv[])
 	
 	construct_visibility( points, lines, index, &out );
 	
+	G_free(points);
+	G_free(lines);
+	
 	Vect_build(&out, stdout);
 	Vect_close(&out);
 	Vect_close(&in);

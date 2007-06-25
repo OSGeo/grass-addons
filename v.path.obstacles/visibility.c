@@ -21,6 +21,8 @@ each point is associated with two segments except for the starting and ending po
 
 #include "visibility.h"
 
+#define ALLOC_CHUNK 256
+
 /** Get the lines from the map and load them in an array
 */
 int load_lines( struct Map_info * map, struct Point ** points, struct Line ** lines )
@@ -32,14 +34,17 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 	struct line_cats* cats;
 	int cat,type;
 	
-	int nb_lines;
+	//int nb_lines;
 	
 	sites = Vect_new_line_struct();
 	cats = Vect_new_cats_struct();
 	
-	nb_lines = Vect_get_num_lines(map);
-	*points = (struct Point * ) G_malloc( nb_lines*2*sizeof(struct Point) );
-	*lines = ( struct Line * ) G_malloc( nb_lines*sizeof(struct Line) );
+	//nb_lines = Vect_get_num_lines(map);
+	//*points = (struct Point * ) G_malloc( nb_lines*2*sizeof(struct Point) );
+	//*lines = ( struct Line * ) G_malloc( nb_lines*sizeof(struct Line) );
+	
+	*points = NULL;
+	*lines = NULL;
 	
 	while( ( type = Vect_read_next_line( map, sites, cats) ) > -1 )
 	{
@@ -53,6 +58,10 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 		
 		for ( i = 0; i < sites->n_points-1; i++ )
 		{
+			if ((index_line % ALLOC_CHUNK) == 0)
+				*lines = (struct Line *) G_realloc(*lines, (index_line + ALLOC_CHUNK) * sizeof(struct Line));
+			if ((index_point % ALLOC_CHUNK) == 0 )
+				*points = (struct Point * ) G_realloc(*points, (index_point + ALLOC_CHUNK) * sizeof(struct Point));
 		
 			(*points)[index_point].x = sites->x[i];
 			(*points)[index_point].y = sites->y[i];
@@ -275,20 +284,15 @@ int cmp_points(struct Point * v1, struct Point* v2) {
 */
 int construct_visibility ( struct Point * points, struct Line * lines, int num_lines, struct Map_info * out )
 {
-
-	G_message("Entering contruct_visibility");
 	
 	int num_points = 2*num_lines;
 	struct Point * p, * p_r, * q, * z;
 	struct Point * p_infinity,* p_ninfinity;
 	int i;
+
+	p_ninfinity = (struct Point * ) malloc( sizeof(struct Point ));
+	p_infinity = (struct Point * ) malloc( sizeof(struct Point ));
 	
-	G_message("Why is the malloc fucking up?");
-	
-	p_ninfinity = (struct Point * ) G_malloc( sizeof(struct Point ));
-	p_infinity = (struct Point * ) G_malloc( sizeof(struct Point ));
-	
-	G_message("Or maybe this part?");
 	p_ninfinity->x = PORT_DOUBLE_MAX;
 	p_ninfinity->y = -PORT_DOUBLE_MAX;
 	p_ninfinity->father = NULL;
@@ -378,6 +382,9 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 			push(p_r);
 		}
 	}
+	
+	G_free(p_infinity);
+	G_free(p_ninfinity);
 }
 
 
@@ -442,33 +449,57 @@ int partition( struct Point a[], int l, int r)
 
 		if( i >= j ) break;
 		
-		if ( a[i].line1 != NULL && a[i].line1->p1 == &a[i] ) a[i].line1->p1 = &a[j];
-		else a[i].line1->p2 = &a[j];
+		if ( a[i].line1 != NULL)
+		{
+			if ( a[i].line1->p1 == &a[i] ) a[i].line1->p1 = &a[j];
+			else a[i].line1->p2 = &a[j];
+		}
 		
-		if ( a[j].line1 != NULL && a[j].line1->p1 == &a[j] ) a[j].line1->p1 = &a[i];
-		else a[j].line1->p2 = &a[i];
+		if ( a[j].line1 != NULL )
+		{
+			if(a[j].line1->p1 == &a[j] ) a[j].line1->p1 = &a[i];
+			else a[j].line1->p2 = &a[i];
+		}
 	
-		if ( a[i].line2 != NULL && a[i].line2->p1 == &a[i] ) a[i].line2->p1 = &a[j];
-		else a[i].line2->p2 = &a[j];
+		if ( a[i].line2 != NULL )
+		{
+			if( a[i].line2->p1 == &a[i] ) a[i].line2->p1 = &a[j];
+			else a[i].line2->p2 = &a[j];
+		}
 		
-		if ( a[j].line2 != NULL && a[j].line2->p1 == &a[j] ) a[j].line2->p1 = &a[i];
-		else a[j].line2->p2 = &a[i];
+		if ( a[j].line2 != NULL )
+		{
+			if(a[j].line2->p1 == &a[j] ) a[j].line2->p1 = &a[i];
+			else a[j].line2->p2 = &a[i];
+		}
 		
 		t = a[i]; a[i] = a[j]; a[j] = t;
 		
 	}
 
-	if ( a[l].line1 != NULL && a[l].line1->p1 == &a[l] ) a[l].line1->p1 = &a[j];
-	else a[l].line1->p2 = &a[j];
+	if ( a[l].line1 != NULL )
+	{
+		if(a[l].line1->p1 == &a[l] ) a[l].line1->p1 = &a[j];
+		else a[l].line1->p2 = &a[j];
+	}
 		
-	if ( a[j].line1 != NULL && a[j].line1->p1 == &a[j] ) a[j].line1->p1 = &a[l];
-	else a[j].line1->p2 = &a[l];
+	if ( a[j].line1 != NULL )
+	{
+		if(a[j].line1->p1 == &a[j] ) a[j].line1->p1 = &a[l];
+		else a[j].line1->p2 = &a[l];
+	}
 	
-	if ( a[l].line2 != NULL && a[l].line2->p1 == &a[l] ) a[l].line2->p1 = &a[j];
-	else a[l].line2->p2 = &a[j];
+	if ( a[l].line2 != NULL )
+	{
+		if( a[l].line2->p1 == &a[l] ) a[l].line2->p1 = &a[j];
+		else a[l].line2->p2 = &a[j];
+	}
 		
-	if ( a[j].line2 != NULL && a[j].line2->p1 == &a[j] ) a[j].line2->p1 = &a[l];
-	else a[j].line2->p2 = &a[l];
+	if ( a[j].line2 != NULL )
+	{
+		if( a[j].line2->p1 == &a[j] ) a[j].line2->p1 = &a[l];
+		else a[j].line2->p2 = &a[l];
+	}
 
 	t = a[l]; a[l] = a[j]; a[j] = t;
 	

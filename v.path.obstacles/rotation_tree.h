@@ -23,10 +23,12 @@ struct Point
 {
 	double x;
 	double y;
+	
 	struct Line * line1;
 	struct Line * line2;
 
 	struct Line * vis;
+	
 	struct Point * left_brother;
 	struct Point * right_brother;
 	struct Point * father;
