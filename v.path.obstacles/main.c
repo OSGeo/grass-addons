@@ -28,7 +28,7 @@ int main( int argc, char* argv[])
 	
 	struct Point * points;
 	struct Line * lines;
-	int index;
+	int num_points, num_lines;
 	
 
 	
@@ -71,9 +71,9 @@ int main( int argc, char* argv[])
 	if (G_projection () == PROJECTION_LL)
 		G_warning("We are in LL projection");
 
-	index = load_lines( &in, &points, &lines);
+	load_lines( &in, &points, &num_points, &lines, &num_lines);
 	
-	construct_visibility( points, lines, index, &out );
+	construct_visibility( points, num_points, lines, num_lines, &out );
 	
 	G_free(points);
 	G_free(lines);

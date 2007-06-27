@@ -25,7 +25,7 @@ each point is associated with two segments except for the starting and ending po
 
 /** Get the lines from the map and load them in an array
 */
-int load_lines( struct Map_info * map, struct Point ** points, struct Line ** lines )
+void load_lines( struct Map_info * map, struct Point ** points, int * num_points, struct Line ** lines, int * num_lines )
 {
 	int index_line = 0;
 	int index_point = 0;
@@ -86,7 +86,7 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 			
 			(*points)[index_point].line1 = &((*lines)[index_line]);
 			
-			if ( i == sites->n_points-1 )
+			if ( i == sites->n_points-2 )
 				(*points)[index_point].line2 = NULL;
 			else
 				(*points)[index_point].line2 = &((*lines)[index_line+1]);
@@ -101,16 +101,20 @@ int load_lines( struct Map_info * map, struct Point ** points, struct Line ** li
 			(*lines)[index_line].p2 = &((*points)[index_point]);
 				
 			index_line++;
-			index_point++;
+			//index_point++;
 		
-			G_message("Segment %d with points : %f %f %f %f", &((*lines)[index_line-1]), (*points)[index_point-2].x, (*points)[index_point-2].y, (*points)[index_point-1].x, (*points)[index_point-1].y );
+			G_message("Segment %d with two points %d and %d with coor : %f %f %f %f", &((*lines)[index_line-1]), &((*points)[index_point-1]), &((*points)[index_point]), (*points)[index_point-1].x, (*points)[index_point-1].y, (*points)[index_point].x, (*points)[index_point].y );
 		}
+		
+		index_point++;
 		
 	}
 	
 	G_message("End of load lines, total segments : %d", index_line);
+	G_message("total nodes : %d", index_point);
 	
-	return index_line;
+	*num_points = index_point;
+	*num_lines = index_line;
 }
 
 
@@ -156,7 +160,7 @@ int below( struct Point * p, struct Line * e )
 
 /** for all points initiate their vis line to the one directly below
 */
-void init_vis( struct Point * points, struct Line * lines, int num )
+void init_vis( struct Point * points, int num_points, struct Line * lines, int num_lines )
 {
 
 	int i;
@@ -165,9 +169,9 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 	double current_distance = PORT_DOUBLE_MAX;
 	double s;
 	
-	for ( i = 0 ; i < num ; i++ )
+	for ( i = 0 ; i < num_points ; i++ )
 	{
-		for ( j = 0 ; j < num/2 ; j++ )
+		for ( j = 0 ; j < num_lines ; j++ )
 		{
 			
 			
@@ -176,8 +180,10 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 			
 			/* if it's directly below, compute its distance to the last smallest found */
 			if ( below( &points[i], &lines[j] ) && in_between( &points[i], &lines[j] ) )
-			{				
+			{			
+				G_message("Handling point %d with line %d", &points[i], &lines[j] );
 				s = segment_sqdistance( &points[i], &lines[j]);
+				
 				
 				if(  s < current_distance)
 				{
@@ -205,14 +211,21 @@ void init_vis( struct Point * points, struct Line * lines, int num )
 */
 void handle( struct Point* p, struct Point* q, struct Map_info * out )
 {
-	G_message("Handling %d and %d", p, q );
+	//G_message("- Handling %d and %d", p, q );
+	//G_message("--- Segment of q are %d and %d", segment1(q), segment2(q));
+	//G_message("--- Others of q are %d and %d", other1(q), other2(q));
+	//G_message("--- VIS is %d", p->vis);
 	
 	if ( q == other1(p) || q == other2(p) )
 	{
+		/* TODO problem for the vis */
+		//G_message("It's the other");
 		report( p, q, out );
 	}
 	else if ( segment1(q) == p->vis && segment1(q) != NULL)
 	{
+		//G_message("--- It's segment1");
+		
 		if ( segment2(q) != NULL && left_turn(p, q, other2(q)))
 			p->vis = segment2(q);
 		else
@@ -220,16 +233,20 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 
 		report( p,q, out );
 	}
-	else if ( segment2(q) == p->vis && segment1(q) != NULL )
+	else if ( segment2(q) == p->vis && segment2(q) != NULL )
 	{
+		//G_message("--- It's segment2");
 		if ( segment1(q) != NULL && left_turn(p, q, other1(q) ))
 			p->vis = segment1(q);
 		else
 			p->vis = q->vis;
+		
+		report( p,q, out );
 	}
 	else if ( before(p,q, p->vis ) )
 	{
-		if ( segment1(q) != NULL && left_turn(p, q, segment1(q)) )
+		//G_message("--- There is a point in between ");
+		if ( segment1(q) != NULL && left_turn(p, q, other1(q)) )
 			p->vis = segment1(q);
 		else
 			p->vis = segment2(q);
@@ -282,10 +299,8 @@ int cmp_points(struct Point * v1, struct Point* v2) {
 
 /** the algorithm that computes the visibility graph
 */
-int construct_visibility ( struct Point * points, struct Line * lines, int num_lines, struct Map_info * out )
+int construct_visibility ( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info * out )
 {
-	
-	int num_points = 2*num_lines;
 	struct Point * p, * p_r, * q, * z;
 	struct Point * p_infinity,* p_ninfinity;
 	int i;
@@ -316,8 +331,11 @@ int construct_visibility ( struct Point * points, struct Line * lines, int num_l
 	quickSort( points, 0, num_points-1 );
 	
 	
+	for ( i = 0 ; i < num_points ; i++ )
+		G_message("Point %d ( %f, %f ) has segment %d and %d and the others are %d and %d", &points[i], points[i].x, points[i].y, segment1(&points[i]), segment2(&points[i]), other1(&points[i]), other2(&points[i]));
+	
 	G_message("initialisation of the vis...");
-	init_vis( points, lines, num_points );
+	init_vis( points, num_points, lines, num_lines );
 	
 	
 	G_message("Initialisation of the rotation tree...");

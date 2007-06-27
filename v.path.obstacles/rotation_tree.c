@@ -118,6 +118,9 @@ struct Line * segment2( struct Point * p )
 
 struct Point * other1( struct Point * p )
 {	
+	if ( p->line1 == NULL)
+		return NULL;
+
 	if ( p->line1->p1 == p )
 		return p->line1->p2;
 	else
@@ -126,6 +129,9 @@ struct Point * other1( struct Point * p )
 
 struct Point * other2( struct Point * p )
 {	
+	if( p->line2 == NULL )
+		return NULL;
+
 	if ( p->line2->p1 == p )
 		return p->line2->p2;
 	else
@@ -159,31 +165,6 @@ double segment_sqdistance( struct Point * q, struct Line * e )
 }
 
 
-double segment_sqdistance2( struct Point * q, struct Line * e )
-{
-
-	double dx = e->p1->x - e->p2->x;
-	double dy = e->p1->y - e->p2->y;
-	
-	double t = (dx * (q->x - e->p2->x) + dy * (q->y - e->p2->y)) / (dx * dx + dy * dy);
-
-	if (t < 0.0) 
-	{			
-		t = 0.0;
-	} 
-	else if (t > 1.0)
-	{		
-	    t = 1.0;
-	}
-
-	dx = dx * t + e->p2->x - q->x;
-	dy = dy * t + e->p2->y - q->y;
-
-    return (dx * dx + dy * dy);
-
-}
-
-
 int before( struct Point * p, struct Point * q, struct Line * e )
 {
 	/* true if q lies nearer to p than segment e*/
@@ -193,7 +174,7 @@ int before( struct Point * p, struct Point * q, struct Line * e )
 	if ( e == NULL )
 		return 1;
 	
-	double e_distance = segment_sqdistance2(p, e);
+	double e_distance = segment_sqdistance(p, e);
 	double pqx =  q->x - p->x;
 	double pqy = q->y - p->y;
 	double pq_distance = pqx*pqx + pqy*pqy;
