@@ -140,6 +140,7 @@ struct Point * other2( struct Point * p )
 
 double segment_sqdistance( struct Point * q, struct Line * e )
 {
+	
 	double e2e1x =  e->p1->x - e->p2->x ;
 	double e2e1y = e->p1->y - e->p2->y;
 	
@@ -181,4 +182,22 @@ int before( struct Point * p, struct Point * q, struct Line * e )
 
 	return pq_distance < e_distance ;
 }
+
+/** dot product between qp and qr */
+double dot( struct Point * p, struct Point * q, struct Point * r )
+{
+	double qp_x = p->x - q->x;
+	double qp_y = p->y - q->x;
+	double qr_x = r->x - q->x;
+	double qr_y = r->y - q->y;
+	return	(qp_x * qr_x + qp_y * qr_y);
+}
+
+double distance( struct Point * p, struct Point * q )
+{
+	double dx = p->x - q->x;
+	double dy = p->y - q->y;
+	return sqrt( dx*dx + dy*dy);
+}
+
 

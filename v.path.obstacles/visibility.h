@@ -24,6 +24,9 @@
 #include "rotation_tree.h"
 
 void load_lines( struct Map_info *map, struct Point ** points, int * num_points, struct Line ** lines, int * num_lines );
+void process_boundary( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
+void process_line( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
+
 int construct_visibility( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info* out );
 int cmp_points(struct Point * v1, struct Point* v2);
 
