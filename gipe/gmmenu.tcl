@@ -1,11 +1,13 @@
 ###############################################################
-# gmmenu.tcl - menu file for GRASS GIS Manager
-# January 2006 Michael Barton, Arizona State University
-# COPYRIGHT:	(C) 1999 - 2006 by the GRASS Development Team
-#
-#		This program is free software under the GNU General Public
-#		License (>=v2). Read the file COPYING that comes with GRASS
-#		for details.
+# 	File:		gmmenu.tcl
+#	Purpose:	menu file for GRASS GIS Manager
+#	Author:		Michael Barton, Arizona State University
+#				Based originally on menu for d.m and tcltkgrass
+#				Additions by Cedrick Shock and Benjamin Ducke
+# 	COPYRIGHT:	(C) 2006-2007 by the GRASS Development Team
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
 ###############################################################
 
 # our job is simply to make a variable called descmenu
@@ -88,442 +90,451 @@ set descmenu [subst  {
 		{command {[G_msg "Save as..."]} {} "Save gis.m workspace file as new name" {} -command { set filename($mon) "" ; Gm::SaveFileBox }}
 		{command {[G_msg "Close"]} {} "Close gis.m workspace" {} -accelerator $keyctrl-W -command { GmTree::FileClose {}}}
 	}}
-	{cascad {[G_msg "Import"]} {} "" $tmenu {			
-		{cascad {[G_msg "Raster map"]} {} "" $tmenu {
-			{command {[G_msg "Multiple formats using GDAL"]} {} "r.in.gdal" {} -command { execute r.in.gdal }}
-			{separator}
-			{command {[G_msg "Aggregate ASCII xyz data into raster grid"]} {} "r.in.xyz" {} -command { execute r.in.xyz }}
-			{command {[G_msg "ASCII GRID (includes GRASS ASCII)"]} {} "r.in.ascii" {} -command { execute r.in.ascii }}
-			{command {[G_msg "Polygons and lines from ASCII file"]} {} "r.in.poly" {} -command { execute r.in.poly }}
-			{separator}
-			{command {[G_msg "Binary file (includes GTOPO30 format)"]} {} "r.in.bin" {} -command { execute r.in.bin }}
-			{command {[G_msg "ESRI Arc/Info ASCII grid"]} {} "r.in.arc" {} -command { execute r.in.arc }}
-			{command {[G_msg "GRIDATB.FOR map file (TOPMODEL)"]} {} "r.in.gridatb" {} -command { execute r.in.gridatb }}
-			{command {[G_msg "MAT-File (v.4) array (Matlab or Octave)"]} {} "r.in.mat" {} -command { execute r.in.mat }}
-			{command {[G_msg "SPOT vegetation NDVI data sets"]} {} "i.in.spotvgt" {} -command { execute i.in.spotvgt }}
-			{command {[G_msg "SRTM hgt files"]} {} "r.in.srtm" {} -command { execute r.in.srtm }}
-			{command {[G_msg "Terra ASTER HDF files"]} {} "r.in.aster" {} -command { execute r.in.aster }}
-			{separator}
-			{command {[G_msg "Web Mapping Server"]} {} "r.in.wms" {} -command { execute r.in.wms }}
-		}}
-		{cascad {[G_msg "Vector map"]} {} "" $tmenu {			
-			{command {[G_msg "Various formats using OGR"]} {} "v.in.ogr" {} -command { execute v.in.ogr }}
-			{separator}
-			{command {[G_msg "ASCII points file or GRASS ASCII vector file"]} {} "v.in.ascii" {} -command { execute v.in.ascii }}
-			{command {[G_msg "Import old GRASS vector format"]} {} "v.convert" {} -command { execute v.convert }}
-			{separator}
-			{command {[G_msg "DXF file"]} {} "v.in.dxf" {} -command { execute v.in.dxf }}
-			{command {[G_msg "ESRI e00 format"]} {} "v.in.e00" {} -command { execute v.in.e00 }}
-			{command {[G_msg "Garmin GPS Waypoints/Routes/Tracks"]} {} "v.in.garmin" {} -command { execute v.in.garmin }}
-			{command {[G_msg "GPS Waypoints/Routes/Tracks using GPSBabel"]} {} "v.in.gpsbabel" {} -command { execute v.in.gpsbabel }}
-			{command {[G_msg "GEOnet Name server country files (US-NGA GNS)"]} {} "v.in.gns" {} -command { execute v.in.gns }}
-			{command {[G_msg "Matlab and MapGen files"]} {} "v.in.mapgen" {} -command { execute v.in.mapgen }}
-		}}
-		{cascad {[G_msg "Grid 3D"]} {} "" $tmenu {			
-			{command {[G_msg "ASCII 3D file"]} {} "r3.in.ascii" {} -command { execute r3.in.ascii }}
-			{command {[G_msg "Vis5D file"]} {} "r3.in.v5d" {} -command { execute r3.in.v5d }}
-		}}
+	{separator}
+	{cascad {[G_msg "Import raster map"]} {} "" $tmenu {
+		{command {[G_msg "Multiple formats using GDAL"]} {} "r.in.gdal: Import multiple formats using GDAL" {} -command { execute r.in.gdal }}
+		{separator}
+		{command {[G_msg "Aggregate ASCII xyz"]} {} "r.in.xyz: Import aggregate ASCII xyz data into raster grid" {} -command { execute r.in.xyz }}
+		{command {[G_msg "ASCII grid"]} {} "r.in.ascii: Import ASCII grid (includes GRASS ASCII)" {} -command { execute r.in.ascii }}
+		{command {[G_msg "ASCII polygons and lines"]} {} "r.in.poly: Import polygons and lines from ASCII file" {} -command { execute r.in.poly }}
+		{separator}
+		{command {[G_msg "Binary"]} {} "r.in.bin: Import binary file (includes GTOPO30 format)" {} -command { execute r.in.bin }}
+		{command {[G_msg "ESRI grid"]} {} "r.in.arc: Import ESRI Arc/Info ASCII grid" {} -command { execute r.in.arc }}
+		{command {[G_msg "GRIDATB.FOR"]} {} "r.in.gridatbk: Import GRIDATB.FOR map file (TOPMODEL)" {} -command { execute r.in.gridatb }}
+		{command {[G_msg "MAT-File (v.4)"]} {} "r.in.mat: Import MAT-File (v.4) array (Matlab or Octave)" {} -command { execute r.in.mat }}
+		{command {[G_msg "SPOT NDVI"]} {} "i.in.spotvgt: Import SPOT vegetation NDVI data sets" {} -command { execute i.in.spotvgt }}
+		{command {[G_msg "SRTM hgt"]} {} "r.in.srtm: Import SRTM hgt files" {} -command { execute r.in.srtm }}
+		{command {[G_msg "Terra ASTER"]} {} "r.in.aster: Import Terra ASTER HDF files" {} -command { execute r.in.aster }}
+		{separator}
+		{command {[G_msg "Web Mapping Server"]} {} "r.in.wms: Import Web Mapping Server files" {} -command { execute r.in.wms }}
 	}}
-	{cascad {[G_msg "Export"]} {} "" $tmenu {
-		{cascad {[G_msg "Raster map"]} {} "" $tmenu {
-			{command {[G_msg "Multiple formats using GDAL"]} {} "r.out.gdal" {} -command { execute r.out.gdal }}
-			{separator}
-			{command {[G_msg "ASCII grid (for GRASS, Surfer, Modflow, etc)"]} {} "r.out.ascii" {} -command { execute r.out.ascii }}
-			{command {[G_msg "ASCII x,y,z values of cell centers"]} {} "r.out.xyz" {} -command { execute r.out.xyz }}
-			{separator}
-			{command {[G_msg "ESRI Arc/Info ASCII grid"]} {} "r.out.arc" {} -command { execute r.out.arc }}
-			{command {[G_msg "GRIDATB.FOR map file (TOPMODEL)"]} {} "r.out.gridatb" {} -command { execute r.out.gridatb }}
-			{command {[G_msg "MAT-File (v.4) array (Matlab or Octave)"]} {} "r.out.mat" {} -command { execute r.out.mat }}
-			{separator}
-			{command {[G_msg "Binary file"]} {} "r.out.bin" {} -command { execute r.out.bin }}
-			{separator}
-			{command {[G_msg "MPEG-1 animations"]} {} "r.out.mpeg" {} -command { execute r.out.mpeg }}
-			{command {[G_msg "PNG image (not georeferenced)"]} {} "r.out.png" {} -command { execute r.out.png }}
-			{command {[G_msg "PPM image (24bit)"]} {} "r.out.ppm" {} -command { execute r.out.ppm }}
-			{command {[G_msg "PPM image from red, green, blue raster maps"]} {} "r.out.ppm3" {} -command { execute r.out.ppm3 }}
-			{command {[G_msg "POVray height-field"]} {} "r.out.pov" {} -command { execute r.out.pov }}
-			{command {[G_msg "TIFF image (8/24bit)"]} {} "r.out.tiff" {} -command { execute r.out.tiff }}
-			{command {[G_msg "VRML file"]} {} "r.out.vrml" {} -command { execute r.out.vrml }}
-			{command {[G_msg "VTK ASCII file"]} {} "r.out.vtk" {} -command { execute r.out.vtk }}
-		}}
-		{cascad {[G_msg "Vector map"]} {} "" $tmenu {			
-			{command {[G_msg "Various formats using OGR (SHAPE, MapInfo etc)"]} {} "v.out.ogr" {} -command { execute v.out.ogr }}
-			{separator}
-			{command {[G_msg "DXF file (ASCII)"]} {} "v.out.dxf" {} -command { execute v.out.dxf }}
-			{command {[G_msg "ASCII vector or point file/old GRASS ASCII vector file"]} {} "v.out.ascii" {} -command { execute v.out.ascii }}
-			{command {[G_msg "POV-Ray format"]} {} "v.out.pov" {} -command { execute v.out.pov }}
-			{command {[G_msg "SVG file"]} {} "v.out.svg" {} -command { execute v.out.svg }}
-			{command {[G_msg "VTK ASCII file"]} {} "v.out.vtk" {} -command { execute v.out.vtk }}
-		}}
-		{cascad {[G_msg "Grid 3D"]} {} "" $tmenu {
-			{command {[G_msg "ASCII 3D file"]} {} "r3.out.ascii" {} -command { execute r3.out.ascii }}
-			{command {[G_msg "Vis5D file"]} {} "r3.out.v5d" {} -command { execute r3.out.v5d }}
-			{command {[G_msg "VTK ASCII file"]} {} "r3.out.vtk" {} -command { execute r3.out.vtk }}
-		}}
+	{cascad {[G_msg "Import vector map"]} {} "" $tmenu {			
+		{command {[G_msg "Multiple formats using OGR"]} {} "v.in.ogr: Import multiple formats using OGR" {} -command { execute v.in.ogr }}
+		{separator}
+		{command {[G_msg "ASCII points or GRASS ASCII vector"]} {} "v.in.ascii: Import ASCII points file or GRASS ASCII vector file" {} -command { execute v.in.ascii }}
+		{command {[G_msg "Old GRASS vector"]} {} "v.convert: Import old GRASS vector format" {} -command { execute v.convert }}
+		{separator}
+		{command {[G_msg "DXF"]} {} "v.in.dxf: Import DXF file" {} -command { execute v.in.dxf }}
+		{command {[G_msg "ESRI e00"]} {} "v.in.e00: Import ESRI e00 format" {} -command { execute v.in.e00 }}
+		{command {[G_msg "Garmin GPS"]} {} "v.in.garmin: Import Garmin GPS waypoints/routes/tracks" {} -command { execute v.in.garmin }}
+		{command {[G_msg "GPSBabel GPS"]} {} "v.in.gpsbabel: Import GPS waypoints/routes/tracks using GPSBabel" {} -command { execute v.in.gpsbabel }}
+		{command {[G_msg "GEOnet"]} {} "v.in.gns: Import GEOnet Name server country files (US-NGA GNS)" {} -command { execute v.in.gns }}
+		{command {[G_msg "Matlab and MapGen"]} {} "v.in.mapgen: Import Matlab and MapGen files" {} -command { execute v.in.mapgen }}
+	}}
+	{cascad {[G_msg "Import grid 3D volume"]} {} "" $tmenu {			
+		{command {[G_msg "ASCII 3D"]} {} "r3.in.ascii: Import ASCII 3D file" {} -command { execute r3.in.ascii }}
+		{command {[G_msg "Vis5D"]} {} "r3.in.v5d: Import Vis5D file" {} -command { execute r3.in.v5d }}
 	}}
 	{separator}
+	{cascad {[G_msg "Export raster map"]} {} "" $tmenu {
+		{command {[G_msg "Multiple formats using GDAL"]} {} "r.out.gdal: Export multiple formats using GDAL" {} -command { execute r.out.gdal }}
+		{separator}
+		{command {[G_msg "ASCII grid"]} {} "r.out.ascii: Export ASCII grid (for GRASS, Surfer, Modflow, etc)" {} -command { execute r.out.ascii }}
+		{command {[G_msg "ASCII x,y,z"]} {} "r.out.xyz: Export ASCII x,y,z values of cell centers" {} -command { execute r.out.xyz }}
+		{separator}
+		{command {[G_msg "ESRI ASCII grid"]} {} "r.out.arc" {} -command { execute r.out.arc }}
+		{command {[G_msg "GRIDATB.FOR"]} {} "r.out.gridatb: Export GRIDATB.FOR map file (TOPMODEL)" {} -command { execute r.out.gridatb }}
+		{command {[G_msg "MAT-File (v.4)"]} {} "r.out.mat: Export MAT-File (v.4) array (Matlab or Octave)" {} -command { execute r.out.mat }}
+		{separator}
+		{command {[G_msg "Binary"]} {} "r.out.bin: Export binary file" {} -command { execute r.out.bin }}
+		{separator}
+		{command {[G_msg "MPEG-1"]} {} "r.out.mpeg: Export MPEG-1 animations" {} -command { execute r.out.mpeg }}
+		{command {[G_msg "PNG"]} {} "r.out.png: Export PNG image (not georeferenced)" {} -command { execute r.out.png }}
+		{command {[G_msg "PPM"]} {} "r.out.ppm: Export PPM image (24bit)" {} -command { execute r.out.ppm }}
+		{command {[G_msg "PPM from RGB"]} {} "r.out.ppm3: Export PPM image from red, green, blue raster maps" {} -command { execute r.out.ppm3 }}
+		{command {[G_msg "POV-Ray"]} {} "r.out.pov: Export POV-Ray height-field" {} -command { execute r.out.pov }}
+		{command {[G_msg "TIFF"]} {} "r.out.tiff: Export TIFF image (8/24bit)" {} -command { execute r.out.tiff }}
+		{command {[G_msg "VRML"]} {} "r.out.vrml: Export VRML file" {} -command { execute r.out.vrml }}
+		{command {[G_msg "VTK"]} {} "r.out.vtk: Export VTK ASCII file" {} -command { execute r.out.vtk }}
+	}}
+	{cascad {[G_msg "Export vector map"]} {} "" $tmenu {			
+		{command {[G_msg "Multiple formats using OGR"]} {} "v.out.ogr: Export multiple formats using OGR (SHAPE, MapInfo etc)" {} -command { execute v.out.ogr }}
+		{separator}
+		{command {[G_msg "ASCII points or GRASS ASCII vector"]} {} "v.out.ascii: Export ASCII vector or point file/old GRASS ASCII vector file" {} -command { execute v.out.ascii }}
+		{command {[G_msg "DXF"]} {} "v.out.dxf: Export DXF file (ASCII)" {} -command { execute v.out.dxf }}
+		{command {[G_msg "POV-Ray"]} {} "v.out.pov: Export POV-Ray format" {} -command { execute v.out.pov }}
+		{command {[G_msg "SVG"]} {} "v.out.svg: Export SVG file" {} -command { execute v.out.svg }}
+		{command {[G_msg "VTK"]} {} "v.out.vtk: Export VTK ASCII file" {} -command { execute v.out.vtk }}
+	}}
+	{cascad {[G_msg "Exort grid 3D volume"]} {} "" $tmenu {
+		{command {[G_msg "ASCII 3D"]} {} "r3.out.ascii: Export ASCII 3D file" {} -command { execute r3.out.ascii }}
+		{command {[G_msg "Vis5D"]} {} "r3.out.v5d: Export Vis5D file" {} -command { execute r3.out.v5d }}
+		{command {[G_msg "VTK"]} {} "r3.out.vtk: Export VTK ASCII file" {} -command { execute r3.out.vtk }}
+		}}
+	{separator}
 	{cascad {[G_msg "Manage maps and volumes"]} {} "" $tmenu {
-		{command {[G_msg "Copy maps"]} {} "g.copy" {} -command {execute g.copy }}
-		{command {[G_msg "List maps"]} {} "g.list" {} -command {execute g.list}}
-		{command {[G_msg "List maps using expressions and 'wildcards'"]} {} "g.mlist" {} -command {execute g.mlist }}
-		{command {[G_msg "Rename maps"]} {} "g.rename" {} -command {execute g.rename }}
-		{command {[G_msg "Remove maps"]} {} "g.remove" {} -command {execute g.remove }}
-		{command {[G_msg "Remove maps using expressions and 'wildcards'"]} {} "g.mremove" {} -command {execute g.mremove }}
+		{command {[G_msg "Copy"]} {} "g.copy: Copy maps" {} -command {execute g.copy }}
+		{separator}
+		{command {[G_msg "List"]} {} "g.list: List maps" {} -command {execute g.list}}
+		{command {[G_msg "List filtered"]} {} "g.mlist: List maps using expressions and 'wildcards'" {} -command {execute g.mlist }}
+		{separator}
+		{command {[G_msg "Rename"]} {} "g.rename: Rename maps" {} -command {execute g.rename }}
+		{separator}
+		{command {[G_msg "Delete"]} {} "g.remove: Delete maps" {} -command {execute g.remove }}
+		{command {[G_msg "Delete filtered"]} {} "g.mremove: Delete maps using expressions and 'wildcards'" {} -command {execute g.mremove }}
 	}}
 	{cascad {[G_msg "Map type conversions"]} {} "" $tmenu {
-		{command {[G_msg "Raster to vector map"]} {} "r.to.vect" {} -command {execute r.to.vect }}
-		{command {[G_msg "Raster map series to volume"]} {} "r.to.rast3" {} -command {execute r.to.rast3 }}
-		{command {[G_msg "Raster 2.5D map to volume"]} {} "r.to.rast3elev" {} -command {execute r.to.rast3elev }}
-		{command {[G_msg "Vector to raster"]} {} "v.to.rast" {} -command {execute v.to.rast }}
-		{command {[G_msg "Vector to vector"]} {} "v.type" {} -command {execute v.type }}
-		{command {[G_msg "Vector lines to points"]} {} "v.to.points" {} -command {execute v.to.points }}
-		{command {[G_msg "Vector 3D points to volume voxels"]} {} "v.to.rast3" {} -command {execute v.to.rast3 }}
-		{command {[G_msg "Sites (GRASS 5) to vector"]} {} "v.in.sites" {} -command {execute v.in.sites }}
-		{command {[G_msg "Volumes to raster map series"]} {} "r3.to.rast" {} -command {execute r3.to.rast }}
+		{command {[G_msg "Raster to vector"]} {} "r.to.vect: Convert aster to vector map" {} -command {execute r.to.vect }}
+		{command {[G_msg "Raster series to volume"]} {} "r.to.rast3: Convert raster map series to volume" {} -command {execute r.to.rast3 }}
+		{command {[G_msg "Raster 2.5D to volume"]} {} "r.to.rast3elev: Convert raster 2.5D map to volume" {} -command {execute r.to.rast3elev }}
+		{separator}
+		{command {[G_msg "Vector to raster"]} {} "v.to.rast: Convert vector to raster map" {} -command {execute v.to.rast }}
+		{command {[G_msg "Vector to volume"]} {} "v.to.rast3: Convert vector 3D points to volume voxels" {} -command {execute v.to.rast3 }}
+		{command {[G_msg "Sites to vector"]} {} "v.in.sites: Convert GRASS 5 sites to vector points" {} -command {execute v.in.sites }}
+		{separator}
+		{command {[G_msg "Volume to raster series"]} {} "r3.to.rast: Convert volume to raster map series" {} -command {execute r3.to.rast }}
 	}}
 	{separator}
 	{command {[G_msg "Georectify"]} {} "Georectify raster map in XY location" {} -command { GRMap::startup }}
 	{separator}
-	{command {[G_msg "Convert between bearing/distance and coordinates"]} {} "m.cogo" {} -command { execute m.cogo }}
+	{command {[G_msg "Bearing/distance to coordinates"]} {} "m.cogo: Convert between bearing/distance and coordinates" {} -command { execute m.cogo }}
 	{separator}
-	{command {[G_msg "Create cartographic PostScript plot"]} {} "ps.map" {} -command { execute ps.map }}
+	{command {[G_msg "PostScript plot"]} {} "ps.map: Create cartographic PostScript plot" {} -command { execute ps.map }}
 	{separator}
 	{command {[G_msg "E&xit"]} {} "Exit GIS Manager" {} -accelerator $keyctrl-Q -command { exit } }
  }
  {[G_msg "&Config"]} all options $tmenu {
 	{cascad {[G_msg "Region"]} {} "" $tmenu {
-		{command {[G_msg "Display region settings"]} {} "g.region -p" {} -command {run_panel "g.region -p" }}
-		{command {[G_msg "Change region settings"]} {} "g.region" {} -command {execute g.region }}
-		{command {[G_msg "Zoom to maximum extent of all displayed maps"]} {} "d.extend" {} -command {run_panel d.extend }}
+		{command {[G_msg "Display region settings"]} {} "g.region -p: Display region settings" {} -command {run_panel "g.region -p" }}
+		{command {[G_msg "Change region settings"]} {} "g.region: " {} -command {execute g.region }}
 	}}
 	{cascad {[G_msg "GRASS working environment"]} {} "" $tmenu {			
-		{command {[G_msg "Access other mapsets in current location"]} {} "g.mapsets.tcl" {} -command {spawn $env(GISBASE)/etc/g.mapsets.tcl}}
-		{command {[G_msg "Change current working session to new mapset, location, or GISDBASE"]} {} "g.mapset" {} -command {execute g.mapset }}
-		{command {[G_msg "Modify access by other users to current mapset"]} {} "g.access" {} -command {execute g.access }}
-		{command {[G_msg "Show current GRASS environment settings"]} {} "g.gisenv" {} -command {run_panel g.gisenv }}
-		{command {[G_msg "Set GRASS environment settings"]} {} "g.gisenv" {} -command {execute g.gisenv }}
-		{command {[G_msg "Show current GRASS version"]} {} "g.version -c" {} -command {run_panel "g.version -c" }}
+		{command {[G_msg "Mapset access"]} {} "g.mapsets.tcl: Access other mapsets in current location" {} -command {spawn $env(GISBASE)/etc/g.mapsets.tcl}}
+		{command {[G_msg "Change working environment"]} {} "g.mapset: Change current working session to new mapset, location, or GISDBASE" {} -command {execute g.mapset }}
+		{command {[G_msg "User access"]} {} "g.access: Modify access by other users to current mapset" {} -command {execute g.access }}
+		{command {[G_msg "Show settings"]} {} "g.gisenv: Show current GRASS environment settings" {} -command {run_panel g.gisenv }}
+		{command {[G_msg "Change settings"]} {} "g.gisenv: Set GRASS environment settings" {} -command {execute g.gisenv }}
+		{command {[G_msg "Show current GRASS version"]} {} "g.version -c: Show current GRASS version" {} -command {run_panel "g.version -c" }}
 	}}
 	{cascad {[G_msg "Manage projections"]} {} "" $tmenu {
-		{command {[G_msg "Create/edit projection information for current location"]} {} "g.setproj" {} -command {term g.setproj }}
-		{command {[G_msg "Show projection information and create projection files"]} {} "g.proj" {} -command {execute g.proj }}
+		{command {[G_msg "Manage projections"]} {} "g.proj: Show projection information and create projection files" {} -command {execute g.proj }}
+		{command {[G_msg "Projection for current location"]} {} "g.setproj: Create/edit projection information for current location" {} -command {term g.setproj }}
 		{separator}
-		{command {[G_msg "Convert coordinates from one projection to another"]} {} "m.proj" {} -command {execute m.proj }}
+		{command {[G_msg "Convert coordinates"]} {} "m.proj: Convert coordinates from one projection to another" {} -command {execute m.proj }}
 	}}
-	{cascad {[G_msg "X-monitor displays"]} {} "" $tmenu {
-		{command {[G_msg "Configure xmonitor displays"]} {} "d.mon" {} -command {execute d.mon }}
-		{command {[G_msg "Configure frames for xmonitors"]} {} "d.frame" {} -command {execute d.frame }}
-		{command {[G_msg "Start/restart xmonitor at specified window size"]} {} "d.monsize" {} -command {execute d.monsize }}
-		{command {[G_msg "Set active xmonitor to specified size"]} {} "d.resize" {} -command {execute d.resize }}
-		{command {[G_msg "Display information about active xmonitor"]} {} "d.info" {} -command {execute d.info }}
-	}}
-	{separator}
-	{command {[G_msg "Install GRASS Extensions"]} {} "m.gem" {} -command {execute m.gem }}
+	{command {[G_msg "Display font"]} {} "Set default display font" {} -command {Gm:DefaultFont "menu" }}
  } 
  {[G_msg "&Raster"]} all options $tmenu {
 	{cascad {[G_msg "Develop map"]} {} "" $tmenu {			
-		{command {[G_msg "Digitize raster"]} {} "r.digit" {} -command {guarantee_xmon; term r.digit }}
+		{command {[G_msg "Digitize raster"]} {} "r.digit" {} -command {
+			unset env(GRASS_RENDER_IMMEDIATE)
+			guarantee_xmon
+			term r.digit 
+			set env(GRASS_RENDER_IMMEDIATE) "TRUE"}}
 		{separator}
-		{command {[G_msg "Compress/decompress raster file"]} {} "r.compress" {} -command {execute r.compress }}
-		{command {[G_msg "Manage boundary definitions"]} {} "r.region" {} -command {execute r.region }}
-		{command {[G_msg "Manage null values"]} {} "r.null" {} -command {execute r.null }}
-		{command {[G_msg "Manage timestamps for files"]} {} "r.timestamp" {} -command {execute r.timestamp }}
-		{command {[G_msg "Quantization for floating-point maps"]} {} "r.quant" {} -command {execute r.quant }}
-	    {cascad {[G_msg "Resample (change resolution)"]} {} "" $tmenu {
-			{command {[G_msg "Resample using nearest neighbor method"]} {} "r.resample" {} -command {execute r.resample }}
-			{command {[G_msg "Resample using various interpolation methods"]} {} "r.resamp.interp" {} -command {execute r.resamp.interp }}
-			{command {[G_msg "Resample using aggregate statistics"]} {} "r.resamp.stats" {} -command {execute r.resamp.stats }}
-			{command {[G_msg "Resample using regularized spline with tension method"]} {} "r.resamp.rst" {} -command {execute r.resamp.rst }}
-	    }}
-		{command {[G_msg "Support file creation and maintenance"]} {} "r.support" {} -command {term r.support }}
-		{command {[G_msg "Update raster map statistics"]} {} "r.support.stats" {} -command {execute r.support.stats }}
+		{command {[G_msg "Compress/decompress"]} {} "r.compress: Compress/decompress raster file" {} -command {execute r.compress }}
 		{separator}
-		{command {[G_msg "Reproject raster from other location"]} {} "r.proj" {} -command {execute r.proj }}
-		{command {[G_msg "Generate tiling for other projection"]} {} "r.tileset" {} -command {execute r.tileset }}
+		{command {[G_msg "Boundaries"]} {} "r.region: Manage boundary definitions" {} -command {execute r.region }}
+		{command {[G_msg "Null values"]} {} "r.null:Manage null values" {} -command {execute r.null }}
+		{command {[G_msg "Quantization"]} {} "r.quant: Quantization for floating-point maps" {} -command {execute r.quant }}
+		{command {[G_msg "Timestamps"]} {} "r.timestamp: Manage timestamps for files" {} -command {execute r.timestamp }}
+		{separator}
+		{command {[G_msg "Resample using aggregate statistics"]} {} "r.resamp.stats: Resample (change resolution) using aggregate statistics sing regularized spline tension" {} -command {execute r.resamp.stats }}
+		{command {[G_msg "Resample using multiple methods"]} {} "r.resamp.interp: Resample (change resolution) using nearest neighbor, bilinear, or bicubic interpolation" {} -command {execute r.resamp.interp }}
+		{command {[G_msg "Resample using nearest neighbor"]} {} "r.resample: Resample (change resolution) using nearest neighbor interpolation" {} -command {execute r.resample }}
+		{command {[G_msg "Resample using spline tension"]} {} "r.resamp.rst: Resample (change resolution)" {} -command {execute r.resamp.rst }}
+		{separator}
+		{command {[G_msg "Support file maintenance"]} {} "r.support: Support file maintenance" {} -command {term r.support }}
+		{command {[G_msg "Update map statistics"]} {} "r.support.stats: Update map statistics" {} -command {execute r.support.stats }}
+		{separator}
+		{command {[G_msg "Reproject"]} {} "r.proj: Reproject raster from other location" {} -command {execute r.proj }}
+		{command {[G_msg "Tiling"]} {} "r.tileset: Generate tiling for other projection" {} -command {execute r.tileset }}
 	}}
 	{cascad {[G_msg "Manage map colors"]} {} "" $tmenu {			
-		{command {[G_msg "Set colors to predefined color tables"]} {} "r.colors" {} -command {execute r.colors }}
-		{command {[G_msg "Set colors using color rules"]} {} "r.colors.rules" {} -command {execute $env(GISBASE)/etc/gm/script/r.colors.rules }}
+		{command {[G_msg "Color tables"]} {} "r.colors: Set colors to predefined color tables or from another raster map" {} -command {execute r.colors }}
+		{command {[G_msg "Color rules"]} {} "Set colors interactively by entering color rules" {} -command {GmRules::main "r.colors" }}
 		{separator}
-		{command {[G_msg "Blend 2 color maps to produce 3 RGB files"]} {} "r.blend" {} -command {execute r.blend }}
-		{command {[G_msg "Create color image from RGB files"]} {} "r.composite" {} -command {execute r.composite }}
-		{command {[G_msg "Create 3 RGB (red, green, blue) maps from 3 HIS (hue, intensity, saturation) maps"]} {} "r.his" {} -command {execute r.his }}
-	}}
-	{cascad {[G_msg "Query/Profile"]} {} "" $tmenu {			
-		{command {[G_msg "Query by coordinate(s)"]} {} "r.what" {} -command { execute r.what }}
-		{command {[G_msg "Profile analysis"]} {} "d.profile" {} -command {guarantee_xmon; execute d.profile }}
+		{command {[G_msg "Blend"]} {} "r.blend: Blend 2 color maps to produce 3 RGB files" {} -command {execute r.blend }}
+		{command {[G_msg "Create RGB"]} {} "r.composite: Create color image from RGB files" {} -command {execute r.composite }}
+		{command {[G_msg "HIS to RGB"]} {} "r.his: Create 3 RGB (red, green, blue) maps from 3 HIS (hue, intensity, saturation) maps" {} -command {execute r.his }}
 	}}
 	{separator}
-	{command {[G_msg "Create raster MASK"]} {} "r.mask" {} -command { execute r.mask }}
-	{command {[G_msg "Create raster buffers"]} {} "r.buffer" {} -command { execute r.buffer }}
-	{command {[G_msg "Map calculator"]} {} "r.mapcalculator" {} -command { execute r.mapcalculator }}
+	{command {[G_msg "Query by coordinate(s)"]} {} "r.what: Query by coordinate(s)" {} -command { execute r.what }}
 	{separator}
+	{command {[G_msg "Buffers"]} {} "r.buffer: Create raster buffers" {} -command { execute r.buffer }}
+	{command {[G_msg "Closest points"]} {} "r.distance: Locate closest points between areas in 2 raster maps" {} -command { execute r.distance }}
+	{command {[G_msg "MASK"]} {} "r.mask: Create raster MASK (defines map areas for GIS operations)" {} -command { execute r.mask }}
+	{command {[G_msg "Map calculator"]} {} "r.mapcalculator: Map calculator" {} -command { execute r.mapcalculator }}
+	{cascad  {[G_msg "Neighborhood analysis"]} {} "" $tmenu {			
+		{command {[G_msg "Moving window"]} {} "r.neighbors: Moving window analysis of raster cells" {} -command { execute r.neighbors }}
+		{command {[G_msg "Neighborhood points"]} {} "v.neighbors: Analyze vector points in neighborhood of raster cells" {} -command { execute v.neighbors }}
+	}}
 	{cascad {[G_msg "Overlay maps"]} {} "" $tmenu {			
-		{command {[G_msg "Cross product"]} {} "r.cross" {} -command {execute r.cross }}
-		{command {[G_msg "Function of map series (time series)"]} {} "r.series" {} -command {execute r.series }}
-		{command {[G_msg "Patch maps"]} {} "r.patch" {} -command {execute r.patch }}
+		{command {[G_msg "Cross product"]} {} "r.cross: Cross product" {} -command {execute r.cross }}
+		{command {[G_msg "Map series"]} {} "r.series: Function of map series (time series)" {} -command {execute r.series }}
+		{command {[G_msg "Patch maps"]} {} "r.patch: Patch maps" {} -command {execute r.patch }}
 		{separator}
-		{command {[G_msg "Statistical calculations for cover map over base map"]} {} "r.statistics" {} -command {execute r.statistics }}
+		{command {[G_msg "Statistical overlay"]} {} "r.statistics: Statistical calculations for cover map over base map" {} -command {execute r.statistics }}
+	}}
+	{cascad {[G_msg "Solar radiance and shadows"]} {} "" $tmenu {			
+		{command {[G_msg "Solar irradiance irradiation"]} {} "r.sun: Solar irradiance and daily irradiation" {} -command {execute r.sun }}
+		{command {[G_msg "Shadows map"]} {} "r.sunmask: Shadows map for sun position or date/time" {} -command {execute r.sunmask }}
+	}}
+	{cascad {[G_msg "Terrain analysis"]} {} "" $tmenu {			
+		{command {[G_msg "Cumulative movement costs"]} {} "r.walk: Calculate cumulative movement costs between locales" {} -command {execute r.walk }}
+		{command {[G_msg "Cost surface"]} {} "r.cost: Cost surface" {} -command {execute r.cost }}
+		{command {[G_msg "Least cost route or flow"]} {} "r.drain: Least cost route or flow" {} -command {execute r.drain }}
+		{separator}
+		{command {[G_msg "Shaded relief"]} {} "r.shaded.relief: Shaded relief map" {} -command {execute r.shaded.relief }}
+		{separator}
+		{command {[G_msg "Slope and aspect"]} {} "r.slope.aspect: Slope and aspect" {} -command {execute r.slope.aspect }}
+		{command {[G_msg "Terrain parameters"]} {} "r.param.scale: Terrain parameters" {} -command {execute r.param.scale }}
+		{command {[G_msg "Textural features"]} {} "r.texture: Textural features" {} -command {execute r.texture }}
+		{separator}
+		{command {[G_msg "Visibility"]} {} "r.los: Visibility/line of sight" {} -command {execute r.los }}
 	}}
 	{cascad {[G_msg "Transform features"]} {} "" $tmenu {			
-		{command {[G_msg "Clump small areas (statistics calculated by r.volume)"]} {} "r.clump" {} -command {execute r.clump }}
-		{command {[G_msg "Grow areas"]} {} "r.grow" {} -command {execute r.grow }}
-		{command {[G_msg "Thin linear features"]} {} "r.thin" {} -command {execute r.thin }}
-	}}
-	{cascad {[G_msg "Proximity/Neighborhood analysis"]} {} "" $tmenu {
-		{command {[G_msg "Moving window analysis of raster cells"]} {} "r.neighbors" {} -command { execute r.neighbors }}
-		{command {[G_msg "Analyze vector points in neighborhood of raster cells"]} {} "v.neighbors" {} -command { execute v.neighbors }}
-		{separator}
-		{command {[G_msg "Locate closest points between areas in 2 raster maps"]} {} "r.distance" {} -command { execute r.distance }}
+		{command {[G_msg "Clump"]} {} "r.clump: Clump small areas (statistics calculated by r.volume)" {} -command {execute r.clump }}
+		{command {[G_msg "Grow"]} {} "r.grow: Grow areas" {} -command {execute r.grow }}
+		{command {[G_msg "Thin"]} {} "r.thin: Thin linear features" {} -command {execute r.thin }}
 	}}
 	{separator}
-	{cascad {[G_msg "Modeling: Hydrologic"]} {} "" $tmenu {
-		{command {[G_msg "Carve stream channels into elevation map using vector streams map"]} {} "r.carve" {} -command {execute r.carve }}
-		{command {[G_msg "Depressionless elevation map and flowline map"]} {} "r.fill.dir" {} -command {execute r.fill.dir }}
-		{command {[G_msg "Fill lake from seed point to specified level"]} {} "r.lake" {} -command {execute r.lake }}
-		{command {[G_msg "Flow accumulation for massive grids"]} {} "r.terraflow" {} -command {execute r.terraflow }}
-		{command {[G_msg "Generate flow lines for raster map"]} {} "r.flow" {} -command {execute r.flow }}
-		{command {[G_msg "SIMWE overland flow modeling"]} {} "r.sim.water" {} -command {execute r.sim.water }}
-		{command {[G_msg "SIMWE sediment erosion, transport, & deposition modeling"]} {} "r.sim.sediment" {} -command {execute r.sim.sediment }}
-		{command {[G_msg "Topographic index map"]} {} "r.topidx" {} -command {execute r.topidx }}
-		{command {[G_msg "TOPMODEL simulation"]} {} "r.topmodel" {} -command {execute r.topmodel }}
-		{command {[G_msg "Watershed subbasins"]} {} "r.basins.fill" {} -command {execute r.basins.fill }}
-		{command {[G_msg "Watershed analysis"]} {} "r.watershed" {} -command {execute r.watershed }}
-		{command {[G_msg "Watershed basin creation"]} {} "r.water.outlet" {} -command {execute r.water.outlet }}
-	}}
-	{cascad {[G_msg "Modeling: Landscape structure"]} {} "" $tmenu {			
-		{command {[G_msg "Set up sampling and analysis framework"]} {} "r.le.setup" {} -command {guarantee_xmon; term r.le.setup }}
-		{separator}
-		{command {[G_msg "Analyze landscape characteristics"]} {} "r.le.pixel" {} -command {execute r.le.pixel }}
-		{command {[G_msg "Analyze landscape patch characteristics"]} {} " r.le.patch" {} -command {execute r.le.patch }}
-		{command {[G_msg "Output landscape patch information"]} {} "r.le.trace" {} -command {execute r.le.trace }}
-	}}
-	{cascad {[G_msg "Modeling: Landscape patch analysis"]} {} "" $tmenu {			
-		{command {[G_msg "Configure and create patch map for analysis"]} {} "r.li.setup" {} -command {execute r.li.setup }}
-		{separator}
-		{command {[G_msg "Calculate contrast weighted edge density index"]} {} "r.li.cwed" {} -command {execute r.li.cwed }}
-		{command {[G_msg "Calculate dominance's diversity index"]} {} "r.li.dominance" {} -command {execute r.li.dominance }}
-		{command {[G_msg "Calculate edge density index using a 4 neighbour algorithm"]} {} "r.li.edgedensity" {} -command {execute r.li.edgedensity }}
-		{command {[G_msg "Calculate mean patch size index using a 4 neighbour algorithm"]} {} " r.li.mps" {} -command {execute r.li.mps }}
-		{command {[G_msg "Calculate coefficient of variation of patch area"]} {} "	r.li.padcv" {} -command {execute r.li.padcv }}
- 		{command {[G_msg "Calculate range of patch area size"]} {} "r.li.padrange" {} -command {execute r.li.padrange }}
- 		{command {[G_msg "Calculate standard deviation of patch area"]} {} "r.li.padsd" {} -command {execute r.li.padsd }}
- 		{command {[G_msg "Calculate patch density index using a 4 neighbour algorithm"]} {} "r.li.patchdensity" {} -command {execute r.li.patchdensity }}
- 		{command {[G_msg "Calculate patch number index using a 4 neighbour algorithm"]} {} "r.li.patchnum" {} -command {execute r.li.patchnum }}
- 		{command {[G_msg "Calculate dominance's diversity index"]} {} "r.li.shannon" {} -command {execute r.li.shannon }}
-		{command {[G_msg "Calculate Shannon's diversity index"]} {} "r.li.richness" {} -command {execute r.li.richness }}
- 		{command {[G_msg "Calculate shape index"]} {} "r.li.shape" {} -command {execute r.li.shape }}
- 		{command {[G_msg "Calculate Simpson's diversity index"]} {} "r.li.simpson" {} -command {execute r.li.simpson }}
-	}}
-	{cascad {[G_msg "Modeling: Terrain and solar"]} {} "" $tmenu {			
-		{command {[G_msg "Calculate cumulative movement costs between locales"]} {} "r.walk" {} -command {execute r.walk }}
-		{command {[G_msg "Cost surface"]} {} "r.cost" {} -command {execute r.cost }}
-		{command {[G_msg "Least cost route or flow"]} {} "r.drain" {} -command {execute r.drain }}
-		{separator}
-		{command {[G_msg "Shaded relief map"]} {} "r.shaded.relief" {} -command {execute r.shaded.relief }}
-		{command {[G_msg "Slope and aspect"]} {} "r.slope.aspect" {} -command {execute r.slope.aspect }}
-		{command {[G_msg "Terrain parameters"]} {} "r.param.scale" {} -command {execute r.param.scale }}
-		{separator}
-		{command {[G_msg "Textural features"]} {} "r.texture" {} -command {execute r.texture }}
-		{command {[G_msg "Visibility/line of sight"]} {} "r.los" {} -command {execute r.los }}
-		{separator}
-		{command {[G_msg "Solar irradiance and daily irradiation"]} {} "r.sun" {} -command {execute r.sun }}
-		{command {[G_msg "Shadows map for sun position or date/time"]} {} "r.sunmask" {} -command {execute r.sunmask }}
-	}}
-	{separator}
-	{cascad {[G_msg "Modeling: Universal Soil Loss Equation (USLE)"]} {} "" $tmenu {			
+	{cascad {[G_msg "Universal Soil Loss Equation (USLE)"]} {} "" $tmenu {			
 		{command {[G_msg "Rainfall Erosivity (R)"]} {} "r.usler" {} -command {execute r.usler }}
 		{command {[G_msg "Soil Erodibility (K)"]} {} "r.uslek" {} -command {execute r.uslek }}
 		{command {[G_msg "Length Slope and Slope (LS)"]} {} "r.watershed" {} -command {execute r.watershed }}
 	}}
-	{cascad {[G_msg "Modeling: Wildfire modeling"]} {} "" $tmenu {			
-		{command {[G_msg "Generate rate of spread (ROS) maps"]} {} "r.ros" {} -command {execute r.ros }}
-		{command {[G_msg "Generate least-cost spread paths"]} {} "r.spreadpath" {} -command {execute r.spreadpath }}
-		{command {[G_msg "Simulate anisotropic spread phenomena"]} {} "r.spread" {} -command {execute r.spread }}
+	{cascad {[G_msg "Hydrologic modeling"]} {} "" $tmenu {			
+		{command {[G_msg "Carve stream channels"]} {} "r.carve: Carve stream channels into elevation map using vector streams map" {} -command {execute r.carve }}
+		{command {[G_msg "Fill lake"]} {} "r.lake: Fill lake from seed point to specified level" {} -command {execute r.lake }}
+		{separator}
+		{command {[G_msg "Depressionless  map and flowlines"]} {} "r.fill.dir: Depressionless elevation map and flowline map" {} -command {execute r.fill.dir }}
+		{command {[G_msg "Flow accumulation"]} {} "r.terraflow: Flow accumulation for massive grids" {} -command {execute r.terraflow }}
+		{command {[G_msg "Flow lines"]} {} "r.flow: " {} -command {execute r.flow }}
+		{separator}
+		{command {[G_msg "SIMWE overland flow modeling"]} {} "r.sim.water: SIMWE overland flow modeling" {} -command {execute r.sim.water }}
+		{command {[G_msg "SIMWE sediment flux modeling"]} {} "r.sim.sediment: SIMWE sediment erosion, transport, & deposition modeling" {} -command {execute r.sim.sediment }}
+		{separator}
+		{command {[G_msg "Topographic index map"]} {} "r.topidx: Topographic index map" {} -command {execute r.topidx }}
+		{command {[G_msg "TOPMODEL simulation"]} {} "r.topmodel: TOPMODEL simulation" {} -command {execute r.topmodel }}
+		{separator}
+		{command {[G_msg "Watershed subbasins"]} {} "r.basins.fill: Watershed subbasins" {} -command {execute r.basins.fill }}
+		{command {[G_msg "Watershed analysis"]} {} "r.watershed: Watershed analysis" {} -command {execute r.watershed }}
+		{command {[G_msg "Watershed basin creation"]} {} "r.water.outlet: Watershed basin creation" {} -command {execute r.water.outlet }}
+	}}
+	{cascad {[G_msg "Landscape structure modeling"]} {} "" $tmenu {			
+		{command {[G_msg "Set up"]} {} "r.le.setup: Set up sampling and analysis framework" {} -command {
+			unset env(GRASS_RENDER_IMMEDIATE)
+			guarantee_xmon
+			term r.le.setup 
+			set env(GRASS_RENDER_IMMEDIATE) "TRUE"}}
+		{separator}
+		{command {[G_msg "Analyze landscape"]} {} "r.le.pixel: Analyze landscape characteristics" {} -command {execute r.le.pixel }}
+		{command {[G_msg "Analyze patches"]} {} " r.le.patch: Analyze landscape patch characteristics" {} -command {execute r.le.patch }}
+		{command {[G_msg "Output"]} {} "r.le.trace: Output landscape patch information" {} -command {execute r.le.trace }}
+	}}
+	{cascad {[G_msg "Landscape patch analysis"]} {} "" $tmenu {			
+		{command {[G_msg "Set up sampling and analysis framework"]} {} "r.li.setup: Configure and create patch map for analysis" {} -command {execute r.li.setup }}
+		{separator}
+		{command {[G_msg "Edge density"]} {} "r.li.edgedensity: Calculate edge density index using a 4 neighbour algorithm" {} -command {execute r.li.edgedensity }}
+		{command {[G_msg "Contrast weighted edge density"]} {} "r.li.cwed: Calculate contrast weighted edge density index" {} -command {execute r.li.cwed }}
+		{separator}
+		{command {[G_msg "Patch size mean"]} {} "r.li.mps: Calculate mean patch size index using a 4 neighbour algorithm" {} -command {execute r.li.mps }}
+ 		{command {[G_msg "Patch area range"]} {} "r.li.padrange: Calculate range of patch area size" {} -command {execute r.li.padrange }}
+ 		{command {[G_msg "Patch area Std Dev"]} {} "r.li.padsd: Calculate standard deviation of patch area" {} -command {execute r.li.padsd }}
+		{command {[G_msg "Patch area Coeff Var"]} {} "r.li.padcv: Calculate coefficient of variation of patch area" {} -command {execute r.li.padcv }}
+ 		{command {[G_msg "Patch density"]} {} "r.li.patchdensity: Calculate patch density index using a 4 neighbour algorithm" {} -command {execute r.li.patchdensity }}
+ 		{command {[G_msg "Patch number"]} {} "r.li.patchnum: Calculate patch number index using a 4 neighbour algorithm" {} -command {execute r.li.patchnum }}
+		{separator}
+		{command {[G_msg "Dominance's diversity"]} {} "r.li.dominance: Calculate Dominance's diversity index" {} -command {execute r.li.dominance }}
+ 		{command {[G_msg "Shannon's diversity"]} {} "r.li.shannon: Calculate Shannon's diversity index" {} -command {execute r.li.shannon }}
+ 		{command {[G_msg "Simpson's diversity"]} {} "r.li.simpson: Calculate Simpson's diversity index" {} -command {execute r.li.simpson }}
+		{separator}
+		{command {[G_msg "Ricness"]} {} "r.li.richness: Calculate ricness index" {} -command {execute r.li.richness }}
+ 		{command {[G_msg "Shape index"]} {} "r.li.shape: Calculate shape index" {} -command {execute r.li.shape }}
+	}}
+	{cascad {[G_msg "Wildfire modeling"]} {} "" $tmenu {			
+		{command {[G_msg "Rate of spread"]} {} "r.ros: Generate rate of spread (ROS) maps" {} -command {execute r.ros }}
+		{command {[G_msg "Least-cost spread paths"]} {} "r.spreadpath: Generate least-cost spread paths" {} -command {execute r.spreadpath }}
+		{command {[G_msg "Anisotropic spread simulation"]} {} "r.spread: Simulate anisotropic spread phenomena" {} -command {execute r.spread }}
 	}}
 	{separator}
 	{cascad {[G_msg "Change category values and labels"]} {} "" $tmenu {			
-		{command {[G_msg "Edit category values of individual cells for displayed raster map"]} {} "d.rast.edit" {} \
-		-command {guarantee_xmon; term d.rast.edit }}
+		{command {[G_msg "Interactively edit category values"]} {} "d.rast.edit: Edit category values of individual cells for displayed raster map" {} -command {execute d.rast.edit }}
 		{separator}
-		{command {[G_msg "Reclassify categories for areas of specified sizes"]} {} "r.reclass.area" {} -command {execute r.reclass.area }}
-		{command {[G_msg "Reclassify categories using rules"]} {} "r.reclass.rules" {} -command {execute $env(GISBASE)/etc/gm/script/r.reclass.rules }}
-		{command {[G_msg "Reclassify categories using rules file"]} {} "r.reclass.file" {} -command {execute $env(GISBASE)/etc/gm/script/r.reclass.file }}
+		{command {[G_msg "Reclassify by size"]} {} "r.reclass.area: Reclassify categories for areas of specified sizes" {} -command {execute r.reclass.area }}
+		{command {[G_msg "Reclassify interactively"]} {} "Reclassify categories interactively by entering reclass rules" {} -command {GmRules::main "r.reclass" }}
+		{command {[G_msg "Reclassify using rules file"]} {} "r.reclass: Reclassify categories by inputting rules from a text file" {} -command {execute r.reclass}}
 		{separator}
-		{command {[G_msg "Recode categories using rules (create new map)"]} {} "r.recode.rules" {} -command {execute $env(GISBASE)/etc/gm/script/r.recode.rules }}
-		{command {[G_msg "Recode categories using rules file (create new map)"]} {} "r.recode.file " {} -command {execute $env(GISBASE)/etc/gm/script/r.recode.file }}
+		{command {[G_msg "Recode interactively"]} {} "Recode categories interactively by entering recode rules (create new map)" {} -command {GmRules::main "r.recode" }}
+		{command {[G_msg "Recode using rules file"]} {} "r.recode: Recode categories  by inputting rules from a text file (create new map)" {} -command {execute r.recode }}
 		{separator}
-		{command {[G_msg "Rescale categories (create new map)"]} {} "r.rescale" {} -command {execute r.rescale }}
-		{command {[G_msg "Rescale categories with equalized histogram (create new map)"]} {} "r.rescale.eq" {} -command {execute r.rescale.eq }}
+		{command {[G_msg "Rescale"]} {} "r.rescale: Rescale categories (create new map)" {} -command {execute r.rescale }}
+		{command {[G_msg "Rescale with histogram"]} {} "r.rescale.eq: Rescale categories with equalized histogram (create new map)" {} -command {execute r.rescale.eq }}
 	}}
 	{separator}
-	{cascad {[G_msg "Generate"]} {} "" $tmenu {
-		{command {[G_msg "Concentric circles around points"]} {} "r.circle" {} -command { execute r.circle }}
-		{command {[G_msg "Density surface using moving Gausian kernal"]} {} "v.kernel" {} -command {execute v.kernel }}
-		{command {[G_msg "Fractal surface"]} {} "r.surf.fractal" {} -command {execute r.surf.fractal }}
-		{command {[G_msg "Gaussian deviates surface"]} {} "r.surf.gauss" {} -command {execute r.surf.gauss }}
-		{command {[G_msg "Plane"]} {} "r.plane" {} -command {execute r.plane }}
-		{separator}
-		{command {[G_msg "Random cells"]} {} "r.random.cells" {} -command {execute r.random.cells }}
-		{command {[G_msg "Random cells and vector points from raster map"]} {} "r.random" {} -command {execute r.random }}
-		{command {[G_msg "Random deviates surface"]} {} "r.surf.random" {} -command {execute r.surf.random }}
-		{command {[G_msg "Random surface with spatial dependence"]} {} "r.random.surface" {} -command {execute r.random.surface }}
-		{separator}
-		{command {[G_msg "Vector contour lines"]} {} "r.contour" {} -command { execute r.contour }}
+	{command {[G_msg "Concentric circles"]} {} "r.circle: Generate concentric circles around points" {} -command { execute r.circle }}
+	{cascad {[G_msg "Generate random cells"]} {} "" $tmenu {			
+		{command {[G_msg "Random cells"]} {} "r.random.cells: Generate random cells" {} -command {execute r.random.cells }}
+		{command {[G_msg "Random cells and vector points"]} {} "r.random: Generate random cells and vector points from raster map" {} -command {execute r.random }}
 	}}
+	{cascad {[G_msg "Generate surfaces"]} {} "" $tmenu {			
+		{command {[G_msg "Fractal surface"]} {} "r.surf.fractal: Generate fractal surface" {} -command {execute r.surf.fractal }}
+		{separator}
+		{command {[G_msg "Gausian kernal density surface"]} {} "v.kernel: Generate density surface using moving Gausian kernal" {} -command {execute v.kernel }}
+		{command {[G_msg "Gaussian deviates surface"]} {} "r.surf.gauss: Generate gaussian deviates surface" {} -command {execute r.surf.gauss }}
+		{separator}
+		{command {[G_msg "Plane"]} {} "r.plane: Generate plane" {} -command {execute r.plane }}
+		{separator}
+		{command {[G_msg "Random deviates surface"]} {} "r.surf.random: Generate random deviates surface" {} -command {execute r.surf.random }}
+		{command {[G_msg "Random surface with spatial dependence"]} {} "r.random.surface: Generate random surface with spatial dependence" {} -command {execute r.random.surface }}
+	}}
+	{command {[G_msg "Contour lines"]} {} "r.contour: Generate vector contour lines" {} -command { execute r.contour }}
 	{cascad {[G_msg "Interpolate surfaces"]} {} "" $tmenu {			
-		{command {[G_msg "Bicubic and bilinear interpolation with Tykhonov regularization from vector points"]} {} "v.surf.bspline" {} -command { execute v.surf.bspline }}
-		{command {[G_msg "Bilinear interpolation from raster points"]} {} "r.bilinear" {} -command { execute r.bilinear }}
-		{command {[G_msg "Inverse distance weighted interpolation from raster points"]} {} "r.surf.idw" {} -command { execute r.surf.idw }}
-		{command {[G_msg "Interpolation from raster contours"]} {} "r.surf.contour" {} -command { execute r.surf.contour }}
+		{command {[G_msg "Bilinear from raster points"]} {} "r.bilinear: Bilinear interpolation from raster points" {} -command { execute r.bilinear }}
+		{command {[G_msg "Bilinear and bicubic from vector points"]} {} "v.surf.bspline: Bicubic and bilinear interpolation with Tykhonov regularization from vector points" {} -command { execute v.surf.bspline }}
 		{separator}
-		{command {[G_msg "Inverse distance weighted interpolation from vector points"]} {} "v.surf.idw" {} -command { execute v.surf.idw }}
-		{command {[G_msg "Regularized spline tension interpolation from vector points or contours"]} {} "v.surf.rst" {} -command { execute v.surf.rst }}
+		{command {[G_msg "IDW from raster points"]} {} "r.surf.idw: Inverse distance weighted interpolation from raster points" {} -command { execute r.surf.idw }}
+		{command {[G_msg "IDW from vector points"]} {} "v.surf.idw: Inverse distance weighted interpolation from vector points" {} -command { execute v.surf.idw }}
 		{separator}
-		{command {[G_msg "Fill NULL cells by interpolation using regularized spline tension"]} {} " r.fillnulls" {} -command {execute r.fillnulls }}
+		{command {[G_msg "Raster contours"]} {} "r.surf.contour: Interpolation from raster contours" {} -command { execute r.surf.contour }}
+		{command {[G_msg "Regularized spline tension"]} {} "v.surf.rst: Regularized spline tension interpolation from vector points or contours" {} -command { execute v.surf.rst }}
+		{separator}
+		{command {[G_msg "Fill NULL cells"]} {} " r.fillnulls: Fill NULL cells by interpolation using regularized spline tension" {} -command {execute r.fillnulls }}
 	}}
 	{separator}
 	{cascad {[G_msg "Reports and statistics"]} {} "" $tmenu {			
-		{command {[G_msg "Report basic file information"]} {} "r.info" {} -command {execute r.info }}
-		{command {[G_msg "Report category labels and values"]} {} "r.cats" {} -command {execute r.cats }}
+		{command {[G_msg "Report basic file information"]} {} "r.info: Report basic file information" {} -command {execute r.info }}
+		{command {[G_msg "Report category information"]} {} "r.cats: Report category labels and values" {} -command {execute r.cats }}
 		{separator}
-		{command {[G_msg "General statistics"]} {} "r.stats" {} -command {execute r.stats }}
-		{command {[G_msg "Range of all category values"]} {} "r.describe" {} -command {execute r.describe }}
-		{command {[G_msg "Sum all cell category values"]} {} "r.sum" {} -command {execute r.sum }}
-		{command {[G_msg "Sum area by map and category"]} {} "r.report" {} -command {execute r.report }}
-		{command {[G_msg "Summary statistics for clumped cells (works with r.clump)"]} {} "r.volume" {} -command {execute r.volume }}
+		{command {[G_msg "General statistics"]} {} "r.stats: General statistics" {} -command {execute r.stats }}
+		{command {[G_msg "Range of category values"]} {} "r.describe: Range of all category values" {} -command {execute r.describe }}
+		{command {[G_msg "Sum cell category values"]} {} "r.sum: Sum all cell category values" {} -command {execute r.sum }}
+		{command {[G_msg "Sum area by map and category"]} {} "r.report:Sum area by map and category" {} -command {execute r.report }}
+		{command {[G_msg "Statistics for clumped cells (works with r.clump)"]} {} "r.volume: " {} -command {execute r.volume }}
+		{command {[G_msg "Total surface area corrected for topography"]} {} "r.surf.area: Total surface area corrected for topography" {} -command {execute r.surf.area }}
+		{command {[G_msg "Univariate statistics"]} {} "r.univar: Univariate statistics" {} -command {execute r.univar }}
 		{separator}
-		{command {[G_msg "Total surface area corrected for topography"]} {} "r.surf.area" {} -command {execute r.surf.area }}
-		{command {[G_msg "Univariate statistics"]} {} "r.univar" {} -command {execute r.univar }}
-		{command {[G_msg "Univariate statistics (script version)"]} {} " r.univar" {} -command {execute r.univar }}
+		{command {[G_msg "Sample transects"]} {} "r.profile: Sample values along transects" {} -command {execute r.profile }}
+		{command {[G_msg "Sample transects (bearing/distance)"]} {} " r.transect: Sample values along transects (use azimuth, distance)" {} -command {execute r.transect }}
 		{separator}
-		{command {[G_msg "Sample values along transects"]} {} "r.profile" {} -command {execute r.profile }}
-		{command {[G_msg "Sample values along transects (use azimuth, distance)"]} {} " r.transect" {} -command {execute r.transect }}
-		{separator}
-		{command {[G_msg "Covariance/correlation"]} {} "r.covar" {} -command {execute r.covar }}
-		{command {[G_msg "Linear regression between 2 maps"]} {} "r.regression.line" {} -command {execute r.regression.line }}
-		{command {[G_msg "Mutual category occurences (coincidence)"]} {} "r.coin" {} -command {execute r.coin }}
+		{command {[G_msg "Covariance/correlation"]} {} "r.covar: Covariance/correlation" {} -command {execute r.covar }}
+		{command {[G_msg "Linear regression"]} {} "r.regression.line: Linear regression between 2 maps" {} -command {execute r.regression.line }}
+		{command {[G_msg "Mutual category occurences"]} {} "r.coin: Mutual category occurences (coincidence)" {} -command {execute r.coin }}
 	}}
  } 
  {[G_msg "&Vector"]} all options $tmenu {
 	{cascad {[G_msg "Develop map"]} {} "" $tmenu {			
-		{command {[G_msg "Digitize"]} {} "v.digit" {} -command {execute v.digit }}
+		{command {[G_msg "Digitize"]} {} "v.digit: Digitize/edit vector map" {} -command {execute v.digit }}
 		{separator}
-		{command {[G_msg "Create/rebuild topology"]} {} "v.build" {} -command {execute v.build }}
-		{command {[G_msg "Clean vector files"]} {} "v.clean" {} -command {execute v.clean }}
-		{command {[G_msg "Add missing centroids"]} {} "v.centroids" {} -command {execute v.centroids }}
+		{command {[G_msg "Create/rebuild topology: "]} {} "v.build: Create or rebuild topology of vector objects" {} -command {execute v.build }}
+		{command {[G_msg "Clean vector"]} {} "v.clean: Clean vector objects" {} -command {execute v.clean }}
 		{separator}
-		{command {[G_msg "Build polylines from adjacent segments"]} {} "v.build.polylines" {} -command {execute v.build.polylines }}
-		{command {[G_msg "Split polylines into segments"]} {} "v.segment" {} -command {execute v.segment }}
-		{command {[G_msg "Create lines parallel to existing lines"]} {} "v.parallel" {} -command {execute v.parallel }}
-		{command {[G_msg "Dissolve common boundaries"]} {} "v.dissolve" {} -command {execute v.dissolve }}
+		{command {[G_msg "Convert object types"]} {} "v.type: Convert vector objects from one feature type to another" {} -command {execute $env(GISBASE)/etc/gui/scripts/v.type.sh }}
 		{separator}
-		{command {[G_msg "Convert vector feature types"]} {} "v.type" {} -command {execute v.type }}
-		{command {[G_msg "Convert 2D vector to 3D by sampling raster"]} {} "v.drape" {} -command {execute v.drape }}
-		{command {[G_msg "Extrude 2D vector into 3D vector"]} {} "v.extrude" {} -command {execute v.extrude }}
+		{command {[G_msg "Add centroids"]} {} "v.centroids: Add centroids to closed boundaries to create areas" {} -command {execute v.centroids }}
 		{separator}
-		{command {[G_msg "Create new vector as link to external OGR layer"]} {} "v.external" {} -command {execute v.external }}
+		{command {[G_msg "Build polylines"]} {} "v.build.polylines: Build polylines from adjacent segments" {} -command {execute v.build.polylines }}
+		{command {[G_msg "Split polylines"]} {} "v.segment: Split polylines into points and segments" {} -command {execute v.segment }}
+		{command {[G_msg "Parallel lines"]} {} "v.parallel: Create lines parallel to existing lines" {} -command {execute v.parallel }}
 		{separator}
-		{command {[G_msg "Create text label file for vector features"]} {} "v.label" {} -command {execute v.label }}
+		{command {[G_msg "Dissolve boundaries"]} {} "v.dissolve: Dissolve common boundaries of areas" {} -command {execute v.dissolve }}
 		{separator}
-		{command {[G_msg "Reproject vector from other location"]} {} "v.proj" {} -command {execute v.proj }}
+		{command {[G_msg "Create 3D vector over raster"]} {} "v.drape: Create 3D objects by sampling raster with 2D vector" {} -command {execute v.drape }}
+		{command {[G_msg "Extrude 3D vector"]} {} "v.extrude: Extrude 3D objects from 2D vector" {} -command {execute v.extrude }}
+		{separator}
+		{command {[G_msg "Link to OGR"]} {} "v.external: Create new vector as link to external OGR layer" {} -command {execute v.external }}
+		{separator}
+		{command {[G_msg "Create labels"]} {} "v.label: Create text label file for vector objects" {} -command {execute v.label }}
+		{separator}
+		{command {[G_msg "Reposition vector"]} {} "v.transform: Reposition (shift, rotate, skew) vector file in coordinate space" {} -command {execute v.transform }}
+		{command {[G_msg "Reproject vector"]} {} "v.proj: Reproject vector from other location" {} -command {execute v.proj }}
 	}}
-	{command {[G_msg "Rectify and georeference vector map"]} {} "v.transform" {} -command {execute v.transform }}
 	{separator}
-	{command {[G_msg "Query by attributes"]} {} "v.extract" {} -command {execute v.extract }}
-	{command {[G_msg "Query by coordinate(s)"]} {} "v.what" {} -command { execute v.what }}
-	{command {[G_msg "Query by map features"]} {} " v.select" {} -command {execute v.select }}
+	{command {[G_msg "Query with attributes"]} {} "v.extract: Query vector objects by attribute values" {} -command {execute v.extract }}
+	{command {[G_msg "Query with coordinate(s)"]} {} "v.what: Query vector objects by coordinate(s)" {} -command { execute v.what }}
+	{command {[G_msg "Query with another map"]} {} " v.select: Query objects using objects from a second map" {} -command {execute v.select }}
 	{separator}
-	{command {[G_msg "Create vector buffers"]} {} "v.buffer" {} -command {execute v.buffer }}
-	{cascad {[G_msg "Lidar object filtering and detection"]} {} "" $tmenu {			
-		{command {[G_msg "Detect object edges in LIdar data"]} {} "v.lidar.edgedetection" {} -command {execute v.lidar.edgedetection }}
-		{command {[G_msg "Detect interior of objects in Lidar data"]} {} "v.lidar.growing" {} -command {execute v.lidar.growing }}
-		{command {[G_msg "Correct and reclassify objects detected in Lidar data"]} {} "v.lidar.correction" {} -command {execute v.lidar.correction }}
+	{command {[G_msg "Buffer vectors"]} {} "v.buffer: Create vector buffers around vector objects" {} -command {execute v.buffer }}
+	{cascad {[G_msg "Lidar analysis"]} {} "" $tmenu {			
+		{command {[G_msg "Detect edges"]} {} "v.lidar.edgedetection: Detect object edges in Lidar data" {} -command {execute v.lidar.edgedetection }}
+		{command {[G_msg "Detect interiors"]} {} "v.lidar.growing: Detect interiors of objects in Lidar data" {} -command {execute v.lidar.growing }}
+		{command {[G_msg "Correct and reclassify objects"]} {} "v.lidar.correction: Correct and reclassify objects detected in Lidar data" {} -command {execute v.lidar.correction }}
 	}}
-	{cascad {[G_msg "Linear referencing for vectors"]} {} "" $tmenu {			
-		{command {[G_msg "Create linear reference system"]} {} "v.lrs.create" {} -command {execute v.lrs.create }}
-		{command {[G_msg "Create stationing from imput lines, and linear reference system"]} {} "v.lrs.label" {} -command {execute v.lrs.label }}
-		{command {[G_msg "Create points/segments from input lines, linear reference system and positions read from stdin"]} {} "v.lrs.segment" {} -command {execute v.lrs.segment }}
-		{command {[G_msg "Find line id and real km+offset for given points in vector map using linear reference system"]} {} "v.lrs.where" {} -command {execute v.lrs.where }}
-	}}
-	{cascad {[G_msg "Neighborhood analysis"]} {} "" $tmenu {			
-		{command {[G_msg "Locate nearest features to points or centroids"]} {} "v.distance" {} -command {execute v.distance }}
-		{command {[G_msg "Generate Thiessen polygons around points (Voronoi diagram)"]} {} "v.voronoi" {} -command {execute v.voronoi }}
-		{command {[G_msg "Connect points to create Delaunay triangles"]} {} "v.delaunay" {} -command {execute v.delaunay }}
-	}}
+	{cascad {[G_msg "Linear referencing"]} {} "" $tmenu {			
+		{command {[G_msg "Create LRS"]} {} "v.lrs.create: Create linear reference system" {} -command {execute v.lrs.create }}
+		{command {[G_msg "Create stationing"]} {} "v.lrs.label: Create stationing from input lines and a linear reference system" {} -command {execute v.lrs.label }}
+		{command {[G_msg "Create points/segments"]} {} "v.lrs.segment: Create points and line segments along a linear reference system" {} -command {execute v.lrs.segment }}
+		{command {[G_msg "Find ID and offset"]} {} "v.lrs.where: Find line ID and real km+offset for given points in vector map using linear reference system" {} -command {execute v.lrs.where }}
+	}}			
+	{command {[G_msg "Nearest features"]} {} "v.distance: Locate nearest features to points or centroids" {} -command {execute v.distance }}
 	{cascad {[G_msg "Network analysis"]} {} "" $tmenu {			
-		{command {[G_msg "Allocate subnets"]} {} "v.net.alloc" {} -command {execute v.net.alloc }}
-		{command {[G_msg "Network maintenance"]} {} "v.net" {} -command {execute v.net }}
-		{command {[G_msg "Shortest route"]} {} "v.net.path" {} -command {execute v.net.path }}
-		{command {[G_msg "Shortest route (visualization only)"]} {} "d.path" {} -command {guarantee_xmon; spawn d.path.sh -b --ui }}
-		{command {[G_msg "Split net to bands between cost isolines"]} {} "v.net.iso" {} -command {execute v.net.iso }}
-		{command {[G_msg "Steiner tree"]} {} "v.net.steiner" {} -command {execute v.net.steiner }}
-		{command {[G_msg "Traveling salesman analysis"]} {} "v.net.salesman" {} -command {execute v.net.salesman }}
+		{command {[G_msg "Allocate subnets"]} {} "v.net.alloc: Allocate subnets for nearest centers" {} -command {execute v.net.alloc }}
+		{command {[G_msg "Network maintenance"]} {} "v.net: Network maintenance" {} -command {execute v.net }}
+		{command {[G_msg "Shortest route"]} {} "v.net.path: Calculate shortest route along network between 2 nodes" {} -command {execute v.net.path }}
+		{command {[G_msg "Display shortest route"]} {} "d.path: Display shortest route along network between 2 nodes (visualization only)" {} -command {
+			unset env(GRASS_RENDER_IMMEDIATE)
+			guarantee_xmon
+			spawn d.path.sh -b --ui
+			set env(GRASS_RENDER_IMMEDIATE) "TRUE"}}
+		{command {[G_msg "Split net"]} {} "v.net.iso: Split net into bands between cost isolines" {} -command {execute v.net.iso }}
+		{command {[G_msg "Steiner tree"]} {} "v.net.steiner: Create Steiner tree for network and given terminals" {} -command {execute v.net.steiner }}
+		{command {[G_msg "Traveling salesman analysis"]} {} "v.net.salesman: Calculate shortest route connecting given set of nodes (Traveling salesman analysis)" {} -command {execute v.net.salesman }}
 	}}
 	{cascad {[G_msg "Overlay maps"]} {} "" $tmenu {			
-		{command {[G_msg "Overlay/combine 2 vector maps"]} {} "v.overlay" {} -command {execute v.overlay }}
-		{command {[G_msg "Patch multiple maps (combine)"]} {} "v.patch" {} -command {execute v.patch }}
+		{command {[G_msg "Overlay"]} {} "v.overlay: Boolean overlay of 2 vector maps" {} -command {execute v.overlay }}
+		{command {[G_msg "Patch (combine)"]} {} "v.patch: Patch/combine multiple maps (Boolean OR)" {} -command {execute v.patch }}
 	}}
-	{command {[G_msg "Generate area feature for extent of current region"]} {} "v.in.region" {} -command {execute v.in.region }}
-	{command {[G_msg "Generate rectangular vector grid"]} {} "v.mkgrid" {} -command {execute v.mkgrid }}
 	{separator}
 	{cascad {[G_msg "Change attributes"]} {} "" $tmenu {			
-		{command {[G_msg "Attach, delete, or report categories"]} {} "v.category" {} -command {execute v.category }}
-		{command {[G_msg "Reclassify features using rules file"]} {} "v.reclass" {} -command {execute v.reclass }}
+		{command {[G_msg "Manage or report categories"]} {} "v.category: Attach, delete, or report categories" {} -command {execute v.category }}
+		{command {[G_msg "Reclassify objects interactively"]} {} "Reclassify objects interactively by entering SQL rules" {} -command {GmRules::main "v.reclass" }}
+		{command {[G_msg "Reclassify using rules file"]} {} "v.reclass: Reclassify objects by inputting rules from a text file" {} -command {execute v.reclass }}
 	}}
 	{separator}
-	{cascad {[G_msg "Work with vector points"]} {} "" $tmenu {			
- 		{cascad {[G_msg "Generate points"]} {} "" $tmenu {			
-			{command {[G_msg "Generate points from database with x/y coordinates"]} {} "v.in.db" {} -command {execute v.in.db }}
- 			{command {[G_msg "Generate random points"]} {} "v.random" {} -command {execute v.random }}
- 			{command {[G_msg "Random location perturbations of points"]} {} "v.perturb" {} -command {execute v.perturb }}
- 		}}
- 		{cascad {[G_msg "Generate areas from points"]} {} "" $tmenu {			
- 			{command {[G_msg "Generate convex hull for point set"]} {} "v.hull" {} -command {execute v.hull }}
- 			{command {[G_msg "Generate Delaunay triangles for point set"]} {} "v.delaunay" {} -command {execute v.delaunay }}
- 			{command {[G_msg "Generate Voronoi diagram/Thiessen polygons for point set"]} {} "v.voronoi" {} -command {execute v.voronoi }}
- 		}}
- 		{cascad {[G_msg "Sample raster maps"]} {} "" $tmenu {			
- 			{command {[G_msg "Calculate statistics for raster map overlain by vector map"]} {} "v.rast.stats" {} -command {execute v.rast.stats }}
- 			{command {[G_msg "Sample raster map at point locations"]} {} "v.what.rast" {} -command {execute v.what.rast }}
- 			{command {[G_msg "Sample raster neighborhood around points"]} {} "v.sample" {} -command {execute v.sample }}
- 		}}
- 		{command {[G_msg "Partition points into test/training sets for k-fold cross validatation"]} {} "v.kcv" {} -command {execute v.kcv }}
- 		{command {[G_msg "Remove outliers from vector point set"]} {} "v.outlier" {} -command {execute v.outlier }}
- 		{command {[G_msg "Transfer attribute data from queried vector map to points"]} {} "v.what.vect" {} -command {execute v.what.vect }}
+	{command {[G_msg "Generate area for current region"]} {} "v.in.region: Generate area object for extent of current region" {} -command {execute v.in.region }}
+	{cascad {[G_msg "Generate areas from points"]} {} "" $tmenu {			
+		{command {[G_msg "Convex hull"]} {} "v.hull: Generate convex hull for point set" {} -command {execute v.hull }}
+		{command {[G_msg "Delaunay triangles"]} {} "v.delaunay: Generate Delaunay triangles for point set" {} -command {execute v.delaunay }}
+		{command {[G_msg "Voronoi diagram/Thiessen polygons"]} {} "v.voronoi: Generate Voronoi diagram/Thiessen polygons for point set" {} -command {execute v.voronoi }}
+	}}
+	{command {[G_msg "Generate grid"]} {} "v.mkgrid: Generate rectangular vector grid" {} -command {execute v.mkgrid }}		
+	{cascad {[G_msg "Generate points"]} {} "" $tmenu {			
+		{command {[G_msg "Generate points from database"]} {} "v.in.db: Generate points from database with x/y coordinates" {} -command {execute v.in.db }}
+		{command {[G_msg "Generate points along lines"]} {} "v.to.points: Generate points along vector lines/boundaries" {} -command {execute v.to.points }}
+		{command {[G_msg "Generate random points"]} {} "v.random: Generate random points" {} -command {execute v.random }}
+		{command {[G_msg "Perturb points"]} {} "v.perturb: Random perturbations of point locations" {} -command {execute v.perturb }}
+	}}
+	{separator}
+	{command {[G_msg "Remove outliers in point sets"]} {} "v.outlier: Remove outliers from vector point set" {} -command {execute v.outlier }}
+	{command {[G_msg "Test/training sets"]} {} "v.kcv: Partition points into test/training sets for k-fold cross validatation" {} -command {execute v.kcv }}
+	{separator}
+	{command {[G_msg "Update area attributes from raster"]} {} "v.rast.stats: Update area attribute data from univariate statistics on raster map" {} -command {execute v.rast.stats }}
+	{command {[G_msg "Update point attributes from areas"]} {} "v.what.vect: Update point attribute data from vector area map" {} -command {execute v.what.vect }}
+	{cascad {[G_msg "Update point attributes from raster"]} {} "" $tmenu {			
+		{command {[G_msg "Sample raster map at point locations"]} {} "v.what.rast: " {} -command {execute v.what.rast }}
+		{command {[G_msg "Sample raster neighborhood around points"]} {} "v.sample: " {} -command {execute v.sample }}
 	}}
 	{separator}
 	{cascad {[G_msg "Reports and statistics"]} {} "" $tmenu {			
-		{command {[G_msg "Basic information"]} {} "v.info" {} -command {execute v.info }}
-		{command {[G_msg "Load vector attributes to database or create reports"]} {} "v.to.db" {} -command {execute v.to.db }}
-		{command {[G_msg "Report areas for vector attribute categories"]} {} "v.report" {} -command {execute v.report }}
-		{command {[G_msg "Univariate statistics"]} {} "v.univar" {} -command {execute v.univar }}
+		{command {[G_msg "Basic information"]} {} "v.info: Basic information" {} -command {execute v.info }}
  		{separator}
-		{command {[G_msg "Test normality of point distribution"]} {} "v.normal" {} -command {execute v.normal }}
-		{command {[G_msg "Calculate stats for raster map underlying vector objects"]} {} "v.rast.stats" {} -command {execute v.rast.stats }}
-		{command {[G_msg "Indices of point counts in quadrats"]} {} "v.qcount" {} -command {execute v.qcount }}
+		{command {[G_msg "Report topology by category"]} {} "v.report: Report areas for vector attribute categories" {} -command {execute v.report }}
+		{command {[G_msg "Upload or report topology"]} {} "v.to.db: Update database fields or create reports from vector topology" {} -command {execute v.to.db }}
+ 		{separator}
+		{command {[G_msg "Univariate attribute statistics"]} {} "v.univar: Calculate univariate statistics for vector attributes" {} -command {execute v.univar }}
+ 		{separator}
+		{command {[G_msg "Quadrat indices"]} {} "v.qcount: Indices of point counts in quadrats" {} -command {execute v.qcount }}
+		{command {[G_msg "Test normality"]} {} "v.normal: Test normality of point distribution" {} -command {execute v.normal }}
 	}}
  } 
  {[G_msg "&Imagery"]} all options $tmenu {			
 	{cascad {[G_msg "Develop images and groups"]} {} "" $tmenu {			
-		{command {[G_msg "Create/edit imagery group"]} {} "i.group" {} -command {execute i.group }}			
-		{command {[G_msg "Target imagery group"]} {} "i.target" {} -command {execute i.target }}
+		{command {[G_msg "Create/edit group"]} {} "i.group: Create/edit imagery group" {} -command {execute i.group }}			
+		{command {[G_msg "Target group"]} {} "i.target: Target imagery group" {} -command {execute i.target }}
 		{separator}
-		{command {[G_msg "Mosaic up to 4 adjacent images"]} {} "i.image.mosaic" {} -command {execute i.image.mosaic }}
+		{command {[G_msg "Mosaic images"]} {} "i.image.mosaic: Mosaic up to 4 adjacent images" {} -command {execute i.image.mosaic }}
 	}}
 	{cascad {[G_msg "Manage image colors"]} {} "" $tmenu {			
-		{command {[G_msg "Color balance/enhance color tables for rgb display"]} {} "i.landsat.rgb" {} -command {execute i.landsat.rgb }}
-		{command {[G_msg "Transform HIS to RGB"]} {} "i.his.rgb" {} -command {execute i.his.rgb }}
-		{command {[G_msg "Transform RGB to HIS"]} {} "i.rgb.his" {} -command {execute i.rgb.his }}
+		{command {[G_msg "Color balance for RGB"]} {} "i.landsat.rgb: Color balance and enhance color tables of multiband imagery for rgb display" {} -command {execute i.landsat.rgb }}
+		{command {[G_msg "HIS to RGB"]} {} "i.his.rgb: Transform HIS (Hue/Intensity/Saturation) color image to RGB (Red/Green/Blue)" {} -command {execute i.his.rgb }}
+		{command {[G_msg "RGB to HIS"]} {} "i.rgb.his: Transform RGB (Red/Green/Blue) color image to HIS (Hue/Intensity/Saturation)" {} -command {execute i.rgb.his }}
 	}}
-	{cascad {[G_msg "Rectify and georeference image group"]} {} "" $tmenu {			
-		{command {[G_msg "Set ground control points (GCP's) from raster map or keyboard entry"]} {} "i.points" {} \
-		-command {guarantee_xmon; term i.points }}
-		{command {[G_msg "Set ground control points (GCP's) from vector map or keyboard entry"]} {} "i.vpoints" {} \
-		-command {guarantee_xmon; term i.vpoints }}
-		{command {[G_msg "Affine and Polynomial rectification (rubber sheet)"]} {} "i.rectify" {} -command {execute i.rectify }}
-		{command {[G_msg "Ortho photo rectification"]} {} "i.ortho.photo" {} -command {term i.ortho.photo }}
-	}}
+	{command {[G_msg "Ortho photo rectification"]} {} "i.ortho.photo: Ortho photo rectification" {} -command {
+		unset env(GRASS_RENDER_IMMEDIATE)
+		guarantee_xmon
+		term i.ortho.photo 
+		set env(GRASS_RENDER_IMMEDIATE) "TRUE"}}
 	{separator}
 	{cascad {[G_msg "GIPE"]} {} "" $tmenu {
 		{cascad {[G_msg "DN2Rad2Ref"]} {} "" $tmenu {
@@ -582,99 +593,81 @@ set descmenu [subst  {
 		}}
 	}}
 	{cascad {[G_msg "Classify image"]} {} "" $tmenu {			
-		{cascad {[G_msg "Classify image using pr library"]} {} "" $tmenu {			
-                  {command {[G_msg "pr_blob"]} {} "i.pr_blob" {} -command {execute i.pr_blob }}
-                  {command {[G_msg "pr_classify"]} {} "pr_classify" {} -command {execute i.pr_classify}}
-                  {command {[G_msg "pr_features"]} {} "pr_features" {} -command {execute i.pr_features}}
-                  {command {[G_msg "pr_features_additional"]} {} "pr_features_additional" {} -command {execute i.pr_features_additional}}
-                  {command {[G_msg "pr_features_extract"]} {} "pr_features_extract" {} -command {execute i.pr_features_extract}}
-		  {command {[G_msg "pr_features_selection"]} {} "pr_features_selection" {} -command {execute i.pr_features_selection}}
-                  {command {[G_msg "pr_model"]} {} "pr_model" {} -command {execute i.pr_model}}
-                  {command {[G_msg "pr_sites_aggregate"]} {} "pr_sites_aggregate" {} -command {execute i.pr_sites_aggregate}}
-                  {command {[G_msg "pr_statistics"]} {} "pr_statistics" {} -command {execute i.pr_statistics}}
-                  {command {[G_msg "pr_subsets"]} {} "pr_subsets" {} -command {execute i.pr_subsets}}
-                  {command {[G_msg "pr_training"]} {} "pr_training" {} -command {execute i.pr_training}}
-                  {command {[G_msg "pr_uxb"]} {} "pr_uxb" {} -command {execute i.pr_uxb}}
-		}}
-		{command {[G_msg "Clustering input for unsupervised classification"]} {} "i.cluster" {} -command {execute i.cluster }}
+		{command {[G_msg "Clustering input for unsupervised classification"]} {} "i.cluster: Clustering input for unsupervised classification" {} -command {execute i.cluster }}
 		{separator}
-		{command {[G_msg "Maximum likelyhood classification (MLC)"]} {} "i.maxlik" {} -command {execute i.maxlik }}
-		{command {[G_msg "Sequential maximum a posteriory classification (SMAP)"]} {} "i.smap" {} -command {execute i.smap }}
+		{command {[G_msg "Maximum likelyhood classification (MLC)"]} {} "i.maxlik: Maximum likelyhood classification" {} -command {execute i.maxlik }}
+		{command {[G_msg "Sequential maximum a posteriory classification (SMAP)"]} {} "i.smap: Sequential maximum a posteriory classification" {} -command {execute i.smap }}
 		{separator}
-		{command {[G_msg "Interactive input for supervised classification"]} {} "i.class" {} -command {term i.class }}
-		{command {[G_msg "Non-interactive input for supervised classification (MLC)"]} {} "i.gensig" {} -command {execute i.gensig }}
-		{command {[G_msg "Non-interactive input for supervised classification (SMAP)"]} {} "i.gensigset" {} -command {execute i.gensigset }}
-		{separator}
-		{command {[G_msg "Kappa classification accuracy assessment"]} {} "r.kappa" {} -command {execute r.kappa }}
+		{command {[G_msg "Interactive input for supervised classification"]} {} "i.class: Interactive input for supervised classification" {} -command {term i.class }}
+		{command {[G_msg "Input for supervised MLC"]} {} "i.gensig: Non-interactive input for supervised classification (MLC)" {} -command {execute i.gensig }}
+		{command {[G_msg "Input for supervised SMAP"]} {} "i.gensigset: Non-interactive input for supervised classification (SMAP)" {} -command {execute i.gensigset }}
 	}}
 	{cascad {[G_msg "Filter image"]} {} "" $tmenu {			
-		{command {[G_msg "Zero edge crossing detection"]} {} "i.zc" {} -command {execute i.zc }}
-		{command {[G_msg "User defined matrix/convolving filter"]} {} "r.mfilter" {} -command {execute r.mfilter }}
+		{command {[G_msg "Edge detection"]} {} "i.zc: Zero edge crossing detection" {} -command {execute i.zc }}
+		{command {[G_msg "Matrix/convolving filter"]} {} "r.mfilter: User defined matrix/convolving filter" {} -command {execute r.mfilter }}
 	}}
-	{command {[G_msg "Spectral response"]} {} "i.spectral" {} -command {execute i.spectral }}
+	{command {[G_msg "Spectral response"]} {} "i.spectral: Spectral response" {} -command {execute i.spectral }}
 	{cascad {[G_msg "Transform image"]} {} "" $tmenu {			
-		{command {[G_msg "Brovey pan sharpening"]} {} "i.fusion.brovey" {} -command {execute i.fusion.brovey }}
+		{command {[G_msg "Brovey sharpening"]} {} "i.fusion.brovey: Brovey transformation and pan sharpening" {} -command {execute i.fusion.brovey }}
 		{separator}
-		{command {[G_msg "Canonical component"]} {} "i.cca" {} -command {execute i.cca }}
-		{command {[G_msg "Principal component"]} {} "i.pca" {} -command {execute i.pca }}
-		{command {[G_msg "Fast Fourier Transform"]} {} "i.fft" {} -command {execute i.fft }}
-		{command {[G_msg "Inverse Fast Fourier Transform"]} {} "i.ifft" {} -command {execute i.ifft }}
+		{command {[G_msg "Canonical correlation"]} {} "i.cca: Canonical correlation (discriminant analysis)" {} -command {execute i.cca }}
+		{command {[G_msg "Principal components"]} {} "i.pca: Principal components analysis" {} -command {execute i.pca }}
+		{command {[G_msg "Fast Fourier"]} {} "i.fft: Fast Fourier transform" {} -command {execute i.fft }}
+		{command {[G_msg "Inverse Fast Fourier"]} {} "i.ifft: Inverse fast Fourier transform" {} -command {execute i.ifft }}
 	}}
 	{separator}
 	{cascad {[G_msg "Reports and statistics"]} {} "" $tmenu {			
-		{command {[G_msg "Report basic file information"]} {} "r.info" {} -command {execute r.info }}
-		{command {[G_msg "Range of image values"]} {} "r.describe" {} -command {execute r.describe }}
-	}}
-	{cascad {[G_msg "Quality Assessment"]} {} "" $tmenu {			
-		{command {[G_msg "Bit pattern comparison for ID of low quality pixels"]} {} "r.bitpattern" {} -command {execute r.bitpattern }}
-		{command {[G_msg "Optimum index factor for LandSat TM"]} {} "i.oif" {} -command {execute i.oif }}
+		{command {[G_msg "Bit pattern comparison"]} {} "r.bitpattern: Bit pattern comparison for ID of low quality pixels" {} -command {execute r.bitpattern }}
+		{command {[G_msg "Kappa analysis"]} {} "r.kappa: Kappa classification accuracy assessment" {} -command {execute r.kappa }}
+		{command {[G_msg "OIF for LandSat TM"]} {} "i.oif: Optimum index factor for LandSat TM" {} -command {execute i.oif }}
 	}}
  } 
- {[G_msg "&Grid3D"]} all options $tmenu {
+ {[G_msg "&Volumes"]} all options $tmenu {
 	{cascad {[G_msg "Develop grid3D volumes"]} {} "" $tmenu {			
-		{command {[G_msg "Manage nulls for grid3D volume"]} {} "r3.null" {} -command {execute r3.null }}
+		{command {[G_msg "Manage nulls for grid3D volume"]} {} "r3.null: Manage nulls for grid3D volume" {} -command {execute r3.null }}
 		{command {[G_msg "Manage timestamp for grid3D volume"]} {} "r3.timestamp" {} -command {execute r3.timestamp }}
 	}}
-	{command {[G_msg "Create 3D mask for grid3D operations"]} {} "r3.mask" {} -command {execute r3.mask }}
-	{command {[G_msg "Create 2D raster cross section from grid3d volume"]} {} "r3.cross.rast" {} -command { execute r3.cross.rast }}
-	{command {[G_msg "Map calculator for grid3D operations"]} {} "r3.mapcalculator" {} -command {execute r3.mapcalculator }}
-	{command {[G_msg "Interpolate volume from vector points using splines"]} {} "v.vol.rst" {} -command {execute v.vol.rst }}
+	{command {[G_msg "3D MASK"]} {} "r3.mask: " {} -command {execute r3.mask }}
+	{command {[G_msg "3D Map calculator"]} {} "r3.mapcalculator: Map calculator for grid3D operations" {} -command {execute r3.mapcalculator }}
+	{command {[G_msg "Cross section from volume"]} {} "r3.cross.rast: Create 2D raster cross section from grid3D volume" {} -command { execute r3.cross.rast }}
+	{command {[G_msg "Interpolate volume from vector points"]} {} "v.vol.rst: Interpolate volume from vector points using splines" {} -command {execute v.vol.rst }}
 	{cascad {[G_msg "Report and Statistics"]} {} "" $tmenu {			
-		{command {[G_msg "Display information about grid3D volume"]} {} "r3.info" {} -command {execute r3.info }}
+		{command {[G_msg "Basic information"]} {} "r3.info: Display information about grid3D volume" {} -command {execute r3.info }}
 	}}
  } 
  {[G_msg "&Databases"]} all options $tmenu {
-	{cascad {[G_msg "Manage database"]} {} "" $tmenu {			
-		{command {[G_msg "Connect to database"]} {} "db.connect" {} -command {execute db.connect }}
-		{command {[G_msg "Login to database"]} {} "db.login" {} -command {execute db.login }}
-		{separator}
-		{command {[G_msg "Create and add new attribute table to vector map"]} {} "v.db.addtable" {} -command {execute v.db.addtable }}
-		{command {[G_msg "Copy attribute table"]} {} "db.copy" {} -command {execute db.copy }}
-		{command {[G_msg "Remove existing attribute table for vector map"]} {} "v.db.droptable" {} -command {execute v.db.droptable }}
-		{separator}
-		{command {[G_msg "Add columns to table"]} {} "v.db.addcol" {} -command {execute v.db.addcol }}
-		{command {[G_msg "Change values in a column"]} {} "v.db.update" {} -command {execute v.db.update }}
-		{command {[G_msg "Rename a column"]} {} "v.db.renamecol" {} -command {execute v.db.renamecol }}
-		{separator}
-		{command {[G_msg "Test database"]} {} "db.test" {} -command {execute db.test }}
-	}}
 	{cascad {[G_msg "Database information"]} {} "" $tmenu {			
-		{command {[G_msg "Describe table"]} {} "db.describe" {} -command {execute db.describe }}
-		{command {[G_msg "List columns"]} {} "db.columns" {} -command {execute db.columns }}
-		{command {[G_msg "List drivers"]} {} "db.drivers" {} -command {execute db.drivers }}
-		{command {[G_msg "List tables"]} {} "db.tables" {} -command {execute db.tables }}
+		{command {[G_msg "Describe table"]} {} "db.describe: Describe table structure and attributes" {} -command {execute db.describe }}
+		{command {[G_msg "List columns"]} {} "db.columns: List columns for selected table" {} -command {execute db.columns }}
+		{command {[G_msg "List drivers"]} {} "db.drivers: List available database drivers" {} -command {execute db.drivers }}
+		{command {[G_msg "List tables"]} {} "db.tables: List tables in database" {} -command {execute db.tables }}
+	}}
+	{separator}
+	{cascad {[G_msg "Manage database"]} {} "" $tmenu {			
+		{command {[G_msg "Connect to database"]} {} "db.connect: Connect to database" {} -command {execute db.connect }}
+		{command {[G_msg "Login to database"]} {} "db.login: Login to database" {} -command {execute db.login }}
+		{separator}
+		{command {[G_msg "Copy table"]} {} "db.copy: Copy attribute table" {} -command {execute db.copy }}
+		{command {[G_msg "New table"]} {} "v.db.addtable: Create and connect new attribute table to vector map" {} -command {execute v.db.addtable }}
+		{command {[G_msg "Remove table"]} {} "v.db.droptable: Remove existing attribute table for vector map" {} -command {execute v.db.droptable }}
+		{separator}
+		{command {[G_msg "Add columns"]} {} "v.db.addcol: Add columns to table" {} -command {execute v.db.addcol }}
+		{command {[G_msg "Change values"]} {} "v.db.update: Change values in a column" {} -command {execute v.db.update }}
+		{command {[G_msg "Rename a column"]} {} "v.db.renamecol: Rename a column" {} -command {execute v.db.renamecol }}
+		{separator}
+		{command {[G_msg "Test database"]} {} "db.test: Test database" {} -command {execute db.test }}
 	}}
 	{separator}
 	{cascad {[G_msg "Query"]} {} "" $tmenu {			
-		{command {[G_msg "Query data in any table"]} {} "db.select" {} -command {execute db.select }}
-		{command {[G_msg "Query vector attribute data"]} {} "db.select" {} -command {execute v.db.select }}
-		{command {[G_msg "Execute SQL statement"]} {} "db.execute" {} -command {execute db.execute }}
+		{command {[G_msg "Query any table"]} {} "db.select: Query data in any table" {} -command {execute db.select }}
+		{command {[G_msg "Query vector attribute table"]} {} "v.db.select: Query vector attribute data" {} -command {execute v.db.select }}
+		{command {[G_msg "SQL statement"]} {} "db.execute: Execute SQL statement" {} -command {execute db.execute }}
 	}}
 	{cascad {[G_msg "Vector<->database connections"]} {} "" $tmenu {			
-		{command {[G_msg "Reconnect vector map to attribute database"]} {} "v.db.reconnect.all" {} -command {execute v.db.reconnect.all }}
-		{command {[G_msg "Set database connection for vector attributes"]} {} "v.db.connect" {} -command {execute v.db.connect }}
+		{command {[G_msg "Reconnect vector to database"]} {} "v.db.reconnect.all: Reconnect vector map to attribute database" {} -command {execute v.db.reconnect.all }}
+		{command {[G_msg "Set vector - database connection"]} {} "v.db.connect: Set database connection for vector attributes" {} -command {execute v.db.connect }}
 	}}
- }
+ } 
 {[G_msg "&Help"]} all options $tmenu {
 	{command {[G_msg "GRASS help"]} {} "g.manual" {} -command { exec g.manual -i > $devnull & } }
 	{command {[G_msg "GIS Manager &help"]} {} {[G_msg "GIS Manager help"]} {} -command { exec g.manual gis.m > $devnull & } }

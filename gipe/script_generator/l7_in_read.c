@@ -625,16 +625,23 @@ int main(int argc, char *argv[])
 	system(sys_17);
 	sprintf(sys_10,"echo \"i.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=%s.w TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_10);
+	system("echo \"\" >> temp.txt");
+	system("echo \"#PRESTLEY AND TAYLOR ET POTENTIAL\" >> temp.txt");
+	system("echo \"\" >> temp.txt");
 	sprintf(sys_19,"echo \"r.mapcalc %s.patm=1010.0\" >> temp.txt",basedate);
 	system(sys_19);
 	sprintf(sys_20,"echo \"i.emissivity ndvi=%s.ndvi emissivity=%s.e0 --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_20);
+	system("echo \"\" >> temp.txt");
 	sprintf(sys_21,"echo \"i.eb.netrad albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 time=%s.time dtair=%s.delta emissivity=%s.e0 tsw=%s.tsw doy=%s.doy sunzangle=%s.sunza rnet=%s.rnet --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_21);
-	sprintf(sys_22,"echo \"i.eb.g0 albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 rnet=%s.rnet time=%s.time g0=%s.g0 --overwrite\"",basedate,basedate,basedate,basedate,basedate,basedate);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_22,"echo \"i.eb.g0 albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 rnet=%s.rnet time=%s.time g0=%s.g0 --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_22);
-	sprintf(sys_23,"echo \"i.evapo.PT -z RNET=%s.rnetd G0=%s.g0 TEMPKA=%s.tempka PATM=%s.patm PT=1.26 output=%s.ETA_PT --overwrite\"",basedate,basedate,basedate,basedate,basedate);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_23,"echo \"i.evapo.PT -z RNET=%s.rnetd G0=%s.g0 TEMPKA=%s.tempka PATM=%s.patm PT=1.26 output=%s.ETA_PT --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_23);
+	system("echo \"\" >> temp.txt");
 
 	//clean maps
 // 	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
