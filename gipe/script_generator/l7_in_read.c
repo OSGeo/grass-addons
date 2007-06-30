@@ -37,7 +37,7 @@ int date2doy(int day, int month, int year);
 
 void usage(){
 	printf("Usage: ./l7_in_read l7metfile\n");
-	printf("\nThis program is run from WITHIN GRASS GIS and is parsing Landsat 7 ETM+ metadata file (.met) for useful information for ETPOT processing and returns it to stdout and also issues GRASS GIS modules commands into temp.txt and runs it\n\n\nCAREFUL! It assumes that the directory where it is run has freshly downloaded Landsat 7 .gz files with their accompanying .met file!\n\n");
+	printf("\nThis program is run from WITHIN GRASS GIS and is parsing Landsat 7 ETM+ metadata file (.met) for useful information for ETPOT processing and issues GRASS GIS modules commands into temp.txt and runs it\n\n\nCAREFUL! It assumes that the directory where it is run has freshly downloaded Landsat 7 .gz files with their accompanying .met file!\n\n");
 	printf("Conventional mapping of Landsat 7 ETM+ L1B bands is 1,2,3,4,5,6L,6H,7,8Pan\n");
 	printf("Available variables are:\nday, month, year, doy, sun_elevation, sun_azimuth\n b1 to b7 for the .tif file names\n");
 }
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	char	sys_11[1000],sys_12[1000],sys_13[1000],sys_14[1000];
 	char	sys_15[1000],sys_16[1000],sys_17[1000],sys_18[1000];
 	char	sys_19[1000],sys_20[1000],sys_21[1000],sys_22[1000];
-	char	sys_23[1000];
+	char	sys_23[1000],sys_24[1000],sys_25[1000],sys_26[1000];
 
 	if(argc < 1){
 		usage();
@@ -626,6 +626,7 @@ int main(int argc, char *argv[])
 	sprintf(sys_10,"echo \"i.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=%s.w TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_10);
 	system("echo \"\" >> temp.txt");
+	//Calculate ET Potential after Prestley and Taylor
 	system("echo \"#PRESTLEY AND TAYLOR ET POTENTIAL\" >> temp.txt");
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_19,"echo \"r.mapcalc %s.patm=1010.0\" >> temp.txt",basedate);
@@ -641,6 +642,9 @@ int main(int argc, char *argv[])
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_23,"echo \"i.evapo.PT -z RNET=%s.rnetd G0=%s.g0 TEMPKA=%s.tempka PATM=%s.patm PT=1.26 output=%s.ETA_PT --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_23);
+	system("echo \"\" >> temp.txt");
+	//Calculate the Actual ET after Pawan (2004)
+	system("echo \"#ACTUAL ET\" >> temp.txt");
 	system("echo \"\" >> temp.txt");
 
 	//clean maps

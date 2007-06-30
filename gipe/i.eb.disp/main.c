@@ -22,6 +22,7 @@
 
 
 double dis_p(double lai);
+double savi_lai(double savi);
 
 int main(int argc, char *argv[])
 {
@@ -138,12 +139,13 @@ int main(int argc, char *argv[])
 					/********************/
 					/* calculate disp   */
 					d = dis_p(d);
+					((DCELL *) outrast1)[col] = d;
 				} else {
 					/********************/
 					/* calculate disp   */
 					d = dis_p(d_lai);
+					((DCELL *) outrast1)[col] = d;
 				}
-			((DCELL *) outrast1)[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
