@@ -3,7 +3,8 @@
  * MODULE:       i.eb.disp
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
  * PURPOSE:      Calculates the displacement height above skin surface
- *                as seen in Pawan (2004) 
+ *                as seen in Pawan (2004), a flag makes savi2lai instead of
+ *                direct LAI input.
  *
  * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
  *
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
 	struct GModule *module;
 	struct Option *input1, *output1;
 	
-	struct Flag *flag1;	
+	struct Flag *flag1, *flag2;	
 	struct History history; //metadata
 	
 	/************************************/
@@ -57,7 +58,7 @@ int main(int argc, char *argv[])
 
 	module = G_define_module();
 	module->keywords = _("disp, energy balance, SEBAL");
-	module->description = _("displacement height above skin surface, as seen in Pawan (2004).");
+	module->description = _("Displacement height above skin surface, as seen in Pawan (2004). A flag (-s) permits direct SAVI input using the equation in the same document, be careful using it.");
 
 	/* Define the different options */
 	input1 = G_define_option() ;
@@ -80,6 +81,10 @@ int main(int argc, char *argv[])
 	flag1 = G_define_flag();
 	flag1->key = 'q';
 	flag1->description = _("Quiet");
+	
+	flag2 = G_define_flag();
+	flag2->key = 's';
+	flag2->description = _("use savi2lai conversion (Pawan, 2004)");
 
 	/********************/
 	if (G_parser(argc, argv))
@@ -125,11 +130,20 @@ int main(int argc, char *argv[])
 			d_lai = ((DCELL *) inrast_lai)[col];
 			if(G_is_d_null_value(&d_lai)){
 				((DCELL *) outrast1)[col] = -999.99;
-			}else {
-				/****************************/
-				/* calculate delta T	    */
-				d = dis_p(d_lai);
-				((DCELL *) outrast1)[col] = d;
+			} else {
+				if(flag2->answer){
+					/********************/
+					/* savi2lai()       */
+					d = savi_lai(d_lai);
+					/********************/
+					/* calculate disp   */
+					d = dis_p(d);
+				} else {
+					/********************/
+					/* calculate disp   */
+					d = dis_p(d_lai);
+				}
+			((DCELL *) outrast1)[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
