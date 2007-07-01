@@ -575,6 +575,7 @@ set descmenu [subst  {
 				{command {[G_msg "Net radiation"]} {} "i.eb.netrad" {} -command {execute i.eb.netrad }}
 				{separator}
 				{command {[G_msg "Displacement height"]} {} "i.eb.disp" {} -command {execute i.eb.disp }}
+				{command {[G_msg "Atm. Air Density"]} {} "i.eb.rohair" {} -command {execute i.eb.rohair }}
 				{separator}
 				{command {[G_msg "Monin-Obukov Length"]} {} "i.eb.molength" {} -command {execute i.eb.molength }}
 				{command {[G_msg "Psichrometric param. for heat"]} {} "i.eb.psi" {} -command {execute i.eb.psi }}
