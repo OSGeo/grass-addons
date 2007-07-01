@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 	input1->answer     =_("dem");
 
 	input2 = G_define_option() ;
-	input2->key	   = _("dem");
+	input2->key	   = _("tempka");
 	input2->type       = TYPE_STRING;
 	input2->required   = YES;
 	input2->gisprompt  =_("old,cell,raster") ;
