@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
 	char	sys_19[1000],sys_20[1000],sys_21[1000],sys_22[1000];
 	char	sys_23[1000],sys_24[1000],sys_25[1000],sys_26[1000];
 	char	sys_27[1000],sys_28[1000],sys_29[1000],sys_30[1000];
+	char	sys_31[1000],sys_32[1000],sys_33[1000],sys_34[1000];
 
 	if(argc < 1){
 		usage();
@@ -537,7 +538,7 @@ int main(int argc, char *argv[])
 	/*Start Processing*/
 	system("echo \"#!/bin/bash\" > temp.txt");
 	system("echo \"\" >> temp.txt");
-	system("echo \"#This is an auto-generated script by l7inread_ingrass().\n#It is created by a C code that extract useful information from the .met metadata file of Landsat 7\n#It runs several GRASS GIS modules to calculate (hopefully) automagically ET Potential\n\n#Q: I am bonehead, my script does not run because i am not running it from inside GRASS GIS\n#A: How many times we have to tell you that it will NOT work from outside GRASS GIS! (Actually, there might be a way :P, have to ask the dev-ML...) \" >> temp.txt");
+	system("echo \"#This is an auto-generated script by l7inread_ingrass().\n#It is created by a C code that extract useful information from the .met metadata file of Landsat 7\n#It runs several GRASS GIS modules to calculate (hopefully) automagically ET Potential\n\n#Q: My script does not run because i am not running it from inside GRASS GIS\n#A: It will not work from outside GRASS GIS (Actually, there might be a way :P, have to ask the dev-ML...) \" >> temp.txt");
 	/*ungzip the L7 files*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#UNGZIP ALL LANDSAT BANDS\" >> temp.txt");
@@ -630,10 +631,10 @@ int main(int argc, char *argv[])
 	sprintf(sys_20,"echo \"i.emissivity ndvi=%s.ndvi emissivity=%s.e0 --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_20);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_21,"echo \"i.eb.netrad albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 time=%s.time dtair=%s.delta emissivity=%s.e0 tsw=%s.tsw doy=%s.doy sunzangle=%s.sunza rnet=%s.rnet --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_21,"echo \"i.eb.netrad albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 time=%s.sath dtair=%s.delta emissivity=%s.e0 tsw=%s.tsw doy=%s.doy sunzangle=%s.sunza rnet=%s.rnet --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_21);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_22,"echo \"i.eb.g0 albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 rnet=%s.rnet time=%s.time g0=%s.g0 --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_22,"echo \"i.eb.g0 albedo=%s.albedo ndvi=%s.ndvi tempk=%s.61 rnet=%s.rnet time=%s.sath g0=%s.g0 --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_22);
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_23,"echo \"i.evapo.PT -z RNET=%s.rnetd G0=%s.g0 TEMPKA=%s.tempka PATM=%s.patm PT=1.26 output=%s.ETA_PT --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
@@ -658,8 +659,17 @@ int main(int argc, char *argv[])
 	sprintf(sys_27,"echo \"r.in.gdal -o input=SRTM_u03_p%sr%s.tif output=%s.dem title=SRTM_u03\" >> temp.txt",path,row,basedate);
 	system(sys_27);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_28,"echo \"i.eb.rohair dem=%s.dem tempka=%s.tempka rohair=%s.rohair --overwrite\" >> temp.txt",basedate,basedate,basedate);
+	sprintf(sys_28,"echo \"r.colors map=%s.dem color=srtm\" >> temp.txt",basedate);
 	system(sys_28);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_29,"echo \"i.eb.rohair dem=%s.dem tempka=%s.tempka rohair=%s.rohair --overwrite\" >> temp.txt",basedate,basedate,basedate);
+	system(sys_29);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_30,"echo \"r.null map=%s.rohair setnull=-999.99\" >> temp.txt",basedate);
+	system(sys_30);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_31,"echo \"i.eb.h_iter rohair=%s.rohair cp=1004.16 dtair=%s.delta tempk=%s.61 disp=%s.disp z0m=%s.z0m z0h=%s.z0h u2m=u2 h0=%s.h0 --overwrite \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	system(sys_31);
 	system("echo \"\" >> temp.txt");
 	/*clean maps
  	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");

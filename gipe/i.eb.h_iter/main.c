@@ -1,7 +1,7 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.h_iter
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates sensible heat flux by SEBAL iteration
  *               if your DeltaT (or eq. to make it from surf.temp) is validated.
  *               ! Delta T will not be reassessed in the iterations !
@@ -9,13 +9,14 @@
  *               of surface temperature as used in his SEBAL model.
  *               This has been seen in Pawan (2004).
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2007 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
  *   	    	 for details.
  *
- * CHANGELOG:	28 October: Added u2m input (wind speed at 2 meters height)
+ * CHANGELOG:	28 October 06: Added u2m input (wind speed at 2 meters height)
+ * 		30 June 07: Debugging a Seg Fault
  *
  *****************************************************************************/
 
@@ -97,20 +98,19 @@ int main(int argc, char *argv[])
 	input2->answer     =_("1004.16");
 
 	input3 = G_define_option() ;
-	input3->key        =_("dtair");
+	input3->key        =_("tempk");
 	input3->type       = TYPE_STRING;
-	input3->required   = NO;
+	input3->required   = YES;
 	input3->gisprompt  =_("old,cell,raster");
-	input3->description=_("Name of the skin-air Surface temperature difference map ~[0.0-80.0]");
-//	input3->answer     =_("dtair");
+	input3->description=_("Name of the surface skin temperature map [degrees Kelvin],if used with -s flag and affine coefs, it disables dtair input");
+	input3->answer     =_("tempk");
 
 	input4 = G_define_option() ;
-	input4->key        =_("tempk");
+	input4->key        =_("dtair");
 	input4->type       = TYPE_STRING;
 	input4->required   = NO;
 	input4->gisprompt  =_("old,cell,raster");
-	input4->description=_("Name of the surface skin temperature map [degrees Kelvin],if used with -s flag and affine coefs, it disables dtair input");
-	input4->answer     =_("tempk");
+	input4->description=_("Name of the skin-air Surface temperature difference map ~[0.0-80.0], required unless you use -s flag (then you must give a & b coefs below)");
 
 	input5 = G_define_option() ;
 	input5->key        =_("a");
@@ -179,10 +179,18 @@ int main(int argc, char *argv[])
 
 	rohair	 	= input1->answer;
 	cp	 	= atof(input2->answer);
-	dtair		= input3->answer;
-	tempk	 	= input4->answer;
-	a		= atof(input5->answer);
-	b		= atof(input6->answer);
+	if(input3->answer){
+		dtair	= input3->answer;
+	}
+	if(input4->answer){
+		tempk	= input4->answer;
+	}
+	if(input5->answer){
+		a	= atof(input5->answer);
+	}
+	if(input6->answer){
+		b	= atof(input6->answer);
+	}
 	disp	 	= input7->answer;
 	z0m	 	= input8->answer;
 	z0h	 	= input9->answer;
@@ -191,6 +199,17 @@ int main(int argc, char *argv[])
 	result  = output1->answer;
 	sebal = flag1->answer;
 	verbose = (!flag2->answer);
+
+	/***************************************************/
+	/* TEST FOR -s FLAG COEFS 
+	 * Return error if not proper flag coefs
+	 * 						   */
+	/***************************************************/
+	if (sebal&&!a&&!b){
+		G_fatal_error(_("FATAL ERROR: -s Flag requires coefs a & b!"));
+	} else if (!sebal&&!dtair){
+		G_fatal_error(_("FATAL ERROR: No -s Flag, use DeltaT map!"));
+	}
 	/***************************************************/
 	mapset = G_find_cell2(rohair, "");
 	if (mapset == NULL) {
@@ -293,8 +312,8 @@ int main(int argc, char *argv[])
 		DCELL d_u2m;
 		if(verbose)
 			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
-		/* read soil input maps */	
+		/* printf("row = %i/%i\n",row,nrows);*/
+		/* read input maps */	
 		if(G_get_raster_row(infd_rohair,inrast_rohair,row,data_type_rohair)<0)
 			G_fatal_error(_("Could not read from <%s>"),rohair);
 		if(!sebal){
@@ -314,15 +333,85 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-			d_rohair = ((DCELL *) inrast_rohair)[col];
-			if(!sebal){
-				d_dtair = ((DCELL *) inrast_dtair)[col];
+			switch(data_type_rohair){
+				case CELL_TYPE:
+					d_rohair = (double) ((CELL *) inrast_rohair)[col];
+					break;
+				case FCELL_TYPE:
+					d_rohair = (double) ((FCELL *) inrast_rohair)[col];
+					break;
+				case DCELL_TYPE:
+					d_rohair = ((DCELL *) inrast_rohair)[col];
+					break;
 			}
-			d_tempk = ((DCELL *) inrast_tempk)[col];
-			d_disp = ((DCELL *) inrast_disp)[col];
-			d_z0m = ((DCELL *) inrast_z0m)[col];
-			d_z0h = ((DCELL *) inrast_z0h)[col];
-			d_u2m = ((DCELL *) inrast_u2m)[col];
+			if(!sebal){
+				switch(data_type_dtair){
+					case CELL_TYPE:
+						d_dtair = (double) ((CELL *) inrast_dtair)[col];
+						break;
+					case FCELL_TYPE:
+						d_dtair = (double) ((FCELL *) inrast_dtair)[col];
+						break;
+					case DCELL_TYPE:
+						d_dtair = ((DCELL *) inrast_dtair)[col];
+						break;
+				}
+			}
+			switch(data_type_tempk){
+				case CELL_TYPE:
+					d_tempk = (double) ((CELL *) inrast_tempk)[col];
+					break;
+				case FCELL_TYPE:
+					d_tempk = (double) ((FCELL *) inrast_tempk)[col];
+					break;
+				case DCELL_TYPE:
+					d_tempk = ((DCELL *) inrast_tempk)[col];
+					break;
+			}
+			switch(data_type_disp){
+				case CELL_TYPE:
+					d_disp = (double) ((CELL *) inrast_disp)[col];
+					break;
+				case FCELL_TYPE:
+					d_disp = (double) ((FCELL *) inrast_disp)[col];
+					break;
+				case DCELL_TYPE:
+					d_disp = ((DCELL *) inrast_disp)[col];
+					break;
+			}
+			switch(data_type_z0m){
+				case CELL_TYPE:
+					d_z0m = (double) ((CELL *) inrast_z0m)[col];
+					break;
+				case FCELL_TYPE:
+					d_z0m = (double) ((FCELL *) inrast_z0m)[col];
+					break;
+				case DCELL_TYPE:
+					d_z0m = ((DCELL *) inrast_z0m)[col];
+					break;
+			}
+			switch(data_type_z0h){
+				case CELL_TYPE:
+					d_z0h = (double) ((CELL *) inrast_z0h)[col];
+					break;
+				case FCELL_TYPE:
+					d_z0h = (double) ((FCELL *) inrast_z0h)[col];
+					break;
+				case DCELL_TYPE:
+					d_z0h = ((DCELL *) inrast_z0h)[col];
+					break;
+			}
+			switch(data_type_u2m){
+				case CELL_TYPE:
+					d_u2m = (double) ((CELL *) inrast_u2m)[col];
+					break;
+				case FCELL_TYPE:
+					d_u2m = (double) ((FCELL *) inrast_u2m)[col];
+					break;
+				case DCELL_TYPE:
+					d_u2m = ((DCELL *) inrast_u2m)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_rohair)){
 				((DCELL *) outrast)[col] = -999.99;
 			}else if((!sebal)&&G_is_d_null_value(&d_dtair)){
@@ -340,16 +429,16 @@ int main(int argc, char *argv[])
 			}else {
 				/************************************/
 				/* calculate sensible heat flux	    */
-				if(sebal){//if -s flag then calculate Delta T from Coefs
+				if(sebal){/*if -s flag then calculate Delta T from Coefs*/
 					d_affine=a*d_tempk+b;
-					// Run iterations to find Rah
+					/* Run iterations to find Rah*/
 					d_rah=fixed_deltat(d_u2m,d_rohair,cp,d_affine,d_disp,d_z0m,d_z0h,d_tempk);
-					//Process h
+					/*Process h*/
 					d = h0(d_rohair,cp,d_rah,d_affine);
-				}else{// not -s flag then take delta T map input directly
-					// Run iterations to find Rah
+				}else{/* not -s flag then take delta T map input directly*/
+					/* Run iterations to find Rah*/
 					d_rah=fixed_deltat(d_u2m,d_rohair,cp,d_dtair,d_disp,d_z0m,d_z0h,d_tempk);
-					//Process h
+					/*Process h*/
 					d = h0(d_rohair,cp,d_rah,d_dtair);
 				}
 				((DCELL *) outrast)[col] = d;
