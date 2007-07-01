@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	input1->type       = TYPE_STRING;
 	input1->required   = YES;
 	input1->gisprompt  =_("old,cell,raster") ;
-	input1->description=_("Name of the DEM map [-]");
+	input1->description=_("Name of the DEM map [m]");
 	input1->answer     =_("dem");
 
 	input2 = G_define_option() ;
@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
 		exit (EXIT_FAILURE);
 
 	dem	 	= input1->answer;
+	tempka	 	= input2->answer;
 		
 	result1  = output1->answer;
 	verbose = (!flag1->answer);
