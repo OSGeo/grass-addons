@@ -343,6 +343,7 @@ class Data:
                   ("Net radiation", "net radiation", "self.RunMenuCmd", "i.eb.netrad"),
                   ("","","", ""),
                   ("Displacement height", "Displacement height", "self.RunMenuCmd", "i.eb.disp"),
+                  ("","","", ""),
                   ("Monin-Obukov Length", "Monin-Obukov Length", "self.RunMenuCmd", "i.eb.molength"),
                   ("Psichrometric param. for heat", "psichrometric param. for heat", "self.RunMenuCmd", "i.eb.psi"),
                   ("Blending height wind speed", "blending height wind speed", "self.RunMenuCmd",  "i.eb.ublend"),

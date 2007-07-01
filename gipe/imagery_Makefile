@@ -23,6 +23,7 @@ SUBDIRS1 = \
 	i.eb.netrad \
 	i.eb.psi \
 	i.eb.rah \
+	i.eb.rohair \
 	i.eb.ublend \
 	i.eb.ustar \
 	i.eb.z0m \

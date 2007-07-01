@@ -19,15 +19,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 Thanks to Brad Douglas <rez@touchofmadness.com> to fix the .tif filename issue
 */
 
-//This is auto-generating an image processing script for GRASS GIS.
-//It is created by extracting useful information from the .met metadata
-//file of Landsat 7
-//It runs several GRASS GIS modules to calculate (hopefully) 
-//automagically ET Potential
-//It assumes you just downloaded *.gz Landsat images from public 
-//repositories such as www.landsat.org or other and run this code 
-//in that directory from the GRASS GIS shell
- 
+/* This is auto-generating an image processing script for GRASS GIS.
+ * It is created by extracting useful information from the .met metadata
+ * file of Landsat 7
+ * It runs several GRASS GIS modules to calculate (hopefully) 
+ * automagically ET Potential and more ET types...
+ * It assumes you just downloaded *.gz Landsat images from public 
+ * repositories such as www.landsat.org or other and run this code 
+ * in that directory from the GRASS GIS shell
+ */
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -53,9 +54,9 @@ int main(int argc, char *argv[])
 
 	char	b1[80],b2[80],b3[80];
 	char	b4[80],b5[80],b61[80];
-	char	b62[80],b7[80],b8[80]; //Load .tif file names
-	char	path[80],row[80]; //load path and row of L7
-	char	basedate[80];//p127r05020001104
+	char	b62[80],b7[80],b8[80]; /*Load .tif file names*/
+	char	path[80],row[80]; /*load path and row of L7*/
+	char	basedate[80];/*p127r05020001104*/
 
 	double	lmin[MAXFILES]={0.0};
 	double	lmax[MAXFILES]={0.0};
@@ -73,11 +74,11 @@ int main(int argc, char *argv[])
 	char	sys_lmax[80];
 	char	sys_qcalmin[80];
 	char	sys_qcalmax[80];
-	char	sys_basedate[80];//catenate of path and row (i.e.p127r050)
+	char	sys_basedate[80];/*catenate of path and row (i.e.p127r050)*/
 	char	sys_b1[80],sys_b2[80],sys_b3[80];
 	char	sys_0[100],sys_00[100];
 	char	sys_b4[80],sys_b5[80],sys_b61[80];
-	char	sys_b62[80],sys_b7[80],sys_b8[80]; //Load .tif file names
+	char	sys_b62[80],sys_b7[80],sys_b8[80]; /*Load .tif file names*/
 	char	sys_1[1000],sys_2[1000],sys_3[1000],sys_4[1000];
 	char	sys_5[1000],sys_6[1000],sys_7[1000],sys_8[1000];
 	char	sys_9[1000],sys_10[1000],sys_100[1000];
@@ -97,60 +98,54 @@ int main(int argc, char *argv[])
 	if (!f)
 	return 1;
 
-//	printf("1\n");
 	while (fgets(s,1000,f)!=NULL)
 	{
-	//	printf("2%s\n",s);
 		ptr = strstr(s, "ACQUISITION_DATE");
 		if (ptr != NULL)
 		{
-	//		printf("3\t");
 			p = strtok(ptr, " =");
 			p = strtok(NULL, " =-");
 			year = atoi(p);
-	//		printf("4\t");
 			p = strtok(NULL, "-");
 			month = atoi(p);
-	//		printf("5\t");
 			p = strtok(NULL, "-");
 			day = atoi(p);
-	//		printf("6\n");
 		}
 		ptr = strstr(s, "WRS_PATH");
 		if (ptr != NULL)
 		{
 			p = strtok(ptr, " =");
 			p = strtok(NULL, " =\n");
-// 			printf("path=%s\n",p);
+/* 			printf("path=%s\n",p);*/
 			snprintf(path, 80, "%s", p);
-// 			printf("path=%s\n",path);
+/* 			printf("path=%s\n",path);*/
 		}
 		ptr = strstr(s, "WRS_ROW");
 		if (ptr != NULL)
 		{
 			p = strtok(ptr, " =");
 			p = strtok(NULL, " =\n");
-// 			printf("row=%s\n",p);
+/* 			printf("row=%s\n",p);*/
 			snprintf(row, 80, "%s", p);
-// 			printf("row=%s\n",row);
+/* 			printf("row=%s\n",row);*/
 		}
 		ptr = strstr(s, "BAND1_FILE_NAME");
 		if (ptr != NULL)
 		{
 			p = strtok(ptr, " =");
 			p = strtok(NULL, " =\"");
-		//	printf("b1=%s\n",p);
+		/*	printf("b1=%s\n",p);*/
 			snprintf(b1, 80, "%s", p);
-		//	printf("b1=%s\n",band1);
+		/*	printf("b1=%s\n",band1);*/
 		}
 		ptr = strstr(s, "BAND2_FILE_NAME");
 		if (ptr != NULL)
 		{
 			p = strtok(ptr, " =");
 			p = strtok(NULL, " =\"");
-		//	printf("b2=%s\n",p);
+		/*	printf("b2=%s\n",p);*/
 			snprintf(b2, 80, "%s", p);
-		//	printf("b2=%s\n",band2);
+		/*	printf("b2=%s\n",band2);*/
 		}
 		ptr = strstr(s, "BAND3_FILE_NAME");
 		if (ptr != NULL)
@@ -514,16 +509,16 @@ int main(int argc, char *argv[])
 	snprintf(sys_sun_elevation,80,"sun_elevation=%f",sun_elevation);
 	system(sys_sun_elevation);
 
-// 	for (i=0;i<MAXFILES;i++){
-// 		sprintf(sys_lmin[i],"lmin%i=%f\n",i,lmin[i]);
-// 		sprintf(sys_lmax[i],"lmax%i=%f\n",i,lmax[i]);
-// 		sprintf(sys_qcalmin[i],"qcalmin%i=%f\n",i,qcalmin[i]);
-// 		sprintf(sys_qcalmax[i],"qcalmax%i=%f\n",i,qcalmax[i]);
-// 		system(sys_lmin[i]);
-// 		system(sys_lmax[i]);
-// 		system(sys_qcalmin[i]);
-// 		system(sys_qcalmax[i]);
-// 	}
+/* 	for (i=0;i<MAXFILES;i++){
+ 		sprintf(sys_lmin[i],"lmin%i=%f\n",i,lmin[i]);
+ 		sprintf(sys_lmax[i],"lmax%i=%f\n",i,lmax[i]);
+ 		sprintf(sys_qcalmin[i],"qcalmin%i=%f\n",i,qcalmin[i]);
+ 		sprintf(sys_qcalmax[i],"qcalmax%i=%f\n",i,qcalmax[i]);
+ 		system(sys_lmin[i]);
+ 		system(sys_lmax[i]);
+ 		system(sys_qcalmin[i]);
+ 		system(sys_qcalmax[i]);
+ 	}*/
 
 	if(month<10){
 		snprintf(char_month,80,"0%d",month);
@@ -538,15 +533,15 @@ int main(int argc, char *argv[])
 	snprintf(basedate,80,"p%sr%s%d%s%s",path,row,year,char_month,char_day);
 
 
-	//Start Processing ETPOT
+	/*Start Processing*/
 	system("echo \"#!/bin/bash\" > temp.txt");
 	system("echo \"\" >> temp.txt");
 	system("echo \"#This is an auto-generated script by l7inread_ingrass().\n#It is created by a C code that extract useful information from the .met metadata file of Landsat 7\n#It runs several GRASS GIS modules to calculate (hopefully) automagically ET Potential\n\n#Q: I am bonehead, my script does not run because i am not running it from inside GRASS GIS\n#A: How many times we have to tell you that it will NOT work from outside GRASS GIS! (Actually, there might be a way :P, have to ask the dev-ML...) \" >> temp.txt");
-	//ungzip the L7 files
+	/*ungzip the L7 files*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#UNGZIP ALL LANDSAT BANDS\" >> temp.txt");
 	system("echo \"for file in *.gz; do gzip -d \\$file ; done\" >> temp.txt");
-	//import the Landsat 7 files
+	/*import the Landsat 7 files*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#IMPORT IN GRASS GIS\" >> temp.txt");
 	sprintf(sys_0,"echo \"for file in *10.tif; do r.in.gdal input=\\$file output=\\$file title=Landsat7ETM\\$file location=landsat\\%s ; done\" >> temp.txt",basedate);
@@ -554,36 +549,36 @@ int main(int argc, char *argv[])
 	sprintf(sys_00,"echo \"g.mapset location=landsat\\%s mapset=PERMANENT\" >> temp.txt", basedate);
 	system(sys_00);
 	system("echo \"for file in *.tif; do r.in.gdal input=\\$file output=\\$file title=Landsat7ETM\\$file ; done\" >> temp.txt");
-	//Set region to Temperature map
+	/*Set region to Temperature map*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#SET REGION TO TEMPERATURE MAP\" >> temp.txt");
 	snprintf(sys_b61,80,"echo \"g.region rast=%s\" >> temp.txt",b61);
 	system(sys_b61);
-	//export met file name to envt var
-//	snprintf(sys_metfName,80,"echo \"inpmetF=%s\" >> temp.txt",metfName);
-//	system(sys_metfName);
-	//Create a base variable
-//	snprintf(sys_basedate,80,"echo \"basedate=%s\" >> temp.txt",basedate);
-//	system(sys_basedate);
-	//calibrate DN to TOA Reflectance
+	/*export met file name to envt var*/
+/*	snprintf(sys_metfName,80,"echo \"inpmetF=%s\" >> temp.txt",metfName);
+	system(sys_metfName);*/
+	/*Create a base variable*/
+/*	snprintf(sys_basedate,80,"echo \"basedate=%s\" >> temp.txt",basedate);
+	system(sys_basedate);*/
+	/*calibrate DN to TOA Reflectance*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#DN2REF\" >> temp.txt");
 	snprintf(sys_1,1000,"echo \"i.dn2full.l7 metfile=%s output=%s --overwrite\" >> temp.txt",metfName,basedate);
 	system(sys_1);
-	//Calculate Albedo
+	/*Calculate Albedo*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#ALBEDO\" >> temp.txt");
 	snprintf(sys_2,1000,"echo \"i.albedo -l input=%s.1,%s.2,%s.3,%s.4,%s.5,%s.7 output=%s.albedo --overwrite\" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate);
 	system(sys_2);
 	snprintf(sys_3,1000,"r.null map=%s.albedo setnull=0.0\" >> temp.txt",basedate);
 	system(sys_3);
-	//Calculate Latitude
+	/*Calculate Latitude*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#LATITUDE, DOY, TSW\" >> temp.txt");
 	snprintf(sys_4,1000,"echo \"i.latitude input=%s.albedo latitude=%s.latitude --overwrite ; r.mapcalc %s.doy=%d ; r.mapcalc %s.tsw=0.7\" >> temp.txt", basedate, basedate, basedate, doy, basedate);
-	//Create a doy layer
+	/*Create a doy layer*/
 	system(sys_4);
-	//Calculate ETPOT (and Rnetd for future ETa calculations)
+	/*Calculate ETPOT (and Rnetd for future ETa calculations)*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#ETPOT\" >> temp.txt");
 	snprintf(sys_5,1000,"echo \"i.evapo.potrad -r albedo=%s.albedo tempk=%s.61 lat=%s.latitude doy=%s.doy tsw=%s.tsw etpot=%s.etpot rnetd=%s.rnetd --overwrite\" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate);
@@ -592,13 +587,13 @@ int main(int argc, char *argv[])
 	system(sys_7);
 	system("echo \"\" >> temp.txt");
 	system("echo \"#NDVI\" >> temp.txt");
-	//Calculate NDVI 
+	/*Calculate NDVI*/
 	snprintf(sys_8,1000,"echo \"i.vi viname=ndvi red=%s.3 nir=%s.4 vi=%s.ndvi --overwrite ; r.null map=%s.ndvi setnull=-1.0 ; r.colors map=%s.ndvi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_8);
 	snprintf(sys_16,1000,"echo \"i.vi viname=savi red=%s.3 nir=%s.4 vi=%s.savi --overwrite ; r.null map=%s.savi setnull=-1.0 ; r.colors map=%s.savi rules=ndvi\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_16);
 
-	//Calculate ETa after Two-Source Algorithm (Chen et al., 2005)
+	/*Calculate ETa after Two-Source Algorithm (Chen et al., 2005)*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#TWO-SOURCE ALGORITHM\" >> temp.txt");
 	system("echo \"\" >> temp.txt");
@@ -626,7 +621,7 @@ int main(int argc, char *argv[])
 	sprintf(sys_10,"echo \"i.evapo.TSA RNET=%s.rnetd FV=%s.ndvi TEMPK=%s.61 TEMPKA=%s.tempka ALB=%s.albedo NDVI=%s.ndvi UZ=u2 Z=2.0 Z0=%s.z0h Z0S=z0s W=%s.w TIME=%s.sath SUNH=%s.sunh output=%s.ETA_TSA --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_10);
 	system("echo \"\" >> temp.txt");
-	//Calculate ET Potential after Prestley and Taylor
+	/*Calculate ET Potential after Prestley and Taylor*/
 	system("echo \"#PRESTLEY AND TAYLOR ET POTENTIAL\" >> temp.txt");
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_19,"echo \"r.mapcalc %s.patm=1010.0\" >> temp.txt",basedate);
@@ -643,13 +638,14 @@ int main(int argc, char *argv[])
 	sprintf(sys_23,"echo \"i.evapo.PT -z RNET=%s.rnetd G0=%s.g0 TEMPKA=%s.tempka PATM=%s.patm PT=1.26 output=%s.ETA_PT --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_23);
 	system("echo \"\" >> temp.txt");
-	//Calculate the Actual ET after Pawan (2004)
+	/*Calculate the Actual ET after Pawan (2004)*/
 	system("echo \"#ACTUAL ET\" >> temp.txt");
 	system("echo \"\" >> temp.txt");
-
-	//clean maps
-// 	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
-
+	sprintf(sys_24,"echo \"i.eb.disp -s lai=%s.savi disp=%s.disp --overwrite\" >> temp.txt",basedate,basedate);
+	system(sys_24);
+	/*clean maps
+ 	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
+	*/
 	(void)fclose(f);
 	return;
 }
