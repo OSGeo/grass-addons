@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 	char	sys_15[1000],sys_16[1000],sys_17[1000],sys_18[1000];
 	char	sys_19[1000],sys_20[1000],sys_21[1000],sys_22[1000];
 	char	sys_23[1000],sys_24[1000],sys_25[1000],sys_26[1000];
+	char	sys_27[1000],sys_28[1000],sys_29[1000],sys_30[1000];
 
 	if(argc < 1){
 		usage();
@@ -644,8 +645,21 @@ int main(int argc, char *argv[])
 	sprintf(sys_24,"echo \"i.eb.disp -s lai=%s.savi disp=%s.disp --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_24);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_25,"echo \"i.eb.rohair dem=%s.dem tempka=%s.tempka rohair=%s.rohair --overwrite\" >> temp.txt",basedate,basedate,basedate);
+	system("echo \"#DOWNLOAD SRTM DEM 90m unfinished\" >> temp.txt");
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_25,"echo \"wget -c ftp://ftp.glcf.umiacs.umd.edu/glcf/SRTM/WRS2_Tiles/p%s/SRTM_u03_p%sr%s/SRTM_u03_p%sr%s.tif.gz \" >> temp.txt",path,path,row,path,row);
 	system(sys_25);
+	system("echo \"\" >> temp.txt");
+	system("echo \"#IMPORT SRTM DEM 90m unfinished\" >> temp.txt");
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_26,"echo \"gzip -d SRTM_u03_p%sr%s.tif.gz \" >> temp.txt",path,row);
+	system(sys_26);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_27,"echo \"r.in.gdal -o input=SRTM_u03_p%sr%s.tif output=%s.dem title=SRTM_u03\" >> temp.txt",path,row,basedate);
+	system(sys_27);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_28,"echo \"i.eb.rohair dem=%s.dem tempka=%s.tempka rohair=%s.rohair --overwrite\" >> temp.txt",basedate,basedate,basedate);
+	system(sys_28);
 	system("echo \"\" >> temp.txt");
 	/*clean maps
  	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
