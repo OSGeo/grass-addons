@@ -643,6 +643,10 @@ int main(int argc, char *argv[])
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_24,"echo \"i.eb.disp -s lai=%s.savi disp=%s.disp --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_24);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_25,"echo \"i.eb.rohair dem=%s.dem tempka=%s.tempka rohair=%s.rohair --overwrite\" >> temp.txt",basedate,basedate,basedate);
+	system(sys_25);
+	system("echo \"\" >> temp.txt");
 	/*clean maps
  	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
 	*/
