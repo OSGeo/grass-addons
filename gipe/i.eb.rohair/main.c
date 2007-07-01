@@ -28,11 +28,9 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input1, *input2, *output1;
 	
-	struct Flag *flag1;	
 	struct History history; //metadata
 	
 	/************************************/
@@ -83,11 +81,6 @@ int main(int argc, char *argv[])
 	output1->gisprompt  =_("new,dcell,raster");
 	output1->description=_("Name of the output rohair layer");
 	output1->answer     =_("rohair");
-
-	
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 	
 	/********************/
 	if (G_parser(argc, argv))
@@ -97,7 +90,6 @@ int main(int argc, char *argv[])
 	tempka	 	= input2->answer;
 		
 	result1  = output1->answer;
-	verbose = (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(dem, "");
 	if (mapset == NULL) {
@@ -135,11 +127,11 @@ int main(int argc, char *argv[])
 		DCELL d;
 		DCELL d_dem;
 		DCELL d_tempka;
-		if(verbose)
-			G_percent(row,nrows,2);
-		/* read soil input maps */	
+		/* read input maps */	
 		if(G_get_raster_row(infd_dem,inrast_dem,row,data_type_dem)<0)
 			G_fatal_error(_("Could not read from <%s>"),dem);
+		if(G_get_raster_row(infd_tempka,inrast_tempka,row,data_type_tempka)<0)
+			G_fatal_error(_("Could not read from <%s>"),tempka);
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
@@ -165,7 +157,9 @@ int main(int argc, char *argv[])
 					d_tempka = ((DCELL *) inrast_tempka)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_dem)||G_is_d_null_value(&d_tempka)){
+			if(G_is_d_null_value(&d_dem)){
+				((DCELL *) outrast1)[col] = -999.99;
+			} else if (G_is_d_null_value(&d_tempka)){
 				((DCELL *) outrast1)[col] = -999.99;
 			} else {
 				/********************/
