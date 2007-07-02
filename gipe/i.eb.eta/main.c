@@ -1,11 +1,11 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.eta
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the actual evapotranspiration for diurnal period
  *               as seen in Bastiaanssen (1995) 
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2007 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
 	
 	void *inrast_rnetday, *inrast_evapfr, *inrast_tempk;
 	unsigned char *outrast1;
+	RASTER_MAP_TYPE data_type_output DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_rnetday;
 	RASTER_MAP_TYPE data_type_evapfr;
 	RASTER_MAP_TYPE data_type_tempk;
@@ -156,8 +157,7 @@ int main(int argc, char *argv[])
 		DCELL d_tempk;
 		if(verbose)
 			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
-		/* read soil input maps */	
+		/* read input maps */	
 		if(G_get_raster_row(infd_rnetday,inrast_rnetday,row,data_type_rnetday)<0)
 			G_fatal_error(_("Could not read from <%s>"),rnetday);
 		if(G_get_raster_row(infd_evapfr,inrast_evapfr,row,data_type_evapfr)<0)
@@ -167,13 +167,39 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-		//	printf("col=%i/%i ",col,ncols);
-			d_rnetday = ((DCELL *) inrast_rnetday)[col];
- 		//	printf("rnetday = %5.3f", d_rnetday);
-			d_evapfr = ((DCELL *) inrast_evapfr)[col];
- 		//	printf(" evapfr = %5.3f", d_evapfr);
-			d_tempk = ((DCELL *) inrast_tempk)[col];
- 		//	printf(" tempk = %5.3f", d_tempk);
+			switch(data_type_rnetday){
+				case CELL_TYPE:
+					d_rnetday = (double) ((CELL *) inrast_rnetday)[col];
+					break;
+				case FCELL_TYPE:
+					d_rnetday = (double) ((FCELL *) inrast_rnetday)[col];
+					break;
+				case DCELL_TYPE:
+					d_rnetday = ((DCELL *) inrast_rnetday)[col];
+					break;
+			}
+			switch(data_type_evapfr){
+				case CELL_TYPE:
+					d_evapfr = (double) ((CELL *) inrast_evapfr)[col];
+					break;
+				case FCELL_TYPE:
+					d_evapfr = (double) ((FCELL *) inrast_evapfr)[col];
+					break;
+				case DCELL_TYPE:
+					d_evapfr = ((DCELL *) inrast_evapfr)[col];
+					break;
+			}
+			switch(data_type_tempk){
+				case CELL_TYPE:
+					d_tempk = (double) ((CELL *) inrast_tempk)[col];
+					break;
+				case FCELL_TYPE:
+					d_tempk = (double) ((FCELL *) inrast_tempk)[col];
+					break;
+				case DCELL_TYPE:
+					d_tempk = ((DCELL *) inrast_tempk)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_rnetday)){
 				((DCELL *) outrast1)[col] = -999.99;
 			}else if(G_is_d_null_value(&d_evapfr)){
@@ -184,15 +210,10 @@ int main(int argc, char *argv[])
 				/************************************/
 				/* calculate soil heat flux	    */
 				d = et_a(d_rnetday,d_evapfr,d_tempk);
-		//		printf(" || d=%5.3f",d);
 				((DCELL *) outrast1)[col] = d;
-		//		printf(" -> %5.3f\n",d);
 			}
-		//	if(row==50){
-		//		exit(EXIT_SUCCESS);
-		//	}
 		}
-		if (G_put_raster_row (outfd1, outrast1, data_type_tempk) < 0)
+		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
 	}
 

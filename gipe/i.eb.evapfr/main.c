@@ -192,13 +192,39 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-		//	printf("col=%i/%i ",col,ncols);
-			d_rnet = ((DCELL *) inrast_rnet)[col];
- 		//	printf("rnet = %5.3f", d_rnet);
-			d_g0 = ((DCELL *) inrast_g0)[col];
- 		//	printf(" g0 = %5.3f", d_g0);
-			d_h0 = ((DCELL *) inrast_h0)[col];
- 		//	printf(" h0 = %5.3f", d_h0);
+			switch(data_type_rnet){
+				case CELL_TYPE:
+					d_rnet = (double) ((CELL *) inrast_rnet)[col];
+					break;
+				case FCELL_TYPE:
+					d_rnet = (double) ((FCELL *) inrast_rnet)[col];
+					break;
+				case DCELL_TYPE:
+					d_rnet = ((DCELL *) inrast_rnet)[col];
+					break;
+			}
+			switch(data_type_g0){
+				case CELL_TYPE:
+					d_g0 = (double) ((CELL *) inrast_g0)[col];
+					break;
+				case FCELL_TYPE:
+					d_g0 = (double) ((FCELL *) inrast_g0)[col];
+					break;
+				case DCELL_TYPE:
+					d_g0 = ((DCELL *) inrast_g0)[col];
+					break;
+			}
+			switch(data_type_h0){
+				case CELL_TYPE:
+					d_h0 = (double) ((CELL *) inrast_h0)[col];
+					break;
+				case FCELL_TYPE:
+					d_h0 = (double) ((FCELL *) inrast_h0)[col];
+					break;
+				case DCELL_TYPE:
+					d_h0 = ((DCELL *) inrast_h0)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_rnet)){
 				((DCELL *) outrast1)[col] = -999.99;
 				if(makin){
