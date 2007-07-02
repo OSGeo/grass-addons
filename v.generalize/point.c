@@ -98,8 +98,6 @@ POINT_LIST *point_list_new(POINT p)
     };
 
     pl->next = NULL;
-    if (p.x < 10)
-	printf("%lf\n", p.x);
     pl->p = p;
     return pl;
 };

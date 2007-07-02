@@ -22,6 +22,7 @@
 #include <grass/Vect.h>
 #include <grass/glocale.h>
 #include "point.h"
+#include "matrix.h"
 
 /* boyle's forward looking algorithm
  * return the number of points in the result = Points->n_points
@@ -199,8 +200,6 @@ int chaiken(struct line_pnts *Points, double thresh, int with_z)
 void refine_tangent(POINT * p)
 {
     double l = point_dist2(*p);
-    if (l < 0.0000001)
-	return;
     point_scalar(*p, 1 / sqrt(sqrt(sqrt(l))), p);
     return;
 };
@@ -298,5 +297,110 @@ int hermite(struct line_pnts *Points, double step, int with_z)
     };
 
     point_list_free(head);
+    return Points->n_points;
+};
+
+/* snakes algorithm for line simplification/generalization 
+ * returns the number of points in the output line. This is
+ * always equal to the number of points in the original line
+ * 
+ * alfa, beta are 2 parameters which change the behaviour of the algorithm
+ * 
+ * TODO: Add parameter iterations, so the runnining time is O(N^3 * log iterations)
+ * instead of O(N^3 * itearations)
+ * TODO: Solve the problems with the first and last few points. Probably, repeat
+ * the first/last point at the beginning/end of the line
+ */
+int snakes(struct line_pnts *Points, double alfa, double beta, int with_z)
+{
+    MATRIX g, ginv, xcoord, ycoord, zcoord, xout, yout, zout;
+
+    int n = Points->n_points;
+    int i, j;
+
+    int plus = 4;
+
+    if (!matrix_init(n + 2 * plus, n + 2 * plus, &g)) {
+	G_fatal_error(_("Out of memory"));
+	return n;
+    };
+    matrix_init(n + 2 * plus, 1, &xcoord);
+    matrix_init(n + 2 * plus, 1, &ycoord);
+    matrix_init(n + 2 * plus, 1, &zcoord);
+
+    double x0 = Points->x[0];
+    double y0 = Points->y[0];
+    double z0 = Points->z[0];
+
+    /* store the coordinates in the column vectors */
+    for (i = 0; i < n; i++) {
+	xcoord.a[i + plus][0] = Points->x[i] - x0;
+	ycoord.a[i + plus][0] = Points->y[i] - y0;
+	zcoord.a[i + plus][0] = Points->z[i] - z0;
+    };
+
+    /* repeat first and last point at the beginning and end
+     * of each vector respectively */
+    for (i = 0; i < plus; i++) {
+	xcoord.a[i][0] = 0;
+	ycoord.a[i][0] = 0;
+	zcoord.a[i][0] = 0;
+    };
+
+    for (i = n + plus; i < n + 2 * plus; i++) {
+	xcoord.a[i][0] = Points->x[n - 1] - x0;
+	ycoord.a[i][0] = Points->y[n - 1] - y0;
+	zcoord.a[i][0] = Points->z[n - 1] - z0;
+    };
+
+
+    /* calculate the matrix */
+    double a = 2.0 * alfa + 6.0 * beta;
+    double b = -alfa - 4.0 * beta;
+    double c = beta;
+
+    double val[5] = { c, b, a, b, c };
+
+    for (i = 0; i < n + 2 * plus; i++)
+	for (j = 0; j < n + 2 * plus; j++) {
+	    int index = j - i + 2;
+	    if (index >= 0 && index <= 4)
+		g.a[i][j] = val[index];
+	    else
+		g.a[i][j] = 0;
+	};
+
+    matrix_add_identity((double)1.0, &g);
+
+    /* find its inverse */
+    if (!matrix_inverse(g, &ginv)) {
+	G_fatal_error(_("Could not find the inverse matrix"));
+	return n;
+    };
+
+    if (!matrix_mult(ginv, xcoord, &xout)
+	|| !matrix_mult(ginv, ycoord, &yout)
+	|| !matrix_mult(ginv, zcoord, &zout)) {
+	G_fatal_error(_("Could not calculate the output vectors"));
+	return n;
+    };
+
+    /* copy the new values of coordinates, but
+     * never move the last and first point */
+    for (i = 1; i < n - 1; i++) {
+	Points->x[i] = xout.a[i + plus][0] + x0;
+	Points->y[i] = yout.a[i + plus][0] + y0;
+	if (with_z)
+	    Points->z[i] = zout.a[i + plus][0] + z0;
+    };
+
+    matrix_free(g);
+    matrix_free(ginv);
+    matrix_free(xcoord);
+    matrix_free(ycoord);
+    matrix_free(zcoord);
+    matrix_free(xout);
+    matrix_free(yout);
+    matrix_free(zout);
     return Points->n_points;
 };

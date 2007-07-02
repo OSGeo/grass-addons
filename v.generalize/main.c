@@ -31,6 +31,7 @@
 #define DISTANCE_WEIGHTING 5
 #define CHAIKEN 6
 #define HERMITE 7
+#define SNAKES 8
 
 int main(int argc, char *argv[])
 {
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
     method_opt->required = YES;
     method_opt->multiple = NO;
     method_opt->options =
-	"douglas,lang,reduction,reumann,boyle,distance_weighting,chaiken,hermite";
+	"douglas,lang,reduction,reumann,boyle,distance_weighting,chaiken,hermite,snakes";
     method_opt->answer = "douglas";
     method_opt->descriptions = "douglas;Douglass-Peucker Algorithm;"
 	"lang;Lang Simplification Algorithm;"
@@ -77,7 +78,8 @@ int main(int argc, char *argv[])
 	"boyle;Boyle's Forward-Looking Algorithm;"
 	"distance_weighting;McMaster's Distance-Weighting Algorithm;"
 	"chaiken;Chaiken's Algorithm;"
-	"hermite;Interpolation by Cubic Hermite Splines;";
+	"hermite;Interpolation by Cubic Hermite Splines;"
+	"snakes;Snakes method for line smoothing;";
     method_opt->description = _("Line simplification/smoothing algorithm");
 
     thresh_opt = G_define_option();
@@ -155,8 +157,11 @@ int main(int argc, char *argv[])
     else if (method_opt->answer[0] == 'c') {
 	method = CHAIKEN;
     }
-    else {
+    else if (method_opt->answer[0] == 'h') {
 	method = HERMITE;
+    }
+    else {
+	method = SNAKES;
     };
 
     Points = Vect_new_line_struct();
@@ -215,8 +220,11 @@ int main(int argc, char *argv[])
 		else if (method == CHAIKEN) {
 		    after = chaiken(Points, thresh, with_z);
 		}
-		else {
+		else if (method == HERMITE) {
 		    after = hermite(Points, thresh, with_z);
+		}
+		else {
+		    after = snakes(Points, (double)1.0, (double)1.0, with_z);
 		};
 	    };
 
