@@ -1,0 +1,87 @@
+<H2>DESCRIPTION</H2>
+
+<EM>i.landsat.toar</EM> is to transform digital number (DN) of
+Landsat-4/5 TM or Landsat 7 ETM+ product to reflectance at top of
+atmosphere (band 1, 2, 3, 4, 5, 7 or 8) and temperature (band 6).
+
+<p>For Landsat-4/5 TM need date and solar.<br>For Landsat-7 ETM+
+either metfile or date, solar, and gain</p>
+
+<p>For flag -f, make distinction between acquisition and processing dates.</p>
+
+<H2>NOTES</H2>
+
+<p>The standard geometric and radiometric correction results in
+digital number (DN) images. To further standardize the impact of
+illumination geometry, the DN images are converted first to
+at-satellite radiance and then to at-satellite reflectance.<br>
+The thermal band is first converted from DN to at-satellite radiance,
+and then to effective at-satellite temperature in Celsius (O Kelvin =
+-273.15 Celsius).</p>
+
+<p>In verbose mode, the program write the parameters used in
+transformation to at-satellite radiance, to at-satellite reflectance
+and constant to remove the atmospheric effect using DOS
+method.<br><br>
+
+To remove atmospheric effect, use 
+
+<div class="code"><pre>
+r.mapcalc 'refc = if(ref < (a*dp+b), b, ref-a*dp)'
+</pre></div>
+being <em>refc</em> the reflectance corrected without atmospheric
+effect, <em>ref</em> the at-satellite reflectance, and <em>dp</em> the
+dark pixel in DN scale.</p>
+
+
+<p>
+Other equations are:<br>
+  <ul>
+  <li> gain = (Lmax - Lmin) / (QCALmax - QCALmin)</li>
+  <li> bias = Lmin - gain * QCALmin </li>
+  <li> radiance = gain * DN + bias </li>
+  <li> cte_ref = (PI * d_earth_sun * d_earth_sun) / (ESUN * cos(90 - sun_elevation) </li>
+  <li> reflectance = cte_ref * radiance </li>
+  <li> a = cte_ref * gain</li>
+  <li> b = cte_ref * bias</li>
+  </ul>
+</p>
+
+<p>More details on how to convert DN to at-satellite reflectance are
+provided by Markham and Barker (1986), Irish (2000), and Huang et
+al. (2002).</p>
+
+<H2>EXAMPLES</H2>
+
+<p>Transfor digital numbers from band raster 203_30.1, 203_30.2,
+... to reflectance at top-of-atmosphere in output files 203_30.1r,
+203_30.2r, ...</p>
+
+<div class="code"><pre>
+i.landsat.toar band=203_30 met=p203r030_7x20010620.met
+</pre></div>
+
+<H2>REFERENCES</H2>
+<ol>
+        <li><a href="http://landcover.usgs.gov/pdf/image_preprocessing.pdf">http://landcover.usgs.gov/pdf/image_preprocessing.pdf</a></li>
+        <li>Gyanesh Chander (SAIC/EDC/USGS) and Brian Markham
+	(LPSO/GSFC/NASA): Revised L5 TM Radiometric Calibration
+	Procedures and Postcalibration Dynamic Ranges </li>
+
+</ol>
+
+
+<H2>SEE ALSO</H2>
+
+<em>
+<A HREF="r.mapcalc.html">r.mapcalc</A><br>
+<A HREF="r.in.gdal.html">r.in.gdal</A><br>
+</em>
+
+
+<H2>AUTHOR</H2>
+
+E. Jorge Tizado, University of León, Spain (ejtizado ono com)<BR>
+
+<p>
+<i>Last changed: $Date: 2006/11/17 00:00:00 $</i>
