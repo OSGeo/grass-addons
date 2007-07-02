@@ -22,10 +22,7 @@ double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,d
 	for(i=0;i<10;i++){
 		ustar = 0.41*ublend/(log((100-disp)/z0m)-psim);
 		rah   = (log((2-disp)/z0h)-psih)/(0.41*ustar);
-		h_in  = roh_air*cp*dt/rah;
-		if(h_in < 0.0){
-			h_in = 0.01;
-		}
+		h_in  = roh_air * cp * dt / rah;
 		length= -roh_air*cp*pow(ustar,3)*tempk/(0.41*9.81*h_in);
 		xm    = pow(1.0-16.0*((100-disp)/length),0.25);
 		xh    = pow(1.0-16.0*((2-disp)/length),0.25);

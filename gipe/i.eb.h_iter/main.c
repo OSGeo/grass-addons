@@ -180,10 +180,10 @@ int main(int argc, char *argv[])
 	rohair	 	= input1->answer;
 	cp	 	= atof(input2->answer);
 	if(input3->answer){
-		dtair	= input3->answer;
+		tempk	= input3->answer;
 	}
 	if(input4->answer){
-		tempk	= input4->answer;
+		dtair	= input4->answer;
 	}
 	if(input5->answer){
 		a	= atof(input5->answer);
