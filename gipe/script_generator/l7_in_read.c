@@ -565,7 +565,7 @@ int main(int argc, char *argv[])
 	/*calibrate DN to TOA Reflectance*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#DN2REF\" >> temp.txt");
-	snprintf(sys_1,1000,"echo \"i.dn2full.l7 metfile=%s output=%s --overwrite\" >> temp.txt",metfName,basedate);
+	snprintf(sys_1,1000,"echo \"i.dn2full.l7 metfile=%s output=%s --overwrite ; r.null map=%s.61 setnull=-999.99 ; r.null map=%s.62 setnull=-999.99 \" >> temp.txt",metfName,basedate,basedate,basedate);
 	system(sys_1);
 	/*Calculate Albedo*/
 	system("echo \"\" >> temp.txt");
@@ -583,7 +583,7 @@ int main(int argc, char *argv[])
 	/*Calculate ETPOT (and Rnetd for future ETa calculations)*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#ETPOT\" >> temp.txt");
-	snprintf(sys_5,1000,"echo \"i.evapo.potrad -r albedo=%s.albedo tempk=%s.61 lat=%s.latitude doy=%s.doy tsw=%s.tsw etpot=%s.etpot rnetd=%s.rnetd --overwrite ; r.null map=%s.rnetd setnull=-999.99 \" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate);
+	snprintf(sys_5,1000,"echo \"i.evapo.potrad -r albedo=%s.albedo tempk=%s.61 lat=%s.latitude doy=%s.doy tsw=%s.tsw etpot=%s.etpot rnetd=%s.rnetd --overwrite ; r.null map=%s.rnetd setnull=-999.99 \" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate);
 	system(sys_5);
 	snprintf(sys_7,1000,"echo \"r.colors map=%s.etpot color=grey ; r.null map=%s.etpot setnull=-999.99\" >> temp.txt", basedate, basedate);
 	system(sys_7);

@@ -429,7 +429,7 @@ main(int argc, char *argv[])
 				dout[i]=dn2rad_landsat7(lmin[i],lmax[i],qcalmax[i],qcalmin[i],d[i]);
 				if(i==5||i==6){//if band 61/62, process brightness temperature
 					if(dout[i]<=0.0){
-						dout[i]=-999.99;
+						dout[i]=-999.990;
 					}else{
 						dout[i]=tempk_landsat7(dout[i]);
 					}
