@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
 	
 	void *inrast_rnet, *inrast_g0, *inrast_h0;
 	unsigned char *outrast1, *outrast2;
+	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_rnet;
 	RASTER_MAP_TYPE data_type_g0;
 	RASTER_MAP_TYPE data_type_h0;
@@ -161,15 +162,15 @@ int main(int argc, char *argv[])
 	G_debug(3, "number of rows %d",cellhd.rows);
 	nrows = G_window_rows();
 	ncols = G_window_cols();
-	outrast1 = G_allocate_raster_buf(data_type_h0);
+	outrast1 = G_allocate_raster_buf(data_type_output);
 	if(makin){
-		outrast2 = G_allocate_raster_buf(data_type_h0);
+		outrast2 = G_allocate_raster_buf(data_type_output);
 	}
 	/* Create New raster files */
-	if ( (outfd1 = G_open_raster_new (result1,data_type_h0)) < 0)
+	if ( (outfd1 = G_open_raster_new (result1,data_type_output)) < 0)
 		G_fatal_error(_("Could not open <%s>"),result1);
 	if(makin){
-		if ( (outfd2 = G_open_raster_new (result2,data_type_h0)) < 0)
+		if ( (outfd2 = G_open_raster_new (result2,data_type_output)) < 0)
 			G_fatal_error(_("Could not open <%s>"),result2);
 	}
 	/* Process pixels */
@@ -256,10 +257,10 @@ int main(int argc, char *argv[])
 		//		exit(EXIT_SUCCESS);
 		//	}
 		}
-		if (G_put_raster_row (outfd1, outrast1, data_type_h0) < 0)
+		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
 		if(makin){
-			if (G_put_raster_row (outfd2, outrast2, data_type_h0) < 0)
+			if (G_put_raster_row (outfd2, outrast2, data_type_output) < 0)
 				G_fatal_error(_("Cannot write to output raster file"));
 		}
 	}

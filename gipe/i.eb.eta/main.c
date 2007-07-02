@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 	
 	void *inrast_rnetday, *inrast_evapfr, *inrast_tempk;
 	unsigned char *outrast1;
-	RASTER_MAP_TYPE data_type_output DCELL_TYPE;
+	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_rnetday;
 	RASTER_MAP_TYPE data_type_evapfr;
 	RASTER_MAP_TYPE data_type_tempk;
@@ -144,9 +144,9 @@ int main(int argc, char *argv[])
 	G_debug(3, "number of rows %d",cellhd.rows);
 	nrows = G_window_rows();
 	ncols = G_window_cols();
-	outrast1 = G_allocate_raster_buf(data_type_tempk);
+	outrast1 = G_allocate_raster_buf(data_type_output);
 	/* Create New raster files */
-	if ( (outfd1 = G_open_raster_new (result1,data_type_tempk)) < 0)
+	if ( (outfd1 = G_open_raster_new (result1,data_type_output)) < 0)
 		G_fatal_error(_("Could not open <%s>"),result1);
 	/* Process pixels */
 	for (row = 0; row < nrows; row++)
