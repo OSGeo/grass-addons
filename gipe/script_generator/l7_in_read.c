@@ -668,8 +668,14 @@ int main(int argc, char *argv[])
 	sprintf(sys_30,"echo \"r.null map=%s.rohair setnull=-999.99\" >> temp.txt",basedate);
 	system(sys_30);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_31,"echo \"i.eb.h_iter rohair=%s.rohair cp=1004.16 dtair=%s.delta tempk=%s.61 disp=%s.disp z0m=%s.z0m z0h=%s.z0h u2m=u2 h0=%s.h0 --overwrite \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_31,"echo \"i.eb.h_iter rohair=%s.rohair cp=1004.16 dtair=%s.delta tempk=%s.61 disp=%s.disp z0m=%s.z0m z0h=%s.z0h u2m=u2 h0=%s.h0 --overwrite; r.null map=%s.h0 setnull=-999.99 \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_31);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_32,"echo \"i.eb.evapfr -m rnet=%s.rnet g0=%s.g0 h0=%s.h0 evapfr=%s.evapfr theta=%s.theta --overwrite; r.null map=%s.evapfr setnull=-999.99 ; r.null map=%s.theta setnull=-999.99 \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	system(sys_32);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_33,"echo \"i.eb.eta rnetday=%s.rnetd evapfr=%s.evapfr tempk=%s.61 eta=%s.eta --overwrite; r.null map=%s.eta setnull=-999.99 \" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
+	system(sys_33);
 	system("echo \"\" >> temp.txt");
 	/*clean maps
  	system("chmod +x temp.txt; cat temp.txt; echo \"Start GRASS Processing\n\" ; ./temp.txt");
