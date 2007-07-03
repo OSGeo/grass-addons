@@ -419,16 +419,14 @@ int main(int argc, char *argv[])
 				((DCELL *) outrast1)[col] = -999.99;
 				if (result2)
 				((DCELL *) outrast2)[col] = -999.99;
-			}else if(flag2->answer){
-				if(G_is_d_null_value(&d_slope)){
-					((DCELL *) outrast1)[col] = -999.99;
-					if (result2)
+			}else if((flag2->answer)&&G_is_d_null_value(&d_slope)){
+				((DCELL *) outrast1)[col] = -999.99;
+				if (result2)
 					((DCELL *) outrast2)[col] = -999.99;
-				}else if(G_is_d_null_value(&d_aspect)){
-					((DCELL *) outrast1)[col] = -999.99;
-					if (result2)
+			}else if((flag2->answer)&&G_is_d_null_value(&d_aspect)){
+				((DCELL *) outrast1)[col] = -999.99;
+				if (result2)
 					((DCELL *) outrast2)[col] = -999.99;
-				}
 			}else {
 				if(flag2->answer){
 					d_solar = solar_day_3d(d_lat,d_doy,d_tsw,d_slope,d_aspect);
