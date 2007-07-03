@@ -69,7 +69,8 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 	struct line_pnts* sites;
 	int i;
 	struct line_cats* cats;
-	int cat,type;
+	int cat =0;
+	int type;
 	
 	sites = Vect_new_line_struct();
 	cats = Vect_new_cats_struct();
@@ -93,9 +94,9 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 		G_message("For now %d and %d", index_point, index_line );
 		
 		if ( type == GV_LINE )
-			process_line(sites, points, &index_point, lines, &index_line, cat);
+			process_line(sites, points, &index_point, lines, &index_line, -1);
 		else if ( type == GV_BOUNDARY )
-			process_boundary(sites, points, &index_point, lines, &index_line, cat);
+			process_boundary(sites, points, &index_point, lines, &index_line, cat++);
 		//else if ( type == GV_POINT )
 		
 		
@@ -113,6 +114,7 @@ void process_line( struct line_pnts * sites, struct Point ** points, int * index
 	
 		(*points)[*index_point].x = sites->x[i];
 		(*points)[*index_point].y = sites->y[i];
+		(*points)[*index_point].cat = cat;
 		
 		if ( i == 0 )
 		{
@@ -155,7 +157,7 @@ void process_boundary( struct line_pnts * sites, struct Point ** points, int * i
 
 	for ( i = 0; i < n-1; i++ )
 	{
-	
+		(*points)[*index_point].cat = cat;
 		(*points)[*index_point].x = sites->x[i];
 		(*points)[*index_point].y = sites->y[i];
 		
@@ -283,6 +285,29 @@ void init_vis( struct Point * points, int num_points, struct Line * lines, int n
 	}
 }
 
+/** tests if the point (x, y ) is inside the boundary of p 
+*/
+int point_inside( struct Point * p, double x, double y )
+{
+	int c = 0;
+	struct Point * n1 = p;
+	struct Point * n2 = other1(p);
+
+	while ( n2 != p )
+	{
+		if (  ( (   n2->y <=y  &&  y < n1->y ) ||
+             (  n1->y <= y &&  y< n2->y ) ) &&
+            (x < (n1->x - n2->x) * (y - n2->y) / (n1->y - n2->y) + n2->x))
+			c = !c;
+			
+		n1 = other1(n1);
+		n2 = other1(n2);
+	}
+	
+	return c;
+}
+
+
 /** for a pair (p, q) of points, add the edge pq if their are visibile to each other
 */
 void handle( struct Point* p, struct Point* q, struct Map_info * out )
@@ -321,7 +346,8 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 		{
 			p->vis = q->vis;
 		}
-	
+
+
 		report(p, q, out );
 	}
 	else if ( segment1(q) == p->vis && segment1(q) != NULL)
@@ -332,7 +358,9 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 		else
 			p->vis = q->vis ;
 
-		report( p,q, out );
+		// check that p and q are not on the same boundary and that the edge pq is inside the boundary
+		if ( p->cat == -1 || p->cat != q->cat || !point_inside( p, (p->x+q->x)*0.5, (p->y+q->y)*0.5 ) )
+				report( p,q, out );
 	}
 	else if ( segment2(q) == p->vis && segment2(q) != NULL )
 	{
@@ -341,7 +369,9 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 		else
 			p->vis = q->vis;
 		
-		report( p,q, out );
+		// check that p and q are not on the same boundary and that the edge pq is inside the boundary
+		if ( p->cat == -1 || p->cat != q->cat || !point_inside( p, (p->x+q->x)*0.5, (p->y+q->y)*0.5 ) )
+			report( p,q, out );
 	}
 	else if ( before(p,q, p->vis ) )
 	{
@@ -353,12 +383,14 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 			p->vis = segment1(q);
 		else if ( !left_turn(p, q, other1(q) ) && left_turn( p, q, other2(q)))
 			p->vis = segment2(q);
-		else if ( (dot(p,q, other1(q) )/ distance(q, other1(q)) ) <  (dot(p,q,other2(q))/distance(q, other2(q))) )
+		else if ( left_turn( q, other2(q), other1(q) ) )
 			p->vis = segment1(q);
 		else 
 			p->vis = segment2(q);
 		
-		report(p,q,out);
+		// check that p and q are not on the same boundary and that the edge pq is inside the boundary
+		if ( p->cat == -1 || p->cat != q->cat || !point_inside( p, (p->x+q->x)*0.5, (p->y+q->y)*0.5 ) )
+			report(p,q,out);
 	}
 }
 

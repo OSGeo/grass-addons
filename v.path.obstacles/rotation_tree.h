@@ -33,6 +33,8 @@ struct Point
 	struct Point * right_brother;
 	struct Point * father;
 	struct Point * rightmost_son;
+	
+	int cat;
 };
 
 struct Line
