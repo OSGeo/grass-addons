@@ -580,10 +580,27 @@ int main(int argc, char *argv[])
 	snprintf(sys_4,1000,"echo \"i.latitude input=%s.albedo latitude=%s.latitude --overwrite ; r.mapcalc %s.doy=%d ; r.mapcalc %s.tsw=0.7\" >> temp.txt", basedate, basedate, basedate, doy, basedate);
 	/*Create a doy layer*/
 	system(sys_4);
+	system("echo \"\" >> temp.txt");
+	/*DOWNLOAD/IMPORT SRTM*/
+	system("echo \"#DOWNLOAD SRTM DEM 90m unfinished\" >> temp.txt");
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_25,"echo \"wget -c ftp://ftp.glcf.umiacs.umd.edu/glcf/SRTM/WRS2_Tiles/p%s/SRTM_u03_p%sr%s/SRTM_u03_p%sr%s.tif.gz \" >> temp.txt",path,path,row,path,row);
+	system(sys_25);
+	system("echo \"\" >> temp.txt");
+	system("echo \"#IMPORT SRTM DEM 90m unfinished\" >> temp.txt");
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_26,"echo \"gzip -d SRTM_u03_p%sr%s.tif.gz \" >> temp.txt",path,row);
+	system(sys_26);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_27,"echo \"r.in.gdal -o input=SRTM_u03_p%sr%s.tif output=%s.dem title=SRTM_u03\" >> temp.txt",path,row,basedate);
+	system(sys_27);
+	system("echo \"\" >> temp.txt");
+	sprintf(sys_27,"echo \"r.slope.aspect elevation=%s.dem slope=%s.slope aspect=%s.aspect\" >> temp.txt",basedate,basedate,basedate);
+	system(sys_27);
 	/*Calculate ETPOT (and Rnetd for future ETa calculations)*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#ETPOT\" >> temp.txt");
-	snprintf(sys_5,1000,"echo \"i.evapo.potrad -r albedo=%s.albedo tempk=%s.61 lat=%s.latitude doy=%s.doy tsw=%s.tsw etpot=%s.etpot rnetd=%s.rnetd --overwrite ; r.null map=%s.rnetd setnull=-999.99 \" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate);
+	snprintf(sys_5,1000,"echo \"i.evapo.potrad -r -d albedo=%s.albedo tempk=%s.61 lat=%s.latitude doy=%s.doy tsw=%s.tsw slope=%s.slope aspect=%s.aspect etpot=%s.etpot rnetd=%s.rnetd --overwrite ; r.null map=%s.rnetd setnull=-999.99 \" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate);
 	system(sys_5);
 	snprintf(sys_7,1000,"echo \"r.colors map=%s.etpot color=grey ; r.null map=%s.etpot setnull=-999.99\" >> temp.txt", basedate, basedate);
 	system(sys_7);
@@ -645,19 +662,6 @@ int main(int argc, char *argv[])
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_24,"echo \"i.eb.disp -s lai=%s.savi disp=%s.disp --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_24);
-	system("echo \"\" >> temp.txt");
-	system("echo \"#DOWNLOAD SRTM DEM 90m unfinished\" >> temp.txt");
-	system("echo \"\" >> temp.txt");
-	sprintf(sys_25,"echo \"wget -c ftp://ftp.glcf.umiacs.umd.edu/glcf/SRTM/WRS2_Tiles/p%s/SRTM_u03_p%sr%s/SRTM_u03_p%sr%s.tif.gz \" >> temp.txt",path,path,row,path,row);
-	system(sys_25);
-	system("echo \"\" >> temp.txt");
-	system("echo \"#IMPORT SRTM DEM 90m unfinished\" >> temp.txt");
-	system("echo \"\" >> temp.txt");
-	sprintf(sys_26,"echo \"gzip -d SRTM_u03_p%sr%s.tif.gz \" >> temp.txt",path,row);
-	system(sys_26);
-	system("echo \"\" >> temp.txt");
-	sprintf(sys_27,"echo \"r.in.gdal -o input=SRTM_u03_p%sr%s.tif output=%s.dem title=SRTM_u03\" >> temp.txt",path,row,basedate);
-	system(sys_27);
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_28,"echo \"r.colors map=%s.dem color=srtm\" >> temp.txt",basedate);
 	system(sys_28);
