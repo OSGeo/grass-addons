@@ -45,7 +45,9 @@ struct Line
 
 void add_rightmost(struct Point* p, struct Point* q);
 void add_leftof(struct Point* p, struct Point* q);
+
 void remove_point(struct Point* p);
+
 struct Point* right_brother(struct Point* p);
 struct Point* left_brother(struct Point* p);
 struct Point* father( struct Point* p);
@@ -55,10 +57,7 @@ struct Line * segment1( struct Point * p );
 struct Line * segment2( struct Point * p );
 struct Point * other1( struct Point * p );
 struct Point * other2( struct Point * p );
-int before( struct Point * p, struct Point * q, struct Line * e );
 
-double segment_sqdistance( struct Point * p, struct Line * e );
-double distance( struct Point * p, struct Point * q );
 
 
 

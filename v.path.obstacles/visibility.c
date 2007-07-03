@@ -19,223 +19,6 @@
 
 #include "visibility.h"
 
-void count( struct Map_info * map, int * num_points, int * num_lines)
-{
-	int index_line = 0;
-	int index_point = 0;
-	struct line_pnts* sites;
-	struct line_cats* cats;
-	int type,i;
-	
-	sites = Vect_new_line_struct();
-	cats = Vect_new_cats_struct();
-	
-	G_message("N lines %d", map->plus.n_lines);
-	
-	for( i = 1; i <= map->plus.n_lines ; i++ )
-	{
-	
-		type = Vect_read_line( map, sites, cats, i);
-		
-		if ( type != GV_LINE && type != GV_BOUNDARY)
-			continue;
-		
-		if ( type == GV_LINE )
-		{
-			index_point+= sites->n_points;
-			index_line+= sites->n_points-1;
-		}
-		else if ( type == GV_BOUNDARY )
-		{
-			index_point+= sites->n_points-1;
-			index_line+= sites->n_points-1;
-		}
-		
-		
-	}
-	
-	*num_points = index_point;
-	*num_lines = index_line;
-
-}
-
-
-/** Get the lines from the map and load them in an array
-*/
-void load_lines( struct Map_info * map, struct Point ** points, int * num_points, struct Line ** lines, int * num_lines )
-{
-	int index_line = 0;
-	int index_point = 0;
-	struct line_pnts* sites;
-	int i;
-	struct line_cats* cats;
-	int cat =0;
-	int type;
-	
-	sites = Vect_new_line_struct();
-	cats = Vect_new_cats_struct();
-	
-	count( map, num_points, num_lines);
-	
-	*points = G_malloc( *num_points * sizeof( struct Point ));
-	*lines = G_malloc( *num_lines * sizeof( struct Line ));
-	
-	G_message("We have %d points and %d segments", *num_points, *num_lines );
-	
-	
-	while( ( type = Vect_read_next_line( map, sites, cats) ) > -1 )
-	{
-	
-		if ( type != GV_LINE && type != GV_BOUNDARY)
-			continue;
-		
-		Vect_cat_get (cats, 1, &cat);
-		
-		G_message("For now %d and %d", index_point, index_line );
-		
-		if ( type == GV_LINE )
-			process_line(sites, points, &index_point, lines, &index_line, -1);
-		else if ( type == GV_BOUNDARY )
-			process_boundary(sites, points, &index_point, lines, &index_line, cat++);
-		//else if ( type == GV_POINT )
-		
-		
-	}
-}
-
-
-void process_line( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat)
-{
-	int n = sites->n_points;
-	int i;
-
-	for ( i = 0; i < n; i++ )
-	{
-	
-		(*points)[*index_point].x = sites->x[i];
-		(*points)[*index_point].y = sites->y[i];
-		(*points)[*index_point].cat = cat;
-		
-		if ( i == 0 )
-		{
-			(*points)[*index_point].line1 = NULL;
-			(*points)[*index_point].line2 = &((*lines)[*index_line]);
-		}
-		else if ( i == n-1 )
-		{
-			(*points)[*index_point].line1 = &((*lines)[(*index_line)-1]);
-			(*points)[*index_point].line2 = NULL;
-		}	
-		else
-		{
-			(*points)[*index_point].line1 = &((*lines)[(*index_line)-1]);
-			(*points)[*index_point].line2 = &((*lines)[*index_line]);
-		}
-		
-		(*points)[*index_point].left_brother = NULL;
-		(*points)[*index_point].right_brother = NULL;
-		(*points)[*index_point].father = NULL;
-		(*points)[*index_point].rightmost_son = NULL;
-		
-		
-		(*index_point)++;
-		
-		if ( i < n-1 )
-		{
-			(*lines)[*index_line].p1 = &((*points)[(*index_point)-1]);
-			(*lines)[*index_line].p2 = &((*points)[*index_point]);
-			(*index_line)++;
-		}
-	}
-}
-
-
-void process_boundary( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat)
-{
-	int n = sites->n_points;
-	int i; 
-
-	for ( i = 0; i < n-1; i++ )
-	{
-		(*points)[*index_point].cat = cat;
-		(*points)[*index_point].x = sites->x[i];
-		(*points)[*index_point].y = sites->y[i];
-		
-		if ( i == 0 )
-		{
-			(*points)[*index_point].line1 = &((*lines)[(*index_line)+n-2]);
-			(*points)[*index_point].line2 = &((*lines)[*index_line]);
-		}	
-		else
-		{
-			(*points)[*index_point].line1 = &((*lines)[(*index_line)-1]);
-			(*points)[*index_point].line2 = &((*lines)[*index_line]);
-		}
-		
-		(*points)[*index_point].left_brother = NULL;
-		(*points)[*index_point].right_brother = NULL;
-		(*points)[*index_point].father = NULL;
-		(*points)[*index_point].rightmost_son = NULL;
-		
-		
-		(*index_point)++;
-		
-		if ( i == n-2 )
-		{
-			(*lines)[*index_line].p1 = &((*points)[(*index_point)-1]);
-			(*lines)[*index_line].p2 = &((*points)[(*index_point)-n+1]);
-		}
-		else
-		{
-			(*lines)[*index_line].p1 = &((*points)[(*index_point)-1]);
-			(*lines)[*index_line].p2 = &((*points)[*index_point]);
-		}
-			
-		(*index_line)++;
-	}
-
-}
-
-/** returns true if p3 is left of the directed line p1p2
-*/
-int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
-{
-    double a, b, c, d;
-	double r;
-	
-	if ( p3->y == PORT_DOUBLE_MAX)
-	{
-		return ( p1->x < p2->x || (p1->x == p2->x && p1->y < p2->y ) );
-	}
-	else
-	{
-		a = p1->x - p2->x;
-		b = p1->y - p2->y;
-		c = p3->x - p2->x;
-		d = p3->y - p2->y;
-			
-		return a*d-b*c < 0.0;
-	}
-}
-
-/** returns true if p is inbetween the segment e along the x axis
-*/
-int in_between( struct Point * p, struct Line * e )
-{
-	int a =  e->p1->x < p->x && e->p2->x > p->x ;
-	int b = e->p2->x < p->x && e->p1->x > p->x;
-	
-	return a || b;
-}
-
-/** returns true if p is above the segment e ( y axis )
-*/
-int below( struct Point * p, struct Line * e )
-{
-	return e->p1->y < p->y || e->p2->y < p->y ;
-}
-
-
 /** for all points initiate their vis line to the one directly below
 */
 void init_vis( struct Point * points, int num_points, struct Line * lines, int num_lines )
@@ -285,27 +68,6 @@ void init_vis( struct Point * points, int num_points, struct Line * lines, int n
 	}
 }
 
-/** tests if the point (x, y ) is inside the boundary of p 
-*/
-int point_inside( struct Point * p, double x, double y )
-{
-	int c = 0;
-	struct Point * n1 = p;
-	struct Point * n2 = other1(p);
-
-	while ( n2 != p )
-	{
-		if (  ( (   n2->y <=y  &&  y < n1->y ) ||
-             (  n1->y <= y &&  y< n2->y ) ) &&
-            (x < (n1->x - n2->x) * (y - n2->y) / (n1->y - n2->y) + n2->x))
-			c = !c;
-			
-		n1 = other1(n1);
-		n2 = other1(n2);
-	}
-	
-	return c;
-}
 
 
 /** for a pair (p, q) of points, add the edge pq if their are visibile to each other
@@ -416,26 +178,6 @@ void report( struct Point * p, struct Point * q, struct Map_info * out )
 	G_free(tmpy);
 }
 
-
-/** compare the points along the x axis
-*/
-int cmp_points(struct Point * v1, struct Point* v2) {
-    struct Point *p1, *p2;
-    p1 = (struct Point*) v1;
-    p2 = (struct Point*) v2;
-	
-    if( p1->x < p2->x )
-        return 1;
-    else if( p1->x > p2->x )
-        return -1;
-    else if ( p1->y < p2->y )
-        return 1;
-	else if ( p1->y > p2->y )
-		return -1;
-	else
-		return 0;
-}
-
 /** the algorithm that computes the visibility graph
 */
 int construct_visibility ( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info * out )
@@ -460,27 +202,13 @@ int construct_visibility ( struct Point * points, int num_points, struct Line * 
 	p_infinity->left_brother = NULL;
 	p_infinity->right_brother = NULL;
 	p_infinity->rightmost_son = NULL;
-
-
-	for ( i = 0 ; i < num_points ; i++ )
-		G_message("Point %d with line %d and %d", &points[i], points[i].line1, points[i].line2 );
-	for( i = 0 ; i < num_lines ; i++ )
-		G_message("Line %d with points %d and %d", &lines[i], lines[i].p1, lines[i].p2 );
 	
-	
-	G_message("Initialisation of the stack ... ");
 	init_stack(num_points);
-
-	G_message("Sorting the points by decreasing order...");
 	/* sort points in decreasing x order*/
 	quickSort( points, 0, num_points-1 );
 	
-
-	G_message("initialisation of the vis...");
 	init_vis( points, num_points, lines, num_lines );
-	
-	
-	G_message("Initialisation of the rotation tree...");
+
 	add_rightmost( p_ninfinity, p_infinity );
 	
 	for ( i = 0; i < num_points ; i ++ )
@@ -489,10 +217,6 @@ int construct_visibility ( struct Point * points, int num_points, struct Line * 
 	}
 		
 	push( &points[0] );
-	
-	int count = 0;
-	
-	G_message("Start of the main loop ... ");
 	
 	/* main loop */
 	while( !empty_stack() )
@@ -506,7 +230,6 @@ int construct_visibility ( struct Point * points, int num_points, struct Line * 
 		if ( q != p_ninfinity )
 		{
 			handle(p,q, out);
-			count++;
 		}
 			
 		z = left_brother(q);
@@ -577,6 +300,24 @@ void init_stack(int size)
 	stack = G_malloc( size * sizeof( struct Point ) );
 }
 
+/** compare the points along the x axis
+*/
+int cmp_points(struct Point * v1, struct Point* v2) {
+    struct Point *p1, *p2;
+    p1 = (struct Point*) v1;
+    p2 = (struct Point*) v2;
+	
+    if( p1->x < p2->x )
+        return 1;
+    else if( p1->x > p2->x )
+        return -1;
+    else if ( p1->y < p2->y )
+        return 1;
+	else if ( p1->y > p2->y )
+		return -1;
+	else
+		return 0;
+}
 
 void quickSort( struct Point a[], int l, int r)
 {

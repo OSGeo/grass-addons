@@ -21,16 +21,11 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/Vect.h>
+#include "geometry.h"
 #include "rotation_tree.h"
 
-void load_lines( struct Map_info *map, struct Point ** points, int * num_points, struct Line ** lines, int * num_lines );
-void process_boundary( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
-void process_line( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
 
 int construct_visibility( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info* out );
-int cmp_points(struct Point * v1, struct Point* v2);
-
-int turn_left( struct Point p1, struct Point p2, struct Point p3 );
 
 void handle( struct Point* p, struct Point* q, struct Map_info * out );
 void report( struct Point * p, struct Point * q, struct Map_info * out );
@@ -43,10 +38,12 @@ void push(struct Point * p);
 int empty_stack();
 void init_stack();
 
+static int stack_index;
+static struct Point ** stack;
+
+int cmp_points(struct Point * v1, struct Point* v2);
 void quickSort( struct Point a[], int l, int r);
 int partition( struct Point a[], int l, int r);
 
-static int stack_index;
-static struct Point ** stack;
 
 #endif

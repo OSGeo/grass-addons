@@ -19,6 +19,11 @@
 #include <grass/glocale.h>
 #include "visibility.h"
 
+void load_lines( struct Map_info * map, struct Point ** points, int * num_points, struct Line ** lines, int * num_lines );
+void count( struct Map_info * map, int * num_points, int * num_lines);
+void process_line( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
+void process_boundary( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
+
 int main( int argc, char* argv[])
 {
 	struct Map_info in, out;
@@ -83,3 +88,185 @@ int main( int argc, char* argv[])
 	Vect_close(&in);
 	exit(EXIT_SUCCESS);
 }
+
+/** counts the number of individual segments ( boundaries and lines ) and vertices
+*/
+void count( struct Map_info * map, int * num_points, int * num_lines)
+{
+	int index_line = 0;
+	int index_point = 0;
+	struct line_pnts* sites;
+	struct line_cats* cats;
+	int type,i;
+	
+	sites = Vect_new_line_struct();
+	cats = Vect_new_cats_struct();
+	
+	G_message("N lines %d", map->plus.n_lines);
+	
+	for( i = 1; i <= map->plus.n_lines ; i++ )
+	{
+	
+		type = Vect_read_line( map, sites, cats, i);
+		
+		if ( type != GV_LINE && type != GV_BOUNDARY)
+			continue;
+		
+		if ( type == GV_LINE )
+		{
+			index_point+= sites->n_points;
+			index_line+= sites->n_points-1;
+		}
+		else if ( type == GV_BOUNDARY )
+		{
+			index_point+= sites->n_points-1;
+			index_line+= sites->n_points-1;
+		}
+		
+		
+	}
+	
+	*num_points = index_point;
+	*num_lines = index_line;
+
+}
+
+
+/** Get the lines and boundaries from the map and load them in an array
+*/
+void load_lines( struct Map_info * map, struct Point ** points, int * num_points, struct Line ** lines, int * num_lines )
+{
+	int index_line = 0;
+	int index_point = 0;
+	struct line_pnts* sites;
+	int i;
+	struct line_cats* cats;
+	int cat =0;
+	int type;
+	
+	sites = Vect_new_line_struct();
+	cats = Vect_new_cats_struct();
+	
+	count( map, num_points, num_lines);
+	
+	*points = G_malloc( *num_points * sizeof( struct Point ));
+	*lines = G_malloc( *num_lines * sizeof( struct Line ));
+	
+	G_message("We have %d points and %d segments", *num_points, *num_lines );
+	
+	
+	while( ( type = Vect_read_next_line( map, sites, cats) ) > -1 )
+	{
+	
+		if ( type != GV_LINE && type != GV_BOUNDARY)
+			continue;
+		
+		Vect_cat_get (cats, 1, &cat);
+		
+		G_message("For now %d and %d", index_point, index_line );
+		
+		if ( type == GV_LINE )
+			process_line(sites, points, &index_point, lines, &index_line, -1);
+		else if ( type == GV_BOUNDARY )
+			process_boundary(sites, points, &index_point, lines, &index_line, cat++);
+		//else if ( type == GV_POINT )
+		
+		
+	}
+}
+
+/** extract all segments from the line 
+*/
+void process_line( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat)
+{
+	int n = sites->n_points;
+	int i;
+
+	for ( i = 0; i < n; i++ )
+	{
+	
+		(*points)[*index_point].x = sites->x[i];
+		(*points)[*index_point].y = sites->y[i];
+		(*points)[*index_point].cat = cat;
+		
+		if ( i == 0 )
+		{
+			(*points)[*index_point].line1 = NULL;
+			(*points)[*index_point].line2 = &((*lines)[*index_line]);
+		}
+		else if ( i == n-1 )
+		{
+			(*points)[*index_point].line1 = &((*lines)[(*index_line)-1]);
+			(*points)[*index_point].line2 = NULL;
+		}	
+		else
+		{
+			(*points)[*index_point].line1 = &((*lines)[(*index_line)-1]);
+			(*points)[*index_point].line2 = &((*lines)[*index_line]);
+		}
+		
+		(*points)[*index_point].left_brother = NULL;
+		(*points)[*index_point].right_brother = NULL;
+		(*points)[*index_point].father = NULL;
+		(*points)[*index_point].rightmost_son = NULL;
+		
+		
+		(*index_point)++;
+		
+		if ( i < n-1 )
+		{
+			(*lines)[*index_line].p1 = &((*points)[(*index_point)-1]);
+			(*lines)[*index_line].p2 = &((*points)[*index_point]);
+			(*index_line)++;
+		}
+	}
+}
+
+/** extract all segments from the boundary 
+*/
+void process_boundary( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat)
+{
+	int n = sites->n_points;
+	int i; 
+
+	for ( i = 0; i < n-1; i++ )
+	{
+		(*points)[*index_point].cat = cat;
+		(*points)[*index_point].x = sites->x[i];
+		(*points)[*index_point].y = sites->y[i];
+		
+		if ( i == 0 )
+		{
+			(*points)[*index_point].line1 = &((*lines)[(*index_line)+n-2]);
+			(*points)[*index_point].line2 = &((*lines)[*index_line]);
+		}	
+		else
+		{
+			(*points)[*index_point].line1 = &((*lines)[(*index_line)-1]);
+			(*points)[*index_point].line2 = &((*lines)[*index_line]);
+		}
+		
+		(*points)[*index_point].left_brother = NULL;
+		(*points)[*index_point].right_brother = NULL;
+		(*points)[*index_point].father = NULL;
+		(*points)[*index_point].rightmost_son = NULL;
+		
+		
+		(*index_point)++;
+		
+		if ( i == n-2 )
+		{
+			(*lines)[*index_line].p1 = &((*points)[(*index_point)-1]);
+			(*lines)[*index_line].p2 = &((*points)[(*index_point)-n+1]);
+		}
+		else
+		{
+			(*lines)[*index_line].p1 = &((*points)[(*index_point)-1]);
+			(*lines)[*index_line].p2 = &((*points)[*index_point]);
+		}
+			
+		(*index_line)++;
+	}
+
+}
+
