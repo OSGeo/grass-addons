@@ -3,7 +3,7 @@
 <em>v.path.obstacles</em> Computes the visibility graph of a map containing lines. This is the graph with vertices the end point of the lines and the edges are between two visibiles vertices. Two points are visibible if there no segments in between them, i.e. there are no lines e where the segment pq intersects it.
 <P>
 
-The first argument is the input map. The module will only take in account the first segment of every lines. For the algorithm to work, lines must not be intersecting.
+The first argument is the input map. It supports lines and boudaries ( so areas ). For the algorithm to work, lines must not be intersecting.
 <div class="code"><pre>
 input=map
 </pre></div>
@@ -36,4 +36,4 @@ d.vect lines col=red <br>
 
 Maximilian Maldacker
 
-<p><i>Last changed: $Date: 2007/06/19 04:21:32 $</i>
+<p><i>Last changed: Date: 03/07/2007 </i>
