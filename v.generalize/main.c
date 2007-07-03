@@ -42,10 +42,10 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out, *thresh_opt, *method_opt, *look_ahead_opt;
-    struct Option *iterations_opt, *cat_opt;
+    struct Option *iterations_opt, *cat_opt, *alfa_opt, *beta_opt;
     int with_z;
     int total_input, total_output;	/* Number of points in the input/output map respectively */
-    double thresh;
+    double thresh, alfa, beta;
     int method;
     int look_ahead, iterations;
     RANGE *ranges;
@@ -71,15 +71,15 @@ int main(int argc, char *argv[])
     method_opt->options =
 	"douglas,lang,reduction,reumann,boyle,distance_weighting,chaiken,hermite,snakes";
     method_opt->answer = "douglas";
-    method_opt->descriptions = "douglas;Douglass-Peucker Algorithm;"
-	"lang;Lang Simplification Algorithm;"
-	"reduction;Vertex Reduction Algorithm eliminates points close to each other;"
-	"reumann;Reumann-Witkam Algorithm;"
-	"boyle;Boyle's Forward-Looking Algorithm;"
-	"distance_weighting;McMaster's Distance-Weighting Algorithm;"
-	"chaiken;Chaiken's Algorithm;"
-	"hermite;Interpolation by Cubic Hermite Splines;"
-	"snakes;Snakes method for line smoothing;";
+    method_opt->descriptions = _("douglas;Douglass-Peucker Algorithm;"
+				 "lang;Lang Simplification Algorithm;"
+				 "reduction;Vertex Reduction Algorithm eliminates points close to each other;"
+				 "reumann;Reumann-Witkam Algorithm;"
+				 "boyle;Boyle's Forward-Looking Algorithm;"
+				 "distance_weighting;McMaster's Distance-Weighting Algorithm;"
+				 "chaiken;Chaiken's Algorithm;"
+				 "hermite;Interpolation by Cubic Hermite Splines;"
+				 "snakes;Snakes method for line smoothing;");
     method_opt->description = _("Line simplification/smoothing algorithm");
 
     thresh_opt = G_define_option();
@@ -96,6 +96,20 @@ int main(int argc, char *argv[])
     look_ahead_opt->required = YES;
     look_ahead_opt->answer = "7";
     look_ahead_opt->description = _("Look-ahead parameter");
+
+    alfa_opt = G_define_option();
+    alfa_opt->key = "alfa";
+    alfa_opt->type = TYPE_DOUBLE;
+    alfa_opt->required = YES;
+    alfa_opt->answer = "1.0";
+    alfa_opt->description = _("Snakes alfa parameter");
+
+    beta_opt = G_define_option();
+    beta_opt->key = "beta";
+    beta_opt->type = TYPE_DOUBLE;
+    beta_opt->required = YES;
+    beta_opt->answer = "1.0";
+    beta_opt->description = _("Snakes beta parameter");
 
     iterations_opt = G_define_option();
     iterations_opt->key = "iterations";
@@ -118,6 +132,8 @@ int main(int argc, char *argv[])
 
     thresh = atof(thresh_opt->answer);
     look_ahead = atoi(look_ahead_opt->answer);
+    alfa = atof(alfa_opt->answer);
+    beta = atof(beta_opt->answer);
     iterations = atoi(iterations_opt->answer);
 
 
@@ -224,7 +240,7 @@ int main(int argc, char *argv[])
 		    after = hermite(Points, thresh, with_z);
 		}
 		else {
-		    after = snakes(Points, (double)1.0, (double)1.0, with_z);
+		    after = snakes(Points, alfa, beta, with_z);
 		};
 	    };
 
