@@ -16,6 +16,17 @@ must be requested.
 Checkout of repository:
  svn co https://grasssvn.itc.it/svn/grassaddons/trunk/grassaddons grassaddons
 
+###############
+Compilation
+
+The easiest way to compile modules against your GRASS code is
+by setting MODULE_TOPDIR on the fly to tell 'make' where to
+find the GRASS source code:
+
+  make MODULE_TOPDIR=$HOME/grass63/
+
+(adapt to your /path/to/grass6/ )
+
 #########################################
 # To avoid PDF mime-type recognition problems,
 # each new (!) PDF file has to be modified like this:
