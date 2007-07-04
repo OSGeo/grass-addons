@@ -1,0 +1,117 @@
+<H2>DESCRIPTION</H2>
+
+<EM>v.generalize</EM> 
+is module for simplification and smoothing of GRASS vector maps. This module
+comprises a bunch of algortihms for both simplification and smoothing.
+
+<H2>NOTES</H2>
+(Line) generalization is a process of reducing the compexity of vector features.
+It transforms a line into another line which consists of fewer vertices but
+still approximates the original line. In most of the algorithms below, this
+process consists of picking subset of points of the original line.
+
+<P>
+On the other hand, (line) smoothing is a "reverse" process which takes as an
+input a line and produces smoother line which approximates the original line.
+In some cases, this is achieved by inserting new vertices into the line. 
+Sometimes, the increase of the number of vertices is dramatical (4000%).
+When this situation occurs, it is always a good idea to simplify the line after
+smoothing.
+</P>
+<P>
+All the algorithms implemented in this module work line by line. i.e simplification/smoothing
+of one line does not affect the other lines. The first and the last point of
+each line is never translated and/or deleted. 
+</P>
+<P>
+If the category ranges are provided, this module affects only the lines with (at least) one of the category numbers in (at least) one category range.
+</P>
+<H2>SIMPLIFICATION</H2>
+<P>
+<EM>v.generalize</EM> contains following line simplification algorithms
+<UL>
+<LI>Douglas-Peucker Algorithm</LI>
+<LI>Lang Algorithm</LI>
+<LI>Vertex Reduction</LI>
+<LI>Reumann-Witkam Algorithm</LI>
+</UL>
+<P>
+Reuman-Witkam is the only algorithm which works only with 2D maps and does not
+support 3D maps. All other algorithms (including smoothing) work with 3D maps.
+</P>
+
+Different algortihms requires different parameters, but all the algorithms have
+one parameter in common. It is <B>threshold</B> parameter. In general, the degree
+of simplification increases with the increasing value of <B>threshold</B>.
+
+<H2>DETAIL DESCRIPTION</H2>
+<UL>
+<LI> <I>Douglas-Peucker</I> - "Quicksort" of line simplification, the most widely used
+     algorithm. Input parameters: <B>input</B>, <B>threshold</B>. For more
+     information, please check: <A href="http://geometryalgorithms.com/Archive/algorithm_0205/algorithm_0205.htm">http://geometryalgorithms.com/Archive/algorithm_0205/algorithm_0205.htm</A>.</LI>
+<LI> <I>Lang</I> - Another standard algorithm. Input parameters: <B>input</B>, <B>threshold</B>, <B>look_ahead</B>. 
+     For an excellent description, check: <A href="http://www.sli.unimelb.edu.au/gisweb/LGmodule/LGLangVisualisation.htm">http://www.sli.unimelb.edu.au/gisweb/LGmodule/LGLangVisualisation.htm</A>.</LI>
+<LI> <I>Vertex Reduction</I> - Simplest among the algorithms. Input parameters: <B>input</B>, <B>threshold</B>.
+     Given line, this algorithm removes the points of this line which are closer to each other than <B>threshold</B>.
+     Precisely, if p1 and p2 are two consecutive points and distance between p2 and p1 is less
+     than <B>threshold</B>, it removes p2 and repeats the same
+     process on the remaining points.</LI>
+<LI> <I>Reuman-Witkam</I> - Input parameters: <B>input</B>, <B>threshold</B>. This algorithm quite
+     reasonably preserves the global characteristics of the lines. For more information
+     check <A href="http://www.ifp.uni-stuttgart.de/lehre/vorlesungen/GIS1/Lernmodule/Lg/LG_de_6.html">http://www.ifp.uni-stuttgart.de/lehre/vorlesungen/GIS1/Lernmodule/Lg/LG_de_6.html</A>(german)</LI>          
+</UL>
+
+
+<H2>SMOOTHING</H2>
+<P>
+The following smoothing algorithms are implemented in <EM>v.generalize</EM>
+<UL>
+<LI><I>Boyle's Forward-Looking Algorithm</I> - Works by taking the average of 
+    <B>look_ahead</B> consecutive points</LI>. Input parameters: <B>input</B>, <B>look_ahead</B>.
+<LI><I>McMaster's Distance-Weighting Algorithm</I> - Works by taking the weighted average of <B>look_ahead</B> consecutive points
+    where the weight is the distance from the point to the currently smoothed point. And parameter <B>threshold</B> is used
+    for linear interpolation between the original position of the point and newly computed position where value 0 means the original position.
+    Input parameters: <B>input</B>, <B>threshold</B>, <b>look_ahead</b>.
+    </LI>
+<LI><I>Chaiken's Algorithm</I> - "Inscribes" a line touching the original line such that the points on this new line
+    are at least <I>threshold</I> apart. Input parameters: <B>input</B>, <B>threshold</B>. This algorithms
+    approximates given line very well.</LI>
+<LI> <I>Hermite Interpolation</I> - This algorithm takes the points of the given line as the control
+     points of hermite cubic spline and approximates this spline by the points approximatelly <B>threshold</B> apart.
+     This method has excellent results for the small values of <B>threshold</B>, but in this case it produces
+     a huge number of new points and some simplification is usually needed. Input parameters: <B>input</B>, <B>threshold</B>.</LI>
+<LI> <I>Snakes</I> is the method of minimization of the "energy" of the line. This method preserves the
+     general characteristcs of the lines but smooths the "sharp corners" of the line. Input parameters <B>input</B>, <B>alfa</B>, <B>beta</B>.
+     This algorithm works very well for small values of <B>alfa</B> and <B>beta</B> (between 0 and 5). These
+     parameters affects the "sharpness" and the curvature of the computed line.</LI>                          
+</UL>
+</P>
+<P>
+One of the key advantages of <I>Hermite Interpolation</I> is the fact that the computed line
+always passes throught the points of the original line whereas the lines produced by the 
+remaining algorithms never pass through these points. In some sense, this algorihtm outputs
+the line which "circumsrcibes" given line. On the other hand, <I>Chaiken's Algorithm</I> outputs
+the line which "inscribes" given line. Moreover this line always touches/intersects the centre
+of the line segment between two consecutive points. For many iterations, the property above does
+not hold, but the computed lines are very similar to the Bezier Splines. The disadvantage of these
+two algorithm is that they increase the number of point.
+</P>
+<P>
+Note that <I>Boyle's</I>, <I>McMaster's</I> and <I>Snakes</I> algorithm are sometime used in the signal processing to smooth the signals.
+More importantly, these algorithms never change the number of points on the lines. i.e they only
+translate the points around, they do not insert any new points. 
+</P>
+
+<H2>SEE ALSO</H2>
+
+<EM>
+<A HREF="v.clean.html">v.clean</A><BR></EM>
+<BR><BR>
+
+
+<H2>AUTHORS</H2>
+Daniel Bundala, Google Summer of Code 2007, Student 
+<BR>
+Wolf Bergenheim, Mentor
+
+<P><I>Last changed: $Date: 2007/04/07 23:17:35 $</I>
