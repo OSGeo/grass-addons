@@ -58,7 +58,7 @@ int before( struct Point * p, struct Point * q, struct Line * e )
 	double pqy = q->y - p->y;
 	double pq_distance = pqx*pqx + pqy*pqy;
 
-	return pq_distance < e_distance ;
+	return pq_distance <= e_distance ;
 }
 
 
@@ -110,7 +110,7 @@ int point_inside( struct Point * p, double x, double y )
 	struct Point * n1 = p;
 	struct Point * n2 = other1(p);
 
-	while ( n2 != p )
+	do
 	{
 		if (  ( (   n2->y <=y  &&  y < n1->y ) ||
              (  n1->y <= y &&  y< n2->y ) ) &&
@@ -119,7 +119,8 @@ int point_inside( struct Point * p, double x, double y )
 			
 		n1 = other1(n1);
 		n2 = other1(n2);
-	}
+
+	}while ( n1 != p );
 	
 	return c;
 }
