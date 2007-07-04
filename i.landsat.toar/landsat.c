@@ -47,7 +47,7 @@ double lsat_refrad_ratio(double dist_es, double sun_elev, double esun)
  *****************************************************************************/
 double lsat_rad2temp(double rad, double K1, double K2)
 {
-    return (double)(K2 / log((K1 / rad) + 1.0) - 273.15);
+    return (double)(K2 / log((K1 / rad) + 1.0));
 }
 
 /****************************************************************************

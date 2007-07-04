@@ -16,15 +16,14 @@ digital number (DN) images. To further standardize the impact of
 illumination geometry, the DN images are converted first to
 at-satellite radiance and then to at-satellite reflectance.<br>
 The thermal band is first converted from DN to at-satellite radiance,
-and then to effective at-satellite temperature in Celsius (O Kelvin =
--273.15 Celsius).</p>
+and then to effective at-satellite temperature in Kelvin degrees.</p>
 
 <p>In verbose mode, the program write the parameters used in
 transformation to at-satellite radiance, to at-satellite reflectance
 and constant to remove the atmospheric effect using DOS
 method.<br><br>
 
-To remove atmospheric effect, use 
+To remove atmospheric effect, use
 
 <div class="code"><pre>
 r.mapcalc 'refc = if(ref < (a*dp+b), b, ref-a*dp)'
@@ -54,11 +53,11 @@ al. (2002).</p>
 <H2>EXAMPLES</H2>
 
 <p>Transfor digital numbers from band raster 203_30.1, 203_30.2,
-... to reflectance at top-of-atmosphere in output files 203_30.1r,
-203_30.2r, ...</p>
+... to reflectance at top-of-atmosphere in output files 203_30.toar.1,
+203_30.toar.2, ...</p>
 
 <div class="code"><pre>
-i.landsat.toar band=203_30 met=p203r030_7x20010620.met
+i.landsat.toar -7 band=203_30 met=p203r030_7x20010620.met
 </pre></div>
 
 <H2>REFERENCES</H2>

@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
     double gain, bias, cref, rad, ref;
 
     lsat_data lsat;
+    char command[300];
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);
@@ -111,13 +112,12 @@ int main(int argc, char *argv[])
 
     sat7 = G_define_flag();
     sat7->key = '7';
-    sat7->description = _("Landsat-7 ETM+ (specify either met or date, solar, and gain");
-    sat7->answer = 1;
+    sat7->description = _("Landsat-7 ETM+ (specify either met or date, solar, and gain)");
+    sat7->answer = 0;
 
     flag = G_define_flag();
     flag->key = 'f';
-    flag->description = _("LANDSAT-5: product creation after instead of before May 5, 2003. "
-			  "LANDSAT-7: product creation before instead of after July 1, 2000");
+    flag->description = _("LANDSAT-5: product creation after instead of before May 5, 2003.\n\n\tLANDSAT-7: product creation before instead of after July 1, 2000");
     flag->answer = 0;
 
     param = G_define_flag();
@@ -128,12 +128,14 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    // --------------------------------
-    // ----- START --------------------
+    /* ----- START -------------------- */
     /* stores options and flags to variables */
     met = metfn->answer;
     name = input->answer;
     elevation = 0.;
+
+    if( !sat4->answer && !sat5->answer && !sat7->answer)
+        G_fatal_error(_("Need satellite type"));
 
     if (sat7->answer && met != NULL) {
 	met_ETM(met, &lsat);
@@ -166,7 +168,7 @@ int main(int argc, char *argv[])
     }
 
     if (param->answer) {
-	fprintf(stdout, " DATE %s\n", lsat.date);
+	fprintf(stdout, " ACQUISITION_DATE %s\n", lsat.date);
 	fprintf(stdout, "   earth-sun distance    = %.8lf\n", lsat.dist_es);
 	fprintf(stdout, "   solar elevation angle = %.8lf\n", lsat.sun_elev);
 	for (i = 0; i < lsat.bands; i++) {
@@ -202,7 +204,7 @@ int main(int argc, char *argv[])
 
     for (i = 0; i < lsat.bands; i++) {
 	snprintf(band_in, 127, "%s.%d", name, lsat.band[i].code);
-	snprintf(band_out, 127, "%s.%dr", name, lsat.band[i].code);
+	snprintf(band_out, 127, "%s.toar.%d", name, lsat.band[i].code);
 
 	mapset = G_find_cell2(band_in, "");
 	if (mapset == NULL) {
@@ -277,9 +279,14 @@ int main(int argc, char *argv[])
 	G_close_cell(infd);
 	G_close_cell(outfd);
 
-	/* TODO: set map color to grey */
+	/* set map color to grey */
+        sprintf(command, "r.colors map=%s color=grey", band_out);
+        system(command);
 
-	/* TODO: set -1. to null */
+	/* set -1. to null */
+        G_message("REMEMBER: -1 is a NULL value");
+/*         sprintf(command, "r.null map=%s setnull=-1", band_out); */
+/*         system(command);              */
 
 	/* add command line incantation to history file */
 	G_short_history(band_out, "raster", &history);
@@ -287,7 +294,6 @@ int main(int argc, char *argv[])
 	G_write_history(band_out, &history);
     }
 
-    G_message("REMEMBER: -1 is a NULL value");
     G_set_window(&window);
     exit(EXIT_SUCCESS);
 }
