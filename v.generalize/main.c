@@ -42,14 +42,19 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out, *thresh_opt, *method_opt, *look_ahead_opt;
-    struct Option *iterations_opt, *cat_opt, *alfa_opt, *beta_opt;
+    struct Option *iterations_opt, *cat_opt, *alfa_opt, *beta_opt, *type_opt;
+    struct Option *field_opt, *where_opt;
     int with_z;
     int total_input, total_output;	/* Number of points in the input/output map respectively */
     double thresh, alfa, beta;
     int method;
     int look_ahead, iterations;
-    RANGE *ranges;
-    int n_ranges;
+    int chcat;
+    int ret, layer;
+    int n_areas;
+    double x, y;
+    int simplification, mask_type;
+    VARRAY *varray;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -62,6 +67,10 @@ int main(int argc, char *argv[])
     /* Define the different options as defined in gis.h */
     map_in = G_define_standard_option(G_OPT_V_INPUT);
     map_out = G_define_standard_option(G_OPT_V_OUTPUT);
+
+    type_opt = G_define_standard_option(G_OPT_V_TYPE);
+    type_opt->options = "line,boundary";
+    type_opt->answer = "line,boundary";
 
     method_opt = G_define_option();
     method_opt->key = "method";
@@ -118,13 +127,9 @@ int main(int argc, char *argv[])
     iterations_opt->answer = "1";
     iterations_opt->description = _("Number of iterations");
 
-    cat_opt = G_define_option();
-    cat_opt->key = "category";
-    cat_opt->type = TYPE_STRING;
-    cat_opt->required = NO;
-    cat_opt->multiple = YES;
-    cat_opt->key_desc = "range";
-    cat_opt->description = _("Category ranges: e.g. 1,3-8,13");
+    field_opt = G_define_standard_option(G_OPT_V_FIELD);
+    cat_opt = G_define_standard_option(G_OPT_V_CATS);
+    where_opt = G_define_standard_option(G_OPT_WHERE);
 
     /* options and flags parser */
     if (G_parser(argc, argv))
@@ -136,21 +141,8 @@ int main(int argc, char *argv[])
     beta = atof(beta_opt->answer);
     iterations = atoi(iterations_opt->answer);
 
-
-    /* check and store category ranges */
-    if (cat_opt->answer != NULL) {
-	for (i = 0; cat_opt->answers[i]; i++)
-	    if (!check_range(cat_opt->answers[i])) {
-		G_fatal_error(_("Bad category range in (%s)"),
-			      cat_opt->answers[i]);
-		exit(-1);
-	    };
-	get_ranges(cat_opt->answers, &ranges, &n_ranges);
-    }
-    else
-	ranges = NULL;
-
-    G_message(method_opt->answer);
+    mask_type = type_mask(type_opt);
+    G_debug(3, "Method: %s", method_opt->answer);
 
     if (method_opt->answer[0] == 'd' && method_opt->answer[1] == 'o') {
 	method = DOUGLASS;
@@ -180,6 +172,20 @@ int main(int argc, char *argv[])
 	method = SNAKES;
     };
 
+    /* simplification or smoothing? */
+    switch (method) {
+    case DOUGLASS:
+    case LANG:
+    case VERTEX_REDUCTION:
+    case REUMANN:
+	simplification = 1;
+	break;
+    default:
+	simplification = 0;
+	break;
+    };
+
+
     Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
 
@@ -201,53 +207,92 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Could not open output"));
     }
 
+
+    /* parse filter option and select appropriate lines */
+    layer = atoi(field_opt->answer);
+    if (where_opt->answer) {
+	if (layer < 1)
+	    G_fatal_error(_("'layer' must be > 0 for 'where'"));
+	if (cat_opt->answer)
+	    G_warning(_
+		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
+	chcat = 1;
+	varray = Vect_new_varray(Vect_get_num_lines(&In));
+	if (Vect_set_varray_from_db
+	    (&In, layer, where_opt->answer, mask_type, 1, varray) == -1) {
+	    G_warning(_("Cannot load data from a database"));
+	};
+    }
+    else if (cat_opt->answer) {
+	if (layer < 1)
+	    G_fatal_error(_("'layer must be > 0 for 'cats'"));
+	varray = Vect_new_varray(Vect_get_num_lines(&In));
+	chcat = 1;
+	if (Vect_set_varray_from_cat_string
+	    (&In, layer, cat_opt->answer, mask_type, 1, varray) == -1) {
+	    G_warning(_("Problem loading category values"));
+	};
+    }
+    else
+	chcat = 0;
+
+
     Vect_copy_head_data(&In, &Out);
     Vect_hist_copy(&In, &Out);
     Vect_hist_command(&Out);
 
     total_input = total_output = 0;
-
-    i = 1;
+    i = 0;
     while ((type = Vect_read_next_line(&In, Points, Cats)) > 0) {
+	i++;
+	if (type == GV_CENTROID)
+	    continue;		/* skip old centroids,
+				 * we calculate new */
 	total_input += Points->n_points;
-	if ((type == GV_LINE || 1 == 1) &&
-	    (ranges == NULL || cat_test(Cats, ranges, n_ranges))) {
+
+	if ((type & mask_type) && (!chcat || varray->c[i])) {
 	    int after = 0;
 	    for (iter = 0; iter < iterations; iter++) {
-		if (method == DOUGLASS) {
-		    after = douglass_peucker(Points, thresh, with_z);
-		}
-		else if (method == LANG) {
-		    after = lang(Points, thresh, look_ahead, with_z);
-		}
-		else if (method == VERTEX_REDUCTION) {
-		    after = vertex_reduction(Points, thresh, with_z);
-		}
-		else if (method == REUMANN) {
-		    after = reumann_witkam(Points, thresh, with_z);
-		}
-		else if (method == BOYLE) {
-		    after = boyle(Points, look_ahead, with_z);
-		}
-		else if (method == DISTANCE_WEIGHTING) {
-		    after =
-			distance_weighting(Points, thresh, look_ahead, with_z);
-		}
-		else if (method == CHAIKEN) {
-		    after = chaiken(Points, thresh, with_z);
-		}
-		else if (method == HERMITE) {
-		    after = hermite(Points, thresh, with_z);
-		}
-		else {
-		    after = snakes(Points, alfa, beta, with_z);
+		switch (method) {
+		case DOUGLASS:
+		    douglass_peucker(Points, thresh, with_z);
+		    break;
+		case LANG:
+		    lang(Points, thresh, look_ahead, with_z);
+		    break;
+		case VERTEX_REDUCTION:
+		    vertex_reduction(Points, thresh, with_z);
+		    break;
+		case REUMANN:
+		    reumann_witkam(Points, thresh, with_z);
+		    break;
+		case BOYLE:
+		    boyle(Points, look_ahead, with_z);
+		    break;
+		case DISTANCE_WEIGHTING:
+		    distance_weighting(Points, thresh, look_ahead, with_z);
+		    break;
+		case CHAIKEN:
+		    chaiken(Points, thresh, with_z);
+		    break;
+		case HERMITE:
+		    hermite(Points, thresh, with_z);
+		    break;
+		case SNAKES:
+		    snakes(Points, alfa, beta, with_z);
+		    break;
 		};
 	    };
+
+
+	    /* remove "oversimplified" lines */
+	    if (simplification && type == GV_LINE &&
+		Vect_line_length(Points) < thresh)
+		continue;
 
 	    after = Points->n_points;
 	    total_output += after;
 	    Vect_write_line(&Out, type, Points, Cats);
-
 	}
 	else {
 	    total_output += Points->n_points;
@@ -255,12 +300,30 @@ int main(int argc, char *argv[])
 	};
     }
 
+
+    /* calculate new centroids */
+    Vect_build_partial(&Out, GV_BUILD_ATTACH_ISLES, NULL);
+    n_areas = Vect_get_num_areas(&In);
+    for (i = 1; i <= n_areas; i++) {
+	Vect_get_area_cats(&In, i, Cats);
+	ret = Vect_get_point_in_area(&Out, i, &x, &y);
+	if (ret < 0) {
+	    G_warning(_("Cannot calculate area centroid"));
+	    continue;
+	};
+	Vect_reset_line(Points);
+	Vect_append_point(Points, x, y, 0.0);
+	Vect_write_line(&Out, GV_CENTROID, Points, Cats);
+    };
+
+    /* finally copy tables */
+    Vect_copy_tables(&In, &Out, layer);
+
+    Vect_build(&Out, stdout);
+
     G_message("Number of vertices was reduced from %d to %d[%d%%]", total_input,
 	      total_output, (total_output * 100) / total_input);
 
-    G_free(ranges);
-
-    Vect_build(&Out, stdout);
     Vect_close(&In);
     Vect_close(&Out);
 

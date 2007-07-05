@@ -22,64 +22,19 @@
 #include <grass/glocale.h>
 #include "misc.h"
 
-int check_range(char *s)
+int type_mask(struct Option *type_opt)
 {
-    int from, to;
-    char dummy[2];
-    if (strlen(s) == 0)
-	return 0;
-
-    dummy[0] = 0;
-    if (sscanf(s, "%d-%d%1s", &from, &to, dummy) == 2)
-	return (from <= to) && (dummy[0] == 0);
-
-    if (sscanf(s, "%d%1s", &from, dummy) == 1)
-	return (dummy[0] == 0);
-
-    return 0;
+    int res = 0;
+    int i;
+    for (i = 0; type_opt->answers[i]; i++)
+	switch (type_opt->answers[i][0]) {
+	case 'l':
+	    res |= GV_LINE;
+	    break;
+	case 'b':
+	    res |= GV_BOUNDARY;
+	    break;
+	};
+    return res;
 };
 
-int get_ranges(char **s, RANGE ** out, int *count)
-{
-    int n, i;
-    int from, to;
-
-    n = 0;
-    while (s[n])
-	n++;
-    *count = n;
-
-    *out = (RANGE *) G_malloc(sizeof(RANGE) * n);
-
-    if (!out) {
-	G_fatal_error(_("Out of memory"));
-	return 0;
-    };
-
-
-    for (i = 0; i < n; i++) {
-	if (strchr(s[i], '-') == NULL) {
-	    sscanf(s[i], "%d", &from);
-	    to = from;
-	}
-	else
-	    sscanf(s[i], "%d-%d", &from, &to);
-	(*out)[i].from = from;
-	(*out)[i].to = to;
-    };
-
-    return 1;
-};
-
-int cat_test(struct line_cats *Cats, RANGE * r, int n)
-{
-    int i, j;
-
-    for (i = 0; i < Cats->n_cats; i++) {
-	for (j = 0; j < n; j++)
-	    if (Cats->cat[i] >= r[j].from && Cats->cat[i] <= r[j].to)
-		return 1;
-    };
-
-    return 0;
-};
