@@ -1,0 +1,393 @@
+#!/bin/sh
+#
+############################################################################
+#
+# MODULE:       	r.landuse.agr
+# AUTHOR(S):		Isaac Ullah, Arizona State University
+# PURPOSE:		Creates a series of iterative agricultural landuse maps from a catchment
+#			created by r.catchment. This model takes natural vegetational succession into account.
+#			Optionally outputs c factor as well
+# ACKNOWLEDGEMENTS:	National Science Foundation Grant #BCS0410269 
+# COPYRIGHT:		(C) 2007 by Isaac Ullah, Michael Barton, Arizona State University
+#			This program is free software under the GNU General Public
+#			License (>=v2). Read the file COPYING that comes with GRASS
+#			for details.
+#
+#############################################################################
+
+
+#%Module
+#%  description: Creates a series of iterative agricultural landuse maps from a catchment created by r.catchment. This model takes natural vegetational succession into account. Optionally outputs c factor as well
+#%END
+
+#%option
+#% key: inmap
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Input catchment map (from r.catchment)
+#% required : yes
+#%END
+#%option
+#% key: rand
+#% type: integer
+#% description: percent of area to be fields (to be used in r.random)
+#% answer: 20
+#% required : yes
+#%END
+#%option
+#% key: size
+#% type: integer
+#% description: size of fields (set as resolution in g.region)
+#% answer: 45
+#% required : yes
+#%END
+#%option
+#% key: loop
+#% type: integer
+#% description: number of iterations to run
+#% answer: 50
+#% required : yes
+#%END
+#%option
+#% key: prfx
+#% type: string
+#% gisprompt: string
+#% description: prefix for all output maps
+#% required : yes
+#%END
+#%flag
+#% key: m
+#% description: -m output some stats to a text file in your home directory
+#% answer: 1
+#%END
+#%flag
+#% key: s
+#% description: -s Suppress output of landuse map (output C factor map only)
+#%END
+#%flag
+#% key: f
+#% description: -f Output maps of random fields at each iteration as well
+#%END
+
+
+
+if  [ -z "$GISBASE" ] ; then
+ echo "You must be in GRASS GIS to run this program." >&2
+ exit 1
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+  exec g.parser "$0" "$@"
+fi
+
+inmap=$GIS_OPT_inmap
+rand=$GIS_OPT_rand
+size=$GIS_OPT_size
+loop=$GIS_OPT_loop
+prfx=$GIS_OPT_prfx
+txtout=$prfx"_stats.txt"
+
+TMP1=`g.tempfile pid=$$`
+if [ $? -ne 0 ] || [ -z "$TMP1" ] ; then
+    echo "ERROR: unable to create temporary file" 1>&2
+    exit 1
+fi
+
+TMP2=`g.tempfile pid=$$`
+if [ $? -ne 0 ] || [ -z "$TMP2" ] ; then
+    echo "ERROR: unable to create temporary file for colors" 1>&2
+    exit 1
+fi
+
+echo "0 brown" > $TMP2
+echo "7 orange" >> $TMP2
+echo "14 yellow" >> $TMP2
+echo "21 green" >> $TMP2
+echo "end" >> $TMP2
+
+TMP3=`g.tempfile pid=$$`
+if [ $? -ne 0 ] || [ -z "$TMP3" ] ; then
+    echo "ERROR: unable to create temporary file for colors" 1>&2
+    exit 1
+fi
+
+echo "0 = 0 actively cultivated field" > $TMP3
+echo "1 = 1 field with weeds" >> $TMP3
+echo "2 = 2 returning grassland" >> $TMP3
+echo "3 = 3 moderate grassland" >> $TMP3
+echo "4 = 4 grassland" >> $TMP3
+echo "5 = 5 grass and sparse shrubs" >> $TMP3
+echo "6 = 6 grass and shrubs" >> $TMP3
+echo "7 = 7 mainly shrubs" >> $TMP3
+echo "8 = 8 developing maquis" >> $TMP3
+echo "9 = 9 moderate maquis" >> $TMP3
+echo "10 = 10 maquis" >> $TMP3
+echo "11 = 11 moderately dense maquis" >> $TMP3
+echo "12 = 12 dense maquis" >> $TMP3
+echo "13 = 13 maquis and small trees" >> $TMP3
+echo "14 = 14 young woodland and maquis" >> $TMP3
+echo "15 = 15 mostly young open woodland" >> $TMP3
+echo "16 = 16 young open woodland" >> $TMP3
+echo "17 = 17 moderate open woodland" >> $TMP3
+echo "18 = 18 maturing and moderate open woodland" >> $TMP3
+echo "19 = 19 maturing open woodland" >> $TMP3
+echo "20 = 20 mostly matured open woodland" >> $TMP3
+echo "21 = 21 fully matured woodland" >> $TMP3
+echo "end" >> $TMP3
+
+TMP4=`g.tempfile pid=$$`
+if [ $? -ne 0 ] || [ -z "$TMP4" ] ; then
+    echo "ERROR: unable to create temporary file for colors" 1>&2
+    exit 1
+fi
+
+echo "0:1:0.1:0.1" > $TMP4
+echo "2:3:0.15:0.15" >> $TMP4
+echo "4:6:0.1:0.1" >> $TMP4
+echo "7:9:0.09:0.09" >> $TMP4
+echo "10:13:0.08:0.08" >> $TMP4
+echo "13:16:0.07:0.07" >> $TMP4
+echo "17:20:0.06:0.06" >> $TMP4
+echo "21:21:0.05:0.05" >> $TMP4
+echo "end" >> $TMP4
+
+TMP5=`g.tempfile pid=$$`
+if [ $? -ne 0 ] || [ -z "$TMP5" ] ; then
+    echo "ERROR: unable to create temporary file for colors" 1>&2
+    exit 1
+fi
+
+echo "0.15 grey" > $TMP5
+echo "0.1 magenta" >> $TMP5
+echo "0.09 red" >> $TMP5
+echo "0.08 orange" >> $TMP5
+echo "0.08 brown" >> $TMP5
+echo "0.06 yellow" >> $TMP5
+echo "0.05 green" >> $TMP5
+echo "end" >> $TMP5
+
+
+
+echo ""
+echo "*************************"
+echo "step 1 of 4: Calculating MASK"
+echo "*************************"
+echo ""
+
+r.mapcalc "temp_background_1=if(isnull($inmap), 21)" 
+cat $TMP3 | r.reclass --quiet input=temp_background_1 output=temp_background_2
+r.mapcalc "temp_background=if(isnull(temp_background_2), null(), temp_background_2)"
+g.remove --quiet rast=temp_background_2,temp_background_1
+
+
+r.mask input=$inmap maskcats=* 
+
+
+
+echo ""
+echo "*************************"
+echo "step 2 of 4: Changing resolution to field size (will be reset)"
+echo "*************************"
+echo ""
+
+g.region save=temp_region
+
+g.region res=$size
+
+
+
+echo ""
+echo "*************************"
+echo "step 3 of 4: Sarting land use evolution calculation. This will start a loop and may take some time. Please do not interrupt the process until it has finished"
+echo "*************************"
+echo ""
+
+echo "Year 1"
+
+r.mapcalc "tmpinreclass = if ($inmap, 0, null())"
+r.mapcalc "temp_class0 = if ($inmap, 21, null())"
+
+
+r.random input=tmpinreclass n=$rand"%" raster_output=$prfx"_fields1"
+
+if [ "$GIS_FLAG_f" -eq 1 ]; then
+
+	echo "fields map = $prfx"_fields1""
+
+	fi
+
+	
+	r.patch --quiet input=$prfx"_fields1",temp_class0 output=temp_landuse1_1
+
+	cat $TMP3 | r.reclass --quiet input=temp_landuse1_1 output=temp_landuse1
+
+g.rename --quiet rast=MASK,$prfx"mask" 
+
+	r.mapcalc "$prfx"_landuse1" = if (isnull($inmap), temp_background, temp_landuse1)"
+
+	cat $TMP2 | r.colors --quiet map=$prfx"_landuse1" color=rules
+
+	cat $TMP4 | r.recode --quiet input=$prfx"_landuse1" output=$prfx"_cfactor_1"
+
+	cat $TMP5 | r.colors --quiet map=$prfx"_cfactor_1" color=rules
+
+
+	temparea=`eval r.stats -n --quiet -a fs=- input=$prfx"_fields1" | cut -d'-' -f2`
+	echo ""
+	echo "Area of randomized fields = $temparea square meters"
+
+
+
+	if [ "$GIS_FLAG_m" -eq 1 ]; then
+
+	r.mapcalc "tempmap_arable=if($prfx"_landuse1" >= 10, 1, null())"
+
+ 	arablearea=`eval r.stats -n --quiet -a fs=- input=tempmap_arable | cut -d'-' -f2`
+
+	r.mapcalc "tempmap_fallow=if($prfx"_landuse1" > 1 && $prfx"_landuse1" < 10, 1, null())"
+
+ 	fallowarea=`eval r.stats -n --quiet -a fs=- input=tempmap_fallow | cut -d'-' -f2`
+
+	g.remove --quiet rast=tempmap_arable,tempmap_fallow
+
+echo "Stats for $rand"%" ($temparea sq.m) agricultural use of input catchment $inmap" > $txtout
+echo "" >> $txtout
+echo "Year,Area of potentially arable land (sq.m), Area of non arable fallow land (sq.m)" >> $txtout
+echo "1,$arablearea,$fallowarea" >> $txtout
+	fi
+
+echo "***********************"
+step=1
+
+
+while [ "$step" -lt "$loop" ]
+do
+	step=$(($step+1))
+	echo "Year $step"
+	laststep=$(($step-1))
+
+	
+	tmpcfactor="temp_cfactor_"$step
+	outcfactor=$prfx"_cfactor_"$step
+	tmplanduse="temp_landuse"$step
+	tmp2landuse="temp_landuse"$step"_$step"
+	outlanduse=$prfx"_landuse"$step
+	outfields=$prfx"_fields"$step
+	tcs="temp_class"$step
+	tcls="temp_landuse"$laststep
+
+g.rename --quiet rast=$prfx"mask",MASK
+
+	r.random --quiet input=tmpinreclass n=$rand"%" raster_output=$outfields 	
+	
+	if [ "$GIS_FLAG_f" -eq 1 ]; then
+
+	echo "fields map = $outfields"
+
+	fi
+
+	
+	r.mapcalc "$tcs = if ($tcls < 21, ($tcls + 1), $tcls)"
+
+	r.patch --quiet  input=$outfields,$tcs output=$tmp2landuse
+
+	cat $TMP3 | r.reclass --quiet input=$tmp2landuse output=$tmplanduse
+
+g.rename --quiet rast=MASK,$prfx"mask"
+
+	r.mapcalc "$outlanduse =if (isnull($inmap), temp_background, $tmplanduse)"
+
+	cat $TMP2 | r.colors --quiet map=$outlanduse color=rules
+
+	cat $TMP4 | r.recode --quiet input=$outlanduse output=$outcfactor
+
+	cat $TMP5 | r.colors --quiet map=$outcfactor color=rules
+
+
+	temparea=`eval r.stats -n --quiet -a fs=- input=$outfields | cut -d'-' -f2`
+	echo ""
+	echo "Field placement re-randomized. Still cultivating $temparea square meters"
+
+
+	if [ "$GIS_FLAG_m" -eq 1 ]; then
+
+	r.mapcalc "tempmap_arable=if($outlanduse >= 10, 1, null())"
+
+	arablearea=`eval r.stats -n --quiet -a fs=- input=tempmap_arable  | cut -d'-' -f2`
+
+	r.mapcalc "tempmap_fallow=if($outlanduse > 1 && $outlanduse < 10, 1, null())"
+
+ 	fallowarea=`eval r.stats -n --quiet -a fs=- input=tempmap_fallow | cut -d'-' -f2`
+
+	g.remove --quiet rast=tempmap_arable,tempmap_fallow
+
+
+echo "$step,$arablearea,$fallowarea" >> $txtout
+	
+    fi
+
+echo ""
+echo ""
+echo "************************"
+echo ""
+
+	
+done
+
+
+echo ""
+echo "*************************"
+echo "step 4 of 4: Cleaning up"
+echo "*************************"
+echo ""
+
+if [ "$GIS_FLAG_f" -eq 1 -a "$GIS_FLAG_s" -eq 1 ] ; then
+
+g.remove --quiet rast=tmpinreclass,MASK
+g.mremove --quiet -f rast=temp*
+g.mremove --quiet -f rast=*mask
+g.mremove --quiet -f rast=$prfx"_landuse*"
+
+elif [ "$GIS_FLAG_f" -eq 0 -a "$GIS_FLAG_s" -eq 1 ] ; then
+
+g.remove --quiet rast=tmpinreclass,MASK
+g.mremove --quiet -f rast=temp*
+g.mremove --quiet -f rast=$prfx"_fields*"
+g.mremove --quiet -f rast=*mask
+g.mremove --quiet -f rast=$prfx"_landuse*"
+
+elif [ "$GIS_FLAG_f" -eq 1 -a "$GIS_FLAG_s" -eq 0 ] ; then
+
+g.remove --quiet rast=tmpinreclass,MASK
+g.mremove --quiet -f rast=temp*
+g.mremove --quiet -f rast=*mask
+
+else
+
+g.remove --quiet rast=tmpinreclass,MASK
+g.mremove --quiet -f rast=$prfx"_fields*"
+g.mremove --quiet -f rast=temp*
+g.mremove --quiet -f rast=*mask
+
+fi
+
+\rm -f $TMP1 $TMP1.sort
+\rm -f $TMP2 $TMP2.sort
+\rm -f $TMP3 $TMP3.sort
+\rm -f $TMP4 $TMP4.sort
+\rm -f $TMP5 $TMP5.sort
+
+
+echo ""
+echo "Resetting region"
+echo ""
+
+g.region -g region=temp_region
+g.remove region=temp_region
+
+
+echo ""
+echo "DONE!"
+echo ""
+echo ""
+

@@ -1,0 +1,181 @@
+#!/bin/sh
+#
+############################################################################
+#
+# MODULE:       	r.soildepth
+# AUTHOR(S):		Isaac Ullah, Arizona State University
+# PURPOSE:		Create soil depth map based on hillslope curvature.
+# ACKNOWLEDGEMENTS:	National Science Foundation Grant #BCS0410269 
+#			Based on equations from Heimsath et al, 1997
+# COPYRIGHT:		(C) 2007 by Isaac Ullah, Michael Barton, Arizona State University
+#			This program is free software under the GNU General Public
+#			License (>=v2). Read the file COPYING that comes with GRASS
+#			for details.
+#
+#############################################################################
+
+
+#%Module
+#%  description: Create soil depth map based on hillslope curvature
+#%End
+#%option
+#% key: elev
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Input elevation map (DEM)
+#% required : yes
+#%END 
+#%option
+#% key: bedrock
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Output bedrock elevation map
+#% required : yes
+#%END
+#%option
+#% key: soildepth
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Output soil depths map
+#% required : no
+#%END 
+#%option
+#% key: kappa
+#% type: string
+#% description: What is the kappa value (diffusion coefficient per year) for the region? 
+#% answer: 0.00001
+#% required : yes
+#%END
+#%option
+#% key: t
+#% type: integer
+#% description: How many years should the soil develop over (how old is the landscape)?
+#% answer: 100000
+#% required : yes
+#%END
+#%flag
+#% key: r
+#% description: -r Keep soil production rate map 
+#%END
+
+
+
+if  [ -z "$GISBASE" ] ; then
+ echo "You must be in GRASS GIS to run this program." >&2
+ exit 1
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+  exec g.parser "$0" "$@"
+fi
+
+
+elev=$GIS_OPT_elev
+
+if [ -z $GIS_OPT_soildepth ] ; then
+
+soildepth="temp_soildepth"
+
+else
+
+soildepth=$GIS_OPT_soildepth
+
+fi
+
+bedrock=$GIS_OPT_bedrock
+kappa=$GIS_OPT_kappa
+t=$GIS_OPT_t
+pc="temp.pc.deletable"
+tc="temp.tc.deletable"
+rate="temp.rate.deletable"
+meancurv="temp.meancurv.deletable"
+
+echo ""
+echo "STEP 1, calculating profile and tangental curvatures"
+echo ""
+
+r.slope.aspect --quiet $elev pcurv=$pc tcurv=$tc
+
+echo ""
+echo "STEP 2, caclulating rate of soil production from mean hillslope curvatures"
+echo ""
+
+r.mapcalc "$meancurv=(($pc+$tc)/2)"
+
+
+max=`eval r.info -r map=$meancurv | grep "max=" | cut -d"=" -f2`
+min=`eval r.info -r map=$meancurv | grep "min=" | cut -d"=" -f2`
+
+echo ""
+echo "The raw max ($max) and min ($min) will be rescaled from 2 to 0 "
+echo ""
+
+
+r.mapcalc "$rate=$kappa*(2-($meancurv*(2/($max)-($min))))"
+
+rate1=`eval r.univar -g map=$rate percentile=90 | grep "mean=" | cut -d'=' -f2`
+
+echo "mean rate = $rate1"
+
+echo ""
+echo "STEP 3, calculating soil depth for given amount of time"
+echo ""
+
+echo "age of landscape = $t"
+echo "output = $soildepth"
+
+r.mapcalc "$soildepth = ($rate*10000)"
+
+meandepth=`eval r.univar -g map=$soildepth percentile=90 | grep "mean=" | cut -d'=' -f2`
+
+echo "mean depth = $meandepth"
+echo ""
+
+if [ "$GIS_FLAG_r" -eq 1 ]; then
+g.remove --q rast=$pc,$tc
+g.rename --o --q rast=$rate,$soildepth"_prod_rate"
+else
+g.remove --q rast=$pc,$tc,$rate,$meancurv
+fi
+
+
+
+
+echo ""
+echo    "STEP 4, calculating bedrock elevation for given soil depth"
+echo ""
+
+r.mapcalc "$bedrock=($elev) - ($soildepth)"
+
+if [ -n "$GIS_OPT_soildepth" ]; then
+echo ""
+echo "                       DONE!"
+echo ""
+echo "########################################################"
+echo "#                                                      #"
+echo "#   Soil depth map = $soildepth                        #"
+echo "#   Bedrock elevation map = $bedrock                   #"
+
+else
+echo ""
+echo "                       DONE!"
+echo ""
+echo "########################################################"
+echo "#                                                      #"
+echo "#                                                      #"
+echo "#   Bedrock elevation map = $bedrock                   #"
+
+g.remove --quiet rast=$soildepth
+
+fi
+
+if [ "$GIS_FLAG_r" -eq 1 ]; then
+echo "#  Soil production rate map = $soildepth"_prod_rate"   #"
+echo "#                                                      #"
+echo "########################################################"
+else
+echo "#                                                      #"
+echo "########################################################"
+fi
+
+

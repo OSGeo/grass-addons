@@ -1,0 +1,1259 @@
+#!/bin/sh
+#
+############################################################################
+#
+# MODULE:          r.landscape.evol.itr
+# AUTHOR(S):	   Isaac Ullah, Michael Barton, Arizona State University
+#		   Helena Mitasova, North Carolina State University
+# PURPOSE:	   Create raster maps of net erosion/depostion, the modified terrain surface (DEM) after net
+#		   erosion/deposition using the USPED equation, bedrock elevations after soil production, and soil 
+#                  depth maps.  This module uses appropriate flow on different landforms by default; however, 
+#                  singular flow regimes can be chosen instead. This model is coded to accept a list of sequentially 
+#		   ordered input maps (sequential suffixes can be added by r.iterate)
+# ACKNOWLEDGEMENTS:National Science Foundation Grant #BCS0410269 
+#		   Based on work of H. Mitasova and C. S. Thaxton, and Heimsath et al, 1997.
+# COPYRIGHT:	   (C) 2007 by Isaac Ullah, Michael Barton, Arizona State University
+#		   This program is free software under the GNU General Public
+#		   License (>=v2). Read the file COPYING that comes with GRASS
+#		   for details.
+#
+#############################################################################
+
+
+#%Module
+#%  description: Create raster maps of net erosion/depostion, the modified terrain surface (DEM) after net erosion/deposition using the USPED equation, bedrock elevations after soil production, and soil depth maps for a given chronological sequence of enumerated R and C value input maps. This module uses appropriate flow on different landforms by default; however, singular flow regimes can be chosen instead. This model is coded to accept a list of sequentially ordered input maps (sequential suffixes can be added by r.iterate) THIS SCRIPT WILL PRODUCE MANY TEMPORARY MAPS AND REQUIRES A LOT OF FREE FILE SPACE!
+#%End
+
+#%option
+#% key: elev
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Input elevation map (DEM)
+#% required : yes
+#% guisection: Input
+#%end
+#%option
+#% key: initbdrk
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Initial bedrock elevations map (for first iteration only)
+#% answer: 
+#% required : yes
+#% guisection: Input
+#%end
+#%option
+#% key: prefx
+#% type: string
+#% description: Prefix for all output maps
+#% answer: usped
+#% required : yes
+#% guisection: Input
+#%end
+#%flag
+#% key: n
+#% description: -n Do not output maps of net erosion/deposition
+#% guisection: Input
+#%end
+#%flag
+#% key: l
+#% description: -l Do not output maps of soil depths
+#% guisection: Input
+#%end
+#%flag
+#% key: k
+#% description: -k Keep all intermediate files as well
+#% guisection: Input
+#%end
+#%flag
+#% key: z
+#% description: -z Keep region zoomed to output maps 
+#% guisection: Input
+#%end
+
+#%option
+#% key: R
+#% type: string
+#% description: Rainfall (R factor) map prefixes (leave off years)
+#% gisprompt: old,cell,raster
+#% answer: rfactor
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: K
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Soil erodability index (K factor) map or constant
+#% answer: 0.32
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: C
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Landcover index (C factor) map prefixes (leave off years)
+#% answer: landcover_cfactor
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: kappa
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Hillslope diffusion (Kappa) rate map or constant (meters per kiloyear)
+#% answer: 1
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: cutoff
+#% type: string
+#% description: Flow accumultion breakpoint value for shift from diffusion to overland flow (number of cells)
+#% answer: 8
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: number
+#% type: integer
+#% description: Iteration Time Step (integer years)
+#% answer: 1
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: maxyrs
+#% type: integer
+#% description: Maximum Time Step (end year)
+#% answer: 50
+#% required : yes
+#% guisection: Variables
+#%END
+#%option
+#% key: minyrs
+#% type: integer
+#% description: Minimum Time Step (start year)
+#% answer: 1
+#% required : yes
+#% guisection: Variables
+#%END
+
+#these are commented out as we currently utilize the profile curvature method described by Heimsath et al...
+# 	#%option
+# 	#% key: Ba
+# 	#% type: string
+# 	#% description: Rate of average soil production (Ba)
+# 	#% answer: 0.00008
+# 	#% required : yes
+# 	#% guisection: Variables
+# 	#%end
+# 	#%option
+# 	#% key: Bb
+# 	#% type: string
+# 	#% description: Relationship between soil depth and production rate (Bb)
+# 	#% answer: 0.1
+# 	#% required : yes
+# 	#% guisection: Variables
+# 	#%end
+
+#%flag
+#% key: y
+#% description: -y Don't smooth the map (faster, but spikes in erosion/deposition may result)
+#% guisection: Smoothing_Filter
+#%end
+#%option
+#% key: nbhood
+#% type: string
+#% description: Band-pass filter neighborhood size
+#% answer: 3
+#% options: 1,3,5,7,9,11,13,15,17,19,21,23,25
+#% required : yes
+#% guisection: Smoothing_Filter
+#%end
+#%option
+#% key: sigma
+#% type: string
+#% description: Band-pass filter threshold value, sigma (meters)
+#% answer: 0.10
+#% required : yes
+#% guisection: Smoothing_Filter
+#%end
+#%option
+#% key: method
+#% type: string
+#% description: Neighborhood smoothing method
+#% answer: median
+#% options: median,mode,average
+#% required : yes
+#% guisection: Smoothing_Filter
+#%end
+
+#%flag
+#% key: c
+#% description: -c Output cumulative erosion/depostition map from data for all iterations
+#% guisection: Statistics
+#%end
+#%flag
+#% key: m
+#% description: -m Output mean erosion/depostition map from data for all iterations
+#% guisection: Statistics
+#%end
+#%flag
+#% key: t
+#% description: -t Output standard deviation of erosion/depostition map from data for all iterations
+#% guisection: Statistics
+#%end
+#%flag
+#% key: x
+#% description: -x Output maximum erosion/depostition map from data for all iterations
+#% guisection: Statistics
+#%end
+#%flag
+#% key: i
+#% description: -i Output minimum erosion/depostition map from data for all iterations
+#% guisection: Statistics
+#%end
+#%flag
+#% key: s
+#% description: -s Output mean soil depths map from data for all iterations
+#% guisection: Statistics
+#%end
+#%flag
+#% key: v
+#% description: -v Output standard deviation soil depths map from data for all iterations
+#% guisection: Statistics
+#%end
+#%flag
+#% key: a
+#% description: -a Output maximum soil depths map from data for all iterations
+#% guisection: Statistics
+#%end
+#%flag
+#% key: u
+#% description: -u Output minimum soil depths map from data for all iterations
+#% guisection: Statistics
+#%end
+
+#%flag
+#% key: w
+#% description: -w Calcuate for only sheetwash across entire map
+#% guisection: Flow_type
+#%end
+#%flag
+#% key: r
+#% description: -r Calcuate for only channelized flow across entire map
+#% guisection: Flow_type
+#%end
+#%flag
+#% key: d
+#% description: -d Calcuate for only diffusive flow (soil creep) across entire map
+#% guisection: Flow_type
+#%end
+#%flag
+#% key: f
+#% description: -f Use r.terrflow instead of r.flow to calculate flow accumulation (better for massive grids)
+#% guisection: Flow_type
+#%end
+
+
+
+if  [ -z "$GISBASE" ] ; then
+ echo "You must be in GRASS GIS to run this program." >&2
+ exit 1
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+  exec g.parser "$0" "$@"
+fi
+
+prefx=$GIS_OPT_prefx
+elev=$GIS_OPT_elev
+initbdrk=$GIS_OPT_initbdrk
+Rprfx=$GIS_OPT_R
+echo "R prefix = $Rprfx"
+K=$GIS_OPT_K
+Cprfx=$GIS_OPT_C
+echo "C prefix = $Cprfx"
+kappa=$GIS_OPT_kappa
+Ba=$GIS_OPT_Ba
+Bb=$GIS_OPT_Bb
+aplpha=$GIS_OPT_method
+sigma=$GIS_OPT_sigma
+nbhood=$GIS_OPT_nbhood
+cutoff=$GIS_OPT_cutoff
+echo "The following temporary files will be created:"
+echo ""
+neighbors=$prefx".neighbors1"
+echo "neighbors=$neighbors"
+tempsmoothdz=$prefx".tempsmoothdz1"
+echo "tempsmoothdz=$tempsmoothdz"
+smoothdz=$prefx"_smoothdz1"
+echo "smoothdz=$smoothdz"
+tempsmoothdz=$prefx".tempsmoothdz1"
+echo "temsmoothpdz=$tempsmoothdz"
+flowacc=$prefx".flowacc1"
+echo "flowacc=$flowacc"
+slope=$prefx".slope1"
+echo "slope=$slope"
+aspect=$prefx".aspect1"
+echo "aspect=$aspect"
+pc=$prefx".pc1"
+echo "pc=$pc"
+tc=$prefx".tc1"
+echo "tc=$tc"
+meancurv=$prefx".meancurv1"
+echo "meancurv=$meancurv"
+rate=$prefx".rate1"
+echo "rate=$rate"
+sflowtopo=$prefx".sflowtopo1"
+echo "sflowtopo=$sflowtopo"
+qsx=$prefx".qsx1"
+echo "qsx=$qsx"
+qsy=$prefx".qsy1"
+echo "qsy=$qsy"
+qsxdx=$prefx".qsx.dx1"
+echo "qsxdx=$qsxdx"
+qsydy=$prefx".qsy.dy1"
+echo "qsydy=$qsydy"
+m=$prefx".m1"
+echo "m=$m"
+n=$prefx".n1"
+echo "n=$n"
+erdep=$prefx".erosdep1"
+echo "erdep=$erdep"
+initsoil=$prefx".initsoil"
+
+echo ""
+new_bdrk=$prefx"_new_bdrk1"
+new_soil=$prefx"_new_soil1"
+new_dem=$prefx"_new_dem1"
+initsoil=$prefx"_initsoil"
+echo "Initial soil depths calculated will be in $initsoil"
+echo "The new dem for this iteration will be called  $new_dem"
+echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
+echo "The new soil depth map for this iteration will be called  $new_soil"
+
+#let's grab the current resolution
+res1=`eval g.region -p -m | grep "nsres:" | cut -d : -f 2`
+
+# we must set the region to the map being used. otherwise r.flow will not work
+echo ""
+echo "Setting region to $elev"
+g.region rast=$elev
+
+#now lets show before:
+echo ""
+echo "Original Resolution = $res1"
+
+#...and after:
+res=`eval g.region -p -m | grep "nsres:" | cut -d : -f 2`
+echo ""
+echo "New Resolution = $res"
+
+echo ""
+step=$GIS_OPT_minyrs
+maxyrs=$GIS_OPT_maxyrs
+timestep=$GIS_OPT_number
+echo "Iteration time step = $timestep years"
+echo "Start year = $step BP"
+echo "End year = $maxyrs BP"
+
+R=$Rprfx"_$step"
+Cinit=$Cprfx"_$step"
+
+echo ""
+echo "_____________________________________________________________"
+echo "Beginning iteration sequence. This will take some time."
+echo ""
+echo "Process is not finished until you see the message: 'Done with everything' "
+echo "_____________________________________________________________"
+# the first iteration must be run before the loop to set up the input data for the loop and to use the "initsoil" map to set up soil production function
+echo ""
+echo "##################################################"
+echo "##################################################"
+echo ""
+echo "TIME STEP $step YBP"
+echo ""
+echo "##################################################"
+echo ""
+echo "*************************"
+echo "step 1 of 8: calculating slope and aspect (if initial aspect not specified)"
+echo "*************************"
+echo ""
+
+
+r.slope.aspect --q $elev slope=$slope aspect=$aspect pcurv=$pc tcurv=$tc
+
+echo ""
+echo "*************************"
+echo "step 2 of 8: calculating upslope accumulated flow"
+echo "*************************"
+echo ""
+
+if [ "$GIS_FLAG_f" -eq 1 ]; then
+
+echo "using r.terraflow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
+echo ""
+
+#First we need to grab the amount of free RAM for r.terraflow
+
+mem=`eval free -mo  | grep "Mem" | tr -s /[:blank:] /[:] | cut -d":" -f4`
+
+#r.terraflow can't handle it if you tell it to use more than 2 Gigs of RAM, so if you have more than that, we have to tell r.terraflow to only use up to 2 Gigs of the free RAM... 
+
+if [ "$mem" -lt "2000" ]; then
+
+mem=$mem
+
+else
+
+mem="2000"
+
+fi
+
+
+echo "Amount of free RAM being allocated for this step: $mem Megabites"
+
+r.terraflow --q elev=$elev filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=$prefx".tmpflacc" tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
+
+r.mapcalc "$flowacc=$prefx".tmpflacc"/$res"
+
+g.remove --q rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",$prefx".tmpflacc"
+rm -f /var/tmp/STREAM*
+
+else
+
+echo "using r.flow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
+
+tmpflacc=$prefx".tmpflacc"
+
+r.flow -3 --quiet elevin=$elev aspin=$aspect dsout=$tmpflacc
+
+r.mapcalc "$flowacc=$tmpflacc*$res"
+
+g.remove --quiet rast=$tmpflacc
+
+fi
+
+echo ""
+echo "*************************"
+echo "step 3 of 8: calculating basic sediment transport rates"in
+echo "*************************"
+echo ""
+ 
+
+
+
+
+if [ "$GIS_FLAG_w" -eq 1 -a "$GIS_FLAG_d" -eq 0 -a "$GIS_FLAG_r" -eq 0 ]; then
+
+echo "" 
+echo	"calculating for sheetwash across the entire map"
+	r.mapcalc "$sflowtopo=$flowacc * sin($slope)"
+
+elif [ "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_d" -eq 0 -a "$GIS_FLAG_w" -eq 0 ]
+then
+
+echo "" 
+echo	"calculating for channelzed flow across the entire map"
+	r.mapcalc "$sflowtopo=exp(($flowacc),1.6) * exp(sin($slope),1.3)"
+
+
+
+elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 0 -a "$GIS_FLAG_w" -eq 0 ]
+then
+
+echo "" 
+echo	"calculating for diffusive flow across the entire map"	
+	r.mapcalc "$sflowtopo=$kappa * exp(($res),2) * sin($slope)"
+
+
+elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_w" -eq in0 ]
+then
+
+echo ""
+echo "############################################################"
+echo "!!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!"
+echo "############################################################"
+echo ""
+
+elif [ "$GIS_FLAG_d" -eq 0 -a "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_w" -eq 1 ]
+then
+
+echo ""
+echo "############################################################"
+echo "!!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!"
+echo "############################################################"
+echo ""
+
+elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 0 -a "$GIS_FLAG_w" -eq 1 ]
+then
+
+echo ""
+echo "############################################################"
+echo "!!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!"
+echo "############################################################"
+echo ""
+
+elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_w" -eq 1 ]
+then
+
+echo ""
+echo "############################################################"
+echo "!!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!"
+echo "############################################################"
+echo ""
+
+else
+
+maxflow=`eval r.univar -g map=$flowacc percentile=90 | grep "max=" | cut -d"=" -f2`
+minflow=`eval r.univar -g map=$flowacc percentile=90 | grep "min=" | cut -d"=" -f2`
+
+
+echo ""
+echo "The raw max ($maxflow) and min ($minflow) flow accumulation will be used to scale flow exponents 'm' and 'n' "
+echo ""
+
+echo ""
+echo	"Calculating with appropriate flow types on different landforms"
+
+r.mapcalc "$m=1+($flowacc * (0.6/($maxflow - $minflow)))"
+r.mapcalc "$n=1+($flowacc * (0.3/($maxflow - $minflow)))"
+
+report1=`eval r.info -r map=$m | grep "max=" | cut -d"=" -f2`
+report2=`eval r.info -r map=$m | grep "min=" | cut -d"=" -f2`
+
+echo ""
+echo "(for diagnostics only) max m = $report1, min m = $report2"
+
+
+r.mapcalc "$sflowtopo=if ($flowacc >= $cutoff, exp(($flowacc),$m) * exp(sin($slope),$n),  ($kappa * exp(($res),2) *sin($slope)))"
+
+
+fi
+
+echo ""
+echo "*************************"
+echo "step 4 of 8: calculating sediment transport capacity in x and y directions"
+echo "*************************"
+echo ""
+
+r.mapcalc "$qsx=if ("$initbdrk" >= "$elev", 0, ($R * $K * $Cinit * $sflowtopo * cos($aspect)))"
+r.mapcalc "$qsy=if ("$initbdrk" >= "$elev", 0, ($R * $K * $Cinit * $sflowtopo * sin($aspect)))"
+
+
+echo ""
+echo "*************************"
+echo "step 5 of 8: calculating partial derivatives for sediment transport"
+echo "*************************"
+echo ""
+
+
+r.slope.aspect --q $qsx dx=$qsxdx
+r.slope.aspect --q $qsy dy=$qsydy
+
+
+echo ""
+echo "*************************"
+echo "step 6 of 8: calculating net erosion and deposition"
+echo "*************************"
+echo ""
+
+
+#this is commented out because I don't fully understand why we should multiply by the resolution again here. I think that it is actually a typo incorporated into every version of the script since the beginning.
+#echo	"calculating for rill erosion"
+#	r.mapcalc "$erdep=$res * ($qsxdx + $qsydy)"
+
+
+r.mapcalc "$erdep=$qsxdx + $qsydy"
+
+r.mapcalc "$initsoil=$elev - $initbdrk"
+
+echo ""
+echo "*************************"
+echo "step 7 of 8: running band-pass filter"
+echo "*************************"
+echo ""
+
+if [ "$GIS_FLAG_y" -eq 1 ]; then
+
+echo ""echo "You have selected not to smooth your files... Oh Well!"
+echo ""
+
+r.mapcalc "$smoothdz=if((-1 * $erdep) >= $initsoil, (-1 * $initsoil), $erdep)"
+
+else
+
+
+r.neighbors --quiet input=$erdep output=$neighbors method=$GIS_OPT_method size=$GIS_OPT_nbhood
+r.mapcalc "$tempsmoothdz=if((-1 * $erdep) >= $initsoil, (-1 * $initsoil), $erdep)"
+r.mapcalc "$smoothdz=if((abs($tempsmoothdz-$neighbors)) > $GIS_OPT_sigma , $neighbors , $tempsmoothdz)"
+
+fi
+
+# create temporary file to code colors for $smoothdz
+TMP1=`g.tempfile pid=$$`
+
+if [ $? -ne 0 ] || [ -z "$TMP1" ]; then
+    echo "ERROR: unable to create temporary file for colors" 1>&2
+    exit 1
+else
+
+	echo "creating temporary file to code colors"
+
+fi
+
+
+echo "0% 104 034 139" > $TMP1
+echo "-5 violet" >> $TMP1
+echo "-3 aqua" >> $TMP1
+echo "-1 cyan" >> $TMP1
+echo "-0.5 green" >> $TMP1
+echo "0 white" >> $TMP1
+echo "0.5 yellow" >> $TMP1
+echo "1 orange" >> $TMP1
+echo "3 red" >> $TMP1
+echo "5 255 000 255" $TMP1
+echo "100% 255 000 255" >> $TMP1
+echo "end" >> $TMP1
+
+
+cat $TMP1 | r.colors --q map=$smoothdz color=rules  
+
+echo ""
+echo "*************************"
+echo "step 8 of 8: calculating terrain evolution, new bedrock elevations, and new soil depths"
+echo "*************************"
+echo ""
+
+r.mapcalc "$new_dem=$smoothdz + $elev"
+
+r.colors --q map=$new_dem rast=$elev
+
+echo ""
+echo "step 8.5: Calculating new soil depths from landscape curvature"
+
+r.mapcalc "$meancurv=(($pc + $tc) / 2)"
+
+
+max=`eval r.info -r map=$meancurv | grep "max=" | cut -d"=" -f2`
+min=`eval r.info -r map=$meancurv | grep "min=" | cut -d"=" -f2`
+
+echo ""
+echo "The raw max ($max) and min ($min) curvature will be rescaled from 2 to 0 "
+echo ""
+
+
+r.mapcalc "$rate=$kappa*(2-($meancurv*(2/($max)-($min))))"
+
+#rate is actually the net change in bedrock elevation due to soil production, so lets use it to find the new bedrock elev, and the new soil depth!
+
+r.mapcalc "$new_bdrk=$initbdrk - $rate"
+r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
+
+
+
+#these are the old soil equations that I failed to be able to implement... I leave them in for documentation purposes
+#r.mapcalc "$new_bdrk=$initbdrk - ($Ba * ($Bb*($smoothdz - $initbdrk)))"
+#r.mapcalc "$new_soil=if (($smoothdz - $initbdrk) < 0, 0, ($smoothdz - $initbdrk))"
+
+
+#grabsomestats
+tmperosion=$prfx"_tmperosion1"
+tmpdep=$prfx"_tmpdep1"
+
+r.mapcalc "$tmperosion=if($smoothdz < 0, $smoothdz, null())"
+r.mapcalc "$tmpdep=if($smoothdz > 0, $smoothdz, null())"
+
+avesoil=`eval r.univar -g map=$new_soil percentile=90 | grep "mean=" | cut -d'=' -f2`
+aveeros=`eval r.univar -g map=$tmperosion percentile=90 | grep "mean=" | cut -d'=' -f2`
+avedep=`eval r.univar -g map=$tmpdep percentile=90 | grep "mean=" | cut -d'=' -f2`
+
+g.remove --quiet rast=$tmperosion,$tmpdep
+
+txtout=$prefx"_erdep_stats.txt"
+
+echo "outputing stats to textfile: $txtout"
+
+echo "Stats for erosion and deposition simulation with starting map: $elev" > $txtout
+echo "" >> $txtout
+echo "Year,Mean Erosion, Mean Deposition,Mean Soil Depth" >> $txtout
+echo "1,$aveeros,$avedep,$avesoil" >> $txtout
+
+
+
+echo ""
+echo "*************************"
+echo "Done with this iteration"
+echo "*************************"
+
+
+
+echo ""
+echo "Raster map $smoothdz shows filtered net erosion/deposition"
+echo ""
+echo "Raster map $new_dem shows new landscape (new elevations) after net erosion/depostion"
+echo "*************************"
+echo ""
+
+
+#This is replaced by the large g.mremove process at the end of the script. I leave it commented because one might like to have the files for each iteration cleaned up as the process runs instead of one batch process at the end.
+#if [ "$GIS_FLAG_k" -eq 1 ]; then
+#	echo ""
+#	echo "Done"
+#	echo ""
+#else
+#	echo ""
+#	echo "Cleaning up..."
+#	g.remove rast=$flowacc,$slope,$aspect,$sflowtopo,$qsx,$qsy,$qsxdx,$qsydy,$erdep,$neighbors
+#	echo ""
+#	echo "Done"
+#fi
+
+
+#remove the temp files to avoid confusion...\rm -f $TMP1 $TMP1.sort
+
+
+
+
+# now we must go into a loop to get the rest of the dem's
+
+while [ "$step" -lt "$maxyrs" ]
+do
+	laststep=$step
+	step=$(($step+$timestep)) # here is how we are controlling the iteration loop
+
+
+old_dem=$prefx"_new_dem"$laststep
+
+echo "The following temporary files will be created:"
+echo ""
+neighbors=$prefx".neighbors"$step
+echo "neighbors=$neighbors"
+tempsmoothdz=$prefx".tempsmoothdz"$step
+echo "tempsmoothdz=$tempsmoothdz"
+temp2smoothdz=$prefx".temp2smoothdz"$step
+echo "temp2smoothdz=$temp2smoothdz"
+smoothdz=$prefx"_smoothdz"$step
+echo "smoothdz=$smoothdz"
+flowacc=$prefx".flowacc"$step
+echo "flowacc=$flowacc"
+slope=$prefx".slope"$step
+echo "slope=$slope"
+aspect=$prefx".aspect"$step
+echo "aspect=$aspect"
+pc=$prefx".pc"$step
+echo "pc=$pc"
+tc=$prefx".tc"$step
+echo "tc=$tc"
+meancurv=$prefx".meancurv"$step
+echo "meancurv=$meancurv"
+rate=$prefx".rate"$step
+echo "rate=$rate"
+sflowtopo=$prefx".sflowtopo"$step
+echo "sflowtopo=$sflowtopo"
+qsx=$prefx".qsx"$step
+echo "qsx=$qsx"
+qsy=$prefx".qsy"$step
+echo "qsy=$qsy"
+qsxdx=$prefx".qsx.dx"$step
+echo "qsxdx=$qsxdx"
+qsydy=$prefx".qsy.dy"$step
+echo "qsydy=$qsydy"
+m=$prefx".m"$step
+echo "m=$m"
+n=$prefx".n"$step
+echo "n=$n"
+erdep=$prefx".erosdep"$step
+echo "erdep=$erdep"
+old_bdrk=$prefx"_new_bdrk"$laststep
+echo "old_bdrk=$old_bdrk"
+old_soil=$prefx"_new_soil"$laststep
+echo "old_soil=$old_soil"
+echo ""
+R=$Rprfx"_$step"
+C=$Cprfx"_$step"
+new_bdrk=$prefx"_new_bdrk"$step
+new_soil=$prefx"_new_soil"$step
+new_dem=$prefx"_new_dem"$step
+echo "The new dem for this iteration will be called  $new_dem"
+echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
+echo "The new soil depth map for this iteration will be called  $new_soil"
+
+echo ""
+echo "##################################################"
+echo "##################################################"
+echo ""
+echo "TIME STEP $step YPB"
+echo ""
+echo "##################################################"
+echo ""
+echo "*************************"
+echo "step 1 of 8: calculating slope and aspect"
+echo "*************************"
+echo ""
+
+r.slope.aspect --q elevation=$old_dem slope=$slope aspect=$aspect pcurv=$pc tcurv=$tc
+
+
+echo ""
+echo "*************************"
+echo "step 2 of 8: calculating upslope accumulated flow"
+echo "*************************"
+echo ""
+
+
+
+if [ "$GIS_FLAG_f" -eq 1 ]; then
+
+echo "using r.terraflow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
+echo ""
+
+#First we need to grab the amount of free RAM for r.terraflow
+
+mem=`eval free -mo  | grep "Mem" | tr -s /[:blank:] /[:] | cut -d":" -f4`
+
+#r.terraflow can't handle it if you tell it to use more than 2 Gigs of RAM, so if you have more than that, we have to tell r.terraflow to only use up to 2 Gigs of the free RAM... 
+
+if [ "$mem" -lt "2000" ]; then
+
+mem=$mem
+
+else
+
+mem="2000"
+
+fi
+
+
+echo "Amount of free RAM being allocated for this step: $mem Megabites"
+
+r.terraflow --q elev=$elev filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=$prefx".tmpflacc" tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
+
+r.mapcalc "$flowacc=$prefx".tmpflacc"/$res"
+
+g.remove --q rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",$prefx".tmpflacc"
+rm -f /var/tmp/STREAM*
+
+else
+
+echo "using r.flow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
+
+tmpflacc=$prefx".tmpflacc"
+
+r.flow -3 --quiet elevin=$elev aspin=$aspect dsout=$tmpflacc
+
+r.mapcalc "$flowacc=$tmpflacc*$res"
+
+g.remove --quiet rast=$tmpflacc
+
+fi
+
+
+
+echo ""
+echo "*************************"
+echo "step 3 of 8: calculating basic sediment transport rates"
+echo "*************************"
+echo ""
+
+
+
+
+if [ "$GIS_FLAG_w" -eq 1 -a "$GIS_FLAG_d" -eq 0 -a "$GIS_FLAG_r" -eq 0 ]; then
+
+echo "" 
+echo	"calculating for sheetwash across the entire map"
+	r.mapcalc "$sflowtopo=$flowacc * sin($slope)"
+
+elif [ "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_d" -eq 0 -a "$GIS_FLAG_w" -eq 0 ]
+then
+
+echo "" 
+echo	"calculating for channelzed flow across the entire map"
+	r.mapcalc "$sflowtopo=exp(($flowacc),$m) * exp(sin($slope),$n)"
+
+
+elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 0 -a "$GIS_FLAG_w" -eq 0 ]
+then
+
+echo "" 
+echo	"calculating for diffusive flow across the entire map"	
+	r.mapcalc "$sflowtopo=$kappa * exp(($res),2) * sin($slope)"
+
+
+elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_w" -eq 0 ]
+then
+
+echo ""
+echo "############################################################"
+echo "!!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!"
+echo "############################################################"
+echo ""
+
+elif [ "$GIS_FLAG_d" -eq 0 -a "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_w" -eq 1 ]
+then
+
+echo ""
+echo "############################################################"
+echo "!!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!"
+echo "############################################################"
+echo ""
+
+elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 0 -a "$GIS_FLAG_w" -eq 1 ]
+then
+
+echo ""
+echo "############################################################"
+echo "!!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!"
+echo "############################################################"
+echo ""
+
+elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_w" -eq 1 ]
+then
+
+echo ""
+echo "############################################################"
+echo "!!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!"
+echo "############################################################"
+echo ""
+
+else
+
+maxflow=`eval r.univar -g map=$flowacc percentile=90 | grep "max=" | cut -d"=" -f2`
+minflow=`eval r.univar -g map=$flowacc percentile=90 | grep "min=" | cut -d"=" -f2`
+
+
+echo ""
+echo "The raw max ($maxflow) and min ($minflow) flow accumulation will be used to scale flow exponents 'm' and 'n' "
+echo ""
+
+echo "" 
+echo	"calculating with appropriate flow types on different landforms"
+
+r.mapcalc "$m=1+($flowacc * (0.6/($maxflow - $minflow)))"
+r.mapcalc "$n=1+($flowacc * (0.3/($maxflow - $minflow)))"
+
+r.mapcalc "$sflowtopo=if ($flowacc >= $cutoff, exp(($flowacc),$m) * exp(sin($slope),$n),  ($kappa * exp(($res),2) *sin($slope)))"
+
+fi
+
+
+
+echo ""
+echo "*************************"
+echo "step 4 of 8: calculating sediment transport capacity in x and y directions"
+echo "*************************"
+echo ""
+
+
+r.mapcalc "$qsx= if ($old_soil <= 0, 0, ($R * $K * $C * $sflowtopo * cos($aspect)))"
+r.mapcalc "$qsy= if ($old_soil <= 0, 0, ($R * $K * $C * $sflowtopo * sin($aspect)))"
+
+
+echo ""
+echo "*************************"
+echo "step 5 of 8: calculating partial derivatives for sediment transport"
+echo "*************************"
+echo ""
+
+
+r.slope.aspect --q $qsx dx=$qsxdx
+r.slope.aspect --q $qsy dy=$qsydy
+
+
+echo ""
+echo "*************************"
+echo "step 6 of 8: calculating net erosion and deposition"
+echo "*************************"
+echo ""
+
+
+
+	r.mapcalc "$erdep=$qsxdx + $qsydy"
+
+
+echo ""
+echo "*************************"
+echo "step 7 of 8: running band-pass filter"
+echo "*************************"
+echo ""
+
+lastsmooth=$prefx"_smoothdz"$laststep
+
+if [ "$GIS_FLAG_y" -eq 1 ]; then
+echo ""
+echo "You have selected not to smooth your files... Oh Well!"
+echo ""
+
+r.mapcalc "$temp2smoothdz=if((-1 * $erdep) >= $old_soil, (-1 * $old_soil), $erdep)"
+
+else
+
+r.neighbors --q input=$erdep output=$neighbors method=$GIS_OPT_method size=$GIS_OPT_nbhood
+r.mapcalc "$tempsmoothdz=if((-1 * $erdep) >= $old_soil, (-1 * $old_soil), $erdep)"
+r.mapcalc "$temp2smoothdz=if((abs($tempsmoothdz-$neighbors)) > $GIS_OPT_sigma , $neighbors , $tempsmoothdz)"
+
+fi
+
+#now we must correct for the incredible edge shrinking effect by patching the last smoothdz underneath the new smoothdz
+r.patch input=$temp2smoothdz,$lastsmooth output=$smoothdz
+
+
+# create temporary file to code colors for $smoothdz
+TMP1=`g.tempfile pid=$$`
+
+if [ $? -ne 0 ] || [ -z "$TMP1" ] ; then
+    echo "ERROR: unable to create temporary file for colors" 1>&2
+    exit 1
+else
+	echo "creating temporary file to code colors"
+
+fi
+
+echo "0% 104 034 139" > $TMP1
+echo "-5 violet" >> $TMP1
+echo "-3 aqua" >> $TMP1
+echo "-1 cyan" >> $TMP1
+echo "-0.5 green" >> $TMP1
+echo "0 white" >> $TMP1
+echo "0.5 yellow" >> $TMP1
+echo "1 orange" >> $TMP1
+echo "3 red" >> $TMP1
+echo "5 255 000 255" $TMP1
+echo "100% 255 000 255" >> $TMP1
+echo "end" >> $TMP1
+
+
+cat $TMP1 | r.colors --q map=$smoothdz color=rules  
+
+echo ""
+echo "*************************"
+echo "step 8 of 8: calculating terrain evolution and new soil depths/bedrock elevations"
+echo "*************************"
+echo ""
+
+r.mapcalc "$new_dem=$smoothdz + $old_dem"
+r.colors --q map=$new_dem rast=$elev
+
+echo ""
+echo "step 8.5: Calculating new soil depths from landscape curvature"
+
+r.mapcalc "$meancurv=($pc+$tc/2)"
+
+# create temporary file to clip the max and min to
+TMP5=`g.tempfile pid=$$`
+
+
+max=`eval r.info -r map=$meancurv | grep "max=" | cut -d"=" -f2`
+min=`eval r.info -r map=$meancurv | grep "min=" | cut -d"=" -f2`
+
+echo ""
+echo "The raw max ($max) and min ($min) will be rescaled from 2 to 0 "
+echo ""
+
+r.mapcalc "$rate=$kappa*(2-($meancurv*(2/($max)-($min))))"
+
+#rate is actually the net change in bedrock elevation due to soil production, so lets use it to find the new bedrock elev, and the new soil depth!
+
+r.mapcalc "$new_bdrk=$old_bdrk - $rate"
+r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
+
+
+
+#these are the old soil equations that I failed to be able to implement... I leave them in for documentation purposes
+#r.mapcalc "$new_bdrk= $old_bdrk - ($Ba * (exp(($smoothdz - $old_bdrk),$Bb)))"
+#r.mapcalc "$new_soil=if (($smoothdz - $old_bdrk) < 0, 0, ($smoothdz - $old_bdrk))"
+
+
+
+#grabsomestats
+tmperosion=$prfx"_tmperosion"$step
+tmpdep=$prfx"_tmpdep"$step
+
+r.mapcalc "$tmperosion=if($smoothdz < 0, $smoothdz, null())"
+r.mapcalc "$tmpdep=if($smoothdz > 0, $smoothdz, null())"
+
+avesoil=`eval r.univar -g map=$new_soil percentile=90 | grep "mean=" | cut -d'=' -f2`
+aveeros=`eval r.univar -g map=$tmperosion percentile=90 | grep "mean=" | cut -d'=' -f2`
+avedep=`eval r.univar -g map=$tmpdep percentile=90 | grep "mean=" | cut -d'=' -f2`
+
+g.remove --quiet rast=$tmperosion,$tmpdep
+
+echo "outputing stats to textfile: $txtout"
+
+echo "$step,$aveeros,$avedep,$avesoil" >> $txtout
+
+
+
+echo ""
+echo "*************************"
+echo "Done with this iteration"
+echo "*************************"
+
+
+
+
+echo ""
+echo "Raster map $smoothdz shows filtered net erosion/deposition"
+echo ""
+echo "Raster map $new_dem shows new landscape (new elevations) after net erosion/depostion"
+echo "*************************"
+echo "########################################################"
+echo ""
+
+#remove the temp files to avoid confusion...
+\rm -f $TMP1 $TMP1.sort
+
+done
+
+# now we have met the loop critereon set by us above, so we have broken out. We must now reset the region settings
+
+
+# create temporary file to list all the smoothdz files for statistics
+TMP2=`g.tempfile pid=$$`
+if [ $? -ne 0 ] || [ -z "$TMP2" ] ; then
+    echo "ERROR: unable to create temporary file to list all the smoothdz files for statistics" 1>&2
+    exit 1
+fi
+
+
+g.mlist type=rast sep=, pattern=$prefx"_smoothdz*" > $TMP2
+liststring=`cat $TMP2`
+
+echo "Any selected statistics will be performed using the following smoothdz files: $liststring"
+
+if [ "$GIS_FLAG_c" -eq 1 ]; then
+
+r.series --q input=$liststring output=$prefx"_cum_erdep" method=sum 
+fi
+
+if [ "$GIS_FLAG_m" -eq 1 ]; then
+
+r.series --q input=$liststring output=$prefx"_ave_erdep" method=average 
+fi
+
+if [ "$GIS_FLAG_t" -eq 1 ]; then
+
+r.series --q input=$liststring output=$prefx"_sdev_erdep" method=stddev 
+fi
+
+if [ "$GIS_FLAG_x" -eq 1 ]; then
+
+r.series --q input=$liststring output=$prefx"_max_erdep" method=maximum 
+fi
+
+if [ "$GIS_FLAG_i" -eq 1 ]; then
+
+r.series --q input=$liststring output=$prefx"_min_erdep" method=minimum 
+fi
+
+
+
+# create temporary file to list all the soil depth files for statistics
+TMP3=`g.tempfile pid=$$`
+if [ $? -ne 0 ] || [ -z "$TMP3" ] ; then
+    echo "ERROR: unable to create temporary file to list all the soil depth files for statistics" 1>&2
+    exit 1
+fi
+
+g.mlist type=rast sep=, pattern=$prefx"_new_soil*" > $TMP3
+
+liststring2=`cat $TMP3`
+
+echo "Any selected statistics will be performed using the following soil depth files: $liststring2"
+
+if [ "$GIS_FLAG_s" -eq 1 ]; then
+
+r.series --q input=$liststring2 output=$prefx"_ave_soil" method=average 
+fi
+
+if [ "$GIS_FLAG_v" -eq 1 ]; then
+
+r.series --q input=$liststring2 output=$prefx"_sdev_soil" method=stddev 
+fi
+
+if [ "$GIS_FLAG_a" -eq 1 ]; then
+
+r.series --q input=$liststring2 output=$prefx"_max_soil" method=maximum 
+fi
+
+
+if [ "$GIS_FLAG_u" -eq 1 ]; then
+
+r.series --q input=$liststring2 output=$prefx"_min_soil" method=minimum 
+fi
+\rm -f $TMP2 $TMP2.sort
+\rm -f $TMP3 $TMP3.sort
+
+
+echo "************************"
+
+if [ "$GIS_FLAG_k" -eq 1 ]; then
+echo ""
+echo "Done"
+echo ""
+
+else
+echo ""
+echo "Cleaning up..."
+g.mremove -f --q rast=$prefx".neighbors*"
+g.mremove -f --q rast=$prefx".smoothdz*"
+g.mremove -f --q rast=$prefx".flowacc*"
+g.mremove -f --q rast=$prefx".slope*"
+g.mremove -f --q rast=$prefx".aspect*"
+g.mremove -f --q rast=$prefx".sflowtopo*"
+g.mremove -f --q rast=$prefx".qsx*"
+g.mremove -f --q rast=$prefx".qsy*"
+g.mremove -f --q rast=$prefx".qsx.dx*"
+g.mremove -f --q rast=$prefx".qsy.dy*"
+g.mremove -f --q rast=$prefx".erosdep*"
+g.mremove -f --q rast=$prefx".pc*"
+g.mremove -f --q rast=$prefx".tc*"
+g.mremove -f --q rast=$prefx".meancurv*"
+g.mremove -f --q rast=$prefx".rate*"
+g.mremove -f --q rast=$prefx".tempsmoothdz*"
+g.mremove -f --q rast=$prefx".temp2smoothdz*"
+g.mremove -f --q rast=$prefx".m*"
+g.mremove -f --q rast=$prefx".n*"
+
+	echo ""
+	echo "Done"
+
+fi
+
+if [ "$GIS_FLAG_n" -eq 1 ]; then
+
+	g.mremove --q rast=$prefx"_smoothdz*"
+fi
+
+if [ "$GIS_FLAG_l" -eq 1 ]; then
+
+	g.mremove --q rast=$prefx"_new_soil*"
+fi
+
+if [ "$GIS_FLAG_z" -eq 1 ]; then
+echo ""
+echo "Iterations complete, keeping region set to output maps"
+echo ""
+else
+echo ""
+echo "Iterations complete, restoring default region settings"
+echo ""
+
+g.region -d -g
+
+echo ""
+fi
+echo "###################################################"
+echo "###################################################"
+echo "___________________________________________________"
+echo ""
+echo "            DONE WITH EVERYHTING"
+echo ""
+echo "___________________________________________________"
+
+
+
+
