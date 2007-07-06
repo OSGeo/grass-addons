@@ -64,6 +64,11 @@
 #% guisection: Input
 #%end
 #%flag
+#% key: e
+#% description: -e Keep initial soil depths map
+#% guisection: Input
+#%end
+#%flag
 #% key: z
 #% description: -z Keep region zoomed to output maps 
 #% answer: 1
@@ -158,7 +163,7 @@
 #% key: nbhood
 #% type: string
 #% description: Band-pass filter neighborhood size
-#% answer: 3
+#% answer: 7
 #% options: 1,3,5,7,9,11,13,15,17,19,21,23,25
 #% required : yes
 #% guisection: Smoothing_Filter
@@ -272,54 +277,71 @@ aplpha=$GIS_OPT_method
 sigma=$GIS_OPT_sigma
 nbhood=$GIS_OPT_nbhood
 cutoff=$GIS_OPT_cutoff
+number=$GIS_OPT_number
+echo "total number of iterations to be run= $number"
+echo ""
+
+if [ $number -eq 1 ] ; then
+
+num=""
+
+else
+
+num="1"
+
+fi
+
 echo "The following temporary files will be created:"
 echo ""
-neighbors=$prefx".neighbors1"
+neighbors=$prefx".neighbors"$num
 echo "neighbors=$neighbors"
-tempsmoothdz=$prefx".tempsmoothdz1"
+tempsmoothdz=$prefx".tempsmoothdz"$num
 echo "tempsmoothdz=$tempsmoothdz"
-smoothdz=$prefx"_smoothdz1"
+smoothdz=$prefx"_smoothdz"$num
 echo "smoothdz=$smoothdz"
-tempsmoothdz=$prefx".tempsmoothdz1"
+tempsmoothdz=$prefx".tempsmoothdz"$num
 echo "temsmoothpdz=$tempsmoothdz"
-flowacc=$prefx".flowacc1"
+flowacc=$prefx".flowacc"$num
 echo "flowacc=$flowacc"
-slope=$prefx".slope1"
+slope=$prefx".slope"$num
 echo "slope=$slope"
-aspect=$prefx".aspect1"
+aspect=$prefx".aspect"$num
 echo "aspect=$aspect"
 pc=$prefx".pc1"
 echo "pc=$pc"
 tc=$prefx".tc1"
 echo "tc=$tc"
-meancurv=$prefx".meancurv1"
+meancurv=$prefx".meancurv"$num
 echo "meancurv=$meancurv"
-rate=$prefx".rate1"
+rate=$prefx".rate"$num
 echo "rate=$rate"
-sflowtopo=$prefx".sflowtopo1"
+sflowtopo=$prefx".sflowtopo"$num
 echo "sflowtopo=$sflowtopo"
-qsx=$prefx".qsx1"
+qsx=$prefx".qsx"$num
 echo "qsx=$qsx"
-qsy=$prefx".qsy1"
+qsy=$prefx".qsy"$num
 echo "qsy=$qsy"
-qsxdx=$prefx".qsx.dx1"
+qsxdx=$prefx".qsx.dx"$num
 echo "qsxdx=$qsxdx"
-qsydy=$prefx".qsy.dy1"
+qsydy=$prefx".qsy.dy"$num
 echo "qsydy=$qsydy"
-m=$prefx".m1"
+m=$prefx".m"$num
 echo "m=$m"
-n=$prefx".n1"
+n=$prefx".n"$num
 echo "n=$n"
-erdep=$prefx".erosdep1"
+erdep=$prefx".erosdep"$num
 echo "erdep=$erdep"
-initsoil=$prefx".initsoil"
+
+
 
 echo ""
 
-new_soil=$prefx"_new_soil1"
-new_dem=$prefx"_new_dem1"
+new_soil=$prefx"_new_soil"$num
+new_dem=$prefx"_new_dem"$num
+
 initsoil=$prefx"_initsoil"
-echo "Initial soil depths calculated will be in $initsoil"
+
+
 echo "The new dem for this iteration will be called  $new_dem"
 echo "The new soil depth map for this iteration will be called  $new_soil"
 
@@ -329,7 +351,7 @@ echo ""
 
 else
 
-new_bdrk=$prefx"_new_bdrk1"
+new_bdrk=$prefx"_new_bdrk"$num
 echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
 
 fi
@@ -353,17 +375,31 @@ echo "New Resolution = $res"
 
 
 echo ""
-echo "_____________________________________________________________"
-echo "Beginning iteration sequence. This will take some time."
-echo ""
-echo "Process is not finished until you see the message: 'Done with everything' "
-echo "_____________________________________________________________"
+
 # the first iteration must be run before the loop to set up the input data for the loop and to use the "initsoil" map to set up soil production function
 echo ""
 echo "##################################################"
 echo "##################################################"
 echo ""
+
+if [ $number -eq 1 ] ; then
+
+echo "STARTING SIMULATION"
+echo ""
+echo "Process is not finished until you see the message: 'Done with everything' "
+
+else
+
+echo "_____________________________________________________________"
+echo "Beginning iteration sequence. This will take some time."
+echo ""
+echo "Process is not finished until you see the message: 'Done with everything' "
+echo "_____________________________________________________________"
+echo ""
 echo "ITERATION 1"
+
+fi
+
 echo ""
 echo "##################################################"
 echo ""
@@ -374,6 +410,7 @@ echo ""
 
 
 r.slope.aspect --q $elev slope=$slope aspect=$aspect pcurv=$pc tcurv=$tc
+
 
 echo ""
 echo "*************************"
@@ -405,11 +442,12 @@ fi
 
 echo "Amount of free RAM being allocated for this step: $mem Megabites"
 
-r.terraflow --q elev=$elev filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=$prefx".tmpflacc" tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
+r.terraflow --q elev=$elev filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=temp.flowacc tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
 
-r.mapcalc "$flowacc=$prefx".tmpflacc"/$res"
+r.mapcalc "$flowacc=temp.flowacc/$res"
 
-g.remove --q rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",$prefx".tmpflacc"
+
+g.remove --q rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",temp.flowacc
 rm -f /var/tmp/STREAM*
 
 else
@@ -507,8 +545,8 @@ echo ""
 echo ""
 echo	"Calculating with appropriate flow types on different landforms"
 
-r.mapcalc "$m=1+($flowacc * (0.6/($maxflow - $minflow)))"
-r.mapcalc "$n=1+($flowacc * (0.3/($maxflow - $minflow)))"
+r.mapcalc "$m=1+($flowacc * (0.3/($maxflow - $minflow)))"
+r.mapcalc "$n=1+($flowacc * (0.15/($maxflow - $minflow)))"
 
 report1=`eval r.info -r map=$m | grep "max=" | cut -d"=" -f2`
 report2=`eval r.info -r map=$m | grep "min=" | cut -d"=" -f2`
@@ -581,8 +619,14 @@ r.mapcalc "$smoothdz=if((abs($tempsmoothdz-$neighbors)) > $GIS_OPT_sigma , $neig
 
 fi
 
+#checking to see if we should keep the initial soil depths map
+
+
+
+
 # create temporary file to code colors for $smoothdz
 TMP1=`g.tempfile pid=$$`
+
 
 if [ $? -ne 0 ] || [ -z "$TMP1" ]; then
     echo "ERROR: unable to create temporary file for colors" 1>&2
@@ -594,17 +638,17 @@ else
 fi
 
 
-echo "0% 255 000 255" > $TMP1
-echo "-5 255 000 255" >> $TMP1
-echo "-3 red" >> $TMP1
-echo "-1 orange" >> $TMP1
-echo "-0.5 yellow" >> $TMP1
+echo "0% 104 034 139" > $TMP1
+echo "-5 violet" >> $TMP1
+echo "-3 aqua" >> $TMP1
+echo "-1 cyan" >> $TMP1
+echo "-0.5 green" >> $TMP1
 echo "0 white" >> $TMP1
-echo "0.5 green" >> $TMP1
-echo "1 cyan" >> $TMP1
-echo "3 aqua" >> $TMP1
-echo "5 violet" $TMP1
-echo "100% 104 034 139" >> $TMP1
+echo "0.5 yellow" >> $TMP1
+echo "1 orange" >> $TMP1
+echo "3 red" >> $TMP1
+echo "5 255 000 255" $TMP1
+echo "100% 255 000 255" >> $TMP1
 echo "end" >> $TMP1
 
 
@@ -687,6 +731,16 @@ echo "*************************"
 echo "Done with this iteration"
 echo "*************************"
 
+if [ "$GIS_FLAG_e" -eq 1 ]; then
+
+echo ""
+echo "keeping initial soil depths map $initsoil"
+
+else
+
+g.remove --quiet rast=$initsoil
+
+fi
 
 
 echo ""
@@ -714,8 +768,7 @@ echo ""
 #remove the temp files to avoid confusion...\rm -f $TMP1 $TMP1.sort
 
 
-number=$GIS_OPT_number
-echo "total number of iterations to be run= $number"
+
 step=1
 
 # now we must go into a loop to get the rest of the dem's
@@ -1020,17 +1073,17 @@ else
 
 fi
 
-echo "0% 255 000 255" > $TMP1
-echo "-5 255 000 255" >> $TMP1
-echo "-3 red" >> $TMP1
-echo "-1 orange" >> $TMP1
-echo "-0.5 yellow" >> $TMP1
+echo "0% 104 034 139" > $TMP1
+echo "-5 violet" >> $TMP1
+echo "-3 aqua" >> $TMP1
+echo "-1 cyan" >> $TMP1
+echo "-0.5 green" >> $TMP1
 echo "0 white" >> $TMP1
-echo "0.5 green" >> $TMP1
-echo "1 cyan" >> $TMP1
-echo "3 aqua" >> $TMP1
-echo "5 violet" $TMP1
-echo "100% 104 034 139" >> $TMP1
+echo "0.5 yellow" >> $TMP1
+echo "1 orange" >> $TMP1
+echo "3 red" >> $TMP1
+echo "5 255 000 255" $TMP1
+echo "100% 255 000 255" >> $TMP1
 echo "end" >> $TMP1
 
 
