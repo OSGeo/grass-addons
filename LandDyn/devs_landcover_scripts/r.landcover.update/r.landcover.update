@@ -1,0 +1,174 @@
+#!/bin/sh
+#
+############################################################################
+#
+# MODULE:       	r.landcover.update
+# AUTHOR(S):		Isaac Ullah, Michael Barton, Arizona State University
+# PURPOSE:		Updates a map of landcover by the amounts specified in an impacts
+#               	map
+# ACKNOWLEDGEMENTS:	National Science Foundation Grant #BCS0410269 
+# COPYRIGHT:		(C) 2007 by Isaac Ullah, Michael Barton, Arizona State University
+#			This program is free software under the GNU General Public
+#			License (>=v2). Read the file COPYING that comes with GRASS
+#			for details.
+#
+#############################################################################
+
+
+#%Module
+#%  description: CUpdates a map of landcover by the amounts specified in an impacts map
+#%END
+
+#%option
+#% key: inmap
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: input landcover map (values coded 0-max)
+#% required : yes
+#%END
+
+#%option
+#% key: impacts
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: map of impacts on landcover values
+#% required : yes
+#%END
+
+#%option
+#% key: max
+#% type: string
+#% gisprompt: string
+#% description: maximum value for landcover maps (number for climax veg)
+#% answer: 50
+#% required : yes
+#%END
+
+#%option
+#% key: prfx
+#% type: string
+#% gisprompt: string
+#% description: prefix for all output maps
+#% answer: year1
+#% required : yes
+#%END
+
+#%option
+#% key: lc_rules
+#% type: string
+#% gisprompt: string
+#% description: path to reclass rules file for landcover map
+#% answer: /usr/local/grass-6.3.cvs/scripts/rules/luse_reclass_rules.txt
+#% required : yes
+#%END
+
+#%option
+#% key: lc_color
+#% type: string
+#% gisprompt: string
+#% description: path to color rules file for landcover map
+#% answer: /usr/local/grass-6.3.cvs/scripts/rules/luse_colors.txt
+#% required : yes
+#%END
+
+#%flag
+#% key: s
+#% description: -s Output text file of land-use stats from the simulation (will be named "prefix"_luse_stats.txt, and will be overwritten if you run the simulation again with the same prefix)
+#%END
+
+
+if  [ -z "$GISBASE" ] ; then
+ echo "You must be in GRASS GIS to run this program." >&2
+ exit 1
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+  exec g.parser "$0" "$@"
+fi
+
+
+
+#setting up variables for use later on
+
+inmap=$GIS_OPT_inmap
+
+impacts=$GIS_OPT_impacts
+
+prfx=$GIS_OPT_prfx
+
+max=$GIS_OPT_max
+
+lc_rules=$GIS_OPT_lc_rules
+
+lc_color=$GIS_OPT_lc_color
+
+
+txtout=$prfx"luse_stats.txt"
+
+temp_lc=$prfx"temp_landcover"
+
+temp_reclass=$prfx"temp_landcover_reclass"
+
+outlc=$prfx"landcover"
+
+
+#setting initial conditions of map area
+
+g.region rast=$inmap
+
+r.mask --quiet input=$inmap maskcats=*
+
+#updating raw landscape category numbers
+
+#r.mapcalc "$temp_lc = if ($inmap == $max && isnull($impacts), $max, (if ($inmap < $max && isnull($impacts), ($inmap + 1), ($inmap - $impacts))))"
+
+r.mapcalc "$temp_lc = if ($inmap == $max && isnull($impacts), $max, (if ($inmap < $max && isnull($impacts), ($inmap + 1), if ($inmap > $max, ($max - $impacts), if ($inmap < 0, 0, ($inmap - $impacts))))))"
+
+#adding text descriptions to raw landscape categories and setting colors
+
+	cat $lc_rules | r.reclass input=$temp_lc output=$temp_reclass
+
+	r.mapcalc "$outlc = $temp_reclass"
+	
+	r.colors map=$outlc rules=$lc_color
+
+
+#checking total area of updated cells
+
+ 	temparea=`eval r.stats -n -a fs=- input=$impacts | cut -d'-' -f2`
+	echo "***********************"
+	echo "Total area of impacted zones = $temparea square meters"
+	echo "***********************"
+
+#creating optional output text file of stats
+
+if [ "$GIS_FLAG_s" -eq 1 ]; then
+
+echo "Stats for $prfx'_landcover' " > $txtout
+echo "" >> $txtout
+echo "Total area of impacted zones = $temparea square meters" >> $txtout
+echo "" >> $txtout
+echo "Landcover class #, Landcover description, Area (sq. m)" >> $txtout
+echo "" >> $txtout
+r.stats -a -l -n input=$prfx"_landuse1" fs=, nv=* nsteps=255 >> $txtout
+
+fi
+
+
+
+echo ""
+echo "*************************"
+echo "      Cleaning up"
+echo "*************************"
+echo ""
+
+
+g.remove --quiet rast=MASK,$temp_reclass,$temp_lc
+
+
+
+echo ""
+echo "DONE!"
+echo ""
+echo ""
+

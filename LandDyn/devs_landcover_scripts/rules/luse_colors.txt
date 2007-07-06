@@ -1,0 +1,6 @@
+0 grey
+10 red
+20 orange
+30 brown
+40 yellow
+50 green

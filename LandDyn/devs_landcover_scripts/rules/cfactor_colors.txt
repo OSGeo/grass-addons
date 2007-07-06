@@ -1,0 +1,6 @@
+0.8 grey
+0.5 red
+0.3 orange
+0.1 brown
+0.08 yellow
+0.05 green
