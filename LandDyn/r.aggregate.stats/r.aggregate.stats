@@ -4,8 +4,8 @@
 #
 # MODULE:       	r.aggregate.stats
 # AUTHOR(S):		Isaac Ullah, Arizona State University
-# PURPOSE:		Aggregates a series of maps (based on a shared prefix) using r.series, then calculates summary 
-#			statistics for the aggragate map.
+# PURPOSE:		Aggregates a series of maps (based on a shared file name pattern) using r.series, 
+#			then calculates univariate statistics for the aggragate map.
 # ACKNOWLEDGEMENTS:	National Science Foundation Grant #BCS0410269 
 # COPYRIGHT:		(C) 2007 by Isaac Ullah, Michael Barton, Arizona State University
 #			This program is free software under the GNU General Public
@@ -16,14 +16,14 @@
 
 
 #%Module
-#%  description: Aggregates a series of maps (based on a shared prefix) using r.series, then calculates summary statistics for the aggragate map.
+#%  description: Aggregates a series of maps (based on a shared file name pattern) using r.series, then calculates univariate statistics for the aggragate map.
 
 #%END
 #%option
-#% key: prefix
+#% key: pattern
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: prefix of series
+#% description: Pattern of first part of file names (prefixes) for map series (use -f if for suffixes)
 #% required : yes
 #%END
 
@@ -33,8 +33,13 @@
 #% answer: average
 #% options: average,count,median,mode,minimum,min_raster,maximum,max_raster,stddev,sum,variance,diversity,slope,offset,quart1,quart3,perc90
 #% required : yes
-#% description: method of aggregating map series (see r.series help for option descriptions)
+#% description: Method of aggregating map series (see r.series help for option descriptions)
 #% required : yes
+#%END
+
+#%flag
+#% key: f
+#% description: -f Search pattern is for suffixes (last part of file names)
 #%END
 
 #%flag
@@ -44,7 +49,7 @@
 
 #%flag
 #% key: k
-#% description: -k Keep aggregate map (will be called "'prefix'_'method'")
+#% description: -k Keep aggregate map (will be called "'pattern'_'method'")
 #%END
 
 
@@ -59,14 +64,21 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
 fi
 
 
-	prefix=$GIS_OPT_prefix
+	pattern=$GIS_OPT_pattern
 	method=$GIS_OPT_method
-	string=$prefix"_temp_list.txt"
+	string=$pattern"_temp_list.txt"
 
-g.mlist --quiet type=rast sep=, pattern=$prefix"*" > $string
+if [ "$GIS_FLAG_s" -eq 1 ]; then
 
+g.mlist --quiet type=rast sep=, pattern="*"$pattern > $string
 
-	tempmap=$prefix"_temp_aggregate"
+else
+
+g.mlist --quiet type=rast sep=, pattern=$pattern"*" > $string
+
+fi
+
+	tempmap=$pattern"_temp_aggregate"
 
 r.series input=`cat $string` output=$tempmap method=$method
 
@@ -97,7 +109,7 @@ fi
 
 if [ "$GIS_FLAG_k" -eq 1 ]; then
 
-	output=$prefix"_"$method
+	output=$pattern"_"$method
 
 g.rename --quiet rast=$tempmap,$output
 
