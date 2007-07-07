@@ -35,10 +35,12 @@ If the category ranges are provided, this module affects only the lines with (at
 <LI>Vertex Reduction</LI>
 <LI>Reumann-Witkam Algorithm</LI>
 </UL>
+<!-- this is not true, reumann support 3D 
 <P>
 Reuman-Witkam is the only algorithm which works only with 2D maps and does not
 support 3D maps. All other algorithms (including smoothing) work with 3D maps.
 </P>
+-->
 
 Different algortihms requires different parameters, but all the algorithms have
 one parameter in common. It is <B>threshold</B> parameter. In general, the degree
@@ -49,6 +51,11 @@ of simplification increases with the increasing value of <B>threshold</B>.
 <LI> <I>Douglas-Peucker</I> - "Quicksort" of line simplification, the most widely used
      algorithm. Input parameters: <B>input</B>, <B>threshold</B>. For more
      information, please check: <A href="http://geometryalgorithms.com/Archive/algorithm_0205/algorithm_0205.htm">http://geometryalgorithms.com/Archive/algorithm_0205/algorithm_0205.htm</A>.</LI>
+<LI> <I>Douglas-Peucker Reduction Algorithm</I> is essentially the same algorithm as the
+     algorithm above. The difference is that it takes additional parameter <B>reduction</B> 
+     which denotes the percentage of the number of points on the new line with respect 
+     to the number of points on the original line. Input parameters: <B>input</B>, 
+     <B>threshold</B>, <B>reduction</B>.</LI>     
 <LI> <I>Lang</I> - Another standard algorithm. Input parameters: <B>input</B>, <B>threshold</B>, <B>look_ahead</B>. 
      For an excellent description, check: <A href="http://www.sli.unimelb.edu.au/gisweb/LGmodule/LGLangVisualisation.htm">http://www.sli.unimelb.edu.au/gisweb/LGmodule/LGLangVisualisation.htm</A>.</LI>
 <LI> <I>Vertex Reduction</I> - Simplest among the algorithms. Input parameters: <B>input</B>, <B>threshold</B>.
@@ -61,6 +68,25 @@ of simplification increases with the increasing value of <B>threshold</B>.
      check <A href="http://www.ifp.uni-stuttgart.de/lehre/vorlesungen/GIS1/Lernmodule/Lg/LG_de_6.html">http://www.ifp.uni-stuttgart.de/lehre/vorlesungen/GIS1/Lernmodule/Lg/LG_de_6.html</A>(german)</LI>          
 </UL>
 
+<P>
+<i>Douglas-Peucker</i> and <i>Douglas-Peucker Reduction Algorithm</i> use the same method
+to simplify the lines. Note that 
+<div class="code"><pre>
+v.generalize input=in output=out method=douglas threshold=eps
+</pre></div>
+is equivalent to
+<div class="code"><pre>
+v.generalize input=in output=out method=douglas_reduction threshold=eps reduction=0
+</pre></div>
+However, in this case, the first method is faster. Also observe that
+<i>douglas_reduction</i> never outputs less vertices than <i>douglas</i>. And that,
+in general, <i>douglas</i> is more efficient than <i>douglas_reduction</i>.
+Also, the effect of
+<div class="code"><pre>
+v.generalize input=in output=out method=douglas_reduction threshold=0 reduction=X
+</pre></div>
+is that 'out' contains approximately only X% of points of 'in'.
+</P>
 
 <H2>SMOOTHING</H2>
 <P>
@@ -71,7 +97,7 @@ The following smoothing algorithms are implemented in <EM>v.generalize</EM>
 <LI><I>McMaster's Distance-Weighting Algorithm</I> - Works by taking the weighted average of <B>look_ahead</B> consecutive points
     where the weight is the distance from the point to the currently smoothed point. And parameter <B>threshold</B> is used
     for linear interpolation between the original position of the point and newly computed position where value 0 means the original position.
-    Input parameters: <B>input</B>, <B>threshold</B>, <b>look_ahead</b>.
+    Input parameters: <B>input</B>, <B>threshold</B>, <B>look_ahead</B>.
     </LI>
 <LI><I>Chaiken's Algorithm</I> - "Inscribes" a line touching the original line such that the points on this new line
     are at least <I>threshold</I> apart. Input parameters: <B>input</B>, <B>threshold</B>. This algorithms
@@ -114,4 +140,4 @@ Daniel Bundala, Google Summer of Code 2007, Student
 <BR>
 Wolf Bergenheim, Mentor
 
-<P><I>Last changed: $Date: 2007/04/07 23:17:35 $</I>
+<P><I>Last changed: $Date: 2007/07/07 21:38:06 $</I>

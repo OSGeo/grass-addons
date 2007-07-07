@@ -22,9 +22,9 @@
 #include <grass/Vect.h>
 #include <grass/glocale.h>
 #include "point.h"
+#include "pq.h"
 
-
-int douglass_peucker(struct line_pnts *Points, double thresh, int with_z)
+int douglas_peucker(struct line_pnts *Points, double thresh, int with_z)
 {
     int *stack = G_malloc(sizeof(int) * Points->n_points * 2);
 
@@ -91,7 +91,7 @@ int douglass_peucker(struct line_pnts *Points, double thresh, int with_z)
 	    index[icount++] = last;
 	}
 	else {
-	    /* break line into two parts, the order of pushing is crucial! It gurantees, that we are going to theleft */
+	    /* break line into two parts, the order of pushing is crucial! It gurantees, that we are going to the left */
 	    stack[top++] = maxindex;
 	    stack[top++] = last;
 	    stack[top++] = first;
@@ -253,7 +253,7 @@ int reumann_witkam(struct line_pnts *Points, double thresh, int with_z)
 	diffd = point_dist2(diff);
 	sp = point_dot(diff, sub);
 	dist = (diffd * subd - sp * sp) / subd;
-	/* if the point is out of the threshlod-sausage, store it a calculates
+	/* if the point is out of the threshlod-sausage, store it and calculate
 	 * all variables which do not change for each line-point calculation */
 	if (dist > thresh) {
 
@@ -293,4 +293,119 @@ int reumann_witkam(struct line_pnts *Points, double thresh, int with_z)
 
     return Points->n_points;
 
+};
+
+/* douglas-peucker algorithm which simplifies a line to a line with
+ * at most reduction% of points.
+ * returns the number of points in the output line. It is approx 
+ * reduction/100 * Points->n_points.
+ */
+int douglas_peucker_reduction(struct line_pnts *Points, double thresh,
+			      double reduction, int with_z)
+{
+
+    int i;
+    int n = Points->n_points;
+    /* the maximum number of points  which may be 
+     * included in the output */
+    int nexp = n * (reduction / (double)100.0);
+    /* line too short */
+    if (n < 3)
+	return n;
+
+    /* indicates which point were selected by the algorithm */
+    int *sel;
+    sel = G_calloc(sizeof(int), n);
+    if (sel == NULL) {
+	G_fatal_error(_("Out of memory"));
+	return n;
+    };
+
+    /* array used for storing the indices of line segments+furthest point */
+    int *index;
+    index = G_malloc(sizeof(int) * 3 * n);
+    if (index == NULL) {
+	G_fatal_error(_("Out of memory"));
+	G_free(sel);
+	return n;
+    };
+
+    int indices;
+
+    /* preserve first and last point */
+    sel[0] = sel[n - 1] = 1;
+    nexp -= 2;
+
+    thresh *= thresh;
+
+    double d;
+    int mid = get_furthest(Points, 0, n - 1, with_z, &d);
+    int em;
+
+    /* priority queue of line segments,
+     * key is the distance of the furthest point */
+    binary_heap pq;
+    if (!binary_heap_init(n, &pq)) {
+	G_fatal_error(_("Out of memory"));
+	G_free(sel);
+	G_free(index);
+	return n;
+    };
+
+
+    if (d > thresh) {
+	index[0] = 0;
+	index[1] = n - 1;
+	index[2] = mid;
+	binary_heap_push(d, 0, &pq);
+	indices = 3;
+    };
+
+    /* while we can add new points and queue is non-empty */
+    while (nexp > 0) {
+	/* empty heap */
+	if (!binary_heap_extract_max(&pq, &em))
+	    break;
+	int left = index[em];
+	int right = index[em + 1];
+	int furt = index[em + 2];
+	/*mark the furthest point */
+	sel[furt] = 1;
+	nexp--;
+
+	/* consider left and right segment */
+	mid = get_furthest(Points, left, furt, with_z, &d);
+	if (d > thresh) {
+	    binary_heap_push(d, indices, &pq);
+	    index[indices++] = left;
+	    index[indices++] = furt;
+	    index[indices++] = mid;
+	};
+
+	mid = get_furthest(Points, furt, right, with_z, &d);
+	if (d > thresh) {
+	    binary_heap_push(d, indices, &pq);
+	    index[indices++] = furt;
+	    index[indices++] = right;
+	    index[indices++] = mid;
+	};
+
+    };
+
+    /* copy selected points */
+    int selected = 0;
+    for (i = 0; i < n; i++) {
+	if (sel[i]) {
+	    Points->x[selected] = Points->x[i];
+	    Points->y[selected] = Points->y[i];
+	    Points->z[selected] = Points->z[i];
+	    selected++;
+	};
+    };
+
+    G_free(sel);
+    G_free(index);
+    binary_heap_free(&pq);
+    Points->n_points = selected;
+    return Points->n_points;
 };

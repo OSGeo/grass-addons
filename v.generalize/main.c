@@ -23,7 +23,7 @@
 #include <grass/glocale.h>
 #include "misc.h"
 
-#define DOUGLASS 0
+#define DOUGLAS 0
 #define LANG 1
 #define VERTEX_REDUCTION 2
 #define REUMANN 3
@@ -32,6 +32,7 @@
 #define CHAIKEN 6
 #define HERMITE 7
 #define SNAKES 8
+#define DOUGLAS_REDUCTION 9
 
 int main(int argc, char *argv[])
 {
@@ -43,10 +44,10 @@ int main(int argc, char *argv[])
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out, *thresh_opt, *method_opt, *look_ahead_opt;
     struct Option *iterations_opt, *cat_opt, *alfa_opt, *beta_opt, *type_opt;
-    struct Option *field_opt, *where_opt;
+    struct Option *field_opt, *where_opt, *reduction_opt;
     int with_z;
     int total_input, total_output;	/* Number of points in the input/output map respectively */
-    double thresh, alfa, beta;
+    double thresh, alfa, beta, reduction;
     int method;
     int look_ahead, iterations;
     int chcat;
@@ -55,6 +56,7 @@ int main(int argc, char *argv[])
     double x, y;
     int simplification, mask_type;
     VARRAY *varray;
+    char *s;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -78,9 +80,10 @@ int main(int argc, char *argv[])
     method_opt->required = YES;
     method_opt->multiple = NO;
     method_opt->options =
-	"douglas,lang,reduction,reumann,boyle,distance_weighting,chaiken,hermite,snakes";
+	"douglas,douglas_reduction,lang,reduction,reumann,boyle,distance_weighting,chaiken,hermite,snakes";
     method_opt->answer = "douglas";
-    method_opt->descriptions = _("douglas;Douglass-Peucker Algorithm;"
+    method_opt->descriptions = _("douglas;Douglas-Peucker Algorithm;"
+				 "douglas_reduction;Douglas-Peucker Algorithm with reduction parameter;"
 				 "lang;Lang Simplification Algorithm;"
 				 "reduction;Vertex Reduction Algorithm eliminates points close to each other;"
 				 "reumann;Reumann-Witkam Algorithm;"
@@ -105,6 +108,16 @@ int main(int argc, char *argv[])
     look_ahead_opt->required = YES;
     look_ahead_opt->answer = "7";
     look_ahead_opt->description = _("Look-ahead parameter");
+
+    reduction_opt = G_define_option();
+    reduction_opt->key = "reduction";
+    reduction_opt->type = TYPE_DOUBLE;
+    reduction_opt->required = YES;
+    reduction_opt->answer = "50";
+    reduction_opt->options = "0-100";
+    reduction_opt->description =
+	_
+	("Percentage of the points in the output of 'douglas_reduction' algorithm");
 
     alfa_opt = G_define_option();
     alfa_opt->key = "alfa";
@@ -139,42 +152,39 @@ int main(int argc, char *argv[])
     look_ahead = atoi(look_ahead_opt->answer);
     alfa = atof(alfa_opt->answer);
     beta = atof(beta_opt->answer);
+    reduction = atof(reduction_opt->answer);
     iterations = atoi(iterations_opt->answer);
 
     mask_type = type_mask(type_opt);
     G_debug(3, "Method: %s", method_opt->answer);
 
-    if (method_opt->answer[0] == 'd' && method_opt->answer[1] == 'o') {
-	method = DOUGLASS;
-    }
-    else if (method_opt->answer[0] == 'l') {
+    s = method_opt->answer;
+
+    if (strcmp(s, "douglas") == 0)
+	method = DOUGLAS;
+    else if (strcmp(s, "lang") == 0)
 	method = LANG;
-    }
-    else if (method_opt->answer[0] == 'v') {
+    else if (strcmp(s, "reduction") == 0)
 	method = VERTEX_REDUCTION;
-    }
-    else if (method_opt->answer[0] == 'r') {
+    else if (strcmp(s, "reumann") == 0)
 	method = REUMANN;
-    }
-    else if (method_opt->answer[0] == 'b') {
+    else if (strcmp(s, "boyle") == 0)
 	method = BOYLE;
-    }
-    else if (method_opt->answer[0] == 'd') {
+    else if (strcmp(s, "distance_weighting") == 0)
 	method = DISTANCE_WEIGHTING;
-    }
-    else if (method_opt->answer[0] == 'c') {
+    else if (strcmp(s, "chaiken") == 0)
 	method = CHAIKEN;
-    }
-    else if (method_opt->answer[0] == 'h') {
+    else if (strcmp(s, "hermite") == 0)
 	method = HERMITE;
-    }
-    else {
+    else if (strcmp(s, "snakes") == 0)
 	method = SNAKES;
-    };
+    else if (strcmp(s, "douglas_reduction") == 0)
+	method = DOUGLAS_REDUCTION;
+
 
     /* simplification or smoothing? */
     switch (method) {
-    case DOUGLASS:
+    case DOUGLAS:
     case LANG:
     case VERTEX_REDUCTION:
     case REUMANN:
@@ -254,8 +264,12 @@ int main(int argc, char *argv[])
 	    int after = 0;
 	    for (iter = 0; iter < iterations; iter++) {
 		switch (method) {
-		case DOUGLASS:
-		    douglass_peucker(Points, thresh, with_z);
+		case DOUGLAS:
+		    douglas_peucker(Points, thresh, with_z);
+		    break;
+		case DOUGLAS_REDUCTION:
+		    douglas_peucker_reduction(Points, thresh, reduction,
+					      with_z);
 		    break;
 		case LANG:
 		    lang(Points, thresh, look_ahead, with_z);

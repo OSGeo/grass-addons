@@ -38,3 +38,33 @@ int type_mask(struct Option *type_opt)
     return res;
 };
 
+int get_furthest(struct line_pnts *Points, int a, int b, int with_z,
+		 double *dist)
+{
+    int index = a;
+    double d = 0;
+
+    int i;
+    double x0 = Points->x[a];
+    double x1 = Points->x[b];
+    double y0 = Points->y[a];
+    double y1 = Points->y[b];
+    double z0 = Points->z[a];
+    double z1 = Points->z[b];
+
+    double px, py, pz, pdist, di;
+    int status;
+
+    for (i = a + 1; i < b; i++) {
+	di = dig_distance2_point_to_line(Points->x[i], Points->y[i],
+					 Points->z[i], x0, y0, z0, x1, y1, z1,
+					 with_z, &px, &py, &pz, &pdist,
+					 &status);
+	if (di > d) {
+	    d = di;
+	    index = i;
+	};
+    };
+    *dist = d;
+    return index;
+};
