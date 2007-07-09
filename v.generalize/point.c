@@ -86,6 +86,12 @@ inline double point_dist(POINT a, POINT b)
 		(a.z - b.z) * (a.z - b.z));
 };
 
+inline double point_dist_square(POINT a, POINT b)
+{
+    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y) +
+	(a.z - b.z) * (a.z - b.z);
+};
+
 POINT_LIST *point_list_new(POINT p)
 {
     POINT_LIST *pl;

@@ -132,7 +132,6 @@ int distance_weighting(struct line_pnts *Points, double slide, int look_ahead,
 
 
 /* Chaiken's algorithm. Return the number of points in smoothed line 
- * TODO: remove sqrt from the distance test
  */
 int chaiken(struct line_pnts *Points, double thresh, int with_z)
 {
@@ -147,7 +146,7 @@ int chaiken(struct line_pnts *Points, double thresh, int with_z)
     if (n < 3)
 	return n;
 
-    //  thresh *= thresh;
+    thresh *= thresh;
 
     head.next = NULL;
     cur = &head;
@@ -167,7 +166,7 @@ int chaiken(struct line_pnts *Points, double thresh, int with_z)
 
 	    point_list_add(cur, m1);
 
-	    if (point_dist(p0, m1) > thresh) {
+	    if (point_dist_square(p0, m1) > thresh) {
 		point_add(p1, m1, &tmp);	/* need to refine the partition */
 		point_scalar(tmp, 0.5, &p2);
 		point_add(p1, p0, &tmp);
@@ -316,6 +315,9 @@ int snakes(struct line_pnts *Points, double alfa, double beta, int with_z)
 
     int n = Points->n_points;
     int i, j;
+
+    if (n < 3)
+	return n;
 
     int plus = 4;
 

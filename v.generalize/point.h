@@ -52,6 +52,8 @@ extern inline void point_scalar(POINT a, double k, POINT * res);
 extern inline void points_copy_last(struct line_pnts *Points, int pos);
 /* distance between two points */
 extern inline double point_dist(POINT a, POINT b);
+/* squared distance between two points */
+extern inline double point_dist_square(POINT a, POINT b);
 /* creates empty list of points */
 extern POINT_LIST *point_list_new(POINT p);
 /* insert new value to the list just after the l. i.e l->next.p = p */
