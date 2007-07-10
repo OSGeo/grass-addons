@@ -48,6 +48,33 @@
 #% required : yes
 #% guisection: Input
 #%end
+#%option
+#% key: outdem
+#% type: string
+#% gisprompt: string
+#% description: Name stem for output elevation map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
+#% answer: elevation
+#% required: yes
+#% guisection: Input
+#%end
+#%option
+#% key: outsoil
+#% type: string
+#% gisprompt: string
+#% description: Name stem for the output soil depth map(s) (preceded by prefix and followed by numerical suffix if more than one iteration)
+#% answer: soildepth
+#% required: yes
+#% guisection: Input
+#%end
+#%option
+#% key: outbdrk
+#% type: string
+#% gisprompt: string
+#% description: Name stem for the output bedrock map(s) (required if the -b option is NOT checked; preceded by prefix and followed by numerical suffix if more than one iteration)
+#% answer: bedrock
+#% required: no
+#% guisection: Input
+#%end
 #%flag
 #% key: n
 #% description: -n Do not output maps of net erosion/deposition
@@ -267,6 +294,9 @@ fi
 prefx=$GIS_OPT_prefx
 elev=$GIS_OPT_elev
 initbdrk=$GIS_OPT_initbdrk
+outbdrk=$GIS_OPT_outbdrk
+outdem=$GIS_OPT_outdem
+outsoil=$GIS_OPT_outsoil
 R=$GIS_OPT_R
 K=$GIS_OPT_K
 C=$GIS_OPT_C
@@ -336,9 +366,8 @@ echo "erdep=$erdep"
 
 echo ""
 
-new_soil=$prefx"_new_soil"$num
-new_dem=$prefx"_new_dem"$num
-
+new_soil=$prefx$outsoil$num
+new_dem=$prefx$outdem$num
 initsoil=$prefx"_initsoil"
 
 
@@ -351,7 +380,7 @@ echo ""
 
 else
 
-new_bdrk=$prefx"_new_bdrk"$num
+new_bdrk=$prefx$outbdrk$num
 echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
 
 fi
@@ -588,7 +617,7 @@ echo "*************************"
 echo ""
 
 
-#this is commented out because I don't fully understand why we should multiply by the resolution again here. I think that it is actually a typo incorporated into every version of the script since the beginning.
+#this is commented out because I don't understand why we should multiply by the resolution again here. I think that it is actually a typo incorporated into every version of the script since the beginning.
 #echo	"calculating for rill erosion"
 #	r.mapcalc "$erdep=$res * ($qsxdx + $qsydy)"
 
@@ -827,8 +856,8 @@ old_soil=$prefx"_new_soil"$laststep
 echo "old_soil=$old_soil"
 echo ""
 
-new_soil=$prefx"_new_soil"$step
-new_dem=$prefx"_new_dem"$step
+new_soil=$prefx$outsoil$step
+new_dem=$prefx$outdem$step
 echo "The new dem for this iteration will be called  $new_dem"
 echo "The new soil depth map for this iteration will be called  $new_soil"
 
@@ -838,10 +867,12 @@ echo ""
 
 else
 
-new_bdrk=$prefx"_new_bdrk"$step
+new_bdrk=$prefx$outbdrk$step
 echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
 
 fi
+
+
 
 echo ""
 echo "##################################################"
