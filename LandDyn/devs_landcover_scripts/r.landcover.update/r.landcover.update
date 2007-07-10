@@ -16,7 +16,7 @@
 
 
 #%Module
-#%  description: CUpdates a map of landcover by the amounts specified in an impacts map
+#%  description: Updates a map of landcover by the amounts specified in an impacts map
 #%END
 
 #%option
@@ -45,11 +45,11 @@
 #%END
 
 #%option
-#% key: prfx
+#% key: outmap
 #% type: string
 #% gisprompt: string
-#% description: prefix for all output maps
-#% answer: year1
+#% description: land cover output map name (no prefix)
+#% answer: landcover
 #% required : yes
 #%END
 
@@ -94,7 +94,7 @@ inmap=$GIS_OPT_inmap
 
 impacts=$GIS_OPT_impacts
 
-prfx=$GIS_OPT_prfx
+outmap=$GIS_OPT_outmap
 
 max=$GIS_OPT_max
 
@@ -103,13 +103,13 @@ lc_rules=$GIS_OPT_lc_rules
 lc_color=$GIS_OPT_lc_color
 
 
-txtout=$prfx"luse_stats.txt"
+txtout=$outmap"luse_stats.txt"
 
-temp_lc=$prfx"temp_landcover"
+temp_lc=$outmap"temp_landcover"
 
-temp_reclass=$prfx"temp_landcover_reclass"
+temp_reclass=$outmap"temp_landcover_reclass"
 
-outlc=$prfx"landcover"
+outlc=$outmap
 
 
 #setting initial conditions of map area

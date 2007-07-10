@@ -28,11 +28,11 @@
 #%END
 
 #%option
-#% key: prfx
+#% key: outcfact
 #% type: string
 #% gisprompt: string
-#% description: prefix for all output maps
-#% answer: year1
+#% description: c_factor output map name
+#% answer: year1_cfactor
 #% required : yes
 #%END
 
@@ -71,14 +71,11 @@ fi
 
 inmap=$GIS_OPT_inmap
 
-prfx=$GIS_OPT_prfx
+outcfact=$GIS_OPT_outcfact
 
 cfact_rules=$GIS_OPT_cfact_rules
 
 cfact_color=$GIS_OPT_cfact_color
-
-
-outcfact=$prfx"cfactor"
 
 #setting initial conditions of map area
 
