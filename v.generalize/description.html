@@ -23,9 +23,7 @@ All the algorithms implemented in this module work line by line. i.e simplificat
 of one line does not affect the other lines. The first and the last point of
 each line is never translated and/or deleted. 
 </P>
-<P>
-If the category ranges are provided, this module affects only the lines with (at least) one of the category numbers in (at least) one category range.
-</P>
+
 <H2>SIMPLIFICATION</H2>
 <P>
 <EM>v.generalize</EM> contains following line simplification algorithms
@@ -69,22 +67,22 @@ of simplification increases with the increasing value of <B>threshold</B>.
 </UL>
 
 <P>
-<i>Douglas-Peucker</i> and <i>Douglas-Peucker Reduction Algorithm</i> use the same method
+<I>Douglas-Peucker</I> and <I>Douglas-Peucker Reduction Algorithm</I> use the same method
 to simplify the lines. Note that 
-<div class="code"><pre>
+<DIV class="code"><PRE>
 v.generalize input=in output=out method=douglas threshold=eps
-</pre></div>
+</PRE></DIV>
 is equivalent to
-<div class="code"><pre>
+<DIV class="code"><PRE>
 v.generalize input=in output=out method=douglas_reduction threshold=eps reduction=0
-</pre></div>
+</PRE></DIV>
 However, in this case, the first method is faster. Also observe that
-<i>douglas_reduction</i> never outputs less vertices than <i>douglas</i>. And that,
-in general, <i>douglas</i> is more efficient than <i>douglas_reduction</i>.
+<I>douglas_reduction</I> never outputs less vertices than <I>douglas</I>. And that,
+in general, <I>douglas</I> is more efficient than <I>douglas_reduction</I>.
 Also, the effect of
-<div class="code"><pre>
+<DIV class="code"><PRE>
 v.generalize input=in output=out method=douglas_reduction threshold=0 reduction=X
-</pre></div>
+</PRE></DIV>
 is that 'out' contains approximately only X% of points of 'in'.
 </P>
 
@@ -100,7 +98,7 @@ The following smoothing algorithms are implemented in <EM>v.generalize</EM>
     Input parameters: <B>input</B>, <B>threshold</B>, <B>look_ahead</B>.
     </LI>
 <LI><I>Chaiken's Algorithm</I> - "Inscribes" a line touching the original line such that the points on this new line
-    are at least <I>threshold</I> apart. Input parameters: <B>input</B>, <B>threshold</B>. This algorithms
+    are at least <I>threshold</I> apart. Input parameters: <B>input</B>, <B>threshold</B>. This algorithm
     approximates given line very well.</LI>
 <LI> <I>Hermite Interpolation</I> - This algorithm takes the points of the given line as the control
      points of hermite cubic spline and approximates this spline by the points approximatelly <B>threshold</B> apart.
@@ -115,17 +113,22 @@ The following smoothing algorithms are implemented in <EM>v.generalize</EM>
 <P>
 One of the key advantages of <I>Hermite Interpolation</I> is the fact that the computed line
 always passes throught the points of the original line whereas the lines produced by the 
-remaining algorithms never pass through these points. In some sense, this algorihtm outputs
+remaining algorithms never pass through these points. In some sense, this algorithm outputs
 the line which "circumsrcibes" given line. On the other hand, <I>Chaiken's Algorithm</I> outputs
 the line which "inscribes" given line. Moreover this line always touches/intersects the centre
-of the line segment between two consecutive points. For many iterations, the property above does
+of the line segment between two consecutive points. For more iterations, the property above does
 not hold, but the computed lines are very similar to the Bezier Splines. The disadvantage of these
 two algorithm is that they increase the number of point.
 </P>
 <P>
 Note that <I>Boyle's</I>, <I>McMaster's</I> and <I>Snakes</I> algorithm are sometime used in the signal processing to smooth the signals.
 More importantly, these algorithms never change the number of points on the lines. i.e they only
-translate the points around, they do not insert any new points. 
+translate the points, they do not insert any new points. 
+</P>
+<P>
+<I>Snakes</I> Algorithm is the slowest among the algorithms presented here. Also,
+it requires quite a lot of memory. This means, that it is not very efficient
+for maps with the lines consisting of many segments.
 </P>
 
 <H2>SEE ALSO</H2>

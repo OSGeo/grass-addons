@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
     struct Option *map_in, *map_out, *thresh_opt, *method_opt, *look_ahead_opt;
     struct Option *iterations_opt, *cat_opt, *alfa_opt, *beta_opt, *type_opt;
     struct Option *field_opt, *where_opt, *reduction_opt;
+    struct Flag *ca_flag;
     int with_z;
     int total_input, total_output;	/* Number of points in the input/output map respectively */
     double thresh, alfa, beta, reduction;
@@ -143,6 +144,11 @@ int main(int argc, char *argv[])
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
     cat_opt = G_define_standard_option(G_OPT_V_CATS);
     where_opt = G_define_standard_option(G_OPT_WHERE);
+
+
+    ca_flag = G_define_flag();
+    ca_flag->key = 'c';
+    ca_flag->description = _("Copy attributes");
 
     /* options and flags parser */
     if (G_parser(argc, argv))
@@ -331,7 +337,8 @@ int main(int argc, char *argv[])
     };
 
     /* finally copy tables */
-    Vect_copy_tables(&In, &Out, layer);
+    if (ca_flag->answer)
+	Vect_copy_tables(&In, &Out, layer);
 
     Vect_build(&Out, stdout);
 
