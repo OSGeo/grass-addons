@@ -43,10 +43,10 @@
 #%END
 
 #%option
-#% key: prfx
+#% key: output
 #% type: string
 #% gisprompt: string
-#% description: prefix for output map (will be put before 'final_landcover')
+#% description: name for output map
 #% answer: year1
 #% required : yes
 #%END
@@ -74,12 +74,11 @@ villages=$GIS_OPT_villages
 
 val=$GIS_OPT_val
 
-prfx=$GIS_OPT_prfx
+#setting map names
 
-outmap=$prfx"final_landcover"
+outmap=$GIS_OPT_output
 
-
-temp_villages=$prfx"_temporary_village_reclass"
+temp_villages=$outmap"_temporary_village_reclass"
 
 
 #setting initial conditions of map area
