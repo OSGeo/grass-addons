@@ -33,6 +33,7 @@
 #define HERMITE 7
 #define SNAKES 8
 #define DOUGLAS_REDUCTION 9
+#define SLIDING_AVERAGING 10
 
 int main(int argc, char *argv[])
 {
@@ -44,11 +45,12 @@ int main(int argc, char *argv[])
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out, *thresh_opt, *method_opt, *look_ahead_opt;
     struct Option *iterations_opt, *cat_opt, *alfa_opt, *beta_opt, *type_opt;
-    struct Option *field_opt, *where_opt, *reduction_opt;
+    struct Option *field_opt, *where_opt, *reduction_opt, *slide_opt;
+    struct Option *angle_thresh_opt;
     struct Flag *ca_flag;
     int with_z;
     int total_input, total_output;	/* Number of points in the input/output map respectively */
-    double thresh, alfa, beta, reduction;
+    double thresh, alfa, beta, reduction, slide, angle_thresh;
     int method;
     int look_ahead, iterations;
     int chcat;
@@ -81,7 +83,7 @@ int main(int argc, char *argv[])
     method_opt->required = YES;
     method_opt->multiple = NO;
     method_opt->options =
-	"douglas,douglas_reduction,lang,reduction,reumann,boyle,distance_weighting,chaiken,hermite,snakes";
+	"douglas,douglas_reduction,lang,reduction,reumann,boyle,sliding_averaging,distance_weighting,chaiken,hermite,snakes";
     method_opt->answer = "douglas";
     method_opt->descriptions = _("douglas;Douglas-Peucker Algorithm;"
 				 "douglas_reduction;Douglas-Peucker Algorithm with reduction parameter;"
@@ -89,6 +91,7 @@ int main(int argc, char *argv[])
 				 "reduction;Vertex Reduction Algorithm eliminates points close to each other;"
 				 "reumann;Reumann-Witkam Algorithm;"
 				 "boyle;Boyle's Forward-Looking Algorithm;"
+				 "sliding_averaging;McMaster's Sliding Averaging Algorithm;"
 				 "distance_weighting;McMaster's Distance-Weighting Algorithm;"
 				 "chaiken;Chaiken's Algorithm;"
 				 "hermite;Interpolation by Cubic Hermite Splines;"
@@ -119,6 +122,24 @@ int main(int argc, char *argv[])
     reduction_opt->description =
 	_
 	("Percentage of the points in the output of 'douglas_reduction' algorithm");
+
+    slide_opt = G_define_option();
+    slide_opt->key = "slide";
+    slide_opt->type = TYPE_DOUBLE;
+    slide_opt->required = YES;
+    slide_opt->answer = "0.5";
+    slide_opt->options = "0-1";
+    slide_opt->description =
+	_("Slide of computed point toward the original point");
+
+    angle_thresh_opt = G_define_option();
+    angle_thresh_opt->key = "angle_thresh";
+    angle_thresh_opt->type = TYPE_DOUBLE;
+    angle_thresh_opt->required = YES;
+    angle_thresh_opt->answer = "3";
+    angle_thresh_opt->options = "0-180";
+    angle_thresh_opt->description =
+	_("Minimum angle between two consecutive segments in Hermite method");
 
     alfa_opt = G_define_option();
     alfa_opt->key = "alfa";
@@ -160,6 +181,8 @@ int main(int argc, char *argv[])
     beta = atof(beta_opt->answer);
     reduction = atof(reduction_opt->answer);
     iterations = atoi(iterations_opt->answer);
+    slide = atof(slide_opt->answer);
+    angle_thresh = atof(angle_thresh_opt->answer);
 
     mask_type = type_mask(type_opt);
     G_debug(3, "Method: %s", method_opt->answer);
@@ -186,6 +209,12 @@ int main(int argc, char *argv[])
 	method = SNAKES;
     else if (strcmp(s, "douglas_reduction") == 0)
 	method = DOUGLAS_REDUCTION;
+    else if (strcmp(s, "sliding_averaging") == 0)
+	method = SLIDING_AVERAGING;
+    else {
+	G_fatal_error(_("Unknown method"));
+	exit(EXIT_FAILURE);
+    };
 
 
     /* simplification or smoothing? */
@@ -289,14 +318,17 @@ int main(int argc, char *argv[])
 		case BOYLE:
 		    boyle(Points, look_ahead, with_z);
 		    break;
+		case SLIDING_AVERAGING:
+		    sliding_averaging(Points, slide, look_ahead, with_z);
+		    break;
 		case DISTANCE_WEIGHTING:
-		    distance_weighting(Points, thresh, look_ahead, with_z);
+		    distance_weighting(Points, slide, look_ahead, with_z);
 		    break;
 		case CHAIKEN:
 		    chaiken(Points, thresh, with_z);
 		    break;
 		case HERMITE:
-		    hermite(Points, thresh, with_z);
+		    hermite(Points, thresh, angle_thresh, with_z);
 		    break;
 		case SNAKES:
 		    snakes(Points, alfa, beta, with_z);
@@ -323,7 +355,7 @@ int main(int argc, char *argv[])
 
     /* calculate new centroids */
     Vect_build_partial(&Out, GV_BUILD_ATTACH_ISLES, NULL);
-    n_areas = Vect_get_num_areas(&In);
+    n_areas = Vect_get_num_areas(&Out);
     for (i = 1; i <= n_areas; i++) {
 	Vect_get_area_cats(&In, i, Cats);
 	ret = Vect_get_point_in_area(&Out, i, &x, &y);

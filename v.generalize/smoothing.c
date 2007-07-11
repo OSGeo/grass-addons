@@ -66,6 +66,70 @@ int boyle(struct line_pnts *Points, int look_ahead, int with_z)
 
 };
 
+/* mcmaster's sliding averaging algorithm. Return the number of points
+ * in the output line. This equals to the number of points in the
+ * input line */
+int sliding_averaging(struct line_pnts *Points, double slide, int look_ahead,
+		      int with_z)
+{
+
+    int n, half, i;
+    double sc;
+    POINT p, tmp, s;
+    POINT *res;
+    n = Points->n_points;
+    half = look_ahead / 2;
+
+    if (look_ahead % 2 == 0) {
+	G_fatal_error(_("Look ahead parameter must be odd"));
+	return n;
+    };
+
+    if (look_ahead >= n || look_ahead == 1)
+	return n;
+
+    res = G_malloc(sizeof(POINT) * n);
+    if (!res) {
+	G_fatal_error(_("Out of memory"));
+	return n;
+    };
+
+    sc = (double)1.0 / (double)look_ahead;
+
+    point_assign(Points, 0, with_z, &p);
+    for (i = 1; i < look_ahead; i++) {
+	point_assign(Points, i, with_z, &tmp);
+	point_add(p, tmp, &p);
+    };
+
+    /* and calculate the average of remaining points */
+    for (i = half; i + half < n; i++) {
+	point_assign(Points, i, with_z, &s);
+	point_scalar(s, 1.0 - slide, &s);
+	point_scalar(p, sc * slide, &tmp);
+	point_add(tmp, s, &res[i]);
+	if (i + half + 1 < n) {
+	    point_assign(Points, i - half, with_z, &tmp);
+	    point_subtract(p, tmp, &p);
+	    point_assign(Points, i + half + 1, with_z, &tmp);
+	    point_add(p, tmp, &p);
+	};
+    };
+
+
+    for (i = half; i + half < n; i++) {
+	Points->x[i] = res[i].x;
+	Points->y[i] = res[i].y;
+	Points->z[i] = res[i].z;
+    };
+
+    G_free(res);
+    return Points->n_points;
+
+};
+
+/* mcmaster's distance weighting algorithm. Return the number
+ * of points in the output line which equals to Points->n_points */
 int distance_weighting(struct line_pnts *Points, double slide, int look_ahead,
 		       int with_z)
 {
@@ -77,7 +141,7 @@ int distance_weighting(struct line_pnts *Points, double slide, int look_ahead,
     n = Points->n_points;
 
     if (look_ahead % 2 == 0) {
-	G_warning(_("Look ahead parameter must be odd"));
+	G_fatal_error(_("Look ahead parameter must be odd"));
 	return n;
     };
 
@@ -118,15 +182,13 @@ int distance_weighting(struct line_pnts *Points, double slide, int look_ahead,
 	next++;
     };
 
-    for (i = 0; i < next; i++) {
-	Points->x[i] = res[i].x;
-	Points->y[i] = res[i].y;
-	Points->z[i] = res[i].z;
+    for (i = half; i + half < n; i++) {
+	Points->x[i] = res[i - half].x;
+	Points->y[i] = res[i - half].y;
+	Points->z[i] = res[i - half].z;
     };
 
     G_free(res);
-
-    points_copy_last(Points, next);
     return Points->n_points;
 };
 
@@ -199,7 +261,7 @@ int chaiken(struct line_pnts *Points, double thresh, int with_z)
 void refine_tangent(POINT * p)
 {
     double l = point_dist2(*p);
-    point_scalar(*p, 1 / sqrt(sqrt(sqrt(l))), p);
+    point_scalar(*p, (double)1.0 / sqrt(sqrt(sqrt(l))), p);
     return;
 };
 
@@ -207,9 +269,10 @@ void refine_tangent(POINT * p)
  * interpolates by steps of length step
  * returns the number of point in result
  */
-int hermite(struct line_pnts *Points, double step, int with_z)
+int hermite(struct line_pnts *Points, double step, double angle_thresh,
+	    int with_z)
 {
-    POINT_LIST head, *last;
+    POINT_LIST head, *last, *point;
     POINT p0, p1, t0, t1, tmp, res;
     double length, next, length_begin, l;
     double s;
@@ -224,8 +287,11 @@ int hermite(struct line_pnts *Points, double step, int with_z)
 	return 1;
     };
 
+    /* convert degrees=>radians */
+    angle_thresh *= M_PI / 180.0;
+
     head.next = NULL;
-    last = &head;
+    point = last = &head;
 
     /* length of p[0]..p[i+1] */
     i = 0;
@@ -283,6 +349,17 @@ int hermite(struct line_pnts *Points, double step, int with_z)
 	    last = last->next;
 
 	    next += step;
+	};
+	/* if the angle between 2 vectors is less then eps, remove the
+	 * middle point */
+	if (point->next && point->next->next && point->next->next->next) {
+	    if (point_angle_between
+		(point->next->p, point->next->next->p,
+		 point->next->next->next->p) < angle_thresh) {
+		point_list_delete_next(point->next);
+	    }
+	    else
+		point = point->next;
 	};
     };
 

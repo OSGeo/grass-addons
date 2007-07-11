@@ -29,6 +29,7 @@ each line is never translated and/or deleted.
 <EM>v.generalize</EM> contains following line simplification algorithms
 <UL>
 <LI>Douglas-Peucker Algorithm</LI>
+<LI>"Douglas-Peucker Reduction Algorithm"</LI>
 <LI>Lang Algorithm</LI>
 <LI>Vertex Reduction</LI>
 <LI>Reumann-Witkam Algorithm</LI>
@@ -40,7 +41,7 @@ support 3D maps. All other algorithms (including smoothing) work with 3D maps.
 </P>
 -->
 
-Different algortihms requires different parameters, but all the algorithms have
+Different algorithms require different parameters, but all the algorithms have
 one parameter in common. It is <B>threshold</B> parameter. In general, the degree
 of simplification increases with the increasing value of <B>threshold</B>.
 
@@ -92,10 +93,13 @@ The following smoothing algorithms are implemented in <EM>v.generalize</EM>
 <UL>
 <LI><I>Boyle's Forward-Looking Algorithm</I> - Works by taking the average of 
     <B>look_ahead</B> consecutive points</LI>. Input parameters: <B>input</B>, <B>look_ahead</B>.
+<LI><I>McMaster's Sliding Averaging Algorithm</I> - Input Parameters: <B>input</B>, <B>slide</B>, <B>look_ahead</B>.
+    The new position of each point is the average of the <B>look_ahead</B> points around. Paremeter <B>slide</B>
+    is used for linear interpolation between old and new position (see below).</LI>     
 <LI><I>McMaster's Distance-Weighting Algorithm</I> - Works by taking the weighted average of <B>look_ahead</B> consecutive points
-    where the weight is the distance from the point to the currently smoothed point. And parameter <B>threshold</B> is used
+    where the weight is the reciprocal of the distance from the point to the currently smoothed point. And parameter <B>slide</B> is used
     for linear interpolation between the original position of the point and newly computed position where value 0 means the original position.
-    Input parameters: <B>input</B>, <B>threshold</B>, <B>look_ahead</B>.
+    Input parameters: <B>input</B>, <B>slide</B>, <B>look_ahead</B>.
     </LI>
 <LI><I>Chaiken's Algorithm</I> - "Inscribes" a line touching the original line such that the points on this new line
     are at least <I>threshold</I> apart. Input parameters: <B>input</B>, <B>threshold</B>. This algorithm
@@ -103,7 +107,9 @@ The following smoothing algorithms are implemented in <EM>v.generalize</EM>
 <LI> <I>Hermite Interpolation</I> - This algorithm takes the points of the given line as the control
      points of hermite cubic spline and approximates this spline by the points approximatelly <B>threshold</B> apart.
      This method has excellent results for the small values of <B>threshold</B>, but in this case it produces
-     a huge number of new points and some simplification is usually needed. Input parameters: <B>input</B>, <B>threshold</B>.</LI>
+     a huge number of new points and some simplification is usually needed. Input parameters: <B>input</B>, <B>threshold</B>, <B>angle_thresh</B>.
+     <B>Angle_thresh</B> is used for reducing the number of the outputed points. It denotes the minimal
+     angle (in degrees) between two consecutive segements of line.</LI>     
 <LI> <I>Snakes</I> is the method of minimization of the "energy" of the line. This method preserves the
      general characteristcs of the lines but smooths the "sharp corners" of the line. Input parameters <B>input</B>, <B>alfa</B>, <B>beta</B>.
      This algorithm works very well for small values of <B>alfa</B> and <B>beta</B> (between 0 and 5). These
@@ -118,10 +124,15 @@ the line which "circumsrcibes" given line. On the other hand, <I>Chaiken's Algor
 the line which "inscribes" given line. Moreover this line always touches/intersects the centre
 of the line segment between two consecutive points. For more iterations, the property above does
 not hold, but the computed lines are very similar to the Bezier Splines. The disadvantage of these
-two algorithm is that they increase the number of point.
+two algorithm is that they increase the number of points. However, <i>Hermite Interpolation</i> can be used
+as another simplification algorithm. To achieve this, it is necessary to set <I>angle_thresh</I> to higher values (15 or so). 
 </P>
 <P>
-Note that <I>Boyle's</I>, <I>McMaster's</I> and <I>Snakes</I> algorithm are sometime used in the signal processing to smooth the signals.
+One restriction on both McMasters' Algorithms is that <I>look_ahead</I> parameter must be odd. Also
+note that these algorithms have no effect if <I>look_ahead = 1</I>. 
+</P>
+<P>
+Note that <I>Boyle's</I>, <I>McMasters'</I> and <I>Snakes</I> algorithm are sometime used in the signal processing to smooth the signals.
 More importantly, these algorithms never change the number of points on the lines. i.e they only
 translate the points, they do not insert any new points. 
 </P>

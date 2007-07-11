@@ -54,6 +54,8 @@ extern inline void points_copy_last(struct line_pnts *Points, int pos);
 extern inline double point_dist(POINT a, POINT b);
 /* squared distance between two points */
 extern inline double point_dist_square(POINT a, POINT b);
+/* angle in radians between vectors ab and bc */
+extern inline double point_angle_between(POINT a, POINT b, POINT c);
 /* creates empty list of points */
 extern POINT_LIST *point_list_new(POINT p);
 /* insert new value to the list just after the l. i.e l->next.p = p */
@@ -64,4 +66,6 @@ extern void point_list_add(POINT_LIST * l, POINT p);
 extern int point_list_copy_to_line_pnts(POINT_LIST l, struct line_pnts *Points);
 /*free the momory occupied by the list at l.next */
 extern void point_list_free(POINT_LIST l);
+/*delete the p->next element and set the pointers appropriatelly */
+extern void point_list_delete_next(POINT_LIST * p);
 #endif

@@ -92,6 +92,13 @@ inline double point_dist_square(POINT a, POINT b)
 	(a.z - b.z) * (a.z - b.z);
 };
 
+inline double point_angle_between(POINT a, POINT b, POINT c)
+{
+    point_subtract(b, a, &a);
+    point_subtract(c, b, &b);
+    return acos(point_dot(a, b) / sqrt(point_dist2(a) * point_dist2(b)));
+};
+
 POINT_LIST *point_list_new(POINT p)
 {
     POINT_LIST *pl;
@@ -131,8 +138,9 @@ int point_list_copy_to_line_pnts(POINT_LIST l, struct line_pnts *Points)
 	cur = cur->next;
     };
 
-    if (0 > dig_alloc_points(Points, length))
-	return (-1);
+    if (length != Points->n_points)
+	if (0 > dig_alloc_points(Points, length))
+	    return (-1);
 
     Points->n_points = length;
 
@@ -156,4 +164,12 @@ void point_list_free(POINT_LIST l)
 	G_free(p);
 	p = n;
     };
+};
+
+extern void point_list_delete_next(POINT_LIST * p)
+{
+    POINT_LIST *t = p->next;
+    p->next = p->next->next;
+    G_free(t);
+    return;
 };
