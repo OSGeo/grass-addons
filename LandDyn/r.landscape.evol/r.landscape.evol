@@ -44,7 +44,7 @@
 #% key: prefx
 #% type: string
 #% description: Prefix for all output maps
-#% answer: usped
+#% answer: usped_
 #% required : yes
 #% guisection: Input
 #%end
@@ -323,54 +323,52 @@ fi
 
 echo "The following temporary files will be created:"
 echo ""
-neighbors=$prefx".neighbors"$num
+neighbors=$prefx"neighbors"$num
 echo "neighbors=$neighbors"
-tempsmoothdz=$prefx".tempsmoothdz"$num
+tempsmoothdz=$prefx"tempsmoothdz"$num
 echo "tempsmoothdz=$tempsmoothdz"
-smoothdz=$prefx"_smoothdz"$num
-echo "smoothdz=$smoothdz"
-tempsmoothdz=$prefx".tempsmoothdz"$num
+tempsmoothdz=$prefx"tempsmoothdz"$num
 echo "temsmoothpdz=$tempsmoothdz"
-flowacc=$prefx".flowacc"$num
+flowacc=$prefx"flowacc"$num
 echo "flowacc=$flowacc"
-slope=$prefx".slope"$num
+slope=$prefx"slope"$num
 echo "slope=$slope"
-aspect=$prefx".aspect"$num
+aspect=$prefx"aspect"$num
 echo "aspect=$aspect"
-pc=$prefx".pc1"
+pc=$prefx"pc1"
 echo "pc=$pc"
-tc=$prefx".tc1"
+tc=$prefx"tc1"
 echo "tc=$tc"
-meancurv=$prefx".meancurv"$num
+meancurv=$prefx"meancurv"$num
 echo "meancurv=$meancurv"
-rate=$prefx".rate"$num
+rate=$prefx"rate"$num
 echo "rate=$rate"
-sflowtopo=$prefx".sflowtopo"$num
+sflowtopo=$prefx"sflowtopo"$num
 echo "sflowtopo=$sflowtopo"
-qsx=$prefx".qsx"$num
+qsx=$prefx"qsx"$num
 echo "qsx=$qsx"
-qsy=$prefx".qsy"$num
+qsy=$prefx"qsy"$num
 echo "qsy=$qsy"
-qsxdx=$prefx".qsx.dx"$num
+qsxdx=$prefx"qsx_dx"$num
 echo "qsxdx=$qsxdx"
-qsydy=$prefx".qsy.dy"$num
+qsydy=$prefx"qsy_dy"$num
 echo "qsydy=$qsydy"
-m=$prefx".m"$num
+m=$prefx"m"$num
 echo "m=$m"
-n=$prefx".n"$num
+n=$prefx"n"$num
 echo "n=$n"
-erdep=$prefx".erosdep"$num
+erdep=$prefx"erosdep"$num
 echo "erdep=$erdep"
 
 
 
 echo ""
-
+smoothdz=$prefx"smoothdz"$num
 new_soil=$prefx$outsoil$num
 new_dem=$prefx$outdem$num
-initsoil=$prefx"_initsoil"
+initsoil=$prefx"initsoil"
 
-
+echo "The new net erosion/deposition map for this iteration will be called  $smoothdz"
 echo "The new dem for this iteration will be called  $new_dem"
 echo "The new soil depth map for this iteration will be called  $new_soil"
 
@@ -699,8 +697,7 @@ echo ""
 echo "Calculating new soil depths keeping bedrock elevations static"
 
 
-new_bdrk=$initbdrk
-r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
+r.mapcalc "$new_soil=if (($new_dem - $initbdrk) < 0, 0, ($new_dem - $initbdrk))"
 
 else
 
@@ -733,8 +730,8 @@ fi
 #r.mapcalc "$new_soil=if (($smoothdz - $initbdrk) < 0, 0, ($smoothdz - $initbdrk))"
 
 #grabsomestats
-tmperosion=$prfx"_tmperosion1"
-tmpdep=$prfx"_tmpdep1"
+tmperosion=$prfx"tmperosion"$num
+tmpdep=$prfx"tmpdep"$num
 
 r.mapcalc "$tmperosion=if($smoothdz < 0, $smoothdz, null())"
 r.mapcalc "$tmpdep=if($smoothdz > 0, $smoothdz, null())"
@@ -745,7 +742,7 @@ avedep=`eval r.univar -g map=$tmpdep percentile=90 | grep "mean=" | cut -d'=' -f
 
 g.remove --quiet rast=$tmperosion,$tmpdep
 
-txtout=$prefx"_erdep_stats.txt"
+txtout=$prefx"erdep_stats.txt"
 
 echo "outputing stats to textfile: $txtout"
 
@@ -808,56 +805,58 @@ do
 	step=$(($step+1)) # here is how we are controlling the iteration loop
 
 
-old_dem=$prefx"_new_dem"$laststep
+old_dem=$prefx$outdem$laststep
 
 echo "The following temporary files will be created:"
 echo ""
-neighbors=$prefx".neighbors"$step
+neighbors=$prefx"neighbors"$step
 echo "neighbors=$neighbors"
-tempsmoothdz=$prefx".tempsmoothdz"$step
+tempsmoothdz=$prefx"tempsmoothdz"$step
 echo "tempsmoothdz=$tempsmoothdz"
-temp2smoothdz=$prefx".temp2smoothdz"$step
+temp2smoothdz=$prefx"temp2smoothdz"$step
 echo "temp2smoothdz=$temp2smoothdz"
-smoothdz=$prefx"_smoothdz"$step
-echo "smoothdz=$smoothdz"
-flowacc=$prefx".flowacc"$step
+flowacc=$prefx"flowacc"$step
 echo "flowacc=$flowacc"
-slope=$prefx".slope"$step
+slope=$prefx"slope"$step
 echo "slope=$slope"
-aspect=$prefx".aspect"$step
+aspect=$prefx"aspect"$step
 echo "aspect=$aspect"
-pc=$prefx".pc"$step
+pc=$prefx"pc"$step
 echo "pc=$pc"
-tc=$prefx".tc"$step
+tc=$prefx"tc"$step
 echo "tc=$tc"
-meancurv=$prefx".meancurv"$step
+meancurv=$prefx"meancurv"$step
 echo "meancurv=$meancurv"
-rate=$prefx".rate"$step
+rate=$prefx"rate"$step
 echo "rate=$rate"
-sflowtopo=$prefx".sflowtopo"$step
+sflowtopo=$prefx"sflowtopo"$step
 echo "sflowtopo=$sflowtopo"
-qsx=$prefx".qsx"$step
+qsx=$prefx"qsx"$step
 echo "qsx=$qsx"
-qsy=$prefx".qsy"$step
+qsy=$prefx"qsy"$step
 echo "qsy=$qsy"
-qsxdx=$prefx".qsx.dx"$step
+qsxdx=$prefx"qsx_dx"$step
 echo "qsxdx=$qsxdx"
-qsydy=$prefx".qsy.dy"$step
+qsydy=$prefx"qsy_dy"$step
 echo "qsydy=$qsydy"
-m=$prefx".m"$step
+m=$prefx"m"$step
 echo "m=$m"
-n=$prefx".n"$step
+n=$prefx"n"$step
 echo "n=$n"
-erdep=$prefx".erosdep"$step
+erdep=$prefx"erosdep"$step
 echo "erdep=$erdep"
-old_bdrk=$prefx"_new_bdrk"$laststep
+
+old_bdrk=$prefx$outbdrk$laststep
 echo "old_bdrk=$old_bdrk"
-old_soil=$prefx"_new_soil"$laststep
+old_soil=$prefx$outsoil$laststep
 echo "old_soil=$old_soil"
 echo ""
 
+smoothdz=$prefx"smoothdz"$step
 new_soil=$prefx$outsoil$step
 new_dem=$prefx$outdem$step
+
+echo "The new net ersoion/deposition map for this iteration will be called $smoothdz"
 echo "The new dem for this iteration will be called  $new_dem"
 echo "The new soil depth map for this iteration will be called  $new_soil"
 
@@ -950,8 +949,6 @@ echo "step 3 of 8: calculating basic sediment transport rates"
 echo "*************************"
 echo ""
 
-
-initbdrk
 
 if [ "$GIS_FLAG_w" -eq 1 -a "$GIS_FLAG_d" -eq 0 -a "$GIS_FLAG_r" -eq 0 ]; then
 
@@ -1072,7 +1069,7 @@ echo "step 7 of 8: running band-pass filter"
 echo "*************************"
 echo ""
 
-lastsmooth=$prefx"_smoothdz"$laststep
+lastsmooth=$prefx"smoothdz"$laststep
 
 if [ "$GIS_FLAG_y" -eq 1 ]; then
 echo ""
@@ -1135,7 +1132,7 @@ echo ""
 echo "Calculating new soil depths keeping bedrock elevations static"
 
 
-new_bdrk=$old_bdrk
+new_bdrk=$initbdrk
 r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
 
 else
