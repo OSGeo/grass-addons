@@ -665,17 +665,17 @@ else
 fi
 
 
-echo "0% 104 034 139" > $TMP1
-echo "-5 violet" >> $TMP1
-echo "-3 aqua" >> $TMP1
-echo "-1 cyan" >> $TMP1
-echo "-0.5 green" >> $TMP1
+echo "100% 255 000 255" > $TMP1
+echo "5 violet" >> $TMP1
+echo "3 aqua" >> $TMP1
+echo "1 cyan" >> $TMP1
+echo "0.5 green" >> $TMP1
 echo "0 white" >> $TMP1
-echo "0.5 yellow" >> $TMP1
-echo "1 orange" >> $TMP1
-echo "3 red" >> $TMP1
-echo "5 255 000 255" $TMP1
-echo "100% 255 000 255" >> $TMP1
+echo "-0.5 yellow" >> $TMP1
+echo "-1 orange" >> $TMP1
+echo "-3 red" >> $TMP1
+echo "-5 255 000 255" $TMP1
+echo "0% 104 034 139" >> $TMP1
 echo "end" >> $TMP1
 
 
@@ -1100,18 +1100,17 @@ else
 	echo "creating temporary file to code colors"
 
 fi
-
-echo "0% 104 034 139" > $TMP1
-echo "-5 violet" >> $TMP1
-echo "-3 aqua" >> $TMP1
-echo "-1 cyan" >> $TMP1
-echo "-0.5 green" >> $TMP1
+echo "100% 255 000 255" > $TMP1
+echo "5 violet" >> $TMP1
+echo "3 aqua" >> $TMP1
+echo "1 cyan" >> $TMP1
+echo "0.5 green" >> $TMP1
 echo "0 white" >> $TMP1
-echo "0.5 yellow" >> $TMP1
-echo "1 orange" >> $TMP1
-echo "3 red" >> $TMP1
-echo "5 255 000 255" $TMP1
-echo "100% 255 000 255" >> $TMP1
+echo "-0.5 yellow" >> $TMP1
+echo "-1 orange" >> $TMP1
+echo "-3 red" >> $TMP1
+echo "-5 255 000 255" $TMP1
+echo "0% 104 034 139" >> $TMP1
 echo "end" >> $TMP1
 
 
@@ -1217,34 +1216,34 @@ if [ $? -ne 0 ] || [ -z "$TMP2" ] ; then
 fi
 
 
-g.mlist type=rast sep=, pattern=$prefx"_smoothdz*" > $TMP2
+g.mlist type=rast sep=, pattern=$prefx"smoothdz*" > $TMP2
 liststring=`cat $TMP2`
 
 echo "Any selected statistics will be performed using the following smoothdz files: $liststring"
 
 if [ "$GIS_FLAG_c" -eq 1 ]; then
 
-r.series --q input=$liststring output=$prefx"_cum_erdep" method=sum 
+r.series --q input=$liststring output=$prefx"cum_erdep" method=sum 
 fi
 
 if [ "$GIS_FLAG_m" -eq 1 ]; then
 
-r.series --q input=$liststring output=$prefx"_ave_erdep" method=average 
+r.series --q input=$liststring output=$prefx"ave_erdep" method=average 
 fi
 
 if [ "$GIS_FLAG_t" -eq 1 ]; then
 
-r.series --q input=$liststring output=$prefx"_sdev_erdep" method=stddev 
+r.series --q input=$liststring output=$prefx"sdev_erdep" method=stddev 
 fi
 
 if [ "$GIS_FLAG_x" -eq 1 ]; then
 
-r.series --q input=$liststring output=$prefx"_max_erdep" method=maximum 
+r.series --q input=$liststring output=$prefx"max_erdep" method=maximum 
 fi
 
 if [ "$GIS_FLAG_i" -eq 1 ]; then
 
-r.series --q input=$liststring output=$prefx"_min_erdep" method=minimum 
+r.series --q input=$liststring output=$prefx"min_erdep" method=minimum 
 fi
 
 
@@ -1256,7 +1255,7 @@ if [ $? -ne 0 ] || [ -z "$TMP3" ] ; then
     exit 1
 fi
 
-g.mlist type=rast sep=, pattern=$prefx"_new_soil*" > $TMP3
+g.mlist type=rast sep=, pattern=$prefx$outsoil"*" > $TMP3
 
 liststring2=`cat $TMP3`
 
@@ -1264,23 +1263,23 @@ echo "Any selected statistics will be performed using the following soil depth f
 
 if [ "$GIS_FLAG_s" -eq 1 ]; then
 
-r.series --q input=$liststring2 output=$prefx"_ave_soil" method=average 
+r.series --q input=$liststring2 output=$prefx"ave_"$outsoil method=average 
 fi
 
 if [ "$GIS_FLAG_v" -eq 1 ]; then
 
-r.series --q input=$liststring2 output=$prefx"_sdev_soil" method=stddev 
+r.series --q input=$liststring2 output=$prefx"sdev_"$outsoil method=stddev 
 fi
 
 if [ "$GIS_FLAG_a" -eq 1 ]; then
 
-r.series --q input=$liststring2 output=$prefx"_max_soil" method=maximum 
+r.series --q input=$liststring2 output=$prefx"max_"$outsoil method=maximum 
 fi
 
 
 if [ "$GIS_FLAG_u" -eq 1 ]; then
 
-r.series --q input=$liststring2 output=$prefx"_min_soil" method=minimum 
+r.series --q input=$liststring2 output=$prefx"min_"$outsoil method=minimum 
 fi
 \rm -f $TMP2 $TMP2.sort
 \rm -f $TMP3 $TMP3.sort
@@ -1299,25 +1298,24 @@ else
 echo ""
 echo "Cleaning up..."
 
-g.mremove -f --q rast=$prefx".neighbors*"
-g.mremove -f --q rast=$prefx".smoothdz*"
-g.mremove -f --q rast=$prefx".flowacc*"
-g.mremove -f --q rast=$prefx".slope*"
-g.mremove -f --q rast=$prefx".aspect*"
-g.mremove -f --q rast=$prefx".sflowtopo*"
-g.mremove -f --q rast=$prefx".qsx*"
-g.mremove -f --q rast=$prefx".qsy*"
-g.mremove -f --q rast=$prefx".qsx.dx*"
-g.mremove -f --q rast=$prefx".qsy.dy*"
-g.mremove -f --q rast=$prefx".erosdep*"
-g.mremove -f --q rast=$prefx".pc*"
-g.mremove -f --q rast=$prefx".tc*"
-g.mremove -f --q rast=$prefx".meancurv*"
-g.mremove -f --q rast=$prefx".rate*"
-g.mremove -f --q rast=$prefx".tempsmoothdz*"
-g.mremove -f --q rast=$prefx".temp2smoothdz*"
-g.mremove -f --q rast=$prefx".m*"
-g.mremove -f --q rast=$prefx".n*"
+g.mremove -f --q rast=$prefx"neighbors*"
+g.mremove -f --q rast=$prefx"flowacc*"
+g.mremove -f --q rast=$prefx"slope*"
+g.mremove -f --q rast=$prefx"aspect*"
+g.mremove -f --q rast=$prefx"sflowtopo*"
+g.mremove -f --q rast=$prefx"qsx*"
+g.mremove -f --q rast=$prefx"qsy*"
+g.mremove -f --q rast=$prefx"qsx_dx*"
+g.mremove -f --q rast=$prefx"qsy_dy*"
+g.mremove -f --q rast=$prefx"erosdep*"
+g.mremove -f --q rast=$prefx"pc*"
+g.mremove -f --q rast=$prefx"tc*"
+g.mremove -f --q rast=$prefx"meancurv*"
+g.mremove -f --q rast=$prefx"rate*"
+g.mremove -f --q rast=$prefx"tempsmoothdz*"
+g.mremove -f --q rast=$prefx"temp2smoothdz*"
+g.mremove -f --q rast=$prefx"m*"
+g.mremove -f --q rast=$prefx"n*"
 
 	echo ""
 	echo "Done"
@@ -1326,12 +1324,12 @@ fi
 
 if [ "$GIS_FLAG_n" -eq 1 ]; then
 
-	g.mremove --q rast=$prefx"_smoothdz*"
+	g.mremove --q rast=$prefx"smoothdz*"
 fi
 
 if [ "$GIS_FLAG_l" -eq 1 ]; then
 
-	g.mremove --q rast=$prefx"_new_soil*"
+	g.mremove --q rast=$prefx$outsoil"*"
 fi
 
 if [ "$GIS_FLAG_z" -eq 1 ]; then
