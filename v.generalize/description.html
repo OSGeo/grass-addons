@@ -45,6 +45,10 @@ Different algorithms require different parameters, but all the algorithms have
 one parameter in common. It is <B>threshold</B> parameter. In general, the degree
 of simplification increases with the increasing value of <B>threshold</B>.
 
+If some line is simplified and hence becomes shorter than <B>threshold</B> then it is
+removed. Also, if <B>type</B> contains <B>area</B> and a simplification algorithm is selected,
+the areas of area less than <B>threshold</B> are also removed.
+
 <H2>DETAIL DESCRIPTION</H2>
 <UL>
 <LI> <I>Douglas-Peucker</I> - "Quicksort" of line simplification, the most widely used
@@ -78,9 +82,9 @@ is equivalent to
 v.generalize input=in output=out method=douglas_reduction threshold=eps reduction=0
 </PRE></DIV>
 However, in this case, the first method is faster. Also observe that
-<I>douglas_reduction</I> never outputs less vertices than <I>douglas</I>. And that,
+<I>douglas_reduction</I> never outputs more vertices than <I>douglas</I>. And that,
 in general, <I>douglas</I> is more efficient than <I>douglas_reduction</I>.
-Also, the effect of
+More importantly, the effect of
 <DIV class="code"><PRE>
 v.generalize input=in output=out method=douglas_reduction threshold=0 reduction=X
 </PRE></DIV>
@@ -154,4 +158,4 @@ Daniel Bundala, Google Summer of Code 2007, Student
 <BR>
 Wolf Bergenheim, Mentor
 
-<P><I>Last changed: $Date: 2007/07/07 21:38:06 $</I>
+<P><I>Last changed: $Date: 2007/13/07 23:58:37 $</I>

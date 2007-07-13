@@ -34,6 +34,8 @@ int type_mask(struct Option *type_opt)
 	case 'b':
 	    res |= GV_BOUNDARY;
 	    break;
+	case 'a':
+	    res |= GV_AREA;
 	};
     return res;
 };

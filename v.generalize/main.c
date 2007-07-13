@@ -74,8 +74,8 @@ int main(int argc, char *argv[])
     map_out = G_define_standard_option(G_OPT_V_OUTPUT);
 
     type_opt = G_define_standard_option(G_OPT_V_TYPE);
-    type_opt->options = "line,boundary";
-    type_opt->answer = "line,boundary";
+    type_opt->options = "line,boundary,area";
+    type_opt->answer = "line,boundary,area";
 
     method_opt = G_define_option();
     method_opt->key = "method";
@@ -220,6 +220,7 @@ int main(int argc, char *argv[])
     /* simplification or smoothing? */
     switch (method) {
     case DOUGLAS:
+    case DOUGLAS_REDUCTION:
     case LANG:
     case VERTEX_REDUCTION:
     case REUMANN:
@@ -355,8 +356,12 @@ int main(int argc, char *argv[])
 
     /* calculate new centroids */
     Vect_build_partial(&Out, GV_BUILD_ATTACH_ISLES, NULL);
+
     n_areas = Vect_get_num_areas(&Out);
     for (i = 1; i <= n_areas; i++) {
+	/* skip dead area */
+	if (!Vect_area_alive(&Out, i))
+	    continue;
 	Vect_get_area_cats(&In, i, Cats);
 	ret = Vect_get_point_in_area(&Out, i, &x, &y);
 	if (ret < 0) {
@@ -368,14 +373,20 @@ int main(int argc, char *argv[])
 	Vect_write_line(&Out, GV_CENTROID, Points, Cats);
     };
 
+    /* remove small areas */
+    if (simplification && (mask_type & GV_AREA)) {
+	Vect_build_partial(&Out, GV_BUILD_CENTROIDS, NULL);
+	Vect_remove_small_areas(&Out, thresh, NULL, NULL, &slide);
+    };
+
     /* finally copy tables */
     if (ca_flag->answer)
 	Vect_copy_tables(&In, &Out, layer);
 
     Vect_build(&Out, stdout);
 
-    G_message("Number of vertices was reduced from %d to %d[%d%%]", total_input,
-	      total_output, (total_output * 100) / total_input);
+    G_message(_("Number of vertices was reduced from %d to %d[%d%%]"),
+	      total_input, total_output, (total_output * 100) / total_input);
 
     Vect_close(&In);
     Vect_close(&Out);
