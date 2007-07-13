@@ -74,9 +74,13 @@ void init_vis( struct Point * points, int num_points, struct Line * lines, int n
 */
 void handle( struct Point* p, struct Point* q, struct Map_info * out )
 {
-	if ( q == other1(p)  )
-	{
 
+	if ( segment1(q) == NULL && segment2(q) == NULL && before(p,q, p->vis ))
+	{
+		report(p,q,out);
+	}
+	else if ( q == other1(p)  )
+	{
 		if ( segment1(q) == segment1(p) && segment2(q) != NULL && left_turn(p,q, other2(q)))
 		{
 			p->vis = segment2(q);
@@ -95,7 +99,6 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 	}
 	else if ( q == other2(p))
 	{
-		
 		if ( segment1(q) == segment2(p) && segment2(q) != NULL && left_turn(p,q, other2(q)))
 		{
 			p->vis = segment2(q);
@@ -109,37 +112,37 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 			p->vis = q->vis;
 		}
 
-
 		report(p, q, out );
 	}
 	else if ( segment1(q) == p->vis && segment1(q) != NULL)
 	{
-		
+
 		if ( segment2(q) != NULL && left_turn(p, q, other2(q)))
 			p->vis = segment2(q);
 		else
 			p->vis = q->vis ;
-
+			
 		// check that p and q are not on the same boundary and that the edge pq is inside the boundary
 		if ( p->cat == -1 || p->cat != q->cat || !point_inside( p, (p->x+q->x)*0.5, (p->y+q->y)*0.5 ) )
 				report( p,q, out );
 	}
 	else if ( segment2(q) == p->vis && segment2(q) != NULL )
 	{
+
 		if ( segment1(q) != NULL && left_turn(p, q, other1(q) ))
 			p->vis = segment1(q);
 		else
 			p->vis = q->vis;
-		
+					
 		// check that p and q are not on the same boundary and that the edge pq is inside the boundary
 		if ( p->cat == -1 || p->cat != q->cat || !point_inside( p, (p->x+q->x)*0.5, (p->y+q->y)*0.5 ) )
 			report( p,q, out );
 	}
 	else if ( before(p,q, p->vis ) )
 	{
-		if ( segment2(q) == NULL)
+		if ( segment2(q) == NULL )
 			p->vis = segment1(q);
-		else if ( segment1(q) == NULL )
+		else if ( segment1(q) == NULL)
 			p->vis = segment2(q);
 		else if ( left_turn(p, q, other1(q) ) && !left_turn( p, q, other2(q)))
 			p->vis = segment1(q);
@@ -149,7 +152,7 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 			p->vis = segment1(q);
 		else 
 			p->vis = segment2(q);
-		
+					
 		// check that p and q are not on the same boundary and that the edge pq is inside the boundary
 		if ( p->cat == -1 || p->cat != q->cat || !point_inside( p, (p->x+q->x)*0.5, (p->y+q->y)*0.5 ) )
 			report(p,q,out);

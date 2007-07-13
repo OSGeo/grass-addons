@@ -21,6 +21,7 @@
 
 void load_lines( struct Map_info * map, struct Point ** points, int * num_points, struct Line ** lines, int * num_lines );
 void count( struct Map_info * map, int * num_points, int * num_lines);
+void process_point( struct line_pnts * sites, struct Point ** points, int * index_point, int cat);
 void process_line( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
 void process_boundary( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
 
@@ -109,7 +110,7 @@ void count( struct Map_info * map, int * num_points, int * num_lines)
 	
 		type = Vect_read_line( map, sites, cats, i);
 		
-		if ( type != GV_LINE && type != GV_BOUNDARY)
+		if ( type != GV_LINE && type != GV_BOUNDARY && type != GV_POINT)
 			continue;
 		
 		if ( type == GV_LINE )
@@ -121,6 +122,10 @@ void count( struct Map_info * map, int * num_points, int * num_lines)
 		{
 			index_point+= sites->n_points-1;
 			index_line+= sites->n_points-1;
+		}
+		else if ( type == GV_POINT )
+		{
+			index_point++;
 		}
 		
 		
@@ -158,7 +163,7 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 	while( ( type = Vect_read_next_line( map, sites, cats) ) > -1 )
 	{
 	
-		if ( type != GV_LINE && type != GV_BOUNDARY)
+		if ( type != GV_LINE && type != GV_BOUNDARY && type != GV_POINT)
 			continue;
 		
 		Vect_cat_get (cats, 1, &cat);
@@ -169,10 +174,29 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 			process_line(sites, points, &index_point, lines, &index_line, -1);
 		else if ( type == GV_BOUNDARY )
 			process_boundary(sites, points, &index_point, lines, &index_line, cat++);
-		//else if ( type == GV_POINT )
+		else if ( type == GV_POINT )
+			process_point( sites, points, &index_point, -1);
 		
 		
 	}
+}
+
+void process_point( struct line_pnts * sites, struct Point ** points, int * index_point, int cat)
+{
+	G_message("Processing a point");
+	(*points)[*index_point].x = sites->x[0];
+	(*points)[*index_point].y = sites->y[0];
+	(*points)[*index_point].cat = cat;
+
+	(*points)[*index_point].line1 = NULL;
+	(*points)[*index_point].line2 = NULL;
+		
+	(*points)[*index_point].left_brother = NULL;
+	(*points)[*index_point].right_brother = NULL;
+	(*points)[*index_point].father = NULL;
+	(*points)[*index_point].rightmost_son = NULL;	
+	
+	(*index_point)++;
 }
 
 /** extract all segments from the line 
