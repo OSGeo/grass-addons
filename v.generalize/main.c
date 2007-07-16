@@ -55,11 +55,12 @@ int main(int argc, char *argv[])
     int look_ahead, iterations;
     int chcat;
     int ret, layer;
-    int n_areas;
+    int n_areas, n_lines;
     double x, y;
     int simplification, mask_type;
     VARRAY *varray;
     char *s;
+    int left, right;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -353,10 +354,30 @@ int main(int argc, char *argv[])
 	};
     }
 
+    /* remove incorrect boundaries
+     * they may occur only if they were generalized */
+    if (mask_type & GV_BOUNDARY) {
+	Vect_build_partial(&Out, GV_BUILD_ATTACH_ISLES, NULL);
+	n_lines = Vect_get_num_lines(&Out);
+	for (i = 1; i <= n_lines; i++) {
+	    type = Vect_read_line(&Out, Points, Cats, i);
+	    if (type != GV_BOUNDARY)
+		continue;
+	    Vect_get_line_areas(&Out, i, &left, &right);
+	    if (left == 0 || right == 0) {
+		Vect_delete_line(&Out, i);
+		total_output -= Points->n_points;
+	    };
+	};
+    };
 
-    /* calculate new centroids */
+
+    /* calculate new centroids 
+     * TODO: Don't fiddle with centroid if !(mask_type & GV_BOUNDARY)
+     * There's no reason to recalculate them as the ares
+     * are unchanged
+     */
     Vect_build_partial(&Out, GV_BUILD_ATTACH_ISLES, NULL);
-
     n_areas = Vect_get_num_areas(&Out);
     for (i = 1; i <= n_areas; i++) {
 	/* skip dead area */
@@ -379,11 +400,11 @@ int main(int argc, char *argv[])
 	Vect_remove_small_areas(&Out, thresh, NULL, NULL, &slide);
     };
 
+    Vect_build(&Out, stdout);
+
     /* finally copy tables */
     if (ca_flag->answer)
-	Vect_copy_tables(&In, &Out, layer);
-
-    Vect_build(&Out, stdout);
+	copy_tables_by_cats(&In, &Out);
 
     G_message(_("Number of vertices was reduced from %d to %d[%d%%]"),
 	      total_input, total_output, (total_output * 100) / total_input);

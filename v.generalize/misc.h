@@ -15,4 +15,8 @@ extern int type_mask(struct Option *type_opt);
 extern int get_furthest(struct line_pnts *Points, int a, int b, int with_z,
 			double *dist);
 
+/* copy attributes of In which appear in Out */
+/* returns 1 on success, 0 on failure */
+extern int copy_tables_by_cats(struct Map_info *In, struct Map_info *Out);
+
 #endif
