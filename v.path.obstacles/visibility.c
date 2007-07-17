@@ -26,46 +26,32 @@ void init_vis( struct Point * points, int num_points, struct Line * lines, int n
 
 	int i;
 	int j;
-	int current = -1;
-	double current_distance = PORT_DOUBLE_MAX;
-	double s;
+	double current_distance;
+	
+	double x,y;
 	
 	for ( i = 0 ; i < num_points ; i++ )
 	{
+		current_distance = PORT_DOUBLE_MAX;
+		points[i].vis = NULL;
+		
 		for ( j = 0 ; j < num_lines ; j++ )
 		{
-			
 			
 			if ( &lines[j] == segment1( &points[i]) || &lines[j] == segment2( &points[i]))
 				continue;
 			
 			/* if it's directly below, compute its distance to the last smallest found */
-			if ( below( &points[i], &lines[j] ) && in_between( &points[i], &lines[j] ) )
-			{			
+			if ( segment_intersect(&lines[j], &points[i], &x, &y) != -1 && y < points[i].y && (points[i].y - y) < current_distance)
+			{
 
-				s = segment_sqdistance( &points[i], &lines[j]);
-				
-				
-				if(  s < current_distance)
-				{
-					current = j;
-					current_distance = s;
-				}
+					points[i].vis = &lines[j];
+					current_distance = points[i].y - y;
 			}
 		}
-		
-		if ( current == -1 )
-		{
-			points[i].vis = NULL;
-		}
-		else
-		{
-			points[i].vis = &lines[current];
-		}
-		
-		current = -1;
-		current_distance = PORT_DOUBLE_MAX;
+
 	}
+
 }
 
 
@@ -73,14 +59,14 @@ void init_vis( struct Point * points, int num_points, struct Line * lines, int n
 /** for a pair (p, q) of points, add the edge pq if their are visibile to each other
 */
 void handle( struct Point* p, struct Point* q, struct Map_info * out )
-{
-
+{	
 	if ( segment1(q) == NULL && segment2(q) == NULL && before(p,q, p->vis ))
 	{
 		report(p,q,out);
 	}
-	else if ( q == other1(p)  )
+	else if ( segment1(p) != NULL && q == other1(p)  )
 	{
+		/* we need to check if there is another segment at q so it can be set to the vis */
 		if ( segment1(q) == segment1(p) && segment2(q) != NULL && left_turn(p,q, other2(q)))
 		{
 			p->vis = segment2(q);
@@ -90,15 +76,13 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 			p->vis = segment1(q);
 		}
 		else
-		{
 			p->vis = q->vis;
-		}
-		
 		
 		report( p, q, out );
 	}
-	else if ( q == other2(p))
+	else if ( segment2(p) != NULL && q == other2(p))
 	{
+		/* we need to check if there is another segment at q so it can be set to the vis */
 		if ( segment1(q) == segment2(p) && segment2(q) != NULL && left_turn(p,q, other2(q)))
 		{
 			p->vis = segment2(q);
@@ -108,42 +92,43 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 			p->vis = segment1(q);
 		}
 		else
-		{
 			p->vis = q->vis;
-		}
-
+		
 		report(p, q, out );
 	}
 	else if ( segment1(q) == p->vis && segment1(q) != NULL)
 	{
-
+		/* we need to check if there is another segment at q so it can be set to the vis */
 		if ( segment2(q) != NULL && left_turn(p, q, other2(q)))
 			p->vis = segment2(q);
 		else
 			p->vis = q->vis ;
 			
-		// check that p and q are not on the same boundary and that the edge pq is inside the boundary
+		/* check that p and q are not on the same boundary and that the edge pq is inside the boundary*/
 		if ( p->cat == -1 || p->cat != q->cat || !point_inside( p, (p->x+q->x)*0.5, (p->y+q->y)*0.5 ) )
 				report( p,q, out );
 	}
 	else if ( segment2(q) == p->vis && segment2(q) != NULL )
 	{
-
+		/* we need to check if there is another segment at q so it can be set to the vis */
 		if ( segment1(q) != NULL && left_turn(p, q, other1(q) ))
 			p->vis = segment1(q);
 		else
 			p->vis = q->vis;
 					
-		// check that p and q are not on the same boundary and that the edge pq is inside the boundary
+		/* check that p and q are not on the same boundary and that the edge pq is inside the boundary */
 		if ( p->cat == -1 || p->cat != q->cat || !point_inside( p, (p->x+q->x)*0.5, (p->y+q->y)*0.5 ) )
 			report( p,q, out );
 	}
 	else if ( before(p,q, p->vis ) )
 	{
+		/* if q only has one segment, then this is the new vis */
 		if ( segment2(q) == NULL )
 			p->vis = segment1(q);
 		else if ( segment1(q) == NULL)
 			p->vis = segment2(q);
+			
+		/* otherwise take the one with biggest slope*/
 		else if ( left_turn(p, q, other1(q) ) && !left_turn( p, q, other2(q)))
 			p->vis = segment1(q);
 		else if ( !left_turn(p, q, other1(q) ) && left_turn( p, q, other2(q)))
@@ -153,7 +138,7 @@ void handle( struct Point* p, struct Point* q, struct Map_info * out )
 		else 
 			p->vis = segment2(q);
 					
-		// check that p and q are not on the same boundary and that the edge pq is inside the boundary
+		/* check that p and q are not on the same boundary and that the edge pq is inside the boundary */
 		if ( p->cat == -1 || p->cat != q->cat || !point_inside( p, (p->x+q->x)*0.5, (p->y+q->y)*0.5 ) )
 			report(p,q,out);
 	}
@@ -207,6 +192,7 @@ int construct_visibility ( struct Point * points, int num_points, struct Line * 
 	p_infinity->rightmost_son = NULL;
 	
 	init_stack(num_points);
+	
 	/* sort points in decreasing x order*/
 	quickSort( points, 0, num_points-1 );
 	
@@ -273,141 +259,4 @@ int construct_visibility ( struct Point * points, int num_points, struct Line * 
 	G_free(p_ninfinity);
 }
 
-
-struct Point * pop()
-{
-	stack_index--;
-	
-	return stack[stack_index+1];
-}
-
-struct Point * top()
-{
-	return stack[stack_index];
-}
-
-void push(struct Point * p)
-{
-	stack_index++;
-	stack[stack_index] = p;
-}
-
-int empty_stack()
-{
-	return stack_index == 0;
-}
-
-void init_stack(int size)
-{
-	stack_index = 0;
-	stack = G_malloc( size * sizeof( struct Point ) );
-}
-
-/** compare the points along the x axis
-*/
-int cmp_points(struct Point * v1, struct Point* v2) {
-    struct Point *p1, *p2;
-    p1 = (struct Point*) v1;
-    p2 = (struct Point*) v2;
-	
-    if( p1->x < p2->x )
-        return 1;
-    else if( p1->x > p2->x )
-        return -1;
-    else if ( p1->y < p2->y )
-        return 1;
-	else if ( p1->y > p2->y )
-		return -1;
-	else
-		return 0;
-}
-
-void quickSort( struct Point a[], int l, int r)
-{
-   int j;
-
-   if( l < r ) 
-   {
-		// divide and conquer
-		j = partition( a, l, r);
-		quickSort( a, l, j-1);
-		quickSort( a, j+1, r);
-   }
-	
-}
-
-
-int partition( struct Point a[], int l, int r)
-{
-	int i, j;
-   
-	struct Point t,pivot;
-   
-	pivot = a[l];
-	i = l; j = r+1;
-		
-	while( 1)
-	{
-		do ++i; while( cmp_points(&a[i], &pivot) < 1 && i <= r );
-		do --j; while( cmp_points(&a[j], &pivot) == 1 );
-
-		if( i >= j ) break;
-		
-		if ( a[i].line1 != NULL)
-		{
-			if ( a[i].line1->p1 == &a[i] ) a[i].line1->p1 = &a[j];
-			else a[i].line1->p2 = &a[j];
-		}
-		
-		if ( a[j].line1 != NULL )
-		{
-			if(a[j].line1->p1 == &a[j] ) a[j].line1->p1 = &a[i];
-			else a[j].line1->p2 = &a[i];
-		}
-	
-		if ( a[i].line2 != NULL )
-		{
-			if( a[i].line2->p1 == &a[i] ) a[i].line2->p1 = &a[j];
-			else a[i].line2->p2 = &a[j];
-		}
-		
-		if ( a[j].line2 != NULL )
-		{
-			if(a[j].line2->p1 == &a[j] ) a[j].line2->p1 = &a[i];
-			else a[j].line2->p2 = &a[i];
-		}
-		
-		t = a[i]; a[i] = a[j]; a[j] = t;
-		
-	}
-
-	if ( a[l].line1 != NULL )
-	{
-		if(a[l].line1->p1 == &a[l] ) a[l].line1->p1 = &a[j];
-		else a[l].line1->p2 = &a[j];
-	}
-		
-	if ( a[j].line1 != NULL )
-	{
-		if(a[j].line1->p1 == &a[j] ) a[j].line1->p1 = &a[l];
-		else a[j].line1->p2 = &a[l];
-	}
-	
-	if ( a[l].line2 != NULL )
-	{
-		if( a[l].line2->p1 == &a[l] ) a[l].line2->p1 = &a[j];
-		else a[l].line2->p2 = &a[j];
-	}
-		
-	if ( a[j].line2 != NULL )
-	{
-		if( a[j].line2->p1 == &a[j] ) a[j].line2->p1 = &a[l];
-		else a[j].line2->p2 = &a[l];
-	}
-
-	t = a[l]; a[l] = a[j]; a[j] = t;
-	
-
-	return j;
-}
 

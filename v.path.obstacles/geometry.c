@@ -15,53 +15,20 @@
 
 #include "geometry.h"
 
-/** returns the square distance between point q and segment e
-*/
-double segment_sqdistance( struct Point * q, struct Line * e )
-{
-	
-	double e2e1x =  e->p1->x - e->p2->x ;
-	double e2e1y = e->p1->y - e->p2->y;
-	
-	double qe1x = q->x - e->p1->x;
-	double qe1y = q->y - e->p1->y;
-	
-	double qe2x = q->x - e->p2->x;
-	double qe2y = q->y - e->p2->y;
-	
-	double s = e2e1x * qe2x + e2e1y * qe2y;
-	double t;
-	
-	if ( s <= 0 )
-		return qe2x * qe2x + qe2y * qe2y;
-		
-	t = e2e1x * e2e1x + e2e1y * e2e1y;
-	
-	if ( s >= t )
-		return qe1x * qe1x + qe1y * qe1y;
-	
-	 return qe2x * qe2x + qe2y * qe2y - s * s / t ;
-
-}
-
-/** true if q lies nearer to p than segment e
+/** true if q lies nearer to p than segment e, i.e. pq and e don't intersect
 */
 int before( struct Point * p, struct Point * q, struct Line * e )
 {	
-	/* first determine the square distance between p and e */
+	double x1, y1, z1, x2, y2, z2;
+	int status;
 	
 	if ( e == NULL )
 		return 1;
+
+	status = Vect_segment_intersection (p->x, p->y, 0, q->x, q->y, 0, e->p1->x, e->p1->y, 0, e->p2->x, e->p2->y, 0, &x1, &y1, &z1, &x2, &y2, &z2, 0) == 0;
 	
-	double e_distance = segment_sqdistance(p, e);
-	double pqx =  q->x - p->x;
-	double pqy = q->y - p->y;
-	double pq_distance = pqx*pqx + pqy*pqy;
-
-	return pq_distance <= e_distance ;
+	return status;
 }
-
-
 
 /** returns true if p3 is left of the directed line p1p2
 */
@@ -89,18 +56,12 @@ int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
 */
 int in_between( struct Point * p, struct Line * e )
 {
-	int a =  e->p1->x < p->x && e->p2->x > p->x ;
-	int b = e->p2->x < p->x && e->p1->x > p->x;
+	int a =  e->p1->x <= p->x && e->p2->x >= p->x ;
+	int b = e->p2->x <= p->x && e->p1->x >= p->x;
 	
 	return a || b;
 }
 
-/** returns true if p is above the segment e ( y axis )
-*/
-int below( struct Point * p, struct Line * e )
-{
-	return e->p1->y < p->y || e->p2->y < p->y ;
-}
 
 /** tests if the point (x, y ) is inside the boundary of p 
 */
@@ -125,3 +86,25 @@ int point_inside( struct Point * p, double x, double y )
 	return c;
 }
 
+/** returns 1 if the segment intersect with the half line starting from p pointing downards
+	x and y are the intersection point
+*/
+int segment_intersect( struct Line * line, struct Point * p, double * x, double * y )
+{
+	struct Point * p1 = line->p1;
+	struct Point * p2 = line->p2;
+	double t;
+	
+	if ( in_between(p, line ) )
+	{
+		t = ( p->x - p1->x ) / ( p2->x - p1->x );
+		
+		*x = p->x;
+		*y = p1->y + t * ( p2->y - p1->y );
+		
+		return 1;
+	}
+	else
+		return -1;
+
+}

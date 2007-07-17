@@ -102,9 +102,7 @@ void count( struct Map_info * map, int * num_points, int * num_lines)
 	
 	sites = Vect_new_line_struct();
 	cats = Vect_new_cats_struct();
-	
-	G_message("N lines %d", map->plus.n_lines);
-	
+
 	for( i = 1; i <= map->plus.n_lines ; i++ )
 	{
 	
@@ -157,7 +155,6 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 	*points = G_malloc( *num_points * sizeof( struct Point ));
 	*lines = G_malloc( *num_lines * sizeof( struct Line ));
 	
-	G_message("We have %d points and %d segments", *num_points, *num_lines );
 	
 	
 	while( ( type = Vect_read_next_line( map, sites, cats) ) > -1 )
@@ -167,8 +164,6 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 			continue;
 		
 		Vect_cat_get (cats, 1, &cat);
-		
-		G_message("For now %d and %d", index_point, index_line );
 		
 		if ( type == GV_LINE )
 			process_line(sites, points, &index_point, lines, &index_line, -1);
@@ -183,7 +178,6 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 
 void process_point( struct line_pnts * sites, struct Point ** points, int * index_point, int cat)
 {
-	G_message("Processing a point");
 	(*points)[*index_point].x = sites->x[0];
 	(*points)[*index_point].y = sites->y[0];
 	(*points)[*index_point].cat = cat;

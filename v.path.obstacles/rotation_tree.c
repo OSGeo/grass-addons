@@ -55,8 +55,10 @@ void add_leftof(struct Point* p, struct Point* q)
 	else
 	{
 		left = q->left_brother;
+		
 		p->left_brother = left;
 		left->right_brother = p;
+		
 		p->right_brother = q;
 		q->left_brother = p;
 	}
@@ -77,7 +79,8 @@ void remove_point(struct Point* p)
 		r->left_brother = l;
 	
 	if ( f->rightmost_son == p )
-		f->rightmost_son = NULL;
+		//f->rightmost_son = NULL;
+		f->rightmost_son = l;
 		
 	p->father = NULL;
 	p->left_brother = NULL;
