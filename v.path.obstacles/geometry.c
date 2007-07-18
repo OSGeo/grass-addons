@@ -69,19 +69,19 @@ int point_inside( struct Point * p, double x, double y )
 {
 	int c = 0;
 	struct Point * n1 = p;
-	struct Point * n2 = other1(p);
-
+	struct Point * n2 = other2(p);
+	
 	do
 	{
-		if (  ( (   n2->y <=y  &&  y < n1->y ) ||
-             (  n1->y <= y &&  y< n2->y ) ) &&
-            (x < (n1->x - n2->x) * (y - n2->y) / (n1->y - n2->y) + n2->x))
-			c = !c;
-			
-		n1 = other1(n1);
-		n2 = other1(n2);
-
-	}while ( n1 != p );
+        if ( ( ( (n1->y <= y) && (y < n2->y) ) ||
+             ( (n2->y <= y) && (y < n1->y) ) ) &&
+            (x < (n2->x - n1->x) * (y - n1->y) / (n2->y - n1->y) + n1->x) )
+          c = !c;
+		  
+		  n1 = other2(n1);
+		  n2 = other2(n2);
+		  
+	}while( n2 != p );
 	
 	return c;
 }
