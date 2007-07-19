@@ -112,8 +112,7 @@
 #%option
 #% key: R
 #% type: string
-#% description: Rainfall (R factor) constant or map
-#% gisprompt: old,cell,raster
+#% description: Rainfall (R factor) constant (AVERAGE FOR WHOLE MAP AREA)
 #% answer: 5
 #% required : yes
 #% guisection: Variables
@@ -742,7 +741,8 @@ avedep=`eval r.univar -g map=$tmpdep percentile=90 | grep "mean=" | cut -d'=' -f
 
 g.remove --quiet rast=$tmperosion,$tmpdep
 
-txtout=$prefx"erdep_stats.txt"
+mapset=`eval g.gisenv get=MAPSET`
+txtout=$mapset$prefx"erdep_stats.txt"
 
 echo "outputing stats to textfile: $txtout"
 
@@ -1208,6 +1208,8 @@ done
 # now we have met the loop critereon set by us above, so we have broken out. We must now reset the region settings
 
 
+if [ "$GIS_FLAG_c" -eq 1 -o "$GIS_FLAG_m" -eq 1 -o "$GIS_FLAG_t" -eq 1 -o "$GIS_FLAG_x" -eq 1 -o "$GIS_FLAG_i" -eq 1 ]; then
+
 # create temporary file to list all the smoothdz files for statistics
 TMP2=`g.tempfile pid=$$`
 if [ $? -ne 0 ] || [ -z "$TMP2" ] ; then
@@ -1246,7 +1248,11 @@ if [ "$GIS_FLAG_i" -eq 1 ]; then
 r.series --q input=$liststring output=$prefx"min_erdep" method=minimum 
 fi
 
+\rm -f $TMP2 $TMP2.sort
 
+fi
+
+if [ "$GIS_FLAG_s" -eq 1 -o "$GIS_FLAG_v" -eq 1 -o "$GIS_FLAG_a" -eq 1 -o "$GIS_FLAG_u" -eq 1 -o "$GIS_FLAG_x" -eq 1 ]; then
 
 # create temporary file to list all the soil depth files for statistics
 TMP3=`g.tempfile pid=$$`
@@ -1281,8 +1287,10 @@ if [ "$GIS_FLAG_u" -eq 1 ]; then
 
 r.series --q input=$liststring2 output=$prefx"min_"$outsoil method=minimum 
 fi
-\rm -f $TMP2 $TMP2.sort
+
 \rm -f $TMP3 $TMP3.sort
+
+fi
 
 
 echo "************************"
