@@ -65,17 +65,29 @@
 #% guisection: Input
 #%end
 #%flag
-#% key: z
-#% description: -z Keep region zoomed to output maps 
+#% key: e
+#% description: -e Keep initial soil depths map
 #% guisection: Input
 #%end
+#%flag
+#% key: z
+#% description: -z Keep region zoomed to output maps 
+#% answer: 1
+#% guisection: Input
+#%end
+#%flag
+#% key: b
+#% description: -b Use static bedrock elavations (do not create new soil) 
+#% answer: 1
+#% guisection: Input
+#%end
+
 
 #%option
 #% key: R
 #% type: string
-#% description: Rainfall (R factor) map prefixes (leave off years)
-#% gisprompt: old,cell,raster
-#% answer: rfactor
+#% description: Rainfall (R factor) constant (AVERAGE FOR WHOLE MAP AREA)
+#% answer: 5
 #% required : yes
 #% guisection: Variables
 #%end
@@ -93,7 +105,7 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: Landcover index (C factor) map prefixes (leave off years)
-#% answer: landcover_cfactor
+#% answer: cfactor
 #% required : yes
 #% guisection: Variables
 #%end
@@ -166,7 +178,7 @@
 #% key: nbhood
 #% type: string
 #% description: Band-pass filter neighborhood size
-#% answer: 3
+#% answer: 7
 #% options: 1,3,5,7,9,11,13,15,17,19,21,23,25
 #% required : yes
 #% guisection: Smoothing_Filter
@@ -270,7 +282,7 @@ fi
 prefx=$GIS_OPT_prefx
 elev=$GIS_OPT_elev
 initbdrk=$GIS_OPT_initbdrk
-Rprfx=$GIS_OPT_R
+R=$GIS_OPT_R
 echo "R prefix = $Rprfx"
 K=$GIS_OPT_K
 Cprfx=$GIS_OPT_C
@@ -322,18 +334,29 @@ n=$prefx".n1"
 echo "n=$n"
 erdep=$prefx".erosdep1"
 echo "erdep=$erdep"
-initsoil=$prefx".initsoil"
+
 
 echo ""
 new_bdrk=$prefx"_new_bdrk1"
 new_soil=$prefx"_new_soil1"
 new_dem=$prefx"_new_dem1"
 initsoil=$prefx"_initsoil"
-echo "Initial soil depths calculated will be in $initsoil"
+
 echo "The new dem for this iteration will be called  $new_dem"
 echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
 echo "The new soil depth map for this iteration will be called  $new_soil"
 
+if [ "$GIS_FLAG_b" -eq 1 ]; then
+
+echo ""
+
+else
+
+new_bdrk=$prefx"_new_bdrk1"
+
+echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
+
+fi
 #let's grab the current resolution
 res1=`eval g.region -p -m | grep "nsres:" | cut -d : -f 2`
 
@@ -359,7 +382,6 @@ echo "Iteration time step = $timestep years"
 echo "Start year = $step BP"
 echo "End year = $maxyrs BP"
 
-R=$Rprfx"_$step"
 Cinit=$Cprfx"_$step"
 
 echo ""
@@ -469,7 +491,7 @@ echo	"calculating for diffusive flow across the entire map"
 	r.mapcalc "$sflowtopo=$kappa * exp(($res),2) * sin($slope)"
 
 
-elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_w" -eq in0 ]
+elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_w" -eq 0 ]
 then
 
 echo ""
@@ -518,8 +540,8 @@ echo ""
 echo ""
 echo	"Calculating with appropriate flow types on different landforms"
 
-r.mapcalc "$m=1+($flowacc * (0.6/($maxflow - $minflow)))"
-r.mapcalc "$n=1+($flowacc * (0.3/($maxflow - $minflow)))"
+r.mapcalc "$m=1+($flowacc * (0.3/($maxflow - $minflow)))"
+r.mapcalc "$n=1+($flowacc * (0.15/($maxflow - $minflow)))"
 
 report1=`eval r.info -r map=$m | grep "max=" | cut -d"=" -f2`
 report2=`eval r.info -r map=$m | grep "min=" | cut -d"=" -f2`
@@ -631,6 +653,16 @@ r.mapcalc "$new_dem=$smoothdz + $elev"
 
 r.colors --q map=$new_dem rast=$elev
 
+if [ $GIS_FLAG_b -eq 1 ]; then
+
+echo ""
+echo "Calculating new soil depths keeping bedrock elevations static"
+
+
+r.mapcalc "$new_soil=if (($new_dem - $initbdrk) < 0, 0, ($new_dem - $initbdrk))"
+
+else
+
 echo ""
 echo "step 8.5: Calculating new soil depths from landscape curvature"
 
@@ -652,7 +684,7 @@ r.mapcalc "$rate=$kappa*(2-($meancurv*(2/($max)-($min))))"
 r.mapcalc "$new_bdrk=$initbdrk - $rate"
 r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
 
-
+fi
 
 #these are the old soil equations that I failed to be able to implement... I leave them in for documentation purposes
 #r.mapcalc "$new_bdrk=$initbdrk - ($Ba * ($Bb*($smoothdz - $initbdrk)))"
@@ -672,7 +704,10 @@ avedep=`eval r.univar -g map=$tmpdep percentile=90 | grep "mean=" | cut -d'=' -f
 
 g.remove --quiet rast=$tmperosion,$tmpdep
 
-txtout=$prefx"_erdep_stats.txt"
+mapset=`eval g.gisenv get=MAPSET`
+location=`eval g.gisenv get=LOCATION_NAME`
+gisdbase=`eval g.gisenv get=GISDBASE`
+txtout=$gisdbase"/"$location"/"$mapset"/"$prefx"_erdep_stats.txt"
 
 echo "outputing stats to textfile: $txtout"
 
@@ -688,7 +723,16 @@ echo "*************************"
 echo "Done with this iteration"
 echo "*************************"
 
+if [ "$GIS_FLAG_e" -eq 1 ]; then
 
+echo ""
+echo "keeping initial soil depths map $initsoil"
+
+else
+
+g.remove --quiet rast=$initsoil
+
+fi
 
 echo ""
 echo "Raster map $smoothdz shows filtered net erosion/deposition"
@@ -774,12 +818,25 @@ echo "old_soil=$old_soil"
 echo ""
 R=$Rprfx"_$step"
 C=$Cprfx"_$step"
-new_bdrk=$prefx"_new_bdrk"$step
+
+
 new_soil=$prefx"_new_soil"$step
 new_dem=$prefx"_new_dem"$step
+
+echo "The new net ersoion/deposition map for this iteration will be called $smoothdz"
 echo "The new dem for this iteration will be called  $new_dem"
-echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
 echo "The new soil depth map for this iteration will be called  $new_soil"
+
+if [ "$GIS_FLAG_b" -eq 1 ]; then
+
+echo ""
+
+else
+
+new_bdrk=$prefx"_new_bdrk"$step
+echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
+
+fi
 
 echo ""
 echo "##################################################"
@@ -1037,6 +1094,17 @@ echo ""
 r.mapcalc "$new_dem=$smoothdz + $old_dem"
 r.colors --q map=$new_dem rast=$elev
 
+if [ $GIS_FLAG_b -eq 1 ]; then
+
+echo ""
+echo "Calculating new soil depths keeping bedrock elevations static"
+
+
+new_bdrk=$initbdrk
+r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
+
+else
+
 echo ""
 echo "step 8.5: Calculating new soil depths from landscape curvature"
 
@@ -1060,7 +1128,7 @@ r.mapcalc "$rate=$kappa*(2-($meancurv*(2/($max)-($min))))"
 r.mapcalc "$new_bdrk=$old_bdrk - $rate"
 r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
 
-
+fi
 
 #these are the old soil equations that I failed to be able to implement... I leave them in for documentation purposes
 #r.mapcalc "$new_bdrk= $old_bdrk - ($Ba * (exp(($smoothdz - $old_bdrk),$Bb)))"
@@ -1110,6 +1178,7 @@ done
 
 # now we have met the loop critereon set by us above, so we have broken out. We must now reset the region settings
 
+if [ "$GIS_FLAG_c" -eq 1 -o "$GIS_FLAG_m" -eq 1 -o "$GIS_FLAG_t" -eq 1 -o "$GIS_FLAG_x" -eq 1 -o "$GIS_FLAG_i" -eq 1 ]; then
 
 # create temporary file to list all the smoothdz files for statistics
 TMP2=`g.tempfile pid=$$`
@@ -1149,7 +1218,12 @@ if [ "$GIS_FLAG_i" -eq 1 ]; then
 r.series --q input=$liststring output=$prefx"_min_erdep" method=minimum 
 fi
 
+\rm -f $TMP2 $TMP2.sort
 
+fi
+
+
+if [ "$GIS_FLAG_s" -eq 1 -o "$GIS_FLAG_v" -eq 1 -o "$GIS_FLAG_a" -eq 1 -o "$GIS_FLAG_u" -eq 1 -o "$GIS_FLAG_x" -eq 1 ]; then
 
 # create temporary file to list all the soil depth files for statistics
 TMP3=`g.tempfile pid=$$`
@@ -1184,8 +1258,13 @@ if [ "$GIS_FLAG_u" -eq 1 ]; then
 
 r.series --q input=$liststring2 output=$prefx"_min_soil" method=minimum 
 fi
-\rm -f $TMP2 $TMP2.sort
+
 \rm -f $TMP3 $TMP3.sort
+
+fi
+
+
+
 
 
 echo "************************"
