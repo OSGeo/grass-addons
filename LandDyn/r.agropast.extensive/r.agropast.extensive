@@ -94,7 +94,7 @@
 #%END
 #%flag
 #% key: s
-#% description: -s Output text file of pastoral land-use stats from the simulation (will be named "prefix"_pastoraluse_stats.txt, and will be overwritten if you run the simulation again with the same prefix)
+#% description: -s Output text file of pastoral land-use stats from the simulation (will be written to current mapset named "prefix"_pastoraluse_stats.txt, and will be overwritten if you run the simulation again with the same prefix)
 #% answer: 1
 #%END
 #%flag
@@ -106,6 +106,39 @@
 #% key: p
 #% description: -p Output text file of combined agricultural and pastoral land-use stats (same deal as above, will be called "prefix"_ag_and_past_use_stats.txt
 #% answer: 1
+#%END
+
+#%option
+#% key: lc_rules
+#% type: string
+#% gisprompt: string
+#% description: path to reclass rules file for landcover map
+#% answer: /usr/local/grass-6.3.cvs/scripts/rules/luse_reclass_rules.txt
+#% required : yes
+#%END
+#%option
+#% key: lc_color
+#% type: string
+#% gisprompt: string
+#% description: path to color rules file for landcover map
+#% answer: /usr/local/grass-6.3.cvs/scripts/rules/luse_colors.txt
+#% required : yes
+#%END
+#%option
+#% key: cfact_rules
+#% type: string
+#% gisprompt: string
+#% description: path to recode rules file for c-factor map
+#% answer: /usr/local/grass-6.3.cvs/scripts/rules/cfactor_recode_rules.txt
+#% required : yes
+#%END
+#%option
+#% key: cfact_color
+#% type: string
+#% gisprompt: string
+#% description: path to color rules file for c-factor map
+#% answer: /usr/local/grass-6.3.cvs/scripts/rules/cfactor_colors.txt
+#% required : yes
 #%END
 
 
@@ -125,135 +158,25 @@ inmapg=$GIS_OPT_inmapg
 randg=$GIS_OPT_randg
 sizeg=$GIS_OPT_sizeg
 
-
 loop=$GIS_OPT_loop
 effect=$GIS_OPT_effect
 prfx=$GIS_OPT_prfx
 timer=$prfx".timer1"
-txtout=$prfx"_ag_use_stats.txt"
-txtout2=$prfx"_pastoral_use_stats.txt"
-txtout3=$prfx"_ag_plus_past_use_stats.txt"
 
+mapset=`eval g.gisenv get=MAPSET`
+location=`eval g.gisenv get=LOCATION_NAME`
+gisdbase=`eval g.gisenv get=GISDBASE`
+txtout=$gisdbase"/"$location"/"$mapset"/"$prfx"_ag_use_stats.txt"
+txtout2=$gisdbase"/"$location"/"$mapset"/"$prfx"_pastoral_use_stats.txt"
+txtout3=$gisdbase"/"$location"/"$mapset"/"$prfx"_ag_plus_past_use_stats.txt"
 
+lc_rules=$GIS_OPT_lc_rules
 
-#first make some tempfiles to hold various reclass and color rules
-TMP1=`g.tempfile pid=$$`
-if [ $? -ne 0 ] || [ -z "$TMP1" ] ; then
-    echo "ERROR: unable to create temporary file" 1>&2
-    exit 1
-fi
+lc_color=$GIS_OPT_lc_color
 
+cfact_rules=$GIS_OPT_cfact_rules
 
-echo "0 = 0 bare land" > $TMP1
-echo "1 = 1 sparsely covered land" >> $TMP1
-echo "2 = 2 actively cultivated field" >> $TMP1
-echo "3 = 3 moderate grassland" >> $TMP1
-echo "4 = 4 grassland" >> $TMP1
-echo "5 = 5 grass and sparse shrubs" >> $TMP1
-echo "6 = 6 grass and shrubs" >> $TMP1
-echo "7 = 7 mainly shrubs" >> $TMP1
-echo "8 = 8 developing maquis" >> $TMP1
-echo "9 = 9 moderate maquis" >> $TMP1
-echo "10 = 10 maquis" >> $TMP1
-echo "11 = 11 moderately dense maquis" >> $TMP1
-echo "12 = 12 dense maquis" >> $TMP1
-echo "13 = 13 maquis and small trees" >> $TMP1
-echo "14 = 14 young woodland and maquis" >> $TMP1
-echo "15 = 15 mostly young open woodland" >> $TMP1
-echo "16 = 16 young open woodland" >> $TMP1
-echo "17 = 17 moderate open woodland" >> $TMP1
-echo "18 = 18 maturing and moderate open woodland" >> $TMP1
-echo "19 = 19 maturing open woodland" >> $TMP1
-echo "20 = 20 mostly matured open woodland" >> $TMP1
-echo "21 = 21 fully matured woodland" >> $TMP1
-echo "end" >> $TMP1
-
-
-TMP6=`g.tempfile pid=$$`
-if [ $? -ne 0 ] || [ -z "$TMP6" ] ; then
-    echo "ERROR: unable to create temporary file for colors" 1>&2
-    exit 1
-fi
-
-echo "0 brown" > $TMP6
-echo "1 brown" >> $TMP6
-echo "2 red" >> $TMP6
-echo "3 orange" >> $TMP6
-echo "7 orange" >> $TMP6
-echo "14 yellow" >> $TMP6
-echo "21 green" >> $TMP6
-echo "end" >> $TMP6
-
-TMP2=`g.tempfile pid=$$`
-if [ $? -ne 0 ] || [ -z "$TMP2" ] ; then
-    echo "ERROR: unable to create temporary file for colors" 1>&2
-    exit 1
-fi
-
-echo "0 brown" > $TMP2
-echo "7 orange" >> $TMP2
-echo "14 yellow" >> $TMP2
-echo "21 green" >> $TMP2
-echo "end" >> $TMP2
-
-TMP3=`g.tempfile pid=$$`
-if [ $? -ne 0 ] || [ -z "$TMP3" ] ; then
-    echo "ERROR: unable to create temporary file for categories" 1>&2
-    exit 1
-fi
-
-echo "0 = 0 badly overgrazed" > $TMP3
-echo "1 = 1 overgrazed" >> $TMP3
-echo "2 = 2 sparse grassland" >> $TMP3
-echo "3 = 3 moderate grassland" >> $TMP3
-echo "4 = 4 grassland" >> $TMP3
-echo "5 = 5 grass and sparse shrubs" >> $TMP3
-echo "6 = 6 grass and shrubs" >> $TMP3
-echo "7 = 7 mainly shrubs" >> $TMP3
-echo "8 = 8 developing maquis" >> $TMP3
-echo "9 = 9 moderate maquis" >> $TMP3
-echo "10 = 10 maquis" >> $TMP3
-echo "11 = 11 moderately dense maquis" >> $TMP3
-echo "12 = 12 dense maquis" >> $TMP3
-echo "13 = 13 maquis and small trees" >> $TMP3
-echo "14 = 14 young woodland and maquis" >> $TMP3
-echo "15 = 15 mostly young open woodland" >> $TMP3
-echo "16 = 16 young open woodland" >> $TMP3
-echo "17 = 17 moderate open woodland" >> $TMP3
-echo "18 = 18 maturing and moderate open woodland" >> $TMP3
-echo "19 = 19 maturing open woodland" >> $TMP3
-echo "20 = 20 mostly matured open woodland" >> $TMP3
-echo "21 = 21 fully matured woodland" >> $TMP3
-echo "50 = 3 actively cultivated wheat field" >> $TMP3
-echo "end" >> $TMP3
-
-TMP4=`g.tempfile pid=$$`
-if [ $? -ne 0 ] || [ -z "$TMP4" ] ; then
-    echo "ERROR: unable to create temporary file for categories" 1>&2
-    exit 1
-fi
-
-echo "0:1:0.5:0.5" > $TMP4
-echo "2:21:0.10:0.05" >> $TMP4
-echo "end" >> $TMP4
-
-TMP5=`g.tempfile pid=$$`
-if [ $? -ne 0 ] || [ -z "$TMP5" ] ; then
-    echo "ERROR: unable to create temporary file for colors" 1>&2
-    exit 1
-fi
-
-echo "0.4 red" > $TMP5
-echo "0.6 black" >> $TMP5
-echo "0.19 grey" >> $TMP5
-echo "0.17 brown" >> $TMP5
-echo "0.1 orange" >> $TMP5
-echo "0.07 yellow" >> $TMP5
-echo "0.05 green" >> $TMP5
-echo "end" >> $TMP5
-
-
-
+cfact_color=$GIS_OPT_cfact_color
 
 
 g.region --quiet save=temp_region
@@ -275,22 +198,30 @@ echo ""
 echo "Part 1: agricultural simulation"
 echo ""
 
-r.mapcalc "temp_background_1=if(isnull($inmapg), 21)" 
-	cat $TMP3 | r.reclass --quiet input=temp_background_1 output=temp_background_2
-r.mapcalc "temp_background=if(isnull(temp_background_2), null(), temp_background_2)"
-g.remove --quiet rast=temp_background_2,temp_background_1
+#setting initial conditions of map area
+	r.mapcalc "temp_background_1=if(isnull($inmapg), 50, null())" 
 
-	cat $TMP2 | r.colors --quiet map=temp_background color=rules
+#adding text descriptions to raw landscape categories and setting colors
+	r.reclass --quiet rules=$lc_rules input=temp_background_1 output=temp_background_2
 
-	cat $TMP4 | r.recode --quiet input=temp_background output=temp_background_cfactor
 
-	cat $TMP5 | r.colors --quiet map=temp_background_cfactor color=rules
+	r.mapcalc "temp_background=if(isnull(temp_background_2), null(), temp_background_2)"
+	g.remove --quiet rast=temp_background_2,temp_background_1
 
+	r.colors --quiet map=temp_background rules=$lc_color
+
+#creating c-factor map and setting colors
+	r.recode input=temp_background output=temp_background_cfactor rules=$cfact_rules --quiet 
+
+	r.colors map=temp_background_cfactor rules=$cfact_color
+
+
+#updating raw landscape category numbers
 r.mask --quiet input=$inmapa maskcats=*
 
 g.region --quiet res=$sizea
 
-r.mapcalc "tmpinreclassa = if ($inmapa, 2, null())"
+r.mapcalc "tmpinreclassa = if ($inmapa, 5, null())"
 
 fields1=$prfx"_fields1"
 
@@ -300,7 +231,7 @@ if [ "$GIS_FLAG_g" -eq 1 ]; then
 
 	echo "fields map = $fields1"
 
-	fi
+fi
 
 
 	temparea=`eval r.stats -n --quiet -a fs=- input=$fields1 | cut -d'-' -f2`
@@ -317,7 +248,7 @@ echo ""
 
 
 
-r.mapcalc "MASK=if( if(isnull($prfx"_fields1") && ($inmapg <= 0 || $inmapg >= 0), 1, null()))"
+r.mapcalc "MASK=if( if(isnull($prfx"_fields1") &! isnull($inmapg), 1, null()))"
 
 timer=$prfx".timer1"
 
@@ -336,18 +267,19 @@ if [ "$GIS_FLAG_g" -eq 1 ]; then
 
 	fi
 
-r.mapcalc "$timer = if (isnull($patches), 21, 21-$effect)"
+r.mapcalc "$timer = if (isnull($patches), 50, 50-$effect)"
 
-
-	cat $TMP3 | r.reclass --quiet input=$timer output=temp_pastuse1
+#adding text descriptions to raw landscape categories and setting colors
+	r.reclass --quiet rules=$lc_rules input=$timer output=temp_pastuse1
 
 	r.mapcalc "$prfx"_past_luse1" = temp_pastuse1"
 
-	cat $TMP2 | r.colors --quiet map=$prfx"_past_luse1" color=rules
+	r.colors --quiet map=$prfx"_past_luse1" rules=$lc_color
 
-	cat $TMP4 | r.recode --quiet input=$prfx"_past_luse1" output=$prfx"_past_cfactor_1"
+#creating c-factor map and setting colors
+	r.recode --quiet input=$prfx"_past_luse1" output=$prfx"_past_cfactor_1" rules=$cfact_rules
 
-	cat $TMP5 | r.colors --quiet map=$prfx"_past_cfactor_1" color=rules
+	r.colors --quiet map=$prfx"_past_cfactor_1" rules=$cfact_color
 
 
  	temparea=`eval r.stats -n -a fs=- input=$patches | cut -d'-' -f2`
@@ -382,15 +314,15 @@ r.patch --quiet  input=$fields1,$timer output=temp_landuse1_1
 
 
 
-	cat $TMP1 | r.reclass --quiet  input=temp_landuse1_1 output=temp_landuse1
+	r.reclass --quiet  input=temp_landuse1_1 output=temp_landuse1 rules=$lc_rules
 
 	r.mapcalc "$prfx"_ag_luse1" = temp_landuse1"
 
-	cat $TMP6 | r.colors --quiet  map=$prfx"_ag_luse1" color=rules
+	r.colors --quiet  map=$prfx"_ag_luse1" rules=$lc_color
 
-	cat $TMP4 | r.recode --quiet  input=$prfx"_ag_luse1" output=$prfx"_ag_cfactor_1"
+	r.recode --quiet  input=$prfx"_ag_luse1" output=$prfx"_ag_cfactor_1" rules=$cfact_rules
 
-	cat $TMP5 | r.colors --quiet  map=$prfx"_ag_cfactor_1" color=rules
+	r.colors --quiet  map=$prfx"_ag_cfactor_1" rules=$cfact_color
 
 
 
@@ -398,11 +330,11 @@ r.patch --quiet  input=$fields1,$timer output=temp_landuse1_1
 
 	if [ "$GIS_FLAG_m" -eq 1 ]; then
 
-	r.mapcalc "tempmap_arable=if($prfx"_ag_luse1" >= 12, 1, null())"
+	r.mapcalc "tempmap_arable=if($prfx"_ag_luse1" >= 17, 1, null())"
 
  	arablearea=`eval r.stats -n --quiet -a fs=- input=tempmap_arable | cut -d'-' -f2`
 
-	r.mapcalc "tempmap_fallow=if($prfx"_ag_luse1" > 0 && $prfx"_ag_luse1" < 12, 1, null())"
+	r.mapcalc "tempmap_fallow=if($prfx"_ag_luse1" > 0 && $prfx"_ag_luse1" < 17, 1, null())"
 
  	fallowarea=`eval r.stats -n --quiet -a fs=- input=tempmap_fallow | cut -d'-' -f2`
 
@@ -490,7 +422,7 @@ echo ""
 echo "Part 2: grazing simulation"
 echo ""
 
-r.mapcalc "MASK=if( if(isnull($outfields) && ($inmapg <= 0 || $inmapg >= 0), 1, null()))"
+r.mapcalc "MASK=if( if(isnull($outfields) &! isnull($inmapg), 1, null()))"
 
 g.region --quiet res=$sizeg
 
@@ -510,18 +442,18 @@ g.region --quiet res=$sizeg
 
 	fi
 
-r.mapcalc "$newtimer= if (isnull($outpatches) && $oldtimer <= 20, $oldtimer + 1, (if(isnull($outpatches), 21, (if ($oldtimer < $effect, 0, $oldtimer - $effect)))))"
+r.mapcalc "$newtimer= if (isnull($outpatches) && $oldtimer <= 49, $oldtimer + 1, (if(isnull($outpatches), 50, (if ($oldtimer < $effect, 0, $oldtimer - $effect)))))"
 
 	
-	cat $TMP3 | r.reclass --quiet input=$newtimer output=$tmplanduse
+	r.reclass --quiet input=$newtimer output=$tmplanduse rules=$lc_rules
 
 	r.mapcalc "$outlanduse = $tmplanduse"
 
-	cat $TMP2 | r.colors --quiet map=$outlanduse color=rules
+	r.colors --quiet map=$outlanduse rules=$lc_color
 
-	cat $TMP4 | r.recode --quiet input=$outlanduse output=$outcfactor
+	r.recode --quiet input=$outlanduse output=$outcfactor rules=$cfact_rules
 
-	cat $TMP5 | r.colors --quiet map=$outcfactor color=rules
+	r.colors --quiet map=$outcfactor rules=$cfact_color
 
 
  	temparea=`eval r.stats -n -a fs=- input=$patches | cut -d'-' -f2`
@@ -565,15 +497,15 @@ r.patch --quiet input=$outfields,$newtimer output=$tmp2landuse
 
 
 
-	cat $TMP1 | r.reclass --quiet input=$tmp2landuse output=$tmplanduse
+	r.reclass --quiet input=$tmp2landuse output=$tmplanduse rules=$lc_rules
 
 	r.mapcalc "$outaglanduse = $tmplanduse"
 
-	cat $TMP6 | r.colors --quiet map=$outaglanduse color=rules
+	r.colors --quiet map=$outaglanduse rules=$lc_color
 
-	cat $TMP4 | r.recode --quiet input=$outaglanduse output=$outagcfactor
+	r.recode --quiet input=$outaglanduse output=$outagcfactor rules=$cfact_rules
 
-	cat $TMP5 | r.colors --quiet map=$outagcfactor color=rules
+	r.colors --quiet map=$outagcfactor rules=$cfact_color
 
 
 	temparea=`eval r.stats -n --quiet -a fs=- input=$outfields | cut -d'-' -f2`
@@ -584,11 +516,11 @@ r.patch --quiet input=$outfields,$newtimer output=$tmp2landuse
 
 	if [ "$GIS_FLAG_m" -eq 1 ]; then
 
-	r.mapcalc "tempmap_arable=if($outaglanduse >= 12, 1, null())"
+	r.mapcalc "tempmap_arable=if($outaglanduse >= 17, 1, null())"
 
 	arablearea=`eval r.stats -n --quiet -a fs=- input=tempmap_arable  | cut -d'-' -f2`
 
-	r.mapcalc "tempmap_fallow=if($outaglanduse > 0 && $outaglanduse < 12, 1, null())"
+	r.mapcalc "tempmap_fallow=if($outaglanduse > 0 && $outaglanduse < 17, 1, null())"
 
  	fallowarea=`eval r.stats -n --quiet -a fs=- input=tempmap_fallow | cut -d'-' -f2`
 
