@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 			}
 			d_da = 2 * PI * ( d_doy - 1 ) / 365.0;
 			d_delta = 0.006918-0.399912*cos(d_da)+0.070257*sin(d_da)-0.006758*cos(2*d_da)+0.000907*sin(2*d_da)-0.002697*cos(3*d_da)+0.00148*sin(3*d_da);
-			d_Ws = acos(-tan(d_lat)*tan(d_delta));
+			d_Ws = acos(-tan(d_lat*PI/180)*tan(d_delta));
 			d_N = ( 360.0 / ( 15.0 * PI ) ) * d_Ws;
 			((DCELL *) outrast1)[col] = d_N;
 		}
