@@ -816,7 +816,6 @@ echo "old_bdrk=$old_bdrk"
 old_soil=$prefx"_new_soil"$laststep
 echo "old_soil=$old_soil"
 echo ""
-R=$Rprfx"_$step"
 C=$Cprfx"_$step"
 
 
