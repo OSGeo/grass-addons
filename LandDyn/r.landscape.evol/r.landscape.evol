@@ -686,9 +686,24 @@ echo "step 8 of 8: calculating terrain evolution, new bedrock elevations, and ne
 echo "*************************"
 echo ""
 
+if [ $number -eq 1 ] ; then
+
+temp_dem=$prfx"temp_dem"
+
+r.mapcalc "$temp_dem=$smoothdz + $elev"
+
+r.patch --quiet input=$temp_dem,$elev output=$new_dem
+
+g.remove --quiet rast=$temp_dem
+
+else
+
 r.mapcalc "$new_dem=$smoothdz + $elev"
 
-r.colors --q map=$new_dem rast=$elev
+fi
+
+
+r.colors --quiet map=$new_dem rast=$elev
 
 if [ $GIS_FLAG_b -eq 1 ]; then
 
