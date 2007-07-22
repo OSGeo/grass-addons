@@ -79,7 +79,7 @@ v.generalize input=in output=out method=douglas threshold=eps
 </PRE></DIV>
 is equivalent to
 <DIV class="code"><PRE>
-v.generalize input=in output=out method=douglas_reduction threshold=eps reduction=0
+v.generalize input=in output=out method=douglas_reduction threshold=eps reduction=100
 </PRE></DIV>
 However, in this case, the first method is faster. Also observe that
 <I>douglas_reduction</I> never outputs more vertices than <I>douglas</I>. And that,
@@ -95,8 +95,9 @@ is that 'out' contains approximately only X% of points of 'in'.
 <P>
 The following smoothing algorithms are implemented in <EM>v.generalize</EM>
 <UL>
-<LI><I>Boyle's Forward-Looking Algorithm</I> - Works by taking the average of 
-    <B>look_ahead</B> consecutive points</LI>. Input parameters: <B>input</B>, <B>look_ahead</B>.
+<LI><I>Boyle's Forward-Looking Algorithm</I> - The position of each point depends on the
+    position of the previous points and the point <b>look_ahead</b> ahead. 
+    <B>look_ahead</B> consecutive points. Input parameters: <B>input</B>, <B>look_ahead</B>.</LI>
 <LI><I>McMaster's Sliding Averaging Algorithm</I> - Input Parameters: <B>input</B>, <B>slide</B>, <B>look_ahead</B>.
     The new position of each point is the average of the <B>look_ahead</B> points around. Paremeter <B>slide</B>
     is used for linear interpolation between old and new position (see below).</LI>     
@@ -148,8 +149,8 @@ for maps with the lines consisting of many segments.
 
 <H2>SEE ALSO</H2>
 
-<EM>
-<A HREF="v.clean.html">v.clean</A><BR></EM>
+<EM><A HREF="v.clean.html">v.clean</A><BR></EM>
+<EM><A HREF="v.dissolve.html">v.dissolve</A><BR></EM>
 <BR><BR>
 
 

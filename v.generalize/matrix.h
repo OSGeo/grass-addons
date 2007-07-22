@@ -42,7 +42,11 @@ extern int matrix_add_identity(double s, MATRIX * m);
 /* calculate the inverse of given (square) matrix. Returns 0 if
  * the matrix is not invertible or if an error occurs. 
  * Otherwise it returns 1 */
-extern int matrix_inverse(MATRIX a, MATRIX * res);
+extern int matrix_inverse(MATRIX a, MATRIX * res, int bandwidth);
+/* multiplies matrix by a scalar */
+extern void matrix_mult_scalar(double s, MATRIX * m);
+/* res = a + b. Does not cheack the dimensions */
+extern void matrix_add(MATRIX a, MATRIX b, MATRIX * res);
 /* debug function */
 extern void matrix_print(MATRIX a);
 #endif

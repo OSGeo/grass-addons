@@ -34,6 +34,8 @@
 #define SNAKES 8
 #define DOUGLAS_REDUCTION 9
 #define SLIDING_AVERAGING 10
+#define NETWORK 100
+#define DISPLACEMENT 101
 
 int main(int argc, char *argv[])
 {
@@ -46,11 +48,13 @@ int main(int argc, char *argv[])
     struct Option *map_in, *map_out, *thresh_opt, *method_opt, *look_ahead_opt;
     struct Option *iterations_opt, *cat_opt, *alfa_opt, *beta_opt, *type_opt;
     struct Option *field_opt, *where_opt, *reduction_opt, *slide_opt;
-    struct Option *angle_thresh_opt;
+    struct Option *angle_thresh_opt, *degree_thresh_opt, *closeness_thresh_opt;
+    struct Option *betweeness_thresh_opt;
     struct Flag *ca_flag;
     int with_z;
     int total_input, total_output;	/* Number of points in the input/output map respectively */
     double thresh, alfa, beta, reduction, slide, angle_thresh;
+    double degree_thresh, closeness_thresh, betweeness_thresh;
     int method;
     int look_ahead, iterations;
     int chcat;
@@ -84,7 +88,7 @@ int main(int argc, char *argv[])
     method_opt->required = YES;
     method_opt->multiple = NO;
     method_opt->options =
-	"douglas,douglas_reduction,lang,reduction,reumann,boyle,sliding_averaging,distance_weighting,chaiken,hermite,snakes";
+	"douglas,douglas_reduction,lang,reduction,reumann,boyle,sliding_averaging,distance_weighting,chaiken,hermite,snakes,network,displacement";
     method_opt->answer = "douglas";
     method_opt->descriptions = _("douglas;Douglas-Peucker Algorithm;"
 				 "douglas_reduction;Douglas-Peucker Algorithm with reduction parameter;"
@@ -96,7 +100,10 @@ int main(int argc, char *argv[])
 				 "distance_weighting;McMaster's Distance-Weighting Algorithm;"
 				 "chaiken;Chaiken's Algorithm;"
 				 "hermite;Interpolation by Cubic Hermite Splines;"
-				 "snakes;Snakes method for line smoothing;");
+				 "snakes;Snakes method for line smoothing;"
+				 "network;Network generalization;"
+				 "displacement;Displacement of lines close to each other;");
+
     method_opt->description = _("Line simplification/smoothing algorithm");
 
     thresh_opt = G_define_option();
@@ -142,6 +149,31 @@ int main(int argc, char *argv[])
     angle_thresh_opt->description =
 	_("Minimum angle between two consecutive segments in Hermite method");
 
+    degree_thresh_opt = G_define_option();
+    degree_thresh_opt->key = "degree_thresh";
+    degree_thresh_opt->type = TYPE_INTEGER;
+    degree_thresh_opt->required = YES;
+    degree_thresh_opt->answer = "0";
+    degree_thresh_opt->description =
+	_("Degree threshold in network generalization");
+
+    closeness_thresh_opt = G_define_option();
+    closeness_thresh_opt->key = "closeness_thresh";
+    closeness_thresh_opt->type = TYPE_DOUBLE;
+    closeness_thresh_opt->required = YES;
+    closeness_thresh_opt->answer = "0";
+    closeness_thresh_opt->options = "0-1";
+    closeness_thresh_opt->description =
+	_("Closeness threshold in network generalization");
+
+    betweeness_thresh_opt = G_define_option();
+    betweeness_thresh_opt->key = "betweeness_thresh";
+    betweeness_thresh_opt->type = TYPE_DOUBLE;
+    betweeness_thresh_opt->required = YES;
+    betweeness_thresh_opt->answer = "0";
+    betweeness_thresh_opt->description =
+	_("Betweeness threshold in network generalization");
+
     alfa_opt = G_define_option();
     alfa_opt->key = "alfa";
     alfa_opt->type = TYPE_DOUBLE;
@@ -184,6 +216,9 @@ int main(int argc, char *argv[])
     iterations = atoi(iterations_opt->answer);
     slide = atof(slide_opt->answer);
     angle_thresh = atof(angle_thresh_opt->answer);
+    degree_thresh = atof(degree_thresh_opt->answer);
+    closeness_thresh = atof(closeness_thresh_opt->answer);
+    betweeness_thresh = atof(betweeness_thresh_opt->answer);
 
     mask_type = type_mask(type_opt);
     G_debug(3, "Method: %s", method_opt->answer);
@@ -212,6 +247,10 @@ int main(int argc, char *argv[])
 	method = DOUGLAS_REDUCTION;
     else if (strcmp(s, "sliding_averaging") == 0)
 	method = SLIDING_AVERAGING;
+    else if (strcmp(s, "network") == 0)
+	method = NETWORK;
+    else if (strcmp(s, "displacement") == 0)
+	method = DISPLACEMENT;
     else {
 	G_fatal_error(_("Unknown method"));
 	exit(EXIT_FAILURE);
@@ -289,12 +328,31 @@ int main(int argc, char *argv[])
     Vect_hist_command(&Out);
 
     total_input = total_output = 0;
+
+    if (method == DISPLACEMENT) {
+	snakes_displacement(&In, &Out, thresh, alfa, beta, 1.0, 1.0,
+			    iterations);
+    };
+
+    /* TODO: rearrange code below. It's really messy */
+    if (method == NETWORK) {
+	total_output =
+	    graph_generalization(&In, &Out, degree_thresh, closeness_thresh,
+				 betweeness_thresh);
+    }
+    else {
+	G_message(_("Generalization ..."));
+	G_percent_reset();
+    };
     i = 0;
-    while ((type = Vect_read_next_line(&In, Points, Cats)) > 0) {
+    n_lines = Vect_get_num_lines(&In);
+    while (method < NETWORK &&
+	   (type = Vect_read_next_line(&In, Points, Cats)) > 0) {
 	i++;
-	if (type == GV_CENTROID)
+	G_percent(i, n_lines, 1);
+	if (type == GV_CENTROID && !(mask_type & GV_BOUNDARY))
 	    continue;		/* skip old centroids,
-				 * we calculate new */
+				 * we calculate new if we generalize boundarie */
 	total_input += Points->n_points;
 
 	if ((type & mask_type) && (!chcat || varray->c[i])) {
@@ -373,25 +431,26 @@ int main(int argc, char *argv[])
 
 
     /* calculate new centroids 
-     * TODO: Don't fiddle with centroid if !(mask_type & GV_BOUNDARY)
-     * There's no reason to recalculate them as the ares
-     * are unchanged
+     * We need to calculate them only if the boundaries
+     * were generalized
      */
-    Vect_build_partial(&Out, GV_BUILD_ATTACH_ISLES, NULL);
-    n_areas = Vect_get_num_areas(&Out);
-    for (i = 1; i <= n_areas; i++) {
-	/* skip dead area */
-	if (!Vect_area_alive(&Out, i))
-	    continue;
-	Vect_get_area_cats(&In, i, Cats);
-	ret = Vect_get_point_in_area(&Out, i, &x, &y);
-	if (ret < 0) {
-	    G_warning(_("Cannot calculate area centroid"));
-	    continue;
+    if (mask_type & GV_BOUNDARY) {
+	Vect_build_partial(&Out, GV_BUILD_ATTACH_ISLES, NULL);
+	n_areas = Vect_get_num_areas(&Out);
+	for (i = 1; i <= n_areas; i++) {
+	    /* skip dead area */
+	    if (!Vect_area_alive(&Out, i))
+		continue;
+	    Vect_get_area_cats(&In, i, Cats);
+	    ret = Vect_get_point_in_area(&Out, i, &x, &y);
+	    if (ret < 0) {
+		G_warning(_("Cannot calculate area centroid"));
+		continue;
+	    };
+	    Vect_reset_line(Points);
+	    Vect_append_point(Points, x, y, 0.0);
+	    Vect_write_line(&Out, GV_CENTROID, Points, Cats);
 	};
-	Vect_reset_line(Points);
-	Vect_append_point(Points, x, y, 0.0);
-	Vect_write_line(&Out, GV_CENTROID, Points, Cats);
     };
 
     /* remove small areas */
@@ -406,8 +465,10 @@ int main(int argc, char *argv[])
     if (ca_flag->answer)
 	copy_tables_by_cats(&In, &Out);
 
-    G_message(_("Number of vertices was reduced from %d to %d[%d%%]"),
-	      total_input, total_output, (total_output * 100) / total_input);
+    if (total_input != 0)
+	G_message(_("Number of vertices was reduced from %d to %d[%d%%]"),
+		  total_input, total_output,
+		  (total_output * 100) / total_input);
 
     Vect_close(&In);
     Vect_close(&Out);

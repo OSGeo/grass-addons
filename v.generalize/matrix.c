@@ -31,7 +31,7 @@ int matrix_init(int rows, int cols, MATRIX * res)
 	return 0;
 
     for (i = 0; i < rows; i++) {
-	res->a[i] = (double *)G_malloc(cols * sizeof(double));
+	res->a[i] = (double *)G_calloc(cols, sizeof(double));
 	if (res->a[i] == NULL) {
 	    for (j = 0; j < i; j++)
 		G_free(res->a[j]);
@@ -57,8 +57,8 @@ int matrix_mult(MATRIX a, MATRIX b, MATRIX * res)
     if (a.cols != b.rows)
 	return 0;
 
-    if (!matrix_init(a.rows, b.cols, res))
-	return 0;
+    //if (!matrix_init(a.rows, b.cols, res))
+    //  return 0;
 
     int i, j, k;
     for (i = 0; i < a.rows; i++)
@@ -120,7 +120,7 @@ void matrix_row_add_multiple(int ra, int rb, double s, MATRIX * m)
 };
 
 /* TODO: don't test directly equality to zero */
-int matrix_inverse(MATRIX a, MATRIX * res)
+int matrix_inverse(MATRIX a, MATRIX * res, int bandwidth)
 {;
 
     /* not a square matrix */
@@ -166,12 +166,30 @@ int matrix_inverse(MATRIX a, MATRIX * res)
 	    if (i == j)
 		continue;
 	    double c = -a.a[j][i];
+	    if (c == 0.0)
+		continue;
 	    matrix_row_add_multiple(j, i, c, &a);
 	    matrix_row_add_multiple(j, i, c, res);
 	};
     };
 
     return 1;
+};
+
+void matrix_mult_scalar(double s, MATRIX * m)
+{
+    int i, j;
+    for (i = 0; i < m->rows; i++)
+	for (j = 0; j < m->cols; j++)
+	    m->a[i][j] *= s;
+};
+
+void matrix_add(MATRIX a, MATRIX b, MATRIX * res)
+{
+    int i, j;
+    for (i = 0; i < res->rows; i++)
+	for (j = 0; j < res->cols; j++)
+	    res->a[i][j] = a.a[i][j] + b.a[i][j];
 };
 
 void matrix_print(MATRIX a)
