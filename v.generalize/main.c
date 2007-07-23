@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
     total_input = total_output = 0;
 
     if (method == DISPLACEMENT) {
-	snakes_displacement(&In, &Out, thresh, alfa, beta, 1.0, 1.0,
+	snakes_displacement(&In, &Out, thresh, alfa, beta, 1.0, 10.0,
 			    iterations);
     };
 
