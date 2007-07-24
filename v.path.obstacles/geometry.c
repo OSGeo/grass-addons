@@ -81,7 +81,7 @@ int point_inside( struct Point * p, double x, double y )
 		  n1 = other2(n1);
 		  n2 = other2(n2);
 		  
-	}while( n2 != p );
+	}while( n1 != p );
 	
 	return c;
 }

@@ -59,8 +59,9 @@ void init_vis( struct Point * points, int num_points, struct Line * lines, int n
 /** for a pair (p, q) of points, add the edge pq if their are visibile to each other
 */
 void handle( struct Point* p, struct Point* q, struct Map_info * out )
-{	
+{
 
+	/* if it's a point without segments, just report the edge */
 	if ( segment1(q) == NULL && segment2(q) == NULL && before(p,q, p->vis ))
 	{
 		report(p,q,out);

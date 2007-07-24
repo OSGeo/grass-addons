@@ -144,7 +144,7 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 	struct line_pnts* sites;
 	int i;
 	struct line_cats* cats;
-	int cat =0;
+	int cat = 0;
 	int type;
 	
 	sites = Vect_new_line_struct();
@@ -162,8 +162,6 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 	
 		if ( type != GV_LINE && type != GV_BOUNDARY && type != GV_POINT)
 			continue;
-		
-		Vect_cat_get (cats, 1, &cat);
 		
 		if ( type == GV_LINE )
 			process_line(sites, points, &index_point, lines, &index_line, -1);
@@ -275,7 +273,7 @@ void process_boundary( struct line_pnts * sites, struct Point ** points, int * i
 		if ( i == n-2 )
 		{
 			(*lines)[*index_line].p1 = &((*points)[(*index_point)-1]);
-			(*lines)[*index_line].p2 = &((*points)[(*index_point)-n+1]);
+			(*lines)[*index_line].p2 = &((*points)[(*index_point)-n+2]);
 		}
 		else
 		{
