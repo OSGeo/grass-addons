@@ -454,7 +454,7 @@ int snakes(struct line_pnts *Points, double alfa, double beta, int with_z)
     matrix_add_identity((double)1.0, &g);
 
     /* find its inverse */
-    if (!matrix_inverse(g, &ginv, 5)) {
+    if (!matrix_inverse(g, &ginv, 0)) {
 	G_fatal_error(_("Could not find the inverse matrix"));
 	return n;
     };

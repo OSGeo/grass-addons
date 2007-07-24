@@ -57,8 +57,9 @@ int matrix_mult(MATRIX a, MATRIX b, MATRIX * res)
     if (a.cols != b.rows)
 	return 0;
 
-    //if (!matrix_init(a.rows, b.cols, res))
-    //  return 0;
+    /*if (!matrix_init(a.rows, b.cols, res))
+     * return 0;
+     */
 
     int i, j, k;
     for (i = 0; i < a.rows; i++)
@@ -120,7 +121,7 @@ void matrix_row_add_multiple(int ra, int rb, double s, MATRIX * m)
 };
 
 /* TODO: don't test directly equality to zero */
-int matrix_inverse(MATRIX a, MATRIX * res, int bandwidth)
+int matrix_inverse(MATRIX a, MATRIX * res, int percents)
 {;
 
     /* not a square matrix */
@@ -147,8 +148,14 @@ int matrix_inverse(MATRIX a, MATRIX * res, int bandwidth)
      */
 
     int n = a.rows;
+
+    if (percents)
+	G_percent_reset();
+
     for (i = 0; i < n; i++) {
 	int found = 0;
+	if (percents)
+	    G_percent(i, n, 1);
 	for (j = i; j < n; j++) {
 	    if (a.a[j][i] != 0) {	/* need to change this row to something */
 		found = 1;	/* more sensible */

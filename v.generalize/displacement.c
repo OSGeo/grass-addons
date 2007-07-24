@@ -39,14 +39,11 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
      * Also, we must be able to specify the lines we want to
      * displace.
      * 
-     * Moreover, there is no reason to cnsider the lines/points
-     * which are OK
-     * 
      * I just want to see the results, before i spend
      * two afternoons working...:)
      */
 
-    int i, j, index, pindex, iter;
+    int i, j, index, pindex, iter, type;
     int with_z = 0;
     struct line_pnts *Points, *Write;
     struct line_cats *Cats;
@@ -54,10 +51,11 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
     POINT *parray;
     POINT *pset;
     int *point_index;
-    int *first, *line_index;
+    int *first, *line_index, *need, *sel, *tmp_index;
     double threshold2;
-    int from, to;
+    int selected;
 
+    /* initialize structrures and read the number of points */
     Points = Vect_new_line_struct();
     Write = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
@@ -65,8 +63,9 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
     n_points = 0;
 
     for (i = 1; i <= n_lines; i++) {
-	Vect_read_line(In, Points, NULL, i);
-	n_points += Points->n_points;
+	type = Vect_read_line(In, Points, NULL, i);
+	if (type & GV_LINES)
+	    n_points += Points->n_points;
     };
 
     parray = (POINT *) G_calloc(n_points, sizeof(POINT));
@@ -74,21 +73,21 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
     point_index = (int *)G_calloc(n_points, sizeof(int));
     first = (int *)G_calloc(n_points, sizeof(int));
     line_index = (int *)G_calloc(n_points, sizeof(int));
+    need = (int *)G_calloc(n_points, sizeof(int));
+    sel = (int *)G_calloc(n_points, sizeof(int));
+    tmp_index = (int *)G_calloc(n_points, sizeof(int));
 
     /* read points 
      * TODO: some better/faster method for determining whether two points are the same */
     index = 0;
     pindex = 0;
-    from = to = 0;
     for (i = 1; i <= n_lines; i++) {
-	Vect_read_line(In, Points, NULL, i);
-	from = to;
-	to = from + Points->n_points;
+	type = Vect_read_line(In, Points, NULL, i);
+	if (!(type & GV_LINES))
+	    continue;
 	for (j = 0; j < Points->n_points; j++) {
-	    int q, w;
-	    double a, b, c, h;
+	    int q, findex;
 	    POINT cur;
-	    int findex;
 	    point_assign(Points, j, with_z, &cur);
 	    /* check whether we alerady have point with the same
 	     * coordinates */
@@ -111,6 +110,50 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 	};
     };
 
+
+    threshold2 = threshold * threshold;
+    /*select only the points which need to be displace */
+    for (i = 0; i < index; i++) {
+	if (need[point_index[i]])
+	    continue;
+	for (j = 1; j < index; j++) {
+	    if (line_index[i] == line_index[j] || first[j] ||
+		point_index[i] == point_index[j] ||
+		point_index[i] == point_index[j - 1])
+		continue;
+	    double d =
+		point_dist_segment_square(parray[i], parray[j], parray[j - 1],
+					  with_z);
+	    if (d < 4 * threshold2)
+		need[point_index[i]] = 1;
+	};
+    };
+
+    /* then for each selected point ensure that the neighbours to the both
+     * sides are selected as well */
+    for (i = 0; i < index; i++) {
+	int l = line_index[i];
+	tmp_index[i] = -1;
+	if (!need[point_index[i]])
+	    continue;
+	for (j = -2; j <= 2; j++)
+	    if (i + j >= 0 && i + j < index && line_index[i + j] == l)
+		sel[point_index[i + j]] = 1;
+    };
+
+    /* finally, recalculate indices */
+    selected = 0;
+    for (i = 0; i < pindex; i++)
+	if (sel[i])
+	    tmp_index[i] = selected++;
+
+    for (i = 0; i < index; i++)
+	point_index[i] = tmp_index[point_index[i]];
+    pindex = selected;
+
+    printf("%d\n", pindex);
+
+    /* initialize matrices */
     matrix_init(pindex, pindex, &k);
     matrix_init(pindex, 1, &dx);
     matrix_init(pindex, 1, &dy);
@@ -129,34 +172,33 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
     for (i = 0; i < index; i++) {
 	int r = point_index[i];
 	int l = line_index[i];
+	if (r == -1)
+	    continue;
 	k.a[r][r] += a;
-	if (i + 1 < index && line_index[i + 1] == l)
+	if (i + 1 < index && line_index[i + 1] == l && point_index[i + 1] != -1)
 	    k.a[r][point_index[i + 1]] += b;
-	if (i + 2 < index && line_index[i + 2] == l)
+	if (i + 2 < index && line_index[i + 2] == l && point_index[i + 2] != -1)
 	    k.a[r][point_index[i + 2]] += c;
-	if (i >= 1 && line_index[i - 1] == l)
+	if (i >= 1 && line_index[i - 1] == l && point_index[i - 1] != -1)
 	    k.a[r][point_index[i - 1]] += b;
-	if (i >= 2 && line_index[i - 2] == l)
+	if (i >= 2 && line_index[i - 2] == l && point_index[i - 2] != -1)
 	    k.a[r][point_index[i - 2]] += c;
     };
 
-    //    matrix_print(k);
-
-    threshold2 = threshold * threshold;
-
     matrix_add_identity(gama, &k);
-
     matrix_mult_scalar(0.0, &dx);
     matrix_mult_scalar(0.0, &dy);
 
     /*calculate the inverse */
     G_message(_("Inverting matrix, be patient ..."));
-    if (!matrix_inverse(k, &kinv, 4))
+    if (!matrix_inverse(k, &kinv, 1))
 	G_fatal_error(_("Could not calculate the inverse matrix"));
 
+    G_percent_reset();
+    G_message(_("Resolving conflicts ..."));
     for (iter = 0; iter < iterations; iter++) {
-
 	int conflicts = 0;
+	G_percent(iter, iterations, 1);
 
 	matrix_mult_scalar(0.0, &fx);
 	matrix_mult_scalar(0.0, &fy);
@@ -170,17 +212,20 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 	/* calculate force vectors */
 	for (i = 0; i < index; i++) {
 
-	    double cx, cy;
+	    double cx, cy, f;
+	    if (point_index[i] == -1)
+		continue;
 	    cx = dx.a[point_index[i]][0];
 	    cy = dy.a[point_index[i]][0];
-	    double f = sqrt(cx * cx + cy * cy);
+	    f = sqrt(cx * cx + cy * cy) * alfa;
 	    f /= threshold2;
 	    fx.a[point_index[i]][0] -= cx * f;
 	    fy.a[point_index[i]][0] -= cy * f;
 
 	    for (j = 1; j < index; j++) {
 		if (line_index[i] == line_index[j] || first[j] ||
-		    point_index[i] == point_index[j])
+		    point_index[i] == point_index[j] ||
+		    point_index[i] == point_index[j - 1])
 		    continue;
 		/* if ith point is close to some segment then
 		 * apply force to ith point. If the distance
@@ -208,8 +253,8 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 		conflicts++;
 	    };
 	};
-	printf("Conflicts: %d\n", conflicts);
 
+	/* calculate new displacement */
 	matrix_mult_scalar(delta, &fx);
 	matrix_mult_scalar(delta, &fy);
 	matrix_mult_scalar(gama, &dx);
@@ -222,6 +267,8 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 	matrix_mult(kinv, fy, &dy);
 
 	for (i = 0; i < index; i++) {
+	    if (point_index[i] == -1)
+		continue;
 	    parray[i].x +=
 		dx.a[point_index[i]][0] - dx_old.a[point_index[i]][0];
 	    parray[i].y +=
@@ -233,19 +280,16 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
     index = 0;
     for (i = 1; i <= n_lines; i++) {
 	int type = Vect_read_line(In, Points, Cats, i);
-	/*Vect_read_line(In, Write, NULL, i);
-	 * Write->n_points = 2; */
+	if (!(type & GV_LINES)) {
+	    Vect_write_line(Out, type, Points, Cats);
+	    continue;
+	};
 	for (j = 0; j < Points->n_points; j++) {
-	    /*  Write->x[0] = Points->x[j];
-	     * Write->y[0] = Points->y[j]; */
 	    Points->x[j] = parray[index].x;
 	    Points->y[j] = parray[index].y;
-	    /*            Write->x[1] = Points->x[j];
-	     * Write->y[1] = Points->y[j];
-	     * Vect_write_line(Out, GV_LINE, Write, Cats); */
 	    index++;
 	};
-	Vect_write_line(Out, GV_LINE, Points, Cats);
+	Vect_write_line(Out, type, Points, Cats);
     };
 
     G_free(parray);
@@ -253,6 +297,9 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
     G_free(point_index);
     G_free(first);
     G_free(line_index);
+    G_free(need);
+    G_free(sel);
+    G_free(tmp_index);
     matrix_free(k);
     matrix_free(kinv);
     matrix_free(dx);

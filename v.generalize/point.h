@@ -56,6 +56,9 @@ extern inline double point_dist(POINT a, POINT b);
 extern inline double point_dist_square(POINT a, POINT b);
 /* angle in radians between vectors ab and bc */
 extern inline double point_angle_between(POINT a, POINT b, POINT c);
+/* distance squared between a and segment bc */
+extern inline double point_dist_segment_square(POINT a, POINT b, POINT c,
+					       int with_z);
 /* creates empty list of points */
 extern POINT_LIST *point_list_new(POINT p);
 /* insert new value to the list just after the l. i.e l->next.p = p */

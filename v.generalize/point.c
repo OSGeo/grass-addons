@@ -99,6 +99,15 @@ inline double point_angle_between(POINT a, POINT b, POINT c)
     return acos(point_dot(a, b) / sqrt(point_dist2(a) * point_dist2(b)));
 };
 
+inline double point_dist_segment_square(POINT a, POINT b, POINT c, int with_z)
+{
+    double px, py, pz, pdist;
+    int status;
+    return dig_distance2_point_to_line(a.x, a.y, a.z, b.x, b.y, b.z,
+				       c.x, c.y, c.z, with_z, &px, &py, &pz,
+				       &pdist, &status);
+};
+
 POINT_LIST *point_list_new(POINT p)
 {
     POINT_LIST *pl;
