@@ -230,9 +230,9 @@ int graph_generalization(struct Map_info *In, struct Map_info *Out,
     Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
     for (i = 1; i < g.vertices; i++) {
-	if (g.degree[i] >= degree_thresh &&
-	    (comp[i] - 1.0) / closeness[i] >= closeness_thresh &&
-	    betweeness[i] >= betweeness_thresh) {
+	if ((g.degree[i] >= degree_thresh &&
+	     (comp[i] - 1.0) / closeness[i] >= closeness_thresh &&
+	     betweeness[i] >= betweeness_thresh)) {
 	    type = Vect_read_line(In, Points, Cats, i);
 	    output += Points->n_points;
 	    Vect_write_line(Out, type, Points, Cats);

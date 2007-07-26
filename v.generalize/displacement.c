@@ -28,21 +28,11 @@
  * Function returns somthing */
 int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 			double threshold, double alfa, double beta, double gama,
-			double delta, int iterations)
+			double delta, int iterations, VARRAY * varray)
 {
 
     int n_points;
     int n_lines;
-
-    /*this is not THE final version
-     * 
-     * Also, we must be able to specify the lines we want to
-     * displace.
-     * 
-     * I just want to see the results, before i spend
-     * two afternoons working...:)
-     */
-
     int i, j, index, pindex, iter, type;
     int with_z = 0;
     struct line_pnts *Points, *Write;
@@ -64,7 +54,9 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 
     for (i = 1; i <= n_lines; i++) {
 	type = Vect_read_line(In, Points, NULL, i);
-	if (type & GV_LINES)
+	if (varray && !varray->c[i])
+	    continue;
+	if (type & GV_LINE)
 	    n_points += Points->n_points;
     };
 
@@ -83,7 +75,7 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
     pindex = 0;
     for (i = 1; i <= n_lines; i++) {
 	type = Vect_read_line(In, Points, NULL, i);
-	if (!(type & GV_LINES))
+	if (type != GV_LINE || (varray && !varray->c[i]))
 	    continue;
 	for (j = 0; j < Points->n_points; j++) {
 	    int q, findex;
@@ -280,7 +272,7 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
     index = 0;
     for (i = 1; i <= n_lines; i++) {
 	int type = Vect_read_line(In, Points, Cats, i);
-	if (!(type & GV_LINES)) {
+	if (type != GV_LINE || (varray && !varray->c[i])) {
 	    Vect_write_line(Out, type, Points, Cats);
 	    continue;
 	};

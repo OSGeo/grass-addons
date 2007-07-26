@@ -319,8 +319,10 @@ int main(int argc, char *argv[])
 	    G_warning(_("Problem loading category values"));
 	};
     }
-    else
+    else {
 	chcat = 0;
+	varray = NULL;
+    };
 
 
     Vect_copy_head_data(&In, &Out);
@@ -331,7 +333,7 @@ int main(int argc, char *argv[])
 
     if (method == DISPLACEMENT) {
 	snakes_displacement(&In, &Out, thresh, alfa, beta, 1.0, 10.0,
-			    iterations);
+			    iterations, varray);
     };
 
     /* TODO: rearrange code below. It's really messy */
@@ -350,7 +352,7 @@ int main(int argc, char *argv[])
 	   (type = Vect_read_next_line(&In, Points, Cats)) > 0) {
 	i++;
 	G_percent(i, n_lines, 1);
-	if (type == GV_CENTROID && !(mask_type & GV_BOUNDARY))
+	if (type == GV_CENTROID && (mask_type & GV_BOUNDARY))
 	    continue;		/* skip old centroids,
 				 * we calculate new if we generalize boundarie */
 	total_input += Points->n_points;
@@ -434,7 +436,7 @@ int main(int argc, char *argv[])
      * We need to calculate them only if the boundaries
      * were generalized
      */
-    if (mask_type & GV_BOUNDARY) {
+    if ((mask_type & GV_BOUNDARY) && method != DISPLACEMENT) {
 	Vect_build_partial(&Out, GV_BUILD_ATTACH_ISLES, NULL);
 	n_areas = Vect_get_num_areas(&Out);
 	for (i = 1; i <= n_areas; i++) {
