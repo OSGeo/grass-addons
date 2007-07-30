@@ -302,12 +302,12 @@ if (G_parser(argc, argv))
 				/* if the initial storage level is equal or bigger than the maximum */
 				if (d_Wo>=d_Wc) {  
 				ciclo=3;
-					G_debug ( 4, fprintf(stdout,"dWo=dWc: stauro\n") );
+					G_debug ( 4, _("dWo=dWc: stauro\n") );
 					d_IntLoss	= FMIN((d_Eo*d_Ts),(d_R*d_Ts)+(d_Wo-d_Wc));
 					//d_IntLoss	= d_Eo*d_Ts;
 					d_Drainage	= d_R*d_Ts - d_IntLoss + (d_Wo-d_Wc);
 					d_Wt		= d_Wc;
-					G_debug ( 4, fprintf(stdout,"Troughfall=%lf",d_Drainage) );
+					G_debug ( 4, _("Troughfall=%lf"),d_Drainage);
 				}
 				
 				/* if the initial storage level is less than the maximum */
@@ -319,17 +319,17 @@ if (G_parser(argc, argv))
 					
 					/* if the saturation is reach into the timestep */ 
 					if (d_R>=i_sat){  
-            					G_debug ( 4, fprintf(stdout,"dt>=d_Ts\n") );
+            					G_debug ( 4, _("dt>=d_Ts\n") );
 						ciclo=5;
 						//time to have saturation
 						dt	= -d_tao*log(1-((d_Wc-d_Wo)/(d_R*d_tao))); 
 						
 						/* some check!!! */
 						if(dt>d_Ts) {
-							G_warning ("Saturation time cannot be larger than time step!\n");
+							G_warning (_("Saturation time cannot be larger than time step!\n"));
 						}
 						if(dt<0) {
-							G_warning ("Saturation time cannot be negative!\n");
+							G_warning (_("Saturation time cannot be negative!\n"));
 						}
 						
 						/* d_IntLoss	= FMIN( ((d_R*d_Ts)-(d_Wc-d_Wo)) , ((d_R*dt)-(d_Wc-d_Wo)+(d_Ts-dt)*d_Eo) ); */
@@ -341,7 +341,7 @@ if (G_parser(argc, argv))
 					
 					/* if the saturation is not reached into the timestep */
 					else {  
-            					G_debug ( 4, fprintf(stdout,"dt<d_Ts\n") );
+            					G_debug ( 4, _("dt<d_Ts\n") );
 						ciclo=6;
 						/* storage level at the end of timestep */
 						d_Wr		= d_R*d_tao*(1-exp(-d_Ts/d_tao)) + d_Wo; 
@@ -365,7 +365,7 @@ if (G_parser(argc, argv))
 			else if (d_R<=0){
 				/* if the storage was empty (zero phase)*/
 				if (d_Wo<=0){  
-				    G_debug ( 4, fprintf(stdout,"dWo=0\n") );
+				    G_debug ( 4, _("dWo=0\n") );
 						ciclo=10;
 						d_IntLoss	= 0;
 						d_Drainage	= 0;
@@ -373,7 +373,7 @@ if (G_parser(argc, argv))
 				}
 				/* if the storage was not empty (decrease phase)*/
 				else if (d_Wo<=d_Wc) {  
-				    G_debug ( 4, fprintf(stdout,"dWo>0\n") );
+				    G_debug ( 4, _("dWo>0\n") );
 				    ciclo=11;
 						d_Drainage	= 0;
 						d_Wt		= FMAX(d_Wo*exp(-d_Ts/d_tao),0);
@@ -388,17 +388,17 @@ if (G_parser(argc, argv))
 			}
 			
 			else {
-				G_warning ("Exception case: Rain=%lf - Evapo=%lf\n",d_R,d_Eo);
+				G_warning (_("Exception case: Rain=%lf - Evapo=%lf\n"),d_R,d_Eo);
 				d_IntLoss	= 0;
 				d_Drainage	= 0;
 				d_Wt		= 0;
 			}				
 			
 			if(((d_IntLoss+d_Drainage+d_Wt-d_Wo-d_R)-0)>0.00001)
-				G_debug ( 3, printf("BILANCIO: %e | CICLO:%d | IL=%lf - D=%lf - Wt=%lf - d_Wo=%lf - R=%lf\n",d_IntLoss+d_Drainage+d_Wt-d_Wo-d_R,ciclo,d_IntLoss,d_Drainage,d_Wt,d_Wo,d_R) );
+				G_debug ( 3, _("BILANCIO: %e | CICLO:%d | IL=%lf - D=%lf - Wt=%lf - d_Wo=%lf - R=%lf\n"),d_IntLoss+d_Drainage+d_Wt-d_Wo-d_R,ciclo,d_IntLoss,d_Drainage,d_Wt,d_Wo,d_R);
 			
 			if (d_Wt<0 || d_Wt>d_Wc) {
-				G_debug ( 3, printf("\nciclo: %d, d_IntLoss:%lf\nd_R:%lf, d_Eo:%lf, d_Wo:%lf, d_Wc:%lf, \ni_sat:%lf, dt:%lf, R+E:%lf",ciclo,d_IntLoss,d_R,d_Eo,d_Wo,d_Wc,i_sat,dt,((d_R*d_Ts)+d_Wo)) );
+				G_debug ( 3, _("\nciclo: %d, d_IntLoss:%lf\nd_R:%lf, d_Eo:%lf, d_Wo:%lf, d_Wc:%lf, \ni_sat:%lf, dt:%lf, R+E:%lf"),ciclo,d_IntLoss,d_R,d_Eo,d_Wo,d_Wc,i_sat,dt,((d_R*d_Ts)+d_Wo));
 			}
 			
 			/* write evaluated values in the buffers */
@@ -409,7 +409,7 @@ if (G_parser(argc, argv))
 			((DCELL *) outrast_D)[col] = (d_Drainage*d_F); 
       /* note: to get total rain reaching the ground->  d_Drainage*d_F)+(1-d_F)*d_R; */
 			((DCELL *) outrast_Wt)[col] = d_Wt; 
-				G_debug ( 5, fprintf(stdout,"IntLoss=%lf\n",d_IntLoss) );
+				G_debug ( 5, _("IntLoss=%lf\n"),d_IntLoss);
 		}
 
 		/* write buffers into the output rasters */
@@ -423,9 +423,9 @@ if (G_parser(argc, argv))
 	}	
 
 if (err==1)
-	G_warning ("Canopy starting storage has exceeded maximum storage");
+	G_warning (_("Canopy starting storage has exceeded maximum storage"));
 if (err==2)
-	G_warning ("Canopy starting storage is negative");
+	G_warning (_("Canopy starting storage is negative"));
 
 
 	
