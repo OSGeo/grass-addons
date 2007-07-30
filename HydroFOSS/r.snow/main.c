@@ -8,7 +8,7 @@
 *               the snowamelt and the snowpack energy with a modified
 *               SHE model approach.
 *
-* COPYRIGHT:	(C) 2006 by Istituto Scienze della Terra
+* COPYRIGHT:	(C) 2006 by Istituto Scienze della Terra (www.ist.supsi.ch)
 *
 *		This program is free software under the GNU General Public
 *		Licence (>=2). Read the file COPYING that cames with GRASS
