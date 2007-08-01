@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     struct Option *field_opt, *where_opt, *reduction_opt, *slide_opt;
     struct Option *angle_thresh_opt, *degree_thresh_opt, *closeness_thresh_opt;
     struct Option *betweeness_thresh_opt;
-    struct Flag *ca_flag;
+    struct Flag *ca_flag, *rs_flag;
     int with_z;
     int total_input, total_output;	/* Number of points in the input/output map respectively */
     double thresh, alfa, beta, reduction, slide, angle_thresh;
@@ -203,6 +203,10 @@ int main(int argc, char *argv[])
     ca_flag = G_define_flag();
     ca_flag->key = 'c';
     ca_flag->description = _("Copy attributes");
+
+    rs_flag = G_define_flag();
+    rs_flag->key = 'r';
+    rs_flag->description = _("Remove lines and areas smaller than threshold");
 
     /* options and flags parser */
     if (G_parser(argc, argv))
@@ -400,7 +404,7 @@ int main(int argc, char *argv[])
 
 
 	    /* remove "oversimplified" lines */
-	    if (simplification && type == GV_LINE &&
+	    if (rs_flag->answer && simplification && type == GV_LINE &&
 		Vect_line_length(Points) < thresh)
 		continue;
 
@@ -456,7 +460,7 @@ int main(int argc, char *argv[])
     };
 
     /* remove small areas */
-    if (simplification && (mask_type & GV_AREA)) {
+    if (rs_flag->answer && simplification && (mask_type & GV_AREA)) {
 	Vect_build_partial(&Out, GV_BUILD_CENTROIDS, NULL);
 	Vect_remove_small_areas(&Out, thresh, NULL, NULL, &slide);
     };
