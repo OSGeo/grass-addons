@@ -194,20 +194,20 @@
 #% required : yes
 #% guisection: Smoothing_Filter
 #%end
-#%option
-#% key: sigma
-#% type: string
-#% description: Band-pass filter threshold value, sigma (meters)
-#% answer: 0.10
-#% required : yes
-#% guisection: Smoothing_Filter
-#%end
+# 	#%option
+# 	#% key: sigma
+# 	#% type: string
+# 	#% description: Band-pass filter threshold value, sigma (meters)
+# 	#% answer: 0.10
+# 	#% required : yes
+# 	#% guisection: Smoothing_Filter
+# 	#%end
 #%option
 #% key: method
 #% type: string
 #% description: Neighborhood smoothing method
 #% answer: median
-#% options: median,mode,average
+#% options: average,median,mode
 #% required : yes
 #% guisection: Smoothing_Filter
 #%end
@@ -322,8 +322,6 @@ fi
 
 echo "The following temporary files will be created:"
 echo ""
-neighbors=$prefx"neighbors"$num
-echo "neighbors=$neighbors"
 tempsmoothdz=$prefx"tempsmoothdz"$num
 echo "tempsmoothdz=$tempsmoothdz"
 tempsmoothdz=$prefx"tempsmoothdz"$num
@@ -388,7 +386,7 @@ res1=`eval g.region -p -m | grep "nsres:" | cut -d : -f 2`
 # we must set the region to the map being used. otherwise r.flow will not work
 echo ""
 echo "Setting region to $elev"
-g.region rast=$elev
+g.region -a rast=$elev
 
 #now lets show before:
 echo ""
@@ -435,6 +433,9 @@ echo "*************************"
 echo ""
 
 
+
+
+
 r.slope.aspect --q $elev slope=$slope aspect=$aspect pcurv=$pc tcurv=$tc
 
 
@@ -468,25 +469,34 @@ fi
 
 echo "Amount of free RAM being allocated for this step: $mem Megabites"
 
-r.terraflow --q elev=$elev filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=temp.flowacc tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
+tmpflacc=$prefx".tmpflacc"
 
-r.mapcalc "$flowacc=temp.flowacc/$res"
+r.terraflow --q elev=$elev filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=$tmpflacc tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
+
+r.mapcalc "$flowacc=$tmpflacc/$res"
 
 
-g.remove --q rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",temp.flowacc
+g.remove --quiet rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",$tmpflacc,$tmpdirection
 rm -f /var/tmp/STREAM*
 
 else
 
 echo "using r.flow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
 
-tmpflacc=$prefx".tmpflacc"
+tmpfilled=$prefx"tmpfilled"$num
+tmpdirection=$prefx"tmpdirection"
 
-r.flow -3 --quiet elevin=$elev aspin=$aspect dsout=$tmpflacc
+tmpflacc=$prefx"tmpflacc"
+
+r.fill.dir --quiet input=$elev elevation=$tmpfilled direction=$tmpdirection type=grass
+
+r.flow -3 --quiet elevin=$tmpfilled aspin=$aspect dsout=$tmpflacc
 
 r.mapcalc "$flowacc=$tmpflacc*$res"
 
-g.remove --quiet rast=$tmpflacc
+g.remove --quiet rast=$tmpflacc,$tmpdirection
+
+
 
 fi
 
@@ -629,6 +639,9 @@ echo "step 7 of 8: running band-pass filter"
 echo "*************************"
 echo ""
 
+
+
+
 if [ "$GIS_FLAG_y" -eq 1 ]; then
 
 echo ""echo "You have selected not to smooth your files... Oh Well!"
@@ -636,14 +649,18 @@ echo ""
 
 r.mapcalc "$smoothdz=if((-1 * $erdep) >= $initsoil, (-1 * $initsoil), $erdep)"
 
+
 else
+#commenting out the sigma-based truncation because it was causeing deletarious amplification of cell edges. Leaving it commented for posterity only...
+#r.mapcalc "$smoothdz=if((abs($tempsmoothdz-$neighbors)) > $GIS_OPT_sigma , $neighbors , $tempsmoothdz)"
 
-
-r.neighbors --q input=$erdep output=$neighbors method=$GIS_OPT_method size=$GIS_OPT_nbhood
 r.mapcalc "$tempsmoothdz=if((-1 * $erdep) >= $initsoil, (-1 * $initsoil), $erdep)"
-r.mapcalc "$smoothdz=if((abs($tempsmoothdz-$neighbors)) > $GIS_OPT_sigma , $neighbors , $tempsmoothdz)"
+
+r.neighbors --q input=$tempsmoothdz output=$smoothdz method=$GIS_OPT_method size=$GIS_OPT_nbhood
 
 fi
+
+
 
 #checking to see if we should keep the initial soil depths map
 
@@ -685,6 +702,7 @@ echo "*************************"
 echo "step 8 of 8: calculating terrain evolution, new bedrock elevations, and new soil depths"
 echo "*************************"
 echo ""
+
 
 if [ $number -eq 1 ] ; then
 
@@ -734,6 +752,7 @@ r.mapcalc "$rate=$kappa*(2-($meancurv*(2/($max)-($min))))"
 #rate is actually the net change in bedrock elevation due to soil production, so lets use it to find the new bedrock elev, and the new soil depth!
 
 r.mapcalc "$new_bdrk=$initbdrk - $rate"
+
 r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
 
 fi
@@ -824,8 +843,6 @@ old_dem=$prefx$outdem$laststep
 
 echo "The following temporary files will be created:"
 echo ""
-neighbors=$prefx"neighbors"$step
-echo "neighbors=$neighbors"
 tempsmoothdz=$prefx"tempsmoothdz"$step
 echo "tempsmoothdz=$tempsmoothdz"
 temp2smoothdz=$prefx"temp2smoothdz"$step
@@ -901,6 +918,10 @@ echo "step 1 of 8: calculating slope and aspect"
 echo "*************************"
 echo ""
 
+
+
+
+
 r.slope.aspect --q elevation=$old_dem slope=$slope aspect=$aspect pcurv=$pc tcurv=$tc
 
 
@@ -936,23 +957,32 @@ fi
 
 echo "Amount of free RAM being allocated for this step: $mem Megabites"
 
-r.terraflow --q elev=$elev filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=$prefx".tmpflacc" tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
+tmpflacc=$prefx".tmpflacc"
 
-r.mapcalc "$flowacc=$prefx".tmpflacc"/$res"
+r.terraflow --q elev=$old_dem filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=$tmpflacc tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
 
-g.remove --q rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",$prefx".tmpflacc"
+r.mapcalc "$flowacc=$tmpflacc/$res"
+
+
+g.remove --quiet rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",$tmpflacc,$tmpdirection
 rm -f /var/tmp/STREAM*
 
 else
 
 echo "using r.flow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
 
-tmpflacc=$prefx".tmpflacc"
-r.flow -3 --quiet elevin=$elev aspin=$aspect dsout=$tmpflacc
+tmpfilled=$prefx"tmpfilled"$step
+tmpdirection=$prefx"tmpdirection"
+
+tmpflacc=$prefx"tmpflacc"
+
+r.fill.dir --quiet input=$old_dem elevation=$tmpfilled direction=$tmpdirection type=grass
+
+r.flow -3 --quiet elevin=$tmpfilled aspin=$aspect dsout=$tmpflacc
 
 r.mapcalc "$flowacc=$tmpflacc*$res"
 
-g.remove --quiet rast=$tmpflacc
+g.remove --quiet rast=$tmpflacc,$tmpdirection
 
 fi
 
@@ -1095,9 +1125,13 @@ r.mapcalc "$temp2smoothdz=if((-1 * $erdep) >= $old_soil, (-1 * $old_soil), $erde
 
 else
 
-r.neighbors --q input=$erdep output=$neighbors method=$GIS_OPT_method size=$GIS_OPT_nbhood
+#commenting out the sigma-based truncation because it was causeing deletarious amplification of cell edges. Leaving it commented for posterity only...
+#r.mapcalc "$temp2smoothdz=if((abs($tempsmoothdz-$neighbors)) > $GIS_OPT_sigma , $neighbors , $tempsmoothdz)"
+
 r.mapcalc "$tempsmoothdz=if((-1 * $erdep) >= $old_soil, (-1 * $old_soil), $erdep)"
-r.mapcalc "$temp2smoothdz=if((abs($tempsmoothdz-$neighbors)) > $GIS_OPT_sigma , $neighbors , $tempsmoothdz)"
+
+r.neighbors --q input=$tempsmoothdz output=$temp2smoothdz method=$GIS_OPT_method size=$GIS_OPT_nbhood
+
 
 fi
 
@@ -1146,8 +1180,7 @@ echo ""
 echo "Calculating new soil depths keeping bedrock elevations static"
 
 
-new_bdrk=$initbdrk
-r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
+r.mapcalc "$new_soil=if (($new_dem - $initbdrk) < 0, 0, ($new_dem - $initbdrk))"
 
 else
 
@@ -1321,7 +1354,8 @@ else
 echo ""
 echo "Cleaning up..."
 
-g.mremove -f --q rast=$prefx"neighbors*"
+
+g.mremove -f --q rast=$prefx"tmpfilled*"
 g.mremove -f --q rast=$prefx"flowacc*"
 g.mremove -f --q rast=$prefx"slope*"
 g.mremove -f --q rast=$prefx"aspect*"
