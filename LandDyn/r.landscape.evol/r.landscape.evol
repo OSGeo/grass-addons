@@ -681,7 +681,7 @@ else
 fi
 
 
-echo "100% 255 000 255" > $TMP1
+echo "100% 104 034 139" > $TMP1
 echo "5 violet" >> $TMP1
 echo "3 aqua" >> $TMP1
 echo "1 cyan" >> $TMP1
@@ -691,7 +691,7 @@ echo "-0.5 yellow" >> $TMP1
 echo "-1 orange" >> $TMP1
 echo "-3 red" >> $TMP1
 echo "-5 255 000 255" $TMP1
-echo "0% 104 034 139" >> $TMP1
+echo "-0% 255 000 255" >> $TMP1
 echo "end" >> $TMP1
 
 
@@ -1138,30 +1138,7 @@ fi
 #now we must correct for the incredible edge shrinking effect by patching the last smoothdz underneath the new smoothdz
 r.patch input=$temp2smoothdz,$lastsmooth output=$smoothdz
 
-
-# create temporary file to code colors for $smoothdz
-TMP1=`g.tempfile pid=$$`
-
-if [ $? -ne 0 ] || [ -z "$TMP1" ] ; then
-    echo "ERROR: unable to create temporary file for colors" 1>&2
-    exit 1
-else
-	echo "creating temporary file to code colors"
-
-fi
-echo "100% 255 000 255" > $TMP1
-echo "5 violet" >> $TMP1
-echo "3 aqua" >> $TMP1
-echo "1 cyan" >> $TMP1
-echo "0.5 green" >> $TMP1
-echo "0 white" >> $TMP1
-echo "-0.5 yellow" >> $TMP1
-echo "-1 orange" >> $TMP1
-echo "-3 red" >> $TMP1
-echo "-5 255 000 255" $TMP1
-echo "0% 104 034 139" >> $TMP1
-echo "end" >> $TMP1
-
+#set the colors to our rules
 
 cat $TMP1 | r.colors --q map=$smoothdz color=rules  
 
