@@ -1,14 +1,15 @@
 <H2>DESCRIPTION</H2>
 
-<EM>v.generalize</EM> 
-is module for simplification and smoothing of GRASS vector maps. This module
-comprises a bunch of algortihms for both simplification and smoothing.
+<EM>v.generalize</EM>
+is module for generalization of GRASS vector maps. This module
+comprises a bunch of algortihms for line simplification, line smoothing,
+network generalization and displacemet. (New methods may be added later)
 
 <H2>NOTES</H2>
-(Line) generalization is a process of reducing the compexity of vector features.
+(Line) simplification is a process of reducing the compexity of vector features.
 It transforms a line into another line which consists of fewer vertices but
-still approximates the original line. In most of the algorithms below, this
-process consists of picking subset of points of the original line.
+still approximates the original line. The most of the algorithms described below
+selects a subset of points of the original line.
 
 <P>
 On the other hand, (line) smoothing is a "reverse" process which takes as an
@@ -18,10 +19,12 @@ Sometimes, the increase of the number of vertices is dramatical (4000%).
 When this situation occurs, it is always a good idea to simplify the line after
 smoothing.
 </P>
+
 <P>
-All the algorithms implemented in this module work line by line. i.e simplification/smoothing
-of one line does not affect the other lines. The first and the last point of
-each line is never translated and/or deleted. 
+Smoothing and simplification algorithms implemented in this module work line by 
+line. i.e simplification/smoothing of one line does not affect the other lines.
+They are treated separately.  Also, the first and the last point of each line is
+never translated and/or deleted. 
 </P>
 
 <H2>SIMPLIFICATION</H2>
@@ -89,6 +92,7 @@ is that 'out' contains approximately only X% of points of 'in'.
 <H2>SMOOTHING</H2>
 <P>
 The following smoothing algorithms are implemented in <EM>v.generalize</EM>
+</P>
 <UL>
 <LI><I>Boyle's Forward-Looking Algorithm</I> - The position of each point depends on the
     position of the previous points and the point <B>look_ahead</B> ahead. 
@@ -115,7 +119,6 @@ The following smoothing algorithms are implemented in <EM>v.generalize</EM>
      This algorithm works very well for small values of <B>alfa</B> and <B>beta</B> (between 0 and 5). These
      parameters affects the "sharpness" and the curvature of the computed line.</LI>                          
 </UL>
-</P>
 <P>
 One of the key advantages of <I>Hermite Interpolation</I> is the fact that the computed line
 always passes throught the points of the original line whereas the lines produced by the 
@@ -137,11 +140,92 @@ More importantly, these algorithms never change the number of points on the line
 translate the points, they do not insert any new points. 
 </P>
 <P>
-<I>Snakes</I> Algorithm is the slowest among the algorithms presented here. Also,
+<I>Snakes</I> Algorithm is (asymptotically) the slowest among the algorithms presented above. Also,
 it requires quite a lot of memory. This means, that it is not very efficient
 for maps with the lines consisting of many segments.
 </P>
 
+<H2>DISPLACEMENT</H2>
+<P>
+The displacement is used when the lines (linear
+features) interact (overlap and/or are close to each other) at the current
+level of detail. In general, displacement methods, as name suggests, move the
+conflicting features apart so that they do not interact and can be distinguished.   
+</P>
+<P>
+This module implements algorithm for displacement of linear features based on
+the <I>Snakes</I> approach. This method has very good results. However, it
+requires a lot of memory and is not very efficient.
+</P>
+<P>
+Displacement is selected by method=displacement. It uses following parameters:
+</P>
+<UL>
+<LI>
+<B>threshold</B> - specifies critical distance. Two features interact iff they are
+closer than <B>threshold</B> appart.
+</LI>
+<LI>
+<B>alfa</B>, <B>beta</B> - These parameters define the rigidity of lines. For greater
+values of <B>alfa</B>, <B>beta</B> (&gt;=1), the algorithm better preserves the original
+shape of the lines. On the other hand, the lines may not
+be move enough.  If the values of <B>alfa</B>, <B>beta</B> are too small (&lt;=0.001)
+then the lines are moved sufficiently, but the geometry and topology of lines can
+be destroyed. Probably, the best way to find the good values of <B>alfa</B>, <B>beta</B>
+is by trial and error.
+</LI>
+<LI>
+<B>iterations</B> - denotes the number of iterations the interactions between
+the lines are resolved. Mostly, good values of <B>iterations</B> lies
+between 10 and 100.
+</LI>
+</UL>
+<P>
+The lines affected by the algorithm can be specified by the <B>layer</B>,
+<B>cats</B> and <B>where</B> parameters.
+</P>
+<!-- TODO: example(s) -->
+
+<H2>NETWORK GENERALIZATION</H2>
+<P>
+Is used for selecting "the most important" part of the network. This is based
+on the graph algorithms. Network generalization is applied if method=network.
+The algorithm calculates three centrality measures for each line in the
+network and only the lines with the values greater than thresholds are selected.
+The behaviour of algorithm can be altered by the following parameters:
+</P>
+
+<UL>
+<LI>
+<b>degree_thresh</b> - algorithm selects only the lines which share a point
+with at least <b>degree_thresh</b> different lines.
+</LI>
+<LI>
+<b>closeness_thresh</b> - is always in the range (0, 1]. Only the lines with
+the closeness centrality measure at least <b>closeness_thresh</b> are selcted. 
+The lines in the centre of a network have greater values of this measure then
+the lines near the border of a network. This means,
+that this parameters can be used for selecting the centre(s) of a network. Note that
+if closeness_thresh=0 then everything is selected.
+</LI>
+<LI>
+<b>betweeness_thresh</b> - Again, only the lines with betweeness centrality
+measure at least <b>betweeness_thresh</b> are selected. This value is always
+positive and is larger for large networks. It denotes to what extent a line
+is in between the other lines in the network. This value is great for the lines
+which lie between other lines and lie on the paths between two parts of a network.
+In the terminology of the road neworks, these are highways, bypasses, main roads/streets.... 
+</LI>
+</UL>
+<P>
+All three parameters above can be presented at the same time. In that case,
+the algorithm selects only the lines which meet each criterion. 
+</P>
+<P>
+Also, the outputed network may not be connected if the value of <b>betweeness_thresh</b>
+is too large.
+</P>
+<!-- TODO: example(s) -->
 <H2>SEE ALSO</H2>
 
 <EM><A HREF="v.clean.html">v.clean</A><BR></EM>
@@ -153,5 +237,7 @@ for maps with the lines consisting of many segments.
 Daniel Bundala, Google Summer of Code 2007, Student 
 <BR>
 Wolf Bergenheim, Mentor
+
+<!-- TODO: references -->
 
 <P><I>Last changed: $Date: 2007/01/08 19:38:17 $</I>

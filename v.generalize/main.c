@@ -71,8 +71,10 @@ int main(int argc, char *argv[])
 
     /* initialize module */
     module = G_define_module();
-    module->keywords = _("vector, generalization, simplification, smoothing");
-    module->description = _("Line simplification and smoothing");
+    module->keywords =
+	_
+	("vector, generalization, simplification, smoothing, displacement, network generalization");
+    module->description = _("Vector based generalization");
 
     /* Define the different options as defined in gis.h */
     map_in = G_define_standard_option(G_OPT_V_INPUT);
@@ -104,7 +106,7 @@ int main(int argc, char *argv[])
 				 "network;Network generalization;"
 				 "displacement;Displacement of lines close to each other;");
 
-    method_opt->description = _("Line simplification/smoothing algorithm");
+    method_opt->description = _("Generalization algorithm");
 
     thresh_opt = G_define_option();
     thresh_opt->key = "threshold";
