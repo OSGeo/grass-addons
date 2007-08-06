@@ -23,6 +23,7 @@
 #include <grass/glocale.h>
 #include "point.h"
 #include "pq.h"
+#include "misc.h"
 
 int douglas_peucker(struct line_pnts *Points, double thresh, int with_z)
 {
@@ -37,7 +38,7 @@ int douglas_peucker(struct line_pnts *Points, double thresh, int with_z)
 
     if (!index) {
 	G_fatal_error(_("Out of memory"));
-	G_fre(stack);
+	G_free(stack);
 	return Points->n_points;
     };
 
@@ -225,8 +226,8 @@ int reumann_witkam(struct line_pnts *Points, double thresh, int with_z)
 {
     int seg1, seg2;
     int i, count;
-    POINT x0, x1, x2, sub, diff, prev, dir;
-    double subd, diffd, sp, dist, prevd, dird, b, t, sgn;
+    POINT x0, x1, x2, sub, diff;
+    double subd, diffd, sp, dist;
     int n;
 
     n = Points->n_points;
@@ -256,21 +257,6 @@ int reumann_witkam(struct line_pnts *Points, double thresh, int with_z)
 	/* if the point is out of the threshlod-sausage, store it and calculate
 	 * all variables which do not change for each line-point calculation */
 	if (dist > thresh) {
-
-	    /*    
-	     * pointassign(Points, i - 1, with_z, &prev);
-	     * prevd = pointdist2(prev);
-	     * pointsubtract(x0, prev, &dir);
-	     * dird = pointdist2(dir);
-	     * b = 2 * pointdot(prev, dir);
-	     * 
-	     * t = (-b + sqrt(b * b - 4 * prevd * dird)) / (2 * dird);
-	     * 
-	     * x0.x = prev.x + t * dir.x;
-	     * x0.y = prev.y + t * dir.y;
-	     * x0.z = prev.z + t * dir.z;
-	     * 
-	     */
 
 	    point_assign(Points, i - 1, with_z, &x1);
 	    point_assign(Points, i, with_z, &x2);
@@ -331,6 +317,7 @@ int douglas_peucker_reduction(struct line_pnts *Points, double thresh,
     };
 
     int indices;
+    indices = 0;
 
     /* preserve first and last point */
     sel[0] = sel[n - 1] = 1;

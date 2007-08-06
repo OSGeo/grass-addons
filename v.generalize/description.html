@@ -115,8 +115,8 @@ The following smoothing algorithms are implemented in <EM>v.generalize</EM>
      <B>Angle_thresh</B> is used for reducing the number of the outputed points. It denotes the minimal
      angle (in degrees) between two consecutive segements of line.</LI>     
 <LI> <I>Snakes</I> is the method of minimization of the "energy" of the line. This method preserves the
-     general characteristcs of the lines but smooths the "sharp corners" of the line. Input parameters <B>input</B>, <B>alfa</B>, <B>beta</B>.
-     This algorithm works very well for small values of <B>alfa</B> and <B>beta</B> (between 0 and 5). These
+     general characteristcs of the lines but smooths the "sharp corners" of the line. Input parameters <B>input</B>, <B>alpha</B>, <B>beta</B>.
+     This algorithm works very well for small values of <B>alpha</B> and <B>beta</B> (between 0 and 5). These
      parameters affects the "sharpness" and the curvature of the computed line.</LI>                          
 </UL>
 <P>
@@ -166,12 +166,12 @@ Displacement is selected by method=displacement. It uses following parameters:
 closer than <B>threshold</B> appart.
 </LI>
 <LI>
-<B>alfa</B>, <B>beta</B> - These parameters define the rigidity of lines. For greater
-values of <B>alfa</B>, <B>beta</B> (&gt;=1), the algorithm better preserves the original
+<B>alpha</B>, <B>beta</B> - These parameters define the rigidity of lines. For greater
+values of <B>alpha</B>, <B>beta</B> (&gt;=1), the algorithm better preserves the original
 shape of the lines. On the other hand, the lines may not
-be move enough.  If the values of <B>alfa</B>, <B>beta</B> are too small (&lt;=0.001)
+be move enough.  If the values of <B>alpha</B>, <B>beta</B> are too small (&lt;=0.001)
 then the lines are moved sufficiently, but the geometry and topology of lines can
-be destroyed. Probably, the best way to find the good values of <B>alfa</B>, <B>beta</B>
+be destroyed. Probably, the best way to find the good values of <B>alpha</B>, <B>beta</B>
 is by trial and error.
 </LI>
 <LI>

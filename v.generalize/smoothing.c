@@ -200,7 +200,7 @@ int chaiken(struct line_pnts *Points, double thresh, int with_z)
 
     int n, i;
     POINT_LIST head, *cur;
-    POINT p0, p1, p2, m1, m2, tmp;
+    POINT p0, p1, p2, m1, tmp;
 
     n = Points->n_points;
 
@@ -380,13 +380,13 @@ int hermite(struct line_pnts *Points, double step, double angle_thresh,
  * returns the number of points in the output line. This is
  * always equal to the number of points in the original line
  * 
- * alfa, beta are 2 parameters which change the behaviour of the algorithm
+ * alpha, beta are 2 parameters which change the behaviour of the algorithm
  * 
  * TODO: Add parameter iterations, so the runnining time is O(N^3 * log iterations)
  * instead of O(N^3 * itearations). Probably not needed, for many iterations,
  * the result is almost straight line
  */
-int snakes(struct line_pnts *Points, double alfa, double beta, int with_z)
+int snakes(struct line_pnts *Points, double alpha, double beta, int with_z)
 {
     MATRIX g, ginv, xcoord, ycoord, zcoord, xout, yout, zout;
 
@@ -436,8 +436,8 @@ int snakes(struct line_pnts *Points, double alfa, double beta, int with_z)
 
 
     /* calculate the matrix */
-    double a = 2.0 * alfa + 6.0 * beta;
-    double b = -alfa - 4.0 * beta;
+    double a = 2.0 * alpha + 6.0 * beta;
+    double b = -alpha - 4.0 * beta;
     double c = beta;
 
     double val[5] = { c, b, a, b, c };

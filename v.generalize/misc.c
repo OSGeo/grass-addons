@@ -77,7 +77,7 @@ int get_furthest(struct line_pnts *Points, int a, int b, int with_z,
  * implementing set! */
 int copy_tables_by_cats(struct Map_info *In, struct Map_info *Out)
 {
-    /* this is the (mostly) code from v.extract, it should be move to 
+    /* this is the (mostly) code from v.extract, it should be moved to 
      * some vector library (probably) */
 
     int nlines, line, nfields;
@@ -87,7 +87,6 @@ int copy_tables_by_cats(struct Map_info *In, struct Map_info *Out)
     struct line_pnts *Points;
     int **ocats, *nocats, *fields;
     int i;
-    int ret;
 
     /* Collect list of output cats */
     Points = Vect_new_line_struct();

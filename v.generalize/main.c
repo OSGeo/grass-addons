@@ -22,6 +22,7 @@
 #include <grass/Vect.h>
 #include <grass/glocale.h>
 #include "misc.h"
+#include "operators.h"
 
 #define DOUGLAS 0
 #define LANG 1
@@ -42,18 +43,18 @@ int main(int argc, char *argv[])
     struct Map_info In, Out;
     static struct line_pnts *Points;
     struct line_cats *Cats;
-    int i, type, cat, iter;
+    int i, type, iter;
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out, *thresh_opt, *method_opt, *look_ahead_opt;
-    struct Option *iterations_opt, *cat_opt, *alfa_opt, *beta_opt, *type_opt;
+    struct Option *iterations_opt, *cat_opt, *alpha_opt, *beta_opt, *type_opt;
     struct Option *field_opt, *where_opt, *reduction_opt, *slide_opt;
     struct Option *angle_thresh_opt, *degree_thresh_opt, *closeness_thresh_opt;
     struct Option *betweeness_thresh_opt;
     struct Flag *ca_flag, *rs_flag;
     int with_z;
     int total_input, total_output;	/* Number of points in the input/output map respectively */
-    double thresh, alfa, beta, reduction, slide, angle_thresh;
+    double thresh, alpha, beta, reduction, slide, angle_thresh;
     double degree_thresh, closeness_thresh, betweeness_thresh;
     int method;
     int look_ahead, iterations;
@@ -176,12 +177,12 @@ int main(int argc, char *argv[])
     betweeness_thresh_opt->description =
 	_("Betweeness threshold in network generalization");
 
-    alfa_opt = G_define_option();
-    alfa_opt->key = "alfa";
-    alfa_opt->type = TYPE_DOUBLE;
-    alfa_opt->required = YES;
-    alfa_opt->answer = "1.0";
-    alfa_opt->description = _("Snakes alfa parameter");
+    alpha_opt = G_define_option();
+    alpha_opt->key = "alpha";
+    alpha_opt->type = TYPE_DOUBLE;
+    alpha_opt->required = YES;
+    alpha_opt->answer = "1.0";
+    alpha_opt->description = _("Snakes alpha parameter");
 
     beta_opt = G_define_option();
     beta_opt->key = "beta";
@@ -216,7 +217,7 @@ int main(int argc, char *argv[])
 
     thresh = atof(thresh_opt->answer);
     look_ahead = atoi(look_ahead_opt->answer);
-    alfa = atof(alfa_opt->answer);
+    alpha = atof(alpha_opt->answer);
     beta = atof(beta_opt->answer);
     reduction = atof(reduction_opt->answer);
     iterations = atoi(iterations_opt->answer);
@@ -338,7 +339,7 @@ int main(int argc, char *argv[])
     total_input = total_output = 0;
 
     if (method == DISPLACEMENT) {
-	snakes_displacement(&In, &Out, thresh, alfa, beta, 1.0, 10.0,
+	snakes_displacement(&In, &Out, thresh, alpha, beta, 1.0, 10.0,
 			    iterations, varray);
     };
 
@@ -399,7 +400,7 @@ int main(int argc, char *argv[])
 		    hermite(Points, thresh, angle_thresh, with_z);
 		    break;
 		case SNAKES:
-		    snakes(Points, alfa, beta, with_z);
+		    snakes(Points, alpha, beta, with_z);
 		    break;
 		};
 	    };

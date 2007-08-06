@@ -81,7 +81,7 @@ int binary_heap_extract_max(binary_heap * bh, int *value)
 	if (right < n && bh->key[right] > bh->key[greater])
 	    greater = right;
 
-	if (greater = i)
+	if (greater == i)
 	    break;
 
 	td = bh->key[i];

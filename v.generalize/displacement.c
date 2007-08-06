@@ -25,10 +25,13 @@
 #include "matrix.h"
 
 /* snakes method modified for displacement.
- * Function returns somthing */
+ * Function returns somthing. This function affects only the
+ * lines specified in varray (or all lines if varray is null).
+ Other lines are copied */
 int snakes_displacement(struct Map_info *In, struct Map_info *Out,
-			double threshold, double alfa, double beta, double gama,
-			double delta, int iterations, VARRAY * varray)
+			double threshold, double alpha, double beta,
+			double gama, double delta, int iterations,
+			VARRAY * varray)
 {
 
     int n_points;
@@ -156,8 +159,8 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 
     matrix_mult_scalar(0.0, &k);
 
-    double a = 2.0 * alfa + 6.0 * beta;
-    double b = -alfa - 4.0 * beta;
+    double a = 2.0 * alpha + 6.0 * beta;
+    double b = -alpha - 4.0 * beta;
     double c = beta;
 
     /* build matrix */
@@ -209,7 +212,7 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 		continue;
 	    cx = dx.a[point_index[i]][0];
 	    cy = dy.a[point_index[i]][0];
-	    f = sqrt(cx * cx + cy * cy) * alfa;
+	    f = sqrt(cx * cx + cy * cy) * alpha;
 	    f /= threshold2;
 	    fx.a[point_index[i]][0] -= cx * f;
 	    fy.a[point_index[i]][0] -= cy * f;
