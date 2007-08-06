@@ -681,17 +681,15 @@ else
 fi
 
 
-echo "100% 104 034 139" > $TMP1
-echo "5 violet" >> $TMP1
-echo "3 aqua" >> $TMP1
-echo "1 cyan" >> $TMP1
+echo "100% 0 0 100" > $TMP1
+echo "3 blue" >> $TMP1
+echo "1 indigo" >> $TMP1
 echo "0.5 green" >> $TMP1
 echo "0 white" >> $TMP1
 echo "-0.5 yellow" >> $TMP1
 echo "-1 orange" >> $TMP1
 echo "-3 red" >> $TMP1
-echo "-5 255 000 255" $TMP1
-echo "-0% 255 000 255" >> $TMP1
+echo "0% 150 0 50" >> $TMP1
 echo "end" >> $TMP1
 
 
