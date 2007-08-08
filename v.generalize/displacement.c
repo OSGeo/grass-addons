@@ -74,9 +74,12 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 
     /* read points 
      * TODO: some better/faster method for determining whether two points are the same */
+    G_percent_reset();
+    G_message(_("Reading data..."));
     index = 0;
     pindex = 0;
     for (i = 1; i <= n_lines; i++) {
+	G_percent(i, n_lines, 1);
 	type = Vect_read_line(In, Points, NULL, i);
 	if (type != GV_LINE || (varray && !varray->c[i]))
 	    continue;
@@ -104,7 +107,6 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 	    index++;
 	};
     };
-
 
     threshold2 = threshold * threshold;
     /*select only the points which need to be displace */
@@ -146,7 +148,7 @@ int snakes_displacement(struct Map_info *In, struct Map_info *Out,
 	point_index[i] = tmp_index[point_index[i]];
     pindex = selected;
 
-    printf("%d\n", pindex);
+    G_debug(3, "Number of conflicting points: %d", pindex);
 
     /* initialize matrices */
     matrix_init(pindex, pindex, &k);

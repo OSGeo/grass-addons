@@ -26,7 +26,7 @@ int matrix_init(int rows, int cols, MATRIX * res)
 
     res->rows = rows;
     res->cols = cols;
-    res->a = (double **)G_malloc(rows * sizeof(double *));
+    res->a = (double **)G_calloc(rows, sizeof(double *));
     if (res->a == NULL)
 	return 0;
 
