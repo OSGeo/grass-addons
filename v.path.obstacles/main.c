@@ -18,41 +18,53 @@
 #include <grass/Vect.h>
 #include <grass/glocale.h>
 #include "visibility.h"
+#include "proto.h"
 
-void load_lines( struct Map_info * map, struct Point ** points, int * num_points, struct Line ** lines, int * num_lines );
-void count( struct Map_info * map, int * num_points, int * num_lines);
-void process_point( struct line_pnts * sites, struct Point ** points, int * index_point, int cat);
-void process_line( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
-void process_boundary( struct line_pnts * sites, struct Point ** points, int * index_point, struct Line ** lines, int * index_line, int cat);
+/** TODO: need to check if vis and input have same set of vertices */
 
 int main( int argc, char* argv[])
 {
-	struct Map_info in, out;
+	struct Map_info in, out, vis;
 	struct GModule *module;     /* GRASS module for parsing arguments */
 	struct Option *input, *output; /* The input map */
+	struct Option *coor, *ovis;
 	char*mapset;
 	
 	struct Point * points;
 	struct Line * lines;
 	int num_points, num_lines;
+	int n;
 	
 
 	
-    /* initialize GIS environment */
-    G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
+	/* initialize GIS environment */
+	G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
 
-    /* initialize module */
-    module = G_define_module();
-    module->keywords = _("vector, path, visibility");
-    module->description = _("Shortest path in free vector space");
+	/* initialize module */
+	module = G_define_module();
+	module->keywords = _("vector, path, visibility");
+	module->description = _("Visibility graph construction");
 
 	/* define the arguments needed */
 	input = G_define_standard_option(G_OPT_V_INPUT);
 	output = G_define_standard_option(G_OPT_V_OUTPUT);
 	
+	coor = G_define_option() ;
+	coor->key = "coordinate" ;
+	coor->key_desc = "x,y" ;
+	coor->type = TYPE_STRING ;
+	coor->required = NO ;
+	coor->multiple = YES ;
+	coor->description = _("One or more coordinates") ;
 	
+	ovis = G_define_option();
+	ovis->key = "vis";
+	ovis->type = TYPE_STRING;
+	ovis->required = NO;
+	ovis->description = "Add points after computing the vis graph";
+
 	/* options and flags parser */
-    if (G_parser(argc, argv))
+	if (G_parser(argc, argv))
 		exit(EXIT_FAILURE);
 
 	Vect_check_input_output_name ( input->answer, output->answer, GV_FATAL_EXIT );
@@ -67,19 +79,46 @@ int main( int argc, char* argv[])
 	if(Vect_open_old(&in, input->answer, mapset) < 1) /* opens the map */
 		G_fatal_error(_("Could not open input"));
 
-    if (Vect_open_new(&out, output->answer, WITHOUT_Z) < 0) 
+	if ( ovis->answer != NULL )
 	{
-		Vect_close(&in);
-		G_fatal_error(_("Could not open output"));
-    }
+		mapset = G_find_vector2( ovis->answer, NULL );
+	
+		if( Vect_open_old(&vis, ovis->answer, mapset) < 1 )
+			G_fatal_error("Could not open vis");
+			
+		if(Vect_copy( ovis->answer, mapset, output->answer, NULL) < 0 )
+			G_fatal_error("Could not copy map");
+		
+		mapset = G_find_vector2( output->answer, NULL );
+		
+		if( Vect_open_old(&out, output->answer, mapset) < 1 )
+			G_fatal_error("Could not open vis");
+	}
+	else
+	{
+		if (Vect_open_new(&out, output->answer, WITHOUT_Z) < 0) 
+		{
+			Vect_close(&in);
+			G_fatal_error(_("Could not open output"));
+		}
+	}
 
-	 
+
 	if (G_projection () == PROJECTION_LL)
 		G_warning("We are in LL projection");
 
 	load_lines( &in, &points, &num_points, &lines, &num_lines);
 	
-	construct_visibility( points, num_points, lines, num_lines, &out );
+
+	if ( coor->answers != NULL )
+		 n = add_points( coor->answers, &points, &num_points);
+		 
+	G_message("We have %d new points", n );
+	
+	if ( ovis->answer == NULL )
+		construct_visibility( points, num_points, lines, num_lines, &out );
+	else
+		visibility_points( points, num_points, lines, num_lines, &out, n );
 	
 	G_free(points);
 	G_free(lines);
@@ -88,6 +127,51 @@ int main( int argc, char* argv[])
 	Vect_close(&out);
 	Vect_close(&in);
 	exit(EXIT_SUCCESS);
+}
+
+
+/** add points to the visibility graph
+*/
+int add_points( char ** coor, struct Point ** points, int * index_point )
+{
+	int i, n;
+	double x, y;
+	
+	/* first count how many points we are going to add */
+	n = 0; i = 0;
+	while ( coor[i] != NULL )
+	{
+		n++;
+		i+=2;
+	}
+	
+	/* resizing points acordingly */
+	*points = G_realloc( *points, (*index_point+n)*sizeof( struct Point ) );
+	
+	
+	/* and defining the points */
+	for ( i=0 ; coor[i] != NULL ; i+=2 ) 
+	{
+		G_scan_easting ( coor[i] , &x , G_projection() );
+		G_scan_northing ( coor[i+1] , &y , G_projection() );
+		
+		(*points)[*index_point].x = x;
+		(*points)[*index_point].y = y;
+		(*points)[*index_point].cat = -1;
+
+		(*points)[*index_point].line1 = NULL;
+		(*points)[*index_point].line2 = NULL;
+		
+		(*points)[*index_point].left_brother = NULL;
+		(*points)[*index_point].right_brother = NULL;
+		(*points)[*index_point].father = NULL;
+		(*points)[*index_point].rightmost_son = NULL;	
+		
+		(*index_point)++;
+
+	}
+
+	return n;
 }
 
 /** counts the number of individual segments ( boundaries and lines ) and vertices
@@ -142,7 +226,6 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 	int index_line = 0;
 	int index_point = 0;
 	struct line_pnts* sites;
-	int i;
 	struct line_cats* cats;
 	int cat = 0;
 	int type;

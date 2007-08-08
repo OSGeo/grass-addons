@@ -44,7 +44,7 @@ int empty_stack()
 void init_stack(int size)
 {
 	stack_index = -1;
-	stack = ( struct Point * ) G_malloc( size * sizeof( struct Point ) );
+	stack = G_malloc( size * sizeof( struct Point ) );
 }
 
 /** compare the points along the x axis

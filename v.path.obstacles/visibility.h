@@ -26,14 +26,14 @@
 #include "rotation_tree.h"
 
 
-int construct_visibility( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info* out );
+void construct_visibility( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info* out );
 
 void handle( struct Point* p, struct Point* q, struct Map_info * out );
 void report( struct Point * p, struct Point * q, struct Map_info * out );
 
 void init_vis( struct Point * points, int num_points, struct Line * lines, int num_lines );
 
-
+void visibility_points( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info * out, int n );
 
 
 #endif

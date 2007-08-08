@@ -170,7 +170,7 @@ void report( struct Point * p, struct Point * q, struct Map_info * out )
 
 /** the algorithm that computes the visibility graph
 */
-int construct_visibility ( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info * out )
+void construct_visibility ( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info * out )
 {
 	struct Point * p, * p_r, * q, * z;
 	struct Point * p_infinity,* p_ninfinity;
@@ -261,4 +261,38 @@ int construct_visibility ( struct Point * points, int num_points, struct Line * 
 	G_free(p_ninfinity);
 }
 
+
+void visibility_points( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info * out, int n )
+{
+	
+	int i,j,k;
+	
+	double x1,y1,z1,x2,y2,z2;
+	
+	/* loop through the points to add */
+	for ( i = 0 ; i < n ; i++ )
+	{
+		/* loop through the other points */
+		for ( j = 0 ; j < num_points - n ; j++ )
+		{
+		
+			/* loop trhough the lines */
+			for ( k = 0 ; k < num_lines ; k++ )
+			{
+				if ( segment1( &points[j] ) == &lines[k] || segment2( &points[j] ) == &lines[k] )
+					continue;
+				if ( Vect_segment_intersection (points[num_points-i-1].x, points[num_points-i-1].y, 0, points[j].x, points[j].y, 0, lines[k].p1->x, lines[k].p1->y, 0, lines[k].p2->x, lines[k].p2->y, 0, &x1, &y1, &z1, &x2, &y2, &z2, 0) != 0)
+					break;
+			}
+			
+			G_message("Here k is %d",k);
+			if ( k == num_lines )
+			{
+				G_message("Reporting %f,%f and %f,%f", points[j].x, points[j].y, points[num_points-1-i].x, points[num_points-1-i].y);
+				report(  &points[num_points-i-1], &points[j], out );
+			}
+		}
+	}
+
+}
 

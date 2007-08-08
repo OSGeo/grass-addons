@@ -35,7 +35,6 @@ int before( struct Point * p, struct Point * q, struct Line * e )
 int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 )
 {
     double a, b, c, d;
-	double r;
 	
 	if ( p3->y == PORT_DOUBLE_MAX)
 	{

@@ -15,7 +15,9 @@
  #ifndef DATA_STRUCTURES_H
  #define DATA_STRUCTURES_H
  
- #include "rotation_tree.h"
+#include <grass/gis.h>
+#include <grass/glocale.h>
+#include "rotation_tree.h"
 
 struct Point * pop();
 struct Point * top();
@@ -23,8 +25,8 @@ void push(struct Point * p);
 int empty_stack();
 void init_stack();
 
-static int stack_index;
-static struct Point ** stack;
+static int stack_index = 0;
+static struct Point ** stack = NULL;
 
 int cmp_points(struct Point * v1, struct Point* v2);
 void quickSort( struct Point a[], int l, int r);
