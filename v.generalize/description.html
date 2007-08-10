@@ -36,6 +36,7 @@ never translated and/or deleted.
 <LI>Lang Algorithm</LI>
 <LI>Vertex Reduction</LI>
 <LI>Reumann-Witkam Algorithm</LI>
+<LI>Remove Small Lines/Areas</LI>
 </UL>
 
 Different algorithms require different parameters, but all the algorithms have
@@ -66,7 +67,9 @@ the areas of area less than <B>threshold</B> are also removed.
      process on the remaining points.</LI>
 <LI> <I>Reuman-Witkam</I> - Input parameters: <B>input</B>, <B>threshold</B>. This algorithm quite
      reasonably preserves the global characteristics of the lines. For more information
-     check <A href="http://www.ifp.uni-stuttgart.de/lehre/vorlesungen/GIS1/Lernmodule/Lg/LG_de_6.html">http://www.ifp.uni-stuttgart.de/lehre/vorlesungen/GIS1/Lernmodule/Lg/LG_de_6.html</A>(german)</LI>          
+     check <A href="http://www.ifp.uni-stuttgart.de/lehre/vorlesungen/GIS1/Lernmodule/Lg/LG_de_6.html">http://www.ifp.uni-stuttgart.de/lehre/vorlesungen/GIS1/Lernmodule/Lg/LG_de_6.html</A>(german)</LI>
+<LI> <I>Remove Small Lines/Areas</I> - removes the lines (strictly) shorter than threshold and areas of area (strictly)less than threshold.
+     Other lines/areas/boundaries are left unchanged. Input parameters: <B>input</B>, <b>threshold</b>             
 </UL>
 
 <P>

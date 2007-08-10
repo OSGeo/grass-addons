@@ -35,6 +35,7 @@
 #define SNAKES 8
 #define DOUGLAS_REDUCTION 9
 #define SLIDING_AVERAGING 10
+#define REMOVE_SMALL 11
 #define NETWORK 100
 #define DISPLACEMENT 101
 
@@ -91,13 +92,14 @@ int main(int argc, char *argv[])
     method_opt->required = YES;
     method_opt->multiple = NO;
     method_opt->options =
-	"douglas,douglas_reduction,lang,reduction,reumann,boyle,sliding_averaging,distance_weighting,chaiken,hermite,snakes,network,displacement";
+	"douglas,douglas_reduction,lang,reduction,reumann,remove_small,boyle,sliding_averaging,distance_weighting,chaiken,hermite,snakes,network,displacement";
     method_opt->answer = "douglas";
     method_opt->descriptions = _("douglas;Douglas-Peucker Algorithm;"
 				 "douglas_reduction;Douglas-Peucker Algorithm with reduction parameter;"
 				 "lang;Lang Simplification Algorithm;"
 				 "reduction;Vertex Reduction Algorithm eliminates points close to each other;"
 				 "reumann;Reumann-Witkam Algorithm;"
+				 "remove_small;Removes lines shorter than threshold and areas of area less than threshold;"
 				 "boyle;Boyle's Forward-Looking Algorithm;"
 				 "sliding_averaging;McMaster's Sliding Averaging Algorithm;"
 				 "distance_weighting;McMaster's Distance-Weighting Algorithm;"
@@ -258,6 +260,11 @@ int main(int argc, char *argv[])
 	method = NETWORK;
     else if (strcmp(s, "displacement") == 0)
 	method = DISPLACEMENT;
+    else if (strcmp(s, "remove_small") == 0) {
+	method = REMOVE_SMALL;
+	/* switch -r flag on */
+	rs_flag->answer = 1;
+    }
     else {
 	G_fatal_error(_("Unknown method"));
 	exit(EXIT_FAILURE);
@@ -271,6 +278,7 @@ int main(int argc, char *argv[])
     case LANG:
     case VERTEX_REDUCTION:
     case REUMANN:
+    case REMOVE_SMALL:
 	simplification = 1;
 	break;
     default:
