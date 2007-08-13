@@ -258,8 +258,11 @@ int main(int argc, char *argv[])
 	method = SLIDING_AVERAGING;
     else if (strcmp(s, "network") == 0)
 	method = NETWORK;
-    else if (strcmp(s, "displacement") == 0)
+    else if (strcmp(s, "displacement") == 0) {
 	method = DISPLACEMENT;
+	/* we can displace only the lines */
+	mask_type = GV_LINE;
+    }
     else if (strcmp(s, "remove_small") == 0) {
 	method = REMOVE_SMALL;
 	/* switch -r flag on */
