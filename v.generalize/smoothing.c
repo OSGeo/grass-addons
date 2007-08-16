@@ -134,7 +134,7 @@ int distance_weighting(struct line_pnts *Points, double slide, int look_ahead,
 		       int with_z)
 {
     POINT p, c, s, tmp;
-    int n, i, next, half, j;
+    int n, i, half, j;
     double dists, d;
     POINT *res;
 
@@ -153,7 +153,6 @@ int distance_weighting(struct line_pnts *Points, double slide, int look_ahead,
 
     point_assign(Points, 0, with_z, &res[0]);
 
-    next = 1;
     half = look_ahead / 2;
 
     for (i = half; i + half < n; i++) {
@@ -178,14 +177,13 @@ int distance_weighting(struct line_pnts *Points, double slide, int look_ahead,
 	};
 	point_scalar(s, slide / dists, &tmp);
 	point_scalar(c, (double)1.0 - slide, &s);
-	point_add(s, tmp, &res[next]);
-	next++;
+	point_add(s, tmp, &res[i]);
     };
 
     for (i = half; i + half < n; i++) {
-	Points->x[i] = res[i - half].x;
-	Points->y[i] = res[i - half].y;
-	Points->z[i] = res[i - half].z;
+	Points->x[i] = res[i].x;
+	Points->y[i] = res[i].y;
+	Points->z[i] = res[i].z;
     };
 
     G_free(res);
