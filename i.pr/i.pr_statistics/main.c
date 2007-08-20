@@ -252,9 +252,10 @@ int main(argc,argv)
 	
 	
 	if(features.training.rows > 1 && features.training.cols > 1){
-	  /*make sure avalilability of monitir*/
-	  R_open_driver();
-	  R_close_driver();
+	  /*make sure avalability of monitor*/
+          if (R_open_driver() != 0)
+              G_fatal_error (_("No graphics device selected."));
+          R_close_driver();
 	  
 	  /*number of rows and cols on the virtual screen*/
 	  
@@ -373,7 +374,8 @@ int main(argc,argv)
 	  }
 	  sprintf(tempbuf,"d.frame -e");
 	  system(tempbuf);
-	  R_open_driver();	
+          if (R_open_driver() != 0)
+              G_fatal_error (_("No graphics device selected."));
 	  Dcell(outputmap_name, G_mapset(), 0) ;
 	  R_close_driver();
 	  if(G_put_window(&cellhd_orig) == -1){

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
+#include <grass/glocale.h>
 #include "global.h"
 #include "globals.h"
 #include "func.h"
@@ -103,7 +104,7 @@ int main(argc, argv)
   opt5->description= "Numerical label to be attached to the training examples.\n\t\tOption not required with the vector option.";
   
   if (G_parser(argc, argv))
-    exit(1);
+    exit(EXIT_FAILURE);
 
   /* informations from command line */
   nmaps=0;
@@ -178,7 +179,9 @@ int main(argc, argv)
   }      
 
   if(!opt6->answer){
-    R_open_driver();
+    /* must have a graphics terminal selected */
+    if (R_open_driver() != 0)
+       G_fatal_error (_("No graphics device selected."));
 
     /*inizialize monitor*/
     Init_graphics();
@@ -304,7 +307,8 @@ int main(argc, argv)
     }
   }else{
     G_get_window (&cellhd);
-    R_open_driver();
+    if (R_open_driver() != 0)
+        G_fatal_error (_("No graphics device selected."));
     Init_graphics2();
     display_map(&cellhd, VIEW_MAP1, vis_map, vis_mapset);
 
