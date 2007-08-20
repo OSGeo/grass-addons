@@ -6,11 +6,11 @@
   structure Training management
 */
 
-#include <grass/gis.h>
-#include "global.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <grass/gis.h>
+#include "global.h"
 
 void inizialize_training(training)
      /* 
@@ -56,7 +56,10 @@ void read_training(file,training)
     sprintf(tempbuf, "read_training-> Can't open file %s for reading", file);
     G_fatal_error(tempbuf);
   }
-
+  if(G_getl2(tempbuf, sizeof(tempbuf)-1, fp) == 0) {
+        G_fatal_error("read_training-> File %s is empty", file);
+        fclose(fp);
+  }
   
   training->file=file;
 
