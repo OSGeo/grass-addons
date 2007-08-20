@@ -56,7 +56,7 @@ AAA_ammcom.4    AAA_genesi.4    2       1657153  5072910  11      11      1.5   
 \begin{verbatim}
 Usage:
  i.pr_training map=name[,name,...] [vis_map=name] training=name
-   [site_file=name] rows=value cols=value [class=value]
+   [vector=name] rows=value cols=value [class=value]
 
 Parameters:
         map   Input raster maps (max 25) for extracting the training
@@ -68,12 +68,12 @@ Parameters:
               maps.
                 If this file already exists, the new data will 
                 be appended to the end of the file.
-  site_file   Name of the  site file containing labelled location.
+     vector   Name of the  site file containing labelled location.
                 Substitutes the interactive procedure of site selection.
        rows   Number of rows (required odd) of the training samples.
        cols   Number of columns (required odd) of the training samples.
       class   Numerical label to be attached to the training examples.
-                Option not required with the site_file option.
+                Option not required with the vector option.
 \end{verbatim}
 
 \section{i.pr\_features}

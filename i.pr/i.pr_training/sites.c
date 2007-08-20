@@ -1,4 +1,5 @@
 #include <grass/gis.h>
+#include <grass/site.h>
 #include "global.h"
 #include "globals.h"
 
@@ -14,14 +15,14 @@ int read_points_from_file(training,site_file)
   int dims=0,cat=0,strs=0,dbls=0;
   int code;
 
-  mapset = G_find_file ("site_lists", site_file, "");
+  mapset = G_find_sites(site_file, "");
   if (mapset == NULL){
-    sprintf (msg, "read_points_from_file-> Can't find sites file <%s>", site_file);
+    sprintf (msg, "read_points_from_file-> Can't find vector points map <%s>", site_file);
     G_fatal_error (msg);
   }
   out = G_fopen_sites_old (site_file, mapset);
   if (out == NULL){
-    sprintf (msg, "read_points_from_file-> Can't open sites file <%s>", site_file);
+    sprintf (msg, "read_points_from_file-> Can't open vector points map <%s>", site_file);
     G_fatal_error (msg);
   }
   if (G_site_describe (out, &dims, &cat, &strs, &dbls)!=0){
@@ -37,7 +38,7 @@ int read_points_from_file(training,site_file)
     training->class[training->nexamples] = site->ccat;
     training->nexamples += 1;
   }
-  fclose(out);
+  G_sites_close(out);
   if(code != -1){
     sprintf (msg, "read_points_from_file-> Error in G_site_get");
     G_warning(msg);

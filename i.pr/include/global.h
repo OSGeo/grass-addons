@@ -1,5 +1,4 @@
 #include <grass/gis.h>
-#include <grass/site.h>
 #include "func.h"
 
 #define PIG M_PI

@@ -79,10 +79,10 @@ int main(argc, argv)
   opt4->description= "Name of the output file containing the training raster maps.\n\t\tIf this file already exists, the new data will be appended\n\t\tto the end of the file.";
 
   opt6 = G_define_option() ;
-  opt6->key        = "site_file";
+  opt6->key        = "vector";
   opt6->type       = TYPE_STRING;
   opt6->required   = NO;
-  opt6->description= "Name of the  site file containing labelled location.\n\t\tSubstitutes the interactive procedure of site selection.";
+  opt6->description= "Name of the vector points map containing labelled location.\n\t\tSubstitutes the interactive procedure of point selection.";
 
   opt2              = G_define_option();
   opt2->key         = "rows";
@@ -100,7 +100,7 @@ int main(argc, argv)
   opt5->key        = "class";
   opt5->type       = TYPE_INTEGER;
   opt5->required   = NO;
-  opt5->description= "Numerical label to be attached to the training examples.\n\t\tOption not required with the site_file option.";
+  opt5->description= "Numerical label to be attached to the training examples.\n\t\tOption not required with the vector option.";
   
   if (G_parser(argc, argv))
     exit(1);
