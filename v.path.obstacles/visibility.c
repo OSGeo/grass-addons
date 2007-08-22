@@ -15,7 +15,6 @@
  
  
 /* TODO take in account if it is long/lat projection */
-/* TODO vis initialisation algorithm can be optimised with a scan line technic which runs in O( n log n ) instead of O( n^2 ); */
 
 #include "visibility.h"
 
@@ -23,35 +22,88 @@
 */
 void init_vis( struct Point * points, int num_points, struct Line * lines, int num_lines )
 {
-
 	int i;
-	int j;
-	double current_distance;
+	double d;
+	struct avl_table * tree = avl_create( cmp_points, NULL, NULL );
+	struct avl_traverser it;
+	struct Point * p;
 	
-	double x,y;
+	double y1,y2;
 	
-	for ( i = 0 ; i < num_points ; i++ )
+	struct Point * s1, *s2;
+	
+	for ( i = 0 ; i < num_points ; i ++ )
 	{
-		current_distance = PORT_DOUBLE_MAX;
-		points[i].vis = NULL;
 		
-		for ( j = 0 ; j < num_lines ; j++ )
+		points[i].vis = NULL;
+		d = PORT_DOUBLE_MAX;
+
+		avl_t_init( &it, tree);
+		
+		/* loop through the tree */
+		while( ( p = avl_t_next( &it ) ) != NULL )
 		{
 			
-			if ( &lines[j] == segment1( &points[i]) || &lines[j] == segment2( &points[i]))
-				continue;
-			
-			/* if it's directly below, compute its distance to the last smallest found */
-			if ( segment_intersect(&lines[j], &points[i], &x, &y) != -1 && y < points[i].y && (points[i].y - y) < current_distance)
+			/* test for intersection and get the intersecting point */
+			if ( segment1(p) != NULL && segment_intersect( segment1(p), &points[i], &y1 ) > -1 )
 			{
-
-					points[i].vis = &lines[j];
-					current_distance = points[i].y - y;
+				/* find the closest one below */
+				if ( y1 < points[i].y && (points[i].y - y1) < d)
+				{
+					d = points[i].y - y1;
+					points[i].vis = segment1(p);
+					
+				}			
 			}
+
+
+			if ( segment2(p) != NULL && segment_intersect( segment2(p), &points[i], &y2 ) > -1 )
+			{
+				if ( y2 < points[i].y && (points[i].y - y2) < d)
+				{
+					d = points[i].y - y2;
+					points[i].vis = segment2(p);
+				}
+			}
+				
+		}/* end loop */
+		
+		s1 = s2 = NULL ;
+
+		/* now if the other point is on the right, we can delete it */
+		if ( segment1(&points[i]) != NULL && cmp_points(&points[i], other1(&points[i]), NULL) > 0 )
+		{
+			p = other1(&points[i]);
+			
+			/* unless the other point of it is on the left */
+			if ( segment1(p) != NULL && other1(p) != &points[i] && cmp_points(&points[i], other1(p), NULL) > 0 )
+				s1 = avl_delete( tree, p );
+			else if ( segment2(p) != NULL && other2(p) != &points[i] && cmp_points(&points[i], other2(p), NULL) > 0 )
+				s1 = avl_delete( tree, p );
 		}
-
+		
+		/* now if the other point is on the right, we can delete it */
+		if ( segment2(&points[i]) != NULL && cmp_points(&points[i], other2(&points[i]), NULL) > 0 ) 
+		{
+			p = other2(&points[i]);
+			
+			/* unless the other point of it is on the left */
+			if ( segment1(p) != NULL && other1(p) != &points[i] && cmp_points(&points[i], other1(p), NULL) > 0 )
+				s2 = avl_delete( tree, p );
+			else if ( segment2(p) != NULL && other2(p) != &points[i] && cmp_points(&points[i], other2(p), NULL) > 0 )
+				s2 = avl_delete( tree, p );
+		}
+		
+		/* if both weren't deleted, it means there is at least one other point on the left, so add the current */
+		/* also there is no point adding the point if there is no segment attached to it */
+		if ( (s1 == NULL || s2 == NULL ) && ( segment1(&points[i]) != NULL || segment2(&points[i]) != NULL ))
+		{
+			avl_insert( tree, &points[i] );
+		}
 	}
-
+	
+	
+	avl_destroy(tree, NULL);
 }
 
 
@@ -194,10 +246,11 @@ void construct_visibility ( struct Point * points, int num_points, struct Line *
 	p_infinity->rightmost_son = NULL;
 	
 	init_stack(num_points);
-	
+
 	/* sort points in decreasing x order*/
 	quickSort( points, 0, num_points-1 );
-	
+
+	/* initialize the vis pointer of the vertices */
 	init_vis( points, num_points, lines, num_lines );
 
 	add_rightmost( p_ninfinity, p_infinity );
@@ -208,7 +261,7 @@ void construct_visibility ( struct Point * points, int num_points, struct Line *
 	}
 		
 	push( &points[0] );
-	
+
 	/* main loop */
 	while( !empty_stack() )
 	{
@@ -256,7 +309,7 @@ void construct_visibility ( struct Point * points, int num_points, struct Line *
 			push(p_r);
 		}
 	}
-	
+		
 	G_free(p_infinity);
 	G_free(p_ninfinity);
 }
@@ -264,7 +317,7 @@ void construct_visibility ( struct Point * points, int num_points, struct Line *
 
 void visibility_points( struct Point * points, int num_points, struct Line * lines, int num_lines, struct Map_info * out, int n )
 {
-	
+
 	int i,j,k;
 	
 	double x1,y1,z1,x2,y2,z2;
@@ -285,14 +338,8 @@ void visibility_points( struct Point * points, int num_points, struct Line * lin
 					break;
 			}
 			
-			G_message("Here k is %d",k);
 			if ( k == num_lines )
-			{
-				G_message("Reporting %f,%f and %f,%f", points[j].x, points[j].y, points[num_points-1-i].x, points[num_points-1-i].y);
 				report(  &points[num_points-i-1], &points[j], out );
-			}
 		}
 	}
-
 }
-
