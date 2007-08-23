@@ -33,7 +33,7 @@ int main( int argc, char* argv[])
 	struct Point * points;
 	struct Line * lines;
 	int num_points, num_lines;
-	int n;
+	int n = 0;
 	
 
 	
