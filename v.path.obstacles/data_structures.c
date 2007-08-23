@@ -49,11 +49,10 @@ void init_stack(int size)
 
 /** compare the points along the x axis
 */
-int cmp_points(struct Point * v1, struct Point* v2)
+int cmp_points( const void * v1, const void* v2, void * param)
 {
-    struct Point *p1, *p2;
-    p1 = (struct Point*) v1;
-    p2 = (struct Point*) v2;
+	struct Point * p1 = (struct Point * ) v1;
+	struct Point * p2 = (struct Point * ) v2;
 	
     if( p1->x < p2->x )
         return 1;
@@ -93,8 +92,8 @@ int partition( struct Point a[], int l, int r)
 		
 	while( 1)
 	{
-		do ++i; while( cmp_points(&a[i], &pivot) < 1 && i <= r );
-		do --j; while( cmp_points(&a[j], &pivot) == 1 );
+		do ++i; while( cmp_points(&a[i], &pivot, NULL) < 1 && i <= r );
+		do --j; while( cmp_points(&a[j], &pivot, NULL) == 1 );
 
 		if( i >= j ) break;
 		

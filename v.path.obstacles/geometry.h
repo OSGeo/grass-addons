@@ -28,7 +28,7 @@ int in_between( struct Point * p, struct Line * e );
 int left_turn( struct Point * p1, struct Point * p2, struct Point * p3 );
 int before( struct Point * p, struct Point * q, struct Line * e );
 
-int segment_intersect( struct Line * line, struct Point * p, double * x, double * y );
+int segment_intersect( struct Line * line, struct Point * p, double * y );
 
 
 #endif

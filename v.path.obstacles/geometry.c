@@ -88,7 +88,7 @@ int point_inside( struct Point * p, double x, double y )
 /** returns 1 if the segment intersect with the half line starting from p pointing downards
 	x and y are the intersection point
 */
-int segment_intersect( struct Line * line, struct Point * p, double * x, double * y )
+int segment_intersect( struct Line * line, struct Point * p, double * y )
 {
 	struct Point * p1 = line->p1;
 	struct Point * p2 = line->p2;
@@ -98,7 +98,6 @@ int segment_intersect( struct Line * line, struct Point * p, double * x, double 
 	{
 		t = ( p->x - p1->x ) / ( p2->x - p1->x );
 		
-		*x = p->x;
 		*y = p1->y + t * ( p2->y - p1->y );
 		
 		return 1;

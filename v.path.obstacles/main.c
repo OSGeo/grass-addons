@@ -79,6 +79,12 @@ int main( int argc, char* argv[])
 	if(Vect_open_old(&in, input->answer, mapset) < 1) /* opens the map */
 		G_fatal_error(_("Could not open input"));
 
+	if (Vect_open_new(&out, output->answer, WITHOUT_Z) < 0) 
+	{
+		Vect_close(&in);
+		G_fatal_error(_("Could not open output"));
+	}
+
 	if ( ovis->answer != NULL )
 	{
 		mapset = G_find_vector2( ovis->answer, NULL );
@@ -86,21 +92,8 @@ int main( int argc, char* argv[])
 		if( Vect_open_old(&vis, ovis->answer, mapset) < 1 )
 			G_fatal_error("Could not open vis");
 			
-		if(Vect_copy( ovis->answer, mapset, output->answer, NULL) < 0 )
-			G_fatal_error("Could not copy map");
-		
-		mapset = G_find_vector2( output->answer, NULL );
-		
-		if( Vect_open_old(&out, output->answer, mapset) < 1 )
-			G_fatal_error("Could not open vis");
-	}
-	else
-	{
-		if (Vect_open_new(&out, output->answer, WITHOUT_Z) < 0) 
-		{
-			Vect_close(&in);
-			G_fatal_error(_("Could not open output"));
-		}
+		if ( Vect_copy_map_lines (&vis, &out) > 0 )
+			G_fatal_error("Could not copy elements");
 	}
 
 
@@ -108,16 +101,14 @@ int main( int argc, char* argv[])
 		G_warning("We are in LL projection");
 
 	load_lines( &in, &points, &num_points, &lines, &num_lines);
-	
 
 	if ( coor->answers != NULL )
 		 n = add_points( coor->answers, &points, &num_points);
-		 
-	G_message("We have %d new points", n );
 	
 	if ( ovis->answer == NULL )
 		construct_visibility( points, num_points, lines, num_lines, &out );
 	else
+	
 		visibility_points( points, num_points, lines, num_lines, &out, n );
 	
 	G_free(points);
@@ -238,8 +229,6 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 	*points = G_malloc( *num_points * sizeof( struct Point ));
 	*lines = G_malloc( *num_lines * sizeof( struct Line ));
 	
-	
-	
 	while( ( type = Vect_read_next_line( map, sites, cats) ) > -1 )
 	{
 	
@@ -253,8 +242,8 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 		else if ( type == GV_POINT )
 			process_point( sites, points, &index_point, -1);
 		
-		
 	}
+
 }
 
 void process_point( struct line_pnts * sites, struct Point ** points, int * index_point, int cat)
