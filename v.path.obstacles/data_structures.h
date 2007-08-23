@@ -25,9 +25,6 @@ void push(struct Point * p);
 int empty_stack();
 void init_stack();
 
-static int stack_index = 0;
-static struct Point ** stack = NULL;
-
 int cmp_points(const void* v1, const void* v2, void * param);
 
 void quickSort( struct Point a[], int l, int r);

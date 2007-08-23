@@ -15,6 +15,10 @@
 #include "data_structures.h"
 
 
+/* stack variables */
+static int stack_index = 0;
+static struct Point ** stack = NULL;
+
 struct Point * pop()
 {
 	stack_index--;
@@ -154,5 +158,7 @@ int partition( struct Point a[], int l, int r)
 
 	return j;
 }
+
+
 
 

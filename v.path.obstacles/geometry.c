@@ -96,9 +96,19 @@ int segment_intersect( struct Line * line, struct Point * p, double * y )
 	
 	if ( in_between(p, line ) )
 	{
-		t = ( p->x - p1->x ) / ( p2->x - p1->x );
+		if ( p2->x != p1->x )
+		{
+			t = ( p->x - p1->x ) / ( p2->x - p1->x );
 		
-		*y = p1->y + t * ( p2->y - p1->y );
+			*y = p1->y + t * ( p2->y - p1->y );
+		}
+		else
+		{
+			if ( p1->y > p->y || p2->y > p->y ) 
+				return -1;
+				
+			*y = p1->y > p2->y ? p1->y : p2->y;
+		}
 		
 		return 1;
 	}
