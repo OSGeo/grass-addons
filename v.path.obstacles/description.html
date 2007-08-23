@@ -36,13 +36,47 @@ v.net.visibility input=map vis=vis_map output=new_vis_map coordinate=25556200,66
 </pre></div>
 </p>
 
-<h2>EXAMPLE</h2>
-
+<h2>EXAMPLE 1</h2>
+A simple example showing how to use the module
 <div class="code"><pre>
 v.path.obstacles input=lines output=graph <br>
 d.vect graph <br>
 d.vect lines col=red <br>
 </pre></div>
+
+<h2>EXAMPLE 2</h2>
+An example on how to use <em>v.buffer</em> with the module 
+<div class="code"><pre>
+v.buffer input=lines output=buffered_lines buffer=1
+v.path.obstacles input=buffered_lines output=graph <br>
+d.vect graph <br>
+d.vect lines col=red <br>
+</pre></div>
+
+
+<h2>EXAMPLE 3</h2>
+An example on how to use the coordinate parameter. This will compute the visibility graph of the vector map lines with the point 2555678,6686343
+<div class="code"><pre>
+v.path.obstacles input=lines output=graph coordinate=2555678,6686343<br>
+d.vect graph <br>
+d.vect lines col=red <br>
+</pre></div>
+
+<h2>EXAMPLE 4</h2>
+An example on how to use the coordinate parameter with the vis parameter. Here the vector map graph is computed then a new visibility graph is computed from it with the point 2555678,6686343 extra
+<div class="code"><pre>
+v.path.obstacles input=lines output=graph <br>
+d.vect graph <br>
+d.vect lines col=red <br>
+v.path.obstacles input=lines vis=graph output=new_graph coordinate=2555678,6686343<br>
+d.erase
+d.vect new_graph
+d.vect lines col=red
+</pre></div>
+
+<h2>KNOWN BUGS</h2>
+In some cases when 3 points or nodes are collinear, some wrong edges are added. This happens only really rarly and shouldn't be a big problem.
+When two points have the exact same x coordinate and are visible, some wrong edges are added.
 
 <h2>SEE ALSO</h2>
 
@@ -58,4 +92,4 @@ d.vect lines col=red <br>
 
 Maximilian Maldacker
 
-<p><i>Last changed: Date: 03/07/2007 </i>
+<p><i>Last changed: Date: 23/08/2007 </i>
