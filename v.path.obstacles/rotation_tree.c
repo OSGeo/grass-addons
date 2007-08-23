@@ -79,8 +79,7 @@ void remove_point(struct Point* p)
 		r->left_brother = l;
 	
 	if ( f->rightmost_son == p )
-		//f->rightmost_son = NULL;
-		f->rightmost_son = l;
+		f->rightmost_son = NULL;
 		
 	p->father = NULL;
 	p->left_brother = NULL;

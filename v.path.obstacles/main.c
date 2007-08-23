@@ -100,15 +100,34 @@ int main( int argc, char* argv[])
 	if (G_projection () == PROJECTION_LL)
 		G_warning("We are in LL projection");
 
-	load_lines( &in, &points, &num_points, &lines, &num_lines);
-
+	
+	/* counting how many points and lines we have to allocate */
+	count( &in, &num_points, &num_lines);
+	
+	G_message("We have %d poitns", num_points);
+	
+	/* modify the number if we have new points to add */
 	if ( coor->answers != NULL )
-		 n = add_points( coor->answers, &points, &num_points);
+		num_points+=  count_new( coor->answers );
+		
+	G_message("Now we have %d points", num_points);
+	
+	/* and allocate */
+	points = G_malloc( num_points * sizeof( struct Point ));
+	lines = G_malloc( num_lines * sizeof( struct Line ));
+
+	/* and finally set the lines */
+	load_lines( &in, &points, &num_points, &lines, &num_lines);
+	G_message("And now we have %d points", num_points);
+	
+	if ( coor->answers != NULL )
+		add_points( coor->answers, &points, &num_points);
+		
+	G_message("And finally we have %d points", num_points);
 	
 	if ( ovis->answer == NULL )
 		construct_visibility( points, num_points, lines, num_lines, &out );
 	else
-	
 		visibility_points( points, num_points, lines, num_lines, &out, n );
 	
 	G_free(points);
@@ -121,13 +140,10 @@ int main( int argc, char* argv[])
 }
 
 
-/** add points to the visibility graph
-*/
-int add_points( char ** coor, struct Point ** points, int * index_point )
+/* count how many new points we have to add */
+int count_new( char ** coor )
 {
-	int i, n;
-	double x, y;
-	
+	int n, i;
 	/* first count how many points we are going to add */
 	n = 0; i = 0;
 	while ( coor[i] != NULL )
@@ -136,8 +152,15 @@ int add_points( char ** coor, struct Point ** points, int * index_point )
 		i+=2;
 	}
 	
-	/* resizing points acordingly */
-	*points = G_realloc( *points, (*index_point+n)*sizeof( struct Point ) );
+	return n;
+}
+
+/** add points to the visibility graph
+*/
+void add_points( char ** coor, struct Point ** points, int * index_point )
+{
+	int i;
+	double x, y;
 	
 	
 	/* and defining the points */
@@ -161,8 +184,6 @@ int add_points( char ** coor, struct Point ** points, int * index_point )
 		(*index_point)++;
 
 	}
-
-	return n;
 }
 
 /** counts the number of individual segments ( boundaries and lines ) and vertices
@@ -224,11 +245,6 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 	sites = Vect_new_line_struct();
 	cats = Vect_new_cats_struct();
 	
-	count( map, num_points, num_lines);
-	
-	*points = G_malloc( *num_points * sizeof( struct Point ));
-	*lines = G_malloc( *num_lines * sizeof( struct Line ));
-	
 	while( ( type = Vect_read_next_line( map, sites, cats) ) > -1 )
 	{
 	
@@ -243,6 +259,9 @@ void load_lines( struct Map_info * map, struct Point ** points, int * num_points
 			process_point( sites, points, &index_point, -1);
 		
 	}
+	
+	*num_points = index_point;
+	*num_lines = index_line;
 
 }
 

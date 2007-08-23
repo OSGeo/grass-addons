@@ -43,6 +43,8 @@ void init_vis( struct Point * points, int num_points, struct Line * lines, int n
 		/* loop through the tree */
 		while( ( p = avl_t_next( &it ) ) != NULL )
 		{
+			if ( segment1(p) == NULL && segment2(p) == NULL)
+				continue;
 			
 			/* test for intersection and get the intersecting point */
 			if ( segment1(p) != NULL && segment_intersect( segment1(p), &points[i], &y1 ) > -1 )
@@ -96,7 +98,7 @@ void init_vis( struct Point * points, int num_points, struct Line * lines, int n
 		
 		/* if both weren't deleted, it means there is at least one other point on the left, so add the current */
 		/* also there is no point adding the point if there is no segment attached to it */
-		if ( (s1 == NULL || s2 == NULL ) && ( segment1(&points[i]) != NULL || segment2(&points[i]) != NULL ))
+		if ( (s1 == NULL || s2 == NULL ) )
 		{
 			avl_insert( tree, &points[i] );
 		}
