@@ -104,13 +104,9 @@ int main( int argc, char* argv[])
 	/* counting how many points and lines we have to allocate */
 	count( &in, &num_points, &num_lines);
 	
-	G_message("We have %d poitns", num_points);
-	
 	/* modify the number if we have new points to add */
 	if ( coor->answers != NULL )
 		num_points+=  count_new( coor->answers );
-		
-	G_message("Now we have %d points", num_points);
 	
 	/* and allocate */
 	points = G_malloc( num_points * sizeof( struct Point ));
@@ -118,12 +114,9 @@ int main( int argc, char* argv[])
 
 	/* and finally set the lines */
 	load_lines( &in, &points, &num_points, &lines, &num_lines);
-	G_message("And now we have %d points", num_points);
 	
 	if ( coor->answers != NULL )
 		add_points( coor->answers, &points, &num_points);
-		
-	G_message("And finally we have %d points", num_points);
 	
 	if ( ovis->answer == NULL )
 		construct_visibility( points, num_points, lines, num_lines, &out );
