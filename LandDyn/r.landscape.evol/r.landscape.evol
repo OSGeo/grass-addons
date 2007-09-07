@@ -700,13 +700,13 @@ if [ $? -ne 0 ] || [ -z "$TMP1" ] ; then
 fi
 
 echo "100% 0 0 100" > $TMP1
-echo "3 blue" >> $TMP1
-echo "1 indigo" >> $TMP1
-echo "0.5 green" >> $TMP1
+echo "2 blue" >> $TMP1
+echo "0.5 indigo" >> $TMP1
+echo "0.1 green" >> $TMP1
 echo "0 white" >> $TMP1
-echo "-0.5 yellow" >> $TMP1
-echo "-1 orange" >> $TMP1
-echo "-3 red" >> $TMP1
+echo "-0.1 yellow" >> $TMP1
+echo "-0.5 orange" >> $TMP1
+echo "-2 red" >> $TMP1
 echo "0% 150 0 50" >> $TMP1
 
 
