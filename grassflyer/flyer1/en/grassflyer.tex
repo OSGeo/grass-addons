@@ -13,6 +13,7 @@
 %If you need a foldmark, delete nofoldmark
 \documentclass[notumble,a4paper,10pt,nofoldmark]{leaflet}
 \usepackage{helvet,courier,xcolor}
+\usepackage[utf8]{inputenc}
 
 % Set Helvetica as the default font
 \renewcommand*\familydefault\sfdefault
@@ -41,17 +42,17 @@
 \hypersetup{%
   colorlinks=true,%
   urlcolor=darkblue,% Redefine this color to change URIs color
-  pdfauthor={The GRASS Community},%
-  pdftitle={GRASS GIS: Efficiency through Freedom \& Transparency},%
-  pdfsubject={GRASS Promotion Flyer},%
+  pdfauthor={GRASS Community},%
+  pdftitle={GRASS GIS: Učinnost Svodody \& Transparentnosti},%
+  pdfsubject={GRASS propagační leták GRASS},%
   breaklinks=true,%
   plainpages=false%
 }
 
 % Title page stuff
 \title{\textbf{\huge GRASS GIS}\\%
-\textsl{Efficiency through Freedom \& Transparency}}
-\author{The GRASS Community}
+\textsl{Učinnost Svodody \& Transparentnosti}}
+\author{Komunita GRASSu}
 \date{\includegraphics[width=\textwidth]{grasslogo_vector}\\[2ex]
 \large\GRASSurl}
 
@@ -62,90 +63,90 @@
 
 \newpage
 
-\section{What is GRASS}
+\section{Co je GRASS}
 
-GRASS (Geographic Resources Analysis Support System) is a free and Open Source Software for performing spatial analysis. It consists of more than 350 modules for processing vector (2D/3D), raster and voxel data. Many interfaces to other programs in related domains like geostatistics, databases, mapserver and even other GIS software exist. It is the largest Open Source GIS. It can serve as a Desktop GIS and as the backbone of a complete GIS Infrastructure.
+GRASS (Geographic Resources Analysis Support System) je svobodný/Open Source software určený pro prostorové analýzy. Obsahuje více než 350 modulů pro zpracování 2D/3D vektorových a rastrových dat. Nabízí řadu rozhraní k dalším programům v dané oblasti jako je geostatistika, databáze, mapové služby a dokonce i k dalším GIS aplikacím. Je nejrozsáhlejším Open Source GISem. Může sloužit jako Desktop GIS či jako páteř kompletní GIS infrastrukturu.
 
-\section{Where is GRASS used}
+\section{Kde je GRASS používán}
 
-GRASS is used in scientific applications, commercial settings and by public authorities all over the world. GRASS has shown strong potential for solving geospatial problems in numerous situations world-wide.
+GRASS je používán ve vědeckých aplikacích, komerčně či ve veřejné správě po celém světě. GRASS pokytuje v mnoha připadech velký potenciál pro řešení geoprostorových úloh.
 
-\section{History}
+\section{Historie}
 
-GRASS was originally developed in the beginning of the 1980's by the US Army Construction Engineering Research Laboratories (USA-CERL) and was published as public domain software. When the USA-CERL withdrew from GRASS development, an international developer team took over this work. Since 1999, GRASS has been published as free software under the terms of the GNU General Public Licence.
+GRASS byl původně vyvíjen od počátku 80-tých let agenturou US Army Construction Engineering Research Laboratories (USA-CERL) a byl poskytnut jako public domain software. V okamžiku kdy USA-CERL upustil od vývoje, vzniknul mezinárodní tým vývojářů který dál software vyvíjí. Od roku 1999 je GRASS uvolněn jako free software pod licencí GNU General Public Licence.
 \begin{myfig}[1.5ex]
 \includegraphics[width=0.7\textwidth]{visibility}
-\captionof{figure}{Viewshed analysis performed with GRASS}
+\captionof{figure}{Analýza viditelnost provedena v GRASSu}
 \end{myfig}
 
-\section{Open Source Philosophy}
+\section{Filozofie Open Source}
 
-The Open Source philosophy provides the user the ability to see the source code and structure of the program which offers a great transparency. Users can extend the program for their own needs. Immediate source code peer review increases the quality. With the help of the extension manager new modules can be created without GRASS package source code.
+Filozofie Open Source nabízí uživateli možnost nahlédnutí do zdrovových kódu a struktury programu, obrovskou míru transparentnosti. Uživatel může rozšířit program dle svých potřeb. Vzájemná kontrola zdrojového kódu zvyšuje jeho kvalitu. Tzv. extension manager umožňuje vytvářet nové moduly bez nutnosti zdrovového kódu GRASSu.
 
-\section{Technical Data Sheet}
+\section{Technická data}
 
-\subsection{License}
+\subsection{Licence}
 
-GNU General Public License (Free Software Foundation)
+Všeobecná veřejná licence GNU (GNU General Public License, Free Software Foundation)
 
-\subsection{Supported platforms}
+\subsection{Podporované platformy}
 
-GRASS runs on nearly all platforms. It supports GNU/Linux, Posix compliant Unix Systems, MS-Windows and MacOS X.
+GRASS běží na témeř všech platformách. Podporuje GNU/Linux, unixové systémy podporující Posix, MS-Windows a MacOS X.
 
 \subsection{Design}
 
 \begin{itemize}
-\item Modular
-\item Consists of more than 350 modules
+\item Modulární
+\item Obsahuje více než 350 modulů
 \end{itemize}
 
-\subsection{Programming Languages}
+\subsection{Programovací jazyky}
 
 \begin{itemize}
 \item ANSI C
-\item GRASS- SWIG interface
-\item Python for WebGIS applications
-\item Java Version: JGRASS
+\item Rozhraní GRASS- SWIG
+\item Python pro WebGIS aplikace
+\item Verze pro Javu: JGRASS
 \end{itemize}
 
-\subsection{Data Management Capabilities}
+\subsection{Možnosti správy dat}
 
 \begin{itemize}
-\item Raster / Vector / Voxel data processing
-\item 2D / 3D Raster / Vector modelling
-\item Image manipulation
-\item Vector topology / Network analysis
-\item Geostatistics (Interface to R)
+\item Zpracování rasterových / vektorových / voxel dat
+\item Modelování 2D / 3D rastrových / vektorových dat
+\item Zpracování obrazových dat
+\item Vektorová topologie / Síťové analýzy
+\item Geostatistika (rozhraní pro R)
 \end{itemize}
 
 \begin{myfig}[1ex]
 \includegraphics[width=0.7\textwidth]{trento3d}
-\captionof{figure}{A flyby of the city of Trento, Italy}
+\captionof{figure}{3D pohled na Trento, Itálie}
 \end{myfig}
 
-\section{Supported File Formats}
+\section{Podporované datové formáty}
 
-GRASS supports nearly all common GIS file formats through the use of the GDAL/OGR library. In addition it supports the Open GIS Consortium's Simple Features.
+GRASS podporuje téměř všechny dobře známé GIS datové formáty díky knihovně GDAL/OGR. Navíc podporuje Open GIS Consortium's Simple Features.
 
-\subsection{Vector File formats}
+\subsection{Vektorové datové formáty}
 ASCII, ARC/INFO ungenerate, ARC/INFO E00, Arc\-View SHAPE, BIL, DLG (U.S.), DXF, DXF3D, GMT, GPS-ASCII USGS-DEM, IDRISI, MOSS, MapInfo MIF, TIGER, VRML, \dots
 
-\subsection{Raster File Formats}
+\subsection{Rastrové datové formáty}
 ASCII, ARC/GRID, E00, GIF, GMT, TIF, PNG, Vis5D, SURFER (.grd),\dots
 \begin{myfig}
 \includegraphics[width=0.7\textwidth]{isodist}
-\captionof{figure}{Default GUI configuration showing GRASS  network analysis capabilites}
+\captionof{figure}{Výchozí konfigurace GUI ukazující možnosti GRASSu pro síťové analýzy}
 \end{myfig}
 
-\subsection{Image File Formats}
+\subsection{Obrazové datové formáty}
 
 CEOS (SAR, SRTM, LANDSAT7 etc.), ERDAS LAN / IMG, HDF, LANDSAT TM/MSS, NHAP aerial photos, SAR, SPOT, \dots
 \begin{myfig}[1.5ex]
 \includegraphics[width=0.7\textwidth]{ndvi}
-\captionof{figure}{Image processing capabilities of GRASS}
+\captionof{figure}{Možnosti GRASS ve zpracování obrazových dat}
 \end{myfig}
 
-\subsection{Database support}
+\subsection{Podpora databazí}
 
 \begin{itemize}
 \item PostgreSQL / PostGIS
@@ -155,41 +156,41 @@ CEOS (SAR, SRTM, LANDSAT7 etc.), ERDAS LAN / IMG, HDF, LANDSAT TM/MSS, NHAP aeri
 \item DBF
 \end{itemize}
 
-\subsection{Output}
+\subsection{Výstup}
 
 \begin{itemize}
-\item Modules for creating maps
-\item NVIZ for visualization of 2.5D and 3D data (creation of animations \& flybys)
+\item Moduly pro tvorbu mapových výstupů
+\item NVIZ pro vizualizaci 2.5D a 3D dat (tvorba animací \& pohledů)
 %\item{GMT export}
 %item{VRML}
 \item VTK, POVray
-\item WebGIS via Mapserver, Python, etc.
+\item WebGIS pomocí Mapserver, Python, a pod.
 \end{itemize}
 
-\subsection{Interoperability to other GIS- related Software}
+\subsection{Interoperabilita vůči dalším  GIS programům}
 
 \begin{itemize}
-\item Quantum GIS (Free Geodata Viewer and more)
-\item R- Language (Statistics)
-\item Gstat (Geostatistics)
-\item UMN Mapserver (Webmapping)
+\item Quantum GIS (Free Geodata (nejen) prohlížeč)
+\item R- Language (statistika)
+\item Gstat (geostatistika)
+\item UMN Mapserver (webové služby)
 \end{itemize}
 
-\section{Where to find more information}
+\section{Kde najít další informace}
 
 \begin{itemize}
 %\begin{flushleft}
-\item{Project Website: \\\GRASSurl}
+\item{Webové stránky projektu: \\\GRASSurl}
 \item{GRASS Wiki: \\\url{http://grass.gdf.hannover.de/wiki}}
-\item{GRASS Promotion Team: \\\url{malte@perlomat.de}}
-\item{GRASS mailing lists: \\\url{http://grass.itc.it/community/support.php}}
+\item{Propagační tým GRASSu: \\\url{malte@perlomat.de}}
+\item{Elektronické konference GRASSu: \\\url{http://grass.itc.it/community/support.php}}
 %\end{flushleft}
 \end{itemize}
 
 \vfill
 \section{OSGeo}
 
-GRASS is a founding project of the Open Source Geospatial Foundation which has the aim to create high quality open source geospatial software. For further information visit the OSGeo homepage:
+GRASS je zakládajícím projektem Open Source Geospatial Foundation, která si klade za cíl tvorbu vysoce kvalitního Open Source GIS software. Pro další informace navštivte domovskou stránku OSGeo:
 \begin{center}
 \includegraphics[width=0.8\textwidth]{OSGeo_CMYK}\\
 \url{http://www.osgeo.org}
