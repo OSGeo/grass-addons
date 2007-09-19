@@ -732,7 +732,6 @@ echo "0 white" >> $TMP4
 
 r.colors --quiet  map=$new_soil rules=$TMP4
 
-fi
 
 if [ $GIS_FLAG_b -eq 1 ]; then
 
