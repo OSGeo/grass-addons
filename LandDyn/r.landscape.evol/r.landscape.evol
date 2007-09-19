@@ -140,10 +140,18 @@
 #% guisection: Variables
 #%end
 #%option
-#% key: cutoff
+#% key: cutoff1
 #% type: string
 #% description: Flow accumultion breakpoint value for shift from diffusion to overland flow (number of cells)
-#% answer: 8
+#% answer: 4
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: cutoff2
+#% type: string
+#% description: Flow accumultion breakpoint value for shift from overland flow to channelized flow (number of cells)
+#% answer: 50
 #% required : yes
 #% guisection: Variables
 #%end
@@ -189,14 +197,6 @@
 #% required : yes
 #% guisection: Smoothing_Filter
 #%end
-# 	#%option
-# 	#% key: sigma
-# 	#% type: string
-# 	#% description: Band-pass filter threshold value, sigma (meters)
-# 	#% answer: 0.10
-# 	#% required : yes
-# 	#% guisection: Smoothing_Filter
-# 	#%end
 #%option
 #% key: method
 #% type: string
@@ -295,7 +295,8 @@ Bb=$GIS_OPT_Bb
 aplpha=$GIS_OPT_method
 sigma=$GIS_OPT_sigma
 nbhood=$GIS_OPT_nbhood
-cutoff=$GIS_OPT_cutoff
+cutoff1=$GIS_OPT_cutoff1
+cutoff2=$GIS_OPT_cutoff2
 number=$GIS_OPT_number
 echo "total number of iterations to be run= $number"
 echo ""
@@ -562,27 +563,21 @@ echo ""
 
 else
 
-maxflow=`eval r.univar -g map=$flowacc percentile=90 | grep "max=" | cut -d"=" -f2`
-minflow=`eval r.univar -g map=$flowacc percentile=90 | grep "min=" | cut -d"=" -f2`
+maxflow=`eval r.info -r map=$flowacc  | grep "max=" | cut -d"=" -f2`
+
 
 echo ""
-echo "The raw max ($maxflow) and min ($minflow) flow accumulation will be used to scale flow exponents 'm' and 'n' "
+echo "The raw max ($maxflow) flow accumulation, min cutoff $cutoff1, and middle cutoff $cutoff2 will be used to scale flow exponents 'm' and 'n' as flow progresses in the drainage network"
 echo ""
 
-echo ""
-echo	"Calculating with appropriate flow types on different landforms"
+echo "" 
+echo "calculating with appropriate flow types on different landforms"
 
-r.mapcalc "$m=1+($flowacc * (0.3/($maxflow - $minflow)))"
-r.mapcalc "$n=1+($flowacc * (0.15/($maxflow - $minflow)))"
+r.mapcalc "$m=if($flowacc > $cutoff2, 1.6, if($flowacc > $cutoff1 && $flowacc < $cutoff2, (1+($flowacc * (0.6/($cutoff2 - $cutoff1)))), 1))"
 
-report1=`eval r.info -r map=$m | grep "max=" | cut -d"=" -f2`
-report2=`eval r.info -r map=$m | grep "min=" | cut -d"=" -f2`
+r.mapcalc "$n=if($flowacc > $cutoff2,1.3, if($flowacc > $cutoff1 && $flowacc < $cutoff2, (1+($flowacc * (0.3/($cutoff2 - $cutoff1)))), 1))"
 
-echo ""
-echo "(for diagnostics only) max m = $report1, min m = $report2"
-
-
-r.mapcalc "$sflowtopo=if ($flowacc >= $cutoff, exp(($flowacc),$m) * exp(sin($slope),$n),  ($kappa * exp(($res),2) *sin($slope)))"
+r.mapcalc "$sflowtopo=if ($flowacc >= $cutoff1, exp(($flowacc),$m) * exp(sin($slope),$n),  ($kappa * exp(($res),2) *sin($slope)))"
 
 
 fi
@@ -692,21 +687,22 @@ r.colors --quiet map=$new_dem rast=$elev
 
 # create temporary file to code colors for $netchange
 
-# create temporary file to list all the smoothdz files for statistics
 TMP1=`g.tempfile pid=$$`
 if [ $? -ne 0 ] || [ -z "$TMP1" ] ; then
-    echo "ERROR: unable to create temporary file to list all the netchange files for statistics" 1>&2
+    echo "ERROR: unable to create temporary file for netchange colors" 1>&2
     exit 1
 fi
 
+
+
 echo "100% 0 0 100" > $TMP1
-echo "2 blue" >> $TMP1
+echo "1 blue" >> $TMP1
 echo "0.5 indigo" >> $TMP1
-echo "0.1 green" >> $TMP1
+echo "0.01 green" >> $TMP1
 echo "0 white" >> $TMP1
-echo "-0.1 yellow" >> $TMP1
+echo "-0.01 yellow" >> $TMP1
 echo "-0.5 orange" >> $TMP1
-echo "-2 red" >> $TMP1
+echo "-1 red" >> $TMP1
 echo "0% 150 0 50" >> $TMP1
 
 
@@ -714,6 +710,29 @@ r.colors --quiet  map=$netchange rules=$TMP1
 
 fi
 
+# create temporary file to code colors for $soildepth
+
+TMP4=`g.tempfile pid=$$`
+if [ $? -ne 0 ] || [ -z "$TMP4" ] ; then
+    echo "ERROR: unable to create temporary file for soil colors" 1>&2
+    exit 1
+fi
+
+
+
+echo "100% 0 0 100" > $TMP4
+echo "10 blue" >> $TMP4
+echo "5 indigo" >> $TMP4
+echo "1 green" >> $TMP4
+echo "0.1 yellow" >> $TMP4
+echo "0.03 orange" >> $TMP4
+echo "0.01 red" >> $TMP4
+echo "0.001 150 0 50" >> $TMP4
+echo "0 white" >> $TMP4
+
+r.colors --quiet  map=$new_soil rules=$TMP4
+
+fi
 
 if [ $GIS_FLAG_b -eq 1 ]; then
 
@@ -747,12 +766,38 @@ r.mapcalc "$new_bdrk=$initbdrk - $rate"
 
 r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
 
-fi
-
-
 #these are the old soil equations that I failed to be able to implement... I leave them in for documentation purposes
 #r.mapcalc "$new_bdrk=$initbdrk - ($Ba * ($Bb*($smoothdz - $initbdrk)))"
 #r.mapcalc "$new_soil=if (($smoothdz - $initbdrk) < 0, 0, ($smoothdz - $initbdrk))"
+
+fi
+
+
+# create temporary file to code colors for $soildepth
+
+TMP4=`g.tempfile pid=$$`
+if [ $? -ne 0 ] || [ -z "$TMP4" ] ; then
+    echo "ERROR: unable to create temporary file for soil colors" 1>&2
+    exit 1
+fi
+
+
+
+echo "100% 0 0 100" > $TMP4
+echo "10 blue" >> $TMP4
+echo "5 indigo" >> $TMP4
+echo "1 green" >> $TMP4
+echo "0.1 yellow" >> $TMP4
+echo "0.03 orange" >> $TMP4
+echo "0.01 red" >> $TMP4
+echo "0.001 150 0 50" >> $TMP4
+echo "0 white" >> $TMP4
+
+r.colors --quiet  map=$new_soil rules=$TMP4
+
+fi
+
+
 
 #grabsomestats
 tmperosion=$prfx"tmperosion"$num
@@ -1050,21 +1095,21 @@ echo ""
 
 else
 
-maxflow=`eval r.univar -g map=$flowacc percentile=90 | grep "max=" | cut -d"=" -f2`
-minflow=`eval r.univar -g map=$flowacc percentile=90 | grep "min=" | cut -d"=" -f2`
+maxflow=`eval r.info -r map=$flowacc  | grep "max=" | cut -d"=" -f2`
 
 
 echo ""
-echo "The raw max ($maxflow) and min ($minflow) flow accumulation will be used to scale flow exponents 'm' and 'n' "
+echo "The raw max ($maxflow) flow accumulation, min cutoff $cutoff1, and middle cutoff $cutoff2 will be used to scale flow exponents 'm' and 'n' as flow progresses in the drainage network"
 echo ""
 
 echo "" 
 echo "calculating with appropriate flow types on different landforms"
 
-r.mapcalc "$m=1+($flowacc * (0.6/($maxflow - $minflow)))"
-r.mapcalc "$n=1+($flowacc * (0.3/($maxflow - $minflow)))"
+r.mapcalc "$m=if($flowacc > $cutoff2, 1.6, if($flowacc > $cutoff1 && $flowacc < $cutoff2, (1+($flowacc * (0.6/($cutoff2 - $cutoff1)))), 1))"
 
-r.mapcalc "$sflowtopo=if ($flowacc >= $cutoff, exp(($flowacc),$m) * exp(sin($slope),$n),  ($kappa * exp(($res),2) *sin($slope)))"
+r.mapcalc "$n=if($flowacc > $cutoff2,1.3, if($flowacc > $cutoff1 && $flowacc < $cutoff2, (1+($flowacc * (0.3/($cutoff2 - $cutoff1)))), 1))"
+
+r.mapcalc "$sflowtopo=if ($flowacc >= $cutoff1, exp(($flowacc),$m) * exp(sin($slope),$n),  ($kappa * exp(($res),2) *sin($slope)))"
 
 fi
 
@@ -1190,11 +1235,14 @@ r.mapcalc "$rate=$kappa*(2-($meancurv*(2/($max)-($min))))"
 r.mapcalc "$new_bdrk=$old_bdrk - $rate"
 r.mapcalc "$new_soil=if (($new_dem - $new_bdrk) < 0, 0, ($new_dem - $new_bdrk))"
 
-fi
-
 #these are the old soil equations that I failed to be able to implement... I leave them in for documentation purposes
 #r.mapcalc "$new_bdrk= $old_bdrk - ($Ba * (exp(($smoothdz - $old_bdrk),$Bb)))"
 #r.mapcalc "$new_soil=if (($smoothdz - $old_bdrk) < 0, 0, ($smoothdz - $old_bdrk))"
+
+fi
+
+#setting colors to our rules
+r.colors --quiet  map=$new_soil rules=$TMP4
 
 
 #grabsomestats
@@ -1388,9 +1436,9 @@ g.mremove -f --q rast=$prefx"smoothdz*"
 fi
 
 
-#remove color file
+#remove temporary color rule files
 \rm -f $TMP1
-
+\rm -f $TMP4
 
 
 if [ "$GIS_FLAG_z" -eq 1 ]; then
