@@ -748,11 +748,11 @@ do
 	avesoil=`echo "$soilstats" | grep "mean=" | cut -d'=' -f2`
 	nnthsoil=`echo "$soilstats" | grep "percentile_99=" | cut -d'=' -f2`
 
-	erosstats=`eval r.univar -g -e map=$tmperosion percentile=99`
+	erosstats=`eval r.univar -g -e map=$tmperosion percentile=1`
 	maxeros=`echo "$erosstats" | grep "max=" | cut -d'=' -f2`
 	mineros=`echo "$erosstats" | grep "min=" | cut -d'=' -f2`
 	aveeros=`echo "$erosstats" | grep "mean=" | cut -d'=' -f2`
-	nntheros=`echo "$erosstats" | grep "percentile_99=" | cut -d'=' -f2`
+	nntheros=`echo "$erosstats" | grep "percentile_1=" | cut -d'=' -f2`
 
 	depostats=`eval r.univar -g -e map=$tmpdep percentile=99`
 	maxdepo=`echo "$depostats" | grep "max=" | cut -d'=' -f2`
