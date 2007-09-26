@@ -663,7 +663,7 @@ do
 
 	if [ "$GIS_FLAG_f" -eq 1 ]; then
 	
-		r.mapcalc "$temp_dem=eval(x=if(($aspect < 22.5 ||  $aspect >= 337.5) && $aspect != 0, ($old_dem + $smoothdz[1,0]), if ($aspect >= 22.5 && $aspect < 67.5, ($old_dem + $smoothdz[1,-1]), if ($aspect >= 67.5 && $aspect < 112.5, ($old_dem + $smoothdz[0,-1]), if ($aspect >= 112.5 && $aspect < 157.5, ($old_dem + $smoothdz[-1,-1]), if ($aspect >= 157.5 && $aspect < 202.5, ($old_dem + $smoothdz[-1,0]), if ($aspect >= 202.5 && $aspect < 247.5, ($old_dem + $smoothdz[-1,1]), if ($aspect >= 247.5 && $aspect < 292.5, ($old_dem + $smoothdz[0,1]), if ($aspect >= 292.5 && $aspect < 337.5, ($old_dem + $smoothdz[1,1]), ($old_dem + $smoothdz))))))))), (if(isnull(x), $old_dem, if(x > ($old_dem + 25), ($old_dem + 25), x))))"
+		r.mapcalc "$temp_dem=eval(x=if(($aspect < 22.5 ||  $aspect >= 337.5) && $aspect != 0, ($old_dem + $smoothdz[1,0]), if ($aspect >= 22.5 && $aspect < 67.5, ($old_dem + $smoothdz[1,-1]), if ($aspect >= 67.5 && $aspect < 112.5, ($old_dem + $smoothdz[0,-1]), if ($aspect >= 112.5 && $aspect < 157.5, ($old_dem + $smoothdz[-1,-1]), if ($aspect >= 157.5 && $aspect < 202.5, ($old_dem + $smoothdz[-1,0]), if ($aspect >= 202.5 && $aspect < 247.5, ($old_dem + $smoothdz[-1,1]), if ($aspect >= 247.5 && $aspect < 292.5, ($old_dem + $smoothdz[0,1]), if ($aspect >= 292.5 && $aspect < 337.5, ($old_dem + $smoothdz[1,1]), ($old_dem + $smoothdz))))))))), (if(isnull(x), $old_dem, if(x > ($old_dem + 5), ($old_dem + 1), x))))"
 	
 	else
 	
@@ -683,7 +683,7 @@ do
 	#make $netchange if asked
 	if [ "$GIS_FLAG_n" -eq 1 -o "$GIS_FLAG_m" -eq 1 -o "$GIS_FLAG_t" -eq 1 -a "$GIS_FLAG_f" -eq 1 ]; then
 	
-		r.mapcalc "$netchange=eval(x=if(($aspect < 22.5 ||  $aspect >= 337.5) && $aspect != 0, ($smoothdz[1,0]), if ($aspect >= 22.5 && $aspect < 67.5, ($smoothdz[1,-1]), if ($aspect >= 67.5 && $aspect < 112.5, ($smoothdz[0,-1]), if ($aspect >= 112.5 && $aspect < 157.5, ($smoothdz[-1,-1]), if ($aspect >= 157.5 && $aspect < 202.5, ($smoothdz[-1,0]), if ($aspect >= 202.5 && $aspect < 247.5, ($smoothdz[-1,1]), if ($aspect >= 247.5 && $aspect < 292.5, ($smoothdz[0,1]), if ($aspect >= 292.5 && $aspect < 337.5, ($smoothdz[1,1]), ($smoothdz))))))))), (if(isnull(x), $smoothdz, if(x > 25, 25, x))))"
+		r.mapcalc "$netchange=eval(x=if(($aspect < 22.5 ||  $aspect >= 337.5) && $aspect != 0, ($smoothdz[1,0]), if ($aspect >= 22.5 && $aspect < 67.5, ($smoothdz[1,-1]), if ($aspect >= 67.5 && $aspect < 112.5, ($smoothdz[0,-1]), if ($aspect >= 112.5 && $aspect < 157.5, ($smoothdz[-1,-1]), if ($aspect >= 157.5 && $aspect < 202.5, ($smoothdz[-1,0]), if ($aspect >= 202.5 && $aspect < 247.5, ($smoothdz[-1,1]), if ($aspect >= 247.5 && $aspect < 292.5, ($smoothdz[0,1]), if ($aspect >= 292.5 && $aspect < 337.5, ($smoothdz[1,1]), ($smoothdz))))))))), (if(isnull(x), $smoothdz, if(x > 5, 1, x))))"
 	
 		#set colors for maps
 		r.colors --quiet  map=$netchange rules=$TMP1
