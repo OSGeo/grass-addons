@@ -75,6 +75,18 @@
 #% required: no
 #% guisection: Input
 #%end
+#% key: statsout
+#% type: string
+#% gisprompt: string
+#% description: Name for the statsout text file (optional, if none provided, a default name will be used)
+#% required: no
+#% guisection: Input
+#%end
+#%flag
+#% key: g
+#% description: -g do not put header on statsout text file and always append data, even if file already exists (useful if script is being run by an outside program)
+#% guisection: Input
+#%end
 #%flag
 #% key: l
 #% description: -l Do not output maps of soil depths
@@ -598,7 +610,7 @@ do
 
 	#if the old soil is 0 or negative(could happen i suppose) then we make k-factor really really small to simulate erosion on bedrock
 	r.mapcalc "$qsx=if ($old_soil <= 0, ($R * 0.001 * $C * $sflowtopo * cos($aspect)), ($R * $K * $C * $sflowtopo * cos($aspect)))"
-	r.mapcalc "$qsy=if ($old_soil <= 0, ($R * 0.001 * $C * $sflowtopo * cos($aspect)), ($R * $K * $C * $sflowtopo * sin($aspect)))"
+	r.mapcalc "$qsy=if ($old_soil <= 0, ($R * 0.001 * $C * $sflowtopo * sin($aspect)), ($R * $K * $C * $sflowtopo * sin($aspect)))"
 
 	echo ""
 	echo "*************************"
@@ -762,19 +774,31 @@ do
 
 	g.remove --quiet rast=$tmperosion,$tmpdep
 
-	mapset=`eval g.gisenv get=MAPSET`
-	txtout=$mapset"_"$prefx"_lsevol_stats.txt"
-
-	echo "outputing stats to textfile: $txtout"
-
-	if [ $iter -eq 1 ]; then
-		echo "Stats for erosion and deposition simulation with starting map: $elev" > $txtout
-		echo "" >> $txtout
-		echo "Year,,Mean Erosion,Max Erosion,Min Erosion,99th Percentile Erosion,,Mean Deposition,Min Deposition,Max Deposition,99th Percentile Deposition,,Mean Soil Depth,Min Soil Depth,Max Soil Depth,99th Percentile Soil Depth" >> $txtout
+	if [ -e $GIS_OPT_statsout ]; then
+		
+		txtout=$GIS_OPT_statsout
+		
+	else
+		
+		mapset=`eval g.gisenv get=MAPSET`
+		txtout=$mapset"_"$prefx"_lsevol_stats.txt"
+		
 	fi
+	
+	echo "outputing stats to textfile: $txtout"
+	if [ $GIS_FLAG_g -eq 1 ]; then
+		
+		if [ $iter -eq 1 ]; then
+			echo "Stats for erosion and deposition simulation with starting map: $elev" > $txtout
+			echo "" >> $txtout
+			echo "Year,,Mean Erosion,Max Erosion,Min Erosion,99th Percentile Erosion,,Mean Deposition,Min Deposition,Max Deposition,99th Percentile Deposition,,Mean Soil Depth,Min Soil Depth,Max Soil Depth,99th Percentile Soil Depth" >> $txtout
+		fi
+		
+		echo "$iter,,$aveeros,$mineros,$maxeros,$nntheros,,$avedepo,$mindepo,$maxdepo,$nnthdepo,,$avesoil,$minsoil,$maxsoil,$nnthsoil" >> $txtout
+	else
+		echo "$iter,,$aveeros,$mineros,$maxeros,$nntheros,,$avedepo,$mindepo,$maxdepo,$nnthdepo,,$avesoil,$minsoil,$maxsoil,$nnthsoil" >> $txtout
 
-	echo "$iter,,$aveeros,$mineros,$maxeros,$nntheros,,$avedepo,$mindepo,$maxdepo,$nnthdepo,,$avesoil,$minsoil,$maxsoil,$nnthsoil" >> $txtout
-
+	fi
 	echo ""
 	echo "*************************"
 	echo "Done with this iteration"
