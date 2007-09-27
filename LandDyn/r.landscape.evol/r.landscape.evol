@@ -75,6 +75,7 @@
 #% required: no
 #% guisection: Input
 #%end
+#%Option
 #% key: statsout
 #% type: string
 #% gisprompt: string
