@@ -775,14 +775,14 @@ do
 
 	g.remove --quiet rast=$tmperosion,$tmpdep
 
-	if [ -e $GIS_OPT_statsout ]; then
-		
-		txtout=$GIS_OPT_statsout
-		
-	else
+	if [ -z $GIS_OPT_statsout ]; then
 		
 		mapset=`eval g.gisenv get=MAPSET`
 		txtout=$mapset"_"$prefx"_lsevol_stats.txt"
+		
+	else
+	
+		txtout=$GIS_OPT_statsout
 		
 	fi
 	
