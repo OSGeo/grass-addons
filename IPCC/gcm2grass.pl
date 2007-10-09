@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Authors: Radim Blazek and Marta Benito Garzón
+# Author: Radim Blazek, ITC-irst, 2005 
 #
 # Converts GCM ascii format to 12 GRASS raster files (1 for each month)
 # and changes longitude from 0-360
