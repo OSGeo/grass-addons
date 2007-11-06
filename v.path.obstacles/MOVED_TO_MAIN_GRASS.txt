@@ -1,3 +1,3 @@
 This module is no longer maintained here but
 was moved to the main repository of GRASS as
-v.net.obstacle.
+v.net.visibility.
