@@ -1,7 +1,5 @@
 MODULE_TOPDIR = ..
 
-include $(MODULE_TOPDIR)/include/Make/Dir.make
-
 SUBDIRS = \
 	r.average \
 	r.basins.fill \
@@ -32,6 +30,7 @@ SUBDIRS = \
 	r.grow2 \
 	r.gwflow \
 	r.his \
+	r.hydro.CASC2D \
 	r.in.arc \
 	r.in.ascii \
 	r.in.bin \
@@ -48,6 +47,7 @@ SUBDIRS = \
 	r.mapcalc \
 	r.median \
 	r.mfilter \
+	r.mfilter.fp \
 	r.mode \
 	r.neighbors \
 	r.null \
@@ -67,7 +67,6 @@ SUBDIRS = \
 	r.param.scale \
 	r.patch \
 	r.profile \
-	r.proj \
 	r.proj.seg \
 	r.quant \
 	r.random \
@@ -112,6 +111,7 @@ SUBDIRS = \
 	r.usler \
 	r.volume \
 	r.walk \
+	r.water.fea \
 	r.water.outlet \
 	r.watershed \
 	r.what \
@@ -127,6 +127,8 @@ PNGBASED = r.out.png
 CXXBASED = r.terraflow
 
 TIFFBASED = r.out.tiff
+
+include $(MODULE_TOPDIR)/include/Make/Platform.make
 
 #compile if GDAL present:
 ifneq ($(USE_GDAL),)
@@ -153,8 +155,12 @@ ifneq ($(strip $(TIFFLIB)),)
     SUBDIRS += $(TIFFBASED)
 endif
 
-default: subdirs htmldir
+PGM = rasterintro
+
+include $(MODULE_TOPDIR)/include/Make/Dir.make
+
+default: htmldir
+
+htmldir: parsubdirs 
 
 clean: cleansubdirs
-
-PGM = rasterintro
