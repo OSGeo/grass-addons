@@ -12,14 +12,14 @@ Examples of training that will dimension rows cols
 Class will be assigned to input by choice (parameter
 Class), which must be a positive integer progressive. A
 An alternative procedure (and not graphic) and to give input to
-A program files sites GRASS (parameter sitefile) and the program
+a program files sites GRASS (parameter sitefile) and the program
 Examples will create training at the same sites.
 The class will be assigned to the examples described in the file
-Sites. The output of the program and a series of maps of raster
+sites. The output of the program and a series of maps of raster
 Cols dimension rows whose name will be the type xy.z
 Ye where the name of the raster maps from which was extracted,
 Z while a meter x will be the name of a file that
-Will created (parameter training) and that will be generated as the
+will created (parameter training) and that will be generated as the
 
 The following calls:
 EXAMPLE: i.prtraining map = ammcom, genesis rows = 11 cols = 11 training class AAA = = 1
