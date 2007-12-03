@@ -6,7 +6,7 @@ i.pr.training
 Graphical interface for extracting data from training raster maps
 GRASS. Given a list of maps (parameter map), where the first
 Viewing will be used if not set the
-Parameter vismap, you select by clicking on the map
+parameter vismap, you select by clicking on the map
 Examples of training that will dimension rows cols
 (Parameters and rows cols respectively). The examples selected
 Class will be assigned to input by choice (parameter
