@@ -208,7 +208,7 @@ main(int argc, char *argv[])
 	nrows = G_window_rows();
 	ncols = G_window_cols();
 // 	printf("Passed Stage 3\n");
-	out_data_type=DCELL_TYPE;
+	out_data_type=FCELL_TYPE;
 	outrast = G_allocate_raster_buf(out_data_type);
 // 	printf("Passed Stage 4\n");
 	
