@@ -1,11 +1,33 @@
-#include <grass/gis.h>
-#include "global.h"
+/****************************************************************
+ *
+ * MODULE:     i.pr
+ *
+ * AUTHOR(S):  Stefano Merler, ITC-irst
+ *
+ * PURPOSE:    i.pr - Pattern Recognition
+ *
+ * COPYRIGHT:  (C) 2007 by the GRASS Development Team
+ *
+ *             This program is free software under the
+ *             GNU General Public License (>=v2).
+ *             Read the file COPYING that comes with GRASS
+ *             for details.
+ *
+ ****************************************************************/
+
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <grass/gis.h>
+#include <grass/glocale.h>
+#include "global.h"
 
 int main(argc, argv)
     int argc ;
     char **argv ;
 {
+    struct GModule *module;
     struct Option *opt1;
     struct Option *opt2;
     struct Option *opt3;
@@ -27,10 +49,16 @@ int main(argc, argv)
     FILE *fp;
 
 
-    char gisrc[500];
-
 /* Initialize the GIS calls */
     G_gisinit(argv[0]) ;
+
+  module = G_define_module();
+  module->keywords = _("imagery, image processing, pattern recognition");
+  module->description =
+      _("Module to process training data for feature extration. "
+        "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
+        "Decision Tree and SVM classification techniques. Also includes "
+        "cross-validation and bagging methods for model validation.");
 
     sprintf(opt1desc,"Input files (max %d) containing training data.\n\t\t2 formats are currently supported:\n\t\t1) GRASS_data (output of i.pr_training)\n\t\t2) TABLE_data.",TRAINING_MAX_INPUTFILES);
 

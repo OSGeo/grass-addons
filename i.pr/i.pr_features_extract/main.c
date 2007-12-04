@@ -1,7 +1,27 @@
-#include <grass/gis.h>
-#include "global.h"
+/****************************************************************
+ *
+ * MODULE:     i.pr
+ *
+ * AUTHOR(S):  Stefano Merler, ITC-irst
+ *
+ * PURPOSE:    i.pr - Pattern Recognition
+ *
+ * COPYRIGHT:  (C) 2007 by the GRASS Development Team
+ *
+ *             This program is free software under the
+ *             GNU General Public License (>=v2).
+ *             Read the file COPYING that comes with GRASS
+ *             for details.
+ *
+ ****************************************************************/
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <math.h>
+#include <grass/gis.h>
+#include <grass/glocale.h>
+#include "global.h"
 
 #define MAXLIMITS 20
 
@@ -11,6 +31,7 @@ int main(argc, argv)
     int argc ;
     char **argv ;
 {
+    struct GModule *module;
     struct Option *opt1;
     struct Option *opt2;
     struct Option *opt3;
@@ -23,24 +44,21 @@ int main(argc, argv)
     int limits[MAXLIMITS];
     int *selection;
     char *tmpbuf;
-    char gisrc[500];
     int nselection;
     int nlimits;
     double **copydata;
     int col;
 
-    if(getenv("GISBASE")==NULL)
-      setenv("GISBASE",
-	     ".",1);
-    //   "/mpa_sw/ssi/BIO/software/GRASS5.0.0/grass5bin_cvs/grass5",1);
-    if(getenv("GISRC")==NULL){
-      sprintf(gisrc,".grassrc5");
-      //sprintf(gisrc,"/ssi0/ssi/%s/.grassrc5",getenv("LOGNAME"));
-      setenv("GISRC",gisrc,1);
-    }
-
 /* Initialize the GIS calls */
     G_gisinit(argv[0]) ;
+
+  module = G_define_module();
+  module->keywords = _("imagery, image processing, pattern recognition");
+  module->description =
+      _("Module for feature extraction. "
+        "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
+        "Decision Tree and SVM classification techniques. Also includes "
+        "cross-validation and bagging methods for model validation.");
 
 /* set up command line */
     opt1              = G_define_option();

@@ -13,6 +13,7 @@ int main(argc, argv)
      int argc ;
      char **argv ;
 {
+  struct GModule *module;
   struct Option *opt1;
   struct Option *opt2;
   struct Option *opt3;
@@ -45,16 +46,16 @@ int main(argc, argv)
 
   char gisrc[500];
   
-  if(getenv("GISBASE")==NULL)
-      setenv("GISBASE",
-	     "/mpa_sw/ssi/BIO/software/GRASS5.0.0/grass5bin_cvs/grass5",1);
-  if(getenv("GISRC")==NULL){
-    sprintf(gisrc,"/ssi0/ssi/%s/.grassrc5",getenv("LOGNAME"));
-    setenv("GISRC",gisrc,1);
-  }
-  
   /* Initialize the GIS calls */
   G_gisinit(argv[0]) ;
+
+  module = G_define_module();
+  module->keywords = _("imagery, image processing, pattern recognition");
+  module->description =
+      _("Module to generate the training samples for use in i.pr.* modules. "
+        "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
+        "Decision Tree and SVM classification techniques. Also includes "
+        "cross-validation and bagging methods for model validation.");
 
   sprintf(opt1desc,"Input raster maps (max %d) for extracting the training examples.\n\t\tThe first one will be used for graphical output in case vis_map option not set",TRAINING_MAX_LAYERS);
   /* set up command line */

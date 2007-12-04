@@ -1,14 +1,33 @@
-#include <grass/gis.h>
-#include "global.h"
+/****************************************************************
+ *
+ * MODULE:     i.pr
+ *
+ * AUTHOR(S):  Stefano Merler, ITC-irst
+ *
+ * PURPOSE:    i.pr - Pattern Recognition
+ *
+ * COPYRIGHT:  (C) 2007 by the GRASS Development Team
+ *
+ *             This program is free software under the
+ *             GNU General Public License (>=v2).
+ *             Read the file COPYING that comes with GRASS
+ *             for details.
+ *
+ ****************************************************************/
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
-
+#include <grass/gis.h>
+#include <grass/glocale.h>
+#include "global.h"
 
 int main(argc, argv)
     int argc ;
     char **argv ;
 {
+    struct GModule *module;
     struct Option *opt1;
     struct Option *opt2;
     struct Option *opt3;
@@ -75,20 +94,18 @@ int main(argc, argv)
     int parallel_boosting;
     double *misratio;
     double misclass_ratio;
-    char gisrc[500];
     int testset;
-    
-    if(getenv("GISBASE")==NULL)
-      setenv("GISBASE",
-	     "/mpa_sw/ssi/BIO/software/GRASS5.0.0/grass5bin_cvs/grass5",1);
-    if(getenv("GISRC")==NULL){
-      sprintf(gisrc,".grassrc5");
-      setenv("GISRC",gisrc,1);
-    }
-
 
     /* Initialize the GIS calls */
     G_gisinit(argv[0]) ;
+
+  module = G_define_module();
+  module->keywords = _("imagery, image processing, pattern recognition");
+  module->description =
+      _("Module to generate model from features file. "
+        "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
+        "Decision Tree and SVM classification techniques. Also includes "
+        "cross-validation and bagging methods for model validation.");
 
     /* set up command line */
     opt1              = G_define_option();

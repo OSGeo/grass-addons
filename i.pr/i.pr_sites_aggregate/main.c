@@ -1,8 +1,27 @@
-#include <grass/gis.h>
-#include "global.h"
+/****************************************************************
+ *
+ * MODULE:     i.pr
+ *
+ * AUTHOR(S):  Stefano Merler, ITC-irst
+ *
+ * PURPOSE:    i.pr - Pattern Recognition
+ *
+ * COPYRIGHT:  (C) 2007 by the GRASS Development Team
+ *
+ *             This program is free software under the
+ *             GNU General Public License (>=v2).
+ *             Read the file COPYING that comes with GRASS
+ *             for details.
+ *
+ ****************************************************************/
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <grass/gis.h>
+#include <grass/glocale.h>
+#include "global.h"
 #include <grass/Vect.h>
 
 
@@ -12,6 +31,7 @@ int main(argc,argv)
      int argc;
      char *argv[];
 {
+  struct GModule *module;
   struct Option *opt1,*opt2,*opt3,*opt4;
   char *line=NULL;
   FILE *fp;
@@ -61,8 +81,16 @@ int main(argc,argv)
  /***** Start of main *****/
   G_gisinit(argv[0]);
 
+  module = G_define_module();
+  module->keywords = _("imagery, image processing, pattern recognition");
+  module->description =
+      _("Module to aggregate sites. "
+        "i.pr: Pattern Recognition environment for image processing. Includes kNN, "
+        "Decision Tree and SVM classification techniques. Also includes "
+        "cross-validation and bagging methods for model validation.");
+
   if (G_parser(argc, argv) < 0)
-    exit(-1);
+    exit(EXIT_FAILURE);
 
   sscanf(opt2->answer,"%lf",&max_dist);
   max_dist *= max_dist;
