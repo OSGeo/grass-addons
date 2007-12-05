@@ -577,7 +577,7 @@ int main(int argc, char *argv[])
 	/*Calculate Latitude*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#LATITUDE, DOY, TSW\" >> temp.txt");
-	snprintf(sys_4,1000,"echo \"i.latitude input=%s.albedo latitude=%s.latitude --overwrite ; r.mapcalc %s.doy=%d ; r.mapcalc %s.tsw=0.7\" >> temp.txt", basedate, basedate, basedate, doy, basedate);
+	snprintf(sys_4,1000,"echo \"i.latitude input=%s.albedo latitude=%s.latitude --overwrite ; i.longitude input=%s.albedo longitude=%s.longitude --overwrite ; r.mapcalc %s.doy=%d ; r.mapcalc %s.tsw=0.7\" >> temp.txt", basedate, basedate, basedate, basedate, basedate, doy, basedate);
 	/*Create a doy layer*/
 	system(sys_4);
 	system("echo \"\" >> temp.txt");
@@ -626,7 +626,7 @@ int main(int argc, char *argv[])
 	sprintf(sys_11,"echo \"r.mapcalc \"%s.phi=%f\"\" >> temp.txt",basedate,sun_elevation);
 	system(sys_11);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_12," echo \"i.sattime doy=%s.doy lat=%s.latitude sun_elev=%s.phi sath=%s.sath --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate);
+	sprintf(sys_12," echo \"i.sattime doy=%s.doy lat=%s.latitude long=%s.longitude sun_elev=%s.phi sath=%s.sath --overwrite\" >> temp.txt",basedate,basedate,basedate,basedate,basedate);
 	system(sys_12);
 	sprintf(sys_13," echo \"i.eb.deltat -w tempk=%s.61 delta=%s.delta --overwrite\" >> temp.txt",basedate,basedate);
 	system(sys_13);
