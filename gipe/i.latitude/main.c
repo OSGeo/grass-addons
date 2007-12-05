@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * MODULE:       i.latitude
+ * MODULE:       i.longitude
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
- * PURPOSE:      Calculates the latitude of the pixels in the map. 
+ * PURPOSE:      Calculates the longitude of the pixels in the map. 
  *
  * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
  *
@@ -43,10 +43,10 @@ int main(int argc, char *argv[])
 	char *name;   // input raster name
 	char *result1; //output raster name
 	//File Descriptors
-	int infd_lat;
+	int infd;
 	int outfd1;
 	
-	char *lat;
+	char *in;
 	int i=0,j=0;
 	double xp, yp;
 	double xmin, ymin;
@@ -54,16 +54,16 @@ int main(int argc, char *argv[])
 	double stepx,stepy;
 	double latitude, longitude;
 
-	void *inrast_lat;
+	void *inrast;
 	unsigned char *outrast1;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
-	RASTER_MAP_TYPE data_type_lat;
+	RASTER_MAP_TYPE data_type_inrast;
 	/************************************/
 	G_gisinit(argv[0]);
 
 	module = G_define_module();
-	module->keywords = _("latitude, projection");
-	module->description = _("creates a latitude map");
+	module->keywords = _("longitude, projection");
+	module->description = _("creates a longitude map");
 
 	/* Define the different options */
 	input1 = G_define_option() ;
@@ -75,12 +75,12 @@ int main(int argc, char *argv[])
 	input1->answer     =_("input");
 
 	output1 = G_define_option() ;
-	output1->key        =_("latitude");
+	output1->key        =_("longitude");
 	output1->type       = TYPE_STRING;
 	output1->required   = YES;
 	output1->gisprompt  =_("new,cell,raster");
-	output1->description=_("Name of the output latitude layer");
-	output1->answer     =_("latitude");
+	output1->description=_("Name of the output longitude layer");
+	output1->answer     =_("longitude");
 
 	
 	flag1 = G_define_flag();
@@ -91,21 +91,21 @@ int main(int argc, char *argv[])
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
 
-	lat	 	= input1->answer;
+	in	 	= input1->answer;
 		
 	result1  = output1->answer;
 	verbose = (!flag1->answer);
 	/***************************************************/
-	mapset = G_find_cell2(lat, "");
+	mapset = G_find_cell2(in, "");
 	if (mapset == NULL) {
-		G_fatal_error(_("cell file [%s] not found"), lat);
+		G_fatal_error(_("cell file [%s] not found"), in);
 	}
-	data_type_lat = G_raster_map_type(lat,mapset);
-	if ( (infd_lat = G_open_cell_old (lat,mapset)) < 0)
-		G_fatal_error (_("Cannot open cell file [%s]"), lat);
-	if (G_get_cellhd (lat, mapset, &cellhd) < 0)
-		G_fatal_error (_("Cannot read file header of [%s])"), lat);
-	inrast_lat = G_allocate_raster_buf(data_type_lat);
+	data_type_inrast = G_raster_map_type(in,mapset);
+	if ( (infd = G_open_cell_old (in,mapset)) < 0)
+		G_fatal_error (_("Cannot open cell file [%s]"), in);
+	if (G_get_cellhd (in, mapset, &cellhd) < 0)
+		G_fatal_error (_("Cannot read file header of [%s])"), in);
+	inrast = G_allocate_raster_buf(data_type_inrast);
 	/***************************************************/
 	G_debug(3, "number of rows %d",cellhd.rows);
 
@@ -147,11 +147,11 @@ int main(int argc, char *argv[])
 	for (row = 0; row < nrows; row++)
 	{
 		DCELL d;
-		DCELL d_lat;
+		DCELL d_lon;
 		if(verbose)
 			G_percent(row,nrows,2);
-		if(G_get_raster_row(infd_lat,inrast_lat,row,data_type_lat)<0)
-			G_fatal_error(_("Could not read from <%s>"),lat);
+		if(G_get_raster_row(infd,inrast,row,data_type_inrast)<0)
+			G_fatal_error(_("Could not read from <%s>"),in);
 		for (col=0; col < ncols; col++)
 		{
 			latitude = ymax - ( row * stepy );
@@ -163,15 +163,15 @@ int main(int argc, char *argv[])
 			}else{
 				//Do nothing
 			}	
-			d_lat = latitude;
-			((DCELL *) outrast1)[col] = d_lat;
+			d_lon = longitude;
+			((DCELL *) outrast1)[col] = d_lon;
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
 	}
 
-	G_free (inrast_lat);
-	G_close_cell (infd_lat);
+	G_free (inrast);
+	G_close_cell (infd);
 	
 	G_free (outrast1);
 	G_close_cell (outfd1);
