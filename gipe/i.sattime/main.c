@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
 	int verbose=1;
 	struct GModule *module;
-	struct Option *input1, *input2, *input3, *output1;
+	struct Option *input1, *input2, *input3, *input4, *output1;
 	
 	struct Flag *flag1;	
 	struct History history; //metadata
@@ -41,16 +41,17 @@ int main(int argc, char *argv[])
 	char *name;   // input raster name
 	char *result1; //output raster name
 	//File Descriptors
-	int infd_lat, infd_doy, infd_phi;
+	int infd_lat, infd_lon, infd_doy, infd_phi;
 	int outfd1;
 	
-	char *lat, *doy, *phi;
+	char *lat, *lon, *doy, *phi;
 	int i=0,j=0;
 
-	void *inrast_lat, *inrast_doy, *inrast_phi;
+	void *inrast_lat, *inrast_lon, *inrast_doy, *inrast_phi;
 	unsigned char *outrast1;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_lat;
+	RASTER_MAP_TYPE data_type_lon;
 	RASTER_MAP_TYPE data_type_doy;
 	RASTER_MAP_TYPE data_type_phi;
 	/************************************/
@@ -78,12 +79,20 @@ int main(int argc, char *argv[])
 	input2->answer     =_("latitude");
 
 	input3 = G_define_option() ;
-	input3->key	   = _("sun_elev");
+	input3->key	   = _("long");
 	input3->type       = TYPE_STRING;
 	input3->required   = YES;
 	input3->gisprompt  =_("old,cell,raster") ;
-	input3->description=_("Name of the sun elevation angle input map");
-	input3->answer     =_("phi");
+	input3->description=_("Name of the latitude input map");
+	input3->answer     =_("longitude");
+
+	input4 = G_define_option() ;
+	input4->key	   = _("sun_elev");
+	input4->type       = TYPE_STRING;
+	input4->required   = YES;
+	input4->gisprompt  =_("old,cell,raster") ;
+	input4->description=_("Name of the sun elevation angle input map");
+	input4->answer     =_("phi");
 
 	output1 = G_define_option() ;
 	output1->key        =_("sath");
@@ -104,7 +113,8 @@ int main(int argc, char *argv[])
 
 	doy	 	= input1->answer;
 	lat	 	= input2->answer;
-	phi	 	= input3->answer;
+	lon	 	= input3->answer;
+	phi	 	= input4->answer;
 		
 	result1  	= output1->answer;
 	verbose 	= (!flag1->answer);
@@ -130,6 +140,17 @@ int main(int argc, char *argv[])
 	if (G_get_cellhd (lat, mapset, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s])"), lat);
 	inrast_lat = G_allocate_raster_buf(data_type_lat);
+	/***************************************************/
+	mapset = G_find_cell2(lon, "");
+	if (mapset == NULL) {
+		G_fatal_error(_("cell file [%s] not found"), lon);
+	}
+	data_type_lon = G_raster_map_type(lon,mapset);
+	if ( (infd_lon = G_open_cell_old (lon,mapset)) < 0)
+		G_fatal_error (_("Cannot open cell file [%s]"), lon);
+	if (G_get_cellhd (lon, mapset, &cellhd) < 0)
+		G_fatal_error (_("Cannot read file header of [%s])"), lon);
+	inrast_lon = G_allocate_raster_buf(data_type_lon);
 	/***************************************************/
 	mapset = G_find_cell2(phi, "");
 	if (mapset == NULL) {
@@ -157,8 +178,11 @@ int main(int argc, char *argv[])
 		DCELL d_da;
 		DCELL d_delta;
 		DCELL d_Wa;
+		DCELL d_Wa1;
+		DCELL d_Wa2;
 		DCELL d_time;
 		DCELL d_lat;
+		DCELL d_lon;
 		DCELL d_doy;
 		DCELL d_phi;
 		if(verbose)
@@ -167,7 +191,7 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Could not read from <%s>"),doy);
 		if(G_get_raster_row(infd_lat,inrast_lat,row,data_type_lat)<0)
 			G_fatal_error(_("Could not read from <%s>"),lat);
-		if(G_get_raster_row(infd_phi,inrast_lat,row,data_type_phi)<0)
+		if(G_get_raster_row(infd_phi,inrast_phi,row,data_type_phi)<0)
 			G_fatal_error(_("Could not read from <%s>"),phi);
 		for (col=0; col < ncols; col++)
 		{
@@ -204,10 +228,13 @@ int main(int argc, char *argv[])
 					d_phi	= ((DCELL *) inrast_phi)[col];
 					break;
 			}
-			d_da = 2 * PI * ( d_doy - 1 ) / 365.0;
-			d_delta = 0.006918-0.399912*cos(d_da)+0.070257*sin(d_da)-0.006758*cos(2*d_da)+0.000907*sin(2*d_da)-0.002697*cos(3*d_da)+0.00148*sin(3*d_da);
-			d_Wa = acos((cos(d_phi*PI/180)-sin(d_delta)*sin(d_lat))/(cos(d_delta)*cos(d_lat)));
-			d_time = acos( 12.0 * ( d_Wa + 1 ) / PI );
+			//d_da = 2 * PI * ( d_doy - 1 ) / 365.0;
+			//d_delta = 0.006918-0.399912*cos(d_da)+0.070257*sin(d_da)-0.006758*cos(2*d_da)+0.000907*sin(2*d_da)-0.002697*cos(3*d_da)+0.00148*sin(3*d_da);
+			d_delta = 0.4093*sin((2.0*PI/365.0)*d_doy-1.39);
+			d_Wa1=cos(d_phi*PI/180.0)-sin(d_delta)*sin(d_lat*PI/180.0);
+			d_Wa2=cos(d_delta)*cos(d_lat*PI/180.0);
+			d_Wa=acos(d_Wa1/d_Wa2);
+			d_time = 12.0*(d_Wa+1.0)/PI + d_lon*(24.0/360.0);
 			((DCELL *) outrast1)[col] = d_time;
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
@@ -215,9 +242,11 @@ int main(int argc, char *argv[])
 	}
 
 	G_free (inrast_lat);
+	G_free (inrast_lon);
 	G_free (inrast_doy);
 	G_free (inrast_phi);
 	G_close_cell (infd_lat);
+	G_close_cell (infd_lon);
 	G_close_cell (infd_doy);
 	G_close_cell (infd_phi);
 	
