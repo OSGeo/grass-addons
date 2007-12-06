@@ -600,7 +600,7 @@ int main(int argc, char *argv[])
 	/*Calculate ETPOT (and Rnetd for future ETa calculations)*/
 	system("echo \"\" >> temp.txt");
 	system("echo \"#ETPOT\" >> temp.txt");
-	snprintf(sys_5,1000,"echo \"i.evapo.potrad -r -d albedo=%s.albedo tempk=%s.61 lat=%s.latitude doy=%s.doy tsw=%s.tsw slope=%s.slope aspect=%s.aspect etpot=%s.etpot rnetd=%s.rnetd --overwrite ; r.null map=%s.rnetd setnull=-999.99 \" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate);
+	snprintf(sys_5,1000,"echo \"i.evapo.potrad -r albedo=%s.albedo tempk=%s.61 lat=%s.latitude doy=%s.doy tsw=%s.tsw etpot=%s.etpot rnetd=%s.rnetd --overwrite ; r.null map=%s.rnetd setnull=-999.99 \" >> temp.txt", basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate, basedate);
 	system(sys_5);
 	snprintf(sys_7,1000,"echo \"r.colors map=%s.etpot color=grey ; r.null map=%s.etpot setnull=-999.99\" >> temp.txt", basedate, basedate);
 	system(sys_7);
@@ -675,7 +675,7 @@ int main(int argc, char *argv[])
 	sprintf(sys_31,"echo \"i.eb.h_iter rohair=%s.rohair cp=1004.16 dtair=%s.delta tempk=%s.61 disp=%s.disp z0m=%s.z0m z0h=%s.z0h u2m=u2 h0=%s.h0 --overwrite; r.null map=%s.h0 setnull=-999.99 \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_31);
 	system("echo \"\" >> temp.txt");
-	sprintf(sys_32,"echo \"i.eb.evapfr -m rnet=%s.rnet g0=%s.g0 h0=%s.h0 evapfr=%s.evapfr theta=%s.theta --overwrite ; r.null map=%s.evapfr setnull=-999.99 ; r.null map=%s.theta setnull=-999.99 \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate);
+	sprintf(sys_32,"echo \"i.eb.evapfr -m rnet=%s.rnet g0=%s.g0 h0=%s.h0 evapfr=%s.evapfr theta=%s.theta --overwrite ; r.null map=%s.evapfr setnull=-999.99 ; r.null map=%s.theta setnull=-999.99 ; r.colors map=%s.theta color=grey1.0 ; r.colors map=%s.evapfr color=grey1.0 \" >> temp.txt",basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate,basedate);
 	system(sys_32);
 	system("echo \"\" >> temp.txt");
 	sprintf(sys_33,"echo \"i.eb.eta rnetday=%s.rnetd evapfr=%s.evapfr tempk=%s.61 eta=%s.eta --overwrite ; r.null map=%s.eta setnull=-999.99 \" >> temp.txt",basedate,basedate,basedate,basedate,basedate);

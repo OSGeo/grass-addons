@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 	input3->type       = TYPE_STRING;
 	input3->required   = YES;
 	input3->gisprompt  =_("old,cell,raster") ;
-	input3->description=_("Name of the latitude input map");
+	input3->description=_("Name of the longitude input map");
 	input3->answer     =_("longitude");
 
 	input4 = G_define_option() ;
@@ -175,7 +175,8 @@ int main(int argc, char *argv[])
 	for (row = 0; row < nrows; row++)
 	{
 		DCELL d;
-		DCELL d_da;
+		DCELL d_frac_year;
+		DCELL d_tc_wa;
 		DCELL d_delta;
 		DCELL d_Wa;
 		DCELL d_Wa1;
@@ -191,6 +192,8 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Could not read from <%s>"),doy);
 		if(G_get_raster_row(infd_lat,inrast_lat,row,data_type_lat)<0)
 			G_fatal_error(_("Could not read from <%s>"),lat);
+		if(G_get_raster_row(infd_lon,inrast_lon,row,data_type_lon)<0)
+			G_fatal_error(_("Could not read from <%s>"),lon);
 		if(G_get_raster_row(infd_phi,inrast_phi,row,data_type_phi)<0)
 			G_fatal_error(_("Could not read from <%s>"),phi);
 		for (col=0; col < ncols; col++)
@@ -217,6 +220,17 @@ int main(int argc, char *argv[])
 					d_lat	= ((DCELL *) inrast_lat)[col];
 					break;
 			}
+			switch(data_type_lon){
+				case CELL_TYPE:
+					d_lon = (double) ((CELL *) inrast_lon)[col];
+					break;
+				case FCELL_TYPE:
+					d_lon = (double) ((FCELL *) inrast_lon)[col];
+					break;
+				case DCELL_TYPE:
+					d_lon	= ((DCELL *) inrast_lon)[col];
+					break;
+			}
 			switch(data_type_phi){
 				case CELL_TYPE:
 					d_phi = (double) ((CELL *) inrast_phi)[col];
@@ -230,11 +244,15 @@ int main(int argc, char *argv[])
 			}
 			//d_da = 2 * PI * ( d_doy - 1 ) / 365.0;
 			//d_delta = 0.006918-0.399912*cos(d_da)+0.070257*sin(d_da)-0.006758*cos(2*d_da)+0.000907*sin(2*d_da)-0.002697*cos(3*d_da)+0.00148*sin(3*d_da);
-			d_delta = 0.4093*sin((2.0*PI/365.0)*d_doy-1.39);
-			d_Wa1=cos(d_phi*PI/180.0)-sin(d_delta)*sin(d_lat*PI/180.0);
-			d_Wa2=cos(d_delta)*cos(d_lat*PI/180.0);
+			//d_delta = 0.4093*sin((2.0*PI/365.0)*d_doy-1.39);
+			d_frac_year = (360.0/365.25) * d_doy;
+			d_delta = 0.396372-22.91327*cos(d_frac_year*PI/180.0)+4.02543*sin(d_frac_year*PI/180.0)-0.387205*cos(2*d_frac_year*PI/180.0)+0.051967*sin(2*d_frac_year*PI/180.0)-0.154527*cos(3*d_frac_year*PI/180.0)+0.084798*sin(3*d_frac_year*PI/180.0);
+			d_tc_wa = 0.004297+0.107029*cos(d_frac_year*PI/180.0)-1.837877*sin(d_frac_year*PI/180.0)-0.837378*cos(2*d_frac_year*PI/180.0)-2.340475*sin(2*d_frac_year*PI/180.0);
+			d_Wa1=cos((90.0-d_phi)*PI/180.0)-sin(d_delta*PI/180.0)*sin(d_lat*PI/180.0);
+			d_Wa2=cos(d_delta*PI/180.0)*cos(d_lat*PI/180.0);
 			d_Wa=acos(d_Wa1/d_Wa2);
-			d_time = 12.0*(d_Wa+1.0)/PI + d_lon*(24.0/360.0);
+			d_time = ((d_Wa-(d_lon*PI/180.0)-d_tc_wa)/15.0)+12.0;
+			//d_time = 12.0*(d_Wa+1.0)/PI + d_lon*(24.0/360.0);
 			((DCELL *) outrast1)[col] = d_time;
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
