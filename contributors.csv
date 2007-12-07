@@ -1,4 +1,6 @@
 svnold_id,name,email,osgeo_id,rfc2_agreed
+-,E. Jorge Tizado,<ejtizado ono.com>,-,-
+-,Stefano Merler,<merler fbk.eu>,-,-
 barton,Michael Barton,<michael.barton asu.edu>,cmbarton,-
 bergenheim,Wolf Bergenheim,<wolf+grass bergenheim.net>,wolf,yes
 bradd,Brad Douglas,<rez touchofmadness.com>,-,-
@@ -12,6 +14,5 @@ kindl,Florian Kindl,<Florian.Kindl uibk.ac.at>,-,-
 landa,Martin Landa,<landa.martin gmail.com>,-,yes
 maldacker,Maximilian Maldacker,<mmaldacker gmail.com>,-,-
 neteler,Markus Neteler,<neteler osgeo.org>,neteler,yes
--,E. Jorge Tizado,<ejtizado ono.com>,-,-
 toma,Laura Toma,<ltoma bowdoin.edu>,-,-
 ullah,Isaac Ullah,<isaac.ullah asu.edu>,-,-
