@@ -1,17 +1,17 @@
 svnold_id,name,email,osgeo_id,rfc2_agreed
 -,E. Jorge Tizado,<ejtizado ono.com>,-,-
 -,Stefano Merler,<merler fbk.eu>,-,-
-barton,Michael Barton,<michael.barton asu.edu>,cmbarton,-
+barton,Michael Barton,<michael.barton asu.edu>,cmbarton,yes
 bergenheim,Wolf Bergenheim,<wolf+grass bergenheim.net>,wolf,yes
-bradd,Brad Douglas,<rez touchofmadness.com>,-,-
+bradd,Brad Douglas,<rez touchofmadness.com>,bdouglas,yes
 bundala,Daniel Bundala,<bundala gmail.com>,-,-
-calvelo,Daniel Calvelo Aros,<dca.gis gmail.com>,-,-
+calvelo,Daniel Calvelo Aros,<dca.gis gmail.com>,dcalvelo,-
 cannata,Massimiliano Cannata,<massimiliano.cannata supsi.ch>,-,yes
-cepicky,Jachym Cepicky,<jachym.cepicky gmail.com>,jachym,-
+cepicky,Jachym Cepicky,<jachym.cepicky gmail.com>,jachym,yes
 chemin,Yann Chemin,<ychemin gmail com>,ychemin,yes
 clements,Glynn Clements,<glynn gclements.plus.com>,glynn,yes
 kindl,Florian Kindl,<Florian.Kindl uibk.ac.at>,-,-
-landa,Martin Landa,<landa.martin gmail.com>,-,yes
+landa,Martin Landa,<landa.martin gmail.com>,martinl,yes
 maldacker,Maximilian Maldacker,<mmaldacker gmail.com>,-,-
 neteler,Markus Neteler,<neteler osgeo.org>,neteler,yes
 toma,Laura Toma,<ltoma bowdoin.edu>,-,-
