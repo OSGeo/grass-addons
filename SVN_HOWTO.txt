@@ -16,7 +16,7 @@ GRASS Addons Subversion repository at osgeo.org
 
 
 PROXY:
-SVN is a tricky software. It ignores any enviroment variables for proxy.
+SVN is a tricky software. It ignores any environment variables for proxy.
 If you have to use a proxy server, edit
   $HOME/.subversion/servers
 and add:
@@ -42,7 +42,14 @@ http-proxy-port = 3128
 
 3. cd grass-addons/
 
-4. Now work on the repository (see below).
+4. Read submitting instructions before committing any changes!
+   
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_DOCS
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_SCRIPTS
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_TCLTK
+
+5. Now work on the repository (see below).
 
 ########################
 
