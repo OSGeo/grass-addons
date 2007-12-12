@@ -1,23 +1,31 @@
 GRASS Addons SVN repository
+====================================================
 
 To submit your GRASS project here, please write to
-  Markus Neteler <neteler * itc it>
+
+	Markus Neteler <neteler * fbk.eu>
 
 The submmission must be compliant with the GRASS
-submission rules as found in the GRASS 6 source code
+submission rules as found in the GRASS source code
 and RFC2 (Legal aspects of submission):
 
- http://mpa.itc.it/markus/grass63progman/rfc/pages.html
+	http://trac.osgeo.org/grass/wiki/RfcList
 
+Also read submitting instructions before committing any changes!
+   
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_DOCS
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_SCRIPTS
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_TCLTK
 
 Read access is granted to the public, write access
 must be requested.
 
 Checkout of repository:
- svn co https://grasssvn.itc.it/svn/grassaddons/trunk/grassaddons grassaddons
+	svn checkout https://svn.osgeo.org/grass/grass-addons grass-addons
 
-###############
 Compilation
+###########
 
 The easiest way to compile modules against your GRASS code is
 by setting MODULE_TOPDIR on the fly to tell 'make' where to
@@ -25,12 +33,13 @@ find the GRASS source code:
 
   make MODULE_TOPDIR=$HOME/grass63/
 
-(adapt to your /path/to/grass6/ )
+(adapt to your /path/to/grass6/)
 
-#########################################
+Mime-types
+##########
 # To avoid PDF mime-type recognition problems,
 # each new (!) PDF file has to be modified like this:
-# (unsure how to exclude PDF from the 'diff' email
+# (unsure how to exclude PDF from the 'diff' email)
 
 svn propset svn:mime-type application/x-pdf *.pdf
 svn commit *.pdf
