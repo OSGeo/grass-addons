@@ -6,24 +6,11 @@
 
 #CHANGE THIS TO YOUR CVS TREE DIRECTORY 
 GRASSCVSDIR=/home/yann/tmp/grass
+ADDONSVNDIR=/home/yann/tmp/grass-addons
 
 # This Assumes you start in GIPE directory
-GIPEDIR=$('pwd')
-cd ..
-SVNDIR=$('pwd')
-cd HydroFOSS
-HFDIR=$('pwd')
-cd ../gui 
-WXDIR=$('pwd')
-
-#INSTALL GUI MODIFICATIONS
-cp -f $GIPEDIR/gui_Makefile $GRASSCVSDIR/gui/Makefile 
-#THIS ONE IS TCLTK
-cp -f $GIPEDIR/gmmenu.tcl $GRASSCVSDIR/gui/tcltk/gis.m/gmmenu.tcl
-cd $GRASSCVSDIR/gui/
-make 
-#THIS ONE IS WXGRASS
-cp -f $GIPEDIR/menudata.py $WXDIR/gui_modules/menudata.py
+GIPEDIR=$ADDONSVNDIR/gipe
+HFDIR=$ADDONSVNDIR/HydroFOSS
 
 #INSTALL MODULES
 #START RASTER STUFF
@@ -51,16 +38,16 @@ do
 	cp -rf $GIPEDIR/$directory $GRASSCVSDIR/imagery/ 
 done
 
-cd $SVNDIR/
+cd $ADDONSVNDIR/
 for directory in i.*
 do
-	cp -rf $SVNDIR/$directory $GRASSCVSDIR/imagery/ 
+	cp -rf $ADDONSVNDIR/$directory $GRASSCVSDIR/imagery/ 
 done
 
-cd $SVNDIR/i.pr/
+cd $ADDONSVNDIR/i.pr/
 for directory in i.*
 do
-	cp -rf $SVNDIR/i.pr/$directory $GRASSCVSDIR/imagery/ 
+	cp -rf $ADDONSVNDIR/i.pr/$directory $GRASSCVSDIR/imagery/ 
 done
 
 cp -f $GIPEDIR/imagery_Makefile $GRASSCVSDIR/imagery/Makefile 
