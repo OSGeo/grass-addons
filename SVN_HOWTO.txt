@@ -1,9 +1,9 @@
-GRASS Addons SVN: Subversion repository at grasssvn.itc.it
+GRASS Addons Subversion repository at osgeo.org
 ##########################################################
 
 0. Install the svn client software
 
-    Linux:   * 'subversion' package (RPM for your distro, should
+    Linux:   * 'subversion' package (RPM/DEB for your distro, should
                be on the CDROMs/DVD)
 
     MacOSX:  * http://subversion.tigris.org/
@@ -25,31 +25,29 @@ and add:
 http-proxy-host = proxy.yourdomain.xyz
 http-proxy-port = 3128
 
-1. How to get the grassaddons from the SVN repository
+1. How to get the grass-addons from the SVN repository
 1a) Command line:
- svn co https://grasssvn.itc.it/svn/grassaddons/trunk/grassaddons grassaddons
+ svn checkout https://svn.osgeo.org/grass/grass-addons grass-addons
 
  -> first it shows you the certificate (not validated which is ok),
     enter 'p' to accept it permanently
- -> then enter your password (get from Markus)
 
 1b) TortoiseSVN:
  Just enter this url:
-    https://grasssvn.itc.it/svn/grassaddons/trunk/grassaddons
+      https://svn.osgeo.org/grass/grass-addons
 
  and your user/password combination.
 
+2. This will check out the grass-addons into the directory grass-addons/
 
-2. This will check out the grassaddons into the directory grassaddons/
-
-3. cd grassaddons/
+3. cd grass-addons/
 
 4. Now work on the repository (see below).
 
 ########################
 
 We also have a nice Web interface for *reading* (not submitting):
- https://grasssvn.itc.it/grasssvn/grassaddons/trunk/grassaddons/
+   http://trac.osgeo.org/grass/browser/grass-addons
 
 If you want a graphical tool for SVN, get it here:
  http://en.wikipedia.org/wiki/Subversion_%28software%29#GUI_front-ends.2Fclients
@@ -173,4 +171,3 @@ Reference (really good:)
 
  http://svnbook.red-bean.com/nightly/en/index.html
  Version Control with Subversion
-
