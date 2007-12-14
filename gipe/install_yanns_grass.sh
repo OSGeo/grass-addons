@@ -25,6 +25,7 @@ for directory in r.*
 do
 	cp -rf $HFDIR/$directory $GRASSCVSDIR/raster/
 done
+cp -rf $HFDIR/PM_Makefile $GRASSCVSDIR/raster/r.evapo.PM/Makefile
 
 cp -f $GIPEDIR/Makefile $GRASSCVSDIR/raster/ 
 cd $GRASSCVSDIR/raster/

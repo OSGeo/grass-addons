@@ -51,7 +51,6 @@ SUBDIRS = \
 	r.mode \
 	r.neighbors \
 	r.null \
-	r.nullwest \
 	r.out.arc \
 	r.out.ascii \
 	r.out.bin \
@@ -111,7 +110,6 @@ SUBDIRS = \
 	r.usler \
 	r.volume \
 	r.walk \
-	r.water.fea \
 	r.water.outlet \
 	r.watershed \
 	r.what \
