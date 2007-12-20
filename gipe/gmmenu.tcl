@@ -588,6 +588,9 @@ set descmenu [subst  {
 				{command {[G_msg "Sensible heat flux"]} {} "i.eb.h0" {} -command {execute i.eb.h0 }}
 				{command {[G_msg "Sensible heat flux iteration (fixed delta T)"]} {} "i.eb.h_iter" {} -command {execute i.eb.h_iter }}
 				{separator}
+				{command {[G_msg "Support file for delta T iteration"]} {} "i.eb.wetdrypix" {} -command {execute i.eb.wetdrypix }}
+				{command {[G_msg "Sensible heat flux (iteration on delta T)"]} {} "i.eb.h_SEBAL95" {} -command {execute i.eb.h_SEBAL95 }}
+				{separator}
 				{command {[G_msg "Evaporative fraction"]} {} "i.eb.evapfr" {} -command {execute i.eb.evapfr }}
 		}}
 		{separator}

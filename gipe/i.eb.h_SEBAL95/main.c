@@ -350,9 +350,9 @@ int main(int argc, char *argv[])
 	G_close_cell (outfd);
 	
         /* add command line incantation to history file */
-        G_short_history(output, "raster", &history);
+        G_short_history(ETa, "raster", &history);
         G_command_history(&history);
-        G_write_history(output, &history);
+        G_write_history(ETa, &history);
 
 	exit(EXIT_SUCCESS);
 }

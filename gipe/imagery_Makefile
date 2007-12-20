@@ -19,6 +19,7 @@ SUBDIRS1 = \
 	i.eb.g0 \
 	i.eb.h0 \
 	i.eb.h_iter \
+	i.eb.h_SEBAL95 \
 	i.eb.molength \
 	i.eb.netrad \
 	i.eb.psi \
@@ -26,6 +27,7 @@ SUBDIRS1 = \
 	i.eb.rohair \
 	i.eb.ublend \
 	i.eb.ustar \
+	i.eb.wetdrypix \
 	i.eb.z0m \
 	i.emissivity \
 	i.evapo.potrad \

@@ -6,7 +6,7 @@
 
 #CHANGE THIS TO YOUR CVS TREE DIRECTORY 
 GRASSCVSDIR=/home/yann/tmp/grass
-ADDONSVNDIR=/home/yann/tmp/grass-addons
+ADDONSVNDIR=/home/yann/coding/grass-addons
 
 # This Assumes you start in GIPE directory
 GIPEDIR=$ADDONSVNDIR/gipe
