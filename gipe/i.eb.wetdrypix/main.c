@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 
 	if ( (outfd = G_open_raster_new (wet,DCELL_TYPE)) < 0)
 		G_fatal_error (_("Could not open <%s>"),wet);
-	if ( (outfd = G_open_raster_new (dry,DCELL_TYPE)) < 0)
+	if ( (outfd1 = G_open_raster_new (dry,DCELL_TYPE)) < 0)
 		G_fatal_error (_("Could not open <%s>"),dry);
 
 	for (row = 0; row < nrows; row++)
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
 		
 		if (G_put_d_raster_row (outfd, outrast) < 0)
 			G_fatal_error (_("Cannot write to <%s>"),wet);
-		if (G_put_d_raster_row (outfd, outrast1) < 0)
+		if (G_put_d_raster_row (outfd1, outrast1) < 0)
 			G_fatal_error (_("Cannot write to <%s>"),dry);
 	}	
 	G_free(inrast_T);
