@@ -1,0 +1,10 @@
+#!/bin/sh
+
+source globals/defines.sh
+
+if [ ! -f $DATABASE ]
+  then
+  init_db.sh
+else
+  echo "$DATABASE already exists. Doing nothing. Remove that DB file to start over"
+fi
