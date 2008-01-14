@@ -5,11 +5,11 @@ You need:
 and the will to read sql and bash code if an error occures :)
 
 Be sure you are in a GRASS location!
-Stay in the directoy containing the QuickStart file you are reading now,
+Stay in the directory containing the QuickStart file you are reading now,
 this is very important!
 The sqlite3 database will be created in the ./db/ directory.
 Use a graphical frontend to explore the database structure or read the 
-code in the sql directoy.
+code in the sql directory.
 
 * ./r.rast4d.init
 Start r.rast4d.init to create the database,
