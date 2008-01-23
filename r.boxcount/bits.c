@@ -1,7 +1,37 @@
+/****************************************************************************
+ *
+ * MODULE:       r.boxcount
+ * AUTHOR(S):    
+ *
+ *  Original author:
+ *  Mark Lake  14/5/99
+ *  
+ *  University College London
+ *  Institute of Archaeology
+ *  31-34 Gordon Square
+ *  London.  WC1H 0PY
+ *  email: mark.lake@ucl.ac.uk
+ * 
+ *  Adaptations for grass63:
+ *  Florian Kindl, 2006-10-02
+ *  University of Innsbruck
+ *  Institute of Geography
+ *  email: florian.kindl@uibk.ac.at
+ *
+ * PURPOSE: 
+ * These functions manipuluate individual bits and might
+ * need modification on a Big-Endian machine (e.g SPARC, 68xxx).  
+ * This code was developed on an 80x86.
+ *  
+ *
+ * COPYRIGHT:    (C) 2008 by the authors
+ *  
+ *               This program is free software under the GNU General Public
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	    	 for details.
+ *
+ *****************************************************************************/
 
-/* These functions manipuluate individual bits and might
-   need modification on a Big-Endian machine (e.g SPARC, 68xxx).  
-   This code was developed on an 80x86.                                   */
 
 
 
