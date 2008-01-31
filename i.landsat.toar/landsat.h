@@ -3,24 +3,46 @@
 
 #define MAX_BANDS   9
 
-/* Band data */
+#define UNCORRECTED     0
+#define CORRECTED       1
+#define SIMPLIFIED      2
+
+
+/*****************************************************
+ * Landsat Structures
+ *
+ * Lmax and Lmin in  W / (m² · sr · µm) -> Radiance
+ * Esun in  W / (m² · µm)               -> Irradiance
+ ****************************************************/
+
 typedef struct
 {
     int number;			/* Band number                   */
-    int code;			/* Band code                     */
+    int code;                   /* Band code                     */
+
+    double wavemax, wavemin;    /* Wavelength in µm              */
+
     double lmax, lmin;		/* Spectral radiance             */
     double qcalmax, qcalmin;	/* Quantized calibrated pixel    */
-    double esun;		/* Solar espectral irradiance    */
+    double esun;                /* Mean solar irradiance         */
+
+    char thermal;               /* Flag to thermal band          */
+    double gain, bias;          /* Gain and Bias of sensor       */
+    double K1, K2;              /* Thermal calibration constants,
+                                   or Rad2Ref constants          */
 
 } band_data;
 
-/* Landsat data */
 typedef struct
 {
-    char date[11];		/* Satelite image date           */
+    unsigned char number;       /* Landsat number                */
+
+    char creation[11];          /* Image production date         */
+    char date[11];              /* Image acquisition date        */
     double dist_es;		/* Distance Earth-Sun            */
     double sun_elev;		/* Solar elevation               */
-    double K1, K2;		/* Thermal calibration constant  */
+
+    char sensor[5];             /* Type of sensor: MSS, TM, ETM+ */
     int bands;			/* Total number of bands         */
     band_data band[MAX_BANDS];	/* Data for each band            */
 
@@ -31,9 +53,10 @@ typedef struct
  * Landsat Equations Prototypes
  *****************************************************************************/
 
-double lsat_qcal2rad(int qcal, double lmax, double lmin, double qcalmax, double qcalmin);
-double lsat_rad2ref(double rad, double dist_es, double sun_elev, double esun);
-double lsat_refrad_ratio(double dist_es, double sun_elev, double esun);
-double lsat_rad2temp(double rad, double K1, double K2);
+double lsat_qcal2rad(int, band_data *);
+double lsat_rad2ref(double, band_data *);
+double lsat_rad2temp(double, band_data *);
+
+void lsat_bandctes(lsat_data *, int, char, double, double);
 
 #endif

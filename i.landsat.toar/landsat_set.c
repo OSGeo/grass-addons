@@ -6,170 +6,375 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-#include "landsat.h"
+#include "local_proto.h"
 #include "earth_sun.h"
 
-#define MET_SIZE    5600	/* .met file size 5516 bytes */
-#define MAX_STR      127
-
-/* utility for read met file */
-void get_value_met(char *mettext, char *text, char *value)
+void sensor_MSS(lsat_data * lsat)
 {
-    char *ptr;
+    int i;
 
-    ptr = strstr(mettext, text);
-    if (ptr == NULL)
-	return;
+    int band[]    = { 4, 5, 6, 7 };
+    int code[]    = { 1, 2, 3, 4 };
+    double wmax[] = { 0.6, 0.7, 0.8, 1.1 };
+    double wmin[] = { 0.5, 0.6, 0.7, 0.8 };
 
-    while (*ptr++ != '=') ;
-    sscanf(ptr, "%s", value);
+    strcpy(lsat->sensor, "MSS");
+
+    lsat->bands = 4;
+    for (i = 0; i < lsat->bands; i++) {
+        lsat->band[i].number = *(band + i);
+        lsat->band[i].code = *(code + i);
+        lsat->band[i].wavemax = *(wmax + i);
+        lsat->band[i].wavemin = *(wmin + i);
+        lsat->band[i].qcalmax = 255.;
+        lsat->band[i].qcalmin = 0.;
+        lsat->band[i].thermal = 0;
+    }
     return;
 }
 
-/****************************************************************************
- * PURPOSE:     Read values of Landsat-7 ETM+ from header (.met) file
- *****************************************************************************/
-void met_ETM(char *metfile, lsat_data * lsat)
+void sensor_TM(lsat_data * lsat)
 {
-    FILE *f;
-    char mettext[MET_SIZE];
-    char name[MAX_STR], value[MAX_STR];
-    int i, j;
+    int i;
 
-    static int band[] = { 1, 2, 3, 4, 5, 6, 6, 7, 8 };
-    static int code[] = { 1, 2, 3, 4, 5, 61, 62, 7, 8 };
+    int band[]    = { 1, 2, 3, 4, 5, 6, 7 };
+    double wmax[] = { 0.52, 0.60, 0.69, 0.90, 1.75, 12.50, 2.35 };
+    double wmin[] = { 0.45, 0.52, 0.63, 0.76, 1.55, 10.40, 2.08 };
 
-    static double esun[] =
-	{ 1969., 1840., 1551., 1044., 225.7, 0., 82.07, 1368. };
+    strcpy(lsat->sensor, "TM");
 
-
-    if ((f = fopen(metfile, "r")) == NULL) {
-	G_fatal_error(_(".met file '%s' not found"), metfile);
+    lsat->bands = 7;
+    for (i = 0; i < lsat->bands; i++) {
+        lsat->band[i].number = *(band + i);
+        lsat->band[i].code = lsat->band[i].number;
+        lsat->band[i].wavemax = *(wmax + i);
+        lsat->band[i].wavemin = *(wmin + i);
+        lsat->band[i].qcalmax = 255.;
+        lsat->band[i].qcalmin = 0.;
+        lsat->band[i].thermal = (lsat->band[i].number == 6);
     }
-    fread(mettext, 1, MET_SIZE, f);
+    return;
+}
 
-    get_value_met(mettext, "ACQUISITION_DATE", value);
-    strncpy(lsat->date, value, 11);
-    lsat->dist_es = earth_sun(lsat->date);
+void sensor_ETM(lsat_data * lsat)
+{
+    int i;
 
-    get_value_met(mettext, "SUN_ELEVATION", value);
-    lsat->sun_elev = atof(value);
+    int band[]    = { 1, 2, 3, 4, 5, 6, 6, 7, 8 };
+    int code[]    = { 1, 2, 3, 4, 5, 61, 62, 7, 8 };
+    double wmax[] = { 0.515, 0.605, 0.690, 0.90, 1.75, 12.50, 2.35, 0.90 };
+    double wmin[] = { 0.450, 0.525, 0.630, 0.75, 1.55, 10.40, 2.09, 0.52 };
 
-    lsat->K1 = 666.09;
-    lsat->K2 = 1282.71;
+    strcpy(lsat->sensor, "ETM+");
 
     lsat->bands = 9;
     for (i = 0; i < lsat->bands; i++) {
-	lsat->band[i].number = *(band + i);
-	lsat->band[i].code = *(code + i);
-	lsat->band[i].esun = *(esun + lsat->band[i].number - 1);
-
-	snprintf(name, MAX_STR, "LMAX_BAND%d", lsat->band[i].code);
-	get_value_met(mettext, name, value);
-	lsat->band[i].lmax = atof(value);
-	snprintf(name, MAX_STR, "LMIN_BAND%d", lsat->band[i].code);
-	get_value_met(mettext, name, value);
-	lsat->band[i].lmin = atof(value);
-	snprintf(name, MAX_STR, "QCALMAX_BAND%d", lsat->band[i].code);
-	get_value_met(mettext, name, value);
-	lsat->band[i].qcalmax = atof(value);
-	snprintf(name, MAX_STR, "QCALMIN_BAND%d", lsat->band[i].code);
-	get_value_met(mettext, name, value);
-	lsat->band[i].qcalmin = atof(value);
-    }
-
-    (void)fclose(f);
-    return;
-}
-
-
-/****************************************************************************
- * PURPOSE:     Store values of Landsat-4 TM
- *
- *              date: adquisition date of image
- *              elevation: solar elevation angle
- *****************************************************************************/
-void set_TM4(lsat_data * lsat, char date[], double elevation)
-{
-    int i;
-
-    static int band[] = { 1, 2, 3, 4, 5, 6, 7 };
-    static double esun[] = { 1958., 1828., 1559., 1045., 219.1, 0., 74.57 };
-    static double lmax[] = { 185., 342., 245., 270., 36., 0., 19. };
-    static double lmin[] = { -1.5, -3.1, -2.7, -2.5, -0.45, 0., -0.3 };
-
-    strncpy(lsat->date, date, 11);
-    lsat->sun_elev = elevation;
-    lsat->dist_es = earth_sun(lsat->date);
-
-    lsat->K1 = 607.76;
-    lsat->K2 = 1260.56;
-
-    lsat->bands = 7;
-    for (i = 0; i < lsat->bands; i++) {
-	lsat->band[i].number = *(band + i);
-	lsat->band[i].code = lsat->band[i].number;
-	lsat->band[i].esun = *(esun + lsat->band[i].number - 1);
-	lsat->band[i].lmax = *(lmax + lsat->band[i].number - 1);
-	lsat->band[i].lmin = *(lmin + lsat->band[i].number - 1);
-	lsat->band[i].qcalmax = 255.;
-	lsat->band[i].qcalmin = 0.;
+        lsat->band[i].number = *(band + i);
+        lsat->band[i].code = *(code + i);
+        lsat->band[i].wavemax = *(wmax + i);
+        lsat->band[i].wavemin = *(wmin + i);
+        lsat->band[i].qcalmax = 255.;
+        lsat->band[i].qcalmin = 1.;
+        lsat->band[i].thermal = (lsat->band[i].number == 6);
     }
     return;
 }
 
 
+/** **********************************************
+ ** Before access to this function ...
+ ** store previously
+ ** >>> adquisition date,
+ ** >>> creation date, and
+ ** >>> sun_elev
+ ** **********************************************/
+
 /****************************************************************************
- * PURPOSE:     Store values of Landsat-5 TM
- *
- *              date: adquisition date of image
- *              elevation: solar elevation angle
- *              after: flag for processing date
+ * PURPOSE:     Store values of Landsat-1 MSS
+ *              July 23, 1972 to January 6, 1978
  *****************************************************************************/
-void set_TM5(lsat_data * lsat, char date[], double elevation, char after)
+void set_MSS1(lsat_data * lsat)
 {
-    int i;
-    double *lmax, *lmin;
+    int i, j;
 
-    static int band[] = { 1, 2, 3, 4, 5, 6, 7 };
-    static double esun[] = { 1957., 1829., 1557., 1047., 219.3, 0., 74.52 };
+    /** Brian L. Markham and John L. Barker.
+        EOSAT Landsat Technical Notes, No. 1, 1986 */
+    /* Spectral radiances at detector */
+    double lmax[] = { 248., 200., 176., 153. };
+    double lmin[] = {   0.,   0.,   0.,   0. };
+    /* Solar exoatmospheric spectral irradiances */
+    double esun[] = { 1852., 1584., 1276., 904. };
 
-    /* Spectral radiances at detecter before May 4, 2003 */
-    static double lmaxb[] =
-	{ 152.10, 296.81, 204.30, 206.20, 27.19, 15.303, 14.38 };
-    static double lminb[] =
-	{ -1.52, -2.84, -1.17, -1.51, -0.37, 1.2378, -0.15 };
+    lsat->number = 1;
+    sensor_MSS( lsat );
 
-    /* Spectral radiances at detecter after May 5, 2003 */
-    static double lmaxa[] =
-	{ 193.00, 365.00, 264.00, 221.00, 30.20, 15.303, 16.50 };
-    static double lmina[] =
-	{ -1.52, -2.84, -1.17, -1.51, -0.37, 1.2378, -0.15 };
-
-    strncpy(lsat->date, date, 11);
-    lsat->sun_elev = elevation;
     lsat->dist_es = earth_sun(lsat->date);
 
-    lsat->K1 = 607.76;
-    lsat->K2 = 1260.56;
-
-    lsat->bands = 7;
-    if (after != 0) {
-	lmax = lmaxa;
-	lmin = lmina;
-    }
-    else {
-	lmax = lmaxb;
-	lmin = lminb;
-    }
     for (i = 0; i < lsat->bands; i++) {
-	lsat->band[i].number = *(band + i);
-	lsat->band[i].code = lsat->band[i].number;
-	lsat->band[i].esun = *(esun + lsat->band[i].number - 1);
-	lsat->band[i].lmax = *(lmax + lsat->band[i].number - 1);
-	lsat->band[i].lmin = *(lmin + lsat->band[i].number - 1);
-	lsat->band[i].qcalmax = 255.;
-	lsat->band[i].qcalmin = 0.;
+        j = lsat->band[i].number - 1;
+        lsat->band[i].esun = *(esun + j);
+        lsat->band[i].lmax = *(lmax + j);
+        lsat->band[i].lmin = *(lmin + j);
+    }
+    return;
+}
+
+/****************************************************************************
+ * PURPOSE:     Store values of Landsat-2 MSS
+ *              January 22, 1975 to February 25, 1982
+ *****************************************************************************/
+void set_MSS2(lsat_data * lsat)
+{
+    int i, j;
+    double julian, *lmax, *lmin;
+
+    /** Brian L. Markham and John L. Barker.
+        EOSAT Landsat Technical Notes, No. 1, 1986 */
+    /* Spectral radiances at detector */
+    double Lmax[][4] = { { 210., 156., 140., 138. },    /* before      July 16, 1975 */
+                         { 263., 176., 152., 130. } };  /* on or after July 16, 1975 */
+    double Lmin[][4] = { {  10.,   7.,   7.,   5. },
+                         {   8.,   6.,   6.,   4. } };
+    /* Solar exoatmospheric spectral irradiances */
+    double esun[] = { 1856., 1559., 1269., 906. };
+
+    julian = julian_char(lsat->creation);
+    if (julian < julian_char("1975-07-16")) i = 0;
+    else i = 1;
+    lmax = Lmax[i];
+    lmin = Lmin[i];
+
+    lsat->number = 2;
+    sensor_MSS( lsat );
+
+    lsat->dist_es = earth_sun(lsat->date);
+
+    for (i = 0; i < lsat->bands; i++) {
+        j = lsat->band[i].number - 1;
+        lsat->band[i].esun = *(esun + j);
+        lsat->band[i].lmax = *(lmax + j);
+        lsat->band[i].lmin = *(lmin + j);
+    }
+    return;
+}
+
+/****************************************************************************
+ * PURPOSE:     Store values of Landsat-3 MSS
+ *              March 5, 1978 to March 31, 1983
+ *
+ *              tiene una banda 8 thermal
+ *****************************************************************************/
+void set_MSS3(lsat_data * lsat)
+{
+    int i, j;
+    double julian, *lmax, *lmin;
+
+    /** Brian L. Markham and John L. Barker.
+        EOSAT Landsat Technical Notes, No. 1, 1986 */
+    /* Spectral radiances at detector */
+    double Lmax[][4] = { { 220., 175., 145., 147. },   /* before      June 1, 1978 */
+                         { 259., 179., 149., 128. } }; /* on or after June 1, 1978 */
+    double Lmin[][4] = { {   4.,   3.,   3.,   1. },
+                         {   4.,   3.,   3.,   1. } };
+    /* Solar exoatmospheric spectral irradiances */
+    double esun[] = { 1860., 1571., 1289., 910. };
+
+    julian = julian_char(lsat->creation);
+    if (julian < julian_char("1978-06-01")) i = 0;
+    else i = 1;
+    lmax = Lmax[i];
+    lmin = Lmin[i];
+
+    lsat->number = 3;
+    sensor_MSS( lsat );
+
+    lsat->dist_es = earth_sun(lsat->date);
+
+    for (i = 0; i < lsat->bands; i++) {
+        j = lsat->band[i].number - 1;
+        lsat->band[i].esun = *(esun + j);
+        lsat->band[i].lmax = *(lmax + j);
+        lsat->band[i].lmin = *(lmin + j);
+    }
+    return;
+}
+
+/****************************************************************************
+ * PURPOSE:     Store values of Landsat-4 MSS/TM
+ *              July 16, 1982 to June 15, 2001
+ *****************************************************************************/
+void set_MSS4(lsat_data * lsat)
+{
+    int i, j;
+    double julian, *lmax, *lmin;
+
+    /** Brian L. Markham and John L. Barker.
+        EOSAT Landsat Technical Notes, No. 1, 1986 */
+    /* Spectral radiances at detector */
+    double Lmax[][4] = { { 250., 180., 150., 133. },     /* before      August 26, 1982 */
+                         { 230., 180., 130., 133. },     /* between                     */
+                         { 238., 164., 142., 116. } };   /* on or after April 1, 1983   */
+    double Lmin[][4] = { {   2.,   4.,   4.,   3. },
+                         {   2.,   4.,   4.,   3. },
+                         {   4.,   4.,   5.,   4. } };
+    /* Solar exoatmospheric spectral irradiances */
+    double esun[] = { 1851., 1593., 1260., 878. };
+
+    julian = julian_char(lsat->creation);
+    if (julian < julian_char("1982-08-26")) i = 0;
+    else if (julian < julian_char("1983-03-31")) i = 1;
+    else i = 2;
+    lmax = Lmax[i];
+    lmin = Lmin[i];
+
+    lsat->number = 4;
+    sensor_MSS( lsat );
+
+    lsat->dist_es = earth_sun(lsat->date);
+
+    for (i = 0; i < lsat->bands; i++) {
+        j = lsat->band[i].number - 1;
+        lsat->band[i].esun = *(esun + j);
+        lsat->band[i].lmax = *(lmax + j);
+        lsat->band[i].lmin = *(lmin + j);
+    }
+    return;
+}
+
+void set_TM4(lsat_data * lsat)
+{
+    int i, j;
+    double julian, *lmax, *lmin;
+
+    /** Brian L. Markham and John L. Barker.
+        EOSAT Landsat Technical Notes, No. 1, 1986 */
+    /* Spectral radiances at detector */
+    double Lmax[][7] = { { 158.42, 308.17, 234.63, 224.32, 32.42, 15.64,  17.00 },   /* before August 1983      */
+                         { 142.86, 291.25, 225.00, 214.29, 30.00, 12.40,  15.93 },   /* before January 15, 1984 */
+                         { 152.10, 296.80, 204.30, 206.20, 27.19, 15.60,  14.38 } }; /* after  Jaunary 15, 1984 */
+    double Lmin[][7] = { {  -1.52,  -2.84,  -1.17,  -1.51, -0.37,  2.00,  -0.15 },
+                         {   0.00,   0.00,   0.00,   0.00,  0.00,  4.84,   0.00 },
+                         {  -1.50,  -2.80,  -1.20,  -1.50, -0.37,  1.238, -0.15 } };
+    /** Gyanesh Chander and Brian Markham.
+        IEEE Transactions On Geoscience And Remote Sensing, Vol. 41, No. 11, November 2003 */
+    /* Solar exoatmospheric spectral irradiances */
+    double esun[] = { 1957., 1825., 1557., 1033., 214.9, 0., 80.72 };
+    /* Thermal band calibration constants: K1 = 671.62   K2 = 1284.30 */
+
+    julian = julian_char(lsat->creation);
+    if (julian < julian_char("1983-08-01")) i = 0;
+    else if (julian < julian_char("1984-01-15")) i = 1;
+    else i = 2;
+    lmax = Lmax[i];
+    lmin = Lmin[i];
+
+    lsat->number = 4;
+    sensor_TM( lsat );
+
+    lsat->dist_es = earth_sun(lsat->date);
+
+    for (i = 0; i < lsat->bands; i++) {
+        j = lsat->band[i].number - 1;
+	lsat->band[i].esun = *(esun + j);
+	lsat->band[i].lmax = *(lmax + j);
+	lsat->band[i].lmin = *(lmin + j);
+        if (lsat->band[i].thermal ) {
+            lsat->band[i].K1 = 671.62;
+            lsat->band[i].K2 = 1284.30;
+        }
+    }
+    return;
+}
+
+
+/****************************************************************************
+ * PURPOSE:     Store values of Landsat-5 MSS/TM
+ *              March 1, 1984 to today
+ *****************************************************************************/
+void set_MSS5(lsat_data * lsat)
+{
+    int i, j;
+    double julian, *lmax, *lmin;
+
+    /** Brian L. Markham and John L. Barker.
+        EOSAT Landsat Technical Notes, No. 1, 1986 */
+    /* Spectral radiances at detector */
+    double Lmax[][4] = { { 240., 170., 150., 127. },    /* before   April 6, 1984    */
+                         { 268., 179., 159., 123. },    /* betweeen                  */
+                         { 268., 179., 148., 123. } };  /* after    November 9, 1984 */
+    double Lmin[][4] = { {   4.,   3.,   4.,   2. },
+                         {   3.,   3.,   4.,   3. },
+                         {   3.,   3.,   5.,   3. } };
+    /* Solar exoatmospheric spectral irradiances */
+    double esun[] = { 1849., 1595., 1253., 870. };
+
+    julian = julian_char(lsat->creation);
+    if (julian < julian_char("1984-04-06")) i = 0;
+    else if (julian < julian_char("1984-11-09")) i = 1;
+    else i = 2;
+    lmax = Lmax[i];
+    lmin = Lmin[i];
+
+    lsat->number = 5;
+    sensor_MSS( lsat );
+
+    lsat->dist_es = earth_sun(lsat->date);
+
+    for (i = 0; i < lsat->bands; i++) {
+        j = lsat->band[i].number - 1;
+        lsat->band[i].esun = *(esun + j);
+        lsat->band[i].lmax = *(lmax + j);
+        lsat->band[i].lmin = *(lmin + j);
+    }
+    return;
+}
+
+void set_TM5(lsat_data * lsat)
+{
+    int i, j;
+    double julian, *lmax, *lmin;
+
+    /** Gyanesh Chander and Brian Markham.
+        IEEE Transactions On Geoscience And Remote Sensing, Vol. 41, No. 11, November 2003 */
+    /* Spectral radiances at detector */
+    double Lmax[][7] = { { 152.10, 296.81, 204.30, 206.20, 27.19, 15.303,  14.38 },    /* before      May 4, 2003 */
+                         { 193.00, 365.00, 264.00, 221.00, 30.20, 15.303,  16.50 },    /* on or after May 4, 2003 */
+                         { 169.00, 333.00, 264.00, 221.00, 30.20, 15.303,  16.50 } };  /* on or after April 2, 2007 */
+    double Lmin[][7] = { {  -1.52,  -2.84,  -1.17,  -1.51, -0.37,  1.2378, -0.15 },
+                         {  -1.52,  -2.84,  -1.17,  -1.51, -0.37,  1.2378, -0.15 },
+                         {  -1.52,  -2.84,  -1.17,  -1.51, -0.37,  1.2378, -0.15 } };
+    /* Solar exoatmospheric spectral irradiances */
+    double esun[] = { 1957., 1826., 1554., 1036., 215.0, 0., 80.67 };
+    /* Thermal band calibration constants: K1 = 607.76   K2 = 1260.56 */
+
+    julian = julian_char(lsat->creation);
+    if (julian < julian_char("2003-05-04")) i = 0;
+    else if (julian < julian_char("2007-04-02")) i = 1;
+    else i = 2;
+    lmax = Lmax[i];
+    lmin = Lmin[i];
+    if ( i == 2 ) {
+        julian = julian_char(lsat->date); /* Yes, here acquisition date */
+        if (julian >= julian_char("1992-01-01")) {
+            lmax[0] = 193.0;
+            lmax[1] = 365.0;
+        }
+    }
+
+    lsat->number = 5;
+    sensor_TM( lsat );
+
+    lsat->dist_es = earth_sun(lsat->date);
+
+    for (i = 0; i < lsat->bands; i++) {
+        j = lsat->band[i].number - 1;
+	lsat->band[i].esun = *(esun + j);
+	lsat->band[i].lmax = *(lmax + j);
+	lsat->band[i].lmin = *(lmin + j);
+        if (lsat->band[i].thermal ) {
+            lsat->band[i].K1 = 607.76;
+            lsat->band[i].K2 = 1260.56;
+        }
     }
     return;
 }
@@ -177,81 +382,56 @@ void set_TM5(lsat_data * lsat, char date[], double elevation, char after)
 
 /****************************************************************************
  * PURPOSE:     Store values of Landsat-7 ETM+
- *
- *              date: adquisition date of image
- *              elevation: solar elevation angle
- *              gain: nine H/L chars for band gain
- *              before: flag for processing date
+ *              April 15, 1999 to today
  *****************************************************************************/
-void set_ETM(lsat_data * lsat, char date[], double elevation, char gain[],
-	     char before)
+void set_ETM(lsat_data * lsat, char gain[])
 {
-    int i;
-    double *lmax, *lmin;
+    int i, k, j;
+    double julian, *lmax, *lmin;
 
-    static int band[] = { 1, 2, 3, 4, 5, 6, 6, 7, 8 };
-    static int code[] = { 1, 2, 3, 4, 5, 61, 62, 7, 8 };
+    /** Richard Irish.
+        Landsat 7. Science Data Users Handbook. Last update: February 17, 2007 */
+    /* Spectral radiances at detector */
+    /* - LOW GAIN - */
+    double LmaxL[][8] = { { 297.5, 303.4, 235.5, 235.0, 47.70, 17.04, 16.600, 244.0 },      /* before      July 1, 2000 */
+                          { 293.7, 300.9, 234.4, 241.1, 47.57, 17.04, 16.540, 243.1 } };    /* on or after July 1, 2000 */
+    double LminL[][8] = { {  -6.2,  -6.0,  -4.5,  -4.5,  -1.0,  0.0,  -0.35,   -5.0 },
+                          {  -6.2,  -6.4,  -5.0,  -5.1,  -1.0,  0.0,  -0.35,   -4.7 } };
+    /* - HIGH GAIN - */
+    double LmaxH[][8] = { { 194.3, 202.4, 158.6, 157.5, 31.76, 12.65, 10.932, 158.4 },
+                          { 191.6, 196.5, 152.9, 157.4, 31.06, 12.65, 10.800, 158.3 } };
+    double LminH[][8] = { {  -6.2,  -6.0,  -4.5,  -4.5, -1.0,   3.2,  -0.35,   -5.0 },
+                          {  -6.2,  -6.4,  -5.0,  -5.1, -1.0,   3.2,  -0.35,   -4.7 } };
+    /* Solar exoatmospheric spectral irradiances */
+    double esun[] = { 1969., 1840., 1551., 1044., 225.7, 0., 82.07, 1368. };
+    /*  Thermal band calibration constants: K1 = 666.09   K2 = 1282.71 */
 
-    static double esun[] =
-	{ 1969., 1840., 1551., 1044., 225.7, 0., 82.07, 1368. };
+    julian = julian_char(lsat->creation);
+    if (julian < julian_char("2000-07-01")) k = 0;
+    else k = 1;
 
-    /* Spectral radiances at detector before July 1, 2000 */
-    /*   Low gain */
-    static double lmaxLb[] =
-	{ 297.5, 303.4, 235.5, 235.0, 47.70, 17.04, 16.600, 244.0 };
-    static double lminLb[] = { -6.2, -6.0, -4.5, -4.5, -1.0, 0.0, -0.35, -5.0 };
-    /*   High gain */
-    static double lmaxHb[] =
-	{ 194.3, 202.4, 158.6, 157.5, 31.76, 12.65, 10.932, 158.4 };
-    static double lminHb[] = { -6.2, -6.0, -4.5, -4.5, -1.0, 3.2, -0.35, -5.0 };
+    lsat->number = 7;
+    sensor_ETM( lsat );
 
-    /* Spectral radiances at detector after July 1, 2000 */
-    /*   Low gain */
-    static double lmaxLa[] =
-	{ 293.7, 300.9, 234.4, 241.1, 47.57, 17.04, 16.540, 243.1 };
-    static double lminLa[] = { -6.2, -6.4, -5.0, -5.1, -1.0, 0.0, -0.35, -4.7 };
-    /*   High gain */
-    static double lmaxHa[] =
-	{ 191.6, 196.5, 152.9, 157.4, 31.06, 12.65, 10.800, 158.3 };
-    static double lminHa[] = { -6.2, -6.4, -5.0, -5.1, -1.0, 3.2, -0.35, -4.7 };
-
-
-    strncpy(lsat->date, date, 11);
-    lsat->sun_elev = elevation;
     lsat->dist_es = earth_sun(lsat->date);
 
-    lsat->K1 = 666.09;
-    lsat->K2 = 1282.71;
-
-    lsat->bands = 9;
     for (i = 0; i < lsat->bands; i++) {
-	lsat->band[i].number = *(band + i);
-	lsat->band[i].code = *(code + i);
-	lsat->band[i].esun = *(esun + lsat->band[i].number - 1);
-	lsat->band[i].qcalmax = 255.;
-	lsat->band[i].qcalmin = 1.;
-	if (before != 0) {
-	    if (gain[i] == 'H' || gain[i] == 'h') {
-		lmax = lmaxHb;
-		lmin = lminHb;
-	    }
-	    else {
-		lmax = lmaxLb;
-		lmin = lminLb;
-	    }
-	}
-	else {
-	    if (gain[i] == 'H' || gain[i] == 'h') {
-		lmax = lmaxHa;
-		lmin = lminHa;
-	    }
-	    else {
-		lmax = lmaxLa;
-		lmin = lminLa;
-	    }
-	}
-	lsat->band[i].lmax = *(lmax + lsat->band[i].number - 1);
-	lsat->band[i].lmin = *(lmin + lsat->band[i].number - 1);
+        j = lsat->band[i].number - 1;
+	lsat->band[i].esun = *(esun + j);
+        if (gain[i] == 'H' || gain[i] == 'h') {
+            lmax = LmaxH[k];
+            lmin = LminH[k];
+        }
+        else {
+            lmax = LmaxL[k];
+            lmin = LminL[k];
+        }
+	lsat->band[i].lmax = *(lmax + j);
+	lsat->band[i].lmin = *(lmin + j);
+        if (lsat->band[i].thermal ) {
+            lsat->band[i].K1 = 666.09;
+            lsat->band[i].K2 = 1282.71;
+        }
     }
     return;
 }
