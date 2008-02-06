@@ -108,6 +108,7 @@ void met_ETM(char *metfile, lsat_data * lsat)
 void get_value_met(const char mettext[], char *text, char value[])
 {
     char *ptr;
+    int i;
     value[0] = 0;
 
     ptr = strstr(mettext, text);
@@ -116,10 +117,10 @@ void get_value_met(const char mettext[], char *text, char value[])
     ptr = strstr(ptr, " VALUE ");
     if (ptr == NULL) return;
 
+    i = 0;
     while (*ptr++ != '\"') ;
-    sscanf(ptr, "%s", value);
-    ptr = value;
-    do { if (*ptr == '\"') *ptr = '\0'; } while (*ptr++);
+    while( *ptr != '\"' && i < MAX_STR) value[i++]=*ptr++;
+    value[i] = '\0';
 
     return;
 }
@@ -164,11 +165,11 @@ void met_TM5(char *metfile, lsat_data * lsat)
             break;
         case '4':
             get_value_met(mettext, "SENSORSHORTNAME", value);
-            if (value[0] = 'M') set_MSS4(lsat); else set_TM4(lsat);
+            if (value[0] == 'M') set_MSS4(lsat); else set_TM4(lsat);
             break;
         case '5':
             get_value_met(mettext, "SENSORSHORTNAME", value);
-            if (value[0] = 'M') set_MSS5(lsat); else set_TM5(lsat);
+            if (value[0] == 'M') set_MSS5(lsat); else set_TM5(lsat);
             break;
     }
 

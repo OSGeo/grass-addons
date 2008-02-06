@@ -13,8 +13,8 @@ void sensor_MSS(lsat_data * lsat)
 {
     int i;
 
-    int band[]    = { 4, 5, 6, 7 };
-    int code[]    = { 1, 2, 3, 4 };
+    int band[]    = { 1, 2, 3, 4 };
+    int code[]    = { 4, 5, 6, 7 };
     double wmax[] = { 0.6, 0.7, 0.8, 1.1 };
     double wmin[] = { 0.5, 0.6, 0.7, 0.8 };
 
@@ -46,7 +46,7 @@ void sensor_TM(lsat_data * lsat)
     lsat->bands = 7;
     for (i = 0; i < lsat->bands; i++) {
         lsat->band[i].number = *(band + i);
-        lsat->band[i].code = lsat->band[i].number;
+        lsat->band[i].code = *(band + i);
         lsat->band[i].wavemax = *(wmax + i);
         lsat->band[i].wavemin = *(wmin + i);
         lsat->band[i].qcalmax = 255.;
@@ -337,9 +337,9 @@ void set_TM5(lsat_data * lsat)
     /** Gyanesh Chander and Brian Markham.
         IEEE Transactions On Geoscience And Remote Sensing, Vol. 41, No. 11, November 2003 */
     /* Spectral radiances at detector */
-    double Lmax[][7] = { { 152.10, 296.81, 204.30, 206.20, 27.19, 15.303,  14.38 },    /* before      May 4, 2003 */
-                         { 193.00, 365.00, 264.00, 221.00, 30.20, 15.303,  16.50 },    /* on or after May 4, 2003 */
-                         { 169.00, 333.00, 264.00, 221.00, 30.20, 15.303,  16.50 } };  /* on or after April 2, 2007 */
+    double Lmax[][7] = { { 152.10, 296.81, 204.30, 206.20, 27.19, 15.303,  14.38 },    /* on or before May 4, 2003 */
+                         { 193.00, 365.00, 264.00, 221.00, 30.20, 15.303,  16.50 },    /* after May 4, 2003 */
+                         { 169.00, 333.00, 264.00, 221.00, 30.20, 15.303,  16.50 } };  /* after April 2, 2007 */
     double Lmin[][7] = { {  -1.52,  -2.84,  -1.17,  -1.51, -0.37,  1.2378, -0.15 },
                          {  -1.52,  -2.84,  -1.17,  -1.51, -0.37,  1.2378, -0.15 },
                          {  -1.52,  -2.84,  -1.17,  -1.51, -0.37,  1.2378, -0.15 } };

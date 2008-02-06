@@ -11,8 +11,8 @@
  * COPYRIGHT:    (C) 2002, 2005 2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 for details.
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
  *
  *****************************************************************************/
 
@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
     adate->key = _("date");
     adate->type = TYPE_STRING;
     adate->required = NO;
-    adate->gisprompt = _("image acquisition adate");
-    adate->description = _("Image acquisition adate (yyyy-mm-dd)");
+    adate->gisprompt = _("image acquisition date");
+    adate->description = _("Image acquisition date (yyyy-mm-dd)");
 
     elev = G_define_option();
     elev->key = _("solar");
@@ -102,8 +102,8 @@ int main(int argc, char *argv[])
     pdate->key = _("product_date");
     pdate->type = TYPE_STRING;
     pdate->required = NO;
-    pdate->gisprompt = _("image production adate");
-    pdate->description = _("Image creation adate (yyyy-mm-dd)");
+    pdate->gisprompt = _("image production date");
+    pdate->description = _("Image creation date (yyyy-mm-dd)");
 
     metho = G_define_option();
     metho->key = _("method");
@@ -212,9 +212,9 @@ int main(int argc, char *argv[])
         if (elev->answer != NULL)
            lsat.sun_elev = atof(elev->answer);         /* Overwrite sun elevation of met file */
     }
-    /* Data from adate and solar elevation */
+    /* Data from date and solar elevation */
     else if (adate->answer == NULL || elev->answer == NULL) {
-	G_fatal_error(_("Lacking adate and solar elevation for this satellite"));
+	G_fatal_error(_("Lacking date or solar elevation for this satellite"));
     }
     else {
 	if (sat7->answer) { /* Need gain */
@@ -256,20 +256,21 @@ int main(int argc, char *argv[])
 	}
     }
 
-    /* Now calculate band constants */
-    for (i = 0; i < lsat.bands; i++) {
-        switch(atcor[0])
-        {
-            case 'c':
-                method = CORRECTED;
-                break;
-            case 's':
-                method = SIMPLIFIED;
-                break;
-            default:
-                method = UNCORRECTED;
-                break;
-        }
+    /* Set method and calculate band constants */
+    switch(atcor[0])
+    {
+        case 'c':
+            method = CORRECTED;
+            break;
+        case 's':
+            method = SIMPLIFIED;
+            break;
+        default:
+            method = UNCORRECTED;
+            break;
+    }
+    for (i = 0; i < lsat.bands; i++)
+    {
         lsat_bandctes(&lsat, i, method, 0.0, percent);
     }
 
@@ -281,6 +282,8 @@ int main(int argc, char *argv[])
 	fprintf(stdout, " ACQUISITION DATE %s [production date %s]\n", lsat.date, lsat.creation);
 	fprintf(stdout, "   earth-sun distance    = %.8lf\n", lsat.dist_es);
         fprintf(stdout, "   solar elevation angle = %.8lf\n", lsat.sun_elev);
+        fprintf(stdout, "   Method for at sensor values = %s\n",
+            (atcor[0]=='c' ? "corrected" : (atcor[0]=='s' ? "simplified" : "uncorrected")));
         if (atcor[0] == 's')
         {
             fprintf(stdout, "   percent of solar irradiance in path radiance = %.4lf\n", percent);
