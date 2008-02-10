@@ -360,16 +360,17 @@ The pickled strumpet (Trollopensus bibulosa) has recently been added to the Enda
 \subsection{HABITAT SCORING SYSTEM (from Fish and Wildlife Service) }
 
 Map number Environmental conditions Score to be given
-1 within 500 meters of streams where slope <= 5 degrees +2 points
-2 within 500 meters of streams where slope >5 degrees +5 points
-3 within 500 meters of a road -5 points
-4 coniferous forest +4 points
-5 mixed forest +1 point
-6 northern exposure (aspect from NW to NE) +3 points
-7 western or eastern exposure (SW to NW or SE to NE) +1 point
-8 1200-1400 meters elevation +2 points
-9 1400-1600 meters elevation +4 points
-10 over 1600 meters elevation +2 points
+\begin{enumerate}
+ \item within 500 meters of streams slope <= 5 degrees \textbf{+2 points} and within 500 meters of streams where slope >5 degrees \textbf{+5 points}
+ \item within 500 meters of a road \textbf{-5 points}
+ \item coniferous forest \textbf{+4 points}
+ \item mixed forest \textbf{+1 point}
+ \item northern exposure (aspect from NW to NE) \textbf{+3 points}
+ \item western or eastern exposure (SW to NW or SE to NE) \textbf{+1 point}
+ \item 1200-1400 meters elevation \textbf{+2 points}
+ \item 1400-1600 meters elevation \textbf{+4 points}
+ \item over 1600 meters elevation \textbf{+2 points}
+\end{enumerate}
 
 Use r.buffer (..=> Create buffers) and r.mapcalc (..=> Map calculator) to create an aggregate habitat score map of the entire area, summing all the partial scores as defined above. (hint: you have to convert all null values of buffer output maps into zero values)
 When finished with numbers 1 to 10 above, sum all the maps in a map that you may call scoreindivsum. Then identify suitable habitat areas by converting to zeroes all cells with overall habitat scores below 9, and all cells within 100 meters of a road (hint: you have to make a new buffer map here, and remove its null values for calculations). Make a final scoring map that you may call scorefinal and change 0 values to NULL (..=>Manage null values) for next laboratory part.
@@ -409,95 +410,85 @@ This Set of instructions shows how GRASS GIS does the reclassification work unde
 Map number Environmental conditions Score to be given:
 
 \textbf{
-1) within 500 meters of streams where slope <= 5 degrees: +2 points}
+1) within 500 meters of streams where slope <= 5 degrees: +2 points and within 500 meters of streams where slope >5 degrees: +5 points}
 \begin{smallverbatim}
-r.buffer input=streams output=_bstreams500
+r.buffer input=streams output=streams500
  distances=500 units=meters --overwrite
 
-r.null map=_bstreams500 null=0
+r.null map=streams500 null=0
 
-r.mapcalc _rbstreams500="if(_bstreams500==2,1,0)"
-
-r.null map=_rbstreams500 null=0
-\end{smallverbatim}
-
-\textbf{
-2) within 500 meters of streams where slope >5 degrees: +5 points}
-\begin{smallverbatim}
-r.buffer input=roads output=_broads500 distances=500
- units=meters --overwrite
-
-r.mapcalc _s_sl="if(_rbstreams500==1,if(
+r.mapcalc score1="if(streams500==1,if(
  slope<=5,2,5),0)"
 \end{smallverbatim}
 
 \textbf{
-3) within 500 meters of a road: -5 points}
+2) within 500 meters of a road: -5 points}
 \begin{smallverbatim}
-r.mapcalc _rbroads500="float(if(
+r.mapcalc score2="float(if(
  _broads500==2,-5.0,0))"
 \end{smallverbatim}
 
 \textbf{
-4) coniferous forest: +4 points}
+3) coniferous forest: +4 points}
 \begin{smallverbatim}
-r.mapcalc _for="if(vegcover==3,4,0)"
+r.mapcalc score3="if(vegcover==3,4,0)"
 \end{smallverbatim}
 
 \textbf{
-5) mixed forest: +1 point}
+4) mixed forest: +1 point}
 \begin{smallverbatim}
-r.mapcalc _for1="if(vegcover==5,1,0)"
+r.mapcalc score4="if(vegcover==5,1,0)"
 \end{smallverbatim}
 
 \textbf{
-6) northern exposure (aspect from NW to NE): +3 points}
+5) northern exposure (aspect from NW to NE): +3 points}
 \begin{smallverbatim}
-r.mapcalc _exp3="if(aspect<=135.0 && aspect>=45.0
+r.mapcalc score5="if(aspect<=135.0 && aspect>=45.0
  && aspect != 0,3,0)"
 \end{smallverbatim}
 
-\textbf{
-7a) western or eastern exposure (SW to NW or SE to NE): +1 point}
-\begin{smallverbatim}
-r.mapcalc _exp1="if(aspect<45.0 || aspect>314.0,1,0)"
-r.mapcalc _exp2="if(aspect<225.0 && aspect>135.0,1,0)"
-\end{smallverbatim}
-
-\textbf{
-7b) 1200-1400 meters elevation: +2 points}
-\begin{smallverbatim}
-r.mapcalc _elev1="if(elevation.10m<1400
- && elevation.10m>1200,2,0)"
-\end{smallverbatim}
-
-\textbf{
-8) 1400-1600 meters elevation: +4 points}
-\begin{smallverbatim}
-r.mapcalc _elev2="if(elevation.10m<1600
- && elevation.10m>=1400,4,0)"
-\end{smallverbatim}
-
-\textbf{
-9) over 1600 meters elevation: +2 points}
-\begin{smallverbatim}
-r.mapcalc _elev3="if(elevation.10m>=1600,2,0)"
-\end{smallverbatim}
+% \textbf{
+% 6) western or eastern exposure (SW to NW or SE to NE): +1 point}
+% \begin{smallverbatim}
+% r.mapcalc score61="if(aspect<45.0 || aspect>314.0,1,0)"
+% r.mapcalc score62="if(aspect<225.0 && aspect>135.0,1,0)"
+% \end{smallverbatim}
+% 
+% \textbf{
+% 7) 1200-1400 meters elevation: +2 points}
+% \begin{smallverbatim}
+% r.mapcalc score7="if(elevation.10m<1400
+%  && elevation.10m>1200,2,0)"
+% \end{smallverbatim}
+% 
+% \textbf{
+% 8) 1400-1600 meters elevation: +4 points}
+% \begin{smallverbatim}
+% r.mapcalc score8="if(elevation.10m<1600
+%  && elevation.10m>=1400,4,0)"
+% \end{smallverbatim}
+% 
+% \textbf{
+% 9) over 1600 meters elevation: +2 points}
+% \begin{smallverbatim}
+% r.mapcalc score9="if(elevation.10m>=1600,2,0)"
+% \end{smallverbatim}
 
 \subsection{FINALIZING THE SCORING MAP}
 
 \begin{smallverbatim}
-r.buffer input=roads output=_br100
+r.buffer input=roads output=roads100
  distances=100 units=meters --overwrite
 
-r.null map=_br100 null=0
+r.null map=roads100 null=0
 
-r.mapcalc _add="float(_s_sl+_rbroads500+_for+
- _for1+_exp1+_exp2+_exp3+_elev1+_elev2+_elev3)"
+r.mapcalc add="float(score1+score2+score3+
+ score4+score5+score61+score62+score7+
+score8+score9)"
 
-r.mapcalc _clas="if(_add>9,1,null())"
+r.mapcalc clas="if(add>9,1,null())"
 
-r.mapcalc _class="if(_clas==1&&_br100==0,1,null())"
+r.mapcalc class="if(clas==1&&_br100==0,1,null())"
 \end{smallverbatim}
 
 %\setkeys{Gin}{width=1\textwidth}
@@ -518,7 +509,7 @@ What is ``clumping''?
 Recategorizes data in a raster map layer by grouping cells that form physically discrete areas into unique categories.
 
 Now find the discrete areas (clumps) of aggregated habitat scores. 
-Run \textit{r.clump (..=>Clump Small Areas) }on the ``\textit{score\_final}'' map to give each clump its own category number. You may call the output ``\textit{score\_clumped}''.
+Run \textit{r.clump (..=>Clump Small Areas) }on the ``\textit{class}'' map to give each clump its own category number. You may call the output ``\textit{class\_clumped}''.
 
 \begin{smallverbatim}
 r.clump input=score_final output=score_clumped 
@@ -542,10 +533,10 @@ Since this species is most viable in larger clumps, extract the clumps greater t
 
 \begin{smallverbatim}
 r.reclass.area input = score_final greater=50 
- output=selected_habitat_area
+ output=habitat_area
 \end{smallverbatim}
 
-Output ``selected\_habitat\_area'' at this level should be similar to this one:Fig.~\ref{fig:grass023}
+Output ``habitat\_area'' at this level should be similar to this one:Fig.~\ref{fig:grass023}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -553,7 +544,7 @@ Output ``selected\_habitat\_area'' at this level should be similar to this one:F
    %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
    \includegraphics[scale=0.35]{grass023.png}
    %caption of the figure
-   \caption{Seleceted Habitat Areas}
+   \caption{Selected Habitat Areas}
    %label of the figure, which has to correspond to \ref{}:
    \label{fig:grass023}
 \end{figure}
@@ -561,8 +552,7 @@ Output ``selected\_habitat\_area'' at this level should be similar to this one:F
 \subsection{EXPORT RESULTS TO VECTOR}
 Since the users work in vector GIS, we are going to convert the results in vector format and export them from GRASS GIS to shapefile.
 
-Vectorize the clumped map you just produced (File/Map type conversion/raster to vector) and check that you
-have effectively created a polygon vector map by displaying your vector using random colors.Fig.~\ref{fig:grass024}
+Vectorize the clumped map you just produced (\textbf{File/Map type conversion/raster to vector}) and check that you have effectively created a polygon vector map by displaying your vector using random colors.Fig.~\ref{fig:grass024}
 
 %\setkeys{Gin}{width=1\textwidth}
 \begin{figure}[htbp]
@@ -575,7 +565,7 @@ have effectively created a polygon vector map by displaying your vector using ra
    \label{fig:grass024}
 \end{figure}
 
-Export this selected habitat vector file along with the ``\textit{roads}'' and ``\textit{streams}'' vector files into shapefile. Please be sure that you export the same type of vectors (areas for ``\textit{selected\_habitat\_area}'' and lines for ``\textit{roads}'' and ``\textit{streams}''). Display and query them using Quantum GIS.
+Export this selected habitat vector file along with the ``\textit{roads}'' and ``\textit{streams}'' vector files into shapefile. Please be sure that you export the same type of vectors (areas for ``\textit{habitat\_area}'' and lines for ``\textit{roads}'' and ``\textit{streams}''). Display and query them using Quantum GIS.
 
 \begin{smallverbatim}
 v.out.ogr input=selected_habitat_area type=area
@@ -603,6 +593,27 @@ Map the largest clumps by compactness. Create a jazzy display script to demonstr
 (See \href{http://www.udel.edu/johnmack/frec682/script_ideas.html})
 
 A script for some parts of the Lab is in \textbf{Appendix B} \ref{appendixB}.
+
+\newpage
+\section{Remote sensing}
+\label{remote_sensing}
+
+Download from GLCF website a satellite image of Landsat 7 ETM+ covering your country, or area of interest.
+Unzip the .tif.gz images, then import in GRASS GIS using r.in.gdal (File / import raster / multiple formats using GDAL).
+
+Identify with band number corresponds to which spectrum band, especially Red and Near-InfraRed spectra.
+
+Using r.mapcalc, calculate the difference vegetation index (dvi), the Normalized dvi (ndvi) and the soil-adjusted vegetation index (savi). Then calculate some uncorrected Albedo and the temperature.
+
+\begin{enumerate}
+ \item dvi=(NIR-RED)
+ \item ndvi=dvi/(NIR+RED)
+ \item savi=((1+0.5)*dvi)/(NIR+RED+0.5)
+ \item Albedo=0.293*BLUE + 0.274*GREEN + 0.233*RED + 0.156*NIR + 0.033*band5 +0.011*band7
+ \item temperature=1282.71 / (log ((666.09 / (band6)) + 1.0))
+\end{enumerate}
+
+Observe cities, roads, irrigation canals, rivers, wetlands, agricultural lands, forests and barren areas with each and all of these images, find out what defines best each land use.
 
 \newpage
 
