@@ -20,6 +20,7 @@
 */
 
 typedef struct { /* collect lines in Strahler order */
+	int category;
 	int  line;     /* line number */
 	int  bsnid;     /* basin ID */
     int  sorder;     /* Strahler order */

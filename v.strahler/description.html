@@ -1,31 +1,87 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.strahler</em> calculates the Strahler Order for all lines of a given dendritic network. The input vector map must be free of cycles. More than one tree in the input data is allowed. No given flow direction is needed. To find the outlet of each tree, a DEM must be given.
+<em>v.strahler</em> calculates the Strahler Order for all lines of a given dendritic network. The input vector map must be free of cycles. For the elaboration a new imported network or a network extracted from DEM by using <em><a HREF="r.watershed.html">r.watershed</a></em> can be used (in this case the topology has to be cleaned manually). More than one tree in the input data is allowed. No given flow direction is needed. To find the outlet of each tree, a DEM must be given.
 
 <h2>NOTES</h2>
 <h3>Problems</h3>
-This program is in alpha status. It has the following shortcomings: <br />
-- Robust calculation of Strahler Order is not guaranteed <br />
-- Strahler Order is not attached as a layer, it is merely written to an ASCII file <br />
-- The input data has to be topologically clean. Use sloppy=0.0 <br />
+This program is in beta status. It has the following shortcomings: <br />
+- The input data has to be topologically clean. Use <em>sloppy</em>=0.0 <br />
 - Source code comments are not doxydized. <br />
-...
+
 
 <h3>How the algorithm works</h3>
 In a first step, <em>v.strahler</em> identifies all separate networks in the input dataset. That means, all connected lines are assigned a common <em>Basin ID</em>.<br />
 Consequently, the lowest leaf of each tree is identified as outlet. An auxiliary DEM is needed at this point. <br />
-Strahler ordering begins at each leaf of the tree with order N=1 (excluding the outlet). At a confluence, the order N(r) of the resulting stream is equal to the highest order N(max) of the joining streams or is raised by one if there are two or more joining streams of order N(max).
+Strahler ordering begins at each leaf of the tree with order N=1 (excluding the outlet). At a confluence, the order N(r) of the resulting stream is equal to the highest order N(max) of the joining streams or is raised by one if there are two or more joining streams of order N(max). <br />
+The algorithm returns an ASCII text file with columns: <em>Category</em> (from input map), <em>Line</em> (topology), <em>Basin</em>, <em>Order</em>; and the output map has the Strahler Order value instead of "category" for each line, and no connection with the database.
 
 <h2>EXAMPLE</h2>
-
-TODO
-
+The input map (vector on DEM): <br />
+<br />
+<img src="images/example_input.jpg"> <br />
+<br />
+<br />
+An example of the sintax in GRASS shell: <br />
+<br />
+<div class="code"><pre>
+GRASS 6.3.0RC1 (ED50_Z33):~ > v.strahler input=esp_1@mapset output=esp_1 dem=dem_20@mapset
+txout=/home/mapset/esp_1 sloppy=0 layer=1 --overwrite 2>pippo
+</pre></div>
+<br />
+<br />
+An extract from the resultant text file: <br />
+<br />
+<div class="code"><pre>
+== Result of Strahler Order ==
+ Category:   Line:   Basin:    Order:
+       22       1       1       4
+       73       2       1       1
+       25       3       1       4
+       27       4       1       4
+       39       5       1       1
+       48       6       1       1
+       56       7       1       4
+       55       8       1       2
+       88       9       1       4
+       59      10       1       1
+       60      11       1       1
+       61      12       1       2
+       83      13       1       2
+       82      14       1       1
+       91      15       1       1
+       87      16       1       4
+       95      17       1       2
+       96      18       1       1
+      106      19       1       1
+      102      20       1       1
+      104      21       1       4
+      111      22       1       1
+      112      23       1       3
+      121      24       1       3
+      126      25       1       1
+      128      26       1       3
+      137      27       1       3
+</pre></div>
+<br />
+<br />
+The output map (vector on DEM) form a snapshot of GRASS display: <br />
+<br />
+<img src="images/example_output.jpg"> <br />
+<br />
+<br />
+The output map (vector only) from Qgis (different colors for different orders): <br />
+<br />
+<img src="images/Qgis.jpg"> <br />
+<br />
+<br />
 <h2>SEE ALSO</h2>
-
+<em><a href="r.watershed.html">r.watershed</a></em><BR>
 
 <h2>AUTHOR</h2>
 
-Florian Kindl, Univ. Innsbruck
+Florian Kindl, Univ. Innsbruck.<br />
+<br />
+Modified by: Ivan Marchesini and Annalisa Minelli, Univ. Perugia.<br />
 
 
-<p><i>Last changed: $Date: 2006/08/05 15:29:16 $</i>
+<p><i>Last changed: $Date: 2007/11/25 15:29:16 $</i>

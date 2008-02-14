@@ -1,8 +1,10 @@
-/****************************************************************
+/****************************************************************************
  * 
  *  MODULE:       v.strahler
  *  
  *  AUTHOR(S):    Florian Kindl, Norbert Pfeifer, The GRASS development team
+ *		  Modified by: Ivan Marchesini <marchesini unipg.it> and 
+		  Annalisa Minelli <annapatri tiscali.it>
  *                
  *  PURPOSE:      Assign Strahler order to dendritic network
  *                
@@ -13,15 +15,12 @@
  *                Read the file COPYING that comes with GRASS
  *                for details.
  * 
- **************************************************************/
+ ****************************************************************************/
 
 /*! \file main.c
 \brief Assign Strahler order to dendritic network
 \author Florian Kindl
 
-\todo Add clean way to write output to *Out
-  \li Outpout is now text-only
-  \li Add fields in table for Strahler Order and BasinID
 \todo Deal with poor topology 
   \li implemement sloppy mode or
   \li force clean topology
@@ -47,6 +46,7 @@
 #define EBUG 1
 #define REATEDBLAH 1
    
+int ret, type;		/* return and type related to Vect_read_line and Vect_write_line */
 int fdrast;		/* file descriptor for raster file is int */
 int ntrees;		/* number of trees in dataset, returned by StrahForestToTrees */
 double sloppy;
@@ -54,7 +54,7 @@ double sloppy;
 int main(int argc, char **argv)
 {
     int    line, node;
-	char   buf[1024];
+    char   buf[1024];
     int    nnodes, nlines, tlines;
 	DBBUF  *dbbuf;
 	NODEV  *nodev;
@@ -66,20 +66,25 @@ int main(int argc, char **argv)
 	FILE   *txout;
 	struct Cell_head window; /* for cell sampling */
 	
-	extern int  ntrees;	/* number of trees calculated by StrahForestToTrees */
+    extern int  ntrees;	/* number of trees calculated by StrahForestToTrees */
     extern int  fdrast;
-	extern double sloppy;
+    extern double sloppy;
 	
     /* Attribute table (from v.net.path/path.c) */
 
+    struct line_cats *Cats;		/* introduced and initialized the structures line_cats and line_pnts */
+    static struct line_pnts *Points;
+    Points = Vect_new_line_struct ();
+    Cats = Vect_new_cats_struct ();
     dbString sql;
     dbDriver *driver;
 	dbColumn *column;
 	
     struct field_info *Fi;
-	int field;
-
+	int field;	
+   
     /* Initialize the GIS calls */
+    
     G_gisinit (argv[0]) ;
 
     input = G_define_standard_option(G_OPT_V_INPUT);
@@ -101,9 +106,7 @@ int main(int argc, char **argv)
     txout_opt->description = _("Path to ASCII file where results will be written");
 
 
-/*
-option sloppy for bad topology
-*/
+    /* option sloppy for bad topology */
 
 	sloppy_opt = G_define_option();
 	sloppy_opt->key = "sloppy";
@@ -126,19 +129,22 @@ option sloppy for bad topology
 		G_fatal_error (_("Could not find input input <%s>"), input->answer);
 	}
 	
-	/* open datasets at topology level 2 */
+    /* open datasets at topology level 2 */
+    
     Vect_set_open_level(2);
     Vect_open_old (&In, input->answer, inputset); 
 
 	G_debug(1, "Input vector opened");
 
-	/* Open new vector, make 3D if input is 3D */
+    /* Open new vector, make 3D if input is 3D */
+    
     if (1 > Vect_open_new( &Out, output->answer, Vect_is_3d( &In ))) {
         Vect_close( &In );
     	G_fatal_error("Failed opening output vector file %s", output->answer);
     }
 
 	/* Open DEM */
+	
 	demset = G_find_cell2( dem_opt->answer, NULL);
 	if ( demset == NULL ) {
 		G_fatal_error ("DEM file %s not found", dem_opt->answer);
@@ -148,6 +154,7 @@ option sloppy for bad topology
 	}
 
 	/* Open text file for results if given */
+	
 	if ( txout_opt->answer ) {
 		txout = fopen( txout_opt->answer, "w" );
 	        if ( txout == NULL )
@@ -159,19 +166,18 @@ option sloppy for bad topology
 	
 						
 	/* write history */
-    Vect_copy_head_data( &In, &Out );
+    /*Vect_copy_head_data( &In, &Out );
     Vect_hist_copy( &In, &Out );
-    Vect_hist_command( &Out );
+    Vect_hist_command( &Out );*/
 	
 #ifdef COPYBLAH
 	/* this works, we want to continue here and ADD two columns to the &Out */
     /* Copy input to output (from v.clean/main.c) */
-    G_debug( 1, "Copying vector lines to Output" );
+    /*G_debug( 1, "Copying vector lines to Output" );
 
     /* This works for both level 1 and 2 */
-    Vect_copy_map_lines ( &In, &Out );
-    Vect_copy_tables ( &In, &Out, 0 );
-	/* 0: copy all fields, else field number */
+    /*Vect_copy_map_lines ( &In, &Out );	*/ 
+ 	/* 0: copy all fields, else field number */
 #endif
 
 
@@ -260,7 +266,7 @@ option sloppy for bad topology
 	
 	/* initialize properly */
 	for ( line=1; line <= nlines; line++) {
-		dbbuf[line].line = dbbuf[line].bsnid = dbbuf[line].sorder = 0;
+		dbbuf[line].category = dbbuf[line].line = dbbuf[line].bsnid = dbbuf[line].sorder = 0;
 	}
 	for ( node=1; node <= nnodes; node++) {
 		nodev[node].node = nodev[node].degree = nodev[node].visited = 0;
@@ -313,8 +319,27 @@ option sloppy for bad topology
 
     db_close_database_shutdown_driver( driver );
 #endif
+   
+   	/* writing StrahOrder instead of category in the output */	
+   
+   for ( line=1; line<=nlines; line++) {
+	type=Vect_read_line(&In, Points, Cats, line);
+	ret = Vect_cat_del (Cats, field);
+	G_debug(4, "deleted categories, ret=%d", ret);
+	Vect_cat_set (Cats, field, dbbuf[line].sorder);
+   	Vect_write_line ( &Out, type, Points, Cats );
+	G_debug(4, "category written for line %d", line);
+   }
 
-    /* Write text file for results if given */
+	/* assign category values */
+   
+   for ( line=1; line<=nlines; line++) {
+	dbbuf[line].category = Vect_get_line_cat ( &In, line, field );
+	G_debug(4, "added category %d for line %d", dbbuf[line].category, dbbuf[line].line);
+   }
+    
+	/* Write text file for results if given */
+    
     if ( txout_opt->answer )
 		StrahWriteToFile( dbbuf, nlines, txout );
 

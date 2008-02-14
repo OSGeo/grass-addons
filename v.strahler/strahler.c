@@ -15,7 +15,7 @@ int StrahFindLeaves( struct Map_info *In, DBBUF *dbbuf, NODEV *nodev, int ntrees
 	
 	nnodes = Vect_get_num_nodes( In );
 
-	z = z_init = 27000000.0; 		/* is it safe to initialize lowest z with the height of Olympus Mons above Martian Datum in millimeters? */
+	z = z_init = 27000000.0; 	/* is it safe to initialize lowest z with the height of Olympus Mons above Martian Datum in millimeters? */
 	
 	outlets = (OUTLETS *) G_malloc ( (ntrees + 1) * ((int)sizeof (OUTLETS)) );
 	
@@ -41,6 +41,7 @@ int StrahFindLeaves( struct Map_info *In, DBBUF *dbbuf, NODEV *nodev, int ntrees
 
 		if ( degr == 1 ) {
 			unode = node;
+			nodev[node].visited = 1;	/*set the "visited" parameter to 1... can't be less*/
 		    /*aline = abs( Vect_get_node_line( In, unode, 0 ) );*/
 			aline = abs( StrahGetNodeLine( In, unode, 0 ) );
 			/*Vect_get_line_nodes( In, aline, &unode, &dnode);*/
@@ -88,10 +89,10 @@ int StrahFindLeaves( struct Map_info *In, DBBUF *dbbuf, NODEV *nodev, int ntrees
 int StrahOrder( struct Map_info *In, DBBUF *dbbuf, NODEV *nodev )
 {
 	int nlines, line;
-	int fnode, tnode, unode, dnode;				/* from-, to-, up-, down- node */
+	int fnode, tnode, unode, dnode;					/* from-, to-, up-, down- node */
 	int degr, d, aline, aorder;					/* find adjacent lines */
-	int corder, norder, dorder, dline;			/* assign order */
-	int cline, rfinish;							/* follow one line until this stop-condition is 1 */
+	int corder, norder, dorder, dline;				/* assign order */
+	int cline, rfinish;						/* follow one line until this stop-condition is 1 */
 	
 	struct dbbuf;
 	struct nodev;
@@ -101,9 +102,9 @@ int StrahOrder( struct Map_info *In, DBBUF *dbbuf, NODEV *nodev )
 	G_debug( 1, "reached StrahOrder");
 
 	for (line = 1; line <= nlines; line++) { 
-		if (dbbuf[line].sorder == 1) {				/* get lines of order 1 */
+		if (dbbuf[line].sorder == 1) {							/* get lines of order 1 */
 															
-			cline = line;									/* and start run downwards */
+			cline = line;								/* and start run downwards */
 			rfinish = 0;
 			while (rfinish == 0) {
 				G_debug( 3, "reached line %d", cline);
@@ -160,8 +161,8 @@ int StrahOrder( struct Map_info *In, DBBUF *dbbuf, NODEV *nodev )
 
 				G_debug( 4, "deg for dnode %d is %d", dnode, degr );
 				
-				corder = dbbuf[cline].sorder;							/* current order - result won't be less than that */
-				norder = dorder = 0;									/* no order - how many lines have none?, highest order of others */
+				corder = dbbuf[cline].sorder;			/* current order - result won't be less than that */
+				norder = dorder = 0;				/* no order - how many lines have none?, highest order of others */
 				for (d = 0; d < degr; d++) {
 					/*aline = abs( Vect_get_node_line ( In, dnode, d ) );*/
 					aline = abs( StrahGetNodeLine( In, dnode, d ) );
@@ -176,27 +177,27 @@ int StrahOrder( struct Map_info *In, DBBUF *dbbuf, NODEV *nodev )
 						}
 					}
 				}
-
-				if (norder > 1 || norder == 0) {		/* if (norder > 1: node indeterminate OR norder == 0 : subtree finished) */
+                             
+				if (norder > 1 || norder == 0) {	/* if (norder > 1: node indeterminate OR norder == 0 : subtree finished) */
 					G_debug( 3, "Finished run at line %d because norder=%d", cline, norder);
 					G_debug( 4, "visiting unode %d for line %d\n", unode, cline);
-					nodev[unode].visited += 1;			/* visit unode, for the sake of completeness */
-					rfinish = 1;									/* finish this run */
+					nodev[unode].visited += 1;	/* visit unode, for the sake of completeness */
+					rfinish = 1;			/* finish this run */
 					
-				} else {								/* or */
+				} else {							/* or */
 				    if (dorder > corder) {
-						continue;						/* assign highest order of alines */
+						;					/* assign highest order of alines */
 					} else if (dorder < corder) {
 						dorder=corder;					/* or keep order of cline */
 					} else {
-						dorder++;						/* or raise order by one */
+						dorder++;					/* or raise order by one */
 					}
 					
-					dbbuf[dline].sorder = dorder;		/* assign order */
+					dbbuf[dline].sorder = dorder;				/* assign order */
 			
 					G_debug( 4, "visiting dnode %d and unode %d for line %d", dnode, unode, cline);
-					nodev[dnode].visited += 1;			/* visit dnode */
-					nodev[unode].visited += 1;			/* visit unode, for the sake of completeness */
+					nodev[dnode].visited += 1;				/* visit dnode */
+					nodev[unode].visited += 1;				/* visit unode, for the sake of completeness */
 
 					cline = dline;						/* and continue with this line */
 				
