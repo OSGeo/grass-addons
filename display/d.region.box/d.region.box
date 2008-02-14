@@ -1,0 +1,65 @@
+#!/bin/sh
+############################################################################
+#
+# MODULE:       d.region.box
+# AUTHOR:       Hamish Bowman
+# PURPOSE:      draw a box around current region
+# COPYRIGHT:    (c) 2006 Hamish Bowman, and the GRASS Development Team
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+#############################################################################
+
+#%Module
+#% description: Draws a box around the current region in the display frame
+#% keywords: display
+#%end
+
+#% flag
+#% key: f
+#% description: Non-persistant box (doesn't survive redraw or zoom)
+#%end
+
+if  [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program." 1>&2
+    exit 1
+fi
+
+# skip GUI if no args are given
+if [ $# -gt 0 ] ; then
+  if [ "$1" != "@ARGS_PARSED@" ] ; then
+    exec g.parser "$0" "$@"
+  fi
+else
+  GIS_FLAG_F=0
+fi
+
+TMP="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$TMP" ] ; then
+    echo "ERROR: unable to create temporary files" 1>&2
+    exit 1
+fi
+
+# another method to try: "d.grid -ng 400"
+
+eval `g.region -g`
+
+# create d.graph command file
+cat << EOF > "$TMP"
+color black
+polyline 
+  $e $s
+  $e $n
+  $w $n
+  $w $s
+  $e $s
+EOF
+
+if [ $GIS_FLAG_F -eq 1 ] ; then
+    d.graph -m < "$TMP"
+else
+    d.graph -m input="$TMP"
+fi
+
+exit $?

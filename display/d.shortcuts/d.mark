@@ -1,0 +1,77 @@
+#!/bin/sh
+# d.mark - quickly display site data in a nice way
+#
+# COPYRIGHT:	(c) 2007 by Hamish Bowman
+#
+#	This program is free software under the GNU General Public
+#	License (>=v2). Read the file COPYING that comes with GRASS
+#	for details.
+#
+
+
+#%Module
+#% description: Quickly display a marker on the display monitor
+#%End
+#%option
+#% key: at
+#% type: double
+#% key_desc: x,y
+#% description: Placement coordinates (in percentage, 0,0 is lower left)
+#% required : yes
+#%end
+#%option
+#% key: symbol
+#% type: string
+#% key_desc: name
+#% description: Basic symbol to use
+#% answer: triangle
+#% options: arrow1,arrow2,box,circle,cross1,cross2,diamond,marker,octagon,point,pushpin,star,triangle,x
+#% required : no
+#%end
+#%option
+#% key: color
+#% type: string
+#% description: Symbol outline color
+#% gisprompt: color,grass,color
+#% answer: black
+#% required : no
+#%end
+#%option
+#% key: fcolor
+#% type: string
+#% description: Symbol fill color
+#% gisprompt: color,grass,color
+#% answer: yellow
+#% required : no
+#%end
+#%option
+#% key: size
+#% type: integer
+#% description: Symbol size
+#% answer: 12
+#% required : no
+#%end
+#%flag
+#% key: m
+#% description: Coordinates are given in map units
+#%end
+
+if [ -z $GISBASE ] ; then
+        echo "You have to be in GRASS to use this."
+        exit
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+    exec g.parser "$0" "$@"
+fi
+
+if [ $GIS_FLAG_M -eq 0 ] ; then
+    MAPUN=""
+else
+    MAPUN="-m"
+fi
+
+COORD=`echo "$GIS_OPT_AT" | tr ',' ' '`
+
+echo "symbol basic/$GIS_OPT_SYMBOL $GIS_OPT_SIZE $COORD $GIS_OPT_COLOR $GIS_OPT_FCOLOR" \
+  | d.graph $MAPUN
