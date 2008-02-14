@@ -4,7 +4,8 @@
 # MODULE:       d.frame.quarter
 # AUTHOR:       M. Hamish Bowman, Dept. Marine Science, Otago Univeristy,
 #                 New Zealand
-# PURPOSE:      split the display into quarter frames
+# PURPOSE:      Split the display into quarter frames
+#		  (This script is superseded by d.frame.split)
 #
 # COPYRIGHT:    (c) 2007 Hamish Bowman, and the GRASS Development Team
 #               This program is free software released to the public domain
