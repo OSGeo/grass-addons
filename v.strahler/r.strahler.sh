@@ -20,9 +20,13 @@
 # TODO: solve stability problems for low area threshold 
 #############################################################################
 #%Module
-#%  description: Create a vector map of strahler ordered streems of a single basin starting from a DEM
-#%  keywords: strahler, streems, vector
+#%  description: Create a vector map of strahler ordered streams of a single basin starting from a DEM
+#%  keywords: strahler, streams, vector
 #%End
+#%flag
+#%  key: i
+#%  description: find interactively the outlet coords
+#%END
 #%option
 #% key: dem
 #% type: string
@@ -31,6 +35,18 @@
 #% description: Name of DEM raster map
 #% required : yes
 #%END
+#%option
+#% key: xcoor
+#% type: double
+#% description: x coord of outlet
+#% required : no
+#%end
+#%option
+#% key: ycoor
+#% type: double
+#% description: y coord of outlet
+#% required : no
+#%end
 #%option
 #% key: thr
 #% type: integer
@@ -41,7 +57,7 @@
 #% key: output
 #% type: string
 #% gisprompt: new,vector,vector
-#% description: Name of streems ordered map created
+#% description: Name of streams ordered map created
 #% required : yes
 #%end
 #%option
@@ -71,10 +87,26 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
 fi
 
 dem=$GIS_OPT_DEM
+xcoor=$GIS_OPT_XCOOR
+ycoor=$GIS_OPT_YCOOR
 thr=$GIS_OPT_THR
 output=$GIS_OPT_OUTPUT
 textoutput=$GIS_OPT_TEXTOUTPUT
 bkgrmap=$GIS_OPT_BKGRMAP
+
+#check presence of x and y coordinates if you want to use the un-interactive mode
+
+if [ $GIS_FLAG_I -eq 0 ] && [ -z $xcoor ] && [ -z $ycoor ]; then
+echo "
+
+
+If you don't want to use the interactive-mode you must select the outlets' coodinates
+
+
+"
+exit 0
+
+fi
 
 #check presence of raster MASK, put it aside
 MASKFOUND=0
@@ -95,48 +127,63 @@ LOCATION=$GISDBASE/$LOCATION_NAME/$MAPSET
 #get resolution of DEM
 res=`g.region -p | grep nsres | cut -f2 -d':' | tr -d ' '`
 
-#find raster streems and plot them
+#find raster streams and plot them
 r.watershed elevation=$dem threshold=$thr stream=rnetwork drainage=drainage --overwrite
 r.null map=rnetwork setnull=0
 r.thin input=rnetwork output=rnetwork_th iterations=200 --overwrite
 r.mapcalc "rnetwork_thin=rnetwork_th/rnetwork_th"
 d.erase
+
+if [ "$bkgrmap" ]; then
 d.rast map=$bkgrmap
+fi
+
+
 d.rast -o map=rnetwork_thin
 
-#ask the user for zooming and choosing the outlet cell
-#-------
-echo "
+#use the interactive mode
+if [ $GIS_FLAG_I -eq 1 ] ; then
+
+	#ask the user for zooming and choosing the outlet cell
+	#-------
+	echo "
 
 
-Now, please zoom to the area where you want to put the outlet cross section
+	Now, please zoom to the area where you want to put the outlet cross section
 
 
-"
+	"
 
-d.zoom
+	d.zoom
 
-echo "
-
-
-Now, please click on the cell representing the cross section
+	echo "
 
 
-"
+	Now, please click on the cell representing the cross section
 
-#prevent from choosing a wrong cell outside from the streems
-cat=2
-while [ "$cat" != "1" ]
-do
-result=`d.what.rast -t -1 rnetwork_thin`
-coor=`echo $result | cut -f1 -d ' '`
-x=`echo $coor | cut -f1 -d':'`
-y=`echo $coor | cut -f2 -d':'`
-cat=`echo $result | cut -f3 -d ' ' | tr -d :`
-done
 
-#come back to the previous zoom
-d.zoom -r
+	"
+
+	#prevent from choosing a wrong cell outside from the streams
+	cat=2
+	while [ "$cat" != "1" ]
+	do
+	result=`d.what.rast -t -1 rnetwork_thin`
+	coor=`echo $result | cut -f1 -d ' '`
+	x=`echo $coor | cut -f1 -d':'`
+	y=`echo $coor | cut -f2 -d':'`
+	cat=`echo $result | cut -f3 -d ' ' | tr -d :`
+	done
+
+	#come back to the previous zoom
+	d.zoom -r
+
+#do not use the interactive mode
+else
+	x=$xcoor
+	y=$ycoor
+fi
+
 
 #find the basin and set the mask
 r.water.outlet drainage=drainage basin=basin easting=$x northing=$y
@@ -165,7 +212,7 @@ v.clean input=vnetwork2 output=vnetwork_dangle type=line tool=rmdangle thresh=$s
 v.build.polylines input=vnetwork_dangle output=vnetwork_poly cats=first --overwrite
 d.vect vnetwork_poly
 
-#enlarge region to ensure v.strahler get raster values at streems ends and use v.strahler
+#enlarge region to ensure v.strahler get raster values at streams ends and use v.strahler
 g.region -a res=$res n=n+$soglia s=s-$soglia e=e+$soglia w=w-$soglia
 v.strahler input=vnetwork_poly output=$output dem=$dem sloppy=0 layer=1 txout=$textoutput
 
