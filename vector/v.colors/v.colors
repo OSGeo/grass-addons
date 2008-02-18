@@ -90,6 +90,12 @@
 #%End
 
 
+## TODO: implement -e (equalized) and -g (logarithmic) methods in r.colors
+##   'v.db.select column= | wc -l' to set region size (1xLength)
+##   then create r.in.ascii 1xLength matrix with data (WITHOUT uniq)
+##   and run r.colors on that raster map.
+
+
 if  [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." 1>&2
     exit 1
@@ -102,7 +108,6 @@ fi
 
 GRASS_VERBOSE=0
 export GRASS_VERBOSE
-
 
 cleanup()
 {
@@ -119,6 +124,7 @@ cleanup()
       g.remove rast="tmp_colr_$$"
    fi
 }
+trap "cleanup" 2 3 15
 
 
 ### setup enviro vars ###
@@ -186,7 +192,7 @@ fi
 
 #### column checks
 # check input data column 
-NCOLUMN_TYPE=`v.info -c "$GIS_OPT_MAP" | grep "|$GIS_OPT_COLUMN$" | cut -f1 -d'|'`
+NCOLUMN_TYPE=`v.info -c map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" | grep "|$GIS_OPT_COLUMN$" | cut -f1 -d'|'`
 if [ -z "$NCOLUMN_TYPE" ] ; then
     echo "ERROR: Column <$GIS_OPT_COLUMN> not found"
     exit 1
@@ -197,7 +203,8 @@ fi
 #echo "column <$GIS_OPT_COLUMN> is type [$NCOLUMN_TYPE]"
 
 # check if GRASSRGB column exists, make it if it doesn't
-COLUMN_TYPE=`v.info -c "$GIS_OPT_MAP" | grep "|$GIS_OPT_RGB_COLUMN$" | cut -f1 -d'|'`
+TABLE=`v.db.connect -g map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" | cut -f2 -d' '`
+COLUMN_TYPE=`v.info -c map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" | grep "|$GIS_OPT_RGB_COLUMN$" | cut -f1 -d'|'`
 if [ -z "$COLUMN_TYPE" ] ; then
     # RGB Column not found, create it
     echo "Creating column <$GIS_OPT_RGB_COLUMN> ..."
@@ -210,7 +217,7 @@ elif [ "$COLUMN_TYPE" != "CHARACTER" ] ; then
     echo "ERROR: Column <$GIS_OPT_RGB_COLUMN> is not of compatible type"
     exit 1
 else
-    NUM_CHARS=`db.describe -c "$GIS_OPT_MAP" | grep " $GIS_OPT_RGB_COLUMN:" | cut -f4 -d':'`
+    NUM_CHARS=`db.describe -c "$TABLE" | grep " $GIS_OPT_RGB_COLUMN:" | cut -f4 -d':'`
     if [ "$NUM_CHARS" -lt 11 ] ; then
        echo "ERROR: Color column <$GIS_OPT_RGB_COLUMN> is not wide enough (needs 11 characters)"
        exit 1
@@ -225,10 +232,10 @@ if [ -n "$GIS_OPT_RANGE" ] ; then
    MAXVAL=`echo "$GIS_OPT_RANGE" | grep '[[:digit:]]' | grep ',' | cut -f2 -d','`
 else
    echo "Scanning values ..."
-   MINVAL=`v.db.select "$GIS_OPT_MAP" column="$GIS_OPT_COLUMN" | sort -n | grep '^[0-9]' | head -n 1`
-   MAXVAL=`v.db.select "$GIS_OPT_MAP" column="$GIS_OPT_COLUMN" | sort -n | grep '^[0-9]' | tail -n 1`
+   MINVAL=`v.db.select map="$GIS_OPT_MAP" column="$GIS_OPT_COLUMN" layer="$GIS_OPT_LAYER" | sort -n | grep '^[-0-9]' | head -n 1`
+   MAXVAL=`v.db.select map="$GIS_OPT_MAP" column="$GIS_OPT_COLUMN" layer="$GIS_OPT_LAYER" | sort -n | grep '^[-0-9]' | tail -n 1`
 fi
-echo "min=[$MINVAL]  max=[$MAXVAL]"
+echo " min=[$MINVAL]  max=[$MAXVAL]"
 if [ -z "$MINVAL" ] || [ -z "$MAXVAL" ] ; then
    echo "ERROR: Scanning data range"
    exit 1
@@ -275,14 +282,14 @@ fi
 
 # calculate colors and write SQL command file
 echo "Looking up colors ..."
-v.db.select "$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" column="$GIS_OPT_COLUMN" | \
-  sort -n | grep '^[0-9]' | uniq | \
+v.db.select map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" column="$GIS_OPT_COLUMN" | \
+  sort -n | grep '^[-0-9]' | uniq | \
   r.what.color -i in="tmp_colr_$$" | sed -e 's/: /|/' | grep -v '|\*$' | \
   ( while read LINE ; do
       #echo "LINE=[$LINE]"
       VALUE=`echo $LINE | cut -f1 -d'|'`
       COLR=`echo $LINE | cut -f2 -d'|'`
-      echo "UPDATE $GIS_OPT_MAP SET $GIS_OPT_RGB_COLUMN = '$COLR' WHERE $GIS_OPT_COLUMN = $VALUE;" >> "${TMP}_vcol.sql"
+      echo "UPDATE $TABLE SET $GIS_OPT_RGB_COLUMN = '$COLR' WHERE $GIS_OPT_COLUMN = $VALUE;" >> "${TMP}_vcol.sql"
   done )
 
 if [ ! -e "${TMP}_vcol.sql" ] ; then
