@@ -19,9 +19,9 @@ Also read submitting instructions before committing any changes!
    http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_TCLTK
 
 Read access is granted to the public, write access
-must be requested. To do so, contact a GRASS Developer.
+must be requested, see below for details.
 
-Checkout of repository:
+Checkout of entire Addons repository:
 	svn checkout https://svn.osgeo.org/grass/grass-addons grass-addons
 
 ########################################################################
@@ -36,6 +36,7 @@ find the GRASS source code:
 
 (adapt to your /path/to/grass6/)
 
+########################################################################
 Mime-types
 ##########
 # To avoid PDF mime-type recognition problems,
@@ -44,4 +45,24 @@ Mime-types
 
 svn propset svn:mime-type application/x-pdf *.pdf
 svn commit *.pdf
+
+########################################################################
+How to get write access here?
+#############################
+
+Write access is only granted to developers who agree to abide by
+RFC2 - Legal aspects of code contributions
+http://download.osgeo.org/grass/grass6_progman/rfc/rfc2_psc.html
+and the code submission guidelines (file SUBMITTING in this
+directory).
+
+This needs to be communicated to a GRASS developer. S/he will
+then possibly propose you to the GRASS Project Steering committee
+after a period of evaluation. For details, see
+http://download.osgeo.org/grass/grass6_progman/rfc/main.html
+
+Once write access is granted, you, the new developer need to
+obtain an "osgeo_id" at http://www.osgeo.org/osgeo_userid
+If you already have an "osgeo_id" but forgot it, search for it at
+Search at http://www.osgeo.org/cgi-bin/ldap_web_search.py
 
