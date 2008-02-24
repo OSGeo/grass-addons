@@ -9,28 +9,19 @@ GLOBAL_DATE_VAR=""
 #pasre the grass date format and convert it into sqlite date format
 parse_timestamp() #arguments are DAY MONTH YEAR TIME
 {
-DAY=$1
-MONTH=$2
-YEAR=$3
-TIME=$4
+    local DAY=$1 MONTH=$2 YEAR=$3 TIME=$4
 
-# change the month to MM!!!! :/
-MONTH=`echo $MONTH | sed s/Jan/01/`
-MONTH=`echo $MONTH | sed s/Feb/02/`
-MONTH=`echo $MONTH | sed s/Mar/03/`
-MONTH=`echo $MONTH | sed s/Apr/04/`
-MONTH=`echo $MONTH | sed s/May/05/`
-MONTH=`echo $MONTH | sed s/Jun/06/`
-MONTH=`echo $MONTH | sed s/Jul/07/`
-MONTH=`echo $MONTH | sed s/Aug/08/`
-MONTH=`echo $MONTH | sed s/Sep/09/`
-MONTH=`echo $MONTH | sed s/Oct/10/`
-MONTH=`echo $MONTH | sed s/Nov/11/`
-MONTH=`echo $MONTH | sed s/Dec/12/`
-#change the day to DD
-if [ `expr $DAY \< 10` -eq 1 ] ; then
-DAY="0$DAY"
-fi
+    # change the month to MM!!!! :/
+    MONTH=$(echo "$MONTH" \
+                | sed -e s/Jan/01/ -e s/Feb/02/ -e s/Mar/03/ \
+                      -e s/Apr/04/ -e s/May/05/ -e s/Jun/06/ \
+                      -e s/Jul/07/ -e s/Aug/08/ -e s/Sep/09/ \
+                      -e s/Oct/10/ -e s/Nov/11/ -e s/Dec/12/)
+
+    # change the day to DD
+    if [ $DAY -lt 10 ] ; then
+        DAY="0$DAY"
+    fi
 
 GLOBAL_DATE_VAR="$YEAR-$MONTH-$DAY $TIME"
 }
