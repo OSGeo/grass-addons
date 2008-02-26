@@ -75,7 +75,7 @@
 #% key: post_mask
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of existing raster file to be used as post-proccessing MASK
+#% description: Name of existing raster file to be used as post-processing MASK
 #% required : no
 #%end
 
