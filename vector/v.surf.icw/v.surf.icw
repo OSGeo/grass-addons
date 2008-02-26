@@ -1,21 +1,25 @@
 #!/bin/bash
+#############################################################################
 #
-###########################################################################
+# MODULE:       v.surf.icw
+#		version 30 May 2006
 #
-#  v.surf.icw
-#              version 30 May 2006
+# AUTHOR:       M. Hamish Bowman, Dunedin, New Zealand
+#		Originally written aboard the NZ DoC ship M/V Renown, 
+#		Bligh Sound, Fiordland National Park, November 2003
+#		With thanks to Franz Smith and Steve Wing for support
 #
-#    Like IDW interpolation, but distance is cost to get to any other site
-#    Based on s.surf.icw.sh for GRASS 5
+# PURPOSE:      Like IDW interpolation, but distance is cost to get to any
+#		other site.
 #
-#  (c) 2003-2006  Hamish Bowman
+# COPYRIGHT:    (c) 2003-2008 Hamish Bowman
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
 #
+#############################################################################
 #
-#   Originally written aboard the NZ DoC ship M/V Renown, 
-#     Bligh Sound, Fiordland National Park, November 2003
-#   with thanks to Franz Smith and Steve Wing for support
-#
-###########################################################################
+# Description:
 #  Non-euclidian, non-polluting IDW from areas separated by null cells
 #  e.g.
 #   - two parallel lakes, connected at one end (water chemisty in arms of a fjord)
@@ -23,7 +27,14 @@
 #
 #  w(d)= 1/d^p    where p is user definable, usually 2.
 #
-#
+# Notes:
+#  A cost surface containing molasses barrier data may by used as well.
+#  Input data points need not have direct line of sight to each other.
+#  Try and keep the number of input sites to under a few dozen, as the
+#  process is very computationally expensive. You might consider creating
+#  a few hundred MB RAM-disk for a temporary mapset to avoid thrashing your
+#  hard drive (r.cost is heavy on disk IO).
+
 
 #%Module
 #%  description: IDW interpolation, but distance is cost to get to any other site
@@ -108,7 +119,7 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
   exec $GISBASE/bin/g.parser "$0" "$@"
 fi
 
-if [ -z "$GIS_OPT_post_mask" ] ; then
+if [ -z "$GIS_OPT_POST_MASK" ] ; then
     eval `g.findfile element=cell file=MASK`
     if [ -n "$name" ] ; then
 	echo "A MASK already exists; remove it before using the post_mask option." 1>&2
@@ -118,10 +129,10 @@ fi
 
 echo
 echo "v.surf.icw -- Inverse Cost Weighted Interpolation"
-echo "Processing $GIS_OPT_input -> $GIS_OPT_output, column=$GIS_OPT_column, Cf=$GIS_OPT_friction"
+echo "Processing $GIS_OPT_INPUT -> $GIS_OPT_OUTPUT, column=$GIS_OPT_COLUMN, Cf=$GIS_OPT_FRICTION"
 echo "------------------------------------------------------------------------"
 
-FRICTION=$GIS_OPT_friction
+FRICTION=$GIS_OPT_FRICTION
 if [ "$FRICTION" -lt 1 ] || [ "$FRICTION" -gt 6 ]; then
     echo "Friction of Distance out of range [1-6]" 1>&2
     exit 1
@@ -135,33 +146,35 @@ if [ "$FRICTION" -eq 6 ] ; then DIVISOR=" / 500.0" ; fi
 #COLMN=$(( 4 + $GIS_OPT_index ))  # skip over e,n,|,cat   ### wrong for 3D+
 # maybe it's better to do for i=1:index  sed delete line upto & incl. "%" then |cut -f1 ?
 
-NULL="$GIS_OPT_null_string"
-POINTS_FILE="$GIS_OPT_input"
+NULL="$GIS_OPT_NULL_STRING"
+POINTS_FILE="$GIS_OPT_INPUT"
 
 unset VERBOSE
-if [ $GIS_FLAG_v -eq 1 ] ; then VERBOSE="-v" ; fi
+if [ $GIS_FLAG_V -eq 1 ] || [ "$GRASS_VERBOSE" -gt 1 ] ; then
+   VERBOSE="-v"
+fi
 
 #figure out which column number we are after
-#COLMN="`db.columns "$POINTS_FILE" | grep -n "^${GIS_OPT_column}$" | cut -f1 -d:`"
+#COLMN="`db.columns "$POINTS_FILE" | grep -n "^${GIS_OPT_COLUMN}$" | cut -f1 -d:`"
 #if [ -z "$COLMN" ] || [ "$COLMN" -le 0 ] ; then
-#    echo "Data column [$GIS_OPT_column] not found in [$POINTS_FILE]." 1>&2
+#    echo "Data column [$GIS_OPT_COLUMN] not found in [$POINTS_FILE]." 1>&2
 #    exit
 #fi
 
 ### Check that we have the column and it is the correct type
-COL_NAME=`v.info -c "$POINTS_FILE" 2> /dev/null | grep "|${GIS_OPT_column}$" | cut -f2 -d'|'`
+COL_NAME=`v.info -c "$POINTS_FILE" 2> /dev/null | grep "|${GIS_OPT_COLUMN}$" | cut -f2 -d'|'`
 if [ -z "$COL_NAME" ] ; then
-    echo "Data column [$GIS_OPT_column] not found in [$POINTS_FILE]." 1>&2
+    echo "Data column [$GIS_OPT_COLUMN] not found in [$POINTS_FILE]." 1>&2
     exit
 fi
-COL_TYPE=`v.info -c "$POINTS_FILE" 2> /dev/null | grep "|${GIS_OPT_column}$" | cut -f1 -d'|'`
+COL_TYPE=`v.info -c "$POINTS_FILE" 2> /dev/null | grep "|${GIS_OPT_COLUMN}$" | cut -f1 -d'|'`
 if [ "$COL_TYPE" != "DOUBLE PRECISION" ] && [ "$COL_TYPE" != "INTEGER" ] ; then
     echo "Data column [$COL_NAME] must be numeric." 1>&2
     exit
 fi
 
 ### cleanse cost area mask to a flat =1 for my porpoises
-r.mapcalc "tmp_icw_area_$$=if("$GIS_OPT_cost_map",1,null())"
+r.mapcalc "tmp_icw_area_$$=if("$GIS_OPT_COST_MAP",1,null())"
 ###
 
 ########################################################################
@@ -243,7 +256,7 @@ for POS in `cat "$TMP_POINTS"` ; do
     # r.mapcalc 1by_cost_site_sqrd.$NUM=" 1.0 / exp(cost_site.$NUM , $FRICTION)"
 
     EXPRESSION="1.0 / pow(cost_site.$NUM $DIVISOR, $FRICTION )"
-    if [ "$GIS_FLAG_r" -eq 1 ] ; then
+    if [ "$GIS_FLAG_R" -eq 1 ] ; then
 	echo "Using (d^n)*log(d) radial basis function." 1>&2
 	EXPRESSION="pow(cost_site.$NUM, $FRICTION) * log (cost_site.$NUM)"
     fi
@@ -269,16 +282,16 @@ done
 
 #r.mapcalc resolution_mask="if(fjords_mask@all == 9 )"
 #r.mapcalc MASK="$FJORD"_mask # @all
-if [ -n "$GIS_OPT_post_mask" ] ; then
-   echo "Setting post_mask [$GIS_OPT_post_mask]" 1>&2
-   r.mapcalc MASK="$GIS_OPT_post_mask"
+if [ -n "$GIS_OPT_POST_MASK" ] ; then
+   echo "Setting post_mask [$GIS_OPT_POST_MASK]" 1>&2
+   r.mapcalc MASK="$GIS_OPT_POST_MASK"
 fi
 
 echo "Summation of cost weights.." 1>&2
 r.series method=sum in=$INPUT_MAPS out=sum_of_1by_cost_sqs
 
-if [ -n "$GIS_OPT_post_mask" ] ; then
-    echo "Removing post_mask [$GIS_OPT_post_mask]" 1>&2
+if [ -n "$GIS_OPT_POST_MASK" ] ; then
+    echo "Removing post_mask [$GIS_OPT_POST_MASK]" 1>&2
     g.remove MASK | grep REMOVE
 fi
 
@@ -332,11 +345,11 @@ done
 
 echo 1>&2
 echo "Calculating final values.." 1>&2
-r.series method=sum in=$INPUT_MAPS out="$GIS_OPT_output"
+r.series method=sum in=$INPUT_MAPS out="$GIS_OPT_OUTPUT"
 
-r.colors "$GIS_OPT_output" rule=bcyr
+r.colors "$GIS_OPT_OUTPUT" rule=bcyr
 if [ 0 -eq 1 ] ; then
-r.colors "$GIS_OPT_output" col=rules << EOF
+r.colors "$GIS_OPT_OUTPUT" col=rules << EOF
   0 magenta
   10 red
   20 brown
@@ -347,15 +360,15 @@ r.colors "$GIS_OPT_output" col=rules << EOF
 EOF
 fi
 
-r.support "$GIS_OPT_output" title="Inverse cost-weighted interpolation" history=""
-r.support "$GIS_OPT_output" history="v.surf.icw interpolation:"
-r.support "$GIS_OPT_output" history="  input map=$GIS_OPT_input   attribute column=$GIS_OPT_column"
-r.support "$GIS_OPT_output" history="  cost map=$GIS_OPT_cost_map   coefficient of friction=$FRICTION"
-if [ $GIS_FLAG_r -eq 1 ] ; then
-   r.support "$GIS_OPT_output" history="  (d^n)*log(d) as radial basis function"
+r.support "$GIS_OPT_OUTPUT" title="Inverse cost-weighted interpolation" history=""
+r.support "$GIS_OPT_OUTPUT" history="v.surf.icw interpolation:"
+r.support "$GIS_OPT_OUTPUT" history="  input map=$GIS_OPT_INPUT   attribute column=$GIS_OPT_COLUMN"
+r.support "$GIS_OPT_OUTPUT" history="  cost map=$GIS_OPT_COST_MAP   coefficient of friction=$FRICTION"
+if [ $GIS_FLAG_R -eq 1 ] ; then
+   r.support "$GIS_OPT_OUTPUT" history="  (d^n)*log(d) as radial basis function"
 fi 
-if [ -n "$GIS_OPT_post_mask" ] ; then
-   r.support "$GIS_OPT_output" history="  post-processing mask=$GIS_OPT_post_mask"
+if [ -n "$GIS_OPT_POST_MASK" ] ; then
+   r.support "$GIS_OPT_OUTPUT" history="  post-processing mask=$GIS_OPT_POST_MASK"
 fi
 
 
@@ -376,5 +389,5 @@ g.remove vect=tmp_icw_region_$$,tmp_icw_points_$$
 rm -f "$TMP_POINTS"
 
 # 6) done!
-echo "Done! Wrote results to <${GIS_OPT_output}>." 1>&2
+echo "Done! Wrote results to <${GIS_OPT_OUTPUT}>." 1>&2
 exit 0
