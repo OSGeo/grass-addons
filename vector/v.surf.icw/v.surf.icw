@@ -20,9 +20,9 @@
 #############################################################################
 #
 # Description:
-#  Non-euclidian, non-polluting IDW from areas separated by null cells
+#  Non-euclidean, non-polluting IDW from areas separated by null cells
 #  e.g.
-#   - two parallel lakes, connected at one end (water chemisty in arms of a fjord)
+#   - two parallel lakes, connected at one end (water chemistry in arms of a fjord)
 #   - Population abundance constrained by topography (Kiwis crossing a land-bridge)
 #
 #  w(d)= 1/d^p    where p is user definable, usually 2.
