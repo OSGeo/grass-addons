@@ -66,5 +66,6 @@ obtain an "osgeo_id" at http://www.osgeo.org/osgeo_userid
 If you already have an "osgeo_id" but forgot it, search for it at
 Search at http://www.osgeo.org/cgi-bin/ldap_web_search.py
 
-The write access is then activated by a GRASS developer.
+If there are no objections, the write access is then activated
+by a GRASS developer in the OSGeo LDAP for GRASS Addons.
 
