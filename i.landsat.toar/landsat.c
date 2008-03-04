@@ -11,9 +11,9 @@
 /****************************************************************************
  * PURPOSE: Calibrated Digital Number to at-satellite Radiance
  *****************************************************************************/
-double lsat_qcal2rad(int qcal, band_data * band)
+double lsat_qcal2rad(double qcal, band_data * band)
 {
-    return (double)(((double)qcal) * band->gain + band->bias);
+    return (double)(qcal * band->gain + band->bias);
 }
 
 /****************************************************************************
@@ -41,56 +41,124 @@ double lsat_rad2temp(double rad, band_data * band)
  *      lsat : satellite data
  *         i : band number
  *    method : level of atmospheric correction
- *       aot : atmospheric optical thickness (usually 0.15)
  *   percent : percent of solar irradiance in path radiance
- *****************************************************************************/
+ *       dos : digital number of dark object for DOS
+  *****************************************************************************/
 
-void lsat_bandctes(lsat_data * lsat, int i, char method, double aot, double percent)
+#define abs(x)	(((x)>0)?(x):(-x))
+
+void lsat_bandctes(lsat_data * lsat, int i, char method,
+				   double percent, int dos, double sat_zenith, double rayleigh)
 {
-    double a, b, rad_sun;
-    double TAUv, TAUz, Edown;
+    double pi_d2, sin_e, cos_v, rad_sun;
+	/* TAUv  = at. transmittance surface-sensor */
+	/* TAUz  = at. transmittance sun-surface    */
+	/* Edown = diffuse sky spectral irradiance  */
+	double TAUv, TAUz, Edown;
 
-    a = (double)(PI * lsat->dist_es * lsat->dist_es);
-    b = (double)(sin(D2R * lsat->sun_elev));
+	pi_d2 = (double)(PI * lsat->dist_es * lsat->dist_es);
+	sin_e = (double)(sin(D2R * lsat->sun_elev));
+	cos_v = (double)(cos(D2R * sat_zenith));
 
-    /** Radiance of the Sun */
-    if (method == SIMPLIFIED) {
-        TAUv = 1.;      /* TAUv  = at. transmittance surface-sensor */
-                        /* TAUz  = at. transmittance sun-surface    */
-        TAUz = (lsat->band[i].wavemax < 1.) ? b : 1.;
-        Edown = 0.;     /* Edown = diffuse sky spectral irradiance  */
-    }
-    else { /* UNCORRECTED or CORRECTED */
-        TAUv = 1.;
-        TAUz = 1.;
-        Edown   = 0.;
-    }
-    rad_sun = ((lsat->band[i].esun * b * TAUz + Edown) / a);
+	/** Global irradiance on the sensor.
+		Radiance to reflectance coefficient, only NO thermal bands.
+		K1 and K2 variables are also utilized as thermal constants
+	*/
+	if (lsat->band[i].thermal == 0)
+	{
+		switch( method )
+		{
+			case DOS2:
+			{
+				TAUv  = 1.;
+				TAUz  = (lsat->band[i].wavemax < 1.) ? sin_e : 1.;
+				Edown = 0.;
+				break;
+			}
+			case DOS2b:
+			{
+				TAUv  = (lsat->band[i].wavemax < 1.) ? cos_v : 1.;
+				TAUz  = (lsat->band[i].wavemax < 1.) ? sin_e : 1.;
+				Edown = 0.;
+				break;
+			}
+			case DOS3:
+			{
+				double t;
+				t = 2. / (lsat->band[i].wavemax + lsat->band[i].wavemin);
+				t = 0.008569 *t*t*t*t*(1+0.0113*t*t+0.000013*t*t*t*t);
+				TAUv  = exp( -t / cos_v );
+				TAUz  = exp( -t / sin_e );
+				Edown = rayleigh;
+				break;
+			}
+			case DOS4:
+			{
+				double Ro = (lsat->band[i].lmax - lsat->band[i].lmin) * (dos - lsat->band[i].qcalmin) /
+							(lsat->band[i].qcalmax - lsat->band[i].qcalmin) + lsat->band[i].lmin;
+				double tv, Tv = 1.;
+				double Tz = 1.;
+				double Lp = 0.;
+ 				do
+				{
+					TAUz = Tz;
+					TAUv = Tv;
+					Lp = Ro - percent * TAUv * (lsat->band[i].esun * sin_e * TAUz + PI * Lp) / pi_d2;
+					Tz = 1 - (4 * pi_d2 * Lp) / (lsat->band[i].esun * sin_e);
+					Tv = exp( sin_e * log( Tz ) / cos_v );
+// 					G_message("TAUv = %.5f (%.5f), TAUz = %.5f (%.5f) and Edown = %.5f\n", TAUv, Tv, TAUz, Tz, PI * Lp );
+// 				} while( abs(TAUv - Tv) > 0.0000001 || abs(TAUz - Tz) > 0.0000001);
+				} while( TAUv != Tv && TAUz != Tz);
+				TAUz  = (Tz < 1. ? Tz : 1.);
+				TAUv  = (Tv < 1. ? Tv : 1.);
+				Edown = (Lp < 0. ? 0. : PI * Lp);
+				break;
+			}
+			default: /* DOS1 and Without atmosferic-correction */
+				TAUv  = 1.;
+				TAUz  = 1.;
+				Edown = 0.;
+				break;
+		}
+		rad_sun = TAUv * (lsat->band[i].esun * sin_e * TAUz + Edown) / pi_d2;
+		G_message("... TAUv = %.5f, TAUz = %.5f, Edown = %.5f\n", TAUv, TAUz, Edown);
 
-    /** Radiance coefficients */
-    lsat->band[i].gain = ((lsat->band[i].lmax - lsat->band[i].lmin) /
-                          (lsat->band[i].qcalmax - lsat->band[i].qcalmin));
-    lsat->band[i].bias = (lsat->band[i].lmin -
-                          lsat->band[i].gain * lsat->band[i].qcalmin);
+		lsat->band[i].K1 = 0.;
+		lsat->band[i].K2 = rad_sun;
+	}
 
-    if (method == CORRECTED)
-    {
-        lsat->band[i].bias -= lsat->band[i].lmin;
-    }
-    else if (method == SIMPLIFIED)
-    {
-        lsat->band[i].gain /= TAUv;
-        lsat->band[i].bias -= (lsat->band[i].lmin - percent * rad_sun);
-        lsat->band[i].bias /= TAUv;
-    }
+	/** Digital number to radiance coefficients.
+		Whitout atmosferic calibration for thermal bands.
+	*/
+	lsat->band[i].gain = ((lsat->band[i].lmax - lsat->band[i].lmin) /
+						  (lsat->band[i].qcalmax - lsat->band[i].qcalmin));
 
-    /** Reflectance coefficients, only NO thermal bands.
-        Same variables are utilized to thermal constants
-     */
-    if (lsat->band[i].thermal == 0)
-    {
-        lsat->band[i].K1 = 0.;
-        lsat->band[i].K2 = rad_sun;
-    }
+	if (method == UNCORRECTED || lsat->band[i].thermal)
+	{
+		/* L = G * (DN - Qmin) + Lmin
+		-> bias = Lmin - G * Qmin	*/
+		lsat->band[i].bias = (lsat->band[i].lmin - lsat->band[i].gain * lsat->band[i].qcalmin);
+	}
+	else
+	{
+		if (method == CORRECTED)
+		{
+			/* L = G * (DN - Qmin) + Lmin - Lmin
+			-> bias = - G * Qmin */
+			lsat->band[i].bias = - (lsat->band[i].gain * lsat->band[i].qcalmin);
+			/* Another possibility is cut when rad < 0 */
+		}
+		else if (method > DOS )
+		{
+			/* L = Lsat - Lpath =
+			   G * DNsat + B - (G * dark + B - p * rad_sun) =
+			   G * DNsat - G * dark + p * rad_sun
+			-> bias = p * rad_sun - G * dark */
+			lsat->band[i].bias = percent * rad_sun - lsat->band[i].gain * dos;
+		}
+	}
 }
+
+
+
 
