@@ -1,15 +1,15 @@
 <H2>DESCRIPTION</H2>
 
-<p><EM>i.topo.corr</EM> is to correct topographically reflectance files, e.g. obtained with <EM>i.landsat.toar</EM>, from a sun illumination terrain model. This illumination model represents the cosine of the incident angle, i.e. the  angle between the normal to the ground and the sun rays. This can be obtained with <em>r.sun</em> (parameter incidout) and then calculating their cosine with float precission.</p>
+<p><EM>i.topo.corr</EM> is used to topographically correct reflectance from imagery files, e.g. obtained with <EM>i.landsat.toar</EM>, using a sun illumination terrain model. This illumination model represents the cosine of the incident angle, i.e. the  angle between the normal to the ground and the sun rays. It can be obtained with <em>r.sun</em> (parameter incidout), and then calculating its cosine with float precission.</p>
 
-<p>Using flag -i and given a elevation map as basemap (UTM), <em>i.topo.corr</em> permit to obtain a simple illumination model from the formulae:
+<p>Using flag -i and given an elevation map as basemap (UTM), <em>i.topo.corr</em> permits to obtain a simple illumination model from the formula:
 <ul>
 	<li> cos_i = cos(s) · cos(z) + sin(s) · sin(z) · sin(a - o) </li>
 </ul>
 where,
-<em>s</em> if the terrain slope angle, <em>z</em> is the solar zenith angle, <em>a</em> the solar azimuth angle, <em>o</em> the terrain aspect angle.</p>
+<em>s</em> is the terrain slope angle, <em>z</em> is the solar zenith angle, <em>a</em> the solar azimuth angle, <em>o</em> the terrain aspect angle.</p>
 
-<p>For each band file, the corrected reflectance (ref_c) is calculate from the original reflectance (ref_o) using one of the three methods (one lambertian and two non-lambertian).</p>
+<p>For each band file, the corrected reflectance (ref_c) is calculate from the original reflectance (ref_o) using one of the three offered methods (one lambertian and two non-lambertian).</p>
 
 <H3>Method: cosine</H3>
 
@@ -51,8 +51,8 @@ where,
 
 <ol>
 	<li>The illumination model (cos_i) with flag -i uses the actual region as limits and the resolution of the elevation map.</li>
-	<li>The topographic correction use the full reflectance file (set to null if is null cos_i) and their resolution.</li>
-	<li>The elevation map to calculate illumination model would have to be UTM.</li>
+	<li>The topographic correction use the full reflectance file (null remain null) and its resolution.</li>
+	<li>The elevation map to calculate the illumination model should be UTM.</li>
 </ol>
 
 <H2>EXAMPLES</H2>
