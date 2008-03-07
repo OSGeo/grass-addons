@@ -14,20 +14,33 @@ the plot is proportional to the ratio of the reflective material (Crippen
 
 <div class="code"><pre>
 # preparation of Tasseled Cap "haze" map
-i.tasscap -7 band1=tm.10 band2=tm.20 band3=tm.30 band4=tm.40 band5=tm.50 band7=tm.70 out=tasscap
+i.tasscap -7 band1=tm.10 band2=tm.20 band3=tm.30 band4=tm.40 \
+             band5=tm.50 band7=tm.70 out=tasscap
 
 # De-hazing
-i.landsat.dehaze band1=tm.10 band2=tm.20 band3=tm.30 band4=tm.40 band5=tm.50 band7=tm.70 tasscap4=tasscap.4
+i.landsat.dehaze band1=tm.10 band2=tm.20 band3=tm.30 band4=tm.40 \
+             band5=tm.50 band7=tm.70 tasscap4=tasscap.4 outprefix=dehaze
+
+# color-balanced grey scales:
+i.landsat.rgb blue=dehaze.1 green=dehaze.2 red=dehaze.3
+
+# display as RGB composite
+d.mon x0
+d.rgb blue=dehaze.1 green=dehaze.2 red=dehaze.3
 </pre></div>
 
 
 <H2>SEE ALSO</H2>
 
-<EM><A HREF="d.rgb.html">d.rgb</A></EM>,
-<EM><A HREF="g.region.html">g.region</A></EM>,
-<EM><A HREF="i.tasscap.html">i.tasscap</A></EM>,
-<EM><A HREF="r.colors.html">r.colors</A></EM>,
-<EM><A HREF="r.composite.html">r.composite</A></EM>
+<EM>
+<A HREF="d.rgb.html">d.rgb</A>,
+<A HREF="g.region.html">g.region</A>,
+<A HREF="i.landsat.rgb.html">i.landsat.rgb</A>,
+<A HREF="i.tasscap.html">i.tasscap</A>,
+<A HREF="r.colors.html">r.colors</A>,
+<A HREF="r.composite.html">r.composite</A>,
+<A HREF="r.regression.line.html">r.regression.line</A>
+</EM>
 
 <H2>AUTHOR</H2>
 
