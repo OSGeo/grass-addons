@@ -354,10 +354,10 @@ In the Map display window, look for:   Fig.~\ref{fig:grass020}
    \label{fig:grass020}
 \end{figure}
 
-\subsection{HABITAT PRESERVATION MISSION}
+\subsection{Habitat Preservation Mission}
 The pickled strumpet (Trollopensus bibulosa) has recently been added to the Endangered Species List, and the Fish and Wildlife Service is identifying likely habitat areas in the Spearfish area for protection from development. They have constructed the following habitat scoring system based on the species observed habitat preferences:
 
-\subsection{HABITAT SCORING SYSTEM (from Fish and Wildlife Service) }
+\subsection{Habitat Scoring System (from Fish and Wildlife Service) }
 
 Map number Environmental conditions Score to be given
 \begin{enumerate}
@@ -375,7 +375,7 @@ Map number Environmental conditions Score to be given
 Use r.buffer (..=> Create buffers) and r.mapcalc (..=> Map calculator) to create an aggregate habitat score map of the entire area, summing all the partial scores as defined above. (hint: you have to convert all null values of buffer output maps into zero values)
 When finished with numbers 1 to 10 above, sum all the maps in a map that you may call scoreindivsum. Then identify suitable habitat areas by converting to zeroes all cells with overall habitat scores below 9, and all cells within 100 meters of a road (hint: you have to make a new buffer map here, and remove its null values for calculations). Make a final scoring map that you may call scorefinal and change 0 values to NULL (..=>Manage null values) for next laboratory part.
 
-\subsection{PROCESSING THE SCORING MAPS}
+\subsection{Process Scoring Maps}
 
 In the processing of number 1 and 2, please use the Map Calculator with an input following an 'if statement'. The structure goes this
 way:
@@ -405,7 +405,7 @@ the image).
 
 This Set of instructions shows how GRASS GIS does the reclassification work under scripting mode. This is useful when you need to reuse the same set of GIS manipulations/models several times on different or new datasets.
 
-\subsection{HABITAT SCORING SCRIPT}
+\subsection{Scoring Script}
 
 Map number Environmental conditions Score to be given:
 
@@ -447,34 +447,34 @@ r.mapcalc score5="if(aspect<=135.0 && aspect>=45.0
  && aspect != 0,3,0)"
 \end{smallverbatim}
 
-% \textbf{
-% 6) western or eastern exposure (SW to NW or SE to NE): +1 point}
-% \begin{smallverbatim}
-% r.mapcalc score61="if(aspect<45.0 || aspect>314.0,1,0)"
-% r.mapcalc score62="if(aspect<225.0 && aspect>135.0,1,0)"
-% \end{smallverbatim}
-% 
-% \textbf{
-% 7) 1200-1400 meters elevation: +2 points}
-% \begin{smallverbatim}
-% r.mapcalc score7="if(elevation.10m<1400
-%  && elevation.10m>1200,2,0)"
-% \end{smallverbatim}
-% 
-% \textbf{
-% 8) 1400-1600 meters elevation: +4 points}
-% \begin{smallverbatim}
-% r.mapcalc score8="if(elevation.10m<1600
-%  && elevation.10m>=1400,4,0)"
-% \end{smallverbatim}
-% 
-% \textbf{
-% 9) over 1600 meters elevation: +2 points}
-% \begin{smallverbatim}
-% r.mapcalc score9="if(elevation.10m>=1600,2,0)"
-% \end{smallverbatim}
+\textbf{
+6) western or eastern exposure (SW to NW or SE to NE): +1 point}
+\begin{smallverbatim}
+r.mapcalc score61="if(aspect<45.0 || aspect>314.0,1,0)"
+r.mapcalc score62="if(aspect<225.0 && aspect>135.0,1,0)"
+\end{smallverbatim}
 
-\subsection{FINALIZING THE SCORING MAP}
+\textbf{
+7) 1200-1400 meters elevation: +2 points}
+\begin{smallverbatim}
+r.mapcalc score7="if(elevation.10m<1400
+ && elevation.10m>1200,2,0)"
+\end{smallverbatim}
+
+\textbf{
+8) 1400-1600 meters elevation: +4 points}
+\begin{smallverbatim}
+r.mapcalc score8="if(elevation.10m<1600
+ && elevation.10m>=1400,4,0)"
+\end{smallverbatim}
+
+\textbf{
+9) over 1600 meters elevation: +2 points}
+\begin{smallverbatim}
+r.mapcalc score9="if(elevation.10m>=1600,2,0)"
+\end{smallverbatim}
+
+\subsection{Finalizing}
 
 \begin{smallverbatim}
 r.buffer input=roads output=roads100
@@ -482,13 +482,13 @@ r.buffer input=roads output=roads100
 
 r.null map=roads100 null=0
 
-r.mapcalc add="float(score1+score2+score3+
+r.mapcalc score_temp="float(score1+score2+score3+
  score4+score5+score61+score62+score7+
 score8+score9)"
 
-r.mapcalc clas="if(add>9,1,null())"
+r.mapcalc score_final="if(add>9,1,null())"
 
-r.mapcalc class="if(clas==1&&_br100==0,1,null())"
+r.mapcalc score_final_clean="if(clas==1&&_br100==0,1,null())"
 \end{smallverbatim}
 
 %\setkeys{Gin}{width=1\textwidth}
@@ -502,7 +502,7 @@ r.mapcalc class="if(clas==1&&_br100==0,1,null())"
    \label{fig:grass021}
 \end{figure}
 
-\subsection{CLUMPING SUITABLE AREAS}
+\subsection{Clumping Suitable Areas}
 WARNING: This part of the Laboratory involves the use of the command line (command prompt).
 
 What is ``clumping''?
@@ -549,7 +549,7 @@ Output ``habitat\_area'' at this level should be similar to this one:Fig.~\ref{f
    \label{fig:grass023}
 \end{figure}
 
-\subsection{EXPORT RESULTS TO VECTOR}
+\subsection{Export Shapefile}
 Since the users work in vector GIS, we are going to convert the results in vector format and export them from GRASS GIS to shapefile.
 
 Vectorize the clumped map you just produced (\textbf{File/Map type conversion/raster to vector}) and check that you have effectively created a polygon vector map by displaying your vector using random colors.Fig.~\ref{fig:grass024}
@@ -598,10 +598,188 @@ A script for some parts of the Lab is in \textbf{Appendix B} \ref{appendixB}.
 \section{Remote sensing}
 \label{remote_sensing}
 
-Download from GLCF website a satellite image of Landsat 7 ETM+ covering your country, or area of interest.
-Unzip the .tif.gz images, then import in GRASS GIS using r.in.gdal (File / import raster / multiple formats using GDAL).
+\subsection{Import}
+\label{Import}
 
-Identify with band number corresponds to which spectrum band, especially Red and Near-InfraRed spectra.
+Download from GLCF website a satellite image of Landsat 7 ETM+ covering your country, or area of interest.
+Unzip the .tif.gz images, start GRASS GIS. On opening, click on ``georeferenced file`` button.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs000.png}
+   %caption of the figure
+   \caption{Start GRASS GIS}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs000}
+\end{figure}
+
+On launching the module, type in ''landsat`` and load your landsat image into it.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs001.png}
+   %caption of the figure
+   \caption{Set up the new Location name}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs001}
+\end{figure}
+
+Once setup from georeferenced file, launch GRASS GIS from this new Location called ''landsat''.
+
+Identify with band number corresponding to which spectrum band, especially Red and Near-InfraRed spectra.
+
+Once loaded, import in GRASS GIS using r.in.gdal (File / import raster / multiple formats using GDAL).
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs002.png}
+   %caption of the figure
+   \caption{import with r.in.gdal}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs002}
+\end{figure}
+
+Change the coloring of the bands according to this.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs003.png}
+   %caption of the figure
+   \caption{Change Look-up Table (histogram stretched)}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs003}
+\end{figure}
+
+Load a RGB combination of band 4,3,2.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs004.png}
+   %caption of the figure
+   \caption{Load a RGB band combination}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs004}
+\end{figure}
+
+Display the map (histogram stretched False Color Composite)
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs005.png}
+   %caption of the figure
+   \caption{Display the RGB FCC}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs005}
+\end{figure}
+
+Change the coloring of the bands according to this.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs006.png}
+   %caption of the figure
+   \caption{Change Look-up Table (non-stretched)}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs006}
+\end{figure}
+
+Display the map (histogram stretched False Color Composite)
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs007.png}
+   %caption of the figure
+   \caption{Display the RGB FCC (no stretching)}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs007}
+\end{figure}
+
+\subsection{Classification}
+\label{classification}
+
+Create a group and subgroup with band 1-5.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs008.png}
+   %caption of the figure
+   \caption{Create image group and subgroup}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs008}
+\end{figure}
+
+Create a signature file.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs009.png}
+   %caption of the figure
+   \caption{Create initial class statistics signature file}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs009}
+\end{figure}
+
+See the convergence happening...
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs010.png}
+   %caption of the figure
+   \caption{Convergence of statistics}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs010}
+\end{figure}
+
+Run the Maximum Likelihood clustering classification.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs011.png}
+   %caption of the figure
+   \caption{Create initial class statistics signature file}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs011}
+\end{figure}
+
+Display the result of unsupervised classification
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{grass_rs012.png}
+   %caption of the figure
+   \caption{Display classification result}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:grass_rs012}
+\end{figure}
+
+\subsection{Map Algebra}
+\label{map_algebra}
 
 Using r.mapcalc, calculate the difference vegetation index (dvi), the Normalized dvi (ndvi) and the soil-adjusted vegetation index (savi). Then calculate some uncorrected Albedo and the temperature.
 
@@ -616,7 +794,179 @@ Using r.mapcalc, calculate the difference vegetation index (dvi), the Normalized
 Observe cities, roads, irrigation canals, rivers, wetlands, agricultural lands, forests and barren areas with each and all of these images, find out what defines best each land use.
 
 \newpage
+\section{3D Visualization}
+\label{3D_visualization}
 
+
+The N-Visualization tool in GRASS GIS takes care of 3D display of GIS data. Identify the 3 N-VIZ buttons in the GRASS GIS GUI. Click on the Left Side button. This will launch NVIZ.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{nviz000.png}
+   %caption of the figure
+   \caption{Find out the 3 NVIZ buttons}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz000}
+\end{figure}
+
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz001.png}
+   %caption of the figure
+   \caption{NVIZ Display}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz001}
+\end{figure}
+
+Open the Panel and detach it.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.35]{nviz002.png}
+   %caption of the figure
+   \caption{NVIZ panel detached}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz002}
+\end{figure}
+
+Load a Raster by clicking on Raster surfaces
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz003.png}
+   %caption of the figure
+   \caption{Load a raster}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz003}
+\end{figure}
+
+In the Surface Panel, click on the NEW button,select NEW MAP.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz004.png}
+   %caption of the figure
+   \caption{Select New Map}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz004}
+\end{figure}
+
+This will load a mapset locator, select permanent, then in the coverage browser select elevation.10m.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz005.png}
+   %caption of the figure
+   \caption{Select elevation.10m}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz005}
+\end{figure}
+
+Accept for each open dialog. The raster will be loaded.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz006.png}
+   %caption of the figure
+   \caption{Load elevation.10m}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz006}
+\end{figure}
+
+Close the Surface Panel and Open the Vector Panel.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz007.png}
+   %caption of the figure
+   \caption{Open Vector Panel}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz007}
+\end{figure}
+
+Select NEW. This will open the mapset browser again, choose PERMANENT, select streams coverage.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz008.png}
+   %caption of the figure
+   \caption{Load Streams vector layer}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz008}
+\end{figure}
+
+Accept and click the button called DRAW CURRENT.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz009.png}
+   %caption of the figure
+   \caption{Draw Streams Layer}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz009}
+\end{figure}
+
+Close the vector panel and open the color panel from the main panel.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz010.png}
+   %caption of the figure
+   \caption{Open color panel}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz010}
+\end{figure}
+
+Select your color and CLOSE the color panel.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz011.png}
+   %caption of the figure
+   \caption{Select your color}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz011}
+\end{figure}
+
+Drag the directional ball-point to the Upper-left, closer to the center. Increase Height exaggeration to 3.0.
+
+%\setkeys{Gin}{width=1\textwidth}
+\begin{figure}[htbp]
+   \centering
+   %name of your graphic, without the path AND in PNG (screnshots etc)/PDF (drawings) format:
+   \includegraphics[scale=0.2]{nviz012.png}
+   %caption of the figure
+   \caption{Change the z-exaggeration and camera settings}
+   %label of the figure, which has to correspond to \ref{}:
+   \label{fig:nviz012}
+\end{figure}
+
+\newpage
 \subsection{Appendix A: Overview of Grass GUI}
 \label{appendixA}
 
