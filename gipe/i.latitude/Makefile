@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = i.longitude
+PGM = i.latitude
 
 LIBES =  $(GPROJLIB) $(GISLIB)
 DEPENDENCIES = $(GPROJDEP) $(GISDEP)
