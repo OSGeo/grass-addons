@@ -29,54 +29,53 @@ global env
 
 
 
-# if extensions dir exists: create an "Xtns" menu item
-# and read all menu descriptions from .gem files
-set dirName [set env(GISBASE)]/etc/gm/Xtns
 set XtnsMenu "False"
-set splitError "False"
-set XtnsMenuList ""
+set pathlist {}
+set menulist {}
+set menudatlist {}
 
-if { [file exists $dirName] && [file isdirectory $dirName] } {	
-	lappend listNames "Dummy"; # we need this to check for num of elements later
-	foreach fileName [glob -nocomplain [file join $dirName *.gem]] {
-		lappend listNames $fileName
-	}
-	if { [llength $listNames] > 1 } { #only do this, if there is at least one menu file
-		set listNames [lreplace $listNames 0 0]; # let's get rid of the dummy element
-		set listNames [lsort $listNames]
-		#now read each menu file and append to list
-		foreach fileName $listNames {
-			set inputFile [open $fileName "r"]
-			set line [read $inputFile]
-			set splitLines [split $line "\n"]
-			if { [llength $splitLines] == 1 } {
-				# splitting didn't work.
-				# maybe we have Mac style newlines, let's split again!
-				set splitLines [split $line "\r"]
-			}
-			# split up into individual lines for processing
-			foreach line $splitLines {
-				# strip off comments
-				set commentPos [string first "#" $line]
-				# 1.: leading comment
-				if { $commentPos == 0 } {
-					set line ""
-				}
-				if { $commentPos > 0 } {
-					set line [string range $line 0 [expr $commentPos-1]]
-				}					
-				set line [subst $line]; # substitute variables like $tmenu
-				lappend splitLinesDone $line
-			}
-			# now join individual lines back into one string ...
-			set line [join $splitLinesDone]
-			# ... and append to list of submenus
-			lappend XtnsMenuList [subst {$line}]
-			set splitLinesDone ""
-			close $inputFile
-		}
-		set XtnsMenu "True"
-	}
+# Check for existence of xtnmenu.dat file and parse it
+# into an extensions menu
+
+lappend menudatlist "$env(GISBASE)/etc/xtnmenu.dat"
+if {[info exists env(GRASS_ADDON_ETC)]} {
+    set pathlist [split $env(GRASS_ADDON_ETC) ":"]
+    foreach path $pathlist {
+        lappend menudatlist "$path/xtnmenu.dat"
+    }
+}
+
+foreach menudat $menudatlist {
+    if {[file exists $menudat]} {	
+        if { [lsearch $menudatlist $menudat] > 0} {lappend menulist "separator"}
+        if {![catch {open $menudat r} menudef]} {
+            while {[gets $menudef menuline] >= 0} {
+                set menuline [string trim $menuline]
+                if {[string first # $menuline] == 0 } {
+                    continue}
+                set menuline [split $menuline ":"]
+                set menulevel [lindex $menuline 0]
+                set menuitem [G_msg [lindex $menuline 1]]
+                set menucmd "execute "
+                append menucmd [lindex $menuline 2]
+                set menuhelp [G_msg [lindex $menuline 3]]
+                # add if statement to read comments here
+                if {$menuitem == "separator"} {
+                    lappend menulist "separator"
+                } else { 
+                    set line [list command $menuitem {} \
+                        $menuhelp {} -command $menucmd]
+    
+                    lappend menulist $line
+                }
+            }
+            if {[catch {close $menudef} error]} {
+                GmLib::errmsg $error ["Error reading xtnmenu.dat file"]
+            }
+        }
+        set XtnsMenu "True"
+    }
+    
 }
 		
 
@@ -85,9 +84,9 @@ if { [file exists $dirName] && [file isdirectory $dirName] } {
 set descmenu [subst  {
  {[G_msg "&File"]} all file $tmenu {
 	{cascad {[G_msg "Workspace"]} {} "" $tmenu {			
-		{command {[G_msg "Open..."]} {} "Open gis.m workspace file" {} -accelerator $keyctrl-O -command { Gm::OpenFileBox }}
-		{command {[G_msg "Save"]} {} "Save gis.m workspace file" {} -accelerator $keyctrl-S -command { Gm::SaveFileBox }}
-		{command {[G_msg "Save as..."]} {} "Save gis.m workspace file as new name" {} -command { set filename($mon) "" ; Gm::SaveFileBox }}
+		{command {[G_msg "Open..."]} {} "Open gis.m workspace file" {} -accelerator $keyctrl-O -command { GmLib::OpenFileBox }}
+		{command {[G_msg "Save"]} {} "Save gis.m workspace file" {} -accelerator $keyctrl-S -command { GmLib::SaveFileBox }}
+		{command {[G_msg "Save as..."]} {} "Save gis.m workspace file as new name" {} -command { set filename($mon) "" ; GmLib::SaveFileBox }}
 		{command {[G_msg "Close"]} {} "Close gis.m workspace" {} -accelerator $keyctrl-W -command { GmTree::FileClose {}}}
 	}}
 	{separator}
@@ -156,7 +155,7 @@ set descmenu [subst  {
 		{command {[G_msg "SVG"]} {} "v.out.svg: Export SVG file" {} -command { execute v.out.svg }}
 		{command {[G_msg "VTK"]} {} "v.out.vtk: Export VTK ASCII file" {} -command { execute v.out.vtk }}
 	}}
-	{cascad {[G_msg "Exort grid 3D volume"]} {} "" $tmenu {
+	{cascad {[G_msg "Export grid 3D volume"]} {} "" $tmenu {
 		{command {[G_msg "ASCII 3D"]} {} "r3.out.ascii: Export ASCII 3D file" {} -command { execute r3.out.ascii }}
 		{command {[G_msg "Vis5D"]} {} "r3.out.v5d: Export Vis5D file" {} -command { execute r3.out.v5d }}
 		{command {[G_msg "VTK"]} {} "r3.out.vtk: Export VTK ASCII file" {} -command { execute r3.out.vtk }}
@@ -187,8 +186,14 @@ set descmenu [subst  {
 	{separator}
 	{command {[G_msg "Georectify"]} {} "Georectify raster map in XY location" {} -command { GRMap::startup }}
 	{separator}
+	{command {[G_msg "Animate raster maps"]} {} "Display a series of raster maps as an animation" {} -command { GmAnim::main }}
+	{separator}
 	{command {[G_msg "Bearing/distance to coordinates"]} {} "m.cogo: Convert between bearing/distance and coordinates" {} -command { execute m.cogo }}
 	{separator}
+	{cascad {[G_msg "3D rendering"]} {} "" $tmenu {
+		{command {[G_msg "NVIZ"]} {} "nviz: Launch N-dimensional visualization" {} -command {execute nviz }}
+		{command {[G_msg "NVIZ fly through path"]} {} "d.nviz: Create a fly-through path for NVIZ (requires xterm for interactive path creation)" {} -command {execute d.nviz }}
+	}}
 	{command {[G_msg "PostScript plot"]} {} "ps.map: Create cartographic PostScript plot" {} -command { execute ps.map }}
 	{separator}
 	{command {[G_msg "E&xit"]} {} "Exit GIS Manager" {} -accelerator $keyctrl-Q -command { exit } }
@@ -199,7 +204,7 @@ set descmenu [subst  {
 		{command {[G_msg "Change region settings"]} {} "g.region: " {} -command {execute g.region }}
 	}}
 	{cascad {[G_msg "GRASS working environment"]} {} "" $tmenu {			
-		{command {[G_msg "Mapset access"]} {} "g.mapsets.tcl: Access other mapsets in current location" {} -command {spawn $env(GISBASE)/etc/g.mapsets.tcl}}
+		{command {[G_msg "Mapset access"]} {} "g.mapsets.tcl: Access other mapsets in current location" {} -command {exec $env(GRASS_WISH) $env(GISBASE)/etc/g.mapsets.tcl --tcltk &}}
 		{command {[G_msg "Change working environment"]} {} "g.mapset: Change current working session to new mapset, location, or GISDBASE" {} -command {execute g.mapset }}
 		{command {[G_msg "User access"]} {} "g.access: Modify access by other users to current mapset" {} -command {execute g.access }}
 		{command {[G_msg "Show settings"]} {} "g.gisenv: Show current GRASS environment settings" {} -command {run_panel g.gisenv }}
@@ -212,7 +217,7 @@ set descmenu [subst  {
 		{separator}
 		{command {[G_msg "Convert coordinates"]} {} "m.proj: Convert coordinates from one projection to another" {} -command {execute m.proj }}
 	}}
-	{command {[G_msg "Display font"]} {} "Set default display font" {} -command {Gm:DefaultFont "menu" }}
+	{command {[G_msg "Display font"]} {} "Set default display font" {} -command {Gm::defaultfont "menu" }}
  } 
  {[G_msg "&Raster"]} all options $tmenu {
 	{cascad {[G_msg "Develop map"]} {} "" $tmenu {			
@@ -298,9 +303,11 @@ set descmenu [subst  {
 		{command {[G_msg "Carve stream channels"]} {} "r.carve: Carve stream channels into elevation map using vector streams map" {} -command {execute r.carve }}
 		{command {[G_msg "Fill lake"]} {} "r.lake: Fill lake from seed point to specified level" {} -command {execute r.lake }}
 		{separator}
-		{command {[G_msg "Depressionless  map and flowlines"]} {} "r.fill.dir: Depressionless elevation map and flowline map" {} -command {execute r.fill.dir }}
+		{command {[G_msg "Depressionless map and flowlines"]} {} "r.fill.dir: Depressionless elevation map and flowline map" {} -command {execute r.fill.dir }}
 		{command {[G_msg "Flow accumulation"]} {} "r.terraflow: Flow accumulation for massive grids" {} -command {execute r.terraflow }}
 		{command {[G_msg "Flow lines"]} {} "r.flow: " {} -command {execute r.flow }}
+		{separator}
+	    {command {[G_msg "Groundwater flow model"]} {} "r.gwflow: 2D groundwater flow model" {} -command {execute r.gwflow }}
 		{separator}
 		{command {[G_msg "SIMWE overland flow modeling"]} {} "r.sim.water: SIMWE overland flow modeling" {} -command {execute r.sim.water }}
 		{command {[G_msg "SIMWE sediment flux modeling"]} {} "r.sim.sediment: SIMWE sediment erosion, transport, & deposition modeling" {} -command {execute r.sim.sediment }}
@@ -395,7 +402,7 @@ set descmenu [subst  {
 	{separator}
 	{cascad {[G_msg "Reports and statistics"]} {} "" $tmenu {			
 		{command {[G_msg "Report basic file information"]} {} "r.info: Report basic file information" {} -command {execute r.info }}
-		{command {[G_msg "Report category information"]} {} "r.cats: Report category labels and values" {} -command {execute r.cats }}
+		{command {[G_msg "Manage category information"]} {} "r.category: Manage category labels and values" {} -command {execute r.category }}
 		{separator}
 		{command {[G_msg "General statistics"]} {} "r.stats: General statistics" {} -command {execute r.stats }}
 		{command {[G_msg "Range of category values"]} {} "r.describe: Range of all category values" {} -command {execute r.describe }}
@@ -416,9 +423,11 @@ set descmenu [subst  {
  {[G_msg "&Vector"]} all options $tmenu {
 	{cascad {[G_msg "Develop map"]} {} "" $tmenu {			
 		{command {[G_msg "Digitize"]} {} "v.digit: Digitize/edit vector map" {} -command {execute v.digit }}
+		{command {[G_msg "Edit features"]} {} "v.edit: Edit vector features" {} -command {execute v.edit }}
 		{separator}
 		{command {[G_msg "Create/rebuild topology: "]} {} "v.build: Create or rebuild topology of vector objects" {} -command {execute v.build }}
 		{command {[G_msg "Clean vector"]} {} "v.clean: Clean vector objects" {} -command {execute v.clean }}
+		{command {[G_msg "Generalization"]} {} "v.generalize: Smooth, simplify, displace, or generalize a vector map" {} -command {execute v.generalize }}
 		{separator}
 		{command {[G_msg "Convert object types"]} {} "v.type: Convert vector objects from one feature type to another" {} -command {execute $env(GISBASE)/etc/gui/scripts/v.type.sh }}
 		{separator}
@@ -439,6 +448,9 @@ set descmenu [subst  {
 		{separator}
 		{command {[G_msg "Reposition vector"]} {} "v.transform: Reposition (shift, rotate, skew) vector file in coordinate space" {} -command {execute v.transform }}
 		{command {[G_msg "Reproject vector"]} {} "v.proj: Reproject vector from other location" {} -command {execute v.proj }}
+		{separator}
+		{command {[G_msg "Metadata support"]} {} "v.support: Edit metadata for vector map" {} -command {execute v.support }}
+		{separator}
 	}}
 	{separator}
 	{command {[G_msg "Query with attributes"]} {} "v.extract: Query vector objects by attribute values" {} -command {execute v.extract }}
@@ -461,6 +473,7 @@ set descmenu [subst  {
 	{cascad {[G_msg "Network analysis"]} {} "" $tmenu {			
 		{command {[G_msg "Allocate subnets"]} {} "v.net.alloc: Allocate subnets for nearest centers" {} -command {execute v.net.alloc }}
 		{command {[G_msg "Network maintenance"]} {} "v.net: Network maintenance" {} -command {execute v.net }}
+		{command {[G_msg "Visibility network"]} {} "v.net.visibility: Create and maintain a visibility network" {} -command {execute v.net.visibility }}
 		{command {[G_msg "Shortest route"]} {} "v.net.path: Calculate shortest route along network between 2 nodes" {} -command {execute v.net.path }}
 		{command {[G_msg "Display shortest route"]} {} "d.path: Display shortest route along network between 2 nodes (visualization only)" {} -command {
 			unset env(GRASS_RENDER_IMMEDIATE)
@@ -535,6 +548,8 @@ set descmenu [subst  {
 		guarantee_xmon
 		term i.ortho.photo 
 		set env(GRASS_RENDER_IMMEDIATE) "TRUE"}}
+	{separator}
+	{command {[G_msg "Brovey sharpening"]} {} "i.fusion.brovey: Brovey transformation and pan sharpening" {} -command {execute i.fusion.brovey }}
 	{separator}
 	{cascad {[G_msg "GIPE"]} {} "" $tmenu {
 		{cascad {[G_msg "DN2Rad2Ref"]} {} "" $tmenu {
@@ -613,9 +628,8 @@ set descmenu [subst  {
 		{command {[G_msg "Matrix/convolving filter"]} {} "r.mfilter: User defined matrix/convolving filter" {} -command {execute r.mfilter }}
 	}}
 	{command {[G_msg "Spectral response"]} {} "i.spectral: Spectral response" {} -command {execute i.spectral }}
+	{command {[G_msg "Tassled cap vegetation index"]} {} "i.tasscap: Tassled cap vegetation index" {} -command {execute i.tasscap }}
 	{cascad {[G_msg "Transform image"]} {} "" $tmenu {			
-		{command {[G_msg "Brovey sharpening"]} {} "i.fusion.brovey: Brovey transformation and pan sharpening" {} -command {execute i.fusion.brovey }}
-		{separator}
 		{command {[G_msg "Canonical correlation"]} {} "i.cca: Canonical correlation (discriminant analysis)" {} -command {execute i.cca }}
 		{command {[G_msg "Principal components"]} {} "i.pca: Principal components analysis" {} -command {execute i.pca }}
 		{command {[G_msg "Fast Fourier"]} {} "i.fft: Fast Fourier transform" {} -command {execute i.fft }}
@@ -636,6 +650,7 @@ set descmenu [subst  {
 	{command {[G_msg "3D MASK"]} {} "r3.mask: " {} -command {execute r3.mask }}
 	{command {[G_msg "3D Map calculator"]} {} "r3.mapcalculator: Map calculator for grid3D operations" {} -command {execute r3.mapcalculator }}
 	{command {[G_msg "Cross section from volume"]} {} "r3.cross.rast: Create 2D raster cross section from grid3D volume" {} -command { execute r3.cross.rast }}
+	{command {[G_msg "Groundwater flow model"]} {} "r3.gwflow: 3D groundwater flow model" {} -command {execute r3.gwflow }}
 	{command {[G_msg "Interpolate volume from vector points"]} {} "v.vol.rst: Interpolate volume from vector points using splines" {} -command {execute v.vol.rst }}
 	{cascad {[G_msg "Report and Statistics"]} {} "" $tmenu {			
 		{command {[G_msg "Basic information"]} {} "r3.info: Display information about grid3D volume" {} -command {execute r3.info }}
@@ -659,6 +674,7 @@ set descmenu [subst  {
 		{separator}
 		{command {[G_msg "Add columns"]} {} "v.db.addcol: Add columns to table" {} -command {execute v.db.addcol }}
 		{command {[G_msg "Change values"]} {} "v.db.update: Change values in a column" {} -command {execute v.db.update }}
+		{command {[G_msg "Drop column"]} {} "v.db.dropcol: Drop column from a table" {} -command {execute v.db.dropcol }}
 		{command {[G_msg "Rename a column"]} {} "v.db.renamecol: Rename a column" {} -command {execute v.db.renamecol }}
 		{separator}
 		{command {[G_msg "Test database"]} {} "db.test: Test database" {} -command {execute db.test }}
@@ -690,5 +706,5 @@ if { $XtnsMenu == "True" } {
 	lappend descmenu all
 	lappend descmenu options
 	lappend descmenu $tmenu
-	lappend descmenu $XtnsMenuList
+	lappend descmenu $menulist
 }
