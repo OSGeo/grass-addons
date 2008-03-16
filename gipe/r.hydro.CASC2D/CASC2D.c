@@ -310,153 +310,144 @@ int main (int argc, char *argv[])
      parm.mask_wat-> required  = NO;
      parm.mask_wat-> gisprompt ="old,cell,raster";
      parm.mask_wat-> description="map of watershed boundary (or mask); recommended";
+     parm.mask_wat->guisection  = _("Optional_Input");
     
-     parm.elevation=G_define_option();
+     parm.elevation=G_define_standard_option(G_OPT_R_INPUT);
      parm.elevation-> key       ="elevation";
-     parm.elevation-> type      = TYPE_STRING;
-     parm.elevation-> required  = YES;
-     parm.elevation-> gisprompt ="old,cell,raster";
      parm.elevation-> description="map of elevation";
+     parm.elevation->guisection  = _("Required_Input");
 
-     parm.init_depth=G_define_option();
+     parm.init_depth=G_define_standard_option(G_OPT_R_INPUT);
      parm.init_depth-> key       ="initial_depth";
-     parm.init_depth-> type      = TYPE_STRING;
      parm.init_depth-> required  = NO;
-     parm.init_depth-> gisprompt ="old,cell,raster";
      parm.init_depth-> description="map of initial overland (not lakes) depth in mm";    
+     parm.init_depth->guisection  = _("Optional_Input");
 
-     parm.storage_cap=G_define_option();
+     parm.storage_cap=G_define_standard_option(G_OPT_R_INPUT);
      parm.storage_cap-> key       ="storage_capacity";
-     parm.storage_cap-> type      = TYPE_STRING;
      parm.storage_cap-> required  = NO;
-     parm.storage_cap-> gisprompt ="old,cell,raster";
      parm.storage_cap-> description="map of vegetation storage capacity in tenths of mm";    
+     parm.storage_cap->guisection  = _("Optional_Input");
 
-     parm.intercep_exp=G_define_option();
+     parm.intercep_exp=G_define_standard_option(G_OPT_R_INPUT);
      parm.intercep_exp-> key       ="interception_coefficient";
-     parm.intercep_exp-> type      = TYPE_STRING;
      parm.intercep_exp-> required  = NO;
-     parm.intercep_exp-> gisprompt ="old,cell,raster";
      parm.intercep_exp-> description="map of interception coefficient (values in 1000*actual coefficient)";    
+     parm.intercep_exp->guisection  = _("Optional_Input");
 
-     parm.roughness=G_define_option();
+     parm.roughness=G_define_standard_option(G_OPT_R_INPUT);
      parm.roughness-> key       ="roughness_map";
-     parm.roughness-> type      = TYPE_STRING;
      parm.roughness-> required  = NO;
-     parm.roughness-> gisprompt ="old,cell,raster";
      parm.roughness-> description="map of surface roughness coefficient (values in 1000*Manning n)";
+     parm.roughness->guisection  = _("Optional_Input");
 
-     parm.soil_K=G_define_option();
+     parm.soil_K=G_define_standard_option(G_OPT_R_INPUT);
      parm.soil_K-> key       ="conductivity";
-     parm.soil_K-> type      = TYPE_STRING;
      parm.soil_K-> required  = NO;
-     parm.soil_K-> gisprompt ="old,cell,raster";
      parm.soil_K-> description="map of soil saturated hydraulic conductivity in tenths of mm/hr";    
+     parm.soil_K->guisection  = _("Optional_Input");
 
-     parm.soil_H=G_define_option();
+     parm.soil_H=G_define_standard_option(G_OPT_R_INPUT);
      parm.soil_H-> key       ="capillary";
-     parm.soil_H-> type      = TYPE_STRING;
      parm.soil_H-> required  = NO;
-     parm.soil_H-> gisprompt ="old,cell,raster";
      parm.soil_H-> description="map of soil capillary pressure head at the wetting front in tenths of mm";    
+     parm.soil_H->guisection  = _("Optional_Input");
 
-     parm.soil_P=G_define_option();
+     parm.soil_P=G_define_standard_option(G_OPT_R_INPUT);
      parm.soil_P-> key       ="porosity";
-     parm.soil_P-> type      = TYPE_STRING;
      parm.soil_P-> required  = NO;
-     parm.soil_P-> gisprompt ="old,cell,raster";
      parm.soil_P-> description="map of soil effective porosity (values in 1000*porosirty)";    
+     parm.soil_P->guisection  = _("Optional_Input");
 
-     parm.soil_M=G_define_option();
+     parm.soil_M=G_define_standard_option(G_OPT_R_INPUT);
      parm.soil_M-> key       ="moisture";
-     parm.soil_M-> type      = TYPE_STRING;
      parm.soil_M-> required  = NO;
-     parm.soil_M-> gisprompt ="old,cell,raster";
      parm.soil_M-> description="map of soil initial moisture (values in 1000*moisture)";    
-     parm.soil_LN=G_define_option();
+     parm.soil_M->guisection  = _("Optional_Input");
+     
+     parm.soil_LN=G_define_standard_option(G_OPT_R_INPUT);
      parm.soil_LN-> key       ="pore_index";
-     parm.soil_LN-> type      = TYPE_STRING;
      parm.soil_LN-> required  = NO;
-     parm.soil_LN-> gisprompt ="old,cell,raster";
      parm.soil_LN-> description="map of soil pore-size distribution index (Brooks-Corey lambda) in 1000*index";    
+     parm.soil_LN->guisection  = _("Optional_Input");
 
-     parm.soil_RS=G_define_option();
+     parm.soil_RS=G_define_standard_option(G_OPT_R_INPUT);
      parm.soil_RS-> key       ="residual_sat";
-     parm.soil_RS-> type      = TYPE_STRING;
      parm.soil_RS-> required  = NO;
-     parm.soil_RS-> gisprompt ="old,cell,raster";
      parm.soil_RS-> description="map of soil residual saturation (values in 1000*residual saturation)";    
+     parm.soil_RS->guisection  = _("Optional_Input");
 
-     parm.lake_map_name=G_define_option();
+     parm.lake_map_name=G_define_standard_option(G_OPT_R_INPUT);
      parm.lake_map_name-> key       ="lake_map";
-     parm.lake_map_name-> type      = TYPE_STRING;
      parm.lake_map_name-> required  = NO;
-     parm.lake_map_name-> gisprompt ="old,cell,raster";
      parm.lake_map_name-> description="map of lakes categories";    
+     parm.lake_map_name->guisection  = _("Optional_Input");
 
-     parm.lake_elevation=G_define_option();
+     parm.lake_elevation=G_define_standard_option(G_OPT_R_INPUT);
      parm.lake_elevation-> key       ="lake_elev";
-     parm.lake_elevation-> type      = TYPE_STRING;
      parm.lake_elevation-> required  = NO;
-     parm.lake_elevation-> gisprompt ="old,cell,raster";
      parm.lake_elevation-> description="map of lakes initial water surface elevation (for unit see unit_lake)";    
+     parm.lake_elevation->guisection  = _("Optional_Input");
 
-     parm.radar_map=G_define_option();
+     parm.radar_map=G_define_standard_option(G_OPT_R_INPUT);
      parm.radar_map-> key       ="radar_intensity_map";
-     parm.radar_map-> type      = TYPE_STRING;
      parm.radar_map-> required  = NO;
-     parm.radar_map-> gisprompt ="old,cell,raster";
      parm.radar_map-> description="map of radar- (or otherwise-) generated time series of rainfall intensity in mm/hr";    
+     parm.radar_map->guisection  = _("Optional_Input");
 
-     parm.chn_link=G_define_option();
+     parm.chn_link=G_define_standard_option(G_OPT_R_INPUT);
      parm.chn_link-> key       ="links_map";
-     parm.chn_link-> type      = TYPE_STRING;
      parm.chn_link-> required  = NO;
-     parm.chn_link-> gisprompt ="old,cell,raster";
      parm.chn_link-> description="map of channel network link numbers";    
+     parm.chn_link->guisection  = _("Optional_Input");
 
-     parm.chn_node=G_define_option();
+     parm.chn_node=G_define_standard_option(G_OPT_R_INPUT);
      parm.chn_node-> key       ="nodes_map";
-     parm.chn_node-> type      = TYPE_STRING;
      parm.chn_node-> required  = NO;
-     parm.chn_node-> gisprompt ="old,cell,raster";
      parm.chn_node-> description="map of channel network node numbers";    
+     parm.chn_node->guisection  = _("Optional_Input");
 
      parm.channel=G_define_option();
      parm.channel-> key       ="channel_input";
      parm.channel-> type      = TYPE_STRING;
      parm.channel-> required  = NO;
      parm.channel-> description="channel input data file name (ASCII)";    
+     parm.channel->guisection  = _("Optional_Input");
 
      parm.table=G_define_option();
      parm.table-> key       ="table_input";
      parm.table-> type      = TYPE_STRING;
      parm.table-> required  = NO;
      parm.table-> description="look-up table file for links with breakpoint cross section (ASCII)";
+     parm.table->guisection  = _("Optional_Input");
 
      parm.qprof=G_define_option();
      parm.qprof-> key       ="dis_profile";
      parm.qprof-> type      = TYPE_STRING;
      parm.qprof-> required  = NO;
      parm.qprof-> description="channel initial discharge profile file name (ASCII)";    
+     parm.qprof->guisection  = _("Optional_Input");
 
      parm.yprof=G_define_option();
      parm.yprof-> key       ="wat_surf_profile";
      parm.yprof-> type      = TYPE_STRING;
      parm.yprof-> required  = NO;
      parm.yprof-> description="channel intial water surface profile file name (ASCII)";    
+     parm.yprof->guisection  = _("Optional_Input");
 
      parm.phyd=G_define_option();
      parm.phyd-> key       ="hyd_location";
      parm.phyd-> type      = TYPE_STRING;
      parm.phyd-> required  = NO;
      parm.phyd-> description="file name containing link and node addresses of internal locations where discharge hydrographs are to be saved (ASCII)";
+     parm.phyd->guisection  = _("Optional_Output");
 
      parm.raingage=G_define_option();
      parm.raingage-> key       ="r_gage_file";
      parm.raingage-> type      = TYPE_STRING;
      parm.raingage-> required  = NO;
      parm.raingage-> description="raingage rainfall input file name (ASCII), intensities in in/hr";
+     parm.raingage->guisection  = _("Optional_Input");
 
      parm.outlet=G_define_option();
      /* removed & in parameter definition, Andreas Lange, 11/2000 */
@@ -465,126 +456,142 @@ int main (int argc, char *argv[])
      parm.outlet-> required  = YES;
      parm.outlet-> key_desc  ="east,north,bedslope";  
      parm.outlet-> description="easting, northing, and bed slope at the outlet cell";
+     parm.outlet->guisection  = _("Required_Input");
 
      parm.Manning_n=G_define_option();
      parm.Manning_n-> key       ="Manning_n";
      parm.Manning_n-> type      = TYPE_DOUBLE;
      parm.Manning_n-> required  = NO;
      parm.Manning_n-> description="spatially uniform overland Manning n roughness value";
+     parm.Manning_n->guisection  = _("Optional_Input");
 
      parm.unif_rain=G_define_option();
      parm.unif_rain-> key       ="unif_rain_int";
      parm.unif_rain-> type      = TYPE_DOUBLE;
      parm.unif_rain-> required  = NO;
      parm.unif_rain-> description="spatially uniform rainfall intensity in mm/hr";
+     parm.unif_rain->guisection  = _("Optional_Input");
 
      parm.num_raingage=G_define_option();
      parm.num_raingage-> key       ="num_of_raingages";
      parm.num_raingage-> type      = TYPE_INTEGER;
      parm.num_raingage-> required  = NO;
      parm.num_raingage-> description="number of recording raingages";
+     parm.num_raingage->guisection  = _("Optional_Input");
 
      parm.time_step=G_define_option();
      parm.time_step-> key       ="time_step";
      parm.time_step-> type      = TYPE_INTEGER;
      parm.time_step-> required  = YES;
      parm.time_step-> description="computational time step duration in sec";
+     parm.time_step->guisection  = _("Required_Input");
 
      parm.gage_time_step=G_define_option();
      parm.gage_time_step-> key       ="gage_time_step";
      parm.gage_time_step-> type      = TYPE_INTEGER;
      parm.gage_time_step-> required  = NO;
      parm.gage_time_step-> description= "time step of recorded raingage data in sec";
+     parm.gage_time_step->guisection  = _("Optional_Input");
 
      parm.radar_time_step=G_define_option();
      parm.radar_time_step-> key       ="radar_time_step";
      parm.radar_time_step-> type      = TYPE_INTEGER;
      parm.radar_time_step-> required  = NO;
      parm.radar_time_step-> description= "time increment between radar- (or otherwise) generated rainfall maps in sec";
+     parm.radar_time_step->guisection  = _("Optional_Input");
 
      parm.num_rain=G_define_option();
      parm.num_rain-> key       ="rain_duration";
      parm.num_rain-> type      = TYPE_INTEGER;
      parm.num_rain-> required  = YES;
      parm.num_rain-> description= "total rainfall duration in sec";
+     parm.num_rain->guisection  = _("Required_Input");
 
      parm.num_time=G_define_option();
      parm.num_time-> key       ="tot_time";
      parm.num_time-> type      = TYPE_INTEGER;
      parm.num_time-> required  = YES;
      parm.num_time-> description="total simulation time or channel drainage time (-d option) in sec";
+     parm.num_time->guisection  = _("Required_Input");
 
      parm.num_write=G_define_option();
      parm.num_write-> key       ="write_time_step";
      parm.num_write-> type      = TYPE_INTEGER;
      parm.num_write-> required  = NO;
      parm.num_write-> description="time increment for writing output raster maps in sec";
+     parm.num_write->guisection  = _("Optional_Output");
 
      parm.elevation_unit=G_define_option();
      parm.elevation_unit-> key       ="unit_el_conv";
      parm.elevation_unit-> type      = TYPE_DOUBLE;
      parm.elevation_unit-> required  = NO;
      parm.elevation_unit-> description="unit convertion factor by which the values in elevation map must be DIVIDED to convert them into meters";
+     parm.elevation_unit->guisection  = _("Optional_Input");
 
      parm.lake_unit=G_define_option();
      parm.lake_unit-> key       ="unit_lake";
      parm.lake_unit-> type      = TYPE_DOUBLE;
      parm.lake_unit-> required  = NO;
      parm.lake_unit-> description="unit convertion factor by which the values in lake surface elevation map must be DIVIDED to convert them into meters";
+     parm.lake_unit->guisection  = _("Optional_Input");
 
      parm.space_unit=G_define_option();
      parm.space_unit-> key       ="unit_space";
      parm.space_unit-> type      = TYPE_DOUBLE;
      parm.space_unit-> required  = NO;
      parm.space_unit-> description="unit convertion factor by which the region easting and northing values must be DIVIDED to convert them into meters";
+     parm.space_unit->guisection  = _("Optional_Input");
 
      parm.threshold=G_define_option();
      parm.threshold-> key       ="d_thresh";
      parm.threshold-> type      = TYPE_DOUBLE;
      parm.threshold-> required  = NO;
      parm.threshold-> description="threshold overland depth, in meters, below which overland routing will not be performed (i.e. average depression storage)";
+     parm.threshold->guisection  = _("Optional_Input");
 
      parm.discharge=G_define_option();
      parm.discharge-> key       ="discharge";
      parm.discharge-> type      = TYPE_STRING;
      parm.discharge-> required  = YES;
      parm.discharge-> description="outflow discharge output file name (ASCII)";
+     parm.discharge->guisection  = _("Required_Output");
 
      parm.hydout=G_define_option();
      parm.hydout-> key       ="dis_hyd_location";
      parm.hydout-> type      = TYPE_STRING;
      parm.hydout-> required  = NO;
      parm.hydout-> description="output file name for discharge hydrograph at internal locations (ASCII)";
+     parm.hydout->guisection  = _("Optional_Output");
 
-     parm.depth=G_define_option();
+     parm.depth=G_define_standard_option(G_OPT_R_OUTPUT);
      parm.depth-> key       ="depth_map";
-     parm.depth-> type      = TYPE_STRING;
      parm.depth-> required  = NO;
      parm.depth-> description="output map of surface depth in mm";
+     parm.depth->guisection  = _("Optional_Output");
 
-     parm.inf=G_define_option();
+     parm.inf=G_define_standard_option(G_OPT_R_OUTPUT);
      parm.inf-> key       ="inf_depth_map";
-     parm.inf-> type      = TYPE_STRING;
      parm.inf-> required  = NO;
      parm.inf-> description="output map of cumulative infiltration depth in tenth of mm";
+     parm.inf->guisection  = _("Optional_Output");
 
-     parm.moist=G_define_option();
+     parm.moist=G_define_standard_option(G_OPT_R_OUTPUT);
      parm.moist-> key       ="surf_moist_map";
-     parm.moist-> type      = TYPE_STRING;
      parm.moist-> required  = NO;
      parm.moist-> description="output map of surface soil moisture in number of fractions of a thousand";
+     parm.moist->guisection  = _("Optional_Output");
 
-     parm.rate=G_define_option();
+     parm.rate=G_define_standard_option(G_OPT_R_OUTPUT);
      parm.rate-> key       ="rate_of_infil_map";
-     parm.rate-> type      = TYPE_STRING;
      parm.rate-> required  = NO;
      parm.rate-> description="output map of infiltration rate in mm/hr";
+     parm.rate->guisection  = _("Optional_Output");
 
-     parm.dis_rain=G_define_option();
+     parm.dis_rain=G_define_standard_option(G_OPT_R_OUTPUT);
      parm.dis_rain-> key       ="dis_rain_map";
-     parm.dis_rain-> type      = TYPE_STRING;
      parm.dis_rain-> required  = NO;
      parm.dis_rain-> description="output map of distributed rainfall intensity in mm/hr";
+     parm.dis_rain->guisection  = _("Optional_Output");
 
 /*!!!!!!!!!!!!!!!!!!!
   DEFINING FLAGS 
