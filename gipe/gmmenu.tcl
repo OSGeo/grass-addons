@@ -300,7 +300,7 @@ set descmenu [subst  {
 		{command {[G_msg "Length Slope and Slope (LS)"]} {} "r.watershed" {} -command {execute r.watershed }}
 	}}
 	{cascad {[G_msg "Hydrologic modeling"]} {} "" $tmenu {			
-		{command {[G_msg "CASC2D"]} {} "r.CASC2D: CASC2D hydrological modeling" {} -command {execute r.CASC2D }}
+		{command {[G_msg "CASC2D"]} {} "r.CASC2D: CASC2D hydrological modeling" {} -command {execute r.hydro.CASC2D }}
 		{command {[G_msg "Carve stream channels"]} {} "r.carve: Carve stream channels into elevation map using vector streams map" {} -command {execute r.carve }}
 		{command {[G_msg "Fill lake"]} {} "r.lake: Fill lake from seed point to specified level" {} -command {execute r.lake }}
 		{separator}

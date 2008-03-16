@@ -239,7 +239,7 @@ class Data:
                 ("Length Slope and Slope (LS)", "Length Slope and Slope (LS)", "self.OnMenuCmd", "r.watershed"),
                 )),
               ("Hydrologic modeling", (
-                ("CASC2D", "CASC2D hydrological model", "self.OnMenuCmd", "r.CASC2D"),
+                ("CASC2D", "CASC2D hydrological model", "self.OnMenuCmd", "r.hydro.CASC2D"),
                 ("Carve stream channels", "Carve stream channels into elevation map using vector streams map", "self.OnMenuCmd", "r.carve"),
                 ("Fill lake", "Fill lake from seed point to specified level", "self.OnMenuCmd", "r.lake"),
                 ("","","", ""),
