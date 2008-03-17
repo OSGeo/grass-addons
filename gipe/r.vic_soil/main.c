@@ -1,10 +1,13 @@
 /****************************************************************************
  *
- * MODULE:       i.longitude
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
- * PURPOSE:      Calculates the longitude of the pixels in the map. 
+ * MODULE:       r.vic_soil
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
+ * PURPOSE:      Creates a VIC soil input file.
+ * 		 Filling only lat/long and add dummy data from VIC website.
+ * 		 Will add raster layer input as they become available later.
+ * 		 Like soil texture, etc...
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -38,52 +41,50 @@ int main(int argc, char *argv[])
 	struct pj_info oproj;
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1; //output raster name
+	char 	*name;   	// input raster name
+	char 	*result1; 	//output raster name
 	//File Descriptors
-	int infd;
-	int outfd1;
+	int 	infd;
 	
-	char *in;
-	int i=0,j=0;
-	double xp, yp;
-	double xmin, ymin;
-	double xmax, ymax;
-	double stepx,stepy;
-	double latitude, longitude;
+	char 	*in;
+	int 	i=0,j=0;
+	double 	xp, yp;
+	double 	xmin, ymin;
+	double 	xmax, ymax;
+	double 	stepx,stepy;
+	double 	latitude, longitude;
 
-	void *inrast;
-	unsigned char *outrast1;
-	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
-	RASTER_MAP_TYPE data_type_inrast;
+	void 			*inrast;
+	RASTER_MAP_TYPE 	data_type_inrast;
+
+	FILE	*f; 		// output ascii file
+	int 	process; 	// process grid cell switch
+	int 	grid_count; 	// grid cell count
+	char 	*dummy_data1; 	// dummy data part 1
 	/************************************/
 	G_gisinit(argv[0]);
 
 	module = G_define_module();
-	module->keywords = _("longitude, projection");
-	module->description = _("creates a longitude map");
+	module->keywords = _("VIC, hydrology, soil");
+	module->description = _("creates a soil ascii file taking lat/long from a map");
 
 	/* Define the different options */
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("input");
-	input1->description=_("Name of the input map");
+	input1->description=_("Name of the input map to take the lat/lon from");
 	input1->answer     =_("input");
 
-	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output1->key        =_("longitude");
-	output1->description=_("Name of the output longitude layer");
-	output1->answer     =_("longitude");
+	output1 = G_define_option() ;
+	output1->key        =_("output");
+	output1->description=_("Name of the output vic soil ascii file");
+	output1->answer     =_("vic_soil");
 	
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
 
 	in	 	= input1->answer;
 	result1  	= output1->answer;
-	verbose 	= (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(in, "");
 	if (mapset == NULL) {
@@ -108,6 +109,20 @@ int main(int argc, char *argv[])
 
 	nrows = G_window_rows();
 	ncols = G_window_cols();
+
+	/*Initialize grid cell process switch*/
+	f=fopen(result1,"w");
+	/*Initialize grid cell process switch*/
+	/*If =1 then process, if =0 then skip*/
+	process = 1; 
+
+	/*Initialize grid cell count*/
+	grid_count = 1;
+	/*Initialize output file */
+	fprintf(f,"#RUN\tGRID\tLAT\tLNG\tINFILT\tDs\tDs_MAX\tWs\tC\tEXPT_1\tEXPT_2\tEXPT_3\tKsat_1\tKsat_2\tKsat_3\tPHI_1\tPHI_2\tPHI_3\tMOIST_1\tMOIST_2\tMOIST_3\tELEV\tDEPTH_1\tDEPTH_2\tDEPTH_3\tAVG_T\tDP\tBUBLE1\tBUBLE2\tBUBLE3\tQUARZ1\tQUARZ2\tQUARZ3\tBULKDN1\tBULKDN2\tBULKDN3\tPARTDN1\tPARTDN2\tPARTDN3\tOFF_GMT\tWcrFT1\tWcrFT2\tWcrFT3\tWpFT1\tWpFT2\tWpFT3\tZ0_SOIL\tZ0_SNOW\tPRCP\tRESM1\tRESM2\tRESM3\tFS_ACTV\tJULY_TAVG\n");
+
+	/*Initialize dummy data*/
+	dummy_data1 = "0.010\t1.e-4\t3.05\t0.93\t2\t4.0\t4.0\t4.0\t250.0\t250.0\t250.0\t-999\t-999\t-999\t0.4\t0.4\t0.4\t306.3\t0.1\t6.90\t2.000\t14.0\t4.0\t75.0\t75.0\t75.0\t0.24\t0.24\t0.24\t1306\t1367\t1367\t2650\t2650\t2650\t-6\t0.330\t0.330\t0.330\t0.133\t0.133\t0.133\t0.001\t0.010\t500\t0.02\t0.02\t0.02\t1\t18.665\n";
 	
 	//Shamelessly stolen from r.sun !!!!	
 	/* Set up parameters for projection to lat/long if necessary */
@@ -130,15 +145,9 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Unable to set up lat/long projection parameters"));
 	}//End of stolen from r.sun :P
 	
-	outrast1 = G_allocate_raster_buf(data_type_output);
-	if ( (outfd1 = G_open_raster_new (result1,data_type_output)) < 0)
-		G_fatal_error(_("Could not open <%s>"),result1);
-	for (row = 0; row < nrows; row++)
+	for (row = 0; row < nrows/100; row++)
 	{
-		DCELL d;
-		DCELL d_lon;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 		if(G_get_raster_row(infd,inrast,row,data_type_inrast)<0)
 			G_fatal_error(_("Could not read from <%s>"),in);
 		for (col=0; col < ncols; col++)
@@ -151,24 +160,14 @@ int main(int argc, char *argv[])
 				}
 			}else{
 				//Do nothing
-			}	
-			d_lon = longitude;
-			((DCELL *) outrast1)[col] = d_lon;
+			}
+			fprintf(f,"%d\t%d\t%6.3f\t%7.3f\t%s\n", process, grid_count, latitude, longitude, dummy_data1);
+			grid_count=grid_count+1;
 		}
-		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
-			G_fatal_error(_("Cannot write to output raster file"));
 	}
-
 	G_free (inrast);
 	G_close_cell (infd);
-	
-	G_free (outrast1);
-	G_close_cell (outfd1);
-	
-	G_short_history(result1, "raster", &history);
-	G_command_history(&history);
-	G_write_history(result1,&history);
-
+	fclose(f);
 	exit(EXIT_SUCCESS);
 }
 

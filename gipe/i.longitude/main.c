@@ -66,22 +66,15 @@ int main(int argc, char *argv[])
 	module->description = _("creates a longitude map");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("input");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the input map");
 	input1->answer     =_("input");
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("longitude");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output longitude layer");
 	output1->answer     =_("longitude");
-
 	
 	flag1 = G_define_flag();
 	flag1->key = 'q';
@@ -92,9 +85,8 @@ int main(int argc, char *argv[])
 		exit (EXIT_FAILURE);
 
 	in	 	= input1->answer;
-		
-	result1  = output1->answer;
-	verbose = (!flag1->answer);
+	result1  	= output1->answer;
+	verbose 	= (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(in, "");
 	if (mapset == NULL) {
