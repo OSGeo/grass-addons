@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.vic_soil
+PGM = r.out.vic_soil
 
 LIBES =  $(GPROJLIB) $(GISLIB)
 DEPENDENCIES = $(GPROJDEP) $(GISDEP)
