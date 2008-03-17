@@ -3,9 +3,14 @@
  * MODULE:       r.vic_soil
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Creates a VIC soil input file.
- * 		 Filling only lat/long and add dummy data from VIC website.
- * 		 Will add raster layer input as they become available later.
- * 		 Like soil texture, etc...
+ * 		 Filling only elevation and lat/long.
+ * 		 Add remaining as dummy data from VIC website.
+ * 		 Will add more like data that can be processed from 
+ * 		 elevation/lat/longraster or specific raster layer
+ * 		 inputs as they become available later.
+ * 		 Like:
+ * 		 	- Time zone offset from GMT,
+ * 		 	etc...
  *
  * COPYRIGHT:    (C) 2008 by the GRASS Development Team
  *
@@ -45,7 +50,9 @@ int main(int argc, char *argv[])
 	char 	*result1; 	//output raster name
 	//File Descriptors
 	int 	infd;
-	
+	//Raster pointer
+	DCELL 	*inrast_elevation;
+
 	char 	*in;
 	int 	i=0,j=0;
 	double 	xp, yp;
@@ -61,6 +68,8 @@ int main(int argc, char *argv[])
 	int 	process; 	// process grid cell switch
 	int 	grid_count; 	// grid cell count
 	char 	*dummy_data1; 	// dummy data part 1
+	char 	*dummy_data2; 	// dummy data part 2
+	double	elevation;	// average evevation of grid cell
 	/************************************/
 	G_gisinit(argv[0]);
 
@@ -71,7 +80,7 @@ int main(int argc, char *argv[])
 	/* Define the different options */
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("input");
-	input1->description=_("Name of the input map to take the lat/lon from");
+	input1->description=_("Name of the elevation input map");
 	input1->answer     =_("input");
 
 	output1 = G_define_option() ;
@@ -107,6 +116,9 @@ int main(int argc, char *argv[])
 	ymin=cellhd.south;
 	ymax=cellhd.north;
 
+	/*Allocate input buffer*/
+	inrast_elevation	= G_allocate_d_raster_buf();
+
 	nrows = G_window_rows();
 	ncols = G_window_cols();
 
@@ -122,7 +134,8 @@ int main(int argc, char *argv[])
 	fprintf(f,"#RUN\tGRID\tLAT\tLNG\tINFILT\tDs\tDs_MAX\tWs\tC\tEXPT_1\tEXPT_2\tEXPT_3\tKsat_1\tKsat_2\tKsat_3\tPHI_1\tPHI_2\tPHI_3\tMOIST_1\tMOIST_2\tMOIST_3\tELEV\tDEPTH_1\tDEPTH_2\tDEPTH_3\tAVG_T\tDP\tBUBLE1\tBUBLE2\tBUBLE3\tQUARZ1\tQUARZ2\tQUARZ3\tBULKDN1\tBULKDN2\tBULKDN3\tPARTDN1\tPARTDN2\tPARTDN3\tOFF_GMT\tWcrFT1\tWcrFT2\tWcrFT3\tWpFT1\tWpFT2\tWpFT3\tZ0_SOIL\tZ0_SNOW\tPRCP\tRESM1\tRESM2\tRESM3\tFS_ACTV\tJULY_TAVG\n");
 
 	/*Initialize dummy data*/
-	dummy_data1 = "0.010\t1.e-4\t3.05\t0.93\t2\t4.0\t4.0\t4.0\t250.0\t250.0\t250.0\t-999\t-999\t-999\t0.4\t0.4\t0.4\t306.3\t0.1\t6.90\t2.000\t14.0\t4.0\t75.0\t75.0\t75.0\t0.24\t0.24\t0.24\t1306\t1367\t1367\t2650\t2650\t2650\t-6\t0.330\t0.330\t0.330\t0.133\t0.133\t0.133\t0.001\t0.010\t500\t0.02\t0.02\t0.02\t1\t18.665\n";
+	dummy_data1 = "0.010\t1.e-4\t3.05\t0.93\t2\t4.0\t4.0\t4.0\t250.0\t250.0\t250.0\t-999\t-999\t-999\t0.4\t0.4\t0.4";
+	dummy_data2 = "0.1\t6.90\t2.000\t14.0\t4.0\t75.0\t75.0\t75.0\t0.24\t0.24\t0.24\t1306\t1367\t1367\t2650\t2650\t2650\t-6\t0.330\t0.330\t0.330\t0.133\t0.133\t0.133\t0.001\t0.010\t500\t0.02\t0.02\t0.02\t1\t18.665\n";
 	
 	//Shamelessly stolen from r.sun !!!!	
 	/* Set up parameters for projection to lat/long if necessary */
@@ -147,11 +160,13 @@ int main(int argc, char *argv[])
 	
 	for (row = 0; row < nrows/100; row++)
 	{
+		DCELL d_elevation;
 		G_percent(row,nrows,2);
 		if(G_get_raster_row(infd,inrast,row,data_type_inrast)<0)
 			G_fatal_error(_("Could not read from <%s>"),in);
 		for (col=0; col < ncols; col++)
 		{
+			/*Extract lat/long data*/
 			latitude = ymax - ( row * stepy );
 			longitude = xmin + ( col * stepx );
 			if(not_ll){
@@ -161,7 +176,20 @@ int main(int argc, char *argv[])
 			}else{
 				//Do nothing
 			}
-			fprintf(f,"%d\t%d\t%6.3f\t%7.3f\t%s\n", process, grid_count, latitude, longitude, dummy_data1);
+			/*Extract elevation data*/
+			switch(data_type_inrast){
+				case CELL_TYPE:
+					d_elevation = (double) ((CELL *) inrast_elevation)[col];
+					break;
+				case FCELL_TYPE:
+					d_elevation = (double) ((FCELL *) inrast_elevation)[col];
+					break;
+				case DCELL_TYPE:
+					d_elevation = ((DCELL *) inrast_elevation)[col];
+					break;
+			}
+			/*Print to ascii file*/
+			fprintf(f,"%d\t%d\t%6.3f\t%7.3f\t%s\t%7.2f\t%s\n", process, grid_count, latitude, longitude, dummy_data1, d_elevation, dummy_data2);
 			grid_count=grid_count+1;
 		}
 	}
