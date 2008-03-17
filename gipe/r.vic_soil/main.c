@@ -183,7 +183,6 @@ int main(int argc, char *argv[])
 					d_elevation = ((DCELL *) inrast_elevation)[col];
 					break;
 			}
-			printf("%7.2f\n",d_elevation);
 			/*Print to ascii file*/
 			fprintf(f,"%d\t%d\t%6.3f\t%7.3f\t%s\t%7.2f\t%s\n", process, grid_count, latitude, longitude, dummy_data1, d_elevation, dummy_data2);
 			grid_count=grid_count+1;
