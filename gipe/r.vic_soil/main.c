@@ -50,8 +50,6 @@ int main(int argc, char *argv[])
 	char 	*result1; 	//output raster name
 	//File Descriptors
 	int 	infd;
-	//Raster pointer
-	DCELL 	*inrast_elevation;
 
 	char 	*in;
 	int 	i=0,j=0;
@@ -61,8 +59,8 @@ int main(int argc, char *argv[])
 	double 	stepx,stepy;
 	double 	latitude, longitude;
 
-	void 			*inrast;
-	RASTER_MAP_TYPE 	data_type_inrast;
+	void 			*inrast_elevation;
+	RASTER_MAP_TYPE 	data_type_inrast_elevation;
 
 	FILE	*f; 		// output ascii file
 	int 	process; 	// process grid cell switch
@@ -75,7 +73,7 @@ int main(int argc, char *argv[])
 
 	module = G_define_module();
 	module->keywords = _("VIC, hydrology, soil");
-	module->description = _("creates a soil ascii file taking lat/long from a map");
+	module->description = _("creates a soil ascii file taking elevation and lat/long from an elevation map");
 
 	/* Define the different options */
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
@@ -99,12 +97,12 @@ int main(int argc, char *argv[])
 	if (mapset == NULL) {
 		G_fatal_error(_("cell file [%s] not found"), in);
 	}
-	data_type_inrast = G_raster_map_type(in,mapset);
+	data_type_inrast_elevation = G_raster_map_type(in,mapset);
 	if ( (infd = G_open_cell_old (in,mapset)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), in);
 	if (G_get_cellhd (in, mapset, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s])"), in);
-	inrast = G_allocate_raster_buf(data_type_inrast);
+	inrast_elevation = G_allocate_raster_buf(data_type_inrast_elevation);
 	/***************************************************/
 	G_debug(3, "number of rows %d",cellhd.rows);
 
@@ -115,9 +113,6 @@ int main(int argc, char *argv[])
 	xmax=cellhd.east;
 	ymin=cellhd.south;
 	ymax=cellhd.north;
-
-	/*Allocate input buffer*/
-	inrast_elevation	= G_allocate_d_raster_buf();
 
 	nrows = G_window_rows();
 	ncols = G_window_cols();
@@ -158,11 +153,11 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Unable to set up lat/long projection parameters"));
 	}//End of stolen from r.sun :P
 	
-	for (row = 0; row < nrows/100; row++)
+	for (row = 0; row < nrows; row++)
 	{
 		DCELL d_elevation;
 		G_percent(row,nrows,2);
-		if(G_get_raster_row(infd,inrast,row,data_type_inrast)<0)
+		if(G_get_raster_row(infd,inrast_elevation,row,data_type_inrast_elevation)<0)
 			G_fatal_error(_("Could not read from <%s>"),in);
 		for (col=0; col < ncols; col++)
 		{
@@ -177,7 +172,7 @@ int main(int argc, char *argv[])
 				//Do nothing
 			}
 			/*Extract elevation data*/
-			switch(data_type_inrast){
+			switch(data_type_inrast_elevation){
 				case CELL_TYPE:
 					d_elevation = (double) ((CELL *) inrast_elevation)[col];
 					break;
@@ -188,12 +183,13 @@ int main(int argc, char *argv[])
 					d_elevation = ((DCELL *) inrast_elevation)[col];
 					break;
 			}
+			printf("%7.2f\n",d_elevation);
 			/*Print to ascii file*/
 			fprintf(f,"%d\t%d\t%6.3f\t%7.3f\t%s\t%7.2f\t%s\n", process, grid_count, latitude, longitude, dummy_data1, d_elevation, dummy_data2);
 			grid_count=grid_count+1;
 		}
 	}
-	G_free (inrast);
+	G_free (inrast_elevation);
 	G_close_cell (infd);
 	fclose(f);
 	exit(EXIT_SUCCESS);
