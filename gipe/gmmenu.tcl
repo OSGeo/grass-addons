@@ -141,8 +141,12 @@ set descmenu [subst  {
 		{command {[G_msg "PNG"]} {} "r.out.png: Export PNG image (not georeferenced)" {} -command { execute r.out.png }}
 		{command {[G_msg "PPM"]} {} "r.out.ppm: Export PPM image (24bit)" {} -command { execute r.out.ppm }}
 		{command {[G_msg "PPM from RGB"]} {} "r.out.ppm3: Export PPM image from red, green, blue raster maps" {} -command { execute r.out.ppm3 }}
+		{separator}
 		{command {[G_msg "POV-Ray"]} {} "r.out.pov: Export POV-Ray height-field" {} -command { execute r.out.pov }}
 		{command {[G_msg "TIFF"]} {} "r.out.tiff: Export TIFF image (8/24bit)" {} -command { execute r.out.tiff }}
+		{command {[G_msg "VIC Mask"]} {} "r.out.vic_mask: Export VIC mask ASCII file" {} -command { execute r.out.vic_mask }}
+		{command {[G_msg "VIC Soil"]} {} "r.out.vic_soil: Export VIC soil ASCII file" {} -command { execute r.out.vic_soil }}
+		{command {[G_msg "VIC Veg"]} {} "r.out.vic_veg: Export VIC vegetation ASCII file" {} -command { execute r.out.vic_veg }}
 		{command {[G_msg "VRML"]} {} "r.out.vrml: Export VRML file" {} -command { execute r.out.vrml }}
 		{command {[G_msg "VTK"]} {} "r.out.vtk: Export VTK ASCII file" {} -command { execute r.out.vtk }}
 	}}
