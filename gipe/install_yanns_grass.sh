@@ -25,7 +25,7 @@ for directory in r.*
 do
 	cp -rf $HFDIR/$directory $GRASSCVSDIR/raster/
 done
-cp -rf $HFDIR/PM_Makefile $GRASSCVSDIR/raster/r.evapo.PM/Makefile
+cp -rf $GIPEDIR/PM_Makefile $GRASSCVSDIR/raster/r.evapo.PM/Makefile
 
 cp -f $GIPEDIR/Makefile $GRASSCVSDIR/raster/ 
 cd $GRASSCVSDIR/raster/
@@ -60,6 +60,12 @@ make
 cp -rf $GIPEDIR/m.gem $GRASSCVSDIR/scripts/ 
 cp -f $GIPEDIR/scripts_Makefile $GRASSCVSDIR/scripts/Makefile 
 cd $GRASSCVSDIR/scripts/
+make
+
+#Install GUI stuff
+cp -rf $GIPEDIR/gmmenu.tcl $GRASSCVSDIR/gui/tcltk/gis.m/ 
+cp -rf $GIPEDIR/menudata.py $GRASSCVSDIR/gui/wxpython/gui_modules/ 
+cd $GRASSCVSDIR/gui
 make
 
 cd $GRASSCVSDIR
