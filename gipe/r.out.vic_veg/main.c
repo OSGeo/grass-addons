@@ -22,6 +22,8 @@
 #include <grass/gprojects.h>
 #include <grass/glocale.h>
 
+int veglib(char *filename);
+
 int main(int argc, char *argv[])
 {
 	struct Cell_head cellhd; //region+header info
@@ -32,7 +34,7 @@ int main(int argc, char *argv[])
 	int verbose=1;
 	int not_ll=0;//if proj is not lat/long, it will be 1.
 	struct GModule *module;
-	struct Option *input1, *input2, *output1;
+	struct Option *input1, *input2, *output1, *output2;
 	
 	struct Flag *flag1;	
 	struct History history; //metadata
@@ -72,7 +74,8 @@ int main(int argc, char *argv[])
 
 	module = G_define_module();
 	module->keywords = _("VIC, hydrology, soil");
-	module->description = _("creates a vegetation ascii file from land cover map. \
+	module->description = _("creates a vegetation ascii file \
+			from land cover map. \
 			Optionally LAI data from 12 LAI maps.");
 
 	/* Define the different options */
@@ -90,13 +93,24 @@ int main(int argc, char *argv[])
 	output1->key        =_("output");
 	output1->description=_("Name of the output vic soil ascii file");
 	output1->answer     =_("vic_soil.asc");
+	
+	output2 = G_define_option() ;
+	output2->key        =_("veglib");
+	output2->required   = NO;
+	output2->description=_("Name of a standard vegetation library file");
+	output2->answer     =_("veglib");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
 
 	landcover_name	 	= input1->answer;
 	result1 	 	= output1->answer;
-	/***************************************************/
+	/************************************************/
+	/* STANDARD VEGLIB CREATION HERE 		*/
+	if(output2->answer)
+		veglib(output2->answer);
+	/************************************************/
+	/* LOADING OPTIONAL LAI MONTHLY MAPS 		*/
 	if (input2->answer){
 		test = input2->answers;
 		for (ptr = test, nfiles = 0; *ptr != NULL; ptr++, nfiles++)
@@ -120,8 +134,8 @@ int main(int argc, char *argv[])
 			inrast_lai[i] = G_allocate_raster_buf(data_type_inrast_lai[i]);
 		}
 	}
-	/***************************************************/
-	/***************************************************/
+	/************************************************/
+	/* LOADING REQUIRED LAND COVER MAP		*/
 	mapset = G_find_cell2(landcover_name, "");
 	if (mapset == NULL) {
 		G_fatal_error(_("cell file [%s] not found"), landcover_name);
