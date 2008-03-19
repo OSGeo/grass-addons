@@ -7,6 +7,9 @@
  * 		 which is valid grid cell for VIC processing.
  * 		 NULL() and 0 data are set to "0",
  * 		 which tells VIC not to process it.
+ * 		 This is used by gstation.c and select_station.c to grid
+ * 		 meteorological station daily data.
+ * 		 http://www.hydro.washington.edu/Lettenmaier/Data/PRCP.html#A4.5
  * 		 
  * COPYRIGHT:    (C) 2008 by the GRASS Development Team
  *
