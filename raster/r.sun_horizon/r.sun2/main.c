@@ -174,6 +174,30 @@ double beam_e, diff_e, refl_e,  rr, insol_t;
 double cbh, cdh;
 double TOLER;
 
+
+#define DEGREEINMETERS 111120.
+
+int ll_correction=0;
+double coslatsq;
+	
+double distance(double x1, double x2, double y1, double y2)
+{
+	if(ll_correction)
+	{
+		return DEGREEINMETERS*sqrt(coslatsq*(x1-x2)*(x1-x2) 
+				+(y1-y2)*(y1-y2));
+	}
+	else
+	{
+		return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
+	}
+}
+
+	
+
+
+
+
 int main(int argc, char *argv[])
 {
 	double singleSlope;
@@ -709,6 +733,12 @@ int main(int argc, char *argv[])
 
 
 /**********end of parser - ******************************/
+
+	if ((G_projection() == PROJECTION_LL))
+		{
+		ll_correction=1;	
+		}
+
 
     calculate(singleSlope, singleAspect, singleAlbedo,
 	      singleLinke,gridGeom);
@@ -1557,7 +1587,7 @@ void where_is_point(double *length , struct SunGeometryVarDay *sunVarGeom,
         dx = (double)i *gridGeom->stepx;
         dy = (double)j *gridGeom->stepy;
 
-	*length = DISTANCE1(gridGeom->xg0, dx, gridGeom->yg0, dy); /* dist from orig. grid point to the current grid point */
+	*length = distance(gridGeom->xg0, dx, gridGeom->yg0, dy); /* dist from orig. grid point to the current grid point */
 
 	sunVarGeom->zp = z[j][i];
 
@@ -1732,6 +1762,7 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo, dou
 	double longitTime=0.;
 	double locTimeOffset;
 	double latitude, longitude;
+	double coslat;
 	
 	
 	struct SunGeometryConstDay sunGeom;
@@ -1885,6 +1916,11 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo, dou
 			gridGeom.xp=xmin+gridGeom.xx0;
 			gridGeom.yp=ymin+gridGeom.yy0;
 
+			if(ll_correction)
+			{
+				coslat=cos(deg2rad*gridGeom.yp);
+				coslatsq = coslat*coslat;
+			}
 
         		func = NULL;
 
