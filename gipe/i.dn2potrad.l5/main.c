@@ -31,12 +31,12 @@
 #define MAXFILES 7
 
 //sun exo-atmospheric irradiance
-#define KEXO1 1969.0
-#define KEXO2 1840.0
-#define KEXO3 1551.0
-#define KEXO4 1044.0
-#define KEXO5 225.7
-#define KEXO6 82.07
+#define KEXO1 1957.0
+#define KEXO2 1826.0
+#define KEXO3 1554.0
+#define KEXO4 1036.0
+#define KEXO5 215.0
+#define KEXO6 80.67
 
 #define PI 3.1415926
 
@@ -224,7 +224,8 @@ main(int argc, char *argv[])
 	kexo[2]=KEXO3;
 	kexo[3]=KEXO4;
 	kexo[4]=KEXO5;
-	kexo[5]=KEXO6;
+	kexo[5]=KEXO6;/*filling*/
+	kexo[6]=KEXO6;
 	
 	//******************************************
 	/***************************************************/

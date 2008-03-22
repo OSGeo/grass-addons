@@ -77,43 +77,28 @@ int main(int argc, char *argv[])
 	module->description = _("Potential evapotranspiration, radiative method after Bastiaanssen (1995)");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("albedo");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the Albedo map [0.0-1.0]");
 	input1->answer     =_("albedo");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("tempk");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster");
 	input2->description=_("Name of the temperature map [Degree Kelvin]");
 	input2->answer     =_("tempk");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("lat");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the degree latitude map [dd.ddd]");
 	input3->answer     =_("lat");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("doy");
-	input4->type       = TYPE_STRING;
-	input4->required   = YES;
-	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the Day of Year map [0.0-366.0]");
 	input4->answer     =_("doy");
 
-	input5 = G_define_option() ;
+	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("tsw");
-	input5->type       = TYPE_STRING;
-	input5->required   = YES;
-	input5->gisprompt  =_("old,cell,raster");
 	input5->description=_("Name of the single-way transmissivity map [0.0-1.0]");
 	input5->answer     =_("tsw");
 
@@ -125,36 +110,27 @@ int main(int argc, char *argv[])
 	input6->description=_("Value of the density of fresh water ~[1000-1020]");
 	input6->answer     =_("1010.0");
 
-	input7 = G_define_option() ;
+	input7 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input7->key        =_("slope");
-	input7->type       = TYPE_STRING;
 	input7->required   = NO;
-	input7->gisprompt  =_("old,cell,raster");
 	input7->description=_("Name of the Slope map ~[0-90]");
 	input7->answer     =_("slope");
 
-	input8 = G_define_option() ;
+	input8 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input8->key        =_("aspect");
-	input8->type       = TYPE_STRING;
 	input8->required   = NO;
-	input8->gisprompt  =_("old,cell,raster");
 	input8->description=_("Name of the Aspect map ~[0-360]");
 	input8->answer     =_("aspect");
 
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("etpot");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output Potential ET layer");
 	output1->answer     =_("etpot");
 
-	output2 = G_define_option() ;
+	output2 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output2->key        =_("rnetd");
-	output2->type       = TYPE_STRING;
 	output2->required   = NO;
-	output2->gisprompt  =_("new,cell,raster");
 	output2->description=_("Name of the output Diurnal Net Radiation layer");
 
 	flag1 = G_define_flag();
