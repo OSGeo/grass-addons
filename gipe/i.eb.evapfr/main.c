@@ -242,20 +242,17 @@ int main(int argc, char *argv[])
 					((DCELL *) outrast1)[col] = -999.99;
 				}
 			}else {
-				/************************************/
-				/* calculate soil heat flux	    */
+				/****************************************/
+				/* calculate evaporative fraction	*/
 				d = evap_fr(d_rnet,d_g0,d_h0);
-		//		printf(" || d=%5.3f",d);
 				((DCELL *) outrast1)[col] = d;
-		//		printf(" -> %5.3f\n",d);
+				/****************************************/
+				/* calculate soil moisture		*/
 				if(makin){
 					d = soilmoisture(d);
 					((DCELL *) outrast2)[col] = d;
 				}
 			}
-		//	if(row==50){
-		//		exit(EXIT_SUCCESS);
-		//	}
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));

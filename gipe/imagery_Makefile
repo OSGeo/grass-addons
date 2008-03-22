@@ -8,7 +8,9 @@ SUBDIRS1 = \
 	i.biomass \
 	i.class \
 	i.cluster \
+	i.dn2full.l5 \
 	i.dn2full.l7 \
+	i.dn2potrad.l5 \
 	i.dn2potrad.l7 \
 	i.dn2ref.ast \
 	i.dn2ref.l7 \
@@ -32,6 +34,7 @@ SUBDIRS1 = \
 	i.emissivity \
 	i.evapo.potrad \
 	i.evapo.PT \
+	i.evapo.SENAY \
 	i.evapo.TSA \
 	i.find \
 	i.gensig \

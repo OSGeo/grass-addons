@@ -1,10 +1,9 @@
 MODULE_TOPDIR = ../..
 
-PGM = i.dn2potrad.l5
+PGM = i.evapo.SENAY
 
-LIBES = $(GPROJLIB) $(GISLIB) $(OPENMP)
-DEPENDENCIES = $(GPROJDEP) $(GISDEP)
-EXTRA_INC = $(PROJINC)
+LIBES = $(GISLIB)
+DEPENDENCIES = $(GISDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 

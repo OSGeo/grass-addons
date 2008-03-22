@@ -560,6 +560,7 @@ set descmenu [subst  {
 		{cascad {[G_msg "DN2Rad2Ref"]} {} "" $tmenu {
 				{command {[G_msg "Landsat 7 ETM+"]} {} "i.dn2ref.l7" {} -command {execute i.dn2ref.l7 }}
 				{command {[G_msg "Landsat 7 ETM+ (from .met)"]} {} "i.dn2full.l7" {} -command {execute i.dn2full.l7 }}
+				{command {[G_msg "Landsat 5 TM (from NLAPS report .txt)"]} {} "i.dn2full.l5" {} -command {execute i.dn2full.l5 }}
 				{command {[G_msg "Terra-Aster"]} {} "i.dn2ref.ast" {} -command {execute i.dn2ref.ast }}
 				{separator}
 				{command {[G_msg "Atmospheric correction"]} {} "i.atcorr" {} -command {execute i.atcorr }}
@@ -586,8 +587,10 @@ set descmenu [subst  {
 				{command {[G_msg "Potential ET (Prestley and Taylor)"]} {} "i.evapo.PT" {} -command {execute i.evapo.PT }}
 				{command {[G_msg "Potential ET (Radiative)"]} {} "i.evapo.potrad" {} -command {execute i.evapo.potrad }}
 				{command {[G_msg "Potential ET (Radiative) from L7DN (.met)"]} {} "i.dn2potrad.l7" {} -command {execute i.dn2potrad.l7 }}
+				{command {[G_msg "Potential ET (Radiative) from L5DN (NLAPS .txt)"]} {} "i.dn2potrad.l5" {} -command {execute i.dn2potrad.l5 }}
 				{separator}
 				{command {[G_msg "Actual ET (SEBAL)"]} {} "i.eb.eta" {} -command {execute i.eb.eta }}
+				{command {[G_msg "Actual ET (SENAY)"]} {} "i.evapo.SENAY" {} -command {execute i.evapo.SENAY }}
 				{command {[G_msg "Actual ET (TSA)"]} {} "i.evapo.TSA" {} -command {execute i.evapo.TSA }}
 		}}
 		{cascad {[G_msg "Energy Balance"]} {} "" $tmenu {
