@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * MODULE:       i.dn2full.l7
+ * MODULE:       i.dn2full.l5
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
- * PURPOSE:      Calculate TOA Reflectance&Temperature for Landsat7 from DN.
+ * PURPOSE:      Calculate TOA Reflectance&Temperature for Landsat5 from DN.
  *
  * COPYRIGHT:    (C) 2002 by the GRASS Development Team
  *
@@ -20,7 +20,7 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-#define MAXFILES 9
+#define MAXFILES 7
 
 //sun exo-atmospheric irradiance
 #define KEXO1 1969.0
@@ -28,17 +28,16 @@
 #define KEXO3 1551.0
 #define KEXO4 1044.0
 #define KEXO5 225.7
-#define KEXO7 82.07
-#define KEXO8 1385.64 //to find the real value in the internet
+#define KEXO6 82.07
 
 #define PI 3.1415926
 
 
-int l7_in_read(char *metfName, char *b1, char *b2, char *b3, char *b4, char *b5, char *b61, char *b62, char *b7, char *b8, double *lmin,double *lmax,double *qcalmin,double *qcalmax,double *sun_elevation, double *sun_azimuth,int *day, int *month, int *year);
+int l5_in_read(char *metfName, int *path, int *row, double *latitude,double *longitude,double *sun_elevation, double *sun_azimuth,int *c_year, int *c_month, int *c_day, int *day, int *month, int *year,double *decimal_hour);
 int date2doy(int day, int month, int year);
-double dn2rad_landsat7( double Lmin, double LMax, double QCalMax, double QCalmin, int DN );
-double rad2ref_landsat7( double radiance, double doy,double sun_elevation, double k_exo );
-double tempk_landsat7( double l6 );
+double dn2rad_landsat5(int c_year, int c_month, int c_day, int year, int month, int day, int band, int DN );
+double rad2ref_landsat5( double radiance, double doy,double sun_elevation, double k_exo );
+double tempk_landsat5( double l6 );
 
 int
 main(int argc, char *argv[])
@@ -48,7 +47,6 @@ main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input,*output;
 	
@@ -62,7 +60,7 @@ main(int argc, char *argv[])
 	char *result; //output raster name
 	//Prepare new names for output files
 	char result1[80], result2[80], result3[80], result4[80];
-	char result5[80], result61[80], result62[80], result7[80],result8[80] ;
+	char result5[80], result6[80], result7[80];
 	
 	//File Descriptors
 	int infd[MAXFILES];
@@ -80,19 +78,21 @@ main(int argc, char *argv[])
 
 	double		kexo[MAXFILES];
 	//Metfile
-	char		*metfName; //met file, header in text format
-	char		b1[80],b2[80],b3[80];
-	char		b4[80],b5[80],b61[80];
-	char		b62[80],b7[80],b8[80];//Load .tif names
-	double 		lmin[MAXFILES];
-	double 		lmax[MAXFILES];
-	double 		qcalmin[MAXFILES];
-	double 		qcalmax[MAXFILES];
+	char		*metfName; //NLAPS report file, header in text format
 	double 		sun_elevation;
 	double 		sun_azimuth;//not useful here, only for parser()
+	int 		c_day,c_month,c_year;//NLAPS processing date	
 	int 		day,month,year;	
+	double 		decimal_hour;	
+	double 		latitude;	
+	double 		longitude;
+	int		l5path, l5row;
 	//EndofMetfile
 	int 		doy;
+	char		b1[80],b2[80],b3[80];
+	char		b4[80],b5[80];
+	char		b6[80],b7[80];//Load .tif names
+	int		temp;
 	/************************************/
 
 	G_gisinit(argv[0]);
@@ -100,56 +100,59 @@ main(int argc, char *argv[])
 	module = G_define_module();
 	module->keywords = _("DN, reflectance, temperature, import");
 	module->description =
-		_("Calculates Top of Atmosphere Reflectance/Temperature from Landsat 7 DN.\n");
+		_("Calculates Top of Atmosphere Reflectance/Temperature from Landsat 5 DN.\n");
 
 	/* Define the different options */
 	input = G_define_option() ;
-	input->key        = _("metfile");
+	input->key        = _("file");
 	input->type       = TYPE_STRING;
 	input->required   = YES;
 	input->gisprompt  = _("old_file,file,file");
-	input->description= _("Landsat 7ETM+ Header File (.met)");
+	input->description= _("Landsat 5TM NLAPS processing report File (.txt)");
 
-	output = G_define_option() ;
+	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key        = _("output");
-	output->type       = TYPE_STRING;
-	output->required   = YES;
-	output->gisprompt  = _("new,cell,raster");
 	output->description= _("Base name of the output layers (will add .x)");
-
-	/* Define the different flags */
-
-	flag1 = G_define_flag() ;
-	flag1->key         =_('q');
-	flag1->description =_("Quiet");
-
 	/********************/
 	if (G_parser(argc, argv))
 		exit (-1);
 	
 	metfName	= input->answer;
 	result		= output->answer;
-
-	verbose = (!flag1->answer);
 	//******************************************
 	//Fetch parameters for DN2Rad2Ref correction
-	l7_in_read(metfName,b1,b2,b3,b4,b5,b61,b62,b7,b8,lmin,lmax,qcalmin,qcalmax,&sun_elevation,&sun_azimuth,&day,&month,&year);
+	l5_in_read(metfName,&l5path,&l5row,&latitude,&longitude,&sun_elevation,&sun_azimuth,&c_year,&c_month,&c_day,&day,&month,&year,&decimal_hour);
+	/********************/
+	//Prepare the input file names 
+	/********************/
+	doy = date2doy(day,month,year);
+	printf("doy=%i\n",doy);
+	if(year<2000){
+		temp = year - 1900;
+	} else {
+		temp = year - 2000;
+	}
+	if (temp >=10){
+		snprintf(b1, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B1.tif");
+		snprintf(b2, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B2.tif");
+		snprintf(b3, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B3.tif");
+		snprintf(b4, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B4.tif");
+		snprintf(b5, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B5.tif");
+		snprintf(b6, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B6.tif");
+		snprintf(b7, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B7.tif");
+	} else {
+		snprintf(b1, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B1.tif");
+		snprintf(b2, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B2.tif");
+		snprintf(b3, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B3.tif");
+		snprintf(b4, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B4.tif");
+		snprintf(b5, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B5.tif");
+		snprintf(b6, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B6.tif");
+		snprintf(b7, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B7.tif");
+	}
 //	printf("%f/%f/%i-%i-%i\n",sun_elevation,sun_azimuth,day,month,year);
 //	for(i=0;i<MAXFILES;i++){
 //		printf("%i=>%f, %f, %f, %f\n",i,lmin[i],lmax[i],qcalmin[i],qcalmax[i]);
 //	}
-//	doy = date2doy(day,month,year);
-//	printf("doy=%i\n",doy);
-	/********************/
-//	printf("b1=%s\n",b1);
-//	printf("b2=%s\n",b2);
-//	printf("b3=%s\n",b3);
-//	printf("b4=%s\n",b4);
-//	printf("b5=%s\n",b5);
-//	printf("b61=%s\n",b61);
-//	printf("b62=%s\n",b62);
-//	printf("b7=%s\n",b7);
-//	printf("b8=%s\n",b8);
 //	exit(1);
 	/********************/
 	//Prepare the ouput file names 
@@ -166,14 +169,10 @@ main(int argc, char *argv[])
 //	printf("%s\n",result4);
 	snprintf(result5, 80, "%s%s",result,".5");
 //	printf("%s\n",result5);
-	snprintf(result61, 80, "%s%s",result,".61");
-//	printf("%s\n",result61);
-	snprintf(result62, 80, "%s%s",result,".62");
-//	printf("%s\n",result62);
+	snprintf(result6, 80, "%s%s",result,".6");
+//	printf("%s\n",result6);
 	snprintf(result7, 80, "%s%s",result,".7");
 //	printf("%s\n",result7);
-	snprintf(result8, 80, "%s%s",result,".8");
-//	printf("%s\n",result8);
 
 	/********************/
 	//Prepare sun exo-atm irradiance
@@ -184,12 +183,8 @@ main(int argc, char *argv[])
 	kexo[2]=KEXO3;
 	kexo[3]=KEXO4;
 	kexo[4]=KEXO5;
-	kexo[5]=0.0;//filling
-	kexo[6]=0.0;//filling
-	kexo[7]=KEXO7;
-	kexo[8]=KEXO8;
+	kexo[5]=KEXO6;
 	
-	//******************************************
 	/***************************************************/
 	//Band1
 	/* find map in mapset */
@@ -296,46 +291,25 @@ main(int argc, char *argv[])
 	inrast[4] = G_allocate_raster_buf(in_data_type[4]);
 	/***************************************************/
 	/***************************************************/
-	//Band61
+	//Band6
 	/* find map in mapset */
-	mapset = G_find_cell2 (b61, "");
+	mapset = G_find_cell2 (b6, "");
         if (mapset == NULL){
-		G_fatal_error (_("cell file [%s] not found"), b61);
+		G_fatal_error (_("cell file [%s] not found"), b6);
 	}
-	if (G_legal_filename (b61) < 0){
-		G_fatal_error (_("[%s] is an illegal name"), b61);
+	if (G_legal_filename (b6) < 0){
+		G_fatal_error (_("[%s] is an illegal name"), b6);
 	}
-	infd[5] = G_open_cell_old (b61, mapset);
+	infd[5] = G_open_cell_old (b6, mapset);
 	/* Allocate input buffer */
-	in_data_type[5] = G_raster_map_type(b61, mapset);
-	if( (infd[5] = G_open_cell_old(b61,mapset)) < 0){
-		G_fatal_error(_("Cannot open cell file [%s]"), b61);
+	in_data_type[5] = G_raster_map_type(b6, mapset);
+	if( (infd[5] = G_open_cell_old(b6,mapset)) < 0){
+		G_fatal_error(_("Cannot open cell file [%s]"), b6);
 	}
-	if( (G_get_cellhd(b61,mapset,&cellhd)) < 0){
-		G_fatal_error(_("Cannot read file header of [%s]"), b61);
+	if( (G_get_cellhd(b6,mapset,&cellhd)) < 0){
+		G_fatal_error(_("Cannot read file header of [%s]"), b6);
 	}
 	inrast[5] = G_allocate_raster_buf(in_data_type[5]);
-	/***************************************************/
-	/***************************************************/
-	//Band62
-	/* find map in mapset */
-	mapset = G_find_cell2 (b62, "");
-        if (mapset == NULL){
-		G_fatal_error (_("cell file [%s] not found"), b62);
-	}
-	if (G_legal_filename (b62) < 0){
-		G_fatal_error (_("[%s] is an illegal name"), b62);
-	}
-	infd[6] = G_open_cell_old (b62, mapset);
-	/* Allocate input buffer */
-	in_data_type[6] = G_raster_map_type(b62, mapset);
-	if( (infd[6] = G_open_cell_old(b62,mapset)) < 0){
-		G_fatal_error(_("Cannot open cell file [%s]"), b62);
-	}
-	if( (G_get_cellhd(b62,mapset,&cellhd)) < 0){
-		G_fatal_error(_("Cannot read file header of [%s]"), b62);
-	}
-	inrast[6] = G_allocate_raster_buf(in_data_type[6]);
 	/***************************************************/
 	/***************************************************/
 	//Band7
@@ -347,37 +321,16 @@ main(int argc, char *argv[])
 	if (G_legal_filename (b7) < 0){
 		G_fatal_error (_("[%s] is an illegal name"), b7);
 	}
-	infd[7] = G_open_cell_old (b7, mapset);
+	infd[6] = G_open_cell_old (b7, mapset);
 	/* Allocate input buffer */
-	in_data_type[7] = G_raster_map_type(b7, mapset);
-	if( (infd[7] = G_open_cell_old(b7,mapset)) < 0){
+	in_data_type[6] = G_raster_map_type(b7, mapset);
+	if( (infd[6] = G_open_cell_old(b7,mapset)) < 0){
 		G_fatal_error(_("Cannot open cell file [%s]"), b7);
 	}
 	if( (G_get_cellhd(b7,mapset,&cellhd)) < 0){
 		G_fatal_error(_("Cannot read file header of [%s]"), b7);
 	}
-	inrast[7] = G_allocate_raster_buf(in_data_type[7]);
-	/***************************************************/
-	/***************************************************/
-	//Band8
-	/* find map in mapset */
-	mapset = G_find_cell2 (b8, "");
-        if (mapset == NULL){
-		G_fatal_error (_("cell file [%s] not found"), b8);
-	}
-	if (G_legal_filename (b8) < 0){
-		G_fatal_error (_("[%s] is an illegal name"), b8);
-	}
-	infd[8] = G_open_cell_old (b8, mapset);
-	/* Allocate input buffer */
-	in_data_type[8] = G_raster_map_type(b8, mapset);
-	if( (infd[8] = G_open_cell_old(b8,mapset)) < 0){
-		G_fatal_error(_("Cannot open cell file [%s]"), b8);
-	}
-	if( (G_get_cellhd(b8,mapset,&cellhd)) < 0){
-		G_fatal_error(_("Cannot read file header of [%s]"), b8);
-	}
-	inrast[8] = G_allocate_raster_buf(in_data_type[8]);
+	inrast[6] = G_allocate_raster_buf(in_data_type[6]);
 	/***************************************************/
 	/***************************************************/
 	/* Allocate output buffer, use input map data_type */
@@ -397,22 +350,16 @@ main(int argc, char *argv[])
 		G_fatal_error (_("Could not open <%s>"),result4);
 	if ( (outfd[4] = G_open_raster_new (result5,1)) < 0)
 		G_fatal_error (_("Could not open <%s>"),result5);
-	if ( (outfd[5] = G_open_raster_new (result61,1)) < 0)
-		G_fatal_error (_("Could not open <%s>"),result61);
-	if ( (outfd[6] = G_open_raster_new (result62,1)) < 0)
-		G_fatal_error (_("Could not open <%s>"),result62);
-	if ( (outfd[7] = G_open_raster_new (result7,1)) < 0)
+	if ( (outfd[5] = G_open_raster_new (result6,1)) < 0)
+		G_fatal_error (_("Could not open <%s>"),result6);
+	if ( (outfd[6] = G_open_raster_new (result7,1)) < 0)
 		G_fatal_error (_("Could not open <%s>"),result7);
-	if ( (outfd[8] = G_open_raster_new (result8,1)) < 0)
-		G_fatal_error (_("Could not open <%s>"),result8);
 	/* Process pixels */
 	DCELL dout[MAXFILES];
 	DCELL d[MAXFILES];
 	for (row = 0; row < nrows; row++)
 	{
-		if (verbose){
-			G_percent (row, nrows, 2);
-		}
+		G_percent (row, nrows, 2);
 		/* read input map */
 		for (i=0;i<MAXFILES;i++)
 		{
@@ -426,15 +373,15 @@ main(int argc, char *argv[])
 			for(i=0;i<MAXFILES;i++)
 			{
 				d[i] = (double) ((CELL *) inrast[i])[col];
-				dout[i]=dn2rad_landsat7(lmin[i],lmax[i],qcalmax[i],qcalmin[i],d[i]);
-				if(i==5||i==6){//if band 61/62, process brightness temperature
+				dout[i]=dn2rad_landsat5(c_year,c_month,c_day,year,month,day,i+1,d[i]);
+				if(i==5){//if band 6, process brightness temperature
 					if(dout[i]<=0.0){
 						dout[i]=-999.990;
 					}else{
-						dout[i]=tempk_landsat7(dout[i]);
+						dout[i]=tempk_landsat5(dout[i]);
 					}
 				}else{//process reflectance
-					dout[i]=rad2ref_landsat7(dout[i],doy,sun_elevation,kexo[i]);
+					dout[i]=rad2ref_landsat5(dout[i],doy,sun_elevation,kexo[i]);
 			}
 			((DCELL *) outrast[i])[col] = dout[i];
  			}

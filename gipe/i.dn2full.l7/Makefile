@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = i.dn2full.l7
+PGM = i.dn2full.l5
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)
