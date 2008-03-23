@@ -145,6 +145,7 @@ set descmenu [subst  {
 		{command {[G_msg "POV-Ray"]} {} "r.out.pov: Export POV-Ray height-field" {} -command { execute r.out.pov }}
 		{command {[G_msg "TIFF"]} {} "r.out.tiff: Export TIFF image (8/24bit)" {} -command { execute r.out.tiff }}
 		{command {[G_msg "VIC Mask"]} {} "r.out.vic_mask: Export VIC mask ASCII file" {} -command { execute r.out.vic_mask }}
+		{command {[G_msg "VIC Mask"]} {} "r.out.vic_met: Export VIC meteorological ASCII files" {} -command { execute r.out.vic_met }}
 		{command {[G_msg "VIC Soil"]} {} "r.out.vic_soil: Export VIC soil ASCII file" {} -command { execute r.out.vic_soil }}
 		{command {[G_msg "VIC Veg"]} {} "r.out.vic_veg: Export VIC vegetation ASCII file" {} -command { execute r.out.vic_veg }}
 		{command {[G_msg "VRML"]} {} "r.out.vrml: Export VRML file" {} -command { execute r.out.vrml }}

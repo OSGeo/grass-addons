@@ -63,6 +63,7 @@ SUBDIRS = \
 	r.out.ppm3 \
 	r.out.vrml \
 	r.out.vic_mask \
+	r.out.vic_met \
 	r.out.vic_soil \
 	r.out.vic_veg \
 	r.out.vtk \

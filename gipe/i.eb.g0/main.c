@@ -67,51 +67,33 @@ int main(int argc, char *argv[])
 	module->description = _("soil heat flux approximation (Bastiaanssen, 1995)");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("albedo");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the Albedo map [0.0;1.0]");
 	input1->answer     =_("albedo");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("ndvi");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster");
 	input2->description=_("Name of the ndvi map [-1.0;+1.0]");
 	input2->answer     =_("ndvi");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("tempk");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the Surface temperature map [degree Kelvin]");
 	input3->answer     =_("tempk");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("rnet");
-	input4->type       = TYPE_STRING;
-	input4->required   = YES;
-	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the Net Radiation map [W/m2]");
 	input4->answer     =_("rnet");
 
-	input5 = G_define_option() ;
+	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("time");
-	input5->type       = TYPE_STRING;
-	input5->required   = YES;
-	input5->gisprompt  =_("old,cell,raster");
 	input5->description=_("Name of the time of satellite overpass map [local UTC]");
 	input5->answer     =_("time");
 	
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("g0");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output g0 layer");
 	output1->answer     =_("g0");
 
@@ -135,7 +117,6 @@ int main(int argc, char *argv[])
 	
 	result  = output1->answer;
 	roerink = flag1->answer;
-	verbose = (!flag2->answer);
 	/***************************************************/
 	mapset = G_find_cell2(albedo, "");
 	if (mapset == NULL) {
@@ -208,9 +189,7 @@ int main(int argc, char *argv[])
 		DCELL d_tempk;
 		DCELL d_rnet;
 		DCELL d_time;
-		if(verbose)
-			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
+		G_percent(row,nrows,2);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
 			G_fatal_error(_("Could not read from <%s>"),albedo);
