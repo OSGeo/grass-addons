@@ -756,7 +756,7 @@ int INPUT_part(int offset, double *zmax)
 	NULL;
     FCELL *rast1 = NULL, *rast2 = NULL;
     static FCELL **horizonbuf;
-    char *horizonpointer;
+    unsigned char *horizonpointer;
     int fd1 = -1, fd2 = -1, fd3 = -1, fd4 = -1, fd5 = -1, fd6 = -1, fd7 =
 	-1, row, row_rev;
     static int *fd_shad;
