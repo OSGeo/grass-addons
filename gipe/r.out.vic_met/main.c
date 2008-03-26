@@ -44,11 +44,11 @@ int main(int argc, char *argv[])
 	struct pj_info oproj;
 	/************************************/
 	/* FMEO Declarations*****************/
-	char 	prcp_name[MAXFILES];// input first time-series raster files names
-	char 	tmax_name[MAXFILES];// input second time_series raster files names
-	char 	tmin_name[MAXFILES];// input third time_series raster files names
+	char 	*prcp_name;// input first time-series raster files names
+	char 	*tmax_name;// input second time_series raster files names
+	char 	*tmin_name;// input third time_series raster files names
 	char 	*result1; 	//output file base name
-	char 	*result_lat_long; 	//output file name
+	char 	result_lat_long[50]; 	//output file name
 	//File Descriptors
 	int 	infd_prcp[MAXFILES], infd_tmax[MAXFILES], infd_tmin[MAXFILES];
 	
@@ -68,14 +68,15 @@ int main(int argc, char *argv[])
 
 	FILE	*f; 		// output ascii file
 	int 	grid_count; 	// grid cell count
-	double	*prcp[MAXFILES];	// Precipitation data
-	double	*tmax[MAXFILES];	// Tmax data
-	double	*tmin[MAXFILES];	// Tmin data
+	double	prcp[MAXFILES];	// Precipitation data
+	double	tmax[MAXFILES];	// Tmax data
+	double	tmin[MAXFILES];	// Tmin data
 	char 	**prcp_ptr;	// pointer to get the input1->answers
 	char 	**tmax_ptr;	// pointer to get the input2->answers
 	char 	**tmin_ptr;	// pointer to get the input3->answers
-	int	nfiles; 	// count number of input files
-	char	**test, **ptr;	// test number of input files
+	int	nfiles1, nfiles2, nfiles3, nfiles_shortest;// count no. input files
+	char	**test1, **test2, **test3; // test number of input files
+	char	**ptr1, **ptr2, **ptr3;	// test number of input files
 	/************************************/
 	G_gisinit(argv[0]);
 
@@ -116,72 +117,83 @@ int main(int argc, char *argv[])
 	result1 	 	= output1->answer;
 	/************************************************/
 	/* LOADING TMAX TIME SERIES MAPS 		*/
-	test = input1->answers;
-	for (ptr = test, nfiles = 0; *ptr != NULL; ptr++, nfiles++)
+	test1 = input1->answers;
+	for (ptr1 = test1, nfiles1 = 0; *ptr1 != NULL; ptr1++, nfiles1++)
 		;
-	if (nfiles > MAXFILES)
-		G_fatal_error(_("Too many input files, change MAX_FILES and recompile."));
-	prcp_ptr = input2->answers;
+	if (nfiles1 > MAXFILES){
+		G_fatal_error(_("Too many inputs1, change MAXFILES, recompile."));
+	}
+	prcp_ptr = input1->answers;
+	i=0;
 	for(; *prcp_ptr != NULL; prcp_ptr++){
-		strcpy(prcp_name,*prcp_ptr);
-	}
-	for(i=0;i<nfiles+1;i++){
-		mapset = G_find_cell2(&prcp_name[i], "");
-		if (mapset == NULL) {
-			G_fatal_error(_("cell file [%s] not found"), prcp_name[i]);
-		}
-		data_type_inrast_prcp[i] = G_raster_map_type(&prcp_name[i],mapset);
-		if ((infd_prcp[i] = G_open_cell_old (&prcp_name[i],mapset)) < 0)
-			G_fatal_error (_("Cannot open cell file [%s]"), prcp_name[i]);
-		if (G_get_cellhd (&prcp_name[i], mapset, &cellhd) < 0)
-			G_fatal_error (_("Cannot read file header of [%s])"), prcp_name[i]);
+		prcp_name= *prcp_ptr;
+		mapset = G_find_cell2(prcp_name, "");
+		if (mapset == NULL) 
+			G_fatal_error(_("cell file [%s] not found"), prcp_name);
+		data_type_inrast_prcp[i] = G_raster_map_type(prcp_name,mapset);
+		if ((infd_prcp[i] = G_open_cell_old (prcp_name,mapset)) < 0)
+			G_fatal_error (_("Cannot open cell file [%s]"), prcp_name);
+		if (G_get_cellhd (prcp_name, mapset, &cellhd) < 0)
+			G_fatal_error (_("Cannot read file header of [%s])"), prcp_name);
 		inrast_prcp[i] = G_allocate_raster_buf(data_type_inrast_prcp[i]);
+		i++;
 	}
+	nfiles1=i;
 	/************************************************/
 	/* LOADING TMAX TIME SERIES MAPS 		*/
-	test = input2->answers;
-	for (ptr = test, nfiles = 0; *ptr != NULL; ptr++, nfiles++)
+	test2 = input2->answers;
+	for (ptr2 = test2, nfiles2 = 0; *ptr2 != NULL; ptr2++, nfiles2++)
 		;
-	if (nfiles > MAXFILES)
-		G_fatal_error(_("Too many input files, change MAX_FILES and recompile."));
+	if (nfiles2 > MAXFILES){
+		G_fatal_error(_("Too many inputs2, change MAXFILES, recompile."));
+	}
 	tmax_ptr = input2->answers;
+	i=0;
 	for(; *tmax_ptr != NULL; tmax_ptr++){
-		strcpy(tmax_name,*tmax_ptr);
-	}
-	for(i=0;i<nfiles+1;i++){
-		mapset = G_find_cell2(&tmax_name[i], "");
-		if (mapset == NULL) {
-			G_fatal_error(_("cell file [%s] not found"), tmax_name[i]);
-		}
-		data_type_inrast_tmax[i] = G_raster_map_type(&tmax_name[i],mapset);
-		if ((infd_tmax[i] = G_open_cell_old (&tmax_name[i],mapset)) < 0)
-			G_fatal_error (_("Cannot open cell file [%s]"), tmax_name[i]);
-		if (G_get_cellhd (&tmax_name[i], mapset, &cellhd) < 0)
-			G_fatal_error (_("Cannot read file header of [%s])"), tmax_name[i]);
+		tmax_name = *tmax_ptr;
+		mapset = G_find_cell2(tmax_name, "");
+		if (mapset == NULL)
+			G_fatal_error(_("cell file [%s] not found"), tmax_name);
+		data_type_inrast_tmax[i] = G_raster_map_type(tmax_name,mapset);
+		if ((infd_tmax[i] = G_open_cell_old (tmax_name,mapset)) < 0)
+			G_fatal_error (_("Cannot open cell file [%s]"),tmax_name);
+		if (G_get_cellhd (tmax_name, mapset, &cellhd) < 0)
+			G_fatal_error (_("Cannot read file header of [%s])"), tmax_name);
 		inrast_tmax[i] = G_allocate_raster_buf(data_type_inrast_tmax[i]);
+		i++;
 	}
+	nfiles2=i;
 	/************************************************/
 	/* LOADING TMIN TIME SERIES MAPS 		*/
-	test = input3->answers;
-	for (ptr = test, nfiles = 0; *ptr != NULL; ptr++, nfiles++)
+	test3 = input3->answers;
+	for (ptr3 = test3, nfiles3 = 0; *ptr3 != NULL; ptr3++, nfiles3++)
 		;
-	if (nfiles > MAXFILES)
-		G_fatal_error(_("Too many input files, change MAX_FILES and recompile."));
-	tmin_ptr = input3->answers;
-	for(; *tmin_ptr != NULL; tmin_ptr++){
-		strcpy(tmin_name,*tmin_ptr);
+	if (nfiles3 > MAXFILES){
+		G_fatal_error(_("Too many inputs3, change MAXFILES, recompile."));
 	}
-	for(i=0;i<nfiles+1;i++){
-		mapset = G_find_cell2(&tmin_name[i], "");
-		if (mapset == NULL) {
-			G_fatal_error(_("cell file [%s] not found"), tmin_name[i]);
-		}
-		data_type_inrast_tmin[i] = G_raster_map_type(&tmin_name[i],mapset);
-		if ((infd_tmin[i] = G_open_cell_old (&tmin_name[i],mapset)) < 0)
-			G_fatal_error (_("Cannot open cell file [%s]"), tmin_name[i]);
-		if (G_get_cellhd (&tmin_name[i], mapset, &cellhd) < 0)
-			G_fatal_error (_("Cannot read file header of [%s])"), tmin_name[i]);
-		inrast_tmax[i] = G_allocate_raster_buf(data_type_inrast_tmin[i]);
+	tmin_ptr = input3->answers;
+	i=0;
+	for(; *tmin_ptr != NULL; tmin_ptr++){
+		tmin_name = *tmin_ptr;
+		mapset = G_find_cell2(tmin_name, "");
+		if (mapset == NULL)
+			G_fatal_error(_("cell file [%s] not found"), tmin_name);
+		data_type_inrast_tmin[i] = G_raster_map_type(tmin_name,mapset);
+		if ((infd_tmin[i] = G_open_cell_old (tmin_name,mapset)) < 0)
+			G_fatal_error (_("Cannot open cell file [%s]"), tmin_name);
+		if (G_get_cellhd (tmin_name, mapset, &cellhd) < 0)
+			G_fatal_error (_("Cannot read file header of [%s])"), tmin_name);
+		inrast_tmin[i] = G_allocate_raster_buf(data_type_inrast_tmin[i]);
+		i++;
+	}
+	nfiles3=i;
+	/************************************************/
+	if(nfiles1<=nfiles2||nfiles1<=nfiles3){
+		nfiles_shortest = nfiles1;
+	} else if (nfiles2<=nfiles1||nfiles2<=nfiles3){
+		nfiles_shortest = nfiles2;
+	} else {
+		nfiles_shortest = nfiles3;
 	}
 	/***************************************************/
 	G_debug(3, "number of rows %d",cellhd.rows);
@@ -226,59 +238,51 @@ int main(int argc, char *argv[])
 		DCELL d_tmax[MAXFILES];
 		DCELL d_tmin[MAXFILES];
 		G_percent(row,nrows,2);
-		for(i=0;i<nfiles;i++){
+		for(i=0;i<nfiles_shortest;i++){
 			if(G_get_raster_row(infd_prcp[i],inrast_prcp[i],row,data_type_inrast_prcp[i])<0)
-				G_fatal_error(_("Could not read from <%s>"),prcp_name[i]);
-		}
-		for(i=0;i<nfiles;i++){
+				G_fatal_error(_("Could not read from prcp<%d>"),i+1);
 			if(G_get_raster_row(infd_tmax[i],inrast_tmax[i],row,data_type_inrast_tmax[i])<0)
-				G_fatal_error(_("Could not read from <%s>"),tmax_name[i]);
-		}
-		for(i=0;i<nfiles;i++){
+				G_fatal_error(_("Could not read from tmax<%d>"),i+1);
 			if(G_get_raster_row(infd_tmin[i],inrast_tmin[i],row,data_type_inrast_tmin[i])<0)
-				G_fatal_error(_("Could not read from <%s>"),tmin_name[i]);
+				G_fatal_error(_("Could not read from tmin<%d>"),i+1);
 		}
 		for (col=0; col < ncols; col++){
-			/*Extract prcp time series data*/
-			for(i=0;i<nfiles;i++){
+			for(i=0;i<nfiles_shortest;i++){
+				/*Extract prcp time series data*/
 				switch(data_type_inrast_prcp[i]){
-				case CELL_TYPE:
-					d_prcp[i]= (double) ((CELL *) inrast_prcp[i])[col];
-					break;
-				case FCELL_TYPE:
-					d_prcp[i]= (double) ((FCELL *) inrast_prcp[i])[col];
-					break;
-				case DCELL_TYPE:
-					d_prcp[i]= (double) ((DCELL *) inrast_prcp[i])[col];
-					break;
+					case CELL_TYPE:
+						d_prcp[i]= (double) ((CELL *) inrast_prcp[i])[col];
+						break;
+					case FCELL_TYPE:
+						d_prcp[i]= (double) ((FCELL *) inrast_prcp[i])[col];
+						break;
+					case DCELL_TYPE:
+						d_prcp[i]= (double) ((DCELL *) inrast_prcp[i])[col];
+						break;
 				}
-			}
-			/*Extract tmax time series data*/
-			for(i=0;i<nfiles;i++){
+				/*Extract tmax time series data*/
 				switch(data_type_inrast_tmax[i]){
-				case CELL_TYPE:
-					d_tmax[i]= (double) ((CELL *) inrast_tmax[i])[col];
-					break;
-				case FCELL_TYPE:
-					d_tmax[i]= (double) ((FCELL *) inrast_tmax[i])[col];
-					break;
-				case DCELL_TYPE:
-					d_tmax[i]= (double) ((DCELL *) inrast_tmax[i])[col];
-					break;
+					case CELL_TYPE:
+						d_tmax[i]= (double) ((CELL *) inrast_tmax[i])[col];
+						break;
+					case FCELL_TYPE:
+						d_tmax[i]= (double) ((FCELL *) inrast_tmax[i])[col];
+						break;
+					case DCELL_TYPE:
+						d_tmax[i]= (double) ((DCELL *) inrast_tmax[i])[col];
+						break;
 				}
-			}
-			/*Extract tmin time series data*/
-			for(i=0;i<nfiles;i++){
+				/*Extract tmin time series data*/
 				switch(data_type_inrast_tmin[i]){
-				case CELL_TYPE:
-					d_tmin[i]= (double) ((CELL *) inrast_tmin[i])[col];
-					break;
-				case FCELL_TYPE:
-					d_tmin[i]= (double) ((FCELL *) inrast_tmin[i])[col];
-					break;
-				case DCELL_TYPE:
-					d_tmin[i]= (double) ((DCELL *) inrast_tmin[i])[col];
-					break;
+					case CELL_TYPE:
+						d_tmin[i]= (double) ((CELL *) inrast_tmin[i])[col];
+						break;
+					case FCELL_TYPE:
+						d_tmin[i]= (double) ((FCELL *) inrast_tmin[i])[col];
+						break;
+					case DCELL_TYPE:
+						d_tmin[i]= (double) ((DCELL *) inrast_tmin[i])[col];
+						break;
 				}
 			}
 			/*Extract lat/long data*/
@@ -288,11 +292,9 @@ int main(int argc, char *argv[])
 				if (pj_do_proj(&longitude, &latitude, &iproj, &oproj) < 0) {
 				    G_fatal_error(_("Error in pj_do_proj"));
 				}
-			}else{
-				//Do nothing
 			}
 			/* Make the output .dat file name */
-			sprintf(result_lat_long,"%s%s%s%s%s",result1,"_",latitude,"_",longitude,".dat");	
+			sprintf(result_lat_long,"%s%.4f%s%.4f%s",result1,latitude,"_",longitude,".dat");	
 			/*Open new ascii file*/
 			if (flag1->answer){
 				/*Initialize grid cell in append mode*/
@@ -301,23 +303,24 @@ int main(int argc, char *argv[])
 				/*Initialize grid cell in new file mode*/
 				f=fopen(result_lat_long,"w");
 			}
-			/* Force clearing of file name var */
-			result_lat_long=NULL;
-
 			/*Print data into the file maps data if available*/
-			for(i=0;i<nfiles;i++){
-				fprintf(f,"%.2f  %.2f  %.2f\n", prcp[i], tmax[i], tmin[i]);
+			for(i=0;i<nfiles_shortest;i++){
+				fprintf(f,"%.2f  %.2f  %.2f\n", d_prcp[i], d_tmax[i], d_tmin[i]);
 			}
 			fclose(f);
 			grid_count=grid_count+1;
 		}
 	}
 	G_message(_("Created %d VIC meteorological files"),grid_count);
-	for(i=0;i<nfiles;i++){
+	for(i=0;i<nfiles1;i++){
 		G_free (inrast_prcp[i]);
 		G_close_cell (infd_prcp[i]);
+	}
+	for(i=0;i<nfiles2;i++){
 		G_free (inrast_tmax[i]);
 		G_close_cell (infd_tmax[i]);
+	}
+	for(i=0;i<nfiles3;i++){
 		G_free (inrast_tmin[i]);
 		G_close_cell (infd_tmin[i]);
 	}
