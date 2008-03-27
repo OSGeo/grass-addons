@@ -28,7 +28,8 @@
 #define KEXO3 1551.0
 #define KEXO4 1044.0
 #define KEXO5 225.7
-#define KEXO6 82.07
+#define KEXO6 00.0//filling only
+#define KEXO7 82.07
 
 #define PI 3.1415926
 
@@ -180,7 +181,8 @@ main(int argc, char *argv[])
 	kexo[2]=KEXO3;
 	kexo[3]=KEXO4;
 	kexo[4]=KEXO5;
-	kexo[5]=KEXO6;
+	kexo[5]=KEXO6;//filling only
+	kexo[6]=KEXO7;
 	
 	/***************************************************/
 	//Band1
