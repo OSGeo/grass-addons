@@ -126,33 +126,30 @@ main(int argc, char *argv[])
 	//Prepare the input file names 
 	/********************/
 	doy = date2doy(day,month,year);
-	printf("doy=%i\n",doy);
+	//printf("doy=%i\n",doy);
 	if(year<2000){
 		temp = year - 1900;
 	} else {
 		temp = year - 2000;
 	}
 	if (temp >=10){
-		snprintf(b1, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B1.tif");
-		snprintf(b2, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B2.tif");
-		snprintf(b3, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B3.tif");
-		snprintf(b4, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B4.tif");
-		snprintf(b5, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B5.tif");
-		snprintf(b6, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B6.tif");
-		snprintf(b7, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B7.tif");
+		sprintf(b1, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B1.tif");
+		sprintf(b2, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B2.tif");
+		sprintf(b3, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B3.tif");
+		sprintf(b4, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B4.tif");
+		sprintf(b5, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B5.tif");
+		sprintf(b6, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B6.tif");
+		sprintf(b7, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B7.tif");
 	} else {
-		snprintf(b1, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B1.tif");
-		snprintf(b2, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B2.tif");
-		snprintf(b3, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B3.tif");
-		snprintf(b4, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B4.tif");
-		snprintf(b5, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B5.tif");
-		snprintf(b6, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B6.tif");
-		snprintf(b7, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B7.tif");
+		sprintf(b1, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B1.tif");
+		sprintf(b2, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B2.tif");
+		sprintf(b3, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B3.tif");
+		sprintf(b4, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B4.tif");
+		sprintf(b5, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B5.tif");
+		sprintf(b6, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B6.tif");
+		sprintf(b7, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B7.tif");
 	}
-//	printf("%f/%f/%i-%i-%i\n",sun_elevation,sun_azimuth,day,month,year);
-//	for(i=0;i<MAXFILES;i++){
-//		printf("%i=>%f, %f, %f, %f\n",i,lmin[i],lmax[i],qcalmin[i],qcalmax[i]);
-//	}
+	//printf("%f/%f/%i-%i-%i\n",sun_elevation,sun_azimuth,day,month,year);
 //	exit(1);
 	/********************/
 	//Prepare the ouput file names 
