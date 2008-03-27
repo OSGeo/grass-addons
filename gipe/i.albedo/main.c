@@ -20,12 +20,14 @@
 #include <grass/glocale.h>
 #include "functions.h"
 
-
-
 #define MAXFILES 10
 
 //extern	FCELL f_f(FCELL);
 
+double bb_alb_aster( double greenchan, double redchan, double nirchan, double swirchan1, double swirchan2, double swirchan3, double swirchan4, double swirchan5, double swirchan6 );
+double bb_alb_landsat( double bluechan, double greenchan, double redchan, double nirchan, double chan5, double chan7 );
+double bb_alb_noaa( double redchan, double nirchan );
+double bb_alb_modis( double redchan, double nirchan, double chan3, double chan4, double chan5, double chan6, double chan7 );
 
 int
 main(int argc, char *argv[])
@@ -82,19 +84,11 @@ main(int argc, char *argv[])
 
 	/* Define the different options */
 
-	input = G_define_option() ;
-	input->key        = _("input");
-	input->type       = TYPE_STRING;
-	input->required   = YES;
+	input = G_define_standard_option(G_OPT_R_INPUT) ;
 	input->multiple   = YES;
-	input->gisprompt  = _("old,cell,raster");
 	input->description= _("Names of surface reflectance layers");
 
-	output = G_define_option() ;
-	output->key        = _("output");
-	output->type       = TYPE_STRING;
-	output->required   = YES;
-	output->gisprompt  = _("new,cell,raster");
+	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->description= _("Name of the BB_Albedo layer");
 
 	/* Define the different flags */
@@ -244,16 +238,16 @@ main(int argc, char *argv[])
 				switch(in_data_type[i])
 				{
 					case CELL_TYPE:
-						f[i] = (float) ((CELL *) inrast[i])[col];
-//						printf("CELL: f[%i] = %f\n",i,f[i]);
+//						f[i] = (float) ((CELL *) inrast[i])[col];
+						printf("CELL: f[%i] = %f\n",i,f[i]);
 						break;
 					case FCELL_TYPE:
-						f[i] = (float) ((FCELL *) inrast[i])[col];
-//						printf("FCELL: f[%i] = %f\n",i,f[i]);
+//						f[i] = (float) ((FCELL *) inrast[i])[col];
+						printf("FCELL: f[%i] = %f\n",i,f[i]);
 						break;
 					case DCELL_TYPE:
-						f[i] = (float) ((DCELL *) inrast[i])[col];
-//						printf("DCELL: f[%i] = %f\n",i,f[i]);
+//						f[i] = (float) ((DCELL *) inrast[i])[col];
+						printf("DCELL: f[%i] = %f\n",i,f[i]);
 						break;
 				}
 			}
