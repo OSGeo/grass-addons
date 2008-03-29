@@ -18,11 +18,8 @@
 #include <string.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
-#include "functions.h"
 
 #define MAXFILES 10
-
-//extern	FCELL f_f(FCELL);
 
 double bb_alb_aster( double greenchan, double redchan, double nirchan, double swirchan1, double swirchan2, double swirchan3, double swirchan4, double swirchan5, double swirchan6 );
 double bb_alb_landsat( double bluechan, double greenchan, double redchan, double nirchan, double chan5, double chan7 );
@@ -37,11 +34,11 @@ main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input,*output;
 	
-	struct Flag *flag1, *flag2, *flag3, *flag4, *flag5;
+	struct Flag *flag1, *flag2, *flag3;
+	struct Flag *flag4, *flag5;
 	struct History history; //metadata
 
 	/************************************/
@@ -73,6 +70,11 @@ main(int argc, char *argv[])
 	FCELL fe;
 	FCELL f[MAXFILES];
 
+	/************************************/
+	/************************************/
+	int		histogram[100];
+	/* Albedo correction coefficients****/
+	double 		a, b;
 	/************************************/
 
 	G_gisinit(argv[0]);
@@ -110,10 +112,8 @@ main(int argc, char *argv[])
 	flag4->description =_("Aster");
 
 	flag5 = G_define_flag() ;
-	flag5->key         =_('q');
-	flag5->description =_("Quiet");
-
-// 	printf("Passed Stage 1.\n");
+	flag5->key         =_('c');
+	flag5->description =_("Albedo dry run to calculate some water to beach/sand/desert stretching, a kind of simple atmospheric correction. Will slow down the processing.");
 
 	/* FMEO init nfiles */
 	nfiles = 1;
@@ -121,36 +121,22 @@ main(int argc, char *argv[])
 	if (G_parser(argc, argv))
 		exit (-1);
 	
-// 	printf("Passed Stage 2.\n");
-
 	ok = 1;
-	names    = input->answers;
-	ptr      = input->answers;
+	names	= input->answers;
+	ptr	= input->answers;
 
-	result  = output->answer;
-	
-// 	printf("Passed Stage 3.\n");
+	result	= output->answer;
 
-	modis = (flag1->answer);
-// 	printf("Passed Stage 3.1\n");
-	avhrr = (flag2->answer);
-// 	printf("Passed Stage 3.2\n");
+	modis	= (flag1->answer);
+	avhrr	= (flag2->answer);
 	landsat = (flag3->answer);
-// 	printf("Passed Stage 3.3\n");
-	aster = (flag4->answer);
-// 	printf("Passed Stage 3.4\n");
-	verbose = (!flag5->answer);
-
-// 	printf("Passed Stage 4.\n");
+	aster 	= (flag4->answer);
 
 	for (; *ptr != NULL; ptr++)
 	{
-// 		printf("In-Loop Stage 1. nfiles = %i\n",nfiles);
 		if (nfiles >= MAXFILES)
 			G_fatal_error (_("%s - too many ETa files. Only %d allowed"), G_program_name(), MAXFILES);
-// 		printf("In-Loop Stage 1..\n");
 		name = *ptr;
-// 		printf("In-Loop Stage 1...\n");
 		/* find map in mapset */
 		mapset = G_find_cell2 (name, "");
 	        if (mapset == NULL)
@@ -158,27 +144,22 @@ main(int argc, char *argv[])
 			G_fatal_error (_("cell file [%s] not found"), name);
 			ok = 0;
 		}
-// 		printf("In-Loop Stage 1....\n");
 		if (G_legal_filename (result) < 0)
 		{
 			G_fatal_error (_("[%s] is an illegal name"), result);
 			ok = 0;
 		}
-// 		printf("In-Loop Stage 1.....\n");
 		if (!ok){
 			continue;
 		}
-// 		printf("In-Loop Stage 1......\n");
 		infd[nfiles] = G_open_cell_old (name, mapset);
 		if (infd[nfiles] < 0)
 		{
 			ok = 0;
 			continue;
 		}
-// 		printf("In-Loop Stage 1.......\n");
 		/* Allocate input buffer */
 		in_data_type[nfiles] = G_raster_map_type(name, mapset);
-		//printf("%s: data_type[%i] = %i\n",name,nfiles,in_data_type[nfiles]);
 		if( (infd[nfiles] = G_open_cell_old(name,mapset)) < 0){
 			G_fatal_error(_("Cannot open cell file [%s]"), name);
 		}
@@ -186,41 +167,185 @@ main(int argc, char *argv[])
 			G_fatal_error(_("Cannot read file header of [%s]"), name);
 		}
 		inrast[nfiles] = G_allocate_raster_buf(in_data_type[nfiles]);
-// 		printf("In-Loop Stage 1........\n");
 		nfiles++;
-// 		printf("In-Loop Stage 1.........nfiles = %i\n",nfiles);
 	}
 	nfiles--;
-// 	printf("Passed Loop. nfiles = %i\n",nfiles);
 	if (nfiles <= 1){
 		G_fatal_error(_("The min specified input map is two (that is NOAA AVHRR)"));
 	}
-// 	printf("Passed Stage 2\n");
 	
 	/***************************************************/
 	/* Allocate output buffer, use input map data_type */
 	nrows = G_window_rows();
 	ncols = G_window_cols();
-// 	printf("Passed Stage 3\n");
 	out_data_type=FCELL_TYPE;
 	outrast = G_allocate_raster_buf(out_data_type);
-// 	printf("Passed Stage 4\n");
 	
-	/* FMEO *******************************************************/
-/*	ew_res = cellhd.ew_res;
-	ns_res = cellhd.ns_res;
-*/	/**************************************************************/
 	/* Create New raster files */
 	if ( (outfd = G_open_raster_new (result,1)) < 0){
 		G_fatal_error (_("Could not open <%s>"),result);
 	}
-// 	printf("Passed Stage 5\n");
+	/*START ALBEDO HISTOGRAM STRETCH*/
+	/*This is correcting contrast for water/sand*/
+	/*A poor man's atmospheric correction...*/
+	for (i=0;i<100;i++){
+		histogram[i]=0;
+	}
+	if(flag5->answer){
+		/****************************/
+		/* Process pixels histogram */
+		for (row = 0; row < nrows; row++)
+		{
+			G_percent (row, nrows, 2);
+			/* read input map */
+			for (i=1;i<=nfiles;i++)
+			{
+				if( (G_get_raster_row(infd[i],inrast[i],row,in_data_type[i])) < 0){
+					G_fatal_error (_("Could not read from <%s>"),name);
+				}
+			}
+			/*process the data */
+			for (col=0; col < ncols; col++)
+			{
+				for(i=1;i<=nfiles;i++)
+				{
+					switch(in_data_type[i])
+					{
+						case CELL_TYPE:
+							f[i] = (float) ((CELL *) inrast[i])[col];
+							break;
+						case FCELL_TYPE:
+							f[i] = (float) ((FCELL *) inrast[i])[col];
+							break;
+						case DCELL_TYPE:
+							f[i] = (float) ((DCELL *) inrast[i])[col];
+							break;
+					}
+				}
+				if(modis){
+					fe = bb_alb_modis(f[1],f[2],f[3],f[4],f[5],f[6],f[7]);
+				} else if (avhrr){
+					fe = bb_alb_noaa(f[1],f[2]);
+				} else if (landsat){
+					fe = bb_alb_landsat(f[1],f[2],f[3],f[4],f[5],f[6]);
+				} else if (aster){
+					fe = bb_alb_aster(f[1],f[2],f[3],f[4],f[5],f[6],f[7],f[8],f[9]);
+				}
+				if(G_is_f_null_value(&fe)){
+					/*Do nothing*/
+				} else {
+					int temp;
+					temp		= (int) (fe*100);
+					if(temp>0){
+						histogram[temp]=histogram[temp]+1.0;
+					}
+				}
+			}
+		}
+		G_message("Histogram of Albedo\n");
+		int peak1, peak2, peak3;
+		int i_peak1, i_peak2, i_peak3;
+		peak1=0;
+		peak2=0;
+		peak3=0;
+		i_peak1=0;
+		i_peak2=0;
+		i_peak3=0;
+		for(i=0;i<100;i++){
+			/*Search for peaks of datasets (1)*/
+			if(i<=10){
+				if(histogram[i]>peak1){
+					peak1 = histogram[i];
+					i_peak1=i;
+				}
+			}
+			/*Search for peaks of datasets (2)*/
+			if(i>=10&&i<=30){
+				if(histogram[i]>peak2){
+					peak2 = histogram[i];
+					i_peak2=i;
+				}
+			}
+			/*Search for peaks of datasets (3)*/
+			if(i>=30){
+				if(histogram[i]>peak3){
+					peak3 = histogram[i];
+					i_peak3=i;
+				}
+			}
+		}
+		int bottom1a, bottom1b;
+		int bottom2a, bottom2b;
+		int bottom3a, bottom3b;
+		int i_bottom1a, i_bottom1b;
+		int i_bottom2a, i_bottom2b;
+		int i_bottom3a, i_bottom3b;
+		bottom1a=100000;
+		bottom1b=100000;
+		bottom2a=100000;
+		bottom2b=100000;
+		bottom3a=100000;
+		bottom3b=100000;
+		i_bottom1a=100;
+		i_bottom1b=100;
+		i_bottom2a=100;
+		i_bottom2b=100;
+		i_bottom3a=100;
+		i_bottom3b=100;
+		/* Water histogram lower bound */
+		for(i=0;i<i_peak1;i++){
+			if(histogram[i]<=bottom1a){
+				bottom1a = histogram[i];
+				i_bottom1a = i;
+			}
+		}
+		/* Water histogram higher bound */
+		for(i=i_peak2;i>i_peak1;i--){
+			if(histogram[i]<=bottom1b){
+				bottom1b = histogram[i];
+				i_bottom1b = i;
+			}
+		}
+		/* Land histogram lower bound */
+		for(i=i_peak1;i<i_peak2;i++){
+			if(histogram[i]<=bottom2a){
+				bottom2a = histogram[i];
+				i_bottom2a = i;
+			}
+		}	
+		/* Land histogram higher bound */
+		for(i=i_peak3;i>i_peak2;i--){
+			if(histogram[i]<bottom2b){
+				bottom2b = histogram[i];
+				i_bottom2b = i;
+			}
+		}	
+		/* Cloud/Snow histogram lower bound */
+		for(i=i_peak2;i<i_peak3;i++){
+			if(histogram[i]<bottom3a){
+				bottom3a = histogram[i];
+				i_bottom3a = i;
+			}
+		}	
+		/* Cloud/Snow histogram higher bound */
+		for(i=100;i>i_peak3;i--){
+			if(histogram[i]<bottom3b){
+				bottom3b = histogram[i];
+				i_bottom3b = i;
+			}
+		}	
+		G_message("peak1 %d %d\n",peak1, i_peak1);
+		G_message("bottom2b= %d %d\n",bottom2b, i_bottom2b);
+		a=(0.36-0.05)/(i_bottom2b/100.0-i_peak1/100.0);
+		b=0.05-a*(i_peak1/100.0);
+		G_message("a= %f\tb= %f\n",a,b);
+	}//END OF FLAG1
+	/* End of processing histogram*/
+	/*******************/
 	/* Process pixels */
 	for (row = 0; row < nrows; row++)
 	{
-		if (verbose){
-			G_percent (row, nrows, 2);
-		}
+		G_percent (row, nrows, 2);
 		/* read input map */
 		for (i=1;i<=nfiles;i++)
 		{
@@ -228,33 +353,26 @@ main(int argc, char *argv[])
 				G_fatal_error (_("Could not read from <%s>"),name);
 			}
 		}
-// 		printf("In-Loop Stage 5..\n");
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-// 			printf("In-Loop Stage 6..\n");
 			for(i=1;i<=nfiles;i++)
 			{
 				switch(in_data_type[i])
 				{
 					case CELL_TYPE:
-//						f[i] = (float) ((CELL *) inrast[i])[col];
-						printf("CELL: f[%i] = %f\n",i,f[i]);
+						f[i] = (float) ((CELL *) inrast[i])[col];
 						break;
 					case FCELL_TYPE:
-//						f[i] = (float) ((FCELL *) inrast[i])[col];
-						printf("FCELL: f[%i] = %f\n",i,f[i]);
+						f[i] = (float) ((FCELL *) inrast[i])[col];
 						break;
 					case DCELL_TYPE:
-//						f[i] = (float) ((DCELL *) inrast[i])[col];
-						printf("DCELL: f[%i] = %f\n",i,f[i]);
+						f[i] = (float) ((DCELL *) inrast[i])[col];
 						break;
 				}
 			}
-// 			printf("In-Loop Stage 7..\n");
 			if(modis){
 				fe = bb_alb_modis(f[1],f[2],f[3],f[4],f[5],f[6],f[7]);
-//				printf("fe = %f\n",fe);
 			} else if (avhrr){
 				fe = bb_alb_noaa(f[1],f[2]);
 			} else if (landsat){
@@ -262,14 +380,15 @@ main(int argc, char *argv[])
 			} else if (aster){
 				fe = bb_alb_aster(f[1],f[2],f[3],f[4],f[5],f[6],f[7],f[8],f[9]);
 			}
-// 			printf("In-Loop Stage 8..\n");
+			if(flag5->answer){
+				// Post-Process Albedo
+				fe	= a*fe+b;
+			}
 			((FCELL *) outrast)[col] = fe;
-// 			printf("In-Loop Stage 9..\n");
 		}
 		if (G_put_raster_row (outfd, outrast, out_data_type) < 0)
 			G_fatal_error (_("Cannot write to <%s>"),result);
 	}
-// 	printf("In-Loop Stage 10..\n");
 	for (i=1;i<=nfiles;i++)
 	{
 		G_free (inrast[i]);
