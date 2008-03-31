@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
 	RASTER_MAP_TYPE data_type_aspect;
 	/********************************/
 	/* Stats for Senay equation	*/
-	double t0dem_min,t0dem_max;
-	double tempk_min,tempk_max;
+	double t0dem_min=400.0,t0dem_max=200.0;
+	double tempk_min=400.0,tempk_max=200.0;
 	/********************************/
 	G_gisinit(argv[0]);
 
@@ -91,9 +91,9 @@ int main(int argc, char *argv[])
 	input2->answer     =_("tempk");
 
 	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
-	input3->key        =_("tempk");
-	input3->description=_("Name of the temperature map [Degree Kelvin]");
-	input3->answer     =_("tempk");
+	input3->key        =_("dem");
+	input3->description=_("Name of the elevation map [m]");
+	input3->answer     =_("dem");
 
 	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("lat");
@@ -316,9 +316,11 @@ int main(int argc, char *argv[])
 					/* do nothing */ 
 				} else {
 					if(d_t0dem<t0dem_min){
+					//if(d_tempk<tempk_min){
 						t0dem_min=d_t0dem;
 						tempk_min=d_tempk;
 					}else if(d_t0dem>t0dem_max){
+					//}else if(d_tempk>tempk_max){
 						t0dem_max=d_t0dem;
 						tempk_max=d_tempk;
 					}
@@ -326,6 +328,7 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+	G_message("tempk_min=%f\ntempk_max=%f\n",tempk_min, tempk_max);
 	/* Process pixels */
 	for (row = 0; row < nrows; row++)
 	{

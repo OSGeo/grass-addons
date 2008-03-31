@@ -1,10 +1,10 @@
 /****************************************************************************
  *
- * MODULE:       i.longitude
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * MODULE:       i.latitude
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the longitude of the pixels in the map. 
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -26,7 +26,6 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	int not_ll=0;//if proj is not lat/long, it will be 1.
 	struct GModule *module;
 	struct Option *input1, *output1;
@@ -60,8 +59,8 @@ int main(int argc, char *argv[])
 	G_gisinit(argv[0]);
 
 	module = G_define_module();
-	module->keywords = _("longitude, projection");
-	module->description = _("creates a longitude map");
+	module->keywords = _("latitude, projection");
+	module->description = _("creates a latitude map");
 
 	/* Define the different options */
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
@@ -70,20 +69,16 @@ int main(int argc, char *argv[])
 	input1->answer     =_("input");
 
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output1->key        =_("longitude");
-	output1->description=_("Name of the output longitude layer");
-	output1->answer     =_("longitude");
+	output1->key        =_("latitude");
+	output1->description=_("Name of the output latitude layer");
+	output1->answer     =_("latitude");
 	
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
 
 	in	 	= input1->answer;
 	result1  	= output1->answer;
-	verbose 	= (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(in, "");
 	if (mapset == NULL) {
@@ -136,9 +131,8 @@ int main(int argc, char *argv[])
 	for (row = 0; row < nrows; row++)
 	{
 		DCELL d;
-		DCELL d_lon;
-		if(verbose)
-			G_percent(row,nrows,2);
+		DCELL d_lat;
+		G_percent(row,nrows,2);
 		if(G_get_raster_row(infd,inrast,row,data_type_inrast)<0)
 			G_fatal_error(_("Could not read from <%s>"),in);
 		for (col=0; col < ncols; col++)
@@ -152,8 +146,8 @@ int main(int argc, char *argv[])
 			}else{
 				//Do nothing
 			}	
-			d_lon = longitude;
-			((DCELL *) outrast1)[col] = d_lon;
+			d_lat = latitude;
+			((DCELL *) outrast1)[col] = d_lat;
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));

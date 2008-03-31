@@ -31,12 +31,12 @@
 #define MAXFILES 7
 
 //sun exo-atmospheric irradiance
-#define KEXO1 1957.0
-#define KEXO2 1826.0
-#define KEXO3 1554.0
-#define KEXO4 1036.0
-#define KEXO5 215.0
-#define KEXO6 80.67
+#define KEXO1 1969.0
+#define KEXO2 1840.0
+#define KEXO3 1551.0
+#define KEXO4 1044.0
+#define KEXO5 225.7
+#define KEXO6 82.07
 
 #define PI 3.1415926
 
@@ -198,21 +198,21 @@ main(int argc, char *argv[])
 		temp = year - 2000;
 	}
 	if (temp >=10){
-		snprintf(b1, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B1.tif");
-		snprintf(b2, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B2.tif");
-		snprintf(b3, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B3.tif");
-		snprintf(b4, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B4.tif");
-		snprintf(b5, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B5.tif");
-		snprintf(b6, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B6.tif");
-		snprintf(b7, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B7.tif");
+		sprintf(b1, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B1.tif");
+		sprintf(b2, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B2.tif");
+		sprintf(b3, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B3.tif");
+		sprintf(b4, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B4.tif");
+		sprintf(b5, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B5.tif");
+		sprintf(b6, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B6.tif");
+		sprintf(b7, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B7.tif");
 	} else {
-		snprintf(b1, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B1.tif");
-		snprintf(b2, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B2.tif");
-		snprintf(b3, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B3.tif");
-		snprintf(b4, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B4.tif");
-		snprintf(b5, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B5.tif");
-		snprintf(b6, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B6.tif");
-		snprintf(b7, 80, "%s%s%s%s%s%s%s%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B7.tif");
+		sprintf(b1, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B1.tif");
+		sprintf(b2, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B2.tif");
+		sprintf(b3, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B3.tif");
+		sprintf(b4, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B4.tif");
+		sprintf(b5, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B5.tif");
+		sprintf(b6, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B6.tif");
+		sprintf(b7, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B7.tif");
 	}
 
 	/********************/
@@ -224,8 +224,7 @@ main(int argc, char *argv[])
 	kexo[2]=KEXO3;
 	kexo[3]=KEXO4;
 	kexo[4]=KEXO5;
-	kexo[5]=KEXO6;/*filling*/
-	kexo[6]=KEXO6;
+	kexo[5]=KEXO6;
 	
 	//******************************************
 	/***************************************************/
