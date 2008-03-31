@@ -91,8 +91,8 @@ int main(int argc, char *argv[])
 	
 	output1 = G_define_option() ;
 	output1->key        =_("output");
-	output1->description=_("Name of the output vic soil ascii file");
-	output1->answer     =_("vic_soil.asc");
+	output1->description=_("Name of the output vic vegetation ascii file");
+	output1->answer     =_("vic_veg.asc");
 	
 	output2 = G_define_option() ;
 	output2->key        =_("veglib");
