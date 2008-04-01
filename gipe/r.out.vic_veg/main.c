@@ -74,9 +74,7 @@ int main(int argc, char *argv[])
 
 	module = G_define_module();
 	module->keywords = _("VIC, hydrology, soil");
-	module->description = _("creates a vegetation ascii file \
-			from land cover map. \
-			Optionally LAI data from 12 LAI maps.");
+	module->description = _("creates a vegetation ascii file from land cover map. Optionally LAI data from 12 LAI maps.");
 
 	/* Define the different options */
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
@@ -91,8 +89,8 @@ int main(int argc, char *argv[])
 	
 	output1 = G_define_option() ;
 	output1->key        =_("output");
-	output1->description=_("Name of the output vic vegetation ascii file");
-	output1->answer     =_("vic_veg.asc");
+	output1->description=_("Name of the output vic soil ascii file");
+	output1->answer     =_("vic_soil.asc");
 	
 	output2 = G_define_option() ;
 	output2->key        =_("veglib");
@@ -186,7 +184,7 @@ int main(int argc, char *argv[])
 			/*Extract landcover data*/
 			switch(data_type_inrast_landcover){
 				case CELL_TYPE:
-					c_landcover= ((CELL *) inrast_landcover)[col];
+					c_landcover= (int) ((CELL *) inrast_landcover)[col];
 					break;
 				case FCELL_TYPE:
 					c_landcover= (int) ((FCELL *) inrast_landcover)[col];
@@ -211,24 +209,28 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
-			/*Print to ascii file*/
-			/*Grid cell count and number of classes in that grid cell (=1)*/
-			fprintf(f,"%d\t1\n", grid_count);
-			/*Class number, percentage that this class covers in the
-			 * grid cell(=1.0, full grid cell)
-			 * 3 root zones with depths of 10cm, 10cm and 1.0m
-			 * for those 3 root zone depths, how much root in each (%)
-			 * here we have 0.65, 0.50 and 0.25
-			 * */
-			fprintf(f,"\t\t%d\t1.0\t%s\n", c_landcover, dummy_data1);
-			/*Load monthly LAI maps data if available*/
-			if(input2->answer){
-				fprintf(f,"\t\t\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\n", lai[0], lai[1], lai[2], lai[3], lai[4], lai[5], lai[6], lai[7], lai[8], lai[9], lai[10], lai[11]);
+			if(G_is_c_null_value(&c_landcover)){
+				/* Skip the Null value pixel */
 			} else {
-				fprintf(f,"\t\t\t%s\n", dummy_data2);
-				
-			}
-			grid_count=grid_count+1;
+				/*Print to ascii file*/
+				/*Grid cell count and number of classes in that grid cell (=1)*/
+				fprintf(f,"%d\t1\n", grid_count);
+				/*Class number, percentage that this class covers in the
+				 * grid cell(=1.0, full grid cell)
+				 * 3 root zones with depths of 10cm, 10cm and 1.0m
+				 * for those 3 root zone depths, how much root in each (%)
+				 * here we have 0.65, 0.50 and 0.25
+				 * */
+				fprintf(f,"\t\t%d\t1.0\t%s\n", c_landcover, dummy_data1);
+				/*Load monthly LAI maps data if available*/
+				if(input2->answer){
+					fprintf(f,"\t\t\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\n", lai[0], lai[1], lai[2], lai[3], lai[4], lai[5], lai[6], lai[7], lai[8], lai[9], lai[10], lai[11]);
+				} else {
+					fprintf(f,"\t\t\t%s\n", dummy_data2);
+					
+				}
+				grid_count=grid_count+1;
+			} /* End of if NULL() statement */
 		}
 	}
 	G_free (inrast_landcover);

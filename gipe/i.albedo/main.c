@@ -61,14 +61,12 @@ main(int argc, char *argv[])
 	void *inrast[MAXFILES];
 	unsigned char *outrast;
 	int data_format; /* 0=double  1=float  2=32bit signed int  5=8bit unsigned int (ie text) */
-	RASTER_MAP_TYPE in_data_type[MAXFILES],out_data_type; /* 0=numbers  1=text */
+	RASTER_MAP_TYPE in_data_type[MAXFILES]; /* 0=numbers  1=text */
+	RASTER_MAP_TYPE out_data_type = DCELL_TYPE;
 
 	char *fileName;
 #define fileNameLe 8
 #define fileNamePosition 3
-
-	FCELL fe;
-	FCELL f[MAXFILES];
 
 	/************************************/
 	/************************************/
@@ -178,7 +176,6 @@ main(int argc, char *argv[])
 	/* Allocate output buffer, use input map data_type */
 	nrows = G_window_rows();
 	ncols = G_window_cols();
-	out_data_type=FCELL_TYPE;
 	outrast = G_allocate_raster_buf(out_data_type);
 	
 	/* Create New raster files */
@@ -192,6 +189,8 @@ main(int argc, char *argv[])
 		histogram[i]=0;
 	}
 	if(flag5->answer){
+		DCELL de;
+		DCELL d[MAXFILES];
 		/****************************/
 		/* Process pixels histogram */
 		for (row = 0; row < nrows; row++)
@@ -212,30 +211,30 @@ main(int argc, char *argv[])
 					switch(in_data_type[i])
 					{
 						case CELL_TYPE:
-							f[i] = (float) ((CELL *) inrast[i])[col];
+							d[i] = (double) ((CELL *) inrast[i])[col];
 							break;
 						case FCELL_TYPE:
-							f[i] = (float) ((FCELL *) inrast[i])[col];
+							d[i] = (double) ((FCELL *) inrast[i])[col];
 							break;
 						case DCELL_TYPE:
-							f[i] = (float) ((DCELL *) inrast[i])[col];
+							d[i] = (double) ((DCELL *) inrast[i])[col];
 							break;
 					}
 				}
 				if(modis){
-					fe = bb_alb_modis(f[1],f[2],f[3],f[4],f[5],f[6],f[7]);
+					de = bb_alb_modis(d[1],d[2],d[3],d[4],d[5],d[6],d[7]);
 				} else if (avhrr){
-					fe = bb_alb_noaa(f[1],f[2]);
+					de = bb_alb_noaa(d[1],d[2]);
 				} else if (landsat){
-					fe = bb_alb_landsat(f[1],f[2],f[3],f[4],f[5],f[6]);
+					de = bb_alb_landsat(d[1],d[2],d[3],d[4],d[5],d[6]);
 				} else if (aster){
-					fe = bb_alb_aster(f[1],f[2],f[3],f[4],f[5],f[6],f[7],f[8],f[9]);
+					de = bb_alb_aster(d[1],d[2],d[3],d[4],d[5],d[6],d[7],d[8],d[9]);
 				}
-				if(G_is_f_null_value(&fe)){
+				if(G_is_d_null_value(&de)){
 					/*Do nothing*/
 				} else {
 					int temp;
-					temp		= (int) (fe*100);
+					temp		= (int) (de*100);
 					if(temp>0){
 						histogram[temp]=histogram[temp]+1.0;
 					}
@@ -345,6 +344,8 @@ main(int argc, char *argv[])
 	/* Process pixels */
 	for (row = 0; row < nrows; row++)
 	{
+		DCELL de;
+		DCELL d[MAXFILES];
 		G_percent (row, nrows, 2);
 		/* read input map */
 		for (i=1;i<=nfiles;i++)
@@ -361,30 +362,30 @@ main(int argc, char *argv[])
 				switch(in_data_type[i])
 				{
 					case CELL_TYPE:
-						f[i] = (float) ((CELL *) inrast[i])[col];
+						d[i] = (double) ((CELL *) inrast[i])[col];
 						break;
 					case FCELL_TYPE:
-						f[i] = (float) ((FCELL *) inrast[i])[col];
+						d[i] = (double) ((FCELL *) inrast[i])[col];
 						break;
 					case DCELL_TYPE:
-						f[i] = (float) ((DCELL *) inrast[i])[col];
+						d[i] = (double) ((DCELL *) inrast[i])[col];
 						break;
 				}
 			}
 			if(modis){
-				fe = bb_alb_modis(f[1],f[2],f[3],f[4],f[5],f[6],f[7]);
+				de = bb_alb_modis(d[1],d[2],d[3],d[4],d[5],d[6],d[7]);
 			} else if (avhrr){
-				fe = bb_alb_noaa(f[1],f[2]);
+				de = bb_alb_noaa(d[1],d[2]);
 			} else if (landsat){
-				fe = bb_alb_landsat(f[1],f[2],f[3],f[4],f[5],f[6]);
+				de = bb_alb_landsat(d[1],d[2],d[3],d[4],d[5],d[6]);
 			} else if (aster){
-				fe = bb_alb_aster(f[1],f[2],f[3],f[4],f[5],f[6],f[7],f[8],f[9]);
+				de = bb_alb_aster(d[1],d[2],d[3],d[4],d[5],d[6],d[7],d[8],d[9]);
 			}
 			if(flag5->answer){
 				// Post-Process Albedo
-				fe	= a*fe+b;
+				de	= a*de+b;
 			}
-			((FCELL *) outrast)[col] = fe;
+			((DCELL *) outrast)[col] = de;
 		}
 		if (G_put_raster_row (outfd, outrast, out_data_type) < 0)
 			G_fatal_error (_("Cannot write to <%s>"),result);
