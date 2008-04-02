@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
 				    G_fatal_error(_("Error in pj_do_proj"));
 				}
 			}
-			if(G_is_null_value(&prcp[0])||
+			if(G_is_d_null_value(&prcp[0])||
 			G_is_d_null_value(&d_tmax[0])||
 			G_is_d_null_value(&d_tmin[0])){
 				/* Do nothing */
