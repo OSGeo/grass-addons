@@ -285,6 +285,7 @@ int main(int argc, char *argv[])
 						break;
 				}
 			}
+			
 			/*Extract lat/long data*/
 			latitude = ymax - ( row * stepy );
 			longitude = xmin + ( col * stepx );
@@ -293,22 +294,28 @@ int main(int argc, char *argv[])
 				    G_fatal_error(_("Error in pj_do_proj"));
 				}
 			}
-			/* Make the output .dat file name */
-			sprintf(result_lat_long,"%s%.4f%s%.4f%s",result1,latitude,"_",longitude,".dat");	
-			/*Open new ascii file*/
-			if (flag1->answer){
-				/*Initialize grid cell in append mode*/
-				f=fopen(result_lat_long,"a");
+			if(G_is_null_value(&prcp[0])||
+			G_is_d_null_value(&d_tmax[0])||
+			G_is_d_null_value(&d_tmin[0])){
+				/* Do nothing */
 			} else {
-				/*Initialize grid cell in new file mode*/
-				f=fopen(result_lat_long,"w");
+				/* Make the output .dat file name */
+				sprintf(result_lat_long,"%s%.4f%s%.4f%s",result1,latitude,"_",longitude,".dat");	
+				/*Open new ascii file*/
+				if (flag1->answer){
+					/*Initialize grid cell in append mode*/
+					f=fopen(result_lat_long,"a");
+				} else {
+					/*Initialize grid cell in new file mode*/
+					f=fopen(result_lat_long,"w");
+				}
+				/*Print data into the file maps data if available*/
+				for(i=0;i<nfiles_shortest;i++){
+					fprintf(f,"%.2f  %.2f  %.2f\n", d_prcp[i], d_tmax[i], d_tmin[i]);
+				}
+				fclose(f);
+				grid_count=grid_count+1;
 			}
-			/*Print data into the file maps data if available*/
-			for(i=0;i<nfiles_shortest;i++){
-				fprintf(f,"%.2f  %.2f  %.2f\n", d_prcp[i], d_tmax[i], d_tmin[i]);
-			}
-			fclose(f);
-			grid_count=grid_count+1;
 		}
 	}
 	G_message(_("Created %d VIC meteorological files"),grid_count);
