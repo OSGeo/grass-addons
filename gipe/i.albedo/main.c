@@ -19,9 +19,9 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-#define MAXFILES 10
+#define MAXFILES 8
 
-double bb_alb_aster( double greenchan, double redchan, double nirchan, double swirchan1, double swirchan2, double swirchan3, double swirchan4, double swirchan5, double swirchan6 );
+double bb_alb_aster( double greenchan, double nirchan, double swirchan2, double swirchan3, double swirchan5, double swirchan6 );
 double bb_alb_landsat( double bluechan, double greenchan, double redchan, double nirchan, double chan5, double chan7 );
 double bb_alb_noaa( double redchan, double nirchan );
 double bb_alb_modis( double redchan, double nirchan, double chan3, double chan4, double chan5, double chan6, double chan7 );
@@ -95,19 +95,19 @@ main(int argc, char *argv[])
 
 	flag1 = G_define_flag() ;
 	flag1->key         = _('m');
-	flag1->description = _("Modis");
+	flag1->description = _("Modis (7 input bands:1,2,3,4,5,6,7)");
 
 	flag2 = G_define_flag() ;
 	flag2->key         = _('n');
-	flag2->description = _("NOAA AVHRR");
+	flag2->description = _("NOAA AVHRR (2 input bands:1,2)");
 
 	flag3 = G_define_flag() ;
 	flag3->key         = _('l');
-	flag3->description = _("Landsat");
+	flag3->description = _("Landsat (6 input bands:1,2,3,4,5,7)");
 
 	flag4 = G_define_flag() ;
 	flag4->key         =_('a');
-	flag4->description =_("Aster");
+	flag4->description =_("Aster (6 input bands:1,3,5,6,8,9)");
 
 	flag5 = G_define_flag() ;
 	flag5->key         =_('c');
@@ -228,7 +228,7 @@ main(int argc, char *argv[])
 				} else if (landsat){
 					de = bb_alb_landsat(d[1],d[2],d[3],d[4],d[5],d[6]);
 				} else if (aster){
-					de = bb_alb_aster(d[1],d[2],d[3],d[4],d[5],d[6],d[7],d[8],d[9]);
+					de = bb_alb_aster(d[1],d[2],d[3],d[4],d[5],d[6]);
 				}
 				if(G_is_d_null_value(&de)){
 					/*Do nothing*/
@@ -379,7 +379,7 @@ main(int argc, char *argv[])
 			} else if (landsat){
 				de = bb_alb_landsat(d[1],d[2],d[3],d[4],d[5],d[6]);
 			} else if (aster){
-				de = bb_alb_aster(d[1],d[2],d[3],d[4],d[5],d[6],d[7],d[8],d[9]);
+				de = bb_alb_aster(d[1],d[2],d[3],d[4],d[5],d[6]);
 			}
 			if(flag5->answer){
 				// Post-Process Albedo
