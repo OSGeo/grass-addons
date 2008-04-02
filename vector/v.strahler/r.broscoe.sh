@@ -107,7 +107,7 @@ rm orderedtxt_$j
 
 echo "initializing statistics for threshold value=$j"
 
-r.strahler dem=$dem xcoor=$xcoor ycoor=$ycoor thr=$j output=ordered_$j textoutput=orderedtxt_$j --overwrite 
+r.strahler.sh dem=$dem xcoor=$xcoor ycoor=$ycoor thr=$j output=ordered_$j textoutput=orderedtxt_$j --overwrite 
 
 rm one
 rm two
@@ -151,7 +151,9 @@ echo "$j	$maxord" > thrVSmaxord_$j
       v.rast.stats vector=ord1_pl_3d_cat raster=$dem colprefix=stats percentile=90 --verbose -c
 
 
-     for i in `db.select table=ord1_pl_3d_cat database=$GISDBASE/$LOCATION_NAME/$MAPSET/dbf/ driver=dbf 'sql=select cat from ord1_pl_3d_cat' | sed 1d`
+     db_driver=`db.connect -p | grep driver | cut -f2 -d':'`
+     db_database=`db.connect -p | grep database | cut -f2 -d':'`
+     for i in `db.select table=ord1_pl_3d_cat database=$db_database driver=$db_driver 'sql=select cat from ord1_pl_3d_cat' | sed 1d`
      do
 
          min=`echo "select stats_min from ord1_pl_3d_cat where cat=$i" | db.select | sed 1d`
