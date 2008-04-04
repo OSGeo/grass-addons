@@ -135,6 +135,7 @@ int main(int argc, char *argv[])
 	/* Set up parameters for projection to lat/long if necessary */
 	if ((G_projection() != PROJECTION_LL)) {
 		not_ll=1;
+		G_message("projection is not Lat/long, converting...");
 		struct Key_Value *in_proj_info, *in_unit_info;
 		if ((in_proj_info = G_get_projinfo()) == NULL)
 			G_fatal_error(_("Can't get projection info of current location"));
@@ -162,7 +163,7 @@ int main(int argc, char *argv[])
 		{
 			/*Extract lat/long data*/
 			latitude = ymax - ( row * stepy );
-			longitude = xmin + ( col * stepx );
+			longitude = xmin + ( col * stepx ) ;
 			if(not_ll){
 				if (pj_do_proj(&longitude, &latitude, &iproj, &oproj) < 0) {
 				    G_fatal_error(_("Error in pj_do_proj"));
@@ -179,14 +180,19 @@ int main(int argc, char *argv[])
 					d_elevation = (double) ((FCELL *) inrast_elevation)[col];
 					break;
 				case DCELL_TYPE:
-					d_elevation = ((DCELL *) inrast_elevation)[col];
+					d_elevation = (double) ((DCELL *) inrast_elevation)[col];
 					break;
 			}
-			/*Print to ascii file*/
-			fprintf(f,"%d\t%d\t%6.3f\t%7.3f\t%s\t%7.2f\t%s\n", process, grid_count, latitude, longitude, dummy_data1, d_elevation, dummy_data2);
-			grid_count=grid_count+1;
+			if(G_is_d_null_value(&d_elevation)){
+				/* Do nothing */
+			} else {
+				/*Print to ascii file*/
+				fprintf(f,"%d\t%d\t%6.3f\t%7.3f\t%s\t%7.2f\t%s\n", process, grid_count, latitude, longitude, dummy_data1, d_elevation, dummy_data2);
+				grid_count=grid_count+1;
+			}
 		}
 	}
+	G_message("Generated soil info for %d grid cells",grid_count);
 	G_free (inrast_elevation);
 	G_close_cell (infd);
 	fclose(f);
