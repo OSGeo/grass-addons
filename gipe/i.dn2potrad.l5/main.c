@@ -1,8 +1,8 @@
 /****************************************************************************
  *
- * MODULE:       i.dn2potrad.l7
+ * MODULE:       i.dn2potrad.l5
  * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
- * PURPOSE:      Calculate ETpot radiative for Landsat7 from DN.
+ * PURPOSE:      Calculate ETpot radiative for Landsat5 from DN.
  *
  * COPYRIGHT:    (C) 2007-2008 by the GRASS Development Team
  *
@@ -36,7 +36,8 @@
 #define KEXO3 1551.0
 #define KEXO4 1044.0
 #define KEXO5 225.7
-#define KEXO6 82.07
+#define KEXO6 0.00
+#define KEXO7 82.07
 
 #define PI 3.1415926
 
@@ -114,7 +115,7 @@ main(int argc, char *argv[])
 
 	double		roh_w, tsw;
 	/************************************/
-	double		histogram[100]={0.0};
+	int		histogram[100];
 	/* Albedo correction coefficients****/
 	double 		a, b;
 	/************************************/
@@ -151,20 +152,13 @@ main(int argc, char *argv[])
 	input2->answer	   = "1010.0";
 
 	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output->key        = _("output");
-	output->type       = TYPE_STRING;
-	output->required   = YES;
-	output->gisprompt  = _("new,cell,raster");
 	output->description= _("ETpot output layer name");
 
 	/* Define the different flags */
 
 	flag1 = G_define_flag() ;
 	flag1->key         =_('a');
-	flag1->description =_("Albedo dry run to calculate some water\
-				to beach/sand/desert stretching,\
-				a kind of simple atmospheric correction.\
-				Will slow down the processing.");
+	flag1->description =_("Albedo dry run to calculate some water to beach/sand/desert stretching, a kind of simple atmospheric correction. Will slow down the processing.");
 
 	/********************/
 	if (G_parser(argc, argv))
@@ -190,7 +184,7 @@ main(int argc, char *argv[])
 //		printf("%i=>%f, %f, %f, %f\n",i,lmin[i],lmax[i],qcalmin[i],qcalmax[i]);
 //	}
 	doy = date2doy(day,month,year);
-//	printf("doy=%i\n",doy);
+	printf("doy=%i\n",doy);
 
         if(year<2000){
 		temp = year - 1900;
@@ -224,7 +218,8 @@ main(int argc, char *argv[])
 	kexo[2]=KEXO3;
 	kexo[3]=KEXO4;
 	kexo[4]=KEXO5;
-	kexo[5]=KEXO6;
+	kexo[5]=KEXO6;//filling only
+	kexo[6]=KEXO7;
 	
 	//******************************************
 	/***************************************************/
@@ -431,6 +426,9 @@ main(int argc, char *argv[])
 	/*START ALBEDO HISTOGRAM STRETCH*/
 	/*This is correcting contrast for water/sand*/
 	/*A poor man's atmospheric correction...*/
+	for (i=0;i<100;i++){
+		histogram[i]=0;
+	}
 	for (row = 0; row < nrows; row++)
 	{
 		G_percent (row, nrows, 2);
@@ -478,10 +476,16 @@ main(int argc, char *argv[])
 			// End of Convert DN 2 radiance 2 reflectance
 
 			// Process regular data
-			d_albedo 	= bb_alb_landsat(dout[0],dout[1],dout[2],dout[3],dout[4],dout[7]);
-			int temp;
-			temp		= (int) (d_albedo*100);
-			histogram[temp]++;
+			d_albedo 	= bb_alb_landsat(dout[0],dout[1],dout[2],dout[3],dout[4],dout[6]);
+			if(G_is_d_null_value(&d_albedo)){
+				/*Do nothing*/
+			} else {
+				int temp;
+				temp		= (int) (d_albedo*100);
+				if(temp>0){
+					histogram[temp]=histogram[temp]+1.0;
+				}
+			}
 		}
 	}
 	printf("Histogram of Albedo\n");
@@ -494,23 +498,22 @@ main(int argc, char *argv[])
 	i_peak2=0;
 	i_peak3=0;
 	for(i=0;i<100;i++){
-		printf("%d\t%d\n",i,histogram[i]);
 		/*Search for peaks of datasets (1)*/
-		if(i<10){
+		if(i<=10){
 			if(histogram[i]>peak1){
 				peak1 = histogram[i];
 				i_peak1=i;
 			}
 		}
 		/*Search for peaks of datasets (2)*/
-		if(i>=10&&i<40){
+		if(i>=10&&i<=30){
 			if(histogram[i]>peak2){
 				peak2 = histogram[i];
 				i_peak2=i;
 			}
 		}
 		/*Search for peaks of datasets (3)*/
-		if(i>=40){
+		if(i>=30){
 			if(histogram[i]>peak3){
 				peak3 = histogram[i];
 				i_peak3=i;
@@ -523,12 +526,12 @@ main(int argc, char *argv[])
 	int i_bottom1a, i_bottom1b;
 	int i_bottom2a, i_bottom2b;
 	int i_bottom3a, i_bottom3b;
-	bottom1a=1000;
-	bottom1b=1000;
-	bottom2a=1000;
-	bottom2b=1000;
-	bottom3a=1000;
-	bottom3b=1000;
+	bottom1a=100000;
+	bottom1b=100000;
+	bottom2a=100000;
+	bottom2b=100000;
+	bottom3a=100000;
+	bottom3b=100000;
 	i_bottom1a=100;
 	i_bottom1b=100;
 	i_bottom2a=100;
@@ -577,8 +580,11 @@ main(int argc, char *argv[])
 			i_bottom3b = i;
 		}
 	}	
-	a=(0.36-0.05)/(i_bottom2b/100.0-i_bottom1a/100.0);
-	b=0.05-a*(i_bottom1a/100.0);
+	printf("peak1 %d %d\n",peak1, i_peak1);
+	printf("bottom2b= %d %d\n",bottom2b, i_bottom2b);
+	a=(0.36-0.05)/(i_bottom2b/100.0-i_peak1/100.0);
+	b=0.05-a*(i_peak1/100.0);
+	printf("a= %f\tb= %f\n",a,b);
 	}//END OF FLAG1
 	/*START PROCESSING*/
 	for (row = 0; row < nrows; row++)
@@ -642,7 +648,7 @@ main(int argc, char *argv[])
 			// End of process regular data
 
 			// write output to file
-			((DCELL *) outrast[0])[col] = d_etpot;
+			((DCELL *) outrast[0])[col] = d_solar;
 			// End of write output to file
 		}
 		if (G_put_raster_row (outfd[0], outrast[0], out_data_type) < 0)
