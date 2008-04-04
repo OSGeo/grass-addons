@@ -165,8 +165,8 @@ int main(int argc, char *argv[])
 	grid_count = 1;
 
 	/*Initialize dummy data*/
-	dummy_data1 = "0.10\t0.1\t1.00\t0.65\t0.50\t0.25";
-	dummy_data2 = "0.312\t0.413\t0.413\t0.413\t0.413\t0.488\t0.975\t1.150\t0.625\t0.312\t0.312\t0.312";
+	dummy_data1 = "0.10 0.1 1.00 0.65 0.50 0.25";
+	dummy_data2 = "0.312 0.413 0.413 0.413 0.413 0.488 0.975 1.150 0.625 0.312 0.312 0.312";
 	
 	for (row = 0; row < nrows; row++){
 		CELL c_landcover;
@@ -214,20 +214,19 @@ int main(int argc, char *argv[])
 			} else {
 				/*Print to ascii file*/
 				/*Grid cell count and number of classes in that grid cell (=1)*/
-				fprintf(f,"%d\t1\n", grid_count);
+				fprintf(f,"%d 1\n", grid_count);
 				/*Class number, percentage that this class covers in the
 				 * grid cell(=1.0, full grid cell)
 				 * 3 root zones with depths of 10cm, 10cm and 1.0m
 				 * for those 3 root zone depths, how much root in each (%)
 				 * here we have 0.65, 0.50 and 0.25
 				 * */
-				fprintf(f,"\t\t%d\t1.0\t%s\n", c_landcover, dummy_data1);
+				fprintf(f,"%d 1.0 %s\n", c_landcover, dummy_data1);
 				/*Load monthly LAI maps data if available*/
 				if(input2->answer){
-					fprintf(f,"\t\t\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\t%5.3f\n", lai[0], lai[1], lai[2], lai[3], lai[4], lai[5], lai[6], lai[7], lai[8], lai[9], lai[10], lai[11]);
+					fprintf(f,"%5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f\n", lai[0], lai[1], lai[2], lai[3], lai[4], lai[5], lai[6], lai[7], lai[8], lai[9], lai[10], lai[11]);
 				} else {
-					fprintf(f,"\t\t\t%s\n", dummy_data2);
-					
+				//	fprintf(f,"%s\n", dummy_data2);
 				}
 				grid_count=grid_count+1;
 			} /* End of if NULL() statement */
