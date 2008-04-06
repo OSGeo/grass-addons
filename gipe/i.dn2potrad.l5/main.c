@@ -644,11 +644,10 @@ main(int argc, char *argv[])
 			d_rnetd 	= r_net_day(d_albedo,d_solar,tsw );
 			d_tempk		= dout[5];
 			d_etpot		= et_pot_day(d_albedo,d_solar,d_tempk,tsw,roh_w);
-//			d_etpot		= d_solar;
 			// End of process regular data
 
 			// write output to file
-			((DCELL *) outrast[0])[col] = d_solar;
+			((DCELL *) outrast[0])[col] = d_etpot;
 			// End of write output to file
 		}
 		if (G_put_raster_row (outfd[0], outrast[0], out_data_type) < 0)
