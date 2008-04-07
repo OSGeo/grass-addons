@@ -202,6 +202,10 @@ fi
 eval `g.gisenv`
 : ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
 
+# setting environment, so that awk works properly in all languages
+unset LC_ALL
+LC_NUMERIC=C
+export LC_NUMERIC
 
 	GMlocation=$LOCATION_NAME
 	GMmapset=$MAPSET
