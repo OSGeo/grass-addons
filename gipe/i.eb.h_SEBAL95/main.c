@@ -169,11 +169,12 @@ int main(int argc, char *argv[])
 	albedo	= input_albedo->answer;
 	h0	= output->answer;
 
-	row_wet = atoi(input_row_wet->answer);
-	col_wet = atoi(input_col_wet->answer);
-	row_dry = atoi(input_row_dry->answer);
-	col_dry = atoi(input_col_dry->answer);
-	
+	if(input_row_wet->answer){
+		row_wet = atoi(input_row_wet->answer);
+		col_wet = atoi(input_col_wet->answer);
+		row_dry = atoi(input_row_dry->answer);
+		col_dry = atoi(input_col_dry->answer);
+	}
 	/* find maps in mapset */
 	mapset_T = G_find_cell2 (T, "");
 	if (mapset_T == NULL)
@@ -204,14 +205,14 @@ int main(int argc, char *argv[])
 			G_fatal_error (_("[%s] is an illegal name"), h0);
 		
 	/* determine the input map type (CELL/FCELL/DCELL) */
-	data_type_T = G_raster_map_type(T, mapset);
-	data_type_u2 = G_raster_map_type(u2, mapset);
-	data_type_DEM = G_raster_map_type(DEM, mapset);
-	data_type_ndvi = G_raster_map_type(ndvi, mapset);
-	data_type_Rn = G_raster_map_type(Rn, mapset);
-	data_type_g0 = G_raster_map_type(g0, mapset);
+	data_type_T = G_raster_map_type(T, mapset_T);
+	data_type_u2 = G_raster_map_type(u2, mapset_u2);
+	data_type_DEM = G_raster_map_type(DEM, mapset_DEM);
+	data_type_ndvi = G_raster_map_type(ndvi, mapset_ndvi);
+	data_type_Rn = G_raster_map_type(Rn, mapset_Rn);
+	data_type_g0 = G_raster_map_type(g0, mapset_g0);
 	if(flag1->answer){
-		data_type_albedo = G_raster_map_type(albedo, mapset);
+		data_type_albedo = G_raster_map_type(albedo, mapset_albedo);
 	}
 	if ( (infd_T = G_open_cell_old (T, mapset_T)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), T);
@@ -359,6 +360,8 @@ int main(int argc, char *argv[])
 			}
 		}
 		G_message("tempk_min=%f\ntempk_max=%f\n",tempk_min,tempk_max);
+		G_message("row_wet=%d\tcol_wet=%d\n",row_wet,col_wet);
+		G_message("row_dry=%d\tcol_dry=%d\n",row_dry,col_dry);
 	} /* END OF FLAG1 */
 	/* Pick up wet and dry pixel values */
 	DCELL d_Rn; 		/* Input raster */
@@ -387,7 +390,7 @@ int main(int argc, char *argv[])
 	/*Process dry pixel values*/
 	if (G_get_d_raster_row (infd_T, inrast_T, row_dry) < 0)
 		G_fatal_error (_("Could not read from <%s>"),T);
-	if (G_get_d_raster_row (infd_DEM, inrast_DEM, row) < 0)
+	if (G_get_d_raster_row (infd_DEM, inrast_DEM, row_dry) < 0)
 		G_fatal_error (_("Could not read from <%s>"),DEM);
 	if (G_get_d_raster_row (infd_Rn, inrast_Rn, row_dry) < 0)
 		G_fatal_error (_("Could not read from <%s>"),Rn);
