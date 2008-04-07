@@ -453,7 +453,7 @@ int main(int argc, char *argv[])
 		DCELL d_dem; 		/* Input raster */
 		DCELL d;	/* Output pixel */
 		DCELL d_t0dem;	/* Generated here */
-
+		G_percent(row,nrows,2);
 		/* read a line input maps into buffers*/	
 		if (G_get_d_raster_row (infd_T, inrast_T, row) < 0)
 			G_fatal_error (_("Could not read from <%s>"),T);
