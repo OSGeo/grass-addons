@@ -1,11 +1,19 @@
 /****************************************************************************
  *
- * MODULE:       r.out.vic_met
+ * MODULE:       r.out.vic
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
- * PURPOSE:      Creates a VIC meteorological input file.
- * 		 Three time series of GIS data are needed:
- * 		 Precipitation (mm/d), Tmax(C) and Tmin(C)
- * 		 
+ * PURPOSE:      Creates VIC input files:
+ * 		 1 - Meteorological: 
+ * 			Three time series of GIS data are needed:
+ * 		 	Precipitation (mm/d), Tmax(C) and Tmin(C)
+ * 		 2 - Vegetation:
+ * 		 	Filling only Land cover class, with only one class,
+ * 			 and one standard root system.
+ * 			 Option to add monthly LAI (12 maps).
+ * 		 3 - Soil:
+ *		 	Barely complete, it takes elevation data & lat/long,
+ *		 	the rest is filled up with dummy soil data.
+ *  
  * COPYRIGHT:    (C) 2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -25,6 +33,10 @@
 /* daily one year is: 	*/
 #define MAXFILES 366
 
+/************************/
+/* for vegeation: 	*/
+int veglib(char *filename);
+
 int main(int argc, char *argv[])
 {
 	struct Cell_head cellhd; //region+header info
@@ -32,11 +44,11 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	int not_ll=0;//if proj is not lat/long, it will be 1.
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4;
-	struct Option *output1, *output2;
+	struct Option *input5, *input6;
+	struct Option *output1, *output2, *output3, *output4;
 	
 	struct Flag *flag1;	
 	struct History history; //metadata
@@ -48,12 +60,16 @@ int main(int argc, char *argv[])
 	char 	*prcp_name;// input first time-series raster files names
 	char 	*tmax_name;// input second time_series raster files names
 	char 	*tmin_name;// input third time_series raster files names
+	char 	*landcover_name;// input raster name
+	char 	lai_name[12]; 	// input monthly raster files name
 	char 	*result1; 	//output file base name
 	char 	*result2; 	//output Soil file name
+	char	*result3; 	//output Veg file name
 	char 	result_lat_long[50]; 	//output file name
 	//File Descriptors
 	int 	infd_prcp[MAXFILES], infd_tmax[MAXFILES], infd_tmin[MAXFILES];
 	int	infd;
+	int 	infd_landcover, infd_lai[12];
 	
 	int 	i=0,j=0;
 	double 	xp, yp;
@@ -66,11 +82,17 @@ int main(int argc, char *argv[])
 	void 			*inrast_tmax[MAXFILES];
 	void 			*inrast_tmin[MAXFILES];
 	void 			*inrast_elevation;
+	void 			*inrast_landcover;
+	void 			*inrast_lai[12];
 	RASTER_MAP_TYPE 	data_type_inrast_prcp[MAXFILES];
 	RASTER_MAP_TYPE 	data_type_inrast_tmax[MAXFILES];
 	RASTER_MAP_TYPE 	data_type_inrast_tmin[MAXFILES];
 	RASTER_MAP_TYPE 	data_type_inrast_elevation;
+	RASTER_MAP_TYPE 	data_type_inrast_landcover;
+	RASTER_MAP_TYPE 	data_type_inrast_lai[12];
 
+	/****************************************/
+	/* Meteorological maps 			*/
 	FILE	*f; 		// output ascii file
 	int 	grid_count; 	// grid cell count
 	double	prcp[MAXFILES];	// Precipitation data
@@ -91,7 +113,16 @@ int main(int argc, char *argv[])
 	char 	*dummy_data2; 	// dummy data part 2
 	double	elevation;	// average evevation of grid cell
 	/************************************/
-
+	/* Vegetation map 			*/
+	FILE	*h; 		// output ascii file
+	char 	*dummy_data3; 	// dummy data part 1
+	char 	*dummy_data4; 	// dummy data part 2
+	double	*lai[12];	// lAI data for each month
+	char 	**lai_ptr;	// pointer to get the input2->answers
+	int	nfiles; 	// count LAI input files
+	char	**test, **ptr;	// test number of LAI input files
+	/************************************/
+	
 	G_gisinit(argv[0]);
 
 	module = G_define_module();
@@ -118,6 +149,16 @@ int main(int argc, char *argv[])
 	input4->key	   = _("dem");
 	input4->description=_("Name of the elevation input map");
 	
+	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input5->key	   = _("landcover");
+	input5->description=_("Name of the land cover input map");
+
+	input6 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input6->key	   = _("LAI");
+	input6->multiple   = YES;
+	input6->required   = NO;
+	input6->description=_("Name of the LAI input maps (12 of them!)");	
+
 	output1 = G_define_option();
 	output1->key      	=_("output");
 	output1->description	=_("Base Name of the output vic meteorological ascii files");
@@ -128,6 +169,17 @@ int main(int argc, char *argv[])
 	output2->description=_("Name of the output vic soil ascii file");
 	output2->answer     =_("vic_soil.asc");
 
+	output3 = G_define_option() ;
+	output3->key        =_("output");
+	output3->description=_("Name of the output vic vegetation ascii file");
+	output3->answer     =_("vic_veg.asc");
+	
+	output4 = G_define_option() ;
+	output4->key        =_("veglib");
+	output4->required   = NO;
+	output4->description=_("Name of a standard vegetation library file");
+	output4->answer     =_("veglib");
+
 	flag1 = G_define_flag() ;
 	flag1->key		= 'a';
 	flag1->description	=_("append meteorological data if file already exists (useful if adding additional year of data)");
@@ -135,9 +187,16 @@ int main(int argc, char *argv[])
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
 
-	result1 	= output1->answer;
-	in		= input4->answer;
-	result2 	= output2->answer;
+	in			= input4->answer;
+	landcover_name	 	= input5->answer;
+	result1 		= output1->answer;
+	result2 		= output2->answer;
+	result3 	 	= output3->answer;
+	/************************************************/
+	/* STANDARD VEGLIB CREATION HERE 		*/
+	if(output4->answer)
+		veglib(output4->answer);
+
 	/************************************************/
 	/* LOADING TMAX TIME SERIES MAPS 		*/
 	test1 = input1->answers;
@@ -231,6 +290,44 @@ int main(int argc, char *argv[])
 		G_fatal_error (_("Cannot read file header of [%s])"), in);
 	inrast_elevation = G_allocate_raster_buf(data_type_inrast_elevation);
 	/***************************************************/
+	/************************************************/
+	/* LOADING OPTIONAL LAI MONTHLY MAPS 		*/
+	if (input6->answer){
+		test = input6->answers;
+		for (ptr = test, nfiles = 0; *ptr != NULL; ptr++, nfiles++)
+			;
+		if (nfiles < 12)
+			G_fatal_error(_("The exact number of LAI input maps is 12"));
+		lai_ptr = input6->answers;
+		for(; *lai_ptr != NULL; lai_ptr++){
+			strcpy(lai_name,*lai_ptr);
+		}
+		for(i=0;i<12;i++){
+			mapset = G_find_cell2(&lai_name[i], "");
+			if (mapset == NULL) {
+				G_fatal_error(_("cell file [%s] not found"), lai_name[i]);
+			}
+			data_type_inrast_lai[i] = G_raster_map_type(&lai_name[i],mapset);
+			if ((infd_lai[i] = G_open_cell_old (&lai_name[i],mapset)) < 0)
+				G_fatal_error (_("Cannot open cell file [%s]"), lai_name[i]);
+			if (G_get_cellhd (&lai_name[i], mapset, &cellhd) < 0)
+				G_fatal_error (_("Cannot read file header of [%s])"), lai_name[i]);
+			inrast_lai[i] = G_allocate_raster_buf(data_type_inrast_lai[i]);
+		}
+	}
+	/************************************************/
+	/* LOADING REQUIRED LAND COVER MAP		*/
+	mapset = G_find_cell2(landcover_name, "");
+	if (mapset == NULL) {
+		G_fatal_error(_("cell file [%s] not found"), landcover_name);
+	}
+	data_type_inrast_landcover = G_raster_map_type(landcover_name,mapset);
+	if ( (infd_landcover = G_open_cell_old (landcover_name,mapset)) < 0)
+		G_fatal_error (_("Cannot open cell file [%s]"), landcover_name);
+	if (G_get_cellhd (landcover_name, mapset, &cellhd) < 0)
+		G_fatal_error (_("Cannot read file header of [%s])"), landcover_name);
+	inrast_landcover = G_allocate_raster_buf(data_type_inrast_landcover);
+	/***************************************************/
 	G_debug(3, "number of rows %d",cellhd.rows);
 
 	stepx=cellhd.ew_res;
@@ -279,12 +376,21 @@ int main(int argc, char *argv[])
 	/*Initialize dummy data*/
 	dummy_data1 = "0.010\t1.e-4\t3.05\t0.93\t2\t4.0\t4.0\t4.0\t250.0\t250.0\t250.0\t-999\t-999\t-999\t0.4\t0.4\t0.4";
 	dummy_data2 = "0.1\t6.90\t2.000\t14.0\t4.0\t75.0\t75.0\t75.0\t0.24\t0.24\t0.24\t1306\t1367\t1367\t2650\t2650\t2650\t-6\t0.330\t0.330\t0.330\t0.133\t0.133\t0.133\t0.001\t0.010\t500\t0.02\t0.02\t0.02\t1\t18.665\n";
+
+	/*Initialize grid cell process switch*/
+	h=fopen(result1,"w");
+
+	/*Initialize dummy data*/
+	dummy_data3 = "0.10 0.1 1.00 0.65 0.50 0.25";
+	dummy_data4 = "0.312 0.413 0.413 0.413 0.413 0.488 0.975 1.150 0.625 0.312 0.312 0.312";
 		
 	for (row = 0; row < nrows; row++){
 		DCELL d_prcp[MAXFILES];
 		DCELL d_tmax[MAXFILES];
 		DCELL d_tmin[MAXFILES];
 		DCELL d_elevation;
+		CELL c_landcover;
+		DCELL d_lai[12];
 		G_percent(row,nrows,2);
 		for(i=0;i<nfiles_shortest;i++){
 			if(G_get_raster_row(infd_prcp[i],inrast_prcp[i],row,data_type_inrast_prcp[i])<0)
@@ -296,7 +402,14 @@ int main(int argc, char *argv[])
 		}
 		if(G_get_raster_row(infd,inrast_elevation,row,data_type_inrast_elevation)<0)
 			G_fatal_error(_("Could not read from <%s>"),in);
-
+		if(G_get_raster_row(infd_landcover,inrast_landcover,row,data_type_inrast_landcover)<0)
+			G_fatal_error(_("Could not read from <%s>"),landcover_name);
+		if(input6->answer){
+			for(i=0;i<12;i++){
+				if(G_get_raster_row(infd_lai[i],inrast_lai[i],row,data_type_inrast_lai[i])<0)
+					G_fatal_error(_("Could not read from <%s>"),lai_name[i]);
+				}
+		}
 		for (col=0; col < ncols; col++){
 			for(i=0;i<nfiles_shortest;i++){
 				/*Extract prcp time series data*/
@@ -348,6 +461,34 @@ int main(int argc, char *argv[])
 					d_elevation = ((DCELL *) inrast_elevation)[col];
 					break;
 			}
+			/*Extract landcover data*/
+			switch(data_type_inrast_landcover){
+				case CELL_TYPE:
+					c_landcover= (int) ((CELL *) inrast_landcover)[col];
+					break;
+				case FCELL_TYPE:
+					c_landcover= (int) ((FCELL *) inrast_landcover)[col];
+					break;
+				case DCELL_TYPE:
+					c_landcover= (int) ((DCELL *) inrast_landcover)[col];
+					break;
+			}
+			/*Extract lai monthly data*/
+			if(input6->answer){
+				for(i=0;i<12;i++){
+					switch(data_type_inrast_lai[i]){
+					case CELL_TYPE:
+						d_lai[i]= (double) ((CELL *) inrast_lai[i])[col];
+						break;
+					case FCELL_TYPE:
+						d_lai[i]= (double) ((FCELL *) inrast_lai[i])[col];
+						break;
+					case DCELL_TYPE:
+						d_lai[i]= (double) ((DCELL *) inrast_lai[i])[col];
+						break;
+					}
+				}
+			}
 			/*Extract lat/long data*/
 			latitude = ymax - ( row * stepy );
 			longitude = xmin + ( col * stepx );
@@ -361,7 +502,8 @@ int main(int argc, char *argv[])
 			if(G_is_d_null_value(&prcp[0])||
 			G_is_d_null_value(&d_tmax[0])||
 			G_is_d_null_value(&d_tmin[0])||
-			G_is_d_null_value(&d_elevation)){
+			G_is_d_null_value(&d_elevation)||
+			G_is_c_null_value(&c_landcover)){
 				/* Do nothing */
 			} else {
 				/* Make the output .dat file name */
@@ -381,12 +523,28 @@ int main(int argc, char *argv[])
 				fclose(f);
 				/*Print to soil ascii file*/
 				fprintf(g,"%d\t%d\t%6.3f\t%7.3f\t%s\t%7.2f\t%s\n", process, grid_count, latitude, longitude, dummy_data1, d_elevation, dummy_data2);
+				/*Print to vegetation ascii file*/
+				/*Grid cell count and number of classes in that grid cell (=1)*/
+				fprintf(h,"%d 1\n", grid_count);
+				/*Class number, percentage that this class covers in the
+				 * grid cell(=1.0, full grid cell)
+				 * 3 root zones with depths of 10cm, 10cm and 1.0m
+				 * for those 3 root zone depths, how much root in each (%)
+				 * here we have 0.65, 0.50 and 0.25
+				 * */
+				fprintf(h,"%d 1.0 %s\n", c_landcover, dummy_data1);
+				/*Load monthly LAI maps data if available*/
+				if(input6->answer){
+					fprintf(h,"%5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f\n", lai[0], lai[1], lai[2], lai[3], lai[4], lai[5], lai[6], lai[7], lai[8], lai[9], lai[10], lai[11]);
+				} else {
+				//	fprintf(h,"%s\n", dummy_data4);
+				}
 				grid_count=grid_count+1;
 			}
 		}
 	}
 	G_message(_("Created %d VIC meteorological files"),grid_count);
-	G_message(_("Created %d VIC grid cells soil definitions"),grid_count);
+	G_message(_("Created %d VIC grid cells soil/vegetation definitions"),grid_count);
 	for(i=0;i<nfiles1;i++){
 		G_free (inrast_prcp[i]);
 		G_close_cell (infd_prcp[i]);
@@ -401,6 +559,15 @@ int main(int argc, char *argv[])
 	}
 	G_free (inrast_elevation);
 	G_close_cell (infd);
+	G_free (inrast_landcover);
+	G_close_cell (infd_landcover);
+	if(input6->answer){
+		for(i=0;i<12;i++){
+			G_free (inrast_lai[i]);
+			G_close_cell (infd_lai[i]);
+		}
+	}
+	fclose(h);
 	fclose(g);
 	exit(EXIT_SUCCESS);
 }
