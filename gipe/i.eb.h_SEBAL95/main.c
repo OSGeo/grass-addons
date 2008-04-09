@@ -274,12 +274,26 @@ int main(int argc, char *argv[])
 			G_fatal_error (_("Could not read from <%s>"),ndvi);
 		for (col=0; col < ncols; col++)
 		{
-			d_ndvi	= ((DCELL *) inrast_ndvi)[col];
-			if ((d_ndvi)>d_ndvi_max&&(d_ndvi)<0.98){
+			switch(data_type_ndvi){
+				case CELL_TYPE:
+					d_ndvi = (double) ((CELL *) inrast_ndvi)[col];
+					break;
+				case FCELL_TYPE:
+					d_ndvi = (double) ((FCELL *) inrast_ndvi)[col];
+					break;
+				case DCELL_TYPE:
+					d_ndvi = (double) ((DCELL *) inrast_ndvi)[col];
+					break;
+			}
+			//d_ndvi	= ((DCELL *) inrast_ndvi)[col];
+			if(G_is_d_null_value(&d_ndvi)){
+				/* do nothing */ 
+			} else if ((d_ndvi)>d_ndvi_max&&(d_ndvi)<0.98){
 				d_ndvi_max	= d_ndvi;
 			}
 		}
 	}
+	G_message("ndvi_max=%f\n",d_ndvi_max);
 	/* FLAG1 */
 	if(flag1->answer){
 		/* THREAD 2 */
@@ -308,7 +322,7 @@ int main(int argc, char *argv[])
 						d_albedo = (double) ((FCELL *) inrast_albedo)[col];
 						break;
 					case DCELL_TYPE:
-						d_albedo = ((DCELL *) inrast_albedo)[col];
+						d_albedo = (double) ((DCELL *) inrast_albedo)[col];
 						break;
 				}
 				switch(data_type_T){
@@ -333,11 +347,9 @@ int main(int argc, char *argv[])
 						d_dem = (double) ((DCELL *) inrast_DEM)[col];
 						break;
 				}
-				if(G_is_d_null_value(&d_albedo)){
-					/* do nothing */ 
-				}else if(G_is_d_null_value(&d_tempk)){
-					/* do nothing */ 
-				}else if(G_is_d_null_value(&d_dem)){
+				if(G_is_d_null_value(&d_albedo)||
+				G_is_d_null_value(&d_tempk)||
+				G_is_d_null_value(&d_dem)){
 					/* do nothing */ 
 				}else{
 					d_t0dem = d_tempk + 0.00649*d_dem;
@@ -463,6 +475,10 @@ int main(int argc, char *argv[])
 			G_fatal_error (_("Could not read from <%s>"),DEM);
 		if (G_get_d_raster_row (infd_ndvi, inrast_ndvi, row) < 0)
 			G_fatal_error (_("Could not read from <%s>"),ndvi);
+		if (G_get_d_raster_row (infd_Rn, inrast_Rn, row) < 0)
+			G_fatal_error (_("Could not read from <%s>"),Rn);
+		if (G_get_d_raster_row (infd_g0, inrast_g0, row) < 0)
+			G_fatal_error (_("Could not read from <%s>"),g0);
 		/* read every cell in the line buffers */
 		for (col=0; col < ncols; col++){
 			switch(data_type_T){
@@ -531,20 +547,20 @@ int main(int argc, char *argv[])
 					d_g0 = (double) ((DCELL *) inrast_g0)[col];
 					break;
 			}
-		//	d_tempk	= ((DCELL *) inrast_T)[col];
-		//	d_u2m	= ((DCELL *) inrast_u2)[col];
-		//	d_dem	= ((DCELL *) inrast_DEM)[col];
-		//	d_ndvi	= ((DCELL *) inrast_ndvi)[col];
-		//	d_Rn	= ((DCELL *) inrast_Rn)[col];
-		//	d_g0	= ((DCELL *) inrast_g0)[col];
-			/* Calculate T0dem */
-			d_t0dem = d_dem * 0.00627 + d_tempk;
-			/* Calculate sensible heat flux */
-			d = sensi_h(d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_ndvi,d_ndvi_max,d_dem,d_rnet_dry,d_g0_dry,d_t0dem_dry,d_u2m,d_dem_dry);
-			if (zero->answer && d<0.0){
-				d=0.0;
+			if(G_is_d_null_value(&d_tempk)||G_is_d_null_value(&d_u2m)||
+			G_is_d_null_value(&d_dem)||G_is_d_null_value(&d_ndvi)||
+			G_is_d_null_value(&d_Rn)||G_is_d_null_value(&d_g0)){
+				G_set_d_null_value(&outrast[col],1);
+			} else {
+				/* Calculate T0dem */
+				d_t0dem = d_dem * 0.00627 + d_tempk;
+				/* Calculate sensible heat flux */
+				d = sensi_h(d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_ndvi,d_ndvi_max,d_dem,d_rnet_dry,d_g0_dry,d_t0dem_dry,d_u2m,d_dem_dry);
+				if (zero->answer && d<0.0){
+					d=0.0;
+				}
+				((DCELL *) outrast)[col] = d;
 			}
-			((DCELL *) outrast)[col] = d;
 		}
 		if (G_put_d_raster_row (outfd, outrast) < 0)
 			G_fatal_error (_("Cannot write to <%s>"),h0);
