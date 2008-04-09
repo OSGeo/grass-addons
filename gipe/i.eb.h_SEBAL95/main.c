@@ -505,7 +505,7 @@ int main(int argc, char *argv[])
 			}
 			switch(data_type_DEM){
 				case CELL_TYPE:
-					d_dem = (double) ((CELL *) inrast_DEM)[col_dry];
+					d_dem = (double) ((CELL *) inrast_DEM)[col];
 					break;
 				case FCELL_TYPE:
 					d_dem = (double) ((FCELL *) inrast_DEM)[col];
