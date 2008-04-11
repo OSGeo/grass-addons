@@ -22,8 +22,10 @@
 #include <unistd.h>
 #include <grass/gis.h>
 #include <math.h>
-#include "functions.h"
 #include <grass/glocale.h>
+#include <omp.h>
+
+double sensi_h( double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert);
 
 int main(int argc, char *argv[])
 {	
@@ -205,12 +207,12 @@ int main(int argc, char *argv[])
 			G_fatal_error (_("[%s] is an illegal name"), h0);
 		
 	/* determine the input map type (CELL/FCELL/DCELL) */
-	data_type_T = G_raster_map_type(T, mapset_T);
-	data_type_u2 = G_raster_map_type(u2, mapset_u2);
-	data_type_DEM = G_raster_map_type(DEM, mapset_DEM);
-	data_type_ndvi = G_raster_map_type(ndvi, mapset_ndvi);
-	data_type_Rn = G_raster_map_type(Rn, mapset_Rn);
-	data_type_g0 = G_raster_map_type(g0, mapset_g0);
+	data_type_T 	= G_raster_map_type(T, mapset_T);
+	data_type_u2 	= G_raster_map_type(u2, mapset_u2);
+	data_type_DEM 	= G_raster_map_type(DEM, mapset_DEM);
+	data_type_ndvi 	= G_raster_map_type(ndvi, mapset_ndvi);
+	data_type_Rn 	= G_raster_map_type(Rn, mapset_Rn);
+	data_type_g0 	= G_raster_map_type(g0, mapset_g0);
 	if(flag1->answer){
 		data_type_albedo = G_raster_map_type(albedo, mapset_albedo);
 	}
@@ -247,12 +249,12 @@ int main(int argc, char *argv[])
 			G_fatal_error (_("Cannot read file header of [%s]"), albedo);
 	}
 	/* Allocate input buffer */
-	inrast_T  = G_allocate_d_raster_buf();
-	inrast_u2 = G_allocate_d_raster_buf();
-	inrast_DEM = G_allocate_d_raster_buf();
-	inrast_ndvi = G_allocate_d_raster_buf();
-	inrast_Rn = G_allocate_d_raster_buf();
-	inrast_g0 = G_allocate_d_raster_buf();
+	inrast_T  	= G_allocate_d_raster_buf();
+	inrast_u2 	= G_allocate_d_raster_buf();
+	inrast_DEM 	= G_allocate_d_raster_buf();
+	inrast_ndvi 	= G_allocate_d_raster_buf();
+	inrast_Rn 	= G_allocate_d_raster_buf();
+	inrast_g0 	= G_allocate_d_raster_buf();
 	if(flag1->answer){
 		inrast_albedo = G_allocate_d_raster_buf();
 	}
@@ -272,6 +274,9 @@ int main(int argc, char *argv[])
 	{
 		if (G_get_d_raster_row (infd_ndvi, inrast_ndvi, row) < 0)
 			G_fatal_error (_("Could not read from <%s>"),ndvi);
+		#pragma omp for parallel default (shared) \
+			shared(ncols,nrows) \
+			private (col,row,d_ndvi)
 		for (col=0; col < ncols; col++)
 		{
 			switch(data_type_ndvi){
@@ -294,12 +299,24 @@ int main(int argc, char *argv[])
 		}
 	}
 	G_message("ndvi_max=%f\n",d_ndvi_max);
+	/* Pick up wet and dry pixel values */
+	DCELL d_Rn; 		/* Input raster */
+	DCELL d_g0; 		/* Input raster */
+	DCELL d_tempk_wet;
+	DCELL d_tempk_dry;
+	DCELL d_Rn_dry;
+	DCELL d_g0_dry;
+	DCELL d_t0dem_dry;
+	DCELL d_dem_dry;
+	/*Process wet pixel values*/
 	/* FLAG1 */
 	if(flag1->answer){
 		/* THREAD 2 */
-		/* Process tempk min / max pixels for SENAY Evapfr */
+		/* Process tempk min / max pixels */
+		#pragma omp for parallel default (shared) \
+			shared(ncols,nrows) \
+			private (col,row,d_albedo,d_tempk,d_dem,d_t0dem,d_Rn,d_g0)
 		for (row = 0; row < nrows; row++){
-			DCELL d;
 			DCELL d_albedo;
 			DCELL d_tempk;
 			DCELL d_dem;
@@ -311,6 +328,10 @@ int main(int argc, char *argv[])
 				G_fatal_error(_("Could not read from <%s>"),T);
 			if(G_get_raster_row(infd_DEM,inrast_DEM,row,data_type_DEM)<0)
 				G_fatal_error(_("Could not read from <%s>"),DEM);
+			if(G_get_d_raster_row(infd_Rn, inrast_Rn, row) < 0)
+				G_fatal_error(_("Could not read from <%s>"),Rn);
+			if(G_get_d_raster_row(infd_g0, inrast_g0, row) < 0)
+				G_fatal_error(_("Could not read from <%s>"),g0);
 			/*process the data */
 			for (col=0; col < ncols; col++)
 			{
@@ -347,23 +368,53 @@ int main(int argc, char *argv[])
 						d_dem = (double) ((DCELL *) inrast_DEM)[col];
 						break;
 				}
+				switch(data_type_Rn){
+					case CELL_TYPE:
+						d_Rn = (double) ((CELL *) inrast_Rn)[col];
+						break;
+					case FCELL_TYPE:
+						d_Rn = (double) ((FCELL *) inrast_Rn)[col];
+						break;
+					case DCELL_TYPE:
+						d_Rn = (double) ((DCELL *) inrast_Rn)[col];
+						break;
+				}
+				switch(data_type_g0){
+					case CELL_TYPE:
+						d_g0 = (double) ((CELL *) inrast_g0)[col];
+						break;
+					case FCELL_TYPE:
+						d_g0 = (double) ((FCELL *) inrast_g0)[col];
+						break;
+					case DCELL_TYPE:
+						d_g0 = (double) ((DCELL *) inrast_g0)[col];
+						break;
+				}
 				if(G_is_d_null_value(&d_albedo)||
 				G_is_d_null_value(&d_tempk)||
-				G_is_d_null_value(&d_dem)){
+				G_is_d_null_value(&d_dem)||
+				G_is_d_null_value(&d_Rn)||
+				G_is_d_null_value(&d_g0)){
 					/* do nothing */ 
 				}else{
 					d_t0dem = d_tempk + 0.00649*d_dem;
-					if(d_t0dem<0.0){
+					if(d_t0dem<=0.0||d_tempk<=0.0){
 						/* do nothing */ 
 					} else {
 						if(d_t0dem<t0dem_min&&d_albedo<0.1){
 							t0dem_min=d_t0dem;
 							tempk_min=d_tempk;
+							d_tempk_wet=d_tempk;
 							col_wet=col;
 							row_wet=row;
 						}else if(d_t0dem>t0dem_max){
 							t0dem_max=d_t0dem;
+							d_t0dem_dry=d_t0dem;
 							tempk_max=d_tempk;
+							d_tempk_dry=d_tempk;
+							d_Rn_dry=d_Rn;
+							d_g0_dry=d_g0;
+							d_dem_dry=d_dem;
 							col_dry=col;
 							row_dry=row;
 						}
@@ -374,113 +425,52 @@ int main(int argc, char *argv[])
 		G_message("tempk_min=%f\ntempk_max=%f\n",tempk_min,tempk_max);
 		G_message("row_wet=%d\tcol_wet=%d\n",row_wet,col_wet);
 		G_message("row_dry=%d\tcol_dry=%d\n",row_dry,col_dry);
+		G_message("tempk_wet=%f\n",d_tempk_wet);
+		G_message("tempk_dry=%f\n",d_tempk_dry);
+		G_message("dem_dry=%f\n",d_dem_dry);
+		G_message("t0dem_dry=%f\n",d_t0dem_dry);
+		G_message("rnet_dry=%f\n",d_Rn_dry);
+		G_message("g0_dry=%f\n",d_g0_dry);
+		G_message("h0_dry=%f\n",d_Rn_dry-d_g0_dry);
 	} /* END OF FLAG1 */
-	/* Pick up wet and dry pixel values */
-	DCELL d_Rn; 		/* Input raster */
-	DCELL d_g0; 		/* Input raster */
-	DCELL d_tempk_wet;
-	DCELL d_tempk_dry;
-	DCELL d_rnet_dry;
-	DCELL d_g0_dry;
-	DCELL d_t0dem_dry;
-	DCELL d_dem_dry;
-	/*Process wet pixel values*/
-	if (G_get_d_raster_row (infd_T, inrast_T, row_wet) < 0)
-		G_fatal_error (_("Could not read from <%s>"),T);
-	switch(data_type_T){
-		case CELL_TYPE:
-			d_tempk_wet = (double) ((CELL *) inrast_T)[col_wet];
-			break;
-		case FCELL_TYPE:
-			d_tempk_wet = (double) ((FCELL *) inrast_T)[col_wet];
-			break;
-		case DCELL_TYPE:
-			d_tempk_wet = (double) ((DCELL *) inrast_T)[col_wet];
-			break;
-	}
-	//d_tempk_wet	= ((DCELL *) inrast_T)[col_wet];
-	/*Process dry pixel values*/
-	if (G_get_d_raster_row (infd_T, inrast_T, row_dry) < 0)
-		G_fatal_error (_("Could not read from <%s>"),T);
-	if (G_get_d_raster_row (infd_DEM, inrast_DEM, row_dry) < 0)
-		G_fatal_error (_("Could not read from <%s>"),DEM);
-	if (G_get_d_raster_row (infd_Rn, inrast_Rn, row_dry) < 0)
-		G_fatal_error (_("Could not read from <%s>"),Rn);
-	if (G_get_d_raster_row (infd_g0, inrast_g0, row_dry) < 0)
-		G_fatal_error (_("Could not read from <%s>"),g0);
-	switch(data_type_T){
-		case CELL_TYPE:
-			d_tempk_dry = (double) ((CELL *) inrast_T)[col_dry];
-			break;
-		case FCELL_TYPE:
-			d_tempk_dry = (double) ((FCELL *) inrast_T)[col_dry];
-			break;
-		case DCELL_TYPE:
-			d_tempk_dry = (double) ((DCELL *) inrast_T)[col_dry];
-			break;
-	}
-	switch(data_type_DEM){
-		case CELL_TYPE:
-			d_dem_dry = (double) ((CELL *) inrast_DEM)[col_dry];
-			break;
-		case FCELL_TYPE:
-			d_dem_dry = (double) ((FCELL *) inrast_DEM)[col_dry];
-			break;
-		case DCELL_TYPE:
-			d_dem_dry = (double) ((DCELL *) inrast_DEM)[col_dry];
-			break;
-	}
-	switch(data_type_Rn){
-		case CELL_TYPE:
-			d_rnet_dry = (double) ((CELL *) inrast_Rn)[col_dry];
-			break;
-		case FCELL_TYPE:
-			d_rnet_dry = (double) ((FCELL *) inrast_Rn)[col_dry];
-			break;
-		case DCELL_TYPE:
-			d_rnet_dry = (double) ((DCELL *) inrast_Rn)[col_dry];
-			break;
-	}
-	switch(data_type_g0){
-		case CELL_TYPE:
-			d_g0_dry = (double) ((CELL *) inrast_g0)[col_dry];
-			break;
-		case FCELL_TYPE:
-			d_g0_dry = (double) ((FCELL *) inrast_g0)[col_dry];
-			break;
-		case DCELL_TYPE:
-			d_g0_dry = (double) ((DCELL *) inrast_g0)[col_dry];
-			break;
-	}
-//	d_tempk_dry	= ((DCELL *) inrast_T)[col_dry];
-//	d_rnet_dry	= ((DCELL *) inrast_Rn)[col_dry];
-//	d_g0_dry	= ((DCELL *) inrast_g0)[col_dry];
-	d_t0dem_dry	= d_dem_dry * 0.00627 + d_tempk_dry;
-//	d_dem_dry	= ((DCELL *) inrast_DEM)[col_dry];
-	
+	/*MPI_BARRIER*/
 	for (row = 0; row < nrows; row++)
-	{
-		DCELL d_tempk; 		/* Input raster */
-		DCELL d_u2m; 		/* Input raster */
-		DCELL d_dem; 		/* Input raster */
+	{	
+		DCELL d_albedo;
+		DCELL d_tempk;
+		DCELL d_dem;
+		DCELL d_t0dem;
+		DCELL d_u2m; 	/* Input raster */
 		DCELL d;	/* Output pixel */
-		DCELL d_t0dem;	/* Generated here */
 		G_percent(row,nrows,2);
 		/* read a line input maps into buffers*/	
-		if (G_get_d_raster_row (infd_T, inrast_T, row) < 0)
-			G_fatal_error (_("Could not read from <%s>"),T);
-		if (G_get_d_raster_row (infd_u2, inrast_u2, row) < 0)
-			G_fatal_error (_("Could not read from <%s>"),u2);
-		if (G_get_d_raster_row (infd_DEM, inrast_DEM, row) < 0)
-			G_fatal_error (_("Could not read from <%s>"),DEM);
-		if (G_get_d_raster_row (infd_ndvi, inrast_ndvi, row) < 0)
-			G_fatal_error (_("Could not read from <%s>"),ndvi);
-		if (G_get_d_raster_row (infd_Rn, inrast_Rn, row) < 0)
-			G_fatal_error (_("Could not read from <%s>"),Rn);
-		if (G_get_d_raster_row (infd_g0, inrast_g0, row) < 0)
-			G_fatal_error (_("Could not read from <%s>"),g0);
+		if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
+				G_fatal_error(_("Could not read from <%s>"),albedo);
+		if(G_get_raster_row(infd_T,inrast_T,row,data_type_T)<0)
+			G_fatal_error(_("Could not read from <%s>"),T);
+		if(G_get_d_raster_row(infd_u2, inrast_u2, row) < 0)
+			G_fatal_error(_("Could not read from <%s>"),u2);
+		if(G_get_d_raster_row(infd_DEM, inrast_DEM, row) < 0)
+			G_fatal_error(_("Could not read from <%s>"),DEM);
+		if(G_get_d_raster_row(infd_ndvi, inrast_ndvi, row) < 0)
+			G_fatal_error(_("Could not read from <%s>"),ndvi);
+		if(G_get_d_raster_row(infd_Rn, inrast_Rn, row) < 0)
+			G_fatal_error(_("Could not read from <%s>"),Rn);
+		if(G_get_d_raster_row(infd_g0, inrast_g0, row) < 0)
+			G_fatal_error(_("Could not read from <%s>"),g0);
 		/* read every cell in the line buffers */
 		for (col=0; col < ncols; col++){
+			switch(data_type_albedo){
+				case CELL_TYPE:
+					d_albedo = (double) ((CELL *) inrast_albedo)[col];
+					break;
+				case FCELL_TYPE:
+					d_albedo = (double) ((FCELL *) inrast_albedo)[col];
+					break;
+				case DCELL_TYPE:
+					d_albedo = (double) ((DCELL *) inrast_albedo)[col];
+					break;
+			}
 			switch(data_type_T){
 				case CELL_TYPE:
 					d_tempk = (double) ((CELL *) inrast_T)[col];
@@ -549,13 +539,17 @@ int main(int argc, char *argv[])
 			}
 			if(G_is_d_null_value(&d_tempk)||G_is_d_null_value(&d_u2m)||
 			G_is_d_null_value(&d_dem)||G_is_d_null_value(&d_ndvi)||
-			G_is_d_null_value(&d_Rn)||G_is_d_null_value(&d_g0)){
+			G_is_d_null_value(&d_Rn)||G_is_d_null_value(&d_g0)||
+			d_albedo<0.0){
 				G_set_d_null_value(&outrast[col],1);
 			} else {
 				/* Calculate T0dem */
-				d_t0dem = d_dem * 0.00627 + d_tempk;
+				d_t0dem = (double)d_tempk + 0.00649*(double)d_dem;
+				/*G_message("****InLoop d_t0dem=%5.3f",d_t0dem);
+				G_message("****InLoop d_dem=%5.3f",d_dem);
+				G_message("****InLoop d_tempk=%5.3f",d_tempk);*/
 				/* Calculate sensible heat flux */
-				d = sensi_h(d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_ndvi,d_ndvi_max,d_dem,d_rnet_dry,d_g0_dry,d_t0dem_dry,d_u2m,d_dem_dry);
+				d = sensi_h(d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_ndvi,d_ndvi_max,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u2m,d_dem_dry);
 				if (zero->answer && d<0.0){
 					d=0.0;
 				}
