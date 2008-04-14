@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.out.vic_met
+PGM = r.out.vic
 
 LIBES =  $(GPROJLIB) $(GISLIB)
 DEPENDENCIES = $(GPROJDEP) $(GISDEP)

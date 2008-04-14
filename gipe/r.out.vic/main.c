@@ -13,6 +13,12 @@
  * 		 3 - Soil:
  *		 	Barely complete, it takes elevation data & lat/long,
  *		 	the rest is filled up with dummy soil data.
+ *		 4 - Routing file from GRASS flow direction file:
+ *		 	Recoding to rout input file for VIC post-processing
+ *		 	of hydrological surface runoff flow.
+ *		 	http://www.hydro.washington.edu/Lettenmaier/ 
+ *		 	Models/VIC/Documentation/Bernt/
+ *		 	rout/mainframe_rout1.htm
  *  
  * COPYRIGHT:    (C) 2008 by the GRASS Development Team
  *
@@ -47,8 +53,8 @@ int main(int argc, char *argv[])
 	int not_ll=0;//if proj is not lat/long, it will be 1.
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4;
-	struct Option *input5, *input6;
-	struct Option *output1, *output2, *output3, *output4;
+	struct Option *input5, *input6, *input7;
+	struct Option *output1, *output2, *output3, *output4, *output5;
 	
 	struct Flag *flag1;	
 	struct History history; //metadata
@@ -62,14 +68,16 @@ int main(int argc, char *argv[])
 	char 	*tmin_name;// input third time_series raster files names
 	char 	*landcover_name;// input raster name
 	char 	lai_name[12]; 	// input monthly raster files name
+	char 	*fdir_name;// input flow direction raster name
 	char 	*result1; 	//output file base name
 	char 	*result2; 	//output Soil file name
 	char	*result3; 	//output Veg file name
+	char	*result4; 	//output flow direction file name
 	char 	result_lat_long[50]; 	//output file name
 	//File Descriptors
 	int 	infd_prcp[MAXFILES], infd_tmax[MAXFILES], infd_tmin[MAXFILES];
 	int	infd;
-	int 	infd_landcover, infd_lai[12];
+	int 	infd_landcover, infd_lai[12], infd_fdir;
 	
 	int 	i=0,j=0;
 	double 	xp, yp;
@@ -84,12 +92,14 @@ int main(int argc, char *argv[])
 	void 			*inrast_elevation;
 	void 			*inrast_landcover;
 	void 			*inrast_lai[12];
+	void 			*inrast_fdir;
 	RASTER_MAP_TYPE 	data_type_inrast_prcp[MAXFILES];
 	RASTER_MAP_TYPE 	data_type_inrast_tmax[MAXFILES];
 	RASTER_MAP_TYPE 	data_type_inrast_tmin[MAXFILES];
 	RASTER_MAP_TYPE 	data_type_inrast_elevation;
 	RASTER_MAP_TYPE 	data_type_inrast_landcover;
 	RASTER_MAP_TYPE 	data_type_inrast_lai[12];
+	RASTER_MAP_TYPE 	data_type_inrast_fdir;
 
 	/****************************************/
 	/* Meteorological maps 			*/
@@ -112,7 +122,7 @@ int main(int argc, char *argv[])
 	char 	*dummy_data1; 	// dummy data part 1
 	char 	*dummy_data2; 	// dummy data part 2
 	double	elevation;	// average evevation of grid cell
-	/************************************/
+	/****************************************/
 	/* Vegetation map 			*/
 	FILE	*h; 		// output ascii file
 	char 	*dummy_data3; 	// dummy data part 1
@@ -121,43 +131,72 @@ int main(int argc, char *argv[])
 	char 	**lai_ptr;	// pointer to get the input2->answers
 	int	nfiles; 	// count LAI input files
 	char	**test, **ptr;	// test number of LAI input files
-	/************************************/
-	
+	/****************************************/
+	/* Flow Direction			*/
+	FILE	*e;		// output flow direction ascii file
+	/****************************************/
+
 	G_gisinit(argv[0]);
 
 	module = G_define_module();
 	module->keywords = _("VIC, hydrology, precipitation, Tmax, Tmin, soil");
-	module->description = _("creates a meteorological ascii file for each non-null cell from 3 time series maps: precipitation, Tmax and Tmin. Also creates a dummy soil file from elevation.");
+	module->description = _("* PURPOSE:      Creates VIC input files:\n\
+ * 		 1 - Meteorological:\n \
+ * 			Three time series of GIS data are needed:\n\
+ * 		 	Precipitation (mm/d), Tmax(C) and Tmin(C)\n\
+ * 		 2 - Vegetation:\n\
+ * 		 	Filling only Land cover class, with only one class,\n\
+ * 			 and one standard root system.\n\
+ * 			 Option to add monthly LAI (12 maps).\n\
+ * 		 3 - Soil:\n\
+ *		 	Barely complete, it takes elevation data & lat/long,\n\
+ *		 	the rest is filled up with dummy soil data.\n\
+ *		 4 - Routing file from GRASS flow direction file:\n\
+ *		 	Recoding to rout input file for VIC post-processing\n\
+ *		 	of hydrological surface runoff flow.\n\
+ *		 	http://www.hydro.washington.edu/Lettenmaier/\n\ 
+ *		 	Models/VIC/Documentation/Bernt/\n\
+ *		 	rout/mainframe_rout1.htm");
 
 	/* Define the different options */
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("prcp");
 	input1->multiple   = YES;
 	input1->description=_("Names of the precipitation input maps");
+	input1->guisection=_("Required");
 
 	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key	   = _("tmax");
 	input2->multiple   = YES;
 	input2->description=_("Names of the Tmax input maps");
+	input2->guisection=_("Required");
 
 	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key	   = _("tmin");
 	input3->multiple   = YES;
 	input3->description=_("Names of the Tmin input maps");
+	input3->guisection=_("Required");
 	
 	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key	   = _("dem");
 	input4->description=_("Name of the elevation input map");
+	input4->guisection=_("Required");
 	
 	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key	   = _("landcover");
 	input5->description=_("Name of the land cover input map");
+	input5->guisection=_("Required");
 
 	input6 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input6->key	   = _("LAI");
 	input6->multiple   = YES;
 	input6->required   = NO;
 	input6->description=_("Name of the LAI input maps (12 of them!)");	
+
+	input7 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input7->key	   = _("flow_dir");
+	input7->description=_("Name of the flow direction input map (GRASS format)");
+	input7->guisection=_("Required");
 
 	output1 = G_define_option();
 	output1->key      	=_("output");
@@ -180,6 +219,11 @@ int main(int argc, char *argv[])
 	output4->description=_("Name of a standard vegetation library file");
 	output4->answer     =_("veglib");
 
+	output5 = G_define_option() ;
+	output5->key        =_("output_fdir");
+	output5->description=_("Name of the output flow direction ascii file");
+	output5->answer     =_("vic_fdir.asc");
+
 	flag1 = G_define_flag() ;
 	flag1->key		= 'a';
 	flag1->description	=_("append meteorological data if file already exists (useful if adding additional year of data)");
@@ -192,6 +236,7 @@ int main(int argc, char *argv[])
 	result1 		= output1->answer;
 	result2 		= output2->answer;
 	result3 	 	= output3->answer;
+	result4 	 	= output5->answer;
 	/************************************************/
 	/* STANDARD VEGLIB CREATION HERE 		*/
 	if(output4->answer)
@@ -384,13 +429,35 @@ int main(int argc, char *argv[])
 	dummy_data3 = "0.10 0.1 1.00 0.65 0.50 0.25";
 	dummy_data4 = "0.312 0.413 0.413 0.413 0.413 0.488 0.975 1.150 0.625 0.312 0.312 0.312";
 		
+	/***********************/
+	/* Flow Direction File */
+	/*Initialize grid cell process switch*/
+	e=fopen(result4,"w");
+
+	/*Print to ascii file*/
+	fprintf(e,"ncols\t%d\n", ncols);
+	fprintf(e,"nrows\t%d\n", nrows);
+	/*NORTHWEST LONGITUDE*/
+	fprintf(e,"xllcorner\t%f\n", xmin);
+	/*NORTHWEST LATITUDE*/
+	fprintf(e,"yllcorner\t%f\n", ymin);
+	if(stepx==stepy){
+		fprintf(e,"cellsize\t%f\n", stepx);
+	} else {
+		G_message("Flow Direction map cellsize_x=%f\n", stepx);
+		G_message("Flow Direction map cellsize_y=%f\n", stepy);
+	}
+	fprintf(e,"NODATA_value\t0\n");
+	/***********************/
+	/***********************/
 	for (row = 0; row < nrows; row++){
-		DCELL d_prcp[MAXFILES];
-		DCELL d_tmax[MAXFILES];
-		DCELL d_tmin[MAXFILES];
-		DCELL d_elevation;
-		CELL c_landcover;
-		DCELL d_lai[12];
+		DCELL 	d_prcp[MAXFILES];
+		DCELL 	d_tmax[MAXFILES];
+		DCELL	d_tmin[MAXFILES];
+		DCELL 	d_elevation;
+		CELL 	c_landcover;
+		CELL 	c_fdir;
+		DCELL 	d_lai[12];
 		G_percent(row,nrows,2);
 		for(i=0;i<nfiles_shortest;i++){
 			if(G_get_raster_row(infd_prcp[i],inrast_prcp[i],row,data_type_inrast_prcp[i])<0)
@@ -410,6 +477,8 @@ int main(int argc, char *argv[])
 					G_fatal_error(_("Could not read from <%s>"),lai_name[i]);
 				}
 		}
+		if(G_get_raster_row(infd_fdir,inrast_fdir,row,data_type_inrast_fdir)<0)
+			G_fatal_error(_("Could not read from <%s>"),fdir_name);
 		for (col=0; col < ncols; col++){
 			for(i=0;i<nfiles_shortest;i++){
 				/*Extract prcp time series data*/
@@ -489,6 +558,17 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
+			switch(data_type_inrast_fdir){
+				case CELL_TYPE:
+					c_fdir=  ((CELL *) inrast_fdir)[col];
+					break;
+				case FCELL_TYPE:
+					c_fdir= (int) ((FCELL *) inrast_fdir)[col];
+					break;
+				case DCELL_TYPE:
+					c_fdir= (int) ((DCELL *) inrast_fdir)[col];
+					break;
+			}
 			/*Extract lat/long data*/
 			latitude = ymax - ( row * stepy );
 			longitude = xmin + ( col * stepx );
@@ -503,8 +583,10 @@ int main(int argc, char *argv[])
 			G_is_d_null_value(&d_tmax[0])||
 			G_is_d_null_value(&d_tmin[0])||
 			G_is_d_null_value(&d_elevation)||
-			G_is_c_null_value(&c_landcover)){
+			G_is_c_null_value(&c_landcover)||
+			G_is_c_null_value(&c_fdir)){
 				/* Do nothing */
+				c_fdir = 0;
 			} else {
 				/* Make the output .dat file name */
 				sprintf(result_lat_long,"%s%.4f%s%.4f",result1,latitude,"_",longitude);	
@@ -541,10 +623,35 @@ int main(int argc, char *argv[])
 				}
 				grid_count=grid_count+1;
 			}
+			/*Print to ascii file*/
+			/*Grid cell value in that grid cell*/
+			if(c_fdir==0){
+				fprintf(e,"%d ",c_fdir);
+			} else if(c_fdir==1){
+				fprintf(e,"2 ");
+			} else if(c_fdir==2){
+				fprintf(e,"1 ");
+			} else if(c_fdir==3){
+				fprintf(e,"8 ");
+			} else if(c_fdir==4){
+				fprintf(e,"7 ");
+			} else if(c_fdir==5){
+				fprintf(e,"6 ");
+			} else if(c_fdir==6){
+				fprintf(e,"5 ");
+			} else if(c_fdir==7){
+				fprintf(e,"4 ");
+			} else if(c_fdir==8){
+				fprintf(f,"3 ");
+			} else {
+				fprintf(f,"0 ");
+			}
 		}
+		fprintf(e,"\n");
 	}
 	G_message(_("Created %d VIC meteorological files"),grid_count);
 	G_message(_("Created %d VIC grid cells soil/vegetation definitions"),grid_count);
+	G_message(_("Created a routing flow direction input file"));
 	for(i=0;i<nfiles1;i++){
 		G_free (inrast_prcp[i]);
 		G_close_cell (infd_prcp[i]);
@@ -567,8 +674,11 @@ int main(int argc, char *argv[])
 			G_close_cell (infd_lai[i]);
 		}
 	}
-	fclose(h);
-	fclose(g);
+	G_free (inrast_fdir);
+	G_close_cell (infd_fdir);
+	fclose(h);// Vegetation ascii file
+	fclose(g);// Soil ascii file
+	fclose(e);// Flow Direction ascii file
 	exit(EXIT_SUCCESS);
 }
 
