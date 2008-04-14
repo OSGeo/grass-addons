@@ -4,6 +4,7 @@ GRASS Addons SVN repository
 To submit your GRASS project here, please write to
 
 	Markus Neteler <neteler * cealp.it>
+        or any other GRASS developer with write access.
 
 The submmission must be compliant with the GRASS
 submission rules as found in the GRASS source code
@@ -17,6 +18,7 @@ Also read submitting instructions before committing any changes!
    http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_DOCS
    http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_SCRIPTS
    http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_TCLTK
+   http://trac.osgeo.org/grass/browser/grass/trunk/SUBMITTING_PYTHON
 
 Read access is granted to the public, write access
 must be requested, see below for details.
