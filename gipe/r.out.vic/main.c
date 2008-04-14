@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 	output2->answer     =_("vic_soil.asc");
 
 	output3 = G_define_option() ;
-	output3->key        =_("output");
+	output3->key        =_("output_veg");
 	output3->description=_("Name of the output vic vegetation ascii file");
 	output3->answer     =_("vic_veg.asc");
 	
