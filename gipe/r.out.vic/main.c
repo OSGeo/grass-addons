@@ -624,7 +624,7 @@ int main(int argc, char *argv[])
 				 * for those 3 root zone depths, how much root in each (%)
 				 * here we have 0.65, 0.50 and 0.25
 				 * */
-				fprintf(h,"%d 1.0 %s\n", c_landcover, dummy_data1);
+				fprintf(h,"%d 1.0 %s\n", c_landcover, dummy_data3);
 				/*Load monthly LAI maps data if available*/
 				if(input6->answer){
 					fprintf(h,"%5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f\n", lai[0], lai[1], lai[2], lai[3], lai[4], lai[5], lai[6], lai[7], lai[8], lai[9], lai[10], lai[11]);
