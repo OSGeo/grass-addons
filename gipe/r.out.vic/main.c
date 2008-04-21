@@ -437,7 +437,7 @@ int main(int argc, char *argv[])
 	dummy_data2 = "0.1\t6.90\t2.000\t14.0\t4.0\t75.0\t75.0\t75.0\t0.24\t0.24\t0.24\t1306\t1367\t1367\t2650\t2650\t2650\t-6\t0.330\t0.330\t0.330\t0.133\t0.133\t0.133\t0.001\t0.010\t500\t0.02\t0.02\t0.02\t1\t18.665\n";
 
 	/*Initialize grid cell process switch*/
-	h=fopen(result1,"w");
+	h=fopen(result3,"w");
 
 	/*Initialize dummy data*/
 	dummy_data3 = "0.10 0.1 1.00 0.65 0.50 0.25";
