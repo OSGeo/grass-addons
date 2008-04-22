@@ -421,7 +421,7 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Unable to set up lat/long projection parameters"));
 	}//End of stolen from r.sun :P
 
-	/*Initialize grid cell process switch*/
+	/*Initialize soil grid cell process switch*/
 	g=fopen(result2,"w");
 	/*Initialize grid cell process switch*/
 	/*If =1 then process, if =0 then skip*/
@@ -599,7 +599,7 @@ int main(int argc, char *argv[])
 				c_fdir = 0;
 			} else {
 				/* Make the output .dat file name */
-				sprintf(result_lat_long,"%s%.4f%s%.4f",result1,latitude,"_",longitude);	
+				sprintf(result_lat_long,"%s%.4f%s%.4f",result1,latitude-stepy/2.0,"_",longitude-stepx/2);	
 				/*Open new ascii file*/
 				if (flag1->answer){
 					/*Initialize grid cell in append mode*/
@@ -614,7 +614,7 @@ int main(int argc, char *argv[])
 				}
 				fclose(f);
 				/*Print to soil ascii file*/
-				fprintf(g,"%d\t%d\t%6.3f\t%7.3f\t%s\t%7.2f\t%s\n", process, grid_count, latitude, longitude, dummy_data1, d_elevation, dummy_data2);
+				fprintf(g,"%d\t%d\t%6.3f\t%7.3f\t%s\t%7.2f\t%s\n", process, grid_count, latitude-stepy/2, longitude-stepx/2, dummy_data1, d_elevation, dummy_data2);
 				/*Print to vegetation ascii file*/
 				/*Grid cell count and number of classes in that grid cell (=1)*/
 				fprintf(h,"%d 1\n", grid_count);
@@ -635,27 +635,7 @@ int main(int argc, char *argv[])
 			}
 			/*Print to ascii file*/
 			/*Grid cell value in that grid cell*/
-			if(c_fdir==0){
-				fprintf(ef,"%d ",c_fdir);
-			} else if(c_fdir==1){
-				fprintf(ef,"2 ");
-			} else if(c_fdir==2){
-				fprintf(ef,"1 ");
-			} else if(c_fdir==3){
-				fprintf(ef,"8 ");
-			} else if(c_fdir==4){
-				fprintf(ef,"7 ");
-			} else if(c_fdir==5){
-				fprintf(ef,"6 ");
-			} else if(c_fdir==6){
-				fprintf(ef,"5 ");
-			} else if(c_fdir==7){
-				fprintf(ef,"4 ");
-			} else if(c_fdir==8){
-				fprintf(ef,"3 ");
-			} else {
-				fprintf(ef,"0 ");
-			}
+			fprintf(ef,"%d ",c_fdir);
 		}
 		fprintf(ef,"\n");
 	}
