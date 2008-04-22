@@ -1,0 +1,25 @@
+<H2>DESCRIPTION</H2>
+
+<EM>v.colors</EM> is like r.colors but for vector maps.
+You give it a vector map and data column, together with color rules like
+you would do for a raster. It creates a new column in the database with
+R:G:B values suitable for use with 'd.vect -a'.
+
+Hopefully it helps supplement the ongoing thematic mapping efforts.
+It is mildly tested so far and pretty simple; seems to be ~75% error
+checking code.
+
+How it works: it creates a dummy raster map with the same data range as
+the vector's column then runs r.colors on that. Then it uses
+r.what.colors for each value found by v.db.select and uploads it to the
+DB. Better would be a C module which rendered directly instead of saving
+the colors in the DB.
+
+<H2>SEE ALSO</H2>
+
+<EM><A HREF="r.colors.html">colors</A></EM>
+
+<H2>AUTHOR</H2>
+
+Hamish Bowman
+<p><i>Last changed: $Date: 2006-09-07 11:38:05 +0200 (Thu, 07 Sep 2006) $</i>
