@@ -273,10 +273,13 @@ int main(int argc, char *argv[])
 	for (row = 0; row < nrows; row++)
 	{
 		DCELL d;
+		DCELL d_albedo;
 		DCELL d_tempk;
 		DCELL d_dem;
 		DCELL d_t0dem;
 		G_percent(row,nrows,2);
+		if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
+			G_fatal_error(_("Could not read from <%s>"),albedo);
 		if(G_get_raster_row(infd_tempk,inrast_tempk,row,data_type_tempk)<0)
 			G_fatal_error(_("Could not read from <%s>"),tempk);
 		if(G_get_raster_row(infd_dem,inrast_dem,row,data_type_dem)<0)
@@ -284,6 +287,17 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
+			switch(data_type_albedo){
+				case CELL_TYPE:
+					d_albedo = (double) ((CELL *) inrast_albedo)[col];
+					break;
+				case FCELL_TYPE:
+					d_albedo = (double) ((FCELL *) inrast_albedo)[col];
+					break;
+				case DCELL_TYPE:
+					d_albedo = (double) ((DCELL *) inrast_albedo)[col];
+					break;
+			}
 			switch(data_type_tempk){
 				case CELL_TYPE:
 					d_tempk = (double) ((CELL *) inrast_tempk)[col];
@@ -306,21 +320,23 @@ int main(int argc, char *argv[])
 					d_dem = (double) ((DCELL *) inrast_dem)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_tempk)){
+			if(G_is_d_null_value(&d_albedo)){
 				/* do nothing */ 
-			}else if(G_is_d_null_value(&d_dem)){
+			} else if(G_is_d_null_value(&d_tempk)){
 				/* do nothing */ 
-			}else{
+			} else if(G_is_d_null_value(&d_dem)){
+				/* do nothing */ 
+			} else {
 				d_t0dem = d_tempk + 0.00649*d_dem;
-				if(d_t0dem<0.0){
+				if(d_t0dem<0.0||d_albedo<0.001){
 					/* do nothing */ 
 				} else {
-					if(d_t0dem<t0dem_min){
-					//if(d_tempk<tempk_min){
+					//if(d_t0dem<t0dem_min){
+					if(d_tempk<tempk_min&&d_albedo<0.1){
 						t0dem_min=d_t0dem;
 						tempk_min=d_tempk;
-					}else if(d_t0dem>t0dem_max){
-					//}else if(d_tempk>tempk_max){
+					//}else if(d_t0dem>t0dem_max){
+					}else if(d_tempk>tempk_max){
 						t0dem_max=d_t0dem;
 						tempk_max=d_tempk;
 					}
