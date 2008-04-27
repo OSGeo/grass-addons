@@ -67,7 +67,7 @@ if [ ! -e "$GIS_OPT_INPUT" ] ; then
     exit 1
 fi
 
-if [ `grep '^# COLOR_MODEL' "$GIS_OPT_INPUT" | cut -f2 -d= | grep -c 'HSV\|CMYK'` -gt 0 ] ; then
+if [ `grep 'COLOR_MODEL' "$GIS_OPT_INPUT" | cut -f2 -d= | grep -c 'HSV\|CMYK'` -gt 0 ] ; then
     echo "ERROR: Only the RGB color model is supported" 1>&2
     exit 1
 fi
