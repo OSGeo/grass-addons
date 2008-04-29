@@ -614,7 +614,7 @@ int main(int argc, char *argv[])
 				}
 				fclose(f);
 				/*Print to soil ascii file*/
-				fprintf(g,"%d\t%d\t%6.3f\t%7.3f\t%s\t%7.2f\t%s\n", process, grid_count, latitude-stepy/2, longitude-stepx/2, dummy_data1, d_elevation, dummy_data2);
+				fprintf(g,"%d\t%d\t%7.4f\t%8.4f\t%s\t%7.2f\t%s\n", process, grid_count, latitude-stepy/2, longitude-stepx/2, dummy_data1, d_elevation, dummy_data2);
 				/*Print to vegetation ascii file*/
 				/*Grid cell count and number of classes in that grid cell (=1)*/
 				fprintf(h,"%d 1\n", grid_count);
