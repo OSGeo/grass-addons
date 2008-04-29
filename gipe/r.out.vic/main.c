@@ -606,7 +606,7 @@ int main(int argc, char *argv[])
 			G_is_c_null_value(&c_landcover)||
 			G_is_c_null_value(&c_fdir)){
 				/* Do nothing */
-				c_fdir = 0;
+				c_fdir = -1;
 			} else {
 				/* Make the output .dat file name */
 				sprintf(result_lat_long,"%s%.4f%s%.4f",result1,latitude-stepy/2.0,"_",longitude-stepx/2);	
@@ -649,8 +649,13 @@ int main(int argc, char *argv[])
 				/* Convert r.watershed flow dir to AGNPS */
 				fprintf(ef,"%d ",c_fdir+1);
 			} else {
-				/* Flow direction format is AGNPS */
-				fprintf(ef,"%d ",c_fdir);
+				if(c_fdir==-1){
+					/* Flow direction NODATA_value=0 */
+					fprintf(ef,"0 ");
+				} else {
+					/* Flow direction format is AGNPS */
+					fprintf(ef,"%d ",c_fdir);
+				}
 			}
 		}
 		fprintf(ef,"\n");
