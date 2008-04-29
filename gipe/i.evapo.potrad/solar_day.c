@@ -3,7 +3,6 @@
 #include<stdlib.h>
 
 // Average Solar Diurnal Radiation after Bastiaanssen (1995) 
-// ychemin@gmail.com - Yann Chemin - LGPL, Copylefted, 2004.
 
 #define PI 3.1415927
 

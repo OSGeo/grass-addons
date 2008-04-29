@@ -390,6 +390,9 @@ main(int argc, char *argv[])
 		if (G_put_raster_row (outfd, outrast, out_data_type) < 0)
 			G_fatal_error (_("Cannot write to <%s>"),result);
 	}
+	/* Color table for albedo */
+	G_init_colors(&colors);
+	G_add_color_rule(0,0,0,0,1,255,255,255,&colors);
 	for (i=1;i<=nfiles;i++)
 	{
 		G_free (inrast[i]);
