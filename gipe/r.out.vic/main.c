@@ -14,6 +14,7 @@
  *		 	Barely complete, it takes elevation data & lat/long,
  *		 	the rest is filled up with dummy soil data.
  *		 4 - Routing file from GRASS flow direction file:
+ *		 	Direct AGNPS or flag for r.watershed format
  *		 	Recoding to rout input file for VIC post-processing
  *		 	of hydrological surface runoff flow.
  *		 	http://www.hydro.washington.edu/Lettenmaier/ 
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
 	struct Option *input5, *input6, *input7;
 	struct Option *output1, *output2, *output3, *output4, *output5;
 	
-	struct Flag *flag1;	
+	struct Flag *flag1, *flag2;	
 	struct History history; //metadata
 	
 	struct pj_info iproj;
@@ -227,6 +228,10 @@ int main(int argc, char *argv[])
 	flag1 = G_define_flag() ;
 	flag1->key		= 'a';
 	flag1->description	=_("append meteorological data if file already exists (useful if adding additional year of data)");
+
+	flag2 = G_define_flag() ;
+	flag2->key		= 'b';
+	flag2->description	=_("Convert flow direction from r.watershed to AGNPS");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -448,15 +453,20 @@ int main(int argc, char *argv[])
 	/*Initialize grid cell process switch*/
 	ef=fopen(result4,"w");
 	/*Print to ascii file*/
+	G_message("Your ncols,nrows for flow direction map are (%d,%d)\n",ncols,nrows);
 	fprintf(ef,"ncols\t%d\n", ncols);
 	fprintf(ef,"nrows\t%d\n", nrows);
 	/*NORTHWEST LONGITUDE*/
+	G_message("Your xllcorner for flow direction map is %f\n",xmin);
 	fprintf(ef,"xllcorner\t%f\n", xmin);
 	/*NORTHWEST LATITUDE*/
+	G_message("Your yllcorner for flow direction map is %f\n",ymin);
 	fprintf(ef,"yllcorner\t%f\n", ymin);
 	/*CELLSIZE*/
+	G_message("Your cellsize for flow direction map is %f\n",stepx);
 	fprintf(ef,"cellsize\t%f\n", stepx);
 	/*NODATA_value*/
+	G_message("Your NODATA_value for flow direction map is 0\n");
 	fprintf(ef,"NODATA_value\t0\n");
 	/***********************/
 	/***********************/
@@ -634,8 +644,14 @@ int main(int argc, char *argv[])
 				grid_count=grid_count+1;
 			}
 			/*Print to ascii file*/
-			/*Grid cell value in that grid cell*/
-			fprintf(ef,"%d ",c_fdir);
+			/*Grid cell flow direction value in that grid cell*/
+			if(flag2->answer){
+				/* Convert r.watershed flow dir to AGNPS */
+				fprintf(ef,"%d ",c_fdir+1);
+			} else {
+				/* Flow direction format is AGNPS */
+				fprintf(ef,"%d ",c_fdir);
+			}
 		}
 		fprintf(ef,"\n");
 	}
