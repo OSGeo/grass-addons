@@ -37,7 +37,6 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	//If !sebal then use Delta T input file
 	int sebal=0;//SEBAL Flag for affine transform of surf. temp.
 	struct GModule *module;
@@ -81,11 +80,8 @@ int main(int argc, char *argv[])
 	module->description = _("sensible heat flux equation as in Pawan (2004), including flags for delta T affine transform from surf. temp.");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("rohair");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the air density map ~[0.9;1.5], Pawan (2004) use 1.12 constant value");
 	input1->answer     =_("rohair");
 
@@ -97,19 +93,14 @@ int main(int argc, char *argv[])
 	input2->description=_("Value of the air specific heat [1000.0;1020.0]");
 	input2->answer     =_("1004.16");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("tempk");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the surface skin temperature map [degrees Kelvin],if used with -s flag and affine coefs, it disables dtair input");
 	input3->answer     =_("tempk");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("dtair");
-	input4->type       = TYPE_STRING;
 	input4->required   = NO;
-	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the skin-air Surface temperature difference map ~[0.0-80.0], required unless you use -s flag (then you must give a & b coefs below)");
 
 	input5 = G_define_option() ;
@@ -126,43 +117,28 @@ int main(int argc, char *argv[])
 	input6->gisprompt  =_("parameter, float number");
 	input6->description=_("-s flag: Value of the intercept of the affine transform");
 	
-	input7 = G_define_option() ;
+	input7 = G_define_stnadard_option(G_OPT_R_INPUT) ;
 	input7->key        =_("disp");
-	input7->type       = TYPE_STRING;
-	input7->required   = YES;
-	input7->gisprompt  =_("old,cell,raster");
 	input7->description=_("Name of the displacement height input layer (m)");
 	input7->answer     =_("disp");
 	
-	input8 = G_define_option() ;
+	input8 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input8->key        =_("z0m");
-	input8->type       = TYPE_STRING;
-	input8->required   = YES;
-	input8->gisprompt  =_("old,cell,raster");
 	input8->description=_("Name of the z0m input layer (s/m)");
 	input8->answer     =_("z0m");
 	
-	input9 = G_define_option() ;
+	input9 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input9->key        =_("z0h");
-	input9->type       = TYPE_STRING;
-	input9->required   = YES;
-	input9->gisprompt  =_("old,cell,raster");
 	input9->description=_("Name of the z0h input layer (s/m)");
 	input9->answer     =_("z0h");
 	
-	input10 = G_define_option() ;
+	input10 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input10->key        =_("u2m");
-	input10->type       = TYPE_STRING;
-	input10->required   = YES;
-	input10->gisprompt  =_("old,cell,raster");
 	input10->description=_("Name of the wind speed at 2m height input layer (m/s)");
 	input10->answer     =_("u2m");
 		
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("h0");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output h0 layer");
 	output1->answer     =_("h0");
 
@@ -170,9 +146,6 @@ int main(int argc, char *argv[])
 	flag1->key = 's';
 	flag1->description = _("Affine transform of Surface temperature into delta T, needs input of slope and intercept (Bastiaanssen, 1995)");
 	
-	flag2 = G_define_flag();
-	flag2->key = 'q';
-	flag2->description = _("Quiet");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -198,7 +171,6 @@ int main(int argc, char *argv[])
 	
 	result  = output1->answer;
 	sebal = flag1->answer;
-	verbose = (!flag2->answer);
 
 	/***************************************************/
 	/* TEST FOR -s FLAG COEFS 
@@ -310,8 +282,7 @@ int main(int argc, char *argv[])
 		DCELL d_z0m;
 		DCELL d_z0h;
 		DCELL d_u2m;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 		/* printf("row = %i/%i\n",row,nrows);*/
 		/* read input maps */	
 		if(G_get_raster_row(infd_rohair,inrast_rohair,row,data_type_rohair)<0)

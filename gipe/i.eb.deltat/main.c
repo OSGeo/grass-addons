@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1, wim=0;
+	int wim=0;
 	struct GModule *module;
 	struct Option *input1, *output1;
 	
@@ -61,26 +61,15 @@ int main(int argc, char *argv[])
 	module->description = _("difference of temperature between two heights as seen in Pawan (2004), this is part of sensible heat flux calculations, as in SEBAL (Bastiaanssen, 1995). A 'w' flag allows for a very generic approximation.");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("tempk");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
-	input1->description=_("Name of the surface skin temperature map [Degree Kelvin]");
+	input1->description=_("Name of the surface skin temperature map [Kelvin]");
 	input1->answer     =_("tempk");
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	output1->key        =_("delta");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output delta layer");
 	output1->answer     =_("delta");
-
-	
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 
 	flag2 = G_define_flag();
 	flag2->key = 'w';
@@ -93,7 +82,6 @@ int main(int argc, char *argv[])
 	tempk	 	= input1->answer;
 		
 	result1  	= output1->answer;
-	verbose 	= (!flag1->answer);
 	wim 		= flag2->answer;
 	/***************************************************/
 	mapset = G_find_cell2(tempk, "");
@@ -119,8 +107,7 @@ int main(int argc, char *argv[])
 	{
 		DCELL d;
 		DCELL d_tempk;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 //		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_tempk,inrast_tempk,row,data_type_tempk)<0)

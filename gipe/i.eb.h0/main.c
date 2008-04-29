@@ -30,7 +30,6 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	int sebal=0;//SEBAL Flag for affine transform of surf. temp.
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5;
@@ -68,11 +67,8 @@ int main(int argc, char *argv[])
 	module->description = _("sensible heat flux equation, including flag for SEBAL version (Bastiaanssen, 1995)");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("rohair");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the air density map ~[0.9;1.5]");
 	input1->answer     =_("rohair");
 
@@ -84,29 +80,19 @@ int main(int argc, char *argv[])
 	input2->description=_("Value of the air specific heat [1000.0;1020.0]");
 	input2->answer     =_("1004.0");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("dtair");
-	input3->type       = TYPE_STRING;
-	input3->required   = NO;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the skin-air Surface temperature difference map ~[0.0-80.0]");
-//	input3->answer     =_("dtair");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("rah");
-	input4->type       = TYPE_STRING;
-	input4->required   = YES;
-	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the aerodynamic resistance to heat transport map [s/m]");
 	input4->answer     =_("rah");
 
-	input5 = G_define_option() ;
+	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("tempk");
-	input5->type       = TYPE_STRING;
 	input5->required   = NO;
-	input5->gisprompt  =_("old,cell,raster");
 	input5->description=_("Name of the surface skin temperature map [degrees Kelvin], used with -s flag and affine coefs, disables dtair input");
-//	input5->answer     =_("tempk");
 
 	input6 = G_define_option() ;
 	input6->key        =_("a");
@@ -122,21 +108,14 @@ int main(int argc, char *argv[])
 	input7->gisprompt  =_("parameter, float number");
 	input7->description=_("Value of the intercept of the transform");
 	
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("h0");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output h0 layer");
 	output1->answer     =_("h0");
 
 	flag1 = G_define_flag();
 	flag1->key = 's';
 	flag1->description = _("Affine transform of Surface temperature, needs input of slope and intercept (Bastiaanssen, 1995)");
-	
-	flag2 = G_define_flag();
-	flag2->key = 'q';
-	flag2->description = _("Quiet");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -151,7 +130,6 @@ int main(int argc, char *argv[])
 	
 	result  = output1->answer;
 	sebal = flag1->answer;
-	verbose = (!flag2->answer);
 	/***************************************************/
 	mapset = G_find_cell2(rohair, "");
 	if (mapset == NULL) {
@@ -217,8 +195,7 @@ int main(int argc, char *argv[])
 		DCELL d_dtair;
 		DCELL d_affine;
 		DCELL d_tempk;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 //		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_rohair,inrast_rohair,row,data_type_rohair)<0)

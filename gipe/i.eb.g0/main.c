@@ -30,12 +30,11 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	int roerink=0;//Roerink Flag for HAPEX-Sahel conditions
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5, *output1;
 	
-	struct Flag *flag1, *flag2;	
+	struct Flag *flag1;	
 	struct History history; //metadata
 	
 	/************************************/
@@ -100,11 +99,6 @@ int main(int argc, char *argv[])
 	flag1 = G_define_flag();
 	flag1->key = 'r';
 	flag1->description = _("HAPEX-Sahel empirical correction (Roerink, 1995)");
-	
-	flag2 = G_define_flag();
-	flag2->key = 'q';
-	flag2->description = _("Quiet");
-
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);

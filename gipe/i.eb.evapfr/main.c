@@ -30,7 +30,6 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	int makin=0;//Makin Flag for root zone soil moisture output
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *output1, *output2;
@@ -64,55 +63,36 @@ int main(int argc, char *argv[])
 	module->description = _("evaporative fraction (Bastiaanssen, 1995) and root zone soil moisture (Makin, Molden and Bastiaanssen, 2001)");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("rnet");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the Net Radiation map [W/m2]");
 	input1->answer     =_("rnet");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("g0");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster");
 	input2->description=_("Name of the soil heat flux map [W/m2]");
 	input2->answer     =_("g0");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("h0");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the sensible heat flux map [W/m2]");
 	input3->answer     =_("h0");
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("evapfr");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output evaporative fraction layer");
 	output1->answer     =_("evapfr");
 
-	output2 = G_define_option() ;
+	output2 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output2->key        =_("theta");
-	output2->type       = TYPE_STRING;
 	output2->required   = NO;
-	output2->gisprompt  =_("new,cell,raster");
 	output2->description=_("Name of the output root zone soil moisture layer");
 	output2->answer     =_("theta");
-	
 	
 	flag1 = G_define_flag();
 	flag1->key = 'm';
 	flag1->description = _("root zone soil moisture output (Makin, Molden and Bastiaanssen, 2001)");
 	
-	flag2 = G_define_flag();
-	flag2->key = 'q';
-	flag2->description = _("Quiet");
-
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -124,7 +104,6 @@ int main(int argc, char *argv[])
 	result1  = output1->answer;
 	result2  = output2->answer;
 	makin   = flag1->answer;
-	verbose = (!flag2->answer);
 	/***************************************************/
 	mapset = G_find_cell2(rnet, "");
 	if (mapset == NULL) {
@@ -180,8 +159,7 @@ int main(int argc, char *argv[])
 		DCELL d_rnet;
 		DCELL d_g0;
 		DCELL d_h0;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 //		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_rnet,inrast_rnet,row,data_type_rnet)<0)

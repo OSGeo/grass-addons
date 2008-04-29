@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *output1;
 	
@@ -61,42 +60,25 @@ int main(int argc, char *argv[])
 	module->description = _("actual evapotranspiration for diurnal period (Bastiaanssen, 1995)");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("rnetday");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the diurnal Net Radiation map [W/m2]");
 	input1->answer     =_("rnetday");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("evapfr");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster");
 	input2->description=_("Name of the evaporative fraction map [-]");
 	input2->answer     =_("evapfr");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("tempk");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the surface skin temperature [K]");
 	input3->answer     =_("tempk");
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("eta");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output actual diurnal evapotranspiration layer");
 	output1->answer     =_("eta");
-	
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
-
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -106,7 +88,6 @@ int main(int argc, char *argv[])
 	tempk		= input3->answer;
 	
 	result1  = output1->answer;
-	verbose = (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(rnetday, "");
 	if (mapset == NULL) {
@@ -155,8 +136,7 @@ int main(int argc, char *argv[])
 		DCELL d_rnetday;
 		DCELL d_evapfr;
 		DCELL d_tempk;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 		/* read input maps */	
 		if(G_get_raster_row(infd_rnetday,inrast_rnetday,row,data_type_rnetday)<0)
 			G_fatal_error(_("Could not read from <%s>"),rnetday);

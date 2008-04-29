@@ -31,7 +31,6 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input1, *output1;
 	
@@ -62,31 +61,19 @@ int main(int argc, char *argv[])
 	module->description = _("Displacement height above skin surface, as seen in Pawan (2004). A flag (-s) permits direct SAVI input using the equation in the same document, be careful using it.");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("lai");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the LAI map [-]");
 	input1->answer     =_("lai");
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("disp");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,dcell,raster");
 	output1->description=_("Name of the output disp layer");
 	output1->answer     =_("disp");
-
-	
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 	
 	flag2 = G_define_flag();
 	flag2->key = 's';
 	flag2->description = _("use savi2lai conversion (Pawan, 2004)");
-
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -94,7 +81,6 @@ int main(int argc, char *argv[])
 	lai	 	= input1->answer;
 		
 	result1  = output1->answer;
-	verbose = (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(lai, "");
 	if (mapset == NULL) {
@@ -119,8 +105,7 @@ int main(int argc, char *argv[])
 	{
 		DCELL d;
 		DCELL d_lai;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 //		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_lai,inrast_lai,row,data_type_lai)<0)
