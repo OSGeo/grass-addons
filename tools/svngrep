@@ -1,0 +1,12 @@
+#!/bin/sh
+# svngrep -- by Hamish Bowman, 30 Apr 2008
+#    released to the Public Domain
+#
+# simple wrapper script for grep which will skip false positives in
+#  /.svn/, .tmp.html, and binary files
+#
+# e.g.  trunk$ svngrep -r scalebar *
+
+
+grep -I $* | grep -v '/\.svn/\|\.tmp\.html:'
+
