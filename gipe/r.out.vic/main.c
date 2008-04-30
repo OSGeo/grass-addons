@@ -649,7 +649,27 @@ int main(int argc, char *argv[])
 			/*Grid cell flow direction value in that grid cell*/
 			if(flag2->answer){
 				/* Convert r.watershed flow dir to AGNPS */
-				fprintf(ef,"%d ",c_fdir+1);
+				if(c_fdir==0||c_fdir==8){
+					fprintf(ef,"3 ");
+				} else if(c_fdir==1){
+					fprintf(ef,"2 ");
+				} else if(c_fdir==2){
+					fprintf(ef,"1 ");
+				} else if(c_fdir==3){
+					fprintf(ef,"8 ");
+				} else if(c_fdir==4){
+					fprintf(ef,"7 ");
+				} else if(c_fdir==5){
+					fprintf(ef,"6 ");
+				} else if(c_fdir==6){
+					fprintf(ef,"5 ");
+				} else if(c_fdir==7){
+					fprintf(ef,"4 ");
+				} else if(c_fdir==-1){
+					fprintf(ef,"0 ");
+				} else {
+					fprintf(ef,"0 ");
+				}
 			} else {
 				if(c_fdir==-1){
 					/* Flow direction NODATA_value=0 */
