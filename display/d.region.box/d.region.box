@@ -68,7 +68,7 @@ if [ -n "$GIS_OPT_REGION" ] ; then
       exit 1
    fi
 
-   eval `grep '^north:\|^south:\|^east:\|^west:' $file | sed -e 's/: */=/'`
+   eval `grep '^north:\|^south:\|^east:\|^west:' "$file" | sed -e 's/: */=/'`
    
    n="$north"
    s="$south"
