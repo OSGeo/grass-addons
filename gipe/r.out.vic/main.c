@@ -394,6 +394,8 @@ int main(int argc, char *argv[])
 	/***************************************************/
 	G_debug(3, "number of rows %d",cellhd.rows);
 
+	G_get_window(&cellhd);
+
 	stepx=cellhd.ew_res;
 	stepy=cellhd.ns_res;
 
