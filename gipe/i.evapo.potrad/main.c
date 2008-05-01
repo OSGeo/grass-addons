@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("tsw");
 	input5->required   = NO;
-	input5->description=_("Name of the single-way transmissivity map [0.05-1.0], use without -b flag, defaults to 0.7 if no -b and no input file");
+	input5->description=_("Name of the single-way transmissivity map [0.05-1.0], defaults to 1.0 if no input file");
 	input5->guisection = _("Optional");
 
 	input6 = G_define_option() ;
@@ -491,7 +491,7 @@ int main(int argc, char *argv[])
 					if(input5->answer){
 						/*do nothing, there is tsw input*/
 					} else {
-						d_tsw = 0.7;
+						d_tsw = 1.0;
 					}
 					d_rnetd = r_net_day(d_albedo,d_solar,d_tsw);
 				}
@@ -499,6 +499,9 @@ int main(int argc, char *argv[])
 					outrast2[col] = d_rnetd;
 				}
 				d = et_pot_day(d_rnetd,d_tempk,roh_w);
+				if(input5->answer&&flag3->answer){
+					d = d * d_tsw;
+				}
 				outrast1[col] = d;
 			}
 		}
