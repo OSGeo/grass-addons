@@ -23,3 +23,6 @@ html:
 	$(MKDIR) $(GISBASE)/docs/html
 	$(INSTALL_DATA) $(PGM).html $(GISBASE)/docs/html/
 
+clean:
+	-rm -f *.o
+
