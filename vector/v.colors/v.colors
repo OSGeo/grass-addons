@@ -213,8 +213,8 @@ if [ -z "$COLUMN_TYPE" ] ; then
        echo "ERROR: Creating color column"
        exit 1
     fi
-elif [ "$COLUMN_TYPE" != "CHARACTER" ] ; then
-    echo "ERROR: Column <$GIS_OPT_RGB_COLUMN> is not of compatible type"
+elif [ "$COLUMN_TYPE" != "CHARACTER" -a "$COLUMN_TYPE" != "TEXT" ] ; then
+    echo "ERROR: Column <$GIS_OPT_RGB_COLUMN> is not of compatible type (found $COLUMN_TYPE)"
     exit 1
 else
     NUM_CHARS=`db.describe -c "$TABLE" | grep -i " $GIS_OPT_RGB_COLUMN:" | cut -f4 -d':'`
