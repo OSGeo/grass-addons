@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 	input6->gisprompt  =_("parameter, float number");
 	input6->description=_("-s flag: Value of the intercept of the affine transform");
 	
-	input7 = G_define_stnadard_option(G_OPT_R_INPUT) ;
+	input7 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input7->key        =_("disp");
 	input7->description=_("Name of the displacement height input layer (m)");
 	input7->answer     =_("disp");

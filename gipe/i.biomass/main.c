@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
 	
 	struct Flag *flag1;	
 	struct History history; //metadata
+	struct Colors colors;
 	
 	/************************************/
 	/* FMEO Declarations*****************/

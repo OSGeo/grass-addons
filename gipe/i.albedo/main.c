@@ -40,7 +40,7 @@ main(int argc, char *argv[])
 	struct Flag *flag1, *flag2, *flag3;
 	struct Flag *flag4, *flag5;
 	struct History history; //metadata
-
+	struct Colors colors;
 	/************************************/
 	/* FMEO Declarations*****************/
 	char *name; //input raster name
