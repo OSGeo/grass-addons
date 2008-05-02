@@ -20,7 +20,8 @@ please take care of following rules:
 
 1.  Use the directory structure to place your script appropriately into
     the source tree
-    	- scripts go into scripts/
+    	- raster goes into raster/
+          etc.
 
     Consider to take a look at [please suggest Shell tutorial].
  
