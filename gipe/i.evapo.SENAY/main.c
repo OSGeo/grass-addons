@@ -21,7 +21,9 @@
 
 double solar_day(double lat, double doy, double tsw );
 double solar_day_3d(double lat, double doy, double tsw, double slope, double aspect);
-double et_pot_day( double bbalb, double solar, double tempk, double tsw, double roh_w );
+double r_net_day( double bbalb, double solar, double tsw );
+double r_net_day_bandara98( double surface_albedo, double solar_day, double apparent_atm_emissivity, double surface_emissivity, double air_temperature );
+double et_pot_day( double rnetd, double tempk, double roh_w );
 double evapfr_senay( double t_hot, double t_cold, double tempk);
 
 int main(int argc, char *argv[])
@@ -34,11 +36,12 @@ int main(int argc, char *argv[])
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4;
 	struct Option *input5, *input6, *input7, *input8, *input9;
+	struct Option *input10, *input11, *input12;
 	struct Option *output1, *output2;
 	
-	struct Flag *flag1, *flag2, *flag3;	
+	struct Flag *flag2, *flag3;	
 	struct History history; //metadata
-	
+	struct Colors colors; //Color rules
 	/************************************/
 	/* FMEO Declarations*****************/
 	char *name;   // input raster name
@@ -47,18 +50,21 @@ int main(int argc, char *argv[])
 	int infd_albedo, infd_tempk, infd_dem;
 	int infd_lat, infd_doy, infd_tsw;
 	int infd_slope, infd_aspect;
+	int infd_tair, infd_e0;
 	int outfd1, outfd2;
 	
-	char *albedo,*tempk,*dem,*lat,*doy,*tsw,*slope,*aspect;
-	double roh_w;
+	char *albedo,*tempk,*dem,*lat,*doy,*tsw;
+	char *slope,*aspect,*tair,*e0;
+	double roh_w, e_atm;
 	int i=0,j=0;
 	
 	void *inrast_albedo, *inrast_tempk;
 	void *inrast_dem, *inrast_lat;
 	void *inrast_doy, *inrast_tsw;
 	void *inrast_slope, *inrast_aspect;
+	void *inrast_tair, *inrast_e0;
 
-	unsigned char *outrast1, *outrast2;
+	DCELL *outrast1, *outrast2;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_albedo;
 	RASTER_MAP_TYPE data_type_tempk;
@@ -68,6 +74,8 @@ int main(int argc, char *argv[])
 	RASTER_MAP_TYPE data_type_tsw;
 	RASTER_MAP_TYPE data_type_slope;
 	RASTER_MAP_TYPE data_type_aspect;
+	RASTER_MAP_TYPE data_type_tair;
+	RASTER_MAP_TYPE data_type_e0;
 	/********************************/
 	/* Stats for Senay equation	*/
 	double t0dem_min=400.0,t0dem_max=200.0;
@@ -84,31 +92,37 @@ int main(int argc, char *argv[])
 	input1->key	   = _("albedo");
 	input1->description=_("Name of the Albedo map [0.0-1.0]");
 	input1->answer     =_("albedo");
+	input1->guisection = _("Required");
 
 	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("tempk");
 	input2->description=_("Name of the temperature map [Degree Kelvin]");
 	input2->answer     =_("tempk");
+	input2->guisection = _("Required");
 
 	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("dem");
 	input3->description=_("Name of the elevation map [m]");
 	input3->answer     =_("dem");
+	input3->guisection = _("Required");
 
 	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("lat");
 	input4->description=_("Name of the degree latitude map [dd.ddd]");
 	input4->answer     =_("lat");
+	input4->guisection = _("Required");
 
 	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("doy");
 	input5->description=_("Name of the Day of Year map [0.0-366.0]");
 	input5->answer     =_("doy");
+	input5->guisection = _("Required");
 
 	input6 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input6->key        =_("tsw");
 	input6->description=_("Name of the single-way transmissivity map [0.0-1.0]");
 	input6->answer     =_("tsw");
+	input6->guisection = _("Required");
 
 	input7 = G_define_option() ;
 	input7->key        =_("roh_w");
@@ -116,36 +130,61 @@ int main(int argc, char *argv[])
 	input7->required   = YES;
 	input7->gisprompt  =_("value, parameter");
 	input7->description=_("Value of the density of fresh water ~[1000-1020]");
-	input7->answer     =_("1010.0");
+	input7->answer     =_("1005.0");
+	input7->guisection = _("Required");
 
 	input8 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input8->key        =_("slope");
 	input8->required   = NO;
 	input8->description=_("Name of the Slope map ~[0-90]");
+	input8->guisection = _("Optional");
 
 	input9 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input9->key        =_("aspect");
 	input9->required   = NO;
 	input9->description=_("Name of the Aspect map ~[0-360]");
+	input9->guisection = _("Optional");
 
+	input10 = G_define_option() ;
+	input10->key        =_("e_atm");
+	input10->type       = TYPE_DOUBLE;
+	input10->required   = NO;
+	input10->gisprompt  =_("value, parameter");
+	input10->description=_("Value of the apparent atmospheric emissivity (Bandara, 1998 used 0.845 for Sri Lanka)");
+	input10->answer     =_("0.845");
+	input10->guisection = _("Optional");
+
+	input11 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input11->key        =_("t_air");
+	input11->required   = NO;
+	input11->description=_("Name of the Air Temperature map [Kelvin], use with -b");
+	input11->guisection = _("Optional");
+
+	input12 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input12->key        =_("e0");
+	input12->required   = NO;
+	input12->description=_("Name of the Surface Emissivity map [-], use with -b");
+	input12->guisection = _("Optional");
 
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("eta");
 	output1->description=_("Name of the output Actual ET layer");
 	output1->answer     =_("eta");
+	output1->guisection = _("Required");
 
 	output2 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output2->key        =_("evapfr");
 	output2->required   = NO;
 	output2->description=_("Name of the output evaporative fraction layer");
+	output2->guisection = _("Optional");
 
-	flag1 = G_define_flag();
-	flag1->key = 's';
-	flag1->description = _("Output evaporative fraction after Senay (2007)");
-	
 	flag2 = G_define_flag();
 	flag2->key = 'd';
 	flag2->description = _("Slope/Aspect correction");
+
+	flag3 = G_define_flag();
+	flag3->key = 'b';
+	flag3->description = _("Net Radiation Bandara (1998), generic Longwave calculation, need apparent atmospheric emissivity, Air temperature and surface emissivity inputs");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -159,6 +198,9 @@ int main(int argc, char *argv[])
 	roh_w	 	= atof(input7->answer);
 	slope	 	= input8->answer;
 	aspect	 	= input9->answer;
+	e_atm	 	= atof(input10->answer);
+	tair	 	= input11->answer;
+	e0	 	= input12->answer;
 	
 	result1  = output1->answer;
 	result2  = output2->answer;
@@ -255,6 +297,32 @@ int main(int argc, char *argv[])
 		inrast_aspect = G_allocate_raster_buf(data_type_aspect);
 	}
 	/***************************************************/
+	if(flag3->answer){
+		mapset = G_find_cell2 (tair, "");
+		if (mapset == NULL) {
+			G_fatal_error(_("Cell file [%s] not found"), tair);
+		}
+		data_type_tair = G_raster_map_type(tair,mapset);
+		if ( (infd_tair = G_open_cell_old (tair,mapset)) < 0)
+			G_fatal_error(_("Cannot open cell file [%s]"), tair);
+		if (G_get_cellhd (tair, mapset, &cellhd) < 0)
+			G_fatal_error(_("Cannot read file header of [%s]"), tair);
+		inrast_tair = G_allocate_raster_buf(data_type_tair);
+	}
+	/***************************************************/
+	if(flag3->answer){
+		mapset = G_find_cell2 (e0, "");
+		if (mapset == NULL) {
+			G_fatal_error(_("Cell file [%s] not found"), e0);
+		}
+		data_type_e0 = G_raster_map_type(e0,mapset);
+		if ( (infd_e0 = G_open_cell_old (e0,mapset)) < 0)
+			G_fatal_error(_("Cannot open cell file [%s]"), e0);
+		if (G_get_cellhd (e0, mapset, &cellhd) < 0)
+			G_fatal_error(_("Cannot read file header of [%s]"), e0);
+		inrast_e0 = G_allocate_raster_buf(data_type_e0);
+	}
+	/***************************************************/
 	G_debug(3, "number of rows %d",cellhd.rows);
 	nrows = G_window_rows();
 	ncols = G_window_cols();
@@ -320,11 +388,8 @@ int main(int argc, char *argv[])
 					d_dem = (double) ((DCELL *) inrast_dem)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_albedo)){
-				/* do nothing */ 
-			} else if(G_is_d_null_value(&d_tempk)){
-				/* do nothing */ 
-			} else if(G_is_d_null_value(&d_dem)){
+			if(G_is_d_null_value(&d_albedo)||G_is_d_null_value(&d_tempk)
+			||G_is_d_null_value(&d_dem)){
 				/* do nothing */ 
 			} else {
 				d_t0dem = d_tempk + 0.00649*d_dem;
@@ -359,6 +424,8 @@ int main(int argc, char *argv[])
 		DCELL d_rnetd;
 		DCELL d_slope;
 		DCELL d_aspect;
+		DCELL d_tair;
+		DCELL d_e0;
 		DCELL d_etpotd;
 		DCELL d_evapfr;
 		G_percent(row,nrows,2);
@@ -378,6 +445,12 @@ int main(int argc, char *argv[])
 				G_fatal_error(_("Could not read from <%s>"),slope);
 			if(G_get_raster_row(infd_aspect,inrast_aspect,row,data_type_aspect)<0)
 				G_fatal_error(_("Could not read from <%s>"),aspect);
+		}
+		if(flag3->answer){
+			if(G_get_raster_row(infd_tair,inrast_tair,row,data_type_tair)<0)
+				G_fatal_error(_("Could not read from <%s>"),tair);
+			if(G_get_raster_row(infd_e0,inrast_e0,row,data_type_e0)<0)
+				G_fatal_error(_("Could not read from <%s>"),e0);
 		}
 		/*process the data */
 		for (col=0; col < ncols; col++)
@@ -461,38 +534,40 @@ int main(int argc, char *argv[])
 						break;
 				}
 			}
-			if(G_is_d_null_value(&d_albedo)){
-				((DCELL *) outrast1)[col] = -999.99;
+			if(flag3->answer){
+				switch(data_type_tair){
+					case CELL_TYPE:
+						d_tair = (double) ((CELL *) inrast_tair)[col];
+						break;
+					case FCELL_TYPE:
+						d_tair = (double) ((FCELL *) inrast_tair)[col];
+						break;
+					case DCELL_TYPE:
+						d_tair = (double) ((DCELL *) inrast_tair)[col];
+						break;
+				}
+				switch(data_type_e0){
+					case CELL_TYPE:
+						d_e0 = (double) ((CELL *) inrast_e0)[col];
+						break;
+					case FCELL_TYPE:
+						d_e0 = (double) ((FCELL *) inrast_e0)[col];
+						break;
+					case DCELL_TYPE:
+						d_e0 = (double) ((DCELL *) inrast_e0)[col];
+						break;
+				}
+			}
+			if(G_is_d_null_value(&d_albedo)||G_is_d_null_value(&d_tempk)
+			||d_tempk<10.0||G_is_d_null_value(&d_lat)||
+			G_is_d_null_value(&d_doy)||G_is_d_null_value(&d_tsw)||
+			((flag2->answer)&&G_is_d_null_value(&d_slope))||
+			((flag2->answer)&&G_is_d_null_value(&d_aspect))||
+			((flag3->answer)&&G_is_d_null_value(&d_tair))||
+			((flag3->answer)&&G_is_d_null_value(&d_e0))){
+				G_set_d_null_value(&outrast1[col],1);
 				if (result2)
-				((DCELL *) outrast2)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_tempk)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if (result2)
-				((DCELL *) outrast2)[col] = -999.99;
-			}else if(d_tempk<10.0){
-				((DCELL *) outrast1)[col] = -999.99;
-				if (result2)
-				((DCELL *) outrast2)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_lat)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if (result2)
-				((DCELL *) outrast2)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_doy)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if (result2)
-				((DCELL *) outrast2)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_tsw)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if (result2)
-				((DCELL *) outrast2)[col] = -999.99;
-			}else if((flag2->answer)&&G_is_d_null_value(&d_slope)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if (result2)
-					((DCELL *) outrast2)[col] = -999.99;
-			}else if((flag2->answer)&&G_is_d_null_value(&d_aspect)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if (result2)
-					((DCELL *) outrast2)[col] = -999.99;
+					G_set_d_null_value(&outrast2[col],1);
 			}else {
 				if(flag2->answer){
 					d_solar = solar_day_3d(d_lat,d_doy,d_tsw,d_slope,d_aspect);
@@ -501,11 +576,17 @@ int main(int argc, char *argv[])
 				}
 				d_evapfr = evapfr_senay( tempk_max, tempk_min, d_tempk);
 				if(result2){
-					((DCELL *) outrast2)[col] = d_evapfr;
+					outrast2[col] = d_evapfr;
 				}
-				d_etpotd = et_pot_day(d_albedo,d_solar,d_tempk,d_tsw,roh_w);
+				if(flag3->answer){
+					d_rnetd = r_net_day_bandara98(d_albedo,d_solar,e_atm,d_e0,d_tair);
+				} else {
+					d_rnetd = r_net_day(d_albedo,d_solar,d_tsw);
+				}
+				d_etpotd = et_pot_day(d_rnetd,d_tempk,roh_w);
+				d_etpotd *= d_tsw;
 				d = d_etpotd * d_evapfr;
-				((DCELL *) outrast1)[col] = d;
+				outrast1[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
@@ -529,9 +610,19 @@ int main(int argc, char *argv[])
 	G_close_cell (infd_doy);
 	G_close_cell (infd_tsw);
 	
+	if (flag3->answer){
+		G_free (inrast_tair);
+		G_close_cell (infd_tair);
+		G_free (inrast_e0);
+		G_close_cell (infd_e0);
+	}
+
 	G_free (outrast1);
 	G_close_cell (outfd1);
 	if (result2){
+		/* Color table for evaporative fraction */
+		G_init_colors(&colors);
+		G_add_color_rule(0,0,0,0,1,255,255,255,&colors);
 		G_free (outrast2);
 		G_close_cell (outfd2);
 		G_short_history(result2, "raster", &history);
@@ -539,6 +630,9 @@ int main(int argc, char *argv[])
 		G_write_history(result2,&history);
 	}
 
+	/* Color table for evapotranspiration */
+	G_init_colors(&colors);
+	G_add_color_rule(0,0,0,0,10,255,255,255,&colors);
 	G_short_history(result1, "raster", &history);
 	G_command_history(&history);
 	G_write_history(result1,&history);
