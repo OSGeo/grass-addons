@@ -1,4 +1,4 @@
-MODULE_TOPDIR = /usr/local/grass-6.3.0RC4
+MODULE_TOPDIR = ../..
 
 PGM = r.inund.fluv
 
