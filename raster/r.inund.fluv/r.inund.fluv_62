@@ -223,10 +223,10 @@ cartella_nascosta=".temp_grass_script"
 
 rm -r -f ~/$cartella_nascosta
 mkdir ~/$cartella_nascosta
-cp "$GISBASE/fortran_code"/find_main_channel.exe  ~/$cartella_nascosta
-cp "$GISBASE/fortran_code"/clean_inundation.exe  ~/$cartella_nascosta
-cp "$GISBASE/fortran_code"/2d_path.exe  ~/$cartella_nascosta
-cp "$GISBASE/fortran_code"/correction_from_path.exe  ~/$cartella_nascosta
+cp "$GISBASE/etc/fortran_code"/find_main_channel.exe  ~/$cartella_nascosta
+cp "$GISBASE/etc/fortran_code"/clean_inundation.exe  ~/$cartella_nascosta
+cp "$GISBASE/etc/fortran_code"/2d_path.exe  ~/$cartella_nascosta
+cp "$GISBASE/etc/fortran_code"/correction_from_path.exe  ~/$cartella_nascosta
  
 #variables
 dtm="$GIS_OPT_DTM"

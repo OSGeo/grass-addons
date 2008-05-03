@@ -7,10 +7,10 @@ echo "       e.g. /usr/grass-xxxx     (look also in /usr/local or /usr/lib)"
 read grass_directory
 
 if [ -e $grass_directory/fortran_code ]; then  
-    directory=$grass_directory'/fortran_code'
+    directory=$grass_directory'/etc/fortran_code'
 else
     echo "The fortran code will be put in $grass_directory/fortran_code" 
-    directory=$grass_directory'/fortran_code'
+    directory=$grass_directory'/etc/fortran_code'
     mkdir $directory
 fi
 
