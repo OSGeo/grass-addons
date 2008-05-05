@@ -1,8 +1,16 @@
 MODULE_TOPDIR = ..
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
-
 SUBDIRS1 = \
+	i.homography \
+	i.landsat.dehaze \
+	i.points.auto \
+	i.pr \
+	i.warp \
+	i.landsat.acca \
+	i.landsat.toar \
+	i.points.reproj \
+	i.topo.corr \
 	i.albedo \
 	i.ask \
 	i.biomass \

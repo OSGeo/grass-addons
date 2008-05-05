@@ -11,6 +11,7 @@ ADDONSVNDIR=/home/yann/coding/grass-addons
 # This Assumes you start in GIPE directory
 GIPEDIR=$ADDONSVNDIR/gipe
 HFDIR=$ADDONSVNDIR/HydroFOSS
+RSTDIR=$ADDONSVNDIR/raster
 
 #INSTALL MODULES
 #START RASTER STUFF
@@ -26,6 +27,12 @@ do
 	cp -rf $HFDIR/$directory $GRASSCVSDIR/raster/
 done
 cp -rf $GIPEDIR/PM_Makefile $GRASSCVSDIR/raster/r.evapo.PM/Makefile
+
+cd $RSTDIR/
+for directory in r.inund.fluv*
+do
+	cp -rf $RSTDIR/$directory $GRASSCVSDIR/raster/
+done
 
 cp -f $GIPEDIR/Makefile $GRASSCVSDIR/raster/ 
 cd $GRASSCVSDIR/raster/
@@ -45,13 +52,13 @@ do
 	cp -rf $ADDONSVNDIR/$directory $GRASSCVSDIR/imagery/ 
 done
 
-cd $ADDONSVNDIR/i.pr/
+cd $ADDONSVNDIR/imagery/
 for directory in i.*
 do
-	cp -rf $ADDONSVNDIR/i.pr/$directory $GRASSCVSDIR/imagery/ 
+	cp -rf $ADDONSVNDIR/imagery/$directory $GRASSCVSDIR/imagery/ 
 done
 
-cp -f $GIPEDIR/imagery_Makefile $GRASSCVSDIR/imagery/Makefile 
+cp -f $GIPEDIR/imagery_Makefile $GRASSCVSDIR/imagery/Makefile
 cd $GRASSCVSDIR/imagery/
 make
 #END IMAGERY STUFF

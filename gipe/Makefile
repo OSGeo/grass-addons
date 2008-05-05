@@ -37,6 +37,7 @@ SUBDIRS = \
 	r.info \
 	r.in.gridatb \
 	r.in.mat \
+	r.inund.fluv \
 	r.in.poly \
 	r.in.xyz \
 	r.kappa \
