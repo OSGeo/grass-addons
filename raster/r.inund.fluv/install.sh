@@ -26,16 +26,16 @@ cd $directory
 
 # if you have gnu fortran compiler (gcc-gfortran.i386), use the following rows: 
 
-gfortran -O1 -o find_main_channel.exe find_main_channel.f90 
-gfortran -O1 -o clean_inundation.exe clean_inundation.f90
-gfortran -O1 -o 2d_path.exe 2d_path.f90
-gfortran -O1 -o correction_from_path.exe correction_from_path.f90
+gfortran -O1 -o find_main_channel find_main_channel.f90 
+gfortran -O1 -o clean_inundation clean_inundation.f90
+gfortran -O1 -o 2d_path 2d_path.f90
+gfortran -O1 -o correction_from_path correction_from_path.f90
 
 # if you have a intel fortran compiler, use the following rows  
-#ifort -O3 -xW -o find_main_channel.exe find_main_channel.f90 
-#ifort -O3 -xW -o clean_inundation.exe clean_inundation.f90
-#ifort -O3 -xW -o 2d_path.exe 2d_path.f90
-#ifort -O3 -xW -o correction_from_path.exe correction_from_path.f90
+#ifort -O3 -xW -o find_main_channel find_main_channel.f90 
+#ifort -O3 -xW -o clean_inundation clean_inundation.f90
+#ifort -O3 -xW -o 2d_path 2d_path.f90
+#ifort -O3 -xW -o correction_from_path correction_from_path.f90
 
 rm find_main_channel.f90
 rm clean_inundation.f90

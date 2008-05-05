@@ -217,16 +217,16 @@ else
 fi 
 
 g.remove rast=MASK 
-cartella_nascosta=".temp_grass_script"           
+cartella_nascosta="temp_grass_script"           
 # do not use any space in name of cartella_nascosta
 
 
 rm -r -f ~/$cartella_nascosta
 mkdir ~/$cartella_nascosta
-cp "$GISBASE/etc/fortran_code"/find_main_channel.exe  ~/$cartella_nascosta
-cp "$GISBASE/etc/fortran_code"/clean_inundation.exe  ~/$cartella_nascosta
-cp "$GISBASE/etc/fortran_code"/2d_path.exe  ~/$cartella_nascosta
-cp "$GISBASE/etc/fortran_code"/correction_from_path.exe  ~/$cartella_nascosta
+cp "$GISBASE/etc/fortran_code"/find_main_channel  ~/$cartella_nascosta
+cp "$GISBASE/etc/fortran_code"/clean_inundation  ~/$cartella_nascosta
+cp "$GISBASE/etc/fortran_code"/2d_path  ~/$cartella_nascosta
+cp "$GISBASE/etc/fortran_code"/correction_from_path  ~/$cartella_nascosta
  
 #variables
 dtm="$GIS_OPT_DTM"
@@ -248,7 +248,7 @@ cd $cartella_nascosta
 echo	$res $deltax $deltay > parameter.txt
 echo "'"region2.txt"'"	"'"dtm2x2"'"	"'"limiti_alveo_vect"'"	"'"quote_100"'" > nomefile.txt
 echo "Fortran code that automatically find bed river"
-./find_main_channel.exe                            
+./find_main_channel                            
 rm nomefile.txt
 rm parameter.txt
 #TEST FORTRAN CODE RUN
@@ -307,7 +307,7 @@ echo "CODE FORTRAN OF STEP 3"
 cd
 cd $cartella_nascosta
 echo "'"inondazione_step2"'"  "'"profilo"'"  "'"inondazione_nuova.txt"'" "'"quote_punti_adiacenti"'" "'"region20.txt"'" "'"region2.txt"'" "'"dtm2x2"'" > nomefile.txt 
-./clean_inundation.exe
+./clean_inundation
 rm nomefile.txt
 
 #TEST FORTRAN CODE RUN
@@ -332,7 +332,7 @@ echo "2D MODEL OF DIFFUSION OF FLOODING INONDATION OUTSIDE THE MAIN CHANEL"
 cd
 cd $cartella_nascosta
 echo "'"profilo"'"  "'"inondazione_step3"'"  "'"reticolo"'" "'"region20.txt"'" "'"dtm20x20"'"  "'"limiti_alveo_vect"'"  "'"region2.txt"'" "'"dtm2x2"'" "'"bordi_alveo"'" > nomefile.txt
-./2d_path.exe 
+./2d_path 
 rm nomefile.txt
 
 #TEST FORTRAN CODE RUN
@@ -393,7 +393,7 @@ echo "FORTRAN CODE OF STEP 4"
 cd
 cd $cartella_nascosta
 echo "'"diff_inond"'"  "'"punti3d_reticolo"'" "'"correzione"'" "'"region10.txt"'" "'"dtm2x2"'" "'"region2.txt"'" > nomefile.txt
-./correction_from_path.exe  
+./correction_from_path  
 rm nomefile.txt
 
 #TEST FORTRAN CODE RUN

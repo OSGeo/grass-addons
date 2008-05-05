@@ -26,9 +26,12 @@ For any other informations contact the autors of the script
 (see description.html)
 ******************************************************************
 
+Now we're adjusting the Makefile and a simple installation is wi
+
+
+
 **************** Users of GRASS 6.3 ******************************
-1) Run the install.sh script 
-sh install.sh
+1) 
 
 
 **************** Users of GRASS 6.2 ******************************
@@ -36,6 +39,5 @@ sh install.sh
 mv r.inund.fluv r.inund.fluv_63
 2) Change the name of script for grass 6.2.x releases
 mv r.inund.fluv_62 r.inund.fluv
-3) Run the install.sh script
-sh install.sh
+3) 
 
