@@ -38,9 +38,9 @@ main(int argc, char *argv[])
 	struct Option *input,*output;
 	
 	struct Flag *flag1, *flag2, *flag3;
-	struct Flag *flag4, *flag5;
+	struct Flag *flag4, *flag5, *flag6;
 	struct History history; //metadata
-	struct Colors colors;
+
 	/************************************/
 	/* FMEO Declarations*****************/
 	char *name; //input raster name
@@ -111,7 +111,11 @@ main(int argc, char *argv[])
 
 	flag5 = G_define_flag() ;
 	flag5->key         =_('c');
-	flag5->description =_("Albedo dry run to calculate some water to beach/sand/desert stretching, a kind of simple atmospheric correction. Will slow down the processing.");
+	flag5->description =_("Albedo dry run to calculate some water to beach/sand/desert stretching, a kind of simple atmospheric correction. Agressive mode (Landsat).");
+
+	flag6 = G_define_flag() ;
+	flag6->key         =_('d');
+	flag6->description =_("Albedo dry run to calculate some water to beach/sand/desert stretching, a kind of simple atmospheric correction. Soft mode (Modis).");
 
 	/* FMEO init nfiles */
 	nfiles = 1;
@@ -188,7 +192,7 @@ main(int argc, char *argv[])
 	for (i=0;i<100;i++){
 		histogram[i]=0;
 	}
-	if(flag5->answer){
+	if(flag5->answer||flag6->answer){
 		DCELL de;
 		DCELL d[MAXFILES];
 		/****************************/
@@ -333,11 +337,20 @@ main(int argc, char *argv[])
 				i_bottom3b = i;
 			}
 		}	
-		G_message("peak1 %d %d\n",peak1, i_peak1);
-		G_message("bottom2b= %d %d\n",bottom2b, i_bottom2b);
-		a=(0.36-0.05)/(i_bottom2b/100.0-i_peak1/100.0);
-		b=0.05-a*(i_peak1/100.0);
-		G_message("a= %f\tb= %f\n",a,b);
+		if(flag5->answer){
+			G_message("peak1 %d %d\n",peak1, i_peak1);
+			G_message("bottom2b= %d %d\n",bottom2b, i_bottom2b);
+			a=(0.36-0.05)/(i_bottom2b/100.0-i_peak1/100.0);
+			b=0.05-a*(i_peak1/100.0);
+			G_message("a= %f\tb= %f\n",a,b);
+		}
+		if(flag6->answer){
+			G_message("bottom1a %d %d\n",bottom1a, i_bottom1a);
+			G_message("bottom2b= %d %d\n",bottom2b, i_bottom2b);
+			a=(0.36-0.05)/(i_bottom2b/100.0-i_bottom1a/100.0);
+			b=0.05-a*(i_bottom1a/100.0);
+			G_message("a= %f\tb= %f\n",a,b);
+		}
 	}//END OF FLAG1
 	/* End of processing histogram*/
 	/*******************/
@@ -381,7 +394,7 @@ main(int argc, char *argv[])
 			} else if (aster){
 				de = bb_alb_aster(d[1],d[2],d[3],d[4],d[5],d[6]);
 			}
-			if(flag5->answer){
+			if(flag5->answer||flag6->answer){
 				// Post-Process Albedo
 				de	= a*de+b;
 			}
@@ -390,9 +403,6 @@ main(int argc, char *argv[])
 		if (G_put_raster_row (outfd, outrast, out_data_type) < 0)
 			G_fatal_error (_("Cannot write to <%s>"),result);
 	}
-	/* Color table for albedo */
-	G_init_colors(&colors);
-	G_add_color_rule(0,0,0,0,1,255,255,255,&colors);
 	for (i=1;i<=nfiles;i++)
 	{
 		G_free (inrast[i]);
