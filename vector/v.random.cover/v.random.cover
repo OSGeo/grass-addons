@@ -239,7 +239,6 @@ if [ -n "$GIS_OPT_RASTER" ] ; then
 	;;
    esac
 
-   # check if column already exists, if not, make it.
    v.db.addtable map="$GIS_OPT_OUTPUT" \
       columns="cat integer, $GIS_OPT_COLUMN $COL_TYPE"
    if [ $? -ne 0 ] ; then
