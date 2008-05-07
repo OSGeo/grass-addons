@@ -226,20 +226,26 @@ else
 fi 
 
 g.remove rast=MASK --quiet
-cartella_nascosta="temp_grass_script"           
-# do not use any space in name of cartella_nascosta
 
 
-rm -r -f ~/$cartella_nascosta
-mkdir ~/$cartella_nascosta
-cp "$GISBASE/etc/fortran_code"/find_main_channel  ~/$cartella_nascosta
-cp "$GISBASE/etc/fortran_code"/clean_inundation  ~/$cartella_nascosta
-cp "$GISBASE/etc/fortran_code"/2d_path  ~/$cartella_nascosta
-cp "$GISBASE/etc/fortran_code"/correction_from_path  ~/$cartella_nascosta
+#make a temporary directory
+TMPDIR="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$TMPDIR" ] ; then
+    g.message "Unable to create temporary files"
+    exit 1
+fi
+rm -r -f "$TMPDIR"
+mkdir "$TMPDIR"
+
+
+cp "$GISBASE/etc/fortran_code"/find_main_channel  "$TMPDIR"
+cp "$GISBASE/etc/fortran_code"/clean_inundation  "$TMPDIR"
+cp "$GISBASE/etc/fortran_code"/2d_path  "$TMPDIR"
+cp "$GISBASE/etc/fortran_code"/correction_from_path  "$TMPDIR"
  
 #variables
 dtm="$GIS_OPT_DTM"
-cp "$GIS_OPT_W_S_PROFILE"  ~/$cartella_nascosta/profilo
+cp "$GIS_OPT_W_S_PROFILE"  "$TMPDIR"/profilo
 v.in.ascii -z input="$GIS_OPT_W_S_PROFILE" output=profilo format=point fs="  " skip=0 x=1 y=2 z=3 cat=0 --overwrite --quiet
 centerline="$GIS_OPT_RIVER"
 inondazione="$GIS_OPT_FLOODING_MAP"
@@ -247,13 +253,13 @@ inondazione="$GIS_OPT_FLOODING_MAP"
 
 #calculation of the "boundaries" of the main channel
 g.region nsres=$res ewres=$res save=dtm_res2 --overwrite 
-g.region -p >> ~/$cartella_nascosta/"region2.txt"                          
-r.out.ascii -h input=$dtm output=$cartella_nascosta/"dtm2x2" null=0 --quiet					 
+g.region -p >> "$TMPDIR"/"region2.txt"                          
+r.out.ascii -h input=$dtm output="$TMPDIR"/"dtm2x2" null=0 --quiet					 
 
 #fortran code run
 cd
-cp "$quote100" ~/$cartella_nascosta/quote_100
-cd $cartella_nascosta
+cp "$quote100" "$TMPDIR"/quote_100
+cd "$TMPDIR"
 echo	$res $deltax $deltay > parameter.txt
 echo "'"region2.txt"'"	"'"dtm2x2"'"	"'"limiti_alveo_vect"'"	"'"quote_100"'" > nomefile.txt
 g.message "Fortran code that automatically find bed river"
@@ -267,15 +273,15 @@ then
 	exit 1
 fi
 cd
-v.in.ascii --o input=$cartella_nascosta/limiti_alveo_vect output=limiti_alveo format=point fs='     ' skip=0 x=1 y=2 cat=0 --quiet
+v.in.ascii --o input="$TMPDIR"/limiti_alveo_vect output=limiti_alveo format=point fs='     ' skip=0 x=1 y=2 cat=0 --quiet
 
 
 #export of 20x20 dtm, region20.txt and region10.txt
 g.region nsres=$res20 ewres=$res20 save=dtm_res20 --overwrite
-g.region -p >> ~/$cartella_nascosta/region20.txt                           
-r.out.ascii -h input=$dtm output=$cartella_nascosta/dtm20x20 null=0 --quiet	
+g.region -p >> "$TMPDIR"/region20.txt                           
+r.out.ascii -h input=$dtm output="$TMPDIR"/dtm20x20 null=0 --quiet	
 g.region nsres=$res10 ewres=$res10 save=dtm_res10 --overwrite
-g.region -p >> ~/$cartella_nascosta/region10.txt      
+g.region -p >> "$TMPDIR"/region10.txt      
 
 	
 g.message "STEP 1"
@@ -308,13 +314,13 @@ g.message "STEP 3"
 # export data 
 #20x20
 g.region region=dtm_res20
-r.out.ascii -h input=inondazione_step2 output=$cartella_nascosta/inondazione_step2 null=0 --quiet
-r.out.ascii -h input=quote_punti_adiacenti output=$cartella_nascosta/quote_punti_adiacenti dp=2 null=0 --quiet
+r.out.ascii -h input=inondazione_step2 output="$TMPDIR"/inondazione_step2 null=0 --quiet
+r.out.ascii -h input=quote_punti_adiacenti output="$TMPDIR"/quote_punti_adiacenti dp=2 null=0 --quiet
 
 # FORTRAN code 
 g.message "CODE FORTRAN OF STEP 3"
 cd
-cd $cartella_nascosta
+cd "$TMPDIR"
 echo "'"inondazione_step2"'"  "'"profilo"'"  "'"inondazione_nuova.txt"'" "'"quote_punti_adiacenti"'" "'"region20.txt"'" "'"region2.txt"'" "'"dtm2x2"'" > nomefile.txt 
 ./clean_inundation
 rm nomefile.txt
@@ -328,18 +334,18 @@ fi
 cd
 
 # output file
-r.in.ascii input=$cartella_nascosta/inondazione_nuova.txt output=inondazione_step3 'mult=1.0 or read from header' nv=0 --overwrite --quiet
+r.in.ascii input="$TMPDIR"/inondazione_nuova.txt output=inondazione_step3 'mult=1.0 or read from header' nv=0 --overwrite --quiet
 
 
 g.message "STEP 4"
 ###################################################################################################################
 # STEP 4 - calcolation of the 2d_path outside the main channel
 ###################################################################################################################
-r.out.ascii -h input=inondazione_step3 output=$cartella_nascosta/inondazione_step3 null=0 --quiet
+r.out.ascii -h input=inondazione_step3 output="$TMPDIR"/inondazione_step3 null=0 --quiet
 
 g.message "2D MODEL OF DIFFUSION OF FLOODING INONDATION OUTSIDE THE MAIN CHANEL"
 cd
-cd $cartella_nascosta
+cd "$TMPDIR"
 echo "'"profilo"'"  "'"inondazione_step3"'"  "'"reticolo"'" "'"region20.txt"'" "'"dtm20x20"'"  "'"limiti_alveo_vect"'"  "'"region2.txt"'" "'"dtm2x2"'" "'"bordi_alveo"'" > nomefile.txt
 ./2d_path 
 rm nomefile.txt
@@ -353,11 +359,11 @@ fi
 cd
 
 
-#r.in.ascii input=$cartella_nascosta/bordi_alveo output=bordi_alveo 'mult=1.0 or read from header' nv=0 --overwrite 
+#r.in.ascii input="$TMPDIR"/bordi_alveo output=bordi_alveo 'mult=1.0 or read from header' nv=0 --overwrite 
 #r.thin input=bordi_alveo output=bordi_alveo_thin iterations=200 --overwrite 
 #r.to.vect input=bordi_alveo_thin output=bordi_alveo feature=line --overwrite 
-v.in.ascii -n input=$cartella_nascosta/bordi_alveo output=bordi_alveo format=standard fs=' ' skip=0 x=1 y=2 z=0 cat=0 --quiet
-r.in.ascii input=$cartella_nascosta/reticolo output=reticolo 'mult=1.0 or read from header' nv=* --overwrite --quiet
+v.in.ascii -n input="$TMPDIR"/bordi_alveo output=bordi_alveo format=standard fs=' ' skip=0 x=1 y=2 z=0 cat=0 --quiet
+r.in.ascii input="$TMPDIR"/reticolo output=reticolo 'mult=1.0 or read from header' nv=* --overwrite --quiet
 r.thin input=reticolo output=reticolo_thin iterations=200 --overwrite --quiet
 r.to.vect input=reticolo_thin output=reticolo feature=line --overwrite --quiet
 g.remove rast=reticolo_thin --quiet
@@ -375,8 +381,8 @@ r.mapcalculator amap=diff_inond formula='if(A,1,0,0)' outfile=diff_inond help=- 
 r.null map=diff_inond setnull=0 --quiet
 r.to.vect input=diff_inond output=diff_inond1 feature=area --overwrite --quiet
 #to use the v.select command the line must have a layer associated  ==> export of vector map in dxf format and then import the dxf file
-v.out.dxf input=reticolo output=$cartella_nascosta/reticolo.dxf --quiet
-v.in.dxf -1 input=$cartella_nascosta/reticolo.dxf output=reticolo --overwrite --quiet
+v.out.dxf input=reticolo output="$TMPDIR"/reticolo.dxf --quiet
+v.in.dxf -1 input="$TMPDIR"/reticolo.dxf output=reticolo --overwrite --quiet
 
 #only 2d_path overlapped the surfaces to look
 v.select ainput=reticolo atype=line alayer=1 binput=diff_inond1 btype=area blayer=1 output=reticolo_interno operator=overlap --overwrite --quiet
@@ -393,14 +399,14 @@ v.drape input=punti_reticolo_interno type=point,centroid,line,boundary,face,kern
 g.region region=dtm_res10 
 
 #export of 3d points
-v.out.ascii input=punti3d_reticolo output=$cartella_nascosta/punti3d_reticolo format=point dp=2 --quiet
-r.out.ascii -h input=diff_inond output=$cartella_nascosta/diff_inond null=0 --quiet
+v.out.ascii input=punti3d_reticolo output="$TMPDIR"/punti3d_reticolo format=point dp=2 --quiet
+r.out.ascii -h input=diff_inond output="$TMPDIR"/diff_inond null=0 --quiet
 
 
 
 g.message "FORTRAN CODE OF STEP 4"
 cd
-cd $cartella_nascosta
+cd "$TMPDIR"
 echo "'"diff_inond"'"  "'"punti3d_reticolo"'" "'"correzione"'" "'"region10.txt"'" "'"dtm2x2"'" "'"region2.txt"'" > nomefile.txt
 ./correction_from_path  
 rm nomefile.txt
@@ -414,7 +420,7 @@ fi
 cd
 
 
-r.in.ascii input=$cartella_nascosta/correzione output=inondazione_step5 'mult=1.0 or read from header' nv=0 --overwrite --quiet
+r.in.ascii input="$TMPDIR"/correzione output=inondazione_step5 'mult=1.0 or read from header' nv=0 --overwrite --quiet
 
 # replace null cells with 0 cells
 g.region region=dtm_res2 
@@ -500,7 +506,7 @@ else
   g.remove vect=bordi_alveo,limiti_alveo --quiet
 fi
 
-rm -r ~/$cartella_nascosta
+rm -r "$TMPDIR"
 
 
 

@@ -1,4 +1,4 @@
-MODULE_TOPDIR = ../..
+MODULE_TOPDIR = /usr/local/grass-6.3.0RC4
 
 PGM = r.inund.fluv
 
@@ -29,4 +29,3 @@ html:
 
 clean:
 	-rm -f find_main_channel$(EXE) clean_inundation$(EXE) 2d_path$(EXE) correction_from_path$(EXE) dati.mod dd.mod	
-	
