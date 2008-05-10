@@ -1,8 +1,10 @@
 # Color rules for MODIS SST
 #  Original palettes from Goddard's OceanColor
-#  http://oceancolor.gsfc.nasa.gov/PRODUCTS/colorbars.html
+#    http://oceancolor.gsfc.nasa.gov/PRODUCTS/colorbars.html
+#  Extended to -3degC to cover Pathfinder AVHRR data
 #
 nv black
+-3.0 91:10:118
 -2.000000 91:10:118
 -1.997848 99:9:139
 -1.994263 112:7:171
