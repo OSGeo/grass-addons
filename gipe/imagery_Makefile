@@ -50,6 +50,7 @@ SUBDIRS1 = \
 	i.group \
 	i.his.rgb \
 	i.latitude \
+	i.lmf \
 	i.longitude \
 	i.landsat.dehaze \
 	i.maxlik \
