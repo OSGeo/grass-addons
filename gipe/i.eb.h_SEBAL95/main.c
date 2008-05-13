@@ -23,7 +23,7 @@
 #include <grass/gis.h>
 #include <math.h>
 #include <grass/glocale.h>
-#include <omp.h>
+/*#include <omp.h>*/
 
 double sensi_h( double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert);
 
@@ -35,7 +35,6 @@ int main(int argc, char *argv[])
 	/* buffer for in out raster */
 	DCELL *inrast_T,*inrast_ndvi,*inrast_u2,*inrast_DEM;
 	DCELL *inrast_Rn,*inrast_g0,*inrast_albedo,*outrast;
-	unsigned char *h0;
 	
 	int nrows, ncols;
 	int row, col;
@@ -47,6 +46,7 @@ int main(int argc, char *argv[])
 	char *mapset_T,*mapset_ndvi,*mapset_u2,*mapset_DEM;
 	char *mapset_Rn,*mapset_g0,*mapset_albedo;
 	char *T, *ndvi, *u2, *DEM, *Rn, *g0, *albedo; 
+	char *h0;
 	
         struct History history;
 	struct GModule *module;
@@ -274,9 +274,9 @@ int main(int argc, char *argv[])
 	{
 		if (G_get_d_raster_row (infd_ndvi, inrast_ndvi, row) < 0)
 			G_fatal_error (_("Could not read from <%s>"),ndvi);
-		#pragma omp for parallel default (shared) \
+	/*	#pragma omp for parallel default (shared) \
 			shared(ncols,nrows) \
-			private (col,row,d_ndvi)
+			private (col,row,d_ndvi)*/
 		for (col=0; col < ncols; col++)
 		{
 			switch(data_type_ndvi){
@@ -313,9 +313,9 @@ int main(int argc, char *argv[])
 	if(flag1->answer){
 		/* THREAD 2 */
 		/* Process tempk min / max pixels */
-		#pragma omp for parallel default (shared) \
+	/*	#pragma omp for parallel default (shared) \
 			shared(ncols,nrows) \
-			private (col,row,d_albedo,d_tempk,d_dem,d_t0dem,d_Rn,d_g0)
+			private (col,row,d_albedo,d_tempk,d_dem,d_t0dem,d_Rn,d_g0)*/
 		for (row = 0; row < nrows; row++){
 			DCELL d_albedo;
 			DCELL d_tempk;
@@ -553,7 +553,7 @@ int main(int argc, char *argv[])
 				if (zero->answer && d<0.0){
 					d=0.0;
 				}
-				((DCELL *) outrast)[col] = d;
+				outrast[col] = d;
 			}
 		}
 		if (G_put_d_raster_row (outfd, outrast) < 0)

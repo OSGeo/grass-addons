@@ -8,7 +8,7 @@
 #include "functions.h"
 
 /* Arrays Declarations */
-#define ITER_MAX 10
+#define ITER_MAX 3
 
 double sensi_h( double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert)
 {
