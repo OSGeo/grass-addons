@@ -9,35 +9,18 @@ r.inund.fluv use the following fortran codes:
 
 ***************************REQUEST ********************************
 The installation of this code requests a fortran compiler installed on your computer. 
-The installation script (install.sh) is written for gnu fortran compiler with optimization.
-(http://www.gnu.org/software/gcc/fortran/)
-If you have an other compiler you may change the install script  (install.sh)
-
-e.g.
-gfortran -O1 -o ***.exe ***.f90
-
-where 
-*) `gfortran´ is the name of your compiler
-*) `-O1´  is the optimization option
-*) `-o ***.exe´ is the name of output executable (DO NOT CHANGE!)
-*) `***.f90´ is the name of code                 (DO NOT CHANGE!)
 
 For any other informations contact the autors of the script 
 (see description.html)
 ******************************************************************
-
-Now we're adjusting the Makefile and a simple installation is wi
-
-
+**************** Users of GRASS 6.3 ******************************
+1) open the Makefile with a text editor
+2) change the relative path MODULE_TOPDIR = ../.. with the GISBASE directory
+3) make
+4) go in the source grass directory 
+5) make install 
 
 **************** Users of GRASS 6.3 ******************************
-1) 
-
-
-**************** Users of GRASS 6.2 ******************************
-1) Change the name of the script for GRASS 6.3.x releases
-mv r.inund.fluv r.inund.fluv_63
-2) Change the name of script for grass 6.2.x releases
-mv r.inund.fluv_62 r.inund.fluv
-3) 
-
+Rename the grass scripts:
+ r.inund.fluv --> r.inund.fluv_63
+ r.inund.fluv_62 --> r.inund.fluv 
