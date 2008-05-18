@@ -10,11 +10,14 @@ double solar_day(double lat, double doy, double tsw )
 {
 	double ws, cosun, latrad, delta, deltarad, ds, result;
 
-
+	//Sun-Earth Distance (ds; A.U.)
 	ds = 1.0 + 0.01672 * sin(2*PI*(doy-93.5)/365.0);
+	//Solar declination (delta; radians)
 	deltarad = 0.4093*sin((2*PI*doy/365)-1.39);
+	//Convert latitude in radians
 	latrad =  lat * PI / 180.0;
 	
+	//Convert latitude in radians
 	ws = acos(-tan(latrad)*tan(deltarad));
 	cosun = ws*sin(deltarad)*sin(latrad)+cos(deltarad)*cos(latrad)*sin(ws);
 	

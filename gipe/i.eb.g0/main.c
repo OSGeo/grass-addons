@@ -34,9 +34,9 @@ int main(int argc, char *argv[])
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5, *output1;
 	
-	struct Flag *flag1;	
+	struct Flag *flag1, *flag2;	
 	struct History history; //metadata
-	
+	struct Colors colors; //metadata
 	/************************************/
 	/* FMEO Declarations*****************/
 	char *name;   // input raster name
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_albedo, *inrast_ndvi, *inrast_tempk, *inrast_rnet, *inrast_time;
-	unsigned char *outrast;
+	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_albedo;
 	RASTER_MAP_TYPE data_type_ndvi;
@@ -99,6 +99,7 @@ int main(int argc, char *argv[])
 	flag1 = G_define_flag();
 	flag1->key = 'r';
 	flag1->description = _("HAPEX-Sahel empirical correction (Roerink, 1995)");
+	
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -184,6 +185,7 @@ int main(int argc, char *argv[])
 		DCELL d_rnet;
 		DCELL d_time;
 		G_percent(row,nrows,2);
+//		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
 			G_fatal_error(_("Could not read from <%s>"),albedo);
@@ -253,21 +255,17 @@ int main(int argc, char *argv[])
 					d_time = ((DCELL *) inrast_time)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_albedo)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_ndvi)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_tempk)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_rnet)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_time)){
-				((DCELL *) outrast)[col] = -999.99;
+			if(G_is_d_null_value(&d_albedo)||
+			G_is_d_null_value(&d_ndvi)||
+			G_is_d_null_value(&d_tempk)||
+			G_is_d_null_value(&d_rnet)||
+			G_is_d_null_value(&d_time)){
+			G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
 				/* calculate soil heat flux	    */
 				d = g_0(d_albedo,d_ndvi,d_tempk,d_rnet,d_time,roerink);
-				((DCELL *) outrast)[col] = d;
+				outrast[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
@@ -288,6 +286,9 @@ int main(int argc, char *argv[])
 	G_free (outrast);
 	G_close_cell (outfd);
 
+	/* Colors in grey shade */
+	G_init_colors(&colors);
+	G_add_color_rule(0.0,0,0,0,200.0,255,255,255,&colors);
 	G_short_history(result, "raster", &history);
 	G_command_history(&history);
 	G_write_history(result,&history);

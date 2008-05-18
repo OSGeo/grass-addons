@@ -29,14 +29,13 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5;
 	struct Option *input6, *input7, *input8, *input9, *output1;
 	
 	struct Flag *flag1;	
 	struct History history; //metadata
-	
+	struct Colors colors; //Color rules
 	/************************************/
 	/* FMEO Declarations*****************/
 	char *name;   // input raster name
@@ -46,7 +45,8 @@ int main(int argc, char *argv[])
 	int infd_emissivity, infd_tsw, infd_doy, infd_sunzangle;
 	int outfd;
 	
-	char *albedo,*ndvi,*tempk,*time,*dtair,*emissivity,*tsw,*doy,*sunzangle;
+	char *albedo,*ndvi,*tempk,*time,*dtair,*emissivity;
+	char *tsw,*doy,*sunzangle;
 	
 	int i=0,j=0;
 	
@@ -54,7 +54,8 @@ int main(int argc, char *argv[])
 	void *inrast_time, *inrast_dtair, *inrast_emissivity, *inrast_tsw;
 	void *inrast_doy, *inrast_sunzangle;
 
-	unsigned char *outrast;
+	DCELL *outrast;
+
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_albedo;
 	RASTER_MAP_TYPE data_type_ndvi;
@@ -74,89 +75,55 @@ int main(int argc, char *argv[])
 	module->description = _("net radiation approximation (Bastiaanssen, 1995)");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("albedo");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the Albedo map [0.0;1.0]");
 	input1->answer     =_("albedo");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("ndvi");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster");
 	input2->description=_("Name of the ndvi map [-1.0;+1.0]");
 	input2->answer     =_("ndvi");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("tempk");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the Surface temperature map [degree Kelvin]");
 	input3->answer     =_("tempk");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("time");
-	input4->type       = TYPE_STRING;
-	input4->required   = YES;
-	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the map of local UTC time of satellite overpass [hh.hhh]");
 	input4->answer     =_("time");
 
-	input5 = G_define_option() ;
+	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("dtair");
-	input5->type       = TYPE_STRING;
-	input5->required   = YES;
-	input5->gisprompt  =_("old,cell,raster");
 	input5->description=_("Name of the difference of temperature from surface skin to about 2 m height [K]");
 	input5->answer     =_("dtair");
 	
-	input6 = G_define_option() ;
+	input6 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input6->key        =_("emissivity");
-	input6->type       = TYPE_STRING;
-	input6->required   = YES;
-	input6->gisprompt  =_("old,cell,raster");
 	input6->description=_("Name of the emissivity map [-]");
 	input6->answer     =_("emissivity");
 
-	input7 = G_define_option() ;
+	input7 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input7->key        =_("tsw");
-	input7->type       = TYPE_STRING;
-	input7->required   = YES;
-	input7->gisprompt  =_("old,cell,raster");
 	input7->description=_("Name of the single-way atmospheric transmissivitymap [-]");
 	input7->answer     =_("tsw");
 
-	input8 = G_define_option() ;
+	input8 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input8->key        =_("doy");
-	input8->type       = TYPE_STRING;
-	input8->required   = YES;
-	input8->gisprompt  =_("old,cell,raster");
 	input8->description=_("Name of the Day Of Year (DOY) map [-]");
 	input8->answer     =_("doy");
 
-	input9 = G_define_option() ;
+	input9 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input9->key        =_("sunzangle");
-	input9->type       = TYPE_STRING;
-	input9->required   = YES;
-	input9->gisprompt  =_("old,cell,raster");
 	input9->description=_("Name of the sun zenith angle map [degrees]");
 	input9->answer     =_("sunzangle");
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	output1->key        =_("rnet");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output rnet layer");
 	output1->answer     =_("rnet");
-
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 
 	/********************/
 	if (G_parser(argc, argv))
@@ -173,7 +140,6 @@ int main(int argc, char *argv[])
 	sunzangle	= input9->answer;
 
 	result  = output1->answer;
-	verbose = (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(albedo, "");
 	if (mapset == NULL) {
@@ -294,8 +260,7 @@ int main(int argc, char *argv[])
 		DCELL d_tsw;
 		DCELL d_doy;
 		DCELL d_sunzangle;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 		/* read input maps */	
 		if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
 			G_fatal_error(_("Could not read from <%s>"),albedo);
@@ -318,6 +283,7 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
+			//printf("row:%d\tcol:%d\n",row,col);
 			switch(data_type_albedo){
 				case CELL_TYPE:
 					d_albedo = (double) ((CELL *) inrast_albedo)[col];
@@ -326,7 +292,7 @@ int main(int argc, char *argv[])
 					d_albedo = (double) ((FCELL *) inrast_albedo)[col];
 					break;
 				case DCELL_TYPE:
-					d_albedo = ((DCELL *) inrast_albedo)[col];
+					d_albedo = (double) ((DCELL *) inrast_albedo)[col];
 					break;
 			}
 			switch(data_type_ndvi){
@@ -348,7 +314,7 @@ int main(int argc, char *argv[])
 					d_tempk = (double) ((FCELL *) inrast_tempk)[col];
 					break;
 				case DCELL_TYPE:
-					d_tempk = ((DCELL *) inrast_tempk)[col];
+					d_tempk = (double) ((DCELL *) inrast_tempk)[col];
 					break;
 			}
 			switch(data_type_dtair){
@@ -359,7 +325,7 @@ int main(int argc, char *argv[])
 					d_dtair = (double) ((FCELL *) inrast_dtair)[col];
 					break;
 				case DCELL_TYPE:
-					d_dtair = ((DCELL *) inrast_dtair)[col];
+					d_dtair = (double) ((DCELL *) inrast_dtair)[col];
 					break;
 			}
 			switch(data_type_time){
@@ -370,7 +336,7 @@ int main(int argc, char *argv[])
 					d_time = (double) ((FCELL *) inrast_time)[col];
 					break;
 				case DCELL_TYPE:
-					d_time = ((DCELL *) inrast_time)[col];
+					d_time = (double) ((DCELL *) inrast_time)[col];
 					break;
 			}
 			switch(data_type_emissivity){
@@ -381,7 +347,7 @@ int main(int argc, char *argv[])
 					d_emissivity = (double) ((FCELL *) inrast_emissivity)[col];
 					break;
 				case DCELL_TYPE:
-					d_emissivity = ((DCELL *) inrast_emissivity)[col];
+					d_emissivity = (double) ((DCELL *) inrast_emissivity)[col];
 					break;
 			}
 			switch(data_type_tsw){
@@ -392,7 +358,7 @@ int main(int argc, char *argv[])
 					d_tsw = (double) ((FCELL *) inrast_tsw)[col];
 					break;
 				case DCELL_TYPE:
-					d_tsw = ((DCELL *) inrast_tsw)[col];
+					d_tsw = (double) ((DCELL *) inrast_tsw)[col];
 					break;
 			}
 			switch(data_type_doy){
@@ -403,7 +369,7 @@ int main(int argc, char *argv[])
 					d_doy = (double) ((FCELL *) inrast_doy)[col];
 					break;
 				case DCELL_TYPE:
-					d_doy = ((DCELL *) inrast_doy)[col];
+					d_doy = (double) ((DCELL *) inrast_doy)[col];
 					break;
 			}
 			switch(data_type_sunzangle){
@@ -414,38 +380,26 @@ int main(int argc, char *argv[])
 					d_sunzangle = (double) ((FCELL *) inrast_sunzangle)[col];
 					break;
 				case DCELL_TYPE:
-					d_sunzangle = ((DCELL *) inrast_sunzangle)[col];
+					d_sunzangle = (double) ((DCELL *) inrast_sunzangle)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_albedo)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_ndvi)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_tempk)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_dtair)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_time)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_emissivity)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_tsw)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_doy)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_sunzangle)){
-				((DCELL *) outrast)[col] = -999.99;
+			if(G_is_d_null_value(&d_albedo)||
+			G_is_d_null_value(&d_ndvi)||
+			G_is_d_null_value(&d_tempk)||
+			G_is_d_null_value(&d_dtair)||
+			G_is_d_null_value(&d_time)||
+			G_is_d_null_value(&d_emissivity)||
+			G_is_d_null_value(&d_tsw)||
+			G_is_d_null_value(&d_doy)||
+			G_is_d_null_value(&d_sunzangle)){
+				G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
 				/* calculate the net radiation	    */
 				d = r_net(d_albedo,d_ndvi,d_tempk,d_dtair,d_emissivity,d_tsw,d_doy,d_time,d_sunzangle); 
-		//		printf(" || d=%5.3f",d);
-				((DCELL *) outrast)[col] = d;
+				outrast[col] = d;
 		//		printf(" -> %5.3f\n",d);
 			}
-		//	if(row==50){
-		//		exit(EXIT_SUCCESS);
-		//	}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
@@ -472,7 +426,11 @@ int main(int argc, char *argv[])
 	
 	G_free (outrast);
 	G_close_cell (outfd);
-
+	
+	/* Colors in grey shade */
+	G_init_colors(&colors);
+	G_add_color_rule(0,0,0,0,900,255,255,255,&colors);
+	/* Metadata */
 	G_short_history(result, "raster", &history);
 	G_command_history(&history);
 	G_write_history(result,&history);
