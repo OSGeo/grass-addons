@@ -25,7 +25,7 @@
 #include <grass/glocale.h>
 /*#include <omp.h>*/
 
-double sensi_h( double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert);
+double sensi_h( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert);
 
 int main(int argc, char *argv[])
 {	
@@ -54,6 +54,7 @@ int main(int argc, char *argv[])
 	struct Option *input_Rn, *input_g0, *input_albedo, *output;
 	struct Option *input_row_wet, *input_col_wet;
 	struct Option *input_row_dry, *input_col_dry;
+	struct Option *input_iter;
 	struct Flag *flag1, *day, *zero;
 	/*******************************/
 	RASTER_MAP_TYPE data_type_T;
@@ -65,8 +66,9 @@ int main(int argc, char *argv[])
 	RASTER_MAP_TYPE data_type_albedo;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	/*******************************/
+	int iteration = 10; /*SEBAL95 loop number*/
 	/********************************/
-	/* Stats for Senay equation	*/
+	/* Stats for dry/wet pixels	*/
 	double t0dem_min=400.0,t0dem_max=200.0;
 	double tempk_min=400.0,tempk_max=200.0;
 	/********************************/
@@ -111,6 +113,14 @@ int main(int argc, char *argv[])
 	input_albedo->required	= NO;
 	input_albedo->description = _("With Flag \"-a\": Name of Albedo input map [-]");
 	input_albedo->guisection = _("Optional");
+	
+	input_iter 		= G_define_option();
+	input_iter->key		= "iteration";
+	input_iter->type	= TYPE_INTEGER;
+	input_iter->required 	= NO;
+	input_iter->gisprompt 	= "old,value";
+	input_iter->description	= _("Value of the number of SEBAL95 loops (default is 10)");
+	input_iter->guisection	= _("Optional");
 	
 	input_row_wet 			= G_define_option();
 	input_row_wet->key		= "row_wet";
@@ -171,6 +181,9 @@ int main(int argc, char *argv[])
 	albedo	= input_albedo->answer;
 	h0	= output->answer;
 
+	if(input_iter->answer){
+		iteration=atoi(input_iter->answer);
+	}
 	if(input_row_wet->answer){
 		row_wet = atoi(input_row_wet->answer);
 		col_wet = atoi(input_col_wet->answer);
@@ -549,7 +562,7 @@ int main(int argc, char *argv[])
 				G_message("****InLoop d_dem=%5.3f",d_dem);
 				G_message("****InLoop d_tempk=%5.3f",d_tempk);*/
 				/* Calculate sensible heat flux */
-				d = sensi_h(d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_ndvi,d_ndvi_max,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u2m,d_dem_dry);
+				d = sensi_h(iteration,d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_ndvi,d_ndvi_max,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u2m,d_dem_dry);
 				if (zero->answer && d<0.0){
 					d=0.0;
 				}

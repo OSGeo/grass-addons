@@ -8,9 +8,9 @@
 #include "functions.h"
 
 /* Arrays Declarations */
-#define ITER_MAX 3
+#define ITER_MAX 10
 
-double sensi_h( double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert)
+double sensi_h( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert)
 {
 	/* Arrays Declarations */
 	double dtair[ITER_MAX], roh_air[ITER_MAX], rah[ITER_MAX];
@@ -25,6 +25,11 @@ double sensi_h( double tempk_water, double tempk_desert, double t0_dem, double t
 	double psih_desert,ustar_desert,ustar_desertold,zom_desert;
 	double psih;
 	double result;
+
+	/* Fat-free junk food */
+	if (iteration>ITER_MAX){
+		iteration=ITER_MAX;
+	}
 
 	if(debug==1){
 		printf("*****************************\n");
@@ -60,7 +65,7 @@ double sensi_h( double tempk_water, double tempk_desert, double t0_dem, double t
 /*----------------------------------------------------------------*/
 /*Main iteration loop of SEBAL*/
 	zom[0] = zom0;
-	for(ic=1;ic<ITER_MAX+1;ic++){
+	for(ic=1;ic<iteration+1;ic++){
 		if(debug==1){
 			printf("\n ******** ITERATION %i *********\n",ic);
 		}
@@ -102,6 +107,6 @@ double sensi_h( double tempk_water, double tempk_desert, double t0_dem, double t
 			printf("h[%i] 		= %5.3f W/m2\n",ic, h[ic]);
 		}
 	}
-	return h[ITER_MAX];
+	return h[iteration];
 }
  

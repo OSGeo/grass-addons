@@ -40,7 +40,7 @@ main(int argc, char *argv[])
 	struct Flag *flag1, *flag2, *flag3;
 	struct Flag *flag4, *flag5, *flag6;
 	struct History history; //metadata
-
+	struct Colors colors; //Color rules
 	/************************************/
 	/* FMEO Declarations*****************/
 	char *name; //input raster name
@@ -410,5 +410,14 @@ main(int argc, char *argv[])
 	}
 	G_free (outrast);
 	G_close_cell (outfd);
-	return 0;
+	
+	/* Color table from 0.0 to 1.0 */
+	G_init_colors(&colors);
+	G_add_color_rule(0.0,0,0,0,1.0,255,255,255,&colors);
+	/* Metadata */
+	G_short_history(result,"raster",&history);
+	G_command_history(&history);
+	G_write_history(result,&history);
+
+	exit(EXIT_SUCCESS);
 }

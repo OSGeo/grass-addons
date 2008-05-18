@@ -26,7 +26,7 @@ double r_net_day( double bbalb, double solar, double tsw );
 double et_pot_day( double bbalb, double solar, double tempk, double tsw );
 
 /* Sensible heat flux functions */
-double sensi_h( double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert);
+double sensi_h( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert);
 double roh_air_0(double tempk);
 double zom_0(double ndvi, double ndvi_max);
 double U_0(double zom_0, double u2m);

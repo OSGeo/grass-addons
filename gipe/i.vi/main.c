@@ -48,8 +48,6 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
-
 	char *viflag;// Switch for particular index
 	
 	struct GModule *module;
@@ -57,7 +55,7 @@ int main(int argc, char *argv[])
 	
 	struct Flag *flag1;	
 	struct History history; //metadata
-	
+	struct Colors colors; //Color rules	
 	/************************************/
 	/* FMEO Declarations*****************/
 	char *name;   // input raster name
@@ -71,7 +69,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_redchan, *inrast_nirchan, *inrast_greenchan, *inrast_bluechan, *inrast_chan5chan, *inrast_chan7chan;
-	unsigned char *outrast;
+	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_redchan;
 	RASTER_MAP_TYPE data_type_nirchan;
@@ -152,10 +150,6 @@ int main(int argc, char *argv[])
 	output->description=_("Name of the output vi layer");
 	output->answer     =_("vi");
 
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
-
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -168,7 +162,6 @@ int main(int argc, char *argv[])
 	chan7chan	= input7->answer;
 
 	result  = output->answer;
-	verbose = (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(redchan, "");
 	if (mapset == NULL) {
@@ -262,8 +255,7 @@ int main(int argc, char *argv[])
 		DCELL d_nirchan;
 		DCELL d_chan5chan;
 		DCELL d_chan7chan;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 //		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_redchan,inrast_redchan,row,data_type_redchan)<0)
@@ -365,115 +357,85 @@ int main(int argc, char *argv[])
 			}
 			//	printf("col=%i/%i ",col,ncols);
 		// to change to multiple to output files.
-			if(G_is_d_null_value(&d_redchan)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_nirchan)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if((greenchan)&&G_is_d_null_value(&d_greenchan)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if((bluechan)&&G_is_d_null_value(&d_bluechan)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if((chan5chan)&&G_is_d_null_value(&d_chan5chan)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if((chan7chan)&&G_is_d_null_value(&d_chan7chan)){
-				((DCELL *) outrast)[col] = -999.99;
+			if(G_is_d_null_value(&d_redchan)||
+			G_is_d_null_value(&d_nirchan)||
+			((greenchan)&&G_is_d_null_value(&d_greenchan))||
+			((bluechan)&&G_is_d_null_value(&d_bluechan))||
+			((chan5chan)&&G_is_d_null_value(&d_chan5chan))||
+			((chan7chan)&&G_is_d_null_value(&d_chan7chan))){
+				G_set_d_null_value(&outrast[col],1);
 			} else {
 				/************************************/
 				/*calculate simple_ratio        */
 				if (!strcoll(viflag,"sr")){		
 					d =  s_r(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate ndvi	            */
 				if (!strcoll(viflag,"ndvi")){
-					d =  nd_vi(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
-					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
+					if(d_redchan+d_nirchan<0.001){
+						G_set_d_null_value(&outrast[col],1);
+					} else {
+						d =  nd_vi(d_redchan,d_nirchan );
+						((DCELL *) outrast)[col] = d;
+					}
 				}
 				/*calculate ipvi	            */
 				if (!strcoll(viflag,"ipvi")){
 					d =  ip_vi(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate dvi	            */
 				if (!strcoll(viflag,"dvi")){
 					d =  d_vi(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate pvi	            */
 				if (!strcoll(viflag,"pvi")){
 					d =  p_vi(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate wdvi	            */
 				if (!strcoll(viflag,"wdvi")){
 					d =  wd_vi(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate savi	            */
 				if (!strcoll(viflag,"savi")){
 					d =  sa_vi(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate msavi	            */
 				if (!strcoll(viflag,"msavi")){
 					d =  msa_vi(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate msavi2            */
 				if (!strcoll(viflag,"msavi2")){
 					d =  msa_vi2(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate gemi	            */
 				if (!strcoll(viflag,"gemi")){
 					d =  ge_mi(d_redchan,d_nirchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate arvi	            */
 				if (!strcoll(viflag,"arvi")){
 					d =  ar_vi(d_redchan,d_nirchan,d_bluechan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 				/*calculate gvi            */
 				if (!strcoll(viflag,"gvi")){
 					d =  g_vi(d_bluechan,d_greenchan,d_redchan,d_nirchan,d_chan5chan,d_chan7chan);
-				//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-				//printf(" -> %5.3f\n",d);
 				}
 				/*calculate gari	            */
 				if (!strcoll(viflag,"gari")){
 					d =  ga_ri(d_redchan,d_nirchan,d_bluechan,d_greenchan );
-					//printf(" || d=%5.3f",d);
 					((DCELL *) outrast)[col] = d;
-					//printf(" -> %5.3f\n",d);
 				}
 			}
-		//	if(row==50){
-		//		exit(EXIT_SUCCESS);
-		//	}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
@@ -502,7 +464,10 @@ int main(int argc, char *argv[])
 	}
 	G_free(outrast);
 	G_close_cell(outfd);
-	
+
+	/* Color from -1.0 to +1.0 in grey */
+	G_init_colors(&colors);
+	G_add_color_rule(-1.0,0,0,0,1.0,255,255,255,&colors);
 	G_short_history(result, "raster", &history);
 	G_command_history(&history);
 	G_write_history(result,&history);
