@@ -13,8 +13,7 @@ double solar_day(double lat, double doy, double tsw )
 
 
 	ds = 1.0 + 0.01672 * sin(2*PI*(doy-93.5)/365.0);
-	delta = 0.4093*sin((2*PI*doy/365)-1.39);
-	deltarad = delta*PI/180.0;
+	deltarad = 0.4093*sin((2*PI*doy/365)-1.39);
 	latrad =  lat * PI / 180.0;
 	
 	ws = acos(-tan(latrad)*tan(deltarad));
