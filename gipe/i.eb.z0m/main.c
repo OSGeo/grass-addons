@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	int heat=0;//Flag for surf. roughness for heat transport output
 	struct GModule *module;
 	struct Option *input1, *input2, *output1, *output2;
@@ -51,7 +50,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_savi;
-	unsigned char *outrast1, *outrast2;
+	DCELL *outrast1, *outrast2;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_savi;
 	/************************************/
@@ -62,11 +61,8 @@ int main(int argc, char *argv[])
 	module->description = _("Momentum roughness length (z0m) and surface roughness for heat transport (z0h) as seen in Pawan (2004)");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("savi");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the SAVI map [-1.0;1.0]");
 	input1->answer     =_("savi");
 
@@ -74,35 +70,24 @@ int main(int argc, char *argv[])
 	input2->key        =_("coef");
 	input2->type       = TYPE_DOUBLE;
 	input2->required   = NO;
-	input2->gisprompt  =_("old,cell,raster");
+	input2->gisprompt  =_("parameter,value");
 	input2->description=_("Value of the converion factor from z0m and z0h (Pawan, 2004, used 0.1)");
 	input2->answer     =_("0.1");
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("z0m");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output z0m layer");
 	output1->answer     =_("z0m");
 
-	output2 = G_define_option() ;
+	output2 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output2->key        =_("z0h");
-	output2->type       = TYPE_STRING;
 	output2->required   = NO;
-	output2->gisprompt  =_("new,cell,raster");
 	output2->description=_("Name of the output z0h layer");
 	output2->answer     =_("z0h");
-	
 	
 	flag1 = G_define_flag();
 	flag1->key = 'h';
 	flag1->description = _("z0h output (You have to input a coef value)");
-	
-	flag2 = G_define_flag();
-	flag2->key = 'q';
-	flag2->description = _("Quiet");
-
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -113,7 +98,6 @@ int main(int argc, char *argv[])
 	result1  = output1->answer;
 	result2  = output2->answer;
 	heat    = flag1->answer;
-	verbose = (!flag2->answer);
 	/***************************************************/
 	mapset = G_find_cell2(savi, "");
 	if (mapset == NULL) {
@@ -130,13 +114,13 @@ int main(int argc, char *argv[])
 	nrows = G_window_rows();
 	ncols = G_window_cols();
 	outrast1 = G_allocate_raster_buf(data_type_output);
-	if(heat){
+	if(input2->answer&&output2->answer){
 		outrast2 = G_allocate_raster_buf(data_type_output);
 	}
 	/* Create New raster files */
 	if ( (outfd1 = G_open_raster_new (result1,data_type_output)) < 0)
 		G_fatal_error(_("Could not open <%s>"),result1);
-	if(heat){
+	if(input2->answer&&output2->answer){
 		if ( (outfd2 = G_open_raster_new (result2,data_type_output)) < 0)
 			G_fatal_error(_("Could not open <%s>"),result2);
 	}
@@ -146,9 +130,7 @@ int main(int argc, char *argv[])
 		DCELL d;
 		DCELL d_savi;
 		DCELL d_z0h;
-		if(verbose)
-			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
+		G_percent(row,nrows,2);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_savi,inrast_savi,row,data_type_savi)<0)
 			G_fatal_error(_("Could not read from <%s>"),savi);
@@ -157,25 +139,25 @@ int main(int argc, char *argv[])
 		{
 			d_savi = ((DCELL *) inrast_savi)[col];
 			if(G_is_d_null_value(&d_savi)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if(heat){
-					((DCELL *) outrast2)[col] = -999.99;
+				G_set_d_null_value(&outrast1[col],1);
+				if(input2->answer&&output2->answer){
+					G_set_d_null_value(&outrast2[col],1);
 				}
 			}else {
 				/****************************/
 				/* calculate z0m	    */
 				d = z_0m(d_savi);
-				((DCELL *) outrast1)[col] = d;
-				if(heat){
-					d_z0h = d*coef_z0h;
-					((DCELL *) outrast2)[col] = d;
+				outrast1[col] = d;
+				if(input2->answer&&output2->answer){
+					d_z0h = d * coef_z0h;
+					outrast2[col] = d_z0h;
 				}
 			}
 		}
-		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
+		if (G_put_raster_row(outfd1,outrast1,data_type_output)<0)
 			G_fatal_error(_("Cannot write to output raster file"));
-		if(heat){
-			if (G_put_raster_row (outfd2, outrast2, data_type_output) < 0)
+		if(input2->answer&&output2->answer){
+			if (G_put_raster_row(outfd2,outrast2,data_type_output)<0)
 				G_fatal_error(_("Cannot write to output raster file"));
 		}
 	}
@@ -186,7 +168,7 @@ int main(int argc, char *argv[])
 	G_free (outrast1);
 	G_close_cell (outfd1);
 	
-	if(heat){
+	if(input2->answer&&output2->answer){
 		G_free (outrast2);
 		G_close_cell (outfd2);
 	}
@@ -195,7 +177,7 @@ int main(int argc, char *argv[])
 	G_command_history(&history);
 	G_write_history(result1,&history);
 
-	if(heat){
+	if(input2->answer&&output2->answer){
 		G_short_history(result2, "raster", &history);
 		G_command_history(&history);
 		G_write_history(result2,&history);
