@@ -94,6 +94,8 @@
 ##   'v.db.select column= | wc -l' to set region size (1xLength)
 ##   then create r.in.ascii 1xLength matrix with data (WITHOUT uniq)
 ##   and run r.colors on that raster map.
+##      or
+##   v.to.rast, r.colors -g, then parse colr/ file. But that's resolution dependent
 
 
 if  [ -z "$GISBASE" ] ; then
@@ -291,6 +293,7 @@ v.db.select map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" column="$GIS_OPT_COLUMN" |
       COLR=`echo $LINE | cut -f2 -d'|'`
       echo "UPDATE $TABLE SET $GIS_OPT_RGB_COLUMN = '$COLR' WHERE $GIS_OPT_COLUMN = $VALUE;" >> "${TMP}_vcol.sql"
   done )
+
 
 if [ ! -e "${TMP}_vcol.sql" ] ; then
     echo "ERROR: No values found in color range"
