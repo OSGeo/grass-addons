@@ -92,37 +92,31 @@ int main(int argc, char *argv[])
 	input1->key	   = _("albedo");
 	input1->description=_("Name of the Albedo map [0.0-1.0]");
 	input1->answer     =_("albedo");
-	input1->guisection = _("Required");
 
 	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("tempk");
 	input2->description=_("Name of the temperature map [Degree Kelvin]");
 	input2->answer     =_("tempk");
-	input2->guisection = _("Required");
 
 	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("dem");
 	input3->description=_("Name of the elevation map [m]");
 	input3->answer     =_("dem");
-	input3->guisection = _("Required");
 
 	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("lat");
 	input4->description=_("Name of the degree latitude map [dd.ddd]");
 	input4->answer     =_("lat");
-	input4->guisection = _("Required");
 
 	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("doy");
 	input5->description=_("Name of the Day of Year map [0.0-366.0]");
 	input5->answer     =_("doy");
-	input5->guisection = _("Required");
 
 	input6 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input6->key        =_("tsw");
 	input6->description=_("Name of the single-way transmissivity map [0.0-1.0]");
 	input6->answer     =_("tsw");
-	input6->guisection = _("Required");
 
 	input7 = G_define_option() ;
 	input7->key        =_("roh_w");
@@ -131,7 +125,6 @@ int main(int argc, char *argv[])
 	input7->gisprompt  =_("value, parameter");
 	input7->description=_("Value of the density of fresh water ~[1000-1020]");
 	input7->answer     =_("1005.0");
-	input7->guisection = _("Required");
 
 	input8 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input8->key        =_("slope");
@@ -151,7 +144,6 @@ int main(int argc, char *argv[])
 	input10->required   = NO;
 	input10->gisprompt  =_("value, parameter");
 	input10->description=_("Value of the apparent atmospheric emissivity (Bandara, 1998 used 0.845 for Sri Lanka)");
-	input10->answer     =_("0.845");
 	input10->guisection = _("Optional");
 
 	input11 = G_define_standard_option(G_OPT_R_INPUT) ;
@@ -170,7 +162,6 @@ int main(int argc, char *argv[])
 	output1->key        =_("eta");
 	output1->description=_("Name of the output Actual ET layer");
 	output1->answer     =_("eta");
-	output1->guisection = _("Required");
 
 	output2 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output2->key        =_("evapfr");
@@ -388,8 +379,9 @@ int main(int argc, char *argv[])
 					d_dem = (double) ((DCELL *) inrast_dem)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_albedo)||G_is_d_null_value(&d_tempk)
-			||G_is_d_null_value(&d_dem)){
+			if(G_is_d_null_value(&d_albedo)||
+			G_is_d_null_value(&d_tempk)||
+			G_is_d_null_value(&d_dem)){
 				/* do nothing */ 
 			} else {
 				d_t0dem = d_tempk + 0.00649*d_dem;
@@ -401,7 +393,8 @@ int main(int argc, char *argv[])
 						t0dem_min=d_t0dem;
 						tempk_min=d_tempk;
 					//}else if(d_t0dem>t0dem_max){
-					}else if(d_tempk>tempk_max){
+					}else if(d_tempk>tempk_max&&
+						d_albedo>0.3){
 						t0dem_max=d_t0dem;
 						tempk_max=d_tempk;
 					}
@@ -558,9 +551,12 @@ int main(int argc, char *argv[])
 						break;
 				}
 			}
-			if(G_is_d_null_value(&d_albedo)||G_is_d_null_value(&d_tempk)
-			||d_tempk<10.0||G_is_d_null_value(&d_lat)||
-			G_is_d_null_value(&d_doy)||G_is_d_null_value(&d_tsw)||
+			if(G_is_d_null_value(&d_albedo)||
+			G_is_d_null_value(&d_tempk)||
+			d_tempk<10.0||
+			G_is_d_null_value(&d_lat)||
+			G_is_d_null_value(&d_doy)||
+			G_is_d_null_value(&d_tsw)||
 			((flag2->answer)&&G_is_d_null_value(&d_slope))||
 			((flag2->answer)&&G_is_d_null_value(&d_aspect))||
 			((flag3->answer)&&G_is_d_null_value(&d_tair))||
@@ -568,10 +564,10 @@ int main(int argc, char *argv[])
 				G_set_d_null_value(&outrast1[col],1);
 				if (result2)
 					G_set_d_null_value(&outrast2[col],1);
-			}else {
+			} else {
 				if(flag2->answer){
 					d_solar = solar_day_3d(d_lat,d_doy,d_tsw,d_slope,d_aspect);
-				}else {
+				} else {
 					d_solar = solar_day(d_lat, d_doy, d_tsw );
 				}
 				d_evapfr = evapfr_senay( tempk_max, tempk_min, d_tempk);
@@ -584,7 +580,7 @@ int main(int argc, char *argv[])
 					d_rnetd = r_net_day(d_albedo,d_solar,d_tsw);
 				}
 				d_etpotd = et_pot_day(d_rnetd,d_tempk,roh_w);
-				d_etpotd *= d_tsw;
+				/*d_etpotd *= d_tsw;*/
 				d = d_etpotd * d_evapfr;
 				outrast1[col] = d;
 			}
@@ -620,11 +616,11 @@ int main(int argc, char *argv[])
 	G_free (outrast1);
 	G_close_cell (outfd1);
 	if (result2){
+		G_free (outrast2);
+		G_close_cell (outfd2);
 		/* Color table for evaporative fraction */
 		G_init_colors(&colors);
 		G_add_color_rule(0,0,0,0,1,255,255,255,&colors);
-		G_free (outrast2);
-		G_close_cell (outfd2);
 		G_short_history(result2, "raster", &history);
 		G_command_history(&history);
 		G_write_history(result2,&history);
