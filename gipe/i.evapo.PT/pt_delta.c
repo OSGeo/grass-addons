@@ -3,18 +3,17 @@
 #include<stdlib.h>
 
 //Prestely and Taylor, 1972. 
+//INPUT in Kelvin
 
 double pt_delta(double tempka)
 {
 	double 	a, b, result;
 	
-	if (tempka > 250.0){
-		tempka = tempka - 273.15;
-	}
-	a = ( 17.27 * tempka ) / ( 237.3 + tempka ) ;
+	tempka -= 273.15;//Celsius
 	b = tempka + 237.3 ;
+	a = ( 17.27 * tempka ) /  b ;
 
-	result = 2504 * exp(a) / pow(b,2) ;
+	result = 2504.0 * exp(a) / pow(b,2) ;
 	
 	return result;
 }

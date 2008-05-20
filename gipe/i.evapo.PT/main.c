@@ -29,19 +29,17 @@ double pt_delta(double tempka);
 double pt_ghamma(double tempka, double p_atm);
 
 //proto ET
-double pt_daily_et(double alpha_pt, double delta_pt, double ghamma_pt, double rnet, double g0 );
+double pt_daily_et(double alpha_pt, double delta_pt, double ghamma_pt, double rnet, double g0, double tempka );
 
 
 int main(int argc, char *argv[])
 {	
 	/* buffer for input-output rasters */
 	void *inrast_TEMPKA,*inrast_PATM,*inrast_RNET,*inrast_G0;
-	
-	unsigned char *outrast;
+	DCELL *outrast;
 	
 	/* pointers to input-output raster files */
 	int infd_TEMPKA,infd_PATM,infd_RNET,infd_G0;
-	
 	int outfd;
 
 	/* mapsets for input raster files */
@@ -49,13 +47,11 @@ int main(int argc, char *argv[])
 
 	/* names of input-output raster files */
 	char *RNET, *TEMPKA, *PATM, *G0;
-	
 	char *ETa; 
 
 	/* input-output cell values */
 	DCELL d_tempka,d_pt_patm,d_rnet,d_g0;
 	DCELL d_pt_alpha, d_pt_delta, d_pt_ghamma, d_daily_et;
-
 
 	/* region informations and handler */
 	struct Cell_head cellhd;
@@ -86,36 +82,24 @@ int main(int argc, char *argv[])
 		"Prestley and Taylor formulation, 1972.");
 	
 	/* Define different options */
-	input_RNET = G_define_option();
+	input_RNET = G_define_standard_option(G_OPT_R_INPUT);
 	input_RNET->key			= "RNET";
 	input_RNET->key_desc		= "[W/m2]";
-	input_RNET->type 		= TYPE_STRING;
-	input_RNET->required 		= YES;
-	input_RNET->gisprompt 		= "old,cell,raster";
 	input_RNET->description 	= _("Name of Net Radiation raster map");
 	
-	input_G0 = G_define_option();
+	input_G0 = G_define_standard_option(G_OPT_R_INPUT);
 	input_G0->key			= "G0";
 	input_G0->key_desc		= "[W/m2]";
-	input_G0->type			= TYPE_STRING;
-	input_G0->required		= YES;
-	input_G0->gisprompt		= "old,cell,raster";
 	input_G0->description		= _("Name of Soil Heat Flux raster map");
 		
-	input_TEMPKA = G_define_option();
+	input_TEMPKA = G_define_standard_option(G_OPT_R_INPUT);
 	input_TEMPKA->key		= "TEMPKA";
 	input_TEMPKA->key_desc		= "[K]";
-	input_TEMPKA->type		= TYPE_STRING;
-	input_TEMPKA->required		= YES;
-	input_TEMPKA->gisprompt		= "old,cell,raster";
 	input_TEMPKA->description	= _("Name of air temperature raster map");
 		
-	input_PATM = G_define_option();
+	input_PATM = G_define_standard_option(G_OPT_R_INPUT);
 	input_PATM->key			= "PATM";
 	input_PATM->key_desc		= "[millibars]";
-	input_PATM->type		= TYPE_STRING;
-	input_PATM->required		= YES;
-	input_PATM->gisprompt		= "old,cell,raster";
 	input_PATM->description		= _("Name of Atmospheric Pressure raster map");
 	
 	input_PT = G_define_option();
@@ -127,19 +111,12 @@ int main(int argc, char *argv[])
 	input_PT->description		= _("Prestley-Taylor Coefficient");
 	input_PT->answer		= "1.26";
 	
-	output = G_define_option() ;
+	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key			= "output";
 	output->key_desc		= "[mm/d]";
-	output->type			= TYPE_STRING;
-	output->required		= YES;
-	output->gisprompt		= "new,cell,raster" ;
 	output->description		= _("Name of output Evapotranspiration layer");
 	
 	/* Define the different flags */
-	flag1 = G_define_flag() ;
-	flag1->key			= 'q' ;
-	flag1->description		= _("quiet");
-	
 	zero = G_define_flag() ;
 	zero->key			= 'z' ;
 	zero->description		= _("set negative ETa to zero");
@@ -222,6 +199,7 @@ int main(int argc, char *argv[])
 	for (row = 0; row < nrows; row++)
 	{
 				
+		G_percent(row, nrows, 2);
 		/* read input raster row into line buffer*/	
 		if (G_get_raster_row (infd_RNET, inrast_RNET, row,data_type_rnet) < 0)
 			G_fatal_error (_("Could not read from <%s>"),RNET);
@@ -285,16 +263,14 @@ int main(int argc, char *argv[])
 			d_pt_ghamma = pt_ghamma(d_tempka, d_pt_patm);
 			
 			//Calculate ET
-			d_daily_et	= pt_daily_et( d_pt_alpha, d_pt_delta, d_pt_ghamma, d_rnet, d_g0 );
+			d_daily_et = pt_daily_et( d_pt_alpha, d_pt_delta, d_pt_ghamma, d_rnet, d_g0, d_tempka );
 			if (zero->answer && d_daily_et<0)
 				d_daily_et=0.0;
 			
 			/* write calculated ETP to output line buffer */
-			((DCELL *) outrast)[col] = d_daily_et;
+			outrast[col] = d_daily_et;
 		}
 		
-		if (!flag1->answer) G_percent(row, nrows, 2);
-
 		/* write output line buffer to output raster file */
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
 			G_fatal_error (_("Cannot write to <%s>"), ETa);
