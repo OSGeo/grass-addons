@@ -85,6 +85,7 @@ SUBDIRS = \
 	r.rescale.eq \
 	r.series \
 	r.slope.aspect \
+	r.soiltex2prop \
 	r.statistics \
 	r.stats \
 	r.sum \

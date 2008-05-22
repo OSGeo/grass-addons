@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4;
 	struct Option *input5, *input6, *input7, *input8, *input9;
-	struct Option *input10, *input11, *input12;
+	struct Option *input10, *input11, *input12, *input13;
 	struct Option *output1, *output2;
 	
 	struct Flag *flag2, *flag3;	
@@ -51,10 +51,11 @@ int main(int argc, char *argv[])
 	int infd_lat, infd_doy, infd_tsw;
 	int infd_slope, infd_aspect;
 	int infd_tair, infd_e0;
+	int infd_ndvi;
 	int outfd1, outfd2;
 	
 	char *albedo,*tempk,*dem,*lat,*doy,*tsw;
-	char *slope,*aspect,*tair,*e0;
+	char *slope,*aspect,*tair,*e0, *ndvi;
 	double roh_w, e_atm;
 	int i=0,j=0;
 	
@@ -63,6 +64,7 @@ int main(int argc, char *argv[])
 	void *inrast_doy, *inrast_tsw;
 	void *inrast_slope, *inrast_aspect;
 	void *inrast_tair, *inrast_e0;
+	void *inrast_ndvi;
 
 	DCELL *outrast1, *outrast2;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
@@ -76,6 +78,7 @@ int main(int argc, char *argv[])
 	RASTER_MAP_TYPE data_type_aspect;
 	RASTER_MAP_TYPE data_type_tair;
 	RASTER_MAP_TYPE data_type_e0;
+	RASTER_MAP_TYPE data_type_ndvi;
 	/********************************/
 	/* Stats for Senay equation	*/
 	double t0dem_min=400.0,t0dem_max=200.0;
@@ -122,7 +125,6 @@ int main(int argc, char *argv[])
 	input7->key        =_("roh_w");
 	input7->type       = TYPE_DOUBLE;
 	input7->required   = YES;
-	input7->gisprompt  =_("value, parameter");
 	input7->description=_("Value of the density of fresh water ~[1000-1020]");
 	input7->answer     =_("1005.0");
 
@@ -142,7 +144,6 @@ int main(int argc, char *argv[])
 	input10->key        =_("e_atm");
 	input10->type       = TYPE_DOUBLE;
 	input10->required   = NO;
-	input10->gisprompt  =_("value, parameter");
 	input10->description=_("Value of the apparent atmospheric emissivity (Bandara, 1998 used 0.845 for Sri Lanka)");
 	input10->guisection = _("Optional");
 
@@ -157,6 +158,11 @@ int main(int argc, char *argv[])
 	input12->required   = NO;
 	input12->description=_("Name of the Surface Emissivity map [-], use with -b");
 	input12->guisection = _("Optional");
+
+	input13 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input13->key        =_("ndvi");
+	input13->description=_("Name of the NDVI map [-]");
+	input13->answer     =_("ndvi");
 
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("eta");
@@ -189,9 +195,12 @@ int main(int argc, char *argv[])
 	roh_w	 	= atof(input7->answer);
 	slope	 	= input8->answer;
 	aspect	 	= input9->answer;
-	e_atm	 	= atof(input10->answer);
+	if(input10->answer){
+		e_atm 	= atof(input10->answer);
+	}
 	tair	 	= input11->answer;
 	e0	 	= input12->answer;
+	ndvi	 	= input13->answer;
 	
 	result1  = output1->answer;
 	result2  = output2->answer;
@@ -314,6 +323,17 @@ int main(int argc, char *argv[])
 		inrast_e0 = G_allocate_raster_buf(data_type_e0);
 	}
 	/***************************************************/
+	mapset = G_find_cell2 (ndvi, "");
+	if (mapset == NULL) {
+		G_fatal_error(_("Cell file [%s] not found"), ndvi);
+	}
+	data_type_ndvi = G_raster_map_type(ndvi,mapset);
+	if ( (infd_ndvi = G_open_cell_old (ndvi,mapset)) < 0)
+		G_fatal_error(_("Cannot open cell file [%s]"), ndvi);
+	if (G_get_cellhd (ndvi, mapset, &cellhd) < 0)
+		G_fatal_error(_("Cannot read file header of [%s]"), ndvi);
+	inrast_ndvi = G_allocate_raster_buf(data_type_ndvi);
+	/***************************************************/
 	G_debug(3, "number of rows %d",cellhd.rows);
 	nrows = G_window_rows();
 	ncols = G_window_cols();
@@ -336,6 +356,7 @@ int main(int argc, char *argv[])
 		DCELL d_tempk;
 		DCELL d_dem;
 		DCELL d_t0dem;
+		DCELL d_ndvi;
 		G_percent(row,nrows,2);
 		if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
 			G_fatal_error(_("Could not read from <%s>"),albedo);
@@ -343,6 +364,8 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Could not read from <%s>"),tempk);
 		if(G_get_raster_row(infd_dem,inrast_dem,row,data_type_dem)<0)
 			G_fatal_error(_("Could not read from <%s>"),dem);
+		if(G_get_raster_row(infd_ndvi,inrast_ndvi,row,data_type_ndvi)<0)
+			G_fatal_error(_("Could not read from <%s>"),ndvi);
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
@@ -379,9 +402,21 @@ int main(int argc, char *argv[])
 					d_dem = (double) ((DCELL *) inrast_dem)[col];
 					break;
 			}
+			switch(data_type_ndvi){
+				case CELL_TYPE:
+					d_ndvi = (double) ((CELL *) inrast_ndvi)[col];
+					break;
+				case FCELL_TYPE:
+					d_ndvi = (double) ((FCELL *) inrast_ndvi)[col];
+					break;
+				case DCELL_TYPE:
+					d_ndvi = (double) ((DCELL *) inrast_ndvi)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_albedo)||
 			G_is_d_null_value(&d_tempk)||
-			G_is_d_null_value(&d_dem)){
+			G_is_d_null_value(&d_dem)||
+			G_is_d_null_value(&d_ndvi)){
 				/* do nothing */ 
 			} else {
 				d_t0dem = d_tempk + 0.00649*d_dem;
@@ -389,7 +424,8 @@ int main(int argc, char *argv[])
 					/* do nothing */ 
 				} else {
 					//if(d_t0dem<t0dem_min){
-					if(d_tempk<tempk_min&&d_albedo<0.1){
+					if(d_tempk<tempk_min&&
+					d_albedo<0.1){
 						t0dem_min=d_t0dem;
 						tempk_min=d_tempk;
 					//}else if(d_t0dem>t0dem_max){
@@ -419,6 +455,7 @@ int main(int argc, char *argv[])
 		DCELL d_aspect;
 		DCELL d_tair;
 		DCELL d_e0;
+		DCELL d_ndvi;
 		DCELL d_etpotd;
 		DCELL d_evapfr;
 		G_percent(row,nrows,2);
@@ -557,6 +594,7 @@ int main(int argc, char *argv[])
 			G_is_d_null_value(&d_lat)||
 			G_is_d_null_value(&d_doy)||
 			G_is_d_null_value(&d_tsw)||
+			G_is_d_null_value(&d_ndvi)||
 			((flag2->answer)&&G_is_d_null_value(&d_slope))||
 			((flag2->answer)&&G_is_d_null_value(&d_aspect))||
 			((flag3->answer)&&G_is_d_null_value(&d_tair))||
@@ -570,7 +608,15 @@ int main(int argc, char *argv[])
 				} else {
 					d_solar = solar_day(d_lat, d_doy, d_tsw );
 				}
-				d_evapfr = evapfr_senay( tempk_max, tempk_min, d_tempk);
+				d_evapfr=evapfr_senay(tempk_max,tempk_min, d_tempk);
+				/*If water then no water stress*/
+				if(d_albedo<=0.1&&d_ndvi<=0.0){
+					d_evapfr=1.0;
+				}
+				/*some points are colder than selected low*/
+				if(d_evapfr>1.0){
+					d_evapfr=1.0;
+				}
 				if(result2){
 					outrast2[col] = d_evapfr;
 				}
@@ -580,7 +626,6 @@ int main(int argc, char *argv[])
 					d_rnetd = r_net_day(d_albedo,d_solar,d_tsw);
 				}
 				d_etpotd = et_pot_day(d_rnetd,d_tempk,roh_w);
-				/*d_etpotd *= d_tsw;*/
 				d = d_etpotd * d_evapfr;
 				outrast1[col] = d;
 			}
