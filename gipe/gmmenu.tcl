@@ -287,6 +287,7 @@ set descmenu [subst  {
 		{command {[G_msg "Slope and aspect"]} {} "r.slope.aspect: Slope and aspect" {} -command {execute r.slope.aspect }}
 		{command {[G_msg "Terrain parameters"]} {} "r.param.scale: Terrain parameters" {} -command {execute r.param.scale }}
 		{command {[G_msg "Textural features"]} {} "r.texture: Textural features" {} -command {execute r.texture }}
+		{command {[G_msg "Soil Texture->properties"]} {} "r.soiltex2prop: Soil Texture to Ksat/Porosity/Hf" {} -command {execute r.soiltex2prop }}
 		{separator}
 		{command {[G_msg "Visibility"]} {} "r.los: Visibility/line of sight" {} -command {execute r.los }}
 	}}
