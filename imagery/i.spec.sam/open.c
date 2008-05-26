@@ -15,8 +15,8 @@
 
 #include "global.h"
 #include <stdio.h>
-#include "gis.h"
 #include <math.h>
+#include <grass/gis.h>
 #include "matrix.h"
 
 int open_files()

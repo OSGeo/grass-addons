@@ -62,3 +62,4 @@ void spectral_angle() /* returns spectral angle globally*/
    curr_angle = (acos(norm1/(norm2 * norm3)) * 180/MY_PI);  /* Calculate angle */
     /* return in degree globally*/
 }
+

@@ -23,7 +23,9 @@
 #include "matrix.h"
 #include "matrix2.h"
 
-
+int open_files();
+void spectral_angle();
+CELL myround (x);
 
 int main(argc,argv) 
 char *argv[];
@@ -173,7 +175,7 @@ char *argv[];
              {
               Avector = get_row(A, i, VNULL);  /* go row-wise through matrix*/
 	      spectral_angle();
-	      result_cell[i][col] = round (curr_angle);
+	      result_cell[i][col] = myround (curr_angle);
 	      V_FREE(Avector);
              }
 
@@ -183,7 +185,7 @@ char *argv[];
 
 	/* write the resulting rows: */
         for (i = 0; i < Ref.nfiles; i++)
-          G_put_map_row (resultfd[i], result_cell[i], row);
+          G_put_map_row (resultfd[i], result_cell[i]);
 
     } /* rows loop */
 
@@ -208,7 +210,7 @@ char *argv[];
 } /* main*/
 
 
-CELL round (x)
+CELL myround (x)
   double x;
   {
     CELL n;

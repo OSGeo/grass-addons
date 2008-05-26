@@ -1,5 +1,5 @@
-#include "imagery.h"
 #include <math.h>
+#include <grass/imagery.h>
 #include "matrix.h"
 
 #ifndef GLOBAL

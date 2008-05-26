@@ -349,11 +349,11 @@ char *argv[];
 
 	  /* write the resulting rows into output files: */
 	  for (i = 0; i < A->n; i++)   /* no. of spectra */
-	      G_put_map_row (resultfd[i], result_cell[i], row);
+	      G_put_map_row (resultfd[i], result_cell[i]);
 	  if (error_fd > 0)
-	      G_put_map_row (error_fd, error_cell, row);
+	      G_put_map_row (error_fd, error_cell);
 	  if (iter_fd > 0)
-	      G_put_map_row (iter_fd, iter_cell, row);
+	      G_put_map_row (iter_fd, iter_cell);
 
 	} /* rows loop */
 
