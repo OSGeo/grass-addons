@@ -2,10 +2,10 @@
 
 <EM>i.eb.netrad</EM> calculates the net radiation at the time of satellite overpass, the way it is in the SEBAL model of bastiaanssen (1995).
 
-It takes input of Albedo, NDVI, Surface Skin temperature, time of satellite overpass, emissivity, difference of temperature from surface skin and about 2 m height, single-way transmissivity, Day of Year (DOY), and sun zenith angle.
+It takes input of Albedo, NDVI, Surface Skin temperature, time of satellite overpass, surface emissivity, difference of temperature from surface skin and about 2 m height (dT), instantaneous satellite overpass single-way atmospheric transmissivity (tsw), Day of Year (DOY), and sun zenith angle.
 
 <H2>NOTES</H2>
-
+In the old methods, dT was taken as flat images (dT=5.0), if you don't have a dT map from ground data, you would want to try something in this line, this is to calculate atmospherical energy balance. In the same way, a standard tsw is used in those equations. Refer to r_net.c for that and for other non-used equations, but stored in there for further research convenience.
 <H2>TODO</H2>
 
 <H2>SEE ALSO</H2>
@@ -18,8 +18,8 @@ It takes input of Albedo, NDVI, Surface Skin temperature, time of satellite over
 
 <H2>AUTHORS</H2>
 
-Yann Chemin, Asian Institute of Technology, Thailand<BR>
+Yann Chemin, International Rice Research Institute, The Philippines<BR>
 
 
 <p>
-<i>Last changed: $Date: 2006/10/09 23:50:30 $</i>
+<i>Last changed: $Date: 2008/05/28 22:20:30 $</i>
