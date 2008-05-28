@@ -15,24 +15,23 @@ double r_net( double bbalb, double ndvi, double tempk, double dtair,  double e0,
 	
 	double 	Kin=0.0, Lin=0.0, Lout=0.0, Lcorr=0.0, result=0.0;
 	double 	temp=0.0, ds=0.0, e_atm=0.0, delta=0.0;
-	double 	pi = 3.1415927;
-	
-	
-// 	printf("rnet: bbalb = %5.3f\nndvi = %5.3f\ntempk = %5.3f\ne0 = %5.3f\ntsw = %5.3f\ndoy = %f\nutc = %5.3f\nsunzangle = %5.3f\ndtair = %5.3f\n",bbalb,ndvi,tempk,e0,tsw,doy,utc,sunzangle,dtair);
+	double	tsw_for_e_atm=0.7; //Special tsw, consider it a coefficient
+
+// 	printf("**rnet: bbalb = %5.3f\n\tndvi = %5.3f\n\ttempk = %5.3f\n\te0 = %5.3f\n\ttsw = %5.3f\n\tdoy = %f\n\tutc = %5.3f\n\tsunzangle = %5.3f\n\tdtair = %5.3f\n",bbalb,ndvi,tempk,e0,tsw,doy,utc,sunzangle,dtair);
 	
 	// Atmospheric emissivity (Bastiaanssen, 1995)
-	e_atm	=  1.08 * pow(-log(tsw),0.265) ;
+	e_atm	=  1.08 * pow(-log(tsw_for_e_atm),0.265) ;
 	// Atmospheric emissivity (Pawan, 2004)
 // 	e_atm	= 0.85 * pow(-log(tsw),0.09);
-// 	printf("e_atm = %5.3f\n",e_atm);
+// 	printf("rnet: e_atm = %5.3f\n",e_atm);
 
-	ds = 1.0 + 0.01672 * sin(2*3.1415927*(doy-93.5)/365);
+	ds = 1.0 + 0.01672 * sin(2*PI*(doy-93.5)/365);
 // 	printf("rnet: ds = %lf\n",ds);
-	delta = 0.4093*sin((2*3.1415927*doy/365)-1.39);
+	delta = 0.4093*sin((2*PI*doy/365)-1.39);
 // 	printf("rnet: delta = %5.3f\n",delta);
 	
 	// Kin is the shortwave incoming radiation
-	Kin	= 1367.0 * (cos(sunzangle*pi/180) * tsw / (ds*ds) );
+	Kin	= 1367.0 * (cos(sunzangle*PI/180) * tsw / (ds*ds) );
 //  	printf("rnet: Kin = %5.3f\n",Kin);
 	// Lin is incoming longwave radiation
 	Lin	= (e_atm) * 5.67 * pow(10,-8) * pow((tempk-dtair),4);
@@ -46,10 +45,6 @@ double r_net( double bbalb, double ndvi, double tempk, double dtair,  double e0,
 	result	= (1.0 - bbalb) * Kin + Lin - Lout - Lcorr  ;
 // 	printf("rnet: result = %5.3f\n",result);
 	
-//	if(result<50.0){
-	//	printf("rnet: result to be returned is %f\n",result);
-//		result = -1.2345;
-//	}
 	return result;
 }
 
