@@ -24,6 +24,10 @@ int prct2porosity(double sand_input, double clay_input){
 		cls[0].clay=0.0;
 		cls[0].silt=0.0;
 	}
+	//transform input from [0,1] to [0,100]
+	sand_input *= 100.0;
+	clay_input *= 100.0;
+	//fill up initial polygon points
 	cls[0].sand=0.0;
 	cls[0].clay=100.0;
 	cls[1].sand=10.0;
