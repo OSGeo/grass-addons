@@ -8,8 +8,9 @@ struct vector{
 	double silt;
 };
 
-double point_in_triangle(double point_x, double point_y, double point_z, double t1_x, double t1_y, double t1_z, double t2_x, double t2_y, double t2_z, double t3_x, double t3_y, double t3_z){
+int point_in_triangle(double point_x, double point_y, double point_z, double t1_x, double t1_y, double t1_z, double t2_x, double t2_y, double t2_z, double t3_x, double t3_y, double t3_z){
 	//printf("in function: sand=%5.3f clay=%5.3f silt=%5.3f\n",point_x,point_y,point_z);
+	int index=0;
 	double answer;
 	double answer1_x, answer1_y, answer1_z;
 	double answer2_x, answer2_y, answer2_z;
@@ -59,27 +60,33 @@ double point_in_triangle(double point_x, double point_y, double point_z, double 
 	answer3_z=(cf1*ca2)-(cf2*ca1);
 //	printf("answer(CFxCA)= %f %f %f\n",answer3_x, answer3_y, answer3_z);
 	answer=0.0;//initialize value
-	if((int)answer1_x>=0&&(int)answer2_x>=0&&(int)answer3_x>=0){
+	if(answer1_x>0&&answer2_x>0&&answer3_x>0){
 		answer+=1.0;
-	} else if((int)answer1_x<=0&&(int)answer2_x<=0&&(int)answer3_x<=0){
+	} else if(answer1_x<0&&answer2_x<0&&answer3_x<0){
 		answer-=1.0;
 	}
-	if((int)answer1_y>=0&&(int)answer2_y>=0&&(int)answer3_y>=0){
+	if(answer1_y>0&&answer2_y>0&&answer3_y>0){
 		answer+=1.0;
-	} else if((int)answer1_y<=0&&(int)answer2_y<=0&&(int)answer3_y<=0){
+	} else if(answer1_y<0&&answer2_y<0&&answer3_y<0){
 		answer-=1.0;
 	}
-	if((int)answer1_z>=0&&(int)answer2_z>=0&&(int)answer3_z>=0){
+	if(answer1_z>0&&answer2_z>0&&answer3_z>0){
 		answer+=1.0;
-	} else if((int)answer1_z<=0&&(int)answer2_z<=0&&(int)answer3_z<=0){
+	} else if(answer1_z<0&&answer2_z<0&&answer3_z<0){
 		answer-=1.0;
 	}
 	if(answer==3||answer==-3){
-		answer=1;
+		index = 1;
+	} else if(point_x==t1_x&&point_y==t1_y&&point_z==t1_z){
+		index = 1;
+	} else if(point_x==t2_x&&point_y==t2_y&&point_z==t2_z){
+		index = 1;
+	} else if(point_x==t3_x&&point_y==t3_y&&point_z==t3_z){
+		index = 1;
 	} else {
-		answer=0;
+		index = 0 ;
 	}
-	return answer;
+	return index;
 }
 
 

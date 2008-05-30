@@ -21,7 +21,7 @@
 #include <grass/glocale.h>
 
 #define POLYGON_DIMENSION 50
-double point_in_triangle(double point_x, double point_y, double point_z, double t1_x, double t1_y, double t1_z, double t2_x, double t2_y, double t2_z, double t3_x, double t3_y, double t3_z);
+int point_in_triangle(double point_x, double point_y, double point_z, double t1_x, double t1_y, double t1_z, double t2_x, double t2_y, double t2_z, double t3_x, double t3_y, double t3_z);
 double prct2porosity(double sand_input, double clay_input);
 double prct2ksat(double sand_input, double clay_input);
 double prct2hf(double sand_input, double clay_input);
