@@ -8,7 +8,7 @@ struct vector{
 	double silt;
 };
 
-int prct2porosity(double sand_input, double clay_input){
+double prct2porosity(double sand_input, double clay_input){
 	int i,index;
 	double temp,porosity;
 	double silt_input=0.0; 	//Rawls et al (1990)
@@ -20,9 +20,9 @@ int prct2porosity(double sand_input, double clay_input){
 	struct vector cls[POLYGON_DIMENSION] = {0.0};
 	//In case silt is not == 0.0, fill up explicitly
 	for(i=0;i<POLYGON_DIMENSION;i++){
-		cls[0].sand=0.0;
-		cls[0].clay=0.0;
-		cls[0].silt=0.0;
+		cls[i].sand=0.0;
+		cls[i].clay=0.0;
+		cls[i].silt=0.0;
 	}
 	//transform input from [0,1] to [0,100]
 	sand_input *= 100.0;
