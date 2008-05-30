@@ -17,7 +17,7 @@ double g_0(double bbalb, double ndvi, double tempk, double rnet, double time, in
 		r0_coef = 1.0;
 	}
 	a = (0.0032 * (bbalb/r0_coef) + 0.0062 * (bbalb/r0_coef) * (bbalb/r0_coef));
-	b = (1 - 0.978 * ndvi);
+	b = (1 - 0.978 * pow(ndvi,4));
 	
 	// Spain (Bastiaanssen, 1995)
 	result = (rnet * (tempk-273.15) / bbalb) * a * b ;
