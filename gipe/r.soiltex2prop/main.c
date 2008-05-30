@@ -166,11 +166,11 @@ int main(int argc, char *argv[])
 			} else {
 				/************************************/
 				/* convert to porosity		    */
-				d = prct2porosity(d_sand, d_clay);
+				d = prct2porosity(d_sand*100.0,d_clay*100.0);
 				outrast1[col] = d;
-				d = prct2ksat(d_sand, d_clay);	
+				d = prct2ksat(d_sand*100.0,d_clay*100.0);
 				outrast2[col] = d;
-				d = prct2hf(d_sand, d_clay);	
+				d = prct2hf(d_sand*100.0, d_clay*100.0);
 				outrast3[col] = d;
 			}
 		}
