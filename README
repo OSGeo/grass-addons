@@ -4,16 +4,25 @@ GRASS Addons SVN repository
 Installation - Code Compilation
 ################################
 
-The easiest way to compile GRASS Addons modules into your GRASS code 
-is by setting MODULE_TOPDIR on the fly to tell 'make' where to
-find the GRASS source code:
+* C code/Scripts, with configured GRASS source code on your computer:
 
-  make MODULE_TOPDIR=$HOME/grass64/
+  The easiest way to compile GRASS Addons modules into your GRASS code 
+  is by setting MODULE_TOPDIR on the fly to tell 'make' where to
+  find the GRASS source code:
 
-(adapt to your /path/to/grass6/)
+    make MODULE_TOPDIR=$HOME/grass64/
 
-Each module/script in the GRASS Addons SVN repository should have
-a Makefile.
+  (adapt to your /path/to/grass6/). Each module/script in the GRASS
+  Addons SVN repository should have a Makefile to support easy
+  installation.
+
+
+* C code/Scripts, with GRASS binaries on your computer:
+
+  If you want to install into a *binary* GRASS package, you can use
+  the "GRASS Extensions Manager (GEM)":
+  http://grass.osgeo.org/grass63/manuals/html63_user/gem/index.html
+
 
 ########################################################################
 To submit your GRASS project here, please write to
