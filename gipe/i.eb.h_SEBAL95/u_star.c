@@ -29,7 +29,7 @@ double u_star(double t0_dem, double h, double ustar, double roh_air, double zom,
 	if(n5_temp < 0.0){
 
 		n31_mem = pow((1-16*(200/n5_temp)),0.25);
-		n10_mem = (2*log((1+n31_mem)/2)+log((1+pow(n31_mem,2))/2)-2*atan(n31_mem)+0.5*PI);
+		n10_mem = (2*log10((1+n31_mem)/2)+log10((1+pow(n31_mem,2))/2)-2*atan(n31_mem)+0.5*PI);
 
 	} else {
 
@@ -38,7 +38,7 @@ double u_star(double t0_dem, double h, double ustar, double roh_air, double zom,
 
 	}
 
-	result = ((u2m*0.41/log(2/(hv/7)))/0.41*log(bh /(hv/7)*0.41))/(log(bh / zom)-n10_mem);
+	result = ((u2m*0.41/log10(2/(hv/7)))/0.41*log10(bh /(hv/7)*0.41))/(log10(bh / zom)-n10_mem);
 	
 	return (result);
 }

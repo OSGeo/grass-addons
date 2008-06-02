@@ -6,7 +6,7 @@
  *               Delta T will be reassessed in the iterations !
  *               This has been seen in Bastiaanssen (1995).
  *
- * COPYRIGHT:    (C) 2002-2007 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2009 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -25,6 +25,7 @@
 #include <grass/glocale.h>
 /*#include <omp.h>*/
 
+
 double sensi_h( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert);
 
 int main(int argc, char *argv[])
@@ -33,24 +34,25 @@ int main(int argc, char *argv[])
 	char *mapset; // mapset name
 	
 	/* buffer for in out raster */
-	DCELL *inrast_T,*inrast_ndvi,*inrast_u2,*inrast_DEM;
-	DCELL *inrast_Rn,*inrast_g0,*inrast_albedo,*outrast;
+	void *inrast_T,*inrast_ndvi,*inrast_u2,*inrast_dem;
+	void *inrast_Rn,*inrast_g0,*inrast_albedo;
+	DCELL *outrast;
 	
 	int nrows, ncols;
 	int row, col;
 	int row_wet, col_wet;
 	int row_dry, col_dry;
-	int infd_T,infd_ndvi,infd_u2,infd_DEM,infd_Rn,infd_g0,infd_albedo;
+	int infd_T,infd_ndvi,infd_u2,infd_dem,infd_Rn,infd_g0,infd_albedo;
 	int outfd;
 	
-	char *mapset_T,*mapset_ndvi,*mapset_u2,*mapset_DEM;
+	char *mapset_T,*mapset_ndvi,*mapset_u2,*mapset_dem;
 	char *mapset_Rn,*mapset_g0,*mapset_albedo;
-	char *T, *ndvi, *u2, *DEM, *Rn, *g0, *albedo; 
+	char *T, *ndvi, *u2, *dem, *Rn, *g0, *albedo; 
 	char *h0;
 	
         struct History history;
 	struct GModule *module;
-	struct Option *input_T, *input_ndvi, *input_u2, *input_DEM;
+	struct Option *input_T, *input_ndvi, *input_u2, *input_dem;
 	struct Option *input_Rn, *input_g0, *input_albedo, *output;
 	struct Option *input_row_wet, *input_col_wet;
 	struct Option *input_row_dry, *input_col_dry;
@@ -60,7 +62,7 @@ int main(int argc, char *argv[])
 	RASTER_MAP_TYPE data_type_T;
 	RASTER_MAP_TYPE data_type_ndvi;
 	RASTER_MAP_TYPE data_type_u2;
-	RASTER_MAP_TYPE data_type_DEM;
+	RASTER_MAP_TYPE data_type_dem;
 	RASTER_MAP_TYPE data_type_Rn;
 	RASTER_MAP_TYPE data_type_g0;
 	RASTER_MAP_TYPE data_type_albedo;
@@ -75,44 +77,36 @@ int main(int argc, char *argv[])
 	G_gisinit(argv[0]);
 	
 	module = G_define_module();
-	module->description = _("Sensible Heat Flux iteration from SEBAL 95");
+	module->description = _("Sensible Heat Flux iteration SEBAL 95");
 	
 	/* Define different options */
 	input_T = G_define_standard_option(G_OPT_R_INPUT);
 	input_T->key	= "T";
 	input_T->description = _("Name of Surface Skin Temperature input map [K]");
-	input_T->guisection = _("Required");
 
 	input_u2 = G_define_standard_option(G_OPT_R_INPUT);
 	input_u2->key	= "u2m";
 	input_u2->description = _("Name of Wind Speed input map [m/s]");
-	input_u2->guisection = _("Required");
 		
-	input_DEM = G_define_standard_option(G_OPT_R_INPUT);
-	input_DEM->key	= "DEM";
-	input_DEM->description = _("Name of DEM input map [m a.s.l.]");
-	input_DEM->guisection = _("Required");
+	input_dem = G_define_standard_option(G_OPT_R_INPUT);
+	input_dem->key	= "dem";
+	input_dem->description = _("Name of dem input map [m a.s.l.]");
 	
 	input_ndvi = G_define_standard_option(G_OPT_R_INPUT);
 	input_ndvi->key	= "ndvi";
-	input_ndvi->description = _("Name of NDVI input map [%]");
-	input_ndvi->guisection = _("Required");
-	
-	input_Rn = G_define_standard_option(G_OPT_R_INPUT);
-	input_Rn->key	= "Rn";
-	input_Rn->description = _("Name of Diurnal Net Solar Radiation input map [W/m2]");
-	input_Rn->guisection = _("Required");
-	
-	input_g0 = G_define_standard_option(G_OPT_R_INPUT);
-	input_g0->key	= "g0";
-	input_g0->description = _("Name of Soil Heat Flux input map [W/m2]");
-	input_g0->guisection = _("Required");
+	input_ndvi->description = _("Name of NDVI input map [-]");
 	
 	input_albedo = G_define_standard_option(G_OPT_R_INPUT);
 	input_albedo->key	= "albedo";
-	input_albedo->required	= NO;
-	input_albedo->description = _("With Flag \"-a\": Name of Albedo input map [-]");
-	input_albedo->guisection = _("Optional");
+	input_albedo->description = _("Name of Albedo input map [-]");
+	
+	input_Rn = G_define_standard_option(G_OPT_R_INPUT);
+	input_Rn->key	= "rnet";
+	input_Rn->description = _("Name of instantaneous Net Solar Radiation input map [W/m2]");
+	
+	input_g0 = G_define_standard_option(G_OPT_R_INPUT);
+	input_g0->key	= "g0";
+	input_g0->description = _("Name of instantaneous Soil Heat Flux input map [W/m2]");
 	
 	input_iter 		= G_define_option();
 	input_iter->key		= "iteration";
@@ -156,7 +150,7 @@ int main(int argc, char *argv[])
 
 	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key        = "h0";
-	output->description= _("Name of output Actual Evapotranspiration layer [mm/d]");
+	output->description= _("Name of output sensible heat flux layer [W/m2]");
 	output->guisection	= _("Required");
 	
 	/* Define the different flags */
@@ -174,7 +168,7 @@ int main(int argc, char *argv[])
 	/* get entered parameters */
 	T	= input_T->answer;
 	u2	= input_u2->answer;
-	DEM	= input_DEM->answer;
+	dem	= input_dem->answer;
 	ndvi	= input_ndvi->answer;
 	Rn	= input_Rn->answer;
 	g0	= input_g0->answer;
@@ -197,9 +191,9 @@ int main(int argc, char *argv[])
 	mapset_u2 = G_find_cell2 (u2, "");
 	if (mapset_u2 == NULL)
 	        G_fatal_error (_("cell file [%s] not found"), u2);
-	mapset_DEM = G_find_cell2 (DEM, "");
-	if (mapset_DEM == NULL)
-	        G_fatal_error (_("cell file [%s] not found"), DEM);
+	mapset_dem = G_find_cell2 (dem, "");
+	if (mapset_dem == NULL)
+	        G_fatal_error (_("cell file [%s] not found"), dem);
 	mapset_ndvi = G_find_cell2 (ndvi, "");
 	if (mapset_ndvi == NULL)
 	        G_fatal_error (_("cell file [%s] not found"), ndvi);
@@ -209,11 +203,9 @@ int main(int argc, char *argv[])
 	mapset_g0 = G_find_cell2 (g0, "");
 	if (mapset_g0 == NULL)
 	        G_fatal_error (_("cell file [%s] not found"), g0);
-	if(flag1->answer){
-		mapset_albedo = G_find_cell2 (albedo, "");
-		if (mapset_albedo == NULL)
-			G_fatal_error(_("cell file [%s] not found"),albedo);
-	}
+	mapset_albedo = G_find_cell2 (albedo, "");
+	if (mapset_albedo == NULL)
+		G_fatal_error(_("cell file [%s] not found"),albedo);
 	
 	/* check legal output name */ 
 	if (G_legal_filename (h0) < 0)
@@ -222,55 +214,51 @@ int main(int argc, char *argv[])
 	/* determine the input map type (CELL/FCELL/DCELL) */
 	data_type_T 	= G_raster_map_type(T, mapset_T);
 	data_type_u2 	= G_raster_map_type(u2, mapset_u2);
-	data_type_DEM 	= G_raster_map_type(DEM, mapset_DEM);
+	data_type_dem 	= G_raster_map_type(dem, mapset_dem);
 	data_type_ndvi 	= G_raster_map_type(ndvi, mapset_ndvi);
 	data_type_Rn 	= G_raster_map_type(Rn, mapset_Rn);
 	data_type_g0 	= G_raster_map_type(g0, mapset_g0);
-	if(flag1->answer){
-		data_type_albedo = G_raster_map_type(albedo, mapset_albedo);
-	}
+	data_type_albedo = G_raster_map_type(albedo, mapset_albedo);
+	
 	if ( (infd_T = G_open_cell_old (T, mapset_T)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), T);
 	if ( (infd_u2 = G_open_cell_old (u2, mapset_u2)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"),u2);
-	if ( (infd_DEM = G_open_cell_old (DEM, mapset_DEM)) < 0)
-		G_fatal_error (_("Cannot open cell file [%s]"),DEM);
+	if ( (infd_dem = G_open_cell_old (dem, mapset_dem)) < 0)
+		G_fatal_error (_("Cannot open cell file [%s]"),dem);
 	if ( (infd_ndvi = G_open_cell_old (ndvi, mapset_ndvi)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"),ndvi);
 	if ( (infd_Rn = G_open_cell_old (Rn, mapset_Rn)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"),Rn);
 	if ( (infd_g0 = G_open_cell_old (g0, mapset_g0)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"),g0);
-	if(flag1->answer){
-		if((infd_albedo=G_open_cell_old (albedo,mapset_albedo)) < 0)
-			G_fatal_error(_("Cannot open cell file [%s]"),albedo);
-	}	
+	if((infd_albedo=G_open_cell_old (albedo,mapset_albedo)) < 0)
+		G_fatal_error(_("Cannot open cell file [%s]"),albedo);
+	
 	if (G_get_cellhd (T, mapset_T, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), T);
 	if (G_get_cellhd (u2, mapset_u2, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), u2);
-	if (G_get_cellhd (DEM, mapset_DEM, &cellhd) < 0)
-		G_fatal_error (_("Cannot read file header of [%s]"), DEM);
+	if (G_get_cellhd (dem, mapset_dem, &cellhd) < 0)
+		G_fatal_error (_("Cannot read file header of [%s]"), dem);
 	if (G_get_cellhd (ndvi, mapset_ndvi, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), ndvi);
 	if (G_get_cellhd (Rn, mapset_Rn, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), Rn);
 	if (G_get_cellhd (g0, mapset_g0, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), g0);
-	if(flag1->answer){
-		if (G_get_cellhd (albedo, mapset_albedo, &cellhd) < 0)
-			G_fatal_error (_("Cannot read file header of [%s]"), albedo);
-	}
+	if (G_get_cellhd (albedo, mapset_albedo, &cellhd) < 0)
+		G_fatal_error (_("Cannot read file header of [%s]"), albedo);
+	
 	/* Allocate input buffer */
-	inrast_T  	= G_allocate_d_raster_buf();
-	inrast_u2 	= G_allocate_d_raster_buf();
-	inrast_DEM 	= G_allocate_d_raster_buf();
-	inrast_ndvi 	= G_allocate_d_raster_buf();
-	inrast_Rn 	= G_allocate_d_raster_buf();
-	inrast_g0 	= G_allocate_d_raster_buf();
-	if(flag1->answer){
-		inrast_albedo = G_allocate_d_raster_buf();
-	}
+	inrast_T  	= G_allocate_raster_buf(data_type_T);
+	inrast_u2 	= G_allocate_raster_buf(data_type_u2);
+	inrast_dem 	= G_allocate_raster_buf(data_type_dem);
+	inrast_ndvi 	= G_allocate_raster_buf(data_type_ndvi);
+	inrast_Rn 	= G_allocate_raster_buf(data_type_Rn);
+	inrast_g0 	= G_allocate_raster_buf(data_type_g0);
+	inrast_albedo 	= G_allocate_raster_buf(data_type_albedo);
+	
 	/* Allocate output buffer */
 	nrows = G_window_rows();
 	ncols = G_window_cols();
@@ -339,11 +327,11 @@ int main(int argc, char *argv[])
 				G_fatal_error(_("Could not read from <%s>"),albedo);
 			if(G_get_raster_row(infd_T,inrast_T,row,data_type_T)<0)
 				G_fatal_error(_("Could not read from <%s>"),T);
-			if(G_get_raster_row(infd_DEM,inrast_DEM,row,data_type_DEM)<0)
-				G_fatal_error(_("Could not read from <%s>"),DEM);
-			if(G_get_d_raster_row(infd_Rn, inrast_Rn, row) < 0)
+			if(G_get_raster_row(infd_dem,inrast_dem,row,data_type_dem)<0)
+				G_fatal_error(_("Could not read from <%s>"),dem);
+			if(G_get_raster_row(infd_Rn, inrast_Rn, row,data_type_Rn) < 0)
 				G_fatal_error(_("Could not read from <%s>"),Rn);
-			if(G_get_d_raster_row(infd_g0, inrast_g0, row) < 0)
+			if(G_get_raster_row(infd_g0, inrast_g0, row,data_type_g0) < 0)
 				G_fatal_error(_("Could not read from <%s>"),g0);
 			/*process the data */
 			for (col=0; col < ncols; col++)
@@ -370,15 +358,15 @@ int main(int argc, char *argv[])
 						d_tempk = (double) ((DCELL *) inrast_T)[col];
 						break;
 				}
-				switch(data_type_DEM){
+				switch(data_type_dem){
 					case CELL_TYPE:
-						d_dem = (double) ((CELL *) inrast_DEM)[col];
+						d_dem = (double) ((CELL *) inrast_dem)[col];
 						break;
 					case FCELL_TYPE:
-						d_dem = (double) ((FCELL *) inrast_DEM)[col];
+						d_dem = (double) ((FCELL *) inrast_dem)[col];
 						break;
 					case DCELL_TYPE:
-						d_dem = (double) ((DCELL *) inrast_DEM)[col];
+						d_dem = (double) ((DCELL *) inrast_dem)[col];
 						break;
 				}
 				switch(data_type_Rn){
@@ -458,18 +446,18 @@ int main(int argc, char *argv[])
 		G_percent(row,nrows,2);
 		/* read a line input maps into buffers*/	
 		if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
-				G_fatal_error(_("Could not read from <%s>"),albedo);
+			G_fatal_error(_("Could not read from <%s>"),albedo);
 		if(G_get_raster_row(infd_T,inrast_T,row,data_type_T)<0)
 			G_fatal_error(_("Could not read from <%s>"),T);
-		if(G_get_d_raster_row(infd_u2, inrast_u2, row) < 0)
+		if(G_get_raster_row(infd_u2,inrast_u2,row,data_type_u2) < 0)
 			G_fatal_error(_("Could not read from <%s>"),u2);
-		if(G_get_d_raster_row(infd_DEM, inrast_DEM, row) < 0)
-			G_fatal_error(_("Could not read from <%s>"),DEM);
-		if(G_get_d_raster_row(infd_ndvi, inrast_ndvi, row) < 0)
+		if(G_get_raster_row(infd_dem,inrast_dem,row,data_type_dem)<0)
+			G_fatal_error(_("Could not read from <%s>"),dem);
+		if(G_get_raster_row(infd_ndvi,inrast_ndvi,row,data_type_ndvi) < 0)
 			G_fatal_error(_("Could not read from <%s>"),ndvi);
-		if(G_get_d_raster_row(infd_Rn, inrast_Rn, row) < 0)
+		if(G_get_raster_row(infd_Rn,inrast_Rn,row,data_type_Rn) < 0)
 			G_fatal_error(_("Could not read from <%s>"),Rn);
-		if(G_get_d_raster_row(infd_g0, inrast_g0, row) < 0)
+		if(G_get_raster_row(infd_g0,inrast_g0,row,data_type_g0) < 0)
 			G_fatal_error(_("Could not read from <%s>"),g0);
 		/* read every cell in the line buffers */
 		for (col=0; col < ncols; col++){
@@ -506,15 +494,15 @@ int main(int argc, char *argv[])
 					d_u2m = (double) ((DCELL *) inrast_u2)[col];
 					break;
 			}
-			switch(data_type_DEM){
+			switch(data_type_dem){
 				case CELL_TYPE:
-					d_dem = (double) ((CELL *) inrast_DEM)[col];
+					d_dem = (double) ((CELL *) inrast_dem)[col];
 					break;
 				case FCELL_TYPE:
-					d_dem = (double) ((FCELL *) inrast_DEM)[col];
+					d_dem = (double) ((FCELL *) inrast_dem)[col];
 					break;
 				case DCELL_TYPE:
-					d_dem = (double) ((DCELL *) inrast_DEM)[col];
+					d_dem = (double) ((DCELL *) inrast_dem)[col];
 					break;
 			}
 			switch(data_type_ndvi){
@@ -550,19 +538,32 @@ int main(int argc, char *argv[])
 					d_g0 = (double) ((DCELL *) inrast_g0)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_tempk)||G_is_d_null_value(&d_u2m)||
-			G_is_d_null_value(&d_dem)||G_is_d_null_value(&d_ndvi)||
-			G_is_d_null_value(&d_Rn)||G_is_d_null_value(&d_g0)||
-			d_albedo<0.0){
+			if(G_is_d_null_value(&d_tempk)||
+			G_is_d_null_value(&d_u2m)||
+			G_is_d_null_value(&d_dem)||
+			G_is_d_null_value(&d_ndvi)||
+			G_is_d_null_value(&d_Rn)||
+			G_is_d_null_value(&d_g0)||
+			d_dem<=-100.0||d_dem>9000.0){
 				G_set_d_null_value(&outrast[col],1);
 			} else {
+				/* Albedo < 0*/
+				if(d_albedo<0.01){
+					d_albedo=0.01;
+				}
 				/* Calculate T0dem */
 				d_t0dem = (double)d_tempk + 0.00649*(double)d_dem;
-				/*G_message("****InLoop d_t0dem=%5.3f",d_t0dem);
-				G_message("****InLoop d_dem=%5.3f",d_dem);
-				G_message("****InLoop d_tempk=%5.3f",d_tempk);*/
-				/* Calculate sensible heat flux */
+			/*	G_message("**InLoop d_t0dem=%5.3f",d_t0dem);
+				G_message(" d_dem=%5.3f",d_dem);
+				G_message(" d_tempk=%5.3f",d_tempk);
+				G_message(" d_albedo=%5.3f",d_albedo);
+				G_message(" d_Rn=%5.3f",d_Rn);
+				G_message(" d_g0=%5.3f",d_g0);
+				G_message(" d_ndvi=%5.3f",d_ndvi);
+				G_message(" d_u2m=%5.3f",d_u2m);
+			*/	/* Calculate sensible heat flux */
 				d = sensi_h(iteration,d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_ndvi,d_ndvi_max,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u2m,d_dem_dry);
+		//		G_message(" d_h0=%5.3f",d);
 				if (zero->answer && d<0.0){
 					d=0.0;
 				}
@@ -571,27 +572,24 @@ int main(int argc, char *argv[])
 		}
 		if (G_put_d_raster_row (outfd, outrast) < 0)
 			G_fatal_error (_("Cannot write to <%s>"),h0);
-			
 	}	
 	G_free(inrast_T);
-	G_free(inrast_u2);
-	G_free(inrast_DEM);
-	G_free(inrast_ndvi);
-	G_free(inrast_Rn);
-	G_free(inrast_g0);
-	if(flag1->answer)
-		G_free(inrast_albedo);
-	G_free(outrast);
 	G_close_cell (infd_T);
+	G_free(inrast_u2);
 	G_close_cell (infd_u2);
-	G_close_cell (infd_DEM);
+	G_free(inrast_dem);
+	G_close_cell (infd_dem);
+	G_free(inrast_ndvi);
 	G_close_cell (infd_ndvi);
+	G_free(inrast_Rn);
 	G_close_cell (infd_Rn);
+	G_free(inrast_g0);
 	G_close_cell (infd_g0);
-	if(flag1->answer)
-		G_close_cell (infd_albedo);
-	G_close_cell (outfd);
+	G_free(inrast_albedo);
+	G_close_cell (infd_albedo);
 	
+	G_free(outrast);
+	G_close_cell (outfd);
         /* add command line incantation to history file */
         G_short_history(h0, "raster", &history);
         G_command_history(&history);
