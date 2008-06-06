@@ -3,7 +3,8 @@
  * MODULE:       i.eb.h_iter
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates sensible heat flux by SEBAL iteration
- *               if your DeltaT (or eq. to make it from surf.temp) is validated.
+ *               if your DeltaT (or eq. to make it from surf.temp)
+ *               is validated.
  *               ! Delta T will not be reassessed in the iterations !
  *               A flag allows the Bastiaanssen (1995) affine transform 
  *               of surface temperature as used in his SEBAL model.
@@ -15,8 +16,10 @@
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
  *   	    	 for details.
  *
- * CHANGELOG:	28 October 06: Added u2m input (wind speed at 2 meters height)
- * 		30 June 07: Debugging a Seg Fault
+ * CHANGELOG:	06 June 08: 	Added iteration number input
+ * 		28 October 06:  Added u2m input 
+ * 				(wind speed at 2 meters height)
+ * 		30 June 07: 	Debugging a Seg Fault
  *
  *****************************************************************************/
 
@@ -27,7 +30,7 @@
 #include <grass/glocale.h>
 
 
-double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,double z0m,double z0h,double tempk);
+double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,double z0m,double z0h,double tempk, int iteration);
 double h0(double roh_air, double cp, double rah, double dtair);
 
 int main(int argc, char *argv[])
@@ -41,7 +44,8 @@ int main(int argc, char *argv[])
 	int sebal=0;//SEBAL Flag for affine transform of surf. temp.
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5;
-	struct Option *input6, *input7, *input8, *input9, *input10, *output1;
+	struct Option *input6, *input7, *input8, *input9, *input10;
+	struct Option *input11, *output1;
 	
 	struct Flag *flag1, *flag2;	
 	struct History history; //metadata
@@ -60,10 +64,11 @@ int main(int argc, char *argv[])
 	double cp; //air specific heat	
 	int i=0,j=0;
 	double a,b; //SEBAL slope and intercepts of surf. temp.
+	int iteration;
 	
 	void *inrast_rohair, *inrast_tempk, *inrast_dtair;
 	void *inrast_disp, *inrast_z0m, *inrast_z0h, *inrast_u2m;
-	unsigned char *outrast;
+	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_rohair;
 	RASTER_MAP_TYPE data_type_dtair;
@@ -136,6 +141,14 @@ int main(int argc, char *argv[])
 	input10->key        =_("u2m");
 	input10->description=_("Name of the wind speed at 2m height input layer (m/s)");
 	input10->answer     =_("u2m");
+	
+	input11 = G_define_option() ;
+	input11->key        =_("iteration");
+	input11->type       = TYPE_INTEGER;
+	input11->required   = NO;
+	input11->gisprompt  =_("parameter, integer number");
+	input11->description=_("number of iteration of rah stabilization");
+	input11->answer     =_("3");
 		
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("h0");
@@ -168,10 +181,14 @@ int main(int argc, char *argv[])
 	z0m	 	= input8->answer;
 	z0h	 	= input9->answer;
 	u2m	 	= input10->answer;
+	if(input11->answer){
+		iteration = atoi(input11->answer);
+	}else{
+		iteration = 3;
+	}
 	
-	result  = output1->answer;
-	sebal = flag1->answer;
-
+	result  	= output1->answer;
+	sebal 		= flag1->answer;
 	/***************************************************/
 	/* TEST FOR -s FLAG COEFS 
 	 * Return error if not proper flag coefs
@@ -383,36 +400,30 @@ int main(int argc, char *argv[])
 					d_u2m = ((DCELL *) inrast_u2m)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_rohair)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if((!sebal)&&G_is_d_null_value(&d_dtair)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_tempk)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_disp)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_z0m)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_z0h)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_u2m)){
-				((DCELL *) outrast)[col] = -999.99;
+			if(G_is_d_null_value(&d_rohair)||
+			((!sebal)&&G_is_d_null_value(&d_dtair))||
+			G_is_d_null_value(&d_tempk)||
+			G_is_d_null_value(&d_disp)||
+			G_is_d_null_value(&d_z0m)||
+			G_is_d_null_value(&d_z0h)||
+			G_is_d_null_value(&d_u2m)){
+				G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
 				/* calculate sensible heat flux	    */
 				if(sebal){/*if -s flag then calculate Delta T from Coefs*/
 					d_affine=a*d_tempk+b;
 					/* Run iterations to find Rah*/
-					d_rah=fixed_deltat(d_u2m,d_rohair,cp,d_affine,d_disp,d_z0m,d_z0h,d_tempk);
+					d_rah=fixed_deltat(d_u2m,d_rohair,cp,d_affine,d_disp,d_z0m,d_z0h,d_tempk,iteration);
 					/*Process h*/
 					d = h0(d_rohair,cp,d_rah,d_affine);
 				}else{/* not -s flag then take delta T map input directly*/
 					/* Run iterations to find Rah*/
-					d_rah=fixed_deltat(d_u2m,d_rohair,cp,d_dtair,d_disp,d_z0m,d_z0h,d_tempk);
+					d_rah=fixed_deltat(d_u2m,d_rohair,cp,d_dtair,d_disp,d_z0m,d_z0h,d_tempk,iteration);
 					/*Process h*/
 					d = h0(d_rohair,cp,d_rah,d_dtair);
 				}
-				((DCELL *) outrast)[col] = d;
+				 outrast[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
