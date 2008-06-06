@@ -178,3 +178,27 @@ void resize_window(int width, int height)
     GS_alldraw_wire();
     GS_done_draw();
 }
+
+/*!
+  \brief Change z-exag value
+
+  \param data nviz data
+  \param exag exag value
+
+  \return 1
+*/
+int change_exag(nv_data *data, float exag)
+{
+    float temp;
+
+    temp = GS_global_exag();
+
+    if (exag != temp) {
+	GS_set_global_exag(exag);
+	update_ranges(data);
+	
+	draw_quick(data);
+    }
+
+    return 1;
+}

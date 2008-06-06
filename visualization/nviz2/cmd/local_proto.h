@@ -7,6 +7,7 @@
 /* module flags and parameters */
 struct GParams { 
   struct Option *elev, /* data */
+    *exag, /* misc */
     *pos, *height, *persp, *twist; /* viewpoint */
 };
 
@@ -27,6 +28,7 @@ int viewpoint_set_height(nv_data *,
 int viewpoint_set_persp(nv_data *, int);
 int viewpoint_set_twist(nv_data *, int);
 void resize_window(int, int);
+int change_exag(nv_data *, float);
 
 /* draw.c */
 int draw_all_surf(nv_data *);

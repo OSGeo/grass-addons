@@ -38,6 +38,16 @@ void parse_command(int argc, char* argv[], struct GParams *params)
     params->elev->description = _("Name of raster map(s) for elevation");
     params->elev->guisection = _("Raster");
 
+    params->exag = G_define_option();
+    params->exag->key = "exag";
+    params->exag->key_desc = "value";
+    params->exag->type = TYPE_DOUBLE;
+    params->exag->required = NO;
+    params->exag->multiple = NO;
+    params->exag->description = _("Vertical exaggeration");
+    params->exag->answer = "1.0";
+    params->exag->options = "0-10";
+
     params->pos = G_define_option();
     params->pos->key = "position";
     params->pos->key_desc = "x,y";

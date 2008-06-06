@@ -92,6 +92,8 @@ int main (int argc, char *argv[])
     GS_init_view();
     viewpoint_set_height(&data,
 			 atof(params->height->answer));
+    change_exag(&data,
+		atof(params->exag->answer));
     viewpoint_set_position(&data,
 			   atof(params->pos->answers[0]),
 			   atof(params->pos->answers[1]));
