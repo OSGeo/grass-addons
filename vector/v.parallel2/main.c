@@ -2,7 +2,7 @@
  *
  * MODULE:       v.parallel
  * 
- * AUTHOR(S):    Radim Blazek
+ * AUTHOR(S):    Radim Blazek, Rosen Matev
  *               
  * PURPOSE:      Create parallel lines
  *               
@@ -22,16 +22,18 @@
 #include <grass/Vect.h>
 #include <grass/glocale.h>
 
-int 
-main (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
     struct GModule *module;
-    struct Option *in_opt, *out_opt, *distance_opt;
+    struct Option *in_opt, *out_opt, *dista_opt;
+    struct Option *distb_opt, *angle_opt, *side_opt;
+    struct Flag *round_flag, *loops_flag;
     struct Map_info In, Out;
     struct line_pnts *Points, *Points2;
     struct line_cats *Cats;
     int    line, nlines;
-    double distance, tolerance;
+    double da, db, dalpha, tolerance;
+    int side;
 
     G_gisinit(argv[0]);
 
@@ -43,19 +45,57 @@ main (int argc, char *argv[])
     out_opt = G_define_standard_option(G_OPT_V_OUTPUT);
     /* layer_opt = G_define_standard_option(G_OPT_V_FIELD); */
     
-    distance_opt = G_define_option();
-    distance_opt->key = "distance";
-    distance_opt->type =  TYPE_DOUBLE;
-    distance_opt->required = YES;
-    distance_opt->multiple = NO;
-    distance_opt->description = _("Offset in map units, positive for right side, "
-	                        "negative for left side.");
+    dista_opt = G_define_option();
+    dista_opt->key = "dista";
+    dista_opt->type =  TYPE_DOUBLE;
+    dista_opt->required = YES;
+    dista_opt->multiple = NO;
+    dista_opt->description = _("Offset along major axis in map units");
 
-    if (G_parser (argc, argv)) exit(EXIT_FAILURE);
+    distb_opt = G_define_option();
+    distb_opt->key = "distb";
+    distb_opt->type =  TYPE_DOUBLE;
+    distb_opt->required = YES;
+    distb_opt->multiple = NO;
+    distb_opt->description = _("Offset along minor axis in map units");
+
+    angle_opt = G_define_option();
+    angle_opt->key = "angle";
+    angle_opt->type =  TYPE_DOUBLE;
+    angle_opt->required = YES;
+    angle_opt->answer = "0";
+    angle_opt->multiple = NO;
+    angle_opt->description = _("Angle of major axis in degrees");
+
+    side_opt = G_define_option();
+    side_opt->key = "side";
+    side_opt->type =  TYPE_STRING;
+    side_opt->required = YES;
+    side_opt->answer = "right";
+    side_opt->multiple = NO;
+    side_opt->options = "left,right";
+    side_opt->description = _("left;Parallel line is on the left;right;Parallel line is on the right;");
+
+    round_flag = G_define_flag();
+    round_flag->key = 'r';
+    round_flag->description = _("Make outside corners round");
+
+    loops_flag = G_define_flag();
+    loops_flag->key = 'l';
+    loops_flag->description = _("Don't remove loops");
+    
+    if (G_parser (argc, argv))
+        exit(EXIT_FAILURE);
 
     /* layer = atoi ( layer_opt->answer ); */
-    distance = atof ( distance_opt->answer );
-    tolerance = distance/10.;
+    da = atof(dista_opt->answer);
+    db = atof(distb_opt->answer);
+    dalpha = atof(angle_opt->answer);
+    tolerance = ((da>db)?da:db)/10.;
+    if (strcmp(side_opt->answer, "right"))
+        side = 1;
+    else if (strcmp(side_opt->answer, "left"))
+        side = -1;
 
     Vect_set_open_level (2); 
     Vect_open_old (&In, in_opt->answer, ""); 
@@ -71,18 +111,18 @@ main (int argc, char *argv[])
     nlines = Vect_get_num_lines ( &In );
 
     for ( line = 1; line <= nlines; line++ ) {
-	int ltype;
-	
-	G_percent ( line, nlines, 1 );
-
-	ltype = Vect_read_line ( &In, Points, Cats, line);
-
-	if ( ltype & GV_LINES ) {
-	    Vect_line_parallel ( Points, distance, tolerance, 1, Points2 );
-	    Vect_write_line ( &Out, ltype, Points2, Cats );
-	} else {
-	    Vect_write_line ( &Out, ltype, Points, Cats );
-	}
+        int ltype;
+        
+        G_percent ( line, nlines, 1 );
+        
+        ltype = Vect_read_line ( &In, Points, Cats, line);
+        
+        if ( ltype & GV_LINES ) {
+            Vect_line_parallel2(Points, da, db, dalpha, side, round_flag->answer, loops_flag->answer, tolerance, Points2);
+            Vect_write_line(&Out, ltype, Points2, Cats);
+        } else {
+            Vect_write_line(&Out, ltype, Points, Cats);
+        }
     }
     
     Vect_close (&In);

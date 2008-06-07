@@ -369,25 +369,26 @@ static int line_intersection(double a1, double b1, double c1, double a2, double 
 * It is not to be used directly for creating buffers.
 * + added elliptical buffers/par.lines support
 *
-* dalpha - direction of elliptical buffer major axis
+* dalpha - direction of elliptical buffer major axis in degrees
 * da - distance along major axis
 * db: distance along minor (perp.) axis
 * side: side >= 0 - right side, side < 0 - left side
 * when (da == db) we have plain distances (old case)
-* round_corners - 1 for round, 0 for sharp. (tol is used only if round_corners == 1)
-* round_corners == 1 will be implemented soon
+* round - 1 for round corners, 0 for sharp corners. (tol is used only if round == 1)
+* round == 1 will be implemented soon
 */
-void parallel_line(struct line_pnts *Points, double da, double db, double dalpha, double tol, int round_corners, struct line_pnts *nPoints)
+void parallel_line(struct line_pnts *Points, double da, double db, double dalpha, int side, int round, double tol, struct line_pnts *nPoints)
 {
     int i, j, res, np, na;
     double *x, *y;
-    double tx, ty, vx, vy, nx, ny, mx, my, rx, ry, side;
+    double tx, ty, vx, vy, nx, ny, mx, my, rx, ry;
     double a0, b0, c0, a1, b1, c1;
     double ux, uy, wx, wy;
     double atol, atol2, a, av, aw;
 
     G_debug(4, "parallel_line2()");
 
+    dalpha *= 180/PI;
     Vect_reset_line ( nPoints );
 
     Vect_line_prune ( Points );
@@ -414,7 +415,7 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     for (i = 0; i < np-1; i++)
     {
         norm_vector(x[i], y[i], x[i+1], y[i+1], &tx, &ty);
-        elliptic_transform(ty*side, -tx*side, da, db, dalpha, &vx, &vy);
+        elliptic_transform(-ty*side, tx*side, da, db, dalpha, &vx, &vy);
         
         nx = x[i] + vx;
         ny = y[i] + vy;
@@ -476,8 +477,8 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     Vect_line_prune ( nPoints );
 }
 
-/*!
-  \fn void Vect_line_parallel ( struct line_pnts *InPoints, double distance, double tolerance, int rm_end,
+/*
+  \fn void Vect_line_parallel2 ( struct line_pnts *InPoints, double distance, double tolerance, int rm_end,
                        struct line_pnts *OutPoints )
   \brief Create parrallel line
   \param InPoints input line
@@ -486,17 +487,16 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
   \param rm_end remove end points falling into distance
   \param OutPoints output line
 */
-void
-Vect_line_parallel ( struct line_pnts *InPoints, double distance, double tolerance, int rm_end,
-                     struct line_pnts *OutPoints )
+void Vect_line_parallel2(struct line_pnts *InPoints, double da, double db, double dalpha, int side, int round, int loops, double tol, struct line_pnts *OutPoints )
 {
-    G_debug (4, "Vect_line_parallel(): npoints = %d, distance = %f, tolerance = %f",
-	          InPoints->n_points, distance, tolerance);
+    G_debug(4, "Vect_line_parallel(): npoints = %d, da = %f, db = %f, dalpha = %f, side = %d, round_corners = %d, loops = %d, tol = %f",
+            InPoints->n_points, da, db, dalpha, side, round, loops, tol);
 
-/*    parallel_line ( InPoints, distance, tolerance, OutPoints);  */
-    parallel_line (InPoints, distance, distance, 0, tolerance, 0, OutPoints);
-
-    /*clean_parallel ( OutPoints, InPoints, distance, rm_end );*/
+    parallel_line (InPoints, da, db, dalpha, side, round, tol, OutPoints);
+    
+/*    if (!loops)
+        clean_parallel(OutPoints, InPoints, distance, rm_end);
+        */
 }
 
 /*!
