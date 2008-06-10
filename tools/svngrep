@@ -7,6 +7,10 @@
 #
 # e.g.  trunk$ svngrep -r scalebar *
 
+# TODO:
+# + enumerate $* to "$1" "$2" "$3" ...  so grouped 'search items' are not split.
+#       loop '$#' with shell-proof \" quotes?
+# + ignore "dist.`uname m`"  and  "^ChangeLog:" entries
 
 grep -I $* | grep -v '/\.svn/\|\.tmp\.html:'
 
