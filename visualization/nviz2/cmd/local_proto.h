@@ -6,13 +6,14 @@
 
 /* module flags and parameters */
 struct GParams { 
-  struct Option *elev, /* data */
-    *exag, /* misc */
+  struct Option *elev, *color_map, *color_const, /* data */
+    *exag, *bgcolor, /* misc */
     *pos, *height, *persp, *twist; /* viewpoint */
 };
 
 /* args.c */
 void parse_command(int, char**, struct GParams *);
+int color_from_cmd(const char *);
 
 /* cplanes_obj.c */
 int cplane_new(nv_data *, int);
@@ -38,12 +39,13 @@ int draw_quick(nv_data *);
 /* map_obj.c */
 int new_map_obj(int, const char *,
 		nv_data *);
-int set_attr(int, int, int, int, const char *,
+int set_attr(int, int, int, int, const char *, float,
 	     nv_data *);
 void set_att_default();
 
 /* nviz.c */
 void nv_data_init(nv_data *);
+void nv_data_set_bgcolor(nv_data *, int);
 
 /* lights.c */
 int light_set_position(nv_data *, int,
@@ -55,6 +57,11 @@ int light_set_ambient(nv_data *, int,
 		      float, float, float);
 int light_init(nv_data *, int);
 int light_new(nv_data *);
+
+/* position.c */
+void init_view();
+int focus_set_state(int);
+int focus_set_map(int, int);
 
 /* render.c */
 void render_window_init(render_window *);

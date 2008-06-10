@@ -82,14 +82,14 @@ int new_map_obj(int type, const char *name,
 	
 	if (name) {
 	    /* map */
-	    if (!set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, MAP_ATT, name,
+	    if (!set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, MAP_ATT, name, -1.0,
 			  data)) {
 		return -1;
 	    }
 	}
 	else {
 	    /* constant */
-	    if (!set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, CONST_ATT, "0",
+	    if (!set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, CONST_ATT, NULL, 0.0,
 			  data)) {
 		return -1;
 	    }
@@ -136,12 +136,14 @@ int new_map_obj(int type, const char *name,
   \param type map object type (MAP_OBJ_SURF, MAP_OBJ_VECT, ...)
   \param desc attribute descriptors
   \param src attribute sources
-  \param str_value attribute value as string
+  \param str_value attribute value as string (if NULL, check for <i>num_value</i>)
+  \param num_value attribute value as float 
 
   \return 1 on success
   \return 0 on failure
 */
-int set_attr(int id, int type, int desc, int src, const char *str_value,
+int set_attr(int id, int type, int desc, int src,
+	     const char *str_value, float num_value,
 	     nv_data *data)
 {
     int ret;
@@ -157,7 +159,10 @@ int set_attr(int id, int type, int desc, int src, const char *str_value,
 	    /* Get the value for the constant
 	     * Note that we require the constant to be an integer
 	     */
-	    value = (float) atof(str_value);
+	    if (str_value)
+		value = (float) atof(str_value);
+	    else
+		value = num_value;
 	    
 	    /* Only special case is setting constant color.
 	     * In this case we have to decode the constant Tcl
@@ -165,13 +170,14 @@ int set_attr(int id, int type, int desc, int src, const char *str_value,
 	     */
 	    if (desc == ATT_COLOR) {
 		/* TODO check this - sometimes gets reversed when save state
-		   saves a surface with constant color */
-		/* Tcl code and C code reverse RGB to BGR (sigh) */
+		   saves a surface with constant color
+
 		int r, g, b;
-		r = (((int) value) & 0xff0000) >> 16;
-		g = (((int) value) & 0x00ff00) >> 8;
-		b = (((int) value) & 0x0000ff);
+		r = (((int) value) & RED_MASK) >> 16;
+		g = (((int) value) & GRN_MASK) >> 8;
+		b = (((int) value) & BLU_MASK);
 		value = r + (g << 8) + (b << 16);
+		*/
 	    }
 	    
 	    /* Once the value is parsed, set it */

@@ -3,7 +3,9 @@
 
 #include <grass/gsurf.h>
 
+#define MAP_OBJ_UNDEFINED 0
 #define MAP_OBJ_SURF 1
+#define MAP_OBJ_VOL 2
 
 #define RANGE (5 * GS_UNIT_SIZE)
 #define RANGE_OFFSET (2 * GS_UNIT_SIZE)
@@ -11,6 +13,10 @@
 #define ZRANGE_OFFSET (1 * GS_UNIT_SIZE)
 
 #define DEFAULT_SURF_COLOR 0x33BBFF
+
+#define RED_MASK 0x000000FF
+#define GRN_MASK 0x0000FF00
+#define BLU_MASK 0x00FF0000
 
 /* data structures */
 typedef struct{

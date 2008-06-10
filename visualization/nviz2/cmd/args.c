@@ -38,8 +38,22 @@ void parse_command(int argc, char* argv[], struct GParams *params)
     params->elev->description = _("Name of raster map(s) for elevation");
     params->elev->guisection = _("Raster");
 
+    params->color_map = G_define_standard_option(G_OPT_R_MAP);
+    params->color_map->multiple = YES;
+    params->color_map->required = NO;
+    params->color_map->description = _("Name of raster map(s) for color");
+    params->color_map->guisection = _("Raster");
+    params->color_map->key = "color_map";
+
+    params->color_const = G_define_standard_option(G_OPT_C_FG);
+    params->color_const->multiple = YES;
+    params->color_const->label = _("Color value");
+    params->color_const->guisection = _("Raster");
+    params->color_const->key = "color_value";
+    params->color_const->answer = NULL;
+
     params->exag = G_define_option();
-    params->exag->key = "exag";
+    params->exag->key = "zexag";
     params->exag->key_desc = "value";
     params->exag->type = TYPE_DOUBLE;
     params->exag->required = NO;
@@ -48,6 +62,9 @@ void parse_command(int argc, char* argv[], struct GParams *params)
     params->exag->answer = "1.0";
     params->exag->options = "0-10";
 
+    params->bgcolor = G_define_standard_option(G_OPT_C_BG);
+
+    /* viewpoint */
     params->pos = G_define_option();
     params->pos->key = "position";
     params->pos->key_desc = "x,y";
@@ -94,4 +111,24 @@ void parse_command(int argc, char* argv[], struct GParams *params)
         exit(EXIT_FAILURE);
 
     return;
+}
+
+/*!
+  \brief Get color value from color string (name or RGB triplet)
+
+  \param color_str color string
+
+  \return color value
+*/
+int color_from_cmd(const char *color_str)
+{
+    int red, grn, blu;
+
+    if (G_str_to_color(color_str, &red, &grn, &blu) != 1) {
+	G_warning (_("Invalid color (%s), using \"white\" as default"),
+		   color_str);
+	red = grn = blu = 255;
+    }
+
+    return (red & RED_MASK) + ((int)((grn) << 8) & GRN_MASK) + ((int)((blu) << 16) & BLU_MASK);
 }

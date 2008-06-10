@@ -37,12 +37,22 @@ void nv_data_init(nv_data *data)
 	cplane_off(data, i);
     }
     
-    data->bgcolor = 16777215; /* TODO: option bgcolor */
-
     /* lights */
     for (i = 0; i < MAX_LIGHTS; i++) {
 	light_new(data);
     }
 
+    return;
+}
+
+/*!
+  \brief Set background color
+
+  \param color color value
+*/
+void nv_data_set_bgcolor(nv_data *data, int color)
+{
+    data->bgcolor = color;
+    
     return;
 }

@@ -5,6 +5,7 @@
  * AUTHOR(S):    Martin Landa <landa.martin gmail.com>
  *               
  * PURPOSE:      Experimental NVIZ CLI prototype
+ *               Google SoC 2008
  *               
  * COPYRIGHT:    (C) 2008 by the GRASS Development Team
  *
@@ -31,6 +32,7 @@ int main (int argc, char *argv[])
     char *mapset;
     unsigned int i;
     int id;
+    unsigned int nelev, ncolor_map, ncolor_const;
 
     nv_data data;
     render_window offscreen;
@@ -61,8 +63,20 @@ int main (int argc, char *argv[])
     nv_data_init(&data);
     /* define default attributes for map objects */
     set_att_default();
+    /* set background color */
+    nv_data_set_bgcolor(&data, color_from_cmd(params->bgcolor->answer)); 
 
     /* load data */
+    nelev = ncolor_map = ncolor_const = 0;
+
+    i = 0;
+    while(params->color_map->answer && params->color_map->answers[i++])
+	ncolor_map++;
+
+    i = 0;
+    while(params->color_const->answer && params->color_const->answers[i++])
+	ncolor_const++;
+
     if (params->elev->answers) {
 	for (i = 0; params->elev->answers[i]; i++) {
 	    mapset = G_find_cell2 (params->elev->answers[i], "");
@@ -76,20 +90,72 @@ int main (int argc, char *argv[])
 			     G_fully_qualified_name(params->elev->answers[i], mapset),
 			     &data);
 
-	    /* color TODO: option */
-	    set_attr(id, MAP_OBJ_SURF, ATT_COLOR, MAP_ATT,
-		     G_fully_qualified_name(params->elev->answers[i], mapset),
-		     &data);
+	    if (i < ncolor_map) { /* check for color map */
+		mapset = G_find_cell2 (params->color_map->answers[i], "");
+		if (mapset == NULL) {
+		    G_fatal_error(_("Raster map <%s> not found"),
+				  params->color_map->answers[i]);
+		}
 
+		set_attr(id, MAP_OBJ_SURF, ATT_COLOR, MAP_ATT,
+			 G_fully_qualified_name(params->color_map->answers[i], mapset), -1.0,
+			 &data);
+	    }
+	    else if (i < ncolor_const) { /* check for color value */
+		set_attr(id, MAP_OBJ_SURF, ATT_COLOR, CONST_ATT,
+			 NULL, color_from_cmd(params->color_const->answers[i]),
+			 &data);
+	    }
+	    else { /* use by default elevation map for coloring */
+		set_attr(id, MAP_OBJ_SURF, ATT_COLOR, MAP_ATT,
+			 G_fully_qualified_name(params->elev->answers[i], mapset), -1.0,
+			 &data);
+	    }
+	    
 	    /*
 	      if (i > 1)
 	      set_default_wirecolors(data, i);
 	    */
+	    nelev++;
 	}
     }
 
+    /* init view */
+    init_view();
+    focus_set_map(MAP_OBJ_UNDEFINED, -1);
+
+    /* set lights */
+    /* TODO: add options */
+    light_set_position(&data, 0,
+		       0.68, -0.68, 0.80, 0.0);
+    light_set_bright(&data, 0,
+		     0.8);
+    light_set_color(&data, 0,
+		    1.0, 1.0, 1.0);
+    light_set_ambient(&data, 0,
+		      0.2, 0.2, 0.2);
+
+    /*
+    light_set_position(&data, 1,
+		       0.68, -0.68, 0.80, 0.0);
+    light_set_bright(&data, 1,
+		     0.8);
+    light_set_color(&data, 1,
+		    1.0, 1.0, 1.0);
+    light_set_ambient(&data, 1,
+		      0.2, 0.2, 0.2);
+    */
+
+    light_set_position(&data, 1,
+		       0.0, 0.0, 1.0, 0.0);
+    light_set_bright(&data, 1,
+		     0.5);
+    light_set_color(&data, 1,
+		    1.0, 1.0, 1.0);
+    light_set_ambient(&data, 1,
+		      0.3, 0.3, 0.3);
+    
     /* define view point */
-    GS_init_view();
     viewpoint_set_height(&data,
 			 atof(params->height->answer));
     change_exag(&data,
@@ -103,42 +169,15 @@ int main (int argc, char *argv[])
 			atoi(params->persp->answer));
 
 
-    /* resize_window(400, 400); */
-
-    /*
-    light_set_position(&data, 0,
-		       0.68, -0.68, 0.80, 0.0);
-    light_set_position(&data, 1,
-		       0.68, -0.68, 0.80, 0.0);
-    light_set_position(&data, 2,
-		       0.0, 0.0, 1.0, 0.0);
-    light_set_bright(&data, 0,
-		     0.8);
-    light_set_bright(&data, 1,
-		     0.8);
-    light_set_bright(&data, 2,
-		     0.5);
-    light_set_color(&data, 0,
-		    1.0, 1.0, 1.0);
-    light_set_color(&data, 1,
-		    1.0, 1.0, 1.0);
-    light_set_color(&data, 2,
-		    1.0, 1.0, 1.0);
-    light_set_ambient(&data, 0,
-		      0.2, 0.2, 0.2);
-    light_set_ambient(&data, 1,
-		      0.2, 0.2, 0.2);
-    light_set_ambient(&data, 2,
-		      0.3, 0.3, 0.3);
-    */
-
+    // resize_window(600, 480);
 
     GS_clear(data.bgcolor);
 
+    /* draw */
     cplane_draw(&data, -1, -1);
     draw_all (&data);
 
-    write_ppm("test.ppm");
+    write_ppm("test.ppm"); /* TODO: option 'format' */
 
     render_window_destroy(&offscreen);
 
