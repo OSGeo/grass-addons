@@ -32,8 +32,9 @@
 */
 void parse_command(int argc, char* argv[], struct GParams *params)
 {
+    /* raster */
     params->elev = G_define_standard_option(G_OPT_R_ELEV);
-    params->elev->required = YES;
+    params->elev->required = NO;
     params->elev->multiple = YES;
     params->elev->description = _("Name of raster map(s) for elevation");
     params->elev->guisection = _("Raster");
@@ -52,6 +53,15 @@ void parse_command(int argc, char* argv[], struct GParams *params)
     params->color_const->key = "color_value";
     params->color_const->answer = NULL;
 
+    /* vector */
+    params->vector = G_define_standard_option(G_OPT_V_MAP);
+    params->vector->multiple = YES;
+    params->vector->required = NO;
+    params->vector->description = _("Name of vector overlay map(s)");
+    params->vector->guisection = _("Vector");
+    params->vector->key = "vector";
+
+    /* misc */
     params->exag = G_define_option();
     params->exag->key = "zexag";
     params->exag->key_desc = "value";
@@ -83,7 +93,6 @@ void parse_command(int argc, char* argv[], struct GParams *params)
     params->height->multiple = NO;
     params->height->description = _("Viewpoint height (in map units)");
     params->height->guisection = _("Viewpoint");
-    params->height->answer = "10561";
 
     params->persp = G_define_option();
     params->persp->key = "perspective";

@@ -32,7 +32,8 @@ int main (int argc, char *argv[])
     char *mapset;
     unsigned int i;
     int id;
-    unsigned int nelev, ncolor_map, ncolor_const;
+    unsigned int nelev, ncolor_map, ncolor_const, nvect;
+    float vp_height; /* calculated viewpoint height */
 
     nv_data data;
     render_window offscreen;
@@ -77,7 +78,8 @@ int main (int argc, char *argv[])
     while(params->color_const->answer && params->color_const->answers[i++])
 	ncolor_const++;
 
-    if (params->elev->answers) {
+    /* load rasters */
+    if (params->elev->answer) {
 	for (i = 0; params->elev->answers[i]; i++) {
 	    mapset = G_find_cell2 (params->elev->answers[i], "");
 	    if (mapset == NULL) {
@@ -120,6 +122,29 @@ int main (int argc, char *argv[])
 	}
     }
 
+    /* load vectors */
+    if (params->vector->answer) {
+	if (!params->elev->answer && GS_num_surfs() == 0) { /* load base surface if no loaded */
+	    int *surf_list, nsurf;
+
+	    new_map_obj(MAP_OBJ_SURF, NULL, &data);
+
+	    surf_list = GS_get_surf_list(&nsurf);
+	    GS_set_att_const(surf_list[0], ATT_TRANSP, 255);
+	}
+
+	for (i = 0; params->vector->answers[i]; i++) {
+	    mapset = G_find_vector2 (params->vector->answers[i], "");
+	    if (mapset == NULL) {
+		G_fatal_error(_("Vector map <%s> not found"),
+			      params->vector->answers[i]);
+	    }
+	    new_map_obj(MAP_OBJ_VECT,
+			G_fully_qualified_name(params->vector->answers[i], mapset), &data);
+	}
+	nvect++;
+    }
+	    
     /* init view */
     init_view();
     focus_set_map(MAP_OBJ_UNDEFINED, -1);
@@ -156,8 +181,14 @@ int main (int argc, char *argv[])
 		      0.3, 0.3, 0.3);
     
     /* define view point */
+    if (params->height->answer) {
+	vp_height = atof(params->height->answer);
+    }
+    else {
+	exag_get_height(&vp_height, NULL, NULL);
+    }
     viewpoint_set_height(&data,
-			 atof(params->height->answer));
+			 vp_height);
     change_exag(&data,
 		atof(params->exag->answer));
     viewpoint_set_position(&data,

@@ -25,6 +25,13 @@
 static int sort_surfs_max(int *, int *, int *, int);
 static int check_blank(int);
 
+/*!
+  \brief Draw all loaded surfaces
+
+  \param dc nviz data
+
+  \return 1
+*/
 int draw_all_surf(nv_data *dc)
 {
     int i, nsurfs;
@@ -137,7 +144,7 @@ int draw_all(nv_data *data)
     // const char* EMPTYSTRING = "";
 
     draw_surf = 1;
-    draw_vect = 0;
+    draw_vect = 1;
     draw_site = 0;
     draw_vol = 0;
     draw_north_arrow = 0;
@@ -173,10 +180,10 @@ int draw_all(nv_data *data)
     bar_x        = Tcl_GetVar(interp, "scalebar_x", TCL_GLOBAL_ONLY);
 */  
     if (draw_surf)
-	draw_all_surf (data);
+	draw_all_surf(data);
 
     if (draw_vect)
-	; // vect_draw_all_together(data, interp);
+	draw_all_vect (data);
 
     if (draw_site)
 	; // site_draw_all_together(data, interp);
@@ -320,6 +327,42 @@ int draw_quick(nv_data *dc)
     GS_done_draw();
 
     // flythrough_postdraw_cb();
+
+    return 1;
+}
+
+/*!
+  \brief Draw all loaded vector sets
+
+  \param dc nviz data
+
+  \return 1
+*/
+int draw_all_vect(nv_data *dc)
+{
+    int i, nvects;
+    int *vect_list;
+
+    // GS_set_cancel(0);
+    vect_list = GV_get_vect_list(&nvects);
+
+    /* in case transparency is set */
+    GS_set_draw(GSD_BOTH);
+
+    GS_ready_draw();
+
+    for (i = 0; i < nvects; i++) {
+	if (!check_blank(vect_list[i])) {
+	    GV_draw_vect(vect_list[i]);
+	}
+    }
+    G_free (vect_list);
+
+    GS_done_draw();
+    
+    GS_set_draw(GSD_BACK);
+
+    // GS_set_cancel(0);
 
     return 1;
 }

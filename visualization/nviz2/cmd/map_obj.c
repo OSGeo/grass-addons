@@ -54,7 +54,8 @@
 int new_map_obj(int type, const char *name,
 		nv_data *data)
 {
-    int new_id;
+    int new_id, i;
+    int num_surfs, *surf_list;
 
     nv_clientdata *client_data;
 
@@ -68,6 +69,7 @@ int new_map_obj(int type, const char *name,
  *      id number and link it to the Nmap_obj_cmd routine
  *      below.
  */
+    /* raster -> surface */
     if (type == MAP_OBJ_SURF) {
 	if (GS_num_surfs() >= MAX_SURFS) {
 	    G_warning (_("Maximum surfaces loaded!"));
@@ -95,8 +97,36 @@ int new_map_obj(int type, const char *name,
 	    }
 	}	  
     }
+    /* vector overlay */
+    else if (type == MAP_OBJ_VECT) {
+	if (GV_num_vects() >= MAX_VECTS) {
+	    G_warning (_("Maximum vectors loaded!"));
+	    return -1;
+	}
 
-    /* Initialize the client data filled for the new map object */
+	new_id = GV_new_vector();
+
+	if (name) {
+	    if (GV_load_vector(new_id, name) < 0) {
+		GV_delete_vector(new_id);
+		G_warning (_("Error loading vector <%s>"), name);
+		return -1;
+	    }
+	}
+	 
+	/* initialize display parameters
+	   automatically select all surfaces to draw vector */
+	GV_set_vectmode(new_id, 1, 0xFF0000, 2, 0);
+	surf_list = GS_get_surf_list(&num_surfs);
+	if (num_surfs) {
+	    for (i = 0; i < num_surfs; i++) {
+		GV_select_surf(new_id, surf_list[i]);
+	    }
+	}
+	G_free (surf_list);
+    }
+
+    /* initialize the client data filled for the new map object */
     client_data = (nv_clientdata *) G_malloc (sizeof(nv_clientdata));
 
     if (name) {
@@ -252,3 +282,4 @@ void set_att_default()
 
     return;
 }
+

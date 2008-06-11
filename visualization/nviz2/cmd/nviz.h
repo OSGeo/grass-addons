@@ -6,6 +6,7 @@
 #define MAP_OBJ_UNDEFINED 0
 #define MAP_OBJ_SURF 1
 #define MAP_OBJ_VOL 2
+#define MAP_OBJ_VECT 3
 
 #define RANGE (5 * GS_UNIT_SIZE)
 #define RANGE_OFFSET (2 * GS_UNIT_SIZE)

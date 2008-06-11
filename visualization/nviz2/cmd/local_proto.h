@@ -6,7 +6,8 @@
 
 /* module flags and parameters */
 struct GParams { 
-  struct Option *elev, *color_map, *color_const, /* data */
+  struct Option *elev, *color_map, *color_const, /* raster */
+    *vector, /* vector */
     *exag, *bgcolor, /* misc */
     *pos, *height, *persp, *twist; /* viewpoint */
 };
@@ -35,6 +36,10 @@ int change_exag(nv_data *, float);
 int draw_all_surf(nv_data *);
 int draw_all(nv_data *);
 int draw_quick(nv_data *);
+int draw_all_vect(nv_data *);
+
+/* exag.c */
+int exag_get_height(float *, float *, float *);
 
 /* map_obj.c */
 int new_map_obj(int, const char *,
