@@ -612,10 +612,6 @@ class Data:
                                  _("Textural features analysis"),
                                  "self.OnMenuCmd",
                                  "r.texture"),
-                                (_("Soil Texture->properties"),
-                                 _("Soil Texture to Ksat/Porosity/Hf"),
-                                 "self.OnMenuCmd",
-                                 "r.soiltex2prop"),
                                 ("","","", ""),
                                 (_("Visibility"),
                                  _("Visibility and line of sight"),
@@ -639,7 +635,16 @@ class Data:
                                 )
                          ),
                         ("","","", ""),
-                        (_("Universal Soil Loss Equation (USLE)"), (
+                        (_("Soil and USLE"), (
+                                (_("Soil Classes->Soil Fractions"),
+                                 _("Soil USDA classes to sand,silt,clay"),
+                                 "self.OnMenuCmd",
+                                 "r.soilusda2tex"),
+                                (_("Soil Texture->properties"),
+                                 _("Soil Texture to Ksat/Porosity/Hf"),
+                                 "self.OnMenuCmd",
+                                 "r.soiltex2prop"),
+                        	("","","", ""),
                                 (_("Rainfall Erosivity (R)"),
                                  _("Rainfall Erosivity (R)"),
                                  "self.OnMenuCmd",

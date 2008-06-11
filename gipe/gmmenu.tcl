@@ -297,7 +297,10 @@ set descmenu [subst  {
 		{command {[G_msg "Thin"]} {} "r.thin: Thin linear features" {} -command {execute r.thin }}
 	}}
 	{separator}
-	{cascad {[G_msg "Universal Soil Loss Equation (USLE)"]} {} "" $tmenu {			
+	{cascad {[G_msg "Soil and USLE"]} {} "" $tmenu {			
+		{command {[G_msg "USDA soil classes to soil fractions"]} {} "r.soilusda2tex" {} -command {execute r.soilusda2tex }}
+		{command {[G_msg "Soil Fractions to soil properties"]} {} "r.soiltex2prop" {} -command {execute r.soiltex2prop }}
+		{separator}
 		{command {[G_msg "Rainfall Erosivity (R)"]} {} "r.usler" {} -command {execute r.usler }}
 		{command {[G_msg "Soil Erodibility (K)"]} {} "r.uslek" {} -command {execute r.uslek }}
 		{command {[G_msg "Length Slope and Slope (LS)"]} {} "r.watershed" {} -command {execute r.watershed }}
