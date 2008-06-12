@@ -9,7 +9,8 @@ struct GParams {
   struct Option *elev, *color_map, *color_const, /* raster */
     *vector, /* vector */
     *exag, *bgcolor, /* misc */
-    *pos, *height, *persp, *twist; /* viewpoint */
+    *pos, *height, *persp, *twist, /* viewpoint */
+    *output, *format, *size; /* output */
 };
 
 /* args.c */
@@ -76,6 +77,6 @@ int render_window_make_current(const render_window *);
 void swap_gl();
 
 /* write_img.c */
-int write_ppm(const char *);
+int write_img(const char *, int);
 
 #endif /* __LOCAL_PROTO_H__ */

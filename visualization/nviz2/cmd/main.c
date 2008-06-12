@@ -16,6 +16,7 @@
  *****************************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <grass/gis.h>
 #include <grass/glocale.h>
@@ -31,9 +32,11 @@ int main (int argc, char *argv[])
 
     char *mapset;
     unsigned int i;
-    int id;
+    int id, ret;
     unsigned int nelev, ncolor_map, ncolor_const, nvect;
     float vp_height; /* calculated viewpoint height */
+    int width, height; /* output image size */
+    char *output_name;
 
     nv_data data;
     render_window offscreen;
@@ -50,6 +53,10 @@ int main (int argc, char *argv[])
     /* define options, call G_parser() */
     parse_command(argc, argv, params);
 
+    width = atoi(params->size->answers[0]);
+    height = atoi(params->size->answers[1]);
+    G_asprintf(&output_name, "%s.%s", params->output->answer, params->format->answer);
+
     GS_libinit();
     /* GVL_libinit(); TODO */
 
@@ -57,7 +64,7 @@ int main (int argc, char *argv[])
 
     /* define render window */
     render_window_init(&offscreen);
-    render_window_create(&offscreen, 640, 480); /* TOD0: option dim */
+    render_window_create(&offscreen, width, height); /* TOD0: option dim */
     render_window_make_current(&offscreen);
 
     /* initialize nviz data */
@@ -208,10 +215,18 @@ int main (int argc, char *argv[])
     cplane_draw(&data, -1, -1);
     draw_all (&data);
 
-    write_ppm("test.ppm"); /* TODO: option 'format' */
+    ret = 0;
+    if (strcmp(params->format->answer, "ppm") == 0)
+	ret = write_img(output_name, FORMAT_PPM); 
+    if (strcmp(params->format->answer, "tif") == 0)
+	ret = write_img(output_name, FORMAT_TIF); 
+    
+    if (!ret)
+	G_fatal_error(_("Unsupported output format"));
 
     render_window_destroy(&offscreen);
 
+    G_free ((void *) output_name);
     G_free ((void *) params);
 
     exit(EXIT_SUCCESS);

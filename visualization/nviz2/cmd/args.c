@@ -116,6 +116,29 @@ void parse_command(int argc, char* argv[], struct GParams *params)
     params->twist->answer = "0";
     params->twist->options = "-180-180";
 
+    /* image */
+    params->output = G_define_standard_option(G_OPT_F_OUTPUT);
+    params->output->description = _("Name for output file (do not add extension)");
+    params->output->guisection = _("Image");
+
+    params->format = G_define_option();
+    params->format->key = "format";
+    params->format->type = TYPE_STRING;
+    params->format->options = "ppm,tif"; /* TODO: png */
+    params->format->answer = "ppm";
+    params->format->description = _("Graphics file format");
+    params->format->required = YES;
+    params->format->guisection = _("Image");
+
+    params->size = G_define_option();
+    params->size->key = "size";
+    params->size->type = TYPE_INTEGER;
+    params->size->key_desc = "width,height";
+    params->size->answer = "640,480";
+    params->size->description = _("Width and height of output image");
+    params->size->required = YES;
+    params->size->guisection = _("Image");
+
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
 

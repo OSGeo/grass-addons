@@ -19,6 +19,9 @@
 #define GRN_MASK 0x0000FF00
 #define BLU_MASK 0x00FF0000
 
+#define FORMAT_PPM 1
+#define FORMAT_TIF 2
+
 /* data structures */
 typedef struct{
     int id;

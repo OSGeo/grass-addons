@@ -25,11 +25,19 @@
   \brief Save current GL screen to an ppm file.
 
   \param name filename
+
+  \return 1 on success
+  \return 0 on failure (unsupported format)
 */
 
-int write_ppm(const char *name)
+int write_img(const char *name, int format)
 {
-    GS_write_ppm(name);
+    if (format == FORMAT_PPM) 
+	GS_write_ppm(name);
+    else if (format == FORMAT_TIF)
+	GS_write_tif(name);
+    else
+	return 0;
     
     return 1;
 }
