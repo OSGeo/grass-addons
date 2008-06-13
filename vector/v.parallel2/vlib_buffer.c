@@ -10,8 +10,12 @@
 #include <grass/gis.h>
 
 #define LENGTH(DX, DY) (sqrt((DX*DX)+(DY*DY)))
-#define MIN(X,Y) ((X<Y)?X:Y)
-#define MAX(X,Y) ((X>Y)?X:Y)
+#ifndef MIN
+    #define MIN(X,Y) ((X<Y)?X:Y)
+#endif
+#ifndef MAX
+    #define MAX(X,Y) ((X>Y)?X:Y)
+#endif    
 #define PI M_PI
 
 /* norm_vector() calculates normalized vector form two points */
@@ -458,7 +462,6 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     side = (side >= 0)?(1):(-1); /* normalize variable */
     dalpha *= PI/180; /* convert dalpha from degrees to radians */
     angular_tol = angular_tolerance(tol, da, db);
-    G_message("tol=%f atol=%f", tol, angular_tol);
     
     for (i = 0; i < np-1; i++)
     {
@@ -511,7 +514,8 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
                 
                 phi1 = atan2(wy1, wx1);
                 phi2 = atan2(vy1, vx1);
-                delta_phi = phi2 - phi1;
+                delta_phi = side*(phi2 - phi1);
+                /*G_message("phi1=%f phi2=%f d_phi=%f", phi1, phi2, delta_phi);*/
                 
                 /* make delta_phi in [0, 2pi] */
                 if (delta_phi < 0)
