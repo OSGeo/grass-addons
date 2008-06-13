@@ -27,6 +27,7 @@ int main (int argc, char *argv[])
     struct GModule *module;
     struct Option *in_opt, *out_opt, *dista_opt;
     struct Option *distb_opt, *angle_opt, *side_opt;
+    struct Option *tol_opt;
     struct Flag *round_flag, *loops_flag;
     struct Map_info In, Out;
     struct line_pnts *Points, *Points2;
@@ -46,23 +47,23 @@ int main (int argc, char *argv[])
     /* layer_opt = G_define_standard_option(G_OPT_V_FIELD); */
     
     dista_opt = G_define_option();
-    dista_opt->key = "dista";
+    dista_opt->key = "distance";
     dista_opt->type =  TYPE_DOUBLE;
     dista_opt->required = YES;
     dista_opt->multiple = NO;
     dista_opt->description = _("Offset along major axis in map units");
 
     distb_opt = G_define_option();
-    distb_opt->key = "distb";
+    distb_opt->key = "minordistance";
     distb_opt->type =  TYPE_DOUBLE;
-    distb_opt->required = YES;
+    distb_opt->required = NO;
     distb_opt->multiple = NO;
     distb_opt->description = _("Offset along minor axis in map units");
 
     angle_opt = G_define_option();
     angle_opt->key = "angle";
     angle_opt->type =  TYPE_DOUBLE;
-    angle_opt->required = YES;
+    angle_opt->required = NO;
     angle_opt->answer = "0";
     angle_opt->multiple = NO;
     angle_opt->description = _("Angle of major axis in degrees");
@@ -75,6 +76,13 @@ int main (int argc, char *argv[])
     side_opt->multiple = NO;
     side_opt->options = "left,right";
     side_opt->description = _("left;Parallel line is on the left;right;Parallel line is on the right;");
+
+    tol_opt = G_define_option();
+    tol_opt->key = "tolerance";
+    tol_opt->type =  TYPE_DOUBLE;
+    tol_opt->required = NO;
+    tol_opt->multiple = NO;
+    tol_opt->description = _("Tolerance of arc polylines in map units");
 
     round_flag = G_define_flag();
     round_flag->key = 'r';
@@ -89,12 +97,25 @@ int main (int argc, char *argv[])
 
     /* layer = atoi ( layer_opt->answer ); */
     da = atof(dista_opt->answer);
-    db = atof(distb_opt->answer);
-    dalpha = atof(angle_opt->answer);
-    tolerance = ((da>db)?da:db)/10.;
-    if (strcmp(side_opt->answer, "right"))
+    
+    if (distb_opt->answer)
+        db = atof(distb_opt->answer);
+    else
+        db = da;
+        
+    if (angle_opt->answer)
+        dalpha = atof(angle_opt->answer);
+    else
+        dalpha = 0;
+        
+    if (tol_opt->answer)
+        tolerance = atof(tol_opt->answer);
+    else
+        tolerance = ((db<da)?db:da)/10.;
+            
+    if (strcmp(side_opt->answer, "right") == 0)
         side = 1;
-    else if (strcmp(side_opt->answer, "left"))
+    else if (strcmp(side_opt->answer, "left") == 0)
         side = -1;
 
     Vect_set_open_level (2); 

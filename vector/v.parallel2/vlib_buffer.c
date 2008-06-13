@@ -1,6 +1,6 @@
 /* Functions: nearest, adjust_line, parallel_line
 **
-** Author: Radim Blazek Feb 2000
+** Author: Radim Blazek, Rosen Matev; June 2008
 **
 **
 */
@@ -9,7 +9,9 @@
 #include <grass/Vect.h>
 #include <grass/gis.h>
 
-#define LENGTH(DX, DY)  (  sqrt( (DX*DX)+(DY*DY) )  )
+#define LENGTH(DX, DY) (sqrt((DX*DX)+(DY*DY)))
+#define MIN(X,Y) ((X<Y)?X:Y)
+#define MAX(X,Y) ((X>Y)?X:Y)
 #define PI M_PI
 
 /* norm_vector() calculates normalized vector form two points */
@@ -313,20 +315,56 @@ void parallel_line (struct line_pnts *Points, double d, double tol, struct line_
 }
 #endif
 
+static void rotate_vector(double x, double y, double cosa, double sina, double *nx, double *ny) {
+    *nx = x*cosa - y*sina;
+    *ny = x*sina + y*cosa;
+    return;   
+}
+
 /*
-* (x, y) shoud be normalized vector; This func transforms it to a vector corresponding to da, db, dalpha params
+* (x, y) shoud be normalized vector for common transforms; This func transforms it to a vector corresponding to da, db, dalpha params
 */
 static void elliptic_transform(double x, double y, double da, double db, double dalpha, double *nx, double *ny) {
     double cosa = cos(dalpha);
     double sina = sin(dalpha);
-    double cc = cosa*cosa;
+/*    double cc = cosa*cosa;
     double ss = sina*sina;
     double t = (da-db)*sina*cosa;
     
     *nx = (da*cc + db*ss)*x + t*y;
     *ny = (da*ss + db*cc)*y + t*x;
-    return;
+    return;*/
+    
+    double va, vb;
+    va = (x*cosa + y*sina)*da;
+    vb = (x*(-sina) + y*cosa)*db;
+    *nx = va*cosa + vb*(-sina);
+    *ny = va*sina + vb*cosa;
+    return; 
 }
+
+/*
+* vect(x,y) must be normalized
+* gives the tangent point of the tangent to ellpise(da,db,dalpha) parallel to vect(x,y)
+* ellipse center is in (0,0)
+*/
+static void elliptic_tangent(double x, double y, double da, double db, double dalpha, double *px, double *py) {
+    double cosa = cos(dalpha);
+    double sina = sin(dalpha);
+    double u, v, len;
+    /* rotate (x,y) -dalpha radians */
+    rotate_vector(x, y, cosa, -sina, &x, &y);
+    /*u = (x + da*y/db)/2;
+    v = (y - db*x/da)/2;*/
+    u = da*da*y;
+    v = -db*db*x;
+    len = da*db/sqrt(da*da*v*v + db*db*u*u);
+    u *= len;
+    v *= len;
+    rotate_vector(u, v, cosa, sina, px, py);
+    return; 
+}
+
 
 /*
 * !!! This is not line in GRASS' sense. See http://en.wikipedia.org/wiki/Line_%28mathematics%29
@@ -364,6 +402,16 @@ static int line_intersection(double a1, double b1, double c1, double a2, double 
     }
 }
 
+static double angular_tolerance(double tol, double da, double db) {
+    double a = MAX(da, db);
+    double b = MIN(da, db);
+    if (tol > a)
+        tol = a;
+/*    t = b*sqrt(tol*(2*a - tol))/(a*(a-tol));
+    return 2*atan(t);*/
+    return 2*acos(1-tol/a);
+}
+
 /*
 * This function generates parallel line (with loops, but not like the old ones).
 * It is not to be used directly for creating buffers.
@@ -379,16 +427,19 @@ static int line_intersection(double a1, double b1, double c1, double a2, double 
 */
 void parallel_line(struct line_pnts *Points, double da, double db, double dalpha, int side, int round, double tol, struct line_pnts *nPoints)
 {
-    int i, j, res, np, na;
+    int i, j, res, np;
     double *x, *y;
-    double tx, ty, vx, vy, nx, ny, mx, my, rx, ry;
+    double tx, ty, vx, vy, wx, wy, nx, ny, mx, my, rx, ry;
+    double vx1, vy1, wx1, wy1;
     double a0, b0, c0, a1, b1, c1;
-    double ux, uy, wx, wy;
-    double atol, atol2, a, av, aw;
+    double phi1, phi2, delta_phi;
+    double nsegments, angular_tol, angular_step;
+    double cosa, sina, r;
+    int inner_corner;
 
     G_debug(4, "parallel_line2()");
-
-    dalpha *= 180/PI;
+    
+    
     Vect_reset_line ( nPoints );
 
     Vect_line_prune ( Points );
@@ -396,30 +447,31 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     x = Points->x;
     y = Points->y;
 
-    if ( np == 0 )
+    if ((np == 0) || (np == 1))
         return;
-
-    if ( np == 1 ) {
-        /* Vect_append_point ( nPoints, x[0], y[0], 0 ); /* ? OK, should make circle for points ? */
-        return;
-    }
 
     if ((da == 0) && (db == 0)) {
         Vect_copy_xyz_to_pnts(nPoints, x, y, NULL, np);
         return;
     }
 
-    side = (side >= 0)?(1):(-1);
-/*    atol = 2 * acos( 1-tol/fabs(d) ); */
-
+    side = (side >= 0)?(1):(-1); /* normalize variable */
+    dalpha *= PI/180; /* convert dalpha from degrees to radians */
+    angular_tol = angular_tolerance(tol, da, db);
+    G_message("tol=%f atol=%f", tol, angular_tol);
+    
     for (i = 0; i < np-1; i++)
     {
+        wx = vx; /* save the old values */
+        wy = vy;
+        
         norm_vector(x[i], y[i], x[i+1], y[i+1], &tx, &ty);
-        elliptic_transform(-ty*side, tx*side, da, db, dalpha, &vx, &vy);
+        /* elliptic_transform(ty*side, -tx*side, da, db, dalpha, &vx, &vy); */
+        elliptic_tangent(side*tx, side*ty, da, db, dalpha, &vx, &vy);
         
         nx = x[i] + vx;
         ny = y[i] + vy;
-            
+        
         mx = x[i+1] + vx;
         my = y[i+1] + vy;
 
@@ -429,16 +481,51 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
             Vect_append_point(nPoints, nx, ny, 0);
         }
         else {
-            res = line_intersection(a0, b0, c0, a1, b1, c1, &rx, &ry);
-            if (res == 0) {
-                /* THIS ISN'T SUPPOSED TO HAPPEN, MUST THROW ERROR*/
-                G_fatal_error(("Two consequtive line segments are parallel, but not on one straight line!\nThis should never happen."));
-                return;
+            /* delta_phi = atan2(y[i+1]-y[i],x[i+1]-x[i]) - atan2(y[i]-y[i-1], x[i]-x[i-1])) */
+            delta_phi = atan2(ty, tx) - atan2(y[i]-y[i-1], x[i]-x[i-1]);
+            if (delta_phi > PI)
+                delta_phi -= 2*PI;
+            else if (delta_phi <= -PI)
+                delta_phi += 2*PI;
+            /* now delta_phi is in (-pi;pi] */
+            inner_corner = (side*delta_phi <= 0);
+                 
+            if ((!round) || inner_corner) {
+                res = line_intersection(a0, b0, c0, a1, b1, c1, &rx, &ry);
+                if (res == 0) {
+                    /* THIS ISN'T SUPPOSED TO HAPPEN, MUST THROW ERROR*/
+                    G_fatal_error("Two consequtive line segments are parallel, but not on one straight line!\nThis should never happen.");
+                    return;
+                }
+                else if (res == 1) {
+                    Vect_append_point(nPoints, rx, ry, 0);
+                }
+                /* else if (res == 2) do nothing; we have line segments, which are on one straight line */
             }
-            else if (res == 1) {
-                Vect_append_point(nPoints, rx, ry, 0);
+            else {
+                /* we should draw elliptical arc for outside corner */
+                
+                /* inverse transforms */
+                elliptic_transform(wx, wy, 1/da, 1/db, dalpha, &wx1, &wy1);
+                elliptic_transform(vx, vy, 1/da, 1/db, dalpha, &vx1, &vy1);
+                
+                phi1 = atan2(wy1, wx1);
+                phi2 = atan2(vy1, vx1);
+                delta_phi = phi2 - phi1;
+                
+                /* make delta_phi in [0, 2pi] */
+                if (delta_phi < 0)
+                    delta_phi += 2*PI;
+                
+                nsegments = (int)(delta_phi/angular_tol) + 1;
+                angular_step = side*(delta_phi/nsegments);
+                
+                for (j = 0; j <= nsegments; j++) {
+                    elliptic_transform(cos(phi1), sin(phi1), da, db, dalpha, &tx, &ty);
+                    Vect_append_point(nPoints, x[i] + tx, y[i] + ty, 0);
+                    phi1 += angular_step;
+                }
             }
-            /* else if (res == 2) do nothing */
         }
         
         if (i == np-2) {
@@ -448,31 +535,6 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
         a0 = a1;
         b0 = b1;
         c0 = c1;
-        
-    /*    
-	if ( i < np-2 ) {   /*use polyline instead of arc between line segments 
-	    norm_vector( x[i+1], y[i+1], x[i+2], y[i+2], &ux, &uy);
-	    wx  =  uy * d;
-	    wy  = -ux * d;
-	    av = atan2 ( vy, vx );
-	    aw = atan2 ( wy, wx );
-	    a = (aw - av) * side;
-	    if ( a < 0 )  a+=2*PI;
-
-             /*TODO: a <= PI can probably fail because of representation error 
-	    if ( a <= PI && a > atol)
-	    {
-		na = (int) (a/atol);
-		atol2 = a/(na+1) * side;
-		for (j = 0; j < na; j++)
-		{
-		    av+=atol2;
-		    nx = x[i+1] + fabs(d) * cos(av);
-		    ny = y[i+1] + fabs(d) * sin(av);
-		    Vect_append_point ( nPoints, nx, ny, 0 );
-		}
-	    }
-	}*/
     }
     Vect_line_prune ( nPoints );
 }
