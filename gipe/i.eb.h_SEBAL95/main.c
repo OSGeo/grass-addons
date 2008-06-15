@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	struct Option *input_row_wet, *input_col_wet;
 	struct Option *input_row_dry, *input_col_dry;
 	struct Option *input_iter;
-	struct Flag *flag1, *day, *zero;
+	struct Flag *flag1, *flag2, *day, *zero;
 	/*******************************/
 	RASTER_MAP_TYPE data_type_T;
 	RASTER_MAP_TYPE data_type_ndvi;
@@ -155,8 +155,12 @@ int main(int argc, char *argv[])
 	
 	/* Define the different flags */
 	flag1 = G_define_flag() ;
-	flag1->key         = 'a' ;
-	flag1->description = _("Automatic wet/dry pixel (careful!)") ;
+	flag1->key         = 't' ;
+	flag1->description = _("Temperature histogram check (careful!)") ;
+
+	flag2 = G_define_flag() ;
+	flag2->key         = 'a' ;
+	flag2->description = _("Automatic wet/dry pixel (careful!)") ;
 	
 	zero = G_define_flag() ;
 	zero->key         = 'z' ;
@@ -273,6 +277,7 @@ int main(int argc, char *argv[])
 	/* NDVI Max */
 	for (row = 0; row < nrows; row++)
 	{
+		G_percent (row, nrows, 2);
 		if (G_get_d_raster_row (infd_ndvi, inrast_ndvi, row) < 0)
 			G_fatal_error (_("Could not read from <%s>"),ndvi);
 	/*	#pragma omp for parallel default (shared) \
@@ -309,10 +314,171 @@ int main(int argc, char *argv[])
 	DCELL d_g0_dry;
 	DCELL d_t0dem_dry;
 	DCELL d_dem_dry;
-	/*Process wet pixel values*/
-	/* FLAG1 */
+	/*START Temperature minimum search */
+	/* THREAD 1 */
+	/*This is correcting for un-Earthly temperatures*/
+	/*It finds when histogram is actually starting to pull up...*/
+	int peak1, peak2, peak3;
+	int i_peak1, i_peak2, i_peak3;
+	int bottom1a, bottom1b;
+	int bottom2a, bottom2b;
+	int bottom3a, bottom3b;
+	int i_bottom1a, i_bottom1b;
+	int i_bottom2a, i_bottom2b;
+	int i_bottom3a, i_bottom3b;
 	if(flag1->answer){
-		/* THREAD 2 */
+		int i=0;
+		int histogram[400];
+		for (i=0;i<400;i++){
+			histogram[i]=0;
+		}
+		DCELL d_T;
+		/****************************/
+		/* Process pixels histogram */
+		for (row = 0; row < nrows; row++)
+		{
+			G_percent (row, nrows, 2);
+			/* read input map */
+			if( (G_get_raster_row(infd_T,inrast_T,row,data_type_T)) < 0){
+				G_fatal_error (_("Could not read from <%s>"),T);
+			}
+			/*process the data */
+			for (col=0; col < ncols; col++)
+			{
+				switch(data_type_T)
+				{
+					case CELL_TYPE:
+						d_T = (double) ((CELL *) inrast_T)[col];
+						break;
+					case FCELL_TYPE:
+						d_T = (double) ((FCELL *) inrast_T)[col];
+						break;
+					case DCELL_TYPE:
+						d_T = (double) ((DCELL *) inrast_T)[col];
+						break;
+				}
+				if(G_is_d_null_value(&d_T)){
+					/*Do nothing*/
+				} else {
+					int temp;
+					temp		= (int) d_T;
+					if(temp>0){
+						histogram[temp]=histogram[temp]+1.0;
+					}
+				}
+			}
+		}
+		int sum=0;
+		double average=0.0;
+		for(i=0;i<400;i++){
+			sum += histogram[i];
+		}
+		average = (double) sum / 400.0; 
+		G_message("Histogram of Temperature map (if it has rogue values to clean)");
+		//int peak1, peak2, peak3;
+		//int i_peak1, i_peak2, i_peak3;
+		peak1=0;
+		peak2=0;
+		peak3=0;
+		i_peak1=0;
+		i_peak2=0;
+		i_peak3=0;
+		//int bottom1a, bottom1b;
+		//int bottom2a, bottom2b;
+		//int bottom3a, bottom3b;
+		//int i_bottom1a, i_bottom1b;
+		//int i_bottom2a, i_bottom2b;
+		//int i_bottom3a, i_bottom3b;
+		bottom1a=100000;
+		bottom1b=100000;
+		bottom2a=100000;
+		bottom2b=100000;
+		bottom3a=100000;
+		bottom3b=100000;
+		i_bottom1a=1000;
+		i_bottom1b=1000;
+		i_bottom2a=1000;
+		i_bottom2b=1000;
+		i_bottom3a=1000;
+		i_bottom3b=1000;
+		for(i=0;i<400;i++){
+			/* Search for highest peak of dataset (2) */
+			/* Highest Peak */
+			if(histogram[i]>peak2){
+				peak2 = histogram[i];
+				i_peak2=i;
+			}
+		}
+		int stop=0;
+		for(i=i_peak2;i>5;i--){
+			if(((histogram[i]+histogram[i-1]+histogram[i-2]+histogram[i-3]+histogram[i-4])/5)<histogram[i]&&stop==0){
+				bottom2a = histogram[i];
+				i_bottom2a = i;
+			} else if(((histogram[i]+histogram[i-1]+histogram[i-2]+histogram[i-3]+histogram[i-4])/5)>histogram[i]&&stop==0){
+				/*Search for peaks of datasets (1)*/
+				peak1 = histogram[i];
+				i_peak1=i;
+				stop=1;
+			}	
+		}
+		stop=0;
+		for(i=i_peak2;i<395;i++){
+			if(((histogram[i]+histogram[i+1]+histogram[i+2]+histogram[i+3]+histogram[i+4])/5)<histogram[i]&&stop==0){
+				bottom2b = histogram[i];
+				i_bottom2b = i;
+			} else if(((histogram[i]+histogram[i+1]+histogram[i+2]+histogram[i+3]+histogram[i+4])/5)>histogram[i]&&stop==0){
+				/*Search for peaks of datasets (3)*/
+				peak3 = histogram[i];
+				i_peak3=i;
+				stop=1;
+			}	
+		}
+		/* First histogram lower bound */
+		for(i=250;i<i_peak1;i++){
+			if(histogram[i]<bottom1a){
+				bottom1a = histogram[i];
+				i_bottom1a = i;
+			}
+		}
+		/* First histogram higher bound */
+		for(i=i_peak2;i>i_peak1;i--){
+			if(histogram[i]<=bottom1b){
+				bottom1b = histogram[i];
+				i_bottom1b = i;
+			}
+		}
+		/* Third histogram lower bound */
+		for(i=i_peak2;i<i_peak3;i++){
+			if(histogram[i]<bottom3a){
+				bottom3a = histogram[i];
+				i_bottom3a = i;
+			}
+		}	
+		/* Third histogram higher bound */
+		for(i=399;i>i_peak3;i--){
+			if(histogram[i]<bottom3b){
+				bottom3b = histogram[i];
+				i_bottom3b = i;
+			}
+		}	
+	}//END OF FLAG1
+	printf("bottom1a: [%i]=>%i\n",i_bottom1a, bottom1a);
+	printf("peak1: [%i]=>%i\n",i_peak1, peak1);
+	printf("bottom1b: [%i]=>%i\n",i_bottom1b, bottom1b);
+	printf("bottom2a: [%i]=>%i\n",i_bottom2a, bottom2a);
+	printf("peak2: [%i]=>%i\n",i_peak2, peak2);
+	printf("bottom2b: [%i]=>%i\n",i_bottom2b, bottom2b);
+	printf("bottom3a: [%i]=>%i\n",i_bottom3a, bottom3a);
+	printf("peak3: [%i]=>%i\n",i_peak3, peak3);
+	printf("bottom3b: [%i]=>%i\n",i_bottom3b, bottom3b);
+
+	/* End of processing histogram*/
+	/*******************/
+
+	/*Process wet pixel values*/
+	/* FLAG2 */
+	if(flag2->answer){
+		/* THREAD 3 */
 		/* Process tempk min / max pixels */
 	/*	#pragma omp for parallel default (shared) \
 			shared(ncols,nrows) \
@@ -399,7 +565,7 @@ int main(int argc, char *argv[])
 					/* do nothing */ 
 				}else{
 					d_t0dem = d_tempk + 0.00649*d_dem;
-					if(d_t0dem<=0.0||d_tempk<=0.0){
+					if(d_t0dem<=250.0||d_tempk<=250.0){
 						/* do nothing */ 
 					} else {
 						if(d_t0dem<t0dem_min&&d_albedo<0.1){
@@ -408,9 +574,29 @@ int main(int argc, char *argv[])
 							d_tempk_wet=d_tempk;
 							col_wet=col;
 							row_wet=row;
-						}else if(d_t0dem>t0dem_max){
+						}
+						if(flag1->answer&&
+						d_tempk>=(double)i_peak1-0.5&&
+						d_tempk<(double)i_peak1+0.5){
+							tempk_min=d_tempk;
+							d_tempk_wet=d_tempk;
+							col_wet=col;
+							row_wet=row;
+						}
+						if(d_t0dem>t0dem_max){
 							t0dem_max=d_t0dem;
 							d_t0dem_dry=d_t0dem;
+							tempk_max=d_tempk;
+							d_tempk_dry=d_tempk;
+							d_Rn_dry=d_Rn;
+							d_g0_dry=d_g0;
+							d_dem_dry=d_dem;
+							col_dry=col;
+							row_dry=row;
+						}
+						if(flag1->answer&&
+						d_tempk>=(double)i_peak3-0.5&&
+						d_tempk<(double)i_peak3+0.5){
 							tempk_max=d_tempk;
 							d_tempk_dry=d_tempk;
 							d_Rn_dry=d_Rn;
@@ -433,7 +619,7 @@ int main(int argc, char *argv[])
 		G_message("rnet_dry=%f\n",d_Rn_dry);
 		G_message("g0_dry=%f\n",d_g0_dry);
 		G_message("h0_dry=%f\n",d_Rn_dry-d_g0_dry);
-	} /* END OF FLAG1 */
+	} /* END OF FLAG2 */
 	/*MPI_BARRIER*/
 	for (row = 0; row < nrows; row++)
 	{	
@@ -544,7 +730,8 @@ int main(int argc, char *argv[])
 			G_is_d_null_value(&d_ndvi)||
 			G_is_d_null_value(&d_Rn)||
 			G_is_d_null_value(&d_g0)||
-			d_dem<=-100.0||d_dem>9000.0){
+			d_dem<=-100.0||d_dem>9000.0||
+			d_tempk<200.0){
 				G_set_d_null_value(&outrast[col],1);
 			} else {
 				/* Albedo < 0*/
