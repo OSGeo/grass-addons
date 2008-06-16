@@ -628,6 +628,9 @@ int main(int argc, char *argv[])
      * if (parm.lat->answer != NULL)
      * sscanf(parm.lat->answer, "%lf", &latitude);
      */
+/* HB 6/2008: why is the above commented out? instead of sscanf, maybe nicer to use:
+    G_scan_lat(parm.lat->answer, &latitude);
+*/
     if (parm.slopein->answer == NULL)
 	sscanf(parm.slope->answer, "%lf", &singleSlope);
     singleSlope *= deg2rad;
