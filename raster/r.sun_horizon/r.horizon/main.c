@@ -1,4 +1,3 @@
-
 /*******************************************************************************
 r.horizon: This module does one of two things:
 
@@ -11,7 +10,6 @@ distance to a point on the horizon.
 
 This program was written in 2006 by Tfomas Huld and Tomas Cebecauer, 
 Joint Research Centre of the European Commission, based on bits of the r.sun module by Jaro Hofierka
-
 
 *******************************************************************************/
 /*
@@ -307,7 +305,8 @@ int main(int argc, char *argv[])
 
     parm.coord = G_define_option();
     parm.coord->key = "coord";
-    parm.coord->type = TYPE_STRING;
+    parm.coord->type = TYPE_DOUBLE;
+    parm.coord->key_desc = "east,north";
     parm.coord->required = NO;
     parm.coord->description =
 	_("Coordinate for which you want to calculate the horizon");
