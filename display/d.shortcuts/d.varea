@@ -8,20 +8,20 @@
 #	for details.
 #
 
-if [ -z $GISBASE ] ; then
+if [ -z "$GISBASE" ] ; then
         echo "You have to be in GRASS to use this."
         exit
 fi
 
 if [ -z "$1" ] ; then
-	echo "USAGE: d.vearea vectorfile [color]"
+	echo "USAGE: d.varea vectorfile [color]"
 	exit
 fi
 
-if [ -z $2 ] ; then
+if [ -z "$2" ] ; then
 	COLOR=225:225:225
 else
-	COLOR=$2
+	COLOR="$2"
 fi
 
 
@@ -37,4 +37,4 @@ else
     GRASS_VER=new
 fi
 
-d.vect $1 type=area fcolor=$COLOR
+d.vect map="$1" type=area fcolor="$COLOR"
