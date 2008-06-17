@@ -571,7 +571,7 @@ int main(int argc, char *argv[])
 						/* do nothing */ 
 					} else {
 						d_h0=d_Rn-d_g0;
-						if(d_t0dem<t0dem_min&&d_albedo<0.1){
+						if(d_t0dem<t0dem_min&&d_albedo<0.15){
 							t0dem_min=d_t0dem;
 							tempk_min=d_tempk;
 							d_tempk_wet=d_tempk;
@@ -601,7 +601,8 @@ int main(int argc, char *argv[])
 						d_tempk>=(double)i_peak3-0.0&&
 						d_tempk<(double)i_peak3+7.0&&
 						d_h0>100.0&&d_h0>d_h0_max&&
-						d_g0>10.0&&d_Rn>100.0){
+						d_g0>10.0&&d_Rn>100.0&&
+						d_albedo>0.3){
 							tempk_max=d_tempk;
 							d_tempk_dry=d_tempk;
 							d_Rn_dry=d_Rn;
