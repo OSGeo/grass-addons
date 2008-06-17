@@ -488,7 +488,8 @@ int main(int argc, char *argv[])
 			DCELL d_tempk;
 			DCELL d_dem;
 			DCELL d_t0dem;
-			DCELL d_Rn_max=100.0;//for flag 1
+			DCELL d_h0=100.0;//for flag 1
+			DCELL d_h0_max=100.0;//for flag 1
 			G_percent(row,nrows,2);
 			if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
 				G_fatal_error(_("Could not read from <%s>"),albedo);
@@ -565,10 +566,11 @@ int main(int argc, char *argv[])
 				G_is_d_null_value(&d_g0)){
 					/* do nothing */ 
 				}else{
-					d_t0dem = d_tempk + 0.00649*d_dem;
+					d_t0dem = d_tempk + 0.001649*d_dem;
 					if(d_t0dem<=250.0||d_tempk<=250.0){
 						/* do nothing */ 
 					} else {
+						d_h0=d_Rn-d_g0;
 						if(d_t0dem<t0dem_min&&d_albedo<0.1){
 							t0dem_min=d_t0dem;
 							tempk_min=d_tempk;
@@ -577,8 +579,8 @@ int main(int argc, char *argv[])
 							row_wet=row;
 						}
 						if(flag1->answer&&
-						d_tempk>=(double)i_peak1-0.5&&
-						d_tempk<(double)i_peak1+0.5){
+						d_tempk>=(double)i_peak1-5.0&&
+						d_tempk<(double)i_peak1+1.0){
 							tempk_min=d_tempk;
 							d_tempk_wet=d_tempk;
 							col_wet=col;
@@ -596,14 +598,15 @@ int main(int argc, char *argv[])
 							row_dry=row;
 						}
 						if(flag1->answer&&
-						d_tempk>=(double)i_peak3-0.5&&
-						d_tempk<(double)i_peak3+0.5&&
-						d_Rn>100.0&&d_Rn>d_Rn_max){
+						d_tempk>=(double)i_peak3-0.0&&
+						d_tempk<(double)i_peak3+7.0&&
+						d_h0>100.0&&d_h0>d_h0_max&&
+						d_g0>10.0&&d_Rn>100.0){
 							tempk_max=d_tempk;
 							d_tempk_dry=d_tempk;
-							d_Rn_max=d_Rn;
 							d_Rn_dry=d_Rn;
 							d_g0_dry=d_g0;
+							d_h0_max=d_h0;
 							d_dem_dry=d_dem;
 							col_dry=col;
 							row_dry=row;
@@ -733,6 +736,7 @@ int main(int argc, char *argv[])
 			G_is_d_null_value(&d_ndvi)||
 			G_is_d_null_value(&d_Rn)||
 			G_is_d_null_value(&d_g0)||
+			d_g0<0.0||d_Rn<0.0||
 			d_dem<=-100.0||d_dem>9000.0||
 			d_tempk<200.0){
 				G_set_d_null_value(&outrast[col],1);
@@ -742,7 +746,7 @@ int main(int argc, char *argv[])
 					d_albedo=0.01;
 				}
 				/* Calculate T0dem */
-				d_t0dem = (double)d_tempk + 0.00649*(double)d_dem;
+				d_t0dem = (double)d_tempk + 0.001649*(double)d_dem;
 			/*	G_message("**InLoop d_t0dem=%5.3f",d_t0dem);
 				G_message(" d_dem=%5.3f",d_dem);
 				G_message(" d_tempk=%5.3f",d_tempk);
