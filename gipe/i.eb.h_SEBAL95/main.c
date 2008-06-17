@@ -488,6 +488,7 @@ int main(int argc, char *argv[])
 			DCELL d_tempk;
 			DCELL d_dem;
 			DCELL d_t0dem;
+			DCELL d_Rn_max=100.0;//for flag 1
 			G_percent(row,nrows,2);
 			if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
 				G_fatal_error(_("Could not read from <%s>"),albedo);
@@ -596,9 +597,11 @@ int main(int argc, char *argv[])
 						}
 						if(flag1->answer&&
 						d_tempk>=(double)i_peak3-0.5&&
-						d_tempk<(double)i_peak3+0.5){
+						d_tempk<(double)i_peak3+0.5&&
+						d_Rn>100.0&&d_Rn>d_Rn_max){
 							tempk_max=d_tempk;
 							d_tempk_dry=d_tempk;
+							d_Rn_max=d_Rn;
 							d_Rn_dry=d_Rn;
 							d_g0_dry=d_g0;
 							d_dem_dry=d_dem;
