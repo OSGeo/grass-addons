@@ -464,16 +464,16 @@ int main(int argc, char *argv[])
 				i_bottom3b = i;
 			}
 		}	
+		printf("bottom1a: [%i]=>%i\n",i_bottom1a, bottom1a);
+		printf("peak1: [%i]=>%i\n",i_peak1, peak1);
+		printf("bottom1b: [%i]=>%i\n",i_bottom1b, bottom1b);
+		printf("bottom2a: [%i]=>%i\n",i_bottom2a, bottom2a);
+		printf("peak2: [%i]=>%i\n",i_peak2, peak2);
+		printf("bottom2b: [%i]=>%i\n",i_bottom2b, bottom2b);
+		printf("bottom3a: [%i]=>%i\n",i_bottom3a, bottom3a);
+		printf("peak3: [%i]=>%i\n",i_peak3, peak3);
+		printf("bottom3b: [%i]=>%i\n",i_bottom3b, bottom3b);
 	}//END OF FLAG1
-	printf("bottom1a: [%i]=>%i\n",i_bottom1a, bottom1a);
-	printf("peak1: [%i]=>%i\n",i_peak1, peak1);
-	printf("bottom1b: [%i]=>%i\n",i_bottom1b, bottom1b);
-	printf("bottom2a: [%i]=>%i\n",i_bottom2a, bottom2a);
-	printf("peak2: [%i]=>%i\n",i_peak2, peak2);
-	printf("bottom2b: [%i]=>%i\n",i_bottom2b, bottom2b);
-	printf("bottom3a: [%i]=>%i\n",i_bottom3a, bottom3a);
-	printf("peak3: [%i]=>%i\n",i_peak3, peak3);
-	printf("bottom3b: [%i]=>%i\n",i_bottom3b, bottom3b);
 
 	/* End of processing histogram*/
 	/*******************/
