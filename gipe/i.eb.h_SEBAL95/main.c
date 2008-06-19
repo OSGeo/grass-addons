@@ -182,11 +182,14 @@ int main(int argc, char *argv[])
 	if(input_iter->answer){
 		iteration=atoi(input_iter->answer);
 	}
-	if(input_row_wet->answer){
+	if(input_row_wet->answer&&input_row_dry&&
+	input_col_wet->answer&&input_col_dry){
 		row_wet = atoi(input_row_wet->answer);
 		col_wet = atoi(input_col_wet->answer);
 		row_dry = atoi(input_row_dry->answer);
 		col_dry = atoi(input_col_dry->answer);
+		G_message("Wet Pixel=> row:%i col:%i",row_wet,col_wet);
+		G_message("Dry Pixel=> row:%i col:%i",row_dry,col_dry);
 	}
 	/* find maps in mapset */
 	mapset_T = G_find_cell2 (T, "");
@@ -628,6 +631,94 @@ int main(int argc, char *argv[])
 		G_message("h0_dry=%f\n",d_Rn_dry-d_g0_dry);
 	} /* END OF FLAG2 */
 	/*MPI_BARRIER*/
+	
+	/* MANUAL WET/DRY PIXELS */
+	if(input_row_wet->answer&&input_row_dry&&
+	input_col_wet->answer&&input_col_dry){
+		/*DRY PIXEL*/
+		row=row_dry;
+		col=col_dry;
+		DCELL d_tempk;
+		DCELL d_dem;
+		DCELL d_t0dem;
+		if(G_get_raster_row(infd_T,inrast_T,row,data_type_T)<0)
+			G_fatal_error(_("Could not read from <%s>"),T);
+		if(G_get_raster_row(infd_dem,inrast_dem,row,data_type_dem)<0)
+			G_fatal_error(_("Could not read from <%s>"),dem);
+		if(G_get_raster_row(infd_Rn, inrast_Rn, row,data_type_Rn) < 0)
+			G_fatal_error(_("Could not read from <%s>"),Rn);
+		if(G_get_raster_row(infd_g0, inrast_g0, row,data_type_g0) < 0)
+			G_fatal_error(_("Could not read from <%s>"),g0);
+		switch(data_type_T){
+			case CELL_TYPE:
+				d_tempk = (double) ((CELL *) inrast_T)[col];
+				break;
+			case FCELL_TYPE:
+				d_tempk = (double) ((FCELL *) inrast_T)[col];
+				break;
+			case DCELL_TYPE:
+				d_tempk = (double) ((DCELL *) inrast_T)[col];
+				break;
+		}
+		switch(data_type_dem){
+			case CELL_TYPE:
+				d_dem = (double) ((CELL *) inrast_dem)[col];
+				break;
+			case FCELL_TYPE:
+				d_dem = (double) ((FCELL *) inrast_dem)[col];
+				break;
+			case DCELL_TYPE:
+				d_dem = (double) ((DCELL *) inrast_dem)[col];
+				break;
+		}
+		switch(data_type_Rn){
+			case CELL_TYPE:
+				d_Rn = (double) ((CELL *) inrast_Rn)[col];
+				break;
+			case FCELL_TYPE:
+				d_Rn = (double) ((FCELL *) inrast_Rn)[col];
+				break;
+			case DCELL_TYPE:
+				d_Rn = (double) ((DCELL *) inrast_Rn)[col];
+				break;
+		}
+		switch(data_type_g0){
+			case CELL_TYPE:
+				d_g0 = (double) ((CELL *) inrast_g0)[col];
+				break;
+			case FCELL_TYPE:
+				d_g0 = (double) ((FCELL *) inrast_g0)[col];
+				break;
+			case DCELL_TYPE:
+				d_g0 = (double) ((DCELL *) inrast_g0)[col];
+				break;
+		}
+		d_t0dem = d_tempk + 0.001649*d_dem;
+		d_t0dem_dry=d_t0dem;
+		d_tempk_dry=d_tempk;
+		d_Rn_dry=d_Rn;
+		d_g0_dry=d_g0;
+		d_dem_dry=d_dem;
+		/*WET PIXEL*/
+		row=row_wet;
+		col=col_wet;
+		if(G_get_raster_row(infd_T,inrast_T,row,data_type_T)<0)
+			G_fatal_error(_("Could not read from <%s>"),T);
+		switch(data_type_T){
+			case CELL_TYPE:
+				d_tempk = (double) ((CELL *) inrast_T)[col];
+				break;
+			case FCELL_TYPE:
+				d_tempk = (double) ((FCELL *) inrast_T)[col];
+				break;
+			case DCELL_TYPE:
+				d_tempk = (double) ((DCELL *) inrast_T)[col];
+				break;
+		}
+		d_tempk_wet=d_tempk;
+	}
+	/* END OF MANUAL WET/DRY PIXELS */
+
 	for (row = 0; row < nrows; row++)
 	{	
 		DCELL d_albedo;
