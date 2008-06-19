@@ -20,10 +20,11 @@
 
 #include <grass/gis.h>
 #include <grass/glocale.h>
-#include <grass/gsurf.h>
-#include <grass/gstypes.h>
+#include <grass/nviz.h>
 
 #include "local_proto.h"
+
+static void swap_gl();
 
 int main (int argc, char *argv[])
 {
@@ -39,7 +40,7 @@ int main (int argc, char *argv[])
     char *output_name;
 
     nv_data data;
-    render_window offscreen;
+    struct render_window *offscreen;
 
     /* initialize GRASS */
     G_gisinit(argv[0]);
@@ -63,9 +64,10 @@ int main (int argc, char *argv[])
     GS_set_swap_func(swap_gl);
 
     /* define render window */
-    render_window_init(&offscreen);
-    render_window_create(&offscreen, width, height); /* TOD0: option dim */
-    render_window_make_current(&offscreen);
+    offscreen = Nviz_new_render_window();
+    Nviz_init_render_window(offscreen);
+    Nviz_create_render_window(offscreen, NULL, width, height); /* offscreen display */
+    Nviz_make_current_render_window(offscreen);
 
     /* initialize nviz data */
     nv_data_init(&data);
@@ -224,10 +226,15 @@ int main (int argc, char *argv[])
     if (!ret)
 	G_fatal_error(_("Unsupported output format"));
 
-    render_window_destroy(&offscreen);
+    Nviz_destroy_render_window(offscreen);
 
     G_free ((void *) output_name);
     G_free ((void *) params);
 
     exit(EXIT_SUCCESS);
+}
+
+void swap_gl()
+{
+    return;
 }

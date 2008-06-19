@@ -29,12 +29,27 @@ try:
 except ImportError:
     haveOpenGL = False
 
+import globalvar
+#try:
+nvizPath = os.path.join(globalvar.ETCWXDIR, "nviz")
+sys.path.append(nvizPath)
+import grass6_wxnviz as wxnviz
+haveNviz = True
+#except ImportError:
+#    haveNviz = False
+
 class GLWindow(glcanvas.GLCanvas):
     """OpenGL canvas for Map Display Window"""
     def __init__(self, parent):
         self.parent = parent # MapWindow
+
         glcanvas.GLCanvas.__init__(self, parent, wx.ID_ANY)
         self.init = False
+
+        #
+        # create nviz instance
+        #
+        nvizClass = wxnviz.Nviz()
 
         # initialize mouse position
         self.lastx = self.x = 30

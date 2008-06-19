@@ -18,21 +18,56 @@
 
 #include "nviz.h"
 
+static void swap_gl();
+
 /*!
-  \brief Initialize Nviz class
+  \brief Initialize Nviz class instance
 */
 Nviz::Nviz()
 {
+    G_gisinit(""); /* GRASS functions */
+
     GS_libinit();
     /* GVL_libinit(); TODO */
 
-    //GS_set_swap_func(swap_gl);
+    GS_set_swap_func(swap_gl);
+
+    /* initialize render window */
+    rwind = Nviz_new_render_window();
+    Nviz_init_render_window(rwind);
+}
+
+/*!
+  \brief Destroy Nviz class instance
+*/
+Nviz::~Nviz()
+{
+    Nviz_destroy_render_window(rwind);
+
+    G_free((void *) rwind);
 }
 
 /*!
   \brief Swap GL buffers
 */
-void Nviz::swap_gl()
+void swap_gl()
 {
     return;
+}
+
+/*!
+  \brief Associate display with render window
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::SetDisplay(void *display, int width, int height)
+{
+    if (!rwind)
+	return 0;
+
+    Nviz_create_render_window(rwind, display, width, height);
+    Nviz_make_current_render_window(rwind);
+
+    return 1;
 }

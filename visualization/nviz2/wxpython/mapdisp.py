@@ -542,18 +542,6 @@ class BufferedWindow(wx.Window):
         """
         Updates the canvas anytime there is a change to the
         underlaying images or to the geometry of the canvas.
-        """
-        if self.parent.toolbars['nviz']:
-            self.UpdateMap3D() # OpenGL
-        else:
-            self.UpdateMap2D(render, renderVector)
-
-    def UpdateMap2D(self, render=True, renderVector=True):
-        """
-        Updates the canvas anytime there is a change to the
-        underlaying images or to the geometry of the canvas.
-
-        This method works in 2D mode.
 
         @param render re-render map composition
         @param renderVector re-render vector map layer enabled for editing (used for digitizer)
@@ -674,46 +662,8 @@ class BufferedWindow(wx.Window):
         ### self.Map.SetRegion()
         self.parent.StatusbarUpdate()
 
-        Debug.msg (2, "BufferedWindow.UpdateMap2D(): render=%s, renderVector=%s -> time=%g" % \
+        Debug.msg (2, "BufferedWindow.UpdateMap(): render=%s, renderVector=%s -> time=%g" % \
                    (render, renderVector, (stop-start)))
-
-        return True
-
-    def UpdateMap3D(self):
-        """
-        Updates the canvas anytime there is a change to the
-        underlaying images or to the geometry of the canvas.
-
-        This method works in 3D mode.
-
-        Instead PseudoDC is used GLCanvas
-        """
-        if not self.parent.toolbars['nviz']:
-            return False
-
-        start = time.clock()
-
-        self.resize = False
-
-        #
-        # clear current canvas first
-        #
-        self.pdc.Clear()
-        self.pdc.RemoveAll()
-        self.pdcTmp.Clear()
-        self.pdcTmp.RemoveAll()
-        self.Draw(self.pdc, pdctype='clear')
-
-        stop = time.clock()
-
-        #
-        # update statusbar
-        #
-        ### self.Map.SetRegion()
-        self.parent.StatusbarUpdate()
-
-        Debug.msg (2, "BufferedWindow.UpdateMap3D(): time=%g" % \
-                   (stop-start))
 
         return True
 
@@ -2538,6 +2488,9 @@ class MapFrame(wx.Frame):
             if not nviz.haveOpenGL:
                 msg = _("Unable to start Nviz. The OpenGL package was not found. You can get it "
                         "at http://PyOpenGL.sourceforge.net. Switching back to 2D display mode.")
+            if not nviz.haveNviz:
+                msg = _("Unable to start Nviz. Python extension for Nviz was not found. "
+                        "Switching back to 2D display mode.")
 
             if msg:
                 wx.MessageBox(parent=self,

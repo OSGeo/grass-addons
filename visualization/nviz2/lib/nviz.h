@@ -1,7 +1,38 @@
-#ifndef __NVIZ_H__
-#define __NVIZ_H__
+#ifndef GRASS_NVIZ_H
+#define GRASS_NVIZ_H
 
 #include <grass/gsurf.h>
+#include <grass/gstypes.h>
+
+/*** Windows headers ***/
+#if defined(OPENGL_WINDOWS)
+#  define WIN32_LEAN_AND_MEAN
+#  include <windows.h>
+#  undef WIN32_LEAN_AND_MEAN
+#  include <winnt.h>
+
+/*** X Window System headers ***/
+#elif defined(OPENGL_X11)
+#  include <X11/Xlib.h>
+#  include <X11/Xutil.h>
+#  include <X11/Xatom.h>         /* for XA_RGB_DEFAULT_MAP atom */
+#  if defined(__vms)
+#    include <X11/StdCmap.h>     /* for XmuLookupStandardColormap */
+#  else
+#    include <X11/Xmu/StdCmap.h> /* for XmuLookupStandardColormap */
+#  endif
+#  include <GL/glx.h>
+
+/*** Mac headers ***/
+#elif defined(OPENGL_AQUA)
+#  define Cursor QDCursor
+#  include <AGL/agl.h>
+#  undef Cursor
+#  include <ApplicationServices/ApplicationServices.h>
+
+#else /* make sure only one platform defined */
+#  error Unsupported platform, or confused platform defines...
+#endif
 
 #define MAP_OBJ_UNDEFINED 0
 #define MAP_OBJ_SURF 1
@@ -72,4 +103,20 @@ typedef struct {
     
 } nv_clientdata;
 
-#endif /* __NVIZ_H__ */
+struct render_window {
+    Display *displayId;   /* display connection */
+    GLXContext contextId; /* GLX rendering context */
+    Pixmap pixmap;
+    GLXPixmap windowId;
+};
+
+/* render.c */
+struct render_window* Nviz_new_render_window();
+void Nviz_init_render_window(struct render_window*);
+void Nviz_destroy_render_window(struct render_window *);
+int Nviz_create_render_window(struct render_window *, void *,
+			      int, int);
+
+int Nviz_make_current_render_window(const struct render_window *);
+
+#endif /* GRASS_NVIZ_H */

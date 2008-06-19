@@ -1,8 +1,7 @@
 #ifndef __LOCAL_PROTO_H__
 #define __LOCAL_PROTO_H__
 
-#include "render.h"
-#include "nviz.h"
+#include <grass/nviz.h>
 
 /* module flags and parameters */
 struct GParams { 
@@ -68,13 +67,6 @@ int light_new(nv_data *);
 void init_view();
 int focus_set_state(int);
 int focus_set_map(int, int);
-
-/* render.c */
-void render_window_init(render_window *);
-int render_window_create(render_window *, int, int);
-int render_window_destroy(render_window *);
-int render_window_make_current(const render_window *);
-void swap_gl();
 
 /* write_img.c */
 int write_img(const char *, int);
