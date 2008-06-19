@@ -16,11 +16,6 @@ struct GParams {
 void parse_command(int, char**, struct GParams *);
 int color_from_cmd(const char *);
 
-/* cplanes_obj.c */
-int cplane_new(nv_data *, int);
-int cplane_off(nv_data *, int);
-int cplane_draw(nv_data *, int, int);
-
 /* change_view.c */
 int update_ranges(nv_data *);
 int viewpoint_set_position(nv_data *,
@@ -47,21 +42,6 @@ int new_map_obj(int, const char *,
 int set_attr(int, int, int, int, const char *, float,
 	     nv_data *);
 void set_att_default();
-
-/* nviz.c */
-void nv_data_init(nv_data *);
-void nv_data_set_bgcolor(nv_data *, int);
-
-/* lights.c */
-int light_set_position(nv_data *, int,
-		       float, float, float, float);
-int light_set_bright(nv_data *, int, float);
-int light_set_color(nv_data *, int,
-		    float, float, float);
-int light_set_ambient(nv_data *, int,
-		      float, float, float);
-int light_init(nv_data *, int);
-int light_new(nv_data *);
 
 /* position.c */
 void init_view();

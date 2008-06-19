@@ -8,11 +8,25 @@ extern "C" {
 #include <grass/nviz.h>
 }
 
+// For compilers that support precompilation, includes "wx.h".
+#include <wx/wxprec.h>
+
+#ifdef __BORLANDC__
+#pragma hdrstop
+#endif
+
+#ifndef WX_PRECOMP
+// Include your minimal set of headers here, or wx.h
+#include <wx/wx.h>
+#endif
+
+#include <wx/glcanvas.h>
+
 class Nviz
 {
 private:
-    // struct render_window *rwind;
     struct render_window *rwind;
+    wxGLCanvas *glCanvas;
 
 public:
     /* constructor */
@@ -22,7 +36,8 @@ public:
     ~Nviz();
 
     /* set */
-    int SetDisplay(void *, int, int);
+    int SetDisplay(void *);
+    int ResizeWindow(int, int);
 };
 
 #endif /* __NVIZ_H__ */

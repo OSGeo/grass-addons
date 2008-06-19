@@ -1,7 +1,7 @@
 /*!
   \file lights.c
  
-  \brief Change view settings
+  \brief Nviz library -- Change view settings
   
   COPYRIGHT: (C) 2008 by the GRASS Development Team
 
@@ -11,16 +11,13 @@
 
   Based on visualization/nviz/src/lights.c
 
-  \author Updated/modified by Martin Landa <landa.martin gmail.com>
+  \author Updated/modified by Martin Landa <landa.martin gmail.com> (Google SoC 2008)
 
   \date 2008
 */
 
-#include <grass/gsurf.h>
-#include <grass/gstypes.h>
 #include <grass/glocale.h>
-
-#include "local_proto.h"
+#include <grass/nviz.h>
 
 /*!
   \brief Set light position
@@ -29,8 +26,8 @@
   \param num light num (starts with 0)
   \param x,y,z,w position, model coordinates
 */
-int light_set_position(nv_data *data, int num,
-		       float x, float y, float z, float w)
+int Nviz_set_light_position(nv_data *data, int num,
+			    float x, float y, float z, float w)
 {
     data->light[num].id = num + 1;
     data->light[num].x = x;
@@ -50,7 +47,7 @@ int light_set_position(nv_data *data, int num,
   \param num light num (starts with 0)
   \param value brightness value
 */
-int light_set_bright(nv_data * data, int num, float value)
+int Nviz_set_light_bright(nv_data * data, int num, float value)
 {
     float r, g, b;
 
@@ -72,8 +69,8 @@ int light_set_bright(nv_data * data, int num, float value)
   \param num light num (starts with 0)
   \param red,green,blue rGB values (0-1)
 */
-int light_set_color(nv_data * data, int num,
-		    float red, float green, float blue)
+int Nviz_set_light_color(nv_data * data, int num,
+			 float red, float green, float blue)
 {
     float r, g, b;
 
@@ -97,8 +94,8 @@ int light_set_color(nv_data * data, int num,
   \param num light num (starts with 0)
   \param red,green,blue rGB values (0-1)
 */
-int light_set_ambient(nv_data *data, int num,
-		      float red, float green, float blue)
+int Nviz_set_light_ambient(nv_data *data, int num,
+			   float red, float green, float blue)
 {
     data->light[num].ar = red;
     data->light[num].ag = green;
@@ -115,7 +112,7 @@ int light_set_ambient(nv_data *data, int num,
   \param data nviz data
   \param num light num (starts with 0)
 */
-int light_init(nv_data *data, int num)
+int Nviz_init_light(nv_data *data, int num)
 {
     if (num >= MAX_LIGHTS) {
 	return 0;
@@ -137,7 +134,7 @@ int light_init(nv_data *data, int num)
     return 1;
 }
 
-int light_new(nv_data *data)
+int Nviz_new_light(nv_data *data)
 {
     int num;
 
@@ -148,7 +145,7 @@ int light_new(nv_data *data)
 	return 0;
     }
 
-    light_init(data, num - 1);
+    Nviz_init_light(data, num - 1);
 
     return 1;
 }

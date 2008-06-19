@@ -70,11 +70,11 @@ int main (int argc, char *argv[])
     Nviz_make_current_render_window(offscreen);
 
     /* initialize nviz data */
-    nv_data_init(&data);
+    Nviz_init_data(&data);
     /* define default attributes for map objects */
     set_att_default();
     /* set background color */
-    nv_data_set_bgcolor(&data, color_from_cmd(params->bgcolor->answer)); 
+    Nviz_set_bgcolor(&data, color_from_cmd(params->bgcolor->answer)); 
 
     /* load data */
     nelev = ncolor_map = ncolor_const = 0;
@@ -160,14 +160,14 @@ int main (int argc, char *argv[])
 
     /* set lights */
     /* TODO: add options */
-    light_set_position(&data, 0,
-		       0.68, -0.68, 0.80, 0.0);
-    light_set_bright(&data, 0,
-		     0.8);
-    light_set_color(&data, 0,
-		    1.0, 1.0, 1.0);
-    light_set_ambient(&data, 0,
-		      0.2, 0.2, 0.2);
+    Nviz_set_light_position(&data, 0,
+			    0.68, -0.68, 0.80, 0.0);
+    Nviz_set_light_bright(&data, 0,
+			  0.8);
+    Nviz_set_light_color(&data, 0,
+			 1.0, 1.0, 1.0);
+    Nviz_set_light_ambient(&data, 0,
+			   0.2, 0.2, 0.2);
 
     /*
     light_set_position(&data, 1,
@@ -180,14 +180,14 @@ int main (int argc, char *argv[])
 		      0.2, 0.2, 0.2);
     */
 
-    light_set_position(&data, 1,
-		       0.0, 0.0, 1.0, 0.0);
-    light_set_bright(&data, 1,
-		     0.5);
-    light_set_color(&data, 1,
-		    1.0, 1.0, 1.0);
-    light_set_ambient(&data, 1,
-		      0.3, 0.3, 0.3);
+    Nviz_set_light_position(&data, 1,
+			    0.0, 0.0, 1.0, 0.0);
+    Nviz_set_light_bright(&data, 1,
+			  0.5);
+    Nviz_set_light_color(&data, 1,
+			 1.0, 1.0, 1.0);
+    Nviz_set_light_ambient(&data, 1,
+			   0.3, 0.3, 0.3);
     
     /* define view point */
     if (params->height->answer) {
@@ -208,13 +208,10 @@ int main (int argc, char *argv[])
     viewpoint_set_persp(&data,
 			atoi(params->persp->answer));
 
-
-    // resize_window(600, 480);
-
     GS_clear(data.bgcolor);
 
     /* draw */
-    cplane_draw(&data, -1, -1);
+    Nviz_draw_cplane(&data, -1, -1);
     draw_all (&data);
 
     ret = 0;

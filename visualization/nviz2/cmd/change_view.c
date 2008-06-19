@@ -163,23 +163,6 @@ int viewpoint_set_twist(nv_data *data, int twist)
 }
 
 /*!
-  \brief Map canvas resized
-
-  \param width window width
-  \param height window height
- */
-void resize_window(int width, int height)
-{
-    GS_set_viewport(0, width, 0, height);
-
-/*   GS_clear(0x0000FF); causes red flash - debug only */
-    GS_set_draw(GSD_BACK);
-    GS_ready_draw();
-    GS_alldraw_wire();
-    GS_done_draw();
-}
-
-/*!
   \brief Change z-exag value
 
   \param data nviz data

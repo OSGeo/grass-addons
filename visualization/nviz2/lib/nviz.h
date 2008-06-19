@@ -110,13 +110,35 @@ struct render_window {
     GLXPixmap windowId;
 };
 
+/* change_view.c */
+int Nviz_resize_window(int, int);
+
+/* cplanes_obj.c */
+int Nviz_new_cplane(nv_data *, int);
+int Nviz_off_cplane(nv_data *, int);
+int Nviz_draw_cplane(nv_data *, int, int);
+
+/* lights.c */
+int Nviz_set_light_position(nv_data *, int,
+			    float, float, float, float);
+int Nviz_set_light_bright(nv_data *, int, float);
+int Nviz_set_light_color(nv_data *, int,
+			 float, float, float);
+int Nviz_set_light_ambient(nv_data *, int,
+			   float, float, float);
+int Nviz_init_light(nv_data *, int);
+int Nviz_new_light(nv_data *);
+
+/* nviz.c */
+void Nviz_init_data(nv_data *);
+void Nviz_set_bgcolor(nv_data *, int);
+
 /* render.c */
 struct render_window* Nviz_new_render_window();
 void Nviz_init_render_window(struct render_window*);
 void Nviz_destroy_render_window(struct render_window *);
 int Nviz_create_render_window(struct render_window *, void *,
 			      int, int);
-
 int Nviz_make_current_render_window(const struct render_window *);
 
 #endif /* GRASS_NVIZ_H */

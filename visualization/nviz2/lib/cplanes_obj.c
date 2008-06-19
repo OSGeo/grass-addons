@@ -1,7 +1,7 @@
 /*!
   \file cplanes_obj.c
  
-  \brief Clip planes manipulation
+  \brief Nviz library -- Clip planes manipulation
   
   COPYRIGHT: (C) 2008 by the GRASS Development Team
 
@@ -11,12 +11,12 @@
 
   Based on visualization/nviz/src/cutplanes_obj.c
 
-  \author Updated/modified by Martin Landa <landa.martin gmail.com>
+  \author Updated/modified by Martin Landa <landa.martin gmail.com> (Google SoC 2008)
 
   \date 2008
 */
 
-#include "local_proto.h"
+#include <grass/nviz.h>
 
 static void cp_draw(nv_data *, int, int, int);
 
@@ -27,7 +27,7 @@ static void cp_draw(nv_data *, int, int, int);
   we'll create them all ahead of time anyway we just let
   the user decide on the id for each.
 */
-int cplane_new(nv_data *data, int id)
+int Nviz_new_cplane(nv_data *data, int id)
 {
     data->num_cplanes++;
     /* Initialize internal attributes for this cutplane */
@@ -44,7 +44,7 @@ int cplane_new(nv_data *data, int id)
   \param data nviz data
   \param cplane id
 */
-int cplane_off(nv_data *data, int id)
+int Nviz_off_cplane(nv_data *data, int id)
 {
     data->cp_on[id] = 0;
     GS_unset_cplane(id);
@@ -58,7 +58,7 @@ int cplane_off(nv_data *data, int id)
    \param bound1
    \param bound2
 */
-int cplane_draw(nv_data *data, int bound1, int bound2)
+int Nviz_draw_cplane(nv_data *data, int bound1, int bound2)
 {
     cp_draw(data, data->cur_cplane, bound1, bound2);
 

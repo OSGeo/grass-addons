@@ -48,26 +48,26 @@ Nviz::~Nviz()
 }
 
 /*!
-  \brief Swap GL buffers
-*/
-void swap_gl()
-{
-    return;
-}
-
-/*!
   \brief Associate display with render window
 
   \return 1 on success
   \return 0 on failure
 */
-int Nviz::SetDisplay(void *display, int width, int height)
+int Nviz::SetDisplay(void *display)
 {
     if (!rwind)
 	return 0;
 
-    Nviz_create_render_window(rwind, display, width, height);
-    Nviz_make_current_render_window(rwind);
+    glCanvas = (wxGLCanvas *) display;
+
+    //Nviz_create_render_window(rwind, display, width, height);
+    //Nviz_make_current_render_window(rwind);
 
     return 1;
 }
+
+void swap_gl()
+{
+    return;
+}
+

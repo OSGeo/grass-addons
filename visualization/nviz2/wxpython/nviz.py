@@ -49,7 +49,12 @@ class GLWindow(glcanvas.GLCanvas):
         #
         # create nviz instance
         #
-        nvizClass = wxnviz.Nviz()
+        self.nvizClass = wxnviz.Nviz()
+
+        #
+        # set current display
+        #
+        self.nvizClass.SetDisplay(self)
 
         # initialize mouse position
         self.lastx = self.x = 30
@@ -70,7 +75,8 @@ class GLWindow(glcanvas.GLCanvas):
         size = self.size = self.parent.GetClientSize()
         if self.GetContext():
             self.SetCurrent()
-            glViewport(0, 0, size.width, size.height)
+            # glViewport(0, 0, size.width, size.height)
+            self.nvizClass.ResizeWindow(size.width, size.height)
         
         event.Skip()
 
@@ -78,11 +84,13 @@ class GLWindow(glcanvas.GLCanvas):
         dc = wx.PaintDC(self)
         self.SetCurrent()
         if not self.init:
-            self.InitGL()
+            # self.InitGL()
+            nvizClass.InitView()
             self.init = True
         self.OnDraw()
 
     def InitGL(self):
+
         # set viewing projection
         glMatrixMode(GL_PROJECTION)
         glFrustum(-0.5, 0.5, -0.5, 0.5, 1.0, 3.0)
