@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 	struct Option *input_row_wet, *input_col_wet;
 	struct Option *input_row_dry, *input_col_dry;
 	struct Option *input_iter;
-	struct Flag *flag1, *flag2, *day, *zero;
+	struct Flag *flag1, *flag2, *flag3, *day, *zero;
 	/*******************************/
 	RASTER_MAP_TYPE data_type_T;
 	RASTER_MAP_TYPE data_type_ndvi;
@@ -73,6 +73,12 @@ int main(int argc, char *argv[])
 	/* Stats for dry/wet pixels	*/
 	double t0dem_min=400.0,t0dem_max=200.0;
 	double tempk_min=400.0,tempk_max=200.0;
+	/********************************/
+	double xp, yp;
+	double xmin, ymin;
+	double xmax, ymax;
+	double stepx,stepy;
+	double latitude, longitude;
 	/********************************/
 	G_gisinit(argv[0]);
 	
@@ -162,6 +168,10 @@ int main(int argc, char *argv[])
 	flag2->key         = 'a' ;
 	flag2->description = _("Automatic wet/dry pixel (careful!)") ;
 	
+	flag3 = G_define_flag() ;
+	flag3->key         = 'c' ;
+	flag3->description = _("Coordinates of manual dry/wet pixels are in image projection and not row/col") ;
+	
 	zero = G_define_flag() ;
 	zero->key         = 'z' ;
 	zero->description = _("set negative evapo to zero");
@@ -188,8 +198,14 @@ int main(int argc, char *argv[])
 		col_wet = atoi(input_col_wet->answer);
 		row_dry = atoi(input_row_dry->answer);
 		col_dry = atoi(input_col_dry->answer);
-		G_message("Wet Pixel=> row:%i col:%i",row_wet,col_wet);
-		G_message("Dry Pixel=> row:%i col:%i",row_dry,col_dry);
+		if(flag3->answer){
+			G_message("Manual wet/dry pixels in image coordinates");
+			G_message("Wet Pixel=> x:%i y:%i",col_wet,row_wet);
+			G_message("Dry Pixel=> x:%i y:%i",col_dry,row_dry);
+		} else {
+			G_message("Wet Pixel=> row:%i col:%i",row_wet,col_wet);
+			G_message("Dry Pixel=> row:%i col:%i",row_dry,col_dry);
+		}
 	}
 	/* find maps in mapset */
 	mapset_T = G_find_cell2 (T, "");
@@ -266,9 +282,24 @@ int main(int argc, char *argv[])
 	inrast_g0 	= G_allocate_raster_buf(data_type_g0);
 	inrast_albedo 	= G_allocate_raster_buf(data_type_albedo);
 	
-	/* Allocate output buffer */
+	/***************************************************/
+	G_debug(3, "number of rows %d",cellhd.rows);
+	/***************************************************/
+	/* Setup pixel location variables */
+	/***************************************************/
+	stepx=cellhd.ew_res;
+	stepy=cellhd.ns_res;
+
+	xmin=cellhd.west;
+	xmax=cellhd.east;
+	ymin=cellhd.south;
+	ymax=cellhd.north;
+
 	nrows = G_window_rows();
 	ncols = G_window_cols();
+	/***************************************************/
+	/* Allocate output buffer */
+	/***************************************************/
 	outrast = G_allocate_d_raster_buf();
 
 	if((outfd = G_open_raster_new (h0,DCELL_TYPE)) < 0)
@@ -636,8 +667,15 @@ int main(int argc, char *argv[])
 	if(input_row_wet->answer&&input_row_dry&&
 	input_col_wet->answer&&input_col_dry){
 		/*DRY PIXEL*/
-		row=row_dry;
-		col=col_dry;
+		if(flag3->answer){
+			/*Calculate coordinates of row/col from projected ones*/
+			row_dry = ( ymax - row_dry ) / stepy ;
+			col_dry = ( col_dry - xmin ) / stepx ;
+			G_message("Dry Pixel | row:%i col:%i",row_dry,col_dry);
+		} else {
+			row=row_dry;
+			col=col_dry;
+		}
 		DCELL d_tempk;
 		DCELL d_dem;
 		DCELL d_t0dem;
@@ -700,8 +738,15 @@ int main(int argc, char *argv[])
 		d_g0_dry=d_g0;
 		d_dem_dry=d_dem;
 		/*WET PIXEL*/
-		row=row_wet;
-		col=col_wet;
+		if(flag3->answer){
+			/*Calculate coordinates of row/col from projected ones*/
+			row_wet = ( ymax - row_wet ) / stepy ;
+			col_wet = ( col_wet - xmin ) / stepx ;
+			G_message("Wet Pixel | row:%i col:%i",row_wet,col_wet);
+		} else {
+			row=row_wet;
+			col=col_wet;
+		}
 		if(G_get_raster_row(infd_T,inrast_T,row,data_type_T)<0)
 			G_fatal_error(_("Could not read from <%s>"),T);
 		switch(data_type_T){
