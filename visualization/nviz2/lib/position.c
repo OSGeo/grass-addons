@@ -1,7 +1,7 @@
 /*!
   \file position.c
  
-  \brief Position, focus settings
+  \brief Nviz library -- Position, focus settings
   
   COPYRIGHT: (C) 2008 by the GRASS Development Team
 
@@ -11,26 +11,23 @@
 
   Based on visualization/nviz/src/position.c
 
-  \author Updated/modified by Martin Landa <landa.martin gmail.com>
+  \author Updated/modified by Martin Landa <landa.martin gmail.com> (Google SoC)
 
   \date 2008
 */
 
-#include <grass/gsurf.h>
-#include <grass/gstypes.h>
 #include <grass/glocale.h>
-
-#include "local_proto.h"
+#include <grass/nviz.h>
 
 /*!
   Initialize view and position settings (focus)
 
   Set position to center of view
 */
-void init_view()
+void Nviz_init_view()
 {
     GS_init_view();
-    focus_set_state(1); /* center of view */
+    Nviz_set_focus_state(1); /* center of view */
 
     return;
 }
@@ -43,7 +40,7 @@ void init_view()
   \return 1 on success
   \return 0 on failure
 */
-int focus_set_state(int state_flag)
+int Nviz_set_focus_state(int state_flag)
 {
     if (state_flag == 1)
 	GS_set_infocus(); /* return center of view */
@@ -69,7 +66,7 @@ int focus_set_state(int state_flag)
   \return 0 on no focus
   \return id id of map object used for setting focus
 */
-int focus_set_map(int type, int id)
+int Nviz_set_focus_map(int type, int id)
 {
     if (GS_num_surfs() < 0 && GVL_num_vols() < 0) {
 	GS_set_nofocus();

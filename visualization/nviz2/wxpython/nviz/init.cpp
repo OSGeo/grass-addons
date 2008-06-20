@@ -15,7 +15,6 @@
 
    \date 2008
 */
-
 #include "nviz.h"
 
 static void swap_gl();
@@ -32,9 +31,30 @@ Nviz::Nviz()
 
     GS_set_swap_func(swap_gl);
 
+    data = (nv_data*) G_malloc(sizeof (nv_data));
+
     /* initialize render window */
     rwind = Nviz_new_render_window();
     Nviz_init_render_window(rwind);
+
+    /* GLCanvas */
+    glCanvas = NULL;
+
+    /* initialize nviz data */
+    Nviz_init_data(data);
+    /* define default attributes for map objects */
+    Nviz_set_attr_default();
+    /* set background color */
+    Nviz_set_bgcolor(data, Nviz_color_from_str("white")); /* TODO */
+
+    /* initialize view */
+    Nviz_init_view();
+
+    /* set default lighting model */
+    SetLightsDefault();
+
+    /* clear window */
+    GS_clear(data->bgcolor);
 }
 
 /*!
@@ -45,6 +65,11 @@ Nviz::~Nviz()
     Nviz_destroy_render_window(rwind);
 
     G_free((void *) rwind);
+    G_free((void *) data);
+
+    rwind = NULL;
+    data = NULL;
+    glCanvas = NULL;
 }
 
 /*!
@@ -70,4 +95,3 @@ void swap_gl()
 {
     return;
 }
-

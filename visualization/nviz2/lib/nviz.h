@@ -112,11 +112,28 @@ struct render_window {
 
 /* change_view.c */
 int Nviz_resize_window(int, int);
+int Nviz_update_ranges(nv_data *);
+int Nviz_set_viewpoint_position(nv_data *,
+				float, float);
+int Nviz_set_viewpoint_height(nv_data *,
+			      float);
+int Nviz_set_viewpoint_persp(nv_data *, int);
+int Nviz_set_viewpoint_twist(nv_data *, int);
+int Nviz_change_exag(nv_data *, float);
 
 /* cplanes_obj.c */
 int Nviz_new_cplane(nv_data *, int);
 int Nviz_off_cplane(nv_data *, int);
 int Nviz_draw_cplane(nv_data *, int, int);
+
+/* draw.c */
+int Nviz_draw_all_surf(nv_data *);
+int Nviz_draw_all(nv_data *);
+int Nviz_draw_quick(nv_data *);
+int Nviz_draw_all_vect(nv_data *);
+
+/* exag.c */
+int Nviz_get_exag_height(float *, float *, float *);
 
 /* lights.c */
 int Nviz_set_light_position(nv_data *, int,
@@ -129,9 +146,22 @@ int Nviz_set_light_ambient(nv_data *, int,
 int Nviz_init_light(nv_data *, int);
 int Nviz_new_light(nv_data *);
 
+/* map_obj.c */
+int Nviz_new_map_obj(int, const char *,
+		     nv_data *);
+int Nviz_set_attr(int, int, int, int, const char *, float,
+		  nv_data *);
+void Nviz_set_attr_default();
+
 /* nviz.c */
 void Nviz_init_data(nv_data *);
 void Nviz_set_bgcolor(nv_data *, int);
+int Nviz_color_from_str(const char *);
+
+/* position.c */
+void Nviz_init_view();
+int Nviz_set_focus_state(int);
+int Nviz_set_focus_map(int, int);
 
 /* render.c */
 struct render_window* Nviz_new_render_window();

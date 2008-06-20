@@ -1,7 +1,7 @@
 /*!
   \file map_obj.c
  
-  \brief Define creation and interface functions for map objects.
+  \brief Nviz library -- Define creation and interface functions for map objects.
   
   Map objects are considered to be surfaces, vector plots,
   or site files.
@@ -14,7 +14,7 @@
 
   Based on visualization/nviz/src/map_obj.c
 
-  \author Updated/modified by Martin Landa <landa.martin gmail.com>
+  \author Updated/modified by Martin Landa <landa.martin gmail.com> (Google SoC 2008)
 
   \date 2008
 */
@@ -22,11 +22,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <grass/gsurf.h>
-#include <grass/gstypes.h>
 #include <grass/glocale.h>
-
-#include "local_proto.h"
+#include <grass/nviz.h>
 
 /*!
   \brief Create a new map object which can be one of surf, vect, vol or site.
@@ -51,8 +48,8 @@
   \return map object id
   \return -1 on error
 */
-int new_map_obj(int type, const char *name,
-		nv_data *data)
+int Nviz_new_map_obj(int type, const char *name,
+		     nv_data *data)
 {
     int new_id, i;
     int num_surfs, *surf_list;
@@ -84,15 +81,15 @@ int new_map_obj(int type, const char *name,
 	
 	if (name) {
 	    /* map */
-	    if (!set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, MAP_ATT, name, -1.0,
+	    if (!Nviz_set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, MAP_ATT, name, -1.0,
 			  data)) {
 		return -1;
 	    }
 	}
 	else {
 	    /* constant */
-	    if (!set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, CONST_ATT, NULL, 0.0,
-			  data)) {
+	    if (!Nviz_set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, CONST_ATT, NULL, 0.0,
+			       data)) {
 		return -1;
 	    }
 	}	  
@@ -172,9 +169,9 @@ int new_map_obj(int type, const char *name,
   \return 1 on success
   \return 0 on failure
 */
-int set_attr(int id, int type, int desc, int src,
-	     const char *str_value, float num_value,
-	     nv_data *data)
+int Nviz_set_attr(int id, int type, int desc, int src,
+		  const char *str_value, float num_value,
+		  nv_data *data)
 {
     int ret;
     float value;
@@ -251,7 +248,7 @@ int set_attr(int id, int type, int desc, int src,
 	     * create separate routines to figure the Z range as well
 	     * as the XYrange
 	     */
-	    update_ranges(data);
+	    Nviz_update_ranges(data);
 	    
 	    break;
 	}
@@ -267,7 +264,7 @@ int set_attr(int id, int type, int desc, int src,
 /*!
   \brief Set default map object attributes
 */
-void set_att_default()
+void Nviz_set_attr_default()
 {
     float defs[MAX_ATTS];
     

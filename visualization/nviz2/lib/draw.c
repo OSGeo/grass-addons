@@ -1,7 +1,7 @@
 /*!
   \file draw.c
  
-  \brief Draw map objects to GLX context
+  \brief Nviz library -- Draw map objects to GLX context
   
   COPYRIGHT: (C) 2008 by the GRASS Development Team
 
@@ -12,15 +12,12 @@
   Based on visualization/nviz/src/draw.c and
   visualization/nviz/src/togl_flythrough.c
 
-  \author Updated/modified by Martin Landa <landa.martin gmail.com>
+  \author Updated/modified by Martin Landa <landa.martin gmail.com> (Google SoC 2008)
 
   \date 2008
 */
 
-#include <grass/gsurf.h>
-#include <grass/gstypes.h>
-
-#include "local_proto.h"
+#include <grass/nviz.h>
 
 static int sort_surfs_max(int *, int *, int *, int);
 static int check_blank(int);
@@ -32,7 +29,7 @@ static int check_blank(int);
 
   \return 1
 */
-int draw_all_surf(nv_data *dc)
+int Nviz_draw_all_surf(nv_data *dc)
 {
     int i, nsurfs;
     int sortSurfs[MAX_SURFS], sorti[MAX_SURFS];
@@ -135,7 +132,7 @@ int check_blank(int map_id)
     return 0;
 }
 
-int draw_all(nv_data *data)
+int Nviz_draw_all(nv_data *data)
 {
     int draw_surf, draw_vect, draw_site, draw_vol;
     int draw_north_arrow, arrow_x, draw_label, draw_legend;
@@ -180,10 +177,10 @@ int draw_all(nv_data *data)
     bar_x        = Tcl_GetVar(interp, "scalebar_x", TCL_GLOBAL_ONLY);
 */  
     if (draw_surf)
-	draw_all_surf(data);
+	Nviz_draw_all_surf(data);
 
     if (draw_vect)
-	draw_all_vect (data);
+	Nviz_draw_all_vect (data);
 
     if (draw_site)
 	; // site_draw_all_together(data, interp);
@@ -295,7 +292,7 @@ int draw_all(nv_data *data)
     return 1;
 }
 
-int draw_quick(nv_data *dc)
+int Nviz_draw_quick(nv_data *dc)
 {
     int i, max;
     int *surf_list, *vol_list;
@@ -338,7 +335,7 @@ int draw_quick(nv_data *dc)
 
   \return 1
 */
-int draw_all_vect(nv_data *dc)
+int Nviz_draw_all_vect(nv_data *dc)
 {
     int i, nvects;
     int *vect_list;

@@ -144,23 +144,3 @@ void parse_command(int argc, char* argv[], struct GParams *params)
 
     return;
 }
-
-/*!
-  \brief Get color value from color string (name or RGB triplet)
-
-  \param color_str color string
-
-  \return color value
-*/
-int color_from_cmd(const char *color_str)
-{
-    int red, grn, blu;
-
-    if (G_str_to_color(color_str, &red, &grn, &blu) != 1) {
-	G_warning (_("Invalid color (%s), using \"white\" as default"),
-		   color_str);
-	red = grn = blu = 255;
-    }
-
-    return (red & RED_MASK) + ((int)((grn) << 8) & GRN_MASK) + ((int)((blu) << 16) & BLU_MASK);
-}

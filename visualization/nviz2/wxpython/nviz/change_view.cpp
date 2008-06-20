@@ -31,3 +31,23 @@ int Nviz::ResizeWindow(int width, int height)
 {
     return Nviz_resize_window(width, height);
 }
+
+void Nviz::SetViewportDefault()
+{
+    float vp_height;
+    /* determine height */
+    Nviz_get_exag_height(&vp_height, NULL, NULL);
+
+    Nviz_set_viewpoint_height(data,
+			      vp_height);
+    Nviz_change_exag(data,
+		     1.0);
+    Nviz_set_viewpoint_position(data,
+				0.85, 0.85);
+    Nviz_set_viewpoint_twist(data,
+			     0.0);
+    Nviz_set_viewpoint_persp(data,
+			     40);
+
+    return;
+}

@@ -1,7 +1,7 @@
 /*!
   \file exag.c
  
-  \brief Exaggeration functions
+  \brief Nviz library -- Exaggeration functions
   
   COPYRIGHT: (C) 2008 by the GRASS Development Team
 
@@ -11,15 +11,12 @@
 
   Based on visualization/nviz/src/exag.c
 
-  \author Updated/modified by Martin Landa <landa.martin gmail.com>
+  \author Updated/modified by Martin Landa <landa.martin gmail.com> (Google SoC 2008)
 
   \date 2008
 */
 
-#include <grass/gsurf.h>
-#include <grass/gstypes.h>
-
-#include "local_proto.h"
+#include <grass/nviz.h>
 
 /*!
   \brief Get viewpoint height
@@ -33,7 +30,7 @@
 
   \return 1
 */
-int exag_get_height(float *val, float *min, float *max)
+int Nviz_get_exag_height(float *val, float *min, float *max)
 {
     float longdim, exag, texag, hmin, hmax, fmin, fmax;
     int nsurfs, i, *surf_list;

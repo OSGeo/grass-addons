@@ -72,9 +72,9 @@ int main (int argc, char *argv[])
     /* initialize nviz data */
     Nviz_init_data(&data);
     /* define default attributes for map objects */
-    set_att_default();
+    Nviz_set_attr_default();
     /* set background color */
-    Nviz_set_bgcolor(&data, color_from_cmd(params->bgcolor->answer)); 
+    Nviz_set_bgcolor(&data, Nviz_color_from_str(params->bgcolor->answer)); 
 
     /* load data */
     nelev = ncolor_map = ncolor_const = 0;
@@ -97,9 +97,9 @@ int main (int argc, char *argv[])
 	    }
 	    
 	    /* topography */
-	    id = new_map_obj(MAP_OBJ_SURF,
-			     G_fully_qualified_name(params->elev->answers[i], mapset),
-			     &data);
+	    id = Nviz_new_map_obj(MAP_OBJ_SURF,
+				  G_fully_qualified_name(params->elev->answers[i], mapset),
+				  &data);
 
 	    if (i < ncolor_map) { /* check for color map */
 		mapset = G_find_cell2 (params->color_map->answers[i], "");
@@ -108,19 +108,19 @@ int main (int argc, char *argv[])
 				  params->color_map->answers[i]);
 		}
 
-		set_attr(id, MAP_OBJ_SURF, ATT_COLOR, MAP_ATT,
-			 G_fully_qualified_name(params->color_map->answers[i], mapset), -1.0,
-			 &data);
+		Nviz_set_attr(id, MAP_OBJ_SURF, ATT_COLOR, MAP_ATT,
+			      G_fully_qualified_name(params->color_map->answers[i], mapset), -1.0,
+			      &data);
 	    }
 	    else if (i < ncolor_const) { /* check for color value */
-		set_attr(id, MAP_OBJ_SURF, ATT_COLOR, CONST_ATT,
-			 NULL, color_from_cmd(params->color_const->answers[i]),
-			 &data);
+		Nviz_set_attr(id, MAP_OBJ_SURF, ATT_COLOR, CONST_ATT,
+			      NULL, Nviz_color_from_str(params->color_const->answers[i]),
+			      &data);
 	    }
 	    else { /* use by default elevation map for coloring */
-		set_attr(id, MAP_OBJ_SURF, ATT_COLOR, MAP_ATT,
-			 G_fully_qualified_name(params->elev->answers[i], mapset), -1.0,
-			 &data);
+		Nviz_set_attr(id, MAP_OBJ_SURF, ATT_COLOR, MAP_ATT,
+			      G_fully_qualified_name(params->elev->answers[i], mapset), -1.0,
+			      &data);
 	    }
 	    
 	    /*
@@ -136,7 +136,7 @@ int main (int argc, char *argv[])
 	if (!params->elev->answer && GS_num_surfs() == 0) { /* load base surface if no loaded */
 	    int *surf_list, nsurf;
 
-	    new_map_obj(MAP_OBJ_SURF, NULL, &data);
+	    Nviz_new_map_obj(MAP_OBJ_SURF, NULL, &data);
 
 	    surf_list = GS_get_surf_list(&nsurf);
 	    GS_set_att_const(surf_list[0], ATT_TRANSP, 255);
@@ -148,15 +148,15 @@ int main (int argc, char *argv[])
 		G_fatal_error(_("Vector map <%s> not found"),
 			      params->vector->answers[i]);
 	    }
-	    new_map_obj(MAP_OBJ_VECT,
-			G_fully_qualified_name(params->vector->answers[i], mapset), &data);
+	    Nviz_new_map_obj(MAP_OBJ_VECT,
+			     G_fully_qualified_name(params->vector->answers[i], mapset), &data);
 	}
 	nvect++;
     }
 	    
     /* init view */
-    init_view();
-    focus_set_map(MAP_OBJ_UNDEFINED, -1);
+    Nviz_init_view();
+    Nviz_set_focus_map(MAP_OBJ_UNDEFINED, -1);
 
     /* set lights */
     /* TODO: add options */
@@ -194,25 +194,25 @@ int main (int argc, char *argv[])
 	vp_height = atof(params->height->answer);
     }
     else {
-	exag_get_height(&vp_height, NULL, NULL);
+	Nviz_get_exag_height(&vp_height, NULL, NULL);
     }
-    viewpoint_set_height(&data,
-			 vp_height);
-    change_exag(&data,
-		atof(params->exag->answer));
-    viewpoint_set_position(&data,
-			   atof(params->pos->answers[0]),
-			   atof(params->pos->answers[1]));
-    viewpoint_set_twist(&data,
-			atoi(params->twist->answer));
-    viewpoint_set_persp(&data,
-			atoi(params->persp->answer));
+    Nviz_set_viewpoint_height(&data,
+			      vp_height);
+    Nviz_change_exag(&data,
+		     atof(params->exag->answer));
+    Nviz_set_viewpoint_position(&data,
+				atof(params->pos->answers[0]),
+				atof(params->pos->answers[1]));
+    Nviz_set_viewpoint_twist(&data,
+			     atoi(params->twist->answer));
+    Nviz_set_viewpoint_persp(&data,
+			     atoi(params->persp->answer));
 
     GS_clear(data.bgcolor);
 
     /* draw */
     Nviz_draw_cplane(&data, -1, -1);
-    draw_all (&data);
+    Nviz_draw_all (&data);
 
     ret = 0;
     if (strcmp(params->format->answer, "ppm") == 0)

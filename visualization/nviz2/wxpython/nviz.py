@@ -43,7 +43,13 @@ class GLWindow(glcanvas.GLCanvas):
     def __init__(self, parent):
         self.parent = parent # MapWindow
 
-        glcanvas.GLCanvas.__init__(self, parent, wx.ID_ANY)
+        glcanvas.GLCanvas.__init__(self, parent, id=wx.ID_ANY)
+#                                    attribList=[wx.WX_GL_RGBA, wx.GLX_RED_SIZE, 1,
+#                                                wx.GLX_GREEN_SIZE, 1,
+#                                                wx.GLX_BLUE_SIZE, 1,
+#                                                wx.GLX_DEPTH_SIZE, 1,
+#                                                None])
+
         self.init = False
 
         #
@@ -85,12 +91,12 @@ class GLWindow(glcanvas.GLCanvas):
         self.SetCurrent()
         if not self.init:
             # self.InitGL()
-            nvizClass.InitView()
+            # nvizClass.InitView()
+            self.nvizClass.LoadRaster("elevation", None, None);
             self.init = True
         self.OnDraw()
 
     def InitGL(self):
-
         # set viewing projection
         glMatrixMode(GL_PROJECTION)
         glFrustum(-0.5, 0.5, -0.5, 0.5, 1.0, 3.0)
@@ -108,6 +114,10 @@ class GLWindow(glcanvas.GLCanvas):
         glEnable(GL_LIGHT0)
 
     def OnDraw(self):
+        """Draw data layers"""
+        self.nvizClass.Draw()
+
+    def OnDraw1(self):
         # clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 

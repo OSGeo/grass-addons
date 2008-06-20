@@ -26,6 +26,7 @@ class Nviz
 {
 private:
     struct render_window *rwind;
+    nv_data *data;
     wxGLCanvas *glCanvas;
 
 public:
@@ -35,9 +36,22 @@ public:
     /* destructor */
     ~Nviz();
 
+    int ResizeWindow(int, int);
+
     /* set */
     int SetDisplay(void *);
-    int ResizeWindow(int, int);
+
+    /* lights */
+    void SetLightsDefault();
+    
+    /* viewport */
+    void SetViewportDefault();
+
+    /* load data */
+    int LoadRaster(const char*, const char *, const char *);
+
+    /* draw */
+    void Draw();
 };
 
 #endif /* __NVIZ_H__ */
