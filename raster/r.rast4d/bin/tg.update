@@ -22,6 +22,14 @@
 #% required : yes
 #% multiple: no
 #%END
+#%option
+#% key: end_time
+#% type: string
+#% description: end time of raster map (start time is taken from raster map timestamp)
+#% answer: +10 years
+#% required : no
+#% multiple: no
+#%END
 
 
 #Only run if started in GRASS
@@ -53,7 +61,7 @@ for i in `echo $GIS_OPT_INPUT | sed s/,/\ /g` ; do
   echo "processing map $i"
   insert_raster_map $i
   insert_raster_map_metadata $i
-  insert_raster_map_time $i
+  insert_raster_map_time $i "$GIS_OPT_END_TIME"
 done
 
 exit 0

@@ -153,6 +153,7 @@ fi
 insert_raster_map_time () 
 {
 MAPNAME=$1
+MY_VTIME_END="$2"
 YEAR=`r.info $MAPNAME | grep Date: | awk '{print $9}'`
 MONTH=`r.info $MAPNAME | grep Date: | awk '{print $6}'`
 DAY=`r.info $MAPNAME | grep Date: | awk '{print $7}'`
@@ -171,7 +172,7 @@ TIME=`r.timestamp $MAPNAME | awk '{print $4}'`
 # the sqlite3 time format is YYYY-MM-DD HH:MM:SS
 parse_timestamp $DAY $MONTH $YEAR $TIME 
 VTIME_START=$GLOBAL_DATE_VAR
-VTIME_END="DATETIME('$VTIME_START', '+10 years')"
+VTIME_END="DATETIME('$VTIME_START', '$MY_VTIME_END')"
 
 #echo $CTIME
 #echo $MTIME
@@ -194,6 +195,8 @@ else
   $GRAST4D_DBM $GRAST4D_DATABASE "UPDATE $GRASTER_TIME_TABLE_NAME SET mtime=$MTIME WHERE name='$MAPNAME'"
   $GRAST4D_DBM $GRAST4D_DATABASE "UPDATE $GRASTER_TIME_TABLE_NAME SET vtime_start='$VTIME_START' WHERE name='$MAPNAME'"
   $GRAST4D_DBM $GRAST4D_DATABASE "UPDATE $GRASTER_TIME_TABLE_NAME SET vtime_end=$VTIME_END WHERE name='$MAPNAME'"
+ # difference in days
+  $GRAST4D_DBM $GRAST4D_DATABASE "UPDATE $GRASTER_TIME_TABLE_NAME SET vtime_duration=(strftime('%s',vtime_end) - (SELECT strftime('%s',vtime_start)))/86400.0"
 fi
 exit
 }

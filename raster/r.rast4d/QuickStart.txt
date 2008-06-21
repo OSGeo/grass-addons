@@ -18,7 +18,8 @@ Start r.rast4d.init to create the database,
   the ./db/ directory and run r.rast4d.init again
 
 * tg.update
-Use tg.update to register/update your raster maps in the sqlite table
+Use tg.update to register/update your raster maps in the sqlite table.
+You can run it again to update already registered maps.
 
 * tg.list
 Use tg.list to show the registered maps, performe sql where statements on the view
@@ -54,7 +55,7 @@ Es ist ein ziemlicher Hack weil ich in Eile bin. :/
 
 Beispiel mit 4 registrierten Maps:
 
-GRASS 6.3.cvs > bin/tg.list rast select=name,vtime_start
+GRASS 6.3.cvs > tg.list rast select=name,vtime_start
 select name,vtime_start from raster_view where ctime > DATETIME('1950-01-01 10:00:00') order by name
 test.1.1|1999-06-08 13:10:20
 test.1.2|1999-06-09 13:10:20
