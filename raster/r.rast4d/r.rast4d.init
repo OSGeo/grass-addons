@@ -1,10 +1,20 @@
 #!/bin/sh
 
-source globals/defines.sh
+if  [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program." >&2
+ exit 1
+fi
 
-if [ ! -f $DATABASE ]
+### setup enviro vars ###
+eval `g.gisenv`
+: ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
+
+source ${GISBASE}/etc/r.rast4d/globals/defines.sh
+
+if [ ! -f $GRAST4D_DATABASE ]
   then
-  init_db.sh
+  if [ ! -d ./db/ ]; then mkdir ./db/ ; fi
+  ${GISBASE}/etc/r.rast4d/bin/init_db.sh
 else
-  echo "$DATABASE already exists. Doing nothing. Remove that DB file to start over"
+  echo "$GRAST4D_DATABASE already exists. Doing nothing. Remove that DB file to start over"
 fi

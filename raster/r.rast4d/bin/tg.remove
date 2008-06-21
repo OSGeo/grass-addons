@@ -40,7 +40,11 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
 fi
 
 # source some library functions
-source lib/remove_raster.sh
+### setup enviro vars ###
+eval `g.gisenv`
+: ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
+
+source ${GISBASE}/etc/r.rast4d/lib/remove_raster.sh
 
 # remove the table entries
 for i in `echo $GIS_OPT_INPUT | sed s/,/\ /g | xargs` ; do

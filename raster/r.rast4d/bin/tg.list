@@ -63,9 +63,14 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
   fi
 fi
 
-source globals/defines.sh
-echo "select $GIS_OPT_SELECTION from $RASTER_VIEW_NAME where $GIS_OPT_WHERE order by $GIS_OPT_ORDER"
-$DBM $DATABASE "select $GIS_OPT_SELECTION from $RASTER_VIEW_NAME where $GIS_OPT_WHERE order by $GIS_OPT_ORDER"
+### setup enviro vars ###
+eval `g.gisenv`
+: ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
+
+source ${GISBASE}/etc/r.rast4d/globals/defines.sh
+
+echo "select $GIS_OPT_SELECTION from $GRASTER_VIEW_NAME where $GIS_OPT_WHERE order by $GIS_OPT_ORDER"
+$GRAST4D_DBM $GRAST4D_DATABASE "select $GIS_OPT_SELECTION from $GRASTER_VIEW_NAME where $GIS_OPT_WHERE order by $GIS_OPT_ORDER"
 
 exit 0
 

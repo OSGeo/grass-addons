@@ -9,22 +9,22 @@ Stay in the directory containing the QuickStart file you are reading now,
 this is very important!
 The sqlite3 database will be created in the ./db/ directory.
 Use a graphical frontend to explore the database structure or read the 
-code in the sql directory.
+code in the sql directory (e.g., sqlitebrowser or the Firefox SQLite addon).
 
-* ./r.rast4d.init
+* r.rast4d.init
 Start r.rast4d.init to create the database,
 - if the database already exists, nothing will be performed
 - if you want to create a new database just remove the one in 
   the ./db/ directory and run r.rast4d.init again
 
-* bin/tg.update
+* tg.update
 Use tg.update to register/update your raster maps in the sqlite table
 
-* bin/tg.list
+* tg.list
 Use tg.list to show the registered maps, performe sql where statements on the view
 and use the order option to order your data
 
-* bin/tg.remove
+* tg.remove
 Remove the raster map entries from the database
 The maps are not removed from grass!
 
@@ -36,12 +36,12 @@ The maps need to have a valid time stamp (r.timestamp).
 Then (we assume a wildcard for raster names):
 
  for i in `g.mlist type=rast pat="rastname*"` ; do
-   bin/tg.update $i
+   tg.update $i
  done
 
 ###########################################
 Sören Gebbert 	
-to Markus, me
+to neteler at itc it
 Apr 5 2007
 
 Fertig,

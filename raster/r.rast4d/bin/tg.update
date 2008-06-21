@@ -40,7 +40,11 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
 fi
 
 # source some library functions
-source lib/insert_raster.sh
+### setup enviro vars ###
+eval `g.gisenv`
+: ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
+
+source ${GISBASE}/etc/r.rast4d/lib/insert_raster.sh
 
 echo $GIS_OPT_INPUT
 
