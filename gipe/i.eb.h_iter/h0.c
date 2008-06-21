@@ -4,8 +4,11 @@
 double h0(double roh_air, double cp, double rah, double dtair)
 {
 	double result;
-
-	result = roh_air*cp*dtair / rah;
+	if(rah<0.001){
+		result=-1.0;
+	} else {
+		result = roh_air*cp*dtair / rah;
+	}
 	
 	return result;
 }
