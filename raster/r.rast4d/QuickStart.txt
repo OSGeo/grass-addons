@@ -1,13 +1,16 @@
+TIME SERIES SUPPORT FOR GRASS RASTER MAPS
+
+REQUIREMENTS
 You need:
- - grass63
+ - >= grass63
  - sqlite3
- - a valid grass location
+ - a valid GRASS location
 and the will to read sql and bash code if an error occures :)
 
+
+USAGE
 Be sure you are in a GRASS location!
-Stay in the directory containing the QuickStart file you are reading now,
-this is very important!
-The sqlite3 database will be created in the ./db/ directory.
+The sqlite3 database will be created in the LOCATION/MAPSET/rast4d_db/ directory.
 Use a graphical frontend to explore the database structure or read the 
 code in the sql directory (e.g., sqlitebrowser or the Firefox SQLite addon).
 
@@ -15,7 +18,7 @@ code in the sql directory (e.g., sqlitebrowser or the Firefox SQLite addon).
 Start r.rast4d.init to create the database,
 - if the database already exists, nothing will be performed
 - if you want to create a new database just remove the one in 
-  the ./db/ directory and run r.rast4d.init again
+  the MAPSET/rast4d_db/ directory and run r.rast4d.init again
 
 * tg.update
 Use tg.update to register/update your raster maps in the sqlite table.

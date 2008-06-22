@@ -1,13 +1,15 @@
 #!/bin/sh
 
-#definitions
-export GRAST4D_BASE="`pwd`"
-export GRAST4D_DB_DIR="$GRAST4D_BASE/db"
-
 ### setup enviro vars ###
 eval `g.gisenv`
 : ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
 
+#definitions
+#export GRAST4D_BASE="`pwd`"
+export GRAST4D_BASE=${GISDBASE}/${LOCATION_NAME}/${MAPSET}
+export GRAST4D_DB_DIR="$GRAST4D_BASE/rast4d_db"
+
+##############################à
 export GRAST4D_BIN_DIR="${GISBASE}/etc/r.rast4d/bin"
 export GRAST4D_LIB_DIR="${GISBASE}/etc/r.rast4d/lib"
 export GRAST4D_SQL_DIR="${GISBASE}/etc/r.rast4d/sql"
