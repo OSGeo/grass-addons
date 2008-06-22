@@ -133,6 +133,11 @@ int main(int argc, char *argv[])
 				/* calculate delta T	    */
 				if(wim){
 					d = 0.3225 * d_tempk - 91.743;
+					if(d<1){
+						d=1.0;
+					} else if(d>13){
+						d=13.0;
+					}
 				}else{
 					d = delta_t(d_tempk);
 				}
