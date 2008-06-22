@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_tempk;
-	unsigned char *outrast1;
+	DCELL *outrast1;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_tempk;
 	/************************************/
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 					break;
 			}
 			if(G_is_d_null_value(&d_tempk)){
-				((DCELL *) outrast1)[col] = -999.99;
+				G_set_d_null_value(&outrast1[col],1);
 			}else {
 				/****************************/
 				/* calculate delta T	    */
@@ -137,9 +137,9 @@ int main(int argc, char *argv[])
 					d = delta_t(d_tempk);
 				}
 				if(abs(d)>50.0){
-					d = -999.99;
+					G_set_d_null_value(&outrast1[col],1);
 				}
-				((DCELL *) outrast1)[col] = d;
+				outrast1[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)

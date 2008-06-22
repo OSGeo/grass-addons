@@ -1,6 +1,5 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include<math.h>
 
 // Difference of temperature between surface skin and about 2m
 // Initialization parameter of sensible heat flux iteration in SEBAL
