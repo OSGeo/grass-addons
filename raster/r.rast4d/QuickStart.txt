@@ -37,7 +37,7 @@ The maps need to have a valid time stamp (r.timestamp).
 Then (we assume a wildcard for raster names):
 
  for i in `g.mlist type=rast pat="rastname*"` ; do
-   tg.update $i
+   tg.update $i [vtime_end=+30 minutes]
  done
 
 ###########################################

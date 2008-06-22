@@ -1,20 +1,10 @@
 The following modules must be implemented:
  tg.copy -- to copy raster table entries + time + metadata
  tg.rename -- rename existing raster table entries + metadata + time
- t.info -- infos about temproal raster maps
+ t.info -- infos about temporal raster maps
  t.create -- to create temporal raster maps
  t.register -- register raster maps in the temporal datatypeas (temporal raster map)
  t.unregister -- unregister raster maps from temporal datatypes (temporal raster map)
 
 See also: lib/TODO
-
-FIXME
- VTIME_END: make controllable by user
-
-    lib/insert_raster.sh
-    ...
-    VTIME_START=$GLOBAL_DATE_VAR
-    VTIME_END="DATETIME('$VTIME_START', '+10 years')"
-
-    -> als Parameter in tg.update einbauen.
 

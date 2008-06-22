@@ -23,9 +23,9 @@
 #% multiple: no
 #%END
 #%option
-#% key: end_time
+#% key: vtime_end
 #% type: string
-#% description: end time of raster map (start time is taken from raster map timestamp)
+#% description: End validity time of raster map (start time is taken from raster map timestamp)
 #% answer: +10 years
 #% required : no
 #% multiple: no
