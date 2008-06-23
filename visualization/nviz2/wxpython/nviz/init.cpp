@@ -39,22 +39,6 @@ Nviz::Nviz()
 
     /* GLCanvas */
     glCanvas = NULL;
-
-    /* initialize nviz data */
-    Nviz_init_data(data);
-    /* define default attributes for map objects */
-    Nviz_set_attr_default();
-    /* set background color */
-    Nviz_set_bgcolor(data, Nviz_color_from_str("white")); /* TODO */
-
-    /* initialize view */
-    Nviz_init_view();
-
-    /* set default lighting model */
-    SetLightsDefault();
-
-    /* clear window */
-    GS_clear(data->bgcolor);
 }
 
 /*!
@@ -84,11 +68,31 @@ int Nviz::SetDisplay(void *display)
 	return 0;
 
     glCanvas = (wxGLCanvas *) display;
-
-    //Nviz_create_render_window(rwind, display, width, height);
-    //Nviz_make_current_render_window(rwind);
+    // glCanvas->SetCurrent();
 
     return 1;
+}
+
+void Nviz::InitView()
+{
+    /* initialize nviz data */
+    Nviz_init_data(data);
+
+    /* define default attributes for map objects */
+    Nviz_set_attr_default();
+    /* set background color */
+    Nviz_set_bgcolor(data, Nviz_color_from_str("white")); /* TODO */
+
+    /* initialize view */
+    Nviz_init_view();
+
+    /* set default lighting model */
+    SetLightsDefault();
+
+    /* clear window */
+    GS_clear(data->bgcolor);
+
+    return;
 }
 
 void swap_gl()

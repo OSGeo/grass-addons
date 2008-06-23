@@ -78,5 +78,8 @@ int Nviz::LoadRaster(const char* name, const char *color_name, const char *color
       set_default_wirecolors(data, i);
     */
 
+    /* focus on loaded data */
+    Nviz_set_focus_map(MAP_OBJ_UNDEFINED, -1);
+
     return 1;
 }

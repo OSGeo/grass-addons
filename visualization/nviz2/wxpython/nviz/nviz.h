@@ -46,6 +46,7 @@ public:
     
     /* viewport */
     void SetViewportDefault();
+    void InitView();
 
     /* load data */
     int LoadRaster(const char*, const char *, const char *);
