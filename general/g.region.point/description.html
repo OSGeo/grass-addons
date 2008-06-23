@@ -23,12 +23,21 @@ preserved. The <b>-z</b> flag requires that a value is given for the
 
 <h2>EXAMPLE</H2>
 
-Evaluate the mean value in a 100m wide raster buffer around a series of
-vector points.
+The following is a shell script utilizing <em>g.region.point</em> which
+will evaluate the mean value in a 100m wide raster buffer around a series
+of vector points. Using <em>g.region.point</em> speeds up this script about
+700% while producing identical output.
 
-<!-- it is unclear to me if the "clone current region" step is actually needed -->
 <div class="code"><pre>
+  #!/bin/sh
   # Spearfish dataset
+
+  # maps to use in query
+  VECT_MAP=archsites
+  RAST_MAP=elevation.10m
+
+  # set region from target raster
+  g.region rast="$RAST_MAP"
 
   # clone current region
   g.region save="tmp_region.$$"
@@ -37,22 +46,31 @@ vector points.
   WIND_OVERRIDE="tmp_region.$$"
   export WIND_OVERRIDE
 
-  # create list of starting coordinates
-  POINTS=`v.out.ascii archsites | cut -f1,2 -d'|' | tr '|' ','`
+  # output column headings line
+  echo "cat|mean_elev|n"
 
   # run the processing loop
-  for POINT in $POINTS ; do
+  v.out.ascii "$VECT_MAP" | ( while read LINE ; do
+     POINT=`echo $LINE | cut -f1,2 -d'|' | tr '|' ','`
+     CATEGORY=`echo $LINE | cut -f3 -d'|'`
+
      g.region.point coord="$POINT" diam=150 res=10
-     r.circle -b coord=$POINT max=100 out=MASK --quiet
-     eval `r.univar -g elevation.10m`
+     r.circle -b coord="$POINT" max=100 out=MASK --quiet
+     eval `r.univar -g "$RAST_MAP"`
      g.remove MASK --quiet
-     echo "coord=$POINT  mean=$mean (n=$n)"
-  done
+     echo "$CATEGORY|$mean|$n"
+  done )
 
   # remove the temporary region
   unset WIND_OVERRIDE
   g.remove region="tmp_region.$$" --quiet
 </pre></div>
+
+The <em>v.db.update</em> module may be used in place of "echo" in the above
+example to load the results into the vector map's attribute table instead of
+sending them to <tt>stdout</tt>. If required a new column to hold these values
+may be added to the database table with <em>v.db.addcol</em> prior to running
+the update script.
 
 
 <H2>SEE ALSO</H2>
