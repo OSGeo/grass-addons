@@ -4,7 +4,7 @@
 @brief 2.5/3D visialization mode for Map Display Window
 
 List of classes:
- - GLCanvas
+ - GLWindow
 
 (C) 2008 by the GRASS Development Team
 
@@ -12,7 +12,7 @@ This program is free software under the GNU General Public
 License (>=v2). Read the file COPYING that comes with GRASS
 for details.
 
-@author Martin Landa <landa.martin gmail.com>
+@author Martin Landa <landa.martin gmail.com> (Google SoC 2008)
 """
 
 import wx
@@ -30,6 +30,8 @@ except ImportError:
     haveOpenGL = False
 
 import globalvar
+from debug import Debug as Debug
+from mapdisp import MapWindow as MapWindow
 #try:
 nvizPath = os.path.join(globalvar.ETCWXDIR, "nviz")
 sys.path.append(nvizPath)
@@ -38,17 +40,26 @@ haveNviz = True
 #except ImportError:
 #    haveNviz = False
 
-class GLWindow(glcanvas.GLCanvas):
+class GLWindow(MapWindow, glcanvas.GLCanvas):
     """OpenGL canvas for Map Display Window"""
-    def __init__(self, parent):
-        self.parent = parent # MapWindow
+    def __init__(self, parent, id,
+                 pos=wx.DefaultPosition,
+                 size=wx.DefaultSize,
+                 style=wx.NO_FULL_REPAINT_ON_RESIZE,
+                 Map=None, tree=None, gismgr=None):
 
-        glcanvas.GLCanvas.__init__(self, parent, id=wx.ID_ANY)
-#                                    attribList=[wx.WX_GL_RGBA, wx.GLX_RED_SIZE, 1,
-#                                                wx.GLX_GREEN_SIZE, 1,
-#                                                wx.GLX_BLUE_SIZE, 1,
-#                                                wx.GLX_DEPTH_SIZE, 1,
-#                                                None])
+        glcanvas.GLCanvas.__init__(self, parent, id)
+        # MapWindow.__init__(self, parent, id, pos, size, style,
+        #                   Map, tree, gismgr)
+
+
+        self.parent = parent # MapFrame
+
+        # attribList=[wx.WX_GL_RGBA, wx.GLX_RED_SIZE, 1,
+        #             wx.GLX_GREEN_SIZE, 1,
+        #             wx.GLX_BLUE_SIZE, 1,
+        #             wx.GLX_DEPTH_SIZE, 1,
+        #             None])
 
         self.init = False
 
@@ -63,8 +74,8 @@ class GLWindow(glcanvas.GLCanvas):
         self.nvizClass.SetDisplay(self)
 
         # initialize mouse position
-        self.lastx = self.x = 30
-        self.lasty = self.y = 30
+        # self.lastx = self.x = 30
+        # self.lasty = self.y = 30
 
         self.size = None
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
@@ -78,96 +89,33 @@ class GLWindow(glcanvas.GLCanvas):
         pass # do nothing, to avoid flashing on MSW
 
     def OnSize(self, event):
-        size = self.size = self.parent.GetClientSize()
+        self.size = self.parent.GetClientSize()
         if self.GetContext():
+            Debug.msg(3, "GLCanvas.OnPaint(): w=%d, h=%d" % \
+                      (self.size.width, self.size.height))
             self.SetCurrent()
-            # glViewport(0, 0, size.width, size.height)
-            self.nvizClass.ResizeWindow(size.width, size.height)
+            self.nvizClass.ResizeWindow(self.size.width,
+                                        self.size.height)
         
         event.Skip()
 
     def OnPaint(self, event):
+        Debug.msg(3, "GLCanvas.OnPaint()")
+
         dc = wx.PaintDC(self)
         self.SetCurrent()
         if not self.init:
-            # self.InitGL()
-            # nvizClass.InitView()
+            self.nvizClass.InitView()
             self.nvizClass.LoadRaster("elevation", None, None);
+            self.nvizClass.SetViewportDefault()
+            self.nvizClass.SetLightsDefault()
             self.init = True
         self.OnDraw()
 
-    def InitGL(self):
-        # set viewing projection
-        glMatrixMode(GL_PROJECTION)
-        glFrustum(-0.5, 0.5, -0.5, 0.5, 1.0, 3.0)
-
-        # position viewer
-        glMatrixMode(GL_MODELVIEW)
-        glTranslatef(0.0, 0.0, -2.0)
-
-        # position object
-        glRotatef(self.y, 1.0, 0.0, 0.0)
-        glRotatef(self.x, 0.0, 1.0, 0.0)
-
-        glEnable(GL_DEPTH_TEST)
-        glEnable(GL_LIGHTING)
-        glEnable(GL_LIGHT0)
-
     def OnDraw(self):
         """Draw data layers"""
+        Debug.msg(3, "GLCanvas.OnDraw()")
+
         self.nvizClass.Draw()
-
-    def OnDraw1(self):
-        # clear color and depth buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-        # draw six faces of a cube
-        glBegin(GL_QUADS)
-        glNormal3f( 0.0, 0.0, 1.0)
-        glVertex3f( 0.5, 0.5, 0.5)
-        glVertex3f(-0.5, 0.5, 0.5)
-        glVertex3f(-0.5,-0.5, 0.5)
-        glVertex3f( 0.5,-0.5, 0.5)
-
-        glNormal3f( 0.0, 0.0,-1.0)
-        glVertex3f(-0.5,-0.5,-0.5)
-        glVertex3f(-0.5, 0.5,-0.5)
-        glVertex3f( 0.5, 0.5,-0.5)
-        glVertex3f( 0.5,-0.5,-0.5)
-
-        glNormal3f( 0.0, 1.0, 0.0)
-        glVertex3f( 0.5, 0.5, 0.5)
-        glVertex3f( 0.5, 0.5,-0.5)
-        glVertex3f(-0.5, 0.5,-0.5)
-        glVertex3f(-0.5, 0.5, 0.5)
-
-        glNormal3f( 0.0,-1.0, 0.0)
-        glVertex3f(-0.5,-0.5,-0.5)
-        glVertex3f( 0.5,-0.5,-0.5)
-        glVertex3f( 0.5,-0.5, 0.5)
-        glVertex3f(-0.5,-0.5, 0.5)
-
-        glNormal3f( 1.0, 0.0, 0.0)
-        glVertex3f( 0.5, 0.5, 0.5)
-        glVertex3f( 0.5,-0.5, 0.5)
-        glVertex3f( 0.5,-0.5,-0.5)
-        glVertex3f( 0.5, 0.5,-0.5)
-
-        glNormal3f(-1.0, 0.0, 0.0)
-        glVertex3f(-0.5,-0.5,-0.5)
-        glVertex3f(-0.5,-0.5, 0.5)
-        glVertex3f(-0.5, 0.5, 0.5)
-        glVertex3f(-0.5, 0.5,-0.5)
-        glEnd()
-
-        if self.size is None:
-            self.size = self.GetClientSize()
-        w, h = self.size
-        w = max(w, 1.0)
-        h = max(h, 1.0)
-        xScale = 180.0 / w
-        yScale = 180.0 / h
-        glRotatef((self.y - self.lasty) * yScale, 1.0, 0.0, 0.0);
-        glRotatef((self.x - self.lastx) * xScale, 0.0, 1.0, 0.0);
-
         self.SwapBuffers()
+

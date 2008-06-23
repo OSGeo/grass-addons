@@ -110,7 +110,7 @@ int Nviz_create_render_window(struct render_window *rwin, void *display,
 
     /* create an off-screen GLX rendering area */
     rwin->windowId = glXCreateGLXPixmap(rwin->displayId,
-				       v, rwin->pixmap);
+					v, rwin->pixmap);
 
     if (v) {
 	XFree(v);
@@ -124,7 +124,8 @@ int Nviz_create_render_window(struct render_window *rwin, void *display,
 
   \param win pointer to render_window struct
 
-  \return 1
+  \return 1 on success
+  \return 0 on failure
 */
 int Nviz_make_current_render_window(const struct render_window *rwin)
 {

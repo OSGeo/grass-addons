@@ -60,7 +60,6 @@ import profile
 import globalvar
 import utils
 import gdialogs
-import nviz
 from vdigit import VDigitCategoryDialog as VDigitCategoryDialog
 from vdigit import VDigitZBulkDialog    as VDigitZBulkDialog
 from vdigit import VDigitDuplicatesDialog as VDigitDuplicatesDialog
@@ -122,7 +121,16 @@ class Command(Thread):
 
         sys.exit()
 
-class BufferedWindow(wx.Window):
+class MapWindow(object):
+    """Generic map window class"""
+    def __init__(self, parent, id,
+                 pos=wx.DefaultPosition,
+                 size=wx.DefaultSize,
+                 style=wx.NO_FULL_REPAINT_ON_RESIZE,
+                 Map=None, tree=None, gismgr=None):
+        pass
+
+class BufferedWindow(MapWindow, wx.Window):
     """
     A Buffered window class.
 
@@ -138,7 +146,10 @@ class BufferedWindow(wx.Window):
                  style=wx.NO_FULL_REPAINT_ON_RESIZE,
                  Map=None, tree=None, gismgr=None):
 
+        MapWindow.__init__(self, parent, id, pos, size, style,
+                           Map, tree, gismgr)
         wx.Window.__init__(self, parent, id, pos, size, style)
+
         self.parent = parent
         self.Map = Map
         self.tree = tree
@@ -546,7 +557,6 @@ class BufferedWindow(wx.Window):
         @param render re-render map composition
         @param renderVector re-render vector map layer enabled for editing (used for digitizer)
         """
-
         start = time.clock()
 
         self.resize = False
@@ -2370,7 +2380,8 @@ class MapFrame(wx.Frame):
         #
         # Init map display (buffered DC & set default cursor)
         #
-        self.MapWindow = BufferedWindow(self, id=wx.ID_ANY, Map=self.Map, tree=self.tree, gismgr=self.gismanager)
+        self.MapWindow = BufferedWindow(self, id=wx.ID_ANY,
+                                        Map=self.Map, tree=self.tree, gismgr=self.gismanager)
         self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
         self.MapWindow.SetCursor(self.cursors["default"])
         self.MapWindowGL = None # used by Nviz (default is 2D display mode)
@@ -2480,6 +2491,7 @@ class MapFrame(wx.Frame):
                               CloseButton(False).Layer(2))
         # nviz
         elif name == "nviz":
+            import nviz
             # check for GLCanvas and OpenGL
             msg = None
             if not nviz.haveGLCanvas:
@@ -2501,7 +2513,8 @@ class MapFrame(wx.Frame):
             #
             # create GL window & NVIZ toolbar
             #
-            self.MapWindowGL = nviz.GLWindow(self)
+            self.MapWindowGL = nviz.GLWindow(self, id=wx.ID_ANY,
+                                             Map=self.Map, tree=self.tree, gismgr=self.gismanager)
             self.toolbars['nviz'] = toolbars.NvizToolbar(self, self.Map)
 
             #

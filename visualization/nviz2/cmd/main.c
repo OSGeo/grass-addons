@@ -71,11 +71,34 @@ int main (int argc, char *argv[])
 
     /* initialize nviz data */
     Nviz_init_data(&data);
+
     /* define default attributes for map objects */
     Nviz_set_attr_default();
+
     /* set background color */
     Nviz_set_bgcolor(&data, Nviz_color_from_str(params->bgcolor->answer)); 
 
+    /* init view */
+    Nviz_init_view();
+    /* set lights */
+    /* TODO: add options */
+    Nviz_set_light_position(&data, 0,
+			    0.68, -0.68, 0.80, 0.0);
+    Nviz_set_light_bright(&data, 0,
+			  0.8);
+    Nviz_set_light_color(&data, 0,
+			 1.0, 1.0, 1.0);
+    Nviz_set_light_ambient(&data, 0,
+			   0.2, 0.2, 0.2);
+    Nviz_set_light_position(&data, 1,
+			    0.0, 0.0, 1.0, 0.0);
+    Nviz_set_light_bright(&data, 1,
+			  0.5);
+    Nviz_set_light_color(&data, 1,
+			 1.0, 1.0, 1.0);
+    Nviz_set_light_ambient(&data, 1,
+			   0.3, 0.3, 0.3);
+    
     /* load data */
     nelev = ncolor_map = ncolor_const = 0;
 
@@ -153,42 +176,10 @@ int main (int argc, char *argv[])
 	}
 	nvect++;
     }
-	    
-    /* init view */
-    Nviz_init_view();
+
+    /* focus on loaded data */
     Nviz_set_focus_map(MAP_OBJ_UNDEFINED, -1);
 
-    /* set lights */
-    /* TODO: add options */
-    Nviz_set_light_position(&data, 0,
-			    0.68, -0.68, 0.80, 0.0);
-    Nviz_set_light_bright(&data, 0,
-			  0.8);
-    Nviz_set_light_color(&data, 0,
-			 1.0, 1.0, 1.0);
-    Nviz_set_light_ambient(&data, 0,
-			   0.2, 0.2, 0.2);
-
-    /*
-    light_set_position(&data, 1,
-		       0.68, -0.68, 0.80, 0.0);
-    light_set_bright(&data, 1,
-		     0.8);
-    light_set_color(&data, 1,
-		    1.0, 1.0, 1.0);
-    light_set_ambient(&data, 1,
-		      0.2, 0.2, 0.2);
-    */
-
-    Nviz_set_light_position(&data, 1,
-			    0.0, 0.0, 1.0, 0.0);
-    Nviz_set_light_bright(&data, 1,
-			  0.5);
-    Nviz_set_light_color(&data, 1,
-			 1.0, 1.0, 1.0);
-    Nviz_set_light_ambient(&data, 1,
-			   0.3, 0.3, 0.3);
-    
     /* define view point */
     if (params->height->answer) {
 	vp_height = atof(params->height->answer);
@@ -214,6 +205,7 @@ int main (int argc, char *argv[])
     Nviz_draw_cplane(&data, -1, -1);
     Nviz_draw_all (&data);
 
+    /* write to image */
     ret = 0;
     if (strcmp(params->format->answer, "ppm") == 0)
 	ret = write_img(output_name, FORMAT_PPM); 
