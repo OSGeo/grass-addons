@@ -26,18 +26,22 @@ double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,d
 		z0m=0.00001;
 	}
 	if(log10(2-disp)-log10(z0m)==0.0){
-		ublend=u2m*(log10(100-disp)-log10(z0m))/(log10(2-disp)-log10(z0m)+0.001);
+		//ublend=u2m*(log10(100-disp)-log10(z0m))/(log10(2-disp)-log10(z0m)+0.001);
+		ublend=u2m*(log(100-disp)-log(z0m))/(log(2-disp)-log(z0m)+0.001);
 	} else {
-		ublend=u2m*(log10(100-disp)-log10(z0m))/(log10(2-disp)-log10(z0m));
+		ublend=u2m*(log(100-disp)-log(z0m))/(log(2-disp)-log(z0m));
+		//ublend=u2m*(log10(100-disp)-log10(z0m))/(log10(2-disp)-log10(z0m));
 	}
 	psim=0.0;
 	psih=0.0;
 
 	for(i=0;i<iteration;i++){
 		if((log10((100-disp)/z0m)-psim)==0.0){
-			ustar = 0.41*ublend/(log10((100-disp)/z0m)-psim+0.0001);
+			//ustar = 0.41*ublend/(log10((100-disp)/z0m)-psim+0.0001);
+			ustar = 0.41*ublend/(log((100-disp)/z0m)-psim+0.0001);
 		} else {
-			ustar = 0.41*ublend/(log10((100-disp)/z0m)-psim);
+			//ustar = 0.41*ublend/(log10((100-disp)/z0m)-psim);
+			ustar = 0.41*ublend/(log((100-disp)/z0m)-psim);
 		}
 		if(z0h==0.0){
 			z0h=0.00001;
@@ -46,9 +50,11 @@ double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,d
 			ustar=0.00001;
 		}
 		if(((2-disp)/z0h)-psih==0.0){
-			rah   = (log10((2-disp)/z0h)-psih+0.00001)/(0.41*ustar);
+			//rah   = (log10((2-disp)/z0h)-psih+0.00001)/(0.41*ustar);
+			rah   = (log((2-disp)/z0h)-psih+0.00001)/(0.41*ustar);
 		} else {			
-			rah   = (log10((2-disp)/z0h)-psih)/(0.41*ustar);
+			//rah   = (log10((2-disp)/z0h)-psih)/(0.41*ustar);
+			rah   = (log((2-disp)/z0h)-psih)/(0.41*ustar);
 		}
 		if(rah==0.0){
 			rah=0.00001;
@@ -64,14 +70,18 @@ double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,d
 		xm    = pow(1.0-16.0*((100-disp)/length),0.25);
 		xh    = pow(1.0-16.0*((2-disp)/length),0.25);
 		if((1.0+xm)/2.0==0.0||(1+xm*xm)-2*atan(xm)+0.5*PI==0.0){
-			psim  = 2.0*log10((1.0+xm+0.00001)/2.0)+log10((1+xm*xm)-2*atan(xm)+0.5*PI+0.00001);
+			//psim  = 2.0*log10((1.0+xm+0.00001)/2.0)+log10((1+xm*xm)-2*atan(xm)+0.5*PI+0.00001);
+			psim  = 2.0*log((1.0+xm+0.00001)/2.0)+log((1+xm*xm)-2*atan(xm)+0.5*PI+0.00001);
 		} else {
-			psim  = 2.0*log10((1.0+xm)/2.0)+log10((1+xm*xm)-2*atan(xm)+0.5*PI);
+			//psim  = 2.0*log10((1.0+xm)/2.0)+log10((1+xm*xm)-2*atan(xm)+0.5*PI);
+			psim  = 2.0*log((1.0+xm)/2.0)+log((1+xm*xm)-2*atan(xm)+0.5*PI);
 		}
 		if((1.0+xh*xh)/2.0==0.0){
-			psih  = 2.0*log10((1.0+xh*xh+0.00001)/2.0);
+			//psih  = 2.0*log10((1.0+xh*xh+0.00001)/2.0);
+			psih  = 2.0*log((1.0+xh*xh+0.00001)/2.0);
 		} else {
-			psih  = 2.0*log10((1.0+xh*xh)/2.0);
+			//psih  = 2.0*log10((1.0+xh*xh)/2.0);
+			psih  = 2.0*log((1.0+xh*xh)/2.0);
 		}
 	}
 
