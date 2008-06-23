@@ -669,9 +669,9 @@ int main(int argc, char *argv[])
 		/*DRY PIXEL*/
 		if(flag3->answer){
 			/*Calculate coordinates of row/col from projected ones*/
-			row_dry = ( ymax - row_dry ) / stepy ;
-			col_dry = ( col_dry - xmin ) / stepx ;
-			G_message("Dry Pixel | row:%i col:%i",row_dry,col_dry);
+			row = ( ymax - row_dry ) / stepy ;
+			col = ( col_dry - xmin ) / stepx ;
+			G_message("Dry Pixel | row:%i col:%i",row,col);
 		} else {
 			row=row_dry;
 			col=col_dry;
@@ -740,9 +740,9 @@ int main(int argc, char *argv[])
 		/*WET PIXEL*/
 		if(flag3->answer){
 			/*Calculate coordinates of row/col from projected ones*/
-			row_wet = ( ymax - row_wet ) / stepy ;
-			col_wet = ( col_wet - xmin ) / stepx ;
-			G_message("Wet Pixel | row:%i col:%i",row_wet,col_wet);
+			row = ( ymax - row_wet ) / stepy ;
+			col = ( col_wet - xmin ) / stepx ;
+			G_message("Wet Pixel | row:%i col:%i",row,col);
 		} else {
 			row=row_wet;
 			col=col_wet;
