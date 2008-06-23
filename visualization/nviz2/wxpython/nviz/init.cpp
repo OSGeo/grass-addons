@@ -33,10 +33,6 @@ Nviz::Nviz()
 
     data = (nv_data*) G_malloc(sizeof (nv_data));
 
-    /* initialize render window */
-    rwind = Nviz_new_render_window();
-    Nviz_init_render_window(rwind);
-
     /* GLCanvas */
     glCanvas = NULL;
 }
@@ -46,12 +42,8 @@ Nviz::Nviz()
 */
 Nviz::~Nviz()
 {
-    Nviz_destroy_render_window(rwind);
-
-    G_free((void *) rwind);
     G_free((void *) data);
 
-    rwind = NULL;
     data = NULL;
     glCanvas = NULL;
 }
@@ -64,9 +56,6 @@ Nviz::~Nviz()
 */
 int Nviz::SetDisplay(void *display)
 {
-    if (!rwind)
-	return 0;
-
     glCanvas = (wxGLCanvas *) display;
     // glCanvas->SetCurrent();
 
@@ -93,6 +82,24 @@ void Nviz::InitView()
     GS_clear(data->bgcolor);
 
     return;
+}
+
+/*!
+  \brief Reset session
+
+  Unload all data layers
+
+  @todo vector, volume
+*/
+void Nviz::Reset()
+{
+    int i;
+    int *surf_list, nsurfs;
+
+    surf_list = GS_get_surf_list(&nsurfs);
+    for (i = 0; i < nsurfs; i++) {
+	GS_delete_surface(surf_list[i]);
+    }
 }
 
 void swap_gl()

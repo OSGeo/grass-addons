@@ -201,6 +201,21 @@ class MapToolbar(AbstractToolbar):
         elif tool == "Nviz" and not self.mapdisplay.toolbars['nviz']:
             self.mapdisplay.AddToolbar("nviz")
 
+    def Enable2D(self, enabled):
+        """Enable/Disable 2D display mode specific tools"""
+        for tool in (self.pointer,
+                     self.query,
+                     self.pan,
+                     self.zoomin,
+                     self.zoomout,
+                     self.zoomback,
+                     self.zoommenu,
+                     self.analyze,
+                     self.dec,
+                     self.savefile,
+                     self.printmap):
+            self.toolbar.EnableTool(tool, enabled)
+
 class GRToolbar(AbstractToolbar):
     """
     Georectify Display toolbar

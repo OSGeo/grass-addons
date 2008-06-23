@@ -28,3 +28,13 @@ void Nviz::Draw()
 
     return;
 }
+
+/*!
+  \brief Erase map display (with background color)
+*/
+void Nviz::EraseMap()
+{
+    GS_clear(data->bgcolor);
+
+    return;
+}

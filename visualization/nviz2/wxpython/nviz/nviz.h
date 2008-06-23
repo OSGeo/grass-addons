@@ -25,7 +25,6 @@ extern "C" {
 class Nviz
 {
 private:
-    struct render_window *rwind;
     nv_data *data;
     wxGLCanvas *glCanvas;
 
@@ -36,23 +35,32 @@ public:
     /* destructor */
     ~Nviz();
 
+    /* change_view.cpp */
     int ResizeWindow(int, int);
 
     /* set */
+    /* init.cpp */
     int SetDisplay(void *);
+    void Reset();
 
     /* lights */
+    /* lights.cpp */
     void SetLightsDefault();
     
     /* viewport */
+    /* change_view.cpp */
     void SetViewportDefault();
+    /* init.cpp */
     void InitView();
 
     /* load data */
+    /* load.cpp */
     int LoadRaster(const char*, const char *, const char *);
 
     /* draw */
+    /* draw.cpp */
     void Draw();
+    void EraseMap();
 };
 
 #endif /* __NVIZ_H__ */

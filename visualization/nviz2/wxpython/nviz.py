@@ -48,9 +48,13 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
                  style=wx.NO_FULL_REPAINT_ON_RESIZE,
                  Map=None, tree=None, gismgr=None):
 
+        self.Map = Map
+        self.tree = tree
+        self.gismgr = gismgr
+
         glcanvas.GLCanvas.__init__(self, parent, id)
-        # MapWindow.__init__(self, parent, id, pos, size, style,
-        #                   Map, tree, gismgr)
+        MapWindow.__init__(self, parent, id, pos, size, style,
+                           Map, tree, gismgr)
 
 
         self.parent = parent # MapFrame
@@ -73,17 +77,19 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         #
         self.nvizClass.SetDisplay(self)
 
+        #
         # initialize mouse position
-        # self.lastx = self.x = 30
-        # self.lasty = self.y = 30
+        #
+        self.lastX = self.x = 30
+        self.lastY = self.y = 30
 
         self.size = None
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        #        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
-        #        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
-        #        self.Bind(wx.EVT_MOTION, self.OnMouseMotion)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        self.Bind(wx.EVT_LEFT_UP, self.OnLeftUp)
+        self.Bind(wx.EVT_MOTION, self.OnMouseMotion)
 
     def OnEraseBackground(self, event):
         pass # do nothing, to avoid flashing on MSW
@@ -106,16 +112,73 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         self.SetCurrent()
         if not self.init:
             self.nvizClass.InitView()
-            self.nvizClass.LoadRaster("elevation", None, None);
+            self.LoadDataLayers()
             self.nvizClass.SetViewportDefault()
             self.nvizClass.SetLightsDefault()
             self.init = True
-        self.OnDraw()
+        self.DrawMap()
 
-    def OnDraw(self):
+    def OnMouseMotion(self, event):
+        if event.Dragging() and event.LeftIsDown():
+            self.lastX = self.lastY = self.x = self.y
+            self.x, self.y = event.GetPosition()
+            self.Refresh(False)
+
+    def OnLeftDown(self, event):
+        self.CaptureMouse()
+        self.x, self.y = self.lastX, self.lastY = event.GetPosition()
+        
+    def OnLeftUp(self, event):
+        self.ReleaseMouse()
+
+    def DrawMap(self):
         """Draw data layers"""
-        Debug.msg(3, "GLCanvas.OnDraw()")
+        Debug.msg(3, "GLCanvas.Draw()")
 
+        self.nvizClass.Draw()
+
+        #         if self.size is None:
+        #             self.size = self.GetClientSize()
+        
+        #         w, h = self.size
+        #         w = max(w, 1.0)
+        #         h = max(h, 1.0)
+        #         xScale = 180.0 / w
+        #         yScale = 180.0 / h
+        #         glRotatef((self.y - self.lastY) * yScale, 1.0, 0.0, 0.0);
+        #         glRotatef((self.x - self.lastX) * xScale, 0.0, 1.0, 0.0);
+
+        self.SwapBuffers()
+
+    def EraseMap(self):
+        """
+        Erase the canvas
+        """
+        self.nvizClass.EraseMap()
+        self.SwapBuffers()
+
+    def UpdateMap(self, render=True):
+        """
+        Updates the canvas anytime there is a change to the
+        underlaying images or to the geometry of the canvas.
+
+        @todo render=False
+
+        @param render re-render map composition
+        """
         self.nvizClass.Draw()
         self.SwapBuffers()
 
+    def LoadDataLayers(self):
+        """Load raster/vector from current layer tree
+
+        @todo volumes
+        """
+        for raster in self.Map.GetListOfLayers(l_type='raster', l_active=True):
+            print raster.name
+            self.nvizClass.LoadRaster(str(raster.name), None, None);
+
+    def Reset(self):
+        """Reset (unload data)"""
+        self.nvizClass.Reset()
+        self.init = False
