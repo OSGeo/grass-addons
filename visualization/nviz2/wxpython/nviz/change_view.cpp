@@ -32,22 +32,49 @@ int Nviz::ResizeWindow(int width, int height)
     return Nviz_resize_window(width, height);
 }
 
-void Nviz::SetViewportDefault()
+/*!
+  \brief Set default view (based on loaded data)
+
+  \return height value
+*/
+float Nviz::SetViewDefault()
 {
     float vp_height;
+
     /* determine height */
     Nviz_get_exag_height(&vp_height, NULL, NULL);
 
-    Nviz_set_viewpoint_height(data,
-			      vp_height);
     Nviz_change_exag(data,
 		     1.0);
-    Nviz_set_viewpoint_position(data,
-				0.85, 0.85);
-    Nviz_set_viewpoint_twist(data,
-			     0.0);
-    Nviz_set_viewpoint_persp(data,
-			     40);
 
-    return;
+    SetView(0.85, 0.85,
+	    vp_height, 40.0, 0.0);
+
+    return vp_height;
+}
+
+/*!
+  \brief Change view settings
+
+  \param x,y position
+  \param height
+  \param persp perpective
+  \param twist
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::SetView(float x, float y,
+		  float height, float persp, float twist)
+{
+    Nviz_set_viewpoint_height(data,
+			      height);
+    Nviz_set_viewpoint_position(data,
+				x, y);
+    Nviz_set_viewpoint_twist(data,
+			     twist);
+    Nviz_set_viewpoint_persp(data,
+			     persp);
+
+    return 1;
 }

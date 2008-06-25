@@ -22,7 +22,7 @@
 void Nviz::Draw()
 {
     GS_clear(data->bgcolor);
-
+    
     Nviz_draw_cplane(data, -1, -1);
     Nviz_draw_all (data);
 

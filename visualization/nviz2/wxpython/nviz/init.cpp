@@ -26,6 +26,8 @@ Nviz::Nviz()
 {
     G_gisinit(""); /* GRASS functions */
 
+    G_set_verbose(0); // TODO: read progress info
+
     GS_libinit();
     /* GVL_libinit(); TODO */
 

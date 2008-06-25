@@ -157,6 +157,27 @@ class MapWindow(object):
     def OnMouseMotion(self, event):
         pass
 
+    def ZoomToMap(self, event):
+        pass
+
+    def GetSelectedLayer(self):
+        """Get selected layer from layer tree
+
+        @return map layer instance
+        @return None on failure
+        """
+        # get currently selected map layer
+        if not self.tree or not self.tree.GetSelection():
+            return None
+        
+        item = self.tree.GetSelection()
+        try:
+            layer = self.tree.GetPyData(item)[0]['maplayer']
+        except:
+            layer = None
+            
+        return layer
+
 class BufferedWindow(MapWindow, wx.Window):
     """
     A Buffered window class.
@@ -2075,15 +2096,7 @@ class BufferedWindow(MapWindow, wx.Window):
         """
         zoomreg = {}
 
-        # find selected map
-        if not self.tree or not self.tree.GetSelection():
-            return
-
-        item  = self.tree.GetSelection()
-        try:
-            layer = self.tree.GetPyData(item)[0]['maplayer']
-        except:
-            layer = None
+        layer = self.GetSelectedLayer()
 
         if layer is None:
             return
@@ -2545,13 +2558,16 @@ class MapFrame(wx.Frame):
             #
             if not self.MapWindow3D:
                 self.MapWindow3D = nviz.GLWindow(self, id=wx.ID_ANY,
-                                             Map=self.Map, tree=self.tree, gismgr=self.gismanager)
+                                                 Map=self.Map, tree=self.tree, gismgr=self.gismanager)
+                self.nvizToolWin = nviz.NvizToolWindow(self, id=wx.ID_ANY,
+                                                       settings=self.MapWindow3D.view)
             
             #
             # add Nviz toolbar and disable 2D display mode tools
             #
             self.toolbars['nviz'] = toolbars.NvizToolbar(self, self.Map)
             self.toolbars['map'].Enable2D(False)
+            self.nvizToolWin.Show()
 
             #
             # switch from MapWindow to MapWindowGL
@@ -2596,6 +2612,8 @@ class MapFrame(wx.Frame):
         self.toolbars[name] = None
 
         if name == 'nviz':
+            # hide nviz tools
+            self.nvizToolWin.Hide()
             # unload data
             self.MapWindow3D.Reset()
             # switch from MapWindowGL to MapWindow

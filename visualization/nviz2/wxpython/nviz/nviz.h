@@ -1,6 +1,8 @@
 #ifndef __NVIZ_H__
 #define __NVIZ_H__
 
+#include <vector>
+
 extern "C" {
 #include <grass/gis.h>
 #include <grass/gsurf.h>
@@ -49,7 +51,10 @@ public:
     
     /* viewport */
     /* change_view.cpp */
-    void SetViewportDefault();
+    float SetViewDefault();
+    int SetView(float, float,
+		float, float, float);
+
     /* init.cpp */
     void InitView();
 
