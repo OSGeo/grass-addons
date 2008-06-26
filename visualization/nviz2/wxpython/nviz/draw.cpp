@@ -19,12 +19,21 @@
 
 #include "nviz.h"
 
-void Nviz::Draw()
+/*!
+  \brief Draw map
+
+  \param quick true for quick rendering
+*/
+void Nviz::Draw(bool quick)
 {
     GS_clear(data->bgcolor);
     
     Nviz_draw_cplane(data, -1, -1);
-    Nviz_draw_all (data);
+
+    if (!quick)
+	Nviz_draw_all (data);
+    else
+	Nviz_draw_quick(data);
 
     return;
 }

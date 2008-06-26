@@ -45,10 +45,10 @@ float Nviz::SetViewDefault()
     Nviz_get_exag_height(&vp_height, NULL, NULL);
 
     Nviz_change_exag(data,
-		     1.0);
+		     VIEW_DEFAULT_ZEXAG);
 
-    SetView(0.85, 0.85,
-	    vp_height, 40.0, 0.0);
+    SetView(VIEW_DEFAULT_POS_X, VIEW_DEFAULT_POS_Y,
+	    vp_height, VIEW_DEFAULT_PERSP, VIEW_DEFAULT_TWIST);
 
     return vp_height;
 }
@@ -62,7 +62,6 @@ float Nviz::SetViewDefault()
   \param twist
 
   \return 1 on success
-  \return 0 on failure
 */
 int Nviz::SetView(float x, float y,
 		  float height, float persp, float twist)
@@ -77,4 +76,16 @@ int Nviz::SetView(float x, float y,
 			     persp);
 
     return 1;
+}
+
+/*!
+  \brief Set z-exag value
+
+  \param z_exag value
+
+  \return 1
+*/
+int Nviz::SetZExag(float z_exag)
+{
+    return Nviz_change_exag(data, z_exag);
 }

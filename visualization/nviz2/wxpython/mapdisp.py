@@ -2560,13 +2560,15 @@ class MapFrame(wx.Frame):
                 self.MapWindow3D = nviz.GLWindow(self, id=wx.ID_ANY,
                                                  Map=self.Map, tree=self.tree, gismgr=self.gismanager)
                 self.nvizToolWin = nviz.NvizToolWindow(self, id=wx.ID_ANY,
-                                                       settings=self.MapWindow3D.view)
+                                                       mapWindow=self.MapWindow3D)
             
             #
             # add Nviz toolbar and disable 2D display mode tools
             #
             self.toolbars['nviz'] = toolbars.NvizToolbar(self, self.Map)
             self.toolbars['map'].Enable2D(False)
+            self.toggleStatus.Enable(False)
+
             self.nvizToolWin.Show()
 
             #
@@ -2628,6 +2630,7 @@ class MapFrame(wx.Frame):
         
         self.toolbars['map'].combo.SetValue ("Tools")
         self.toolbars['map'].Enable2D(True)
+        self.toggleStatus.Enable(True)
 
         self._mgr.Update()
 

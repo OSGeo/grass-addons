@@ -16,6 +16,7 @@
   \date 2008
 */
 
+#include <grass/glocale.h>
 #include <grass/nviz.h>
 
 /*!
@@ -104,6 +105,12 @@ int Nviz_set_viewpoint_position(nv_data *data,
     ypos = 1.0 - y_pos;
     ypos = (ypos < 0) ? 0 : (ypos > 1.0) ? 1.0 : ypos;
 
+    if (x_pos < 0.0 || x_pos > 1.0 ||
+	y_pos < 0.0 || y_pos > 1.0) {
+	G_warning (_("Invalid view position coordinates, using %f,%f"),
+		   xpos, 1.0 - ypos);
+    }
+
     GS_get_from(from);
     
     tempx = xpos * RANGE - RANGE_OFFSET;
@@ -116,7 +123,7 @@ int Nviz_set_viewpoint_position(nv_data *data,
 
 	GS_moveto(from);
 
-	Nviz_draw_quick(data);
+	/* Nviz_draw_quick(data); */
     }
 
     return 1;
@@ -146,7 +153,7 @@ int Nviz_set_viewpoint_height(nv_data *data, float height)
 	   GS_setlight_position(1, from[X], from[Y], from[Z], 0);
 	*/
 
-	Nviz_draw_quick(data);
+	/* Nviz_draw_quick(data); */
     }
 
     return 1;
@@ -167,7 +174,7 @@ int Nviz_set_viewpoint_persp(nv_data *data, int persp)
     fov = (int) (10 * persp);
     GS_set_fov(fov);
 
-    Nviz_draw_quick(data);
+    /* Nviz_draw_quick(data); */
 
     return 1;
 }
@@ -184,7 +191,7 @@ int Nviz_set_viewpoint_twist(nv_data *data, int twist)
 {
     GS_set_twist(10 * twist);
     
-    Nviz_draw_quick(data);
+    /* Nviz_draw_quick(data); */
 
     return 1;
 }
@@ -207,7 +214,7 @@ int Nviz_change_exag(nv_data *data, float exag)
 	GS_set_global_exag(exag);
 	Nviz_update_ranges(data);
 	
-	Nviz_draw_quick(data);
+	/* Nviz_draw_quick(data); */
     }
 
     return 1;
