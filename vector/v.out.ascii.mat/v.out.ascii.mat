@@ -37,6 +37,10 @@
 #%  description: Name for output map (omit for display to stdout)
 #%  required : no
 #%end
+#%flag
+#%  key: j
+#%  description: Join into continuous polygons
+#%end
 
 ##%option
 ##%  key: type
@@ -78,11 +82,21 @@ fi
 cleanup()
 {
   rm -f "${TMP}"
+  if [ "$GIS_FLAG_J" -eq 1 ] ; then
+     g.remove vect="tmp_voam_$$" --quiet
+  fi
 }
 
 #### trap ctrl-c so that we can clean up tmp
 trap 'cleanup' 2 3 15
 
+
+if [ "$GIS_FLAG_J" -eq 1 ] ; then
+    v.build.polylines in="$GIS_OPT_INPUT" out="tmp_voam_$$" --quiet
+    INPUT="tmp_voam_$$"
+else
+    INPUT="$GIS_OPT_INPUT"
+fi
 
 
 MAP_IS_3D=`v.info "$GIS_OPT_INPUT" | grep "Map is 3D" | cut -f2 -d: | awk '{print $1}'`
@@ -94,7 +108,7 @@ else
 fi
 
 
-v.out.ascii in="$GIS_OPT_INPUT" format=standard | tail -n +11 | \
+v.out.ascii in="$INPUT" format=standard | tail -n +11 | \
   awk -v NAN_STR="$NAN_STR" -v IS_3D="$MAP_IS_3D" \
    'BEGIN { print NAN_STR; VERT=0 }
     {
