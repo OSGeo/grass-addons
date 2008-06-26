@@ -7,7 +7,6 @@ List of classes:
  - GLWindow
  - NvizToolWindow
  - ViewPositionWindow
- - RasterPropertiesDialog
 
 (C) 2008 by the GRASS Development Team
 
@@ -40,6 +39,7 @@ except ImportError:
 
 import globalvar
 import gcmd
+import gselect
 from debug import Debug as Debug
 from mapdisp import MapWindow as MapWindow
 #try:
@@ -368,9 +368,36 @@ class NvizToolWindow(wx.Frame):
         self.notebook = wx.Notebook(parent=self, id=wx.ID_ANY, style=wx.BK_DEFAULT)
 
         self.__createViewPage()
+        self.__createSurfacePage()
 
         mainSizer.Add(item=self.notebook, proportion=1,
                       flag=wx.EXPAND | wx.ALL, border=5)
+
+        #
+        # button (see menuform)
+        #
+        btnCancel = wx.Button(self, wx.ID_CANCEL)
+        btnApply = wx.Button(self, wx.ID_APPLY)
+        btnSave = wx.Button(self, wx.ID_SAVE)
+        btnSave.SetDefault()
+        # bindings
+        btnApply.Bind(wx.EVT_BUTTON, self.OnApply)
+        btnApply.SetToolTipString(_("Apply changes for this session"))
+        btnApply.SetDefault()
+        btnSave.Bind(wx.EVT_BUTTON, self.OnSave)
+        btnSave.SetToolTipString(_("Close dialog and save changes to user settings file"))
+        btnCancel.Bind(wx.EVT_BUTTON, self.OnClose)
+        btnCancel.SetToolTipString(_("Close dialog and ignore changes"))
+        # sizer
+        btnSizer = wx.StdDialogButtonSizer()
+        btnSizer.AddButton(btnApply)
+        btnSizer.AddButton(btnCancel)
+        btnSizer.AddButton(btnSave)
+        btnSizer.Realize()
+        
+        mainSizer.Add(item=btnSizer, proportion=0, flag=wx.ALIGN_CENTER | wx.ALL,
+                      border=5)
+
 
         self.SetSizer(mainSizer)
         mainSizer.Fit(self)
@@ -481,6 +508,144 @@ class NvizToolWindow(wx.Frame):
 
         panel.SetSizer(pageSizer)
 
+    def __createSurfacePage(self):
+        """Create view settings page"""
+        panel = wx.Panel(parent=self.notebook, id=wx.ID_ANY)
+        self.notebook.AddPage(page=panel,
+                              text=" %s " % _("Surface"))
+        
+        pageSizer = wx.BoxSizer(wx.VERTICAL)
+
+        #
+        # surface attributes
+        #
+        box = wx.StaticBox (parent=panel, id=wx.ID_ANY,
+                            label=" %s " % (_("Surface attributes")))
+        boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        gridSizer = wx.GridBagSizer(vgap=3, hgap=3)
+
+        # labels
+        # col = 0
+        #         for type in (_("Attribute"),
+        #                      _("Use"),
+        #                      _("Map"),
+        #                      _("Constant")):
+        #             gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+        #                                              label=type),
+        #                           pos=(0, col))
+        #             col += 1
+
+        # type 
+        row = 0
+        for attr in (_("Topography"),
+                     _("Color"),
+                     _("Mask"),
+                     _("Transparency"),
+                     _("Shininess"),
+                     _("Emission")):
+            gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                             label=attr + ':'),
+                          pos=(row, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+            use = wx.Choice (parent=panel, id=wx.ID_ANY, size=(100, -1),
+                             choices = [_("map"),
+                                        _("constant")])
+            use.Bind(wx.EVT_CHOICE, self.OnSurfaceUse)
+            gridSizer.Add(item=use, flag=wx.ALIGN_CENTER_VERTICAL,
+                          pos=(row, 1))
+
+            map = gselect.Select(parent=panel, id=wx.ID_ANY,
+                                 # size=globalvar.DIALOG_GSELECT_SIZE,
+                                 size=(200, -1),
+                                 type="raster")
+            gridSizer.Add(item=map, flag=wx.ALIGN_CENTER_VERTICAL,
+                          pos=(row, 2))
+            value = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(65, -1),
+                                initial=0,
+                                min=0,
+                                max=100)
+            gridSizer.Add(item=value, flag=wx.ALIGN_CENTER_VERTICAL,
+                          pos=(row, 3))
+
+            row += 1
+
+        boxSizer.Add(item=gridSizer, proportion=1,
+                  flag=wx.ALL | wx.EXPAND, border=3)
+        pageSizer.Add(item=boxSizer, proportion=1,
+                      flag=wx.EXPAND | wx.ALL,
+                      border=5)
+
+        #
+        # draw
+        #
+        box = wx.StaticBox (parent=panel, id=wx.ID_ANY,
+                            label=" %s " % (_("Draw")))
+        boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        gridSizer = wx.GridBagSizer(vgap=5, hgap=5)
+        gridSizer.AddGrowableCol(4)
+
+        # mode
+        gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                         label=_("Mode:")),
+                      pos=(0, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+        mode = wx.Choice (parent=panel, id=wx.ID_ANY, size=(100, -1),
+                          choices = [_("coarse"),
+                                     _("fine"),
+                                     _("both")])
+        mode.SetSelection(0)
+        mode.Bind(wx.EVT_CHOICE, self.OnSurfaceMode)
+        gridSizer.Add(item=mode, flag=wx.ALIGN_CENTER_VERTICAL,
+                      pos=(0, 1))
+
+        # resolution (mode)
+        gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                         label=_("Resolution:")),
+                      pos=(0, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        resolution = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(65, -1),
+                                 initial=1,
+                                 min=1,
+                                 max=100)
+        gridSizer.Add(item=resolution, flag=wx.ALIGN_CENTER_VERTICAL,
+                      pos=(0, 3))
+
+        # style
+        gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                         label=_("Coarse style:")),
+                      pos=(1, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+        style = wx.Choice (parent=panel, id=wx.ID_ANY, size=(100, -1),
+                          choices = [_("wire"),
+                                     _("surface")])
+        style.SetSelection(0)
+        style.Bind(wx.EVT_CHOICE, self.OnSurfaceStyle)
+        gridSizer.Add(item=style, flag=wx.ALIGN_CENTER_VERTICAL,
+                      pos=(1, 1))
+
+        # shading
+        gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                         label=_("Shiding:")),
+                      pos=(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        shade = wx.Choice (parent=panel, id=wx.ID_ANY, size=(100, -1),
+                           choices = [_("flat"),
+                                      _("gouraud")])
+        shade.SetSelection(0)
+        shade.Bind(wx.EVT_CHOICE, self.OnSurfaceShade)
+        gridSizer.Add(item=shade, flag=wx.ALIGN_CENTER_VERTICAL,
+                      pos=(1, 3))
+
+        all = wx.Button(panel, id=wx.ID_ANY, label=_("All"))
+        all.SetToolTipString(_("Use for all loaded surfaces"))
+        # self.win['reset'] = reset.GetId()
+        # reset.Bind(wx.EVT_BUTTON, self.OnResetView)
+        gridSizer.Add(item=all, flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
+                      pos=(1, 4))
+
+        boxSizer.Add(item=gridSizer, proportion=1,
+                  flag=wx.ALL | wx.EXPAND, border=3)
+        pageSizer.Add(item=boxSizer, proportion=1,
+                      flag=wx.EXPAND | wx.ALL,
+                      border=5)
+
+        panel.SetSizer(pageSizer)
+
     def CreateControl(self, parent, name, sliderHor=True):
         """Add control (Slider + SpinCtrl)"""
         self.win[name] = {}
@@ -513,7 +678,6 @@ class NvizToolWindow(wx.Frame):
 
         spin.Bind(wx.EVT_SPINCTRL, self.OnChangeValue)
         self.win[name]['spin'] = spin.GetId()
-
 
     def UpdateSettings(self):
         """Update dialog settings"""
@@ -556,13 +720,13 @@ class NvizToolWindow(wx.Frame):
         self.mapWindow.Refresh(False)
 
     def OnResetView(self, event):
-        """Reset to default view"""
+        """Reset to default view (view page)"""
         self.mapWindow.ResetView()
         self.UpdateSettings()
         self.mapWindow.Refresh(False)
 
     def OnLookAt(self, event):
-        """Look at"""
+        """Look at (view page)"""
         sel = event.GetSelection()
         if sel == 0: # top
             self.settings['pos']['value'] = (0.5, 0.5)
@@ -586,6 +750,40 @@ class NvizToolWindow(wx.Frame):
         self.settings['pos']['update'] = True
         self.UpdateSettings()
         self.mapWindow.Refresh(False)
+
+    def OnSave(self, event):
+        """OK button pressed
+        
+        Update map and save settings
+        """
+        pass
+    
+    def OnApply(self, event):
+        """Apply button pressed
+        
+        Update map (don't save settings)
+        """
+        pass
+
+    def OnClose(self, event):
+        """Close button pressed
+        
+        Close dialog
+        """
+        self.Hide()
+
+    def OnSurfaceUse(self, event):
+        """Surface attribute -- use -- map/constant"""
+        pass
+
+    def OnSurfaceMode(self, event):
+        pass
+
+    def OnSurfaceStyle(self, event):
+        pass
+
+    def OnSurfaceShade(self, event):
+        pass
 
 class ViewPositionWindow(wx.Window):
     """Position control window (for NvizToolWindow)"""
@@ -648,118 +846,3 @@ class ViewPositionWindow(wx.Window):
             self.mapWindow.Refresh(eraseBackground=False)
             # self.mapWindow.UpdateMap()
             # self.mapWindow.OnPaint(None)
-
-class RasterPropertiesDialog(wx.Dialog):
-    """Nviz raster properties
-
-    @todo integrate into Nviz tools window or d.rast dialog ?
-    """
-    def __init__(self, parent, map,
-                 pos=wx.DefaultPosition,
-                 style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
-
-        self.map = map
-
-        wx.Dialog.__init__(self, parent=parent, id=wx.ID_ANY,
-                           style=style, pos=pos)
-        self.SetTitle(_("Properties of raster map <%s>") % self.map)
-
-        self.panel = wx.Panel(self, id=wx.ID_ANY)
-
-        bodySizer = wx.BoxSizer(wx.VERTICAL)
-
-        #
-        # surface attributes box
-        #
-        bodySizer.Add(item=self.__surfaceAttributes(), proportion=1,
-                      flag=wx.ALL | wx.EXPAND, border=3)
-
-        #
-        # button (see menuform)
-        #
-        btnsizer = wx.BoxSizer(orient=wx.HORIZONTAL)
-        # cancel
-        btn_cancel = wx.Button(parent=self.panel, id=wx.ID_CANCEL)
-        btn_cancel.SetToolTipString(_("Cancel the command settings and ignore changes"))
-        btnsizer.Add(item=btn_cancel, proportion=0, flag=wx.ALL | wx.ALIGN_CENTER, border=10)
-        btn_cancel.Bind(wx.EVT_BUTTON, self.OnCancel)
-        btn_apply = wx.Button(parent=self.panel, id=wx.ID_APPLY)
-        btn_ok = wx.Button(parent=self.panel, id=wx.ID_OK)
-        btn_ok.SetDefault()
-        
-        btnsizer.Add(item=btn_apply, proportion=0,
-                     flag=wx.ALL | wx.ALIGN_CENTER,
-                     border=10)
-        btnsizer.Add(item=btn_ok, proportion=0,
-                     flag=wx.ALL | wx.ALIGN_CENTER,
-                     border=10)
-        
-        btn_apply.Bind(wx.EVT_BUTTON, self.OnApply)
-        btn_ok.Bind(wx.EVT_BUTTON, self.OnOK)
-
-        bodySizer.Add(item=btnsizer, proportion=0, flag=wx.ALIGN_CENTER)
-
-        self.panel.SetSizer(bodySizer)
-        bodySizer.Fit(self.panel)
-        
-    def __surfaceAttributes(self):
-        """Sourface attributes section"""
-        box = wx.StaticBox (parent=self.panel, id=wx.ID_ANY,
-                            label=" %s " % (_("Surface attributes")))
-        sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
-
-        gridSizer = wx.GridBagSizer(vgap=3, hgap=3)
-
-        # labels
-        col = 0
-        for type in (_("Attribute"),
-                     _("Use"),
-                     _("Map"),
-                     _("Constant")):
-            gridSizer.Add(item=wx.StaticText(parent=self.panel, id=wx.ID_ANY,
-                                             label=type),
-                          pos=(0, col))
-            col += 1
-
-        # type 
-        row = 1
-        for attr in (_("Topography"),
-                     _("Color"),
-                     _("Mask"),
-                     _("Transparency"),
-                     _("Shininess"),
-                     _("Emission")):
-            gridSizer.Add(item=wx.StaticText(parent=self.panel, id=wx.ID_ANY,
-                                             label=attr + ':'),
-                          pos=(row, 0), flag=wx.ALIGN_CENTER_VERTICAL)
-            use = wx.Choice (parent=self.panel, id=wx.ID_ANY, size=(100, -1),
-                             choices = [_("map"),
-                                        _("constant")])
-            gridSizer.Add(item=use, flag=wx.ALIGN_CENTER_VERTICAL,
-                          pos=(row, 1))
-
-
-            row += 1
-
-        sizer.Add(item=gridSizer, proportion=1,
-                  flag=wx.ALL | wx.EXPAND, border=3)
-
-        return sizer
-
-    def OnCancel(self, event):
-        """Cancel button pressed"""
-        self.Close()
-
-    def OnOK(self, event):
-        """OK button pressed
-        
-        Update map and close dialog
-        """
-        pass
-    
-    def OnApply(self, event):
-        """Apply button pressed
-        
-        Update map (don't close dialog)
-        """
-        pass
