@@ -37,6 +37,8 @@ Nviz::Nviz()
 
     /* GLCanvas */
     glCanvas = NULL;
+
+    G_debug(1, "Nviz::Nviz()");
 }
 
 /*!
@@ -61,6 +63,8 @@ int Nviz::SetDisplay(void *display)
     glCanvas = (wxGLCanvas *) display;
     // glCanvas->SetCurrent();
 
+    G_debug(1, "Nviz::SetDisplay()");
+
     return 1;
 }
 
@@ -82,6 +86,8 @@ void Nviz::InitView()
 
     /* clear window */
     GS_clear(data->bgcolor);
+
+    G_debug(1, "Nviz::InitView()");
 
     return;
 }

@@ -29,8 +29,8 @@ extern "C" {
   \param color_name raster map for color (NULL for color_value)
   \param color_value color string (named color or RGB triptet)
 
-  \return 1 on success
-  \return 0 on failure
+  \return object id
+  \return -1 on failure
 */
 int Nviz::LoadRaster(const char* name, const char *color_name, const char *color_value)
 {
@@ -41,7 +41,7 @@ int Nviz::LoadRaster(const char* name, const char *color_name, const char *color
     if (mapset == NULL) {
 	G_warning(_("Raster map <%s> not found"),
 		  name);
-	return 0;
+	return -1;
     }
 	    
     /* topography */
@@ -55,7 +55,7 @@ int Nviz::LoadRaster(const char* name, const char *color_name, const char *color
 	    G_warning(_("Raster map <%s> not found"),
 		      color_name);
 	    GS_delete_surface(id);
-	    return 0;
+	    return -1;
 	}
 
 	Nviz_set_attr(id, MAP_OBJ_SURF, ATT_COLOR, MAP_ATT,
@@ -81,5 +81,7 @@ int Nviz::LoadRaster(const char* name, const char *color_name, const char *color
     /* focus on loaded data */
     Nviz_set_focus_map(MAP_OBJ_UNDEFINED, -1);
 
-    return 1;
+    G_debug(1, "Nviz::LoadRaster(): name=%s", name);
+
+    return id;
 }

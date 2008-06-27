@@ -43,5 +43,7 @@ void Nviz::SetLightsDefault()
     Nviz_set_light_ambient(data, 1,
 			   0.3, 0.3, 0.3);
 
+    G_debug(1, "Nviz::SetLightsDefault()");
+
     return;
 }

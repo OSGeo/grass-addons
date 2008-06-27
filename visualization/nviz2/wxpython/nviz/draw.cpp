@@ -35,6 +35,8 @@ void Nviz::Draw(bool quick)
     else
 	Nviz_draw_quick(data);
 
+    G_debug(1, "Nviz::Draw(): quick=%d", quick);
+
     return;
 }
 
@@ -44,6 +46,8 @@ void Nviz::Draw(bool quick)
 void Nviz::EraseMap()
 {
     GS_clear(data->bgcolor);
+
+    G_debug(1, "Nviz::EraseMap()");
 
     return;
 }

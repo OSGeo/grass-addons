@@ -29,7 +29,14 @@
  */
 int Nviz::ResizeWindow(int width, int height)
 {
-    return Nviz_resize_window(width, height);
+    int ret;
+
+    ret = Nviz_resize_window(width, height);
+
+    G_debug(1, "Nviz::ResizeWindow(): width=%d height=%d",
+	    width, height);
+
+    return ret;
 }
 
 /*!
@@ -49,6 +56,8 @@ float Nviz::SetViewDefault()
 
     SetView(VIEW_DEFAULT_POS_X, VIEW_DEFAULT_POS_Y,
 	    vp_height, VIEW_DEFAULT_PERSP, VIEW_DEFAULT_TWIST);
+
+    G_debug(1, "Nviz::SetViewDefault()");
 
     return vp_height;
 }
@@ -75,6 +84,9 @@ int Nviz::SetView(float x, float y,
     Nviz_set_viewpoint_persp(data,
 			     persp);
 
+    G_debug(1, "Nviz::SetView(): x=%f, y=%f, height=%f, persp=%f, twist=%f",
+	    x, y, height, persp, twist);
+	
     return 1;
 }
 
@@ -87,5 +99,11 @@ int Nviz::SetView(float x, float y,
 */
 int Nviz::SetZExag(float z_exag)
 {
-    return Nviz_change_exag(data, z_exag);
+    int ret;
+    
+    ret = Nviz_change_exag(data, z_exag);
+
+    G_debug(1, "Nviz::SetZExag(): z_exag=%f", z_exag);
+
+    return ret;
 }

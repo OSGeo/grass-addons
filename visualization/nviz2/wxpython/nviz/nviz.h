@@ -45,34 +45,28 @@ public:
 
     /* change_view.cpp */
     int ResizeWindow(int, int);
-
-    /* set */
-    /* init.cpp */
-    int SetDisplay(void *);
-    void Reset();
-
-    /* lights */
-    /* lights.cpp */
-    void SetLightsDefault();
-    
-    /* viewport */
-    /* change_view.cpp */
     float SetViewDefault();
     int SetView(float, float,
 		float, float, float);
     int SetZExag(float);
 
     /* init.cpp */
+    int SetDisplay(void *);
     void InitView();
+    void Reset();
 
-    /* load data */
+    /* lights.cpp */
+    void SetLightsDefault();
+
     /* load.cpp */
     int LoadRaster(const char*, const char *, const char *);
 
-    /* draw */
     /* draw.cpp */
     void Draw(bool);
     void EraseMap();
+
+    /* surface.cpp */
+    void SetSurfaceColor(int, bool, const char *);
 };
 
 #endif /* __NVIZ_H__ */
