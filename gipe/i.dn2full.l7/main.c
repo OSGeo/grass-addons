@@ -48,13 +48,10 @@ main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input,*output;
 	
-	struct Flag *flag1;
 	struct History history; //metadata
-
 	/************************************/
 	/* FMEO Declarations*****************/
 	char history_buf[200];
@@ -74,7 +71,7 @@ main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast[MAXFILES];
-	unsigned char *outrast[MAXFILES];
+	DCELL *outrast[MAXFILES];
 	RASTER_MAP_TYPE in_data_type[MAXFILES];
 	RASTER_MAP_TYPE out_data_type = DCELL_TYPE; /* 0=numbers  1=text */
 
@@ -110,18 +107,9 @@ main(int argc, char *argv[])
 	input->gisprompt  = _("old_file,file,file");
 	input->description= _("Landsat 7ETM+ Header File (.met)");
 
-	output = G_define_option() ;
+	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key        = _("output");
-	output->type       = TYPE_STRING;
-	output->required   = YES;
-	output->gisprompt  = _("new,cell,raster");
 	output->description= _("Base name of the output layers (will add .x)");
-
-	/* Define the different flags */
-
-	flag1 = G_define_flag() ;
-	flag1->key         =_('q');
-	flag1->description =_("Quiet");
 
 	/********************/
 	if (G_parser(argc, argv))
@@ -130,7 +118,6 @@ main(int argc, char *argv[])
 	metfName	= input->answer;
 	result		= output->answer;
 
-	verbose = (!flag1->answer);
 	//******************************************
 	//Fetch parameters for DN2Rad2Ref correction
 	l7_in_read(metfName,b1,b2,b3,b4,b5,b61,b62,b7,b8,lmin,lmax,qcalmin,qcalmax,&sun_elevation,&sun_azimuth,&day,&month,&year);
@@ -410,9 +397,7 @@ main(int argc, char *argv[])
 	DCELL d[MAXFILES];
 	for (row = 0; row < nrows; row++)
 	{
-		if (verbose){
-			G_percent (row, nrows, 2);
-		}
+		G_percent (row, nrows, 2);
 		/* read input map */
 		for (i=0;i<MAXFILES;i++)
 		{
@@ -429,14 +414,14 @@ main(int argc, char *argv[])
 				dout[i]=dn2rad_landsat7(lmin[i],lmax[i],qcalmax[i],qcalmin[i],d[i]);
 				if(i==5||i==6){//if band 61/62, process brightness temperature
 					if(dout[i]<=0.0){
-						dout[i]=-999.990;
+						G_set_d_null_value(&outrast[i][col],1);
 					}else{
 						dout[i]=tempk_landsat7(dout[i]);
 					}
 				}else{//process reflectance
 					dout[i]=rad2ref_landsat7(dout[i],doy,sun_elevation,kexo[i]);
 			}
-			((DCELL *) outrast[i])[col] = dout[i];
+			outrast[i][col] = dout[i];
  			}
 		}
 		for(i=0;i<MAXFILES;i++){
