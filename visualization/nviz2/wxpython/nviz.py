@@ -106,6 +106,7 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         #
         self.view = UserSettings.Get(group='nviz', key='view') # reference
         self.update = [] # update view/controls
+        self.object = {} # loaded data objects (layer index / gsurf id)
 
         self.size = None
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
@@ -279,7 +280,8 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         @todo volumes
         """
         for raster in self.Map.GetListOfLayers(l_type='raster', l_active=True):
-            self.nvizClass.LoadRaster(str(raster.name), None, None)
+            id = self.nvizClass.LoadRaster(str(raster.name), None, None)
+            self.object[self.Map.GetLayerIndex(raster)] = id
 
     def Reset(self):
         """Reset (unload data)"""
@@ -314,6 +316,19 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
 
         self.update.append('view')
         self.update.append('z-exag')
+
+    def GetMapObjId(self, layer):
+        """Get map object id of given map layer (2D)
+
+        @param layer MapLayer instance
+        """
+        index = self.Map.GetLayerIndex(layer)
+
+        try:
+            return self.object[index]
+        except:
+            return -1
+
 
 class NvizToolWindow(wx.Frame):
     """Experimental window for Nviz tools
@@ -535,17 +550,23 @@ class NvizToolWindow(wx.Frame):
                                  # size=globalvar.DIALOG_GSELECT_SIZE,
                                  size=(200, -1),
                                  type="raster")
-            self.win['surface'][code]['map'] = map.GetId()
+            self.win['surface'][code]['map'] = map.GetId() - 1 # FIXME ! 
             map.Bind(wx.EVT_TEXT, self.OnSurfaceMap)
             gridSizer.Add(item=map, flag=wx.ALIGN_CENTER_VERTICAL,
                           pos=(row, 2))
 
-            value = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(65, -1),
-                                initial=0,
-                                min=0,
-                                max=100)
+            if code == 'color':
+                value = csel.ColourSelect(panel, id=wx.ID_ANY)
+                value.Bind(wx.EVT_TEXT, self.OnSurfaceMap)
+            else:
+                value = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(65, -1),
+                                    initial=0,
+                                    min=0,
+                                    max=100)
+                value.Bind(wx.EVT_TEXT, self.OnSurfaceMap)
             self.win['surface'][code]['constant'] = value.GetId()
             value.Enable(False)
+
             gridSizer.Add(item=value, flag=wx.ALIGN_CENTER_VERTICAL,
                           pos=(row, 3))
 
@@ -872,15 +893,26 @@ class NvizToolWindow(wx.Frame):
 
     def OnSurfaceMap(self, event):
         """Set surface attribute -- map"""
-        attrName = 'topo'
-        win = self.FindWindowById(self.win['surface'][attrName]['map'])
-        # print win.GetId(), win.tcp.seltree.GetId(), event.GetId()
+        if not self.mapWindow.init:
+            return
 
+        attrName = self.__GetWindowName(self.win['surface'], event.GetId())
         if not attrName:
             return
 
-        if attrName == 'topo':
-            print 'x'
+        if self.FindWindowById(self.win['surface'][attrName]['use']).GetSelection() == 0:
+            value = self.FindWindowById(self.win['surface'][attrName]['map']).GetValue()
+            map = True
+        else:
+            value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetValue()
+            print value
+            map = False
+
+        layer = self.mapWindow.GetSelectedLayer()
+        id = self.mapWindow.GetMapObjId(layer)
+
+        if attrName == 'color':
+            self.mapWindow.nvizClass.SetSurfaceColor(id, map, str(value)) 
         
     def OnSurfaceMode(self, event):
         pass

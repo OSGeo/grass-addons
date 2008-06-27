@@ -160,7 +160,7 @@ class MapWindow(object):
     def ZoomToMap(self, event):
         pass
 
-    def GetSelectedLayer(self, nviz=False):
+    def GetSelectedLayer(self, nviz=False, index=False):
         """Get selected layer from layer tree
 
         @param nviz get nviz properties instead
