@@ -619,6 +619,7 @@ class LayerTree(CT.CustomTreeCtrl):
                                     'type' : ltype,
                                     'ctrl' : ctrlId,
                                     'maplayer' : None,
+                                    'nviz' : None,
                                     'prowin' : None}, 
                                    None))
 
@@ -873,6 +874,10 @@ class LayerTree(CT.CustomTreeCtrl):
             self.RefreshLine(layer)
         except:
             pass
+
+        # update nviz tools
+        if self.mapdisplay.toolbars['nviz']:
+            self.mapdisplay.nvizToolWin.UpdatePage('surface')
 
     def OnCollapseNode(self, event):
         """

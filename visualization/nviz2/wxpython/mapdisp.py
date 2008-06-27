@@ -160,8 +160,10 @@ class MapWindow(object):
     def ZoomToMap(self, event):
         pass
 
-    def GetSelectedLayer(self):
+    def GetSelectedLayer(self, nviz=False):
         """Get selected layer from layer tree
+
+        @param nviz get nviz properties instead
 
         @return map layer instance
         @return None on failure
@@ -172,7 +174,10 @@ class MapWindow(object):
         
         item = self.tree.GetSelection()
         try:
-            layer = self.tree.GetPyData(item)[0]['maplayer']
+            if nviz:
+                layer = self.tree.GetPyData(item)[0]['nviz']
+            else:
+                layer = self.tree.GetPyData(item)[0]['maplayer']
         except:
             layer = None
             

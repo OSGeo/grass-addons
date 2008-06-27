@@ -24,6 +24,7 @@ import time
 from threading import Thread
 
 import wx
+import wx.lib.colourselect as csel
 try:
     from wx import glcanvas
     haveGLCanvas = True
@@ -42,13 +43,14 @@ import gcmd
 import gselect
 from debug import Debug as Debug
 from mapdisp import MapWindow as MapWindow
-#try:
-nvizPath = os.path.join(globalvar.ETCWXDIR, "nviz")
-sys.path.append(nvizPath)
-import grass6_wxnviz as wxnviz
-haveNviz = True
-#except ImportError:
-#    haveNviz = False
+from preferences import globalSettings as UserSettings
+try:
+    nvizPath = os.path.join(globalvar.ETCWXDIR, "nviz")
+    sys.path.append(nvizPath)
+    import grass6_wxnviz as wxnviz
+    haveNviz = True
+except ImportError:
+    haveNviz = False
 
 class GLWindow(MapWindow, glcanvas.GLCanvas):
     """OpenGL canvas for Map Display Window"""
@@ -102,34 +104,8 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         #
         # default values
         #
-        self.view = { 'persp' : { 'value' : 40,
-                                  'min' : 0,
-                                  'max' : 100,
-                                  'step' : 5,
-                                  'update' : False,
-                                  },
-                      'pos' : { 'value' : (0.85, 0.85),
-                                'update' : False,
-                                },
-                      'height' : { 'value': -1,
-                                   'min' : -2245, # TODO: determine min/max height
-                                   'max' : 3695, 
-                                   'step' : 100,
-                                   'update' : False,
-                                   },
-                      'twist' : { 'value' : 0,
-                                  'min' : -180,
-                                  'max' : 180,
-                                  'step' : 5,
-                                  'update' : False,
-                                  },
-                      'z-exag' : { 'value': 1.0,
-                                   'min' : 0.0,
-                                   'max' : 10,
-                                   'step' : 1,
-                                   'update' : False
-                                   },
-                      }
+        self.view = UserSettings.Get(group='nviz', key='view') # reference
+        self.update = [] # update view/controls
 
         self.size = None
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
@@ -194,7 +170,7 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
             if hasattr(self.parent, "nvizToolWin"):
                 self.parent.nvizToolWin.UpdateSettings()
 
-            self.nvizClass.SetView(self.view['pos']['value'][0], self.view['pos']['value'][1],
+            self.nvizClass.SetView(self.view['pos']['x'], self.view['pos']['y'],
                                    self.view['height']['value'],
                                    self.view['persp']['value'],
                                    self.view['twist']['value'])
@@ -252,20 +228,16 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
                 self.parent.onRenderTimer.Start(100)
             self.parent.onRenderCounter = 0
 
-        if self.view['pos']['update'] or \
-                self.view['height']['update'] or \
-                self.view['persp']['update'] or \
-                self.view['twist']['update']:
-            self.nvizClass.SetView(self.view['pos']['value'][0], self.view['pos']['value'][1],
+        if 'view' in self.update:
+            self.nvizClass.SetView(self.view['pos']['x'], self.view['pos']['y'],
                                    self.view['height']['value'],
                                    self.view['persp']['value'],
                                    self.view['twist']['value'])
-            for control in ('pos', 'height', 'persp', 'twist'):
-                self.view[control]['update'] = False
+            self.update.remove('view')
 
-        if self.view['z-exag']['update']:
+        if 'z-exag' in self.update:
             self.nvizClass.SetZExag(self.view['z-exag']['value'])
-            self.view['z-exag']['update'] = False
+            self.update.remove('z-exag')
 
         if render is True:
             self.nvizClass.Draw(False)
@@ -333,16 +305,15 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
 
     def ResetView(self):
         """Reset to default view"""
-        self.view['pos']['value'] = (wxnviz.VIEW_DEFAULT_POS_X,
-                                     wxnviz.VIEW_DEFAULT_POS_Y)
+        self.view['pos']['x'] = wxnviz.VIEW_DEFAULT_POS_X
+        self.view['pos']['y'] = wxnviz.VIEW_DEFAULT_POS_Y
         self.view['height']['value'] = self.nvizClass.SetViewDefault()
         self.view['persp']['value'] = wxnviz.VIEW_DEFAULT_PERSP
         self.view['twist']['value'] = wxnviz.VIEW_DEFAULT_TWIST
         self.view['z-exag']['value'] = wxnviz.VIEW_DEFAULT_ZEXAG
 
-        for control in ('pos', 'height', 'persp',
-                        'twist', 'z-exag'):
-            self.view[control]['update'] = True
+        self.update.append('view')
+        self.update.append('z-exag')
 
 class NvizToolWindow(wx.Frame):
     """Experimental window for Nviz tools
@@ -369,6 +340,7 @@ class NvizToolWindow(wx.Frame):
 
         self.__createViewPage()
         self.__createSurfacePage()
+        self.UpdatePage('surface')
 
         mainSizer.Add(item=self.notebook, proportion=1,
                       flag=wx.EXPAND | wx.ALL, border=5)
@@ -411,6 +383,8 @@ class NvizToolWindow(wx.Frame):
         pageSizer = wx.BoxSizer(wx.VERTICAL)
         gridSizer = wx.GridBagSizer(vgap=3, hgap=3)
 
+        self.win['view'] = {}
+
         # position
         posSizer = wx.GridBagSizer(vgap=3, hgap=3)
         posSizer.Add(item=wx.StaticText(panel, id=wx.ID_ANY, label=_("W")),
@@ -419,7 +393,7 @@ class NvizToolWindow(wx.Frame):
                      pos=(0, 1), flag=wx.ALIGN_CENTER | wx.ALIGN_BOTTOM)
         viewPos = ViewPositionWindow(panel, id=wx.ID_ANY, size=(175, 175),
                                      settings=self.settings, mapwindow=self.mapWindow)
-        self.win['pos'] = viewPos.GetId()
+        self.win['view']['pos'] = viewPos.GetId()
         posSizer.Add(item=viewPos,
                      pos=(1, 1), flag=wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL)
         posSizer.Add(item=wx.StaticText(panel, id=wx.ID_ANY, label=_("S")),
@@ -432,16 +406,16 @@ class NvizToolWindow(wx.Frame):
         self.CreateControl(panel, 'persp')
         gridSizer.Add(item=wx.StaticText(panel, id=wx.ID_ANY, label=_("Perspective:")),
                       pos=(1, 0), flag=wx.ALIGN_CENTER)
-        gridSizer.Add(item=self.FindWindowById(self.win['persp']['slider']), pos=(2, 0))
-        gridSizer.Add(item=self.FindWindowById(self.win['persp']['spin']), pos=(3, 0),
+        gridSizer.Add(item=self.FindWindowById(self.win['view']['persp']['slider']), pos=(2, 0))
+        gridSizer.Add(item=self.FindWindowById(self.win['view']['persp']['spin']), pos=(3, 0),
                       flag=wx.ALIGN_CENTER)        
 
         # twist
         self.CreateControl(panel, 'twist')
         gridSizer.Add(item=wx.StaticText(panel, id=wx.ID_ANY, label=_("Twist:")),
                       pos=(1, 1), flag=wx.ALIGN_CENTER)
-        gridSizer.Add(item=self.FindWindowById(self.win['twist']['slider']), pos=(2, 1))
-        gridSizer.Add(item=self.FindWindowById(self.win['twist']['spin']), pos=(3, 1),
+        gridSizer.Add(item=self.FindWindowById(self.win['view']['twist']['slider']), pos=(2, 1))
+        gridSizer.Add(item=self.FindWindowById(self.win['view']['twist']['spin']), pos=(3, 1),
                       flag=wx.ALIGN_CENTER)        
 
         # height + z-exag
@@ -450,16 +424,16 @@ class NvizToolWindow(wx.Frame):
         heightSizer = wx.GridBagSizer(vgap=3, hgap=3)
         heightSizer.Add(item=wx.StaticText(panel, id=wx.ID_ANY, label=_("Height:")),
                       pos=(0, 0), flag=wx.ALIGN_LEFT, span=(1, 2))
-        heightSizer.Add(item=self.FindWindowById(self.win['height']['slider']),
+        heightSizer.Add(item=self.FindWindowById(self.win['view']['height']['slider']),
                         flag=wx.ALIGN_RIGHT, pos=(1, 0))
-        heightSizer.Add(item=self.FindWindowById(self.win['height']['spin']),
+        heightSizer.Add(item=self.FindWindowById(self.win['view']['height']['spin']),
                         flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT | wx.TOP |
                         wx.BOTTOM | wx.RIGHT, pos=(1, 1))
         heightSizer.Add(item=wx.StaticText(panel, id=wx.ID_ANY, label=_("Z-exag:")),
                       pos=(0, 2), flag=wx.ALIGN_LEFT, span=(1, 2))
-        heightSizer.Add(item=self.FindWindowById(self.win['z-exag']['slider']),
+        heightSizer.Add(item=self.FindWindowById(self.win['view']['z-exag']['slider']),
                         flag=wx.ALIGN_RIGHT, pos=(1, 2))
-        heightSizer.Add(item=self.FindWindowById(self.win['z-exag']['spin']),
+        heightSizer.Add(item=self.FindWindowById(self.win['view']['z-exag']['spin']),
                         flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT | wx.TOP |
                         wx.BOTTOM | wx.RIGHT, pos=(1, 3))
 
@@ -516,6 +490,7 @@ class NvizToolWindow(wx.Frame):
         
         pageSizer = wx.BoxSizer(wx.VERTICAL)
 
+        self.win['surface'] = {}
         #
         # surface attributes
         #
@@ -536,19 +511,22 @@ class NvizToolWindow(wx.Frame):
         #             col += 1
 
         # type 
+        self.win['surface']['attr'] = {}
         row = 0
-        for attr in (_("Topography"),
-                     _("Color"),
-                     _("Mask"),
-                     _("Transparency"),
-                     _("Shininess"),
-                     _("Emission")):
+        for code, attr in (('topo', _("Topography")),
+                     ('color', _("Color")),
+                     ('mask', _("Mask")),
+                     ('transp', _("Transparency")),
+                     ('shine', _("Shininess")),
+                     ('emis', _("Emission"))):
+            self.win['surface'][code] = {} 
             gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
                                              label=attr + ':'),
                           pos=(row, 0), flag=wx.ALIGN_CENTER_VERTICAL)
             use = wx.Choice (parent=panel, id=wx.ID_ANY, size=(100, -1),
                              choices = [_("map"),
                                         _("constant")])
+            self.win['surface'][code]['use'] = use.GetId()
             use.Bind(wx.EVT_CHOICE, self.OnSurfaceUse)
             gridSizer.Add(item=use, flag=wx.ALIGN_CENTER_VERTICAL,
                           pos=(row, 1))
@@ -557,20 +535,27 @@ class NvizToolWindow(wx.Frame):
                                  # size=globalvar.DIALOG_GSELECT_SIZE,
                                  size=(200, -1),
                                  type="raster")
+            self.win['surface'][code]['map'] = map.GetId()
+            map.Bind(wx.EVT_TEXT, self.OnSurfaceMap)
             gridSizer.Add(item=map, flag=wx.ALIGN_CENTER_VERTICAL,
                           pos=(row, 2))
+
             value = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(65, -1),
                                 initial=0,
                                 min=0,
                                 max=100)
+            self.win['surface'][code]['constant'] = value.GetId()
+            value.Enable(False)
             gridSizer.Add(item=value, flag=wx.ALIGN_CENTER_VERTICAL,
                           pos=(row, 3))
+
+            self.SetSurfaceUseMap(code) # -> enable map / disable constant
 
             row += 1
 
         boxSizer.Add(item=gridSizer, proportion=1,
                   flag=wx.ALL | wx.EXPAND, border=3)
-        pageSizer.Add(item=boxSizer, proportion=1,
+        pageSizer.Add(item=boxSizer, proportion=0,
                       flag=wx.EXPAND | wx.ALL,
                       border=5)
 
@@ -631,24 +616,101 @@ class NvizToolWindow(wx.Frame):
         gridSizer.Add(item=shade, flag=wx.ALIGN_CENTER_VERTICAL,
                       pos=(1, 3))
 
+        # color
+        gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                         label=_("Wire color:")),
+                      pos=(2, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+        color = csel.ColourSelect(panel, id=wx.ID_ANY,
+                                  colour="white")
+        gridSizer.Add(item=color, flag=wx.ALIGN_CENTER_VERTICAL,
+                      pos=(2, 1))
+
+        boxSizer.Add(item=gridSizer, proportion=1,
+                  flag=wx.ALL | wx.EXPAND, border=3)
+        pageSizer.Add(item=boxSizer, proportion=0,
+                      flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+                      border=5)
+
         all = wx.Button(panel, id=wx.ID_ANY, label=_("All"))
         all.SetToolTipString(_("Use for all loaded surfaces"))
         # self.win['reset'] = reset.GetId()
         # reset.Bind(wx.EVT_BUTTON, self.OnResetView)
         gridSizer.Add(item=all, flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
-                      pos=(1, 4))
+                      pos=(2, 4))
+
+        #
+        # mask
+        #
+        box = wx.StaticBox (parent=panel, id=wx.ID_ANY,
+                            label=" %s " % (_("Mask")))
+        boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        gridSizer = wx.GridBagSizer(vgap=5, hgap=5)
+
+        gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                         label=_("Mask zeros:")),
+                      pos=(0, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+
+        elev = wx.CheckBox(parent=panel, id=wx.ID_ANY,
+                           label=_("by elevation"))
+        gridSizer.Add(item=elev, pos=(0, 1))
+
+        color = wx.CheckBox(parent=panel, id=wx.ID_ANY,
+                           label=_("by color"))
+        gridSizer.Add(item=color, pos=(0, 2))
 
         boxSizer.Add(item=gridSizer, proportion=1,
                   flag=wx.ALL | wx.EXPAND, border=3)
-        pageSizer.Add(item=boxSizer, proportion=1,
-                      flag=wx.EXPAND | wx.ALL,
+        pageSizer.Add(item=boxSizer, proportion=0,
+                      flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
                       border=5)
 
+        #
+        # position
+        #
+        box = wx.StaticBox (parent=panel, id=wx.ID_ANY,
+                            label=" %s " % (_("Position")))
+        boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        gridSizer = wx.GridBagSizer(vgap=5, hgap=5)
+
+        # position
+        gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                         label="X:"),
+                      pos=(0, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+        x = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(100, -1),
+                        initial=0,
+                        min=0,
+                        max=100)
+        gridSizer.Add(item=x, pos=(0, 1))
+
+        gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                         label="X:"),
+                      pos=(0, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        y = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(100, -1),
+                        initial=0,
+                        min=0,
+                        max=100)
+        gridSizer.Add(item=y, pos=(0, 3))
+
+        gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
+                                         label="X:"),
+                      pos=(0, 4), flag=wx.ALIGN_CENTER_VERTICAL)
+        z = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(100, -1),
+                        initial=0,
+                        min=0,
+                        max=100)
+        gridSizer.Add(item=z, pos=(0, 5))
+
+        boxSizer.Add(item=gridSizer, proportion=1,
+                  flag=wx.ALL | wx.EXPAND, border=3)
+        pageSizer.Add(item=boxSizer, proportion=0,
+                      flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+                      border=5)
+        
         panel.SetSizer(pageSizer)
 
     def CreateControl(self, parent, name, sliderHor=True):
         """Add control (Slider + SpinCtrl)"""
-        self.win[name] = {}
+        self.win['view'][name] = {}
         if sliderHor:
             style = wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | \
                 wx.SL_BOTTOM
@@ -665,7 +727,7 @@ class NvizToolWindow(wx.Frame):
                            size=size)
 
         slider.Bind(wx.EVT_SCROLL, self.OnChangeValue)
-        self.win[name]['slider'] = slider.GetId()
+        self.win['view'][name]['slider'] = slider.GetId()
 
         spin = wx.SpinCtrl(parent=parent, id=wx.ID_ANY, size=(65, -1),
                            initial=self.settings[name]['value'],
@@ -677,7 +739,7 @@ class NvizToolWindow(wx.Frame):
         #                      self.settings[name]['max'])
 
         spin.Bind(wx.EVT_SPINCTRL, self.OnChangeValue)
-        self.win[name]['spin'] = spin.GetId()
+        self.win['view'][name]['spin'] = spin.GetId()
 
     def UpdateSettings(self):
         """Update dialog settings"""
@@ -685,37 +747,40 @@ class NvizToolWindow(wx.Frame):
                         'persp',
                         'twist',
                         'z-exag'):
-            for win in self.win[control].itervalues():
+            for win in self.win['view'][control].itervalues():
                 self.FindWindowById(win).SetValue(self.settings[control]['value'])
 
-        self.FindWindowById(self.win['pos']).Draw()
-        self.FindWindowById(self.win['pos']).Refresh(False)
+        self.FindWindowById(self.win['view']['pos']).Draw()
+        self.FindWindowById(self.win['view']['pos']).Refresh(False)
         
         self.Refresh(False)
-        
+
+    def __GetWindowName(self, dict, id):
+        for name in dict.iterkeys():
+            if type(dict[name]) is type({}):
+                for win in dict[name].itervalues():
+                    if win == id:
+                        return name
+            else:
+                if dict[name] == id:
+                    return name
+
+        return None
+
     def OnChangeValue(self, event):
         # find control
-        winName = ''
-        for name in self.win.iterkeys():
-            if type(self.win[name]) is type({}):
-                for win in self.win[name].itervalues():
-                    if win == event.GetId():
-                        winName = name
-                        break
-            else:
-                if self.win[name] == event.GetId():
-                    winName = name
-                    break
-
-        if winName == '':
+        winName = self.__GetWindowName(self.win['view'], event.GetId())
+        if not winName:
             return
 
         self.settings[winName]['value'] = event.GetInt()
-        for win in self.win[winName].itervalues():
+        for win in self.win['view'][winName].itervalues():
             self.FindWindowById(win).SetValue(self.settings[winName]['value'])
 
-
-        self.settings[winName]['update'] = True
+        if winName in ('pos', 'height', 'twist', 'persp'):
+            self.mapWindow.update.append('view')
+        else:
+            self.mapWindow.update.append(winName)
 
         self.mapWindow.Refresh(False)
 
@@ -729,25 +794,34 @@ class NvizToolWindow(wx.Frame):
         """Look at (view page)"""
         sel = event.GetSelection()
         if sel == 0: # top
-            self.settings['pos']['value'] = (0.5, 0.5)
+            self.settings['pos']['x'] = 0.5
+            self.settings['pos']['y'] = 0.5
         elif sel == 1: # north
-            self.settings['pos']['value'] = (0.5, 0.0)
+            self.settings['pos']['x'] = 0.5
+            self.settings['pos']['y'] = 0.0
         elif sel == 2: # south
-            self.settings['pos']['value'] = (0.5, 1.0)
+            self.settings['pos']['x'] = 0.5
+            self.settings['pos']['y'] = 1.0
         elif sel == 3: # east
-            self.settings['pos']['value'] = (1.0, 0.5)
+            self.settings['pos']['x'] = 1.0
+            self.settings['pos']['y'] = 0.5
         elif sel == 4: # west
-            self.settings['pos']['value'] = (0.0, 0.5)
+            self.settings['pos']['x'] = 0.0
+            self.settings['pos']['y'] = 0.5
         elif sel == 5: # north-west
-            self.settings['pos']['value'] = (0.0, 0.0)
+            self.settings['pos']['x'] = 0.0
+            self.settings['pos']['y'] = 0.0
         elif sel == 6: # north-east
-            self.settings['pos']['value'] = (1.0, 0.0)
+            self.settings['pos']['x'] = 1.0
+            self.settings['pos']['y'] = 0.0
         elif sel == 7: # south-east
-            self.settings['pos']['value'] = (1.0, 1.0)
+            self.settings['pos']['x'] = 1.0
+            self.settings['pos']['y'] = 1.0
         elif sel == 8: # south-west
-            self.settings['pos']['value'] = (0.0, 1.0)
+            self.settings['pos']['x'] = 0.0
+            self.settings['pos']['y'] = 1.0
 
-        self.settings['pos']['update'] = True
+        self.mapWindow.update.append('view')
         self.UpdateSettings()
         self.mapWindow.Refresh(False)
 
@@ -774,8 +848,40 @@ class NvizToolWindow(wx.Frame):
 
     def OnSurfaceUse(self, event):
         """Surface attribute -- use -- map/constant"""
-        pass
+        # find attribute row
+        attrName = self.__GetWindowName(self.win['surface'], event.GetId())
+        if not attrName:
+            return
 
+        if event.GetSelection() == 0:
+            useMap = True
+        else:
+            useMap = False
+
+        self.SetSurfaceUseMap(attrName, useMap)
+
+    def SetSurfaceUseMap(self, attrName, map=True):
+        if map: # map
+            self.FindWindowById(self.win['surface'][attrName]['map']).Enable(True)
+            self.FindWindowById(self.win['surface'][attrName]['constant']).Enable(False)
+            self.FindWindowById(self.win['surface'][attrName]['use']).SetSelection(0)
+        else: # constant
+            self.FindWindowById(self.win['surface'][attrName]['map']).Enable(False)
+            self.FindWindowById(self.win['surface'][attrName]['constant']).Enable(True)
+            self.FindWindowById(self.win['surface'][attrName]['use']).SetSelection(1)
+
+    def OnSurfaceMap(self, event):
+        """Set surface attribute -- map"""
+        attrName = 'topo'
+        win = self.FindWindowById(self.win['surface'][attrName]['map'])
+        # print win.GetId(), win.tcp.seltree.GetId(), event.GetId()
+
+        if not attrName:
+            return
+
+        if attrName == 'topo':
+            print 'x'
+        
     def OnSurfaceMode(self, event):
         pass
 
@@ -784,6 +890,22 @@ class NvizToolWindow(wx.Frame):
 
     def OnSurfaceShade(self, event):
         pass
+
+    def UpdatePage(self, pageId):
+        """Update dialog (selected page)"""
+        layer = self.mapWindow.GetSelectedLayer()
+        nvizLayer = self.mapWindow.GetSelectedLayer(nviz=True)
+
+        if pageId == 'surface':
+            if nvizLayer is None:
+                for attr in ('topo', 'color'):
+                    self.FindWindowById(self.win['surface'][attr]['map']).SetValue(layer.name)
+                if UserSettings.Get(group='nviz', key='surface', subkey=['shininess', 'map']) is False:
+                    self.SetSurfaceUseMap('shine', False)
+                    value = UserSettings.Get(group='nviz', key='surface', subkey=['shininess', 'value'])
+                    self.FindWindowById(self.win['surface']['shine']['constant']).SetValue(value)
+            else:
+                pass # TODO
 
 class ViewPositionWindow(wx.Window):
     """Position control window (for NvizToolWindow)"""
@@ -812,7 +934,8 @@ class ViewPositionWindow(wx.Window):
         w, h = self.GetClientSize()
 
         if pos is None:
-            x, y = self.settings['pos']['value']
+            x = self.settings['pos']['x']
+            y = self.settings['pos']['y']
             x = x * w
             y = y * h
         else:
@@ -840,8 +963,9 @@ class ViewPositionWindow(wx.Window):
             w, h = self.GetClientSize()
             x = float(x) / w
             y = float(y) / h
-            self.settings['pos']['value'] = (x, y)
-            self.settings['pos']['update'] = True
+            self.settings['pos']['x'] = x
+            self.settings['pos']['y'] = y
+            self.mapWindow.update.append('view')
 
             self.mapWindow.Refresh(eraseBackground=False)
             # self.mapWindow.UpdateMap()
