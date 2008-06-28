@@ -28,22 +28,18 @@
 /*!
   \brief Create a new map object which can be one of surf, vect, vol or site.
 
-  This routine creates the object
-  internally in the gsf library and links a new tcl/tk
-  command to the general object command parser below.
-  Optionally, a logical name may be specified for the new map
-  object.  If no name is specified, a logical name is assigned to
-  the new object automatically.  Note that maintaining unique
-  logical names is not the responsibility of the library (currently).
+  This routine creates the object internally in the gsf libraryb.
+  Optionally, a logical name may be specified for the new map object.
+  If no name is specified, a logical name is assigned to the new
+  object automatically.  Note that maintaining unique logical names is
+  not the responsibility of the library (currently).
   
-  Initially map objects contain no data, use the
-  attribute commands to set attributes such as topology,
-  color, etc.
+  Initially map objects contain no data, use the attribute commands to
+  set attributes such as topology, color, etc.
 
-  \param data
-  \param interp
-  \param argc
-  \param argv
+  \param type map object type
+  \param name map name
+  \param data nviz data
 
   \return map object id
   \return -1 on error
@@ -56,16 +52,13 @@ int Nviz_new_map_obj(int type, const char *name,
 
     nv_clientdata *client_data;
 
-/*
- * For each type of map obj do the following --
- *   1) Verify we havn't maxed out the number of
- *      allowed objects.
- *   2) Call the internal library to generate a new
- *      map object of the specified type.
- *   3) Create a new tcl/tk command with the new object
- *      id number and link it to the Nmap_obj_cmd routine
- *      below.
- */
+    /*
+     * For each type of map obj do the following --
+     *   1) Verify we havn't maxed out the number of
+     *      allowed objects.
+     *   2) Call the internal library to generate a new
+     *      map object of the specified type.
+     */
     /* raster -> surface */
     if (type == MAP_OBJ_SURF) {
 	if (GS_num_surfs() >= MAX_SURFS) {

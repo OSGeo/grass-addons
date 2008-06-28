@@ -105,7 +105,7 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         # default values
         #
         self.view = UserSettings.Get(group='nviz', key='view') # reference
-        self.update = [] # update view/controls
+        self.update = {} # update view/controls
         self.object = {} # loaded data objects (layer index / gsurf id)
 
         self.size = None
@@ -229,16 +229,16 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
                 self.parent.onRenderTimer.Start(100)
             self.parent.onRenderCounter = 0
 
-        if 'view' in self.update:
+        if 'view' in self.update.keys():
             self.nvizClass.SetView(self.view['pos']['x'], self.view['pos']['y'],
                                    self.view['height']['value'],
                                    self.view['persp']['value'],
                                    self.view['twist']['value'])
-            self.update.remove('view')
+            del self.update['view']
 
-        if 'z-exag' in self.update:
+        if 'z-exag' in self.update.keys():
             self.nvizClass.SetZExag(self.view['z-exag']['value'])
-            self.update.remove('z-exag')
+            del self.update['z-exag']
 
         if render is True:
             self.nvizClass.Draw(False)
@@ -314,8 +314,8 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         self.view['twist']['value'] = wxnviz.VIEW_DEFAULT_TWIST
         self.view['z-exag']['value'] = wxnviz.VIEW_DEFAULT_ZEXAG
 
-        self.update.append('view')
-        self.update.append('z-exag')
+        self.update['view'] = None
+        self.update['z-exag'] = None
 
     def GetMapObjId(self, layer):
         """Get map object id of given map layer (2D)
@@ -557,7 +557,7 @@ class NvizToolWindow(wx.Frame):
 
             if code == 'color':
                 value = csel.ColourSelect(panel, id=wx.ID_ANY)
-                value.Bind(wx.EVT_TEXT, self.OnSurfaceMap)
+                value.Bind(csel.EVT_COLOURSELECT, self.OnSurfaceMap)
             else:
                 value = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(65, -1),
                                     initial=0,
@@ -799,9 +799,9 @@ class NvizToolWindow(wx.Frame):
             self.FindWindowById(win).SetValue(self.settings[winName]['value'])
 
         if winName in ('pos', 'height', 'twist', 'persp'):
-            self.mapWindow.update.append('view')
+            self.mapWindow.update['view'] = None
         else:
-            self.mapWindow.update.append(winName)
+            self.mapWindow.update[winName] = None
 
         self.mapWindow.Refresh(False)
 
@@ -842,7 +842,7 @@ class NvizToolWindow(wx.Frame):
             self.settings['pos']['x'] = 0.0
             self.settings['pos']['y'] = 1.0
 
-        self.mapWindow.update.append('view')
+        self.mapWindow.update['view'] = None
         self.UpdateSettings()
         self.mapWindow.Refresh(False)
 
@@ -858,7 +858,15 @@ class NvizToolWindow(wx.Frame):
         
         Update map (don't save settings)
         """
-        pass
+        layer = self.mapWindow.GetSelectedLayer()
+        id = self.mapWindow.GetMapObjId(layer)
+
+        if self.mapWindow.update.has_key('color'):
+            map, value = self.mapWindow.update['color']
+            self.mapWindow.nvizClass.SetSurfaceColor(id, map, str(value)) 
+            del self.mapWindow.update['color']
+
+        self.mapWindow.Refresh(False)
 
     def OnClose(self, event):
         """Close button pressed
@@ -876,10 +884,14 @@ class NvizToolWindow(wx.Frame):
 
         if event.GetSelection() == 0:
             useMap = True
+            value = self.win['surface'][attrName]['map']
         else:
             useMap = False
+            value = self.win['surface'][attrName]['constant']
 
         self.SetSurfaceUseMap(attrName, useMap)
+
+        self.mapWindow.update[attrName] = (useMap, str(value))
 
     def SetSurfaceUseMap(self, attrName, map=True):
         if map: # map
@@ -892,7 +904,7 @@ class NvizToolWindow(wx.Frame):
             self.FindWindowById(self.win['surface'][attrName]['use']).SetSelection(1)
 
     def OnSurfaceMap(self, event):
-        """Set surface attribute -- map"""
+        """Set surface attribute"""
         if not self.mapWindow.init:
             return
 
@@ -905,15 +917,14 @@ class NvizToolWindow(wx.Frame):
             map = True
         else:
             value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetValue()
-            print value
+            value = str(value[0]) + ':' + str(value[1]) + ':' + str(value[2])
             map = False
 
-        layer = self.mapWindow.GetSelectedLayer()
-        id = self.mapWindow.GetMapObjId(layer)
+        self.mapWindow.update[attrName] = (map, str(value))
 
-        if attrName == 'color':
-            self.mapWindow.nvizClass.SetSurfaceColor(id, map, str(value)) 
-        
+        if self.parent.autoRender.IsChecked():
+            self.OnApply(None)
+
     def OnSurfaceMode(self, event):
         pass
 
@@ -997,7 +1008,7 @@ class ViewPositionWindow(wx.Window):
             y = float(y) / h
             self.settings['pos']['x'] = x
             self.settings['pos']['y'] = y
-            self.mapWindow.update.append('view')
+            self.mapWindow.update['view'] = None
 
             self.mapWindow.Refresh(eraseBackground=False)
             # self.mapWindow.UpdateMap()

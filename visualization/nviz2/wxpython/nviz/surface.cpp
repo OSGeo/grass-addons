@@ -27,7 +27,7 @@ void Nviz::SetSurfaceColor(int id, bool map, const char *value)
     }
     else {
 	float val;
-	val = atof(value);
+	val = Nviz_color_from_str(value);
 	Nviz_set_attr(id, MAP_OBJ_SURF, ATT_COLOR, CONST_ATT,
 		      NULL, val,
 		      data);
