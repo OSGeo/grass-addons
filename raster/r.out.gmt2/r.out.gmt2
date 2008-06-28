@@ -214,7 +214,7 @@ colr_file="$file"
 
 cat<<EOT > "$output_cpt"
 #
-# GMT colormap created by the `g.version` r.out.gmt script
+# GMT colormap created by the `g.version` r.out.gmt2 script
 # from base map [$map_name]
 # created by $USER@$HOSTNAME at `date`
 #
