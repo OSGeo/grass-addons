@@ -24,7 +24,7 @@
 #
 
 #%module
-#% description: Exports a GRASS vector map into a GMT xy file
+#% description: Exports a GRASS vector map into a GMT xy file.
 #%end
 #%option
 #% key: input

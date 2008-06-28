@@ -18,7 +18,7 @@
 ################################################################################
 
 #%module
-#% description: Imports an NCDC stn file (station data) into a GRASS vector map
+#% description: Imports an NCDC stn file (station data) into a GRASS vector map.
 #%end
 #%option
 #% key: input

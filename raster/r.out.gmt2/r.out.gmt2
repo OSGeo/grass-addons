@@ -35,7 +35,7 @@
 #
 
 #%module
-#% description: Exports a GRASS raster map into a GMT grd file and color table
+#% description: Exports a GRASS raster map into a GMT grd file and color table.
 #%end
 #%option
 #% key: input

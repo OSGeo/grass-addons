@@ -18,7 +18,7 @@
 ################################################################################
 
 #%module
-#% description: Edits cells in an existing raster map displayed on the monitor
+#% description: Edits cells in an existing raster map displayed on the monitor.
 #%end
 #%option
 #% key: map
