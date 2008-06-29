@@ -39,7 +39,6 @@
 #%Module
 #%  description: IDW interpolation, but distance is cost to get to any other site
 #%End
-
 #%option
 #% key: input
 #% type: string
@@ -47,7 +46,6 @@
 #% description: Name of existing vector points map containing seed data
 #% required : yes
 #%end
-
 #%option
 #% key: output
 #% type: string
@@ -55,14 +53,12 @@
 #% description: Name of new raster file to be used for output
 #% required : yes
 #%end
-
 #%option
 #% key: column
 #% type: string
 #% description: Column name in vector points map that contains data values
 #% required : yes
 #%end
-
 #%option
 #% key: cost_map
 #% type: string
@@ -70,7 +66,6 @@
 #% description: Name of existing raster file containing cost information
 #% required : yes
 #%end
-
 #%option
 #% key: post_mask
 #% type: string
@@ -78,7 +73,6 @@
 #% description: Name of existing raster file to be used as post-processing MASK
 #% required : no
 #%end
-
 #%option
 #% key: friction
 #% type: integer
@@ -88,7 +82,7 @@
 #% required : no
 #%end
 
-### needed?
+### still needed? (left-over from GRASS 5 sites format)
 #%option
 #% key: null_string
 #% type: string
@@ -96,13 +90,11 @@
 #% answer: nan
 #% required : no
 #%end
-# in the above, s.out.ascii changes a "%NaN" to "nan" so we use lower case
 
 #%flag
 #% key: r
 #% description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
 #%end
-
 #%flag
 #% key: v
 #% description: Verbose mode
@@ -143,13 +135,12 @@ if [ "$FRICTION" -eq 4 ] ; then DIVISOR=" / 10.0" ; fi
 if [ "$FRICTION" -eq 5 ] ; then DIVISOR=" / 100.0" ; fi
 if [ "$FRICTION" -eq 6 ] ; then DIVISOR=" / 500.0" ; fi
 
-#COLMN=$(( 4 + $GIS_OPT_index ))  # skip over e,n,|,cat   ### wrong for 3D+
-# maybe it's better to do for i=1:index  sed delete line upto & incl. "%" then |cut -f1 ?
 
 NULL="$GIS_OPT_NULL_STRING"
 POINTS_FILE="$GIS_OPT_INPUT"
 
 unset VERBOSE
+# test to see if G_V exists before integer compare?
 if [ $GIS_FLAG_V -eq 1 ] || [ "$GRASS_VERBOSE" -gt 1 ] ; then
    VERBOSE="-v"
 fi
@@ -184,10 +175,9 @@ if [ $? -ne 0 ] || [ -z "$TMP_POINTS" ] ; then
     echo "ERROR: unable to create temporary files" 1>&2
     exit 1
 fi
-#s.out.ascii -d "$GIS_OPT_sites" > /tmp/idw_tmp.$$
-#s.out.ascii -d "$GIS_OPT_sites" > "$TMP_SITES"
 
 #crop out only points in region
+# GRASS 6.3+: use v.out.ascii -r ?
 v.in.region output=tmp_icw_region_$$ > /dev/null
 v.select ainput="$POINTS_FILE" binput=tmp_icw_region_$$ \
     atype=point btype=area output=tmp_icw_points_$$
@@ -196,9 +186,6 @@ v.out.ascii tmp_icw_points_$$ > "$TMP_POINTS"
 #db.select tmp_icw_points_$$ > "$TMP_TABLE"
 
 #  find n
-#N=`wc -l /tmp/idw_tmp.$$ | awk '{print $1}'`
-#N=`wc -l "$TMP_SITES" | awk '{print $1}'`
-#N=`s.out.ascii "$SITES_FILE" | wc -l`
 #N="`v.info tmp_icw_points_$$ | grep "Number of points" | cut -f2 -d: | awk '{print $1}'`"
 N="`cat "$TMP_POINTS" | wc -l`"
 
@@ -215,16 +202,12 @@ fi
 # gen cost maps for each site in range
 echo "Generating cost maps.." 1>&2
 NUM=1
-#for POS in `cat /tmp/idw_tmp.$$ | sed -e 's/ /|/g'` ; do
-#for POS in `cat "$TMP_SITES" | sed -e 's/ /|/g'` ; do
-#for POS in `s.out.ascii -d "$SITES_FILE" | sed -e 's/ /|/g'` ; do
 for POS in `cat "$TMP_POINTS"` ; do
 
 #    echo "POS=[$POS]"
     EASTING=`echo "$POS" | cut -f1 -d"|"`
     NORTHING=`echo "$POS" | cut -f2 -d"|"`
     CAT=`echo "$POS" | cut -f"$CATCOL" -d"|"`
-#    DATA_VALUE=`echo "$POS" | cut -f"$COLMN" -d"|"`
 #    DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select * from tmp_icw_points_$$ where cat = $CAT" | cut -f"$COLMN" -d'|'`"
     DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select $COL_NAME from tmp_icw_points_$$ where cat=${CAT}"`"
 
@@ -280,8 +263,6 @@ while [ $NUM -le $N ] ; do
     NUM="`expr $NUM + 1`"
 done
 
-#r.mapcalc resolution_mask="if(fjords_mask@all == 9 )"
-#r.mapcalc MASK="$FJORD"_mask # @all
 if [ -n "$GIS_OPT_POST_MASK" ] ; then
    echo "Setting post_mask [$GIS_OPT_POST_MASK]" 1>&2
    r.mapcalc MASK="$GIS_OPT_POST_MASK"
@@ -299,9 +280,6 @@ fi
 echo 1>&2
 echo "Creating partial weights.." 1>&2
 NUM=1
-#for POS in `cat /tmp/idw_tmp.$$ | sed -e 's/ /|/g'` ; do
-#for POS in `cat "$TMP_SITES" | sed -e 's/ /|/g'` ; do
-#for POS in `v.out.ascii -d "$SITES_FILE" | sed -e 's/ /|/g'` ; do
 for POS in `cat "$TMP_POINTS"` ; do
 
     EASTING=`echo "$POS" | cut -f1 -d"|"`
@@ -347,6 +325,8 @@ echo 1>&2
 echo "Calculating final values.." 1>&2
 r.series method=sum in=$INPUT_MAPS out="$GIS_OPT_OUTPUT"
 
+#TODO: r.patch in v.to.rast of values at exact seed site locations. currently set to null
+
 r.colors "$GIS_OPT_OUTPUT" rule=bcyr
 if [ 0 -eq 1 ] ; then
 r.colors "$GIS_OPT_OUTPUT" col=rules << EOF
@@ -372,21 +352,34 @@ if [ -n "$GIS_OPT_POST_MASK" ] ; then
 fi
 
 
-# 5) rm cost and cost_sq maps, site_tmp, /tmp/idw_tmp.$$, etc
-#exit ######
-echo "Cleanup .." 1>&2
-g.mremove -f rast=cost_site.* | grep REMOVE
-g.mremove -f rast=1by_cost_site_sqrd.* | grep REMOVE
-g.mremove -f rast=partial_icw.* | grep REMOVE
-#g.mremove -f rast=tmp_icw_*_$$
-#g.mremove -f vect=tmp_icw_*_$$
-g.remove rast=sum_of_1by_cost_sqs | grep REMOVE
-#g.remove vect=tmp_idw_cost_site_$$
-g.remove rast=tmp_icw_area_$$ | grep REMOVE
-g.remove vect=tmp_icw_region_$$,tmp_icw_points_$$
-#rm /tmp/idw_tmp.$$
-#rm "$TMP_SITES"
-rm -f "$TMP_POINTS"
+# 5) rm cost and cost_sq maps, tmp_icw_points, etc
+cleanup()
+{
+  echo "Cleanup .." 1>&2
+  g.mremove -f rast=cost_site.* | grep REMOVE
+  g.mremove -f rast=1by_cost_site_sqrd.* | grep REMOVE
+  g.mremove -f rast=partial_icw.* | grep REMOVE
+  #g.mremove -f rast=tmp_icw_*_$$
+  #g.mremove -f vect=tmp_icw_*_$$
+  g.remove rast=sum_of_1by_cost_sqs | grep REMOVE
+  #g.remove vect=tmp_idw_cost_site_$$
+  g.remove rast=tmp_icw_area_$$ | grep REMOVE
+  g.remove vect=tmp_icw_region_$$,tmp_icw_points_$$
+  rm -f "$TMP_POINTS"
+}
+
+# TODO: trap ^C
+# what to do in case of user break:
+#exitprocedure()
+#{
+#  g.message -e 'User break!'
+#  cleanup
+#  exit 1
+#}
+# shell check for user break (signal list: trap -l)
+#trap "exitprocedure" 2 3 15
+
+cleanup
 
 # 6) done!
 echo "Done! Wrote results to <${GIS_OPT_OUTPUT}>." 1>&2
