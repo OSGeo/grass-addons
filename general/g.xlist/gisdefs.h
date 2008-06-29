@@ -9,8 +9,7 @@ const char *G_join_element(const char *, const char *, const char *,
 			   const char *, int, int *);
 
 /* ls.c */
-void G_set_ls_filter(const char *);
-const char *G_get_ls_filter(void);
+void G_set_ls_filter(int (*)(const char *, void *), void *);
 const char **G__ls(const char *, int *);
 
 #endif

@@ -19,7 +19,6 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <unistd.h>
-#include <regex.h>
 
 #include <grass/gis.h>
 #include <grass/config.h>
@@ -29,9 +28,9 @@
 #  include <sys/ioctl.h>
 #endif
 
-
-#define LS_FILTER_FLAGS REG_EXTENDED|REG_NOSUB
-static char *ls_filter = NULL;
+typedef int ls_filter_func(const char * /*filename */ , void * /*closure */ );
+static ls_filter_func *ls_filter = NULL;
+static void *ls_closure = NULL;
 
 static int cmp_names(const void *aa, const void *bb)
 {
@@ -42,43 +41,23 @@ static int cmp_names(const void *aa, const void *bb)
 }
 
 /**
- * \brief Sets a filter for G__ls using POSIX Extended Regular Expressions.
+ * \brief Sets a function and its complementary data for G__ls filtering.
  * 
- * Defines the pattern that allows G__ls to filter out unwanted file names.
- * Call this function before G__ls.
+ * Defines a filter function and its rule data that allow G__ls to filter out
+ * unwanted file names.  Call this function before G__ls.
  *
- * \param pattern   POSIX Extended Regular Expressions
- * 		    (if NULL, no filter will be used)
+ * \param func      Filter callback function to compare a file name and closure
+ * 		    pattern (if NULL, no filter will be used).
+ * 		    func(filename, closure) should return 1 on success, 0 on
+ * 		    failure.
+ * \param closure   Data used to determine if a file name matches the rule.
  **/
-void G_set_ls_filter(const char *pattern)
+
+void G_set_ls_filter(ls_filter_func * func, void *closure)
 {
-    regex_t reg;
-
-    if (ls_filter)
-	G_free(ls_filter);
-    if (pattern) {
-	ls_filter = G_strdup(pattern);
-	if (regcomp(&reg, ls_filter, LS_FILTER_FLAGS) != 0)
-	    G_fatal_error(_("Unable to compile regular expression %s"),
-			  ls_filter);
-	regfree(&reg);
-    }
-    else
-	ls_filter = NULL;
-
+    ls_filter = func;
+    ls_closure = closure;
     return;
-}
-
-/**
- * \brief Gets a filter string for G__ls.
- * 
- * Returns the filter pattern defined by G_set_ls_filter.
- *
- * \return          Filter pattern
- **/
-const char *G_get_ls_filter(void)
-{
-    return ls_filter;
 }
 
 /**
@@ -103,27 +82,21 @@ const char **G__ls(const char *dir, int *num_files)
     DIR *dfd;
     const char **dir_listing = NULL;
     int n = 0;
-    regex_t reg;
 
     if ((dfd = opendir(dir)) == NULL)
 	G_fatal_error(_("Unable to open directory %s"), dir);
 
-    if (ls_filter && regcomp(&reg, ls_filter, LS_FILTER_FLAGS) != 0)
-	G_fatal_error(_("Unable to compile regular expression %s"),
-		      ls_filter);
-
     while ((dp = readdir(dfd)) != NULL) {
-	if (dp->d_name[0] != '.' &&	/* Don't list hidden files */
-	    (ls_filter == NULL || regexec(&reg, dp->d_name, 0, NULL, 0) == 0)) {
-	    dir_listing = (const char **)G_realloc(dir_listing,
-						   (1 + n) * sizeof(char *));
-	    dir_listing[n] = G_store(dp->d_name);
-	    n++;
-	}
+	if ((dp->d_name[0] == '.' && dp->d_name[1] == 0) ||
+	    (dp->d_name[0] == '.' && dp->d_name[1] == '.' &&
+	     dp->d_name[2] == 0) || (ls_filter &&
+				     !(*ls_filter) (dp->d_name, ls_closure)))
+	    continue;
+	dir_listing = (const char **)G_realloc(dir_listing,
+					       (1 + n) * sizeof(char *));
+	dir_listing[n] = G_store(dp->d_name);
+	n++;
     }
-
-    if (ls_filter)
-	regfree(&reg);
 
     /* Sort list of filenames alphabetically */
     qsort(dir_listing, n, sizeof(char *), cmp_names);

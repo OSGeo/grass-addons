@@ -20,12 +20,14 @@
 #define MAIN
 #include <stdlib.h>
 #include <string.h>
+#include <regex.h>
 #include <grass/spawn.h>
 #include "gisdefs.h"
 #include "global.h"
 
-static int parse(const char *);
 static int do_list(int, const char *, const char *, int, const char *, int);
+static int parse(const char *);
+static int ls_filter(const char *, void *);
 
 int main(int argc, char *argv[])
 {
@@ -47,6 +49,7 @@ int main(int argc, char *argv[])
     } flag;
     int i, n, all, num_types, any, flags = 0;
     char **types, *pattern = NULL, separator[2];
+    regex_t regex;
 
     G_gisinit(argv[0]);
 
@@ -76,7 +79,6 @@ int main(int argc, char *argv[])
 	G_strcat(opt.type->options, ",");
     }
     G_strcat(opt.type->options, "all");
-#define TYPES opt.type->answers
 
     opt.pattern = G_define_option();
     opt.pattern->key = "pattern";
@@ -85,7 +87,6 @@ int main(int argc, char *argv[])
     opt.pattern->multiple = NO;
     opt.pattern->answer = "*";
     opt.pattern->description = _("Map name search pattern (default: all)");
-#define PATTERN opt.pattern->answer
 
     opt.separator = G_define_option();
     opt.separator->key = "separator";
@@ -95,7 +96,6 @@ int main(int argc, char *argv[])
     opt.separator->answer = "newline";
     opt.separator->description =
 	_("One-character output separator, newline, space, or tab");
-#define SEPARATOR opt.separator->answer
 
     opt.mapset = G_define_option();
     opt.mapset->key = "mapset";
@@ -104,69 +104,61 @@ int main(int argc, char *argv[])
     opt.mapset->multiple = NO;
     opt.mapset->description =
 	_("Mapset to list (default: current search path)");
-#define MAPSET opt.mapset->answer
 
     flag.regex = G_define_flag();
     flag.regex->key = 'r';
     flag.regex->description =
 	_("Use extended regular expressions instead of wildcards");
-#define FREGEX flag.regex->answer
 
     flag.type = G_define_flag();
     flag.type->key = 't';
     flag.type->description = _("Print data types");
-#define FTYPE flag.type->answer
 
     flag.mapset = G_define_flag();
     flag.mapset->key = 'm';
     flag.mapset->description = _("Print mapset names");
-#define FMAPSET flag.mapset->answer
 
     flag.pretty = G_define_flag();
     flag.pretty->key = 'p';
     flag.pretty->description = _("Pretty printing in human readable format");
-#define FPRETTY flag.pretty->answer
 
     flag.full = G_define_flag();
     flag.full->key = 'f';
     flag.full->description = _("Verbose listing (also list map titles)");
-#define FFULL flag.full->answer
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    if (!FREGEX) {
-	pattern = wc2regex(PATTERN);
-	G_free(PATTERN);
-	PATTERN = pattern;
-    }
+    if (flag.regex->answer)
+	pattern = opt.pattern->answer;
+    else
+	pattern = wc2regex(opt.pattern->answer);
 
-    G_set_ls_filter(PATTERN);
-#if 0
-    fprintf(stderr, "%s\n", G_get_ls_filter());
-#endif
+    if (regcomp(&regex, pattern, REG_EXTENDED | REG_NOSUB))
+	G_fatal_error(_("Unable to compile regular expression %s"), pattern);
+    G_set_ls_filter(ls_filter, &regex);
 
-    if (strcmp(SEPARATOR, "newline") == 0)
+    if (strcmp(opt.separator->answer, "newline") == 0)
 	separator[0] = '\n';
-    else if (strcmp(SEPARATOR, "space") == 0)
+    else if (strcmp(opt.separator->answer, "space") == 0)
 	separator[0] = ' ';
-    else if (strcmp(SEPARATOR, "tab") == 0)
+    else if (strcmp(opt.separator->answer, "tab") == 0)
 	separator[0] = '\t';
     else
-	separator[0] = SEPARATOR[0];
+	separator[0] = opt.separator->answer[0];
     separator[1] = 0;
 
-    if (MAPSET == NULL)
-	MAPSET = "";
+    if (opt.mapset->answer == NULL)
+	opt.mapset->answer = "";
 
-    if (G_strcasecmp(MAPSET, ".") == 0)
-	MAPSET = G_mapset();
+    if (G_strcasecmp(opt.mapset->answer, ".") == 0)
+	opt.mapset->answer = G_mapset();
 
-    for (i = 0; TYPES[i]; i++) {
-	if (strcmp(TYPES[i], "all") == 0)
+    for (i = 0; opt.type->answers[i]; i++) {
+	if (strcmp(opt.type->answers[i], "all") == 0)
 	    break;
     }
-    if (TYPES[i]) {
+    if (opt.type->answers[i]) {
 	all = 1;
 	num_types = nlist;
     }
@@ -175,47 +167,41 @@ int main(int argc, char *argv[])
 	num_types = i;
     }
 
-    if (FTYPE)
+    if (flag.type->answer)
 	flags |= G_JOIN_ELEMENT_TYPE;
-    if (FMAPSET)
+    if (flag.mapset->answer)
 	flags |= G_JOIN_ELEMENT_MAPSET;
 
     for (i = 0; i < num_types; i++) {
-	n = all ? i : parse(TYPES[i]);
+	n = all ? i : parse(opt.type->answers[i]);
 
-	if (FFULL) {
+	if (flag.full->answer) {
 	    char lister[300];
 
 	    sprintf(lister, "%s/etc/lister/%s", G_gisbase(),
 		    list[n].element[0]);
 	    G_debug(3, "lister CMD: %s", lister);
 	    if (access(lister, 1) == 0)	/* execute permission? */
-		G_spawn(lister, lister, MAPSET, NULL);
+		G_spawn(lister, lister, opt.mapset->answer, NULL);
 	    else
-		any = do_list(n, PATTERN, MAPSET, FPRETTY, separator, flags);
+		any =
+		    do_list(n, pattern, opt.mapset->answer,
+			    flag.pretty->answer, separator, flags);
 	}
 	else
-	    any = do_list(n, PATTERN, MAPSET, FPRETTY, separator, flags);
+	    any =
+		do_list(n, pattern, opt.mapset->answer, flag.pretty->answer,
+			separator, flags);
     }
-    if (!FPRETTY && any)
+    if (!flag.pretty->answer && any)
 	fprintf(stdout, "\n");
 
-    if (pattern)
+    if (!flag.regex->answer)
 	G_free(pattern);
 
+    regfree(&regex);
+
     exit(EXIT_SUCCESS);
-}
-
-static int parse(const char *data_type)
-{
-    int n;
-
-    for (n = 0; n < nlist; n++) {
-	if (G_strcasecmp(list[n].alias, data_type) == 0)
-	    break;
-    }
-
-    return n;
 }
 
 static int do_list(int n, const char *pattern, const char *mapset,
@@ -244,4 +230,22 @@ static int do_list(int n, const char *pattern, const char *mapset,
     any += len > 0;
 
     return any;
+}
+
+static int parse(const char *data_type)
+{
+    int n;
+
+    for (n = 0; n < nlist; n++) {
+	if (G_strcasecmp(list[n].alias, data_type) == 0)
+	    break;
+    }
+
+    return n;
+}
+
+static int ls_filter(const char *filename, void *closure)
+{
+    return filename[0] != '.' &&
+	regexec((regex_t *) closure, filename, 0, NULL, 0) == 0;
 }

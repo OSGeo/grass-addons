@@ -27,7 +27,10 @@
 
 #define MAIN
 #include <stdlib.h>
+#include <regex.h>
 #include "global.h"
+
+static int ls_filter(const char *, void *);
 
 int main(int argc, char *argv[])
 {
@@ -43,6 +46,7 @@ int main(int argc, char *argv[])
     const char **files;
     int num_files, rast, result = EXIT_SUCCESS;
     int i, j, n;
+    regex_t regex;
 
     G_gisinit(argv[0]);
 
@@ -56,18 +60,15 @@ int main(int argc, char *argv[])
     flag.regex->key = 'r';
     flag.regex->description =
 	_("Use extended regular expressions instead of wildcards");
-#define FREGEX flag.regex->answer
 
     flag.force = G_define_flag();
     flag.force->key = 'f';
     flag.force->description =
 	_("Force removal (required for actual deletion of files)");
-#define FFORCE flag.force->answer
 
     flag.basemap = G_define_flag();
     flag.basemap->key = 'b';
     flag.basemap->description = _("Remove base maps");
-#define FBASEMAP flag.basemap->answer
 
     read_list(0);
 
@@ -99,22 +100,27 @@ int main(int argc, char *argv[])
 		continue;
 	    rast = !G_strcasecmp(list[n].alias, "rast");
 	    for (i = 0; (name = opt[n]->answers[i]); i++) {
-		if (!FREGEX)
+		if (!flag.regex->answer)
 		    name = wc2regex(name);
-		G_set_ls_filter(name);
-
-		files = G__ls(path, &num_files);
-
-		if (!FREGEX)
+		if (regcomp(&regex, name, REG_EXTENDED | REG_NOSUB))
+		    G_fatal_error(_
+				  ("Unable to compile regular expression %s"),
+				  name);
+		if (!flag.regex->answer)
 		    G_free(name);
 
+		G_set_ls_filter(ls_filter, &regex);
+		files = G__ls(path, &num_files);
+		regfree(&regex);
+
 		for (j = 0; j < num_files; j++) {
-		    if (!FFORCE) {
+		    if (!flag.force->answer) {
 			fprintf(stdout, "%s/%s@%s\n", list[n].alias, files[j],
 				mapset);
 			continue;
 		    }
-		    if (rast && check_reclass(files[j], mapset, FBASEMAP))
+		    if (rast &&
+			check_reclass(files[j], mapset, flag.basemap->answer))
 			continue;
 
 		    if (do_remove(n, (char *)files[j]) == 1)
@@ -125,4 +131,10 @@ int main(int argc, char *argv[])
     }
 
     exit(result);
+}
+
+static int ls_filter(const char *filename, void *closure)
+{
+    return filename[0] != '.' &&
+	regexec((regex_t *) closure, filename, 0, NULL, 0) == 0;
 }
