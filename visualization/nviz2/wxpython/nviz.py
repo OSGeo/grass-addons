@@ -139,8 +139,8 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         if not self.init:
             self.nvizClass.InitView()
             self.LoadDataLayers()
-            (self.view['z-exag']['value'],
-             self.view['height']['value']) = self.nvizClass.SetViewDefault()
+            self.view['z-exag']['value'], \
+                self.view['height']['value'] = self.nvizClass.SetViewDefault()
             
             if hasattr(self.parent, "nvizToolWin"):
                 self.parent.nvizToolWin.UpdatePage('view')
@@ -312,10 +312,10 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         """Reset to default view"""
         self.view['pos']['x'] = wxnviz.VIEW_DEFAULT_POS_X
         self.view['pos']['y'] = wxnviz.VIEW_DEFAULT_POS_Y
-        self.view['height']['value'] = self.nvizClass.SetViewDefault()
+        self.view['z-exag']['value'], \
+            self.view['height']['value'] = self.nvizClass.SetViewDefault()
         self.view['persp']['value'] = wxnviz.VIEW_DEFAULT_PERSP
         self.view['twist']['value'] = wxnviz.VIEW_DEFAULT_TWIST
-        self.view['z-exag']['value'] = wxnviz.VIEW_DEFAULT_ZEXAG
 
         self.update['view'] = None
         self.update['z-exag'] = None
@@ -532,19 +532,23 @@ class NvizToolWindow(wx.Frame):
         self.win['surface']['attr'] = {}
         row = 0
         for code, attr in (('topo', _("Topography")),
-                     ('color', _("Color")),
-                     ('mask', _("Mask")),
-                     ('transp', _("Transparency")),
-                     ('shine', _("Shininess")),
-                     ('emis', _("Emission"))):
+                           ('color', _("Color")),
+                           ('mask', _("Mask")),
+                           ('transp', _("Transparency")),
+                           ('shine', _("Shininess")),
+                           ('emit', _("Emission"))):
             self.win['surface'][code] = {} 
             gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
                                              label=attr + ':'),
                           pos=(row, 0), flag=wx.ALIGN_CENTER_VERTICAL)
             use = wx.Choice (parent=panel, id=wx.ID_ANY, size=(100, -1),
-                             choices = [_("map"),
-                                        _("constant")])
+                             choices = [_("map")])
+            if code not in ('topo', 'color', 'shine'):
+                use.Insert(item=_("unset"), pos=0)
+            if code != 'mask':
+                use.Append(item=_('constant'))
             self.win['surface'][code]['use'] = use.GetId()
+            use.SetSelection(0) # unset
             use.Bind(wx.EVT_CHOICE, self.OnSurfaceUse)
             gridSizer.Add(item=use, flag=wx.ALIGN_CENTER_VERTICAL,
                           pos=(row, 1))
@@ -570,7 +574,7 @@ class NvizToolWindow(wx.Frame):
                                     initial=0)
                 if code == 'topo':
                     value.SetRange(minVal=-1e9, maxVal=1e9)
-                elif code in ('shine', 'transp', 'emis'):
+                elif code in ('shine', 'transp', 'emit'):
                     value.SetRange(minVal=0, maxVal=255)
                 else:
                     value.SetRange(minVal=0, maxVal=100)
@@ -581,10 +585,11 @@ class NvizToolWindow(wx.Frame):
                 value.Enable(False)
                 gridSizer.Add(item=value, flag=wx.ALIGN_CENTER_VERTICAL,
                               pos=(row, 3))
-                self.SetSurfaceUseMap(code) # -> enable map / disable constant
             else:
-                use.Delete(1) # delete 'constant' from list
+                self.win['surface'][code]['constant'] = None
 
+            self.SetSurfaceUseMap(code) # -> enable map / disable constant
+                
             row += 1
 
         boxSizer.Add(item=gridSizer, proportion=1,
@@ -610,7 +615,7 @@ class NvizToolWindow(wx.Frame):
                           choices = [_("coarse"),
                                      _("fine"),
                                      _("both")])
-        mode.SetSelection(0)
+        mode.SetSelection(UserSettings.Get(group='nviz', key='surface', subkey=['draw', 'mode']))
         mode.Bind(wx.EVT_CHOICE, self.OnSurfaceMode)
         gridSizer.Add(item=mode, flag=wx.ALIGN_CENTER_VERTICAL,
                       pos=(0, 1))
@@ -782,7 +787,7 @@ class NvizToolWindow(wx.Frame):
                         'twist',
                         'z-exag'):
             for win in self.win['view'][control].itervalues():
-                self.FindWindowById(win).SetValue(self.settings[control]['value'])
+                self.FindWindowById(win).SetValue(int(self.settings[control]['value']))
 
         self.FindWindowById(self.win['view']['pos']).Draw()
         self.FindWindowById(self.win['view']['pos']).Refresh(False)
@@ -874,17 +879,44 @@ class NvizToolWindow(wx.Frame):
         layer = self.mapWindow.GetSelectedLayer()
         id = self.mapWindow.GetMapObjId(layer)
 
+        # surface attributes
         for attr in ('topo', 'color', 'mask',
-                     'transp', 'shine', 'emis'):
+                     'transp', 'shine', 'emit'):
             if self.mapWindow.update.has_key(attr):
                 map, value = self.mapWindow.update[attr]
-                if attr == 'topo':
-                    self.mapWindow.nvizClass.SetSurfaceTopo(id, map, str(value)) 
-                elif attr == 'color':
-                    self.mapWindow.nvizClass.SetSurfaceColor(id, map, str(value)) 
-                elif attr == 'shine':
-                    self.mapWindow.nvizClass.SetSurfaceShine(id, map, str(value)) 
+                if map is None: # unset
+                    # only optional attributes
+                    if attr == 'mask':
+                        # TODO: invert mask
+                        # TODO: broken in NVIZ
+                        self.mapWindow.nvizClass.UnsetSurfaceMask(id)
+                    elif attr == 'transp':
+                        self.mapWindow.nvizClass.UnsetSurfaceTransp(id)
+                    elif attr == 'emit':
+                        self.mapWindow.nvizClass.UnsetSurfaceEmit(id) 
+                else:
+                    if len(value) <= 0: # ignore empty values (TODO: warning)
+                        continue
+                    if attr == 'topo':
+                        self.mapWindow.nvizClass.SetSurfaceTopo(id, map, str(value)) 
+                    elif attr == 'color':
+                        self.mapWindow.nvizClass.SetSurfaceColor(id, map, str(value))
+                    elif attr == 'mask':
+                        # TODO: invert mask
+                        # TODO: broken in NVIZ
+                        self.mapWindow.nvizClass.SetSurfaceMask(id, False, str(value))
+                    elif attr == 'transp':
+                        self.mapWindow.nvizClass.SetSurfaceTransp(id, map, str(value)) 
+                    elif attr == 'shine':
+                        self.mapWindow.nvizClass.SetSurfaceShine(id, map, str(value)) 
+                    elif attr == 'emit':
+                        self.mapWindow.nvizClass.SetSurfaceEmit(id, map, str(value)) 
+
                 del self.mapWindow.update[attr]
+
+        # drawing mode
+        if self.update.has_key('draw-mode'):
+            self.mapWindow.nvizClass.SetDrawMode(self.update['draw-mode'])
 
         self.mapWindow.Refresh(False)
 
@@ -905,10 +937,16 @@ class NvizToolWindow(wx.Frame):
         if not attrName:
             return
 
-        if event.GetSelection() == 0:
+        selection = event.GetSelection()
+        if attrName in ('topo', 'color'): # no 'unset'
+            selection += 1
+        if selection == 0: # unset
+            useMap = None
+            value = ''
+        elif selection == 1: # map
             useMap = True
             value = self.FindWindowById(self.win['surface'][attrName]['map']).GetValue()
-        else:
+        elif selection == 2: # constant
             useMap = False
             if attrName == 'color':
                 value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetColour()
@@ -917,20 +955,32 @@ class NvizToolWindow(wx.Frame):
                 value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetValue()
 
         self.SetSurfaceUseMap(attrName, useMap)
-
+        
         self.mapWindow.update[attrName] = (useMap, str(value))
         if self.parent.autoRender.IsChecked():
             self.OnApply(None)
 
-    def SetSurfaceUseMap(self, attrName, map=True):
-        if map: # map
+    def SetSurfaceUseMap(self, attrName, map=None):
+        if attrName in ('topo', 'color', 'shine'):
+            incSel = -1 # decrement selection (no 'unset')
+        else:
+            incSel = 0
+
+        if map is True: # map
             self.FindWindowById(self.win['surface'][attrName]['map']).Enable(True)
-            self.FindWindowById(self.win['surface'][attrName]['constant']).Enable(False)
-            self.FindWindowById(self.win['surface'][attrName]['use']).SetSelection(0)
-        else: # constant
+            if self.win['surface'][attrName]['constant']:
+                self.FindWindowById(self.win['surface'][attrName]['constant']).Enable(False)
+            self.FindWindowById(self.win['surface'][attrName]['use']).SetSelection(1 + incSel)
+        elif map is False: # constant
             self.FindWindowById(self.win['surface'][attrName]['map']).Enable(False)
-            self.FindWindowById(self.win['surface'][attrName]['constant']).Enable(True)
-            self.FindWindowById(self.win['surface'][attrName]['use']).SetSelection(1)
+            if self.win['surface'][attrName]['constant']:
+                self.FindWindowById(self.win['surface'][attrName]['constant']).Enable(True)
+            self.FindWindowById(self.win['surface'][attrName]['use']).SetSelection(2 + incSel)
+        else: # unset
+            self.FindWindowById(self.win['surface'][attrName]['map']).Enable(False)
+            if self.win['surface'][attrName]['constant']:
+                self.FindWindowById(self.win['surface'][attrName]['constant']).Enable(False)
+            self.FindWindowById(self.win['surface'][attrName]['use']).SetSelection(0)
 
     def OnSurfaceMap(self, event):
         """Set surface attribute"""
@@ -941,10 +991,14 @@ class NvizToolWindow(wx.Frame):
         if not attrName:
             return
 
-        if self.FindWindowById(self.win['surface'][attrName]['use']).GetSelection() == 0:
+        selection = self.FindWindowById(self.win['surface'][attrName]['use']).GetSelection()
+        if selection == 0: # unset
+            map = None
+            value = ''
+        elif selection == 1: # map
             value = self.FindWindowById(self.win['surface'][attrName]['map']).GetValue()
             map = True
-        else:
+        else: # constant
             if attrName == 'color':
                 value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetColour()
                 value = str(value[0]) + ':' + str(value[1]) + ':' + str(value[2])
@@ -958,7 +1012,16 @@ class NvizToolWindow(wx.Frame):
             self.OnApply(None)
 
     def OnSurfaceMode(self, event):
-        pass
+        """Drawing mode changed"""
+        selection = event.GetSelection()
+        if selection == 0: # coarse
+            self.mapWindow.update['draw-mode'] = wxnviz.DRAW_COARSE
+        elif selection == 1: # fine
+            self.mapWindow.update['draw-mode'] = wxnviz.DRAW_FINE
+        elif selection == 2: # both
+            self.mapWindow.update['draw-mode'] = wxnviz.DRAW_BOTH
+
+        event.Skip()
 
     def OnSurfaceStyle(self, event):
         pass
@@ -979,6 +1042,7 @@ class NvizToolWindow(wx.Frame):
         elif pageId == 'surface':
             if nvizLayer is None:
                 for attr in ('topo', 'color'):
+                    self.SetSurfaceUseMap(attr, True) # -> map
                     self.FindWindowById(self.win['surface'][attr]['map']).SetValue(layer.name)
                 if UserSettings.Get(group='nviz', key='surface', subkey=['shininess', 'map']) is False:
                     self.SetSurfaceUseMap('shine', False)

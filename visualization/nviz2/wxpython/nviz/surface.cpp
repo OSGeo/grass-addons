@@ -49,6 +49,40 @@ int Nviz::SetSurfaceColor(int id, bool map, const char *value)
 }
 
 /*!
+  \brief Set surface mask
+
+  @todo invert
+
+  \param id surface id
+  \param invert if true invert mask 
+  \param value map name of value
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::SetSurfaceMask(int id, bool invert, const char *value)
+{
+    return SetSurfaceAttr(id, ATT_MASK, true, value);
+}
+
+/*!
+  \brief Set surface mask
+
+  @todo invert
+
+  \param id surface id
+  \param map if true use map otherwise constant
+  \param value map name of value
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::SetSurfaceTransp(int id, bool map, const char *value)
+{
+    return SetSurfaceAttr(id, ATT_TRANSP, map, value);
+}
+
+/*!
   \brief Set surface shininess
 
   \param id surface id
@@ -61,6 +95,21 @@ int Nviz::SetSurfaceColor(int id, bool map, const char *value)
 int Nviz::SetSurfaceShine(int id, bool map, const char *value)
 {
     return SetSurfaceAttr(id, ATT_SHINE, map, value);
+}
+
+/*!
+  \brief Set surface emission
+
+  \param id surface id
+  \param map if true use map otherwise constant
+  \param value map name of value
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::SetSurfaceEmit(int id, bool map, const char *value)
+{
+    return SetSurfaceAttr(id, ATT_EMIT, map, value);
 }
 
 /*!
@@ -100,4 +149,60 @@ int Nviz::SetSurfaceAttr(int id, int attr, bool map, const char *value)
 	    id, attr, map, value);
 
     return ret;
+}
+
+/*!
+  \brief Unset surface mask
+
+  \param id surface id
+
+  \return 1 on success
+  \return 0 on failure
+*/
+
+int Nviz::UnsetSurfaceMask(int id)
+{
+    return UnsetSurfaceAttr(id, ATT_MASK);
+}
+
+/*!
+  \brief Unset surface transparency
+
+  \param id surface id
+
+  \return 1 on success
+  \return 0 on failure
+*/
+
+int Nviz::UnsetSurfaceTransp(int id)
+{
+    return UnsetSurfaceAttr(id, ATT_TRANSP);
+}
+
+/*!
+  \brief Unset surface emission
+
+  \param id surface id
+
+  \return 1 on success
+  \return 0 on failure
+*/
+
+int Nviz::UnsetSurfaceEmit(int id)
+{
+    return UnsetSurfaceAttr(id, ATT_EMIT);
+}
+
+/*!
+  \brief Unset surface attribute
+
+  \param id surface id
+  \param attr attribute descriptor
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::UnsetSurfaceAttr(int id, int attr)
+{
+    return Nviz_unset_attr(id, MAP_OBJ_SURF, attr);
 }

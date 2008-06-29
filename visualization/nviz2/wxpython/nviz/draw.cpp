@@ -30,10 +30,18 @@ void Nviz::Draw(bool quick)
     
     Nviz_draw_cplane(data, -1, -1);
 
-    if (!quick)
-	Nviz_draw_all (data);
-    else
-	Nviz_draw_quick(data);
+    if (data->draw_coarse) { /* coarse */
+	GS_set_draw(GSD_BACK);
+	GS_ready_draw();
+	GS_alldraw_wire();
+	GS_done_draw();
+    }
+    else { /* fine / both */
+	if (!quick)
+	    Nviz_draw_all (data);
+	else
+	    Nviz_draw_quick(data);
+    }
 
     G_debug(1, "Nviz::Draw(): quick=%d", quick);
 
@@ -48,6 +56,23 @@ void Nviz::EraseMap()
     GS_clear(data->bgcolor);
 
     G_debug(1, "Nviz::EraseMap()");
+
+    return;
+}
+
+/*!
+  \brief Set draw mode
+
+  Draw modes:
+   - DRAW_COARSE
+   - DRAW_FINE
+   - DRAW_BOTH
+
+  \param mode draw mode
+*/
+void Nviz::SetDrawMode(int mode)
+{
+    Nviz_set_draw_mode(data, mode);
 
     return;
 }

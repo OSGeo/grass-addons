@@ -21,3 +21,7 @@
 #define VIEW_DEFAULT_PERSP 40.0
 #define VIEW_DEFAULT_TWIST 0.0
 #define VIEW_DEFAULT_ZEXAG 1.0
+
+#define DRAW_COARSE 0
+#define DRAW_FINE 1
+#define DRAW_BOTH 2

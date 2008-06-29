@@ -32,26 +32,93 @@
 */
 void parse_command(int argc, char* argv[], struct GParams *params)
 {
-    /* raster */
-    params->elev = G_define_standard_option(G_OPT_R_ELEV);
-    params->elev->required = NO;
-    params->elev->multiple = YES;
-    params->elev->description = _("Name of raster map(s) for elevation");
-    params->elev->guisection = _("Raster");
+    /* surface */
+    params->elev_map = G_define_standard_option(G_OPT_R_ELEV);
+    params->elev_map->required = NO;
+    params->elev_map->multiple = YES;
+    params->elev_map->description = _("Name of raster map(s) for elevation");
+    params->elev_map->guisection = _("Surface");
+
+    params->elev_const = G_define_option();
+    params->elev_const->key = "elevation_value";
+    params->elev_const->key_desc = "value";
+    params->elev_const->type = TYPE_INTEGER;
+    params->elev_const->required = NO;
+    params->elev_const->multiple = YES;
+    params->elev_const->description = _("Elevation value(s)");
+    params->elev_const->guisection = _("Surface");
 
     params->color_map = G_define_standard_option(G_OPT_R_MAP);
     params->color_map->multiple = YES;
     params->color_map->required = NO;
     params->color_map->description = _("Name of raster map(s) for color");
-    params->color_map->guisection = _("Raster");
+    params->color_map->guisection = _("Surface");
     params->color_map->key = "color_map";
 
     params->color_const = G_define_standard_option(G_OPT_C_FG);
     params->color_const->multiple = YES;
-    params->color_const->label = _("Color value");
-    params->color_const->guisection = _("Raster");
+    params->color_const->label = _("Color value(s)");
+    params->color_const->guisection = _("Surface");
     params->color_const->key = "color_value";
     params->color_const->answer = NULL;
+
+    params->mask_map = G_define_standard_option(G_OPT_R_MAP);
+    params->mask_map->multiple = YES;
+    params->mask_map->required = NO;
+    params->mask_map->description = _("Name of raster map(s) for mask");
+    params->mask_map->guisection = _("Surface");
+    params->mask_map->key = "mask_map";
+
+    params->transp_map = G_define_standard_option(G_OPT_R_MAP);
+    params->transp_map->multiple = YES;
+    params->transp_map->required = NO;
+    params->transp_map->description = _("Name of raster map(s) for transparency");
+    params->transp_map->guisection = _("Surface");
+    params->transp_map->key = "transparency_map";
+
+    params->transp_const = G_define_option();
+    params->transp_const->key = "transparency_value";
+    params->transp_const->key_desc = "value";
+    params->transp_const->type = TYPE_INTEGER;
+    params->transp_const->required = NO;
+    params->transp_const->multiple = YES;
+    params->transp_const->description = _("Transparency value(s)");
+    params->transp_const->guisection = _("Surface");
+    params->transp_const->options = "0-255";
+
+    params->shine_map = G_define_standard_option(G_OPT_R_MAP);
+    params->shine_map->multiple = YES;
+    params->shine_map->required = NO;
+    params->shine_map->description = _("Name of raster map(s) for shininess");
+    params->shine_map->guisection = _("Surface");
+    params->shine_map->key = "shininess_map";
+
+    params->shine_const = G_define_option();
+    params->shine_const->key = "shininess_value";
+    params->shine_const->key_desc = "value";
+    params->shine_const->type = TYPE_INTEGER;
+    params->shine_const->required = NO;
+    params->shine_const->multiple = YES;
+    params->shine_const->description = _("Shininess value(s)");
+    params->shine_const->guisection = _("Surface");
+    params->shine_const->options = "0-255";
+
+    params->emit_map = G_define_standard_option(G_OPT_R_MAP);
+    params->emit_map->multiple = YES;
+    params->emit_map->required = NO;
+    params->emit_map->description = _("Name of raster map(s) for emission");
+    params->emit_map->guisection = _("Surface");
+    params->emit_map->key = "emission_map";
+
+    params->emit_const = G_define_option();
+    params->emit_const->key = "emission_value";
+    params->emit_const->key_desc = "value";
+    params->emit_const->type = TYPE_INTEGER;
+    params->emit_const->required = NO;
+    params->emit_const->multiple = YES;
+    params->emit_const->description = _("Emission value(s)");
+    params->emit_const->guisection = _("Surface");
+    params->emit_const->options = "0-255";
 
     /* vector */
     params->vector = G_define_standard_option(G_OPT_V_MAP);
@@ -101,7 +168,7 @@ void parse_command(int argc, char* argv[], struct GParams *params)
     params->persp->description = _("Viewpoint field of view (in degrees)");
     params->persp->guisection = _("Viewpoint");
     params->persp->answer = "40";
-    params->persp->options = "0-100";
+    params->persp->options = "1-100";
 
     params->twist = G_define_option();
     params->twist->key = "twist";

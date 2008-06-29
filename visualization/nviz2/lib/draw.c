@@ -363,3 +363,23 @@ int Nviz_draw_all_vect(nv_data *dc)
 
     return 1;
 }
+
+/*!
+  \brief Set draw mode
+
+  Draw modes:
+   - DRAW_COARSE
+   - DRAW_FINE
+   - DRAW_BOTH
+
+  \param mode draw mode
+*/
+void Nviz_set_draw_mode(nv_data *data, int mode)
+{
+    if (mode == DRAW_COARSE) {
+	data->draw_coarse = 1;
+    }
+    else {
+	data->draw_coarse = 0;
+    }
+}

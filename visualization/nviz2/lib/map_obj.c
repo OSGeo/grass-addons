@@ -38,13 +38,14 @@
   set attributes such as topology, color, etc.
 
   \param type map object type
-  \param name map name
+  \param name map name (NULL for constant)
+  \param value constant (used if <i>name</i> is NULL)
   \param data nviz data
 
   \return map object id
   \return -1 on error
 */
-int Nviz_new_map_obj(int type, const char *name,
+int Nviz_new_map_obj(int type, const char *name, float value,
 		     nv_data *data)
 {
     int new_id, i;
@@ -81,7 +82,7 @@ int Nviz_new_map_obj(int type, const char *name,
 	}
 	else {
 	    /* constant */
-	    if (!Nviz_set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, CONST_ATT, NULL, 0.0,
+	    if (!Nviz_set_attr(new_id, MAP_OBJ_SURF, ATT_TOPO, CONST_ATT, NULL, value,
 			       data)) {
 		return -1;
 	    }
@@ -154,8 +155,8 @@ int Nviz_new_map_obj(int type, const char *name,
 
   \param id map object id
   \param type map object type (MAP_OBJ_SURF, MAP_OBJ_VECT, ...)
-  \param desc attribute descriptors
-  \param src attribute sources
+  \param desc attribute descriptor
+  \param src attribute source
   \param str_value attribute value as string (if NULL, check for <i>num_value</i>)
   \param num_value attribute value as float 
 
@@ -273,3 +274,21 @@ void Nviz_set_attr_default()
     return;
 }
 
+/*!
+  Unset map object attribute
+
+  \param id map object id
+  \param type map object type (MAP_OBJ_SURF, MAP_OBJ_VECT, ...)
+  \param desc attribute descriptor
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz_unset_attr(int id, int type, int desc)
+{
+    if (type == MAP_OBJ_SURF) {
+	return GS_unset_att(id, desc);
+    }
+    
+    return 0;
+}

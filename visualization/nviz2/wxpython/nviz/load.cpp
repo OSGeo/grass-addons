@@ -46,7 +46,7 @@ int Nviz::LoadRaster(const char* name, const char *color_name, const char *color
 	    
     /* topography */
     id = Nviz_new_map_obj(MAP_OBJ_SURF,
-			  G_fully_qualified_name(name, mapset),
+			  G_fully_qualified_name(name, mapset), 0.0,
 			  data);
 
     if (color_name) { /* check for color map */

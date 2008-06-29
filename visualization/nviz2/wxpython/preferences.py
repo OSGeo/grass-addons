@@ -198,7 +198,7 @@ class Settings:
                 },
             'nviz' : {
                 'view' : {'persp' : { 'value' : 40,
-                                      'min' : 0,
+                                      'min' : 1,
                                       'max' : 100,
                                       'step' : 5,
                                       'update' : False,

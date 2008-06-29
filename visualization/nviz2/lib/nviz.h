@@ -39,6 +39,10 @@
 #define MAP_OBJ_VOL 2
 #define MAP_OBJ_VECT 3
 
+#define DRAW_COARSE 0
+#define DRAW_FINE 1
+#define DRAW_BOTH 2
+
 #define RANGE (5 * GS_UNIT_SIZE)
 #define RANGE_OFFSET (2 * GS_UNIT_SIZE)
 #define ZRANGE (3 * GS_UNIT_SIZE)
@@ -77,6 +81,9 @@ typedef struct {
     
     /* background color */
     int bgcolor;
+
+    /* draw */
+    int draw_coarse;
 } nv_data;
 
 /* The following structure is used to associate client data with surfaces.
@@ -131,6 +138,7 @@ int Nviz_draw_all_surf(nv_data *);
 int Nviz_draw_all(nv_data *);
 int Nviz_draw_quick(nv_data *);
 int Nviz_draw_all_vect(nv_data *);
+void Nviz_set_draw_mode(nv_data *, int);
 
 /* exag.c */
 int Nviz_get_exag_height(float *, float *, float *);
@@ -148,11 +156,12 @@ int Nviz_init_light(nv_data *, int);
 int Nviz_new_light(nv_data *);
 
 /* map_obj.c */
-int Nviz_new_map_obj(int, const char *,
+int Nviz_new_map_obj(int, const char *, float,
 		     nv_data *);
 int Nviz_set_attr(int, int, int, int, const char *, float,
 		  nv_data *);
 void Nviz_set_attr_default();
+int Nviz_unset_attr(int, int, int);
 
 /* nviz.c */
 void Nviz_init_data(nv_data *);

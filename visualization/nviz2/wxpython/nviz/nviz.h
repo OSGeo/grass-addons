@@ -37,6 +37,7 @@ private:
 
     /* surface.cpp */
     int SetSurfaceAttr(int, int, bool, const char *);
+    int UnsetSurfaceAttr(int, int);
 
 public:
     /* constructor */
@@ -66,11 +67,18 @@ public:
     /* draw.cpp */
     void Draw(bool);
     void EraseMap();
+    void SetDrawMode(int);
 
     /* surface.cpp */
     int SetSurfaceTopo(int, bool, const char *);
     int SetSurfaceColor(int, bool, const char *);
+    int SetSurfaceMask(int, bool, const char *);
+    int SetSurfaceTransp(int, bool, const char *);
     int SetSurfaceShine(int, bool, const char *);
+    int SetSurfaceEmit(int, bool, const char *);
+    int UnsetSurfaceMask(int);
+    int UnsetSurfaceTransp(int);
+    int UnsetSurfaceEmit(int);
 };
 
 #endif /* __NVIZ_H__ */

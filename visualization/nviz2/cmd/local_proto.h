@@ -5,11 +5,18 @@
 
 /* module flags and parameters */
 struct GParams { 
-  struct Option *elev, *color_map, *color_const, /* raster */
-    *vector, /* vector */
-    *exag, *bgcolor, /* misc */
-    *pos, *height, *persp, *twist, /* viewpoint */
-    *output, *format, *size; /* output */
+  /* raster */
+  struct Option *elev_map, *elev_const, *color_map, *color_const,
+    *mask_map, *transp_map, *transp_const, *shine_map, *shine_const,
+    *emit_map, *emit_const,
+  /* vector */
+    *vector, 
+  /* misc */
+    *exag, *bgcolor, 
+  /* viewpoint */
+    *pos, *height, *persp, *twist, 
+  /* output */
+    *output, *format, *size; 
 };
 
 /* args.c */
