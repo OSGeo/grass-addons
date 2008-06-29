@@ -81,16 +81,6 @@
 #% options: 1-6
 #% required : no
 #%end
-
-### still needed? (left-over from GRASS 5 sites format)
-#%option
-#% key: null_string
-#% type: string
-#% description: Text string that represents "no data" in input data
-#% answer: nan
-#% required : no
-#%end
-
 #%flag
 #% key: r
 #% description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
@@ -136,7 +126,6 @@ if [ "$FRICTION" -eq 5 ] ; then DIVISOR=" / 100.0" ; fi
 if [ "$FRICTION" -eq 6 ] ; then DIVISOR=" / 500.0" ; fi
 
 
-NULL="$GIS_OPT_NULL_STRING"
 POINTS_FILE="$GIS_OPT_INPUT"
 
 unset VERBOSE
@@ -213,7 +202,7 @@ for POS in `cat "$TMP_POINTS"` ; do
 
     echo site $NUM of $N  e=$EASTING  n=$NORTHING data=$DATA_VALUE
 
-    if [ -z "$DATA_VALUE" ] || [ "$DATA_VALUE" = "$NULL" ] ; then
+    if [ -z "$DATA_VALUE" ] ; then
 	echo "  Skipping, no data here." 1>&2
 	N=`expr $N - 1`
 	continue
@@ -290,7 +279,7 @@ for POS in `cat "$TMP_POINTS"` ; do
 
     echo "site $NUM of $N  data value = $DATA_VALUE" 1>&2
 
-    if [ -z "$DATA_VALUE" ] || [ "$DATA_VALUE" = "$NULL" ] ; then
+    if [ -z "$DATA_VALUE" ] ; then
 	echo "  Skipping, no data here." 1>&2
 	continue
     fi
