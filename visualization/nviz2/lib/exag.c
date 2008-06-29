@@ -19,11 +19,10 @@
 #include <grass/nviz.h>
 
 /*!
-  \brief Get viewpoint height
+  \brief Get view height
 
   Call after initial data has been loaded
 
-  \param data nviz data
   \param[out] val height value
   \param[out] min min value (or NULL)
   \param[out] max max value (or NULL)
@@ -66,4 +65,35 @@ int Nviz_get_exag_height(float *val, float *min, float *max)
 	*max = fmax;
 
     return 1;
+}
+
+/*!
+  \brief Get view z-exag value
+
+  Call after initial data has been loaded
+
+  \return value
+*/
+float Nviz_get_exag()
+{
+    float exag, texag;
+    int nsurfs, i, *surf_list;
+
+    surf_list = GS_get_surf_list(&nsurfs);
+
+    exag = 0.0;
+    for (i = 0; i < nsurfs; i++) {
+	if (GS_get_exag_guess(surf_list[i], &texag) > -1) {
+	    if (texag)
+		exag = (texag > exag) ? texag : exag;
+	}
+    }
+
+    if (exag == 0.0)
+	exag = 1.0;
+
+    if (nsurfs > 0)
+	G_free(surf_list);
+
+    return exag;
 }

@@ -28,13 +28,15 @@ extern "C" {
 #define VIEW_DEFAULT_POS_Y 0.85
 #define VIEW_DEFAULT_PERSP 40.0
 #define VIEW_DEFAULT_TWIST 0.0
-#define VIEW_DEFAULT_ZEXAG 1.0
 
 class Nviz
 {
 private:
     nv_data *data;
     wxGLCanvas *glCanvas;
+
+    /* surface.cpp */
+    int SetSurfaceAttr(int, int, bool, const char *);
 
 public:
     /* constructor */
@@ -45,7 +47,7 @@ public:
 
     /* change_view.cpp */
     int ResizeWindow(int, int);
-    float SetViewDefault();
+    std::vector<double> SetViewDefault();
     int SetView(float, float,
 		float, float, float);
     int SetZExag(float);
@@ -66,7 +68,9 @@ public:
     void EraseMap();
 
     /* surface.cpp */
-    void SetSurfaceColor(int, bool, const char *);
+    int SetSurfaceTopo(int, bool, const char *);
+    int SetSurfaceColor(int, bool, const char *);
+    int SetSurfaceShine(int, bool, const char *);
 };
 
 #endif /* __NVIZ_H__ */

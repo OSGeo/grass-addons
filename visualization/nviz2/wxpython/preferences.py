@@ -230,6 +230,9 @@ class Settings:
                     'shininess': { 'map' : False,
                                    'value' : 60.0,
                                    },
+                    'color' : { 'map' : True,
+                                'value' : (0, 0, 0, 255), # constant: black
+                                },
                     'draw' : {
                         'color' : (136, 136, 136, 255),
                         'mode' : 1, # fine

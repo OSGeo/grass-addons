@@ -139,8 +139,11 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         if not self.init:
             self.nvizClass.InitView()
             self.LoadDataLayers()
-            self.view['height']['value'] = self.nvizClass.SetViewDefault()
+            (self.view['z-exag']['value'],
+             self.view['height']['value']) = self.nvizClass.SetViewDefault()
+            
             if hasattr(self.parent, "nvizToolWin"):
+                self.parent.nvizToolWin.UpdatePage('view')
                 self.parent.nvizToolWin.UpdateSettings()
             self.init = True
         self.UpdateMap()
@@ -556,21 +559,31 @@ class NvizToolWindow(wx.Frame):
                           pos=(row, 2))
 
             if code == 'color':
-                value = csel.ColourSelect(panel, id=wx.ID_ANY)
+                value = csel.ColourSelect(panel, id=wx.ID_ANY,
+                                          colour=UserSettings.Get(group='nviz', key='surface',
+                                                                 subkey=['color', 'value']))
                 value.Bind(csel.EVT_COLOURSELECT, self.OnSurfaceMap)
+            elif code == 'mask':
+                value = None
             else:
                 value = wx.SpinCtrl(parent=panel, id=wx.ID_ANY, size=(65, -1),
-                                    initial=0,
-                                    min=0,
-                                    max=100)
+                                    initial=0)
+                if code == 'topo':
+                    value.SetRange(minVal=-1e9, maxVal=1e9)
+                elif code in ('shine', 'transp', 'emis'):
+                    value.SetRange(minVal=0, maxVal=255)
+                else:
+                    value.SetRange(minVal=0, maxVal=100)
                 value.Bind(wx.EVT_TEXT, self.OnSurfaceMap)
-            self.win['surface'][code]['constant'] = value.GetId()
-            value.Enable(False)
-
-            gridSizer.Add(item=value, flag=wx.ALIGN_CENTER_VERTICAL,
-                          pos=(row, 3))
-
-            self.SetSurfaceUseMap(code) # -> enable map / disable constant
+            
+            if value:
+                self.win['surface'][code]['constant'] = value.GetId()
+                value.Enable(False)
+                gridSizer.Add(item=value, flag=wx.ALIGN_CENTER_VERTICAL,
+                              pos=(row, 3))
+                self.SetSurfaceUseMap(code) # -> enable map / disable constant
+            else:
+                use.Delete(1) # delete 'constant' from list
 
             row += 1
 
@@ -861,10 +874,17 @@ class NvizToolWindow(wx.Frame):
         layer = self.mapWindow.GetSelectedLayer()
         id = self.mapWindow.GetMapObjId(layer)
 
-        if self.mapWindow.update.has_key('color'):
-            map, value = self.mapWindow.update['color']
-            self.mapWindow.nvizClass.SetSurfaceColor(id, map, str(value)) 
-            del self.mapWindow.update['color']
+        for attr in ('topo', 'color', 'mask',
+                     'transp', 'shine', 'emis'):
+            if self.mapWindow.update.has_key(attr):
+                map, value = self.mapWindow.update[attr]
+                if attr == 'topo':
+                    self.mapWindow.nvizClass.SetSurfaceTopo(id, map, str(value)) 
+                elif attr == 'color':
+                    self.mapWindow.nvizClass.SetSurfaceColor(id, map, str(value)) 
+                elif attr == 'shine':
+                    self.mapWindow.nvizClass.SetSurfaceShine(id, map, str(value)) 
+                del self.mapWindow.update[attr]
 
         self.mapWindow.Refresh(False)
 
@@ -877,6 +897,9 @@ class NvizToolWindow(wx.Frame):
 
     def OnSurfaceUse(self, event):
         """Surface attribute -- use -- map/constant"""
+        if not self.mapWindow.init:
+            return
+
         # find attribute row
         attrName = self.__GetWindowName(self.win['surface'], event.GetId())
         if not attrName:
@@ -884,14 +907,20 @@ class NvizToolWindow(wx.Frame):
 
         if event.GetSelection() == 0:
             useMap = True
-            value = self.win['surface'][attrName]['map']
+            value = self.FindWindowById(self.win['surface'][attrName]['map']).GetValue()
         else:
             useMap = False
-            value = self.win['surface'][attrName]['constant']
+            if attrName == 'color':
+                value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetColour()
+                value = str(value[0]) + ':' + str(value[1]) + ':' + str(value[2])
+            else:
+                value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetValue()
 
         self.SetSurfaceUseMap(attrName, useMap)
 
         self.mapWindow.update[attrName] = (useMap, str(value))
+        if self.parent.autoRender.IsChecked():
+            self.OnApply(None)
 
     def SetSurfaceUseMap(self, attrName, map=True):
         if map: # map
@@ -916,8 +945,11 @@ class NvizToolWindow(wx.Frame):
             value = self.FindWindowById(self.win['surface'][attrName]['map']).GetValue()
             map = True
         else:
-            value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetValue()
-            value = str(value[0]) + ':' + str(value[1]) + ':' + str(value[2])
+            if attrName == 'color':
+                value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetColour()
+                value = str(value[0]) + ':' + str(value[1]) + ':' + str(value[2])
+            else:
+                value = self.FindWindowById(self.win['surface'][attrName]['constant']).GetValue()
             map = False
 
         self.mapWindow.update[attrName] = (map, str(value))
@@ -939,7 +971,12 @@ class NvizToolWindow(wx.Frame):
         layer = self.mapWindow.GetSelectedLayer()
         nvizLayer = self.mapWindow.GetSelectedLayer(nviz=True)
 
-        if pageId == 'surface':
+        if pageId == 'view':
+            max = self.settings['z-exag']['value'] * 10
+            for control in ('spin', 'slider'):
+                self.FindWindowById(self.win['view']['z-exag'][control]).SetRange(0,
+                                                                                  max)
+        elif pageId == 'surface':
             if nvizLayer is None:
                 for attr in ('topo', 'color'):
                     self.FindWindowById(self.win['surface'][attr]['map']).SetValue(layer.name)

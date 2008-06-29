@@ -18,23 +18,86 @@
 
 #include "nviz.h"
 
-void Nviz::SetSurfaceColor(int id, bool map, const char *value)
+/*!
+  \brief Set surface topography
+
+  \param id surface id
+  \param map if true use map otherwise constant
+  \param value map name of value
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::SetSurfaceTopo(int id, bool map, const char *value)
 {
+    return SetSurfaceAttr(id, ATT_TOPO, map, value);
+}
+
+/*!
+  \brief Set surface color
+
+  \param id surface id
+  \param map if true use map otherwise constant
+  \param value map name of value
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::SetSurfaceColor(int id, bool map, const char *value)
+{
+    return SetSurfaceAttr(id, ATT_COLOR, map, value);
+}
+
+/*!
+  \brief Set surface shininess
+
+  \param id surface id
+  \param map if true use map otherwise constant
+  \param value map name of value
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::SetSurfaceShine(int id, bool map, const char *value)
+{
+    return SetSurfaceAttr(id, ATT_SHINE, map, value);
+}
+
+/*!
+  \brief Set surface attribute
+
+  \param id surface id
+  \param attr attribute desc
+  \param map if true use map otherwise constant
+  \param value map name of value
+
+  \return 1 on success
+  \return 0 on failure
+*/
+int Nviz::SetSurfaceAttr(int id, int attr, bool map, const char *value)
+{
+    int ret;
+
     if (map) {
-	Nviz_set_attr(id, MAP_OBJ_SURF, ATT_COLOR, MAP_ATT,
-		      value, -1.0,
-		      data);
+	ret = Nviz_set_attr(id, MAP_OBJ_SURF, attr, MAP_ATT,
+			    value, -1.0,
+			    data);
     }
     else {
 	float val;
-	val = Nviz_color_from_str(value);
-	Nviz_set_attr(id, MAP_OBJ_SURF, ATT_COLOR, CONST_ATT,
-		      NULL, val,
-		      data);
+	if (attr == ATT_COLOR) {
+	    val = Nviz_color_from_str(value);
+	}
+	else {
+	    val = atof(value);
+	}
+	ret = Nviz_set_attr(id, MAP_OBJ_SURF, attr, CONST_ATT,
+			    NULL, val,
+			    data);
     }
 	
-    G_debug(1, "Nviz::SetSurfaceColor(): id=%d, map=%d, value=%s",
-	    id, map, value);
+    G_debug(1, "Nviz::SetSurfaceAttr(): id=%d, attr=%d, map=%d, value=%s",
+	    id, attr, map, value);
 
-    return;
+    return ret;
 }

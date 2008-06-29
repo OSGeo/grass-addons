@@ -35,7 +35,7 @@ int main (int argc, char *argv[])
     unsigned int i;
     int id, ret;
     unsigned int nelev, ncolor_map, ncolor_const, nvect;
-    float vp_height; /* calculated viewpoint height */
+    float vp_height, z_exag; /* calculated viewpoint height, z-exag */
     int width, height; /* output image size */
     char *output_name;
 
@@ -181,16 +181,26 @@ int main (int argc, char *argv[])
     Nviz_set_focus_map(MAP_OBJ_UNDEFINED, -1);
 
     /* define view point */
+    if (params->exag->answer) {
+	z_exag = atof(params->exag->answer);
+    }
+    else {
+	z_exag = Nviz_get_exag();
+	G_message(_("Vertical exaggeration, using calculated value %f"), z_exag);
+    }
+    Nviz_change_exag(&data,
+		     z_exag);
+
     if (params->height->answer) {
 	vp_height = atof(params->height->answer);
     }
     else {
 	Nviz_get_exag_height(&vp_height, NULL, NULL);
+	G_message(_("Viewpoint height not given, using calculated value %f"), vp_height);
     }
     Nviz_set_viewpoint_height(&data,
 			      vp_height);
-    Nviz_change_exag(&data,
-		     atof(params->exag->answer));
+    
     Nviz_set_viewpoint_position(&data,
 				atof(params->pos->answers[0]),
 				atof(params->pos->answers[1]));
@@ -214,6 +224,8 @@ int main (int argc, char *argv[])
     
     if (!ret)
 	G_fatal_error(_("Unsupported output format"));
+
+    G_done_msg(_("File <%s> created."), output_name);
 
     Nviz_destroy_render_window(offscreen);
 

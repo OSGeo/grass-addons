@@ -69,8 +69,6 @@ void parse_command(int argc, char* argv[], struct GParams *params)
     params->exag->required = NO;
     params->exag->multiple = NO;
     params->exag->description = _("Vertical exaggeration");
-    params->exag->answer = "1.0";
-    params->exag->options = "0-10";
 
     params->bgcolor = G_define_standard_option(G_OPT_C_BG);
 

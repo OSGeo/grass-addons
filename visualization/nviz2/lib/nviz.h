@@ -134,6 +134,7 @@ int Nviz_draw_all_vect(nv_data *);
 
 /* exag.c */
 int Nviz_get_exag_height(float *, float *, float *);
+float Nviz_get_exag();
 
 /* lights.c */
 int Nviz_set_light_position(nv_data *, int,
