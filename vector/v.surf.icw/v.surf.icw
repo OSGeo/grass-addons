@@ -134,13 +134,6 @@ if [ $GIS_FLAG_V -eq 1 ] || [ "$GRASS_VERBOSE" -gt 1 ] ; then
    VERBOSE="-v"
 fi
 
-#figure out which column number we are after
-#COLMN="`db.columns "$POINTS_FILE" | grep -n "^${GIS_OPT_COLUMN}$" | cut -f1 -d:`"
-#if [ -z "$COLMN" ] || [ "$COLMN" -le 0 ] ; then
-#    echo "Data column [$GIS_OPT_COLUMN] not found in [$POINTS_FILE]." 1>&2
-#    exit
-#fi
-
 ### Check that we have the column and it is the correct type
 COL_NAME=`v.info -c "$POINTS_FILE" 2> /dev/null | grep "|${GIS_OPT_COLUMN}$" | cut -f2 -d'|'`
 if [ -z "$COL_NAME" ] ; then
@@ -197,7 +190,6 @@ for POS in `cat "$TMP_POINTS"` ; do
     EASTING=`echo "$POS" | cut -f1 -d"|"`
     NORTHING=`echo "$POS" | cut -f2 -d"|"`
     CAT=`echo "$POS" | cut -f"$CATCOL" -d"|"`
-#    DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select * from tmp_icw_points_$$ where cat = $CAT" | cut -f"$COLMN" -d'|'`"
     DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select $COL_NAME from tmp_icw_points_$$ where cat=${CAT}"`"
 
     echo site $NUM of $N  e=$EASTING  n=$NORTHING data=$DATA_VALUE
@@ -228,6 +220,8 @@ for POS in `cat "$TMP_POINTS"` ; do
     # r.mapcalc 1by_cost_site_sqrd.$NUM=" 1.0 / exp(cost_site.$NUM , $FRICTION)"
 
     EXPRESSION="1.0 / pow(cost_site.$NUM $DIVISOR, $FRICTION )"
+
+    # use log10() or ln() ?
     if [ "$GIS_FLAG_R" -eq 1 ] ; then
 	echo "Using (d^n)*log(d) radial basis function." 1>&2
 	EXPRESSION="pow(cost_site.$NUM, $FRICTION) * log (cost_site.$NUM)"
@@ -237,8 +231,8 @@ for POS in `cat "$TMP_POINTS"` ; do
     r.mapcalc "1by_cost_site_sqrd.$NUM = $EXPRESSION"
 
 #    r.patch in=1by_cost_site_sqrd.${NUM},tmp_idw_cost_val_$$ out=1by_cost_site_sqrd.${NUM} --o
-
 #    g.remove rast=cost_site.$NUM
+
     NUM="`expr $NUM + 1`"
 done
 
@@ -274,10 +268,9 @@ for POS in `cat "$TMP_POINTS"` ; do
     EASTING=`echo "$POS" | cut -f1 -d"|"`
     NORTHING=`echo "$POS" | cut -f2 -d"|"`
     CAT=`echo "$POS" | cut -f"$CATCOL" -d"|"`
-#    DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select * from tmp_icw_points_$$ where cat = $CAT" | cut -f"$COLMN" -d'|'`"
     DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select $COL_NAME from tmp_icw_points_$$ where cat=${CAT}"`"
 
-    echo "site $NUM of $N  data value = $DATA_VALUE" 1>&2
+    echo "Site $NUM of $N  data value = $DATA_VALUE" 1>&2
 
     if [ -z "$DATA_VALUE" ] ; then
 	echo "  Skipping, no data here." 1>&2
@@ -317,17 +310,6 @@ r.series method=sum in=$INPUT_MAPS out="$GIS_OPT_OUTPUT"
 #TODO: r.patch in v.to.rast of values at exact seed site locations. currently set to null
 
 r.colors "$GIS_OPT_OUTPUT" rule=bcyr
-if [ 0 -eq 1 ] ; then
-r.colors "$GIS_OPT_OUTPUT" col=rules << EOF
-  0 magenta
-  10 red
-  20 brown
-  25 yellow
-  30 green
-  35 blue
-  40 white
-EOF
-fi
 
 r.support "$GIS_OPT_OUTPUT" title="Inverse cost-weighted interpolation" history=""
 r.support "$GIS_OPT_OUTPUT" history="v.surf.icw interpolation:"
