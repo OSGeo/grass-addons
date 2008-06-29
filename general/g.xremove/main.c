@@ -6,13 +6,13 @@
  * AUTHOR(S):    Huidae Cho <grass4u gmail.com>
  *
  * 		 Based on general/manage/cmd/remove.c by
- *               CERL (original contributor)
- *               Radim Blazek <radim.blazek gmail.com>, 
- *               Cedric Shock <cedricgrass shockfamily.net>, 
+ *               CERL (original contributor),
+ *               Radim Blazek <radim.blazek gmail.com>,
+ *               Cedric Shock <cedricgrass shockfamily.net>,
  *               Huidae Cho <grass4u gmail.com>,
- *               Glynn Clements <glynn gclements.plus.com>, 
- *               Jachym Cepicky <jachym les-ejk.cz>, 
- *               Markus Neteler <neteler itc.it>, 
+ *               Glynn Clements <glynn gclements.plus.com>,
+ *               Jachym Cepicky <jachym les-ejk.cz>,
+ *               Markus Neteler <neteler itc.it>,
  *               Martin Landa <landa.martin gmail.com>
  *
  * PURPOSE:      lets users remove GRASS database files

@@ -3,7 +3,7 @@
 #include <grass/G3d.h>
 #include "global.h"
 
-/* 
+/*
  *  returns 0 - success
  *          1 - error
  */

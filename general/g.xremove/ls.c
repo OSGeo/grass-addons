@@ -5,7 +5,7 @@
    \brief Functions to list the files in a directory.
 
    \author Paul Kelly, Huidae Cho
-   
+
    (C) 2007, 2008 by the GRASS Development Team
 
    This program is free software under the GNU General Public
@@ -42,7 +42,7 @@ static int cmp_names(const void *aa, const void *bb)
 
 /**
  * \brief Sets a function and its complementary data for G__ls filtering.
- * 
+ *
  * Defines a filter function and its rule data that allow G__ls to filter out
  * unwanted file names.  Call this function before G__ls.
  *
@@ -62,17 +62,17 @@ void G_set_ls_filter(ls_filter_func * func, void *closure)
 
 /**
  * \brief Stores a sorted directory listing in an array
- * 
+ *
  * The filenames in the specified directory are stored in an array of
  * strings, then sorted alphabetically. Each filename has space allocated
  * using G_store(), which can be freed using G_free() if necessary. The
  * same goes for the array itself.
- * 
- * 
+ *
+ *
  * \param dir       Directory to list
  * \param num_files Pointer to an integer in which the total number of
  *                  files listed will be stored
- * 
+ *
  * \return          Pointer to array of strings containing the listing
  **/
 

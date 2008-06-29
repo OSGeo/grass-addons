@@ -39,7 +39,7 @@ static int join_element(const char *, const char *, const char *,
 
    \param element    Database element (eg, "cell", "cellhd", etc)
    \param alias      Alias for element (if NULL, element is used)
-   \param mapset     Mapset to be listed "" to list all mapsets in mapset search list 
+   \param mapset     Mapset to be listed "" to list all mapsets in mapset search list
    "." will list current mapset
    \param separator  Map name separator
    \param flags      G_JOIN_ELEMENT_TYPE   Include alias
