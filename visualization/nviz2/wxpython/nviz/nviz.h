@@ -79,6 +79,7 @@ public:
     int UnsetSurfaceMask(int);
     int UnsetSurfaceTransp(int);
     int UnsetSurfaceEmit(int);
+    int SetSurfaceRes(int, int, int, int, int);
 };
 
 #endif /* __NVIZ_H__ */

@@ -284,6 +284,12 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
         """
         for raster in self.Map.GetListOfLayers(l_type='raster', l_active=True):
             id = self.nvizClass.LoadRaster(str(raster.name), None, None)
+            # set resolution
+            res = UserSettings.Get(group='nviz', key='surface',
+                                   subkey=['draw', 'res-fine'])
+            wire = UserSettings.Get(group='nviz', key='surface',
+                                    subkey=['draw', 'res-coarse'])
+            self.nvizClass.SetSurfaceRes(id, res, res, wire, wire)
             self.object[self.Map.GetLayerIndex(raster)] = id
 
     def Reset(self):
@@ -628,8 +634,11 @@ class NvizToolWindow(wx.Frame):
                                  initial=1,
                                  min=1,
                                  max=100)
+        self.win['surface']['res'] = resolution.GetId()
         gridSizer.Add(item=resolution, flag=wx.ALIGN_CENTER_VERTICAL,
                       pos=(0, 3))
+        # update resolution widget
+        self.SetSurfaceMode(mode.GetSelection())
 
         # style
         gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
@@ -915,7 +924,7 @@ class NvizToolWindow(wx.Frame):
                 del self.mapWindow.update[attr]
 
         # drawing mode
-        if self.update.has_key('draw-mode'):
+        if self.mapWindow.update.has_key('draw-mode'):
             self.mapWindow.nvizClass.SetDrawMode(self.update['draw-mode'])
 
         self.mapWindow.Refresh(False)
@@ -1013,15 +1022,28 @@ class NvizToolWindow(wx.Frame):
 
     def OnSurfaceMode(self, event):
         """Drawing mode changed"""
-        selection = event.GetSelection()
+        self.SetSurfaceMode(event.GetSelection())
+        event.Skip()
+
+    def SetSurfaceMode(self, selection):
+        """Set drawing mode and resolution"""
+        win = self.FindWindowById(self.win['surface']['res'])
         if selection == 0: # coarse
             self.mapWindow.update['draw-mode'] = wxnviz.DRAW_COARSE
+            if not win.IsEnabled():
+                win.Enable(True)
+            win.SetValue(UserSettings.Get(group='nviz', key='surface',
+                                          subkey=['draw', 'res-coarse']))
         elif selection == 1: # fine
             self.mapWindow.update['draw-mode'] = wxnviz.DRAW_FINE
+            if not win.IsEnabled():
+                win.Enable(True)
+            win.SetValue(UserSettings.Get(group='nviz', key='surface',
+                                          subkey=['draw', 'res-fine']))
+
         elif selection == 2: # both
             self.mapWindow.update['draw-mode'] = wxnviz.DRAW_BOTH
-
-        event.Skip()
+            self.FindWindowById(self.win['surface']['res']).Enable(False)
 
     def OnSurfaceStyle(self, event):
         pass

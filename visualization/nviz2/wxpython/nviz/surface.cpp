@@ -206,3 +206,19 @@ int Nviz::UnsetSurfaceAttr(int id, int attr)
 {
     return Nviz_unset_attr(id, MAP_OBJ_SURF, attr);
 }
+
+/*!
+  \brief Set surface resolution
+
+  \param id surface id
+  \param xres,yres x/y resolution
+  \param xwire,ywire x/y wire resolution
+
+  \return -1 on error
+  \return 0 on success
+*/
+int Nviz::SetSurfaceRes(int id, int xres, int yres,
+			 int xwire, int ywire)
+{
+    return GS_set_drawres(id, xres, yres, xwire, ywire);
+}

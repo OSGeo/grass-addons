@@ -237,9 +237,9 @@ class Settings:
                         'color' : (136, 136, 136, 255),
                         'mode' : 1, # fine
                         'style' : 1, # surface
-                        'shading' : 1, # gouraud
-                        'res-fine' : 1,
-                        'res-coarse' : 1,
+                        'shading' : 100, # gouraud
+                        'res-fine' : 6,
+                        'res-coarse' : 9,
                         },
                     'position' : {
                         'x' : 0,

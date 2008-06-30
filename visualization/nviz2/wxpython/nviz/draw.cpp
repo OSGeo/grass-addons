@@ -30,6 +30,8 @@ void Nviz::Draw(bool quick)
     
     Nviz_draw_cplane(data, -1, -1);
 
+    data->draw_coarse = 1;
+
     if (data->draw_coarse) { /* coarse */
 	GS_set_draw(GSD_BACK);
 	GS_ready_draw();
