@@ -30,22 +30,22 @@ void Nviz::Draw(bool quick)
     
     Nviz_draw_cplane(data, -1, -1);
 
-    data->draw_coarse = 1;
-
     if (data->draw_coarse) { /* coarse */
 	GS_set_draw(GSD_BACK);
 	GS_ready_draw();
 	GS_alldraw_wire();
 	GS_done_draw();
+
+	G_debug(1, "Nviz::Draw(): mode=coarse");
     }
     else { /* fine / both */
 	if (!quick)
 	    Nviz_draw_all (data);
 	else
-	    Nviz_draw_quick(data);
-    }
+	    Nviz_draw_quick(data); // ?
 
-    G_debug(1, "Nviz::Draw(): quick=%d", quick);
+	G_debug(1, "Nviz::Draw(): mode=fine, quick=%d", quick);
+    }
 
     return;
 }
@@ -76,5 +76,7 @@ void Nviz::SetDrawMode(int mode)
 {
     Nviz_set_draw_mode(data, mode);
 
+    G_debug(1, "Nviz::SetDrawMode(): mode=%d",
+	    mode);
     return;
 }

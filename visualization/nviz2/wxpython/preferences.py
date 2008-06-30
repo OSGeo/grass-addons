@@ -227,8 +227,8 @@ class Settings:
                                        },
                           },
                 'surface' : {
-                    'shininess': { 'map' : False,
-                                   'value' : 60.0,
+                    'shine': { 'map' : False,
+                               'value' : 60.0,
                                    },
                     'color' : { 'map' : True,
                                 'value' : (0, 0, 0, 255), # constant: black
@@ -237,7 +237,7 @@ class Settings:
                         'color' : (136, 136, 136, 255),
                         'mode' : 1, # fine
                         'style' : 1, # surface
-                        'shading' : 100, # gouraud
+                        'shading' : 1, # gouraud
                         'res-fine' : 6,
                         'res-coarse' : 9,
                         },
