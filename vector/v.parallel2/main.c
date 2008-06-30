@@ -28,11 +28,11 @@ int main (int argc, char *argv[])
     struct Option *in_opt, *out_opt, *dista_opt;
     struct Option *distb_opt, *angle_opt, *side_opt;
     struct Option *tol_opt;
-    struct Flag *round_flag, *loops_flag;
+    struct Flag *round_flag, *buf_flag;
     struct Map_info In, Out;
-    struct line_pnts *Points, *Points2;
+    struct line_pnts *Points, *Points2, *oPoints, **iPoints;
     struct line_cats *Cats;
-    int    line, nlines;
+    int    line, nlines, inner_count, j;
     double da, db, dalpha, tolerance;
     int side;
 
@@ -50,6 +50,7 @@ int main (int argc, char *argv[])
     dista_opt->key = "distance";
     dista_opt->type =  TYPE_DOUBLE;
     dista_opt->required = YES;
+    dista_opt->options = "0-100000000";
     dista_opt->multiple = NO;
     dista_opt->description = _("Offset along major axis in map units");
 
@@ -57,6 +58,7 @@ int main (int argc, char *argv[])
     distb_opt->key = "minordistance";
     distb_opt->type =  TYPE_DOUBLE;
     distb_opt->required = NO;
+    dista_opt->options = "0-100000000";
     distb_opt->multiple = NO;
     distb_opt->description = _("Offset along minor axis in map units");
 
@@ -81,6 +83,7 @@ int main (int argc, char *argv[])
     tol_opt->key = "tolerance";
     tol_opt->type =  TYPE_DOUBLE;
     tol_opt->required = NO;
+    tol_opt->options = "0-100000000";
     tol_opt->multiple = NO;
     tol_opt->description = _("Tolerance of arc polylines in map units");
 
@@ -88,9 +91,9 @@ int main (int argc, char *argv[])
     round_flag->key = 'r';
     round_flag->description = _("Make outside corners round");
 
-    loops_flag = G_define_flag();
-    loops_flag->key = 'l';
-    loops_flag->description = _("Don't remove loops");
+    buf_flag = G_define_flag();
+    buf_flag->key = 'b';
+    buf_flag->description = _("Create buffer-like parallel lines");
     
     if (G_parser (argc, argv))
         exit(EXIT_FAILURE);
@@ -111,7 +114,7 @@ int main (int argc, char *argv[])
     if (tol_opt->answer)
         tolerance = atof(tol_opt->answer);
     else
-        tolerance = ((db<da)?db:da)/10.;
+        tolerance = ((db<da)?db:da)/100.;
             
     if (strcmp(side_opt->answer, "right") == 0)
         side = 1;
@@ -139,8 +142,17 @@ int main (int argc, char *argv[])
         ltype = Vect_read_line ( &In, Points, Cats, line);
         
         if ( ltype & GV_LINES ) {
-            Vect_line_parallel2(Points, da, db, dalpha, side, round_flag->answer, loops_flag->answer, tolerance, Points2);
-            Vect_write_line(&Out, ltype, Points2, Cats);
+            if (!(buf_flag->answer)) {
+                Vect_line_parallel2(Points, da, db, dalpha, side, round_flag->answer, tolerance, Points2);
+                Vect_write_line(&Out, ltype, Points2, Cats);
+            }
+            else {
+                parallel_line_b(Points, da, db, dalpha, round_flag->answer, 1, tolerance, &oPoints, &iPoints, &inner_count);
+                Vect_write_line(&Out, ltype, oPoints, Cats);
+                for (j = 0; j < inner_count; j++) {
+                    Vect_write_line(&Out, ltype, iPoints[j], Cats); 
+                }
+            }
         } else {
             Vect_write_line(&Out, ltype, Points, Cats);
         }
