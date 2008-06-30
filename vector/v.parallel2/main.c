@@ -76,8 +76,8 @@ int main (int argc, char *argv[])
     side_opt->required = YES;
     side_opt->answer = "right";
     side_opt->multiple = NO;
-    side_opt->options = "left,right";
-    side_opt->description = _("left;Parallel line is on the left;right;Parallel line is on the right;");
+    side_opt->options = "left,right,both";
+    side_opt->description = _("left;Parallel line is on the left;right;Parallel line is on the right;both;Parallel lines on both sides");
 
     tol_opt = G_define_option();
     tol_opt->key = "tolerance";
@@ -120,6 +120,8 @@ int main (int argc, char *argv[])
         side = 1;
     else if (strcmp(side_opt->answer, "left") == 0)
         side = -1;
+    else
+        side = 0;
 
     Vect_set_open_level (2); 
     Vect_open_old (&In, in_opt->answer, ""); 
@@ -143,8 +145,16 @@ int main (int argc, char *argv[])
         
         if ( ltype & GV_LINES ) {
             if (!(buf_flag->answer)) {
-                Vect_line_parallel2(Points, da, db, dalpha, side, round_flag->answer, tolerance, Points2);
-                Vect_write_line(&Out, ltype, Points2, Cats);
+                if (side != 0) {
+                    Vect_line_parallel2(Points, da, db, dalpha, side, round_flag->answer, tolerance, Points2);
+                    Vect_write_line(&Out, ltype, Points2, Cats);
+                }
+                else {
+                    Vect_line_parallel2(Points, da, db, dalpha, 1, round_flag->answer, tolerance, Points2);
+                    Vect_write_line(&Out, ltype, Points2, Cats);
+                    Vect_line_parallel2(Points, da, db, dalpha, -1, round_flag->answer, tolerance, Points2);
+                    Vect_write_line(&Out, ltype, Points2, Cats);
+                }   
             }
             else {
                 parallel_line_b(Points, da, db, dalpha, round_flag->answer, 1, tolerance, &oPoints, &iPoints, &inner_count);

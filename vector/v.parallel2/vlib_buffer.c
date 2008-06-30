@@ -493,8 +493,11 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
         wx = vx;
         wy = vy;        
     }
-    i = nPoints->n_points - 1;
-    Vect_line_insert_point(nPoints, 0, nPoints->x[i], nPoints->y[i], 0); 
+    
+    if (looped) {
+        i = nPoints->n_points - 1;
+        Vect_line_insert_point(nPoints, 0, nPoints->x[i], nPoints->y[i], 0);
+    }
     Vect_line_prune ( nPoints );
 }
 
