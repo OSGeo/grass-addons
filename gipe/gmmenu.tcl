@@ -574,6 +574,7 @@ set descmenu [subst  {
 				{command {[G_msg "Vegetation Indices (13 types) cluster"]} {} "i.vi.mpi" {} -command {execute i.vi.mpi }}
 				{separator}
 				{command {[G_msg "Albedo"]} {} "i.albedo" {} -command {execute i.albedo }}
+				{command {[G_msg "Water"]} {} "i.water" {} -command {execute i.water }}
 				{command {[G_msg "Emissivity (generic from NDVI)"]} {} "i.emissivity" {} -command {execute i.emissivity }}
 				{separator}
 				{command {[G_msg "Latitude map"]} {} "i.latitude" {} -command {execute i.latitude }}

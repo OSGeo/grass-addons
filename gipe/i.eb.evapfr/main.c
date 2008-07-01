@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_rnet, *inrast_g0, *inrast_h0;
-	unsigned char *outrast1, *outrast2;
+	DCELL *outrast1, *outrast2;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_rnet;
 	RASTER_MAP_TYPE data_type_g0;
@@ -204,31 +204,23 @@ int main(int argc, char *argv[])
 					d_h0 = ((DCELL *) inrast_h0)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_rnet)){
-				((DCELL *) outrast1)[col] = -999.99;
+			if(G_is_d_null_value(&d_rnet)||
+			G_is_d_null_value(&d_g0)||
+			G_is_d_null_value(&d_h0)){
+				G_set_d_null_value(&outrast1[col],1);
 				if(makin){
-					((DCELL *) outrast2)[col] = -999.99;
-				}
-			}else if(G_is_d_null_value(&d_g0)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if(makin){
-					((DCELL *) outrast1)[col] = -999.99;
-				}
-			}else if(G_is_d_null_value(&d_h0)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if(makin){
-					((DCELL *) outrast1)[col] = -999.99;
+					G_set_d_null_value(&outrast2[col],1);
 				}
 			}else {
 				/****************************************/
 				/* calculate evaporative fraction	*/
 				d = evap_fr(d_rnet,d_g0,d_h0);
-				((DCELL *) outrast1)[col] = d;
+				outrast1[col] = d;
 				/****************************************/
 				/* calculate soil moisture		*/
 				if(makin){
 					d = soilmoisture(d);
-					((DCELL *) outrast2)[col] = d;
+					outrast2[col] = d;
 				}
 			}
 		}
