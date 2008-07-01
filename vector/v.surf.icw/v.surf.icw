@@ -126,6 +126,9 @@ fi
 echo
 echo "v.surf.icw -- Inverse Cost Weighted Interpolation"
 echo "Processing $GIS_OPT_INPUT -> $GIS_OPT_OUTPUT, column=$GIS_OPT_COLUMN, Cf=$GIS_OPT_FRICTION"
+if [ "$GIS_FLAG_R" -eq 1 ] ; then
+    echo "Using (d^n)*log(d) radial basis function."
+fi
 echo "------------------------------------------------------------------------"
 
 FRICTION=$GIS_OPT_FRICTION
@@ -213,7 +216,7 @@ for POS in `cat "$TMP_POINTS"` ; do
     CAT=`echo "$POS" | cut -f"$CATCOL" -d"|"`
     DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select $COL_NAME from tmp_icw_points_$$ where cat=${CAT}"`"
 
-    echo site $NUM of $N  e=$EASTING  n=$NORTHING data=$DATA_VALUE
+    echo Site $NUM of $N  e=$EASTING  n=$NORTHING data=$DATA_VALUE
 
     if [ -z "$DATA_VALUE" ] ; then
 	echo "  Skipping, no data here." 1>&2
@@ -237,18 +240,16 @@ for POS in `cat "$TMP_POINTS"` ; do
     # r.to.vect then r.patch output
 #    v.to.rast in=tmp_idw_cost_site_29978 out=tmp_idw_cost_val_$$ use=val val=10
 
-    #  exp(3,2) is 3^2  etc.  as is pow(3,2)
-    # r.mapcalc 1by_cost_site_sqrd.$NUM=" 1.0 / exp(cost_site.$NUM , $FRICTION)"
-
-    EXPRESSION="1.0 / pow(cost_site.$NUM $DIVISOR, $FRICTION )"
-
-    # use log10() or ln() ?
-    if [ "$GIS_FLAG_R" -eq 1 ] ; then
-	echo "Using (d^n)*log(d) radial basis function." 1>&2
-	EXPRESSION="pow(cost_site.$NUM, $FRICTION) * log (cost_site.$NUM)"
+    if [ "$GIS_FLAG_R" -eq 0 ] ; then
+	#  exp(3,2) is 3^2  etc.  as is pow(3,2)
+	# r.mapcalc 1by_cost_site_sqrd.$NUM=" 1.0 / exp(cost_site.$NUM , $FRICTION)"
+	EXPRESSION="1.0 / pow(cost_site.$NUM $DIVISOR, $FRICTION )"
+    else
+	# use log10() or ln() ?
+	EXPRESSION="1.0 / ( pow(cost_site.$NUM, $FRICTION) * log (cost_site.$NUM) )"
     fi
 #    echo "r.mapcalc expression is: [$EXPRESSION]"
-	    
+
     r.mapcalc "1by_cost_site_sqrd.$NUM = $EXPRESSION"
 
 #    r.patch in=1by_cost_site_sqrd.${NUM},tmp_idw_cost_val_$$ out=1by_cost_site_sqrd.${NUM} --o
