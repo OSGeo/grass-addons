@@ -25,3 +25,19 @@
 #define DRAW_COARSE 0
 #define DRAW_FINE 1
 #define DRAW_BOTH 2
+
+/* extracted from include/gsurf.h */
+#define DM_GOURAUD   0x00000100
+#define DM_FLAT      0x00000200
+
+#define DM_FRINGE    0x00000010
+
+#define DM_WIRE      0x00000001
+#define DM_COL_WIRE  0x00000002
+#define DM_POLY      0x00000004
+#define DM_WIRE_POLY 0x00000008
+
+#define DM_GRID_WIRE 0x00000400
+#define DM_GRID_SURF 0x00000800
+
+#define WC_COLOR_ATT 0xFF000000

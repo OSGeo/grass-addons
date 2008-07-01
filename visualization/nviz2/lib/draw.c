@@ -50,7 +50,7 @@ int Nviz_draw_all_surf(nv_data *dc)
 
     G_free (surf_list);
 
-/* re-initialize lights */
+    /* re-initialize lights */
     GS_setlight_position(num, x, y, z, w);
     num = 2;
     GS_setlight_position(num, 0., 0., 1., 0);
@@ -123,7 +123,7 @@ int sort_surfs_max(int *surf, int *id_sort, int *indices, int num)
   blanking maps during specific frames.
   
   \param map_id map object id
-
+  
   \return 0 not blank
   \return 1 blank
 */
@@ -132,7 +132,13 @@ int check_blank(int map_id)
     return 0;
 }
 
-int Nviz_draw_all(nv_data *data)
+/*!
+  \brief Draw all 
+
+  \param data nviz data
+  \param clear clear screen before drawing
+*/
+int Nviz_draw_all(nv_data *data, int clear)
 {
     int draw_surf, draw_vect, draw_site, draw_vol;
     int draw_north_arrow, arrow_x, draw_label, draw_legend;
@@ -160,7 +166,8 @@ int Nviz_draw_all(nv_data *data)
     // Tcl_SetVar(interp, "is_drawing", "1", TCL_GLOBAL_ONLY);
     
     GS_set_draw(GSD_BACK); /* needs to be BACK to avoid flickering */
-    GS_clear(data->bgcolor);
+    if (clear)
+	GS_clear(data->bgcolor);
     GS_ready_draw();
 
 /*
@@ -292,14 +299,28 @@ int Nviz_draw_all(nv_data *data)
     return 1;
 }
 
-int Nviz_draw_quick(nv_data *dc)
+/*!
+  \brief Draw in coarse mode
+
+  \param dc nviz data
+  \param clear clear screen before drawing
+  \return 1
+*/
+int Nviz_draw_quick(nv_data *dc, int clear)
 {
     int i, max;
     int *surf_list, *vol_list;
 
     GS_set_draw(GSD_BACK);
-    GS_clear(dc->bgcolor);
+    
+    if (clear)
+	GS_clear(dc->bgcolor);
+
     GS_ready_draw();
+
+    GS_alldraw_wire();
+
+    /*
     surf_list = GS_get_surf_list(&max);
 
     max = GS_num_surfs();
@@ -310,7 +331,8 @@ int Nviz_draw_quick(nv_data *dc)
     }
 
     G_free (surf_list);
-    
+    */
+
     /*
     vol_list = GVL_get_vol_list(&max);
     max = GVL_num_vols();
@@ -372,14 +394,12 @@ int Nviz_draw_all_vect(nv_data *dc)
    - DRAW_FINE
    - DRAW_BOTH
 
+  \param data nviz data
   \param mode draw mode
 */
 void Nviz_set_draw_mode(nv_data *data, int mode)
 {
-    if (mode == DRAW_COARSE) {
-	data->draw_coarse = 1;
-    }
-    else {
-	data->draw_coarse = 0;
-    }
+    data->draw_mode = mode;
+
+    return;
 }

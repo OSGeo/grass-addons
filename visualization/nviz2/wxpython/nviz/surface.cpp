@@ -221,3 +221,49 @@ int Nviz::SetSurfaceRes(int id, int fine, int coarse)
 {
     return GS_set_drawres(id, fine, fine, coarse, coarse);
 }
+
+/*!
+  \brief Set draw style
+
+  Draw styles:
+   - DM_GOURAUD
+   - DM_FLAT
+   - DM_FRINGE
+   - DM_WIRE
+   - DM_COL_WIRE
+   - DM_POLY
+   - DM_WIRE_POLY
+   - DM_GRID_WIRE
+   - DM_GRID_SURF
+
+  \param id surface id (<= 0 for all)
+  \param style draw style
+
+  \return 0 on success
+  \return -1 on error
+*/
+int Nviz::SetSurfaceStyle(int id, int style)
+{
+    if (id > 0) {
+	return GS_set_drawmode(id, style);
+    }
+
+    return GS_setall_drawmode(style);
+}
+
+/*!
+  \brief Set color of wire
+
+  \todo all
+
+  \param surface id
+  \param color color string (R:G:B)
+
+  \return 1
+*/
+int Nviz::SetWireColor(int id, const char* color)
+{
+    GS_set_wire_color(id, Nviz_color_from_str(color));
+
+    return 1;
+}

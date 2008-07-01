@@ -80,6 +80,8 @@ public:
     int UnsetSurfaceTransp(int);
     int UnsetSurfaceEmit(int);
     int SetSurfaceRes(int, int, int);
+    int SetSurfaceStyle(int, int);
+    int SetWireColor(int, const char *);
 };
 
 #endif /* __NVIZ_H__ */

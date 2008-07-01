@@ -243,10 +243,11 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
             self.nvizClass.SetZExag(self.view['z-exag']['value'])
             del self.update['z-exag']
 
-        if render is True:
-            self.nvizClass.Draw(False)
-        elif render is False:
-            self.nvizClass.Draw(True) # quick
+        #         if render is True:
+        #             self.nvizClass.Draw(False)
+        #         elif render is False:
+        #             self.nvizClass.Draw(True) # quick
+        self.nvizClass.Draw(False)
 
         self.SwapBuffers()
 
@@ -267,8 +268,6 @@ class GLWindow(MapWindow, glcanvas.GLCanvas):
 
         Debug.msg(3, "GLWindow.UpdateMap(): render=%s, -> time=%g" % \
                       (render, (stop-start)))
-
-        print '# %.6f' % (stop-start)
 
     def EraseMap(self):
         """
@@ -689,7 +688,7 @@ class NvizToolWindow(wx.Frame):
                                      _("surface")])
         style.SetName("selection")
         self.win['surface']['draw']['style'] = style.GetId()
-        style.Bind(wx.EVT_CHOICE, self.OnSurfaceStyle)
+        style.Bind(wx.EVT_CHOICE, self.OnSurfaceMode)
         gridSizer.Add(item=style, flag=wx.ALIGN_CENTER_VERTICAL,
                       pos=(1, 1))
 
@@ -702,7 +701,7 @@ class NvizToolWindow(wx.Frame):
                                       _("gouraud")])
         shade.SetName("selection")
         self.win['surface']['draw']['shading'] = shade.GetId()
-        shade.Bind(wx.EVT_CHOICE, self.OnSurfaceShade)
+        shade.Bind(wx.EVT_CHOICE, self.OnSurfaceMode)
         gridSizer.Add(item=shade, flag=wx.ALIGN_CENTER_VERTICAL,
                       pos=(1, 3))
 
@@ -710,9 +709,9 @@ class NvizToolWindow(wx.Frame):
         gridSizer.Add(item=wx.StaticText(parent=panel, id=wx.ID_ANY,
                                          label=_("Wire color:")),
                       pos=(2, 0), flag=wx.ALIGN_CENTER_VERTICAL)
-        color = csel.ColourSelect(panel, id=wx.ID_ANY,
-                                  colour="white")
+        color = csel.ColourSelect(panel, id=wx.ID_ANY)
         color.SetName("colour")
+        color.Bind(csel.EVT_COLOURSELECT, self.OnSurfaceWireColor)
         self.win['surface']['draw']['color'] = color.GetId()
         gridSizer.Add(item=color, flag=wx.ALIGN_CENTER_VERTICAL,
                       pos=(2, 1))
@@ -1030,11 +1029,11 @@ class NvizToolWindow(wx.Frame):
 
                 del self.mapWindow.update[attrb]
 
-        # drawing mode
+        # draw mode
         if self.mapWindow.update.has_key('draw-mode'):
             self.mapWindow.nvizClass.SetDrawMode(self.mapWindow.update['draw-mode'])
 
-        # drawing res
+        # draw res
         if self.mapWindow.update.has_key('draw-res'):
             mode, res = self.mapWindow.update['draw-res']
             if mode == 0: # coarse
@@ -1047,6 +1046,16 @@ class NvizToolWindow(wx.Frame):
                                           subkey=['draw', 'res-coarse'])
 
             self.mapWindow.nvizClass.SetSurfaceRes(id, fine, coarse)
+
+        # draw style
+        if self.mapWindow.update.has_key('draw-style'):
+            self.mapWindow.nvizClass.SetSurfaceStyle(id, self.mapWindow.update['draw-style'])
+
+        # wire color
+        if self.mapWindow.update.has_key('draw-color'):
+            print self.mapWindow.update['draw-color']
+            self.mapWindow.nvizClass.SetWireColor(id, str(self.mapWindow.update['draw-color']))
+
 
         self.mapWindow.Refresh(False)
 
@@ -1141,26 +1150,6 @@ class NvizToolWindow(wx.Frame):
         if self.parent.autoRender.IsChecked():
             self.OnApply(None)
 
-    def OnSurfaceMode(self, event):
-        """Drawing mode changed"""
-        self.SetSurfaceMode(event.GetSelection())
-        event.Skip()
-
-    def SetSurfaceMode(self, selection):
-        """Set drawing mode and resolution"""
-        if selection == 0: # coarse
-            self.mapWindow.update['draw-mode'] = wxnviz.DRAW_COARSE
-            self.FindWindowById(self.win['surface']['draw']['res-coarse']).Enable(True)
-            self.FindWindowById(self.win['surface']['draw']['res-fine']).Enable(False)
-        elif selection == 1: # fine
-            self.mapWindow.update['draw-mode'] = wxnviz.DRAW_FINE
-            self.FindWindowById(self.win['surface']['draw']['res-coarse']).Enable(False)
-            self.FindWindowById(self.win['surface']['draw']['res-fine']).Enable(True)
-        elif selection == 2: # both
-            self.mapWindow.update['draw-mode'] = wxnviz.DRAW_BOTH
-            self.FindWindowById(self.win['surface']['draw']['res-coarse']).Enable(True)
-            self.FindWindowById(self.win['surface']['draw']['res-fine']).Enable(True)
-
     def OnSurfaceResolution(self, event):
         """Draw resolution changed"""
         value = event.GetInt()
@@ -1171,12 +1160,61 @@ class NvizToolWindow(wx.Frame):
         if self.parent.autoRender.IsChecked():
             self.OnApply(None)
 
-    def OnSurfaceStyle(self, event):
-        pass
+    def SetSurfaceMode(self):
+        """Set draw mode"""
+        value = 0
 
-    def OnSurfaceShade(self, event):
-        pass
+        mode = self.FindWindowById(self.win['surface']['draw']['mode']).GetSelection()
+        if mode == 0: # coarse
+            value |= wxnviz.DM_WIRE
+            self.mapWindow.update['draw-mode'] = wxnviz.DRAW_COARSE
+            self.FindWindowById(self.win['surface']['draw']['res-coarse']).Enable(True)
+            self.FindWindowById(self.win['surface']['draw']['res-fine']).Enable(False)
+        elif mode == 1: # fine
+            value |= wxnviz.DM_POLY
+            self.mapWindow.update['draw-mode'] = wxnviz.DRAW_FINE
+            self.FindWindowById(self.win['surface']['draw']['res-coarse']).Enable(False)
+            self.FindWindowById(self.win['surface']['draw']['res-fine']).Enable(True)
+        else: # both
+            value |= wxnviz.DM_WIRE_POLY
+            self.mapWindow.update['draw-mode'] = wxnviz.DRAW_BOTH
+            self.FindWindowById(self.win['surface']['draw']['res-coarse']).Enable(True)
+            self.FindWindowById(self.win['surface']['draw']['res-fine']).Enable(True)
 
+        style = self.FindWindowById(self.win['surface']['draw']['style']).GetSelection()
+        if style == 0: # wire
+            value |= wxnviz.DM_GRID_WIRE
+        else: # surface
+            value |= wxnviz.DM_GRID_SURF
+
+        shade = self.FindWindowById(self.win['surface']['draw']['shading']).GetSelection()
+        if shade == 0:
+            value |= wxnviz.DM_FLAT
+        else: # surface
+            value |= wxnviz.DM_GOURAUD
+
+        self.mapWindow.update['draw-style'] = value
+
+        if self.parent.autoRender.IsChecked():
+            self.OnApply(None)
+
+    def OnSurfaceMode(self, event):
+        """Set draw mode"""
+        self.SetSurfaceMode()
+
+    def SetSurfaceWireColor(self, color):
+        """Set wire color"""
+        value = str(color[0]) + ':' + str(color[1]) + ':' + str(color[2])
+
+        self.mapWindow.update['draw-color'] = value
+
+        if self.parent.autoRender.IsChecked():
+            self.OnApply(None)
+
+    def OnSurfaceWireColor(self, event):
+        """Set wire color"""
+        self.SetSurfaceWireColor(event.GetValue())
+        
     def UpdatePage(self, pageId):
         """Update dialog (selected page)"""
         layer = self.mapWindow.GetSelectedLayer()
@@ -1213,9 +1251,10 @@ class NvizToolWindow(wx.Frame):
                         win.SetColour(value)
                     else:
                         win.SetValue(value)
-                # enable/disable res widget
-                mode = self.FindWindowById(self.win['surface']['draw']['mode'])
-                self.SetSurfaceMode(mode.GetSelection())
+                # enable/disable res widget + set draw mode
+                self.SetSurfaceMode()
+                color = self.FindWindowById(self.win['surface']['draw']['color'])
+                self.SetSurfaceWireColor(color.GetColour())
 
             elif layer.type == 'raster':
                 # surface attributes

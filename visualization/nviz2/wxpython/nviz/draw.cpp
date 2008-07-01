@@ -22,31 +22,31 @@
 /*!
   \brief Draw map
 
-  \param quick true for quick rendering
+  \param quick true for forcing coarse draw mode 
 */
 void Nviz::Draw(bool quick)
 {
-    GS_clear(data->bgcolor);
+
+    Nviz_draw_cplane(data, -1, -1); // ?
+
+    if (data->draw_mode == DRAW_COARSE || 
+	data->draw_mode == DRAW_BOTH || quick) {
+	Nviz_draw_quick(data, 1); // clear screen
+    }
+
+    if (data->draw_mode == DRAW_FINE ||
+	data->draw_mode == DRAW_BOTH) {
+	if (data->draw_mode == DRAW_FINE) {
+	    Nviz_draw_all (data, 1); // clear screen
+	}
+	else {
+	    Nviz_draw_all (data, 0);
+	}
+    }
+
+    G_debug(1, "Nviz::Draw(): mode=%d, quick=%d",
+	    data->draw_mode, quick);
     
-    Nviz_draw_cplane(data, -1, -1);
-
-    if (data->draw_coarse) { /* coarse */
-	GS_set_draw(GSD_BACK);
-	GS_ready_draw();
-	GS_alldraw_wire();
-	GS_done_draw();
-
-	G_debug(1, "Nviz::Draw(): mode=coarse");
-    }
-    else { /* fine / both */
-	if (!quick)
-	    Nviz_draw_all (data);
-	else
-	    Nviz_draw_quick(data); // ?
-
-	G_debug(1, "Nviz::Draw(): mode=fine, quick=%d", quick);
-    }
-
     return;
 }
 
