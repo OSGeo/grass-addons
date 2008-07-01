@@ -47,31 +47,24 @@
 #% required : yes
 #%end
 #%option
-#% key: output
+#% key: column
 #% type: string
-#% gisprompt: new,cell,raster
-#% description: Name of new raster file to be used for output
+#% description: Column name in points map that contains data values
 #% required : yes
 #%end
 #%option
-#% key: column
+#% key: output
 #% type: string
-#% description: Column name in vector points map that contains data values
+#% gisprompt: new,cell,raster
+#% description: Name for output raster map
 #% required : yes
 #%end
 #%option
 #% key: cost_map
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of existing raster file containing cost information
+#% description: Name of existing raster map containing cost information
 #% required : yes
-#%end
-#%option
-#% key: post_mask
-#% type: string
-#% gisprompt: old,cell,raster
-#% description: Name of existing raster file to be used as post-processing MASK
-#% required : no
 #%end
 #%option
 #% key: friction
@@ -79,6 +72,27 @@
 #% description: Friction of distance, (the 'n' in 1/d^n)
 #% answer: 2
 #% options: 1-6
+#% required : no
+#%end
+#%option
+#% key: layer
+#% type: integer
+#% answer: 1
+#% description: Layer number of data in points map
+#% required: no
+#%end
+#%option
+#% key: where
+#% type: string
+#% label: WHERE conditions of SQL query statement without 'where' keyword
+#% description: Example: income < 1000 and inhab >= 10000
+#% required : no
+#%end
+#%option
+#% key: post_mask
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Name of existing raster map to be used as post-processing MASK
 #% required : no
 #%end
 #%flag
@@ -135,12 +149,12 @@ if [ $GIS_FLAG_V -eq 1 ] || [ "$GRASS_VERBOSE" -gt 1 ] ; then
 fi
 
 ### Check that we have the column and it is the correct type
-COL_NAME=`v.info -c "$POINTS_FILE" 2> /dev/null | grep "|${GIS_OPT_COLUMN}$" | cut -f2 -d'|'`
+COL_NAME=`v.info -c "$POINTS_FILE" layer="$GIS_OPT_LAYER" 2> /dev/null | grep "|${GIS_OPT_COLUMN}$" | cut -f2 -d'|'`
 if [ -z "$COL_NAME" ] ; then
     echo "Data column [$GIS_OPT_COLUMN] not found in [$POINTS_FILE]." 1>&2
     exit
 fi
-COL_TYPE=`v.info -c "$POINTS_FILE" 2> /dev/null | grep "|${GIS_OPT_COLUMN}$" | cut -f1 -d'|'`
+COL_TYPE=`v.info -c "$POINTS_FILE" layer="$GIS_OPT_LAYER" 2> /dev/null | grep "|${GIS_OPT_COLUMN}$" | cut -f1 -d'|'`
 if [ "$COL_TYPE" != "DOUBLE PRECISION" ] && [ "$COL_TYPE" != "INTEGER" ] ; then
     echo "Data column [$COL_NAME] must be numeric." 1>&2
     exit
@@ -161,8 +175,15 @@ fi
 #crop out only points in region
 # GRASS 6.3+: use v.out.ascii -r ?
 v.in.region output=tmp_icw_region_$$ > /dev/null
-v.select ainput="$POINTS_FILE" binput=tmp_icw_region_$$ \
-    atype=point btype=area output=tmp_icw_points_$$
+v.select ainput="$POINTS_FILE" alayer="$GIS_OPT_LAYER" atype=point \
+    binput=tmp_icw_region_$$ btype=area output=tmp_icw_points_sel_$$
+
+if [ -n "$GIS_OPT_WHERE" ] ; then
+   v.extract in=tmp_icw_points_sel_$$ layer="$GIS_OPT_LAYER" \
+       where="$GIS_OPT_WHERE" out=tmp_icw_points_$$
+else
+   g.rename vect=tmp_icw_points_sel_$$,tmp_icw_points_$$
+fi
 
 v.out.ascii tmp_icw_points_$$ > "$TMP_POINTS"
 #db.select tmp_icw_points_$$ > "$TMP_TABLE"
@@ -321,6 +342,10 @@ fi
 if [ -n "$GIS_OPT_POST_MASK" ] ; then
    r.support "$GIS_OPT_OUTPUT" history="  post-processing mask=$GIS_OPT_POST_MASK"
 fi
+if [ -n "$GIS_OPT_WHERE" ] ; then
+   r.support "$GIS_OPT_OUTPUT" history="  SQL query= WHERE \"$GIS_OPT_WHERE\""
+fi
+# save layer #? to metadata?   command line hist?
 
 
 # 5) rm cost and cost_sq maps, tmp_icw_points, etc
@@ -335,7 +360,7 @@ cleanup()
   g.remove rast=sum_of_1by_cost_sqs | grep REMOVE
   #g.remove vect=tmp_idw_cost_site_$$
   g.remove rast=tmp_icw_area_$$ | grep REMOVE
-  g.remove vect=tmp_icw_region_$$,tmp_icw_points_$$
+  g.remove vect=tmp_icw_region_$$,tmp_icw_points_$$,tmp_icw_points_sel_$$
   rm -f "$TMP_POINTS"
 }
 
