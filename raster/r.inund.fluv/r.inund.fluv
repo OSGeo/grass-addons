@@ -3,7 +3,7 @@
 #
 # MODULE:	r.inund.fluv v.1 for GRASS 6.3 (april 2008)
 # AUTHOR(S):	Roberto Marzocchi, Bianca Federici, Domenico Sguerso
-# PURPOSE:	Creates a fluvial inundation map given an high-resolution dtm and a water surface profile
+# PURPOSE:	Creates a fluvial inundation map given an high-resolution DTM and a water surface profile
 # COPYRIGHT:	(C) 2008 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
@@ -13,7 +13,7 @@
 #############################################################################
 
 #%Module
-#%  description: Creates a fluvial inundation map given an high-resolution dtm and a water surface profile
+#%  description: Creates a fluvial inundation map given an high-resolution DTM and a water surface profile
 #%  keywords: Automatic procedure to compute a fluvial inundation map
 #%End
 #%option
@@ -53,7 +53,7 @@
 #%end
 #%option
 #%guisection:Optional parameters & maps
-#% key: PROFILE_T100
+#% key: PROFILE_BOUNDARY
 #% type: string
 #% gisprompt: old_file,file,input
 #% description: Input ASCII file with water-depht for return period T > 100 years
@@ -61,10 +61,10 @@
 #%end
 #%option
 #%guisection:Optional parameters & maps
- #% key: delta_y 
+#% key: delta_z 
 #% type: double
 #% gisprompt: new
-#% description: Input delta_y to find the boundaries of the main channel [default value 0.5 m] 
+#% description: Input delta_z to find the boundaries of the main channel [default value 0.5 m] 
 #% required : no
 #%end
 #%option 

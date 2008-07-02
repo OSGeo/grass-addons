@@ -10,7 +10,7 @@
 <img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
 
 <h2>NAME</h2>
-<em><b>r.inund.fluv</b></em> - Creates a fluvial inundation map given an high-resolution dtm and a water surface profile
+<em><b>r.inund.fluv</b></em> - Creates a fluvial inundation map given an high-resolution DTM and a water surface profile
 <h2>KEYWORDS</h2>
 Automatic procedure to compute a fluvial inundation map
 <h2>SYNOPSIS</h2>
@@ -45,11 +45,11 @@ Automatic procedure to compute a fluvial inundation map
 <DT><b>DOUBT_MAP</b>=<em>string</em></DT>
 <DD>Output: name of doubful surface areas</DD>
 
-<DT><b>PROFILE_T100</b>=<em>string</em></DT>
+<DT><b>PROFILE_BOUNDARY</b>=<em>string</em></DT>
 <DD>Input ASCII file with water-depht for return period T &gt; 100 years</DD>
 
-<DT><b>(null)</b>=<em>float</em></DT>
-<DD>Input delta_y to find the boundaries of the main channel [default value 0.5 m]</DD>
+<DT><b>delta_z</b>=<em>float</em></DT>
+<DD>Input delta_z to find the boundaries of the main channel [default value 0.5 m]</DD>
 
 <DT><b>delta_x</b>=<em>float</em></DT>
 <DD>Input delta_x to find the boundaries of the main channel [default value 3.5 m]</DD>
@@ -86,10 +86,10 @@ The implemented procedure has innovating characteristics; even if it remains sub
 
 The single phases in  which the procedure is divided, are here summarized, even if the whole procedure is excecuted automatically. <br>
 
-- In the first phase, the value of water level in the nearest point of fluvial axis is assigned to each pixel of terrain, through the creation of Thiessen polygons (<EM><A HREF="r.surf.idw.html">r.surf.idw</A></EM> setting <em>npoints</em>=1) <em>(default resolution value = 10 m)</em>. Then the procedure makes a comparison between elevation of each pixel and water level, and defines pixels characterized by elevation lower than water level, at hazard. <br>
+- In the first phase, the value of water level in the nearest point of fluvial axis is assigned to each pixel of terrain, through the creation of Thiessen polygons (<EM><A HREF="r.surf.idw.html">r.surf.idw</A></EM> setting <em>npoints</em>=1) (at the resolution <em>res_B</em>). Then the procedure makes a comparison between elevation of each pixel and water level, and defines pixels characterized by elevation lower than water level, at hazard. <br>
 - In the second phase, the procedure removes all the areas previously defined at hazard but not connected with the river axis, i.e. surrounded by terrain not at hazard, neglecting infiltration or underground rivers (<EM><A HREF="v.select.html">v.select</A></EM>). <br>
-- In the third phase, the hypotesis is that water diffuses from river to the surrounding areas only in direction perpendicular to the river axis. Through an implemented fortran code (<em>clean_inundation.f90</em>), the procedure individuates the pixels, considered at hazard at the end of phase 2, inundated for sure by water; hence it dries the ones, considered at hazard at the end of phase 2, not reached by water because protected by levees or small hills posed along the perpedicular path between the pixel and the river axis <em>(default resolution value = 20 m)</em>. <br>            
-- In the fourth phase, the hypothesis is that water, outside the main channel, moves along the maximum terrain slope direction. First, through an implemented fortran code (<em>find_main_channel.f90</em>), the procedure individuates the "boundaries" of the main channel. Then, through an implemented fortran code (<em>2d_path.f90</em>), the procedure individuates the water path outside the main channel along the maximum terrain slope direction <em>(default resolution value: 20 m)</em>. Finally, through an implemented fortran code (<em>correction_from_path.f90</em>), the procedure individuates the pixels, dried at the end of phase 3, connected to a water path, and defines them at hazard <em>(default resolution value: 10 m)</em>. <br>
+- In the third phase, the hypotesis is that water diffuses from river to the surrounding areas only in direction perpendicular to the river axis. Through an implemented fortran code (<em>clean_inundation.f90</em>), the procedure individuates the pixels, considered at hazard at the end of phase 2, inundated for sure by water; hence it dries the ones, considered at hazard at the end of phase 2, not reached by water because protected by levees or small hills posed along the perpedicular path between the pixel and the river axis (at the resolution <em>res_C</em>). <br>            
+- In the fourth phase, the hypothesis is that water, outside the main channel, moves along the maximum terrain slope direction. First, through an implemented fortran code (<em>find_main_channel.f90</em>), the procedure individuates the "boundaries" of the main channel. Then, through an implemented fortran code (<em>2d_path.f90</em>), the procedure individuates the water path outside the main channel along the maximum terrain slope direction (at the resolution <em>res_C</em>). Finally, through an implemented fortran code (<em>correction_from_path.f90</em>), the procedure individuates the pixels, dried at the end of phase 3, connected to a water path, and defines them at hazard (at the resolution <em>res_B</em>). <br>
 - In the fifth and last phase, the final potentially inundated map is defined as sum of areas at hazard in the third and fourth phases.
 <br>
 <br>
@@ -123,9 +123,9 @@ The original resolution of DTM must be high. If the pixel dimension is greater t
  <em><b>Optional input and output:</b></em> <br>
 The command has some input parameters that the user can choose in the <em>Optional parameters & maps </em> interface. They refer to intermediate phases of the procedure, described in detail in reference.<br>
 1b - It's possible to set another water surface profile associated with a return period of 100 years or greater, from which the procedure starts to find automatically the "boundaries" of main channel. The file format is as mentioned above for the input file 2. <br>
-2b - It's possible to set a <em>delta_y</em> different from the default value (0.5 m), as the step with which the procedure increases the water level inside the main channel, to find automatically the "boundaries" of main channel itself.
+2b - It's possible to set a <em>delta_z</em> different from the default value (0.5 m), as the step with which the procedure increases the water level inside the main channel, to find automatically the "boundaries" of main channel itself. <br>
 3b - It's possible to set a <em>delta_x</em> different from the default value (1.5*DTM_resolution in meters), i.e. the threshold value of the distance between the points individuated on a bank in two consecutive steps, to exceed so that the procedure may define the "boundary" of main channel in a pixel between such two points. <br>
-4b - The user may view the "boundaries" of main channel, to verify the working of the procedure, especially if <em>delta_y</em> and <em>delta_x</em> were setted different from the default values. <br>
+4b - The user may view the "boundaries" of main channel, to verify the working of the procedure, especially if <em>delta_z</em> and <em>delta_x</em> were setted different from the default values. <br>
 5b - 6b - The procedure performs some calculations using resolution different from the DTM one. The default values of 10 and 20 meters, used in different steps of the procedure, are a compromise between computational speed and consistency of output map. It's suggested that only the expert user modifies such values.
 <br>
 7b - The user can view a vector point map of the water surface profile along the river axis. 
@@ -135,14 +135,15 @@ The command has some input parameters that the user can choose in the <em>Option
 
 
 <h2>AUTHORS</h2>
-Roberto Marzocchi, University of Genoa, Italy <a href="mailto:roberto.marzocchi@gmail.com"> e-mail</a><br>
+Roberto Marzocchi, SUPSI, Switzerland <a href="mailto:roberto.marzocchi@gmail.com"> e-mail</a><br>
 Bianca Federici, University of Genoa, Italy <a href="mailto:bianca.federici@unige.it"> e-mail </a><br>
 Domenico Sguerso, University of Genoa, Italy <a href="mailto:domenico.sguerso@unige.it"> e-mail </a><br><p>
 
 <h2>REFERENCES</h2>
-- Federici B. & Sguerso D. (2008). Procedura automatica per la creazione di mappe di potenziale inondazione fluviale. In fase di revisione per la pubblicazione sul Bollettino SIFET. <br>
+- Federici B. & Sguerso D. (2007). Procedura automatica per la creazione di mappe di potenziale inondazione fluviale. Bollettino SIFET, n. 4. <br>
+- Marzocchi R., Federici B., Sguerso D. (2008). Procedura automatica per la creazione di mappe di potenziale inondazione fluviale in GRASS: il modulo r.inund.fluv. Under revision for the pubblication on Atti del IX Meeting degli Utenti Italiani di GRASS - GFOSS. <br>
 - Pdf presentation of the work at the "IX Meeting degli Utenti Italiani di GRASS - GFOSS": <a href="http://www.grassmeeting2008.unipg.it/?q=node/9/"> web-page </a></em> <br>
 
-<p><i> Last changed: $21 april 2008 12:54:55 CET $</i></p>
+<p><i> Last changed: $1 July 2008 17:10:00 CET $</i></p>
 </body>
 </html>
