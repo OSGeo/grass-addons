@@ -1,4 +1,4 @@
-/* Functions: nearest, adjust_line, parallel_line
+/* Functions: ...
 **
 ** Author: Radim Blazek, Rosen Matev; June 2008
 **
@@ -50,210 +50,6 @@ static void norm_vector(double x1, double y1, double x2, double y2, double *x, d
     *y = dy/l;
 }
 
-/* find_cross find first crossing between segments from s1 to s2 and from s3 to s4
-** s5 is set to first segment and s6 to second
-** neighbours are taken as crossing each other only if overlap
-** returns: 1 found
-**         -1 found overlap
-**          0 not found
-*/
-int find_cross ( struct line_pnts *Points, int s1, int s2, int s3, int s4,  int *s5, int *s6 )
-{
-    int i, j, np, ret;
-    double *x, *y;
-
-    G_debug (5, "find_cross(): npoints = %d, s1 = %d, s2 = %d, s3 = %d, s4 = %d",
-	                 Points->n_points, s1, s2, s3, s4 );
-
-    x = Points->x;
-    y = Points->y;
-    np = Points->n_points;
-
-    for ( i=s1; i<=s2; i++)
-    {
-	for ( j=s3; j<=s4; j++)
-	{
-	    if ( j==i ){
-		continue;
-	    }
-	    ret = dig_test_for_intersection ( x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1] );
-	    if ( ret == 1 &&  ( (i-j) > 1 || (i-j) < -1 )  )
-	    {
-		*s5 = i;
-		*s6 = j;
-                G_debug (5, "  intersection: s5 = %d, s6 = %d", *s5, *s6 );
-		return 1;
-	    }
-	    if (  ret == -1  )
-	    {
-		*s5 = i;
-		*s6 = j;
-                G_debug (5, "  overlap: s5 = %d, s6 = %d", *s5, *s6 );
-		return -1;
-	    }
-	}
-    }
-    G_debug (5, "  no intersection" );
-    return 0;
-}
-
-/* point_in_buf - test if point px,py is in d buffer of Points
-** returns:  1 in buffer
-**           0 not  in buffer
-*/
-int point_in_buf ( struct line_pnts *Points, double px, double py, double d )
-{
-    int i, np;
-    double sd;
-
-    np = Points->n_points;
-    d *= d;
-    for ( i=0; i < np-1; i++)
-    {
-	sd = dig_distance2_point_to_line ( px, py, 0,
-		Points->x[i], Points->y[i], 0, Points->x[i+1], Points->y[i+1], 0,
-	        0, NULL, NULL, NULL, NULL, NULL	);
-	if ( sd <= d )
-	{
-	    return 1;
-	}
-    }
-    return 0;
-}
-
-/* clean_parallel - clean parallel line created by parallel_line:
-** - looking for loops and if loop doesn't contain any other loop
-**   and centroid of loop is in buffer removes this loop (repeated)
-** - optionaly removes all end points in buffer
-*    parameters:
-*	Points - parallel line
-*	origPoints - original line
-*	d - offset
-*	rm_end - remove end points in buffer
-** note1: on some lines (multiply selfcrossing; lines with end points
-**        in buffer of line other; some shapes of ends ) may create nosense
-** note2: this function is stupid and slow, somebody more clever
-**        than I am should write paralle_line + clean_parallel
-**        better;    RB March 2000
-*/
-void clean_parallel ( struct line_pnts *Points, struct line_pnts *origPoints, double d , int rm_end )
-{
-    int i, j, np, npn, sa, sb;
-    int sa_max = 0;
-    int first=0, current, last, lcount;
-    double *x, *y, px, py, ix, iy;
-    static struct line_pnts *sPoints = NULL;
-
-    G_debug (4, "clean_parallel(): npoints = %d, d = %f, rm_end = %d", Points->n_points, d, rm_end );
-
-    x = Points->x;
-    y = Points->y;
-    np = Points->n_points;
-
-    if ( sPoints == NULL )
-        sPoints = Vect_new_line_struct();
-
-    Vect_reset_line ( sPoints );
-
-    npn=1;
-
-    /* remove loops */
-    while( first < np-2 ){
-	/* find first loop which doesn't contain any other loop */
-	current=first;  last=Points->n_points-2;  lcount=0;
-	while( find_cross ( Points, current, last-1, current+1, last,  &sa, &sb ) != 0 )
-	{
-	    if ( lcount == 0 ){ first=sa; } /* move first forward */
-
-	    current=sa+1;
-	    last=sb;
-	    lcount++;
-            G_debug (5, "  current = %d, last = %d, lcount = %d", current, last, lcount);
-	}
-	if ( lcount == 0 ) { break; }   /* loop not found */
-
-	/* ensure sa is monotonically increasing, so npn doesn't reset low */
-	if (sa > sa_max ) sa_max = sa;
-	if (sa < sa_max ) break;
-
-	/* remove loop if in buffer */
-	if ( (sb-sa) == 1 ){ /* neighbouring lines overlap */
-	    j=sb+1;
-	    npn=sa+1;
-	} else {
-	    Vect_reset_line ( sPoints );
-	    dig_find_intersection ( x[sa],y[sa],x[sa+1],y[sa+1],x[sb],y[sb],x[sb+1],y[sb+1], &ix,&iy);
-	    Vect_append_point ( sPoints, ix, iy, 0 );
-	    for ( i=sa+1 ; i < sb+1; i++ ) { /* create loop polygon */
-		Vect_append_point ( sPoints, x[i], y[i], 0 );
-	    }
-	    Vect_find_poly_centroid  ( sPoints, &px, &py);
-	    if ( point_in_buf( origPoints, px, py, d )  ){ /* is loop in buffer ? */
-		npn=sa+1;
-		x[npn] = ix;
-		y[npn] = iy;
-		j=sb+1;
-		npn++;
-		if ( lcount == 0 ){ first=sb; }
-	    } else {  /* loop is not in buffer */
-		first=sb;
-	        continue;
-	    }
-	}
-
-	for (i=j;i<Points->n_points;i++) /* move points down */
-	{
-	    x[npn] = x[i];
-	    y[npn] = y[i];
-	    npn++;
-	}
-	Points->n_points=npn;
-    }
-
-    if ( rm_end ) {
-	/* remove points from start in buffer */
-	j=0;
-	for (i=0;i<Points->n_points-1;i++)
-	{
-	    px=(x[i]+x[i+1])/2;
-	    py=(y[i]+y[i+1])/2;
-	    if ( point_in_buf ( origPoints, x[i], y[i], d*0.9999)
-		 && point_in_buf ( origPoints, px, py, d*0.9999) ){
-		j++;
-	    } else {
-		break;
-	    }
-	}
-	if (j>0){
-	    npn=0;
-	    for (i=j;i<Points->n_points;i++)
-	    {
-		x[npn] = x[i];
-		y[npn] = y[i];
-		npn++;
-	    }
-	    Points->n_points = npn;
-	}
-	/* remove points from end in buffer */
-	j=0;
-	for (i=Points->n_points-1 ;i>=1; i--)
-	{
-	    px=(x[i]+x[i-1])/2;
-	    py=(y[i]+y[i-1])/2;
-	    if ( point_in_buf ( origPoints, x[i], y[i], d*0.9999)
-		 && point_in_buf ( origPoints, px, py, d*0.9999) ){
-		j++;
-	    } else {
-		break;
-	    }
-	}
-	if (j>0){
-	    Points->n_points -= j;
-	}
-    }
-}
-
-
 static void rotate_vector(double x, double y, double cosa, double sina, double *nx, double *ny) {
     *nx = x*cosa - y*sina;
     *ny = x*sina + y*cosa;
@@ -261,7 +57,7 @@ static void rotate_vector(double x, double y, double cosa, double sina, double *
 }
 
 /*
-* (x, y) shoud be normalized vector for common transforms; This func transforms it to a vector corresponding to da, db, dalpha params
+* (x,y) shoud be normalized vector for common transforms; This func transforms (x,y) to a vector corresponding to da, db, dalpha params
 */
 static void elliptic_transform(double x, double y, double da, double db, double dalpha, double *nx, double *ny) {
     double cosa = cos(dalpha);
@@ -579,8 +375,8 @@ static void split_at_intersections(struct line_pnts *Points, struct line_pnts *n
 }
 
 /*
-* IMPORTANT: split_at_intersections() must be applied to input line before calling extract_contour
-*            when visited != NULL, extract_contour() marks the sides of lines as visited along the contour
+* IMPORTANT: split_at_intersections() must be applied to input line before calling extract_contour().
+*            When visited != NULL, extract_contour() marks the sides of lines as visited along the contour.
 *            visited->a must have at least Points->n_points elements
 *
 * side: side >= 0 - right contour, side < 0 - left contour
@@ -801,7 +597,7 @@ int extract_inner_contour(struct line_pnts *Points, struct line_pnts *nPoints, s
     return 0;
 }
 
-void parallel_line_b(struct line_pnts *Points, double da, double db, double dalpha, int round, int caps, double tol, struct line_pnts **oPoints, struct line_pnts ***iPoints, int *inner_count) {
+void extract_all_inner_contours(struct line_pnts *Points, struct line_pnts ***iPoints, int *inner_count) {
     struct line_pnts *Points2, *tPoints;
     struct line_pnts **arrPoints;
     int i, side, count;
@@ -809,10 +605,119 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
     int allocated = more;
     struct visited_segments visited;
     
+    G_debug(4, "extract_all_inner_contours()");
+    
+    /* initializations and spliting of the input line */
+    tPoints = Vect_new_line_struct();
+    Points2 = Vect_new_line_struct();
+    split_at_intersections(Points, Points2);
+    
+    visited.a = (char *)G_malloc(sizeof(char)*Points2->n_points);
+    memset(visited.a, 0, sizeof(char)*Points2->n_points);
+    
+    arrPoints = G_malloc(allocated*sizeof(struct line_pnts *));
+    
+    /* extract outer contour so that we have filled visited appropriately */
+    side = extract_outer_contour(Points2, 0, tPoints, &visited);
+    
+    /* inner contours */
+    count = 0;
+    side = extract_inner_contour(Points2, tPoints, &visited);
+    while (side != 0) {
+        if (allocated < count+1) {
+            allocated += more;
+            arrPoints = G_realloc(arrPoints, allocated*sizeof(struct line_pnts *));
+        }
+        arrPoints[count] = Vect_new_line_struct();
+        Vect_copy_xyz_to_pnts(arrPoints[count], tPoints->x, tPoints->y, tPoints->z, tPoints->n_points);
+        count++;
+        
+        side = extract_inner_contour(Points2, tPoints, &visited);
+    }
+    
+    arrPoints = G_realloc(arrPoints, count*sizeof(struct line_pnts *));
+    *inner_count = count;
+    *iPoints = arrPoints;
+        
+    G_free(visited.a);
+    Vect_destroy_line_struct(tPoints);
+    Vect_destroy_line_struct(Points2);
+    
+    return;  
+}
+
+/* point_in_buf - test if point px,py is in d buffer of Points
+** returns:  1 in buffer
+**           0 not  in buffer
+*/
+int point_in_buf(struct line_pnts *Points, double px, double py, double da, double db, double dalpha) {
+    int i, np;
+    double cosa = cos(dalpha);
+    double sina = sin(dalpha);
+    double delta, delta_k;
+    double vx, vy, wx, wy, mx, my, nx, ny;
+    double k, t, tx, ty, d, da2;
+        
+    np = Points->n_points;
+    da2 = da*da;
+    for (i = 0; i < np-1; i++) {
+        vx = Points->x[i];
+        vy = Points->y[i];
+        wx = Points->x[i+1];
+        wy = Points->y[i+1];
+        
+        if (da != db) {
+            mx = wx - vx;
+            my = wy - vy;
+            
+            delta = mx*sina - my*cosa;
+            if (delta == 0) {
+                t = da; da = db; db = t;
+                dalpha = dalpha + M_PI_2;
+                cosa = cos(dalpha);
+                sina = sin(dalpha);
+                delta = mx*sina - my*cosa;
+            }
+            delta_k = (px-vx)*sina - (py-vy)*cosa;
+            k = delta_k/delta;
+            nx = px - vx - k*mx;
+            ny = py - vy - k*my;
+            
+            /* inverse transform */
+            elliptic_transform(nx, ny, 1/da, 1/db, dalpha, &tx, &ty);
+            
+            d = dig_distance2_point_to_line(tx, ty, 0, vx, vy, 0, wx, wy, 0,
+                0, NULL, NULL, NULL, NULL, NULL);
+            if (d <= 1)
+                return 1;
+        }
+        else {
+            d = dig_distance2_point_to_line(px, py, 0, vx, vy, 0, wx, wy, 0,
+                0, NULL, NULL, NULL, NULL, NULL);
+            if (d <= da2) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+void parallel_line_b(struct line_pnts *Points, double da, double db, double dalpha, int round, int caps, double tol, struct line_pnts **oPoints, struct line_pnts ***iPoints, int *inner_count) {
+    struct line_pnts *Points2, *tPoints, *sPoints;
+    struct line_pnts **arrPoints;
+    struct line_pnts **arrPoints2;
+    int i, side, count, count2;
+    int res;
+    int more = 8;
+    int allocated = more;
+    double px, py;
+    struct visited_segments visited;
+    
     G_debug(4, "parallel_line_b()");
     
     /* initializations and spliting of the input line */
     tPoints = Vect_new_line_struct();
+    sPoints = Vect_new_line_struct();
     Points2 = Vect_new_line_struct();
     split_at_intersections(Points, Points2);
     
@@ -830,14 +735,30 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
     count = 0;
     side = extract_inner_contour(Points2, tPoints, &visited);
     while (side != 0) {
-        if (allocated < count+1) {
-            allocated += more;
-            arrPoints = G_realloc(arrPoints, allocated*sizeof(struct line_pnts *));
+        parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, sPoints);
+        
+        extract_all_inner_contours(sPoints, &arrPoints2, &count2);
+        
+        for (i = 0; i < count2; i++) {
+            res = Vect_line_check_intersection(tPoints, arrPoints2[i], 0);
+            if (res != 0) 
+                continue;
+                
+            res = Vect_get_point_in_poly(arrPoints2[i], &px, &py);
+            if (res != 0)
+                G_fatal_error("Vect_get_point_in_poly() failed.");
+            if (point_in_buf(tPoints, px, py, da, db, dalpha))
+                continue;
+            
+            /* passed all tests, add new island */
+            if (allocated < count+1) {
+                allocated += more;
+                arrPoints = G_realloc(arrPoints, allocated*sizeof(struct line_pnts *));
+            }
+            arrPoints[count] = Vect_new_line_struct();
+            Vect_copy_xyz_to_pnts(arrPoints[count], arrPoints2[i]->x, arrPoints2[i]->y, arrPoints2[i]->z, arrPoints2[i]->n_points);
+            count++;
         }
-        arrPoints[count] = Vect_new_line_struct();
-/*        Vect_copy_xyz_to_pnts(arrPoints[count], tPoints->x, tPoints->y, tPoints->z, tPoints->n_points); */
-        parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, arrPoints[count]);
-        count++;
         
         side = extract_inner_contour(Points2, tPoints, &visited);
     }
@@ -848,6 +769,7 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
         
     G_free(visited.a);
     Vect_destroy_line_struct(tPoints);
+    Vect_destroy_line_struct(sPoints);
     Vect_destroy_line_struct(Points2);
     
     return;
