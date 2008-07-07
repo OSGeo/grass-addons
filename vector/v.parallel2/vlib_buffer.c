@@ -646,17 +646,22 @@ void extract_all_inner_contours(struct line_pnts *Points, struct line_pnts ***iP
     return;  
 }
 
+double perp_dist(double x1, double y1, double x2, double y2, double px, double py) {
+    double a,b,c;
+    line_coefficients(x1, y1, x2, y2, &a, &b, &c);
+    return fabs((a*px+b*py+c)/sqrt(a*a+b*b));
+}
+
 /* point_in_buf - test if point px,py is in d buffer of Points
 ** returns:  1 in buffer
 **           0 not  in buffer
 */
 int point_in_buf(struct line_pnts *Points, double px, double py, double da, double db, double dalpha) {
     int i, np;
-    double cosa = cos(dalpha);
-    double sina = sin(dalpha);
-    double delta, delta_k;
+    double cx, cy;
+    double delta, delta_k, k;
     double vx, vy, wx, wy, mx, my, nx, ny;
-    double k, t, tx, ty, d, da2;
+    double len, tx, ty, d, da2;
         
     np = Points->n_points;
     da2 = da*da;
@@ -669,31 +674,40 @@ int point_in_buf(struct line_pnts *Points, double px, double py, double da, doub
         if (da != db) {
             mx = wx - vx;
             my = wy - vy;
+            len = LENGTH(mx, my);
+            elliptic_tangent(mx/len, my/len, da, db, dalpha, &cx, &cy);
             
-            delta = mx*sina - my*cosa;
-            if (delta == 0) {
-                t = da; da = db; db = t;
-                dalpha = dalpha + M_PI_2;
-                cosa = cos(dalpha);
-                sina = sin(dalpha);
-                delta = mx*sina - my*cosa;
-            }
-            delta_k = (px-vx)*sina - (py-vy)*cosa;
+            delta = mx*cy - my*cx;
+            delta_k = (px-vx)*cy - (py-vy)*cx;
             k = delta_k/delta;
-            nx = px - vx - k*mx;
-            ny = py - vy - k*my;
+/*            G_debug(4, "k = %g, k1 = %g", k, (mx * (px - vx) + my * (py - vy)) / (mx * mx + my * my)); */
+            if (k <= 0) {
+                nx = vx;
+                ny = vy;
+            }
+            else if (k >= 1) {
+                nx = wx;
+                ny = wy;
+            }
+            else {
+                nx = vx + k*mx;
+                ny = vy + k*my;
+            }
             
             /* inverse transform */
-            elliptic_transform(nx, ny, 1/da, 1/db, dalpha, &tx, &ty);
+            elliptic_transform(px - nx, py - ny, 1/da, 1/db, dalpha, &tx, &ty);
             
-            d = dig_distance2_point_to_line(tx, ty, 0, vx, vy, 0, wx, wy, 0,
+            d = dig_distance2_point_to_line(nx + tx, ny + ty, 0, vx, vy, 0, wx, wy, 0,
                 0, NULL, NULL, NULL, NULL, NULL);
+/*            G_debug(4, "pdist = %g", perp_dist(vx, vy ,wx, wy, px, py));
+            G_debug(4, "sqrt(d)*da = %g, len' = %g, olen = %g", sqrt(d)*da, da*LENGTH(tx,ty), LENGTH((px-nx),(py-ny)));*/
             if (d <= 1)
                 return 1;
         }
-        else {
+        else { 
             d = dig_distance2_point_to_line(px, py, 0, vx, vy, 0, wx, wy, 0,
                 0, NULL, NULL, NULL, NULL, NULL);
+/*            G_debug(4, "sqrt(d)     = %g", sqrt(d));*/
             if (d <= da2) {
                 return 1;
             }
@@ -729,7 +743,9 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
     /* outer contour */
     side = extract_outer_contour(Points2, 0, tPoints, &visited);
     *oPoints = Vect_new_line_struct();
-    parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, *oPoints);
+    parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, sPoints);
+    split_at_intersections(sPoints, tPoints);
+    extract_outer_contour(tPoints, 0, *oPoints, NULL);
     
     /* inner contours */
     count = 0;
