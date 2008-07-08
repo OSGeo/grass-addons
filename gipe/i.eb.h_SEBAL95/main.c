@@ -495,15 +495,15 @@ int main(int argc, char *argv[])
 				i_bottom3b = i;
 			}
 		}	
-		printf("bottom1a: [%i]=>%i\n",i_bottom1a, bottom1a);
-		printf("peak1: [%i]=>%i\n",i_peak1, peak1);
-		printf("bottom1b: [%i]=>%i\n",i_bottom1b, bottom1b);
-		printf("bottom2a: [%i]=>%i\n",i_bottom2a, bottom2a);
-		printf("peak2: [%i]=>%i\n",i_peak2, peak2);
-		printf("bottom2b: [%i]=>%i\n",i_bottom2b, bottom2b);
-		printf("bottom3a: [%i]=>%i\n",i_bottom3a, bottom3a);
-		printf("peak3: [%i]=>%i\n",i_peak3, peak3);
-		printf("bottom3b: [%i]=>%i\n",i_bottom3b, bottom3b);
+		G_message("bottom1a: [%i]=>%i\n",i_bottom1a, bottom1a);
+		G_message("peak1: [%i]=>%i\n",i_peak1, peak1);
+		G_message("bottom1b: [%i]=>%i\n",i_bottom1b, bottom1b);
+		G_message("bottom2a: [%i]=>%i\n",i_bottom2a, bottom2a);
+		G_message("peak2: [%i]=>%i\n",i_peak2, peak2);
+		G_message("bottom2b: [%i]=>%i\n",i_bottom2b, bottom2b);
+		G_message("bottom3a: [%i]=>%i\n",i_bottom3a, bottom3a);
+		G_message("peak3: [%i]=>%i\n",i_peak3, peak3);
+		G_message("bottom3b: [%i]=>%i\n",i_bottom3b, bottom3b);
 	}//END OF FLAG1
 
 	/* End of processing histogram*/
@@ -517,6 +517,10 @@ int main(int argc, char *argv[])
 	/*	#pragma omp for parallel default (shared) \
 			shared(ncols,nrows) \
 			private (col,row,d_albedo,d_tempk,d_dem,d_t0dem,d_Rn,d_g0)*/
+		/* Internal use only */
+		DCELL d_Rn_wet;
+		DCELL d_g0_wet;
+		/*********************/
 		for (row = 0; row < nrows; row++){
 			DCELL d_albedo;
 			DCELL d_tempk;
@@ -609,6 +613,8 @@ int main(int argc, char *argv[])
 							t0dem_min=d_t0dem;
 							tempk_min=d_tempk;
 							d_tempk_wet=d_tempk;
+							d_Rn_wet=d_Rn;
+							d_g0_wet=d_g0;
 							col_wet=col;
 							row_wet=row;
 						}
@@ -617,6 +623,8 @@ int main(int argc, char *argv[])
 						d_tempk<(double)i_peak1+1.0){
 							tempk_min=d_tempk;
 							d_tempk_wet=d_tempk;
+							d_Rn_wet=d_Rn;
+							d_g0_wet=d_g0;
 							col_wet=col;
 							row_wet=row;
 						}
@@ -654,6 +662,8 @@ int main(int argc, char *argv[])
 		G_message("row_wet=%d\tcol_wet=%d\n",row_wet,col_wet);
 		G_message("row_dry=%d\tcol_dry=%d\n",row_dry,col_dry);
 		G_message("tempk_wet=%f\n",d_tempk_wet);
+		G_message("g0_wet=%f\n",d_g0_wet);
+		G_message("h0_wet=%f\n",d_Rn_wet-d_g0_wet);
 		G_message("tempk_dry=%f\n",d_tempk_dry);
 		G_message("dem_dry=%f\n",d_dem_dry);
 		G_message("t0dem_dry=%f\n",d_t0dem_dry);
