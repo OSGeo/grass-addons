@@ -194,15 +194,19 @@ int main(int argc, char *argv[])
 	}
 	if(input_row_wet->answer&&input_row_dry&&
 	input_col_wet->answer&&input_col_dry){
-		row_wet = atoi(input_row_wet->answer);
-		col_wet = atoi(input_col_wet->answer);
-		row_dry = atoi(input_row_dry->answer);
-		col_dry = atoi(input_col_dry->answer);
 		if(flag3->answer){
+			row_wet = atof(input_row_wet->answer);
+			col_wet = atof(input_col_wet->answer);
+			row_dry = atof(input_row_dry->answer);
+			col_dry = atof(input_col_dry->answer);
 			G_message("Manual wet/dry pixels in image coordinates");
 			G_message("Wet Pixel=> x:%i y:%i",col_wet,row_wet);
 			G_message("Dry Pixel=> x:%i y:%i",col_dry,row_dry);
 		} else {
+			row_wet = atoi(input_row_wet->answer);
+			col_wet = atoi(input_col_wet->answer);
+			row_dry = atoi(input_row_dry->answer);
+			col_dry = atoi(input_col_dry->answer);
 			G_message("Wet Pixel=> row:%i col:%i",row_wet,col_wet);
 			G_message("Dry Pixel=> row:%i col:%i",row_dry,col_dry);
 		}
