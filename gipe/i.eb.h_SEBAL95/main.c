@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
 	
 	int nrows, ncols;
 	int row, col;
-	int row_wet, col_wet;
-	int row_dry, col_dry;
+	double row_wet, col_wet;
+	double row_dry, col_dry;
 	int infd_T,infd_ndvi,infd_u2,infd_dem,infd_Rn,infd_g0,infd_albedo;
 	int outfd;
 	
@@ -200,13 +200,13 @@ int main(int argc, char *argv[])
 			row_dry = atof(input_row_dry->answer);
 			col_dry = atof(input_col_dry->answer);
 			G_message("Manual wet/dry pixels in image coordinates");
-			G_message("Wet Pixel=> x:%i y:%i",col_wet,row_wet);
-			G_message("Dry Pixel=> x:%i y:%i",col_dry,row_dry);
+			G_message("Wet Pixel=> x:%f y:%f",col_wet,row_wet);
+			G_message("Dry Pixel=> x:%f y:%f",col_dry,row_dry);
 		} else {
-			row_wet = atoi(input_row_wet->answer);
-			col_wet = atoi(input_col_wet->answer);
-			row_dry = atoi(input_row_dry->answer);
-			col_dry = atoi(input_col_dry->answer);
+			row_wet = (int) atof(input_row_wet->answer);
+			col_wet = (int) atof(input_col_wet->answer);
+			row_dry = (int) atof(input_row_dry->answer);
+			col_dry = (int) atof(input_col_dry->answer);
 			G_message("Wet Pixel=> row:%i col:%i",row_wet,col_wet);
 			G_message("Dry Pixel=> row:%i col:%i",row_dry,col_dry);
 		}
