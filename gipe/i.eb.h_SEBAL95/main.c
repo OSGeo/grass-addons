@@ -667,7 +667,8 @@ int main(int argc, char *argv[])
 		G_message("row_dry=%d\tcol_dry=%d\n",row_dry,col_dry);
 		G_message("tempk_wet=%f\n",d_tempk_wet);
 		G_message("g0_wet=%f\n",d_g0_wet);
-		G_message("h0_wet=%f\n",d_Rn_wet-d_g0_wet);
+		G_message("Rn_wet=%f\n",d_Rn_wet);
+		G_message("LE_wet=%f\n",d_Rn_wet-d_g0_wet);
 		G_message("tempk_dry=%f\n",d_tempk_dry);
 		G_message("dem_dry=%f\n",d_dem_dry);
 		G_message("t0dem_dry=%f\n",d_t0dem_dry);
