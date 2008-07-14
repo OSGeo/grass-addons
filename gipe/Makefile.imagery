@@ -1,21 +1,10 @@
-MODULE_TOPDIR = ..
+MODULE_TOPDIR = ../
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
-SUBDIRS1 = \
-	i.homography \
-	i.landsat.dehaze \
-	i.points.auto \
-	i.pr \
-	i.warp \
-	i.landsat.acca \
+SUBDIRS = \
 	i.landsat.toar \
-	i.points.reproj \
-	i.topo.corr \
 	i.albedo \
-	i.ask \
 	i.biomass \
-	i.class \
-	i.cluster \
 	i.dn2full.l5 \
 	i.dn2full.l7 \
 	i.dn2potrad.l5 \
@@ -44,40 +33,15 @@ SUBDIRS1 = \
 	i.evapo.PT \
 	i.evapo.SENAY \
 	i.evapo.TSA \
-	i.find \
-	i.gensig \
-	i.gensigset \
-	i.group \
-	i.his.rgb \
 	i.latitude \
 	i.lmf \
 	i.longitude \
-	i.landsat.dehaze \
-	i.maxlik \
-	i.ortho.photo \
-	i.points \
-	i.rectify \
-	i.rgb.his \
 	i.sattime \
-	i.smap \
 	i.sunhours \
-	i.target \
 	i.vi \
 	i.vi.mpi \
-	i.vpoints \
-	i.pca \
-	i.cca
+	i.water 
 
-FFTWBASED = i.fft i.ifft i.zc
-
-#compile if FFTW present:
-ifneq ($(strip $(FFTWLIB)),)
-    SUBDIRS2 = $(SUBDIRS1) $(FFTWBASED)
-else
-    SUBDIRS2 = $(SUBDIRS1)
-endif
-
-SUBDIRS = $(SUBDIRS2)
 
 default: subdirs htmldir
 
