@@ -91,8 +91,11 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    G_free(buf);
-    G_free(buf2);
+    for (n = 0; n < nlist; n++) {
+	o = opt[n];
+	G_free((char *)o->gisprompt);
+	G_free((char *)o->description);
+    }
 
     location_path = G_location_path();
     mapset = G_mapset();
