@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
 	struct Flag *force;
 	struct Flag *basemap;
     } flag;
-    char *name, *mapset, *location_path, path[GPATH_MAX];
-    const char **files;
+    char *name, *mapset, *location_path, path[GPATH_MAX], **files;
+    char *buf, *buf2;
     int num_files, rast, result = EXIT_SUCCESS;
     int i, j, n;
     regex_t regex;
@@ -80,15 +80,19 @@ int main(int argc, char *argv[])
 	o->type = TYPE_STRING;
 	o->required = NO;
 	o->multiple = YES;
-	o->gisprompt = G_malloc(64);
-	sprintf(o->gisprompt, "old,%s,%s", list[n].mainelem,
-		list[n].maindesc);
-	o->description = G_malloc(64);
-	sprintf(o->description, _("%s file(s) to be removed"), list[n].alias);
+	buf = G_malloc(64);
+	sprintf(buf, "old,%s,%s", list[n].mainelem, list[n].maindesc);
+	o->gisprompt = buf;
+	buf2 = G_malloc(64);
+	sprintf(buf2, _("%s file(s) to be removed"), list[n].alias);
+	o->description = buf2;
     }
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
+    G_free(buf);
+    G_free(buf2);
 
     location_path = G_location_path();
     mapset = G_mapset();

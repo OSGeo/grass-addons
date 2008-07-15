@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	struct Flag *full;
     } flag;
     int i, n, all, num_types, any, flags = 0;
-    char **types, *pattern = NULL, separator[2];
+    char **types, *pattern = NULL, separator[2], *buf;
     regex_t regex;
 
     G_gisinit(argv[0]);
@@ -71,14 +71,15 @@ int main(int argc, char *argv[])
     opt.type->description = "Data type";
     for (i = 0, n = 0; n < nlist; n++)
 	i += strlen(list[n].alias) + 1;
-    opt.type->options = G_malloc(i + 4);
+    buf = G_malloc(i + 4);
 
-    opt.type->options[0] = 0;
+    buf[0] = 0;
     for (n = 0; n < nlist; n++) {
-	G_strcat(opt.type->options, list[n].alias);
-	G_strcat(opt.type->options, ",");
+	G_strcat(buf, list[n].alias);
+	G_strcat(buf, ",");
     }
-    G_strcat(opt.type->options, "all");
+    G_strcat(buf, "all");
+    opt.type->options = buf;
 
     opt.pattern = G_define_option();
     opt.pattern->key = "pattern";
@@ -128,6 +129,8 @@ int main(int argc, char *argv[])
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
+    G_free(buf);
 
     if (flag.regex->answer)
 	pattern = opt.pattern->answer;

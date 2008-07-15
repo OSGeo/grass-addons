@@ -85,7 +85,7 @@ static int join_element(const char *element,
     char path[GPATH_MAX], *p;
     int i, count = 0;
     int buf_len, alias_len, list_len, sep_len = strlen(separator), mapset_len;
-    const char **list;
+    char **list;
 
     /*
      * convert . to current mapset

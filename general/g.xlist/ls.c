@@ -76,11 +76,11 @@ void G_set_ls_filter(ls_filter_func * func, void *closure)
  * \return          Pointer to array of strings containing the listing
  **/
 
-const char **G__ls(const char *dir, int *num_files)
+char **G__ls(const char *dir, int *num_files)
 {
     struct dirent *dp;
     DIR *dfd;
-    const char **dir_listing = NULL;
+    char **dir_listing = NULL;
     int n = 0;
 
     if ((dfd = opendir(dir)) == NULL)
@@ -92,8 +92,7 @@ const char **G__ls(const char *dir, int *num_files)
 	     dp->d_name[2] == 0) || (ls_filter &&
 				     !(*ls_filter) (dp->d_name, ls_closure)))
 	    continue;
-	dir_listing = (const char **)G_realloc(dir_listing,
-					       (1 + n) * sizeof(char *));
+	dir_listing = (char **)G_realloc(dir_listing, (1 + n) * sizeof(char *));
 	dir_listing[n] = G_store(dp->d_name);
 	n++;
     }

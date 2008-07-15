@@ -10,6 +10,6 @@ const char *G_join_element(const char *, const char *, const char *,
 
 /* ls.c */
 void G_set_ls_filter(int (*)(const char *, void *), void *);
-const char **G__ls(const char *, int *);
+char **G__ls(const char *, int *);
 
 #endif
