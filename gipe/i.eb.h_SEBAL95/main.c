@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
 	int row, col;
 	double row_wet, col_wet;
 	double row_dry, col_dry;
+	double m_row_wet, m_col_wet;
+	double m_row_dry, m_col_dry;
 	int infd_T,infd_ndvi,infd_u2,infd_dem,infd_Rn,infd_g0,infd_albedo;
 	int outfd;
 	
@@ -194,21 +196,17 @@ int main(int argc, char *argv[])
 	}
 	if(input_row_wet->answer&&input_row_dry&&
 	input_col_wet->answer&&input_col_dry){
+		m_row_wet = atof(input_row_wet->answer);
+		m_col_wet = atof(input_col_wet->answer);
+		m_row_dry = atof(input_row_dry->answer);
+		m_col_dry = atof(input_col_dry->answer);
 		if(flag3->answer){
-			row_wet = atof(input_row_wet->answer);
-			col_wet = atof(input_col_wet->answer);
-			row_dry = atof(input_row_dry->answer);
-			col_dry = atof(input_col_dry->answer);
 			G_message("Manual wet/dry pixels in image coordinates");
-			G_message("Wet Pixel=> x:%f y:%f",col_wet,row_wet);
-			G_message("Dry Pixel=> x:%f y:%f",col_dry,row_dry);
+			G_message("Wet Pixel=> x:%f y:%f",m_col_wet,m_row_wet);
+			G_message("Dry Pixel=> x:%f y:%f",m_col_dry,m_row_dry);
 		} else {
-			row_wet = (int) atof(input_row_wet->answer);
-			col_wet = (int) atof(input_col_wet->answer);
-			row_dry = (int) atof(input_row_dry->answer);
-			col_dry = (int) atof(input_col_dry->answer);
-			G_message("Wet Pixel=> row:%i col:%i",row_wet,col_wet);
-			G_message("Dry Pixel=> row:%i col:%i",row_dry,col_dry);
+			G_message("Wet Pixel=> row:%.0f col:%.0f",m_row_wet,m_col_wet);
+			G_message("Dry Pixel=> row:%.0f col:%.0f",m_row_dry,m_col_dry);
 		}
 	}
 	/* find maps in mapset */
@@ -679,17 +677,18 @@ int main(int argc, char *argv[])
 	/*MPI_BARRIER*/
 	
 	/* MANUAL WET/DRY PIXELS */
-	if(input_row_wet->answer&&input_row_dry&&
-	input_col_wet->answer&&input_col_dry){
+	if(input_row_wet->answer&&input_row_dry->answer&&
+	input_col_wet->answer&&input_col_dry->answer){
 		/*DRY PIXEL*/
 		if(flag3->answer){
 			/*Calculate coordinates of row/col from projected ones*/
-			row = ( ymax - row_dry ) / stepy ;
-			col = ( col_dry - xmin ) / stepx ;
+			row = (int) (( ymax - m_row_dry ) / (double) stepy) ;
+			col = (int) (( m_col_dry - xmin ) / (double) stepx) ;
 			G_message("Dry Pixel | row:%i col:%i",row,col);
 		} else {
-			row=row_dry;
-			col=col_dry;
+			row = (int) m_row_dry;
+			col = (int) m_col_dry;
+			G_message("Dry Pixel | row:%i col:%i",row,col);
 		}
 		DCELL d_tempk;
 		DCELL d_dem;
@@ -746,21 +745,23 @@ int main(int argc, char *argv[])
 				d_g0 = (double) ((DCELL *) inrast_g0)[col];
 				break;
 		}
-		d_t0dem = d_tempk + 0.001649*d_dem;
-		d_t0dem_dry=d_t0dem;
-		d_tempk_dry=d_tempk;
-		d_Rn_dry=d_Rn;
-		d_g0_dry=d_g0;
-		d_dem_dry=d_dem;
+		d_t0dem 	= d_tempk + 0.001649 * d_dem;
+		d_t0dem_dry	= d_t0dem;
+		d_tempk_dry	= d_tempk;
+		d_Rn_dry	= d_Rn;
+		d_g0_dry	= d_g0;
+		d_dem_dry	= d_dem;
+
 		/*WET PIXEL*/
 		if(flag3->answer){
 			/*Calculate coordinates of row/col from projected ones*/
-			row = ( ymax - row_wet ) / stepy ;
-			col = ( col_wet - xmin ) / stepx ;
+			row = (int) (( ymax - m_row_wet ) / (double) stepy) ;
+			col = (int) (( m_col_wet - xmin ) / (double) stepx) ;
 			G_message("Wet Pixel | row:%i col:%i",row,col);
 		} else {
-			row=row_wet;
-			col=col_wet;
+			row = m_row_wet;
+			col = m_col_wet;
+			G_message("Wet Pixel | row:%i col:%i",row,col);
 		}
 		if(G_get_raster_row(infd_T,inrast_T,row,data_type_T)<0)
 			G_fatal_error(_("Could not read from <%s>"),T);
@@ -775,7 +776,7 @@ int main(int argc, char *argv[])
 				d_tempk = (double) ((DCELL *) inrast_T)[col];
 				break;
 		}
-		d_tempk_wet=d_tempk;
+		d_tempk_wet	= d_tempk;
 	}
 	/* END OF MANUAL WET/DRY PIXELS */
 
@@ -882,14 +883,14 @@ int main(int argc, char *argv[])
 					d_g0 = (double) ((DCELL *) inrast_g0)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_tempk)||
-			G_is_d_null_value(&d_u2m)||
-			G_is_d_null_value(&d_dem)||
-			G_is_d_null_value(&d_ndvi)||
-			G_is_d_null_value(&d_Rn)||
-			G_is_d_null_value(&d_g0)||
-			d_g0<0.0||d_Rn<0.0||
-			d_dem<=-100.0||d_dem>9000.0||
+			if(G_is_d_null_value(&d_tempk) ||
+			G_is_d_null_value(&d_u2m) ||
+			G_is_d_null_value(&d_dem) ||
+			G_is_d_null_value(&d_ndvi) ||
+			G_is_d_null_value(&d_Rn) ||
+			G_is_d_null_value(&d_g0) ||
+			d_g0<0.0 || d_Rn<0.0 ||
+			d_dem<=-100.0 || d_dem>9000.0 ||
 			d_tempk<200.0){
 				G_set_d_null_value(&outrast[col],1);
 			} else {
@@ -898,7 +899,7 @@ int main(int argc, char *argv[])
 					d_albedo=0.01;
 				}
 				/* Calculate T0dem */
-				d_t0dem = (double)d_tempk + 0.001649*(double)d_dem;
+				d_t0dem = (double)d_tempk + 0.001649 * (double) d_dem;
 			/*	G_message("**InLoop d_t0dem=%5.3f",d_t0dem);
 				G_message(" d_dem=%5.3f",d_dem);
 				G_message(" d_tempk=%5.3f",d_tempk);
