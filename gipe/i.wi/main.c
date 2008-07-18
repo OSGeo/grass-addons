@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
-	viflag		= input1->answer;
+	wiflag		= input1->answer;
 	nirchan	 	= input2->answer;
 	swirchan 	= input3->answer;
 
