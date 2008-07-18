@@ -3,7 +3,7 @@
  * MODULE:       i.vi
  * AUTHOR(S):    Baburao Kamble baburaokamble@gmail.com
  *		 Yann Chemin - ychemin@gmail.com
- * PURPOSE:      Calculates 13 vegetation indices 
+ * PURPOSE:      Calculates 14 vegetation indices 
  * 		 based on biophysical parameters. 
  *
  * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
@@ -17,7 +17,9 @@
  *               Those can be any use by standard satellite having V and IR.
  *		 However arvi uses red, nir and blue; 
  *		 GVI uses B,G,R,NIR, chan5 and chan 7 of landsat;
- *		 and GARI uses B,G,R and NIR.      
+ *		 and GARI uses B,G,R and NIR.   
+ *
+ * Changelog:	 Added EVI on 20080718 (Yann)
  *
  *****************************************************************************/
 
@@ -31,6 +33,7 @@ double s_r( double redchan, double nirchan );
 double nd_vi( double redchan, double nirchan );
 double ip_vi( double redchan, double nirchan );
 double d_vi( double redchan, double nirchan );
+double e_vi( double bluechan, double redchan, double nirchan );
 double p_vi( double redchan, double nirchan );
 double wd_vi( double redchan, double nirchan );
 double sa_vi( double redchan, double nirchan );
@@ -83,7 +86,7 @@ int main(int argc, char *argv[])
 
 	module = G_define_module();
 	module->keywords = _("vegetation index, biophysical parameters");
-	module->description = _("13 types of vegetation indices from red and nir, and only some requiring additional bands");
+	module->description = _("14 types of vegetation indices from red and nir, and only some requiring additional bands");
 
 	/* Define the different options */
 	input1 = G_define_option() ;
@@ -91,7 +94,7 @@ int main(int argc, char *argv[])
 	input1->type       = TYPE_STRING;
 	input1->required   = YES;
 	input1->gisprompt  =_("Name of VI");
-	input1->description=_("Name of VI: sr,ndvi,ipvi,dvi,pvi,wdvi,savi,msavi,msavi2,gemi,arvi,gvi,gari.");
+	input1->description=_("Name of VI: sr,ndvi,ipvi,dvi,evi,pvi,wdvi,savi,msavi,msavi2,gemi,arvi,gvi,gari.");
 	input1->answer     =_("ndvi");
 
 	input2 = G_define_option() ;
@@ -257,7 +260,6 @@ int main(int argc, char *argv[])
 		DCELL d_chan7chan;
 		G_percent(row,nrows,2);
 //		printf("row = %i/%i\n",row,nrows);
-		/* read soil input maps */	
 		if(G_get_raster_row(infd_redchan,inrast_redchan,row,data_type_redchan)<0)
 			G_fatal_error(_("Could not read from <%s>"),redchan);
 		if(G_get_raster_row(infd_nirchan,inrast_nirchan,row,data_type_nirchan)<0)
@@ -388,6 +390,11 @@ int main(int argc, char *argv[])
 				/*calculate dvi	            */
 				if (!strcoll(viflag,"dvi")){
 					d =  d_vi(d_redchan,d_nirchan );
+					((DCELL *) outrast)[col] = d;
+				}
+				/*calculate evi	            */
+				if (!strcoll(viflag,"evi")){
+					d =  e_vi(d_bluechan,d_redchan,d_nirchan );
 					((DCELL *) outrast)[col] = d;
 				}
 				/*calculate pvi	            */
