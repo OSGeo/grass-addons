@@ -40,7 +40,8 @@ SUBDIRS = \
 	i.sunhours \
 	i.vi \
 	i.vi.mpi \
-	i.water 
+	i.water \
+	i.wi 
 
 
 default: subdirs htmldir

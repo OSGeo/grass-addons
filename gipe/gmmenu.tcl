@@ -572,6 +572,7 @@ set descmenu [subst  {
 				{command {[G_msg "Tassled cap vegetation index"]} {} "i.tasscap" {} -command {execute i.tasscap }}
 				{command {[G_msg "Vegetation Indices (13 types)"]} {} "i.vi" {} -command {execute i.vi }}
 				{command {[G_msg "Vegetation Indices (13 types) cluster"]} {} "i.vi.mpi" {} -command {execute i.vi.mpi }}
+				{command {[G_msg "Water Indices"]} {} "i.wi" {} -command {execute i.wi }}
 				{separator}
 				{command {[G_msg "Albedo"]} {} "i.albedo" {} -command {execute i.albedo }}
 				{command {[G_msg "Water"]} {} "i.water" {} -command {execute i.water }}
