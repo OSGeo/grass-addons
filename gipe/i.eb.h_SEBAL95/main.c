@@ -685,6 +685,8 @@ int main(int argc, char *argv[])
 			row = (int) (( ymax - m_row_dry ) / (double) stepy) ;
 			col = (int) (( m_col_dry - xmin ) / (double) stepx) ;
 			G_message("Dry Pixel | row:%i col:%i",row,col);
+			m_row_dry = row;
+			m_col_dry = col;
 		} else {
 			row = (int) m_row_dry;
 			col = (int) m_col_dry;
@@ -758,6 +760,8 @@ int main(int argc, char *argv[])
 			row = (int) (( ymax - m_row_wet ) / (double) stepy) ;
 			col = (int) (( m_col_wet - xmin ) / (double) stepx) ;
 			G_message("Wet Pixel | row:%i col:%i",row,col);
+			m_row_wet = row;
+			m_col_wet = col;
 		} else {
 			row = m_row_wet;
 			col = m_col_wet;
@@ -779,9 +783,8 @@ int main(int argc, char *argv[])
 		d_tempk_wet	= d_tempk;
 		G_message("Manual Pixels\n");
 		G_message("***************************\n");
-		G_message("tempk_min=%f\ntempk_max=%f\n",tempk_min,tempk_max);
-		G_message("row_wet=%d\tcol_wet=%d\n",row_wet,col_wet);
-		G_message("row_dry=%d\tcol_dry=%d\n",row_dry,col_dry);
+		G_message("row_wet=%d\tcol_wet=%d\n",(int) m_row_wet,(int) m_col_wet);
+		G_message("row_dry=%d\tcol_dry=%d\n",(int) m_row_dry,(int) m_col_dry);
 		G_message("tempk_wet=%f\n",d_tempk_wet);
 		G_message("tempk_dry=%f\n",d_tempk_dry);
 		G_message("dem_dry=%f\n",d_dem_dry);
