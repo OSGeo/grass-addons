@@ -777,6 +777,18 @@ int main(int argc, char *argv[])
 				break;
 		}
 		d_tempk_wet	= d_tempk;
+		G_message("Manual Pixels\n");
+		G_message("***************************\n");
+		G_message("tempk_min=%f\ntempk_max=%f\n",tempk_min,tempk_max);
+		G_message("row_wet=%d\tcol_wet=%d\n",row_wet,col_wet);
+		G_message("row_dry=%d\tcol_dry=%d\n",row_dry,col_dry);
+		G_message("tempk_wet=%f\n",d_tempk_wet);
+		G_message("tempk_dry=%f\n",d_tempk_dry);
+		G_message("dem_dry=%f\n",d_dem_dry);
+		G_message("t0dem_dry=%f\n",d_t0dem_dry);
+		G_message("rnet_dry=%f\n",d_Rn_dry);
+		G_message("g0_dry=%f\n",d_g0_dry);
+		G_message("h0_dry=%f\n",d_Rn_dry-d_g0_dry);
 	}
 	/* END OF MANUAL WET/DRY PIXELS */
 
