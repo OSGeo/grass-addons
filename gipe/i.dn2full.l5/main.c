@@ -49,7 +49,7 @@ main(int argc, char *argv[])
 	int row,col;
 
 	struct GModule *module;
-	struct Option *input,*output;
+	struct Option *input, *input1, *output;
 	
 	struct Flag *flag1;
 	struct History history; //metadata
@@ -111,6 +111,11 @@ main(int argc, char *argv[])
 	input->gisprompt  = _("old_file,file,file");
 	input->description= _("Landsat 5TM NLAPS processing report File (.txt)");
 
+	input1 = G_define_standard_option(G_OPT_R_INPUTS) ;
+	input1->key        = _("input");
+	input1->required   = NO;
+	input1->description= _("Names of all L5 DN layers (1,2,3,4,5,6,7)");
+
 	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key        = _("output");
 	output->description= _("Base name of the output layers (will add .x)");
@@ -119,6 +124,10 @@ main(int argc, char *argv[])
 		exit (-1);
 	
 	metfName	= input->answer;
+	if(input1->answers){
+		names  	= input1->answers;
+		ptr    	= input1->answers;
+	}
 	result		= output->answer;
 	//******************************************
 	//Fetch parameters for DN2Rad2Ref correction
@@ -128,12 +137,33 @@ main(int argc, char *argv[])
 	/********************/
 	doy = date2doy(day,month,year);
 	//printf("doy=%i\n",doy);
-	if(year<2000){
-		temp = year - 1900;
+	if(input1->answers){
+		int index=1;
+		for (; *ptr != NULL; ptr++){
+			name = *ptr;
+			if(index==1)
+				sprintf(b1,"%s",name);
+			if(index==2)
+				sprintf(b2,"%s",name);
+			if(index==3)
+				sprintf(b3,"%s",name);
+			if(index==4)
+				sprintf(b4,"%s",name);
+			if(index==5)
+				sprintf(b5,"%s",name);
+			if(index==6)
+				sprintf(b6,"%s",name);
+			if(index==7)
+				sprintf(b7,"%s",name);
+			index++;
+		}
 	} else {
-		temp = year - 2000;
-	}
-	if (temp >=10){
+		if(year<2000){
+			temp = year - 1900;
+		} else {
+			temp = year - 2000;
+		}
+		if (temp >=10){
 		sprintf(b1, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B1.tif");
 		sprintf(b2, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B2.tif");
 		sprintf(b3, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B3.tif");
@@ -141,7 +171,7 @@ main(int argc, char *argv[])
 		sprintf(b5, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B5.tif");
 		sprintf(b6, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B6.tif");
 		sprintf(b7, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"00",temp,doy,"50_B7.tif");
-	} else {
+		} else {
 		sprintf(b1, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B1.tif");
 		sprintf(b2, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B2.tif");
 		sprintf(b3, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B3.tif");
@@ -149,9 +179,11 @@ main(int argc, char *argv[])
 		sprintf(b5, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B5.tif");
 		sprintf(b6, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B6.tif");
 		sprintf(b7, "%s%d%s%d%s%d%d%s","LT5",l5path,"0",l5row,"000",temp,doy,"50_B7.tif");
+		}
 	}
 	//printf("%f/%f/%i-%i-%i\n",sun_elevation,sun_azimuth,day,month,year);
-//	exit(1);
+	//	exit(1);
+	
 	/********************/
 	//Prepare the ouput file names 
 	/********************/
