@@ -2,17 +2,19 @@
  *
  * MODULE:       i.eb.wetdrypix
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
- * PURPOSE:      Tries to zero in areas of potential pixel candidates for
+ * PURPOSE:      Tries to zero-in areas of potential pixel candidates for
  * 		 use in the initialisation of the sensible heat flux in SEBAL
- * 		 iteration, where Delta T is reassessed in each iteration.
+ * 		 iteration, where Delta T and rah are reassessed at each iteration.
  *
- * COPYRIGHT:    (C) 2002-2007 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
  *   	    	 for details.
  *
  * CHANGELOG:	
+ * 		 20080722: reworked the conditions as found in the automatic 
+ * 		 	mode of	i.eb.h_SEBAL95.
  *
  *****************************************************************************/
 
@@ -29,20 +31,26 @@ int main(int argc, char *argv[])
 	struct Cell_head cellhd;
 	
 	/* buffer for in out raster */
-	DCELL *inrast_T,*inrast_ndvi,*inrast_alb,*inrast_DEM,*inrast_Rn,*inrast_g0,*outrast,*outrast1;
-	unsigned char *wet, *dry;
+	DCELL *inrast_T,*inrast_alb;
+	DCELL *inrast_DEM,*inrast_Rn,*inrast_g0;
+	DCELL *outrast,*outrast1;
+
+	DCELL *wet, *dry;
 	
 	int nrows, ncols;
 	int row, col;
-	int infd_T,infd_ndvi,infd_alb,infd_DEM,infd_Rn,infd_g0;
+	int infd_T,infd_alb,infd_DEM,infd_Rn,infd_g0;
 	int outfd, outfd1;
 	
-	char *mapset_T,*mapset_ndvi,*mapset_alb,*mapset_DEM,*mapset_Rn,*mapset_g0;
-	char *T, *ndvi, *alb, *DEM, *Rn, *g0; 
-	
+	char *mapset_T,*mapset_alb,*mapset_DEM,*mapset_Rn,*mapset_g0;
+	char *T, *alb, *DEM, *Rn, *g0; 
+	char *wetF, *dryF;
+
         struct History history;
 	struct GModule *module;
-	struct Option *input_T, *input_ndvi, *input_alb, *input_DEM, *input_Rn, *input_g0, *output, *output1;
+	struct Option *input_T, *input_alb;
+	struct Option *input_DEM, *input_Rn, *input_g0;
+	struct Option *output, *output1;
 	
 	struct Flag *flag1, *zero;
 	
@@ -52,66 +60,33 @@ int main(int argc, char *argv[])
 	module->description = _("Wet and Dry pixels candidates for SEBAL 95");
 	
 	/* Define different options */
-	input_T = G_define_option();
+	input_T = G_define_standard_option(G_OPT_R_INPUT);
 	input_T->key	= "T";
-	input_T->type = TYPE_STRING;
-	input_T->required = YES;
-	input_T->gisprompt = "old,cell,raster";
 	input_T->description = _("Name of Surface Skin Temperature input map [K]");
 		
-	input_alb = G_define_option();
+	input_alb = G_define_standard_option(G_OPT_R_INPUT);
 	input_alb->key	= "alb";
-	input_alb->type = TYPE_STRING;
-	input_alb->required = YES;
-	input_alb->gisprompt = "old,cell,raster";
 	input_alb->description = _("Name of Broadband Albedo input map [-]");
 		
-	input_DEM = G_define_option();
+	input_DEM = G_define_standard_option(G_OPT_R_INPUT);
 	input_DEM->key	= "DEM";
-	input_DEM->type = TYPE_STRING;
-	input_DEM->required = YES;
-	input_DEM->gisprompt = "old,cell,raster";
 	input_DEM->description = _("Name of DEM input map [m a.s.l.]");
 	
-	input_ndvi = G_define_option();
-	input_ndvi->key	= "ndvi";
-	input_ndvi->type = TYPE_STRING;
-	input_ndvi->required = YES;
-	input_ndvi->gisprompt = "old,cell,raster";
-	input_ndvi->description = _("Name of NDVI input map [-]");
-	
-	input_Rn = G_define_option();
+	input_Rn = G_define_standard_option(G_OPT_R_INPUT);
 	input_Rn->key	= "Rn";
-	input_Rn->type = TYPE_STRING;
-	input_Rn->required = YES;
-	input_Rn->gisprompt = "old,cell,raster";
 	input_Rn->description = _("Name of Diurnal Net Solar Radiation input map [W/m2]");
 	
-	input_g0 = G_define_option();
+	input_g0 = G_define_standard_option(G_OPT_R_INPUT);
 	input_g0->key	= "g0";
-	input_g0->type = TYPE_STRING;
-	input_g0->required = YES;
-	input_g0->gisprompt = "old,cell,raster";
 	input_g0->description = _("Name of Soil Heat Flux input map [W/m2]");	
 	
-	output = G_define_option() ;
+	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key        = "wet";
-	output->type       = TYPE_STRING;
-	output->required   = YES;
-	output->gisprompt  = "new,cell,raster" ;
 	output->description= _("Name of output wet pixels areas layer [-]");
 	
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        = "dry";
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  = "new,cell,raster" ;
 	output1->description= _("Name of output dry pixels areas layer [-]");
-	
-	/* Define the different flags */
-	//flag1 = G_define_flag() ;
-	//flag1->key         = 'q' ;
-	//flag1->description = "Quiet" ;
 	
 	zero = G_define_flag() ;
 	zero->key         = 'z' ;
@@ -124,11 +99,11 @@ int main(int argc, char *argv[])
 	T=input_T->answer;
 	alb=input_alb->answer;
 	DEM=input_DEM->answer;
-	ndvi=input_ndvi->answer;
 	Rn=input_Rn->answer;
 	g0=input_g0->answer;
-	wet=output->answer;
-	dry=output1->answer;
+	
+	wetF=output->answer;
+	dryF=output1->answer;
 	
 	/* find maps in mapset */
 	mapset_T = G_find_cell2 (T, "");
@@ -140,9 +115,6 @@ int main(int argc, char *argv[])
 	mapset_DEM = G_find_cell2 (DEM, "");
 	if (mapset_DEM == NULL)
 	        G_fatal_error (_("cell file [%s] not found"), DEM);
-	mapset_ndvi = G_find_cell2 (ndvi, "");
-	if (mapset_ndvi == NULL)
-	        G_fatal_error (_("cell file [%s] not found"), ndvi);
 	mapset_Rn = G_find_cell2 (Rn, "");
 	if (mapset_Rn == NULL)
 	        G_fatal_error (_("cell file [%s] not found"), Rn);
@@ -151,10 +123,10 @@ int main(int argc, char *argv[])
 	        G_fatal_error (_("cell file [%s] not found"), g0);
 
 	/* check legal output name */ 
-	if (G_legal_filename (wet) < 0)
-			G_fatal_error (_("[%s] is an illegal name"), wet);
-	if (G_legal_filename (dry) < 0)
-			G_fatal_error (_("[%s] is an illegal name"), dry);
+	if (G_legal_filename (wetF) < 0)
+			G_fatal_error (_("[%s] is an illegal name"), wetF);
+	if (G_legal_filename (dryF) < 0)
+			G_fatal_error (_("[%s] is an illegal name"), dryF);
 		
 	/* determine the input map type (CELL/FCELL/DCELL) */
 	//data_type = G_raster_map_type(T, mapset);
@@ -165,8 +137,6 @@ int main(int argc, char *argv[])
 		G_fatal_error (_("Cannot open cell file [%s]"),alb);
 	if ( (infd_DEM = G_open_cell_old (DEM, mapset_DEM)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"),DEM);
-	if ( (infd_ndvi = G_open_cell_old (ndvi, mapset_ndvi)) < 0)
-		G_fatal_error (_("Cannot open cell file [%s]"),ndvi);
 	if ( (infd_Rn = G_open_cell_old (Rn, mapset_Rn)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"),Rn);
 	if ( (infd_g0 = G_open_cell_old (g0, mapset_g0)) < 0)
@@ -178,8 +148,6 @@ int main(int argc, char *argv[])
 		G_fatal_error (_("Cannot read file header of [%s]"), alb);
 	if (G_get_cellhd (DEM, mapset_DEM, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), DEM);
-	if (G_get_cellhd (ndvi, mapset_ndvi, &cellhd) < 0)
-		G_fatal_error (_("Cannot read file header of [%s]"), ndvi);
 	if (G_get_cellhd (Rn, mapset_Rn, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), Rn);
 	if (G_get_cellhd (g0, mapset_g0, &cellhd) < 0)
@@ -189,7 +157,6 @@ int main(int argc, char *argv[])
 	inrast_T  = G_allocate_d_raster_buf();
 	inrast_alb = G_allocate_d_raster_buf();
 	inrast_DEM = G_allocate_d_raster_buf();
-	inrast_ndvi = G_allocate_d_raster_buf();
 	inrast_Rn = G_allocate_d_raster_buf();
 	inrast_g0 = G_allocate_d_raster_buf();
 	
@@ -199,23 +166,160 @@ int main(int argc, char *argv[])
 	outrast = G_allocate_d_raster_buf();
 	outrast1 = G_allocate_d_raster_buf();
 
-	if ( (outfd = G_open_raster_new (wet,DCELL_TYPE)) < 0)
-		G_fatal_error (_("Could not open <%s>"),wet);
-	if ( (outfd1 = G_open_raster_new (dry,DCELL_TYPE)) < 0)
-		G_fatal_error (_("Could not open <%s>"),dry);
+	if ( (outfd = G_open_raster_new (wetF,DCELL_TYPE)) < 0)
+		G_fatal_error (_("Could not open <%s>"),wetF);
+	if ( (outfd1 = G_open_raster_new (dryF,DCELL_TYPE)) < 0)
+		G_fatal_error (_("Could not open <%s>"),dryF);
+
+	/*START Temperature minimum search */
+	/* THREAD 1 */
+	/*This is correcting for un-Earthly temperatures*/
+	/*It finds when histogram is actually starting to pull up...*/
+	int peak1, peak2, peak3;
+	int i_peak1, i_peak2, i_peak3;
+	int bottom1a, bottom1b;
+	int bottom2a, bottom2b;
+	int bottom3a, bottom3b;
+	int i_bottom1a, i_bottom1b;
+	int i_bottom2a, i_bottom2b;
+	int i_bottom3a, i_bottom3b;
+	int i=0;
+	int histogram[400];
+	for (i=0;i<400;i++){
+		histogram[i]=0;
+	}
+	DCELL d_T;
+	/****************************/
+	/* Process pixels histogram */
+	for (row = 0; row < nrows; row++)
+	{
+		G_percent (row, nrows, 2);
+		/* read input map */
+		if( (G_get_d_raster_row(infd_T,inrast_T,row)) < 0){
+			G_fatal_error (_("Could not read from <%s>"),T);
+		}
+		/*process the data */
+		for (col=0; col < ncols; col++)
+		{
+			d_T = ((DCELL *) inrast_T)[col];
+			if(G_is_d_null_value(&d_T)){
+				/*Do nothing*/
+			} else {
+				int temp;
+				temp		= (int) d_T;
+				if(temp>0){
+					histogram[temp]=histogram[temp]+1.0;
+				}
+			}
+		}
+	}
+	G_message("Histogram of Temperature map (if it has rogue values to clean)");
+	//int peak1, peak2, peak3;
+	//int i_peak1, i_peak2, i_peak3;
+	peak1=0;
+	peak2=0;
+	peak3=0;
+	i_peak1=0;
+	i_peak2=0;
+	i_peak3=0;
+	//int bottom1a, bottom1b;
+	//int bottom2a, bottom2b;
+	//int bottom3a, bottom3b;
+	//int i_bottom1a, i_bottom1b;
+	//int i_bottom2a, i_bottom2b;
+	//int i_bottom3a, i_bottom3b;
+	bottom1a=100000;
+	bottom1b=100000;
+	bottom2a=100000;
+	bottom2b=100000;
+	bottom3a=100000;
+	bottom3b=100000;
+	i_bottom1a=1000;
+	i_bottom1b=1000;
+	i_bottom2a=1000;
+	i_bottom2b=1000;
+	i_bottom3a=1000;
+	i_bottom3b=1000;
+	for(i=0;i<400;i++){
+		/* Search for highest peak of dataset (2) */
+		/* Highest Peak */
+		if(histogram[i]>peak2){
+			peak2 = histogram[i];
+			i_peak2=i;
+		}
+	}
+	int stop=0;
+	for(i=i_peak2;i>5;i--){
+		if(((histogram[i]+histogram[i-1]+histogram[i-2]+histogram[i-3]+histogram[i-4])/5)<histogram[i]&&stop==0){
+			bottom2a = histogram[i];
+			i_bottom2a = i;
+		} else if(((histogram[i]+histogram[i-1]+histogram[i-2]+histogram[i-3]+histogram[i-4])/5)>histogram[i]&&stop==0){
+			/*Search for peaks of datasets (1)*/
+			peak1 = histogram[i];
+			i_peak1=i;
+			stop=1;
+		}	
+	}
+	stop=0;
+	for(i=i_peak2;i<395;i++){
+		if(((histogram[i]+histogram[i+1]+histogram[i+2]+histogram[i+3]+histogram[i+4])/5)<histogram[i]&&stop==0){
+			bottom2b = histogram[i];
+			i_bottom2b = i;
+		} else if(((histogram[i]+histogram[i+1]+histogram[i+2]+histogram[i+3]+histogram[i+4])/5)>histogram[i]&&stop==0){
+			/*Search for peaks of datasets (3)*/
+			peak3 = histogram[i];
+			i_peak3=i;
+			stop=1;
+		}	
+	}
+	/* First histogram lower bound */
+	for(i=250;i<i_peak1;i++){
+		if(histogram[i]<bottom1a){
+			bottom1a = histogram[i];
+			i_bottom1a = i;
+		}
+	}
+	/* First histogram higher bound */
+	for(i=i_peak2;i>i_peak1;i--){
+		if(histogram[i]<=bottom1b){
+			bottom1b = histogram[i];
+			i_bottom1b = i;
+		}
+	}
+	/* Third histogram lower bound */
+	for(i=i_peak2;i<i_peak3;i++){
+		if(histogram[i]<bottom3a){
+			bottom3a = histogram[i];
+			i_bottom3a = i;
+		}
+	}	
+	/* Third histogram higher bound */
+	for(i=399;i>i_peak3;i--){
+		if(histogram[i]<bottom3b){
+			bottom3b = histogram[i];
+			i_bottom3b = i;
+		}
+	}	
+
+	DCELL d_tempk; 		/* Input raster */
+	DCELL d_albedo;		/* Input raster */
+	DCELL d_dem; 		/* Input raster */
+	DCELL d_Rn;		/* Input raster */
+	DCELL d_g0;		/* Input raster */
+	DCELL d_wet;	/* Output pixel */
+	DCELL d_dry;	/* Output pixel */
+	DCELL d_dem_dry;	/* Generated here */
+	DCELL d_t0dem, d_t0dem_dry;	/* Generated here */
+	DCELL t0dem_min, tempk_min;	/* Generated here */
+	DCELL t0dem_max, tempk_max;	/* Generated here */
+	DCELL d_tempk_max, d_tempk_min;	/* Generated here */
+	DCELL d_h0, d_h0_max;	/* Generated here */
+	DCELL d_tempk_wet, d_tempk_dry;	/* Generated here */
+	DCELL d_Rn_wet, d_Rn_dry;	/* Generated here */
+	DCELL d_g0_wet, d_g0_dry;	/* Generated here */
 
 	for (row = 0; row < nrows; row++)
 	{
-		DCELL d_tempk; 		/* Input raster */
-		DCELL d_alb; 		/* Input raster */
-		DCELL d_dem; 		/* Input raster */
-		DCELL d_ndvi; 		/* Input raster */
-		DCELL d_Rn;		/* Input raster */
-		DCELL d_g0;		/* Input raster */
-		DCELL d_wet;	/* Output pixel */
-		DCELL d_dry;	/* Output pixel */
-		DCELL d_t0dem;	/* Generated here */
-
 		/* read a line input maps into buffers*/	
 		if (G_get_d_raster_row (infd_T, inrast_T, row) < 0)
 			G_fatal_error (_("Could not read from <%s>"),T);
@@ -223,8 +327,6 @@ int main(int argc, char *argv[])
 			G_fatal_error (_("Could not read from <%s>"),alb);
 		if (G_get_d_raster_row (infd_DEM, inrast_DEM, row) < 0)
 			G_fatal_error (_("Could not read from <%s>"),DEM);
-		if (G_get_d_raster_row (infd_ndvi, inrast_ndvi, row) < 0)
-			G_fatal_error (_("Could not read from <%s>"),ndvi);
 		if (G_get_d_raster_row (infd_Rn, inrast_Rn, row) < 0)
 			G_fatal_error (_("Could not read from <%s>"),Rn);
 		if (G_get_d_raster_row (infd_g0, inrast_g0, row) < 0)
@@ -234,47 +336,132 @@ int main(int argc, char *argv[])
 		for (col=0; col < ncols; col++)
 		{
 			d_tempk	= ((DCELL *) inrast_T)[col];
-			d_alb	= ((DCELL *) inrast_alb)[col];
+			d_albedo= ((DCELL *) inrast_alb)[col];
 			d_dem	= ((DCELL *) inrast_DEM)[col];
-			d_ndvi	= ((DCELL *) inrast_ndvi)[col];
+			d_Rn	= ((DCELL *) inrast_Rn)[col];
+			d_g0	= ((DCELL *) inrast_g0)[col];
+
+			if(G_is_d_null_value(&d_albedo)||
+			G_is_d_null_value(&d_tempk)||
+			G_is_d_null_value(&d_dem)||
+			G_is_d_null_value(&d_Rn)||
+			G_is_d_null_value(&d_g0)){
+				/* do nothing */ 
+			}else{
+				d_t0dem = d_tempk + 0.001649*d_dem;
+				if(d_t0dem<=250.0||d_tempk<=250.0){
+					/* do nothing */ 
+				} else {
+					d_h0=d_Rn-d_g0;
+					if(d_t0dem<t0dem_min&&d_albedo<0.15){
+						t0dem_min=d_t0dem;
+						tempk_min=d_tempk;
+						d_tempk_wet=d_tempk;
+						d_Rn_wet=d_Rn;
+						d_g0_wet=d_g0;
+					}
+					if(d_tempk>=(double)i_peak1-5.0&&
+					d_tempk<(double)i_peak1+1.0){
+						tempk_min=d_tempk;
+						d_tempk_wet=d_tempk;
+						d_Rn_wet=d_Rn;
+						d_g0_wet=d_g0;
+					}
+					if(d_t0dem>t0dem_max){
+						t0dem_max=d_t0dem;
+						d_t0dem_dry=d_t0dem;
+						tempk_max=d_tempk;
+						d_tempk_dry=d_tempk;
+						d_Rn_dry=d_Rn;
+						d_g0_dry=d_g0;
+						d_dem_dry=d_dem;
+					}
+					if(d_tempk>=(double)i_peak3-0.0&&
+					d_tempk<(double)i_peak3+7.0&&
+					d_h0>100.0&&d_h0>d_h0_max&&
+					d_g0>10.0&&d_Rn>100.0&&
+					d_albedo>0.3){
+						tempk_max=d_tempk;
+						d_tempk_dry=d_tempk;
+						d_Rn_dry=d_Rn;
+						d_g0_dry=d_g0;
+						d_h0_max=d_h0;
+						d_dem_dry=d_dem;
+					}
+				}
+			}
+		}
+	}
+
+
+	/* ALLOCATE CLASSES: WET=1 DRY=1 OTHER=NULL OR 0.0 */
+
+	for (row = 0; row < nrows; row++)
+	{
+		/* read a line input maps into buffers*/	
+		if (G_get_d_raster_row (infd_T, inrast_T, row) < 0)
+			G_fatal_error (_("Could not read from <%s>"),T);
+		if (G_get_d_raster_row (infd_alb, inrast_alb, row) < 0)
+			G_fatal_error (_("Could not read from <%s>"),alb);
+		if (G_get_d_raster_row (infd_DEM, inrast_DEM, row) < 0)
+			G_fatal_error (_("Could not read from <%s>"),DEM);
+		if (G_get_d_raster_row (infd_Rn, inrast_Rn, row) < 0)
+			G_fatal_error (_("Could not read from <%s>"),Rn);
+		if (G_get_d_raster_row (infd_g0, inrast_g0, row) < 0)
+			G_fatal_error (_("Could not read from <%s>"),g0);
+		
+		/* read every cell in the line buffers */
+		for (col=0; col < ncols; col++)
+		{
+			d_tempk	= ((DCELL *) inrast_T)[col];
+			d_albedo= ((DCELL *) inrast_alb)[col];
+			d_dem	= ((DCELL *) inrast_DEM)[col];
 			d_Rn	= ((DCELL *) inrast_Rn)[col];
 			d_g0	= ((DCELL *) inrast_g0)[col];
 			
 			/* Initialize pixels as negative */
 			d_wet = -1.0;
 			d_dry = -1.0;
-
-			/* Calculate T0dem */
-			d_t0dem = d_dem * 0.00627 + d_tempk;
-			/* if Albedo is high and H is positive */
-			if(d_alb>0.3&&(d_Rn-d_g0)>0.0){
-				d_wet = 0.0; /* Not Wet pixel Candidate */
-				d_dry = 1.0; /* Dry pixel candidate */
-			/* if Albedo is not high and H is negative */
-			} else if (d_alb<0.3&&(d_Rn-d_g0)<=0.0){
-				d_wet = 1.0; /* Wet pixel Candidate */
-				d_dry = 0.0; /* Not dry pixel Candidate */
-			/* if g0 is negative, then not a candidate */
-			} else if (d_g0<=0.0){
-				d_wet = 0.0; /* Not wet pixel candidate */
-				d_dry = 0.0; /* Not dry pixel candidate */
+			
+			if(G_is_d_null_value(&d_albedo)||
+			G_is_d_null_value(&d_tempk)||
+			G_is_d_null_value(&d_dem)||
+			G_is_d_null_value(&d_Rn)||
+			G_is_d_null_value(&d_g0)){
+				/* do nothing */ 
+				G_set_d_null_value(&outrast[col],1);
+				G_set_d_null_value(&outrast1[col],1);
+			}else{
+				/* if Albedo is high and H is positive */
+				if(d_albedo > 0.3 && (d_Rn-d_g0) > 100.0 &&
+				d_tempk >= 0.98*d_tempk_max &&
+				d_tempk <= 1.02*d_tempk_max){
+					d_wet = -1.0; /* Not Wet pixel Candidate */
+					d_dry = 1.0; /* Dry pixel candidate */
+				/* if Albedo is not high and H is negative */
+				} else if (d_albedo < 0.1 && (d_Rn-d_g0) <= 100.0 &&
+				d_tempk >= 0.98*d_tempk_min &&
+				d_tempk <= 1.02*d_tempk_min){
+					d_wet = 1.0; /* Wet pixel Candidate */
+					d_dry = -1.0; /* Not dry pixel Candidate */
+				}	
+				
+				if (zero->answer && d_wet<0.0){
+					d_wet = 0.0;
+				}
+				if (zero->answer && d_dry<0.0){
+					d_dry = 0.0;
+				}
+				
+				outrast[col] = d_wet;
+				outrast1[col] = d_dry;
+				
+				if(d_wet==-1)
+					G_set_d_null_value(&outrast[col],1);
+				if(d_dry==-1)
+					G_set_d_null_value(&outrast1[col],1);
 			}
-			/* if altitude corrected temperature is strange, then not a candidate */
-			if (d_t0dem<=273.15||d_t0dem>340.0){
-				d_wet = 0.0; /* Not wet pixel candidate */
-				d_dry = 0.0; /* Not dry pixel candidate */
-			}
-
-			if (zero->answer && d_wet<0.0){
-				d_wet = 0.0;
-			}
-			if (zero->answer && d_dry<0.0){
-				d_dry = 0.0;
-			}
-			((DCELL *) outrast)[col] = d_wet;
-			((DCELL *) outrast1)[col] = d_dry;
-		}
-		
+		}	
 		if (G_put_d_raster_row (outfd, outrast) < 0)
 			G_fatal_error (_("Cannot write to <%s>"),wet);
 		if (G_put_d_raster_row (outfd1, outrast1) < 0)
@@ -283,7 +470,6 @@ int main(int argc, char *argv[])
 	G_free(inrast_T);
 	G_free(inrast_alb);
 	G_free(inrast_DEM);
-	G_free(inrast_ndvi);
 	G_free(inrast_Rn);
 	G_free(inrast_g0);
 	G_free(outrast);
@@ -291,19 +477,18 @@ int main(int argc, char *argv[])
 	G_close_cell (infd_T);
 	G_close_cell (infd_alb);
 	G_close_cell (infd_DEM);
-	G_close_cell (infd_ndvi);
 	G_close_cell (infd_Rn);
 	G_close_cell (infd_g0);
 	G_close_cell (outfd);
 	G_close_cell (outfd1);
 	
         /* add command line incantation to history file */
-        G_short_history(wet, "raster", &history);
+        G_short_history(wetF, "raster", &history);
         G_command_history(&history);
-        G_write_history(wet, &history);
-        G_short_history(dry, "raster", &history);
+        G_write_history(wetF, &history);
+        G_short_history(dryF, "raster", &history);
         G_command_history(&history);
-        G_write_history(dry, &history);
+        G_write_history(dryF, &history);
 
 	exit(EXIT_SUCCESS);
 }
