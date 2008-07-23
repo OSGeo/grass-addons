@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
 	
 	int nrows, ncols;
 	int row, col;
-	double row_wet, col_wet;
-	double row_dry, col_dry;
+	int row_wet, col_wet;
+	int row_dry, col_dry;
 	double m_row_wet, m_col_wet;
 	double m_row_dry, m_col_dry;
 	int infd_T,infd_ndvi,infd_u2,infd_dem,infd_Rn,infd_g0,infd_albedo;
@@ -159,7 +159,6 @@ int main(int argc, char *argv[])
 	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key        = "h0";
 	output->description= _("Name of output sensible heat flux layer [W/m2]");
-	output->guisection	= _("Required");
 	
 	/* Define the different flags */
 	flag1 = G_define_flag() ;
@@ -687,11 +686,10 @@ int main(int argc, char *argv[])
 			G_message("Dry Pixel | row:%i col:%i",row,col);
 			m_row_dry = row;
 			m_col_dry = col;
-		} else {
-			row = (int) m_row_dry;
-			col = (int) m_col_dry;
-			G_message("Dry Pixel | row:%i col:%i",row,col);
 		}
+		row = (int) m_row_dry;
+		col = (int) m_col_dry;
+		G_message("Dry Pixel | row:%i col:%i",row,col);
 		DCELL d_tempk;
 		DCELL d_dem;
 		DCELL d_t0dem;
@@ -762,11 +760,10 @@ int main(int argc, char *argv[])
 			G_message("Wet Pixel | row:%i col:%i",row,col);
 			m_row_wet = row;
 			m_col_wet = col;
-		} else {
-			row = m_row_wet;
-			col = m_col_wet;
-			G_message("Wet Pixel | row:%i col:%i",row,col);
-		}
+		} 
+		row = m_row_wet;
+		col = m_col_wet;
+		G_message("Wet Pixel | row:%i col:%i",row,col);
 		if(G_get_raster_row(infd_T,inrast_T,row,data_type_T)<0)
 			G_fatal_error(_("Could not read from <%s>"),T);
 		switch(data_type_T){
