@@ -1,6 +1,6 @@
 /* Functions: ...
 **
-** Author: Radim Blazek, Rosen Matev; June 2008
+** Author: Radim Blazek, Rosen Matev; July 2008
 **
 **
 */
@@ -8,6 +8,7 @@
 #include <math.h>
 #include <grass/Vect.h>
 #include <grass/gis.h>
+#include "dgraph.h"
 
 #define LENGTH(DX, DY) (sqrt((DX*DX)+(DY*DY)))
 #ifndef MIN
@@ -157,7 +158,7 @@ static double angular_tolerance(double tol, double da, double db) {
 */
 void parallel_line(struct line_pnts *Points, double da, double db, double dalpha, int side, int round, int caps, int looped, double tol, struct line_pnts *nPoints)
 {
-    int i, i_minus_1, j, res, np;
+    int i, j, res, np;
     double *x, *y;
     double tx, ty, vx, vy, wx, wy, nx, ny, mx, my, rx, ry;
     double vx1, vy1, wx1, wy1;
@@ -165,16 +166,24 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     double phi1, phi2, delta_phi;
     double nsegments, angular_tol, angular_step;
     double cosa, sina, r;
-    int inner_corner, turns180, loop_flag;
+    int inner_corner, turns180;
     
     G_debug(4, "parallel_line()");
     
-    Vect_reset_line(nPoints);
+    if (looped && 0) {
+        /* start point != end point */
+        return;
+    }
     
+    Vect_reset_line(nPoints);
+
+    if (looped) {
+        Vect_append_point(Points, Points->x[1], Points->y[1], Points->z[1]);
+    }
     np = Points->n_points;
     x = Points->x;
     y = Points->y;
-
+    
     if ((np == 0) || (np == 1))
         return;
 
@@ -186,21 +195,16 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     side = (side >= 0)?(1):(-1); /* normalize variable */
     dalpha *= PI/180; /* convert dalpha from degrees to radians */
     angular_tol = angular_tolerance(tol, da, db);
-    loop_flag = 1;
     
-    for (i = 0; (i < np)&&(loop_flag); i++)
+    for (i = 0; i < np-1; i++)
     {
-        i_minus_1 = i - 1;
-        if (i == np-1) {
-            if (!looped) {
-                break;
-            }
-            else {
-                i = 0;
-                i_minus_1 = np - 2;
-                loop_flag = 0;
-            }
-        }
+        /* save the old values */
+        a0 = a1;
+        b0 = b1;
+        c0 = c1;
+        wx = vx;
+        wy = vy;        
+        
         
         norm_vector(x[i], y[i], x[i+1], y[i+1], &tx, &ty);
         elliptic_tangent(side*tx, side*ty, da, db, dalpha, &vx, &vy);
@@ -212,286 +216,185 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
         my = y[i+1] + vy;
 
         line_coefficients(nx, ny, mx, my, &a1, &b1, &c1);
-        
-        if ((i == 0) && loop_flag) {
-            if (!looped) {
+
+        if (i == 0) {
+            if (!looped)
                 Vect_append_point(nPoints, nx, ny, 0);
-                G_debug(4, "append point x=%.18f y=%.18f i=%d", nx, ny, i);
+            continue;
+        }
+        
+        delta_phi = atan2(ty, tx) - atan2(y[i]-y[i-1], x[i]-x[i-1]);
+        if (delta_phi > PI)
+            delta_phi -= 2*PI;
+        else if (delta_phi <= -PI)
+            delta_phi += 2*PI;
+        /* now delta_phi is in [-pi;pi] */
+        turns180 = (fabs(fabs(delta_phi) - PI) < 1e-15);
+        inner_corner = (side*delta_phi <= 0) && (!turns180);
+        
+        if ((turns180) && (!(caps && round))) {
+            if (caps) {
+                norm_vector(0, 0, vx, vy, &tx, &ty);
+                elliptic_tangent(side*tx, side*ty, da, db, dalpha, &tx, &ty);
+            }
+            else {
+                tx = 0;
+                ty = 0;
+            }
+            Vect_append_point(nPoints, x[i] + wx + tx, y[i] + wy + ty, 0);
+            Vect_append_point(nPoints, nx + tx, ny + ty, 0); /* nx == x[i] + vx, ny == y[i] + vy */
+        }
+        else if ((!round) || inner_corner) {
+            res = line_intersection(a0, b0, c0, a1, b1, c1, &rx, &ry);
+/*                if (res == 0) {
+                G_debug(4, "a0=%.18f, b0=%.18f, c0=%.18f, a1=%.18f, b1=%.18f, c1=%.18f", a0, b0, c0, a1, b1, c1);
+                G_fatal_error("Two consequtive line segments are parallel, but not on one straight line! This should never happen.");
+                return;
+            }  */
+            if (res == 1) {
+                Vect_append_point(nPoints, rx, ry, 0);
             }
         }
         else {
-            delta_phi = atan2(ty, tx) - atan2(y[i_minus_1+1]-y[i_minus_1], x[i_minus_1+1]-x[i_minus_1]);
-            if (delta_phi > PI)
-                delta_phi -= 2*PI;
-            else if (delta_phi <= -PI)
-                delta_phi += 2*PI;
-            /* now delta_phi is in [-pi;pi] */
-            turns180 = (fabs(fabs(delta_phi) - PI) < 1e-15);
-            inner_corner = (side*delta_phi <= 0) && (!turns180);
+            /* we should draw elliptical arc for outside corner */
             
-            if ((turns180) && (!(caps && round))) {
-                if (caps) {
-                    norm_vector(0, 0, vx, vy, &tx, &ty);
-                    elliptic_tangent(side*tx, side*ty, da, db, dalpha, &tx, &ty);
-                }
-                else {
-                    tx = 0;
-                    ty = 0;
-                }
-                Vect_append_point(nPoints, x[i] + wx + tx, y[i] + wy + ty, 0);
-                Vect_append_point(nPoints, nx + tx, ny + ty, 0); /* nx == x[i] + vx, ny == y[i] + vy */
-            }
-            else if ((!round) || inner_corner) {
-                res = line_intersection(a0, b0, c0, a1, b1, c1, &rx, &ry);
-/*                if (res == 0) {
-                    G_debug(4, "a0=%.18f, b0=%.18f, c0=%.18f, a1=%.18f, b1=%.18f, c1=%.18f", a0, b0, c0, a1, b1, c1);
-                    G_fatal_error("Two consequtive line segments are parallel, but not on one straight line! This should never happen.");
-                    return;
-                }  */
-                if (res == 1) {
-                    Vect_append_point(nPoints, rx, ry, 0);
-                }
-            }
-            else {
-                /* we should draw elliptical arc for outside corner */
-                
-                /* inverse transforms */
-                elliptic_transform(wx, wy, 1/da, 1/db, dalpha, &wx1, &wy1);
-                elliptic_transform(vx, vy, 1/da, 1/db, dalpha, &vx1, &vy1);
-                
-                phi1 = atan2(wy1, wx1);
-                phi2 = atan2(vy1, vx1);
-                delta_phi = side*(phi2 - phi1);
-                
-                /* make delta_phi in [0, 2pi] */
-                if (delta_phi < 0)
-                    delta_phi += 2*PI;
-                
-                nsegments = (int)(delta_phi/angular_tol) + 1;
-                angular_step = side*(delta_phi/nsegments);
-                
-                for (j = 0; j <= nsegments; j++) {
-                    elliptic_transform(cos(phi1), sin(phi1), da, db, dalpha, &tx, &ty);
-                    Vect_append_point(nPoints, x[i] + tx, y[i] + ty, 0);
-                    phi1 += angular_step;
-                }
+            /* inverse transforms */
+            elliptic_transform(wx, wy, 1/da, 1/db, dalpha, &wx1, &wy1);
+            elliptic_transform(vx, vy, 1/da, 1/db, dalpha, &vx1, &vy1);
+            
+            phi1 = atan2(wy1, wx1);
+            phi2 = atan2(vy1, vx1);
+            delta_phi = side*(phi2 - phi1);
+            
+            /* make delta_phi in [0, 2pi] */
+            if (delta_phi < 0)
+                delta_phi += 2*PI;
+            
+            nsegments = (int)(delta_phi/angular_tol) + 1;
+            angular_step = side*(delta_phi/nsegments);
+            
+            for (j = 0; j <= nsegments; j++) {
+                elliptic_transform(cos(phi1), sin(phi1), da, db, dalpha, &tx, &ty);
+                Vect_append_point(nPoints, x[i] + tx, y[i] + ty, 0);
+                phi1 += angular_step;
             }
         }
         
-        if ((i == np-2) && (!looped)) {
+        if ((!looped) && (i == np-2)) {
             Vect_append_point(nPoints, mx, my, 0);
         }
-        
-        /* save the old values */
-        a0 = a1;
-        b0 = b1;
-        c0 = c1;
-        wx = vx;
-        wy = vy;        
     }
     
     if (looped) {
-        i = nPoints->n_points - 1;
-        Vect_line_insert_point(nPoints, 0, nPoints->x[i], nPoints->y[i], 0);
+        Vect_append_point(nPoints, nPoints->x[0], nPoints->y[0], nPoints->z[0]);
     }
-    Vect_line_prune ( nPoints );
-}
-
-static void split_at_intersections(struct line_pnts *Points, struct line_pnts *nPoints)
-{
-    #define MAX_SEGMENT_INTERSECTIONS 10  /* we should make dynamic array here? */
-    #define EPSILON 1e-10 /*  */
-    int i, j, k, res, np;
-    double *x, *y; /* input coordinates */
-    double x1, y1, z1, x2, y2, z2; /* intersection points */
-    double len; /* current i-th line length */
-    double tdist, min;
-    double px[MAX_SEGMENT_INTERSECTIONS], py[MAX_SEGMENT_INTERSECTIONS], pdist[MAX_SEGMENT_INTERSECTIONS];
-    int pcount, min_i;
-
-    G_debug(1, "split_at_intersections()");
     
-    Vect_reset_line(nPoints);
-
-    Vect_line_prune(Points);
-    np = Points->n_points;
-    x = Points->x;
-    y = Points->y;
-
-    if ((np == 0) || (np == 1))
-        return;
-
-    for (i = 0; i < np-1; i++) {
-        Vect_append_point(nPoints, x[i], y[i], 0);
-        G_debug(1, "appended point x=%f y=%f", x[i], y[i]);
-        
-        
-        /* find all intersections */
-        pcount = 0;
-        len = LENGTH((x[i]-x[i+1]), (y[i]-y[i+1]));
-        for (j = 0; j < np-1; j++) {
-            /* exclude previous (i-1)th, current i-th, and next (i+1)th line */
-            if ((j < i-1) || (j > i+1)) {
-                res = Vect_segment_intersection(x[i], y[i], 0, x[i+1], y[i+1], 0,
-                                                x[j], y[j], 0, x[j+1], y[j+1], 0,
-                                                &x1, &y1, &z1, &x2, &y2, &z2, 0);
-                G_debug(1, "intersection=%d", res);
-                if (res == 1) {
-                    /* generall intersection */
-                    tdist = LENGTH((x[i]-x1), (y[i]-y1));
-                    /* we only want intersections on the inside */
-                    G_debug(1, "x1=%f y1=%f tdist=%f len=%f, eps=%f", x1, y1, tdist, len, EPSILON);
-                    if ((tdist > EPSILON) && (tdist < len - EPSILON)) {
-                        px[pcount] = x1;
-                        py[pcount] = y1;
-                        pdist[pcount] = tdist;
-                        pcount++;
-                    }
-                }
-                /* TODO: implement cases of overlappings */
-            }
-        }
-        
-        /* now we shoud output interserction points ordered by distance to (x[i],y[i]) */
-        /* we do it in O(pcount^2) time, since pcount is usually small it's okey */
-        G_debug(1, "pcount=%d", pcount);
-        for (j = 0; j < pcount; j++) {
-            min = 2*len;
-            for (k = 0; k < pcount; k++) {
-                if (pdist[k] < min) {
-                    min = pdist[k];
-                    min_i = k;
-                }
-            }
-            pdist[min_i] = 4*len;
-            Vect_append_point(nPoints, px[min_i], py[min_i], 0);
-            G_debug(1, "appended point x=%f y=%f", px[min_i], py[min_i]);
-            
-        }
+    Vect_line_prune ( nPoints );
+    
+    if (looped) {
+        Vect_line_delete_point(Points, Points->n_points-1);
     }
-    Vect_append_point(nPoints, x[np-1], y[np-1], 0);
-    G_debug(1, "appended point x=%f y=%f", x[i], y[i]);
-    Vect_line_prune(nPoints);    
 }
 
 /*
-* IMPORTANT: split_at_intersections() must be applied to input line before calling extract_contour().
-*            When visited != NULL, extract_contour() marks the sides of lines as visited along the contour.
-*            visited->a must have at least Points->n_points elements
-*
-* side: side >= 0 - right contour, side < 0 - left contour
-* returns: -1 when contour is a loop; 0 or Points->n_points-1 when contour finishes at line end (depending on which one)
+* side: side >= 0 - extracts contour on right side of edge, side < 0 - extracts contour on left side of edge
+* returns: the side of the output line, where we should draw parallel line
 */
-static int extract_contour(struct line_pnts *Points, int first_point, int first_step, int side, int stop_at_line_end, struct line_pnts *nPoints, struct visited_segments *visited) {
-    int i, is, j, k, step, np;
-    int ret;
-    double *x, *y;
-    double cx, cy, tx, ty;
-    double u, v, len, new_len, new_step;
-    int intersection_flag;
-    double x1, y1, z1, x2, y2, z2;
+static int extract_contour(struct planar_graph *pg, struct pg_edge *first, int side, int stop_at_line_end, struct line_pnts *nPoints) {
+    int i, j, ret;
+    int v; /* current vertex number */
+    int v0;
+    int eside; /* side of the current edge */
+    double eangle; /* current edge angle with Ox (according to the current direction) */
+    struct pg_vertex *vert; /* current vertex */
+    struct pg_vertex *vert0; /* last vertex */
+    struct pg_edge *edge; /* current edge; must be edge of vert */
+    int cs; /* on which side are we turning along the contour */
     double opt_angle, tangle;
-    int opt_j, opt_step, opt_flag;
+    int opt_j, opt_side, opt_flag;
     
-    G_debug(4, "extract_contour(): first_point=%d, first_step=%d, side=%d, stop_at_line_end=%d", first_point, first_step, side, stop_at_line_end);
+    G_debug(4, "extract_contour(): v1=%d, v2=%d, side=%d, stop_at_line_end=%d", first->v1, first->v2, side, stop_at_line_end);
 
     Vect_reset_line(nPoints);
-            
-    np = Points->n_points;
-    x = Points->x;
-    y = Points->y;
-    G_debug(4, "ec: Points->n_points=%d", np);
     
-    if ((np == 0) || (np == 1))
-        return;
-
-    /* normalize parameter side */
-    if (side >= 0)
-        side = 1;
-    else if (side < 0)
-        side = -1;
-    
-    i = first_point;
-    step = first_step;
-    while (1) {
-        /* precessing segment AB: A=(x[i],y[i]) B=(x[i+step],y[i+step]) */
-        Vect_append_point(nPoints, x[i], y[i], 0);
-        G_debug(4, "ec: append point x=%.18f y=%.18f", x[i], y[i]);
-        is = i + step;
-        
-        if (visited != NULL) {
-            j = (3-step*side)/2; /* j is 1 when (step*side == 1), and j is 2 when (step*side == -1) */
-            k = MIN(i, is);
-            if ((visited->a[k] & j) == 0)
-                visited->n++;
-            visited->a[k] |= j;
+    edge = first;
+    eside = (side >= 0)?(1):(-1);
+    v = edge->v1; /* we might select v1 or v2 if we always want ccw output line */
+    v0 = edge->v2;
+    vert = &(pg->v[v]);
+    vert0 = &(pg->v[v0]);
+    /*for (i = 0; i < pg->v[v0].ecount; i++)
+        if (pg->v[v0].edges[i] == edge) {
+            eangle = pg->v[v0].angles[i];
+            break;
         }
-                
-        cx = x[i] - x[is];
-        cy = y[i] - y[is];
+    */
+    eangle = atan2(vert->y - vert0->y, vert->x - vert0->x);
+    cs = -eside; /* because we chose to go v2-->v1 */
+    while (1) {
+        Vect_append_point(nPoints, vert0->x, vert0->y, 0);
+        G_debug(4, "ec: v0=%d, v=%d, eside=%d, edge->v1=%d, edge->v2=%d", v0, v, eside, edge->v1, edge->v2);
+        G_debug(4, "ec: edge=%X, first=%X", edge, first);
+        //G_debug(4, "ec: first->v1=%d, first->v2=%d", first->v1, first->v2);
+        G_debug(4, "ec: append point x=%.18f y=%.18f", vert0->x, vert0->y);
+       
+        /* mark current edge as visited on the appropriate side */
+        if (eside == 1)
+            edge->visited_right = 1;
+        else
+            edge->visited_left = 1;
+        
         opt_flag = 1;
-        for (j = 0; j < np-1; j++) {
-            /* exclude current segment AB */
-            if (j != i - (1-step)/2) {
-                if ((fabs(x[j]-x[is]) < EPSILON) && (fabs(y[j]-y[is]) < EPSILON)) {
-                    tx = x[j+1] - x[j];
-                    ty = y[j+1] - y[j];
-                    tangle = atan2(ty, tx) - atan2(cy, cx);
-                    if (tangle < 0)
-                        tangle += 2*PI;
-                    /* now tangle is in [0, 2PI) */
-                    
-                    if (opt_flag || (side*tangle < side*opt_angle)) {
-                        opt_j = j;
-                        opt_step = 1;
-                        opt_angle = tangle;
-                        opt_flag = 0;
-                    }
-                }
-                else if ((fabs(x[j+1]-x[is]) < EPSILON) && (fabs(y[j+1]-y[is]) < EPSILON)) {
-                    tx = x[j] - x[j+1];
-                    ty = y[j] - y[j+1];
-                    tangle = atan2(ty, tx) - atan2(cy, cx);
-                    if (tangle < 0)
-                        tangle += 2*PI;
-                    /* now tangle is in [0, 2PI) */
-                    
-                    if (opt_flag || (side*tangle < side*opt_angle)) {
-                        opt_j = j+1;
-                        opt_step = -1;
-                        opt_angle = tangle;
-                        opt_flag = 0;
-                    }
-                    
+        for (j = 0; j < vert->ecount; j++) {
+            /* exclude current edge */
+            if (vert->edges[j] != edge) {
+                tangle = vert->angles[j] - eangle;
+                if (tangle < -PI)
+                    tangle += 2*PI;
+                else if (tangle > PI)
+                    tangle -= 2*PI;
+                /* now tangle is in (-PI, PI) */
+                
+                if (opt_flag || (cs*tangle < cs*opt_angle)) {
+                    opt_j = j;
+                    opt_side = (vert->edges[j]->v1 == v)?(cs):(-cs);
+                    opt_angle = tangle;
+                    opt_flag = 0;
                 }
             }
         }
         
-        /* if line end is reached */
+//        G_debug(4, "ec: opt: side=%d opt_flag=%d opt_angle=%.18f opt_j=%d opt_step=%d", side, opt_flag, opt_angle, opt_j, opt_step);
+        
+        /* if line end is reached (no other edges at curr vertex) */
         if (opt_flag) {
             if (stop_at_line_end) {
-                Vect_append_point(nPoints, x[is], y[is], 0);
-                ret = is;
+                ret = 2;
                 break;
             }
             else {
-                opt_j = is;
-                opt_step = -step;
+                opt_j = 0; /* the only edge of vert is vert->edges[0] */
+                opt_side = -eside; /* go to the other side of the curr edge */
             }
         }
         
-        if ((opt_j == first_point) && (opt_step == first_step)) {
-            Vect_append_point(nPoints, x[is], y[is], 0);
-            ret = -1;
+        if ((vert->edges[opt_j] == first) && (opt_side == side)) {
+            ret = 1;
             break;
         }
-        
-        i = opt_j;
-        step = opt_step;
-    }        
-    Vect_line_prune(nPoints);
 
-    return ret;
+        edge = vert->edges[opt_j];
+        eside = opt_side;
+        v0 = v;
+        v = (edge->v1 == v)?(edge->v2):(edge->v1);
+        vert0 = vert;
+        vert = &(pg->v[v]);
+        eangle = vert0->angles[opt_j];
+    }
+    Vect_append_point(nPoints, vert->x, vert->y, 0);
+    G_debug(4, "ec: append point x=%.18f y=%.18f", vert->x, vert->y);
+
+    return cs;
 }
 
 /*
@@ -502,128 +405,91 @@ static int extract_contour(struct line_pnts *Points, int first_point, int first_
 * side: side > 0 - right contour, side < 0 - left contour, side = 0 - outer contour
 *       if side != 0 and there's only one contour, the function returns it
 * 
-* IMPORTANT: split_at_intersections() must be applied to input line before calling extract_outer_contour
 * TODO: Implement side != 0 feature;
-* returns: returns on which side of output line is the exterior of the input line
+* retunrs: the side of the output line, where we should draw parallel line
 */
-static int extract_outer_contour(struct line_pnts *Points, int side, struct line_pnts *nPoints, struct visited_segments *visited) {
-    int i, np, res, ret;
-    double *x, *y;
+int extract_outer_contour(struct planar_graph *pg, int side, struct line_pnts *nPoints) {
+    int i;
+    int flag;
+    int v;
+    struct pg_vertex *vert;
+    struct pg_edge *edge;
     double min_x, min_angle, ta;
-    int t1, t2, j1=-1, j2=-1;
 
     G_debug(4, "extract_outer_contour()");
 
-    np = Points->n_points;
-    x = Points->x;
-    y = Points->y;
-    
     if (side != 0) {
-        res = extract_contour(Points, 0, 1, side, 1, nPoints, NULL); /* should save visited and later restore it if needed */
-        /* if we have finished at the other end */
-        if (res == Points->n_points-1) {
-            /* !!! WE ARE STILL NOT SURE WHETHER THIS IS PROPER OUTER CONTOUR.
-             * !!! CONSIDER THE CASE WHERE BOTH LINE ENDS ARE IN THE SAME LOOP. 
-            */
-            return side;
-        }
+        G_fatal_error("    side != 0 feature not implemented");
+        return;
     }
     
     /* find a line segment which is on the outer contour */
-    min_x = 1e300;
-    for (i = 0; i < np-1; i++) {
-        if (x[i] <= x[i+1]) {
-            t1 = i;
-            t2 = i+1;
+    flag = 1;
+    for (i = 0; i < pg->vcount; i++) {
+        if (flag || (pg->v[i].x < min_x)) {
+            v = i;
+            min_x = pg->v[i].x;
+            flag = 0;
         }
-        else {
-            t1 = i+1;
-            t2 = i;
-        }
-        G_debug(4, "t1=%d (%f,%f) t2=%d (%f,%f)", t1, x[t1], y[t1], t2, x[t2], y[t2]);
-        if (x[t1] < min_x) {
-            min_x = x[t1];
-            min_angle = atan2(y[t2]-y[t1], x[t2]-x[t1]);
-            j1 = t1;
-            j2 = t2;
-            G_debug(4, "j1=%d j2=%d", j1, j2);
-        }
-        else if ((x[t1] == min_x) && (y[t1] == y[j1])) {
-            ta = atan2(y[t2]-y[t1], x[t2]-x[t1]);
-            if (ta < min_angle) {
-                min_angle = ta;
-                j1 = t1;
-                j2 = t2;
-                G_debug(4, "j1=%d j2=%d", j1, j2);
-            }
+    }
+    vert = &(pg->v[v]);
+    
+    flag = 1;
+    for (i = 0; i < vert->ecount; i++) {
+        if (flag || (vert->angles[i] < min_angle)) {
+            edge = vert->edges[i];
+            min_angle = vert->angles[i];
+            flag = 0;
         }
     }
     
-    G_debug(4, "j1=%d, j2-j1=%d, side=%d", j1, j2-j1, RIGHT_SIDE);
-    res = extract_contour(Points, j1, j2-j1, RIGHT_SIDE, 0, nPoints, visited);
-    
-    return RIGHT_SIDE;
+    return extract_contour(pg, edge, (edge->v1 == v)?RIGHT_SIDE:LEFT_SIDE, 0, nPoints);
 }
 
 /*
-* Extracts contours which are not visited. Generates counterclockwise closed lines.
-* IMPORTANT: split_at_intersections() must be applied to input line before calling extract_inner_contour
-* IMPORTANT: the outer contour must be visited, so that extract_inner_contour() doesn't return it
-* returns: 0 when there are no more inner contours; otherwise, returns on which side of output line is the interior of the loop
+* Extracts contours which are not visited.
+* IMPORTANT: the outer contour must be visited (you should call extract_outer_contour() to do that),
+*            so that extract_inner_contour() doesn't return it
+* returns: 0 when there are no more inner contours; otherwise, the side of the output line, where we should draw parallel line
 */
-int extract_inner_contour(struct line_pnts *Points, struct line_pnts *nPoints, struct visited_segments *visited) {
-    int i, j, np, res;
-    double *x, *y;
+int extract_inner_contour(struct planar_graph *pg, struct line_pnts *nPoints) {
+    int i;
     
     G_debug(4, "extract_inner_contour()");
 
-    np = Points->n_points;
-    x = Points->x;
-    y = Points->y;
-    
-    for (i = 0; i < np-1; i++) {
-        /* if right side is not visited */
-        if ((visited->a[i] & 1) == 0) {
-            res = extract_contour(Points, i+1, -1, LEFT_SIDE, 0, nPoints, visited);
-            return LEFT_SIDE;
-        }
-        /* if left side is not visited */
-        if ((visited->a[i] & 2) == 0) {
-            res = extract_contour(Points, i, 1, LEFT_SIDE, 0, nPoints, visited);
-            return LEFT_SIDE;
-        }
+    for (i = 0; i < pg->ecount; i++) {
+        if (!(pg->e[i].visited_right))
+            return extract_contour(pg, &(pg->e[i]), RIGHT_SIDE, 0, nPoints);
+
+        if (!(pg->e[i].visited_left))
+            return extract_contour(pg, &(pg->e[i]), LEFT_SIDE, 0, nPoints);
     }
     
     return 0;
 }
 
 void extract_all_inner_contours(struct line_pnts *Points, struct line_pnts ***iPoints, int *inner_count) {
-    struct line_pnts *Points2, *tPoints;
+    struct planar_graph *pg;
+    struct line_pnts *tPoints;
     struct line_pnts **arrPoints;
-    int i, side, count;
+    int i, res, count;
     int more = 8;
     int allocated = more;
-    struct visited_segments visited;
     
     G_debug(4, "extract_all_inner_contours()");
     
-    /* initializations and spliting of the input line */
+    /* initializations */
     tPoints = Vect_new_line_struct();
-    Points2 = Vect_new_line_struct();
-    split_at_intersections(Points, Points2);
-    
-    visited.a = (char *)G_malloc(sizeof(char)*Points2->n_points);
-    memset(visited.a, 0, sizeof(char)*Points2->n_points);
-    
     arrPoints = G_malloc(allocated*sizeof(struct line_pnts *));
-    
-    /* extract outer contour so that we have filled visited appropriately */
-    side = extract_outer_contour(Points2, 0, tPoints, &visited);
+    pg = pg_create(Points);
+        
+    /* extract outer contour so that we have visited edges appropriately */
+    extract_outer_contour(pg, 0, tPoints);
     
     /* inner contours */
     count = 0;
-    side = extract_inner_contour(Points2, tPoints, &visited);
-    while (side != 0) {
+    res = extract_inner_contour(pg, tPoints);
+    while (res != 0) {
         if (allocated < count+1) {
             allocated += more;
             arrPoints = G_realloc(arrPoints, allocated*sizeof(struct line_pnts *));
@@ -632,24 +498,17 @@ void extract_all_inner_contours(struct line_pnts *Points, struct line_pnts ***iP
         Vect_copy_xyz_to_pnts(arrPoints[count], tPoints->x, tPoints->y, tPoints->z, tPoints->n_points);
         count++;
         
-        side = extract_inner_contour(Points2, tPoints, &visited);
+        res = extract_inner_contour(pg, tPoints);
     }
     
     arrPoints = G_realloc(arrPoints, count*sizeof(struct line_pnts *));
     *inner_count = count;
     *iPoints = arrPoints;
         
-    G_free(visited.a);
+    pg_destroy_struct(pg);
     Vect_destroy_line_struct(tPoints);
-    Vect_destroy_line_struct(Points2);
     
     return;  
-}
-
-double perp_dist(double x1, double y1, double x2, double y2, double px, double py) {
-    double a,b,c;
-    line_coefficients(x1, y1, x2, y2, &a, &b, &c);
-    return fabs((a*px+b*py+c)/sqrt(a*a+b*b));
 }
 
 /* point_in_buf - test if point px,py is in d buffer of Points
@@ -699,8 +558,8 @@ int point_in_buf(struct line_pnts *Points, double px, double py, double da, doub
             
             d = dig_distance2_point_to_line(nx + tx, ny + ty, 0, vx, vy, 0, wx, wy, 0,
                 0, NULL, NULL, NULL, NULL, NULL);
-/*            G_debug(4, "pdist = %g", perp_dist(vx, vy ,wx, wy, px, py));
-            G_debug(4, "sqrt(d)*da = %g, len' = %g, olen = %g", sqrt(d)*da, da*LENGTH(tx,ty), LENGTH((px-nx),(py-ny)));*/
+
+/*            G_debug(4, "sqrt(d)*da = %g, len' = %g, olen = %g", sqrt(d)*da, da*LENGTH(tx,ty), LENGTH((px-nx),(py-ny)));*/
             if (d <= 1)
                 return 1;
         }
@@ -717,47 +576,46 @@ int point_in_buf(struct line_pnts *Points, double px, double py, double da, doub
 }
 
 void parallel_line_b(struct line_pnts *Points, double da, double db, double dalpha, int round, int caps, double tol, struct line_pnts **oPoints, struct line_pnts ***iPoints, int *inner_count) {
-    struct line_pnts *Points2, *tPoints, *sPoints;
+    struct planar_graph *pg, *pg2;
+    struct line_pnts *tPoints, *sPoints;
     struct line_pnts **arrPoints;
     struct line_pnts **arrPoints2;
-    int i, side, count, count2;
-    int res;
+    int i, count, count2;
+    int side, res;
     int more = 8;
-    int allocated = more;
+    int allocated = 0;
     double px, py;
-    struct visited_segments visited;
     
     G_debug(4, "parallel_line_b()");
     
-    /* initializations and spliting of the input line */
+    /* initializations */
     tPoints = Vect_new_line_struct();
     sPoints = Vect_new_line_struct();
-    Points2 = Vect_new_line_struct();
-    split_at_intersections(Points, Points2);
-    
-    visited.a = (char *)G_malloc(sizeof(char)*Points2->n_points);
-    memset(visited.a, 0, sizeof(char)*Points2->n_points);
-    
-    arrPoints = G_malloc(allocated*sizeof(struct line_pnts *));
+    arrPoints = NULL;
+    pg = pg_create(Points);
     
     /* outer contour */
-    side = extract_outer_contour(Points2, 0, tPoints, &visited);
     *oPoints = Vect_new_line_struct();
+    side = extract_outer_contour(pg, 0, tPoints);
+/*    parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, *oPoints);*/
     parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, sPoints);
-    split_at_intersections(sPoints, tPoints);
-    extract_outer_contour(tPoints, 0, *oPoints, NULL);
+    pg2 = pg_create(sPoints);
+    extract_outer_contour(pg2, 0, *oPoints);
+    pg_destroy_struct(pg2);
     
     /* inner contours */
     count = 0;
-    side = extract_inner_contour(Points2, tPoints, &visited);
+    side = extract_inner_contour(pg, tPoints);
     while (side != 0) {
         parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, sPoints);
-        
         extract_all_inner_contours(sPoints, &arrPoints2, &count2);
-        
         for (i = 0; i < count2; i++) {
             res = Vect_line_check_intersection(tPoints, arrPoints2[i], 0);
-            if (res != 0) 
+            if (res != 0)
+                continue;
+            
+            res = Vect_point_in_poly(arrPoints2[i]->x[0], arrPoints2[i]->y[0], tPoints);
+            if (res == 0)
                 continue;
                 
             res = Vect_get_point_in_poly(arrPoints2[i], &px, &py);
@@ -766,8 +624,7 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
             if (point_in_buf(tPoints, px, py, da, db, dalpha))
                 continue;
             
-            /* passed all tests, add new island */
-            if (allocated < count+1) {
+            if (allocated == count) {
                 allocated += more;
                 arrPoints = G_realloc(arrPoints, allocated*sizeof(struct line_pnts *));
             }
@@ -776,17 +633,16 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
             count++;
         }
         
-        side = extract_inner_contour(Points2, tPoints, &visited);
+        side = extract_inner_contour(pg, tPoints); 
     }
-    
+
     arrPoints = G_realloc(arrPoints, count*sizeof(struct line_pnts *));
     *inner_count = count;
     *iPoints = arrPoints;
         
-    G_free(visited.a);
     Vect_destroy_line_struct(tPoints);
     Vect_destroy_line_struct(sPoints);
-    Vect_destroy_line_struct(Points2);
+    pg_destroy_struct(pg);
     
     return;
 }
@@ -922,6 +778,3 @@ Vect_line_buffer ( struct line_pnts *InPoints, double distance, double tolerance
     }
     Vect_line_prune ( OutPoints );
 }
-
-
-

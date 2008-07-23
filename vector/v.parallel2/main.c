@@ -6,15 +6,13 @@
  *               
  * PURPOSE:      Create parallel lines
  *               
- * COPYRIGHT:    (C) 2001 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2008 by the GRASS Development Team
  *
  *               This program is free software under the 
  *               GNU General Public License (>=v2). 
  *               Read the file COPYING that comes with GRASS
  *               for details.
  *
- * TODO/BUG:     The vector segments are not properly connected
- *               and should be snapped.
  **************************************************************/
 #include <stdlib.h> 
 #include <math.h>
@@ -139,7 +137,7 @@ int main (int argc, char *argv[])
     for ( line = 1; line <= nlines; line++ ) {
         int ltype;
         
-        G_percent ( line, nlines, 1 );
+        G_percent(line, nlines, 1);
         
         ltype = Vect_read_line ( &In, Points, Cats, line);
         
@@ -168,8 +166,14 @@ int main (int argc, char *argv[])
         }
     }
     
-    Vect_close (&In);
+/*    Vect_build_partial(&Out, GV_BUILD_BASE, stderr);
+    Vect_snap_lines(&Out, GV_BOUNDARY, 1e-7, NULL, stderr);
+    Vect_break_lines(&Out, GV_BOUNDARY, NULL, stderr);
+    Vect_remove_duplicates(&Out, GV_BOUNDARY, NULL, stderr);
+    Vect_build_partial (&Out, GV_BUILD_NONE, NULL); */
     Vect_build (&Out, stderr);
+    
+    Vect_close (&In);
     Vect_close (&Out);
 
     exit(EXIT_SUCCESS) ;
