@@ -33,10 +33,8 @@ int main(int argc, char *argv[])
 	/* buffer for in out raster */
 	DCELL *inrast_T,*inrast_alb;
 	DCELL *inrast_DEM,*inrast_Rn,*inrast_g0;
-	DCELL *outrast,*outrast1;
+	CELL *outrast,*outrast1;
 
-	DCELL *wet, *dry;
-	
 	int nrows, ncols;
 	int row, col;
 	int infd_T,infd_alb,infd_DEM,infd_Rn,infd_g0;
@@ -51,6 +49,14 @@ int main(int argc, char *argv[])
 	struct Option *input_T, *input_alb;
 	struct Option *input_DEM, *input_Rn, *input_g0;
 	struct Option *output, *output1;
+	/*******************************/
+	RASTER_MAP_TYPE data_type_T;
+	RASTER_MAP_TYPE data_type_DEM;
+	RASTER_MAP_TYPE data_type_Rn;
+	RASTER_MAP_TYPE data_type_g0;
+	RASTER_MAP_TYPE data_type_albedo;
+	RASTER_MAP_TYPE data_type_output=CELL_TYPE;
+	/*******************************/
 	
 	struct Flag *flag1, *zero;
 	
@@ -129,7 +135,11 @@ int main(int argc, char *argv[])
 			G_fatal_error (_("[%s] is an illegal name"), dryF);
 		
 	/* determine the input map type (CELL/FCELL/DCELL) */
-	//data_type = G_raster_map_type(T, mapset);
+	data_type_T 	= G_raster_map_type(T, mapset_T);
+	data_type_DEM 	= G_raster_map_type(DEM, mapset_DEM);
+	data_type_Rn 	= G_raster_map_type(Rn, mapset_Rn);
+	data_type_g0 	= G_raster_map_type(g0, mapset_g0);
+	data_type_albedo = G_raster_map_type(alb, mapset_alb);
 
 	if ( (infd_T = G_open_cell_old (T, mapset_T)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), T);
@@ -154,21 +164,21 @@ int main(int argc, char *argv[])
 		G_fatal_error (_("Cannot read file header of [%s]"), g0);
 
 	/* Allocate input buffer */
-	inrast_T  = G_allocate_d_raster_buf();
-	inrast_alb = G_allocate_d_raster_buf();
-	inrast_DEM = G_allocate_d_raster_buf();
-	inrast_Rn = G_allocate_d_raster_buf();
-	inrast_g0 = G_allocate_d_raster_buf();
+	inrast_T  	= G_allocate_raster_buf(data_type_T);
+	inrast_DEM 	= G_allocate_raster_buf(data_type_DEM);
+	inrast_Rn 	= G_allocate_raster_buf(data_type_Rn);
+	inrast_g0 	= G_allocate_raster_buf(data_type_g0);
+	inrast_alb 	= G_allocate_raster_buf(data_type_albedo);
 	
 	/* Allocate output buffer */
 	nrows = G_window_rows();
 	ncols = G_window_cols();
-	outrast = G_allocate_d_raster_buf();
-	outrast1 = G_allocate_d_raster_buf();
+	outrast = G_allocate_raster_buf(data_type_output);
+	outrast1 = G_allocate_raster_buf(data_type_output);
 
-	if ( (outfd = G_open_raster_new (wetF,DCELL_TYPE)) < 0)
+	if ( (outfd = G_open_raster_new (wetF,data_type_output)) < 0)
 		G_fatal_error (_("Could not open <%s>"),wetF);
-	if ( (outfd1 = G_open_raster_new (dryF,DCELL_TYPE)) < 0)
+	if ( (outfd1 = G_open_raster_new (dryF,data_type_output)) < 0)
 		G_fatal_error (_("Could not open <%s>"),dryF);
 
 	/*START Temperature minimum search */
@@ -195,13 +205,24 @@ int main(int argc, char *argv[])
 	{
 		G_percent (row, nrows, 2);
 		/* read input map */
-		if( (G_get_d_raster_row(infd_T,inrast_T,row)) < 0){
+		if( (G_get_raster_row(infd_T,inrast_T,row, data_type_T)) < 0){
 			G_fatal_error (_("Could not read from <%s>"),T);
 		}
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-			d_T = ((DCELL *) inrast_T)[col];
+			switch(data_type_T)
+			{
+				case CELL_TYPE:
+					d_T = (double) ((CELL *) inrast_T)[col];
+					break;
+				case FCELL_TYPE:
+					d_T = (double) ((FCELL *) inrast_T)[col];
+					break;
+				case DCELL_TYPE:
+					d_T = (double) ((DCELL *) inrast_T)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_T)){
 				/*Do nothing*/
 			} else {
@@ -306,8 +327,8 @@ int main(int argc, char *argv[])
 	DCELL d_dem; 		/* Input raster */
 	DCELL d_Rn;		/* Input raster */
 	DCELL d_g0;		/* Input raster */
-	DCELL d_wet;	/* Output pixel */
-	DCELL d_dry;	/* Output pixel */
+	CELL c_wet;	/* Output pixel */
+	CELL c_dry;	/* Output pixel */
 	DCELL d_dem_dry;	/* Generated here */
 	DCELL d_t0dem, d_t0dem_dry;	/* Generated here */
 	DCELL t0dem_min, tempk_min;	/* Generated here */
@@ -320,27 +341,77 @@ int main(int argc, char *argv[])
 
 	for (row = 0; row < nrows; row++)
 	{
+		G_percent (row, nrows, 2);
 		/* read a line input maps into buffers*/	
-		if (G_get_d_raster_row (infd_T, inrast_T, row) < 0)
+		if (G_get_raster_row (infd_T, inrast_T, row, data_type_T) < 0)
 			G_fatal_error (_("Could not read from <%s>"),T);
-		if (G_get_d_raster_row (infd_alb, inrast_alb, row) < 0)
+		if (G_get_raster_row (infd_alb, inrast_alb, row, data_type_albedo) < 0)
 			G_fatal_error (_("Could not read from <%s>"),alb);
-		if (G_get_d_raster_row (infd_DEM, inrast_DEM, row) < 0)
+		if (G_get_raster_row (infd_DEM, inrast_DEM, row, data_type_DEM) < 0)
 			G_fatal_error (_("Could not read from <%s>"),DEM);
-		if (G_get_d_raster_row (infd_Rn, inrast_Rn, row) < 0)
+		if (G_get_raster_row (infd_Rn, inrast_Rn, row, data_type_Rn) < 0)
 			G_fatal_error (_("Could not read from <%s>"),Rn);
-		if (G_get_d_raster_row (infd_g0, inrast_g0, row) < 0)
+		if (G_get_raster_row (infd_g0, inrast_g0, row, data_type_g0) < 0)
 			G_fatal_error (_("Could not read from <%s>"),g0);
 		
 		/* read every cell in the line buffers */
 		for (col=0; col < ncols; col++)
 		{
-			d_tempk	= ((DCELL *) inrast_T)[col];
-			d_albedo= ((DCELL *) inrast_alb)[col];
-			d_dem	= ((DCELL *) inrast_DEM)[col];
-			d_Rn	= ((DCELL *) inrast_Rn)[col];
-			d_g0	= ((DCELL *) inrast_g0)[col];
-
+			switch(data_type_albedo){
+				case CELL_TYPE:
+					d_albedo = (double) ((CELL *) inrast_alb)[col];
+					break;
+				case FCELL_TYPE:
+					d_albedo = (double) ((FCELL *) inrast_alb)[col];
+					break;
+				case DCELL_TYPE:
+					d_albedo = (double) ((DCELL *) inrast_alb)[col];
+					break;
+			}
+			switch(data_type_T){
+				case CELL_TYPE:
+					d_tempk = (double) ((CELL *) inrast_T)[col];
+					break;
+				case FCELL_TYPE:
+					d_tempk = (double) ((FCELL *) inrast_T)[col];
+					break;
+				case DCELL_TYPE:
+					d_tempk = (double) ((DCELL *) inrast_T)[col];
+					break;
+			}
+			switch(data_type_DEM){
+				case CELL_TYPE:
+					d_dem = (double) ((CELL *) inrast_DEM)[col];
+					break;
+				case FCELL_TYPE:
+					d_dem = (double) ((FCELL *) inrast_DEM)[col];
+					break;
+				case DCELL_TYPE:
+					d_dem = (double) ((DCELL *) inrast_DEM)[col];
+					break;
+			}
+			switch(data_type_Rn){
+				case CELL_TYPE:
+					d_Rn = (double) ((CELL *) inrast_Rn)[col];
+					break;
+				case FCELL_TYPE:
+					d_Rn = (double) ((FCELL *) inrast_Rn)[col];
+					break;
+				case DCELL_TYPE:
+					d_Rn = (double) ((DCELL *) inrast_Rn)[col];
+					break;
+			}
+			switch(data_type_g0){
+				case CELL_TYPE:
+					d_g0 = (double) ((CELL *) inrast_g0)[col];
+					break;
+				case FCELL_TYPE:
+					d_g0 = (double) ((FCELL *) inrast_g0)[col];
+					break;
+				case DCELL_TYPE:
+					d_g0 = (double) ((DCELL *) inrast_g0)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_albedo)||
 			G_is_d_null_value(&d_tempk)||
 			G_is_d_null_value(&d_dem)||
@@ -392,36 +463,88 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+	G_message("tempk_min=%f",tempk_min);
+	G_message("tempk_max=%f",tempk_max);
 
 
 	/* ALLOCATE CLASSES: WET=1 DRY=1 OTHER=NULL OR 0.0 */
 
 	for (row = 0; row < nrows; row++)
 	{
+		G_percent (row, nrows, 2);
 		/* read a line input maps into buffers*/	
-		if (G_get_d_raster_row (infd_T, inrast_T, row) < 0)
+		if (G_get_raster_row (infd_T, inrast_T, row, data_type_T) < 0)
 			G_fatal_error (_("Could not read from <%s>"),T);
-		if (G_get_d_raster_row (infd_alb, inrast_alb, row) < 0)
+		if (G_get_raster_row (infd_alb, inrast_alb, row, data_type_albedo) < 0)
 			G_fatal_error (_("Could not read from <%s>"),alb);
-		if (G_get_d_raster_row (infd_DEM, inrast_DEM, row) < 0)
+		if (G_get_raster_row (infd_DEM, inrast_DEM, row, data_type_DEM) < 0)
 			G_fatal_error (_("Could not read from <%s>"),DEM);
-		if (G_get_d_raster_row (infd_Rn, inrast_Rn, row) < 0)
+		if (G_get_raster_row (infd_Rn, inrast_Rn, row, data_type_Rn) < 0)
 			G_fatal_error (_("Could not read from <%s>"),Rn);
-		if (G_get_d_raster_row (infd_g0, inrast_g0, row) < 0)
+		if (G_get_raster_row (infd_g0, inrast_g0, row, data_type_g0) < 0)
 			G_fatal_error (_("Could not read from <%s>"),g0);
 		
 		/* read every cell in the line buffers */
 		for (col=0; col < ncols; col++)
 		{
-			d_tempk	= ((DCELL *) inrast_T)[col];
-			d_albedo= ((DCELL *) inrast_alb)[col];
-			d_dem	= ((DCELL *) inrast_DEM)[col];
-			d_Rn	= ((DCELL *) inrast_Rn)[col];
-			d_g0	= ((DCELL *) inrast_g0)[col];
-			
+			switch(data_type_albedo){
+				case CELL_TYPE:
+					d_albedo = (double) ((CELL *) inrast_alb)[col];
+					break;
+				case FCELL_TYPE:
+					d_albedo = (double) ((FCELL *) inrast_alb)[col];
+					break;
+				case DCELL_TYPE:
+					d_albedo = (double) ((DCELL *) inrast_alb)[col];
+					break;
+			}
+			switch(data_type_T){
+				case CELL_TYPE:
+					d_tempk = (double) ((CELL *) inrast_T)[col];
+					break;
+				case FCELL_TYPE:
+					d_tempk = (double) ((FCELL *) inrast_T)[col];
+					break;
+				case DCELL_TYPE:
+					d_tempk = (double) ((DCELL *) inrast_T)[col];
+					break;
+			}
+			switch(data_type_DEM){
+				case CELL_TYPE:
+					d_dem = (double) ((CELL *) inrast_DEM)[col];
+					break;
+				case FCELL_TYPE:
+					d_dem = (double) ((FCELL *) inrast_DEM)[col];
+					break;
+				case DCELL_TYPE:
+					d_dem = (double) ((DCELL *) inrast_DEM)[col];
+					break;
+			}
+			switch(data_type_Rn){
+				case CELL_TYPE:
+					d_Rn = (double) ((CELL *) inrast_Rn)[col];
+					break;
+				case FCELL_TYPE:
+					d_Rn = (double) ((FCELL *) inrast_Rn)[col];
+					break;
+				case DCELL_TYPE:
+					d_Rn = (double) ((DCELL *) inrast_Rn)[col];
+					break;
+			}
+			switch(data_type_g0){
+				case CELL_TYPE:
+					d_g0 = (double) ((CELL *) inrast_g0)[col];
+					break;
+				case FCELL_TYPE:
+					d_g0 = (double) ((FCELL *) inrast_g0)[col];
+					break;
+				case DCELL_TYPE:
+					d_g0 = (double) ((DCELL *) inrast_g0)[col];
+					break;
+			}
 			/* Initialize pixels as negative */
-			d_wet = -1.0;
-			d_dry = -1.0;
+			c_wet = -1;
+			c_dry = -1;
 			
 			if(G_is_d_null_value(&d_albedo)||
 			G_is_d_null_value(&d_tempk)||
@@ -429,43 +552,44 @@ int main(int argc, char *argv[])
 			G_is_d_null_value(&d_Rn)||
 			G_is_d_null_value(&d_g0)){
 				/* do nothing */ 
-				G_set_d_null_value(&outrast[col],1);
-				G_set_d_null_value(&outrast1[col],1);
+				G_set_c_null_value(&outrast[col],1);
+				G_set_c_null_value(&outrast1[col],1);
 			}else{
 				/* if Albedo is high and H is positive */
-				if(d_albedo > 0.3 && (d_Rn-d_g0) > 100.0 &&
-				d_tempk >= 0.98*d_tempk_max &&
-				d_tempk <= 1.02*d_tempk_max){
-					d_wet = -1.0; /* Not Wet pixel Candidate */
-					d_dry = 1.0; /* Dry pixel candidate */
-				/* if Albedo is not high and H is negative */
-				} else if (d_albedo < 0.1 && (d_Rn-d_g0) <= 100.0 &&
-				d_tempk >= 0.98*d_tempk_min &&
-				d_tempk <= 1.02*d_tempk_min){
-					d_wet = 1.0; /* Wet pixel Candidate */
-					d_dry = -1.0; /* Not dry pixel Candidate */
+				if(d_albedo > 0.3 && /*(d_Rn-d_g0) > 100.0 &&*/
+				d_tempk >= (double)i_peak3-5.0 &&
+				d_tempk <= (double)i_peak3+5.0){
+					c_dry = 1; /* Dry pixel candidate */
+				}
+				
+				/* if Albedo is not high and H is low */
+				if (d_albedo < 0.15 && /*(d_Rn-d_g0) <= 100.0 &&*/
+				d_tempk >= (double) i_peak1-5.0 &&
+				d_tempk <= (double) i_peak1+5.0){
+					c_wet = 1; /* Wet pixel Candidate */
 				}	
-				
-				if (zero->answer && d_wet<0.0){
-					d_wet = 0.0;
+				//flag NULL -> 0
+				if (zero->answer && c_wet<0){
+					c_wet = 0;
 				}
-				if (zero->answer && d_dry<0.0){
-					d_dry = 0.0;
+				if (zero->answer && c_dry<0){
+					c_dry = 0;
 				}
+				//results
+				outrast[col] = c_wet;
+				outrast1[col] = c_dry;
 				
-				outrast[col] = d_wet;
-				outrast1[col] = d_dry;
-				
-				if(d_wet==-1)
-					G_set_d_null_value(&outrast[col],1);
-				if(d_dry==-1)
-					G_set_d_null_value(&outrast1[col],1);
+				//clean up
+				if(c_wet==-1)
+					G_set_c_null_value(&outrast[col],1);
+				if(c_dry==-1)
+					G_set_c_null_value(&outrast1[col],1);
 			}
 		}	
-		if (G_put_d_raster_row (outfd, outrast) < 0)
-			G_fatal_error (_("Cannot write to <%s>"),wet);
-		if (G_put_d_raster_row (outfd1, outrast1) < 0)
-			G_fatal_error (_("Cannot write to <%s>"),dry);
+		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
+			G_fatal_error (_("Cannot write to <%s>"),wetF);
+		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
+			G_fatal_error (_("Cannot write to <%s>"),dryF);
 	}	
 	G_free(inrast_T);
 	G_free(inrast_alb);
