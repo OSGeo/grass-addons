@@ -62,12 +62,12 @@ threshold	t	Pr	Radj	Pvalue
 2000	-0.4003206	0.6908575	-0.01901582	0.814699
 </pre></div>
 <br />
-<img src="wt_rbroscoe.jpg"> <img src="lr_rbroscoe.jpg"> <img src="at_rbroscoe.jpg"> <br />
+<img src="images/wt_rbroscoe.jpg"> <img src="images/lr_rbroscoe.jpg"> <img src="images/at_rbroscoe.jpg"> <br />
 <br />
 By the report and graphics, you can see that the Van der Werden test gives not-so-good results (<em>Pvalue_max</em>=0.85 for threshold=1000 cells) but, if you consider the linear regression output (<em>Pr</em>), you can see that for the same threshold value (1000 cells) <em>Pr</em> is 97%.<br />
 So the threshold=1000 cells is chosen. Moreover the program returns a set of vector map called <em>"orderd_thresholdvalue"</em> from wich you can extract the right one orderd-network (in this case the right one is <em>"orderd_1000"</em>), you can rename and use it as well as you want.<br />
 <br />
-<img src="menotre.jpg"><br />
+<img src="images/menotre.jpg"><br />
 <br />
 <h2>NOTES</h2>
 The <em>lt</em> value requested in input is a parameter that prevents eventual errors in the DEM; it considers the presence of pits and represents the height difference <em>lesserthan</em> a drop is not considered as a drop but as a pit, and extracted from <em>Mean Stream Drop</em> analysis.<br />
