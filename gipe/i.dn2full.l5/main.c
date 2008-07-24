@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast[MAXFILES];
-	unsigned char *outrast[MAXFILES];
+	DCELL *outrast[MAXFILES];
 	RASTER_MAP_TYPE in_data_type[MAXFILES];
 	RASTER_MAP_TYPE out_data_type = DCELL_TYPE; /* 0=numbers  1=text */
 
@@ -132,11 +132,24 @@ main(int argc, char *argv[])
 	//******************************************
 	//Fetch parameters for DN2Rad2Ref correction
 	l5_in_read(metfName,&l5path,&l5row,&latitude,&longitude,&sun_elevation,&sun_azimuth,&c_year,&c_month,&c_day,&day,&month,&year,&decimal_hour);
+	G_message("l5path=%i",l5path);
+	G_message("l5row=%i",l5row);
+	G_message("latitude=%f",latitude);
+	G_message("longitude=%f",longitude);
+	G_message("sun_elevation=%f",sun_elevation);
+	G_message("sun_azimuth=%f",sun_azimuth);
+	G_message("c_year=%i",c_year);
+	G_message("c_month=%i",c_month);
+	G_message("c_day=%i",c_day);
+	G_message("year=%i",year);
+	G_message("month=%i",month);
+	G_message("day=%i",day);
+	G_message("decimal hour=%f",decimal_hour);
 	/********************/
 	//Prepare the input file names 
 	/********************/
 	doy = date2doy(day,month,year);
-	//printf("doy=%i\n",doy);
+	G_message("doy=%i",doy);
 	if(input1->answers){
 		int index=1;
 		for (; *ptr != NULL; ptr++){
@@ -188,21 +201,21 @@ main(int argc, char *argv[])
 	//Prepare the ouput file names 
 	/********************/
 
-//	printf("result=%s\n",result);
+	G_message("result=%s",result);
 	snprintf(result1, 80, "%s%s",result,".1");
-//	printf("%s\n",result1);
+	G_message("%s",result1);
 	snprintf(result2, 80, "%s%s",result,".2");
-//	printf("%s\n",result2);
+	G_message("%s",result2);
 	snprintf(result3, 80, "%s%s",result,".3");
-//	printf("%s\n",result3);
+	G_message("%s",result3);
 	snprintf(result4, 80, "%s%s",result,".4");
-//	printf("%s\n",result4);
+	G_message("%s",result4);
 	snprintf(result5, 80, "%s%s",result,".5");
-//	printf("%s\n",result5);
+	G_message("%s",result5);
 	snprintf(result6, 80, "%s%s",result,".6");
-//	printf("%s\n",result6);
+	G_message("%s",result6);
 	snprintf(result7, 80, "%s%s",result,".7");
-//	printf("%s\n",result7);
+	G_message("%s",result7);
 
 	/********************/
 	//Prepare sun exo-atm irradiance
@@ -403,18 +416,28 @@ main(int argc, char *argv[])
 		{
 			for(i=0;i<MAXFILES;i++)
 			{
-				d[i] = (double) ((CELL *) inrast[i])[col];
+				switch(in_data_type[i]){
+					case CELL_TYPE:
+						d[i] = (double) ((CELL *) inrast[i])[col];
+						break;
+					case FCELL_TYPE:
+						d[i] = (double) ((FCELL *) inrast[i])[col];
+						break;
+					case DCELL_TYPE:
+						d[i] = (double) ((DCELL *) inrast[i])[col];
+						break;
+				}
 				dout[i]=dn2rad_landsat5(c_year,c_month,c_day,year,month,day,i+1,d[i]);
 				if(i==5){//if band 6, process brightness temperature
 					if(dout[i]<=0.0){
-						dout[i]=-999.990;
+						G_set_d_null_value(&dout[i],1);
 					}else{
 						dout[i]=tempk_landsat5(dout[i]);
 					}
 				}else{//process reflectance
 					dout[i]=rad2ref_landsat5(dout[i],doy,sun_elevation,kexo[i]);
-			}
-			((DCELL *) outrast[i])[col] = dout[i];
+				}
+				outrast[i][col] = dout[i];
  			}
 		}
 		for(i=0;i<MAXFILES;i++){
