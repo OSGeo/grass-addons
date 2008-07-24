@@ -196,6 +196,13 @@ main(int argc, char *argv[])
 	}
 	//printf("%f/%f/%i-%i-%i\n",sun_elevation,sun_azimuth,day,month,year);
 	//	exit(1);
+	G_message("b1_in:%s",b1);
+	G_message("b2_in:%s",b2);
+	G_message("b3_in:%s",b3);
+	G_message("b4_in:%s",b4);
+	G_message("b5_in:%s",b5);
+	G_message("b6_in:%s",b6);
+	G_message("b7_in:%s",b7);
 	
 	/********************/
 	//Prepare the ouput file names 
