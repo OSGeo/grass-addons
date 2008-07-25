@@ -3,6 +3,8 @@
 
 // hu = height of measurement of wind speed
 // u_hu = wind speed at hu height
+// This is a meteorological area, standard grass height
+// Used for initialization of wind speed
 
 double U_0(double zom_0, double u_hu, double hu)
 {

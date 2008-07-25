@@ -30,7 +30,7 @@
 #include <grass/glocale.h>
 
 
-double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,double z0m,double z0h,double tempk, int iteration);
+double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,double z0m,double z0h,double tempk,double hu,int iteration);
 double h0(double roh_air, double cp, double rah, double dtair);
 
 int main(int argc, char *argv[])
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5;
 	struct Option *input6, *input7, *input8, *input9, *input10;
-	struct Option *input11, *output1;
+	struct Option *input11, *input_hu, *output1;
 	
 	struct Flag *flag1, *flag2;	
 	struct History history; //metadata
@@ -56,10 +56,10 @@ int main(int argc, char *argv[])
 	char *result; //output raster name
 	//File Descriptors
 	int infd_rohair, infd_tempk, infd_dtair;
-	int infd_disp, infd_z0m, infd_z0h, infd_u2m;
-	int outfd;
+	int infd_disp, infd_z0m, infd_z0h, infd_u_hu;
+	int infd_hu, outfd;
 	
-	char *rohair,*tempk,*dtair, *disp, *z0m, *z0h, *u2m;
+	char *rohair,*tempk,*dtair, *disp, *z0m, *z0h, *u_hu, *hu;
 
 	double cp; //air specific heat	
 	int i=0,j=0;
@@ -67,7 +67,8 @@ int main(int argc, char *argv[])
 	int iteration;
 	
 	void *inrast_rohair, *inrast_tempk, *inrast_dtair;
-	void *inrast_disp, *inrast_z0m, *inrast_z0h, *inrast_u2m;
+	void *inrast_disp, *inrast_z0m, *inrast_z0h;
+	void *inrast_u_hu, *inrast_hu;
 	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_rohair;
@@ -76,7 +77,8 @@ int main(int argc, char *argv[])
 	RASTER_MAP_TYPE data_type_disp;
 	RASTER_MAP_TYPE data_type_z0m;
 	RASTER_MAP_TYPE data_type_z0h;
-	RASTER_MAP_TYPE data_type_u2m;
+	RASTER_MAP_TYPE data_type_u_hu;
+	RASTER_MAP_TYPE data_type_hu;
 	/************************************/
 	G_gisinit(argv[0]);
 
@@ -124,23 +126,28 @@ int main(int argc, char *argv[])
 	
 	input7 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input7->key        =_("disp");
-	input7->description=_("Name of the displacement height input layer (m)");
+	input7->description=_("Name of the displacement height input map (m)");
 	input7->answer     =_("disp");
 	
 	input8 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input8->key        =_("z0m");
-	input8->description=_("Name of the z0m input layer (s/m)");
+	input8->description=_("Name of the z0m input map (s/m)");
 	input8->answer     =_("z0m");
 	
 	input9 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input9->key        =_("z0h");
-	input9->description=_("Name of the z0h input layer (s/m)");
+	input9->description=_("Name of the z0h input map (s/m)");
 	input9->answer     =_("z0h");
 	
 	input10 = G_define_standard_option(G_OPT_R_INPUT) ;
-	input10->key        =_("u2m");
-	input10->description=_("Name of the wind speed at 2m height input layer (m/s)");
-	input10->answer     =_("u2m");
+	input10->key        =_("u_hu");
+	input10->description=_("Name of the wind speed at height (hu) input map (m/s)");
+	input10->answer     =_("u_hu");
+	
+	input_hu = G_define_standard_option(G_OPT_R_INPUT) ;
+	input_hu->key        =_("hu");
+	input_hu->description=_("Name of the height (hu) of measurement of wind speed input map (m/s)");
+	input_hu->answer     =_("hu");
 	
 	input11 = G_define_option() ;
 	input11->key        =_("iteration");
@@ -180,7 +187,8 @@ int main(int argc, char *argv[])
 	disp	 	= input7->answer;
 	z0m	 	= input8->answer;
 	z0h	 	= input9->answer;
-	u2m	 	= input10->answer;
+	u_hu	 	= input10->answer;
+	hu	 	= input_hu->answer;
 	if(input11->answer){
 		iteration = atoi(input11->answer);
 	}else{
@@ -268,16 +276,27 @@ int main(int argc, char *argv[])
 		G_fatal_error(_("Cannot read file header of [%s]"), z0h);
 	inrast_z0h = G_allocate_raster_buf(data_type_z0h);
 	/***************************************************/
-	mapset = G_find_cell2 (u2m, "");
+	mapset = G_find_cell2 (u_hu, "");
 	if (mapset == NULL) {
-		G_fatal_error(_("Cell file [%s] not found"), u2m);
+		G_fatal_error(_("Cell file [%s] not found"), u_hu);
 	}
-	data_type_u2m = G_raster_map_type(u2m,mapset);
-	if ( (infd_u2m = G_open_cell_old (u2m,mapset)) < 0)
-		G_fatal_error(_("Cannot open cell file [%s]"), u2m);
-	if (G_get_cellhd (u2m, mapset, &cellhd) < 0)
-		G_fatal_error(_("Cannot read file header of [%s]"), u2m);
-	inrast_u2m = G_allocate_raster_buf(data_type_u2m);
+	data_type_u_hu = G_raster_map_type(u_hu,mapset);
+	if ( (infd_u_hu = G_open_cell_old (u_hu,mapset)) < 0)
+		G_fatal_error(_("Cannot open cell file [%s]"), u_hu);
+	if (G_get_cellhd (u_hu, mapset, &cellhd) < 0)
+		G_fatal_error(_("Cannot read file header of [%s]"), u_hu);
+	inrast_u_hu = G_allocate_raster_buf(data_type_u_hu);
+	/***************************************************/
+	mapset = G_find_cell2 (hu, "");
+	if (mapset == NULL) {
+		G_fatal_error(_("Cell file [%s] not found"), hu);
+	}
+	data_type_hu = G_raster_map_type(hu,mapset);
+	if ( (infd_hu = G_open_cell_old (hu,mapset)) < 0)
+		G_fatal_error(_("Cannot open cell file [%s]"), hu);
+	if (G_get_cellhd (hu, mapset, &cellhd) < 0)
+		G_fatal_error(_("Cannot read file header of [%s]"), hu);
+	inrast_hu = G_allocate_raster_buf(data_type_hu);
 	/***************************************************/
 	G_debug(3, "number of rows %d",cellhd.rows);
 	nrows = G_window_rows();
@@ -298,7 +317,8 @@ int main(int argc, char *argv[])
 		DCELL d_disp;
 		DCELL d_z0m;
 		DCELL d_z0h;
-		DCELL d_u2m;
+		DCELL d_u_hu;
+		DCELL d_hu;
 		G_percent(row,nrows,2);
 		/* printf("row = %i/%i\n",row,nrows);*/
 		/* read input maps */	
@@ -316,8 +336,10 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Could not read from <%s>"),z0m);
 		if(G_get_raster_row(infd_z0h,inrast_z0h,row,data_type_z0h)<0)
 			G_fatal_error(_("Could not read from <%s>"),z0h);
-		if(G_get_raster_row(infd_u2m,inrast_u2m,row,data_type_u2m)<0)
-			G_fatal_error(_("Could not read from <%s>"),u2m);
+		if(G_get_raster_row(infd_u_hu,inrast_u_hu,row,data_type_u_hu)<0)
+			G_fatal_error(_("Could not read from <%s>"),u_hu);
+		if(G_get_raster_row(infd_hu,inrast_hu,row,data_type_hu)<0)
+			G_fatal_error(_("Could not read from <%s>"),hu);
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
@@ -389,15 +411,26 @@ int main(int argc, char *argv[])
 					d_z0h = ((DCELL *) inrast_z0h)[col];
 					break;
 			}
-			switch(data_type_u2m){
+			switch(data_type_u_hu){
 				case CELL_TYPE:
-					d_u2m = (double) ((CELL *) inrast_u2m)[col];
+					d_u_hu = (double) ((CELL *) inrast_u_hu)[col];
 					break;
 				case FCELL_TYPE:
-					d_u2m = (double) ((FCELL *) inrast_u2m)[col];
+					d_u_hu = (double) ((FCELL *) inrast_u_hu)[col];
 					break;
 				case DCELL_TYPE:
-					d_u2m = ((DCELL *) inrast_u2m)[col];
+					d_u_hu = ((DCELL *) inrast_u_hu)[col];
+					break;
+			}
+			switch(data_type_hu){
+				case CELL_TYPE:
+					d_hu = (double) ((CELL *) inrast_hu)[col];
+					break;
+				case FCELL_TYPE:
+					d_hu = (double) ((FCELL *) inrast_hu)[col];
+					break;
+				case DCELL_TYPE:
+					d_hu = ((DCELL *) inrast_hu)[col];
 					break;
 			}
 			if(G_is_d_null_value(&d_rohair)||
@@ -406,7 +439,8 @@ int main(int argc, char *argv[])
 			G_is_d_null_value(&d_disp)||
 			G_is_d_null_value(&d_z0m)||
 			G_is_d_null_value(&d_z0h)||
-			G_is_d_null_value(&d_u2m)){
+			G_is_d_null_value(&d_u_hu)||
+			G_is_d_null_value(&d_hu)){
 				G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
@@ -414,12 +448,12 @@ int main(int argc, char *argv[])
 				if(sebal){/*if -s flag then calculate Delta T from Coefs*/
 					d_affine=a*d_tempk+b;
 					/* Run iterations to find Rah*/
-					d_rah=fixed_deltat(d_u2m,d_rohair,cp,d_affine,d_disp,d_z0m,d_z0h,d_tempk,iteration);
+					d_rah=fixed_deltat(d_u_hu,d_rohair,cp,d_affine,d_disp,d_z0m,d_z0h,d_tempk,d_hu,iteration);
 					/*Process h*/
 					d = h0(d_rohair,cp,d_rah,d_affine);
 				}else{/* not -s flag then take delta T map input directly*/
 					/* Run iterations to find Rah*/
-					d_rah=fixed_deltat(d_u2m,d_rohair,cp,d_dtair,d_disp,d_z0m,d_z0h,d_tempk,iteration);
+					d_rah=fixed_deltat(d_u_hu,d_rohair,cp,d_dtair,d_disp,d_z0m,d_z0h,d_tempk,d_hu,iteration);
 					/*Process h*/
 					d = h0(d_rohair,cp,d_rah,d_dtair);
 				}
@@ -437,7 +471,8 @@ int main(int argc, char *argv[])
 	G_free (inrast_disp);
 	G_free (inrast_z0m);
 	G_free (inrast_z0h);
-	G_free (inrast_u2m);
+	G_free (inrast_u_hu);
+	G_free (inrast_hu);
 
 	G_close_cell (infd_rohair);
 	if(!sebal){
@@ -447,7 +482,8 @@ int main(int argc, char *argv[])
 	G_close_cell (infd_disp);
 	G_close_cell (infd_z0m);
 	G_close_cell (infd_z0h);
-	G_close_cell (infd_u2m);
+	G_close_cell (infd_u_hu);
+	G_close_cell (infd_hu);
 	
 	G_free (outrast);
 	G_close_cell (outfd);

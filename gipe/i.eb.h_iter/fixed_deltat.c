@@ -4,7 +4,7 @@
 
 #define PI 3.14159265358979323846 
 
-double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,double z0m,double z0h,double tempk,double hu, int iteration){
+double fixed_deltat(double u_hu, double roh_air,double cp,double dt,double disp,double z0m,double z0h,double tempk,double hu, int iteration){
 	int i;
 	double ublend;
 	double length;
@@ -16,9 +16,9 @@ double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,d
 	double temp1;
 	
 	if(log(hu-disp)-log(z0m)==0.0){
-		ublend=u2m*(log(100-disp)-log(z0m))/(log(hu-disp)-log(z0m)+0.001);
+		ublend=u_hu*(log(100-disp)-log(z0m))/(log(hu-disp)-log(z0m)+0.001);
 	} else {
-		ublend=u2m*(log(100-disp)-log(z0m))/(log(hu-disp)-log(z0m));
+		ublend=u_hu*(log(100-disp)-log(z0m))/(log(hu-disp)-log(z0m));
 	}
 	psim=0.0;
 	psih=0.0;
