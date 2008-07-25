@@ -48,7 +48,7 @@ double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, do
 // 	printf("*****************************zom = %5.3f\n",zom0);
 	u_0 		= U_0(zom0, u_hu, hu);
 // 	printf("*****************************u0\n");
-	rah[0] 		= rah_0(zom0, u_0);
+	rah[0] 		= rah_0(zom0, u_0, hu);
 // 	printf("*****************************rah = %5.3f\n",rah[0]);
 	h[0] 		= h_0(roh_air[0], rah[0], dtair[0]);
 // 	printf("*****************************h\n");
@@ -72,7 +72,7 @@ double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, do
 		/* Where is roh_air[i]? */
 		psih = psi_h(t0_dem,h[ic-1],u_0,roh_air[ic-1]);
 		ustar[ic] = u_star(t0_dem,h[ic-1],u_0,roh_air[ic-1],zom[0],u_hu,hu);
-		rah[ic] = rah1(psih, ustar[ic]);	
+		rah[ic] = rah1(psih, ustar[ic], hu);	
 		/* get desert point values from maps */
 		if(ic==1){
 			h_desert	= rnet_desert - g0_desert;
@@ -86,7 +86,7 @@ double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, do
 			psih_desert 	= psi_h(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert);
 			ustar_desert	= u_star(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,zom_desert,u_hu,hu);
 		}
-		rah_desert	= rah1(psih_desert,ustar_desert);
+		rah_desert	= rah1(psih_desert,ustar_desert, hu);
 		dtair_desert 	= dt_air_desert(h_desert, roh_air_desert, rah_desert);
 		/* This should find the new dtair from inversed h equation...*/
 		dtair[ic] 	= dt_air(t0_dem, tempk_water, tempk_desert, dtair_desert);

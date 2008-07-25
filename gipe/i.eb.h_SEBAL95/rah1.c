@@ -4,11 +4,11 @@
 
 #define PI 3.1415927
 
-double rah1(double psih, double ustar)
+double rah1(double psih, double ustar, double hu)
 {
 	double result;
 
-	result = (log10(2/0.01)-psih)/(ustar*0.41);
+	result = (log(hu/0.01)-psih)/(ustar*0.41);
 
 	return (result);
 }
