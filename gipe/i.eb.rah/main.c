@@ -20,7 +20,7 @@
 #include <grass/glocale.h>
 
 
-double ra_h(double disp,double z0h,double psih,double ustar);
+double ra_h(double disp,double z0h,double psih,double ustar,double hu);
 
 int main(int argc, char *argv[])
 {
@@ -29,9 +29,9 @@ int main(int argc, char *argv[])
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
-	struct Option *input1, *input2, *input3, *input4, *output1;
+	struct Option *input1, *input2, *input3, *input4;
+	struct Option *input5, *output1;
 	
 	struct Flag *flag1;	
 	struct History history; //metadata
@@ -41,22 +41,24 @@ int main(int argc, char *argv[])
 	char *name;   // input raster name
 	char *result; //output raster name
 	//File Descriptors
-	int infd_disp, infd_z0h,infd_psih,infd_ustar;
-	int outfd;
+	int infd_disp, infd_z0h, infd_psih, infd_ustar;
+	int infd_hu, outfd;
 	
-	char *disp, *z0h, *psih, *ustar;
+	char *disp, *z0h, *psih, *ustar, *hu;
 
 	double cp; //air specific heat	
 	int i=0,j=0;
 	double a,b; //SEBAL slope and intercepts of surf. temp.
 	
-	void *inrast_disp, *inrast_z0h, *inrast_psih, *inrast_ustar;
-	unsigned char *outrast;
+	void *inrast_disp, *inrast_z0h, *inrast_psih;
+	void *inrast_hu, *inrast_ustar;
+	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_disp;
 	RASTER_MAP_TYPE data_type_z0h;
 	RASTER_MAP_TYPE data_type_psih;
 	RASTER_MAP_TYPE data_type_ustar;
+	RASTER_MAP_TYPE data_type_hu;
 	/************************************/
 	G_gisinit(argv[0]);
 
@@ -65,49 +67,36 @@ int main(int argc, char *argv[])
 	module->description = _("aerodynamic resistance to heat transport as in Pawan (2004).");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("disp");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,dcell,raster") ;
 	input1->description=_("Name of the displacement height map");
 	input1->answer     =_("disp");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("z0h");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster");
-	input2->description=_("Name of the height of heat flux roughness length");
+	input2->description=_("Name of the height of heat flux roughness length map");
 	input2->answer     =_("z0h");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("psih");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,dcell,raster");
-	input3->description=_("Name of the psichrometric parameter for heat flux");
+	input3->description=_("Name of the psichrometric parameter for heat flux map");
 	input3->answer     =_("psih");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("ustar");
-	input4->type       = TYPE_STRING;
-	input4->required   = YES;
-	input4->gisprompt  =_("old,dcell,raster");
-	input4->description=_("Name of the nominal wind speed");
+	input4->description=_("Name of the nominal wind speed map");
 	input4->answer     =_("ustar");
+
+	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input5->key        =_("hu");
+	input5->description=_("Name of the height of wind measurement (typically 2 m) map");
+	input5->answer     =_("hu");
 	
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("rah");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,dcell,raster");
 	output1->description=_("Name of the output rah layer");
 	output1->answer     =_("rah");
 
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -116,9 +105,9 @@ int main(int argc, char *argv[])
 	z0h	 	= input2->answer;
 	psih		= input3->answer;
 	ustar	 	= input4->answer;
+	hu	 	= input5->answer;
 	
 	result  = output1->answer;
-	verbose = (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2 (disp, "");
 	if (mapset == NULL) {
@@ -164,6 +153,17 @@ int main(int argc, char *argv[])
 		G_fatal_error(_("Cannot read file header of [%s]"), ustar);
 	inrast_ustar = G_allocate_raster_buf(data_type_ustar);
 	/***************************************************/
+	mapset = G_find_cell2 (hu, "");
+	if (mapset == NULL) {
+		G_fatal_error(_("Cell file [%s] not found"), hu);
+	}
+	data_type_hu = G_raster_map_type(hu,mapset);
+	if ( (infd_ustar = G_open_cell_old (ustar,mapset)) < 0)
+		G_fatal_error(_("Cannot open cell file [%s]"), hu);
+	if (G_get_cellhd (hu, mapset, &cellhd) < 0)
+		G_fatal_error(_("Cannot read file header of [%s]"), hu);
+	inrast_hu = G_allocate_raster_buf(data_type_hu);
+	/***************************************************/
 	G_debug(3, "number of rows %d",cellhd.rows);
 	nrows = G_window_rows();
 	ncols = G_window_cols();
@@ -180,8 +180,8 @@ int main(int argc, char *argv[])
 		DCELL d_z0h;
 		DCELL d_psih;
 		DCELL d_ustar;
-		if(verbose)
-			G_percent(row,nrows,2);
+		DCELL d_hu;
+		G_percent(row,nrows,2);
 //		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_disp,inrast_disp,row,data_type_disp)<0)
@@ -192,26 +192,77 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Could not read from <%s>"),psih);
 		if(G_get_raster_row(infd_ustar,inrast_ustar,row,data_type_ustar)<0)
 			G_fatal_error(_("Could not read from <%s>"),ustar);
+		if(G_get_raster_row(infd_hu,inrast_hu,row,data_type_hu)<0)
+			G_fatal_error(_("Could not read from <%s>"),hu);
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-			d_disp = ((DCELL *) inrast_disp)[col];
-			d_z0h = ((DCELL *) inrast_z0h)[col];
-			d_psih = ((DCELL *) inrast_psih)[col];
-			d_ustar = ((DCELL *) inrast_ustar)[col];
-			if(G_is_d_null_value(&d_disp)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_z0h)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_psih)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_ustar)){
-				((DCELL *) outrast)[col] = -999.99;
+			switch(data_type_disp){
+				case CELL_TYPE:
+					d_disp = (double) ((CELL *) inrast_disp)[col];
+					break;
+				case FCELL_TYPE:
+					d_disp = (double) ((FCELL *) inrast_disp)[col];
+					break;
+				case DCELL_TYPE:
+					d_disp = (double) ((DCELL *) inrast_disp)[col];
+					break;
+			}
+			switch(data_type_disp){
+				case CELL_TYPE:
+					d_z0h = (double) ((CELL *) inrast_z0h)[col];
+					break;
+				case FCELL_TYPE:
+					d_z0h = (double) ((FCELL *) inrast_z0h)[col];
+					break;
+				case DCELL_TYPE:
+					d_z0h = (double) ((DCELL *) inrast_z0h)[col];
+					break;
+			}
+			switch(data_type_disp){
+				case CELL_TYPE:
+					d_psih = (double) ((CELL *) inrast_psih)[col];
+					break;
+				case FCELL_TYPE:
+					d_psih = (double) ((FCELL *) inrast_psih)[col];
+					break;
+				case DCELL_TYPE:
+					d_psih = (double) ((DCELL *) inrast_psih)[col];
+					break;
+			}
+			switch(data_type_disp){
+				case CELL_TYPE:
+					d_ustar = (double) ((CELL *) inrast_ustar)[col];
+					break;
+				case FCELL_TYPE:
+					d_ustar = (double) ((FCELL *) inrast_ustar)[col];
+					break;
+				case DCELL_TYPE:
+					d_ustar = (double) ((DCELL *) inrast_ustar)[col];
+					break;
+			}
+			switch(data_type_disp){
+				case CELL_TYPE:
+					d_hu = (double) ((CELL *) inrast_hu)[col];
+					break;
+				case FCELL_TYPE:
+					d_hu = (double) ((FCELL *) inrast_hu)[col];
+					break;
+				case DCELL_TYPE:
+					d_hu = (double) ((FCELL *) inrast_hu)[col];
+					break;
+			}
+			if(G_is_d_null_value(&d_disp)||
+			G_is_d_null_value(&d_z0h)||
+			G_is_d_null_value(&d_psih)||
+			G_is_d_null_value(&d_ustar)||
+			G_is_d_null_value(&d_hu)){
+				G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
 				/* calculate rah   */
-				d_rah=ra_h(d_disp,d_z0h,d_psih,d_ustar);
-				((DCELL *) outrast)[col] = d;
+				d_rah=ra_h(d_disp,d_z0h,d_psih,d_ustar,d_hu);
+				outrast[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
@@ -221,11 +272,13 @@ int main(int argc, char *argv[])
 	G_free (inrast_z0h);
 	G_free (inrast_psih);
 	G_free (inrast_ustar);
+	G_free (inrast_hu);
 
 	G_close_cell (infd_disp);
 	G_close_cell (infd_z0h);
 	G_close_cell (infd_psih);
 	G_close_cell (infd_ustar);
+	G_close_cell (infd_hu);
 	
 	G_free (outrast);
 	G_close_cell (outfd);
