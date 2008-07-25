@@ -4,29 +4,23 @@
 
 #define PI 3.1415927
 
-double psi_h(double t0_dem, double h, double U_0, double roh_air)
+double psi_h(double t0_dem, double h, double ustar, double roh_air, double hu)
 {
-	double result;
-	double n5_temp, n11_mem, n12_mem;
-
+	double result, n5, n11, n12;
 //	printf("h input to psih() is %5.3f\n",h);
-	
 	if(h != 0.0){
-		n5_temp = (-1004* roh_air*pow(U_0,3)* t0_dem)/(0.41*9.81* h);
+		n5 = (-1004* roh_air*pow(ustar,3)* t0_dem)/(0.41*9.81* h);
 	} else {
-		n5_temp = -1000.0;
+		n5 = -1000.0;
 	}
-
-	if(n5_temp < 0.0){
-		n12_mem = pow((1-16*(2/n5_temp)),0.25);
-		n11_mem = (2*log((1+pow(n12_mem,2))/2));
+	if(n5 < 0.0){
+		n12 = pow((1-16*(hu/n5)),0.25);
+		n11 = (2*log((1+pow(n12,2))/2));
 	} else {
-		n12_mem = 1.0;
-		n11_mem = -5*2/n5_temp;
+		n12 = 1.0;
+		n11 = -5*hu/n5;
 	}
-
-	result = n11_mem;
-
-	return (result);
+	result = n11;
+	return result;
 }
 

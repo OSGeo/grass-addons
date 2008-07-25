@@ -18,8 +18,8 @@ double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, doub
 	double u_0;
 	double h_desert, rah_desert, roh_air_desert;
 	double dtair_desert;
-	double psih_desert,ustar_desert,ustar_desertold,zom_desert;
-	double psih;
+	double psih,psim,psih_desert,psim_desert;
+	double ustar_desert,ustar_desertold,zom_desert;
 	double result;
 
 	/* Fat-free junk food */
@@ -46,7 +46,7 @@ double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, doub
 // 	printf("**rohairdesert = %5.3f\n",roh_air_desert);
 	u_0 		= U_0(zom0, u_hu, hu);
 // 	printf("*****************************u0\n");
-	rah[0] 		= rah_0(zom0, u_0, hu);
+	rah[0] 		= rah_0(zom0, u_hu, hu);
 // 	printf("*****************************rah = %5.3f\n",rah[0]);
 	h[0] 		= h_0(roh_air[0], rah[0], dtair[0]);
 // 	printf("*****************************h\n");
@@ -68,23 +68,26 @@ double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, doub
 			printf("\n ******** ITERATION %i *********\n",ic);
 		}
 		/* Where is roh_air[i]? */
-		psih = psi_h(t0_dem,h[ic-1],u_0,roh_air[ic-1]);
 		ustar[ic] = u_star(t0_dem,h[ic-1],u_0,roh_air[ic-1],zom[0],u_hu,hu);
-		rah[ic] = rah1(psih, ustar[ic],hu);	
+		psih = psi_h(t0_dem,h[ic-1],ustar[ic],roh_air[ic-1],hu);
+		psim = psi_m(t0_dem,h[ic-1],ustar[ic],roh_air[ic-1],hu);
+		rah[ic] = rah1(zom0,psih,psim,ustar[ic]);	
 		/* get desert point values from maps */
 		if(ic==1){
 			h_desert	= rnet_desert - g0_desert;
 			zom_desert	= 0.002;
-			psih_desert 	= psi_h(t0_dem_desert,h_desert,u_0,roh_air_desert);
 			ustar_desert	= u_star(t0_dem_desert,h_desert,u_0,roh_air_desert,zom_desert,u_hu,hu);
+			psih_desert 	= psi_h(t0_dem_desert,h_desert,ustar_desert,roh_air_desert,hu);
+			psim_desert 	= psi_m(t0_dem_desert,h_desert,ustar_desert,roh_air_desert,hu);
 		} else {
 			roh_air_desert	= rohair(dem_desert,tempk_desert,dtair_desert);
 			h_desert	= h1(roh_air_desert,rah_desert,dtair_desert);
 			ustar_desertold = ustar_desert;
-			psih_desert 	= psi_h(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert);
 			ustar_desert	= u_star(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,zom_desert,u_hu,hu);
+			psih_desert 	= psi_h(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,hu);
+			psim_desert 	= psi_m(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,hu);
 		}
-		rah_desert	= rah1(psih_desert,ustar_desert,hu);
+		rah_desert	= rah1(zom0,psih_desert,psim_desert,ustar_desert);
 		dtair_desert 	= dt_air_desert(h_desert, roh_air_desert, rah_desert);
 		/* This should find the new dtair from inversed h equation...*/
 		dtair[ic] 	= dt_air(t0_dem, tempk_water, tempk_desert, dtair_desert);

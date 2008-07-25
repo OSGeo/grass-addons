@@ -2,14 +2,11 @@
 #include<math.h>
 #include"functions.h"
 
-#define PI 3.1415927
-
-double rah1(double psih, double ustar, double hu)
+double rah1(double zom_0, double psih, double psim, double ustar)
 {
-	double result;
-
-	result = (log(hu/0.01)-psih)/(ustar*0.41);
-
-	return (result);
+	double  u5, result;
+	u5 = (ustar/0.41)*log(5/zom_0);
+	result = (1/(pow(u5*0.41,2))) * (log(5/zom_0)-psim) * (log(5/(zom_0*0.1))-psih);
+	return result;
 }
 
