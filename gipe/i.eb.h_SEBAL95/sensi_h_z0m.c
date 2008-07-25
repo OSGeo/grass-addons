@@ -6,7 +6,7 @@
 /* Arrays Declarations */
 #define ITER_MAX 10
 
-double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double zom0, double dtair0, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert)
+double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double zom0, double dtair0, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u_hu, double hu, double dem_desert)
 {
 	/* Arrays Declarations */
 	double dtair[ITER_MAX], roh_air[ITER_MAX], rah[ITER_MAX];
@@ -44,7 +44,7 @@ double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, doub
 // 	printf("*****************************rohair=%5.3f\n",roh_air[0]);
 	roh_air_desert 	= roh_air_0(tempk_desert);
 // 	printf("**rohairdesert = %5.3f\n",roh_air_desert);
-	u_0 		= U_0(zom0, u2m);
+	u_0 		= U_0(zom0, u_hu, hu);
 // 	printf("*****************************u0\n");
 	rah[0] 		= rah_0(zom0, u_0);
 // 	printf("*****************************rah = %5.3f\n",rah[0]);
@@ -69,20 +69,20 @@ double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, doub
 		}
 		/* Where is roh_air[i]? */
 		psih = psi_h(t0_dem,h[ic-1],u_0,roh_air[ic-1]);
-		ustar[ic] = u_star(t0_dem,h[ic-1],u_0,roh_air[ic-1],zom[0],u2m);
+		ustar[ic] = u_star(t0_dem,h[ic-1],u_0,roh_air[ic-1],zom[0],u_hu,hu);
 		rah[ic] = rah1(psih, ustar[ic]);	
 		/* get desert point values from maps */
 		if(ic==1){
 			h_desert	= rnet_desert - g0_desert;
 			zom_desert	= 0.002;
 			psih_desert 	= psi_h(t0_dem_desert,h_desert,u_0,roh_air_desert);
-			ustar_desert	= u_star(t0_dem_desert,h_desert,u_0,roh_air_desert,zom_desert,u2m);
+			ustar_desert	= u_star(t0_dem_desert,h_desert,u_0,roh_air_desert,zom_desert,u_hu,hu);
 		} else {
 			roh_air_desert	= rohair(dem_desert,tempk_desert,dtair_desert);
 			h_desert	= h1(roh_air_desert,rah_desert,dtair_desert);
 			ustar_desertold = ustar_desert;
 			psih_desert 	= psi_h(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert);
-			ustar_desert	= u_star(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,zom_desert,u2m);
+			ustar_desert	= u_star(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,zom_desert,u_hu,hu);
 		}
 		rah_desert	= rah1(psih_desert,ustar_desert);
 		dtair_desert 	= dt_air_desert(h_desert, roh_air_desert, rah_desert);
