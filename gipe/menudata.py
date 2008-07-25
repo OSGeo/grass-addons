@@ -1458,6 +1458,11 @@ class Data:
                           _("Satellite overpass time"),
                           "self.RunMenuCmd",
                           "i.sattime"),
+                         ("","","", ""),
+                         (_("LMF temporal splinning"),
+                          _("LMF temporal splinning"),
+                          "self.RunMenuCmd",
+                          "i.lmf"),
                          )
                         ),
                         (_("RS Processing (Advanced)"), (
@@ -1503,8 +1508,12 @@ class Data:
                           )
                          ),
                          (_("Energy Balance"), (
-                          (_("Surface roughness"),
+                          (_("Surface roughness (generic)"),
                            _("surface roughness"),
+                           "self.RunMenuCmd",
+                           "i.eb.z0m0"),
+                          (_("Surface roughness (savi/Pawan04)"),
+                           _("surface roughness (savi/Pawan04)"),
                            "self.RunMenuCmd",
                            "i.eb.z0m"),
                           (_("Delta T"),

@@ -28,11 +28,13 @@ SUBDIRS = \
 	i.eb.ustar \
 	i.eb.wetdrypix \
 	i.eb.z0m \
+	i.eb.z0m0 \
 	i.emissivity \
 	i.evapo.potrad \
 	i.evapo.PT \
 	i.evapo.SENAY \
 	i.evapo.TSA \
+	i.qc.modis \
 	i.latitude \
 	i.lmf \
 	i.longitude \

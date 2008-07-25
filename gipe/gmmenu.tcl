@@ -582,6 +582,8 @@ set descmenu [subst  {
 				{command {[G_msg "Longitude map"]} {} "i.longitude" {} -command {execute i.longitude }}
 				{command {[G_msg "Sunshine hours (potential)"]} {} "i.sunhours" {} -command {execute i.sunhours }}
 				{command {[G_msg "Satellite overpass time"]} {} "i.sattime" {} -command {execute i.sattime }}
+				{separator}
+				{command {[G_msg "LMF temporal splinning"]} {} "i.lmf" {} -command {execute i.lmf }}
 		}}
 		{separator}
 		{cascad {[G_msg "ETo, ETP, ETa"]} {} "" $tmenu {
@@ -598,7 +600,8 @@ set descmenu [subst  {
 				{command {[G_msg "Actual ET (TSA)"]} {} "i.evapo.TSA" {} -command {execute i.evapo.TSA }}
 		}}
 		{cascad {[G_msg "Energy Balance"]} {} "" $tmenu {
-				{command {[G_msg "Surface roughness"]} {} "i.eb.z0m" {} -command {execute i.eb.z0m }}
+				{command {[G_msg "Surface roughness (generic)"]} {} "i.eb.z0m0" {} -command {execute i.eb.z0m0 }}
+				{command {[G_msg "Surface roughness (savi/Pawan04)"]} {} "i.eb.z0m" {} -command {execute i.eb.z0m }}
 				{command {[G_msg "Delta T"]} {} "i.eb.deltat" {} -command {execute i.eb.deltat }}
 				{command {[G_msg "Net radiation"]} {} "i.eb.netrad" {} -command {execute i.eb.netrad }}
 				{separator}

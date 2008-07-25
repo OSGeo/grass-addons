@@ -1,0 +1,32 @@
+<H2>DESCRIPTION</H2>
+
+<EM>i.eb.z0m0</EM> calculates the momentum roughness length (z0m) and optionally the surface roughness for heat transport (z0h) as per SEBAL requirements from bastiaanssen (1995).
+This version is calculating from a NDVI with an deterministic equation, as seen in Bastiaanssen (1995).
+This is a typical input to sensible heat flux computations of any energy balance modeling.
+<H2>NOTES</H2>
+
+The NDVI map input and the ndvi_max operation set, is only to get a linear relationship from NDVI to vegetation height. The latter being related to z0m by a factor 7. 
+
+If you happen to have a vegetation height (hv) map, then z0m=hv/7 and z0h=0.1*z0m. There, fixed.
+
+
+<H2>TODO</H2>
+
+
+<H2>SEE ALSO</H2>
+
+<em>
+<A HREF="i.eb.h0.html">i.eb.h0</A><br>
+<A HREF="i.eb.h_SEBAL95.html">i.eb.h_SEBAL95</A><br>
+<A HREF="i.eb.h_iter.html">i.eb.h_iter</A><br>
+<A HREF="i.eb.z0m.html">i.eb.z0m</A><br>
+</em>
+
+
+<H2>AUTHORS</H2>
+
+Yann Chemin, International Rice Research Institute, The Philippines<BR>
+
+
+<p>
+<i>Last changed: $Date: 2008/07/25 09:52:24 $</i>
