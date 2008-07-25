@@ -20,9 +20,9 @@ double r_net( double bbalb, double ndvi, double tempk, double dtair,  double e0,
 // 	printf("**rnet: bbalb = %5.3f\n\tndvi = %5.3f\n\ttempk = %5.3f\n\te0 = %5.3f\n\ttsw = %5.3f\n\tdoy = %f\n\tutc = %5.3f\n\tsunzangle = %5.3f\n\tdtair = %5.3f\n",bbalb,ndvi,tempk,e0,tsw,doy,utc,sunzangle,dtair);
 	
 	// Atmospheric emissivity (Bastiaanssen, 1995)
-	e_atm	=  1.08 * pow(-log10(tsw_for_e_atm),0.265) ;
+	e_atm	=  1.08 * pow(-log(tsw_for_e_atm),0.265) ;
 	// Atmospheric emissivity (Pawan, 2004)
-// 	e_atm	= 0.85 * pow(-log10(tsw),0.09);
+// 	e_atm	= 0.85 * pow(-log(tsw),0.09);
 // 	printf("rnet: e_atm = %5.3f\n",e_atm);
 
 	ds = 1.0 + 0.01672 * sin(2*PI*(doy-93.5)/365);
