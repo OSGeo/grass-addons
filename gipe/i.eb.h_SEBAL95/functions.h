@@ -30,7 +30,7 @@ double sensi_h( int iteration, double tempk_water, double tempk_desert, double t
 double roh_air_0(double tempk);
 double zom_0(double ndvi, double ndvi_max);
 double U_0(double zom_0, double u_hu, double hu);
-double rah_0(double zom_0, double u_0, double hu);
+double rah_0(double zom_0, double u_hu, double hu);
 double h_0(double roh_air, double rah, double dtair);
 double dt_air_approx( double temp_k );
 double dt_air_0(double t0_dem, double tempk_water, double tempk_desert);
@@ -39,8 +39,9 @@ double dt_air(double t0_dem, double tempk_water, double tempk_desert, double dta
 double rohair(double dem, double tempk, double dtair);
 double h1(double roh_air, double rah, double dtair);
 double u_star(double t0_dem,double h,double ustar,double roh_air,double zom,double u_hu,double hu);
-double psi_h(double t0_dem, double h, double U_0, double roh_air);
-double rah1(double psih, double ustar, double hu);
+double psi_h(double t0_dem, double h, double ustar, double roh_air, double hu);
+double psi_m(double t0_dem, double h, double ustar, double roh_air, double hu);
+double rah1(double zom_0, double psih, double psim, double ustar);
 
 /* Final outputs */
 double evap_fr(double r_net, double g0, double h);
