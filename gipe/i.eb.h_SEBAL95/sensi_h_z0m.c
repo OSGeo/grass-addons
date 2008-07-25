@@ -1,7 +1,3 @@
-/* This is the main loop used in SEBAL */
-/* ychemin@yahoo.com - yann.chemin@ait.ac.th */
-/* GPL >= 2 - April 2004 */
-
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
@@ -10,7 +6,7 @@
 /* Arrays Declarations */
 #define ITER_MAX 10
 
-double sensi_h( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert)
+double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double zom0, double dtair0, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert)
 {
 	/* Arrays Declarations */
 	double dtair[ITER_MAX], roh_air[ITER_MAX], rah[ITER_MAX];
@@ -19,7 +15,7 @@ double sensi_h( int iteration, double tempk_water, double tempk_desert, double t
 
 	/* Declarations */
 	int	i, j, ic, debug=0;
-	double u_0, zom0;
+	double u_0;
 	double h_desert, rah_desert, roh_air_desert;
 	double dtair_desert;
 	double psih_desert,ustar_desert,ustar_desertold,zom_desert;
@@ -34,18 +30,20 @@ double sensi_h( int iteration, double tempk_water, double tempk_desert, double t
 	if(debug==1){
 		printf("*****************************\n");
 		printf("t0_dem = %5.3f\n",t0_dem);
-		printf("ndvi = %5.3f ndvimax = %5.3f\n",ndvi,ndvi_max);
+		printf("z0m0 = %5.3f\n",zom0);
 		printf("*****************************\n");
 	}
 //	dtair[0] 	= dt_air_0(t0_dem, tempk_water, tempk_desert);
-	dtair[0] = 5.0;
+	if(dtair0 < 0){
+		dtair[0] = 5.0;
+	} else {
+		dtair[0] = dtair0;
+	}
 // 	printf("*****************************dtair = %5.3f\n",dtair[0]);
 	roh_air[0] 	= roh_air_0(tempk);
 // 	printf("*****************************rohair=%5.3f\n",roh_air[0]);
 	roh_air_desert 	= roh_air_0(tempk_desert);
 // 	printf("**rohairdesert = %5.3f\n",roh_air_desert);
-	zom0 		= zom_0(ndvi, ndvi_max);
-// 	printf("*****************************zom = %5.3f\n",zom0);
 	u_0 		= U_0(zom0, u2m);
 // 	printf("*****************************u0\n");
 	rah[0] 		= rah_0(zom0, u_0);
