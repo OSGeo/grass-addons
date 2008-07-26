@@ -156,7 +156,8 @@ annotated_tic_interval=`expr $tic_interval '*' 10`
 eval "comment=\"$comment\""
 
 v.out.ascii "$map_name" format=standard | awk '{
-	if($1 == "B"){
+	# line or boundary
+	if($1 == "L" || $1 == "B"){
 		npnts = $2
 		draw = 1
 		print ">"
