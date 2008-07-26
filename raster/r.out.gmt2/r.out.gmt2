@@ -51,6 +51,13 @@
 #% required: no
 #%end
 #%option
+#% key: null
+#% type: integer
+#% description: Value to write out for null
+#% required: no
+#% answer: -9999
+#%end
+#%option
 #% key: width
 #% type: string
 #% description: Map width (e.g., 7in, 18cm)
@@ -112,6 +119,8 @@ else
     output_base="$GIS_OPT_OUTPUT"
 fi
 
+null_value="$GIS_OPT_NULL"
+
 if [ -z "$GIS_OPT_TITLE" ]; then
     title="$output_base"
 else
@@ -161,7 +170,7 @@ DCELL)
     ;;
 esac
 
-r.out.bin -h input="$map_name" output="$output_grd"
+r.out.bin -h input="$map_name" output="$output_grd" null=$null_value
 if [ $? -ne 0 ]; then
     echo "ERROR: creating binary grd file" 1>&2
     cleanup
