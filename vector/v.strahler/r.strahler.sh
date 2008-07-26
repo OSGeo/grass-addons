@@ -132,7 +132,8 @@ r.watershed elevation=$dem threshold=$thr stream=rnetwork drainage=drainage --ov
 r.null map=rnetwork setnull=0
 r.thin input=rnetwork output=rnetwork_th iterations=200 --overwrite
 r.mapcalc "rnetwork_thin=rnetwork_th/rnetwork_th"
-d.erase
+d.mon stop=x0
+d.mon start=x0
 
 if [ "$bkgrmap" ]; then
 d.rast map=$bkgrmap
