@@ -104,6 +104,7 @@ unset LC_ALL
 export LC_NUMERIC=C
 
 map_name="$GIS_OPT_INPUT"
+input_map="$map_name"
 
 if [ -z "$GIS_OPT_OUTPUT" ]; then
     output_base="$GIS_OPT_INPUT"
@@ -216,7 +217,7 @@ colr_file="$file"
 cat<<EOT > "$output_cpt"
 #
 # GMT colormap created by the `g.version` r.out.gmt2 script
-# from base map [$map_name]
+# from base map [$input_map]
 # created by $USER@$HOSTNAME at `date`
 #
 # COLOR_MODEL = RGB
