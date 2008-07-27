@@ -26,8 +26,8 @@
 /*#include <omp.h>*/
 
 
-double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double zom0, double dtair0, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u_hu, double hu, double dem_desert);
-double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double dtair0, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u_hu, double hu, double dem_desert);
+double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double zom0, double dtair0, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u_hu, double hu, double dem_desert, double dtair_desert);
+double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double dtair0, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u_hu, double hu, double dem_desert, double dtair_desert);
 
 int main(int argc, char *argv[])
 {	
@@ -427,6 +427,8 @@ int main(int argc, char *argv[])
 	DCELL d_g0_dry;
 	DCELL d_t0dem_dry;
 	DCELL d_dem_dry;
+	DCELL d_dT_dry;
+	DCELL d_dT;
 	/*START Temperature minimum search */
 	/* THREAD 1 */
 	/*This is correcting for un-Earthly temperatures*/
@@ -618,6 +620,10 @@ int main(int argc, char *argv[])
 				G_fatal_error(_("Could not read from <%s>"),Rn);
 			if(G_get_raster_row(infd_g0, inrast_g0, row,data_type_g0) < 0)
 				G_fatal_error(_("Could not read from <%s>"),g0);
+			if(input_dT->answer){
+				if(G_get_raster_row(infd_dT,inrast_dT,row,data_type_dT)<0)
+					G_fatal_error(_("Could not read from <%s>"),T);
+			}
 			/*process the data */
 			for (col=0; col < ncols; col++)
 			{
@@ -676,11 +682,26 @@ int main(int argc, char *argv[])
 						d_g0 = (double) ((DCELL *) inrast_g0)[col];
 						break;
 				}
+				if(input_dT->answer){
+					switch(data_type_dT){
+						case CELL_TYPE:
+							d_dT=(double) ((CELL *) inrast_dT)[col];
+							break;
+						case FCELL_TYPE:
+							d_dT=(double) ((FCELL *)inrast_dT)[col];
+							break;
+						case DCELL_TYPE:
+							d_dT=(double) ((DCELL *)inrast_dT)[col];
+							break;
+					}
+				}
 				if(G_is_d_null_value(&d_albedo)||
 				G_is_d_null_value(&d_tempk)||
 				G_is_d_null_value(&d_dem)||
 				G_is_d_null_value(&d_Rn)||
-				G_is_d_null_value(&d_g0)){
+				G_is_d_null_value(&d_g0)||
+				((input_dT->answer)&&
+				(G_is_d_null_value(&d_dT)))){
 					/* do nothing */ 
 				}else{
 					d_t0dem = d_tempk + 0.001649*d_dem;
@@ -717,6 +738,8 @@ int main(int argc, char *argv[])
 							d_dem_dry=d_dem;
 							col_dry=col;
 							row_dry=row;
+							if(input_dT->answer)
+								d_dT_dry=d_dT;
 						}
 						if(flag1->answer&&
 						d_tempk>=(double)i_peak3-0.0&&
@@ -732,6 +755,8 @@ int main(int argc, char *argv[])
 							d_dem_dry=d_dem;
 							col_dry=col;
 							row_dry=row;
+							if(input_dT->answer)
+								d_dT_dry=d_dT;
 						}
 					}
 				}
@@ -750,6 +775,8 @@ int main(int argc, char *argv[])
 		G_message("rnet_dry=%f\n",d_Rn_dry);
 		G_message("g0_dry=%f\n",d_g0_dry);
 		G_message("h0_dry=%f\n",d_Rn_dry-d_g0_dry);
+		if(input_dT->answer)
+			G_message("dT_dry=%f\n",d_dT_dry);
 	} /* END OF FLAG2 */
 	/*MPI_BARRIER*/
 	
@@ -771,6 +798,7 @@ int main(int argc, char *argv[])
 		DCELL d_tempk;
 		DCELL d_dem;
 		DCELL d_t0dem;
+		DCELL d_dT;
 		if(G_get_raster_row(infd_T,inrast_T,row,data_type_T)<0)
 			G_fatal_error(_("Could not read from <%s>"),T);
 		if(G_get_raster_row(infd_dem,inrast_dem,row,data_type_dem)<0)
@@ -779,6 +807,10 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Could not read from <%s>"),Rn);
 		if(G_get_raster_row(infd_g0, inrast_g0, row,data_type_g0) < 0)
 			G_fatal_error(_("Could not read from <%s>"),g0);
+		if(input_dT->answer){
+			if(G_get_raster_row(infd_dT,inrast_dT,row,data_type_dT)<0)
+				G_fatal_error(_("Could not read from <%s>"),T);
+		}
 		switch(data_type_T){
 			case CELL_TYPE:
 				d_tempk = (double) ((CELL *) inrast_T)[col];
@@ -823,13 +855,28 @@ int main(int argc, char *argv[])
 				d_g0 = (double) ((DCELL *) inrast_g0)[col];
 				break;
 		}
+		if(input_dT->answer){
+			switch(data_type_dT){
+				case CELL_TYPE:
+					d_dT=(double) ((CELL *) inrast_dT)[col];
+					break;
+				case FCELL_TYPE:
+					d_dT=(double) ((FCELL *)inrast_dT)[col];
+					break;
+				case DCELL_TYPE:
+					d_dT=(double) ((DCELL *)inrast_dT)[col];
+					break;
+			}
+		}
 		d_t0dem 	= d_tempk + 0.001649 * d_dem;
 		d_t0dem_dry	= d_t0dem;
 		d_tempk_dry	= d_tempk;
 		d_Rn_dry	= d_Rn;
 		d_g0_dry	= d_g0;
 		d_dem_dry	= d_dem;
-
+		if(input_dT->answer){
+			d_dT_dry = d_dT;
+		}
 		/*WET PIXEL*/
 		if(flag3->answer){
 			/*Calculate coordinates of row/col from projected ones*/
@@ -867,6 +914,8 @@ int main(int argc, char *argv[])
 		G_message("rnet_dry=%f\n",d_Rn_dry);
 		G_message("g0_dry=%f\n",d_g0_dry);
 		G_message("h0_dry=%f\n",d_Rn_dry-d_g0_dry);
+		if(input_dT->answer)
+			G_message("dT_dry=%f\n",d_dT_dry);
 	}
 	/* END OF MANUAL WET/DRY PIXELS */
 
@@ -1038,8 +1087,8 @@ int main(int argc, char *argv[])
 				G_set_d_null_value(&outrast[col],1);
 			} else {
 				/* Albedo < 0*/
-				if(d_albedo<0.01){
-					d_albedo=0.01;
+				if(d_albedo<0.001){
+					d_albedo=0.001;
 				}
 				/* Calculate T0dem */
 				d_t0dem = (double)d_tempk + 0.001649 * (double) d_dem;
@@ -1056,18 +1105,22 @@ int main(int argc, char *argv[])
 					if(input_dT->answer){
 						/* do nothing */
 					} else {
-						/* let the internal constant take over */
+						/* let the internal constant
+						 * take over */
 						d_dT = -1.0;
+						d_dT_dry = -1.0;
 					}
-					d = sensi_h_z0m(iteration,d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_z0m,d_dT,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u_hu,d_hu,d_dem_dry);
+					d = sensi_h_z0m(iteration,d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_z0m,d_dT,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u_hu,d_hu,d_dem_dry,d_dT_dry);
 				} else {
 					if(input_dT->answer){
 						/* do nothing */
 					} else {
-						/* let the internal constant take over */
+						/* let the internal constant
+						 * take over */
 						d_dT = -1.0;
+						d_dT_dry = -1.0;
 					}
-					d = sensi_h_noz0m(iteration,d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_dT,d_ndvi,d_ndvi_max,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u_hu,d_hu,d_dem_dry);
+					d = sensi_h_noz0m(iteration,d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_dT,d_ndvi,d_ndvi_max,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u_hu,d_hu,d_dem_dry,d_dT_dry);
 				}
 		//		G_message(" d_h0=%5.3f",d);
 				if (zero->answer && d<0.0){
