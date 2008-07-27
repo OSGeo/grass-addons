@@ -179,8 +179,7 @@ fi
 
 # get our geographic extents
 eval `g.region -g`
-ns_extent=`g.region -e | grep south | cut -f2 -d: | sed -e 's=^ =='`
-ew_extent=`g.region -e | grep west | cut -f2 -d: | sed -e 's=^ =='`
+eval `g.region -ge`
 
 # preserve aspect ratio from UTM E,N coordinates:
 aspect_ratio=`echo $ns_extent $ew_extent | awk '{printf("%f", $1 / $2)}'`
