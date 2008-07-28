@@ -1384,6 +1384,11 @@ class Data:
                          ),
                         ("","","", ""),
                         (_("RS Pre-Processing (DN->Rad->Ref)"), (
+                         (_("MODIS QC extractor"),
+                          _("MODIS Quality Assessment extractor"), 
+                          "self.RunMenuCmd",
+                          "i.qc.modis"),
+                         ("","","", ""),
                          (_("Landsat 7 ETM+"),
                           _("Landsat 7 ETM+"), 
                           "self.RunMenuCmd",
