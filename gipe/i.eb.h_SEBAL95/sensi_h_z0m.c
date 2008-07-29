@@ -46,13 +46,11 @@ double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, doub
 // 	printf("*****************************u0\n");
 	rah[0] 		= rah_0(zom0, u_hu, hu);
 // 	printf("*****************************rah = %5.3f\n",rah[0]);
+	h_desert= rnet_desert - g0_desert;
+	zom_desert= 0.002;
+	ustar_desert= u_star(t0_dem_desert,h_desert,u_0,roh_air_desert,zom_desert,u_hu,hu);
+	rah_desert= rah_0(zom0,u_hu,hu);
  	if(dtair_desert < 0.0){
-		h_desert= rnet_desert - g0_desert;
-		zom_desert= 0.002;
-		ustar_desert= u_star(t0_dem_desert,h_desert,u_0,roh_air_desert,zom_desert,u_hu,hu);
-		psih_desert= psi_h(t0_dem_desert,h_desert,ustar_desert,roh_air_desert,hu);
-		psim_desert= psi_m(t0_dem_desert,h_desert,ustar_desert,roh_air_desert,hu);
-		rah_desert= rah1(zom0,psih_desert,psim_desert,ustar_desert);
 		dtair_desert= dt_air_desert(h_desert, roh_air_desert, rah_desert);
 	}
 	if(dtair0 < 0.0){

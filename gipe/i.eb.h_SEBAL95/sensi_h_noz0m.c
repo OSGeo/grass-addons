@@ -49,20 +49,14 @@ double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, do
  	//printf("*****************************rah = %5.3f\n",rah[0]);
 	h_desert= rnet_desert - g0_desert;
  	//printf("*****************************h_desert = %5.3f\n",h_desert);
+	zom_desert= 0.002;
+ 	//printf("*****************************zom_desert = %5.3f\n",zom_desert);
+	ustar_desert=u_star(t0_dem_desert,h_desert,u_0,roh_air_desert,zom_desert,u_hu,hu);
+	rah_desert= rah_0(zom_desert,u_hu,hu);
+ 	//printf("*****************************rah_desert = %5.3f\n",rah_desert);
 	if(dtair_desert < 0.0){
-		zom_desert= 0.002;
- 		//printf("*****************************zom_desert = %5.3f\n",zom_desert);
-		ustar_desert= u_star(t0_dem_desert,h_desert,u_0,roh_air_desert,zom_desert,u_hu,hu);
-
-		//psih_desert= psi_h(t0_dem_desert,h_desert,ustar_desert,roh_air_desert,hu);
- 		//printf("*****************************psih_desert = %5.3f\n",psih_desert);
-		//psim_desert= psi_m(t0_dem_desert,h_desert,ustar_desert,roh_air_desert,hu);
- 		//printf("*****************************psim_desert = %5.3f\n",psim_desert);
-		//rah_desert= rah1(zom_desert,psih_desert,psim_desert,ustar_desert);
-		rah_desert= rah_0(zom_desert,u_hu,hu);
- 		//printf("*****************************rah_desert = %5.3f\n",rah_desert);
 		dtair_desert = dt_air_desert(h_desert, roh_air_desert, rah_desert);
- 		//printf("*****************************dtair_desert = %5.3f\n",dtair_desert);
+ 		//printf("*******************dtair_desert = %5.3f\n",dtair_desert);
 	}
 	if(dtair0 < 0.0){
 		dtair[0] = dt_air(t0_dem,tempk_water,tempk_desert,dtair_desert);
