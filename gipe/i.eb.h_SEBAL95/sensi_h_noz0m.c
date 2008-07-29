@@ -70,6 +70,7 @@ double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, do
 // 	printf("*****************************h\n");
 	if(debug==1){
 		printf("h_desert 	= %5.3f W/m2\n", h_desert);
+		printf("ustar_desert 	= %5.3f m/s\n", ustar_desert);
 		printf("rah_desert	= %5.3f s/m\n", rah_desert);
 		printf("dtair_desert	= %5.3f K\n", dtair_desert);
 		printf("dtair[0]	= %5.3f K\n", dtair[0]);
@@ -84,16 +85,17 @@ double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, do
 /*----------------------------------------------------------------*/
 /*Main iteration loop of SEBAL*/
 	zom[0] = zom0;
+	ustar[0] = u_star(t0_dem,h[0],u_0,roh_air[0],zom[0],u_hu,hu);
 	for(ic=1;ic<iteration+1;ic++){
 		if(debug==1){
 			printf("\n ******** ITERATION %i *********\n",ic);
 		}
-		ustar[ic] = u_star(t0_dem,h[ic-1],u_0,roh_air[ic-1],zom[0],u_hu,hu);
-		psih = psi_h(t0_dem,h[ic-1],ustar[ic],roh_air[ic-1],hu);
-		psim = psi_m(t0_dem,h[ic-1],ustar[ic],roh_air[ic-1],hu);
-		rah[ic] = rah1(zom0, psih, psim, ustar[ic]);	
+		psih 		= psi_h(t0_dem,h[ic-1],ustar[ic-1],roh_air[ic-1],hu);
+		psim 		= psi_m(t0_dem,h[ic-1],ustar[ic-1],roh_air[ic-1],hu);
+		rah[ic] 	= rah1(zom[0], psih, psim, ustar[ic]);	
+		roh_air[ic] 	= rohair(dem, tempk, dtair[ic-1]);
 		if(rah[ic]<0.0)
-			rah[ic]=0.0;
+			rah[ic]=1.0;
 		/* get desert point values from maps */
 		roh_air_desert	= rohair(dem_desert,tempk_desert,dtair_desert);
 		h_desert	= h1(roh_air_desert,rah_desert,dtair_desert);
@@ -105,17 +107,21 @@ double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, do
 		dtair_desert 	= dt_air_desert(h_desert, roh_air_desert, rah_desert);
 		/* This should find the new dtair from inversed h equation...*/
 		dtair[ic] 	= dt_air(t0_dem, tempk_water, tempk_desert, dtair_desert);
-		/* This produces h[ic] and roh_air[ic+1] */
-		roh_air[ic] 	= rohair(dem, tempk, dtair[ic]);
+		/* This produces h[ic] */
 		h[ic] 		= h1(roh_air[ic], rah[ic], dtair[ic]);
+		ustar[ic] = u_star(t0_dem,h[ic],ustar[ic-1],roh_air[ic],zom[0],u_hu,hu);
 		/* Output values of the iteration parameters */
 		if(debug==1){
 			printf("psih[%i] 	= %5.3f\n", ic, psih);
+			printf("psim[%i] 	= %5.3f\n", ic, psim);
+			printf("ustar[%i] 	= %5.3f\n", ic-1, ustar[ic-1]);
 			printf("ustar[%i] 	= %5.3f\n", ic, ustar[ic]);
 			printf("rah[%i] 	= %5.3f s/m\n",ic, rah[ic]);
 			printf("h_desert 	= %5.3f\n", h_desert);
 			printf("rohair_desert	= %5.3f\n", roh_air_desert);
-			printf("psih_desert 	= %5.3f\tustar_desert = %5.3f\trah_desert = %5.3f\n", psih_desert, ustar_desert, rah_desert);
+			printf("psih/m_desert 	= %5.3f %5.3f\n",psih_desert,psim_desert);
+			printf("u*d_old/new= %5.3f %5.3f\n",ustar_desertold,ustar_desert);
+			printf("rah_desert 	= %5.3f\n", rah_desert);
 			printf("dtair_desert 	= %8.5f\n", dtair_desert);	
 			printf("dtair[%i] 	= %5.3f K\n", ic, dtair[ic]);	
 			printf("roh_air[%i] 	= %5.3f kg/m3\n", ic, roh_air[ic]);	

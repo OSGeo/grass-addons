@@ -1111,7 +1111,21 @@ int main(int argc, char *argv[])
 						d_dT_dry = -1.0;
 					}
 //					printf("iteration=%i\nd_tempk_wet=%f\nd_tempk_dry=%f\nd_t0dem=%f\nd_tempk=%f\nd_z0m=%f\nd_dT=%f\nd_dem=%f\nd_Rn_dry=%f\nd_g0_dry=%f\nd_t0dem_dry=%f\nd_u_hu=%f\nd_hu=%f\nd_dem_dry=%f\nd_dT_dry=%f\n",iteration,d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_z0m,d_dT,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u_hu,d_hu,d_dem_dry,d_dT_dry);
-					d = sensi_h_z0m(iteration,d_tempk_wet,d_tempk_dry,d_t0dem,d_tempk,d_z0m,d_dT,d_dem,d_Rn_dry,d_g0_dry,d_t0dem_dry,d_u_hu,d_hu,d_dem_dry,d_dT_dry);
+					d = sensi_h_z0m(iteration,
+							d_tempk_wet,
+							d_tempk_dry,
+							d_t0dem,
+							d_tempk,
+							d_z0m,
+							d_dT,
+							d_dem,
+							d_Rn_dry,
+							d_g0_dry,
+							d_t0dem_dry,
+							d_u_hu,
+							d_hu,
+							d_dem_dry,
+							d_dT_dry);
 				} else {
 					if(input_dT->answer){
 						/* do nothing */
