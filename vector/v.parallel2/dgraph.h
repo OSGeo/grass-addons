@@ -2,11 +2,14 @@
 #define DGRAPH_H
 
 /* pg comes from "planar graph" */
+/* every edge is directed. Nevertheless, we can visit it on both sides */
 struct pg_edge {
-    int v1; /* v1 should be smaller than v2 */
-    int v2;
+    int v1; /* first vertex */
+    int v2; /* second vertex */
     char visited_left;
     char visited_right;
+    char winding_left; /* winding numbers */
+    char winding_right;
 };
 
 struct pg_vertex {

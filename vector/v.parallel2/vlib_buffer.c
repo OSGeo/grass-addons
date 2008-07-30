@@ -23,18 +23,6 @@
 #define LOOPED_LINE 1
 #define NON_LOOPED_LINE 0
 
-/*
-* a[i] = 0 means i-th line segment is not visited
-* a[i] = 1 means i-th line segment is visited on it's right side
-* a[i] = 2 means i-th line segment is visited on it's left side
-* a[i] = 3 means i-th line segment is visited on both sides
-*/
-struct visited_segments
-{
-    char *a;
-    int n;
-};
-
 /* norm_vector() calculates normalized vector form two points */
 static void norm_vector(double x1, double y1, double x2, double y2, double *x, double *y )
 {
@@ -252,7 +240,14 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
                 return;
             }  */
             if (res == 1) {
-                Vect_append_point(nPoints, rx, ry, 0);
+                if (!round)
+                    Vect_append_point(nPoints, rx, ry, 0);
+                else {
+/*                    d = dig_distance2_point_to_line(rx, ry, 0, x[i-1], y[i-1], 0, x[i], y[i], 0,
+                        0, NULL, NULL, NULL, NULL, NULL);
+                    if (*/
+                    Vect_append_point(nPoints, rx, ry, 0);
+                }
             }
         }
         else {
@@ -296,12 +291,144 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     }
 }
 
+/* input line must be looped */
+void convolution_line(struct line_pnts *Points, double da, double db, double dalpha, int side, int round, int caps, double tol, struct line_pnts *nPoints)
+{
+    int i, j, res, np;
+    double *x, *y;
+    double tx, ty, vx, vy, wx, wy, nx, ny, mx, my, rx, ry;
+    double vx1, vy1, wx1, wy1;
+    double a0, b0, c0, a1, b1, c1;
+    double phi1, phi2, delta_phi;
+    double nsegments, angular_tol, angular_step;
+    double cosa, sina, r;
+    double angle0, angle1;
+    int inner_corner, turns180;
+    
+    G_debug(4, "convolution_line()");
+
+    np = Points->n_points;
+    x = Points->x;
+    y = Points->y;
+    if ((np == 0) || (np == 1))
+        return;
+    if ((x[0] != x[np-1]) || (y[0] != y[np-1])) {
+        G_fatal_error("line is not looped");
+        return;
+    }
+    
+    Vect_reset_line(nPoints);
+    
+    if ((da == 0) && (db == 0)) {
+        Vect_copy_xyz_to_pnts(nPoints, x, y, NULL, np);
+        return;
+    }
+
+    side = (side >= 0)?(1):(-1); /* normalize variable */
+    dalpha *= PI/180; /* convert dalpha from degrees to radians */
+    angular_tol = angular_tolerance(tol, da, db);
+    
+    i = np-2;
+    norm_vector(x[i], y[i], x[i+1], y[i+1], &tx, &ty);
+    elliptic_tangent(side*tx, side*ty, da, db, dalpha, &vx, &vy);
+    angle1 = atan2(ty, tx);
+    nx = x[i] + vx;
+    ny = y[i] + vy;
+    mx = x[i+1] + vx;
+    my = y[i+1] + vy;
+    if (!round)
+        line_coefficients(nx, ny, mx, my, &a1, &b1, &c1);
+    
+    for (i = 0; i <= np-2; i++)
+    {
+        /* save the old values */
+        if (!round) {
+            a0 = a1;
+            b0 = b1;
+            c0 = c1;
+        }
+        wx = vx;
+        wy = vy;
+        angle0 = angle1;
+        
+        norm_vector(x[i], y[i], x[i+1], y[i+1], &tx, &ty);
+        elliptic_tangent(side*tx, side*ty, da, db, dalpha, &vx, &vy);
+        angle1 = atan2(ty, tx);
+        nx = x[i] + vx;
+        ny = y[i] + vy;
+        mx = x[i+1] + vx;
+        my = y[i+1] + vy;
+        if (!round)
+            line_coefficients(nx, ny, mx, my, &a1, &b1, &c1);
+
+        
+        delta_phi = angle1 - angle0;
+        if (delta_phi > PI)
+            delta_phi -= 2*PI;
+        else if (delta_phi <= -PI)
+            delta_phi += 2*PI;
+        /* now delta_phi is in [-pi;pi] */
+        turns180 = (fabs(fabs(delta_phi) - PI) < 1e-15);
+        inner_corner = (side*delta_phi <= 0) && (!turns180);
+
+        
+        /* if <line turns 180> and (<caps> and <not round>) */
+        if (turns180 && caps && (!round)) {
+            norm_vector(0, 0, vx, vy, &tx, &ty);
+            elliptic_tangent(side*tx, side*ty, da, db, dalpha, &tx, &ty);
+            Vect_append_point(nPoints, x[i] + wx + tx, y[i] + wy + ty, 0);
+            Vect_append_point(nPoints, nx + tx, ny + ty, 0); /* nx == x[i] + vx, ny == y[i] + vy */
+        }
+        
+        if ((!turns180) && (!round) && (!inner_corner)) {
+            res = line_intersection(a0, b0, c0, a1, b1, c1, &rx, &ry);
+            if (res == 1)
+                Vect_append_point(nPoints, rx, ry, 0);
+            else
+                G_fatal_error("unexpected result of line_intersection()");
+        }
+        
+        if (round && (!inner_corner)) {
+            /* we should draw elliptical arc for outside corner */
+            
+            /* inverse transforms */
+            elliptic_transform(wx, wy, 1/da, 1/db, dalpha, &wx1, &wy1);
+            elliptic_transform(vx, vy, 1/da, 1/db, dalpha, &vx1, &vy1);
+            
+            phi1 = atan2(wy1, wx1);
+            phi2 = atan2(vy1, vx1);
+            delta_phi = side*(phi2 - phi1);
+            
+            /* make delta_phi in [0, 2pi] */
+            if (delta_phi < 0)
+                delta_phi += 2*PI;
+            
+            nsegments = (int)(delta_phi/angular_tol) + 1;
+            angular_step = side*(delta_phi/nsegments);
+            
+            for (j = 1; j <= nsegments-1; j++) {
+                elliptic_transform(cos(phi1), sin(phi1), da, db, dalpha, &tx, &ty);
+                Vect_append_point(nPoints, x[i] + tx, y[i] + ty, 0);
+                phi1 += angular_step;
+            }
+        }
+        
+        Vect_append_point(nPoints, nx, ny, 0);
+        Vect_append_point(nPoints, mx, my, 0);
+    }
+    
+    /* close the output line */
+    Vect_append_point(nPoints, nPoints->x[0], nPoints->y[0], nPoints->z[0]);
+/*    Vect_line_prune ( nPoints ); */
+}
+
 /*
 * side: side >= 0 - extracts contour on right side of edge, side < 0 - extracts contour on left side of edge
-* returns: the side of the output line, where we should draw parallel line
+* if the extracted contour is the outer contour, it is returned in ccw order
+* else if it is inner contour, it is returned in cw order
 */
-static int extract_contour(struct planar_graph *pg, struct pg_edge *first, int side, int stop_at_line_end, struct line_pnts *nPoints) {
-    int i, j, ret;
+static void extract_contour(struct planar_graph *pg, struct pg_edge *first, int side, int winding, int stop_at_line_end, struct line_pnts *nPoints) {
+    int i, j;
     int v; /* current vertex number */
     int v0;
     int eside; /* side of the current edge */
@@ -309,7 +436,8 @@ static int extract_contour(struct planar_graph *pg, struct pg_edge *first, int s
     struct pg_vertex *vert; /* current vertex */
     struct pg_vertex *vert0; /* last vertex */
     struct pg_edge *edge; /* current edge; must be edge of vert */
-    int cs; /* on which side are we turning along the contour */
+/*    int cs; /* on which side are we turning along the contour
+    we will always turn right */
     double opt_angle, tangle;
     int opt_j, opt_side, opt_flag;
     
@@ -318,31 +446,35 @@ static int extract_contour(struct planar_graph *pg, struct pg_edge *first, int s
     Vect_reset_line(nPoints);
     
     edge = first;
-    eside = (side >= 0)?(1):(-1);
-    v = edge->v1; /* we might select v1 or v2 if we always want ccw output line */
-    v0 = edge->v2;
+    if (side >= 0) {
+        eside = 1;
+        v0 = edge->v1;
+        v = edge->v2;
+    }
+    else {
+        eside = -1;
+        v0 = edge->v2;
+        v = edge->v1;
+    }
+    vert0 = &(pg->v[v0]);    
     vert = &(pg->v[v]);
-    vert0 = &(pg->v[v0]);
-    /*for (i = 0; i < pg->v[v0].ecount; i++)
-        if (pg->v[v0].edges[i] == edge) {
-            eangle = pg->v[v0].angles[i];
-            break;
-        }
-    */
     eangle = atan2(vert->y - vert0->y, vert->x - vert0->x);
-    cs = -eside; /* because we chose to go v2-->v1 */
+    
     while (1) {
         Vect_append_point(nPoints, vert0->x, vert0->y, 0);
         G_debug(4, "ec: v0=%d, v=%d, eside=%d, edge->v1=%d, edge->v2=%d", v0, v, eside, edge->v1, edge->v2);
         G_debug(4, "ec: edge=%X, first=%X", edge, first);
-        //G_debug(4, "ec: first->v1=%d, first->v2=%d", first->v1, first->v2);
         G_debug(4, "ec: append point x=%.18f y=%.18f", vert0->x, vert0->y);
        
         /* mark current edge as visited on the appropriate side */
-        if (eside == 1)
+        if (eside == 1) {
             edge->visited_right = 1;
-        else
+            edge->winding_right = winding;
+        }
+        else {
             edge->visited_left = 1;
+            edge->winding_left = winding;
+        }
         
         opt_flag = 1;
         for (j = 0; j < vert->ecount; j++) {
@@ -355,9 +487,9 @@ static int extract_contour(struct planar_graph *pg, struct pg_edge *first, int s
                     tangle -= 2*PI;
                 /* now tangle is in (-PI, PI) */
                 
-                if (opt_flag || (cs*tangle < cs*opt_angle)) {
+                if (opt_flag || (tangle < opt_angle)) {
                     opt_j = j;
-                    opt_side = (vert->edges[j]->v1 == v)?(cs):(-cs);
+                    opt_side = (vert->edges[j]->v1 == v)?(1):(-1);
                     opt_angle = tangle;
                     opt_flag = 0;
                 }
@@ -368,20 +500,16 @@ static int extract_contour(struct planar_graph *pg, struct pg_edge *first, int s
         
         /* if line end is reached (no other edges at curr vertex) */
         if (opt_flag) {
-            if (stop_at_line_end) {
-                ret = 2;
+            if (stop_at_line_end)
                 break;
-            }
             else {
                 opt_j = 0; /* the only edge of vert is vert->edges[0] */
-                opt_side = -eside; /* go to the other side of the curr edge */
+                opt_side = -eside; /* go to the other side of the current edge */
             }
         }
         
-        if ((vert->edges[opt_j] == first) && (opt_side == side)) {
-            ret = 1;
+        if ((vert->edges[opt_j] == first) && (opt_side == side))
             break;
-        }
 
         edge = vert->edges[opt_j];
         eside = opt_side;
@@ -394,7 +522,7 @@ static int extract_contour(struct planar_graph *pg, struct pg_edge *first, int s
     Vect_append_point(nPoints, vert->x, vert->y, 0);
     G_debug(4, "ec: append point x=%.18f y=%.18f", vert->x, vert->y);
 
-    return cs;
+    return;
 }
 
 /*
@@ -406,9 +534,8 @@ static int extract_contour(struct planar_graph *pg, struct pg_edge *first, int s
 *       if side != 0 and there's only one contour, the function returns it
 * 
 * TODO: Implement side != 0 feature;
-* retunrs: the side of the output line, where we should draw parallel line
 */
-int extract_outer_contour(struct planar_graph *pg, int side, struct line_pnts *nPoints) {
+void extract_outer_contour(struct planar_graph *pg, int side, struct line_pnts *nPoints) {
     int i;
     int flag;
     int v;
@@ -443,72 +570,46 @@ int extract_outer_contour(struct planar_graph *pg, int side, struct line_pnts *n
         }
     }
     
-    return extract_contour(pg, edge, (edge->v1 == v)?RIGHT_SIDE:LEFT_SIDE, 0, nPoints);
+    /* the winding on the outer contour is 0 */
+    extract_contour(pg, edge, (edge->v1 == v)?RIGHT_SIDE:LEFT_SIDE, 0, 0, nPoints);
+    
+    return;
 }
 
 /*
 * Extracts contours which are not visited.
 * IMPORTANT: the outer contour must be visited (you should call extract_outer_contour() to do that),
 *            so that extract_inner_contour() doesn't return it
-* returns: 0 when there are no more inner contours; otherwise, the side of the output line, where we should draw parallel line
+*
+* returns: 0 when there are no more inner contours; otherwise, 1
 */
-int extract_inner_contour(struct planar_graph *pg, struct line_pnts *nPoints) {
-    int i;
+int extract_inner_contour(struct planar_graph *pg, int *winding, struct line_pnts *nPoints) {
+    int i, w;
+    struct pg_edge *edge;
     
     G_debug(4, "extract_inner_contour()");
 
     for (i = 0; i < pg->ecount; i++) {
-        if (!(pg->e[i].visited_right))
-            return extract_contour(pg, &(pg->e[i]), RIGHT_SIDE, 0, nPoints);
-
-        if (!(pg->e[i].visited_left))
-            return extract_contour(pg, &(pg->e[i]), LEFT_SIDE, 0, nPoints);
+        edge = &(pg->e[i]);
+        if (edge->visited_left) {
+            if (!(pg->e[i].visited_right)) {
+                w = edge->winding_left - 1;
+                extract_contour(pg, &(pg->e[i]), RIGHT_SIDE, w, 0, nPoints);
+                *winding = w;
+                return 1;
+            }
+        }
+        else {
+            if (pg->e[i].visited_right) {
+                w = edge->winding_right + 1;
+                extract_contour(pg, &(pg->e[i]), LEFT_SIDE, w, 0, nPoints);
+                *winding = w;
+                return 1;
+            }
+        }
     }
     
     return 0;
-}
-
-void extract_all_inner_contours(struct line_pnts *Points, struct line_pnts ***iPoints, int *inner_count) {
-    struct planar_graph *pg;
-    struct line_pnts *tPoints;
-    struct line_pnts **arrPoints;
-    int i, res, count;
-    int more = 8;
-    int allocated = more;
-    
-    G_debug(4, "extract_all_inner_contours()");
-    
-    /* initializations */
-    tPoints = Vect_new_line_struct();
-    arrPoints = G_malloc(allocated*sizeof(struct line_pnts *));
-    pg = pg_create(Points);
-        
-    /* extract outer contour so that we have visited edges appropriately */
-    extract_outer_contour(pg, 0, tPoints);
-    
-    /* inner contours */
-    count = 0;
-    res = extract_inner_contour(pg, tPoints);
-    while (res != 0) {
-        if (allocated < count+1) {
-            allocated += more;
-            arrPoints = G_realloc(arrPoints, allocated*sizeof(struct line_pnts *));
-        }
-        arrPoints[count] = Vect_new_line_struct();
-        Vect_copy_xyz_to_pnts(arrPoints[count], tPoints->x, tPoints->y, tPoints->z, tPoints->n_points);
-        count++;
-        
-        res = extract_inner_contour(pg, tPoints);
-    }
-    
-    arrPoints = G_realloc(arrPoints, count*sizeof(struct line_pnts *));
-    *inner_count = count;
-    *iPoints = arrPoints;
-        
-    pg_destroy_struct(pg);
-    Vect_destroy_line_struct(tPoints);
-    
-    return;  
 }
 
 /* point_in_buf - test if point px,py is in d buffer of Points
@@ -575,13 +676,23 @@ int point_in_buf(struct line_pnts *Points, double px, double py, double da, doub
     return 0;
 }
 
+/* internal */
+void add_line_to_array(struct line_pnts *Points, struct line_pnts ***arrPoints, int *count, int *allocated, int more) {
+    if (*allocated == *count) {
+        *allocated += more;
+        *arrPoints = G_realloc(*arrPoints, (*allocated)*sizeof(struct line_pnts *));
+    }
+    (*arrPoints)[*count] = Points;
+    (*count)++;
+    return;
+}
+
 void parallel_line_b(struct line_pnts *Points, double da, double db, double dalpha, int round, int caps, double tol, struct line_pnts **oPoints, struct line_pnts ***iPoints, int *inner_count) {
     struct planar_graph *pg, *pg2;
-    struct line_pnts *tPoints, *sPoints;
+    struct line_pnts *tPoints, *sPoints, *cPoints;
     struct line_pnts **arrPoints;
-    struct line_pnts **arrPoints2;
-    int i, count, count2;
-    int side, res;
+    int i, count = 0;
+    int res, winding;
     int more = 8;
     int allocated = 0;
     double px, py;
@@ -591,25 +702,52 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
     /* initializations */
     tPoints = Vect_new_line_struct();
     sPoints = Vect_new_line_struct();
+    cPoints = Vect_new_line_struct();
     arrPoints = NULL;
     pg = pg_create(Points);
     
     /* outer contour */
     *oPoints = Vect_new_line_struct();
-    side = extract_outer_contour(pg, 0, tPoints);
-/*    parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, *oPoints);*/
-    parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, sPoints);
+    extract_outer_contour(pg, 0, tPoints);
+    convolution_line(tPoints, da, db, dalpha, RIGHT_SIDE, round, caps, tol, sPoints);
     pg2 = pg_create(sPoints);
     extract_outer_contour(pg2, 0, *oPoints);
+    res = extract_inner_contour(pg2, &winding, cPoints);
+    while (res != 0) {
+        if (winding == 0) {
+            add_line_to_array(cPoints, &arrPoints, &count, &allocated, more);
+            cPoints = Vect_new_line_struct();
+        }
+        res = extract_inner_contour(pg2, &winding, cPoints);
+    }
     pg_destroy_struct(pg2);
     
     /* inner contours */
-    count = 0;
-    side = extract_inner_contour(pg, tPoints);
-    while (side != 0) {
-        parallel_line(tPoints, da, db, dalpha, side, round, caps, LOOPED_LINE, tol, sPoints);
-        extract_all_inner_contours(sPoints, &arrPoints2, &count2);
-        for (i = 0; i < count2; i++) {
+    res = extract_inner_contour(pg, &winding, tPoints);
+    while (res != 0) {
+        convolution_line(tPoints, da, db, dalpha, RIGHT_SIDE, round, caps, tol, sPoints);
+        pg2 = pg_create(sPoints);
+        extract_outer_contour(pg2, 0, cPoints);
+        res = extract_inner_contour(pg2, &winding, cPoints);
+        while (res != 0) {
+            if (winding == -1) {
+                /* we need to check if the area is in the buffer.
+                   I simplfied convolution_line, so that it runs faster,
+                   however that leads to ocasional problems */
+                if (Vect_point_in_poly(cPoints->x[0], cPoints->y[0], tPoints)) {
+                    if (Vect_get_point_in_poly(cPoints, &px, &py) != 0)
+                        G_fatal_error("Vect_get_point_in_poly() failed.");
+                    if (!point_in_buf(tPoints, px, py, da, db, dalpha)) {
+                        add_line_to_array(cPoints, &arrPoints, &count, &allocated, more);
+                        cPoints = Vect_new_line_struct();
+                    }
+                }
+            }
+            res = extract_inner_contour(pg2, &winding, cPoints);
+        }
+        pg_destroy_struct(pg2);
+        
+/*        for (i = 0; i < count2; i++) {
             res = Vect_line_check_intersection(tPoints, arrPoints2[i], 0);
             if (res != 0)
                 continue;
@@ -631,17 +769,18 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
             arrPoints[count] = Vect_new_line_struct();
             Vect_copy_xyz_to_pnts(arrPoints[count], arrPoints2[i]->x, arrPoints2[i]->y, arrPoints2[i]->z, arrPoints2[i]->n_points);
             count++;
-        }
+        } */
         
-        side = extract_inner_contour(pg, tPoints); 
+        res = extract_inner_contour(pg, &winding, tPoints); 
     }
 
     arrPoints = G_realloc(arrPoints, count*sizeof(struct line_pnts *));
     *inner_count = count;
     *iPoints = arrPoints;
-        
+    
     Vect_destroy_line_struct(tPoints);
     Vect_destroy_line_struct(sPoints);
+    Vect_destroy_line_struct(cPoints);
     pg_destroy_struct(pg);
     
     return;

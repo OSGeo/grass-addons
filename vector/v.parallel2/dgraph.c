@@ -267,7 +267,7 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
     } 
 
     /* should not be reached */
-    G_warning(("Vect_segment_intersection() ERROR (collinear non vertical segments)"));
+    G_warning(("segment_intersection_2d() ERROR (collinear non vertical segments)"));
     G_warning("%.15g %.15g", ax1, ay1);
     G_warning("%.15g %.15g", ax2, ay2);
     G_warning("x");
@@ -551,7 +551,7 @@ void pg_destroy_struct(struct planar_graph *pg) {
     G_free(pg);
 }
 
-/* v1 and v2 must be valid and v1 must be smaller than v2 (v1 < v2) */
+/* v1 and v2 must be valid */
 int pg_existsedge(struct planar_graph *pg, int v1, int v2) {
     struct pg_vertex *v;
     struct pg_edge *e;
@@ -565,7 +565,7 @@ int pg_existsedge(struct planar_graph *pg, int v1, int v2) {
     ecount = v->ecount;
     for (i = 0; i < ecount; i++) {
         e = v->edges[i];
-        if ((e->v1 == v1) && (e->v2 == v2))
+        if (((e->v1 == v1) && (e->v2 == v2)) || ((e->v1 == v2) && (e->v2 == v1)))
             return 1;
     }
     
@@ -584,20 +584,12 @@ void pg_addedge1(struct pg_vertex *v, struct pg_edge *e) {
 
 void pg_addedge(struct planar_graph *pg, int v1, int v2) {
     struct pg_edge *e;
-    int t; 
     
     G_debug(4, "pg_addedge(), v1=%d, v2=%d", v1, v2);
     
     if ((v1 == v2) || (v1 < 0) || (v1 >= pg->vcount) || (v2 < 0) || (v2 >= pg->vcount)) {
-        G_warning("    v1=%d, v2=%d, pg->vcount=%d", v1, v2, pg->vcount);
         G_fatal_error("    pg_addedge(), v1 and/or v2 is invalid");
         return;
-    }
-    
-    if (v2 < v1) {
-        t = v1;
-        v1 = v2;
-        v2 = t;
     }
     
     if (pg_existsedge(pg, v1, v2))
@@ -609,6 +601,8 @@ void pg_addedge(struct planar_graph *pg, int v1, int v2) {
     e = &(pg->e[pg->ecount]);
     e->v1 = v1;
     e->v2 = v2;
+    e->winding_left = 0; /* winding is undefined if the corresponding side is not visited */
+    e->winding_right = 0;
     e->visited_left = 0;
     e->visited_right = 0;
     pg->ecount++;
@@ -631,6 +625,7 @@ struct planar_graph* pg_create(struct line_pnts *Points) {
     si = find_all_intersections(Points);
     pg = pg_create_struct(si->group_count, 2*(si->ipcount));
 
+    /* set vertices info */
     for (i = 0; i < si->ipcount; i++) {
         ip = &(si->ip[i]);
         t = ip->group;
@@ -638,17 +633,19 @@ struct planar_graph* pg_create(struct line_pnts *Points) {
         pg->v[t].y = ip->y;
     }
     
+    /* add all edges */
     for (i = 0; i < si->ilcount; i++) {
         v = si->ip[si->il[i].a[0].ip].group;
         for (j = 1; j < si->il[i].count; j++) {
             t = si->ip[si->il[i].a[j].ip].group;
             if (t != v) {
-                pg_addedge(pg, t, v);
+                pg_addedge(pg, v, t); /* edge direction is v ---> t */
                 v = t;
             }
         }
     }
     
+    /* precalculate angles with 0x */
     for (i = 0; i < pg->vcount; i++) {
         vert = &(pg->v[i]);
         vert->angles = G_malloc((vert->ecount)*sizeof(double));
