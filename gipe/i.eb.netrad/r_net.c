@@ -25,13 +25,14 @@ double r_net( double bbalb, double ndvi, double tempk, double dtair,  double e0,
 // 	e_atm	= 0.85 * pow(-log(tsw),0.09);
 // 	printf("rnet: e_atm = %5.3f\n",e_atm);
 
-	ds = 1.0 + 0.01672 * sin(2*PI*(doy-93.5)/365);
+//	ds = 1.0 + 0.01672 * sin(2*PI*(doy-93.5)/365);
+	ds = 1.0/pow((1+0.033*cos(2*PI*doy/365)),2);
 // 	printf("rnet: ds = %lf\n",ds);
 	delta = 0.4093*sin((2*PI*doy/365)-1.39);
 // 	printf("rnet: delta = %5.3f\n",delta);
 	
 	// Kin is the shortwave incoming radiation
-	Kin	= 1367.0 * (cos(sunzangle*PI/180) * tsw / (ds*ds) );
+	Kin	= 1358.0 * (cos(sunzangle*PI/180) * tsw / (ds*ds) );
 //  	printf("rnet: Kin = %5.3f\n",Kin);
 	// Lin is incoming longwave radiation
 	Lin	= (e_atm) * 5.67 * pow(10,-8) * pow((tempk-dtair),4);
