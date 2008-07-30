@@ -47,6 +47,7 @@ static void rotate_vector(double x, double y, double cosa, double sina, double *
 
 /*
 * (x,y) shoud be normalized vector for common transforms; This func transforms (x,y) to a vector corresponding to da, db, dalpha params
+* dalpha is in radians
 */
 static void elliptic_transform(double x, double y, double da, double db, double dalpha, double *nx, double *ny) {
     double cosa = cos(dalpha);
@@ -70,6 +71,7 @@ static void elliptic_transform(double x, double y, double da, double db, double 
 /*
 * vect(x,y) must be normalized
 * gives the tangent point of the tangent to ellpise(da,db,dalpha) parallel to vect(x,y)
+* dalpha is in radians
 * ellipse center is in (0,0)
 */
 static void elliptic_tangent(double x, double y, double da, double db, double dalpha, double *px, double *py) {
@@ -175,7 +177,7 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     if ((np == 0) || (np == 1))
         return;
 
-    if ((da == 0) && (db == 0)) {
+    if ((da == 0) || (db == 0)) {
         Vect_copy_xyz_to_pnts(nPoints, x, y, NULL, np);
         return;
     }
@@ -319,7 +321,7 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
     
     Vect_reset_line(nPoints);
     
-    if ((da == 0) && (db == 0)) {
+    if ((da == 0) || (db == 0)) {
         Vect_copy_xyz_to_pnts(nPoints, x, y, NULL, np);
         return;
     }
@@ -613,8 +615,9 @@ int extract_inner_contour(struct planar_graph *pg, int *winding, struct line_pnt
 }
 
 /* point_in_buf - test if point px,py is in d buffer of Points
+** dalpha is in degrees
 ** returns:  1 in buffer
-**           0 not  in buffer
+**           0 not in buffer
 */
 int point_in_buf(struct line_pnts *Points, double px, double py, double da, double db, double dalpha) {
     int i, np;
@@ -622,7 +625,9 @@ int point_in_buf(struct line_pnts *Points, double px, double py, double da, doub
     double delta, delta_k, k;
     double vx, vy, wx, wy, mx, my, nx, ny;
     double len, tx, ty, d, da2;
-        
+    
+    dalpha *= PI/180; /* convert dalpha from degrees to radians */
+    
     np = Points->n_points;
     da2 = da*da;
     for (i = 0; i < np-1; i++) {
@@ -661,8 +666,10 @@ int point_in_buf(struct line_pnts *Points, double px, double py, double da, doub
                 0, NULL, NULL, NULL, NULL, NULL);
 
 /*            G_debug(4, "sqrt(d)*da = %g, len' = %g, olen = %g", sqrt(d)*da, da*LENGTH(tx,ty), LENGTH((px-nx),(py-ny)));*/
-            if (d <= 1)
+            if (d <= 1) {
+                //G_debug(1, "d=%g", d);
                 return 1;
+            }
         }
         else { 
             d = dig_distance2_point_to_line(px, py, 0, vx, vy, 0, wx, wy, 0,
