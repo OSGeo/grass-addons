@@ -704,7 +704,7 @@ int main(int argc, char *argv[])
 				(G_is_d_null_value(&d_dT)))){
 					/* do nothing */ 
 				}else{
-					d_t0dem = d_tempk + 0.001649*d_dem;
+					d_t0dem = d_tempk + 0.00649*d_dem;
 					if(d_t0dem<=250.0||d_tempk<=250.0){
 						/* do nothing */ 
 					} else {
@@ -1091,7 +1091,7 @@ int main(int argc, char *argv[])
 					d_albedo=0.001;
 				}
 				/* Calculate T0dem */
-				d_t0dem = (double)d_tempk + 0.001649 * (double) d_dem;
+				d_t0dem = (double)d_tempk + 0.00649 * (double) d_dem;
 			/*	G_message("**InLoop d_t0dem=%5.3f",d_t0dem);
 				G_message(" d_dem=%5.3f",d_dem);
 				G_message(" d_tempk=%5.3f",d_tempk);
