@@ -89,8 +89,8 @@ double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, doub
 		roh_air_desert 	= roh_air_0(tempk_desert);
 		//roh_air_desert	= rohair(dem_desert,tempk_desert,dtair_desert);
 		h_desert	= h1(roh_air_desert,rah_desert,dtair_desert);
-		ustar_desertold = ustar_desert;
-		ustar_desert	= u_star(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,zom_desert,u_hu,hu);
+//		ustar_desertold = ustar_desert;
+//		ustar_desert	= u_star(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,zom_desert,u_hu,hu);
 		psih_desert 	= psi_h(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,hu);
 		psim_desert 	= psi_m(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,hu);
 		rah_desert	= rah1(zom0,psih_desert,psim_desert,ustar_desert);
@@ -99,7 +99,8 @@ double sensi_h_z0m( int iteration, double tempk_water, double tempk_desert, doub
 		dtair[ic] 	= dt_air(t0_dem, tempk_water, tempk_desert, dtair_desert);
 		/* This produces h[ic] and roh_air[ic+1] */
 		h[ic] 		= h1(roh_air[ic], rah[ic], dtair[ic]);
-		ustar[ic] = u_star(t0_dem,h[ic],ustar[ic-1],roh_air[ic],zom[0],u_hu,hu);
+		ustar[ic]	= ustar[0];
+//		ustar[ic] = u_star(t0_dem,h[ic],ustar[ic-1],roh_air[ic],zom[0],u_hu,hu);
 		/* Output values of the iteration parameters */
 		if(debug==1){
 			printf("psih[%i] 	= %5.3f\n", ic, psih);
