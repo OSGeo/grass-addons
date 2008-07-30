@@ -93,11 +93,13 @@ double sensi_h_noz0m( int iteration, double tempk_water, double tempk_desert, do
 		psih 		= psi_h(t0_dem,h[ic-1],ustar[ic-1],roh_air[ic-1],hu);
 		psim 		= psi_m(t0_dem,h[ic-1],ustar[ic-1],roh_air[ic-1],hu);
 		rah[ic] 	= rah1(zom[0], psih, psim, ustar[ic]);	
-		roh_air[ic] 	= rohair(dem, tempk, dtair[ic-1]);
+		roh_air[ic] 	= roh_air_0(tempk);
+		//roh_air[ic] 	= rohair(dem, tempk, dtair[ic-1]);
 		if(rah[ic]<0.0)
 			rah[ic]=1.0;
 		/* get desert point values from maps */
-		roh_air_desert	= rohair(dem_desert,tempk_desert,dtair_desert);
+		roh_air_desert 	= roh_air_0(tempk_desert);
+		//roh_air_desert	= rohair(dem_desert,tempk_desert,dtair_desert);
 		h_desert	= h1(roh_air_desert,rah_desert,dtair_desert);
 		ustar_desertold = ustar_desert;
 		ustar_desert	= u_star(t0_dem_desert,h_desert,ustar_desertold,roh_air_desert,zom_desert,u_hu,hu);
