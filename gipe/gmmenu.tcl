@@ -621,7 +621,8 @@ set descmenu [subst  {
 				{command {[G_msg "Sensible heat flux iteration (fixed delta T)"]} {} "i.eb.h_iter" {} -command {execute i.eb.h_iter }}
 				{separator}
 				{command {[G_msg "Support file for delta T iteration"]} {} "i.eb.wetdrypix" {} -command {execute i.eb.wetdrypix }}
-				{command {[G_msg "Sensible heat flux (iteration on delta T)"]} {} "i.eb.h_SEBAL95" {} -command {execute i.eb.h_SEBAL95 }}
+				{command {[G_msg "Sensible heat flux (iteration on delta T, original)"]} {} "i.eb.h_SEBAL95" {} -command {execute i.eb.h_SEBAL95 }}
+				{command {[G_msg "Sensible heat flux (iteration on delta T, 2001)"]} {} "i.eb.h_SEBAL01" {} -command {execute i.eb.h_SEBAL01 }}
 				{separator}
 				{command {[G_msg "Evaporative fraction"]} {} "i.eb.evapfr" {} -command {execute i.eb.evapfr }}
 		}}
