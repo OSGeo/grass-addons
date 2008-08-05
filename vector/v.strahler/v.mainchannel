@@ -103,7 +103,8 @@ y_max=`db.select -c table=tab_coord database=$db_databese driver=$db_driver 'sql
 echo "1 $x_max $y_max $xcoor $ycoor" |  v.net.path input=out_isodistance output=$output type=line alayer=1 nlayer=2
 
 #plot the result of elaboration in relation to the strahler ordered stream network
-d.erase
+d.mon stop=x0
+d.mon start=x0
 d.vect $input display=shape,cat
 d.vect map=$output color=255:0:0 lcolor=0:0:0 fcolor=170:170:170 display=shape type=line icon=basic/x size=5 width=2 layer=1 lsize=8
 d.barscale tcolor=0:0:0 bcolor=255:255:255  at=2,2
