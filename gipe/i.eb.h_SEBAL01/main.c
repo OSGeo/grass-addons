@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 	char *mapset; // mapset name
 	
 	/* buffer for in, tmp and out raster */
+	void *inrast_Rn, *inrast_g0;
 	void *inrast_z0m, *inrast_t0dem;
 	DCELL *outrast;
 	
@@ -53,23 +54,28 @@ int main(int argc, char *argv[])
 	int row_dry, col_dry;
 	double m_row_wet, m_col_wet;
 	double m_row_dry, m_col_dry;
+	int infd_Rn, infd_g0;
 	int infd_z0m, infd_t0dem;
-	//int tmprohfd, tmprahfd;
 	int outfd;
 	
+	char *mapset_Rn, *mapset_g0;
 	char *mapset_z0m, *mapset_t0dem;
+	char *Rn, *g0; 
 	char *z0m, *t0dem; 
 	char *h0;
-	double ustar, ea, h_dry;
+	double ustar, ea;
 	
         struct History history;
 	struct GModule *module;
+	struct Option *input_Rn, *input_g0;
 	struct Option *input_z0m, *input_t0dem, *input_ustar;
-	struct Option *input_ea, *input_h_dry, *output;
+	struct Option *input_ea, *output;
 	struct Option *input_row_wet, *input_col_wet;
 	struct Option *input_row_dry, *input_col_dry;
 	struct Flag *flag3;
 	/********************************/
+	RASTER_MAP_TYPE data_type_Rn;
+	RASTER_MAP_TYPE data_type_g0;
 	RASTER_MAP_TYPE data_type_z0m;
 	RASTER_MAP_TYPE data_type_t0dem;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
@@ -88,6 +94,14 @@ int main(int argc, char *argv[])
 	module->description = _("Sensible Heat Flux iteration SEBAL 01");
 	
 	/* Define different options */
+	input_Rn = G_define_standard_option(G_OPT_R_INPUT);
+	input_Rn->key	= "Rn";
+	input_Rn->description = _("Name of instantaneous Net Radiation map [W/m2]");
+
+	input_g0 = G_define_standard_option(G_OPT_R_INPUT);
+	input_g0->key	= "g0";
+	input_g0->description = _("Name of instantaneous soil heat flux map [W/m2]");
+
 	input_z0m = G_define_standard_option(G_OPT_R_INPUT);
 	input_z0m->key	= "z0m";
 	input_z0m->description = _("Name of aerodynamic resistance to heat momentum [s/m]");
@@ -114,15 +128,6 @@ int main(int argc, char *argv[])
 	input_ea->description 		= _("Value of the actual vapour pressure [KPa]");
 	input_ea->guisection		= _("Parameters");
 		
-	input_h_dry 			= G_define_option();
-	input_h_dry->key		= "h_dry";
-	input_h_dry->type 		= TYPE_DOUBLE;
-	input_h_dry->required 		= YES;
-	input_h_dry->gisprompt 		= "old,value";
-	input_h_dry->answer 		= "222.07";
-	input_h_dry->description 	= _("Initial value of h0 at dry pixel (Rn-g0) [W/m2]");
-	input_h_dry->guisection		= _("Parameters");
-	
 	input_row_wet 			= G_define_option();
 	input_row_wet->key		= "row_wet";
 	input_row_wet->type 		= TYPE_DOUBLE;
@@ -168,6 +173,8 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	
 	/* get entered parameters */
+	Rn	= input_Rn->answer;
+	g0	= input_g0->answer;
 	z0m	= input_z0m->answer;
 	t0dem	= input_t0dem->answer;
 	
@@ -175,7 +182,6 @@ int main(int argc, char *argv[])
 
 	ustar = atof(input_ustar->answer);
 	ea = atof(input_ea->answer);
-	h_dry = atof(input_h_dry->answer);
 
 	m_row_wet = atof(input_row_wet->answer);
 	m_col_wet = atof(input_col_wet->answer);
@@ -190,6 +196,12 @@ int main(int argc, char *argv[])
 		G_message("Dry Pixel=> row:%.0f col:%.0f",m_row_dry,m_col_dry);
 	}
 	/* find maps in mapset */
+	mapset_Rn = G_find_cell2 (Rn, "");
+	if (mapset_Rn == NULL)
+        	G_fatal_error (_("cell file [%s] not found"), Rn);
+	mapset_g0 = G_find_cell2 (g0, "");
+	if (mapset_g0 == NULL)
+        	G_fatal_error (_("cell file [%s] not found"), g0);
 	mapset_z0m = G_find_cell2 (z0m, "");
 	if (mapset_z0m == NULL)
         	G_fatal_error (_("cell file [%s] not found"), z0m);
@@ -202,20 +214,32 @@ int main(int argc, char *argv[])
 			G_fatal_error (_("[%s] is an illegal name"), h0);
 		
 	/* determine the input map type (CELL/FCELL/DCELL) */
+	data_type_Rn 	= G_raster_map_type(Rn, mapset_Rn);
+	data_type_g0 	= G_raster_map_type(g0, mapset_g0);
 	data_type_z0m 	= G_raster_map_type(z0m, mapset_z0m);
 	data_type_t0dem	= G_raster_map_type(t0dem, mapset_t0dem);
 	
+	if ( (infd_Rn = G_open_cell_old (Rn, mapset_Rn)) < 0)
+		G_fatal_error (_("Cannot open cell file [%s]"), Rn);
+	if ( (infd_g0 = G_open_cell_old (g0, mapset_g0)) < 0)
+		G_fatal_error (_("Cannot open cell file [%s]"), g0);
 	if ( (infd_z0m = G_open_cell_old (z0m, mapset_z0m)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"), z0m);
 	if ( (infd_t0dem = G_open_cell_old (t0dem, mapset_t0dem)) < 0)
 		G_fatal_error (_("Cannot open cell file [%s]"),t0dem);
 	
+	if (G_get_cellhd (Rn, mapset_Rn, &cellhd) < 0)
+		G_fatal_error (_("Cannot read file header of [%s]"), Rn);
+	if (G_get_cellhd (g0, mapset_g0, &cellhd) < 0)
+		G_fatal_error (_("Cannot read file header of [%s]"), g0);
 	if (G_get_cellhd (z0m, mapset_z0m, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), z0m);
 	if (G_get_cellhd (t0dem, mapset_t0dem, &cellhd) < 0)
 		G_fatal_error (_("Cannot read file header of [%s]"), t0dem);
 	
 	/* Allocate input buffer */
+	inrast_Rn  	= G_allocate_raster_buf(data_type_Rn);
+	inrast_g0  	= G_allocate_raster_buf(data_type_g0);
 	inrast_z0m  	= G_allocate_raster_buf(data_type_z0m);
 	inrast_t0dem 	= G_allocate_raster_buf(data_type_t0dem);
 	/***************************************************/
@@ -251,6 +275,8 @@ int main(int argc, char *argv[])
 	/***************************************************/
 
 	/* MANUAL T0DEM WET/DRY PIXELS */
+	DCELL d_Rn_dry;
+	DCELL d_g0_dry;
 	DCELL d_t0dem_dry;
 	DCELL d_t0dem_wet;
 	/*DRY PIXEL*/
@@ -266,8 +292,34 @@ int main(int argc, char *argv[])
 	}
 	rowDry=row;
 	colDry=col;
+	if(G_get_raster_row(infd_Rn,inrast_Rn,row,data_type_Rn)<0)
+		G_fatal_error(_("Could not read from <%s>"),Rn);
+	if(G_get_raster_row(infd_g0,inrast_g0,row,data_type_g0)<0)
+		G_fatal_error(_("Could not read from <%s>"),g0);
 	if(G_get_raster_row(infd_t0dem,inrast_t0dem,row,data_type_t0dem)<0)
 		G_fatal_error(_("Could not read from <%s>"),t0dem);
+	switch(data_type_Rn){
+		case CELL_TYPE:
+			d_Rn_dry = (double) ((CELL *) inrast_Rn)[col];
+			break;
+		case FCELL_TYPE:
+			d_Rn_dry = (double) ((FCELL *) inrast_Rn)[col];
+			break;
+		case DCELL_TYPE:
+			d_Rn_dry = (double) ((DCELL *) inrast_Rn)[col];
+			break;
+	}
+	switch(data_type_g0){
+		case CELL_TYPE:
+			d_g0_dry = (double) ((CELL *) inrast_g0)[col];
+			break;
+		case FCELL_TYPE:
+			d_g0_dry = (double) ((FCELL *) inrast_g0)[col];
+			break;
+		case DCELL_TYPE:
+			d_g0_dry = (double) ((DCELL *) inrast_g0)[col];
+			break;
+	}
 	switch(data_type_t0dem){
 		case CELL_TYPE:
 			d_t0dem_dry = (double) ((CELL *) inrast_t0dem)[col];
@@ -306,6 +358,9 @@ int main(int argc, char *argv[])
 			break;
 	}
 	/* END OF MANUAL WET/DRY PIXELS */
+	double h_dry;
+	h_dry=d_Rn_dry-d_g0_dry;
+	G_message("h_dry = %f",h_dry);
 	G_message("t0dem_dry = %f",d_t0dem_dry);
 	G_message("t0dem_wet = %f",d_t0dem_wet);
 	DCELL d_rah_dry;
@@ -390,6 +445,7 @@ int main(int argc, char *argv[])
 	b = (sumy - ( a * sumx)) / 2.0; 
 	G_message("d_dT_dry=%f",d_dT_dry);
 	G_message("dT1=%f * t0dem + (%f)", a, b);
+
 	DCELL d_h_dry;
 
 	/* ITERATION 1 */
