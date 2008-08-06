@@ -452,7 +452,7 @@ int main(int argc, char *argv[])
 				d_L=-1004*d_roh1*pow(ustar,3)*d_t0dem/(d_h1*9.81*0.41);
 				d_x=pow((1-16*(5/d_L)),0.25);
 				d_psim=2*log((1+d_x)/2)+log((1+pow(d_x,2))/2)-2*atan(d_x)+0.5*PI;
-				d_psim=2*log((1+pow(d_x,2))/2);
+				d_psih=2*log((1+pow(d_x,2))/2);
 				d_u5=(ustar/0.41)*log(5/d_z0m);
 				d_rah2=(1/(d_u5*pow(0.41,2)))*log((5/d_z0m)-d_psim)*log((5/(d_z0m*0.1))-d_psih);
 				if(row==rowDry&&col==colDry){//collect dry pix info
@@ -542,7 +542,7 @@ int main(int argc, char *argv[])
 				d_L=-1004*d_roh1*pow(ustar,3)*d_t0dem/(d_h2*9.81*0.41);
 				d_x=pow((1-16*(5/d_L)),0.25);
 				d_psim=2*log((1+d_x)/2)+log((1+pow(d_x,2))/2)-2*atan(d_x)+0.5*PI;
-				d_psim=2*log((1+pow(d_x,2))/2);
+				d_psih=2*log((1+pow(d_x,2))/2);
 				d_u5=(ustar/0.41)*log(5/d_z0m);
 				d_rah3=(1/(d_u5*pow(0.41,2)))*log((5/d_z0m)-d_psim)*log((5/(d_z0m*0.1))-d_psih);
 				if(row==rowDry&&col==colDry){//collect dry pix info
