@@ -53,10 +53,10 @@ double fixed_deltat(double u_hu, double roh_air,double cp,double dt,double disp,
 		}
 		xm    = pow(1.0-16.0*((100-disp)/length),0.25);
 		xh    = pow(1.0-16.0*((hu-disp)/length),0.25);
-		if((1.0+xm)/2.0==0.0||(1+xm*xm)-2*atan(xm)+0.5*PI==0.0){
-			psim  = 2.0*log((1.0+xm+0.00001)/2.0)+log((1+xm*xm)-2*atan(xm)+0.5*PI+0.00001);
+		if((1.0+xm)/2.0==0.0||(1+xm*xm)/2.0==0.0){
+			psim  = 2.0*log((1.0+xm+0.00001)/2.0)+log((1+xm*xm)/2.0)-2*atan(xm)+0.5*PI+0.00001;
 		} else {
-			psim  = 2.0*log((1.0+xm)/2.0)+log((1+xm*xm)-2*atan(xm)+0.5*PI);
+			psim  = 2.0*log((1.0+xm)/2.0)+log((1+xm*xm)/2.0)-2*atan(xm)+0.5*PI;
 		}
 		if((1.0+xh*xh)/2.0==0.0){
 			psih  = 2.0*log((1.0+xh*xh+0.00001)/2.0);
