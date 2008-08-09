@@ -343,6 +343,7 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
     
     for (i = 0; i <= np-2; i++)
     {
+        G_debug(4, "point %d, segment %d-%d", i, i, i+1);
         /* save the old values */
         if (!round) {
             a0 = a1;
@@ -379,13 +380,17 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
             norm_vector(0, 0, vx, vy, &tx, &ty);
             elliptic_tangent(side*tx, side*ty, da, db, dalpha, &tx, &ty);
             Vect_append_point(nPoints, x[i] + wx + tx, y[i] + wy + ty, 0);
+            G_debug(4, " append point (c) x=%.16f y=%.16f", x[i] + wx + tx, y[i] + wy + ty);
             Vect_append_point(nPoints, nx + tx, ny + ty, 0); /* nx == x[i] + vx, ny == y[i] + vy */
+            G_debug(4, " append point (c) x=%.16f y=%.16f", nx + tx, ny + ty);
         }
         
         if ((!turns180) && (!round) && (!inner_corner)) {
             res = line_intersection(a0, b0, c0, a1, b1, c1, &rx, &ry);
-            if (res == 1)
+            if (res == 1) {
                 Vect_append_point(nPoints, rx, ry, 0);
+                G_debug(4, " append point (o) x=%.16f y=%.16f", rx, ry);
+            }
             else
                 G_fatal_error("unexpected result of line_intersection()");
         }
@@ -408,15 +413,19 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
             nsegments = (int)(delta_phi/angular_tol) + 1;
             angular_step = side*(delta_phi/nsegments);
             
+            phi1 += angular_step;
             for (j = 1; j <= nsegments-1; j++) {
                 elliptic_transform(cos(phi1), sin(phi1), da, db, dalpha, &tx, &ty);
                 Vect_append_point(nPoints, x[i] + tx, y[i] + ty, 0);
+                G_debug(4, " append point (r) x=%.16f y=%.16f", x[i] + tx, y[i] + ty);
                 phi1 += angular_step;
             }
         }
         
         Vect_append_point(nPoints, nx, ny, 0);
+        G_debug(4, " append point (s) x=%.16f y=%.16f", nx, ny);
         Vect_append_point(nPoints, mx, my, 0);
+        G_debug(4, " append point (s) x=%.16f y=%.16f", mx, my);
     }
     
     /* close the output line */
@@ -465,7 +474,6 @@ static void extract_contour(struct planar_graph *pg, struct pg_edge *first, int 
     while (1) {
         Vect_append_point(nPoints, vert0->x, vert0->y, 0);
         G_debug(4, "ec: v0=%d, v=%d, eside=%d, edge->v1=%d, edge->v2=%d", v0, v, eside, edge->v1, edge->v2);
-        G_debug(4, "ec: edge=%X, first=%X", edge, first);
         G_debug(4, "ec: append point x=%.18f y=%.18f", vert0->x, vert0->y);
        
         /* mark current edge as visited on the appropriate side */
@@ -502,17 +510,35 @@ static void extract_contour(struct planar_graph *pg, struct pg_edge *first, int 
         
         /* if line end is reached (no other edges at curr vertex) */
         if (opt_flag) {
-            if (stop_at_line_end)
+            if (stop_at_line_end) {
+                G_debug(3, "    end has been reached, will stop here");
                 break;
+            }
             else {
                 opt_j = 0; /* the only edge of vert is vert->edges[0] */
                 opt_side = -eside; /* go to the other side of the current edge */
+                G_debug(3, "    end has been reached, turning around");
             }
         }
         
+        /* break condition */
         if ((vert->edges[opt_j] == first) && (opt_side == side))
             break;
-
+        if (opt_side == 1) {
+            if (vert->edges[opt_j]->visited_right) {
+                G_warning("next edge was visited but it is not the first one !!! breaking loop");
+                G_debug(4, "ec: v0=%d, v=%d, eside=%d, edge->v1=%d, edge->v2=%d", v, (edge->v1 == v)?(edge->v2):(edge->v1), opt_side, vert->edges[opt_j]->v1, vert->edges[opt_j]->v2);
+                break;
+            }
+        }
+        else {
+            if (vert->edges[opt_j]->visited_left) {
+                G_warning("next edge was visited but it is not the first one !!! breaking loop");
+                G_debug(4, "ec: v0=%d, v=%d, eside=%d, edge->v1=%d, edge->v2=%d", v, (edge->v1 == v)?(edge->v2):(edge->v1), opt_side, vert->edges[opt_j]->v1, vert->edges[opt_j]->v2);
+                break;
+            }
+        }
+            
         edge = vert->edges[opt_j];
         eside = opt_side;
         v0 = v;
@@ -683,6 +709,29 @@ int point_in_buf(struct line_pnts *Points, double px, double py, double da, doub
     return 0;
 }
 
+/* returns 0 for ccw, non-zero for cw
+*/
+int get_polygon_orientation(const double *x, const double *y, int n) {
+    double x1,y1,x2,y2;
+    double area;
+
+    x2 = x[n-1];
+    y2 = y[n-1];
+
+    area = 0;
+    while (--n >= 0)
+    {
+        x1 = x2;
+        y1 = y2;
+
+        x2 = *x++;
+        y2 = *y++;
+
+        area += (y2+y1)*(x2-x1);
+    }
+    return signbit(area);
+}
+
 /* internal */
 void add_line_to_array(struct line_pnts *Points, struct line_pnts ***arrPoints, int *count, int *allocated, int more) {
     if (*allocated == *count) {
@@ -694,29 +743,41 @@ void add_line_to_array(struct line_pnts *Points, struct line_pnts ***arrPoints, 
     return;
 }
 
-void parallel_line_b(struct line_pnts *Points, double da, double db, double dalpha, int round, int caps, double tol, struct line_pnts **oPoints, struct line_pnts ***iPoints, int *inner_count) {
-    struct planar_graph *pg, *pg2;
-    struct line_pnts *tPoints, *sPoints, *cPoints;
+void destroy_lines_array(struct line_pnts **arr, int count) {
+    int i;
+    for (i = 0; i < count; i++)
+        Vect_destroy_line_struct(arr[i]);
+    G_free(arr);
+}
+
+/* area_outer and area_isles[i] must be closed non self-intersecting lines
+   side: 0 - auto, 1 - right, -1 left
+ */
+void buffer_lines(struct line_pnts *area_outer, struct line_pnts **area_isles, int isles_count, int side, double da, double db, double dalpha, int round, int caps, double tol, struct line_pnts **oPoints, struct line_pnts ***iPoints, int *inner_count) {
+    struct planar_graph *pg2;
+    struct line_pnts *sPoints, *cPoints;
     struct line_pnts **arrPoints;
     int i, count = 0;
     int res, winding;
+    int auto_side;
     int more = 8;
     int allocated = 0;
     double px, py;
     
-    G_debug(4, "parallel_line_b()");
+    G_debug(4, "buffer_lines()");
+    
+    auto_side = (side == 0);
     
     /* initializations */
-    tPoints = Vect_new_line_struct();
     sPoints = Vect_new_line_struct();
     cPoints = Vect_new_line_struct();
     arrPoints = NULL;
-    pg = pg_create(Points);
     
     /* outer contour */
     *oPoints = Vect_new_line_struct();
-    extract_outer_contour(pg, 0, tPoints);
-    convolution_line(tPoints, da, db, dalpha, RIGHT_SIDE, round, caps, tol, sPoints);
+    if (auto_side)
+        side = get_polygon_orientation(area_outer->x, area_outer->y, area_outer->n_points-1)?LEFT_SIDE:RIGHT_SIDE;
+    convolution_line(area_outer, da, db, dalpha, side, round, caps, tol, sPoints);
     pg2 = pg_create(sPoints);
     extract_outer_contour(pg2, 0, *oPoints);
     res = extract_inner_contour(pg2, &winding, cPoints);
@@ -730,21 +791,22 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
     pg_destroy_struct(pg2);
     
     /* inner contours */
-    res = extract_inner_contour(pg, &winding, tPoints);
-    while (res != 0) {
-        convolution_line(tPoints, da, db, dalpha, RIGHT_SIDE, round, caps, tol, sPoints);
+    for (i = 0; i < isles_count; i++) {
+        if (auto_side)
+            side = get_polygon_orientation(area_isles[i]->x, area_isles[i]->y, area_isles[i]->n_points-1)?RIGHT_SIDE:LEFT_SIDE;
+        convolution_line(area_isles[i], da, db, dalpha, side, round, caps, tol, sPoints);
         pg2 = pg_create(sPoints);
         extract_outer_contour(pg2, 0, cPoints);
         res = extract_inner_contour(pg2, &winding, cPoints);
         while (res != 0) {
             if (winding == -1) {
                 /* we need to check if the area is in the buffer.
-                   I simplfied convolution_line, so that it runs faster,
+                   I've simplfied convolution_line(), so that it runs faster,
                    however that leads to ocasional problems */
-                if (Vect_point_in_poly(cPoints->x[0], cPoints->y[0], tPoints)) {
+                if (Vect_point_in_poly(cPoints->x[0], cPoints->y[0], area_isles[i])) {
                     if (Vect_get_point_in_poly(cPoints, &px, &py) != 0)
                         G_fatal_error("Vect_get_point_in_poly() failed.");
-                    if (!point_in_buf(tPoints, px, py, da, db, dalpha)) {
+                    if (!point_in_buf(area_isles[i], px, py, da, db, dalpha)) {
                         add_line_to_array(cPoints, &arrPoints, &count, &allocated, more);
                         cPoints = Vect_new_line_struct();
                     }
@@ -777,21 +839,159 @@ void parallel_line_b(struct line_pnts *Points, double da, double db, double dalp
             Vect_copy_xyz_to_pnts(arrPoints[count], arrPoints2[i]->x, arrPoints2[i]->y, arrPoints2[i]->z, arrPoints2[i]->n_points);
             count++;
         } */
-        
-        res = extract_inner_contour(pg, &winding, tPoints); 
     }
 
     arrPoints = G_realloc(arrPoints, count*sizeof(struct line_pnts *));
     *inner_count = count;
     *iPoints = arrPoints;
     
-    Vect_destroy_line_struct(tPoints);
     Vect_destroy_line_struct(sPoints);
     Vect_destroy_line_struct(cPoints);
-    pg_destroy_struct(pg);
     
     return;
 }
+
+
+/*!
+  \fn void Vect_line_buffer(struct line_pnts *Points, double da, double db, double dalpha, int round, int caps, double tol, struct line_pnts **oPoints, struct line_pnts ***iPoints, int *inner_count) {
+  \brief Creates buffer around the line Points.
+  \param InPoints input line
+  \param da distance along major axis
+  \param da distance along minor axis
+  \param dalpha angle between 0x and major axis
+  \param round make corners round
+  \param caps add caps at line ends
+  \param tol maximum distance between theoretical arc and output segments
+  \param oPoints output polygon outer border (ccw order)
+  \param inner_count number of holes
+  \param iPoints array of output polygon's holes (cw order)
+*/
+void Vect_line_buffer2(struct line_pnts *Points, double da, double db, double dalpha, int round, int caps, double tol, struct line_pnts **oPoints, struct line_pnts ***iPoints, int *inner_count) {
+    struct planar_graph *pg;
+    struct line_pnts *tPoints, *outer;
+    struct line_pnts **isles;
+    int isles_count = 0;
+    int res, winding;
+    int more = 8;
+    int isles_allocated = 0;
+    
+    G_debug(4, "Vect_line_buffer()");
+    
+    /* initializations */
+    tPoints = Vect_new_line_struct();
+    isles = NULL;
+    pg = pg_create(Points);
+    
+    /* outer contour */
+    outer = Vect_new_line_struct();
+    extract_outer_contour(pg, 0, outer);
+    
+    /* inner contours */
+    res = extract_inner_contour(pg, &winding, tPoints);
+    while (res != 0) {
+        add_line_to_array(tPoints, &isles, &isles_count, &isles_allocated, more);
+        tPoints = Vect_new_line_struct();
+        res = extract_inner_contour(pg, &winding, tPoints);
+    }
+
+    buffer_lines(outer, isles, isles_count, RIGHT_SIDE, da, db, dalpha, round, caps, tol, oPoints, iPoints, inner_count);
+        
+    Vect_destroy_line_struct(tPoints);
+    Vect_destroy_line_struct(outer);
+    destroy_lines_array(isles, isles_count);
+    pg_destroy_struct(pg);
+   
+    return;
+}
+
+void Vect_area_buffer2(struct Map_info *Map, int area, double da, double db, double dalpha, int round, int caps, double tol, struct line_pnts **oPoints, struct line_pnts ***iPoints, int *inner_count) {
+    struct line_pnts *tPoints, *outer;
+    struct line_pnts **isles;
+    int isles_count = 0;
+    int i, res, winding, isle;
+    int more = 8;
+    int isles_allocated = 0;
+    double max = fmax(da, db);
+    
+    G_debug(4, "Vect_area_buffer()");
+    
+    /* initializations */
+    tPoints = Vect_new_line_struct();
+    isles_count = Vect_get_area_num_isles(Map, area);
+    isles_allocated = isles_count;
+    isles = G_malloc(isles_allocated*sizeof(struct line_pnts *));
+    
+    /* outer contour */
+    outer = Vect_new_line_struct();
+    Vect_get_area_points(Map, area, outer);
+    Vect_append_point(outer, outer->x[0], outer->y[0], outer->z[0]);
+    
+    /* inner contours */
+    for (i = 0; i < isles_count; i++) {
+        isle = Vect_get_area_isle(Map, area, i);
+        Vect_get_isle_points(Map, isle, tPoints);
+        
+        /* Check if the isle is big enough */
+        /*
+        if (Vect_line_length(tPoints) < 2*PI*max)
+            continue;
+        */
+        Vect_append_point(tPoints, tPoints->x[0], tPoints->y[0], tPoints->z[0]);
+        add_line_to_array(tPoints, &isles, &isles_count, &isles_allocated, more);
+        tPoints = Vect_new_line_struct();
+    }
+    
+    buffer_lines(outer, isles, isles_count, 0, da, db, dalpha, round, caps, tol, oPoints, iPoints, inner_count);
+    
+    Vect_destroy_line_struct(tPoints);
+    Vect_destroy_line_struct(outer);
+    destroy_lines_array(isles, isles_count);
+       
+    return;
+}
+
+/*!
+  \fn void Vect_point_buffer(double px, double py, double da, double db, double dalpha, int round, double tol, struct line_pnts *nPoints) {
+  \brief Creates buffer around the point (px,py).
+  \param px input point x-coordinate
+  \param py input point y-coordinate
+  \param da distance along major axis
+  \param da distance along minor axis
+  \param dalpha angle between 0x and major axis
+  \param round make corners round
+  \param tol maximum distance between theoretical arc and output segments
+  \param nPoints output polygon outer border (ccw order)
+*/
+void Vect_point_buffer2(double px, double py, double da, double db, double dalpha, int round, double tol, struct line_pnts *nPoints) {
+    double tx, ty;
+    double angular_tol, angular_step, phi1;
+    int j, nsegments;
+    
+    Vect_reset_line(nPoints);
+    
+    dalpha *= PI/180; /* convert dalpha from degrees to radians */
+
+    if (round || (!round)) {
+        angular_tol = angular_tolerance(tol, da, db);
+        
+        nsegments = (int)(2*PI/angular_tol) + 1;
+        angular_step = 2*PI/nsegments;
+        
+        phi1 = 0;
+        for (j = 0; j < nsegments; j++) {
+            elliptic_transform(cos(phi1), sin(phi1), da, db, dalpha, &tx, &ty);
+            Vect_append_point(nPoints, px + tx, py + ty, 0);
+            phi1 += angular_step;
+        }
+    }
+    else {
+        
+    }
+    
+    /* close the output line */
+    Vect_append_point(nPoints, nPoints->x[0], nPoints->y[0], nPoints->z[0]);    
+}
+
 
 /*
   \fn void Vect_line_parallel2 ( struct line_pnts *InPoints, double distance, double tolerance, int rm_end,
@@ -814,113 +1014,4 @@ void Vect_line_parallel2(struct line_pnts *InPoints, double da, double db, doubl
         clean_parallel(OutPoints, InPoints, distance, rm_end);
 */
     return;
-}
-
-/*!
-  \fn void Vect_line_buffer ( struct line_pnts *InPoints, double distance, double tolerance,
-                              struct line_pnts *OutPoints )
-  \brief Create buffer around the line line.
-         Buffer is closed counter clockwise polygon.
-         Warning: output line may contain loops!
-  \param InPoints input line
-  \param distance
-  \param tolerance maximum distance between theoretical arc and polygon segments
-  \param OutPoints output line
-*/
-void
-Vect_line_buffer ( struct line_pnts *InPoints, double distance, double tolerance,
-                     struct line_pnts *OutPoints )
-{
-    double dangle;
-    int    side, npoints;
-    static struct line_pnts *Points = NULL;
-    static struct line_pnts *PPoints = NULL;
-
-    distance = fabs (distance );
-
-    dangle = 2 * acos( 1-tolerance/fabs(distance) ); /* angle step */
-
-    if ( Points == NULL )
-        Points = Vect_new_line_struct();
-
-    if ( PPoints == NULL )
-        PPoints = Vect_new_line_struct();
-
-    /* Copy and prune input */
-    Vect_reset_line ( Points );
-    Vect_append_points ( Points, InPoints, GV_FORWARD );
-    Vect_line_prune ( Points );
-
-    Vect_reset_line ( OutPoints );
-
-    npoints = Points->n_points;
-    if ( npoints <= 0 ) {
-	return;
-    } else if ( npoints == 1 ) { /* make a circle */
-	double angle, x, y;
-
-	for ( angle = 0; angle < 2*PI; angle += dangle ) {
-	    x = Points->x[0] + distance * cos( angle );
-	    y = Points->y[0] + distance * sin( angle );
-	    Vect_append_point ( OutPoints, x, y, 0 );
-	}
-	/* Close polygon */
-	Vect_append_point ( OutPoints, OutPoints->x[0], OutPoints->y[0], 0 );
-    } else { /* 2 and more points */
-	for ( side = 0; side < 2; side++ ) {
-	    double angle, sangle;
-	    double lx1, ly1, lx2, ly2;
-	    double x, y, nx, ny, sx, sy, ex, ey;
-
-	    /* Parallel on one side */
-	    if ( side == 0 ) {
-		Vect_line_parallel ( Points, distance, tolerance, 0, PPoints );
-		Vect_append_points ( OutPoints, PPoints, GV_FORWARD );
-	    } else {
-		Vect_line_parallel ( Points, -distance, tolerance, 0, PPoints );
-		Vect_append_points ( OutPoints, PPoints, GV_BACKWARD );
-	    }
-
-	    /* Arc at the end */
-	    /* 2 points at theend of original line */
-	    if ( side == 0 ) {
-		lx1 = Points->x[npoints-2];
-		ly1 = Points->y[npoints-2];
-		lx2 = Points->x[npoints-1];
-		ly2 = Points->y[npoints-1];
-	    } else {
-		lx1 = Points->x[1];
-		ly1 = Points->y[1];
-		lx2 = Points->x[0];
-		ly2 = Points->y[0];
-	    }
-
-	    /* normalized vector */
-	    norm_vector( lx1, ly1, lx2, ly2, &nx, &ny);
-
-	    /* starting point */
-	    sangle = atan2 ( -nx, ny ); /* starting angle */
-	    sx  = lx2 + ny * distance;
-	    sy  = ly2 - nx * distance;
-
-	    /* end point */
-	    ex  = lx2 - ny * distance;
-	    ey  = ly2 + nx * distance;
-
-	    Vect_append_point ( OutPoints, sx, sy, 0 );
-
-	    /* arc */
-	    for ( angle = dangle; angle < PI; angle += dangle ) {
-		x = lx2 + distance * cos( sangle + angle );
-		y = ly2 + distance * sin( sangle + angle );
-		Vect_append_point ( OutPoints, x, y, 0 );
-	    }
-
-	    Vect_append_point ( OutPoints, ex, ey, 0 );
-	}
-
-	/* Close polygon */
-	Vect_append_point ( OutPoints, OutPoints->x[0], OutPoints->y[0], 0 );
-    }
-    Vect_line_prune ( OutPoints );
 }

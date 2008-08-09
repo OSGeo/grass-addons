@@ -2,11 +2,11 @@
 #include <math.h>
 #include <grass/Vect.h>
 #include <grass/gis.h>
+#include <gmp.h>
 #include "dgraph.h"
+#include "e_intersect.h"
 
 #define LENGTH(DX, DY) (sqrt((DX*DX)+(DY*DY)))
-#define FZERO(X, TOL) (fabs(X)<TOL)
-#define FEQUAL(X, Y, TOL) (fabs(X-Y)<TOL)
 #ifndef MIN
     #define MIN(X,Y) ((X<Y)?X:Y)
 #endif
@@ -14,268 +14,6 @@
     #define MAX(X,Y) ((X>Y)?X:Y)
 #endif    
 #define PI M_PI
-
-/* tollerance aware version */
-/* TODO: fix all =='s left */
-int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2,
-    double *x1, double *y1, double *x2, double *y2, double tol)
-{
-    double adx, ady, bdx, bdy;
-    double aa, bb;
-    double tola, tolb;
-    double d, d1, d2, ra, rb, t;
-    int    switched = 0;
-    
-    /* TODO: Works for points ? */
-    G_debug(4, "segment_intersection_2d()"); 
-    G_debug(4, "    ax1  = %.18f, ay1  = %.18f", ax1, ay1);
-    G_debug(4, "    ax2  = %.18f, ay2  = %.18f", ax2, ay2);
-    G_debug(4, "    bx1  = %.18f, by1  = %.18f", bx1, by1);
-    G_debug(4, "    bx2  = %.18f, by2  = %.18f", bx2, by2);
-
-    
-    /* Check identical lines */
-    if ((FEQUAL(ax1, bx1, tol) && FEQUAL(ay1, by1, tol) && FEQUAL(ax2, bx2, tol) && FEQUAL(ay2, by2, tol)) ||
-        (FEQUAL(ax1, bx2, tol) && FEQUAL(ay1, by2, tol) && FEQUAL(ax2, bx1, tol) && FEQUAL(ay2, by1, tol))) {
-        G_debug (2, " -> identical segments" ); 
-        *x1 = ax1; *y1 = ay1;
-        *x2 = ax2; *y2 = ay2;
-        return 5;
-    }
-    
-    /*  'Sort' lines by x1, x2, y1, y2 */
-    if ( bx1 < ax1 )
-        switched = 1;
-    else if ( bx1 == ax1 ) {
-        if ( bx2 < ax2 ) switched = 1;
-        else if ( bx2 == ax2 ) {
-            if ( by1 < ay1 ) switched = 1;
-            else if ( by1 == ay1 ) {
-                if ( by2 < ay2 ) switched = 1; /* by2 != ay2 (would be identical */
-            }
-        }
-    }
-    
-    if (switched) {
-        t = ax1; ax1 = bx1; bx1 = t; t = ay1; ay1 = by1; by1 = t; 
-        t = ax2; ax2 = bx2; bx2 = t; t = ay2; ay2 = by2; by2 = t;
-    }	
-    
-    adx = ax2 - ax1;
-    ady = ay2 - ay1;
-    bdx = bx2 - bx1;
-    bdy = by2 - by1;
-    d  = (ax2-ax1)*(by1-by2) - (ay2-ay1)*(bx1-bx2);
-    d1 = (bx1-ax1)*(by1-by2) - (by1-ay1)*(bx1-bx2);
-    d2 = (ax2-ax1)*(by1-ay1) - (ay2-ay1)*(bx1-ax1);
-
-    G_debug(2, "    d  = %.18f", d);
-    G_debug(2, "    d1 = %.18f", d1);
-    G_debug(2, "    d2 = %.18f", d2);
-    
-    tola = tol/MAX(fabs(adx), fabs(ady));
-    tolb = tol/MAX(fabs(bdx), fabs(bdy));
-    G_debug(2, "    tol  = %.18f", tol);
-    G_debug(2, "    tola = %.18f", tola);
-    G_debug(2, "    tolb = %.18f", tolb);
-    if (!FZERO(d, tol)) {
-        ra = d1/d;
-        rb = d2/d;
-        
-        G_debug(2, "    not parallel/collinear: ra = %.18f", ra);
-        G_debug(2, "                            rb = %.18f", rb);
-        
-        if ((ra <= -tola) || (ra >= 1+tola) || (rb <= -tolb) || (rb >= 1+tolb)) {
-            G_debug(2, "        no intersection"); 
-            return 0;
-        }
-        
-        ra = MIN(MAX(ra, 0), 1);
-        *x1 = ax1 + ra*(ax2 - ax1);
-        *y1 = ay1 + ra*(ay2 - ay1);
-        
-        G_debug(2, "        intersection %.18f, %.18f", *x1, *y1); 
-        return 1;
-    }
-    
-    /* segments are parallel or collinear */
-    G_debug (3, " -> parallel/collinear" ); 
-    
-    if ((!FZERO(d1, tol)) || (!FZERO(d2, tol))) { /* lines are parallel */
-        G_debug (2, "  -> parallel" ); 
-        return 0;
-    }
-    
-    /* segments are colinear. check for overlap */
-    
-/*    aa = adx*adx + ady*ady;
-    bb = bdx*bdx + bdy*bdy;
-    
-    t = (ax1-bx1)*bdx + (ay1-by1)*bdy;*/
-    
-    
-    /* Collinear vertical */
-    /* original code assumed lines were not both vertical
-    *  so there is a special case if they are */
-    if (FEQUAL(ax1, ax2, tol) && FEQUAL(bx1, bx2, tol) && FEQUAL(ax1, bx1, tol)) {
-        G_debug(2, "  -> collinear vertical");
-        if (ay1 > ay2) { t=ay1; ay1=ay2; ay2=t;	} /* to be sure that ay1 < ay2 */
-        if (by1 > by2) { t=by1; by1=by2; by2=t; } /* to be sure that by1 < by2 */
-        if (ay1 > by2 || ay2 < by1) {
-            G_debug (2, "   -> no intersection");
-            return 0;
-        }
-
-        /* end points */
-        if (FEQUAL(ay1, by2, tol)) {
-            *x1 = ax1; *y1 = ay1;
-            G_debug(2, "   -> connected by end points");
-            return 1; /* endpoints only */
-        }
-        if (FEQUAL(ay2, by1, tol)) {
-            *x1 = ax2; *y1 = ay2;
-            G_debug (2, "  -> connected by end points");
-            return 1; /* endpoints only */
-        }
-        
-        /* general overlap */
-        G_debug(3, "   -> vertical overlap");
-        /* a contains b */
-        if (ay1 <= by1 && ay2 >= by2) {
-            G_debug (2, "    -> a contains b" ); 
-           *x1 = bx1; *y1 = by1;
-            *x2 = bx2; *y2 = by2;
-            if (!switched)
-                return 3; 
-            else
-                return 4;
-        }
-        /* b contains a */
-        if ( ay1 >= by1 && ay2 <= by2 ) {
-            G_debug (2, "    -> b contains a" );
-            *x1 = ax1; *y1 = ay1;
-            *x2 = ax2; *y2 = ay2;
-            if ( !switched )
-                return 4; 
-            else
-                return 3;
-        }
-
-        /* general overlap, 2 intersection points */
-        G_debug (2, "    -> partial overlap" ); 
-        if ( by1 > ay1 && by1 < ay2 ) { /* b1 in a */
-            if ( !switched ) {
-                *x1 = bx1; *y1 = by1;
-                *x2 = ax2; *y2 = ay2;
-            } else {
-                *x1 = ax2; *y1 = ay2;
-                *x2 = bx1; *y2 = by1;
-            }
-            return 2;
-        }
-        
-        if ( by2 > ay1 && by2 < ay2 ) { /* b2 in a */
-            if ( !switched ) {
-                *x1 = bx2; *y1 = by2;
-                *x2 = ax1; *y2 = ay1;
-            } else {
-                *x1 = ax1; *y1 = ay1;
-                *x2 = bx2; *y2 = by2;
-            }
-            return 2;
-        } 
-	
-        /* should not be reached */
-        G_warning(("Vect_segment_intersection() ERROR (collinear vertical segments)"));
-        G_warning("%.15g %.15g", ax1, ay1);
-        G_warning("%.15g %.15g", ax2, ay2);
-        G_warning("x");
-        G_warning("%.15g %.15g", bx1, by1);
-        G_warning("%.15g %.15g", bx2, by2);
-        return 0;
-    }
-    
-    G_debug (2, "   -> collinear non vertical" ); 
-    
-    /* Collinear non vertical */
-    if ( ( bx1 > ax1 && bx2 > ax1 && bx1 > ax2 && bx2 > ax2 ) || 
-         ( bx1 < ax1 && bx2 < ax1 && bx1 < ax2 && bx2 < ax2 ) ) {
-        G_debug (2, "   -> no intersection" ); 
-	return 0;
-    }
-
-    /* there is overlap or connected end points */
-    G_debug (2, "   -> overlap/connected end points" ); 
-
-    /* end points */
-    if ( (ax1 == bx1 && ay1 == by1) || (ax1 == bx2 && ay1 == by2) ) {
-	*x1 = ax1; *y1 = ay1;
-        G_debug (2, "    -> connected by end points");
-	return 1; 
-    }
-    if ( (ax2 == bx1 && ay2 == by1) || (ax2 == bx2 && ay2 == by2) ) {
-	*x1 = ax2; *y1 = ay2;
-        G_debug (2, "    -> connected by end points");
-	return 1;
-    }
-    
-    if (ax1 > ax2) { t=ax1; ax1=ax2; ax2=t; t=ay1; ay1=ay2; ay2=t; } /* to be sure that ax1 < ax2 */
-    if (bx1 > bx2) { t=bx1; bx1=bx2; bx2=t; t=by1; by1=by2; by2=t; } /* to be sure that bx1 < bx2 */
-    
-    /* a contains b */
-    if ( ax1 <= bx1 && ax2 >= bx2 ) {
-    	G_debug (2, "    -> a contains b" ); 
-        *x1 = bx1; *y1 = by1;
-    	*x2 = bx2; *y2 = by2;
-        if ( !switched )
-       	    return 3; 
-        else 
-            return 4;
-    }
-    /* b contains a */
-    if ( ax1 >= bx1 && ax2 <= bx2 ) {
-        G_debug (2, "    -> b contains a" ); 
-        *x1 = ax1; *y1 = ay1;
-        *x2 = ax2; *y2 = ay2;
-        if ( !switched )
-            return 4;
-        else
-            return 3;
-    }   
-    
-    /* general overlap, 2 intersection points (lines are not vertical) */
-    G_debug (2, "    -> partial overlap" ); 
-    if ( bx1 > ax1 && bx1 < ax2 ) { /* b1 is in a */
-        if ( !switched ) {
-	    *x1 = bx1; *y1 = by1;
-	    *x2 = ax2; *y2 = ay2;
-	} else {
-	    *x1 = ax2; *y1 = ay2;
-	    *x2 = bx1; *y2 = by1;
-        }
-	return 2;
-    } 
-    if ( bx2 > ax1 && bx2 < ax2 ) { /* b2 is in a */
-        if ( !switched ) {
-	    *x1 = bx2; *y1 = by2;
-	    *x2 = ax1; *y2 = ay1;
-	} else {
-	    *x1 = ax1; *y1 = ay1;
-	    *x2 = bx2; *y2 = by2;
-        }
-	return 2;
-    } 
-
-    /* should not be reached */
-    G_warning(("segment_intersection_2d() ERROR (collinear non vertical segments)"));
-    G_warning("%.15g %.15g", ax1, ay1);
-    G_warning("%.15g %.15g", ax2, ay2);
-    G_warning("x");
-    G_warning("%.15g %.15g", bx1, by1);
-    G_warning("%.15g %.15g", bx2, by2);
-
-    return 0;
-}
 
 struct intersection_point {
     double x;
@@ -414,21 +152,43 @@ static int compare(const void *a, const void *b)
         return (aa->y < bb->y)?-1:((aa->y > bb->y)?1:0);
 }        
 
+/* O(Points->n_points) time */
+double get_epsilon(struct line_pnts *Points) {
+    int i, np;
+    double min, t;
+    double *x, *y;
+    
+    np = Points->n_points;
+    x = Points->x;
+    y = Points->y;
+    
+    min = MAX(fabs(x[1]-x[0]), fabs(y[1]-y[0]));
+    for (i = 1; i <= np-2; i++) {
+        t = MAX(fabs(x[i+1]-x[i]), fabs(y[i+1]-y[i]));
+        if ((t > 0) && (t < min)) {
+            min = t;
+        }
+    }
+    
+    /* ??? is 0.001 ok ??? */
+    return min*0.000001;
+}
+
 /* currently O(n*n); future implementation O(nlogn) */
 struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
     int i, j, np;
     int group, t;
     int looped;
-    double EPSILON = 1e-10;
+    double EPSILON = 0.00000001;
     double *x, *y;
     double x1, y1, x2, y2;
-    int res;
+    int res, res2;
+    double x1_, y1_, x2_, y2_;
     struct seg_intersections *si;
     struct seg_intersection_list *il;
     struct intersection_point **sorted;
     
     G_debug(4, "find_all_intersections()");
-    G_debug(4, "    EPSILON=%.18f", EPSILON);
     
     np = Points->n_points;
     x = Points->x;
@@ -436,14 +196,20 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
     
     si = create_si_struct(np-1);
     
-    looped = FEQUAL(x[0], x[np-1], EPSILON) && FEQUAL(y[0], y[np-1], EPSILON);
+    looped = ((x[0] == x[np-1]) && (y[0] == y[np-1]));
     G_debug(4, "    looped=%d", looped);
     
     G_debug(4, "    finding intersections...");
     for (i = 0; i < np-1; i++) {
         for (j = i+1; j < np-1; j++) {
-            G_debug(3, "        checking %d-%d %d-%d", i, i+1, j, j+1);            
-            res = segment_intersection_2d(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1, &y1, &x2, &y2, EPSILON);
+            G_debug(3, "        checking %d-%d %d-%d", i, i+1, j, j+1);
+            res = segment_intersection_2d_e(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1, &y1, &x2, &y2);
+/*            res = segment_intersection_2d(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1, &y1, &x2, &y2, EPSILON);*/
+/*            res2 = segment_intersection_2d_e(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1_, &y1_, &x2_, &y2_);
+            if (res != res2) {
+                G_debug(0, "res=%d res2=%d", res, res2);
+            }*/
+            
             G_debug(3, "        intersection type = %d", res);
             if (res == 1) {
                 add_ipoint(Points, i, j, x1, y1, si);
@@ -492,8 +258,10 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
         t = group;
         for (j = i-1; j >= 0; j--) {
             if (!FEQUAL(sorted[j]->x, sorted[i]->x, EPSILON))
+/*            if (!almost_equal(sorted[j]->x, sorted[i]->x, 16))*/
                 break;
             if (FEQUAL(sorted[j]->y, sorted[i]->y, EPSILON)) {
+/*            if (almost_equal(sorted[j]->y, sorted[i]->y, 16)) {*/
                 t = sorted[j]->group;
                 break;
             }
@@ -508,7 +276,6 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
     G_debug(4, "    postprocessing...done");
     
     /* output contents of si */
-    
     for (i = 0; i < si->ilcount; i++) {
         G_debug(4, "%d-%d :", i, i+1);
         for (j = 0; j < si->il[i].count; j++) {

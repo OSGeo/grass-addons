@@ -56,7 +56,7 @@ int main (int argc, char *argv[])
     distb_opt->key = "minordistance";
     distb_opt->type =  TYPE_DOUBLE;
     distb_opt->required = NO;
-    dista_opt->options = "0-100000000";
+    distb_opt->options = "0-100000000";
     distb_opt->multiple = NO;
     distb_opt->description = _("Offset along minor axis in map units");
 
@@ -121,7 +121,7 @@ int main (int argc, char *argv[])
     else
         side = 0;
 
-    Vect_set_open_level (2); 
+    Vect_set_open_level(2); 
     Vect_open_old (&In, in_opt->answer, ""); 
     Vect_open_new (&Out, out_opt->answer, 0);
     Vect_copy_head_data (&In, &Out);
@@ -155,7 +155,7 @@ int main (int argc, char *argv[])
                 }   
             }
             else {
-                parallel_line_b(Points, da, db, dalpha, round_flag->answer, 1, tolerance, &oPoints, &iPoints, &inner_count);
+                Vect_line_buffer2(Points, da, db, dalpha, round_flag->answer, 1, tolerance, &oPoints, &iPoints, &inner_count);
                 Vect_write_line(&Out, ltype, oPoints, Cats);
                 for (j = 0; j < inner_count; j++) {
                     Vect_write_line(&Out, ltype, iPoints[j], Cats); 
