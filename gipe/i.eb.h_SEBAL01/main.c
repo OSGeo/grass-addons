@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 	struct Option *input_ea, *output;
 	struct Option *input_row_wet, *input_col_wet;
 	struct Option *input_row_dry, *input_col_dry;
-	struct Flag *flag3;
+	struct Flag *flag2, *flag3;
 	/********************************/
 	RASTER_MAP_TYPE data_type_Rn;
 	RASTER_MAP_TYPE data_type_g0;
@@ -165,6 +165,10 @@ int main(int argc, char *argv[])
 	output->description= _("Name of output sensible heat flux layer [W/m2]");
 	
 	/* Define the different flags */
+	flag2 = G_define_flag() ;
+	flag2->key         = 'a' ;
+	flag2->description = _("Automatic wet/dry pixel (careful!)") ;
+
 	flag3 = G_define_flag() ;
 	flag3->key         = 'c' ;
 	flag3->description = _("Dry/Wet pixels coordinates are in image projection, not row/col");
@@ -279,6 +283,110 @@ int main(int argc, char *argv[])
 	DCELL d_g0_dry;
 	DCELL d_t0dem_dry;
 	DCELL d_t0dem_wet;
+
+	if(flag2->answer){
+		/* THREAD 3 */
+		/* Process tempk min / max pixels */
+		/* Internal use only */
+		DCELL d_Rn_wet;
+		DCELL d_g0_wet;
+		DCELL d_Rn;
+		DCELL d_g0;
+		DCELL d_h0;
+		DCELL t0dem_min;
+		DCELL t0dem_max;
+		/*********************/
+		for (row = 0; row < nrows; row++){
+			DCELL d_t0dem;
+			G_percent(row,nrows,2);
+			if(G_get_raster_row(infd_t0dem,inrast_t0dem,row,data_type_t0dem)<0)
+				G_fatal_error(_("Could not read from <%s>"),t0dem);
+			if(G_get_raster_row(infd_Rn, inrast_Rn, row,data_type_Rn) < 0)
+				G_fatal_error(_("Could not read from <%s>"),Rn);
+			if(G_get_raster_row(infd_g0, inrast_g0, row,data_type_g0) < 0)
+				G_fatal_error(_("Could not read from <%s>"),g0);
+			/*process the data */
+			for (col=0; col < ncols; col++)
+			{
+				switch(data_type_t0dem){
+					case CELL_TYPE:
+						d_t0dem = (double) ((CELL *) inrast_t0dem)[col];
+						break;
+					case FCELL_TYPE:
+						d_t0dem = (double) ((FCELL *) inrast_t0dem)[col];
+						break;
+					case DCELL_TYPE:
+						d_t0dem = (double) ((DCELL *) inrast_t0dem)[col];
+						break;
+				}
+				switch(data_type_Rn){
+					case CELL_TYPE:
+						d_Rn = (double) ((CELL *) inrast_Rn)[col];
+						break;
+					case FCELL_TYPE:
+						d_Rn = (double) ((FCELL *) inrast_Rn)[col];
+						break;
+					case DCELL_TYPE:
+						d_Rn = (double) ((DCELL *) inrast_Rn)[col];
+						break;
+				}
+				switch(data_type_g0){
+					case CELL_TYPE:
+						d_g0 = (double) ((CELL *) inrast_g0)[col];
+						break;
+					case FCELL_TYPE:
+						d_g0 = (double) ((FCELL *) inrast_g0)[col];
+						break;
+					case DCELL_TYPE:
+						d_g0 = (double) ((DCELL *) inrast_g0)[col];
+						break;
+				}
+				if(G_is_d_null_value(&d_t0dem)||
+				G_is_d_null_value(&d_Rn)||
+				G_is_d_null_value(&d_g0)){
+					/* do nothing */ 
+				}else{
+					if(d_t0dem<=250.0){
+						/* do nothing */ 
+					} else {
+						d_h0=d_Rn-d_g0;
+						if(d_t0dem<t0dem_min&&
+						d_Rn>0.0&&d_g0>0.0&&d_h0>0.0&&
+						d_h0<100.0){
+							t0dem_min=d_t0dem;
+							d_t0dem_wet=d_t0dem;
+							d_Rn_wet=d_Rn;
+							d_g0_wet=d_g0;
+							m_col_wet=col;
+							m_row_wet=row;
+						}
+						if(d_t0dem>t0dem_max&&
+						d_Rn>0.0&&d_g0>0.0&&d_h0>100.0&&
+						d_h0<500.0){
+							t0dem_max=d_t0dem;
+							d_t0dem_dry=d_t0dem;
+							d_Rn_dry=d_Rn;
+							d_g0_dry=d_g0;
+							m_col_dry=col;
+							m_row_dry=row;
+						}
+					}
+				}
+			}
+		}
+		G_message("row_wet=%d\tcol_wet=%d\n",row_wet,col_wet);
+		G_message("row_dry=%d\tcol_dry=%d\n",row_dry,col_dry);
+		G_message("g0_wet=%f\n",d_g0_wet);
+		G_message("Rn_wet=%f\n",d_Rn_wet);
+		G_message("LE_wet=%f\n",d_Rn_wet-d_g0_wet);
+		G_message("t0dem_dry=%f\n",d_t0dem_dry);
+		G_message("rnet_dry=%f\n",d_Rn_dry);
+		G_message("g0_dry=%f\n",d_g0_dry);
+		G_message("h0_dry=%f\n",d_Rn_dry-d_g0_dry);
+	} /* END OF FLAG2 */
+
+
+	/* MANUAL T0DEM WET/DRY PIXELS */
 	/*DRY PIXEL*/
 	if(flag3->answer){
 		/*Calculate coordinates of row/col from projected ones*/
