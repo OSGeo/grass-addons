@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 	input_row_wet 			= G_define_option();
 	input_row_wet->key		= "row_wet";
 	input_row_wet->type 		= TYPE_DOUBLE;
-	input_row_wet->required 	= YES;
+	input_row_wet->required 	= NO;
 	input_row_wet->gisprompt 	= "old,value";
 	input_row_wet->description 	= _("Row value of the wet pixel");
 	input_row_wet->guisection	= _("Parameters");
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 	input_col_wet 			= G_define_option();
 	input_col_wet->key		= "col_wet";
 	input_col_wet->type 		= TYPE_DOUBLE;
-	input_col_wet->required 	= YES;
+	input_col_wet->required 	= NO;
 	input_col_wet->gisprompt 	= "old,value";
 	input_col_wet->description 	= _("Column value of the wet pixel");
 	input_col_wet->guisection	= _("Parameters");
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 	input_row_dry 			= G_define_option();
 	input_row_dry->key		= "row_dry";
 	input_row_dry->type 		= TYPE_DOUBLE;
-	input_row_dry->required 	= YES;
+	input_row_dry->required 	= NO;
 	input_row_dry->gisprompt 	= "old,value";
 	input_row_dry->description 	= _("Row value of the dry pixel");
 	input_row_dry->guisection	= _("Parameters");
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 	input_col_dry 			= G_define_option();
 	input_col_dry->key		= "col_dry";
 	input_col_dry->type 		= TYPE_DOUBLE;
-	input_col_dry->required 	= YES;
+	input_col_dry->required 	= NO;
 	input_col_dry->gisprompt 	= "old,value";
 	input_col_dry->description 	= _("Column value of the dry pixel");
 	input_col_dry->guisection	= _("Parameters");
@@ -191,13 +191,18 @@ int main(int argc, char *argv[])
 	m_col_wet = atof(input_col_wet->answer);
 	m_row_dry = atof(input_row_dry->answer);
 	m_col_dry = atof(input_col_dry->answer);
+	if((!input_row_wet->answer||!input_col_wet->answer||
+	!input_row_dry->answer||!input_col_dry->answer)&&
+	!flag2->answer){
+		G_fatal_error(_("FATAL ERROR: either auto-mode either wet/dry pixels coordinates should be provided!"));
+	}
 	if(flag3->answer){
-		G_message("Manual wet/dry pixels in image coordinates");
-		G_message("Wet Pixel=> x:%f y:%f",m_col_wet,m_row_wet);
-		G_message("Dry Pixel=> x:%f y:%f",m_col_dry,m_row_dry);
+		G_message(_("Manual wet/dry pixels in image coordinates"));
+		G_message(_("Wet Pixel=> x:%f y:%f"),m_col_wet,m_row_wet);
+		G_message(_("Dry Pixel=> x:%f y:%f"),m_col_dry,m_row_dry);
 	} else {
-		G_message("Wet Pixel=> row:%.0f col:%.0f",m_row_wet,m_col_wet);
-		G_message("Dry Pixel=> row:%.0f col:%.0f",m_row_dry,m_col_dry);
+		G_message(_("Wet Pixel=> row:%.0f col:%.0f"),m_row_wet,m_col_wet);
+		G_message(_("Dry Pixel=> row:%.0f col:%.0f"),m_row_dry,m_col_dry);
 	}
 	/* find maps in mapset */
 	mapset_Rn = G_find_cell2 (Rn, "");
