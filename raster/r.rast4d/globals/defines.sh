@@ -9,13 +9,18 @@ eval `g.gisenv`
 export GRAST4D_BASE=${GISDBASE}/${LOCATION_NAME}/${MAPSET}
 export GRAST4D_DB_DIR="$GRAST4D_BASE/rast4d_db"
 
-##############################à
+##############################
 export GRAST4D_BIN_DIR="${GISBASE}/etc/r.rast4d/bin"
 export GRAST4D_LIB_DIR="${GISBASE}/etc/r.rast4d/lib"
 export GRAST4D_SQL_DIR="${GISBASE}/etc/r.rast4d/sql"
-export GRAST4D_DATABASE=$GRAST4D_DB_DIR/database.sqlite
 export PATH=$GRAST4D_BIN_DIR:$PATH
+# SQLite:
+export GRAST4D_DATABASE=$GRAST4D_DB_DIR/database.sqlite
 export GRAST4D_DBM="sqlite3"
+# PostgreSQL:
+#export PGDB=rast4d_database
+#export GRAST4D_DATABASE="-h localhost -p 5432 -U $USER $PGDB"
+#export GRAST4D_DBM="psql"
 
 # Table name definitions
 export GRASTER_VIEW_NAME="raster_view"
