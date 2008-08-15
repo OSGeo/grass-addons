@@ -70,7 +70,7 @@ eval `g.gisenv`
 source ${GISBASE}/etc/r.rast4d/globals/defines.sh
 
 echo "select $GIS_OPT_SELECTION from $GRASTER_VIEW_NAME where $GIS_OPT_WHERE order by $GIS_OPT_ORDER"
-$GRAST4D_DBM $GRAST4D_DATABASE "select $GIS_OPT_SELECTION from $GRASTER_VIEW_NAME where $GIS_OPT_WHERE order by $GIS_OPT_ORDER"
+echo "select $GIS_OPT_SELECTION from $GRASTER_VIEW_NAME where $GIS_OPT_WHERE order by $GIS_OPT_ORDER;" | $GRAST4D_DBM $GRAST4D_DATABASE 
 
 exit 0
 
