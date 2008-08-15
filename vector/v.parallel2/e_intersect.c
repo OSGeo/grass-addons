@@ -8,6 +8,7 @@
 
 mpf_t p11, p12, p21, p22, t1, t2;
 mpf_t dd, dda, ddb, delta;
+mpf_t rra, rrb;
 
 int initialized = 0;
 
@@ -26,6 +27,9 @@ void initialize_mpf_vars() {
     mpf_init(dda);
     mpf_init(ddb);
     mpf_init(delta);
+    
+    mpf_init(rra);
+    mpf_init(rrb);
     
     initialized = 1;
 }
@@ -162,8 +166,8 @@ int segment_intersection_2d_e(double ax1, double ay1, double ax2, double ay2, do
             }
         }
 
-        G_debug(3, "        ra=%.17g rb=%.17g", mpf_get_d(dda)/mpf_get_d(dd), mpf_get_d(ddb)/mpf_get_d(dd));
-        G_debug(3, "        sgn_d=%d sgn_da=%d sgn_db=%d cmp(dda,dd)=%d cmp(ddb,dd)=%d", sgn_d, sgn_da, sgn_db, mpf_cmp(dda, dd), mpf_cmp(ddb, dd));
+        /*G_debug(3, "        ra=%.17g rb=%.17g", mpf_get_d(dda)/mpf_get_d(dd), mpf_get_d(ddb)/mpf_get_d(dd));*/
+        /*G_debug(3, "        sgn_d=%d sgn_da=%d sgn_db=%d cmp(dda,dd)=%d cmp(ddb,dd)=%d", sgn_d, sgn_da, sgn_db, mpf_cmp(dda, dd), mpf_cmp(ddb, dd));*/
     
         mpf_set_d(delta, ax2 - ax1);
         mpf_mul(t1, dda, delta);
@@ -335,21 +339,21 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
     d1 = (bx1-ax1)*(by1-by2) - (by1-ay1)*(bx1-bx2);
     d2 = (ax2-ax1)*(by1-ay1) - (ay2-ay1)*(bx1-ax1);
     
-    G_debug(2, "    d  = %.18f", d);
-    G_debug(2, "    d1 = %.18f", d1);
-    G_debug(2, "    d2 = %.18f", d2);
+    G_debug(2, "    d  = %.18g", d);
+    G_debug(2, "    d1 = %.18g", d1);
+    G_debug(2, "    d2 = %.18g", d2);
     
     tola = tol/fmax(fabs(ax2-ax1), fabs(ay2-ay1));
     tolb = tol/fmax(fabs(bx2-bx1), fabs(by2-by1));
-    G_debug(2, "    tol  = %.18f", tol);
-    G_debug(2, "    tola = %.18f", tola);
-    G_debug(2, "    tolb = %.18f", tolb);
+    G_debug(2, "    tol  = %.18g", tol);
+    G_debug(2, "    tola = %.18g", tola);
+    G_debug(2, "    tolb = %.18g", tolb);
     if (!FZERO(d, tol)) {
         ra = d1/d;
         rb = d2/d;
         
-        G_debug(2, "    not parallel/collinear: ra = %.18f", ra);
-        G_debug(2, "                            rb = %.18f", rb);
+        G_debug(2, "    not parallel/collinear: ra = %.18g", ra);
+        G_debug(2, "                            rb = %.18g", rb);
         
         if ((ra <= -tola) || (ra >= 1+tola) || (rb <= -tolb) || (rb >= 1+tolb)) {
             G_debug(2, "        no intersection"); 
@@ -562,4 +566,133 @@ int almost_equal(double a, double b, int bits) {
         return (bits > N + abs(ea-eb));
     frexp(a-b, &e);
     return (e < ea-N+bits);
+}
+
+int segment_intersection_2d_test(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2, double *x1, double *y1, double *x2, double *y2) {
+    double t;
+    double max_ax, min_ax, max_ay, min_ay;
+    double max_bx, min_bx, max_by, min_by;
+    int sgn_d, sgn_da, sgn_db;
+    int vertical;
+    int f11, f12, f21, f22;
+    mp_exp_t exp;
+    char *s;
+    double d, da, db, ra, rb;
+    
+    if (!initialized)
+        initialize_mpf_vars();
+    
+    /* TODO: Works for points ? */
+    G_debug(0, "segment_intersection_2d_test()"); 
+    G_debug(0, "    ax1  = %.18e, ay1  = %.18e", ax1, ay1);
+    G_debug(0, "    ax2  = %.18e, ay2  = %.18e", ax2, ay2);
+    G_debug(0, "    bx1  = %.18e, by1  = %.18e", bx1, by1);
+    G_debug(0, "    bx2  = %.18e, by2  = %.18e", bx2, by2);
+
+    f11 = ((ax1 == bx1) && (ay1 == by1));
+    f12 = ((ax1 == bx2) && (ay1 == by2));
+    f21 = ((ax2 == bx1) && (ay2 == by1));
+    f22 = ((ax2 == bx2) && (ay2 == by2));
+    
+    /* Check for identical segments */
+    if ((f11 && f22) || (f12 && f21)) {
+        G_debug (0, "    identical segments" );
+        *x1 = ax1; *y1 = ay1;
+        *x2 = ax2; *y2 = ay2;
+        return 5;
+    }
+    /* Check for identical endpoints */
+    if (f11 || f12) {
+        G_debug (0, "    connected by endpoints" );
+        *x1 = ax1; *y1 = ay1;
+        return 1;
+    }
+    if (f21 || f22) {
+        G_debug (0, "    connected by endpoints" );
+        *x1 = ax2; *y1 = ay2;
+        return 1;
+    }
+
+    if ((fmax(ax1, ax2) < fmin(bx1, bx2)) || (fmax(bx1, bx2) < fmin(ax1, ax2))) {
+        G_debug(0, "    no intersection (disjoint bounding boxes)");
+        return 0;
+    }
+    if ((fmax(ay1, ay2) < fmin(by1, by2)) || (fmax(by1, by2) < fmin(ay1, ay2))) {
+        G_debug(0, "    no intersection (disjoint bounding boxes)");
+        return 0;
+    }
+    
+    d  = (ax2-ax1)*(by1-by2) - (ay2-ay1)*(bx1-bx2);
+    da = (bx1-ax1)*(by1-by2) - (by1-ay1)*(bx1-bx2);
+    db = (ax2-ax1)*(by1-ay1) - (ay2-ay1)*(bx1-ax1);
+    
+    det22(dd,  ax2, ax1, bx1, bx2, ay2, ay1, by1, by2);
+    sgn_d = mpf_sgn(dd);
+    s = mpf_get_str(NULL, &exp, 10, 40, dd);
+    G_debug(0, "    dd = %sE%d", (s[0]==0)?"0":s, exp);
+    G_debug(0, "    d = %.18E", d);
+    
+    if (sgn_d != 0) {
+        G_debug(0, "    general position");
+
+        det22(dda, bx1, ax1, bx1, bx2, by1, ay1, by1, by2);
+        det22(ddb, ax2, ax1, bx1, ax1, ay2, ay1, by1, ay1);
+        sgn_da = mpf_sgn(dda);
+        sgn_db = mpf_sgn(ddb);
+        
+        ra = da/d;
+        rb = db/d;
+        mpf_div(rra, dda, dd);
+        mpf_div(rrb, ddb, dd);
+
+        s = mpf_get_str(NULL, &exp, 10, 40, rra);
+        G_debug(0, "        rra = %sE%d", (s[0]==0)?"0":s, exp);
+        G_debug(0, "        ra = %.18E", ra);
+        s = mpf_get_str(NULL, &exp, 10, 40, rrb);
+        G_debug(0, "        rrb = %sE%d", (s[0]==0)?"0":s, exp);
+        G_debug(0, "        rb = %.18E", rb);
+        
+        if (sgn_d > 0) {
+            if ((sgn_da < 0) || (mpf_cmp(dda, dd) > 0)) {
+                G_debug(3, "        no intersection");
+                return 0;
+            }
+            
+            if ((sgn_db < 0) || (mpf_cmp(ddb, dd) > 0)) {
+                G_debug(3, "        no intersection");
+                return 0;
+            }
+        }
+        else { /* if sgn_d < 0 */
+            if ((sgn_da > 0) || (mpf_cmp(dda, dd) < 0)) {
+                G_debug(3, "        no intersection");
+                return 0;
+            }
+            
+            if ((sgn_db > 0) || (mpf_cmp(ddb, dd) < 0)) {
+                G_debug(3, "        no intersection");
+                return 0;
+            }
+        }
+
+        mpf_set_d(delta, ax2 - ax1);
+        mpf_mul(t1, dda, delta);
+        mpf_div(t2, t1, dd);
+        *x1 = ax1 + mpf_get_d(t2);
+        
+        mpf_set_d(delta, ay2 - ay1);
+        mpf_mul(t1, dda, delta);
+        mpf_div(t2, t1, dd);
+        *y1 = ay1 + mpf_get_d(t2);
+
+        G_debug(0, "        intersection at:");
+        G_debug(0, "            xx = %.18e", *x1);
+        G_debug(0, "             x = %.18e", ax1 + ra*(ax2-ax1));
+        G_debug(0, "            yy = %.18e", *y1);
+        G_debug(0, "             y = %.18e", ay1 + ra*(ay2-ay1));
+        return 1;
+    }
+    
+    G_debug(0, "    parallel/collinear...");
+    return -1;
 }

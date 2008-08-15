@@ -183,7 +183,7 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
     double *x, *y;
     double x1, y1, x2, y2;
     int res, res2;
-    double x1_, y1_, x2_, y2_;
+    double x1_, y1_, x2_, y2_, z1_, z2_;
     struct seg_intersections *si;
     struct seg_intersection_list *il;
     struct intersection_point **sorted;
@@ -204,11 +204,12 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
         for (j = i+1; j < np-1; j++) {
             G_debug(3, "        checking %d-%d %d-%d", i, i+1, j, j+1);
             res = segment_intersection_2d_e(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1, &y1, &x2, &y2);
-/*            res = segment_intersection_2d(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1, &y1, &x2, &y2, EPSILON);*/
-/*            res2 = segment_intersection_2d_e(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1_, &y1_, &x2_, &y2_);
-            if (res != res2) {
-                G_debug(0, "res=%d res2=%d", res, res2);
-            }*/
+            /*res2 = segment_intersection_2d(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1_, &y1_, &x2_, &y2_, EPSILON);*/
+            res2 = Vect_segment_intersection(x[i], y[i], 0, x[i+1], y[i+1], 0, x[j], y[j], 0, x[j+1], y[j+1], 0, &x1_, &y1_, &z1_, &x2_, &y2_, &z2_, 0);
+            if ((res != res2) /*|| ((res != 0) && (x1!=x1_ || y1!=y1_))*/ ) {
+                G_debug(0, "exact=%d orig=%d", res, res2);
+                segment_intersection_2d_test(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1, &y1, &x2, &y2);
+            }
             
             G_debug(3, "        intersection type = %d", res);
             if (res == 1) {

@@ -156,7 +156,7 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     double phi1, phi2, delta_phi;
     double nsegments, angular_tol, angular_step;
     double cosa, sina, r;
-    int inner_corner, turns180;
+    int inner_corner, turns360;
     
     G_debug(4, "parallel_line()");
     
@@ -219,10 +219,10 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
         else if (delta_phi <= -PI)
             delta_phi += 2*PI;
         /* now delta_phi is in [-pi;pi] */
-        turns180 = (fabs(fabs(delta_phi) - PI) < 1e-15);
-        inner_corner = (side*delta_phi <= 0) && (!turns180);
+        turns360 = (fabs(fabs(delta_phi) - PI) < 1e-15);
+        inner_corner = (side*delta_phi <= 0) && (!turns360);
         
-        if ((turns180) && (!(caps && round))) {
+        if ((turns360) && (!(caps && round))) {
             if (caps) {
                 norm_vector(0, 0, vx, vy, &tx, &ty);
                 elliptic_tangent(side*tx, side*ty, da, db, dalpha, &tx, &ty);
@@ -305,7 +305,7 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
     double nsegments, angular_tol, angular_step;
     double cosa, sina, r;
     double angle0, angle1;
-    int inner_corner, turns180;
+    int inner_corner, turns360;
     
     G_debug(4, "convolution_line()");
 
@@ -371,12 +371,12 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
         else if (delta_phi <= -PI)
             delta_phi += 2*PI;
         /* now delta_phi is in [-pi;pi] */
-        turns180 = (fabs(fabs(delta_phi) - PI) < 1e-15);
-        inner_corner = (side*delta_phi <= 0) && (!turns180);
+        turns360 = (fabs(fabs(delta_phi) - PI) < 1e-15);
+        inner_corner = (side*delta_phi <= 0) && (!turns360);
 
         
-        /* if <line turns 180> and (<caps> and <not round>) */
-        if (turns180 && caps && (!round)) {
+        /* if <line turns 360> and (<caps> and <not round>) */
+        if (turns360 && caps && (!round)) {
             norm_vector(0, 0, vx, vy, &tx, &ty);
             elliptic_tangent(side*tx, side*ty, da, db, dalpha, &tx, &ty);
             Vect_append_point(nPoints, x[i] + wx + tx, y[i] + wy + ty, 0);
@@ -385,17 +385,20 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
             G_debug(4, " append point (c) x=%.16f y=%.16f", nx + tx, ny + ty);
         }
         
-        if ((!turns180) && (!round) && (!inner_corner)) {
+        if ((!turns360) && (!round) && (!inner_corner)) {
             res = line_intersection(a0, b0, c0, a1, b1, c1, &rx, &ry);
             if (res == 1) {
                 Vect_append_point(nPoints, rx, ry, 0);
                 G_debug(4, " append point (o) x=%.16f y=%.16f", rx, ry);
             }
+            else if (res == 2) {
+                /* no need to append point in this case */
+            }
             else
-                G_fatal_error("unexpected result of line_intersection()");
+                G_fatal_error("unexpected result of line_intersection() res = %d", res);
         }
         
-        if (round && (!inner_corner)) {
+        if (round && (!inner_corner) && (!turns360 || caps)) {
             /* we should draw elliptical arc for outside corner */
             
             /* inverse transforms */
