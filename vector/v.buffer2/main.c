@@ -192,6 +192,7 @@ int main (int argc, char *argv[])
         exit(EXIT_FAILURE);
     
     type = Vect_option_to_types ( type_opt );
+    G_message("type = %x", type);
     field = atoi( field_opt->answer );
     
     if ((dista_opt->answer && bufcol_opt->answer) || (!(dista_opt->answer || bufcol_opt->answer)))
@@ -309,7 +310,7 @@ int main (int argc, char *argv[])
             G_percent(line, nlines, 2);
 
             ltype = Vect_read_line(&In, Points, Cats, line);
-            if (!(ltype & type ))
+            if (!(ltype & type))
                 continue;
 
             if (!Vect_cat_get(Cats, field, &cat))
@@ -339,14 +340,23 @@ int main (int argc, char *argv[])
                 G_debug(2, _("The tolerance in map units: %g"), unit_tolerance);
             }
             
-            Vect_line_buffer2(Points, da, db, dalpha, !(straight_flag->answer), !(nocaps_flag->answer), unit_tolerance, &(arr_bc[buffers_count].oPoints), &(arr_bc[buffers_count].iPoints), &(arr_bc[buffers_count].inner_count));
-            buffers_count++;
+            if (ltype & GV_POINTS) {
+                Vect_point_buffer2(Points->x[0], Points->y[0], da, db, dalpha, !(straight_flag->answer), unit_tolerance, &(arr_bc[buffers_count].oPoints));
+                arr_bc[buffers_count].iPoints = NULL;
+                arr_bc[buffers_count].inner_count = 0;
+                buffers_count++;
+                    
+            }
+            else {
+                Vect_line_buffer2(Points, da, db, dalpha, !(straight_flag->answer), !(nocaps_flag->answer), unit_tolerance, &(arr_bc[buffers_count].oPoints), &(arr_bc[buffers_count].iPoints), &(arr_bc[buffers_count].inner_count));
+                buffers_count++;
+            }
         }
     }
 
     /* Areas */
     if (type & GV_AREA) {
-        int centroid, nisles, isle;
+        int centroid;
         
         G_message ( _("Areas buffers... "));
         for (area = 1; area <= nareas; area++) {
@@ -402,14 +412,14 @@ int main (int argc, char *argv[])
     G_message (_("Building parts of topology...") );
     Vect_build_partial(&Out, GV_BUILD_BASE, stderr);
 
-/*    G_message(_("Snapping boundaries...") );
-    Vect_snap_lines ( &Out, GV_BOUNDARY, 1e-7, NULL, stderr );*/
+    G_message(_("Snapping boundaries...") );
+    Vect_snap_lines ( &Out, GV_BOUNDARY, 1e-7, NULL, stderr );
 
     G_message(_( "Breaking boundaries...") );
     Vect_break_lines ( &Out, GV_BOUNDARY, NULL, stderr );
 
-/*    G_message(_( "Removing duplicates...") );
-    Vect_remove_duplicates ( &Out, GV_BOUNDARY, NULL, stderr );*/
+    G_message(_( "Removing duplicates...") );
+    Vect_remove_duplicates ( &Out, GV_BOUNDARY, NULL, stderr );
 
     /* Dangles and bridges don't seem to be necessary if snapping is small enough. */
     /*

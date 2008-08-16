@@ -24,19 +24,21 @@
 #define NON_LOOPED_LINE 0
 
 /* norm_vector() calculates normalized vector form two points */
-static void norm_vector(double x1, double y1, double x2, double y2, double *x, double *y )
-{
+static void norm_vector(double x1, double y1, double x2, double y2, double *x, double *y) {
     double dx, dy, l;
     dx  = x2 - x1;
     dy  = y2 - y1;
-    l = LENGTH(dx, dy);
-    if (l == 0) {
+    if ((dx == 0) && (dy == 0)) {
         /* assume that dx == dy == 0, which should give (NaN,NaN) */
         /* without this, very small dx or dy could result in Infinity */
-        dx = dy = 0;
+        *x = 0;
+        *y = 0;
+        return;
     }
+    l = LENGTH(dx, dy);
     *x = dx/l;
     *y = dy/l;
+    return;
 }
 
 static void rotate_vector(double x, double y, double cosa, double sina, double *nx, double *ny) {
@@ -197,6 +199,9 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
         
         
         norm_vector(x[i], y[i], x[i+1], y[i+1], &tx, &ty);
+        if ((tx == 0) && (ty == 0))
+            continue;
+        
         elliptic_tangent(side*tx, side*ty, da, db, dalpha, &vx, &vy);
         
         nx = x[i] + vx;
@@ -307,7 +312,8 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
     double angle0, angle1;
     int inner_corner, turns360;
     
-    G_debug(4, "convolution_line()");
+    G_debug(3, "convolution_line()");
+    G_debug(3, "    side = %d", side);
 
     np = Points->n_points;
     x = Points->x;
@@ -355,6 +361,8 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
         angle0 = angle1;
         
         norm_vector(x[i], y[i], x[i+1], y[i+1], &tx, &ty);
+        if ((tx == 0) && (ty == 0))
+            continue;
         elliptic_tangent(side*tx, side*ty, da, db, dalpha, &vx, &vy);
         angle1 = atan2(ty, tx);
         nx = x[i] + vx;
@@ -732,7 +740,7 @@ int get_polygon_orientation(const double *x, const double *y, int n) {
 
         area += (y2+y1)*(x2-x1);
     }
-    return signbit(area);
+    return !signbit(area);
 }
 
 /* internal */
@@ -954,7 +962,7 @@ void Vect_area_buffer2(struct Map_info *Map, int area, double da, double db, dou
 }
 
 /*!
-  \fn void Vect_point_buffer(double px, double py, double da, double db, double dalpha, int round, double tol, struct line_pnts *nPoints) {
+  \fn void Vect_point_buffer(double px, double py, double da, double db, double dalpha, int round, double tol, struct line_pnts **oPoints) {
   \brief Creates buffer around the point (px,py).
   \param px input point x-coordinate
   \param py input point y-coordinate
@@ -965,12 +973,12 @@ void Vect_area_buffer2(struct Map_info *Map, int area, double da, double db, dou
   \param tol maximum distance between theoretical arc and output segments
   \param nPoints output polygon outer border (ccw order)
 */
-void Vect_point_buffer2(double px, double py, double da, double db, double dalpha, int round, double tol, struct line_pnts *nPoints) {
+void Vect_point_buffer2(double px, double py, double da, double db, double dalpha, int round, double tol, struct line_pnts **oPoints) {
     double tx, ty;
     double angular_tol, angular_step, phi1;
     int j, nsegments;
     
-    Vect_reset_line(nPoints);
+    *oPoints = Vect_new_line_struct();
     
     dalpha *= PI/180; /* convert dalpha from degrees to radians */
 
@@ -983,7 +991,7 @@ void Vect_point_buffer2(double px, double py, double da, double db, double dalph
         phi1 = 0;
         for (j = 0; j < nsegments; j++) {
             elliptic_transform(cos(phi1), sin(phi1), da, db, dalpha, &tx, &ty);
-            Vect_append_point(nPoints, px + tx, py + ty, 0);
+            Vect_append_point(*oPoints, px + tx, py + ty, 0);
             phi1 += angular_step;
         }
     }
@@ -992,7 +1000,7 @@ void Vect_point_buffer2(double px, double py, double da, double db, double dalph
     }
     
     /* close the output line */
-    Vect_append_point(nPoints, nPoints->x[0], nPoints->y[0], nPoints->z[0]);    
+    Vect_append_point(*oPoints, (*oPoints)->x[0], (*oPoints)->y[0], (*oPoints)->z[0]);    
 }
 
 
