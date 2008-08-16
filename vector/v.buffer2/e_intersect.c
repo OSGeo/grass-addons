@@ -1,11 +1,15 @@
 #include <stdlib.h>
 #include <math.h>
 #include <grass/gis.h>
-#include <gmp.h>
 #include "e_intersect.h"
 
 #define SWAP(a,b) {t = a; a = b; b = t;}
+#define D (ax2-ax1)*(by1-by2) - (ay2-ay1)*(bx1-bx2)
+#define DA (bx1-ax1)*(by1-by2) - (by1-ay1)*(bx1-bx2)
+#define DB (ax2-ax1)*(by1-ay1) - (ay2-ay1)*(bx1-ax1)
 
+
+#ifdef ASDASDASFDSAFFDAS
 mpf_t p11, p12, p21, p22, t1, t2;
 mpf_t dd, dda, ddb, delta;
 mpf_t rra, rrb;
@@ -290,10 +294,12 @@ int segment_intersection_2d_e(double ax1, double ay1, double ax2, double ay2, do
 
     return 0;
 }
+#endif
 
+/* OLD */
 /* tollerance aware version */
 /* TODO: fix all ==s left */
-int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2,
+int segment_intersection_2d_tol(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2,
     double *x1, double *y1, double *x2, double *y2, double tol)
 {
     double tola, tolb;
@@ -547,6 +553,213 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
     return 0;
 }
 
+int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2,
+    double *x1, double *y1, double *x2, double *y2)
+{
+    double t;
+    double max_ax, min_ax, max_ay, min_ay;
+    double max_bx, min_bx, max_by, min_by;
+    int vertical;
+    int f11, f12, f21, f22;
+    double d, da, db;
+    
+    /* TODO: Works for points ? */
+    G_debug(3, "segment_intersection_2d()"); 
+    G_debug(4, "    ax1  = %.18f, ay1  = %.18f", ax1, ay1);
+    G_debug(4, "    ax2  = %.18f, ay2  = %.18f", ax2, ay2);
+    G_debug(4, "    bx1  = %.18f, by1  = %.18f", bx1, by1);
+    G_debug(4, "    bx2  = %.18f, by2  = %.18f", bx2, by2);
+
+    f11 = ((ax1 == bx1) && (ay1 == by1));
+    f12 = ((ax1 == bx2) && (ay1 == by2));
+    f21 = ((ax2 == bx1) && (ay2 == by1));
+    f22 = ((ax2 == bx2) && (ay2 == by2));
+    
+    /* Check for identical segments */
+    if ((f11 && f22) || (f12 && f21)) {
+        G_debug (3, "    identical segments" );
+        *x1 = ax1; *y1 = ay1;
+        *x2 = ax2; *y2 = ay2;
+        return 5;
+    }
+    /* Check for identical endpoints */
+    if (f11 || f12) {
+        G_debug (3, "    connected by endpoints" );
+        *x1 = ax1; *y1 = ay1;
+        return 1;
+    }
+    if (f21 || f22) {
+        G_debug (3, "    connected by endpoints" );
+        *x1 = ax2; *y1 = ay2;
+        return 1;
+    }
+
+    if ((fmax(ax1, ax2) < fmin(bx1, bx2)) || (fmax(bx1, bx2) < fmin(ax1, ax2))) {
+        G_debug(3, "    no intersection (disjoint bounding boxes)");
+        return 0;
+    }
+    if ((fmax(ay1, ay2) < fmin(by1, by2)) || (fmax(by1, by2) < fmin(ay1, ay2))) {
+        G_debug(3, "    no intersection (disjoint bounding boxes)");
+        return 0;
+    }
+        
+    d  = D;
+    if (d != 0) {
+        G_debug(3, "    general position");
+
+        da = DA;
+        
+        /*mpf_div(rra, dda, dd);
+        mpf_div(rrb, ddb, dd);
+        s = mpf_get_str(NULL, &exp, 10, 40, rra);
+        G_debug(4, "        ra = %sE%d", (s[0]==0)?"0":s, exp);
+        s = mpf_get_str(NULL, &exp, 10, 24, rrb);
+        G_debug(4, "        rb = %sE%d", (s[0]==0)?"0":s, exp);
+        */
+        
+        if (d > 0) {
+            if ((da < 0) || (da > d)) {
+                G_debug(3, "        no intersection");
+                return 0;
+            }
+            
+            db = DB;
+            if ((db < 0) || (db > d)) {
+                G_debug(3, "        no intersection");
+                return 0;
+            }
+        }
+        else { /* if d < 0 */
+            if ((da > 0) || (da < d)) {
+                G_debug(3, "        no intersection");
+                return 0;
+            }
+            
+            db = DB;
+            if ((db > 0) || (db < d)) {
+                G_debug(3, "        no intersection");
+                return 0;
+            }
+        }
+
+        /*G_debug(3, "        ra=%.17g rb=%.17g", mpf_get_d(dda)/mpf_get_d(dd), mpf_get_d(ddb)/mpf_get_d(dd));*/
+        /*G_debug(3, "        sgn_d=%d sgn_da=%d sgn_db=%d cmp(dda,dd)=%d cmp(ddb,dd)=%d", sgn_d, sgn_da, sgn_db, mpf_cmp(dda, dd), mpf_cmp(ddb, dd));*/
+    
+        *x1 = ax1 + (ax2 - ax1)*da/d;
+        *y1 = ay1 + (ay2 - ay1)*da/d;
+        
+        G_debug(3, "        intersection %.16g, %.16g", *x1, *y1);
+        return 1;
+    }
+    
+    /* segments are parallel or collinear */
+    da = DA;
+    db = DB;
+    if ((da != 0) || (db != 0)) {
+        /* segments are parallel */
+        G_debug(3, "    parallel segments");
+        return 0;
+    }
+    
+    /* segments are colinear. check for overlap */
+    
+    /* swap endpoints if needed */
+    /* if segments are vertical, we swap x-coords with y-coords */  
+    vertical = 0;
+    if (ax1 > ax2) {
+        SWAP(ax1, ax2);
+        SWAP(ay1, ay2);
+    } else if (ax1 == ax2) {
+        vertical = 1;
+        if (ay1 > ay2)
+            SWAP(ay1, ay2);
+        SWAP(ax1, ay1);
+        SWAP(ax2, ay2);
+    }
+    if (bx1 > bx2) {
+        SWAP(bx1, bx2);
+        SWAP(by1, by2);
+    } else if (bx1 == bx2) {
+        if (by1 > by2)
+            SWAP(by1, by2);
+        SWAP(bx1, by1);
+        SWAP(bx2, by2);
+    }
+    
+    G_debug(3, "    collinear segments");
+
+    if ((bx2 < ax1) || (bx1 > ax2)) {
+        G_debug(3, "        no intersection");
+        return 0;
+    }
+
+    /* there is overlap or connected end points */
+    G_debug(3, "        overlap");
+    
+    /* a contains b */
+    if ((ax1 < bx1) && (ax2 > bx2)) {
+        G_debug(3, "            a contains b");
+        if (!vertical) {
+            *x1 = bx1; *y1 = by1;
+            *x2 = bx2; *y2 = by2;
+        }
+        else {
+            *x1 = by1; *y1 = bx1;
+            *x2 = by2; *y2 = bx2;
+        }
+  	    return 3;
+    }
+    
+    /* b contains a */
+    if ((ax1 > bx1) && (ax2 < bx2)) {
+        G_debug(3, "            b contains a");
+        if (!vertical) {
+            *x1 = bx1; *y1 = by1;
+            *x2 = bx2; *y2 = by2;
+        }
+        else {
+            *x1 = by1; *y1 = bx1;
+            *x2 = by2; *y2 = bx2;
+        }
+  	    return 4;
+    }   
+    
+    /* general overlap, 2 intersection points */
+    G_debug(3, "        partial overlap");
+    if ((bx1 > ax1) && (bx1 < ax2)) { /* b1 is in a */
+        if (!vertical) {
+            *x1 = bx1; *y1 = by1;
+            *x2 = ax2; *y2 = ay2;
+        }
+        else {
+            *x1 = by1; *y1 = bx1;
+            *x2 = ay2; *y2 = ax2;
+        }
+  	    return 2;
+    }
+    if ((bx2 > ax1) && (bx2 < ax2)) { /* b2 is in a */
+        if (!vertical) {
+            *x1 = bx2; *y1 = by2;
+            *x2 = ax1; *y2 = ay1;
+        }
+        else {
+            *x1 = by2; *y1 = bx2;
+            *x2 = ay1; *y2 = ax1;
+        }
+  	    return 2;
+    } 
+
+    /* should not be reached */
+    G_warning(("segment_intersection_2d() ERROR (should not be reached)"));
+    G_warning("%.16g %.16g", ax1, ay1);
+    G_warning("%.16g %.16g", ax2, ay2);
+    G_warning("x");
+    G_warning("%.16g %.16g", bx1, by1);
+    G_warning("%.16g %.16g", bx2, by2);
+
+    return 0;
+}
+
 #define N 52 /* double's mantisa size in bits */
 /* a and b are different in at most <bits> significant digits */
 int almost_equal(double a, double b, int bits) {
@@ -568,6 +781,7 @@ int almost_equal(double a, double b, int bits) {
     return (e < ea-N+bits);
 }
 
+#ifdef ASDASDFASFEAS
 int segment_intersection_2d_test(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2, double *x1, double *y1, double *x2, double *y2) {
     double t;
     double max_ax, min_ax, max_ay, min_ay;
@@ -696,3 +910,4 @@ int segment_intersection_2d_test(double ax1, double ay1, double ax2, double ay2,
     G_debug(0, "    parallel/collinear...");
     return -1;
 }
+#endif
