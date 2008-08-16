@@ -740,7 +740,7 @@ int get_polygon_orientation(const double *x, const double *y, int n) {
 
         area += (y2+y1)*(x2-x1);
     }
-    return !signbit(area);
+    return (area > 0);
 }
 
 /* internal */
