@@ -1,11 +1,11 @@
 /****************************************************************************
  *
  * MODULE:       i.albedo
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculate Broadband Albedo (0.3-3 Micrometers)
  *               from Surface Reflectance (Modis, AVHRR, Landsat, Aster).
  *
- * COPYRIGHT:    (C) 2004-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2004-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU Lesser General Public
  *   	    	 License. Read the file COPYING that comes with GRASS for details.
@@ -29,8 +29,8 @@ double bb_alb_modis( double redchan, double nirchan, double chan3, double chan4,
 int
 main(int argc, char *argv[])
 {
-	struct Cell_head cellhd;//region+header info
-	char *mapset; //mapset name
+	struct Cell_head cellhd;/*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -39,13 +39,13 @@ main(int argc, char *argv[])
 	
 	struct Flag *flag1, *flag2, *flag3;
 	struct Flag *flag4, *flag5, *flag6;
-	struct History history; //metadata
-	struct Colors colors; //Color rules
+	struct History history; /*metadata*/
+	struct Colors colors; /*Color rules*/
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name; //input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name; /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int nfiles;
 	int infd[MAXFILES];
 	int outfd;
@@ -63,10 +63,6 @@ main(int argc, char *argv[])
 	int data_format; /* 0=double  1=float  2=32bit signed int  5=8bit unsigned int (ie text) */
 	RASTER_MAP_TYPE in_data_type[MAXFILES]; /* 0=numbers  1=text */
 	RASTER_MAP_TYPE out_data_type = DCELL_TYPE;
-
-	char *fileName;
-#define fileNameLe 8
-#define fileNamePosition 3
 
 	/************************************/
 	/************************************/
@@ -353,7 +349,7 @@ main(int argc, char *argv[])
 			b=0.05-a*(i_bottom1a/100.0);
 			G_message("a= %f\tb= %f\n",a,b);
 		}
-	}//END OF FLAG1
+	}/*END OF FLAG1*/
 	/* End of processing histogram*/
 	/*******************/
 	/* Process pixels */
@@ -397,7 +393,7 @@ main(int argc, char *argv[])
 				de = bb_alb_aster(d[1],d[2],d[3],d[4],d[5],d[6]);
 			}
 			if(flag5->answer||flag6->answer){
-				// Post-Process Albedo
+				/* Post-Process Albedo */
 				de	= a*de+b;
 			}
 			((DCELL *) outrast)[col] = de;

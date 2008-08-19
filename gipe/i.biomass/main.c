@@ -1,11 +1,11 @@
 /****************************************************************************
  *
  * MODULE:       i.biomass
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Creates a map of biomass growth
  *               
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -24,8 +24,8 @@ double biomass( double apar, double solar_day, double evap_fr, double light_use_
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -34,14 +34,14 @@ int main(int argc, char *argv[])
 	struct Option *output1;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	struct Colors colors;
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1,*result2; //output raster name
-	//File Descriptors
+	char *name;   /* input raster name*/
+	char *result1,*result2; /*output raster name*/
+	/*File Descriptors*/
 	int infd_fpar, infd_lightuseff, infd_lat, infd_doy, infd_tsw, infd_wat_avail;
 	int outfd1;
 	
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_fpar, *inrast_lightuseff, *inrast_lat, *inrast_doy, *inrast_tsw, *inrast_wat_avail;
-	unsigned char *outrast1;
+	DCELL *outrast1;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_fpar;
 	RASTER_MAP_TYPE data_type_lightuseff;
@@ -215,28 +215,83 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-			d_fpar = ((DCELL *) inrast_fpar)[col];
-			d_lightuseff = ((DCELL *) inrast_lightuseff)[col];
-			d_lat = ((DCELL *) inrast_lat)[col];
-			d_doy = ((DCELL *) inrast_doy)[col];
-			d_tsw = ((DCELL *) inrast_tsw)[col];
-			d_wat_avail = ((DCELL *) inrast_wat_avail)[col];
-			if(G_is_d_null_value(&d_fpar)){
-				((DCELL *) outrast1)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_lightuseff)){
-				((DCELL *) outrast1)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_lat)){
-				((DCELL *) outrast1)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_doy)){
-				((DCELL *) outrast1)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_tsw)){
-				((DCELL *) outrast1)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_wat_avail)){
-				((DCELL *) outrast1)[col] = -999.99;
+			switch(data_type_fpar){
+				case CELL_TYPE:
+					d_fpar = (double) ((CELL *) inrast_fpar)[col];
+					break;
+				case FCELL_TYPE:
+					d_fpar = (double) ((FCELL *) inrast_fpar)[col];
+					break;
+				case DCELL_TYPE:
+					d_fpar = ((DCELL *) inrast_fpar)[col];
+					break;
+			}
+			switch(data_type_lightuseff){
+				case CELL_TYPE:
+					d_lightuseff = (double) ((CELL *) inrast_lightuseff)[col];
+					break;
+				case FCELL_TYPE:
+					d_lightuseff= (double) ((FCELL *) inrast_lightuseff)[col];
+					break;
+				case DCELL_TYPE:
+					d_lightuseff = ((DCELL *) inrast_lightuseff)[col];
+					break;
+			}
+			switch(data_type_lat){
+				case CELL_TYPE:
+					d_lat = (double) ((CELL *) inrast_lat)[col];
+					break;
+				case FCELL_TYPE:
+					d_lat = (double) ((FCELL *) inrast_lat)[col];
+					break;
+				case DCELL_TYPE:
+					d_lat = ((DCELL *) inrast_lat)[col];
+					break;
+			}
+			switch(data_type_doy){
+				case CELL_TYPE:
+					d_doy = (double) ((CELL *) inrast_doy)[col];
+					break;
+				case FCELL_TYPE:
+					d_doy = (double) ((FCELL *) inrast_doy)[col];
+					break;
+				case DCELL_TYPE:
+					d_doy = ((DCELL *) inrast_doy)[col];
+					break;
+			}
+			switch(data_type_tsw){
+				case CELL_TYPE:
+					d_tsw = (double) ((CELL *) inrast_tsw)[col];
+					break;
+				case FCELL_TYPE:
+					d_tsw = (double) ((FCELL *) inrast_tsw)[col];
+					break;
+				case DCELL_TYPE:
+					d_tsw = ((DCELL *) inrast_tsw)[col];
+					break;
+			}
+			switch(data_type_wat_avail){
+				case CELL_TYPE:
+					d_wat_avail = (double) ((CELL *) inrast_wat_avail)[col];
+					break;
+				case FCELL_TYPE:
+					d_wat_avail = (double) ((FCELL *) inrast_wat_avail)[col];
+					break;
+				case DCELL_TYPE:
+					d_wat_avail = ((DCELL *) inrast_wat_avail)[col];
+					break;
+			}
+			if(G_is_d_null_value(&d_fpar)||
+			G_is_d_null_value(&d_lightuseff)||
+			G_is_d_null_value(&d_lat)||
+			G_is_d_null_value(&d_doy)||
+			G_is_d_null_value(&d_tsw)||
+			G_is_d_null_value(&d_wat_avail)){
+				G_set_d_null_value(&outrast1[col],1);
 			}else {
 				d_solar = solar_day(d_lat, d_doy, d_tsw );
 				d = biomass(d_fpar,d_solar,d_wat_avail,d_lightuseff);
-				((DCELL *) outrast1)[col] = d;
+				outrast1[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)

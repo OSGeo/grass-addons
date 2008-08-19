@@ -46,32 +46,34 @@ double ga_ri( double redchan, double nirchan, double bluechan, double greenchan 
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	char *viflag;// Switch for particular index
+	char *viflag;/*Switch for particular index*/
 	
 	struct GModule *module;
 	struct Option *input1, *input2,*input3,*input4,*input5,*input6,*input7, *output;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
-	struct Colors colors; //Color rules	
+	struct History history; /*metadata*/
+	struct Colors colors; /*Color rules*/	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
-	int infd_redchan, infd_nirchan, infd_greenchan, infd_bluechan, infd_chan5chan, infd_chan7chan;
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
+	int infd_redchan, infd_nirchan, infd_greenchan;
+	int infd_bluechan, infd_chan5chan, infd_chan7chan;
 	int outfd;
 	
 	char  *bluechan, *greenchan,*redchan, *nirchan, *chan5chan, *chan7chan;
 	
 	int i=0,j=0;
 	
-	void *inrast_redchan, *inrast_nirchan, *inrast_greenchan, *inrast_bluechan, *inrast_chan5chan, *inrast_chan7chan;
+	void *inrast_redchan, *inrast_nirchan, *inrast_greenchan;
+	void *inrast_bluechan, *inrast_chan5chan, *inrast_chan7chan;
 	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_redchan;
@@ -97,59 +99,39 @@ int main(int argc, char *argv[])
 	input1->description=_("Name of VI: sr,ndvi,ipvi,dvi,evi,pvi,wdvi,savi,msavi,msavi2,gemi,arvi,gvi,gari.");
 	input1->answer     =_("ndvi");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key	   = _("red");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster") ;
 	input2->description=_("Name of the RED Channel surface reflectance map [0.0;1.0]");
 	input2->answer     =_("redchan");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("nir");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the NIR Channel surface reflectance map [0.0;1.0]");
 	input3->answer     =_("nirchan");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("green");
-	input4->type       = TYPE_STRING;
 	input4->required   = NO;
-	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the GREEN Channel surface reflectance map [0.0;1.0]");
-//	input4->answer     =_("greenchan");
 
-	input5 = G_define_option() ;
+	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("blue");
-	input5->type       = TYPE_STRING;
 	input5->required   = NO;
-	input5->gisprompt  =_("old,cell,raster");
 	input5->description=_("Name of the BLUE Channel surface reflectance map [0.0;1.0]");
-//	input5->answer     =_("bluechan");
 
-	input6 = G_define_option() ;
+	input6 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input6->key        =_("chan5");
-	input6->type       = TYPE_STRING;
 	input6->required   = NO;
-	input6->gisprompt  =_("old,cell,raster");
 	input6->description=_("Name of the CHAN5 Channel surface reflectance map [0.0;1.0]");
-//	input6->answer     =_("chan5chan");
 
-	input7 = G_define_option() ;
+	input7 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input7->key        =_("chan7");
-	input7->type       = TYPE_STRING;
 	input7->required   = NO;
-	input7->gisprompt  =_("old,cell,raster");
 	input7->description=_("Name of the CHAN7 Channel surface reflectance map [0.0;1.0]");
-//	input7->answer     =_("chan7chan");
 
-	output= G_define_option() ;
+	output= G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key        =_("vi");
-	output->type       = TYPE_STRING;
 	output->required   = YES;
-	output->gisprompt  =_("new,cell,raster");
 	output->description=_("Name of the output vi layer");
 	output->answer     =_("vi");
 
@@ -259,7 +241,6 @@ int main(int argc, char *argv[])
 		DCELL d_chan5chan;
 		DCELL d_chan7chan;
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
 		if(G_get_raster_row(infd_redchan,inrast_redchan,row,data_type_redchan)<0)
 			G_fatal_error(_("Could not read from <%s>"),redchan);
 		if(G_get_raster_row(infd_nirchan,inrast_nirchan,row,data_type_nirchan)<0)
@@ -357,8 +338,6 @@ int main(int argc, char *argv[])
 						break;
 				}
 			}
-			//	printf("col=%i/%i ",col,ncols);
-		// to change to multiple to output files.
 			if(G_is_d_null_value(&d_redchan)||
 			G_is_d_null_value(&d_nirchan)||
 			((greenchan)&&G_is_d_null_value(&d_greenchan))||
