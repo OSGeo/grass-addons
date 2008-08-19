@@ -1,0 +1,63 @@
+GIPE Modules list
+-----------------
+Yann Chemin, 2008 August 20th, Los Banos, The Philippines.
+----------------------------------------------------------
+Those modules are getting installed when you run the script: install_yanns_grass.sh
+(works in WinGRASS and Linux)
+
+All modules (except 2: r.gaswap.serial and i.evapo.TSA) are having GUI menu places integrated inside the GRASS Interfaces (works in both tcltk and wxpython), i.* in imagery menu and r.* in raster menu.
+
+
+Imagery modules
+---------------
+i.albedo:	Calculates Albedo form reflectance bands of Modis/AVHRR/Landsat/Aster
+i.atcorr:	(ported from GRASS 5.x, now in Main SVN) Atmospheric correction
+i.biomass:	Calculates biomass growth of a plant/crop
+i.dn2full.l5:	imports DN into radiance or reflectance/temperature for Landsat 5
+i.dn.full.l7:	imports DN into radiance or reflectance/temperature for Landsat 7 
+i.dn2potrad.l5: Calculates potential Evapotranspiration from Landsat 5 DN directly
+i.dn2potrad.l7: Calculates potential Evapotranspiration from Landsat 7 DN directly
+i.dn2ref.ast:	imports DN into radiance or reflectance for Terra-ASTER (not temperature)
+i.dn2ref.l7:	imports DN into radiance or reflectance for Landsat 7 (not temperature)
+
+i.eb.deltat:	Energy-Balance: Calculates a generic Soil to Air temperature difference
+i.eb.disp:	Energy-Balance: Calculates the displacement height above canopy
+i.eb.eta:	Energy-Balance: Calculates the Actual Evapotranspiration
+i.eb.evapfr:	Energy-Balance: Calculates the Evaporative Fraction (and soil moisture)
+i.eb.g0:	Energy-Balance: Calculates the Soil Heat Flux
+i.eb.h0:	Energy-Balance: Calculates the Sensible Heat Flux
+i.eb.h_iter:	Energy-Balance: Calculates the Sensible Heat Flux after Pawan (2004)
+i.eb.h_SEBAL01: Energy-Balance: Calculates the Sensible Heat Flux after SEBAL (small areas)
+i.eb.h_SEBAL95: Energy-Balance: Calculates the Sensible Heat Flux after SEBAL 1995
+i.eb.molength:	Energy-Balance: Calculates the Monin-Obukov Length
+i.eb.netrad:	Energy-Balance: Calculates the Net Radiation
+i.eb.psi:	Energy-Balance: Calculates the Psichrometric components
+i.eb.rah: 	Energy-Balance: Calculates a aerodynamic resistance to heat momentum
+i.eb.rohair:	Energy-Balance: Calculates the air density
+i.eb.ublend: 	Energy-Balance: Calculates the wind speed at blending height
+i.eb.ustar:	Energy-Balance: Calculates the friction velocity
+i.eb.wetdrypix: Energy-Balance: Calculates two maps showing wet and dry pixels for SEBAL
+i.eb.z0m:	Energy-Balance: Calculates the roughness length (generic from NDVI)
+i.eb.z0m0: 	Energy-Balance: Calculates the roughness length (more for crops)
+
+i.emissivity: 	Calculates the generic emissivity from NDVI
+i.evapo.potrad: Calculates the Potential Evapotranspiration from Astronomical equations
+i.evapo.PT: 	Calculates Priestley and Taylor Potential Evapotranspiration
+i.evapo.SENAY: 	Calculates Actual evapotranspiration after Senay (2007)
+i.evapo.time_integration: Integrates Actual ET over time using daily ETo meteo data
+i.evapo.TSA: 	Unfinished: Calculates Actual Evapotranspiration after Chen et al. (2005)
+i.latitude: 	Calculates latitude by reprojecting without datum transform
+i.lmf: 		Calculates NDVI temporal splinning after Sawada et al. (2001)
+i.longitude: 	Calculates longitude by reprojecting without datum transform
+
+Raster modules
+--------------
+r.evapo.MH: 	Calculates the Evapotranspiration from Hargreaves and modified versions.
+r.evapo.PM:	(from HydroFOSS) Calculates the Evapotranspiration from Penman-Monteith (1972) 
+r.gaswap.serial: RS ETa data assimilation of SWAP agro-hydrological model
+r.hydro.CASC2D:	(ported from GRASS 5.x): hydrological model
+r.out.vic: 	Creates input files to VIC Hydrological model
+r.soiltex2prop: Converts soil texture to porosity, saturated hydraulic conductivity, wetting front suction after Rawls et al (1990)
+r.soilusda2tex: Converts USDA soil classes to soil texture layers (sand, silt, clay)
+r.uslek: 	USLE K factor calculation from soil texture layers
+r.usler: 	USLE R factor calculation (4 methods)
