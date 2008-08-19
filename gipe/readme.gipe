@@ -49,6 +49,15 @@ i.evapo.TSA: 	Unfinished: Calculates Actual Evapotranspiration after Chen et al.
 i.latitude: 	Calculates latitude by reprojecting without datum transform
 i.lmf: 		Calculates NDVI temporal splinning after Sawada et al. (2001)
 i.longitude: 	Calculates longitude by reprojecting without datum transform
+i.qc.modis:	Converts Terra-MODIS Quality Assessment bits to numeric classes
+i.sattime:	Calculates the time of satellite overpass
+i.sunhours:	Calculates potential sunshine hours
+i.vi:		Calculates any of 13 types of vegetation indices
+i.vi.mpi:	Educational version in MPICH for HPC
+i.vi.grid:	Educational version in Ninf/G for grid computing
+i.water:	Identifies water (from Terra-MODIS)
+i.wi:		Calculates a water index
+
 
 Raster modules
 --------------
