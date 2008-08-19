@@ -34,6 +34,7 @@ SUBDIRS = \
 	i.evapo.potrad \
 	i.evapo.PT \
 	i.evapo.SENAY \
+	i.evapo.time_integration \
 	i.evapo.TSA \
 	i.qc.modis \
 	i.latitude \

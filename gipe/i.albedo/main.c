@@ -134,6 +134,13 @@ main(int argc, char *argv[])
 	landsat = (flag3->answer);
 	aster 	= (flag4->answer);
 
+	/***************************************************/
+	if (G_legal_filename (result) < 0)
+	{
+		G_fatal_error (_("[%s] is an illegal name"), result);
+	}
+	/***************************************************/
+	/***************************************************/
 	for (; *ptr != NULL; ptr++)
 	{
 		if (nfiles >= MAXFILES)
@@ -144,11 +151,6 @@ main(int argc, char *argv[])
 	        if (mapset == NULL)
 		{
 			G_fatal_error (_("cell file [%s] not found"), name);
-			ok = 0;
-		}
-		if (G_legal_filename (result) < 0)
-		{
-			G_fatal_error (_("[%s] is an illegal name"), result);
 			ok = 0;
 		}
 		if (!ok){

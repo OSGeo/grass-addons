@@ -1510,6 +1510,11 @@ class Data:
                            _("Actual ET (TSA) NOT WORKING YET"),
                            "self.RunMenuCmd",
                            "i.evapo.TSA"),
+                          ("","","", ""),
+                          (_("Actual ET Time Integration"),
+                           _("Temporal Integration of Actual ET using daily ETo"),
+                           "self.RunMenuCmd",
+                           "i.evapo.time_integration"),
                           )
                          ),
                          (_("Energy Balance"), (
