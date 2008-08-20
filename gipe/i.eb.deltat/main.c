@@ -1,7 +1,7 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.deltat
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the difference of temperature between 2 heights
  *                as seen in Pawan (2004) 
  *                This is a SEBAL initialization parameter for sensible heat. 
@@ -20,13 +20,12 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double delta_t(double tempk);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /* mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -35,13 +34,13 @@ int main(int argc, char *argv[])
 	struct Option *input1, *output1;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result1; /*output raster name*/
+	/*File Descriptors*/
 	int infd_tempk;
 	int outfd1;
 	
@@ -108,7 +107,6 @@ int main(int argc, char *argv[])
 		DCELL d;
 		DCELL d_tempk;
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_tempk,inrast_tempk,row,data_type_tempk)<0)
 			G_fatal_error(_("Could not read from <%s>"),tempk);

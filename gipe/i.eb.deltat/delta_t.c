@@ -1,9 +1,10 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-// Difference of temperature between surface skin and about 2m
-// Initialization parameter of sensible heat flux iteration in SEBAL
-// Found in Pawan (2004)
+/* Difference of temperature between surface skin and about 2m
+ * Initialization parameter of sensible heat flux iteration in SEBAL
+ * Found in Pawan (2004)
+ */
 
 double delta_t(double tempk)
 {
