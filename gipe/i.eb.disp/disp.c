@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<math.h>
 
-// Found in Pawan (2004)
+/* Found in Pawan (2004)*/
 
 double dis_p(double lai)
 {

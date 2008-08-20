@@ -1,7 +1,7 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.disp
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the displacement height above skin surface
  *                as seen in Pawan (2004), a flag makes savi2lai instead of
  *                direct LAI input.
@@ -26,8 +26,8 @@ double savi_lai(double savi);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /* mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -35,13 +35,13 @@ int main(int argc, char *argv[])
 	struct Option *input1, *output1;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result1; /*output raster name*/
+	/*File Descriptors*/
 	int infd_lai;
 	int outfd1;
 	
@@ -106,7 +106,6 @@ int main(int argc, char *argv[])
 		DCELL d;
 		DCELL d_lai;
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_lai,inrast_lai,row,data_type_lai)<0)
 			G_fatal_error(_("Could not read from <%s>"),lai);
