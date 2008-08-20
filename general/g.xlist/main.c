@@ -19,6 +19,7 @@
 
 #define MAIN
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <regex.h>
 #include <grass/spawn.h>
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
 	struct Flag *full;
     } flag;
     int i, n, all, num_types, any, flags = 0;
-    char **types, *pattern = NULL, separator[2], *buf;
+    char *pattern = NULL, separator[2], *buf;
     regex_t regex;
 
     G_gisinit(argv[0]);
