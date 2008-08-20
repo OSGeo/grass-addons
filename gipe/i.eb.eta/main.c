@@ -19,13 +19,12 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double et_a(double r_net_day, double evap_fr, double tempk);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -33,13 +32,13 @@ int main(int argc, char *argv[])
 	struct Option *input1, *input2, *input3, *output1;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result1; /*output raster name*/
+	/*File Descriptors*/
 	int infd_rnetday, infd_evapfr, infd_tempk;
 	int outfd1;
 	
