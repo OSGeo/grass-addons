@@ -2,9 +2,10 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Conversion of DN to Radiance for Landsat 7ETM+
-// http://ltpwww.gsfc.nasa.gov/IAS/handbook/handbook_htmls/chapter11/chapter11.html#section11.3 
-// ychemin@gmail.com - Yann Chemin - LGPL, Copylefted, 2006.
+/*
+ * Conversion of DN to Radiance for Landsat 7ETM+
+ * http://ltpwww.gsfc.nasa.gov/IAS/handbook/handbook_htmls/chapter11/chapter11.html#section11.3 
+ */
 
 double dn2rad_landsat7( double Lmin, double LMax, double QCalMax, double QCalmin, int DN )
 {

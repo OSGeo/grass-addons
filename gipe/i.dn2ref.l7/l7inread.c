@@ -3,7 +3,7 @@
 #include<stdlib.h>
 #include<string.h>
 
-//#define MAXFILES 9
+/*#define MAXFILES 9*/
 
 int l7_in_read(char *met_file, double *lmin,double *lmax,double *qcalmin,double *qcalmax,double *sun_elevation, double *sun_azimuth,int *day, int *month, int *year)
 {
@@ -12,31 +12,23 @@ int l7_in_read(char *met_file, double *lmin,double *lmax,double *qcalmin,double 
 	int i=0;
 	char *p;
 
-	
-
 	f=fopen(met_file,"r");
 
 	if (!f)
 	return 1;
 
-	printf("1\n");
 	while (fgets(s,1000,f)!=NULL)
 	{
-		printf("2%s\n",s);
 		ptr = strstr(s, "ACQUISITION_DATE");
 		if (ptr != NULL)
 		{
-			printf("2\t");
 			p = strtok(ptr, " =");
 			p = strtok(NULL, " =-");
 			*year = atoi(p);
-			printf("3\t");
 			p = strtok(NULL, "-");
 			*month = atoi(p);
-			printf("4\t");
 			p = strtok(NULL, "-");
 			*day = atoi(p);
-			printf("5\n");
 		}
 		ptr = strstr(s, "SUN_AZIMUTH");
 		if (ptr != NULL)
@@ -308,19 +300,18 @@ int l7_in_read(char *met_file, double *lmin,double *lmax,double *qcalmin,double 
 		}
 	}
 
-//	printf("year = %i\n", year);
-//	printf("month = %i\n", month);
-//	printf("day = %i\n", day);
-
-//	printf("sun azimuth = %f\n", sun_azimuth);
-//	printf("sun elevation = %f\n", sun_elevation);
-
-//	for (i=0;i<MAXFILES;i++){
-//		printf("lmin[%i]=%f\n",i,lmin[i]);
-//		printf("lmax[%i]=%f\n",i,lmax[i]);
-//		printf("qcalmin[%i]=%f\n",i,qcalmin[i]);
-//		printf("qcalmax[%i]=%f\n",i,qcalmax[i]);
-//	}
+/*	printf("year = %i\n", year);
+	printf("month = %i\n", month);
+	printf("day = %i\n", day);
+	printf("sun azimuth = %f\n", sun_azimuth);
+	printf("sun elevation = %f\n", sun_elevation);
+	for (i=0;i<MAXFILES;i++){
+		printf("lmin[%i]=%f\n",i,lmin[i]);
+		printf("lmax[%i]=%f\n",i,lmax[i]);
+		printf("qcalmin[%i]=%f\n",i,qcalmin[i]);
+		printf("qcalmax[%i]=%f\n",i,qcalmax[i]);
+	}
+*/
 	(void)fclose(f);
 	return;
 }
