@@ -13,7 +13,7 @@ int l7_in_read(char *metfName, char *b1, char *b2, char *b3, char *b4, char *b5,
 
 	char		band1[80],band2[80],band3[80];
 	char		band4[80],band5[80],band61[80];
-	char		band62[80],band7[80],band8[80];//Load .tif names
+	char		band62[80],band7[80],band8[80];/*Load .tif names*/
 
 	if((f=fopen(metfName,"r"))==NULL){
 		G_fatal_error (_(".met file [%s] not found, are you in the proper directory?"), metfName);
@@ -21,30 +21,23 @@ int l7_in_read(char *metfName, char *b1, char *b2, char *b3, char *b4, char *b5,
 
 	while (fgets(s,1000,f)!=NULL)
 	{
-//		printf("2%s\n",s);
 		ptr = strstr(s, "ACQUISITION_DATE");
 		if (ptr != NULL)
 		{
-//			printf("2\t");
 			p = strtok(ptr, " =");
 			p = strtok(NULL, " =-");
 			*year = atoi(p);
-//			printf("3\t");
 			p = strtok(NULL, "-");
 			*month = atoi(p);
-//			printf("4\t");
 			p = strtok(NULL, "-");
 			*day = atoi(p);
-//			printf("5\n");
 		}
 		ptr = strstr(s, "BAND1_FILE_NAME");
 		if (ptr != NULL)
 		{
 			p = strtok(ptr, " =");
 			p = strtok(NULL, " =\"");
-	//		printf("l7inread.c:p=%s\n",p);
 			snprintf(band1, 80, "%s", p);
-	//		printf("l7inread.c:band1=%s\n",band1);
 		}
 		ptr = strstr(s, "BAND2_FILE_NAME");
 		if (ptr != NULL)
@@ -381,19 +374,18 @@ int l7_in_read(char *metfName, char *b1, char *b2, char *b3, char *b4, char *b5,
 	snprintf(b62, 80, "%s", band62);
 	snprintf(b7, 80, "%s", band7);
 	snprintf(b8, 80, "%s", band8);
-//	printf("year = %i\n", year);
-//	printf("month = %i\n", month);
-//	printf("day = %i\n", day);
-
-//	printf("sun azimuth = %f\n", sun_azimuth);
-//	printf("sun elevation = %f\n", sun_elevation);
-
-//	for (i=0;i<MAXFILES;i++){
-//		printf("lmin[%i]=%f\n",i,lmin[i]);
-//		printf("lmax[%i]=%f\n",i,lmax[i]);
-//		printf("qcalmin[%i]=%f\n",i,qcalmin[i]);
-//		printf("qcalmax[%i]=%f\n",i,qcalmax[i]);
-//	}
+/*	printf("year = %i\n", year);
+	printf("month = %i\n", month);
+	printf("day = %i\n", day);
+	printf("sun azimuth = %f\n", sun_azimuth);
+	printf("sun elevation = %f\n", sun_elevation);
+	for (i=0;i<MAXFILES;i++){
+		printf("lmin[%i]=%f\n",i,lmin[i]);
+		printf("lmax[%i]=%f\n",i,lmax[i]);
+		printf("qcalmin[%i]=%f\n",i,qcalmin[i]);
+		printf("qcalmax[%i]=%f\n",i,qcalmax[i]);
+	}
+*/
 	(void)fclose(f);
 	return;
 }

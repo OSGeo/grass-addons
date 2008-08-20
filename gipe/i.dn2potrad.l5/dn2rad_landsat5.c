@@ -2,8 +2,7 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Conversion of DN to Radiance for Landsat 5TM
-// yann.chemin@gmail.com - Yann Chemin - GPL>=2, 2008.
+/* Conversion of DN to Radiance for Landsat 5TM*/
 
 double dn2rad_landsat5(int c_year, int c_month, int c_day, int year, int month, int day, int band, int DN )
 {

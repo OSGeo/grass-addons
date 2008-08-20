@@ -4,8 +4,7 @@
 
 #define PI 3.1415926
 
-// Conversion of Radiance to Reflectance for Landsat 5TM 
-// ychemin@gmail.com - Yann Chemin - GPL>=2, 2008.
+/* Conversion of Radiance to Reflectance for Landsat 5TM */
 
 double rad2ref_landsat5( double radiance, double doy,double sun_elevation, double k_exo )
 {

@@ -2,9 +2,10 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Emissivity Generic mode (Reads directly from NDVI)
-// Estimation in the 8-14 micrometers range for sparse canopy
-// yann.chemin@gmail.com LGPL, Copylefted, 2004.
+/*
+ * Emissivity Generic mode (Reads directly from NDVI)
+ * Estimation in the 8-14 micrometers range for sparse canopy
+*/
 
 double emissivity_generic( double ndvi )
 {

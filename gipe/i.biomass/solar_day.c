@@ -2,7 +2,9 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Average Solar Diurnal Radiation after Bastiaanssen (1995) 
+/*
+ * Average Solar Diurnal Radiation after Bastiaanssen (1995) 
+ */
 
 #define PI 3.1415927
 

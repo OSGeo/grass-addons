@@ -2,7 +2,7 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Surface temperature for Landsat 7ETM+ 
+/* Surface temperature for Landsat 7ETM+ */
 
 double tempk_landsat7( double l6 )
 {

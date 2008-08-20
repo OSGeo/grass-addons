@@ -46,36 +46,36 @@ int veglib(char *filename);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int not_ll=0;//if proj is not lat/long, it will be 1.
+	int not_ll=0;/*if proj is not lat/long, it will be 1.*/
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4;
 	struct Option *input5, *input6, *input7;
 	struct Option *output1, *output2, *output3, *output4, *output5;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	struct pj_info iproj;
 	struct pj_info oproj;
 	/************************************/
 	/* FMEO Declarations*****************/
-	char 	*prcp_name;// input first time-series raster files names
-	char 	*tmax_name;// input second time_series raster files names
-	char 	*tmin_name;// input third time_series raster files names
-	char 	*landcover_name;// input raster name
-	char 	lai_name[12]; 	// input monthly raster files name
-	char 	*fdir_name;// input flow direction raster name
-	char 	*result1; 	//output file base name
-	char 	*result2; 	//output Soil file name
-	char	*result3; 	//output Veg file name
-	char	*result4; 	//output flow direction file name
-	char 	result_lat_long[50]; 	//output file name
-	//File Descriptors
+	char 	*prcp_name;/* input first time-series raster files names*/
+	char 	*tmax_name;/* input second time_series raster files names*/
+	char 	*tmin_name;/* input third time_series raster files names*/
+	char 	*landcover_name;/* input raster name*/
+	char 	lai_name[12]; 	/* input monthly raster files name*/
+	char 	*fdir_name;/* input flow direction raster name*/
+	char 	*result1; 	/*output file base name*/
+	char 	*result2; 	/*output Soil file name*/
+	char	*result3; 	/*output Veg file name*/
+	char	*result4; 	/*output flow direction file name*/
+	char 	result_lat_long[50]; 	/*output file name*/
+	/*File Descriptors*/
 	int 	infd_prcp[MAXFILES], infd_tmax[MAXFILES], infd_tmin[MAXFILES];
 	int	infd;
 	int 	infd_landcover, infd_lai[12], infd_fdir;
@@ -104,37 +104,37 @@ int main(int argc, char *argv[])
 
 	/****************************************/
 	/* Meteorological maps 			*/
-	FILE	*f; 		// output ascii file
-	int 	grid_count; 	// grid cell count
-	double	prcp[MAXFILES];	// Precipitation data
-	double	tmax[MAXFILES];	// Tmax data
-	double	tmin[MAXFILES];	// Tmin data
-	char 	**prcp_ptr;	// pointer to get the input1->answers
-	char 	**tmax_ptr;	// pointer to get the input2->answers
-	char 	**tmin_ptr;	// pointer to get the input3->answers
-	int	nfiles1, nfiles2, nfiles3, nfiles_shortest;// count no. input files
-	char	**test1, **test2, **test3; // test number of input files
-	char	**ptr1, **ptr2, **ptr3;	// test number of input files
+	FILE	*f; 		/* output ascii file*/
+	int 	grid_count; 	/* grid cell count*/
+	double	prcp[MAXFILES];	/* Precipitation data*/
+	double	tmax[MAXFILES];	/* Tmax data*/
+	double	tmin[MAXFILES];	/* Tmin data*/
+	char 	**prcp_ptr;	/* pointer to get the input1->answers*/
+	char 	**tmax_ptr;	/* pointer to get the input2->answers*/
+	char 	**tmin_ptr;	/* pointer to get the input3->answers*/
+	int	nfiles1, nfiles2, nfiles3, nfiles_shortest;/* count no. input files*/
+	char	**test1, **test2, **test3; /* test number of input files*/
+	char	**ptr1, **ptr2, **ptr3;	/* test number of input files*/
 	/****************************************/
 	/* Elevation map 			*/
 	char	*in;
-	FILE	*g; 		// output soil ascii file
-	int 	process; 	// process grid cell switch
-	char 	*dummy_data1; 	// dummy data part 1
-	char 	*dummy_data2; 	// dummy data part 2
-	double	elevation;	// average evevation of grid cell
+	FILE	*g; 		/* output soil ascii file*/
+	int 	process; 	/* process grid cell switch*/
+	char 	*dummy_data1; 	/* dummy data part 1*/
+	char 	*dummy_data2; 	/* dummy data part 2*/
+	double	elevation;	/* average evevation of grid cell*/
 	/****************************************/
 	/* Vegetation map 			*/
-	FILE	*h; 		// output ascii file
-	char 	*dummy_data3; 	// dummy data part 1
-	char 	*dummy_data4; 	// dummy data part 2
-	double	*lai[12];	// lAI data for each month
-	char 	**lai_ptr;	// pointer to get the input2->answers
-	int	nfiles; 	// count LAI input files
-	char	**test, **ptr;	// test number of LAI input files
+	FILE	*h; 		/* output ascii file*/
+	char 	*dummy_data3; 	/* dummy data part 1*/
+	char 	*dummy_data4; 	/* dummy data part 2*/
+	double	*lai[12];	/* lAI data for each month*/
+	char 	**lai_ptr;	/* pointer to get the input2->answers*/
+	int	nfiles; 	/* count LAI input files*/
+	char	**test, **ptr;	/* test number of LAI input files*/
 	/****************************************/
 	/* Flow Direction			*/
-	FILE	*ef;		// output flow direction ascii file
+	FILE	*ef;		/* output flow direction ascii file*/
 	/****************************************/
 
 	G_gisinit(argv[0]);
@@ -160,21 +160,18 @@ int main(int argc, char *argv[])
  *		 	rout/mainframe_rout1.htm");
 
 	/* Define the different options */
-	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input1 = G_define_standard_option(G_OPT_R_INPUTS) ;
 	input1->key	   = _("prcp");
-	input1->multiple   = YES;
 	input1->description=_("Names of the precipitation input maps");
 	input1->guisection=_("Required");
 
-	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input2 = G_define_standard_option(G_OPT_R_INPUTS) ;
 	input2->key	   = _("tmax");
-	input2->multiple   = YES;
 	input2->description=_("Names of the Tmax input maps");
 	input2->guisection=_("Required");
 
-	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input3 = G_define_standard_option(G_OPT_R_INPUTS) ;
 	input3->key	   = _("tmin");
-	input3->multiple   = YES;
 	input3->description=_("Names of the Tmin input maps");
 	input3->guisection=_("Required");
 	
@@ -188,9 +185,8 @@ int main(int argc, char *argv[])
 	input5->description=_("Name of the land cover input map");
 	input5->guisection=_("Required");
 
-	input6 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input6 = G_define_standard_option(G_OPT_R_INPUTS) ;
 	input6->key	   = _("LAI");
-	input6->multiple   = YES;
 	input6->required   = NO;
 	input6->description=_("Name of the LAI input maps (12 of them!)");	
 
@@ -407,7 +403,7 @@ int main(int argc, char *argv[])
 	nrows = G_window_rows();
 	ncols = G_window_cols();
 
-	//Shamelessly stolen from r.sun !!!!	
+	/*Shamelessly stolen from r.sun !!!!	*/
 	/* Set up parameters for projection to lat/long if necessary */
 	if ((G_projection() != PROJECTION_LL)) {
 		not_ll=1;
@@ -426,7 +422,7 @@ int main(int argc, char *argv[])
 		sprintf(oproj.proj, "ll");
 		if ((oproj.pj = pj_latlong_from_proj(iproj.pj)) == NULL)
 			G_fatal_error(_("Unable to set up lat/long projection parameters"));
-	}//End of stolen from r.sun :P
+	}/*End of stolen from r.sun */
 
 	/*Initialize soil grid cell process switch*/
 	g=fopen(result2,"w");
@@ -599,7 +595,7 @@ int main(int argc, char *argv[])
 				    G_fatal_error(_("Error in pj_do_proj"));
 				}
 			}else{
-				//Do nothing
+				/*Do nothing*/
 			}
 			if(G_is_d_null_value(&prcp[0])||
 			G_is_d_null_value(&d_tmax[0])||
@@ -641,7 +637,7 @@ int main(int argc, char *argv[])
 				if(input6->answer){
 					fprintf(h,"%5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f %5.3f\n", lai[0], lai[1], lai[2], lai[3], lai[4], lai[5], lai[6], lai[7], lai[8], lai[9], lai[10], lai[11]);
 				} else {
-				//	fprintf(h,"%s\n", dummy_data4);
+				/*	fprintf(h,"%s\n", dummy_data4);*/
 				}
 				grid_count=grid_count+1;
 			}
@@ -709,9 +705,9 @@ int main(int argc, char *argv[])
 	}
 	G_free (inrast_fdir);
 	G_close_cell (infd_fdir);
-	fclose(h);// Vegetation ascii file
-	fclose(g);// Soil ascii file
-	fclose(ef);// Flow Direction ascii file
+	fclose(h);/* Vegetation ascii file*/
+	fclose(g);/* Soil ascii file*/
+	fclose(ef);/* Flow Direction ascii file*/
 	exit(EXIT_SUCCESS);
 }
 

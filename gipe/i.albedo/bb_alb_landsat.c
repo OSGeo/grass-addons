@@ -1,4 +1,6 @@
-// Broadband albedo Landsat 5TM and 7ETM+ (maybe others too but not sure)
+/* Broadband albedo Landsat 5TM and 7ETM+ 
+ * (maybe others too but not sure)
+ */
 
 double bb_alb_landsat( double bluechan, double greenchan, double redchan, double nirchan, double chan5, double chan7 )
 {

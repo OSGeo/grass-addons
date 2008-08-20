@@ -21,7 +21,7 @@
 
 #define MAXFILES 9
 
-// DN to radiance conversion factors 
+/* DN to radiance conversion factors */
 #define L1GAIN 0.676
 #define L1OFFS -0.676
 #define L2GAIN 0.862
@@ -41,7 +41,7 @@
 #define L9GAIN 0.0318
 #define L9OFFS -0.0318
 
-//sun exo-atmospheric irradiance
+/*sun exo-atmospheric irradiance */
 #define KEXO1 1828.0
 #define KEXO2 1559.0
 #define KEXO3 1045.0
@@ -59,29 +59,28 @@ double rad2ref_aster( double radiance, double doy,double sun_elevation, double k
 int
 main(int argc, char *argv[])
 {
-	struct Cell_head cellhd;//region+header info
-	char *mapset; //mapset name
+	struct Cell_head cellhd;/*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input,*output;
 	struct Option *input1,*input2;
 	
 	struct Flag *flag1, *flag2;
-	struct History history; //metadata
+	struct History history; /*metadata*/
 
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name; //input raster name
-	char *result; //output raster name
+	char *name; /*input raster name*/
+	char *result; /*output raster name*/
 	
-	//Prepare new names for output files
+	/*Prepare new names for output files*/
 	char *result0, *result1, *result2, *result3, *result4;
 	char *result5, *result6, *result7, *result8;
 	
-	//File Descriptors
+	/*File Descriptors*/
 	int nfiles;
 	int infd[MAXFILES];
 	int outfd[MAXFILES];
@@ -95,14 +94,10 @@ main(int argc, char *argv[])
 	int radiance=0;
 	
 	void *inrast[MAXFILES];
-	unsigned char *outrast[MAXFILES];
+	DCELL *outrast[MAXFILES];
 	int data_format; /* 0=double  1=float  2=32bit signed int  5=8bit unsigned int (ie text) */
 	RASTER_MAP_TYPE in_data_type[MAXFILES];
 	RASTER_MAP_TYPE out_data_type = DCELL_TYPE; /* 0=numbers  1=text */
-
-	char *fileName;
-#define fileNameLe 8
-#define fileNamePosition 3
 
 	double gain[MAXFILES], offset[MAXFILES];
 	double kexo[MAXFILES];
@@ -118,12 +113,7 @@ main(int argc, char *argv[])
 
 	/* Define the different options */
 
-	input = G_define_option() ;
-	input->key        = _("input");
-	input->type       = TYPE_STRING;
-	input->required   = YES;
-	input->multiple   = YES;
-	input->gisprompt  = _("old,cell,raster");
+	input = G_define_standard_option(G_OPT_R_INPUTS) ;
 	input->description= _("Names of ASTER DN layers (9 layers)");
 
 	input1 = G_define_option() ;
@@ -140,11 +130,7 @@ main(int argc, char *argv[])
 	input2->gisprompt  = _("value, parameter");
 	input2->description= _("Sun elevation angle (degrees, < 90.0)");
 	
-	output = G_define_option() ;
-	output->key        = _("output");
-	output->type       = TYPE_STRING;
-	output->required   = YES;
-	output->gisprompt  = _("new,cell,raster");
+	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->description= _("Base name of the output layers (will add .x)");
 
 	/* Define the different flags */
@@ -152,12 +138,6 @@ main(int argc, char *argv[])
 	flag1 = G_define_flag() ;
 	flag1->key         = _('r');
 	flag1->description = _("output is radiance (W/m2)");
-
-	flag2 = G_define_flag() ;
-	flag2->key         =_('q');
-	flag2->description =_("Quiet");
-
-// 	printf("Passed Stage 1.\n");
 
 	/* FMEO init nfiles */
 	nfiles = 1;
@@ -168,18 +148,13 @@ main(int argc, char *argv[])
 	ok = 1;
 	names   = input->answers;
 	ptr     = input->answers;
-
 	doy	= atof(input1->answer);
 	sun_elevation = atof(input2->answer);
-
 	result  = output->answer;
 	
 	radiance = (flag1->answer);
-	verbose = (!flag2->answer);
-
-
 	/********************/
-	//Prepare the ouput file names 
+	/*Prepare the ouput file names */
 	/********************/
 
 	result0=result;
@@ -203,7 +178,7 @@ main(int argc, char *argv[])
 	result8=strcat(result8,".9");
 
 	/********************/
-	//Prepare radiance boundaries
+	/*Prepare radiance boundaries*/
 	/********************/
 	
 	gain[0]=L1GAIN;
@@ -227,7 +202,7 @@ main(int argc, char *argv[])
 	offset[8]=L9OFFS;
 	
 	/********************/
-	//Prepare sun exo-atm irradiance
+	/*Prepare sun exo-atm irradiance*/
 	/********************/
 	
 	kexo[0]=KEXO1;
@@ -244,12 +219,9 @@ main(int argc, char *argv[])
 	/********************/
 	for (; *ptr != NULL; ptr++)
 	{
-// 		printf("In-Loop Stage 1. nfiles = %i\n",nfiles);
 		if (nfiles >= MAXFILES)
 			G_fatal_error (_("%s - too many ETa files. Only %d allowed"), G_program_name(), MAXFILES);
-// 		printf("In-Loop Stage 1..\n");
 		name = *ptr;
-// 		printf("In-Loop Stage 1...\n");
 		/* find map in mapset */
 		mapset = G_find_cell2 (name, "");
 	        if (mapset == NULL)
@@ -257,27 +229,22 @@ main(int argc, char *argv[])
 			G_fatal_error (_("cell file [%s] not found"), name);
 			ok = 0;
 		}
-// 		printf("In-Loop Stage 1....\n");
 		if (G_legal_filename (result) < 0)
 		{
 			G_fatal_error (_("[%s] is an illegal name"), result);
 			ok = 0;
 		}
-// 		printf("In-Loop Stage 1.....\n");
 		if (!ok){
 			continue;
 		}
-// 		printf("In-Loop Stage 1......\n");
 		infd[nfiles] = G_open_cell_old (name, mapset);
 		if (infd[nfiles] < 0)
 		{
 			ok = 0;
 			continue;
 		}
-// 		printf("In-Loop Stage 1.......\n");
 		/* Allocate input buffer */
 		in_data_type[nfiles] = G_raster_map_type(name, mapset);
-		//printf("%s: data_type[%i] = %i\n",name,nfiles,in_data_type[nfiles]);
 		if( (infd[nfiles] = G_open_cell_old(name,mapset)) < 0){
 			G_fatal_error(_("Cannot open cell file [%s]"), name);
 		}
@@ -285,22 +252,16 @@ main(int argc, char *argv[])
 			G_fatal_error(_("Cannot read file header of [%s]"), name);
 		}
 		inrast[nfiles] = G_allocate_raster_buf(in_data_type[nfiles]);
-// 		printf("In-Loop Stage 1........\n");
 		nfiles++;
-// 		printf("In-Loop Stage 1.........nfiles = %i\n",nfiles);
 	}
 	nfiles--;
-// 	printf("Passed Loop. nfiles = %i\n",nfiles);
 	if (nfiles <= 1){
 		G_fatal_error(_("The input band number should be 6"));
 	}
-// 	printf("Passed Stage 2\n");
-	
 	/***************************************************/
 	/* Allocate output buffer, use input map data_type */
 	nrows = G_window_rows();
 	ncols = G_window_cols();
-// 	printf("Passed Stage 3\n");
 	out_data_type=DCELL_TYPE;
 	for(i=0;i<nfiles;i++){
 		outrast[i] = G_allocate_raster_buf(out_data_type);
@@ -323,7 +284,6 @@ main(int argc, char *argv[])
 		G_fatal_error (_("Could not open <%s>"),result7);
 	if ( (outfd[8] = G_open_raster_new (result8,1)) < 0)
 		G_fatal_error (_("Could not open <%s>"),result8);
-// 	printf("Passed Stage 5\n");
 	/* Process pixels */
 
 	DCELL dout[MAXFILES];
@@ -331,9 +291,7 @@ main(int argc, char *argv[])
 	
 	for (row = 0; row < nrows; row++)
 	{
-		if (verbose){
-			G_percent (row, nrows, 2);
-		}
+		G_percent (row, nrows, 2);
 		/* read input map */
 		for (i=1;i<=nfiles;i++)
 		{
@@ -365,7 +323,7 @@ main(int argc, char *argv[])
 				dout[i] = gain[i]*d[i]+offset[i];
 				dout[i]	= rad2ref_aster(dout[i],doy,sun_elevation,kexo[i]);
 			}
-			((DCELL *) outrast[i])[col] = dout[i];
+			outrast[i][col] = dout[i];
  			}
 		}
 		for(i=0;i<nfiles;i++){

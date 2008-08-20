@@ -79,16 +79,14 @@ int l5_in_read(char *metfName,int *path, int *row, double *latitude,double *long
 		}
 	}
 
-//	printf("year = %i\n", year);
-//	printf("month = %i\n", month);
-//	printf("day = %i\n", day);
-
-//	printf("sun azimuth = %f\n", sun_azimuth);
-//	printf("sun elevation = %f\n", sun_elevation);
-
-//	printf("latitude = %f\n", latitude);
-//	printf("longitude = %f\n", longitude);
-
+/*	printf("year = %i\n", year);
+	printf("month = %i\n", month);
+	printf("day = %i\n", day);
+	printf("sun azimuth = %f\n", sun_azimuth);
+	printf("sun elevation = %f\n", sun_elevation);
+	printf("latitude = %f\n", latitude);
+	printf("longitude = %f\n", longitude);
+*/
 	(void)fclose(f);
 	return;
 }

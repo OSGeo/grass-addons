@@ -2,8 +2,10 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Surface temperature for Landsat 5TM 
-// Schneider and Mauser, 1996
+/* 
+ * Surface temperature for Landsat 5TM 
+ * Schneider and Mauser, 1996
+ */
 
 double tempk_landsat5( double l6 )
 {

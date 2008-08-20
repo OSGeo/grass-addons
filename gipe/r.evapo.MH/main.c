@@ -1,8 +1,7 @@
 /*****************************************************************************
 *
 * MODULE:	r.evapo.MH
-* AUTHOR:	Yann Chemin (2007)
-* 		yann.chemin_AT_gmail.com 
+* AUTHOR:	Yann Chemin yann.chemin@gmail.com 
 *
 * PURPOSE:	To estimate the reference evapotranspiration by means
 *		of Modified Hargreaves method (2001).
@@ -25,8 +24,6 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-
-//proto ET
 double mh_original(double ra,double tavg,double tmax,double tmin,double p);
 double mh_eto(double ra,double tavg,double tmax,double tmin,double p);
 double mh_samani(double ra,double tavg,double tmax,double tmin);
@@ -36,7 +33,7 @@ int main(int argc, char *argv[])
 	/* buffer for input-output rasters */
 	void *inrast_TEMPKAVG,*inrast_TEMPKMIN, *inrast_TEMPKMAX, *inrast_RNET,*inrast_P;
 	
-	unsigned char *outrast;
+	DCELL *outrast;
 	
 	/* pointers to input-output raster files */
 	int infd_TEMPKAVG,infd_TEMPKMIN,infd_TEMPKMAX,infd_RNET,infd_P;
@@ -66,7 +63,7 @@ int main(int argc, char *argv[])
 	struct Option *input_RNET,*input_TEMPKAVG, *input_TEMPKMIN;
 	struct Option *input_TEMPKMAX, *input_P;
 	struct Option *output;
-	struct Flag *flag1, *zero, *original, *samani;
+	struct Flag *zero, *original, *samani;
 	struct Colors color;
 	struct History history;
 
@@ -88,59 +85,36 @@ int main(int argc, char *argv[])
 		"Flag for Original Hargreaves (1985).");
 	
 	/* Define different options */
-	input_RNET = G_define_option();
-	input_RNET->key			= "RNETD";
+	input_RNET = G_define_standard_option(G_OPT_R_INPUT);
+	input_RNET->key			= "rnetd";
 	input_RNET->key_desc		= "[W/m2/d]";
-	input_RNET->type 		= TYPE_STRING;
-	input_RNET->required 		= YES;
-	input_RNET->gisprompt 		= "old,cell,raster";
 	input_RNET->description 	= _("Name of Diurnal Net Radiation raster map");
 	
-	input_TEMPKAVG = G_define_option();
-	input_TEMPKAVG->key		= "TEMPKAVG";
+	input_TEMPKAVG = G_define_standard_option(G_OPT_R_INPUT);
+	input_TEMPKAVG->key		= "tempkavg";
 	input_TEMPKAVG->key_desc	= "[C]";
-	input_TEMPKAVG->type		= TYPE_STRING;
-	input_TEMPKAVG->required	= YES;
-	input_TEMPKAVG->gisprompt	= "old,cell,raster";
 	input_TEMPKAVG->description	= _("Name of avg air temperature raster map");
 		
-	input_TEMPKMIN = G_define_option();
-	input_TEMPKMIN->key		= "TEMPKMIN";
+	input_TEMPKMIN = G_define_standard_option(G_OPT_R_INPUT);
+	input_TEMPKMIN->key		= "tempkmin";
 	input_TEMPKMIN->key_desc	= "[C]";
-	input_TEMPKMIN->type		= TYPE_STRING;
-	input_TEMPKMIN->required	= YES;
-	input_TEMPKMIN->gisprompt	= "old,cell,raster";
 	input_TEMPKMIN->description	= _("Name of min air temperature raster map");
 		
-	input_TEMPKMAX = G_define_option();
+	input_TEMPKMAX = G_define_standard_option(G_OPT_R_INPUT);
 	input_TEMPKMAX->key		= "TEMPKMAX";
 	input_TEMPKMAX->key_desc	= "[C]";
-	input_TEMPKMAX->type		= TYPE_STRING;
-	input_TEMPKMAX->required	= YES;
-	input_TEMPKMAX->gisprompt	= "old,cell,raster";
 	input_TEMPKMAX->description	= _("Name of max air temperature raster map");
 		
-	input_P = G_define_option();
-	input_P->key			= "P";
+	input_P = G_define_standard_option(G_OPT_R_INPUT);
+	input_P->key			= "p";
 	input_P->key_desc		= "[mm/month]";
-	input_P->type			= TYPE_STRING;
-	input_P->required		= NO;
-	input_P->gisprompt		= "old,cell,raster";
 	input_P->description		= _("Name of precipitation raster map, disabled if original Hargreaves (1985) is enabled.");
 	
-	output = G_define_option() ;
-	output->key			= "output";
+	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key_desc		= "[mm/d]";
-	output->type			= TYPE_STRING;
-	output->required		= YES;
-	output->gisprompt		= "new,cell,raster" ;
 	output->description		= _("Name of output Ref Evapotranspiration layer");
 	
 	/* Define the different flags */
-	flag1 = G_define_flag() ;
-	flag1->key			= 'q' ;
-	flag1->description		= _("quiet");
-	
 	zero = G_define_flag() ;
 	zero->key			= 'z' ;
 	zero->description		= _("set negative ETa to zero");
@@ -244,7 +218,7 @@ int main(int argc, char *argv[])
 	/* start the loop through cells */
 	for (row = 0; row < nrows; row++)
 	{
-				
+		G_percent(row, nrows, 2);
 		/* read input raster row into line buffer*/	
 		if (G_get_raster_row (infd_RNET, inrast_RNET, row,data_type_rnet) < 0)
 			G_fatal_error (_("Could not read from <%s>"),RNET);
@@ -318,23 +292,27 @@ int main(int argc, char *argv[])
 						break;
 				}
 			}
-			
-			//Calculate ET
-			if(original->answer){
-				d_daily_et = mh_original( d_rnet, d_tempkavg, d_tempkmax, d_tempkmin, d_p );
-			} else if(samani->answer){
-				d_daily_et = mh_samani( d_rnet, d_tempkavg, d_tempkmax, d_tempkmin );
+			if(G_is_d_null_value(&d_rnet)||
+				G_is_d_null_value(&d_tempkavg)||
+				G_is_d_null_value(&d_tempkmin)||
+				G_is_d_null_value(&d_tempkmax)||
+				G_is_d_null_value(&d_p)){
+				G_set_d_null_value(&outrast[col],1);
 			} else {
-				d_daily_et = mh_eto( d_rnet, d_tempkavg, d_tempkmax, d_tempkmin, d_p );
+				if(original->answer){
+					d_daily_et = mh_original( d_rnet, d_tempkavg, d_tempkmax, d_tempkmin, d_p );
+				} else if(samani->answer){
+					d_daily_et = mh_samani( d_rnet, d_tempkavg, d_tempkmax, d_tempkmin );
+				} else {
+					d_daily_et = mh_eto( d_rnet, d_tempkavg, d_tempkmax, d_tempkmin, d_p );
+				}
+				if (zero->answer && d_daily_et<0)
+					d_daily_et=0.0;
+				/* write calculated ETP to output line buffer */
+				outrast[col] = d_daily_et;
 			}
-			if (zero->answer && d_daily_et<0)
-				d_daily_et=0.0;
-			
-			/* write calculated ETP to output line buffer */
-			((DCELL *) outrast)[col] = d_daily_et;
 		}
 		
-		if (!flag1->answer) G_percent(row, nrows, 2);
 
 		/* write output line buffer to output raster file */
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
@@ -369,6 +347,6 @@ int main(int argc, char *argv[])
 	G_free(outrast);
 	G_close_cell (outfd);
 
-	return (0);
+	return 0;
 }
 

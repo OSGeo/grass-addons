@@ -1,12 +1,12 @@
 /****************************************************************************
  *
  * MODULE:       r.uslek
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Transforms percentage of texture (sand/clay/silt)
  *               into USDA 1951 (p209) soil texture classes and then
  *               into USLE soil erodibility factor (K) as an output
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -26,23 +26,20 @@
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4,*output1;
 	
-	struct Flag *flag1;	
-	struct History history; //metadata
-	
+	struct History history; /*metadata*/
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /* input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_psand, infd_psilt, infd_pclay, infd_pomat;
 	int outfd;
 	
@@ -51,7 +48,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_psand, *inrast_psilt, *inrast_pclay, *inrast_pomat;
-	unsigned char *outrast;
+	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_psand;
 	RASTER_MAP_TYPE data_type_psilt;
@@ -66,49 +63,30 @@ int main(int argc, char *argv[])
 	module->description = _("USLE Soil Erodibility Factor (K)");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("psand");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the Soil sand fraction map [0.0-1.0]");
 	input1->answer     =_("psand");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("pclay");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster");
 	input2->description=_("Name of the Soil clay fraction map [0.0-1.0]");
 	input2->answer     =_("pclay");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("psilt");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the Soil silt fraction map [0.0-1.0]");
 	input3->answer     =_("psilt");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("pomat");
-	input4->type       = TYPE_STRING;
-	input4->required   = YES;
-	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the Soil Organic Matter map [0.0-1.0]");
 	input4->answer     =_("pomat");
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("usle_k");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
 	output1->description=_("Name of the output USLE K factor layer");
 	output1->answer     =_("usle_k");
-
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 
 	/********************/
 	if (G_parser(argc, argv))
@@ -119,8 +97,7 @@ int main(int argc, char *argv[])
 	psilt		= input3->answer;
 	pomat	 	= input4->answer;
 	
-	result  = output1->answer;
-	verbose = (!flag1->answer);
+	result  	= output1->answer;
 	/***************************************************/
 	mapset = G_find_cell2(psand, "");
 	if (mapset == NULL) {
@@ -182,9 +159,7 @@ int main(int argc, char *argv[])
 		DCELL d_silt;
 		DCELL d_om;
 		double tex[4] = {0.0,0.0,0.0,0.0};
-		if(verbose)
-			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
+		G_percent(row,nrows,2);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_psand,inrast_psand,row,data_type_psand)<0)
 			G_fatal_error(_("Could not read from <%s>"),psand);
@@ -197,49 +172,72 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-		//	printf("col=%i/%i ",col,ncols);
-			d_sand = ((DCELL *) inrast_psand)[col];
-			//tex[0] = d;
- 		//	printf("psand = %5.3f", d_sand);
-			d_silt = ((DCELL *) inrast_psilt)[col];
-			//tex[1] = d;
- 		//	printf(" psilt = %5.3f", d_silt);
-			d_clay = ((DCELL *) inrast_pclay)[col];
-			//tex[2] = d;
- 		//	printf(" pclay = %5.3f", d_clay);
-			d_om = ((DCELL *) inrast_pomat)[col];
-			//tex[3] = d;
- 		//	printf("inrast_pomat = %f\n", d_om);
-			if(G_is_d_null_value(&d_sand)){
-				((DCELL *) outrast)[col] = 0.0;
-			}else if(G_is_d_null_value(&d_clay)){
-				((DCELL *) outrast)[col] = 0.0;
-			}else if(G_is_d_null_value(&d_silt)){
-				((DCELL *) outrast)[col] = 0.0;
+			switch(data_type_psand){
+				case CELL_TYPE:
+					d_sand = (double) ((CELL *) inrast_psand)[col];
+					break;
+				case FCELL_TYPE:
+					d_sand = (double) ((FCELL *) inrast_psand)[col];
+					break;
+				case DCELL_TYPE:
+					d_sand = ((DCELL *) inrast_psand)[col];
+					break;
+			}
+			switch(data_type_psilt){
+				case CELL_TYPE:
+					d_silt = (double) ((CELL *) inrast_psilt)[col];
+					break;
+				case FCELL_TYPE:
+					d_silt = (double) ((FCELL *) inrast_psilt)[col];
+					break;
+				case DCELL_TYPE:
+					d_silt = ((DCELL *) inrast_psilt)[col];
+					break;
+			}
+			switch(data_type_pclay){
+				case CELL_TYPE:
+					d_clay = (double) ((CELL *) inrast_pclay)[col];
+					break;
+				case FCELL_TYPE:
+					d_clay = (double) ((FCELL *) inrast_pclay)[col];
+					break;
+				case DCELL_TYPE:
+					d_clay = ((DCELL *) inrast_pclay)[col];
+					break;
+			}
+			switch(data_type_pomat){
+				case CELL_TYPE:
+					d_om = (double) ((CELL *) inrast_pomat)[col];
+					break;
+				case FCELL_TYPE:
+					d_om = (double) ((FCELL *) inrast_pomat)[col];
+					break;
+				case DCELL_TYPE:
+					d_om = ((DCELL *) inrast_pomat)[col];
+					break;
+			}
+			if(G_is_d_null_value(&d_sand)||
+			G_is_d_null_value(&d_clay)||
+			G_is_d_null_value(&d_silt)){
+				G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
 				/* convert to usle_k 		    */
 				d = (double) prct2tex(d_sand, d_clay, d_silt);
-		//		printf(" || d=%5.3f",d);
 				if((d_sand+d_clay+d_silt)!=1.0){
-					printf("d=%icol=%i||%5.3f%5.3f%5.3f\n",d,col,d_sand,d_clay,d_silt);
-		//			exit(EXIT_SUCCESS);
+					G_message("d=%icol=%i||%5.3f%5.3f%5.3f\n",d,col,d_sand,d_clay,d_silt);
 				}
 				if(G_is_d_null_value(&d_om)){
-					d_om=0.0;//if OM==NULL then make it 0.0
+					d_om=0.0;/*if OM==NULL then make it 0.0*/
 				}
 				d = tex2usle_k((int) d, d_om);	
-				printf(" -> %5.3f",d);
+				/*G_message(_(" -> %5.3f",d));*/
 				/************************************/
-				if(d>1.0){//in case some map input not standard
+				if(d>1.0){/*in case some map input not standard*/
 					d=0.0;
 				}
-				((DCELL *) outrast)[col] = d;
-		//		printf(" -> %5.3f\n",d);
+				outrast[col] = d;
 			}
-		//	if(row==50){
-		//		exit(EXIT_SUCCESS);
-		//	}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));

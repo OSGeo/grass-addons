@@ -4,8 +4,7 @@
 
 #define PI 3.1415926
 
-// Conversion of Radiance to Reflectance for ASTER 
-// ychemin@gmail.com - Yann Chemin - LGPL, Copylefted, 2006.
+/* Conversion of Radiance to Reflectance for ASTER */
 
 double rad2ref_aster( double radiance, double doy,double sun_elevation, double k_exo )
 {

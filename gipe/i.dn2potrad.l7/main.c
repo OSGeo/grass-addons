@@ -17,27 +17,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-//#define OMP // Comment this on single core CPU
-//#ifdef OMP
-//	#include<omp.h> // OpenMP code
-//	#include"/usr/lib/gcc/i486-linux-gnu/4.2.0/include/omp.h"
-//#endif
-
 #include <grass/gis.h>
 #include <grass/gprojects.h>
 #include <grass/glocale.h>
 
 #define MAXFILES 9
 
-//sun exo-atmospheric irradiance
+/*sun exo-atmospheric irradiance*/
 #define KEXO1 1969.0
 #define KEXO2 1840.0
 #define KEXO3 1551.0
 #define KEXO4 1044.0
 #define KEXO5 225.7
 #define KEXO7 82.07
-#define KEXO8 1385.64 //to find the real value in the internet
+#define KEXO8 1385.64 /*to find the real value in the internet*/
 
 #define PI 3.1415926
 
@@ -57,25 +50,24 @@ double et_pot_day( double bbalb, double solar, double tempk, double tsw, double 
 int
 main(int argc, char *argv[])
 {
-	struct Cell_head cellhd;//region+header info
-	char *mapset; //mapset name
+	struct Cell_head cellhd;/*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input,*input1,*input2,*input3,*output;
 	
 	struct Flag *flag1;
-	struct History history; //metadata
+	struct History history; /*metadata*/
 
 	/************************************/
 	/* FMEO Declarations*****************/
 	char history_buf[200];
-	char *name; //input raster name
-	char *result; //output raster name
+	char *name; /*input raster name*/
+	char *result; /*output raster name*/
 	
-	//File Descriptors
+	/*File Descriptors*/
 	int infd[MAXFILES];
 	int outfd[MAXFILES];
 
@@ -85,30 +77,30 @@ main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast[MAXFILES];
-	unsigned char *outrast[MAXFILES];
+	DCELL *outrast[MAXFILES];
 	RASTER_MAP_TYPE in_data_type[MAXFILES];
 	RASTER_MAP_TYPE out_data_type = DCELL_TYPE; /* 0=numbers  1=text */
 
 	double		kexo[MAXFILES];
-	//Metfile
-	char		*metfName; //met file, header in text format
+	/*Metfile*/
+	char		*metfName; /*met file, header in text format*/
 	char		b1[80],b2[80],b3[80];
 	char		b4[80],b5[80],b61[80];
-	char		b62[80],b7[80],b8[80];//Load .tif names
+	char		b62[80],b7[80],b8[80];/*Load .tif names*/
 	double 		lmin[MAXFILES];
 	double 		lmax[MAXFILES];
 	double 		qcalmin[MAXFILES];
 	double 		qcalmax[MAXFILES];
 	double 		sun_elevation;
-	double 		sun_azimuth;//not useful here, only for parser()
+	double 		sun_azimuth;/*not useful here, only for parser()*/
 	int 		day,month,year;	
-	//EndofMetfile
+	/*EndofMetfile*/
 	int 		doy;
 
-	int 		not_ll=0; //if proj is not lat/long, it will be 1.
+	int 		not_ll=0; /*if proj is not lat/long, it will be 1.*/
 	struct 		pj_info iproj;
 	struct 		pj_info oproj;
-//	char 		*lat;
+/*	char 		*lat;*/
 	double 		xp, yp;
 	double		xmin, ymin;
 	double 		xmax, ymax;
@@ -158,18 +150,8 @@ main(int argc, char *argv[])
 	input3->description= _("5=band61 || 6=band62");
 	input3->answer     = "5";
 
-	output = G_define_option() ;
-	output->key        = _("output");
-	output->type       = TYPE_STRING;
-	output->required   = YES;
-	output->gisprompt  = _("new,cell,raster");
+	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->description= _("ETpot output layer name");
-
-	/* Define the different flags */
-
-	flag1 = G_define_flag() ;
-	flag1->key         =_('q');
-	flag1->description =_("Quiet");
 
 	/********************/
 	if (G_parser(argc, argv))
@@ -191,30 +173,27 @@ main(int argc, char *argv[])
 		G_fatal_error (_("Tempk band is not good, change to 5 OR 6!"));
 	}
 
-	verbose = (!flag1->answer);
-	//******************************************
-	//Fetch parameters for DN2Rad2Ref correction
+	/******************************************/
+	/*Fetch parameters for DN2Rad2Ref correction*/
 	l7_in_read(metfName,b1,b2,b3,b4,b5,b61,b62,b7,b8,lmin,lmax,qcalmin,qcalmax,&sun_elevation,&sun_azimuth,&day,&month,&year);
-//	printf("%f/%f/%i-%i-%i\n",sun_elevation,sun_azimuth,day,month,year);
-//	for(i=0;i<MAXFILES;i++){
-//		printf("%i=>%f, %f, %f, %f\n",i,lmin[i],lmax[i],qcalmin[i],qcalmax[i]);
-//	}
 	doy = date2doy(day,month,year);
-//	printf("doy=%i\n",doy);
+/*	printf("%f/%f/%i-%i-%i\n",sun_elevation,sun_azimuth,day,month,year);
+	for(i=0;i<MAXFILES;i++){
+		printf("%i=>%f, %f, %f, %f\n",i,lmin[i],lmax[i],qcalmin[i],qcalmax[i]);
+	}
+	printf("b1=%s\n",b1);
+	printf("b2=%s\n",b2);
+	printf("b3=%s\n",b3);
+	printf("b4=%s\n",b4);
+	printf("b5=%s\n",b5);
+	printf("b61=%s\n",b61);
+	printf("b62=%s\n",b62);
+	printf("b7=%s\n",b7);
+	printf("b8=%s\n",b8);
+	printf("doy=%i\n",doy);
+*/
 	/********************/
-//	printf("b1=%s\n",b1);
-//	printf("b2=%s\n",b2);
-//	printf("b3=%s\n",b3);
-//	printf("b4=%s\n",b4);
-//	printf("b5=%s\n",b5);
-//	printf("b61=%s\n",b61);
-//	printf("b62=%s\n",b62);
-//	printf("b7=%s\n",b7);
-//	printf("b8=%s\n",b8);
-//	exit(1);
-
-	/********************/
-	//Prepare sun exo-atm irradiance
+	/*Prepare sun exo-atm irradiance*/
 	/********************/
 	
 	kexo[0]=KEXO1;
@@ -222,14 +201,13 @@ main(int argc, char *argv[])
 	kexo[2]=KEXO3;
 	kexo[3]=KEXO4;
 	kexo[4]=KEXO5;
-	kexo[5]=0.0;//filling
-	kexo[6]=0.0;//filling
+	kexo[5]=0.0;/*filling*/
+	kexo[6]=0.0;/*filling*/
 	kexo[7]=KEXO7;
 	kexo[8]=KEXO8;
 	
-	//******************************************
 	/***************************************************/
-	//Band1
+	/*Band1*/
 	/* find map in mapset */
 	mapset = G_find_cell2 (b1, "");
         if (mapset == NULL){
@@ -250,7 +228,7 @@ main(int argc, char *argv[])
 	inrast[0] = G_allocate_raster_buf(in_data_type[0]);
 	/***************************************************/
 	/***************************************************/
-	//Band2
+	/*Band2*/
 	/* find map in mapset */
 	mapset = G_find_cell2 (b2, "");
         if (mapset == NULL){
@@ -271,7 +249,7 @@ main(int argc, char *argv[])
 	inrast[1] = G_allocate_raster_buf(in_data_type[1]);
 	/***************************************************/
 	/***************************************************/
-	//Band3
+	/*Band3*/
 	/* find map in mapset */
 	mapset = G_find_cell2 (b3, "");
         if (mapset == NULL){
@@ -292,7 +270,7 @@ main(int argc, char *argv[])
 	inrast[2] = G_allocate_raster_buf(in_data_type[2]);
 	/***************************************************/
 	/***************************************************/
-	//Band4
+	/*Band4*/
 	/* find map in mapset */
 	mapset = G_find_cell2 (b4, "");
         if (mapset == NULL){
@@ -313,7 +291,7 @@ main(int argc, char *argv[])
 	inrast[3] = G_allocate_raster_buf(in_data_type[3]);
 	/***************************************************/
 	/***************************************************/
-	//Band5
+	/*Band5*/
 	/* find map in mapset */
 	mapset = G_find_cell2 (b5, "");
         if (mapset == NULL){
@@ -334,7 +312,7 @@ main(int argc, char *argv[])
 	inrast[4] = G_allocate_raster_buf(in_data_type[4]);
 	/***************************************************/
 	/***************************************************/
-	//Band61
+	/*Band61*/
 	/* find map in mapset */
 	mapset = G_find_cell2 (b61, "");
         if (mapset == NULL){
@@ -355,7 +333,7 @@ main(int argc, char *argv[])
 	inrast[5] = G_allocate_raster_buf(in_data_type[5]);
 	/***************************************************/
 	/***************************************************/
-	//Band62
+	/*Band62*/
 	/* find map in mapset */
 	mapset = G_find_cell2 (b62, "");
         if (mapset == NULL){
@@ -376,7 +354,7 @@ main(int argc, char *argv[])
 	inrast[6] = G_allocate_raster_buf(in_data_type[6]);
 	/***************************************************/
 	/***************************************************/
-	//Band7
+	/*Band7*/
 	/* find map in mapset */
 	mapset = G_find_cell2 (b7, "");
         if (mapset == NULL){
@@ -397,7 +375,7 @@ main(int argc, char *argv[])
 	inrast[7] = G_allocate_raster_buf(in_data_type[7]);
 	/***************************************************/
 	/***************************************************/
-	//Band8
+	/*Band8*/
 	/* find map in mapset */
 	mapset = G_find_cell2 (b8, "");
         if (mapset == NULL){
@@ -429,9 +407,9 @@ main(int argc, char *argv[])
 	nrows = G_window_rows();
 	ncols = G_window_cols();
 
-	// Following is for latitude conversion from UTM to Geo
-	//Shamelessly stolen from r.sun !!!!	
-	/* Set up parameters for projection to lat/long if necessary */
+	/* Following is for latitude conversion from UTM to Geo
+	 * Shamelessly stolen from r.sun !!!!	
+	 * Set up parameters for projection to lat/long if necessary */
 	if ((G_projection() != PROJECTION_LL)) {
 		not_ll=1;
 		struct Key_Value *in_proj_info, *in_unit_info;
@@ -449,7 +427,7 @@ main(int argc, char *argv[])
 		sprintf(oproj.proj, "ll");
 		if ((oproj.pj = pj_latlong_from_proj(iproj.pj)) == NULL)
 			G_fatal_error(_("Unable to set up lat/long projection parameters"));
-	}//End of stolen from r.sun :P
+	}/*End of stolen from r.sun */
 	
 	out_data_type=DCELL_TYPE;
 	outrast[0] = G_allocate_raster_buf(out_data_type);
@@ -464,9 +442,9 @@ main(int argc, char *argv[])
 	DCELL d_ndvi;
 	DCELL d_e0;
 	DCELL d_lat;
-//	DCELL d_doy;
+/*	DCELL d_doy;*/
 	DCELL d_tsw;
-//	DCELL d_roh_w;
+/*	DCELL d_roh_w;*/
 	DCELL d_solar;
 	DCELL d_rnetd;
 	DCELL d_etpot;
@@ -483,12 +461,9 @@ main(int argc, char *argv[])
 			}
 		}
 		/*process the data */
-//		#ifdef OMP
-//		#pragma omp parallel
-//		#endif
 		for (col=0; col < ncols; col++)
 		{
-			//Calculate Latitude
+			/*Calculate Latitude*/
 			latitude = ymax - ( row * stepy );
 			longitude = xmin + ( col * stepx );
 			if(not_ll){
@@ -496,29 +471,29 @@ main(int argc, char *argv[])
 					G_fatal_error(_("Error in pj_do_proj"));
 				}
 				}else{
-					//Do nothing
+					/*Do nothing*/
 				}
 			d_lat = latitude;
-			//End of Calculate Latitude
+			/*End of Calculate Latitude*/
 
-			// Convert DN 2 radiance 2 reflectance
+			/* Convert DN 2 radiance 2 reflectance*/
 			for(i=0;i<MAXFILES;i++)
 			{
 				d[i] = (double) ((CELL *) inrast[i])[col];
 				dout[i]=dn2rad_landsat7(lmin[i],lmax[i],qcalmax[i],qcalmin[i],d[i]);
-				if(i==5||i==6){//if band 61/62, process brightness temperature
+				if(i==5||i==6){/*if band 61/62, process brightness temperature*/
 					if(dout[i]<=0.0){
 						dout[i]=-999.99;
 					}else{
 						dout[i]=tempk_landsat7(dout[i]);
 					}
-				}else{//process reflectance
+				}else{/*process reflectance*/
 					dout[i]=rad2ref_landsat7(dout[i],doy,sun_elevation,kexo[i]);
 				}
 			}
-			// End of Convert DN 2 radiance 2 reflectance
+			/* End of Convert DN 2 radiance 2 reflectance*/
 
-			// Process regular data
+			/* Process regular data*/
 			d_albedo 	= bb_alb_landsat(dout[0],dout[1],dout[2],dout[3],dout[4],dout[7]);
 			d_ndvi 		= nd_vi(d[2],d[3]);
 			d_e0 		= emissivity_generic( d_ndvi );
@@ -526,12 +501,11 @@ main(int argc, char *argv[])
 			d_rnetd 	= r_net_day(d_albedo,d_solar,tsw );
 			d_tempk		= dout[chosen_tempk_band];
 			d_etpot		= et_pot_day(d_albedo,d_solar,d_tempk,tsw,roh_w);
-//			d_etpot		= d_solar;
-			// End of process regular data
+			/* End of process regular data*/
 
-			// write output to file
-			((DCELL *) outrast[0])[col] = d_etpot;
-			// End of write output to file
+			/* write output to file*/
+			outrast[0][col] = d_etpot;
+			/* End of write output to file*/
 		}
 		if (G_put_raster_row (outfd[0], outrast[0], out_data_type) < 0)
 			G_fatal_error (_("Cannot write to <%s.%i>"),result,0+1);
@@ -541,34 +515,8 @@ main(int argc, char *argv[])
 	G_free (outrast[0]);
 	G_close_cell (outfd[0]);
 
-//	G_command_history(&history);
-//	G_write_history(result,&history);
-
-//	//fill in data source line
-//		printf("1\t");
-//	strncpy(history.datsrc_1,metfName,RECORD_LEN);
-//	sprintf(history_buf,"year=%d",year);
-//		printf("1\t");
-//	strncpy(history.datsrc_1,history_buf,RECORD_LEN);
-//	sprintf(history_buf,"month=%d",month);
-//		printf("1\t");
-//	strncpy(history.datsrc_1,history_buf,RECORD_LEN);
-//	sprintf(history_buf,"day=%d",day);
-//		printf("1\t");
-//	strncpy(history.datsrc_1,history_buf,RECORD_LEN);
-//	sprintf(history_buf,"doy=%d",doy);
-//		printf("1\t");
-//	strncpy(history.datsrc_1,history_buf,RECORD_LEN);
-//	sprintf(history_buf,"sun_elevation=%f",sun_elevation);
-//		printf("1\t");
-//	strncpy(history.datsrc_1,history_buf,RECORD_LEN);
-//	sprintf(history_buf,"sun_azimuth=%f",sun_azimuth);
-//		printf("1\t");
-//	strncpy(history.datsrc_1,history_buf,RECORD_LEN);
-//		printf("1\t");
-//	history.datsrc_1[RECORD_LEN-1]='\0';//strncpy() doesn't null terminate if maxfill
-//		printf("1\t");
-//	G_write_history(result,&history);
+	G_command_history(&history);
+	G_write_history(result,&history);
 
 	return 0;
 }

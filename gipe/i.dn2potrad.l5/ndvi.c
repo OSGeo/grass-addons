@@ -2,7 +2,7 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Normalized Difference Vegetation Index
+/* Normalized Difference Vegetation Index */
 
 
 double nd_vi( double redchan, double nirchan )

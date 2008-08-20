@@ -4,8 +4,7 @@
 
 #define PI 3.1415926
 
-// Conversion of Radiance to Reflectance for Landsat 7ETM+ 
-// ychemin@gmail.com - Yann Chemin - LGPL, Copylefted, 2006.
+/* Conversion of Radiance to Reflectance for Landsat 7ETM+ */
 
 double rad2ref_landsat7( double radiance, double doy,double sun_elevation, double k_exo )
 {

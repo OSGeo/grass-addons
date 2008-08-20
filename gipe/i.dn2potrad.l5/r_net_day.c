@@ -2,7 +2,7 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Average Diurnal Net Radiation after Bastiaanssen (1995)
+/* Average Diurnal Net Radiation after Bastiaanssen (1995) */
 
 double r_net_day( double bbalb, double solar, double tsw )
 {

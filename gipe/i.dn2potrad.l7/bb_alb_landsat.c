@@ -2,8 +2,7 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Broadband albedo Landsat 5TM and 7ETM+ (maybe others too but not sure)
-// yann.chemin@ait.ac.th LGPL, Copylefted, 2004.
+/* Broadband albedo Landsat 5TM and 7ETM+ (maybe others too but not sure)*/
 
 double bb_alb_landsat( double bluechan, double greenchan, double redchan, double nirchan, double chan5, double chan7 )
 {

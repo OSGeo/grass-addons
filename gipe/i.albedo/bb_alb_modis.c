@@ -1,4 +1,6 @@
-// Broadband albedo MODIS
+/* 
+ * Broadband albedo MODIS
+ */
 
 double bb_alb_modis( double redchan, double nirchan, double chan3, double chan4, double chan5, double chan6, double chan7 )
 {

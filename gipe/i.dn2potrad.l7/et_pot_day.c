@@ -2,7 +2,7 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Average Diurnal Potential ET after Bastiaanssen (1995)
+/* Average Diurnal Potential ET after Bastiaanssen (1995)*/
 
 double et_pot_day( double bbalb, double solar, double tempk, double tsw, double roh_w )
 {

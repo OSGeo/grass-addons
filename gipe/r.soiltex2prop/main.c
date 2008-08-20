@@ -1,7 +1,7 @@
 /****************************************************************************
  *
  * MODULE:       r.soiltex2prop
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Transforms percentage of texture (sand/clay)
  *               into USDA 1951 (p209) soil texture classes and then
  *               into USLE soil erodibility factor (K) as an output
@@ -28,8 +28,8 @@ double prct2hf(double sand_input, double clay_input);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -38,15 +38,15 @@ int main(int argc, char *argv[])
 	struct Option *output1, *output2, *output3;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1; //output porosity raster name
-	char *result2; //output KSat raster name
-	char *result3; //output Hf raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result1; /*output porosity raster name*/
+	char *result2; /*output KSat raster name*/
+	char *result3; /*output Hf raster name*/
+	/*File Descriptors*/
 	int infd_psand, infd_pclay;
 	int outfd1, outfd2, outfd3;
 	
@@ -147,7 +147,6 @@ int main(int argc, char *argv[])
 		DCELL d_clay;
 		double tex[4] = {0.0,0.0,0.0,0.0};
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
 		/* read soil input maps */	
 		if(G_get_raster_row(infd_psand,inrast_psand,row,data_type_psand)<0)
 			G_fatal_error(_("Could not read from <%s>"),psand);

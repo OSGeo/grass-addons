@@ -26,8 +26,8 @@ double usda2pclay(int texture);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /* mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -35,13 +35,13 @@ int main(int argc, char *argv[])
 	struct Option *input1,*output1,*output2,*output3,*output4;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1,*result2,*result3; //output raster name
-	//File Descriptors
+	char *name;   /* input raster name*/
+	char *result1,*result2,*result3; /*output raster name*/
+	/*File Descriptors*/
 	int infd_soilusda;
 	int outfd1, outfd2, outfd3;
 	
@@ -130,8 +130,17 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-			d_soilusda = ((DCELL *) inrast_soilusda)[col];
- 		//	printf("inrast_pomat = %f\n", d_om);
+			switch(data_type_soilusda){
+				case CELL_TYPE:
+					d_soilusda = (double) ((CELL *) inrast_soilusda)[col];
+					break;
+				case FCELL_TYPE:
+					d_soilusda = (double) ((FCELL *) inrast_soilusda)[col];
+					break;
+				case DCELL_TYPE:
+					d_soilusda = ((DCELL *) inrast_soilusda)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_soilusda)){
 				G_set_d_null_value(&outrast1[col],1);
 				G_set_d_null_value(&outrast2[col],1);
