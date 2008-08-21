@@ -22,24 +22,24 @@ double ls_wi( double nirchan, double swirchan );
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	char *wiflag;// Switch for particular index
+	char *wiflag;/*Switch for particular index*/
 	
 	struct GModule *module;
 	struct Option *input1,*input2,*input3, *output;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
-	struct Colors colors; //Color rules	
+	struct History history; /*metadata*/
+	struct Colors colors; /*Color rules*/	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_nirchan, infd_swirchan;
 	int outfd;
 	
@@ -72,18 +72,13 @@ int main(int argc, char *argv[])
 	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key	   = _("nir");
 	input2->description=_("Name of the NIR Channel surface reflectance map [0.0;1.0]");
-	input2->answer     =_("nirchan");
 
 	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("swir");
 	input3->description=_("Name of the SWIR Channel surface reflectance map [0.0;1.0]");
-	input3->answer     =_("swirchan");
 
 	output= G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output->key        =_("wi");
 	output->description=_("Name of the output wi layer");
-	output->answer     =_("wi");
-
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -129,7 +124,6 @@ int main(int argc, char *argv[])
 		DCELL d_nirchan;
 		DCELL d_swirchan;
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
 		if(G_get_raster_row(infd_nirchan,inrast_nirchan,row,data_type_nirchan)<0)
 			G_fatal_error(_("Could not read from <%s>"),nirchan);
 		if(G_get_raster_row(infd_swirchan,inrast_swirchan,row,data_type_swirchan)<0)
@@ -159,8 +153,6 @@ int main(int argc, char *argv[])
 					d_swirchan = ((DCELL *) inrast_swirchan)[col];
 					break;
 			}
-			//	printf("col=%i/%i ",col,ncols);
-		// to change to multiple to output files.
 			if(G_is_d_null_value(&d_nirchan)||
 			G_is_d_null_value(&d_swirchan)){
 				G_set_d_null_value(&outrast[col],1);
