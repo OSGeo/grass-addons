@@ -18,14 +18,14 @@ int fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF], dou
 
         nn=nfunc*2+2;
 
-        //Value Initialization
+        /*Value Initialization*/
         for(i=0;i<nn;i++){
                 c[i]=0.0;
         }
         for(i=0;i<npoint;i++){
 		vfit[i]=0.0;
         }
-        //Matrix Initialization
+        /*Matrix Initialization*/
         for(i=0;i<nn;i++){
                 for(j=0;j<nn;j++){
                         tf[i][j]=0.0;
@@ -33,7 +33,7 @@ int fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF], dou
                 }
                 vec[i]=0.0;
         }
-        //Making Matrix
+        /*Making Matrix*/
         for(i=0;i<npoint;i++){
                 if(idx1[i]==1){
                         for(k1=0;k1<nn;k1++){
@@ -44,7 +44,7 @@ int fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF], dou
                         }
                 }
         }
-        //Matrix Copy and Inversion
+        /*Matrix Copy and Inversion*/
         for(i=0;i<nn;i++){
                 for(j=i;j<nn;j++){
                         tfij=tf[i][j];
@@ -53,7 +53,7 @@ int fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF], dou
                 }
         }
         invert_matrix(tinv,nn);
-        //Calculation of Coefficients
+        /*Calculation of Coefficients*/
         for(i=0;i<nn;i++){
                 sum=0.0;
                 for(j=0;j<nn;j++){
@@ -61,7 +61,7 @@ int fitting(int npoint, int nfunc, double *dat, int *idx1, double f[][MAXF], dou
                 }
                 c[i]=sum;
         }
-        //Calculating theoretical value
+        /*Calculating theoretical value*/
         for(i=0;i<npoint;i++){
                 sum=0.0;
                 for(k=0;k<nn;k++){

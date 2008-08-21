@@ -44,20 +44,20 @@ int lmf(int nbands, int npoint, double *inpix, double *outpix);
 int
 main(int argc, char *argv[])
 {
-	struct 	Cell_head cellhd;//region+header info
-	char 	*mapset; //mapset name
+	struct 	Cell_head cellhd;/*region+header info*/
+	char 	*mapset; /*mapset name*/
 	int 	nrows, ncols;
 	int 	row,col;
 
 	struct 	GModule *module;
 	struct 	Option *input,*ndate,*output;
 	
-	struct 	History history; //metadata
+	struct 	History history; /*metadata*/
 	/************************************/
 	/* FMEO Declarations*****************/
-	char 	*name; //input raster name
-	char 	*result[MAXFILES]; //output raster name
-	//File Descriptors
+	char 	*name; /*input raster name*/
+	char 	*result[MAXFILES]; /*output raster name*/
+	/*File Descriptors*/
 	int 	nfiles;
 	int 	infd[MAXFILES];
 	int 	outfd[MAXFILES];
@@ -75,10 +75,6 @@ main(int argc, char *argv[])
 	RASTER_MAP_TYPE in_data_type[MAXFILES]; /* 0=numbers  1=text */
 	RASTER_MAP_TYPE out_data_type = DCELL_TYPE;
 
-	char	*fileName;
-#define fileNameLe 8
-#define fileNamePosition 3
-
 	int	ndates;
 	double	inpix[MAXFILES]={0.0};
 	double	outpix[MAXFILES]={0.0};
@@ -93,8 +89,7 @@ main(int argc, char *argv[])
 
 	/* Define the different options */
 
-	input 		  = G_define_standard_option(G_OPT_R_INPUT) ;
-	input->multiple   = YES;
+	input 		  = G_define_standard_option(G_OPT_R_INPUTS) ;
 	input->description= _("Names of input layers");
 
 	ndate 		  = G_define_option();

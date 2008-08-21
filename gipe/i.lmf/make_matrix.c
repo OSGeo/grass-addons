@@ -1,6 +1,4 @@
-// Making Triangular Function Matrix/Vector
-
-// double  f[NMAX][MAXF];
+/* Making Triangular Function Matrix/Vector*/
 
 #include<stdio.h>
 #include<stdlib.h>
@@ -17,20 +15,18 @@ int make_matrix(int n,int npoint,int nfunc,int *numk,double f[][MAXF]){
         int     i,j,j1,j2;
         double  di,dk;
 	
-//	printf("make_matrix: n=%d\tnpoint=%d\tnfunc=%d\n",n,npoint,nfunc);
         nn=2*nfunc+2;
-//	printf("make_matrix: nn=%d\n",nn);
         eps=1.0;
-        //Set Constants
+        /*Set Constants*/
         vn= (double) npoint;
         angle=2.0*PI/vn;
-        //Matrix Clear
+        /*Matrix Clear*/
         for(i=0;i<n;i++){
                 for(j=0;j<nn;j++){
                         f[i][j]=0.0;
                }
         }
-        //Making Matrix
+        /*Making Matrix*/
         for(i=0;i<n;i++){
                 di= (double) (i+1);
                 for(j=0;j<nfunc;j++){

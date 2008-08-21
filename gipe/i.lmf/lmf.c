@@ -32,17 +32,17 @@ int lmf(int nbands, int npoint, double *inpix, double *outpix){
         double  tcld,thh,thl;
 	double	vaic,delta;
         int     idx1[NMAX];
-        //for fitting
+        /*for fitting*/
         double  dat[NMAX];
         double  f[NMAX][MAXF],c[MAXF];
         double  vfit[NMAX];
         double  ipoint[MAXB];
-        //for iteration
+        /*for iteration*/
         double  dat0[NMAX],c0[MAXF];
         double  dat1[NMAX];
-        //for Matrix Inversion
+        /*for Matrix Inversion*/
         int     numk[MAXF]={ 1,2,3,4,6,12,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-        //Set Defaults
+        /*Set Defaults*/
         nfunc=6;
         for(i=0;i<NMAX;i++){
 		for(j=0;j<MAXF;j++){
@@ -52,30 +52,30 @@ int lmf(int nbands, int npoint, double *inpix, double *outpix){
         make_matrix(nbands,npoint,nfunc,numk,f);
         nwin=3;
         mmsw=1;
-        //nds=npoint;
+        /*nds=npoint;*/
         nds=2*nfunc+2;
-        //LMF Process
-        //Checking Pixel Value
+        /*LMF Process*/
+        /*Checking Pixel Value*/
         fitsw=1;
-        //fitting method
+        /*fitting method*/
         tcld=0.15;
         fitmd=2;
-        //FITMD0----
+        /*FITMD0----*/
         if(fitmd==0){
                 thh=tcld*2.0;
                 thl=-tcld;
         }
-        //FITMD1----
+        /*FITMD1----*/
         if(fitmd==1){
                thh=tcld;
                thl=-tcld*2.0;
         }
-        //FITMD2----
+        /*FITMD2----*/
         if(fitmd==2){
                 thh=tcld;
                 thl=-tcld;
         }
-        //initialize arrays
+        /*initialize arrays*/
         for(k=0;k<nbands;k++){
                 dat0[k]=0.0;
                 outpix[k]=0.0;
@@ -98,13 +98,13 @@ int lmf(int nbands, int npoint, double *inpix, double *outpix){
                 dat0[k]=inpix[k];
                 dat[k]=dat0[k];
          }
-         //Minimax Filter
+         /*Minimax Filter*/
          if(mmsw>=1&&fitmd==0){
                 minmax(nbands,nwin,dat);
          }else if(mmsw>=1&&fitmd==1){
                 maxmin(nbands,nwin,dat);
          }
-         //Fitting
+         /*Fitting*/
          fitting(nbands,3,dat,idx1,f,c,vfit);
          for(k=0;k<nbands;k++){
                 outpix[k]=vfit[k];
