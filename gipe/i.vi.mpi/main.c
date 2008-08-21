@@ -40,27 +40,23 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD,&NUM_HOSTS);
 	MPI_Comm_rank(MPI_COMM_WORLD,&me);
  
-	//printf("rank =%d\n",me);	
 	if(!me)
 	{
-
-	//	printf("I am Master\n");
-		struct Cell_head cellhd; //region+header info
-		char *mapset; // mapset name
+		struct Cell_head cellhd; /*region+header info*/
+		char *mapset; /*mapset name*/
 		int row,col,row_n;
-		int verbose=1;
-		char *viflag;// Switch for particular index
+		char *viflag;/*Switch for particular index*/
 		struct GModule *module;
 		struct Option *input1, *input2,*input3,*input4,*input5,*input6,*input7,*input8, *output;
 	
 		struct Flag *flag1;	
-		struct History history; //metadata
+		struct History history; /*metadata*/
 
 		/************************************/
 		/* FMEO Declarations*****************/
-		char *name;   // input raster name
-		char *result; //output raster name
-		//File Descriptors
+		char *name;   /*input raster name*/
+		char *result; /*output raster name*/
+		/*File Descriptors*/
 		int infd_redchan, infd_nirchan, infd_greenchan, infd_bluechan, infd_chan5chan, infd_chan7chan;
 		int outfd;
 	
@@ -69,7 +65,7 @@ int main(int argc, char *argv[])
 		int i=0,j=0,temp;
 	
 		void *inrast_redchan, *inrast_nirchan, *inrast_greenchan, *inrast_bluechan, *inrast_chan5chan, *inrast_chan7chan;
-		unsigned char *outrast;
+		DCELL *outrast;
 		
 		RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 		RASTER_MAP_TYPE data_type_redchan;
@@ -83,7 +79,7 @@ int main(int argc, char *argv[])
 		G_gisinit(argv[0]);
 
 		module = G_define_module();
-		//module->keywords = _("vegetation index, biophysical parameters");
+		module->keywords = _("vegetation index, biophysical parameters");
 		module->description = _("13 types of vegetation indices from red and nir, and only some requiring additional bands");
 
 		/* Define the different options */
@@ -95,53 +91,33 @@ int main(int argc, char *argv[])
 		input1->description=_("Name of VI: sr,ndvi,ipvi,dvi,pvi,wdvi,savi,msavi,msavi2,gemi,arvi,gvi,gari.");
 		input1->answer     =_("ndvi");
 
-		input2 = G_define_option() ;
+		input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 		input2->key	   = _("red");
-		input2->type       = TYPE_STRING;
-		input2->required   = YES;
-		input2->gisprompt  =_("old,cell,raster") ;
 		input2->description=_("Name of the RED Channel surface reflectance map [0.0;1.0]");
-		input2->answer     =_("redchan");
 
-		input3 = G_define_option() ;
+		input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 		input3->key        =_("nir");
-		input3->type       = TYPE_STRING;
-		input3->required   = YES;
-		input3->gisprompt  =_("old,cell,raster");
 		input3->description=_("Name of the NIR Channel surface reflectance map [0.0;1.0]");
-		input3->answer     =_("nirchan");
 
-		input4 = G_define_option() ;
+		input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 		input4->key        =_("green");
-		input4->type       = TYPE_STRING;
 		input4->required   = NO;
-		input4->gisprompt  =_("old,cell,raster");
 		input4->description=_("Name of the GREEN Channel surface reflectance map [0.0;1.0]");
-	//	input4->answer     =_("greenchan");
-
-		input5 = G_define_option() ;
+		
+		input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 		input5->key        =_("blue");
-		input5->type       = TYPE_STRING;
 		input5->required   = NO;
-		input5->gisprompt  =_("old,cell,raster");
 		input5->description=_("Name of the BLUE Channel surface reflectance map [0.0;1.0]");
-	//	input5->answer     =_("bluechan");
 
-		input6 = G_define_option() ;
+		input6 = G_define_standard_option(G_OPT_R_INPUT) ;
 		input6->key        =_("chan5");
-		input6->type       = TYPE_STRING;
 		input6->required   = NO;
-		input6->gisprompt  =_("old,cell,raster");
 		input6->description=_("Name of the CHAN5 Channel surface reflectance map [0.0;1.0]");
-	//	input6->answer     =_("chan5chan");
 
-		input7 = G_define_option() ;
+		input7 = G_define_standard_option(G_OPT_R_INPUT) ;
 		input7->key        =_("chan7");
-		input7->type       = TYPE_STRING;
 		input7->required   = NO;
-		input7->gisprompt  =_("old,cell,raster");
 		input7->description=_("Name of the CHAN7 Channel surface reflectance map [0.0;1.0]");
-	//	input7->answer     =_("chan7chan");
 
 		input8 = G_define_option() ;
                 input8->key        =_("tmp");
@@ -149,20 +125,9 @@ int main(int argc, char *argv[])
                 input8->required   = NO;
                 input8->gisprompt  =_("no of operation value");
                 input8->description=_("User input for number of operation");
-	//	input8->answer     =_("1");
-        
 
-		output= G_define_option() ;
-		output->key        =_("vi");
-		output->type       = TYPE_STRING;
-		output->required   = YES;
-		output->gisprompt  =_("new,cell,raster");
+		output= G_define_standard_option(G_OPT_R_OUTPUT) ;
 		output->description=_("Name of the output vi layer");
-		output->answer     =_("vi");
-
-		flag1 = G_define_flag();
-		flag1->key = 'q';
-		flag1->description = _("Quiet");
 
 		/********************/
 		if (G_parser(argc, argv))
@@ -177,7 +142,6 @@ int main(int argc, char *argv[])
 		temp            = atoi(input8->answer);
 
 		result  = output->answer;
-		verbose = (!flag1->answer);
 	/***************************************************/
 		mapset = G_find_cell2(redchan, "");
 		if (mapset == NULL) {
@@ -260,7 +224,6 @@ int main(int argc, char *argv[])
 		G_debug(3, "number of rows %d",cellhd.rows);
 		nrows = G_window_rows();
 		ncols = G_window_cols();
-		//nrows=9;
 	
 		outrast = G_allocate_raster_buf(data_type_output);
 	/* Create New raster files */
@@ -271,7 +234,7 @@ int main(int argc, char *argv[])
 		int I[ncols+1];
 		host_n=1;
 		
-		printf("%d", temp);
+		G_message("tmp=%d", temp);
 		for(i=1;i<NUM_HOSTS;i++){
 			
  			MPI_Send(&temp,1,MPI_INT,i,1,MPI_COMM_WORLD);
@@ -296,10 +259,8 @@ int main(int argc, char *argv[])
 				DCELL d_nirchan;
 				DCELL d_chan5chan;
 				DCELL d_chan7chan;
-				if(verbose)
-					G_percent(row,nrows,2);
-				//printf("r=%d, k=%d, row=%d\n",r,k,row);
-				/* read soil input maps */	
+				G_percent(row,nrows,2);
+				/* read input maps */	
 				if(G_get_raster_row(infd_redchan,inrast_redchan,row,data_type_redchan)<0)
 					G_fatal_error(_("Could not read from <%s>"),redchan);
 				if(G_get_raster_row(infd_nirchan,inrast_nirchan,row,data_type_nirchan)<0)
@@ -407,7 +368,6 @@ int main(int argc, char *argv[])
 					db[5][col]= d_chan7chan;			
 
 		
-				// to change to multiple to output files.
 					if(G_is_d_null_value(&d_redchan)){
 						i=0;
 					}else if(G_is_d_null_value(&d_nirchan)){
@@ -476,13 +436,13 @@ int main(int argc, char *argv[])
 						}
 						I[col]=i;
 
-					}//else
+					}/*else*/
 			
-				}//col
-				//printf("Row data has genareted\n");
+				}/*col*/
+				/*printf("Row data has genareted\n");*/
 				row_n=k-1;
 				I[ncols]=row_n;
-				//MPI_Send(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD);
+				/*MPI_Send(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD);*/
 				MPI_Send(I,ncols+1,MPI_INT,k,1,MPI_COMM_WORLD);
 				MPI_Send(db,6*ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
 				/*MPI_Send(db1,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
@@ -492,9 +452,9 @@ int main(int argc, char *argv[])
 				MPI_Send(db5,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
 				*/		
 	
-			}//k				
+			}/*k*/				
 			for(k=1;k<NUM_HOSTS;k++){
-				//MPI_Recv(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD,&status);
+				/*MPI_Recv(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD,&status);*/
 				MPI_Recv(R,ncols+1,MPI_DOUBLE,k,1,MPI_COMM_WORLD,&status);
 				row_n=R[ncols];
 				for (cn=0;cn<ncols;cn++)
@@ -504,31 +464,26 @@ int main(int argc, char *argv[])
 			for(k=0;k<(NUM_HOSTS-1);k++)
                 	{
                         	for(j=0;j<ncols;j++)
-                        		((DCELL *) outrast)[j] = outputImage[k][j];
+                        		outrast[j] = outputImage[k][j];
                         	if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
                                 	G_fatal_error(_("Cannot write to output raster file"));
 
                 	}
-
-	
-		}//r
+		}/*r*/
 		k=1;
 		int lm=0;	
 		for(r=row+1;r<nrows;r++)
 		{	
-
-			
-                         // printf("row %d, node %d\n",r,k);
+			      /* printf("row %d, node %d\n",r,k);*/
                         	DCELL d_bluechan;
                         	DCELL d_greenchan;
                                 DCELL d_redchan;
                                 DCELL d_nirchan;
                                 DCELL d_chan5chan;
                                 DCELL d_chan7chan;
-                                if(verbose)
-                                        G_percent(row,nrows,2);
+                                G_percent(row,nrows,2);
 
-                                /* read soil input maps */
+                                /* read input maps */
                                 if(G_get_raster_row(infd_redchan,inrast_redchan,r,data_type_redchan)<0)
                                         G_fatal_error(_("Could not read from <%s>"),redchan);
                                 if(G_get_raster_row(infd_nirchan,inrast_nirchan,r,data_type_nirchan)<0)
@@ -637,8 +592,6 @@ int main(int argc, char *argv[])
                                         db[4][col]= d_chan5chan;
                                         db[5][col]= d_chan7chan;
 
-
-                                // to change to multiple to output files.
                                         if(G_is_d_null_value(&d_redchan)){
                                                 i=0;
                                         }else if(G_is_d_null_value(&d_nirchan)){
@@ -708,10 +661,10 @@ int main(int argc, char *argv[])
                                                 }
 					}
                                                 I[col]=i;
-				}//col
+				}/*col*/
                       		row_n=k-1;
                                 I[ncols]=row_n;
-				//MPI_Send(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD);
+				/*MPI_Send(&row_n,1,MPI_INT,k,1,MPI_COMM_WORLD);*/
                                 MPI_Send(I,ncols+1,MPI_INT,k,1,MPI_COMM_WORLD);
                                 MPI_Send(db,6*ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
                                 /*MPI_Send(db1,ncols,MPI_DOUBLE,k,1,MPI_COMM_WORLD);
@@ -722,11 +675,11 @@ int main(int argc, char *argv[])
 				*/
 				k++;
 				lm=1;		
-			}//r 
+			}/*r */
 			if(lm)
 			{	
 				for(nh=1;nh<k;nh++){
-                                //	MPI_Recv(&row_n,1,MPI_INT,nh,1,MPI_COMM_WORLD,&status);
+                                /*	MPI_Recv(&row_n,1,MPI_INT,nh,1,MPI_COMM_WORLD,&status);*/
                                 	MPI_Recv(R,ncols+1,MPI_DOUBLE,nh,1,MPI_COMM_WORLD,&status);
 					row_n=R[ncols];
                                 	for (cn=0;cn<ncols;cn++)
@@ -736,14 +689,11 @@ int main(int argc, char *argv[])
                         	for(nh=0;nh<(k-1);nh++)
                         	{
                                 	for(j=0;j<ncols;j++)
-                                        	((DCELL *) outrast)[j] = outputImage[nh][j];
+                                        	outrast[j] = outputImage[nh][j];
                                 	if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
                                         	G_fatal_error(_("Cannot write to output raster file"));
-
                         	}
 			}
-
-
 
         	MPI_Finalize();
 		G_free(inrast_redchan);
@@ -769,23 +719,23 @@ int main(int argc, char *argv[])
 		G_free(outrast);
 		G_close_cell(outfd);
 		
-		//G_short_history(result, "raster", &history);
-		//G_command_history(&history);
-		//G_write_history(result,&history);
+		G_short_history(result, "raster", &history);
+		G_command_history(&history);
+		G_write_history(result,&history);
 
 		exit(EXIT_SUCCESS);
-	}//if end	
+	}/*if end*/	
 	else if(me){
 
 		int col,n_rows,i,row_n,modv,nrows,ncols,t,temp;
 		int *I;
 		double *a, *b, *c, *d, *e, *f, *r;
-		//double *r;
+		/*double *r;*/
 		
 		MPI_Recv(&temp,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
 		MPI_Recv(&nrows,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
         	MPI_Recv(&ncols,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
-		//printf("Slave->%d: nrows=%d, ncols=%d \n",me,nrows,ncols);
+		/*printf("Slave->%d: nrows=%d, ncols=%d \n",me,nrows,ncols);*/
  	
 		I=(int *)malloc((ncols+2)*sizeof(int));
         	a=(double *)malloc((ncols+1)*sizeof(double));
@@ -799,16 +749,16 @@ int main(int argc, char *argv[])
 		double db[6][ncols];
 		n_rows=nrows/(NUM_HOSTS-1);
 		modv=nrows%(NUM_HOSTS-1);
-		//temp=10;
-		//printf("%d\n",temp);	
+		/*temp=10;*/
+		/*printf("%d\n",temp);*/	
 		
-		//int temp;	
+		/*int temp;	*/
 		if(modv>=me)
 			n_rows++;
 		for(i=0;i<n_rows;i++)
 		{
 				
-			//MPI_Recv(&row_n,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
+			/*MPI_Recv(&row_n,1,MPI_INT,0,1,MPI_COMM_WORLD,&status);*/
 			MPI_Recv(I,ncols+1,MPI_INT,0,1,MPI_COMM_WORLD,&status);
 			MPI_Recv(db,6*ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
 		/*	MPI_Recv(a,ncols,MPI_DOUBLE,0,1,MPI_COMM_WORLD,&status);
@@ -833,7 +783,7 @@ int main(int argc, char *argv[])
 			
 				if (I[col]==0) r[col]=-999.99;
 				else if (I[col]==1){
-				//sr
+				/*sr*/
 					if(  a[col] ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -841,7 +791,7 @@ int main(int argc, char *argv[])
 					}	
 				}
 				else if (I[col]==2){
-				//ndvi
+				/*ndvi*/
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -849,7 +799,7 @@ int main(int argc, char *argv[])
 					}
 				}
 				else if (I[col]==3){
-				//ipvi	
+				/*ipvi*/	
 		
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
@@ -859,7 +809,7 @@ int main(int argc, char *argv[])
 
 				}	
 				else if (I[col]==4){
-				//dvi
+				/*dvi*/
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -867,7 +817,7 @@ int main(int argc, char *argv[])
 					}		
 				}
 				else if (I[col]==5){
-				//pvi
+				/*pvi*/
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -875,8 +825,8 @@ int main(int argc, char *argv[])
 					}
 				}
 				else if (I[col]==6){
-				//wdvi
-					double slope=1;//slope of soil line //
+				/*wdvi*/
+					double slope=1;/*slope of soil line */
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -884,7 +834,7 @@ int main(int argc, char *argv[])
 					}
 				}
 				else if (I[col]==7){
-				//savi
+				/*savi*/
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -892,7 +842,7 @@ int main(int argc, char *argv[])
 					}
 				}
 				else if (I[col]==8){
-				//msavi
+				/*msavi*/
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -900,7 +850,7 @@ int main(int argc, char *argv[])
 					}
 				}
 				else if (I[col]==9){
-				//msavi2
+				/*msavi2*/
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -908,7 +858,7 @@ int main(int argc, char *argv[])
 					}
 				}
 				else if (I[col]==10){
-				//gemi
+				/*gemi*/
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -916,7 +866,7 @@ int main(int argc, char *argv[])
 					}
 				}
 				else if (I[col]==11){
-				//arvi
+				/*arvi*/
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else {
@@ -924,7 +874,7 @@ int main(int argc, char *argv[])
 					}
 				}
 				else if (I[col]==12){
-				//gvi
+				/*gvi*/
 					if( ( b[col] + a[col] ) ==  0.0 ){
 						r[col] = -1.0;
 					} else	{
@@ -932,18 +882,18 @@ int main(int argc, char *argv[])
 					}
 				}
 				else if (I[col]==13){
-				//gari
+				/*gari*/
 					r[col] = ( b[col] - (c[col]-(d[col] - a[col]))) / ( b[col] + (c[col]-(d[col] - a[col]))) ;
 				}
 
-			} //for temp
+			} /*for temp*/
 
-		}// col end
+		}/*col end*/
 		r[ncols]=I[ncols];
 	
-		//MPI_Send(&row_n,1,MPI_INT,0,1,MPI_COMM_WORLD);
+		/*MPI_Send(&row_n,1,MPI_INT,0,1,MPI_COMM_WORLD);*/
 		MPI_Send(r,ncols+1,MPI_DOUBLE,0,1,MPI_COMM_WORLD);
-	}//row end
+	}/*row end*/
 
 	free(I);
 	free(a);
@@ -955,6 +905,6 @@ int main(int argc, char *argv[])
 	free(r);
 	MPI_Finalize();	
 
-   	}//if end
-}//main end
+   	}/*if end*/
+}/*main end*/
 
