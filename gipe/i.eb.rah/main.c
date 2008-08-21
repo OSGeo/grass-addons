@@ -1,11 +1,11 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.rah
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates aerodynamic resistance to heat transport
  *               This has been seen in Pawan (2004).
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -19,13 +19,12 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double ra_h(double disp,double z0h,double psih,double ustar,double hu);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -34,21 +33,21 @@ int main(int argc, char *argv[])
 	struct Option *input5, *output1;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_disp, infd_z0h, infd_psih, infd_ustar;
 	int infd_hu, outfd;
 	
 	char *disp, *z0h, *psih, *ustar, *hu;
 
-	double cp; //air specific heat	
+	double cp; /*air specific heat*/	
 	int i=0,j=0;
-	double a,b; //SEBAL slope and intercepts of surf. temp.
+	double a,b; /*SEBAL slope and intercepts of surf. temp.*/
 	
 	void *inrast_disp, *inrast_z0h, *inrast_psih;
 	void *inrast_hu, *inrast_ustar;
@@ -70,32 +69,25 @@ int main(int argc, char *argv[])
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("disp");
 	input1->description=_("Name of the displacement height map");
-	input1->answer     =_("disp");
 
 	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("z0h");
 	input2->description=_("Name of the height of heat flux roughness length map");
-	input2->answer     =_("z0h");
 
 	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("psih");
 	input3->description=_("Name of the psichrometric parameter for heat flux map");
-	input3->answer     =_("psih");
 
 	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("ustar");
 	input4->description=_("Name of the nominal wind speed map");
-	input4->answer     =_("ustar");
 
 	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("hu");
 	input5->description=_("Name of the height of wind measurement (typically 2 m) map");
-	input5->answer     =_("hu");
 	
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output1->key        =_("rah");
 	output1->description=_("Name of the output rah layer");
-	output1->answer     =_("rah");
 
 	/********************/
 	if (G_parser(argc, argv))
@@ -182,8 +174,7 @@ int main(int argc, char *argv[])
 		DCELL d_ustar;
 		DCELL d_hu;
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
-		/* read soil input maps */	
+		/* read input maps */	
 		if(G_get_raster_row(infd_disp,inrast_disp,row,data_type_disp)<0)
 			G_fatal_error(_("Could not read from <%s>"),disp);
 		if(G_get_raster_row(infd_z0h,inrast_z0h,row,data_type_z0h)<0)

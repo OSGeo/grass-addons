@@ -9,8 +9,6 @@ double psi_h(double t0_dem, double h, double U_0, double roh_air)
 	double result;
 	double n5_temp, n11_mem, n12_mem;
 
-//	printf("h input to psih() is %5.3f\n",h);
-	
 	if(h != 0.0){
 		n5_temp = (-1004* roh_air*pow(U_0,3)* t0_dem)/(0.41*9.81* h);
 	} else {

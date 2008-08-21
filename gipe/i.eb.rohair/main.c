@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.rohair
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the standard air density as seen in Pawan (2004)
  *
- * COPYRIGHT:    (C) 2002-2007 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -18,26 +18,25 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double roh_air(double dem, double tempka);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
 	struct GModule *module;
 	struct Option *input1, *input2, *output1;
 	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result1; /*output raster name*/
+	/*File Descriptors*/
 	int infd_dem, infd_tempka;
 	int outfd1;
 	
@@ -46,7 +45,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_dem, *inrast_tempka;
-	unsigned char *outrast1;
+	DCELL *outrast1;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_dem;
 	RASTER_MAP_TYPE data_type_tempka;
@@ -58,29 +57,17 @@ int main(int argc, char *argv[])
 	module->description = _("Standard height-based Air Density as seen in Pawan (2004).");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("dem");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the DEM map [m]");
-	input1->answer     =_("dem");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key	   = _("tempka");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster") ;
 	input2->description=_("Name of the Air Temperature map [K]");
-	input2->answer     =_("tempka");
 
-	output1 = G_define_option() ;
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->key        =_("rohair");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,dcell,raster");
 	output1->description=_("Name of the output rohair layer");
-	output1->answer     =_("rohair");
 	
 	/********************/
 	if (G_parser(argc, argv))
@@ -157,15 +144,14 @@ int main(int argc, char *argv[])
 					d_tempka = ((DCELL *) inrast_tempka)[col];
 					break;
 			}
-			if(G_is_d_null_value(&d_dem)){
-				((DCELL *) outrast1)[col] = -999.99;
-			} else if (G_is_d_null_value(&d_tempka)){
-				((DCELL *) outrast1)[col] = -999.99;
+			if(G_is_d_null_value(&d_dem)||
+			G_is_d_null_value(&d_tempka)){
+				G_set_d_null_value(&outrast1[col],1);
 			} else {
 				/********************/
 				/* calculate rohair */
 				d = roh_air(d_dem, d_tempka);
-				((DCELL *) outrast1)[col] = d;
+				outrast1[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)

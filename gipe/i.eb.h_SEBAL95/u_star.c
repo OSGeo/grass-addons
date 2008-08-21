@@ -13,13 +13,6 @@ double u_star(double t0_dem, double h, double ustar, double roh_air, double zom,
 	double hv=0.15;	/* crop height (m) 		*/
 	double bh=200;	/* blending height (m) 		*/
 
-//	printf("t0dem = %5.3f\n", t0_dem);
-//	printf("h = %5.3f\n", h);
-//	printf("U_0 = %5.3f\n", U_0);
-//	printf("roh_air = %5.3f\n", roh_air);
-//	printf("zom = %5.3f\n", zom);
-//	printf("u2m = %5.3f\n", u2m);
-	
 	if(h != 0.0){
 		n5_temp = (-1004* roh_air*pow(ustar,3)* t0_dem)/(0.41*9.81* h);
 	} else {
@@ -33,7 +26,7 @@ double u_star(double t0_dem, double h, double ustar, double roh_air, double zom,
 
 	} else {
 
-//		n31_mem = 1.0;
+/*		n31_mem = 1.0;*/
 		n10_mem = -5*2/n5_temp;
 
 	}

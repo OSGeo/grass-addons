@@ -1,12 +1,12 @@
 /****************************************************************************
  *
  * MODULE:       i.evapo.potrad
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Creates a map of potential evapotranspiration following
  *               the condition that all net radiation becomes ET
  *               (thus it can be called a "radiative ET pot")
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -29,8 +29,8 @@ double et_pot_day( double rnetd, double tempk, double roh_w );
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -41,13 +41,13 @@ int main(int argc, char *argv[])
 	struct Option *output1, *output2;
 	
 	struct Flag *flag1, *flag2, *flag3, *flag4;	
-	struct History history; //metadata
-	struct Colors colors; //Color rules	
+	struct History history; /*metadata*/
+	struct Colors colors; /*Color rules*/	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1,*result2; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result1,*result2; /*output raster name*/
+	/*File Descriptors*/
 	int infd_albedo, infd_tempk, infd_lat, infd_doy, infd_tsw;
 	int infd_slope, infd_aspect;
 	int infd_tair, infd_e0;
@@ -83,27 +83,23 @@ int main(int argc, char *argv[])
 	/* Define the different options */
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("albedo");
-	input1->description=_("Name of the Albedo map [0.0-1.0]");
-	input1->answer     =_("albedo");
+	input1->description=_("Name of the Albedo layer [0.0-1.0]");
 
 	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("tempk");
-	input2->description=_("Name of the temperature map [Degree Kelvin]");
-	input2->answer     =_("tempk");
+	input2->description=_("Name of the temperature layer [Degree Kelvin]");
 
 	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("lat");
-	input3->description=_("Name of the degree latitude map [dd.ddd]");
-	input3->answer     =_("lat");
+	input3->description=_("Name of the degree latitude layer [dd.ddd]");
 
 	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("doy");
-	input4->description=_("Name of the Day of Year map [0.0-366.0]");
-	input4->answer     =_("doy");
+	input4->description=_("Name of the Day of Year layer [0.0-366.0]");
 
 	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("tsw");
-	input5->description=_("Name of the single-way transmissivity map [0.05-1.0], defaults to 1.0 if no input file");
+	input5->description=_("Name of the single-way transmissivity layer [0.05-1.0], defaults to 1.0 if no input file");
 
 	input6 = G_define_option() ;
 	input6->key        =_("roh_w");
@@ -116,13 +112,13 @@ int main(int argc, char *argv[])
 	input7 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input7->key        =_("slope");
 	input7->required   = NO;
-	input7->description=_("Name of the Slope map ~[0-90]");
+	input7->description=_("Name of the Slope layer ~[0-90]");
 	input7->guisection = _("Optional");
 
 	input8 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input8->key        =_("aspect");
 	input8->required   = NO;
-	input8->description=_("Name of the Aspect map ~[0-360]");
+	input8->description=_("Name of the Aspect layer ~[0-360]");
 	input8->guisection = _("Optional");
 
 	input9 = G_define_option() ;
@@ -137,19 +133,17 @@ int main(int argc, char *argv[])
 	input10 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input10->key        =_("t_air");
 	input10->required   = NO;
-	input10->description=_("Name of the Air Temperature map [Kelvin], use with -b");
+	input10->description=_("Name of the Air Temperature layer [Kelvin], use with -b");
 	input10->guisection = _("Optional");
 
 	input11 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input11->key        =_("e0");
 	input11->required   = NO;
-	input11->description=_("Name of the Surface Emissivity map [-], use with -b");
+	input11->description=_("Name of the Surface Emissivity layer [-], use with -b");
 	input11->guisection = _("Optional");
 
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output1->key        =_("etpot");
 	output1->description=_("OUTPUT: Name of the Potential ET layer");
-	output1->answer     =_("etpot");
 
 	output2 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output2->key        =_("rnetd");
@@ -317,12 +311,10 @@ int main(int argc, char *argv[])
 		DCELL d_lat;
 		DCELL d_doy;
 		DCELL d_tsw;
-//		DCELL d_roh_w;
 		DCELL d_solar;
 		DCELL d_rnetd;
 		DCELL d_slope;
 		DCELL d_aspect;
-//		DCELL d_e_atm;
 		DCELL d_tair;
 		DCELL d_e0;
 		G_percent(row,nrows,2);

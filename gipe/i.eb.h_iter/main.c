@@ -29,41 +29,40 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double fixed_deltat(double u2m, double roh_air,double cp,double dt,double disp,double z0m,double z0h,double tempk,double hu,int iteration);
 double h0(double roh_air, double cp, double rah, double dtair);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	//If !sebal then use Delta T input file
-	int sebal=0;//SEBAL Flag for affine transform of surf. temp.
+	/*If !sebal then use Delta T input file*/
+	int sebal=0;/*SEBAL Flag for affine transform of surf. temp.*/
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5;
 	struct Option *input6, *input7, *input8, *input9, *input10;
 	struct Option *input11, *input_hu, *output1;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_rohair, infd_tempk, infd_dtair;
 	int infd_disp, infd_z0m, infd_z0h, infd_u_hu;
 	int infd_hu, outfd;
 	
 	char *rohair,*tempk,*dtair, *disp, *z0m, *z0h, *u_hu, *hu;
 
-	double cp; //air specific heat	
+	double cp; /*air specific heat*/	
 	int i=0,j=0;
-	double a,b; //SEBAL slope and intercepts of surf. temp.
+	double a,b; /*SEBAL slope and intercepts of surf. temp.*/
 	int iteration;
 	
 	void *inrast_rohair, *inrast_tempk, *inrast_dtair;
@@ -158,9 +157,7 @@ int main(int argc, char *argv[])
 	input11->answer     =_("3");
 		
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output1->key        =_("h0");
 	output1->description=_("Name of the output h0 layer");
-	output1->answer     =_("h0");
 
 	flag1 = G_define_flag();
 	flag1->key = 's';

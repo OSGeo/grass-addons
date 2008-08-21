@@ -6,7 +6,7 @@
  *               as seen in Bastiaanssen (1995) using time of
  *               satellite overpass.
  *
- * COPYRIGHT:    (C) 2006-2007 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2006-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -24,8 +24,8 @@ double r_net( double bbalb, double ndvi, double tempk, double dtair,  double e0,
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -34,13 +34,13 @@ int main(int argc, char *argv[])
 	struct Option *input6, *input7, *input8, *input9, *output1;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
-	struct Colors colors; //Color rules
+	struct History history; /*metadata*/
+	struct Colors colors; /*Color rules*/
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_albedo, infd_ndvi, infd_tempk, infd_time, infd_dtair;
 	int infd_emissivity, infd_tsw, infd_doy, infd_sunzangle;
 	int outfd;
@@ -283,7 +283,6 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-			//printf("row:%d\tcol:%d\n",row,col);
 			switch(data_type_albedo){
 				case CELL_TYPE:
 					d_albedo = (double) ((CELL *) inrast_albedo)[col];
@@ -398,7 +397,6 @@ int main(int argc, char *argv[])
 				/* calculate the net radiation	    */
 				d = r_net(d_albedo,d_ndvi,d_tempk,d_dtair,d_emissivity,d_tsw,d_doy,d_time,d_sunzangle); 
 				outrast[col] = d;
-		//		printf(" -> %5.3f\n",d);
 			}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)

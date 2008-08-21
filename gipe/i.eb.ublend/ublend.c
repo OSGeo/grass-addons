@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<math.h>
 
-//Wind speed at blending height
+/*Wind speed at blending height*/
 
 double u_blend(double u_hmoment, double disp,double hblend,double z0m, double hmoment){
 	double ublend;

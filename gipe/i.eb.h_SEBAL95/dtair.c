@@ -13,8 +13,6 @@ double dt_air(double t0_dem, double tempk_water, double tempk_desert, double dta
 	a = (dtair_desert-0.0)/(tempk_desert-tempk_water);
 	b = dtair_desert - a * tempk_desert;
 	result = t0_dem * a + b;
-//	printf("__________________________________");
-//	printf("dtair=%5.3f * Tempk + (%5.3f)\n",a,b);	
 	return result;
 }
 

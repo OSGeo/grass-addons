@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.ustar
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the nominal wind speed
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -23,23 +23,22 @@ double u_star(double ublend,double hblend,double disp,double z0m,double psim);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5, *output1;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_ublend, infd_disp,infd_z0m,infd_psim;
 	int outfd;
 	
@@ -49,7 +48,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_ublend, *inrast_disp, *inrast_z0m, *inrast_psim;
-	unsigned char *outrast;
+	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_ublend;
 	RASTER_MAP_TYPE data_type_disp;
@@ -63,13 +62,9 @@ int main(int argc, char *argv[])
 	module->description = _("Nominal wind speed.");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("ublend");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
-	input1->description=_("Name of the wind speed at blending height map");
-	input1->answer     =_("ublend");
+	input1->description=_("Name of the wind speed at blending height layer");
 
 	input2 = G_define_option() ;
 	input2->key        =_("hblend");
@@ -79,41 +74,21 @@ int main(int argc, char *argv[])
 	input2->description=_("Value of the blending height (100.0 in Pawan, 2004)");
 	input2->answer     =_("100.0");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("disp");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
-	input3->description=_("Name of the displacement height map");
-	input3->answer     =_("disp");
+	input3->description=_("Name of the displacement height layer");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("z0m");
-	input4->type       = TYPE_STRING;
-	input4->required   = YES;
-	input4->gisprompt  =_("old,cell,raster");
-	input4->description=_("Name of the surface roughness for momentum map");
-	input4->answer     =_("z0m");
+	input4->description=_("Name of the surface roughness for momentum layer");
 	
-	input5 = G_define_option() ;
+	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("psim");
-	input5->type       = TYPE_STRING;
-	input5->required   = YES;
-	input5->gisprompt  =_("old,cell,raster");
-	input5->description=_("Name of the psichrometric parameter for momentum map");
-	input5->answer     =_("psim");
+	input5->description=_("Name of the psichrometric parameter for momentum layer");
 
-	output1 = G_define_option() ;
-	output1->key        =_("ustar");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->description=_("Name of the output ustar layer");
-	output1->answer     =_("ustar");
 
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -125,7 +100,6 @@ int main(int argc, char *argv[])
 	psim		= input5->answer;
 	
 	result  = output1->answer;
-	verbose = (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2 (ublend, "");
 	if (mapset == NULL) {
@@ -187,9 +161,7 @@ int main(int argc, char *argv[])
 		DCELL d_z0m;
 		DCELL d_psim;
 		DCELL d_ustar;
-		if(verbose)
-			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
+		G_percent(row,nrows,2);
 		/* read input maps */	
 		if(G_get_raster_row(infd_ublend,inrast_ublend,row,data_type_ublend)<0)
 			G_fatal_error(_("Could not read from <%s>"),ublend);
@@ -206,19 +178,16 @@ int main(int argc, char *argv[])
 			d_disp = ((DCELL *) inrast_disp)[col];
 			d_z0m = ((DCELL *) inrast_z0m)[col];
 			d_psim = ((DCELL *) inrast_psim)[col];
-			if(G_is_d_null_value(&d_disp)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_z0m)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_psim)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_ublend)){
-				((DCELL *) outrast)[col] = -999.99;
+			if(G_is_d_null_value(&d_disp)||
+			G_is_d_null_value(&d_z0m)||
+			G_is_d_null_value(&d_psim)||
+			G_is_d_null_value(&d_ublend)){
+				G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
 				/* calculate ustar   */
 				d_ustar=u_star(d_ublend, hblend, d_disp, d_z0m, d_psim);
-				((DCELL *) outrast)[col] = d_ustar;
+				outrast[col] = d_ustar;
 			}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)

@@ -2,10 +2,9 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Average Solar Diurnal Radiation after Bastiaanssen (1995)
-// Includes Slope and aspect correction
-// yann.chemin@gmail.com - Yann Chemin - LGPL, Copylefted, 2004.
-
+/* Average Solar Diurnal Radiation after Bastiaanssen (1995)
+ * Includes Slope and aspect correction
+ */
 #define PI 3.1415927
 
 double solar_day_3d(double lat, double doy, double tsw, double slope, double aspect )

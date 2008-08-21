@@ -1,13 +1,12 @@
 /*****************************************************************************
 *
 * MODULE:	i.evapo.PT
-* AUTHOR:	Yann Chemin (2007)
-* 		yann.chemin_AT_gmail.com 
+* AUTHOR:	Yann Chemin yann.chemin@gmail.com 
 *
 * PURPOSE:	To estimate the daily evapotranspiration by means
 *		of Prestley and Taylor method (1972).
 *
-* COPYRIGHT:	(C) 2007 by the GRASS Development Team
+* COPYRIGHT:	(C) 2007-2008 by the GRASS Development Team
 *
 *		This program is free software under the GNU General Public
 *		Licence (>=2). Read the file COPYING that comes with GRASS
@@ -23,14 +22,9 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-
-//proto Delta_pt and Ghamma_pt
 double pt_delta(double tempka);
 double pt_ghamma(double tempka, double p_atm);
-
-//proto ET
 double pt_daily_et(double alpha_pt, double delta_pt, double ghamma_pt, double rnet, double g0, double tempka );
-
 
 int main(int argc, char *argv[])
 {	
@@ -112,7 +106,6 @@ int main(int argc, char *argv[])
 	input_PT->answer		= "1.26";
 	
 	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output->key			= "output";
 	output->key_desc		= "[mm/d]";
 	output->description		= _("Name of output Evapotranspiration layer");
 	
@@ -258,11 +251,11 @@ int main(int argc, char *argv[])
 					break;
 			}
 
-			//Delta_pt and Ghamma_pt
+			/*Delta_pt and Ghamma_pt*/
 			d_pt_delta = pt_delta( d_tempka);
 			d_pt_ghamma = pt_ghamma(d_tempka, d_pt_patm);
 			
-			//Calculate ET
+			/*Calculate ET*/
 			d_daily_et = pt_daily_et( d_pt_alpha, d_pt_delta, d_pt_ghamma, d_rnet, d_g0, d_tempka );
 			if (zero->answer && d_daily_et<0)
 				d_daily_et=0.0;

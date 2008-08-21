@@ -2,8 +2,9 @@
 #include<math.h>
 #include<stdlib.h>
 
-// soil moisture in the root zone
-// Makin, Molden and Bastiaanssen, 2001
+/* soil moisture in the root zone
+ * Makin, Molden and Bastiaanssen, 2001
+ */
 
 double soilmoisture( double evap_fr )
 {

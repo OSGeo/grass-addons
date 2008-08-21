@@ -235,20 +235,12 @@ int main(int argc, char *argv[])
 		}
 	}
 	G_message("Histogram of Temperature map (if it has rogue values to clean)");
-	//int peak1, peak2, peak3;
-	//int i_peak1, i_peak2, i_peak3;
 	peak1=0;
 	peak2=0;
 	peak3=0;
 	i_peak1=0;
 	i_peak2=0;
 	i_peak3=0;
-	//int bottom1a, bottom1b;
-	//int bottom2a, bottom2b;
-	//int bottom3a, bottom3b;
-	//int i_bottom1a, i_bottom1b;
-	//int i_bottom2a, i_bottom2b;
-	//int i_bottom3a, i_bottom3b;
 	bottom1a=100000;
 	bottom1b=100000;
 	bottom2a=100000;
@@ -568,18 +560,18 @@ int main(int argc, char *argv[])
 				d_tempk <= (double) i_peak1+5.0){
 					c_wet = 1; /* Wet pixel Candidate */
 				}	
-				//flag NULL -> 0
+				/*flag NULL -> 0*/
 				if (zero->answer && c_wet<0){
 					c_wet = 0;
 				}
 				if (zero->answer && c_dry<0){
 					c_dry = 0;
 				}
-				//results
+				/*results*/
 				outrast[col] = c_wet;
 				outrast1[col] = c_dry;
 				
-				//clean up
+				/*clean up*/
 				if(c_wet==-1)
 					G_set_c_null_value(&outrast[col],1);
 				if(c_dry==-1)

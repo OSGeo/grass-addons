@@ -1,11 +1,11 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.ublend
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the wind speed at blendiong height
  * 		 as seen in Pawan (2004)
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -19,28 +19,26 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double u_blend(double u_hmoment, double disp,double hblend,double z0m, double hmoment);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5, *output1;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_u_hmoment,infd_disp,infd_z0m;
 	int outfd;
 	
@@ -50,7 +48,7 @@ int main(int argc, char *argv[])
 	int i=0,j=0;
 	
 	void *inrast_u_hmoment, *inrast_disp, *inrast_z0m;
-	unsigned char *outrast;
+	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_u_hmoment;
 	RASTER_MAP_TYPE data_type_disp;
@@ -63,13 +61,9 @@ int main(int argc, char *argv[])
 	module->description = _("Wind speed at blending height.");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("u_hm");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the wind speed at momentum height map (2.0m height in Pawan, 2004)");
-	input1->answer     =_("u_hm");
 
 	input2 = G_define_option() ;
 	input2->key        =_("hmoment");
@@ -79,21 +73,13 @@ int main(int argc, char *argv[])
 	input2->description=_("Value of the momentum height (2.0 in Pawan, 2004)");
 	input2->answer     =_("2.0");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("disp");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the displacement height map");
-	input3->answer     =_("disp");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("z0m");
-	input4->type       = TYPE_STRING;
-	input4->required   = YES;
-	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the surface roughness for momentum map");
-	input4->answer     =_("z0m");
 	
 	input5 = G_define_option() ;
 	input5->key        =_("hblend");
@@ -103,17 +89,9 @@ int main(int argc, char *argv[])
 	input5->description=_("Value of the blending height (100.0 in Pawan, 2004)");
 	input5->answer     =_("100.0");
 
-	output1 = G_define_option() ;
-	output1->key        =_("ublend");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->description=_("Name of the output ublend layer");
-	output1->answer     =_("ublend");
 
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -125,7 +103,6 @@ int main(int argc, char *argv[])
 	hblend		= atof(input5->answer);
 	
 	result  = output1->answer;
-	verbose = (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2 (u_hmoment, "");
 	if (mapset == NULL) {
@@ -175,9 +152,7 @@ int main(int argc, char *argv[])
 		DCELL d_z0m;
 		DCELL d_u_hmoment;
 		DCELL d_ublend;
-		if(verbose)
-			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
+		G_percent(row,nrows,2);
 		/* read input maps */	
 		if(G_get_raster_row(infd_u_hmoment,inrast_u_hmoment,row,data_type_u_hmoment)<0)
 			G_fatal_error(_("Could not read from <%s>"),u_hmoment);
@@ -188,20 +163,48 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-			d_u_hmoment = ((DCELL *) inrast_u_hmoment)[col];
-			d_disp = ((DCELL *) inrast_disp)[col];
-			d_z0m = ((DCELL *) inrast_z0m)[col];
-			if(G_is_d_null_value(&d_disp)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_z0m)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_u_hmoment)){
-				((DCELL *) outrast)[col] = -999.99;
+			switch(data_type_u_hmoment){
+				case CELL_TYPE:
+					d_u_hmoment = (double) ((CELL *) inrast_u_hmoment)[col];
+					break;
+				case FCELL_TYPE:
+					d_u_hmoment = (double) ((FCELL *) inrast_u_hmoment)[col];
+					break;
+				case DCELL_TYPE:
+					d_u_hmoment = ((DCELL *) inrast_u_hmoment)[col];
+					break;
+			}
+			switch(data_type_disp){
+				case CELL_TYPE:
+					d_disp = (double) ((CELL *) inrast_disp)[col];
+					break;
+				case FCELL_TYPE:
+					d_disp = (double) ((FCELL *) inrast_disp)[col];
+					break;
+				case DCELL_TYPE:
+					d_disp = ((DCELL *) inrast_disp)[col];
+					break;
+			}
+			switch(data_type_z0m){
+				case CELL_TYPE:
+					d_z0m = (double) ((CELL *) inrast_z0m)[col];
+					break;
+				case FCELL_TYPE:
+					d_z0m = (double) ((FCELL *) inrast_z0m)[col];
+					break;
+				case DCELL_TYPE:
+					d_z0m = ((DCELL *) inrast_z0m)[col];
+					break;
+			}
+			if(G_is_d_null_value(&d_disp)||
+			G_is_d_null_value(&d_z0m)||
+			G_is_d_null_value(&d_u_hmoment)){
+				G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
 				/* calculate ustar   */
 				d_ublend=u_blend(d_u_hmoment, d_disp, hblend,d_z0m, d_u_hmoment);
-				((DCELL *) outrast)[col] = d_ublend;
+				outrast[col] = d_ublend;
 			}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)

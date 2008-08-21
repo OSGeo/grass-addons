@@ -1,11 +1,11 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.psi
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the psichrometric parameter for heat,
  *               a flag permits output for momentum.
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -25,34 +25,33 @@ double psi_h(double disp,double molength, double height);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
-	int momentum=0;//Flag for psim
+	int momentum=0;/*Flag for psim*/
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *output1, *output2;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1, *result2; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result1, *result2; /*output raster name*/
+	/*File Descriptors*/
 	int infd_disp,infd_molength;
 	int outfd1,outfd2;
 	
 	char *disp,*molength;
 
-	double height, height_m; //z height for heat and momentum	
+	double height, height_m; /*z height for heat and momentum*/	
 	int i=0,j=0;
 	
 	void *inrast_disp, *inrast_molength;
-	unsigned char *outrast1,*outrast2;
+	DCELL *outrast1,*outrast2;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_disp;
 	RASTER_MAP_TYPE data_type_molength;
@@ -64,21 +63,13 @@ int main(int argc, char *argv[])
 	module->description = _("psichrometric paramters for heat (standard) and momentum (need flag).");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("disp");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the displacement height map");
-	input1->answer     =_("disp");
 
-	input2 = G_define_option() ;
+	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("molength");
-	input2->type       = TYPE_STRING;
-	input2->required   = YES;
-	input2->gisprompt  =_("old,cell,raster");
 	input2->description=_("Name of the Monin-Obukov length map");
-	input2->answer     =_("molength");
 
 	input3 = G_define_option() ;
 	input3->key        =_("height");
@@ -96,29 +87,17 @@ int main(int argc, char *argv[])
 	input4->description=_("Value of the blending height for momentum (100.0 in Pawan, 2004). Use with flag -m.");
 	input4->answer     =_("100.0");
 	
-	output1 = G_define_option() ;
-	output1->key        =_("psih");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,dcell,raster");
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->description=_("Name of the output psih layer");
-	output1->answer     =_("psih");
 
-        output2 = G_define_option() ;
+        output2 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output2->key        =_("psim");
-	output2->type       = TYPE_STRING;
-	output2->required   = NO;
-	output2->gisprompt  =_("new,dcell,raster");
 	output2->description=_("Name of the output psim layer");
-	output2->answer     =_("psim");
 
 	flag1 = G_define_flag();
 	flag1->key = 'm';
 	flag1->description = _("Output psim (requires height_m parameter)");
 	
-	flag2 = G_define_flag();
-	flag2->key = 'q';
-	flag2->description = _("Quiet");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -131,7 +110,6 @@ int main(int argc, char *argv[])
 	result1  = output1->answer;
 	result2  = output2->answer;
 	momentum = flag1->answer;
-	verbose = (!flag2->answer);
 	/***************************************************/
 	mapset = G_find_cell2 (disp, "");
 	if (mapset == NULL) {
@@ -177,9 +155,7 @@ int main(int argc, char *argv[])
 		DCELL d_molength;
 		DCELL d_psih;
 		DCELL d_psim;
-		if(verbose)
-			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
+		G_percent(row,nrows,2);
 		/* read input maps */	
 		if(G_get_raster_row(infd_disp,inrast_disp,row,data_type_disp)<0)
 			G_fatal_error(_("Could not read from <%s>"),disp);
@@ -190,24 +166,20 @@ int main(int argc, char *argv[])
 		{
 			d_disp = ((DCELL *) inrast_disp)[col];
 			d_molength = ((DCELL *) inrast_molength)[col];
-			if(G_is_d_null_value(&d_disp)){
-				((DCELL *) outrast1)[col] = -999.99;
+			if(G_is_d_null_value(&d_disp)||
+				G_is_d_null_value(&d_molength)){
+				G_set_d_null_value(&outrast1[col],1);
 				if(momentum){
-					((DCELL *) outrast2)[col] = -999.99;
-				}
-			}else if(G_is_d_null_value(&d_molength)){
-				((DCELL *) outrast1)[col] = -999.99;
-				if(momentum){
-					((DCELL *) outrast2)[col] = -999.99;
+					G_set_d_null_value(&outrast2[col],1);
 				}
 			}else {
 				/************************************/
 				/* calculate psih   */
 				d_psih=psi_h(d_disp,d_molength,height);
-				((DCELL *) outrast1)[col] = d_psih;
+				outrast1[col] = d_psih;
 				if(momentum){
 					d_psim=psi_m(d_disp,d_molength,height_m);
-					((DCELL *) outrast2)[col] = d_psim;
+					outrast2[col] = d_psim;
 				 }
 			}
 		}

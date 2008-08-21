@@ -19,10 +19,10 @@ double g_0(double bbalb, double ndvi, double tempk, double rnet, double time, in
 	a = (0.0032 * (bbalb/r0_coef) + 0.0062 * (bbalb/r0_coef) * (bbalb/r0_coef));
 	b = (1 - 0.978 * pow(ndvi,4));
 	
-	// Spain (Bastiaanssen, 1995)
+	/* Spain (Bastiaanssen, 1995)*/
 	result = (rnet * (tempk-273.15) / bbalb) * a * b ;
 	
-	// HAPEX-Sahel (Roerink, 1995)
+	/* HAPEX-Sahel (Roerink, 1995)*/
 	if(roerink){
 		result = result * 1.430 - 0.0845;
 	}

@@ -1,7 +1,7 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.evapfr
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the evaporative fraction
  *               as seen in Bastiaanssen (1995) 
  *
@@ -19,29 +19,28 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double evap_fr(double r_net, double g0, double h0);
 double soilmoisture( double evapfr );
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /* mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int makin=0;//Makin Flag for root zone soil moisture output
+	int makin=0;/*Makin Flag for root zone soil moisture output*/
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *output1, *output2;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1, *result2; //output raster name
-	//File Descriptors
+	char *name;   /* input raster name*/
+	char *result1, *result2; /*output raster name*/
+	/*File Descriptors*/
 	int infd_rnet, infd_g0, infd_h0;
 	int outfd1, outfd2;
 	
@@ -160,8 +159,7 @@ int main(int argc, char *argv[])
 		DCELL d_g0;
 		DCELL d_h0;
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
-		/* read soil input maps */	
+		/* read input maps */	
 		if(G_get_raster_row(infd_rnet,inrast_rnet,row,data_type_rnet)<0)
 			G_fatal_error(_("Could not read from <%s>"),rnet);
 		if(G_get_raster_row(infd_g0,inrast_g0,row,data_type_g0)<0)

@@ -8,7 +8,6 @@ double psi_m(double t0_dem, double h, double ustar, double roh_air, double hu)
 {
 	double result;
 	double n5, n10, n12;
-//	printf("h input to psim() is %5.3f\n",h);
 	if(h != 0.0){
 		n5 = (-1004* roh_air*pow(ustar,3)* t0_dem)/(0.41*9.81* h);
 	} else {

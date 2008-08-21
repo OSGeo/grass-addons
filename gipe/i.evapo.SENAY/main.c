@@ -28,8 +28,8 @@ double evapfr_senay( double t_hot, double t_cold, double tempk);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
@@ -40,13 +40,13 @@ int main(int argc, char *argv[])
 	struct Option *output1, *output2;
 	
 	struct Flag *flag2, *flag3;	
-	struct History history; //metadata
-	struct Colors colors; //Color rules
+	struct History history; /*metadata*/
+	struct Colors colors; /*Color rules*/
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1,*result2; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result1,*result2; /*output raster name*/
+	/*File Descriptors*/
 	int infd_albedo, infd_tempk, infd_dem;
 	int infd_lat, infd_doy, infd_tsw;
 	int infd_slope, infd_aspect;
@@ -93,33 +93,27 @@ int main(int argc, char *argv[])
 	/* Define the different options */
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("albedo");
-	input1->description=_("Name of the Albedo map [0.0-1.0]");
-	input1->answer     =_("albedo");
+	input1->description=_("Name of the Albedo layer [0.0-1.0]");
 
 	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input2->key        =_("tempk");
-	input2->description=_("Name of the temperature map [Degree Kelvin]");
-	input2->answer     =_("tempk");
+	input2->description=_("Name of the temperature layer [Degree Kelvin]");
 
 	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("dem");
-	input3->description=_("Name of the elevation map [m]");
-	input3->answer     =_("dem");
+	input3->description=_("Name of the elevation layer [m]");
 
 	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("lat");
-	input4->description=_("Name of the degree latitude map [dd.ddd]");
-	input4->answer     =_("lat");
+	input4->description=_("Name of the degree latitude layer [dd.ddd]");
 
 	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("doy");
-	input5->description=_("Name of the Day of Year map [0.0-366.0]");
-	input5->answer     =_("doy");
+	input5->description=_("Name of the Day of Year layer [0.0-366.0]");
 
 	input6 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input6->key        =_("tsw");
-	input6->description=_("Name of the single-way transmissivity map [0.0-1.0]");
-	input6->answer     =_("tsw");
+	input6->description=_("Name of the single-way transmissivity layer [0.0-1.0]");
 
 	input7 = G_define_option() ;
 	input7->key        =_("roh_w");
@@ -131,13 +125,13 @@ int main(int argc, char *argv[])
 	input8 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input8->key        =_("slope");
 	input8->required   = NO;
-	input8->description=_("Name of the Slope map ~[0-90]");
+	input8->description=_("Name of the Slope layer ~[0-90]");
 	input8->guisection = _("Optional");
 
 	input9 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input9->key        =_("aspect");
 	input9->required   = NO;
-	input9->description=_("Name of the Aspect map ~[0-360]");
+	input9->description=_("Name of the Aspect layer ~[0-360]");
 	input9->guisection = _("Optional");
 
 	input10 = G_define_option() ;
@@ -150,24 +144,21 @@ int main(int argc, char *argv[])
 	input11 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input11->key        =_("t_air");
 	input11->required   = NO;
-	input11->description=_("Name of the Air Temperature map [Kelvin], use with -b");
+	input11->description=_("Name of the Air Temperature layer [Kelvin], use with -b");
 	input11->guisection = _("Optional");
 
 	input12 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input12->key        =_("e0");
 	input12->required   = NO;
-	input12->description=_("Name of the Surface Emissivity map [-], use with -b");
+	input12->description=_("Name of the Surface Emissivity layer [-], use with -b");
 	input12->guisection = _("Optional");
 
 	input13 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input13->key        =_("ndvi");
-	input13->description=_("Name of the NDVI map [-]");
-	input13->answer     =_("ndvi");
+	input13->description=_("Name of the NDVI layer [-]");
 
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output1->key        =_("eta");
 	output1->description=_("Name of the output Actual ET layer");
-	output1->answer     =_("eta");
 
 	output2 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output2->key        =_("evapfr");
@@ -423,12 +414,10 @@ int main(int argc, char *argv[])
 				if(d_t0dem<0.0||d_albedo<0.001){
 					/* do nothing */ 
 				} else {
-					//if(d_t0dem<t0dem_min){
 					if(d_tempk<tempk_min&&
 					d_albedo<0.1){
 						t0dem_min=d_t0dem;
 						tempk_min=d_tempk;
-					//}else if(d_t0dem>t0dem_max){
 					}else if(d_tempk>tempk_max&&
 						d_albedo>0.3){
 						t0dem_max=d_t0dem;
@@ -448,7 +437,6 @@ int main(int argc, char *argv[])
 		DCELL d_lat;
 		DCELL d_doy;
 		DCELL d_tsw;
-//		DCELL d_roh_w;
 		DCELL d_solar;
 		DCELL d_rnetd;
 		DCELL d_slope;

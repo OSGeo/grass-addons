@@ -41,7 +41,7 @@ double **G_alloc_matrix (int rows, int cols)
 int main(int argc, char *argv[])
 {	
 	struct Cell_head cellhd;
-	char *mapset; // mapset name
+	char *mapset; /*mapset name*/
 	
 	/* buffer for in, tmp and out raster */
 	void *inrast_Rn, *inrast_g0;
@@ -161,7 +161,6 @@ int main(int argc, char *argv[])
 	input_col_dry->guisection	= _("Parameters");
 
 	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output->key        = "h0";
 	output->description= _("Name of output sensible heat flux layer [W/m2]");
 	
 	/* Define the different flags */
@@ -532,7 +531,7 @@ int main(int argc, char *argv[])
 				} else {
 					d_roh1=((1000-4.65)/(d_t0dem*2.87))+(4.65/(d_t0dem*4.61));
 				}
-				if(row==rowDry&&col==colDry){//collect dry pix info
+				if(row==rowDry&&col==colDry){/*collect dry pix info*/
 					d_rah_dry = d_rah1;
 					d_roh_dry = d_roh1;
 					G_message("d_rah_dry=%f d_roh_dry=%f",d_rah_dry,d_roh_dry);
@@ -543,12 +542,12 @@ int main(int argc, char *argv[])
 		}
 	}	
 	DCELL d_dT_dry;
-	// Calculate dT_dry	
+	/*Calculate dT_dry*/	
 	d_dT_dry = (h_dry*d_rah_dry)/(1004*d_roh_dry);
 	double a, b;
-	// Calculate coefficients for next dT equation	
-//	a = 1.0/ ((d_dT_dry-0.0) / (d_t0dem_dry-d_t0dem_wet));
-//	b = ( a * d_t0dem_wet ) * (-1.0);
+	/*Calculate coefficients for next dT equation*/	
+	/*a = 1.0/ ((d_dT_dry-0.0) / (d_t0dem_dry-d_t0dem_wet));*/
+	/*b = ( a * d_t0dem_wet ) * (-1.0);*/
 
 	double sumx=d_t0dem_wet+d_t0dem_dry;
 	double sumy=d_dT_dry+0.0;
@@ -624,7 +623,7 @@ int main(int argc, char *argv[])
 				d_psih=2*log((1+pow(d_x,2))/2);
 				d_u5=(ustar/0.41)*log(5/d_z0m);
 				d_rah2=(1/(d_u5*pow(0.41,2)))*log((5/d_z0m)-d_psim)*log((5/(d_z0m*0.1))-d_psih);
-				if(row==rowDry&&col==colDry){//collect dry pix info
+				if(row==rowDry&&col==colDry){/*collect dry pix info*/
 					d_rah_dry = d_rah2;
 					d_h_dry = d_h1;
 				}
@@ -633,13 +632,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// Calculate dT_dry	
+	/*Calculate dT_dry*/	
 	d_dT_dry = (d_h_dry*d_rah_dry)/(1004*d_roh_dry);
-	// Calculate coefficients for next dT equation	
-//	a = (d_dT_dry-0)/(d_t0dem_dry-d_t0dem_wet);
-//	b = (-1.0) * ( a * d_t0dem_wet );
-//	G_message("d_dT_dry=%f",d_dT_dry);
-//	G_message("dT2=%f * t0dem + (%f)", a, b);
+	/*Calculate coefficients for next dT equation*/	
+/*	a = (d_dT_dry-0)/(d_t0dem_dry-d_t0dem_wet);*/
+/*	b = (-1.0) * ( a * d_t0dem_wet );*/
+/*	G_message("d_dT_dry=%f",d_dT_dry);*/
+/*	G_message("dT2=%f * t0dem + (%f)", a, b);*/
 	sumx=d_t0dem_wet+d_t0dem_dry;
 	sumy=d_dT_dry+0.0;
 	sumx2=pow(d_t0dem_wet,2)+pow(d_t0dem_dry,2);
@@ -714,7 +713,7 @@ int main(int argc, char *argv[])
 				d_psih=2*log((1+pow(d_x,2))/2);
 				d_u5=(ustar/0.41)*log(5/d_z0m);
 				d_rah3=(1/(d_u5*pow(0.41,2)))*log((5/d_z0m)-d_psim)*log((5/(d_z0m*0.1))-d_psih);
-				if(row==rowDry&&col==colDry){//collect dry pix info
+				if(row==rowDry&&col==colDry){/*collect dry pix info*/
 					d_rah_dry = d_rah2;
 					d_h_dry = d_h2;
 				}
@@ -723,13 +722,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// Calculate dT_dry	
+	/*Calculate dT_dry*/	
 	d_dT_dry = (d_h_dry*d_rah_dry)/(1004*d_roh_dry);
-	// Calculate coefficients for next dT equation	
-//	a = (d_dT_dry-0)/(d_t0dem_dry-d_t0dem_wet);
-//	b = (-1.0) * ( a * d_t0dem_wet );
-//	G_message("d_dT_dry=%f",d_dT_dry);
-//	G_message("dT3=%f * t0dem + (%f)", a, b);
+	/*Calculate coefficients for next dT equation*/	
+/*	a = (d_dT_dry-0)/(d_t0dem_dry-d_t0dem_wet);*/
+/*	b = (-1.0) * ( a * d_t0dem_wet );*/
+/*	G_message("d_dT_dry=%f",d_dT_dry);*/
+/*	G_message("dT3=%f * t0dem + (%f)", a, b);*/
 	sumx=d_t0dem_wet+d_t0dem_dry;
 	sumy=d_dT_dry+0.0;
 	sumx2=pow(d_t0dem_wet,2)+pow(d_t0dem_dry,2);

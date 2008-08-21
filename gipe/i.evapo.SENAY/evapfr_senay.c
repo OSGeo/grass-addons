@@ -2,7 +2,7 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Evaporative fraction from Senay (2007)
+/* Evaporative fraction from Senay (2007)*/
 
 double evapfr_senay( double t_hot, double t_cold, double tempk)
 {

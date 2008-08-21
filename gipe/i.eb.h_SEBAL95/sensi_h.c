@@ -1,6 +1,5 @@
 /* This is the main loop used in SEBAL */
-/* ychemin@yahoo.com - yann.chemin@ait.ac.th */
-/* GPL >= 2 - April 2004 */
+/* April 2004 */
 
 #include<stdio.h>
 #include<math.h>
@@ -37,21 +36,21 @@ double sensi_h( int iteration, double tempk_water, double tempk_desert, double t
 		printf("ndvi = %5.3f ndvimax = %5.3f\n",ndvi,ndvi_max);
 		printf("*****************************\n");
 	}
-//	dtair[0] 	= dt_air_0(t0_dem, tempk_water, tempk_desert);
+/*	dtair[0] 	= dt_air_0(t0_dem, tempk_water, tempk_desert);*/
 	dtair[0] = 5.0;
-// 	printf("*****************************dtair = %5.3f\n",dtair[0]);
+/* 	printf("*****************************dtair = %5.3f\n",dtair[0]);*/
 	roh_air[0] 	= roh_air_0(tempk);
-// 	printf("*****************************rohair=%5.3f\n",roh_air[0]);
+/* 	printf("*****************************rohair=%5.3f\n",roh_air[0]);*/
 	roh_air_desert 	= roh_air_0(tempk_desert);
-// 	printf("**rohairdesert = %5.3f\n",roh_air_desert);
+/* 	printf("**rohairdesert = %5.3f\n",roh_air_desert);*/
 	zom0 		= zom_0(ndvi, ndvi_max);
-// 	printf("*****************************zom = %5.3f\n",zom0);
+/* 	printf("*****************************zom = %5.3f\n",zom0);*/
 	u_0 		= U_0(zom0, u2m);
-// 	printf("*****************************u0\n");
+/* 	printf("*****************************u0\n");*/
 	rah[0] 		= rah_0(zom0, u_0);
-// 	printf("*****************************rah = %5.3f\n",rah[0]);
+/* 	printf("*****************************rah = %5.3f\n",rah[0]);*/
 	h[0] 		= h_0(roh_air[0], rah[0], dtair[0]);
-// 	printf("*****************************h\n");
+/* 	printf("*****************************h\n");*/
 	if(debug==1){
 		printf("dtair[0]	= %5.3f K\n", dtair[0]);
 		printf("roh_air[0] 	= %5.3f kg/m3\n", roh_air[0]);

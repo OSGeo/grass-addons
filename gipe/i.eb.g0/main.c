@@ -25,23 +25,23 @@ double g_0(double bbalb, double ndvi, double tempk, double rnet, double time, in
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /* mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int roerink=0;//Roerink Flag for HAPEX-Sahel conditions
+	int roerink=0;/*Roerink Flag for HAPEX-Sahel conditions*/
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5, *output1;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
-	struct Colors colors; //metadata
+	struct History history; /*metadata*/
+	struct Colors colors; /*metadata*/
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /* input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_albedo, infd_ndvi, infd_tempk, infd_rnet, infd_time;
 	int outfd;
 	
@@ -185,8 +185,7 @@ int main(int argc, char *argv[])
 		DCELL d_rnet;
 		DCELL d_time;
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
-		/* read soil input maps */	
+		/* read input maps */	
 		if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
 			G_fatal_error(_("Could not read from <%s>"),albedo);
 		if(G_get_raster_row(infd_ndvi,inrast_ndvi,row,data_type_ndvi)<0)

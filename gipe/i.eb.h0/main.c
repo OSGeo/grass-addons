@@ -1,12 +1,12 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.h0
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates sensible heat flux
  *               a flag allows the Bastiaanssen (1995) affine transform 
  *               of surface temperature as used in his SEBAL model.
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -20,44 +20,44 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double h0(double roh_air, double cp, double rah, double dtair);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int sebal=0;//SEBAL Flag for affine transform of surf. temp.
+	int sebal=0;/*SEBAL Flag for affine transform of surf. temp.*/
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5;
 	struct Option *input6, *input7, *output1;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_rohair, infd_tempk, infd_rah, infd_dtair;
 	int outfd;
 	
 	char *rohair,*tempk,*rah,*dtair;
 
-	double cp; //air specific heat	
+	double cp; /*air specific heat*/	
 	int i=0,j=0;
-	double a,b; //SEBAL slope and intercepts of surf. temp.
+	double a,b; /*SEBAL slope and intercepts of surf. temp.*/
 	
 	void *inrast_rohair, *inrast_tempk, *inrast_rah, *inrast_dtair;
-	unsigned char *outrast;
+	DCELL *outrast;
 	RASTER_MAP_TYPE data_type_rohair;
 	RASTER_MAP_TYPE data_type_tempk;
 	RASTER_MAP_TYPE data_type_rah;
 	RASTER_MAP_TYPE data_type_dtair;
+	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	
 	/************************************/
 	G_gisinit(argv[0]);
@@ -109,9 +109,7 @@ int main(int argc, char *argv[])
 	input7->description=_("Value of the intercept of the transform");
 	
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output1->key        =_("h0");
 	output1->description=_("Name of the output h0 layer");
-	output1->answer     =_("h0");
 
 	flag1 = G_define_flag();
 	flag1->key = 's';
@@ -196,8 +194,7 @@ int main(int argc, char *argv[])
 		DCELL d_affine;
 		DCELL d_tempk;
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
-		/* read soil input maps */	
+		/* read input maps */	
 		if(G_get_raster_row(infd_rohair,inrast_rohair,row,data_type_rohair)<0)
 			G_fatal_error(_("Could not read from <%s>"),rohair);
 		if(G_get_raster_row(infd_rah,inrast_rah,row,data_type_rah)<0)
@@ -212,26 +209,18 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-		//	printf("col=%i/%i ",col,ncols);
 			d_rohair = ((DCELL *) inrast_rohair)[col];
- 		//	printf("rohair = %5.3f", d_rohair);
 			d_rah = ((DCELL *) inrast_rah)[col];
- 		//	printf(" rah = %5.3f", d_rah);
 			if(!sebal){
 				d_dtair = ((DCELL *) inrast_dtair)[col];
- 		//		printf(" d_dtair = %5.3f", d_dtair);
 			}else{
 				d_tempk = ((DCELL *) inrast_tempk)[col];
- 		//		printf("inrast_rnet = %f\n", d_rnet);
 			}
-			if(G_is_d_null_value(&d_rohair)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_rah)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if((!sebal)&&G_is_d_null_value(&d_dtair)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if((sebal)&&G_is_d_null_value(&d_tempk)){
-				((DCELL *) outrast)[col] = -999.99;
+			if(G_is_d_null_value(&d_rohair)||
+				G_is_d_null_value(&d_rah)||
+				(!sebal)&&G_is_d_null_value(&d_dtair)||
+				(sebal)&&G_is_d_null_value(&d_tempk)){
+				G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
 				/* calculate sensible heat flux	    */
@@ -241,15 +230,10 @@ int main(int argc, char *argv[])
 					d_affine=a*d_tempk+b;
 					d = h0(d_rohair,cp,d_rah,d_affine);
 				}
-		//		printf(" || d=%5.3f",d);
-				((DCELL *) outrast)[col] = d;
-		//		printf(" -> %5.3f\n",d);
+				outrast[col] = d;
 			}
-		//	if(row==50){
-		//		exit(EXIT_SUCCESS);
-		//	}
 		}
-		if (G_put_raster_row (outfd, outrast, data_type_rah) < 0)
+		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
 	}
 

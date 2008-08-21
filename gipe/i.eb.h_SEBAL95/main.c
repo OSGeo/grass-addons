@@ -23,15 +23,13 @@
 #include <grass/gis.h>
 #include <math.h>
 #include <grass/glocale.h>
-/*#include <omp.h>*/
-
 
 double sensi_h( int iteration, double tempk_water, double tempk_desert, double t0_dem, double tempk, double ndvi, double ndvi_max, double dem, double rnet_desert, double g0_desert, double t0_dem_desert, double u2m, double dem_desert);
 
 int main(int argc, char *argv[])
 {	
 	struct Cell_head cellhd;
-	char *mapset; // mapset name
+	char *mapset; /* mapset name*/
 	
 	/* buffer for in out raster */
 	void *inrast_T,*inrast_ndvi,*inrast_dem, *inrast_u2m;
@@ -159,7 +157,6 @@ int main(int argc, char *argv[])
 	input_col_dry->guisection	= _("Optional");
 
 	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output->key        = "h0";
 	output->description= _("Name of output sensible heat flux layer [W/m2]");
 	
 	/* Define the different flags */
@@ -318,9 +315,6 @@ int main(int argc, char *argv[])
 		G_percent (row, nrows, 2);
 		if (G_get_d_raster_row (infd_ndvi, inrast_ndvi, row) < 0)
 			G_fatal_error (_("Could not read from <%s>"),ndvi);
-	/*	#pragma omp for parallel default (shared) \
-			shared(ncols,nrows) \
-			private (col,row,d_ndvi)*/
 		for (col=0; col < ncols; col++)
 		{
 			switch(data_type_ndvi){
@@ -334,7 +328,6 @@ int main(int argc, char *argv[])
 					d_ndvi = (double) ((DCELL *) inrast_ndvi)[col];
 					break;
 			}
-			//d_ndvi	= ((DCELL *) inrast_ndvi)[col];
 			if(G_is_d_null_value(&d_ndvi)){
 				/* do nothing */ 
 			} else if ((d_ndvi)>d_ndvi_max&&(d_ndvi)<0.999){
@@ -416,20 +409,12 @@ int main(int argc, char *argv[])
 		}
 		average = (double) sum / 400.0; 
 		G_message("Histogram of Temperature map (if it has rogue values to clean)");
-		//int peak1, peak2, peak3;
-		//int i_peak1, i_peak2, i_peak3;
 		peak1=0;
 		peak2=0;
 		peak3=0;
 		i_peak1=0;
 		i_peak2=0;
 		i_peak3=0;
-		//int bottom1a, bottom1b;
-		//int bottom2a, bottom2b;
-		//int bottom3a, bottom3b;
-		//int i_bottom1a, i_bottom1b;
-		//int i_bottom2a, i_bottom2b;
-		//int i_bottom3a, i_bottom3b;
 		bottom1a=100000;
 		bottom1b=100000;
 		bottom2a=100000;
@@ -511,7 +496,7 @@ int main(int argc, char *argv[])
 		G_message("bottom3a: [%i]=>%i\n",i_bottom3a, bottom3a);
 		G_message("peak3: [%i]=>%i\n",i_peak3, peak3);
 		G_message("bottom3b: [%i]=>%i\n",i_bottom3b, bottom3b);
-	}//END OF FLAG1
+	}/*END OF FLAG1*/
 
 	/* End of processing histogram*/
 	/*******************/
@@ -521,9 +506,6 @@ int main(int argc, char *argv[])
 	if(flag2->answer){
 		/* THREAD 3 */
 		/* Process tempk min / max pixels */
-	/*	#pragma omp for parallel default (shared) \
-			shared(ncols,nrows) \
-			private (col,row,d_albedo,d_tempk,d_dem,d_t0dem,d_Rn,d_g0)*/
 		/* Internal use only */
 		DCELL d_Rn_wet;
 		DCELL d_g0_wet;
@@ -533,8 +515,8 @@ int main(int argc, char *argv[])
 			DCELL d_tempk;
 			DCELL d_dem;
 			DCELL d_t0dem;
-			DCELL d_h0=100.0;//for flag 1
-			DCELL d_h0_max=100.0;//for flag 1
+			DCELL d_h0=100.0;/*for flag 1*/
+			DCELL d_h0_max=100.0;/*for flag 1*/
 			G_percent(row,nrows,2);
 			if(G_get_raster_row(infd_albedo,inrast_albedo,row,data_type_albedo)<0)
 				G_fatal_error(_("Could not read from <%s>"),albedo);
@@ -695,7 +677,6 @@ int main(int argc, char *argv[])
 		G_message("g0_dry=%f\n",d_g0_dry);
 		G_message("h0_dry=%f\n",d_Rn_dry-d_g0_dry);
 	} /* END OF FLAG2 */
-	/*MPI_BARRIER*/
 	
 	/* MANUAL WET/DRY PIXELS */
 	if(input_row_wet->answer&&input_row_dry->answer&&
@@ -955,7 +936,7 @@ int main(int argc, char *argv[])
 						d_t0dem_dry,
 						d_u2m,
 						d_dem_dry);
-		//		G_message(" d_h0=%5.3f",d);
+		/*		G_message(" d_h0=%5.3f",d);*/
 				if (zero->answer && d<0.0){
 					d=0.0;
 				}

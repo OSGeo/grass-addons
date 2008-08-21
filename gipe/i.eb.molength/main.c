@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.molength
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the Monin-Obukov Length
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -18,39 +18,37 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double mo_length(double roh_air, double cp, double ustar, double tempk, double h0);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
 	struct GModule *module;
 	struct Option *input1, *input2, *input3, *input4, *input5;
 	struct Option *output1;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd_rohair, infd_tempk, infd_ustar, infd_h0;
 	int outfd;
 	
 	char *rohair,*tempk,*ustar,*h0;
 
-	double cp; //air specific heat	
+	double cp; /*air specific heat*/	
 	int i=0,j=0;
 	
 	void *inrast_rohair, *inrast_tempk, *inrast_ustar, *inrast_h0;
-	unsigned char *outrast;
+	DCELL *outrast;
 	
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_rohair;
@@ -66,13 +64,9 @@ int main(int argc, char *argv[])
 	module->description = _("Monin-Obukov Length");
 
 	/* Define the different options */
-	input1 = G_define_option() ;
+	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("rohair");
-	input1->type       = TYPE_STRING;
-	input1->required   = YES;
-	input1->gisprompt  =_("old,cell,raster") ;
 	input1->description=_("Name of the air density map ~[0.9;1.5]");
-	input1->answer     =_("rohair");
 
 	input2 = G_define_option() ;
 	input2->key        =_("cp");
@@ -82,41 +76,21 @@ int main(int argc, char *argv[])
 	input2->description=_("Value of the air specific heat [1000.0;1020.0]");
 	input2->answer     =_("1004.0");
 
-	input3 = G_define_option() ;
+	input3 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input3->key        =_("ustar");
-	input3->type       = TYPE_STRING;
-	input3->required   = YES;
-	input3->gisprompt  =_("old,cell,raster");
 	input3->description=_("Name of the ustar map");
-	input3->answer     =_("ustar");
 
-	input4 = G_define_option() ;
+	input4 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input4->key        =_("tempk");
-	input4->type       = TYPE_STRING;
-	input4->required   = YES;
-	input4->gisprompt  =_("old,cell,raster");
 	input4->description=_("Name of the surface skin temperature map [degrees Kelvin]");
-	input4->answer     =_("tempk");
 	
-	input5 = G_define_option() ;
+	input5 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input5->key        =_("h0");
-	input5->type       = TYPE_STRING;
-	input5->required   = YES;
-	input5->gisprompt  =_("new,cell,raster");
 	input5->description=_("Name of the sensible heat flux map");
-	input5->answer     =_("h0");
 
-	output1 = G_define_option() ;
-	output1->key        =_("molength");
-	output1->type       = TYPE_STRING;
-	output1->required   = YES;
-	output1->gisprompt  =_("new,cell,raster");
+	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output1->description=_("Name of the output Monin-Obukov Length layer");
-	output1->answer     =_("molength");
 	
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
@@ -128,7 +102,6 @@ int main(int argc, char *argv[])
 	h0	 	= input5->answer;
 	
 	result  = output1->answer;
-	verbose = (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(rohair, "");
 	if (mapset == NULL) {
@@ -189,9 +162,7 @@ int main(int argc, char *argv[])
 		DCELL d_ustar;
 		DCELL d_tempk;
 		DCELL d_h0;
-		if(verbose)
-			G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
+		G_percent(row,nrows,2);
 		/* read input maps */	
 		if(G_get_raster_row(infd_rohair,inrast_rohair,row,data_type_rohair)<0)
 			G_fatal_error(_("Could not read from <%s>"),rohair);
@@ -204,23 +175,60 @@ int main(int argc, char *argv[])
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-			d_rohair = ((DCELL *) inrast_rohair)[col];
-			d_ustar = ((DCELL *) inrast_ustar)[col];
-			d_tempk = ((DCELL *) inrast_tempk)[col];
-			d_h0 = ((DCELL *) inrast_h0)[col];
-			if(G_is_d_null_value(&d_rohair)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_ustar)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_tempk)){
-				((DCELL *) outrast)[col] = -999.99;
-			}else if(G_is_d_null_value(&d_h0)){
-				((DCELL *) outrast)[col] = -999.99;
+			switch(data_type_rohair){
+				case CELL_TYPE:
+					d_rohair = (double) ((CELL *) inrast_rohair)[col];
+					break;
+				case FCELL_TYPE:
+					d_rohair = (double) ((FCELL *) inrast_rohair)[col];
+					break;
+				case DCELL_TYPE:
+					d_rohair = ((DCELL *) inrast_rohair)[col];
+					break;
+			}
+			switch(data_type_ustar){
+				case CELL_TYPE:
+					d_ustar = (double) ((CELL *) inrast_ustar)[col];
+					break;
+				case FCELL_TYPE:
+					d_ustar = (double) ((FCELL *) inrast_ustar)[col];
+					break;
+				case DCELL_TYPE:
+					d_ustar = ((DCELL *) inrast_ustar)[col];
+					break;
+			}
+			switch(data_type_tempk){
+				case CELL_TYPE:
+					d_tempk = (double) ((CELL *) inrast_tempk)[col];
+					break;
+				case FCELL_TYPE:
+					d_tempk = (double) ((FCELL *) inrast_tempk)[col];
+					break;
+				case DCELL_TYPE:
+					d_tempk = ((DCELL *) inrast_tempk)[col];
+					break;
+			}
+			switch(data_type_h0){
+				case CELL_TYPE:
+					d_h0 = (double) ((CELL *) inrast_h0)[col];
+					break;
+				case FCELL_TYPE:
+					d_h0 = (double) ((FCELL *) inrast_h0)[col];
+					break;
+				case DCELL_TYPE:
+					d_h0 = ((DCELL *) inrast_h0)[col];
+					break;
+			}
+			if(G_is_d_null_value(&d_rohair)||
+			G_is_d_null_value(&d_ustar)||
+			G_is_d_null_value(&d_tempk)||
+			G_is_d_null_value(&d_h0)){
+				G_set_d_null_value(&outrast[col],1);
 			}else {
 				/************************************/
 				/* calculate Monin-Obukov Length    */
 				d = mo_length(d_rohair,cp,d_ustar,d_tempk, d_h0);
-				((DCELL *) outrast)[col] = d;
+				outrast[col] = d;
 			}
 		}
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)

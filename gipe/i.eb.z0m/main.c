@@ -1,11 +1,11 @@
 /****************************************************************************
  *
  * MODULE:       i.eb.z0m
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the momentum roughness length
  *               as seen in Bastiaanssen (1995) 
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -19,28 +19,27 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 
-
 double z_0m(double sa_vi);
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /* mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int heat=0;//Flag for surf. roughness for heat transport output
+	int heat=0;/*Flag for surf. roughness for heat transport output*/
 	struct GModule *module;
 	struct Option *input1, *input2, *output1, *output2;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1, *result2; //output raster name
-	//File Descriptors
+	char *name;   /* input raster name*/
+	char *result1, *result2; /*output raster name*/
+	/*File Descriptors*/
 	int infd_savi;
 	int outfd1, outfd2;
 	
@@ -64,7 +63,6 @@ int main(int argc, char *argv[])
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
 	input1->key	   = _("savi");
 	input1->description=_("Name of the SAVI map [-1.0;1.0]");
-	input1->answer     =_("savi");
 
 	input2 = G_define_option() ;
 	input2->key        =_("coef");
@@ -75,15 +73,12 @@ int main(int argc, char *argv[])
 	input2->answer     =_("0.1");
 
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output1->key        =_("z0m");
 	output1->description=_("Name of the output z0m layer");
-	output1->answer     =_("z0m");
 
 	output2 = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output2->key        =_("z0h");
 	output2->required   = NO;
 	output2->description=_("Name of the output z0h layer");
-	output2->answer     =_("z0h");
 	
 	flag1 = G_define_flag();
 	flag1->key = 'h';
@@ -131,13 +126,23 @@ int main(int argc, char *argv[])
 		DCELL d_savi;
 		DCELL d_z0h;
 		G_percent(row,nrows,2);
-		/* read soil input maps */	
+		/* read input maps */	
 		if(G_get_raster_row(infd_savi,inrast_savi,row,data_type_savi)<0)
 			G_fatal_error(_("Could not read from <%s>"),savi);
 		/*process the data */
 		for (col=0; col < ncols; col++)
 		{
-			d_savi = ((DCELL *) inrast_savi)[col];
+			switch(data_type_savi){
+				case CELL_TYPE:
+					d_savi = (double) ((CELL *) inrast_savi)[col];
+					break;
+				case FCELL_TYPE:
+					d_savi = (double) ((FCELL *) inrast_savi)[col];
+					break;
+				case DCELL_TYPE:
+					d_savi = ((DCELL *) inrast_savi)[col];
+					break;
+			}
 			if(G_is_d_null_value(&d_savi)){
 				G_set_d_null_value(&outrast1[col],1);
 				if(input2->answer&&output2->answer){

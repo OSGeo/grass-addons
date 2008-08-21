@@ -1,7 +1,7 @@
 /****************************************************************************
  *
  * MODULE:       i.evapo.time_integration
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Integrate in time the evapotranspiration from satellite,
  *		 following a daily pattern from meteorological ETo.
  *
@@ -24,21 +24,21 @@
 int
 main(int argc, char *argv[])
 {
-	struct Cell_head cellhd;//region+header info
-	char *mapset; //mapset name
+	struct Cell_head cellhd;/*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
 	struct GModule *module;
 	struct Option *input, *input1, *input2, *input3, *output;
 	
-	struct History history; //metadata
-	struct Colors colors; //Color rules
+	struct History history; /*metadata*/
+	struct Colors colors; /*Color rules*/
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name,*name1,*name2; //input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name,*name1,*name2; /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int nfiles, nfiles1, nfiles2;
 	int infd[MAXFILES], infd1[MAXFILES], infd2[MAXFILES];
 	int outfd;
@@ -77,19 +77,16 @@ main(int argc, char *argv[])
 
 	/* Define the different options */
 
-	input = G_define_standard_option(G_OPT_R_INPUT) ;
+	input = G_define_standard_option(G_OPT_R_INPUTS) ;
 	input->key        =_("eta");
-	input->multiple   = YES;
 	input->description= _("Names of satellite ETa layers [mm/d or cm/d]");
 
-	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input1 = G_define_standard_option(G_OPT_R_INPUTS) ;
 	input1->key        =_("eta_doy");
-	input1->multiple   = YES;
 	input1->description= _("Names of satellite ETa Day of Year (DOY) layers [0-400] [-]");
 
-	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
+	input2 = G_define_standard_option(G_OPT_R_INPUTS) ;
 	input2->key        =_("eto");
-	input2->multiple   = YES;
 	input2->description= _("Names of meteorological station ETo layers [0-400] [mm/d or cm/d]");
 
 	input3 = G_define_option() ;
@@ -386,7 +383,7 @@ main(int argc, char *argv[])
 	G_free (outrast);
 	G_close_cell (outfd);
 	
-	/* Color table from 0.0 to 1.0 */
+	/* Color table from 0.0 to 10.0 */
 	G_init_colors(&colors);
 	G_add_color_rule(0.0,0,0,0,10.0,255,255,255,&colors);
 	/* Metadata */
