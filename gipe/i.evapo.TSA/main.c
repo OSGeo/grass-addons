@@ -1,14 +1,13 @@
 /*****************************************************************************
 *
 * MODULE:	i.evapo.TSA
-* AUTHOR:	Yann Chemin (2007)
-* 		yann.chemin_AT_gmail.com 
+* AUTHOR:	Yann Chemin yann.chemin@gmail.com 
 *
 * PURPOSE:	To estimate the daily actual evapotranspiration by means
 *		of of a Two-Source Algorithm from Chen et al. (2005).
 *		IJRS, 26(8):1755-1762
 *
-* COPYRIGHT:	(C) 2007 by the GRASS Development Team
+* COPYRIGHT:	(C) 2007-2008 by the GRASS Development Team
 *
 *		This program is free software under the GNU General Public
 *		Licence (>=2). Read the file COPYING that cames with GRASS
@@ -25,23 +24,23 @@
 #include <grass/glocale.h>
 
 
-//protos Net radiation
+/*protos Net radiation*/
 double rn_g(double rnet, double fv);
 double rn_v(double rnet, double fv);
-//protos temperature fractions
+/*protos temperature fractions*/
 double tempk_g(double tempk, double tempk_v, double fv);
 double tempk_v(double tempk, double fv);
-//protos soil heat flux
+/*protos soil heat flux*/
 double g_0g(double rnet);
 double g_0v(double bbalb, double ndvi, double tempk_v, double rnet);
-//protos sensible heat flux
+/*protos sensible heat flux*/
 double h_g(double tempk_g, double tempk_v, double tempk_a, double r_g, double r_v, double r_a );
 double h_v(double tempk_g, double tempk_v, double tempk_a, double r_g, double r_v, double r_a );
-//protos necessary for sensible heat flux calculations
+/*protos necessary for sensible heat flux calculations*/
 double ra(double d, double z0, double h, double z, double u_z, double tempk_a, double tempk_v);
 double rg(double d, double z0, double z0s, double h, double z, double w, double u_z, double tempk_a, double tempk_v);
 double rv(double d, double z0, double h, double z, double w, double u_z, double tempk_a, double tempk_v);
-//proto ET
+/*proto ET*/
 double daily_et(double et_instantaneous, double time, double sunshine_hours);
 
 
@@ -52,7 +51,7 @@ int main(int argc, char *argv[])
 	void *inrast_UZ,*inrast_DISP,*inrast_Z0,*inrast_HV;
 	void *inrast_Z0S,*inrast_W,*inrast_TIME,*inrast_SUNH;
 	
-	unsigned char *outrast;
+	DCELL *outrast;
 	
 	/* pointers to input-output raster files */
 	int infd_FV,infd_TEMPK,infd_TEMPKA,infd_ALB,infd_NDVI,infd_RNET;
@@ -81,7 +80,6 @@ int main(int argc, char *argv[])
 	DCELL d_le_inst_g,d_le_inst_v,d_le_inst;
 	DCELL d_time,d_sunh;
 
-
 	/* region informations and handler */
 	struct Cell_head cellhd;
 	int nrows, ncols;
@@ -92,7 +90,7 @@ int main(int argc, char *argv[])
 	struct Option *input_RNET, *input_FV, *input_TEMPK, *input_TEMPKA, *input_ALB, *input_NDVI;
 	struct Option *input_UZ,*input_Z,*input_DISP,*input_Z0,*input_HV;
 	struct Option *input_Z0S,*input_W,*input_TIME,*input_SUNH,*output;
-	struct Flag *flag1, *zero;
+	struct Flag *zero;
 	struct Colors color;
 	struct History history;
 
@@ -122,61 +120,40 @@ int main(int argc, char *argv[])
 		"Two-Source Algorithm formulation, after Chen et al., 2005.");
 	
 	/* Define different options */
-	input_RNET = G_define_option();
+	input_RNET = G_define_standard_option(G_OPT_R_INPUT);
 	input_RNET->key			= "RNET";
 	input_RNET->key_desc		= "[W/m2]";
-	input_RNET->type 		= TYPE_STRING;
-	input_RNET->required 		= YES;
-	input_RNET->gisprompt 		= "old,cell,raster";
-	input_RNET->description 	= _("Name of Net Radiation raster map");
+	input_RNET->description 	= _("Name of Net Radiation raster layer");
 	
-	input_FV = G_define_option();
+	input_FV = G_define_standard_option(G_OPT_R_INPUT);
 	input_FV->key			= "FV";
 	input_FV->key_desc		= "[-]";
-	input_FV->type			= TYPE_STRING;
-	input_FV->required		= YES;
-	input_FV->gisprompt		= "old,cell,raster";
-	input_FV->description		= _("Name of Vegetation Fraction raster map");
+	input_FV->description		= _("Name of Vegetation Fraction raster layer");
 		
-	input_TEMPK = G_define_option();
+	input_TEMPK = G_define_standard_option(G_OPT_R_INPUT);
 	input_TEMPK->key		= "TEMPK";
 	input_TEMPK->key_desc		= "[K]";
-	input_TEMPK->type		= TYPE_STRING;
-	input_TEMPK->required		= YES;
-	input_TEMPK->gisprompt		= "old,cell,raster";
-	input_TEMPK->description	= _("Name of surface temperature raster map");
+	input_TEMPK->description	= _("Name of surface temperature raster layer");
 		
-	input_TEMPKA = G_define_option();
+	input_TEMPKA = G_define_standard_option(G_OPT_R_INPUT);
 	input_TEMPKA->key		= "TEMPKA";
 	input_TEMPKA->key_desc		= "[K]";
-	input_TEMPKA->type		= TYPE_STRING;
-	input_TEMPKA->required		= YES;
-	input_TEMPKA->gisprompt		= "old,cell,raster";
-	input_TEMPKA->description	= _("Name of air temperature raster map");
+	input_TEMPKA->description	= _("Name of air temperature raster layer");
 		
-	input_ALB = G_define_option();
+	input_ALB = G_define_standard_option(G_OPT_R_INPUT);
 	input_ALB->key			= "ALB";
 	input_ALB->key_desc		= "[-]";
-	input_ALB->type			= TYPE_STRING;
-	input_ALB->required		= YES;
-	input_ALB->gisprompt		= "old,cell,raster";
-	input_ALB->description		= _("Name of Albedo raster map");
+	input_ALB->description		= _("Name of Albedo raster layer");
 	
-	input_NDVI = G_define_option();
+	input_NDVI = G_define_standard_option(G_OPT_R_INPUT);
 	input_NDVI->key			= "NDVI";
 	input_NDVI->key_desc		= "[-]";
-	input_NDVI->type		= TYPE_STRING;
-	input_NDVI->required		= YES;
-	input_NDVI->gisprompt		= "old,cell,raster";
-	input_NDVI->description		= _("Name of NDVI raster map");
+	input_NDVI->description		= _("Name of NDVI raster layer");
 	
-	input_UZ = G_define_option();
+	input_UZ = G_define_standard_option(G_OPT_R_INPUT);
 	input_UZ->key			= "UZ";
 	input_UZ->key_desc		= "[m/s]";
-	input_UZ->type			= TYPE_STRING;
-	input_UZ->required		= YES;
-	input_UZ->gisprompt		= "old,cell,raster";
-	input_UZ->description		= _("Name of wind speed (at z ref. height) raster map");
+	input_UZ->description		= _("Name of wind speed (at z ref. height) raster layer");
 	
 	input_Z = G_define_option();
 	input_Z->key			= "Z";
@@ -187,75 +164,49 @@ int main(int argc, char *argv[])
 	input_Z->gisprompt		= "value,parameter";
 	input_Z->description		= _("Value of reference height for UZ");
 	
-	input_DISP = G_define_option();
+	input_DISP = G_define_standard_option(G_OPT_R_INPUT);
 	input_DISP->key			= "DISP";
 	input_DISP->key_desc		= "[m]";
-	input_DISP->type		= TYPE_STRING;
 	input_DISP->required		= NO;
-	input_DISP->gisprompt		= "old,cell,raster";
-	input_DISP->description		= _("Name of displacement height raster map");
+	input_DISP->description		= _("Name of displacement height raster layer");
 	
-	input_Z0 = G_define_option();
+	input_Z0 = G_define_standard_option(G_OPT_R_INPUT);
 	input_Z0->key			= "Z0";
 	input_Z0->key_desc		= "[m]";
-	input_Z0->type			= TYPE_STRING;
 	input_Z0->required		= NO;
-	input_Z0->gisprompt		= "old,cell,raster";
-	input_Z0->description		= _("Name of surface roughness length raster map");
+	input_Z0->description		= _("Name of surface roughness length raster layer");
 	
-	input_HV = G_define_option();
+	input_HV = G_define_standard_option(G_OPT_R_INPUT);
 	input_HV->key			= "HV";
 	input_HV->key_desc		= "[m]";
-	input_HV->type			= TYPE_STRING;
 	input_HV->required		= NO;
-	input_HV->gisprompt		= "old,cell,raster";
-	input_HV->description		= _("Name of vegetation height raster map (one out of DISP, Z0 or HV should be given!)");
+	input_HV->description		= _("Name of vegetation height raster layer (one out of DISP, Z0 or HV should be given!)");
 	
-	input_Z0S = G_define_option();
+	input_Z0S = G_define_standard_option(G_OPT_R_INPUT);
 	input_Z0S->key			= "Z0S";
 	input_Z0S->key_desc		= "[m]";
-	input_Z0S->type			= TYPE_STRING;
-	input_Z0S->required		= YES;
-	input_Z0S->gisprompt		= "old,cell,raster";
-	input_Z0S->description		= _("Name of bare soil surface roughness length raster map");
+	input_Z0S->description		= _("Name of bare soil surface roughness length raster layer");
 	
-	input_W = G_define_option();
+	input_W = G_define_standard_option(G_OPT_R_INPUT);
 	input_W->key			= "W";
 	input_W->key_desc		= "[g]";
-	input_W->type			= TYPE_STRING;
-	input_W->required		= YES;
-	input_W->gisprompt		= "old,cell,raster";
-	input_W->description		= _("Name of leaf weight raster map");
+	input_W->description		= _("Name of leaf weight raster layer");
 	
-	input_TIME = G_define_option();
+	input_TIME = G_define_standard_option(G_OPT_R_INPUT);
 	input_TIME->key			= "TIME";
 	input_TIME->key_desc		= "[HH.HH]";
-	input_TIME->type		= TYPE_STRING;
-	input_TIME->required		= YES;
-	input_TIME->gisprompt		= "old,cell,raster";
-	input_TIME->description		= _("Name of local Time at satellite overpass raster map");
+	input_TIME->description		= _("Name of local Time at satellite overpass raster layer");
 	
-	input_SUNH = G_define_option();
+	input_SUNH = G_define_standard_option(G_OPT_R_INPUT);
 	input_SUNH->key			= "SUNH";
 	input_SUNH->key_desc		= "[HH.HH]";
-	input_SUNH->type		= TYPE_STRING;
-	input_SUNH->required		= YES;
-	input_SUNH->gisprompt		= "old,cell,raster";
-	input_SUNH->description		= _("Name of Sunshine hours raster map");
+	input_SUNH->description		= _("Name of Sunshine hours raster layer");
 	
-	output = G_define_option() ;
-	output->key			= "output";
+	output = G_define_standard_option(G_OPT_R_OUTPUT) ;
 	output->key_desc		= "[mm/d]";
-	output->type			= TYPE_STRING;
-	output->required		= YES;
-	output->gisprompt		= "new,cell,raster" ;
 	output->description		= _("Name of output Actual Evapotranspiration layer");
 	
 	/* Define the different flags */
-	flag1 = G_define_flag() ;
-	flag1->key			= 'q' ;
-	flag1->description		= _("quiet");
-	
 	zero = G_define_flag() ;
 	zero->key			= 'z' ;
 	zero->description		= _("set negative ETa to zero");
@@ -455,6 +406,7 @@ int main(int argc, char *argv[])
 	/* start the loop through cells */
 	for (row = 0; row < nrows; row++)
 	{
+		G_percent(row, nrows, 2);
 				
 		/* read input raster row into line buffer*/	
 		if (G_get_raster_row (infd_RNET, inrast_RNET, row,data_type_rnet) < 0)
@@ -579,7 +531,7 @@ int main(int argc, char *argv[])
 						break;
 				}
 			}else{
-				d_disp	= -10.0;//negative, see inside functions
+				d_disp	= -10.0;/*negative, see inside functions*/
 			}
 			if(Z0!=NULL){
 			switch(data_type_z0){
@@ -594,7 +546,7 @@ int main(int argc, char *argv[])
 					break;
 			}
 			}else{
-				d_z0	= -10.0;//negative, see inside functions
+				d_z0	= -10.0;/*negative, see inside functions*/
 			}
 			if(HV!=NULL){
 			switch(data_type_hv){
@@ -609,7 +561,7 @@ int main(int argc, char *argv[])
 					break;
 			}
 			}else{
-				d_hv	= -10.0;//negative, see inside functions
+				d_hv	= -10.0;/*negative, see inside functions*/
 			}
 			switch(data_type_z0s){
 				case CELL_TYPE:
@@ -656,19 +608,19 @@ int main(int argc, char *argv[])
 					break;
 			}
 
-			//Calculate Net radiation fractions
+			/*Calculate Net radiation fractions*/
 			d_rn_g 		= rn_g( d_rnet, d_fv);
 			d_rn_v 		= rn_v( d_rnet, d_fv);
 			
-			//Calculate temperature fractions
+			/*Calculate temperature fractions*/
 			d_tempk_v 	= tempk_v( d_tempk, d_fv);
 			d_tempk_g 	= tempk_g( d_tempk, d_tempk_v, d_fv);
 			
-			//Calculate soil heat flux fractions
+			/*Calculate soil heat flux fractions*/
 			d_g0_g 		= g_0g( d_rnet);
 			d_g0_v 		= g_0v( d_alb, d_ndvi, d_tempk_v, d_rnet);
 			
-			//Data necessary for sensible heat flux calculations
+			/*Data necessary for sensible heat flux calculations*/
 			if(d_disp<0.0&&d_z0<0.0&&d_hv<0.0){
 				G_fatal_error (_("DISP, Z0 and HV are all negative, cannot continue, bailing out... Check your optional input files again"));
 			}else{
@@ -676,16 +628,16 @@ int main(int argc, char *argv[])
 				d_rg	= rg( d_disp, d_z0, d_z0s, d_hv, d_z, d_w, d_uz, d_tempka, d_tempk_v);
 				d_rv	= rv( d_disp, d_z0, d_hv, d_z, d_w, d_uz, d_tempka, d_tempk_v);
 			}
-			//Calculate sensible heat flux fractions
+			/*Calculate sensible heat flux fractions*/
 			d_h_g 		= h_g( d_tempk_g, d_tempk_v, d_tempka, d_rg, d_rv, d_ra );
 			d_h_v 		= h_v( d_tempk_g, d_tempk_v, d_tempka, d_rg, d_rv, d_ra );
 			
-			//Calculate LE
+			/*Calculate LE*/
 			d_le_inst_v	= d_rn_v - d_g0_v - d_h_v;
 			d_le_inst_g	= d_rn_g - d_g0_g - d_h_g;
 			d_le_inst	= d_le_inst_v + d_le_inst_g;
 			
-			//Calculate ET
+			/*Calculate ET*/
 			d_daily_et	= daily_et( d_le_inst, d_time, d_sunh);
 			
 
@@ -693,10 +645,9 @@ int main(int argc, char *argv[])
 				d_daily_et=0.0;
 			
 			/* write calculated ETP to output line buffer */
-			((DCELL *) outrast)[col] = d_daily_et;
+			outrast[col] = d_daily_et;
 		}
 		
-		if (!flag1->answer) G_percent(row, nrows, 2);
 
 		/* write output line buffer to output raster file */
 		if (G_put_raster_row (outfd, outrast, data_type_output) < 0)

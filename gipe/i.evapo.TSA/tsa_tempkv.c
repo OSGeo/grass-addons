@@ -3,10 +3,12 @@
 #include<stdlib.h>
 
 
-//Temperature of vegetation
-//Based on two sources pixel split
-//Chen et al., 2005. IJRS 26(8):1755-1762.
-//Estimation of daily evapotranspiration using a two-layer remote sensing model.
+/* Temperature of vegetation
+ * Based on two sources pixel split
+ * Chen et al., 2005. IJRS 26(8):1755-1762.
+ * Estimation of daily evapotranspiration using a two-layer remote sensing model.
+ */
+
 double tempk_v(double tempk, double fv)
 {
 	double 	a, result;
