@@ -1,6 +1,7 @@
-// Adjacency correction 250m Unsigned Int bit[13]
-// 00 -> class 1: Not Corrected product
-// 01 -> class 2: Corrected product
+/* Adjacency correction 250m Unsigned Int bit[13]
+ * 00 -> class 1: Not Corrected product
+ * 01 -> class 2: Corrected product
+ */
 
 int qc250e( unsigned int pixel )
 {

@@ -127,8 +127,7 @@ int main(int argc, char *argv[])
 	{
 		DCELL d;
 		DCELL d_lon;
-		if(verbose)
-			G_percent(row,nrows,2);
+		G_percent(row,nrows,2);
 		if(G_get_raster_row(infd,inrast,row,data_type_inrast)<0)
 			G_fatal_error(_("Could not read from <%s>"),in);
 		for (col=0; col < ncols; col++)

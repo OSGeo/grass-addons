@@ -1,16 +1,17 @@
-// Band-wise Data Quality 500m long Int 
-// bits[2-5][6-9][10-13][14-17][18-21][22-25][26-29]
-// 0000 -> class 1: highest quality
-// 0111 -> class 2: noisy detector
-// 1000 -> class 3: dead detector; data interpolated in L1B
-// 1001 -> class 4: solar zenith >= 86 degrees
-// 1010 -> class 5: solar zenith >= 85 and < 86 degrees
-// 1011 -> class 6: missing input
-// 1100 -> class 7: internal constant used in place of climatological data for at least one atmospheric constant
-// 1101 -> class 8: correction out of bounds, pixel constrained to extreme allowable value
-// 1110 -> class 9: L1B data faulty
-// 1111 -> class 10: not processed due to deep ocean or cloud
-// Class 11: Combination of bits unused
+/* Band-wise Data Quality 500m long Int 
+ * bits[2-5][6-9][10-13][14-17][18-21][22-25][26-29]
+ * 0000 -> class 1: highest quality
+ * 0111 -> class 2: noisy detector
+ * 1000 -> class 3: dead detector; data interpolated in L1B
+ * 1001 -> class 4: solar zenith >= 86 degrees
+ * 1010 -> class 5: solar zenith >= 85 and < 86 degrees
+ * 1011 -> class 6: missing input
+ * 1100 -> class 7: internal constant used in place of climatological data for at least one atmospheric constant
+ * 1101 -> class 8: correction out of bounds, pixel constrained to extreme allowable value
+ * 1110 -> class 9: L1B data faulty
+ * 1111 -> class 10: not processed due to deep ocean or cloud
+ * Class 11: Combination of bits unused
+ */
 
 int qc500c( long int pixel , int bandno )
 {

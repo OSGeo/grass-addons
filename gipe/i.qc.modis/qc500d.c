@@ -1,6 +1,7 @@
-// Atmospheric correction 500m long Int bit[30]
-// 00 -> class 1: Not Corrected product
-// 01 -> class 2: Corrected product
+/* Atmospheric correction 500m long Int bit[30]
+ * 00 -> class 1: Not Corrected product
+ * 01 -> class 2: Corrected product
+ */
 
 int qc500d( long int pixel )
 {

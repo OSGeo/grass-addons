@@ -1,6 +1,7 @@
-// Different orbit from 500m product, 250m Unsigned Int bit[14]
-// 00 -> class 1: same orbit as 500m
-// 01 -> class 2: different orbit from 500m
+/* Different orbit from 500m product, 250m Unsigned Int bit[14]
+ * 00 -> class 1: same orbit as 500m
+ * 01 -> class 2: different orbit from 500m
+ */
 
 int qc250f( unsigned int pixel )
 {

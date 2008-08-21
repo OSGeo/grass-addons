@@ -37,24 +37,24 @@ int qc500e( long int pixel );
 
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	char *qcflag;// Switch for particular index
+	char *qcflag;/*Switch for particular index*/
 	
 	struct GModule *module;
 	struct Option *input1, *input2, *input_band, *output;
 	
 	struct Flag *flag1, *flag2;	
-	struct History history; //metadata
-	struct Colors colors; //Color rules	
+	struct History history; /*metadata*/
+	struct Colors colors; /*Color rules*/	
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result; /*output raster name*/
+	/*File Descriptors*/
 	int infd;
 	int outfd;
 	
@@ -85,9 +85,7 @@ int main(int argc, char *argv[])
 	input1->answer     =_("modland_qa_bits");
 
 	input2 = G_define_standard_option(G_OPT_R_INPUT) ;
-	input2->key	   = _("input");
-	input2->description=_("Name of the surface reflectance QC map [bit array]");
-	input2->answer     =_("qcchan");
+	input2->description=_("Name of the surface reflectance QC layer [bit array]");
 
 	input_band 		= G_define_option();
 	input_band->key		= "band";
@@ -153,7 +151,6 @@ int main(int argc, char *argv[])
 		CELL qc500chan;
 
 		G_percent(row,nrows,2);
-//		printf("row = %i/%i\n",row,nrows);
 		if(G_get_raster_row(infd,inrast,row,data_type_qcchan)<0)
 			G_fatal_error(_("Could not read from <%s>"),qcchan);
 		/*process the data */

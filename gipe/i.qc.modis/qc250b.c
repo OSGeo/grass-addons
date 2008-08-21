@@ -1,8 +1,9 @@
-// Cloud State 250m Unsigned Int bits[2-3]
-// 00 -> class 1: Clear -- No clouds
-// 01 -> class 2: Cloudy
-// 10 -> class 3: Mixed
-// 11 -> class 4: Not Set ; Assumed Clear
+/* Cloud State 250m Unsigned Int bits[2-3]
+ * 00 -> class 1: Clear -- No clouds
+ * 01 -> class 2: Cloudy
+ * 10 -> class 3: Mixed
+ * 11 -> class 4: Not Set ; Assumed Clear
+ */
 
 int qc250b( unsigned int pixel )
 {
