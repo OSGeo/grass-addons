@@ -1,10 +1,10 @@
 /****************************************************************************
  *
  * MODULE:       i.longitude
- * AUTHOR(S):    Yann Chemin - ychemin@gmail.com
+ * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the longitude of the pixels in the map. 
  *
- * COPYRIGHT:    (C) 2002-2006 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -19,30 +19,27 @@
 #include <grass/gprojects.h>
 #include <grass/glocale.h>
 
-
-
 int main(int argc, char *argv[])
 {
-	struct Cell_head cellhd; //region+header info
-	char *mapset; // mapset name
+	struct Cell_head cellhd; /*region+header info*/
+	char *mapset; /*mapset name*/
 	int nrows, ncols;
 	int row,col;
 
-	int verbose=1;
-	int not_ll=0;//if proj is not lat/long, it will be 1.
+	int not_ll=0;/*if proj is not lat/long, it will be 1.*/
 	struct GModule *module;
 	struct Option *input1, *output1;
 	
 	struct Flag *flag1;	
-	struct History history; //metadata
+	struct History history; /*metadata*/
 	
 	struct pj_info iproj;
 	struct pj_info oproj;
 	/************************************/
 	/* FMEO Declarations*****************/
-	char *name;   // input raster name
-	char *result1; //output raster name
-	//File Descriptors
+	char *name;   /*input raster name*/
+	char *result1; /*output raster name*/
+	/*File Descriptors*/
 	int infd;
 	int outfd1;
 	
@@ -55,7 +52,7 @@ int main(int argc, char *argv[])
 	double latitude, longitude;
 
 	void *inrast;
-	unsigned char *outrast1;
+	DCELL *outrast1;
 	RASTER_MAP_TYPE data_type_output=DCELL_TYPE;
 	RASTER_MAP_TYPE data_type_inrast;
 	/************************************/
@@ -67,26 +64,16 @@ int main(int argc, char *argv[])
 
 	/* Define the different options */
 	input1 = G_define_standard_option(G_OPT_R_INPUT) ;
-	input1->key	   = _("input");
 	input1->description=_("Name of the input map");
-	input1->answer     =_("input");
 
 	output1 = G_define_standard_option(G_OPT_R_OUTPUT) ;
-	output1->key        =_("longitude");
 	output1->description=_("Name of the output longitude layer");
-	output1->answer     =_("longitude");
-	
-	flag1 = G_define_flag();
-	flag1->key = 'q';
-	flag1->description = _("Quiet");
-
 	/********************/
 	if (G_parser(argc, argv))
 		exit (EXIT_FAILURE);
 
 	in	 	= input1->answer;
 	result1  	= output1->answer;
-	verbose 	= (!flag1->answer);
 	/***************************************************/
 	mapset = G_find_cell2(in, "");
 	if (mapset == NULL) {
@@ -112,7 +99,7 @@ int main(int argc, char *argv[])
 	nrows = G_window_rows();
 	ncols = G_window_cols();
 	
-	//Shamelessly stolen from r.sun !!!!	
+	/*Shamelessly stolen from r.sun !!!!	*/
 	/* Set up parameters for projection to lat/long if necessary */
 	if ((G_projection() != PROJECTION_LL)) {
 		not_ll=1;
@@ -131,7 +118,7 @@ int main(int argc, char *argv[])
 		sprintf(oproj.proj, "ll");
 		if ((oproj.pj = pj_latlong_from_proj(iproj.pj)) == NULL)
 			G_fatal_error(_("Unable to set up lat/long projection parameters"));
-	}//End of stolen from r.sun :P
+	}/* End of stolen from r.sun :P */
 	
 	outrast1 = G_allocate_raster_buf(data_type_output);
 	if ( (outfd1 = G_open_raster_new (result1,data_type_output)) < 0)
@@ -153,10 +140,10 @@ int main(int argc, char *argv[])
 				    G_fatal_error(_("Error in pj_do_proj"));
 				}
 			}else{
-				//Do nothing
+				/*Do nothing*/
 			}	
 			d_lon = longitude;
-			((DCELL *) outrast1)[col] = d_lon;
+			outrast1[col] = d_lon;
 		}
 		if (G_put_raster_row (outfd1, outrast1, data_type_output) < 0)
 			G_fatal_error(_("Cannot write to output raster file"));
