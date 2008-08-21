@@ -2,10 +2,9 @@
 #include<math.h>
 #include<stdlib.h>
 
-// MSAVI2: second Modified Soil Adjusted Vegetation Index
-
-//	MSAVI2 = (1/2)*(2(NIR+1)-sqrt((2*NIR+1)^2-8(NIR-red)))
-
+/* MSAVI2: second Modified Soil Adjusted Vegetation Index
+ *	MSAVI2 = (1/2)*(2(NIR+1)-sqrt((2*NIR+1)^2-8(NIR-red)))
+ */
 
 double msa_vi2( double redchan, double nirchan )
 {

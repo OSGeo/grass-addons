@@ -8,7 +8,7 @@ is accomplished by a self correcting process for the atmospheric effect in the
  red channel, using the difference in the radiance between the blue and the red channels. 
 (Kaufman and Tanre 1996)*/
 
-// Atmospheric Resistant Vegetation Index
+/* Atmospheric Resistant Vegetation Index */
 
 
 double ar_vi( double redchan, double nirchan, double bluechan )

@@ -2,7 +2,7 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Green Vegetation Index
+/* Green Vegetation Index*/
 
 
 double g_vi( double bluechan, double greenchan, double redchan, double nirchan, double chan5chan, double chan7chan)

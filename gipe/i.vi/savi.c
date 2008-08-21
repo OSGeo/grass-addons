@@ -2,7 +2,7 @@
 #include<math.h>
 #include<stdlib.h>
 
-// Soil Adjusted Vegetation Index
+/* Soil Adjusted Vegetation Index*/
 
 double sa_vi( double redchan, double nirchan )
 {

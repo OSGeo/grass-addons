@@ -1,7 +1,8 @@
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
-//GARI: green atmospherically resistant vegetation index
+
+/*GARI: green atmospherically resistant vegetation index*/
 
 double ga_ri( double redchan, double nirchan, double bluechan, double greenchan )
 {
