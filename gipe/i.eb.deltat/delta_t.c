@@ -8,13 +8,14 @@
 
 double delta_t(double tempk)
 {
-	double result;
+    double result;
 
-	result = -321.147+1.095*tempk;
-	if(result<1){
-		result=1.0;
-	} else if(result>13){
-		result=13.0;
-	}
-	return result;
+    result = -321.147 + 1.095 * tempk;
+    if (result < 1) {
+	result = 1.0;
+    }
+    else if (result > 13) {
+	result = 13.0;
+    }
+    return result;
 }

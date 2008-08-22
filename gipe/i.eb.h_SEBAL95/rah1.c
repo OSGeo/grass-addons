@@ -6,10 +6,9 @@
 
 double rah1(double psih, double ustar)
 {
-	double result;
+    double result;
 
-	result = (log10(2/0.01)-psih)/(ustar*0.41);
+    result = (log10(2 / 0.01) - psih) / (ustar * 0.41);
 
-	return (result);
+    return (result);
 }
-

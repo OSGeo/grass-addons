@@ -3,10 +3,9 @@
 
 double h0(double roh_air, double cp, double rah, double dtair)
 {
-	double result;
+    double result;
 
-	result = roh_air*cp*dtair / rah;
-	
-	return result;
+    result = roh_air * cp * dtair / rah;
+
+    return result;
 }
-

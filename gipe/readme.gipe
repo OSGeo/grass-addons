@@ -55,7 +55,7 @@ i.sunhours:	Calculates potential sunshine hours
 i.vi:		Calculates any of 13 types of vegetation indices
 i.vi.mpi:	Educational version in MPICH for HPC
 i.vi.grid:	Educational version in Ninf/G for grid computing
-i.water:	Identifies water (from Terra-MODIS)
+i.water:	Identifies water (from Terra-MODIS and generic method)
 i.wi:		Calculates a water index
 
 
