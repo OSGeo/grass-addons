@@ -12,6 +12,7 @@ Cleaning
 20080820-22: // -> /**/ Done, code standardization, new coding practices updated on older modules.
 20080822: grass_indent.sh on all but i.vi.grid, r.hydro.CASC2D, r.evapo.PM.
 20080822: Contacted Massimiliano (HydroFOSS) to permit me to copy r.evapo.PM in GIPE for grass_indent.sh parsing+eventual cleaning.
+20080822: Massimiliano granted me to prepare r.evapo.PM and include it in GIPE for public consideration to include in GRASS main.
 
 Imagery modules
 ---------------
@@ -75,12 +76,18 @@ i.sunhours:	Calculates potential sunshine hours
 
 Raster modules
 --------------
+r.hydro.CASC2D:	(ported from GRASS 5.x): hydrological model
+r.out.vic: 	Creates input files to VIC Hydrological model
+
+-----EVAPOTRANSPIRATION reference, potential, ET data assimilation--
 r.evapo.MH: 	Calculates the Evapotranspiration from Hargreaves and modified versions.
 r.evapo.PM:	(from HydroFOSS) Calculates the Evapotranspiration from Penman-Monteith (1972) 
 r.gaswap.serial: RS ETa data assimilation of SWAP agro-hydrological model
-r.hydro.CASC2D:	(ported from GRASS 5.x): hydrological model
-r.out.vic: 	Creates input files to VIC Hydrological model
+-------------------------------------------------------------------------------------
+
+-----USLE K factor, R factor, soil texture and soil properties convertors--
 r.soiltex2prop: Converts soil texture to porosity, saturated hydraulic conductivity, wetting front suction after Rawls et al (1990)
 r.soilusda2tex: Converts USDA soil classes to soil texture layers (sand, silt, clay)
 r.uslek: 	USLE K factor calculation from soil texture layers
 r.usler: 	USLE R factor calculation (4 methods)
+-------------------------------------------------------------------------------------
