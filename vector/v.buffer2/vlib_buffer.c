@@ -794,19 +794,12 @@ void buffer_lines(struct line_pnts *area_outer, struct line_pnts **area_isles, i
     res = extract_inner_contour(pg2, &winding, cPoints);
     while (res != 0) {
         if (winding == 0) {
-            if (round) {
-                add_line_to_array(cPoints, &arrPoints, &count, &allocated, more);
-                cPoints = Vect_new_line_struct();
-            }
-            else {
-                /* fixes some problems for straight corners buffers... */
-                if (!Vect_point_in_poly(cPoints->x[0], cPoints->y[0], area_outer)) {
-                    if (Vect_get_point_in_poly(cPoints, &px, &py) != 0)
-                        G_fatal_error("Vect_get_point_in_poly() failed.");
-                    if (!point_in_buf(area_outer, px, py, da, db, dalpha)) {
-                        add_line_to_array(cPoints, &arrPoints, &count, &allocated, more);
-                        cPoints = Vect_new_line_struct();
-                    }
+            if (!Vect_point_in_poly(cPoints->x[0], cPoints->y[0], area_outer)) {
+                if (Vect_get_point_in_poly(cPoints, &px, &py) != 0)
+                    G_fatal_error("Vect_get_point_in_poly() failed.");
+                if (!point_in_buf(area_outer, px, py, da, db, dalpha)) {
+                    add_line_to_array(cPoints, &arrPoints, &count, &allocated, more);
+                    cPoints = Vect_new_line_struct();
                 }
             }
         }
@@ -839,30 +832,6 @@ void buffer_lines(struct line_pnts *area_outer, struct line_pnts **area_isles, i
             res = extract_inner_contour(pg2, &winding, cPoints);
         }
         pg_destroy_struct(pg2);
-        
-/*        for (i = 0; i < count2; i++) {
-            res = Vect_line_check_intersection(tPoints, arrPoints2[i], 0);
-            if (res != 0)
-                continue;
-            
-            res = Vect_point_in_poly(arrPoints2[i]->x[0], arrPoints2[i]->y[0], tPoints);
-            if (res == 0)
-                continue;
-                
-            res = Vect_get_point_in_poly(arrPoints2[i], &px, &py);
-            if (res != 0)
-                G_fatal_error("Vect_get_point_in_poly() failed.");
-            if (point_in_buf(tPoints, px, py, da, db, dalpha))
-                continue;
-            
-            if (allocated == count) {
-                allocated += more;
-                arrPoints = G_realloc(arrPoints, allocated*sizeof(struct line_pnts *));
-            }
-            arrPoints[count] = Vect_new_line_struct();
-            Vect_copy_xyz_to_pnts(arrPoints[count], arrPoints2[i]->x, arrPoints2[i]->y, arrPoints2[i]->z, arrPoints2[i]->n_points);
-            count++;
-        } */
     }
 
     arrPoints = G_realloc(arrPoints, count*sizeof(struct line_pnts *));
