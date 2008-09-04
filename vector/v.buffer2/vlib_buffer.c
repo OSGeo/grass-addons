@@ -160,7 +160,7 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     double cosa, sina, r;
     int inner_corner, turns360;
     
-    G_debug(4, "parallel_line()");
+    G_debug(3, "parallel_line()");
     
     if (looped && 0) {
         /* start point != end point */
@@ -312,8 +312,7 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
     double angle0, angle1;
     int inner_corner, turns360;
     
-    G_debug(3, "convolution_line()");
-    G_debug(3, "    side = %d", side);
+    G_debug(3, "convolution_line() side = %d", side);
 
     np = Points->n_points;
     x = Points->x;
@@ -463,7 +462,7 @@ static void extract_contour(struct planar_graph *pg, struct pg_edge *first, int 
     double opt_angle, tangle;
     int opt_j, opt_side, opt_flag;
     
-    G_debug(4, "extract_contour(): v1=%d, v2=%d, side=%d, stop_at_line_end=%d", first->v1, first->v2, side, stop_at_line_end);
+    G_debug(3, "extract_contour(): v1=%d, v2=%d, side=%d, stop_at_line_end=%d", first->v1, first->v2, side, stop_at_line_end);
 
     Vect_reset_line(nPoints);
     
@@ -582,7 +581,7 @@ void extract_outer_contour(struct planar_graph *pg, int side, struct line_pnts *
     struct pg_edge *edge;
     double min_x, min_angle, ta;
 
-    G_debug(4, "extract_outer_contour()");
+    G_debug(3, "extract_outer_contour()");
 
     if (side != 0) {
         G_fatal_error("    side != 0 feature not implemented");
@@ -626,7 +625,7 @@ int extract_inner_contour(struct planar_graph *pg, int *winding, struct line_pnt
     int i, w;
     struct pg_edge *edge;
     
-    G_debug(4, "extract_inner_contour()");
+    G_debug(3, "extract_inner_contour()");
 
     for (i = 0; i < pg->ecount; i++) {
         edge = &(pg->e[i]);
@@ -662,6 +661,8 @@ int point_in_buf(struct line_pnts *Points, double px, double py, double da, doub
     double delta, delta_k, k;
     double vx, vy, wx, wy, mx, my, nx, ny;
     double len, tx, ty, d, da2;
+    
+    G_debug(3, "point_in_buf()");
     
     dalpha *= PI/180; /* convert dalpha from degrees to radians */
     
@@ -775,7 +776,7 @@ void buffer_lines(struct line_pnts *area_outer, struct line_pnts **area_isles, i
     int allocated = 0;
     double px, py;
     
-    G_debug(4, "buffer_lines()");
+    G_debug(3, "buffer_lines()");
     
     auto_side = (side == 0);
     
@@ -868,7 +869,7 @@ void Vect_line_buffer2(struct line_pnts *Points, double da, double db, double da
     int more = 8;
     int isles_allocated = 0;
     
-    G_debug(4, "Vect_line_buffer()");
+    G_debug(2, "Vect_line_buffer()");
     
     /* initializations */
     tPoints = Vect_new_line_struct();
@@ -906,7 +907,7 @@ void Vect_area_buffer2(struct Map_info *Map, int area, double da, double db, dou
     int isles_allocated = 0;
     double max = fmax(da, db);
     
-    G_debug(4, "Vect_area_buffer()");
+    G_debug(2, "Vect_area_buffer()");
     
     /* initializations */
     tPoints = Vect_new_line_struct();
@@ -960,6 +961,8 @@ void Vect_point_buffer2(double px, double py, double da, double db, double dalph
     double angular_tol, angular_step, phi1;
     int j, nsegments;
     
+    G_debug(2, "Vect_point_buffer()");
+    
     *oPoints = Vect_new_line_struct();
     
     dalpha *= PI/180; /* convert dalpha from degrees to radians */
@@ -983,6 +986,8 @@ void Vect_point_buffer2(double px, double py, double da, double db, double dalph
     
     /* close the output line */
     Vect_append_point(*oPoints, (*oPoints)->x[0], (*oPoints)->y[0], (*oPoints)->z[0]);    
+    
+    return;
 }
 
 
@@ -998,7 +1003,7 @@ void Vect_point_buffer2(double px, double py, double da, double db, double dalph
 */
 void Vect_line_parallel2(struct line_pnts *InPoints, double da, double db, double dalpha, int side, int round, double tol, struct line_pnts *OutPoints )
 {
-    G_debug(4, "Vect_line_parallel(): npoints = %d, da = %f, db = %f, dalpha = %f, side = %d, round_corners = %d, tol = %f",
+    G_debug(2, "Vect_line_parallel(): npoints = %d, da = %f, db = %f, dalpha = %f, side = %d, round_corners = %d, tol = %f",
             InPoints->n_points, da, db, dalpha, side, round, tol);
 
     parallel_line(InPoints, da, db, dalpha, side, round, 1, NON_LOOPED_LINE, tol, OutPoints);

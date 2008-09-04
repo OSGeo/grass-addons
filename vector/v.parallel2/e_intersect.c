@@ -556,6 +556,7 @@ int segment_intersection_2d_tol(double ax1, double ay1, double ax2, double ay2, 
 int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2,
     double *x1, double *y1, double *x2, double *y2)
 {
+    const DLEVEL = 4;
     double t;
     double max_ax, min_ax, max_ay, min_ay;
     double max_bx, min_bx, max_by, min_by;
@@ -564,7 +565,7 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
     double d, da, db;
     
     /* TODO: Works for points ? */
-    G_debug(3, "segment_intersection_2d()"); 
+    G_debug(DLEVEL, "segment_intersection_2d()"); 
     G_debug(4, "    ax1  = %.18f, ay1  = %.18f", ax1, ay1);
     G_debug(4, "    ax2  = %.18f, ay2  = %.18f", ax2, ay2);
     G_debug(4, "    bx1  = %.18f, by1  = %.18f", bx1, by1);
@@ -577,35 +578,35 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
     
     /* Check for identical segments */
     if ((f11 && f22) || (f12 && f21)) {
-        G_debug (3, "    identical segments" );
+        G_debug(DLEVEL, "    identical segments" );
         *x1 = ax1; *y1 = ay1;
         *x2 = ax2; *y2 = ay2;
         return 5;
     }
     /* Check for identical endpoints */
     if (f11 || f12) {
-        G_debug (3, "    connected by endpoints" );
+        G_debug(DLEVEL, "    connected by endpoints" );
         *x1 = ax1; *y1 = ay1;
         return 1;
     }
     if (f21 || f22) {
-        G_debug (3, "    connected by endpoints" );
+        G_debug (DLEVEL, "    connected by endpoints" );
         *x1 = ax2; *y1 = ay2;
         return 1;
     }
 
     if ((fmax(ax1, ax2) < fmin(bx1, bx2)) || (fmax(bx1, bx2) < fmin(ax1, ax2))) {
-        G_debug(3, "    no intersection (disjoint bounding boxes)");
+        G_debug(DLEVEL, "    no intersection (disjoint bounding boxes)");
         return 0;
     }
     if ((fmax(ay1, ay2) < fmin(by1, by2)) || (fmax(by1, by2) < fmin(ay1, ay2))) {
-        G_debug(3, "    no intersection (disjoint bounding boxes)");
+        G_debug(DLEVEL, "    no intersection (disjoint bounding boxes)");
         return 0;
     }
         
     d  = D;
     if (d != 0) {
-        G_debug(3, "    general position");
+        G_debug(DLEVEL, "    general position");
 
         da = DA;
         
@@ -619,36 +620,36 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
         
         if (d > 0) {
             if ((da < 0) || (da > d)) {
-                G_debug(3, "        no intersection");
+                G_debug(DLEVEL, "        no intersection");
                 return 0;
             }
             
             db = DB;
             if ((db < 0) || (db > d)) {
-                G_debug(3, "        no intersection");
+                G_debug(DLEVEL, "        no intersection");
                 return 0;
             }
         }
         else { /* if d < 0 */
             if ((da > 0) || (da < d)) {
-                G_debug(3, "        no intersection");
+                G_debug(DLEVEL, "        no intersection");
                 return 0;
             }
             
             db = DB;
             if ((db > 0) || (db < d)) {
-                G_debug(3, "        no intersection");
+                G_debug(DLEVEL, "        no intersection");
                 return 0;
             }
         }
 
-        /*G_debug(3, "        ra=%.17g rb=%.17g", mpf_get_d(dda)/mpf_get_d(dd), mpf_get_d(ddb)/mpf_get_d(dd));*/
-        /*G_debug(3, "        sgn_d=%d sgn_da=%d sgn_db=%d cmp(dda,dd)=%d cmp(ddb,dd)=%d", sgn_d, sgn_da, sgn_db, mpf_cmp(dda, dd), mpf_cmp(ddb, dd));*/
+        /*G_debug(DLEVEL, "        ra=%.17g rb=%.17g", mpf_get_d(dda)/mpf_get_d(dd), mpf_get_d(ddb)/mpf_get_d(dd));*/
+        /*G_debug(DLEVEL, "        sgn_d=%d sgn_da=%d sgn_db=%d cmp(dda,dd)=%d cmp(ddb,dd)=%d", sgn_d, sgn_da, sgn_db, mpf_cmp(dda, dd), mpf_cmp(ddb, dd));*/
     
         *x1 = ax1 + (ax2 - ax1)*da/d;
         *y1 = ay1 + (ay2 - ay1)*da/d;
         
-        G_debug(3, "        intersection %.16g, %.16g", *x1, *y1);
+        G_debug(DLEVEL, "        intersection %.16g, %.16g", *x1, *y1);
         return 1;
     }
     
@@ -657,7 +658,7 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
     db = DB;
     if ((da != 0) || (db != 0)) {
         /* segments are parallel */
-        G_debug(3, "    parallel segments");
+        G_debug(DLEVEL, "    parallel segments");
         return 0;
     }
     
@@ -686,19 +687,19 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
         SWAP(bx2, by2);
     }
     
-    G_debug(3, "    collinear segments");
+    G_debug(DLEVEL, "    collinear segments");
 
     if ((bx2 < ax1) || (bx1 > ax2)) {
-        G_debug(3, "        no intersection");
+        G_debug(DLEVEL, "        no intersection");
         return 0;
     }
 
     /* there is overlap or connected end points */
-    G_debug(3, "        overlap");
+    G_debug(DLEVEL, "        overlap");
     
     /* a contains b */
     if ((ax1 < bx1) && (ax2 > bx2)) {
-        G_debug(3, "            a contains b");
+        G_debug(DLEVEL, "            a contains b");
         if (!vertical) {
             *x1 = bx1; *y1 = by1;
             *x2 = bx2; *y2 = by2;
@@ -712,7 +713,7 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
     
     /* b contains a */
     if ((ax1 > bx1) && (ax2 < bx2)) {
-        G_debug(3, "            b contains a");
+        G_debug(DLEVEL, "            b contains a");
         if (!vertical) {
             *x1 = bx1; *y1 = by1;
             *x2 = bx2; *y2 = by2;
@@ -725,7 +726,7 @@ int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, doub
     }   
     
     /* general overlap, 2 intersection points */
-    G_debug(3, "        partial overlap");
+    G_debug(DLEVEL, "        partial overlap");
     if ((bx1 > ax1) && (bx1 < ax2)) { /* b1 is in a */
         if (!vertical) {
             *x1 = bx1; *y1 = by1;
@@ -868,23 +869,23 @@ int segment_intersection_2d_test(double ax1, double ay1, double ax2, double ay2,
         
         if (sgn_d > 0) {
             if ((sgn_da < 0) || (mpf_cmp(dda, dd) > 0)) {
-                G_debug(3, "        no intersection");
+                G_debug(DLEVEL, "        no intersection");
                 return 0;
             }
             
             if ((sgn_db < 0) || (mpf_cmp(ddb, dd) > 0)) {
-                G_debug(3, "        no intersection");
+                G_debug(DLEVEL, "        no intersection");
                 return 0;
             }
         }
         else { /* if sgn_d < 0 */
             if ((sgn_da > 0) || (mpf_cmp(dda, dd) < 0)) {
-                G_debug(3, "        no intersection");
+                G_debug(DLEVEL, "        no intersection");
                 return 0;
             }
             
             if ((sgn_db > 0) || (mpf_cmp(ddb, dd) < 0)) {
-                G_debug(3, "        no intersection");
+                G_debug(DLEVEL, "        no intersection");
                 return 0;
             }
         }

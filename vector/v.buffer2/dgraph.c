@@ -187,7 +187,7 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
     struct seg_intersection_list *il;
     struct intersection_point **sorted;
     
-    G_debug(4, "find_all_intersections()");
+    G_debug(3, "find_all_intersections()");
     
     np = Points->n_points;
     x = Points->x;
@@ -196,12 +196,12 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
     si = create_si_struct(np-1);
     
     looped = ((x[0] == x[np-1]) && (y[0] == y[np-1]));
-    G_debug(4, "    looped=%d", looped);
+    G_debug(3, "    looped=%d", looped);
     
-    G_debug(4, "    finding intersections...");
+    G_debug(3, "    finding intersections...");
     for (i = 0; i < np-1; i++) {
         for (j = i+1; j < np-1; j++) {
-            G_debug(3, "        checking %d-%d %d-%d", i, i+1, j, j+1);
+            G_debug(4, "        checking %d-%d %d-%d", i, i+1, j, j+1);
             /*res = segment_intersection_2d_e(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1, &y1, &x2, &y2);*/
             res = segment_intersection_2d(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1, &y1, &x2, &y2);
 /*            res2 = segment_intersection_2d_e(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1_, &y1_, &x2_, &y2_);
@@ -210,7 +210,7 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
                 segment_intersection_2d_test(x[i], y[i], x[i+1], y[i+1], x[j], y[j], x[j+1], y[j+1], &x1, &y1, &x2, &y2);
             }
 */            
-            G_debug(3, "        intersection type = %d", res);
+            G_debug(4, "        intersection type = %d", res);
             if (res == 1) {
                 add_ipoint(Points, i, j, x1, y1, si);
             } else if ((res >= 2) && (res <= 5)) {
@@ -224,9 +224,9 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
         add_ipoint(Points, 0, -1, Points->x[0], Points->y[0], si);
         add_ipoint(Points, np-2, -1, Points->x[np-1], Points->y[np-1], si);
     }
-    G_debug(4, "    finding intersections...done");
+    G_debug(3, "    finding intersections...done");
     
-    G_debug(4, "    postprocessing...");
+    G_debug(3, "    postprocessing...");
     if (si->ipallocated > si->ipcount) {
         si->ipallocated = si->ipcount;
         si->ip = G_realloc(si->ip, (si->ipcount)*sizeof(struct intersection_point));
@@ -273,7 +273,7 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
     }
     si->group_count = group;
     
-    G_debug(4, "    postprocessing...done");
+    G_debug(3, "    postprocessing...done");
     
     /* output contents of si */
     for (i = 0; i < si->ilcount; i++) {
@@ -387,7 +387,7 @@ struct planar_graph* pg_create(struct line_pnts *Points) {
     struct pg_edge *edge;
     int i, j, t, v;
 
-    G_debug(4, "pg_create()");
+    G_debug(3, "pg_create()");
     
     si = find_all_intersections(Points);
     pg = pg_create_struct(si->group_count, 2*(si->ipcount));
