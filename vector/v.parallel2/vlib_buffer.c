@@ -786,6 +786,7 @@ void buffer_lines(struct line_pnts *area_outer, struct line_pnts **area_isles, i
     arrPoints = NULL;
     
     /* outer contour */
+    G_debug(3, "    processing outer contour");
     *oPoints = Vect_new_line_struct();
     if (auto_side)
         side = get_polygon_orientation(area_outer->x, area_outer->y, area_outer->n_points-1)?LEFT_SIDE:RIGHT_SIDE;
@@ -809,6 +810,7 @@ void buffer_lines(struct line_pnts *area_outer, struct line_pnts **area_isles, i
     pg_destroy_struct(pg2);
     
     /* inner contours */
+    G_debug(3, "    processing inner contours");
     for (i = 0; i < isles_count; i++) {
         if (auto_side)
             side = get_polygon_orientation(area_isles[i]->x, area_isles[i]->y, area_isles[i]->n_points-1)?RIGHT_SIDE:LEFT_SIDE;
@@ -841,6 +843,8 @@ void buffer_lines(struct line_pnts *area_outer, struct line_pnts **area_isles, i
     
     Vect_destroy_line_struct(sPoints);
     Vect_destroy_line_struct(cPoints);
+    
+    G_debug(3, "buffer_lines() ... done");
     
     return;
 }
