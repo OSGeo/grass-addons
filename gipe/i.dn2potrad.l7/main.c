@@ -532,9 +532,7 @@ int main(int argc, char *argv[])
     DCELL d_etpot;
 
     for (row = 0; row < nrows; row++) {
-	if (verbose) {
-	    G_percent(row, nrows, 2);
-	}
+	G_percent(row, nrows, 2);
 	/* read input map */
 	for (i = 0; i < MAXFILES; i++) {
 	    if ((G_get_raster_row(infd[i], inrast[i], row, in_data_type[i])) <
