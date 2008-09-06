@@ -57,6 +57,17 @@ double dn2rad_landsat5(int c_year, int c_month, int c_day, int year,
 	    gain_mode = 4;
 	}
     }
+    /*Processing in YEAR 2008+*/
+    else if (c_year >= 2008) {
+        /*Satellite overpass year before 1992*/
+	if (year < 1992) {
+	    gain_mode = 3;
+	}
+        /*Satellite overpass year after 1992*/
+	else {
+	    gain_mode = 4;
+	}
+    }
     /*end of gain type search*/
 
     if (gain_mode == 1) {
