@@ -10,39 +10,55 @@ double dn2rad_landsat5(int c_year, int c_month, int c_day, int year,
 
     int gain_mode;
 
+    /*Processing before 2003*/
     if (c_year < 2003) {
 	gain_mode = 1;
     }
+
+    /*Processing in YEAR 2003*/
     else if (c_year == 2003) {
+        /*Processing before May 2003*/
 	if (c_month < 5) {
 	    gain_mode = 1;
 	}
+        /*Processing before 5th of May 2003*/
 	else if (c_month == 5) {
 	    if (c_day < 5) {
 		gain_mode = 1;
 	    }
+            /*Processing after 5th of May 2003*/
 	    else {
 		gain_mode = 2;
 	    }
 	}
+        /*Processing after May 2003*/
 	else {
 	    gain_mode = 2;
 	}
     }
+
+    /*Processing in YEARS after 2003 and before 2007*/
     else if (c_year > 2003 && c_year < 2007) {
 	gain_mode = 2;
     }
+
+    /*Processing in YEAR 2007*/
     else if (c_year == 2007) {
+        /*Processing before May 2007*/
 	if (c_month < 5) {
 	    gain_mode = 2;
 	}
+        /*Satellite overpass year before 1992*/
 	else if (year < 1992) {
 	    gain_mode = 3;
 	}
+        /*Satellite overpass year after 1992*/
 	else {
 	    gain_mode = 4;
 	}
     }
+    /*end of gain type search*/
+
     if (gain_mode == 1) {
 	if (band == 1) {
 	    gain = 0.602431;
