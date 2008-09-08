@@ -35,7 +35,7 @@ void stop(struct Map_info *In, struct Map_info *Out) {
 /* returns 1 if unit_tolerance is adjusted, 0 otherwise */
 int adjust_tolerance(double *tolerance) {
     double t = 0.999 * ( 1 - cos ( 2 * PI / 8 / 2 ) );
-    G_debug(2, "Minimum tolerance = %f", t);
+    G_debug(2, "Maximum tolerance = %f", t);
     if (*tolerance > t) {
         *tolerance = t;
         return 1;
@@ -148,6 +148,7 @@ int main (int argc, char *argv[])
     distb_opt->type = TYPE_DOUBLE;
     distb_opt->required = NO;
     distb_opt->description = _("Buffer distance along minor axis in map units");
+    distb_opt->guisection  = _("Advanced");
     
     angle_opt = G_define_option();
     angle_opt->key = "angle";
@@ -155,6 +156,7 @@ int main (int argc, char *argv[])
     angle_opt->required = NO;
     angle_opt->answer = "0";
     angle_opt->description = _("Angle of major axis in degrees");
+    angle_opt->guisection  = _("Advanced");
     
     bufcol_opt = G_define_option();
     bufcol_opt->key = "bufcol";
@@ -192,7 +194,6 @@ int main (int argc, char *argv[])
         exit(EXIT_FAILURE);
     
     type = Vect_option_to_types ( type_opt );
-    G_message("type = %x", type);
     field = atoi( field_opt->answer );
     
     if ((dista_opt->answer && bufcol_opt->answer) || (!(dista_opt->answer || bufcol_opt->answer)))
