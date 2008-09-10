@@ -20,8 +20,16 @@
 #include <grass/Vect.h>
 #include <grass/dbmi.h>
 #include <grass/glocale.h>
+#include "local_proto.h"
 
 #define PI M_PI
+#ifndef MIN
+    #define MIN(X,Y) ((X<Y)?X:Y)
+#endif
+#ifndef MAX
+    #define MAX(X,Y) ((X>Y)?X:Y)
+#endif    
+
 
 void stop(struct Map_info *In, struct Map_info *Out) {
     Vect_close (In);
@@ -44,7 +52,6 @@ int adjust_tolerance(double *tolerance) {
 }
 
 int db_CatValArray_get_value_di(dbCatValArray *cvarr, int cat, double *value) {
-    double val_d;
     int t;
     int ctype = cvarr->ctype;
     int ret;
@@ -107,8 +114,8 @@ int main (int argc, char *argv[])
     struct Option *in_opt, *out_opt, *type_opt, *dista_opt, *distb_opt, *angle_opt;
     struct Flag *straight_flag, *nocaps_flag;
     struct Option *tol_opt, *bufcol_opt, *scale_opt, *field_opt;
-    double da, db, dalpha, tolerance, unit_tolerance, dtmp;
-    int type, debug;
+    double da, db, dalpha, tolerance, unit_tolerance;
+    int type;
     int i, j, ret, nareas, area, nlines, line;
     char *Areas, *Lines;
     int field;
@@ -120,7 +127,6 @@ int main (int argc, char *argv[])
     struct field_info *Fi;
     dbDriver *Driver;
     dbCatValArray cvarr;
-    int size_val_int;
     double size_val, scale;
 
 
@@ -227,7 +233,7 @@ int main (int argc, char *argv[])
         else
             dalpha = 0;
         
-        unit_tolerance = tolerance * fmin(da, db);
+        unit_tolerance = tolerance * MIN(da, db);
         G_message(_("The tolerance in map units = %g"), unit_tolerance);
     }
 
@@ -335,7 +341,7 @@ int main (int argc, char *argv[])
                 da = size_val * scale;
                 db = da;
                 dalpha = 0;
-                unit_tolerance = tolerance * fmin(da, db);
+                unit_tolerance = tolerance * MIN(da, db);
                 
                 G_debug(2, "    dynamic buffer size = %.2f", da);                
                 G_debug(2, _("The tolerance in map units: %g"), unit_tolerance);
@@ -389,7 +395,7 @@ int main (int argc, char *argv[])
                 da = size_val * scale;
                 db = da;
                 dalpha = 0;
-                unit_tolerance = tolerance * fmin(da, db);
+                unit_tolerance = tolerance * MIN(da, db);
                 
                 G_debug(2, "    dynamic buffer size = %.2f", da);                
                 G_debug(2, _("The tolerance in map units: %g"), unit_tolerance);

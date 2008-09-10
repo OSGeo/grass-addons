@@ -180,8 +180,9 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
     double EPSILON = 0.00000001;
     double *x, *y;
     double x1, y1, x2, y2;
-    int res, res2;
-    double x1_, y1_, x2_, y2_, z1_, z2_;
+    int res;
+    /*int res2
+    double x1_, y1_, x2_, y2_, z1_, z2_;*/
     struct seg_intersections *si;
     struct seg_intersection_list *il;
     struct intersection_point **sorted;
@@ -291,7 +292,6 @@ struct seg_intersections* find_all_intersections(struct line_pnts *Points) {
 /* trying to add more than e edges, produces fatal error */
 struct planar_graph* pg_create_struct(int n, int e) {
     struct planar_graph *pg;
-    int i;
     
     pg = G_malloc(sizeof(struct planar_graph));
     pg->vcount = n;

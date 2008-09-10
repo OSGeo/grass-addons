@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include <grass/gis.h>
 #include "e_intersect.h"
 
@@ -561,10 +562,8 @@ int segment_intersection_2d_tol(double ax1, double ay1, double ax2, double ay2, 
 int segment_intersection_2d(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2,
     double *x1, double *y1, double *x2, double *y2)
 {
-    const DLEVEL = 4;
+    const int DLEVEL = 4;
     double t;
-    double max_ax, min_ax, max_ay, min_ay;
-    double max_bx, min_bx, max_by, min_by;
     int vertical;
     int f11, f12, f21, f22;
     double d, da, db;

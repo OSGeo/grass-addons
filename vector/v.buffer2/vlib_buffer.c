@@ -127,11 +127,8 @@ static int line_intersection(double a1, double b1, double c1, double a2, double 
 
 static double angular_tolerance(double tol, double da, double db) {
     double a = MAX(da, db);
-    double b = MIN(da, db);
     if (tol > a)
         tol = a;
-/*    t = b*sqrt(tol*(2*a - tol))/(a*(a-tol));
-    return 2*atan(t);*/
     return 2*acos(1-tol/a);
 }
 
@@ -156,7 +153,6 @@ void parallel_line(struct line_pnts *Points, double da, double db, double dalpha
     double a0, b0, c0, a1, b1, c1;
     double phi1, phi2, delta_phi;
     double nsegments, angular_tol, angular_step;
-    double cosa, sina, r;
     int inner_corner, turns360;
     
     G_debug(3, "parallel_line()");
@@ -307,7 +303,6 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
     double a0, b0, c0, a1, b1, c1;
     double phi1, phi2, delta_phi;
     double nsegments, angular_tol, angular_step;
-    double cosa, sina, r;
     double angle0, angle1;
     int inner_corner, turns360;
     
@@ -448,7 +443,7 @@ void convolution_line(struct line_pnts *Points, double da, double db, double dal
 * else if it is inner contour, it is returned in cw order
 */
 static void extract_contour(struct planar_graph *pg, struct pg_edge *first, int side, int winding, int stop_at_line_end, struct line_pnts *nPoints) {
-    int i, j;
+    int j;
     int v; /* current vertex number */
     int v0;
     int eside; /* side of the current edge */
@@ -456,8 +451,8 @@ static void extract_contour(struct planar_graph *pg, struct pg_edge *first, int 
     struct pg_vertex *vert; /* current vertex */
     struct pg_vertex *vert0; /* last vertex */
     struct pg_edge *edge; /* current edge; must be edge of vert */
-/*    int cs; /* on which side are we turning along the contour
-    we will always turn right */
+/*    int cs;*/ /* on which side are we turning along the contour */
+    /* we will always turn right and dont need that one */
     double opt_angle, tangle;
     int opt_j, opt_side, opt_flag;
     
@@ -578,7 +573,7 @@ void extract_outer_contour(struct planar_graph *pg, int side, struct line_pnts *
     int v;
     struct pg_vertex *vert;
     struct pg_edge *edge;
-    double min_x, min_angle, ta;
+    double min_x, min_angle;
 
     G_debug(3, "extract_outer_contour()");
 
@@ -905,10 +900,9 @@ void Vect_area_buffer2(struct Map_info *Map, int area, double da, double db, dou
     struct line_pnts *tPoints, *outer;
     struct line_pnts **isles;
     int isles_count = 0;
-    int i, res, winding, isle;
+    int i, isle;
     int more = 8;
     int isles_allocated = 0;
-    double max = MAX(da, db);
     
     G_debug(2, "Vect_area_buffer()");
     
