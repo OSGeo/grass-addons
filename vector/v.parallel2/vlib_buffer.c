@@ -5,7 +5,6 @@
 **
 */
 #include <stdlib.h>
-#include <math.h>
 #include <grass/Vect.h>
 #include <grass/gis.h>
 #include "dgraph.h"
@@ -909,7 +908,7 @@ void Vect_area_buffer2(struct Map_info *Map, int area, double da, double db, dou
     int i, res, winding, isle;
     int more = 8;
     int isles_allocated = 0;
-    double max = fmax(da, db);
+    double max = MAX(da, db);
     
     G_debug(2, "Vect_area_buffer()");
     
