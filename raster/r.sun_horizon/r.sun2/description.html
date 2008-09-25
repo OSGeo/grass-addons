@@ -182,6 +182,13 @@ A map of shadows can be extracted from the solar incidence angle map
 (incidout). Areas with zero values are shadowed. The <em>-s</em> flag
 has to be used.
 
+<h3>Example</h3>
+
+Spearfish example (without considering cast shadows):
+<div class="code"><pre>
+r.sun2  elevation.dem horizon=horangle aspin=aspect slopein=slope glob_rad=global_rad day=180 time=14
+</pre></div>
+
 <h2>SEE ALSO</h2>
 <a href="r.slope.aspect.html">r.slope.aspect</a>,
 <a href="r.sunmask.html">r.sunmask</a>,
