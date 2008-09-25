@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 	_("Computes horizon angle height from a digital elevation model. The module has two"
 	 " different modes of operation:  "
 	 "1. Computes the entire horizon around a single point whose coordinates are"
-	 " given on withe the 'coord' option. The horizon height (in radians). "
+	 " given with the 'coord' option. The horizon height (in radians). "
 	 "2. Computes one or more raster maps of the horizon height in a single direction. "
 	 " The input for this is the angle (in degrees), which is measured "
 	 " counterclockwise with east=0, north=90 etc. The output is the horizon height in radians.");
@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
     parm.horizon->type = TYPE_STRING;
     parm.horizon->required = NO;
     parm.horizon->gisprompt = "old,cell,raster";
-    parm.horizon->description = _("Name of the horizon raster output");
+    parm.horizon->description = _("Prefix of the horizon raster output maps");
     parm.horizon->guisection = _("Output_options");
 
 
