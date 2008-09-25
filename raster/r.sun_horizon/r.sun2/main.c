@@ -256,14 +256,14 @@ int main(int argc, char *argv[])
     parm.elevin->type = TYPE_STRING;
     parm.elevin->required = YES;
     parm.elevin->gisprompt = "old,cell,raster";
-    parm.elevin->description = _("Name of the elevation raster file");
+    parm.elevin->description = _("Name of the input elevation raster map [meters]");
 
     parm.aspin = G_define_option();
     parm.aspin->key = "aspin";
     parm.aspin->type = TYPE_STRING;
     parm.aspin->required = NO;
     parm.aspin->gisprompt = "old,cell,raster";
-    parm.aspin->description = _("Name of the aspect raster file");
+    parm.aspin->description = _("Name of the input aspect map (terrain aspect or azimuth of the solar panel) [decimal degrees]");
 
     parm.aspect = G_define_option();
     parm.aspect->key = "aspect";
@@ -277,9 +277,8 @@ int main(int argc, char *argv[])
     parm.slopein->key = "slopein";
     parm.slopein->type = TYPE_STRING;
     parm.slopein->required = NO;
-    /*      parm.slopein->gisprompt = "old,cell,raster";
-     */
-    parm.slopein->description = _("Name of the slope raster file");
+    parm.slopein->gisprompt = "old,cell,raster";
+    parm.slopein->description = _("Name of the input slope raster map (terrain slope or solar panel inclination) [decimal degrees]");
 
     parm.slope = G_define_option();
     parm.slope->key = "slope";
@@ -294,7 +293,7 @@ int main(int argc, char *argv[])
     parm.linkein->required = NO;
     parm.linkein->gisprompt = "old,cell,raster";
     parm.linkein->description =
-	_("Name of the Linke turbidity coefficient raster file");
+	_("Name of the Linke atmospheric turbidity coefficient input raster map [-]");
 
     if (parm.linkein->answer == NULL) {
 	parm.lin = G_define_option();
@@ -303,7 +302,7 @@ int main(int argc, char *argv[])
 	parm.lin->answer = LINKE;
 	parm.lin->required = NO;
 	parm.lin->description =
-	    _("A single value of the Linke turbidity coefficient");
+	    _("A single value of the Linke atmospheric turbidity coefficient [-]");
     }
 
     parm.albedo = G_define_option();
@@ -311,7 +310,7 @@ int main(int argc, char *argv[])
     parm.albedo->type = TYPE_STRING;
     parm.albedo->required = NO;
     parm.albedo->gisprompt = "old,cell,raster";
-    parm.albedo->description = _("Name of the albedo coefficient raster file");
+    parm.albedo->description = _("Name of the ground albedo coefficient input raster map [-]");
 
     if (parm.albedo->answer == NULL) {
 	parm.alb = G_define_option();
@@ -319,7 +318,7 @@ int main(int argc, char *argv[])
 	parm.alb->type = TYPE_DOUBLE;
 	parm.alb->answer = ALB;
 	parm.alb->required = NO;
-	parm.alb->description = _("A single value of the albedo coefficient");
+	parm.alb->description = _("A single value of the ground albedo coefficient [-]");
     }
 
     parm.latin = G_define_option();
@@ -327,14 +326,14 @@ int main(int argc, char *argv[])
     parm.latin->type = TYPE_STRING;
     parm.latin->required = NO;
     parm.latin->gisprompt = "old,cell,raster";
-    parm.latin->description = _("Name of the latitude raster file");
+    parm.latin->description = _("Name of the latitudes input raster map [decimal degrees]");
 
     if (parm.latin->answer == NULL) {
 	parm.lat = G_define_option();
 	parm.lat->key = "lat";
 	parm.lat->type = TYPE_DOUBLE;
 	parm.lat->required = NO;
-	parm.lat->description = _("A single value of latitude");
+	parm.lat->description = _("A single value of latitude [decimal degrees]");
     }
 
     parm.longin = G_define_option();
@@ -342,7 +341,7 @@ int main(int argc, char *argv[])
     parm.longin->type = TYPE_STRING;
     parm.longin->required = NO;
     parm.longin->gisprompt = "old,cell,raster";
-    parm.longin->description = _("Name of the longitude raster file");
+    parm.longin->description = _("Name of the longitude input raster map [decimal degrees]");
 
 
     parm.coefbh = G_define_option();
@@ -351,7 +350,7 @@ int main(int argc, char *argv[])
     parm.coefbh->required = NO;
     parm.coefbh->gisprompt = "old,cell,raster";
     parm.coefbh->description =
-	_("The real-sky beam radiation coefficient file");
+	_("Name of real-sky beam radiation coefficient raster map [-]");
 
     parm.coefdh = G_define_option();
     parm.coefdh->key = "coefdh";
@@ -359,7 +358,7 @@ int main(int argc, char *argv[])
     parm.coefdh->required = NO;
     parm.coefdh->gisprompt = "old,cell,raster";
     parm.coefdh->description =
-	_("The real-sky diffuse radiation coefficient file");
+	_("Name of real-sky diffuse radiation coefficient raster map [-]");
 
 
     parm.horizon = G_define_option();
@@ -374,14 +373,14 @@ int main(int argc, char *argv[])
     parm.horizonstep->type = TYPE_DOUBLE;
     parm.horizonstep->required = NO;
     parm.horizonstep->description =
-	_("Angle step size for the horizon information (degrees)");
+	_("Angle step size for the horizon information [degrees]");
 
     parm.incidout = G_define_option();
     parm.incidout->key = "incidout";
     parm.incidout->type = TYPE_STRING;
     parm.incidout->required = NO;
     parm.incidout->gisprompt = "old,cell,raster";
-    parm.incidout->description = _("Output incidence angle file (raster)");
+    parm.incidout->description = _("Output incidence angle raster map (mode 1 only)");
 
     parm.beam_rad = G_define_option();
     parm.beam_rad->key = "beam_rad";
@@ -389,14 +388,14 @@ int main(int argc, char *argv[])
     parm.beam_rad->required = NO;
     parm.beam_rad->gisprompt = "old,cell,raster";
     parm.beam_rad->description =
-	_("Output direct (beam) irradiance/irradiation file (raster)");
+	_("Output beam irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2.day-1] (mode 2)");
 
     parm.insol_time = G_define_option();
     parm.insol_time->key = "insol_time";
     parm.insol_time->type = TYPE_STRING;
     parm.insol_time->required = NO;
     parm.insol_time->gisprompt = "old,cell,raster";
-    parm.insol_time->description = _("Output insolation time file (raster)");
+    parm.insol_time->description = _("Output insolation time raster map [h] (mode 2 only)");
 
     parm.diff_rad = G_define_option();
     parm.diff_rad->key = "diff_rad";
@@ -404,7 +403,7 @@ int main(int argc, char *argv[])
     parm.diff_rad->required = NO;
     parm.diff_rad->gisprompt = "old,cell,raster";
     parm.diff_rad->description =
-	_("Output diffuse irradiance/irradiation file (raster)");
+	_("Output diffuse irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2.day-1] (mode 2)");
 
     parm.refl_rad = G_define_option();
     parm.refl_rad->key = "refl_rad";
@@ -412,7 +411,7 @@ int main(int argc, char *argv[])
     parm.refl_rad->required = NO;
     parm.refl_rad->gisprompt = "old,cell,raster";
     parm.refl_rad->description =
-	_("Output reflected irradiance/irradiation file (raster)");
+	_("Output ground reflected irradiance [W.m-2] (mode 1) or irradiation raster map [Wh.m-2.day-1] (mode 2)");
 
     parm.glob_rad = G_define_option();
     parm.glob_rad->key = "glob_rad";
@@ -420,7 +419,7 @@ int main(int argc, char *argv[])
     parm.glob_rad->required = NO;
     parm.glob_rad->gisprompt = "old,cell,raster";
     parm.glob_rad->description =
-	_("Output global (total) irradiance/irradiation file (raster)");
+	_("Output global (total) irradiance/irradiation [W.m-2] (mode 1) or irradiance/irradiation raster map [Wh.m-2.day-1] (mode 2)");
 
 
     parm.day = G_define_option();
@@ -434,21 +433,21 @@ int main(int argc, char *argv[])
     parm.step->type = TYPE_DOUBLE;
     parm.step->answer = STEP;
     parm.step->required = NO;
-    parm.step->description = _("Time step computing all-day radiation");
+    parm.step->description = _("Time step when computing all-day radiation sums [decimal hours]");
 
     parm.declin = G_define_option();
     parm.declin->key = "declin";
     parm.declin->type = TYPE_DOUBLE;
     parm.declin->required = NO;
     parm.declin->description =
-	_("Required declination value (overriding the internal value)");
+	_("Declination value (overriding the internally computed value) [radians]");
 
     parm.ltime = G_define_option();
     parm.ltime->key = "time";
     parm.ltime->type = TYPE_DOUBLE;
     /*          parm.ltime->answer = TIME; */
     parm.ltime->required = NO;
-    parm.ltime->description = _("Local (solar) time [decimal hours]");
+    parm.ltime->description = _("Local (solar) time (to be set for mode 1 only) [decimal hours]");
 
     /*
      * parm.startTime = G_define_option();
@@ -484,19 +483,18 @@ int main(int argc, char *argv[])
     parm.civilTime->type = TYPE_DOUBLE;
     parm.civilTime->required = NO;
     parm.civilTime->description =
-	_
-	("(optional) The civil time zone value, if none, the time will be local solar time");
+	_("(optional) The civil time zone value, if none, the time will be local solar time");
 
 
     flag.shade = G_define_flag();
     flag.shade->key = 's';
     flag.shade->description =
-	_("Do you want to incorporate the shadowing effect of terrain (y/n)");
+	_("Incorporate the shadowing effect of terrain");
 
     flag.saveMemory = G_define_flag();
     flag.saveMemory->key = 'm';
     flag.saveMemory->description =
-	_("Do you want to use the low-memory version of the program (y/n)");
+	_("Use the low-memory version of the program");
 
 
     if (G_parser(argc, argv))
