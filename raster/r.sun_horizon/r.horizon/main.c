@@ -552,7 +552,7 @@ int INPUT(void)
     /*read Z raster */
 
     if ((mapset = G_find_cell(elevin, "")) == NULL)
-	G_fatal_error(_("Elevation raster file not found"));
+	G_fatal_error(_("Raster map <%s> not found"), elevin);
 
     fd1 = G_open_cell_old(elevin, mapset);
 
@@ -1098,6 +1098,7 @@ void calculate(double xcoord, double ycoord, int buffer_e, int buffer_w,
 	    coslatsq = coslat * coslat;
 	}
 
+	G_debug(3, "yindex: %d, xindex %d", yindex, xindex);
 	z_orig = zp = z[yindex][xindex];
 
 	calculate_shadow();
