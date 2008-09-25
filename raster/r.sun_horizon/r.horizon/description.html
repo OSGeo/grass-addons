@@ -1,6 +1,6 @@
 <H2>DESCRIPTION</H2>
 
-<P><B>r.horizon</B> computes the angular height of terrain horizon in
+<B>r.horizon</B> computes the angular height of terrain horizon in
 radians. It reads a raster of elevation data and outputs the horizon
 outline in one of two modes:
 
@@ -13,7 +13,8 @@ one or more rasters, with each point in a raster giving the horizon
 height in a specific direction. One raster is created for each direction.
 </ul>
 
-<P>The directions are given as azimuthal angles (in degrees), with
+<P>
+The directions are given as azimuthal angles (in degrees), with
 the angle starting with 0 towards East and moving counterclockwise
 (North is 90, etc.). The calculation takes into account the actual
 projection, so the angles are corrected for direction distortions
@@ -25,14 +26,11 @@ East, North, West and South. The only exception of this feature is
 LOCATION with x,y coordinate system, where this correction is
 not applied. 
 
-
-</P>
-
 <H3>Flags:</H3>
 <dl>
   <dt><B>-d</B>
   <dd>Output horizon height in degrees (the default is radians)</dl>
-
+</dl>
 
 <H3>Input parameters:</H3>
 <P>The <I>elevin </I>parameter is an input elevation raster file. If
@@ -117,13 +115,13 @@ cardinal directions caused by the projection (see above).
 
 <H2>EXAMPLE</H2>
 
+Single point mode:
 <div class="code"><pre>
 r.horizon elevin=DEM step=30 direction=15 bufferzone=200 coord=47.302,7.365 dist=0.7 &gt; horizon.out
 </pre></div>
 
 
-<P>raster mode:</P>
-
+Raster map mode (for r.sun2):
 <div class="code"><pre>
 r.horizon elevin=DEM step=30 e_buff=20 horizon=horangle dist=0.7 maxdistance=2000
 </pre></div>
@@ -131,7 +129,8 @@ r.horizon elevin=DEM step=30 e_buff=20 horizon=horangle dist=0.7 maxdistance=200
 
 <H2>SEE ALSO</H2>
 
-<em><A HREF="r.sun.html">r.sun</A>,
+<em>
+<A HREF="r.sun2.html">r.sun2</A>,
 <A HREF="r.los.html">r.los</A></em>
 
 <H2>REFERENCES</H2>
@@ -144,13 +143,12 @@ Radiation Tools for Environmental and Renewable Energy Applications,
 <a href="http://www.isess.org/papers.asp?year=2007">International Symposium on 
 Environmental Software Systems</a>, Prague, 2007</P>
 <P>Neteler M., Mitasova H., 2004. Open Source GIS: A GRASS GIS
-Approach, <A HREF="http://www.springer.com/east/home?SGWID=5-102-22-173664736-0&amp;changeHeader=true">Kluwer
-Academic Publishers/Springer</A>, Boston. ISBN: 1-4020-8064-6, 2nd
-Edition 2004 (reprinted 2005), 424 pages 
+Approach, <A HREF="http://www.springer.com/geography/gis+cartography/book/978-0-387-35767-6">Springer</A>, New York.
+ISBN: 1-4020-8064-6, 2nd Edition 2004 (reprinted 2005), 424 pages 
 </P>
 <P>Project <A HREF="http://re.jrc.ec.europa.eu/pvgis/">PVGIS</A>, European 
 Commission, DG Joint Research Centre 2001-2007</P>
-<P>Suri M., Hofierka J., <SPAN STYLE="font-weight: medium">2004</SPAN>.
+<P>Suri M., Hofierka J., 2004.
 A New GIS-based Solar Radiation Model and Its Application for
 Photovoltaic Assessments. <A HREF="http://www.blackwellpublishing.com/toc.asp?ref=1361-1682">Transactions
 in GIS</A>, 8(2), 175-190</P>
@@ -168,7 +166,6 @@ European Commission, Ispra, Italy</P>
 &copy; 2007, Thomas Huld, Tomas Cebecauer, Jaroslav Hofierka, Marcel Suri 
 </P>
 
-
 <ADDRESS STYLE="margin-bottom: 0.2in"><A HREF="mailto:Thomas.Huld@jrc.it">Thomas.Huld@jrc.it</A>
 <A HREF="mailto:Tomas.Cebecauer@jrc.it">Tomas.Cebecauer@jrc.it</A>
 <A HREF="mailto:hofi@geomodel.sk">hofierka@geomodel.sk</A>
@@ -176,4 +173,3 @@ European Commission, Ispra, Italy</P>
 </ADDRESS>
 
 <P><I>Last changed: $Date: 2007/05/16 16:22:04 $</I> 
-</P>
