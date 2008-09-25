@@ -227,8 +227,7 @@ int main(int argc, char *argv[])
     module = G_define_module();
 
     module->description =
-	_
-	("Computes direct (beam), diffuse and reflected solar irradiation raster "
+	_("Computes direct (beam), diffuse and reflected solar irradiation raster "
 	 "maps for given day, latitude, surface and atmospheric conditions. Solar "
 	 "parameters (e.g. sunrise, sunset times, declination, extraterrestrial "
 	 "irradiance, daylight length) are saved in a local text file. "
@@ -526,8 +525,7 @@ int main(int argc, char *argv[])
 	longin = parm.longin->answer;
 
 	if (longin == NULL) {
-	    G_fatal_error(_
-			  ("You must give the longitude raster if you use civil time"));
+	    G_fatal_error(_("You must give the longitude raster if you use civil time"));
 
 	}
 	sscanf(parm.civilTime->answer, "%lf", &civilTime);
@@ -579,8 +577,7 @@ int main(int argc, char *argv[])
     if (parm.ltime->answer != NULL) {
 	if (insol_time != NULL)
 	    G_fatal_error(_("time and insol_time are incompatible options"));
-	G_message(_
-		  ("Mode 1: instantaneous solar incidence angle & irradiance using a set local time"));
+	G_message(_("Mode 1: instantaneous solar incidence angle & irradiance using a set local time"));
 	sscanf(parm.ltime->answer, "%lf", &timo);
     }
     else {
@@ -649,8 +646,7 @@ int main(int argc, char *argv[])
 	    /* If you calculate shadows on the fly, the number of partitions
 	     * must be one.
 	     */
-	    G_fatal_error(_
-			  ("If you use -s and no horizon rasters, numpartitions must be =1"));
+	    G_fatal_error(_("If you use -s and no horizon rasters, numpartitions must be =1"));
 
 	}
 
@@ -664,8 +660,7 @@ int main(int argc, char *argv[])
      * shadows pre-calculated, there is no problem. */
 
     if (saveMemory && useShadow() && (!useHorizonData()))
-	G_fatal_error(_
-		      ("If you want to save memory and to use shadows, you must use pre-calculated horizons."));
+	G_fatal_error(_("If you want to save memory and to use shadows, you must use pre-calculated horizons."));
 
     if (parm.declin->answer == NULL)
 	declination = com_declin(day);
@@ -714,8 +709,7 @@ int main(int argc, char *argv[])
 
     if ((in_proj_info = G_get_projinfo()) == NULL)
 	G_fatal_error
-	    (_
-	     ("Can't get projection info of current location: please set latitude via 'lat' or 'latin' option!"));
+	    (_("Can't get projection info of current location: please set latitude via 'lat' or 'latin' option!"));
 
     if ((in_unit_info = G_get_projunits()) == NULL)
 	G_fatal_error(_("Can't get projection units of current location"));
