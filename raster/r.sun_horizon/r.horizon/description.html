@@ -20,7 +20,7 @@ the angle starting with 0 towards East and moving counterclockwise
 projection, so the angles are corrected for direction distortions
 imposed by it. The directions are thus aligned to those of the
 geographic projection and not the coordinate system given by the rows
-and columns of the raster file. This correction implies that the
+and columns of the raster map. This correction implies that the
 resulting cardinal directions represent true orientation towards the
 East, North, West and South. The only exception of this feature is
 LOCATION with x,y coordinate system, where this correction is
@@ -33,7 +33,7 @@ not applied.
 </dl>
 
 <H3>Input parameters:</H3>
-<P>The <I>elevin </I>parameter is an input elevation raster file. If
+<P>The <I>elevin </I>parameter is an input elevation raster map. If
 the buffer options are used (see below), this raster should extend
 over the area that accommodate the presently defined region plus
 defined buffer zones. 
@@ -64,8 +64,9 @@ horizon height. The smaller this value the faster the calculation but
 the higher the risk that you may miss a terrain feature that can
 contribute significantly to the horizon outline.</P>
 <P>The <I>coord</I> parameter takes a pair of easting-northing values
-and calculates the values of angular height of the horizon around this point. To
-achieve the consistency of the results, the point coordinate is
+in the current coordinate system and calculates the values of angular
+height of the horizon around this point. To achieve the
+consistency of the results, the point coordinate is
 aligned to the midpoint of the closest elevation raster cell. 
 </P>
 <P>If an analyzed point (or raster cell) lies close to the edge of
@@ -78,11 +79,11 @@ that is used to increase the area of the horizon analysis. The
 buffer for all cardinal directions and the parameters <I>e_buff</I>,
 <I>n_buff</I>, <I>s_buff</I>, and <I>w_buff</I> allow you to specify
 a buffer size individually for each of the four directions. The
-buffer parameters influence only size of the read elevation file,
+buffer parameters influence only size of the read elevation map,
 while the analysis in the raster mode will be done only for the
 area specified by the current region definition.</P>
 <P>The <I>horizon </I>parameter gives the prefix of the output
-horizon raster files. The raster name of each horizon direction
+horizon raster maps. The raster name of each horizon direction
 raster will be constructed as <I>horizon_</I>NNN , where NNN counts
 upwards from 0 to total number of directions. If you use <B>r.horizon</B>
 in the single point mode this option will be ignored. 
