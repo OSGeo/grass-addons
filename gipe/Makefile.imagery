@@ -3,7 +3,6 @@ MODULE_TOPDIR = ../
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 SUBDIRS = \
 	i.landsat.toar \
-	i.albedo \
 	i.biomass \
 	i.dn2full.l5 \
 	i.dn2full.l7 \
@@ -36,7 +35,6 @@ SUBDIRS = \
 	i.evapo.SENAY \
 	i.evapo.time_integration \
 	i.evapo.TSA \
-	i.qc.modis \
 	i.latitude \
 	i.lmf \
 	i.longitude \
