@@ -40,7 +40,6 @@ SUBDIRS = \
 	i.longitude \
 	i.sattime \
 	i.sunhours \
-	i.vi \
 	i.vi.mpi \
 	i.water \
 	i.wi 
