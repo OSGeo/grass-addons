@@ -1067,9 +1067,6 @@ void calculate(double xcoord, double ycoord, int buffer_e, int buffer_w,
     int arrayNumInt;
     double dfr_rad;
 
-    fprintf(stderr, "\n\n");
-
-
     xindex = (int)((xcoord - xmin) / stepx);
     yindex = (int)((ycoord - ymin) / stepy);
 
