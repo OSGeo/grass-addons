@@ -6,7 +6,7 @@ a new version of r.sun was prepared using ESRA solar radiation formulas.
 See manual pages for details.
 (C) 2002 Copyright Jaro Hofierka, Gresaka 22, 085 01 Bardejov, Slovakia, 
               and GeoModel, s.r.o., Bratislava, Slovakia
-email: hofierka@geomodel.sk,marcel.suri@jrc.it,suri@geomodel.sk
+email: hofierka@geomodel.sk,marcel.suri@jrc.it,suri@geomodel.sk Thomas.Huld@jrc.it
 *******************************************************************************/
 /*
  * This program is free software; you can redistribute it and/or
@@ -569,14 +569,21 @@ int main(int argc, char *argv[])
     if (parm.horizonstep->answer != NULL) {
 	if (sscanf(parm.horizonstep->answer, "%lf", &horizonStep) != 1)
 	    G_fatal_error(_("Error reading horizon step size"));
-	setHorizonInterval(deg2rad * horizonStep);
+	if(horizonStep > 0.)
+	    setHorizonInterval(deg2rad * horizonStep);
+	else
+	    G_fatal_error(_("The horizon step size must be greater than 0."));
+
     }
+	else if(useHorizonData()) {
+		G_fatal_error(_("If you use the horizon option you must also set the 'horizonstep' parameter."));
+	     }
 
 
     tt = parm.ltime->answer;
     if (parm.ltime->answer != NULL) {
 	if (insol_time != NULL)
-	    G_fatal_error(_("time and insol_time are incompatible options"));
+	    G_fatal_error(_("Time and insol_time are incompatible options"));
 	G_message(_("Mode 1: instantaneous solar incidence angle & irradiance using a set local time"));
 	sscanf(parm.ltime->answer, "%lf", &timo);
     }
@@ -746,6 +753,7 @@ int INPUT_part(int offset, double *zmax)
 {
     int finalRow, rowrevoffset;
     int numRows;
+    int numDigits;
     FCELL *cell1 = NULL, *cell2 = NULL;
     FCELL *cell3 = NULL, *cell4 = NULL, *cell5 = NULL, *cell6 = NULL, *cell7 =
 	NULL;
@@ -758,6 +766,7 @@ int INPUT_part(int offset, double *zmax)
     int fr1 = -1, fr2 = -1;
     int l, i, j;
     char shad_filename[256];
+    char formatString[10];
 
     finalRow = m - offset - m / numPartitions;
     if (finalRow < 0) {
@@ -926,9 +935,11 @@ int INPUT_part(int offset, double *zmax)
 	 * else
 	 * {
 	 */
+	numDigits = (int)(log10(1. * arrayNumInt)) + 1;
+	sprintf(formatString, "%%s_%%0%dd", numDigits);
 	for (i = 0; i < arrayNumInt; i++) {
-	    horizonbuf[i] = G_allocate_f_raster_buf();
-	    sprintf(shad_filename, "%s_%03d", horizon, i);
+		horizonbuf[i] = G_allocate_f_raster_buf();
+	    sprintf(shad_filename, formatString, horizon, i);
 	    if ((mapset = G_find_cell(shad_filename, "")) == NULL)
 		printf("Horizon file no. %d not found\n", i);
 
@@ -1751,8 +1762,6 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
 	(diff_rad != NULL) || (refl_rad != NULL) || (glob_rad != NULL);
 
 
-    fprintf(stderr, "\n\n");
-
     if (incidout != NULL) {
 	lumcl = (float **)malloc(sizeof(float *) * (m));
 	for (l = 0; l < m; l++) {
@@ -2006,7 +2015,6 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
 	arrayOffset++;
 
     }
-    fprintf(stderr, "\n");
 
     /* re-use &hist, but try all to initiate it for any case */
     /*   note this will result in incorrect map titles       */

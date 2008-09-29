@@ -118,8 +118,7 @@ shadowing effect .</p>
 <p>The maps' history files are generated containing the following listed 
 parameters used in the computation: <br>
 - Solar constant 1367 W.m-2 <br>
-- Extraterrestrial irradiance on a plane perpendicular to the solar beam
-[W.m-2] <br>
+- Extraterrestrial irradiance on a plane perpendicular to the solar beam [W.m-2] <br>
 - Day of the year <br>
 - Declination [radians] <br>
 - Decimal hour (Alternative 1 only) <br>
@@ -187,8 +186,9 @@ has to be used.
 
 Spearfish example (without considering cast shadows):
 <div class="code"><pre>
-r.horizon elevation.dem step=30 e_buff=20 horizon=horangle dist=0.7 maxdistance=2000
-r.sun2  elevation.dem horizon=horangle aspin=aspect slopein=slope glob_rad=global_rad day=180 time=14
+g.region rast=elevation.dem -p
+r.horizon elevation.dem step=30 e_buff=20 horizon=horangle dist=0.7 maxdistance=4000
+r.sun2 -s elevation.dem horizon=horangle horizonstep=30 aspin=aspect slopein=slope glob_rad=global_rad day=180 time=14
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -229,7 +229,7 @@ Muneer, T. (1990). Solar radiation model for Europe. Building services engineeri
 research and technology, 11, 4, 153-163. </p>
 <p>
 Neteler, M., Mitasova, H. (2002): Open Source GIS: A GRASS GIS Approach, Kluwer
-Academic Publishers. </p>
+Academic Publishers/Springer. </p>
 <p>
 Page, J. ed. (1986). Prediction of solar radiation on inclined surfaces. Solar
 energy R&amp;D in the European Community, series F &#8211; Solar radiation data,
