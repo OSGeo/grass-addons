@@ -203,14 +203,14 @@ int main(int argc, char *argv[])
 	name = input->answer;
 
 	if (adate->answer != NULL) {
-		G_strncpy(lsat.date, adate->answer, 11);
+		strncpy(lsat.date, adate->answer, 11);
 		lsat.date[10] = '\0';
 	}
 	else
 		lsat.date[0] = '\0';
 
 	if (pdate->answer != NULL) {
-		G_strncpy(lsat.creation, pdate->answer, 11);
+		strncpy(lsat.creation, pdate->answer, 11);
 		lsat.creation[10] = '\0';
 	}
 	else
@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
 					dn_mode[i] = j;
 				}
 			}
-			G_message("... DN = %.2d [%d] : mode %.2d [%d]",
+			G_message("... DN = %.2d [%d] : mode %.2d [%d] %s",
 						dn_dark[i], hist[dn_dark[i]],
 						dn_mode[i], hist[dn_mode[i]],
 						hist[255] > hist[dn_mode[i]] ? ", excluding DN > 241" : "");
@@ -560,7 +560,7 @@ int main(int argc, char *argv[])
 			sprintf(history.edhist[9], " Reflectance = Radiance divided by ..... %.5lf", lsat.band[i].K2);
 	        history.edlinecnt = 10;
 			if (method > DOS) {
-				sprintf(history.edhist[10], "");
+				sprintf(history.edhist[10], " ");
 				sprintf(history.edhist[11], " Dark object (%4d pixels) DN = ........ %d", pixel, dn_dark[i]);
 				sprintf(history.edhist[12], " Mode in reflectance histogram ......... %.5lf", ref_mode);
 				history.edlinecnt = 13;
