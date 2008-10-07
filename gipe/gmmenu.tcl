@@ -561,7 +561,9 @@ set descmenu [subst  {
 	{cascad {[G_msg "GIPE"]} {} "" $tmenu {
 		{cascad {[G_msg "DN2Rad2Ref"]} {} "" $tmenu {
 				{command {[G_msg "MODIS QC extrator"]} {} "i.qc.modis" {} -command {execute i.qc.modis }}
+				{command {[G_msg "MODIS State QA extrator"]} {} "i.modis.stateqa" {} -command {execute i.modis.stateqa }}
 				{separator}
+				{command {[G_msg "All types of Landsat"]} {} "i.landsat.toar" {} -command {execute i.landsat.toar }}
 				{command {[G_msg "Landsat 7 ETM+"]} {} "i.dn2ref.l7" {} -command {execute i.dn2ref.l7 }}
 				{command {[G_msg "Landsat 7 ETM+ (from .met)"]} {} "i.dn2full.l7" {} -command {execute i.dn2full.l7 }}
 				{command {[G_msg "Landsat 5 TM (from NLAPS report .txt)"]} {} "i.dn2full.l5" {} -command {execute i.dn2full.l5 }}
