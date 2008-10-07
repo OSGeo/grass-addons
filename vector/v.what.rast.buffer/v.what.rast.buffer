@@ -173,7 +173,7 @@ for MAP in $QUERY_MAPS ; do
 
 	# create subregion bounds centered on mark so we quickly process
 
-if [ 0 ] ; then
+if [ 0 -eq 1 ] ; then
 	#   only the local area.
 	int_EASTING=`echo $EASTING | cut -f1 -d.`
 	int_NORTHING=`echo $NORTHING | cut -f1 -d.`
@@ -188,10 +188,10 @@ if [ 0 ] ; then
 	g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES # -p
 else
 	#  alternate method: rely on g.region -a expansion
-	R_NORTH=`echo $($NORTHING + $BUFFER)`
-	R_SOUTH=`echo $($NORTHING - $BUFFER)`
-	R_EAST=`echo $($EASTING + $BUFFER)`
-	R_WEST=`echo $($EASTING - $BUFFER)`
+	R_NORTH=`echo $(($NORTHING + $BUFFER + $RES))`
+	R_SOUTH=`echo $(($NORTHING - $BUFFER - $RES))`
+	R_EAST=`echo $(($EASTING + $BUFFER + $RES))`
+	R_WEST=`echo $(($EASTING - $BUFFER - $RES))`
 
 	# zoom in on local region (for speed)
 	g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES -a  # -p
