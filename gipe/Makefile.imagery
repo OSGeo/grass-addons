@@ -38,6 +38,7 @@ SUBDIRS = \
 	i.latitude \
 	i.lmf \
 	i.longitude \
+	i.modis.stateqa \
 	i.sattime \
 	i.sunhours \
 	i.vi.mpi \
