@@ -1387,7 +1387,7 @@ class Data:
                          (_("MODIS QC extractor"),
                           _("MODIS Quality Assessment extractor"), 
                           "self.RunMenuCmd",
-                          "i.qc.modis"),
+                          "i.modis.qc"),
                          (_("MODIS State QA extractor"),
                           _("MODIS State Quality Assessment extractor"), 
                           "self.RunMenuCmd",

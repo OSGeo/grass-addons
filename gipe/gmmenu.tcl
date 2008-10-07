@@ -560,7 +560,7 @@ set descmenu [subst  {
 	{separator}
 	{cascad {[G_msg "GIPE"]} {} "" $tmenu {
 		{cascad {[G_msg "DN2Rad2Ref"]} {} "" $tmenu {
-				{command {[G_msg "MODIS QC extrator"]} {} "i.qc.modis" {} -command {execute i.qc.modis }}
+				{command {[G_msg "MODIS QC extrator"]} {} "i.modis.qc" {} -command {execute i.modis.qc }}
 				{command {[G_msg "MODIS State QA extrator"]} {} "i.modis.stateqa" {} -command {execute i.modis.stateqa }}
 				{separator}
 				{command {[G_msg "All types of Landsat"]} {} "i.landsat.toar" {} -command {execute i.landsat.toar }}

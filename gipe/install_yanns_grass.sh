@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# This is a try to install all these modules through a GRASS CVS tree
+# This is a try to install all these modules through a GRASS SVN tree
 # It will copy, untar and make/make install as required.
 
 
-#CHANGE THIS TO YOUR CVS TREE DIRECTORY 
-GRASSCVSDIR=/home/yann/tmp/grass
+#CHANGE THIS TO YOUR SVN TREE DIRECTORY 
+GRASSSVNDIR=/home/yann/tmp/grass
 ADDONSVNDIR=/home/yann/coding/grass-addons
 
 # This Assumes you start in GIPE directory
@@ -18,24 +18,24 @@ RSTDIR=$ADDONSVNDIR/raster
 cd $GIPEDIR/
 for directory in r.*
 do
-	cp -rf $GIPEDIR/$directory $GRASSCVSDIR/raster/
+	cp -rf $GIPEDIR/$directory $GRASSSVNDIR/raster/
 done
 
 #cd $HFDIR/
 #for directory in r.*
 #do
-#	cp -rf $HFDIR/$directory $GRASSCVSDIR/raster/
+#	cp -rf $HFDIR/$directory $GRASSSVNDIR/raster/
 #done
-#cp -rf $GIPEDIR/Makefile.PM $GRASSCVSDIR/raster/r.evapo.PM/Makefile
+#cp -rf $GIPEDIR/Makefile.PM $GRASSSVNDIR/raster/r.evapo.PM/Makefile
 
 #cd $RSTDIR/
 #for directory in r.inund.fluv*
 #do
-#	cp -rf $RSTDIR/$directory $GRASSCVSDIR/raster/
+#	cp -rf $RSTDIR/$directory $GRASSSVNDIR/raster/
 #done
 
-cp -f $GIPEDIR/Makefile.raster $GRASSCVSDIR/raster/Makefile.gipe 
-cd $GRASSCVSDIR/raster/
+cp -f $GIPEDIR/Makefile.raster $GRASSSVNDIR/raster/Makefile.gipe 
+cd $GRASSSVNDIR/raster/
 make -f Makefile.gipe
 #END RASTER STUFF
 
@@ -43,38 +43,38 @@ make -f Makefile.gipe
 cd $GIPEDIR/
 for directory in i.*
 do
-	cp -rf $GIPEDIR/$directory $GRASSCVSDIR/imagery/ 
+	cp -rf $GIPEDIR/$directory $GRASSSVNDIR/imagery/ 
 done
 
 cd $ADDONSVNDIR/
 for directory in i.*
 do
-	cp -rf $ADDONSVNDIR/$directory $GRASSCVSDIR/imagery/ 
+	cp -rf $ADDONSVNDIR/$directory $GRASSSVNDIR/imagery/ 
 done
 
 cd $ADDONSVNDIR/imagery/
 for directory in i.*
 do
-	cp -rf $ADDONSVNDIR/imagery/$directory $GRASSCVSDIR/imagery/ 
+	cp -rf $ADDONSVNDIR/imagery/$directory $GRASSSVNDIR/imagery/ 
 done
 
-cp -f $GIPEDIR/Makefile.imagery $GRASSCVSDIR/imagery/Makefile.gipe
-cd $GRASSCVSDIR/imagery/
+cp -f $GIPEDIR/Makefile.imagery $GRASSSVNDIR/imagery/Makefile.gipe
+cd $GRASSSVNDIR/imagery/
 make -f Makefile.gipe
 #END IMAGERY STUFF
 
 #Install m.gem in /scripts
-#cp -rf $GIPEDIR/m.gem $GRASSCVSDIR/scripts/ 
-#cp -f $GIPEDIR/Makefile.scripts $GRASSCVSDIR/scripts/Makefile.gipe 
-#cd $GRASSCVSDIR/scripts/
+#cp -rf $GIPEDIR/m.gem $GRASSSVNDIR/scripts/ 
+#cp -f $GIPEDIR/Makefile.scripts $GRASSSVNDIR/scripts/Makefile.gipe 
+#cd $GRASSSVNDIR/scripts/
 #make -f Makefile.scripts
 
 #Install GUI stuff
-cp -rf $GIPEDIR/gmmenu.tcl $GRASSCVSDIR/gui/tcltk/gis.m/ 
-cp -rf $GIPEDIR/menudata.py $GRASSCVSDIR/gui/wxpython/gui_modules/ 
-cd $GRASSCVSDIR/gui
+cp -rf $GIPEDIR/gmmenu.tcl $GRASSSVNDIR/gui/tcltk/gis.m/ 
+cp -rf $GIPEDIR/menudata.py $GRASSSVNDIR/gui/wxpython/gui_modules/ 
+cd $GRASSSVNDIR/gui
 make
 
-cd $GRASSCVSDIR
+cd $GRASSSVNDIR
 make install
 
