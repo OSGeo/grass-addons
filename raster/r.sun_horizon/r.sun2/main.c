@@ -1921,14 +1921,12 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
 		    la_min = AMIN1(la_min, latitude);
 		    latitude *= deg2rad;
 		}
-		if (latin == NULL && lt == NULL) {
-		    if ((G_projection() != PROJECTION_LL)) {
+		if ((G_projection() != PROJECTION_LL)) {
 
 			longitude = gridGeom.xp;
 			latitude = gridGeom.yp;
 
-			if (pj_do_proj(&longitude, &latitude, &iproj, &oproj) <
-			    0) {
+			if (pj_do_proj(&longitude, &latitude, &iproj, &oproj) < 0) {
 			    G_fatal_error("Error in pj_do_proj");
 			}
 
@@ -1936,15 +1934,14 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
 			la_min = AMIN1(la_min, latitude);
 			latitude *= deg2rad;
 			longitude *= deg2rad;
-		    }
-		    else {	/* ll projection */
+		}
+		else {	/* ll projection */
 			latitude = gridGeom.yp;
 			longitude = gridGeom.xp;
 			la_max = AMAX1(la_max, latitude);
 			la_min = AMIN1(la_min, latitude);
 			latitude *= deg2rad;
 			longitude *= deg2rad;
-		    }
 		}
 
 		if (coefbh != NULL) {
