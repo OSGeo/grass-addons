@@ -127,7 +127,7 @@ trap 'cleanup; exit 1' 2 3 15
 #echo "Extractions of [$MAP] at [$SITES_FILE]  `date`" > "$TMP"
 echo "map_name${FS}cat_id${FS}easting${FS}northing${FS}value${FS}mean_${BUFFER}m_radius${FS}" \
     "stdev_${BUFFER}m_radius${FS}max_${BUFFER}m_radius${FS}min_${BUFFER}m_radius${FS}" \
-    "number of "$RES"m^2 cells within ${BUFFER}m_radius" > "$TMP"
+    "number of valid "$RES"m^2 cells within ${BUFFER}m_radius" > "$TMP"
 
 
 #### per raster map
@@ -167,25 +167,39 @@ for MAP in $QUERY_MAPS ; do
 	ID=`echo "$POS" | cut -f3 -d"|"`
 	g.message -v message="site e=$EASTING  n=$NORTHING ID=$ID"
 
-	int_EASTING=`echo $EASTING | cut -f1 -d.`
-	int_NORTHING=`echo $NORTHING | cut -f1 -d.`
-
-	# create region bounds so we only process local area
-	R_NORTH=`echo $(((($int_NORTHING / $RES) * $RES) + ($RES * 10) ))`
-	R_SOUTH=`echo $(((($int_NORTHING / $RES) * $RES) - ($RES * 10) ))`
-	R_EAST=`echo $(((($int_EASTING / $RES) * $RES) + ($RES * 10) ))`
-	R_WEST=`echo $(((($int_EASTING / $RES) * $RES) - ($RES * 10) ))`
-
 	# find site value
 	g.region rast="$MAP"
 	val=`r.what in="$MAP" null=nan east_north="$EASTING,$NORTHING" | cut -f4 -d"|"`
 
-	# zoom in on local region (for speed)
-	g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES
+	# create subregion bounds centered on mark so we quickly process
 
-	# get stats about surrounding area, 100m radius 
+if [ 0 ] ; then
+	#   only the local area.
+	int_EASTING=`echo $EASTING | cut -f1 -d.`
+	int_NORTHING=`echo $NORTHING | cut -f1 -d.`
+# change this to measure from center of cell the point lies in, or ...?
+	# the following heavily relies on integer truncation.
+	R_NORTH=`echo $(((($int_NORTHING / $RES) * $RES) + ((($BUFFER/$RES)+2) * $RES) ))`
+	R_SOUTH=`echo $(((($int_NORTHING / $RES) * $RES) - ((($BUFFER/$RES)+2) * $RES) ))`
+	R_EAST=`echo $(((($int_EASTING / $RES) * $RES) + ((($BUFFER/$RES)+2) * $RES) ))`
+	R_WEST=`echo $(((($int_EASTING / $RES) * $RES) - ((($BUFFER/$RES)+2) * $RES) ))`
+
+	# zoom in on local region (for speed)
+	g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES # -p
+else
+	#  alternate method: rely on g.region -a expansion
+	R_NORTH=`echo $($NORTHING + $BUFFER)`
+	R_SOUTH=`echo $($NORTHING - $BUFFER)`
+	R_EAST=`echo $($EASTING + $BUFFER)`
+	R_WEST=`echo $($EASTING - $BUFFER)`
+
+	# zoom in on local region (for speed)
+	g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES -a  # -p
+fi
+
+	# get stats about surrounding area, ${100}m radius 
 	g.message -v "  Building Buffer ..."
-	r.circle -b output=MASK coord="$EASTING,$NORTHING" min=0 max="$RES" --quiet
+	r.circle -b output=MASK coord="$EASTING,$NORTHING" min=0 max="$BUFFER" --quiet
 
 	g.message "  Calculating stats for cat $ID ..."
 	eval `r.univar -g map="$MAP"`
