@@ -172,30 +172,29 @@ for MAP in $QUERY_MAPS ; do
 	val=`r.what in="$MAP" null=nan east_north="$EASTING,$NORTHING" | cut -f4 -d"|"`
 
 	# create subregion bounds centered on mark so we quickly process
-
-if [ 0 -eq 1 ] ; then
 	#   only the local area.
-	int_EASTING=`echo $EASTING | cut -f1 -d.`
-	int_NORTHING=`echo $NORTHING | cut -f1 -d.`
-# change this to measure from center of cell the point lies in, or ...?
-	# the following heavily relies on integer truncation.
-	R_NORTH=`echo $(((($int_NORTHING / $RES) * $RES) + ((($BUFFER/$RES)+2) * $RES) ))`
-	R_SOUTH=`echo $(((($int_NORTHING / $RES) * $RES) - ((($BUFFER/$RES)+2) * $RES) ))`
-	R_EAST=`echo $(((($int_EASTING / $RES) * $RES) + ((($BUFFER/$RES)+2) * $RES) ))`
-	R_WEST=`echo $(((($int_EASTING / $RES) * $RES) - ((($BUFFER/$RES)+2) * $RES) ))`
+	if [ 0 -eq 1 ] ; then
+	    int_EASTING=`echo $EASTING | cut -f1 -d.`
+	    int_NORTHING=`echo $NORTHING | cut -f1 -d.`
+	# change this to measure from center of cell the point lies in, or ...?
+	    # the following heavily relies on integer truncation.
+	    R_NORTH=`echo $(((($int_NORTHING / $RES) * $RES) + ((($BUFFER/$RES)+2) * $RES) ))`
+	    R_SOUTH=`echo $(((($int_NORTHING / $RES) * $RES) - ((($BUFFER/$RES)+2) * $RES) ))`
+	    R_EAST=`echo $(((($int_EASTING / $RES) * $RES) + ((($BUFFER/$RES)+2) * $RES) ))`
+	    R_WEST=`echo $(((($int_EASTING / $RES) * $RES) - ((($BUFFER/$RES)+2) * $RES) ))`
 
-	# zoom in on local region (for speed)
-	g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES # -p
-else
-	#  alternate method: rely on g.region -a expansion
-	R_NORTH=`echo $(($NORTHING + $BUFFER + $RES))`
-	R_SOUTH=`echo $(($NORTHING - $BUFFER - $RES))`
-	R_EAST=`echo $(($EASTING + $BUFFER + $RES))`
-	R_WEST=`echo $(($EASTING - $BUFFER - $RES))`
+	    # zoom in on local region (for speed)
+	    g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES # -p
+	else
+	    #  alternate method: rely on g.region -a expansion
+	    R_NORTH=`echo $(($NORTHING + $BUFFER + $RES))`
+	    R_SOUTH=`echo $(($NORTHING - $BUFFER - $RES))`
+	    R_EAST=`echo $(($EASTING + $BUFFER + $RES))`
+	    R_WEST=`echo $(($EASTING - $BUFFER - $RES))`
 
-	# zoom in on local region (for speed)
-	g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES -a  # -p
-fi
+	    # zoom in on local region (for speed)
+	    g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES -a  # -p
+	fi
 
 	# get stats about surrounding area, ${100}m radius 
 	g.message -v "  Building Buffer ..."
