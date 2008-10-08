@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 ############################################################################
 #
 # MODULE:       v.what.rast.buffer
@@ -152,15 +152,7 @@ for MAP in $QUERY_MAPS ; do
    unset IFS
    for POS in `v.out.ascii "$SITES_FILE"` ; do
 	# clear old values
-	unset EASTING
-	unset NORTHING
-	unset ID
-	unset val
-	unset max
-	unset min
-	unset n
-	unset mean
-	unset stddev
+	unset EASTING NORTHING ID val max min n mean stddev
 
 	EASTING=`echo "$POS" | cut -f1 -d"|"`
 	NORTHING=`echo "$POS" | cut -f2 -d"|"`
@@ -173,28 +165,13 @@ for MAP in $QUERY_MAPS ; do
 
 	# create subregion bounds centered on mark so we quickly process
 	#   only the local area.
-	if [ 0 -eq 1 ] ; then
-	    int_EASTING=`echo $EASTING | cut -f1 -d.`
-	    int_NORTHING=`echo $NORTHING | cut -f1 -d.`
-	# change this to measure from center of cell the point lies in, or ...?
-	    # the following heavily relies on integer truncation.
-	    R_NORTH=`echo $(((($int_NORTHING / $RES) * $RES) + ((($BUFFER/$RES)+2) * $RES) ))`
-	    R_SOUTH=`echo $(((($int_NORTHING / $RES) * $RES) - ((($BUFFER/$RES)+2) * $RES) ))`
-	    R_EAST=`echo $(((($int_EASTING / $RES) * $RES) + ((($BUFFER/$RES)+2) * $RES) ))`
-	    R_WEST=`echo $(((($int_EASTING / $RES) * $RES) - ((($BUFFER/$RES)+2) * $RES) ))`
+	R_NORTH=`echo "$NORTHING $BUFFER $RES" | awk '{printf("%.8f", $1 + $2 + $3)}'`
+	R_SOUTH=`echo "$NORTHING $BUFFER $RES" | awk '{printf("%.8f", $1 - $2 - $3)}'`
+	R_EAST=`echo "$EASTING $BUFFER $RES" | awk '{printf("%.8f", $1 + $2 + $3)}'`
+	R_WEST=`echo "$EASTING $BUFFER $RES" | awk '{printf("%.8f", $1 - $2 - $3)}'`
 
-	    # zoom in on local region (for speed)
-	    g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES # -p
-	else
-	    #  alternate method: rely on g.region -a expansion
-	    R_NORTH=`echo $(($NORTHING + $BUFFER + $RES))`
-	    R_SOUTH=`echo $(($NORTHING - $BUFFER - $RES))`
-	    R_EAST=`echo $(($EASTING + $BUFFER + $RES))`
-	    R_WEST=`echo $(($EASTING - $BUFFER - $RES))`
-
-	    # zoom in on local region (for speed)
-	    g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES -a  # -p
-	fi
+	# zoom in on local region (for speed)
+	g.region n=$R_NORTH s=$R_SOUTH e=$R_EAST w=$R_WEST res=$RES -a  # -p
 
 	# get stats about surrounding area, ${100}m radius 
 	g.message -v "  Building Buffer ..."
