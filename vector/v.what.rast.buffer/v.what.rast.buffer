@@ -125,9 +125,9 @@ cleanup()
 trap 'cleanup; exit 1' 2 3 15
 
 #echo "Extractions of [$MAP] at [$SITES_FILE]  `date`" > "$TMP"
-echo "map_name${FS}cat_id${FS}easting${FS}northing${FS}value${FS}mean_${BUFFER}m_radius${FS}" \
-    "stdev_${BUFFER}m_radius${FS}max_${BUFFER}m_radius${FS}min_${BUFFER}m_radius${FS}" \
-    "number of valid "$RES"m^2 cells within ${BUFFER}m_radius" > "$TMP"
+echo "map_name${FS}cat_id${FS}easting${FS}northing${FS}value${FS}mean_${BUFFER}m_radius${FS}"\
+"stdev_${BUFFER}m_radius${FS}max_${BUFFER}m_radius${FS}min_${BUFFER}m_radius${FS}"\
+"number of valid "$RES"m^2 cells within ${BUFFER}m_radius" > "$TMP"
 
 
 #### per raster map
