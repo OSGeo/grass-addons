@@ -21,7 +21,7 @@
 
 #%Module
 #%  label: Calculates univariate statistics of raster map(s) from buffers around vector points.
-#%  description: Results are written to a file. Resolution is taken from each input map.
+#%  description: Results are written to a file. Resolution is taken from individual raster maps.
 #%  keywords: vector, raster, statistics
 #%End
 #%option
