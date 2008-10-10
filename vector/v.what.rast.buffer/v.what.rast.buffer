@@ -20,9 +20,9 @@
 # extract value at each dive site and do stats for cells within a 100m radius
 
 #%Module
-#%  label: Calculates univariate statistics of raster map(s) from buffers around vector points.
-#%  description: Results are written to a file. Resolution is taken from individual raster maps.
-#%  keywords: vector, raster, statistics
+#% label: Calculates univariate statistics of raster map(s) from buffers around vector points.
+#% description: Results are written to a file. Resolution is taken from individual raster maps.
+#% keywords: vector, raster, statistics
 #%End
 #%option
 #% key: input
@@ -127,7 +127,7 @@ trap 'cleanup; exit 1' 2 3 15
 #echo "Extractions of [$MAP] at [$SITES_FILE]  `date`" > "$TMP"
 echo "map_name${FS}cat_id${FS}easting${FS}northing${FS}value${FS}mean_${BUFFER}m_radius${FS}"\
 "stdev_${BUFFER}m_radius${FS}max_${BUFFER}m_radius${FS}min_${BUFFER}m_radius${FS}"\
-"number of valid "$RES"m^2 cells within ${BUFFER}m_radius" > "$TMP"
+"number of valid cells within ${BUFFER}m_radius" > "$TMP"
 
 
 #### per raster map
