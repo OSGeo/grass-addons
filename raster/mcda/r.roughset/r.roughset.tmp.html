@@ -1,0 +1,57 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>r.roughset</title></head>
+<body><h2 style="text-align: justify;">NAME</h2><div style="text-align: justify;">
+<em><b>r.roughset</b></em>  - Rough set based geographics knowledg 
+</div><h2 style="text-align: justify;">KEYWORDS</h2><div style="text-align: justify;">
+raster,&nbsp;geographics knowledg<span style="font-weight: bold;"> </span>discovery
+</div><h2 style="text-align: justify;">SYNOPSIS</h2><div style="text-align: justify;">
+<b>r.roughset</b><br>
+<b>r.roughset help</b><br>
+<b>r.roughset</b> <b>attributes</b>=<em>string</em>[,<i>string</i>,...] <b>decision</b>=<em>string</em> <b>strategy</b>=<em>string</em> <b>InfoSys</b>=<em>string</em>  [--<b>verbose</b>]  [--<b>quiet</b>] 
+
+
+</div><h3 style="text-align: justify;">Parameters:</h3><div style="text-align: justify;">
+</div><dl style="text-align: justify;"><dt><b>attributes</b>=<em>string[,<i>string</i>,...]</em></dt><dd>Input geographics attributes in information system</dd><dt><b>decision</b>=<em>string</em></dt><dd>Input geographics decision in information system</dd><dt><b>strategy</b>=<em>string</em></dt><dd>Choose strategy for generating rules</dd><dd>Options: <em>Very fast,Fast,Medium,Best,All,Low,Upp,Normal</em></dd><dt><b>InfoSys</b>=<em>string</em></dt><dd>Output information system file</dd><dd>Default: <em>InfoSys</em></dd></dl><br><br><h2 style="text-align: justify;">DESCRIPTION</h2><div style="text-align: justify;">
+
+<b>r.roughset&nbsp;</b>è un modulo che consente&nbsp;l'applicazione
+della rough set theory [] a database geografici in ambiente GRASS GIS.
+L'input è costituito da due gruppi di dati: <br>1. gli attributi
+geografici che costituiscono il sistema informativo della rough set
+analisys e che si ritiene siano sufficienti a descrivere&nbsp;un
+determinato fenomeno naturale, sociale od economico (<b>attributes</b>=<em>string[,<i>string</i>,...]</em>);<br>2.
+il tematismo decisionale nel quale sono identificate le aree per cui il
+fenomeno da studaire si è presentato con una certa modalità(<b>decision</b>=<em>string</em>);<br>Il
+sistema informativo così generato viene trattato con le funzioni della
+versione 2 delle rough set library (RSL, ver. 2.0)&nbsp; [1993,
+M.Gawrys, J.Sienkiewicz] secondo una delle strategie decisionali
+disponibili (<b>strategy</b>=<em>string</em>).<br><br>L'output è costituito da tre differenti files testuali, con prefisso definito dall'utente nel campo <b>InfoSys</b>=<em>string, </em>e in dettaglio:<br>a.
+file testo strutturato secondo lo standard suggerito dalla rough set
+library, contraddistinto dallo stesso nome indicato nel campo InfoSys
+senza ulteriori suffissi; non riveste particolare interesse per
+l'utente a meno che non si vogliano utilizare le RSL al di fuori
+dall'ambiente GIS;<br>b. file testo, contraddistinto dal suffisso .out,
+contenente le regole decisionali estratte dal sistema informativo
+geografico, oltre che il core e&nbsp;&nbsp;i ridotti; le regole
+decisionali sono nella forma: &nbsp;<span style="font-style: italic;">if ... then </span>e sono facilmente leggibile ed interpretabili dall'analista per finalità descritive del fenomeno oggetto di studio;<br>c.
+file shell bash, contraddistinto dal suffisso .out.sh, che serve ad
+elaborare i file utilizzati quali attributi nel sistema informativo
+e&nbsp; generare un nuovo file di classificazione e previsione del
+fenomeno oggetto di studio secondo le regole decisionali estratte; in
+altri termini serve e trasferire le regole decisionali al contesto
+geografico. Per fare ciò è sufficiente lanciare ilfile di shell
+all'interno di una sessione di GRASS e può essere opportunamente
+modificato per adattare gli output alle esigenze dell'utente.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &#769;<br><br></div><h2 style="text-align: justify;">NOTES</h2><div style="text-align: justify;">Il
+modulo è in grado di trattare raster di qualsiasi tipo
+(CELL,FCELL,DCELL) ma le elaborazioni vengono eseguite tutte su
+variabili di tipo intero (int) perchè questo è imposto dalle rough set
+library. Le regole decisionali, conseguentemente, restituiscono
+informazioni esclusivamente di tipo intero.<br></div><h2 style="text-align: justify;">REFERENCE</h2><div style="text-align: justify;">Pawlak Z. Rough Sets, International Journal of Information&nbsp;and Computer Science Vol. 11, No. 5, 1982, pp. 344-356.<br>Pawlak&#8217;91 Pawlak Z. Rough Sets, Theoretical Aspects of Reasoning&nbsp;about Data, Kluwer Academic Publishers, 1991.<br>Gawrys M.,&nbsp;Sienkiewicz J. Rough Set Library - User's manual&nbsp;(ver. 2.0), September 1993<br><br><br>
+
+</div><h2 style="text-align: justify;">SEE ALSO</h2><div style="text-align: justify;">
+<em>r.mcda.fuzzy, r.mcda.electre, r.mcda.regime</em><br><em></em><em><a href="r.rescale.html"></a></em>
+
+</div><h2 style="text-align: justify;">AUTHORS</h2><div style="text-align: justify;">
+Gianluca Massei - Antonio Boggia - Dipartimento di Scienze Economico Estimative e degli Alimenti - Università di Perugia - Italy</div><p style="text-align: justify;"><br>
+
+</p><p><i><br></i></p></body></html>

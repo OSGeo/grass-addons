@@ -1,0 +1,42 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><title>r.mcda.regime</title></head>
+<body>
+<h2 style="text-align: justify;">DESCRIPTION</h2>
+<div style="text-align: justify;"><span style="font-weight: bold;">r.mcda.regime </span>implementa
+l'algoritmo di analisi multi-criterio "REGIME" in ambiente GRASS GIS e
+costituisce uno dei tools disponibili nella suite r.mcda.<br>Richiede
+in input la lista dei raster che rappresentano i &nbsp;criteri da
+utilizzare nell'analisi multicriterio e il vettore dei pesi da inserire nello
+<span style="font-style: italic;">stesso ordine</span> di immissione di quello dei criteri.&nbsp;<br>
+Ogni singola i-esima cella della region di GRASS è considerata come una
+delle possibili alternative da valutare ed è descritta dai valori
+assunti per la stessa cella dai raster indicati come criteri.&nbsp;
+<br>
+</div>
+<h2 style="text-align: justify;">NOTES</h2>
+<div style="text-align: justify;">Il modulo non opera
+alcun tipo di standardizzazione sui raster dei criteri che, pertanto, devono
+essere preventivemente preparati utilizzando, ad esempio, r.mapcalc. Il
+vettore dei pesi, invece, viene normalizzato sempre ad 1, quindi se
+l'immissione è già standardizzata il valore di ponderazione rimane
+inalterato, altrimente viene eseguito il calcolo che riporta la somma
+dei pesi ad un valore pari a 1.
+</div>
+<h2 style="text-align: justify;">REFERENCE</h2>
+<div style="text-align: justify;"><br>
+Janssen R. (1994) - Multiobjective decision support for enviromental management, Kluwe Accademic Publishers.<br><br>GRASS Development Team (2008)<br><br><br>
+</div>
+<h2 style="text-align: justify;">SEE ALSO</h2>
+<div style="text-align: justify;"><em>r.mcda.fuzzy,
+r.mcda.electre, r.roughet, r.mapcalc</em><br>
+<em></em><em></em></div>
+<h2 style="text-align: justify;">AUTHORS</h2>
+<div style="text-align: justify;">Antonio Boggia - Gianluca Massei&nbsp;-
+Dipartimento di Scienze Economico Estimative e degli Alimenti -
+Università di Perugia - Italy
+</div>
+<p style="text-align: justify;">&nbsp;
+</p>
+<p><i><br>
+</i></p>
+</body></html>
