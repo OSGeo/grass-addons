@@ -1,15 +1,10 @@
+MODULE_TOPDIR = ../../..
 
-MODULE_TOPDIR = ../..
+PGM = r.roughset
 
-SUBDIRS = \
-	r.mcda.electre \
-	r.mcda.fuzzy \
-	r.mcda.regime \
-	r.roughset 
-	
+LIBES= $(GISLIB) $(GMATHLIB)
+DEPENDENCIES = $(GISDEP)
 
-include $(MODULE_TOPDIR)/include/Make/Dir.make
+include $(MODULE_TOPDIR)/include/Make/Module.make
 
-default: parsubdirs
-
-clean: cleansubdirs
+default: cmd

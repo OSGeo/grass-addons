@@ -1,5 +1,3 @@
-# fix this relative to include/
-# or use absolute path to the GRASS source code
 MODULE_TOPDIR = ../../..
 
 PGM = r.mcda.electre
