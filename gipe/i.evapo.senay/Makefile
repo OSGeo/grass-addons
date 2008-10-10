@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = i.evapo.SENAY
+PGM = i.evapo.senay
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

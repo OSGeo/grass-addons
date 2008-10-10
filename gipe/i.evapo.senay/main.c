@@ -1,7 +1,7 @@
 
 /****************************************************************************
  *
- * MODULE:       i.evapo.SENAY
+ * MODULE:       i.evapo.senay
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Creates a map of actual evapotranspiration following
  *               the method of Senay (2007).

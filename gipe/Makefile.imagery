@@ -32,7 +32,7 @@ SUBDIRS = \
 	i.emissivity \
 	i.evapo.potrad \
 	i.evapo.PT \
-	i.evapo.SENAY \
+	i.evapo.senay \
 	i.evapo.time_integration \
 	i.evapo.TSA \
 	i.latitude \

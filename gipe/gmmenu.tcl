@@ -600,7 +600,7 @@ set descmenu [subst  {
 				{command {[G_msg "Potential ET (Radiative) from L5DN (NLAPS .txt)"]} {} "i.dn2potrad.l5" {} -command {execute i.dn2potrad.l5 }}
 				{separator}
 				{command {[G_msg "Actual ET (SEBAL)"]} {} "i.eb.eta" {} -command {execute i.eb.eta }}
-				{command {[G_msg "Actual ET (SENAY)"]} {} "i.evapo.SENAY" {} -command {execute i.evapo.SENAY }}
+				{command {[G_msg "Actual ET (Senay)"]} {} "i.evapo.senay" {} -command {execute i.evapo.senay }}
 				{command {[G_msg "Actual ET (TSA)"]} {} "i.evapo.TSA" {} -command {execute i.evapo.TSA }}
 				{separator}
 				{command {[G_msg "Actual ET Temporal Integration"]} {} "i.evapo.time_integration" {} -command {execute i.evapo.time_integration }}

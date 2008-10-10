@@ -5,7 +5,7 @@
 
 
 #CHANGE THIS TO YOUR SVN TREE DIRECTORY 
-GRASSSVNDIR=/home/yann/tmp/grass
+GRASSSVNDIR=/home/yann/tmp/grass_yann
 ADDONSVNDIR=/home/yann/coding/grass-addons
 
 # This Assumes you start in GIPE directory

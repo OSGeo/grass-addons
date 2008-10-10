@@ -13,15 +13,17 @@ Cleaning
 20080822: grass_indent.sh on all but i.vi.grid, r.hydro.CASC2D, r.evapo.PM.
 20080822: Contacted Massimiliano (HydroFOSS) to permit me to copy r.evapo.PM in GIPE for grass_indent.sh parsing+eventual cleaning.
 20080822: Massimiliano granted me to prepare r.evapo.PM and include it in GIPE for public consideration to include in GRASS main.
+20081005: i.vi, i.albedo, i.qc.modis are now removed from GIPE and are in GRASS 7 SVN (i.qc.modis->i.modis.qc).
+20081010: Added i.modis.stateqa for cloud, fire, land/water and other interesting MODIS09A flags.
 
 Imagery modules
 ---------------
-i.albedo:	Calculates Albedo form reflectance bands of Modis/AVHRR/Landsat/Aster
-i.atcorr:	(ported from GRASS 5.x, now in Main SVN) Atmospheric correction
+**i.albedo:	(Now in Main SVN) Calculates Albedo form reflectance bands of Modis/AVHRR/Landsat/Aster
+**i.atcorr:	(ported from GRASS 5.x, now in Main SVN) Atmospheric correction
 i.biomass:	Calculates biomass growth of a plant/crop
 i.emissivity: 	Calculates the generic emissivity from NDVI
 i.lmf: 		Calculates NDVI temporal splinning after Sawada et al. (2001)
-i.vi:		Calculates any of 13 types of vegetation indices
+**i.vi:		(now in Main SVN) Calculates any of 13 types of vegetation indices
 i.vi.mpi:	Educational version in MPICH for HPC
 i.vi.grid:	Educational version in Ninf/G for grid computing
 i.water:	Identifies water (from Terra-MODIS and generic method)
@@ -61,7 +63,7 @@ i.eb.z0m0: 	Energy-Balance: Calculates the roughness length (more for crops)
 -----EVAPOTRANSPIRATION reference, potential, actual, time integration, automatic modes--
 i.evapo.potrad: Calculates the Potential Evapotranspiration from Astronomical equations
 i.evapo.PT: 	Calculates Priestley and Taylor Potential Evapotranspiration
-i.evapo.SENAY: 	Calculates Actual evapotranspiration after Senay (2007)
+i.evapo.senay: 	Calculates Actual evapotranspiration after Senay (2007)
 i.evapo.time_integration: Integrates Actual ET over time using daily ETo meteo data
 i.evapo.TSA: 	Unfinished: Calculates Actual Evapotranspiration after Chen et al. (2005)
 -------------------------------------------------------------------------------------
@@ -69,7 +71,7 @@ i.evapo.TSA: 	Unfinished: Calculates Actual Evapotranspiration after Chen et al.
 -----Utilities-----------------------------------------------------------------------
 i.latitude: 	Calculates latitude by reprojecting without datum transform
 i.longitude: 	Calculates longitude by reprojecting without datum transform
-i.qc.modis:	Converts Terra-MODIS Quality Assessment bits to numeric classes
+**i.qc.modis:	(Now in Main SVN as i.modis.qc) Converts Terra-MODIS Quality Assessment bits to numeric classes
 i.sattime:	Calculates the time of satellite overpass
 i.sunhours:	Calculates potential sunshine hours
 -------------------------------------------------------------------------------------
