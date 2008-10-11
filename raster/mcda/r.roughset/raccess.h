@@ -1,12 +1,27 @@
-/*******************************************************************/
-/*******************************************************************/
-/***                                                             ***/
-/***             FUNCTIONS OF ACCESS TO SYSTEM TABLES            ***/
-/***                                                             ***/
-/***  part of the RSL system written by M.Gawrys J. Sienkiewicz  ***/
-/***                                                             ***/
-/*******************************************************************/
-/*******************************************************************/
+/****************************************************************************
+ *
+ * MODULE:       r.roughset
+ * AUTHOR(S):    GRASS module authors ad Rough Set Library (RSL) maintain:
+ *					G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)		
+ *				 Rough Set Library (RSL) ver. 2 original develop:
+ *		         	M.Gawrys - J.Sienkiewicz 
+ *
+ * PURPOSE:      Geographics rough set analisys and knowledge discovery 
+ *
+ * COPYRIGHT:    (C) GRASS Development Team (2008)
+ *
+ *               This program is free software under the GNU General Public
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	    	 for details.
+ *
+ *****************************************************************************/
+/***                                                                       ***/
+/***             FUNCTIONS OF ACCESS TO SYSTEM TABLES                      ***/
+/***                                                                       ***/
+/***  part of the RSL system written by M.Gawrys J. Sienkiewicz            ***/
+/***                                                                       ***/
+/*****************************************************************************/
+
 
 #define START_OF_D 	_table_element=_mainsys->matD,_table_end=_table_element+Dsize(_mainsys)
 #define START_OF_X 	_table_element=_mainsys->matX,_table_end=_table_element+_mainsys->matXsize

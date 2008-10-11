@@ -1,11 +1,12 @@
 /****************************************************************************
  *
  * MODULE:       r.roughset
- * AUTHOR(S):    Gianluca Massei (g_massa@libero.it) - Antonio Boggia (boggia@unipg.it)
- *		         M.Gawrys - J.Sienkiewicz original authors of RSl ver. 2
+ * AUTHOR(S):    GRASS module authors ad Rough Set Library (RSL) maintain:
+ *					G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)		
+ *				 Rough Set Library (RSL) ver. 2 original develop:
+ *		         	M.Gawrys - J.Sienkiewicz 
  *
- * PURPOSE:      Geographics rough set analisys and knowledge discovery (based on RSL system 
-                    by M.Gawrys J.Sienkiewicz)
+ * PURPOSE:      Geographics rough set analisys and knowledge discovery 
  *
  * COPYRIGHT:    (C) GRASS Development Team (2008)
  *
