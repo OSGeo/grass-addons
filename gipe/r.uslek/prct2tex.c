@@ -15,27 +15,20 @@ double point_in_triangle(double point_x, double point_y, double point_z,
 			 double t2_y, double t2_z, double t3_x, double t3_y,
 			 double t3_z)
 {
-    /*printf("in function: sand=%5.3f clay=%5.3f silt=%5.3f\n",point_x,point_y,point_z); */
+    /*G_message("in function: sand=%5.3f clay=%5.3f silt=%5.3f",
+				point_x,point_y,point_z); */
     double answer;
-
     double answer1_x, answer1_y, answer1_z;
-
     double answer2_x, answer2_y, answer2_z;
-
     double answer3_x, answer3_y, answer3_z;
 
     /* Consider three points forming a trinagle from a given soil class boundary ABC */
     /* Consider F an additional point in space */
     double af1, af2, af3;	/*Points for vector AF */
-
     double bf1, bf2, bf3;	/*Points for vector BF */
-
     double cf1, cf2, cf3;	/*Points for vector CF */
-
     double ab1, ab2, ab3;	/*Points for vector AB */
-
     double bc1, bc2, bc3;	/*Points for vector BC */
-
     double ca1, ca2, ca3;	/*Points for vector CA */
 
     /* Create vectors AB, BC and CA */
@@ -63,18 +56,18 @@ double point_in_triangle(double point_x, double point_y, double point_z,
     answer1_x = (af2 * ab3) - (af3 * ab2);
     answer1_y = (af3 * ab1) - (af1 * ab3);
     answer1_z = (af1 * ab2) - (af2 * ab1);
-    /*      printf("answer(AFxAB)= %f %f %f\n",answer1_x, answer1_y, answer1_z); */
+    /* G_message("answer(AFxAB)= %f %f %f",answer1_x, answer1_y, answer1_z); */
     /*BFxBC */
     answer2_x = (bf2 * bc3) - (bf3 * bc2);
     answer2_y = (bf3 * bc1) - (bf1 * bc3);
     answer2_z = (bf1 * bc2) - (bf2 * bc1);
-    /*      printf("answer(BFxBC)= %f %f %f\n",answer2_x, answer2_y, answer2_z); */
+    /* G_message("answer(BFxBC)= %f %f %f",answer2_x, answer2_y, answer2_z); */
     /*CFxCA */
     answer3_x = (cf2 * ca3) - (cf3 * ca2);
     answer3_y = (cf3 * ca1) - (cf1 * ca3);
     answer3_z = (cf1 * ca2) - (cf2 * ca1);
-    /*      printf("answer(CFxCA)= %f %f %f\n",answer3_x, answer3_y, answer3_z); */
-    answer = 0.0;		/*initialize value */
+    /* G_message("answer(CFxCA)= %f %f %f",answer3_x, answer3_y, answer3_z); */
+    answer = 0.0; /*initialize value */
     if ((int)answer1_x >= 0 && (int)answer2_x >= 0 && (int)answer3_x >= 0) {
 	answer += 1.0;
     }
@@ -107,9 +100,8 @@ double point_in_triangle(double point_x, double point_y, double point_z,
 
 int prct2tex(double sand_input, double clay_input, double silt_input)
 {
-    /*printf("%5.3f||%5.3f||%5.3f",sand_input,clay_input,silt_input); */
+    /*G_message("%5.3f||%5.3f||%5.3f",sand_input,clay_input,silt_input); */
     int i;
-
     double temp;
 
     /* set up index for soil texture classes */
@@ -117,7 +109,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 
     /* set up mark index for inside/outside polygon check */
     double mark[POLYGON_DIMENSION] = { 0.0 };
-    /*printf("in prct2tex()\n"); */
+    /*G_message("in prct2tex()"); */
     /*setup the 3Dvectors and initialize them */
     /* index 0 */
     struct vector cls_clay[POLYGON_DIMENSION] = { 0.0 };
@@ -149,7 +141,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	clay_input = clay_input * 100.0;
 	silt_input = silt_input * 100.0;
     }
-    /*printf("%5.3f||%5.3f||%5.3f|",sand_input,clay_input,silt_input); */
+    /*G_message("%5.3f||%5.3f||%5.3f|",sand_input,clay_input,silt_input); */
 
     /*Feed the polygons for index 0 */
     cls_clay[0].sand = 0.0;
@@ -168,7 +160,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
     cls_clay[4].clay = 50.0;
     cls_clay[4].silt = 0.0;
     /* Check for index 0 */
-    /*      printf("in prct2tex(): check for index 0\n"); */
+    /* G_message("in prct2tex(): check for index 0"); */
     mark[0] =
 	point_in_triangle(sand_input, clay_input, silt_input,
 			  cls_clay[0].sand, cls_clay[0].clay,
@@ -190,14 +182,14 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			  cls_clay[3].clay, cls_clay[3].silt,
 			  cls_clay[4].sand, cls_clay[4].clay,
 			  cls_clay[4].silt);
-    /*      printf("Clay: mark[0]=%f\n",mark[0]); */
-    /*      printf("Clay: mark[1]=%f\n",mark[1]); */
-    /*      printf("Clay: mark[2]=%f\n",mark[2]); */
+    /* G_message("Clay: mark[0]=%f",mark[0]); */
+    /* G_message("Clay: mark[1]=%f",mark[1]); */
+    /* G_message("Clay: mark[2]=%f",mark[2]); */
     if (mark[0] == 1 || mark[1] == 1 || mark[2] == 1) {
 	index = 0;
-	/*              printf("Clay: index labelled as 0\n"); */
+	/* G_message("Clay: index labelled as 0"); */
     }
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 1 */
 	cls_sandy_clay[0].sand = 50.0;
 	cls_sandy_clay[0].clay = 50.0;
@@ -217,10 +209,10 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_sandy_clay[2].sand, cls_sandy_clay[2].clay,
 			      cls_sandy_clay[2].silt);
 
-	/*              printf("Sandy Clay: mark[0]=%f\n",mark[0]); */
+	/* G_message("Sandy Clay: mark[0]=%f",mark[0]); */
 	if (mark[0] == 1) {
 	    index = 1;
-	    /*                      printf("Sandy Clay: index labelled as 1\n"); */
+	    /* G_message("Sandy Clay: index labelled as 1"); */
 	}
     }
     if (index == 20) {		/* if index not found then continue */
@@ -235,7 +227,8 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	cls_silty_clay[2].clay = 40.0;
 	cls_silty_clay[2].silt = 40.0;
 	/* Check for index 2 */
-	/*      printf("sand=%5.3f||clay=%5.3f||silt=%5.3f\n",sand_input,clay_input,silt_input); */
+	/* G_message("sand=%5.3f||clay=%5.3f||silt=%5.3f",sand_input,
+				clay_input,silt_input); */
 	mark[0] =
 	    point_in_triangle(sand_input, clay_input, silt_input,
 			      cls_silty_clay[0].sand, cls_silty_clay[0].clay,
@@ -244,13 +237,13 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_silty_clay[2].sand, cls_silty_clay[2].clay,
 			      cls_silty_clay[2].silt);
 
-	/*      printf("Silty Clay: mark[0]=%f\n",mark[0]); */
+	/* G_message("Silty Clay: mark[0]=%f",mark[0]); */
 	if (mark[0] == 1) {
 	    index = 2;
-	    /*              printf("Silty Clay: index labelled as 2\n"); */
+	    /* G_message("Silty Clay: index labelled as 2"); */
 	}
     }
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 3 */
 	cls_sandy_clay_loam[0].sand = 65.0;
 	cls_sandy_clay_loam[0].clay = 35.0;
@@ -268,7 +261,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	cls_sandy_clay_loam[4].clay = 25.0;
 	cls_sandy_clay_loam[4].silt = 0.0;
 	/* Check for index 0 */
-	/*              printf("in prct2tex(): check for index 3\n"); */
+	/* G_message("in prct2tex(): check for index 3"); */
 	mark[0] =
 	    point_in_triangle(sand_input, clay_input, silt_input,
 			      cls_sandy_clay_loam[0].sand,
@@ -302,15 +295,15 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_sandy_clay_loam[4].sand,
 			      cls_sandy_clay_loam[4].clay,
 			      cls_sandy_clay_loam[4].silt);
-	/*              printf("Sandy Clay Loam: mark[0]=%f\n",mark[0]); */
-	/*              printf("Sandy Clay Loam: mark[1]=%f\n",mark[1]); */
-	/*              printf("Sandy Clay Loam: mark[2]=%f\n",mark[2]); */
+	/* G_message("Sandy Clay Loam: mark[0]=%f",mark[0]); */
+	/* G_message("Sandy Clay Loam: mark[1]=%f",mark[1]); */
+	/* G_message("Sandy Clay Loam: mark[2]=%f",mark[2]); */
 	if (mark[0] == 1 || mark[1] == 1 || mark[2] == 1) {
 	    index = 3;
-	    /*                      printf("Sandy Clay Loam: index labelled as 3\n"); */
+	    /* G_message("Sandy Clay Loam: index labelled as 3"); */
 	}
     }
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 4 */
 	cls_clay_loam[0].sand = 20.0;
 	cls_clay_loam[0].clay = 40.0;
@@ -325,7 +318,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	cls_clay_loam[3].clay = 50.0;
 	cls_clay_loam[3].silt = 40.0;
 	/* Check for index 4 */
-	/*              printf("in prct2tex(): check for index 4\n"); */
+	/* G_message("in prct2tex(): check for index 4"); */
 	mark[0] =
 	    point_in_triangle(sand_input, clay_input, silt_input,
 			      cls_clay_loam[0].sand, cls_clay_loam[0].clay,
@@ -340,14 +333,14 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_clay_loam[2].clay, cls_clay_loam[2].silt,
 			      cls_clay_loam[3].sand, cls_clay_loam[3].clay,
 			      cls_clay_loam[3].silt);
-	/*              printf("Clay Loam: mark[0]=%f\n",mark[0]); */
-	/*              printf("Clay Loam: mark[1]=%f\n",mark[1]); */
+	/* G_message("Clay Loam: mark[0]=%f",mark[0]); */
+	/* G_message("Clay Loam: mark[1]=%f",mark[1]); */
 	if (mark[0] == 1 || mark[1] == 1) {
 	    index = 4;
-	    /*                      printf("Clay Loam: index labelled as 4\n"); */
+	    /* G_message("Clay Loam: index labelled as 4"); */
 	}
     }
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 5 */
 	cls_silty_clay_loam[0].sand = 0.0;
 	cls_silty_clay_loam[0].clay = 40.0;
@@ -362,7 +355,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	cls_silty_clay_loam[3].clay = 40.0;
 	cls_silty_clay_loam[3].silt = 40.0;
 	/* Check for index 5 */
-	/*              printf("in prct2tex(): check for index 5\n"); */
+	/* G_message("in prct2tex(): check for index 5"); */
 	mark[0] =
 	    point_in_triangle(sand_input, clay_input, silt_input,
 			      cls_silty_clay_loam[0].sand,
@@ -385,14 +378,14 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_silty_clay_loam[3].sand,
 			      cls_silty_clay_loam[3].clay,
 			      cls_silty_clay_loam[3].silt);
-	/*              printf("Silty Clay Loam: mark[0]=%f\n",mark[0]); */
-	/*              printf("Silty Clay Loam: mark[1]=%f\n",mark[1]); */
+	/* G_message("Silty Clay Loam: mark[0]=%f",mark[0]); */
+	/* G_message("Silty Clay Loam: mark[1]=%f",mark[1]); */
 	if (mark[0] == 1 || mark[1] == 1) {
 	    index = 5;
-	    /*                      printf("Silty Clay Loam: index labelled as 5\n"); */
+	    /* G_message("Silty Clay Loam: index labelled as 5"); */
 	}
     }
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 6 */
 	cls_sand[0].sand = 85.0;
 	cls_sand[0].clay = 15.0;
@@ -411,13 +404,13 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_sand[1].clay, cls_sand[1].silt,
 			      cls_sand[2].sand, cls_sand[2].clay,
 			      cls_sand[2].silt);
-	/*              printf("Sand: mark[0]=%f\n",mark[0]); */
+	/* G_message("Sand: mark[0]=%f",mark[0]); */
 	if (mark[0] == 1) {
 	    index = 6;
-	    /*                      printf("Sand: index labelled as 6\n"); */
+	    /* G_message("Sand: index labelled as 6"); */
 	}
     }
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 7 */
 	cls_loamy_sand[0].sand = 80.0;
 	cls_loamy_sand[0].clay = 20.0;
@@ -432,7 +425,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	cls_loamy_sand[3].clay = 15.0;
 	cls_loamy_sand[3].silt = 0.0;
 	/* Check for index 7 */
-	/*              printf("in prct2tex(): check for index 7\n"); */
+	/* G_message("in prct2tex(): check for index 7"); */
 	mark[0] =
 	    point_in_triangle(sand_input, clay_input, silt_input,
 			      cls_loamy_sand[0].sand, cls_loamy_sand[0].clay,
@@ -447,15 +440,15 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_loamy_sand[2].clay, cls_loamy_sand[2].silt,
 			      cls_loamy_sand[3].sand, cls_loamy_sand[3].clay,
 			      cls_loamy_sand[3].silt);
-	/*              printf("Loamy Sand: mark[0]=%f\n",mark[0]); */
-	/*              printf("Loamy Sand: mark[1]=%f\n",mark[1]); */
+	/* G_message("Loamy Sand: mark[0]=%f",mark[0]); */
+	/* G_message("Loamy Sand: mark[1]=%f",mark[1]); */
 	if (mark[0] == 1 || mark[1] == 1) {
 	    index = 7;
-	    /*                      printf("Loamy Sand: index labelled as 7\n"); */
+	    /* G_message("Loamy Sand: index labelled as 7"); */
 	}
     }
 
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 8 */
 	cls_sandy_loam[0].sand = 75.0;
 	cls_sandy_loam[0].clay = 25.0;
@@ -479,7 +472,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	cls_sandy_loam[6].clay = 20.0;
 	cls_sandy_loam[6].silt = 0.0;
 	/* Check for index 8 */
-	/*              printf("in prct2tex(): check for index 8\n"); */
+	/* G_message("in prct2tex(): check for index 8"); */
 	mark[0] =
 	    point_in_triangle(sand_input, clay_input, silt_input,
 			      cls_sandy_loam[2].sand, cls_sandy_loam[2].clay,
@@ -515,16 +508,16 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_sandy_loam[0].clay, cls_sandy_loam[0].silt,
 			      cls_sandy_loam[1].sand, cls_sandy_loam[1].clay,
 			      cls_sandy_loam[1].silt);
-	/*              printf("Sandy Loam: mark[0]=%f\n",mark[0]); */
-	/*              printf("Sandy Loam: mark[1]=%f\n",mark[1]); */
+	/* G_message("Sandy Loam: mark[0]=%f",mark[0]); */
+	/* G_message("Sandy Loam: mark[1]=%f",mark[1]); */
 	if (mark[0] == 1 || mark[1] == 1 || mark[2] == 1 || mark[3] == 1 ||
 	    mark[4] == 1) {
 	    index = 8;
-	    /*                      printf("Sandy Loam: index labelled as 8\n"); */
+	    /* G_message("Sandy Loam: index labelled as 8"); */
 	}
     }
 
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 9 */
 	cls_loam[0].sand = 50.0;
 	cls_loam[0].clay = 30.0;
@@ -542,7 +535,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	cls_loam[4].clay = 25.0;
 	cls_loam[4].silt = 15.0;
 	/* Check for index 9 */
-	/*              printf("in prct2tex(): check for index 9\n"); */
+	/* G_message("in prct2tex(): check for index 9"); */
 	mark[0] =
 	    point_in_triangle(sand_input, clay_input, silt_input,
 			      cls_loam[0].sand, cls_loam[0].clay,
@@ -564,15 +557,15 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_loam[3].clay, cls_loam[3].silt,
 			      cls_loam[4].sand, cls_loam[4].clay,
 			      cls_loam[4].silt);
-	/*              printf("Sandy Loam: mark[0]=%f\n",mark[0]); */
-	/*              printf("Sandy Loam: mark[1]=%f\n",mark[1]); */
+	/* G_message("Sandy Loam: mark[0]=%f",mark[0]); */
+	/* G_message("Sandy Loam: mark[1]=%f",mark[1]); */
 	if (mark[0] == 1 || mark[1] == 1 || mark[2] == 1) {
 	    index = 9;
-	    /*                      printf("Loam: index labelled as 9\n"); */
+	    /* G_message("Loam: index labelled as 9"); */
 	}
     }
 
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 10 */
 	cls_silt_loam[0].sand = 20.0;
 	cls_silt_loam[0].clay = 30.0;
@@ -593,7 +586,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	cls_silt_loam[5].clay = 0.0;
 	cls_silt_loam[5].silt = 50.0;
 	/* Check for index 10 */
-	/*              printf("in prct2tex(): check for index 10\n"); */
+	/* G_message("in prct2tex(): check for index 10"); */
 	mark[0] =
 	    point_in_triangle(sand_input, clay_input, silt_input,
 			      cls_silt_loam[3].sand, cls_silt_loam[3].clay,
@@ -622,17 +615,17 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_silt_loam[1].clay, cls_silt_loam[1].silt,
 			      cls_silt_loam[2].sand, cls_silt_loam[2].clay,
 			      cls_silt_loam[2].silt);
-	/*              printf("Silt Loam: mark[0]=%f\n",mark[0]); */
-	/*              printf("Silt Loam: mark[1]=%f\n",mark[1]); */
-	/*              printf("Silt Loam: mark[2]=%f\n",mark[2]); */
-	/*              printf("Silt Loam: mark[3]=%f\n",mark[3]); */
+	/* G_message("Silt Loam: mark[0]=%f",mark[0]); */
+	/* G_message("Silt Loam: mark[1]=%f",mark[1]); */
+	/* G_message("Silt Loam: mark[2]=%f",mark[2]); */
+	/* G_message("Silt Loam: mark[3]=%f",mark[3]); */
 	if (mark[0] == 1 || mark[1] == 1 || mark[2] == 1 || mark[3] == 1) {
 	    index = 10;
-	    /*                      printf("Silt Loam: index labelled as 10\n"); */
+	    /* G_message("Silt Loam: index labelled as 10"); */
 	}
     }
 
-    if (index == 20) {		/* if index not found then continue */
+    if (index == 20) {	/* if index not found then continue */
 	/*Feed the polygons for index 11 */
 	cls_silt[0].sand = 15.0;
 	cls_silt[0].clay = 10.0;
@@ -647,7 +640,7 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 	cls_silt[3].clay = 0.0;
 	cls_silt[3].silt = 75.0;
 	/* Check for index 11 */
-	/*              printf("in prct2tex(): check for index 11\n"); */
+	/* G_message("in prct2tex(): check for index 11"); */
 	mark[0] =
 	    point_in_triangle(sand_input, clay_input, silt_input,
 			      cls_silt[0].sand, cls_silt[0].clay,
@@ -662,39 +655,39 @@ int prct2tex(double sand_input, double clay_input, double silt_input)
 			      cls_silt[2].clay, cls_silt[2].silt,
 			      cls_silt[3].sand, cls_silt[3].clay,
 			      cls_silt[3].silt);
-	/*              printf("Silt: mark[0]=%f\n",mark[0]); */
-	/*              printf("Silt: mark[1]=%f\n",mark[1]); */
+	/* G_message("Silt: mark[0]=%f",mark[0]); */
+	/* G_message("Silt: mark[1]=%f",mark[1]); */
 	if (mark[0] == 1 || mark[1] == 1) {
 	    index = 11;
-	    /*                      printf("Silt: index labelled as 11\n"); */
+	    /* G_message("Silt: index labelled as 11"); */
 	}
     }
-    /*      if(index==0){
-       printf("clay\n");
+    /* if(index==0){
+       G_message("clay");
        } else if (index==1){
-       printf("sandy clay\n");
+       G_message("sandy clay");
        } else if (index==2){
-       printf("silty clay\n");
+       G_message("silty clay");
        } else if (index==3){
-       printf("sandy clay loam\n");
+       G_message("sandy clay loam");
        } else if (index==4){
-       printf("clay loam\n");
+       G_message("clay loam");
        } else if (index==5){
-       printf("silty clay loam\n");
+       G_message("silty clay loam");
        } else if (index==6){
-       printf("sand\n");
+       G_message("sand");
        } else if (index==7){
-       printf("loamy sand\n");
+       G_message("loamy sand");
        } else if (index==8){
-       printf("sandy loam\n");
+       G_message("sandy loam");
        } else if (index==9){
-       printf("loam\n");
+       G_message("loam");
        } else if (index==10){
-       printf("silt loam\n");
+       G_message("silt loam");
        } else if (index==11){
-       printf("silt\n");
+       G_message("silt");
        } else {
-       printf("i am confused here...Can you do it yourself please?\n");
+       G_message("Unable to allocate class");
        } */
     return index;
 }
