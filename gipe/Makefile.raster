@@ -9,7 +9,6 @@ SUBDIRS = \
 	r.out.vic \
 	r.soilusda2tex \
 	r.soiltex2prop \
-	r.uslek \
 	r.usler 
 
 include $(MODULE_TOPDIR)/include/Make/Platform.make

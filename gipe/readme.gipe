@@ -15,6 +15,7 @@ Cleaning
 20080822: Massimiliano granted me to prepare r.evapo.PM and include it in GIPE for public consideration to include in GRASS main.
 20081005: i.vi, i.albedo, i.qc.modis are now removed from GIPE and are in GRASS 7 SVN (i.qc.modis->i.modis.qc).
 20081010: Added i.modis.stateqa for cloud, fire, land/water and other interesting MODIS09A flags.
+20081011: Moved r.uslek to main SVN
 
 Imagery modules
 ---------------
@@ -90,6 +91,6 @@ r.gaswap.serial: RS ETa data assimilation of SWAP agro-hydrological model
 -----USLE K factor, R factor, soil texture and soil properties convertors--
 r.soiltex2prop: Converts soil texture to porosity, saturated hydraulic conductivity, wetting front suction after Rawls et al (1990)
 r.soilusda2tex: Converts USDA soil classes to soil texture layers (sand, silt, clay)
-r.uslek: 	USLE K factor calculation from soil texture layers
+**r.uslek: 	(Now in main SVN) USLE K factor calculation from soil texture layers
 r.usler: 	USLE R factor calculation (4 methods)
 -------------------------------------------------------------------------------------
