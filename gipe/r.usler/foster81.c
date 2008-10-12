@@ -1,7 +1,8 @@
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
- double foster_1981(double annual_pmm) 
+
+double foster_1981(double annual_pmm) 
 {
     double result;
 

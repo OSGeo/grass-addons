@@ -1,7 +1,8 @@
 #include<stdio.h>
 #include<math.h>
 #include<stdlib.h>
- double morgan_1974(double annual_pmm) 
+
+double morgan_1974(double annual_pmm) 
 {
     double result;
 
