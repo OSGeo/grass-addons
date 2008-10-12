@@ -35,7 +35,6 @@ SUBDIRS = \
 	i.evapo.senay \
 	i.evapo.time_integration \
 	i.evapo.TSA \
-	i.latlong \
 	i.lmf \
 	i.modis.stateqa \
 	i.sattime \
