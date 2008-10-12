@@ -582,8 +582,7 @@ set descmenu [subst  {
 				{command {[G_msg "Water"]} {} "i.water" {} -command {execute i.water }}
 				{command {[G_msg "Emissivity (generic from NDVI)"]} {} "i.emissivity" {} -command {execute i.emissivity }}
 				{separator}
-				{command {[G_msg "Latitude map"]} {} "i.latitude" {} -command {execute i.latitude }}
-				{command {[G_msg "Longitude map"]} {} "i.longitude" {} -command {execute i.longitude }}
+				{command {[G_msg "Lat/long maps"]} {} "i.latlong" {} -command {execute i.latlong }}
 				{command {[G_msg "Sunshine hours (potential)"]} {} "i.sunhours" {} -command {execute i.sunhours }}
 				{command {[G_msg "Satellite overpass time"]} {} "i.sattime" {} -command {execute i.sattime }}
 				{separator}
