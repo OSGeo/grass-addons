@@ -8,8 +8,7 @@ SUBDIRS = \
 	r.inund.fluv \
 	r.out.vic \
 	r.soilusda2tex \
-	r.soiltex2prop \
-	r.usler 
+	r.soiltex2prop 
 
 include $(MODULE_TOPDIR)/include/Make/Platform.make
 
