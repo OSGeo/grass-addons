@@ -14,7 +14,6 @@
  *
  *****************************************************************************/
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,12 +29,11 @@ int main(int argc, char *argv[])
     int nrows, ncols;
     int row, col;
     struct GModule *module;
-    struct Option *input, *input1, *input2, *input3, *output;
+    struct Option *input, *input1, *input2, *input3, *input4, *input5, *output;
     struct History history;	/*metadata */
     struct Colors colors;	/*Color rules */
 
-	/************************************/
-    /* FMEO Declarations**************** */
+    /************************************/
     char *name, *name1, *name2;	/*input raster name */
     char *result;		/*output raster name */
 
@@ -44,7 +42,7 @@ int main(int argc, char *argv[])
     int infd[MAXFILES], infd1[MAXFILES], infd2[MAXFILES];
     int outfd;
 
-	/****************************************/
+    /****************************************/
     /* Pointers for file names              */
     char **names;
     char **ptr;
@@ -53,14 +51,15 @@ int main(int argc, char *argv[])
     char **names2;
     char **ptr2;
 
-	/****************************************/
+    /****************************************/
     int DOYbeforeETa[MAXFILES], DOYafterETa[MAXFILES];
     int bfr, aft;
-	/****************************************/
 
+    /****************************************/
     int ok;
     int i = 0, j = 0;
     double etodoy;		/*minimum ETo DOY */
+    double startperiod, endperiod;  /*first and last days (DOYs) of the period studied */
     void *inrast[MAXFILES], *inrast1[MAXFILES], *inrast2[MAXFILES];
     DCELL *outrast;
     int data_format;		/* 0=double  1=float  2=32bit signed int  5=8bit unsigned int (ie text) */
@@ -69,13 +68,15 @@ int main(int argc, char *argv[])
     RASTER_MAP_TYPE in_data_type1[MAXFILES];	/* DOY of ETa */
     RASTER_MAP_TYPE in_data_type2[MAXFILES];	/* ETo */
     RASTER_MAP_TYPE out_data_type = DCELL_TYPE;
-	/************************************/
+
+    /************************************/
+
     G_gisinit(argv[0]);
+
 
     module = G_define_module();
     module->keywords = _("evapotranspiration,temporal,integration");
-    module->description =
-	_("Temporal integration of satellite ET actual (ETa) following the daily ET reference (ETo) from meteorological station(s)\n");
+    module->description =_("Temporal integration of satellite ET actual (ETa) following the daily ET reference (ETo) from meteorological station(s)\n");
 
     /* Define the different options */
 
@@ -98,12 +99,24 @@ int main(int argc, char *argv[])
     input3->type = TYPE_DOUBLE;
     input3->required = YES;
     input3->description = _("Value of DOY for ETo first day");
+    
+    input4 = G_define_option();
+    input4->key = _("start_period");
+    input4->type = TYPE_DOUBLE;
+    input4->required = YES;
+    input4->description = _("Value of DOY for the first day of the period studied ");
+
+    input5 = G_define_option();
+    input5->key = _("end_period");
+    input5->type = TYPE_DOUBLE;
+    input5->required = YES;
+    input5->description = _("Value of DOY for the last day of the period studied ");
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
     output->description =
 	_("Name of the output temporally integrated ETa layer");
 
-    /* FMEO init nfiles */
+    /* init nfiles */
     nfiles = 1;
     nfiles1 = 1;
     nfiles2 = 1;
@@ -121,8 +134,21 @@ int main(int argc, char *argv[])
     names2 = input2->answers;
     ptr2 = input2->answers;
     etodoy = atof(input3->answer);
-
+    startperiod = atof(input4->answer);
+    endperiod = atof(input5->answer);
     result = output->answer;
+
+    /****************************************/
+    if (endperiod<startperiod) {
+	G_fatal_error(_("The DOY for end_period can not be smaller than start_period"));
+	ok = 0;
+    }
+	
+    if (etodoy>startperiod) {
+	G_fatal_error(_("The DOY for start_period can not be smaller than eto_doy_min"));
+	ok = 0;
+    }
+	
 
 	/****************************************/
     if (G_legal_filename(result) < 0) {
@@ -142,9 +168,8 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("cell file [%s] not found"), name);
 	    ok = 0;
 	}
-	if (!ok) {
+	if (!ok)
 	    continue;
-	}
 	infd[nfiles] = G_open_cell_old(name, mapset);
 	if (infd[nfiles] < 0) {
 	    ok = 0;
@@ -152,20 +177,17 @@ int main(int argc, char *argv[])
 	}
 	/* Allocate input buffer */
 	in_data_type[nfiles] = G_raster_map_type(name, mapset);
-	if ((infd[nfiles] = G_open_cell_old(name, mapset)) < 0) {
+	if ((infd[nfiles] = G_open_cell_old(name, mapset)) < 0)
 	    G_fatal_error(_("Cannot open cell file [%s]"), name);
-	}
-	if ((G_get_cellhd(name, mapset, &cellhd)) < 0) {
+	if ((G_get_cellhd(name, mapset, &cellhd)) < 0)
 	    G_fatal_error(_("Cannot read file header of [%s]"), name);
-	}
 	inrast[nfiles] = G_allocate_raster_buf(in_data_type[nfiles]);
 	nfiles++;
     }
     nfiles--;
-    if (nfiles <= 1) {
+    if (nfiles <= 1)
 	G_fatal_error(_("The min specified input map is two"));
-    }
-
+	
 	/****************************************/
     ok = 1;
     for (; *ptr1 != NULL; ptr1++) {
@@ -179,9 +201,8 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("cell file [%s] not found"), name1);
 	    ok = 0;
 	}
-	if (!ok) {
+	if (!ok)
 	    continue;
-	}
 	infd1[nfiles1] = G_open_cell_old(name1, mapset);
 	if (infd1[nfiles1] < 0) {
 	    ok = 0;
@@ -189,22 +210,21 @@ int main(int argc, char *argv[])
 	}
 	/* Allocate input buffer */
 	in_data_type1[nfiles1] = G_raster_map_type(name1, mapset);
-	if ((infd1[nfiles1] = G_open_cell_old(name1, mapset)) < 0) {
+	if ((infd1[nfiles1] = G_open_cell_old(name1, mapset)) < 0)
 	    G_fatal_error(_("Cannot open cell file [%s]"), name1);
-	}
-	if ((G_get_cellhd(name1, mapset, &cellhd)) < 0) {
+	if ((G_get_cellhd(name1, mapset, &cellhd)) < 0)
 	    G_fatal_error(_("Cannot read file header of [%s]"), name1);
-	}
 	inrast1[nfiles1] = G_allocate_raster_buf(in_data_type1[nfiles1]);
 	nfiles1++;
     }
     nfiles1--;
-    if (nfiles1 <= 1) {
+    if (nfiles1 <= 1)
 	G_fatal_error(_("The min specified input map is two"));
-    }
+
 
 	/****************************************/
-    if (nfiles != nfiles1)	G_fatal_error(_("ETa and ETa_DOY file numbers are not equal!"));
+    if (nfiles != nfiles1)
+	G_fatal_error(_("ETa and ETa_DOY file numbers are not equal!"));
 
 	/****************************************/
 
@@ -220,9 +240,8 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("cell file [%s] not found"), name2);
 	    ok = 0;
 	}
-	if (!ok) {
+	if (!ok)
 	    continue;
-	}
 	infd2[nfiles2] = G_open_cell_old(name2, mapset);
 	if (infd2[nfiles2] < 0) {
 	    ok = 0;
@@ -240,21 +259,20 @@ int main(int argc, char *argv[])
 	nfiles2++;
     }
     nfiles2--;
-    if (nfiles2 <= 1) {
+    if (nfiles2 <= 1)
 	G_fatal_error(_("The min specified input map is two"));
-    }
 
     /* Allocate output buffer, use input map data_type */
     nrows = G_window_rows();
     ncols = G_window_cols();
     outrast = G_allocate_raster_buf(out_data_type);
 
+   
     /* Create New raster files */
-    if ((outfd = G_open_raster_new(result, 1)) < 0) {
+    if ((outfd = G_open_raster_new(result, 1)) < 0)
 	G_fatal_error(_("Could not open <%s>"), result);
-    }
 
-	/*******************/
+    /*******************/
     /* Process pixels */
     double doy[MAXFILES];
     double sum[MAXFILES];
@@ -266,13 +284,14 @@ int main(int argc, char *argv[])
 	DCELL d1[MAXFILES];
 	DCELL d2[MAXFILES];
 	G_percent(row, nrows, 2);
+
 	/* read input map */
 	for (i = 1; i <= nfiles; i++) {
 	    if ((G_get_raster_row(infd[i], inrast[i], row, in_data_type[i])) <	0) {
 		G_fatal_error(_("Could not read from <%s>"), name);
 	    }
 	}
-
+	
 	for (i = 1; i <= nfiles1; i++) {
 	    if ((G_get_raster_row(infd1[i], inrast1[i], row, in_data_type1[i])) < 0) {
 		G_fatal_error(_("Could not read from <%s>"), name1);
@@ -285,8 +304,12 @@ int main(int argc, char *argv[])
 	    }
 	}
 
+
+
 	/*process the data */
 	for (col = 0; col < ncols; col++) {
+            int	d1_null=0;
+            int	d_null=0;
 	    for (i = 1; i <= nfiles; i++) {
 		switch (in_data_type[i]) {
 		case CELL_TYPE:
@@ -296,15 +319,27 @@ int main(int argc, char *argv[])
 		    d[i] = (double)((FCELL *) inrast[i])[col];
 		    break;
 		case DCELL_TYPE:
-		    d[i] = (double)((DCELL *) inrast[i])[col];
-		    break;
+		    if (G_is_d_null_value(&((DCELL *) inrast[i])[col])){
+		    	d_null=1;
+			break;
+		    }
+		    else{
+	                d[i] = (double)((DCELL *) inrast[i])[col];
+	         	break;
+		    }
 		}
 	    }
 	    for (i = 1; i <= nfiles1; i++) {
 		switch (in_data_type1[i]) {
 		case CELL_TYPE:
-		    d1[i] = (double)((CELL *) inrast1[i])[col];
-		    break;
+		    if (G_is_c_null_value(&((CELL *) inrast1[i])[col])){
+			d1_null=1;
+			break;
+		    }
+		    else{
+	                d1[i] = (double)((CELL *) inrast1[i])[col];
+			break;
+		    }
 		case FCELL_TYPE:
 		    d1[i] = (double)((FCELL *) inrast1[i])[col];
 		    break;
@@ -312,7 +347,9 @@ int main(int argc, char *argv[])
 		    d1[i] = (double)((DCELL *) inrast1[i])[col];
 		    break;
 		}
+
 	    }
+
 	    for (i = 1; i <= nfiles2; i++) {
 		switch (in_data_type2[i]) {
 		case CELL_TYPE:
@@ -327,49 +364,102 @@ int main(int argc, char *argv[])
 		}
 	    }
 
+
 	    /* Find out the DOY of the eto image    */
-	    /* DOY_eto_index = ModisDOY - etodoymin */
+
 	    for (i = 1; i <= nfiles1; i++) {
-		doy[i] = d1[i] - etodoy+1;
-		d_ETrF[i] = d[i] / d2[(int)doy[i]];
+		if ( d_null==1 || d1_null==1 )
+			G_set_d_null_value(&outrast[col],1);	
+		else
+		{
+			doy[i] = d1[i] - etodoy+1;
+			if (G_is_d_null_value(&d2[(int)doy[i]]) || d2[(int)doy[i]]==0 )
+				G_set_d_null_value(&outrast[col],1);
+			else
+			{
+				d_ETrF[i] = d[i] / d2[(int)doy[i]];
+
+			}
+		} 
 	    }
 
+
 	    for (i = 1; i <= nfiles1; i++) {
-		if (i == 1)
-		    DOYbeforeETa[i] = etodoy;
+		/* do nothing	*/
+		if ( d_null==1 || d1_null==1)
+			//G_message("  null value ");
 		else
-		    DOYbeforeETa[i] = 1+ (d1[i] + d1[i - 1]) / 2.0;
-		if (i == nfiles1)
-		    DOYafterETa[i] = etodoy + nfiles2-1;
-		else
-		    DOYafterETa[i] = (d1[i + 1] + d1[i]) / 2.0;
+		{
+			DOYbeforeETa[i]=0; DOYafterETa[i]=0;
+			if (i == 1)   
+				DOYbeforeETa[i] = startperiod;
+			else
+			{
+ 				int k=i-1;
+				while (d1[k]>=startperiod )
+				{
+					if (d1[k]<0)	 // case were d1[k] is null
+						k=k-1;					
+					else
+					{
+						DOYbeforeETa[i] = 1+((d1[i] + d1[k])/2.0);
+						break;
+					}			
+				}
 
-/*		//Sum over 8-day periods, if no missing periods
-		DOYbeforeETa[i] = etodoy+8*(i-1);
-		if (i == nfiles1)
-		    DOYafterETa[i] = etodoy + nfiles2-1;
-		else
-		    DOYafterETa[i] = etodoy+8*i-1;
-*/
-
+			}
+	
+			if (i == nfiles1)  
+				DOYafterETa[i] = endperiod;
+			else
+			{
+				int k=i+1;
+				while (d1[k]<=endperiod)
+				{
+					if (d1[k]<0)   // case were d1[k] is null
+						k=k+1;
+					else
+					{
+						DOYafterETa[i] = (d1[i] + d1[k]) / 2.0;
+						break;
+	   				}					
+				}
+			}
+		
+		}	
 	    }
 
 	    sum[MAXFILES] = 0.0;
 	    for (i = 1; i <= nfiles1; i++) {
-		bfr = (int)DOYbeforeETa[i];
-		aft = (int)DOYafterETa[i];
-		sum[i]=0.0;
-		for (j = bfr; j < aft; j++) {
-		    sum[i] += d2[(int)(j-etodoy+1)];
-		
+		if(d_null==1 || d1_null==1){
+			/* do nothing	 */
+		}
+		else{
+			if (DOYbeforeETa[i]==0 || DOYbeforeETa[i]==0 ) 	G_set_d_null_value(&outrast[col],1);
+			else {
+				bfr = (int)DOYbeforeETa[i];
+				aft = (int)DOYafterETa[i];
+
+				//G_message("bfr=%i   aft=%i", bfr, aft);
+
+				sum[i]=0.0;
+				for (j = bfr; j < aft; j++) 
+					sum[i] += d2[(int)(j-etodoy+1)];
+			}
+			
 		}
 	    }
 	
 	    d_out = 0.0;
 	    for (i = 1; i <= nfiles1; i++) {
-		d_out += d_ETrF[i] * sum[i];
+		if(d_null==1 || d_null==1){
+			G_set_d_null_value(&outrast[col],1);
+		}
+		else{	
+			d_out += d_ETrF[i] * sum[i];
+		     	outrast[col] = d_out;
+		}	
 	    }
-	    outrast[col] = d_out;
 	}
 
 	if (G_put_raster_row(outfd, outrast, out_data_type) < 0)
