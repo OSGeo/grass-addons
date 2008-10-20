@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       i.emissivity
@@ -13,152 +12,102 @@
  *   	    	 for details.
  *
  *****************************************************************************/
-     
     
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
+
 double emissivity_generic(double ndvi);
 
 int main(int argc, char *argv[]) 
 {
-    struct Cell_head cellhd;	/*region+header info */
-
-    char *mapset;		/*mapset name */
-
     int nrows, ncols;
-
     int row, col;
-
     struct GModule *module;
-
-    struct Option *input1, *output1;
-
-    struct Flag *flag1, *flag2;
-
+    struct Option *input, *output;
     struct History history;	/*metadata */
-
     
-
-	/************************************/ 
-	/* FMEO Declarations**************** */ 
-    char *name;			/*input raster name */
-
-    char *result1;		/*output raster name */
-
-    
-	/*File Descriptors */ 
-    int infd_ndvi;
-
-    int outfd1;
-
+    /************************************/ 
+    char *result1;    /*output raster name */
+    int infd, outfd;    /*File Descriptors */ 
     char *ndvi;
-
     char *emissivity;
+    void *inr;
+    DCELL * outr;
 
-    int i = 0, j = 0;
-
-    void *inrast_ndvi;
-
-    DCELL * outrast1;
-    RASTER_MAP_TYPE data_type_output = DCELL_TYPE;
-    RASTER_MAP_TYPE data_type_ndvi;
-    
-
-	/************************************/ 
-	G_gisinit(argv[0]);
+    /************************************/ 
+    G_gisinit(argv[0]);
     module = G_define_module();
     module->keywords = _("emissivity, land flux, energy balance");
     module->description =
 	_("Emissivity from NDVI, generic method for spares land.");
     
-	/* Define the different options */ 
-	input1 = G_define_standard_option(G_OPT_R_INPUT);
-    input1->description = _("Name of the NDVI map [-]");
-    output1 = G_define_standard_option(G_OPT_R_INPUT);
-    output1->description = _("Name of the output emissivity layer");
-    
+    /* Define the different options */ 
+    input = G_define_standard_option(G_OPT_R_INPUT);
+    input->description = _("Name of the NDVI map [-]");
 
-	/********************/ 
-	if (G_parser(argc, argv))
+    output = G_define_standard_option(G_OPT_R_INPUT);
+    output->description = _("Name of the output emissivity layer");
+    
+    /********************/ 
+    if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
-    ndvi = input1->answer;
-    result1 = output1->answer;
-    
 
-	/***************************************************/ 
-	mapset = G_find_cell2(ndvi, "");
-    if (mapset == NULL) {
-	G_fatal_error(_("cell file [%s] not found"), ndvi);
-    }
-    data_type_ndvi = G_raster_map_type(ndvi, mapset);
-    if ((infd_ndvi = G_open_cell_old(ndvi, mapset)) < 0)
+    ndvi = input->answer;
+    result1 = output->answer;
+    
+    /***************************************************/ 
+    if ((infd = G_open_cell_old(ndvi, "")) < 0)
 	G_fatal_error(_("Cannot open cell file [%s]"), ndvi);
-    if (G_get_cellhd(ndvi, mapset, &cellhd) < 0)
-	G_fatal_error(_("Cannot read file header of [%s])"), ndvi);
-    inrast_ndvi = G_allocate_raster_buf(data_type_ndvi);
+    inr = G_allocate_d_raster_buf();
     
-
-	/***************************************************/ 
-	G_debug(3, "number of rows %d", cellhd.rows);
+    /***************************************************/ 
     nrows = G_window_rows();
     ncols = G_window_cols();
-    outrast1 = G_allocate_raster_buf(data_type_output);
+    outr = G_allocate_d_raster_buf();
     
-	/* Create New raster files */ 
-	if ((outfd1 = G_open_raster_new(result1, data_type_output)) < 0)
+    /* Create New raster files */ 
+    if ((outfd = G_open_raster_new(result1, DCELL_TYPE)) < 0)
 	G_fatal_error(_("Could not open <%s>"), result1);
     
-	/* Process pixels */ 
-	for (row = 0; row < nrows; row++)
-	 {
+    /* Process pixels */ 
+    for (row = 0; row < nrows; row++)
+    {
 	DCELL d;
 	DCELL d_ndvi;
 	G_percent(row, nrows, 2);
 	
-	    /* read input maps */ 
-	    if (G_get_raster_row(infd_ndvi, inrast_ndvi, row, data_type_ndvi)
-		< 0)
+        /* read input maps */ 
+        if (G_get_raster_row(infd,inr,row,DCELL_TYPE)< 0)
 	    G_fatal_error(_("Could not read from <%s>"), ndvi);
 	
-	    /*process the data */ 
-	    for (col = 0; col < ncols; col++)
-	     {
-	    switch (data_type_ndvi) {
-	    case CELL_TYPE:
-		d_ndvi = (double)((CELL *) inrast_ndvi)[col];
-		break;
-	    case FCELL_TYPE:
-		d_ndvi = (double)((FCELL *) inrast_ndvi)[col];
-		break;
-	    case DCELL_TYPE:
-		d_ndvi = ((DCELL *) inrast_ndvi)[col];
-		break;
-	    }
-	    if (G_is_d_null_value(&d_ndvi)) {
-		G_set_d_null_value(&outrast1[col], 1);
-	    }
+        /*process the data */ 
+        for (col = 0; col < ncols; col++)
+        {
+            d_ndvi = ((DCELL *) inr)[col];
+	    if (G_is_d_null_value(&d_ndvi)) 
+		G_set_d_null_value(&outr[col], 1);
 	    else {
-		
-
-				/****************************/ 
-		    /* calculate emissivity     */ 
-		    d = emissivity_generic(d_ndvi);
-		outrast1[col] = d;
+                /****************************/ 
+                /* calculate emissivity     */ 
+                d = emissivity_generic(d_ndvi);
+		outr[col] = d;
 	    }
-	    }
-	if (G_put_raster_row(outfd1, outrast1, data_type_output) < 0)
+        }
+	if (G_put_raster_row(outfd, outr, DCELL_TYPE) < 0)
 	    G_fatal_error(_("Cannot write to output raster file"));
-	}
-    G_free(inrast_ndvi);
-    G_close_cell(infd_ndvi);
-    G_free(outrast1);
-    G_close_cell(outfd1);
+    }
+    G_free(inr);
+    G_close_cell(infd);
+    G_free(outr);
+    G_close_cell(outfd);
+
     G_short_history(result1, "raster", &history);
     G_command_history(&history);
     G_write_history(result1, &history);
+
     exit(EXIT_SUCCESS);
 }
 

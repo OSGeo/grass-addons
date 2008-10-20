@@ -9,15 +9,12 @@ double emissivity_generic(double ndvi)
 {
     double result;
 
-    if (ndvi < 0.16) {
+    if (ndvi < 0.16) 
 	result = 1.0;
-    }
-    else if (ndvi > 0.74) {
+    else if (ndvi > 0.74) 
 	result = 0.9;
-    }
-    else {
+    else 
 	result = 1.009 + 0.047 * log(ndvi);
-    }
     return result;
 }
 
