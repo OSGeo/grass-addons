@@ -19,13 +19,14 @@ Cleaning
 20081012: Moved r.usler to main SVN
 20081012: Added i.latlong, removed i.latitude and i.longitude
 20081012: Moved i.latlong to main SVN
+20081020: Moved i.sunhours, i.emissivity to main SVN
 
 Imagery modules
 ---------------
 **i.albedo:	(Now in Main SVN) Calculates Albedo form reflectance bands of Modis/AVHRR/Landsat/Aster
 **i.atcorr:	(ported from GRASS 5.x, now in Main SVN) Atmospheric correction
 i.biomass:	Calculates biomass growth of a plant/crop
-i.emissivity: 	Calculates the generic emissivity from NDVI
+**i.emissivity: (now in main SVN) Calculates the generic emissivity from NDVI
 i.lmf: 		Calculates NDVI temporal splinning after Sawada et al. (2001)
 **i.vi:		(now in Main SVN) Calculates any of 13 types of vegetation indices
 i.vi.mpi:	Educational version in MPICH for HPC
@@ -76,7 +77,7 @@ i.evapo.TSA: 	Unfinished: Calculates Actual Evapotranspiration after Chen et al.
 **i.latlong: 	Calculates latitude/longitude by reprojecting without datum transform
 **i.qc.modis:	(Now in Main SVN as i.modis.qc) Converts Terra-MODIS Quality Assessment bits to numeric classes
 i.sattime:	Calculates the time of satellite overpass
-i.sunhours:	Calculates potential sunshine hours
+**i.sunhours:	(now in main SVN) Calculates potential sunshine hours
 -------------------------------------------------------------------------------------
 
 Raster modules

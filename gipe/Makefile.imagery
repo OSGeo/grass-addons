@@ -29,7 +29,6 @@ SUBDIRS = \
 	i.eb.wetdrypix \
 	i.eb.z0m \
 	i.eb.z0m0 \
-	i.emissivity \
 	i.evapo.potrad \
 	i.evapo.PT \
 	i.evapo.senay \
@@ -38,7 +37,6 @@ SUBDIRS = \
 	i.lmf \
 	i.modis.stateqa \
 	i.sattime \
-	i.sunhours \
 	i.vi.mpi \
 	i.water \
 	i.wi 
