@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../..
 
-PGM = r.watershed.ram.fast
+PGM = r.watershed2.ram
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)
