@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     /***************************************************/ 
     if ((infd_lat = G_open_cell_old(lat, "")) < 0)
 	G_fatal_error(_("Cannot open cell file [%s]"), lat);
-    inrast_lat = G_allocate_raster_buf(data_type_lat);
+    inrast_lat = G_allocate_d_raster_buf();
 
     /***************************************************/ 
     nrows = G_window_rows();

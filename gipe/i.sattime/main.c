@@ -24,13 +24,10 @@
 
 int main(int argc, char *argv[]) 
 {
-    struct Cell_head cellhd;	/*region+header info */
-    char *mapset;		/*mapset name */
     int nrows, ncols;
     int row, col;
     struct GModule *module;
     struct Option *input1, *input2, *input3, *input4, *output1;
-    struct Flag *flag1;
     struct History history;	/*metadata */
 
     /************************************/ 
@@ -41,7 +38,6 @@ int main(int argc, char *argv[])
     int infd_lat, infd_lon, infd_doy, infd_phi;
     int outfd1;
     char *lat, *lon, *doy, *phi;
-    int i = 0, j = 0;
     void *inrast_lat, *inrast_lon, *inrast_doy, *inrast_phi;
 
     DCELL * outrast1;
@@ -84,52 +80,24 @@ int main(int argc, char *argv[])
     result1 = output1->answer;
 
     /***************************************************/ 
-    mapset = G_find_cell2(doy, "");
-    if (mapset == NULL) {
-	G_fatal_error(_("cell file [%s] not found"), doy);
-    }
-    data_type_doy = G_raster_map_type(doy, mapset);
-    if ((infd_doy = G_open_cell_old(doy, mapset)) < 0)
+    if ((infd_doy = G_open_cell_old(doy, "")) < 0)
 	G_fatal_error(_("Cannot open cell file [%s]"), doy);
-    if (G_get_cellhd(doy, mapset, &cellhd) < 0)
-	G_fatal_error(_("Cannot read file header of [%s])"), doy);
-    inrast_doy = G_allocate_raster_buf(data_type_doy);
+    inrast_doy = G_allocate_d_raster_buf();
 
     /***************************************************/ 
-    mapset = G_find_cell2(lat, "");
-    if (mapset == NULL) {
-	G_fatal_error(_("cell file [%s] not found"), lat);
-    }
-    data_type_lat = G_raster_map_type(lat, mapset);
-    if ((infd_lat = G_open_cell_old(lat, mapset)) < 0)
+    if ((infd_lat = G_open_cell_old(lat, "")) < 0)
 	G_fatal_error(_("Cannot open cell file [%s]"), lat);
-    if (G_get_cellhd(lat, mapset, &cellhd) < 0)
-	G_fatal_error(_("Cannot read file header of [%s])"), lat);
-    inrast_lat = G_allocate_raster_buf(data_type_lat);
+    inrast_lat = G_allocate_d_raster_buf();
     
     /***************************************************/ 
-    mapset = G_find_cell2(lon, "");
-    if (mapset == NULL) {
-	G_fatal_error(_("cell file [%s] not found"), lon);
-    }
-    data_type_lon = G_raster_map_type(lon, mapset);
-    if ((infd_lon = G_open_cell_old(lon, mapset)) < 0)
+    if ((infd_lon = G_open_cell_old(lon, "")) < 0)
 	G_fatal_error(_("Cannot open cell file [%s]"), lon);
-    if (G_get_cellhd(lon, mapset, &cellhd) < 0)
-	G_fatal_error(_("Cannot read file header of [%s])"), lon);
-    inrast_lon = G_allocate_raster_buf(data_type_lon);
+    inrast_lon = G_allocate_d_raster_buf();
     
     /***************************************************/ 
-    mapset = G_find_cell2(phi, "");
-    if (mapset == NULL) {
-	G_fatal_error(_("cell file [%s] not found"), phi);
-    }
-    data_type_phi = G_raster_map_type(phi, mapset);
-    if ((infd_phi = G_open_cell_old(phi, mapset)) < 0)
+    if ((infd_phi = G_open_cell_old(phi, "")) < 0)
 	G_fatal_error(_("Cannot open cell file [%s]"), phi);
-    if (G_get_cellhd(phi, mapset, &cellhd) < 0)
-	G_fatal_error(_("Cannot read file header of [%s])"), phi);
-    inrast_phi = G_allocate_raster_buf(data_type_phi);
+    inrast_phi = G_allocate_d_raster_buf();
     
     /***************************************************/ 
     nrows = G_window_rows();
