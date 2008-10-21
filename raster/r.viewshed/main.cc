@@ -479,13 +479,14 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
   struct Option *inputOpt;
   inputOpt = G_define_standard_option(G_OPT_R_ELEV);
   inputOpt->key = "input";
+  inputOpt->guisection = _("Input_options");
 
   /* the output */
   struct Option *outputOpt;
   outputOpt = G_define_standard_option(G_OPT_R_OUTPUT);
-  outputOpt->description = "Name of output viewshed raser map\n\t\t\tdefault format: {NODATA, -1 (invisible), vertical angle wrt viewpoint (visible)}"; 
+  outputOpt->description = _("Name of output viewshed raster map\n\t\tdefault format: {NODATA, -1 (invisible), vertical angle wrt viewpoint (visible)}");
+  outputOpt->guisection = _("Output_options");
 
-  
   /* row-column flag */
   struct Flag *row_col;
   row_col = G_define_flag();
@@ -524,6 +525,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
   viewLocOpt->key_desc = "lat,long";
   viewLocOpt->description =
 	("Coordinates of viewing position in latitude-longitude (if -r flag is present, then coordinates are row-column)");
+  viewLocOpt->guisection = _("Input_options");
   
   /* observer elevation */
   struct Option *obsElevOpt;
@@ -534,6 +536,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
   obsElevOpt->key_desc = "value";
   obsElevOpt->description = _("Viewing elevation above the ground");
   obsElevOpt->answer = "0.0";
+  obsElevOpt->guisection = _("Input_options");
   
   /* max distance */
   struct Option *maxDistOpt;
@@ -547,7 +550,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
   char infdist[10]; 
   sprintf(infdist, "%d", INFINITY_DISTANCE);
   maxDistOpt->answer = infdist; 
-
+  maxDistOpt->guisection = _("Input_options");
 
 	/* memory size */
     struct Option *memAmountOpt;
@@ -558,7 +561,6 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     memAmountOpt->key_desc = "value";
     memAmountOpt->description = _("The amount of main memory in MB to be used");
     memAmountOpt->answer = "500";
-	
 
     /*fill the options and flags with G_parser */
     if (G_parser(argc, argv))
