@@ -792,11 +792,11 @@ int INPUT_part(int offset, double *zmax)
     cell1 = G_allocate_f_raster_buf();
 
     if (z == NULL) {
-	z = (float **)malloc(sizeof(float *) * (numRows));
+	z = (float **)G_malloc(sizeof(float *) * (numRows));
 
 
 	for (l = 0; l < numRows; l++) {
-	    z[l] = (float *)malloc(sizeof(float) * (n));
+	    z[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
     }
 
@@ -811,10 +811,10 @@ int INPUT_part(int offset, double *zmax)
     if (slopein != NULL) {
 	cell3 = G_allocate_f_raster_buf();
 	if (s == NULL) {
-	    s = (float **)malloc(sizeof(float *) * (numRows));
+	    s = (float **)G_malloc(sizeof(float *) * (numRows));
 
 	    for (l = 0; l < numRows; l++) {
-		s[l] = (float *)malloc(sizeof(float) * (n));
+		s[l] = (float *)G_malloc(sizeof(float) * (n));
 	    }
 
 	}
@@ -828,10 +828,10 @@ int INPUT_part(int offset, double *zmax)
 	cell2 = G_allocate_f_raster_buf();
 
 	if (o == NULL) {
-	    o = (float **)malloc(sizeof(float *) * (numRows));
+	    o = (float **)G_malloc(sizeof(float *) * (numRows));
 
 	    for (l = 0; l < numRows; l++) {
-		o[l] = (float *)malloc(sizeof(float) * (n));
+		o[l] = (float *)G_malloc(sizeof(float) * (n));
 	    }
 	}
 
@@ -845,9 +845,9 @@ int INPUT_part(int offset, double *zmax)
     if (linkein != NULL) {
 	cell4 = G_allocate_f_raster_buf();
 	if (li == NULL) {
-	    li = (float **)malloc(sizeof(float *) * (numRows));
+	    li = (float **)G_malloc(sizeof(float *) * (numRows));
 	    for (l = 0; l < numRows; l++)
-		li[l] = (float *)malloc(sizeof(float) * (n));
+		li[l] = (float *)G_malloc(sizeof(float) * (n));
 
 	}
 	if ((mapset = G_find_cell(linkein, "")) == NULL)
@@ -859,9 +859,9 @@ int INPUT_part(int offset, double *zmax)
     if (albedo != NULL) {
 	cell5 = G_allocate_f_raster_buf();
 	if (a == NULL) {
-	    a = (float **)malloc(sizeof(float *) * (numRows));
+	    a = (float **)G_malloc(sizeof(float *) * (numRows));
 	    for (l = 0; l < numRows; l++)
-		a[l] = (float *)malloc(sizeof(float) * (n));
+		a[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 	if ((mapset = G_find_cell(albedo, "")) == NULL)
 	    printf("cell file not found\n");
@@ -872,9 +872,9 @@ int INPUT_part(int offset, double *zmax)
     if (latin != NULL) {
 	cell6 = G_allocate_f_raster_buf();
 	if (la == NULL) {
-	    la = (float **)malloc(sizeof(float *) * (numRows));
+	    la = (float **)G_malloc(sizeof(float *) * (numRows));
 	    for (l = 0; l < numRows; l++)
-		la[l] = (float *)malloc(sizeof(float) * (n));
+		la[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 	if ((mapset = G_find_cell(latin, "")) == NULL)
 	    printf("cell file not found\n");
@@ -884,9 +884,9 @@ int INPUT_part(int offset, double *zmax)
 
     if (longin != NULL) {
 	cell7 = G_allocate_f_raster_buf();
-	longitArray = (float **)malloc(sizeof(float *) * (numRows));
+	longitArray = (float **)G_malloc(sizeof(float *) * (numRows));
 	for (l = 0; l < numRows; l++)
-	    longitArray[l] = (float *)malloc(sizeof(float) * (n));
+	    longitArray[l] = (float *)G_malloc(sizeof(float) * (n));
 
 	if ((mapset = G_find_cell(longin, "")) == NULL)
 	    printf("cell file not found\n");
@@ -900,9 +900,9 @@ int INPUT_part(int offset, double *zmax)
 	rast1 = G_allocate_f_raster_buf();
 
 	if (cbhr == NULL) {
-	    cbhr = (float **)malloc(sizeof(float *) * (numRows));
+	    cbhr = (float **)G_malloc(sizeof(float *) * (numRows));
 	    for (l = 0; l < numRows; l++)
-		cbhr[l] = (float *)malloc(sizeof(float) * (n));
+		cbhr[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 	if ((mapset = G_find_cell(coefbh, "")) == NULL)
 	    printf("cell file not found\n");
@@ -913,9 +913,9 @@ int INPUT_part(int offset, double *zmax)
     if (coefdh != NULL) {
 	rast2 = G_allocate_f_raster_buf();
 	if (cdhr == NULL) {
-	    cdhr = (float **)malloc(sizeof(float *) * (numRows));
+	    cdhr = (float **)G_malloc(sizeof(float *) * (numRows));
 	    for (l = 0; l < numRows; l++)
-		cdhr[l] = (float *)malloc(sizeof(float) * (n));
+		cdhr[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 	if ((mapset = G_find_cell(coefdh, "")) == NULL)
 	    printf("cell file not found\n");
@@ -929,11 +929,11 @@ int INPUT_part(int offset, double *zmax)
     if (useHorizonData()) {
 	if (horizonarray == NULL) {
 	    horizonarray =
-		(unsigned char *)malloc(sizeof(char) * arrayNumInt * numRows *
+		(unsigned char *)G_malloc(sizeof(char) * arrayNumInt * numRows *
 					n);
 
-	    horizonbuf = (FCELL **) malloc(sizeof(FCELL *) * arrayNumInt);
-	    fd_shad = (int *)malloc(sizeof(int) * arrayNumInt);
+	    horizonbuf = (FCELL **) G_malloc(sizeof(FCELL *) * arrayNumInt);
+	    fd_shad = (int *)G_malloc(sizeof(int) * arrayNumInt);
 	}
 	/*
 	 * if(tt != NULL)
@@ -1777,9 +1777,9 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
 
 
     if (incidout != NULL) {
-	lumcl = (float **)malloc(sizeof(float *) * (m));
+	lumcl = (float **)G_malloc(sizeof(float *) * (m));
 	for (l = 0; l < m; l++) {
-	    lumcl[l] = (float *)malloc(sizeof(float) * (n));
+	    lumcl[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 	for (j = 0; j < m; j++) {
 	    for (i = 0; i < n; i++)
@@ -1788,9 +1788,9 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
     }
 
     if (beam_rad != NULL) {
-	beam = (float **)malloc(sizeof(float *) * (m));
+	beam = (float **)G_malloc(sizeof(float *) * (m));
 	for (l = 0; l < m; l++) {
-	    beam[l] = (float *)malloc(sizeof(float) * (n));
+	    beam[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 
 	for (j = 0; j < m; j++) {
@@ -1800,9 +1800,9 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
     }
 
     if (insol_time != NULL) {
-	insol = (float **)malloc(sizeof(float *) * (m));
+	insol = (float **)G_malloc(sizeof(float *) * (m));
 	for (l = 0; l < m; l++) {
-	    insol[l] = (float *)malloc(sizeof(float) * (n));
+	    insol[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 
 	for (j = 0; j < m; j++) {
@@ -1812,9 +1812,9 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
     }
 
     if (diff_rad != NULL) {
-	diff = (float **)malloc(sizeof(float *) * (m));
+	diff = (float **)G_malloc(sizeof(float *) * (m));
 	for (l = 0; l < m; l++) {
-	    diff[l] = (float *)malloc(sizeof(float) * (n));
+	    diff[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 
 	for (j = 0; j < m; j++) {
@@ -1824,9 +1824,9 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
     }
 
     if (refl_rad != NULL) {
-	refl = (float **)malloc(sizeof(float *) * (m));
+	refl = (float **)G_malloc(sizeof(float *) * (m));
 	for (l = 0; l < m; l++) {
-	    refl[l] = (float *)malloc(sizeof(float) * (n));
+	    refl[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 
 	for (j = 0; j < m; j++) {
@@ -1836,9 +1836,9 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
     }
 
     if (glob_rad != NULL) {
-	globrad = (float **)malloc(sizeof(float *) * (m));
+	globrad = (float **)G_malloc(sizeof(float *) * (m));
 	for (l = 0; l < m; l++) {
-	    globrad[l] = (float *)malloc(sizeof(float) * (n));
+	    globrad[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 
 	for (j = 0; j < m; j++) {
