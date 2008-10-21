@@ -34,7 +34,6 @@ Joint Research Centre of the European Commission, based on bits of the r.sun mod
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <malloc.h>
 #include <grass/gis.h>
 #include <grass/gprojects.h>
 #include <grass/glocale.h>
@@ -540,14 +539,14 @@ int INPUT(void)
 
     cell1 = G_allocate_f_raster_buf();
 
-    z = (float **)malloc(sizeof(float *) * (m));
-    z100 = (float **)malloc(sizeof(float *) * (m100));
+    z = (float **)G_malloc(sizeof(float *) * (m));
+    z100 = (float **)G_malloc(sizeof(float *) * (m100));
 
     for (l = 0; l < m; l++) {
-	z[l] = (float *)malloc(sizeof(float) * (n));
+	z[l] = (float *)G_malloc(sizeof(float) * (n));
     }
     for (l = 0; l < m100; l++) {
-	z100[l] = (float *)malloc(sizeof(float) * (n100));
+	z100[l] = (float *)G_malloc(sizeof(float) * (n100));
     }
     /*read Z raster */
 
@@ -1108,10 +1107,10 @@ void calculate(double xcoord, double ycoord, int buffer_e, int buffer_w,
 	/****************************************************************/
 
 	if (horizon != NULL) {
-	    horizon_raster = (float **)malloc(sizeof(float *) * (hor_numrows));
+	    horizon_raster = (float **)G_malloc(sizeof(float *) * (hor_numrows));
 	    for (l = 0; l < hor_numrows; l++) {
 		horizon_raster[l] =
-		    (float *)malloc(sizeof(float) * (hor_numcols));
+		    (float *)G_malloc(sizeof(float) * (hor_numcols));
 	    }
 
 	    for (j = 0; j < hor_numrows; j++) {
