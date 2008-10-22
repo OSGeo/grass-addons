@@ -182,12 +182,21 @@ A map of shadows can be extracted from the solar incidence angle map
 (incidout). Areas with zero values are shadowed. The <em>-s</em> flag
 has to be used.
 
+<h3>Large maps and out of memory problems</h3>
+
+In case of out of memory error (<tt>ERROR: G_malloc: out of memory</tt>), the
+<em>numpartitions</em> parameter can be used to run a segmented calculation
+which consumes less memory during the computations.
+
 <h3>Example</h3>
 
 Spearfish example (without considering cast shadows):
 <div class="code"><pre>
 g.region rast=elevation.dem -p
+
+# calculate local horizons
 r.horizon elevation.dem step=30 e_buff=20 horizon=horangle dist=0.7 maxdistance=4000
+# calculate global radiation for day 180 at 14:00hs
 r.sun2 -s elevation.dem horizon=horangle horizonstep=30 aspin=aspect slopein=slope glob_rad=global_rad day=180 time=14
 </pre></div>
 
