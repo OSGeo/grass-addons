@@ -519,7 +519,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
   /* viewpoint coordinates */
   struct Option *viewLocOpt;
   viewLocOpt = G_define_option();
-  viewLocOpt->key = "viewpoint_location";
+  viewLocOpt->key = "coordinate";
   viewLocOpt->type = TYPE_STRING;
   viewLocOpt->required = YES;
   viewLocOpt->key_desc = "lat,long";
@@ -530,12 +530,12 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
   /* observer elevation */
   struct Option *obsElevOpt;
   obsElevOpt = G_define_option();
-  obsElevOpt->key = "observer_elevation";
+  obsElevOpt->key = "obs_elev";
   obsElevOpt->type = TYPE_DOUBLE;
   obsElevOpt->required = NO;
   obsElevOpt->key_desc = "value";
   obsElevOpt->description = _("Viewing elevation above the ground");
-  obsElevOpt->answer = "0.0";
+  obsElevOpt->answer = "1.75";
   obsElevOpt->guisection = _("Input_options");
   
   /* max distance */
