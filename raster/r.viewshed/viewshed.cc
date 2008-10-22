@@ -8,7 +8,7 @@
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
  *
- * Date:         july 2008 
+ * Date:         oct 2008 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -44,14 +44,13 @@
 #include "visibility.h"
 #include "eventlist.h"
 #include "statusstructure.h"
-
 #ifdef __GRASS
 #include "grass.h"
 #endif
 
 
 #define VIEWSHEDDEBUG if(0)
-
+#define INMEMORY_DEBUG if(0)
 
 
 
@@ -63,7 +62,7 @@ long long get_viewshed_memory_usage(GridHeader* hd) {
   assert(hd); 
   /* the output  visibility grid */
   long long totalcells = (long long)hd->nrows * (long long)hd->ncols; 
-  VIEWSHEDDEBUG {printf("rows=%d, cols=%d, total = %lld\n", hd->nrows, hd->ncols, totalcells);}
+  printf("rows=%d, cols=%d, total = %lld\n", hd->nrows, hd->ncols, totalcells);
   long long gridMemUsage =  totalcells * sizeof(float);
   VIEWSHEDDEBUG {printf("grid usage=%lld\n", gridMemUsage);}
   
@@ -75,7 +74,7 @@ long long get_viewshed_memory_usage(GridHeader* hd) {
 	 as the viewpoint */
   long long dataMemUsage = (long long)(hd->ncols * sizeof(double));
   
-  printf("get_viewshed_memory usage: size AEvent=%dB, nevents=%lld, \
+  printf("viewshed memory usage: size AEvent=%dB, nevents=%lld, \
  total=%lld B (%d MB)\n", 
 		 (int)sizeof(AEvent),  totalcells*3, 
 		 gridMemUsage + eventListMemUsage + dataMemUsage, 
@@ -115,7 +114,7 @@ print_viewshed_timings(Rtimer initEventTime,
 
 
 /* ------------------------------------------------------------ */
-static void print_event(StatusNode sn)
+static void print_statusnode(StatusNode sn)
 {
     printf("processing (row=%d, col=%d, elev=%f, dist=%f, grad=%f)",
 	   sn.row, sn.col, sn.elev, sn.dist2vp, sn.gradient);
@@ -125,7 +124,10 @@ static void print_event(StatusNode sn)
 
 
 /* ------------------------------------------------------------ */
-/* allocates the eventlist array used by kreveled_in_memory */
+/* allocates the eventlist array used by kreveled_in_memory; it is
+   possible that the amount of memory required is more than that
+   supported by the platform; for e.g. on a 32-bt platform cannot
+   allocate more than 4GB. Try to detect this situation.  */
 AEvent*
 allocate_eventlist(GridHeader* hd) {
   
@@ -135,14 +137,24 @@ allocate_eventlist(GridHeader* hd) {
   totalsize *=  sizeof(AEvent); 
   printf("total size of eventlist is %lld B (%d MB);  ", 
 		 totalsize, (int)(totalsize>>20));
+
+  /* what's the size of size_t on this machine? */
+  int sizet_size; 
+  sizet_size =  (int) sizeof(size_t); 
   printf("size_t is %lu B\n", sizeof(size_t));
   
-  /* checking whether allocating totalsize causes an overflow */
-  long long maxsizet = ((long long)1<<(sizeof(size_t)*8)) -1; 
-  printf("max size_t is %lld\n", maxsizet); 
-  if (totalsize > maxsizet) {
-	printf("running the program in-memory mode requires memory beyond the capability of the platform. Use external mode, or 64-bit platform.\n");
-	exit(1); 
+  if (sizet_size >= 8) {
+    printf("64-bit platform, great.\n"); 
+  } else {
+    /* this is the max value of size_t */
+    long long maxsizet = ((long long)1<<(sizeof(size_t)*8)) -1; 
+    printf("max size_t is %lld\n", maxsizet); 
+    
+    /* checking whether allocating totalsize causes an overflow */
+    if (totalsize > maxsizet) {
+      printf("running the program in-memory mode requires memory beyond the capability of the platform. Use external mode, or 64-bit platform.\n");
+      exit(1); 
+    }
   }
   
   printf("allocating.."); 
@@ -262,7 +274,7 @@ MemoryVisibilityGrid *viewshed_in_memory(char* inputfname, GridHeader * hd,
 	    calculate_dist_n_gradient(&sn, vp);
 	    VIEWSHEDDEBUG {
 		  printf("inserting: ");
-		  print_event(sn);
+		  print_statusnode(sn);
 		  printf("\n");
 	    }
 	    /*insert sn into the status structure */
@@ -293,9 +305,10 @@ MemoryVisibilityGrid *viewshed_in_memory(char* inputfname, GridHeader * hd,
 
 	  /*calculate Distance to VP and Gradient */
 	  calculate_dist_n_gradient(&sn, vp);
-	  VIEWSHEDDEBUG {
-	    printf("next event: ");
-	    print_event(sn);
+	  INMEMORY_DEBUG {
+	    printf("event: ");
+	    print_event(*e);
+	    printf("sn.dist=%f, sn.gradient=%f\n", sn.dist2vp, sn.gradient); 
 	  }
 	  
 	  switch (e->eventType) {
@@ -439,7 +452,7 @@ IOVisibilityGrid *viewshed_external(char* inputfname, GridHeader * hd,
 	  calculate_dist_n_gradient(&sn, vp);
 	  VIEWSHEDDEBUG {
 		printf("inserting: ");
-		print_event(sn);
+		print_statusnode(sn);
 		printf("\n");
 	  }
 	  /*insert sn into the status structure */
@@ -476,7 +489,7 @@ IOVisibilityGrid *viewshed_external(char* inputfname, GridHeader * hd,
 	calculate_dist_n_gradient(&sn, vp);
 	VIEWSHEDDEBUG {
 	  printf("next event: ");
-	  print_event(sn);
+	  print_statusnode(sn);
 	}
 	
 	switch (e->eventType) {
