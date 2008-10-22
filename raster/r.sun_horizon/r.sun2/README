@@ -1,4 +1,10 @@
-Thomas Huld:
+From Thomas.Huld jrc.it Thu Jul 26 11:01:44 2007
+To: Markus Neteler <neteler itc.it>
+CC: Jaro Hofierka <hofierka geomodel.sk>, "marcel.suri jrc.it"
+        <marcel.suri jrc.it>, Tomas Cebecauer <tomas.cebecauer jrc.it>
+Date: Thu, 26 Jul 2007 11:01:44 +0200
+Subject: Re: r.horizon source code
+Lines: 1533
 
 I'm sending the r.sun sources to you here, even though the description is not 
 yet up to date. I think it works OK now, though I haven't tried all possible 
