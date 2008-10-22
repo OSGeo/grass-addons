@@ -955,7 +955,7 @@ int INPUT_part(int offset, double *zmax)
 		horizonbuf[i] = G_allocate_f_raster_buf();
 	    sprintf(shad_filename, formatString, horizon, i);
 	    if ((mapset = G_find_cell(shad_filename, "")) == NULL)
-		printf("Horizon file no. %d not found\n", i);
+		G_fatal_error(_("Horizon file no. %d <%s> not found"), i, shad_filename);
 
 	    fd_shad[i] = G_open_cell_old(shad_filename, mapset);
 	}
