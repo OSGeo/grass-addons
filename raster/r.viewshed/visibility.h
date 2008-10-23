@@ -116,7 +116,7 @@ typedef struct viewOptions_ {
   /*determines if the curvature of the earth should be considered
 	when calculating.  Only implemented for GRASS version. */
 
-  double ellps_a; /* the parameter of teh ellipsoid */
+  double ellps_a; /* the parameter of the ellipsoid */
   float cellsize; /* the cell resolution */
 } ViewOptions; 
 

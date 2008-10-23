@@ -224,8 +224,7 @@ int main(int argc, char *argv[]) {
 	if (viewOptions.ellps_a == 0) { 
 	  /*according to r.los, this can be
 		problematic, so we'll have a backup, hardcoded radius :-( */
-	  G_warning(_
-				("Problems obtaining current ellipsoid parameters, usting sphere (6370997.0)"));
+	  G_warning(_("Problems obtaining current ellipsoid parameters, using sphere (6370997.0)"));
 	  viewOptions.ellps_a = 6370997.00;
 	}
 #else
