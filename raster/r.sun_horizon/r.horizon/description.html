@@ -124,7 +124,8 @@ r.horizon elevin=DEM step=30 direction=15 bufferzone=200 coord=47.302,7.365 dist
 
 Raster map mode (for r.sun2):
 <div class="code"><pre>
-r.horizon elevin=DEM step=30 e_buff=20 horizon=horangle dist=0.7 maxdistance=2000
+# we put a bufferzone of 10% of maxdistance around the study area
+r.horizon elevin=DEM step=30 bufferzone=200 horizon=horangle dist=0.7 maxdistance=2000
 </pre></div>
 
 
