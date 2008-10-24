@@ -194,9 +194,12 @@ Spearfish example (without considering cast shadows):
 <div class="code"><pre>
 g.region rast=elevation.dem -p
 
-# calculate local horizons
-r.horizon elevation.dem step=30 e_buff=20 horizon=horangle dist=0.7 maxdistance=4000
+# calculate horizons
+# (we put a bufferzone of 10% of maxdistance around the study area)
+r.horizon elevin=DEM step=30 bufferzone=200 horizon=horangle dist=0.7 maxdistance=2000
+
 # calculate global radiation for day 180 at 14:00hs
+r.slope.aspect elevation=elevation.dem aspect=aspect slope=slope
 r.sun2 -s elevation.dem horizon=horangle horizonstep=30 aspin=aspect slopein=slope glob_rad=global_rad day=180 time=14
 </pre></div>
 
