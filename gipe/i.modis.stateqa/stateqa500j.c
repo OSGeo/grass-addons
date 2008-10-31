@@ -9,7 +9,7 @@ CELL stateqa500j(CELL pixel)
 {
     CELL qctemp;
 
-    pixel >> 14;
+    pixel >>= 14;
     qctemp = pixel & 0x01;
 
     return qctemp;

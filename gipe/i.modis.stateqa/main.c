@@ -71,7 +71,17 @@ int main(int argc, char *argv[])
     input1->required = YES;
     input1->gisprompt = _("Name of QC type to extract");
     input1->description = _("Name of QC");
-    input1->options = "cloud_state,cloud_shadow,land_water_flag,aerosol_quantity,cirrus_detected,internal_cloud_alg_flag,internal_fire_alg_flag,MOD35_snow_ice_flag,pixel_adjacent_to_cloud,brdf_correction,internal_snow_mask";
+    input1->descriptions =_("cloud_state;Cloud State;"
+                            "cloud_shadow;Cloud Shadow;"
+                            "land_water_flag;Land or Water Flag;"
+                            "aerosol_quantity;Quantity of Aerosol;"
+                            "cirrus_detected;If Cirrus Were Detected;"
+                            "internal_cloud_alg_flag;Flag for Internal Cloud Algorithm;"
+                            "internal_fire_alg_flag;Flag for Internal Fire Algorithm;"
+                            "MOD35_snow_ice_flag;Flag for Snow and Ice from MOD35;"
+                            "pixel_adjacent_to_cloud;Flag Pixel Adjacent to Cloud;"
+                            "brdf_correction;Flag for Correction of BRDF;"
+                            "internal_snow_mask;Internal Mask for Snow;");
     input1->answer = _("cloud_state");
 
     input2 = G_define_standard_option(G_OPT_R_INPUT);
