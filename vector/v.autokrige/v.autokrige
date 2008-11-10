@@ -1,0 +1,392 @@
+#!/bin/sh
+#
+############################################################################
+#
+# MODULE:       v.autokrige
+# AUTHOR(S):	Mathieu Grelier (greliermathieu@gmail.com)
+# PURPOSE:	automatic kriging interpolation from vector point data
+# REQUIREMENTS:
+# - unix utility : bc
+# - statistical software : R (http://www.r-project.org/) with spgrass6 (http://cran.r-project.org/web/packages/spgrass6/index.html)
+#	and automap (http://intamap.geo.uu.nl/~paul/Downloads.html) packages 
+# - grass addon : g.region.nbcell (http://docs.google.com/Doc?id=dgqnzvwg_8fj97f5f9)
+# - imagemagick : convert program
+# COPYRIGHT:	(C) 2008 Mathieu Grelier
+#
+#		This program is free software under the GNU General Public
+#		License (>=v2). Read the file COPYING that comes with GRASS
+#		for details.
+#
+#############################################################################
+
+
+#%Module
+#%  description: automatic kriging interpolation from vector point data
+#%  keywords: kriging, autokrige, RGrass
+#%End
+#%option
+#% key: sitestable
+#% type: string
+#% gisprompt: old,vector,vector
+#% description: Name of the vector containing sites data (values to interpolate) and geometry. Must not contain any null values.
+#% required : yes
+#%end
+#%option
+#% key: column
+#% type: string
+#% description: Attribute column to interpolate (must be numeric).
+#% required : yes
+#%end
+#%option
+#% key: nbcell
+#% type: integer
+#% answer: 100
+#% description: number of cell of the created grid. If set, GRASS region is affected.
+#% required : no
+#%end
+#%option
+#% key: models
+#% type: string
+#% options: Exp,Sph,Gau,Mat
+#% multiple : yes
+#% answer: 
+#% description: List of variogram models to be automatically tested. Select only one to fix the model.
+#% required : no
+#%end
+#%option
+#% key: range
+#% type: integer
+#% description: Range value. Automatically fixed if not set.
+#% required : no
+#%end
+#%option
+#% key: nugget
+#% type: double
+#% description: Nugget value. Automatically fixed if not set
+#% required : no
+#%end
+#%option
+#% key: sill
+#% type: double
+#% description: Sill value. Automatically fixed if not set
+#% required : no
+#%end
+#%option
+#% key: krigrastername
+#% type: string
+#% answer: krig
+#% description: Name of the raster to produce
+#% required : no
+#%end
+#%option
+#% key: colormap
+#% type: string
+#% answer: rainbow
+#% description: Colormap file to use to colorize the raster
+#% required : no
+#%end
+#%flag
+#% key: v
+#% description: Create variance raster also 
+#%end
+#%flag
+#% key: r
+#% description: Don't set region from sites extent. Region would have been previously set in grass. 
+#%end
+   
+if  [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program."
+ 	exit 1
+fi   
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+    exec g.parser "$0" "$@"
+fi
+
+## GRASS team recommandations
+#####################################
+
+PROG=`basename $0`
+
+# check if we have awk
+if [ ! -x "`which awk`" ] ; then
+    echo "$PROG: awk required, please install awk or gawk first"
+    exit 1
+fi
+
+# check if we have bc in case range must be suggested
+if [ -z "$GIS_OPT_RANGE" ] && [ ! -x "`which bc`" ] ; then
+    echo "$PROG: bc required for range estimation, please install bc first"
+    exit 1
+fi
+
+# check if we have R
+if [ ! -x "`which R`" ] ; then
+    echo "$PROG: R required, please install R first"
+    exit 1
+fi
+
+# setting environment, so that awk works properly in all languages
+unset LC_ALL
+LC_NUMERIC=C
+export LC_NUMERIC
+
+#cleanup procedure
+cleanup()
+{
+    \rm -f "$TMPPOSTGISCHECKS"
+	\rm -f "$TMPREGION"
+    \rm -f "$RGRASSSCRIPT"
+}
+
+# what to do in case of user break:
+exitprocedure()
+{
+    echo "User break!"
+    cleanup
+    exit 1
+}
+# shell check for user break (signal list: trap -l)
+trap "exitprocedure" 2 3 15
+
+#fix this path
+if [ -z "$LOGDIR" ] ; then
+	LOGDIR="$HOME"
+fi
+LOGFILE="$LOGDIR/v.autokrige.log"
+
+echo "v.autokrige :"" ""$GIS_OPT_SITESTABLE"" ""$GIS_OPT_COLUMN" >> "$LOGFILE"
+
+## necessary checks
+#####################################
+
+# test for input vector map
+eval `g.findfile element=vector file="$GIS_OPT_SITESTABLE"`
+if [ ! "$file" ] ; then
+   echo "Vector map '$GIS_OPT_SITESTABLE' not found in mapset search path" 1>&2
+   exit 1
+fi
+
+#test if output raster map already exists
+eval `g.findfile element=cell file="$GIS_OPT_KRIGRASTERNAME"`	
+if [ "$file" ] ; then
+	if [ -z "$GRASS_OVERWRITE" ] || [ "$GRASS_OVERWRITE" -eq 0 ]; then
+		echo "ERROR: raster map '$GIS_OPT_KRIGRASTERNAME' already exists in mapset search path. Use the --o flag to overwrite." 1>&2
+		exit 1
+	else
+		echo "WARNING: raster map '$GIS_OPT_KRIGRASTERNAME' will be overwritten." >> "$LOGFILE" 2>&1
+	fi
+fi
+#test also variance raster
+if [ "$GIS_FLAG_V" -eq 1 ] ; then
+	variancerastername="$GIS_OPT_KRIGRASTERNAME""_var"
+	eval `g.findfile element=cell file="$variancerastername"`	
+	if [ "$file" ] ; then
+		if [ -z "$GRASS_OVERWRITE" ] || [ "$GRASS_OVERWRITE" -eq 0 ]; then
+			echo "ERROR: raster map '$variancerastername' already exists in mapset search path. Use the --o flag to overwrite." 1>&2
+			exit 1
+		else
+			echo "WARNING: raster map '$variancerastername' will be overwritten." >> "$LOGFILE" 2>&1
+		fi
+	fi
+fi
+
+# first setup temporary file
+TMPPOSTGISCHECKS="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$TMPPOSTGISCHECKS" ] ; then
+	echo "ERROR: unable to create temporary file for postgis checks" 1>&2
+    exit 1
+fi
+#check sites geometry : à enlever sûrement, on peut avoir le type GEOMETRY
+
+## some settings
+#####################################
+#layers names that will be used
+if [ -n "$GIS_OPT_KRIGRASTERNAME" ] ; then 
+	KRIGRASTERNAME="$GIS_OPT_KRIGRASTERNAME"
+else
+	KRIGRASTERNAME=KRIG
+fi
+
+#region parameters are used to deal with grid cells size and range
+TMPREGION="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$TMPREGION" ] ; then
+	echo "ERROR: unable to create temporary file for region parameters" 1>&2
+    exit 1
+fi
+
+#fix region and resolution
+if [ "$GIS_FLAG_R" -eq 0 ] ; then
+	g.region vect="$GIS_OPT_SITESTABLE"
+fi
+#grid cells size : small values (more cells) increase both raster quality and computation time
+if [ -n "$GIS_OPT_NBCELL" ] ; then 
+	g.region.nbcell nbcell="$GIS_OPT_NBCELL"
+fi
+
+g.region -p > "$TMPREGION"
+north=$(awk -F ":" '$1=="north" {print $2}' "$TMPREGION")
+south=$(awk -F ":" '$1=="south" {print $2}' "$TMPREGION")
+west=$(awk -F ":" '$1=="west" {print $2}' "$TMPREGION")
+east=$(awk -F ":" '$1=="east" {print $2}' "$TMPREGION")
+nsres=$(awk -F ":" '$1=="nsres" {print $2}' "$TMPREGION")
+ewres=$(awk -F ":" '$1=="ewres" {print $2}' "$TMPREGION")
+#now define kriged grid cell size : we take region resolution as cell size. Only one value is needed because the R script use square cells
+if [ "$(echo "if (${nsres} > ${ewres}) 1" | bc)" -eq 1 ] ; then
+	cellsize=$(echo "scale=10; ("$nsres"/1)" | bc )
+else
+	cellsize=$(echo "scale=10; ("$ewres"/1)" | bc )
+fi
+echo "cellsize=$cellsize" >> "$LOGFILE" 2>&1
+#kriging parameters : 
+#models
+#the script will try to create the R argument as expected in the R script, to avoid string manipulations with R
+if [ -z "$GIS_OPT_MODELS" ]; then 
+	#important to have no spaces between commas and following slaches
+	models="c(\"Sph\",\"Exp\",\"Gau\",\"Mat\")"
+elif [ -n "$GIS_OPT_MODELS" ]; then
+	#conversion to R arguments in the expected format, starting from model1,model2...
+	#add c(" at the beginning ;
+	models=$(echo "$GIS_OPT_MODELS" | sed "s/^/c\(\"/g")
+	#add ") at the end
+	models=$(echo "$models" | sed "s/$/\"\)/g")
+	#replace commas by ","
+	models=$(echo "$models" | sed "s/,/\",\"/g")
+	#remove spaces now
+	models=$(echo "$models" | sed 's/ //g')
+fi
+if [ $? -ne 0 ] ; then
+	echo "ERROR: sed was not able to retrieve a models list" 1>&2
+    exit 1
+fi
+
+#range to use if not set
+if [ -z "$GIS_OPT_RANGE" ] ; then 
+	range="NA"
+else
+	range="$GIS_OPT_RANGE"
+fi
+echo "range = $range" >> "$LOGFILE" 2>&1
+#nugget
+if [ -n "$GIS_OPT_NUGGET" ] ; then 
+	nugget="$GIS_OPT_NUGGET"
+else
+	nugget="NA"
+fi
+echo "nugget = $nugget" >> "$LOGFILE" 2>&1
+#sill
+if [ -n "$GIS_OPT_SILL" ] ; then 
+	sill="$GIS_OPT_SILL"
+else
+	sill="NA"
+fi
+echo "sill = $sill" >> "$LOGFILE" 2>&1
+#create variance raster?
+if [ "$GIS_FLAG_V" -eq 1 ] ; then
+	writevarrast="T"
+else
+	writevarrast="F"
+fi
+
+## RGrass script
+#####################################
+writeScript(){ 
+cat > $1 << "EOF"
+options(echo = FALSE)
+args <- commandArgs()
+#start at index 5 because first arguments are R options
+sitesG <- args[5]
+column <- args[6]
+rastername <- args[7]
+models <- args[8]
+modelslist <- eval(parse(text = models)) 
+cellsize <- as.numeric(args[9])
+if(args[10] == "NA") {nugget = NA} else {nugget <- as.numeric(args[10])}
+nugget
+range <- as.numeric(args[11])
+range
+if(args[12] == "NA") {sill = NA} else {sill <- as.numeric(args[12])}
+sill
+writevarrast <- as.logical(args[13])
+variablename <- args[14]
+
+#libraries
+library(spgrass6)
+library(automap)
+
+#retrieve sites in a SpatialPointsDataFrame object
+cat("retrieve sites from GRASS","\n")
+sitesR <- readVECT6(sitesG, ignore.stderr = T)
+#uncomment to check sites
+#sitesR
+
+cat("retrieve metadata","\n")
+G <- gmeta6()
+cat("GridTopology creation","\n")
+grd <- gmeta2grd()
+#this is necessary to ensure that we have square cells ; the more this number is small, the more the kriged map resolution is high 
+slot(grd, "cellsize") <- c(cellsize, cellsize)
+
+#creation of another grid object: SpatialGridDataFrame
+#this is a matrix whose values receive spatial coordinates associated to interpolated values
+#matrix size must be equal to the number of GridTopology cells 
+#we create first a classical data.frame
+data <- data.frame(list(k=rep(1,(floor(G$cols)*floor(G$rows)))))
+cat("SpatialGridDataFrame creation","\n")
+mask_SG <- SpatialGridDataFrame(grd, data=data, CRS(G$proj4))
+
+#add coordinates system
+attr(sitesR, "proj4string") <-CRS(G$proj4)
+
+cat("ordinary kriging","\n")
+kriging_result = autoKrige(as.formula(paste(column,"~",1)), sitesR[column], mask_SG, model = modelslist, fix.values = c(nugget,range,sill))
+
+cat("send raster to GRASS","\n")
+writeRAST6(kriging_result$krige_output,rastername,zcol=1,NODATA=0)
+cat("Generated",rastername," "); cat("", sep="\n")
+if(writevarrast == T) {
+	varrastername = paste(rastername, "_var", sep = "")
+	writeRASTt6(kriging_result$krige_output,varrastername,zcol=2,NODATA=0)
+	cat("Generated",varrastername," "); cat("", sep="\n")
+}
+
+#plot experimental and model variogram
+try(automap:::plot.autoKrige(kriging_result))
+
+EOF
+}
+
+## RGrass script generation
+#####################################
+RGRASSSCRIPT="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$RGRASSSCRIPT" ] ; then
+	echo "ERROR: unable to create temporary file for RGrass script" 1>&2
+    exit 1
+fi
+writeScript "$RGRASSSCRIPT"
+
+## RGrass call
+#####################################
+echo "RGrass is working..."
+#column name in R has only the 10 first characters of the original column name
+Rcolumnname=$(echo "$GIS_OPT_COLUMN" | sed "s/\(^.\{10\}\).*/\1/")
+echo "Rcolumnname=$Rcolumnname" >> "$LOGFILE" 2>&1
+R --vanilla --slave --args "$GIS_OPT_SITESTABLE" "$Rcolumnname" "$KRIGRASTERNAME" "$models" "$cellsize" "$nugget" "$range" "$sill" "$writevarrast" "$GIS_OPT_VARIABLENAME" < "$RGRASSSCRIPT" >> "$LOGFILE" 2>&1
+if [ $? -ne 0 ] ; then
+	echo "ERROR: an error occurred during R script execution" 1>&2
+    exit 1
+fi
+
+## plot export and raster colors
+#####################################
+#convert plot to png
+convert -alpha off -rotate 90 Rplots.ps Rplots.png >> "$LOGFILE" 2>&1
+rm -f Rplots.ps >> "$LOGFILE" 2>&1
+
+r.colors map="$KRIGRASTERNAME" rules="$GIS_OPT_COLORMAP" >> "$LOGFILE" 2>&1
+if [ "$GIS_FLAG_V" -eq 1 ] ; then
+	r.colors map="$KRIGRASTERNAME""_var" rules="$GIS_OPT_COLORMAP" >> "$LOGFILE" 2>&1
+fi
+
+echo "done"
+cleanup
