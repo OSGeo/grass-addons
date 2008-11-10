@@ -1,0 +1,120 @@
+#!/bin/sh
+#
+############################################################################
+#
+# MODULE:       g.region.nbcell
+# AUTHOR(S):	Mathieu Grelier (greliermathieu@gmail.com)
+# PURPOSE:	set grass region to have a minimal number of cell in one of north-south or east-west direction
+# COPYRIGHT:	(C) 2007 Mathieu Grelier
+#
+#		This program is free software under the GNU General Public
+#		License (>=v2). Read the file COPYING that comes with GRASS
+#		for details.
+#
+#############################################################################
+
+
+#%Module
+#%  description: set grass region to have a minimal number of cell in one of north-south or east-west direction 
+#%  keywords: region, rows, cols, cells
+#%End
+#%option
+#% key: nbcell
+#% type: integer
+#% description: minimal number of cell in grass region for one of north-south or east-west direction
+#% required : yes
+#%end
+#%flag
+#% key: m
+#% description: minimal number of cell
+#%end
+#%flag
+#% key: i
+#% description: print res from nbcell and exit
+#%end
+#%flag
+#% key: p
+#% description: print new region parameters
+#%end
+
+if  [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program."
+ 	exit 1
+fi   
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+    exec g.parser "$0" "$@"
+fi
+
+## GRASS team recommandations
+#####################################
+
+PROG=`basename $0`
+
+# check if we have awk
+if [ ! -x "`which awk`" ] ; then
+    echo "$PROG: awk required, please install awk or gawk first"
+    exit 1
+fi
+
+# setting environment, so that awk works properly in all languages
+unset LC_ALL
+LC_NUMERIC=C
+export LC_NUMERIC
+
+## exit procedures
+#####################################
+
+userbreakprocedure()
+{
+    echo "User break!"
+	exit 1
+}
+# shell check for user break (signal list: trap -l)
+trap "userbreakprocedure" 2 3 6 9 15 19
+
+
+## the script
+######################################
+
+#region parameters are used to deal with grid cells size and range
+TMPREGION="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$TMPREGION" ] ; then
+	echo "ERROR: unable to create temporary file for region parameters" 1>&2
+	writelog
+    exit 1
+fi
+g.region -p > "$TMPREGION"
+north=$(awk -F ":" '$1=="north" {print $2}' "$TMPREGION")
+south=$(awk -F ":" '$1=="south" {print $2}' "$TMPREGION")
+west=$(awk -F ":" '$1=="west" {print $2}' "$TMPREGION")
+east=$(awk -F ":" '$1=="east" {print $2}' "$TMPREGION")
+nsres=$(awk -F ":" '$1=="nsres" {print $2}' "$TMPREGION")
+ewres=$(awk -F ":" '$1=="ewres" {print $2}' "$TMPREGION")
+
+nsminres=$(echo "scale=10; ("$north"-"$south")/"$GIS_OPT_NBCELL"" | bc )
+ewminres=$(echo "scale=10; ("$east"-"$west")/"$GIS_OPT_NBCELL"" | bc )
+
+if [ "$(echo "if (${nsminres} > ${ewminres}) 1" | bc)" -eq 1 ] && [ "$GIS_FLAG_M" -eq 0 ]; then
+	res="$nsminres"
+elif [ "$(echo "if (${nsminres} < ${ewminres}) 1" | bc)" -eq 1 ] && [ "$GIS_FLAG_M" -eq 0 ]; then
+	res="$ewminres"
+elif [ "$(echo "if (${nsminres} > ${ewminres}) 1" | bc)" -eq 1 ] && [ "$GIS_FLAG_M" -eq 1 ]; then
+	res="$ewminres"
+elif [ "$(echo "if (${nsminres} < ${ewminres}) 1" | bc)" -eq 1 ] && [ "$GIS_FLAG_M" -eq 1 ]; then
+	res="$nsminres"
+elif [ "$(echo "if (${nsminres} == ${ewminres}) 1" | bc)" -eq 1 ]; then
+	res="$nsminres"
+fi
+
+if [ "$GIS_FLAG_I" -eq 1 ] ; then
+	echo "$res"
+	exit 0
+fi
+
+g.region res="$res"
+rm "$TMPREGION"
+
+if [ "$GIS_FLAG_P" -eq 1 ] ; then
+	g.region -p
+fi
