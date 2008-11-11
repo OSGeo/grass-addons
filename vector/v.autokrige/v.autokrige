@@ -72,7 +72,7 @@
 #% required : no
 #%end
 #%option
-#% key: krigrastername
+#% key: output
 #% type: string
 #% answer: krig
 #% description: Name of the raster to produce
@@ -168,18 +168,18 @@ if [ ! "$file" ] ; then
 fi
 
 #test if output raster map already exists
-eval `g.findfile element=cell file="$GIS_OPT_KRIGRASTERNAME"`	
+eval `g.findfile element=cell file="$GIS_OPT_OUTPUT"`	
 if [ "$file" ] ; then
 	if [ -z "$GRASS_OVERWRITE" ] || [ "$GRASS_OVERWRITE" -eq 0 ]; then
-		echo "ERROR: raster map '$GIS_OPT_KRIGRASTERNAME' already exists in mapset search path. Use the --o flag to overwrite." 1>&2
+		echo "ERROR: raster map '$GIS_OPT_OUTPUT' already exists in mapset search path. Use the --o flag to overwrite." 1>&2
 		exit 1
 	else
-		echo "WARNING: raster map '$GIS_OPT_KRIGRASTERNAME' will be overwritten." >> "$LOGFILE" 2>&1
+		echo "WARNING: raster map '$GIS_OPT_OUTPUT' will be overwritten." >> "$LOGFILE" 2>&1
 	fi
 fi
 #test also variance raster
 if [ "$GIS_FLAG_V" -eq 1 ] ; then
-	variancerastername="$GIS_OPT_KRIGRASTERNAME""_var"
+	variancerastername="$GIS_OPT_OUTPUT""_var"
 	eval `g.findfile element=cell file="$variancerastername"`	
 	if [ "$file" ] ; then
 		if [ -z "$GRASS_OVERWRITE" ] || [ "$GRASS_OVERWRITE" -eq 0 ]; then
@@ -202,8 +202,8 @@ fi
 ## some settings
 #####################################
 #layers names that will be used
-if [ -n "$GIS_OPT_KRIGRASTERNAME" ] ; then 
-	KRIGRASTERNAME="$GIS_OPT_KRIGRASTERNAME"
+if [ -n "$GIS_OPT_OUTPUT" ] ; then 
+	KRIGRASTERNAME="$GIS_OPT_OUTPUT"
 else
 	KRIGRASTERNAME=KRIG
 fi
