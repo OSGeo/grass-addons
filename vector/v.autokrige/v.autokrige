@@ -25,7 +25,7 @@
 #%  keywords: kriging, autokrige, RGrass
 #%End
 #%option
-#% key: sitestable
+#% key: input
 #% type: string
 #% gisprompt: old,vector,vector
 #% description: Name of the vector containing sites data (values to interpolate) and geometry. Must not contain any null values.
@@ -155,15 +155,15 @@ if [ -z "$LOGDIR" ] ; then
 fi
 LOGFILE="$LOGDIR/v.autokrige.log"
 
-echo "v.autokrige :"" ""$GIS_OPT_SITESTABLE"" ""$GIS_OPT_COLUMN" >> "$LOGFILE"
+echo "v.autokrige :"" ""$GIS_OPT_INPUT"" ""$GIS_OPT_COLUMN" >> "$LOGFILE"
 
 ## necessary checks
 #####################################
 
 # test for input vector map
-eval `g.findfile element=vector file="$GIS_OPT_SITESTABLE"`
+eval `g.findfile element=vector file="$GIS_OPT_INPUT"`
 if [ ! "$file" ] ; then
-   echo "Vector map '$GIS_OPT_SITESTABLE' not found in mapset search path" 1>&2
+   echo "Vector map '$GIS_OPT_INPUT' not found in mapset search path" 1>&2
    exit 1
 fi
 
@@ -217,7 +217,7 @@ fi
 
 #fix region and resolution
 if [ "$GIS_FLAG_R" -eq 0 ] ; then
-	g.region vect="$GIS_OPT_SITESTABLE"
+	g.region vect="$GIS_OPT_INPUT"
 fi
 #grid cells size : small values (more cells) increase both raster quality and computation time
 if [ -n "$GIS_OPT_NBCELL" ] ; then 
@@ -371,7 +371,7 @@ echo "RGrass is working..."
 #column name in R has only the 10 first characters of the original column name
 Rcolumnname=$(echo "$GIS_OPT_COLUMN" | sed "s/\(^.\{10\}\).*/\1/")
 echo "Rcolumnname=$Rcolumnname" >> "$LOGFILE" 2>&1
-R --vanilla --slave --args "$GIS_OPT_SITESTABLE" "$Rcolumnname" "$KRIGRASTERNAME" "$models" "$cellsize" "$nugget" "$range" "$sill" "$writevarrast" "$GIS_OPT_VARIABLENAME" < "$RGRASSSCRIPT" >> "$LOGFILE" 2>&1
+R --vanilla --slave --args "$GIS_OPT_INPUT" "$Rcolumnname" "$KRIGRASTERNAME" "$models" "$cellsize" "$nugget" "$range" "$sill" "$writevarrast" "$GIS_OPT_VARIABLENAME" < "$RGRASSSCRIPT" >> "$LOGFILE" 2>&1
 if [ $? -ne 0 ] ; then
 	echo "ERROR: an error occurred during R script execution" 1>&2
     exit 1
