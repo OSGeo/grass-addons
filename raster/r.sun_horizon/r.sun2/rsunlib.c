@@ -144,12 +144,12 @@ void com_par_const(double longitTime, struct SunGeometryConstDay *sungeom,
     	    }
         else {
             if (pom < 0) {
-                /*        printf("\n Sun is ABOVE the surface during the whole day\n"); */
+                /*        G_debug(3,"\n Sun is ABOVE the surface during the whole day"); */
                 sungeom->sunrise_time = 0;
                 sungeom->sunset_time = 24;
                 }
             else {
-            /*                printf("\n The sun is BELOW the surface during the whole day\n"); */
+            /*                G_debug(3,"\n The sun is BELOW the surface during the whole day"); */
                 if (fabs(pom) - 1 <= EPS) {
                     sungeom->sunrise_time = 12;
                     sungeom->sunset_time = 12;
@@ -194,7 +194,7 @@ void com_par( struct SunGeometryConstDay *sungeom,
 			{
 			if (sunVarGeom->sinSolarAltitude > 0) 
 				{
-        		/*                        printf("\tSun is ABOVE area during the whole day\n"); */
+        		/*                        G_debug(3,"\tSun is ABOVE area during the whole day"); */
         			sungeom->sunrise_time = 0;
         			sungeom->sunset_time = 24;
         			}
@@ -207,7 +207,7 @@ void com_par( struct SunGeometryConstDay *sungeom,
             		}
         	else 
 			{
-            /*                      printf("\tThe Sun is ON HORIZON during the whole day\n"); */
+            /*                      G_debug(3,"\tThe Sun is ON HORIZON during the whole day"); */
             		sungeom->sunrise_time = 0;
             		sungeom->sunset_time = 24;
             		}

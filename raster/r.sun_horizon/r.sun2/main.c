@@ -1206,18 +1206,12 @@ int OUTGR(void)
 
 
     if (G_set_window(&cellhd) < 0)
-	exit(3);
+	G_fatal_error("Cannot set region to output region!");
 
-    if (m != G_window_rows()) {
-	fprintf(stderr, "OOPS: rows changed from %d to %d\n", m,
-		G_window_rows());
-	exit(1);
-    }
-    if (n != G_window_cols()) {
-	fprintf(stderr, "OOPS: cols changed from %d to %d\n", n,
-		G_window_cols());
-	exit(1);
-    }
+    if (m != G_window_rows())
+	G_fatal_error("OOPS: rows changed from %d to %d", m, G_window_rows());
+    if (n != G_window_cols())
+	G_fatal_error("OOPS: cols changed from %d to %d", n, G_window_cols());
 
     for (iarc = 0; iarc < m; iarc++) {
 	i = m - iarc - 1;
