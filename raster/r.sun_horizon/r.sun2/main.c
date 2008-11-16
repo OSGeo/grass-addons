@@ -615,21 +615,11 @@ int main(int argc, char *argv[])
      * time is not defined, and if the step size *is* defined. */
     /*      
      * if(parm.step->answer==NULL)
-     * {
-     * printf("If you want to use a time interval you must also define a step size.\n");
-     * exit(1);
-     * }
+     *    G_fatal_error("If you want to use a time interval you must also define a step size.");
      * if(parm.ltime->answer!=NULL)
-     * {
-     * printf("If you want to use a time interval you can't define a single time value.\n");
-     * exit(1);
-     * }
+     *    G_fatal_error("If you want to use a time interval you can't define a single time value.\n");
      * if((parm.startTime->answer==NULL)||(parm.endTime->answer==NULL))
-     * {
-     * printf("If you want to use a time interval\n");
-     * printf("both the start and end times must be defined.\n");
-     * exit(1);
-     * }
+     *    G_fatal_error("If you want to use a time interval both the start and end times must be defined.\n");
      * }
      */
     if (parm.linkein->answer == NULL)
@@ -816,7 +806,7 @@ int INPUT_part(int offset, double *zmax)
 
 	}
 	if ((mapset = G_find_cell(slopein, "")) == NULL)
-	    printf("cell file not found\n");
+	       G_fatal_error(_("Raster map <%s> not found"),slopein);
 	fd3 = G_open_cell_old(slopein, mapset);
 
     }
@@ -833,7 +823,7 @@ int INPUT_part(int offset, double *zmax)
 	}
 
 	if ((mapset = G_find_cell(aspin, "")) == NULL)
-	    printf("cell file not found\n");
+	    G_fatal_error(_("Raster map <%s> not found"),aspin);
 	fd2 = G_open_cell_old(aspin, mapset);
 
     }
@@ -848,7 +838,7 @@ int INPUT_part(int offset, double *zmax)
 
 	}
 	if ((mapset = G_find_cell(linkein, "")) == NULL)
-	    printf("cell file not found\n");
+	    G_fatal_error(_("Raster map <%s> not found"),linkein);
 
 	fd4 = G_open_cell_old(linkein, mapset);
     }
@@ -861,7 +851,7 @@ int INPUT_part(int offset, double *zmax)
 		a[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 	if ((mapset = G_find_cell(albedo, "")) == NULL)
-	    printf("cell file not found\n");
+	    G_fatal_error(_("Raster map <%s> not found"),albedo);
 
 	fd5 = G_open_cell_old(albedo, mapset);
     }
@@ -874,7 +864,7 @@ int INPUT_part(int offset, double *zmax)
 		la[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 	if ((mapset = G_find_cell(latin, "")) == NULL)
-	    printf("cell file not found\n");
+	    G_fatal_error(_("Raster map <%s> not found"),latin);
 
 	fd6 = G_open_cell_old(latin, mapset);
     }
@@ -886,7 +876,7 @@ int INPUT_part(int offset, double *zmax)
 	    longitArray[l] = (float *)G_malloc(sizeof(float) * (n));
 
 	if ((mapset = G_find_cell(longin, "")) == NULL)
-	    printf("cell file not found\n");
+	    G_fatal_error(_("Raster map <%s> not found"),longin);
 
 	fd7 = G_open_cell_old(longin, mapset);
     }
@@ -902,7 +892,7 @@ int INPUT_part(int offset, double *zmax)
 		cbhr[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 	if ((mapset = G_find_cell(coefbh, "")) == NULL)
-	    printf("cell file not found\n");
+	    G_fatal_error(_("Raster map <%s> not found"),coefbh);
 
 	fr1 = G_open_cell_old(coefbh, mapset);
     }
@@ -915,7 +905,7 @@ int INPUT_part(int offset, double *zmax)
 		cdhr[l] = (float *)G_malloc(sizeof(float) * (n));
 	}
 	if ((mapset = G_find_cell(coefdh, "")) == NULL)
-	    printf("cell file not found\n");
+	    G_fatal_error(_("Raster map <%s> not found"),coefdh);
 
 	fr2 = G_open_cell_old(coefdh, mapset);
     }
@@ -939,7 +929,7 @@ int INPUT_part(int offset, double *zmax)
 	 * horizonbuf[0]=G_allocate_f_raster_buf();
 	 * sprintf(shad_filename, "%s_%02d", horizon, arrayNumInt);
 	 * if((mapset=G_find_cell(shad_filename,""))==NULL)
-	 * printf("Horizon file no. %d not found\n", arrayNumInt);
+	 * G_message("Horizon file no. %d not found\n", arrayNumInt);
 	 * 
 	 * fd_shad[0] = G_open_cell_old(shad_filename,mapset);
 	 * }
@@ -1141,7 +1131,7 @@ int INPUT_part(int offset, double *zmax)
 		    else
 			o[i][j] = 450. - o[i][j];
 		}
-		/*   printf("o,z = %d  %d i,j, %d %d \n", o[i][j],z[i][j],i,j); */
+		/*   G_debug(3,"o,z = %d  %d i,j, %d %d \n", o[i][j],z[i][j],i,j); */
 
 		if ((aspin != NULL) && o[i][j] == UNDEFZ)
 		    z[i][j] = UNDEFZ;
@@ -1171,67 +1161,47 @@ int OUTGR(void)
 	NULL, *cell12 = NULL;
     int fd7 = -1, fd8 = -1, fd9 = -1, fd10 = -1, fd11 = -1, fd12 = -1;
     int i, iarc, j;
-    char msg[100];
-
 
     if (incidout != NULL) {
 	cell7 = G_allocate_f_raster_buf();
 	fd7 = G_open_fp_cell_new(incidout);
-	if (fd7 < 0) {
-	    sprintf(msg, "unable to create raster map %s", incidout);
-	    G_fatal_error(msg);
-	    exit(1);
-	}
+	if (fd7 < 0)
+	    G_fatal_error(_("Unable to create raster map <%s>"), incidout);
     }
 
     if (beam_rad != NULL) {
 	cell8 = G_allocate_f_raster_buf();
 	fd8 = G_open_fp_cell_new(beam_rad);
-	if (fd8 < 0) {
-	    sprintf(msg, "unable to create raster map %s", beam_rad);
-	    G_fatal_error(msg);
-	    exit(1);
-	}
+	if (fd8 < 0)
+	    G_fatal_error(_("Unable to create raster map <%s>"), beam_rad);
     }
 
     if (insol_time != NULL) {
 	cell11 = G_allocate_f_raster_buf();
 	fd11 = G_open_fp_cell_new(insol_time);
-	if (fd11 < 0) {
-	    sprintf(msg, "unable to create raster map %s", insol_time);
-	    G_fatal_error(msg);
-	    exit(1);
-	}
+	if (fd11 < 0)
+	    G_fatal_error(_("Unable to create raster map <%s>"), insol_time);
     }
 
     if (diff_rad != NULL) {
 	cell9 = G_allocate_f_raster_buf();
 	fd9 = G_open_fp_cell_new(diff_rad);
-	if (fd9 < 0) {
-	    sprintf(msg, "unable to create raster map %s", diff_rad);
-	    G_fatal_error(msg);
-	    exit(1);
-	}
+	if (fd9 < 0)
+	    G_fatal_error(_("Unable to create raster map <%s>"), diff_rad);
     }
 
     if (refl_rad != NULL) {
 	cell10 = G_allocate_f_raster_buf();
 	fd10 = G_open_fp_cell_new(refl_rad);
-	if (fd10 < 0) {
-	    sprintf(msg, "unable to create raster map %s", refl_rad);
-	    G_fatal_error(msg);
-	    exit(1);
-	}
+	if (fd10 < 0)
+	    G_fatal_error(_("Unable to create raster map <%s>"), refl_rad);
     }
 
     if (glob_rad != NULL) {
 	cell12 = G_allocate_f_raster_buf();
 	fd12 = G_open_fp_cell_new(glob_rad);
-	if (fd12 < 0) {
-	    sprintf(msg, "unable to create raster map %s", glob_rad);
-	    G_fatal_error(msg);
-	    exit(1);
-	}
+	if (fd12 < 0)
+	    G_fatal_error(_("Unable to create raster map <%s>"), glob_rad);
     }
 
 
@@ -2008,7 +1978,7 @@ void calculate(double singleSlope, double singleAspect, double singleAlbedo,
 			beam[j][i] = (float)beam_e;
 		    if (insol_time != NULL)
 			insol[j][i] = (float)insol_t;
-		    /*      printf("\n %f",insol[j][i]); */
+		    /*  G_debug(3,"\n %f",insol[j][i]); */
 		    if (diff_rad != NULL)
 			diff[j][i] = (float)diff_e;
 		    if (refl_rad != NULL)
@@ -2148,7 +2118,7 @@ double com_declin(int no_of_day)
     d1 = pi2 * no_of_day / 365.25;
     decl = asin(0.3978 * sin(d1 - 1.4 + 0.0355 * sin(d1 - 0.0489)));
     decl = -decl;
-    /*      printf(" declination : %lf\n", decl); */
+    /*      G_debug(3," declination : %lf\n", decl); */
 
     return (decl);
 }
@@ -2160,11 +2130,11 @@ int test(void)
     /* not finshed yet */
     int dej;
 
-    printf("\n ddd: %f", declin);
+    G_message("\n ddd: %f", declin);
     dej = asin(-declin / 0.4093) * 365. / pi2 + 81;
     /*        dej = asin(-declin/23.35 * deg2rad) / 0.9856 - 284; */
     /*      dej = dej - 365; */
-    printf("\n d: %d ", dej);
+    G_message("\n d: %d ", dej);
     if (dej < day - 5 || dej > day + 5)
 	return 0;
     else

@@ -466,7 +466,7 @@ int main(int argc, char *argv[])
 
 	n /*n_cols */  = new_cellhd.cols;
 	m /*n_rows */  = new_cellhd.rows;
-	/*printf("%lf %lf %lf %lf \n",ymax, ymin, xmin,xmax);
+	/*G_debug(3,"%lf %lf %lf %lf \n",ymax, ymin, xmin,xmax);
 	 */
 	n100 = ceil(n / 100.);
 	m100 = ceil(m / 100.);
@@ -587,7 +587,7 @@ int INPUT(void)
 		}
 	    }
 	    z100[i][j] = zmax;
-	    //printf("%d %d %lf\n", i, j, z100[i][j]);
+	    /* G_debug(3,"%d %d %lf\n", i, j, z100[i][j]); */
 	}
     }
 
@@ -863,7 +863,7 @@ void calculate_shadow()
 	else if (printangle >= 360.)
 	    printangle -= 360;
 
-	printf("%lf, %lf\n", printangle, shadow_angle);
+	G_message("%lf, %lf", printangle, shadow_angle);
 
 	angle += dfr_rad;
 
@@ -931,14 +931,14 @@ int test_low_res()
     jp100 = floor(jp / 100.);
     /*test the new position with low resolution */
     if ((ip100 != iold100) || (jp100 != jold100)) {
-	//printf("%d %d %d %d\n",ip,jp, iold100,jold100);
+	/* G_debug(3,"%d %d %d %d\n",ip,jp, iold100,jold100); */
 	/*  replace with approximate version
 	   curvature_diff = EARTHRADIUS*(1.-cos(length/EARTHRADIUS));
 	 */
 	curvature_diff = 0.5 * length * length * invEarth;
 	z2 = z_orig + curvature_diff + length * tanh0;
 	zp100 = z100[jp100][ip100];
-	//printf("%d %d %lf %lf \n",ip,jp,z2,zp100);
+	/*G_debug(3,"%d %d %lf %lf \n",ip,jp,z2,zp100); */
 
 	if (zp100 <= z2)
 	    /*skip to the next lowres cell */
@@ -971,11 +971,11 @@ int test_low_res()
 	    }
 
 	    mindel = min(delx, dely);
-	    //printf("%d %d %d %lf %lf\n",ip, jp, mindel,xg0, yg0);
+	    /*G_debug(3,"%d %d %d %lf %lf\n",ip, jp, mindel,xg0, yg0);*/
 
 	    yy0 = yy0 + (mindel * stepsinangle);
 	    xx0 = xx0 + (mindel * stepcosangle);
-	    //printf("  %lf %lf\n",xx0,yy0);
+	    /*G_debug(3,"  %lf %lf\n",xx0,yy0);*/
 
 	    return (3);
 	}
@@ -1141,7 +1141,7 @@ void calculate(double xcoord, double ycoord, int buffer_e, int buffer_w,
 	    /*              
 	       com_par(angle);
 	     */
-	    printf("%01d from %01d  angle %lf  %s\n", (k + 1), arrayNumInt,
+	    G_message(_("Calculating map %01d of %01d (angle %lf, raster map <%s>)"), (k + 1), arrayNumInt,
 		   angle * rad2deg, shad_filename);
 
 	    for (j = hor_row_start; j < hor_row_end; j++) {
@@ -1229,7 +1229,7 @@ void calculate(double xcoord, double ycoord, int buffer_e, int buffer_w,
 			 fixedMaxLength) ? maxlength : fixedMaxLength;
 		    if (z_orig != UNDEFZ) {
 
-			/*printf("**************new line %d %d\n", i, j);
+			/*G_debug(3,"**************new line %d %d\n", i, j);
 			 */
 			shadow_angle = horizon_height();
 			if (degreeOutput) {
@@ -1239,7 +1239,7 @@ void calculate(double xcoord, double ycoord, int buffer_e, int buffer_w,
 			/*
 			   if((j==1400)&&(i==1400))
 			   {
-			   printf("coordinates=%f,%f, raster no. %d, horizon=%f\n",
+			   G_debug(3, "coordinates=%f,%f, raster no. %d, horizon=%f\n",
 			   xp, yp, k, shadow_angle);
 			   }
 			 */

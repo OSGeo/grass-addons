@@ -192,18 +192,18 @@ which consumes less memory during the computations.
 
 Spearfish example (considering also cast shadows):
 <div class="code"><pre>
-g.region rast=elevation.10m -p
+g.region rast=elevation.dem -p
 
 # calculate horizons
 # (we put a bufferzone of 10% of maxdistance around the study area)
-r.horizon elevin=elevation.10m step=30 bufferzone=200 horizon=horangle dist=0.7 maxdistance=2000
+r.horizon elevin=elevation.dem step=30 bufferzone=200 horizon=horangle dist=0.7 maxdistance=2000
 
 # slope + aspect
-r.slope.aspect elevation=elevation.10m aspect=aspect.10m slope=slope.10m
+r.slope.aspect elevation=elevation.dem aspect=aspect.dem slope=slope.dem
 
 # calculate global radiation for day 180 at 14:00hs
-r.sun2 -s elevation.10m horizon=horangle horizonstep=30 aspin=aspect.10m \
-          slopein=slope.10m glob_rad=global_rad day=180 time=14
+r.sun2 -s elevation.dem horizon=horangle horizonstep=30 aspin=aspect.dem \
+          slopein=slope.dem glob_rad=global_rad day=180 time=14
 </pre></div>
 
 <h2>SEE ALSO</h2>
