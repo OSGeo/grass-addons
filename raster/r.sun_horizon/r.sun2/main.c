@@ -1,4 +1,3 @@
-
 /*******************************************************************************
 r.sun: This program was writen by Jaro Hofierka in Summer 1993 and re-engineered
 in 1996-1999. In cooperation with Marcel Suri and Thomas Huld from JRC in Ispra
@@ -29,6 +28,16 @@ email: hofierka@geomodel.sk,marcel.suri@jrc.it,suri@geomodel.sk Thomas.Huld@jrc.
 /*v. 2.0 July 2002, NULL data handling, JH */
 /*v. 2.1 January 2003, code optimization by Thomas Huld, JH */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <grass/gis.h>
+#include <grass/gprojects.h>
+#include <grass/glocale.h>
+#include "sunradstruct.h"
+#include "local_proto.h"
+#include "rsunglobals.h"
+
 #define NUM_PARTITIONS "1"
 #define SKIP    "1"
 #define BIG      1.e20
@@ -48,18 +57,6 @@ const double invScale = 1. / SCALING_FACTOR;
 #define AMIN1(arg1, arg2) ((arg1) <= (arg2) ? (arg1) : (arg2))
 #define DISTANCE1(x1, x2, y1, y2) (sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2)))
 #define DISTANCE2(x00, y00) ((xx0 - x00)*(xx0 - x00) + (yy0 - y00)*(yy0 - y00))
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <grass/gis.h>
-#include <grass/gprojects.h>
-#include <grass/glocale.h>
-#include "sunradstruct.h"
-#include "local_proto.h"
-#include "rsunglobals.h"
-
-
 
 const double pihalf = M_PI * 0.5;
 const double pi2 = M_PI * 2.;
