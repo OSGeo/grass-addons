@@ -122,7 +122,7 @@ double com_declin(int);
 int n, m, ip, jp;
 int d, day;
 int saveMemory, numPartitions = 1;
-int shadowoffset = 0;
+long int shadowoffset = 0;
 int varCount_global = 0;
 int bitCount_global = 0;
 int arrayNumInt = 1;
@@ -960,7 +960,7 @@ int INPUT_part(int offset, double *zmax)
 		row_rev = m - row - 1;
 		rowrevoffset = row_rev - offset;
 		G_get_f_raster_row(fd_shad[i], horizonbuf[i], row);
-		horizonpointer = horizonarray + arrayNumInt * n * rowrevoffset;
+		horizonpointer = horizonarray + (ssize_t) arrayNumInt * n * rowrevoffset;
 		for (j = 0; j < n; j++) {
 
 		    horizonpointer[i] = (char)(rint(SCALING_FACTOR *
