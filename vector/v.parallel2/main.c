@@ -167,12 +167,13 @@ int main (int argc, char *argv[])
         }
     }
     
-/*    Vect_build_partial(&Out, GV_BUILD_BASE, stderr);
-    Vect_snap_lines(&Out, GV_BOUNDARY, 1e-7, NULL, stderr);
-    Vect_break_lines(&Out, GV_BOUNDARY, NULL, stderr);
-    Vect_remove_duplicates(&Out, GV_BOUNDARY, NULL, stderr);
-    Vect_build_partial (&Out, GV_BUILD_NONE, NULL); */
-    Vect_build (&Out, stderr);
+/*    Vect_build_partial(&Out, GV_BUILD_BASE);
+    Vect_snap_lines(&Out, GV_BOUNDARY, 1e-7, NULL);
+    Vect_break_lines(&Out, GV_BOUNDARY, NULL);
+    Vect_remove_duplicates(&Out, GV_BOUNDARY, NULL);
+    Vect_build_partial (&Out, GV_BUILD_NONE);
+ */
+    Vect_build (&Out);
     
     Vect_close (&In);
     Vect_close (&Out);
