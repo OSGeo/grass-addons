@@ -3,7 +3,7 @@
 -- the specific column should be selected with a where statement, by default the column
 -- named "label" should be used
 CREATE TABLE TABLE_NAME (cat INTEGER PRIMARY KEY, -- the category number 
-			 value NUMERIC(25,15), -- the numerical value of the raster map using this category
+			 value NUMERIC, -- the numerical value of the raster map using this category
 			 label VARCHAR(500) -- the label of the category
                         );
 

@@ -3,7 +3,7 @@
 CREATE TABLE TABLE_NAME (name VARCHAR(256) PRIMARY KEY,
                          base_map VARCHAR(256) , -- the map of which this map is based on
                          reference_table VARCHAR(300), -- the table containing all raster map names which are using this map as base map
-			 color CLOB, -- the color information is stored as CLOB
+			 color TEXT, -- the color information is stored as TEXT
                          group_table VARCHAR(300), -- the table containing all group names in which this raster map is registered
                          temporal_table VARCHAR(300), -- the table containing all temporal raster map names 
 			 			      -- in which this raster map is registered
