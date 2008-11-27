@@ -157,7 +157,7 @@ for OPT in COLOR RASTER RULES ; do
    fi
 done
 if [ "$CTEST" -ne 1 ] ; then
-    echo "ERROR: Pick one of color, rules, or raster options"
+    g.message -e "Pick one of color, rules, or raster options"
     exit 1
 fi
 
@@ -174,19 +174,19 @@ if [ -n "$GIS_OPT_COLOR" ] ; then
        fi
    done
    if [ "$HAVE_COLR" -eq 0 ] ; then
-       echo "ERROR: Invalid color rule <$GIS_OPT_COLOR>"
+       g.message -e "Invalid color rule <$GIS_OPT_COLOR>"
        echo "       Valid options are: $COLOR_OPTS"
        exit 1
    fi
 elif [ -n "$GIS_OPT_RASTER" ] ; then
    r.info -r "$GIS_OPT_RASTER" > /dev/null
    if [ $? -ne 0 ] ; then
-       echo "ERROR: Unable to open raster map <$GIS_OPT_RASTER>"
+       g.message -e "Unable to open raster map <$GIS_OPT_RASTER>"
        exit 1
    fi
 elif [ -n "$GIS_OPT_RULES" ] ; then
    if [ ! -r "$GIS_OPT_RULES" ] ; then
-       echo "ERROR: Unable to read color rules file <$GIS_OPT_RULES>"
+       g.message -e "Unable to read color rules file <$GIS_OPT_RULES>"
        exit 1
    fi
 fi
@@ -196,32 +196,32 @@ fi
 # check input data column 
 NCOLUMN_TYPE=`v.info -c map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" | grep -i "|$GIS_OPT_COLUMN$" | cut -f1 -d'|'`
 if [ -z "$NCOLUMN_TYPE" ] ; then
-    echo "ERROR: Column <$GIS_OPT_COLUMN> not found"
+    g.message -e "Column <$GIS_OPT_COLUMN> not found"
     exit 1
 elif [ "$NCOLUMN_TYPE" != "INTEGER" ] && [ "$NCOLUMN_TYPE" != "DOUBLE PRECISION" ] ; then
-    echo "ERROR: Column <$GIS_OPT_COLUMN> is not numeric"
+    g.message -e "Column <$GIS_OPT_COLUMN> is not numeric"
     exit 1
 fi
 #echo "column <$GIS_OPT_COLUMN> is type [$NCOLUMN_TYPE]"
 
 # check if GRASSRGB column exists, make it if it doesn't
-TABLE=`v.db.connect -g map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" | cut -f2 -d' '`
+TABLE=`v.db.connect -g map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" fs=";" | cut -f2 -d';'`
 COLUMN_TYPE=`v.info -c map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" | grep -i "|$GIS_OPT_RGB_COLUMN$" | cut -f1 -d'|'`
 if [ -z "$COLUMN_TYPE" ] ; then
     # RGB Column not found, create it
     echo "Creating column <$GIS_OPT_RGB_COLUMN> ..."
     v.db.addcol map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" column="$GIS_OPT_RGB_COLUMN varchar(11)"
     if [ $? -ne 0 ] ; then
-       echo "ERROR: Creating color column"
+       g.message -e "Creating color column"
        exit 1
     fi
 elif [ "$COLUMN_TYPE" != "CHARACTER" -a "$COLUMN_TYPE" != "TEXT" ] ; then
-    echo "ERROR: Column <$GIS_OPT_RGB_COLUMN> is not of compatible type (found $COLUMN_TYPE)"
+    g.message -e "Column <$GIS_OPT_RGB_COLUMN> is not of compatible type (found $COLUMN_TYPE)"
     exit 1
 else
     NUM_CHARS=`db.describe -c "$TABLE" | grep -i " $GIS_OPT_RGB_COLUMN:" | cut -f4 -d':'`
     if [ "$NUM_CHARS" -lt 11 ] ; then
-       echo "ERROR: Color column <$GIS_OPT_RGB_COLUMN> is not wide enough (needs 11 characters)"
+       g.message -e "Color column <$GIS_OPT_RGB_COLUMN> is not wide enough (needs 11 characters)"
        exit 1
     fi
 fi
@@ -239,7 +239,7 @@ else
 fi
 echo " min=[$MINVAL]  max=[$MAXVAL]"
 if [ -z "$MINVAL" ] || [ -z "$MAXVAL" ] ; then
-   echo "ERROR: Scanning data range"
+   g.message -e "Scanning data range"
    exit 1
 fi
 
@@ -276,7 +276,7 @@ r.colors map="tmp_colr_$$" "$COLOR_CMD" $FLIP_FLAG
 
 TMP="`g.tempfile pid=$$`"
 if [ $? -ne 0 ] || [ -z "${TMP}" ] ; then
-    echo "ERROR: Unable to create temporary file"
+    g.message -e "Unable to create temporary file"
     cleanup
     exit 1
 fi
@@ -296,7 +296,7 @@ v.db.select map="$GIS_OPT_MAP" layer="$GIS_OPT_LAYER" column="$GIS_OPT_COLUMN" |
 
 
 if [ ! -e "${TMP}_vcol.sql" ] ; then
-    echo "ERROR: No values found in color range"
+    g.message -e "No values found in color range"
     cleanup
     exit 1
 fi
@@ -307,7 +307,7 @@ echo "Writing $NUM_RULES colors ..."
 #less "$TMP"
 db.execute input="${TMP}_vcol.sql"
 if [ $? -ne 0 ] ; then
-   echo "ERROR: Processing SQL transaction"
+   g.message -e "Processing SQL transaction"
    cleanup
    exit 1
 fi
@@ -329,7 +329,7 @@ else
 fi
 cleanup
 
-exit
+exit 0
 #v.db.dropcol map=vcol_test col=GRASSRGB
 #d.vect -a vcol_test icon=basic/circle color=none size=8
 
