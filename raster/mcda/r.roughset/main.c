@@ -234,6 +234,6 @@ int main(int argc, char *argv[])
 	exit(EXIT_SUCCESS);
 }
 
-/*dom 07 dic 2008 07:05:15 CET */ 
+/* dom 07 dic 2008 07:05:15 CET */ 
 
 
