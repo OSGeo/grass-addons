@@ -410,6 +410,6 @@ int NormRules( value_type **rules, setA P, setA Q, int mat )
 }
 
 
-/*dom 07 dic 2008 07:04:58 CET */
+/* dom 07 dic 2008 07:04:58 CET */
  
 
