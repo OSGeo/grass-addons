@@ -1,139 +1,124 @@
+/****************************************************************************
+ *
+ * MODULE:       r.roughset
+ * AUTHOR(S):    GRASS module authors ad Rough Set Library (RSL) maintain:
+ *			G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)		
+ *			Rough Set Library (RSL) ver. 2 original develop:
+ *		        M.Gawrys - J.Sienkiewicz 
+ *
+ * PURPOSE:      Geographics rough set analisys and knowledge discovery 
+ *
+ * COPYRIGHT:    (C) GRASS Development Team (2008)
+ *
+ *               This program is free software under the GNU General Public
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	    	 for details.
+ *
 /************************************************************************
-EXTRACT RULE FROM GEOGRAPHICS THEMES (Based on Rough Set Library 
-     		written by M.Gawrys J.Sienkiewiczbrary )	  		
-
-The RSL defines three types to be used in applications:
-     setA - set of attributes,
-     setO - set of objects and
-     SYSTEM - information system descriptor.
+** EXTRACT RULE FROM GEOGRAPHICS THEMES (Based on Rough Set Library 
+**     		written by M.Gawrys J.Sienkiewiczbrary )	  		
+**
+** The RSL defines three types to be used in applications:
+**     setA - set of attributes,
+**     setO - set of objects and
+**     SYSTEM - information system descriptor.
 					
-The descriptor contains pointers to the information system data matrices:
-- MATRIX A, is the attribute-value table.
-- MATRIX D, is the discernibility matrix
-- MATRIX X, is called a reduced discernibility matrix.
+** The descriptor contains pointers to the information system data matrices:
+** - MATRIX A, is the attribute-value table.
+** - MATRIX D, is the discernibility matrix
+** - MATRIX X, is called a reduced discernibility matrix.
                           
 /***********************************************************************/
 
 #include "rough.h"
 #include "localproto.h"
 
+int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct input *attributes, int strgy, int cls);
 
+void rough_set_library_out(int nrows, int ncols, int nattributes, struct input *attributes, char *file_out_sys);
 
-int RulsExtraction(char *name, struct input *attributes, int strgy);
-void fPrintSetA( FILE *f, setA set );
-void fPrintSetO( FILE *f, setO set );
+void output_to_txt( FILE *file_out_txt, value_type* rules, setA P,setA Q, setA core, setA beg, int n, SYSTEM * sys1, int strgy, int r, int *opr, struct input *attributes);
+
+void fPrintSetA( FILE *file, setA set );
+void fPrintSetO( FILE *file, setO set );
 void fPrintRules( FILE *file, value_type* rules, int N, int *opr, setA P, setA Q, struct input *attributes);
-void fPrintToScript( FILE *file, value_type* rules, int N, int *opr, setA P, setA Q, struct input *attributes);
+
 float MeanAttrInRule( value_type *rules, int N, setA P );
+
 int LowRules( value_type **rules, setA P, setA Q, int mat );
 int UppRules( value_type **rules, setA P, setA Q, int mat );
 int NormRules( value_type **rules, setA P, setA Q, int mat );
 
 
-
-int RulsExtraction(char *name,struct input *attributes, int strgy)  /*old MAIN*/
+int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct input *attributes, int strgy, int cls)  /*old MAIN*/
 {
-  SYSTEM *sys1, *sys2, *trainsys, *testsys; /* Information system descriptor structures. It contains information about the 							system parameters (number of objects, number of attributes, system name. */
-  value_type *buf,*rules; /* stores a single value of attribute (used for attribute-value table and rule implementation)*/
-  char c;
-  int ob,at,at2,n,j,i,work=1,good,r;
-  int *opr;
-  setA beg,P,Q,full,core; /*set of attributes*/
-  setO train;		  /*set of object*/
-  FILE *file, *file2, *file3;
-  int (*genrules)( value_type**, setA, setA, int );
-  int p30, sample;
-  clock_t time1, time2;
-  int inf;
-  char *nameFILE; /*storage root file names*/
-   
-
-  sys1=InitEmptySys();  /* Allocates memory for a system descriptor and returns a pointer.*/
-
-
-  FileToSys(sys1,name); /* Imports a system from a file of the special format.*/
+	SYSTEM *sys1, *sys2; /* Information system descriptor structures.*/
+  	/* It contains information about the system parameters (number of objects, number of attributes, system name. */
+ 	value_type value, *buf,*rules; /* stores a single value of attribute (used for attribute-value table and rule implementation)*/
+  	char c;
+  	int n,j,i,r, *opr;
+  	setA beg,P,Q,full,core; /*set of attributes*/
+  	setO train;		  /*set of object*/
+  	FILE *file_out_sys, *file_out_txt;
+  	int (*genrules)( value_type**, setA, setA, int );
   
+  	int nattributes, nobjects=nrows*ncols; /*objects in information system are all raster cells in working location with a defined resolution */
+  	int row, col,object,attribute; /*index and counter*/
   
-  if (_rerror>0) 
-  	{  G_fatal_error("  Can't open data file \n");
-  		return(1); }
+  	sys1=InitEmptySys();  /* Allocates memory for a system descriptor and returns a pointer.*/
+
+  	FileToSys(sys1,name); /* Imports a system from a file of the special format.*/
+  
+  	if (_rerror>0) 
+  		{  G_fatal_error("  Can't open data file \n");
+  			return(1);}	
+  	
+  	strcat(name,".out");
+  
+  	if (!(file_out_txt=fopen(name,"a"))) 					/*output text file*/
+  		{G_fatal_error("  Can't open output file \n");
+  			return(1);}
   		
-  	
-  strcat(name,".out");
+  	UseSys(sys1); /* Activates a system. All routines will work on this indicated system data and parameters.*/
   
-  if (!(file2=fopen(name,"a"))) 					/*output text file*/
-  	{G_fatal_error("  Can't open output file \n");
-  		return(1);}
-  		
-  strcat(name,".sh");  	
-  	
-  if (!(file3=fopen(name,"w"))) 					/*output mapcalc file*/
-  	{G_fatal_error("  Can't open output file \n");	
-  		return(1);}	
-  	
-  	
-  UseSys(sys1); /* Activates a system. All routines will work on this indicated system data and parameters.*/
-  full=InitFullSetA(); /*Initialize a full set. Allocates memory for a set and initialize it with all elements of
+  	if (_rerror>0) 
+    	{G_fatal_error("Can't open information system <%s>\n",sys2->name);
+    		return(1); }
+  
+  
+  	full=InitFullSetA(); /*Initialize a full set. Allocates memory for a set and initialize it with all elements of
         		domain based on the active information system */
         		
-  InitD(sys1); /*Generates MATRIX D from MATRIX A.Connected to sys and filled*/
+  	InitD(sys1); /*Generates MATRIX D from MATRIX A.Connected to sys and filled*/
    
-  P=InitEmptySetA(); /* Initialize an empty set. Memory size determined by active information system parameters */
-  Q=InitEmptySetA();
-  
+  	P=InitEmptySetA(); /* Initialize an empty set. Memory size determined by active information system parameters */
+  	Q=InitEmptySetA();
 
+  	nattributes=(AttributesNum(sys1)-1);
   
-  /* define attribute */
-  for(i=0;i<(AttributesNum(sys1)-1);i++)  
-    { 
+  	/* define attribute */
+  	for(i=0;i<nattributes;i++)  
+    	{
     	AddSetA(P,i); /* Adds a single element to a set */
-    }
-    
+    	}
     
    /* define decision */
-   AddSetA(Q,(AttributesNum(sys1)-1));
-   
-   
-  /*printf("number of objects: %i \n",ObjectsNum(sys1)); 		Returns number of objects in a system*/
-  /*printf("number of attributes: %i \n",AttributesNum(sys1));  Returns a number of attributes in a system.*/
+   	AddSetA(Q,(AttributesNum(sys1)-1));
+      
+  	InitX(sys1,P,Q,MATD); /*Generates MATRIX X from another matrix designed for use in core and reducts queries. */
+  	core=InitEmptySetA();
+  	Core(core,MATX); /* Puts a core of the active information system to core. */
+  	
+  	RedOptim( core, MATX ); /* Provides the optimized heuristic search for a single reduct */
   
-    
-  fprintf(file2,"Condition attributes are\n");   
-        fPrintSetA(file2,P);
-        PrintSetA(P);  /* Writes a formatted condition set to the standard output.Prints elements in brackets. */
-  fprintf(file2,"\nDecision attributes are\n");   
-        fPrintSetA(file2,Q);
-        PrintSetA(Q);  /* Writes a formatted decision set to the standard output.Prints elements in brackets. */
-  fprintf(file2,"\nDependCoef = %f\n",DependCoef(P,Q,MATD)); /* Returns degree of dependency Q from P in the active information system.*/
+  	CloseSetA(core);  /* Frees memory allocated for a set */
+  	n=RedFew(&beg,MATX); /*Finds all reducts shorter than the first one found.*/
+  	CloseMat(sys1,MATX); /* Closes a matrix. */
+ 
+  	if ( n>0 ) free( beg );
 
-  InitX(sys1,P,Q,MATD); /*Generates MATRIX X from another matrix designed for use in core and reducts queries. */
-  core=InitEmptySetA();
-  Core(core,MATX); /* Puts a core of the active information system to core. */	
-  fprintf(file2,"CORE = ");   
-  fPrintSetA(file2,core);  
-  RedOptim( core, MATX ); /* Provides the optimized heuristic search for a single reduct */
-  fprintf(file2,"\nRedOptim = ");
-  fPrintSetA(file2,core);
-  CloseSetA(core);  /* Frees memory allocated for a set */
-  n=RedFew(&beg,MATX); /*Finds all reducts shorter than the first one found.*/
-  CloseMat(sys1,MATX); /* Closes a matrix. */
-
-  fprintf( file2,"\nFew reducts ( %i ):\n", n );
-  for (i=0;i<n;i++)
-  { 
-     fPrintSetA( file2, beg+i*sys1->setAsize );
-     fprintf(file2,"\n");
-  }
-  if ( n>0 ) free( beg );
-
-
-
-
-
-  fprintf(file2, "%d strategy of generating rules\n", strgy);
-    
-  switch ( strgy )
-     {
+  	switch ( strgy )
+     	{
 	case 0: genrules = VeryFastRules;
 	   break;
 	case 1: genrules = FastRules;
@@ -152,32 +137,201 @@ int RulsExtraction(char *name,struct input *attributes, int strgy)  /*old MAIN*/
 	   break;
      }
 
+	r = genrules ( &rules, P, Q, MATD );  /* rules generator*/
+	
+	if (r>0) {opr = StrengthOfRules( rules, r ); } /* Creates a table of rules strengths*/
+	
+
+/**************************Output text files************************************/
+/***********print output about sys1 in a txt file (file_out_txt)****************/
+	output_to_txt(file_out_txt,rules,P,Q,core,beg,n,sys1,strgy,r,opr,attributes); 
+	
+/**************************close all********************************************/
+ 
+    CloseSys(sys1);   /* close sys1 */
+  
+/*******************************************************************************/
+/**************************Classify*********************************************/
+	
+	sys2=InitEmptySys();
+	SetParameters(sys2,nobjects,nattributes); /* assigning system parameters */
+	ConnectA(sys2,malloc(MatMemSize(sys2,MATA))); /* Connects MATRIX A to a system descriptor. */
+													/*MatMemSize: Returns size of memory used by matrix.*/
+	UseSys(sys2); /* active system sys2 was created in application and has only MATRIX A */
+
+	if (_rerror>0) 
+    {  G_fatal_error("Can't open information system <%s>\n",_mainsys->name);
+    	return(1); }
+    
+    G_message("Build information system for classification ");
+	for(i=0;i<nattributes;i++)
+		{
+		object=0;  /* set object numbers =0 and increase it until rows*cells for each attribute */
+		for (row = 0; row < nrows; row++)
+			{
+			G_percent(row, nrows, 1);
+			/* Reads appropriate information into the buffer buf associated with the requested row*/
+			G_get_d_raster_row (attributes[i].fd, attributes[i].buf, row);
+			for (col=0;col<ncols;col++)
+					{	  					
+					value = (attributes[i].buf[col]); /*make a cast on the DCELL output value*/
+					PutA(_mainsys,object,i,value);    /* filling MATRIX A */
+			      	object++;
+			      	}
+			}
+		}
+	
+	
+    buf = MatExist(_mainsys,MATA); /*Returns pointer to specified matrix if exists*/
+
+    if (!buf) 
+	{  G_fatal_error("Error in the information system <%s>\n",_mainsys->name);
+		return(1); }
+    
+    switch ( cls )
+     {
+	case 0: 
+	{
+		for (j=0;j<_mainsys->objects_num;j++)
+		{ /*Chooses the best rule to cover sample. Strategy no. 1*/
+		classify_vect[j]=Classify1(buf+j*_mainsys->attributes_num,rules,r,P,Q);
+		}
+	}
+	   break;
+	case 1: 
+	{
+		for (j=0;j<_mainsys->objects_num;j++)
+		{ /*Chooses the best rule to cover sample. Strategy no. 2*/
+		classify_vect[j]=Classify2(buf+j*_mainsys->attributes_num,rules,r,P,Q);
+		}
+	}
+	   break;
+    case 2: 
+    {
+		for (j=0;j<_mainsys->objects_num;j++)
+		{ /*Chooses the best rule to cover sample. Strategy no. 3*/
+		classify_vect[j]=Classify3(buf+j*_mainsys->attributes_num,rules,r,opr,P,Q);
+		}
+	}  
+	   break;
+  
+	default:;
+	   break;
+     }
+
+	
+	G_message("All cells classified (%d)",j);
+	
 /*****************************************************************************/
-  time1 = clock();
-  r = genrules ( &rules, P, Q, MATD );
-  time2 = clock();
-  if (r>0)
-  {  fprintf(file2,"Time of generating rules = %ds\n", time2, (time2-time1)/CLOCKS_PER_SEC );
-     opr = StrengthOfRules( rules, r ); /* Creates a table of rules strengths*/
-     fprintf(file2,"Rules ( %i )\n", r );
-     fPrintRules( file2, rules, r, opr, P, Q, attributes ); /*print to file generated rules*/
-     fPrintToScript( file3, rules, r, opr, P, Q, attributes );/*build mapcalc file*/
-     fprintf(file2,"Mean number of attributes in rule = %.1f\n",MeanAttrInRule( rules, r, P ));
-     free( rules );
-     free( opr );
-  }
-/******************************************************************************/
-  
-  
-  CloseSetA(P);
-  CloseSetA(Q);
-  CloseSetA(full);
-  CloseSys(sys1);
-  fclose(file2);
-  fclose(file3);
-  G_message("O.K. output placed to files");
-  return (0);
+
+  	free( rules );
+  	free( opr );
+  	CloseSetA(P);
+  	CloseSetA(Q);
+  	CloseSetA(full);
+  	CloseSys(sys2);
+  //fclose(file);
+  	fclose(file_out_txt);
+  	return (0);
 }
+
+void rough_set_library_out(int nrows, int ncols, int nattribute, struct input *attributes, char *file_out_sys)
+
+{
+	int row, col, i, j;
+	int value, decvalue;
+	int nobject;
+	char cell_buf[300];
+	FILE *fp;			/*file pointer for ASCII output*/
+
+	/* open *.sys file for writing or use stdout */
+        if(NULL == (fp = fopen(file_out_sys, "w")))
+        	G_fatal_error("Not able to open file [%s]",file_out_sys);
+
+       	fprintf(fp,"NAME: %s\nATTRIBUTES: %d\-nOBJECTS: %s\n",file_out_sys,nattribute+1,"      ");
+
+	/************** process the data *************/
+	
+	G_message("Build information system for rules extraction");
+	
+	nobject=0;
+
+	for (row = 0; row < nrows; row++)
+		{
+			G_percent(row, nrows, 1);
+			for(i=0;i<=nattribute;i++)
+				{
+				G_get_d_raster_row (attributes[i].fd, attributes[i].buf, row);/* Reads appropriate information into the buffer buf associated with the requested row*/
+				}
+				for (col=0;col<ncols;col++)
+					{	/*make a cast on the DCELL output value*/
+					decvalue=(int)attributes[nattribute].buf[col];
+					if(0<decvalue)  /* TODO: correct form will: decval!=null */
+						{
+						for(j=0;j<nattribute;j++)
+							{	/*make a cast on the DCELL output value*/
+							value = (int)(attributes[j].buf[col]);
+							sprintf(cell_buf, "%d",value);
+			      			G_trim_decimal (cell_buf);
+			      			fprintf (fp,"%s ",cell_buf);
+			      			}
+			      			fprintf(fp,"%d \n",decvalue);
+			      			nobject++;
+			      		}
+					}
+		}
+	
+	/************** write code file*************/
+    
+	for(i=0;i<=nattribute;i++)
+	{
+		fprintf(fp,"\n%s",attributes[i].name);
+	}
+
+	/************** write header file*************/
+
+	if(0<fseek(fp,0L,0)) /*move file pointer to header file*/
+		G_fatal_error("Not able to write file [%s]",file_out_sys);
+	else
+		fprintf(fp,"NAME: %s\nATTRIBUTES: %d\nOBJECTS: %d\n",file_out_sys,nattribute+1,nobject);
+
+	/************** close all and exit ***********/
+
+	fclose(fp);
+
+}
+
+
+void output_to_txt( FILE *file_out_txt, value_type* rules, setA P,setA Q, setA core, setA beg, int n, SYSTEM * sys1, int strgy, int r, int *opr, struct input *attributes)
+{	
+	int i;
+	fprintf(file_out_txt,"Condition attributes are\n");   
+  	fPrintSetA(file_out_txt,P);
+  	fprintf(file_out_txt,"\nDecision attributes are\n");   
+  	fPrintSetA(file_out_txt,Q);
+  	fprintf(file_out_txt,"\nDependCoef = %f\n",DependCoef(P,Q,MATD)); /* Returns degree of dependency Q from P in the active information system.*/
+	fprintf(file_out_txt,"CORE = ");   
+  	fPrintSetA(file_out_txt,core);  
+  	fprintf(file_out_txt,"\nRedOptim = ");
+  	fPrintSetA(file_out_txt,core);
+  	fprintf( file_out_txt,"\nFew reducts ( %i ):\n", n );
+  
+  	for (i=0;i<n;i++)
+  	{ 
+     	fPrintSetA( file_out_txt, beg+i*sys1->setAsize );
+     	fprintf(file_out_txt,"\n");
+  	}
+  
+  	fprintf(file_out_txt, "%d strategy of generating rules\n", strgy);
+  
+  	if (r>0)
+  	{   fprintf(file_out_txt,"Rules ( %i )\n", r );
+     	fPrintRules( file_out_txt, rules, r, opr, P, Q, attributes ); /*print to file generated rules*/
+     	fprintf(file_out_txt,"Mean number of attributes in rule = %.1f\n",MeanAttrInRule( rules, r, P ));
+  	}
+}
+
+
 
 
 void fPrintSetA( FILE *f, setA set )
@@ -228,90 +382,7 @@ void fPrintRules( FILE *file, value_type* rules,
 }
 
 
-void fPrintToScript( FILE *file, value_type* rules, int N, int *opr, setA P, setA Q, struct input *attributes )
-{  
-	int n,j,i;
-   fprintf(file,"#!/bin/bash\nRASTERrule=${1}\nif [ $# -ne 1 ]; then\n\techo 'Output file named roughmap, "
-				"Consider renaming'\n\tRASTERrule=roughmap\nfi\n");
-   	for (n=0;n<N;n++) 
-   	{  
-   	  	i=0;
-   	  	for (j=0;j<_mainsys->attributes_num;j++)
-   	  		{
-	 		if ( ContSetA( P,j ) ) /*Tests if a set contains an element*/
-	   			if (rules[n*_mainsys->attributes_num+j]!=MINUS) /*Missing values are coded by MINUS*/
-	   				{
-	   				if(i==0) /*if the role is only one or the firsth ...*/
-	   					fprintf(file,"r.mapcalc 'maprule%d=if(%s==%d",n,attributes[j].name,rules[n*_mainsys->attributes_num+j]);
-	   				else /*... otherwise ...*/
-	   					fprintf(file," && %s==%d",attributes[j].name,rules[n*_mainsys->attributes_num+j]);
-	   				i++;
-	   				}   		
-	   		}	   			
-      	for (j=0;j<_mainsys->attributes_num;j++)
-	 		if ( ContSetA( Q,j ) ) /*Tests if a set contains an element*/
-	   			if ((rules+n*_mainsys->attributes_num)[j]!=MINUS) /*Missing values are coded by MINUS*/
-	     			fprintf(file,",%d,null())'\n",(rules+n*_mainsys->attributes_num)[j]);
-   	}
-
-	
-   	fprintf(file,"\nr.patch --overwrite input=");
-   	for (n=0;n<N;n++) 
-   		{
-   			fprintf(file,"maprule%d",n);
-   			if(n<N-1)	{fprintf(file,",");}
-   		}
-   	fprintf(file," output=$RASTERrule");
-   		
-   	fprintf(file,"\ng.remove rast=");
-   	for (n=0;n<N;n++) 
-   		{
-   			fprintf(file,"maprule%d",n);
-   			if(n<N-1)	{fprintf(file,",");}
-   		}	
-		
-	fprintf(file,"\nr.colors map=$RASTERrule color=ryg ");
-
-   	return;
-}
-
-/*
-void fPrintToScript( FILE *file, value_type* rules,
-		 int N, int *opr, setA P, setA Q, struct input *attributes )
-{  int n,j,i;
-   
-   fprintf(file,"roughmap=");
-   for (n=0;n<N;n++) 
-   {  
-   	  i=0;
-   	  for (j=0;j<_mainsys->attributes_num;j++)
-   	  	{
-	 	if ( ContSetA( P,j ) ) 
-	   		if (rules[n*_mainsys->attributes_num+j]!=MINUS) 
-	   			{
-	   			if(i==0) 
-	   				fprintf(file,"if(%s==%d",attributes[j].name,rules[n*_mainsys->attributes_num+j]);
-	   			else 
-	   				fprintf(file," && %s==%d",attributes[j].name,rules[n*_mainsys->attributes_num+j]);
-	   			i++;
-	   			}
-	   		
-	   	}
-	   			
-      for (j=0;j<_mainsys->attributes_num;j++)
-	 	if ( ContSetA( Q,j ) ) 
-	   		if ((rules+n*_mainsys->attributes_num)[j]!=MINUS) 
-	     		fprintf(file,",%d)",(rules+n*_mainsys->attributes_num)[j]);
-      if(n<N-1)
-	 fprintf(file,"\\ \n + ");
-   }
-	   			
-   fprintf(file,"\nend\n");
-   return;
-}
-*/
-
-   
+  
 float MeanAttrInRule( value_type *rules, int N, setA P )
 {  int counter=0;
    int i,j;
@@ -339,6 +410,6 @@ int NormRules( value_type **rules, setA P, setA Q, int mat )
 }
 
 
-   
-
+/*dom 07 dic 2008 07:04:58 CET */
+ 
 

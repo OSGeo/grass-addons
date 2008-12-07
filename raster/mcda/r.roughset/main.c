@@ -2,9 +2,9 @@
  *
  * MODULE:       r.roughset
  * AUTHOR(S):    GRASS module authors ad Rough Set Library (RSL) maintain:
- *					G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)		
- *				 Rough Set Library (RSL) ver. 2 original develop:
- *		         	M.Gawrys - J.Sienkiewicz 
+ *		 		G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)		
+ *		 		Rough Set Library (RSL) ver. 2 original develop:
+ *		 		M.Gawrys - J.Sienkiewicz 
  *
  * PURPOSE:      Geographics rough set analisys and knowledge discovery 
  *
@@ -19,17 +19,20 @@
 #include "localproto.h"
 
 
-void rough_sel_library_out(int nrows, int ncols, int nattribute, struct input *attributes, char *fileOutput);
-
-
 int main(int argc, char *argv[])
 {
     struct Cell_head cellhd;		/* it stores region information, and header of rasters */
-    char *mapset;			/* mapset name */
-    int i,j, nattribute;	/* index and  files number*/
-    int nrows, ncols;
-    int strgy;			/* strategy rules extraction index*/
-
+    char *mapset;					/* mapset name */
+    int i,j;						/* index and  files number*/
+    int row,col,nrows, ncols;
+    int nattributes;			/*attributes numer*/
+    int strgy, cls;				/* strategy rules extraction and classifiy index*/
+	
+	char *result;			/* output raster name */
+	int *classify_vect;  	/* matrix for classified value storage*/
+	int outfd;				/* output file descriptor */
+	unsigned char *outrast;	/* output buffer */
+	
     RASTER_MAP_TYPE data_type;	/* type of the map (CELL/DCELL/...) */
     /*int value, decvalue;*/	/*single attribute and decision value*/
 
@@ -38,7 +41,7 @@ int main(int argc, char *argv[])
 
     struct GModule *module;	/* GRASS module for parsing arguments */
 
-    struct Option *attribute, *decision, *strategy, *output;	/* options */
+    struct Option *attr_map, *dec_map, *genrules, *clssfy, *output_txt, *output_map;	/* options */
     /*struct Flag *flagQuiet		flags */
 
     /* initialize GIS environment */
@@ -47,40 +50,55 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     module->keywords = _("raster,geographics knowledge discovery");
-    module->description = _("Rough set based geographics knowledg ");
+    module->description = _("Rough set based geographics knowledge ");
 
 
     /* Define the different options as defined in gis.h */
-    attribute = G_define_option() ;
-    attribute->key        = "attributes";
-    attribute->type       = TYPE_STRING;
-    attribute->required   = YES;
-    attribute->multiple   = YES;
-    attribute->gisprompt  = "old,cell,raster" ;
-    attribute->description = "Input geographics attributes in information system";
+    attr_map = G_define_option() ; /* Allocates memory for the Option structure and returns a pointer to this memory */
+    attr_map->key        = "attributes";
+    attr_map->type       = TYPE_STRING;
+    attr_map->required   = YES;
+    attr_map->multiple   = YES;
+    attr_map->gisprompt  = "old,cell,raster" ;
+    attr_map->description = "Input geographics ATTRIBUTES in information system";
+	
+    dec_map = G_define_option() ;
+    dec_map->key        = "decision";
+    dec_map->type       = TYPE_STRING;
+    dec_map->required   = YES;
+    dec_map->gisprompt  = "old,cell,raster" ;
+    dec_map->description = "Input geographics DECISION in information system";
 
-    decision = G_define_option() ;
-    decision->key        = "decision";
-    decision->type       = TYPE_STRING;
-    decision->required   = YES;
-    decision->gisprompt  = "old,cell,raster" ;
-    decision->description = "Input geographics decision in information system";
+    genrules = G_define_option() ;
+    genrules->key        = "strgy";
+    genrules->type       = TYPE_STRING;
+    genrules->required   = YES;
+    genrules->options	 = "Very fast,Fast,Medium,Best,All,Low,Upp,Normal";
+    genrules->description = "Strategies for generating rules";
+    
+    clssfy = G_define_option() ;
+    clssfy->key        = "clssfy";
+    clssfy->type       = TYPE_STRING;
+    clssfy->required   = YES;
+    clssfy->options	   = "Classify1,Classify2,Classify3";
+    clssfy->description = "Strategies for classified map (conflict resolution)";
+    
+    output_txt = G_define_option();
+    output_txt->key = "outTXT";
+    output_txt->type = TYPE_STRING;
+    output_txt->required = YES;
+    output_txt->gisprompt = "new_file,file,output";
+    output_txt->answer ="InfoSys";
+    output_txt->description = "Output information system file";
 
-    strategy = G_define_option() ;
-    strategy->key        = "strategy";
-    strategy->type       = TYPE_STRING;
-    strategy->required   = YES;
-    strategy->options	 = "Very fast,Fast,Medium,Best,All,Low,Upp,Normal";
-    strategy->description = "Choose strategy for generating rules";
-
-    output = G_define_option();
-    output->key = "InfoSys";
-    output->type = TYPE_STRING;
-    output->required = YES;
-    output->gisprompt = "new_file,file,output";
-    output->answer ="InfoSys";
-    output->description = "Output information system file";
-
+  	output_map = G_define_option(); 
+	output_map->key = "outMAP";
+    output_map->type = TYPE_STRING;
+    output_map->required = YES;
+    output_map->gisprompt = "new,cell,raster";
+    output_map->answer ="classify";
+    output_map->description = "classified output map";
+	
 
     /* options and flags parser */
     if (G_parser(argc, argv))
@@ -93,42 +111,53 @@ int main(int argc, char *argv[])
 /***********************************************************************/
 
        /* number of file (=attributes) */
-    nattribute=0;
-    while (attribute->answers[nattribute]!=NULL)
+    nattributes=0;
+    while (attr_map->answers[nattributes]!=NULL)
     	{
-    		nattribute++;
+    		nattributes++;
     	}
 
+/* store output classified MAP name in variable*/
+	result=output_map->answer;
 
-/*Convert strategy answer in index.  strcmp return 0 if answer is the passed string*/
-    if(strcmp(strategy->answer,"Very fast")==0)
+/*Convert strategy rules extraction answer in index.  strcmp return 0 if answer is the passed string*/
+    if(strcmp(genrules->answer,"Very fast")==0)
     	strgy=0;
-    else if(strcmp(strategy->answer,"Fast")==0)
+    else if(strcmp(genrules->answer,"Fast")==0)
     	strgy=1;
-    else if(strcmp(strategy->answer,"Medium")==0)
+    else if(strcmp(genrules->answer,"Medium")==0)
     	strgy=2;
-    else if(strcmp(strategy->answer,"Best")==0)
+    else if(strcmp(genrules->answer,"Best")==0)
     	strgy=3;
-    else if(strcmp(strategy->answer,"All")==0)
+    else if(strcmp(genrules->answer,"All")==0)
     	strgy=4;
-    else if(strcmp(strategy->answer,"Low")==0)
+    else if(strcmp(genrules->answer,"Low")==0)
     	strgy=5;
-    else if(strcmp(strategy->answer,"Upp")==0)
+    else if(strcmp(genrules->answer,"Upp")==0)
     	strgy=6;
     else
     	strgy=7;
 
-    G_message("choose:%d,%s",strgy,strategy->answer);
+ /*Convert strategy map lassify answer in index.  strcmp return 0 if answer is the passed string*/
+
+	if(strcmp(clssfy->answer,"Classify1")==0)
+		cls=0;
+	else if(strcmp(clssfy->answer,"Classify2")==0)
+		cls=1;
+	else if(strcmp(clssfy->answer,"Classify3")==0)
+		cls=2;
+	else
+		cls=0;
 
 
     /* process the input maps:*/
     /* ATTRIBUTES grid */
-    attributes = G_malloc((nattribute+1) * sizeof(struct input)); /*attributes is input struct defined in localproto.h*/
+    attributes = G_malloc((nattributes+1) * sizeof(struct input)); /*attributes is input struct defined in localproto.h*/
 
-	for (i = 0; i < nattribute; i++)
+	for (i = 0; i < nattributes; i++)
 	{
 		struct input *p = &attributes[i];
-		p->name = attribute->answers[i];
+		p->name = attr_map->answers[i];
 		p->mapset = G_find_cell(p->name,""); /* G_find_cell: Looks for the raster map "name" in the database. */
 		if (!p->mapset)
 			G_fatal_error(_("Raster file <%s> not found"), p->name);
@@ -137,99 +166,74 @@ int main(int argc, char *argv[])
 			G_fatal_error(_("Unable to open input map <%s> in mapset <%s>"),p->name, p->mapset);
 		p->buf = G_allocate_d_raster_buf(); /* Allocate an array of DCELL based on the number of columns in the current region. Return DCELL *  */
 	}
-
+	
+	/* determine the inputmap DECISION type (CELL/FCELL/DCELL) */
+    data_type = G_raster_map_type(dec_map->answer, mapset);
+   
    /* DECISION grid (at last column in Information System matrix) */
-		struct input *p = &attributes[nattribute];
-		p->name = decision->answer;
+		struct input *p = &attributes[nattributes];
+		p->name = dec_map->answer;
 		p->mapset = G_find_cell(p->name,""); /* G_find_cell: Looks for the raster map "name" in the database. */
 		if (!p->mapset)
 			G_fatal_error(_("Raster file <%s> not found"), p->name);
 		p->fd = G_open_cell_old(p->name, p->mapset);/*opens the raster file name in mapset for reading. A nonnegative file descriptor is returned if the open is successful.*/
 		if (p->fd < 0)
 			G_fatal_error(_("Unable to open input map <%s> in mapset <%s>"),p->name, p->mapset);
-		p->buf = G_allocate_d_raster_buf(); /* Allocate an array of DCELL based on the number of columns in the current region. Return DCELL *  */
-
-
+		p->buf = G_allocate_raster_buf(data_type); /* Allocate an array of DCELL based on the number of columns in the current region. Return DCELL *  */
+	
+	/* Allocate output buffer, use input map data_type */
 	nrows = G_window_rows();
 	ncols = G_window_cols();
+	outrast = G_allocate_raster_buf(data_type);
 
-	rough_sel_library_out(nrows, ncols, nattribute, attributes, output->answer);/*build RSL standard file*/
-	RulsExtraction(output->answer,attributes,strgy); /* extract rules from RSL*/
+	rough_set_library_out(nrows, ncols, nattributes, attributes, output_txt->answer);/*build RSL standard file*/
+	
+	classify_vect = G_malloc(sizeof(int) * (nrows*ncols)); /* memory allocation*/
+	
+	rough_analysis(nrows, ncols, output_txt->answer, classify_vect, attributes,strgy,cls); /* extract rules from RSL and generate classified vectpr*/
+	
+	/* controlling, if we can write the raster */
+    if ((outfd = G_open_raster_new(result, CELL_TYPE)) < 0)
+	G_fatal_error(_("Unable to create raster map <%s>"), result);
+	 
+	 /* generate classified map*/
+	G_message("Building calssified map...");
+	j=0; /* builder map index*/
+	for(row = 0; row < nrows; row++)
+		{
+		CELL c;
+		G_percent(row, nrows, 2);
+		for (col = 0; col < ncols; col++)
+			{
+			c=((CELL *) classify_vect[j]);
+			((CELL *) outrast)[col] = c;
+			j++;
+			}
 
+		if (G_put_raster_row(outfd, outrast,  data_type) < 0)
+			G_fatal_error(_("Failed writing raster map <%s>"), result);
+		}
+
+
+		/* memory cleanup */		
+	for (i = 0; i<=nattributes; i++)
+		G_close_cell(attributes[i].fd);	
+	G_close_cell(outfd);
+	
+	for (i = 0; i<nattributes; i++)
+		G_free(attributes[i].buf);	
+	
+	//G_free(outrast);	
+	
+	G_message("End: %s, with %d cells.",G_date(),j);
+	/* add command line incantation to history file */
+    G_short_history(result, "raster", &history);
+    G_command_history(&history);
+    G_write_history(result, &history);
+    
 	exit(EXIT_SUCCESS);
 }
 
-
-void rough_sel_library_out(int nrows, int ncols, int nattribute, struct input *attributes, char *fileOutput)
-
-{
-	int row, col, i, j;
-	int value, decvalue;
-	int nobject;
-	char cell_buf[300];
-	FILE *fp;			/*file pointer for ASCII output*/
-
-	/* open *.sys file for writing or use stdout */
-        if(NULL == (fp = fopen(fileOutput, "w")))
-        	G_fatal_error("Not able to open file [%s]",fileOutput);
-
-       	fprintf(fp,"NAME: %s\nATTRIBUTES: %d\nOBJECTS: %s\n",fileOutput,nattribute+1,"      ");
-
-	/************** process the data *************/
-
-	nobject=0;
-
-	fprintf (stderr, _("Percent complete ... "));
-
-	for (row = 0; row < nrows; row++)
-		{
-			G_percent(row, nrows, 2);
-			for(i=0;i<=nattribute;i++)
-				{
-					G_get_d_raster_row (attributes[i].fd, attributes[i].buf, row);/* Reads appropriate information into the buffer buf associated with the requested row*/
-				}
-				for (col=0;col<ncols;col++)
-					{	/*make a cast on the DCELL output value*/
-						decvalue=(int)attributes[nattribute].buf[col];
-						if(0<decvalue)
-						{
-							for(j=0;j<nattribute;j++)
-							{	/*make a cast on the DCELL output value*/
-								value = (int)(attributes[j].buf[col]);
-								sprintf(cell_buf, "%d",value);
-			      					G_trim_decimal (cell_buf);
-			      					fprintf (fp,"%s ",cell_buf);
-			      				}
-			      				fprintf(fp,"%d \n",decvalue);
-			      				nobject++;
-			      			}
-					}
-		}
-	/************** write code file*************/
-
-	for(i=0;i<=nattribute;i++)
-	{
-		fprintf(fp,"\n%s",attributes[i].name);
-	}
-
-	/************** write header file*************/
-
-	if(0<fseek(fp,0L,0)) /*move file pointer to header file*/
-		G_fatal_error("Not able to write file [%s]",fileOutput);
-	else
-		fprintf(fp,"NAME: %s\nATTRIBUTES: %d\nOBJECTS: %d\n",fileOutput,nattribute+1,nobject);
-
-	/************** close all and exit ***********/
-
-	for (i = 0; i<=nattribute; i++)
-		G_close_cell(attributes[i].fd);
-
-	fclose(fp);
-	G_percent(row, nrows, 2);
-
-}
-
-
-
+/*dom 07 dic 2008 07:05:15 CET */ 
 
 
