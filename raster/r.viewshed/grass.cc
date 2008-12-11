@@ -99,10 +99,9 @@ GridHeader *read_header_from_GRASS(char *rastName, Cell_head *region) {
 	  hd->nrows = (dimensionType) nrows;
 	  hd->ncols = (dimensionType) ncols;
     }
-    else {
-	  G_fatal_error(_("grid dimension too big for current precision"));
-	  exit(EXIT_FAILURE);
-    }
+    else
+	G_fatal_error(_("Grid dimension too big for current precision"));
+
 
     /*fill in rest of header */
     hd->xllcorner = G_col_to_easting(0, region);
@@ -110,19 +109,16 @@ GridHeader *read_header_from_GRASS(char *rastName, Cell_head *region) {
     /*Cell_head stores 2 resolutions, while GridHeader only stores 1
 	//make sure the two Cell_head resolutions are equal */
 	if (fabs(region->ew_res - region->ns_res) > .001) {
-	  G_warning(_("east-west resolution does not equal north-south resolutio. The viewshed computation assumes the cells are square, so in this case this may result in innacuracies."));
+	  G_warning(_("East-west resolution does not equal north-south resolutio. The viewshed computation assumes the cells are square, so in this case this may result in innacuracies."));
 	  // 	exit(EXIT_FAILURE);
 	  //     
 	}
 	hd->cellsize = (float) region->ew_res;
 	//store the null value of the map
 	G_set_f_null_value(& (hd->nodata_value), 1);
-	printf("nodata value set to %f\n", hd->nodata_value);
+	G_message("Nodata value set to %f", hd->nodata_value);
   return hd;
 }
-
-
-
 
 
 
@@ -154,17 +150,13 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
   /*get the mapset name */
   char *mapset;
   mapset = G_find_cell(rastName, "");
-  if (mapset == NULL) {
-	G_fatal_error(_("raster map [%s] not found"), rastName);
-	exit(EXIT_FAILURE);
-  }
+  if (mapset == NULL)
+	G_fatal_error(_("Raster map [%s] not found"), rastName);
   
   /*open map */
   int infd;
-  if ((infd = G_open_cell_old(rastName, mapset)) < 0) {
+  if ((infd = G_open_cell_old(rastName, mapset)) < 0)
 	G_fatal_error(_("Cannot open raster file [%s]"), rastName);
-	exit(EXIT_FAILURE);
-  }
   
   /*get the data_type */
   RASTER_MAP_TYPE data_type;
@@ -192,10 +184,8 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
   for (i = 0; i < G_window_rows(); i++) {
 	/*read in the raster row */
 	int rasterRowResult = G_get_raster_row(infd, inrast, i, data_type);
-	if (rasterRowResult <= 0) {
-	  G_fatal_error(_("coord not read from row %d of %s"), i, rastName);
-	  exit(EXIT_FAILURE);
-	}
+	if (rasterRowResult <= 0)
+	    G_fatal_error(_("Coord not read from row %d of <%s>"), i, rastName);
 	
 	/*fill event list with events from this row */
 	for (j = 0; j < G_window_cols(); j++) {
@@ -231,7 +221,7 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 		set_viewpoint_elev(vp, e.elev + viewOptions.obsElev);
 		if (isnull) {
 		  	/*what to do when viewpoint is NODATA ? */
-		  G_message(_("WARNING: viewpoint is NODATA. "));
+		  G_warning(_("Viewpoint is NODATA."));
 		  G_message(_("Will assume its elevation is = %f"), vp->elev);
 		}
 		continue;	
@@ -316,17 +306,14 @@ grass_init_event_list(char *rastName, Viewpoint* vp, GridHeader* hd,
   /*determine which mapset we are in */
   char *mapset;
   mapset = G_find_cell(rastName, "");
-  if (mapset == NULL) {
-	G_fatal_error(_("raster map [%s] not found"), rastName);
-	exit(EXIT_FAILURE);
-  }
+  if (mapset == NULL)
+	G_fatal_error(_("Raster map [%s] not found"), rastName);
   
   /*open map */
   int infd;
-  if ((infd = G_open_cell_old(rastName, mapset)) < 0) {
+  if ((infd = G_open_cell_old(rastName, mapset)) < 0)
 	G_fatal_error(_("Cannot open raster file [%s]"), rastName);
-	exit(EXIT_FAILURE);
-  }
+
   RASTER_MAP_TYPE data_type;
   data_type = G_raster_map_type(rastName, mapset);
   void *inrast;
@@ -345,10 +332,9 @@ grass_init_event_list(char *rastName, Viewpoint* vp, GridHeader* hd,
   for (i = 0; i < G_window_rows(); i++) {
 	
 	/*read in the raster row */
-	if (G_get_raster_row(infd, inrast, i, data_type) <= 0) {
-	  G_fatal_error(_("coord not read from row %d of %s"), i, rastName);
-	  exit(EXIT_FAILURE);
-	}
+	if (G_get_raster_row(infd, inrast, i, data_type) <= 0)
+	  G_fatal_error(_("Coord not read from row %d of %s"), i, rastName);
+
 	/*fill event list with events from this row */
 	for (j = 0; j < G_window_cols(); j++) {
 	  
@@ -386,8 +372,8 @@ grass_init_event_list(char *rastName, Viewpoint* vp, GridHeader* hd,
 		set_viewpoint_elev(vp, e.elev + viewOptions.obsElev);
 		/*what to do when viewpoint is NODATA */
 		if (is_nodata(hd, e.elev)) {
-		  printf("WARNING: viewpoint is NODATA. ");
-		  printf("Will assume its elevation is %.f\n", e.elev);
+		  G_warning("Viewpoint is NODATA.");
+		  G_message("Will assume its elevation is %.f", e.elev);
 		};
 	  }
 	  
@@ -431,11 +417,10 @@ grass_init_event_list(char *rastName, Viewpoint* vp, GridHeader* hd,
   
   G_message(_("...done creating event list\n"));
   G_close_cell(infd);
-  printf("nbEvents = %lu\n", (unsigned long)eventList->stream_len());
-  printf("Event stream length: %lu x %dB (%lu MB)\n",
-		 (unsigned long)eventList->stream_len(), (int)sizeof(AEvent),
-	   (unsigned
-	    long)(((long long)(eventList->stream_len() *
+  G_message("nbEvents = %lu", (unsigned long)eventList->stream_len());
+  G_message("Event stream length: %lu x %dB (%lu MB)",
+	 (unsigned long)eventList->stream_len(), (int)sizeof(AEvent),
+	 (unsigned long)(((long long)(eventList->stream_len() *
 						   sizeof(AEvent))) >> 20));
   fflush(stdout);
   return eventList;
@@ -453,7 +438,7 @@ void
 save_grid_to_GRASS(Grid* grid, char* filename, RASTER_MAP_TYPE type, 
 				   float(*fun)(float)) {
   
-  G_message(_("saving grid to %s"), filename);
+  G_message(_("Saving grid to <%s>"), filename);
   assert(grid && filename);
 
   /*open the new raster  */
@@ -503,22 +488,19 @@ void
 save_vis_elev_to_GRASS(Grid* visgrid, char* elevfname, char* visfname,  
 					   float vp_elev) {
 					   
-  G_message(_("saving grid to %s"), visfname);
+  G_message(_("Saving grid to <%s>"), visfname);
   assert(visgrid && elevfname && visfname);
   
   /*get the mapset name */
   char *mapset;
   mapset = G_find_cell(elevfname, "");
-  if (mapset == NULL) {
-	G_fatal_error(_("raster map [%s] not found"), elevfname);
-	exit(EXIT_FAILURE);
-  }
+  if (mapset == NULL)
+	G_fatal_error(_("Raster map [%s] not found"), elevfname);
+
   /*open elevation map */
   int elevfd;
-  if ((elevfd = G_open_cell_old(elevfname, mapset)) < 0) {
+  if ((elevfd = G_open_cell_old(elevfname, mapset)) < 0)
 	G_fatal_error(_("Cannot open raster file [%s]"), elevfname);
-	exit(EXIT_FAILURE);
-  }
   
   /*get elevation data_type */
   RASTER_MAP_TYPE elev_data_type;
@@ -540,9 +522,9 @@ save_vis_elev_to_GRASS(Grid* visgrid, char* elevfname, char* visfname,
   double elev=0, viewshed_value; 
   for (i = 0; i < G_window_rows(); i++) {
 	/* get the row from elevation */
-	if (G_get_raster_row(elevfd, elevrast, i, elev_data_type) <= 0) {
-	  G_fatal_error(_("save_vis_elev_to_GRASS: could not read row %d"), i);
-	}
+	if (G_get_raster_row(elevfd, elevrast, i, elev_data_type) <= 0)
+	    G_fatal_error(_("save_vis_elev_to_GRASS: could not read row %d"), i);
+
 	for (j = 0; j < G_window_cols(); j++) {
 	  
 	  /* read the current elevation value */
@@ -608,7 +590,7 @@ void writeValue(void* bufrast, int j, double x, RASTER_MAP_TYPE data_type) {
 	((DCELL *) bufrast)[j] = (DCELL) x; 
 	break;
   default: 
-	G_fatal_error(_("unknown type")); 
+	G_fatal_error(_("Unknown data type")); 
   }
 }
 
@@ -625,8 +607,7 @@ void writeNodataValue(void* bufrast, int j,  RASTER_MAP_TYPE data_type) {
 	G_set_d_null_value(& ((DCELL *) bufrast)[j], 1);
 	break;
   default: 
-	G_fatal_error(_("unknown type")); 
-	exit(EXIT_FAILURE); 
+	G_fatal_error(_("Unknown data type")); 
   }
 }
 
@@ -637,10 +618,11 @@ void writeNodataValue(void* bufrast, int j,  RASTER_MAP_TYPE data_type) {
    for each value x it writes to grass fun(x) */
 void
 save_io_visibilitygrid_to_GRASS(IOVisibilityGrid * visgrid, 
-								char* fname, RASTER_MAP_TYPE type, 
-								float (*fun)(float)) {
+				char* fname, RASTER_MAP_TYPE type, 
+				float (*fun)(float))
+{
   
-  G_message(_("saving grid to %s"), fname);
+  G_message(_("Saving grid to <%s>"), fname);
   assert(fname && visgrid);
   
   /* open the output raster  and set up its row buffer */
@@ -708,25 +690,22 @@ save_io_visibilitygrid_to_GRASS(IOVisibilityGrid * visgrid,
 	(i,j) order. */
 void
 save_io_vis_and_elev_to_GRASS(IOVisibilityGrid * visgrid, char* elevfname, 
-							  char* visfname, float vp_elev) {
+				char* visfname, float vp_elev)
+{
   
-  G_message(_("saving grid to %s"), visfname);
+  G_message(_("Saving grid to <%s>"), visfname);
   assert(visfname && visgrid);
   
   /*get mapset name and data type */
   char *mapset;
   mapset = G_find_cell(elevfname, "");
-  if (mapset == NULL) {
-	G_fatal_error(_("opening %s: cannot find raster"), elevfname); 
-	exit(EXIT_FAILURE);
-  }
+  if (mapset == NULL)
+	G_fatal_error(_("Opening <%s>: cannot find raster"), elevfname); 
 
  /*open elevation map */
   int elevfd;
-  if ((elevfd = G_open_cell_old(elevfname, mapset)) < 0) {
+  if ((elevfd = G_open_cell_old(elevfname, mapset)) < 0)
 	G_fatal_error(_("Cannot open raster file [%s]"), elevfname);
-	exit(EXIT_FAILURE);
-  }
   
   /*get elevation data_type */
   RASTER_MAP_TYPE elev_data_type;
@@ -764,10 +743,8 @@ save_io_vis_and_elev_to_GRASS(IOVisibilityGrid * visgrid, char* elevfname,
   double elev=0, viewshed_value; 
   for (i = 0; i < G_window_rows(); i++) {
 
-	if (G_get_raster_row(elevfd, elevrast, i, elev_data_type) <= 0) {
-	  G_fatal_error(_("could not read row %d"), i);
-	  exit(EXIT_FAILURE);
-	}
+	if (G_get_raster_row(elevfd, elevrast, i, elev_data_type) <= 0)
+	  G_fatal_error(_("Could not read row %d"), i);
 
 	for (j = 0; j < G_window_cols(); j++) {
 	

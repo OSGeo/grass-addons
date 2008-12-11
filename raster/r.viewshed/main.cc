@@ -133,10 +133,8 @@ int main(int argc, char *argv[]) {
     module->description = _("IO-efficient viewshed algorithm");
 
     struct Cell_head region;
-    if (G_get_set_window(&region) == -1) {
-	  G_fatal_error("error getting current region");
-	  exit(EXIT_FAILURE);
-    }
+    if (G_get_set_window(&region) == -1)
+	G_fatal_error("Error getting current region");
 #endif
 
 
@@ -192,10 +190,9 @@ int main(int argc, char *argv[]) {
 	   the algorithm will work correctly in theory. But this
 	   requires some changes. To do.*/
     if (!(vp.row < hd->nrows && vp.col < hd->ncols)) {
-	  G_fatal_error(_("Viewpoint outside grid"));
-	  G_fatal_error(_("viewpont: (row=%d, col=%d)"), vp.row, vp.col);
+	  G_warning(_("Viewpoint outside grid"));
+	  G_warning(_("viewpont: (row=%d, col=%d)"), vp.row, vp.col);
 	  G_fatal_error(_("grid: (rows=%d, cols=%d)"), hd->nrows, hd->ncols);
-	  exit(EXIT_FAILURE);
     }
 #else
 	/*open file input file and read grid header from grid ascii file */
@@ -575,8 +572,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     viewOptions->maxDist = atof(maxDistOpt->answer);
     if (viewOptions->maxDist < 0 && 
 	viewOptions->maxDist!= INFINITY_DISTANCE) {
-      G_fatal_error(_("negative max distance value is not valid"));
-      exit(EXIT_FAILURE);
+      G_fatal_error(_("Negative max distance value is not valid"));
     }
 
     
@@ -712,10 +708,6 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
   return;
 }
 #endif
-
-
-
-
 
 
 
