@@ -45,7 +45,7 @@
 
 #ifdef __GRASS__
 #include <grass/iostream/ami.h>
-#else 
+#else
 #include <ami.h>
 #endif
 
@@ -68,12 +68,12 @@ typedef struct event_
 
 /* ------------------------------------------------------------ */
 /*determines if the point at row,col is outside the maximum distance
-  limit wrt viewpoint.   Return 1 if the point is outside
-  limit, 0 if point is inside limit. */
-int 
-is_point_outside_max_dist(Viewpoint  vp, GridHeader hd,
-						  dimensionType row, dimensionType col,
-						  float maxDist);
+   limit wrt viewpoint.   Return 1 if the point is outside
+   limit, 0 if point is inside limit. */
+int
+is_point_outside_max_dist(Viewpoint vp, GridHeader hd,
+			  dimensionType row, dimensionType col,
+			  float maxDist);
 
 
 
@@ -83,12 +83,12 @@ is_point_outside_max_dist(Viewpoint  vp, GridHeader hd,
    all events in the input file, and write them to the event
    list. data is allocated and initialized with all the cells on the
    same row as the viewpoint. it returns the number of events.
-*/
+ */
 size_t
-init_event_list_in_memory(AEvent * eventList, char* inputfname, 
-						  Viewpoint * vp,
-						  GridHeader * hd, ViewOptions viewOptions,
-						  double **data, MemoryVisibilityGrid* visgrid);
+init_event_list_in_memory(AEvent * eventList, char *inputfname,
+			  Viewpoint * vp,
+			  GridHeader * hd, ViewOptions viewOptions,
+			  double **data, MemoryVisibilityGrid * visgrid);
 
 
 
@@ -100,11 +100,11 @@ init_event_list_in_memory(AEvent * eventList, char* inputfname,
    the stream. hd is initialized from file. if data is not NULL, data
    is allocated and initialized with all the cells on the same row as
    the viewpoint.
-*/
-AMI_STREAM <AEvent>*
-init_event_list(char* inputfname, Viewpoint * vp, GridHeader * hd, 
-				ViewOptions viewOptions, double **data, 
-				IOVisibilityGrid* visgrid);
+ */
+AMI_STREAM < AEvent > *init_event_list(char *inputfname, Viewpoint * vp,
+				       GridHeader * hd,
+				       ViewOptions viewOptions, double **data,
+				       IOVisibilityGrid * visgrid);
 
 
 

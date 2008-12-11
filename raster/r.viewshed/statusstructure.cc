@@ -1,3 +1,4 @@
+
 /****************************************************************************
  *
  * MODULE:       r.viewshed
@@ -59,22 +60,24 @@ extern "C"
 
 /* ------------------------------------------------------------ */
 /*find the vertical angle in degrees between the viewpoint and the
-  point represented by the StatusNode.  Assumes all values (except
-  gradient) in sn have been filled. The value returned is in [0,
-  180]. if doCurv is set we need to consider the curvature of the
-  earth */
-float get_vertical_angle(Viewpoint vp, StatusNode sn, int doCurv) {
-  
-  /*determine the difference in elevation, based on the curvature*/
-  float diffElev;
-  diffElev = vp.elev - sn.elev;
-  
-  /*calculate and return the angle in degrees*/
-  assert(fabs(sn.dist2vp) > 0.001); 
-  if(diffElev >= 0.0)
-    return (atan(sn.dist2vp / diffElev) * (180/PI));
-  else
-    return ((atan(fabs(diffElev) / sn.dist2vp) * (180/PI)) + 90);
+   point represented by the StatusNode.  Assumes all values (except
+   gradient) in sn have been filled. The value returned is in [0,
+   180]. if doCurv is set we need to consider the curvature of the
+   earth */
+float get_vertical_angle(Viewpoint vp, StatusNode sn, int doCurv)
+{
+
+    /*determine the difference in elevation, based on the curvature */
+    float diffElev;
+
+    diffElev = vp.elev - sn.elev;
+
+    /*calculate and return the angle in degrees */
+    assert(fabs(sn.dist2vp) > 0.001);
+    if (diffElev >= 0.0)
+	return (atan(sn.dist2vp / diffElev) * (180 / PI));
+    else
+	return ((atan(fabs(diffElev) / sn.dist2vp) * (180 / PI)) + 90);
 }
 
 
@@ -84,15 +87,15 @@ float get_vertical_angle(Viewpoint vp, StatusNode sn, int doCurv) {
 long long get_active_str_size_bytes(GridHeader * hd)
 {
 
-  long long sizeBytes;
-  
-  printf("Estimated size active structure:");
-  printf(" (key=%d, ptr=%d, total node=%d B)",
-	 (int)sizeof(TreeValue),
-	 (int)sizeof(TreeNode *), (int)sizeof(TreeNode));
-  sizeBytes = sizeof(TreeNode) * max(hd->ncols, hd->nrows);
-  printf(" Total= %lld B\n", sizeBytes);
-  return sizeBytes;
+    long long sizeBytes;
+
+    printf("Estimated size active structure:");
+    printf(" (key=%d, ptr=%d, total node=%d B)",
+	   (int)sizeof(TreeValue),
+	   (int)sizeof(TreeNode *), (int)sizeof(TreeNode));
+    sizeBytes = sizeof(TreeNode) * max(hd->ncols, hd->nrows);
+    printf(" Total= %lld B\n", sizeBytes);
+    return sizeBytes;
 }
 
 
@@ -133,14 +136,14 @@ StatusList *create_status_struct()
     sl = (StatusList *) malloc(sizeof(StatusList));
 #endif
     assert(sl);
-	
+
     TreeValue tv;
-	
+
     tv.gradient = SMALLEST_GRADIENT;
     tv.key = 0;
     tv.maxGradient = SMALLEST_GRADIENT;
-	
-	
+
+
     sl->rbt = create_tree(tv);
     return sl;
 }
@@ -211,4 +214,3 @@ int is_empty(StatusList * sl)
     return (is_empty(sl->rbt) ||
 	    sl->rbt->root->value.maxGradient == SMALLEST_GRADIENT);
 }
-

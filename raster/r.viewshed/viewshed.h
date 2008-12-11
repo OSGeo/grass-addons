@@ -54,8 +54,8 @@
 
 /* ------------------------------------------------------------ */
 /*return the memory usage in bytes of the algorithm when running in
-  memory*/
-long long get_viewshed_memory_usage(GridHeader* hd);
+   memory */
+long long get_viewshed_memory_usage(GridHeader * hd);
 
 
 
@@ -69,16 +69,16 @@ long long get_viewshed_memory_usage(GridHeader* hd);
    grid are stored in arrays in memory.
 
    The output: A cell x in the visibility grid is recorded as follows:
-   
+
    if it is NODATA, then x is set to NODATA if it is invisible, then x
    is set to INVISIBLE if it is visible, then x is set to the vertical
    angle wrt to viewpoint
-   
-*/
-MemoryVisibilityGrid *viewshed_in_memory(char* inputfname, 
-										 GridHeader * hd,
-										Viewpoint * vp,
-										ViewOptions viewOptions);
+
+ */
+MemoryVisibilityGrid *viewshed_in_memory(char *inputfname,
+					 GridHeader * hd,
+					 Viewpoint * vp,
+					 ViewOptions viewOptions);
 
 
 
@@ -87,23 +87,22 @@ MemoryVisibilityGrid *viewshed_in_memory(char* inputfname,
 /* compute viewshed on the grid stored in the given file, and with the
    given viewpoint.  Create a visibility grid and return it. The
    program runs in external memory.
-  
+
    The output: A cell x in the visibility grid is recorded as follows:
-   
+
    if it is NODATA, then x is set to NODATA if it is invisible, then x
    is set to INVISIBLE if it is visible, then x is set to the vertical
    angle wrt to viewpoint. 
- 
-*/
-IOVisibilityGrid *viewshed_external(char* inputfname, 
-									GridHeader * hd,
-									Viewpoint * vp, 
-									ViewOptions viewOptions);
+
+ */
+IOVisibilityGrid *viewshed_external(char *inputfname,
+				    GridHeader * hd,
+				    Viewpoint * vp, ViewOptions viewOptions);
 
 
 
 void print_viewshed_timings(Rtimer initEventTime, Rtimer sortEventTime,
-							Rtimer sweepTime);
+			    Rtimer sweepTime);
 
 
 

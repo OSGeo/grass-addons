@@ -1,3 +1,4 @@
+
 /****************************************************************************
  *
  * MODULE:       r.viewshed
@@ -56,28 +57,31 @@ extern "C"
 
 /* ------------------------------------------------------------ */
 /*read header from file and return it; */
-GridHeader *read_header_from_arcascii_file(char* fname)
+GridHeader *read_header_from_arcascii_file(char *fname)
 {
 
-  assert(fname);
-  FILE *fp;
-  fp = fopen(fname, "r");
-  assert(fp); 
-  GridHeader  *hd = read_header_from_arcascii_file(fp); 
-  fclose(fp); 
-  return hd;
+    assert(fname);
+    FILE *fp;
+
+    fp = fopen(fname, "r");
+    assert(fp);
+    GridHeader *hd = read_header_from_arcascii_file(fp);
+
+    fclose(fp);
+    return hd;
 }
 
 
 
 /* ------------------------------------------------------------ */
 /*read header from file and return it; */
-GridHeader *read_header_from_arcascii_file(FILE* fp)
+GridHeader *read_header_from_arcascii_file(FILE * fp)
 {
     assert(fp);
-	rewind(fp); 
+    rewind(fp);
 
     GridHeader *hd = (GridHeader *) malloc(sizeof(GridHeader));
+
     assert(hd);
 
     int nrows, ncols;
@@ -166,7 +170,7 @@ int is_nodata(GridHeader * hd, float value)
 int is_nodata(Grid * grid, float value)
 {
     assert(grid);
-	return is_nodata(grid->hd, value);
+    return is_nodata(grid->hd, value);
 }
 
 
@@ -219,16 +223,16 @@ void alloc_grid_data(Grid * pgrid)
 
     for (i = 0; i < pgrid->hd->nrows; i++) {
 #ifdef __GRASS__
-	  pgrid->grid_data[i] =
+	pgrid->grid_data[i] =
 	    (float *)G_malloc(pgrid->hd->ncols * sizeof(float));
 #else
-	  pgrid->grid_data[i] =
+	pgrid->grid_data[i] =
 	    (float *)malloc(pgrid->hd->ncols * sizeof(float));
 #endif
 
-	  assert(pgrid->grid_data[i]);
+	assert(pgrid->grid_data[i]);
     }
-	
+
 #ifdef _DEBUG_ON
     printf("**DEBUG: allocGridData\n");
     fflush(stdout);
@@ -349,49 +353,51 @@ void destroy_grid(Grid * grid)
 
 /* ------------------------------------------------------------ */
 /*save the grid into an arcascii file.  Loops through all elements x
-  in row-column order and writes fun(x) to file */
+   in row-column order and writes fun(x) to file */
 void
-save_grid_to_arcascii_file(Grid * grid, char *filename,
-						   float(*fun)(float)) {
+save_grid_to_arcascii_file(Grid * grid, char *filename, float (*fun) (float))
+{
 
-  assert(filename && grid);
-  printf("saving grid to %s\n", filename);
-  fflush(stdout);
-  
-  FILE *outfile = fopen(filename, "r");
-  if (outfile) {		/*outfile already exists */
+    assert(filename && grid);
+    printf("saving grid to %s\n", filename);
+    fflush(stdout);
+
+    FILE *outfile = fopen(filename, "r");
+
+    if (outfile) {		/*outfile already exists */
 	printf("The output file already exists. It will be overwritten\n");
 	fclose(outfile);
 	int ret = remove(filename);	/*delete the existing file */
-	
+
 	if (ret != 0) {
-	  printf("unable to overwrite the existing output file.\n!");
-	  exit(1);
+	    printf("unable to overwrite the existing output file.\n!");
+	    exit(1);
 	}
-  }
-  FILE *fp = fopen(filename, "a");
-  assert(fp);
-  
-  /*print header */
-  print_grid_header(fp, grid->hd);
-  
-  /*print data */
-  dimensionType i, j;
-  
-  for (i = 0; i < grid->hd->nrows; i++) {
+    }
+    FILE *fp = fopen(filename, "a");
+
+    assert(fp);
+
+    /*print header */
+    print_grid_header(fp, grid->hd);
+
+    /*print data */
+    dimensionType i, j;
+
+    for (i = 0; i < grid->hd->nrows; i++) {
 	for (j = 0; j < grid->hd->ncols; j++) {
-	  
-	  /*  call fun() on this element and write it to file  */
-	  fprintf(fp, "%.1f ",  fun(grid->grid_data[i][j]) ); 
-	  
+
+	    /*  call fun() on this element and write it to file  */
+	    fprintf(fp, "%.1f ", fun(grid->grid_data[i][j]));
+
 	}
 	fprintf(fp, "\n");
-  }
-  
+    }
+
 #ifdef _DEBUG_ON
-  printf("**DEBUG: saveGridToArcasciiFile: saved to %s\n", filename);
-  fflush(stdout);
+    printf("**DEBUG: saveGridToArcasciiFile: saved to %s\n", filename);
+    fflush(stdout);
 #endif
-  
-  return;
+
+    return;
 }

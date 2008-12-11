@@ -1,3 +1,4 @@
+
 /****************************************************************************
  *
  * MODULE:       r.viewshed
@@ -403,38 +404,43 @@ get_square_distance_from_viewpoint_with_print(const AEvent & a,
 
 /* ------------------------------------------------------------ */
 /*determines if the point at row,col is outside the maximum distance
-  limit.  Return 1 if the point is outside limit, 0 if point is inside
-  limit. */
+   limit.  Return 1 if the point is outside limit, 0 if point is inside
+   limit. */
 int is_point_outside_max_dist(Viewpoint vp, GridHeader hd,
-							  dimensionType row, dimensionType col,
-							  float maxDist)
+			      dimensionType row, dimensionType col,
+			      float maxDist)
 {
-  /* it is not too smart to compare floats */
-  if ((int)maxDist == INFINITY_DISTANCE)
+    /* it is not too smart to compare floats */
+    if ((int)maxDist == INFINITY_DISTANCE)
 	return 0;
 
-  double dif_x, dif_y, sqdist;
-  dif_x = (vp.col - col);
-  dif_y = (vp.row - row);
-  
-  /* expensive to take squareroots so use squares */
-  sqdist = (dif_x * dif_x + dif_y * dif_y) * hd.cellsize * hd.cellsize;
-  
-  if (sqdist > maxDist *maxDist) {
+    double dif_x, dif_y, sqdist;
+
+    dif_x = (vp.col - col);
+    dif_y = (vp.row - row);
+
+    /* expensive to take squareroots so use squares */
+    sqdist = (dif_x * dif_x + dif_y * dif_y) * hd.cellsize * hd.cellsize;
+
+    if (sqdist > maxDist * maxDist) {
 	return 1;
-  }
-  else {
+    }
+    else {
 	return 0;
-  }
+    }
 }
 
 
-void testeventlist(AEvent* elist, size_t n) {
+void testeventlist(AEvent * elist, size_t n)
+{
 
-  printf("testing event list..%lu ", n); fflush(stdout); 
-  AEvent e = {0, 0,0};
-  for (size_t i=0; i< n; i++) elist[i] = e; 
-  printf("ok "); fflush(stdout); 
+    printf("testing event list..%lu ", n);
+    fflush(stdout);
+    AEvent e = { 0, 0, 0 };
+    for (size_t i = 0; i < n; i++)
+	elist[i] = e;
+    printf("ok ");
+    fflush(stdout);
 }
 
 /*///////////////////////////////////////////////////////////
@@ -447,104 +453,109 @@ void testeventlist(AEvent* elist, size_t n) {
    viewpoint.  it returns the number of events.
  */
 size_t
-init_event_list_in_memory(AEvent * eventList, char* inputfname, 
-						  Viewpoint * vp,
-						  GridHeader * hd, ViewOptions viewOptions,
-						  double **data, MemoryVisibilityGrid *visgrid ) {
-  printf("computing events..");
-  fflush(stdout);
-  assert(eventList && inputfname && hd && vp && visgrid);
+init_event_list_in_memory(AEvent * eventList, char *inputfname,
+			  Viewpoint * vp,
+			  GridHeader * hd, ViewOptions viewOptions,
+			  double **data, MemoryVisibilityGrid * visgrid)
+{
+    printf("computing events..");
+    fflush(stdout);
+    assert(eventList && inputfname && hd && vp && visgrid);
 
-  
-  /* data is used to store all the cells on the same row as the
-	 viewpoint. */
-  *data = (double *)malloc(hd->ncols * sizeof(double));
-  assert(*data);
-  
-  /* open input raster */
-  FILE * grid_fp; 
-  grid_fp = fopen(inputfname, "r"); 
-  assert(grid_fp); 
-  /* we do this just to position the pointer after header for reading
-	 the data */
-  read_header_from_arcascii_file(grid_fp);
-  
-  
-  /* scan throught the arcascii file */
-  size_t nevents = 0;
-  dimensionType i, j;
-  double ax, ay;
-  AEvent e;
-  
-  e.angle = -1;
-  for (i = 0;  i< hd->nrows; i++) {
+
+    /* data is used to store all the cells on the same row as the
+       viewpoint. */
+    *data = (double *)malloc(hd->ncols * sizeof(double));
+    assert(*data);
+
+    /* open input raster */
+    FILE *grid_fp;
+
+    grid_fp = fopen(inputfname, "r");
+    assert(grid_fp);
+    /* we do this just to position the pointer after header for reading
+       the data */
+    read_header_from_arcascii_file(grid_fp);
+
+
+    /* scan throught the arcascii file */
+    size_t nevents = 0;
+    dimensionType i, j;
+    double ax, ay;
+    AEvent e;
+
+    e.angle = -1;
+    for (i = 0; i < hd->nrows; i++) {
 	for (j = 0; j < hd->ncols; j++) {
-	  
-	  e.row = i;
-	  e.col = j;
-	  fscanf(grid_fp, "%f", &(e.elev));
-	  //printf("(i=%3d, j=%3d): e=%.1f\n", i,j,e.elev); fflush(stdout);
-	  
-		/*write the row of data going through the viewpoint */
-		if (i == vp->row) {
-		  (*data)[j] = e.elev;
-		  if (j == vp->col) {
-			set_viewpoint_elev(vp, e.elev + viewOptions.obsElev);
-			/*what to do when viewpoint is NODATA ? */
-			if (is_nodata(hd, e.elev)) {
-			  printf("WARNING: viewpoint is NODATA. ");
-			  printf("Will assume its elevation is %.f\n", e.elev);
-			}
-		  }
-		}
-		
-		/*don't insert the viewpoint events in the list */
-		if (i == vp->row && j == vp->col)
-		  continue;
-		
-		/*don't insert the nodata cell events */
-		if (is_nodata(hd, e.elev)) {
-		  /* record this cell as being NODATA; this is necessary so
-			 that we can distingush invisible events, from nodata
-			 events in the output */
-		  add_result_to_inmem_visibilitygrid(visgrid,i,j,hd->nodata_value);
-		  continue;
-		}
 
-		/* if point is outside maxDist, do NOT include it as an
-		   event */
-		if (is_point_outside_max_dist(*vp, *hd, i, j, viewOptions.maxDist))
-		  continue;
+	    e.row = i;
+	    e.col = j;
+	    fscanf(grid_fp, "%f", &(e.elev));
+	    //printf("(i=%3d, j=%3d): e=%.1f\n", i,j,e.elev); fflush(stdout);
 
-		e.eventType = ENTERING_EVENT;
-		calculate_event_position(e, vp->row, vp->col, &ay, &ax);
-		e.angle = calculate_angle(ax, ay, vp->col, vp->row);
-		eventList[nevents] = e;
-		nevents++;
-		
-		e.eventType = CENTER_EVENT;
-		calculate_event_position(e, vp->row, vp->col, &ay, &ax);
-		e.angle = calculate_angle(ax, ay, vp->col, vp->row);
-		eventList[nevents] = e;
-		nevents++;
-		
-		e.eventType = EXITING_EVENT;
-		calculate_event_position(e, vp->row, vp->col, &ay, &ax);
-		e.angle = calculate_angle(ax, ay, vp->col, vp->row);
-		eventList[nevents] = e;
-		nevents++;
-		
-      } /* for j  */
-    } /* for i */
-  fclose(grid_fp); 
-  
-  printf("..done\n"); fflush(stdout);
-  printf("Event array size: %lu x %dB (%lu MB)\n",
-		 (unsigned long)nevents, (int)sizeof(AEvent),
-		 (unsigned long)(((long long)(nevents * sizeof(AEvent))) >> 20));
-  fflush(stdout);
-  
-  return nevents;
+	    /*write the row of data going through the viewpoint */
+	    if (i == vp->row) {
+		(*data)[j] = e.elev;
+		if (j == vp->col) {
+		    set_viewpoint_elev(vp, e.elev + viewOptions.obsElev);
+		    /*what to do when viewpoint is NODATA ? */
+		    if (is_nodata(hd, e.elev)) {
+			printf("WARNING: viewpoint is NODATA. ");
+			printf("Will assume its elevation is %.f\n", e.elev);
+		    }
+		}
+	    }
+
+	    /*don't insert the viewpoint events in the list */
+	    if (i == vp->row && j == vp->col)
+		continue;
+
+	    /*don't insert the nodata cell events */
+	    if (is_nodata(hd, e.elev)) {
+		/* record this cell as being NODATA; this is necessary so
+		   that we can distingush invisible events, from nodata
+		   events in the output */
+		add_result_to_inmem_visibilitygrid(visgrid, i, j,
+						   hd->nodata_value);
+		continue;
+	    }
+
+	    /* if point is outside maxDist, do NOT include it as an
+	       event */
+	    if (is_point_outside_max_dist
+		(*vp, *hd, i, j, viewOptions.maxDist))
+		continue;
+
+	    e.eventType = ENTERING_EVENT;
+	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+	    e.angle = calculate_angle(ax, ay, vp->col, vp->row);
+	    eventList[nevents] = e;
+	    nevents++;
+
+	    e.eventType = CENTER_EVENT;
+	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+	    e.angle = calculate_angle(ax, ay, vp->col, vp->row);
+	    eventList[nevents] = e;
+	    nevents++;
+
+	    e.eventType = EXITING_EVENT;
+	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+	    e.angle = calculate_angle(ax, ay, vp->col, vp->row);
+	    eventList[nevents] = e;
+	    nevents++;
+
+	}			/* for j  */
+    }				/* for i */
+    fclose(grid_fp);
+
+    printf("..done\n");
+    fflush(stdout);
+    printf("Event array size: %lu x %dB (%lu MB)\n",
+	   (unsigned long)nevents, (int)sizeof(AEvent),
+	   (unsigned long)(((long long)(nevents * sizeof(AEvent))) >> 20));
+    fflush(stdout);
+
+    return nevents;
 }
 
 
@@ -563,33 +574,34 @@ init_event_list_in_memory(AEvent * eventList, char* inputfname,
    if data is not NULL, it creates an array that stores all events on
    the same row as the viewpoint. 
  */
-AMI_STREAM < AEvent > *
-init_event_list(char* inputfname, Viewpoint * vp, GridHeader * hd, 
-				ViewOptions viewOptions, double **data, 
-				IOVisibilityGrid *visgrid)
+AMI_STREAM < AEvent > *init_event_list(char *inputfname, Viewpoint * vp,
+				       GridHeader * hd,
+				       ViewOptions viewOptions, double **data,
+				       IOVisibilityGrid * visgrid)
 {
     printf("computing events..");
     fflush(stdout);
     assert(inputfname && hd && vp && visgrid);
-	
+
     /*create the event stream that will hold the events */
     AMI_STREAM < AEvent > *eventList = new AMI_STREAM < AEvent > ();
     assert(eventList);
 
-	if (data != NULL) {
-	  /*data is used to store all the cells on the same row as the
-	  //viewpoint. */
-	  *data = (double *)malloc(hd->ncols * sizeof(double));
-	  assert(*data);
-	}
+    if (data != NULL) {
+	/*data is used to store all the cells on the same row as the
+	   //viewpoint. */
+	*data = (double *)malloc(hd->ncols * sizeof(double));
+	assert(*data);
+    }
 
-	FILE * grid_fp = fopen(inputfname, "r"); 
-	assert(grid_fp); 
+    FILE *grid_fp = fopen(inputfname, "r");
+
+    assert(grid_fp);
     /*we do this just to position the pointer after header for reading
-	//the data
-	//GridHeader* foo = */
+       //the data
+       //GridHeader* foo = */
     read_header_from_arcascii_file(grid_fp);
-	
+
     /*scan throught the arcascii file */
     dimensionType i, j;
     double ax, ay;
@@ -598,45 +610,46 @@ init_event_list(char* inputfname, Viewpoint * vp, GridHeader * hd,
     e.angle = -1;
     for (i = 0; i < hd->nrows; i++) {
 	for (j = 0; j < hd->ncols; j++) {
-	  
-	  e.row = i;
-	  e.col = j;
-	  fscanf(grid_fp, "%f", &(e.elev));
 
-	  if (data  != NULL) {	  
+	    e.row = i;
+	    e.col = j;
+	    fscanf(grid_fp, "%f", &(e.elev));
+
+	    if (data != NULL) {
 		/*write the row of data going through the viewpoint */
 		if (i == vp->row) {
-		  (*data)[j] = e.elev;
+		    (*data)[j] = e.elev;
 		}
-	  }
+	    }
 
-	  if (i == vp-> row && j == vp->col) {
+	    if (i == vp->row && j == vp->col) {
 		set_viewpoint_elev(vp, e.elev + viewOptions.obsElev);
 		/*what to do when viewpoint is NODATA */
 		if (is_nodata(hd, e.elev)) {
-		  printf("WARNING: viewpoint is NODATA. ");
-		  printf("Will assume its elevation is %.f\n", e.elev);
+		    printf("WARNING: viewpoint is NODATA. ");
+		    printf("Will assume its elevation is %.f\n", e.elev);
 		};
-	  }
-	  
-	  /*don't insert the viewpoint events in the list */
-	  if (i == vp->row && j == vp->col)
-		continue;
-	  
+	    }
 
-	  /*don't insert the nodata cell events */
-	  if (is_nodata(hd, e.elev)) {
+	    /*don't insert the viewpoint events in the list */
+	    if (i == vp->row && j == vp->col)
+		continue;
+
+
+	    /*don't insert the nodata cell events */
+	    if (is_nodata(hd, e.elev)) {
 		/* record this cell as being NODATA. ; this is necessary so
-			 that we can distingush invisible events, from nodata
-			 events in the output */
-		VisCell visCell = {i, j, hd->nodata_value};
+		   that we can distingush invisible events, from nodata
+		   events in the output */
+		VisCell visCell = { i, j, hd->nodata_value };
 		add_result_to_io_visibilitygrid(visgrid, &visCell);
 		continue;
-	  }
+	    }
 
-	  /* if point is outside maxDist, do NOT include it as an
-		 event */
-	  if(is_point_outside_max_dist(*vp, *hd, i, j, viewOptions.maxDist))
+	    /* if point is outside maxDist, do NOT include it as an
+	       event */
+	    if (is_point_outside_max_dist
+		(*vp, *hd, i, j, viewOptions.maxDist))
 		continue;
 
 
@@ -654,10 +667,10 @@ init_event_list(char* inputfname, Viewpoint * vp, GridHeader * hd,
 	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
 	    e.angle = calculate_angle(ax, ay, vp->col, vp->row);
 	    eventList->write_item(e);
-	} /* for j  */
-    } /* for i */
+	}			/* for j  */
+    }				/* for i */
 
-	fclose(grid_fp); 
+    fclose(grid_fp);
 
     printf("..done\n");
     printf("nbEvents = %lu\n", (unsigned long)eventList->stream_len());
@@ -667,7 +680,7 @@ init_event_list(char* inputfname, Viewpoint * vp, GridHeader * hd,
 	    long)(((long long)(eventList->stream_len() *
 			       sizeof(AEvent))) >> 20));
     fflush(stdout);
-	
+
     return eventList;
 }
 
@@ -688,8 +701,8 @@ init_event_list(char* inputfname, Viewpoint * vp, GridHeader * hd,
 //  */
 // AMI_STREAM < AEvent > *
 // init_event_list(FILE * grid_fp, Viewpoint * vp,
-// 				GridHeader * hd, ViewOptions viewOptions, 
-// 				IOVisibilityGrid *visgrid) {
+//                              GridHeader * hd, ViewOptions viewOptions, 
+//                              IOVisibilityGrid *visgrid) {
 
 //     printf("computing events..");
 //     fflush(stdout);
@@ -701,82 +714,82 @@ init_event_list(char* inputfname, Viewpoint * vp, GridHeader * hd,
 
 
 //     /*we do this just to position the pointer after header for reading
-// 	//the data GridHeader* foo = */
+//      //the data GridHeader* foo = */
 //     read_header_from_arcascii_file(grid_fp);
 
 //     /*scan throught the arcascii file */
 //     dimensionType i, j;
 //     double ax, ay;
 //     AEvent e;
-	
+
 //     e.angle = -1;
 //     for (i = 0; i < hd->nrows; i++) {
-// 	  for (j = 0; j < hd->ncols; j++) {
-		
-// 	    e.row = i;
-// 	    e.col = j;
-// 	    fscanf(grid_fp, "%f", &(e.elev));
+//        for (j = 0; j < hd->ncols; j++) {
 
-// 	    if (i == vp->row && j == vp->col) {
-// 		  set_viewpoint_elev(vp, e.elev+viewOptions.obsElev);
-// 		  /*what to do when viewpoint is NODATA */
-// 		  if (is_nodata(hd, e.elev)) {
-// 		    printf("WARNING: viewpoint is NODATA. ");
-// 		    printf("Will assume its elevation is %.f\n", e.elev);
-// 		  };
-// 	    }
-		
-// 	    /*don't insert the viewpoint events in the list */
-// 	    if (i == vp->row && j == vp->col)
-// 		  continue;
+//          e.row = i;
+//          e.col = j;
+//          fscanf(grid_fp, "%f", &(e.elev));
 
-	
-// 	    /*don't insert the nodata cell events */
-// 	    if (is_nodata(hd, e.elev)) {
-// 		/*printf("(%d, %d) dropping\n", i, j); */
-// 		  /* record this cell as being NODATA; this is necessary so
-// 			 that we can distingush invisible events, from nodata
-// 			 events in the output */
-// 		  VisCell viscell = {i,j, hd->nodata_value};
-// 		  add_result_to_io_visibilitygrid(visgrid, &viscell);
-// 			continue;
-// 	    }
-	
-// 		/* if point is outside maxDist, do NOT include it as an
-// 		   event */	
-// 		if(is_point_outside_max_dist(*vp, *hd, i, j, viewOptions.maxDist))
-// 		  continue;
+//          if (i == vp->row && j == vp->col) {
+//                set_viewpoint_elev(vp, e.elev+viewOptions.obsElev);
+//                /*what to do when viewpoint is NODATA */
+//                if (is_nodata(hd, e.elev)) {
+//                  printf("WARNING: viewpoint is NODATA. ");
+//                  printf("Will assume its elevation is %.f\n", e.elev);
+//                };
+//          }
+
+//          /*don't insert the viewpoint events in the list */
+//          if (i == vp->row && j == vp->col)
+//                continue;
 
 
-// 	    e.eventType = ENTERING_EVENT;
-// 	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
-// 	    e.angle = calculate_angle(ax, ay, vp->col, vp->row);
-// 	    eventList->write_item(e);
-// 	    /*d = get_square_distance_from_viewpoint(e, *vp); 
-// 		//printf("(%d, %d) insert ENTER (%.2f,%.2f) d=%.2f\n", i, j, ay, ax, d); */
-		
-// 	    e.eventType = CENTER_EVENT;
-// 	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
-// 	    e.angle = calculate_angle(ax, ay, vp->col, vp->row);
-// 	    eventList->write_item(e);
-// 	    /*d = get_square_distance_from_viewpoint(e, *vp); 
-// 		//printf("(%d, %d) insert CENTER (%.2f,%.2f) d=%.2f\n", i,j, ay, ax, d); */
+//          /*don't insert the nodata cell events */
+//          if (is_nodata(hd, e.elev)) {
+//              /*printf("(%d, %d) dropping\n", i, j); */
+//                /* record this cell as being NODATA; this is necessary so
+//                       that we can distingush invisible events, from nodata
+//                       events in the output */
+//                VisCell viscell = {i,j, hd->nodata_value};
+//                add_result_to_io_visibilitygrid(visgrid, &viscell);
+//                      continue;
+//          }
 
-// 	    e.eventType = EXITING_EVENT;
-// 	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
-// 	    e.angle = calculate_angle(ax, ay, vp->col, vp->row);
-// 	    eventList->write_item(e);
-// 	    /*d = get_square_distance_from_viewpoint(e, *vp); 
-// 		//printf("(%d, %d) insert EXIT (%.2f,%.2f) d=%.2f\n", i, j, ay, ax, d); */
-// 	}
+//              /* if point is outside maxDist, do NOT include it as an
+//                 event */     
+//              if(is_point_outside_max_dist(*vp, *hd, i, j, viewOptions.maxDist))
+//                continue;
+
+
+//          e.eventType = ENTERING_EVENT;
+//          calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+//          e.angle = calculate_angle(ax, ay, vp->col, vp->row);
+//          eventList->write_item(e);
+//          /*d = get_square_distance_from_viewpoint(e, *vp); 
+//              //printf("(%d, %d) insert ENTER (%.2f,%.2f) d=%.2f\n", i, j, ay, ax, d); */
+
+//          e.eventType = CENTER_EVENT;
+//          calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+//          e.angle = calculate_angle(ax, ay, vp->col, vp->row);
+//          eventList->write_item(e);
+//          /*d = get_square_distance_from_viewpoint(e, *vp); 
+//              //printf("(%d, %d) insert CENTER (%.2f,%.2f) d=%.2f\n", i,j, ay, ax, d); */
+
+//          e.eventType = EXITING_EVENT;
+//          calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+//          e.angle = calculate_angle(ax, ay, vp->col, vp->row);
+//          eventList->write_item(e);
+//          /*d = get_square_distance_from_viewpoint(e, *vp); 
+//              //printf("(%d, %d) insert EXIT (%.2f,%.2f) d=%.2f\n", i, j, ay, ax, d); */
+//      }
 //     }
 //     printf("..done\n");
 //     printf("nbEvents = %lu\n", (unsigned long)eventList->stream_len());
 //     printf("Event stream length: %lu x %dB (%lu MB)\n",
-// 	   (unsigned long)eventList->stream_len(), (int)sizeof(AEvent),
-// 	   (unsigned
-// 	    long)(((long long)(eventList->stream_len() *
-// 			       sizeof(AEvent))) >> 20));
+//         (unsigned long)eventList->stream_len(), (int)sizeof(AEvent),
+//         (unsigned
+//          long)(((long long)(eventList->stream_len() *
+//                             sizeof(AEvent))) >> 20));
 //     fflush(stdout);
 //     return eventList;
 // }
@@ -807,19 +820,19 @@ int DistanceCompare::compare(const AEvent & a, const AEvent & b)
 
     calculate_event_position(a, globalVP.row, globalVP.col, &eventy, &eventx);
     da = (eventx - globalVP.col) * (eventx - globalVP.col) +
-	  (eventy - globalVP.row) * (eventy - globalVP.row);
+	(eventy - globalVP.row) * (eventy - globalVP.row);
     calculate_event_position(b, globalVP.row, globalVP.col, &eventy, &eventx);
     db = (eventx - globalVP.col) * (eventx - globalVP.col) +
-	  (eventy - globalVP.row) * (eventy - globalVP.row);
+	(eventy - globalVP.row) * (eventy - globalVP.row);
 
     if (da > db) {
-	  return 1;
+	return 1;
     }
     else if (da < db) {
-	  return -1;
+	return -1;
     }
     else {
-	  return 0;
+	return 0;
     }
     return 0;
 }

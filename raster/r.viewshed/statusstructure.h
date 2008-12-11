@@ -1,3 +1,4 @@
+
 /****************************************************************************
  *
  * MODULE:       r.viewshed
@@ -99,8 +100,8 @@ void insert_into_status_struct(StatusNode sn, StatusList * sl);
 double find_max_gradient_in_status_struct(StatusList * sl, double dist);
 
 /*find the vertical angle in degrees between the viewpoint and the
-  point represented by the StatusNode.  Assumes all values (except
-  gradient) in sn have been filled.*/
+   point represented by the StatusNode.  Assumes all values (except
+   gradient) in sn have been filled. */
 float get_vertical_angle(Viewpoint vp, StatusNode sn, int doCurv);
 
 

@@ -1,3 +1,4 @@
+
 /****************************************************************************
  *
  * MODULE:       r.viewshed
@@ -40,7 +41,7 @@
 
 #define SMALLEST_GRADIENT (- 9999999999999999999999.0)
 /*this value is returned by findMaxValueWithinDist() is there is no
-  key within that distance.  The largest double value is 1.7 E 308*/
+   key within that distance.  The largest double value is 1.7 E 308 */
 
 
 
