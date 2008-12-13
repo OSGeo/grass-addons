@@ -50,13 +50,13 @@ eval `g.gisenv`
 MSET_DIR="$GISDBASE/$LOCATION_NAME/$MAPSET"
 
 
-if [ ! -e "$GIS_OPT_input" ] ; then
-   echo "ERROR: file not found [$GIS_OPT_input]"
+if [ ! -e "$GIS_OPT_INPUT" ] ; then
+   echo "ERROR: file not found [$GIS_OPT_INPUT]"
    exit 1
 fi
 
-# remove .pack and path from $GIS_OPT_input
-MAP_NAME="`basename "$GIS_OPT_input" | sed -e 's/\.pack$//'`"
+# remove .pack and path from $GIS_OPT_INPUT
+MAP_NAME="`basename "$GIS_OPT_INPUT" | sed -e 's/\.pack$//'`"
 echo "The imported map will be named [$MAP_NAME]."
 
 eval `g.findfile element=cell file="$MAP_NAME"`
@@ -80,9 +80,9 @@ if [ ! -d "$TMP_DIR" ] ; then
 fi
 
 
-cp "$GIS_OPT_input" "$TMP_DIR"/
+cp "$GIS_OPT_INPUT" "$TMP_DIR"/
 cd "$TMP_DIR"/
-tar xzf "`basename $GIS_OPT_input`"
+tar xzf "`basename $GIS_OPT_INPUT`"
 
 
 # check projection compatibility in a rather crappy way
