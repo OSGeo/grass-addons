@@ -2,7 +2,7 @@
 #  r.pack   --  pack up a raster map:
 #     r.out.mat file + support files => gzip
 #
-#   (c) 2004 GRASS Development Team
+#   (c) 2004-2008 GRASS Development Team
 #   AUTHOR: Hamish Bowman, Otago University, New Zealand
 #
 #   This program is free software under the GNU General Public
@@ -55,34 +55,56 @@ if [ ! -d "$TMP_DIR" ] ; then
    exit 1
 fi
 
+
+FILELIST=""
+
+for ELEMENT in cats cell cellhd colr fcell grid3 hist ; do
+    if [ -e "$ELEMENT/$GIS_OPT_MAP" ] ; then
+	FILELIST="$FILELIST $ELEMENT/$GIS_OPT_MAP"
+#    	 "$ELEMENT/$GIS_OPT_MAP"
+    fi
+done
+
+if [ -d "cell_misc/$GIS_OPT_MAP/" ] ; then
+	FILELIST="$FILELIST cell_misc/$GIS_OPT_MAP/"
+#     "cell_misc/$GIS_OPT_MAP"/* 
+fi
+
+
+##############
 # output map
-r.out.mat input="$GIS_OPT_input" output="$TMP_DIR"/map.mat
+#r.out.mat input="$GIS_OPT_input" output="$TMP_DIR"/map.mat
 
 
 # copy support files
-for SUPPORT in colr hist cats ; do 
-    eval `g.findfile element=$SUPPORT file="$GIS_OPT_input"`
-    if [ ! -z "$file" ] ; then
-        cp "$file" "$TMP_DIR"/$SUPPORT
-    fi
-done
+#for SUPPORT in colr hist cats ; do 
+#    eval `g.findfile element=$SUPPORT file="$GIS_OPT_input"`
+#    if [ ! -z "$file" ] ; then
+#        cp "$file" "$TMP_DIR"/$SUPPORT
+#    fi
+#done
+
 
 
 # copy projection info
 #   (would prefer to use g.proj*, but this way is 5.3 and 5.7 compat)
 eval `g.gisenv`
-cp "$GISDBASE"/"$LOCATION_NAME"/PERMANENT/PROJ_INFO "$TMP_DIR"/proj_info
+#cp "$GISDBASE/$LOCATION_NAME/PERMANENT/PROJ_INFO" "$TMP_DIR"/proj_info
+
+FILELIST="$FILELIST $GISDBASE/$LOCATION_NAME/PERMANENT/PROJ_INFO"
 
 
 # pack it all up
-OLD_DIR="`pwd`"
-cd "$TMP_DIR"/
-tar czf "$OLD_DIR"/"$GIS_OPT_input".pack *
+#OLD_DIR="`pwd`"
+#cd "$TMP_DIR"/
+#tar czf "$OLD_DIR"/"$GIS_OPT_input".pack *
+echo tar czf "$GIS_OPT_input.pack" $FILELIST
 
 
 # clean up
-cd "$OLD_DIR"
-rm -rf "$TMP_DIR"
+#cd "$OLD_DIR"
+#rm -rf "$TMP_DIR"
 
-echo Finished.
-exit 0
+#echo Finished.
+#exit 0
+
