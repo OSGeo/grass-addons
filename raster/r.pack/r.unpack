@@ -87,7 +87,7 @@ tar xzf "`basename $GIS_OPT_INPUT`"
 
 # check projection compatibility in a rather crappy way
 if [ ! -z "`diff proj_info "$MSET_DIR"/../PERMANENT/PROJ_INFO`" ] ; then
-    if [ $GIS_FLAG_o -eq 1 ] ; then
+    if [ $GIS_FLAG_O -eq 1 ] ; then
         echo "WARNING: Projection information does not match. Proceeding.."
     else
         echo "ERROR: Projection information does not match. Aborting."
