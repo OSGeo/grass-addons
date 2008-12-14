@@ -115,12 +115,13 @@ GridHeader *read_header_from_GRASS(char *rastName, Cell_head * region)
     /*fill in rest of header */
     hd->xllcorner = G_col_to_easting(0, region);
     hd->yllcorner = G_row_to_northing(0, region);
-    /*Cell_head stores 2 resolutions, while GridHeader only stores 1
-       //make sure the two Cell_head resolutions are equal */
+    /* Cell_head stores 2 resolutions, while GridHeader only stores 1 */
+       // make sure the two Cell_head resolutions are equal
     if (fabs(region->ew_res - region->ns_res) > .001) {
-	G_warning(_("East-west resolution does not equal north-south resolutio. The viewshed computation assumes the cells are square, so in this case this may result in innacuracies."));
+	G_warning(_("East-west resolution does not equal north-south resolution. "
+		    "The viewshed computation assumes the cells are square, so in "
+		    "this case this may result in innacuracies."));
 	//    exit(EXIT_FAILURE);
-	//     
     }
     hd->cellsize = (float)region->ew_res;
     //store the null value of the map
