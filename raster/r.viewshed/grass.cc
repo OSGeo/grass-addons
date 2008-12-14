@@ -78,7 +78,7 @@ float adjust_for_curvature(Viewpoint vp, dimensionType row,
 	(dif_x * dif_x +
 	 dif_y * dif_y) * viewOptions.cellsize * viewOptions.cellsize;
 
-    return h - (sqdist / (2 * viewOptions.ellps_a));
+    return h - (sqdist / (2.0 * viewOptions.ellps_a));
 }
 
 
