@@ -75,9 +75,9 @@ float get_vertical_angle(Viewpoint vp, StatusNode sn, int doCurv)
     /*calculate and return the angle in degrees */
     assert(fabs(sn.dist2vp) > 0.001);
     if (diffElev >= 0.0)
-	return (atan(sn.dist2vp / diffElev) * (180 / PI));
+	return (atan(sn.dist2vp / diffElev) * (180 / M_PI));
     else
-	return ((atan(fabs(diffElev) / sn.dist2vp) * (180 / PI)) + 90);
+	return ((atan(fabs(diffElev) / sn.dist2vp) * (180 / M_PI)) + 90);
 }
 
 

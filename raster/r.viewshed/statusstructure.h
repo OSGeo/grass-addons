@@ -52,8 +52,6 @@
 #include "rbbst.h"
 #include "visibility.h"
 
-#define PI 3.1416
-
 typedef struct statusnode_
 {
     dimensionType row, col;	/*position of the cell */
