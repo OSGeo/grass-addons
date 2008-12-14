@@ -5,11 +5,11 @@
  *
  * AUTHOR(S):    Laura Toma, Bowdoin College - ltoma@bowdoin.edu
  *               Yi Zhuang - yzhuang@bowdoin.edu
-
+ *
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
  *
- * Date:         july 2008 
+ * Date:         July 2008 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -52,7 +52,10 @@ extern "C"
 #include "print_message.h"
 
 
-/*used to make printing messages following the GRASS standards cleaner and easier to read.  Needs to be in seperate file so that both GRASS and non-GRASS modes can access it. */
+/* Used to make printing messages following the GRASS standards cleaner
+ * and easier to read.  Needs to be in seperate file so that both GRASS
+ * and non-GRASS modes can access it.
+ */
 void print_message(char *message)
 {
     assert(message);
