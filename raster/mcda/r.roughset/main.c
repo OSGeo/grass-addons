@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
     struct GModule *module;	/* GRASS module for parsing arguments */
 
-    struct Option *attr_map, *dec_map, *genrules, *clssfy, *output_txt, *output_map;	/* options */
+    struct Option *attr_map, *dec_map, *dec_txt, *genrules, *clssfy, *output_txt, *output_map;	/* options */
     /*struct Flag *flagQuiet		flags */
 
     /* initialize GIS environment */
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     dec_map = G_define_option() ;
     dec_map->key        = "decision";
     dec_map->type       = TYPE_STRING;
-    dec_map->required   = YES;
+    dec_map->required   = NO;
     dec_map->gisprompt  = "old,cell,raster" ;
     dec_map->description = "Input geographics DECISION in information system";
 
@@ -74,13 +74,22 @@ int main(int argc, char *argv[])
     genrules->type       = TYPE_STRING;
     genrules->required   = YES;
     genrules->options	 = "Very fast,Fast,Medium,Best,All,Low,Upp,Normal";
+    genrules->answer	 = "Very fast";
     genrules->description = "Strategies for generating rules";
     
+	dec_txt = G_define_option();
+    dec_txt->key 		= "sample";
+    dec_txt->type 		= TYPE_STRING;
+    dec_txt->required 	= NO;
+    dec_txt->gisprompt 	= "old_file,file,input";
+    dec_txt->description = "Input text file  with  data and decision sample";
+	
     clssfy = G_define_option() ;
-    clssfy->key        = "clssfy";
-    clssfy->type       = TYPE_STRING;
-    clssfy->required   = YES;
-    clssfy->options	   = "Classify1,Classify2,Classify3";
+    clssfy->key        	= "clssfy";
+    clssfy->type       	= TYPE_STRING;
+    clssfy->required  	= YES;
+    clssfy->options	   	= "Classify1,Classify2,Classify3";
+    clssfy->answer 		="Classify1";
     clssfy->description = "Strategies for classified map (conflict resolution)";
     
     output_txt = G_define_option();
@@ -104,7 +113,9 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-
+	/* Either decision map or sample file are necesary*/
+	if (dec_map->answer==NULL && dec_txt->answer==NULL)
+			G_fatal_error(_("Either decision map or sample file are necessary!"));
 
 /***********************************************************************/
 /********Prepare and controlling Information System files **************/
@@ -168,9 +179,16 @@ int main(int argc, char *argv[])
 	}
 	
 	/* determine the inputmap DECISION type (CELL/FCELL/DCELL) */
-    data_type = G_raster_map_type(dec_map->answer, mapset);
-   
+    data_type = CELL_TYPE; //G_raster_map_type(dec_map->answer, mapset);
+   /* Allocate output buffer, use input map data_type */
+	nrows = G_window_rows();
+	ncols = G_window_cols();
+	outrast = G_allocate_raster_buf(data_type);
+	
+	
    /* DECISION grid (at last column in Information System matrix) */
+	if(dec_map->answer!=NULL)
+		{   	
 		struct input *p = &attributes[nattributes];
 		p->name = dec_map->answer;
 		p->mapset = G_find_cell(p->name,""); /* G_find_cell: Looks for the raster map "name" in the database. */
@@ -179,18 +197,15 @@ int main(int argc, char *argv[])
 		p->fd = G_open_cell_old(p->name, p->mapset);/*opens the raster file name in mapset for reading. A nonnegative file descriptor is returned if the open is successful.*/
 		if (p->fd < 0)
 			G_fatal_error(_("Unable to open input map <%s> in mapset <%s>"),p->name, p->mapset);
-		p->buf = G_allocate_raster_buf(data_type); /* Allocate an array of DCELL based on the number of columns in the current region. Return DCELL *  */
+		p->buf = G_allocate_raster_buf(data_type); /* Allocate an array of DCELL based on the number of columns in the current region. 
+		Return DCELL *  */
+		rough_set_library_out(nrows, ncols, nattributes, attributes, output_txt->answer);/*build RSL standard file*/
+		}
 	
-	/* Allocate output buffer, use input map data_type */
-	nrows = G_window_rows();
-	ncols = G_window_cols();
-	outrast = G_allocate_raster_buf(data_type);
-
-	rough_set_library_out(nrows, ncols, nattributes, attributes, output_txt->answer);/*build RSL standard file*/
 	
 	classify_vect = G_malloc(sizeof(int) * (nrows*ncols)); /* memory allocation*/
 	
-	rough_analysis(nrows, ncols, output_txt->answer, classify_vect, attributes,strgy,cls); /* extract rules from RSL and generate classified vectpr*/
+	rough_analysis(nrows, ncols, output_txt->answer, classify_vect, attributes, dec_txt->answer, strgy,cls); /* extract rules from RSL and generate classified vectpr*/
 	
 	/* controlling, if we can write the raster */
     if ((outfd = G_open_raster_new(result, CELL_TYPE)) < 0)

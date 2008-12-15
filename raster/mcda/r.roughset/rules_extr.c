@@ -33,7 +33,7 @@
 #include "rough.h"
 #include "localproto.h"
 
-int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct input *attributes, int strgy, int cls);
+int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct input *attributes, char *file_sample_txt, int strgy, int cls);
 
 void rough_set_library_out(int nrows, int ncols, int nattributes, struct input *attributes, char *file_out_sys);
 
@@ -50,7 +50,7 @@ int UppRules( value_type **rules, setA P, setA Q, int mat );
 int NormRules( value_type **rules, setA P, setA Q, int mat );
 
 
-int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct input *attributes, int strgy, int cls)  /*old MAIN*/
+int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct input *attributes, char *file_sample_txt, int strgy, int cls)
 {
 	SYSTEM *sys1, *sys2; /* Information system descriptor structures.*/
   	/* It contains information about the system parameters (number of objects, number of attributes, system name. */
@@ -59,22 +59,27 @@ int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct 
   	int n,j,i,r, *opr;
   	setA beg,P,Q,full,core; /*set of attributes*/
   	setO train;		  /*set of object*/
-  	FILE *file_out_sys, *file_out_txt;
+  	FILE *file_out_txt; /* pointer to text output file */
   	int (*genrules)( value_type**, setA, setA, int );
-  
+  	
   	int nattributes, nobjects=nrows*ncols; /*objects in information system are all raster cells in working location with a defined resolution */
   	int row, col,object,attribute; /*index and counter*/
   
   	sys1=InitEmptySys();  /* Allocates memory for a system descriptor and returns a pointer.*/
-
+	
+  	if(file_sample_txt != NULL) /*use sample txt file if input in dec_txt->answer isn't NUL*/
+  		{name=file_sample_txt;
+  		G_message("Using %s sys file for rules generation",name);} /* Imports a system from a file of the special format.*/
+  	 	
+  	 	
   	FileToSys(sys1,name); /* Imports a system from a file of the special format.*/
-  
+    
   	if (_rerror>0) 
   		{  G_fatal_error("  Can't open data file \n");
   			return(1);}	
-  	
-  	strcat(name,".out");
-  
+  			
+  	strcat(name,".out");		
+  			
   	if (!(file_out_txt=fopen(name,"a"))) 					/*output text file*/
   		{G_fatal_error("  Can't open output file \n");
   			return(1);}
@@ -82,7 +87,7 @@ int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct 
   	UseSys(sys1); /* Activates a system. All routines will work on this indicated system data and parameters.*/
   
   	if (_rerror>0) 
-    	{G_fatal_error("Can't open information system <%s>\n",sys2->name);
+    	{G_fatal_error("Can't open information system <%s>\n",sys1->name);
     		return(1); }
   
   
@@ -123,13 +128,13 @@ int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct 
 	   break;
 	case 1: genrules = FastRules;
 	   break;
-        case 2: genrules = Rules;  
+	case 2: genrules = Rules;  
 	   break;
 	case 3: genrules = BestRules;
 	   break;
 	case 4: genrules = AllRules;
 	   break;
-        case 5: genrules = LowRules;  
+	case 5: genrules = LowRules;  
 	   break;
 	case 6: genrules = UppRules;
 	   break;   
@@ -148,17 +153,18 @@ int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct 
 	
 /**************************close all********************************************/
  
-    CloseSys(sys1);   /* close sys1 */
+    //CloseSys(sys1);   /* close sys1 */
   
 /*******************************************************************************/
 /**************************Classify*********************************************/
 	
 	sys2=InitEmptySys();
-	SetParameters(sys2,nobjects,nattributes); /* assigning system parameters */
-	ConnectA(sys2,malloc(MatMemSize(sys2,MATA))); /* Connects MATRIX A to a system descriptor. */
+	SetParameters(sys2,nobjects,nattributes); 		/* assigning system parameters */
+	ConnectA(sys2,malloc(MatMemSize(sys2,MATA))); 	/* Connects MATRIX A to a system descriptor. */
 													/*MatMemSize: Returns size of memory used by matrix.*/
+	SetName(sys2,"classys");
 	UseSys(sys2); /* active system sys2 was created in application and has only MATRIX A */
-
+	
 	if (_rerror>0) 
     {  G_fatal_error("Can't open information system <%s>\n",_mainsys->name);
     	return(1); }
@@ -181,12 +187,12 @@ int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct 
 			}
 		}
 	
-	
     buf = MatExist(_mainsys,MATA); /*Returns pointer to specified matrix if exists*/
 
     if (!buf) 
 	{  G_fatal_error("Error in the information system <%s>\n",_mainsys->name);
 		return(1); }
+    
     
     switch ( cls )
      {
@@ -194,7 +200,8 @@ int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct 
 	{
 		for (j=0;j<_mainsys->objects_num;j++)
 		{ /*Chooses the best rule to cover sample. Strategy no. 1*/
-		classify_vect[j]=Classify1(buf+j*_mainsys->attributes_num,rules,r,P,Q);
+			classify_vect[j]=Classify1(buf+j*_mainsys->attributes_num,rules,r,P,Q);
+			G_percent(j, _mainsys->objects_num, 1);
 		}
 	}
 	   break;
@@ -202,7 +209,8 @@ int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct 
 	{
 		for (j=0;j<_mainsys->objects_num;j++)
 		{ /*Chooses the best rule to cover sample. Strategy no. 2*/
-		classify_vect[j]=Classify2(buf+j*_mainsys->attributes_num,rules,r,P,Q);
+			classify_vect[j]=Classify2(buf+j*_mainsys->attributes_num,rules,r,P,Q);
+			G_percent(j, _mainsys->objects_num, 1);
 		}
 	}
 	   break;
@@ -210,12 +218,13 @@ int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct 
     {
 		for (j=0;j<_mainsys->objects_num;j++)
 		{ /*Chooses the best rule to cover sample. Strategy no. 3*/
-		classify_vect[j]=Classify3(buf+j*_mainsys->attributes_num,rules,r,opr,P,Q);
+			classify_vect[j]=Classify3(buf+j*_mainsys->attributes_num,rules,r,opr,P,Q);
+			G_percent(j, _mainsys->objects_num, 1);
 		}
 	}  
 	   break;
   
-	default:;
+	default: 0;
 	   break;
      }
 
@@ -258,7 +267,7 @@ void rough_set_library_out(int nrows, int ncols, int nattribute, struct input *a
 
 	for (row = 0; row < nrows; row++)
 		{
-			G_percent(row, nrows, 1);
+			//G_percent(row, nrows, 1);
 			for(i=0;i<=nattribute;i++)
 				{
 				G_get_d_raster_row (attributes[i].fd, attributes[i].buf, row);/* Reads appropriate information into the buffer buf associated with the requested row*/
