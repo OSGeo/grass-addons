@@ -1,6 +1,7 @@
+# Uncoment and fix MODULE_TOPDIR line OR provide MODULE_TOPDIR variable for make
 # fix this relative to include/
 # or use absolute path to the GRASS source code
-MODULE_TOPDIR = ../../..
+# MODULE_TOPDIR = ../../..
 
 PGM = v.profile
 

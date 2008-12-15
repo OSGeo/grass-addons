@@ -618,7 +618,7 @@ int main(int argc, char *argv[])
 
     /* Build topology for vector map and close them */
     if (new_map->answer != NULL) {
-	Vect_build(&Out, stdout);
+	Vect_build(&Out);
 	Vect_close(&Out);
     }
 
