@@ -91,9 +91,9 @@ int CompareToRule( value_type *sample, value_type *rule, setA P )
        size=_mainsys->attributes_num;
    for (j=0;j<size;j++)
    {  if ( !ContSetA(P,j) ) continue;
-      if ( rule[j] != sample[j] )
-	 if ( rule[j]!=MINUS && sample[j]!=MINUS )
-	    result++;
+      	if ( rule[j] != sample[j] )
+	 		if ( rule[j]!=MINUS && sample[j]!=MINUS )
+	    		result++;
    }
    return result;
 } 

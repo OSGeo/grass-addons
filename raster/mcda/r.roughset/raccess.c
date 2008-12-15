@@ -2,9 +2,9 @@
  *
  * MODULE:       r.roughset
  * AUTHOR(S):    GRASS module authors ad Rough Set Library (RSL) maintain:
- *					G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)		
- *				 Rough Set Library (RSL) ver. 2 original develop:
- *		         	M.Gawrys - J.Sienkiewicz 
+ *			G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)		
+ *			Rough Set Library (RSL) ver. 2 original develop:
+ *		        M.Gawrys - J.Sienkiewicz 
  *
  * PURPOSE:      Geographics rough set analisys and knowledge discovery 
  *

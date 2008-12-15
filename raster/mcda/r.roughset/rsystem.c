@@ -133,7 +133,7 @@ void ConnectA(SYSTEM *sys,value_type *buf)
  { sys->matA=buf; }
 
 void PutA(SYSTEM *sys,int obj,int atr,value_type val)
- { (sys->matA)[obj*(sys->attributes_num)+atr]=val; }
+ {(sys->matA)[obj*(sys->attributes_num)+atr]=val; }
 
 int FillAfromAscii(SYSTEM *sys,FILE *file)
  {
