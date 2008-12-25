@@ -6,7 +6,7 @@
 
 void build_weight_vect(int nrows, int ncols, int ncriteria, struct Option *weight, double *weight_vect);
 
-void build_dominance_matrix(int nrows, int ncols, int ncriteria, double *weight_vect, double **concordance_mat, double **discordance_mat, double ***decision_vol);
+void build_dominance_matrix(int nrows, int ncols, int ncriteria, double *weight_vect, double ***decision_vol);
 
 
 /*
@@ -44,60 +44,60 @@ void build_weight_vect(int nrows, int ncols, int ncriteria,struct Option *weight
 }
 
 
-void build_dominance_matrix(int nrows, int ncols, int ncriteria, double *weight_vect, double **concordance_mat, double **discordance_mat, double ***decision_vol)
-{		
-	int row1,col1,row2,col2;
-	int i,j,k,cont;
-	double row_sum_conc, col_sum_conc,row_sum_disc, col_sum_disc;
-	
-	k=0;	/* make pairwise comparation and build concordance/discordance matrix*/
+void build_dominance_matrix(int nrows, int ncols, int ncriteria,double *weight_vect, double ***decision_vol)
+{
+	int row1, col1, row2, col2;
+	int i, j, k, cont;
+	double *row_sum_conc = G_alloc_vector(nrows * ncols);
+	double *col_sum_conc = G_alloc_vector(nrows * ncols);
+	double *row_sum_disc = G_alloc_vector(nrows * ncols);
+	double *col_sum_disc = G_alloc_vector(nrows * ncols);
+
+	k = 0; 							/* make pairwise comparation and build concordance/discordance matrix */
 	for (row1 = 0; row1 < nrows; row1++) 
 		{
 		G_percent(row1, nrows, 2);
-		for (col1 = 0; col1 < ncols; col1++)
+		for (col1 = 0; col1 < ncols; col1++) 
 			{
-			j=0;
+			j = 0;
 			for (row2 = 0; row2 < nrows; row2++) 
 				{
-				for (col2 = 0; col2 < ncols; col2++)
+				for (col2 = 0; col2 < ncols; col2++) 
 					{
-					for(i=0;i<ncriteria;i++)
+					double conc = 0, disc = 0;
+					for (i = 0; i < ncriteria; i++) 	
 						{
-						if(decision_vol[row1][col1][i]>=decision_vol[row2][col2][i])
-							{concordance_mat[k][j]=concordance_mat[k][j]+weight_vect[i];}
-							
-						if((decision_vol[row1][col1][i]-decision_vol[row2][col2][i])>concordance_mat[k][j])
-							{discordance_mat[k][j]=(decision_vol[row2][col2][i]-decision_vol[row1][col1][i]);}
+							double d = decision_vol[row1][col1][i] - decision_vol[row2][col2][i];
+							if (d >= 0)
+								conc += weight_vect[i];
+							if (d < disc) /*WARNING: if(d>conc)*//**/
+								disc = -d;
 						}
-					j++;/* increase rows index up to nrows*ncols*/
+					row_sum_conc[k] += conc;
+					col_sum_conc[j] += conc;
+					row_sum_disc[k] += disc;
+					col_sum_disc[j] += disc;
+
+					j++; /* increase rows index up to nrows*ncols */
 					}
 				}
-				k++; /* increase columns index up to nrows*ncols*/
+			k++; /* increase columns index up to nrows*ncols */
 			}
 		}
 
-		/*calculate concordance and discordance index and storage in decision_vol*/
-	cont=0;		/*variabile progressiva per riga/colonna della concordance_map*/
-	for(row1=0;row1<nrows;row1++)
-		{
+		/*calculate concordance and discordance index and storage in decision_vol */
+	cont = 0; /*variabile progressiva per riga/colonna della concordance_map */
+	for (row1 = 0; row1 < nrows; row1++) {
 		G_percent(row1, nrows, 2);
-		for(col1=0;col1<ncols;col1++)
-			{
-			row_sum_conc=col_sum_conc=row_sum_disc=col_sum_disc=0;
-			 /* da un valore incrementale ad ogni ciclo per progredire nella concordance_mat */
-			for(i=0;i<nrows*ncols;i++)
-				{
-				/*concordance index */
-				row_sum_conc=row_sum_conc+concordance_mat[cont][i];
-				col_sum_conc=row_sum_conc+concordance_mat[i][cont];
-				/*discordance index */
-				row_sum_disc=row_sum_disc+discordance_mat[cont][i];
-				col_sum_disc=row_sum_disc+discordance_mat[i][cont];
-				}
-			cont++;
-			decision_vol[row1][col1][ncriteria]=row_sum_conc-col_sum_conc;/*fill matrix with concordance index for each DCELL*/
-			decision_vol[row1][col1][ncriteria+1]=row_sum_disc-col_sum_disc;/*fill matrix with discordance index for each DCELL*/
-			}
-		}
+		for (col1 = 0; col1 < ncols; col1++) {
+		
+							/*fill matrix with concordance index for each DCELL */
+							decision_vol[row1][col1][ncriteria] = row_sum_conc[cont] - col_sum_conc[cont]; 
+							/*fill matrix with discordance index for each DCELL */
+							decision_vol[row1][col1][ncriteria + 1] = row_sum_disc[cont] - col_sum_disc[cont]; 
+							cont++; 
+											}
+										}
 }
+
 

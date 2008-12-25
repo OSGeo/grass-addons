@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     int nrows, ncols;
     int row1, row2, col1, col2;
     int outfd_concordance, outfd_discordance;		/* output file descriptor */
-	double *weight_vect, **concordance_mat, **discordance_mat, ***decision_vol;/* vector and matrix */
+	double *weight_vect, ***decision_vol;/* vector and matrix */
 
 
     struct History history;	/* holds meta-data (title, comments,..) */
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 	exit(EXIT_FAILURE);
 
 
-	G_message("start: %s",G_date()); /*write calculation start time*/
+	G_message("Start: %s",G_date()); /*write calculation start time*/
 
 	/* number of file (=criteria) */
     while (criteria->answers[ncriteria]!=NULL)
@@ -137,10 +137,7 @@ int main(int argc, char *argv[])
 	/*values = G_malloc(ncriteria * sizeof(DCELL));*/
 
 	nrows = G_window_rows();
-    ncols = G_window_cols();
-
-	concordance_mat=G_alloc_matrix((nrows*ncols),(nrows*ncols)); /* dinamicaly allocation memory and set value=0 */
-	discordance_mat=G_alloc_matrix((nrows*ncols),(nrows*ncols));
+        ncols = G_window_cols();
 
 	/*memory allocation for-three dimensional matrix*/
 	decision_vol=G_malloc(nrows * sizeof(double*));
@@ -182,9 +179,8 @@ int main(int argc, char *argv[])
 			}
 		}
 
-	G_message("build matrix: %s",G_date());
 
-	build_dominance_matrix(nrows,ncols,ncriteria,weight_vect,concordance_mat,discordance_mat, decision_vol); /*scan all DCELL, make a pairwise comparatione, buil concordance and discordance matrix and relative index*/
+	build_dominance_matrix(nrows,ncols,ncriteria,weight_vect,decision_vol); /*scan all DCELL, make a pairwise comparatione, buil concordance and discordance matrix and relative index*/
 
 
 	for(row1 = 0; row1 < nrows; row1++)
@@ -202,7 +198,7 @@ int main(int argc, char *argv[])
 		}
 
 
-	G_message("end: %s",G_date());
+	G_message("End: %s",G_date());
 
     /* memory cleanup */
 	for (i = 0; i<ncriteria; i++)
@@ -210,8 +206,6 @@ int main(int argc, char *argv[])
 
     G_free(outrast_concordance);
 	G_free(outrast_discordance);
-	G_free_matrix(concordance_mat);
-	G_free_matrix(discordance_mat);
 	G_free(decision_vol);
 
 
