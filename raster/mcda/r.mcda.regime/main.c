@@ -1,13 +1,13 @@
 /****************************************************************************
  *
- * MODULE:	    r.mcda.electre
- * AUTHORS	    Gianluca Massei (g_massa@libero.it) - Antonio Boggia (boggia@unipg.it)
+ * MODULE:	r.mcda.electre
+ * AUTHORS	Gianluca Massei (g_massa@libero.it) - Antonio Boggia (boggia@unipg.it)
  *
  * PURPOSE:     Make a multi-criterio decision  analysis based on REGIME algorthm
  *
- * COPYRIGHT:   (C) GRASS Development Team (2008)
+ * COPYRIGHT:   (C) G.Massei - A.Boggia (2008)
  *
- *		        This program is free software under the GNU General Public
+ *		This program is free software under the GNU General Public
  *   	    	License (>=v2). Read the file COPYING that comes with GRASS
  *   	    	for details.
  *
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     int nrows, ncols;
     int row1, row2, col1, col2;
     int outfd_preference;		/* output file descriptor */
-	double *weight_vect, **regime_mat, ***decision_vol;
+	double *weight_vect, ***decision_vol;
 
 
     struct History history;	/* holds meta-data (title, comments,..) */
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 		if(G_get_cellhd(p->name,p->mapset,&cellhd)<0)/* controlling, if we can open input raster */
 			G_fatal_error(_("Unable to read file header of <%s>"), p->name);
 
-		p->inrast = G_allocate_d_raster_buf(); /* Allocate an array of DCELL based on the number of columns in the current region. Return DCELL   */
+		p->inrast = G_allocate_d_raster_buf(); /* Allocate an array of DCELL based on the number of columns in the current region. Return DCELL*/
 	}
 
 	result_preference=preference->answer; /* store outputn name in variables*/
@@ -127,8 +127,6 @@ int main(int argc, char *argv[])
 
 	nrows = G_window_rows();
     ncols = G_window_cols();
-
-	regime_mat=G_alloc_matrix((nrows*ncols),(nrows*ncols)); /* dinamicaly allocation memory and set value=0 */
 
 	/*memory allocation for-three dimensional matrix*/
 	decision_vol=G_malloc(nrows * sizeof(double*));
@@ -167,7 +165,7 @@ int main(int argc, char *argv[])
 
 	G_message("build matrix: %s",G_date());
 
-	build_regime_matrix(nrows,ncols,ncriteria,weight_vect,regime_mat,decision_vol); /*scan all DCELL, make a pairwise comparatione, buil regime index matrix */
+	build_regime_matrix(nrows,ncols,ncriteria,weight_vect,decision_vol); /*scan all DCELL, make a pairwise comparatione, buil regime index matrix */
 
 
 	for(row1 = 0; row1 < nrows; row1++)
@@ -187,7 +185,6 @@ int main(int argc, char *argv[])
 		G_free(attributes[i].inrast);
 
     G_free(outrast_preference);
-	G_free_matrix(regime_mat);
 	G_free(decision_vol);
 
     /* closing raster maps */

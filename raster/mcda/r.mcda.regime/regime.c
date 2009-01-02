@@ -6,7 +6,7 @@
 
 void build_weight_vect(int nrows, int ncols, int ncriteria, struct Option *weight, double *weight_vect);
 
-void build_regime_matrix(int nrows, int ncols, int ncriteria, double *weight_vect, double **regime_mat, double ***decision_vol);
+void build_regime_matrix(int nrows, int ncols, int ncriteria, double *weight_vect, double ***decision_vol);
 
 
 /*
@@ -43,56 +43,50 @@ void build_weight_vect(int nrows, int ncols, int ncriteria,struct Option *weight
 }
 
 
-void build_regime_matrix(int nrows, int ncols, int ncriteria, double *weight_vect, double **regime_mat, double ***decision_vol)
+void build_regime_matrix(int nrows, int ncols, int ncriteria, double *weight_vect, double ***decision_vol)
 {		
 	int row1,col1,row2,col2;
 	int i,j,k,cont;
-	double row_sum_regime;
+	double *row_sum_regime = G_alloc_vector(nrows * ncols);
 	
-	k=0;	/* make pairwise comparation and built regime matrix*/
+	j=0;	/* make pairwise comparation and built regime matrix*/
 	for (row1 = 0; row1 < nrows; row1++) 
 		{
-		G_percent(row1, nrows, 2);
 		for (col1 = 0; col1 < ncols; col1++)
 			{
-			j=0;
 			for (row2 = 0; row2 < nrows; row2++) 
 				{
 				for (col2 = 0; col2 < ncols; col2++)
 					{
+					double reg = 0;
 					for(i=0;i<ncriteria;i++)
 						{
-						if(decision_vol[row1][col1][i]>decision_vol[row2][col2][i])
-							regime_mat[k][j]=(regime_mat[k][j])+(1*weight_vect[i]);
-						else if(decision_vol[row1][col1][i]<decision_vol[row2][col2][i])
-							regime_mat[k][j]=(regime_mat[k][j])+(-1*weight_vect[i]);
+						double d=decision_vol[row1][col1][i]-decision_vol[row2][col2][i];
+						if(d>0)
+							reg += (1*weight_vect[i]);
+						else if(d<0)
+							reg += (-1*weight_vect[i]);
 						else
-							regime_mat[k][j]=regime_mat[k][j];	
+							reg += 0;	
 						}
-					j++;/* increase rows index up to nrows*ncols*/
+					row_sum_regime[j] += reg;
 					}
 				}
-				k++; /* increase columns index up to nrows*ncols*/
+			j++;/* increase rows index up to nrows*ncols*/
 			}
+		G_percent(row1, nrows, 1);
 		}
 
 		/*calculate concordance and discordance index and storage in decision_vol*/
 	cont=0;	
 	for(row1=0;row1<nrows;row1++)
 		{
-		G_percent(row1, nrows, 2);
 		for(col1=0;col1<ncols;col1++)
 			{
-			row_sum_regime=0;
-			 /* increase one value in regime_mat for each cicle */
-			for(i=0;i<nrows*ncols;i++)
-				{
-				/*regime index */
-				row_sum_regime=row_sum_regime+regime_mat[cont][i];
-				}
+			decision_vol[row1][col1][ncriteria]=row_sum_regime[cont]/(nrows*ncols-1);/*fill matrix with regime index for each DCELL*/
 			cont++;
-			decision_vol[row1][col1][ncriteria]=row_sum_regime/(nrows*ncols-1);/*fill matrix with regime index for each DCELL*/
 			}
+		G_percent(row1, nrows, 2);
 		}
 }
 
