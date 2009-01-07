@@ -1,0 +1,49 @@
+<H2>DESCRIPTION</H2>
+
+
+<EM>v.db.calc</EM> executes a python expression using column values and 
+update the target column values: it allows complex calculation also with DBF attribute table.
+
+<H2>NOTES</H2>
+The v.db.calc must be run with a valid <a href="http://www.python.org/">Python</a> installed.<br>
+The columns within expression should be referred between square brackets <em> [ ] </em>.<br>
+Python functions should be referred with their full name.
+
+<H2>EXAMPLE</H2>
+Add a new column named EXP and populate it with the values of column "VAL" elevated at 0.25:
+<div class="code"><pre>
+v.db.addcol map=build columns="EXP double"
+v.db.calc input=myvector field=EXP exp="math.pow([VAL], 0.25)"
+</pre></div>
+
+Add a new column named EXP and populate it with the values of column "VAL" elevated at 0.25 
+only where column HEIGHT is bigger then 100:
+<div class="code"><pre>
+v.db.addcol map=build columns="EXP double"
+v.db.calc input=myvector field=EXP exp="math.pow([VAL], 0.25)" where="HEIGHT>100"
+</pre></div>
+
+
+<p>
+Add a new text column named TXT and populte it concatenating <em> Dr. </em> and the text values of the column NAME:
+<div class="code"><pre>
+v.db.addcol map=build columns="TXT varchar(25)"
+v.db.calc input=edifici field=EXP2 exp="'Dr. '+'[NAME]'"
+</pre></div>
+
+
+
+<H2>REFERENCES</H2>
+<a href="http://docs.python.org">Python</a>
+<p> 
+<a href="http://docs.python.org/library/cmath.html">Python math library</a>
+
+<H2>SEE ALSO</H2>
+
+<EM><A HREF="v.db.update.html">v.db.update</A></EM>
+
+<H2>AUTHOR</H2>
+
+Massimiliano Cannata <br>
+
+<p><i>Last changed: $Date: 2009-01-07 17:45:44 +0100 (Wed, 07 Jan 2009) $</i>
