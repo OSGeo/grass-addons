@@ -346,7 +346,7 @@ int main(int argc, char **argv)
     Vect_close( &In );
     G_close_cell( fdrast );
 
-    Vect_build( &Out, stdout );
+    Vect_build( &Out );
     Vect_close( &Out );
 	
     if ( txout_opt->answer )
