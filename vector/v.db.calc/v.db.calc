@@ -115,10 +115,11 @@ def main():
         return -1
     #Process and UPDATE
     else:
+        print "please wait while updating values...."
         #process lines
         for l in range(0,len(lines)-1):
-            if l%10==0:
-                print "."
+            #if l%10==0:
+            #    sys.stdout.write(".")
             cols = lines[l].split("|")
             evalexp = exp
             for i in range(len(uf)):
@@ -136,7 +137,7 @@ def main():
             #print updst
             cmdargs2=["map=%s"%table,"col=%s"%field,"val=%s"%str(value),"where=cat=%s"%cols[0],"--q"]     
             os.spawnvp(os.P_WAIT,"v.db.update", ["v.db.update"] + cmdargs2)
-
+        print "....DONE"
     return
 
 if __name__ == "__main__":
@@ -144,11 +145,3 @@ if __name__ == "__main__":
         os.execvp("g.parser", [sys.argv[0]] + sys.argv)
     else:
 	main();  
-
-
-
-
-
-
-
-
