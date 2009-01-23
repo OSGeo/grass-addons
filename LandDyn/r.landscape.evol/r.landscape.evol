@@ -11,7 +11,7 @@
 #                  singular flow regimes can be chosen instead.
 # ACKNOWLEDGEMENTS:National Science Foundation Grant #BCS0410269 
 #		   Based on work of H. Mitasova and C. S. Thaxton, and Heimsath et al, 1997.
-# COPYRIGHT:	   (C) 2007 by Isaac Ullah, Michael Barton, Arizona State University
+# COPYRIGHT:	   (C) 2009 by Isaac Ullah, Michael Barton, Arizona State University
 #		   This program is free software under the GNU General Public
 #		   License (>=v2). Read the file COPYING that comes with GRASS
 #		   for details.
@@ -44,7 +44,7 @@
 #% key: prefx
 #% type: string
 #% description: Prefix for all output maps
-#% answer: usped_
+#% answer: levol_
 #% required : yes
 #% guisection: Input
 #%end
@@ -121,7 +121,7 @@
 #% key: R
 #% type: string
 #% description: Rainfall (R factor) constant (AVERAGE FOR WHOLE MAP AREA)
-#% answer: 5
+#% answer: 5.66
 #% required : yes
 #% guisection: Variables
 #%end
@@ -130,7 +130,16 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: Soil erodability index (K factor) map or constant
-#% answer: 0.32
+#% answer: 0.42
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: sdensity
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Soil density constant (for conversion from mass to volume)
+#% answer: 1.2184
 #% required : yes
 #% guisection: Variables
 #%end
@@ -139,7 +148,7 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: Landcover index (C factor) map or constant
-#% answer: 0.01
+#% answer: 0.001
 #% required : yes
 #% guisection: Variables
 #%end
@@ -171,7 +180,7 @@
 #%option
 #% key: number
 #% type: integer
-#% description: number of iterations to run
+#% description: number of iterations (cycles) to run
 #% answer: 1
 #% required : yes
 #% guisection: Variables
@@ -198,14 +207,14 @@
 
 #%flag
 #% key: y
-#% description: -y Don't smooth the map (faster, but spikes in erosion/deposition may result)
+#% description: -y Smooth the map every year (Uesful if artifacts appear on unsmoothed output maps)
 #% guisection: Smoothing_Filter
 #%end
 #%option
 #% key: nbhood
 #% type: string
 #% description: Band-pass filter neighborhood size
-#% answer: 7
+#% answer: 3
 #% options: 1,3,5,7,9,11,13,15,17,19,21,23,25
 #% required : yes
 #% guisection: Smoothing_Filter
@@ -222,7 +231,8 @@
 
 #%flag
 #% key: n
-#% description: -n Output maps of net erosion/deposition for ever year
+#% description: -n Output maps of net elevation change for every cycle
+#% answer: 1
 #% guisection: Statistics
 #%end
 #%flag
@@ -278,7 +288,8 @@
 #%end
 #%flag
 #% key: f
-#% description: -f Use r.terrflow instead of r.flow to calculate flow accumulation (better for massive grids)
+#% description: -f Use r.terrflow instead of r.watershed to calculate flow accumulation ( GRASS 6.3.x users MUST use this flag!)
+#% answer: 0
 #% guisection: Flow_type
 #%end
 
@@ -301,6 +312,7 @@ outdem=$GIS_OPT_outdem
 outsoil=$GIS_OPT_outsoil
 R=$GIS_OPT_R
 K=$GIS_OPT_K
+sdensity=$GIS_OPT_sdensity
 C=$GIS_OPT_C
 kappa=$GIS_OPT_kappa
 Ba=$GIS_OPT_Ba
@@ -470,11 +482,9 @@ do
 	if [ "$GIS_FLAG_b" -eq 1 ]; then
 	  echo ""	
 	else
-	  new_bdrk=$prefx$outbdrk$iter
 	  echo "The new bedrock elevation map for this iteration will be called  $new_bdrk"
 	fi
 
-# the first iteration must be run before the loop to set up the input data for the loop and to use the "new_soil" map to set up soil production function
 	echo ""
 	echo "##################################################"
 	echo ""
@@ -491,14 +501,12 @@ do
 	echo "step 2 of 8: calculating upslope accumulated flow"
 	echo "*************************"
 	echo ""
-
+	#First we need to grab the amount of free RAM for r.terraflow
+	mem=`eval free -mo  | grep "Mem" | tr -s /[:blank:] /[:] | cut -d":" -f4`
+	
 	if [ "$GIS_FLAG_f" -eq 1 ]; then
 	  echo "using r.terraflow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
 	  echo ""
-
-	  #First we need to grab the amount of free RAM for r.terraflow
-
-	  mem=`eval free -mo  | grep "Mem" | tr -s /[:blank:] /[:] | cut -d":" -f4`
 
 	  #r.terraflow can't handle it if you tell it to use more than 2 Gigs of RAM, so if you have more than that, we have to tell r.terraflow to only use up to 2 Gigs of the free RAM... 
 
@@ -514,27 +522,24 @@ do
 
 	  r.terraflow --q elev=$old_dem filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=$tmpflacc tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
 
-	  r.mapcalc "$flowacc=$tmpflacc/$res"
+	  #changing raw flow accumulation map to number of square meters of upslope contributing area
+	  r.mapcalc "$flowacc=$tmpflacc*exp($res, 2)"
 
 	  g.remove --quiet rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",$tmpflacc,$tmpdirection
 
 	  rm -f /var/tmp/STREAM*
 
 	else
-	  echo "using r.flow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
-
-	  tmpfilled=$prefx"tmpfilled"$iter
-	  tmpdirection=$prefx"tmpdirection"
+	  echo "using r.watershed to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
 
 	  tmpflacc=$prefx"tmpflacc"
 
-	  r.fill.dir --quiet input=$old_dem elevation=$tmpfilled direction=$tmpdirection type=grass
+	  r.watershed --quiet elevation=$old_dem visual=$tmpflacc memory=$mem
+	  
+	  #cchanging raw flow accumulation map to number of square meters of upslope contributing area
+	  r.mapcalc "$flowacc=$tmpflacc*exp($res, 2)"
 
-	  r.flow -3 --quiet elevin=$tmpfilled aspin=$aspect dsout=$tmpflacc
-
-	  r.mapcalc "$flowacc=$tmpflacc*$res"
-
-	  g.remove --quiet rast=$tmpflacc,$tmpdirection,$tmpfilled
+	  g.remove --quiet rast=$tmpflacc
 	fi
 
 	echo ""
@@ -628,52 +633,46 @@ do
 	echo "*************************"
 	echo ""
 
-#this is commented out because I don't understand why we should multiply by the resolution again here. I think that it is actually a typo incorporated into every version of the script since the beginning.
-#echo	"calculating for rill erosion"
-#	r.mapcalc "$erdep=$res * ($qsxdx + $qsydy)"
+	#Here we add the x and y flux's for total flux "T" in Mg/Ha. Then if we multiply T times 100, we get a rate in grams/squaremeter. This new rate times the resolution gives us grams per cell width. Then we divide this by the density to get cubic centimeters per cell width. This measure is then divided by the area of the cell in centimeters (resolution squared x 100 squared) to get vertical change per cell width in centimeters. We dived this by 100 to get that measure in meters. Several of these facctors cancel out to make a final equation of "T/(10,000*density*resolution)". This equation changes the orignal T from Mg/Ha to vertical change in meters over the length of one cell's width.  In order to convert the output back to Mg/Ha (standard rate for USPED/RUSLE equations), you can multiply the netchange output map by "(10000 x resolution x soil density)" to create a map of soil erosion/deposition rates across the landscape. The rest of this mampcalc statement just checks the amount of erodable soil in a given cell against the amount of erosion calculated, and keeps the cell from eroding past this amount (if there is soil, then if the amount of erosion is more than the amount of soil, just remove all the soil and stop, else remove the amount of caclulated erosion. It also runs an error catch that checks to make sure that soil depth is not negative, and if it is, corrects it).
+	r.mapcalc "$erdep=if( $old_soil >= 0, if( (-1 * ( ($qsxdx + $qsydy) / ( 10000 * $sdensity * $res ) ) ) >= $old_soil, ( -1 * $old_soil ), ( ($qsxdx + $qsydy) / ( 10000 * $sdensity * $res ) ) ), ( ($qsxdx + $qsydy) / ( 10000 * $sdensity * $res ) ) )"
 
-
-	r.mapcalc "$erdep=if($old_soil >= 0, (if((-1 *($qsxdx + $qsydy) ) >= $old_soil, (-1 * $old_soil), ($qsxdx + $qsydy))), ($qsxdx + $qsydy))"
-	echo ""
-	echo "*************************"
-	echo "step 7 of 8: running despeckling filter"
-	echo "*************************"
-	echo ""
 
 	if [ "$GIS_FLAG_y" -eq 1 ]; then
-	  echo "You have selected not to smooth your files... Oh Well!"
+	  echo "You have selected to smooth your files. Running bandpass despeckling filter now"
 	  echo ""
+	   r.neighbors --q input=$erdep output=$tempsmoothdz method=$GIS_OPT_method size=$GIS_OPT_nbhood
 
-	  
+
 	else
-#commenting out the sigma-based truncation because it was causeing deletarious amplification of cell edges. Leaving it commented for posterity only...
-#r.mapcalc "$smoothdz=if((abs($tempsmoothdz-$neighbors)) > $GIS_OPT_sigma , $neighbors , $tempsmoothdz)"
+	   tempsmoothdz=$erdep
 
+	fi  
 
-	  r.neighbors --q input=$erdep output=$tempsmoothdz method=$GIS_OPT_method size=$GIS_OPT_nbhood
-	fi
-
-	#now we must correct for the incredible edge shrinking effect by patching the last smoothdz underneath the new smoothdz
-	if [ $iter -ne 1 ]; then
-	  r.patch input=$tempsmoothdz,$lastsmooth output=$smoothdz
-	  g.remove --quiet rast=$tempsmoothdz
-	else
-	  g.rename --quiet rast=$tempsmoothdz,$smoothdz
-	fi
+	 #now we must correct for the incredible edge shrinking effect by patching the last smoothdz underneath the new smoothdz
+	 if [ $iter -ne 1 ]; then
+	    r.patch input=$tempsmoothdz,$lastsmooth output=$smoothdz
+	    g.remove --quiet rast=$tempsmoothdz
+	 else
+	    g.rename --quiet rast=$tempsmoothdz,$smoothdz
+	 fi
+	
 
 	echo ""
 	echo "*************************"
-	echo "step 8 of 8: calculating terrain evolution, new bedrock elevations, and new soil depths"
+	echo "step 7 of 7: calculating terrain evolution, new bedrock elevations, and new soil depths"
 	echo "*************************"
 	echo ""
 
-	#put the net dz back where it is upposed to go and then subtract it from dem to make new dem
-	if [ $num_iters -eq 1 ]; then
+
+	if [ $iter -eq 1 ]; then
+	  temp_dem=$prefx"temp_dem"
+	elif [ $modulus -eq 0 ]; then
 	  temp_dem=$prefx"temp_dem"
 	else
 	  temp_dem=$new_dem
 	fi
 
+	#put the net dz back where it is supposed to go and then subtract it from dem to make new dem
 	if [ "$GIS_FLAG_f" -eq 1 ]; then
 	
 		r.mapcalc "$temp_dem=eval(x=if(($aspect < 22.5 ||  $aspect >= 337.5) && $aspect != 0, ($old_dem + $smoothdz[1,0]), if ($aspect >= 22.5 && $aspect < 67.5, ($old_dem + $smoothdz[1,-1]), if ($aspect >= 67.5 && $aspect < 112.5, ($old_dem + $smoothdz[0,-1]), if ($aspect >= 112.5 && $aspect < 157.5, ($old_dem + $smoothdz[-1,-1]), if ($aspect >= 157.5 && $aspect < 202.5, ($old_dem + $smoothdz[-1,0]), if ($aspect >= 202.5 && $aspect < 247.5, ($old_dem + $smoothdz[-1,1]), if ($aspect >= 247.5 && $aspect < 292.5, ($old_dem + $smoothdz[0,1]), if ($aspect >= 292.5 && $aspect < 337.5, ($old_dem + $smoothdz[1,1]), ($old_dem + $smoothdz))))))))), (if(isnull(x), $old_dem, if(x > ($old_dem + 5), ($old_dem + 1), x))))"
@@ -687,11 +686,12 @@ do
 
 	#set colors for maps
  	r.colors --q map=$temp_dem rast=$elev
-
-	if [ $num_iters -eq 1 ] ; then
+	#do patch-job for year one to catch the shrinking edge problem
+	if [ $iter -eq 1 ] ; then
 	  r.patch --quiet input=$temp_dem,$old_dem output=$new_dem
 	  g.remove --quiet rast=$temp_dem
 	fi
+
 
 	#make $netchange if asked
 	if [ "$GIS_FLAG_n" -eq 1 -o "$GIS_FLAG_m" -eq 1 -o "$GIS_FLAG_t" -eq 1 -a "$GIS_FLAG_f" -eq 1 ]; then
@@ -751,8 +751,8 @@ do
 	tmperosion=$prfx"tmperosion"$iter
 	tmpdep=$prfx"tmpdep"$iter
 
-	r.mapcalc "$tmperosion=if($smoothdz < 0, $smoothdz, null())"
-	r.mapcalc "$tmpdep=if($smoothdz > 0, $smoothdz, null())"
+	r.mapcalc "$tmperosion=if($netchange < 0, $netchange, null())"
+	r.mapcalc "$tmpdep=if($netchange > 0, $netchange, null())"
 
 
 	soilstats=`eval r.univar -g -e map=$new_soil percentile=99`
@@ -838,7 +838,6 @@ done
 #fi
 
 
-#remove the temp files to avoid confusion...\rm -f $TMP1 $TMP1.sort
 
 # now we have met the loop critereon set by us above, so we have broken out.
 if [ "$GIS_FLAG_c" -eq 1 ]; then
@@ -910,12 +909,6 @@ if [ "$GIS_FLAG_n" -ne 1 ]; then
   g.mremove -f --q rast=$prefx"netchange*"
 fi
 
-#if [ "$GIS_FLAG_n" -eq 1 ]; then
-#  echo ""
-#else
-#  echo ""
-#  g.mremove -f --q rast=$prefx"netchange*"
-#fi
 
 
 if [ "$GIS_FLAG_l" -eq 1 ]; then
@@ -959,8 +952,8 @@ else
 fi
 
 #remove temporary color rule files
-\rm -f $TMP1
-\rm -f $TMP4
+\rm -f $TMP1 $TMP1.sort
+\rm -f $TMP4 $TMP4.sort
 
 if [ "$GIS_FLAG_z" -eq 1 ]; then
   echo ""
