@@ -1,0 +1,71 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.in.gshhs</em> imports GSHHS shorelines as available on
+<a href="ftp://ftp.soest.hawaii.edu/pwessel/gshhs/">ftp://ftp.soest.hawaii.edu/pwessel/gshhs/</a>
+<p>
+GSHHS shorelines are in latlon but can be imported to any location with 
+any projection apart from unreferenced XY projection. Reprojection is 
+done on the fly during import.
+<p>
+Shorelines are imported as lines, not boundaries.
+<p>
+The categories in layer 1 refer to the type of shoreline: shore, land, 
+lake, island in lake, pond in island in lake. The field <tt>type</tt> is 
+set to these descriptions. All lines of the same type have the same 
+category. The categories in layer 2 refer to the GSHHS ID of each 
+imported line. Each line has a unique category value (the GSHHS ID) in 
+layer 2, that may be useful for further processing. An attribute table 
+for layer 2 is not created.
+<p>
+The import region is restricted to either the current computational 
+region or to the extend specified with the options n, s, e, w. Either of 
+the two possibilities must be used. All lines that overlap with the 
+specified region are imported, similar to <em>v.in.ogr</em>.
+
+<h2>NOTES</h2>
+The GSHHS shorelines are in files named <tt>gshhs_[f|h|i|l|c].b</tt> where 
+the letter in brackets indicates the resolution. Only these files can be 
+imported, import of world borders and world rivers also included in the zip 
+archive is currently not supported.
+<p>
+The GSHHS shorelines are available at 5 resolutions:
+<ul>
+<li>f: full resolution
+<li>h: high resolution
+<li>i: intermediate resolution
+<li>l: low resolution
+<li>c: coarse resolution
+</ul>
+<p>
+The generated table for layer 1 allows a fast query of the shoreline type.
+If needed a table for layer 2 can be added with <em>v.db.addtable</em>. 
+The new table can be populated with category values from layer 2 (unique
+line ID) with <em>v.to.db</em>. Shoreline type can be uploaded from 
+layer 1 to layer 2 with <em>v.to.db</em>.
+<p>
+Long lines can be split with <em>v.split</em>.
+<p>
+Lines can be converted to boundaries with <em>v.type</em>.
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a HREF="v.db.addtable.html">v.db.addtable</a>,
+<a HREF="v.split.html">v.split</a>,
+<a HREF="v.to.db.html">v.to.db</a>,
+<a HREF="v.type.html">v.type</a>,
+</em>
+
+<h2>REFERENCES</h2>
+
+The processing and assembly of the GSHHS data is described in
+<p>
+Wessel, P., and W. H. F. Smith, 1996. A Global Self-consistent, Hierarchical, 
+High-resolution Shoreline Database. J. Geophys. Res., 101(B4), 8741-8743. 
+
+<h2>AUTHORS</h2>
+The gshhstograss tool was written by Simon Cox and Paul Wessel.<br>
+The original version of v.in.gshhs was written by Bob Covill based on gshhstograss.<br> 
+Modifications and updates by Markus Neteler and Markus Metz.
+<p>
+<i>Last changed: $Date: 2009-01-26 18:43:35 +0200 (Mon, 26 Jan 2009) $</i>

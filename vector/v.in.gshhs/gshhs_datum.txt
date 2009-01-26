@@ -1,0 +1,97 @@
+Leming, T.D., May, L.N., Jones, P. 1999. A Geographic Information System for
+Near Reat-Time use of Remote Sensing in Fisheries Management in the Gulf of
+Mexico. 85 p. February 11, 1999.
+http://coastwatch.noaa.gov/pubs/digdocs/nrtgis_final_report2.pdf
+
+"A continental land mask was created from the global, self-consistent,
+hierarchical, high-resolution shoreline database (GSHHS) compiled by Wessel
+and Smith (1996). The GSHHS is public domain digital coastline file available
+from the School of Ocean and Earth Science Technology at the University of
+Hawaii12 and the NOAA National Geophysical Data Center 13 (NGDC) and contains
+coastlines and closed waterbodies extracted from two widely used public domain
+databases, the World Data Bank II coastline (WDB) and the World Vector
+Shoreline (WVS). Lohrenz (1988) indicated that the working scale of the WVS
+data is about about 1:250,000 and is referenced to the World Geodetic System
+of 1972 (WGS-72) horizontal datum and the mean high water (MHW) vertical
+datum."
+
+Lohrenz, M.C. 1988. Design and implementation of the digital world vector
+shoreline data format. Report 194, Naval Ocean Research and Development
+Activity, Stennis Space Center, Miss., 34 pp.
+
+#######################################################################
+http://wegener.mechanik.tu-darmstadt.de/GMT-Help/Archiv/1960.html
+Coastlines, etc
+
+    * This message: [ Message body ] [ More options ]
+    * Related messages: [ Next message ] [ Previous message ]
+
+From: Paul Wessel <pal.wessel_at_>
+Date: 1999-04-14 08:11:02
+
+Hi GMT users-
+
+Each year I get a few questions like these:
+
+1. "I am making a plot of a small area, using pscoast -Df, and the island that
+   I used to visit as a kid does not show up (or lake, or river, etc)"
+
+2. "When I compared the coastline from pscoast with GPS measurements, the
+   coastline seems shifted by a few hundred meters"
+
+3. "Where this river is wide it is missing entirely, with the result that
+   some of the islands in the river show up as lakes"
+
+To simplify the answer, I will assume you have read Appendix K in the GMT
+Reference & Cookbook section on how the GSHHS coastlines were put together.
+
+Answers:
+
+  There are many possibilities:
+   a) The feature was missing in the original WVS (land outlines) or WDBII
+      (lakes, rivers, boundaries) data set.
+   b) The feature was eaten by our preprocessing steps.
+   c) WVS and WDBII were sometimes incompatible.
+   d) Different datums were used
+   
+   One must remember that the WVS coastline is much higher accuracy than the
+   WDBII lakes and rivers. It has happened that a feature that was considered
+   a coastal lake in WVS (i.e., it did not break the shoreline and thus was
+   not included in WVS) was a bay in WDBII (and thus not included as a lake).
+   The result is that the lake never appeared in GSHHS.
+   Likewise, rivers do not always end at the coastline; it may cross it or not
+   quite make it to the ocean.
+
+How can we improve the data? Ideally, we would prefer that some agency
+announces a sucessor to WVS and WDBII that is better, and we can start from
+that point. We do not want to be the curators of these data. In the mean time:
+
+1. If you can show us that a missing feature is indeed in the original
+   WVS or WDBII data then _maybe_ I can find time to check the processing
+code.
+   I need much motivation to dig into all that stuff again.
+
+2. If you have a high-resolution (i.e., comparable to other features in -Df)
+   digital version of the missing feature, please email it to us with an
+   explanatory note. We may then incorporate it in the next version.
+
+3. The rivers seem to be messed up, either in the source or by us. If you
+   have digitized missing pieces please share them with us.
+
+4. The shift that some have documented may be related to datum. If anybody
+   knows what reference ellipsoid was used for WVS and WDBII we would like
+   to hear it. We made no correction to the lon/lat when making the data
+   compilation.
+
+5. We still miss some recent political borders. It may be premature to
+  add lines in the Balkans, but if you have high-quality political borders
+  not in GMT, please share with us.
+
+Paul Wessel, Professor
+Dept. of Geology & Geophysics
+School of Ocean & Earth Science & Technology
+University of Hawaii at Manoa
+1680 East-West Road,
+Honolulu, HI 96822
+(808) 956-4778/5154 (voice/fax) 
+
