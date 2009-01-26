@@ -27,6 +27,8 @@
  *	28-AUG-2007.  PW: Version 1.6.  no format change
  *			  For use with version 1.6 of GSHHS which now has WDBII
  *			  borders and rivers.
+ * 
+ * may need updating for new GSHHS versions
  */
 
 #ifndef _GSHHS
