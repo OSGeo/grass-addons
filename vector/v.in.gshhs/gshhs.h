@@ -29,6 +29,7 @@
  *			  borders and rivers.
  * 
  * may need updating for new GSHHS versions
+ * 
  */
 
 #ifndef _GSHHS
