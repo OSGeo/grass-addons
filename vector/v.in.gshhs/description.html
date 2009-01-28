@@ -13,22 +13,20 @@ The categories in layer 1 refer to the type of shoreline: shore, land,
 lake, island in lake, pond in island in lake. The field <tt>type</tt> is 
 set to these descriptions. All lines of the same type have the same 
 category. The categories in layer 2 refer to the GSHHS ID of each 
-imported line. Each line has a unique category value (the GSHHS ID) in 
+imported line. Each line has as category value the GSHHS ID in 
 layer 2, that may be useful for further processing. An attribute table 
 for layer 2 is not created.
 <p>
 The import region is restricted to either the current computational 
 region or to the extend specified with the options n, s, e, w. Either of 
-the two possibilities must be used. All lines that overlap with the 
+the two possibilities must be used. All lines that fall into the 
 specified region are imported, similar to <em>v.in.ogr</em>.
 
 <h2>NOTES</h2>
 The GSHHS shorelines are in files named <tt>gshhs_[f|h|i|l|c].b</tt> where 
-the letter in brackets indicates the resolution. Only these files can be 
-imported, import of world borders and world rivers also included in the zip 
-archive is currently not supported.
+the letter in brackets indicates the resolution.
 <p>
-The GSHHS shorelines are available at 5 resolutions:
+The 5 available resolutions are:
 <ul>
 <li>f: full resolution
 <li>h: high resolution
@@ -43,15 +41,16 @@ The new table can be populated with category values from layer 2 (unique
 line ID) with <em>v.to.db</em>. Shoreline type can be uploaded from 
 layer 1 to layer 2 with <em>v.to.db</em>.
 <p>
-Long lines can be split with <em>v.split</em>.
-<p>
 Lines can be converted to boundaries with <em>v.type</em>.
+<p>
+Import of world borders and world rivers also included in the zip archive
+is currently not supported but works, just ignore the attribute table.
+These world borders and rivers are however outdated and not very accurate.
 
 <h2>SEE ALSO</h2>
 
 <em>
 <a HREF="v.db.addtable.html">v.db.addtable</a>,
-<a HREF="v.split.html">v.split</a>,
 <a HREF="v.to.db.html">v.to.db</a>,
 <a HREF="v.type.html">v.type</a>,
 </em>

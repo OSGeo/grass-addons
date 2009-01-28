@@ -38,7 +38,7 @@
 
 int main(int argc, char **argv)
 {
-    double w, e, s, n, area, lon, lat;
+    double w, e, s, n, area, lon, lat, lastlon = 0., lastlat = 0.;
     double minx = -180., maxx = 180., miny = -90., maxy = 90.;
     char *dataname, *outname;
     char buf[2000], source;
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     FILE *fp;
     int k, i, n_read, flip, level, version, greenwich, src;
     int max_east = 180000000;	/* max_east = 270000000: confuses GRASS */
-    int cnt = 1;
+    int cnt = 0, getme = 0;
     struct GSHHS_POINT p;	/* renamed to avoid conflict */
     struct GSHHS h;
     struct pj_info info_in;
@@ -199,10 +199,11 @@ int main(int argc, char **argv)
 	sscanf(parm.s->answer, "%lf", &miny);
 	sscanf(parm.n->answer, "%lf", &maxy);
 
-	if (maxx < minx)
-	    G_fatal_error("East must be east of West");
+        /* it is a valid request to go over the datum border */
+	if (maxx == minx)
+	    G_fatal_error("East and West can not be the same");
 
-	if (maxy < miny)
+	if (maxy <= miny)
 	    G_fatal_error("North must be north of South");
     }
 
@@ -252,6 +253,9 @@ int main(int argc, char **argv)
     }
 
     /* check coordinate accuracy */
+#if 0
+    /* don't check coordinate accuracy, it's either the current window or
+     * e w n s and they have been checked already */
     if (maxx < minx) {
 	G_fatal_error(_("maxx %f < minx %f."), maxx, minx);
     }
@@ -259,6 +263,17 @@ int main(int argc, char **argv)
     if (maxy < miny) {
 	G_fatal_error(_("maxy %f < miny %f."), maxy, miny);
     }
+#endif
+
+    while (maxx > 180.0)
+	maxx -= 360.0;
+    while (maxx < -180.0)
+	maxx += 360.0;	
+
+    while (minx > 180.0)
+	minx -= 360.0;
+    while (minx < -180.0)
+	minx += 360.0;	
 
     G_message(_("Using lat/lon bounds N=%f S=%f E=%f W=%f\n"), maxy, miny,
 	      maxx, minx);
@@ -320,10 +335,30 @@ int main(int argc, char **argv)
 	if (h.east > max_east)
 	    e -= 360.0;
 
-	/* got line header now read in points if line box overlaps with region */
-	if ((w <= maxx && e >= minx) && (s <= maxy && n >= miny)) {
+	if (e < w)
+	    e += 360;
+
+	/* got line header now read in points if line box falls into region */
+	/* what if the datum border is crossed?
+	 * then maxx < minx and both w and e should be >= minx or <=maxx */
+	getme = 1;
+	if (maxx > minx) {
+	    if (w > maxx || e < minx || s > maxy || n < miny) /* that should get any overlapping line */
+		getme = 0;
+	}
+	else {
+	    /* e and w < minx and e and w > maxx */
+	    if ((w < minx && e < minx && w > maxx && e > maxx) || s > maxy || n < miny)
+		getme = 0;
+	}
+	
+	if (getme) {
 	    Vect_reset_line(Points);
 	    Vect_reset_cats(Cats);
+	    /* simple table and cats for layer 1: not unique, just per slevel */
+	    Vect_cat_set(Cats, 1, level);
+	    /* cats for layer 2 are unique ID, same like GSHHS ID */
+	    Vect_cat_set(Cats, 2, h.id);
 
 	    for (k = 0; k < h.n; k++) {
 		if (fread
@@ -336,10 +371,22 @@ int main(int argc, char **argv)
 		    p.y = swabi4((unsigned int)p.y);
 		}
 		lon = p.x * GSHHS_SCL;
-		if (p.x > max_east)
+		if (p.x > max_east) /* GSHHS lon coords are 0 - 360 */
 		    lon -= 360.0;
 		lat = p.y * GSHHS_SCL;
 
+		/* chop in 1x1 degree tiles */
+		if (k && ((floor(lon) != floor(lastlon)) || (floor(lat) != floor(lastlat)))) {
+
+		    lastlon = Points->x[Points->n_points - 1]; /* keep last lon for new line */
+		    lastlat = Points->y[Points->n_points - 1]; /* keep last lat for new line */
+
+		    Vect_write_line(&VectMap, type, Points, Cats);
+		    Vect_reset_line(Points);
+		    Vect_append_point(Points, lastlon, lastlat, 0.);
+		}
+		lastlon = lon;
+		lastlat = lat;
 		if (G_projection() != PROJECTION_LL) {
 		    if (pj_do_proj(&lon, &lat, &info_in, &info_out) < 0) {
 			G_fatal_error("Error in coordinate transformation");
@@ -350,12 +397,7 @@ int main(int argc, char **argv)
 	    }			/* done with line */
 
 	    if (k) {
-		/* simple table and cats for layer 1: not unique, just per slevel */
-		Vect_cat_set(Cats, 1, level);
-		/* cats for layer 2 are unique ID, same like GSHHS ID */
-		Vect_cat_set(Cats, 2, h.id);
 		Vect_write_line(&VectMap, type, Points, Cats);
-		cnt++;
 	    }
 	}
 	else {
@@ -363,14 +405,16 @@ int main(int argc, char **argv)
 		    "skipped line box west: %f, east: %f, north: %f, south: %f",
 		    w, e, n, s);
 	    fseek(fp, (long)(h.n * sizeof(struct GSHHS_POINT)), SEEK_CUR);
+	    cnt++;
 	}
-	/* max_east = 180000000; *//* Only Eurasiafrica needs 270 */
+	/* max_east = 180000000; *//* Only Eurasiafrica needs 270: only needed for GMT not for GRASS */
 
 	n_read =
 	    fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
     }
     /* done with gshhs file */
     fclose(fp);
+    G_message(_("Skipped lines: %d"), cnt);
 
     Vect_destroy_line_struct(Points);
     Vect_destroy_cats_struct(Cats);
