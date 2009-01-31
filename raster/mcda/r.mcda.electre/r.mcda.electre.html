@@ -1,41 +1,53 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head><title>r.mcda.electre</title></head>
-<body>
-<h2 style="text-align: justify;">DESCRIPTION</h2>
-<div style="text-align: justify;"><span style="font-weight: bold;">r.mcda.electre </span>implementa
-l'algoritmo di analisi multi-criterio "ELECTRE" in ambiente GRASS GIS e
-costituisce uno dei tools disponibili nella suite r.mcda.<br>
-Richiede
-in input la lista dei raster che rappresentano i &nbsp;criteri da
-utilizzare nell'analisi multicriterio e il vettore dei pesi da inserire&nbsp; nello
-<span style="font-style: italic;">stesso ordine</span> di immissione di quello dei criteri. <br>
-Ogni singola i-esima cella della region di GRASS è considerata come una
-delle possibili alternative da valutare ed è descritta dai valori
-assunti per la stessa cella dai raster indicati come criteri.<br>L'output
-è costituito da due file di cui uno rappresenta la distribuzione
-spaziale dell'indice di concordanza ed uno quella dell'indice di
-discordanza. La localizzazione ottimale è quella che contemporaneamente
-ha ilmassimo valore di concordanza ed il minimo valore di discordanza
-rispetto ai criteri inseriti<br>
-<br>
-</div>
-<h2 style="text-align: justify;">NOTES</h2>
-<div style="text-align: justify;">Il modulo non opera
-alcun tipo di standardizzazione sui raster dei criteri che, pertanto, devono
-essere preventivemente preparati utilizzando, ad esempio, r.mapcalc. Il
-vettore dei pesi, invece, viene normalizzato sempre ad 1, quindi se
-l'immissione è già standardizzata il valore di ponderazione rimane
-inalterato, altrimente viene eseguito il calcolo che riporta la somma
-dei pesi ad un valore pari a 1.
-</div><h2 style="text-align: justify;">REFERENCE</h2>
-<div style="text-align: justify;">Roy, B. (1971) Problem and methods with multiple objective funtions Mathemathical programming 1, 239-266.<br>Roy, B. (1990): The outranking approach and the foundations of Electre methods , Document du LAMSADE, Paris.<br>Janssen R. (1994) - Multiobjective decision support for enviromental management, Kluwe Accademic Publishers.<br><br>GRASS Development Team (2008)<br><br></div><h2 style="text-align: justify;">SEE ALSO</h2>
-<div style="text-align: justify;"><em>r.mcda.regime,
-r.mcda.fuzzy, r.roughet, r.mapcalc</em><br>
-<em></em><em></em></div>
-<h2 style="text-align: justify;">AUTHORS</h2>
-<div style="text-align: justify;">Antonio Boggia - Gianluca Massei&nbsp;<br>Dipartimento di Scienze Economico Estimative e degli Alimenti - Università di Perugia - Italy
-</div>
-
-<p><i><br>
-</i></p>
-</body></html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>r.mcda.electre</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Win32)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="gianluca">
+	<META NAME="CHANGED" CONTENT="20090201;51600">
+	<META NAME="CHANGEDBY" CONTENT="gianluca">
+</HEAD>
+<BODY LANG="it-IT" DIR="LTR">
+<H2>DESCRIPTION</H2>
+<P ALIGN=JUSTIFY><B>r.mcda.electre </B>is the implementation of the
+ELECTRE multicriteria algorithm in GRASS GIS environment. <SPAN LANG="en-US">It
+is one of the available tools in the r.mcda suite. It requires as an
+input the list of rasters representing the criteria to be assessed in
+the multicriteria evaluation and the vector of weights to be
+assigned. Every single cell of the GRASS region is considered as one
+of the possible alternatives to evaluate and it is described with the
+value assumed for the same cell by the rasters used as criteria.
+There are two output files. One represents the spatial distribution
+of the concordance index, the other one of the discordance index. The
+optimal solution is the one presenting the maximum concordance value
+and the minimum discordance value at the same time.</SPAN></P>
+<H2>NOTES</H2>
+<P ALIGN=JUSTIFY><SPAN LANG="en-US">The module does not standardize
+the raster-criteria. Therefore, they must be prepared before by
+using, for example, r.mapcalc. The weights vector is always
+normalized so that the sum of the weights is 1.</SPAN> 
+</P>
+<H2>REFERENCE</H2>
+<P ALIGN=JUSTIFY><SPAN LANG="en-US">Roy, B. (1971) Problem and
+methods with multiple objective functions Mathematical programming 1,
+239-266.</SPAN></P>
+<P LANG="en-US" ALIGN=JUSTIFY>Roy, B. (1990): The outranking approach
+and the foundations of Electre methods , Document du LAMSADE, Paris.</P>
+<P LANG="en-US" ALIGN=JUSTIFY>Janssen R. (1994) - Multiobjective
+decision support for environmental management, Kluwer Academic
+Publishers.</P>
+<P ALIGN=JUSTIFY>GRASS Development Team (2008)</P>
+<H2>SEE ALSO</H2>
+<P ALIGN=JUSTIFY><EM>r.mcda.fuzzy, r.mcda.electre, r.roughet,
+r.mapcalc</EM></P>
+<H2>AUTHORS</H2>
+<P LANG="en-US" ALIGN=JUSTIFY>Antonio Boggia - Gianluca Massei
+<BR>Department of Economics and Appraisal &ndash; University of
+Perugia - Italy 
+</P>
+<P ALIGN=JUSTIFY><BR><BR>
+</P>
+</BODY>
+</HTML>
