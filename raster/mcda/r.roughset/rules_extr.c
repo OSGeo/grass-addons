@@ -8,7 +8,7 @@
  *
  * PURPOSE:      Geographics rough set analisys and knowledge discovery 
  *
- * COPYRIGHT:    (C) GRASS Development Team (2008)
+ * COPYRIGHT:    (C) A.Boggia - G.Massei (2008)
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -177,9 +177,9 @@ int rough_analysis(int nrows, int ncols, char *name, int *classify_vect, struct 
 			{
 			G_percent(row, nrows, 1);
 			/* Reads appropriate information into the buffer buf associated with the requested row*/
-			G_get_d_raster_row (attributes[i].fd, attributes[i].buf, row);
+			G_get_c_raster_row (attributes[i].fd, attributes[i].buf, row);
 			for (col=0;col<ncols;col++)
-					{	  					
+					{  					
 					value = (attributes[i].buf[col]); /*make a cast on the DCELL output value*/
 					PutA(_mainsys,object,i,value);    /* filling MATRIX A */
 			      	object++;
@@ -257,20 +257,19 @@ void rough_set_library_out(int nrows, int ncols, int nattribute, struct input *a
         if(NULL == (fp = fopen(file_out_sys, "w")))
         	G_fatal_error("Not able to open file [%s]",file_out_sys);
 
-       	fprintf(fp,"NAME: %s\nATTRIBUTES: %d\-nOBJECTS: %s\n",file_out_sys,nattribute+1,"      ");
+       	fprintf(fp,"NAME: %s\nATTRIBUTES: %d\nOBJECTS: %s\n",file_out_sys,nattribute+1,"      ");
 
 	/************** process the data *************/
 	
-	G_message("Build information system for rules extraction");
+	G_message("Build information system for rules extraction in %s", file_out_sys);
 	
 	nobject=0;
-
+	
 	for (row = 0; row < nrows; row++)
 		{
-			//G_percent(row, nrows, 1);
 			for(i=0;i<=nattribute;i++)
 				{
-				G_get_d_raster_row (attributes[i].fd, attributes[i].buf, row);/* Reads appropriate information into the buffer buf associated with the requested row*/
+				G_get_c_raster_row (attributes[i].fd, attributes[i].buf, row);/* Reads appropriate information into the buffer buf associated with the requested row*/
 				}
 				for (col=0;col<ncols;col++)
 					{	/*make a cast on the DCELL output value*/
@@ -279,15 +278,16 @@ void rough_set_library_out(int nrows, int ncols, int nattribute, struct input *a
 						{
 						for(j=0;j<nattribute;j++)
 							{	/*make a cast on the DCELL output value*/
-							value = (int)(attributes[j].buf[col]);
-							sprintf(cell_buf, "%d",value);
-			      			G_trim_decimal (cell_buf);
-			      			fprintf (fp,"%s ",cell_buf);
+								value = (int)(attributes[j].buf[col]);
+								sprintf(cell_buf, "%d",value);
+			      				G_trim_decimal (cell_buf);
+			      				fprintf (fp,"%s ",cell_buf);
 			      			}
 			      			fprintf(fp,"%d \n",decvalue);
 			      			nobject++;
 			      		}
 					}
+			G_percent(row, nrows, 1);
 		}
 	
 	/************** write code file*************/
@@ -307,7 +307,6 @@ void rough_set_library_out(int nrows, int ncols, int nattribute, struct input *a
 	/************** close all and exit ***********/
 
 	fclose(fp);
-
 }
 
 

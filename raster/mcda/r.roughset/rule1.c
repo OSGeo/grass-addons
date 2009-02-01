@@ -8,7 +8,7 @@
  *
  * PURPOSE:      Geographics rough set analisys and knowledge discovery 
  *
- * COPYRIGHT:    (C) GRASS Development Team (2008)
+ * COPYRIGHT:    (C) A.Boggia - G.Massei (2008)
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS

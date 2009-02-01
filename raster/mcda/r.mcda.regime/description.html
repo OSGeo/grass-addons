@@ -1,0 +1,28 @@
+<H2>DESCRIPTION</H2>
+<em>r.mcda.regime </em> is
+the implementation of the REGIME multicriteria algorithm in GRASS GIS
+environment. It is one of the available tools in the r.mcda suite. It
+requires as an input the list of rasters representing the criteria to
+be assessed in the multicriteria evaluation and the vector of weights
+to be assigned. Every single cell of the GRASS region is considered
+as one of the possible alternatives to evaluate and it is described
+with the value assumed for the same cell by the rasters used as
+criteria.</P>
+<BR>
+<H2>NOTES</H2>
+<P>The module does not standardize the raster-criteria. Therefore, they must
+be prepared before by using, for example, r.mapcalc. The weights
+vector is always normalized so that the sum of the weights is 1.</P>
+<BR>
+<H2>REFERENCE</H2>
+<P>Janssen R. (1994) - Multiobjective decision support for environmental management, Kluwer Academic Publishers;</P>
+<P>GRASS Development Team (2008);</P>
+<BR>
+<H2>SEE ALSO</H2>
+<P><EM>r.mcda.fuzzy, r.mcda.electre, r.roughet, r.mapcalc</EM></P>
+<BR>
+<H2>AUTHORS</H2>
+<P>Antonio Boggia - Gianluca Massei
+<BR>Department of Economics and Appraisal - University of Perugia - Italy 
+</P>
+

@@ -11,7 +11,7 @@ struct input
 {
 	char *name, *mapset;
 	int fd;
-	DCELL *buf;
+	CELL *buf;
 };
 
 

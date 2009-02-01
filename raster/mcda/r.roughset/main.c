@@ -8,7 +8,7 @@
  *
  * PURPOSE:      Geographics rough set analisys and knowledge discovery 
  *
- * COPYRIGHT:    (C) GRASS Development Team (2008)
+ * COPYRIGHT:    (C) A.Boggia - G.Massei (2008)
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -60,14 +60,14 @@ int main(int argc, char *argv[])
     attr_map->required   = YES;
     attr_map->multiple   = YES;
     attr_map->gisprompt  = "old,cell,raster" ;
-    attr_map->description = "Input geographics ATTRIBUTES in information system";
+    attr_map->description = _("Input geographics ATTRIBUTES in information system");
 	
     dec_map = G_define_option() ;
     dec_map->key        = "decision";
     dec_map->type       = TYPE_STRING;
     dec_map->required   = NO;
     dec_map->gisprompt  = "old,cell,raster" ;
-    dec_map->description = "Input geographics DECISION in information system";
+    dec_map->description = _("Input geographics DECISION in information system");
 
     genrules = G_define_option() ;
     genrules->key        = "strgy";
@@ -75,14 +75,14 @@ int main(int argc, char *argv[])
     genrules->required   = YES;
     genrules->options	 = "Very fast,Fast,Medium,Best,All,Low,Upp,Normal";
     genrules->answer	 = "Very fast";
-    genrules->description = "Strategies for generating rules";
+    genrules->description = _("Strategies for generating rules");
     
 	dec_txt = G_define_option();
     dec_txt->key 		= "sample";
     dec_txt->type 		= TYPE_STRING;
     dec_txt->required 	= NO;
     dec_txt->gisprompt 	= "old_file,file,input";
-    dec_txt->description = "Input text file  with  data and decision sample";
+    dec_txt->description = _("Input text file  with  data and decision sample");
 	
     clssfy = G_define_option() ;
     clssfy->key        	= "clssfy";
@@ -90,23 +90,22 @@ int main(int argc, char *argv[])
     clssfy->required  	= YES;
     clssfy->options	   	= "Classify1,Classify2,Classify3";
     clssfy->answer 		="Classify1";
-    clssfy->description = "Strategies for classified map (conflict resolution)";
+    clssfy->description = _("Strategies for classified map (conflict resolution)");
     
     output_txt = G_define_option();
     output_txt->key = "outTXT";
     output_txt->type = TYPE_STRING;
     output_txt->required = YES;
-    output_txt->gisprompt = "new_file,file,output";
+   // output_txt->gisprompt = "new_file,file,output";
     output_txt->answer ="InfoSys";
-    output_txt->description = "Output information system file";
+    output_txt->description = _("Output information system file");
 
   	output_map = G_define_option(); 
 	output_map->key = "outMAP";
     output_map->type = TYPE_STRING;
     output_map->required = YES;
-    output_map->gisprompt = "new,cell,raster";
     output_map->answer ="classify";
-    output_map->description = "classified output map";
+    output_map->description = _("Output classified map");
 	
 
     /* options and flags parser */
@@ -170,16 +169,25 @@ int main(int argc, char *argv[])
 		struct input *p = &attributes[i];
 		p->name = attr_map->answers[i];
 		p->mapset = G_find_cell(p->name,""); /* G_find_cell: Looks for the raster map "name" in the database. */
+		
+		p->fd = G_open_cell_old(p->name, p->mapset);
+		
 		if (!p->mapset)
 			G_fatal_error(_("Raster file <%s> not found"), p->name);
-		p->fd = G_open_cell_old(p->name, p->mapset);
+		
 		if (p->fd < 0)
 			G_fatal_error(_("Unable to open input map <%s> in mapset <%s>"),p->name, p->mapset);
-		p->buf = G_allocate_d_raster_buf(); /* Allocate an array of DCELL based on the number of columns in the current region. Return DCELL *  */
+		
+		if (CELL_TYPE!=G_raster_map_type(p->name, p->mapset))
+			G_fatal_error(_("Input map <%s> in mapset <%s> isn't CELL type"),p->name, p->mapset);
+		
+		p->buf = G_allocate_c_raster_buf(); /* Allocate an array of CELL based on the number of columns in the current region. Return DCELL *  */
+
 	}
 	
-	/* determine the inputmap DECISION type (CELL/FCELL/DCELL) */
-    data_type = CELL_TYPE; //G_raster_map_type(dec_map->answer, mapset);
+	
+	/* define the inputmap DECISION type (CELL) */
+    data_type = CELL_TYPE; //
    /* Allocate output buffer, use input map data_type */
 	nrows = G_window_rows();
 	ncols = G_window_cols();

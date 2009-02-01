@@ -1,64 +1,44 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>r.roughset</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="root">
-	<META NAME="CHANGED" CONTENT="20081213;19151100">
-	<META NAME="CHANGEDBY" CONTENT="root">
-	<META NAME="CHANGEDBY" CONTENT="root">
-	<STYLE TYPE="text/css">
-	<!--
-		@page { size: 21cm 29.7cm }
-		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
-		H2.cjk { font-family: "HG Mincho Light J"; font-size: 14pt; font-style: italic }
-		H2.ctl { font-family: "Arial Unicode MS"; font-size: 14pt; font-style: italic }
-	-->
-	</STYLE>
-</HEAD>
-<BODY LANG="it-IT" DIR="LTR">
-<H2 CLASS="western" ALIGN=JUSTIFY>r.roughset</H2>
-<P ALIGN=JUSTIFY><B>r.roughset&nbsp;</B>√® un modulo che
-consente&nbsp;l'applicazione della rough set theory [1,2] a database
-geografici in ambiente GRASS GIS. L'input √® costituito da due gruppi
-di dati: <BR>1. gli attributi geografici che costituiscono il sistema
-informativo della rough set analisys e che si ritiene siano
-sufficienti a descrivere&nbsp;un determinato fenomeno naturale,
-sociale od economico (<B>attributes</B>=<EM>string[,string,...]</EM>);<BR>2.
+<H2>DESCRIPTION</H2>
+<em>r.roughset</em> Ë un modulo che consente l'applicazione della 
+rough set theory [1,2] a database geografici in ambiente GRASS GIS. 
+L'input Ë costituito da due gruppi di dati: <BR>1. gli attributi geografici che costituiscono il
+sistema informativo della rough set analisys e che si ritiene siano
+sufficienti a descrivere un determinato fenomeno naturale,
+sociale od economico (<B>attributes</B>=<EM>string[,string,...]</EM>);<BR> 2.
 il tematismo nel quale sono identificate le aree per cui il fenomeno
-da studaire si √® presentato con una certa modalit√†
+da studaire si Ë presentato con una certa modalit‡
 (<B>decision</B>=<EM>string</EM>). Il valore non nullo di ogni cella
 di questo raster va a riempire l'ultima colonna del sistema
 informativo mentre le corrispondenti celle dei raster nel campo
-<B>attributes </B><SPAN STYLE="font-weight: medium">completano le
+<B>attributes </B><SPAN STYLE="font-weight: normal">completano le
 altre colonne. </SPAN>
 </P>
 <P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm">Il sistema informativo
-cos√¨ generato viene trattato con le funzioni esposte dalla versione
-2 delle rough set library (RSL, ver. 2.0)&nbsp; [3] secondo una delle
-strategie decisionali disponibili con l'opzione <B>strgy</B>=<EM>string.</EM></P>
+cos&igrave; generato viene trattato con le funzioni esposte dalla
+versione 2 delle rough set library (RSL, ver. 2.0) [3] secondo
+una delle strategie decisionali disponibili con l'opzione
+<B>strgy</B>=<EM>string.</EM></P>
 <P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><EM><SPAN STYLE="font-style: normal">La
 scelta della strategia di classificazione, </SPAN></EM><EM><SPAN STYLE="font-style: normal"><B>clssfy</B></SPAN></EM><EM>=string
-</EM><EM><SPAN STYLE="font-style: normal">√® indispensabile per
+</EM><EM><SPAN STYLE="font-style: normal"> Ë indispensabile per
 generare una mappa sulla base dei criteri descritti con gli attributi
 (attributes) e le regole decisionali generate. Le opzioni sono 3:
 </SPAN></EM><EM><I>Classify1,Classify2,Classify3</I></EM><EM> </EM><EM><SPAN STYLE="font-style: normal">e
 ognuna corrisponde a tre differenti algoritmi [3]. </SPAN></EM><BR><BR>L'output
-√® costituito da tre differenti files di cui due di tipo testo<EM> </EM>ed
-uno raster:</P>
+Ë costituito da tre differenti files di cui due di tipo testo<EM>
+</EM>ed uno raster:</P>
 <P ALIGN=JUSTIFY>a. <I>file testo</I> strutturato secondo lo standard
 suggerito dalla rough set library, contraddistinto dallo stesso nome
-indicato nel campo <B>outTXT</B><I><SPAN STYLE="font-weight: medium">=string</SPAN></I>
-senza ulteriori suffissi; √® necessario nel caso in cui le regole
-decisionali generate per un contesto geografico debbao essere
+indicato nel campo <B>outTXT</B><I><SPAN STYLE="font-weight: normal">=string</SPAN></I>
+senza ulteriori suffissi; Ë necessario nel caso in cui le
+regole decisionali generate per un contesto geografico debbano essere
 applicate in un'altra location, sulla base di raster di attributi e
 decisionali con lo stesso significato e lo stesso range di valori. In
-questo caso il campo sample=string dovr√† contenere il nome completo
-di un file outTXT precedentemente generato e il campo <EM><SPAN STYLE="font-style: normal"><B>decision=</B></SPAN></EM><EM><I><SPAN STYLE="font-weight: medium">string</SPAN></I></EM><EM>
-</EM><EM><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: medium">pu√≤
-essere tralasciato</SPAN></SPAN></EM> Il file pu√≤ anche essere
+questo caso il campo sample=string dovr‡ contenere il nome
+completo di un file outTXT precedentemente generato e il campo
+<EM><SPAN STYLE="font-style: normal"><B>decision=</B></SPAN></EM><EM><I><SPAN STYLE="font-weight: normal">string</SPAN></I></EM><EM>
+</EM><EM><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">puÚ
+essere tralasciato</SPAN></SPAN></EM> Il file puÚ anche essere
 utilizzato con implementazioni delle le RSL al di fuori dall'ambiente
 GIS;</P>
 <P STYLE="margin-bottom: 0cm"><I>NAME: nome del sistema informativo</I></P>
@@ -80,24 +60,22 @@ attributi)</I></P>
 </P>
 <P STYLE="margin-bottom: 0cm"><I>0 0 1 1 </I>
 </P>
-<P><I>Box 1</I></P>
-<P ALIGN=JUSTIFY><BR><BR>
-</P>
-<P ALIGN=JUSTIFY>Il numero degli attributi √® pari a quello dei
+
+<P ALIGN=JUSTIFY>Il numero degli attributi Ë pari a quello dei
 raster dati come input al parametro <B>attributes</B>=<EM>string[,string,...]
-</EM><EM><SPAN STYLE="font-style: normal">pi√π il raster decisionale
-</SPAN></EM><EM>(</EM><EM><SPAN STYLE="font-style: normal"><B>decision</B></SPAN></EM><EM>=string)
+</EM><EM><SPAN STYLE="font-style: normal">pi&ugrave; il raster
+decisionale </SPAN></EM><EM>(</EM><EM><SPAN STYLE="font-style: normal"><B>decision</B></SPAN></EM><EM>=string)
 </EM><EM><SPAN STYLE="font-style: normal">che per convenzione occupa
 l'ultima colonna del sistema informativo.</SPAN></EM></P>
 <P ALIGN=JUSTIFY>b. <I>file testo</I>, contraddistinto dal prefisso
-definito in <B>outTXT</B><I><SPAN STYLE="font-weight: medium">=string</SPAN></I>
+definito in <B>outTXT</B><I><SPAN STYLE="font-weight: normal">=string</SPAN></I>
 e dal suffisso .<I>out</I>, contenente le regole decisionali estratte
 dal sistema informativo geografico, oltre che il core e&nbsp;&nbsp;i
 ridotti; le regole decisionali sono nella forma: &nbsp;<I>if ... then
 </I>e sono facilmente leggibili ed interpretabili dall'analista per
-finalit√† descritive del fenomeno oggetto di studio;<BR>c. <I>raster,
-</I><SPAN STYLE="font-style: normal">contraddistinto dal nome
-indicato nel campo</SPAN> <SPAN STYLE="font-style: normal"><B>outMAP</B></SPAN><I>=string,
+finalit&agrave; descritive del fenomeno oggetto di studio;<BR>c.
+<I>raster, </I><SPAN STYLE="font-style: normal">contraddistinto dal
+nome indicato nel campo</SPAN> <SPAN STYLE="font-style: normal"><B>outMAP</B></SPAN><I>=string,
 </I><SPAN STYLE="font-style: normal">ottenuto dall'applicazione delle
 regole decisionali generate dal sistema informativo geografico
 secondo una delle strategie di classificazione in </SPAN><EM><SPAN STYLE="font-style: normal"><B>clssfy</B></SPAN></EM><EM>=string.
@@ -109,13 +87,14 @@ inseriti in </SPAN></EM><EM><SPAN STYLE="font-style: normal"><B>attributes</B></
 </EM><EM><SPAN STYLE="font-style: normal">oppure da un file testuale
 generato da un precedente elaborazione. In questo caso la struttura
 del file deve essere rigidamente quella indicata in box 1.</SPAN></EM></P>
-<H2 CLASS="western" ALIGN=JUSTIFY>NOTES</H2>
-<P ALIGN=JUSTIFY>Il modulo √® in grado di trattare raster di
-qualsiasi tipo (CELL,FCELL,DCELL) ma le elaborazioni vengono eseguite
-tutte su variabili di tipo intero (int) perch√® questo √® imposto
-dalle rough set library. Le regole decisionali, conseguentemente,
-restituiscono informazioni esclusivamente di tipo intero.</P>
-<H2 CLASS="western" ALIGN=JUSTIFY>REFERENCE</H2>
+<H2>NOTES</H2>
+<P ALIGN=JUSTIFY>Il modulo Ë in grado di trattare raster di
+tipo CELL e le elaborazioni vengono eseguite
+tutte su variabili di tipo intero (int). Questo Ë un vincolo 
+imposto dalle rough set library. Le regole decisionali,
+conseguentemente, restituiscono informazioni esclusivamente di tipo
+intero.</P>
+<H2>REFERENCE</H2>
 <OL>
 	<LI><P ALIGN=JUSTIFY>Pawlak Z. Rough Sets, International Journal of
 	Information&nbsp;and Computer Science Vol. 11, No. 5, 1982, pp.
@@ -125,19 +104,16 @@ restituiscono informazioni esclusivamente di tipo intero.</P>
 	<LI><P ALIGN=JUSTIFY>Gawrys M.,&nbsp;Sienkiewicz J. Rough Set
 	Library - User's manual&nbsp;(ver. 2.0), September 1993</P>
 	<LI><P ALIGN=JUSTIFY><A HREF="http://en.wikipedia.org/wiki/Rough_set">http://en.wikipedia.org/wiki/Rough_set</A>
-	- ‚Äúrough set‚Äù</P>
-	<P ALIGN=JUSTIFY><BR><BR><BR>
+	- &ldquo;rough set&rdquo;</P>
+	<P ALIGN=JUSTIFY>
 	</P>
 </OL>
-<H2 CLASS="western" ALIGN=JUSTIFY>SEE ALSO</H2>
-<P ALIGN=JUSTIFY><EM>r.mcda.fuzzy, r.mcda.electre, r.mcda.regime</EM></P>
-<H2 CLASS="western" ALIGN=JUSTIFY>AUTHORS</H2>
-<P ALIGN=JUSTIFY>Antonio Boggia - Gianluca Massei&nbsp;<BR>Dipartimento
-di Scienze Economico Estimative e degli Alimenti - Universit√† di
-Perugia - Italy</P>
-<P ALIGN=JUSTIFY><BR><BR>
-</P>
-<P><BR><BR>
-</P>
-</BODY>
-</HTML>
+
+<H2>SEE ALSO</H2>
+<P><EM>r.mcda.fuzzy, r.mcda.electre, r.mcda.regime</EM></P>
+
+<H2>AUTHORS</H2>
+Antonio Boggia - Gianluca Massei&nbsp;<BR>Dipartimento
+di Scienze Economico Estimative e degli Alimenti - Universit&agrave;
+di Perugia - Italy</P>
+
