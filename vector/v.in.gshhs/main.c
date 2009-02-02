@@ -42,16 +42,17 @@ int main(int argc, char **argv)
     double minx = -180., maxx = 180., miny = -90., maxy = 90.;
     char *dataname, *outname;
     char buf[2000], source;
-    static char *slevel[] = { "shore", "land", "lake", "island in lake",
-	"pond in island in lake"
-    };
-    int shore_levels = 5;
+    static char *slevel[] = { "land", "lake", "island in lake",
+	"pond in island in lake" };
+    int shore_levels = 4;
+    /* taken from gshhs.c, keep in sync */
     FILE *fp;
     int k, i, n_read, flip, level, version, greenwich, src;
     int max_east = 180000000;	/* max_east = 270000000: confuses GRASS */
     int cnt = 0, getme = 0;
     struct GSHHS_POINT p;	/* renamed to avoid conflict */
     struct GSHHS h;
+    /* GRASS specific */
     struct pj_info info_in;
     struct pj_info info_out;
     struct Key_Value *out_proj_keys, *out_unit_keys;
@@ -278,6 +279,9 @@ int main(int argc, char **argv)
     G_message(_("Using lat/lon bounds N=%f S=%f E=%f W=%f\n"), maxy, miny,
 	      maxx, minx);
 
+    if (maxx < minx)
+	maxx += 360.; /* easier to get overlapping features */
+
     /* open GSHHS shoreline for reading */
     if ((fp = fopen(dataname, "rb")) == NULL) {
 	G_fatal_error(_("Could not find file %s."), dataname);
@@ -300,7 +304,7 @@ int main(int argc, char **argv)
     /* read header from GSHHS database */
     n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
     version = (h.flag >> 8) & 255;
-    flip = (version < 6);	/* Take as sign that byte-swapping is needed */
+    flip = (version < 4);	/* Take as sign that byte-swapping is needed */
     if (flip) {
 	version = swabi4((unsigned int)h.flag);
 	version = (version >> 8) & 255;
@@ -308,6 +312,7 @@ int main(int argc, char **argv)
 
     /* read lines from GSHHS database */
     while (n_read == 1) {
+	/* taken from gshhs.c, keep in sync */
 	if (flip) {
 	    h.id = swabi4((unsigned int)h.id);
 	    h.n = swabi4((unsigned int)h.n);
@@ -330,27 +335,20 @@ int main(int argc, char **argv)
 	source = (src == 1) ? 'W' : 'C';	/* Either WVS or CIA (WDBII) pedigree */
 	area = 0.1 * h.area;	/* Now im km^2 */
 
-	if (h.west > max_east)
+        /* GRASS specific, max_east must always be 180 */
+	while (w > 180.)
 	    w -= 360.0;
-	if (h.east > max_east)
+	while (e > 180.)
 	    e -= 360.0;
 
-	if (e < w)
-	    e += 360;
+	if (maxx > 180. && w < 0)
+	    w += 360.;
+	if (maxx > 180. && e < 0)
+	    e += 360.;
 
-	/* got line header now read in points if line box falls into region */
-	/* what if the datum border is crossed?
-	 * then maxx < minx and both w and e should be >= minx or <=maxx */
-	getme = 1;
-	if (maxx > minx) {
-	    if (w > maxx || e < minx || s > maxy || n < miny) /* that should get any overlapping line */
-		getme = 0;
-	}
-	else {
-	    /* e and w < minx and e and w > maxx */
-	    if ((w < minx && e < minx && w > maxx && e > maxx) || s > maxy || n < miny)
-		getme = 0;
-	}
+	getme = 0;
+	if (w < maxx && e > minx && s < maxy && n > miny)
+	    getme = 1;
 	
 	if (getme) {
 	    Vect_reset_line(Points);
@@ -407,7 +405,8 @@ int main(int argc, char **argv)
 	    fseek(fp, (long)(h.n * sizeof(struct GSHHS_POINT)), SEEK_CUR);
 	    cnt++;
 	}
-	/* max_east = 180000000; *//* Only Eurasiafrica needs 270: only needed for GMT not for GRASS */
+	/* 270 only needed for GMT not for GRASS, GRASS wraps around */
+	/* max_east = 180000000; *//* Only Eurasiafrica needs 270 */
 
 	n_read =
 	    fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
@@ -425,7 +424,7 @@ int main(int argc, char **argv)
 	    version);
     Vect_set_comment(&VectMap, buf);
 
-    /* create table and link new vector to table, code taken from v.in.ogr */
+    /* create table for layer 1 and link new vector to table, code taken from v.in.ogr */
     db_init_string(&sql);
     db_init_string(&strval);
 
@@ -481,6 +480,8 @@ int main(int argc, char **argv)
 
     db_commit_transaction(driver);
     db_close_database_shutdown_driver(driver);
+
+    /* table for layer 1 created */
 
     if (flag.topo->answer) {
 	G_message(_("Run \"v.build map=%s option=build\" to build topology"),
