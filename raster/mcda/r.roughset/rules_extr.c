@@ -254,10 +254,10 @@ void rough_set_library_out(int nrows, int ncols, int nattribute, struct input *a
 	FILE *fp;			/*file pointer for ASCII output*/
 
 	/* open *.sys file for writing or use stdout */
-        if(NULL == (fp = fopen(file_out_sys, "w")))
+    if(NULL == (fp = fopen(file_out_sys, "w")))
         	G_fatal_error("Not able to open file [%s]",file_out_sys);
 
-       	fprintf(fp,"NAME: %s\nATTRIBUTES: %d\nOBJECTS: %s\n",file_out_sys,nattribute+1,"      ");
+	fprintf(fp,"NAME: %s\nATTRIBUTES: %d\nOBJECTS: %s\n",file_out_sys,nattribute+1,"            ");
 
 	/************** process the data *************/
 	
@@ -283,7 +283,7 @@ void rough_set_library_out(int nrows, int ncols, int nattribute, struct input *a
 			      				G_trim_decimal (cell_buf);
 			      				fprintf (fp,"%s ",cell_buf);
 			      			}
-			      			fprintf(fp,"%d \n",decvalue);
+			      			fprintf(fp,"%d\n",decvalue);
 			      			nobject++;
 			      		}
 					}
@@ -299,11 +299,10 @@ void rough_set_library_out(int nrows, int ncols, int nattribute, struct input *a
 
 	/************** write header file*************/
 
-	if(0<fseek(fp,0L,0)) /*move file pointer to header file*/
-		G_fatal_error("Not able to write file [%s]",file_out_sys);
-	else
-		fprintf(fp,"NAME: %s\nATTRIBUTES: %d\nOBJECTS: %d\n",file_out_sys,nattribute+1,nobject);
+	rewind(fp); /*move file pointer to header file*/
+				/* TODO: make a system to  detect errors like: G_fatal_error("Not able to write file [%s]",file_out_sys);*/
 
+	fprintf(fp,"NAME: %s\nATTRIBUTES: %d\nOBJECTS: %d",file_out_sys,nattribute+1,nobject);
 	/************** close all and exit ***********/
 
 	fclose(fp);
