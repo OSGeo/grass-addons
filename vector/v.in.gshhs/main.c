@@ -36,9 +36,16 @@
  * if not too many changes were introduced */
 #include "gshhs.h"
 
+int Vect_write_line_tiled(struct Map_info *, int, struct line_pnts *,
+	    struct line_cats *, double);
+
+struct pj_info info_in;
+struct pj_info info_out;
+
+
 int main(int argc, char **argv)
 {
-    double w, e, s, n, area, lon, lat, lastlon = 0., lastlat = 0.;
+    double w, e, s, n, area, lon, lat;
     double minx = -180., maxx = 180., miny = -90., maxy = 90.;
     char *dataname, *outname;
     char buf[2000], source;
@@ -53,8 +60,6 @@ int main(int argc, char **argv)
     struct GSHHS_POINT p;	/* renamed to avoid conflict */
     struct GSHHS h;
     /* GRASS specific */
-    struct pj_info info_in;
-    struct pj_info info_out;
     struct Key_Value *out_proj_keys, *out_unit_keys;
     int type, zone;
     struct Cell_head region;
@@ -69,7 +74,7 @@ int main(int argc, char **argv)
     } parm;
     struct
     {
-	struct Flag *g, *topo, *a;
+	struct Flag *r, *topo, *a;
     } flag;
     struct GModule *module;
 
@@ -96,33 +101,9 @@ int main(int argc, char **argv)
 
     parm.output = G_define_standard_option(G_OPT_V_OUTPUT);
 
-    parm.n = G_define_option();
-    parm.n->key = "n";
-    parm.n->type = TYPE_DOUBLE;
-    parm.n->required = NO;
-    parm.n->description = "North limit in units of location projection";
-
-    parm.s = G_define_option();
-    parm.s->key = "s";
-    parm.s->type = TYPE_DOUBLE;
-    parm.s->required = NO;
-    parm.s->description = "South limit in units of location projection";
-
-    parm.e = G_define_option();
-    parm.e->key = "e";
-    parm.e->type = TYPE_DOUBLE;
-    parm.e->required = NO;
-    parm.e->description = "East limit in units of location projection";
-
-    parm.w = G_define_option();
-    parm.w->key = "w";
-    parm.w->type = TYPE_DOUBLE;
-    parm.w->required = NO;
-    parm.w->description = "West limit in units of location projection";
-
-    flag.g = G_define_flag();
-    flag.g->key = 'g';
-    flag.g->description = "Get coordinates from current GRASS region";
+    flag.r = G_define_flag();
+    flag.r->key = 'r';
+    flag.r->description = "Limit import to the current region";
 
     flag.topo = G_define_flag();
     flag.topo->key = 't';
@@ -136,7 +117,7 @@ int main(int argc, char **argv)
      */
 
     if (G_parser(argc, argv))
-	exit(1);
+	exit(EXIT_FAILURE);
 
     /* get parameters */
     dataname = parm.input->answer;
@@ -180,83 +161,63 @@ int main(int argc, char **argv)
     if ((info_in.pj = pj_latlong_from_proj(info_out.pj)) == NULL)
 	G_fatal_error("Unable to set up lat/long projection parameters");
 
-    if (flag.g->answer) {
+    if (flag.r->answer) {
 	/* get coordinates from current region */
 	minx = region.west;
 	maxx = region.east;
 	miny = region.south;
 	maxy = region.north;
-    }
-    else {
-	/* get coordinates from command line */
-	if (!parm.w->answer || !parm.e->answer || !parm.s->answer
-	    || !parm.n->answer) {
-	    G_fatal_error
-		("Missing region parameters: you must supply n, s, e, w values or use '-g' flag");
+
+	if (G_projection() != PROJECTION_LL) {
+	    /* convert to latlon and print bounds */
+
+	    /* NW */
+	    lon_nw = minx;
+	    lat_nw = maxy;
+	    if (pj_do_proj(&lon_nw, &lat_nw, &info_out, &info_in) < 0) {
+		G_fatal_error
+		    ("Error in coordinate transformation for north west corner");
+	    }
+
+	    /* NE */
+	    lon_ne = maxx;
+	    lat_ne = maxy;
+	    if (pj_do_proj(&lon_ne, &lat_ne, &info_out, &info_in) < 0) {
+		G_fatal_error
+		    ("Error in coordinate transformation for north east corner");
+	    }
+
+	    /* SE */
+	    lon_se = maxx;
+	    lat_se = miny;
+	    if (pj_do_proj(&lon_se, &lat_se, &info_out, &info_in) < 0) {
+		G_fatal_error
+		    ("Error in coordinate transformation for south eest corner");
+	    }
+
+	    /* SW */
+	    lon_sw = minx;
+	    lat_sw = miny;
+	    if (pj_do_proj(&lon_sw, &lat_sw, &info_out, &info_in) < 0) {
+		G_fatal_error
+		    ("Error in coordinate transformation for south west corner");
+	    }
+
+	    /* get north max */
+	    maxy = lat_nw > lat_ne ? lat_nw : lat_ne;
+	    /* get south min */
+	    miny = lat_sw < lat_se ? lat_sw : lat_se;
+	    /* get east max */
+	    maxx = lon_ne > lon_se ? lon_ne : lon_se;
+	    /* get west min */
+	    minx = lon_nw < lon_sw ? lon_nw : lon_sw;
 	}
-
-	sscanf(parm.w->answer, "%lf", &minx);
-	sscanf(parm.e->answer, "%lf", &maxx);
-	sscanf(parm.s->answer, "%lf", &miny);
-	sscanf(parm.n->answer, "%lf", &maxy);
-
-        /* it is a valid request to go over the datum border */
-	if (maxx == minx)
-	    G_fatal_error("East and West can not be the same");
-
-	if (maxy <= miny)
-	    G_fatal_error("North must be north of South");
-    }
-
-    if (G_projection() != PROJECTION_LL) {
-	/* convert to latlon and print bounds */
-
-	/* NW */
-	lon_nw = minx;
-	lat_nw = maxy;
-	if (pj_do_proj(&lon_nw, &lat_nw, &info_out, &info_in) < 0) {
-	    G_fatal_error
-		("Error in coordinate transformation for north west corner");
-	}
-
-	/* NE */
-	lon_ne = maxx;
-	lat_ne = maxy;
-	if (pj_do_proj(&lon_ne, &lat_ne, &info_out, &info_in) < 0) {
-	    G_fatal_error
-		("Error in coordinate transformation for north east corner");
-	}
-
-	/* SE */
-	lon_se = maxx;
-	lat_se = miny;
-	if (pj_do_proj(&lon_se, &lat_se, &info_out, &info_in) < 0) {
-	    G_fatal_error
-		("Error in coordinate transformation for south eest corner");
-	}
-
-	/* SW */
-	lon_sw = minx;
-	lat_sw = miny;
-	if (pj_do_proj(&lon_sw, &lat_sw, &info_out, &info_in) < 0) {
-	    G_fatal_error
-		("Error in coordinate transformation for south west corner");
-	}
-
-	/* get north max */
-	maxy = lat_nw > lat_ne ? lat_nw : lat_ne;
-	/* get south min */
-	miny = lat_sw < lat_se ? lat_sw : lat_se;
-	/* get east max */
-	maxx = lon_ne > lon_se ? lon_ne : lon_se;
-	/* get west min */
-	minx = lon_nw < lon_sw ? lon_nw : lon_sw;
     }
 
     /* check coordinate accuracy */
 #if 0
-    /* don't check coordinate accuracy, it's either the current window or
-     * e w n s and they have been checked already */
+    /* don't check coordinate accuracy,
+     * it's the current window set with g.region */
     if (maxx < minx) {
 	G_fatal_error(_("maxx %f < minx %f."), maxx, minx);
     }
@@ -346,9 +307,17 @@ int main(int argc, char **argv)
 	if (maxx > 180. && e < 0)
 	    e += 360.;
 
-	getme = 0;
-	if (w < maxx && e > minx && s < maxy && n > miny)
-	    getme = 1;
+	getme = 1;
+	if (flag.r->answer) {
+	    getme = 0;
+	    /* check gshhs bbox */
+	    if (w >= minx && w < maxx && e <= maxx && e > minx && s >= miny && s < maxy && n <= maxy && n > miny) {
+		getme = 1; /* inside current region */
+	    }
+	    else if (w < maxx && e > minx && s < maxy && n > miny) {
+		getme = 2; /* overlap */
+	    }
+	}
 	
 	if (getme) {
 	    Vect_reset_line(Points);
@@ -373,30 +342,41 @@ int main(int argc, char **argv)
 		    lon -= 360.0;
 		lat = p.y * GSHHS_SCL;
 
-		/* chop in 1x1 degree tiles */
-		if (k && ((floor(lon) != floor(lastlon)) || (floor(lat) != floor(lastlat)))) {
-
-		    lastlon = Points->x[Points->n_points - 1]; /* keep last lon for new line */
-		    lastlat = Points->y[Points->n_points - 1]; /* keep last lat for new line */
-
-		    Vect_write_line(&VectMap, type, Points, Cats);
-		    Vect_reset_line(Points);
-		    Vect_append_point(Points, lastlon, lastlat, 0.);
-		}
-		lastlon = lon;
-		lastlat = lat;
-		if (G_projection() != PROJECTION_LL) {
-		    if (pj_do_proj(&lon, &lat, &info_in, &info_out) < 0) {
-			G_fatal_error("Error in coordinate transformation");
+		if (getme == 2) { /* overlap */
+		    /* datum border wrap around work around, clumsy code but works */
+		    if (maxx > 180. && lon < 0) {
+			if (lat >= minx && lat <= maxx && (lon + 360.) >= miny && (lon + 360.) <= maxy) {
+			    /* vertex inside current region, do nothing */
+			}
+			else {
+			    /* vertex outside current region, skip whole line */
+			    Vect_reset_line(Points);
+			    getme = 0;
+			}
 		    }
+		    else {
+			if (lat >= minx && lat <= maxx && lon >= miny && lon <= maxy) {
+			    /* vertex inside current region, do nothing */
+			}
+			else {
+			    /* vertex outside current region, skip whole line */
+			    Vect_reset_line(Points);
+			    getme = 0;
+			}
+		    }
+		
 		}
 
-		Vect_append_point(Points, lon, lat, 0.);
+                if (getme)
+		    Vect_append_point(Points, lon, lat, 0.);
 	    }			/* done with line */
 
-	    if (k) {
-		Vect_write_line(&VectMap, type, Points, Cats);
+	    if (Points->n_points) {
+		/* change thresh if you want longer line segments */
+		Vect_write_line_tiled(&VectMap, type, Points, Cats, 1.);
 	    }
+	    else
+		cnt++;
 	}
 	else {
 	    G_debug(1,
@@ -413,7 +393,6 @@ int main(int argc, char **argv)
     }
     /* done with gshhs file */
     fclose(fp);
-    G_message(_("Skipped lines: %d"), cnt);
 
     Vect_destroy_line_struct(Points);
     Vect_destroy_cats_struct(Cats);
@@ -491,9 +470,78 @@ int main(int argc, char **argv)
 	Vect_build(&VectMap);
     }
 
+    Vect_hist_command(&VectMap);
     Vect_close(&VectMap);
 
+    G_message("--------------------------------------");
+    G_message(_("Skipped GSHHS lines: %d"), cnt);
     G_message(_("GSHHS shoreline version %d import complete"), version);
 
     exit(EXIT_SUCCESS);
+}
+
+/*!
+   \brief Splits line in segments according to tiles
+   The maximum bbox size of a line segment will be thresh x thresh
+
+   The function calls G_fatal_error() on error.
+
+   \param Map pointer to vector map
+   \param type feature type
+   \param points feature geometry
+   \param cats feature categories
+   \param thresh tile dimension threshold for chopping
+
+   \return number of line segments written out
+ */
+
+int Vect_write_line_tiled(struct Map_info *Map,	int type,
+	struct line_pnts *Points, struct line_cats *Cats, double thresh) {
+
+    int k, nsegs = 0;
+    double lon, lat, lastlon = 0., lastlat = 0.;
+    struct line_pnts *BPoints;
+    
+    BPoints = Vect_new_line_struct();
+
+    if (Points->n_points) {
+	lastlon = Points->x[0];
+	lastlat = Points->y[0];
+    }
+    else
+	return nsegs;
+    
+    for (k = 0; k < Points->n_points; k++) {
+
+	/* chop in thresh x thresh degree tiles */
+	lon = Points->x[k];
+	lat = Points->y[k];
+	if (k && ((fabs(lon -lastlon) > thresh) ||
+		  (fabs(lat - lastlat) > thresh))) {
+
+	    lastlon = BPoints->x[BPoints->n_points - 1]; /* keep last lon for new line */
+	    lastlat = BPoints->y[BPoints->n_points - 1]; /* keep last lat for new line */
+
+	    Vect_write_line(Map, type, BPoints, Cats);
+	    Vect_reset_line(BPoints);
+	    Vect_append_point(BPoints, lastlon, lastlat, 0.);
+	    nsegs++;
+	}
+	/* reprojection is v.in.gshhs specific */
+	if (G_projection() != PROJECTION_LL) {
+	    if (pj_do_proj(&lon, &lat, &info_in, &info_out) < 0) {
+		G_fatal_error("Error in coordinate transformation");
+	    }
+	}
+	Vect_append_point(BPoints, lon, lat, 0.);
+
+
+    }
+    /* last line segment always has >=2 vertices */
+    Vect_write_line(Map, type, BPoints, Cats);
+    nsegs++;
+
+    Vect_destroy_line_struct(BPoints);
+
+    return nsegs;
 }

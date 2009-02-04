@@ -17,10 +17,9 @@ of each imported line. Each line has as category value the GSHHS ID in
 layer 2, that may be useful for further processing. An attribute table 
 for layer 2 is not created.
 <p>
-The import region is restricted to either the current computational 
-region or to the extend specified with the options n, s, e, w. Either of 
-the two possibilities must be used. All lines that fall into the 
-specified region are imported, similar to <em>v.in.ogr</em>.
+The -r flag restricts the import to the current region, otherwise the 
+full dataset is imported. With the -r flag, any line that falls into or
+overlaps with the current region is imported. Lines are not cropped.
 
 <h2>NOTES</h2>
 The GSHHS shorelines are in files named <tt>gshhs_[f|h|i|l|c].b</tt> where 
@@ -37,7 +36,7 @@ The 5 available resolutions are:
 Recommended are the full and high resolution data.
 <p>
 The generated table for layer 1 allows a fast query of the shoreline type.
-If needed a table for layer 2 can be added with <em>v.db.addtable</em>. 
+If needed, a table for layer 2 can be added with <em>v.db.addtable</em>. 
 The new table can be populated with category values from layer 2 (GSHHS
 line ID) with <em>v.to.db</em>. Shoreline type can be uploaded from 
 layer 1 to layer 2 with <em>v.to.db</em>.
@@ -51,7 +50,7 @@ in lakes.
 <p>
 Import of world borders and world rivers also included in the zip archive
 is currently not supported but works, just ignore the attribute table.
-These world borders and rivers are however outdated and not very accurate.
+These world borders and rivers may be not very accurate.
 
 <h2>SEE ALSO</h2>
 
