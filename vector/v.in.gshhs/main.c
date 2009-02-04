@@ -373,7 +373,7 @@ int main(int argc, char **argv)
 
 	    if (Points->n_points) {
 		/* change thresh if you want longer line segments */
-		Vect_write_line_tiled(&VectMap, type, Points, Cats, 1.);
+		Vect_write_line_tiled(&VectMap, type, Points, Cats, 2.);
 	    }
 	    else
 		cnt++;
@@ -481,8 +481,9 @@ int main(int argc, char **argv)
 }
 
 /*!
-   \brief Splits line in segments according to tiles
+   \brief Splits line in segments using maximum bounding box dimensions
    The maximum bbox size of a line segment will be thresh x thresh
+   The bbox will be not wider than thres and not higher than thresh
 
    The function calls G_fatal_error() on error.
 
@@ -490,7 +491,7 @@ int main(int argc, char **argv)
    \param type feature type
    \param points feature geometry
    \param cats feature categories
-   \param thresh tile dimension threshold for chopping
+   \param thresh bbox dimension threshold for splitting
 
    \return number of line segments written out
  */
@@ -498,44 +499,54 @@ int main(int argc, char **argv)
 int Vect_write_line_tiled(struct Map_info *Map,	int type,
 	struct line_pnts *Points, struct line_cats *Cats, double thresh) {
 
-    int k, nsegs = 0;
-    double lon, lat, lastlon = 0., lastlat = 0.;
+    int i, nsegs = 0;
+    double currx, curry, lastx = 0., lasty = 0.;
+    double minx, maxx, miny, maxy;
     struct line_pnts *BPoints;
     
-    BPoints = Vect_new_line_struct();
-
     if (Points->n_points) {
-	lastlon = Points->x[0];
-	lastlat = Points->y[0];
+	lastx = Points->x[0];
+	lasty = Points->y[0];
     }
     else
 	return nsegs;
     
-    for (k = 0; k < Points->n_points; k++) {
+    BPoints = Vect_new_line_struct();
 
-	/* chop in thresh x thresh degree tiles */
-	lon = Points->x[k];
-	lat = Points->y[k];
-	if (k && ((fabs(lon -lastlon) > thresh) ||
-		  (fabs(lat - lastlat) > thresh))) {
+    minx = maxx = miny = maxy = 0.;
 
-	    lastlon = BPoints->x[BPoints->n_points - 1]; /* keep last lon for new line */
-	    lastlat = BPoints->y[BPoints->n_points - 1]; /* keep last lat for new line */
+    for (i = 0; i < Points->n_points; i++) {
+
+	/* restrict bbox side length to thresh */
+	currx = Points->x[i];
+	curry = Points->y[i];
+	if (minx > (currx - lastx))
+	    minx = currx - lastx;
+	if (maxx < (currx - lastx))
+	    maxx = currx - lastx;
+	if (miny > (curry - lasty))
+	    miny = curry - lasty;
+	if (maxy < (curry - lasty))
+	    maxy = curry - lasty;
+	    
+	if (i && ((maxx - minx) > thresh || (maxy - miny) > thresh)) {
+
+	    lastx = BPoints->x[BPoints->n_points - 1]; /* keep last x for new line */
+	    lasty = BPoints->y[BPoints->n_points - 1]; /* keep last y for new line */
 
 	    Vect_write_line(Map, type, BPoints, Cats);
 	    Vect_reset_line(BPoints);
-	    Vect_append_point(BPoints, lastlon, lastlat, 0.);
+	    Vect_append_point(BPoints, lastx, lasty, 0.);
+	    minx = maxx = miny = maxy = 0.;
 	    nsegs++;
 	}
 	/* reprojection is v.in.gshhs specific */
 	if (G_projection() != PROJECTION_LL) {
-	    if (pj_do_proj(&lon, &lat, &info_in, &info_out) < 0) {
+	    if (pj_do_proj(&currx, &curry, &info_in, &info_out) < 0) {
 		G_fatal_error("Error in coordinate transformation");
 	    }
 	}
-	Vect_append_point(BPoints, lon, lat, 0.);
-
-
+	Vect_append_point(BPoints, currx, curry, 0.);
     }
     /* last line segment always has >=2 vertices */
     Vect_write_line(Map, type, BPoints, Cats);
