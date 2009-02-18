@@ -114,7 +114,7 @@ v.out.ascii "tmp_point_$$" layer=2 column="width" 2> /dev/null | \
       # how to do this???
       ## swath rectangle aspect ratio is arbitralily set to 10:1  (use distance opt??)
       #SW_HEIGHT=`echo "$SW_WIDTH" | awk '{print $1 * 0.10}'`
-      SW_HEIGHT=`echo "$GIS_OPT_DISTANCE $GIS_OPT_BEAMWIDTH" | awk '{print $1 * 1.25}'`
+      SW_HEIGHT=`echo "$GIS_OPT_DISTANCE $GIS_OPT_BEAMWIDTH" | awk '{print $1 * $2/2}'`
 
       #echo "coor=[$COOR] | w,h=[$SW_WIDTH],[$SW_HEIGHT] | angle=[$TRK_ANGLE]"
       v.mkgrid map="tmp_swathbox_$$" coor="$COOR" position=coor grid=1,1 \
