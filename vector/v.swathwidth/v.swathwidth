@@ -20,6 +20,10 @@
 #
 #  This script requires GRASS 6.4 or newer (for v.out.ascii columns= opt)
 #
+# TODO: more realistic beam pattern (begun)
+# TODO: Use r.los to calculate coverage over varying terrain instead of
+#   simply basing the extent estimate on the depth directly below the ship.
+#
 
 #%Module
 #%  description: Estimate multibeam bottom coverage (swath width) along a survey track line
