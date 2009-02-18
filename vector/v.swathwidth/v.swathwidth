@@ -1,22 +1,25 @@
-#!/bin/bash
+#!/bin/sh
 ############################################################################
 #
 # MODULE:       v.swathwidth
-# AUTHOR(S):	David Finlayson (with help from Hamish via the list), 2006
-#               david.p.finlayson@gmail.com
+# AUTHOR(S):	David Finlayson, 2006
+#		Hamish Bowman, Dept Marine Science, Univ. of Otago, NZ
 #
 # PURPOSE:	Creates a vector map representing the sea bottom coverage of
 #               a multibeam survey
 #
-# COPYRIGHT:	(C) 2006 by the GRASS Development Team
+# COPYRIGHT:	(C) 2006-2009 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
 #		License (>=v2). Read the file COPYING that comes with GRASS
 #		for details.
 #
 #############################################################################
-#
 # April 2006 - First version of the script posted to GRASS
+# Feb 2009 - update for GRASS 6.4 and rectangular buffers instead of circular buffers
+#
+#  This script requires GRASS 6.4 or newer (for v.out.ascii columns= opt)
+#
 
 #%Module
 #%  description: Estimate multibeam bottom coverage (swath width) along a survey track line
@@ -36,9 +39,9 @@
 #% required : yes
 #%end
 #%option
-#% key: out
+#% key: output
 #% type: string
-#% gisprompt: new,vector
+#% gisprompt: new,vector,vector
 #% description: Output vector for result
 #% required : yes
 #%end
@@ -63,26 +66,79 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
   exec $PARSER "$0" "$@"
 fi
 
+#stay quiet
+if [ -z "$GRASS_VERBOSE" ] ; then
+   export GRASS_VERBOSE=0
+fi
+
+# setup temporary region
+g.region save="tmp_vswathwidth.$$"
+WIND_OVERRIDE="tmp_vswathwidth.$$"
+export WIND_OVERRIDE
 # Save the region and then reduce the size of the region as much as
 # possible to save raster processing time
-g.remove region=temp_swath 2>&1 /dev/null
-g.region save=temp_swath  2>&1 /dev/null
-g.region vect=$GIS_OPT_TRACKLINE 2>&1 /dev/null
+g.region rast="$GIS_OPT_ELEVATION"  # to get the resolution
+g.region vect="$GIS_OPT_TRACKLINE" -a  # -a to preserve the resolution
+
 
 # Convert the raster elevation DEM into units of "swath widths"
-r.mapcalc "temp_swath = if($GIS_OPT_ELEVATION < 0, -1 * $GIS_OPT_ELEVATION * $GIS_OPT_BEAMWIDTH, null())"
+r.mapcalc "tmp_swath.$$ = if($GIS_OPT_ELEVATION < 0, -1 * $GIS_OPT_ELEVATION * $GIS_OPT_BEAMWIDTH, null())"
 
 # Split the track line into segments where swath width will be visualized
-v.to.points input=$GIS_OPT_TRACKLINE output=temp_point dmax=$GIS_OPT_DISTANCE --o 2>&1 /dev/null
+v.to.points input="$GIS_OPT_TRACKLINE" output="tmp_point_$$" dmax="$GIS_OPT_DISTANCE"
+
 
 # Add a column to hold the swath width values
-v.db.addcol map=temp_point layer=2 columns="width double" 2>&1 /dev/null
+v.db.addcol map="tmp_point_$$" layer=2 columns="width DOUBLE PRECISION"
 
 # Load the swath width values into the table
-v.what.rast vect=temp_point rast=temp_swath layer=2 col=width 2>&1 /dev/null
+v.what.rast vect="tmp_point_$$" rast="tmp_swath.$$" layer=2 column="width"
+
+
+
+#### TODO: use 'v.mkgrid coor=x,y angle=' in a v.patch loop instead of circles
+if [ 0 -eq 1 ] ; then
+# slow, but more realistic beam pattern than circular buffers
+# todo: find angle of track line at pt.
+
+#create empty map
+v.in.ascii -e out="tmp_patch_$$"
+
+# column="width,trk_angle"
+v.out.ascii "tmp_point_$$" layer=2 column="width" 2> /dev/null | \
+   ( while read LINE ; do
+      COOR=`echo "$LINE" | cut -f1,2 -d'|' | tr '|' ','`
+      SW_WIDTH=`echo "$LINE" | cut -f4 -d'|'`
+      TRK_ANGLE=`echo "$LINE" | cut -f3 -d'|'`   # -> column 5 once we have that working
+
+      # how to do this???
+      ## swath rectangle aspect ratio is arbitralily set to 10:1  (use distance opt??)
+      #SW_HEIGHT=`echo "$SW_WIDTH" | awk '{print $1 * 0.10}'`
+      SW_HEIGHT=`echo "$GIS_OPT_DISTANCE $GIS_OPT_BEAMWIDTH" | awk '{print $1 * 1.25}'`
+
+      #echo "coor=[$COOR] | w,h=[$SW_WIDTH],[$SW_HEIGHT] | angle=[$TRK_ANGLE]"
+      v.mkgrid map="tmp_swathbox_$$" coor="$COOR" position=coor grid=1,1 \
+         box=$SW_WIDTH,$SW_HEIGHT angle="$TRK_ANGLE"
+
+      g.rename vect="tmp_patch_$$,tmp_patch_$$a"
+      v.patch in="tmp_patch_$$a,tmp_swathbox_$$" out="tmp_patch_$$"
+      g.remove vect="tmp_patch_$$a,tmp_swathbox_$$"
+    done )
+
+#merge into a single area
+v.clean input="tmp_patch_$$" out="tmp_patch_brk_$$" tool=break
+v.centroids in="tmp_patch_brk_$$" out="tmp_patch_cn_$$" cat=1 step=0
+v.dissolve in="tmp_patch_cn_$$" out="tmp_patch_solid_$$"
+
+#??? v.generalize in="tmp_patch_solid_$$" out="tmp_patch_smooth_$$" type=area 
+#g.rename vect="tmp_patch_smooth_$$,${GIS_OPT_OUTPUT}_rect"
+fi
+###################################
+
+
 
 # To visualize the swath width, buffer the nodes of the trackline by swath width
-v.buffer input=temp_point output=temp_circles type=point layer=2 bufcol=width --o 2>&1 /dev/null
+v.buffer input="tmp_point_$$" output="tmp_circles_$$" type=point layer=2 bufcol="width"
 
 # The output of v.buffer currently does not join together the areas of all of the buffer circles
 # with a union command (I'm not sure what it is doing actually). The following code dissolves
@@ -90,22 +146,22 @@ v.buffer input=temp_point output=temp_circles type=point layer=2 bufcol=width --
 # shapes). This section is basically written by Hamish via the mailing list. Thanks!
 
 # Break polygons at intersections (flatten circles)
-v.clean input=temp_circles out=temp_circles2 tool=break --o 2>&1 /dev/null
+v.clean input="tmp_circles_$$" out="tmp_circles2_$$" tool=break
 
 # Add centroids to each polygon to make areas
-v.category input=temp_circles2 output=temp_circles3 step=0 --o 2>&1 /dev/null 
+v.category input="tmp_circles2_$$" output="tmp_circles3_$$" step=0
 
 # Disolve common boundaries (union of areas)
-v.extract -d type=area in=temp_circles3 out=temp_circles4 --o 2>&1 /dev/null
-
-# Reset the region
-g.region region=temp_swath 2>&1 /dev/null
+v.extract -d type=area in="tmp_circles3_$$" out="tmp_circles4_$$"
 
 # Clean up
-g.rename vect=temp_circles4,$GIS_OPT_OUT --o
-g.mremove -f vect=temp_* 2>&1 /dev/null
-g.remove rast=temp_swath 2>&1 /dev/null
+g.rename vect="tmp_circles4_$$,$GIS_OPT_OUTPUT"
+g.mremove vect=tmp_*_$$ -f
+g.remove rast="tmp_swath.$$"
+unset WIND_OVERRIDE
+g.remove region="tmp_vswathwidth.$$"
 
-echo Swath width map written to: $GIS_OPT_OUT
+unset GRASS_VERBOSE
+g.message message="Swath width map written to: <$GIS_OPT_OUTPUT>"
 
-# end
+exit 0
