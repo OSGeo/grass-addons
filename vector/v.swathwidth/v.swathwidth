@@ -129,8 +129,8 @@ v.out.ascii "tmp_point_$$" layer=2 column="width" 2> /dev/null | \
 v.clean input="tmp_patch_$$" out="tmp_patch_brk_$$" tool=break
 v.centroids in="tmp_patch_brk_$$" out="tmp_patch_cn_$$" cat=1 step=0
 v.dissolve in="tmp_patch_cn_$$" out="tmp_patch_solid_$$"
-
-#??? v.generalize in="tmp_patch_solid_$$" out="tmp_patch_smooth_$$" type=area 
+v.build.polylines in="tmp_patch_solid_$$" out="tmp_patch_solid2_$$"
+v.generalize in="tmp_patch_solid2_$$" out="tmp_patch_smooth_$$" method=snakes
 #g.rename vect="tmp_patch_smooth_$$,${GIS_OPT_OUTPUT}_rect"
 fi
 ###################################
