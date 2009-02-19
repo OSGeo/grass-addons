@@ -32,6 +32,7 @@
 #include <grass/Vect.h>
 #include <grass/gprojects.h>
 #include <grass/glocale.h>
+
 /* updating to a newer GSHHS version can be as easy as replacing gshhs.h
  * if not too many changes were introduced */
 #include "gshhs.h"
@@ -88,8 +89,9 @@ int main(int argc, char **argv)
 
     /* Set description */
     module = G_define_module();
-    module->description = ""
-	"Imports Global Self-consistent Hierarchical High-resolution Shoreline (GSHHS) vector data";
+    module->description = 
+	_("Imports Global Self-consistent Hierarchical High-resolution "
+	  "Shoreline (GSHHS) vector data.");
 
     parm.input = G_define_option();
     parm.input->key = "input";
@@ -97,17 +99,17 @@ int main(int argc, char **argv)
     parm.input->required = YES;
     parm.input->gisprompt = "old_file,file,gshhs";
     parm.input->description =
-	"Name of GSHHS shoreline file: gshhs_[f|h|i|l|c].b";
+	_("Name of GSHHS shoreline file: gshhs_[f|h|i|l|c].b");
 
     parm.output = G_define_standard_option(G_OPT_V_OUTPUT);
 
     flag.r = G_define_flag();
     flag.r->key = 'r';
-    flag.r->description = "Limit import to the current region";
+    flag.r->description = _("Limit import to the current region");
 
     flag.topo = G_define_flag();
     flag.topo->key = 't';
-    flag.topo->description = "Do not build topology for output vector";
+    flag.topo->description = _("Do not build topology for output vector");
 
     /* Importing as boundary causes problems with subregions, incorrect boundaries */
     /*    flag.a = G_define_flag();
@@ -118,6 +120,7 @@ int main(int argc, char **argv)
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
 
     /* get parameters */
     dataname = parm.input->answer;
@@ -159,7 +162,7 @@ int main(int argc, char **argv)
     info_in.meters = 1.;
     sprintf(info_in.proj, "ll");
     if ((info_in.pj = pj_latlong_from_proj(info_out.pj)) == NULL)
-	G_fatal_error("Unable to set up lat/long projection parameters");
+	G_fatal_error(_("Unable to set up lat/long projection parameters"));
 
     if (flag.r->answer) {
 	/* get coordinates from current region */
@@ -175,32 +178,32 @@ int main(int argc, char **argv)
 	    lon_nw = minx;
 	    lat_nw = maxy;
 	    if (pj_do_proj(&lon_nw, &lat_nw, &info_out, &info_in) < 0) {
-		G_fatal_error
-		    ("Error in coordinate transformation for north west corner");
+		G_fatal_error(
+		    _("Error in coordinate transformation for north-west corner"));
 	    }
 
 	    /* NE */
 	    lon_ne = maxx;
 	    lat_ne = maxy;
 	    if (pj_do_proj(&lon_ne, &lat_ne, &info_out, &info_in) < 0) {
-		G_fatal_error
-		    ("Error in coordinate transformation for north east corner");
+		G_fatal_error(
+		    _("Error in coordinate transformation for north-east corner"));
 	    }
 
 	    /* SE */
 	    lon_se = maxx;
 	    lat_se = miny;
 	    if (pj_do_proj(&lon_se, &lat_se, &info_out, &info_in) < 0) {
-		G_fatal_error
-		    ("Error in coordinate transformation for south eest corner");
+		G_fatal_error(
+		    _("Error in coordinate transformation for south-east corner"));
 	    }
 
 	    /* SW */
 	    lon_sw = minx;
 	    lat_sw = miny;
 	    if (pj_do_proj(&lon_sw, &lat_sw, &info_out, &info_in) < 0) {
-		G_fatal_error
-		    ("Error in coordinate transformation for south west corner");
+		G_fatal_error(
+		    _("Error in coordinate transformation for south-west corner"));
 	    }
 
 	    /* get north max */
@@ -237,7 +240,7 @@ int main(int argc, char **argv)
     while (minx < -180.0)
 	minx += 360.0;	
 
-    G_message(_("Using lat/lon bounds N=%f S=%f E=%f W=%f\n"), maxy, miny,
+    G_message(_("Using lat/lon bounds N=%f S=%f E=%f W=%f"), maxy, miny,
 	      maxx, minx);
 
     if (maxx < minx)
@@ -245,12 +248,12 @@ int main(int argc, char **argv)
 
     /* open GSHHS shoreline for reading */
     if ((fp = fopen(dataname, "rb")) == NULL) {
-	G_fatal_error(_("Could not find file %s."), dataname);
+	G_fatal_error(_("Could not find file <%s>"), dataname);
     }
 
     /* Open new vector */
     if (0 > Vect_open_new(&VectMap, outname, 0)) {
-	G_fatal_error(_("Cannot open new vector %s"), outname);
+	G_fatal_error(_("Cannot open new vector map <%s>"), outname);
     }
 
     /* set vector line type to GV_LINE, boundaries can cause problems */
@@ -311,7 +314,8 @@ int main(int argc, char **argv)
 	if (flag.r->answer) {
 	    getme = 0;
 	    /* check gshhs bbox */
-	    if (w >= minx && w < maxx && e <= maxx && e > minx && s >= miny && s < maxy && n <= maxy && n > miny) {
+	    if (w >= minx && w < maxx && e <= maxx && e > minx &&
+		s >= miny && s < maxy && n <= maxy && n > miny) {
 		getme = 1; /* inside current region */
 	    }
 	    else if (w < maxx && e > minx && s < maxy && n > miny) {
@@ -331,7 +335,7 @@ int main(int argc, char **argv)
 		if (fread
 		    ((void *)&p, (size_t) sizeof(struct GSHHS_POINT),
 		     (size_t) 1, fp) != 1)
-		    G_fatal_error("Error reading data.");
+		    G_fatal_error(_("Error reading data"));
 
 		if (flip) {
 		    p.x = swabi4((unsigned int)p.x);
@@ -379,8 +383,7 @@ int main(int argc, char **argv)
 		cnt++;
 	}
 	else {
-	    G_debug(1,
-		    "skipped line box west: %f, east: %f, north: %f, south: %f",
+	    G_debug(1, "skipped line box west: %f, east: %f, north: %f, south: %f",
 		    w, e, n, s);
 	    fseek(fp, (long)(h.n * sizeof(struct GSHHS_POINT)), SEEK_CUR);
 	    cnt++;
@@ -421,7 +424,7 @@ int main(int argc, char **argv)
 				      Vect_subst_var(Fi->database, &VectMap));
 
     if (driver == NULL) {
-	G_fatal_error(_("Cannot open database %s by driver %s"),
+	G_fatal_error(_("Cannot open database <%s> by driver <%s>"),
 		      Vect_subst_var(Fi->database, &VectMap), Fi->driver);
     }
 
@@ -432,7 +435,7 @@ int main(int argc, char **argv)
     if (db_execute_immediate(driver, &sql) != DB_OK) {
 	db_close_database(driver);
 	db_shutdown_driver(driver);
-	G_fatal_error(_("Cannot create table: %s"), db_get_string(&sql));
+	G_fatal_error(_("Cannot create table: <%s>"), db_get_string(&sql));
     }
 
     if (db_create_index2(driver, Fi->table, cat_col_name) != DB_OK)
@@ -440,7 +443,7 @@ int main(int argc, char **argv)
 
     if (db_grant_on_table
 	(driver, Fi->table, DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK)
-	G_fatal_error(_("Cannot grant privileges on table %s"), Fi->table);
+	G_fatal_error(_("Cannot grant privileges on table <%s>"), Fi->table);
 
     db_begin_transaction(driver);
 
@@ -452,7 +455,7 @@ int main(int argc, char **argv)
 	if (db_execute_immediate(driver, &sql) != DB_OK) {
 	    db_close_database(driver);
 	    db_shutdown_driver(driver);
-	    G_fatal_error(_("Cannot insert new row: %s"),
+	    G_fatal_error(_("Cannot insert new row: <%s>"),
 			  db_get_string(&sql));
 	}
     }
@@ -543,7 +546,7 @@ int Vect_write_line_tiled(struct Map_info *Map,	int type,
 	/* reprojection is v.in.gshhs specific */
 	if (G_projection() != PROJECTION_LL) {
 	    if (pj_do_proj(&currx, &curry, &info_in, &info_out) < 0) {
-		G_fatal_error("Error in coordinate transformation");
+		G_fatal_error(_("Error in coordinate transformation"));
 	    }
 	}
 	Vect_append_point(BPoints, currx, curry, 0.);
