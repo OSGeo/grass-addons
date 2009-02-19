@@ -324,6 +324,10 @@ int main(int argc, char **argv)
 	}
 	
 	if (getme) {
+	    /* abusing getme flag a bit */
+	    if (getme == 2)
+		getme = 0;
+	    
 	    Vect_reset_line(Points);
 	    Vect_reset_cats(Cats);
 	    /* simple table and cats for layer 1: not unique, just per slevel */
@@ -346,36 +350,27 @@ int main(int argc, char **argv)
 		    lon -= 360.0;
 		lat = p.y * GSHHS_SCL;
 
-		if (getme == 2) { /* overlap */
+		if (getme == 0) { /* overlap */
 		    /* datum border wrap around work around, clumsy code but works */
 		    if (maxx > 180. && lon < 0) {
-			if (lat >= minx && lat <= maxx && (lon + 360.) >= miny && (lon + 360.) <= maxy) {
-			    /* vertex inside current region, do nothing */
-			}
-			else {
-			    /* vertex outside current region, skip whole line */
-			    Vect_reset_line(Points);
-			    getme = 0;
+			if (lat >= miny && lat <= maxy && (lon + 360.) >= minx && (lon + 360.) <= maxx) {
+			    /* vertex inside current region, import line */
+			    getme = 1;
 			}
 		    }
 		    else {
-			if (lat >= minx && lat <= maxx && lon >= miny && lon <= maxy) {
-			    /* vertex inside current region, do nothing */
-			}
-			else {
-			    /* vertex outside current region, skip whole line */
-			    Vect_reset_line(Points);
-			    getme = 0;
+			if (lat >= miny && lat <= maxy && lon >= minx && lon <= maxx) {
+			    /* vertex inside current region, import line */
+			    getme = 1;
 			}
 		    }
 		
 		}
-
-                if (getme)
-		    Vect_append_point(Points, lon, lat, 0.);
+		Vect_append_point(Points, lon, lat, 0.);
+		
 	    }			/* done with line */
 
-	    if (Points->n_points) {
+	    if (getme && Points->n_points) {
 		/* change thresh if you want longer line segments */
 		Vect_write_line_tiled(&VectMap, type, Points, Cats, 2.);
 	    }
@@ -532,7 +527,7 @@ int Vect_write_line_tiled(struct Map_info *Map,	int type,
 	if (maxy < (curry - lasty))
 	    maxy = curry - lasty;
 	    
-	if (i && ((maxx - minx) > thresh || (maxy - miny) > thresh)) {
+	if (BPoints->n_points > 1 && ((maxx - minx) > thresh || (maxy - miny) > thresh)) {
 
 	    lastx = BPoints->x[BPoints->n_points - 1]; /* keep last x for new line */
 	    lasty = BPoints->y[BPoints->n_points - 1]; /* keep last y for new line */
