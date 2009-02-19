@@ -7,8 +7,10 @@ Installation - Code Compilation
 * C code/Scripts, with GRASS source code on your computer:
 
   Preparations (assuming source code in $HOME/grass64/):
+    (if you have already build GRASS from source you don't need to do this
+    again. If adding to a binary install the versions must match exactly)
     1. ./configure [opionally flags]
-    2. make lib
+    2. make libs
 
   The easiest way to compile GRASS Addons modules into your GRASS code 
   is by setting MODULE_TOPDIR on the fly to tell 'make' where to
