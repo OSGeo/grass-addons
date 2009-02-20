@@ -38,19 +38,28 @@ typedef struct
     FCELL *fcell_array;
     CELL *cell_array;
     int map_type;
+    void *nextp;
 } univar_stat;
+
+typedef struct
+{
+    CELL min, max, n_zones;
+    struct Categories cats;
+} zone_type;
 
 /* command line options are the same for raster and raster3d maps */
 typedef struct
 {
-    struct Option *inputfile, *percentile;
+    struct Option *inputfile, *zonefile, *percentile, *output_file;
     struct Flag *shell_style, *extended;
 } param_type;
 
 #ifdef MAIN
 param_type param;
+zone_type zone_info;
 #else
 extern param_type param;
+extern zone_type zone_info;
 #endif
 
 /* fn prototypes */
