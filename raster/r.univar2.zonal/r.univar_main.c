@@ -290,7 +290,7 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
 		continue;
 	    }
 
-	    zone = *zptr + zone_info.min;
+	    zone = *zptr - zone_info.min;
 
 	    if (stats[zone].nextp) {
 		/* put the value into stats->XXXcell_array */

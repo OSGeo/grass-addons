@@ -116,7 +116,7 @@ int print_stats(univar_stat * stats)
 	sprintf(sum_str, "%.10f", stats[z].sum);
 	G_trim_decimal(sum_str);
 
-	fprintf(stdout, "\nzone %d %s\n\n", z - zone_info.min, G_get_c_raster_cat(&z + zone_info.min, &(zone_info.cats)));
+	fprintf(stdout, "\nzone %d %s\n\n", z + zone_info.min, G_get_c_raster_cat(&z + zone_info.min, &(zone_info.cats)));
 
 	if (!param.shell_style->answer) {
 	    fprintf(stdout, "total null and non-null cells: %d\n", stats[z].size);
