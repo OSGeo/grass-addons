@@ -45,13 +45,14 @@ typedef struct
 {
     CELL min, max, n_zones;
     struct Categories cats;
+    char *sep;
 } zone_type;
 
 /* command line options are the same for raster and raster3d maps */
 typedef struct
 {
     struct Option *inputfile, *zonefile, *percentile, *output_file;
-    struct Flag *shell_style, *extended;
+    struct Flag *shell_style, *extended, *table;
 } param_type;
 
 #ifdef MAIN
@@ -67,6 +68,7 @@ void heapsort_double(double *data, int n);
 void heapsort_float(float *data, int n);
 void heapsort_int(int *data, int n);
 int print_stats(univar_stat * stats);
+int print_stats2(univar_stat * stats);
 univar_stat *create_univar_stat_struct(int map_type, int size, int n_perc);
 void free_univar_stat_struct(univar_stat * stats);
 

@@ -36,7 +36,7 @@ void set_params()
 	_("Raster map used for zoning, must be of type CELL");
 
     param.output_file = G_define_standard_option(G_OPT_F_OUTPUT);
-    param.output_file->required = NO;
+    param.output_file->required = YES;
     param.output_file->description =
 	_("Name for output file (if omitted or \"-\" output to stdout)");
 
@@ -58,6 +58,10 @@ void set_params()
     param.extended = G_define_flag();
     param.extended->key = 'e';
     param.extended->description = _("Calculate extended statistics");
+
+    param.table = G_define_flag();
+    param.table->key = 't';
+    param.table->description = _("Table output format instead of r.univar like output format");
 
     return;
 }
@@ -103,6 +107,9 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("Unable to open file <%s> for writing"), name);
 	}
     }
+
+    /* TODO: make it an option */
+    zone_info.sep = ";";
 
     G_get_window(&region);
     rows = region.rows;
@@ -161,12 +168,16 @@ int main(int argc, char *argv[])
 
     process_raster(stats, fd, fdz, &region);
 
-    if (!(param.shell_style->answer))
-	G_percent(rows, rows, 2);	/* finish it off */
+    /* closing raster maps */
+    G_close_cell(fd);
+    G_close_cell(fdz);
 
     /* create the output */
-    print_stats(stats);
-
+    if (param.table->answer)
+	print_stats2(stats);
+    else
+	print_stats(stats);
+	
     /* release memory */
     free_univar_stat_struct(stats);
 
@@ -279,18 +290,21 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
 
 	for (col = 0; col < cols; col++) {
 
-	    if (G_is_null_value(ptr, map_type)) {
-		ptr = G_incr_void_ptr(ptr, value_sz);
-		zptr++;
-		continue;
-	    }
 	    if (G_is_c_null_value(zptr)) {
 		ptr = G_incr_void_ptr(ptr, value_sz);
 		zptr++;
 		continue;
 	    }
 
+	    /* also count NULL cell in input map */
 	    zone = *zptr - zone_info.min;
+	    stats[zone].size++;
+	    
+	    if (G_is_null_value(ptr, map_type)) {
+		ptr = G_incr_void_ptr(ptr, value_sz);
+		zptr++;
+		continue;
+	    }
 
 	    if (stats[zone].nextp) {
 		/* put the value into stats->XXXcell_array */
@@ -324,7 +338,8 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
 	    zptr++;
 	    stats[zone].n++;
 	}
-	if (!(param.shell_style->answer))
-	    G_percent(row, rows, 2);
+	G_percent(row, rows, 2);
     }
+    G_percent(rows, rows, 2);	/* finish it off */
+
 }
