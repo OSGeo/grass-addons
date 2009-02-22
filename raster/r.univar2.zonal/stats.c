@@ -42,17 +42,23 @@ univar_stat *create_univar_stat_struct(int map_type, int size, int n_perc)
 	stats[i].cell_array = NULL;
 	stats[i].map_type = map_type;
 
+	stats[i].n_alloc = 0;
+
 	/* allocate memory for extended computation */
+	/* changed to on-demand block allocation */
+
 	if (param.extended->answer) {
-	    if (map_type == DCELL_TYPE)
-		stats[i].dcell_array =
-		    (DCELL *) G_calloc(size, sizeof(DCELL));
-	    if (map_type == FCELL_TYPE)
-		stats[i].fcell_array =
-		    (FCELL *) G_calloc(size, sizeof(FCELL));
-	    if (map_type == CELL_TYPE)
-		stats[i].cell_array = (CELL *) G_calloc(size, sizeof(CELL));
+	    if (map_type == DCELL_TYPE) {
+		stats[i].dcell_array = NULL;
+	    }
+	    else if (map_type == FCELL_TYPE) {
+		stats[i].fcell_array =NULL;
+	    }
+	    else if (map_type == CELL_TYPE) {
+		stats[i].cell_array = NULL;
+	    }
 	}
+
     }
 
     return stats;

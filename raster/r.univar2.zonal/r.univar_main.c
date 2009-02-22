@@ -36,7 +36,7 @@ void set_params()
 	_("Raster map used for zoning, must be of type CELL");
 
     param.output_file = G_define_standard_option(G_OPT_F_OUTPUT);
-    param.output_file->required = YES;
+    param.output_file->required = NO;
     param.output_file->description =
 	_("Name for output file (if omitted or \"-\" output to stdout)");
 
@@ -290,6 +290,7 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
 
 	for (col = 0; col < cols; col++) {
 
+	    /* skip NULL cells in zone map altogether */
 	    if (G_is_c_null_value(zptr)) {
 		ptr = G_incr_void_ptr(ptr, value_sz);
 		zptr++;
@@ -306,7 +307,30 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
 		continue;
 	    }
 
-	    if (stats[zone].nextp) {
+	    if (param.extended->answer) {
+		/* check allocated memory */
+		if (stats[zone].n >= stats[zone].n_alloc) {
+		    stats[zone].n_alloc += 1000;
+		    size_t msize;
+		    if (map_type == DCELL_TYPE) {
+			msize = stats[zone].n_alloc * sizeof(DCELL);
+			stats[zone].dcell_array =
+			    (DCELL *)G_realloc((void *)stats[zone].dcell_array, msize);
+			stats[zone].nextp = (void *)&(stats[zone].dcell_array[stats[zone].n]);
+		    }
+		    else if (map_type == FCELL_TYPE) {
+			msize = stats[zone].n_alloc * sizeof(FCELL);
+			stats[zone].fcell_array =
+			    (FCELL *)G_realloc((void *)stats[zone].fcell_array, msize);
+			stats[zone].nextp = (void *)&(stats[zone].fcell_array[stats[zone].n]);
+		    }
+		    else if (map_type == CELL_TYPE) {
+			msize = stats[zone].n_alloc * sizeof(CELL);
+			stats[zone].cell_array =
+			    (CELL *)G_realloc((void *)stats[zone].cell_array, msize);
+			stats[zone].nextp = (void *)&(stats[zone].cell_array[stats[zone].n]);
+		    }
+		}
 		/* put the value into stats->XXXcell_array */
 		memcpy(stats[zone].nextp, ptr, value_sz);
 		stats[zone].nextp = G_incr_void_ptr(stats[zone].nextp, value_sz);

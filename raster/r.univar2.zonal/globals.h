@@ -39,6 +39,7 @@ typedef struct
     CELL *cell_array;
     int map_type;
     void *nextp;
+    int n_alloc;
 } univar_stat;
 
 typedef struct
