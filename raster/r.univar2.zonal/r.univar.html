@@ -25,11 +25,58 @@ extended statistics flag is used with a very large region setting. If the
 region is too large the module should exit gracefully with a memory allocation
 error. Basic statistics can be calculated using any size input region.
 
+<h2>EXAMPLE</h2>
+
+Calculate the raster statistics for zones within a vector map coverage
+and upload the results back to the vector map.
+
+<div class="code"><pre>
+#### set the raster region to match the map
+g.region vect=fields res=10 -ap
+
+#### create rasterized version of vector map
+v.to.rast in=fields out=fields.10m use=cat type=area labelcolumn=label
+r.colors fields.10m color=random
+
+#### preform analysis
+r.univar.zonal -t in=elevation.10m zones=fields.10m | \
+  tr ';' '|' | cut -f1,2,5,6,8 -d'|' > fields_stats.txt
+
+
+#### convert text file table to a database table
+# not safe for commas in the label
+tr '|' ',' < fields_stats.txt > fields_stats.csv
+echo '"Integer","String","Real","Real","Real"' > fields_stats.csvt
+
+# import table
+db.in.ogr dsn=fields_stats.csv output=fields_data
+
+# view table
+db.select fields_data
+
+# remove temporary files
+rm fields_stats.csv fields_stats.csvt fields_stats.txt
+
+
+#### populate vector DB with stats
+
+# create working copy of vector map
+g.copy vect=fields,fields_stats
+
+# create new attribute columns to hold output
+v.db.addcol map=fields_stats \
+  columns='mean_elev DOUBLE PRECISION, min_elev DOUBLE PRECISION, max_elev DOUBLE PRECISION'
+
+# perform DB step  (broken)
+## how to automatically collate by key column, ie copy between tables?
+## SELECT INTO? JOIN?
+echo "INSERT INTO fields_stats (mean_elev,min_elev,max_elev) SELECT mean,min,max FROM fields_data" | db.execute
+</pre></div>
+
 
 <h2>TODO</h2>
 
 <i>mode, skewness, kurtosis</i>
-
 
 
 <h2>SEE ALSO</h2>
@@ -44,6 +91,7 @@ error. Basic statistics can be calculated using any size input region.
 <a href="r.sum.html">r.sum</a><br>
 <a href="r.series.html">r.series</a><br>
 <a href="r.stats.html">r.stats</a><br>
+<a href="v.rast.stats.html">v.rast.stats</a><br>
 <a href="r.statistics.html">r.statistics</a><br>
 <a href="v.univar.html">v.univar</a><br>
 <a href="v.univar.sh.html">v.univar.sh</a><br>
@@ -53,7 +101,8 @@ error. Basic statistics can be calculated using any size input region.
 <h2>AUTHORS</h2>
 
 Hamish Bowman, Otago University, New Zealand<br>
-Extended statistics by Martin Landa
+Extended statistics by Martin Landa<br>
+Zonal loop by Markus Metz
 
 <p>
 <i>Last changed: $Date$</i>
