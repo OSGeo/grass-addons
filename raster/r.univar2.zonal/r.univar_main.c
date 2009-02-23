@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     }
 
     /* TODO: make it an option */
-    zone_info.sep = ";";
+    zone_info.sep = "|";
 
     G_get_window(&region);
     rows = region.rows;
@@ -168,10 +168,6 @@ int main(int argc, char *argv[])
 
     process_raster(stats, fd, fdz, &region);
 
-    /* closing raster maps */
-    G_close_cell(fd);
-    G_close_cell(fdz);
-
     /* create the output */
     if (param.table->answer)
 	print_stats2(stats);
@@ -180,6 +176,10 @@ int main(int argc, char *argv[])
 	
     /* release memory */
     free_univar_stat_struct(stats);
+
+    /* closing raster maps */
+    G_close_cell(fd);
+    G_close_cell(fdz);
 
     exit(EXIT_SUCCESS);
 }
@@ -213,7 +213,7 @@ static univar_stat *univar_stat_with_percentiles(int map_type, int size)
     stats = create_univar_stat_struct(map_type, size, i);
     for (i = 0; i < zone_info.n_zones; i++) {
 	for (j = 0; j < stats[i].n_perc; j++) {
-	    sscanf(param.percentile->answers[j], "%i", &stats[i].perc[j]);
+	    sscanf(param.percentile->answers[j], "%i", &(stats[i].perc[j]));
 	}
     }
 
@@ -227,8 +227,6 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
     /* use G_window_rows(), G_window_cols() here? */
     const int rows = region->rows;
     const int cols = region->cols;
-    const int n_zones = zone_info.n_zones;
-    int *first, i;
 
     const RASTER_MAP_TYPE map_type = G_get_raster_map_type(fd);
     const size_t value_sz = G_raster_size(map_type);
@@ -236,42 +234,7 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
     void *raster_row;
     CELL *zoneraster_row;
 
-    switch (map_type) {
-	case CELL_TYPE:
-	    for (i = 0; i < n_zones; i++) {
-		stats[i].nextp
-		= ((!param.extended->answer) ? 0 : (void *)stats[i].cell_array);
-	    }
-	    break;
-
-	case FCELL_TYPE:
-	    for (i = 0; i < n_zones; i++) {
-		stats[i].nextp
-		= ((!param.extended->answer) ? 0 : (void *)stats[i].fcell_array);
-	    }
-	    break;
-
-	case DCELL_TYPE:
-	    for (i = 0; i < n_zones; i++) {
-		stats[i].nextp
-		= ((!param.extended->answer) ? 0 : (void *)stats[i].dcell_array);
-	    }
-	    break;
-
-	default:
-	    G_fatal_error("input raster has unknown type");
-	    break;
-    }
-
-    first = (int *) G_malloc((n_zones - 1) * sizeof(int));
-    {
-	int i;
-	for (i = 0; i < n_zones; i++)
-	    first[i] = (stats[i].n < 1);
-    }
-
-
-    raster_row = G_calloc(cols, value_sz);
+    raster_row = G_allocate_raster_buf(map_type);
     zoneraster_row = G_allocate_c_raster_buf();
 
     for (row = 0; row < rows; row++) {
@@ -289,18 +252,20 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
 	zptr = zoneraster_row;
 
 	for (col = 0; col < cols; col++) {
+	    double val;
 
-	    /* skip NULL cells in zone map altogether */
+	    /* skip NULL cells in zone map */
 	    if (G_is_c_null_value(zptr)) {
 		ptr = G_incr_void_ptr(ptr, value_sz);
 		zptr++;
 		continue;
 	    }
 
-	    /* also count NULL cell in input map */
+	    /* count NULL cells in input map */
 	    zone = *zptr - zone_info.min;
 	    stats[zone].size++;
 	    
+	    /* can't do stats with NULL cells in input map */
 	    if (G_is_null_value(ptr, map_type)) {
 		ptr = G_incr_void_ptr(ptr, value_sz);
 		zptr++;
@@ -312,23 +277,27 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
 		if (stats[zone].n >= stats[zone].n_alloc) {
 		    stats[zone].n_alloc += 1000;
 		    size_t msize;
-		    if (map_type == DCELL_TYPE) {
-			msize = stats[zone].n_alloc * sizeof(DCELL);
-			stats[zone].dcell_array =
-			    (DCELL *)G_realloc((void *)stats[zone].dcell_array, msize);
-			stats[zone].nextp = (void *)&(stats[zone].dcell_array[stats[zone].n]);
-		    }
-		    else if (map_type == FCELL_TYPE) {
-			msize = stats[zone].n_alloc * sizeof(FCELL);
-			stats[zone].fcell_array =
-			    (FCELL *)G_realloc((void *)stats[zone].fcell_array, msize);
-			stats[zone].nextp = (void *)&(stats[zone].fcell_array[stats[zone].n]);
-		    }
-		    else if (map_type == CELL_TYPE) {
-			msize = stats[zone].n_alloc * sizeof(CELL);
-			stats[zone].cell_array =
-			    (CELL *)G_realloc((void *)stats[zone].cell_array, msize);
-			stats[zone].nextp = (void *)&(stats[zone].cell_array[stats[zone].n]);
+		    switch (map_type) {
+			case DCELL_TYPE:
+			    msize = stats[zone].n_alloc * sizeof(DCELL);
+			    stats[zone].dcell_array =
+				(DCELL *)G_realloc((void *)stats[zone].dcell_array, msize);
+			    stats[zone].nextp = (void *)&(stats[zone].dcell_array[stats[zone].n]);
+			    break;
+			case FCELL_TYPE:
+			    msize = stats[zone].n_alloc * sizeof(FCELL);
+			    stats[zone].fcell_array =
+				(FCELL *)G_realloc((void *)stats[zone].fcell_array, msize);
+			    stats[zone].nextp = (void *)&(stats[zone].fcell_array[stats[zone].n]);
+			    break;
+			case CELL_TYPE:
+			    msize = stats[zone].n_alloc * sizeof(CELL);
+			    stats[zone].cell_array =
+				(CELL *)G_realloc((void *)stats[zone].cell_array, msize);
+			    stats[zone].nextp = (void *)&(stats[zone].cell_array[stats[zone].n]);
+			    break;
+			default:
+			    break;
 		    }
 		}
 		/* put the value into stats->XXXcell_array */
@@ -336,26 +305,24 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
 		stats[zone].nextp = G_incr_void_ptr(stats[zone].nextp, value_sz);
 	    }
 
-	    {
-		double val = ((map_type == DCELL_TYPE) ? *((DCELL *) ptr)
-			      : (map_type == FCELL_TYPE) ? *((FCELL *) ptr)
-			      : *((CELL *) ptr));
+	    val = ((map_type == DCELL_TYPE) ? *((DCELL *) ptr)
+			  : (map_type == FCELL_TYPE) ? *((FCELL *) ptr)
+			  : *((CELL *) ptr));
 
-		stats[zone].sum += val;
-		stats[zone].sumsq += val * val;
-		stats[zone].sum_abs += fabs(val);
+	    stats[zone].sum += val;
+	    stats[zone].sumsq += val * val;
+	    stats[zone].sum_abs += fabs(val);
 
-		if (first[zone]) {
+	    if (stats[zone].first) {
+		stats[zone].max = val;
+		stats[zone].min = val;
+		stats[zone].first = FALSE;
+	    }
+	    else {
+		if (val > stats[zone].max)
 		    stats[zone].max = val;
+		if (val < stats[zone].min)
 		    stats[zone].min = val;
-		    first[zone] = FALSE;
-		}
-		else {
-		    if (val > stats[zone].max)
-			stats[zone].max = val;
-		    if (val < stats[zone].min)
-			stats[zone].min = val;
-		}
 	    }
 
 	    ptr = G_incr_void_ptr(ptr, value_sz);

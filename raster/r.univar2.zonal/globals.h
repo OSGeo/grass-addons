@@ -40,6 +40,7 @@ typedef struct
     int map_type;
     void *nextp;
     int n_alloc;
+    int first;
 } univar_stat;
 
 typedef struct

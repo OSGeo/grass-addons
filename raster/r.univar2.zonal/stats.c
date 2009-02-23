@@ -44,10 +44,12 @@ univar_stat *create_univar_stat_struct(int map_type, int size, int n_perc)
 
 	stats[i].n_alloc = 0;
 
+	stats[i].first = TRUE;
+
 	/* allocate memory for extended computation */
 	/* changed to on-demand block allocation */
 
-	if (param.extended->answer) {
+/*	if (param.extended->answer) {
 	    if (map_type == DCELL_TYPE) {
 		stats[i].dcell_array = NULL;
 	    }
@@ -58,6 +60,7 @@ univar_stat *create_univar_stat_struct(int map_type, int size, int n_perc)
 		stats[i].cell_array = NULL;
 	    }
 	}
+*/
 
     }
 
@@ -122,7 +125,7 @@ int print_stats(univar_stat * stats)
 	sprintf(sum_str, "%.10f", stats[z].sum);
 	G_trim_decimal(sum_str);
 
-	fprintf(stdout, "\nzone %d %s\n\n", z + zone_info.min, G_get_c_raster_cat(&z + zone_info.min, &(zone_info.cats)));
+	fprintf(stdout, "\nzone %d %s\n\n", z + zone_info.min, G_get_cat(z + zone_info.min, &(zone_info.cats)));
 
 	if (!param.shell_style->answer) {
 	    fprintf(stdout, "total null and non-null cells: %d\n", stats[z].size);
@@ -289,12 +292,14 @@ int print_stats2(univar_stat * stats)
     fprintf(stdout, "sum%s", zone_info.sep);
     fprintf(stdout, "sum_abs%s", zone_info.sep);
 
-    fprintf(stdout, "first_quart%s", zone_info.sep);
-    fprintf(stdout, "median%s", zone_info.sep);
-    fprintf(stdout, "third_quart%s", zone_info.sep);
-    for (i = 0; i < stats[0].n_perc; i++) {
-	fprintf(stdout, "perc_%d%s", stats[0].perc[i],
-		zone_info.sep);
+    if (param.extended->answer) {
+	fprintf(stdout, "first_quart%s", zone_info.sep);
+	fprintf(stdout, "median%s", zone_info.sep);
+	fprintf(stdout, "third_quart%s", zone_info.sep);
+	for (i = 0; i < stats[0].n_perc; i++) {
+	    fprintf(stdout, "perc_%d%s", stats[0].perc[i],
+		    zone_info.sep);
+	}
     }
     fprintf(stdout, "\n");
 
@@ -327,7 +332,7 @@ int print_stats2(univar_stat * stats)
 	/* zone number */
 	fprintf(stdout, "%d%s", z + zone_info.min, zone_info.sep);
 	/* zone label */
-	fprintf(stdout,"%s%s", G_get_c_raster_cat(&z + zone_info.min, &(zone_info.cats)), zone_info.sep);
+	fprintf(stdout,"%s%s", G_get_cat(z + zone_info.min, &(zone_info.cats)), zone_info.sep);
 
 	/* total cells */
 	fprintf(stdout, "%d%s", stats[z].n, zone_info.sep);
