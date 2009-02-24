@@ -40,8 +40,28 @@ r.colors fields.10m color=random
 
 #### preform analysis
 r.univar.zonal -t in=elevation.10m zones=fields.10m | \
-  cut -f1,2,5,6,8 -d'|' > fields_stats.txt
+  cut -f1,5,6,8 -d'|' > fields_stats.txt
 
+
+#### populate vector DB with stats
+
+# create working copy of vector map
+g.copy vect=fields,fields_stats
+
+# create new attribute columns to hold output
+v.db.addcol map=fields_stats \
+  columns='mean_elev DOUBLE PRECISION, min_elev DOUBLE PRECISION, max_elev DOUBLE PRECISION'
+
+# create SQL command file, and execute it
+sed -e '1d' fields_stats.txt | awk -F'|' \
+  '{print "UPDATE fields_stats SET min_elev = "$2", max_elev = "$3", \
+  mean_elev = "$4" WHERE cat = "$1";"}' \
+   > fields_stats_sqlcmd.txt
+
+db.execute input=fields_stats_sqlcmd.txt
+<!--
+
+###### alternate method with db.in.ogr:  (needs work) ######
 
 #### convert text file table to a database table
 # not safe for commas in the label
@@ -71,6 +91,10 @@ v.db.addcol map=fields_stats \
 ## how to automatically collate by key column, ie copy between tables?
 ## SELECT INTO? JOIN?
 echo "INSERT INTO fields_stats (mean_elev,min_elev,max_elev) SELECT mean,min,max FROM fields_data" | db.execute
+-->
+
+#### view completed table
+v.db.select fields_stats
 </pre></div>
 
 
