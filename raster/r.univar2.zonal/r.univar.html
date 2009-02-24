@@ -10,13 +10,13 @@ If the <b>-e</b> extended statistics flag is given the 1st quartile, median,
 If the <b>-g</b> flag is given the results are presented in a format suitable
 for use in a shell script.
 If the <b>-t</b> flag is given the results are presented in tabular format
-with ";" as field separator. The table can immediately be converted to a
+with "|" as field separator. The table can immediately be converted to a
 proper attribute table which can then be linked to a vector, e.g. the vector
 that was rasterized to create the <b>zones</b> input raster.
 
 <h2>NOTES</h2>
 
-As with most GRASS raster modules, <em>r.univar</em> operates on the cell
+As with most GRASS raster modules, <em>r.univar.zonal</em> operates on the cell
 array defined by the current region settings, not the original extent and
 resolution of the input map. See <em><a href="g.region.html">g.region</a></em>.
 <p>
@@ -28,7 +28,7 @@ error. Basic statistics can be calculated using any size input region.
 <h2>EXAMPLE</h2>
 
 Calculate the raster statistics for zones within a vector map coverage
-and upload the results back to the vector map.
+and upload the results for mean, min and max back to the vector map.
 
 <div class="code"><pre>
 #### set the raster region to match the map
@@ -101,6 +101,8 @@ v.db.select fields_stats
 <h2>TODO</h2>
 
 <i>mode, skewness, kurtosis</i>
+<br>
+<i>3D zonal statistics</i>
 
 
 <h2>SEE ALSO</h2>

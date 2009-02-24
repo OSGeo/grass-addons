@@ -27,7 +27,7 @@ void set_params();
 /* ************************************************************************* */
 void set_params()
 {
-    param.inputfile = G_define_standard_option(G_OPT_R_INPUT);
+    param.inputfile = G_define_standard_option(G_OPT_R_MAP);
 
     param.zonefile = G_define_standard_option(G_OPT_R_MAP);
     param.zonefile->key = "zones";
