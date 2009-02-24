@@ -40,7 +40,7 @@ r.colors fields.10m color=random
 
 #### preform analysis
 r.univar.zonal -t in=elevation.10m zones=fields.10m | \
-  tr ';' '|' | cut -f1,2,5,6,8 -d'|' > fields_stats.txt
+  cut -f1,2,5,6,8 -d'|' > fields_stats.txt
 
 
 #### convert text file table to a database table
