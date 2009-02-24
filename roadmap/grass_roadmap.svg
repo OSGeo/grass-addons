@@ -29,8 +29,8 @@
     </rdf:RDF>
   </metadata>
   <sodipodi:namedview
-     inkscape:window-height="975"
-     inkscape:window-width="1389"
+     inkscape:window-height="737"
+     inkscape:window-width="1276"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      guidetolerance="10.0"
@@ -43,11 +43,11 @@
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:zoom="0.0321875"
-     inkscape:cx="5352.4943"
-     inkscape:cy="9081.3771"
-     inkscape:window-x="3"
-     inkscape:window-y="24"
+     inkscape:zoom="0.043529469"
+     inkscape:cx="6746.5562"
+     inkscape:cy="5915.5327"
+     inkscape:window-x="-1"
+     inkscape:window-y="0"
      inkscape:current-layer="svg2">
     <inkscape:grid
        type="xygrid"
@@ -535,7 +535,8 @@
        style="opacity:1;fill:#e0e0e0;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:7.08661413;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   </g>
   <g
-     id="g3798">
+     id="g3798"
+     transform="translate(13.421219,57.040179)">
     <rect
        y="757.63605"
        x="547.90875"
@@ -642,21 +643,21 @@
   <rect
      style="opacity:1;fill:#ffff00;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="rect3795"
-     width="7706.8877"
+     width="7901.4956"
      height="158.59363"
      x="53.11219"
      y="1954.5815" />
   <rect
      style="opacity:1;fill:#ffff00;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="rect3001"
-     width="5480.0005"
+     width="6218.1675"
      height="159.31284"
      x="53.11219"
      y="2193.8352" />
   <rect
      style="opacity:1;fill:#ffff00;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="rect3789"
-     width="7520"
+     width="7986.3872"
      height="156.79263"
      x="53.11219"
      y="2435.6028" />
@@ -1346,35 +1347,35 @@
   <rect
      style="opacity:1;fill:#c1e2a5;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="rect3787"
-     width="393.11206"
+     width="550.8114"
      height="156.79263"
      x="12140"
      y="2433.1753" />
   <rect
      style="opacity:1;fill:#9fff00;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="rect3791"
-     width="2033.1123"
+     width="1566.725"
      height="159.31284"
-     x="6540"
+     x="7006.3872"
      y="2193.8621" />
   <rect
      style="opacity:1;fill:#7070f0;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="rect3793"
-     width="4566.8877"
+     width="4100.5005"
      height="156.79263"
-     x="7573.1123"
+     x="8039.4995"
      y="2436.3826" />
   <rect
      style="opacity:1;fill:#7070f0;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="rect3797"
-     width="4773.1123"
+     width="4736.2041"
      height="158.59363"
-     x="7760"
+     x="7957.9629"
      y="1954.5815" />
   <rect
      style="opacity:1;fill:#c1e2a5;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="rect3801"
-     width="393.05878"
+     width="550.75812"
      height="159.31284"
      x="12140"
      y="2192.4822" />
@@ -1411,70 +1412,29 @@
   <rect
      style="opacity:1;fill:#ffbb00;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:6;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
      id="rect3935"
-     width="1006.8877"
+     width="735.10797"
      height="159.31284"
-     x="5533.1123"
+     x="6271.2793"
      y="2193.3865" />
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
-     x="2453.1123"
-     y="2313.1753"
+     x="2429.6252"
+     y="2269.5564"
      id="text3937"
      sodipodi:linespacing="50%"><tspan
        sodipodi:role="line"
        id="tspan3939"
-       x="2453.1123"
-       y="2313.1753">U.S. CERL</tspan></text>
-  <text
-     xml:space="preserve"
-     style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
-     x="5733.1123"
-     y="2273.1753"
-     id="text3941"
-     sodipodi:linespacing="50%"><tspan
+       x="2429.6252"
+       y="2269.5564">U.S. CERL</tspan><tspan
        sodipodi:role="line"
-       id="tspan3943"
-       x="5733.1123"
-       y="2273.1753">Uni.</tspan><tspan
+       x="2429.6252"
+       y="2295.0564"
+       id="tspan3093"></tspan><tspan
        sodipodi:role="line"
-       x="5733.1123"
-       y="2298.6753"
-       id="tspan3945" /><tspan
-       sodipodi:role="line"
-       x="5733.1123"
-       y="2324.1753"
-       id="tspan3947">Baylor</tspan></text>
-  <text
-     xml:space="preserve"
-     style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
-     x="7213.1123"
-     y="2273.1753"
-     id="text3949"
-     sodipodi:linespacing="50%"><tspan
-       sodipodi:role="line"
-       id="tspan3951"
-       x="7213.1123"
-       y="2273.1753">Uni.</tspan><tspan
-       sodipodi:role="line"
-       x="7213.1123"
-       y="2298.6753"
-       id="tspan3953" /><tspan
-       sodipodi:role="line"
-       x="7213.1123"
-       y="2324.1753"
-       id="tspan3955">Hannover</tspan></text>
-  <text
-     xml:space="preserve"
-     style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
-     x="9613.1123"
-     y="2313.1753"
-     id="text3957"
-     sodipodi:linespacing="50%"><tspan
-       sodipodi:role="line"
-       id="tspan3959"
-       x="9613.1123"
-       y="2313.1753">Fondazione Bruno Kessler</tspan></text>
+       x="2429.6252"
+       y="2320.5564"
+       id="tspan3118">Jim Westervelt</tspan></text>
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
@@ -1557,55 +1517,55 @@
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:50%;writing-mode:lr-tb;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
      x="423.74304"
-     y="2233.1753"
+     y="2235.1753"
      id="text4029"
      sodipodi:linespacing="50%"><tspan
        sodipodi:role="line"
        id="tspan4031"
        x="423.74304"
-       y="2233.1753">Center</tspan><tspan
+       y="2235.1753">Center</tspan><tspan
        sodipodi:role="line"
        x="423.74304"
-       y="2258.6753"
+       y="2260.6753"
        id="tspan4033" /><tspan
        sodipodi:role="line"
        x="441.67273"
-       y="2284.1753"
+       y="2286.1753"
        id="tspan4035">of </tspan><tspan
        sodipodi:role="line"
        x="423.74304"
-       y="2309.6753"
+       y="2311.6753"
        id="tspan4037" /><tspan
        sodipodi:role="line"
        x="423.74304"
-       y="2335.1753"
+       y="2337.1753"
        id="tspan4039">Development</tspan></text>
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:end;line-height:50%;writing-mode:lr-tb;text-anchor:end;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
      x="390.01843"
-     y="2473.1753"
+     y="2477.1753"
      id="text4041"
      sodipodi:linespacing="50%"><tspan
        sodipodi:role="line"
        id="tspan4043"
        x="407.94812"
-       y="2473.1753">Source </tspan><tspan
+       y="2477.1753">Source </tspan><tspan
        sodipodi:role="line"
        x="390.01843"
-       y="2498.6753"
+       y="2502.6753"
        id="tspan4045" /><tspan
        sodipodi:role="line"
        x="407.94812"
-       y="2524.1753"
+       y="2528.1753"
        id="tspan4047">Code </tspan><tspan
        sodipodi:role="line"
        x="390.01843"
-       y="2549.6753"
+       y="2553.6753"
        id="tspan4049" /><tspan
        sodipodi:role="line"
        x="390.01843"
-       y="2575.1753"
+       y="2579.1753"
        id="tspan4051">Management</tspan></text>
   <text
      xml:space="preserve"
@@ -1837,29 +1797,29 @@
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:150%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
-     x="4933.1123"
+     x="6543.6582"
      y="9233.1748"
      id="text3475"
      sodipodi:linespacing="150%"><tspan
        sodipodi:role="line"
-       x="4933.1123"
+       x="6543.6582"
        y="9233.1748"
-       id="tspan3479">University of Hannover (Germany)/ILN 05-1997</tspan><tspan
+       id="tspan3479">University of Hannover (Germany)/ILN 1997 -1999</tspan><tspan
        sodipodi:role="line"
-       x="4933.1123"
+       x="6543.6582"
        y="9309.6748"
        id="tspan3483">http://www.laum.uni-hannover.de/iln/grass/</tspan></text>
   <image
-     y="8282.0332"
-     x="4933.1123"
+     y="8349.1387"
+     x="6593.9883"
      id="image3568"
-     height="871.14142"
-     width="1280"
+     height="757.06104"
+     width="1125.656"
      sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/iln_05_1997.png"
      xlink:href="homepage/iln_05_1997.png" />
   <image
-     y="9415.3594"
-     x="6133.1123"
+     y="9502.5977"
+     x="4492.3682"
      id="image3635"
      height="697.81567"
      width="823.1377"
@@ -1868,48 +1828,48 @@
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
-     x="6053.1123"
-     y="10273.175"
+     x="4459.4229"
+     y="10276.53"
      id="text3639"
      sodipodi:linespacing="50%"><tspan
        sodipodi:role="line"
        id="tspan3641"
-       x="6053.1123"
-       y="10273.175">U.S. Army CERL 05-1998</tspan><tspan
+       x="4459.4229"
+       y="10276.53">U.S. Army CERL 1993-1995</tspan><tspan
        sodipodi:role="line"
-       x="6053.1123"
-       y="10298.675"
+       x="4459.4229"
+       y="10302.03"
        id="tspan3645" /><tspan
        sodipodi:role="line"
-       x="6053.1123"
-       y="10324.175"
+       x="4459.4229"
+       y="10327.53"
        id="tspan3643">http://www.cecer.army.mil/grass/</tspan></text>
   <image
-     y="8391.252"
-     x="6613.1123"
+     y="8354.3428"
+     x="5240.793"
      id="image3693"
-     height="681.92303"
-     width="1200"
+     height="755.73975"
+     width="1293.9485"
      sodipodi:absref="/home/jachym/Obrázky/grass/roadmap/homepage/baylor_09_1999.png"
      xlink:href="homepage/baylor_09_1999.png" />
   <text
      xml:space="preserve"
      style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
-     x="6693.1123"
-     y="9233.1748"
+     x="5498.6235"
+     y="9239.8857"
      id="text3697"
      sodipodi:linespacing="50%"><tspan
        sodipodi:role="line"
-       id="tspan3699"
-       x="6693.1123"
-       y="9233.1748">Baylor University (USA) 09-1999</tspan><tspan
+       x="5498.6235"
+       y="9239.8857"
+       id="tspan3701">Baylor University (USA) 1997-2000</tspan><tspan
        sodipodi:role="line"
-       x="6693.1123"
-       y="9258.6748"
-       id="tspan3701" /><tspan
+       x="5498.6235"
+       y="9265.3857"
+       id="tspan3122" /><tspan
        sodipodi:role="line"
-       x="6693.1123"
-       y="9284.1748"
+       x="5498.6235"
+       y="9290.8857"
        id="tspan3703">http://www.baylor.edu/~grass/</tspan></text>
   <text
      xml:space="preserve"
@@ -1929,7 +1889,7 @@
        sodipodi:role="line"
        x="7013.1123"
        y="10324.175"
-       id="tspan6481">(Germany)/Phygeo 08-1999</tspan><tspan
+       id="tspan6481">(Germany)/Phygeo in 1999</tspan><tspan
        sodipodi:role="line"
        x="7013.1123"
        y="10349.675"
@@ -1964,7 +1924,7 @@
        sodipodi:role="line"
        x="7893.1123"
        y="9284.1748"
-       id="tspan6485">Germany)/Phygeo 08-2000a</tspan><tspan
+       id="tspan6485">Germany)/Phygeo 1999-2001</tspan><tspan
        sodipodi:role="line"
        x="7893.1123"
        y="9309.6748"
@@ -1999,7 +1959,7 @@
        sodipodi:role="line"
        x="8173.1123"
        y="11344.175"
-       id="tspan6494">(Germany)/Phygeo 08-2001b</tspan><tspan
+       id="tspan6494">(Germany)/Phygeo in 2001</tspan><tspan
        sodipodi:role="line"
        x="8173.1123"
        y="11369.675"
@@ -2026,7 +1986,7 @@
        sodipodi:role="line"
        id="tspan3932"
        x="9253.1123"
-       y="10273.175">ITC-irst (Italy) 05-2002b</tspan><tspan
+       y="10273.175">ITC-irst (Italy) in 2002</tspan><tspan
        sodipodi:role="line"
        x="9253.1123"
        y="10298.675"
@@ -2053,7 +2013,7 @@
        sodipodi:role="line"
        id="tspan4089"
        x="11893.112"
-       y="9193.1748">OSGeo.org 2009</tspan><tspan
+       y="9193.1748">OSGeo.org since 2008</tspan><tspan
        sodipodi:role="line"
        x="11893.112"
        y="9218.6748"
@@ -2116,7 +2076,7 @@
        sodipodi:role="line"
        x="8093.1123"
        y="10304.175"
-       id="tspan6615">(Germany)/Phygeo 08-2001a</tspan><tspan
+       id="tspan6615">(Germany)/Phygeo in 2001</tspan><tspan
        sodipodi:role="line"
        x="8093.1123"
        y="10329.675"
@@ -2144,7 +2104,7 @@
        id="tspan6753"
        x="9253.1123"
        y="9233.1748"
-       style="font-size:51px">ITC-irst (Italy) 01-2002a</tspan><tspan
+       style="font-size:51px">ITC-irst (Italy) 2001-2007</tspan><tspan
        sodipodi:role="line"
        x="9253.1123"
        y="9258.6748"
@@ -2163,7 +2123,7 @@
      id="text2996"
      sodipodi:linespacing="50%"><tspan
        sodipodi:role="line"
-       id="tspan2998"></tspan></text>
+       id="tspan2998" /></text>
   <g
      id="g3799">
     <rect
@@ -4016,4 +3976,61 @@
          y="642.87866"
          id="tspan4417">2007</tspan></text>
   </g>
+  <text
+     xml:space="preserve"
+     style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
+     x="6450.7432"
+     y="2269.6846"
+     id="text3126"
+     sodipodi:linespacing="50%"><tspan
+       sodipodi:role="line"
+       id="tspan3128"
+       x="6450.7432"
+       y="2269.6846">Baylor University</tspan><tspan
+       sodipodi:role="line"
+       x="6450.7432"
+       y="2295.1846"
+       id="tspan3130"></tspan><tspan
+       sodipodi:role="line"
+       x="6450.7432"
+       y="2320.6846"
+       id="tspan3132">   Bruce Byars</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
+     x="7447.0732"
+     y="2267.0596"
+     id="text3134"
+     sodipodi:linespacing="50%"><tspan
+       sodipodi:role="line"
+       id="tspan3136"
+       x="7447.0732"
+       y="2267.0596">University of Hannover</tspan><tspan
+       sodipodi:role="line"
+       x="7447.0732"
+       y="2292.5596"
+       id="tspan3138"></tspan><tspan
+       sodipodi:role="line"
+       x="7447.0732"
+       y="2318.0596"
+       id="tspan3140">      Markus Neteler</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-size:51px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:50%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Verdana;-inkscape-font-specification:Verdana"
+     x="9674.8877"
+     y="2272.1255"
+     id="text3142"
+     sodipodi:linespacing="50%"><tspan
+       sodipodi:role="line"
+       id="tspan3144"
+       x="9674.8877"
+       y="2272.1255">ITC-Irst/Fondazione Bruno Kessler</tspan><tspan
+       sodipodi:role="line"
+       x="9674.8877"
+       y="2297.6255"
+       id="tspan3146"></tspan><tspan
+       sodipodi:role="line"
+       x="9674.8877"
+       y="2323.1255"
+       id="tspan3148">               Markus Neteler</tspan></text>
 </svg>
