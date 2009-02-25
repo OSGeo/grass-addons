@@ -27,11 +27,11 @@ void set_params();
 /* ************************************************************************* */
 void set_params()
 {
-    param.inputfile = G_define_standard_option(G_OPT_R_MAP);
+    param.inputfile = G_define_standard_option(G_OPT_R_MAPS);
 
     param.zonefile = G_define_standard_option(G_OPT_R_MAP);
     param.zonefile->key = "zones";
-    param.zonefile->required = YES;
+    param.zonefile->required = NO;
     param.zonefile->description =
 	_("Raster map used for zoning, must be of type CELL");
 
@@ -61,13 +61,13 @@ void set_params()
 
     param.table = G_define_flag();
     param.table->key = 't';
-    param.table->description = _("Table output format instead of r.univar like output format");
+    param.table->description = _("Table output format instead of standard output format");
 
     return;
 }
 
 static int open_raster(const char *infile);
-static univar_stat *univar_stat_with_percentiles(int map_type, int size);
+static univar_stat *univar_stat_with_percentiles(int map_type);
 static void process_raster(univar_stat * stats, int fd, int fdz,
 			   const struct Cell_head *region);
 
@@ -77,12 +77,12 @@ static void process_raster(univar_stat * stats, int fd, int fdz,
 int main(int argc, char *argv[])
 {
     unsigned int rows, cols;	/*  totals  */
-    /* int rasters; */
+    int rasters;
 
     struct Cell_head region;
     struct GModule *module;
     univar_stat *stats;
-    char *p, *z;
+    char **p, *z;
     int fd, fdz, cell_type, min, max;
     struct Range zone_range;
     char *mapset, *name;
@@ -108,78 +108,89 @@ int main(int argc, char *argv[])
 	}
     }
 
-    /* TODO: make it an option */
-    zone_info.sep = "|";
-
     G_get_window(&region);
     rows = region.rows;
     cols = region.cols;
+
+    /* TODO: make table field separator an option */
+    zone_info.sep = "|";
 
     zone_info.min = 0.0 / 0.0;	/*set to nan as default */
     zone_info.max = 0.0 / 0.0;	/*set to nan as default */
     zone_info.n_zones = 0;
 
-    /* open zoning raster */
-    z = param.zonefile->answer;
-    mapset = G_find_cell2(z, "");
-
-    fdz = open_raster(z);
+    fdz = -1;
     
-    cell_type = G_get_raster_map_type(fdz);
-    if (cell_type != CELL_TYPE)
-	G_fatal_error("Zoning raster must be of type CELL");
+    /* open zoning raster */
+    if ((z = param.zonefile->answer)) {
+	mapset = G_find_cell2(z, "");
 
-    if (G_read_range(z, mapset, &zone_range) == -1)
-	G_fatal_error("Can not read range for zoning raster");
-    if (G_get_range_min_max(&zone_range, &min, &max))
-	G_fatal_error("Can not read range for zoning raster");
-    if (G_read_raster_cats(z, mapset, &(zone_info.cats)))
-	G_warning("no category support for zoning raster");
+	fdz = open_raster(z);
+	
+	cell_type = G_get_raster_map_type(fdz);
+	if (cell_type != CELL_TYPE)
+	    G_fatal_error("Zoning raster must be of type CELL");
 
-    zone_info.min = min;
-    zone_info.max = max;
-    zone_info.n_zones = max - min + 1;
+	if (G_read_range(z, mapset, &zone_range) == -1)
+	    G_fatal_error("Can not read range for zoning raster");
+	if (G_get_range_min_max(&zone_range, &min, &max))
+	    G_fatal_error("Can not read range for zoning raster");
+	if (G_read_raster_cats(z, mapset, &(zone_info.cats)))
+	    G_warning("no category support for zoning raster");
 
-    /* process input raster */
-    size_t cells = cols * rows;
+	zone_info.min = min;
+	zone_info.max = max;
+	zone_info.n_zones = max - min + 1;
+    }
+
+    /* count the input rasters given */
+    for (p = (char **)param.inputfile->answers, rasters = 0;
+	 *p; p++, rasters++) ;
+
+    /* process all input rasters */
     int map_type = param.extended->answer ? -2 : -1;
 
     stats = ((map_type == -1)
-	     ? create_univar_stat_struct(-1, cells, 0)
+	     ? create_univar_stat_struct(-1, 0)
 	     : 0);
 
-    p = param.inputfile->answer;
-    fd = open_raster(p);
+    for (p = param.inputfile->answers; *p; p++) {
+	fd = open_raster(*p);
 
-    if (map_type != -1) {
-	/* NB: map_type must match when doing extended stats */
-	int this_type = G_get_raster_map_type(fd);
+	if (map_type != -1) {
+	    /* NB: map_type must match when doing extended stats */
+	    int this_type = G_get_raster_map_type(fd);
 
-	assert(this_type > -1);
-	if (map_type < -1) {
-	    assert(stats == 0);
-	    map_type = this_type;
-	    stats = univar_stat_with_percentiles(map_type, cells);
+	    assert(this_type > -1);
+	    if (map_type < -1) {
+		/* extended stats */
+		assert(stats == 0);
+		map_type = this_type;
+		stats = univar_stat_with_percentiles(map_type);
+	    }
+	    else if (this_type != map_type) {
+		G_fatal_error(_("Raster <%s> type mismatch"), *p);
+	    }
 	}
-	else if (this_type != map_type) {
-	    G_fatal_error(_("Raster <%s> type mismatch"), p);
-	}
+
+	process_raster(stats, fd, fdz, &region);
+
+	/* close input raster */
+	G_close_cell(fd);
     }
 
-    process_raster(stats, fd, fdz, &region);
+    /* close zoning raster */
+    if (z)
+	G_close_cell(fdz);
 
     /* create the output */
     if (param.table->answer)
-	print_stats2(stats);
+	print_stats_table(stats);
     else
 	print_stats(stats);
 	
     /* release memory */
     free_univar_stat_struct(stats);
-
-    /* closing raster maps */
-    G_close_cell(fd);
-    G_close_cell(fdz);
 
     exit(EXIT_SUCCESS);
 }
@@ -202,16 +213,20 @@ static int open_raster(const char *infile)
     return fd;
 }
 
-static univar_stat *univar_stat_with_percentiles(int map_type, int size)
+static univar_stat *univar_stat_with_percentiles(int map_type)
 {
     univar_stat *stats;
     int i, j;
+    int n_zones = zone_info.n_zones;
+
+    if (n_zones == 0)
+	n_zones = 1;
 
     i = 0;
     while (param.percentile->answers[i])
 	i++;
-    stats = create_univar_stat_struct(map_type, size, i);
-    for (i = 0; i < zone_info.n_zones; i++) {
+    stats = create_univar_stat_struct(map_type, i);
+    for (i = 0; i < n_zones; i++) {
 	for (j = 0; j < stats[i].n_perc; j++) {
 	    sscanf(param.percentile->answers[j], "%i", &(stats[i].perc[j]));
 	}
@@ -233,42 +248,49 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
     unsigned int row;
     void *raster_row;
     CELL *zoneraster_row;
-
+    int n_zones = zone_info.n_zones;
+    
     raster_row = G_allocate_raster_buf(map_type);
-    zoneraster_row = G_allocate_c_raster_buf();
+    if (n_zones)
+	zoneraster_row = G_allocate_c_raster_buf();
 
     for (row = 0; row < rows; row++) {
 	void *ptr;
 	CELL *zptr;
 	unsigned int col;
-	int zone;
 
 	if (G_get_raster_row(fd, raster_row, row, map_type) < 0)
 	    G_fatal_error(_("Reading row %d"), row);
-	if (G_get_c_raster_row(fdz, zoneraster_row, row) < 0)
-	    G_fatal_error(_("Reading row %d"), row);
+	if (n_zones) {
+	    if (G_get_c_raster_row(fdz, zoneraster_row, row) < 0)
+		G_fatal_error(_("Reading row %d"), row);
+	    zptr = zoneraster_row;
+	}
 
 	ptr = raster_row;
-	zptr = zoneraster_row;
 
 	for (col = 0; col < cols; col++) {
 	    double val;
+	    int zone = 0;
 
-	    /* skip NULL cells in zone map */
-	    if (G_is_c_null_value(zptr)) {
-		ptr = G_incr_void_ptr(ptr, value_sz);
-		zptr++;
-		continue;
+	    if (n_zones) {
+		/* skip NULL cells in zone map */
+		if (G_is_c_null_value(zptr)) {
+		    ptr = G_incr_void_ptr(ptr, value_sz);
+		    zptr++;
+		    continue;
+		}
+		zone = *zptr - zone_info.min;
 	    }
 
 	    /* count NULL cells in input map */
-	    zone = *zptr - zone_info.min;
 	    stats[zone].size++;
 	    
 	    /* can't do stats with NULL cells in input map */
 	    if (G_is_null_value(ptr, map_type)) {
 		ptr = G_incr_void_ptr(ptr, value_sz);
-		zptr++;
+		if (n_zones)
+		    zptr++;
 		continue;
 	    }
 
@@ -326,11 +348,14 @@ process_raster(univar_stat * stats, int fd, int fdz, const struct Cell_head *reg
 	    }
 
 	    ptr = G_incr_void_ptr(ptr, value_sz);
-	    zptr++;
+	    if (n_zones)
+		zptr++;
 	    stats[zone].n++;
 	}
-	G_percent(row, rows, 2);
+	if (!(param.shell_style->answer))
+	    G_percent(row, rows, 2);
     }
-    G_percent(rows, rows, 2);	/* finish it off */
+    if (!(param.shell_style->answer))
+	G_percent(rows, rows, 2);	/* finish it off */
 
 }

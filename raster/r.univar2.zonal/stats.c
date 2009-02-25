@@ -16,11 +16,14 @@
 /* *************************************************************** */
 /* **** univar_stat constructor ********************************** */
 /* *************************************************************** */
-univar_stat *create_univar_stat_struct(int map_type, int size, int n_perc)
+univar_stat *create_univar_stat_struct(int map_type, int n_perc)
 {
     univar_stat *stats;
     int i;
     int n_zones = zone_info.n_zones;
+
+    if (n_zones == 0)
+	n_zones = 1;
 
     stats = (univar_stat *) G_calloc(n_zones, sizeof(univar_stat));
 
@@ -74,16 +77,20 @@ univar_stat *create_univar_stat_struct(int map_type, int size, int n_perc)
 void free_univar_stat_struct(univar_stat * stats)
 {
     int i;
+    int n_zones = zone_info.n_zones;
 
-    for (i = 0; i < zone_info.n_zones; i++){
-    if (stats[i].perc)
-	G_free(stats[i].perc);
-    if (stats[i].dcell_array)
-	G_free(stats[i].dcell_array);
-    if (stats[i].fcell_array)
-	G_free(stats[i].fcell_array);
-    if (stats[i].cell_array)
-	G_free(stats[i].cell_array);
+    if (n_zones == 0)
+	n_zones = 1;
+
+    for (i = 0; i < n_zones; i++){
+	if (stats[i].perc)
+	    G_free(stats[i].perc);
+	if (stats[i].dcell_array)
+	    G_free(stats[i].dcell_array);
+	if (stats[i].fcell_array)
+	    G_free(stats[i].fcell_array);
+	if (stats[i].cell_array)
+	    G_free(stats[i].cell_array);
     }
 
     G_free(stats);
@@ -97,9 +104,12 @@ void free_univar_stat_struct(univar_stat * stats)
 /* *************************************************************** */
 int print_stats(univar_stat * stats)
 {
-    int z;
+    int z, n_zones = zone_info.n_zones;
 
-    for (z = 0; z < zone_info.n_zones; z++) {
+    if (n_zones == 0)
+	n_zones = 1;
+
+    for (z = 0; z < n_zones; z++) {
 	char sum_str[100];
 	double mean, variance, stdev, var_coef;
 
@@ -125,7 +135,8 @@ int print_stats(univar_stat * stats)
 	sprintf(sum_str, "%.10f", stats[z].sum);
 	G_trim_decimal(sum_str);
 
-	fprintf(stdout, "\nzone %d %s\n\n", z + zone_info.min, G_get_cat(z + zone_info.min, &(zone_info.cats)));
+	if (zone_info.n_zones)
+	    fprintf(stdout, "\nzone %d %s\n\n", z + zone_info.min, G_get_cat(z + zone_info.min, &(zone_info.cats)));
 
 	if (!param.shell_style->answer) {
 	    fprintf(stdout, "total null and non-null cells: %d\n", stats[z].size);
@@ -270,15 +281,20 @@ int print_stats(univar_stat * stats)
     return 1;
 }
 
-int print_stats2(univar_stat * stats)
+int print_stats_table(univar_stat * stats)
 {
-    int z;
     unsigned int i;
+    int z, n_zones = zone_info.n_zones;
+
+    if (n_zones == 0)
+	n_zones = 1;
 
     /* print column headers */
 
-    fprintf(stdout, "zone%s", zone_info.sep);
-    fprintf(stdout, "label%s", zone_info.sep);
+    if (zone_info.n_zones) {
+	fprintf(stdout, "zone%s", zone_info.sep);
+	fprintf(stdout, "label%s", zone_info.sep);
+    }
     fprintf(stdout, "non_null_cells%s", zone_info.sep);
     fprintf(stdout, "null_cells%s", zone_info.sep);
     fprintf(stdout, "min%s", zone_info.sep);
@@ -290,22 +306,21 @@ int print_stats2(univar_stat * stats)
     fprintf(stdout, "variance%s", zone_info.sep);
     fprintf(stdout, "coeff_var%s", zone_info.sep);
     fprintf(stdout, "sum%s", zone_info.sep);
-    fprintf(stdout, "sum_abs%s", zone_info.sep);
+    fprintf(stdout, "sum_abs");
 
     if (param.extended->answer) {
-	fprintf(stdout, "first_quart%s", zone_info.sep);
-	fprintf(stdout, "median%s", zone_info.sep);
-	fprintf(stdout, "third_quart%s", zone_info.sep);
+	fprintf(stdout, "%sfirst_quart", zone_info.sep);
+	fprintf(stdout, "%smedian", zone_info.sep);
+	fprintf(stdout, "%sthird_quart", zone_info.sep);
 	for (i = 0; i < stats[0].n_perc; i++) {
-	    fprintf(stdout, "perc_%d%s", stats[0].perc[i],
-		    zone_info.sep);
+	    fprintf(stdout, "%sperc_%d", zone_info.sep, stats[0].perc[i]);
 	}
     }
     fprintf(stdout, "\n");
 
     /* print stats */
 
-    for (z = 0; z < zone_info.n_zones; z++) {
+    for (z = 0; z < n_zones; z++) {
 	char sum_str[100];
 	double mean, variance, stdev, var_coef;
 
@@ -320,7 +335,6 @@ int print_stats2(univar_stat * stats)
 
 	i = 0;
 
-
 	/* all these calculations get promoted to doubles, so any DIV0 becomes nan */
 	mean = stats[z].sum / stats[z].n;
 	variance = (stats[z].sumsq - stats[z].sum * stats[z].sum / stats[z].n) / stats[z].n;
@@ -329,10 +343,12 @@ int print_stats2(univar_stat * stats)
 	stdev = sqrt(variance);
 	var_coef = (stdev / mean) * 100.;	/* perhaps stdev/fabs(mean) ? */
 
-	/* zone number */
-	fprintf(stdout, "%d%s", z + zone_info.min, zone_info.sep);
-	/* zone label */
-	fprintf(stdout,"%s%s", G_get_cat(z + zone_info.min, &(zone_info.cats)), zone_info.sep);
+	if (zone_info.n_zones) {
+	    /* zone number */
+	    fprintf(stdout, "%d%s", z + zone_info.min, zone_info.sep);
+	    /* zone label */
+	    fprintf(stdout,"%s%s", G_get_cat(z + zone_info.min, &(zone_info.cats)), zone_info.sep);
+	}
 
 	/* total cells */
 	fprintf(stdout, "%d%s", stats[z].n, zone_info.sep);
@@ -361,7 +377,7 @@ int print_stats2(univar_stat * stats)
 	/* absolute sum */
 	sprintf(sum_str, "%.10f", stats[z].sum_abs);
 	G_trim_decimal(sum_str);
-	fprintf(stdout, "%s%s", sum_str, zone_info.sep);
+	fprintf(stdout, "%s", sum_str);
 
 	/* TODO: mode, skewness, kurtosis */
 	if (param.extended->answer) {
@@ -427,15 +443,15 @@ int print_stats2(univar_stat * stats)
 	    }
 
 	    /* first quartile */
-	    fprintf(stdout, "%g%s", quartile_25, zone_info.sep);
+	    fprintf(stdout, "%s%g", zone_info.sep, quartile_25);
 	    /* median */
-	    fprintf(stdout, "%g%s", median, zone_info.sep);
+	    fprintf(stdout, "%s%g", zone_info.sep, median);
 	    /* third quartile */
-	    fprintf(stdout, "%g%s", quartile_75, zone_info.sep);
+	    fprintf(stdout, "%s%g", zone_info.sep, quartile_75);
 	    /* percentiles */
 	    for (i = 0; i < stats[z].n_perc; i++) {
-		fprintf(stdout, "%g%s", 
-			quartile_perc[i], zone_info.sep);
+		fprintf(stdout, "%s%g", zone_info.sep , 
+			quartile_perc[i]);
 	    }
 
 	    G_free((void *)quartile_perc);
