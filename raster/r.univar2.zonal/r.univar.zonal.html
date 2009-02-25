@@ -39,7 +39,7 @@ v.to.rast in=fields out=fields.10m use=cat type=area labelcolumn=label
 r.colors fields.10m color=random
 
 #### perform analysis
-r.univar.zonal -t in=elevation.10m zones=fields.10m | \
+r.univar.zonal -t map=elevation.10m zones=fields.10m | \
   cut -f1,5,6,8 -d'|' > fields_stats.txt
 
 
