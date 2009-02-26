@@ -76,12 +76,12 @@ int main (int argc, char *argv[])
 
 /* write group files to group list file */
     prepare_group_list();
-    debug("prepare_group_list done");
+    G_debug(3,"prepare_group_list done");
 
 /* get target info and enviroment */
     get_target();
     find_target_files();
-    debug("find_target_files done");
+    G_debug(3,"find_target_files done");
 
 /* read group control points, if any */
     G_suppress_warnings(1);
@@ -90,7 +90,7 @@ int main (int argc, char *argv[])
     G_suppress_warnings(0);
 
 /* determine tranformation equation */
-    G_debug(0, "starting Compute_equation()");
+    G_debug(3, "starting Compute_equation()");
     Compute_equation();
 
     signal (SIGINT, SIG_IGN);
@@ -101,14 +101,14 @@ int main (int argc, char *argv[])
     Init_graphics();
     display_title (VIEW_MAP1);
 
-    G_debug(0, "select_target_env");
+    G_debug(3, "select_target_env");
     select_target_env ();
     display_title (VIEW_MAP2);
     select_current_env ();
-    G_debug(0, "select_target_env done");
+    G_debug(3, "select_target_env done");
 
     Begin_curses();
-    G_debug(0, "Begin_curses done");
+    G_debug(3, "Begin_curses done");
     G_set_error_routine (error);
 
 /*
@@ -118,7 +118,7 @@ int main (int argc, char *argv[])
 */
 
 /* ask user for group file to be displayed */
-    G_debug(0, "ask user for group file to be displayed");
+    G_debug(3, "ask user for group file to be displayed");
     do
     {
 	if(!choose_groupfile (name, mapset))
