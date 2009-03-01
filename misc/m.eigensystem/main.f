@@ -24,16 +24,20 @@ C
 C
 C Currently, the max value for N is 30
 C
-C The output is N sets of values. One E line and N V lines
+C The output is N sets of values. One E line and N V W lines
 C
 C  E   real  imaginary   percent-importance
 C  V   real  imaginary
 C  N   real  imaginary
+C  W   real  imaginary
 C      ...
 C
 C where E is the eigen value (and it relative importance)
 C and   V are the eigenvector for this eigenvalue.
 C       N are the normalized eigenvector for this eigenvalue.
+C       W are the N vector multiplied by the square root of the magnitude
+C         of the eigen value (E). 
+
 C
        DOUBLE PRECISION A(30,30),W1,W2,WR(30),WI(30),Z(30,30),FV1(30)
        DOUBLE PRECISION SUM1,SUM2

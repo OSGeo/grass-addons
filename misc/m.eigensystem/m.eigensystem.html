@@ -33,7 +33,10 @@ the first line contains an integer K
 which is the number of rows and columns in the matrix;
 the remainder of the file is the matrix, i.e.,
 K lines, each containing K real numbers.
-For example:
+
+For example:<BR>
+<I>(Examples in this help page use the Spearfish-imagery sample dataset
+maps spot.ms.1, spot.ms.2, and spot.ms.3)</I>
 <P>
 <PRE>
           3
@@ -73,7 +76,7 @@ magnitude of the eigen value (E).
 
 <P>
 
-For the example input matrix, the output would be:
+For the example input matrix above, the output would be:
 <PRE>
           E  1159.7452017844    0.0000000000   88.38
           V     0.6910021591    0.0000000000
@@ -129,6 +132,7 @@ transformation of data sets.  The covariance or correlation
 matrix of any data set is symmetric
 and thus has only real eigen values and vectors.
 
+
 <H2>PRINCIPLE COMPONENTS</H2>
 
 To perform principle component transformation on GRASS data layers,
@@ -141,12 +145,12 @@ to extract the related eigen vectors, and
 to form the desired components.
 For example, to get the eigen vectors for 3 layers:
 
-<PRE>
-<B>(echo 3; r.covar map.1,map.2,map.3) | m.eigensystem</B>
-</PRE>
+<div class="code"><PRE>
+   <B>(echo 3; r.covar map.1,map.2,map.3) | m.eigensystem</B>
+</PRE></div>
 
-Note that since m.covar only outputs the matrix, we must manually prepend the matrix
-size (3) using the echo command.
+Note that since m.covar only outputs the matrix, we must manually prepend
+the matrix size (3) using the echo command.
 
 
 <P>
@@ -154,27 +158,41 @@ size (3) using the echo command.
 Then, using the W vector, new maps are created:
 
 
-<PRE>
-<B>r.mapcalc</B> 'pc.1 = 21.2395*map.1 + 22.1470*map.2 + 14.7696*map.3'
-<B>r.mapcalc</B> 'pc.2 =  2.9083*map.1 +  4.4599*map.2  - 10.8699*map.3'
-<B>r.mapcalc</B> 'pc.3 =  1.8175*map.1  -  1.6232*map.2 \-  0.1797*map.3'
-</PRE>
+<div class="code"><PRE>
+   <B>r.mapcalc</B> 'pc.1 = 21.2395*map.1 + 22.1470*map.2 + 14.7696*map.3'
+   <B>r.mapcalc</B> 'pc.2 =  2.9083*map.1 +  4.4599*map.2  - 10.8699*map.3'
+   <B>r.mapcalc</B> 'pc.3 =  1.8175*map.1  -  1.6232*map.2 -  0.1797*map.3'
+</PRE></div>
+
 
 <H2>NOTES</H2>
 
 The source code for this program requires a Fortran compiler.
 
+<P>
+The equivalent <em>i.pca</em> command is:
+<div class="code"><PRE>
+   i.pca in=spot.ms.1,spot.ms.2,spot.ms.3 out=spot_pca
+</PRE></div>
+
+
 <H2>SEE ALSO</H2>
 
-<EM><A HREF="r.covar.html">r.covar</A></EM><br>
-<EM><A HREF="r.mapcalc.html">r.mapcalc</A></EM><br>
-<EM><A HREF="r.rescale.html">r.rescale</A></EM>
+<EM>
+<A HREF="i.pca.html">i.pca</A><br>
+<A HREF="r.covar.html">r.covar</A><br>
+<A HREF="r.mapcalc.html">r.mapcalc</A><br>
+<A HREF="r.rescale.html">r.rescale</A>
+</EM>
+
 
 <H2>AUTHOR</H2>
 
-This code uses routines from the EISPACK system.  The interface was coded by
-Michael Shapiro, U.S.Army Construction Engineering 
-Research Laboratory
-<p><i>Last changed: $Date: 2002/01/25 05:45:33 $</i>
+This code uses routines from the EISPACK system.<BR>
+The interface was coded by Michael Shapiro, U.S.Army Construction Engineering
+ Research Laboratory
+
+<p>
+<i>Last changed: $Date: 2002/01/25 05:45:33 $</i>
 </body>
 </html>
