@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 ############################################################################
 #
@@ -310,48 +310,62 @@ sill
 writevarrast <- as.logical(args[13])
 variablename <- args[14]
 
-#libraries
-library(spgrass6)
-library(automap)
+tryCatch({
+	#libraries
+	library(spgrass6)
+	library(automap)
 
-#retrieve sites in a SpatialPointsDataFrame object
-cat("retrieve sites from GRASS","\n")
-sitesR <- readVECT6(sitesG, ignore.stderr = T)
-#uncomment to check sites
-#sitesR
+	#retrieve sites in a SpatialPointsDataFrame object
+	cat("retrieve sites from GRASS","\n")
+	sitesR <- readVECT6(sitesG, ignore.stderr = F)
+	#uncomment to check sites
+	#sitesR
 
-cat("retrieve metadata","\n")
-G <- gmeta6()
-cat("GridTopology creation","\n")
-grd <- gmeta2grd()
-#this is necessary to ensure that we have square cells ; the more this number is small, the more the kriged map resolution is high 
-slot(grd, "cellsize") <- c(cellsize, cellsize)
+	cat("retrieve metadata","\n")
+	G <- gmeta6()
+	cat("GridTopology creation","\n")
+	grd <- gmeta2grd()
+	#this is necessary to ensure that we have square cells ; the more this number is small, the more the kriged map resolution is high 
+	slot(grd, "cellsize") <- c(cellsize, cellsize)
 
-#creation of another grid object: SpatialGridDataFrame
-#this is a matrix whose values receive spatial coordinates associated to interpolated values
-#matrix size must be equal to the number of GridTopology cells 
-#we create first a classical data.frame
-data <- data.frame(list(k=rep(1,(floor(G$cols)*floor(G$rows)))))
-cat("SpatialGridDataFrame creation","\n")
-mask_SG <- SpatialGridDataFrame(grd, data=data, CRS(G$proj4))
+	#creation of another grid object: SpatialGridDataFrame
+	#this is a matrix whose values receive spatial coordinates associated to interpolated values
+	#matrix size must be equal to the number of GridTopology cells 
+	#we create first a classical data.frame
+	data <- data.frame(list(k=rep(1,(floor(G$cols)*floor(G$rows)))))
+	cat("SpatialGridDataFrame creation","\n")
+	mask_SG <- SpatialGridDataFrame(grd, data=data, CRS(G$proj4))
 
-#add coordinates system
-attr(sitesR, "proj4string") <-CRS(G$proj4)
+	#add coordinates system
+	attr(sitesR, "proj4string") <-CRS(G$proj4)
 
-cat("ordinary kriging","\n")
-kriging_result = autoKrige(as.formula(paste(column,"~",1)), sitesR[column], mask_SG, model = modelslist, fix.values = c(nugget,range,sill))
+	cat("ordinary kriging","\n")
+	kriging_result = autoKrige(as.formula(paste(column,"~",1)), sitesR[column_], mask_SG, model = modelslist, fix.values = c(nugget,range,sill), debug.level=-1, verbose=TRUE)
 
-cat("send raster to GRASS","\n")
-writeRAST6(kriging_result$krige_output,rastername,zcol=1,NODATA=0)
-cat("Generated",rastername," "); cat("", sep="\n")
-if(writevarrast == T) {
-	varrastername = paste(rastername, "_var", sep = "")
-	writeRASTt6(kriging_result$krige_output,varrastername,zcol=2,NODATA=0)
-	cat("Generated",varrastername," "); cat("", sep="\n")
-}
+	cat("send raster to GRASS","\n")
+	writeRAST6(kriging_result$krige_output,rastername,zcol=1,NODATA=0)
+	cat("Generated",rastername," "); cat("", sep="\n")
+	if(writevarrast == T) {
+		varrastername = paste(rastername, "_var", sep = "")
+		writeRASTt6(kriging_result$krige_output,varrastername,zcol=2,NODATA=0)
+		cat("Generated",varrastername," "); cat("", sep="\n")
+	}
 
-#plot experimental and model variogram
-try(automap:::plot.autoKrige(kriging_result))
+	#plot experimental and model variogram
+	cat("plot kriging results","\n")
+	options(device="pdf")
+	try(automap:::plot.autoKrige(kriging_result))
+	cat("R script done","\n")
+	quit(status = 0)
+}, interrupt = function(ex) {
+  	cat("An interrupt was detected.\n");
+  	quit(status = 4)
+	}, 
+	error = function(ex) {
+  	cat("Error while executing R script.\n");
+  	quit(status = 5)
+	}
+) # tryCatch()
 
 EOF
 }
@@ -380,8 +394,8 @@ fi
 ## plot export and raster colors
 #####################################
 #convert plot to png
-convert -alpha off -rotate 90 Rplots.ps Rplots.png >> "$LOGFILE" 2>&1
-rm -f Rplots.ps >> "$LOGFILE" 2>&1
+convert -alpha off Rplots.pdf Rplots.png >> "$LOGFILE" 2>&1
+rm -f Rplots.pdf >> "$LOGFILE" 2>&1
 
 r.colors map="$KRIGRASTERNAME" rules="$GIS_OPT_COLORMAP" >> "$LOGFILE" 2>&1
 if [ "$GIS_FLAG_V" -eq 1 ] ; then
@@ -390,3 +404,4 @@ fi
 
 echo "done"
 cleanup
+exit 0
