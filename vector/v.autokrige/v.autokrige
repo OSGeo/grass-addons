@@ -340,7 +340,7 @@ tryCatch({
 	attr(sitesR, "proj4string") <-CRS(G$proj4)
 
 	cat("ordinary kriging","\n")
-	kriging_result = autoKrige(as.formula(paste(column,"~",1)), sitesR[column_], mask_SG, model = modelslist, fix.values = c(nugget,range,sill), debug.level=-1, verbose=TRUE)
+	kriging_result = autoKrige(as.formula(paste(column,"~",1)), sitesR[column], mask_SG, model = modelslist, fix.values = c(nugget,range,sill), debug.level=-1, verbose=TRUE)
 
 	cat("send raster to GRASS","\n")
 	writeRAST6(kriging_result$krige_output,rastername,zcol=1,NODATA=0)
