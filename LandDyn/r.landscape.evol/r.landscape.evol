@@ -115,6 +115,11 @@
 #% answer: 1
 #% guisection: Input
 #%end
+#%flag
+#% key: p
+#% description: -p Keep all slope maps 
+#% guisection: Input
+#%end
 
 
 #%option
@@ -162,6 +167,14 @@
 #% guisection: Variables
 #%end
 #%option
+#% key: alpha
+#% type: string
+#% description: Critical slope threshold for mass movement of sediment (in degrees above horizontal)
+#% answer: 40
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
 #% key: cutoff1
 #% type: string
 #% description: Flow accumultion breakpoint value for shift from diffusion to overland flow (number of cells)
@@ -172,8 +185,16 @@
 #%option
 #% key: cutoff2
 #% type: string
-#% description: Flow accumultion breakpoint value for shift from overland flow to channelized flow (number of cells)
+#% description: Flow accumultion breakpoint value for shift from overland flow to rill/gully flow (number of cells)
 #% answer: 50
+#% required : yes
+#% guisection: Variables
+#%end
+#%option
+#% key: cutoff3
+#% type: string
+#% description: Flow accumultion breakpoint value for shift from rill/gully flow to stream flow (number of cells)
+#% answer: 10000
 #% required : yes
 #% guisection: Variables
 #%end
@@ -315,13 +336,14 @@ K=$GIS_OPT_K
 sdensity=$GIS_OPT_sdensity
 C=$GIS_OPT_C
 kappa=$GIS_OPT_kappa
+alpha=$GIS_OPT_alpha
 Ba=$GIS_OPT_Ba
 Bb=$GIS_OPT_Bb
-aplpha=$GIS_OPT_method
 sigma=$GIS_OPT_sigma
 nbhood=$GIS_OPT_nbhood
 cutoff1=$GIS_OPT_cutoff1
 cutoff2=$GIS_OPT_cutoff2
+cutoff3=$GIS_OPT_cutoff3
 num_iters=$GIS_OPT_number
 echo "total number of iterations to be run= $num_iters"
 echo ""
@@ -518,27 +540,16 @@ do
 
 	  echo "Amount of free RAM being allocated for this step: $mem Megabites"
 
-	  tmpflacc=$prefx".tmpflacc"
-
-	  r.terraflow --q elev=$old_dem filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=$tmpflacc tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
-
-	  #changing raw flow accumulation map to number of square meters of upslope contributing area
-	  r.mapcalc "$flowacc=$tmpflacc*exp($res, 2)"
-
-	  g.remove --quiet rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",$tmpflacc,$tmpdirection
-
+	  r.terraflow --quiet elev=$old_dem filled=$prefx".filled" direction=$prefx".direct" swatershed=$prefx".sink" accumulation=$flowacc tci=$prefx".tci" d8cut=infinity memory=$mem STREAM_DIR=/var/tmp 
+	  g.remove --quiet rast=$prefx".filled",$prefx".direct",$prefx".sink",$prefx".tci",$tmpdirection
 	  rm -f /var/tmp/STREAM*
 
 	else
 	  echo "using r.watershed to calculate overland flow accumulation per cell (number of cells uplsope from each cell)"
 
 	  tmpflacc=$prefx"tmpflacc"
-
-	  r.watershed --quiet elevation=$old_dem visual=$tmpflacc memory=$mem
-	  
-	  #cchanging raw flow accumulation map to number of square meters of upslope contributing area
-	  r.mapcalc "$flowacc=$tmpflacc*exp($res, 2)"
-
+	  r.watershed --quiet -f elevation=$old_dem accumulation=$tmpflacc convergence=5
+	  r.mapcalc "$flowacc=abs($tmpflacc)"
 	  g.remove --quiet rast=$tmpflacc
 	fi
 
@@ -554,7 +565,7 @@ do
 	  r.mapcalc "$sflowtopo=$flowacc * sin($slope)"
 	elif [ "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_d" -eq 0 -a "$GIS_FLAG_w" -eq 0 ]; then
 	  echo ""
-	  echo	"calculating for channelzed flow across the entire map"
+	  echo	"calculating for rill/gully flow across the entire map"
 
 	  r.mapcalc "$sflowtopo=exp(($flowacc),1.6) * exp(sin($slope),1.3)"
 
@@ -562,7 +573,7 @@ do
 	  echo "" 
 	  echo	"calculating for diffusive flow across the entire map"
 
-	  r.mapcalc "$sflowtopo=$kappa * exp(($res),2) * sin($slope)"
+	  r.mapcalc "$sflowtopo=$kappa * sin($slope)"
 
 	elif [ "$GIS_FLAG_d" -eq 1 -a "$GIS_FLAG_r" -eq 1 -a "$GIS_FLAG_w" -eq 0 ]; then
 	  echo ""
@@ -596,16 +607,26 @@ do
 	  maxflow=`eval r.info -r map=$flowacc  | grep "max=" | cut -d"=" -f2`
 
 	  echo ""
-	  echo "The raw max ($maxflow) flow accumulation, min cutoff $cutoff1, and middle cutoff $cutoff2 will be used to scale flow exponents 'm' and 'n' as flow progresses in the drainage network"
+	  echo "The raw max ($maxflow) flow accumulation, creep cutoff $cutoff1, rill cutoff $cutoff2, and stream cutoff $cutoff3 will be used to scale flow exponents 'm' and 'n' as flow progresses in the drainage network"
 	  echo ""
 	  echo "" 
 	  echo "calculating with appropriate flow types on different landforms"
 
-	  r.mapcalc "$m=if($flowacc > $cutoff2, 1.6, if($flowacc > $cutoff1 && $flowacc < $cutoff2, (1+($flowacc * (0.6/($cutoff2 - $cutoff1)))), 1))"
+	  # first we have to figurte out the correct value for m and n depending on the flow accumulation value at a cell, which is used here as an approximation for the position of that cell in the drainage network of the watershed. user defiend cutoffs are used as inflexion points (where the slope of the linear equation changes) in the otherwise linear growth of m and n from their minumum overland flow values (both 1)  to their maximum values (2.5 and 2). below the first cutoff, m and n are 0 and 1, which is approximates soil creep)
 
-	  r.mapcalc "$n=if($flowacc > $cutoff2,1.3, if($flowacc > $cutoff1 && $flowacc < $cutoff2, (1+($flowacc * (0.3/($cutoff2 - $cutoff1)))), 1))"
+	  r.mapcalc "$m=if($flowacc > $cutoff3, 2.5000000, if($flowacc > $cutoff2 && $flowacc <= $cutoff3, ( 1.6000000 + ( ($flowacc - $cutoff2) * (0.9000000 / ($cutoff3 - $cutoff2) ) ) ), if($flowacc > $cutoff1 && $flowacc <= $cutoff2, ( 1.0000000 + ( ($flowacc - $cutoff1) * (0.60000000 / ($cutoff2 - $cutoff1) ) ) ), 0.0000000) ) )"
 
-	  r.mapcalc "$sflowtopo=if ($flowacc >= $cutoff1, exp(($flowacc),$m) * exp(sin($slope),$n),  ($kappa * exp(($res),2) *sin($slope)))"
+	  r.mapcalc "$n=if($flowacc > $cutoff3, 2.0000000, if($flowacc > $cutoff2  && $flowacc <= $cutoff3, ( 1.3000000 + ( ($flowacc - $cutoff2) * ( 0.7000000 / ($cutoff3 - $cutoff2) ) ) ), if($flowacc > $cutoff1 && $flowacc <= $cutoff2, ( 1.0000000 + ( ($flowacc - $cutoff1) * ( 0.3000000 / ($cutoff2 - $cutoff1) ) ) ), 1.0000000) ) )"
+
+	  # now that m and n are defined for each cell, we use the continuity equation to approximate transport capacity at each pointin the landscape. alpha is our critical threshold for mass movement of materials, so if slope exceeds this, we use the talus slop/landslide variant of the equation. If flow accumulation is low, we use the soil creep version of the equation by usign the diffusion coefficient kappa (in these areas, m=0 and n=1, as calculated above). For the rest of the drainage network we used the calculated values of m and n so that as flow accumulation increases we move from m and n valuse for sheetwash to rill/gully flow to stream flow. 
+# with res mult	  
+#	  r.mapcalc "$sflowtopo=if($slope > $alpha, (exp(($flowacc*$res),$m) * exp(((tan($slope)) - (tan($alpha))),$n)), if($flowacc >= $cutoff1, (exp(($flowacc*$res),$m) * exp(sin($slope),$n)), ($kappa * exp(sin($slope),$n)) ))"
+
+# without alpha test but with res mult
+	  r.mapcalc "$sflowtopo=if($flowacc >= $cutoff1, (exp(($flowacc*$res),$m) * exp(sin($slope),$n)), ($kappa * exp(sin($slope),$n)) )"
+
+# without res mult
+#	  r.mapcalc "$sflowtopo=if($slope > $alpha, (exp(($flowacc),$m) * exp(((tan($slope)) - (tan($alpha))),$n)), if($flowacc >= $cutoff1, (exp(($flowacc),$m) * exp(sin($slope),$n)), ($kappa * exp(sin($slope),$n)) ))"
 	fi
 
 	echo ""
@@ -614,9 +635,16 @@ do
 	echo "*************************"
 	echo ""
 
-	#if the old soil is 0 or negative(could happen i suppose) then we make k-factor really really small to simulate erosion on bedrock
+
+# changed
+#	#if the old soil is 0 or negative(could happen i suppose) then we make k-factor really really small to simulate erosion on bedrock
 	r.mapcalc "$qsx=if ($old_soil <= 0, ($R * 0.001 * $C * $sflowtopo * cos($aspect)), ($R * $K * $C * $sflowtopo * cos($aspect)))"
 	r.mapcalc "$qsy=if ($old_soil <= 0, ($R * 0.001 * $C * $sflowtopo * sin($aspect)), ($R * $K * $C * $sflowtopo * sin($aspect)))"
+
+#r.mapcalc "$qsx=if ($old_soil <= 0, ($R * 0.001 * $C * $sflowtopo), ($R * $K * $C * $sflowtopo))"
+#r.mapcalc "$qsy=if ($old_soil <= 0, ($R * 0.001 * $C * $sflowtopo), ($R * $K * $C * $sflowtopo))"
+	#r.mapcalc "$qsx=$sflowtopo * cos($aspect)"
+	#r.mapcalc "$qsy=$sflowtopo * sin($aspect)"
 
 	echo ""
 	echo "*************************"
@@ -629,12 +657,22 @@ do
 
 	echo ""
 	echo "*************************"
-	echo "step 6 of 8: calculating net erosion and deposition"
+	echo "step 6 of 8: calculating net erosion and deposition in meters of vertical change per cell"
 	echo "*************************"
 	echo ""
+	
+	#Now we multiply R K and C to get some local conditions for the final erosion/deposition rate. If the old soil is 0 or negative(could happen i suppose) then we make k-factor really really small to simulate erosion on bedrock
+	#Then we add the x and y flux's for total flux "T" in Mg/Ha. Then if we multiply T times 100, we get a rate in grams/squaremeter. This new rate times the resolution gives us grams per cell width. Then we divide this by the density to get cubic centimeters per cell width. This measure is then divided by the area of the cell in centimeters (resolution squared x 100 squared) to get vertical change per cell width in centimeters. We dived this by 100 to get that measure in meters. Several of these facctors cancel out to make a final equation of "T/(10,000*density*resolution)". This equation changes the orignal T from Mg/Ha to vertical change in meters over the length of one cell's width.  In order to convert the output back to Mg/Ha (standard rate for USPED/RUSLE equations), you can multiply the netchange output map by "(10000 x resolution x soil density)" to create a map of soil erosion/deposition rates across the landscape. The rest of this mampcalc statement just checks the amount of erodable soil in a given cell against the amount of erosion calculated, and keeps the cell from eroding past this amount (if there is soil, then if the amount of erosion is more than the amount of soil, just remove all the soil and stop, else remove the amount of caclulated erosion. It also runs an error catch that checks to make sure that soil depth is not negative, and if it is, corrects it).
 
-	#Here we add the x and y flux's for total flux "T" in Mg/Ha. Then if we multiply T times 100, we get a rate in grams/squaremeter. This new rate times the resolution gives us grams per cell width. Then we divide this by the density to get cubic centimeters per cell width. This measure is then divided by the area of the cell in centimeters (resolution squared x 100 squared) to get vertical change per cell width in centimeters. We dived this by 100 to get that measure in meters. Several of these facctors cancel out to make a final equation of "T/(10,000*density*resolution)". This equation changes the orignal T from Mg/Ha to vertical change in meters over the length of one cell's width.  In order to convert the output back to Mg/Ha (standard rate for USPED/RUSLE equations), you can multiply the netchange output map by "(10000 x resolution x soil density)" to create a map of soil erosion/deposition rates across the landscape. The rest of this mampcalc statement just checks the amount of erodable soil in a given cell against the amount of erosion calculated, and keeps the cell from eroding past this amount (if there is soil, then if the amount of erosion is more than the amount of soil, just remove all the soil and stop, else remove the amount of caclulated erosion. It also runs an error catch that checks to make sure that soil depth is not negative, and if it is, corrects it).
-	r.mapcalc "$erdep=if( $old_soil >= 0, if( (-1 * ( ($qsxdx + $qsydy) / ( 10000 * $sdensity * $res ) ) ) >= $old_soil, ( -1 * $old_soil ), ( ($qsxdx + $qsydy) / ( 10000 * $sdensity * $res ) ) ), ( ($qsxdx + $qsydy) / ( 10000 * $sdensity * $res ) ) )"
+
+# OLD
+#	r.mapcalc "$erdep= if( $old_soil >= 0, if( (-1 * ( ( ($EDx + $EDy) * $res ) / ( 10000 * $sdensity ) ) ) >= $old_soil, ( -1 * $old_soil ), ( ( ($EDx + $EDy) * $res )/ ( 10000 * $sdensity ) ) ), ( ( ($EDx + $EDy) * $res ) / ( 10000 * $sdensity ) ) )"
+
+#no res mult
+	r.mapcalc "$erdep= if( $old_soil >= 0, if( (-1 * ( ( ($qsxdx + $qsydy) * $res ) / ( 10000 * $sdensity ) ) ) >= $old_soil, ( -1 * $old_soil ), ( ( ($qsxdx + $qsydy) * $res )/ ( 10000 * $sdensity ) ) ), ( ( ($qsxdx + $qsydy) * $res ) / ( 10000 * $sdensity ) ) )"
+
+# res mult
+#	r.mapcalc "$erdep= if( $old_soil >= 0, if( (-1 * ( ( ($qsxdx + $qsydy) * $res ) / ( 10000 * $sdensity ) ) ) >= $old_soil, ( -1 * $old_soil ), $res * ( ( ($qsxdx + $qsydy) * $res )/ ( 10000 * $sdensity ) ) ), $res * ( ( ($qsxdx + $qsydy) * $res ) / ( 10000 * $sdensity ) ) )"
 
 
 	if [ "$GIS_FLAG_y" -eq 1 ]; then
@@ -905,7 +943,7 @@ fi
 echo "************************"
 echo ""
 
-if [ "$GIS_FLAG_n" -ne 1 ]; then
+if [ "$GIS_FLAG_n" -eq 0 ]; then
   g.mremove -f --q rast=$prefx"netchange*"
 fi
 
@@ -924,7 +962,12 @@ else
   echo "Cleaning up..."
   g.mremove -f --quiet rast=$prefx"flowacc*"
 
+  if [ "$GIS_FLAG_p" -eq 0 ]; then
   g.mremove -f --quiet rast=$prefx"slope*"
+    if [ "$num_iters" -eq 1 ]; then
+    g.rename --quiet rast=$prefx"slope*1",$prefx"slope"
+    fi
+  fi
 
   g.mremove -f --quiet rast=$prefx"aspect*"
 

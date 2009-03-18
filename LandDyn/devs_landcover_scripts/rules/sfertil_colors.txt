@@ -1,0 +1,6 @@
+0 white
+20 grey
+40 yellow
+60 orange
+80 brown
+100 black
