@@ -37,7 +37,7 @@
  * if not too many changes were introduced */
 #include "gshhs.h"
 
-int Vect_write_line_tiled(struct Map_info *, int, struct line_pnts *,
+int write_line_tiled(struct Map_info *, int, struct line_pnts *,
 	    struct line_cats *, double);
 
 struct pj_info info_in;
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 	G_fatal_error(_("Cannot open new vector map <%s>"), outname);
     }
 
-    /* set vector line type to GV_LINE, boundaries can cause problems */
+    /* set vector line type to GV_LINE, GV_BOUNDARY is currently not supported */
     type = GV_LINE;
 
     /* Initialize vector line struct */
@@ -366,13 +366,29 @@ int main(int argc, char **argv)
 		    }
 		
 		}
+		/* needed for accurate bboxes */
+		if (Points->n_points) {
+		    if (Points->x[Points->n_points - 1] - lon < -180.)
+			lon -= 360.;
+		    if (Points->x[Points->n_points - 1] - lon > 180.)
+			lon += 360.;
+		}
+		/* The GSHHS Antarctica problem: convert from 0 - 360 to -180 - 180  */
+		if (s < -80 && lon < -180) {
+		    Vect_append_point(Points, lon, lat, 0.);
+		    /* ...and close polygon */
+		    Vect_append_point(Points, -180, -90, 0.);
+		    Vect_append_point(Points, 180, -90, 0.);
+		    lon += 360;
+		}
+
 		Vect_append_point(Points, lon, lat, 0.);
 		
 	    }			/* done with line */
 
 	    if (getme && Points->n_points) {
 		/* change thresh if you want longer line segments */
-		Vect_write_line_tiled(&VectMap, type, Points, Cats, 2.);
+		write_line_tiled(&VectMap, type, Points, Cats, 2.);
 	    }
 	    else
 		cnt++;
@@ -383,8 +399,8 @@ int main(int argc, char **argv)
 	    fseek(fp, (long)(h.n * sizeof(struct GSHHS_POINT)), SEEK_CUR);
 	    cnt++;
 	}
-	/* 270 only needed for GMT not for GRASS, GRASS wraps around */
-	/* max_east = 180000000; *//* Only Eurasiafrica needs 270 */
+	/* 270 needed for more than Eurasiafrica only, solved above */
+	/* max_east = 180000000; */ /* Only Eurasiafrica needs 270 */
 
 	n_read =
 	    fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
@@ -494,8 +510,8 @@ int main(int argc, char **argv)
    \return number of line segments written out
  */
 
-int Vect_write_line_tiled(struct Map_info *Map,	int type,
-	struct line_pnts *Points, struct line_cats *Cats, double thresh) {
+int write_line_tiled(struct Map_info *Map, int type,
+    struct line_pnts *Points, struct line_cats *Cats, double thresh) {
 
     int i, nsegs = 0;
     double currx, curry, lastx = 0., lasty = 0.;
