@@ -74,7 +74,7 @@
 #% type: string
 #% gisprompt: string
 #% description: path to reclass rules file for landcover map
-#% answer: /usr/local/grass-6.3.cvs/scripts/rules/luse_reclass_rules.txt
+#% answer: /usr/local/grass-6.5.svn/scripts/rules/luse_reclass_rules.txt
 #% required : yes
 #%END
 
@@ -83,7 +83,7 @@
 #% type: string
 #% gisprompt: string
 #% description: path to color rules file for landcover map
-#% answer: /usr/local/grass-6.3.cvs/scripts/rules/luse_colors.txt
+#% answer: /usr/local/grass-6.5.svn/scripts/rules/luse_colors.txt
 #% required : yes
 #%END
 
@@ -142,12 +142,14 @@ r.mask --quiet input=$inmap maskcats=*
 
 # calculating rate of regrowth based on curretn soil fertility and depths. Recoding fertility (0 to 100) and depth (0 to >= 1) with a power regression curve from 0 to 1, then taking the mean of the two as the regrowth rate
 
-r.mapcalc "temp_rate=if($sdepth <= 1, ( ( ( (-0.000118528 * (exp($sfertil,2))) + (0.0215056 * $sfertil) + 0.0237987 ) + ( ( -0.000118528 * (exp($sdepth,2))) + (0.0215056 * $sdepth) + 0.0237987 ) ) / 2 ), ( ( ( (-0.000118528 * (exp($sfertil,2))) + (0.0215056 * $sfertil) + 0.0237987 ) + 1) / 2 ) )"
+r.mapcalc "$temp_rate=if($sdepth <= 1, ( ( ( (-0.000118528 * (exp($sfertil,2))) + (0.0215056 * $sfertil) + 0.0237987 ) + ( ( -0.000118528 * (exp($sdepth,2))) + (0.0215056 * $sdepth) + 0.0237987 ) ) / 2 ), ( ( ( (-0.000118528 * (exp($sfertil,2))) + (0.0215056 * $sfertil) + 0.0237987 ) + 1) / 2 ) )"
+
 
 #updating raw landscape category numbers based on agent impacts and newly calculated regrowth rate
 
 
-r.mapcalc "$temp_lc = if ($inmap == $max && isnull($impacts), $max, (if ($inmap < $max && isnull($impacts), ($inmap + temp_rate, if ($inmap > $max, ($max - $impacts), if ($inmap < 0, 0, ($inmap - $impacts))))))"
+r.mapcalc "$temp_lc=if($inmap == $max && isnull($impacts), $max, if($inmap < $max && isnull($impacts), ($inmap + $temp_rate), if($inmap > $max, ($max - $impacts), if($inmap < 0, 0, ($inmap - $impacts) )  )   )    )"
+
 
 #adding text descriptions to raw landscape categories and setting colors
 
@@ -160,7 +162,7 @@ r.mapcalc "$temp_lc = if ($inmap == $max && isnull($impacts), $max, (if ($inmap 
 
 #checking total area of updated cells
 
- 	temparea=`eval r.stats -n -a fs=- input=$impacts | cut -d'-' -f2`
+ 	temparea=`eval r.stats -a -n input=$impacts fs=- nv=* nsteps=1 | cut -d'-' -f2`
 	echo "***********************"
 	echo "Total area of impacted zones = $temparea square meters"
 	echo "***********************"
