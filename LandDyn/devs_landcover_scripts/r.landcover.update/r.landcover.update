@@ -73,18 +73,18 @@
 #% key: lc_rules
 #% type: string
 #% gisprompt: string
-#% description: path to reclass rules file for landcover map
+#% description: Path to reclass rules file for making a "labels" map. If no rules specified, no labels map will be made.
 #% answer: /usr/local/grass-6.5.svn/scripts/rules/luse_reclass_rules.txt
-#% required : yes
+#% required : no
 #%END
 
 #%option
 #% key: lc_color
 #% type: string
 #% gisprompt: string
-#% description: path to color rules file for landcover map
+#% description: Path to color rules file for landcover map
 #% answer: /usr/local/grass-6.5.svn/scripts/rules/luse_colors.txt
-#% required : yes
+#% required : no
 #%END
 
 #%flag
@@ -127,16 +127,12 @@ txtout=$outmap"luse_stats.txt"
 
 temp_rate="temp_rate"
 
-temp_lc=$outmap"temp_landcover"
-
-temp_reclass=$outmap"temp_landcover_reclass"
-
-outlc=$outmap
+reclass_out=$outmap"_labels"
 
 
 #setting initial conditions of map area
 
-g.region rast=$inmap
+g.region --quiet rast=$inmap
 
 r.mask --quiet input=$inmap maskcats=*
 
@@ -148,17 +144,25 @@ r.mapcalc "$temp_rate=if($sdepth <= 1, ( ( ( (-0.000118528 * (exp($sfertil,2))) 
 #updating raw landscape category numbers based on agent impacts and newly calculated regrowth rate
 
 
-r.mapcalc "$temp_lc=if($inmap == $max && isnull($impacts), $max, if($inmap < $max && isnull($impacts), ($inmap + $temp_rate), if($inmap > $max, ($max - $impacts), if($inmap < 0, 0, ($inmap - $impacts) )  )   )    )"
+r.mapcalc "$outmap=if($inmap == $max && isnull($impacts), $max, if($inmap < $max && isnull($impacts), ($inmap + $temp_rate), if($inmap > $max, ($max - $impacts), if($inmap < 0, 0, ($inmap - $impacts) )  )   )    )"
+
+r.colors --quiet map=$outmap rules=$lc_color
+
+if  [ -z "$GIS_OPT_lc_rules" ] ; then
+
+g.message "No Labels reclass rules specified, so no Labels map will be mnade"
+
+else
 
 
-#adding text descriptions to raw landscape categories and setting colors
+g.message "Creating reclassed Lables map ($reclass_out) of text descriptions to raw landscape categories"
 
-	cat $lc_rules | r.reclass input=$temp_lc output=$temp_reclass
+cat $lc_rules | r.reclass --quiet input=$outmap output=$reclass_out
 
-	r.mapcalc "$outlc = $temp_reclass"
+r.colors --quiet map=$reclass_out rules=$lc_color
+
+fi
 	
-	r.colors map=$outlc rules=$lc_color
-
 
 #checking total area of updated cells
 
@@ -177,7 +181,7 @@ echo "Total area of impacted zones = $temparea square meters" >> $txtout
 echo "" >> $txtout
 echo "Landcover class #, Landcover description, Area (sq. m)" >> $txtout
 echo "" >> $txtout
-r.stats -a -l -n input=$prfx"_landuse1" fs=, nv=* nsteps=$max >> $txtout
+r.stats --quiet -a -l -n input=$prfx"_landuse1" fs=, nv=* nsteps=$max >> $txtout
 
 fi
 
@@ -190,7 +194,7 @@ echo "*************************"
 echo ""
 
 
-g.remove --quiet rast=MASK,$temp_reclass,$temp_lc,$temp_rate
+g.remove --quiet rast=MASK,$temp_rate
 
 
 
