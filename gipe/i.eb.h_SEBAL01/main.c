@@ -44,86 +44,48 @@ double **G_alloc_matrix(int rows, int cols)
 int main(int argc, char *argv[])
 {
     struct Cell_head cellhd;
-
     char *mapset;		/*mapset name */
-
     /* buffer for in, tmp and out raster */
     void *inrast_Rn, *inrast_g0;
-
     void *inrast_z0m, *inrast_t0dem;
-
     DCELL *outrast;
-
     int nrows, ncols;
-
     int row, col;
-
     int row_wet, col_wet;
-
     int row_dry, col_dry;
-
     double m_row_wet, m_col_wet;
-
     double m_row_dry, m_col_dry;
-
     int infd_Rn, infd_g0;
-
     int infd_z0m, infd_t0dem;
-
     int outfd;
-
     char *mapset_Rn, *mapset_g0;
-
     char *mapset_z0m, *mapset_t0dem;
-
     char *Rn, *g0;
-
     char *z0m, *t0dem;
-
     char *h0;
 
     double ustar, ea;
-
     struct History history;
-
     struct GModule *module;
-
     struct Option *input_Rn, *input_g0;
-
     struct Option *input_z0m, *input_t0dem, *input_ustar;
-
     struct Option *input_ea, *output;
-
     struct Option *input_row_wet, *input_col_wet;
-
     struct Option *input_row_dry, *input_col_dry;
-
     struct Flag *flag2, *flag3;
-
 	/********************************/
     RASTER_MAP_TYPE data_type_Rn;
-
     RASTER_MAP_TYPE data_type_g0;
-
     RASTER_MAP_TYPE data_type_z0m;
-
     RASTER_MAP_TYPE data_type_t0dem;
-
     RASTER_MAP_TYPE data_type_output = DCELL_TYPE;
-
 	/********************************/
     double xp, yp;
-
     double xmin, ymin;
-
     double xmax, ymax;
-
     double stepx, stepy;
-
     double latitude, longitude;
-
     int rowDry, colDry, rowWet, colWet;
-
 	/********************************/
     G_gisinit(argv[0]);
 
@@ -334,11 +296,8 @@ int main(int argc, char *argv[])
 
     /* MANUAL T0DEM WET/DRY PIXELS */
     DCELL d_Rn_dry;
-
     DCELL d_g0_dry;
-
     DCELL d_t0dem_dry;
-
     DCELL d_t0dem_wet;
 
     if (flag2->answer) {
@@ -346,19 +305,12 @@ int main(int argc, char *argv[])
 	/* Process tempk min / max pixels */
 	/* Internal use only */
 	DCELL d_Rn_wet;
-
 	DCELL d_g0_wet;
-
 	DCELL d_Rn;
-
 	DCELL d_g0;
-
 	DCELL d_h0;
-
 	DCELL t0dem_min;
-
 	DCELL t0dem_max;
-
 		/*********************/
 	for (row = 0; row < nrows; row++) {
 	    DCELL d_t0dem;
@@ -547,15 +499,10 @@ int main(int argc, char *argv[])
     /* INITIALIZATION */
     for (row = 0; row < nrows; row++) {
 	DCELL d_t0dem;
-
 	DCELL d_z0m;
-
 	DCELL d_rah1;
-
 	DCELL d_roh1;
-
 	DCELL d_u5;
-
 	G_percent(row, nrows, 2);
 	/* read a line input maps into buffers */
 	if (G_get_raster_row(infd_z0m, inrast_z0m, row, data_type_z0m) < 0)
@@ -594,26 +541,14 @@ int main(int argc, char *argv[])
 	    }
 	    else {
 		d_u5 = (ustar / 0.41) * log(5 / d_z0m);
-		d_rah1 =
-		    (1 / (d_u5 * pow(0.41, 2))) * log(5 / d_z0m) * log(5 /
-								       (d_z0m
-									*
-									0.1));
-		d_roh1 =
-		    ((998 - ea) / (d_t0dem * 2.87)) + (ea / (d_t0dem * 4.61));
-		if (d_roh1 > 5) {
-		    d_roh1 = 1.0;
-		}
-		else {
-		    d_roh1 =
-			((1000 - 4.65) / (d_t0dem * 2.87)) +
-			(4.65 / (d_t0dem * 4.61));
-		}
+		d_rah1=(1/(d_u5*pow(0.41,2)))*log(5/d_z0m)*log(5/(d_z0m*0.1));
+		d_roh1=((998-ea)/(d_t0dem*2.87))+(ea/(d_t0dem*4.61));
+		if (d_roh1 > 5)  d_roh1 = 1.0;
+		else d_roh1=((1000-4.65)/(d_t0dem*2.87))+(4.65/(d_t0dem*4.61));
 		if (row == rowDry && col == colDry) {	/*collect dry pix info */
 		    d_rah_dry = d_rah1;
 		    d_roh_dry = d_roh1;
-		    G_message("d_rah_dry=%f d_roh_dry=%f", d_rah_dry,
-			      d_roh_dry);
+		    G_message("d_rah_dry=%f d_roh_dry=%f",d_rah_dry,d_roh_dry);
 		}
 		d_Roh[row][col] = d_roh1;
 		d_Rah[row][col] = d_rah1;
