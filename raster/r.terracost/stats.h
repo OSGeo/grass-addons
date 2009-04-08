@@ -28,14 +28,14 @@ using namespace std;
 
 #define HAVE_STATS
 
-int noclobberFile(char *);
+int noclobberFile(const char *);
 
 class statsRecorder : public ofstream {
 private:
   Rtimer tm;
   void *bss;
 public:
-  statsRecorder(char *fname);
+  statsRecorder(const char *fname);
 /*   ~statsRecorder() {  */
 /* 	this->flush();  */
 /*   } */

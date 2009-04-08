@@ -39,7 +39,7 @@ Iterator::getNext (ijCostSource* out) {
   if (iMarker > tileSizeRows - 1)
     return 0;
 
-  *out = tile->get(iMarker, jMarker);
+  *out = tile->getComplex(iMarker, jMarker);
 
   if (iMarker == 0){
     jMarker++;

@@ -194,12 +194,12 @@ class ijCostType : public basicIJType {
     cout << *this;
   };
 
-  friend ostream& operator << (ostream& s, const ijCostType &ct) {
+  friend ostream& operator << (ostream& s, const ijCostType<T> &ct) {
     s << "(" << ct.getI() << "," << ct.getJ() << ": " << ct.cs << ")";
     return s;
   };
 
-  friend int operator == (const ijCostType &a, const ijCostType &b) {
+  friend int operator == (const ijCostType<T> &a, const ijCostType<T> &b) {
     return (basicIJType(a) == basicIJType(b) && a.cs == b.cs);
   };
   
