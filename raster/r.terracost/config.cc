@@ -26,6 +26,7 @@
 dimension_type nrows = 0;
 dimension_type ncols = 0;
 dimension_type ncolsPad = 0;
+dimension_type nrowsPad = 0;
 dimension_type tsr = 0;
 dimension_type tsc = 0;
 
