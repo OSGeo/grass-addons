@@ -75,36 +75,7 @@ static struct  Cell_head *region = NULL; /* header of the region */
 #define STATS_ANS "terracost.stats"
 #define DIST_GRID "terracost-lcp.asc"
 
-/* TODO this description is WAY to long...: move most content into manual */
-const char *description = 
-"\nSynopsis:\n"
-" r.terracost computes a least-cost surface for a given cost grid and\n"
-" set of start points.\n"
-"\nDescription:\n"
-" r.terracost computes a least-cost surface for a given cost grid and\n"
-" set of start points using an approach that scales to large grids.\n"
-" For details, see paper \"TerraCost: A Versatile and Scalable Approach for Path Computations on Massive\n"
-" Grid-Based Terrains\" by Hazel, Toma, Vahrenhold and Wickremesinghe (2005).\n"
-" The basic idea is to split the grid in tiles. "
-" \n numtiles is the number of tiles. Run with -i to see the recommended value for numtiles.\n"
-" When numtiles=1 it runs Dijkstra's algorithm in memory."
-" When numtiles>1 it runs an external SP algorithm that consists of 5 steps."
-" For debug purposes, it is possible to run the  five steps separately. When running in separate\n"
-" steps, an intermediate config file stores temporary information, and other streams\n"
-" (see below) contain intermediate data.\n"
-"   Step 0 (setup) inputs from grass; outputs are "S0OUT" and "S0BND"\n"
-"   Step 1 (compute substitute graph: intra-tile dijkstra)\n"
-"          inputs are "S0OUT" and "S0BND"; outputs are "S1OUT" and "S2BOUT"\n"
-"   Step 2 (sorting) input is "S1OUT"; output is "S1OUT"\n"
-"   Step 3 (inter-tile)  inputs are "S0OUT", "S0BND",\n"
-"          "S1OUT", and "S2BOUT"; output is "PHASE2BND"\n"
-"   Step 4 (final-tile)  inputs are "S0OUT" and "PHASE2BND";  output goes to grass\n"
-"\nFiles:\n"
-" File names are specified relative to "VTMPDIR", or with absolute path\n"
-"   (name beginning with /)\n"
-" IOLibrary temporary streams will be in STREAM_DIR\n"
-;
-
+const char *description = _("Computes a least-cost surface for a given cost grid and set of start points.");
 
 
 /* ---------------------------------------------------------------------- */
@@ -165,7 +136,7 @@ parse_args(int argc, char *argv[]) {
   vtmpdir->type       = TYPE_STRING;
   vtmpdir->required   = NO;
   char vtmpdirbuf[BUFSIZ];
-  struct passwd *pw;
+  struct passwd *pw;        /* TODO: is this really needed? */
   if((pw = getpwuid(getuid())) != NULL) {
 	sprintf(vtmpdirbuf, "/var/tmp/%s", pw->pw_name);
   } else {
@@ -184,15 +155,12 @@ parse_args(int argc, char *argv[]) {
   quiet = G_define_flag() ;
   quiet->key         = 'q' ;
   quiet->description = _("Quiet") ;
-  /* quiet->answer = 'n'; */
-
 
   /* save ascii grid flag */
   struct Flag *ascii; 
   ascii = G_define_flag() ;
   ascii->key         = 's' ;
   ascii->description = _("Save output to ASCII file \"DIST_GRID\"");
-  /* quiet->answer = 'n'; */
 
   struct Flag *debug_f;
   debug_f = G_define_flag();
@@ -209,14 +177,12 @@ parse_args(int argc, char *argv[]) {
   step0 = G_define_flag();
   step0->key         = '0' ; 
   step0->description  = _("Step 0 only (-h for info)");
-  /* step0->answer = 'n'; */
 
   /* Run step 1 only flag*/
   struct Flag *step1;
   step1 = G_define_flag() ;
   step1->key         = '1' ;
   step1->description = _("Step 1 only (-h for info)");
-  /* step1->answer = 'n'; */
 
   /* Run step 2 and 3 only flags */
   struct Flag *step2;
@@ -511,12 +477,14 @@ main(int argc, char *argv[]) {
   /* initialize GIS library */
   G_gisinit(argv[0]);
   module = G_define_module();
-  
+  module->keywords = _("raster, cost surface, cumulative costs");
+  module->description = description;
+ 
   /* get the current region and dimensions */  
   region = (struct Cell_head*)malloc(sizeof(struct Cell_head));
   assert(region);
   if (G_get_set_window(region) == -1) {
-    G_fatal_error("r.terracost: error getting current region");
+     G_fatal_error("r.terracost: error getting current region");
   }
   int nr = G_window_rows();
   int nc = G_window_cols();
