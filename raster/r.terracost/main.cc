@@ -82,12 +82,15 @@ const char *description =
 " set of start points.\n"
 "\nDescription:\n"
 " r.terracost computes a least-cost surface for a given cost grid and\n"
-" set of start points using an approach that scales to very large grids.\n"
-" See \"TerraCost: A Versatile and Scalable Approach for Path Computations on Massive\n"
+" set of start points using an approach that scales to large grids.\n"
+" For details, see paper \"TerraCost: A Versatile and Scalable Approach for Path Computations on Massive\n"
 " Grid-Based Terrains\" by Hazel, Toma, Vahrenhold and Wickremesinghe (2005).\n"
-" \n numtiles is the tiling factor. Run with -i to see the recommended value.\n"
-" It is possible to run r.terracost in five steps. When running in separate\n"
-" steps, the config file stores temporary information, and other streams\n"
+" The basic idea is to split the grid in tiles. "
+" \n numtiles is the number of tiles. Run with -i to see the recommended value for numtiles.\n"
+" When numtiles=1 it runs Dijkstra's algorithm in memory."
+" When numtiles>1 it runs an external SP algorithm that consists of 5 steps."
+" For debug purposes, it is possible to run the  five steps separately. When running in separate\n"
+" steps, an intermediate config file stores temporary information, and other streams\n"
 " (see below) contain intermediate data.\n"
 "   Step 0 (setup) inputs from grass; outputs are "S0OUT" and "S0BND"\n"
 "   Step 1 (compute substitute graph: intra-tile dijkstra)\n"
@@ -101,6 +104,7 @@ const char *description =
 "   (name beginning with /)\n"
 " IOLibrary temporary streams will be in STREAM_DIR\n"
 ;
+
 
 
 /* ---------------------------------------------------------------------- */
@@ -204,31 +208,51 @@ parse_args(int argc, char *argv[]) {
   struct Flag *step0;
   step0 = G_define_flag();
   step0->key         = '0' ; 
+<<<<<<< .mine
+  step0->description  = _("Step 0 only (default: run all)");
+=======
   step0->description  = "Step 0 only (-h for info)";
+>>>>>>> .r36646
   /* step0->answer = 'n'; */
 
   /* Run step 1 only flag*/
   struct Flag *step1;
   step1 = G_define_flag() ;
   step1->key         = '1' ;
+<<<<<<< .mine
+  step1->description = _("Step 1 only (default: run all)");
+=======
   step1->description = "Step 1 only (-h for info)" ;
+>>>>>>> .r36646
   /* step1->answer = 'n'; */
 
   /* Run step 2 and 3 only flags */
   struct Flag *step2;
   step2 = G_define_flag();
   step2->key         = '2' ; 
+<<<<<<< .mine
+  step2->description  = _("Step 2 only (default: run all)");
+=======
   step2->description  = "Step 2 only (-h for info)";
+>>>>>>> .r36646
 
   struct Flag *step3;
   step3 = G_define_flag();
   step3->key         = '3' ; 
+<<<<<<< .mine
+  step3->description  = _("Step 3 only (default: run all)");
+=======
   step3->description  = "Step 3 only (-h for info)";
+>>>>>>> .r36646
   
   struct Flag *step4;
   step4 = G_define_flag();
   step4->key         = '4' ; 
+<<<<<<< .mine
+  step4->description  = _("Step 4 only (default: run all)");
+=======
   step4->description  = "Step 4 only (-h for info)";
+>>>>>>> .r36646
 
   /* Number of tiles; used in conjunction with step0 flag */  
   struct Option *numtiles;
@@ -334,6 +358,7 @@ parse_args(int argc, char *argv[]) {
   opt->verbose= (!quiet->answer);
   opt->ascii = ascii->answer; 
   opt->stats= stats_opt->answer;
+ opt->runMode = RUN_NONE;
   if(step0->answer) {
     opt->runMode |= RUN_S0;
   }
@@ -349,6 +374,7 @@ parse_args(int argc, char *argv[]) {
   if(step4->answer) {
 	opt->runMode |= RUN_S4;
   }
+  //if the user does not specify any step, then run all steps
   if(opt->runMode == RUN_NONE) {
     opt->runMode = RUN_ALL;
   }
@@ -371,9 +397,8 @@ parse_args(int argc, char *argv[]) {
 	printf(description);
 	exit(0);
   }
-
-
 }
+
 
 
 /* ---------------------------------------------------------------------- */
@@ -416,7 +441,11 @@ void record_args(int argc, char **argv) {
   *stats << "input cost grid: " << opt->cost_grid << "\n";
   *stats << "input source grid: " << opt->source_grid << "\n";
   *stats << "output distance grid: " << opt->out_grid << "\n";
-
+  if (opt->runMode & RUN_S0) *stats << " Step1";
+  if (opt->runMode & RUN_S1) *stats << " Step2";
+  if (opt->runMode & RUN_S2) *stats << " Step3";
+  if (opt->runMode & RUN_S3) *stats << " Step4";
+ *stats << "\n";
   size_t mm_size = opt->mem  << 20; /* (in bytes) */
   char tmp[100];
   formatNumber(tmp, mm_size);
@@ -449,31 +478,6 @@ void printGrid(AMI_STREAM<ijCost> *testStr) {
 }
 
 /* ---------------------------------------------------------------------- */
-
-//cost_type
-// int
-// getb2bValue(dimension_type iFrom, dimension_type jFrom, dimension_type iTo, 
-// 	    dimension_type jTo, TileFactory *tf, 
-// 	    AMI_STREAM<distanceType> *b2bstr){
-
-//   int fromIndex, toIndex, finalIndex;
-  
-//   /*
-//     cout << "getb2bValue()\n";
-//     cout << "iFrom: " << iFrom << " jFrom: " << jFrom << "\n";
-//     cout << "iTo: " << iTo << " jTo: " << jTo << "\n";
-//   */
-
-//   fromIndex = getFromIndex(iFrom, jFrom, tf);
-//   toIndex = getToIndex(iFrom, jFrom, iTo, jTo, tf);
-//   finalIndex = fromIndex+toIndex-1;
-  
- 
-//   return finalIndex;
-// }
-
-
-
 void
 compute_tilesize(const char *label, int nr, int nc, int mem, 
 				 int *tilesize, int *numtiles) {
@@ -517,6 +521,7 @@ compute_tilesize(const char *label, int nr, int nc, int mem,
 }
 
 
+
 /* ---------------------------------------------------------------------- */
 int
 main(int argc, char *argv[]) {
@@ -525,7 +530,6 @@ main(int argc, char *argv[]) {
   
   /* initialize GIS library */
   G_gisinit(argv[0]);
-  
   module = G_define_module();
   
   /* get the current region and dimensions */  
@@ -536,7 +540,6 @@ main(int argc, char *argv[]) {
   }
   int nr = G_window_rows();
   int nc = G_window_cols();
-  
   if ((nr > dimension_type_max) || (nc > dimension_type_max)) {
 	printf("[nrows=%d, ncols=%d] dimension_type overflow--change dimension_type and recompile\n",nr,nc);
 	G_fatal_error("[nrows=%d, ncols=%d] dimension_type overflow--change dimension_type and recompile\n",nr,nc);
@@ -555,47 +558,56 @@ main(int argc, char *argv[]) {
   
   /* setup STREAM_DIR */
   sprintf(buf, "%s=%s", STREAM_TMPDIR, opt->streamdir);
-  putenv(buf);
+ if(getenv(STREAM_TMPDIR) == NULL) {
+    printf("setenv %s\n", buf);
+    if (putenv(buf) != 0) {
+      printf("cannot setenv %s\n",buf);
+      exit(1); 
+    }
+  }
   if (getenv(STREAM_TMPDIR) == NULL) {
-    fprintf(stdout, "%s:", STREAM_TMPDIR);
-    G_fatal_error("not set");
+    G_fatal_error("TREAM_TMPDIR not set");
+    exit(1); 
   } else {
     fprintf(stdout, "STREAM temporary files in %s\n", getenv(STREAM_TMPDIR)); 
-    fprintf(stdout, "THESE TEMPORARY STREAMS WILL NOT BE DELETED "
-			"IN CASE OF ABNORMAL TERMINATION OF THE PROGRAM.\n"); 
-	fprintf(stdout, "TO SAVE SPACE PLEASE DELETE THESE FILES MANUALLY!\n");
+    fprintf(stdout, "\t!!!THESE TEMPORARY STREAMS WILL NOT BE DELETED "
+	    "IN CASE OF ABNORMAL TERMINATION OF THE PROGRAM.\n"); 
+    fprintf(stdout, "\t!!!TO SAVE SPACE PLEASE DELETE THESE FILES MANUALLY!\n");
   }
   
-  
+
   /* setup VTMPDIR */
   sprintf(buf, "%s=%s", VTMPDIR, opt->vtmpdir);
-  putenv(buf);
+  if (getenv(VTMPDIR) == NULL) {
+    printf("setenv %s\n", buf);
+    if(putenv(buf) !=0) {
+      printf("cannot setenv %s\n",buf);
+      exit(1); 
+    }
+  }
   if (getenv(VTMPDIR) == NULL) {
     fprintf(stdout, "%s: environment not set", VTMPDIR);
-	exit(1);
+    exit(1);
   } else {
     fprintf(stdout, "terracost intermediate files in %s\n", getenv(VTMPDIR)); 
   }
+  
   if(opt->runMode != RUN_ALL) {
-	struct stat sb;
-	if(stat(opt->vtmpdir, &sb) < 0) {
+    struct stat sb;
+    if(stat(opt->vtmpdir, &sb) < 0) {
+      perror(opt->vtmpdir);
+      // try to make VTMPDIR
+      fprintf(stderr, "trying to create %s\n", opt->vtmpdir);
+      if(mkdir(opt->vtmpdir, 0777)) {
+	if(errno != EEXIST) {
 	  perror(opt->vtmpdir);
-	  // this is only fatal if we actually need the directory. ie: we
-	  // are using intermediate files, and one or more uses relative paths.
-	  // allow it for now
-	  fprintf(stderr, "%s: WARNING! This could cause errors if relative intermediate files in use\n", opt->vtmpdir);
-	  // try to make VTMPDIR, just to avoid common problem
-	  fprintf(stderr, "%s: trying to create\n", opt->vtmpdir);
-	  if(mkdir(opt->vtmpdir, 0777)) {
-		if(errno != EEXIST) {
-		  perror(opt->vtmpdir);
-		  // this might not be a fatal error (maybe we dont use it), so go on -RW
-		  //exit(1);
-		}
-	  }
+	  // this might not be a fatal error (maybe we dont use it), so go on -RW
+	  //exit(1);
 	}
+      }
+    }
   }
-
+  
 
   if(info) {
 	printf("\n"); 
@@ -605,11 +617,7 @@ main(int argc, char *argv[]) {
 	int tilesize, numtiles;
 	compute_tilesize("TILESIZE", nrows, ncols, opt->mem << 20, 
 					 &tilesize, &numtiles);
-	//LT: i took this out, since i dont agree 
-	//compute_tilesize("TILE IN CACHE CALC", nrows, ncols, 512 << 10, 
-	//				 &tilesize, &numtiles);
-
-	exit(0);
+	return 0; 
   }//info
 
   if(opt->verbose) {
@@ -698,229 +706,189 @@ main(int argc, char *argv[]) {
   /////////////////////////////////////////////////////////////////////////
   
   /* ************************************************** */
-  /* STEP: set up tile size, padded grid size and load cost grid and
-     compute substitute graph  */
-  
   size_t availmem1;
   availmem1 = MM_manager.memory_available();
   char memBuf [100] = "";
   formatNumber(memBuf, availmem1);
-  
   long nodata_count;
-  
   // we don't really know yet, since we might read it from config...
   //*stats << "numtiles = " << opt->numtiles << endl;
   
-  size_t mem = memForNormalDijkstra(nrows, ncols);
-  if (/*mem < availmem1 */ opt->numtiles == 1) {
+  /* ------------------------------------------------------------ */
+  //size_t mem = memForNormalDijkstra(nrows, ncols);
+  if (opt->numtiles == 1) {
     cout << "Using normal Dijkstra" << endl;
     stats->comment("Using normal Dijkstra");
     normalDijkstra(opt->cost_grid,opt->source_grid, &nodata_count);
-    goto cleanup;
+
+    /* CLEAN up */
+    cout << "cleaning up\n"; cout.flush();
+    free(region);
+    free(opt);
+    delete stats;
+    cout << "r.terracost done\n"; cout.flush();
+    return 0; 
   }
-  {
-    /* Because of all of the if-statements we need to declare these
-       here  -- huh? why? XXX-RW */
-    TileFactory *tf=NULL;
-    dimension_type tileSizeRows, tileSizeCols;
-    AMI_STREAM<distanceType> *b2bstr = NULL;
-    AMI_STREAM<ijCost> *s2bstr = NULL;
-    size_t tilemem;   /* how much memory we want for a tile */
-    size_t tfmem; /* how much memory we want for the tile factory */
-    size_t bndmem; /* how much memory we want for the bnd dsrt in STEP 2 */
-    
-    /* 
-       normally we would set the tile size such that :
-       tilesize*sizeof<ijCostType> + tilesize*sizeof(<costType) = avail,
-       which gives tilesize = avail/(sizeof(ijCostType) +
-       sizeof(<costType>)). in this case the tile factory tf
-       (i.e. bndpoints) will be stored as a stream on disk and use no
-       memory.
+
+
+ /* ------------------------------------------------------------ */
+  //this is executed if numtiles>1
+  
+  /* ************************************************** */
+  /* STEP: set up tile size, padded grid size and load cost grid and
+     compute substitute graph  */
+  
+  TileFactory *tf=NULL;
+  dimension_type tileSizeRows, tileSizeCols;
+  AMI_STREAM<distanceType> *b2bstr = NULL;
+  AMI_STREAM<ijCost> *s2bstr = NULL;
+  size_t tilemem;   /* how much memory we want for a tile */
+  size_t tfmem; /* how much memory we want for the tile factory */
+  size_t bndmem; /* how much memory we want for the bnd dsrt in STEP 2 */
+  
+  /* 
+     normally we would set the tile size such that :
+     tilesize*sizeof<ijCostType> + tilesize*sizeof(<costType) = avail,
+     which gives tilesize = avail/(sizeof(ijCostType) +
+     sizeof(<costType>)). in this case the tile factory tf
+     (i.e. bndpoints) will be stored as a stream on disk and use no
+     memory.
        
-       we can compromise for a smaller tile and save part of the
-       memory to store the tile factory (boundary points) in memory as
-       well. For small N (grid size) the bnd dstrs may fit completely
-       in memory and will be faster than if it was on disk.
+     we can compromise for a smaller tile and save part of the
+     memory to store the tile factory (boundary points) in memory as
+     well. For small N (grid size) the bnd dstrs may fit completely
+     in memory and will be faster than if it was on disk.
+  */
+  
+  /*   normally tilemem = availmem; tfmem = 0;bndmem = 0; */
+  tilemem = availmem1 / 2;
+  tfmem   = availmem1 / 4;
+  bndmem  = availmem1 / 4;
+  
+  //if(!opt->step1 && !opt->step2) {
+  if(opt->runMode & RUN_S0) {
+    stats->comment("----------------------------------------"); 
+    stats->comment("STEP 0:  COMPUTE SUBSTITUTE GRAPH");
+    *stats << endl;
+    *stats << "Memory Available: " << memBuf << "bytes\n";
+    
+    /* in STEP 0/1 memory is used for: 
+       - a tile<ijCostType>
+       - a tileFactory structure, which is a boundary dstr of
+       <costSourceType> (if ARRAY) or <ijCostType> (if STRREAM)
+       - a PQ for bnd 2 bnd Dijkstra in a tile 
+       - a PQ for source 2 bnd Dijkstra in a tile
+       - a tile<costType>
+       
+       - are we forgetting anything??check!! 
     */
     
-    /*   normally tilemem = availmem; tfmem = 0;bndmem = 0; */
-    tilemem = availmem1 / 2;
-    tfmem   = availmem1 / 4;
-    bndmem  = availmem1 / 4;
     
-    //if(!opt->step1 && !opt->step2) {
-    if(opt->runMode & RUN_S0) {
-	  stats->comment("----------------------------------------"); 
-      stats->comment("STEP 0:  COMPUTE SUBSTITUTE GRAPH");
-      *stats << endl;
-      *stats << "Memory Available: " << memBuf << "bytes\n";
-      
-      /* in STEP 0/1 memory is used for: 
-	 - a tile<ijCostType>
-	 - a tileFactory structure, which is a boundary dstr of
-	 <costSourceType> (if ARRAY) or <ijCostType> (if STRREAM)
-	 - a PQ for bnd 2 bnd Dijkstra in a tile 
-	 - a PQ for source 2 bnd Dijkstra in a tile
-	 - a tile<costType>
-	 
-	 - are we forgetting anything??check!! 
-      */
-      
-      
-      /* dimension of a tile */
-      
-      //if (opt->step0) {
-      //if(opt->runMode & RUN_S0) {
-      /* sets tileSizeRows and tileSizeCols based on a user defined
-		 number of tiles */
-      initializeTileSize(&tileSizeRows, &tileSizeCols, opt->numtiles);
-      tsr = tileSizeRows;
-      tsc = tileSizeCols;
-      tf = new TileFactory(tileSizeRows, tileSizeCols, 0);
-      g.ntiles = tf->getNumTiles();
-      cout << "Original Grid Size: " << nrows << "x" << ncols << endl;
-      cout << "TF #Tiles: " << g.ntiles << endl; cout.flush();
-      //       }
-      //       else {
-      
-      // 	/* sets tileSizeRows, tileSizeCols, nrowsPad, ncolsPad
-      // 	given the memory to be used by a tile; the size of a tile
-      // 	is chosen so that a tile uses at most tilemem memory; in
-      // 	order that boundary tiles have same size as internal tiles
-      // 	we pad the grid we extra rows and columns; the size of the
-      // 	grid is thus (nrowsPad, ncolsPad) */
-      // 	initializeTileSize(&tileSizeRows, &tileSizeCols, tilemem);
-      // 	/*normally tilesize = tilemem /(sizeof(ijCostType) +
-      // 	sizeof(costType));*/ //tileSizeRows = 4; //tileSizeCols =
-      // 	5;
-      
-      // 	/* create a tileFactory structure that will know how to
-      // 	extract a tile from a a grid and how to iterate on
-      // 	tiles. This structure should never use more than tfmem
-      // 	memory */
-      
-      // 	tf = new TileFactory(tileSizeRows, tileSizeCols, tfmem);
-      // 	ntiles = tf->getNumTiles();
-      //       }
-      
-      /* read input cost grid and populate tf  */
-      loadGrid(opt->cost_grid,opt->source_grid, &nodata_count, tf);
-      *stats <<"Total elements read=" << formatNumber(NULL, (long)nrows*ncols);
-      *stats <<", nodata elements=" << formatNumber(NULL, nodata_count) <<endl;
-      
-      /* since we work internally with a padded grid, we need to add the
-		 padded values to bndCost and intCost */
-      tf->pad();
-
-      /* Sorting messes up the stream name on disk */
-      // already below
-	  //       if (!opt->step0)
-	  // 	tf->sortTF();
-
-	  //       if(debug) {
-	  // 	dump_file((const char *)VTMPDIR "s0out", (const char *)VTMPDIR "s0out.dump", ijCostSource());
-	  // 	dump_file((const char *)VTMPDIR "s0bnd", (const char *)VTMPDIR "s0bnd.dump", ijCostSource());
-	  //       }
-
-      if(opt->runMode != RUN_ALL) {
-
-		tf->serialize(resolvePath(opt->s0bnd));
-		writeConfigFile(resolvePath(opt->config));
-		//exit(0);
-      }
+    /* dimension of a tile: sets tileSizeRows and tileSizeCols based on a user defined
+       number of tiles */
+    initializeTileSize(&tileSizeRows, &tileSizeCols, opt->numtiles);
+    tsr = tileSizeRows;
+    tsc = tileSizeCols;
+    
+    /* create a tileFactory structure that will know how to extract a
+       tile from a a grid and how to iterate on tiles. */
+    tf = new TileFactory(tileSizeRows, tileSizeCols, 0);
+    g.ntiles = tf->getNumTiles();
+    cout << "Original Grid Size: " << nrows << "x" << ncols << endl;
+    cout << "TF #Tiles: " << g.ntiles << endl; cout.flush();
+     
+    
+    
+    /* read input cost grid and populate tf  */
+    loadGrid(opt->cost_grid,opt->source_grid, &nodata_count, tf);
+    *stats <<"Total elements read=" << formatNumber(NULL, (long)nrows*ncols);
+    *stats <<", nodata elements=" << formatNumber(NULL, nodata_count) <<endl;
+    
+    
+    /* since we work internally with a padded grid, we need to add the
+       padded values to bndCost and intCost */
+    tf->pad();
+    
+    if(opt->runMode != RUN_ALL) {
+      tf->serialize(resolvePath(opt->s0bnd));
+      writeConfigFile(resolvePath(opt->config));
     }
+  }
     
-	
-    /* @S1 */
   
-    if(opt->runMode & RUN_S1) {
-      stats->comment("----------------------------------------"); 
-      stats->comment("STEP 1");
-      Rtimer rtStep;   
-      rt_start(rtStep);
-
-      if(!(opt->runMode & RUN_S0)) {
-		stats->comment("restoring data structures...");
-		readConfigFile(resolvePath(opt->config));
-		
-		// 		if(debug) {
-		// 		  opt->s1fd = open(resolvePath(opt->s1in), O_RDONLY);
-		// 		  if(opt->s1fd < 0) {
-		// 			perror(resolvePath(opt->s1in));
-		// 			exit(1);
-		// 		  }
-		// 		  cerr << "debug: using fd " << opt->s1fd << " for file " << buf << endl;
-		// 		}
-		
-		AMI_STREAM<ijCostSource> *dataStream;
-		if(opt->s1fd > 0) {
-#ifdef PEARL
-		  dataStream = new AMI_STREAM<ijCostSource>(opt->s1fd, AMI_READ_STREAM);
-#else
-		  assert(0);
-		  dataStream = NULL;
-#endif
-		} else {
-		  dataStream = new AMI_STREAM<ijCostSource>(resolvePath(opt->s0out), 
-													AMI_READ_STREAM);
-		}
-		
-		tf = new TileFactory(tsr, tsc, dataStream, resolvePath(opt->s0bnd));
-      }	// end exclusively-step1 init
-	  
-      /* this sort is a permute to get the tiles in order.
-       * in parallel version, we want to just split here; 
-       * we will get the sort for free within a tile. 
-	   * (each tile is a separate file) -RW */
-	  if(! opt->tilesAreSorted) {
-		tf->sortTF();
-	  }
-	  if(opt->tilesAreSorted) {	// maybe this sould be a different option...
-		tf->markBoundaryAsSorted();
-	  }
-
-      /*
-		Run Dijkstra on each tile and compute bnd2bnd SP; these will be
-		stored in b2bstr; also, for each point on the bnd of the tile,
-		compute SP to any source point in the tile; store this in s2bstr.
-      */
-      // outputs
-      if(opt->runMode != RUN_ALL) {
-		b2bstr = new AMI_STREAM<distanceType>(resolvePath(opt->s1out), 
-											  AMI_WRITE_STREAM);
-		s2bstr = new AMI_STREAM<ijCost>(resolvePath(opt->s2bout), 
-										AMI_WRITE_STREAM);
+  /* @S1 */
+  
+  if(opt->runMode & RUN_S1) {
+    stats->comment("----------------------------------------"); 
+    stats->comment("STEP 1");
+    Rtimer rtStep;   
+    rt_start(rtStep);
+    
+    if(!(opt->runMode & RUN_S0)) {
+      //step 1 was not run: restore data from disk 
+      stats->comment("restoring data structures...");
+      readConfigFile(resolvePath(opt->config));
+      AMI_STREAM<ijCostSource> *dataStream;
+      if(opt->s1fd > 0) {
+	assert(0);
+	//not sure what to do here; PEARL used to be
+	//defined. but s1fd seems to never be set.  #ifdef
+	//PEARL dataStream = new
+	//AMI_STREAM<ijCostSource>(opt->s1fd,
+	//AMI_READ_STREAM); #else 
+	dataStream = NULL;
+	//dataStream = new AMI_STREAM<ijCostSource>(opt->s1fd, AMI_READ_STREAM);
+	//#endif
       } else {
-		b2bstr = new AMI_STREAM<distanceType>();
-		s2bstr = new AMI_STREAM<ijCost>();
+	dataStream = new AMI_STREAM<ijCostSource>(resolvePath(opt->s0out), AMI_READ_STREAM);
       }
-      
-      tf->reset();
-      
-      assert(s2bstr);
-      computeSubstituteGraph(tf, b2bstr, s2bstr);
-
-// 	  if(debug) {
-// 		dump_file(b2bstr->name(), "/tmp/s1out.dump", distanceType());
-// 		dump_file(s2bstr->name(), "/tmp/s2bout.dump", ijCost());
-// 	  }
-
-      /* sort b2bstr by (<i,j>,<i,j>)  */
-//       if (!opt->step1) {
-// 	cout << "Sorting b2b stream"  << endl;
-// 	stats->comment("Sorting b2bstr");
-// 	distanceCompareType srtFun;
-// 	sort(&b2bstr, srtFun);
-//       }
-      //printStream(b2bstr);
-      //printStream(s2bstr);
-      //if(opt->runMode == RUN_S1) {
-	//exit(0);
-      //}
-
-      rt_stop(rtStep);
-      stats->recordTime("STEP1", rtStep);
+      tf = new TileFactory(tsr, tsc, dataStream, resolvePath(opt->s0bnd));
+    }	// end exclusively-step1 init
+    
+	  
+      /* this sort is a permute to get the tiles in order.  in
+       * parallel version, we want to just split here; we will get the
+       * sort for free within a tile.  (each tile is a separate file)
+       * -RW */
+    if(! opt->tilesAreSorted) {
+      tf->sortTF();
     }
+    if(opt->tilesAreSorted) {	// maybe this sould be a different option...
+      tf->markBoundaryAsSorted();
+    }
+    
+    /* Run Dijkstra on each tile and compute bnd2bnd SP; these will be
+       stored in b2bstr; also, for each point on the bnd of
+       the tile, compute SP to any source point in the tile;
+       store this in s2bstr.
+    */
+     // set up the output streams of Step2
+    if(opt->runMode != RUN_ALL) {
+      b2bstr = new AMI_STREAM<distanceType>(resolvePath(opt->s1out),AMI_WRITE_STREAM);
+      s2bstr = new AMI_STREAM<ijCost>(resolvePath(opt->s2bout),AMI_WRITE_STREAM);
+    } else {
+      b2bstr = new AMI_STREAM<distanceType>();
+      s2bstr = new AMI_STREAM<ijCost>();
+    }
+          
+    tf->reset();
+    assert(s2bstr && b2bstr);
+    computeSubstituteGraph(tf, b2bstr, s2bstr);
+    
+    // 	  if(debug) {
+    // 		dump_file(b2bstr->name(), "/tmp/s1out.dump", distanceType());
+    // 		dump_file(s2bstr->name(), "/tmp/s2bout.dump", ijCost());
+    // 	  }
+    
+    //printStream(b2bstr);
+    //printStream(s2bstr);
+    //if(opt->runMode == RUN_S1) {
+    //exit(0);
+    //}
+    
+    rt_stop(rtStep);
+    stats->recordTime("STEP1", rtStep);
+  }
     
   
 
@@ -959,60 +927,38 @@ main(int argc, char *argv[]) {
 	  }
 
 	  /* sort and rename */
-
+      
 	  /* in the parallel version, this could be just a merge of runs. */
       cout << "Sorting b2b stream"  << endl; cout.flush();
       stats->comment("Sorting b2bstr");
       distanceIJCompareType srtFun;
-	  char *b2bstrname;
-	  b2bstr->name(&b2bstrname);
-
-	  if(opt->runMode == RUN_ALL) {
-		sort(&b2bstr, srtFun);
-	  } else {
-		AMI_STREAM<distanceType> *sortedStr;
-		int deleteInput = 1;
-		AMI_sort(b2bstr, &sortedStr, &srtFun, deleteInput, b2bstrname);
-		b2bstr = sortedStr;
-		b2bstr->seek(0);
-	  }
-	  delete b2bstrname;
-
-#if 0
-      sort(&b2bstr, srtFun);
-      //printStream(b2bstr);
-
-	  if(opt->runMode != RUN_ALL) {
-		char *b2bstrname_new;
-		b2bstr->name(&b2bstrname_new);
-		b2bstr->persist(PERSIST_PERSISTENT);
-		delete b2bstr;
-		if(rename(b2bstrname_new, b2bstrname) < 0) {
-		  cerr << "WARNING could not rename " << b2bstrname_new << " to " << b2bstrname << endl;
-		  perror("rename");
-		  cerr << "continue computation using s1out=" << b2bstrname_new << "." << endl;
-		  // how to free opt->s1out? leak it!
-		  opt->s1out = strdup(b2bstrname_new); // fix the name
-		  cerr << "continuing..." << endl;
-		}
-		delete b2bstrname;
-		delete b2bstrname_new;
-	  }
-#endif
-
+      char *b2bstrname;
+      b2bstr->name(&b2bstrname);
+      
+      if(opt->runMode == RUN_ALL) {
+	sort(&b2bstr, srtFun);
+      } else {
+	AMI_STREAM<distanceType> *sortedStr;
+	int deleteInput = 1;
+	AMI_sort(b2bstr, &sortedStr, &srtFun, deleteInput, b2bstrname);
+	b2bstr = sortedStr;
+	b2bstr->seek(0);
+      }
+      delete b2bstrname;
+      
       rt_stop(rtStep);
       stats->recordTime("STEP2", rtStep);    
     }
-
-  
-	BoundaryType<cost_type> *phase2Bnd = NULL;
-	
-	
-	
-	/* ************************************************************ */
-	/* STEP 3 */
-	/* ************************************************************ */
-	/* step3 = old step2 (sans big sort) and old step3 */
+    
+    
+    BoundaryType<cost_type> *phase2Bnd = NULL;
+    
+    
+    
+    /* ************************************************************ */
+    /* STEP 3 */
+    /* ************************************************************ */
+    /* step3 = old step2 (sans big sort) and old step3 */
     if(opt->runMode & RUN_S3) {
       stats->comment("----------------------------------------"); 
       stats->comment("STEP 3");
@@ -1215,16 +1161,17 @@ main(int argc, char *argv[]) {
 	rt_stop(rtTotal);
 	stats->recordTime("Total running time", rtTotal);
 	stats->timestamp("end");
-  }
- cleanup:
-  /* CLEAN up */
-  cout << "cleaning up\n"; cout.flush();
-  free(region);
-  free(opt);
-  delete stats;
-  cout << "r.terracost done\n"; cout.flush();
-  
-  return 0;
+	
+	
+	
+	/* CLEAN up */
+	cout << "cleaning up\n"; cout.flush();
+	free(region);
+	free(opt);
+	delete stats;
+	cout << "r.terracost done\n"; cout.flush();
+	
+	return 0;
 }
 
 

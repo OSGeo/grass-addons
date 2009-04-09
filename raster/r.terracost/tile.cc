@@ -223,18 +223,23 @@ TileFactory::fillTile() {
 void
 TileFactory::sortTF() {
   
-  internalstr->seek(0); // is this required? RW
+  internalstr->seek(0); // is this necessary? 
   ijTileCostCompareType fun;
   fun.setTileSize(tileSizeRows, tileSizeCols);
   stats->comment("TileFactory: Sorting internalstr...");
-#if 0
-  sort(&internalstr, fun);
-#else
-  cachedSort(&internalstr, fun);
-#endif
+  //sort(&internalstr, fun);
+  //cachedSort(&internalstr, fun);
+
+  AMI_STREAM<ijCostSource> *sortedInternalstr;
+  AMI_sort(internalstr, &sortedInternalstr, &fun, 1);
+  sortedInternalstr->seek(0);
+  internalstr = sortedInternalstr;
+
   //internalstr->seek(0); // is this required? RW
   stats->comment("TileFactory: Sorting internalstr... done.");
 }
+
+
 
 void
 TileFactory::insert(ijCostSource in) {

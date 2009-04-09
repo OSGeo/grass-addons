@@ -44,9 +44,6 @@ typedef struct {
   int verbose;         /* 1 if verbose, 0 otherwise */
   int ascii;           /* 1 if save output to ascii file */
 
-  //int step0;           /* 1 if step0 only, 0 otherwise */
-  //int step1;           /* 1 if step1 only, 0 otherwise */
-  //int step2;           /* 1 if step 2 and 3 only, 0 otherwise */
   int runMode;			/* which step(s) to run */
 
   int numtiles;          /* number of tiles in the grid */

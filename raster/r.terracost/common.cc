@@ -36,15 +36,13 @@ const char *
 resolvePath(const char *name) {
   static char buf[BUFSIZ];
   static char *vtmpdir = NULL;
+  vtmpdir = getenv(VTMPDIR); 
 
-  // we should probably save this, but reload each time for now...
-  //if(!vtmpdir) {
-	if(!(vtmpdir = getenv(VTMPDIR))) {
-	  fprintf(stderr, "%s: environment not set\n", VTMPDIR);
-	  exit(1);
-	}
-	//}
-
+  if(!vtmpdir){
+    fprintf(stderr, "%s: environment not set\n", VTMPDIR);
+    exit(1);
+  }
+  
   if(name[0] == '/') {		// absolute path
     strcpy(buf, name);
   } else {			// relative path - use VTMPDIR

@@ -131,38 +131,38 @@ _sort(AMI_STREAM<T> *strIn, FUN fo) {
 
 /* ********************************************************************** */
 /* deletes input stream *str and replaces it by the sorted stream */
-
 template<class T, class FUN>
 void
-cachedSort(AMI_STREAM<T> **str, FUN fo) {
+  cachedSort(AMI_STREAM<T> **str, FUN fo) {
   AMI_STREAM<T> *sortedStr;
-
+  
+  
   char *unsortedName = strdup((*str)->name());
   char sortedName[BUFSIZ];
   sprintf(sortedName, "%s.sorted", unsortedName);
-
+  
   /* check if file exists */
   struct stat sb;
   if(stat(sortedName, &sb) == 0) {
-	sortedStr = new AMI_STREAM<T>(sortedName, AMI_READ_STREAM);
-	/* now see if stream is right length */
-	if(sortedStr->stream_len() == (*str)->stream_len()) {
-	  fprintf(stderr, "Guessing that %s is sorted version of %s (skipping sort)\n",
-			  sortedName, unsortedName);
-	  *stats << "Guessing that " << sortedName 
-			 << " is sorted version of " << unsortedName << " (skipping sort)\n";
-	  delete *str;
-	  *str = sortedStr;
-	  return;
-	}
+    /* if file exists */
+    sortedStr = new AMI_STREAM<T>(sortedName, AMI_READ_STREAM);
+    /* now see if stream is right length */
+    if(sortedStr->stream_len() == (*str)->stream_len()) {
+      fprintf(stderr, "Guessing that %s is sorted version of %s (skipping sort)\n",
+  	      sortedName, unsortedName);
+      *stats << "Guessing that " << sortedName
+  	     << " is sorted version of " << unsortedName << " (skipping sort)\n";
+      delete *str;
+      *str = sortedStr;
+      return;
+    }
   }
-
+  
   /* not found; got to sort now */
   int eraseInputStream = 1;
-  AMI_sort(*str, &sortedStr, &fo, eraseInputStream, sortedName);
+  AMI_sort_withpath(*str, &sortedStr, &fo, eraseInputStream, sortedName);
   sortedStr->persist(PERSIST_PERSISTENT); /* might leave streams lying around... */
-  fprintf(stderr, "Saving %s as sorted version of %s\n",
-		  sortedName, unsortedName);
+  fprintf(stderr, "Saving %s as sorted version of %s\n",sortedName, unsortedName);
   sortedStr->seek(0);
   *str = sortedStr;
   free(unsortedName);
