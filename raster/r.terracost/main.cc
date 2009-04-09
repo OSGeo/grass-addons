@@ -23,10 +23,10 @@
 #include <pwd.h>
   
 extern "C" {
-#include "grass/gis.h"
+#include <grass/gis.h>
+#include <grass/glocale.h>
 }
-#include <ami.h>
-
+#include <grass/iostream/ami.h>
 
 #include "main.h"
 #include "common.h" /* declares the globals */
@@ -75,7 +75,7 @@ static struct  Cell_head *region = NULL; /* header of the region */
 #define STATS_ANS "terracost.stats"
 #define DIST_GRID "terracost-lcp.asc"
 
-
+/* TODO this description is WAY to long...: move most content into manual */
 const char *description = 
 "\nSynopsis:\n"
 " r.terracost computes a least-cost surface for a given cost grid and\n"
@@ -120,7 +120,7 @@ parse_args(int argc, char *argv[]) {
   input_cost->type       = TYPE_STRING;
   //input_cost->required   = YES;
   input_cost->gisprompt  = "old,cell,raster" ;
-  input_cost->description= "Input cost grid" ;
+  input_cost->description= _("Input cost grid");
 
   /* source point raster */
   struct Option *source_grid;
@@ -128,8 +128,8 @@ parse_args(int argc, char *argv[]) {
   source_grid->key        = "start_raster";
   source_grid->type       = TYPE_STRING;
   //source_grid->required   = YES;
-  source_grid->gisprompt  = "raster of source points" ;
-  source_grid->description= "Input raster of source points";
+  source_grid->gisprompt  = "Raster of source points" ;
+  source_grid->description= _("Input raster of source points");
 
   /* output direction  grid */
   struct Option *output_cost;
@@ -138,7 +138,7 @@ parse_args(int argc, char *argv[]) {
   output_cost->type       = TYPE_STRING;
   //output_cost->required   = YES;
   output_cost->gisprompt  = "new,cell,raster" ;
-  output_cost->description= "Output distance grid";
+  output_cost->description= _("Output distance grid");
 
   /* main memory */
   struct Option *mem;
@@ -147,7 +147,7 @@ parse_args(int argc, char *argv[]) {
   mem->type        = TYPE_INTEGER;
   mem->required    = NO;
   mem->answer      = "400"; /* 400MB default value */
-  mem->description = "Main memory size (in MB)";
+  mem->description = _("Main memory size (in MB)");
 
   /* temporary STREAM path */
   struct Option *streamdir;
@@ -156,9 +156,9 @@ parse_args(int argc, char *argv[]) {
   streamdir->type       = TYPE_STRING;
   streamdir->required   = NO;
   streamdir->answer     = "/var/tmp";
-  streamdir->description= "Location of temporary STREAMs";
+  streamdir->description= _("Location of temporary STREAMs");
 
-  /* temporary STREAM path */
+  /* temporary VTMPDIR path */
   struct Option *vtmpdir;
   vtmpdir = G_define_option() ;
   vtmpdir->key        = VTMPDIR;
@@ -172,18 +172,18 @@ parse_args(int argc, char *argv[]) {
 	sprintf(vtmpdirbuf, "/var/tmp/%d", getuid());
   }
   vtmpdir->answer     = strdup(vtmpdirbuf);	// leak
-  vtmpdir->description= "Location of intermediate STREAMs";
+  vtmpdir->description= _("Location of intermediate STREAMs");
 
   struct Flag *help_f;
   help_f = G_define_flag();
   help_f->key         = 'h' ; 
-  help_f->description  = "Help";
+  help_f->description  = _("Help");
 
   /* verbose flag */
   struct Flag *quiet;
   quiet = G_define_flag() ;
   quiet->key         = 'q' ;
-  quiet->description = "Quiet (suppress messages)" ;
+  quiet->description = _("Quiet") ;
   /* quiet->answer = 'n'; */
 
 
@@ -191,68 +191,48 @@ parse_args(int argc, char *argv[]) {
   struct Flag *ascii; 
   ascii = G_define_flag() ;
   ascii->key         = 's' ;
-  ascii->description = "Save output to ascii file "DIST_GRID"" ;
+  ascii->description = _("Save output to ASCII file \"DIST_GRID\"");
   /* quiet->answer = 'n'; */
 
   struct Flag *debug_f;
   debug_f = G_define_flag();
   debug_f->key         = 'd' ; 
-  debug_f->description  = "Debug (for developer use)";
+  debug_f->description  = _("Debug (for developer use)");
 
   struct Flag *info_f;
   info_f = G_define_flag();
   info_f->key         = 'i' ; 
-  info_f->description  = "Info (prints useful information and exits)";
+  info_f->description  = _("Info (prints useful information and exits)");
 
   /* Run step0 only flag */
   struct Flag *step0;
   step0 = G_define_flag();
   step0->key         = '0' ; 
-<<<<<<< .mine
-  step0->description  = _("Step 0 only (default: run all)");
-=======
-  step0->description  = "Step 0 only (-h for info)";
->>>>>>> .r36646
+  step0->description  = _("Step 0 only (-h for info)");
   /* step0->answer = 'n'; */
 
   /* Run step 1 only flag*/
   struct Flag *step1;
   step1 = G_define_flag() ;
   step1->key         = '1' ;
-<<<<<<< .mine
-  step1->description = _("Step 1 only (default: run all)");
-=======
-  step1->description = "Step 1 only (-h for info)" ;
->>>>>>> .r36646
+  step1->description = _("Step 1 only (-h for info)");
   /* step1->answer = 'n'; */
 
   /* Run step 2 and 3 only flags */
   struct Flag *step2;
   step2 = G_define_flag();
   step2->key         = '2' ; 
-<<<<<<< .mine
-  step2->description  = _("Step 2 only (default: run all)");
-=======
-  step2->description  = "Step 2 only (-h for info)";
->>>>>>> .r36646
+  step2->description  = _("Step 2 only (-h for info)");
 
   struct Flag *step3;
   step3 = G_define_flag();
   step3->key         = '3' ; 
-<<<<<<< .mine
-  step3->description  = _("Step 3 only (default: run all)");
-=======
-  step3->description  = "Step 3 only (-h for info)";
->>>>>>> .r36646
+  step3->description  = _("Step 3 only (-h for info)");
   
   struct Flag *step4;
   step4 = G_define_flag();
   step4->key         = '4' ; 
-<<<<<<< .mine
-  step4->description  = _("Step 4 only (default: run all)");
-=======
-  step4->description  = "Step 4 only (-h for info)";
->>>>>>> .r36646
+  step4->description  = _("Step 4 only (-h for info)");
 
   /* Number of tiles; used in conjunction with step0 flag */  
   struct Option *numtiles;
@@ -260,7 +240,7 @@ parse_args(int argc, char *argv[]) {
   numtiles->key = "numtiles";
   numtiles->type       = TYPE_INTEGER;
   numtiles->required   = NO;
-  numtiles->description= "Number of tiles (-h for info)";
+  numtiles->description= _("Number of tiles (-h for info)");
   numtiles->answer     = "-1";
 
   /* Stem name for stream outputs; used in conjunction with step0 flag */  
@@ -269,7 +249,7 @@ parse_args(int argc, char *argv[]) {
   s0out->key = S0OUT;
   s0out->type       = TYPE_STRING;
   s0out->required   = NO;
-  s0out->description= "Stream name stem for step 0 output";
+  s0out->description= _("Stream name stem for step 0 output");
   s0out->answer     = S0OUT_ANS;
 
 //   struct Option *s1in;
@@ -277,7 +257,7 @@ parse_args(int argc, char *argv[]) {
 //   s1in->key = "s1in";
 //   s1in->type       = TYPE_STRING;
 //   s1in->required   = NO;
-//   s1in->description= "Stream name stem for step 0 output";
+//   s1in->description= _("Stream name stem for step 0 output");
 //   s1in->answer     = "s1in";
 
   struct Option *s0bnd;
@@ -285,7 +265,7 @@ parse_args(int argc, char *argv[]) {
   s0bnd->key = S0BND;
   s0bnd->type       = TYPE_STRING;
   s0bnd->required   = NO;
-  s0bnd->description= "Stream name for boundary data structure";
+  s0bnd->description= _("Stream name for boundary data structure");
   s0bnd->answer     = S0BND_ANS;
 
   /* Name for config file output */  
@@ -294,7 +274,7 @@ parse_args(int argc, char *argv[]) {
   s1out->key = S1OUT;
   s1out->type       = TYPE_STRING;
   s1out->required   = NO;
-  s1out->description= "Output file for step 1";
+  s1out->description= _("Output file for step 1");
   s1out->answer     = S1OUT_ANS;
 
   /* Name for config file output */  
@@ -303,7 +283,7 @@ parse_args(int argc, char *argv[]) {
   s2bout->key = S2BOUT;
   s2bout->type       = TYPE_STRING;
   s2bout->required   = NO;
-  s2bout->description= "Output file for source to boundary stream";
+  s2bout->description= _("Output file for source to boundary stream");
   s2bout->answer     = S2BOUT_ANS;
 
   /* Name for config file output */  
@@ -312,7 +292,7 @@ parse_args(int argc, char *argv[]) {
   config->key = CONFIG;
   config->type       = TYPE_STRING;
   config->required   = NO;
-  config->description= "Name for config file";
+  config->description= _("Name for config file");
   config->answer     = CONFIG_ANS;
 
  /* Name for config file output */  
@@ -321,7 +301,7 @@ parse_args(int argc, char *argv[]) {
   phaseBnd->key = PHASE2BND;
   phaseBnd->type       = TYPE_STRING;
   phaseBnd->required   = NO;
-  phaseBnd->description= "Name for phase2Bnd file";
+  phaseBnd->description= _("Name for phase2Bnd file");
   phaseBnd->answer     = PHASE2BND_ANS;
 
 
@@ -331,7 +311,7 @@ parse_args(int argc, char *argv[]) {
   stats_opt->key = "stats";
   stats_opt->type       = TYPE_STRING;
   stats_opt->required   = NO;
-  stats_opt->description= "Stats file";
+  stats_opt->description= _("Stats file");
   stats_opt->answer     = STATS_ANS;
 
   struct Option *tilesAreSorted;
@@ -339,13 +319,13 @@ parse_args(int argc, char *argv[]) {
   tilesAreSorted->key         = "tilesAreSorted" ; 
   tilesAreSorted->type       = TYPE_STRING;
   tilesAreSorted->required   = NO;
-  tilesAreSorted->description  = "Tiles are sorted (used in grid version) (y/n)";
+  tilesAreSorted->description  = _("Tiles are sorted (used in grid version) (y/n)");
   tilesAreSorted->answer = "no";
 
 
   /* ************************* */
   if (G_parser(argc, argv)) {
-    exit (-1);
+    exit (EXIT_FAILURE);
   }
   
   assert(opt);
@@ -395,7 +375,7 @@ parse_args(int argc, char *argv[]) {
   if(help_f->answer) {
 	G_usage();
 	printf(description);
-	exit(0);
+	exit(EXIT_SUCCESS);
   }
 }
 
