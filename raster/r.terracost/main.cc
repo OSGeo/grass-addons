@@ -61,7 +61,7 @@ static struct  Cell_head *region = NULL; /* header of the region */
 
 #define S0OUT "tileStr"
 #define S0OUT_ANS "terracost.tileStr"
-#define S0BND "bndStr"
+q#define S0BND "bndStr"
 #define S0BND_ANS "terracost.bndStr"
 #define S1OUT "bspStr"
 #define S1OUT_ANS "terracost.bspStr"
@@ -136,13 +136,14 @@ parse_args(int argc, char *argv[]) {
   vtmpdir->type       = TYPE_STRING;
   vtmpdir->required   = NO;
   char vtmpdirbuf[BUFSIZ];
+  /* the default answer is /var/tmp/userid */
   struct passwd *pw;        /* TODO: is this really needed? */
   if((pw = getpwuid(getuid())) != NULL) {
 	sprintf(vtmpdirbuf, "/var/tmp/%s", pw->pw_name);
   } else {
 	sprintf(vtmpdirbuf, "/var/tmp/%d", getuid());
   }
-  vtmpdir->answer     = strdup(vtmpdirbuf);	// leak
+  vtmpdir->answer     = strdup(vtmpdirbuf);
   vtmpdir->description= _("Location of intermediate STREAMs");
 
   struct Flag *help_f;
@@ -218,14 +219,6 @@ parse_args(int argc, char *argv[]) {
   s0out->description= _("Stream name stem for step 0 output");
   s0out->answer     = S0OUT_ANS;
 
-//   struct Option *s1in;
-//   s1in = G_define_option() ;
-//   s1in->key = "s1in";
-//   s1in->type       = TYPE_STRING;
-//   s1in->required   = NO;
-//   s1in->description= _("Stream name stem for step 0 output");
-//   s1in->answer     = "s1in";
-
   struct Option *s0bnd;
   s0bnd = G_define_option() ;
   s0bnd->key = S0BND;
@@ -294,6 +287,7 @@ parse_args(int argc, char *argv[]) {
     exit (EXIT_FAILURE);
   }
   
+  /* all user parameters are collected in a global opt */
   assert(opt);
   opt->cost_grid = input_cost->answer;
   opt->out_grid = output_cost->answer;
@@ -304,7 +298,7 @@ parse_args(int argc, char *argv[]) {
   opt->verbose= (!quiet->answer);
   opt->ascii = ascii->answer; 
   opt->stats= stats_opt->answer;
- opt->runMode = RUN_NONE;
+  opt->runMode = RUN_NONE;
   if(step0->answer) {
     opt->runMode |= RUN_S0;
   }
@@ -327,7 +321,6 @@ parse_args(int argc, char *argv[]) {
   opt->tilesAreSorted = (tilesAreSorted->answer[0] == 'y');
   opt->numtiles = atoi(numtiles->answer);
   opt->s0out = s0out->answer;
-  //  opt->s1in = s1in->answer;
   opt->s1out = s1out->answer;
   opt->s0bnd = s0bnd->answer;
   opt->s2bout = s2bout->answer;
@@ -365,19 +358,20 @@ void check_args() {
 }
 
 /* ---------------------------------------------------------------------- */
+/* record current configuration to stats file */
 void record_args(int argc, char **argv) {
 
+  /* record time stamp */
   time_t t = time(NULL);
   char buf[1000];
   if(t == (time_t)-1) {
     perror("time");
     exit(1);
   }
-
   ctime_r(&t, buf);
   buf[24] = '\0';
   stats->timestamp(buf);
-  *stats << "Not printing stats." << endl;
+  //*stats << "Not printing stats." << endl;
   *stats << "Command Line: " << endl;
   for(int i=0; i<argc; i++) {
     *stats << argv[i] << " ";
@@ -391,7 +385,8 @@ void record_args(int argc, char **argv) {
   if (opt->runMode & RUN_S1) *stats << " Step2";
   if (opt->runMode & RUN_S2) *stats << " Step3";
   if (opt->runMode & RUN_S3) *stats << " Step4";
- *stats << "\n";
+  *stats << "\n";
+  /* record memory size */
   size_t mm_size = opt->mem  << 20; /* (in bytes) */
   char tmp[100];
   formatNumber(tmp, mm_size);
@@ -406,7 +401,7 @@ void printGrid(AMI_STREAM<ijCost> *testStr) {
   statsRecorder *offsetWriter = new statsRecorder("offset.out");
 
   AMI_err ae;
-  // won't work with boundary streams
+  // this assert won't work with boundary streams
   //assert(testStr->stream_len() == nrows*ncols);
   ae = testStr->seek(0);
   ijCost *it;
@@ -419,48 +414,50 @@ void printGrid(AMI_STREAM<ijCost> *testStr) {
     //assert(ae == AMI_ERROR_NO_ERROR);
   }
   testStr->seek(0); 
-
   delete offsetWriter;
 }
 
+
+
 /* ---------------------------------------------------------------------- */
+/* this function computes and returns the optimal tizesize */
 void
 compute_tilesize(const char *label, int nr, int nc, int mem, 
-				 int *tilesize, int *numtiles) {
+		 int *tilesize, int *numtiles) {
   
-  // assume we need tilesize number of all these, that is, we need all
-  // of these to be in memory while we compute sssp on a tile
+  // we need all the data below to be in memory while we compute sssp
+  // on a tile
   int elt = ( sizeof(costSourceType) /* tile */
-			  + sizeof(cost_type) /* dist */
-			  + sizeof(costStructure) ); /* pq */
+	      + sizeof(cost_type) /* dist */
+	      + sizeof(costStructure) ); /* pq */
   
   printf("%s: avail memory M = %s\n", label, formatNumber(NULL, mem));
-  printf("%s: sizeof elt = %d\n", label, elt);
   printf("%s: grid size N = %s elements\n", label, formatNumber(NULL, nr*nc));
+  printf("%s: sizeof elt = %d\n", label, elt);
+
  
 
-  int ts = mem / elt;
+  int ts = mem / elt; 
   int nt = (nr * nc + ts - 1) / ts;
-
   printf("%s: max tilesize R = %s elements\n",label, formatNumber(NULL, ts));
 
   //does it fit into memory? 
   if (nt == 1) { 
-	printf("%s: fits in memory, use numtiles=1\n", label); 
+    printf("%s: fits in memory, use numtiles=1\n", label); 
   } else { 
-	if (nt <4) {
-	  printf("%s: almost.. fits in memory; try numtiles=1 first\n", label);
-	} else {
-	  printf("%s: does NOT fits in memory\n", label); 
-	}
-	//optimal tilisize, determined experimentally, is approx. 15,000
-	//elements
-	ts = 15000; 
-	nt = nr*nc/ts;
+    if (nt <4) {
+      printf("%s: almost.. fits in memory; try numtiles=1 first\n", label);
+    } else {
+      printf("%s: does NOT fits in memory\n", label); 
+    }
+    //optimal tilisize, determined experimentally, is approx. 15,000
+    //elements
+    ts = 15000; 
+    nt = nr*nc/ts;
   }
   
   printf("%s: %s N=%ld elements, M=%d bytes, optimal numtiles=%d\n", 
-		 label, G_location(), (long)(nr*nc), mem, nt);
+	 label, G_location(), (long)(nr*nc), mem, nt);
   
   *numtiles = nt;
   *tilesize = ts;
@@ -471,6 +468,7 @@ compute_tilesize(const char *label, int nr, int nc, int mem,
 /* ---------------------------------------------------------------------- */
 int
 main(int argc, char *argv[]) {
+  
   struct GModule *module;
   char buf[1000];
   
@@ -484,13 +482,13 @@ main(int argc, char *argv[]) {
   region = (struct Cell_head*)malloc(sizeof(struct Cell_head));
   assert(region);
   if (G_get_set_window(region) == -1) {
-     G_fatal_error("r.terracost: error getting current region");
+    G_fatal_error("r.terracost: error getting current region");
   }
   int nr = G_window_rows();
   int nc = G_window_cols();
   if ((nr > dimension_type_max) || (nc > dimension_type_max)) {
-	printf("[nrows=%d, ncols=%d] dimension_type overflow--change dimension_type and recompile\n",nr,nc);
-	G_fatal_error("[nrows=%d, ncols=%d] dimension_type overflow--change dimension_type and recompile\n",nr,nc);
+    printf("[nrows=%d, ncols=%d] dimension_type overflow--change dimension_type and recompile\n",nr,nc);
+    G_fatal_error("[nrows=%d, ncols=%d] dimension_type overflow--change dimension_type and recompile\n",nr,nc);
   } else {
     nrows = (dimension_type)nr;
     ncols = (dimension_type)nc;
@@ -498,7 +496,7 @@ main(int argc, char *argv[]) {
     ncolsPad = (dimension_type)nc;
   }
   
-  /* read user options; fill in global <opt> */  
+  /* read user options; fill in global variable opt */  
   opt = (userOptions*)malloc(sizeof(userOptions));
   assert(opt);
   parse_args(argc, argv);
@@ -506,7 +504,7 @@ main(int argc, char *argv[]) {
   
   /* setup STREAM_DIR */
   sprintf(buf, "%s=%s", STREAM_TMPDIR, opt->streamdir);
- if(getenv(STREAM_TMPDIR) == NULL) {
+  if(getenv(STREAM_TMPDIR) == NULL) {
     printf("setenv %s\n", buf);
     if (putenv(buf) != 0) {
       printf("cannot setenv %s\n",buf);
@@ -527,6 +525,7 @@ main(int argc, char *argv[]) {
   /* setup VTMPDIR */
   sprintf(buf, "%s=%s", VTMPDIR, opt->vtmpdir);
   if (getenv(VTMPDIR) == NULL) {
+    /* if not already set  */
     printf("setenv %s\n", buf);
     if(putenv(buf) !=0) {
       printf("cannot setenv %s\n",buf);
@@ -556,7 +555,7 @@ main(int argc, char *argv[]) {
     }
   }
   
-
+  /* if info mode, print tileseze and exit */
   if(info) {
 	printf("\n"); 
 	printf("STREAM_TMPDIR=%s\n", getenv(STREAM_TMPDIR));
@@ -564,9 +563,10 @@ main(int argc, char *argv[]) {
 
 	int tilesize, numtiles;
 	compute_tilesize("TILESIZE", nrows, ncols, opt->mem << 20, 
-					 &tilesize, &numtiles);
+			 &tilesize, &numtiles);
 	return 0; 
   }//info
+
 
   if(opt->verbose) {
     printf("region size is %d x %d\n", nrows, ncols);
@@ -645,7 +645,10 @@ main(int argc, char *argv[]) {
 					  4*opt->EW_fac*opt->EW_fac));
   update_init(opt->EW_fac, opt->NS_fac, opt->DIAG_fac);
   
-  /* start timing -- after parse_args, which are interactive */
+
+
+
+  /* start timing */
   Rtimer rtTotal;   
   rt_start(rtTotal);
   
@@ -659,13 +662,15 @@ main(int argc, char *argv[]) {
   char memBuf [100] = "";
   formatNumber(memBuf, availmem1);
   long nodata_count;
-  // we don't really know yet, since we might read it from config...
+
   //*stats << "numtiles = " << opt->numtiles << endl;
-  
+  // we don't really know yet, since we might read it from config...
+
+
   /* ------------------------------------------------------------ */
   //size_t mem = memForNormalDijkstra(nrows, ncols);
   if (opt->numtiles == 1) {
-    cout << "Using normal Dijkstra" << endl;
+    printf("Using normal Dijkstra");
     stats->comment("Using normal Dijkstra");
     normalDijkstra(opt->cost_grid,opt->source_grid, &nodata_count);
 
@@ -680,10 +685,11 @@ main(int argc, char *argv[]) {
 
 
  /* ------------------------------------------------------------ */
-  //this is executed if numtiles>1
+  //this is executed if numtiles>1: STEP 0, 1, 2, 3, 4
   
+
   /* ************************************************** */
-  /* STEP: set up tile size, padded grid size and load cost grid and
+  /* STEP 0: set up tile size, padded grid size and load cost grid and
      compute substitute graph  */
   
   TileFactory *tf=NULL;
@@ -713,7 +719,7 @@ main(int argc, char *argv[]) {
   tfmem   = availmem1 / 4;
   bndmem  = availmem1 / 4;
   
-  //if(!opt->step1 && !opt->step2) {
+
   if(opt->runMode & RUN_S0) {
     stats->comment("----------------------------------------"); 
     stats->comment("STEP 0:  COMPUTE SUBSTITUTE GRAPH");
@@ -728,12 +734,12 @@ main(int argc, char *argv[]) {
        - a PQ for source 2 bnd Dijkstra in a tile
        - a tile<costType>
        
-       - are we forgetting anything??check!! 
+       - are we forgetting anything?
     */
     
     
-    /* dimension of a tile: sets tileSizeRows and tileSizeCols based on a user defined
-       number of tiles */
+    /* dimension of a tile: sets tileSizeRows and tileSizeCols based
+       on a user defined number of tiles */
     initializeTileSize(&tileSizeRows, &tileSizeCols, opt->numtiles);
     tsr = tileSizeRows;
     tsc = tileSizeCols;
@@ -742,8 +748,8 @@ main(int argc, char *argv[]) {
        tile from a a grid and how to iterate on tiles. */
     tf = new TileFactory(tileSizeRows, tileSizeCols, 0);
     g.ntiles = tf->getNumTiles();
-    cout << "Original Grid Size: " << nrows << "x" << ncols << endl;
-    cout << "TF #Tiles: " << g.ntiles << endl; cout.flush();
+    printf("Original Grid Size: (%d, %d)\n", nrows, ncols);
+    printf("TF #Tiles: %d\n", g.ntiles); cout.flush();
      
     
     
@@ -764,8 +770,7 @@ main(int argc, char *argv[]) {
   }
     
   
-  /* @S1 */
-  
+  /* STEP 1 */
   if(opt->runMode & RUN_S1) {
     stats->comment("----------------------------------------"); 
     stats->comment("STEP 1");
@@ -846,67 +851,63 @@ main(int argc, char *argv[]) {
     /* ************************************************** */
     /* @S2 STEP 2: compute for each boundary point, the SP to any
        source. These will be stored in phase2Bnd.
-
+       
        memory in step 2 is used to store: 
        - a boundaryClass dstr that stores SP to all bnd vertices
        - the PQ
        - an array that stores whether a point has been settled or not
        - are we forgetting anything??check !!! 
     */
-
-	/* step2 = old step2a - just the big sort */
-
-    if(opt->runMode & RUN_S2) {
-      stats->comment("----------------------------------------"); 
-      stats->comment("STEP 2");
-      Rtimer rtStep;   
-      rt_start(rtStep);
-
-      if(!(opt->runMode & RUN_S1)) {
-		stats->comment("restoring data structures...");
-		readConfigFile(resolvePath(opt->config));
-		// 		tileSizeRows = tsr;
-		// 		tileSizeCols = tsc;
-		
-		b2bstr = new AMI_STREAM<distanceType>(resolvePath(opt->s1out));
-		b2bstr->persist(PERSIST_PERSISTENT);
-		//cout << "b2bLen: " << b2bstr->stream_len() << endl;cout.flush();
-		stats->recordLength("b2bstr ", b2bstr);
-	  }
-
-	  /* sort and rename */
+  if(opt->runMode & RUN_S2) {
+    stats->comment("----------------------------------------"); 
+    stats->comment("STEP 2");
+    Rtimer rtStep;   
+    rt_start(rtStep);
+    
+    if(!(opt->runMode & RUN_S1)) {
+      stats->comment("restoring data structures...");
+      readConfigFile(resolvePath(opt->config));
+      // 		tileSizeRows = tsr;
+      // 		tileSizeCols = tsc;
       
-	  /* in the parallel version, this could be just a merge of runs. */
-      cout << "Sorting b2b stream"  << endl; cout.flush();
-      stats->comment("Sorting b2bstr");
-      distanceIJCompareType srtFun;
-      char *b2bstrname;
-      b2bstr->name(&b2bstrname);
-      
-      if(opt->runMode == RUN_ALL) {
-	sort(&b2bstr, srtFun);
-      } else {
-	AMI_STREAM<distanceType> *sortedStr;
-	int deleteInput = 1;
-	AMI_sort(b2bstr, &sortedStr, &srtFun, deleteInput, b2bstrname);
-	b2bstr = sortedStr;
-	b2bstr->seek(0);
-      }
-      delete b2bstrname;
-      
-      rt_stop(rtStep);
-      stats->recordTime("STEP2", rtStep);    
+      b2bstr = new AMI_STREAM<distanceType>(resolvePath(opt->s1out));
+      b2bstr->persist(PERSIST_PERSISTENT);
+      //cout << "b2bLen: " << b2bstr->stream_len() << endl;cout.flush();
+      stats->recordLength("b2bstr ", b2bstr);
     }
     
+    /* sort and rename */
+    /* in the parallel version, this could be just a merge of runs. */
+    cout << "Sorting b2b stream"  << endl; cout.flush();
+    stats->comment("Sorting b2bstr");
+    distanceIJCompareType srtFun;
+    char *b2bstrname;
+    b2bstr->name(&b2bstrname);
     
-    BoundaryType<cost_type> *phase2Bnd = NULL;
+    if(opt->runMode == RUN_ALL) {
+      sort(&b2bstr, srtFun);
+    } else {
+      AMI_STREAM<distanceType> *sortedStr;
+      int deleteInput = 1;
+      //AMI_sort(b2bstr, &sortedStr, &srtFun, deleteInput, b2bstrname);
+      AMI_sort(b2bstr, &sortedStr, &srtFun, deleteInput);
+      b2bstr = sortedStr;
+      b2bstr->seek(0);
+    }
+    delete b2bstrname;
+    
+    rt_stop(rtStep);
+    stats->recordTime("STEP2", rtStep);    
+  }
+  
+  BoundaryType<cost_type> *phase2Bnd = NULL;
     
     
     
-    /* ************************************************************ */
-    /* STEP 3 */
-    /* ************************************************************ */
-    /* step3 = old step2 (sans big sort) and old step3 */
+  /* ************************************************************ */
+  /* STEP 3 */
+  /* ************************************************************ */
+  /* step3 = old step2 (sans big sort) and old step3 */
     if(opt->runMode & RUN_S3) {
       stats->comment("----------------------------------------"); 
       stats->comment("STEP 3");
@@ -1029,8 +1030,7 @@ main(int argc, char *argv[]) {
  		tileSizeCols = tsc;
 		
 		AMI_STREAM<ijCostSource> *dataStream;
-		dataStream = new AMI_STREAM<ijCostSource>(resolvePath(opt->s0out), 
-												  AMI_READ_STREAM);
+		dataStream = new AMI_STREAM<ijCostSource>(resolvePath(opt->s0out), AMI_READ_STREAM);
 		tf = new TileFactory(tsr, tsc, dataStream, resolvePath(opt->s0bnd));
 		
 		if(! opt->tilesAreSorted) {
