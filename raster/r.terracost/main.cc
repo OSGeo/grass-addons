@@ -61,7 +61,7 @@ static struct  Cell_head *region = NULL; /* header of the region */
 
 #define S0OUT "tileStr"
 #define S0OUT_ANS "terracost.tileStr"
-q#define S0BND "bndStr"
+#define S0BND "bndStr"
 #define S0BND_ANS "terracost.bndStr"
 #define S1OUT "bspStr"
 #define S1OUT_ANS "terracost.bspStr"
