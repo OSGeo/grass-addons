@@ -35,7 +35,7 @@ private:
   Rtimer tm;
   void *bss;
 public:
-  statsRecorder(char * const fname);
+  statsRecorder(const char * fname);
 /*   ~statsRecorder() {  */
 /* 	this->flush();  */
 /*   } */

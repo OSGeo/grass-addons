@@ -113,7 +113,7 @@ utrace(const char *s) {
 
 
 int
-noclobberFile(char * const fname) {
+noclobberFile(const char * fname) {
   int fd=-1;
   
   while(fd<0) {
@@ -136,8 +136,8 @@ noclobberFile(char * const fname) {
   return fd;
 }
 
-char* 
-noclobberFileName(char *fname) {
+const char* 
+noclobberFileName(const char *fname) {
   int fd;
   fd = open(fname, O_WRONLY|O_CREAT|O_EXCL, 0644);
   if(fd < 0) {
@@ -162,7 +162,7 @@ noclobberFileName(char *fname) {
 
 /* ********************************************************************** */
 
-statsRecorder::statsRecorder(char * const fname) {
+statsRecorder::statsRecorder(const char * fname) {
   //note: in the new version of gcc there is not constructor for
   //ofstream that takes an fd; wrote another noclobber() function that
   //closes fd and returns the name;

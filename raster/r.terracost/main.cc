@@ -117,7 +117,7 @@ parse_args(int argc, char *argv[]) {
   mem->key         = "memory";
   mem->type        = TYPE_INTEGER;
   mem->required    = NO;
-  mem->answer      = "400"; /* 400MB default value */
+  mem->answer      = G_store("400"); /* 400MB default value */
   mem->description = _("Main memory size (in MB)");
 
   /* temporary STREAM path */
@@ -126,7 +126,7 @@ parse_args(int argc, char *argv[]) {
   streamdir->key        = "STREAM_DIR";
   streamdir->type       = TYPE_STRING;
   streamdir->required   = NO;
-  streamdir->answer     = "/var/tmp";
+  streamdir->answer     = G_store("/var/tmp");
   streamdir->description= _("Location of temporary STREAMs");
 
   /* temporary VTMPDIR path */
@@ -208,7 +208,7 @@ parse_args(int argc, char *argv[]) {
   numtiles->type       = TYPE_INTEGER;
   numtiles->required   = NO;
   numtiles->description= _("Number of tiles (-h for info)");
-  numtiles->answer     = "-1";
+  numtiles->answer     = G_store("-1");
 
   /* Stem name for stream outputs; used in conjunction with step0 flag */  
   struct Option *s0out;
@@ -217,7 +217,7 @@ parse_args(int argc, char *argv[]) {
   s0out->type       = TYPE_STRING;
   s0out->required   = NO;
   s0out->description= _("Stream name stem for step 0 output");
-  s0out->answer     = S0OUT_ANS;
+  s0out->answer     = G_store(S0OUT_ANS);
 
   struct Option *s0bnd;
   s0bnd = G_define_option() ;
@@ -225,7 +225,7 @@ parse_args(int argc, char *argv[]) {
   s0bnd->type       = TYPE_STRING;
   s0bnd->required   = NO;
   s0bnd->description= _("Stream name for boundary data structure");
-  s0bnd->answer     = S0BND_ANS;
+  s0bnd->answer     = G_store(S0BND_ANS);
 
   /* Name for config file output */  
   struct Option *s1out;
@@ -234,7 +234,7 @@ parse_args(int argc, char *argv[]) {
   s1out->type       = TYPE_STRING;
   s1out->required   = NO;
   s1out->description= _("Output file for step 1");
-  s1out->answer     = S1OUT_ANS;
+  s1out->answer     = G_store(S1OUT_ANS);
 
   /* Name for config file output */  
   struct Option *s2bout;
@@ -243,7 +243,7 @@ parse_args(int argc, char *argv[]) {
   s2bout->type       = TYPE_STRING;
   s2bout->required   = NO;
   s2bout->description= _("Output file for source to boundary stream");
-  s2bout->answer     = S2BOUT_ANS;
+  s2bout->answer     = G_store(S2BOUT_ANS);
 
   /* Name for config file output */  
   struct Option *config;
@@ -252,7 +252,7 @@ parse_args(int argc, char *argv[]) {
   config->type       = TYPE_STRING;
   config->required   = NO;
   config->description= _("Name for config file");
-  config->answer     = CONFIG_ANS;
+  config->answer     = G_store(CONFIG_ANS);
 
  /* Name for config file output */  
   struct Option *phaseBnd;
@@ -261,7 +261,7 @@ parse_args(int argc, char *argv[]) {
   phaseBnd->type       = TYPE_STRING;
   phaseBnd->required   = NO;
   phaseBnd->description= _("Name for phase2Bnd file");
-  phaseBnd->answer     = PHASE2BND_ANS;
+  phaseBnd->answer     = G_store(PHASE2BND_ANS);
 
 
   /* stats file */
@@ -271,7 +271,7 @@ parse_args(int argc, char *argv[]) {
   stats_opt->type       = TYPE_STRING;
   stats_opt->required   = NO;
   stats_opt->description= _("Stats file");
-  stats_opt->answer     = STATS_ANS;
+  stats_opt->answer     = G_store(STATS_ANS);
 
   struct Option *tilesAreSorted;
   tilesAreSorted =  G_define_option();
@@ -279,7 +279,7 @@ parse_args(int argc, char *argv[]) {
   tilesAreSorted->type       = TYPE_STRING;
   tilesAreSorted->required   = NO;
   tilesAreSorted->description  = _("Tiles are sorted (used in grid version) (y/n)");
-  tilesAreSorted->answer = "no";
+  tilesAreSorted->answer = G_store("no");
 
 
   /* ************************* */
