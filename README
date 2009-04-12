@@ -22,6 +22,11 @@ Installation - Code Compilation
   Addons SVN repository should have a Makefile to support easy
   installation.
 
+  Install then into your existing GRASS installation with
+
+    make MODULE_TOPDIR=$HOME/grass64/ install
+
+  This may require "root" priviledges (so, also 'sudo' may help).
 
 * C code/Scripts, with GRASS binaries on your computer:
   compile GRASS Addons modules into your GRASS code by setting 
