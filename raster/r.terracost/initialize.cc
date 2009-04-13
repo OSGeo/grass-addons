@@ -128,7 +128,7 @@ loadGrid (char* cellname, char* sourcename, long* nodata_count,
   FCELL f;
   
   /* Find cost map raster file */
-  char *mapset;
+  const char *mapset;
   mapset = G_find_cell (cellname, "");
   if (mapset == NULL)
     G_fatal_error ("cell file [%s] not found", cellname);
@@ -139,7 +139,7 @@ loadGrid (char* cellname, char* sourcename, long* nodata_count,
   
   //Added by tom hazel 7 July 2004
   /* Find source map raster file */
-  char *mapsetSource;
+  const char *mapsetSource;
   mapsetSource = G_find_cell (sourcename, "");
   if (mapsetSource == NULL)
     G_fatal_error ("cell file [%s] not found", sourcename);
@@ -266,7 +266,7 @@ void loadNormalGrid(char* cellname, char* sourcename, long* nodata_count,
   costStructure costStruct;
   
   /* Find cost map raster file */
-  char *mapset;
+  const char *mapset;
   mapset = G_find_cell (cellname, "");
   if (mapset == NULL)
     G_fatal_error ("cell file [%s] not found", cellname);
@@ -277,7 +277,7 @@ void loadNormalGrid(char* cellname, char* sourcename, long* nodata_count,
   
   //Added by tom hazel 7 July 2004
   /* Find source map raster file */
-  char *mapsetSource;
+  const char *mapsetSource;
   mapsetSource = G_find_cell (sourcename, "");
   if (mapsetSource == NULL)
     G_fatal_error ("cell file [%s] not found", sourcename);
