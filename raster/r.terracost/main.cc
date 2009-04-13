@@ -25,6 +25,7 @@
 extern "C" {
 #include <grass/gis.h>
 #include <grass/glocale.h>
+#include <grass/version.h>
 }
 #include <grass/iostream/ami.h>
 
@@ -481,9 +482,13 @@ main(int argc, char *argv[]) {
   /* get the current region and dimensions */  
   region = (struct Cell_head*)malloc(sizeof(struct Cell_head));
   assert(region);
+#if defined(GRASS_VERSION_MAJOR) && (GRASS_VERSION_MAJOR > 6)
+  G_get_set_window(region);
+#else
   if (G_get_set_window(region) == -1) {
-    G_fatal_error("r.terracost: error getting current region");
+      G_fatal_error(_("Unable to get current region"));
   }
+#endif
   int nr = G_window_rows();
   int nc = G_window_cols();
   if ((nr > dimension_type_max) || (nc > dimension_type_max)) {
@@ -633,8 +638,12 @@ main(int argc, char *argv[]) {
   
   /* initializes values used in update.cc */
   Cell_head window;
-  int ok = G_get_window(&window); 
+#if defined(GRASS_VERSION_MAJOR) && (GRASS_VERSION_MAJOR > 6)
+  G_get_window(&window);
+#else
+  int ok = G_get_window(&window);
   assert(ok >= 0);
+#endif
   opt->EW_fac = 1.0 ;
   opt->NS_fac = window.ns_res/window.ew_res ;
   opt->DIAG_fac = (double)sqrt((double)(opt->NS_fac*opt->NS_fac + 
