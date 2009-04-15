@@ -87,30 +87,20 @@ parse_args(int argc, char *argv[]) {
 
   /* input elevation grid  */
   struct Option *input_cost;
-  input_cost = G_define_option() ;
-  input_cost->key        = "input";
-  input_cost->type       = TYPE_STRING;
-  input_cost->required   = YES;
-  input_cost->gisprompt  = "old,cell,raster" ;
-  input_cost->description= _("Input cost grid");
+  input_cost = G_define_standard_option(G_OPT_R_INPUT);
+  input_cost->description= _("Name of raster map containing grid cell cost information");
 
   /* source point raster */
   struct Option *source_grid;
-  source_grid = G_define_option() ;
+  source_grid = G_define_standard_option(G_OPT_R_INPUT);
   source_grid->key        = "start_raster";
-  source_grid->type       = TYPE_STRING;
-  source_grid->required   = YES;
-  source_grid->gisprompt  = "Raster of source points" ;
-  source_grid->description= _("Input raster of source points");
+  source_grid->description= _("Name of starting raster points map");
+  source_grid->guisection = _("Start");
 
   /* output direction  grid */
   struct Option *output_cost;
-  output_cost = G_define_option() ;
-  output_cost->key        = "output";
-  output_cost->type       = TYPE_STRING;
-  output_cost->required   = YES;
-  output_cost->gisprompt  = "new,cell,raster" ;
-  output_cost->description= _("Output distance grid");
+  output_cost = G_define_standard_option(G_OPT_R_OUTPUT);
+  output_cost->description= _("Output distance grid raster map");
 
   /* Number of tiles */  
   struct Option *numtiles;
@@ -162,6 +152,7 @@ parse_args(int argc, char *argv[]) {
   help_f->description  = _("Help");
 
   /* verbose flag */
+  /* please, remove before GRASS 7 released */
   struct Flag *quiet;
   quiet = G_define_flag() ;
   quiet->key         = 'q' ;
@@ -177,41 +168,46 @@ parse_args(int argc, char *argv[]) {
   ascii = G_define_flag() ;
   ascii->key         = 's' ;
   ascii->description = _("Dbg: Save output to ASCII file \"DIST_GRID\"");
+  ascii->guisection = _("Debug");
 
   struct Flag *debug_f;
   debug_f = G_define_flag();
   debug_f->key         = 'd' ; 
   debug_f->description  = _("Dbg: Print (a lot of) debug info (developer use)");
-
+  debug_f->guisection = _("Debug");
 
   /* Run step0 only flag */
   struct Flag *step0;
   step0 = G_define_flag();
   step0->key         = '0' ; 
   step0->description  = _("Dbg: Step 0 only (default: run all)");
+  step0->guisection = _("Debug");
 
   /* Run step 1 only flag*/
   struct Flag *step1;
   step1 = G_define_flag() ;
   step1->key         = '1' ;
   step1->description = _("Dbg: Step 1 only (default: run all)");
+  step1->guisection = _("Debug");
 
   /* Run step 2 and 3 only flags */
   struct Flag *step2;
   step2 = G_define_flag();
   step2->key         = '2' ; 
   step2->description  = _("Dbg: Step 2 only (default: run all)");
+  step2->guisection = _("Debug");
 
   struct Flag *step3;
   step3 = G_define_flag();
   step3->key         = '3' ; 
   step3->description  = _("Dbg: Step 3 only (default: run all)");
+  step3->guisection = _("Debug");
   
   struct Flag *step4;
   step4 = G_define_flag();
   step4->key         = '4' ; 
   step4->description  = _("Dbg: Step 4 only (default: run all)");
-
+  step4->guisection = _("Debug");
 
   /* Stem name for stream outputs; used in conjunction with step0 flag */  
   struct Option *s0out;
@@ -221,6 +217,7 @@ parse_args(int argc, char *argv[]) {
   s0out->required   = NO;
   s0out->description= _("Dbg: Stream name stem for step 0 output");
   s0out->answer     = G_store(S0OUT_ANS);
+  s0out->guisection = _("Debug");
 
   struct Option *s0bnd;
   s0bnd = G_define_option() ;
@@ -229,6 +226,7 @@ parse_args(int argc, char *argv[]) {
   s0bnd->required   = NO;
   s0bnd->description= _("Dbg: Stream name for boundary data structure");
   s0bnd->answer     = G_store(S0BND_ANS);
+  s0bnd->guisection = _("Debug");
 
   /* Name for config file output */  
   struct Option *s1out;
@@ -238,6 +236,7 @@ parse_args(int argc, char *argv[]) {
   s1out->required   = NO;
   s1out->description= _("Dbg: Output file for step 1");
   s1out->answer     = G_store(S1OUT_ANS);
+  s1out->guisection = _("Debug");
 
   /* Name for config file output */  
   struct Option *s2bout;
@@ -247,6 +246,7 @@ parse_args(int argc, char *argv[]) {
   s2bout->required   = NO;
   s2bout->description= _("Dbg: Output file for source to boundary stream");
   s2bout->answer     = G_store(S2BOUT_ANS);
+  s2bout->guisection = _("Debug");
 
   /* Name for config file output */  
   struct Option *config;
@@ -256,6 +256,7 @@ parse_args(int argc, char *argv[]) {
   config->required   = NO;
   config->description= _("Dbg: Name for config file");
   config->answer     = G_store(CONFIG_ANS);
+  config->guisection = _("Debug");
 
  /* Name for config file output */  
   struct Option *phaseBnd;
@@ -265,7 +266,7 @@ parse_args(int argc, char *argv[]) {
   phaseBnd->required   = NO;
   phaseBnd->description= _("Dbg: Name for phase2Bnd file");
   phaseBnd->answer     = G_store(PHASE2BND_ANS);
-
+  phaseBnd->guisection = _("Debug");
 
   /* stats file */
   struct Option *stats_opt;
@@ -275,6 +276,7 @@ parse_args(int argc, char *argv[]) {
   stats_opt->required   = NO;
   stats_opt->description= _("Dbg: Stats file");
   stats_opt->answer     = G_store(STATS_ANS);
+  stats_opt->guisection = _("Debug");
 
   struct Option *tilesAreSorted;
   tilesAreSorted =  G_define_option();
@@ -283,7 +285,7 @@ parse_args(int argc, char *argv[]) {
   tilesAreSorted->required   = NO;
   tilesAreSorted->description  = _("Dbg: Tiles are sorted (used in grid version) (y/n)");
   tilesAreSorted->answer = G_store("no");
-
+  tilesAreSorted->guisection = _("Debug");
 
   /* ************************* */
   if (G_parser(argc, argv)) {
