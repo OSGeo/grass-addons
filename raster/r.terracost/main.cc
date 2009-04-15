@@ -88,9 +88,9 @@ parse_args(int argc, char *argv[]) {
   /* input elevation grid  */
   struct Option *input_cost;
   input_cost = G_define_option() ;
-  input_cost->key        = "cost";
+  input_cost->key        = "input";
   input_cost->type       = TYPE_STRING;
-  //input_cost->required   = YES;
+  input_cost->required   = YES;
   input_cost->gisprompt  = "old,cell,raster" ;
   input_cost->description= _("Input cost grid");
 
@@ -99,18 +99,27 @@ parse_args(int argc, char *argv[]) {
   source_grid = G_define_option() ;
   source_grid->key        = "start_raster";
   source_grid->type       = TYPE_STRING;
-  //source_grid->required   = YES;
+  source_grid->required   = YES;
   source_grid->gisprompt  = "Raster of source points" ;
   source_grid->description= _("Input raster of source points");
 
   /* output direction  grid */
   struct Option *output_cost;
   output_cost = G_define_option() ;
-  output_cost->key        = "distance";
+  output_cost->key        = "output";
   output_cost->type       = TYPE_STRING;
-  //output_cost->required   = YES;
+  output_cost->required   = YES;
   output_cost->gisprompt  = "new,cell,raster" ;
   output_cost->description= _("Output distance grid");
+
+  /* Number of tiles */  
+  struct Option *numtiles;
+  numtiles = G_define_option() ;
+  numtiles->key = "numtiles";
+  numtiles->type       = TYPE_INTEGER;
+  numtiles->required   = NO;
+  numtiles->description= _("Number of tiles (default: 1)");
+  numtiles->answer     = G_store("1");
 
   /* main memory */
   struct Option *mem;
@@ -158,58 +167,51 @@ parse_args(int argc, char *argv[]) {
   quiet->key         = 'q' ;
   quiet->description = _("Quiet") ;
 
+  struct Flag *info_f;
+  info_f = G_define_flag();
+  info_f->key         = 'i' ; 
+  info_f->description  = _("Info (print suggested numtiles information and exit)");
+
   /* save ascii grid flag */
   struct Flag *ascii; 
   ascii = G_define_flag() ;
   ascii->key         = 's' ;
-  ascii->description = _("Save output to ASCII file \"DIST_GRID\"");
+  ascii->description = _("Dbg: Save output to ASCII file \"DIST_GRID\"");
 
   struct Flag *debug_f;
   debug_f = G_define_flag();
   debug_f->key         = 'd' ; 
-  debug_f->description  = _("Debug (for developer use)");
+  debug_f->description  = _("Dbg: Print (a lot of) debug info (developer use)");
 
-  struct Flag *info_f;
-  info_f = G_define_flag();
-  info_f->key         = 'i' ; 
-  info_f->description  = _("Info (prints useful information and exits)");
 
   /* Run step0 only flag */
   struct Flag *step0;
   step0 = G_define_flag();
   step0->key         = '0' ; 
-  step0->description  = _("Step 0 only (-h for info)");
+  step0->description  = _("Dbg: Step 0 only (default: run all)");
 
   /* Run step 1 only flag*/
   struct Flag *step1;
   step1 = G_define_flag() ;
   step1->key         = '1' ;
-  step1->description = _("Step 1 only (-h for info)");
+  step1->description = _("Dbg: Step 1 only (default: run all)");
 
   /* Run step 2 and 3 only flags */
   struct Flag *step2;
   step2 = G_define_flag();
   step2->key         = '2' ; 
-  step2->description  = _("Step 2 only (-h for info)");
+  step2->description  = _("Dbg: Step 2 only (default: run all)");
 
   struct Flag *step3;
   step3 = G_define_flag();
   step3->key         = '3' ; 
-  step3->description  = _("Step 3 only (-h for info)");
+  step3->description  = _("Dbg: Step 3 only (default: run all)");
   
   struct Flag *step4;
   step4 = G_define_flag();
   step4->key         = '4' ; 
-  step4->description  = _("Step 4 only (-h for info)");
+  step4->description  = _("Dbg: Step 4 only (default: run all)");
 
-  /* Number of tiles; used in conjunction with step0 flag */  
-  struct Option *numtiles;
-  numtiles = G_define_option() ;
-  numtiles->key = "numtiles";
-  numtiles->type       = TYPE_INTEGER;
-  numtiles->required   = NO;
-  numtiles->description= _("Number of tiles (-h for info)");
-  numtiles->answer     = G_store("-1");
 
   /* Stem name for stream outputs; used in conjunction with step0 flag */  
   struct Option *s0out;
@@ -217,7 +219,7 @@ parse_args(int argc, char *argv[]) {
   s0out->key = S0OUT;
   s0out->type       = TYPE_STRING;
   s0out->required   = NO;
-  s0out->description= _("Stream name stem for step 0 output");
+  s0out->description= _("Dbg: Stream name stem for step 0 output");
   s0out->answer     = G_store(S0OUT_ANS);
 
   struct Option *s0bnd;
@@ -225,7 +227,7 @@ parse_args(int argc, char *argv[]) {
   s0bnd->key = S0BND;
   s0bnd->type       = TYPE_STRING;
   s0bnd->required   = NO;
-  s0bnd->description= _("Stream name for boundary data structure");
+  s0bnd->description= _("Dbg: Stream name for boundary data structure");
   s0bnd->answer     = G_store(S0BND_ANS);
 
   /* Name for config file output */  
@@ -234,7 +236,7 @@ parse_args(int argc, char *argv[]) {
   s1out->key = S1OUT;
   s1out->type       = TYPE_STRING;
   s1out->required   = NO;
-  s1out->description= _("Output file for step 1");
+  s1out->description= _("Dbg: Output file for step 1");
   s1out->answer     = G_store(S1OUT_ANS);
 
   /* Name for config file output */  
@@ -243,7 +245,7 @@ parse_args(int argc, char *argv[]) {
   s2bout->key = S2BOUT;
   s2bout->type       = TYPE_STRING;
   s2bout->required   = NO;
-  s2bout->description= _("Output file for source to boundary stream");
+  s2bout->description= _("Dbg: Output file for source to boundary stream");
   s2bout->answer     = G_store(S2BOUT_ANS);
 
   /* Name for config file output */  
@@ -252,7 +254,7 @@ parse_args(int argc, char *argv[]) {
   config->key = CONFIG;
   config->type       = TYPE_STRING;
   config->required   = NO;
-  config->description= _("Name for config file");
+  config->description= _("Dbg: Name for config file");
   config->answer     = G_store(CONFIG_ANS);
 
  /* Name for config file output */  
@@ -261,7 +263,7 @@ parse_args(int argc, char *argv[]) {
   phaseBnd->key = PHASE2BND;
   phaseBnd->type       = TYPE_STRING;
   phaseBnd->required   = NO;
-  phaseBnd->description= _("Name for phase2Bnd file");
+  phaseBnd->description= _("Dbg: Name for phase2Bnd file");
   phaseBnd->answer     = G_store(PHASE2BND_ANS);
 
 
@@ -271,7 +273,7 @@ parse_args(int argc, char *argv[]) {
   stats_opt->key = "stats";
   stats_opt->type       = TYPE_STRING;
   stats_opt->required   = NO;
-  stats_opt->description= _("Stats file");
+  stats_opt->description= _("Dbg: Stats file");
   stats_opt->answer     = G_store(STATS_ANS);
 
   struct Option *tilesAreSorted;
@@ -279,7 +281,7 @@ parse_args(int argc, char *argv[]) {
   tilesAreSorted->key         = "tilesAreSorted" ; 
   tilesAreSorted->type       = TYPE_STRING;
   tilesAreSorted->required   = NO;
-  tilesAreSorted->description  = _("Tiles are sorted (used in grid version) (y/n)");
+  tilesAreSorted->description  = _("Dbg: Tiles are sorted (used in grid version) (y/n)");
   tilesAreSorted->answer = G_store("no");
 
 
@@ -544,18 +546,16 @@ main(int argc, char *argv[]) {
     fprintf(stdout, "terracost intermediate files in %s\n", getenv(VTMPDIR)); 
   }
   
-  if(opt->runMode != RUN_ALL) {
-    struct stat sb;
-    if(stat(opt->vtmpdir, &sb) < 0) {
-      perror(opt->vtmpdir);
-      // try to make VTMPDIR
-      fprintf(stderr, "trying to create %s\n", opt->vtmpdir);
-      if(mkdir(opt->vtmpdir, 0777)) {
-	if(errno != EEXIST) {
-	  perror(opt->vtmpdir);
-	  // this might not be a fatal error (maybe we dont use it), so go on -RW
-	  //exit(1);
-	}
+  /* DOES VTMPDIR exist? If not, create it */
+  struct stat sb;
+  if(stat(opt->vtmpdir, &sb) < 0) {
+    perror(opt->vtmpdir);
+    fprintf(stderr, "trying to create %s\n", opt->vtmpdir);
+    if(mkdir(opt->vtmpdir, 0777)) {
+      if(errno != EEXIST) {
+	perror(opt->vtmpdir);
+	// this might not be a fatal error (maybe we dont use it)?
+	exit(1);
       }
     }
   }
@@ -593,9 +593,8 @@ main(int argc, char *argv[]) {
   }
   
   
-  // PICK A GOOD NUMBER OF TILES HERE
+  // CHECK NUMBER OF TILES 
   if(opt->numtiles < 1) {
-    fprintf(stderr, "ERROR: numtiles not set; default value=-1\n");
     fprintf(stderr, "ERROR: numtiles must be >= 1\n");
     exit(1);
   }
@@ -1061,7 +1060,7 @@ main(int argc, char *argv[]) {
 		assert(phase2Bnd); 
 	  }//end reconstruct
 
-	  //this should be known t this point (either form step3 or
+	  //this should be known at this point (either form step3 or
 	  //reconstructed)
 	  assert(phase2Bnd); 
 	  
