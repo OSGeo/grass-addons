@@ -24,9 +24,7 @@
 #include "local_include.h"
 
 
-/* 
- * global function declaration 
- */
+/* global function declaration */
 extern CELL f_c(CELL);
 extern FCELL f_f(FCELL);
 extern DCELL f_d(DCELL);
@@ -90,7 +88,6 @@ int main(int argc, char *argv[])
     struct GModule *module;	/* GRASS module for parsing arguments */
 
     struct Option *inputSand, *inputClay, *inputTextureScheme, *output;	/* options */
-    struct Flag *flag1;		/* flags */
 
     struct TextureTriangleCoord *punt_lista;
 
@@ -103,39 +100,26 @@ int main(int argc, char *argv[])
     module->description = _("Define soil texture from sand and clay grid.");	//D
 
     /* Define the different options for SAND file */
-    inputSand = G_define_option();
-    inputSand->key = "SAND";
-    inputSand->type = TYPE_STRING;
-    inputSand->required = YES;
-    inputSand->gisprompt = "old,cell,raster";
-    inputSand->description = _("Name of an input SAND layer");
+    inputSand = G_define_standard_option(G_OPT_R_INPUT);
+    inputSand->key = "sand";
+    inputSand->description = _("Name of input SAND map");
 
     /* Define the different options for CLAY file */
-    inputClay = G_define_option();
-    inputClay->key = "CLAY";
-    inputClay->type = TYPE_STRING;
-    inputClay->required = YES;
-    inputClay->gisprompt = "old,cell,raster";
-    inputClay->description = _("Name of an input CLAY layer");
+    inputClay = G_define_standard_option(G_OPT_R_INPUT);
+    inputClay->key = "clay";
+    inputClay->description = _("Name of input CLAY map");
 
     /*Define the texture file scheme: USDA, FAO, International or other scheme */
-    inputTextureScheme = G_define_option();
+    inputTextureScheme = G_define_standard_option(G_OPT_F_INPUT);
     inputTextureScheme->key = "scheme";
-    inputTextureScheme->type = TYPE_STRING;
-    inputTextureScheme->required = YES;
-    inputTextureScheme->gisprompt = "old_file,file,input";
-    inputTextureScheme->answer = "";
-    inputTextureScheme->description = "Text file with texture scheme ";
+    inputTextureScheme->description = _("Text file with texture scheme");
 
-    output = G_define_option();
-    output->key = "output";
-    output->type = TYPE_STRING;
-    output->required = YES;
-    output->description = _("Output texture file");
+    output = G_define_standard_option(G_OPT_R_OUTPUT);
 
     /* options and flags pareser */
     if (G_parser(argc, argv))
-	exit(-1);
+	exit(EXIT_FAILURE);
+
 
     /* stores options and flags to variables */
     SandName = inputSand->answer;
@@ -262,8 +246,8 @@ int main(int argc, char *argv[])
 
     reclassTexture(SchemeName, result);
 
-    G_message("Soil texture file generated with name:<%s>", result);
-    return 0;
+    G_done_msg(_("Soil texture file generated with name: <%s>"), result);
+    exit(EXIT_SUCCESS);
 }
 
 
