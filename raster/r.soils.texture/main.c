@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
     /* initialize module */
     module = G_define_module();
-    module->description = _("Define soil texture from sand and clay grid.")
+    module->description = _("Define soil texture from sand and clay grid.");
 
     /* Define the different options for SAND file */
     inputSand = G_define_standard_option(G_OPT_R_INPUT);
