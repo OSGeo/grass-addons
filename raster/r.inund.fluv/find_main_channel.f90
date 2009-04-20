@@ -41,8 +41,10 @@ integer::i, ii, iend, righe, colonne, nrighe, pixel_i, pixel_j, j, center_i, cen
 integer::pixel_temp_i, pixel_temp_j, temp_x, temp_y
 !real, allocatable, dimension(:,:):: quota_terreno
 !character(2), allocatable, dimension(:,:):: limiti_alveo
-real(kind=8)::x, E1, N1, E1dopo, N1dopo, z, livello, E2, N2, dir_ortog, dist, E_temp, N_temp,  coord_N, coord_E, quota, dist_temp, quota_max
-real(kind=8):: dist_destra, dist_sinistra, verifica_dist, pendenza, pendenza_max, quota_limite, quota_centro
+real(kind=8)::x, E1, N1, E1dopo, N1dopo, z, livello, E2, N2, dir_ortog, dist
+real(kind=8):: E_temp, N_temp,  coord_N, coord_E, quota, dist_temp, quota_max
+real(kind=8):: dist_destra, dist_sinistra, verifica_dist, pendenza, pendenza_max
+real(kind=8):: quota_limite, quota_centro
 character(len=40)::xx, tab, tab1
 real,dimension(2)::quota_temp
 real, dimension(500):: E_ds, N_ds, E_sx, N_sx

@@ -439,6 +439,8 @@ r.to.vect -s input=inondazione1 output=inondazione1 feature=area --overwrite --q
 v.patch input=centerline,punti3d_reticolo output=overlap --overwrite --quiet
 v.select ainput=inondazione1 atype=area alayer=1 binput=overlap btype=line blayer=1 output=inondazione operator=overlap --overwrite --quiet
 v.to.rast input=inondazione output=$inondazione use=val layer=1 value=1 rows=4096 --overwrite --quiet
+#water level assignement 
+r.mapcalculator amap=$inondazione bmap=quote_punti_adiacenti cmap=$dtm formula='A*B-C' outfile=$inondazione help=- --quiet
 
 #COLOURS OF INUNDATION RASTER MAP
 rm -f ".colore_inondazione.file"
