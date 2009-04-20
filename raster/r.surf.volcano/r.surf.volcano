@@ -119,7 +119,7 @@ else
 
 fi
 
-# test for overwrite as r.mapcalc doesn't
+# test if it worked
 eval `g.findfile element=cell file="$GIS_OPT_OUTPUT" mapset=.`
 if [ -z "$name" ] ; then
    G_message -e "Surface creation failed"
