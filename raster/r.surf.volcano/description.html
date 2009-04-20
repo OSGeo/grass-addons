@@ -1,0 +1,53 @@
+<H2>DESCRIPTION</H2>
+
+
+<EM>r.surf.volcano</EM> creates an artifical surface resembling a seamount
+or volcano. The user can alter the size and shape of the mountain and
+optionally roughen its surface.
+
+
+<H2>NOTES</H2>
+
+The friction of distance controls the shape of the mountain.
+Higher values generate steeper slopes.
+<P>
+The surface roughness factor controls the fixed standard deviation
+distance (<b>sigma</b>) used in the Gaussian random number generator.
+It is only used when the <B>-r</B> roughen surface flag is turned on.
+A value closer to zero makes a smoother surface, a higher value makes
+a rougher surface.
+<P>
+It is possible to set a negative value for the <B>peak</B> in order
+to create a pit.
+
+
+<H2>EXAMPLE</H2>
+
+<div class="code"><pre>
+r.surf.volcano -r output=seamount
+
+r.colors seamount color=sepia -e
+d.rast seamount
+
+r.colors seamount color=srtm
+nviz seamount
+</pre></div>
+
+
+<H2>SEE ALSO</H2>
+
+<EM>
+<A HREF="r.surf.fractal.html">r.surf.fractal</A><BR>
+<A HREF="r.surf.gauss.html">r.surf.gauss</A><BR>
+<A HREF="r.surf.random.html">r.surf.random</A>
+</EM>
+
+<H2>AUTHOR</H2>
+
+Hamish Bowman<BR>
+<i>Dept. Marine Science<BR>
+University of Otago<BT>
+Dunedin, New Zealand</i>
+
+<p>
+<i>Last changed: $Date$</i>
