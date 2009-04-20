@@ -3,7 +3,7 @@
  * MODULE:       r.soils.texture
  * AUTHOR(S):    Gianluca Massei (g_massa@libero.it)
  * PURPOSE:      Intended to define soil texture from sand and clay grid.
- *				 Require texture scheme supplied in scheme directory
+ *		 Require texture scheme supplied in scheme directory
  *
  * COPYRIGHT:    (C) 2008 by the GRASS Development Team
  *
