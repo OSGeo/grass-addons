@@ -97,17 +97,17 @@ int main(int argc, char *argv[])
 
     /* initialize module */
     module = G_define_module();
-    module->description = _("Define soil texture from sand and clay grid.");	//D
+    module->description = _("Define soil texture from sand and clay grid.")
 
     /* Define the different options for SAND file */
     inputSand = G_define_standard_option(G_OPT_R_INPUT);
     inputSand->key = "sand";
-    inputSand->description = _("Name of input SAND map");
+    inputSand->description = _("Name of input sand map [0-100]");
 
     /* Define the different options for CLAY file */
     inputClay = G_define_standard_option(G_OPT_R_INPUT);
     inputClay->key = "clay";
-    inputClay->description = _("Name of input CLAY map");
+    inputClay->description = _("Name of input clay map [0-100]");
 
     /*Define the texture file scheme: USDA, FAO, International or other scheme */
     inputTextureScheme = G_define_standard_option(G_OPT_F_INPUT);
