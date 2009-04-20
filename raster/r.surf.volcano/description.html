@@ -26,11 +26,16 @@ to create a pit.
 <div class="code"><pre>
 r.surf.volcano -r output=seamount
 
+# view in the display monitor
 r.colors seamount color=sepia -e
 d.rast seamount
 
+# view in 3D
 r.colors seamount color=srtm
 nviz seamount
+
+# export to Matlab
+r.out.mat in=seamount out=seamount.mat
 </pre></div>
 
 

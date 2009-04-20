@@ -115,7 +115,7 @@ else
 	volc.surf.$$ + (volc.surf_gauss.$$ * $PEAK/400 )"
 
    g.rename rast="volc.surf_rough.$$,$GIS_OPT_OUTPUT" --quiet
-   g.remove rast="volc.dist_units.$$,volc.dist_norm.$$,volc.surf_gauss.$$" --quiet
+   g.remove rast="volc.dist_units.$$,volc.dist_norm.$$,volc.surf_gauss.$$,volc.surf.$$" --quiet
 
 fi
 
