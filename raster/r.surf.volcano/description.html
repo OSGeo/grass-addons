@@ -36,6 +36,10 @@ nviz seamount
 
 # export to Matlab
 r.out.mat in=seamount out=seamount.mat
+
+# integrate into existing DEM
+r.mapcalc "seamount_dem=if(seamount > dem, seamount, dem)"
+r.colors seamount_dem color=srtm
 </pre></div>
 
 
