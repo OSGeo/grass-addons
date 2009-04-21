@@ -35,7 +35,14 @@
 #% type: double
 #% required: no
 #% description: Height of cone
-#% answer: 1000
+#% answer: 1000.0
+#%End
+#%Option
+#% key: crater
+#% type: double
+#% required: no
+#% description: Depth of crater below the cone (bigger means wider)
+#% answer: 0.0
 #%End
 #%Option
 #% key: friction
@@ -56,6 +63,7 @@
 #% key: r
 #% description: Roughen the surface
 #%End
+
 ## TODO
 ##%Flag
 ##% key: n
@@ -73,6 +81,7 @@ fi
 
 FRICTION="$GIS_OPT_FRICTION"
 PEAK="$GIS_OPT_PEAK"
+CRATER="$GIS_OPT_CRATER"
 SIGMA="$GIS_OPT_SIGMA"
 
 
@@ -81,7 +90,7 @@ eval `g.findfile element=cell file="$GIS_OPT_OUTPUT" mapset=.`
 if [ -n "$name" ] ; then
    # map already exists
    if [ -z "$GRASS_OVERWRITE" ] || [ "$GRASS_OVERWRITE" -ne 1 ] ; then
-      G_message -e "option <output>: <$GIS_OPT_OUTPUT> exists."
+      g.message -e "option <output>: <$GIS_OPT_OUTPUT> exists."
       exit 1
    fi
 fi
@@ -99,30 +108,44 @@ r.mapcalc "volc.dist_norm.$$ = ($max - volc.dist_units.$$) / $max"
 
 
 g.message -v "Creating IDW surface ..."
-r.mapcalc "volc.surf.$$ = $PEAK * pow( volc.dist_norm.$$, $FRICTION )"
+r.mapcalc "volc.peak.$$ = ($PEAK + abs($CRATER) ) \
+	* pow( volc.dist_norm.$$, $FRICTION )"
 
 
 if [ "$GIS_FLAG_R" -eq 0 ] ; then
-   g.rename rast="volc.surf.$$,$GIS_OPT_OUTPUT" --quiet
-   g.remove rast="volc.dist_units.$$,volc.dist_norm.$$" --quiet
+   g.rename rast="volc.peak.$$,volc.surf.$$" --quiet
 else
    # roughen it up a bit
    g.message -v "Creating random Gaussian mottle ..."
    r.surf.gauss out="volc.surf_gauss.$$" sigma="$SIGMA"
 
    g.message -v "Applying Gaussian mottle ..."
-   r.mapcalc "volc.surf_rough.$$ = \
-	volc.surf.$$ + (volc.surf_gauss.$$ * $PEAK/400 )"
+   r.mapcalc "volc.peak_rough.$$ = \
+	volc.peak.$$ + (volc.surf_gauss.$$ * $PEAK/400 )"
 
-   g.rename rast="volc.surf_rough.$$,$GIS_OPT_OUTPUT" --quiet
-   g.remove rast="volc.dist_units.$$,volc.dist_norm.$$,volc.surf_gauss.$$,volc.surf.$$" --quiet
+   g.rename rast="volc.peak_rough.$$,volc.surf.$$" --quiet
+   g.remove rast="volc.surf_gauss.$$,volc.peak.$$" --quiet
 
 fi
+
+g.remove rast="volc.dist_units.$$,volc.dist_norm.$$" --quiet
+
+if [ "$CRATER" == "0.0" ] ; then
+   g.rename rast="volc.surf.$$,$GIS_OPT_OUTPUT" --quiet
+else
+   g.message -v "Creating crater ..."
+   r.mapcalc "volc.full.$$ = if( volc.surf.$$ > $PEAK, \
+	2*$PEAK - volc.surf.$$, volc.surf.$$ )"
+
+   g.rename rast="volc.full.$$,$GIS_OPT_OUTPUT" --quiet
+   g.remove rast="volc.surf.$$" --quiet
+fi
+
 
 # test if it worked
 eval `g.findfile element=cell file="$GIS_OPT_OUTPUT" mapset=.`
 if [ -z "$name" ] ; then
-   G_message -e "Surface creation failed"
+   g.message -e "Surface creation failed"
    exit 1
 fi
 

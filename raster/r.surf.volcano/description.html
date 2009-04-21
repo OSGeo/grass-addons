@@ -21,7 +21,7 @@ It is possible to set a negative value for the <B>peak</B> in order
 to create a pit.
 
 
-<H2>EXAMPLE</H2>
+<H2>EXAMPLES</H2>
 
 <div class="code"><pre>
 r.surf.volcano -r output=seamount
@@ -41,6 +41,23 @@ r.out.mat in=seamount out=seamount.mat
 r.mapcalc "seamount_dem=if(seamount > dem, seamount, dem)"
 r.colors seamount_dem color=srtm
 </pre></div>
+
+
+Create a roughened volcano with a crater:
+<div class="code"><pre>
+r.surf.volcano -r output=volcano crater=250 --verbose
+r.shaded.relief volcano
+</pre></div>
+
+Create a fancy 3D scene:
+<div class="code"><pre>
+r.surf.volcano -r output=base_volcano peak=600 crater=120
+r.surf.fractal output=base_fractal
+r.mapcalc "artificial_land = base_volcano + base_fractal"
+r.colors artificial_land color=srtm
+nviz artificial_land
+</pre></div>
+
 
 
 <H2>SEE ALSO</H2>
