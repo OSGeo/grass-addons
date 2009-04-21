@@ -71,6 +71,22 @@
 ##% description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
 ##%End
 
+## TODO
+##%Flag
+##% key: g
+##% description: Use a Gaussian curve instead of 1/(d^n) for radial basis function
+##%End
+# normalized Gaussian curve:  f(x) = a * e^( (x-b)^2 / 2*(c^2) )
+#  parameters: a = 1/(sigma*sqrt(2pi)), b = mu, c = sigma
+#  mu is mean value and sigma^2 is variance.
+#  so we only need b,c. and b can be locked at 0 here. so user only needs
+#  to give sigma (width)
+#  thus r.mapcalc expr could look like
+#   SIGMA=1.0   # beware variable namespace collision with roughness factor
+#   r.mapcalc doesn't have a pi(), so define it:  PI=3.14159265358979323846
+#   f(distance) = ( 1 / ($SIGMA*sqrt(2*$PI)) ) * exp( $DIST^2 / (2 * $SIGMA^2) )
+
+
 if [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." 1>&2
     exit 1
