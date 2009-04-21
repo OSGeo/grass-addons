@@ -46,40 +46,33 @@
 #% answer: 0.0
 #%End
 #%Option
+#% key: method
+#% type: string
+#% required: no
+#% description: Mathematical function for creating the mountain
+#% answer: polynomial
+#% options: polynomial,gaussian,lorentzian,logarithmic,exponential
+#% descriptions: polynomial;1/distance^n;gaussian;Gaussian function;lorentzian;Cauchy-Lorentz distribution;logarithmic;Logarithmic decay;exponential;Exponential decay
+#%End
+#%Option
 #% key: friction
 #% type: integer
 #% required: no
 #% options: 1-25
-#% label: Friction of distance, (the 'n' in 1/d^n)
-#% description: Higher values generate steeper slopes. (not used in Gaussian curve mode)
+#% label: Polynomial friction of distance, (the 'n' in 1/d^n)
+#% description: Higher values generate steeper slopes. (only used with the polynomial method)
 #% answer: 6
 #%End
-
-#%Flag
-#% key: g
-#% description: Use a Gaussian curve instead of 1/(d^n) for radial basis function
-#%End
-# normalized Gaussian curve:  f(x) = a * e^( (x-b)^2 / 2*(c^2) )
-#  parameters: a = 1/(sigma*sqrt(2pi)), b = mu, c = sigma
-#  mu is mean value and sigma^2 is variance.
-#  so we only need b,c. and b can be locked at 0 here. so user only needs
-#  to give sigma (width)
-#  thus r.mapcalc expr could look like
-#   SIGMA=1.0   # beware variable namespace collision with roughness factor
-#   r.mapcalc doesn't have a pi(), so define it:  PI=3.14159265358979323846
-#   f(distance) = ( 1 / ($SIGMA*sqrt(2*$PI)) ) * exp( -1* $DIST^2 / (2 * $SIGMA^2) )
-#
 ## FIXME: ok, it isn't really kurtosis but it's similar and I couldn't
 ##        think of a better name.
 #%Option
 #% key: kurtosis
 #% type: double
 #% required: no
-#% label: Peak steepness (used with Gaussian curve mode)
-#% description: Nearer to 0 is flatter, higher values generate steeper slopes.
+#% label: Slope steepness (used with all methods except polynomial)
+#% description: For Gaussian: nearer to 0 is flatter, higher values generate steeper slopes. For Lorentzian, logarithmic, and exponential the opposite is true.
 #% answer: 1.0
 #%End
-
 #%Flag
 #% key: r
 #% description: Roughen the surface
@@ -92,12 +85,6 @@
 #% description: Nearer to 0 is smoother, higher values make a rougher surface.
 #% answer: 1.0
 #%End
-
-## TODO
-##%Flag
-##% key: n
-##% description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
-##%End
 
 
 
@@ -115,6 +102,7 @@ PEAK="$GIS_OPT_PEAK"
 CRATER="$GIS_OPT_CRATER"
 SIGMA="$GIS_OPT_SIGMA"
 KURTOSIS="$GIS_OPT_KURTOSIS"
+METHOD="$GIS_OPT_METHOD"
 
 
 # test for overwrite as r.mapcalc doesn't
@@ -136,36 +124,94 @@ r.mapcalc "volc.dist_units.$$ = \
 
 g.message -v "Normalizing cost map ..."
 eval `r.info -r "volc.dist_units.$$"`
-if [ "$GIS_FLAG_G" -eq 0 ] ; then
-   # Normalize with 1 in the center and 0 at outer edge
-   r.mapcalc "volc.dist_norm.$$ = ($max - volc.dist_units.$$) / $max"
-
-   g.message -v "Creating IDW surface ..."
-   r.mapcalc "volc.peak.$$ = ($PEAK + abs($CRATER) ) \
-	* pow( volc.dist_norm.$$, $FRICTION )"
+if [ "$METHOD" = "polynomial" ] ; then
+      # Normalize with 1 in the center and 0 at outer edge
+      r.mapcalc "volc.dist_norm.$$ = ($max - volc.dist_units.$$) / $max"
 else
-   # Normalize with 0 in the center and 1 at outer edge
-   r.mapcalc "volc.dist_norm.$$ = volc.dist_units.$$ / $max"
-
-   g.message -v "Creating Gaussian surface ..."
-   SIGMA_C=1.0   # beware variable namespace collision with roughness factor
-   # r.mapcalc doesn't have a pi(), so define it:
-   PI=3.14159265358979323846
-
-   # f(distance) = ( 1 / ($SIGMA*sqrt(2*$PI)) ) * exp( -1* $DIST^2 / (2 * $SIGMA^2) )
-
-   ## FIXME: the 10*kurtosis stuff is a completely bogus hack!
-   r.mapcalc "volc.gauss.$$ = \
-     ( 1 / ( $SIGMA_C * sqrt(2 * $PI) ) ) \
-      * exp( -1* (10 * $KURTOSIS * volc.dist_norm.$$)^2 / (2 * $SIGMA_C^2) )"
-
-   eval `r.info -r "volc.gauss.$$"`
-   g.message -v "Normalizing Gaussian surface ..."
-   r.mapcalc "volc.peak.$$ = \
-     ( ($PEAK + abs($CRATER) ) / $max ) * volc.gauss.$$"
-
-   g.remove rast="volc.gauss.$$" --quiet
+      # Normalize with 0 in the center and 1 at outer edge
+      r.mapcalc "volc.dist_norm.$$ = volc.dist_units.$$ / $max"
 fi
+
+
+# create peak map
+case "$METHOD" in
+   polynomial)
+	g.message -v "Creating IDW surface ..."
+	r.mapcalc "volc.peak.$$ = ($PEAK + abs($CRATER) ) \
+	    * pow( volc.dist_norm.$$, $FRICTION )"
+	;;
+
+   gaussian)
+	g.message -v "Creating Gaussian surface ..."
+	#% description: Use a Gaussian curve instead of 1/(d^n) for radial basis function
+	# normalized Gaussian curve:  f(x) = a * e^( (x-b)^2 / 2*(c^2) )
+	#  parameters: a = 1/(sigma*sqrt(2pi)), b = mu, c = sigma
+	#  mu is mean value and sigma^2 is variance.
+	#  so we only need b,c. and b can be locked at 0 here. so user only needs
+	#  to give sigma (width)
+	#  thus r.mapcalc expr could look like
+	#   f(distance) = ( 1 / ($SIGMA*sqrt(2*$PI)) ) * exp( -1* $DIST^2 / (2 * $SIGMA^2) )
+
+	SIGMA_C=1.0
+	# r.mapcalc doesn't have a pi(), so define it:
+	PI=3.14159265358979323846
+
+	## FIXME: the 10*kurtosis stuff is a completely bogus hack!
+	r.mapcalc "volc.gauss.$$ = \
+	   ( 1 / ( $SIGMA_C * sqrt(2 * $PI) ) ) \
+	   * exp( -1* (10 * $KURTOSIS * volc.dist_norm.$$)^2 / (2 * $SIGMA_C^2) )"
+
+	eval `r.info -r "volc.gauss.$$"`
+	g.message -v "Normalizing Gaussian surface ..."
+	r.mapcalc "volc.peak.$$ = \
+	     ( ($PEAK + abs($CRATER) ) / $max ) * volc.gauss.$$"
+
+	g.remove rast="volc.gauss.$$" --quiet
+	;;
+
+   lorentzian)
+	#  Cauchy-Lorentz fn: f(distance, gamma, height) =
+	#       height_of_peak * ( gamma^2 / ( distance^2 + gamma^2) )
+	#  where gamma is the scale parameter giving half-width at half-maximum.
+	g.message -v "Creating Lorentzian surface ..."
+	r.mapcalc "volc.peak.$$ = ($PEAK + abs($CRATER) ) \
+	    * ( ($KURTOSIS * 0.1)^2 / ( volc.dist_norm.$$ ^2 + ($KURTOSIS * 0.1)^2) )"
+	;;
+
+   exponential)
+	# exponential:  1 / ((e^distance) -1)
+	g.message -v "Creating exponential decay surface ..."
+
+	r.mapcalc "volc.exp.$$ = 1 / (exp(volc.dist_norm.$$ / $KURTOSIS) - 0.9)"
+
+	eval `r.info -r "volc.exp.$$"`
+	g.message -v "Normalizing exponential surface ..."
+	r.mapcalc "volc.peak.$$ = \
+	     ( ($PEAK + abs($CRATER) ) / $max ) * volc.exp.$$"
+
+	g.remove rast="volc.exp.$$" --quiet
+	;;
+
+   logarithmic)
+	# logarithmic:  1 / ( (d+1)^2 * log(d+1) )
+	g.message -v "Creating logarithmic decay surface ..."
+
+	r.mapcalc "volc.log.$$ = 1 /  \
+	   ( (volc.dist_norm.$$ + pow(1.15,$KURTOSIS))^2 \
+	     * log((volc.dist_norm.$$) + pow(1.15,$KURTOSIS)) )"
+
+	eval `r.info -r "volc.log.$$"`
+	g.message -v "Normalizing logarithmic surface ..."
+	r.mapcalc "volc.peak.$$ = \
+	     ( ($PEAK + abs($CRATER) ) / $max ) * volc.log.$$"
+
+	g.remove rast="volc.log.$$" --quiet
+	;;
+
+   *)
+	g.message -e "Programmer error, method = <$METHOD>"
+	exit 1
+esac
 
 
 if [ "$GIS_FLAG_R" -eq 0 ] ; then
@@ -216,14 +262,34 @@ if [ "$GIS_FLAG_R" -eq 1 ] ; then
       history="Surface roughness used a Gaussian deviate with sigma of $SIGMA."
 fi
 
-if [ "$GIS_FLAG_G" -eq 0 ] ; then
-   r.support map="$GIS_OPT_OUTPUT" \
-      source2="IDW surface with friction of distance = $FRICTION"
-else
-   r.support map="$GIS_OPT_OUTPUT" \
-      source2="Gaussian surface with pseudo-kurtosis factor = $KURTOSIS"
-fi
 
+case "$METHOD" in
+   polynomial)
+	r.support map="$GIS_OPT_OUTPUT" \
+	   source2="Polynomial surface with friction of distance = $FRICTION"
+	;;
+   gaussian)
+	r.support map="$GIS_OPT_OUTPUT" \
+	   source2="Gaussian surface with pseudo-kurtosis factor = $KURTOSIS"
+	;;
+   lorentzian)
+	r.support map="$GIS_OPT_OUTPUT" \
+	   source2="Lorentzian surface with pseudo-kurtosis factor = $KURTOSIS"
+	;;
+   exponential)
+	r.support map="$GIS_OPT_OUTPUT" \
+	   source2="Exponential decay surface with pseudo-kurtosis factor = $KURTOSIS"
+	;;
+   logarithmic)
+	r.support map="$GIS_OPT_OUTPUT" \
+	   source2="Logarithmic decay surface with pseudo-kurtosis factor = $KURTOSIS"
+	;;
+   *)
+	g.message -e "Programmer error, method = <$METHOD>"
+	exit 1
+esac
+
+#r.colors map="$GIS_OPT_OUTPUT" color=srtm --quiet
 g.message -v "Done."
 
 exit
