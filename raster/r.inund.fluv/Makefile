@@ -1,5 +1,4 @@
 MODULE_TOPDIR = ../..
-
 PGM = r.inund.fluv
 
 include $(MODULE_TOPDIR)/include/Make/Script.make

@@ -3,7 +3,7 @@
 #
 # MODULE:	r.inund.fluv v.1 for GRASS 6.3 (april 2008)
 # AUTHOR(S):	Roberto Marzocchi, Bianca Federici, Domenico Sguerso
-# PURPOSE:	Creates a fluvial inundation map given an high-resolution DTM and a water surface profile
+# PURPOSE:	Creates a fluvial inundation map given an high-resolution dtm and a water surface profile
 # COPYRIGHT:	(C) 2008 by the GRASS Development Team
 #
 #		This program is free software under the GNU General Public
@@ -13,7 +13,7 @@
 #############################################################################
 
 #%Module
-#%  description: Creates a fluvial inundation map given an high-resolution DTM and a water surface profile
+#%  description: Creates a fluvial inundation map given an high-resolution dtm and a water surface profile
 #%  keywords: Automatic procedure to compute a fluvial inundation map
 #%End
 #%option
@@ -53,7 +53,7 @@
 #%end
 #%option
 #%guisection:Optional parameters & maps
-#% key: PROFILE_BOUNDARY
+#% key: PROFILE_T100
 #% type: string
 #% gisprompt: old_file,file,input
 #% description: Input ASCII file with water-depht for return period T > 100 years
@@ -61,10 +61,10 @@
 #%end
 #%option
 #%guisection:Optional parameters & maps
-#% key: delta_z 
+#% key: delta_y 
 #% type: double
 #% gisprompt: new
-#% description: Input delta_z to find the boundaries of the main channel [default value 0.5 m] 
+#% description: Input delta_y to find the boundaries of the main channel [default value 0.5 m] 
 #% required : no
 #%end
 #%option 
@@ -294,16 +294,17 @@ g.region region=dtm_res10
 v.surf.idw input=profilo output=quote_punti_adiacenti npoints=1 layer=1 column=dbl_3 --quiet 
 g.region region=dtm_res2
 r.mapcalculator amap=quote_punti_adiacenti bmap=$dtm formula="if(A>=B)" outfile=inondazione_step1 help=- --quiet
-
+r.mapcalculator amap=inondazione_step1 formula="A/A" outfile=inondazione_step1 help=- --overwrite --quiet
 
 g.message "STEP 2"
 ###################################################################################################################
 # STEP 2 - remove "lakes"
 ###################################################################################################################
 r.to.vect -s input=inondazione_step1 output=inondazione_step1 feature=area --overwrite --quiet
-v.select ainput=inondazione_step1 atype=line,area alayer=1 binput=$centerline btype=line blayer=1 output=inondazione_step2 operator=overlap --overwrite --quiet
+v.select ainput=inondazione_step1 atype=area alayer=1 binput=$centerline btype=line blayer=1 output=inondazione_step2 operator=overlap --overwrite --quiet
 v.to.rast input=inondazione_step2 output=inondazione_step2 use=val layer=1 value=1 rows=4096 --overwrite --quiet
-
+r.mapcalculator amap=inondazione_step2 formula='isnull(A)' outfile=inondazione_step2_isnull help=- --overwrite --quiet
+r.mapcalculator amap=inondazione_step2_isnull formula='if(A,0,1)' outfile=inondazione_step2 help=- --overwrite --quiet
 
 g.message "STEP 3"
 ###################################################################################################################
@@ -362,7 +363,7 @@ cd
 #r.in.ascii input="$TMPDIR"/bordi_alveo output=bordi_alveo 'mult=1.0 or read from header' nv=0 --overwrite 
 #r.thin input=bordi_alveo output=bordi_alveo_thin iterations=200 --overwrite 
 #r.to.vect input=bordi_alveo_thin output=bordi_alveo feature=line --overwrite 
-v.in.ascii -n input="$TMPDIR"/bordi_alveo output=bordi_alveo format=standard fs=' ' skip=0 x=1 y=2 z=0 cat=0 --quiet
+v.in.ascii -n input="$TMPDIR"/bordi_alveo output=bordi_alveo format=standard fs=' ' skip=0 x=1 y=2 z=0 cat=0 --overwrite --quiet
 r.in.ascii input="$TMPDIR"/reticolo output=reticolo 'mult=1.0 or read from header' nv=* --overwrite --quiet
 r.thin input=reticolo output=reticolo_thin iterations=200 --overwrite --quiet
 r.to.vect input=reticolo_thin output=reticolo feature=line --overwrite --quiet
@@ -370,15 +371,15 @@ g.remove rast=reticolo_thin --quiet
 
 
 # 10x10 resolution 
----> 1 pò più lento ma più preciso!
+#---> 1 pò più lento ma più preciso!
 g.region region=dtm_res10
 
 # difference between maps of step1 and step2 
-r.mapcalculator amap=inondazione_step3 formula='isnull(A)' outfile=inondazione_step3_isnull help=- --quiet
-r.mapcalculator amap=inondazione_step3_isnull formula='if(A,0,1)' outfile=inondazione_step3 help=- --quiet
-r.mapcalculator amap=inondazione_step2 bmap=inondazione_step3 formula='A-B' outfile=diff_inond help=- --quiet   
-r.mapcalculator amap=diff_inond formula='if(A,1,0,0)' outfile=diff_inond help=-  --quiet #remove the -1 value resulted from A-B subtraction
-r.null map=diff_inond setnull=0 --quiet
+r.mapcalculator amap=inondazione_step3 formula='isnull(A)' outfile=inondazione_step3_isnull help=- --overwrite --quiet
+r.mapcalculator amap=inondazione_step3_isnull formula='if(A,0,1)' outfile=inondazione_step3 help=- --overwrite --quiet
+r.mapcalculator amap=inondazione_step2 bmap=inondazione_step3 formula='A-B' outfile=diff_inond help=- --overwrite --quiet   
+r.mapcalculator amap=diff_inond formula='if(A,1,0,0)' outfile=diff_inond help=-  --overwrite --quiet #remove the -1 value resulted from A-B subtraction
+r.null map=diff_inond setnull=0 --overwrite --quiet
 r.to.vect input=diff_inond output=diff_inond1 feature=area --overwrite --quiet
 #to use the v.select command the line must have a layer associated  ==> export of vector map in dxf format and then import the dxf file
 v.out.dxf input=reticolo output="$TMPDIR"/reticolo.dxf --quiet
@@ -399,7 +400,7 @@ v.drape input=punti_reticolo_interno type=point,centroid,line,boundary,face,kern
 g.region region=dtm_res10 
 
 #export of 3d points
-v.out.ascii input=punti3d_reticolo output="$TMPDIR"/punti3d_reticolo format=point dp=2 --quiet
+v.out.ascii input=punti3d_reticolo output="$TMPDIR"/punti3d_reticolo format=point fs=" " dp=2 --quiet
 r.out.ascii -h input=diff_inond output="$TMPDIR"/diff_inond null=0 --quiet
 
 
@@ -436,22 +437,9 @@ g.message "STEP 5"
 g.rename rast=inondazione,inondazione1 --overwrite --quiet
 r.null map=inondazione1 setnull=0  --quiet
 r.to.vect -s input=inondazione1 output=inondazione1 feature=area --overwrite --quiet
-v.patch input=centerline,punti3d_reticolo output=overlap --overwrite --quiet
+v.patch input=$centerline,punti3d_reticolo output=overlap --overwrite --quiet
 v.select ainput=inondazione1 atype=area alayer=1 binput=overlap btype=line blayer=1 output=inondazione operator=overlap --overwrite --quiet
 v.to.rast input=inondazione output=$inondazione use=val layer=1 value=1 rows=4096 --overwrite --quiet
-#water level assignement 
-r.mapcalculator amap=$inondazione bmap=quote_punti_adiacenti cmap=$dtm formula='A*B-C' outfile=$inondazione help=- --quiet
-
-#COLOURS OF INUNDATION RASTER MAP
-rm -f ".colore_inondazione.file"
-echo '1 blue' >> ".colore_inondazione.file"
-echo '0 grey' >> ".colore_inondazione.file"
-echo 'nv white' >> ".colore_inondazione.file"
-echo 'end' >> ".colore_inondazione.file"
-cat ".colore_inondazione.file" | r.colors map=$inondazione color=rules
-rm ".colore_inondazione.file"
-
-
 
 if [ -n "$GIS_OPT_DOUBT_MAP" ]
 then
@@ -472,9 +460,22 @@ then
 	g.remove rast=temp
 fi
 
+#water level assignement 
+r.mapcalculator amap=$inondazione bmap=quote_punti_adiacenti cmap=$dtm formula='if(A==1,A*B-C)' outfile=$inondazione help=- --quiet
+
+#COLOURS OF INUNDATION RASTER MAP
+rm -f ".colore_inondazione.file"
+echo '10 blue' >> ".colore_inondazione.file"
+echo '0 aqua' >> ".colore_inondazione.file"
+echo 'nv white' >> ".colore_inondazione.file"
+echo 'end' >> ".colore_inondazione.file"
+cat ".colore_inondazione.file" | r.colors map=$inondazione color=rules
+rm ".colore_inondazione.file"
+
+
 
 g.remove rast=MASK --quiet
-g.remove rast=inondazione_step1,inondazione_step2,inondazione_step3,reticolo,quote_punti_adiacenti --quiet
+g.remove rast=inondazione_step1,inondazione_step2,inondazione_step2_isnull,inondazione_step3,reticolo,quote_punti_adiacenti --quiet
 g.remove rast=inondazione_step3_isnull,diff_inond,inondazione_step5,inondazione_step5_isnull,inondazione1 --quiet
 g.remove vect=inondazione_step1,inondazione_step2,reticolo --quiet
 g.remove vect=diff_inond1,reticolo_interno,inondazione1,overlap --quiet

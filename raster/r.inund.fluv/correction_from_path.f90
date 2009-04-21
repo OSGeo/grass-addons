@@ -45,14 +45,14 @@ close(40)
 !50 region10.txt
 !51 diff_inond
 !   dtm2x2 nomefile5 (vd dopo)
-!53 punti3d_reticolo
+!55 punti3d_reticolo
 !54 region2.txt
 !60 correzione
 
 open(unit=50, status='old', file=nomefile4)
 open(unit=51, status='old', file=nomefile1)
 !open(unit=52, status='old', file='grass_script/dtm2x2')
-open(unit=53, status='old', file=nomefile2)
+open(unit=55, status='old', file=nomefile2)
 open(unit=54, status='old', file=nomefile6)
 open(unit=60, file=nomefile3)
 
@@ -148,7 +148,7 @@ enddo
 
 !guardo quant'è lungo il file che contiene i punti
 do i=1,10000000
-   read(53,*,iostat=iend)xx
+   read(55,*,iostat=iend)xx
    if(iend /= 0)exit
 enddo
 if(iend > 0)then
@@ -157,7 +157,7 @@ if(iend > 0)then
 endif
 npunti=i-1
 write(6,*) 'There are',npunti,' of water course by each river section to analize'
-rewind(53)
+rewind(55)
 
 
 allocate(E(npunti))
@@ -165,9 +165,9 @@ allocate(N(npunti))
 allocate(quota(npunti))
 
 
-call modifica_ascii(npunti)
+!call modifica_ascii(npunti)
 
-open(unit=55,status='old',file='punti_mod')
+!open(unit=55,status='old',file='punti_mod')
 
 do i=1,npunti
    read(55,*) E(i), N(i), quota(i)
