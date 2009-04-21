@@ -41,7 +41,8 @@
 #% key: crater
 #% type: double
 #% required: no
-#% description: Depth of crater below the cone (bigger means wider)
+#% label: Depth of crater below the cone
+#% description: A larger (deeper) value here also means a wider crater.
 #% answer: 0.0
 #%End
 #%Option
