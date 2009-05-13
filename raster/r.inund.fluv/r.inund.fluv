@@ -246,7 +246,7 @@ cp "$GISBASE/etc/fortran_code"/correction_from_path  "$TMPDIR"
 #variables
 dtm="$GIS_OPT_DTM"
 cp "$GIS_OPT_W_S_PROFILE"  "$TMPDIR"/profilo
-v.in.ascii -z input="$GIS_OPT_W_S_PROFILE" output=profilo format=point fs="  " skip=0 x=1 y=2 z=3 cat=0 --overwrite --quiet
+v.in.ascii -z input="$GIS_OPT_W_S_PROFILE" output=profilo format=point fs=" " skip=0 x=1 y=2 z=3 cat=0 --overwrite --quiet
 centerline="$GIS_OPT_RIVER"
 inondazione="$GIS_OPT_FLOODING_MAP"
 
@@ -273,7 +273,7 @@ then
 	exit 1
 fi
 cd
-v.in.ascii --o input="$TMPDIR"/limiti_alveo_vect output=limiti_alveo format=point fs='     ' skip=0 x=1 y=2 cat=0 --quiet
+v.in.ascii --o input="$TMPDIR"/limiti_alveo_vect output=limiti_alveo format=point fs='     ' skip=0 x=1 y=2 cat=0 --quiet --overwrite
 
 
 #export of 20x20 dtm, region20.txt and region10.txt
@@ -289,12 +289,13 @@ g.message "STEP 1"
 # STEP 1 - Thiessen interpolation 
 ###################################################################################################################
 # don't use low resolution [default 10m]
-r.mask input=$dtm maskcats=* --quiet
+#r.mask input=$dtm maskcats=* --quiet
 g.region region=dtm_res10 
-v.surf.idw input=profilo output=quote_punti_adiacenti npoints=1 layer=1 column=dbl_3 --quiet 
+v.surf.idw input=profilo output=quote_punti_adiacenti npoints=1 layer=1 column=dbl_3 --overwrite --quiet 
 g.region region=dtm_res2
-r.mapcalculator amap=quote_punti_adiacenti bmap=$dtm formula="if(A>=B)" outfile=inondazione_step1 help=- --quiet
-r.mapcalculator amap=inondazione_step1 formula="A/A" outfile=inondazione_step1 help=- --overwrite --quiet
+r.mapcalc "inondazione_step1=if(quote_punti_adiacenti>$dtm)"
+r.mapcalc "inondazione_step1=inondazione_step1/inondazione_step1"
+
 
 g.message "STEP 2"
 ###################################################################################################################
@@ -303,8 +304,10 @@ g.message "STEP 2"
 r.to.vect -s input=inondazione_step1 output=inondazione_step1 feature=area --overwrite --quiet
 v.select ainput=inondazione_step1 atype=area alayer=1 binput=$centerline btype=line blayer=1 output=inondazione_step2 operator=overlap --overwrite --quiet
 v.to.rast input=inondazione_step2 output=inondazione_step2 use=val layer=1 value=1 rows=4096 --overwrite --quiet
-r.mapcalculator amap=inondazione_step2 formula='isnull(A)' outfile=inondazione_step2_isnull help=- --overwrite --quiet
-r.mapcalculator amap=inondazione_step2_isnull formula='if(A,0,1)' outfile=inondazione_step2 help=- --overwrite --quiet
+r.mapcalc "inondazione_step2_isnull=isnull(inondazione_step2)"
+r.mapcalc "inondazione_step2=if(inondazione_step2_isnull,0,1)"
+#r.mapcalculator amap=inondazione_step2 formula='isnull(A)' outfile=inondazione_step2_isnull help=- --overwrite --quiet
+#r.mapcalculator amap=inondazione_step2_isnull formula='if(A,0,1)' outfile=inondazione_step2 help=- --overwrite --quiet
 
 g.message "STEP 3"
 ###################################################################################################################
@@ -375,10 +378,14 @@ g.remove rast=reticolo_thin --quiet
 g.region region=dtm_res10
 
 # difference between maps of step1 and step2 
-r.mapcalculator amap=inondazione_step3 formula='isnull(A)' outfile=inondazione_step3_isnull help=- --overwrite --quiet
-r.mapcalculator amap=inondazione_step3_isnull formula='if(A,0,1)' outfile=inondazione_step3 help=- --overwrite --quiet
-r.mapcalculator amap=inondazione_step2 bmap=inondazione_step3 formula='A-B' outfile=diff_inond help=- --overwrite --quiet   
-r.mapcalculator amap=diff_inond formula='if(A,1,0,0)' outfile=diff_inond help=-  --overwrite --quiet #remove the -1 value resulted from A-B subtraction
+r.mapcalc "inondazione_step3_isnull=isnull(inondazione_step3)"
+r.mapcalc "inondazione_step3=if(inondazione_step3_isnull,0,1)"
+r.mapcalc "diff_inond=inondazione_step2-inondazione_step3"
+r.mapcalc "diff_inond=if(diff_inond,1,0,0)"
+#r.mapcalculator amap=inondazione_step3 formula='isnull(A)' outfile=inondazione_step3_isnull help=- --overwrite --quiet
+#r.mapcalculator amap=inondazione_step3_isnull formula='if(A,0,1)' outfile=inondazione_step3 help=- --overwrite --quiet
+#r.mapcalculator amap=inondazione_step2 bmap=inondazione_step3 formula='A-B' outfile=diff_inond help=- --overwrite --quiet   
+#r.mapcalculator amap=diff_inond formula='if(A,1,0,0)' outfile=diff_inond help=-  --overwrite --quiet #remove the -1 value resulted from A-B subtraction
 r.null map=diff_inond setnull=0 --overwrite --quiet
 r.to.vect input=diff_inond output=diff_inond1 feature=area --overwrite --quiet
 #to use the v.select command the line must have a layer associated  ==> export of vector map in dxf format and then import the dxf file
@@ -425,9 +432,12 @@ r.in.ascii input="$TMPDIR"/correzione output=inondazione_step5 'mult=1.0 or read
 
 # replace null cells with 0 cells
 g.region region=dtm_res2 
-r.mapcalculator amap=inondazione_step5 formula='isnull(A)' outfile=inondazione_step5_isnull help=- --quiet
-r.mapcalculator amap=inondazione_step5_isnull formula='if(A,0,1)' outfile=inondazione_step5 help=- --quiet
-r.mapcalculator amap=inondazione_step5 bmap=inondazione_step3 formula='A+B' outfile=inondazione help=- --quiet
+r.mapcalc "inondazione_step5_isnull=isnull(inondazione_step5)"
+r.mapcalc "inondazione_step5=if(inondazione_step5_isnull,0,1)"
+r.mapcalc "inondazione=inondazione_step5+inondazione_step3"
+#r.mapcalculator amap=inondazione_step5 formula='isnull(A)' outfile=inondazione_step5_isnull help=- --quiet
+#r.mapcalculator amap=inondazione_step5_isnull formula='if(A,0,1)' outfile=inondazione_step5 help=- --quiet
+#r.mapcalculator amap=inondazione_step5 bmap=inondazione_step3 formula='A+B' outfile=inondazione help=- --quiet
 
 
 g.message "STEP 5"
@@ -445,9 +455,12 @@ if [ -n "$GIS_OPT_DOUBT_MAP" ]
 then
 	# It's possible to create a map with doubful surface areas
 	dubbio="$GIS_OPT_DOUBT_MAP"
-	r.mapcalculator amap=$inondazione formula='isnull(A)' outfile=temp help=- --quiet
-	r.mapcalculator amap=temp formula='if(A,0,1)' outfile=temp help=- --quiet
-	r.mapcalculator amap=inondazione_step2	bmap=temp formula='A-B' outfile=$dubbio help=- --quiet
+	r.mapcalc "temp=isnull($inondazione)"
+	r.mapcalc "temp=if(temp,0,1)"
+	r.mapcalc "$dubbio=inondazione_step2-temp"
+	#r.mapcalculator amap=$inondazione formula='isnull(A)' outfile=temp help=- --quiet
+	#r.mapcalculator amap=temp formula='if(A,0,1)' outfile=temp help=- --quiet
+	#r.mapcalculator amap=inondazione_step2	bmap=temp formula='A-B' outfile=$dubbio help=- --quiet
 	r.null map=$dubbio setnull=0 --quiet
 	#COLOURS OF DOUBFUL RASTER MAP
  rm -f .colore_dubbio.file
@@ -461,7 +474,8 @@ then
 fi
 
 #water level assignement 
-r.mapcalculator amap=$inondazione bmap=quote_punti_adiacenti cmap=$dtm formula='if(A==1,A*B-C)' outfile=$inondazione help=- --quiet
+r.mapcalc "$inondazione=if($inondazione==1,$inondazione*quote_punti_adiacenti-$dtm)"
+#r.mapcalculator amap=$inondazione bmap=quote_punti_adiacenti cmap=$dtm formula='if(A==1,A*B-C)' outfile=$inondazione help=- --quiet
 
 #COLOURS OF INUNDATION RASTER MAP
 rm -f ".colore_inondazione.file"
@@ -480,7 +494,7 @@ g.remove rast=inondazione_step3_isnull,diff_inond,inondazione_step5,inondazione_
 g.remove vect=inondazione_step1,inondazione_step2,reticolo --quiet
 g.remove vect=diff_inond1,reticolo_interno,inondazione1,overlap --quiet
 
-if [ "$inondazione" == "inondazione" ]
+if [ "$inondazione"=="inondazione" ]
 then
  g.message " "
 else
@@ -489,9 +503,9 @@ fi
 
 if [ -n "$GIS_OPT_MAP_W_S_PROFILE" ]
 then
-		g.rename vect=profilo,"$GIS_OPT_MAP_W_S_PROFILE" --quiet
+	g.rename vect=profilo,"$GIS_OPT_MAP_W_S_PROFILE" --quiet
 else
-		g.remove vect=profilo --quiet
+	g.remove vect=profilo --quiet
 fi
 
 
