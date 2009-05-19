@@ -405,7 +405,7 @@ int main(int argc, char **argv) {
     outputHull(&Map, pointsb, hull, numHullPoints);
 
     /* clean up and bye bye */
-    Vect_build (&Map, stdout);
+    Vect_build (&Map);
     Vect_close (&Map);
     
     freevec(dist);

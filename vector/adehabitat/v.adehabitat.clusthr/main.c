@@ -1183,7 +1183,7 @@ int main(int argc, char **argv) {
     
     
     /* clean up and bye bye */
-    Vect_build (&Map, stdout);
+    Vect_build (&Map);
     Vect_close (&Map);
     freetab(coor);
     freeintvec(facso);
