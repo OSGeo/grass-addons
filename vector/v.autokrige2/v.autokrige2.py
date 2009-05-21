@@ -21,20 +21,50 @@ COPYRIGHT: (C) 2009 by the GRASS Development Team
 #import directives. to be completed.
 import wx
 import sys
+#import wx.lib.flatnotebook as FN # self.notebook attribute in Kriging Module's __init__
+
 
 #classes in alphabetical order
+
+class Log:
+    """
+    The log output is redirected to the status bar of the containing frame.
+    """
+    def __init__(self, parent):
+        self.parent = parent
+
+    def write(self, text_string):
+        """Update status bar"""
+        self.parent.SetStatusText(text_string.strip())
+
 class KrigingModule(wx.Frame):
     """
     Kriging module for GRASS GIS.
     """
-    def __init__(self, parent, id=wx.ID_ANY, size=None, 
-                 style = wx.DEFAULT_FRAME_STYLE, title=None, log=None):
-        self.parent = parent
-        self.size = size
-        wx.Frame.__init__(self, parent, id, style=style, size=self.size)
-        
-        # setting properties
+    def __init__(self, parent, *args, **kwargs):
+        wx.Frame.__init__(self, parent, *args, **kwargs)
+        # setting properties and all widgettery
         self.SetTitle("Kriging Module")
+        self.panel = wx.Panel(parent=self)
+        
+        self.log = Log(self) # -> statusbar
+        self.CreateStatusBar()
+        # debug: remove before flight
+        self.log.write("Are you reading this? This proves it is very beta version.")
+
+        #self.notebook = FN.FlatNotebook(parent=self.panel, id=wx.ID_ANY,
+        #                                style=FN.FNB_BOTTOM |
+        #                                FN.FNB_NO_NAV_BUTTONS |
+        #                                FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
+
+        # use this block to add pages to the flat notebook widget        
+        #dbmStyle = globalvar.FNPageStyle
+        ## start block
+        #self.browsePage = FN.FlatNotebook(self.panel, id=wx.ID_ANY,
+        #                                  style=dbmStyle)
+        #self.notebook.AddPage(self.browsePage, text=_("Browse data"))
+        #self.browsePage.SetTabAreaColour(globalvar.FNPageColor)
+        ## end block
 
 #main
 def main(argv=None):
@@ -55,7 +85,7 @@ def main(argv=None):
     #wx.InitAllImageHandlers()
 
     app = wx.PySimpleApp()
-    k = KrigingModule(parent=None, id=wx.ID_ANY, size=(300,300))
+    k = KrigingModule(parent=None, size=(600,300))
     k.Show()
     app.MainLoop()
 
