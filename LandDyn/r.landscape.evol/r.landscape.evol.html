@@ -2,8 +2,12 @@
 
 <p><em>r.landscape.evol</em> takes as input a raster digital elevation
 model (DEM) of surface topography and an input raster DEM of bedrock elevations,
- as well as several environmental variables, and computes  the net change in elevation due to erosion and deposition using the USPED equation. The module has the ability to run recursively, looping over several iterations. The time interval represneted by each iteration is determined by the scale of the input environmental variables. The script creates a new map where each raster
-cell carries a numerical value, which represents the simulated meters
+as well as several environmental variables, and computes  the net change
+in elevation due to erosion and deposition using the USPED equation. The
+module has the ability to run recursively, looping over several iterations.
+The time interval represneted by each iteration is determined by the scale
+of the input environmental variables. The script creates a new map where
+each raster cell carries a numerical value, which represents the simulated meters
 of erosion or deposition (ED) estimated for that cell, under the
 specified conditions of rainfall intensity, soil erodability, water
 flow, and vegetation cover. This map of net ED is then added to (for
@@ -11,16 +15,38 @@ deposition) or subtracted from (for erosion) the topography map of
 the previous time step, to create a new topography map (i.e., as a
 DEM) after a cycle of landuse and landscape change.</P>
 <p>
-<p> <b>R</b>, <b>K</b>, and <b>C</b> are environmental factors relating to the intensity of yearly rainfall, the erodability of soil, and the degree to which vegetation cover prevents erosion (See below for a detailed description of these factors). <b>cutoff1</b>, and <b>cutoff2</b> are values of flow accumulation (number of upslope contributing cells) that determine where surface processes change from soil-creep to overland (laminar) flow and from overland flow to channelized (turbulent) flow respectively. <b>kappa</b> is the rate of diffusion for soil-creep in meters per 1000 years. <b>sdensity</b> is the density of the soil in grams per cubic centimeters. These measures are all determined empirically for a given landscape under a given climatic condition. 
 <p>
-<p>By default, <em>r.watershed</em> is used to calculate flow accumulation modeling (currently only using SFD alglrithm). In GRASS 6.4 and higher, this will result in drastically faster run times, but in GRASS 6.3 and lower, this will result in drastically slower run times. Therefore, users of GRASS 6.3 and lower are encouraged to use flag <b>-f</b> whcih will use <em>r.terraflow</em> for flow accuulation modeling instead.
-<p>If the output of an initial run shows artifacts, the user may opt to smooth the DEM at each time step. The user may also opt to also create maps of various statistical measures from the output of all iterations, and the <b>statsout</b> option defines the name of the file that contains the
-statistics of erosion, deposition, and soil depths over all iterations. The default name is <tt>"mapset"_"prefix"_lsevol_stats.txt</tt>
+<b>R</b>, <b>K</b>, and <b>C</b> are environmental factors relating to the
+intensity of yearly rainfall, the erodability of soil, and the degree to
+which vegetation cover prevents erosion (See below for a detailed description
+of these factors). <b>cutoff1</b>, and <b>cutoff2</b> are values of flow
+accumulation (number of upslope contributing cells) that determine where
+surface processes change from soil-creep to overland (laminar) flow and
+from overland flow to channelized (turbulent) flow respectively. <b>kappa</b>
+is the rate of diffusion for soil-creep in meters per 1000 years.
+<b>sdensity</b> is the density of the soil in grams per cubic centimeters.
+These measures are all determined empirically for a given landscape under
+a given climatic condition. 
+<p>
+<p>
+By default, <em>r.watershed</em> is used to calculate flow accumulation
+modeling (currently only using SFD alglrithm). In GRASS 6.4 and higher,
+this will result in drastically faster run times, but in GRASS 6.3 and
+lower, this will result in drastically slower run times. Therefore, users
+of GRASS 6.3 and lower are encouraged to use flag <b>-f</b> whcih will
+use <em>r.terraflow</em> for flow accuulation modeling instead.
+<p>If the output of an initial run shows artifacts, the user may opt to
+smooth the DEM at each time step. The user may also opt to also create
+maps of various statistical measures from the output of all iterations,
+and the <b>statsout</b> option defines the name of the file that contains the
+statistics of erosion, deposition, and soil depths over all iterations.
+The default name is <tt>"mapset"_"prefix"_lsevol_stats.txt</tt>
 (in the users home directory).
 
-</p>
-<h2>CALCULATING SURFACE EROSION AND DEPOSITION</h2></P>
-<P>Because physical
+
+<h2>CALCULATING SURFACE EROSION AND DEPOSITION</h2>
+
+Because physical
 laws that govern the flow of water across landscapes and its ability
 to erode, entrain, transport, and deposit sediments can be expressed
 in mathematical form, they can be translated into a scripting
@@ -46,8 +72,8 @@ rills and gullies) (Warren, et al. 2005); it is less applicable to
 larger streams and rivers. This makes it useful for many
 archaeological settings including arid, semi-arid, and xeric regions
 like those that surround much of the Mediterranean basin. 
-</P>
-<P>Net erosion and deposition rates are
+<P>
+Net erosion and deposition rates are
 computed from the change in sediment flow across cells of a DEM. We
 approximate sediment flow rate from sediment transport capacity,
 assuming that water flowing over landscapes normally carries sediment
@@ -56,11 +82,17 @@ coefficient (R, MJ mm/ha h yr), soil erodability coefficient (K, Mg
 ha h/ha MJ mm), and coefficient for the ability of vegetation to
 prevent erosion (C, unitless) from RUSLE with with an estimate of
 topographically driven stream power as shown in equation (1)</P>
-<P><I>T = R K C A</I><SUP><I>m</I></SUP><I>
-(sin </I><I>B</I></FONT><I>)</I><SUP><I>n</I></SUP></P>
-<P>where A is the upslope contributing
+
+<P>
+<I>
+T = R K C A<SUP>m</SUP>
+(sin B)<SUP>n</SUP>
+</I>
+
+<P>
+where A is the upslope contributing
 area (a measure of water flowing through a cell) and <em>B</em>
-</I> is the slope of the cell. The exponents <em>m</em> and <em>n</em> are
+is the slope of the cell. The exponents <em>m</em> and <em>n</em> are
 empirically derived and vary for water flowing over nearly level
 ground, on hillslopes, in water catchments at the heads of gullies,
 or in small channels. The sediment flow rate is largely determined by
@@ -100,12 +132,50 @@ calculated empirically for a variety of setting
 2004; Hammad, et al. 2004; Renard, et al. 1997; Renard and Freimund
 1994). 
 
-<p>The output of this GRASS implementation of USPED must be modified in several ways in order to make it appropriate for landscape evolution simulation. First, because of the way slope is calculated in <em>r.slope.aspect</em>, the flux "T" is actually calculeted one cell downslope from where is really occurs. This causes problems when USPED is iterated over many cycles, and creates oscillating "spikes" in positive and negative flux values resulting in the calculation of alternating deep pits and high mounds at sensitive areas on the landscape. To overcome this, <em>r.landscape.evol</em> uses a nieghborhood algorithm in <em>r.mapcalc</em> to put the calcualted value of "T" back into the cell that is most uplsope from where it is originally calculated.
 <p>
-<p>Additionally, control must be kept for the amount of erodable sediment available to moved. <em>r.landscape.evol</em> explicitly tracks this by taking the difference between the input bedrcok elevation DEM, and the current surface topography DEM, and creating a map of "soil" depth. This map tracks the amount of material assumed to be available for entrainment and transport by surface processes. A simple logical algorithm is used to prevent unduly large amounts of erosion from being calculated in areas devoid of erodable materials (ie. at bedrock outcrops). Where this condition occurs, K is made to be very small, resulting in only extremely small amounts of erosion.
+The output of this GRASS implementation of USPED must be modified in several
+ways in order to make it appropriate for landscape evolution simulation.
+First, because of the way slope is calculated in <em>r.slope.aspect</em>,
+the flux "T" is actually calculeted one cell downslope from where is really
+occurs. This causes problems when USPED is iterated over many cycles, and
+creates oscillating "spikes" in positive and negative flux values resulting
+in the calculation of alternating deep pits and high mounds at sensitive
+areas on the landscape. To overcome this, <em>r.landscape.evol</em> uses
+a nieghborhood algorithm in <em>r.mapcalc</em> to put the calcualted value
+of "T" back into the cell that is most uplsope from where it is originally
+calculated.
 <p>
-<p> Another major issue is that the total flux "T" is in units of Mg/Ha, which means it must be converted in order to calculate the change in elevation at each cell. This is done via a simple algorithm that uses the density of the soil and the cell resolution. First, "T" is multiplied by 100, to convert the flux rate to grams/square meter. This new rate is multiplied by the resolution to calculate grams flux per cell width. This is then divided by soil density to calculate cubic centimeters per cell width, which is in turn divided by the area of the cell in centimeters (resolution squared x 100 squared) to get vertical change per cell width in centimeters. Finally, this measure is divided by 100, which converts it into  meters. Several of these factors cancel out to make a final equation of "T/(10,000*soildensity*resolution)". This equation changes the orignal T from Mg/Ha to vertical change in meters over the length of one cell's width.  In order to convert the output back to Mg/Ha (standard rate for USPED/RUSLE equations), you can multiply the netchange output map by "(10000 x resolution x soil density)" to create a map of soil erosion/deposition rates across the landscape. 
-</dl>
+<p>
+Additionally, control must be kept for the amount of erodable sediment
+available to moved. <em>r.landscape.evol</em> explicitly tracks this by
+taking the difference between the input bedrcok elevation DEM, and the
+current surface topography DEM, and creating a map of "soil" depth. This
+map tracks the amount of material assumed to be available for entrainment
+and transport by surface processes. A simple logical algorithm is used
+to prevent unduly large amounts of erosion from being calculated in areas
+devoid of erodable materials (ie. at bedrock outcrops). Where this
+condition occurs, K is made to be very small, resulting in only extremely
+small amounts of erosion.
+<p>
+<p>
+Another major issue is that the total flux "T" is in units of Mg/Ha,
+which means it must be converted in order to calculate the change in
+elevation at each cell. This is done via a simple algorithm that uses
+the density of the soil and the cell resolution. First, "T" is multiplied
+by 100, to convert the flux rate to grams/square meter. This new rate is
+multiplied by the resolution to calculate grams flux per cell width. This
+is then divided by soil density to calculate cubic centimeters per cell
+width, which is in turn divided by the area of the cell in centimeters
+(resolution squared x 100 squared) to get vertical change per cell width
+in centimeters. Finally, this measure is divided by 100, which converts
+it into  meters. Several of these factors cancel out to make a final
+equation of "T/(10,000*soildensity*resolution)". This equation changes
+the orignal T from Mg/Ha to vertical change in meters over the length
+of one cell's width.  In order to convert the output back to Mg/Ha
+(standard rate for USPED/RUSLE equations), you can multiply the
+netchange output map by "(10000 x resolution x soil density)" to
+create a map of soil erosion/deposition rates across the landscape. 
+
 
 <h2>SEE ALSO</h2>
 <ul>
@@ -115,13 +185,12 @@ href="http://medland.asu.edu">MEDLAND</a> project at Arizona State University
   <li><a href="r.watershed.html">r.watershed</a>,
       <a href="r.terraflow.html">r.terraflow</a>,
       <a href="r.mapcalc.html">r.mapcalc</a>
-
-       
 </ul>
 
+
 <h2>REFERENCES</h2>
-<p>
-</p>
+<p></p>
+
 <p>American Society of Agricultural Engineers
 	2003	Honoring the Universal Soil Loss Equation: Historic Landmark Dedication Pamphlet. Purdue University Department of Agricultural and Biological Engineering.
 <p>Clevis, Q., G. E. Tucker, G. Lock, S. T. Lancaster, N. Gasparini, A. Desitter and R. L. Bras
@@ -169,11 +238,5 @@ href="http://medland.asu.edu">MEDLAND</a> project at Arizona State University
 <p>Wischmeier, W. H. and D. D. Smith
 	1978	Predicting Rainfall-Erosion Losses - A Guide to Conservation Planning. USDA Agriculture Handbook 282.
 
-
-
-</DL>
-
-</ol>
-
 <p>
-<i>Last changed: $Date: 2009-23-1 (Fri, 21 Jan 2009) $</i>
+<i>Last changed: $Date$</i>
