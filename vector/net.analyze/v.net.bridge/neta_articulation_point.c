@@ -1,7 +1,7 @@
 
 /****************************************************************
  *
- * MODULE:     v.net.components
+ * MODULE:     netalib
  *
  * AUTHOR(S):  Daniel Bundala
  *
@@ -21,20 +21,22 @@
 #include <grass/gis.h>
 #include <grass/Vect.h>
 #include <grass/glocale.h>
+#include <grass/dgl/graph.h>
 
-/* return the number of bridges in the graph.
- * bridge is an array containing the indices of the bridges
+/* return the number of articulation points in the graph.
  */
-int compute_bridges(struct dglGraph_s *graph, struct ilist *bridge_list)
+int neta_articulation_points(dglGraph_s * graph,
+			     struct ilist *articulation_list)
 {
     int nnodes;
-    int bridges = 0;
+    int points = 0;
 
     dglEdgesetTraverser_s *current;	/*edge to be processed when the node is visited */
     int *tin, *min_tin;		/*time in, and smallest tin over all successors. 0 if not yet visited */
     dglInt32_t **parent;	/*parents of the nodes */
     dglInt32_t **stack;		/*stack of nodes */
     dglInt32_t **current_edge;	/*current edge for each node */
+    int *mark;			/*marked articulation points */
     dglNodeTraverser_s nt;
     dglInt32_t *current_node;
     int stack_size;
@@ -48,7 +50,8 @@ int compute_bridges(struct dglGraph_s *graph, struct ilist *bridge_list)
     parent = (dglInt32_t **) G_calloc(nnodes + 1, sizeof(dglInt32_t *));
     stack = (dglInt32_t **) G_calloc(nnodes + 1, sizeof(dglInt32_t *));
     current_edge = (dglInt32_t **) G_calloc(nnodes + 1, sizeof(dglInt32_t *));
-    if (!tin || !min_tin || !parent || !stack || !current) {
+    mark = (int *)G_calloc(nnodes + 1, sizeof(int));
+    if (!tin || !min_tin || !parent || !stack || !current || !mark) {
 	G_fatal_error(_("Out of memory"));
 	return -1;
     }
@@ -58,7 +61,7 @@ int compute_bridges(struct dglGraph_s *graph, struct ilist *bridge_list)
 				dglNodeGet_OutEdgeset(graph,
 						      dglGetNode(graph, i)));
 	current_edge[i] = dglEdgeset_T_First(&current[i]);
-	tin[i] = 0;
+	tin[i] = mark[i] = 0;
     }
 
     dglNode_T_Initialize(&nt, graph);
@@ -68,6 +71,7 @@ int compute_bridges(struct dglGraph_s *graph, struct ilist *bridge_list)
 	 current_node = dglNode_T_Next(&nt)) {
 	dglInt32_t current_id = dglNodeGet_Id(graph, current_node);
 	if (tin[current_id] == 0) {
+	    int children = 0;	/*number of subtrees rooted at the root/current_node */
 	    stack[0] = current_node;
 	    stack_size = 1;
 	    parent[current_id] = NULL;
@@ -81,10 +85,9 @@ int compute_bridges(struct dglGraph_s *graph, struct ilist *bridge_list)
 			dglNodeGet_Id(graph,
 				      dglEdgeGet_Tail(graph,
 						      current_edge[node_id]));
-		    if (min_tin[to] > tin[node_id]) {	/*no path from the subtree above the current node */
-			Vect_list_append(bridge_list, dglEdgeGet_Id(graph, current_edge[node_id]));	/*so it must be a bridge */
-			bridges++;
-		    }
+		    if (min_tin[to] >= tin[node_id])	/*no path from the subtree above the current node */
+			mark[node_id] = 1;	/*so the current node must be an articulation point */
+
 		    if (min_tin[to] < min_tin[node_id])
 			min_tin[node_id] = min_tin[to];
 		    current_edge[node_id] = dglEdgeset_T_Next(&current[node_id]);	/*proceed to the next edge */
@@ -96,10 +99,12 @@ int compute_bridges(struct dglGraph_s *graph, struct ilist *bridge_list)
 			continue;	/*skip parrent */
 		    int to_id = dglNodeGet_Id(graph, to);
 		    if (tin[to_id]) {	/*back edge, cannot be a bridge/articualtion point */
-			if (min_tin[to_id] < min_tin[node_id])
-			    min_tin[node_id] = min_tin[to_id];
+			if (tin[to_id] < min_tin[node_id])
+			    min_tin[node_id] = tin[to_id];
 		    }
 		    else {	/*forward edge */
+			if (node_id == current_id)
+			    children++;	/*if root, increase number of children */
 			parent[to_id] = node;
 			stack[stack_size++] = to;
 			break;
@@ -108,8 +113,17 @@ int compute_bridges(struct dglGraph_s *graph, struct ilist *bridge_list)
 		if (!current_edge[node_id])
 		    stack_size--;	/*current node completely processed */
 	    }
+	    if (children > 1)
+		mark[current_id] = 1;	/*if the root has more than 1 subtrees rooted at it, then it is an
+					 * articulation point */
 	}
     }
+
+    for (i = 1; i <= nnodes; i++)
+	if (mark[i]) {
+	    points++;
+	    Vect_list_append(articulation_list, i);
+	}
 
     dglNode_T_Release(&nt);
     for (i = 1; i <= nnodes; i++)
@@ -121,5 +135,5 @@ int compute_bridges(struct dglGraph_s *graph, struct ilist *bridge_list)
     G_free(parent);
     G_free(stack);
     G_free(current_edge);
-    return bridges;
+    return points;
 }

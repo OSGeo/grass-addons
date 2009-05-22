@@ -21,8 +21,9 @@
 #include <grass/gis.h>
 #include <grass/Vect.h>
 #include <grass/glocale.h>
+#include <grass/dgl/graph.h>
 
-int weakly_connected_components(struct dglGraph_s *graph, int *component)
+int neta_weakly_connected_components(dglGraph_s * graph, int *component)
 {
     int nnodes;
     dglInt32_t *stack;
@@ -75,7 +76,7 @@ int weakly_connected_components(struct dglGraph_s *graph, int *component)
     return components;
 }
 
-int strongly_connected_components(struct dglGraph_s *graph, int *component)
+int neta_strongly_connected_components(dglGraph_s * graph, int *component)
 {
     int nnodes;
     dglInt32_t *stack, *order;

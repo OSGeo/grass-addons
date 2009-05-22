@@ -21,9 +21,25 @@
 #include <grass/gis.h>
 #include <grass/Vect.h>
 #include <grass/glocale.h>
+#include <grass/dbmi.h>
+#include <grass/neta.h>
 
-int weakly_connected_components(struct dglGraph_s *graph, int *component);
-int strongly_connected_components(struct dglGraph_s *graph, int *component);
+int insert_new_record(dbDriver * driver, struct field_info *Fi, dbString * sql,
+		      int cat, int comp)
+{
+    char buf[2000];
+    sprintf(buf, "insert into %s values (%d, %d)", Fi->table, cat, comp);
+    db_set_string(sql, buf);
+    G_debug(3, db_get_string(sql));
+
+    if (db_execute_immediate(driver, sql) != DB_OK) {
+	db_close_database_shutdown_driver(driver);
+	G_fatal_error(_("Cannot insert new record: %s"), db_get_string(sql));
+	return 0;
+    };
+    return 1;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -38,7 +54,13 @@ int main(int argc, char *argv[])
     int layer, mask_type;
     VARRAY *varray;
     dglGraph_s *graph;
-    int *component, nnodes, type, i, nlines, components;
+    int *component, nnodes, type, i, nlines, components, j, max_cat;
+    char buf[2000], *covered;
+
+    /* Attribute table */
+    dbString sql;
+    dbDriver *driver;
+    struct field_info *Fi;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -130,16 +152,46 @@ int main(int argc, char *argv[])
     graph = &(In.graph);
     nnodes = Vect_get_num_nodes(&In);
     component = (int *)G_calloc(nnodes + 1, sizeof(int));
-    if (!component) {
+    covered = (char *)G_calloc(nnodes + 1, sizeof(char));
+    if (!component || !covered) {
 	G_fatal_error(_("Out of memory"));
 	exit(EXIT_FAILURE);
     }
-    if (method_opt->answer[0] == 'w')
-	components = weakly_connected_components(graph, component);
-    else
-	components = strongly_connected_components(graph, component);
+    /* Create table */
+    Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
+    Vect_map_add_dblink(&Out, 1, NULL, Fi->table, "cat", Fi->database,
+			Fi->driver);
 
-    G_debug(3, "Components: %d\n", components);
+    driver = db_start_driver_open_database(Fi->driver, Fi->database);
+    if (driver == NULL)
+	G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
+		      Fi->database, Fi->driver);
+
+    sprintf(buf, "create table %s ( cat integer, comp integer)", Fi->table);
+
+    db_set_string(&sql, buf);
+    G_debug(2, db_get_string(&sql));
+
+    if (db_execute_immediate(driver, &sql) != DB_OK) {
+	db_close_database_shutdown_driver(driver);
+	G_fatal_error(_("Unable to create table: '%s'"), db_get_string(&sql));
+    }
+
+    if (db_create_index2(driver, Fi->table, "cat") != DB_OK)
+	G_warning(_("Cannot create index"));
+
+    if (db_grant_on_table
+	(driver, Fi->table, DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK)
+	G_fatal_error(_("Cannot grant privileges on table <%s>"), Fi->table);
+
+    db_begin_transaction(driver);
+
+    if (method_opt->answer[0] == 'w')
+	components = neta_weakly_connected_components(graph, component);
+    else
+	components = neta_strongly_connected_components(graph, component);
+
+    G_debug(3, "Components: %d", components);
 
     Vect_copy_head_data(&In, &Out);
     Vect_hist_copy(&In, &Out);
@@ -147,13 +199,13 @@ int main(int argc, char *argv[])
 
     nlines = Vect_get_num_lines(&In);
     for (i = 1; i <= nlines; i++) {
-	type = Vect_read_line(&In, Points, NULL, i);
-	Vect_reset_cats(Cats);
+	int comp;
+	type = Vect_read_line(&In, Points, Cats, i);
 	if (type == GV_LINE || type == GV_BOUNDARY) {
 	    int node1, node2;
 	    Vect_get_line_nodes(&In, i, &node1, &node2);
 	    if (component[node1] == component[node2]) {
-		Vect_cat_set(Cats, 1, component[node1]);
+		comp = component[node1];
 	    }
 	    else {
 		continue;
@@ -162,12 +214,40 @@ int main(int argc, char *argv[])
 	else if (type == GV_POINT) {
 	    int node;
 	    Vect_get_line_nodes(&In, i, &node, NULL);
-	    Vect_cat_set(Cats, 1, component[node]);
+	    comp = component[node];
+	    covered[node] = 1;
 	}
 	else
 	    continue;
 	Vect_write_line(&Out, type, Points, Cats);
+	for (j = 0; j < Cats->n_cats; j++)
+	    insert_new_record(driver, Fi, &sql, Cats->cat[j], comp);
     };
+    /*add points on nodes not covered by any point in the network */
+    /*find the maximum cat number */
+    /*TODO: Do we want a flag for this? */
+    max_cat = 0;
+    for (i = 1; i <= nlines; i++) {
+	Vect_read_line(&In, NULL, Cats, i);
+	for (j = 0; j < Cats->n_cats; j++)
+	    if (Cats->cat[j] > max_cat)
+		max_cat = Cats->cat[j];
+    }
+    max_cat++;
+    printf("Max cat %d\n", max_cat);
+    for (i = 1; i <= nnodes; i++)
+	if (!covered[i]) {
+	    double x, y, z;
+	    Vect_reset_cats(Cats);
+	    Vect_cat_set(Cats, 1, max_cat);
+	    Vect_get_node_coor(&In, i, &x, &y, &z);
+	    Vect_reset_line(Points);
+	    Vect_append_point(Points, x, y, z);
+	    Vect_write_line(&Out, GV_POINT, Points, Cats);
+	    insert_new_record(driver, Fi, &sql, max_cat++, component[i]);
+	}
+    db_commit_transaction(driver);
+    db_close_database_shutdown_driver(driver);
 
     Vect_build(&Out);
 

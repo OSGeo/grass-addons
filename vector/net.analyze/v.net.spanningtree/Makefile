@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../..
 
-PGM=v.net.bridge
+PGM=v.net.spanningtree
 
 LIBES     = $(NETALIB) $(VECTLIB) $(VECTLIB_REAL) $(DBMILIB) $(GISLIB)
 DEPENDENCIES = $(NETADEP) $(VECTDEP) $(DBMIDEP) $(GISDEP)

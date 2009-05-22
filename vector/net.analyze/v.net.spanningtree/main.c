@@ -1,11 +1,11 @@
 
 /****************************************************************
  *
- * MODULE:     v.net.bridge
+ * MODULE:     v.net.spanningtree
  *
  * AUTHOR(S):  Daniel Bundala
  *
- * PURPOSE:    Computes bridges in the network
+ * PURPOSE:    Computes spanning tree in the network
  *
  * COPYRIGHT:  (C) 2002-2005 by the GRASS Development Team
  *
@@ -31,21 +31,22 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *method_opt;
+    struct Option *cat_opt, *field_opt, *where_opt, *accol;
+    struct Flag *geo_f;
     int chcat, with_z;
     int layer, mask_type;
     VARRAY *varray;
     dglGraph_s *graph;
-    int i, bridges, articulations;
-    struct ilist *bridge_list, *articulation_list;
+    int i, edges, geo;
+    struct ilist *tree_list;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
 
     /* initialize module */
     module = G_define_module();
-    module->keywords = _("network, bridges, articulation points");
-    module->description = _("Computes bridges and articulation points.");
+    module->keywords = _("network, spanning tree");
+    module->description = _("Computes spanning.");
 
     /* Define the different options as defined in gis.h */
     map_in = G_define_standard_option(G_OPT_V_INPUT);
@@ -55,15 +56,16 @@ int main(int argc, char *argv[])
     cat_opt = G_define_standard_option(G_OPT_V_CATS);
     where_opt = G_define_standard_option(G_OPT_WHERE);
 
-    method_opt = G_define_option();
-    method_opt->key = "method";
-    method_opt->type = TYPE_STRING;
-    method_opt->required = YES;
-    method_opt->multiple = NO;
-    method_opt->options = "bridge,articulation";
-    method_opt->descriptions = _("bridge;Find bridges;"
-				 "articulation;Finds articulation points;");
-    method_opt->description = _("Feature type");
+    accol = G_define_option();
+    accol->key = "accol";
+    accol->type = TYPE_STRING;
+    accol->required = NO;
+    accol->description = _("Arc cost column");
+
+    geo_f = G_define_flag();
+    geo_f->key = 'g';
+    geo_f->description =
+	_("Use geodesic calculation for longitude-latitude locations");
 
     /* options and flags parser */
     if (G_parser(argc, argv))
@@ -93,6 +95,13 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Unable to create vector map <%s>"), map_out->answer);
     }
 
+    if (geo_f->answer) {
+	geo = 1;
+	if (G_projection() != PROJECTION_LL)
+	    G_warning(_("The current projection is not longitude-latitude"));
+    }
+    else
+	geo = 0;
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
@@ -124,41 +133,22 @@ int main(int argc, char *argv[])
 	varray = NULL;
     }
 
-    Vect_net_build_graph(&In, mask_type, 0, 0, NULL, NULL, NULL, 0, 0);
+    Vect_net_build_graph(&In, mask_type, atoi(field_opt->answer), 0,
+			 accol->answer, NULL, NULL, geo, 0);
     graph = &(In.graph);
 
     Vect_copy_head_data(&In, &Out);
     Vect_hist_copy(&In, &Out);
     Vect_hist_command(&Out);
 
-    if (method_opt->answer[0] == 'b') {
-	bridge_list = Vect_new_list();
-	bridges = neta_compute_bridges(graph, bridge_list);
-
-	G_debug(3, "Bridges: %d", bridges);
-
-	for (i = 0; i < bridges; i++) {
-	    int type =
-		Vect_read_line(&In, Points, Cats, abs(bridge_list->value[i]));
-	    Vect_write_line(&Out, type, Points, Cats);
-	}
-	Vect_destroy_list(bridge_list);
+    tree_list = Vect_new_list();
+    edges = neta_spanning_tree(graph, tree_list);
+    G_debug(3, "Edges: %d\n", edges);
+    for (i = 0; i < edges; i++) {
+	int type = Vect_read_line(&In, Points, Cats, abs(tree_list->value[i]));
+	Vect_write_line(&Out, type, Points, Cats);
     }
-    else {
-	articulation_list = Vect_new_list();
-	articulations = neta_articulation_points(graph, articulation_list);
-	G_debug(3, "Articulation points: %d", articulations);
-
-	for (i = 0; i < articulations; i++) {
-	    double x, y, z;
-	    Vect_get_node_coor(&In, articulation_list->value[i], &x, &y, &z);
-	    Vect_reset_line(Points);
-	    Vect_append_point(Points, x, y, z);
-	    Vect_write_line(&Out, GV_POINT, Points, Cats);
-	}
-
-	Vect_destroy_list(articulation_list);
-    }
+    Vect_destroy_list(tree_list);
 
     Vect_build(&Out);
 
