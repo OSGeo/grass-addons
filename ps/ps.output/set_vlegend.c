@@ -169,10 +169,10 @@ int set_vlegend(void)
         fprintf(PS.fp, "RESET\n");
         if (PS.vl.legend.title[0] == '.')
             fprintf(PS.fp, "(%s) x cwd 2 div add yo mgy mg sub sub M SHC\n",
-                    PS.vl.legend.title+1, PS.vl.legend.title_font.size);
+                    PS.vl.legend.title+1);
         else
             fprintf(PS.fp, "(%s) x yo mgy mg sub sub MS\n",
-                    PS.vl.legend.title, PS.vl.legend.title_font.size);
+                    PS.vl.legend.title);
     }
 
     return 0;

@@ -153,10 +153,10 @@ int set_rlegend_cats(void)
         fprintf(PS.fp, "RESET\n");
         if (PS.rl.legend.title[0] == '.')
             fprintf(PS.fp, "(%s) x cwd 2 div add yo mgy mg sub sub M SHC\n",
-                    PS.rl.legend.title+1, PS.rl.legend.title_font.size);
+                    PS.rl.legend.title+1);
         else
             fprintf(PS.fp, "(%s) x yo mgy mg sub sub MS\n",
-                    PS.rl.legend.title, PS.rl.legend.title_font.size);
+                    PS.rl.legend.title);
     }
 
     return 0;
