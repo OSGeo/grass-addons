@@ -151,7 +151,7 @@ int set_rlegend_cats(void)
     {
         set_ps_font(&(PS.rl.legend.title_font));
         fprintf(PS.fp, "RESET\n");
-        if (PS.vl.legend.title[0] == '.')
+        if (PS.rl.legend.title[0] == '.')
             fprintf(PS.fp, "(%s) x cwd 2 div add yo mgy mg sub sub M SHC\n",
                     PS.rl.legend.title+1, PS.rl.legend.title_font.size);
         else
