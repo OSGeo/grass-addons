@@ -49,18 +49,20 @@ int scan_ref(char *buf, int *xref, int *yref)
         *xref = CENTER;
     else if(strcmp(refx, "RIGHT") == 0 || strcmp(refx, "right") == 0)
         *xref = RIGHT;
+    /*
     else
         return 0;
-
+    */
     if(strcmp(refy, "UPPER") == 0 || strcmp(refy, "upper") == 0)
         *yref = UPPER;
     else if(strcmp(refy, "CENTER") == 0 || strcmp(refy, "center") == 0)
         *yref = CENTER;
     else if(strcmp(refy, "LOWER") == 0 || strcmp(refy, "lower") == 0)
         *yref = LOWER;
+    /*
     else
         return 0;
-
+    */
     return 1;
 }
 

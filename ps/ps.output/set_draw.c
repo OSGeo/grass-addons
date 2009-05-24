@@ -11,12 +11,16 @@
 #include <math.h>
 #include <grass/symbol.h>
 #include <grass/gprojects.h>
-#include "colors.h"
+#include "frames.h"
 #include "ps_info.h"
+#include "local_proto.h"
 
 #define PI   3.14159265359
 
 #define KEY(x) (strcmp(x,key)==0)
+#define CODE(x) strcmp(x,code)==0
+
+void label_in_file(char *);
 
 int set_draw(char * key, char *data)
 {
@@ -215,7 +219,14 @@ int set_draw(char * key, char *data)
         set_xy_where("cP exch 2 copy", e1, n1, "L cP 2 copy 8 2 roll");
         fprintf(PS.fp,
                 " 4 -1 roll add 2 div 3 1 roll add 2 div exch M"
-                " 4 1 roll sub 3 1 roll exch sub atan GS ROT 0 1 MR (%s) SHC GR S\n", buf);
+                        " 4 1 roll sub 3 1 roll exch sub atan GS ROT 0 1 MR (%s) SHC GR S\n", buf);
+    }
+    else if (KEY("labels") || KEY("label"))
+    {
+        if (sscanf(data, "%s", label) != 1) {
+            error(key, data, "labels need 1 parameters (filename)");
+        }
+        label_in_file(label);
     }
     else
     {
@@ -225,3 +236,112 @@ int set_draw(char * key, char *data)
     return 1;
 }
 
+
+void label_in_file(char *name)
+{
+    FILE *in = NULL;
+    char buf[1024], code[1024], data[1024];
+    int x, y;
+    double n;
+    PSFRAME frame;
+    PSFONT font;
+
+    frame.xref = CENTER;
+    frame.yref = CENTER;
+
+    if (*name) {
+        in = fopen(name, "r");
+        if (in == NULL) {
+            G_message("Labels file <%s> can't open", name);
+            return;
+        }
+    }
+
+    while (fgets(buf, sizeof(buf), in))
+    {
+        *code = 0;
+        *data = 0;
+        if (sscanf(buf, "%[^:]:%[^\n]", code, data) < 1)
+            continue;
+
+        G_strip(data);
+        if (CODE("text")) {
+
+            G_plot_where_xy(frame.x, frame.y, &x, &y);
+            frame.x = ((double)x) / 10.;
+            frame.y = ((double)y) / 10.;
+            set_ps_font(&font);
+            fprintf(PS.fp, "GS\n");
+            fprintf(PS.fp, "/ARo [(%s)] def\n", data);
+            fprintf(PS.fp, "/ARw 1 array def ARw 0 ARo SWx put ");
+            fprintf(PS.fp, "/ARh [2.0] def\n");
+            set_box_auto(&frame, &font, 0.25);
+            set_box_readjust_title(&frame, data);
+            set_box_draw(&frame);
+            fprintf(PS.fp, "GR\n");
+            fprintf(PS.fp, "(%s) xo wd 2 div add yo hg 2 div sub M SHCC\n", data);
+        }
+        /* Option to modify the text */
+        else if (CODE("east")) {
+            frame.x = atof(data);
+        }
+        else if (CODE("north")) {
+            frame.y = atof(data);
+        }
+        else if (CODE("xoffset")) {
+            frame.xset = atof(data);
+        }
+        else if (CODE("yoffset")) {
+            frame.yset = atof(data);
+        }
+        else if (CODE("ref")) {
+            scan_ref(data, &(frame.xref), &(frame.yref));
+        }
+        else if (CODE("font")) {
+            get_font(data);
+            strcpy(font.name, data);
+        }
+        else if (CODE("fontsize")) {
+            if (scan_dimen(data, &(font.size)) != 1)
+                font.size = 10.;
+        }
+        else if (CODE("size")) {
+            n = atof(data);
+            font.size = (n * MT_TO_POINT)/PS.scale;
+        }
+        else if (CODE("color")) {
+            if (!scan_color(data, &(font.color))) {
+                set_color_rgb(&(font.color), 0, 0, 0);
+            }
+        }
+        else if (CODE("space")) {
+        }
+        else if (CODE("rotation")) {
+            frame.rotate = atof(data);
+        }
+        else if (CODE("width")) {
+            if (scan_dimen(data, &(frame.border)) != 1) {
+                frame.border = -1;
+            }
+        }
+        else if (CODE("hcolor")) {
+        }
+        else if (CODE("hwidth")) {
+        }
+        else if (CODE("background")) {
+            if (!scan_color(data, &(frame.fcolor))) {
+                unset_color(&(frame.fcolor));
+            }
+        }
+        else if (CODE("border")) {
+            if (!scan_color(data, &(frame.color))) {
+                unset_color(&(frame.color));
+            }
+        }
+        else if (CODE("opaque")) {
+        }
+    }
+    fclose(in);
+
+    return;
+}
