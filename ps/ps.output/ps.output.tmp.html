@@ -311,10 +311,6 @@ USAGE
  <B>end</B>
 </PRE>
 
-The <B>line separation</B> of the grid is given (in the geographic coordinate system units) on the main instruction line.  The subsection instructions allow the user to specify the properties of the <B>grid line</B>, whether coordinate <B>numbers</B> should appear on the grid lines, and if they should appear every grid line (1), every other grid line (2), etc., and what <B>font</B> the numbers should be.
-The <B>cross</B> argument draws grid intersection crosses instead of grid lines, with cross size given in geographic coordinate system units. The defaults are black grid lines, unnumbered.
-<P>
-
 <PRE>
 <I>EXAMPLE</I>
 grid
@@ -604,6 +600,7 @@ USAGE
     <b>width</b>
     <b>height</b>
     <b>tick</b>
+    <b>order</b>
     <b>whiteframe</b>
 <b>end</b>
 </PRE>
@@ -675,7 +672,17 @@ vlegend
 #   cols 1
 #   width 1cm
 end
-</PRE><HR>
+</PRE>
+
+
+<H2>AUTHOR</H2>
+
+E. Jorge Tizado  (ej.tizado unileon es)<br>
+Dept. Biodiversity and Environmental Management, University of León, Spain<BR>
+
+<p>
+<i>Last changed: $Date: 2009/05/24 00:00:00 $</i>
+<HR>
 <P><a href="index.html">Main index</a> - <a href="postscript.html">postscript index</a> - <a href="full_index.html">Full index</a></P>
 <P>&copy; 2003-2009 <a href="http://grass.osgeo.org">GRASS Development Team</a></p>
 </body>
