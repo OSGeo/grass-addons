@@ -284,13 +284,6 @@ int main(int argc, char *argv[])
 	else if (strcasecmp(metho->answer, "dos4") == 0)	method = DOS4;
 	else method = UNCORRECTED;
 
-// 	if (metho->answer[3] == 'r') 		method = CORRECTED;
-// 	else if (metho->answer[3] == '1')	method = DOS1;
-// 	else if (metho->answer[3] == '2')	method = (metho->answer[4] == '\0') ? DOS2 : DOS2b;
-// 	else if (metho->answer[3] == '3')	method = DOS3;
-// 	else if (metho->answer[3] == '4')	method = DOS4;
-// 	else method = UNCORRECTED;
-
 	for (i = 0; i < lsat.bands; i++)
 	{
 		dn_mode[i] = 0;
@@ -358,7 +351,6 @@ int main(int argc, char *argv[])
 			h_max = 0L;
 			for (j= lsat.band[i].qcalmin; j < 241; j++) /* Exclude potentially saturated <= 240 */
 			{
-// 				printf("%d-%ld\n", j, hist[j]);
 				if (hist[j] > h_max)
 				{
 					h_max = hist[j];
