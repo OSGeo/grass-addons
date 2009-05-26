@@ -14,7 +14,7 @@
 #include "rlegend.h"
 #include "local_proto.h"
 
-static double nice_step(double diff, int cuts);
+static double nice_step(double, int, int *);
 
 
 int set_rlegend_cats(void)
@@ -165,13 +165,14 @@ int set_rlegend_cats(void)
 
 int set_rlegend_gradient(void)
 {
-	int i, k, rows, nlines;
+	int i, k, rows, nlines, dec;
 	int R, G, B;
 	DCELL dmin, dmax, val;
 	double fontsize, step, fwidth;
 	struct Colors colors;
 	struct FPRange range;
 	char *units[GNAME_MAX];
+    char format[50];
 
 	/* let user know what's happenning */
 	G_message(_("Raster legend with gradient <%s in %s> ..."),
@@ -221,15 +222,16 @@ int set_rlegend_gradient(void)
 		rows = (int)(PS.rl.height/(1.5 * fontsize));
 
 	/* Nice step and first value as ps_fctltbl */
-	step = nice_step(dmax - dmin, rows);
+	step = nice_step(dmax - dmin, rows, &dec);
 	val = step * (int)(dmin/step);
 	if (val < dmin) val += step;
 
     /* Array of strings and widths */
+    sprintf(format, "(%%.%df) %%.8f\n", dec);
     fprintf(PS.fp, "/AR0 [\n");
 	while (val <= dmax)
 	{
-		fprintf(PS.fp, "(%.f) %.8f\n", val, (dmax-val)/(dmax-dmin));
+		fprintf(PS.fp, format, val, (dmax-val)/(dmax-dmin));
 		val += step;
 	}
 	fprintf(PS.fp, "] def\n");
@@ -255,8 +257,8 @@ int set_rlegend_gradient(void)
 
 	/* Draw the labels */
     set_ps_color(&(PS.rl.legend.font.color));
-    fprintf(PS.fp, "RESET %.4f LW /ch chg %.5f sub def\n", fwidth, fwidth);
-    fprintf(PS.fp, "/x x syw add def /y y %.5f sub def\n", fwidth/2.);
+    fprintf(PS.fp, "RESET %.3f LW /ch chg %.3f sub def\n", fwidth, fwidth);
+    fprintf(PS.fp, "/x x syw add def /y y %.3f sub def\n", fwidth/2.);
 	fprintf(PS.fp, "0 2 AR0 length -- {/i XD\n");
 	fprintf(PS.fp, "x y ch AR0 i ++ get mul\n");
 	if (PS.rl.tickbar) {
@@ -266,8 +268,11 @@ int set_rlegend_gradient(void)
 		fprintf(PS.fp, "NM -1 0 MR -%d 0 LR CS GR\n", PS.rl.tickbar); /* length of tickbar */
 	}
     /* Ajusta los extremos que no salgan de la barra */
-	fprintf(PS.fp, "%.5f ", 0.67*fontsize); /* part upper tickbar */
-	fprintf(PS.fp, "2 copy lt {sub neg} {2 div add dup ch gt {pop ch} if} ifelse ");
+//     fprintf(PS.fp, "%.3f add ", 0.25*fontsize);
+    // fprintf(PS.fp, "1.0 AR0 i ++ get sub %.3f mul add ", 0.67*fontsize);
+    fprintf(PS.fp, "%.3f ", 0.6*fontsize); /* aprox part upper tickbar */
+	fprintf(PS.fp, "2 copy lt {add} {2 div add dup ch gt {pop ch} if} ifelse ");
+
 	fprintf(PS.fp, "sub M AR0 i get show} for\n");
 
     /* Prepare the border and stroke area */
@@ -313,16 +318,17 @@ int set_rlegend_gradient(void)
 /* Extract from function ps_fcolortable
  * Author: Radim Blazek, leto 02
  */
-static double nice_step(double diff, int cuts)
+static double nice_step(double diff, int cuts, int *cur_dec)
 {
-	int i, cur_step;
+	int i, cur_step, dec;
 	double nice_steps[4] = { 1.0, 2.0, 2.5, 5.0 };	/* nice steps */
 	double step, ex, cur_d, cur_ex;
 
 	step = diff / cuts;
 
 	for (i = 0; i < 4; i++) {
-		/* smalest n for which nice step >= raw step */
+        dec = 0;
+        /* smalest n for which nice step >= raw step */
 		if (nice_steps[i] <= step) {
 			ex = 1;
 			while (nice_steps[i] * ex < step)
@@ -330,15 +336,19 @@ static double nice_step(double diff, int cuts)
 		}
 		else {
 			ex = 0.1;
-			while (nice_steps[i] * ex > step)
+			while (nice_steps[i] * ex > step) {
+                ++dec;
 				ex *= 0.1;
+            }
 			ex *= 10;
 		}
 		if (i == 0 || (nice_steps[i] * ex - step) < cur_d) {
 			cur_step = i;
 			cur_d = nice_steps[i] * ex - step;
 			cur_ex = ex;
+            *cur_dec = dec;
 		}
 	}
+
 	return nice_steps[cur_step] * cur_ex;
 }
