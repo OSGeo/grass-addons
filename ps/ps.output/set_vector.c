@@ -222,7 +222,7 @@ int set_vlines(VECTOR vec, VLINES *vl, int flag)
 int set_vareas(VECTOR vec, VAREAS *va)
 {
     int k, ret, cat;
-    int area, nareas, island, nislands;
+    int area, nareas, island, nislands, centroid;
     struct line_cats *lcats;
     struct line_pnts *lpoints;
     BOUND_BOX box;
@@ -264,6 +264,11 @@ int set_vareas(VECTOR vec, VAREAS *va)
         if (vec.Varray != NULL && vec.Varray->c[area] == 0) {
             continue;
         }
+
+        centroid = Vect_get_area_centroid(&(vec.Map), area);
+        if (centroid < 1)  /* area is an island */
+            continue;
+
         /* check if in window */
         Vect_get_area_box(&(vec.Map), area, &box);
         if (box.N < PS.map.south || box.S > PS.map.north ||
@@ -282,7 +287,7 @@ int set_vareas(VECTOR vec, VAREAS *va)
         {
             k = Vect_get_area_isle(&(vec.Map), area, island);
             if (Vect_get_isle_points(&(vec.Map), k, lpoints) < 0)
-                return -1;
+                return -1; /* ? break; */
 
             vector_line(lpoints);
             fprintf(PS.fp, "CP\n");
