@@ -1,7 +1,6 @@
 MODULE_TOPDIR = ../..
 
 PGM=ps.output
-PROLOG=$(ETC)/paint/prolog.ps
 
 LIBES     = $(VECTLIB) $(GPROJLIB) $(SYMBLIB) $(GISLIB) $(DATETIMELIB) $(IMAGERYLIB) $(GMATHLIB)
 DEPENDENCIES = $(VECTDEP) $(SYMBDEP) $(GISDEP) $(DATETIDEP) $(IMAGERYDEP) $(GMATHDEP) \
@@ -12,9 +11,4 @@ EXTRA_CFLAGS = $(VECT_CFLAGS)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
-default: cmd patt
-
-patt:
-	$(MKDIR) $(ETC)/paint/patterns/
-	$(INSTALL_DATA) patterns/*.eps $(ETC)/paint/patterns/
-
+default: cmd
