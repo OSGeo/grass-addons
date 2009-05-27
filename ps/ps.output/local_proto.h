@@ -212,7 +212,7 @@ int set_raster_maskcolor(void);
 /* set_rlegend.c */
 int set_rlegend_cats(void);
 int set_rlegend_gradient(void);
-static double nice_step(double, int);
+static double nice_step(double, int, int*);
 
 /* set_scalebar.c */
 char *strnumber(double);
