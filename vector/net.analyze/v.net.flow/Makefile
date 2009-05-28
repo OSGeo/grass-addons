@@ -2,6 +2,8 @@ MODULE_TOPDIR = ../../..
 
 PGM=v.net.flow
 
+include ../Netalib.make
+
 LIBES     = $(NETALIB) $(VECTLIB) $(VECTLIB_REAL) $(DBMILIB) $(GISLIB)
 DEPENDENCIES = $(NETADEP) $(VECTDEP) $(DBMIDEP) $(GISDEP)
 EXTRA_INC = $(VECT_INC)
