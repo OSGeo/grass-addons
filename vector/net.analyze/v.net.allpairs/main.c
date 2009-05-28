@@ -1,11 +1,11 @@
 
 /****************************************************************
  *
- * MODULE:     v.net.components
+ * MODULE:     v.net.allpairs
  *
  * AUTHOR(S):  Daniel Bundala
  *
- * PURPOSE:    Computes strongly and weakly connected components
+ * PURPOSE:    Shortest paths between all nodes
  *
  * COPYRIGHT:  (C) 2002-2005 by the GRASS Development Team
  *
@@ -24,22 +24,6 @@
 #include <grass/dbmi.h>
 #include <grass/neta.h>
 
-int insert_new_record(dbDriver * driver, struct field_info *Fi, dbString * sql,
-		      int cat, int comp)
-{
-    char buf[2000];
-    sprintf(buf, "insert into %s values (%d, %d)", Fi->table, cat, comp);
-    db_set_string(sql, buf);
-    G_debug(3, db_get_string(sql));
-
-    if (db_execute_immediate(driver, sql) != DB_OK) {
-	db_close_database_shutdown_driver(driver);
-	G_fatal_error(_("Cannot insert new record: %s"), db_get_string(sql));
-	return 0;
-    };
-    return 1;
-}
-
 int main(int argc, char *argv[])
 {
     struct Map_info In, Out;
@@ -48,13 +32,15 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *method_opt;
+    struct Option *cat_opt, *field_opt, *where_opt, *abcol, *afcol;
+    struct Flag *geo_f, *newpoints_f;
     int chcat, with_z;
     int layer, mask_type;
     VARRAY *varray;
     dglGraph_s *graph;
-    int *component, nnodes, type, i, nlines, components, j, max_cat;
-    char buf[2000], *covered;
+    int i, j, geo, nnodes, nlines, max_cat, *cats;
+    dglInt32_t **dist;
+    char buf[2000];
 
     /* Attribute table */
     dbString sql;
@@ -66,9 +52,9 @@ int main(int argc, char *argv[])
 
     /* initialize module */
     module = G_define_module();
-    module->keywords = _("network, connected components");
+    module->keywords = _("network, shortest path, all pairs");
     module->description =
-	_("Computes strongly and weakly connected components.");
+	_("Computes the shortest path between all pairs of nodes.");
 
     /* Define the different options as defined in gis.h */
     map_in = G_define_standard_option(G_OPT_V_INPUT);
@@ -78,15 +64,26 @@ int main(int argc, char *argv[])
     cat_opt = G_define_standard_option(G_OPT_V_CATS);
     where_opt = G_define_standard_option(G_OPT_WHERE);
 
-    method_opt = G_define_option();
-    method_opt->key = "method";
-    method_opt->type = TYPE_STRING;
-    method_opt->required = YES;
-    method_opt->multiple = NO;
-    method_opt->options = "weak,strong";
-    method_opt->descriptions = _("weak;Weakly connected components;"
-				 "strong;Strongly connected components;");
-    method_opt->description = _("Type of components");
+    afcol = G_define_option();
+    afcol->key = "afcolumn";
+    afcol->type = TYPE_STRING;
+    afcol->required = NO;
+    afcol->description = _("Arc forward/both direction(s) cost column");
+
+    abcol = G_define_option();
+    abcol->key = "abcolumn";
+    abcol->type = TYPE_STRING;
+    abcol->required = NO;
+    abcol->description = _("Arc backward direction cost column");
+
+    geo_f = G_define_flag();
+    geo_f->key = 'g';
+    geo_f->description =
+	_("Use geodesic calculation for longitude-latitude locations");
+
+    newpoints_f = G_define_flag();
+    newpoints_f->key = 'a';
+    newpoints_f->description = _("Add points on nodes without points");
 
     /* options and flags parser */
     if (G_parser(argc, argv))
@@ -116,6 +113,13 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Unable to create vector map <%s>"), map_out->answer);
     }
 
+    if (geo_f->answer) {
+	geo = 1;
+	if (G_projection() != PROJECTION_LL)
+	    G_warning(_("The current projection is not longitude-latitude"));
+    }
+    else
+	geo = 0;
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
@@ -147,15 +151,6 @@ int main(int argc, char *argv[])
 	varray = NULL;
     }
 
-    Vect_net_build_graph(&In, mask_type, 0, 0, NULL, NULL, NULL, 0, 0);
-    graph = &(In.graph);
-    nnodes = Vect_get_num_nodes(&In);
-    component = (int *)G_calloc(nnodes + 1, sizeof(int));
-    covered = (char *)G_calloc(nnodes + 1, sizeof(char));
-    if (!component || !covered) {
-	G_fatal_error(_("Out of memory"));
-	exit(EXIT_FAILURE);
-    }
     /* Create table */
     Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
     Vect_map_add_dblink(&Out, 1, NULL, Fi->table, "cat", Fi->database,
@@ -166,7 +161,9 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
 		      Fi->database, Fi->driver);
 
-    sprintf(buf, "create table %s ( cat integer, comp integer)", Fi->table);
+    sprintf(buf,
+	    "create table %s ( from_cat integer, to_cat integer, cost double precision)",
+	    Fi->table);
 
     db_set_string(&sql, buf);
     G_debug(2, db_get_string(&sql));
@@ -185,67 +182,80 @@ int main(int argc, char *argv[])
 
     db_begin_transaction(driver);
 
-    if (method_opt->answer[0] == 'w')
-	components = neta_weakly_connected_components(graph, component);
-    else
-	components = neta_strongly_connected_components(graph, component);
 
-    G_debug(3, "Components: %d", components);
+    Vect_net_build_graph(&In, mask_type, atoi(field_opt->answer), 0,
+			 afcol->answer, abcol->answer, NULL, geo, 0);
+    graph = &(In.graph);
+    nnodes = dglGet_NodeCount(graph);
+    dist = (dglInt32_t **) G_calloc(nnodes + 1, sizeof(dglInt32_t *));
+    cats = (int *)G_calloc(nnodes + 1, sizeof(int));	/*id of each node. -1 if not used */
 
-    Vect_copy_head_data(&In, &Out);
-    Vect_hist_copy(&In, &Out);
-    Vect_hist_command(&Out);
+    if (!dist || !cats)
+	G_fatal_error(_("Out of memory"));
+    for (i = 0; i <= nnodes; i++) {
+	dist[i] = (dglInt32_t *) G_calloc(nnodes + 1, sizeof(dglInt32_t));
+	if (!dist[i])
+	    G_fatal_error(_("Out of memory"));
+    }
+    neta_allpairs(graph, dist);
+
+    for (i = 1; i <= nnodes; i++)
+	cats[i] = -1;
 
     nlines = Vect_get_num_lines(&In);
-    for (i = 1; i <= nlines; i++) {
-	int comp;
-	type = Vect_read_line(&In, Points, Cats, i);
-	if (type == GV_LINE || type == GV_BOUNDARY) {
-	    int node1, node2;
-	    Vect_get_line_nodes(&In, i, &node1, &node2);
-	    if (component[node1] == component[node2]) {
-		comp = component[node1];
-	    }
-	    else {
-		continue;
-	    }
-	}
-	else if (type == GV_POINT) {
-	    int node;
-	    Vect_get_line_nodes(&In, i, &node, NULL);
-	    comp = component[node];
-	    covered[node] = 1;
-	}
-	else
-	    continue;
-	Vect_write_line(&Out, type, Points, Cats);
-	for (j = 0; j < Cats->n_cats; j++)
-	    insert_new_record(driver, Fi, &sql, Cats->cat[j], comp);
-    };
-    /*add points on nodes not covered by any point in the network */
-    /*find the maximum cat number */
-    /*TODO: Do we want a flag for this? */
     max_cat = 0;
     for (i = 1; i <= nlines; i++) {
-	Vect_read_line(&In, NULL, Cats, i);
+	int type = Vect_read_line(&In, Points, Cats, i);
 	for (j = 0; j < Cats->n_cats; j++)
 	    if (Cats->cat[j] > max_cat)
 		max_cat = Cats->cat[j];
+	if (type == GV_POINT) {
+	    int node;
+	    Vect_get_line_nodes(&In, i, &node, NULL);
+	    Vect_cat_get(Cats, layer, &cats[node]);
+	    if (cats[node] != -1)
+		Vect_write_line(&Out, GV_POINT, Points, Cats);
+	}
+
     }
     max_cat++;
     for (i = 1; i <= nnodes; i++)
-	if (!covered[i]) {
-	    double x, y, z;
+	if (newpoints_f->answer && cats[i] == -1) {
 	    Vect_reset_cats(Cats);
 	    Vect_cat_set(Cats, 1, max_cat);
-	    Vect_get_node_coor(&In, i, &x, &y, &z);
-	    Vect_reset_line(Points);
-	    Vect_append_point(Points, x, y, z);
-	    Vect_write_line(&Out, GV_POINT, Points, Cats);
-	    insert_new_record(driver, Fi, &sql, max_cat++, component[i]);
+	    cats[i] = max_cat++;
+	    neta_add_point_on_node(&In, &Out, i, Cats);
 	}
+    G_message(_("Writing data into the table..."));
+    G_percent_reset();
+    for (i = 1; i <= nnodes; i++) {
+	G_percent(i, nnodes, 1);
+	if (cats[i] != -1)
+	    for (j = 1; j <= nnodes; j++)
+		if (cats[j] != -1) {
+		    sprintf(buf, "insert into %s values (%d, %d, %f)",
+			    Fi->table, i, j, dist[i][j] / 1000.0);
+		    db_set_string(&sql, buf);
+		    G_debug(3, db_get_string(&sql));
+
+		    if (db_execute_immediate(driver, &sql) != DB_OK) {
+			db_close_database_shutdown_driver(driver);
+			G_fatal_error(_("Cannot insert new record: %s"),
+				      db_get_string(&sql));
+		    };
+		}
+    }
     db_commit_transaction(driver);
     db_close_database_shutdown_driver(driver);
+
+    for (i = 0; i <= nnodes; i++)
+	G_free(dist[i]);
+    G_free(dist);
+
+    Vect_copy_head_data(&In, &Out);
+    Vect_hist_copy(&In, &Out);
+
+    Vect_hist_command(&Out);
 
     Vect_build(&Out);
 

@@ -5,7 +5,7 @@
  *
  * AUTHOR(S):  Daniel Bundala
  *
- * PURPOSE:    Computes strongly and weakly connected components
+ * PURPOSE:    Computes minimum spanning tree in the network
  *
  * COPYRIGHT:  (C) 2002-2005 by the GRASS Development Team
  *

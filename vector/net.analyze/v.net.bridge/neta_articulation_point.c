@@ -81,10 +81,10 @@ int neta_articulation_points(dglGraph_s * graph,
 		if (tin[node_id] == 0)	/*vertex visited for the first time */
 		    min_tin[node_id] = tin[node_id] = ++time;
 		else {		/*return from the recursion */
-		    dglInt32_t to =
-			dglNodeGet_Id(graph,
-				      dglEdgeGet_Tail(graph,
-						      current_edge[node_id]));
+		    dglInt32_t to = dglNodeGet_Id(graph,
+						  dglEdgeGet_Tail(graph,
+								  current_edge
+								  [node_id]));
 		    if (min_tin[to] >= tin[node_id])	/*no path from the subtree above the current node */
 			mark[node_id] = 1;	/*so the current node must be an articulation point */
 

@@ -3,7 +3,9 @@ MODULE_TOPDIR = ../..
 SUBDIRS1 = \
 	v.net.components \
         v.net.bridge \
-        v.net.spanningtree
+        v.net.spanningtree \
+        v.net.allpairs \
+        v.net.flow
 
 SUBDIRS = netalib $(SUBDIRS1)
 

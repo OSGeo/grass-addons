@@ -78,10 +78,10 @@ int neta_compute_bridges(dglGraph_s * graph, struct ilist *bridge_list)
 		if (tin[node_id] == 0)	/*vertex visited for the first time */
 		    min_tin[node_id] = tin[node_id] = ++time;
 		else {		/*return from the recursion */
-		    dglInt32_t to =
-			dglNodeGet_Id(graph,
-				      dglEdgeGet_Tail(graph,
-						      current_edge[node_id]));
+		    dglInt32_t to = dglNodeGet_Id(graph,
+						  dglEdgeGet_Tail(graph,
+								  current_edge
+								  [node_id]));
 		    if (min_tin[to] > tin[node_id]) {	/*no path from the subtree above the current node */
 			Vect_list_append(bridge_list, dglEdgeGet_Id(graph, current_edge[node_id]));	/*so it must be a bridge */
 			bridges++;
