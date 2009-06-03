@@ -123,6 +123,12 @@ class AutoKrige():
         self.logfile='v.autokrige.log'
     
     def __checkLayers(self, input, output):
+        """
+        Preliminary chacks before starting kriging.
+        Note : for this to work with grass6.3, in find_file function from core.py,
+        command should be (n flag removed because 6.4 specific):
+        s = read_command("g.findfile", element = element, file = name, mapset = mapset)
+        """
         ##Test for input vector map.
         testInput = grass.find_file(input, element = 'vector')
         if testInput['fullname'] == '':
@@ -354,3 +360,4 @@ if __name__ == "__main__":
         main()
     else:
         print "R required, please install R first"
+
