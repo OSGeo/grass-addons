@@ -9,7 +9,6 @@
 # - unix utility : bc
 # - statistical software : R (http://www.r-project.org/) with spgrass6 (http://cran.r-project.org/web/packages/spgrass6/index.html)
 #	and automap (http://intamap.geo.uu.nl/~paul/Downloads.html) packages 
-# - grass addon : g.region.nbcell (http://docs.google.com/Doc?id=dgqnzvwg_8fj97f5f9)
 # - imagemagick : convert program
 # COPYRIGHT:	(C) 2008 Mathieu Grelier
 #
@@ -41,7 +40,7 @@
 #% key: nbcell
 #% type: integer
 #% answer: 100
-#% description: number of cell of the created grid. If set, GRASS region is affected.
+#% description: Maximal resolution of one of the dimensions of the created square grid. Computation time depends on it. If set, GRASS region is affected.
 #% required : no
 #%end
 #%option
@@ -135,7 +134,6 @@ export LC_NUMERIC
 cleanup()
 {
     \rm -f "$TMPPOSTGISCHECKS"
-	\rm -f "$TMPREGION"
     \rm -f "$RGRASSSCRIPT"
 }
 
@@ -208,30 +206,28 @@ else
 	KRIGRASTERNAME=KRIG
 fi
 
-#region parameters are used to deal with grid cells size and range
-TMPREGION="`g.tempfile pid=$$`"
-if [ $? -ne 0 ] || [ -z "$TMPREGION" ] ; then
-	echo "ERROR: unable to create temporary file for region parameters" 1>&2
-    exit 1
-fi
-
 #fix region and resolution
 if [ "$GIS_FLAG_R" -eq 0 ] ; then
 	g.region vect="$GIS_OPT_INPUT"
 fi
-#grid cells size : small values (more cells) increase both raster quality and computation time
+
+#grid number of cells : more cells increase both raster quality and computation time
 if [ -n "$GIS_OPT_NBCELL" ] ; then 
-	g.region.nbcell nbcell="$GIS_OPT_NBCELL"
+ 	eval `g.region -g`
+	nsminres=$(echo "scale=10; ("$n"-"$s")/"$GIS_OPT_NBCELL"" | bc )
+	ewminres=$(echo "scale=10; ("$e"-"$w")/"$GIS_OPT_NBCELL"" | bc )
+	if [ "$(echo "if (${nsminres} > ${ewminres}) 1" | bc)" -eq 1 ]; then
+		res="$nsminres"
+	elif [ "$(echo "if (${nsminres} < ${ewminres}) 1" | bc)" -eq 1 ]; then
+		res="$ewminres"
+	elif [ "$(echo "if (${nsminres} == ${ewminres}) 1" | bc)" -eq 1 ]; then
+		res="$nsminres"
+	fi
+	g.region res="$res"
 fi
 
-g.region -p > "$TMPREGION"
-north=$(awk -F ":" '$1=="north" {print $2}' "$TMPREGION")
-south=$(awk -F ":" '$1=="south" {print $2}' "$TMPREGION")
-west=$(awk -F ":" '$1=="west" {print $2}' "$TMPREGION")
-east=$(awk -F ":" '$1=="east" {print $2}' "$TMPREGION")
-nsres=$(awk -F ":" '$1=="nsres" {print $2}' "$TMPREGION")
-ewres=$(awk -F ":" '$1=="ewres" {print $2}' "$TMPREGION")
 #now define kriged grid cell size : we take region resolution as cell size. Only one value is needed because the R script use square cells
+eval `g.region -g`
 if [ "$(echo "if (${nsres} > ${ewres}) 1" | bc)" -eq 1 ] ; then
 	cellsize=$(echo "scale=10; ("$nsres"/1)" | bc )
 else
@@ -340,6 +336,7 @@ tryCatch({
 	attr(sitesR, "proj4string") <-CRS(G$proj4)
 
 	cat("ordinary kriging","\n")
+	#[note : rajouter une option pour gérer le krigeage universel]
 	kriging_result = autoKrige(as.formula(paste(column,"~",1)), sitesR[column], mask_SG, model = modelslist, fix.values = c(nugget,range,sill), debug.level=-1, verbose=TRUE)
 
 	cat("send raster to GRASS","\n")
