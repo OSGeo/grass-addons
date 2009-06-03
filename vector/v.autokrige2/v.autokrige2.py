@@ -25,33 +25,17 @@ import sys
 
 #classes in alphabetical order
 
-class KrigingModule(wx.Frame):
+class KrigingPanel(wx.Panel):
     """
-    Kriging module for GRASS GIS.
+    Main panel. Contains all widgets except Menus and Statusbar.
     """
     def __init__(self, parent, *args, **kwargs):
-        wx.Frame.__init__(self, parent, *args, **kwargs)
-        # setting properties and all widgettery
-        self.SetTitle("Kriging Module")
-        self.log = Log(self) # writes on statusbar
-        self.CreateStatusBar()
-        # debug: remove before flight
-        self.log.write("Are you reading this? This proves it is very beta version.")
+        wx.Panel.__init__(self, parent, *args, **kwargs)
         
-        # sizer stuff. Improvable.
-        vsizer1 = wx.BoxSizer(orient=wx.VERTICAL)
-        # uncommment this line when panels will be ready to be added
-#        vsizer1.Add(item=ITEM, proportion=1, flag=wx.EXPAND | wx.ALL, border=10)
-        self.SetSizerAndFit(vsizer1)
-#        self.SetAutoLayout(True)
-#        vsizer1.Fit(self)
-        #@TODO(anne): set minimum size around objects.
-        
-#        global variables. don't know if it is a good place to store them, in case move them
-        
+        self.parent = parent
 #        widgettery. They are all Panels into StaticBox Sizers.
 #
-#        1. Combobox with all point layers of the mapset with xyz data: see how to call d.vect.
+#        1. Input Data. Combobox with all point layers of the mapset with xyz data: see how to call d.vect.
 #               whateverNameOfFunction(ltype='vector',
 #                                            lname=name,
 #                                            lchecked=True,
@@ -66,7 +50,57 @@ class KrigingModule(wx.Frame):
 #            RadioButton: Block Kriging
 #            RadioButton: Cokriging
 #        n. OK - Cancel buttons
+
+#    Implementation.
+#    1. Input data 
+        InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Input Data'), wx.HORIZONTAL)
+        self.SampleList = ['input map1','input map 2'] # fake list. See how to deal with GRASS maps, filtering them accordingly.
+        self.InputDataLabel = wx.StaticText(self, -1, "Point dataset")
+        self.InputDataCombobox=wx.ComboBox(self, -1, "", (-1,-1), (-1,-1), self.SampleList, wx.CB_DROPDOWN) # see ho to get rid of position and size.
+        InputBoxSizer.Add(self.InputDataLabel, -1, wx.ALIGN_LEFT, 1)
+        InputBoxSizer.Add(self.InputDataCombobox, -1, wx.EXPAND, 1)
         
+#   2. Variogram.
+#        VariogramBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Variogram'), wx.VERTICAL). # discarded. radiobox is p-e-r-f-e-c-t.
+        self.RadioList = ["Auto-fit variogram", "Choose variogram parameters"]
+        VariogramRadioBox = wx.RadioBox(self, -1, "Variogram Fitting", (-1,-1), wx.DefaultSize, self.RadioList, 1, wx.RA_SPECIFY_COLS)
+
+#    3. Kriging.
+        #@TODO(anne): examine gstat and geoR f(x)s and fill the notebook.
+        
+#    Main Sizer. Add each child sizer as soon as it is ready.
+        Sizer = wx.BoxSizer(wx.VERTICAL)
+        Sizer.Add(InputBoxSizer, 0, wx.EXPAND, 5)
+        Sizer.Add(VariogramRadioBox, 0, wx.EXPAND, 5)
+#        Sizer.Add(next)
+
+        self.SetSizerAndFit(Sizer)
+
+class KrigingModule(wx.Frame):
+    """
+    Kriging module for GRASS GIS. Depends on R and its packages gstat and geoR.
+    """
+    def __init__(self, parent, *args, **kwargs):
+        wx.Frame.__init__(self, parent, *args, **kwargs)
+        # setting properties and all widgettery
+        self.SetTitle("Kriging Module")
+        self.log = Log(self) # writes on statusbar
+        self.CreateStatusBar()
+        # debug: remove before flight
+        self.log.write("Are you reading this? This proves it is very beta version.")
+        
+#        # sizer stuff. Improvable.
+#        vsizer1 = wx.BoxSizer(orient=wx.VERTICAL)
+#        # uncommment this line when panels will be ready to be added
+##        vsizer1.Add(item=, proportion=1, flag=wx.EXPAND | wx.ALL, border=10)
+#        self.SetSizerAndFit(vsizer1)
+        
+#        self.SetAutoLayout(True)
+#        vsizer1.Fit(self)
+        #@TODO(anne): set minimum size around objects.
+        
+        self.Panel = KrigingPanel(self)
+        self.Fit()        
     
 class Log:
     """
