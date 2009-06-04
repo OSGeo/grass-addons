@@ -7,10 +7,11 @@
 # AUTHOR(S):	Mathieu Grelier (greliermathieu@gmail.com)
 # PURPOSE:	automatic kriging interpolation from vector point data
 # REQUIREMENTS:
-# - unix utility : bc
-# - statistical software : R (http://www.r-project.org/) with spgrass6 (http://cran.r-project.org/web/packages/spgrass6/index.html)
-#	and automap (http://intamap.geo.uu.nl/~paul/Downloads.html) packages 
-# - imagemagick : convert program
+#   - statistical software : R (http://www.r-project.org/)
+#   - R packages :
+#       - spgrass6 (http://cran.r-project.org/web/packages/spgrass6/index.html)
+#       - automap (http://intamap.geo.uu.nl/~paul/Downloads.html) packages 
+#   - imagemagick : convert program
 # COPYRIGHT:	(C) 2009 Mathieu Grelier
 #
 #		This program is free software under the GNU General Public
@@ -99,7 +100,9 @@ import re
 from subprocess import Popen, PIPE
 import traceback
 
+##see http://trac.osgeo.org/grass/browser/grass/trunk/lib/python
 from grass import core as grass
+##only needed to use debugger
 from dbgp.client import brk
 
 class AutoKrige():
@@ -124,7 +127,7 @@ class AutoKrige():
     
     def __checkLayers(self, input, output):
         """
-        Preliminary chacks before starting kriging.
+        Preliminary checks before starting kriging.
         Note : for this to work with grass6.3, in find_file function from core.py,
         command should be (n flag removed because 6.4 specific):
         s = read_command("g.findfile", element = element, file = name, mapset = mapset)
@@ -153,7 +156,8 @@ Use the --o flag to overwrite.")
         
     
     def __getGridCellSize(self, input, nbcell):
-        """Define kriged grid cell size : we take region resolution as cell size.
+        """Define kriged grid cell size. Raster resolution but also computation time depends on it.
+        We take region resolution as cell size but we can fix this resolution with the nbcell parameter.
         Only one value is needed because the R script use square cells."""
         if self.regionFlag is not True:
             grass.run_command("g.region", vect = input)
@@ -165,7 +169,7 @@ Use the --o flag to overwrite.")
         return cellsize
     
     def __fixRegionResFromNumberOfCells(self, nbcell=100):
-        """to explain"""
+        """Adjust one of the two region dimensions so that we have a maximum of 'nbcell' cells in both."""
         regionParams = grass.region()
         nsResForGivenNbCell = (float(regionParams['n'])- float(regionParams['s'])) / float(nbcell)
         ewResForGivenNbCell = (float(regionParams['e'])- float(regionParams['w'])) / float(nbcell)
@@ -174,18 +178,19 @@ Use the --o flag to overwrite.")
         grass.run_command("g.region", res = tmpRegionRes)
     
     def __prepareRScriptArguments(self, cellsize, models=None, range=None, nugget=None, sill=None):
+        """Group all R arguments in a dictionnary"""
         ##1)Models
         ##The script will try to create the R argument as expected in the R script,
         ##to avoid string manipulations with R.
         RargumentsDict = {}
         if models is None:
-            #it is important not to have any space between commas and following slashes
+            ##it is important not to have any space between commas and following slashes
             RargumentsDict['models']='c(\"Sph\",\"Exp\",\"Gau\",\"Mat\")'
         else:
-            #conversion to R arguments in the expected format, starting from model1,model2...
-            #add c(" at the beginning and add ") at the end
+            ##conversion to R arguments in the expected format, starting from model1,model2...
+            ##add c(" at the beginning and add ") at the end
             RargumentsDict['models'] = 'c(\\"' + models + '\\")'
-            #replace commas by \",\"
+            ##replace commas by \",\"
             p = re.compile(',')
             RargumentsDict['models'] = p.sub('\\",\\"',RargumentsDict['models'])
         ##2)Range, nugget, sill
@@ -244,7 +249,7 @@ Use the --o flag to overwrite.")
             attr(sitesR, "proj4string") <-CRS(G$proj4)
         
             cat("ordinary kriging","\n")
-            #[note : rajouter une option pour gérer le krigeage universel]
+            #[note : ajouter une option pour permettre de réaliser le krigeage universel]
             kriging_result = autoKrige(as.formula(paste(column,"~",1)), sitesR[column], mask_SG, model = modelslist, fix.values = c(nugget,range,sill), debug.level=-1, verbose=TRUE)
         
             cat("send raster to GRASS","\n")
@@ -277,17 +282,17 @@ Use the --o flag to overwrite.")
         return RscriptFile
     
     def __finalize(self, output, colormap):
+        """We don't want to stop execution if an error occurs here."""
         try:
             ##convert plot to png
             self.__execShellCommand('convert -alpha off Rplots.pdf Rplots.png')
             ##apply colormap
             grass.run_command("r.colors", map = output, rules = colormap, quiet = True) 
         except:
-            ##we don't want to stop execution if an error occurs here
             pass
     
     def __execShellCommand(self, command, stderrRedirection=False, writeToLog=False):
-        """general purpose function, maybe should be added in some way to core.py """
+        """General purpose function, maybe should be added in some way to core.py """
         if stderrRedirection is True:
             command = command + " 2>&1"
         p = Popen(command, shell=True, stdout=PIPE)
@@ -331,26 +336,30 @@ Use the --o flag to overwrite.")
                                                                                   
 class AutoKrigeError(Exception):
     """Errors specific to Autokrige class"""
-    def __init__(self, message):
+    def __init__(self, message=''):
         self.details = '\nDetails:\n'
         exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
         self.details += repr(traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback))
         self.message = message + "\n" + self.details
 
 def main():
+    exitStatus = 0
     try:
         autoKrige = AutoKrige(options, flags)
         autoKrige.runAutoKrige()
     except AutoKrigeError, e1:
-        print >> sys.stderr, "Error:", e1.message
+        print >> sys.stderr, "Error in v.autokrige.py \n:", e1.message
+        exitStatus = 1
     except:
-        print >> sys.stderr, "Unexpected error:"
+        errorMessage = "Unexpected error while executing v.autokrige.py \n:"
+        print >> sys.stderr, errorMessage
         traceback.print_exc()
+        exitStatus = 1
     else:
         print "Done"
-        sys.exit(0)
     finally:
         grass.try_remove(autoKrige.RscriptFile)
+        sys.exit(exitStatus)
 
 if __name__ == "__main__":
     ### DEBUG : uncomment to start local debugging session
