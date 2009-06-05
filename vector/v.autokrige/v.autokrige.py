@@ -93,6 +93,10 @@
 #% key: r
 #% description: Don't set region from sites extent. Region would have been previously set in grass. 
 #%end
+#%flag
+#% key: l
+#% description: Log R output to v.autokrige.log. 
+#%end
 
 import sys
 import os
@@ -102,7 +106,7 @@ import traceback
 
 ##see http://trac.osgeo.org/grass/browser/grass/trunk/lib/python
 from grass import core as grass
-##only needed to use debugger
+##only needed to use debugger. See http://aspn.activestate.com/ASPN/Downloads/Komodo/RemoteDebugging
 from dbgp.client import brk
 
 class AutoKrige():
@@ -121,9 +125,11 @@ class AutoKrige():
         ##flags
         self.varianceFlag = True if flags['v'] is True else False
         self.regionFlag = True if flags['r'] is True else False
+        self.logROutput = True if flags['l'] is True else False
         #others
         self.RscriptFile = None
-        self.logfile='v.autokrige.log'
+        logfilename = 'v.autokrige.log'
+        self.logfile = os.path.join(os.getenv('LOGDIR'),logfilename) if os.getenv('LOGDIR') else logfilename
     
     def __checkLayers(self, input, output):
         """
@@ -207,6 +213,7 @@ Use the --o flag to overwrite.")
         options(echo = FALSE)
         args <- commandArgs()
         ##start at index 5 because first arguments are R options
+        cat("arguments:","\n")
         sitesG <- args[5]
         column <- args[6]
         rastername <- args[7]
@@ -218,6 +225,40 @@ Use the --o flag to overwrite.")
         if(args[12] == "NA") {sill = NA} else {sill <- as.numeric(args[12])}
         writevarrast <- as.logical(args[13])
         
+        ##print arguments
+        #################
+        cat("sitesG:",sitesG,"\n")
+        cat("column:",column,"\n")
+        cat("rastername:",rastername,"\n")
+        cat("cellsize:",cellsize,"\n")
+        cat("modelslist:",modelslist,"\n")
+        cat("range:",range,"\n")
+        cat("nugget:",nugget,"\n")
+        cat("sill:",sill,"\n")
+        cat("writevarrast:",writevarrast,"\n")
+        
+        ##variogram plot function
+        #########################
+        plot.autoKrigeVariogramAndFittedModel = function(x, sp.layout = NULL, ...)
+        ##Function adapted from plot.autoKrige in automap package.
+        ##Prints only the variogram and model as we already have the map output in GRASS.
+        {
+            library(lattice)
+            shift = 0.03
+            labels = as.character(x$exp_var$np)
+            vario = xyplot(gamma ~ dist, data = x$exp_var, panel = automap:::autokrige.vgm.panel,
+                        labels = labels, shift = shift, model = x$var_model,# subscripts = TRUE,
+                        direction = c(x$exp_var$dir.hor[1], x$exp_var$dir.ver[1]),
+                        ylim = c(min(0, 1.04 * min(x$exp_var$gamma)), 1.04 * max(x$exp_var$gamma)),
+                        xlim = c(0, 1.04 * max(x$exp_var$dist)), xlab = "Distance", ylab = "Semi-variance",
+                        main = "Experimental variogram and fitted variogram model", mode = "direct",...)
+        
+            print(vario, position = c(0,0,1,1)) 
+        
+        }
+        
+        ##autokrige script
+        ##################
         tryCatch({
             ##libraries
             library(spgrass6)
@@ -263,45 +304,50 @@ Use the --o flag to overwrite.")
         
             ##plot experimental and model variogram
             cat("plot kriging results","\n")
+            ##see R FAQ 7.19. Plotting to png can produce errors if R version < 2.7
+            ##we use the pdf driver then we will convert to png
             options(device="pdf")
-            try(automap:::plot.autoKrige(kriging_result))
+            try(plot.autoKrigeVariogramAndFittedModel(kriging_result))
             cat("R script done","\n")
             quit(status = 0)
         }, interrupt = function(ex) {
-            cat("An interrupt was detected.\n");
+            cat("An interrupt was detected while executing R script.\n");
             quit(status = 4)
             }, 
             error = function(ex) {
             cat("Error while executing R script.\n");
             quit(status = 5)
             }
-        )
+        ) ## tryCatch()
+        
         """
         fileHandle.write(script)
         fileHandle.close()
         return RscriptFile
     
     def __finalize(self, output, colormap):
-        """We don't want to stop execution if an error occurs here."""
+        """
+        Group operations non-related to kriging.
+        We don't want to stop execution if an error occurs here.
+        """
         try:
             ##convert plot to png
-            self.__execShellCommand('convert -alpha off Rplots.pdf Rplots.png')
+            self.__execShellCommand('convert -alpha off Rplots.pdf autokrige_result.png')
+            grass.try_remove('Rplots.pdf')
             ##apply colormap
             grass.run_command("r.colors", map = output, rules = colormap, quiet = True) 
         except:
             pass
     
-    def __execShellCommand(self, command, stderrRedirection=False, writeToLog=False):
+    def __execShellCommand(self, command, stderrRedirection=False, logFile=False):
         """General purpose function, maybe should be added in some way to core.py """
+        if logFile is not False:
+            command = command + ' >> ' +  logFile
         if stderrRedirection is True:
             command = command + " 2>&1"
         p = Popen(command, shell=True, stdout=PIPE)
         retcode = p.wait()
         com = p.communicate()
-        if writeToLog is True:
-            fileHandle = open(self.logfile, 'w')
-            fileHandle.write(com[0])
-            fileHandle.close()
         if retcode == 0:
             return com[0]
         else:
@@ -330,7 +376,8 @@ Use the --o flag to overwrite.")
                         self.output + ' ' + str(cellsize) + ' "' + RargsDict['models'] + '" ' + \
                         RargsDict['range'] + ' ' +  RargsDict['nugget'] + ' ' + RargsDict['sill'] \
                         + ' ' + writeVarRast + ' < "' + self.RscriptFile + '"'
-        self.__execShellCommand(autoKrigeCommand, stderrRedirection=True, writeToLog=True)
+        logFileArg = self.logfile if self.logROutput is True else False
+        self.__execShellCommand(autoKrigeCommand, stderrRedirection=True, logFile=logFileArg)
         ##5)Finalize output
         self.__finalize(self.output, self.colormap)
                                                                                   
@@ -348,10 +395,10 @@ def main():
         autoKrige = AutoKrige(options, flags)
         autoKrige.runAutoKrige()
     except AutoKrigeError, e1:
-        print >> sys.stderr, "Error in v.autokrige.py \n:", e1.message
+        print >> sys.stderr, "Error \n:", e1.message
         exitStatus = 1
     except:
-        errorMessage = "Unexpected error while executing v.autokrige.py \n:"
+        errorMessage = "Unexpected error \n:"
         print >> sys.stderr, errorMessage
         traceback.print_exc()
         exitStatus = 1
