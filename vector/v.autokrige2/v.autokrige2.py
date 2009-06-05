@@ -16,12 +16,9 @@ COPYRIGHT: (C) 2009 by the GRASS Development Team
            for details.
 """
 
-#list of parameters
-
-#import directives. to be completed.
 import wx
 import sys
-#import wx.lib.flatnotebook as FN # self.notebook attribute in Kriging Module's __init__
+import gcmd
 
 #classes in alphabetical order
 
@@ -32,49 +29,46 @@ class KrigingPanel(wx.Panel):
     def __init__(self, parent, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
-        self.parent = parent
-#        widgettery. They are all Panels into StaticBox Sizers.
-#
-#        1. Input Data. Combobox with all point layers of the mapset with xyz data: see how to call d.vect.
-#               whateverNameOfFunction(ltype='vector',
-#                                            lname=name,
-#                                            lchecked=True,
-#                                            lopacity=1.0,
-#                                            lcmd=['d.vect', 'map=%s' % name])
-#        2. Variogram.
-#            RadioButton (default choice): Auto-fit Variogram
-#            RadioButton: Choose variogram parameters -> Button that opens a dialog with the variogram plot and controls.
-#        3. Kriging.
-#            2 Notebook pages, one for R package gstat and other for geoR. Each page will have the available options, zB:
-#            RadioButton (default): Ordinary Kriging
-#            RadioButton: Block Kriging
-#            RadioButton: Cokriging
-#        n. OK - Cancel buttons
+        self.parent = parent 
 
-#    Implementation.
 #    1. Input data 
         InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Input Data'), wx.HORIZONTAL)
-        self.SampleList = ['input map1','input map 2'] # fake list. See how to deal with GRASS maps, filtering them accordingly.
-        self.InputDataLabel = wx.StaticText(self, -1, "Point dataset")
-        self.InputDataCombobox=wx.ComboBox(self, -1, "", (-1,-1), (-1,-1), self.SampleList, wx.CB_DROPDOWN) # see ho to get rid of position and size.
-        InputBoxSizer.Add(self.InputDataLabel, -1, wx.ALIGN_LEFT, 1)
-        InputBoxSizer.Add(self.InputDataCombobox, -1, wx.EXPAND, 1)
-        
-#   2. Variogram.
-#        VariogramBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Variogram'), wx.VERTICAL). # discarded. radiobox is p-e-r-f-e-c-t.
-        self.RadioList = ["Auto-fit variogram", "Choose variogram parameters"]
-        VariogramRadioBox = wx.RadioBox(self, -1, "Variogram Fitting", (-1,-1), wx.DefaultSize, self.RadioList, 1, wx.RA_SPECIFY_COLS)
 
-#    3. Kriging.
-        #@TODO(anne): examine gstat and geoR f(x)s and fill the notebook.
+        self.SampleList = self.__getVectors()
+        self.InputDataLabel = wx.StaticText(self, -1, "Point dataset")
+        self.InputDataChoicebox = wx.Choice(self, -1, self.SampleList)
+        InputBoxSizer.Add(self.InputDataLabel, -1, wx.ALIGN_LEFT, 1)
+        InputBoxSizer.Add(self.InputDataChoicebox, -1, wx.EXPAND, 1)
+
+#    2. Kriging. In book pages one for each R package. Includes variogram fit.
+        KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Kriging'), wx.HORIZONTAL)
+        self.RPackagesBook = RPackagesBook(parent= self)
+        KrigingSizer.Add(self.RPackagesBook, wx.EXPAND)
         
 #    Main Sizer. Add each child sizer as soon as it is ready.
         Sizer = wx.BoxSizer(wx.VERTICAL)
         Sizer.Add(InputBoxSizer, 0, wx.EXPAND, 5)
-        Sizer.Add(VariogramRadioBox, 0, wx.EXPAND, 5)
-#        Sizer.Add(next)
+        Sizer.Add(KrigingSizer, 0, wx.EXPAND, 5)
 
         self.SetSizerAndFit(Sizer)
+        
+    def __getVectors(self, *args, **kwargs):
+        """Get list of tables for given location and mapset"""
+        vectors = []
+        cmdVectors = gcmd.Command(['g.list',
+                                 'vect', '--q',
+#                                 'driver=%s' % driver, 
+#                                 'database=%s' % database
+                                ],
+                                rerr=None) # what does it mean? is it useful? 
+        if cmdVectors.returncode != 0:
+            wx.MessageBox(parent=self,
+                          message=_("Unable to get list of vectors. Check if the location is correct."),
+                          caption=_("Error"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
+            return vectors
+        for vector in cmdVectors.ReadStdOutput():
+            vectors.append(vector)
+        return vectors
 
 class KrigingModule(wx.Frame):
     """
@@ -87,16 +81,8 @@ class KrigingModule(wx.Frame):
         self.log = Log(self) # writes on statusbar
         self.CreateStatusBar()
         # debug: remove before flight
-        self.log.write("Are you reading this? This proves it is very beta version.")
+        self.log.write("Under construction.")
         
-#        # sizer stuff. Improvable.
-#        vsizer1 = wx.BoxSizer(orient=wx.VERTICAL)
-#        # uncommment this line when panels will be ready to be added
-##        vsizer1.Add(item=, proportion=1, flag=wx.EXPAND | wx.ALL, border=10)
-#        self.SetSizerAndFit(vsizer1)
-        
-#        self.SetAutoLayout(True)
-#        vsizer1.Fit(self)
         #@TODO(anne): set minimum size around objects.
         
         self.Panel = KrigingPanel(self)
@@ -113,6 +99,47 @@ class Log:
         """Update status bar"""
         self.parent.SetStatusText(text_string.strip())
 
+class RPackagesBook(wx.Notebook):
+    """
+    Book whose pages are the three R packages providing kriging facilities.
+    """
+    def __init__(self, parent, *args, **kwargs):
+        wx.Notebook.__init__(self, parent, *args, **kwargs)
+        self.__createAutomapPage()
+        self.__createGstatPage()
+        self.__createGeoRPage()
+    
+    # consider refactor this!
+    def __createAutomapPage(self):
+        self.AutomapPanel = wx.Panel(self, -1)
+        self.AddPage(page=self.AutomapPanel, text="automap")
+        self.RadioList = ["Auto-fit variogram", "Choose variogram parameters"]
+        VariogramRadioBox = wx.RadioBox(self.AutomapPanel, -1, "Variogram Fitting", (-1,-1), wx.DefaultSize, 
+            self.RadioList, 1, wx.RA_SPECIFY_COLS)
+        # add stuff to panel
+    def __createGstatPage(self):
+        self.GstatPanel = wx.Panel(self, -1)
+        self.AddPage(page=self.GstatPanel, text="gstat")
+        # add stuff to panel
+    def __createGeoRPage(self):
+        self.GeoRPanel = wx.Panel(self, -1)
+        self.AddPage(page=self.GeoRPanel, text="geoR")
+        # add stuff to panel
+       
+    def __getColumns(self, driver, database, table):
+        """Get list of column of given table"""
+        columns = [] 
+#        change accordingly
+#        cmdColumn = gcmd.Command(['db.columns',
+#                                  '--q',
+#                                  'driver=%s' % driver,
+#                                  'database=%s' % database,
+#                                  'table=%s' % table],
+#                                 rerr = None)
+        for column in cmdColumn.ReadStdOutput():
+            columns.append(column)
+        return columns
+        
 #main
 def main(argv=None):
     if argv is None:
@@ -139,20 +166,3 @@ def main(argv=None):
 
 if __name__ == '__main__':
     main()
-
-#
-## notebook stuff. If used, uncomment also import directive for flat notebook.
-#        self.notebook = FN.FlatNotebook(parent=self.panel, id=wx.ID_ANY,
-#                                        style=FN.FNB_BOTTOM |
-#                                        FN.FNB_NO_NAV_BUTTONS |
-#                                        FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
-#
-#        # use this block to add pages to the flat notebook widget        
-##        dbmStyle = globalvar.FNPageStyle
-#        ## start block
-#        self.collectDataPage = FN.FlatNotebook(self.panel, id=wx.ID_ANY)
-#        self.notebook.AddPage(self.collectDataPage, text=("Collect Data"))
-##        self.browsePage.SetTabAreaColour(globalvar.FNPageColor)
-#        ## end block
-#    def __createCollectDataPage(self):
-#        pass
