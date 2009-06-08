@@ -18,7 +18,7 @@ COPYRIGHT: (C) 2009 by the GRASS Development Team
 
 import wx
 import sys
-import gcmd
+import grass
 
 #classes in alphabetical order
 
@@ -30,13 +30,15 @@ class KrigingPanel(wx.Panel):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
         self.parent = parent 
-
+        # obtain info about location mapset and so on.
+        self.gisenv = grass.gisenv()
+        
 #    1. Input data 
         InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Input Data'), wx.HORIZONTAL)
 
         self.SampleList = self.__getVectors()
         self.InputDataLabel = wx.StaticText(self, -1, "Point dataset")
-        self.InputDataChoicebox = wx.Choice(self, -1, self.SampleList)
+        self.InputDataChoicebox = wx.Choice(self, -1, (-1,-1), (-1,-1), self.SampleList)
         InputBoxSizer.Add(self.InputDataLabel, -1, wx.ALIGN_LEFT, 1)
         InputBoxSizer.Add(self.InputDataChoicebox, -1, wx.EXPAND, 1)
 
@@ -54,21 +56,13 @@ class KrigingPanel(wx.Panel):
         
     def __getVectors(self, *args, **kwargs):
         """Get list of tables for given location and mapset"""
-        vectors = []
-        cmdVectors = gcmd.Command(['g.list',
-                                 'vect', '--q',
-#                                 'driver=%s' % driver, 
-#                                 'database=%s' % database
-                                ],
-                                rerr=None) # what does it mean? is it useful? 
-        if cmdVectors.returncode != 0:
+        vectors = grass.list_grouped('vect')[self.gisenv['MAPSET']]
+        #@TODO: filter maps and drop the vectors without points
+        if vectors == []:
             wx.MessageBox(parent=self,
-                          message=_("Unable to get list of vectors. Check if the location is correct."),
-                          caption=_("Error"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
-            return vectors
-        for vector in cmdVectors.ReadStdOutput():
-            vectors.append(vector)
-        return vectors
+                          message=("Unable to get list of vectors. Check if the location is correct."),
+                          caption=("Error"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
+        return sorted(vectors)
 
 class KrigingModule(wx.Frame):
     """
@@ -113,9 +107,19 @@ class RPackagesBook(wx.Notebook):
     def __createAutomapPage(self):
         self.AutomapPanel = wx.Panel(self, -1)
         self.AddPage(page=self.AutomapPanel, text="automap")
-        self.RadioList = ["Auto-fit variogram", "Choose variogram parameters"]
+        
+        self.VariogramList = ["Auto-fit variogram", "Choose variogram parameters"]
         VariogramRadioBox = wx.RadioBox(self.AutomapPanel, -1, "Variogram Fitting", (-1,-1), wx.DefaultSize, 
-            self.RadioList, 1, wx.RA_SPECIFY_COLS)
+            self.VariogramList, 1, wx.RA_SPECIFY_COLS)
+        self.KrigingList = ["Ordinary kriging"]
+        KrigingRadioBox = wx.RadioBox(self.AutomapPanel, -1, "Kriging techniques", (-1,-1), wx.DefaultSize, 
+            self.KrigingList, 1, wx.RA_SPECIFY_COLS)
+        
+        Sizer = wx.BoxSizer(wx.VERTICAL)
+        Sizer.Add(VariogramRadioBox, 0, wx.EXPAND, 5)
+        Sizer.Add(KrigingRadioBox, 0, wx.EXPAND, 5)   
+        self.AutomapPanel.SetSizerAndFit(Sizer)
+        
         # add stuff to panel
     def __createGstatPage(self):
         self.GstatPanel = wx.Panel(self, -1)
