@@ -57,10 +57,14 @@ class KrigingPanel(wx.Panel):
     def __getVectors(self, *args, **kwargs):
         """Get list of tables for given location and mapset"""
         vectors = grass.list_grouped('vect')[self.gisenv['MAPSET']]
-        #@TODO: filter maps and drop the vectors without points
+
+        for n in vectors:
+            if grass.vector_info_topo(n)['points'] == 0:
+                vectors.remove(n)
+        
         if vectors == []:
             wx.MessageBox(parent=self,
-                          message=("Unable to get list of vectors. Check if the location is correct."),
+                          message=("No vector maps available. Check if the location is correct."),
                           caption=("Error"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
         return sorted(vectors)
 
