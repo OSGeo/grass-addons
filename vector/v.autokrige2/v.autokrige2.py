@@ -7,7 +7,7 @@ AUTHOR(S): Anne Ghisla <a.ghisla AT gmail.com>
 
 PURPOSE:   Performs ordinary kriging
 
-DEPENDS:  R (version?), package automap (geoR? gstat?)
+DEPENDS:  R 2.8, package automap or geoR or gstat
 
 COPYRIGHT: (C) 2009 by the GRASS Development Team
 
@@ -17,7 +17,7 @@ COPYRIGHT: (C) 2009 by the GRASS Development Team
 """
 
 import wx
-import sys
+import os, sys
 import grass
 
 try:
@@ -26,10 +26,15 @@ try:
 except ImportError:
   print "Rpy2 not found. Please install it and re-run."
 
-#@TODO(anne): check availiability of automap or gstat or geoR.
+#@TODO(anne): why not check all dependencies at the beginning?
+# a nice splash screen like QGIS does can fit the purpose, with a log message on the bottom and
+# popup windows for missing dependencies messages.
+# For the moment, deps are checked when creating the notebook pages for each package.
+
+#global variables
+gisenv = grass.gisenv()
 
 #classes in alphabetical order
-
 class KrigingPanel(wx.Panel):
     """
     Main panel. Contains all widgets except Menus and Statusbar.
@@ -38,8 +43,6 @@ class KrigingPanel(wx.Panel):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
         self.parent = parent 
-        # obtain info about location mapset and so on.
-        self.gisenv = grass.gisenv()
         
 #    1. Input data 
         InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Input Data'), wx.HORIZONTAL)
@@ -64,8 +67,8 @@ class KrigingPanel(wx.Panel):
         
     def __getVectors(self, *args, **kwargs):
         """Get list of tables for given location and mapset"""
-        vectors = grass.list_grouped('vect')[self.gisenv['MAPSET']]
-
+        vectors = grass.list_grouped('vect')[gisenv['MAPSET']]
+        
         #@WARNING: this cycle is quite time-consuming. 
         # see if it is possible to postpone this filtering, and immediately show the dialog.
         for n in vectors:
@@ -125,7 +128,7 @@ class RPackagesBook(wx.Notebook):
     # consider refactor this!
     def __createAutomapPage(self):
         # 1. check if the package automap exists
-        if robjects.r.require('automap'):
+        if robjects.r.require('automap') and robjects.r.require('spgrass6'):
             self.AutomapPanel = wx.Panel(self, -1)
             self.AddPage(page=self.AutomapPanel, text="automap")
             
@@ -178,8 +181,23 @@ class RPackagesBook(wx.Notebook):
             columns.append(column)
         return columns
         
-    def OnRunButton(self):
+    def OnRunButton(self,event):
         """ Execute R analysis. """
+        #0. require packages. See creation of the notebook pages and note after import directives.
+        
+        #1. get the data in R format, i.e. SpatialPointsDataFrame
+        MapName = []
+        InputDataPath = os.path.join(gisenv['GISDBASE'],gisenv['LOCATION_NAME'],gisenv['MAPSET'], 
+                                                        MapName)
+        InputData = robjects.r.readVECT6(InputDataPath)
+        print type(InputData)
+        #2. collect options
+        
+        #3. Autofit variogram
+#        KrigingResult = robjects.r.autoKrige("column~1", InputData)
+        #4. Autokriging
+        
+        #5. Format output
         
         pass
         
