@@ -26,10 +26,11 @@ try:
 except ImportError:
   print "Rpy2 not found. Please install it and re-run."
 
-#@TODO(anne): why not check all dependencies at the beginning?
+#@TODO(anne): why not check all dependencies and data at the beginning?
 # a nice splash screen like QGIS does can fit the purpose, with a log message on the bottom and
-# popup windows for missing dependencies messages.
-# For the moment, deps are checked when creating the notebook pages for each package.
+# popup windows for missing stuff messages.
+# For the moment, deps are checked when creating the notebook pages for each package, and the
+# data availability when clicking Run button. Quite late.
 
 #global variables
 gisenv = grass.gisenv()
@@ -58,28 +59,60 @@ class KrigingPanel(wx.Panel):
         self.RPackagesBook = RPackagesBook(parent= self)
         KrigingSizer.Add(self.RPackagesBook, wx.EXPAND)
         
+#    3. Run Button
+        RunButton = wx.Button(self, -1, 'Run')
+        RunButton.Bind(wx.EVT_BUTTON, self.OnRunButton)        
+        
 #    Main Sizer. Add each child sizer as soon as it is ready.
         Sizer = wx.BoxSizer(wx.VERTICAL)
         Sizer.Add(InputBoxSizer, 0, wx.EXPAND, 5)
         Sizer.Add(KrigingSizer, 0, wx.EXPAND, 5)
-
+        Sizer.Add(RunButton, 0, wx.ALIGN_RIGHT, 5)
         self.SetSizerAndFit(Sizer)
         
     def __getVectors(self, *args, **kwargs):
         """Get list of tables for given location and mapset"""
         vectors = grass.list_grouped('vect')[gisenv['MAPSET']]
-        
         #@WARNING: this cycle is quite time-consuming. 
         # see if it is possible to postpone this filtering, and immediately show the dialog.
-        for n in vectors:
-            if grass.vector_info_topo(n)['points'] == 0:
-                vectors.remove(n)
-        
         if vectors == []:
             wx.MessageBox(parent=self,
                           message=("No vector maps available. Check if the location is correct."),
+                          caption=("Missing Input Data"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)        
+        pointVectors = []
+        for n in vectors:
+            if grass.vector_info_topo(n)['points'] > 0:
+                pointVectors.append(n)        
+        if pointVectors == []:
+            wx.MessageBox(parent=self,
+                          message=("No point vector maps available. Check if the location is correct."),
                           caption=("Missing Input Data"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
-        return sorted(vectors)
+        return sorted(pointVectors)
+    
+    def OnRunButton(self,event):
+        """ Execute R analysis. """
+        #0. require packages. See creation of the notebook pages and note after import directives.
+        
+        #1. get the data in R format, i.e. SpatialPointsDataFrame
+        self.InputData = robjects.r.readVECT6(self.InputDataChoicebox.GetStringSelection(), type= 'point')
+        #2. collect options
+        #@TODO(anne): let user pick up the column name from a list.
+        self.Column = 'elev'
+        #3. Fit variogram
+        self.parent.log.write('Variogram fitting')
+       
+        self.Formula = robjects.r['as.formula'](robjects.r.paste(self.Column, "~ 1"))        
+        self.Variogram= robjects.r.autofitVariogram(self.Formula, self.InputData)
+        # print variogram somehow
+        robjects.r.plot(self.Variogram)
+        
+        self.parent.log.write('Variogram fitted.')
+
+        #4. Kriging
+        
+        #5. Format output
+        
+        pass 
 
 class KrigingModule(wx.Frame):
     """
@@ -139,14 +172,12 @@ class RPackagesBook(wx.Notebook):
             self.KrigingList = ["Ordinary kriging"]
             KrigingRadioBox = wx.RadioBox(self.AutomapPanel, -1, "Kriging techniques", (-1,-1), wx.DefaultSize, 
                 self.KrigingList, 1, wx.RA_SPECIFY_COLS)
-            RunButton = wx.Button(self.AutomapPanel, -1, 'Run')
-            
-            RunButton.Bind(wx.EVT_BUTTON, self.OnRunButton)
+
             
             Sizer = wx.BoxSizer(wx.VERTICAL)
             Sizer.Add(VariogramRadioBox, 0, wx.EXPAND, 5)
             Sizer.Add(KrigingRadioBox, 0, wx.EXPAND, 5)
-            Sizer.Add(RunButton, 0, wx.ALIGN_RIGHT, 5)
+            
             self.AutomapPanel.SetSizerAndFit(Sizer)
         else:
             pass
@@ -181,25 +212,7 @@ class RPackagesBook(wx.Notebook):
             columns.append(column)
         return columns
         
-    def OnRunButton(self,event):
-        """ Execute R analysis. """
-        #0. require packages. See creation of the notebook pages and note after import directives.
-        
-        #1. get the data in R format, i.e. SpatialPointsDataFrame
-        MapName = []
-        InputDataPath = os.path.join(gisenv['GISDBASE'],gisenv['LOCATION_NAME'],gisenv['MAPSET'], 
-                                                        MapName)
-        InputData = robjects.r.readVECT6(InputDataPath)
-        print type(InputData)
-        #2. collect options
-        
-        #3. Autofit variogram
-#        KrigingResult = robjects.r.autoKrige("column~1", InputData)
-        #4. Autokriging
-        
-        #5. Format output
-        
-        pass
+
         
 #main
 def main(argv=None):
