@@ -109,10 +109,14 @@ class KrigingPanel(wx.Panel):
         self.parent.log.write('Variogram fitted.')
 
         #4. Kriging
+        self.parent.log.write('Kriging...')
+        #@TODO(anne): solve autogeneration of grid, either by correcting autoKrige code
+        # or called functions, or creating here a projected grid.
+        self.KrigingResult = robjects.r.autoKrige(self.Formula, self.InputData)
+        self.parent.log.write('Kriging performed..')
         
         #5. Format output
         
-        pass 
 
 class KrigingModule(wx.Frame):
     """
