@@ -345,6 +345,8 @@ void set_TM5(lsat_data * lsat)
     /* Spectral radiances at detector */
     double Lmax[][7] = { { 152.10, 296.81, 204.30, 206.20, 27.19, 15.303,  14.38 },    /* before May 4, 2003 */
                          { 193.00, 365.00, 264.00, 221.00, 30.20, 15.303,  16.50 },    /* after May 4, 2003 */
+	/** Gyanesh Chander, Brian L. Markham, and Julia A. Barsi
+						 IEEE Geoscience And Remote Sensing Letters, Vol. 4, No. 3, July 2007 */
                          { 169.00, 333.00, 264.00, 221.00, 30.20, 15.303,  16.50 } };  /* after April 2, 2007 */
     double Lmin[][7] = { {  -1.52,  -2.84,  -1.17,  -1.51, -0.37,  1.2378, -0.15 },
                          {  -1.52,  -2.84,  -1.17,  -1.51, -0.37,  1.2378, -0.15 },
