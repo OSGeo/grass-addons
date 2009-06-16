@@ -1,5 +1,4 @@
-#!/usr/bin/python
-# -*- coding:utf-8 -*-
+#!/usr/bin/env python
 """
 MODULE:    v.autokrige2
 
@@ -7,26 +6,28 @@ AUTHOR(S): Anne Ghisla <a.ghisla AT gmail.com>
 
 PURPOSE:   Performs ordinary kriging
 
-DEPENDS:  R 2.8, package automap or geoR or gstat
+DEPENDS:   R 2.8, package automap or geoR or gstat
 
 COPYRIGHT: (C) 2009 by the GRASS Development Team
 
-           This program is free software under the GNU General Public
-           License (>=v2). Read the file COPYING that comes with GRASS
-           for details.
+This program is free software under the GNU General Public
+License (>=v2). Read the file COPYING that comes with GRASS
+for details.
 """
-
+    
 import wx
 import os, sys
-import grass
+import grass.script as grass
 
 import wx.lib.flatnotebook as FN
 
 try:
-  import rpy2.robjects as robjects
+    import rpy2.robjects as robjects
 #  import rpy2.rpy_classic as rpy
+    haveRpy2 = True
 except ImportError:
-  print "Rpy2 not found. Please install it and re-run."
+    print >> sys.stderr, "Rpy2 not found. Please install it and re-run."
+    haveRpy2 = False
 
 #@TODO(anne): why not check all dependencies and data at the beginning?
 # a nice splash screen like QGIS does can fit the purpose, with a log message on the bottom and
@@ -148,8 +149,11 @@ class KrigingPanel(wx.Panel):
                           caption=("Missing Input Data"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)        
         pointVectors = []
         for n in vectors:
-            if grass.vector_info_topo(n)['points'] > 0:
-                pointVectors.append(n)        
+            try:
+                if grass.vector_info_topo(n)['points'] > 0:
+                    pointVectors.append(n)
+            except KeyError:
+                pass
         if pointVectors == []:
             wx.MessageBox(parent=self,
                           message=("No point vector maps available. Check if the location is correct."),
@@ -263,6 +267,9 @@ def main(argv=None):
     # commmented, as I don't know if the module will need it.
     ##some applications might require image handlers
     #wx.InitAllImageHandlers()
+
+    if not haveRpy2:
+        sys.exit(1)
 
     app = wx.App()
     k = KrigingModule(parent=None)
