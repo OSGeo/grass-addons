@@ -1,10 +1,53 @@
+<h2>NAME</h2>
+<i><b>v.krige</b></i>  - Performs kriging via R software.
+
+<h2>KEYWORDS</h2>
+TODO
+
+<h2>SYNOPSIS</h2>
+<b>v.krige</b><br>
+<b>v.krige help</b><br>
+<!--
+<b>v.krige</b> <b>map</b>=<em>string</em>  [<b>layer</b>=<em>integer</em>]  <b>column</b>=<em>string</em>  [<b>value</b>=<em>string</em>]   [<b>qcolumn</b>=<em>string</em>]   [<b>where</b>=<em>string</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
+-->
+
 <h2>DESCRIPTION</h2>
+<i>v.krige</i> allows to perform kriging operations in GRASS environment,
+using R software functions in background.
+
+<h2>NOTES</h2>
+
+<i>v.krige</i> is just a front-end to R. The options and parameters are
+the same offered by packages <i>automap</i>, <i>gstat</i> and 
+<i>geoR</i>.
+
+R users will therefore find in this GRASS module the same functionality of 
+their preferred package, as far as kriging results are influenced by 
+implementation.
+
+<h3>Dependencies</h3>
+
+<dl>
+<dt><b>GRASS with wxPython support</b></dt>
+<dd></dd>
+
+<dt><b>R software >= 2.x</b></dt>
+<dd></dd>
+
+<dt><b>rpy2</b></dt>
+<dd>Python binding to R. Note! rpy is not supported.</dd>
+
+<dt><b>R packages automap, gstat, geoR. </b></dt>
+<dd>Install at least one.</dd>
+</dl>
+
+<h2>EXAMPLES</h2>
 
 TODO
 
 <h2>SEE ALSO</h2>
 
-<H2>AUTHOR</H2>
+<h2>AUTHOR</h2>
 
 Anne Ghisla, Google Summer of Code 2009
 
