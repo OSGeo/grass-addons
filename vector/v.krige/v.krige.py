@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-MODULE:    v.autokrige2
+MODULE:    v.krige
 
 AUTHOR(S): Anne Ghisla <a.ghisla AT gmail.com>
 
@@ -14,26 +14,30 @@ This program is free software under the GNU General Public
 License (>=v2). Read the file COPYING that comes with GRASS
 for details.
 """
-    
+
 import wx
 import os, sys
-import grass.script as grass
+#@FIXME(anne): this commented statement gives error: no module named script.
+# @martinl: what does grass.script mean?
+#import grass.script as grass 
+import grass 
 
 import wx.lib.flatnotebook as FN
 
 try:
     import rpy2.robjects as robjects
-#  import rpy2.rpy_classic as rpy
     haveRpy2 = True
 except ImportError:
     print >> sys.stderr, "Rpy2 not found. Please install it and re-run."
     haveRpy2 = False
 
-#@TODO(anne): why not check all dependencies and data at the beginning?
+#@TODO(anne): check all dependencies and data at the beginning.
 # a nice splash screen like QGIS does can fit the purpose, with a log message on the bottom and
 # popup windows for missing stuff messages.
 # For the moment, deps are checked when creating the notebook pages for each package, and the
 # data availability when clicking Run button. Quite late.
+
+#$TODO(anne): add gettext
 
 #global variables
 gisenv = grass.gisenv()
@@ -47,82 +51,85 @@ class KrigingPanel(wx.Panel):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
         self.parent = parent 
+        self.border = 7
         
 #    1. Input data 
-        InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Input Data'), wx.HORIZONTAL)
+        InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label='Input Data'), 
+            orient=wx.HORIZONTAL)
 
         self.SampleList = self.__getVectors()
-        self.InputDataLabel = wx.StaticText(self, -1, "Point dataset")
-        self.InputDataChoicebox = wx.Choice(self, -1, (-1,-1), (-1,-1), self.SampleList)
-        InputBoxSizer.Add(self.InputDataLabel, -1, wx.ALIGN_LEFT, 1)
-        InputBoxSizer.Add(self.InputDataChoicebox, -1, wx.EXPAND, 1)
+        self.InputDataLabel = wx.StaticText(self, id=wx.ID_ANY, label="Point dataset")
+        self.InputDataChoicebox = wx.Choice(self, id=wx.ID_ANY, pos=wx.DefaultPosition, 
+            choices=self.SampleList)
+        InputBoxSizer.Add(self.InputDataLabel, proportion=0, flag=wx.CENTER | wx.ALL, border=self.border)
+        InputBoxSizer.Add(self.InputDataChoicebox, proportion=0, flag=wx.CENTER| wx.ALL, border=self.border)
 
 #    2. Kriging. In book pages one for each R package. Includes variogram fit.
-        KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, 'Kriging'), wx.HORIZONTAL)
-        #####
+        KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label='Kriging'), wx.HORIZONTAL)
+
         self.RPackagesBook = FN.FlatNotebook(parent=self, id=wx.ID_ANY,
                                         style=FN.FNB_BOTTOM |
                                         FN.FNB_NO_NAV_BUTTONS |
                                         FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
-#        self.AutomapPage = wx.Panel()
-#        self.notebook.AddPage(self.AutomapPage, text=("Automap")) 
-#        self.browsePage.SetTabAreaColour(globalvar.FNPageColor)
 
         self.__createAutomapPage()
         self.__createGstatPage()
         self.__createGeoRPage()
+        
         if self.RPackagesBook.GetPageCount() == 0:
             wx.MessageBox(parent=self,
                           message=("No R package with kriging functions available. Install either automap, gstat or geoR."),
                           caption=("Missing Dependency"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
         
         self.RPackagesBook.SetSelection(0)
-        KrigingSizer.Add(self.RPackagesBook, wx.EXPAND)
+        KrigingSizer.Add(self.RPackagesBook, proportion=1, flag=wx.EXPAND)
         
 #    3. Run Button and Quit Button
         ButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
         QuitButton = wx.Button(self, id=wx.ID_EXIT)
         QuitButton.Bind(wx.EVT_BUTTON, self.OnCloseWindow)
-        RunButton = wx.Button(self, -1, 'Run')
+        RunButton = wx.Button(self, id=wx.ID_ANY, label='Run')
         RunButton.Bind(wx.EVT_BUTTON, self.OnRunButton)
-        ButtonSizer.Add(QuitButton, 0, wx.ALIGN_RIGHT, 5)
-        ButtonSizer.Add(RunButton, 0, wx.ALIGN_RIGHT, 5)
+        ButtonSizer.Add(QuitButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
+        ButtonSizer.Add(RunButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         
         
 #    Main Sizer. Add each child sizer as soon as it is ready.
         Sizer = wx.BoxSizer(wx.VERTICAL)
-        Sizer.Add(InputBoxSizer, 0, wx.EXPAND, 5)
-        Sizer.Add(KrigingSizer, 0, wx.EXPAND, 5)
-        Sizer.Add(ButtonSizer, 0, wx.ALIGN_RIGHT, 5)
+        Sizer.Add(InputBoxSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
+        Sizer.Add(KrigingSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
+        Sizer.Add(ButtonSizer, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         self.SetSizerAndFit(Sizer)
         
     # consider refactor this!
     def __createAutomapPage(self):
         # 1. check if the package automap exists
         if robjects.r.require('automap') and robjects.r.require('spgrass6'):
-            self.AutomapPanel = wx.Panel(self, -1)
+            self.AutomapPanel = wx.Panel(self, id=wx.ID_ANY)
             self.RPackagesBook.AddPage(page=self.AutomapPanel, text="automap")
             
             # unlock options as soon as they are available. Stone soup!
             self.VariogramList = ["Auto-fit variogram"]#, "Choose variogram parameters"] 
-            VariogramRadioBox = wx.RadioBox(self.AutomapPanel, -1, "Variogram Fitting", (-1,-1), wx.DefaultSize, 
-                self.VariogramList, 1, wx.RA_SPECIFY_COLS)
+            VariogramRadioBox = wx.RadioBox(self.AutomapPanel, id=wx.ID_ANY, label="Variogram Fitting", 
+                pos=wx.DefaultPosition, #size=wx.DefaultSize,
+                choices=self.VariogramList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
             self.KrigingList = ["Ordinary kriging"]
-            KrigingRadioBox = wx.RadioBox(self.AutomapPanel, -1, "Kriging techniques", (-1,-1), wx.DefaultSize, 
-                self.KrigingList, 1, wx.RA_SPECIFY_COLS)
-
+            KrigingRadioBox = wx.RadioBox(self.AutomapPanel, id=wx.ID_ANY, label="Kriging techniques", 
+                pos=wx.DefaultPosition,# size=wx.DefaultSize,
+                choices=self.KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
             
             Sizer = wx.BoxSizer(wx.VERTICAL)
-            Sizer.Add(VariogramRadioBox, 0, wx.EXPAND, 5)
-            Sizer.Add(KrigingRadioBox, 0, wx.EXPAND, 5)
+            Sizer.Add(VariogramRadioBox, proportion=0, flag=wx.EXPAND | wx.ALL, border=0)
+            Sizer.Add(KrigingRadioBox,  proportion=0, flag=wx.EXPAND | wx.ALL, border=0)
             
             self.AutomapPanel.SetSizerAndFit(Sizer)
+
         else:
             pass
 
     def __createGstatPage(self):
         if robjects.r.require('gstat'):
-            self.GstatPanel = wx.Panel(self, -1)
+            self.GstatPanel = wx.Panel(self, id=wx.ID_ANY)
             self.RPackagesBook.AddPage(page=self.GstatPanel, text="gstat")
             # add stuff to panel
         else:
@@ -130,7 +137,7 @@ class KrigingPanel(wx.Panel):
 
     def __createGeoRPage(self):
         if robjects.r.require('geoR'):
-            self.GeoRPanel = wx.Panel(self, -1)
+            self.GeoRPanel = wx.Panel(self, id=wx.ID_ANY)
             self.RPackagesBook.AddPage(page=self.GeoRPanel, text="geoR")
             # add stuff to panel
         else:
@@ -167,8 +174,8 @@ class KrigingPanel(wx.Panel):
         #1. get the data in R format, i.e. SpatialPointsDataFrame
         self.InputData = robjects.r.readVECT6(self.InputDataChoicebox.GetStringSelection(), type= 'point')
         #2. collect options
-        #@TODO(anne): let user pick up the column name from a list.
-        self.Column = 'elev'
+        #@TODO(anne): let user pick up the column name from a list. this is hardwired code.
+        self.Column = 'elev' 
         #3. Fit variogram
         self.parent.log.write('Variogram fitting')
        
@@ -181,8 +188,7 @@ class KrigingPanel(wx.Panel):
 
         #4. Kriging
         self.parent.log.write('Kriging...')
-        #@TODO(anne): solve autogeneration of grid, either by correcting autoKrige code
-        # or called functions, or creating here a projected grid.
+        #@TODO(anne): the prediced values grid is autogenerated without projection. wait for patch.
         self.KrigingResult = robjects.r.autoKrige(self.Formula, self.InputData)
         self.parent.log.write('Kriging performed..')
         
@@ -222,31 +228,6 @@ class Log:
     def write(self, text_string):
         """Update status bar"""
         self.parent.SetStatusText(text_string.strip())
-
-#class RPackagesBook(FN):
-#    """
-#    Book whose pages are the three R packages providing kriging facilities.
-#    """
-#    def __init__(self, parent, *args, **kwargs):
-##        wx.Notebook.__init__(self, parent, *args, **kwargs)
-##        FN.__init__(self, parent, *args, **kwargs)
-#
-#       
-#    def __getColumns(self, driver, database, table):
-#        """Get list of column of given table"""
-#        columns = [] 
-##        change accordingly
-##        cmdColumn = gcmd.Command(['db.columns',
-##                                  '--q',
-##                                  'driver=%s' % driver,
-##                                  'database=%s' % database,
-##                                  'table=%s' % table],
-##                                 rerr = None)
-#        for column in cmdColumn.ReadStdOutput():
-#            columns.append(column)
-#        return columns
-#        
-
         
 #main
 def main(argv=None):
@@ -273,6 +254,7 @@ def main(argv=None):
 
     app = wx.App()
     k = KrigingModule(parent=None)
+    k.Centre()
     k.Show()
     app.MainLoop()
 
