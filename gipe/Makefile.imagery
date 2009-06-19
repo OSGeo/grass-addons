@@ -13,7 +13,6 @@ SUBDIRS = \
 	i.eb.h0 \
 	i.eb.h_iter \
 	i.eb.h_SEBAL95 \
-	i.eb.h_SEBAL01 \
 	i.eb.molength \
 	i.eb.netrad \
 	i.eb.psi \
@@ -27,7 +26,6 @@ SUBDIRS = \
 	i.evapo.potrad \
 	i.evapo.PT \
 	i.evapo.senay \
-	i.evapo.time_integration \
 	i.evapo.TSA \
 	i.lmf \
 	i.modis.stateqa \

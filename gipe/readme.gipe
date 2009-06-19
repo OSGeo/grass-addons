@@ -20,7 +20,7 @@ Cleaning
 20081012: Added i.latlong, removed i.latitude and i.longitude
 20081012: Moved i.latlong to main SVN
 20081020: Moved i.sunhours, i.emissivity to main SVN
-20090619: Moved i.eb.g0, i.eb.evapfr to main SVN
+20090619: Moved i.eb.g0, i.eb.evapfr, i.eb.h_SEBAL01 to main SVN
 
 Imagery modules
 ---------------
@@ -52,7 +52,7 @@ i.eb.eta:	Energy-Balance: Calculates the Actual Evapotranspiration
 **i.eb.g0:	(Now in main SVN) Energy-Balance: Calculates the Soil Heat Flux
 i.eb.h0:	Energy-Balance: Calculates the Sensible Heat Flux
 i.eb.h_iter:	Energy-Balance: Calculates the Sensible Heat Flux after Pawan (2004)
-i.eb.h_SEBAL01: Energy-Balance: Calculates the Sensible Heat Flux after SEBAL (small areas)
+**i.eb.h_SEBAL01:(Now in main SVN) Energy-Balance: Calculates the Sensible Heat Flux after SEBAL (small areas)
 i.eb.h_SEBAL95: Energy-Balance: Calculates the Sensible Heat Flux after SEBAL 1995
 i.eb.molength:	Energy-Balance: Calculates the Monin-Obukov Length
 i.eb.netrad:	Energy-Balance: Calculates the Net Radiation
@@ -70,7 +70,7 @@ i.eb.z0m0: 	Energy-Balance: Calculates the roughness length (more for crops)
 i.evapo.potrad: Calculates the Potential Evapotranspiration from Astronomical equations
 i.evapo.PT: 	Calculates Priestley and Taylor Potential Evapotranspiration
 i.evapo.senay: 	Calculates Actual evapotranspiration after Senay (2007)
-i.evapo.time_integration: Integrates Actual ET over time using daily ETo meteo data
+**i.evapo.time_integration: (Now in main SVN) Integrates Actual ET over time using daily ETo meteo data
 i.evapo.TSA: 	Unfinished: Calculates Actual Evapotranspiration after Chen et al. (2005)
 -------------------------------------------------------------------------------------
 
