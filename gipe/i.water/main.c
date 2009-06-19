@@ -28,73 +28,49 @@ double water_modis(double surf_ref_7, double ndvi);
 int main(int argc, char *argv[]) 
 {
     struct Cell_head cellhd;	/*region+header info */
-
     char *mapset;		/*mapset name */
-
     int nrows, ncols;
-
     int row, col;
-
     struct GModule *module;
-
     struct Option *input1, *input2, *input3, *output1;
-
     struct Flag *flag1;
-
     struct History history;	/*metadata */
-
-    
-
-	/************************************/ 
-	/* FMEO Declarations**************** */ 
     char *name;			/*input raster name */
-
     char *result1;		/*output raster name */
-
-    
-	/*File Descriptors */ 
     int infd_ndvi, infd_albedo, infd_ref7;
-
     int outfd1;
-
     char *ndvi, *albedo, *ref7;
-
     int i = 0, j = 0;
-
     void *inrast_ndvi, *inrast_albedo, *inrast_ref7;
-
     CELL * outrast1;
     RASTER_MAP_TYPE data_type_output = CELL_TYPE;
     RASTER_MAP_TYPE data_type_ndvi;
     RASTER_MAP_TYPE data_type_albedo;
     RASTER_MAP_TYPE data_type_ref7;
-    
-
-	/************************************/ 
-	G_gisinit(argv[0]);
+    /************************************/ 
+    G_gisinit(argv[0]);
     module = G_define_module();
     module->keywords = _("water, detection");
     module->description = _("Water detection, 1 if found, 0 if not");
     
-	/* Define the different options */ 
-	input1 = G_define_standard_option(G_OPT_R_INPUT);
-    input1->key = _("ndvi");
+    /* Define the different options */ 
+    input1 = G_define_standard_option(G_OPT_R_INPUT);
+    input1->key = "ndvi";
     input1->description = _("Name of the NDVI layer [-]");
     input2 = G_define_standard_option(G_OPT_R_INPUT);
-    input2->key = _("albedo");
+    input2->key = "albedo";
     input2->required = NO;
     input2->description = _("Name of the Albedo layer [-]");
     input3 = G_define_standard_option(G_OPT_R_INPUT);
-    input3->key = _("Modref7");
+    input3->key = "Modref7";
     input3->required = NO;
     input3->description =
 	_("Name of the Modis surface reflectance band 7 layer [-]");
     output1 = G_define_standard_option(G_OPT_R_OUTPUT);
     output1->description = _("Name of the output water layer [0/1]");
-    
 
-	/********************/ 
-	if (G_parser(argc, argv))
+    /********************/ 
+    if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
     ndvi = input1->answer;
     if (input2->answer)
@@ -106,9 +82,8 @@ int main(int argc, char *argv[])
     }
     result1 = output1->answer;
     
-
-	/***************************************************/ 
-	mapset = G_find_cell2(ndvi, "");
+    /***************************************************/ 
+    mapset = G_find_cell2(ndvi, "");
     if (mapset == NULL) {
 	G_fatal_error(_("cell file [%s] not found"), ndvi);
     }
@@ -118,10 +93,8 @@ int main(int argc, char *argv[])
     if (G_get_cellhd(ndvi, mapset, &cellhd) < 0)
 	G_fatal_error(_("Cannot read file header of [%s])"), ndvi);
     inrast_ndvi = G_allocate_raster_buf(data_type_ndvi);
-    
-
-	/***************************************************/ 
-	if (input2->answer) {
+    /***************************************************/ 
+    if (input2->answer) {
 	mapset = G_find_cell2(albedo, "");
 	if (mapset == NULL) {
 	    G_fatal_error(_("cell file [%s] not found"), albedo);
@@ -133,10 +106,8 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("Cannot read file header of [%s]"), albedo);
 	inrast_albedo = G_allocate_raster_buf(data_type_albedo);
     }
-    
-
-	/***************************************************/ 
-	if (input3->answer) {
+    /***************************************************/ 
+    if (input3->answer) {
 	mapset = G_find_cell2(ref7, "");
 	if (mapset == NULL) {
 	    G_fatal_error(_("Cell file [%s] not found"), ref7);
@@ -148,29 +119,24 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("Cannot read file header of [%s]"), ref7);
 	inrast_ref7 = G_allocate_raster_buf(data_type_ref7);
     }
-    
-
-	/***************************************************/ 
-	G_debug(3, "number of rows %d", cellhd.rows);
+    /***************************************************/ 
+    G_debug(3, "number of rows %d", cellhd.rows);
     nrows = G_window_rows();
     ncols = G_window_cols();
     outrast1 = G_allocate_raster_buf(data_type_output);
-    
-	/* Create New raster files */ 
-	if ((outfd1 = G_open_raster_new(result1, data_type_output)) < 0)
+    /* Create New raster files */ 
+    if ((outfd1 = G_open_raster_new(result1, data_type_output)) < 0)
 	G_fatal_error(_("Could not open <%s>"), result1);
-    
-	/* Process pixels */ 
-	for (row = 0; row < nrows; row++)
-	 {
+    /* Process pixels */ 
+    for (row = 0; row < nrows; row++)
+    {
 	CELL d;
 	DCELL d_ndvi;
 	DCELL d_albedo;
 	DCELL d_ref7;
 	G_percent(row, nrows, 2);
-	
-	    /* read input maps */ 
-	    if (G_get_raster_row(infd_ndvi, inrast_ndvi, row, data_type_ndvi)
+        /* read input maps */ 
+        if (G_get_raster_row(infd_ndvi, inrast_ndvi, row, data_type_ndvi)
 		< 0)
 	    G_fatal_error(_("Could not read from <%s>"), ndvi);
 	if (input2->answer) {
@@ -183,10 +149,9 @@ int main(int argc, char *argv[])
 		 < 0)
 		G_fatal_error(_("Could not read from <%s>"), ref7);
 	}
-	
-	    /*process the data */ 
-	    for (col = 0; col < ncols; col++)
-	     {
+	/*process the data */ 
+	for (col = 0; col < ncols; col++)
+	{
 	    switch (data_type_ndvi) {
 	    case CELL_TYPE:
 		d_ndvi = (double)((CELL *) inrast_ndvi)[col];

@@ -11,7 +11,6 @@ SUBDIRS = \
 	i.eb.deltat \
 	i.eb.eta \
 	i.eb.evapfr \
-	i.eb.g0 \
 	i.eb.h0 \
 	i.eb.h_iter \
 	i.eb.h_SEBAL95 \
