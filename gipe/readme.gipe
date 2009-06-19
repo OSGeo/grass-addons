@@ -20,7 +20,7 @@ Cleaning
 20081012: Added i.latlong, removed i.latitude and i.longitude
 20081012: Moved i.latlong to main SVN
 20081020: Moved i.sunhours, i.emissivity to main SVN
-20090619: Moved i.eb.g0 to main SVN
+20090619: Moved i.eb.g0, i.eb.evapfr to main SVN
 
 Imagery modules
 ---------------
@@ -48,7 +48,7 @@ i.dn2ref.l7:	imports DN into radiance or reflectance for Landsat 7 (not temperat
 i.eb.deltat:	Energy-Balance: Calculates a generic Soil to Air temperature difference
 i.eb.disp:	Energy-Balance: Calculates the displacement height above canopy
 i.eb.eta:	Energy-Balance: Calculates the Actual Evapotranspiration
-i.eb.evapfr:	Energy-Balance: Calculates the Evaporative Fraction (and soil moisture)
+**i.eb.evapfr:	(Now in main SVN) Energy-Balance: Calculates the Evaporative Fraction (and soil moisture)
 **i.eb.g0:	(Now in main SVN) Energy-Balance: Calculates the Soil Heat Flux
 i.eb.h0:	Energy-Balance: Calculates the Sensible Heat Flux
 i.eb.h_iter:	Energy-Balance: Calculates the Sensible Heat Flux after Pawan (2004)
