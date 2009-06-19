@@ -12,5 +12,5 @@
 #       loop '$#' with shell-proof \" quotes?
 # + ignore "dist.`uname m`"  and  "^ChangeLog:" entries
 
-grep -I $* | grep -v '/\.svn/\|\.tmp\.html:\|locale/po/'
+grep -I $* | grep -v '/\.svn/\|\.tmp\.html:\|locale/po/\|^dist\.'
 
