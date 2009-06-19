@@ -61,8 +61,19 @@ class KrigingPanel(wx.Panel):
         self.InputDataLabel = wx.StaticText(self, id=wx.ID_ANY, label="Point dataset")
         self.InputDataChoicebox = wx.Choice(self, id=wx.ID_ANY, pos=wx.DefaultPosition, 
             choices=self.SampleList)
+        
+        
+        self.ColumnList = self.__getColumns(self.InputDataChoicebox.GetStringSelection())
+        self.InputDataColumnLabel = wx.StaticText(self, id=wx.ID_ANY, label="Column")
+        self.InputDataColumn = wx.Choice(self, id=wx.ID_ANY, pos=wx.DefaultPosition, 
+            choices=self.ColumnList)
+        
+        self.InputDataChoicebox.Bind(wx.EVT_CHOICE, self.OnInputDataChanged)
+        
         InputBoxSizer.Add(self.InputDataLabel, proportion=0, flag=wx.CENTER | wx.ALL, border=self.border)
         InputBoxSizer.Add(self.InputDataChoicebox, proportion=0, flag=wx.CENTER| wx.ALL, border=self.border)
+        InputBoxSizer.Add(self.InputDataColumnLabel, proportion=0, flag=wx.CENTER | wx.ALL, border=self.border)
+        InputBoxSizer.Add(self.InputDataColumn, proportion=0, flag=wx.CENTER| wx.ALL, border=self.border)
 
 #    2. Kriging. In book pages one for each R package. Includes variogram fit.
         KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label='Kriging'), wx.HORIZONTAL)
@@ -124,8 +135,18 @@ class KrigingPanel(wx.Panel):
         else:
             pass
 
+    def __getColumns(self, layer):
+        """ Lists the numerical columns of the given layer. """
+        ColumnList = grass.db_describe(layer)['cols']
+        # filter it to pick up numerical cols
+        NumericalColumnList = []
+        for i in ColumnList:
+            if i[1] == 'INTEGER' or i[1] == 'DOUBLE PRECISION':
+                NumericalColumnList.append(i[0])
+        return NumericalColumnList
+
     def __getVectors(self, *args, **kwargs):
-        """ Get list of tables for given location and mapset. """
+        """ Get list of vector point layers for given location and mapset. """
         vectors = grass.list_grouped('vect')[gisenv['MAPSET']]
         #@WARNING: this cycle is quite time-consuming. 
         # see if it is possible to postpone this filtering, and immediately show the dialog.
@@ -146,6 +167,15 @@ class KrigingPanel(wx.Panel):
                           caption=("Missing Input Data"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
         return sorted(pointVectors)
     
+    def OnInputDataChanged(self,event):
+        """ Refreshes list of columns.  """
+        table = event.GetString()
+        cols = self.__getColumns(table)
+        self.InputDataColumn.SetItems(cols)
+        self.InputDataColumn.SetSelection(0)
+
+        event.Skip() #?
+    
     def OnRunButton(self,event):
         """ Execute R analysis. """
         
@@ -159,17 +189,14 @@ class KrigingPanel(wx.Panel):
         self.InputData = robjects.r.readVECT6(self.InputDataChoicebox.GetStringSelection(), type= 'point')
         #2. collect options
         #@TODO(anne): let user pick up the column name from a list. this is hardwired code.
-        self.Column = 'elev' 
+        self.Column = self.InputDataColumn.GetStringSelection() 
         #@TODO(anne): pick up parameters if user chooses to set variogram parameters.
         #3. Fit variogram
         self.parent.log.write('Variogram fitting')
-       
         self.Formula = robjects.r['as.formula'](robjects.r.paste(self.Column, "~ 1"))        
+        Variogram = self.SelectedPanel.FitVariogram(self.Formula, self.InputData)
+        # print variogram?
 
-        self.Variogram = self.SelectedPanel.FitVariogram(self.Formula, self.InputData)
-        print type(self.Variogram)
-        # print variogram somehow
-        #robjects.r.plot(self.Variogram)
         self.parent.log.write('Variogram fitted.')
 
         #4. Kriging
@@ -224,16 +251,17 @@ class RBookPanel(wx.Panel):
         self.ParametersSizer = wx.BoxSizer(wx.VERTICAL)
         
         for n in ["Sill", "Nugget", "Range"]:
-            Sizer = wx.BoxSizer(wx.HORIZONTAL)
-            Text = wx.StaticText(self, id= wx.ID_ANY, label = n)
-            Ctrl = wx.SpinCtrl(self, id = wx.ID_ANY, max= 100000) #@FIXME: get max int value!!
-            Sizer.Add(Text, proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER | wx.ALL, border=3)
-            Sizer.Add(Ctrl, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=3)
-            self.ParametersSizer.Add(Sizer, proportion = 0, flag=wx.EXPAND | wx.ALL, border=3)
+            setattr(self, n+"Sizer", (wx.BoxSizer(wx.HORIZONTAL)))
+            setattr(self, n+"Text", (wx.StaticText(self, id= wx.ID_ANY, label = n)))
+            setattr(self, n+"Ctrl", (wx.SpinCtrl(self, id = wx.ID_ANY, max=sys.maxint)))
+            a = getattr(self, n+"Sizer")
+            a.Add(getattr(self, n+"Text"), proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER | wx.ALL, border=3)
+            a.Add(getattr(self, n+"Ctrl"), proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=3)
+            self.ParametersSizer.Add(a, proportion = 0, flag=wx.EXPAND | wx.ALL, border=3)
         
         self.VariogramSizer.Add(VariogramCheckBox, proportion=1, flag=wx.EXPAND | wx.ALL, border=3)
         self.VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
-        # hides Parameters when Autofit variogram is selected
+        #@TODO(anne); hides Parameters when Autofit variogram is selected
 #        VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
         
         self.KrigingList = ["Ordinary kriging", "Universal Kriging", "Block kriging"]
@@ -284,7 +312,7 @@ def main(argv=None):
     ##some applications might require image handlers
     #wx.InitAllImageHandlers()
 
-    #@TODO(anne): move this code in the initial deps-data-check.
+    #@TODO(anne):add here all dependency checking
     if not haveRpy2:
         sys.exit(1)
 
