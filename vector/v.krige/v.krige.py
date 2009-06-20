@@ -15,14 +15,7 @@ License (>=v2). Read the file COPYING that comes with GRASS
 for details.
 """
 
-import wx
 import os, sys
-#@FIXME(anne): this commented statement gives error: no module named script.
-# @martinl: what does grass.script mean?
-#import grass.script as grass 
-import grass 
-
-import wx.lib.flatnotebook as FN
 
 try:
     import rpy2.robjects as robjects
@@ -30,6 +23,19 @@ try:
 except ImportError:
     print >> sys.stderr, "Rpy2 not found. Please install it and re-run."
     haveRpy2 = False
+
+import grass.script as grass 
+
+GUIModulesPath = os.path.join(os.getenv("GISBASE"), "etc", "wxpython", "gui_modules")
+sys.path.append(GUIModulesPath)
+
+import globalvar
+if not os.getenv("GRASS_WXBUNDLED"):
+    globalvar.CheckForWx()
+import gselect
+
+import wx
+import wx.lib.flatnotebook as FN
 
 #@TODO(anne): check all dependencies and data at the beginning:
 # grass - rpy2 - R - one of automap/gstat/geoR
@@ -137,9 +143,13 @@ class KrigingPanel(wx.Panel):
 
     def __getColumns(self, layer):
         """ Lists the numerical columns of the given layer. """
-        ColumnList = grass.db_describe(layer)['cols']
         # filter it to pick up numerical cols
-        NumericalColumnList = []
+        NumericalColumnList = list()
+        try:
+            ColumnList = grass.db_describe(layer)['cols']
+        except TypeError:
+            return NumericalColumnList
+        
         for i in ColumnList:
             if i[1] == 'INTEGER' or i[1] == 'DOUBLE PRECISION':
                 NumericalColumnList.append(i[0])
