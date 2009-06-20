@@ -61,24 +61,26 @@ class KrigingPanel(wx.Panel):
         
 #    1. Input data 
         InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label='Input Data'), 
-            orient=wx.HORIZONTAL)
+                                          orient=wx.HORIZONTAL)
         
-        self.InputDataLabel = wx.StaticText(self, id=wx.ID_ANY, label="Point dataset")
-        self.InputDataChoicebox = gselect.VectorSelect(parent = self,
-                                                       ftype = 'point')
-        
-        ### self.ColumnList = self.__getColumns(self.InputDataChoicebox.GetStringSelection())
-        self.InputDataColumnLabel = wx.StaticText(self, id=wx.ID_ANY, label="Column")
-        self.InputDataColumn = wx.Choice(self, id=wx.ID_ANY, pos=wx.DefaultPosition)
-        ### choices=self.ColumnList)
-        
-        self.InputDataChoicebox.Bind(wx.EVT_CHOICE, self.OnInputDataChanged)
-        
-        InputBoxSizer.Add(self.InputDataLabel, proportion=0, flag=wx.CENTER | wx.ALL, border=self.border)
-        InputBoxSizer.Add(self.InputDataChoicebox, proportion=0, flag=wx.CENTER| wx.ALL, border=self.border)
-        InputBoxSizer.Add(self.InputDataColumnLabel, proportion=0, flag=wx.CENTER | wx.ALL, border=self.border)
-        InputBoxSizer.Add(self.InputDataColumn, proportion=0, flag=wx.CENTER| wx.ALL, border=self.border)
+        flexSizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        flexSizer.AddGrowableCol(1)
 
+        flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label="Point dataset:"),
+                      flag = wx.ALIGN_CENTER_VERTICAL)
+        self.InputDataMap = gselect.VectorSelect(parent = self,
+                                                       ftype = 'point')
+        flexSizer.Add(item = self.InputDataMap)
+        
+        flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label="Column:"),
+                      flag=wx.ALIGN_CENTER_VERTICAL)
+        self.InputDataColumn = gselect.ColumnSelect(self, id=wx.ID_ANY)
+        flexSizer.Add(item = self.InputDataColumn)
+        
+        self.InputDataMap.GetChildren()[0].Bind(wx.EVT_TEXT, self.OnInputDataChanged)
+        
+        InputBoxSizer.Add(item = flexSizer)
+        
 #    2. Kriging. In book pages one for each R package. Includes variogram fit.
         KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label='Kriging'), wx.HORIZONTAL)
 
@@ -139,29 +141,15 @@ class KrigingPanel(wx.Panel):
         else:
             pass
 
-    def __getColumns(self, layer):
-        """ Lists the numerical columns of the given layer. """
-        # filter it to pick up numerical cols
-        NumericalColumnList = list()
-        try:
-            ColumnList = grass.db_describe(layer)['cols']
-        except TypeError:
-            return NumericalColumnList
-        
-        for i in ColumnList:
-            if i[1] == 'INTEGER' or i[1] == 'DOUBLE PRECISION':
-                NumericalColumnList.append(i[0])
-        return NumericalColumnList
-    
-    def OnInputDataChanged(self,event):
-        """ Refreshes list of columns.  """
-        table = event.GetString()
-        cols = self.__getColumns(table)
-        self.InputDataColumn.SetItems(cols)
-        self.InputDataColumn.SetSelection(0)
+    def OnInputDataChanged(self, event):
+        """Refreshes list of columns
 
-        event.Skip() #?
-    
+        @todo: layer select
+        """
+        self.InputDataColumn.InsertColumns(vector = event.GetString(),
+                                           layer = 1, excludeKey = True,
+                                           type = ['integer', 'double precision'])
+        
     def OnRunButton(self,event):
         """ Execute R analysis. """
         
@@ -172,7 +160,7 @@ class KrigingPanel(wx.Panel):
         #0. require packages. See creation of the notebook pages and note after import directives.
         
         #1. get the data in R format, i.e. SpatialPointsDataFrame
-        self.InputData = robjects.r.readVECT6(self.InputDataChoicebox.GetStringSelection(), type= 'point')
+        self.InputData = robjects.r.readVECT6(self.InputDataMap.GetStringSelection(), type= 'point')
         #2. collect options
         #@TODO(anne): let user pick up the column name from a list. this is hardwired code.
         self.Column = self.InputDataColumn.GetStringSelection() 
