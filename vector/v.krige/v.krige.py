@@ -62,17 +62,15 @@ class KrigingPanel(wx.Panel):
 #    1. Input data 
         InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label='Input Data'), 
             orient=wx.HORIZONTAL)
-
-        self.SampleList = self.__getVectors()
+        
         self.InputDataLabel = wx.StaticText(self, id=wx.ID_ANY, label="Point dataset")
-        self.InputDataChoicebox = wx.Choice(self, id=wx.ID_ANY, pos=wx.DefaultPosition, 
-            choices=self.SampleList)
+        self.InputDataChoicebox = gselect.VectorSelect(parent = self,
+                                                       ftype = 'point')
         
-        
-        self.ColumnList = self.__getColumns(self.InputDataChoicebox.GetStringSelection())
+        ### self.ColumnList = self.__getColumns(self.InputDataChoicebox.GetStringSelection())
         self.InputDataColumnLabel = wx.StaticText(self, id=wx.ID_ANY, label="Column")
-        self.InputDataColumn = wx.Choice(self, id=wx.ID_ANY, pos=wx.DefaultPosition, 
-            choices=self.ColumnList)
+        self.InputDataColumn = wx.Choice(self, id=wx.ID_ANY, pos=wx.DefaultPosition)
+        ### choices=self.ColumnList)
         
         self.InputDataChoicebox.Bind(wx.EVT_CHOICE, self.OnInputDataChanged)
         
@@ -154,28 +152,6 @@ class KrigingPanel(wx.Panel):
             if i[1] == 'INTEGER' or i[1] == 'DOUBLE PRECISION':
                 NumericalColumnList.append(i[0])
         return NumericalColumnList
-
-    def __getVectors(self, *args, **kwargs):
-        """ Get list of vector point layers for given location and mapset. """
-        vectors = grass.list_grouped('vect')[gisenv['MAPSET']]
-        #@WARNING: this cycle is quite time-consuming. 
-        # see if it is possible to postpone this filtering, and immediately show the dialog.
-        if vectors == []:
-            wx.MessageBox(parent=self,
-                          message=("No vector maps available. Check if the location is correct."),
-                          caption=("Missing Input Data"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)        
-        pointVectors = []
-        for n in vectors:
-            try:
-                if grass.vector_info_topo(n)['points'] > 0:
-                    pointVectors.append(n)
-            except KeyError:
-                pass # why pass?! it's an error...
-        if pointVectors == []:
-            wx.MessageBox(parent=self,
-                          message=("No point vector maps available. Check if the location is correct."),
-                          caption=("Missing Input Data"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
-        return sorted(pointVectors)
     
     def OnInputDataChanged(self,event):
         """ Refreshes list of columns.  """
