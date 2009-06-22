@@ -95,7 +95,7 @@
 #%end
 #%flag
 #% key: l
-#% description: Log R output to v.autokrige.log. 
+#% description: Log R output to v.autokrige.py.log. 
 #%end
 
 import sys
@@ -126,9 +126,9 @@ class AutoKrige():
         self.varianceFlag = True if flags['v'] is True else False
         self.regionFlag = True if flags['r'] is True else False
         self.logROutput = True if flags['l'] is True else False
-        #others
+        ##others
         self.RscriptFile = None
-        logfilename = 'v.autokrige.log'
+        logfilename = 'v.autokrige.py.log'
         self.logfile = os.path.join(os.getenv('LOGDIR'),logfilename) if os.getenv('LOGDIR') else logfilename
     
     def __checkLayers(self, input, output):
@@ -145,7 +145,7 @@ class AutoKrige():
         ##Test if output raster map already exists.
         testOutput = grass.find_file(output, element = 'cell')
         if testOutput['fullname'] != '':
-            if not grass.overwrite is True:
+            if not grass.overwrite() is True:
                 raise AutoKrigeError("raster map " + output + " already exists in mapset search path. \n \
 Use the --o flag to overwrite.")
             else:
@@ -154,7 +154,7 @@ Use the --o flag to overwrite.")
         if self.varianceFlag is True:
             testVarOutput = grass.find_file(output + '_var', element = 'cell')
             if testVarOutput['fullname'] != '':
-                if not grass.overwrite is True:
+                if not grass.overwrite() is True:
                     raise AutoKrigeError("raster map " + output + " already exists in mapset search path. \n \
 Use the --o flag to overwrite.")
                 else:
@@ -191,7 +191,7 @@ Use the --o flag to overwrite.")
         RargumentsDict = {}
         if models is None:
             ##it is important not to have any space between commas and following slashes
-            RargumentsDict['models']='c(\"Sph\",\"Exp\",\"Gau\",\"Mat\")'
+            RargumentsDict['models']='c(\\"Sph\\",\\"Exp\\",\\"Gau\\",\\"Mat\\")'
         else:
             ##conversion to R arguments in the expected format, starting from model1,model2...
             ##add c(" at the beginning and add ") at the end
@@ -267,8 +267,6 @@ Use the --o flag to overwrite.")
             ##retrieve sites in a SpatialPointsDataFrame object
             cat("retrieve sites from GRASS","\n")
             sitesR <- readVECT6(sitesG, ignore.stderr = F)
-            ##uncomment to check sites
-            #sitesR
         
             cat("retrieve metadata","\n")
             G <- gmeta6()
@@ -292,13 +290,13 @@ Use the --o flag to overwrite.")
             cat("ordinary kriging","\n")
             #[note : ajouter une option pour permettre de réaliser le krigeage universel]
             kriging_result = autoKrige(as.formula(paste(column,"~",1)), sitesR[column], mask_SG, model = modelslist, fix.values = c(nugget,range,sill), debug.level=-1, verbose=TRUE)
-        
+            
             cat("send raster to GRASS","\n")
             writeRAST6(kriging_result$krige_output,rastername,zcol=1,NODATA=0)
             cat("Generated",rastername," "); cat("", sep="\n")
             if(writevarrast == T) {
                 varrastername = paste(rastername, "_var", sep = "")
-                writeRASTt6(kriging_result$krige_output,varrastername,zcol=2,NODATA=0)
+                writeRAST6(kriging_result$krige_output,varrastername,zcol=2,NODATA=0)
                 cat("Generated",varrastername," "); cat("", sep="\n")
             }
         
@@ -316,6 +314,7 @@ Use the --o flag to overwrite.")
             }, 
             error = function(ex) {
             cat("Error while executing R script.\n");
+            cat(conditionMessage(ex), "\n") 
             quit(status = 5)
             }
         ) ## tryCatch()
@@ -335,7 +334,9 @@ Use the --o flag to overwrite.")
             self.__execShellCommand('convert -alpha off Rplots.pdf autokrige_result.png')
             grass.try_remove('Rplots.pdf')
             ##apply colormap
-            grass.run_command("r.colors", map = output, rules = colormap, quiet = True) 
+            grass.run_command("r.colors", map = output, rules = colormap, quiet = True)
+            if self.varianceFlag is True:
+                grass.run_command("r.colors", map = output + '_var', rules = colormap, quiet = True) 
         except:
             pass
     
@@ -369,7 +370,8 @@ Use the --o flag to overwrite.")
         ##4)Execute R from GRASS
         self.RscriptFile = self.__writeRScript()
         ##spgrass6 cause : column name in R has only the 10 first characters of the original column name
-        Rcolumnname = self.column[0:9]
+        ##may change with future versions of spgrass6
+        Rcolumnname = self.column[0:10]
         writeVarRast = 'T' if self.varianceFlag is True else 'F'
         print "RGrass is working..."
         autoKrigeCommand = 'R --vanilla --slave --args ' + self.input + ' ' + Rcolumnname + ' ' + \
