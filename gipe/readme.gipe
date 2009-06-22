@@ -20,7 +20,8 @@ Cleaning
 20081012: Added i.latlong, removed i.latitude and i.longitude
 20081012: Moved i.latlong to main SVN
 20081020: Moved i.sunhours, i.emissivity to main SVN
-20090619: Moved i.eb.g0, i.eb.evapfr, i.eb.h_SEBAL01 to main SVN
+20090619: Moved i.eb.g0, i.eb.evapfr, i.eb.h_SEBAL01, i.eb.eta to main SVN
+20090619: Renamed i.eb.g0 to i.eb.soilheatflux inside main SVN
 
 Imagery modules
 ---------------
@@ -37,7 +38,7 @@ i.wi:		Calculates a water index
 
 -----IMPORT from DN to reflectance, radiance temperature or potential ET -------------
 i.dn2full.l5:	imports DN into radiance or reflectance/temperature for Landsat 5
-i.dn.full.l7:	imports DN into radiance or reflectance/temperature for Landsat 7 
+i.dn2full.l7:	imports DN into radiance or reflectance/temperature for Landsat 7 
 i.dn2potrad.l5: Calculates potential Evapotranspiration from Landsat 5 DN directly
 i.dn2potrad.l7: Calculates potential Evapotranspiration from Landsat 7 DN directly
 i.dn2ref.ast:	imports DN into radiance or reflectance for Terra-ASTER (not temperature)
@@ -47,7 +48,7 @@ i.dn2ref.l7:	imports DN into radiance or reflectance for Landsat 7 (not temperat
 -----ENERGY balance-------------------------------------------------------------------
 i.eb.deltat:	Energy-Balance: Calculates a generic Soil to Air temperature difference
 i.eb.disp:	Energy-Balance: Calculates the displacement height above canopy
-i.eb.eta:	Energy-Balance: Calculates the Actual Evapotranspiration
+**i.eb.eta:	(Now in main SVN) Energy-Balance: Calculates the Actual Evapotranspiration
 **i.eb.evapfr:	(Now in main SVN) Energy-Balance: Calculates the Evaporative Fraction (and soil moisture)
 **i.eb.g0:	(Now in main SVN) Energy-Balance: Calculates the Soil Heat Flux
 i.eb.h0:	Energy-Balance: Calculates the Sensible Heat Flux
@@ -77,7 +78,7 @@ i.evapo.TSA: 	Unfinished: Calculates Actual Evapotranspiration after Chen et al.
 -----Utilities-----------------------------------------------------------------------
 **i.latlong: 	Calculates latitude/longitude by reprojecting without datum transform
 **i.qc.modis:	(Now in Main SVN as i.modis.qc) Converts Terra-MODIS Quality Assessment bits to numeric classes
-i.sattime:	Calculates the time of satellite overpass
+<i.sattime>:	Calculates the time of satellite overpass -> REMOVED (not needed since Landsat MTL has it now)
 **i.sunhours:	(now in main SVN) Calculates potential sunshine hours
 -------------------------------------------------------------------------------------
 

@@ -29,7 +29,6 @@ SUBDIRS = \
 	i.evapo.TSA \
 	i.lmf \
 	i.modis.stateqa \
-	i.sattime \
 	i.vi.mpi \
 	i.water \
 	i.wi 

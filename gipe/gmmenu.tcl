@@ -584,7 +584,6 @@ set descmenu [subst  {
 				{separator}
 				{command {[G_msg "Lat/long maps"]} {} "i.latlong" {} -command {execute i.latlong }}
 				{command {[G_msg "Sunshine hours (potential)"]} {} "i.sunhours" {} -command {execute i.sunhours }}
-				{command {[G_msg "Satellite overpass time"]} {} "i.sattime" {} -command {execute i.sattime }}
 				{separator}
 				{command {[G_msg "LMF temporal splinning"]} {} "i.lmf" {} -command {execute i.lmf }}
 		}}
