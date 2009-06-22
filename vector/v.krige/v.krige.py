@@ -160,17 +160,16 @@ class KrigingPanel(wx.Panel):
         #0. require packages. See creation of the notebook pages and note after import directives.
         
         #1. get the data in R format, i.e. SpatialPointsDataFrame
-        self.InputData = robjects.r.readVECT6(self.InputDataMap.GetStringSelection(), type= 'point')
+        self.InputData = robjects.r.readVECT6(self.InputDataMap.GetValue(), type= 'point')
         #2. collect options
-        #@TODO(anne): let user pick up the column name from a list. this is hardwired code.
-        self.Column = self.InputDataColumn.GetStringSelection() 
+        self.Column = self.InputDataColumn.GetValue() 
         #@TODO(anne): pick up parameters if user chooses to set variogram parameters.
         #3. Fit variogram
         self.parent.log.write('Variogram fitting')
         self.Formula = robjects.r['as.formula'](robjects.r.paste(self.Column, "~ 1"))        
         Variogram = self.SelectedPanel.FitVariogram(self.Formula, self.InputData)
         # print variogram?
-
+#        robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model'])
         self.parent.log.write('Variogram fitted.')
 
         #4. Kriging
@@ -218,11 +217,11 @@ class RBookPanel(wx.Panel):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
         # unlock options as soon as they are available. Stone soup!
-        self.VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, 
+        VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, 
             label='Variogram fitting'), wx.VERTICAL)
         VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label="Auto-fit variogram")
         VariogramCheckBox.SetValue(state = True) # check it by default
-        self.ParametersSizer = wx.BoxSizer(wx.VERTICAL)
+        ParametersSizer = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)        
         
         for n in ["Sill", "Nugget", "Range"]:
             setattr(self, n+"Sizer", (wx.BoxSizer(wx.HORIZONTAL)))
@@ -231,10 +230,10 @@ class RBookPanel(wx.Panel):
             a = getattr(self, n+"Sizer")
             a.Add(getattr(self, n+"Text"), proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER | wx.ALL, border=3)
             a.Add(getattr(self, n+"Ctrl"), proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=3)
-            self.ParametersSizer.Add(a, proportion = 0, flag=wx.EXPAND | wx.ALL, border=3)
+            ParametersSizer.Add(a)#, proportion = 0, flag=wx.EXPAND | wx.ALL, border=3)
         
-        self.VariogramSizer.Add(VariogramCheckBox, proportion=1, flag=wx.EXPAND | wx.ALL, border=3)
-        self.VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+        VariogramSizer.Add(VariogramCheckBox, proportion=1, flag=wx.EXPAND | wx.ALL, border=3)
+        VariogramSizer.Add(ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         #@TODO(anne); hides Parameters when Autofit variogram is selected
 #        VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
         
@@ -244,7 +243,7 @@ class RBookPanel(wx.Panel):
             choices=self.KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
         
         Sizer = wx.BoxSizer(wx.VERTICAL)
-        Sizer.Add(self.VariogramSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+        Sizer.Add(VariogramSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         Sizer.Add(KrigingRadioBox,  proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         
         self.SetSizerAndFit(Sizer)
@@ -266,6 +265,11 @@ class RBookAutomapPanel(RBookPanel):
         
     def FitVariogram(self, Formula, InputData):
         return robjects.r.autofitVariogram(Formula, InputData)
+        
+    def DoKriging():
+        #BUG: remove grid creation when automap command will be corrected.
+        #PredictionGrid = grass.run_command("v.mkgrid")
+        pass
         
 def main(argv=None):
     if argv is None:
