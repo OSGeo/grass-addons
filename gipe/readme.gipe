@@ -22,12 +22,13 @@ Cleaning
 20081020: Moved i.sunhours, i.emissivity to main SVN
 20090619: Moved i.eb.g0, i.eb.evapfr, i.eb.h_SEBAL01, i.eb.eta to main SVN
 20090619: Renamed i.eb.g0 to i.eb.soilheatflux inside main SVN
+20090623: Moved i.biomass to main SVN
 
 Imagery modules
 ---------------
 **i.albedo:	(Now in Main SVN) Calculates Albedo form reflectance bands of Modis/AVHRR/Landsat/Aster
 **i.atcorr:	(ported from GRASS 5.x, now in Main SVN) Atmospheric correction
-i.biomass:	Calculates biomass growth of a plant/crop
+**i.biomass:	(Now in Main SVN) Calculates biomass growth of a plant/crop
 **i.emissivity: (now in main SVN) Calculates the generic emissivity from NDVI
 i.lmf: 		Calculates NDVI temporal splinning after Sawada et al. (2001)
 **i.vi:		(now in Main SVN) Calculates any of 13 types of vegetation indices

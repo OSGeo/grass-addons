@@ -3,7 +3,6 @@ MODULE_TOPDIR = ../
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 SUBDIRS = \
 	i.landsat.toar \
-	i.biomass \
 	i.dn2potrad.l5 \
 	i.dn2potrad.l7 \
 	i.dn2ref.ast \
