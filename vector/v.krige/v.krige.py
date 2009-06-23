@@ -44,7 +44,9 @@ import wx.lib.flatnotebook as FN
 # For the moment, deps are checked when creating the notebook pages for each package, and the
 # data availability when clicking Run button. Quite late.
 
-#$TODO(anne): add gettext
+### i18N
+import gettext
+gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode=True)
 
 #global variables
 gisenv = grass.gisenv()
@@ -60,19 +62,19 @@ class KrigingPanel(wx.Panel):
         self.border = 5
         
 #    1. Input data 
-        InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label='Input Data'), 
+        InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Input Data")), 
                                           orient=wx.HORIZONTAL)
         
         flexSizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         flexSizer.AddGrowableCol(1)
 
-        flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label="Point dataset:"),
+        flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Point dataset:")),
                       flag = wx.ALIGN_CENTER_VERTICAL)
         self.InputDataMap = gselect.VectorSelect(parent = self,
                                                        ftype = 'point')
         flexSizer.Add(item = self.InputDataMap)
         
-        flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label="Column:"),
+        flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Column:")),
                       flag=wx.ALIGN_CENTER_VERTICAL)
         self.InputDataColumn = gselect.ColumnSelect(self, id=wx.ID_ANY)
         flexSizer.Add(item = self.InputDataColumn)
@@ -82,7 +84,7 @@ class KrigingPanel(wx.Panel):
         InputBoxSizer.Add(item = flexSizer)
         
 #    2. Kriging. In book pages one for each R package. Includes variogram fit.
-        KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label='Kriging'), wx.HORIZONTAL)
+        KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Kriging")), wx.HORIZONTAL)
 
         self.RPackagesBook = FN.FlatNotebook(parent=self, id=wx.ID_ANY,
                                         style=FN.FNB_BOTTOM |
@@ -96,8 +98,8 @@ class KrigingPanel(wx.Panel):
         #@TODO(anne): check this dependency at the beginning.
         if self.RPackagesBook.GetPageCount() == 0:
             wx.MessageBox(parent=self,
-                          message=("No R package with kriging functions available. Install either automap, gstat or geoR."),
-                          caption=("Missing Dependency"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
+                          message=_("No R package with kriging functions available. Install either automap, gstat or geoR."),
+                          caption=_("Missing Dependency"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
         
         self.RPackagesBook.SetSelection(0)
         KrigingSizer.Add(self.RPackagesBook, proportion=1, flag=wx.EXPAND)
@@ -106,7 +108,7 @@ class KrigingPanel(wx.Panel):
         ButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
         QuitButton = wx.Button(self, id=wx.ID_EXIT)
         QuitButton.Bind(wx.EVT_BUTTON, self.OnCloseWindow)
-        RunButton = wx.Button(self, id=wx.ID_ANY, label='Run') # no stock ID for Run button.. 
+        RunButton = wx.Button(self, id=wx.ID_ANY, label=_("Run")) # no stock ID for Run button.. 
         RunButton.Bind(wx.EVT_BUTTON, self.OnRunButton)
         ButtonSizer.Add(QuitButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         ButtonSizer.Add(RunButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
@@ -165,12 +167,12 @@ class KrigingPanel(wx.Panel):
         self.Column = self.InputDataColumn.GetValue() 
         #@TODO(anne): pick up parameters if user chooses to set variogram parameters.
         #3. Fit variogram
-        self.parent.log.write('Variogram fitting')
+        self.parent.log.write(_("Variogram fitting"))
         self.Formula = robjects.r['as.formula'](robjects.r.paste(self.Column, "~ 1"))        
         Variogram = self.SelectedPanel.FitVariogram(self.Formula, self.InputData)
         # print variogram?
 #        robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model'])
-        self.parent.log.write('Variogram fitted.')
+        self.parent.log.write(_("Variogram fitted."))
 
         #4. Kriging
 #        self.parent.log.write('Kriging...')
@@ -191,10 +193,10 @@ class KrigingModule(wx.Frame):
     def __init__(self, parent, *args, **kwargs):
         wx.Frame.__init__(self, parent, *args, **kwargs)
         # setting properties and all widgettery
-        self.SetTitle("Kriging Module")
+        self.SetTitle(_("Kriging Module"))
         self.log = Log(self) # writes on statusbar
         self.CreateStatusBar()
-        self.log.write("Ready.")
+        self.log.write(_("Ready."))
         
         self.Panel = KrigingPanel(self)
         # size. It is the minimum size. No way to get it in a single command.
@@ -218,14 +220,14 @@ class RBookPanel(wx.Panel):
         
         # unlock options as soon as they are available. Stone soup!
         VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, 
-            label='Variogram fitting'), wx.VERTICAL)
-        VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label="Auto-fit variogram")
+                                                                label=_("Variogram fitting")), wx.VERTICAL)
+        VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
         VariogramCheckBox.SetValue(state = True) # check it by default
         ParametersSizer = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)        
         
         for n in ["Sill", "Nugget", "Range"]:
             setattr(self, n+"Sizer", (wx.BoxSizer(wx.HORIZONTAL)))
-            setattr(self, n+"Text", (wx.StaticText(self, id= wx.ID_ANY, label = n)))
+            setattr(self, n+"Text", (wx.StaticText(self, id= wx.ID_ANY, label = _(n))))
             setattr(self, n+"Ctrl", (wx.SpinCtrl(self, id = wx.ID_ANY, max=sys.maxint)))
             a = getattr(self, n+"Sizer")
             a.Add(getattr(self, n+"Text"), proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER | wx.ALL, border=3)
@@ -237,8 +239,8 @@ class RBookPanel(wx.Panel):
         #@TODO(anne); hides Parameters when Autofit variogram is selected
 #        VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
         
-        self.KrigingList = ["Ordinary kriging", "Universal Kriging", "Block kriging"]
-        KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label="Kriging techniques", 
+        self.KrigingList = ["Ordinary kriging", "Universal Kriging", "Block kriging"] #@FIXME: i18n on the list?
+        KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label=_("Kriging techniques"), 
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             choices=self.KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
         
