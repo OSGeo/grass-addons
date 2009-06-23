@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = v.autokrige2
+PGM = v.krige
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
