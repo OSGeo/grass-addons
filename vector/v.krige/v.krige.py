@@ -71,7 +71,10 @@ class KrigingPanel(wx.Panel):
         flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Point dataset:")),
                       flag = wx.ALIGN_CENTER_VERTICAL)
         self.InputDataMap = gselect.VectorSelect(parent = self,
-                                                       ftype = 'point')
+                                                 ftype = 'points',
+                                                 updateOnPopup = False)
+        wx.CallAfter(self.InputDataMap.GetElementList)
+        
         flexSizer.Add(item = self.InputDataMap)
         
         flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Column:")),
