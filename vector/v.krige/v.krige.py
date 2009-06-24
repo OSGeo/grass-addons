@@ -95,10 +95,7 @@ class KrigingPanel(wx.Panel):
                                         FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
         
         for Rpackage in ["automap", "gstat", "geoR"]:
-            self.createPage(package = Rpackage)
-        #self.__createAutomapPage()
-        #self.__createGstatPage()
-        #self.__createGeoRPage()
+            self.CreatePage(package = Rpackage)
         
         #@TODO(anne): check this dependency at the beginning.
         if self.RPackagesBook.GetPageCount() == 0:
@@ -125,33 +122,11 @@ class KrigingPanel(wx.Panel):
         Sizer.Add(ButtonSizer, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         self.SetSizerAndFit(Sizer)
         
-    #@TODO: consider refactor this!
-    def createPage(self, package):
+    def CreatePage(self, package):
         if robjects.r.require(package) and robjects.r.require('spgrass6'):
-            
-            setattr(self, "RBook"+package+"Panel", ()) #get class name? is it possible?
-            self.AutomapPanel = RBookAutomapPanel(self, id=wx.ID_ANY)
-            self.RPackagesBook.AddPage(page=self.AutomapPanel, text=package)
-        else:
-            pass
-    def __createAutomapPage(self):
-        if robjects.r.require('automap') and robjects.r.require('spgrass6'):
-            self.AutomapPanel = RBookAutomapPanel(self, id=wx.ID_ANY)
-            self.RPackagesBook.AddPage(page=self.AutomapPanel, text="automap")
-        else:
-            pass
-
-    def __createGstatPage(self):
-        if robjects.r.require('gstat'):
-            self.GstatPanel = RBookPanel(self, id=wx.ID_ANY)
-            self.RPackagesBook.AddPage(page=self.GstatPanel, text="gstat")
-        else:
-            pass
-
-    def __createGeoRPage(self):
-        if robjects.r.require('geoR'):
-            self.GeoRPanel = RBookPanel(self, id=wx.ID_ANY)
-            self.RPackagesBook.AddPage(page=self.GeoRPanel, text="geoR")
+            classobj = eval("RBook"+package+"Panel")
+            setattr(self, "RBook"+package+"Panel", (classobj(self, id=wx.ID_ANY))) 
+            self.RPackagesBook.AddPage(page=getattr(self, "RBook"+package+"Panel"), text=package)
         else:
             pass
 
@@ -272,7 +247,7 @@ class RBookPanel(wx.Panel):
         for n in self.ParametersSizer.GetChildren(): n.Disable()
         #@TODO(anne): set it right.
     
-class RBookAutomapPanel(RBookPanel):
+class RBookautomapPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific automap options and kriging functions. """
     #def __init__(self, parent, *args, **kwargs):
     #    RBookPanel.__init__(self, parent, *args, **kwargs)
@@ -285,7 +260,7 @@ class RBookAutomapPanel(RBookPanel):
         #current workaround would be create projected grid with estimation locations..
         pass
 
-class RBookGstatPanel(RBookPanel):
+class RBookgstatPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific gstat options and kriging functions. """
     #def __init__(self, parent, *args, **kwargs):
     #    RBookPanel.__init__(self, parent, *args, **kwargs)
@@ -294,9 +269,20 @@ class RBookGstatPanel(RBookPanel):
         return robjects.r.autofitVariogram(Formula, InputData)
         
     def DoKriging():
-
         pass
     
+class RBookgeoRPanel(RBookPanel):
+    """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
+    #def __init__(self, parent, *args, **kwargs):
+    #    RBookPanel.__init__(self, parent, *args, **kwargs)
+        
+    def FitVariogram(self, Formula, InputData):
+        return robjects.r.autofitVariogram(Formula, InputData)
+        
+    def DoKriging():
+        #BUG: automap autoKrige() does not seem to handle projected data.
+        #current workaround would be create projected grid with estimation locations..
+        pass  
 def main(argv=None):
     if argv is None:
         argv = sys.argv
