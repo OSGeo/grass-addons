@@ -97,6 +97,7 @@ class KrigingPanel(wx.Panel):
         for Rpackage in ["automap", "gstat", "geoR"]:
             self.CreatePage(package = Rpackage)
         
+        
         #@TODO(anne): check this dependency at the beginning.
         if self.RPackagesBook.GetPageCount() == 0:
             wx.MessageBox(parent=self,
@@ -266,7 +267,7 @@ class RBookgstatPanel(RBookPanel):
     #    RBookPanel.__init__(self, parent, *args, **kwargs)
         
     def FitVariogram(self, Formula, InputData):
-        return robjects.r.autofitVariogram(Formula, InputData)
+        pass
         
     def DoKriging():
         pass
@@ -277,11 +278,9 @@ class RBookgeoRPanel(RBookPanel):
     #    RBookPanel.__init__(self, parent, *args, **kwargs)
         
     def FitVariogram(self, Formula, InputData):
-        return robjects.r.autofitVariogram(Formula, InputData)
+        pass
         
     def DoKriging():
-        #BUG: automap autoKrige() does not seem to handle projected data.
-        #current workaround would be create projected grid with estimation locations..
         pass  
 def main(argv=None):
     if argv is None:
@@ -311,6 +310,7 @@ def main(argv=None):
     k.Centre()
     k.Show()
     app.MainLoop()
+    
 
 if __name__ == '__main__':
     main()
