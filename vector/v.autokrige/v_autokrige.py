@@ -11,7 +11,7 @@
 #   - R packages :
 #       - spgrass6 (http://cran.r-project.org/web/packages/spgrass6/index.html)
 #       - automap (http://intamap.geo.uu.nl/~paul/Downloads.html) packages 
-#   - optionnal :
+#   - optional :
 #       - imagemagick : convert program
 # COPYRIGHT:	(C) 2009 Mathieu Grelier
 #
