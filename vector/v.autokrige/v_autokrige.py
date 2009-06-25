@@ -3,7 +3,7 @@
 #
 ############################################################################
 #
-# MODULE:       v.autokrige.py
+# MODULE:       v_autokrige.py
 # AUTHOR(S):	Mathieu Grelier (greliermathieu@gmail.com)
 # PURPOSE:	automatic kriging interpolation from vector point data
 # REQUIREMENTS:
@@ -11,7 +11,8 @@
 #   - R packages :
 #       - spgrass6 (http://cran.r-project.org/web/packages/spgrass6/index.html)
 #       - automap (http://intamap.geo.uu.nl/~paul/Downloads.html) packages 
-#   - imagemagick : convert program
+#   - optionnal :
+#       - imagemagick : convert program
 # COPYRIGHT:	(C) 2009 Mathieu Grelier
 #
 #		This program is free software under the GNU General Public
@@ -72,6 +73,18 @@
 #% required : no
 #%end
 #%option
+#% key: nmax
+#% type: double
+#% description: Local kriging. Number of nearest observations that should be used for a kriging prediction. Default : all observations are used.
+#% required : no
+#%end
+#%option
+#% key: maxdist
+#% type: double
+#% description: Local kriging. Maximum distance for observations from the prediction location to be included for prediction. Default : no limitation.
+#% required : no
+#%end
+#%option
 #% key: output
 #% type: string
 #% answer: autokrige
@@ -95,7 +108,7 @@
 #%end
 #%flag
 #% key: l
-#% description: Log R output to v.autokrige.py.log. 
+#% description: Log R output to v_autokrige.py.log. 
 #%end
 
 import sys
@@ -117,9 +130,11 @@ class AutoKrige():
         self.column = options['column']
         self.nbcell = options['nbcell'] if options['nbcell'].strip() != '' else None
         self.models = options['models'] if options['models'].strip() != '' else None
-        self.range = options['range'] if options['range'].strip() != '' else None
-        self.nugget = options['nugget'] if options['nugget'].strip() != '' else None
-        self.sill = options['sill'] if options['sill'].strip() != '' else None
+        self.range = options['range'] if options['range'].strip() != '' else 'NA'
+        self.nugget = options['nugget'] if options['nugget'].strip() != '' else 'NA'
+        self.sill = options['sill'] if options['sill'].strip() != '' else 'NA'
+        self.nmax = options['nmax'] if options['nmax'].strip() != '' else 'Inf'
+        self.maxdist = options['maxdist'] if options['maxdist'].strip() != '' else 'Inf'
         self.output = options['output']
         self.colormap = options['colormap'] if options['colormap'].strip() != '' else 'bcyor'
         ##flags
@@ -128,7 +143,7 @@ class AutoKrige():
         self.logROutput = True if flags['l'] is True else False
         ##others
         self.RscriptFile = None
-        logfilename = 'v.autokrige.py.log'
+        logfilename = 'v_autokrige.py.log'
         self.logfile = os.path.join(os.getenv('LOGDIR'),logfilename) if os.getenv('LOGDIR') else logfilename
     
     def __checkLayers(self, input, output):
@@ -183,29 +198,22 @@ Use the --o flag to overwrite.")
         grass.use_temp_region
         grass.run_command("g.region", res = tmpRegionRes)
     
-    def __prepareRScriptArguments(self, cellsize, models=None, range=None, nugget=None, sill=None):
-        """Group all R arguments in a dictionnary"""
-        ##1)Models
-        ##The script will try to create the R argument as expected in the R script,
-        ##to avoid string manipulations with R.
-        RargumentsDict = {}
+    def __prepareRModelsString(self, models=None):
+        """Try to create the R argument as expected in the R script,
+        to avoid string manipulations with R."""
+        modelsString = ''
         if models is None:
             ##it is important not to have any space between commas and following slashes
-            RargumentsDict['models']='c(\\"Sph\\",\\"Exp\\",\\"Gau\\",\\"Mat\\")'
+            modelsString = 'c(\\"Sph\\",\\"Exp\\",\\"Gau\\",\\"Mat\\")'
         else:
             ##conversion to R arguments in the expected format, starting from model1,model2...
             ##add c(" at the beginning and add ") at the end
             RargumentsDict['models'] = 'c(\\"' + models + '\\")'
             ##replace commas by \",\"
             p = re.compile(',')
-            RargumentsDict['models'] = p.sub('\\",\\"',RargumentsDict['models'])
-        ##2)Range, nugget, sill
-        RargumentsDict['range'] = range if range is not None else 'NA'
-        RargumentsDict['nugget'] = nugget if nugget is not None else 'NA'
-        RargumentsDict['sill'] = sill if sill is not None else 'NA'
-        return RargumentsDict
+            modelsString = p.sub('\\",\\"',RargumentsDict['models'])
+        return modelsString
 
-    
     def __writeRScript(self):
         RscriptFile = grass.tempfile()
         fileHandle = open(RscriptFile, 'a')
@@ -221,9 +229,13 @@ Use the --o flag to overwrite.")
         models <- args[9]
         modelslist <- eval(parse(text = models))
         range <- as.numeric(args[10])
-        if(args[10] == "NA") {nugget = NA} else {nugget <- as.numeric(args[11])}
+        if(args[11] == "NA") {nugget = NA} else {nugget <- as.numeric(args[11])}
         if(args[12] == "NA") {sill = NA} else {sill <- as.numeric(args[12])}
-        writevarrast <- as.logical(args[13])
+        if(args[13] == "Inf") {nobsmax = Inf} else {nobsmax <- as.numeric(args[13])}
+        if(args[14] == "Inf") {maxdistance = Inf} else {maxdistance <- as.numeric(args[14])}
+        writevarrast <- as.logical(args[15])
+        ##preparing UK implementation
+        predictors <- as.character(args[16])
         
         ##print arguments
         #################
@@ -235,7 +247,10 @@ Use the --o flag to overwrite.")
         cat("range:",range,"\n")
         cat("nugget:",nugget,"\n")
         cat("sill:",sill,"\n")
+        cat("nobsmax:",nobsmax,"\n")
+        cat("maxdistance:",maxdistance,"\n")
         cat("writevarrast:",writevarrast,"\n")
+        cat("predictors:",predictors,"\n")
         
         ##variogram plot function
         #########################
@@ -253,7 +268,7 @@ Use the --o flag to overwrite.")
                         xlim = c(0, 1.04 * max(x$exp_var$dist)), xlab = "Distance", ylab = "Semi-variance",
                         main = "Experimental variogram and fitted variogram model", mode = "direct",...)
         
-            print(vario, position = c(0,0,1,1)) 
+            print(vario, position = c(0,0,1,1))
         
         }
         
@@ -289,7 +304,7 @@ Use the --o flag to overwrite.")
         
             cat("ordinary kriging","\n")
             #[note : ajouter une option pour permettre de réaliser le krigeage universel]
-            kriging_result = autoKrige(as.formula(paste(column,"~",1)), sitesR[column], mask_SG, model = modelslist, fix.values = c(nugget,range,sill), debug.level=-1, verbose=TRUE)
+            kriging_result = autoKrige(as.formula(paste(column,"~",predictors)), sitesR[column], mask_SG, model = modelslist, fix.values = c(nugget,range,sill), debug.level=-1, verbose=TRUE, nmax=nobsmax, maxdist=maxdistance)
             
             cat("send raster to GRASS","\n")
             writeRAST6(kriging_result$krige_output,rastername,zcol=1,NODATA=0)
@@ -355,8 +370,7 @@ Use the --o flag to overwrite.")
             errorMessage = ''
             for elem in com:
                 errorMessage += str(elem) + "\n"
-            raise AutoKrigeError(errorMessage)
-            
+            raise AutoKrigeError(errorMessage)  
                                        
     def runAutoKrige(self):
         """Autokrige class public method"""
@@ -364,23 +378,23 @@ Use the --o flag to overwrite.")
         self.__checkLayers(self.input, self.output)
         ##2)Adjust interpolation resolution
         cellsize = self.__getGridCellSize(self.input, self.nbcell)
-        ##3)Put all R arguments in a dict
-        RargsDict = self.__prepareRScriptArguments(cellsize, self.models, self.range, \
-                                                                 self.nugget, self.sill)
-        ##4)Execute R from GRASS
+        ##3)Execute R from GRASS
         self.RscriptFile = self.__writeRScript()
         ##spgrass6 cause : column name in R has only the 10 first characters of the original column name
         ##may change with future versions of spgrass6
         Rcolumnname = self.column[0:10]
         writeVarRast = 'T' if self.varianceFlag is True else 'F'
         print "RGrass is working..."
+        ##ordinary kriging for now
+        predictors = '1'
         autoKrigeCommand = 'R --vanilla --slave --args ' + self.input + ' ' + Rcolumnname + ' ' + \
-                        self.output + ' ' + str(cellsize) + ' "' + RargsDict['models'] + '" ' + \
-                        RargsDict['range'] + ' ' +  RargsDict['nugget'] + ' ' + RargsDict['sill'] \
-                        + ' ' + writeVarRast + ' < "' + self.RscriptFile + '"'
+                        self.output + ' ' + str(cellsize) + ' "' + self.__prepareRModelsString() + '" ' + \
+                        self.range + ' ' +  self.nugget + ' ' + self.sill \
+                        + ' ' + self.nmax + ' ' + self.maxdist + ' ' \
+                        + writeVarRast + ' ' + predictors + ' < "' + self.RscriptFile + '"'
         logFileArg = self.logfile if self.logROutput is True else False
         self.__execShellCommand(autoKrigeCommand, stderrRedirection=True, logFile=logFileArg)
-        ##5)Finalize output
+        ##4)Finalize output
         self.__finalize(self.output, self.colormap)
                                                                                   
 class AutoKrigeError(Exception):
