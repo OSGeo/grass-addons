@@ -73,10 +73,10 @@ class KrigingPanel(wx.Panel):
         self.InputDataMap = gselect.VectorSelect(parent = self,
                                                  ftype = 'points',
                                                  updateOnPopup = False)
+        #@FIXME: still does slow down interface creation. Thread? Put it elsewhere?
         wx.CallAfter(self.InputDataMap.GetElementList)
         
         flexSizer.Add(item = self.InputDataMap)
-        
         flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Column:")),
                       flag=wx.ALIGN_CENTER_VERTICAL)
         self.InputDataColumn = gselect.ColumnSelect(self, id=wx.ID_ANY)
@@ -126,7 +126,8 @@ class KrigingPanel(wx.Panel):
     def CreatePage(self, package):
         if robjects.r.require(package) and robjects.r.require('spgrass6'):
             classobj = eval("RBook"+package+"Panel")
-            setattr(self, "RBook"+package+"Panel", (classobj(self, id=wx.ID_ANY))) 
+            setattr(self, "RBook"+package+"Panel", (classobj(self, id=wx.ID_ANY)))
+            getattr(self, "RBook"+package+"Panel")
             self.RPackagesBook.AddPage(page=getattr(self, "RBook"+package+"Panel"), text=package)
         else:
             pass
@@ -151,10 +152,18 @@ class KrigingPanel(wx.Panel):
         
         #1. get the data in R format, i.e. SpatialPointsDataFrame
         InputData = robjects.r.readVECT6(self.InputDataMap.GetValue(), type= 'point')
+        #1.5 create the grid where to estimate values. Not used by block-kriging
+        Grid = robjects.r.gmeta2grd()
+        ##create the spatialgriddataframe with these settings
+        GridPredicted = robjects.r.SpatialGridDataFrame(Grid,
+                                                        data=robjects.r['data.frame']
+                                                        (k=robjects.r.rep(1,grass.region()['cols']*grass.region()['rows'])),
+                                                        proj4string=robjects.r.CRS(robjects.r.proj4string(InputData)))
+        
         #2. collect options
         Column = self.InputDataColumn.GetValue() 
         #@TODO(anne): pick up parameters if user chooses to set variogram parameters.
-        #3. Fit variogram
+        #3. Fit variogram. For the moment in batch mode, no interactive window. Stay tuned!
         self.parent.log.write(_("Variogram fitting"))
         Formula = robjects.r['as.formula'](robjects.r.paste(Column, "~ 1"))        
         Variogram = SelectedPanel.FitVariogram(Formula, InputData)
@@ -165,11 +174,13 @@ class KrigingPanel(wx.Panel):
 
         #4. Kriging
         self.parent.log.write('Kriging...')
-        SelectedPanel.DoKriging()
-
-#        self.parent.log.write('Kriging performed..')
+        KrigingResult = SelectedPanel.DoKriging(formula = Formula, data = InputData, grid = GridPredicted, model = Variogram)
+        
+        self.parent.log.write('Kriging performed..')
         
         #5. Format output
+        robjects.r.writeRAST6(KrigingResult, vname = 'KrigingResult', zcol='var1.pred')
+        self.parent.log.write('Wow! Succeeded! Ready for another run.')
         
     def OnCloseWindow(self, event):
         """ Cancel button pressed"""
@@ -209,9 +220,9 @@ class RBookPanel(wx.Panel):
         # unlock options as soon as they are available. Stone soup!
         VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, 
             label=_("Variogram fitting")), wx.VERTICAL)
-        VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
-        VariogramCheckBox.SetValue(state = True) # check it by default
-        ParametersSizer = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)        
+        self.VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
+        self.VariogramCheckBox.SetValue(state = True) # check it by default
+        self.ParametersSizer = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)        
         
         for n in ["Sill", "Nugget", "Range"]:
             setattr(self, n+"Sizer", (wx.BoxSizer(wx.HORIZONTAL)))
@@ -220,12 +231,12 @@ class RBookPanel(wx.Panel):
             a = getattr(self, n+"Sizer")
             a.Add(getattr(self, n+"Text"), proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER | wx.ALL, border=3)
             a.Add(getattr(self, n+"Ctrl"), proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=3)
-            ParametersSizer.Add(a)#, proportion = 0, flag=wx.EXPAND | wx.ALL, border=3)
+            self.ParametersSizer.Add(a)#, proportion = 0, flag=wx.EXPAND | wx.ALL, border=3)
         
-        VariogramSizer.Add(VariogramCheckBox, proportion=1, flag=wx.EXPAND | wx.ALL, border=3)
-        VariogramSizer.Add(ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
-        #@TODO(anne); hides Parameters when Autofit variogram is selected
-#        VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
+        VariogramSizer.Add(self.VariogramCheckBox, proportion=1, flag=wx.EXPAND | wx.ALL, border=3)
+        VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+        
+        self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
         
         self.KrigingList = ["Ordinary kriging", "Universal Kriging", "Block kriging"] #@FIXME: i18n on the list?
         KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label=_("Kriging techniques"), 
@@ -245,32 +256,43 @@ class RBookPanel(wx.Panel):
         pass
     
     def HideOptions(self, event):
-        for n in self.ParametersSizer.GetChildren(): n.Disable()
-        #@TODO(anne): set it right.
+        pass
     
 class RBookautomapPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific automap options and kriging functions. """
-    #def __init__(self, parent, *args, **kwargs):
-    #    RBookPanel.__init__(self, parent, *args, **kwargs)
+    def __init__(self, parent, *args, **kwargs):
+        RBookPanel.__init__(self, parent, *args, **kwargs)
         
-    def FitVariogram(self, Formula, InputData):
-        return robjects.r.autofitVariogram(Formula, InputData)
+    def FitVariogram(self, formula, data):
+        return robjects.r.autofitVariogram(formula, data)
         
     def DoKriging():
         #BUG: automap autoKrige() does not seem to handle projected data.
         #current workaround would be create projected grid with estimation locations..
         pass
+    
+    def HideOptions(self, event):
+        #for n in self.ParametersSizer.GetChildren(): n.Enable(False)
+        if self.VariogramCheckBox.IsChecked():
+            for n in self.ParametersSizer.GetChildren(): n.Show(False)
+        else:
+            for n in self.ParametersSizer.GetChildren(): n.Show(True)
+        #@TODO(anne): set it right. It costs too much code and hides options instead of disabling them
 
 class RBookgstatPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific gstat options and kriging functions. """
-    #def __init__(self, parent, *args, **kwargs):
-    #    RBookPanel.__init__(self, parent, *args, **kwargs)
+    def __init__(self, parent, *args, **kwargs):
+        RBookPanel.__init__(self, parent, *args, **kwargs)
         
-    def FitVariogram(self, Formula, InputData):
-        pass
+    def FitVariogram(self, formula, data):
+        DataVariogram = robjects.r.variogram(formula, data)
+        VariogramModel = robjects.r['fit.variogram'](DataVariogram, model = robjects.r.vgm(1, "Lin"))
+        #@TODO: hardcoded on rs dataset. There is a trend indeed.
+        return VariogramModel
         
-    def DoKriging():
-        pass
+    def DoKriging(self, formula, data, grid,  model):
+        KrigingResult = robjects.r.krige(formula, data, grid, model)
+        return KrigingResult
     
 class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
@@ -281,7 +303,8 @@ class RBookgeoRPanel(RBookPanel):
         pass
         
     def DoKriging():
-        pass  
+        pass
+    
 def main(argv=None):
     if argv is None:
         argv = sys.argv
