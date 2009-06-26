@@ -60,15 +60,44 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
     exec g.parser "$0" "$@"
 fi
 
+#east
+if [ `echo "$GIS_OPT_COORD" | cut -f1 -d, | grep -c ':'` -gt 0 ] ; then
+   # convert lat/lon D:M:S to decimal
+   COOR_DEG=`echo "$GIS_OPT_COORD" | cut -f1 -d, | cut -f1 -d':'`
+   COOR_MIN=`echo "$GIS_OPT_COORD" | cut -f1 -d, | cut -f2 -d':'`
+   COOR_SEC=`echo "$GIS_OPT_COORD" | cut -f1 -d, | cut -f3 -d':'`
+   COOR_E=`echo $COOR_DEG $COOR_MIN $COOR_SEC | awk '{printf("%.15g", $1 + $2/60. + $3/3600.)}'`
+else 
+   COOR_E=`echo "$GIS_OPT_COORD" | cut -f1 -d,`
+fi
 
-COOR_E=`echo "$GIS_OPT_COORD" | cut -f1 -d,`
-COOR_N=`echo "$GIS_OPT_COORD" | cut -f2 -d,`
-DIAM="$GIS_OPT_DIAMETER"
+#north
+if [ `echo "$GIS_OPT_COORD" | cut -f2 -d, | grep -c ':'` -gt 0 ] ; then
+   # convert lat/lon D:M:S to decimal
+   COOR_DEG=`echo "$GIS_OPT_COORD" | cut -f2 -d, | cut -f1 -d':'`
+   COOR_MIN=`echo "$GIS_OPT_COORD" | cut -f2 -d, | cut -f2 -d':'`
+   COOR_SEC=`echo "$GIS_OPT_COORD" | cut -f2 -d, | cut -f3 -d':'`
+   COOR_N=`echo $COOR_DEG $COOR_MIN $COOR_SEC | awk '{printf("%.15g", $1 + $2/60. + $3/3600.)}'`
+else 
+   COOR_N=`echo "$GIS_OPT_COORD" | cut -f2 -d,`
+fi
 
-N=`awk "BEGIN {print $COOR_N + $DIAM}"`
-S=`awk "BEGIN {print $COOR_N - $DIAM}"`
-W=`awk "BEGIN {print $COOR_E - $DIAM}"`
-E=`awk "BEGIN {print $COOR_E + $DIAM}"`
+#diameter
+if [ `echo "$GIS_OPT_DIAMETER" | grep -c ':'` -gt 0 ] ; then
+   # convert lat/lon D:M:S to decimal
+   DIAM_DEG=`echo "$GIS_OPT_DIAMETER" | cut -f1 -d':'`
+   DIAM_MIN=`echo "$GIS_OPT_DIAMETER" | cut -f2 -d':'`
+   DIAM_SEC=`echo "$GIS_OPT_DIAMETER" | cut -f3 -d':'`
+   DIAM=`echo $DIAM_DEG $DIAM_MIN $DIAM_SEC | awk '{printf("%.15g", $1 + $2/60. + $3/3600.)}'`
+else
+   DIAM="$GIS_OPT_DIAMETER"
+fi
+
+
+N=`awk "BEGIN {printf(\"%.15g\", $COOR_N + $DIAM)}"`
+S=`awk "BEGIN {printf(\"%.15g\", $COOR_N - $DIAM)}"`
+W=`awk "BEGIN {printf(\"%.15g\", $COOR_E - $DIAM)}"`
+E=`awk "BEGIN {printf(\"%.15g\", $COOR_E + $DIAM)}"`
 
 
 
