@@ -107,7 +107,22 @@ class KrigingPanel(wx.Panel):
         self.RPackagesBook.SetSelection(0)
         KrigingSizer.Add(self.RPackagesBook, proportion=1, flag=wx.EXPAND)
         
-#    3. Run Button and Quit Button
+#    3. Output Parameters.
+        OutputSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Output")), wx.HORIZONTAL)
+        
+        OutputParameters = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)
+        OutputParameters.AddGrowableCol(1)
+        OutputParameters.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Name of the output map:")),
+                      flag = wx.ALIGN_CENTER_VERTICAL)
+        self.OutputMapName = wx.TextCtrl(self, id=wx.ID_ANY)
+        OutputParameters.Add(item=self.OutputMapName, flag=wx.EXPAND | wx.ALL)
+        self.OverwriteCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Allow output files to overwrite existing files"))
+        self.OverwriteCheckBox.SetValue(state = False)
+        OutputParameters.Add(self.OverwriteCheckBox)
+        
+        OutputSizer.Add(OutputParameters, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+        
+#    4. Run Button and Quit Button
         ButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
         QuitButton = wx.Button(self, id=wx.ID_EXIT)
         QuitButton.Bind(wx.EVT_BUTTON, self.OnCloseWindow)
@@ -120,6 +135,7 @@ class KrigingPanel(wx.Panel):
         Sizer = wx.BoxSizer(wx.VERTICAL)
         Sizer.Add(InputBoxSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
         Sizer.Add(KrigingSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
+        Sizer.Add(OutputSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
         Sizer.Add(ButtonSizer, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         self.SetSizerAndFit(Sizer)
         
@@ -154,10 +170,11 @@ class KrigingPanel(wx.Panel):
         InputData = robjects.r.readVECT6(self.InputDataMap.GetValue(), type= 'point')
         #1.5 create the grid where to estimate values. Not used by block-kriging
         Grid = robjects.r.gmeta2grd()
+        Region = grass.region()
         ##create the spatialgriddataframe with these settings
         GridPredicted = robjects.r.SpatialGridDataFrame(Grid,
                                                         data=robjects.r['data.frame']
-                                                        (k=robjects.r.rep(1,grass.region()['cols']*grass.region()['rows'])),
+                                                        (k=robjects.r.rep(1,Region['cols']*Region['rows'])),
                                                         proj4string=robjects.r.CRS(robjects.r.proj4string(InputData)))
         
         #2. collect options
@@ -175,11 +192,12 @@ class KrigingPanel(wx.Panel):
         #4. Kriging
         self.parent.log.write('Kriging...')
         KrigingResult = SelectedPanel.DoKriging(formula = Formula, data = InputData, grid = GridPredicted, model = Variogram)
-        
         self.parent.log.write('Kriging performed..')
         
         #5. Format output
-        robjects.r.writeRAST6(KrigingResult, vname = 'KrigingResult', zcol='var1.pred')
+        print self.OutputMapName.GetValue()
+        robjects.r.writeRAST6(KrigingResult, vname = self.OutputMapName.GetValue(), zcol='var1.pred',
+                              overwrite = self.OverwriteCheckBox.GetValue())
         self.parent.log.write('Wow! Succeeded! Ready for another run.')
         
     def OnCloseWindow(self, event):
@@ -238,10 +256,10 @@ class RBookPanel(wx.Panel):
         
         self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
         
-        self.KrigingList = ["Ordinary kriging", "Universal Kriging", "Block kriging"] #@FIXME: i18n on the list?
+        KrigingList = ["Ordinary kriging", "Universal Kriging", "Block kriging"] #@FIXME: i18n on the list?
         KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label=_("Kriging techniques"), 
             pos=wx.DefaultPosition, size=wx.DefaultSize,
-            choices=self.KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
+            choices=KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
         
         Sizer = wx.BoxSizer(wx.VERTICAL)
         Sizer.Add(VariogramSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
@@ -262,19 +280,21 @@ class RBookautomapPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific automap options and kriging functions. """
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
+        #@TODO: hide sill nugget value widgets
         
     def FitVariogram(self, formula, data):
         return robjects.r.autofitVariogram(formula, data)
         
-    def DoKriging():
-        #BUG: automap autoKrige() does not seem to handle projected data.
-        #current workaround would be create projected grid with estimation locations..
-        pass
+    def DoKriging(self, formula, data, grid, **kwargs):
+        KrigingResult = robjects.r.autoKrige(formula, data, grid)
+        return KrigingResult.r['krige_output']
     
     def HideOptions(self, event):
         #for n in self.ParametersSizer.GetChildren(): n.Enable(False)
-        if self.VariogramCheckBox.IsChecked():
-            for n in self.ParametersSizer.GetChildren(): n.Show(False)
+        if not self.VariogramCheckBox.IsChecked():
+            for n in self.ParametersSizer.GetChildren():
+                print n
+                if not n.IsSizer(): n.Enable(False) #n.Show(False)
         else:
             for n in self.ParametersSizer.GetChildren(): n.Show(True)
         #@TODO(anne): set it right. It costs too much code and hides options instead of disabling them
