@@ -97,7 +97,6 @@ class KrigingPanel(wx.Panel):
         for Rpackage in ["automap", "gstat", "geoR"]:
             self.CreatePage(package = Rpackage)
         
-        
         #@TODO(anne): check this dependency at the beginning.
         if self.RPackagesBook.GetPageCount() == 0:
             wx.MessageBox(parent=self,
@@ -114,7 +113,7 @@ class KrigingPanel(wx.Panel):
         OutputParameters.AddGrowableCol(1)
         OutputParameters.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Name of the output map:")),
                       flag = wx.ALIGN_CENTER_VERTICAL)
-        self.OutputMapName = wx.TextCtrl(self, id=wx.ID_ANY)
+        self.OutputMapName = wx.TextCtrl(self, id=wx.ID_ANY, size=(250,-1))
         OutputParameters.Add(item=self.OutputMapName, flag=wx.EXPAND | wx.ALL)
         self.OverwriteCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Allow output files to overwrite existing files"))
         self.OverwriteCheckBox.SetValue(state = False)
@@ -149,13 +148,12 @@ class KrigingPanel(wx.Panel):
             pass
 
     def OnInputDataChanged(self, event):
-        """Refreshes list of columns
-
-        @todo: layer select
-        """
-        self.InputDataColumn.InsertColumns(vector = event.GetString(),
+        """ Refreshes list of columns and fills output map name TextCtrl """
+        MapName = event.GetString()
+        self.InputDataColumn.InsertColumns(vector = MapName,
                                            layer = 1, excludeKey = True,
                                            type = ['integer', 'double precision'])
+        self.OutputMapName.SetValue(MapName.split("@")[0]+"_kriging")
         
     def OnRunButton(self,event):
         """ Execute R analysis. """
@@ -192,13 +190,13 @@ class KrigingPanel(wx.Panel):
         #4. Kriging
         self.parent.log.write('Kriging...')
         KrigingResult = SelectedPanel.DoKriging(formula = Formula, data = InputData, grid = GridPredicted, model = Variogram)
-        self.parent.log.write('Kriging performed..')
+        self.parent.log.write('Kriging performed.')
         
         #5. Format output
-        print self.OutputMapName.GetValue()
+        #@IDEA: set a generic f(x) for this too? seems like, because zcol= is only the first peculiar arg for gstat.
         robjects.r.writeRAST6(KrigingResult, vname = self.OutputMapName.GetValue(), zcol='var1.pred',
                               overwrite = self.OverwriteCheckBox.GetValue())
-        self.parent.log.write('Wow! Succeeded! Ready for another run.')
+        self.parent.log.write('Yippee! Succeeded! Ready for another run.')
         
     def OnCloseWindow(self, event):
         """ Cancel button pressed"""
@@ -240,16 +238,13 @@ class RBookPanel(wx.Panel):
             label=_("Variogram fitting")), wx.VERTICAL)
         self.VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
         self.VariogramCheckBox.SetValue(state = True) # check it by default
-        self.ParametersSizer = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)        
+        self.ParametersSizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)        
         
         for n in ["Sill", "Nugget", "Range"]:
-            setattr(self, n+"Sizer", (wx.BoxSizer(wx.HORIZONTAL)))
             setattr(self, n+"Text", (wx.StaticText(self, id= wx.ID_ANY, label = _(n))))
             setattr(self, n+"Ctrl", (wx.SpinCtrl(self, id = wx.ID_ANY, max=sys.maxint)))
-            a = getattr(self, n+"Sizer")
-            a.Add(getattr(self, n+"Text"), proportion=0, flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER | wx.ALL, border=3)
-            a.Add(getattr(self, n+"Ctrl"), proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=3)
-            self.ParametersSizer.Add(a)#, proportion = 0, flag=wx.EXPAND | wx.ALL, border=3)
+            self.ParametersSizer.Add(getattr(self, n+"Text"))
+            self.ParametersSizer.Add(getattr(self, n+"Ctrl"))
         
         VariogramSizer.Add(self.VariogramCheckBox, proportion=1, flag=wx.EXPAND | wx.ALL, border=3)
         VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
