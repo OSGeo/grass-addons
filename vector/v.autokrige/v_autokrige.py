@@ -22,27 +22,27 @@
 #############################################################################
 
 #%Module
-#%  description: automatic kriging interpolation from vector point data
-#%  keywords: kriging, autokrige, RGrass
+#%  description: automatic ordinary kriging interpolation from vector point data with R automap package.
+#%  keywords: kriging, automap, R
 #%End
 #%option
 #% key: input
 #% type: string
 #% gisprompt: old,vector,vector
-#% description: Name of the vector containing sites data (values to interpolate) and geometry. Must not contain any null values.
+#% description: Name of the vector containing values to interpolate (must not contain any null values)
 #% required : yes
 #%end
 #%option
 #% key: column
 #% type: string
-#% description: Attribute column to interpolate (must be numeric).
+#% description: Attribute column to interpolate (must be numeric)
 #% required : yes
 #%end
 #%option
 #% key: nbcell
 #% type: integer
 #% answer: 100
-#% description: number of cell of the created grid. If set, GRASS region is affected.
+#% description: number of cell of the created grid. If set, GRASS region is affected
 #% required : no
 #%end
 #%option
@@ -51,13 +51,13 @@
 #% options: Exp,Sph,Gau,Mat
 #% multiple : yes
 #% answer: 
-#% description: List of variogram models to be automatically tested. Select only one to fix the model.
+#% description: List of variogram models to be automatically tested. Select only one to fix the model
 #% required : no
 #%end
 #%option
 #% key: range
 #% type: integer
-#% description: Range value. Automatically fixed if not set.
+#% description: Range value. Automatically fixed if not set
 #% required : no
 #%end
 #%option
@@ -75,13 +75,13 @@
 #%option
 #% key: nmax
 #% type: double
-#% description: Local kriging. Number of nearest observations that should be used for a kriging prediction. Default : all observations are used.
+#% description: Local kriging. Number of nearest observations that should be used for a kriging prediction (default : all observations are used)
 #% required : no
 #%end
 #%option
 #% key: maxdist
 #% type: double
-#% description: Local kriging. Maximum distance for observations from the prediction location to be included for prediction. Default : no limitation.
+#% description: Local kriging. Maximum distance for observations from the prediction location to be included for prediction (default : no limitation)
 #% required : no
 #%end
 #%option
@@ -104,17 +104,17 @@
 #%end
 #%flag
 #% key: r
-#% description: Don't set region from sites extent. Region would have been previously set in grass. 
+#% description: Don't set region from sites extent. Region would have been previously set in grass
 #%end
 #%flag
 #% key: l
-#% description: Log R output to v_autokrige.py.log. 
+#% description: Log R output to v_autokrige.py.log
 #%end
 
 import sys
 import os
 import re
-from subprocess import Popen, PIPE
+from subprocess import Popen, call, PIPE
 import traceback
 
 ##see http://trac.osgeo.org/grass/browser/grass/trunk/lib/python
@@ -145,61 +145,10 @@ class AutoKrige():
         self.RscriptFile = None
         logfilename = 'v_autokrige.py.log'
         self.logfile = os.path.join(os.getenv('LOGDIR'),logfilename) if os.getenv('LOGDIR') else logfilename
-    
-    def __checkLayers(self, input, output):
-        """
-        Preliminary checks before starting kriging.
-        Note : for this to work with grass6.3, in find_file function from core.py,
-        command should be (n flag removed because 6.4 specific):
-        s = read_command("g.findfile", element = element, file = name, mapset = mapset)
-        """
-        ##Test for input vector map.
-        testInput = grass.find_file(input, element = 'vector')
-        if testInput['fullname'] == '':
-            raise AutoKrigeError("vector map " + input + " not found in mapset search path.")
-        ##Test if output raster map already exists.
-        testOutput = grass.find_file(output, element = 'cell')
-        if testOutput['fullname'] != '':
-            if not grass.overwrite() is True:
-                raise AutoKrigeError("raster map " + output + " already exists in mapset search path. \n \
-Use the --o flag to overwrite.")
-            else:
-                print "Warning: raster map " + output + " will be overwritten."
-        ##Test also variance raster.
-        if self.varianceFlag is True:
-            testVarOutput = grass.find_file(output + '_var', element = 'cell')
-            if testVarOutput['fullname'] != '':
-                if not grass.overwrite() is True:
-                    raise AutoKrigeError("raster map " + output + " already exists in mapset search path. \n \
-Use the --o flag to overwrite.")
-                else:
-                    print "Warning: raster map " + output + '_var' + " will be overwritten."
-        
-    
-    def __getGridCellSize(self, input, nbcell):
-        """Define kriged grid cell size. Raster resolution but also computation time depends on it.
-        We take region resolution as cell size but we can fix this resolution with the nbcell parameter.
-        Only one value is needed because the R script use square cells."""
-        if self.regionFlag is not True:
-            grass.run_command("g.region", vect = input)
-        if nbcell is not None:
-            self.__fixRegionResFromNumberOfCells(nbcell)
-        regionParams = grass.region()
-        cellsize = float(regionParams['nsres']) if float(regionParams['nsres']) > float(regionParams['ewres']) \
-        else float(regionParams['ewres'])
-        return cellsize
-    
-    def __fixRegionResFromNumberOfCells(self, nbcell=100):
-        """Adjust one of the two region dimensions so that we have a maximum of 'nbcell' cells in both."""
-        regionParams = grass.region()
-        nsResForGivenNbCell = (float(regionParams['n'])- float(regionParams['s'])) / float(nbcell)
-        ewResForGivenNbCell = (float(regionParams['e'])- float(regionParams['w'])) / float(nbcell)
-        tmpRegionRes = nsResForGivenNbCell if nsResForGivenNbCell > ewResForGivenNbCell else ewResForGivenNbCell
-        grass.use_temp_region
-        grass.run_command("g.region", res = tmpRegionRes)
-    
+        grass.try_remove(self.logfile)
+            
     def __prepareRModelsString(self, models=None):
-        """Try to create the R argument as expected in the R script,
+        """!Create the R argument as expected in the R script,
         to avoid string manipulations with R."""
         modelsString = ''
         if models is None:
@@ -215,6 +164,7 @@ Use the --o flag to overwrite.")
         return modelsString
 
     def __writeRScript(self):
+        """!Create the R script for automap"""
         RscriptFile = grass.tempfile()
         fileHandle = open(RscriptFile, 'a')
         script = """
@@ -303,7 +253,6 @@ Use the --o flag to overwrite.")
             attr(sitesR, "proj4string") <-CRS(G$proj4)
         
             cat("ordinary kriging","\n")
-            #[note : ajouter une option pour permettre de réaliser le krigeage universel]
             kriging_result = autoKrige(as.formula(paste(column,"~",predictors)), sitesR[column], mask_SG, model = modelslist, fix.values = c(nugget,range,sill), debug.level=-1, verbose=TRUE, nmax=nobsmax, maxdist=maxdistance)
             
             cat("send raster to GRASS","\n")
@@ -324,12 +273,14 @@ Use the --o flag to overwrite.")
             cat("R script done","\n")
             quit(status = 0)
         }, interrupt = function(ex) {
-            cat("An interrupt was detected while executing R script.\n");
+            cat("An interrupt was detected while executing R script.\n")
+            cat(conditionMessage(ex), "\n")
             quit(status = 4)
             }, 
             error = function(ex) {
-            cat("Error while executing R script.\n");
-            cat(conditionMessage(ex), "\n") 
+            cat("\n");
+            cat("Error while executing R script\n")
+            cat(conditionMessage(ex), "\n")
             quit(status = 5)
             }
         ) ## tryCatch()
@@ -339,52 +290,120 @@ Use the --o flag to overwrite.")
         fileHandle.close()
         return RscriptFile
     
-    def __finalize(self, output, colormap):
+    def __execRCommand(self, command, logFile = False):
+        """!R command execution method using Popen in shell mode"""
+        if logFile is not False:
+            command = command + ' >> ' +  logFile
+        ##use redirection on stdout only
+        command = command + " 2>&1"
+        p = Popen(command, shell = True, stdout = PIPE)
+        retcode = p.wait()
+        com = p.communicate()
+        if retcode == 0:
+            return retcode
+        else:
+            lines = None
+            if logFile is not False:
+                logHandle = open(logFile,"r")
+                lines = logHandle.readlines()
+            else:
+                r = re.compile('\n')
+                lines = r.split(com[0])
+            out = lines[-2].strip() + ":" + lines[-1].strip()
+            raise AutoKrigeError(out)
+        
+    def printMessage(self, message, type = 'info'):
+        if type == 'error':
+            grass.error(message)
+        elif type == 'warning':
+            grass.warning(message)
+        elif type == 'info' and grass.verbosity > 0:
+            grass.info(message)
+    
+    def checkLayers(self, input, output, testVarianceRast = False):
         """
-        Group operations non-related to kriging.
+        !Preliminary checks before starting kriging.
+        Note : for this to work with grass6.3, in find_file function from core.py,
+        command should be (n flag removed because 6.4 specific):
+        s = read_command("g.findfile", element = element, file = name, mapset = mapset)
+        """
+        ##Test for input vector map.
+        testInput = grass.find_file(input, element = 'vector')
+        if testInput['fullname'] == '':
+            raise AutoKrigeError("vector map " + input + " not found in mapset search path.")
+        ##Test if output raster map already exists.
+        testOutput = grass.find_file(output, element = 'cell')
+        if testOutput['fullname'] != '':
+            if not grass.overwrite() is True:
+                raise AutoKrigeError("raster map " + output + " already exists in mapset search path. \n \
+Use the --o flag to overwrite.")
+            else:
+                self.printMessage("raster map " + output + " will be overwritten.", type = 'warning')
+                #print "Warning: raster map " + output + " will be overwritten."
+        ##Test also variance raster.
+        if testVarianceRast is True:
+            testVarOutput = grass.find_file(output + '_var', element = 'cell')
+            if testVarOutput['fullname'] != '':
+                if not grass.overwrite() is True:
+                    raise AutoKrigeError("raster map " + output + " already exists in mapset search path. \n \
+Use the --o flag to overwrite.")
+                else:
+                    self.printMessage("raster map " + output + '_var' + " will be overwritten.", type = 'warning')
+                    #print "Warning: raster map " + output + '_var' + " will be overwritten."
+        
+    
+    def getGridCellSize(self, input, nbcell, adjustRegionToSites = True):
+        """!Define kriged grid cell size.
+        Raster resolution but also computation time depends on it.
+        We take region resolution as cell size but we can fix this resolution with the nbcell parameter.
+        Only one value is needed because the R script use square cells."""
+        if adjustRegionToSites is True:
+            grass.run_command("g.region", vect = input)
+        if nbcell is not None:
+            self.fixRegionResFromNumberOfCells(nbcell)
+        regionParams = grass.region()
+        cellsize = float(regionParams['nsres']) if float(regionParams['nsres']) > float(regionParams['ewres']) \
+        else float(regionParams['ewres'])
+        return cellsize
+    
+    def fixRegionResFromNumberOfCells(self, nbcell=100):
+        """!Adjust one of the two region dimensions so that we have a maximum of 'nbcell' cells in both."""
+        regionParams = grass.region()
+        nsResForGivenNbCell = (float(regionParams['n'])- float(regionParams['s'])) / float(nbcell)
+        ewResForGivenNbCell = (float(regionParams['e'])- float(regionParams['w'])) / float(nbcell)
+        tmpRegionRes = nsResForGivenNbCell if nsResForGivenNbCell > ewResForGivenNbCell else ewResForGivenNbCell
+        grass.use_temp_region
+        grass.run_command("g.region", res = tmpRegionRes)
+    
+    def finalizeOutput(self):
+        """!Final operations after successful kriging.
         We don't want to stop execution if an error occurs here.
         """
         try:
             ##convert plot to png
-            self.__execShellCommand('convert -alpha off Rplots.pdf autokrige_result.png')
+            call('convert -alpha off Rplots.pdf autokrige_result.png', shell = True)
             grass.try_remove('Rplots.pdf')
             ##apply colormap
-            grass.run_command("r.colors", map = output, rules = colormap, quiet = True)
+            grass.run_command("r.colors", map = self.output, rules = self.colormap, quiet = True)
             if self.varianceFlag is True:
-                grass.run_command("r.colors", map = output + '_var', rules = colormap, quiet = True) 
+                grass.run_command("r.colors", map = self.output + '_var', rules = self.colormap, quiet = True) 
         except:
             pass
-    
-    def __execShellCommand(self, command, stderrRedirection=False, logFile=False):
-        """General purpose function, maybe should be added in some way to core.py """
-        if logFile is not False:
-            command = command + ' >> ' +  logFile
-        if stderrRedirection is True:
-            command = command + " 2>&1"
-        p = Popen(command, shell=True, stdout=PIPE)
-        retcode = p.wait()
-        com = p.communicate()
-        if retcode == 0:
-            return com[0]
-        else:
-            errorMessage = ''
-            for elem in com:
-                errorMessage += str(elem) + "\n"
-            raise AutoKrigeError(errorMessage)  
-                                       
+        
     def runAutoKrige(self):
-        """Autokrige class public method"""
+        """!Performs kriging process"""
         ##1)Necessary checks
-        self.__checkLayers(self.input, self.output)
+        self.checkLayers(self.input, self.output, self.varianceFlag)
         ##2)Adjust interpolation resolution
-        cellsize = self.__getGridCellSize(self.input, self.nbcell)
+        cellsize = self.getGridCellSize(self.input, self.nbcell, self.regionFlag)
         ##3)Execute R from GRASS
         self.RscriptFile = self.__writeRScript()
         ##spgrass6 cause : column name in R has only the 10 first characters of the original column name
         ##may change with future versions of spgrass6
         Rcolumnname = self.column[0:10]
         writeVarRast = 'T' if self.varianceFlag is True else 'F'
-        print "RGrass is working..."
+        self.printMessage("RGrass is working...", type = 'info')
+        #print "RGrass is working..."
         ##ordinary kriging for now
         predictors = '1'
         autoKrigeCommand = 'R --vanilla --slave --args ' + self.input + ' ' + Rcolumnname + ' ' + \
@@ -393,9 +412,9 @@ Use the --o flag to overwrite.")
                         + ' ' + self.nmax + ' ' + self.maxdist + ' ' \
                         + writeVarRast + ' ' + predictors + ' < "' + self.RscriptFile + '"'
         logFileArg = self.logfile if self.logROutput is True else False
-        self.__execShellCommand(autoKrigeCommand, stderrRedirection=True, logFile=logFileArg)
-        ##4)Finalize output
-        self.__finalize(self.output, self.colormap)
+        self.__execRCommand(autoKrigeCommand, logFile=logFileArg)
+        ##4)Final steps
+        self.finalizeOutput()
                                                                                   
 class AutoKrigeError(Exception):
     """Errors specific to Autokrige class"""
@@ -411,15 +430,16 @@ def main():
         autoKrige = AutoKrige(options, flags)
         autoKrige.runAutoKrige()
     except AutoKrigeError, e1:
-        print >> sys.stderr, "Error \n:", e1.message
+        autoKrige.printMessage(e1.message, type = 'error')
         exitStatus = 1
     except:
-        errorMessage = "Unexpected error \n:"
-        print >> sys.stderr, errorMessage
-        traceback.print_exc()
+        exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
+        errorMessage = "Unexpected error \n:" + \
+                       repr(traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback))
+        autoKrige.printMessage(errorMessage, type = 'error')
         exitStatus = 1
     else:
-        print "Done"
+        autoKrige.printMessage("Done", type = 'info')
     finally:
         grass.try_remove(autoKrige.RscriptFile)
         sys.exit(exitStatus)
