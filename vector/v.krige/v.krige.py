@@ -215,7 +215,6 @@ class KrigingModule(wx.Frame):
         self.log.write(_("Ready."))
         
         self.Panel = KrigingPanel(self)
-        # size. It is the minimum size. No way to get it in a single command.
         self.SetMinSize(self.GetBestSize())
         self.SetSize(self.GetBestSize())
         
@@ -244,13 +243,12 @@ class RBookPanel(wx.Panel):
             setattr(self, n+"Ctrl", (wx.SpinCtrl(self, id = wx.ID_ANY, max=sys.maxint)))
             self.ParametersSizer.Add(getattr(self, n+"Text"))
             self.ParametersSizer.Add(getattr(self, n+"Ctrl"))
-        
-        #@TODO: deploy this
+            
+        #@TODO: deploy this asap!!
         #self.ParametersSizer.Add(wx.Button(self, id=wx.ID_ANY, label=_("Interactive variogram fit")))
 
         self.VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         
-        #@TODO: unlock options as soon as they are available.
         KrigingList = ["Ordinary kriging"]#, "Universal kriging", "Block kriging"] #@FIXME: i18n on the list?
         KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label=_("Kriging techniques"), 
             pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -276,11 +274,10 @@ class RBookautomapPanel(RBookPanel):
         
         self.VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
         self.VariogramCheckBox.SetValue(state = True) # check it by default
-        self.VariogramSizer.Insert(2, self.VariogramCheckBox , proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
-        self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
-        
         for n in ["Sill", "Nugget", "Range"]:
             getattr(self, n+"Ctrl").Enable(False)
+        self.VariogramSizer.Insert(2, self.VariogramCheckBox , proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+        self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
         
         self.SetSizerAndFit(self.Sizer)
         
@@ -293,16 +290,19 @@ class RBookautomapPanel(RBookPanel):
     
     def HideOptions(self, event):
         for n in ["Sill", "Nugget", "Range"]:
-            if self.VariogramCheckBox.IsChecked():
-                getattr(self, n+"Ctrl").Enable(False)
-            else:
-                getattr(self, n+"Ctrl").Enable(True)
+            getattr(self, n+"Ctrl").Enable(not event.IsChecked())
         #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work
 
 class RBookgstatPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific gstat options and kriging functions. """
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
+        
+        ModelFactor = robjects.r.vgm().r['long']
+        ModelList = robjects.r.levels(ModelFactor[0])
+        self.ParametersSizer.Insert(before=0, item=wx.StaticText(self, id= wx.ID_ANY, label = _("Variogram model")))
+        self.ParametersSizer.Insert(before=1, item=wx.Choice(self, id=wx.ID_ANY, choices=ModelList))
+        
         self.SetSizerAndFit(self.Sizer)
         
     def FitVariogram(self, formula, data):
