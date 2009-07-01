@@ -109,7 +109,7 @@ class KrigingPanel(wx.Panel):
 #    3. Output Parameters.
         OutputSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Output")), wx.HORIZONTAL)
         
-        OutputParameters = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)
+        OutputParameters = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         OutputParameters.AddGrowableCol(1)
         OutputParameters.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Name of the output map:")),
                       flag = wx.ALIGN_CENTER_VERTICAL)
@@ -139,6 +139,7 @@ class KrigingPanel(wx.Panel):
         self.SetSizerAndFit(Sizer)
         
     def CreatePage(self, package):
+        """ Creates the three notebook pages, one for each R package """
         if robjects.r.require(package) and robjects.r.require('spgrass6'):
             classobj = eval("RBook"+package+"Panel")
             setattr(self, "RBook"+package+"Panel", (classobj(self, id=wx.ID_ANY)))
@@ -229,16 +230,14 @@ class Log:
         self.parent.SetStatusText(text_string.strip())
 
 class RBookPanel(wx.Panel):
-    """ Generic notebook page with all widgets and empty kriging functions. """
+    """ Generic notebook page with shared widgets and empty kriging functions. """
     def __init__(self, parent, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
         # unlock options as soon as they are available. Stone soup!
-        VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, 
+        self.VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, 
             label=_("Variogram fitting")), wx.VERTICAL)
-        self.VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
-        self.VariogramCheckBox.SetValue(state = True) # check it by default
-        self.ParametersSizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)        
+        self.ParametersSizer = wx.FlexGridSizer(rows=3, cols=2, hgap=5, vgap=5)        
         
         for n in ["Sill", "Nugget", "Range"]:
             setattr(self, n+"Text", (wx.StaticText(self, id= wx.ID_ANY, label = _(n))))
@@ -246,21 +245,20 @@ class RBookPanel(wx.Panel):
             self.ParametersSizer.Add(getattr(self, n+"Text"))
             self.ParametersSizer.Add(getattr(self, n+"Ctrl"))
         
-        VariogramSizer.Add(self.VariogramCheckBox, proportion=1, flag=wx.EXPAND | wx.ALL, border=3)
-        VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+        #@TODO: deploy this
+        #self.ParametersSizer.Add(wx.Button(self, id=wx.ID_ANY, label=_("Interactive variogram fit")))
+
+        self.VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         
-        self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
-        
-        KrigingList = ["Ordinary kriging", "Universal Kriging", "Block kriging"] #@FIXME: i18n on the list?
+        #@TODO: unlock options as soon as they are available.
+        KrigingList = ["Ordinary kriging"]#, "Universal kriging", "Block kriging"] #@FIXME: i18n on the list?
         KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label=_("Kriging techniques"), 
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             choices=KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
         
-        Sizer = wx.BoxSizer(wx.VERTICAL)
-        Sizer.Add(VariogramSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
-        Sizer.Add(KrigingRadioBox,  proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
-        
-        self.SetSizerAndFit(Sizer)
+        self.Sizer = wx.BoxSizer(wx.VERTICAL)
+        self.Sizer.Add(self.VariogramSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+        self.Sizer.Add(KrigingRadioBox,  proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
     
     def FitVariogram(self, *args, **kwargs):
         pass
@@ -275,7 +273,16 @@ class RBookautomapPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific automap options and kriging functions. """
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
-        #@TODO: hide sill nugget value widgets
+        
+        self.VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
+        self.VariogramCheckBox.SetValue(state = True) # check it by default
+        self.VariogramSizer.Insert(2, self.VariogramCheckBox , proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+        self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
+        
+        for n in ["Sill", "Nugget", "Range"]:
+            getattr(self, n+"Ctrl").Enable(False)
+        
+        self.SetSizerAndFit(self.Sizer)
         
     def FitVariogram(self, formula, data):
         return robjects.r.autofitVariogram(formula, data)
@@ -285,19 +292,18 @@ class RBookautomapPanel(RBookPanel):
         return KrigingResult.r['krige_output']
     
     def HideOptions(self, event):
-        #for n in self.ParametersSizer.GetChildren(): n.Enable(False)
-        if not self.VariogramCheckBox.IsChecked():
-            for n in self.ParametersSizer.GetChildren():
-                print n
-                if not n.IsSizer(): n.Enable(False) #n.Show(False)
-        else:
-            for n in self.ParametersSizer.GetChildren(): n.Show(True)
-        #@TODO(anne): set it right. It costs too much code and hides options instead of disabling them
+        for n in ["Sill", "Nugget", "Range"]:
+            if self.VariogramCheckBox.IsChecked():
+                getattr(self, n+"Ctrl").Enable(False)
+            else:
+                getattr(self, n+"Ctrl").Enable(True)
+        #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work
 
 class RBookgstatPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific gstat options and kriging functions. """
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
+        self.SetSizerAndFit(self.Sizer)
         
     def FitVariogram(self, formula, data):
         DataVariogram = robjects.r.variogram(formula, data)
@@ -311,8 +317,9 @@ class RBookgstatPanel(RBookPanel):
     
 class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
-    #def __init__(self, parent, *args, **kwargs):
-    #    RBookPanel.__init__(self, parent, *args, **kwargs)
+    def __init__(self, parent, *args, **kwargs):
+        RBookPanel.__init__(self, parent, *args, **kwargs)
+        self.SetSizerAndFit(self.Sizer)
         
     def FitVariogram(self, Formula, InputData):
         pass
