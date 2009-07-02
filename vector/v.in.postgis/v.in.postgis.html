@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>v.in.postgis.sqlquery</title>
+<title>v.in.postgis</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <link rel="stylesheet" href="grassdocs.css" type="text/css">
 </head>
@@ -10,13 +10,13 @@
 <img src="grass.smlogo.gif" alt="GRASS logo"><hr align=center size=6 noshade>
 
 <h2>NAME</h2>
-<em><b>v.in.postgis.sqlquery</b></em>  - Create a grass layer from any sql query in postgis
+<em><b>v.in.postgis</b></em>  - Create a grass layer from any sql query in postgis
 <h2>KEYWORDS</h2>
-postgis, grass layer, sql
+postgis, db, sql
 <h2>SYNOPSIS</h2>
-<b>v.in.postgis.sqlquery</b><br>
-<b>v.in.postgis.sqlquery help</b><br>
-<b>v.in.postgis.sqlquery</b> [-<b>dzrg</b>] <b>sqlquery</b>=<em>string</em> <b>geometryfield</b>=<em>string</em>   [<b>output</b>=<em>string</em>]
+<b>v.in.postgis</b><br>
+<b>v.in.postgis help</b><br>
+<b>v.in.postgis</b> [-<b>dzrg</b>] <b>sqlquery</b>=<em>string</em> <b>geometryfield</b>=<em>string</em>   [<b>output</b>=<em>string</em>]
 
 <h3>Flags:</h3>
 <DL>
@@ -37,8 +37,8 @@ postgis, grass layer, sql
 <h3>Parameters:</h3>
 <DL>
 
-<DT><b>sqlquery</b>=<em>name</em></DT>
-<DD>Arbitrary sql query returning a recordset with geometry for each row </DD>
+<DT><b>query</b>=<em>name</em></DT>
+<DD>Any sql query returning a recordset with geometry for each row </DD>
 
 <DT><b>geometryfield</b>=<em>name</em></DT>
 <DD>Name of the source geometry field. Usually defaults to the_geom but needed if a geometry function was used (for example, centroid), or if the table has many geometry columns</DD>
@@ -50,7 +50,7 @@ postgis, grass layer, sql
 </DL>
 <h2>DESCRIPTION</h2>
 
-<em>v.in.postgis.sqlquery</em> is a shell script to import as a grass layer the result of any sql query returning geometry. There are two main modes : i)grass native format import with attributes in a dbf file. No tables are added in PostGIS ; ii)Grass layer import with attributes directly connected to a temporary table in PostGIS containing the query results.
+<em>v.in.postgis</em> is a shell script to import as a grass layer the result of any sql query returning geometry. There are two main modes : i)grass native format import with attributes in a dbf file. No tables are added in PostGIS ; ii)Grass layer import with attributes directly connected to a temporary table in PostGIS containing the query results.
 Before using the script, db.connect (and eventually db.login) commands must have been called.
 The script has been tested with Linux and WinGrass. However, for winGrass, you should modify the home directory setting at the beginning of the script.
 Logfile is written in the directory specified by the LOGFILE environment variable (default : home directory).
@@ -60,12 +60,12 @@ Logfile is written in the directory specified by the LOGFILE environment variabl
 
 <li><B>PostGIS sql query to grass map </B>(dbf attributes table, no new table in postgis)<BR>
 <div class="code"><pre>
-v.in.postgis.sqlquery -d sqlquery="SELECT * FROM zones, data WHERE zones.zone_id=data.zone_id AND value > 100" output=zones
+v.in.postgis -d query="SELECT * FROM zones, data WHERE zones.zone_id=data.zone_id AND value > 100" output=zones
 </pre></div>
 
 <li><B>work in Grass directly on a PostGIS table</B> (a new table is added in postgis, create a gist index)<BR>
 <div class="code"><pre>
-v.in.postgis.sqlquery -r -g sqlquery="SELECT value, centroid(geocolumn) AS locations FROM zones, data WHERE zones.zone_id=data.zone_id 
+v.in.postgis -r -g query="SELECT value, centroid(geocolumn) AS locations FROM zones, data WHERE zones.zone_id=data.zone_id 
 GROUP BY name" geometryfield=locations output=locations
 </pre></div>
 
@@ -84,7 +84,7 @@ Mathieu Grelier, greliermathieu@gmail.com
 <br>
 
 <p>
-<i>Last changed: $Date: 2007/10/10 12:10:14 $</i>
+<i>Last changed : 2009/07/02</i>
 <HR>
 <P><a href="index.html">Main index</a> - <a href="vector.html">vector index</a> - <a href="full_index.html">Full index</a></P>
 </body>

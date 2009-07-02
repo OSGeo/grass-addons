@@ -2,7 +2,7 @@
 #
 ############################################################################
 #
-# MODULE:       v.in.postgis.sqlquery
+# MODULE:       v.in.postgis.sh
 # AUTHOR(S):	Mathieu Grelier, 2007 (greliermathieu@gmail.com)
 # PURPOSE:		postgis data manipulation in grass from arbitrary sql queries
 # COPYRIGHT:	(C) 2007 Mathieu Grelier
@@ -19,7 +19,7 @@
 #%  keywords: postgis, grass layer, sql 
 #%End
 #%option
-#% key: sqlquery
+#% key: query
 #% type: string
 #% description: Any sql query returning a recordset with geometry for each row 
 #% required : yes
@@ -34,17 +34,13 @@
 #%option
 #% key: output
 #% type: string
-#% answer: postgis_sqlquery
+#% answer: v_in_postgis
 #% description: Name of the geographic postgis table where to place the query results. Will be the name of the imported grass layer. If -d flag is set, this table is deleted and replaced by a dbf attribute table. Use a different name than the original. Do not use capital letters
 #% required : no
 #%end
 #%flag
 #% key: d
 #% description: import result in grass dbf format (no new table in postgis). If not set, the grass layer will be directly connected to the postgis new table
-#%end
-#%flag
-#% key: z
-#% description: use -z for v.in.ogr (create 3D output).
 #%end
 #%flag
 #% key: r
@@ -139,7 +135,7 @@ scriptsuccess()
 #####################################
 
 #this file will collect info from stdout and stderr (v.in.ogr for example outputs on stderr).
-LOGFILE="$LOGDIR/v.in.postgis.sqlquery.log"
+LOGFILE="$LOGDIR/v.in.postgis.QUERY.log"
 
 TMPFILE1="`g.tempfile pid=$$`"
 TMPFILE2="`g.tempfile pid=$$`"
@@ -147,8 +143,8 @@ if [ $? -ne 0 ] || [ -z "$TMPFILE1" ] || [ -z "$TMPFILE2" ]; then
 	echo "ERROR: unable to create temporary files" 1>&2
 fi
 
-echo "v.in.postgis.sqlquery:" >> "$LOGFILE"
-echo "$GIS_OPT_SQLQUERY" >> "$LOGFILE"
+echo "v.in.postgis.QUERY:" >> "$LOGFILE"
+echo "$GIS_OPT_QUERY" >> "$LOGFILE"
 
 echo "check if .grasslogin file is found:" >> "$LOGFILE"
 if [ ! -r "$grassloginfile" ] ;then
@@ -173,11 +169,11 @@ fi
 
 #previous script execution may have not removed temporary elements
 echo "script start cleanup:" >> "$LOGFILE" 2>&1
-#test if a TEMPGEOTABLENAME table already exists. If yes, was it created by this script ? If yes, delete it.
+#test if a GIS_OPT_OUTPUT table already exists. If yes, was it created by this script ? If yes, delete it.
 echo "SELECT CAST(tablename AS text) FROM pg_tables WHERE schemaname='public'" | db.select -c > "$TMPFILE1"
 if grep -q -x "$GIS_OPT_OUTPUT" "$TMPFILE1" ; then 
 	comment=$(echo "SELECT obj_description((SELECT c.oid FROM pg_catalog.pg_class c WHERE c.relname='"$GIS_OPT_OUTPUT"'), 'pg_class') AS comment" | db.select -c)
-	if [ "$comment" = "created_with_v.in.postgis.sqlquery" ]; then
+	if [ "$comment" = "created_with_v.in.postgis.sh" ]; then
 		echo "DROP TABLE "$GIS_OPT_OUTPUT"" | db.execute >> "$TMPFILE2" 2>&1
 	else
 		echo "ERROR: a table with the name "$GIS_OPT_OUTPUT" already exists and was not created by this script." 1>&2
@@ -195,14 +191,14 @@ fi
 #grass doesn't support importing postgis views
 #So we use a create table as statement to import a kind of view with v.in.ogr
 echo "try to import data:" >> "$LOGFILE" 2>&1
-echo "CREATE TABLE "$GIS_OPT_OUTPUT" AS ""$GIS_OPT_SQLQUERY" | db.execute >> "$LOGFILE" 2>&1
+echo "CREATE TABLE "$GIS_OPT_OUTPUT" AS ""$GIS_OPT_QUERY" | db.execute >> "$LOGFILE" 2>&1
 if [ $? -ne 0 ] ; then
 	echo "ERROR: an error occurred during sql import. Check your connection to the database and your sql query." 1>&2
 	scriptend
 	exit 1
 fi
 #we use also postgres comments as a specific mark for these tables. When we delete this table in the cleanup procedure using the layer name, we will check for this mark to ensure another table is not deleted, if the given layer name correspond to an existing table in the database. 
-echo "COMMENT ON TABLE "$GIS_OPT_OUTPUT" IS 'created_with_v.in.postgis.sqlquery'" | db.execute >> "$LOGFILE" 2>&1
+echo "COMMENT ON TABLE "$GIS_OPT_OUTPUT" IS 'created_with_v.in.postgis.sh'" | db.execute >> "$LOGFILE" 2>&1
 if [ $? -ne 0 ] ; then
 	echo "ERROR: an error occurred during commenting the table." 1>&2
 	scripterror
@@ -333,12 +329,6 @@ else
 	notable="-t"
 	outputname="$GIS_OPT_OUTPUT"
 fi
-#-z option of v.in.ogr
-if [ "$GIS_FLAG_Z" -eq 1 ] ; then
-	output3D="-z"
-else
-	output3D=""
-fi
 #-o option of v.in.ogr ; flag -o doesn't seem to work
 if [ "$GIS_FLAG_R" -eq 1 ] ; then
 	overrideprojection="-o"
@@ -352,8 +342,8 @@ fi
 echo "call v.in.ogr" >> "$LOGFILE"
 dsn="PG:"$host" "$db" user="$user" password="$password""
 echo "dsn=$dsn" >> "$LOGFILE"
-echo "samere" >> "$LOGFILE"
-v.in.ogr $notable $output3D $overrideprojection dsn="$dsn" output="$outputname" layer="$GIS_OPT_OUTPUT" >> "$LOGFILE" 2>&1
+
+v.in.ogr $notable $overrideprojection dsn="$dsn" output="$outputname" layer="$GIS_OPT_OUTPUT" >> "$LOGFILE" 2>&1
 if [ $? -ne 0 ] ; then
 	echo "ERROR: an error occurred during v.in.ogr execution. Verify your connection parameters and ensure you used db.connect before launching this script. The -o flag may be necessary." 1>&2
 	#reconnect to pg to be able to remove the table
