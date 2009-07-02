@@ -194,8 +194,7 @@ class KrigingPanel(wx.Panel):
         self.parent.log.write('Kriging performed.')
         
         #5. Format output
-        #@IDEA: set a generic f(x) for this too? seems like, because zcol= is only the first peculiar arg for gstat.
-        robjects.r.writeRAST6(KrigingResult, vname = self.OutputMapName.GetValue(), zcol='var1.pred',
+        SelectedPanel.ExportMap(map = KrigingResult, col='var1.pred', name = self.OutputMapName.GetValue(),
                               overwrite = self.OverwriteCheckBox.GetValue())
         self.parent.log.write('Yippee! Succeeded! Ready for another run.')
         
@@ -257,15 +256,18 @@ class RBookPanel(wx.Panel):
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
         self.Sizer.Add(self.VariogramSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         self.Sizer.Add(KrigingRadioBox,  proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+    #
+    #def FitVariogram(self, *args, **kwargs):
+    #    pass
+    #
+    #def DoKriging(self, *args, **kwargs):
+    #    pass
+    #
+    #def HideOptions(self, event):
+    #    pass
     
-    def FitVariogram(self, *args, **kwargs):
-        pass
-    
-    def DoKriging(self, *args, **kwargs):
-        pass
-    
-    def HideOptions(self, event):
-        pass
+    def ExportMap(self, map, col, name, overwrite):
+        robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
     
 class RBookautomapPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific automap options and kriging functions. """
@@ -286,7 +288,8 @@ class RBookautomapPanel(RBookPanel):
         
     def DoKriging(self, formula, data, grid, **kwargs):
         KrigingResult = robjects.r.autoKrige(formula, data, grid)
-        return KrigingResult.r['krige_output']
+        print robjects.r.str(KrigingResult.r['krige_output'][0])
+        return KrigingResult.r['krige_output'][0]
     
     def HideOptions(self, event):
         for n in ["Sill", "Nugget", "Range"]:
@@ -319,6 +322,7 @@ class RBookgstatPanel(RBookPanel):
         
     def DoKriging(self, formula, data, grid,  model):
         KrigingResult = robjects.r.krige(formula, data, grid, model)
+        print KrigingResult.rclass
         return KrigingResult
     
 class RBookgeoRPanel(RBookPanel):
