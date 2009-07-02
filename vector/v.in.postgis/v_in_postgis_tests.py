@@ -21,7 +21,7 @@ import re
 ##see http://trac.osgeo.org/grass/browser/grass/trunk/lib/python
 from grass import core as grass
 ##only needed to use debugger with Komodo IDE. See http://aspn.activestate.com/ASPN/Downloads/Komodo/RemoteDebugging
-from dbgp.client import brk
+#from dbgp.client import brk
 ##see http://pyunit.sourceforge.net/
 import unittest
 ##see http://initd.org/pub/software/psycopg/
@@ -40,7 +40,7 @@ queryTableName = None
 geometryField = None
 geoparams = None
 
-class v_in_postgis_sqlquery_tests(unittest.TestCase):
+class v_in_postgis_tests(unittest.TestCase):
     
     def setUp(self): 
         grass.run_command("db.connect", driver = 'pg', database = 'host=' + host + ",dbname=" + dbname)
@@ -261,9 +261,9 @@ if __name__ == '__main__':
     importer = GrassPostGisImporter(options, flags)
     module = __import__('v_in_postgis_tests')
     host = 'localhost'
-    dbname = 'yourdb'
-    user = 'postgresuser'
-    pwd = 'yourpwd'
+    dbname = 'serveur_donnees_meteo'
+    user = 'postgres'
+    pwd = 'rootnculture'
     db = dbapi2.connect(host=host, database=dbname, user=user, password=pwd)
     cursor = db.cursor()
     testTableName = 'test_grass_import'
@@ -308,3 +308,4 @@ if __name__ == '__main__':
     finally:
         module.cleanUp()
         sys.exit(0)
+
