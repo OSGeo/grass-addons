@@ -255,15 +255,15 @@ if __name__ == '__main__':
     currentDirectory = os.path.split(__file__)[0]
     sys.path.append(currentDirectory)
     from v_in_postgis import GrassPostGisImporter
-    ##test configuration
     options = {'query':'', 'geometryfield':'', 'output':''}
     flags = {'d':0, 'z':0, 'o':0, 'g':0, 'l':0}
     importer = GrassPostGisImporter(options, flags)
     module = __import__('v_in_postgis_tests')
+    ##test configuration
     host = 'localhost'
-    dbname = 'serveur_donnees_meteo'
-    user = 'postgres'
-    pwd = 'rootnculture'
+    dbname = 'yourdb'
+    user = 'yourusername'
+    pwd = 'yourpwd'
     db = dbapi2.connect(host=host, database=dbname, user=user, password=pwd)
     cursor = db.cursor()
     testTableName = 'test_grass_import'
