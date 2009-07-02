@@ -28,27 +28,27 @@
 #% key: geometryfield
 #% type: string
 #% answer: the_geom
-#% description: Name of the source geometry field. Usually defaults to the_geom but needed if a geometry function was used (for example, centroid), or if the table has many geometry columns.
+#% description: Name of the source geometry field (usually defaults to the_geom)
 #% required : yes
 #%end
 #%option
 #% key: output
 #% type: string
 #% answer: v_in_postgis
-#% description: Name of the geographic postgis table where to place the query results. Will be the name of the imported grass layer. If -d flag is set, this table is deleted and replaced by a dbf attribute table. Use a different name than the original. Do not use capital letters
+#% description: Name of the imported grass layer (do not use capital letters)
 #% required : no
 #%end
 #%flag
 #% key: d
-#% description: import result in grass dbf format (no new table in postgis). If not set, the grass layer will be directly connected to the postgis new table
+#% description: Import result in grass dbf format (no new table in postgis - if not set, new grass layer attributes will be connected to the result table)
 #%end
 #%flag
 #% key: r
-#% description: use -o for v.in.ogr (override dataset projection)
+#% description: Use -o for v.in.ogr (override dataset projection)
 #%end
 #%flag
 #% key: g
-#% description: add a gist index to the imported table in postgis (useless with the d flag)
+#% description: Add a gist index to the imported result table in postgis (useless with the d flag)
 #%end
 
 if  [ -z "$GISBASE" ] ; then
