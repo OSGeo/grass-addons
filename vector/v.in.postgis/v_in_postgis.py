@@ -112,7 +112,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             host = grass.parse_key_val(dbElems[0], sep = '=')['host']
             db = grass.parse_key_val(dbElems[1], sep = '=')['dbname']
             loginLine = self.executeCommand('sed -n "/pg ' + dbElems[0] + ','\
-                                                + dbElems[1] + ' /p" ' + self.grassloginfile, shell = True)
+                                                + dbElems[1] + ' /p" ' + self.grassloginfile, redirect = False, shell = True)
             p = re.compile(' ')
             loginElems = p.split(loginLine)
             user = loginElems[-2].strip()
@@ -126,10 +126,11 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         """Command execution method using Popen in two modes : shell mode or not"""
         p = None
         shell = True if 'shell' in kwargs and kwargs['shell'] is True else False
+        redirection = True if 'redirect' in kwargs and kwargs['redirect'] is True else False
         command = args[0]
         if shell is True:
-            if self.logOutput is not False:
-                command = command + ' >> ' +  logFile
+            if redirection is True and self.logOutput is not False:
+                command = command + ' >> ' +  self.logfile
             ##use redirection on stdout only
             command = command + " 2>&1"
             p = Popen(command, shell = shell, stdout = PIPE)
