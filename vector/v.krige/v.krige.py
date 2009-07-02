@@ -179,7 +179,7 @@ class KrigingPanel(wx.Panel):
         #2. collect options
         Column = self.InputDataColumn.GetValue() 
         #@TODO(anne): pick up parameters if user chooses to set variogram parameters.
-        #3. Fit variogram. For the moment in batch mode, no interactive window. Stay tuned!
+        #3. Fit variogram. For the moment in blind mode, no interactive window. Stay tuned!
         self.parent.log.write(_("Variogram fitting"))
         Formula = robjects.r['as.formula'](robjects.r.paste(Column, "~ 1"))        
         Variogram = SelectedPanel.FitVariogram(Formula, InputData)
@@ -299,16 +299,22 @@ class RBookgstatPanel(RBookPanel):
         RBookPanel.__init__(self, parent, *args, **kwargs)
         
         ModelFactor = robjects.r.vgm().r['long']
-        ModelList = robjects.r.levels(ModelFactor[0])
+        ModelList = robjects.r.levels(ModelFactor[0]) # no other way to let the Python pick it up..
         self.ParametersSizer.Insert(before=0, item=wx.StaticText(self, id= wx.ID_ANY, label = _("Variogram model")))
-        self.ParametersSizer.Insert(before=1, item=wx.Choice(self, id=wx.ID_ANY, choices=ModelList))
+        self.ModelChoicebox = wx.Choice(self, id=wx.ID_ANY, choices=ModelList)
+        self.ParametersSizer.Insert(before=1, item= self.ModelChoicebox)
         
         self.SetSizerAndFit(self.Sizer)
         
     def FitVariogram(self, formula, data):
         DataVariogram = robjects.r.variogram(formula, data)
-        VariogramModel = robjects.r['fit.variogram'](DataVariogram, model = robjects.r.vgm(1, "Lin"))
-        #@TODO: hardcoded on rs dataset. There is a trend indeed.
+        ModelShortName = self.ModelChoicebox.GetStringSelection().split()[0]
+        print ModelShortName
+        VariogramModel = robjects.r['fit.variogram'](DataVariogram,
+                                                     model = robjects.r.vgm(psill = self.SillCtrl.GetValue(),
+                                                                            model = ModelShortName,
+                                                                            nugget = self.NuggetCtrl.GetValue(),
+                                                                            range = self.RangeCtrl.GetValue()))
         return VariogramModel
         
     def DoKriging(self, formula, data, grid,  model):
