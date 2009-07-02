@@ -35,7 +35,7 @@
 #% key: output
 #% type: string
 #% answer: v_in_postgis
-#% description: name of the imported grass layer (do not use capital letters)
+#% description: Name of the imported grass layer (do not use capital letters)
 #% required : no
 #%end
 #%flag
@@ -66,7 +66,7 @@ import psycopg2 as dbapi2
 ##see http://trac.osgeo.org/grass/browser/grass/trunk/lib/python
 from grass import core as grass
 ##only needed to use Komodo debugger with Komodo IDE. See http://aspn.activestate.com/ASPN/Downloads/Komodo/RemoteDebugging
-from dbgp.client import brk
+#from dbgp.client import brk
 
 class GrassPostGisImporter():
     
@@ -422,3 +422,4 @@ if __name__ == "__main__":
     #brk(host="localhost", port=9000)
     options, flags = grass.parser()
     main()
+
