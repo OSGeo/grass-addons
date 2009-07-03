@@ -256,15 +256,6 @@ class RBookPanel(wx.Panel):
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
         self.Sizer.Add(self.VariogramSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         self.Sizer.Add(KrigingRadioBox,  proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
-    #
-    #def FitVariogram(self, *args, **kwargs):
-    #    pass
-    #
-    #def DoKriging(self, *args, **kwargs):
-    #    pass
-    #
-    #def HideOptions(self, event):
-    #    pass
     
     def ExportMap(self, map, col, name, overwrite):
         robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
@@ -288,7 +279,6 @@ class RBookautomapPanel(RBookPanel):
         
     def DoKriging(self, formula, data, grid, **kwargs):
         KrigingResult = robjects.r.autoKrige(formula, data, grid)
-        print robjects.r.str(KrigingResult.r['krige_output'][0])
         return KrigingResult.r['krige_output'][0]
     
     def HideOptions(self, event):
@@ -312,7 +302,6 @@ class RBookgstatPanel(RBookPanel):
     def FitVariogram(self, formula, data):
         DataVariogram = robjects.r.variogram(formula, data)
         ModelShortName = self.ModelChoicebox.GetStringSelection().split()[0]
-        print ModelShortName
         VariogramModel = robjects.r['fit.variogram'](DataVariogram,
                                                      model = robjects.r.vgm(psill = self.SillCtrl.GetValue(),
                                                                             model = ModelShortName,
@@ -339,10 +328,12 @@ class RBookgeoRPanel(RBookPanel):
     
 def main(argv=None):
     if argv is None:
+        # is this check needed? I won't call the module in other way than last line.
         argv = sys.argv
+        print argv
+        #@TODO(anne): add command line arguments acceptance.
         
-    #@TODO(anne): add command line arguments acceptance.
-
+    #@FIXME: is this code still useful? 
     """if len(argv) != 2:
         print >> sys.stderr, __doc__
         sys.exit()"""
