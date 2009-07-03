@@ -280,7 +280,7 @@ class RBookautomapPanel(RBookPanel):
         return robjects.r.autofitVariogram(formula, data)
         
     def DoKriging(self, formula, data, grid, **kwargs):
-        KrigingResult = robjects.r.autoKrige(formula, data, grid)
+        KrigingResult = robjects.r.autoKrige(formula, data, grid, **kwargs)
         return KrigingResult.r['krige_output'][0]
     
     def HideOptions(self, event):
@@ -320,6 +320,10 @@ class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
+        #@TODO: change these two lines as soon as geoR f(x)s are integrated.
+        for n in self.GetChildren():
+            n.Hide()
+        self.Sizer.Add(wx.StaticText(self, id= wx.ID_ANY, label = _("Work in progress! No functionality provided.")))
         self.SetSizerAndFit(self.Sizer)
         
     def FitVariogram(self, Formula, InputData):
@@ -334,6 +338,7 @@ def main(argv=None):
         argv = sys.argv
         print argv
         #@TODO(anne): add command line arguments acceptance.
+        #@TIP: from optparse import OptionParser
         
     #@FIXME: is this code still useful? 
     """if len(argv) != 2:
