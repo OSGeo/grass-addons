@@ -3,7 +3,7 @@
 #
 ############################################################################
 #
-# MODULE:       v_in_postgis
+# MODULE:       v.in.postgis
 # AUTHOR(S):	Mathieu Grelier, 2009 (greliermathieu@gmail.com)
 # PURPOSE:		GRASS layer creation from arbitrary PostGIS sql queries
 # COPYRIGHT:	(C) 2009 Mathieu Grelier
@@ -22,14 +22,14 @@
 #% key: query
 #% type: string
 #% description: Any sql query returning a recordset with geometry for each row 
-#% required : yes
+#% required : no
 #%end
 #%option
 #% key: geometryfield
 #% type: string
 #% answer: the_geom
 #% description: Name of the source geometry field (usually defaults to the_geom)
-#% required : yes
+#% required : no
 #%end
 #%option
 #% key: output
@@ -37,6 +37,10 @@
 #% answer: v_in_postgis
 #% description: Name of the imported grass layer (do not use capital letters)
 #% required : no
+#%end
+#%flag
+#% key: t
+#% description: Run tests and exit
 #%end
 #%flag
 #% key: d
@@ -67,6 +71,8 @@ import psycopg2 as dbapi2
 from grass import core as grass
 ##only needed to use Komodo debugger with Komodo IDE. See http://aspn.activestate.com/ASPN/Downloads/Komodo/RemoteDebugging
 #from dbgp.client import brk
+##see http://pyunit.sourceforge.net/
+import unittest
 
 class GrassPostGisImporter():
     
@@ -81,7 +87,7 @@ class GrassPostGisImporter():
         self.gistindexFlag = True if flags['g'] is True else False
         self.logOutput = True if flags['l'] is True else False
         ##others
-        logfilename = 'v_in_postgis.log'
+        logfilename = 'v.in.postgis.log'
         self.logfile = os.path.join(os.getenv('LOGDIR'),logfilename) if os.getenv('LOGDIR') else logfilename
         grass.try_remove(self.logfile)
         ##default for grass6 ; you may need to fix this path
@@ -96,7 +102,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         #dbapi2.paramstyle = 'pyformat' 
             
     def __writeLog(self, log=''):
-        """Write the 'log' string to log file"""
+        """Write the 'log' string to log file."""
         if self.logfile is not None:
             fileHandle = open(self.logfile, 'a')
             log = log + '\n'
@@ -104,7 +110,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             fileHandle.close()
             
     def __getDbInfos(self):
-        """Create a dictionnary with all db params needed by v.in.ogr"""
+        """Create a dictionnary with all db params needed by v.in.ogr."""
         try:
             dbString = grass.parse_key_val(grass.read_command('db.connect', flags = 'p'), sep = ':')['database']
             p = re.compile(',')
@@ -123,7 +129,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             raise GrassPostGisImporterError("Error while trying to retrieve database information.")
     
     def executeCommand(self, *args, **kwargs):
-        """Command execution method using Popen in two modes : shell mode or not"""
+        """Command execution method using Popen in two modes : shell mode or not."""
         p = None
         shell = True if 'shell' in kwargs and kwargs['shell'] is True else False
         redirection = True if 'redirect' in kwargs and kwargs['redirect'] is True else False
@@ -155,7 +161,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             raise GrassPostGisImporterError(message)
         
     def printMessage(self, message, type = 'info'):
-        """Call grass message function corresponding to type"""
+        """Call grass message function corresponding to type."""
         if type == 'error':
             grass.error(message)
         elif type == 'warning':
@@ -166,9 +172,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             self.__writeLog(message)
         
     def checkLayers(self, output):
-        """
-        Test if the grass layer 'output' already exists.
-        
+        """Test if the grass layer 'output' already exists.
         Note : for this to work with grass6.3, in find_file function from core.py,
         command should be (n flag removed because 6.4 specific):
         s = read_command("g.findfile", element = element, file = name, mapset = mapset)
@@ -185,7 +189,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         return True
         
     def checkComment(self, output):
-        """Test if a table with the 'output' existing in PostGis have been created by the importer"""
+        """Test if a table with the 'output' existing in PostGis have been created by the importer."""
         testIfTableNameAlreadyExistsQuery = "SELECT CAST(tablename AS text) FROM pg_tables \
                                             WHERE schemaname='public' \
                                             AND CAST(tablename AS text)='" + output + "'"
@@ -198,7 +202,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             comment = self.cursor.fetchone()
             if comment is not None and len(comment) == 1:
                 comment = comment[0]
-            if comment == "created_with_v_in_postgis.py":
+            if comment == "created with v.in.postgis.py":
                 self.cursor.execute("DROP TABLE " + output)
             else:
                 raise GrassPostGisImporterError("ERROR: a table with the name " + output + " already exists \
@@ -206,9 +210,8 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         return True
     
     def createPostgresTableFromQuery(self, output, query):
-        """
-        Create a table in postgresql populated with results from the query, and comment it so we
-        will later be able to figure out if this table was created by the importer (see checkLayers())
+        """Create a table in postgresql populated with results from the query, and tag it.
+        We will later be able to figure out if this table was created by the importer (see checkLayers())
         """
         try:
             createTableQuery = "CREATE TABLE " + str(output) + " AS " + str(query)
@@ -216,16 +219,14 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
                 self.__writeLog("Try to import data:")
                 self.__writeLog(createTableQuery)
             self.cursor.execute(createTableQuery)
-            addCommentQuery = "COMMENT ON TABLE " + output + " IS 'created_with_v_in_postgis.py'"
+            addCommentQuery = "COMMENT ON TABLE " + output + " IS 'created with v.in.postgis.py'"
             self.cursor.execute(addCommentQuery)
         except:
             raise GrassPostGisImporterError("An error occurred during sql import. Check your connection \
                                             to the database and your sql query.")
     
     def addCategory(self, output):
-        """
-        Add a category column in the result table
-        
+        """Add a category column in the result table.
         With the pg driver (not the dbf one), v.in.ogr need a 'cat' column for index creation 
         if -d flag wasn't not selected, can't import if query result already have a cat column
         todo : add cat_ column in this case, as v.in.ogr with dbf driver do
@@ -243,9 +244,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
                                             This column is reserved for Grass to store categories.")
     
     def getGeometryInfo(self, output, geometryfield):
-        """
-        Retrieve geometry parameters of the result.
-        
+        """Retrieve geometry parameters of the result.
         We need to use the postgis AddGeometryColumn function so that v.in.ogr will work.
         This method aims to retrieve necessary info for AddGeometryColumn to work.
         Returns a dict with
@@ -290,7 +289,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         return geoParamsDict
         
     def addGeometry(self, output, geometryField, geoParams, addGistIndex=False):
-        """Create geometry for result"""
+        """Create geometry for result."""
         try:
             ##first we must remove other geometry columns than selected one that may be present in the query result,
             ##because v.in.ogr does not allow geometry columns selection
@@ -325,8 +324,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             raise GrassPostGisImporterError("An error occured during geometry insertion.")
             
     def importToGrass(self, output, geometryField, geoParams, toDbf = False, overrideProj = False):
-        """Wrapper for import and db connection of the result
-        
+        """Wrapper for import with v.in.ogr and db connection of the result.
         Note : for grass.gisenv() to work with grass6.3, in gisenv function from core.py,
         command should be (n flag removed because 6.4 specific):
         s = read_command("g.findfile", element = element, file = name, mapset = mapset)
@@ -368,11 +366,11 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         pass
             
     def commitChanges(self):
-        """Commit current transaction"""
+        """Commit current transaction."""
         self.db.commit()
     
     def makeSqlImport(self):
-        """GrassPostGisImporter main sequence"""
+        """GrassPostGisImporter main sequence."""
         ##1)check layers before starting
         self.checkLayers(self.output)
         ##2)query
@@ -392,7 +390,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         self.commitChanges()
                                                                                   
 class GrassPostGisImporterError(Exception):
-    """Errors specific to GrassPostGisImporter class"""
+    """Errors specific to GrassPostGisImporter class."""
     def __init__(self, message=''):
         self.details = '\nDetails:\n'
         exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
@@ -418,9 +416,276 @@ def main():
     finally:
         sys.exit(exitStatus)
 
+#############################################################################
+#               A unit test for v.in.postgis
+#############################################################################
+
+options = {'query':'', 'geometryfield':'', 'output':''}
+flags = {'d':0, 'z':0, 'o':0, 'g':0, 'l':0}
+importer = GrassPostGisImporter(options, flags)
+##test configuration
+host = 'localhost'
+dbname = 'serveur_donnees_meteo'
+user = 'postgres'
+pwd = 'rootnculture'
+db = dbapi2.connect(host=host, database=dbname, user=user, password=pwd)
+cursor = db.cursor()
+testTableName = 'test_grass_import'
+queryTableName = 'test_query'
+geometryField = 'the_geom'
+srid = '2154'
+geoparams = {'type':'MULTIPOLYGON', 'ndims':'2', 'srid': srid}
+query = 'select * from ' + testTableName + ' where id>1'
+
+class GrassPostGisImporterTests(unittest.TestCase):
+
+    def setUp(self): 
+        grass.run_command("db.connect", driver = 'pg', database = 'host=' + host + ",dbname=" + dbname)
+    
+    def tearDown(self):
+        cleanUpQueryTable()
+    
+    def testGetDbInfos(self):
+        """Test if the importer is able to retrieve correctly the parameters dictionnary for current connection."""
+        self.assertEqual(importer.dbparams['host'],host)
+        self.assertEqual(importer.dbparams['db'],dbname)
+        self.assertEqual(importer.dbparams['user'],user)
+        self.assertEqual(importer.dbparams['pwd'],pwd)
+    
+    def testCheckLayers(self):
+        """Test if overwrite is working correctly."""
+        os.environ['GRASS_OVERWRITE'] = '0'
+        createQueryTable()
+        importer.addGeometry(queryTableName, geometryField, geoparams, False)
+        importer.commitChanges()
+        importer.importToGrass(queryTableName, geometryField, geoparams, toDbf = False, overrideProj = True)
+        importer.commitChanges()
+        ##GRASS_OVERWRITE set to False, we can't import again the layer
+        self.assertRaises(GrassPostGisImporterError, importer.checkLayers, queryTableName)
+        cleanUpQueryTable()
+        ##now set to True, it should be possible
+        os.environ['GRASS_OVERWRITE'] = '1'
+        createQueryTable()
+        importer.addGeometry(queryTableName, geometryField, geoparams, False)
+        importer.commitChanges()
+        importer.importToGrass(queryTableName, geometryField, geoparams, toDbf = False, overrideProj = True)
+        importer.commitChanges()
+        try:
+            importer.checkLayers(queryTableName)
+        except GrassPostGisImporterError:
+            self.fail("CheckLayers was expected to be successful with --o flag.")
+        pass
+    
+    def testCheckComment(self):
+        """Test that we can't drop a table with the output name if it was not created by the importer."""
+        ##a table that was not tagged by the importer should not be overwritten
+        os.environ['GRASS_OVERWRITE'] = '1'
+        self.assertRaises(GrassPostGisImporterError, importer.checkComment, testTableName)
+        pass
+    
+    def testImportGrassLayer(self):
+        """Test import sequence result in GRASS."""
+        ##preparation
+        importer.query = query
+        importer.output = queryTableName
+        importer.geometryfield = geometryField
+        importer.gistindexFlag = True
+        importer.overrideprojFlag = True
+        importer.dbfFlag = False
+        ##PostGIS import
+        importer.makeSqlImport()
+        testOutput = grass.find_file(queryTableName, element = 'vector')
+        self.assertTrue(testOutput['fullname'] != '')
+        pgdbconnectstring = "host=" + host + ",dbname=" + dbname
+        cmd = importer.executeCommand("v.db.connect", flags = 'g', map = queryTableName, driver = 'pg')
+        r = re.compile(' ')
+        dbinfos = r.split(cmd)
+        def trim(p): return str(p).strip()
+        dbinfos = map(trim, dbinfos)
+        self.assertEquals(dbinfos[0], '1')
+        self.assertEquals(dbinfos[1], queryTableName)
+        self.assertEquals(dbinfos[2], 'cat')
+        self.assertEquals(dbinfos[3], pgdbconnectstring)
+        self.assertEquals(dbinfos[4], 'pg')
+        ##cast is necessary
+        cmd = importer.executeCommand("echo 'SELECT CAST(COUNT (*) AS int) FROM " + queryTableName + "' | db.select -c", shell = True)
+        self.assertEquals(int(cmd[0]), 2)
+        cleanUpQueryTable()
+        #Dbf import
+        importer.dbfFlag = True
+        importer.makeSqlImport()
+        testOutput = grass.find_file(queryTableName, element = 'vector')
+        self.assertTrue(testOutput['fullname'] != '')
+        env = grass.gisenv()
+        dbfDbPath = os.path.join(env['GISDBASE'].strip(";'"), env['LOCATION_NAME'].strip(";'"), \
+                                         env['MAPSET'].strip(";'"), 'dbf')
+        cmd = importer.executeCommand("v.db.connect", flags = 'g', map = queryTableName, driver = 'dbf')
+        r = re.compile(' ')
+        dbinfos = r.split(cmd)
+        dbinfos = map(trim, dbinfos)
+        self.assertEquals(dbinfos[0], '1')
+        self.assertEquals(dbinfos[1], queryTableName)
+        self.assertEquals(dbinfos[2], 'cat')
+        self.assertEquals(dbinfos[3], dbfDbPath)
+        self.assertEquals(dbinfos[4], 'dbf')
+        cmd = importer.executeCommand("db.select", flags = 'c', table = queryTableName, \
+                                      database = dbfDbPath, driver = 'dbf')
+        r = re.compile('\n')
+        lines = r.split(cmd)
+        def validrecord(l): return len(str(l).strip()) > 0
+        result = filter(validrecord, lines)
+        self.assertEquals(len(result), 2)
+        
+    def testGetGeometryInfos(self):
+        """Test that we correctly retrieve geometry parameters from PostGis result table."""
+        createQueryTable()
+        params = importer.getGeometryInfo(queryTableName, geometryField)
+        self.assertEquals(params['type'], geoparams['type'])
+        self.assertEquals(params['ndims'], geoparams['ndims'])
+        self.assertEquals(params['srid'], geoparams['srid'])
+        ##needed
+        importer.commitChanges()
+    
+    def testAddingCategoryWithPgDriverIsNecessary(self):
+        """Test is the cat column addition is working and is still necessary with pg driver import.
+        
+        cat column is necessary for GRASS to store categories.
+        For now, the pg driver for v.in.ogr doesn't doesn't add automatically this
+        cat column, whereas the dbf driver does. So the importer has a specific addCategory()
+        method, which necessity is tested here.
+        """
+        ##starting with postgis to dbf import : no need to use the addCategory() method is expected
+        createQueryTable()
+        importer.addGeometry(queryTableName, geometryField, geoparams, False)
+        importer.commitChanges()
+        importer.importToGrass(queryTableName, geometryField, geoparams, toDbf = True, overrideProj = True)
+        importer.commitChanges()
+        try:
+            cmd = importer.executeCommand("v.univar", map = queryTableName, column = 'value')
+        except GrassPostGisImporterError:
+            self.fail("Categories should be retrieved with dbf driver.")
+        cleanUpQueryTable()
+        ##now same operations with pg driver : error is expected when GRASS use the cat column.
+        createQueryTable()
+        importer.addGeometry(queryTableName, geometryField, geoparams, False)
+        importer.commitChanges()
+        importer.importToGrass(queryTableName, geometryField, geoparams, False, True)
+        importer.commitChanges()
+        self.assertRaises(GrassPostGisImporterError, \
+                          importer.executeCommand, "v.univar", map = queryTableName, column = 'value')
+        cleanUpQueryTable()
+        ##now same operations with pg driver, after adding category column
+        ##with the importer : error should not occur.
+        createQueryTable()
+        importer.addGeometry(queryTableName, geometryField, geoparams, False)
+        importer.addCategory(queryTableName)
+        importer.commitChanges()
+        importer.importToGrass(queryTableName, geometryField, geoparams, False, True)
+        importer.commitChanges()
+        try:
+            cmd = importer.executeCommand("v.univar", map = queryTableName, column = 'value')
+        except GrassPostGisImporterError:
+            self.fail("Categories should be retrieved with pg driver when categories are added.")
+
+    def testGeometryDuplicationIsNecessary(self):
+        """Test that we need to use the postGis' AddGeometryColumn function."""
+        createQueryTable()
+        importer.addCategory(queryTableName)
+        importer.commitChanges()
+        self.assertRaises(GrassPostGisImporterError, importer.importToGrass, queryTableName, \
+                        geometryField, geoparams, False, True)
+        cleanUpQueryTable()
+        createQueryTable()
+        ##now addGeometry:
+        importer.addGeometry(queryTableName, geometryField, geoparams, False)
+        importer.addCategory(queryTableName)
+        importer.commitChanges()
+        try:
+            importer.importToGrass(queryTableName, geometryField, geoparams, False, True)
+        except GrassPostGisImporterError:
+            self.fail("Both operations are for now expected to be necessary.")
+        pass
+
+def createQueryTable():
+    importer.createPostgresTableFromQuery(queryTableName, query)
+    importer.commitChanges()
+    
+def cleanUpQueryTable():
+    db.rollback()
+    try:
+        importer.executeCommand("g.remove", vect = queryTableName, quiet = True)
+    except:
+        pass
+    try:
+        cursor.execute('DROP TABLE ' + queryTableName)
+    except:
+        pass
+    try:
+        cursor.execute("DELETE FROM geometry_columns WHERE f_table_name = '" + queryTableName + "'")
+    except:
+        pass
+    db.commit()
+    
+def cleanUp():
+    db.rollback()
+    cleanUpQueryTable()
+    try:
+        importer.executeCommand("g.remove", vect = testTableName, quiet = True)
+    except:
+        pass
+    try:
+        cursor.execute('DROP TABLE ' + testTableName)
+    except:
+        pass
+    try:
+        cursor.execute("DELETE FROM geometry_columns WHERE f_table_name = '" + testTableName + "'")
+    except:
+        pass
+    db.commit()
+
+def tests():
+    currentDirectory = os.path.split(__file__)[0]
+    sys.path.append(currentDirectory)
+    ##test geo table
+    cursor.execute("CREATE TABLE " + testTableName + " ( id int4, label varchar(20), value real )")
+    cursor.execute("SELECT AddGeometryColumn('', '" + testTableName + "','" + geometryField + "'," + srid + ",'MULTIPOLYGON',2)")
+    cursor.execute("INSERT INTO " + testTableName + " (id, label, value, " + geometryField + ") VALUES (1, 'A Geometry', 10, \
+                        GeomFromText('MULTIPOLYGON(((771825.9029201793 6880170.713342139,771861.2893824165 \
+                        6880137.00894025,771853.633171779 6880129.128272728,771818.4675156211 \
+                        6880162.7242448665,771825.9029201793 6880170.713342139)))', " + srid + "))")
+    cursor.execute("INSERT INTO " + testTableName + " (id, label, value, " + geometryField + ") VALUES (2, 'Another Geometry', 20, \
+                        GeomFromText('MULTIPOLYGON(((771853.633171779 6880129.128272728,771842.2964842085 \
+                        6880117.197908178,771807.1308239839 6880150.79394592,771818.4675156211 \
+                        6880162.7242448665,771853.633171779 6880129.128272728)))', " + srid + "))")
+    cursor.execute("INSERT INTO " + testTableName + " (id, label, value, " + geometryField + ") VALUES (3, 'A last Geometry', 20, \
+                        GeomFromText('MULTIPOLYGON(((771807.1308239839 6880150.79394592,771842.2964842085 \
+                        6880117.197908178,771831.1791767566 6880105.270296125,771795.7209431691 \
+                        6880138.862761175,771807.1308239839 6880150.79394592)))', " + srid + "))")
+    cursor.execute("ALTER TABLE " + testTableName + " ADD CONSTRAINT test_pkey " + " PRIMARY KEY (id)")
+    db.commit()
+    os.environ['GRASS_VERBOSE'] = '0'
+    try:
+        runner = unittest.TextTestRunner()
+        suite = unittest.TestSuite()
+        suite.addTest(GrassPostGisImporterTests("testGetDbInfos"))
+        suite.addTest(GrassPostGisImporterTests("testCheckLayers"))
+        suite.addTest(GrassPostGisImporterTests("testCheckComment"))
+        suite.addTest(GrassPostGisImporterTests("testImportGrassLayer"))
+        suite.addTest(GrassPostGisImporterTests("testGetGeometryInfos"))
+        suite.addTest(GrassPostGisImporterTests("testAddingCategoryWithPgDriverIsNecessary"))
+        suite.addTest(GrassPostGisImporterTests("testGeometryDuplicationIsNecessary"))
+        runner.run(suite)
+    finally:
+        cleanUp()
+        sys.exit(0)
+
+    
 if __name__ == "__main__":
     ### DEBUG : uncomment to start local debugging session
     #brk(host="localhost", port=9000)
     options, flags = grass.parser()
-    main()
+    if flags['t'] is True:
+        tests()
+    else:
+        main()
 
