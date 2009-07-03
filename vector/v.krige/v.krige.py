@@ -80,6 +80,7 @@ class KrigingPanel(wx.Panel):
         flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Column:")),
                       flag=wx.ALIGN_CENTER_VERTICAL)
         self.InputDataColumn = gselect.ColumnSelect(self, id=wx.ID_ANY)
+        self.InputDataColumn.SetSelection(0)
         flexSizer.Add(item = self.InputDataColumn)
         
         self.InputDataMap.GetChildren()[0].Bind(wx.EVT_TEXT, self.OnInputDataChanged)
@@ -154,6 +155,7 @@ class KrigingPanel(wx.Panel):
         self.InputDataColumn.InsertColumns(vector = MapName,
                                            layer = 1, excludeKey = True,
                                            type = ['integer', 'double precision'])
+        self.InputDataColumn.SetSelection(0)
         self.OutputMapName.SetValue(MapName.split("@")[0]+"_kriging")
         
     def OnRunButton(self,event):
