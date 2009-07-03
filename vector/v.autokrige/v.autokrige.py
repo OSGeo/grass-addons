@@ -3,7 +3,7 @@
 #
 ############################################################################
 #
-# MODULE:       v_autokrige.py
+# MODULE:       v.autokrige.py
 # AUTHOR(S):	Mathieu Grelier (greliermathieu@gmail.com)
 # PURPOSE:	automatic kriging interpolation from vector point data
 # REQUIREMENTS:
@@ -119,8 +119,8 @@ import traceback
 
 ##see http://trac.osgeo.org/grass/browser/grass/trunk/lib/python
 from grass import core as grass
-##only needed to use debugger. See http://aspn.activestate.com/ASPN/Downloads/Komodo/RemoteDebugging
-from dbgp.client import brk
+##only needed to use debugger with Komodo IDE. See http://aspn.activestate.com/ASPN/Downloads/Komodo/RemoteDebugging
+#from dbgp.client import brk
 
 class AutoKrige():
     
@@ -139,17 +139,17 @@ class AutoKrige():
         self.colormap = options['colormap'] if options['colormap'].strip() != '' else 'bcyor'
         ##flags
         self.varianceFlag = True if flags['v'] is True else False
-        self.regionFlag = True if flags['r'] is True else False
+        self.regionFlag = False if flags['r'] is True else True
         self.logROutput = True if flags['l'] is True else False
         ##others
         self.RscriptFile = None
-        logfilename = 'v_autokrige.py.log'
+        logfilename = 'v.autokrige.py.log'
         self.logfile = os.path.join(os.getenv('LOGDIR'),logfilename) if os.getenv('LOGDIR') else logfilename
         grass.try_remove(self.logfile)
             
     def __prepareRModelsString(self, models=None):
-        """!Create the R argument as expected in the R script,
-        to avoid string manipulations with R."""
+        """Create the R argument as expected in the R script.
+        Used to avoid string manipulations with R."""
         modelsString = ''
         if models is None:
             ##it is important not to have any space between commas and following slashes
@@ -164,7 +164,7 @@ class AutoKrige():
         return modelsString
 
     def __writeRScript(self):
-        """!Create the R script for automap"""
+        """Create the R script for automap."""
         RscriptFile = grass.tempfile()
         fileHandle = open(RscriptFile, 'a')
         script = """
@@ -291,7 +291,7 @@ class AutoKrige():
         return RscriptFile
     
     def __execRCommand(self, command, logFile = False):
-        """!R command execution method using Popen in shell mode"""
+        """R command execution method using Popen in shell mode."""
         if logFile is not False:
             command = command + ' >> ' +  logFile
         ##use redirection on stdout only
@@ -313,16 +313,16 @@ class AutoKrige():
             raise AutoKrigeError(out)
         
     def printMessage(self, message, type = 'info'):
+        """Call grass message function corresponding to type."""
         if type == 'error':
             grass.error(message)
         elif type == 'warning':
             grass.warning(message)
-        elif type == 'info' and grass.verbosity > 0:
+        elif type == 'info' and grass.gisenv()['GRASS_VERBOSE'] > 0:
             grass.info(message)
     
     def checkLayers(self, input, output, testVarianceRast = False):
-        """
-        !Preliminary checks before starting kriging.
+        """Preliminary checks before starting kriging.
         Note : for this to work with grass6.3, in find_file function from core.py,
         command should be (n flag removed because 6.4 specific):
         s = read_command("g.findfile", element = element, file = name, mapset = mapset)
@@ -339,7 +339,6 @@ class AutoKrige():
 Use the --o flag to overwrite.")
             else:
                 self.printMessage("raster map " + output + " will be overwritten.", type = 'warning')
-                #print "Warning: raster map " + output + " will be overwritten."
         ##Test also variance raster.
         if testVarianceRast is True:
             testVarOutput = grass.find_file(output + '_var', element = 'cell')
@@ -349,11 +348,9 @@ Use the --o flag to overwrite.")
 Use the --o flag to overwrite.")
                 else:
                     self.printMessage("raster map " + output + '_var' + " will be overwritten.", type = 'warning')
-                    #print "Warning: raster map " + output + '_var' + " will be overwritten."
         
-    
     def getGridCellSize(self, input, nbcell, adjustRegionToSites = True):
-        """!Define kriged grid cell size.
+        """Define kriged grid cell size.
         Raster resolution but also computation time depends on it.
         We take region resolution as cell size but we can fix this resolution with the nbcell parameter.
         Only one value is needed because the R script use square cells."""
@@ -367,7 +364,7 @@ Use the --o flag to overwrite.")
         return cellsize
     
     def fixRegionResFromNumberOfCells(self, nbcell=100):
-        """!Adjust one of the two region dimensions so that we have a maximum of 'nbcell' cells in both."""
+        """Adjust one of the two region dimensions so that we have a maximum of 'nbcell' cells in both."""
         regionParams = grass.region()
         nsResForGivenNbCell = (float(regionParams['n'])- float(regionParams['s'])) / float(nbcell)
         ewResForGivenNbCell = (float(regionParams['e'])- float(regionParams['w'])) / float(nbcell)
@@ -376,7 +373,7 @@ Use the --o flag to overwrite.")
         grass.run_command("g.region", res = tmpRegionRes)
     
     def finalizeOutput(self):
-        """!Final operations after successful kriging.
+        """Final operations after successful kriging.
         We don't want to stop execution if an error occurs here.
         """
         try:
@@ -391,7 +388,7 @@ Use the --o flag to overwrite.")
             pass
         
     def runAutoKrige(self):
-        """!Performs kriging process"""
+        """Performs kriging process."""
         ##1)Necessary checks
         self.checkLayers(self.input, self.output, self.varianceFlag)
         ##2)Adjust interpolation resolution
@@ -417,7 +414,7 @@ Use the --o flag to overwrite.")
         self.finalizeOutput()
                                                                                   
 class AutoKrigeError(Exception):
-    """Errors specific to Autokrige class"""
+    """Errors specific to Autokrige class."""
     def __init__(self, message=''):
         self.details = '\nDetails:\n'
         exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
@@ -452,4 +449,4 @@ if __name__ == "__main__":
         main()
     else:
         print "R required, please install R first"
-
+        
