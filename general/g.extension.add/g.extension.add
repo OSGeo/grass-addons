@@ -27,7 +27,11 @@
 #% type: string
 #% key_desc : name
 #% description: Name of extension to install from GRASS Addons SVN repository
-#% required : yes
+#% required : no
+#%end
+#%flag
+#%  key: l
+#%  description: List available modules in the GRASS Addons SVN repository
 #%end
 
 if  [ -z "$GISBASE" ] ; then
@@ -91,11 +95,40 @@ MODULE=$GIS_OPT_EXTENSION
 CLASSCHAR=`echo $MODULE | cut -d'.' -f1`
 MODULECLASS=`expand_module_class_name $CLASSCHAR`
 
+list_available_modules()
+{
+ # a very dirty hack
+ g.message message="Fetching list of modules from GRASS-Addons SVN (be patient)..."
+ for d in d db g i m ps p r r3 v ; do
+     MODCLASS=`expand_module_class_name $d`
+     cd $TMPDIR
+     rm -f index.html
+     wget $SVNURL_ADDONS/$MODCLASS > /dev/null 2> /dev/null
+     grep '<li>' index.html 2> /dev/null | grep -v '\.\.' | cut -d'"' -f2 | sed 's+/$++g' >> list.txt
+     rm -f index.html
+ done
+ cat list.txt
+ rm -f list.txt
+}
+
+##
 cleanup(){
  cd ${TMPDIR}
  rm -rf ${TMPDIR}/${MODULE}
  rmdir "$TMPDIR"
 }
+
+if [ $GIS_FLAG_l -eq 1 ] ; then
+   list_available_modules
+   rmdir "$TMPDIR"
+   exit 0
+fi
+
+if [ -z "$GIS_OPT_EXTENSION" -a $GIS_FLAG_l -eq 0 ] ; then
+   g.message message="You need to define an extension name or use -l"
+   exit 1
+fi
+
 
 cd ${TMPDIR}
 g.message message="Fetching ${MODULE} from GRASS-Addons SVN (be patient)..."
