@@ -108,8 +108,10 @@ else
       # can we write?
       touch ${GISBASE}/`basename $0`.$$
       if [ $? -ne 0 ] ; then
+         rm -f ${GISBASE}/`basename $0`.$$
          sudo make MODULE_TOPDIR=${GISBASE} install
       else
+         rm -f ${GISBASE}/`basename $0`.$$
          make MODULE_TOPDIR=${GISBASE} install
       fi
       if [ $? -ne 0 ] ; then
