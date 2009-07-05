@@ -106,7 +106,7 @@ else
    else
       g.message message="Installing ${MODULE}..."
       # can we write?
-      touch ${GISBASE}/$0.$$
+      touch ${GISBASE}/`basename $0`.$$
       if [ $? -ne 0 ] ; then
          sudo make MODULE_TOPDIR=${GISBASE} install
       else
