@@ -2,8 +2,8 @@ MODULE_TOPDIR = ../..
 
 PGM = i.landsat.toar
 
-LIBES = $(GISLIB)
-DEPENDENCIES = $(GISDEP)
+LIBES = $(GISLIB) $(RASTERLIB)
+DEPENDENCIES = $(GISDEP) $(RASTERDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
