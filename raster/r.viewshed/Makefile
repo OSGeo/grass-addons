@@ -5,9 +5,7 @@ MODULE_TOPDIR = ../../
 PGM = r.viewshed
 
 # Includes the grass make-System.
-# For further information look in the Multi.make file.
-include $(MODULE_TOPDIR)/include/Make/Multi.make
-
+include $(MODULE_TOPDIR)/include/Make/Module.make
 
 SOURCES = main.cc distribute.cc eventlist.cc grid.cc grass.cc viewshed.cc \
 	rbbst.cc statusstructure.cc visibility.cc \
@@ -47,6 +45,7 @@ $(OBJARCH)/%.o:%.cc
 
 default: $(BIN)/$(PGM)$(EXE)
 	$(MAKE) htmlcmd
+	$(MAKE) mancmd
 
 $(BIN)/$(PGM)$(EXE):  $(OBJ) $(DEPLIBS)
 	$(CXX) $(LDFLAGS) -o $@ $(OBJ) $(LIBS)
