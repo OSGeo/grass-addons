@@ -1,0 +1,120 @@
+#!/bin/sh
+
+############################################################################
+#
+# MODULE:       g.extension.add
+# AUTHOR(S):   	Markus Neteler
+# PURPOSE:      tool to download and install extensions from GRASS Addons SVN into 
+#               local GRASS installation
+# COPYRIGHT:    (C) 2009 by the Markus Neteler, GRASS Development Team
+#
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+# TODO: add sudo support where needed (i.e. check first permission to write into
+#       $GISBASE directory)
+#############################################################################
+
+
+#%Module
+#%  description: Tool to download and install extensions from GRASS Addons SVN repository into local GRASS installation.
+#%  keywords: installation, extensions
+#%End
+
+#%option
+#% key: extension
+#% type: string
+#% key_desc : name
+#% description: Name of extension to install from GRASS Addons SVN repository
+#% required : yes
+#%end
+
+if  [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program." >&2
+    exit 1
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+  exec g.parser "$0" "$@"
+fi
+
+# definitions
+SVNURL_ADDONS=https://svn.osgeo.org/grass/grass-addons/
+MYTMP=/tmp
+
+expand_module_class_name()
+{
+# $1: module class
+ if [ "$1" = "d" ]  ; then 
+    echo "display"  
+  elif [ "$1" = "db" ] ; then 
+    echo "database" 
+  elif [ "$1" = "g" ]  ; then 
+    echo "general" 
+  elif [ "$1" = "i" ]  ; then 
+    echo "imagery" 
+  elif [ "$1" = "m" ]  ; then 
+    echo "misc" 
+  elif [ "$1" = "ps" ] ; then 
+    echo "postscript" 
+  elif [ "$1" = "p" ]  ; then 
+    echo "paint" 
+  elif [ "$1" = "r" ]  ; then 
+    echo "raster" 
+  elif [ "$1" = "r3" ]  ; then 
+    echo "raster3D" 
+  elif [ "$1" = "s" ]  ; then 
+    echo "sites" 
+  elif [ "$1" = "v" ]  ; then 
+    echo "vector" 
+  else 
+    echo "$1"
+ fi
+}
+
+MODULE=$GIS_OPT_EXTENSION
+CLASSCHAR=`echo $MODULE | cut -d'.' -f1`
+MODULECLASS=`expand_module_class_name $CLASSCHAR`
+
+cleanup(){
+ cd ${MYTMP}
+ rm -rf ${MYTMP}/${MODULE}
+}
+
+cd ${MYTMP}
+g.message message="Fetching ${MODULE} from GRASS-Addons SVN (be patient)..."
+svn co ${SVNURL_ADDONS}/${MODULECLASS}/${MODULE}
+
+if [ $? -ne 0 ] ; then
+   g.message -e message="GRASS Addon ${MODULE} not found in repository"
+   exit 1
+else
+   cd ${MYTMP}/${MODULE}
+   g.message message="Compiling ${MODULE}..."
+   make MODULE_TOPDIR=${GISBASE}
+   if [ $? -ne 0 ] ; then
+      g.message -e message="Compilation failed, sorry. Please check above error messages."
+      cleanup
+      exit 1
+   else
+      g.message message="Installing ${MODULE}..."
+      # can we write?
+      touch ${GISBASE}/$0.$$
+      if [ $? -ne 0 ] ; then
+         sudo make MODULE_TOPDIR=${GISBASE} install
+      else
+         make MODULE_TOPDIR=${GISBASE} install
+      fi
+      if [ $? -ne 0 ] ; then
+         g.message -e message="Installation failed, sorry. Please check above error messages."
+         cleanup
+         exit 1
+      fi
+   fi
+
+   cleanup
+fi
+
+g.message message="Installation of ${MODULE} successfully finished."
+exit 0
