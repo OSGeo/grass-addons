@@ -43,6 +43,12 @@ fi
 SVNURL_ADDONS=https://svn.osgeo.org/grass/grass-addons/
 MYTMP=/tmp
 
+# check if we have the svn client
+if [ ! -x "`which svn`" ] ; then
+    echo "ERROR: svn client required. Please install subversion first." 1>&2
+    exit 1
+fi
+
 expand_module_class_name()
 {
 # $1: module class

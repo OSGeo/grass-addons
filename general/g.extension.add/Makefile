@@ -1,10 +1,7 @@
-MODULE_TOPDIR = ../../../grass
+MODULE_TOPDIR = ../..
 
 PGM = g.extension.add
 
-LIBES = $(GISLIB)
-DEPENDENCIES = $(GISDEP)
+include $(MODULE_TOPDIR)/include/Make/Script.make
 
-include $(MODULE_TOPDIR)/include/Make/Module.make
-
-default: cmd
+default: script
