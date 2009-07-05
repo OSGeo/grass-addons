@@ -41,7 +41,15 @@ fi
 
 # definitions
 SVNURL_ADDONS=https://svn.osgeo.org/grass/grass-addons/
-MYTMP=/tmp
+
+#make a temporary directory
+TMPDIR="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$TMPDIR" ] ; then
+    g.message "Unable to create temporary files"
+    exit 1
+fi
+rm -f "$TMPDIR"
+mkdir "$TMPDIR"
 
 # check if we have the svn client
 if [ ! -x "`which svn`" ] ; then
@@ -84,11 +92,12 @@ CLASSCHAR=`echo $MODULE | cut -d'.' -f1`
 MODULECLASS=`expand_module_class_name $CLASSCHAR`
 
 cleanup(){
- cd ${MYTMP}
- rm -rf ${MYTMP}/${MODULE}
+ cd ${TMPDIR}
+ rm -rf ${TMPDIR}/${MODULE}
+ rmdir "$TMPDIR"
 }
 
-cd ${MYTMP}
+cd ${TMPDIR}
 g.message message="Fetching ${MODULE} from GRASS-Addons SVN (be patient)..."
 svn co ${SVNURL_ADDONS}/${MODULECLASS}/${MODULE}
 
@@ -96,7 +105,7 @@ if [ $? -ne 0 ] ; then
    g.message -e message="GRASS Addon ${MODULE} not found in repository"
    exit 1
 else
-   cd ${MYTMP}/${MODULE}
+   cd ${TMPDIR}/${MODULE}
    g.message message="Compiling ${MODULE}..."
    make MODULE_TOPDIR=${GISBASE}
    if [ $? -ne 0 ] ; then
