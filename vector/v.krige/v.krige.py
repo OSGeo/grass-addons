@@ -333,9 +333,10 @@ class RBookgeoRPanel(RBookPanel):
         pass
     
 def main(argv=None):
+    
     if argv is None:
         # is this check needed? I won't call the module in other way than last line.
-        argv = sys.argv
+        argv = sys.argv[1:] #stripping first item, the full name of this script
         print argv
         #@TODO(anne): add command line arguments acceptance.
         #@TIP: from optparse import OptionParser
