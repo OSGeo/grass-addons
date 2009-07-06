@@ -292,9 +292,14 @@ class RBookgstatPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific gstat options and kriging functions. """
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
+
+        try:
+            ModelFactor = robjects.r.vgm().r['long']
+            ModelList = robjects.r.levels(ModelFactor[0]) # no other way to let the Python pick it up..
+        except AttributeError, e:
+            print >> sys.stderr, 'Error: ' + str(e)
+            ModelList = []
         
-        ModelFactor = robjects.r.vgm().r['long']
-        ModelList = robjects.r.levels(ModelFactor[0]) # no other way to let the Python pick it up..
         self.ParametersSizer.Insert(before=0, item=wx.StaticText(self, id= wx.ID_ANY, label = _("Variogram model")))
         self.ModelChoicebox = wx.Choice(self, id=wx.ID_ANY, choices=ModelList)
         self.ParametersSizer.Insert(before=1, item= self.ModelChoicebox)
