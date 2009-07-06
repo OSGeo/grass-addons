@@ -15,6 +15,11 @@ License (>=v2). Read the file COPYING that comes with GRASS
 for details.
 """
 
+#%module
+#% description: Performs ordinary kriging.
+#% keywords: kriging
+#%end
+
 import os, sys
 
 try:
@@ -376,6 +381,8 @@ def main(argv=None):
     k.Show()
     app.MainLoop()
     
-
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) > 1:
+        grass.parser()
+    else:
+        main()
