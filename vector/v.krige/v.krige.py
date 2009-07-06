@@ -15,10 +15,32 @@ License (>=v2). Read the file COPYING that comes with GRASS
 for details.
 """
 
+## g.parser informations
+
 #%module
 #% description: Performs ordinary kriging.
 #% keywords: kriging
 #%end
+
+#%option
+#% key: map
+#% type: string
+#% gisprompt: old,vector,vector
+#% key_desc: name
+#% description: Name of point vector map containing sample data.
+#% required: yes
+#%end
+
+#
+##%option
+##% key: 
+##% type: 
+##% gisprompt: 
+##% key_desc: 
+##% description: 
+##% required: 
+##%end
+
 
 import os, sys
 
@@ -349,40 +371,30 @@ class RBookgeoRPanel(RBookPanel):
         pass
     
 def main(argv=None):
+    #@TODO(anne):add here all dependency checking
+    if not haveRpy2:
+        sys.exit(1)
     
     if argv is None:
         # is this check needed? I won't call the module in other way than last line.
         argv = sys.argv[1:] #stripping first item, the full name of this script
-        print argv
-        #@TODO(anne): add command line arguments acceptance.
-        #@TIP: from optparse import OptionParser
-        
-    #@FIXME: is this code still useful? 
-    """if len(argv) != 2:
-        print >> sys.stderr, __doc__
-        sys.exit()"""
-
-    # Command line arguments of the script to be run are preserved by the
-    # hotswap.py wrapper but hotswap.py and its options are removed that
-    # sys.argv looks as if no wrapper was present.
-    #print "argv:", `argv`
+        # wxGUI call.
+        app = wx.App()
+        k = KrigingModule(parent=None)
+        k.Centre()
+        k.Show()
+        app.MainLoop()
+    else:
+        #@TODO: call here the different steps of kriging. Essentially, OnRunButton stuff.
+        print "I'm calculating the square root of nothing."
 
     # commmented, as I don't know if the module will need it.
     ##some applications might require image handlers
-    #wx.InitAllImageHandlers()
-
-    #@TODO(anne):add here all dependency checking
-    if not haveRpy2:
-        sys.exit(1)
-
-    app = wx.App()
-    k = KrigingModule(parent=None)
-    k.Centre()
-    k.Show()
-    app.MainLoop()
+    #wx.InitAllImageHandlers()    
     
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        grass.parser()
+        args = grass.parser()
+        sys.exit(main(argv=args))
     else:
         main()
