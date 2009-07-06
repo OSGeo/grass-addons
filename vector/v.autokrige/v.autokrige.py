@@ -108,7 +108,7 @@
 #%end
 #%flag
 #% key: l
-#% description: Log R output to v_autokrige.py.log
+#% description: Log R output to v.autokrige.py.log
 #%end
 
 import sys
@@ -157,10 +157,10 @@ class AutoKrige():
         else:
             ##conversion to R arguments in the expected format, starting from model1,model2...
             ##add c(" at the beginning and add ") at the end
-            RargumentsDict['models'] = 'c(\\"' + models + '\\")'
+            modelsString = 'c(\\"' + models + '\\")'
             ##replace commas by \",\"
             p = re.compile(',')
-            modelsString = p.sub('\\",\\"',RargumentsDict['models'])
+            modelsString = p.sub('\\",\\"',modelsString)
         return modelsString
 
     def __writeRScript(self):
@@ -404,7 +404,7 @@ Use the --o flag to overwrite.")
         ##ordinary kriging for now
         predictors = '1'
         autoKrigeCommand = 'R --vanilla --slave --args ' + self.input + ' ' + Rcolumnname + ' ' + \
-                        self.output + ' ' + str(cellsize) + ' "' + self.__prepareRModelsString() + '" ' + \
+                        self.output + ' ' + str(cellsize) + ' "' + self.__prepareRModelsString(self.models) + '" ' + \
                         self.range + ' ' +  self.nugget + ' ' + self.sill \
                         + ' ' + self.nmax + ' ' + self.maxdist + ' ' \
                         + writeVarRast + ' ' + predictors + ' < "' + self.RscriptFile + '"'
@@ -450,3 +450,4 @@ if __name__ == "__main__":
     else:
         print "R required, please install R first"
         
+
