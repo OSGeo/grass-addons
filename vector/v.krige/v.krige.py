@@ -110,15 +110,21 @@ class KrigingPanel(wx.Panel):
 #    3. Output Parameters.
         OutputSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Output")), wx.HORIZONTAL)
         
-        OutputParameters = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        OutputParameters = wx.GridBagSizer(hgap=5, vgap=5)
         OutputParameters.AddGrowableCol(1)
-        OutputParameters.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Name of the output map:")),
-                      flag = wx.ALIGN_CENTER_VERTICAL)
-        self.OutputMapName = wx.TextCtrl(self, id=wx.ID_ANY, size=(250,-1))
-        OutputParameters.Add(item=self.OutputMapName, flag=wx.EXPAND | wx.ALL)
-        self.OverwriteCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Allow output files to overwrite existing files"))
+        OutputParameters.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Name for the output raster map:")),
+                             flag = wx.ALIGN_CENTER_VERTICAL,
+                             pos = (0, 0))
+        self.OutputMapName = gselect.Select(parent = self, id = wx.ID_ANY,
+                                            type = 'raster',
+                                            mapsets = [grass.gisenv()['MAPSET']])
+        OutputParameters.Add(item=self.OutputMapName, flag=wx.EXPAND | wx.ALL,
+                             pos = (0, 1))
+        self.OverwriteCheckBox = wx.CheckBox(self, id=wx.ID_ANY,
+                                             label=_("Allow output files to overwrite existing files"))
         self.OverwriteCheckBox.SetValue(state = False)
-        OutputParameters.Add(self.OverwriteCheckBox)
+        OutputParameters.Add(item = self.OverwriteCheckBox,
+                             pos = (1, 0), span = (1, 2))
         
         OutputSizer.Add(OutputParameters, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         
