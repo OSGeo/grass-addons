@@ -234,7 +234,8 @@ int main(int argc, char *argv[])
 	    for (j = 1; j <= nnodes; j++)
 		if (cats[j] != -1) {
 		    sprintf(buf, "insert into %s values (%d, %d, %f)",
-			    Fi->table, i, j, dist[i][j] / 1000.0);
+			    Fi->table, i, j,
+			    dist[i][j] / (double)In.cost_multip);
 		    db_set_string(&sql, buf);
 		    G_debug(3, db_get_string(&sql));
 

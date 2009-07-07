@@ -5,7 +5,7 @@
  *
  * AUTHOR(S):  Daniel Bundala
  *
- * PURPOSE:    Max flow between two nodes
+ * PURPOSE:    Max flow and min cut between two sets of nodes
  *
  * COPYRIGHT:  (C) 2002-2005 by the GRASS Development Team
  *
@@ -27,18 +27,23 @@
 
 int main(int argc, char *argv[])
 {
-    struct Map_info In, Out;
+    struct Map_info In, Out, cut_map;
     static struct line_pnts *Points;
     struct line_cats *Cats;
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
-    struct Option *map_in, *map_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *abcol, *afcol;
+    struct Option *map_in, *map_out, *cut_out;
+    struct Option *cat_opt, *field_opt, *where_opt, *abcol, *afcol, *source_opt,
+	*sink_opt;
     int chcat, with_z;
     int layer, mask_type;
     VARRAY *varray;
     dglGraph_s *graph;
     int i, nlines, *flow, total_flow;
+    struct ilist *source_list, *sink_list, *cut;
+    struct cat_list *source_cats, *sink_cats;
+    int find_cut;
+
     char buf[2000];
 
     /* Attribute table */
@@ -52,11 +57,18 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     module->keywords = _("network, max flow");
-    module->description = _("Computes the maximum flow between two nodes.");
+    module->description =
+	_("Computes the maximum flow between two sets of nodes.");
 
     /* Define the different options as defined in gis.h */
     map_in = G_define_standard_option(G_OPT_V_INPUT);
     map_out = G_define_standard_option(G_OPT_V_OUTPUT);
+
+    cut_out = G_define_option();
+    cut_out->type = TYPE_STRING;
+    cut_out->required = YES;
+    cut_out->key = "cut";
+    cut_out->description = _("Name of output map containing a minimum cut");
 
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
     cat_opt = G_define_standard_option(G_OPT_V_CATS);
@@ -74,9 +86,20 @@ int main(int argc, char *argv[])
     abcol->required = NO;
     abcol->description = _("Arc backward direction capacity column");
 
+    source_opt = G_define_standard_option(G_OPT_V_CATS);
+    source_opt->key = "source";
+    source_opt->required = YES;
+    source_opt->description = _("Categories of source(s)");
+
+    sink_opt = G_define_standard_option(G_OPT_V_CATS);
+    sink_opt->key = "sink";
+    sink_opt->required = YES;
+    sink_opt->description = _("Categories of sink(s)");
+
     /* options and flags parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+    find_cut = (cut_out->answer[0]);
     /* TODO: make an option for this */
     mask_type = GV_LINE | GV_BOUNDARY;
 
@@ -100,6 +123,12 @@ int main(int argc, char *argv[])
     if (0 > Vect_open_new(&Out, map_out->answer, with_z)) {
 	Vect_close(&In);
 	G_fatal_error(_("Unable to create vector map <%s>"), map_out->answer);
+    }
+
+    if (find_cut && 0 > Vect_open_new(&cut_map, cut_out->answer, with_z)) {
+	Vect_close(&In);
+	Vect_close(&Out);
+	G_fatal_error(_("Unable to create vector map <%s>"), cut_out->answer);
     }
 
     /* parse filter option and select appropriate lines */
@@ -161,6 +190,35 @@ int main(int argc, char *argv[])
 
     db_begin_transaction(driver);
 
+    source_cats = Vect_new_cat_list();
+    sink_cats = Vect_new_cat_list();
+    Vect_str_to_cat_list(source_opt->answer, source_cats);
+    Vect_str_to_cat_list(sink_opt->answer, sink_cats);
+    source_list = Vect_new_list();
+    sink_list = Vect_new_list();
+
+    nlines = Vect_get_num_lines(&In);
+    for (i = 1; i <= nlines; i++) {
+	int type, cat;
+	type = Vect_read_line(&In, NULL, Cats, i);
+	if (type != GV_POINT)
+	    continue;
+	Vect_cat_get(Cats, layer, &cat);
+	if (Vect_cat_in_cat_list(cat, source_cats))
+	    Vect_list_append(source_list, i);
+	if (Vect_cat_in_cat_list(cat, sink_cats))
+	    Vect_list_append(sink_list, i);
+    }
+
+    if (source_list->n_values == 0)
+	G_fatal_error(_("No points with categories [%s]"), source_opt->answer);
+
+    if (sink_list->n_values == 0)
+	G_fatal_error(_("No points with categories [%s]"), sink_opt->answer);
+
+    neta_points_to_nodes(&In, source_list);
+    neta_points_to_nodes(&In, sink_list);
+
     Vect_copy_head_data(&In, &Out);
     Vect_hist_copy(&In, &Out);
 
@@ -169,14 +227,18 @@ int main(int argc, char *argv[])
     Vect_net_build_graph(&In, mask_type, atoi(field_opt->answer), 0,
 			 afcol->answer, abcol->answer, NULL, 0, 0);
     graph = &(In.graph);
-    nlines = Vect_get_num_lines(&In);
 
     flow = (int *)G_calloc(nlines + 1, sizeof(int));
     if (!flow)
 	G_fatal_error(_("Out of memory"));
 
-    total_flow = neta_flow(graph, 215, 219, flow);
+    total_flow = neta_flow(graph, source_list, sink_list, flow);
     G_debug(3, "Max flow: %d", total_flow);
+    if (find_cut) {
+	cut = Vect_new_list();
+	total_flow = neta_min_cut(graph, source_list, sink_list, flow, cut);
+	G_debug(3, "Min cut: %d", total_flow);
+    }
 
     G_message(_("Writing the output..."));
     G_percent_reset();
@@ -190,7 +252,7 @@ int main(int argc, char *argv[])
 	    if (cat == -1)
 		continue;	/*TODO: warning? */
 	    sprintf(buf, "insert into %s values (%d, %d)", Fi->table, cat,
-		    flow[i] / 1000);
+		    flow[i] / In.cost_multip);
 	    db_set_string(&sql, buf);
 	    G_debug(3, db_get_string(&sql));
 
@@ -201,12 +263,24 @@ int main(int argc, char *argv[])
 	    };
 	}
     }
-    neta_add_point_on_node(&In, &Out, 215, Cats);
-    neta_add_point_on_node(&In, &Out, 219, Cats);
+
+    if (find_cut) {
+	for (i = 0; i < cut->n_values; i++) {
+	    int type = Vect_read_line(&In, Points, Cats, cut->value[i]);
+	    Vect_write_line(&cut_map, type, Points, Cats);
+	}
+	Vect_destroy_list(cut);
+
+	Vect_build(&cut_map);
+	Vect_close(&cut_map);
+    }
+
     db_commit_transaction(driver);
     db_close_database_shutdown_driver(driver);
 
     G_free(flow);
+    Vect_destroy_list(source_list);
+    Vect_destroy_list(sink_list);
 
     Vect_build(&Out);
 

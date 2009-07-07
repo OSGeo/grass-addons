@@ -5,7 +5,10 @@ SUBDIRS1 = \
         v.net.bridge \
         v.net.spanningtree \
         v.net.allpairs \
-        v.net.flow
+        v.net.flow \
+        v.net.connectivity \
+        v.net.centrality \
+        v.net.distance
 
 SUBDIRS = netalib $(SUBDIRS1)
 
