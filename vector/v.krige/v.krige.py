@@ -23,23 +23,68 @@ for details.
 #%end
 
 #%option
-#% key: map
+#% key: input
 #% type: string
 #% gisprompt: old,vector,vector
-#% key_desc: name
 #% description: Name of point vector map containing sample data.
 #% required: yes
 #%end
-
-#
-##%option
-##% key: 
-##% type: 
-##% gisprompt: 
-##% key_desc: 
-##% description: 
-##% required: 
-##%end
+#%option
+#% key: column
+#% type: string
+#% description: Column with numerical value to be interpolated
+#% required : yes
+#%end
+#%option
+#%option
+#% key: output
+#% type: string
+#% gisprompt: old,raster,raster
+#% description: Name of output map. If omitted, will be <input name>_kriging
+#% required : no
+#%end
+#% key: package
+#% type: string
+#% options: gstat, geor
+#% answer: gstat
+#% description: R package to use. Choices: gstat, geor 
+#% required: no
+#%end
+#%option
+#% key: model
+#% type: string
+#% options: Exp, Sph, Gau, Mat, Lin
+#% answer: 
+#% multiple: yes
+#% description: Variogram model(s). Leave empty to 
+#% required: no
+#%end
+#%option
+#% key: range
+#% type: integer
+#% description: Range value. Automatically fixed if not set
+#% required : no
+#%end
+#%option
+#% key: nugget
+#% type: double
+#% description: Nugget value. Automatically fixed if not set
+#% required : no
+#%end
+#%option
+#% key: sill
+#% type: double
+#% description: Sill value. Automatically fixed if not set
+#% required : no
+#%end
+#%flag
+#% key: o
+#% description: Overwrite output map with same name
+#%end
+# #%flag
+# #% key: 
+# #% description: 
+# #%end
 
 
 import os, sys
