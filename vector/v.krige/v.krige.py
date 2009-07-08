@@ -54,7 +54,6 @@ for details.
 #% key: model
 #% type: string
 #% options: Exp,Sph,Gau,Mat,Lin
-#% answer: 
 #% multiple: yes
 #% description: Variogram model(s). Leave empty to 
 #% required: no
@@ -86,7 +85,6 @@ for details.
 # #% description: 
 # #%end
 
-
 import os, sys
 
 try:
@@ -115,8 +113,51 @@ gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unico
 
 #global variables
 gisenv = grass.gisenv()
+Region = grass.region()
 
-#classes in alphabetical order
+#classes in alphabetical order. methods in logical order :)
+
+class Controller():
+    """ Executes analysis. """
+       
+    def ImportMap(self, map):
+        return robjects.r.readVECT6(map, type= 'point')
+    
+    def CreateGrid(self, InputData):
+        Grid = robjects.r.gmeta2grd()
+        ##create the spatialgriddataframe with these settings
+        GridPredicted = robjects.r.SpatialGridDataFrame(Grid,
+                                                        data=robjects.r['data.frame']
+                                                        (k=robjects.r.rep(1,Region['cols']*Region['rows'])),
+                                                        proj4string=robjects.r.CRS(robjects.r.proj4string(InputData)))
+        return GridPredicted
+    
+    def ComposeFormula(self, Column):
+        # will change when the formula will need to be more complex. Not yet.
+        Formula = robjects.r['as.formula'](robjects.r.paste(Column, "~ 1"))
+        return Formula
+    
+    def FitVariogram(self, Formula, InputData, AutoFit, **kwargs):
+        if AutoFit:
+            robjects.r.require("automap")
+            VariogramModel = robjects.r.autofitVariogram(Formula, InputData)
+            return VariogramModel.r['var_model'][0]
+        else:
+            DataVariogram = robjects.r.variogram(Formula, InputData)
+            ModelShortName = self.ModelChoicebox.GetStringSelection().split()[0]
+            VariogramModel = robjects.r['fit.variogram'](DataVariogram,
+                                                     model = robjects.r.vgm(psill = Sill,
+                                                                            model = ModelShortName,
+                                                                            nugget = Nugget,
+                                                                            range = Range))
+            return VariogramModel
+        pass
+    
+    def DoKriging():
+        pass
+    
+    def ExportMap():
+        pass
 
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
@@ -125,6 +166,9 @@ class KrigingPanel(wx.Panel):
         
         self.parent = parent 
         self.border = 5
+        
+        #controller istance
+        self.Controller = Controller()
         
 #    1. Input data 
         InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Input Data")), 
@@ -231,6 +275,7 @@ class KrigingPanel(wx.Panel):
         
     def OnRunButton(self,event):
         """ Execute R analysis. """
+        #@FIXME: send data to main method instead of running it here.
         
         #-1: get the selected notebook page. The user shall know that he/she can modify settings in all
         # pages, but only the selected one will be executed when Run is pressed.
@@ -239,28 +284,30 @@ class KrigingPanel(wx.Panel):
         #0. require packages. See creation of the notebook pages and note after import directives.
         
         #1. get the data in R format, i.e. SpatialPointsDataFrame
-        InputData = robjects.r.readVECT6(self.InputDataMap.GetValue(), type= 'point')
+        InputData = self.Controller.ImportMap(self.InputDataMap.GetValue())
+        
         #1.5 create the grid where to estimate values. Not used by block-kriging
-        Grid = robjects.r.gmeta2grd()
-        Region = grass.region()
-        ##create the spatialgriddataframe with these settings
-        GridPredicted = robjects.r.SpatialGridDataFrame(Grid,
-                                                        data=robjects.r['data.frame']
-                                                        (k=robjects.r.rep(1,Region['cols']*Region['rows'])),
-                                                        proj4string=robjects.r.CRS(robjects.r.proj4string(InputData)))
+        GridPredicted = self.Controller.CreateGrid(InputData)
         
         #2. collect options
-        Column = self.InputDataColumn.GetValue() 
-        #@TODO(anne): pick up parameters if user chooses to set variogram parameters.
+        Column = self.InputDataColumn.GetValue()
+        ModelShortName = SelectedPanel.ModelChoicebox.GetStringSelection().split()[0]
+        Sill = SelectedPanel.SillCtrl.GetValue()
+        Nugget = SelectedPanel.NuggetCtrl.GetValue()
+        Range = SelectedPanel.RangeCtrl.GetValue()
+        
         #3. Fit variogram. For the moment in blind mode, no interactive window. Stay tuned!
         self.parent.log.write(_("Variogram fitting"))
-        Formula = robjects.r['as.formula'](robjects.r.paste(Column, "~ 1"))        
-        Variogram = SelectedPanel.FitVariogram(Formula, InputData)
+        Formula = self.Controller.ComposeFormula(Column)
+        
+        Variogram = self.Controller.FitVariogram(Formula, InputData, ModelShortName)
         # print variogram?
         #robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model']) #does not work.
         #see if it caused by automap/gstat dedicated plot function.
         self.parent.log.write(_("Variogram fitted."))
 
+        #### go on refactoring from here
+        
         #4. Kriging
         self.parent.log.write('Kriging...')
         KrigingResult = SelectedPanel.DoKriging(formula = Formula, data = InputData, grid = GridPredicted, model = Variogram)
@@ -282,7 +329,7 @@ class KrigingModule(wx.Frame):
         wx.Frame.__init__(self, parent, *args, **kwargs)
         # setting properties and all widgettery
         self.SetTitle(_("Kriging Module"))
-        self.log = Log(self) # writes on statusbar
+        self.log = Log(self) 
         self.CreateStatusBar()
         self.log.write(_("Ready."))
         
@@ -401,6 +448,7 @@ class RBookgeoRPanel(RBookPanel):
     def DoKriging():
         pass
     
+    
 def main(argv=None):
     #@TODO(anne): check all dependencies and data here.
     # grass - rpy2 - R - one of automap/gstat/geoR
@@ -411,6 +459,7 @@ def main(argv=None):
     if not haveRpy2:
         sys.exit(1)
     
+    #@FIXME: solve this double ifelse. the control should not be done twice.
     if argv is None:
         argv = sys.argv[1:] #stripping first item, the full name of this script
         # wxGUI call.
@@ -422,11 +471,12 @@ def main(argv=None):
     else:
         #CLI
         #@TODO: call here the different steps of kriging. Essentially, OnRunButton stuff.
+        
+        # Fit Variogram
+        # Krige
+        # Export map
+        
         print "I'm calculating the square root of nothing."
-
-    # commmented, as I don't know if the module will need it.
-    ##some applications might require image handlers
-    #wx.InitAllImageHandlers()    
     
 if __name__ == '__main__':
     if len(sys.argv) > 1:
