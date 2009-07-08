@@ -95,6 +95,12 @@ apply_C_code()
    set_native_eol "$1"
 }
 
+apply_C_header()
+{
+   set_mime_type "$1" text/x-chdr
+   set_native_eol "$1"
+}
+
 apply_Cpp_code()
 {
    set_mime_type "$1" "text/x-c++src"
@@ -122,6 +128,12 @@ for FILE in $* ; do
   case "$FILE_SUFFIX" in
     c)
 	apply_C_code "$FILE"
+	;;
+    h)
+	apply_C_header "$FILE"
+	;;
+    cc | cpp)
+	apply_Cpp_code "$FILE"
 	;;
     py)
 	apply_python_script "$FILE"
