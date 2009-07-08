@@ -137,7 +137,6 @@ for FILE in $* ; do
 	;;
     py)
 	apply_python_script "$FILE"
-	
 	;;
     html)
 	apply_html "$FILE"
