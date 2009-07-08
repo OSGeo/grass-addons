@@ -424,12 +424,16 @@ options = {'query':'', 'geometryfield':'', 'output':''}
 flags = {'d':0, 'z':0, 'o':0, 'g':0, 'l':0}
 importer = GrassPostGisImporter(options, flags)
 ##test configuration
+testsConfigOk = True
 host = 'localhost'
 dbname = 'yourdb'
 user = 'pguser'
 pwd = 'yourpwd'
-db = dbapi2.connect(host=host, database=dbname, user=user, password=pwd)
-cursor = db.cursor()
+try:
+    db = dbapi2.connect(host=host, database=dbname, user=user, password=pwd)
+    cursor = db.cursor()
+except:
+    testsConfigOk = False
 testTableName = 'test_grass_import'
 queryTableName = 'test_query'
 geometryField = 'the_geom'
@@ -685,7 +689,11 @@ if __name__ == "__main__":
     #brk(host="localhost", port=9000)
     options, flags = grass.parser()
     if flags['t'] is True:
-        tests()
+        if testsConfigOk is True:
+            tests()
+        else:
+            grass.error("Could not connect to test database. Check the tests configuration.")
     else:
         main()
+
 
