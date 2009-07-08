@@ -36,13 +36,13 @@ for details.
 #% required : yes
 #%end
 #%option
-#%option
 #% key: output
 #% type: string
 #% gisprompt: old,raster,raster
 #% description: Name of output map. If omitted, will be <input name>_kriging
 #% required : no
 #%end
+#%option
 #% key: package
 #% type: string
 #% options: gstat, geor
@@ -53,7 +53,7 @@ for details.
 #%option
 #% key: model
 #% type: string
-#% options: Exp, Sph, Gau, Mat, Lin
+#% options: Exp,Sph,Gau,Mat,Lin
 #% answer: 
 #% multiple: yes
 #% description: Variogram model(s). Leave empty to 
@@ -109,13 +109,6 @@ import gselect
 import wx
 import wx.lib.flatnotebook as FN
 
-#@TODO(anne): check all dependencies and data at the beginning:
-# grass - rpy2 - R - one of automap/gstat/geoR
-# a nice splash screen like QGIS does can fit the purpose, with a log message on the bottom and
-# popup windows for missing stuff messages.
-# For the moment, deps are checked when creating the notebook pages for each package, and the
-# data availability when clicking Run button. Quite late.
-
 ### i18N
 import gettext
 gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode=True)
@@ -167,7 +160,7 @@ class KrigingPanel(wx.Panel):
                                         FN.FNB_NO_NAV_BUTTONS |
                                         FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
         
-        for Rpackage in ["automap", "gstat", "geoR"]:
+        for Rpackage in ["gstat", "geoR"]:
             self.CreatePage(package = Rpackage)
         
         #@TODO(anne): check this dependency at the beginning.
@@ -339,9 +332,9 @@ class RBookPanel(wx.Panel):
     
     def ExportMap(self, map, col, name, overwrite):
         robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
-    
-class RBookautomapPanel(RBookPanel):
-    """ Subclass of RBookPanel, with specific automap options and kriging functions. """
+
+class RBookgstatPanel(RBookPanel):
+    """ Subclass of RBookPanel, with specific gstat options and kriging functions. """
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
         
@@ -352,25 +345,6 @@ class RBookautomapPanel(RBookPanel):
         self.VariogramSizer.Insert(2, self.VariogramCheckBox , proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
         
-        self.SetSizerAndFit(self.Sizer)
-        
-    def FitVariogram(self, formula, data):
-        return robjects.r.autofitVariogram(formula, data)
-        
-    def DoKriging(self, formula, data, grid, **kwargs):
-        KrigingResult = robjects.r.autoKrige(formula, data, grid, **kwargs)
-        return KrigingResult.r['krige_output'][0]
-    
-    def HideOptions(self, event):
-        for n in ["Sill", "Nugget", "Range"]:
-            getattr(self, n+"Ctrl").Enable(not event.IsChecked())
-        #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work
-
-class RBookgstatPanel(RBookPanel):
-    """ Subclass of RBookPanel, with specific gstat options and kriging functions. """
-    def __init__(self, parent, *args, **kwargs):
-        RBookPanel.__init__(self, parent, *args, **kwargs)
-
         try:
             ModelFactor = robjects.r.vgm().r['long']
             ModelList = robjects.r.levels(ModelFactor[0]) # no other way to let the Python pick it up..
@@ -380,24 +354,36 @@ class RBookgstatPanel(RBookPanel):
         
         self.ParametersSizer.Insert(before=0, item=wx.StaticText(self, id= wx.ID_ANY, label = _("Variogram model")))
         self.ModelChoicebox = wx.Choice(self, id=wx.ID_ANY, choices=ModelList)
+        self.ModelChoicebox.Enable(False) # by default 
         self.ParametersSizer.Insert(before=1, item= self.ModelChoicebox)
         
         self.SetSizerAndFit(self.Sizer)
         
     def FitVariogram(self, formula, data):
-        DataVariogram = robjects.r.variogram(formula, data)
-        ModelShortName = self.ModelChoicebox.GetStringSelection().split()[0]
-        VariogramModel = robjects.r['fit.variogram'](DataVariogram,
+        if self.VariogramCheckBox.IsChecked():
+            robjects.r.require("automap")
+            VariogramModel = robjects.r.autofitVariogram(formula, data)
+            return VariogramModel.r['var_model'][0]
+        else:
+            DataVariogram = robjects.r.variogram(formula, data)
+            ModelShortName = self.ModelChoicebox.GetStringSelection().split()[0]
+            VariogramModel = robjects.r['fit.variogram'](DataVariogram,
                                                      model = robjects.r.vgm(psill = self.SillCtrl.GetValue(),
                                                                             model = ModelShortName,
                                                                             nugget = self.NuggetCtrl.GetValue(),
                                                                             range = self.RangeCtrl.GetValue()))
-        return VariogramModel
+            return VariogramModel
         
-    def DoKriging(self, formula, data, grid,  model):
+    def DoKriging(self, formula, data, grid, model):
         KrigingResult = robjects.r.krige(formula, data, grid, model)
-        print KrigingResult.rclass
         return KrigingResult
+    
+    def HideOptions(self, event):
+        self.ModelChoicebox.Enable(not event.IsChecked())
+        for n in ["Sill", "Nugget", "Range"]:
+            getattr(self, n+"Ctrl").Enable(not event.IsChecked())
+        #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work    
+    
     
 class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
@@ -416,12 +402,16 @@ class RBookgeoRPanel(RBookPanel):
         pass
     
 def main(argv=None):
-    #@TODO(anne):add here all dependency checking
+    #@TODO(anne): check all dependencies and data here.
+    # grass - rpy2 - R - one of automap/gstat/geoR
+    # a nice splash screen like QGIS does can fit the purpose, with a log message on the bottom and
+    # popup windows for missing stuff messages.
+    # For the moment, deps are checked when creating the notebook pages for each package, and the
+    # data availability when clicking Run button. Quite late.
     if not haveRpy2:
         sys.exit(1)
     
     if argv is None:
-        # is this check needed? I won't call the module in other way than last line.
         argv = sys.argv[1:] #stripping first item, the full name of this script
         # wxGUI call.
         app = wx.App()
@@ -430,6 +420,7 @@ def main(argv=None):
         k.Show()
         app.MainLoop()
     else:
+        #CLI
         #@TODO: call here the different steps of kriging. Essentially, OnRunButton stuff.
         print "I'm calculating the square root of nothing."
 
