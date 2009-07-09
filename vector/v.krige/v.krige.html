@@ -1,15 +1,51 @@
 <h2>NAME</h2>
-<i><b>v.krige</b></i>  - Performs kriging via R software.
-
+<em><b>v.krige.py</b></em>  - Performs ordinary kriging.
 <h2>KEYWORDS</h2>
-TODO
-
+kriging
 <h2>SYNOPSIS</h2>
-<b>v.krige</b><br>
-<b>v.krige help</b><br>
-<!--
-<b>v.krige</b> <b>map</b>=<em>string</em>  [<b>layer</b>=<em>integer</em>]  <b>column</b>=<em>string</em>  [<b>value</b>=<em>string</em>]   [<b>qcolumn</b>=<em>string</em>]   [<b>where</b>=<em>string</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
--->
+<b>v.krige.py</b><br>
+<b>v.krige.py help</b><br>
+<b>v.krige.py</b> [-<b>o</b>] <b>input</b>=<em>string</em> <b>column</b>=<em>string</em>  [<b>output</b>=<em>string</em>]   [<b>package</b>=<em>string</em>]   [<b>model</b>=<em>string</em>[,<i>string</i>,...]]   [<b>range</b>=<em>integer</em>]   [<b>nugget</b>=<em>integer</em>]   [<b>sill</b>=<em>integer</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
+
+<h3>Flags:</h3>
+<DL>
+<DT><b>-o</b></DT>
+<DD>Overwrite output map with same name</DD>
+
+<DT><b>--verbose</b></DT>
+<DD>Verbose module output</DD>
+<DT><b>--quiet</b></DT>
+<DD>Quiet module output</DD>
+</DL>
+
+<h3>Parameters:</h3>
+<DL>
+<DT><b>input</b>=<em>string</em></DT>
+<DD>Name of point vector map containing sample data.</DD>
+
+<DT><b>column</b>=<em>string</em></DT>
+<DD>Column with numerical value to be interpolated</DD>
+
+<DT><b>output</b>=<em>string</em></DT>
+<DD>Name of output map. If omitted, will be &lt;input name&gt;_kriging</DD>
+
+<DT><b>package</b>=<em>string</em></DT>
+<DD>R package to use. Choices: gstat, geor</DD>
+<DD>Options: <em>gstat, geor</em></DD>
+<DD>Default: <em>gstat</em></DD>
+
+<DT><b>model</b>=<em>string[,<i>string</i>,...]</em></DT>
+<DD>Variogram model(s). Leave empty to</DD>
+<DD>Options: <em>Exp,Sph,Gau,Mat,Lin</em></DD>
+
+<DT><b>range</b>=<em>integer</em></DT>
+<DD>Range value. Automatically fixed if not set</DD>
+
+<DT><b>nugget</b>=<em>integer</em></DT>
+<DD>Nugget value. Automatically fixed if not set</DD>
+
+<DT><b>sill</b>=<em>integer</em></DT>
+<DD>Sill value. Automatically fixed if not set</DD>
 
 <h2>DESCRIPTION</h2>
 <i>v.krige</i> allows to perform kriging operations in GRASS environment,
@@ -43,7 +79,27 @@ implementation.
 
 <h2>EXAMPLES</h2>
 
-TODO
+Run GUI:
+<br>
+<div class="code"><pre>
+   v.krige.py
+</pre></div>
+
+<p>
+
+Run CLI, minimum options required for ordinary kriging with automatic variogram fit (requires package automap):
+<br>
+<div class="code"><pre>
+   v.krige.py input=rs column=elev
+</pre></div>
+
+<p>
+
+Run CLI, more options:
+<br>
+<div class="code"><pre>
+   v.krige.py input=rs@PERMANENT column=elev model=Lin sill=2500 nugget=0 range=1000 output=rs_kriging
+</pre></div>
 
 <h2>SEE ALSO</h2>
 
