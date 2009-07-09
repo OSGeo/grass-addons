@@ -438,7 +438,7 @@ def main(argv=None):
     # data availability when clicking Run button. Quite late.
     if not haveRpy2:
         sys.exit(1)
-    
+
     #@FIXME: solve this double ifelse. the control should not be done twice.
     if argv is None:
         argv = sys.argv[1:] #stripping first item, the full name of this script
@@ -449,43 +449,44 @@ def main(argv=None):
         k.Show()
         app.MainLoop()
     else:
+        options, flags = argv
         #CLI
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
         controller = Controller()
-        #print argv[0]
-        #print argv[1]
-        if argv[0]['model'] is '':
+        #print options
+        #print flags
+        if options['model'] is '':
             try:
                 robjects.r.require("automap")
             except ImportError, e:
                 grass.message(_("R package automap is missing, no variogram autofit available."))
-        if argv[0]['output'] is '':
-            argv[0]['output'] = argv[0]['input'] + '_kriging'
+        if options['output'] is '':
+            options['output'] = options['input'] + '_kriging'
         
         ## check for output map with same name NOW
-        #if argv[0]['output'] == grass.find_file():
+        #if options['output'] == grass.find_file():
         #    pass
         
         # Import packages
-        robjects.r.require(argv[0]['package'])
+        robjects.r.require(options['package'])
         robjects.r.require("spgrass6")
         
         # Get data and create grid
         grass.message(_("Importing data..."))
-        InputData = controller.ImportMap(argv[0]['input'])
+        InputData = controller.ImportMap(options['input'])
         grass.message("Imported.")
         GridPredicted = controller.CreateGrid(InputData)
         
         # Fit Variogram
         grass.message(_("Fitting variogram..."))
-        Formula = controller.ComposeFormula(argv[0]['column'])
+        Formula = controller.ComposeFormula(options['column'])
         Variogram = controller.FitVariogram(Formula,
                                             InputData,
-                                            model = argv[0]['model'],
-                                            autofit = argv[0]['model'] is '',
-                                            sill = argv[0]['sill'],
-                                            nugget = argv[0]['nugget'],
-                                            range = argv[0]['range'])
+                                            model = options['model'],
+                                            autofit = options['model'] is '',
+                                            sill = options['sill'],
+                                            nugget = options['nugget'],
+                                            range = options['range'])
         grass.message(_("Variogram fitted."))
         
         # Krige
@@ -496,7 +497,7 @@ def main(argv=None):
         # Export map
         controller.ExportMap(map = KrigingResult,
                              column='var1.pred',
-                             name = argv[0]['output'])
+                             name = options['output'])
         
         grass.message(_("Map exported."))
     
