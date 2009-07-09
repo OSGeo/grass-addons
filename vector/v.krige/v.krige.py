@@ -114,14 +114,15 @@ gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unico
 #global variables
 gisenv = grass.gisenv()
 Region = grass.region()
+ModelList = ['Exp','Sph','Gau','Mat','Lin']
 
 #classes in alphabetical order. methods in logical order :)
 
 class Controller():
     """ Executes analysis. """
        
-    def ImportMap(self, map):
-        return robjects.r.readVECT6(map, type= 'point')
+    def ImportMap(self, Map):
+        return robjects.r.readVECT6(Map, type= 'point')
     
     def CreateGrid(self, InputData):
         Grid = robjects.r.gmeta2grd()
@@ -137,21 +138,19 @@ class Controller():
         Formula = robjects.r['as.formula'](robjects.r.paste(Column, "~ 1"))
         return Formula
     
-    def FitVariogram(self, Formula, InputData, AutoFit, **kwargs):
+    def FitVariogram(self, Formula, InputData, Model, AutoFit, Sill=0, Nugget=0, Range=0):
         if AutoFit:
             robjects.r.require("automap")
             VariogramModel = robjects.r.autofitVariogram(Formula, InputData)
             return VariogramModel.r['var_model'][0]
         else:
-            DataVariogram = robjects.r.variogram(Formula, InputData)
-            ModelShortName = self.ModelChoicebox.GetStringSelection().split()[0]
+            DataVariogram = robjects.r.variogram(Formula, InputData) 
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
-                                                     model = robjects.r.vgm(psill = Sill,
-                                                                            model = ModelShortName,
+                                                        model = robjects.r.vgm(psill = Sill,
+                                                                            model = Model,
                                                                             nugget = Nugget,
                                                                             range = Range))
             return VariogramModel
-        pass
     
     def DoKriging():
         pass
@@ -407,6 +406,7 @@ class RBookgstatPanel(RBookPanel):
         self.SetSizerAndFit(self.Sizer)
         
     def FitVariogram(self, formula, data):
+        print "SHOULD BE OVERRIDDEN"
         if self.VariogramCheckBox.IsChecked():
             robjects.r.require("automap")
             VariogramModel = robjects.r.autofitVariogram(formula, data)
@@ -470,17 +470,46 @@ def main(argv=None):
         app.MainLoop()
     else:
         #CLI
-        #@TODO: call here the different steps of kriging. Essentially, OnRunButton stuff.
+        #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
+        controller = Controller()
+        #print argv[0]
+        #print argv[1]
+        if argv[0]['model'] is '':
+            try:
+                robjects.r.require("automap")
+            except ImportError, e:
+                grass.message(_("R package automap is missing, no variogram autofit available."))
+        
+        # Import packages
+        robjects.r.require(argv[0]['package'])
+        robjects.r.require("spgrass6")
+        
+        # Get data and create grid
+        grass.message(_("Importing data..."))
+        InputData = controller.ImportMap(argv[0]['input'])
+        grass.message("Imported.")
         
         # Fit Variogram
-        # Krige
-        # Export map
+        grass.message("Fitting variogram...")
+        Formula = controller.ComposeFormula(argv[0]['column'])
+        Variogram = controller.FitVariogram(Formula,
+                                            InputData,
+                                            Model = argv[0]['model'],
+                                            AutoFit = argv[0]['model'] is '',
+                                            Sill = argv[0]['sill'],
+                                            Nugget = argv[0]['nugget'],
+                                            Range = argv[0]['range']
+                                            )
+        grass.message("Variogram fitted.")
         
-        print "I'm calculating the square root of nothing."
+        # Krige
+        grass.message("Kriging...")
+        
+        
+        # Export map
     
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        args = grass.parser()
-        sys.exit(main(argv=args))
+        sys.exit(main(argv=grass.parser()))
     else:
         main()
