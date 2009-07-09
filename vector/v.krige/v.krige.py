@@ -26,7 +26,7 @@ for details.
 #% key: input
 #% type: string
 #% gisprompt: old,vector,vector
-#% description: Name of point vector map containing sample data.
+#% description: Name of point vector map containing sample data
 #% required: yes
 #%end
 #%option
@@ -38,8 +38,9 @@ for details.
 #%option
 #% key: output
 #% type: string
-#% gisprompt: old,raster,raster
-#% description: Name of output map. If omitted, will be <input name>_kriging
+#% gisprompt: new,cell,raster
+#% label: Name for output raster map
+#% description: If omitted, will be <input name>_kriging
 #% required : no
 #%end
 #%option
@@ -47,7 +48,7 @@ for details.
 #% type: string
 #% options: gstat, geor
 #% answer: gstat
-#% description: R package to use. Choices: gstat, geor 
+#% description: R package to use
 #% required: no
 #%end
 #%option
@@ -55,35 +56,31 @@ for details.
 #% type: string
 #% options: Exp,Sph,Gau,Mat,Lin
 #% multiple: yes
-#% description: Variogram model(s). Leave empty to 
+#% label: Variogram model(s)
+#% description: Leave empty to 
 #% required: no
 #%end
 #%option
 #% key: range
 #% type: integer
-#% description: Range value. Automatically fixed if not set
+#% label: Range value
+#% description: Automatically fixed if not set
 #% required : no
 #%end
 #%option
 #% key: nugget
 #% type: double
-#% description: Nugget value. Automatically fixed if not set
+#% label: Nugget value
+#% description: Automatically fixed if not set
 #% required : no
 #%end
 #%option
 #% key: sill
 #% type: double
-#% description: Sill value. Automatically fixed if not set
+#% label: Sill value
+#% description: Automatically fixed if not set
 #% required : no
 #%end
-#%flag
-#% key: o
-#% description: Overwrite output map with same name
-#%end
-# #%flag
-# #% key: 
-# #% description: 
-# #%end
 
 import os, sys
 
@@ -499,9 +496,9 @@ def main(argv=None):
         # Export map
         controller.ExportMap(map = KrigingResult,
                              column='var1.pred',
-                             name = argv[0]['output'],
-                             overwrite = argv[1]['o'])
-        grass.message(_("Map exported. "))
+                             name = argv[0]['output'])
+        
+        grass.message(_("Map exported."))
     
 if __name__ == '__main__':
     if len(sys.argv) > 1:
