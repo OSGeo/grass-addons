@@ -119,45 +119,45 @@ ModelList = ['Exp','Sph','Gau','Mat','Lin']
 #classes in alphabetical order. methods in logical order :)
 
 class Controller():
-    """ Executes analysis. """
+    """ Executes analysis. For the moment, only with gstat functions."""
        
-    def ImportMap(self, Map):
-        return robjects.r.readVECT6(Map, type= 'point')
+    def ImportMap(self, map):
+        return robjects.r.readVECT6(map, type= 'point')
     
-    def CreateGrid(self, InputData):
+    def CreateGrid(self, inputdata):
         Grid = robjects.r.gmeta2grd()
-        ##create the spatialgriddataframe with these settings
         GridPredicted = robjects.r.SpatialGridDataFrame(Grid,
                                                         data=robjects.r['data.frame']
                                                         (k=robjects.r.rep(1,Region['cols']*Region['rows'])),
-                                                        proj4string=robjects.r.CRS(robjects.r.proj4string(InputData)))
+                                                        proj4string=robjects.r.CRS(robjects.r.proj4string(inputdata)))
         return GridPredicted
     
-    def ComposeFormula(self, Column):
+    def ComposeFormula(self, column):
         # will change when the formula will need to be more complex. Not yet.
-        Formula = robjects.r['as.formula'](robjects.r.paste(Column, "~ 1"))
+        Formula = robjects.r['as.formula'](robjects.r.paste(column, "~ 1"))
         return Formula
     
-    def FitVariogram(self, Formula, InputData, Model, AutoFit, Sill=0, Nugget=0, Range=0):
-        if AutoFit:
+    def FitVariogram(self, formula, inputdata, model, autofit, sill=0, nugget=0, range=0):
+        if autofit:
             robjects.r.require("automap")
-            VariogramModel = robjects.r.autofitVariogram(Formula, InputData)
+            VariogramModel = robjects.r.autofitVariogram(formula, inputdata)
             return VariogramModel.r['var_model'][0]
         else:
-            DataVariogram = robjects.r.variogram(Formula, InputData) 
+            DataVariogram = robjects.r.variogram(formula, inputdata) 
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
-                                                        model = robjects.r.vgm(psill = Sill,
-                                                                            model = Model,
-                                                                            nugget = Nugget,
-                                                                            range = Range))
+                                                        model = robjects.r.vgm(psill = sill,
+                                                                            model = model,
+                                                                            nugget = nugget,
+                                                                            range = range))
             return VariogramModel
     
-    def DoKriging():
-        pass
-    
-    def ExportMap():
-        pass
-
+    def DoKriging(self, formula, inputdata, grid, model):
+        KrigingResult = robjects.r.krige(formula, inputdata, grid, model)
+        return KrigingResult
+ 
+    def ExportMap(self, map, column, name, overwrite):
+        robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
+        
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
     def __init__(self, parent, *args, **kwargs):
@@ -299,22 +299,31 @@ class KrigingPanel(wx.Panel):
         self.parent.log.write(_("Variogram fitting"))
         Formula = self.Controller.ComposeFormula(Column)
         
-        Variogram = self.Controller.FitVariogram(Formula, InputData, ModelShortName)
+        Variogram = self.Controller.FitVariogram(Formula,
+                                                 InputData,
+                                                 ModelShortName,
+                                                 autofit = SelectedPanel.VariogramCheckBox.IsChecked(),
+                                                 sill = Sill,
+                                                 nugget = Nugget,
+                                                 range = Range)
         # print variogram?
         #robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model']) #does not work.
         #see if it caused by automap/gstat dedicated plot function.
         self.parent.log.write(_("Variogram fitted."))
-
-        #### go on refactoring from here
         
         #4. Kriging
         self.parent.log.write('Kriging...')
-        KrigingResult = SelectedPanel.DoKriging(formula = Formula, data = InputData, grid = GridPredicted, model = Variogram)
+        KrigingResult = self.Controller.DoKriging(formula = Formula,
+                                                  inputdata = InputData,
+                                                  grid = GridPredicted,
+                                                  model = Variogram)
         self.parent.log.write('Kriging performed.')
         
         #5. Format output
-        SelectedPanel.ExportMap(map = KrigingResult, col='var1.pred', name = self.OutputMapName.GetValue(),
-                              overwrite = self.OverwriteCheckBox.GetValue())
+        self.Controller.ExportMap(map = KrigingResult,
+                                  column='var1.pred',
+                                  name = self.OutputMapName.GetValue(),
+                                  overwrite = self.OverwriteCheckBox.GetValue())
         self.parent.log.write('Yippee! Succeeded! Ready for another run.')
         
     def OnCloseWindow(self, event):
@@ -404,26 +413,6 @@ class RBookgstatPanel(RBookPanel):
         self.ParametersSizer.Insert(before=1, item= self.ModelChoicebox)
         
         self.SetSizerAndFit(self.Sizer)
-        
-    def FitVariogram(self, formula, data):
-        print "SHOULD BE OVERRIDDEN"
-        if self.VariogramCheckBox.IsChecked():
-            robjects.r.require("automap")
-            VariogramModel = robjects.r.autofitVariogram(formula, data)
-            return VariogramModel.r['var_model'][0]
-        else:
-            DataVariogram = robjects.r.variogram(formula, data)
-            ModelShortName = self.ModelChoicebox.GetStringSelection().split()[0]
-            VariogramModel = robjects.r['fit.variogram'](DataVariogram,
-                                                     model = robjects.r.vgm(psill = self.SillCtrl.GetValue(),
-                                                                            model = ModelShortName,
-                                                                            nugget = self.NuggetCtrl.GetValue(),
-                                                                            range = self.RangeCtrl.GetValue()))
-            return VariogramModel
-        
-    def DoKriging(self, formula, data, grid, model):
-        KrigingResult = robjects.r.krige(formula, data, grid, model)
-        return KrigingResult
     
     def HideOptions(self, event):
         self.ModelChoicebox.Enable(not event.IsChecked())
@@ -441,12 +430,6 @@ class RBookgeoRPanel(RBookPanel):
             n.Hide()
         self.Sizer.Add(wx.StaticText(self, id= wx.ID_ANY, label = _("Work in progress! No functionality provided.")))
         self.SetSizerAndFit(self.Sizer)
-        
-    def FitVariogram(self, Formula, InputData):
-        pass
-        
-    def DoKriging():
-        pass
     
     
 def main(argv=None):
@@ -479,6 +462,12 @@ def main(argv=None):
                 robjects.r.require("automap")
             except ImportError, e:
                 grass.message(_("R package automap is missing, no variogram autofit available."))
+        if argv[0]['output'] is '':
+            argv[0]['output'] = argv[0]['input'] + '_kriging'
+        
+        ## check for output map with same name NOW
+        #if argv[0]['output'] == grass.find_file():
+        #    pass
         
         # Import packages
         robjects.r.require(argv[0]['package'])
@@ -488,25 +477,31 @@ def main(argv=None):
         grass.message(_("Importing data..."))
         InputData = controller.ImportMap(argv[0]['input'])
         grass.message("Imported.")
+        GridPredicted = controller.CreateGrid(InputData)
         
         # Fit Variogram
-        grass.message("Fitting variogram...")
+        grass.message(_("Fitting variogram..."))
         Formula = controller.ComposeFormula(argv[0]['column'])
         Variogram = controller.FitVariogram(Formula,
                                             InputData,
-                                            Model = argv[0]['model'],
-                                            AutoFit = argv[0]['model'] is '',
-                                            Sill = argv[0]['sill'],
-                                            Nugget = argv[0]['nugget'],
-                                            Range = argv[0]['range']
-                                            )
-        grass.message("Variogram fitted.")
+                                            model = argv[0]['model'],
+                                            autofit = argv[0]['model'] is '',
+                                            sill = argv[0]['sill'],
+                                            nugget = argv[0]['nugget'],
+                                            range = argv[0]['range'])
+        grass.message(_("Variogram fitted."))
         
         # Krige
-        grass.message("Kriging...")
-        
+        grass.message(_("Kriging..."))
+        KrigingResult = controller.DoKriging(Formula, InputData, GridPredicted, Variogram)
+        grass.message(_("Kriging performed."))
         
         # Export map
+        controller.ExportMap(map = KrigingResult,
+                             column='var1.pred',
+                             name = argv[0]['output'],
+                             overwrite = argv[1]['o'])
+        grass.message(_("Map exported. "))
     
 if __name__ == '__main__':
     if len(sys.argv) > 1:
