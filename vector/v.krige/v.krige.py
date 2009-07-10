@@ -180,10 +180,10 @@ class Controller():
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model)
         return KrigingResult
  
-    def ExportMap(self, map, column, name, **kwargs):
-        robjects.r.writeRAST6(map, vname = name, zcol = column, **kwargs)
+    def ExportMap(self, map, column, name, overwrite):
+        robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
         
-    def Run(self, input, column, output, package, sill, nugget, range, logger, model = None, **kwargs):
+    def Run(self, input, column, output, package, sill, nugget, range, logger, overwrite, model = None, **kwargs):
         """ Wrapper for all functions above. """        
         # Get data and create grid
         logger.message(_("Importing data..."))
@@ -196,8 +196,8 @@ class Controller():
         Formula = self.ComposeFormula(column)
         Variogram = self.FitVariogram(Formula,
                                       InputData,
+                                      autofit = model is None,
                                       model = model,
-                                      autofit = model is '',
                                       sill = sill,
                                       nugget = nugget,
                                       range = range)
@@ -212,7 +212,7 @@ class Controller():
         self.ExportMap(map = KrigingResult,
                        column='var1.pred',
                        name = output,
-                       **kwargs)
+                       overwrite = overwrite)
         
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
@@ -337,6 +337,7 @@ class KrigingPanel(wx.Panel):
                             column = self.InputDataColumn.GetValue(),
                             output = self.OutputMapName.GetValue(),
                             overwrite = self.OverwriteCheckBox.IsChecked(),
+                            autofit = SelectedPanel.VariogramCheckBox.IsChecked(),
                             package = self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()),
                             sill = SelectedPanel.SillCtrl.GetValue(),
                             nugget = SelectedPanel.NuggetCtrl.GetValue(),
@@ -469,7 +470,7 @@ def main(argv=None):
             options['output'] =  options['input'] + '_kriging'
 
         # check for output map with same name. g.parser can't handle this, afaik.
-        if grass.find_file(options['output'], element = 'cell')['fullname'] and not os.getenv("GRASS_OVERWRITE"):
+        if grass.find_file(options['output'], element = 'cell')['fullname'] and os.getenv("GRASS_OVERWRITE") == 1:
             grass.fatal(_("option: <output>: Raster map already exists."))       
 
         if options['model'] is '':
@@ -478,11 +479,13 @@ def main(argv=None):
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
         
-        controller = Controller()    
+        controller = Controller()
         controller.Run(input = options['input'],
                        column = options['column'],
                        output = options['output'],
+                       overwrite = os.getenv("GRASS_OVERWRITE") == 1,
                        package = options['package'],
+                       autofit = options['model'] is '',
                        model = options['model'],
                        sill = options['sill'],
                        nugget = options['nugget'],
