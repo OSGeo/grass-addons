@@ -84,14 +84,35 @@ for details.
 
 import os, sys
 
+########### depenedency check
+# GRASS binding
+try:
+    import grass.script as grass
+except ImportError:
+    sys.exit(_("No GRASS-python library found."))
+
+# R
+try: 
+    grass.find_program('R')
+except:
+    sys.exit(_("R is not installed. Install it and re-run, or modify environment variables."))
+
+# rpy2
 try:
     import rpy2.robjects as robjects
     haveRpy2 = True
 except ImportError:
-    print >> sys.stderr, "Rpy2 not found. Please install it and re-run."
+    print >> sys.stderr, "Rpy2 not found. Please install it and re-run." # ok for other OSes?
     haveRpy2 = False
+if not haveRpy2:
+    sys.exit(1)
 
-import grass.script as grass 
+# R packages gstat or geoR
+try:
+    robjects.r.require("gstat") or robjects.r.require("geoR")
+except:
+    sys.exit(_("No gstat neither geoR package installed. Install one of them (gstat preferably) via R installer."))
+###########
 
 GUIModulesPath = os.path.join(os.getenv("GISBASE"), "etc", "wxpython", "gui_modules")
 sys.path.append(GUIModulesPath)
@@ -439,9 +460,7 @@ def main(argv=None):
     # popup windows for missing stuff messages.
     # For the moment, deps are checked when creating the notebook pages for each package, and the
     # data availability when clicking Run button. Quite late.
-    if not haveRpy2:
-        sys.exit(1)
-
+    
     #@FIXME: solve this double ifelse. the control should not be done twice.
     if argv is None:
         argv = sys.argv[1:] #stripping first item, the full name of this script
@@ -477,8 +496,7 @@ def main(argv=None):
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
         
-        controller = Controller()
-        
+        controller = Controller()    
         controller.Run(input = options['input'],
                        column = options['column'],
                        output = options['output'],
