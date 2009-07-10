@@ -110,6 +110,7 @@ if not haveRpy2:
 # R packages gstat or geoR
 try:
     robjects.r.require("gstat") # or robjects.r.require("geoR") #@TODO: enable it one day.
+    robjects.r.require("spgrass6")
 except:
     sys.exit(_("No gstat neither geoR package installed. Install one of them (gstat preferably) via R installer."))
 ###########
@@ -156,7 +157,7 @@ class Controller():
         Formula = robjects.r['as.formula'](robjects.r.paste(column, "~ 1"))
         return Formula
     
-    def FitVariogram(self, formula, inputdata, model, autofit, sill='NA', nugget='NA', range='NA'):
+    def FitVariogram(self, formula, inputdata, model, autofit, sill=0, nugget=0, range=0):
         if autofit:
             robjects.r.require("automap")
             VariogramModel = robjects.r.autofitVariogram(formula, inputdata)
@@ -179,15 +180,11 @@ class Controller():
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model)
         return KrigingResult
  
-    def ExportMap(self, map, column, name, overwrite):
-        robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
+    def ExportMap(self, map, column, name, **kwargs):
+        robjects.r.writeRAST6(map, vname = name, zcol = column, **kwargs)
         
-    def Run(self, input, column, output, package, sill, nugget, range, logger, overwrite, model = None):
-        """ Wrapper for all functions above. """
-        # Load packages
-        robjects.r.require(package)
-        robjects.r.require("spgrass6")
-        
+    def Run(self, input, column, output, package, sill, nugget, range, logger, model = None, **kwargs):
+        """ Wrapper for all functions above. """        
         # Get data and create grid
         logger.message(_("Importing data..."))
         InputData = self.ImportMap(input)
@@ -200,7 +197,7 @@ class Controller():
         Variogram = self.FitVariogram(Formula,
                                       InputData,
                                       model = model,
-                                      autofit = model is None,
+                                      autofit = model is '',
                                       sill = sill,
                                       nugget = nugget,
                                       range = range)
@@ -215,7 +212,7 @@ class Controller():
         self.ExportMap(map = KrigingResult,
                        column='var1.pred',
                        name = output,
-                       overwrite = overwrite)
+                       **kwargs)
         
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
@@ -313,7 +310,7 @@ class KrigingPanel(wx.Panel):
         
     def CreatePage(self, package):
         """ Creates the three notebook pages, one for each R package """
-        if robjects.r.require(package) and robjects.r.require('spgrass6'):
+        for package in ["gstat"]: 
             classobj = eval("RBook"+package+"Panel")
             setattr(self, "RBook"+package+"Panel", (classobj(self, id=wx.ID_ANY)))
             getattr(self, "RBook"+package+"Panel")
@@ -466,7 +463,6 @@ def main(argv=None):
         app.MainLoop()
         
     else:
-        print argv
         options, flags = argv
         #CLI
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
@@ -478,13 +474,11 @@ def main(argv=None):
             except:
                 pass
             options['output'] =  options['input'] + '_kriging'
+
         # check for output map with same name. g.parser can't handle this, afaik.
-        if grass.find_file(options['output'], element = 'cell')['fullname']:
-            grass.error(_("option: <output>: Raster map already exists."))
-            sys.exit()        
+        if grass.find_file(options['output'], element = 'cell')['fullname'] and not os.getenv("GRASS_OVERWRITE"):
+            grass.fatal(_("option: <output>: Raster map already exists."))       
         
-        #print options
-        print flags
         if options['model'] is '':
             try:
                 robjects.r.require("automap")
@@ -495,7 +489,6 @@ def main(argv=None):
         controller.Run(input = options['input'],
                        column = options['column'],
                        output = options['output'],
-                       overwrite = flags['overwrite'],
                        package = options['package'],
                        model = options['model'],
                        sill = options['sill'],
