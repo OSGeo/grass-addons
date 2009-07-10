@@ -111,6 +111,7 @@ gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unico
 #global variables
 gisenv = grass.gisenv()
 Region = grass.region()
+# model list should come from gstat::vgm(), hardwired here.
 ModelList = ['Exp','Sph','Gau','Mat','Lin']
 
 #classes in alphabetical order. methods in logical order :)
@@ -134,7 +135,7 @@ class Controller():
         Formula = robjects.r['as.formula'](robjects.r.paste(column, "~ 1"))
         return Formula
     
-    def FitVariogram(self, formula, inputdata, model, autofit, sill=0, nugget=0, range=0):
+    def FitVariogram(self, formula, inputdata, model, autofit, sill='NA', nugget='NA', range='NA'):
         if autofit:
             robjects.r.require("automap")
             VariogramModel = robjects.r.autofitVariogram(formula, inputdata)
@@ -147,6 +148,11 @@ class Controller():
                                                                             nugget = nugget,
                                                                             range = range))
             return VariogramModel
+        
+        ## print variogram?
+        ##robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model']) #does not work.
+        ##see if it caused by automap/gstat dedicated plot function.
+        #self.parent.log.write(_("Variogram fitted."))
     
     def DoKriging(self, formula, inputdata, grid, model):
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model)
@@ -154,6 +160,40 @@ class Controller():
  
     def ExportMap(self, map, column, name, overwrite):
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
+        
+    def Run(self, input, column, output, package, sill, nugget, range, logger, model = None):
+        """ Wrapper for all functions above. """
+        # Load packages
+        robjects.r.require(package)
+        robjects.r.require("spgrass6")
+        
+        # Get data and create grid
+        logger.message(_("Importing data..."))
+        InputData = self.ImportMap(input)
+        logger.message("Imported.")
+        GridPredicted = self.CreateGrid(InputData)
+        
+        # Fit Variogram
+        logger.message(_("Fitting variogram..."))
+        Formula = self.ComposeFormula(column)
+        Variogram = self.FitVariogram(Formula,
+                                      InputData,
+                                      model = model,
+                                      autofit = model is None,
+                                      sill = sill,
+                                      nugget = nugget,
+                                      range = range)
+        logger.message(_("Variogram fitted."))
+        
+        # Krige
+        logger.message(_("Kriging..."))
+        KrigingResult = self.DoKriging(Formula, InputData, GridPredicted, Variogram)
+        logger.message(_("Kriging performed."))
+        
+        # Export map
+        self.ExportMap(map = KrigingResult,
+                             column='var1.pred',
+                             name = output)
         
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
@@ -277,51 +317,15 @@ class KrigingPanel(wx.Panel):
         # pages, but only the selected one will be executed when Run is pressed.
         SelectedPanel = self.RPackagesBook.GetCurrentPage()
         
-        #0. require packages. See creation of the notebook pages and note after import directives.
-        
-        #1. get the data in R format, i.e. SpatialPointsDataFrame
-        InputData = self.Controller.ImportMap(self.InputDataMap.GetValue())
-        
-        #1.5 create the grid where to estimate values. Not used by block-kriging
-        GridPredicted = self.Controller.CreateGrid(InputData)
-        
-        #2. collect options
-        Column = self.InputDataColumn.GetValue()
-        ModelShortName = SelectedPanel.ModelChoicebox.GetStringSelection().split()[0]
-        Sill = SelectedPanel.SillCtrl.GetValue()
-        Nugget = SelectedPanel.NuggetCtrl.GetValue()
-        Range = SelectedPanel.RangeCtrl.GetValue()
-        
-        #3. Fit variogram. For the moment in blind mode, no interactive window. Stay tuned!
-        self.parent.log.write(_("Variogram fitting"))
-        Formula = self.Controller.ComposeFormula(Column)
-        
-        Variogram = self.Controller.FitVariogram(Formula,
-                                                 InputData,
-                                                 ModelShortName,
-                                                 autofit = SelectedPanel.VariogramCheckBox.IsChecked(),
-                                                 sill = Sill,
-                                                 nugget = Nugget,
-                                                 range = Range)
-        # print variogram?
-        #robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model']) #does not work.
-        #see if it caused by automap/gstat dedicated plot function.
-        self.parent.log.write(_("Variogram fitted."))
-        
-        #4. Kriging
-        self.parent.log.write('Kriging...')
-        KrigingResult = self.Controller.DoKriging(formula = Formula,
-                                                  inputdata = InputData,
-                                                  grid = GridPredicted,
-                                                  model = Variogram)
-        self.parent.log.write('Kriging performed.')
-        
-        #5. Format output
-        self.Controller.ExportMap(map = KrigingResult,
-                                  column='var1.pred',
-                                  name = self.OutputMapName.GetValue(),
-                                  overwrite = self.OverwriteCheckBox.GetValue())
-        self.parent.log.write('Yippee! Succeeded! Ready for another run.')
+        self.Controller.Run(input = self.InputDataMap.GetValue(),
+                            column = self.InputDataColumn.GetValue(),
+                            output = self.OutputMapName.GetValue(),
+                            package = self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()), # crashtest it
+                            sill = SelectedPanel.SillCtrl.GetValue(),
+                            nugget = SelectedPanel.NuggetCtrl.GetValue(),
+                            range = SelectedPanel.RangeCtrl.GetValue(),
+                            logger = self.parent.log
+                            )
         
     def OnCloseWindow(self, event):
         """ Cancel button pressed"""
@@ -336,7 +340,7 @@ class KrigingModule(wx.Frame):
         self.SetTitle(_("Kriging Module"))
         self.log = Log(self) 
         self.CreateStatusBar()
-        self.log.write(_("Ready."))
+        self.log.message(_("Ready."))
         
         self.Panel = KrigingPanel(self)
         self.SetMinSize(self.GetBestSize())
@@ -348,7 +352,7 @@ class Log:
     def __init__(self, parent):
         self.parent = parent
 
-    def write(self, text_string):
+    def message(self, text_string):
         """ Updates status bar """
         self.parent.SetStatusText(text_string.strip())
 
@@ -467,39 +471,16 @@ def main(argv=None):
         #if options['output'] == grass.find_file():
         #    pass
         
-        # Import packages
-        robjects.r.require(options['package'])
-        robjects.r.require("spgrass6")
-        
-        # Get data and create grid
-        grass.message(_("Importing data..."))
-        InputData = controller.ImportMap(options['input'])
-        grass.message("Imported.")
-        GridPredicted = controller.CreateGrid(InputData)
-        
-        # Fit Variogram
-        grass.message(_("Fitting variogram..."))
-        Formula = controller.ComposeFormula(options['column'])
-        Variogram = controller.FitVariogram(Formula,
-                                            InputData,
-                                            model = options['model'],
-                                            autofit = options['model'] is '',
-                                            sill = options['sill'],
-                                            nugget = options['nugget'],
-                                            range = options['range'])
-        grass.message(_("Variogram fitted."))
-        
-        # Krige
-        grass.message(_("Kriging..."))
-        KrigingResult = controller.DoKriging(Formula, InputData, GridPredicted, Variogram)
-        grass.message(_("Kriging performed."))
-        
-        # Export map
-        controller.ExportMap(map = KrigingResult,
-                             column='var1.pred',
-                             name = options['output'])
-        
-        grass.message(_("Map exported."))
+        controller.Run(input = options['input'],
+                       column = options['column'],
+                       output = options['output'],
+                       package = options['package'],
+                       model = options['model'],
+                       sill = options['sill'],
+                       nugget = options['nugget'],
+                       range = options['range'],
+                       logger = grass
+                       )
     
 if __name__ == '__main__':
     if len(sys.argv) > 1:
