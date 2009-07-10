@@ -143,13 +143,13 @@ class Controller():
         else:
             DataVariogram = robjects.r.variogram(formula, inputdata) 
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
-                                                        model = robjects.r.vgm(psill = sill,
-                                                                            model = model,
-                                                                            nugget = nugget,
-                                                                            range = range))
+                                                         model = robjects.r.vgm(psill = sill,
+                                                                                model = model,
+                                                                                nugget = nugget,
+                                                                                range = range))
             return VariogramModel
         
-        ## print variogram?
+        #@TODO: print variogram?
         ##robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model']) #does not work.
         ##see if it caused by automap/gstat dedicated plot function.
         #self.parent.log.write(_("Variogram fitted."))
@@ -161,7 +161,7 @@ class Controller():
     def ExportMap(self, map, column, name, overwrite):
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
         
-    def Run(self, input, column, output, package, sill, nugget, range, logger, model = None):
+    def Run(self, input, column, output, package, sill, nugget, range, logger, overwrite, model = None):
         """ Wrapper for all functions above. """
         # Load packages
         robjects.r.require(package)
@@ -192,8 +192,9 @@ class Controller():
         
         # Export map
         self.ExportMap(map = KrigingResult,
-                             column='var1.pred',
-                             name = output)
+                       column='var1.pred',
+                       name = output,
+                       overwrite = overwrite)
         
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
@@ -297,8 +298,6 @@ class KrigingPanel(wx.Panel):
             setattr(self, "RBook"+package+"Panel", (classobj(self, id=wx.ID_ANY)))
             getattr(self, "RBook"+package+"Panel")
             self.RPackagesBook.AddPage(page=getattr(self, "RBook"+package+"Panel"), text=package)
-        else:
-            pass
 
     def OnInputDataChanged(self, event):
         """ Refreshes list of columns and fills output map name TextCtrl """
@@ -320,12 +319,12 @@ class KrigingPanel(wx.Panel):
         self.Controller.Run(input = self.InputDataMap.GetValue(),
                             column = self.InputDataColumn.GetValue(),
                             output = self.OutputMapName.GetValue(),
-                            package = self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()), # crashtest it
+                            overwrite = self.OverwriteCheckBox.IsChecked(),
+                            package = self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()),
                             sill = SelectedPanel.SillCtrl.GetValue(),
                             nugget = SelectedPanel.NuggetCtrl.GetValue(),
                             range = SelectedPanel.RangeCtrl.GetValue(),
-                            logger = self.parent.log
-                            )
+                            logger = self.parent.log)
         
     def OnCloseWindow(self, event):
         """ Cancel button pressed"""
@@ -456,31 +455,41 @@ def main(argv=None):
         options, flags = argv
         #CLI
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
-        controller = Controller()
+
+        # check for output map with same name. g.parser can't handle this, afaik.
+        if options['output'] is '':
+            try: # to strip mapset name from fullname. Ugh.
+                options['input'] = options['input'].split("@")[0]
+            except:
+                pass
+            options['output'] =  options['input'] + '_kriging'
+        
+        mapname = grass.find_file(options['output'], element = 'cell')['fullname']
+        if options['output'] == mapname.split("@")[0]:
+            grass.error(_("option: <output>: Raster map already exists."))
+            sys.exit()        
+        
         #print options
         #print flags
         if options['model'] is '':
             try:
                 robjects.r.require("automap")
             except ImportError, e:
-                grass.message(_("R package automap is missing, no variogram autofit available."))
-        if options['output'] is '':
-            options['output'] = options['input'] + '_kriging'
+                grass.fatal(_("R package automap is missing, no variogram autofit available."))
+
         
-        ## check for output map with same name NOW
-        #if options['output'] == grass.find_file():
-        #    pass
+        controller = Controller()
         
         controller.Run(input = options['input'],
                        column = options['column'],
                        output = options['output'],
+                       overwrite = flags['o'],
                        package = options['package'],
                        model = options['model'],
                        sill = options['sill'],
                        nugget = options['nugget'],
                        range = options['range'],
-                       logger = grass
-                       )
+                       logger = grass)
     
 if __name__ == '__main__':
     if len(sys.argv) > 1:
