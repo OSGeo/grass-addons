@@ -46,7 +46,7 @@ for details.
 #%option
 #% key: package
 #% type: string
-#% options: gstat, geor
+#% options: gstat
 #% answer: gstat
 #% description: R package to use
 #% required: no
@@ -109,7 +109,7 @@ if not haveRpy2:
 
 # R packages gstat or geoR
 try:
-    robjects.r.require("gstat") or robjects.r.require("geoR")
+    robjects.r.require("gstat") # or robjects.r.require("geoR") #@TODO: enable it one day.
 except:
     sys.exit(_("No gstat neither geoR package installed. Install one of them (gstat preferably) via R installer."))
 ###########
@@ -260,7 +260,7 @@ class KrigingPanel(wx.Panel):
                                         FN.FNB_NO_NAV_BUTTONS |
                                         FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
         
-        for Rpackage in ["gstat", "geoR"]:
+        for Rpackage in ["gstat"]: # , "geoR"]: #@TODO: enable it when it'll be implemented.
             self.CreatePage(package = Rpackage)
         
         #@TODO(anne): check this dependency at the beginning.
@@ -418,13 +418,9 @@ class RBookgstatPanel(RBookPanel):
             getattr(self, n+"Ctrl").Enable(False)
         self.VariogramSizer.Insert(2, self.VariogramCheckBox , proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
-        
-        try:
-            ModelFactor = robjects.r.vgm().r['long']
-            ModelList = robjects.r.levels(ModelFactor[0]) # no other way to let the Python pick it up..
-        except AttributeError, e:
-            print >> sys.stderr, 'Error: ' + str(e)
-            ModelList = []
+
+        ModelFactor = robjects.r.vgm().r['long']
+        ModelList = robjects.r.levels(ModelFactor[0]) # no other way to let the Python pick it up..
         
         self.ParametersSizer.Insert(before=0, item=wx.StaticText(self, id= wx.ID_ANY, label = _("Variogram model")))
         self.ModelChoicebox = wx.Choice(self, id=wx.ID_ANY, choices=ModelList)
