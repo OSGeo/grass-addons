@@ -444,14 +444,7 @@ class RBookgeoRPanel(RBookPanel):
         self.SetSizerAndFit(self.Sizer)
     
     
-def main(argv=None):
-    #@TODO(anne): check all dependencies and data here.
-    # grass - rpy2 - R - one of automap/gstat/geoR
-    # a nice splash screen like QGIS does can fit the purpose, with a log message on the bottom and
-    # popup windows for missing stuff messages.
-    # For the moment, deps are checked when creating the notebook pages for each package, and the
-    # data availability when clicking Run button. Quite late.
-    
+def main(argv=None):    
     #@FIXME: solve this double ifelse. the control should not be done twice.
     if argv is None:
         argv = sys.argv[1:] #stripping first item, the full name of this script
@@ -478,7 +471,7 @@ def main(argv=None):
         # check for output map with same name. g.parser can't handle this, afaik.
         if grass.find_file(options['output'], element = 'cell')['fullname'] and not os.getenv("GRASS_OVERWRITE"):
             grass.fatal(_("option: <output>: Raster map already exists."))       
-        
+
         if options['model'] is '':
             try:
                 robjects.r.require("automap")
