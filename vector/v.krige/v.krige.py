@@ -57,7 +57,7 @@ for details.
 #% options: Exp,Sph,Gau,Mat,Lin
 #% multiple: yes
 #% label: Variogram model(s)
-#% description: Leave empty to 
+#% description: Leave empty to test all models (requires automap)
 #% required: no
 #%end
 #%option
@@ -452,38 +452,37 @@ def main(argv=None):
         k.Show()
         app.MainLoop()
     else:
+        print argv
         options, flags = argv
         #CLI
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
 
-        # check for output map with same name. g.parser can't handle this, afaik.
+        # create output map name, if not specified
         if options['output'] is '':
             try: # to strip mapset name from fullname. Ugh.
                 options['input'] = options['input'].split("@")[0]
             except:
                 pass
             options['output'] =  options['input'] + '_kriging'
-        
-        mapname = grass.find_file(options['output'], element = 'cell')['fullname']
-        if options['output'] == mapname.split("@")[0]:
+        # check for output map with same name. g.parser can't handle this, afaik.
+        if grass.find_file(options['output'], element = 'cell')['fullname']:
             grass.error(_("option: <output>: Raster map already exists."))
             sys.exit()        
         
         #print options
-        #print flags
+        print flags
         if options['model'] is '':
             try:
                 robjects.r.require("automap")
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
-
         
         controller = Controller()
         
         controller.Run(input = options['input'],
                        column = options['column'],
                        output = options['output'],
-                       overwrite = flags['o'],
+                       overwrite = flags['overwrite'],
                        package = options['package'],
                        model = options['model'],
                        sill = options['sill'],
