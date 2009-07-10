@@ -240,8 +240,6 @@ class KrigingPanel(wx.Panel):
         self.InputDataMap = gselect.VectorSelect(parent = self,
                                                  ftype = 'points',
                                                  updateOnPopup = False)
-        #@FIXME: still does slow down interface creation. Thread? Put it elsewhere?
-        wx.CallAfter(self.InputDataMap.GetElementList)
         
         flexSizer.Add(item = self.InputDataMap)
         flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Column:")),
@@ -311,6 +309,7 @@ class KrigingPanel(wx.Panel):
         Sizer.Add(OutputSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
         Sizer.Add(ButtonSizer, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         self.SetSizerAndFit(Sizer)
+        self.InputDataMap.GetElementList()
         
     def CreatePage(self, package):
         """ Creates the three notebook pages, one for each R package """
@@ -365,7 +364,6 @@ class KrigingModule(wx.Frame):
         self.Panel = KrigingPanel(self)
         self.SetMinSize(self.GetBestSize())
         self.SetSize(self.GetBestSize())
-        
     
 class Log:
     """ The log output is redirected to the status bar of the containing frame. """
@@ -470,6 +468,7 @@ def main(argv=None):
         k.Centre()
         k.Show()
         app.MainLoop()
+        
     else:
         print argv
         options, flags = argv
