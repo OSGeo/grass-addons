@@ -1,0 +1,217 @@
+<!-- 
+        gama-local-adjustment.dtd          version 0.4a  2006-02-19
+        =========================
+
+        http://www.gnu.org/software/gama/gama-local-adjustment.dtd
+-->
+
+<!ELEMENT gama-local-adjustment ( 
+        description, 
+        network-general-parameters, 
+        network-processing-summary, 
+        coordinates, 
+        observations ) >
+
+<!ATTLIST gama-local-adjustment version NMTOKEN #REQUIRED >
+
+<!ELEMENT description ( #PCDATA ) >
+
+<!ELEMENT network-general-parameters EMPTY >
+
+<!ATTLIST network-general-parameters
+        axes-xy (ne | sw | es | wn |
+                 en | nw | se | ws )          "ne"
+        angles  (right-handed | left-handed)  "right-handed"
+        epoch    NMTOKEN                      "0.0" >
+
+<!ELEMENT network-processing-summary ( 
+        coordinates-summary, 
+        observations-summary, 
+        project-equations, 
+        standard-deviation ) >
+
+<!ELEMENT coordinates-summary ( 
+        coordinates-summary-adjusted, 
+        coordinates-summary-constrained, 
+        coordinates-summary-fixed ) >
+
+<!ELEMENT observations-summary ( 
+        distances, 
+        directions, 
+        angles, 
+        xyz-coords, 
+        h-diffs, 
+        z-angles, 
+        s-dists, 
+        vectors ) >
+
+<!ELEMENT project-equations ( 
+        equations, 
+        unknowns, 
+        degrees-of-freedom, 
+        defect, 
+        sum-of-squares, 
+        ( connected-network | disconnected-network ) ) >
+
+<!ELEMENT standard-deviation ( 
+        apriori, 
+        aposteriori, 
+        used, 
+        probability, 
+        ratio, 
+        lower, 
+        upper, 
+        ( failed | passed ), 
+        confidence-scale ) >
+
+<!ELEMENT coordinates ( 
+        fixed, 
+        approximate, 
+        adjusted, 
+        orientation-shifts, 
+        cov-mat ) >
+
+<!ELEMENT orientation-shifts ( orientation* ) >
+
+<!ELEMENT cov-mat ( dim, band, flt+ ) >
+
+<!ELEMENT observations ( 
+        distance | 
+        direction | 
+        angle |
+        height-diff | 
+        slope-distance | 
+        zenith-angle |
+        dx | 
+        dy | 
+        dz | 
+        coordinate-x |
+        coordinate-y |
+        coordinate-z )* >
+
+<!ELEMENT adjusted    ( point* ) >
+<!ELEMENT constrained ( point* ) >
+<!ELEMENT fixed       ( point* ) >
+
+<!ELEMENT connected-network    EMPTY >
+<!ELEMENT disconnected-network EMPTY >
+
+<!ELEMENT failed EMPTY >
+<!ELEMENT passed EMPTY >
+
+<!ELEMENT coordinates-summary-adjusted    ( count-xyz, count-xy, count-z ) >
+<!ELEMENT coordinates-summary-constrained ( count-xyz, count-xy, count-z ) >
+<!ELEMENT coordinates-summary-fixed       ( count-xyz, count-xy, count-z ) >
+
+<!ELEMENT count-xyz ( #PCDATA ) >
+<!ELEMENT count-xy  ( #PCDATA ) >
+<!ELEMENT count-z   ( #PCDATA ) >
+
+<!ELEMENT point ( id, ((X | x), (Y | y))?, (Z | z)? ) >
+
+<!ELEMENT orientation ( id, approx, adj ) >
+
+<!ENTITY  % observation-elements
+        "(obs, adj, stdev, f,  (std-residual, (err-obs, err-adj)? )?)" >
+
+<!ELEMENT distance       ( from, to,          %observation-elements; ) >
+<!ELEMENT direction      ( from, to,          %observation-elements; ) >
+<!ELEMENT angle          ( from, left, right, %observation-elements; ) > 
+<!ELEMENT slope-distance ( from, to,          %observation-elements; ) >
+<!ELEMENT zenith-angle   ( from, to,          %observation-elements; ) >
+<!ELEMENT dx             ( from, to,          %observation-elements; ) >
+<!ELEMENT dy             ( from, to,          %observation-elements; ) >
+<!ELEMENT dz             ( from, to,          %observation-elements; ) >
+<!ELEMENT height-diff    ( from, to,          %observation-elements; ) >
+<!ELEMENT coordinate-x   ( id,                %observation-elements; ) >
+<!ELEMENT coordinate-y   ( id,                %observation-elements; ) >
+<!ELEMENT coordinate-z   ( id,                %observation-elements; ) >
+
+<!ELEMENT id    ( #PCDATA ) >
+<!ELEMENT from  ( #PCDATA ) >
+<!ELEMENT left  ( #PCDATA ) >
+<!ELEMENT right ( #PCDATA ) >
+
+<!ELEMENT X ( #PCDATA ) >
+<!ELEMENT x ( #PCDATA ) >
+<!ELEMENT Y ( #PCDATA ) >
+<!ELEMENT y ( #PCDATA ) >
+<!ELEMENT Z ( #PCDATA ) >
+<!ELEMENT z ( #PCDATA ) >
+
+<!ELEMENT adj ( #PCDATA ) >
+
+<!ELEMENT angles ( #PCDATA ) >
+
+<!ELEMENT aposteriori ( #PCDATA ) >
+
+<!ELEMENT approx ( #PCDATA ) >
+
+<!ELEMENT approximate ( point+ ) >
+
+<!ELEMENT apriori ( #PCDATA ) >
+
+<!ELEMENT axes-xy ( #PCDATA ) >
+
+<!ELEMENT band ( #PCDATA ) >
+
+<!ELEMENT confidence-scale ( #PCDATA ) >
+
+<!ELEMENT defect ( #PCDATA ) >
+
+<!ELEMENT degrees-of-freedom ( #PCDATA ) >
+
+<!ELEMENT dim ( #PCDATA ) >
+
+<!ELEMENT directions ( #PCDATA ) >
+
+<!ELEMENT distances ( #PCDATA ) >
+
+<!ELEMENT epoch ( #PCDATA ) >
+
+<!ELEMENT equations ( #PCDATA ) >
+
+<!ELEMENT err-adj ( #PCDATA ) >
+
+<!ELEMENT err-obs ( #PCDATA ) >
+
+<!ELEMENT f ( #PCDATA ) >
+
+<!ELEMENT flt ( #PCDATA ) >
+
+<!ELEMENT h-diffs ( #PCDATA ) >
+
+<!ELEMENT lower ( #PCDATA ) >
+
+<!ELEMENT obs ( #PCDATA ) >
+
+<!ELEMENT probability ( #PCDATA ) >
+
+<!ELEMENT ratio ( #PCDATA ) >
+
+<!ELEMENT s-dists ( #PCDATA ) >
+
+<!ELEMENT std-residual ( #PCDATA ) >
+
+<!ELEMENT stdev ( #PCDATA ) >
+
+<!ELEMENT sum-of-squares ( #PCDATA ) >
+
+<!ELEMENT to ( #PCDATA ) >
+
+<!ELEMENT unknowns ( #PCDATA ) >
+
+<!ELEMENT upper ( #PCDATA ) >
+
+<!ELEMENT used ( #PCDATA ) >
+
+<!ELEMENT vectors ( #PCDATA ) >
+
+<!ELEMENT xy ( #PCDATA ) >
+
+<!ELEMENT xyz ( #PCDATA ) >
+
+<!ELEMENT xyz-coords ( #PCDATA ) >
+
+<!ELEMENT z-angles ( #PCDATA ) >
+
