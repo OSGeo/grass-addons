@@ -133,7 +133,6 @@ gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unico
 
 #global variables
 gisenv = grass.gisenv()
-Region = grass.region()
 # model list should come from gstat::vgm(), hardwired here.
 ModelList = ['Exp','Sph','Gau','Mat','Lin']
 
@@ -146,6 +145,7 @@ class Controller():
         return robjects.r.readVECT6(map, type= 'point')
     
     def CreateGrid(self, inputdata):
+        Region = grass.region()
         Grid = robjects.r.gmeta2grd()
         GridPredicted = robjects.r.SpatialGridDataFrame(Grid,
                                                         data=robjects.r['data.frame']
@@ -229,7 +229,7 @@ class KrigingPanel(wx.Panel):
         InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Input Data")), 
                                           orient=wx.HORIZONTAL)
         
-        flexSizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        flexSizer = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)
         flexSizer.AddGrowableCol(1)
 
         flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Point dataset:")),
@@ -238,7 +238,12 @@ class KrigingPanel(wx.Panel):
                                                  ftype = 'points',
                                                  updateOnPopup = False)
         self.InputDataMap.SetFocus()
-        flexSizer.Add(item = self.InputDataMap)
+        flexSizer.Add(item = self.InputDataMap, flag = wx.ALIGN_CENTER_VERTICAL)
+        
+        RefreshButton = wx.Button(self, id=wx.ID_REFRESH)
+        RefreshButton.Bind(wx.EVT_BUTTON, self.OnButtonRefresh)
+        flexSizer.Add(item = RefreshButton, flag = wx.ALIGN_CENTER_VERTICAL)
+        
         flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Column:")),
                       flag=wx.ALIGN_CENTER_VERTICAL)
         self.InputDataColumn = gselect.ColumnSelect(self, id=wx.ID_ANY)
@@ -306,6 +311,9 @@ class KrigingPanel(wx.Panel):
         Sizer.Add(OutputSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
         Sizer.Add(ButtonSizer, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         self.SetSizerAndFit(Sizer)
+        
+        # last action of __init__: update imput data list.
+        # it's performed in the few seconds gap while user examines interface before clicking anything.
         self.InputDataMap.GetElementList()
         
     def CreatePage(self, package):
@@ -315,6 +323,15 @@ class KrigingPanel(wx.Panel):
             setattr(self, "RBook"+package+"Panel", (classobj(self, id=wx.ID_ANY)))
             getattr(self, "RBook"+package+"Panel")
             self.RPackagesBook.AddPage(page=getattr(self, "RBook"+package+"Panel"), text=package)
+
+    def OnButtonRefresh(self, event):
+        """ Forces refresh of list of available layers. """
+        self.InputDataMap.GetElementList()
+        
+    def OnCloseWindow(self, event):
+        """ Cancel button pressed"""
+        self.parent.Close()
+        event.Skip()
 
     def OnInputDataChanged(self, event):
         """ Refreshes list of columns and fills output map name TextCtrl """
@@ -343,11 +360,6 @@ class KrigingPanel(wx.Panel):
                             nugget = SelectedPanel.NuggetCtrl.GetValue(),
                             range = SelectedPanel.RangeCtrl.GetValue(),
                             logger = self.parent.log)
-        
-    def OnCloseWindow(self, event):
-        """ Cancel button pressed"""
-        self.parent.Close()
-        event.Skip()
 
 class KrigingModule(wx.Frame):
     """ Kriging module for GRASS GIS. Depends on R and its packages gstat and geoR. """
@@ -432,7 +444,6 @@ class RBookgstatPanel(RBookPanel):
         for n in ["Sill", "Nugget", "Range"]:
             getattr(self, n+"Ctrl").Enable(not event.IsChecked())
         #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work    
-    
     
 class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
