@@ -122,6 +122,7 @@ import globalvar
 if not os.getenv("GRASS_WXBUNDLED"):
     globalvar.CheckForWx()
 import gselect
+import goutput
 
 import wx
 import wx.lib.flatnotebook as FN
@@ -174,7 +175,6 @@ class Controller():
         #@TODO: print variogram?
         ##robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model']) #does not work.
         ##see if it caused by automap/gstat dedicated plot function.
-        #self.parent.log.write(_("Variogram fitted."))
     
     def DoKriging(self, formula, inputdata, grid, model):
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model)
@@ -237,7 +237,7 @@ class KrigingPanel(wx.Panel):
         self.InputDataMap = gselect.VectorSelect(parent = self,
                                                  ftype = 'points',
                                                  updateOnPopup = False)
-        
+        self.InputDataMap.SetFocus()
         flexSizer.Add(item = self.InputDataMap)
         flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Column:")),
                       flag=wx.ALIGN_CENTER_VERTICAL)
@@ -260,11 +260,11 @@ class KrigingPanel(wx.Panel):
         for Rpackage in ["gstat"]: # , "geoR"]: #@TODO: enable it when it'll be implemented.
             self.CreatePage(package = Rpackage)
         
-        #@TODO(anne): check this dependency at the beginning.
-        if self.RPackagesBook.GetPageCount() == 0:
-            wx.MessageBox(parent=self,
-                          message=_("No R package with kriging functions available. Install either automap, gstat or geoR."),
-                          caption=_("Missing Dependency"), style=wx.OK | wx.ICON_ERROR | wx.CENTRE)
+        ## Command output. From menuform module, cmdPanel class
+        self.goutput = goutput.GMConsole(parent=self, margin=True,
+                                             pageid=self.RPackagesBook.GetPageCount())
+        self.goutputId = self.RPackagesBook.GetPageCount()
+        self.outpage = self.RPackagesBook.AddPage(self.goutput, text=_("Command output") )
         
         self.RPackagesBook.SetSelection(0)
         KrigingSizer.Add(self.RPackagesBook, proportion=1, flag=wx.EXPAND)
