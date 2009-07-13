@@ -177,7 +177,8 @@ class Controller():
         ##see if it caused by automap/gstat dedicated plot function.
     
     def DoKriging(self, formula, inputdata, grid, model):
-        KrigingResult = robjects.r.krige(formula, inputdata, grid, model)
+        DottedParams = {'debug.level': -1} # let krige() print percentage status
+        KrigingResult = robjects.r.krige(formula, inputdata, grid, model, **DottedParams)
         return KrigingResult
  
     def ExportMap(self, map, column, name, overwrite):
