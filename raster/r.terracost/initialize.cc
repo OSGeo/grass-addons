@@ -334,7 +334,12 @@ void loadNormalGrid(char* cellname, char* sourcename, long* nodata_count,
       if (s) {
 	costStruct = costStructure(0,i,j);
 	pq->insert(costStruct);
-	costGrid[i][j] = 0;
+
+	/* costGrid[i][j] = 0; setting the cost of the sources to be
+	   zero is causing the neighbors of the sources to get "half"
+	   weights.
+	*/
+	costGrid[i][j] = cost; 
 	distGrid[i][j] = 0;
       }
 
