@@ -123,6 +123,7 @@ if not os.getenv("GRASS_WXBUNDLED"):
     globalvar.CheckForWx()
 import gselect
 import goutput
+import menuform
 
 import wx
 import wx.lib.flatnotebook as FN
@@ -267,10 +268,10 @@ class KrigingPanel(wx.Panel):
             self.CreatePage(package = Rpackage)
         
         ## Command output. From menuform module, cmdPanel class
-        self.goutput = goutput.GMConsole(parent=self, margin=True,
+        self.goutput = goutput.GMConsole(parent=self, margin=False,
                                              pageid=self.RPackagesBook.GetPageCount())
         self.goutputId = self.RPackagesBook.GetPageCount()
-        self.outpage = self.RPackagesBook.AddPage(self.goutput, text=_("Command output") )
+        self.outpage = self.RPackagesBook.AddPage(self.goutput, text=_("Command output"))
         
         self.RPackagesBook.SetSelection(0)
         KrigingSizer.Add(self.RPackagesBook, proportion=1, flag=wx.EXPAND)
@@ -350,6 +351,11 @@ class KrigingPanel(wx.Panel):
         #-1: get the selected notebook page. The user shall know that he/she can modify settings in all
         # pages, but only the selected one will be executed when Run is pressed.
         SelectedPanel = self.RPackagesBook.GetCurrentPage()
+        
+        # shift focus on Command output, if needed
+        if self.RPackagesBook.GetSelection() != self.goutputId:
+            self.RPackagesBook.SetSelection(self.goutputId)
+        # see how to reuse menuform's code
         
         self.Controller.Run(input = self.InputDataMap.GetValue(),
                             column = self.InputDataColumn.GetValue(),
