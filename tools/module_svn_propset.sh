@@ -138,7 +138,6 @@ for FILE in $* ; do
      continue
   fi
 
-  FILE_UNKNOWN=0
   FILE_SUFFIX=`echo "$FILE" | sed -e 's/^.*\.//'`
   case "$FILE_SUFFIX" in
     c)
