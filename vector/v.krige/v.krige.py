@@ -269,7 +269,8 @@ class KrigingPanel(wx.Panel):
         
         ## Command output. From menuform module, cmdPanel class
         self.goutput = goutput.GMConsole(parent=self, margin=False,
-                                             pageid=self.RPackagesBook.GetPageCount())
+                                             pageid=self.RPackagesBook.GetPageCount(),
+                                             notebook = self.RPackagesBook)
         self.goutputId = self.RPackagesBook.GetPageCount()
         self.outpage = self.RPackagesBook.AddPage(self.goutput, text=_("Command output"))
         
@@ -355,18 +356,23 @@ class KrigingPanel(wx.Panel):
         # shift focus on Command output, if needed
         if self.RPackagesBook.GetSelection() != self.goutputId:
             self.RPackagesBook.SetSelection(self.goutputId)
-        # see how to reuse menuform's code
-        
-        self.Controller.Run(input = self.InputDataMap.GetValue(),
-                            column = self.InputDataColumn.GetValue(),
-                            output = self.OutputMapName.GetValue(),
-                            overwrite = self.OverwriteCheckBox.IsChecked(),
-                            autofit = SelectedPanel.VariogramCheckBox.IsChecked(),
-                            package = self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()),
-                            sill = SelectedPanel.SillCtrl.GetValue(),
-                            nugget = SelectedPanel.NuggetCtrl.GetValue(),
-                            range = SelectedPanel.RangeCtrl.GetValue(),
-                            logger = self.parent.log)
+        # mount command string as it would have been written on CLI
+        command = "v.krige.py" + " input=" + self.InputDataMap.GetValue()
+        # give it to the output console
+        self.goutput.RunCmd(command)
+        ## TEST - remove before flight
+        self.goutput.RunCmd(['g.region', '-p'], switchPage = True)
+        ## old function to port into command = 
+        #self.Controller.Run(input = self.InputDataMap.GetValue(),
+        #                    column = self.InputDataColumn.GetValue(),
+        #                    output = self.OutputMapName.GetValue(),
+        #                    overwrite = self.OverwriteCheckBox.IsChecked(),
+        #                    autofit = SelectedPanel.VariogramCheckBox.IsChecked(),
+        #                    package = self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()),
+        #                    sill = SelectedPanel.SillCtrl.GetValue(),
+        #                    nugget = SelectedPanel.NuggetCtrl.GetValue(),
+        #                    range = SelectedPanel.RangeCtrl.GetValue(),
+        #                    logger = self.parent.log)
 
 class KrigingModule(wx.Frame):
     """ Kriging module for GRASS GIS. Depends on R and its packages gstat and geoR. """
