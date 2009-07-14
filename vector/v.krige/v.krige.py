@@ -368,6 +368,7 @@ class KrigingModule(wx.Frame):
         wx.Frame.__init__(self, parent, *args, **kwargs)
         # setting properties and all widgettery
         self.SetTitle(_("Kriging Module"))
+        self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass_dialog.ico'), wx.BITMAP_TYPE_ICO))
         self.log = Log(self) 
         self.CreateStatusBar()
         self.log.message(_("Ready."))
