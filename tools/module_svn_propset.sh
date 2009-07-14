@@ -50,6 +50,14 @@ set_exe()
    fi
 }
 
+# will only unset if previously set
+unset_exe()
+{
+   if [ `svn proplist "$1" | grep -c 'svn:executable'` -eq 1 ] ; then
+      svn propdel svn:executable "$1"
+   fi
+}
+
 # will only set if previously empty
 set_keywords()
 {
@@ -67,12 +75,14 @@ apply_html()
    set_keywords "$1"
    set_mime_type "$1" text/html
    set_native_eol "$1"
+   unset_exe "$1"
 }
 
 apply_makefile()
 {
    set_mime_type "$1" text/x-makefile
    set_native_eol "$1"
+   unset_exe "$1"
 }
 
 apply_shell_script()
@@ -93,23 +103,27 @@ apply_C_code()
 {
    set_mime_type "$1" text/x-csrc
    set_native_eol "$1"
+   unset_exe "$1"
 }
 
 apply_C_header()
 {
    set_mime_type "$1" text/x-chdr
    set_native_eol "$1"
+   unset_exe "$1"
 }
 
 apply_Cpp_code()
 {
    set_mime_type "$1" "text/x-c++src"
    set_native_eol "$1"
+   unset_exe "$1"
 }
 
 apply_image()
 {
    set_mime_type "$1" "image/$2"
+   unset_exe "$1"
 }
 
 
@@ -117,6 +131,7 @@ apply_image()
 
 
 for FILE in $* ; do
+  #echo "Processing <$FILE> ..."
 
   if [ ! -e "$FILE" ] ; then
      echo "ERROR: file not found <$FILE>"
@@ -144,8 +159,11 @@ for FILE in $* ; do
     sh)
 	apply_shell_script "$FILE"
 	;;
-    png | jpeg | gif)
-	apply_image "$1" "$FILE_SUFFIX"
+    png | jpg | jpeg | gif)
+	if [ "$FILE_SUFFIX" = "jpg" ] ; then
+	    FILE_SUFFIX="jpeg"
+	fi
+	apply_image "$FILE" "$FILE_SUFFIX"
 	;;
     *)
 	if [ "$FILE" = "Makefile" ] ; then
