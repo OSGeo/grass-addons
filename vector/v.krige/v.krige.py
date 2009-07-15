@@ -159,8 +159,8 @@ class Controller():
         Formula = robjects.r['as.formula'](robjects.r.paste(column, "~ 1"))
         return Formula
     
-    def FitVariogram(self, formula, inputdata, model, autofit, sill=0, nugget=0, range=0):
-        if autofit:
+    def FitVariogram(self, formula, inputdata, model = '', sill=0, nugget=0, range=0):
+        if model is '':
             robjects.r.require("automap")
             VariogramModel = robjects.r.autofitVariogram(formula, inputdata)
             return VariogramModel.r['var_model'][0]
@@ -185,7 +185,7 @@ class Controller():
     def ExportMap(self, map, column, name, overwrite):
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
         
-    def Run(self, input, column, output, package, sill, nugget, range, logger, overwrite, model = None, **kwargs):
+    def Run(self, input, column, output, package, sill, nugget, range, logger, overwrite, model = '', **kwargs):
         """ Wrapper for all functions above. """        
         # Get data and create grid
         logger.message(_("Importing data..."))
@@ -198,7 +198,6 @@ class Controller():
         Formula = self.ComposeFormula(column)
         Variogram = self.FitVariogram(Formula,
                                       InputData,
-                                      autofit = model is None,
                                       model = model,
                                       sill = sill,
                                       nugget = nugget,
@@ -310,7 +309,7 @@ class KrigingPanel(wx.Panel):
 #    Main Sizer. Add each child sizer as soon as it is ready.
         Sizer = wx.BoxSizer(wx.VERTICAL)
         Sizer.Add(InputBoxSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
-        Sizer.Add(KrigingSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
+        Sizer.Add(KrigingSizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=self.border)
         Sizer.Add(OutputSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
         Sizer.Add(ButtonSizer, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         self.SetSizerAndFit(Sizer)
@@ -353,15 +352,30 @@ class KrigingPanel(wx.Panel):
         # pages, but only the selected one will be executed when Run is pressed.
         SelectedPanel = self.RPackagesBook.GetCurrentPage()
         
-        # shift focus on Command output, if needed
-        if self.RPackagesBook.GetSelection() != self.goutputId:
-            self.RPackagesBook.SetSelection(self.goutputId)
         # mount command string as it would have been written on CLI
-        command = "v.krige.py" + " input=" + self.InputDataMap.GetValue()
+        command = ["v.krige.py", "input=" + self.InputDataMap.GetValue(),
+                                 "column=" + self.InputDataColumn.GetValue(),
+                                 "output=" + self.OutputMapName.GetValue(), 
+                                 "package=" + '%s' % self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()),
+                                 "sill=" + '%s' % SelectedPanel.SillCtrl.GetValue(), 
+                                 "nugget=" + '%s' % SelectedPanel.NuggetCtrl.GetValue(),
+                                 "range=" + '%s' % SelectedPanel.RangeCtrl.GetValue()]
+        
+        if not SelectedPanel.VariogramCheckBox.IsChecked():
+            command.append("model=" + '%s' % SelectedPanel.ModelChoicebox.GetStringSelection().split(" ")[0])
+        if self.OverwriteCheckBox.IsChecked():
+            command.append("--overwrite")
+        
+        print command
+        
         # give it to the output console
-        self.goutput.RunCmd(command)
+        self.goutput.RunCmd(command, switchPage = True)
+        #self.goutput.RunCmd(['v.krige.py',
+        #                     self.InputDataMap.GetValue(),
+        #                     self.InputDataColumn.GetValue()],
+        #                     switchPage=True)
         ## TEST - remove before flight
-        self.goutput.RunCmd(['g.region', '-p'], switchPage = True)
+        #self.goutput.RunCmd(['g.region', '-p'], switchPage = True)
         ## old function to port into command = 
         #self.Controller.Run(input = self.InputDataMap.GetValue(),
         #                    column = self.InputDataColumn.GetValue(),
@@ -510,7 +524,6 @@ def main(argv=None):
                        output = options['output'],
                        overwrite = os.getenv("GRASS_OVERWRITE") == 1,
                        package = options['package'],
-                       autofit = options['model'] is '',
                        model = options['model'],
                        sill = options['sill'],
                        nugget = options['nugget'],
