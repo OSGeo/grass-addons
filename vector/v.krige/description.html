@@ -77,6 +77,62 @@ implementation.
 <dd>Install at least one.</dd>
 </dl>
 
+<h3>Install</h3>
+
+It is sufficient to copy it into the (GRASS binaries) path somewhere. Alternatively, install addons into a separate GRASS addons binaries/scripts directory which is easier to maintain. It avoids getting clobbered every time you reinstall GRASS. To use these separately stored scripts, set and export the GRASS_ADDON_PATH environment variable before starting GRASS and it will automatically be added to the module search path. To simplify this, do for example:
+
+<br>
+<div class="code"><pre>
+  # add in $HOME/.bashrc:
+  GRASS_ADDON_PATH=/usr/local/grass/addons/
+  export GRASS_ADDON_PATH
+<pre></div>
+<p>
+Make sure that the script is executable, then just call it in GRASS typing the filename. Python scripts need to be called writing the extension as well, like:
+
+<br>
+<div class="code"><pre>
+  GRASS 6.5.svn (spearfish60):~ &gt; v.krige.py
+<pre></div>
+<h4>Notes for Debian GNU/Linux</h4>
+<p>
+Install the dependiencies. <b>Attention! python-rpy IS NOT SUITABLE.</b>: 
+<br>
+<div class="code"><pre>
+  aptitude install R python-rpy2
+<pre></div>
+<p>
+
+To install R packages, use either R's function (as root):
+<br>
+<div class="code"><pre>
+  install.packages("gstat", dep=T)
+  install.packages("spgrass6", dep=T)
+<pre></div>
+<p>
+either the brand new Debian packages [5], add to repositories' list for 32bit or 64bit (pick up the suitable line):
+<br>
+<div class="code"><pre>
+  deb <A hREF="http://debian.cran.r-project.org/cran2deb/debian-i386">http://debian.cran.r-project.org/cran2deb/debian-i386</A> testing/
+  deb <A hREF="http://debian.cran.r-project.org/cran2deb/debian-amd64">http://debian.cran.r-project.org/cran2deb/debian-amd64</A> testing/
+<pre></div>
+
+<p>
+and get the packages via aptitude:
+<br>
+<div class="code"><pre>
+  aptitude install r-cran-gstat r-cran-spgrass6
+<pre></div>
+
+<h4>Notes for Windows</h4>
+<p>
+At this very moment, v.krige is developed against GRASS 6.5 (6_develbranch) and no backward compatibility with OSGeo4W's packaged GRASS 6.4svn2 is provided, nor with WinGRASS. 
+</p>
+<p>
+If you really need to run v.krige right now on Windows, I suggest to compile GRASS following this guide: <a href>http://trac.osgeo.org/grass/wiki/CompileOnWindows</A>. 
+You could also use Linux in a virtual machine. Or install Linux in a separate partition of the HD. This is not as painful as it appears, there are lots of guides over the Internet to help you.
+</p>
+
 <h2>EXAMPLES</h2>
 
 Run GUI:
