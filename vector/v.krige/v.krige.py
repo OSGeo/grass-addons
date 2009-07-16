@@ -61,6 +61,14 @@ for details.
 #% required: no
 #%end
 #%option
+#% key: block
+#% type: integer
+#% multiple: no
+#% label: Block size (square block)
+#% description: Block size. Used by block kriging.
+#% required: no
+#%end
+#%option
 #% key: range
 #% type: integer
 #% label: Range value
@@ -154,9 +162,17 @@ class Controller():
                                                         proj4string=robjects.r.CRS(robjects.r.proj4string(inputdata)))
         return GridPredicted
     
-    def ComposeFormula(self, column):
+    def ComposeFormula(self, column, block, inputdata):
         # will change when the formula will need to be more complex. Not yet.
-        Formula = robjects.r['as.formula'](robjects.r.paste(column, "~ 1"))
+        Formula = robjects.RFormula('y ~ x')
+        Env = Formula.getenvironment()
+        Env['y'] = column
+        if block is not None:
+            #@FIXME does not catch what the formula wants. Nor do I.
+            #Env['x'] = 'x+y'
+            pass
+        else:
+            Env['x'] = 1
         return Formula
     
     def FitVariogram(self, formula, inputdata, model = '', sill=0, nugget=0, range=0):
@@ -179,7 +195,7 @@ class Controller():
     
     def DoKriging(self, formula, inputdata, grid, model, block):
         DottedParams = {'debug.level': -1} # let krige() print percentage status
-        if block:
+        if block is not None:
             DottedParams['block'] = block
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model, **DottedParams)
         return KrigingResult
@@ -187,7 +203,8 @@ class Controller():
     def ExportMap(self, map, column, name, overwrite):
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
         
-    def Run(self, input, column, output, package, sill, nugget, range, logger, overwrite, model = '', **kwargs):
+    def Run(self, input, column, output, package, sill, nugget, range, logger, \
+            overwrite, model = '', block = None, **kwargs):
         """ Wrapper for all functions above. """        
         # Get data and create grid
         logger.message(_("Importing data..."))
@@ -197,7 +214,7 @@ class Controller():
         
         # Fit Variogram
         logger.message(_("Fitting variogram..."))
-        Formula = self.ComposeFormula(column)
+        Formula = self.ComposeFormula(column, block, InputData)
         Variogram = self.FitVariogram(Formula,
                                       InputData,
                                       model = model,
@@ -208,7 +225,7 @@ class Controller():
         
         # Krige
         logger.message(_("Kriging..."))
-        KrigingResult = self.DoKriging(Formula, InputData, GridPredicted, Variogram)
+        KrigingResult = self.DoKriging(Formula, InputData, GridPredicted, Variogram, block)
         logger.message(_("Kriging performed."))
         
         # Export map
@@ -402,7 +419,7 @@ class RBookPanel(wx.Panel):
     def __init__(self, parent, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
-        KrigingList = ["Ordinary kriging", "Block kriging"]#, "Universal kriging"] #@FIXME: i18n on the list?
+        KrigingList = ["Ordinary kriging"]#, "Block kriging", "Universal kriging"] #@FIXME: i18n on the list?
         KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label=_("Kriging techniques"), 
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             choices=KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
@@ -424,12 +441,12 @@ class RBookPanel(wx.Panel):
         #self.ParametersSizer.Add(wx.Button(self, id=wx.ID_ANY, label=_("Interactive variogram fit")))
         
         # block kriging parameters. Size.
-        BlockLabel = wx.StaticText(self, id= wx.ID_ANY, label = _("Block size:"))
-        self.BlockSpinBox = wx.SpinCtrl(self, id = wx.ID_ANY, max=sys.maxint)
-        self.BlockSpinBox.Enable(False) # default choice is Ordinary kriging
+        #BlockLabel = wx.StaticText(self, id= wx.ID_ANY, label = _("Block size:"))
+        #self.BlockSpinBox = wx.SpinCtrl(self, id = wx.ID_ANY, min=1, max=sys.maxint)
+        #self.BlockSpinBox.Enable(False) # default choice is Ordinary kriging
 
-        self.ParametersSizer.Add(BlockLabel, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
-        self.ParametersSizer.Add(self.BlockSpinBox, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
+        #self.ParametersSizer.Add(BlockLabel, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
+        #self.ParametersSizer.Add(self.BlockSpinBox, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
 
         self.VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         
@@ -519,6 +536,9 @@ def main(argv=None):
                 robjects.r.require("automap")
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
+                
+        if options['block'] is not '':
+            grass.fatal(_("Block kriging implementation in progress. Re-run without block parameter."))
         
         controller = Controller()
         controller.Run(input = options['input'],
