@@ -153,21 +153,21 @@ class Controller():
        
     def ImportMap(self, map):
         inputmap = robjects.r.readVECT6(map, type= 'point')
-        
+
         coordinatesDF = robjects.r['as.data.frame'](robjects.r.coordinates(inputmap))
         data=robjects.r['data.frame'](x=coordinatesDF.r['coords.x1'][0],
                                       y=coordinatesDF.r['coords.x2'][0])
         
-        rsSP = robjects.r.SpatialPoints(robjects.r.coordinates(inputmap),
+        inputdataSP = robjects.r.SpatialPoints(robjects.r.coordinates(inputmap),
                                         proj4string=robjects.r.CRS(robjects.r.proj4string(inputmap)))
-        rsflatDF = robjects.r['as.data.frame'](inputmap)
+        inputdataflatDF = robjects.r['as.data.frame'](inputmap)
         DottedParams = {'by.x': 'row.names', 'by.y': 'row.names'}
-        rsData = robjects.r.merge(data, rsflatDF, **DottedParams)
+        inputdataDF = robjects.r.merge(data, inputdataflatDF, **DottedParams)
 
-        rsSPDF = robjects.r.SpatialPointsDataFrame(rsSP, rsData,
-                                                   proj4string=robjects.r.CRS(robjects.r.proj4string(inputmap)))
-        print robjects.r.proj4string(rsSPDF)
-        return rsSPDF
+        inputdataSPDF = robjects.r.SpatialPointsDataFrame(inputdataSP, inputdataDF,
+                                                          proj4string=robjects.r.CRS(robjects.r.proj4string(inputmap)))
+        return inputdataSPDF
+
     
     def CreateGrid(self, inputdata):
         Region = grass.region()
@@ -176,20 +176,22 @@ class Controller():
         ## addition of coordinates columns into dataframe.
         coordinatesDF = robjects.r['as.data.frame'](robjects.r.coordinates(Grid))
         data=robjects.r['data.frame'](x=coordinatesDF.r['s1'][0],
-                                      y=coordinatesDF.r['s2'][0])
+                                      y=coordinatesDF.r['s2'][0],
+                                      k=robjects.r.rep(1, Region['cols']*Region['rows']))
 
         GridPredicted = robjects.r.SpatialGridDataFrame(Grid,
                                                         data,
                                                         proj4string= robjects.r.CRS(robjects.r.proj4string(inputdata)))
-        print robjects.r.proj4string(GridPredicted)
         return GridPredicted
     
     def ComposeFormula(self, column, block, inputdata):
-        if block is not None:
+        if block is not '':
             predictor = 'x+y'
         else:
             predictor = 1
-        return robjects.r['as.formula'](robjects.r.paste(column, "~", predictor))
+        Formula = robjects.r['as.formula'](robjects.r.paste(column, "~", predictor))
+        print Formula
+        return Formula
     
     def FitVariogram(self, formula, inputdata, model = '', sill=0, nugget=0, range=0):
         if model is '':
@@ -211,7 +213,7 @@ class Controller():
     
     def DoKriging(self, formula, inputdata, grid, model, block):
         DottedParams = {'debug.level': -1} # let krige() print percentage status
-        if block is not None:
+        if block is not '':
             DottedParams['block'] = block
         print DottedParams
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model, **DottedParams)
@@ -221,7 +223,7 @@ class Controller():
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
         
     def Run(self, input, column, output, package, sill, nugget, range, logger, \
-            overwrite, model = '', block = None, **kwargs):
+            overwrite, model = '', block = '', **kwargs):
         """ Wrapper for all functions above. """        
         # Get data and create grid
         logger.message(_("Importing data..."))
@@ -400,6 +402,8 @@ class KrigingPanel(wx.Panel):
         
         if not SelectedPanel.VariogramCheckBox.IsChecked():
             command.append("model=" + '%s' % SelectedPanel.ModelChoicebox.GetStringSelection().split(" ")[0])
+        if SelectedPanel.KrigingRadioBox.GetStringSelection() == "Block kriging":
+            command.append("block=" + '%s' % SelectedPanel.BlockSpinBox.GetValue())
         if self.OverwriteCheckBox.IsChecked():
             command.append("--overwrite")
         
@@ -438,10 +442,10 @@ class RBookPanel(wx.Panel):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
         KrigingList = ["Ordinary kriging", "Block kriging"]#, "Universal kriging"] #@FIXME: i18n on the list?
-        KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label=_("Kriging techniques"), 
+        self.KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label=_("Kriging techniques"), 
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             choices=KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
-        KrigingRadioBox.Bind(wx.EVT_RADIOBOX, self.HideBlockOptions)
+        self.KrigingRadioBox.Bind(wx.EVT_RADIOBOX, self.HideBlockOptions)
         
         # unlock options as soon as they are available. Stone soup!
         self.VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, 
@@ -469,7 +473,7 @@ class RBookPanel(wx.Panel):
         self.VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         
         self.Sizer = wx.BoxSizer(wx.VERTICAL)
-        self.Sizer.Add(KrigingRadioBox,  proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
+        self.Sizer.Add(self.KrigingRadioBox,  proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         self.Sizer.Add(self.VariogramSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         
     def HideBlockOptions(self, event):
