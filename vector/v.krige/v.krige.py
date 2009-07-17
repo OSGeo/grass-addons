@@ -107,6 +107,7 @@ except:
 
 # rpy2
 try:
+    import rpy2.rinterface as rinterface
     import rpy2.robjects as robjects
     haveRpy2 = True
 except ImportError:
@@ -151,29 +152,44 @@ class Controller():
     """ Executes analysis. For the moment, only with gstat functions."""
        
     def ImportMap(self, map):
-        return robjects.r.readVECT6(map, type= 'point')
+        inputmap = robjects.r.readVECT6(map, type= 'point')
+        
+        coordinatesDF = robjects.r['as.data.frame'](robjects.r.coordinates(inputmap))
+        data=robjects.r['data.frame'](x=coordinatesDF.r['coords.x1'][0],
+                                      y=coordinatesDF.r['coords.x2'][0])
+        
+        rsSP = robjects.r.SpatialPoints(robjects.r.coordinates(inputmap),
+                                        proj4string=robjects.r.CRS(robjects.r.proj4string(inputmap)))
+        rsflatDF = robjects.r['as.data.frame'](inputmap)
+        DottedParams = {'by.x': 'row.names', 'by.y': 'row.names'}
+        rsData = robjects.r.merge(data, rsflatDF, **DottedParams)
+
+        rsSPDF = robjects.r.SpatialPointsDataFrame(rsSP, rsData,
+                                                   proj4string=robjects.r.CRS(robjects.r.proj4string(inputmap)))
+        print robjects.r.proj4string(rsSPDF)
+        return rsSPDF
     
     def CreateGrid(self, inputdata):
         Region = grass.region()
         Grid = robjects.r.gmeta2grd()
+
+        ## addition of coordinates columns into dataframe.
+        coordinatesDF = robjects.r['as.data.frame'](robjects.r.coordinates(Grid))
+        data=robjects.r['data.frame'](x=coordinatesDF.r['s1'][0],
+                                      y=coordinatesDF.r['s2'][0])
+
         GridPredicted = robjects.r.SpatialGridDataFrame(Grid,
-                                                        data=robjects.r['data.frame']
-                                                        (k=robjects.r.rep(1,Region['cols']*Region['rows'])),
-                                                        proj4string=robjects.r.CRS(robjects.r.proj4string(inputdata)))
+                                                        data,
+                                                        proj4string= robjects.r.CRS(robjects.r.proj4string(inputdata)))
+        print robjects.r.proj4string(GridPredicted)
         return GridPredicted
     
     def ComposeFormula(self, column, block, inputdata):
-        # will change when the formula will need to be more complex. Not yet.
-        Formula = robjects.RFormula('y ~ x')
-        Env = Formula.getenvironment()
-        Env['y'] = column
         if block is not None:
-            #@FIXME does not catch what the formula wants. Nor do I.
-            #Env['x'] = 'x+y'
-            pass
+            predictor = 'x+y'
         else:
-            Env['x'] = 1
-        return Formula
+            predictor = 1
+        return robjects.r['as.formula'](robjects.r.paste(column, "~", predictor))
     
     def FitVariogram(self, formula, inputdata, model = '', sill=0, nugget=0, range=0):
         if model is '':
@@ -181,7 +197,7 @@ class Controller():
             VariogramModel = robjects.r.autofitVariogram(formula, inputdata)
             return VariogramModel.r['var_model'][0]
         else:
-            DataVariogram = robjects.r.variogram(formula, inputdata) 
+            DataVariogram = robjects.r['variogram'](formula, inputdata) 
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
                                                          model = robjects.r.vgm(psill = sill,
                                                                                 model = model,
@@ -197,6 +213,7 @@ class Controller():
         DottedParams = {'debug.level': -1} # let krige() print percentage status
         if block is not None:
             DottedParams['block'] = block
+        print DottedParams
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model, **DottedParams)
         return KrigingResult
  
@@ -209,6 +226,7 @@ class Controller():
         # Get data and create grid
         logger.message(_("Importing data..."))
         InputData = self.ImportMap(input)
+        print(robjects.r.slot(InputData, 'data').names)
         logger.message("Imported.")
         GridPredicted = self.CreateGrid(InputData)
         
@@ -419,7 +437,7 @@ class RBookPanel(wx.Panel):
     def __init__(self, parent, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
         
-        KrigingList = ["Ordinary kriging"]#, "Block kriging", "Universal kriging"] #@FIXME: i18n on the list?
+        KrigingList = ["Ordinary kriging", "Block kriging"]#, "Universal kriging"] #@FIXME: i18n on the list?
         KrigingRadioBox = wx.RadioBox(self, id=wx.ID_ANY, label=_("Kriging techniques"), 
             pos=wx.DefaultPosition, size=wx.DefaultSize,
             choices=KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
@@ -441,12 +459,12 @@ class RBookPanel(wx.Panel):
         #self.ParametersSizer.Add(wx.Button(self, id=wx.ID_ANY, label=_("Interactive variogram fit")))
         
         # block kriging parameters. Size.
-        #BlockLabel = wx.StaticText(self, id= wx.ID_ANY, label = _("Block size:"))
-        #self.BlockSpinBox = wx.SpinCtrl(self, id = wx.ID_ANY, min=1, max=sys.maxint)
-        #self.BlockSpinBox.Enable(False) # default choice is Ordinary kriging
+        BlockLabel = wx.StaticText(self, id= wx.ID_ANY, label = _("Block size:"))
+        self.BlockSpinBox = wx.SpinCtrl(self, id = wx.ID_ANY, min=1, max=sys.maxint)
+        self.BlockSpinBox.Enable(False) # default choice is Ordinary kriging
 
-        #self.ParametersSizer.Add(BlockLabel, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
-        #self.ParametersSizer.Add(self.BlockSpinBox, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
+        self.ParametersSizer.Add(BlockLabel, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
+        self.ParametersSizer.Add(self.BlockSpinBox, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
 
         self.VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         
@@ -537,8 +555,8 @@ def main(argv=None):
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
                 
-        if options['block'] is not '':
-            grass.fatal(_("Block kriging implementation in progress. Re-run without block parameter."))
+        #if options['block'] is not '': #remove when block kriging will be ready
+        #    grass.fatal(_("Block kriging implementation in progress. Re-run without block parameter."))
         
         controller = Controller()
         controller.Run(input = options['input'],
