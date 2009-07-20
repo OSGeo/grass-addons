@@ -56,7 +56,7 @@
 #%end
 #%flag
 #% key: l
-#% description: Log process info to v_in_postgis.log
+#% description: Log process info to v.in.postgis.log
 #%end
 
 import sys
@@ -219,9 +219,17 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
                 self.__writeLog("Try to import data:")
                 self.__writeLog(createTableQuery)
             self.cursor.execute(createTableQuery)
+            self.cursor.execute("SELECT COUNT (*) FROM " + output)
+            rows = self.cursor.fetchall()[0][0]
+            if rows == 0:
+                raise GrassPostGisImporterError("Query returned no results.")
             addCommentQuery = "COMMENT ON TABLE " + output + " IS 'created with v.in.postgis.py'"
             self.cursor.execute(addCommentQuery)
+        except GrassPostGisImporterError:
+            ##no results
+            raise
         except:
+            ##query execution error
             raise GrassPostGisImporterError("An error occurred during sql import. Check your connection \
                                             to the database and your sql query.")
     
@@ -258,7 +266,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         if rows is not None and len(rows) == 1:
             type = str(rows[0][0])
         if rows is None or len(rows) == 0:
-            raise GrassPostGisImporterError("Unable to retrieve geometry type")
+            raise GrassPostGisImporterError("Unable to retrieve geometry type. Query result may have no geometry.")
         ##same thing with number of dimensions. If the query is syntactically correct but returns
         ##no geometry, this step will cause an error.
         ndims = 0
@@ -340,17 +348,18 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
                 os.mkdir(dbfFolderPath)
             grass.run_command("db.connect", driver = 'dbf', database = dbfFolderPath) 
         else:
-            flags += 't'
+            flags += ' -t'
         if overrideProj is True:
-            flags += 'o'
+            flags += ' -o'
 
         ##finally call v.in.ogr
         self.printMessage("call v.in.ogr...")
         dsn="PG:host=" + self.dbparams['host'] + " dbname=" + self.dbparams['db'] \
         + " user=" + self.dbparams['user'] + " password=" + self.dbparams['pwd']
         layername = output
-        cmd = self.executeCommand("v.in.ogr", dsn = dsn, output = outputname, layer = layername, \
-                          flags = flags, overwrite=True, quiet = False)
+        ##we use the shell mode to be able to follow v.in.ogr progress in log file
+        cmd = self.executeCommand('v.in.ogr' + flags + ' dsn="' + dsn + '" output=' + output + \
+                                  ' layer=' + layername + ' --o', shell = True, redirect = True)
         if toDbf is True:
             grass.run_command("db.connect", driver = 'pg', database = 'host=' + self.dbparams['host'] + \
                               ",dbname=" + self.dbparams['db'])
@@ -478,14 +487,19 @@ class GrassPostGisImporterTests(unittest.TestCase):
             importer.checkLayers(queryTableName)
         except GrassPostGisImporterError:
             self.fail("CheckLayers was expected to be successful with --o flag.")
-        pass
+    
+    def testNoResult(self):
+        """Test if importer raise an error if query has no result."""
+        noResultQuery = 'select * from ' + testTableName + ' where id>3'
+        self.assertRaises(GrassPostGisImporterError, \
+                          importer.createPostgresTableFromQuery, queryTableName, noResultQuery)
+        ##needed
+        importer.commitChanges()
     
     def testCheckComment(self):
         """Test that we can't drop a table with the output name if it was not created by the importer."""
-        ##a table that was not tagged by the importer should not be overwritten
         os.environ['GRASS_OVERWRITE'] = '1'
         self.assertRaises(GrassPostGisImporterError, importer.checkComment, testTableName)
-        pass
     
     def testImportGrassLayer(self):
         """Test import sequence result in GRASS."""
@@ -608,7 +622,6 @@ class GrassPostGisImporterTests(unittest.TestCase):
             importer.importToGrass(queryTableName, geometryField, geoparams, False, True)
         except GrassPostGisImporterError:
             self.fail("Both operations are for now expected to be necessary.")
-        pass
 
 def createQueryTable():
     importer.createPostgresTableFromQuery(queryTableName, query)
@@ -673,6 +686,7 @@ def tests():
         suite = unittest.TestSuite()
         suite.addTest(GrassPostGisImporterTests("testGetDbInfos"))
         suite.addTest(GrassPostGisImporterTests("testCheckLayers"))
+        suite.addTest(GrassPostGisImporterTests("testNoResult"))
         suite.addTest(GrassPostGisImporterTests("testCheckComment"))
         suite.addTest(GrassPostGisImporterTests("testImportGrassLayer"))
         suite.addTest(GrassPostGisImporterTests("testGetGeometryInfos"))
