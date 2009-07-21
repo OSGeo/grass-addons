@@ -5,7 +5,7 @@
 #
 # MODULE:       v.in.postgis
 # AUTHOR(S):	Mathieu Grelier, 2009 (greliermathieu@gmail.com)
-# PURPOSE:		GRASS layer creation from arbitrary PostGIS sql queries
+# PURPOSE:      GRASS layer creation from arbitrary PostGIS sql queries
 # COPYRIGHT:	(C) 2009 Mathieu Grelier
 #
 #		This program is free software under the GNU General Public
@@ -118,7 +118,7 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             host = grass.parse_key_val(dbElems[0], sep = '=')['host']
             db = grass.parse_key_val(dbElems[1], sep = '=')['dbname']
             loginLine = self.executeCommand('sed -n "/pg ' + dbElems[0] + ','\
-                                                + dbElems[1] + ' /p" ' + self.grassloginfile, redirect = False, shell = True)
+                                                + dbElems[1] + ' /p" ' + self.grassloginfile, toLog = False, shell = True)
             p = re.compile(' ')
             loginElems = p.split(loginLine)
             user = loginElems[-2].strip()
@@ -132,12 +132,16 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         """Command execution method using Popen in two modes : shell mode or not."""
         p = None
         shell = True if 'shell' in kwargs and kwargs['shell'] is True else False
-        redirection = True if 'redirect' in kwargs and kwargs['redirect'] is True else False
+        toLog = True if 'toLog' in kwargs and kwargs['toLog'] is True \
+                                                and self.logOutput is True else False
+        ##now remove this key as it is not expected by grass.start_command
+        if 'toLog' in kwargs:
+            del kwargs['toLog']
         command = args[0]
         if shell is True:
-            if redirection is True and self.logOutput is not False:
+            if toLog is True:
                 command = command + ' >> ' +  self.logfile
-            ##use redirection on stdout only
+            ##always use redirection on stdout only
             command = command + " 2>&1"
             p = Popen(command, shell = shell, stdout = PIPE)
         else:
@@ -145,16 +149,19 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
             kwargs['stderr'] = PIPE
             p = grass.start_command(*args, **kwargs)
         retcode = p.wait()
-        com = p.communicate()
         message = ''
-        r = re.compile('\n')
-        for std in com:
-            if std is not None:
-                lines = r.split(std)
-                for elem in lines:
-                    message += str(elem).strip() + "\n"
-        if self.logOutput is not False and shell is False:
-            self.__writeLog(message)
+        if shell is True and toLog is True:
+            message = 'Read logfile for details.'
+        else:
+            com = p.communicate()
+            r = re.compile('\n')
+            for std in com:
+                if std is not None:
+                    lines = r.split(std)
+                    for elem in lines:
+                        message += str(elem).strip() + "\n"
+            if toLog is True:
+                self.__writeLog(message)
         if retcode == 0:
             return message
         else:
@@ -359,24 +366,35 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         layername = output
         ##we use the shell mode to be able to follow v.in.ogr progress in log file
         cmd = self.executeCommand('v.in.ogr' + flags + ' dsn="' + dsn + '" output=' + output + \
-                                  ' layer=' + layername + ' --o', shell = True, redirect = True)
+                                  ' layer=' + layername + ' --o', shell = True, toLog = True)
         if toDbf is True:
             grass.run_command("db.connect", driver = 'pg', database = 'host=' + self.dbparams['host'] + \
                               ",dbname=" + self.dbparams['db'])
-            self.cursor.execute('DROP TABLE ' + output)
+            #self.cursor.execute('DROP TABLE ' + output)
+            self.removeImportData(True, False)
         ##else we work directly with postgis so the connection between imported grass layer
         ##and postgres attribute table must be explicit
         else:
             ##can cause segfaults if mapset name is too long:
-            cmd = self.executeCommand("v.db.connect", map = output, table = output, flags = 'o')
+            cmd = self.executeCommand("v.db.connect", map = output, table = output, flags = 'o', \
+                                      toLog = self.logOutput)
         
         ##delete temporary data in geometry_columns table
-        self.cursor.execute("DELETE FROM geometry_columns WHERE f_table_name = '" + output + "'")
+        #self.cursor.execute("DELETE FROM geometry_columns WHERE f_table_name = '" + output + "'")
+        self.removeImportData(False, True)
         pass
             
     def commitChanges(self):
         """Commit current transaction."""
         self.db.commit()
+    
+    def removeImportData(self, removeTable = True, removeGeometryColumnsRecord = True):
+        """Cleanup method"""
+        if removeTable is True:
+            self.cursor.execute('DROP TABLE ' + self.output)
+        if removeGeometryColumnsRecord is True:
+            self.cursor.execute("DELETE FROM geometry_columns WHERE f_table_name = '" + self.output + "'")
+        self.commitChanges()
     
     def makeSqlImport(self):
         """GrassPostGisImporter main sequence."""
@@ -391,11 +409,12 @@ user=self.dbparams['user'], password=self.dbparams['pwd'])
         geoparams = self.getGeometryInfo(self.output, self.geometryfield)
         ##5)new geometry
         self.addGeometry(self.output, self.geometryfield, geoparams, self.gistindexFlag)
+        ##we must commit before connecting to new table for import
         self.commitChanges()
         ##6)v.in.ogr
         self.importToGrass(self.output, self.geometryfield, geoparams, toDbf = self.dbfFlag, \
-                           overrideProj = self.overrideprojFlag)
-        ##7)post-import operations
+                            overrideProj = self.overrideprojFlag)
+        ##process is ok
         self.commitChanges()
                                                                                   
 class GrassPostGisImporterError(Exception):
@@ -413,12 +432,14 @@ def main():
         postgisImporter.makeSqlImport()
     except GrassPostGisImporterError, e1:
         postgisImporter.printMessage(e1.message, type = 'error')
+        postgisImporter.removeImportData()
         exitStatus = 1
     except:
         exceptionType, exceptionValue, exceptionTraceback = sys.exc_info()
         errorMessage = "Unexpected error \n:" + \
                        repr(traceback.format_exception(exceptionType, exceptionValue, exceptionTraceback))
         postgisImporter.printMessage(errorMessage, type = 'error')
+        postgisImporter.removeImportData()
         exitStatus = 1
     else:
         postgisImporter.printMessage("Done", type = 'info')
