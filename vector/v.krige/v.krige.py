@@ -193,13 +193,13 @@ class Controller():
         print Formula
         return Formula
     
-    def FitVariogram(self, formula, inputdata, model = '', sill=0, nugget=0, range=0):
+    def FitVariogram(self, formula, inputdata, model = '', sill='NA', nugget='NA', range='NA'):
         if model is '':
             robjects.r.require("automap")
             VariogramModel = robjects.r.autofitVariogram(formula, inputdata)
             return VariogramModel.r['var_model'][0]
         else:
-            DataVariogram = robjects.r['variogram'](formula, inputdata) 
+            DataVariogram = robjects.r['variogram'](formula, inputdata)   
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
                                                          model = robjects.r.vgm(psill = sill,
                                                                                 model = model,
