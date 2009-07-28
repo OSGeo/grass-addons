@@ -152,22 +152,15 @@ class Controller():
     """ Executes analysis. For the moment, only with gstat functions."""
        
     def ImportMap(self, map):
-        inputmap = robjects.r.readVECT6(map, type= 'point')
-
-        coordinatesDF = robjects.r['as.data.frame'](robjects.r.coordinates(inputmap))
-        data=robjects.r['data.frame'](x=coordinatesDF.r['coords.x1'][0],
-                                      y=coordinatesDF.r['coords.x2'][0])
-        
-        inputdataSP = robjects.r.SpatialPoints(robjects.r.coordinates(inputmap),
-                                        proj4string=robjects.r.CRS(robjects.r.proj4string(inputmap)))
-        inputdataflatDF = robjects.r['as.data.frame'](inputmap)
-        DottedParams = {'by.x': 'row.names', 'by.y': 'row.names'}
-        inputdataDF = robjects.r.merge(data, inputdataflatDF, **DottedParams)
-
-        inputdataSPDF = robjects.r.SpatialPointsDataFrame(inputdataSP, inputdataDF,
-                                                          proj4string=robjects.r.CRS(robjects.r.proj4string(inputmap)))
-        return inputdataSPDF
-
+        """ Adds x,y columns to the GRASS map and then imports it in R. """
+        # adds x, y columns if needed
+        cols = grass.vector_columns(map=map, layer=1)
+        if not cols.has_key('x') and not cols.has_key('y'):
+            grass.run_command('v.db.addcol', map = map,
+                              columns = 'x double precision, y double precision')
+            # fills them with coordinates
+            grass.run_command('v.to.db', map = map, option = 'coor', col = 'x,y')
+        return robjects.r.readVECT6(map, type= 'point')
     
     def CreateGrid(self, inputdata):
         Region = grass.region()
@@ -190,16 +183,17 @@ class Controller():
         else:
             predictor = 1
         Formula = robjects.r['as.formula'](robjects.r.paste(column, "~", predictor))
-        print Formula
+        #print Formula
         return Formula
     
     def FitVariogram(self, formula, inputdata, model = '', sill='NA', nugget='NA', range='NA'):
         if model is '':
             robjects.r.require("automap")
             VariogramModel = robjects.r.autofitVariogram(formula, inputdata)
+            print robjects.r.warnings()
             return VariogramModel.r['var_model'][0]
         else:
-            DataVariogram = robjects.r['variogram'](formula, inputdata)   
+            DataVariogram = robjects.r['variogram'](formula, inputdata)
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
                                                          model = robjects.r.vgm(psill = sill,
                                                                                 model = model,
@@ -223,7 +217,7 @@ class Controller():
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
         
     def Run(self, input, column, output, package, sill, nugget, range, logger, \
-            overwrite, model = '', block = '', **kwargs):
+            overwrite, model, block, **kwargs):
         """ Wrapper for all functions above. """        
         # Get data and create grid
         logger.message(_("Importing data..."))
@@ -494,7 +488,7 @@ class RBookgstatPanel(RBookPanel):
 
         ModelFactor = robjects.r.vgm().r['long']
         ModelList = robjects.r.levels(ModelFactor[0]) # no other way to let the Python pick it up..
-        
+        # and this is te wrong place where to load this list. should be at the very beginning.
         self.ModelChoicebox = wx.Choice(self, id=wx.ID_ANY, choices=ModelList)
         
         # disable model parameters' widgets by default
