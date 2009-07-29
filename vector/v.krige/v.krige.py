@@ -18,7 +18,7 @@ for details.
 ## g.parser informations
 
 #%module
-#% description: Performs ordinary kriging.
+#% description: Performs ordinary or block kriging.
 #% keywords: kriging
 #%end
 
@@ -77,52 +77,20 @@ for details.
 #%end
 #%option
 #% key: nugget
-#% type: double
+#% type: integer
 #% label: Nugget value
 #% description: Automatically fixed if not set
 #% required : no
 #%end
 #%option
 #% key: sill
-#% type: double
+#% type: integer
 #% label: Sill value
 #% description: Automatically fixed if not set
 #% required : no
 #%end
 
 import os, sys
-
-########### depenedency check
-# GRASS binding
-try:
-    import grass.script as grass
-except ImportError:
-    sys.exit(_("No GRASS-python library found."))
-
-# R
-try: 
-    grass.find_program('R')
-except:
-    sys.exit(_("R is not installed. Install it and re-run, or modify environment variables."))
-
-# rpy2
-try:
-    import rpy2.rinterface as rinterface
-    import rpy2.robjects as robjects
-    haveRpy2 = True
-except ImportError:
-    print >> sys.stderr, "Rpy2 not found. Please install it and re-run." # ok for other OSes?
-    haveRpy2 = False
-if not haveRpy2:
-    sys.exit(1)
-
-# R packages gstat or geoR
-try:
-    robjects.r.require("gstat") # or robjects.r.require("geoR") #@TODO: enable it one day.
-    robjects.r.require("spgrass6")
-except:
-    sys.exit(_("No gstat neither geoR package installed. Install one of them (gstat preferably) via R installer."))
-###########
 
 GUIModulesPath = os.path.join(os.getenv("GISBASE"), "etc", "wxpython", "gui_modules")
 sys.path.append(GUIModulesPath)
@@ -141,17 +109,55 @@ import wx.lib.flatnotebook as FN
 import gettext
 gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode=True)
 
-#global variables
-gisenv = grass.gisenv()
-# model list should come from gstat::vgm(), hardwired here.
-ModelList = ['Exp','Sph','Gau','Mat','Lin']
+### dependencies to be checked once, as they are quite time-consuming. cfr. grass.parser.
+# GRASS binding
+try:
+    import grass.script as grass
+except ImportError:
+    sys.exit(_("No GRASS-python library found."))
+
+# R
+try: 
+    grass.find_program('R')
+except:
+    sys.exit(_("R is not installed. Install it and re-run, or modify environment variables."))
+
+# rpy2
+try:
+    import rpy2.robjects as robjects
+    haveRpy2 = True
+except ImportError:
+    print >> sys.stderr, "Rpy2 not found. Please install it and re-run." # ok for other OSes?
+    haveRpy2 = False
+if not haveRpy2:
+    sys.exit(1)
+
+# R packages gstat or geoR
+try:
+    robjects.r.library("sp", verbose=False)
+    robjects.r.library("rgdal", verbose=False) # keeps writing its presentation. Grmbl.
+    robjects.r.library("gstat", verbose=False) # or robjects.r.require("geoR") #@TODO: enable it one day.
+    robjects.r.library("spgrass6", verbose=False)
+except:
+    sys.exit(_("No gstat neither geoR package installed. Install one of them (gstat preferably) via R installer."))
 
 #classes in alphabetical order. methods in logical order :)
 
 class Controller():
     """ Executes analysis. For the moment, only with gstat functions."""
-       
+    
     def ImportMap(self, map):
+<<<<<<< .mine
+        """ Adds x,y columns to the GRASS map and then imports it in R. """
+        # adds x, y columns if needed.
+        #@NOTE: it alters original data. Is it correct?
+        cols = grass.vector_columns(map=map, layer=1)
+        if not cols.has_key('x') and not cols.has_key('y'):
+            grass.run_command('v.db.addcol', map = map,
+                              columns = 'x double precision, y double precision')
+            grass.run_command('v.to.db', map = map, option = 'coor', col = 'x,y')
+        return robjects.r.readVECT6(map, type= 'point')
+=======
         """ Adds x,y columns to the GRASS map and then imports it in R. """
         # adds x, y columns if needed
         cols = grass.vector_columns(map=map, layer=1)
@@ -161,6 +167,7 @@ class Controller():
             # fills them with coordinates
             grass.run_command('v.to.db', map = map, option = 'coor', col = 'x,y')
         return robjects.r.readVECT6(map, type= 'point')
+>>>>>>> .r38535
     
     def CreateGrid(self, inputdata):
         Region = grass.region()
@@ -186,10 +193,14 @@ class Controller():
         #print Formula
         return Formula
     
-    def FitVariogram(self, formula, inputdata, model = '', sill='NA', nugget='NA', range='NA'):
+    def FitVariogram(self, formula, inputdata, sill, nugget, range, model = ''):
         if model is '':
             robjects.r.require("automap")
-            VariogramModel = robjects.r.autofitVariogram(formula, inputdata)
+            DottedParams = {}
+            DottedParams['fix.values'] = robjects.r.c(nugget, range, sill)
+            
+            VariogramModel = robjects.r.autofitVariogram(formula, inputdata)#, **DottedParams)
+            #print robjects.r.warnings()
             print robjects.r.warnings()
             return VariogramModel.r['var_model'][0]
         else:
@@ -207,9 +218,9 @@ class Controller():
     
     def DoKriging(self, formula, inputdata, grid, model, block):
         DottedParams = {'debug.level': -1} # let krige() print percentage status
-        if block is not '':
+        if block is not '': #@FIXME(anne): but it's a string!! and krige accepts it!!
             DottedParams['block'] = block
-        print DottedParams
+        #print DottedParams
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model, **DottedParams)
         return KrigingResult
  
@@ -222,7 +233,7 @@ class Controller():
         # Get data and create grid
         logger.message(_("Importing data..."))
         InputData = self.ImportMap(input)
-        print(robjects.r.slot(InputData, 'data').names)
+        #print(robjects.r.slot(InputData, 'data').names)
         logger.message("Imported.")
         GridPredicted = self.CreateGrid(InputData)
         
@@ -518,9 +529,14 @@ class RBookgeoRPanel(RBookPanel):
         self.Sizer.Add(wx.StaticText(self, id= wx.ID_ANY, label = _("Work in progress! No functionality provided.")))
         self.SetSizerAndFit(self.Sizer)
     
-    
 def main(argv=None):    
     #@FIXME: solve this double ifelse. the control should not be done twice.
+    
+    #global variables
+    gisenv = grass.gisenv()
+    # model list should come from gstat::vgm(), hardwired here.
+    ModelList = ['Exp','Sph','Gau','Mat','Lin']
+    
     if argv is None:
         argv = sys.argv[1:] #stripping first item, the full name of this script
         # wxGUI call.
@@ -534,7 +550,15 @@ def main(argv=None):
         options, flags = argv
         #CLI
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
-
+        
+        # re-cast integers from strings, as parser() cast everything to string.
+        for each in ("sill","nugget","range"):
+            if options[each] is not '':
+                options[each] = int(options[each])
+            else:
+                options[each] = 'NA'
+        print options
+        
         # create output map name, if not specified
         if options['output'] is '':
             try: # to strip mapset name from fullname. Ugh.
@@ -552,9 +576,6 @@ def main(argv=None):
                 robjects.r.require("automap")
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
-                
-        #if options['block'] is not '': #remove when block kriging will be ready
-        #    grass.fatal(_("Block kriging implementation in progress. Re-run without block parameter."))
         
         controller = Controller()
         controller.Run(input = options['input'],
