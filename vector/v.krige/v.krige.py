@@ -147,7 +147,6 @@ class Controller():
     """ Executes analysis. For the moment, only with gstat functions."""
     
     def ImportMap(self, map):
-<<<<<<< .mine
         """ Adds x,y columns to the GRASS map and then imports it in R. """
         # adds x, y columns if needed.
         #@NOTE: it alters original data. Is it correct?
@@ -157,17 +156,6 @@ class Controller():
                               columns = 'x double precision, y double precision')
             grass.run_command('v.to.db', map = map, option = 'coor', col = 'x,y')
         return robjects.r.readVECT6(map, type= 'point')
-=======
-        """ Adds x,y columns to the GRASS map and then imports it in R. """
-        # adds x, y columns if needed
-        cols = grass.vector_columns(map=map, layer=1)
-        if not cols.has_key('x') and not cols.has_key('y'):
-            grass.run_command('v.db.addcol', map = map,
-                              columns = 'x double precision, y double precision')
-            # fills them with coordinates
-            grass.run_command('v.to.db', map = map, option = 'coor', col = 'x,y')
-        return robjects.r.readVECT6(map, type= 'point')
->>>>>>> .r38535
     
     def CreateGrid(self, inputdata):
         Region = grass.region()
