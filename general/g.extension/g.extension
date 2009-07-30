@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:       g.extension.add
+# MODULE:       g.extension
 # AUTHOR(S):   	Markus Neteler
 # PURPOSE:      tool to download and install extensions from GRASS Addons SVN into 
 #               local GRASS installation
@@ -12,26 +12,53 @@
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
 #
-# TODO: add sudo support where needed (i.e. check first permission to write into
-#       $GISBASE directory)
 #############################################################################
 
 
 #%Module
-#%  description: Tool to download and install extensions from GRASS Addons SVN repository into local GRASS installation.
-#%  keywords: installation, extensions
+#% label: Tool to maintain GRASS extensions in local GRASS installation.
+#% description: Downloads, installs extensions from GRASS Addons SVN repository into local GRASS installation or removes installed extensions.
+#% keywords: installation
+#% keywords: extensions
 #%End
 
 #%option
 #% key: extension
 #% type: string
-#% key_desc : name
-#% description: Name of extension to install from GRASS Addons SVN repository
-#% required : no
+#% key_desc: name
+#% description: Name of extension to install/remove
+#% required: no
 #%end
+#%option
+#% key: operation
+#% type: string
+#% key_desc: name
+#% description: Operation to be performed
+#% required: no
+#% options: add
+#% answer: add
+#%end
+#%option
+#% key: svnurl
+#% type: string
+#% key_desc: url
+#% description: SVN Addons repository URL
+#% required: yes
+#% answer: https://svn.osgeo.org/grass/grass-addons/
+#%end
+#%option
+#% key: prefix
+#% type: string
+#% key_desc: path
+#% description: Prefix where to install extension
+#% answer: ${GISBASE}
+#% required: yes
+#%end
+
 #%flag
-#%  key: l
-#%  description: List available modules in the GRASS Addons SVN repository
+#% key: l
+#% description: List available modules in the GRASS Addons SVN repository
+#% guisection: Print
 #%end
 
 if  [ -z "$GISBASE" ] ; then
@@ -44,7 +71,13 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
 fi
 
 # definitions
-SVNURL_ADDONS=https://svn.osgeo.org/grass/grass-addons/
+
+SVNURL_ADDONS=${GIS_OPT_SVNURL}
+if [ "$GIS_OPT_PREFIX" = '${GISBASE}' ] ; then
+   MYINST_DIR=${GISBASE}
+else
+   MYINST_DIR=${GIS_OPT_PREFIX}
+fi
 
 #make a temporary directory
 TMPDIR="`g.tempfile pid=$$`"
@@ -147,14 +180,25 @@ else
       exit 1
    else
       g.message message="Installing ${MODULE}..."
-      # can we write?
-      touch ${GISBASE}/`basename $0`.$$
+      # can we write? Install dir present?
+      if test ! -d ${MYINST_DIR} ; then
+         mkdir -p ${MYINST_DIR}/bin
+         mkdir -p ${MYINST_DIR}/docs/html
+         mkdir -p ${MYINST_DIR}/man/man1
+      fi
+      touch ${MYINST_DIR}/`basename $0`.$$
       if [ $? -ne 0 ] ; then
-         rm -f ${GISBASE}/`basename $0`.$$
-         sudo make MODULE_TOPDIR=${GISBASE} install
+         rm -f ${MYINST_DIR}/`basename $0`.$$
+         if test -f ${MYINST_DIR}/bin/${MODULE} ; then
+            rm -f ${MYINST_DIR}/bin/${MODULE}
+         fi
+         make MODULE_TOPDIR=${GISBASE} INST_DIR=${MYINST_DIR}
       else
-         rm -f ${GISBASE}/`basename $0`.$$
-         make MODULE_TOPDIR=${GISBASE} install
+         rm -f ${MYINST_DIR}/`basename $0`.$$
+         if test -f ${MYINST_DIR}/bin/${MODULE} ; then
+            rm -f ${MYINST_DIR}/bin/${MODULE}
+         fi
+         make MODULE_TOPDIR=${GISBASE} INST_DIR=${MYINST_DIR}
       fi
       if [ $? -ne 0 ] ; then
          g.message -e message="Installation failed, sorry. Please check above error messages."
@@ -166,5 +210,5 @@ else
    cleanup
 fi
 
-g.message message="Installation of ${MODULE} successfully finished."
+g.message message="Installation of <${MODULE}> in <${MYINST_DIR}> successfully finished."
 exit 0
