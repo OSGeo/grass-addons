@@ -230,9 +230,9 @@ int main(argc,argv)
     }
     percent (i,npoints,1);
   }
-  Vect_build (&Out, stderr);
+  Vect_build (&Out);
   Vect_close (&Out);
-  Vect_build (&Out2, stderr);
+  Vect_build (&Out2);
   Vect_close (&Out2);
 
   return 1;
