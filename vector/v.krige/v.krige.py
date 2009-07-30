@@ -185,11 +185,11 @@ class Controller():
         if model is '':
             robjects.r.require("automap")
             DottedParams = {}
+            #print (nugget.r_repr(), sill, range)
             DottedParams['fix.values'] = robjects.r.c(nugget, range, sill)
             
-            VariogramModel = robjects.r.autofitVariogram(formula, inputdata)#, **DottedParams)
+            VariogramModel = robjects.r.autofitVariogram(formula, inputdata, **DottedParams)
             #print robjects.r.warnings()
-            print robjects.r.warnings()
             return VariogramModel.r['var_model'][0]
         else:
             DataVariogram = robjects.r['variogram'](formula, inputdata)
@@ -380,7 +380,7 @@ class KrigingPanel(wx.Panel):
         """ Execute R analysis. """
         #@FIXME: send data to main method instead of running it here.
         
-        #-1: get the selected notebook page. The user shall know that he/she can modify settings in all
+        #-1: get the selected notebook page. The user shall know that [s]he can modify settings in all
         # pages, but only the selected one will be executed when Run is pressed.
         SelectedPanel = self.RPackagesBook.GetCurrentPage()
         
@@ -388,17 +388,21 @@ class KrigingPanel(wx.Panel):
         command = ["v.krige.py", "input=" + self.InputDataMap.GetValue(),
                                  "column=" + self.InputDataColumn.GetValue(),
                                  "output=" + self.OutputMapName.GetValue(), 
-                                 "package=" + '%s' % self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()),
-                                 "sill=" + '%s' % SelectedPanel.SillCtrl.GetValue(), 
-                                 "nugget=" + '%s' % SelectedPanel.NuggetCtrl.GetValue(),
-                                 "range=" + '%s' % SelectedPanel.RangeCtrl.GetValue()]
+                                 "package=" + '%s' % self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection())]
         
         if not SelectedPanel.VariogramCheckBox.IsChecked():
             command.append("model=" + '%s' % SelectedPanel.ModelChoicebox.GetStringSelection().split(" ")[0])
+            
+        for i in ['Sill', 'Nugget', 'Range']:
+            if getattr(SelectedPanel, i+"CheckBox").IsChecked():
+                command.append(i.lower() + "=" + '%s' % getattr(SelectedPanel, i+'Ctrl').GetValue())
+        
         if SelectedPanel.KrigingRadioBox.GetStringSelection() == "Block kriging":
             command.append("block=" + '%s' % SelectedPanel.BlockSpinBox.GetValue())
         if self.OverwriteCheckBox.IsChecked():
             command.append("--overwrite")
+            
+        print command 
         
         # give it to the output console
         self.goutput.RunCmd(command, switchPage = True)
@@ -440,17 +444,24 @@ class RBookPanel(wx.Panel):
             choices=KrigingList, majorDimension=1, style=wx.RA_SPECIFY_COLS)
         self.KrigingRadioBox.Bind(wx.EVT_RADIOBOX, self.HideBlockOptions)
         
-        # unlock options as soon as they are available. Stone soup!
         self.VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, 
             label=_("Variogram fitting")), wx.VERTICAL)
-        self.ParametersSizer = wx.FlexGridSizer(rows=3, cols=2, hgap=5, vgap=5)        
+        self.ParametersSizer = wx.FlexGridSizer(rows=3, cols=3, hgap=5, vgap=5)
         
-        for n in ["Sill", "Nugget", "Range"]:
+        self.ParametersList = ["Sill", "Nugget", "Range"]
+        for n in self.ParametersList:
             setattr(self, n+"Text", (wx.StaticText(self, id= wx.ID_ANY, label = _(n))))
             setattr(self, n+"Ctrl", (wx.SpinCtrl(self, id = wx.ID_ANY, max=sys.maxint)))
+            setattr(self, n+"CheckBox", wx.CheckBox(self,
+                                                    id=self.ParametersList.index(n),
+                                                    label=_("Use value")))
+            getattr(self, n+"CheckBox").Bind(wx.EVT_CHECKBOX,
+                                             self.UseValue,
+                                             id=self.ParametersList.index(n))
             setattr(self, n+"Sizer", (wx.BoxSizer(wx.HORIZONTAL)))
             self.ParametersSizer.Add(getattr(self, n+"Text"), flag = wx.ALIGN_CENTER_VERTICAL)
-            self.ParametersSizer.Add(getattr(self, n+"Ctrl"), flag = wx.ALIGN_CENTER_VERTICAL)
+            self.ParametersSizer.Add(getattr(self, n+"Ctrl"), flag = wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+            self.ParametersSizer.Add(getattr(self, n+"CheckBox"), flag = wx.ALIGN_CENTER_VERTICAL)
             
         #@TODO: deploy this asap!!
         #self.ParametersSizer.Add(wx.Button(self, id=wx.ID_ANY, label=_("Interactive variogram fit")))
@@ -460,7 +471,7 @@ class RBookPanel(wx.Panel):
         self.BlockSpinBox = wx.SpinCtrl(self, id = wx.ID_ANY, min=1, max=sys.maxint)
         self.BlockSpinBox.Enable(False) # default choice is Ordinary kriging
 
-        self.ParametersSizer.Add(BlockLabel, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
+        self.ParametersSizer.Add(BlockLabel, flag= wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
         self.ParametersSizer.Add(self.BlockSpinBox, flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
 
         self.VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
@@ -474,6 +485,11 @@ class RBookPanel(wx.Panel):
         
     def ExportMap(self, map, col, name, overwrite):
         robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
+    
+    def UseValue(self, event):
+        """ Enables/Disables the SpinCtrl in respect of the checkbox. """
+        n = self.ParametersList[event.GetId()]
+        getattr(self, n+"Ctrl").Enable(event.IsChecked())
 
 class RBookgstatPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific gstat options and kriging functions. """
@@ -496,8 +512,13 @@ class RBookgstatPanel(RBookPanel):
             getattr(self, n+"Ctrl").Enable(False)
         self.ModelChoicebox.Enable(False)
         
-        self.ParametersSizer.Insert(before=0, item=wx.StaticText(self, id= wx.ID_ANY, label = _("Variogram model")))      
+        self.ParametersSizer.Insert(before=0,
+                                    item=wx.StaticText(self,
+                                                       id= wx.ID_ANY,
+                                                       label = _("Variogram model")),
+                                    flag = wx.ALIGN_CENTER_VERTICAL | wx.ALL)      
         self.ParametersSizer.Insert(before=1, item= self.ModelChoicebox)
+        self.ParametersSizer.InsertStretchSpacer(2)
         
         self.SetSizerAndFit(self.Sizer)
     
@@ -505,6 +526,7 @@ class RBookgstatPanel(RBookPanel):
         self.ModelChoicebox.Enable(not event.IsChecked())
         for n in ["Sill", "Nugget", "Range"]:
             getattr(self, n+"Ctrl").Enable(not event.IsChecked())
+            getattr(self, n+ "CheckBox").SetValue(not event.IsChecked())
         #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work    
     
 class RBookgeoRPanel(RBookPanel):
@@ -520,11 +542,6 @@ class RBookgeoRPanel(RBookPanel):
 def main(argv=None):    
     #@FIXME: solve this double ifelse. the control should not be done twice.
     
-    #global variables
-    gisenv = grass.gisenv()
-    # model list should come from gstat::vgm(), hardwired here.
-    ModelList = ['Exp','Sph','Gau','Mat','Lin']
-    
     if argv is None:
         argv = sys.argv[1:] #stripping first item, the full name of this script
         # wxGUI call.
@@ -538,14 +555,13 @@ def main(argv=None):
         options, flags = argv
         #CLI
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
-        
+        print options
         # re-cast integers from strings, as parser() cast everything to string.
         for each in ("sill","nugget","range"):
             if options[each] is not '':
                 options[each] = int(options[each])
             else:
-                options[each] = 'NA'
-        print options
+                options[each] = robjects.r('''NA''')
         
         # create output map name, if not specified
         if options['output'] is '':
@@ -564,6 +580,7 @@ def main(argv=None):
                 robjects.r.require("automap")
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
+        print options
         
         controller = Controller()
         controller.Run(input = options['input'],
