@@ -258,7 +258,7 @@ class KrigingPanel(wx.Panel):
         #controller istance
         self.Controller = Controller()
         
-#    1. Input data 
+        #    1. Input data 
         InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Input Data")), 
                                           orient=wx.HORIZONTAL)
         
@@ -287,7 +287,7 @@ class KrigingPanel(wx.Panel):
         
         InputBoxSizer.Add(item = flexSizer)
         
-#    2. Kriging. In book pages one for each R package. Includes variogram fit.
+        #    2. Kriging. In book pages one for each R package. Includes variogram fit.
         KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Kriging")), wx.HORIZONTAL)
 
         self.RPackagesBook = FN.FlatNotebook(parent=self, id=wx.ID_ANY,
@@ -308,7 +308,7 @@ class KrigingPanel(wx.Panel):
         self.RPackagesBook.SetSelection(0)
         KrigingSizer.Add(self.RPackagesBook, proportion=1, flag=wx.EXPAND)
         
-#    3. Output Parameters.
+        #    3. Output Parameters.
         OutputSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Output")), wx.HORIZONTAL)
         
         OutputParameters = wx.GridBagSizer(hgap=5, vgap=5)
@@ -329,7 +329,7 @@ class KrigingPanel(wx.Panel):
         
         OutputSizer.Add(OutputParameters, proportion=0, flag=wx.EXPAND | wx.ALL, border=3)
         
-#    4. Run Button and Quit Button
+        #    4. Run Button and Quit Button
         ButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
         QuitButton = wx.Button(self, id=wx.ID_EXIT)
         QuitButton.Bind(wx.EVT_BUTTON, self.OnCloseWindow)
@@ -338,7 +338,7 @@ class KrigingPanel(wx.Panel):
         ButtonSizer.Add(QuitButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         ButtonSizer.Add(RunButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         
-#    Main Sizer. Add each child sizer as soon as it is ready.
+        #    Main Sizer. Add each child sizer as soon as it is ready.
         Sizer = wx.BoxSizer(wx.VERTICAL)
         Sizer.Add(InputBoxSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
         Sizer.Add(KrigingSizer, proportion=1, flag=wx.EXPAND | wx.ALL, border=self.border)
@@ -462,9 +462,6 @@ class RBookPanel(wx.Panel):
             self.ParametersSizer.Add(getattr(self, n+"Text"), flag = wx.ALIGN_CENTER_VERTICAL)
             self.ParametersSizer.Add(getattr(self, n+"Ctrl"), flag = wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
             self.ParametersSizer.Add(getattr(self, n+"CheckBox"), flag = wx.ALIGN_CENTER_VERTICAL)
-            
-        #@TODO: deploy this asap!!
-        #self.ParametersSizer.Add(wx.Button(self, id=wx.ID_ANY, label=_("Interactive variogram fit")))
         
         # block kriging parameters. Size.
         BlockLabel = wx.StaticText(self, id= wx.ID_ANY, label = _("Block size:"))
@@ -502,7 +499,8 @@ class RBookgstatPanel(RBookPanel):
         self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
 
         ModelFactor = robjects.r.vgm().r['long']
-        ModelList = robjects.r.levels(ModelFactor[0]) # no other way to let the Python pick it up..
+        ModelList = robjects.r.levels(ModelFactor[0])
+        #@FIXME: no other way to let the Python pick it up..
         # and this is te wrong place where to load this list. should be at the very beginning.
         self.ModelChoicebox = wx.Choice(self, id=wx.ID_ANY, choices=ModelList)
         
@@ -517,8 +515,15 @@ class RBookgstatPanel(RBookPanel):
                                                        id= wx.ID_ANY,
                                                        label = _("Variogram model")),
                                     flag = wx.ALIGN_CENTER_VERTICAL | wx.ALL)      
-        self.ParametersSizer.Insert(before=1, item= self.ModelChoicebox)
-        self.ParametersSizer.InsertStretchSpacer(2)
+        self.ParametersSizer.Insert(before=1,
+                                    item= self.ModelChoicebox,
+                                    flag = wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        
+        #@TODO: deploy this asap!!
+        #self.InteractiveVariogramFitButton = wx.Button(self, id=wx.ID_ANY, label=_("Interactive variogram fit"))
+        #self.InteractiveVariogramFitButton.Bind(wx.EVT_BUTTON, self.InteractiveVariogramFit)
+        #self.ParametersSizer.Insert(before=2, item= self.InteractiveVariogramFitButton)
+        self.ParametersSizer.InsertStretchSpacer(2) ## use it until childframe will be ready
         
         self.SetSizerAndFit(self.Sizer)
     
@@ -527,7 +532,13 @@ class RBookgstatPanel(RBookPanel):
         for n in ["Sill", "Nugget", "Range"]:
             getattr(self, n+"Ctrl").Enable(not event.IsChecked())
             getattr(self, n+ "CheckBox").SetValue(not event.IsChecked())
-        #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work    
+        #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work
+        
+    def InteractiveVariogramFit(self, event):
+        """ Opens the frame with interactive variogram fit. """
+        FitFrame = VariogramDialog(parent = self)
+        FitFrame.Center()
+        FitFrame.Show()
     
 class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
@@ -538,6 +549,24 @@ class RBookgeoRPanel(RBookPanel):
             n.Hide()
         self.Sizer.Add(wx.StaticText(self, id= wx.ID_ANY, label = _("Work in progress! No functionality provided.")))
         self.SetSizerAndFit(self.Sizer)
+        
+class VariogramDialog(wx.Frame):
+    """ Dialog for interactive variogram fit. """
+    def __init__(self, parent, *args, **kwargs):
+        wx.Frame.__init__(self, parent, *args, **kwargs)
+        # setting properties and all widgettery
+        self.SetTitle(_("Variogram fit"))
+        self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass_dialog.ico'), wx.BITMAP_TYPE_ICO))
+        
+        # set the widgets of the frame
+        # set the methods of the frame
+        
+        # give the parent frame the result of the fit
+        
+        
+        #self.Panel = KrigingPanel(self)
+        #self.SetMinSize(self.GetBestSize())
+        #self.SetSize(self.GetBestSize())   
     
 def main(argv=None):    
     #@FIXME: solve this double ifelse. the control should not be done twice.
