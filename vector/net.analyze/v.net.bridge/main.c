@@ -5,7 +5,7 @@
  *
  * AUTHOR(S):  Daniel Bundala
  *
- * PURPOSE:    Computes bridges in the network
+ * PURPOSE:    Computes bridges and articulation points
  *
  * COPYRIGHT:  (C) 2002-2005 by the GRASS Development Team
  *
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     method_opt->required = YES;
     method_opt->multiple = NO;
     method_opt->options = "bridge,articulation";
-    method_opt->descriptions = _("bridge;Find bridges;"
+    method_opt->descriptions = _("bridge;Finds bridges;"
 				 "articulation;Finds articulation points;");
     method_opt->description = _("Feature type");
 
@@ -96,33 +96,10 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    if (where_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "where");
-	if (cat_opt->answer)
-	    G_warning(_
-		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
-	chcat = 1;
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	if (Vect_set_varray_from_db
-	    (&In, layer, where_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Unable to load data from database"));
-	}
-    }
-    else if (cat_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "cat");
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	chcat = 1;
-	if (Vect_set_varray_from_cat_string
-	    (&In, layer, cat_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Problem loading category values"));
-	}
-    }
-    else {
-	chcat = 0;
-	varray = NULL;
-    }
+    chcat =
+	(neta_initialise_varray
+	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
+	  &varray) == 1);
 
     Vect_net_build_graph(&In, mask_type, 0, 0, NULL, NULL, NULL, 0, 0);
     graph = &(In.graph);

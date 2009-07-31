@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     dglGraph_s *graph;
     int i, j, geo, nnodes, nlines, max_cat, *cats;
     dglInt32_t **dist;
-    char buf[2000];
+    char buf[2000], *output;
 
     /* Attribute table */
     dbString sql;
@@ -123,46 +123,23 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    if (where_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "where");
-	if (cat_opt->answer)
-	    G_warning(_
-		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
-	chcat = 1;
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	if (Vect_set_varray_from_db
-	    (&In, layer, where_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Unable to load data from database"));
-	}
-    }
-    else if (cat_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "cat");
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	chcat = 1;
-	if (Vect_set_varray_from_cat_string
-	    (&In, layer, cat_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Problem loading category values"));
-	}
-    }
-    else {
-	chcat = 0;
-	varray = NULL;
-    }
+    chcat =
+	(neta_initialise_varray
+	 (&In, layer, GV_POINT, where_opt->answer, cat_opt->answer,
+	  &varray) == 1);
 
     /* Create table */
     Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
     Vect_map_add_dblink(&Out, 1, NULL, Fi->table, "cat", Fi->database,
 			Fi->driver);
-
+    db_init_string(&sql);
     driver = db_start_driver_open_database(Fi->driver, Fi->database);
     if (driver == NULL)
 	G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
 		      Fi->database, Fi->driver);
 
     sprintf(buf,
-	    "create table %s ( from_cat integer, to_cat integer, cost double precision)",
+	    "create table %s ( cat integer, to_cat integer, cost double precision)",
 	    Fi->table);
 
     db_set_string(&sql, buf);
@@ -172,10 +149,10 @@ int main(int argc, char *argv[])
 	db_close_database_shutdown_driver(driver);
 	G_fatal_error(_("Unable to create table: '%s'"), db_get_string(&sql));
     }
-
-    if (db_create_index2(driver, Fi->table, "cat") != DB_OK)
-	G_warning(_("Cannot create index"));
-
+    /*
+     * if (db_create_index2(driver, Fi->table, "cat") != DB_OK)
+     * G_warning(_("Cannot create index"));
+     */
     if (db_grant_on_table
 	(driver, Fi->table, DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK)
 	G_fatal_error(_("Cannot grant privileges on table <%s>"), Fi->table);
@@ -189,6 +166,7 @@ int main(int argc, char *argv[])
     nnodes = dglGet_NodeCount(graph);
     dist = (dglInt32_t **) G_calloc(nnodes + 1, sizeof(dglInt32_t *));
     cats = (int *)G_calloc(nnodes + 1, sizeof(int));	/*id of each node. -1 if not used */
+    output = (char *)G_calloc(nnodes + 1, sizeof(char));
 
     if (!dist || !cats)
 	G_fatal_error(_("Out of memory"));
@@ -199,8 +177,10 @@ int main(int argc, char *argv[])
     }
     neta_allpairs(graph, dist);
 
-    for (i = 1; i <= nnodes; i++)
+    for (i = 1; i <= nnodes; i++) {
 	cats[i] = -1;
+	output[i] = 0;
+    }
 
     nlines = Vect_get_num_lines(&In);
     max_cat = 0;
@@ -213,8 +193,11 @@ int main(int argc, char *argv[])
 	    int node;
 	    Vect_get_line_nodes(&In, i, &node, NULL);
 	    Vect_cat_get(Cats, layer, &cats[node]);
-	    if (cats[node] != -1)
+	    if (cats[node] != -1) {
 		Vect_write_line(&Out, GV_POINT, Points, Cats);
+		if (!chcat || varray->c[i])
+		    output[node] = 'y';
+	    }
 	}
 
     }
@@ -230,11 +213,11 @@ int main(int argc, char *argv[])
     G_percent_reset();
     for (i = 1; i <= nnodes; i++) {
 	G_percent(i, nnodes, 1);
-	if (cats[i] != -1)
+	if (cats[i] != -1 && output[i])	/*Process only selected nodes */
 	    for (j = 1; j <= nnodes; j++)
 		if (cats[j] != -1) {
 		    sprintf(buf, "insert into %s values (%d, %d, %f)",
-			    Fi->table, i, j,
+			    Fi->table, cats[i], cats[j],
 			    dist[i][j] / (double)In.cost_multip);
 		    db_set_string(&sql, buf);
 		    G_debug(3, db_get_string(&sql));

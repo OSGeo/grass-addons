@@ -85,3 +85,65 @@ int neta_distance_from_points(dglGraph_s * graph, struct ilist *from, int *dst,
 
     return 0;
 }
+
+/*Find a path (minimum number of edges) from 'from' to 'to' using only edges in 'edges'. Precisely, edge with
+ * id I is used iff edges[abs(i)] == 1. List stores the indices of lines on the path. Method return number of
+ * edges or -1 if no path exist */
+int neta_find_path(dglGraph_s * graph, int from, int to, int *edges,
+		   struct ilist *list)
+{
+    dglInt32_t **prev, *queue;
+    dglEdgesetTraverser_s et;
+    char *vis;
+    int begin, end, cur, nnodes;
+
+    nnodes = dglGet_NodeCount(graph);
+    prev = (dglInt32_t **) G_calloc(nnodes + 1, sizeof(dglInt32_t *));
+    queue = (dglInt32_t *) G_calloc(nnodes + 1, sizeof(dglInt32_t));
+    vis = (char *)G_calloc(nnodes + 1, sizeof(char));
+    if (!prev || !queue || !vis) {
+	G_fatal_error(_("Out of memory"));
+	return -1;
+    }
+    Vect_reset_list(list);
+
+    begin = 0;
+    end = 1;
+    vis[from] = 'y';
+    queue[0] = from;
+    prev[from] = NULL;
+    while (begin != end) {
+	dglInt32_t vertex = queue[begin++];
+	if (vertex == to)
+	    break;
+	dglInt32_t *edge, *node = dglGetNode(graph, vertex);
+	dglEdgeset_T_Initialize(&et, graph, dglNodeGet_OutEdgeset(graph, node));
+	for (edge = dglEdgeset_T_First(&et); edge;
+	     edge = dglEdgeset_T_Next(&et)) {
+	    dglInt32_t id = abs(dglEdgeGet_Id(graph, edge));
+	    dglInt32_t to = dglNodeGet_Id(graph, dglEdgeGet_Tail(graph, edge));
+	    if (edges[id] && !vis[to]) {
+		vis[to] = 'y';
+		prev[to] = edge;
+		queue[end++] = to;
+	    }
+	}
+	dglEdgeset_T_Release(&et);
+    }
+    G_free(queue);
+    if (!vis[to]) {
+	G_free(prev);
+	G_free(vis);
+	return -1;
+    }
+
+    cur = to;
+    while (prev[cur] != NULL) {
+	Vect_list_append(list, abs(dglEdgeGet_Id(graph, prev[cur])));
+	cur = dglNodeGet_Id(graph, dglEdgeGet_Head(graph, prev[cur]));
+    }
+
+    G_free(prev);
+    G_free(vis);
+    return list->n_values;
+}

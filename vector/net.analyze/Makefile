@@ -8,7 +8,8 @@ SUBDIRS1 = \
         v.net.flow \
         v.net.connectivity \
         v.net.centrality \
-        v.net.distance
+        v.net.distance \
+        v.net.timetable
 
 SUBDIRS = netalib $(SUBDIRS1)
 

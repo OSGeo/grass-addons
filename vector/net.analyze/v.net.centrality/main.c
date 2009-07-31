@@ -24,42 +24,66 @@
 #include <grass/dbmi.h>
 #include <grass/neta.h>
 
-void update_record(dbDriver * driver, dbString * sql, char *table, char *key,
-		   char *column, double value, int cat)
+/*Global variables */
+struct Option *deg_opt, *close_opt, *betw_opt, *eigen_opt;
+double *deg, *close, *betw, *eigen;
+/* Attribute table */
+dbString sql, tmp;
+dbDriver *driver;
+struct field_info *Fi;
+
+void append_string(dbString * string, char *s)
+{
+    db_append_string(string, ", ");
+    db_append_string(string, s);
+    db_append_string(string, " double precision");
+}
+
+void append_double(dbString * string, double d)
+{
+    char buf[50];
+    sprintf(buf, ",%f", d);
+    db_append_string(string, buf);
+}
+
+void process_node(int node, int cat)
 {
     char buf[2000];
-    sprintf(buf, "update %s set %s=%f where %s=%d", table, column, value, key,
-	    cat);
-    db_set_string(sql, buf);
-    G_debug(3, db_get_string(sql));
-    if (db_execute_immediate(driver, sql) != DB_OK) {
+    sprintf(buf, "INSERT INTO %s VALUES(%d", Fi->table, cat);
+    db_set_string(&sql, buf);
+    if (deg_opt->answer)
+	append_double(&sql, deg[node]);
+    if (close_opt->answer)
+	append_double(&sql, close[node]);
+    if (betw_opt->answer)
+	append_double(&sql, betw[node]);
+    if (eigen_opt->answer)
+	append_double(&sql, eigen[node]);
+
+    db_append_string(&sql, ")");
+    if (db_execute_immediate(driver, &sql) != DB_OK) {
 	db_close_database_shutdown_driver(driver);
-	G_fatal_error(_("Cannot insert new record: %s"), db_get_string(sql));
-    };
+	G_fatal_error(_("Cannot insert new record: %s"), db_get_string(&sql));
+    }
 }
 
 int main(int argc, char *argv[])
 {
-    struct Map_info In;
+    struct Map_info In, Out;
+    static struct line_pnts *Points;
     struct line_cats *Cats;
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
-    struct Option *map_in;
+    struct Option *map_in, *map_out;
     struct Option *cat_opt, *field_opt, *where_opt, *abcol, *afcol;
-    struct Option *deg_opt, *close_opt, *betw_opt, *eigen_opt;
     struct Option *iter_opt, *error_opt;
-    struct Flag *geo_f;
+    struct Flag *geo_f, *add_f;
     int chcat, with_z;
     int layer, mask_type;
     VARRAY *varray;
     dglGraph_s *graph;
-    int i, geo, nnodes, nlines;
-    double *deg, *close, *betw, *eigen;
-
-    /* Attribute table */
-    dbString sql;
-    dbDriver *driver;
-    struct field_info *Fi;
+    int i, geo, nnodes, nlines, j, max_cat;
+    char buf[2000], *covered;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -75,6 +99,7 @@ int main(int argc, char *argv[])
 
     /* Define the different options as defined in gis.h */
     map_in = G_define_standard_option(G_OPT_V_INPUT);
+    map_out = G_define_standard_option(G_OPT_V_OUTPUT);
 
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
     cat_opt = G_define_standard_option(G_OPT_V_CATS);
@@ -130,7 +155,7 @@ int main(int argc, char *argv[])
     error_opt->type = TYPE_DOUBLE;
     error_opt->required = NO;
     error_opt->description =
-	_("Cuumulative error tolerance for eigenvector centrality");
+	_("Cummulative error tolerance for eigenvector centrality");
 
 
     geo_f = G_define_flag();
@@ -138,13 +163,21 @@ int main(int argc, char *argv[])
     geo_f->description =
 	_("Use geodesic calculation for longitude-latitude locations");
 
+    add_f = G_define_flag();
+    add_f->key = 'a';
+    add_f->description = _("Add points on nodes");
+
     /* options and flags parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
     /* TODO: make an option for this */
     mask_type = GV_LINE | GV_BOUNDARY;
 
+    Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
+
+    Vect_check_input_output_name(map_in->answer, map_out->answer,
+				 GV_FATAL_EXIT);
 
     if ((mapset = G_find_vector2(map_in->answer, "")) == NULL)
 	G_fatal_error(_("Vector map <%s> not found"), map_in->answer);
@@ -157,6 +190,12 @@ int main(int argc, char *argv[])
 
     with_z = Vect_is_3d(&In);
 
+    if (0 > Vect_open_new(&Out, map_out->answer, with_z)) {
+	Vect_close(&In);
+	G_fatal_error(_("Unable to create vector map <%s>"), map_out->answer);
+    }
+
+
     if (geo_f->answer) {
 	geo = 1;
 	if (G_projection() != PROJECTION_LL)
@@ -167,42 +206,53 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    if (where_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "where");
-	if (cat_opt->answer)
-	    G_warning(_
-		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
-	chcat = 1;
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	if (Vect_set_varray_from_db
-	    (&In, layer, where_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Unable to load data from database"));
-	}
-    }
-    else if (cat_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "cat");
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	chcat = 1;
-	if (Vect_set_varray_from_cat_string
-	    (&In, layer, cat_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Problem loading category values"));
-	}
-    }
-    else {
-	chcat = 0;
-	varray = NULL;
-    }
+    chcat =
+	(neta_initialise_varray
+	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
+	  &varray) == 1);
 
-    /* Open database */
-    Fi = Vect_get_field(&In, layer);
+    /* Create table */
+    Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
+    Vect_map_add_dblink(&Out, 1, NULL, Fi->table, "cat", Fi->database,
+			Fi->driver);
+    db_init_string(&sql);
     driver = db_start_driver_open_database(Fi->driver, Fi->database);
     if (driver == NULL)
 	G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
 		      Fi->database, Fi->driver);
+
+    db_init_string(&tmp);
+    if (deg_opt->answer)
+	append_string(&tmp, deg_opt->answer);
+    if (close_opt->answer)
+	append_string(&tmp, close_opt->answer);
+    if (betw_opt->answer)
+	append_string(&tmp, betw_opt->answer);
+    if (eigen_opt->answer)
+	append_string(&tmp, eigen_opt->answer);
+    sprintf(buf,
+	    "create table %s(cat integer%s)", Fi->table, db_get_string(&tmp));
+
+    db_set_string(&sql, buf);
+    G_debug(2, db_get_string(&sql));
+
+    if (db_execute_immediate(driver, &sql) != DB_OK) {
+	db_close_database_shutdown_driver(driver);
+	G_fatal_error(_("Unable to create table: '%s'"), db_get_string(&sql));
+    }
+
+    if (db_create_index2(driver, Fi->table, "cat") != DB_OK)
+	G_warning(_("Cannot create index"));
+
+    if (db_grant_on_table
+	(driver, Fi->table, DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK)
+	G_fatal_error(_("Cannot grant privileges on table <%s>"), Fi->table);
+
     db_begin_transaction(driver);
-    db_init_string(&sql);
+
+    Vect_copy_head_data(&In, &Out);
+    Vect_hist_copy(&In, &Out);
+    Vect_hist_command(&Out);
 
     Vect_net_build_graph(&In, mask_type, atoi(field_opt->answer), 0,
 			 afcol->answer, abcol->answer, NULL, geo, 0);
@@ -210,6 +260,10 @@ int main(int argc, char *argv[])
     nnodes = dglGet_NodeCount(graph);
 
     deg = close = betw = eigen = NULL;
+
+    covered = (char *)G_calloc(nnodes + 1, sizeof(char));
+    if (!covered)
+	G_fatal_error(_("Out of memory"));
 
     if (deg_opt->answer) {
 	deg = (double *)G_calloc(nnodes + 1, sizeof(double));
@@ -244,6 +298,9 @@ int main(int argc, char *argv[])
 	G_message(_
 		  ("Computing betweenness and/or closeness centrality measure"));
 	neta_betweenness_closeness(graph, betw, close);
+	if (close)
+	    for (i = 1; i <= nnodes; i++)
+		close[i] /= (double)In.cost_multip;
     }
     if (eigen_opt->answer) {
 	G_message(_("Computing eigenvector centrality measure"));
@@ -251,37 +308,48 @@ int main(int argc, char *argv[])
 				    atof(error_opt->answer), eigen);
     }
 
+
     nlines = Vect_get_num_lines(&In);
     G_message(_("Writing data into the table..."));
     G_percent_reset();
     for (i = 1; i <= nlines; i++) {
 	G_percent(i, nlines, 1);
-	//        if(!varray->c[i])continue;
-	int type = Vect_read_line(&In, NULL, Cats, i);
-	if (type == GV_POINT) {
+	int type = Vect_read_line(&In, Points, Cats, i);
+	if (type == GV_POINT && (!chcat || varray->c[i])) {
 	    int cat, node;
 	    if (!Vect_cat_get(Cats, layer, &cat))
 		continue;
+	    Vect_write_line(&Out, type, Points, Cats);
 	    Vect_get_line_nodes(&In, i, &node, NULL);
-	    if (deg_opt->answer)
-		update_record(driver, &sql, Fi->table, Fi->key, deg_opt->answer,
-			      deg[node], cat);
-	    if (close_opt->answer)
-		update_record(driver, &sql, Fi->table, Fi->key,
-			      close_opt->answer, close[node], cat);
-	    if (betw_opt->answer)
-		update_record(driver, &sql, Fi->table, Fi->key,
-			      betw_opt->answer, betw[node], cat);
-	    if (eigen_opt->answer)
-		update_record(driver, &sql, Fi->table, Fi->key,
-			      eigen_opt->answer, eigen[node], cat);
+	    process_node(node, cat);
+	    covered[node] = 1;
 	}
+    }
 
+    if (add_f->answer && !chcat) {
+	max_cat = 0;
+	for (i = 1; i <= nlines; i++) {
+	    Vect_read_line(&In, NULL, Cats, i);
+	    for (j = 0; j < Cats->n_cats; j++)
+		if (Cats->cat[j] > max_cat)
+		    max_cat = Cats->cat[j];
+	}
+	max_cat++;
+	for (i = 1; i <= nnodes; i++)
+	    if (!covered[i]) {
+		Vect_reset_cats(Cats);
+		Vect_cat_set(Cats, 1, max_cat);
+		neta_add_point_on_node(&In, &Out, i, Cats);
+		process_node(i, max_cat);
+		max_cat++;
+	    }
 
     }
+
     db_commit_transaction(driver);
     db_close_database_shutdown_driver(driver);
 
+    G_free(covered);
     if (deg)
 	G_free(deg);
     if (close)
@@ -290,8 +358,10 @@ int main(int argc, char *argv[])
 	G_free(betw);
     if (eigen)
 	G_free(eigen);
+    Vect_build(&Out);
 
     Vect_close(&In);
+    Vect_close(&Out);
 
     exit(EXIT_SUCCESS);
 }

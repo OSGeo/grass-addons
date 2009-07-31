@@ -33,14 +33,16 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *ncol, *set1_opt, *set2_opt;
+    struct Option *cat_opt, *field_opt, *where_opt, *ncol;
+    struct Option *catset1_opt, *fieldset1_opt, *whereset1_opt;
+    struct Option *catset2_opt, *fieldset2_opt, *whereset2_opt;
     int chcat, with_z;
     int layer, mask_type;
     VARRAY *varray;
+    VARRAY *varray_set1, *varray_set2;
     dglGraph_s *graph;
     int i, nnodes, nlines, *flow, total_flow, nedges;
     struct ilist *set1_list, *set2_list, *cut;
-    struct cat_list *set1_cats, *set2_cats;
     int *node_costs;
 
     dglGraph_s vg;
@@ -68,15 +70,27 @@ int main(int argc, char *argv[])
     ncol->required = NO;
     ncol->description = _("Node capacity column");
 
-    set1_opt = G_define_standard_option(G_OPT_V_CATS);
-    set1_opt->key = "set1";
-    set1_opt->required = YES;
-    set1_opt->description = _("Categories of the first set");
+    fieldset1_opt = G_define_standard_option(G_OPT_V_FIELD);
+    fieldset1_opt->key = "set1_layer";
+    fieldset1_opt->description = _("set1 layer");
+    catset1_opt = G_define_standard_option(G_OPT_V_CATS);
+    catset1_opt->key = "set1_cats";
+    catset1_opt->description = _("set1 category values");
+    whereset1_opt = G_define_standard_option(G_OPT_WHERE);
+    whereset1_opt->key = "set1_where";
+    whereset1_opt->description =
+	_("Set1 WHERE conditions of SQL statement without 'where' keyword");
 
-    set2_opt = G_define_standard_option(G_OPT_V_CATS);
-    set2_opt->key = "set2";
-    set2_opt->required = YES;
-    set2_opt->description = _("Categories of the second set");
+    fieldset2_opt = G_define_standard_option(G_OPT_V_FIELD);
+    fieldset2_opt->key = "set2_layer";
+    fieldset2_opt->description = _("set2 layer");
+    catset2_opt = G_define_standard_option(G_OPT_V_CATS);
+    catset2_opt->key = "set2_cats";
+    catset2_opt->description = _("set2 category values");
+    whereset2_opt = G_define_standard_option(G_OPT_WHERE);
+    whereset2_opt->key = "set2_where";
+    whereset2_opt->description =
+	_("Set2 WHERE conditions of SQL statement without 'where' keyword");
 
     /* options and flags parser */
     if (G_parser(argc, argv))
@@ -108,63 +122,36 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    if (where_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "where");
-	if (cat_opt->answer)
-	    G_warning(_
-		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
-	chcat = 1;
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	if (Vect_set_varray_from_db
-	    (&In, layer, where_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Unable to load data from database"));
-	}
-    }
-    else if (cat_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "cat");
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	chcat = 1;
-	if (Vect_set_varray_from_cat_string
-	    (&In, layer, cat_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Problem loading category values"));
-	}
-    }
-    else {
-	chcat = 0;
-	varray = NULL;
-    }
+    chcat =
+	(neta_initialise_varray
+	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
+	  &varray) == 1);
 
-    set1_cats = Vect_new_cat_list();
-    set2_cats = Vect_new_cat_list();
-    Vect_str_to_cat_list(set1_opt->answer, set1_cats);
-    Vect_str_to_cat_list(set2_opt->answer, set2_cats);
+    if (neta_initialise_varray
+	(&In, atoi(fieldset1_opt->answer), GV_POINT, whereset1_opt->answer,
+	 catset1_opt->answer, &varray_set1) == 2)
+	G_fatal_error(_("Neither %s nor %s was given"), catset1_opt->key,
+		      whereset1_opt->key);
+    if (neta_initialise_varray
+	(&In, atoi(fieldset2_opt->answer), GV_POINT, whereset2_opt->answer,
+	 catset2_opt->answer, &varray_set2) == 2)
+	G_fatal_error(_("Neither %s nor %s was given"), catset2_opt->key,
+		      whereset2_opt->key);
+
     set1_list = Vect_new_list();
     set2_list = Vect_new_list();
 
+    neta_varray_to_nodes(&In, varray_set1, set1_list, NULL);
+    neta_varray_to_nodes(&In, varray_set2, set2_list, NULL);
+
     nlines = Vect_get_num_lines(&In);
     nnodes = Vect_get_num_nodes(&In);
-    for (i = 1; i <= nlines; i++) {
-	int type, cat;
-	type = Vect_read_line(&In, NULL, Cats, i);
-	if (type != GV_POINT)
-	    continue;
-	Vect_cat_get(Cats, layer, &cat);
-	if (Vect_cat_in_cat_list(cat, set1_cats))
-	    Vect_list_append(set1_list, i);
-	if (Vect_cat_in_cat_list(cat, set2_cats))
-	    Vect_list_append(set2_list, i);
-    }
 
     if (set1_list->n_values == 0)
-	G_fatal_error(_("No points with categories [%s]"), set1_opt->answer);
+	G_fatal_error(_("%s is empty"), "set1");
 
     if (set2_list->n_values == 0)
-	G_fatal_error(_("No points with categories [%s]"), set2_opt->answer);
-
-    neta_points_to_nodes(&In, set1_list);
-    neta_points_to_nodes(&In, set2_list);
+	G_fatal_error(_("%s is empty"), "set2");
 
     Vect_copy_head_data(&In, &Out);
     Vect_hist_copy(&In, &Out);

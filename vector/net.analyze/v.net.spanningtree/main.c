@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     module->keywords = _("network, spanning tree");
-    module->description = _("Computes spanning.");
+    module->description = _("Computes minimum spanning tree.");
 
     /* Define the different options as defined in gis.h */
     map_in = G_define_standard_option(G_OPT_V_INPUT);
@@ -105,33 +105,10 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    if (where_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "where");
-	if (cat_opt->answer)
-	    G_warning(_
-		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
-	chcat = 1;
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	if (Vect_set_varray_from_db
-	    (&In, layer, where_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Unable to load data from database"));
-	}
-    }
-    else if (cat_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "cat");
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	chcat = 1;
-	if (Vect_set_varray_from_cat_string
-	    (&In, layer, cat_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Problem loading category values"));
-	}
-    }
-    else {
-	chcat = 0;
-	varray = NULL;
-    }
+    chcat =
+	(neta_initialise_varray
+	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
+	  &varray) == 1);
 
     Vect_net_build_graph(&In, mask_type, atoi(field_opt->answer), 0,
 			 accol->answer, NULL, NULL, geo, 0);
@@ -143,7 +120,7 @@ int main(int argc, char *argv[])
 
     tree_list = Vect_new_list();
     edges = neta_spanning_tree(graph, tree_list);
-    G_debug(3, "Edges: %d\n", edges);
+    G_debug(3, "Edges: %d", edges);
     for (i = 0; i < edges; i++) {
 	int type = Vect_read_line(&In, Points, Cats, abs(tree_list->value[i]));
 	Vect_write_line(&Out, type, Points, Cats);

@@ -121,15 +121,16 @@ int neta_get_node_costs(struct Map_info *In, int layer, char *column,
 
 /*returns the list of all nodes on features selected by varray.
  * nodes_to_features conains the index of a feature adjecent to each node or -1 if no such feature
- * specified by varray exists */
+ * specified by varray exists. Nodes_to_features might be NULL, in which case it is left unitialised.  */
 void neta_varray_to_nodes(struct Map_info *map, VARRAY * varray,
 			  struct ilist *nodes, int *nodes_to_features)
 {
     int nlines, nnodes, i;
     nlines = Vect_get_num_lines(map);
     nnodes = Vect_get_num_nodes(map);
-    for (i = 1; i <= nnodes; i++)
-	nodes_to_features[i] = -1;
+    if (nodes_to_features)
+	for (i = 1; i <= nnodes; i++)
+	    nodes_to_features[i] = -1;
 
     for (i = 1; i <= nlines; i++)
 	if (varray->c[i]) {
@@ -138,14 +139,52 @@ void neta_varray_to_nodes(struct Map_info *map, VARRAY * varray,
 		int node;
 		Vect_get_line_nodes(map, i, &node, NULL);
 		Vect_list_append(nodes, node);
-		nodes_to_features[node] = i;
+		if (nodes_to_features)
+		    nodes_to_features[node] = i;
 	    }
 	    else {
 		int node1, node2;
 		Vect_get_line_nodes(map, i, &node1, &node2);
 		Vect_list_append(nodes, node1);
 		Vect_list_append(nodes, node2);
-		nodes_to_features[node1] = nodes_to_features[node2] = i;
+		if (nodes_to_features)
+		    nodes_to_features[node1] = nodes_to_features[node2] = i;
 	    }
 	}
+}
+
+int neta_initialise_varray(struct Map_info *In, int layer, int mask_type,
+			   char *where, char *cat, VARRAY ** varray)
+{
+    /* parse filter option and select appropriate lines */
+    if (where) {
+	if (layer < 1)
+	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "where");
+	if (cat)
+	    G_warning(_
+		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
+	*varray = Vect_new_varray(Vect_get_num_lines(In));
+	if (Vect_set_varray_from_db
+	    (In, layer, where, mask_type, 1, *varray) == -1) {
+	    G_warning(_("Unable to load data from database"));
+	    return 0;
+	}
+	return 1;
+    }
+    else if (cat) {
+	if (layer < 1)
+	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "cat");
+	*varray = Vect_new_varray(Vect_get_num_lines(In));
+	if (Vect_set_varray_from_cat_string
+	    (In, layer, cat, mask_type, 1, *varray) == -1) {
+	    G_warning(_("Problem loading category values"));
+	    return 0;
+	}
+	return 1;
+    }
+    else {
+	return 2;
+    }
+
+
 }

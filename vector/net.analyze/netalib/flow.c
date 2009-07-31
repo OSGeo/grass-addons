@@ -65,6 +65,7 @@ int neta_flow(dglGraph_s * graph, struct ilist *source_list,
 
     for (i = 0; i <= nlines; i++)
 	flow[i] = 0;
+
     total_flow = 0;
     while (1) {
 	dglInt32_t node, edge_id, min_residue;

@@ -25,43 +25,6 @@
 #include <grass/dbmi.h>
 #include <grass/neta.h>
 
-int initiliase_varray(struct Map_info *In, int layer, int mask_type,
-		      char *where, char *cat, VARRAY ** varray)
-{
-    /* parse filter option and select appropriate lines */
-    if (where) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "where");
-	if (cat)
-	    G_warning(_
-		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
-	*varray = Vect_new_varray(Vect_get_num_lines(In));
-	if (Vect_set_varray_from_db
-	    (In, layer, where, mask_type, 1, *varray) == -1) {
-	    G_warning(_("Unable to load data from database"));
-	    return 0;
-	}
-	return 1;
-    }
-    else if (cat) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "cat");
-	*varray = Vect_new_varray(Vect_get_num_lines(In));
-	if (Vect_set_varray_from_cat_string
-	    (In, layer, cat, mask_type, 1, *varray) == -1) {
-	    G_warning(_("Problem loading category values"));
-	    return 0;
-	}
-	return 1;
-    }
-    else {
-	G_fatal_error(_("Neither 'where' nor 'cat' were specified"));
-	return 0;
-    }
-
-
-}
-
 int main(int argc, char *argv[])
 {
     struct Map_info In, Out;
@@ -72,7 +35,7 @@ int main(int argc, char *argv[])
     struct Option *map_in, *map_out, *abcol, *afcol;
     struct Option *catf_opt, *fieldf_opt, *wheref_opt;
     struct Option *catt_opt, *fieldt_opt, *wheret_opt;
-    struct Flag *geo_f, *newpoints_f;
+    struct Flag *geo_f;
     int with_z, geo;
     int mask_type;
     VARRAY *varrayf, *varrayt;
@@ -129,7 +92,7 @@ int main(int argc, char *argv[])
     afcol = G_define_option();
     afcol->key = "afcolumn";
     afcol->type = TYPE_STRING;
-    afcol->required = NO;
+    afcol->required = YES;
     afcol->description = _("Arc forward/both direction(s) cost column");
 
     abcol = G_define_option();
@@ -199,10 +162,10 @@ int main(int argc, char *argv[])
     /*initialise varrays and nodes list appropriatelly */
     flayer = atoi(fieldf_opt->answer);
     tlayer = atoi(fieldt_opt->answer);
-    initiliase_varray(&In, flayer, GV_POINT, wheref_opt->answer,
-		      catf_opt->answer, &varrayf);
-    initiliase_varray(&In, tlayer, mask_type, wheret_opt->answer,
-		      catt_opt->answer, &varrayt);
+    neta_initialise_varray(&In, flayer, GV_POINT, wheref_opt->answer,
+			   catf_opt->answer, &varrayf);
+    neta_initialise_varray(&In, tlayer, mask_type, wheret_opt->answer,
+			   catt_opt->answer, &varrayt);
 
     nodest = Vect_new_list();
     neta_varray_to_nodes(&In, varrayt, nodest, nodes_to_features);
@@ -216,7 +179,7 @@ int main(int argc, char *argv[])
     Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
     Vect_map_add_dblink(&Out, 1, NULL, Fi->table, "cat", Fi->database,
 			Fi->driver);
-
+    db_init_string(&sql);
     driver = db_start_driver_open_database(Fi->driver, Fi->database);
     if (driver == NULL)
 	G_fatal_error(_("Unable to open database <%s> by driver <%s>"),

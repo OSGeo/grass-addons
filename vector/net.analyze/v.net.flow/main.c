@@ -33,15 +33,16 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out, *cut_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *abcol, *afcol, *source_opt,
-	*sink_opt;
+    struct Option *cat_opt, *field_opt, *where_opt, *abcol, *afcol;
+    struct Option *catsource_opt, *fieldsource_opt, *wheresource_opt;
+    struct Option *catsink_opt, *fieldsink_opt, *wheresink_opt;
     int chcat, with_z;
     int layer, mask_type;
     VARRAY *varray;
+    VARRAY *varray_source, *varray_sink;
     dglGraph_s *graph;
     int i, nlines, *flow, total_flow;
     struct ilist *source_list, *sink_list, *cut;
-    struct cat_list *source_cats, *sink_cats;
     int find_cut;
 
     char buf[2000];
@@ -86,15 +87,29 @@ int main(int argc, char *argv[])
     abcol->required = NO;
     abcol->description = _("Arc backward direction capacity column");
 
-    source_opt = G_define_standard_option(G_OPT_V_CATS);
-    source_opt->key = "source";
-    source_opt->required = YES;
-    source_opt->description = _("Categories of source(s)");
+    fieldsource_opt = G_define_standard_option(G_OPT_V_FIELD);
+    fieldsource_opt->key = "source_layer";
+    fieldsource_opt->description = _("Source layer");
+    catsource_opt = G_define_standard_option(G_OPT_V_CATS);
+    catsource_opt->key = "source_cats";
+    catsource_opt->description = _("Source category values");
+    wheresource_opt = G_define_standard_option(G_OPT_WHERE);
+    wheresource_opt->key = "source_where";
+    wheresource_opt->description =
+	_("Source WHERE conditions of SQL statement without 'where' keyword");
 
-    sink_opt = G_define_standard_option(G_OPT_V_CATS);
-    sink_opt->key = "sink";
-    sink_opt->required = YES;
-    sink_opt->description = _("Categories of sink(s)");
+    fieldsink_opt = G_define_standard_option(G_OPT_V_FIELD);
+    fieldsink_opt->key = "sink_layer";
+    fieldsink_opt->description = _("Sink layer");
+    catsink_opt = G_define_standard_option(G_OPT_V_CATS);
+    catsink_opt->key = "sink_cats";
+    catsink_opt->description = _("Sink category values");
+    wheresink_opt = G_define_standard_option(G_OPT_WHERE);
+    wheresink_opt->key = "sink_where";
+    wheresink_opt->description =
+	_("Sink WHERE conditions of SQL statement without 'where' keyword");
+
+
 
     /* options and flags parser */
     if (G_parser(argc, argv))
@@ -133,45 +148,23 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    if (where_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "where");
-	if (cat_opt->answer)
-	    G_warning(_
-		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
-	chcat = 1;
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	if (Vect_set_varray_from_db
-	    (&In, layer, where_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Unable to load data from database"));
-	}
-    }
-    else if (cat_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "cat");
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	chcat = 1;
-	if (Vect_set_varray_from_cat_string
-	    (&In, layer, cat_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Problem loading category values"));
-	}
-    }
-    else {
-	chcat = 0;
-	varray = NULL;
-    }
+    chcat =
+	(neta_initialise_varray
+	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
+	  &varray) == 1);
 
     /* Create table */
     Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
     Vect_map_add_dblink(&Out, 1, NULL, Fi->table, "cat", Fi->database,
 			Fi->driver);
-
+    db_init_string(&sql);
     driver = db_start_driver_open_database(Fi->driver, Fi->database);
     if (driver == NULL)
 	G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
 		      Fi->database, Fi->driver);
 
-    sprintf(buf, "create table %s (cat integer, flow integer)", Fi->table);
+    sprintf(buf, "create table %s (cat integer, flow double precision)",
+	    Fi->table);
 
     db_set_string(&sql, buf);
     G_debug(2, db_get_string(&sql));
@@ -190,34 +183,29 @@ int main(int argc, char *argv[])
 
     db_begin_transaction(driver);
 
-    source_cats = Vect_new_cat_list();
-    sink_cats = Vect_new_cat_list();
-    Vect_str_to_cat_list(source_opt->answer, source_cats);
-    Vect_str_to_cat_list(sink_opt->answer, sink_cats);
     source_list = Vect_new_list();
     sink_list = Vect_new_list();
 
-    nlines = Vect_get_num_lines(&In);
-    for (i = 1; i <= nlines; i++) {
-	int type, cat;
-	type = Vect_read_line(&In, NULL, Cats, i);
-	if (type != GV_POINT)
-	    continue;
-	Vect_cat_get(Cats, layer, &cat);
-	if (Vect_cat_in_cat_list(cat, source_cats))
-	    Vect_list_append(source_list, i);
-	if (Vect_cat_in_cat_list(cat, sink_cats))
-	    Vect_list_append(sink_list, i);
-    }
+    if (neta_initialise_varray
+	(&In, atoi(fieldsource_opt->answer), GV_POINT, wheresource_opt->answer,
+	 catsource_opt->answer, &varray_source) == 2)
+	G_fatal_error(_("Neither %s nor %s was given"), catsource_opt->key,
+		      wheresource_opt->key);
+    if (neta_initialise_varray
+	(&In, atoi(fieldsink_opt->answer), GV_POINT, wheresink_opt->answer,
+	 catsink_opt->answer, &varray_sink) == 2)
+	G_fatal_error(_("Neither %s nor %s was given"), catsink_opt->key,
+		      wheresink_opt->key);
+
+
+    neta_varray_to_nodes(&In, varray_source, source_list, NULL);
+    neta_varray_to_nodes(&In, varray_sink, sink_list, NULL);
 
     if (source_list->n_values == 0)
-	G_fatal_error(_("No points with categories [%s]"), source_opt->answer);
+	G_fatal_error(_("No sources"));
 
     if (sink_list->n_values == 0)
-	G_fatal_error(_("No points with categories [%s]"), sink_opt->answer);
-
-    neta_points_to_nodes(&In, source_list);
-    neta_points_to_nodes(&In, sink_list);
+	G_fatal_error(_("No sinks"));
 
     Vect_copy_head_data(&In, &Out);
     Vect_hist_copy(&In, &Out);
@@ -227,7 +215,7 @@ int main(int argc, char *argv[])
     Vect_net_build_graph(&In, mask_type, atoi(field_opt->answer), 0,
 			 afcol->answer, abcol->answer, NULL, 0, 0);
     graph = &(In.graph);
-
+    nlines = Vect_get_num_lines(&In);
     flow = (int *)G_calloc(nlines + 1, sizeof(int));
     if (!flow)
 	G_fatal_error(_("Out of memory"));
@@ -251,8 +239,8 @@ int main(int argc, char *argv[])
 	    Vect_cat_get(Cats, layer, &cat);
 	    if (cat == -1)
 		continue;	/*TODO: warning? */
-	    sprintf(buf, "insert into %s values (%d, %d)", Fi->table, cat,
-		    flow[i] / In.cost_multip);
+	    sprintf(buf, "insert into %s values (%d, %f)", Fi->table, cat,
+		    flow[i] / (double)In.cost_multip);
 	    db_set_string(&sql, buf);
 	    G_debug(3, db_get_string(&sql));
 

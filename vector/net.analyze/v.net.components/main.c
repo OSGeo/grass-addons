@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out;
     struct Option *cat_opt, *field_opt, *where_opt, *method_opt;
+    struct Flag *add_f;
     int chcat, with_z;
     int layer, mask_type;
     VARRAY *varray;
@@ -88,6 +89,10 @@ int main(int argc, char *argv[])
 				 "strong;Strongly connected components;");
     method_opt->description = _("Type of components");
 
+    add_f = G_define_flag();
+    add_f->key = 'a';
+    add_f->description = _("Add points on nodes");
+
     /* options and flags parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -119,33 +124,10 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    if (where_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "where");
-	if (cat_opt->answer)
-	    G_warning(_
-		      ("'where' and 'cats' parameters were supplied, cat will be ignored"));
-	chcat = 1;
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	if (Vect_set_varray_from_db
-	    (&In, layer, where_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Unable to load data from database"));
-	}
-    }
-    else if (cat_opt->answer) {
-	if (layer < 1)
-	    G_fatal_error(_("'%s' must be > 0 for '%s'"), "layer", "cat");
-	varray = Vect_new_varray(Vect_get_num_lines(&In));
-	chcat = 1;
-	if (Vect_set_varray_from_cat_string
-	    (&In, layer, cat_opt->answer, mask_type, 1, varray) == -1) {
-	    G_warning(_("Problem loading category values"));
-	}
-    }
-    else {
-	chcat = 0;
-	varray = NULL;
-    }
+    chcat =
+	(neta_initialise_varray
+	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
+	  &varray) == 1);
 
     Vect_net_build_graph(&In, mask_type, 0, 0, NULL, NULL, NULL, 0, 0);
     graph = &(In.graph);
@@ -157,10 +139,10 @@ int main(int argc, char *argv[])
 	exit(EXIT_FAILURE);
     }
     /* Create table */
-    Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
-    Vect_map_add_dblink(&Out, 1, NULL, Fi->table, "cat", Fi->database,
+    Fi = Vect_default_field_info(&Out, layer, NULL, GV_1TABLE);
+    Vect_map_add_dblink(&Out, layer, NULL, Fi->table, "cat", Fi->database,
 			Fi->driver);
-
+    db_init_string(&sql);
     driver = db_start_driver_open_database(Fi->driver, Fi->database);
     if (driver == NULL)
 	G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
@@ -198,8 +180,10 @@ int main(int argc, char *argv[])
 
     nlines = Vect_get_num_lines(&In);
     for (i = 1; i <= nlines; i++) {
-	int comp;
+	int comp, cat;
 	type = Vect_read_line(&In, Points, Cats, i);
+	if (!Vect_cat_get(Cats, layer, &cat))
+	    continue;
 	if (type == GV_LINE || type == GV_BOUNDARY) {
 	    int node1, node2;
 	    Vect_get_line_nodes(&In, i, &node1, &node2);
@@ -219,31 +203,32 @@ int main(int argc, char *argv[])
 	else
 	    continue;
 	Vect_write_line(&Out, type, Points, Cats);
-	for (j = 0; j < Cats->n_cats; j++)
-	    insert_new_record(driver, Fi, &sql, Cats->cat[j], comp);
+	insert_new_record(driver, Fi, &sql, cat, comp);
+	/*        for(j=0;j<Cats->n_cats;j++)
+	 * if(Cats->field[j] == layer)
+	 * insert_new_record(driver, Fi, &sql, Cats->cat[j], comp);
+	 */
     };
     /*add points on nodes not covered by any point in the network */
     /*find the maximum cat number */
-    /*TODO: Do we want a flag for this? */
-    max_cat = 0;
-    for (i = 1; i <= nlines; i++) {
-	Vect_read_line(&In, NULL, Cats, i);
-	for (j = 0; j < Cats->n_cats; j++)
-	    if (Cats->cat[j] > max_cat)
-		max_cat = Cats->cat[j];
-    }
-    max_cat++;
-    for (i = 1; i <= nnodes; i++)
-	if (!covered[i]) {
-	    double x, y, z;
-	    Vect_reset_cats(Cats);
-	    Vect_cat_set(Cats, 1, max_cat);
-	    Vect_get_node_coor(&In, i, &x, &y, &z);
-	    Vect_reset_line(Points);
-	    Vect_append_point(Points, x, y, z);
-	    Vect_write_line(&Out, GV_POINT, Points, Cats);
-	    insert_new_record(driver, Fi, &sql, max_cat++, component[i]);
+    if (add_f->answer) {
+	max_cat = 0;
+	for (i = 1; i <= nlines; i++) {
+	    Vect_read_line(&In, NULL, Cats, i);
+	    for (j = 0; j < Cats->n_cats; j++)
+		if (Cats->cat[j] > max_cat)
+		    max_cat = Cats->cat[j];
 	}
+	max_cat++;
+	for (i = 1; i <= nnodes; i++)
+	    if (!covered[i]) {
+		Vect_reset_cats(Cats);
+		Vect_cat_set(Cats, 1, max_cat);
+		neta_add_point_on_node(&In, &Out, i, Cats);
+		insert_new_record(driver, Fi, &sql, max_cat++, component[i]);
+	    }
+    }
+
     db_commit_transaction(driver);
     db_close_database_shutdown_driver(driver);
 

@@ -97,7 +97,7 @@ int neta_eigenvector_centrality(dglGraph_s * graph, int iterations,
 int neta_betweenness_closeness(dglGraph_s * graph, double *betweenness,
 			       double *closeness)
 {
-    int i, j, nnodes, stack_size;
+    int i, j, nnodes, stack_size, count;
     dglInt32_t *dst, *node, *stack, *cnt, *delta;
     dglNodeTraverser_s nt;
     dglEdgesetTraverser_s et;
@@ -126,9 +126,11 @@ int neta_betweenness_closeness(dglGraph_s * graph, double *betweenness,
 	    betweenness[i] = 0;
     }
 
-
+    count = 0;
+    G_percent_reset();
     dglNode_T_Initialize(&nt, graph);
     for (node = dglNode_T_First(&nt); node; node = dglNode_T_Next(&nt)) {
+	G_percent(count++, nnodes, 1);
 	dglInt32_t s = dglNodeGet_Id(graph, node);
 	dglHeapData_u heap_data;
 	dglHeapNode_s heap_node;
