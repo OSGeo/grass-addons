@@ -402,7 +402,7 @@ class KrigingPanel(wx.Panel):
         if self.OverwriteCheckBox.IsChecked():
             command.append("--overwrite")
             
-        print command 
+        print command
         
         # give it to the output console
         self.goutput.RunCmd(command, switchPage = True)
@@ -519,8 +519,8 @@ class RBookgstatPanel(RBookPanel):
                                     item= self.ModelChoicebox,
                                     flag = wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         
-        #@TODO: deploy this asap!!
-        #self.InteractiveVariogramFitButton = wx.Button(self, id=wx.ID_ANY, label=_("Interactive variogram fit"))
+        #@TODO: ready to deploy, as soon as it is usable
+        #self.InteractiveVariogramFitButton = wx.Button(self, id=wx.ID_ANY, label=_("Plot variogram"))
         #self.InteractiveVariogramFitButton.Bind(wx.EVT_BUTTON, self.InteractiveVariogramFit)
         #self.ParametersSizer.Insert(before=2, item= self.InteractiveVariogramFitButton)
         self.ParametersSizer.InsertStretchSpacer(2) ## use it until childframe will be ready
@@ -559,7 +559,14 @@ class VariogramDialog(wx.Frame):
         self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass_dialog.ico'), wx.BITMAP_TYPE_ICO))
         
         # set the widgets of the frame
+        ## menubar? also not [anche no, NdT]
+        ## plot panel
+        
+        ## refresh button (or automatic refresh?) and close button
+        
         # set the methods of the frame
+        ## refresh plot OR bindings for every widget
+        ## 
         
         # give the parent frame the result of the fit
         
@@ -575,9 +582,9 @@ def main(argv=None):
         argv = sys.argv[1:] #stripping first item, the full name of this script
         # wxGUI call.
         app = wx.App()
-        k = KrigingModule(parent=None)
-        k.Centre()
-        k.Show()
+        KrigingFrame = KrigingModule(parent=None)
+        KrigingFrame.Centre()
+        KrigingFrame.Show()
         app.MainLoop()
         
     else:
