@@ -20,3 +20,5 @@ SUBDIRS = \
 default: subdirs
 
 clean: cleansubdirs
+
+install: installsubdirs
