@@ -602,6 +602,8 @@ def main(argv=None):
             else:
                 options[each] = robjects.r('''NA''')
         
+        #@TODO: elaborate input string, if contains mapset or not.. thanks again to Bob for testing.
+        
         # create output map name, if not specified
         if options['output'] is '':
             try: # to strip mapset name from fullname. Ugh.
