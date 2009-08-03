@@ -140,6 +140,9 @@ try:
     robjects.r.library("spgrass6", verbose=False)
 except:
     sys.exit(_("No gstat neither geoR package installed. Install one of them (gstat preferably) via R installer."))
+    
+# globals
+maxint = 1e6 # instead of sys.maxint, not working with SpinCtrl on 64bit [reported by Bob Moskovitz]
 
 #classes in alphabetical order. methods in logical order :)
 
@@ -451,7 +454,7 @@ class RBookPanel(wx.Panel):
         self.ParametersList = ["Sill", "Nugget", "Range"]
         for n in self.ParametersList:
             setattr(self, n+"Text", (wx.StaticText(self, id= wx.ID_ANY, label = _(n))))
-            setattr(self, n+"Ctrl", (wx.SpinCtrl(self, id = wx.ID_ANY, max=sys.maxint)))
+            setattr(self, n+"Ctrl", (wx.SpinCtrl(self, id = wx.ID_ANY, max=maxint)))
             setattr(self, n+"CheckBox", wx.CheckBox(self,
                                                     id=self.ParametersList.index(n),
                                                     label=_("Use value")))
@@ -465,7 +468,7 @@ class RBookPanel(wx.Panel):
         
         # block kriging parameters. Size.
         BlockLabel = wx.StaticText(self, id= wx.ID_ANY, label = _("Block size:"))
-        self.BlockSpinBox = wx.SpinCtrl(self, id = wx.ID_ANY, min=1, max=sys.maxint)
+        self.BlockSpinBox = wx.SpinCtrl(self, id = wx.ID_ANY, min=1, max=maxint)
         self.BlockSpinBox.Enable(False) # default choice is Ordinary kriging
 
         self.ParametersSizer.Add(BlockLabel, flag= wx.ALIGN_CENTER_VERTICAL | wx.ALL, border=3)
