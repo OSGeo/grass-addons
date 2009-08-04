@@ -135,7 +135,7 @@ if not haveRpy2:
 
 # R packages gstat or geoR
 for each in ["gstat", "spgrass6"]:
-    if not robjects.r.require(each, verbose=False):
+    if not robjects.r.require(each, quietly=True):
         sys.exit(_("R package " + each + " is missing. Install it and re-run v.krige."))
     
 # globals
@@ -583,7 +583,7 @@ def main(argv=None):
         options, flags = argv
         #CLI
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
-        print options
+        #print options
         # re-cast integers from strings, as parser() cast everything to string.
         for each in ("sill","nugget","range"):
             if options[each] is not '':
@@ -602,8 +602,8 @@ def main(argv=None):
             options['output'] =  options['input'] + '_kriging'
 
         # check for output map with same name. g.parser can't handle this, afaik.
-        if grass.find_file(options['output'], element = 'cell')['fullname'] and os.getenv("GRASS_OVERWRITE") == 1:
-            grass.fatal(_("option: <output>: Raster map already exists."))       
+        if grass.find_file(options['output'], element = 'cell')['fullname'] and os.getenv("GRASS_OVERWRITE") == None:
+            grass.fatal(_("option: <output>: Raster map already exists."))
 
         if options['model'] is '':
             try:
