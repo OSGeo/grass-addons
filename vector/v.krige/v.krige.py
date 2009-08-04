@@ -4,9 +4,9 @@ MODULE:    v.krige
 
 AUTHOR(S): Anne Ghisla <a.ghisla AT gmail.com>
 
-PURPOSE:   Performs ordinary kriging
+PURPOSE:   Performs ordinary or block kriging
 
-DEPENDS:   R 2.8, package automap or geoR or gstat
+DEPENDS:   R 2.x, packages gstat and spgrass6, optional: automap
 
 COPYRIGHT: (C) 2009 by the GRASS Development Team
 
@@ -117,7 +117,8 @@ except ImportError:
     sys.exit(_("No GRASS-python library found."))
 
 # R
-try: 
+try:
+    #@FIXME: in Windows, it launches R terminal
     grass.find_program('R')
 except:
     sys.exit(_("R is not installed. Install it and re-run, or modify environment variables."))
@@ -133,13 +134,9 @@ if not haveRpy2:
     sys.exit(1)
 
 # R packages gstat or geoR
-try:
-    robjects.r.library("sp", verbose=False)
-    robjects.r.library("rgdal", verbose=False) # keeps writing its presentation. Grmbl.
-    robjects.r.library("gstat", verbose=False) # or robjects.r.require("geoR") #@TODO: enable it one day.
-    robjects.r.library("spgrass6", verbose=False)
-except:
-    sys.exit(_("No gstat neither geoR package installed. Install one of them (gstat preferably) via R installer."))
+for each in ["gstat", "spgrass6"]:
+    if not robjects.r.require(each, verbose=False):
+        sys.exit(_("R package " + each + " is missing. Install it and re-run v.krige."))
     
 # globals
 maxint = 1e6 # instead of sys.maxint, not working with SpinCtrl on 64bit [reported by Bob Moskovitz]
@@ -152,7 +149,8 @@ class Controller():
     def ImportMap(self, map):
         """ Adds x,y columns to the GRASS map and then imports it in R. """
         # adds x, y columns if needed.
-        #@NOTE: it alters original data. Is it correct?
+        #@NOTE: it alters original data. Is it correct? Shall I remove those columns
+        # if they were absent from original data?
         cols = grass.vector_columns(map=map, layer=1)
         if not cols.has_key('x') and not cols.has_key('y'):
             grass.run_command('v.db.addcol', map = map,
@@ -164,12 +162,11 @@ class Controller():
         Region = grass.region()
         Grid = robjects.r.gmeta2grd()
 
-        ## addition of coordinates columns into dataframe.
+        # addition of coordinates columns into dataframe.
         coordinatesDF = robjects.r['as.data.frame'](robjects.r.coordinates(Grid))
         data=robjects.r['data.frame'](x=coordinatesDF.r['s1'][0],
                                       y=coordinatesDF.r['s2'][0],
                                       k=robjects.r.rep(1, Region['cols']*Region['rows']))
-
         GridPredicted = robjects.r.SpatialGridDataFrame(Grid,
                                                         data,
                                                         proj4string= robjects.r.CRS(robjects.r.proj4string(inputdata)))
@@ -202,10 +199,6 @@ class Controller():
                                                                                 nugget = nugget,
                                                                                 range = range))
             return VariogramModel
-        
-        #@TODO: print variogram?
-        ##robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model']) #does not work.
-        ##see if it caused by automap/gstat dedicated plot function.
     
     def DoKriging(self, formula, inputdata, grid, model, block):
         DottedParams = {'debug.level': -1} # let krige() print percentage status
@@ -221,14 +214,13 @@ class Controller():
     def Run(self, input, column, output, package, sill, nugget, range, logger, \
             overwrite, model, block, **kwargs):
         """ Wrapper for all functions above. """        
-        # Get data and create grid
+
         logger.message(_("Importing data..."))
         InputData = self.ImportMap(input)
         #print(robjects.r.slot(InputData, 'data').names)
         logger.message("Imported.")
         GridPredicted = self.CreateGrid(InputData)
         
-        # Fit Variogram
         logger.message(_("Fitting variogram..."))
         Formula = self.ComposeFormula(column, block, InputData)
         Variogram = self.FitVariogram(Formula,
@@ -239,12 +231,10 @@ class Controller():
                                       range = range)
         logger.message(_("Variogram fitted."))
         
-        # Krige
         logger.message(_("Kriging..."))
         KrigingResult = self.DoKriging(Formula, InputData, GridPredicted, Variogram, block)
         logger.message(_("Kriging performed."))
         
-        # Export map
         self.ExportMap(map = KrigingResult,
                        column='var1.pred',
                        name = output,
@@ -257,9 +247,6 @@ class KrigingPanel(wx.Panel):
         
         self.parent = parent 
         self.border = 5
-        
-        #controller istance
-        self.Controller = Controller()
         
         #    1. Input data 
         InputBoxSizer = wx.StaticBoxSizer(wx.StaticBox(self, id=wx.ID_ANY, label=_("Input Data")), 
@@ -298,7 +285,7 @@ class KrigingPanel(wx.Panel):
                                         FN.FNB_NO_NAV_BUTTONS |
                                         FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
         
-        for Rpackage in ["gstat"]: # , "geoR"]: #@TODO: enable it when it'll be implemented.
+        for Rpackage in ["gstat"]: # , "geoR"]: #@TODO: enable it if/when it'll be implemented.
             self.CreatePage(package = Rpackage)
         
         ## Command output. From menuform module, cmdPanel class
@@ -565,6 +552,9 @@ class VariogramDialog(wx.Frame):
         ## menubar? also not [anche no, NdT]
         ## plot panel
         
+        ##robjects.r.plot(Variogram.r['exp_var'], Variogram.r['var_model']) #does not work.
+        ##see if it caused by automap/gstat dedicated plot function.
+        
         ## refresh button (or automatic refresh?) and close button
         
         # set the methods of the frame
@@ -572,7 +562,6 @@ class VariogramDialog(wx.Frame):
         ## 
         
         # give the parent frame the result of the fit
-        
         
         #self.Panel = KrigingPanel(self)
         #self.SetMinSize(self.GetBestSize())
