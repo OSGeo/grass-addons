@@ -135,7 +135,7 @@ if not haveRpy2:
 
 # R packages gstat or geoR
 for each in ["gstat", "spgrass6"]:
-    if not robjects.r.require(each, quietly=True):
+    if not robjects.r.require(each, quietly=True)[0]:
         sys.exit(_("R package " + each + " is missing. Install it and re-run v.krige."))
     
 # globals
@@ -461,8 +461,9 @@ class RBookPanel(wx.Panel):
                                      pos = (self.ParametersList.index(n),2))
         
         # right side of the Variogram fitting. The plot area.
-        Plot = wx.StaticBitmap(self, bitmap=wx.Bitmap('/home/anne/raster/Muppet-Bunsen.jpg'), size=(200,200))
-        self.RightSizer.Add(Plot, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
+        Plot = wx.StaticText(self, id= wx.ID_ANY, label = "Check Plot Variogram to interactively fit model.")
+        #Plot = wx.StaticBitmap(self, bitmap=wx.Bitmap('/home/anne/raster/Muppet-Bunsen.jpg'), size=(200,200))
+        self.RightSizer.Add(Plot, proportion=0, flag= wx.ALIGN_CENTER | wx.ALL, border=parent.border)
         
         self.KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self,
                                                              id=wx.ID_ANY,
