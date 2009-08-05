@@ -183,7 +183,7 @@ class Controller():
     
     def FitVariogram(self, formula, inputdata, sill, nugget, range, model = ''):
         if model is '':
-            robjects.r.require("automap")
+            robjects.r.require('automap')
             DottedParams = {}
             #print (nugget.r_repr(), sill, range)
             DottedParams['fix.values'] = robjects.r.c(nugget, range, sill)
@@ -345,7 +345,6 @@ class KrigingPanel(wx.Panel):
         for package in ["gstat"]: 
             classobj = eval("RBook"+package+"Panel")
             setattr(self, "RBook"+package+"Panel", (classobj(self, id=wx.ID_ANY)))
-            #getattr(self, "RBook"+package+"Panel")
             self.RPackagesBook.AddPage(page=getattr(self, "RBook"+package+"Panel"), text=package)
 
     def OnButtonRefresh(self, event):
@@ -380,7 +379,7 @@ class KrigingPanel(wx.Panel):
                                  "output=" + self.OutputMapName.GetValue(), 
                                  "package=" + '%s' % self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection())]
         
-        if not SelectedPanel.VariogramCheckBox.IsChecked():
+        if not hasattr(SelectedPanel, 'VariogramCheckBox') or not SelectedPanel.VariogramCheckBox.IsChecked():
             command.append("model=" + '%s' % SelectedPanel.ModelChoicebox.GetStringSelection().split(" ")[0])
             
         for i in ['Sill', 'Nugget', 'Range']:
@@ -431,8 +430,13 @@ class RBookPanel(wx.Panel):
         self.VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self,
                                                              id=wx.ID_ANY, 
                                                              label=_("Variogram fitting")),
-                                                wx.VERTICAL)
+                                                wx.HORIZONTAL)
+        self.LeftSizer = wx.BoxSizer(wx.VERTICAL)
+        self.RightSizer = wx.BoxSizer(wx.VERTICAL)
         self.ParametersSizer = wx.GridBagSizer(vgap=5, hgap=5)
+        self.LeftSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
+        self.VariogramSizer.Add(self.LeftSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
+        self.VariogramSizer.Add(self.RightSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
         
         # left side of Variogram fitting. The checkboxes and spinctrls.
         self.ParametersList = ["Sill", "Nugget", "Range"]
@@ -456,11 +460,9 @@ class RBookPanel(wx.Panel):
                                      flag = wx.ALIGN_CENTER_VERTICAL,
                                      pos = (self.ParametersList.index(n),2))
         
-        self.VariogramSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
-        
         # right side of the Variogram fitting. The plot area.
-        
-        
+        Plot = wx.StaticBitmap(self, bitmap=wx.Bitmap('/home/anne/raster/Muppet-Bunsen.jpg'), size=(200,200))
+        self.RightSizer.Add(Plot, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
         
         self.KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self,
                                                              id=wx.ID_ANY,
@@ -505,13 +507,14 @@ class RBookgstatPanel(RBookPanel):
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
         
-        self.VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
-        self.VariogramSizer.Insert(2,
-                                   self.VariogramCheckBox,
-                                   proportion=0,
-                                   flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
-                                   border=4)
-        self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
+        if robjects.r.require('automap'):
+            self.VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
+            self.LeftSizer.Insert(2,
+                                  self.VariogramCheckBox,
+                                  proportion=0,
+                                  flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+                                  border=4)
+            self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
 
         ModelFactor = robjects.r.vgm().r['long']
         ModelList = robjects.r.levels(ModelFactor[0])
@@ -535,7 +538,7 @@ class RBookgstatPanel(RBookPanel):
                               flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL,
                               border=4)
         
-        self.VariogramSizer.Insert(1, item= VariogramSubSizer)
+        self.LeftSizer.Insert(1, item= VariogramSubSizer)
         
         self.SetSizerAndFit(self.Sizer)
     
@@ -545,12 +548,6 @@ class RBookgstatPanel(RBookPanel):
             getattr(self, n+"Ctrl").Enable(not event.IsChecked())
             getattr(self, n+ "CheckBox").SetValue(not event.IsChecked())
         #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work
-        
-    def InteractiveVariogramFit(self, event):
-        """ Opens the frame with interactive variogram fit. """
-        FitFrame = VariogramDialog(parent = self)
-        FitFrame.Center()
-        FitFrame.Show()
     
 class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
@@ -589,7 +586,7 @@ def main(argv=None):
         if grass.find_file(options['input'], element = 'vector')['fullname'] is '':
             grass.fatal(_("option: <input>: Vector map not found."))
         
-        #@TODO: elaborate input string, if contains mapset or not.. thanks again to Bob for testing.
+        #@TODO: elaborate input string, if contains mapset or not.. thanks again to Bob for testing on 64bit.
         
         # create output map name, if not specified
         if options['output'] is '':
