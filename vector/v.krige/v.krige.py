@@ -91,6 +91,7 @@ for details.
 #%end
 
 import os, sys
+from tempfile import gettempdir
 
 GUIModulesPath = os.path.join(os.getenv("GISBASE"), "etc", "wxpython", "gui_modules")
 sys.path.append(GUIModulesPath)
@@ -434,11 +435,16 @@ class RBookPanel(wx.Panel):
         self.LeftSizer = wx.BoxSizer(wx.VERTICAL)
         self.RightSizer = wx.BoxSizer(wx.VERTICAL)
         self.ParametersSizer = wx.GridBagSizer(vgap=5, hgap=5)
-        self.LeftSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
+
         self.VariogramSizer.Add(self.LeftSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
         self.VariogramSizer.Add(self.RightSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
         
         # left side of Variogram fitting. The checkboxes and spinctrls.
+        PlotButton = wx.Button(self, id=wx.ID_ANY, label=_("Plot/refresh variogram")) # no stock ID for Run button.. 
+        PlotButton.Bind(wx.EVT_BUTTON, self.OnPlotButton)
+        self.LeftSizer.Add(PlotButton, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
+        self.LeftSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
+        
         self.ParametersList = ["Sill", "Nugget", "Range"]
         for n in self.ParametersList:
             setattr(self, n+"Text", (wx.StaticText(self, id= wx.ID_ANY, label = _(n + ":"))))
@@ -498,6 +504,9 @@ class RBookPanel(wx.Panel):
     def ExportMap(self, map, col, name, overwrite):
         robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
     
+    def OnPlotButton(self,event):
+        pass
+    
     def UseValue(self, event):
         """ Enables/Disables the SpinCtrl in respect of the checkbox. """
         n = self.ParametersList[event.GetId()]
@@ -508,13 +517,14 @@ class RBookgstatPanel(RBookPanel):
     def __init__(self, parent, *args, **kwargs):
         RBookPanel.__init__(self, parent, *args, **kwargs)
         
-        if robjects.r.require('automap'):
+        if robjects.r.require('automap')[0]:
             self.VariogramCheckBox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Auto-fit variogram"))
-            self.LeftSizer.Insert(2,
+            self.LeftSizer.Insert(0,
                                   self.VariogramCheckBox,
                                   proportion=0,
                                   flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
                                   border=4)
+            self.SetSizerAndFit(self.Sizer)
             self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
 
         ModelFactor = robjects.r.vgm().r['long']
@@ -539,7 +549,7 @@ class RBookgstatPanel(RBookPanel):
                               flag=wx.ALIGN_CENTER_VERTICAL | wx.ALL,
                               border=4)
         
-        self.LeftSizer.Insert(1, item= VariogramSubSizer)
+        self.LeftSizer.Insert(2, item= VariogramSubSizer)
         
         self.SetSizerAndFit(self.Sizer)
     
