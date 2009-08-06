@@ -374,6 +374,10 @@ class KrigingPanel(wx.Panel):
         # pages, but only the selected one will be executed when Run is pressed.
         SelectedPanel = self.RPackagesBook.GetCurrentPage()
         
+        if self.RPackagesBook.GetPageText(self.RPackagesBook.GetSelection()) == 'Command output':
+            self.goutput.WriteError("No parameters for running. Please select \"gstat\" tab, check parameters and re-run.")
+            return False # no break invoked by above function
+        
         # mount command string as it would have been written on CLI
         command = ["v.krige.py", "input=" + self.InputDataMap.GetValue(),
                                  "column=" + self.InputDataColumn.GetValue(),
