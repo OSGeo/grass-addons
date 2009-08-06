@@ -324,10 +324,11 @@ class KrigingPanel(wx.Panel):
         ButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
         QuitButton = wx.Button(self, id=wx.ID_EXIT)
         QuitButton.Bind(wx.EVT_BUTTON, self.OnCloseWindow)
-        RunButton = wx.Button(self, id=wx.ID_ANY, label=_("Run")) # no stock ID for Run button.. 
-        RunButton.Bind(wx.EVT_BUTTON, self.OnRunButton)
+        self.RunButton = wx.Button(self, id=wx.ID_ANY, label=_("Run")) # no stock ID for Run button.. 
+        self.RunButton.Bind(wx.EVT_BUTTON, self.OnRunButton)
+        self.RunButton.Enable(False) # disable it on loading the interface, as input map is not set
         ButtonSizer.Add(QuitButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
-        ButtonSizer.Add(RunButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
+        ButtonSizer.Add(self.RunButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         
         #    Main Sizer. Add each child sizer as soon as it is ready.
         Sizer = wx.BoxSizer(wx.VERTICAL)
@@ -360,11 +361,19 @@ class KrigingPanel(wx.Panel):
     def OnInputDataChanged(self, event):
         """ Refreshes list of columns and fills output map name TextCtrl """
         MapName = event.GetString()
-        self.InputDataColumn.InsertColumns(vector = MapName,
-                                           layer = 1, excludeKey = True,
-                                           type = ['integer', 'double precision'])
-        self.InputDataColumn.SetSelection(0)
-        self.OutputMapName.SetValue(MapName.split("@")[0]+"_kriging")
+        
+        if len(MapName) is not 0: # or is spaces! see how to test that
+            self.InputDataColumn.InsertColumns(vector = MapName,
+                                               layer = 1, excludeKey = True,
+                                               type = ['integer', 'double precision'])
+            self.InputDataColumn.SetSelection(0)
+            self.OutputMapName.SetValue(MapName.split("@")[0]+"_kriging")
+            if self.InputDataColumn.GetSelection() is not -1: # there is no suitable z column for the layer
+                self.RunButton.Enable(True) 
+        else:
+            self.InputDataColumn.SetSelection(0)
+            self.OutputMapName.SetValue('')
+            self.RunButton.Enable(False)
         
     def OnRunButton(self,event):
         """ Execute R analysis. """
@@ -396,7 +405,7 @@ class KrigingPanel(wx.Panel):
         if self.OverwriteCheckBox.IsChecked():
             command.append("--overwrite")
             
-        print command
+        print command # consider logging it
         
         # give it to the output console
         self.goutput.RunCmd(command, switchPage = True)
