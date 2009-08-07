@@ -366,16 +366,13 @@ class KrigingPanel(wx.Panel):
                                    layer = 1, excludeKey = True,
                                    type = ['integer', 'double precision'])
         self.InputDataColumn.SetSelection(0)
+        self.RunButton.Enable(self.InputDataColumn.GetSelection() is not -1)
+        self.RBookgstatPanel.PlotButton.Enable(self.InputDataColumn.GetSelection() is not -1)
         
         if self.InputDataColumn.GetSelection() is not -1:
             self.OutputMapName.SetValue(MapName.split("@")[0]+"_kriging")
-            self.RunButton.Enable(True)
-            self.RBookgstatPanel.PlotButton.Enable(True)
         else:
-            #self.InputDataColumn.SetSelection(0)
             self.OutputMapName.SetValue('')
-            self.RunButton.Enable(False)
-            self.RBookgstatPanel.PlotButton.Enable(False)
         
     def OnRunButton(self,event):
         """ Execute R analysis. """
@@ -520,7 +517,14 @@ class RBookPanel(wx.Panel):
         robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
     
     def OnPlotButton(self,event):
+        # import data
+        # fit the variogram
         
+        # convert R dataframe (data variogram) - points
+        # convert R dataframe (model variogram) - line
+        # give them to plot.PolyPoints and plot.PolyLine
+        # plot it
+        #Plot = plot.PlotGraphics([points, line], title, xlabel, ylabel)
         pass
     
     def UseValue(self, event):
