@@ -105,6 +105,7 @@ import menuform
 
 import wx
 import wx.lib.flatnotebook as FN
+import wx.lib.plot as plot # for plotting the variogram.
 
 ### i18N
 import gettext
@@ -361,19 +362,20 @@ class KrigingPanel(wx.Panel):
     def OnInputDataChanged(self, event):
         """ Refreshes list of columns and fills output map name TextCtrl """
         MapName = event.GetString()
+        self.InputDataColumn.InsertColumns(vector = MapName,
+                                   layer = 1, excludeKey = True,
+                                   type = ['integer', 'double precision'])
+        self.InputDataColumn.SetSelection(0)
         
-        if len(MapName) is not 0: # or is spaces! see how to test that
-            self.InputDataColumn.InsertColumns(vector = MapName,
-                                               layer = 1, excludeKey = True,
-                                               type = ['integer', 'double precision'])
-            self.InputDataColumn.SetSelection(0)
+        if self.InputDataColumn.GetSelection() is not -1:
             self.OutputMapName.SetValue(MapName.split("@")[0]+"_kriging")
-            if self.InputDataColumn.GetSelection() is not -1: # there is no suitable z column for the layer
-                self.RunButton.Enable(True) 
+            self.RunButton.Enable(True)
+            self.RBookgstatPanel.PlotButton.Enable(True)
         else:
-            self.InputDataColumn.SetSelection(0)
+            #self.InputDataColumn.SetSelection(0)
             self.OutputMapName.SetValue('')
             self.RunButton.Enable(False)
+            self.RBookgstatPanel.PlotButton.Enable(False)
         
     def OnRunButton(self,event):
         """ Execute R analysis. """
@@ -453,9 +455,10 @@ class RBookPanel(wx.Panel):
         self.VariogramSizer.Add(self.RightSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
         
         # left side of Variogram fitting. The checkboxes and spinctrls.
-        PlotButton = wx.Button(self, id=wx.ID_ANY, label=_("Plot/refresh variogram")) # no stock ID for Run button.. 
-        PlotButton.Bind(wx.EVT_BUTTON, self.OnPlotButton)
-        self.LeftSizer.Add(PlotButton, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
+        self.PlotButton = wx.Button(self, id=wx.ID_ANY, label=_("Plot/refresh variogram")) # no stock ID for Run button.. 
+        self.PlotButton.Bind(wx.EVT_BUTTON, self.OnPlotButton)
+        self.PlotButton.Enable(False) # grey it out until a suitable layer is available
+        self.LeftSizer.Add(self.PlotButton, proportion=0, flag= wx.ALL, border=parent.border)
         self.LeftSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
         
         self.ParametersList = ["Sill", "Nugget", "Range"]
@@ -481,7 +484,6 @@ class RBookPanel(wx.Panel):
         
         # right side of the Variogram fitting. The plot area.
         Plot = wx.StaticText(self, id= wx.ID_ANY, label = "Check Plot Variogram to interactively fit model.")
-        #Plot = wx.StaticBitmap(self, bitmap=wx.Bitmap('/home/anne/raster/Muppet-Bunsen.jpg'), size=(200,200))
         self.RightSizer.Add(Plot, proportion=0, flag= wx.ALIGN_CENTER | wx.ALL, border=parent.border)
         
         self.KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self,
@@ -518,6 +520,7 @@ class RBookPanel(wx.Panel):
         robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
     
     def OnPlotButton(self,event):
+        
         pass
     
     def UseValue(self, event):
