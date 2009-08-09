@@ -78,6 +78,14 @@ apply_html()
    unset_exe "$1"
 }
 
+apply_text()
+{
+   set_keywords "$1"
+   set_mime_type "$1" text/plain
+   set_native_eol "$1"
+   unset_exe "$1"
+}
+
 apply_makefile()
 {
    set_mime_type "$1" text/x-makefile
@@ -163,6 +171,9 @@ for FILE in $* ; do
 	    FILE_SUFFIX="jpeg"
 	fi
 	apply_image "$FILE" "$FILE_SUFFIX"
+	;;
+    txt)
+	apply_text "$FILE"
 	;;
     *)
 	if [ "$FILE" = "Makefile" ] ; then
