@@ -128,6 +128,7 @@ except:
 # rpy2
 try:
     import rpy2.robjects as robjects
+    # use rpy2.rinterface to speed up kriging?
     haveRpy2 = True
 except ImportError:
     print >> sys.stderr, "Rpy2 not found. Please install it and re-run." # ok for other OSes?
@@ -142,6 +143,11 @@ for each in ["gstat", "spgrass6"]:
     
 # globals
 maxint = 1e6 # instead of sys.maxint, not working with SpinCtrl on 64bit [reported by Bob Moskovitz]
+
+Command = None
+InputData = None
+Variogram = None
+VariogramFunction = None
 
 #classes in alphabetical order. methods in logical order :)
 
@@ -192,7 +198,9 @@ class Controller():
             
             VariogramModel = robjects.r.autofitVariogram(formula, inputdata, **DottedParams)
             #print robjects.r.warnings()
+            FittedVariogram = VariogramModel.r['var_model'][0] # stored in global namespace for further use
             return VariogramModel.r['var_model'][0]
+            #@TODO: write what model automap has chosen. [Markus' suggestion]
         else:
             DataVariogram = robjects.r['variogram'](formula, inputdata)
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
@@ -200,6 +208,7 @@ class Controller():
                                                                                 model = model,
                                                                                 nugget = nugget,
                                                                                 range = range))
+            print VariogramModel.names # r names() function
             return VariogramModel
     
     def DoKriging(self, formula, inputdata, grid, model, block):
@@ -211,6 +220,12 @@ class Controller():
         return KrigingResult
  
     def ExportMap(self, map, column, name, overwrite):
+        # add kriging parameters to raster map history
+        grass.run_command('r.support',
+                          map = map,
+                          title = 'Kriging output',
+                          history = 'Issued from command: ')
+        
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
         
     def Run(self, input, column, output, package, sill, nugget, range, logger, \
@@ -218,28 +233,34 @@ class Controller():
         """ Wrapper for all functions above. """        
 
         logger.message(_("Importing data..."))
-        InputData = self.ImportMap(input)
+        if globals()["InputData"] is None:
+            globals()["InputData"] = self.ImportMap(input)
         #print(robjects.r.slot(InputData, 'data').names)
         logger.message("Imported.")
         GridPredicted = self.CreateGrid(InputData)
         
         logger.message(_("Fitting variogram..."))
         Formula = self.ComposeFormula(column, block, InputData)
-        Variogram = self.FitVariogram(Formula,
-                                      InputData,
-                                      model = model,
-                                      sill = sill,
-                                      nugget = nugget,
-                                      range = range)
+        if globals()["Variogram"] is None:
+            globals()["Variogram"] = self.FitVariogram(Formula,
+                                          InputData,
+                                          model = model,
+                                          sill = sill,
+                                          nugget = nugget,
+                                          range = range)
         logger.message(_("Variogram fitted."))
         
         logger.message(_("Kriging..."))
-        KrigingResult = self.DoKriging(Formula, InputData, GridPredicted, Variogram, block)
+        KrigingResult = self.DoKriging(Formula, InputData, GridPredicted, Variogram, block) # using global ones
         logger.message(_("Kriging performed."))
         
         self.ExportMap(map = KrigingResult,
                        column='var1.pred',
                        name = output,
+                       overwrite = overwrite)
+        self.ExportMap(map = KrigingResult,
+                       column='var1.var',
+                       name = output + "_var",
                        overwrite = overwrite)
         
 class KrigingPanel(wx.Panel):
@@ -396,7 +417,7 @@ class KrigingPanel(wx.Panel):
             command.append("model=" + '%s' % SelectedPanel.ModelChoicebox.GetStringSelection().split(" ")[0])
             
         for i in ['Sill', 'Nugget', 'Range']:
-            if getattr(SelectedPanel, i+"CheckBox").IsChecked():
+            if getattr(SelectedPanel, i+"ChextBox").IsChecked():
                 command.append(i.lower() + "=" + '%s' % getattr(SelectedPanel, i+'Ctrl').GetValue())
         
         if SelectedPanel.KrigingRadioBox.GetStringSelection() == "Block kriging":
@@ -404,12 +425,13 @@ class KrigingPanel(wx.Panel):
         if self.OverwriteCheckBox.IsChecked():
             command.append("--overwrite")
             
-        print command # consider logging it
+        print command 
+        Command = command # store it in global variable
         
         # give it to the output console
+        #@FIXME: it runs the command as a NEW instance. Reimports data, recalculates variogram fit..
+        #otherwise I can use Controller() and mimic RunCmd behaviour.
         self.goutput.RunCmd(command, switchPage = True)
-        ## TEST
-        #self.goutput.RunCmd(['v.buffer', 'input=rs2', 'output=rs2_buffer', 'dist=200', '--o'], switchPage = True)
 
 class KrigingModule(wx.Frame):
     """ Kriging module for GRASS GIS. Depends on R and its packages gstat and geoR. """
@@ -459,25 +481,25 @@ class RBookPanel(wx.Panel):
         self.LeftSizer.Add(self.ParametersSizer, proportion=0, flag=wx.EXPAND | wx.ALL, border=parent.border)
         
         self.ParametersList = ["Sill", "Nugget", "Range"]
+        MinValues = [0,0,1]
         for n in self.ParametersList:
-            setattr(self, n+"Text", (wx.StaticText(self, id= wx.ID_ANY, label = _(n + ":"))))
-            setattr(self, n+"Ctrl", (wx.SpinCtrl(self, id = wx.ID_ANY, max=maxint)))
-            setattr(self, n+"CheckBox", wx.CheckBox(self,
+            setattr(self, n+"ChextBox", wx.CheckBox(self,
                                                     id=self.ParametersList.index(n),
-                                                    label=_("Use value")))
-            getattr(self, n+"CheckBox").Bind(wx.EVT_CHECKBOX,
+                                                    label=_(n + ":")))
+            setattr(self, n+"Ctrl", (wx.SpinCtrl(self,
+                                                 id = wx.ID_ANY,
+                                                 #min = MinValues[self.ParametersList.index(n)],
+                                                 max=maxint)))
+            getattr(self, n+"ChextBox").Bind(wx.EVT_CHECKBOX,
                                              self.UseValue,
                                              id=self.ParametersList.index(n))
             setattr(self, n+"Sizer", (wx.BoxSizer(wx.HORIZONTAL)))
-            self.ParametersSizer.Add(getattr(self, n+"Text"),
+            self.ParametersSizer.Add(getattr(self, n+"ChextBox"),
                                      flag = wx.ALIGN_CENTER_VERTICAL,
                                      pos = (self.ParametersList.index(n),0))
             self.ParametersSizer.Add(getattr(self, n+"Ctrl"),
                                      flag = wx.EXPAND | wx.ALIGN_CENTER_VERTICAL,
                                      pos = (self.ParametersList.index(n),1))
-            self.ParametersSizer.Add(getattr(self, n+"CheckBox"),
-                                     flag = wx.ALIGN_CENTER_VERTICAL,
-                                     pos = (self.ParametersList.index(n),2))
         
         # right side of the Variogram fitting. The plot area.
         Plot = wx.StaticText(self, id= wx.ID_ANY, label = "Check Plot Variogram to interactively fit model.")
@@ -513,12 +535,12 @@ class RBookPanel(wx.Panel):
     def HideBlockOptions(self, event):
         self.BlockSpinBox.Enable(event.GetInt() == 1)
         
-    def ExportMap(self, map, col, name, overwrite):
-        robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
+    #def ExportMap(self, map, col, name, overwrite):
+    #    robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
     
     def OnPlotButton(self,event):
-        # import data
-        # fit the variogram
+        # import data or pick them up
+        # fit the variogram or pick it up
         
         # convert R dataframe (data variogram) - points
         # convert R dataframe (model variogram) - line
@@ -577,7 +599,7 @@ class RBookgstatPanel(RBookPanel):
         self.ModelChoicebox.Enable(not event.IsChecked())
         for n in ["Sill", "Nugget", "Range"]:
             getattr(self, n+"Ctrl").Enable(not event.IsChecked())
-            getattr(self, n+ "CheckBox").SetValue(not event.IsChecked())
+            getattr(self, n+ "ChextBox").SetValue(not event.IsChecked())
         #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work
     
 class RBookgeoRPanel(RBookPanel):
@@ -603,8 +625,10 @@ def main(argv=None):
         app.MainLoop()
         
     else:
-        options, flags = argv
         #CLI
+        options, flags = argv
+        globals()['Command'] = " ".join(["%s=%s" % (k, v) for k, v in options.items()])
+        print Command
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
         #print options
         # re-cast integers from strings, as parser() cast everything to string.
@@ -636,7 +660,7 @@ def main(argv=None):
                 robjects.r.require("automap")
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
-        print options
+        #print options
         
         controller = Controller()
         controller.Run(input = options['input'],
