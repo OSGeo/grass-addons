@@ -89,6 +89,14 @@ for details.
 #% description: Automatically fixed if not set
 #% required : no
 #%end
+#%option
+#% key: output_var
+#% type: string
+#% gisprompt: new,cell,raster
+#% label: Name for output variance raster map
+#% description: If omitted, will be <input name>_kriging_var
+#% required : no
+#%end
 
 import os, sys
 from tempfile import gettempdir
@@ -229,7 +237,7 @@ class Controller():
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
         
     def Run(self, input, column, output, package, sill, nugget, range, logger, \
-            overwrite, model, block, **kwargs):
+            overwrite, model, block, output_var, **kwargs):
         """ Wrapper for all functions above. """        
 
         logger.message(_("Importing data..."))
@@ -258,10 +266,11 @@ class Controller():
                        column='var1.pred',
                        name = output,
                        overwrite = overwrite)
-        self.ExportMap(map = KrigingResult,
-                       column='var1.var',
-                       name = output + "_var",
-                       overwrite = overwrite)
+        if output_var is not '':
+            self.ExportMap(map = KrigingResult,
+                           column='var1.var',
+                           name = output_var,
+                           overwrite = overwrite)
         
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
@@ -334,11 +343,23 @@ class KrigingPanel(wx.Panel):
                                             mapsets = [grass.gisenv()['MAPSET']])
         OutputParameters.Add(item=self.OutputMapName, flag=wx.EXPAND | wx.ALL,
                              pos = (0, 1))
+        self.VarianceRasterCheckbox = wx.CheckBox(self, id=wx.ID_ANY, label=_("Export variance map as well: "))
+        self.VarianceRasterCheckbox.SetValue(state = True)
+        OutputParameters.Add(item = self.VarianceRasterCheckbox,
+                             flag = wx.ALIGN_CENTER_VERTICAL,
+                             pos = (1, 0))
+        self.OutputVarianceMapName = gselect.Select(parent = self, id = wx.ID_ANY,
+                                            type = 'raster',
+                                            mapsets = [grass.gisenv()['MAPSET']])
+        self.VarianceRasterCheckbox.Bind(wx.EVT_CHECKBOX, self.OnVarianceCBChecked)
+        OutputParameters.Add(item=self.OutputVarianceMapName, flag=wx.EXPAND | wx.ALL,
+                             pos = (1, 1))
+        
         self.OverwriteCheckBox = wx.CheckBox(self, id=wx.ID_ANY,
                                              label=_("Allow output files to overwrite existing files"))
         self.OverwriteCheckBox.SetValue(state = False)
         OutputParameters.Add(item = self.OverwriteCheckBox,
-                             pos = (1, 0), span = (1, 2))
+                             pos = (2, 0), span = (1, 2))
         
         OutputSizer.Add(OutputParameters, proportion=0, flag=wx.EXPAND | wx.ALL, border=self.border)
         
@@ -392,8 +413,10 @@ class KrigingPanel(wx.Panel):
         
         if self.InputDataColumn.GetSelection() is not -1:
             self.OutputMapName.SetValue(MapName.split("@")[0]+"_kriging")
+            self.OutputVarianceMapName.SetValue(MapName.split("@")[0]+"_kriging_var")
         else:
             self.OutputMapName.SetValue('')
+            self.OutputVarianceMapName.SetValue('')
         
     def OnRunButton(self,event):
         """ Execute R analysis. """
@@ -424,6 +447,8 @@ class KrigingPanel(wx.Panel):
             command.append("block=" + '%s' % SelectedPanel.BlockSpinBox.GetValue())
         if self.OverwriteCheckBox.IsChecked():
             command.append("--overwrite")
+        if self.VarianceRasterCheckbox.IsChecked():
+            command.append("output_var=" + self.OutputVarianceMapName.GetValue())
             
         print command 
         Command = command # store it in global variable
@@ -432,6 +457,9 @@ class KrigingPanel(wx.Panel):
         #@FIXME: it runs the command as a NEW instance. Reimports data, recalculates variogram fit..
         #otherwise I can use Controller() and mimic RunCmd behaviour.
         self.goutput.RunCmd(command, switchPage = True)
+    
+    def OnVarianceCBChecked(self, event):
+        self.OutputVarianceMapName.Enable(event.IsChecked())
 
 class KrigingModule(wx.Frame):
     """ Kriging module for GRASS GIS. Depends on R and its packages gstat and geoR. """
@@ -654,6 +682,8 @@ def main(argv=None):
         # check for output map with same name. g.parser can't handle this, afaik.
         if grass.find_file(options['output'], element = 'cell')['fullname'] and os.getenv("GRASS_OVERWRITE") == None:
             grass.fatal(_("option: <output>: Raster map already exists."))
+        if options['output_var'] is not '' and (grass.find_file(options['output_var'], element = 'cell')['fullname'] and os.getenv("GRASS_OVERWRITE") == None):
+            grass.fatal(_("option: <output>: Variance raster map already exists."))
 
         if options['model'] is '':
             try:
@@ -673,6 +703,7 @@ def main(argv=None):
                        sill = options['sill'],
                        nugget = options['nugget'],
                        range = options['range'],
+                       output_var = options['output_var'],
                        logger = grass)
     
 if __name__ == '__main__':
