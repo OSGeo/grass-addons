@@ -103,6 +103,10 @@ from tempfile import gettempdir
 
 GUIModulesPath = os.path.join(os.getenv("GISBASE"), "etc", "wxpython", "gui_modules")
 sys.path.append(GUIModulesPath)
+GUIPath = os.path.join(os.getenv("GISBASE"), "etc", "wxpython")
+sys.path.append(GUIPath)
+
+from gis_set import HelpWindow as HelpWindow
 
 import globalvar
 if not os.getenv("GRASS_WXBUNDLED"):
@@ -209,6 +213,7 @@ class Controller():
             FittedVariogram = VariogramModel.r['var_model'][0] # stored in global namespace for further use
             return VariogramModel.r['var_model'][0]
             #@TODO: write what model automap has chosen. [Markus' suggestion]
+            ##VariogramModel.r['model'][0][1] # in R, Variogram$model[2]
         else:
             DataVariogram = robjects.r['variogram'](formula, inputdata)
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
@@ -216,7 +221,7 @@ class Controller():
                                                                                 model = model,
                                                                                 nugget = nugget,
                                                                                 range = range))
-            print VariogramModel.names # r names() function
+            #print VariogramModel.names # r names() function
             return VariogramModel
     
     def DoKriging(self, formula, inputdata, grid, model, block):
@@ -365,11 +370,14 @@ class KrigingPanel(wx.Panel):
         
         #    4. Run Button and Quit Button
         ButtonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        HelpButton = wx.Button(self, id=wx.ID_HELP)
+        HelpButton.Bind(wx.EVT_BUTTON, self.OnHelpButton)
         QuitButton = wx.Button(self, id=wx.ID_EXIT)
         QuitButton.Bind(wx.EVT_BUTTON, self.OnCloseWindow)
         self.RunButton = wx.Button(self, id=wx.ID_ANY, label=_("Run")) # no stock ID for Run button.. 
         self.RunButton.Bind(wx.EVT_BUTTON, self.OnRunButton)
         self.RunButton.Enable(False) # disable it on loading the interface, as input map is not set
+        ButtonSizer.Add(HelpButton, proportion=0, flag=wx.ALIGN_LEFT | wx.ALL, border=self.border)
         ButtonSizer.Add(QuitButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         ButtonSizer.Add(self.RunButton, proportion=0, flag=wx.ALIGN_RIGHT | wx.ALL, border=self.border)
         
@@ -383,6 +391,7 @@ class KrigingPanel(wx.Panel):
         
         # last action of __init__: update imput data list.
         # it's performed in the few seconds gap while user examines interface before clicking anything.
+        #@TODO: implement a splashcreen IF the maps cause a noticeable lag [markus' suggestion]
         self.InputDataMap.GetElementList()
         
     def CreatePage(self, package):
@@ -395,10 +404,21 @@ class KrigingPanel(wx.Panel):
     def OnButtonRefresh(self, event):
         """ Forces refresh of list of available layers. """
         self.InputDataMap.GetElementList()
-        
+
     def OnCloseWindow(self, event):
         """ Cancel button pressed"""
         self.parent.Close()
+        event.Skip()
+
+    def OnHelpButton(self, event):
+        #file = os.path.join(self.gisbase, "docs", "html", "helptext.html")
+        file = os.path.join(os.path.curdir, "description.html")
+        helpFrame = HelpWindow(parent=self, id=wx.ID_ANY,
+                               title=_("GRASS Quickstart"),
+                               size=(640, 480),
+                               file=file)
+        helpFrame.Show(True)
+
         event.Skip()
 
     def OnInputDataChanged(self, event):
