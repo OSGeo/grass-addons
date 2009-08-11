@@ -304,7 +304,7 @@ class KrigingPanel(wx.Panel):
         RefreshButton.Bind(wx.EVT_BUTTON, self.OnButtonRefresh)
         flexSizer.Add(item = RefreshButton, flag = wx.ALIGN_CENTER_VERTICAL)
         
-        flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Column:")),
+        flexSizer.Add(item = wx.StaticText(self, id=wx.ID_ANY, label=_("Numeric column:")),
                       flag=wx.ALIGN_CENTER_VERTICAL)
         self.InputDataColumn = gselect.ColumnSelect(self, id=wx.ID_ANY)
         self.InputDataColumn.SetSelection(0)
@@ -411,10 +411,10 @@ class KrigingPanel(wx.Panel):
         event.Skip()
 
     def OnHelpButton(self, event):
-        #file = os.path.join(self.gisbase, "docs", "html", "helptext.html")
-        file = os.path.join(os.path.curdir, "description.html")
+        file = os.path.join(os.getenv("GISBASE"), "docs", "html", "v.krige.py.html")
+        #file = os.path.join(os.path.curdir, "description.html")
         helpFrame = HelpWindow(parent=self, id=wx.ID_ANY,
-                               title=_("GRASS Quickstart"),
+                               title=_("GRASS - Help page for v.krige.py"),
                                size=(640, 480),
                                file=file)
         helpFrame.Show(True)
@@ -536,7 +536,7 @@ class RBookPanel(wx.Panel):
                                                     label=_(n + ":")))
             setattr(self, n+"Ctrl", (wx.SpinCtrl(self,
                                                  id = wx.ID_ANY,
-                                                 #min = MinValues[self.ParametersList.index(n)],
+                                                 min = MinValues[self.ParametersList.index(n)],
                                                  max=maxint)))
             getattr(self, n+"ChextBox").Bind(wx.EVT_CHECKBOX,
                                              self.UseValue,
