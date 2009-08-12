@@ -148,14 +148,15 @@ except ImportError:
 if not haveRpy2:
     sys.exit(1)
 
-# R packages gstat or geoR
+# R packages check.
+#@FIXME: it leaves a Rtmpxxxx folder into the make tempfolder and causes make complain. [markus]
 for each in ["gstat", "spgrass6"]:
     if not robjects.r.require(each, quietly=True)[0]:
         sys.exit(_("R package " + each + " is missing. Install it and re-run v.krige."))
     
 # globals
 maxint = 1e6 # instead of sys.maxint, not working with SpinCtrl on 64bit [reported by Bob Moskovitz]
-
+Region = grass.region()
 Command = None
 InputData = None
 Variogram = None
@@ -166,9 +167,9 @@ VariogramFunction = None
 class Controller():
     """ Executes analysis. For the moment, only with gstat functions."""
     
-    def ImportMap(self, map):
-        """ Adds x,y columns to the GRASS map and then imports it in R. """
-        # adds x, y columns if needed.
+    def ImportMap(self, map, column):
+        """ Adds x,y columns to the GRASS map and then imports it in R.
+        Checks for NULL values in the provided column and exits if they are present."""
         #@NOTE: it alters original data. Is it correct? Shall I remove those columns
         # if they were absent from original data?
         cols = grass.vector_columns(map=map, layer=1)
@@ -176,10 +177,14 @@ class Controller():
             grass.run_command('v.db.addcol', map = map,
                               columns = 'x double precision, y double precision')
             grass.run_command('v.to.db', map = map, option = 'coor', col = 'x,y')
+        nulls = int(grass.parse_command('v.univar', map=map, column=column, type='point', \
+                                     parse = (grass.parse_key_val, \
+                                     {'sep':': '}))['number of NULL attributes'])
+        if nulls > 0: 
+            grass.fatal(_("%d NULL value(s) in the selected column - unable to perform kriging.") % nulls)
         return robjects.r.readVECT6(map, type= 'point')
     
     def CreateGrid(self, inputdata):
-        Region = grass.region()
         Grid = robjects.r.gmeta2grd()
 
         # addition of coordinates columns into dataframe.
@@ -232,22 +237,21 @@ class Controller():
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model, **DottedParams)
         return KrigingResult
  
-    def ExportMap(self, map, column, name, overwrite):
+    def ExportMap(self, map, column, name, overwrite, command):
         # add kriging parameters to raster map history
-        grass.run_command('r.support',
-                          map = map,
-                          title = 'Kriging output',
-                          history = 'Issued from command: ')
-        
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
+        grass.run_command('r.support',
+                          map = name,
+                          title = 'Kriging output',
+                          history = 'Issued from command v.krige ' + command) #@TODO: add parameters
         
     def Run(self, input, column, output, package, sill, nugget, range, logger, \
-            overwrite, model, block, output_var, **kwargs):
-        """ Wrapper for all functions above. """        
-
+            overwrite, model, block, output_var, command, **kwargs):
+        """ Wrapper for all functions above. """
+        logger.message(_("Processing %d cells. Computing time raises exponentially with resolution." % Region['cells']))
         logger.message(_("Importing data..."))
         if globals()["InputData"] is None:
-            globals()["InputData"] = self.ImportMap(input)
+            globals()["InputData"] = self.ImportMap(input, column)
         #print(robjects.r.slot(InputData, 'data').names)
         logger.message("Imported.")
         GridPredicted = self.CreateGrid(InputData)
@@ -270,12 +274,14 @@ class Controller():
         self.ExportMap(map = KrigingResult,
                        column='var1.pred',
                        name = output,
-                       overwrite = overwrite)
+                       overwrite = overwrite,
+                       command = command)
         if output_var is not '':
             self.ExportMap(map = KrigingResult,
                            column='var1.var',
                            name = output_var,
-                           overwrite = overwrite)
+                           overwrite = overwrite,
+                           command = command)
         
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
@@ -675,17 +681,8 @@ def main(argv=None):
     else:
         #CLI
         options, flags = argv
-        globals()['Command'] = " ".join(["%s=%s" % (k, v) for k, v in options.items()])
-        print Command
-        #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
-        #print options
-        # re-cast integers from strings, as parser() cast everything to string.
-        for each in ("sill","nugget","range"):
-            if options[each] is not '':
-                options[each] = int(options[each])
-            else:
-                options[each] = robjects.r('''NA''')
         
+        #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
         if grass.find_file(options['input'], element = 'vector')['fullname'] is '':
             grass.fatal(_("option: <input>: Vector map not found."))
         
@@ -710,7 +707,22 @@ def main(argv=None):
                 robjects.r.require("automap")
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
-        #print options
+        #@TODO: let GRASS remount its commandstring. Until then, keep that 4 lines below.
+        #print grass.write_command(argv)
+        command = ""
+        notnulloptions = {}
+        for k, v in options.items():
+            if v is not '':
+                notnulloptions[k] = v
+        command = command.join("%s=%s " % (k, v) for k, v in notnulloptions.items())
+        #print command
+        
+        # re-cast integers from strings, as parser() cast everything to string.
+        for each in ("sill","nugget","range"):
+            if options[each] is not '':
+                options[each] = int(options[each])
+            else:
+                options[each] = robjects.r('''NA''')
         
         controller = Controller()
         controller.Run(input = options['input'],
@@ -724,6 +736,7 @@ def main(argv=None):
                        nugget = options['nugget'],
                        range = options['range'],
                        output_var = options['output_var'],
+                       command = command,
                        logger = grass)
     
 if __name__ == '__main__':
