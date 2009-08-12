@@ -95,13 +95,10 @@ if [ ! -x "`which awk`" ] ; then
     exit 1
 fi
 
-# setting environment, so that awk works properly in all languages
+# set environment so that awk works properly in all languages
 unset LC_ALL
 export LC_NUMERIC=C
 
-eval `g.gisenv`
-: ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
-LOCATION=$GISDBASE/$LOCATION_NAME/$MAPSET
 
 TMP_ascii="`g.tempfile pid=$$`"
 if [ $? -ne 0 ] || [ -z "${TMP_ascii}" ] ; then
@@ -139,10 +136,13 @@ fi
 #######################################################################
 cleanup() 
 {
-    g.region region=oldregion 
-    rm -f $GISDBASE/$LOCATION_NAME/$MAPSET/windows/oldregion
-    rm -f $TMP ${TMP} TMP_*
-    g.remove vect=TMP_vect > /dev/null
+    eval `g.findfile elem=windows file="tmp_region.$$" | grep '^name='`
+    if [ -n "$name" ] ; then
+	unset WIND_OVERRIDE
+	g.remove region="tmp_region.$$" --quiet
+    fi
+    rm -f "$TMP_ascii"
+    g.remove vect="TMP_vect_$$" --quiet
 }
 
 # what to do in case of user break:
@@ -165,20 +165,22 @@ maxsouth="`g.region -p | grep south | sed -e s/.*:\ *//`"
 maxwest="` g.region -p | grep west | sed -e s/.*:\ *//`"
 maxeast="` g.region -p | grep east | sed -e s/.*:\ *//`"
 
-g.region save=oldregion
-
+# setup internal region
+g.region save="tmp_region.$$"
+WIND_OVERRIDE="tmp_region.$$"
+export WIND_OVERRIDE
 
 ns_dist="`echo $maxnorth $maxsouth |awk '{printf("%f", $1 - $2);}'`"
-ew_dist="`echo $maxeast $maxwest |awk '{printf("%f", $1 - $2);}'`"
-rows="`echo $ns_dist $grid |awk '{printf("%.0f", $1 / $2);}'`"
-cols="`echo $ew_dist $grid |awk '{printf("%.0f", $1 / $2);}'`"
+ew_dist="`echo $maxeast $maxwest | awk '{printf("%f", $1 - $2);}'`"
+rows="`echo $ns_dist $grid | awk '{printf("%.0f", $1 / $2);}'`"
+cols="`echo $ew_dist $grid | awk '{printf("%.0f", $1 / $2);}'`"
 
 ########################################################################
 
 north=$maxnorth
 west=$maxwest
-south="`echo $north $grid |awk '{printf("%f", $1 - $2);}'`"
-east="`echo $west $grid |awk '{printf("%f", $1 + $2);}'`"
+south="`echo $north $grid | awk '{printf("%f", $1 - $2);}'`"
+east="`echo $west $grid | awk '{printf("%f", $1 + $2);}'`"
 
 # number of region
 no_of_region="0"
@@ -202,7 +204,8 @@ do
         planarea="`r.surf.area input=$elev | grep Current | sed -e s/.*:\ *//`"
         realarea="`r.surf.area input=$elev | grep Estimated | sed -e s/.*:\ *//`"
 
-echo "$coord_x $coord_y $realarea $planarea" | awk '{printf "%d %d %f\n", $1, $2, $3 / $4}'>> $TMP_ascii
+	echo "$coord_x $coord_y $realarea $planarea" | \
+	   awk '{printf "%d %d %f\n", $1, $2, $3 / $4}'>> "$TMP_ascii"
 
         west=$east
         east="`echo $west $grid |awk '{printf("%f", $1 + $2);}'`"
@@ -214,18 +217,24 @@ echo "$coord_x $coord_y $realarea $planarea" | awk '{printf "%d %d %f\n", $1, $2
     done
     
     north=$south
-    south="`echo $north $grid |awk '{printf("%f", $1 - $2);}'`";
+    south="`echo $north $grid |awk '{printf("%f", $1 - $2);}'`"
     
     # go west
     west=$maxwest
-    east="`echo $west $grid |awk '{printf("%f", $1 + $2);}'`";
-done;
+    east="`echo $west $grid |awk '{printf("%f", $1 + $2);}'`"
+done
 
 
+# back to original region
+unset WIND_OVERRIDE
+g.remove region="tmp_region.$$" --quiet
 
-g.region region=oldregion;
-v.in.ascii input=$TMP_ascii output=TMP_vect format=point fs=space skip=0 x=1 y=2 z=3 cat=0 -z;
-v.surf.rst input=TMP_vect layer=0 elev=$ROUGHNESS zmult=1.0 tension=$GIS_OPT_TENSION smooth=$GIS_OPT_SMOOTH --overwrite;
+
+v.in.ascii input="$TMP_ascii" output="TMP_vect_$$" format=point \
+   fs=space skip=0 x=1 y=2 z=3 cat=0 -z
+
+v.surf.rst input="TMP_vect_$$" layer=0 elev="$ROUGHNESS" zmult=1.0 \
+   tension="$GIS_OPT_TENSION" smooth="$GIS_OPT_SMOOTH"
 
 r.colors "$ROUGHNESS" color=rainbow
 
