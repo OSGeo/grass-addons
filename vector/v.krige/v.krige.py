@@ -197,8 +197,8 @@ class Controller():
                                                         proj4string= robjects.r.CRS(robjects.r.proj4string(inputdata)))
         return GridPredicted
     
-    def ComposeFormula(self, column, block, inputdata):
-        if block is not '':
+    def ComposeFormula(self, column, isblock, inputdata):
+        if isblock is True:
             predictor = 'x+y'
         else:
             predictor = 1
@@ -207,6 +207,11 @@ class Controller():
         return Formula
     
     def FitVariogram(self, formula, inputdata, sill, nugget, range, model = ''):
+        """ Fits variogram either automagically either specifying all parameters.
+        Returns a list containing data and model variograms. """
+        
+        Variograms = {}
+        
         if model is '':
             robjects.r.require('automap')
             DottedParams = {}
@@ -215,10 +220,12 @@ class Controller():
             
             VariogramModel = robjects.r.autofitVariogram(formula, inputdata, **DottedParams)
             #print robjects.r.warnings()
-            FittedVariogram = VariogramModel.r['var_model'][0] # stored in global namespace for further use
-            return VariogramModel.r['var_model'][0]
-            #@TODO: write what model automap has chosen. [Markus' suggestion]
-            ##VariogramModel.r['model'][0][1] # in R, Variogram$model[2]
+            Variograms['datavariogram'] = VariogramModel.r['exp_var'][0]
+            Variograms['variogrammodel'] = VariogramModel.r['var_model'][0]
+            # obtain the model name. *Too* complicated to get the string instead of level, unlike R does.
+            VariogramAsDF = robjects.r['as.data.frame'](VariogramModel.r['var_model'][0]) # force conversion
+            ModelDF = VariogramAsDF.r['model'][0]
+            Variograms['model'] = robjects.r.levels(ModelDF).subset(ModelDF[1])[0]
         else:
             DataVariogram = robjects.r['variogram'](formula, inputdata)
             VariogramModel = robjects.r['fit.variogram'](DataVariogram,
@@ -226,8 +233,10 @@ class Controller():
                                                                                 model = model,
                                                                                 nugget = nugget,
                                                                                 range = range))
-            #print VariogramModel.names # r names() function
-            return VariogramModel
+            Variograms['datavariogram'] = DataVariogram
+            Variograms['variogrammodel'] = VariogramModel
+            Variograms['model'] = model
+        return Variograms
     
     def DoKriging(self, formula, inputdata, grid, model, block):
         DottedParams = {'debug.level': -1} # let krige() print percentage status
@@ -237,13 +246,17 @@ class Controller():
         KrigingResult = robjects.r.krige(formula, inputdata, grid, model, **DottedParams)
         return KrigingResult
  
-    def ExportMap(self, map, column, name, overwrite, command):
+    def ExportMap(self, map, column, name, overwrite, command, variograms):
         # add kriging parameters to raster map history
         robjects.r.writeRAST6(map, vname = name, zcol = column, overwrite = overwrite)
         grass.run_command('r.support',
                           map = name,
                           title = 'Kriging output',
-                          history = 'Issued from command v.krige ' + command) #@TODO: add parameters
+                          history = 'Issued from command v.krige ' + command)
+        if command.find('model') is -1: # if the command has no model option, add automap chosen model
+                    grass.run_command('r.support',
+                                      map = name,
+                                      history = 'Model chosen by automatic fitting: ' + variograms['model'])
         
     def Run(self, input, column, output, package, sill, nugget, range, logger, \
             overwrite, model, block, output_var, command, **kwargs):
@@ -252,12 +265,15 @@ class Controller():
         logger.message(_("Importing data..."))
         if globals()["InputData"] is None:
             globals()["InputData"] = self.ImportMap(input, column)
+        # and from here over, InputData refers to the global variable
         #print(robjects.r.slot(InputData, 'data').names)
-        logger.message("Imported.")
+        logger.message(_("Data successfully imported."))
+        
         GridPredicted = self.CreateGrid(InputData)
         
         logger.message(_("Fitting variogram..."))
-        Formula = self.ComposeFormula(column, block, InputData)
+        isblock = block is not ''
+        Formula = self.ComposeFormula(column, isblock, InputData)
         if globals()["Variogram"] is None:
             globals()["Variogram"] = self.FitVariogram(Formula,
                                           InputData,
@@ -268,20 +284,22 @@ class Controller():
         logger.message(_("Variogram fitted."))
         
         logger.message(_("Kriging..."))
-        KrigingResult = self.DoKriging(Formula, InputData, GridPredicted, Variogram, block) # using global ones
+        KrigingResult = self.DoKriging(Formula, InputData, GridPredicted, Variogram['variogrammodel'], block) # using global ones
         logger.message(_("Kriging performed."))
         
         self.ExportMap(map = KrigingResult,
                        column='var1.pred',
                        name = output,
                        overwrite = overwrite,
-                       command = command)
+                       command = command,
+                       variograms = Variogram)
         if output_var is not '':
             self.ExportMap(map = KrigingResult,
                            column='var1.var',
                            name = output_var,
                            overwrite = overwrite,
-                           command = command)
+                           command = command,
+                           variograms = Variogram)
         
 class KrigingPanel(wx.Panel):
     """ Main panel. Contains all widgets except Menus and Statusbar. """
@@ -475,9 +493,6 @@ class KrigingPanel(wx.Panel):
             command.append("--overwrite")
         if self.VarianceRasterCheckbox.IsChecked():
             command.append("output_var=" + self.OutputVarianceMapName.GetValue())
-            
-        print command 
-        Command = command # store it in global variable
         
         # give it to the output console
         #@FIXME: it runs the command as a NEW instance. Reimports data, recalculates variogram fit..
@@ -515,6 +530,8 @@ class RBookPanel(wx.Panel):
     """ Generic notebook page with shared widgets and empty kriging functions. """
     def __init__(self, parent, *args, **kwargs):
         wx.Panel.__init__(self, parent, *args, **kwargs)
+        
+        self.parent = parent
         
         self.VariogramSizer = wx.StaticBoxSizer(wx.StaticBox(self,
                                                              id=wx.ID_ANY, 
@@ -588,19 +605,9 @@ class RBookPanel(wx.Panel):
         
     def HideBlockOptions(self, event):
         self.BlockSpinBox.Enable(event.GetInt() == 1)
-        
-    #def ExportMap(self, map, col, name, overwrite):
-    #    robjects.r.writeRAST6(map, vname = name, zcol = col, overwrite = overwrite)
     
     def OnPlotButton(self,event):
-        # import data or pick them up
-        # fit the variogram or pick it up
-        
-        # convert R dataframe (data variogram) - points
-        # convert R dataframe (model variogram) - line
-        # give them to plot.PolyPoints and plot.PolyLine
-        # plot it
-        #Plot = plot.PlotGraphics([points, line], title, xlabel, ylabel)
+        """ Plots variogram with current options. """
         pass
     
     def UseValue(self, event):
@@ -652,9 +659,62 @@ class RBookgstatPanel(RBookPanel):
     def HideOptions(self, event):
         self.ModelChoicebox.Enable(not event.IsChecked())
         for n in ["Sill", "Nugget", "Range"]:
-            getattr(self, n+"Ctrl").Enable(not event.IsChecked())
-            getattr(self, n+ "ChextBox").SetValue(not event.IsChecked())
+            if not event.IsChecked():
+                getattr(self, n+"Ctrl").Enable(True)
+                getattr(self, n+ "ChextBox").SetValue(True)
+                getattr(self, n+ "ChextBox").Enable(False) # grey it out keeping it checked.. improvable
+            else:
+                getattr(self, n+"Ctrl").Enable(False)
+                getattr(self, n+ "ChextBox").SetValue(False)
+                getattr(self, n+ "ChextBox").Enable(True)
+                getattr(self, n+ "ChextBox").Thaw()
         #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work
+        
+    def OnPlotButton(self,event):
+        """ Plots variogram with current options. """
+        ## BIG WARNING: smell of code duplication. Fix this asap.
+        controller = Controller()
+        map = self.parent.InputDataMap.GetValue()
+        column = self.parent.InputDataColumn.GetValue()
+        
+        # import data or pick them up
+        if globals()["InputData"] is None:
+            globals()["InputData"] = controller.ImportMap(map = map,
+                                                          column = column)
+        # fit the variogram or pick it up
+        Formula = controller.ComposeFormula(column = column,
+                                            isblock = self.KrigingRadioBox.GetStringSelection() == "Block kriging",
+                                            inputdata = globals()['InputData'])
+        #if globals()["Variogram"] is None:
+        if self.VariogramCheckBox.IsChecked():
+            self.model = ''
+            for each in ("Sill","Nugget","Range"):
+                if getattr(self, each+'ChextBox').IsChecked():
+                    setattr(self, each.lower(), getattr(self, each+"Ctrl").GetValue())
+                else:
+                    setattr(self, each.lower(), robjects.r('''NA'''))
+        else:
+            self.model = self.ModelChoicebox.GetStringSelection().split(" ")[0]
+            for each in ("Sill","Nugget","Range"):
+                if getattr(self, each+'ChextBox').IsChecked(): #@FIXME will be removed when chextboxes will be frozen
+                    setattr(self, each.lower(), getattr(self, each+"Ctrl").GetValue())
+            
+        globals()["Variogram"] = controller.FitVariogram(Formula,
+                                                         InputData,
+                                                         model = self.model,
+                                                         sill = self.sill,
+                                                         nugget = self.nugget,
+                                                         range = self.range)
+        print "Jay! Fitted variogram."
+        print self.sill, self.nugget, self.range, self.model
+        
+        # convert R dataframe (data variogram) - points
+        
+        # convert R dataframe (model variogram) - line
+        # give them to plot.PolyPoints and plot.PolyLine
+        # plot it
+        #Plot = plot.PlotGraphics([points, line], title, xlabel, ylabel)
+        pass
     
 class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
@@ -681,7 +741,6 @@ def main(argv=None):
     else:
         #CLI
         options, flags = argv
-        
         #@TODO: Work on verbosity. Sometimes it's too verbose (R), sometimes not enough.
         if grass.find_file(options['input'], element = 'vector')['fullname'] is '':
             grass.fatal(_("option: <input>: Vector map not found."))
@@ -701,12 +760,16 @@ def main(argv=None):
             grass.fatal(_("option: <output>: Raster map already exists."))
         if options['output_var'] is not '' and (grass.find_file(options['output_var'], element = 'cell')['fullname'] and os.getenv("GRASS_OVERWRITE") == None):
             grass.fatal(_("option: <output>: Variance raster map already exists."))
-
+        
         if options['model'] is '':
             try:
                 robjects.r.require("automap")
             except ImportError, e:
                 grass.fatal(_("R package automap is missing, no variogram autofit available."))
+        else:
+            if options['sill'] is '' or options['nugget'] is '' or options['range'] is '':
+                grass.fatal(_("You have specified model, but forgot at least one of sill, nugget and range."))
+        
         #@TODO: let GRASS remount its commandstring. Until then, keep that 4 lines below.
         #print grass.write_command(argv)
         command = ""
