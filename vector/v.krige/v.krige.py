@@ -100,6 +100,8 @@ for details.
 
 import os, sys
 from tempfile import gettempdir
+import time
+import thread
 
 GUIModulesPath = os.path.join(os.getenv("GISBASE"), "etc", "wxpython", "gui_modules")
 sys.path.append(GUIModulesPath)
@@ -131,16 +133,17 @@ except ImportError:
     sys.exit(_("No GRASS-python library found."))
 
 # R
-try:
-    #@FIXME: in Windows, it launches R terminal
-    grass.find_program('R')
-except:
-    sys.exit(_("R is not installed. Install it and re-run, or modify environment variables."))
+# unuseful since rpy2 will complain adequately.
+#try:
+#    #@FIXME: in Windows, it launches R terminal
+#    grass.find_program('R')
+#except:
+#    sys.exit(_("R is not installed. Install it and re-run, or modify environment variables."))
 
 # rpy2
 try:
     import rpy2.robjects as robjects
-    # use rpy2.rinterface to speed up kriging?
+    import rpy2.rinterface as rinterface #to speed up kriging? for plots.
     haveRpy2 = True
 except ImportError:
     print >> sys.stderr, "Rpy2 not found. Please install it and re-run." # ok for other OSes?
@@ -573,8 +576,11 @@ class RBookPanel(wx.Panel):
                                      pos = (self.ParametersList.index(n),1))
         
         # right side of the Variogram fitting. The plot area.
-        Plot = wx.StaticText(self, id= wx.ID_ANY, label = "Check Plot Variogram to interactively fit model.")
-        self.RightSizer.Add(Plot, proportion=0, flag= wx.ALIGN_CENTER | wx.ALL, border=parent.border)
+        #Plot = wx.StaticText(self, id= wx.ID_ANY, label = "Check Plot Variogram to interactively fit model.")
+        #PlotPanel = wx.Panel(self)
+        #self.PlotArea = plot.PlotCanvas(PlotPanel)
+        #self.PlotArea.SetInitialSize(size = (250,250))
+        #self.RightSizer.Add(PlotPanel, proportion=0, flag= wx.EXPAND|wx.ALL, border=parent.border)
         
         self.KrigingSizer = wx.StaticBoxSizer(wx.StaticBox(self,
                                                              id=wx.ID_ANY,
@@ -667,7 +673,6 @@ class RBookgstatPanel(RBookPanel):
                 getattr(self, n+"Ctrl").Enable(False)
                 getattr(self, n+ "ChextBox").SetValue(False)
                 getattr(self, n+ "ChextBox").Enable(True)
-                getattr(self, n+ "ChextBox").Thaw()
         #@FIXME: was for n in self.ParametersSizer.GetChildren(): n.Enable(False) but doesn't work
         
     def OnPlotButton(self,event):
@@ -705,17 +710,52 @@ class RBookgstatPanel(RBookPanel):
                                                          sill = self.sill,
                                                          nugget = self.nugget,
                                                          range = self.range)
-        print "Jay! Fitted variogram."
-        print self.sill, self.nugget, self.range, self.model
         
-        # convert R dataframe (data variogram) - points
+        ## A: use wx.plot library. Does not draw lines from f(x), damn.
+        #
+        ## convert R dataframe (data variogram) - points
+        ##print Variogram['datavariogram']
+        #PointList = []
+        #for n in range(len(Variogram['datavariogram'].r['dist'][0])): #@FIXME: so less Pythonic!!
+        #    dist = Variogram['datavariogram'].r['dist'][0][n]
+        #    gamma = Variogram['datavariogram'].r['gamma'][0][n]
+        #    PointList.append((dist,gamma))
+        #DataPoints = plot.PolyMarker(PointList, legend='points', colour='black', marker='circle',size=1)
+        #
+        ## convert R dataframe (model variogram) - line
+        #LineList = []
+        #textplot = robjects.r.plot(Variogram['datavariogram'], Variogram['variogrammodel'])
+        #print textplot
+        ##for n in range(len(Variogram['variogrammodel'].r['dist'][0])): #@FIXME: so less Pythonic!!
+        ##    dist = Variogram['datavariogram'].r['dist'][0][n]
+        ##    gamma = Variogram['datavariogram'].r['gamma'][0][n]
+        ##    LineList.append((dist,gamma))
+        ##
+        ### give them to plot.PolyPoints and plot.PolyLine
+        ## plot it
+        #VariogramPlot = plot.PlotGraphics([DataPoints])#,
+        #                          #title = "Wa",
+        #                          #xlabel = "Distance",
+        #                          #ylabel = "Gamma") #([DataPoints, line], title, xlabel, ylabel)
+        #self.PlotArea.Draw(VariogramPlot)
         
-        # convert R dataframe (model variogram) - line
-        # give them to plot.PolyPoints and plot.PolyLine
-        # plot it
-        #Plot = plot.PlotGraphics([points, line], title, xlabel, ylabel)
-        pass
-    
+        # B: use R plot function, in a separate window.
+        thread.start_new_thread(self.plot, ())
+        #self.plot()
+        
+    def plot(self):
+        #robjects.r.X11()
+        #robjects.r.png("variogram.png")
+        textplot = robjects.r.plot(Variogram['datavariogram'], Variogram['variogrammodel'])
+        print textplot
+        self.refresh()
+        #robjects.r['dev.off']()
+
+    def refresh(self):
+        while True:
+            rinterface.process_revents()
+            time.sleep(0.1)
+        
 class RBookgeoRPanel(RBookPanel):
     """ Subclass of RBookPanel, with specific geoR options and kriging functions. """
     def __init__(self, parent, *args, **kwargs):
