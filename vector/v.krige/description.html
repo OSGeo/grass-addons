@@ -5,17 +5,12 @@ using R software functions in background.
 <h2>NOTES</h2>
 
 <i>v.krige</i> is just a front-end to R. The options and parameters are
-the same offered by packages <i>automap</i>, <i>gstat</i> and 
-<i>geoR</i>.
-
-R users will therefore find in this GRASS module the same functionality of 
-their preferred package, as far as kriging results are influenced by 
-implementation.
+the same offered by packages <i>automap</i> and <i>gstat</i>.
 
 <h3>Dependencies</h3>
 
 <dl>
-<dt><b>GRASS with wxPython support</b></dt>
+<dt><b>GRASS 6.5 with wxPython support</b></dt>
 <dd></dd>
 
 <dt><b>R software >= 2.x</b></dt>
@@ -24,11 +19,23 @@ implementation.
 <dt><b>rpy2</b></dt>
 <dd>Python binding to R. Note! rpy is not supported.</dd>
 
-<dt><b>R packages automap, gstat, geoR. </b></dt>
-<dd>Install at least one.</dd>
+<dt><b>R packages automap and gstat. </b></dt>
+<dd>automap is optional (provides automatic variogram fit).</dd>
 </dl>
 
 <h3>Install</h3>
+
+<h4>Easy way: g.extension</h4>
+
+Simply run:
+
+<br>
+<div class="code"><pre>
+  g.extension v.krige
+<pre></div>
+<p>
+
+<h4>Less easy way: manual install</h4>
 
 It is sufficient to copy it into the (GRASS binaries) path somewhere. Alternatively, install addons into a separate GRASS addons binaries/scripts directory which is easier to maintain. It avoids getting clobbered every time you reinstall GRASS. To use these separately stored scripts, set and export the GRASS_ADDON_PATH environment variable before starting GRASS and it will automatically be added to the module search path. To simplify this, do for example:
 
@@ -39,6 +46,7 @@ It is sufficient to copy it into the (GRASS binaries) path somewhere. Alternativ
   export GRASS_ADDON_PATH
 <pre></div>
 <p>
+
 Make sure that the script is executable, then just call it in GRASS typing the filename. Python scripts need to be called writing the extension as well, like:
 
 <br>
@@ -64,8 +72,8 @@ To install R packages, use either R's function (as root):
 either the brand new Debian packages [5], add to repositories' list for 32bit or 64bit (pick up the suitable line):
 <br>
 <div class="code"><pre>
-  deb <A hREF="http://debian.cran.r-project.org/cran2deb/debian-i386">http://debian.cran.r-project.org/cran2deb/debian-i386</A> testing/
-  deb <A hREF="http://debian.cran.r-project.org/cran2deb/debian-amd64">http://debian.cran.r-project.org/cran2deb/debian-amd64</A> testing/
+  deb <a href="http://debian.cran.r-project.org/cran2deb/debian-i386">http://debian.cran.r-project.org/cran2deb/debian-i386</a> testing/
+  deb <a href="http://debian.cran.r-project.org/cran2deb/debian-amd64">http://debian.cran.r-project.org/cran2deb/debian-amd64</a> testing/
 <pre></div>
 
 <p>
@@ -80,39 +88,82 @@ and get the packages via aptitude:
 At this very moment, v.krige is developed against GRASS 6.5 (6_develbranch) and no backward compatibility with OSGeo4W's packaged GRASS 6.4svn2 is provided, nor with WinGRASS. 
 </p>
 <p>
-If you really need to run v.krige right now on Windows, I suggest to compile GRASS following this guide: <a href>http://trac.osgeo.org/grass/wiki/CompileOnWindows</A>. 
+If you really need to run v.krige right now on Windows, I suggest to compile GRASS following this guide: <a href>http://trac.osgeo.org/grass/wiki/CompileOnWindows</a>. 
 You could also use Linux in a virtual machine. Or install Linux in a separate partition of the HD. This is not as painful as it appears, there are lots of guides over the Internet to help you.
 </p>
 
 <h2>EXAMPLES</h2>
 
-Run GUI:
+Kriging example based on elevation map (Spearfish data set).<br><br>
+
+<b>Part 1: random sampling</b> of 2000 vector points from known elevation map (any number of points fits the purpose, but note that few points produce low-quality kriging outputs, and lot of points take longer processing times toghether with results closer to original map). Each point will receive the elevation value from the elevation raster, as if it came from a point survey.
 <br>
 <div class="code"><pre>
-   v.krige.py
-</pre></div>
-
+ g.region rast=elevation.10m -p
+ v.random output=rand2k_elev n=2000
+ v.db.addtable map=rand2k_elev column="elevation double precision"
+ v.what.rast vect=rand2k_elev rast=elevation.10m column=elevation
+<pre></div>
 <p>
 
-Run CLI, minimum options required for ordinary kriging with automatic variogram fit (requires package automap):
+<b>Part 2: remove points lacking elevation attributes</b>. Points sampled at the border of the elevation map didn't receive any value. v.krige has no preferred action to cope with no data values, so the user must check for them and decide what to do (remove points, fill with the value of the nearest point, fill with the global/local mean...). In the following line of code, points with no data are removed from the map.
+
 <br>
 <div class="code"><pre>
-   v.krige.py input=rs column=elev
-</pre></div>
-
+ v.db.droprow rand2k_elev output=rand2k_elev_filt where="elevation IS NULL"
+<pre></div>
 <p>
 
-Run CLI, more options:
+Check the result of previous line ("number of NULL attributes" must be 0):
+
 <br>
 <div class="code"><pre>
-   v.krige.py input=rs@PERMANENT column=elev model=Lin sill=2500 nugget=0 range=1000 output=rs_kriging
+ v.univar rand2k_elev_filt type=point column=elevation
+<pre></div>
+<p>
+
+<b>Part 3: reconstruct DEM through kriging</b>. Using automatic variogram fit is the simplest way to run v.krige from CLI (note: requires R's automap package). Output map name is optional, the modules creates it automatically appending "_kriging" the the input map name and always checks for overwrite. If output_var is specified, the variance map is also created. Automatic variogram fit is provided by R package automap, the variogram models tested by the fitting functions are: exponential, spherical, Gaussian, Matern, M.Stein's parametrisation. A wider range of models is available from gstat package and can be tested on the GUI via the variogram plotting. If model is specified in the CLI, also sill, nugget and range values are to be provided, otherwise an error is raised (see second example of v.krige command).
+<br>
+<div class="code"><pre>
+ v.krige.py input=rand2k_elev_filt column=elevation output=rand2k_elev_kriging \
+               output_var=rand2k_elev_kriging_var
+ v.krige.py input=rand2k_elev_filt column=elevation output=rand2k_elev_kriging \
+               output_var=rand2k_elev_kriging_var model=Lin sill=2500 nugget=0 range=1000 \
+               --overwrite
+<pre></div>
+<p>
+Or run wxGUI, to interactively fit the variogram and explore options:
+<br>
+<div class="code"><pre>
+  v.krige.py
 </pre></div>
+<p>
+
+<b>Calculate prediction error</b>:
+<br>
+<div class="code"><pre>
+ r.mapcalc "rand2k_elev_kriging_pe = sqrt(rand2k_elev_kriging_var)"
+ r.univar elevation.10m
+ r.univar rand2k_elev_kriging
+ r.univar rand2k_elev_kriging_pe
+<pre></div>
+<p>
+
+The results show high errors, as the kriging techniques (ordinary and block kriging) are unable to handle a dataset with a trend, like the one used in this example: elevation is higher in the southwest corner and lower on northeast corner. Universal kriging can give far better results in these cases as it can handle the trend. It is available in R package gstat and will be part of a future v.krige release.
 
 <h2>SEE ALSO</h2>
+
+R package <A hREF="http://cran.r-project.org/web/packages/gstat/index.html">gstat</A>, mantained by Edzer J. Pebesma and others <br>
+R package <A hREF="http://cran.r-project.org/web/packages/spgrass6/index.html">spgrass6</A>, mantained by Roger Bivand
+
 
 <h2>AUTHOR</h2>
 
 Anne Ghisla, Google Summer of Code 2009
+
+<h2>REFERENCES</h2>
+
+Isaaks and Srivastava, 1989: "An Introduction to Applied Geostatistics" (ISBN 0-19-505013-4) 
 
 <p><i>Last changed: $Date$</i>
 
