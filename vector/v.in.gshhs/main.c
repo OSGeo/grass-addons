@@ -33,10 +33,15 @@
 #include <grass/gprojects.h>
 #include <grass/glocale.h>
 
-/* updating to a newer GSHHS version can be as easy as replacing gshhs.h
+/* updating to a newer GSHHS version can be as easy as replacing
+ * struct GSHHS2 und updating GSHHS_DATA_RELEASE in gshhs.h
  * if not too many changes were introduced */
 #include "gshhs.h"
 
+/* GSHHS version 1.x import */
+int gshhs_import1(struct Map_info *, FILE *, int, double, double, double, double);
+/* GSHHS version 2.x import */
+int gshhs_import2(struct Map_info *, FILE *, int, double, double, double, double);
 int write_line_tiled(struct Map_info *, int, struct line_pnts *,
 	    struct line_cats *, double);
 
@@ -46,27 +51,22 @@ struct pj_info info_out;
 
 int main(int argc, char **argv)
 {
-    double w, e, s, n, area, lon, lat;
     double minx = -180., maxx = 180., miny = -90., maxy = 90.;
     char *dataname, *outname;
-    char buf[2000], source;
+    char buf[2000];
     static char *slevel[] = { "land", "lake", "island in lake",
 	"pond in island in lake" };
     int shore_levels = 4;
     /* taken from gshhs.c, keep in sync */
     FILE *fp;
-    int k, i, n_read, flip, level, version, greenwich, src;
-    int max_east = 180000000;	/* max_east = 270000000: confuses GRASS */
-    int cnt = 0, getme = 0;
-    struct GSHHS_POINT p;	/* renamed to avoid conflict */
-    struct GSHHS h;
+    int i, n_read, flip, version;
+    int cnt = 0;
+    struct GSHHS1 h;
     /* GRASS specific */
     struct Key_Value *out_proj_keys, *out_unit_keys;
-    int type, zone;
+    int zone;
     struct Cell_head region;
-    struct Map_info VectMap;
-    struct line_pnts *Points;
-    struct line_cats *Cats;
+    struct Map_info Map;
     double lat_nw, lon_nw, lat_ne, lon_ne;
     double lat_sw, lon_sw, lat_se, lon_se;
     struct
@@ -252,178 +252,51 @@ int main(int argc, char **argv)
     }
 
     /* Open new vector */
-    if (0 > Vect_open_new(&VectMap, outname, 0)) {
+    if (0 > Vect_open_new(&Map, outname, 0)) {
 	G_fatal_error(_("Cannot open new vector map <%s>"), outname);
     }
 
-    /* set vector line type to GV_LINE, GV_BOUNDARY is currently not supported */
-    type = GV_LINE;
-
-    /* Initialize vector line struct */
-    Points = Vect_new_line_struct();
-
-    /* Initialize vector category struct */
-    Cats = Vect_new_cats_struct();
-
     /* read header from GSHHS database */
-    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
+    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS1), (size_t) 1, fp);
     version = (h.flag >> 8) & 255;
-    flip = (version < 4);	/* Take as sign that byte-swapping is needed */
+
+    /* Take as sign that byte-swapping is needed */
+    /* if version < 2, source is read */
+    flip = (version < 2);
     if (flip) {
 	version = swabi4((unsigned int)h.flag);
 	version = (version >> 8) & 255;
     }
 
-    /* read lines from GSHHS database */
-    while (n_read == 1) {
-	/* taken from gshhs.c, keep in sync */
-	if (flip) {
-	    h.id = swabi4((unsigned int)h.id);
-	    h.n = swabi4((unsigned int)h.n);
-	    h.west = swabi4((unsigned int)h.west);
-	    h.east = swabi4((unsigned int)h.east);
-	    h.south = swabi4((unsigned int)h.south);
-	    h.north = swabi4((unsigned int)h.north);
-	    h.area = swabi4((unsigned int)h.area);
-	    h.flag = swabi4((unsigned int)h.flag);
-	}
-	level = h.flag & 255;
-	/* version = (h.flag >> 8) & 255; */
-	greenwich = (h.flag >> 16) & 255;
-	src = (h.flag >> 24) & 255;
-	w = h.west * GSHHS_SCL;	/* Convert from microdegrees to degrees */
-	e = h.east * GSHHS_SCL;
-	s = h.south * GSHHS_SCL;
-	n = h.north * GSHHS_SCL;
-	/* skip WDBII data because they are too inacurate? */
-	source = (src == 1) ? 'W' : 'C';	/* Either WVS or CIA (WDBII) pedigree */
-	area = 0.1 * h.area;	/* Now im km^2 */
+    /* check version support */
+    if (version < 4)  /* not sure if that check works... */
+	G_fatal_error("Trying to import version %d, only GSHHS versions 4 to %d (2.0) are supported.", version, (int)GSHHS_DATA_RELEASE);
+    if (version > GSHHS_DATA_RELEASE)
+	G_fatal_error("Import of version %d not yet supported, highest supported version is GSHHS version 7 (2.0).", version);
 
-        /* GRASS specific, max_east must always be 180 */
-	while (w > 180.)
-	    w -= 360.0;
-	while (e > 180.)
-	    e -= 360.0;
+    rewind(fp);
 
-	if (maxx > 180. && w < 0)
-	    w += 360.;
-	if (maxx > 180. && e < 0)
-	    e += 360.;
-
-	getme = 1;
-	if (flag.r->answer) {
-	    getme = 0;
-	    /* check gshhs bbox */
-	    if (w >= minx && w < maxx && e <= maxx && e > minx &&
-		s >= miny && s < maxy && n <= maxy && n > miny) {
-		getme = 1; /* inside current region */
-	    }
-	    else if (w < maxx && e > minx && s < maxy && n > miny) {
-		getme = 2; /* overlap */
-	    }
-	}
+    if (version >= 7)
+	gshhs_import2(&Map, fp, flag.r->answer, minx, maxx, miny, maxy);
+    else
+	gshhs_import1(&Map, fp, flag.r->answer, minx, maxx, miny, maxy);
 	
-	if (getme) {
-	    /* abusing getme flag a bit */
-	    if (getme == 2)
-		getme = 0;
-	    
-	    Vect_reset_line(Points);
-	    Vect_reset_cats(Cats);
-	    /* simple table and cats for layer 1: not unique, just per slevel */
-	    Vect_cat_set(Cats, 1, level);
-	    /* cats for layer 2 are unique ID, same like GSHHS ID */
-	    Vect_cat_set(Cats, 2, h.id);
-
-	    for (k = 0; k < h.n; k++) {
-		if (fread
-		    ((void *)&p, (size_t) sizeof(struct GSHHS_POINT),
-		     (size_t) 1, fp) != 1)
-		    G_fatal_error(_("Error reading data"));
-
-		if (flip) {
-		    p.x = swabi4((unsigned int)p.x);
-		    p.y = swabi4((unsigned int)p.y);
-		}
-		lon = p.x * GSHHS_SCL;
-		if (p.x > max_east) /* GSHHS lon coords are 0 - 360 */
-		    lon -= 360.0;
-		lat = p.y * GSHHS_SCL;
-
-		if (getme == 0) { /* overlap */
-		    /* datum border wrap around work around, clumsy code but works */
-		    if (maxx > 180. && lon < 0) {
-			if (lat >= miny && lat <= maxy && (lon + 360.) >= minx && (lon + 360.) <= maxx) {
-			    /* vertex inside current region, import line */
-			    getme = 1;
-			}
-		    }
-		    else {
-			if (lat >= miny && lat <= maxy && lon >= minx && lon <= maxx) {
-			    /* vertex inside current region, import line */
-			    getme = 1;
-			}
-		    }
-		
-		}
-		/* needed for accurate bboxes */
-		if (Points->n_points) {
-		    if (Points->x[Points->n_points - 1] - lon < -180.)
-			lon -= 360.;
-		    if (Points->x[Points->n_points - 1] - lon > 180.)
-			lon += 360.;
-		}
-		/* The GSHHS Antarctica problem: convert from 0 - 360 to -180 - 180  */
-		if (s < -80 && lon < -180) {
-		    Vect_append_point(Points, lon, lat, 0.);
-		    /* ...and close polygon */
-		    Vect_append_point(Points, -180, -90, 0.);
-		    Vect_append_point(Points, 180, -90, 0.);
-		    lon += 360;
-		}
-
-		Vect_append_point(Points, lon, lat, 0.);
-		
-	    }			/* done with line */
-
-	    if (getme && Points->n_points) {
-		/* change thresh if you want longer line segments */
-		write_line_tiled(&VectMap, type, Points, Cats, 2.);
-	    }
-	    else
-		cnt++;
-	}
-	else {
-	    G_debug(1, "skipped line box west: %f, east: %f, north: %f, south: %f",
-		    w, e, n, s);
-	    fseek(fp, (long)(h.n * sizeof(struct GSHHS_POINT)), SEEK_CUR);
-	    cnt++;
-	}
-	/* 270 needed for more than Eurasiafrica only, solved above */
-	/* max_east = 180000000; */ /* Only Eurasiafrica needs 270 */
-
-	n_read =
-	    fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
-    }
     /* done with gshhs file */
     fclose(fp);
 
-    Vect_destroy_line_struct(Points);
-    Vect_destroy_cats_struct(Cats);
-
     /* write out vect header info */
-    Vect_set_scale(&VectMap, 100000);
+    Vect_set_scale(&Map, 100000);
     sprintf(buf, "GSHHS shorelines version %d imported by v.in.gshhs",
 	    version);
-    Vect_set_comment(&VectMap, buf);
+    Vect_set_comment(&Map, buf);
 
     /* create table for layer 1 and link new vector to table, code taken from v.in.ogr */
     db_init_string(&sql);
     db_init_string(&strval);
 
-    Fi = Vect_default_field_info(&VectMap, 1, NULL, GV_1TABLE);
+    Fi = Vect_default_field_info(&Map, 1, NULL, GV_1TABLE);
 
-    Vect_map_add_dblink(&VectMap, 1, NULL, Fi->table,
+    Vect_map_add_dblink(&Map, 1, NULL, Fi->table,
 			cat_col_name, Fi->database, Fi->driver);
 
     sprintf(buf, "create table %s (%s integer, type varchar(25))",
@@ -432,11 +305,11 @@ int main(int argc, char **argv)
 
     driver =
 	db_start_driver_open_database(Fi->driver,
-				      Vect_subst_var(Fi->database, &VectMap));
+				      Vect_subst_var(Fi->database, &Map));
 
     if (driver == NULL) {
 	G_fatal_error(_("Cannot open database <%s> by driver <%s>"),
-		      Vect_subst_var(Fi->database, &VectMap), Fi->driver);
+		      Vect_subst_var(Fi->database, &Map), Fi->driver);
     }
 
     G_debug(1, "table: %s", Fi->table);
@@ -481,17 +354,659 @@ int main(int argc, char **argv)
 		  outname);
     }
     else {
-	Vect_build(&VectMap);
+	Vect_build(&Map);
     }
 
-    Vect_hist_command(&VectMap);
-    Vect_close(&VectMap);
+    Vect_hist_command(&Map);
+    Vect_close(&Map);
 
     G_message("--------------------------------------");
     G_message(_("Skipped GSHHS lines: %d"), cnt);
     G_message(_("GSHHS shoreline version %d import complete"), version);
 
     exit(EXIT_SUCCESS);
+}
+
+/* GSHHS version 1.x import, works with data releases 4 to 6 */
+int gshhs_import1(struct Map_info *Map, FILE *fp, int limit_to_region,
+		  double minx, double maxx, double miny, double maxy)
+{
+    double w, e, s, n, area, lon, lat, a, b, cutx, cuty;
+    char source;
+    /* taken from gshhs.c, keep in sync */
+    int i, n_read, flip, level, version, greenwich, src;
+    int max_east = 180000000;	/* max_east = 270000000: confuses GRASS */
+    int cnt = 0, getme = 0;
+    struct GSHHS_POINT p;	/* renamed to avoid conflict */
+    struct GSHHS1 h;
+    /* GRASS specific */
+    int type;
+    struct line_pnts *Points, **BPoints;
+    struct line_cats *Cats;
+    int use_bpoints, n_bpoints, bpoints_alloc = 10;
+
+    /* read header from GSHHS database */
+    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS1), (size_t) 1, fp);
+    version = (h.flag >> 8) & 255;
+
+    /* Take as sign that byte-swapping is needed */
+    /* if version < 2, source is read */
+    flip = (version < 2);
+    if (flip) {
+	version = swabi4((unsigned int)h.flag);
+	version = (version >> 8) & 255;
+    }
+
+    /* set vector line type to GV_LINE, GV_BOUNDARY is currently not supported */
+    type = GV_LINE;
+
+    /* Initialize vector line struct */
+    Points = Vect_new_line_struct();
+    BPoints = (struct line_pnts **)G_malloc(bpoints_alloc * sizeof(struct line_pnts *));
+    for (i = 0; i < bpoints_alloc; i++)
+	BPoints[i] = Vect_new_line_struct();
+
+    /* Initialize vector category struct */
+    Cats = Vect_new_cats_struct();
+
+    /* read lines from GSHHS database */
+    while (n_read == 1) {
+	/* taken from gshhs.c, keep in sync */
+	if (flip) {
+	    h.id = swabi4((unsigned int)h.id);
+	    h.n = swabi4((unsigned int)h.n);
+	    h.west = swabi4((unsigned int)h.west);
+	    h.east = swabi4((unsigned int)h.east);
+	    h.south = swabi4((unsigned int)h.south);
+	    h.north = swabi4((unsigned int)h.north);
+	    h.area = swabi4((unsigned int)h.area);
+	    h.flag = swabi4((unsigned int)h.flag);
+	}
+	level = h.flag & 255;
+	/* version = (h.flag >> 8) & 255; */
+	greenwich = (h.flag >> 16) & 255;
+	src = (h.flag >> 24) & 255;
+	w = h.west * GSHHS_SCL;	/* Convert from microdegrees to degrees */
+	e = h.east * GSHHS_SCL;
+	s = h.south * GSHHS_SCL;
+	n = h.north * GSHHS_SCL;
+	/* skip WDBII data because they are too inacurate? */
+	source = (src == 1) ? 'W' : 'C';	/* Either WVS or CIA (WDBII) pedigree */
+	area = 0.1 * h.area;	/* Now im km^2 */
+
+        /* GRASS specific, max_east must always be 180 */
+	while (w > 180.)
+	    w -= 360.0;
+	while (e > 180.)
+	    e -= 360.0;
+
+	if (maxx > 180. && w < 0)
+	    w += 360.;
+	if (maxx > 180. && e < 0)
+	    e += 360.;
+
+	getme = 1;
+	if (limit_to_region) {
+	    getme = 0;
+	    /* check gshhs bbox */
+	    if (w >= minx && w < maxx && e <= maxx && e > minx &&
+		s >= miny && s < maxy && n <= maxy && n > miny) {
+		getme = 1; /* inside current region */
+	    }
+	    else if (w < maxx && e > minx && s < maxy && n > miny) {
+		getme = 2; /* overlap */
+	    }
+	}
+	
+	if (getme) {
+	    /* abusing getme flag a bit */
+	    if (getme == 2)
+		getme = 0;
+	    
+	    Vect_reset_line(Points);
+	    Vect_reset_cats(Cats);
+	    /* simple table and cats for layer 1: not unique, just per slevel */
+	    Vect_cat_set(Cats, 1, level);
+	    /* cats for layer 2 are unique ID, same like GSHHS ID */
+	    Vect_cat_set(Cats, 2, h.id);
+
+	    use_bpoints = 0;
+	    n_bpoints = 0;
+
+	    for (i = 0; i < h.n; i++) {
+		if (fread
+		    ((void *)&p, (size_t) sizeof(struct GSHHS_POINT),
+		     (size_t) 1, fp) != 1)
+		    G_fatal_error(_("Error reading data"));
+
+		if (flip) {
+		    p.x = swabi4((unsigned int)p.x);
+		    p.y = swabi4((unsigned int)p.y);
+		}
+		lon = p.x * GSHHS_SCL;
+		 /* GSHHS lon coords are 0 - 360 */
+		
+		if (p.x > max_east)
+		    lon -= 360.0;
+
+		lat = p.y * GSHHS_SCL;
+
+		if (getme == 0) { /* overlap */
+		    /* datum border wrap around work around, clumsy code but works */
+		    if (maxx > 180. && lon < 0) {
+			if (lat >= miny && lat <= maxy && (lon + 360.) >= minx && (lon + 360.) <= maxx) {
+			    /* vertex inside current region, import line */
+			    getme = 1;
+			}
+		    }
+		    else {
+			if (lat >= miny && lat <= maxy && lon >= minx && lon <= maxx) {
+			    /* vertex inside current region, import line */
+			    getme = 1;
+			}
+		    }
+		
+		}
+		/* needed for accurate bboxes */
+		if (!use_bpoints) {
+		    if (Points->n_points) {
+			if ((Points->x[Points->n_points - 1] - lon) > 180.) {
+			    lon += 360.;
+			}
+			else if ((Points->x[Points->n_points - 1] - lon) < -180.) {
+			    lon -= 360.;
+			}
+			if (lon > 360 || lon < -360)
+			    G_fatal_error("lon %.2f out of bounds, last for p was %.2f", lon, Points->x[Points->n_points - 1]);
+		    }
+		}
+		else {
+		    if (BPoints[n_bpoints - 1]->n_points) {
+			if ((BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - lon) > 180.) {
+			    lon += 360.;
+			}
+			else if ((BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - lon) < -180.) {
+			    lon -= 360.;
+			}
+			if (lon > 360 || lon < -360)
+			    G_fatal_error("lon %.2f out of bounds, last for b was %.2f", lon, BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1]);
+		    }
+		}
+
+		/* The GSHHS Antarctica problem: convert from 0 - 360 to -180 - 180  */
+		if (s < -80 && lon < -180.) {
+		    cutx = -180.;
+		    a = (Points->y[Points->n_points - 1] - lat) / (Points->x[Points->n_points - 1] - lon);
+		    b = lat - lon * a;
+		    cuty = a * cutx + b;
+
+		    Vect_append_point(Points, cutx, cuty, 0.);
+		    /* ...and close polygon */
+		    Vect_append_point(Points, cutx, -90, 0.);
+		    Vect_append_point(Points, -cutx, -90, 0.);
+		    Vect_append_point(Points, -cutx, cuty, 0.);
+		    lon += 360.;
+		}
+
+		if (use_bpoints) {
+		    if (lon <= -180. || lon >= 180.) {
+
+			G_debug(2, "come back across datum border");
+
+			/* coming back over 180E */
+			if (lon <= -180.) {
+			    cutx = -180.;
+			}
+			/* coming back over 180W */
+			else {
+			    cutx = 180.;
+			}
+			
+			a = (BPoints[n_bpoints - 1]->y[BPoints[n_bpoints - 1]->n_points - 1] - lat) / (BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - lon);
+			b = lat - lon * a;
+			cuty = a * cutx + b;
+
+			Vect_append_point(Points, -cutx, cuty, 0.);
+			Vect_append_point(Points, lon - 2 * cutx, lat, 0.);
+			Vect_append_point(BPoints[n_bpoints - 1], cutx, cuty, 0.);
+			Vect_append_point(BPoints[n_bpoints - 1], BPoints[n_bpoints - 1]->x[0], BPoints[n_bpoints - 1]->y[0], 0.);
+
+			/* debug */
+			if (lon - 2 * cutx < -180. || lon - 2 * cutx > 180.)
+			    G_fatal_error("coming back, lon %.2f out of bounds", lon - 2 * cutx);
+			if (Points->n_points > 1) {
+			    if (fabs(Points->x[Points->n_points - 1] - Points->x[Points->n_points - 2]) > 180.)
+				G_fatal_error("coming back, points too far apart");
+			}
+			if (BPoints[n_bpoints - 1]->n_points > 1) {
+			    if (fabs(BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 2]) > 180.)
+				G_fatal_error("coming back, bpoints too far apart");
+			}
+
+			use_bpoints = 0;
+		    }
+		    else {
+			Vect_append_point(BPoints[n_bpoints - 1], lon, lat, 0.);
+			/* debug */
+			if (BPoints[n_bpoints - 1]->n_points > 1) {
+			    if (fabs(BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 2]) > 180.)
+				G_fatal_error("bpoints too far apart");
+			}
+		    }
+		}
+		else {
+		    if (Points->n_points == 0) {
+			if (lon < -180.)
+			    cutx = 360.;
+			else if (lon > 180.)
+			    cutx = -360.;
+			else
+			    cutx = 0;
+			Vect_append_point(Points, lon + cutx, lat, 0.);
+		    }
+		    /* chop lines along 180E/W */
+		    else if (lon < -180. || lon > 180.) {
+			if (lon < -180.)
+			    cutx = -180.;
+			else
+			    cutx = 180.;
+
+			G_debug(2, "cross datum border");
+			/* calculate intersection, reset BPoints */
+			a = (Points->y[Points->n_points - 1] - lat) / (Points->x[Points->n_points - 1] - lon);
+			b = lat - lon * a;
+			cuty = a * cutx + b;
+
+			Vect_append_point(Points, cutx, cuty, 0.);
+
+			if (n_bpoints >= bpoints_alloc) {
+			    int j;
+			    BPoints = (struct line_pnts **)G_realloc(BPoints, (bpoints_alloc + 10) * sizeof(struct line_pnts *));
+			    for (j = bpoints_alloc; j < bpoints_alloc + 10; j++)
+				BPoints[j] = Vect_new_line_struct();
+			    bpoints_alloc += 10;
+			}
+			
+			Vect_reset_line(BPoints[n_bpoints]);
+			Vect_append_point(BPoints[n_bpoints], -cutx, cuty, 0.);
+			Vect_append_point(BPoints[n_bpoints], lon - 2 * cutx, lat, 0.);
+
+			/* debug */
+			if (lon - 2 * cutx < -180. || lon - 2 * cutx > 180.)
+			    G_fatal_error("crossing border, lon %.2f out of bounds", lon - 2 * cutx);
+			if (Points->n_points > 1) {
+			    if (fabs(Points->x[Points->n_points - 1] - Points->x[Points->n_points - 2]) > 180.)
+				G_fatal_error("crossing datum border, points too far apart");
+			}
+			if (BPoints[n_bpoints]->n_points > 1) {
+			    if (fabs(BPoints[n_bpoints]->x[BPoints[n_bpoints]->n_points - 1] - BPoints[n_bpoints]->x[BPoints[n_bpoints]->n_points - 2]) > 180.)
+				G_fatal_error("crossing datum border, bpoints too far apart");
+			}
+
+			use_bpoints = 1;
+			n_bpoints++;
+		    }
+		    else {
+			Vect_append_point(Points, lon, lat, 0.);
+			/* debug */
+			if (Points->n_points > 1) {
+			    if (fabs(Points->x[Points->n_points - 1] - Points->x[Points->n_points - 2]) > 180.)
+				G_fatal_error("points too far apart");
+			}
+		    }
+		}
+	    }    /* done with line */
+
+	    if (getme && Points->n_points) {
+		/* change thresh if you want longer line segments */
+		write_line_tiled(Map, type, Points, Cats, 2.);
+		for (i = 0; i < n_bpoints; i++)
+		    write_line_tiled(Map, type, BPoints[i], Cats, 2.);
+	    }
+	    else
+		cnt++;
+	}
+	else {
+	    G_debug(1, "skipped line box west: %f, east: %f, north: %f, south: %f",
+		    w, e, n, s);
+	    fseek(fp, (long)(h.n * sizeof(struct GSHHS_POINT)), SEEK_CUR);
+	    cnt++;
+	}
+	/* 270 needed for more than Eurasiafrica only, solved above */
+	/* max_east = 180000000; */ /* Only Eurasiafrica needs 270 */
+
+	n_read =
+	    fread((void *)&h, (size_t) sizeof(struct GSHHS1), (size_t) 1, fp);
+    }
+
+    Vect_destroy_line_struct(Points);
+    for (i = 0; i < bpoints_alloc; i++)
+	Vect_destroy_line_struct(BPoints[i]);
+    Vect_destroy_cats_struct(Cats);
+
+    return 1;
+}
+
+/* GSHHS version 2.x import, works with data release 7 */
+/* the only difference between gshhs_import1 and gshhs_import2 is
+ * the use of struct GSHHS1 or struct GSHHS2, respectively */
+int gshhs_import2(struct Map_info *Map, FILE *fp, int limit_to_region,
+		  double minx, double maxx, double miny, double maxy)
+{
+    double w, e, s, n, area, lon, lat, a, b, cutx, cuty;
+    char source;
+    /* taken from gshhs.c, keep in sync */
+    int i, n_read, flip, level, version, greenwich, src;
+    int max_east = 180000000;	/* max_east = 270000000: confuses GRASS */
+    int cnt = 0, getme = 0;
+    struct GSHHS_POINT p;	/* renamed to avoid conflict */
+    struct GSHHS2 h;
+    /* GRASS specific */
+    int type;
+    struct line_pnts *Points, **BPoints;
+    struct line_cats *Cats;
+    int use_bpoints, n_bpoints, bpoints_alloc = 10;
+
+    /* read header from GSHHS database */
+    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS2), (size_t) 1, fp);
+    version = (h.flag >> 8) & 255;
+
+    /* Take as sign that byte-swapping is needed */
+    /* if version < 2, source is read */
+    flip = (version < 2);
+    if (flip) {
+	version = swabi4((unsigned int)h.flag);
+	version = (version >> 8) & 255;
+    }
+
+    /* set vector line type to GV_LINE, GV_BOUNDARY is currently not supported */
+    type = GV_LINE;
+
+    /* Initialize vector line struct */
+    Points = Vect_new_line_struct();
+    BPoints = (struct line_pnts **)G_malloc(bpoints_alloc * sizeof(struct line_pnts *));
+    for (i = 0; i < bpoints_alloc; i++)
+	BPoints[i] = Vect_new_line_struct();
+
+    /* Initialize vector category struct */
+    Cats = Vect_new_cats_struct();
+
+    /* read lines from GSHHS database */
+    while (n_read == 1) {
+	/* taken from gshhs.c, keep in sync */
+	if (flip) {
+	    h.id = swabi4((unsigned int)h.id);
+	    h.n = swabi4((unsigned int)h.n);
+	    h.west = swabi4((unsigned int)h.west);
+	    h.east = swabi4((unsigned int)h.east);
+	    h.south = swabi4((unsigned int)h.south);
+	    h.north = swabi4((unsigned int)h.north);
+	    h.area = swabi4((unsigned int)h.area);
+	    h.flag = swabi4((unsigned int)h.flag);
+	}
+	level = h.flag & 255;
+	/* version = (h.flag >> 8) & 255; */
+	greenwich = (h.flag >> 16) & 255;
+	src = (h.flag >> 24) & 255;
+	w = h.west * GSHHS_SCL;	/* Convert from microdegrees to degrees */
+	e = h.east * GSHHS_SCL;
+	s = h.south * GSHHS_SCL;
+	n = h.north * GSHHS_SCL;
+	/* skip WDBII data because they are too inacurate? */
+	source = (src == 1) ? 'W' : 'C';	/* Either WVS or CIA (WDBII) pedigree */
+	area = 0.1 * h.area;	/* Now im km^2 */
+
+        /* GRASS specific, max_east must always be 180 */
+	while (w > 180.)
+	    w -= 360.0;
+	while (e > 180.)
+	    e -= 360.0;
+
+	if (maxx > 180. && w < 0)
+	    w += 360.;
+	if (maxx > 180. && e < 0)
+	    e += 360.;
+
+	getme = 1;
+	if (limit_to_region) {
+	    getme = 0;
+	    /* check gshhs bbox */
+	    if (w >= minx && w < maxx && e <= maxx && e > minx &&
+		s >= miny && s < maxy && n <= maxy && n > miny) {
+		getme = 1; /* inside current region */
+	    }
+	    else if (w < maxx && e > minx && s < maxy && n > miny) {
+		getme = 2; /* overlap */
+	    }
+	}
+	
+	if (getme) {
+	    /* abusing getme flag a bit */
+	    if (getme == 2)
+		getme = 0;
+	    
+	    Vect_reset_line(Points);
+	    Vect_reset_cats(Cats);
+	    /* simple table and cats for layer 1: not unique, just per slevel */
+	    Vect_cat_set(Cats, 1, level);
+	    /* cats for layer 2 are unique ID, same like GSHHS ID */
+	    Vect_cat_set(Cats, 2, h.id);
+
+	    use_bpoints = 0;
+	    n_bpoints = 0;
+
+	    for (i = 0; i < h.n; i++) {
+		if (fread
+		    ((void *)&p, (size_t) sizeof(struct GSHHS_POINT),
+		     (size_t) 1, fp) != 1)
+		    G_fatal_error(_("Error reading data"));
+
+		if (flip) {
+		    p.x = swabi4((unsigned int)p.x);
+		    p.y = swabi4((unsigned int)p.y);
+		}
+		lon = p.x * GSHHS_SCL;
+		 /* GSHHS lon coords are 0 - 360 */
+		
+		if (p.x > max_east)
+		    lon -= 360.0;
+
+		lat = p.y * GSHHS_SCL;
+
+		if (getme == 0) { /* overlap */
+		    /* datum border wrap around work around, clumsy code but works */
+		    if (maxx > 180. && lon < 0) {
+			if (lat >= miny && lat <= maxy && (lon + 360.) >= minx && (lon + 360.) <= maxx) {
+			    /* vertex inside current region, import line */
+			    getme = 1;
+			}
+		    }
+		    else {
+			if (lat >= miny && lat <= maxy && lon >= minx && lon <= maxx) {
+			    /* vertex inside current region, import line */
+			    getme = 1;
+			}
+		    }
+		
+		}
+		/* needed for accurate bboxes */
+		if (!use_bpoints) {
+		    if (Points->n_points) {
+			if ((Points->x[Points->n_points - 1] - lon) > 180.) {
+			    lon += 360.;
+			}
+			else if ((Points->x[Points->n_points - 1] - lon) < -180.) {
+			    lon -= 360.;
+			}
+			if (lon > 360 || lon < -360)
+			    G_fatal_error("lon %.2f out of bounds, last for p was %.2f", lon, Points->x[Points->n_points - 1]);
+		    }
+		}
+		else {
+		    if (BPoints[n_bpoints - 1]->n_points) {
+			if ((BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - lon) > 180.) {
+			    lon += 360.;
+			}
+			else if ((BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - lon) < -180.) {
+			    lon -= 360.;
+			}
+			if (lon > 360 || lon < -360)
+			    G_fatal_error("lon %.2f out of bounds, last for b was %.2f", lon, BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1]);
+		    }
+		}
+
+		/* The GSHHS Antarctica problem: convert from 0 - 360 to -180 - 180  */
+		if (s < -80 && lon < -180.) {
+		    cutx = -180.;
+		    a = (Points->y[Points->n_points - 1] - lat) / (Points->x[Points->n_points - 1] - lon);
+		    b = lat - lon * a;
+		    cuty = a * cutx + b;
+
+		    Vect_append_point(Points, cutx, cuty, 0.);
+		    /* ...and close polygon */
+		    Vect_append_point(Points, cutx, -90, 0.);
+		    Vect_append_point(Points, -cutx, -90, 0.);
+		    Vect_append_point(Points, -cutx, cuty, 0.);
+		    lon += 360.;
+		}
+
+		if (use_bpoints) {
+		    if (lon <= -180. || lon >= 180.) {
+
+			G_debug(2, "come back across datum border");
+
+			/* coming back over 180E */
+			if (lon <= -180.) {
+			    cutx = -180.;
+			}
+			/* coming back over 180W */
+			else {
+			    cutx = 180.;
+			}
+			
+			a = (BPoints[n_bpoints - 1]->y[BPoints[n_bpoints - 1]->n_points - 1] - lat) / (BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - lon);
+			b = lat - lon * a;
+			cuty = a * cutx + b;
+
+			Vect_append_point(Points, -cutx, cuty, 0.);
+			Vect_append_point(Points, lon - 2 * cutx, lat, 0.);
+			Vect_append_point(BPoints[n_bpoints - 1], cutx, cuty, 0.);
+			Vect_append_point(BPoints[n_bpoints - 1], BPoints[n_bpoints - 1]->x[0], BPoints[n_bpoints - 1]->y[0], 0.);
+
+			/* debug */
+			if (lon - 2 * cutx < -180. || lon - 2 * cutx > 180.)
+			    G_fatal_error("coming back, lon %.2f out of bounds", lon - 2 * cutx);
+			if (Points->n_points > 1) {
+			    if (fabs(Points->x[Points->n_points - 1] - Points->x[Points->n_points - 2]) > 180.)
+				G_fatal_error("coming back, points too far apart");
+			}
+			if (BPoints[n_bpoints - 1]->n_points > 1) {
+			    if (fabs(BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 2]) > 180.)
+				G_fatal_error("coming back, bpoints too far apart");
+			}
+
+			use_bpoints = 0;
+		    }
+		    else {
+			Vect_append_point(BPoints[n_bpoints - 1], lon, lat, 0.);
+			/* debug */
+			if (BPoints[n_bpoints - 1]->n_points > 1) {
+			    if (fabs(BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 1] - BPoints[n_bpoints - 1]->x[BPoints[n_bpoints - 1]->n_points - 2]) > 180.)
+				G_fatal_error("bpoints too far apart");
+			}
+		    }
+		}
+		else {
+		    if (Points->n_points == 0) {
+			if (lon < -180.)
+			    cutx = 360.;
+			else if (lon > 180.)
+			    cutx = -360.;
+			else
+			    cutx = 0;
+			Vect_append_point(Points, lon + cutx, lat, 0.);
+		    }
+		    /* chop lines along 180E/W */
+		    else if (lon < -180. || lon > 180.) {
+			if (lon < -180.)
+			    cutx = -180.;
+			else
+			    cutx = 180.;
+
+			G_debug(2, "cross datum border");
+			/* calculate intersection, reset BPoints */
+			a = (Points->y[Points->n_points - 1] - lat) / (Points->x[Points->n_points - 1] - lon);
+			b = lat - lon * a;
+			cuty = a * cutx + b;
+
+			Vect_append_point(Points, cutx, cuty, 0.);
+
+			if (n_bpoints >= bpoints_alloc) {
+			    int j;
+			    BPoints = (struct line_pnts **)G_realloc(BPoints, (bpoints_alloc + 10) * sizeof(struct line_pnts *));
+			    for (j = bpoints_alloc; j < bpoints_alloc + 10; j++)
+				BPoints[j] = Vect_new_line_struct();
+			    bpoints_alloc += 10;
+			}
+			
+			Vect_reset_line(BPoints[n_bpoints]);
+			Vect_append_point(BPoints[n_bpoints], -cutx, cuty, 0.);
+			Vect_append_point(BPoints[n_bpoints], lon - 2 * cutx, lat, 0.);
+
+			/* debug */
+			if (lon - 2 * cutx < -180. || lon - 2 * cutx > 180.)
+			    G_fatal_error("crossing border, lon %.2f out of bounds", lon - 2 * cutx);
+			if (Points->n_points > 1) {
+			    if (fabs(Points->x[Points->n_points - 1] - Points->x[Points->n_points - 2]) > 180.)
+				G_fatal_error("crossing datum border, points too far apart");
+			}
+			if (BPoints[n_bpoints]->n_points > 1) {
+			    if (fabs(BPoints[n_bpoints]->x[BPoints[n_bpoints]->n_points - 1] - BPoints[n_bpoints]->x[BPoints[n_bpoints]->n_points - 2]) > 180.)
+				G_fatal_error("crossing datum border, bpoints too far apart");
+			}
+
+			use_bpoints = 1;
+			n_bpoints++;
+		    }
+		    else {
+			Vect_append_point(Points, lon, lat, 0.);
+			/* debug */
+			if (Points->n_points > 1) {
+			    if (fabs(Points->x[Points->n_points - 1] - Points->x[Points->n_points - 2]) > 180.)
+				G_fatal_error("points too far apart");
+			}
+		    }
+		}
+	    }    /* done with line */
+
+	    if (getme && Points->n_points) {
+		/* change thresh if you want longer line segments */
+		write_line_tiled(Map, type, Points, Cats, 2.);
+		for (i = 0; i < n_bpoints; i++)
+		    write_line_tiled(Map, type, BPoints[i], Cats, 2.);
+	    }
+	    else
+		cnt++;
+	}
+	else {
+	    G_debug(1, "skipped line box west: %f, east: %f, north: %f, south: %f",
+		    w, e, n, s);
+	    fseek(fp, (long)(h.n * sizeof(struct GSHHS_POINT)), SEEK_CUR);
+	    cnt++;
+	}
+	/* 270 needed for more than Eurasiafrica only, solved above */
+	/* max_east = 180000000; */ /* Only Eurasiafrica needs 270 */
+
+	n_read =
+	    fread((void *)&h, (size_t) sizeof(struct GSHHS2), (size_t) 1, fp);
+    }
+
+    Vect_destroy_line_struct(Points);
+    for (i = 0; i < bpoints_alloc; i++)
+	Vect_destroy_line_struct(BPoints[i]);
+    Vect_destroy_cats_struct(Cats);
+
+    return 1;
 }
 
 /*!
