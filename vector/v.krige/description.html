@@ -110,7 +110,7 @@ Kriging example based on elevation map (Spearfish data set).<br><br>
 
 <br>
 <div class="code"><pre>
- v.db.droprow rand2k_elev output=rand2k_elev_filt where="elevation IS NULL"
+ v.extract rand2k_elev output=rand2k_elev_filt where="elevation not NULL"
 <pre></div>
 <p>
 
