@@ -635,6 +635,7 @@ class RBookgstatPanel(RBookPanel):
                                   border=4)
             self.SetSizerAndFit(self.Sizer)
             self.VariogramCheckBox.Bind(wx.EVT_CHECKBOX, self.HideOptions)
+            self.VariogramCheckBox.SetValue(state = True) # check it by default
 
         ModelFactor = robjects.r.vgm().r['long']
         ModelList = robjects.r.levels(ModelFactor[0])
@@ -643,7 +644,6 @@ class RBookgstatPanel(RBookPanel):
         self.ModelChoicebox = wx.Choice(self, id=wx.ID_ANY, choices=ModelList)
         
         # disable model parameters' widgets by default
-        self.VariogramCheckBox.SetValue(state = True) # check it by default
         for n in ["Sill", "Nugget", "Range"]:
             getattr(self, n+"Ctrl").Enable(False)
         self.ModelChoicebox.Enable(False)
@@ -691,7 +691,7 @@ class RBookgstatPanel(RBookPanel):
                                             isblock = self.KrigingRadioBox.GetStringSelection() == "Block kriging",
                                             inputdata = globals()['InputData'])
         #if globals()["Variogram"] is None:
-        if self.VariogramCheckBox.IsChecked():
+        if hasattr(SelectedPanel, 'VariogramCheckBox') and self.VariogramCheckBox.IsChecked():
             self.model = ''
             for each in ("Sill","Nugget","Range"):
                 if getattr(self, each+'ChextBox').IsChecked():
