@@ -1,11 +1,11 @@
 <h2>DESCRIPTION</h2>
-<i>v.krige</i> allows to perform kriging operations in GRASS environment,
-using R software functions in background.
+
+<i>v.krige</i> allows to perform kriging operations in GRASS environment, using R software functions in background.
 
 <h2>NOTES</h2>
 
-<i>v.krige</i> is just a front-end to R. The options and parameters are
-the same offered by packages <i>automap</i> and <i>gstat</i>.
+<i>v.krige</i> is just a front-end to R. The options and parameters are the same offered by packages <i>automap</i> and <i>gstat</i>.<br>
+Kriging, like other interpolation methods, is fully dependent on input data features. Exploratory analysis of data is encouraged to find out outliers, trends, anisotropies, uneven distributions and consequently choose the kriging algorithm that will give the most acceptable result. Good knowledge of the dataset is more valuable than hundreds of parameters or powerful hardware. See Isaaks and Srivastava's book, exhaustive and clear even if a bit outdated.
 
 <h3>Dependencies</h3>
 
@@ -92,11 +92,15 @@ If you really need to run v.krige right now on Windows, I suggest to compile GRA
 You could also use Linux in a virtual machine. Or install Linux in a separate partition of the HD. This is not as painful as it appears, there are lots of guides over the Internet to help you.
 </p>
 
+<h3>Computation time issues</h3>
+
+Please note that kriging calculation is slown down both by high number of input data points and/or high region resolution, even if they both contribute to a better output. 
+
 <h2>EXAMPLES</h2>
 
 Kriging example based on elevation map (Spearfish data set).<br><br>
 
-<b>Part 1: random sampling</b> of 2000 vector points from known elevation map (any number of points fits the purpose, but note that few points produce low-quality kriging outputs, and lot of points take longer processing times toghether with results closer to original map). Each point will receive the elevation value from the elevation raster, as if it came from a point survey.
+<b>Part 1: random sampling</b> of 2000 vector points from known elevation map. Each point will receive the elevation value from the elevation raster, as if it came from a point survey.
 <br>
 <div class="code"><pre>
  g.region rast=elevation.10m -p
@@ -122,7 +126,7 @@ Check the result of previous line ("number of NULL attributes" must be 0):
 <pre></div>
 <p>
 
-<b>Part 3: reconstruct DEM through kriging</b>. Using automatic variogram fit is the simplest way to run v.krige from CLI (note: requires R's automap package). Output map name is optional, the modules creates it automatically appending "_kriging" the the input map name and always checks for overwrite. If output_var is specified, the variance map is also created. Automatic variogram fit is provided by R package automap, the variogram models tested by the fitting functions are: exponential, spherical, Gaussian, Matern, M.Stein's parametrisation. A wider range of models is available from gstat package and can be tested on the GUI via the variogram plotting. If model is specified in the CLI, also sill, nugget and range values are to be provided, otherwise an error is raised (see second example of v.krige command).
+<b>Part 3: reconstruct DEM through kriging</b>. Using automatic variogram fit is the simplest way to run v.krige from CLI (note: requires R's automap package). Output map name is optional, the modules creates it automatically appending "_kriging" the the input map name and also checks for overwrite. If output_var is specified, the variance map is also created. Automatic variogram fit is provided by R package automap, the variogram models tested by the fitting functions are: exponential, spherical, Gaussian, Matern, M.Stein's parametrisation. A wider range of models is available from gstat package and can be tested on the GUI via the variogram plotting. If model is specified in the CLI, also sill, nugget and range values are to be provided, otherwise an error is raised (see second example of v.krige command).
 <br>
 <div class="code"><pre>
  v.krige.py input=rand2k_elev_filt column=elevation output=rand2k_elev_kriging \
