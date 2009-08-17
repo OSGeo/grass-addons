@@ -48,11 +48,10 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *method_opt;
+    struct Option *field_opt, *method_opt;
     struct Flag *add_f;
-    int chcat, with_z;
+    int with_z;
     int layer, mask_type;
-    VARRAY *varray;
     dglGraph_s *graph;
     int *component, nnodes, type, i, nlines, components, j, max_cat;
     char buf[2000], *covered;
@@ -76,8 +75,6 @@ int main(int argc, char *argv[])
     map_out = G_define_standard_option(G_OPT_V_OUTPUT);
 
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
-    cat_opt = G_define_standard_option(G_OPT_V_CATS);
-    where_opt = G_define_standard_option(G_OPT_WHERE);
 
     method_opt = G_define_option();
     method_opt->key = "method";
@@ -124,10 +121,6 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    chcat =
-	(neta_initialise_varray
-	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
-	  &varray) == 1);
 
     Vect_net_build_graph(&In, mask_type, 0, 0, NULL, NULL, NULL, 0, 0);
     graph = &(In.graph);
@@ -223,7 +216,7 @@ int main(int argc, char *argv[])
 	for (i = 1; i <= nnodes; i++)
 	    if (!covered[i]) {
 		Vect_reset_cats(Cats);
-		Vect_cat_set(Cats, 1, max_cat);
+		Vect_cat_set(Cats, layer, max_cat);
 		neta_add_point_on_node(&In, &Out, i, Cats);
 		insert_new_record(driver, Fi, &sql, max_cat++, component[i]);
 	    }

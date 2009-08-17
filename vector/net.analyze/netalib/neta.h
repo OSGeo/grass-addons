@@ -100,9 +100,9 @@ typedef struct
     int **prev_conn;
     int rows, routes;
 } neta_timetable_result;
-
 int neta_init_timetable_from_db(struct Map_info *In, int route_layer,
 				int walk_layer, char *route_id, char *times,
+				char *to_stop, char *walk_length,
 				neta_timetable * timetable, int **route_ids,
 				int **stop_ids);
 int neta_timetable_shortest_path(neta_timetable * timetable, int from_stop,

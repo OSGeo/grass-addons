@@ -31,11 +31,10 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *accol;
+    struct Option *field_opt, *accol;
     struct Flag *geo_f;
-    int chcat, with_z;
+    int with_z;
     int layer, mask_type;
-    VARRAY *varray;
     dglGraph_s *graph;
     int i, edges, geo;
     struct ilist *tree_list;
@@ -53,8 +52,6 @@ int main(int argc, char *argv[])
     map_out = G_define_standard_option(G_OPT_V_OUTPUT);
 
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
-    cat_opt = G_define_standard_option(G_OPT_V_CATS);
-    where_opt = G_define_standard_option(G_OPT_WHERE);
 
     accol = G_define_option();
     accol->key = "accol";
@@ -105,12 +102,8 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    chcat =
-	(neta_initialise_varray
-	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
-	  &varray) == 1);
 
-    Vect_net_build_graph(&In, mask_type, atoi(field_opt->answer), 0,
+    Vect_net_build_graph(&In, mask_type, layer, 0,
 			 accol->answer, NULL, NULL, geo, 0);
     graph = &(In.graph);
 

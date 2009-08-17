@@ -220,11 +220,10 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *walk_layer_opt,
-	*path_layer_opt;
-    int chcat, with_z;
+    struct Option *field_opt, *walk_layer_opt, *path_layer_opt, *route_id_opt,
+	*stop_time_opt, *to_stop_opt, *walk_length_opt;
+    int with_z;
     int layer, mask_type, path_layer;
-    VARRAY *varray;
     int from_stop, to_stop, start_time, min_change, max_changes, walking_change,
 	ret;
     int *stop_pnt, i, nlines, point_counter, *route_pnt;
@@ -249,8 +248,6 @@ int main(int argc, char *argv[])
     map_out = G_define_standard_option(G_OPT_V_OUTPUT);
 
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
-    cat_opt = G_define_standard_option(G_OPT_V_CATS);
-    where_opt = G_define_standard_option(G_OPT_WHERE);
 
     walk_layer_opt = G_define_standard_option(G_OPT_V_FIELD);
     walk_layer_opt->key = "walking";
@@ -262,6 +259,33 @@ int main(int argc, char *argv[])
     path_layer_opt->answer = "-1";
     path_layer_opt->description = _("Layer with route paths or -1");
 
+    route_id_opt = G_define_option();
+    route_id_opt->key = "route_id";
+    route_id_opt->type = TYPE_STRING;
+    route_id_opt->required = YES;
+    route_id_opt->answer = "route_id";
+    route_id_opt->description = _("route_id column name");
+
+    stop_time_opt = G_define_option();
+    stop_time_opt->key = "stop_time";
+    stop_time_opt->type = TYPE_STRING;
+    stop_time_opt->required = YES;
+    stop_time_opt->answer = "stop_time";
+    stop_time_opt->description = _("stop_time column name");
+
+    to_stop_opt = G_define_option();
+    to_stop_opt->key = "to_stop";
+    to_stop_opt->type = TYPE_STRING;
+    to_stop_opt->required = YES;
+    to_stop_opt->answer = "to_stop";
+    to_stop_opt->description = _("to_stop column name");
+
+    walk_length_opt = G_define_option();
+    walk_length_opt->key = "walk_length";
+    walk_length_opt->type = TYPE_STRING;
+    walk_length_opt->required = YES;
+    walk_length_opt->answer = "length";
+    walk_length_opt->description = _("walk_length column name");
 
     /* options and flags parser */
     if (G_parser(argc, argv))
@@ -297,10 +321,6 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    chcat =
-	(neta_initialise_varray
-	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
-	  &varray) == 1);
     path_layer = atoi(path_layer_opt->answer);
 
 
@@ -314,7 +334,8 @@ int main(int argc, char *argv[])
     Vect_hist_command(&Out);
 
     if (neta_init_timetable_from_db
-	(&In, layer, atoi(walk_layer_opt->answer), "route_id", "stop",
+	(&In, layer, atoi(walk_layer_opt->answer), route_id_opt->answer,
+	 stop_time_opt->answer, to_stop_opt->answer, walk_length_opt->answer,
 	 &timetable, &route_ids, &stop_ids) != 0)
 	G_fatal_error(_("Could not initialize the timetables"));
 

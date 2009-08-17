@@ -90,6 +90,7 @@ static int neta_cmp_int(const void *a, const void *b)
 /*Initialises timetable from a database. Returns 0 on success */
 int neta_init_timetable_from_db(struct Map_info *In, int route_layer,
 				int walk_layer, char *route_id, char *times,
+				char *to_stop, char *walk_length,
 				neta_timetable * timetable, int **route_ids,
 				int **stop_ids)
 {
@@ -205,7 +206,8 @@ int neta_init_timetable_from_db(struct Map_info *In, int route_layer,
     if (walk_layer != -1) {
 
 	Fi = Vect_get_field(In, walk_layer);
-	sprintf(buf, "select * from %s", Fi->table);
+	sprintf(buf, "select %s, %s, %s from %s", Fi->key, to_stop, walk_length,
+		Fi->table);
 	db_set_string(&sql, buf);
 
 	if (db_open_select_cursor(driver, &sql, &cursor, DB_SEQUENTIAL) !=

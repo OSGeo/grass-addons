@@ -33,12 +33,11 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *ncol;
+    struct Option *field_opt, *ncol;
     struct Option *catset1_opt, *fieldset1_opt, *whereset1_opt;
     struct Option *catset2_opt, *fieldset2_opt, *whereset2_opt;
-    int chcat, with_z;
+    int with_z;
     int layer, mask_type;
-    VARRAY *varray;
     VARRAY *varray_set1, *varray_set2;
     dglGraph_s *graph;
     int i, nnodes, nlines, *flow, total_flow, nedges;
@@ -61,8 +60,6 @@ int main(int argc, char *argv[])
     map_out = G_define_standard_option(G_OPT_V_OUTPUT);
 
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
-    cat_opt = G_define_standard_option(G_OPT_V_CATS);
-    where_opt = G_define_standard_option(G_OPT_WHERE);
 
     ncol = G_define_option();
     ncol->key = "ncolumn";
@@ -122,10 +119,6 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    chcat =
-	(neta_initialise_varray
-	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
-	  &varray) == 1);
 
     if (neta_initialise_varray
 	(&In, atoi(fieldset1_opt->answer), GV_POINT, whereset1_opt->answer,

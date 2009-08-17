@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out, *abcol, *afcol;
     struct Option *catf_opt, *fieldf_opt, *wheref_opt;
-    struct Option *catt_opt, *fieldt_opt, *wheret_opt;
+    struct Option *catt_opt, *fieldt_opt, *wheret_opt, *to_type_opt;
     struct Flag *geo_f;
     int with_z, geo;
     int mask_type;
@@ -89,6 +89,12 @@ int main(int argc, char *argv[])
     wheret_opt->description =
 	_("To WHERE conditions of SQL statement without 'where' keyword");
 
+    to_type_opt = G_define_standard_option(G_OPT_V_TYPE);
+    to_type_opt->key = "to_type";
+    to_type_opt->options = "point,line,boundary";
+    to_type_opt->answer = "point";
+    to_type_opt->label = _("To feature type");
+
     afcol = G_define_option();
     afcol->key = "afcolumn";
     afcol->type = TYPE_STRING;
@@ -110,8 +116,7 @@ int main(int argc, char *argv[])
     /* options and flags parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
-    /* TODO: make an option for this */
-    mask_type = GV_POINT | GV_LINE | GV_BOUNDARY;
+    mask_type = Vect_option_to_types(to_type_opt);
 
     Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();

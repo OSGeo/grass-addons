@@ -33,12 +33,11 @@ int main(int argc, char *argv[])
     char *mapset;
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *map_in, *map_out, *cut_out;
-    struct Option *cat_opt, *field_opt, *where_opt, *abcol, *afcol;
+    struct Option *field_opt, *abcol, *afcol;
     struct Option *catsource_opt, *fieldsource_opt, *wheresource_opt;
     struct Option *catsink_opt, *fieldsink_opt, *wheresink_opt;
-    int chcat, with_z;
+    int with_z;
     int layer, mask_type;
-    VARRAY *varray;
     VARRAY *varray_source, *varray_sink;
     dglGraph_s *graph;
     int i, nlines, *flow, total_flow;
@@ -72,8 +71,6 @@ int main(int argc, char *argv[])
     cut_out->description = _("Name of output map containing a minimum cut");
 
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
-    cat_opt = G_define_standard_option(G_OPT_V_CATS);
-    where_opt = G_define_standard_option(G_OPT_WHERE);
 
     afcol = G_define_option();
     afcol->key = "afcolumn";
@@ -148,10 +145,6 @@ int main(int argc, char *argv[])
 
     /* parse filter option and select appropriate lines */
     layer = atoi(field_opt->answer);
-    chcat =
-	(neta_initialise_varray
-	 (&In, layer, mask_type, where_opt->answer, cat_opt->answer,
-	  &varray) == 1);
 
     /* Create table */
     Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
