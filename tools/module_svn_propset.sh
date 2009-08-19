@@ -178,7 +178,7 @@ for FILE in $* ; do
     *)
 	if [ "$FILE" = "Makefile" ] ; then
 	   apply_makefile "$FILE"
-	elif [ `file "$FILE" | grep -c "Bourne shell script"` -eq 1 ] ; then
+	elif [ `file "$FILE" | grep -c "shell script"` -eq 1 ] ; then
 	   apply_shell_script "$FILE"
 	else
 	    echo "WARNING: unknown file type <$FILE>"
