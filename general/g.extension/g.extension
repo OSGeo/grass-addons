@@ -94,6 +94,26 @@ if [ ! -x "`which svn`" ] ; then
     exit 1
 fi
 
+# check if we have the make program
+if [ ! -x "`which make`" ] ; then
+    echo "ERROR: 'make' program required. Please install first." 1>&2
+    exit 1
+fi
+
+# check if we have wget or curl
+if [ ! -x "`which wget`" ] ; then
+    if [ ! -x "`which curl`" ] ; then
+        g.message -e "Either 'wget' or 'curl' is required, please install one first"
+        exit 1
+    else
+        g.message -v "Using CURL for downloading data."
+        USE_CURL=1
+    fi
+else
+    g.message -v "Using WGET for downloading data."
+    USE_WGET=1
+fi
+
 expand_module_class_name()
 {
 # $1: module class
@@ -109,14 +129,14 @@ expand_module_class_name()
     echo "misc" 
   elif [ "$1" = "ps" ] ; then 
     echo "postscript" 
-  elif [ "$1" = "p" ]  ; then 
-    echo "paint" 
+#  elif [ "$1" = "p" ]  ; then 
+#    echo "paint" 
   elif [ "$1" = "r" ]  ; then 
     echo "raster" 
   elif [ "$1" = "r3" ]  ; then 
     echo "raster3D" 
-  elif [ "$1" = "s" ]  ; then 
-    echo "sites" 
+#  elif [ "$1" = "s" ]  ; then 
+#    echo "sites" 
   elif [ "$1" = "v" ]  ; then 
     echo "vector" 
   else 
@@ -134,9 +154,13 @@ list_available_modules()
  g.message message="Fetching list of modules from GRASS-Addons SVN (be patient)..."
  for d in d db g i m ps p r r3 v ; do
      MODCLASS=`expand_module_class_name $d`
-     cd $TMPDIR
+     cd "$TMPDIR"
      rm -f index.html
-     wget $SVNURL_ADDONS/$MODCLASS > /dev/null 2> /dev/null
+     if [ "$USE_WGET" ] ; then
+        wget -nv $SVNURL_ADDONS/$MODCLASS
+     else
+        curl -silent --location $SVNURL_ADDONS/$MODCLASS -o index.html
+     fi
      grep '<li>' index.html 2> /dev/null | grep -v '\.\.' | cut -d'"' -f2 | sed 's+/$++g' >> list.txt
      rm -f index.html
  done
@@ -146,9 +170,9 @@ list_available_modules()
 
 ##
 cleanup(){
- cd ${TMPDIR}
- rm -rf ${TMPDIR}/${MODULE}
- rmdir "$TMPDIR"
+ if  [ ! -z "${TMPDIR}" ] ; then
+     rm -rf "${TMPDIR}"
+ fi
 }
 
 if [ $GIS_FLAG_l -eq 1 ] ; then
@@ -164,51 +188,48 @@ fi
 
 
 cd ${TMPDIR}
-g.message message="Fetching ${MODULE} from GRASS-Addons SVN (be patient)..."
+g.message message="Fetching <$MODULE> from GRASS-Addons SVN (be patient)..."
 svn co ${SVNURL_ADDONS}/${MODULECLASS}/${MODULE}
 
 if [ $? -ne 0 ] ; then
-   g.message -e message="GRASS Addon ${MODULE} not found in repository"
+   g.message -e message="GRASS Addon ${MODULE} not found in repository or no network connection or another problem"
+   exit 1
+fi
+
+cd ${TMPDIR}/${MODULE}
+g.message message="Compiling ${MODULE}..."
+make MODULE_TOPDIR=${GISBASE}
+if [ $? -ne 0 ] ; then
+   g.message -e message="Compilation failed, sorry. Please check above error messages."
+   cleanup
    exit 1
 else
-   cd ${TMPDIR}/${MODULE}
-   g.message message="Compiling ${MODULE}..."
-   make MODULE_TOPDIR=${GISBASE}
+   g.message message="Installing ${MODULE}..."
+   # can we write? Install dir present?
+   if test ! -d ${MYINST_DIR} ; then
+      mkdir -p ${MYINST_DIR}/bin
+      mkdir -p ${MYINST_DIR}/docs/html
+      mkdir -p ${MYINST_DIR}/man/man1
+   fi
+   touch "${MYINST_DIR}/`basename $0`.$$"
    if [ $? -ne 0 ] ; then
-      g.message -e message="Compilation failed, sorry. Please check above error messages."
-      cleanup
+      g.message -e message="Cannot write to <${MYINST_DIR}>, installation failed"
       exit 1
    else
-      g.message message="Installing ${MODULE}..."
-      # can we write? Install dir present?
-      if test ! -d ${MYINST_DIR} ; then
-         mkdir -p ${MYINST_DIR}/bin
-         mkdir -p ${MYINST_DIR}/docs/html
-         mkdir -p ${MYINST_DIR}/man/man1
+      rm -f ${MYINST_DIR}/`basename $0`.$$
+      if test -f ${MYINST_DIR}/bin/${MODULE} ; then
+         rm -f ${MYINST_DIR}/bin/${MODULE}
       fi
-      touch ${MYINST_DIR}/`basename $0`.$$
-      if [ $? -ne 0 ] ; then
-         rm -f ${MYINST_DIR}/`basename $0`.$$
-         if test -f ${MYINST_DIR}/bin/${MODULE} ; then
-            rm -f ${MYINST_DIR}/bin/${MODULE}
-         fi
-         make MODULE_TOPDIR=${GISBASE} INST_DIR=${MYINST_DIR}
-      else
-         rm -f ${MYINST_DIR}/`basename $0`.$$
-         if test -f ${MYINST_DIR}/bin/${MODULE} ; then
-            rm -f ${MYINST_DIR}/bin/${MODULE}
-         fi
-         make MODULE_TOPDIR=${GISBASE} INST_DIR=${MYINST_DIR}
-      fi
+      make MODULE_TOPDIR=${GISBASE} INST_DIR=${MYINST_DIR}
       if [ $? -ne 0 ] ; then
          g.message -e message="Installation failed, sorry. Please check above error messages."
          cleanup
          exit 1
       fi
    fi
-
-   cleanup
 fi
+
+cleanup
 
 g.message message="Installation of <${MODULE}> in <${MYINST_DIR}> successfully finished."
 exit 0
