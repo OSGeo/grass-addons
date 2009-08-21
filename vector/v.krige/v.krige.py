@@ -132,31 +132,6 @@ try:
 except ImportError:
     sys.exit(_("No GRASS-python library found."))
 
-# R
-# unuseful since rpy2 will complain adequately.
-#try:
-#    #@FIXME: in Windows, it launches R terminal
-#    grass.find_program('R')
-#except:
-#    sys.exit(_("R is not installed. Install it and re-run, or modify environment variables."))
-
-# rpy2
-try:
-    import rpy2.robjects as robjects
-    import rpy2.rinterface as rinterface #to speed up kriging? for plots.
-    haveRpy2 = True
-except ImportError:
-    print >> sys.stderr, "Rpy2 not found. Please install it and re-run." # ok for other OSes?
-    haveRpy2 = False
-if not haveRpy2:
-    sys.exit(1)
-
-# R packages check.
-#@FIXME: it leaves a Rtmpxxxx folder into the make tempfolder and causes make complain. [markus]
-for each in ["gstat", "spgrass6"]:
-    if not robjects.r.require(each, quietly=True)[0]:
-        sys.exit(_("R package " + each + " is missing. Install it and re-run v.krige."))
-    
 # globals
 maxint = 1e6 # instead of sys.maxint, not working with SpinCtrl on 64bit [reported by Bob Moskovitz]
 Region = grass.region()
@@ -164,6 +139,8 @@ Command = None
 InputData = None
 Variogram = None
 VariogramFunction = None
+robjects = None
+rinterface = None
 
 #classes in alphabetical order. methods in logical order :)
 
@@ -770,6 +747,7 @@ def main(argv=None):
     #@FIXME: solve this double ifelse. the control should not be done twice.
     
     if argv is None:
+        importR()
         argv = sys.argv[1:] #stripping first item, the full name of this script
         # wxGUI call.
         app = wx.App()
@@ -800,7 +778,8 @@ def main(argv=None):
             grass.fatal(_("option: <output>: Raster map already exists."))
         if options['output_var'] is not '' and (grass.find_file(options['output_var'], element = 'cell')['fullname'] and os.getenv("GRASS_OVERWRITE") == None):
             grass.fatal(_("option: <output>: Variance raster map already exists."))
-        
+
+        importR()        
         if options['model'] is '':
             try:
                 robjects.r.require("automap")
@@ -841,6 +820,34 @@ def main(argv=None):
                        output_var = options['output_var'],
                        command = command,
                        logger = grass)
+    
+def importR():
+    # R
+    # unuseful since rpy2 will complain adequately.
+    # try:
+    #    #@FIXME: in Windows, it launches R terminal
+    #    grass.find_program('R')
+    # except:
+    #    sys.exit(_("R is not installed. Install it and re-run, or modify environment variables."))
+    
+    # rpy2
+    global robjects
+    global rinterface
+    try:
+        import rpy2.robjects as robjects
+        import rpy2.rinterface as rinterface #to speed up kriging? for plots.
+        haveRpy2 = True
+    except ImportError:
+        print >> sys.stderr, "Rpy2 not found. Please install it and re-run." # ok for other OSes?
+        haveRpy2 = False
+        if not haveRpy2:
+            sys.exit(1)
+        
+    # R packages check.
+    # @FIXME: it leaves a Rtmpxxxx folder into the make tempfolder and causes make complain. [markus]
+    for each in ["gstat", "spgrass6"]:
+        if not robjects.r.require(each, quietly=True)[0]:
+            sys.exit(_("R package " + each + " is missing. Install it and re-run v.krige."))
     
 if __name__ == '__main__':
     if len(sys.argv) > 1:
