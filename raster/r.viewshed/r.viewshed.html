@@ -180,7 +180,8 @@ Using the Spearfish dataset:  calculating the viewpoint from the top
 of a mountain:
 
 <div class="code"><pre>
-r.viewshed input=elevation.dem output=viewshed coordinate=598869,4916642 mem=800
+g.region rast=elevation.10m
+r.viewshed input=elevation.10m output=viewshed coordinate=598869,4916642 mem=800
 </pre></div>
 
 <h3>REFERENCES</h3>

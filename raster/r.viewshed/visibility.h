@@ -54,6 +54,9 @@
 /*  default max distance */
 #define  INFINITY_DISTANCE  -1
 
+/* File/directory name lengths for GRASS compatibility */
+#define GNAME_MAX 256
+#define GPATH_MAX 4096
 
 
 typedef struct viewpoint_
@@ -96,10 +99,10 @@ typedef struct viewOptions_
 {
 
     /* the name of the input raster */
-    char inputfname[100];
+    char inputfname[GNAME_MAX];
 
     /* the name of the output raster */
-    char outputfname[100];
+    char outputfname[GNAME_MAX];
 
     float obsElev;
     /* observer elevation above the terrain */
@@ -124,6 +127,7 @@ typedef struct viewOptions_
 
     double ellps_a;		/* the parameter of the ellipsoid */
     float cellsize;		/* the cell resolution */
+    char streamdir[GPATH_MAX];	/* directory for tmp files */
 } ViewOptions;
 
 

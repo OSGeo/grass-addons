@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
     module->description = _("IO-efficient viewshed algorithm");
 
     struct Cell_head region;
+    char *optstreamdir;
 
     if (G_get_set_window(&region) == -1)
 	G_fatal_error("Error getting current region");
@@ -326,7 +327,7 @@ max mem allowed=%lld B(%dMB)\n", inmemSizeBytes, (int)(inmemSizeBytes >> 20), me
 	}
 	else {
 	    /*set it */
-	    sprintf(buf, "%s=%s", STREAM_TMPDIR, "/var/tmp/");
+	    sprintf(buf, "%s=%s", STREAM_TMPDIR, viewOptions.streamdir);
 	    fprintf(stderr, "setting %s ", buf);
 	    putenv(buf);
 	    if (getenv(STREAM_TMPDIR) == NULL) {
@@ -336,7 +337,7 @@ max mem allowed=%lld B(%dMB)\n", inmemSizeBytes, (int)(inmemSizeBytes >> 20), me
 	    else {
 		fprintf(stderr, ", ok.\n");
 	    }
-	    printf("Intermediate stream location: %s\n", "/var/tmp/");
+	    printf("Intermediate stream location: %s\n", viewOptions.streamdir);
 	}
 	fprintf(stderr, "Intermediate files will not be deleted "
 		"in case of abnormal termination.\n");
@@ -540,7 +541,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     elevationFlag = G_define_flag();
     elevationFlag->key = 'e';
     elevationFlag->description =
-	("Output format is {NODATA, -1 (invisible), elev-viewpoint_elev (visible)}");
+	_("Output format is {NODATA, -1 (invisible), elev-viewpoint_elev (visible)}");
 
     /* viewpoint coordinates */
     struct Option *viewLocOpt;
@@ -551,7 +552,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     viewLocOpt->required = YES;
     viewLocOpt->key_desc = "lat,long";
     viewLocOpt->description =
-	("Coordinates of viewing position in latitude-longitude (if -r flag is present, then coordinates are row-column)");
+	_("Coordinates of viewing position in latitude-longitude (if -r flag is present, then coordinates are row-column)");
     viewLocOpt->guisection = _("Input_options");
 
     /* observer elevation */
@@ -575,7 +576,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     maxDistOpt->required = NO;
     maxDistOpt->key_desc = "value";
     maxDistOpt->description =
-	("Maximum visibility radius. By default infinity (-1).");
+	_("Maximum visibility radius. By default infinity (-1).");
     char infdist[10];
 
     sprintf(infdist, "%d", INFINITY_DISTANCE);
@@ -594,6 +595,21 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
 	_("The amount of main memory in MB to be used");
     memAmountOpt->answer = "500";
 
+    /* temporary STREAM path */
+    struct Option *streamdirOpt;
+
+    streamdirOpt = G_define_option() ;
+    streamdirOpt->key        = "stream_dir";
+    streamdirOpt->type       = TYPE_STRING;
+    streamdirOpt->required   = NO;
+#ifdef __MINGW32__
+    streamdirOpt->answer     = G_convert_dirseps_from_host(G_store(getenv("TEMP")));
+#else
+    streamdirOpt->answer     = G_store("/var/tmp/");
+#endif
+    streamdirOpt->description=
+       _("Directory to hold temporary files (they can be large)");
+
     /*fill the options and flags with G_parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -602,6 +618,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     /* store the parameters into a structure to be used along the way */
     strcpy(viewOptions->inputfname, inputOpt->answer);
     strcpy(viewOptions->outputfname, outputOpt->answer);
+    strcpy(viewOptions->streamdir,streamdirOpt->answer);
 
     viewOptions->obsElev = atof(obsElevOpt->answer);
 
@@ -847,6 +864,7 @@ void print_status(Viewpoint vp, ViewOptions viewOptions,
 
     G_message(_("---max memory = %d MB\n"), (int)(memSizeBytes >> 20));
     G_message(_("---------------------------------\n"));
+    G_message(_("---temporary files streamdir: %s\n"), viewOptions.streamdir);
 
 #else
     printf("---------------------------------\nOptions set as:\n");
@@ -880,6 +898,7 @@ void print_status(Viewpoint vp, ViewOptions viewOptions,
 
     printf("max memory = %d MB\n", (int)(memSizeBytes >> 20));
     printf("---------------------------------\n");
+    printf("---temporary files streamdir: %s\n", viewOptions.streamdir);
 
 #endif
 
