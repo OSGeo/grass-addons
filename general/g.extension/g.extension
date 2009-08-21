@@ -157,7 +157,7 @@ list_available_modules()
      cd "$TMPDIR"
      rm -f index.html
      if [ "$USE_WGET" ] ; then
-        wget -nv $SVNURL_ADDONS/$MODCLASS
+        wget --quiet -nv $SVNURL_ADDONS/$MODCLASS
      else
         curl -silent --location $SVNURL_ADDONS/$MODCLASS -o index.html
      fi
