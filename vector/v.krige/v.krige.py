@@ -19,7 +19,7 @@ for details.
 
 #%module
 #% description: Performs ordinary or block kriging.
-#% keywords: kriging
+#% keywords: vector, kriging
 #%end
 
 #%option
