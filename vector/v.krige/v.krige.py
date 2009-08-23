@@ -414,14 +414,17 @@ class KrigingPanel(wx.Panel):
         event.Skip()
 
     def OnHelpButton(self, event):
-        file = os.path.join(os.getenv("GISBASE"), "docs", "html", "v.krige.py.html")
-        #file = os.path.join(os.path.curdir, "description.html")
-        helpFrame = help.HelpWindow(parent=self, id=wx.ID_ANY,
-                                    title=_("GRASS - Help page for v.krige.py"),
-                                    size=(640, 480),
-                                    file=file)
-        helpFrame.Show(True)
+        # file = os.path.join(os.getenv("GISBASE"), "docs", "html", "v.krige.py.html")
+        # file = os.path.join(os.path.curdir, "description.html")
+        # @TODO fix HelpWindow
+        # helpFrame = help.HelpWindow(parent=self, id=wx.ID_ANY,
+        #                            title=_("GRASS - Help page for v.krige.py"),
+        #                            size=(640, 480),
+        #                            file=file)
+        # helpFrame.Show(True)
 
+        grass.run_command('g.manual', entry = 'v.krige.py')
+        
         event.Skip()
 
     def OnInputDataChanged(self, event):
