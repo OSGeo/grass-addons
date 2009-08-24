@@ -40,6 +40,8 @@ def main():
     from scipy.interpolate import interpolate
 
     ##### put monthly data here
+    # e.g. northern hemisphere mountains:  (from the r.sun help page)
+    #    [jan,feb,mar,...,dec]
     linke_data = numpy.array ([1.5,1.6,1.8,1.9,2.0,2.3,2.3,2.3,2.1,1.8,1.6,1.5])
     ####
 
