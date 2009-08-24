@@ -59,11 +59,9 @@ def main():
                                            midmonth_day,
                                            midmonth_day[0:3]+365))
     
-    interp_type = 'cubic'  # 'linear'
-
     linke = interpolate.interp1d(midmonth_day_wrap, 
                                  linke_data_wrap,
-                                 kind=interp_type)
+                                 kind='cubic')
     # print data for full year:
     #for i in range(1,365+1):
     #    print("%d %.4f" % (i, linke(i)) )
