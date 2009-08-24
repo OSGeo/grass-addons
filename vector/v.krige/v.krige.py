@@ -114,7 +114,7 @@ if not os.getenv("GRASS_WXBUNDLED"):
 import gselect
 import goutput
 import menuform
-import help
+#import help
 
 import wx
 import wx.lib.flatnotebook as FN
@@ -670,7 +670,7 @@ class RBookgstatPanel(RBookPanel):
                                             isblock = self.KrigingRadioBox.GetStringSelection() == "Block kriging",
                                             inputdata = globals()['InputData'])
         #if globals()["Variogram"] is None:
-        if hasattr(SelectedPanel, 'VariogramCheckBox') and self.VariogramCheckBox.IsChecked():
+        if hasattr(self, 'VariogramCheckBox') and self.VariogramCheckBox.IsChecked():
             self.model = ''
             for each in ("Sill","Nugget","Range"):
                 if getattr(self, each+'ChextBox').IsChecked():
