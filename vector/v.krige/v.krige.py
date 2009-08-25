@@ -130,6 +130,8 @@ try:
     import grass.script as grass
 except ImportError:
     sys.exit(_("No GRASS-python library found."))
+    
+# move other checks in functions, as R?
 
 # globals
 maxint = 1e6 # instead of sys.maxint, not working with SpinCtrl on 64bit [reported by Bob Moskovitz]
