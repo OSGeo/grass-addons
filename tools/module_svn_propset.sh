@@ -166,7 +166,7 @@ for FILE in $* ; do
     sh)
 	apply_shell_script "$FILE"
 	;;
-    png | jpg | jpeg | gif)
+    png | jpg | jpeg | gif | bmp)
 	if [ "$FILE_SUFFIX" = "jpg" ] ; then
 	    FILE_SUFFIX="jpeg"
 	fi
