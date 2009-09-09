@@ -318,7 +318,7 @@ class AutoKrige():
             grass.error(message)
         elif type == 'warning':
             grass.warning(message)
-        elif type == 'info' and grass.gisenv()['GRASS_VERBOSE'] > 0:
+        elif type == 'info' and os.getenv('GRASS_VERBOSE') > 0:
             grass.info(message)
     
     def checkLayers(self, input, output, testVarianceRast = False):
