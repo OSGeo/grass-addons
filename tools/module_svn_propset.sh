@@ -134,6 +134,12 @@ apply_image()
    unset_exe "$1"
 }
 
+apply_pdf()
+{
+   set_mime_type "$1" "application/pdf"
+   unset_exe "$1"
+}
+
 
 ########
 
@@ -165,6 +171,9 @@ for FILE in $* ; do
 	;;
     sh)
 	apply_shell_script "$FILE"
+	;;
+    pdf)
+	apply_pdf "$FILE"
 	;;
     png | jpg | jpeg | gif | bmp)
 	if [ "$FILE_SUFFIX" = "jpg" ] ; then
