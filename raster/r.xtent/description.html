@@ -1,0 +1,265 @@
+<H2>DESCRIPTION</H2>
+
+<em>r.xtent</em> outputs a raster map layer representing the Voronoi diagram,
+weighted Voronoi diagram or a more complex territorial partitioning of space around points (centers) 
+in a vector input map (option <em>centers=</em>), based on the XTENT formula.
+
+<H2>BACKGROUND</H2>
+<p>
+The algorithm is based on the simple XTENT formula, first published by Renfrew and Level in 1979:
+<p>
+<em>I = C^a - k*d</em>
+<p>
+In the formula above, <em>I</em> is the strength of influence that each centers has on any given location (i.e. raster map cell) in the current region.
+The basic idea is that each cell will be allocated to the center that scores the highest <em>I</em> for that cell.
+The magnitude of <em>I</em> at a cell <em>x</em> for each center is determined by two terms that are weighted against each other:
+center weight (or size) <em>C</em> and distance <em>d</em>. Obviously, a large center in close proximity will have the best chance to score the
+highest <em>I</em> (i.e. "dominate" a cell). But a very large center can also be dominant, even if it is farther away.
+The two coefficients <em>a</em> and <em>k</em> determine the balance between center size and distance. 
+The importance of distance increases in a linear manner while the importance of size increases exponentially. 
+Thus, larger centers will compete stronger in relation to smaller ones, even at an increased distance. 
+<p>
+The result map (option <em>output=</em>) is of type CELL (integer) raster with
+each cell representing the unique ID (category value) of the center to whose territory it belongs.<br>
+<p>
+Under certain parameters (specifically: <em>k=1</em>, no <em>-s</em> flag given and straight-line distance used), <em>r.xtent</em> 
+will produce the equivalent of a simple (constant <em>C=1</em> and <em>a=0.5</em>) or weighted (variable <em>C</em>) Voronoi diagram. 
+Using a distance measurement derived from a cost surface raster will improve result accuracy.
+
+<h2>USAGE</h2>
+
+In the most simple case, using the default values <em>a</em>=0.5 and <em>k</em>=1.0 and keeping <em>C</em>=1.0 
+(see below), the result will equal that of a voronoi diagram calculated with <em>v.voronoi</em>. But <em>r.xtent</em> offers many options for 
+inclusion of center size (weight), movement cost, barriers, pathways and a priori constraints to provide
+more detailed, realistic models of territorial allocation processes.
+<p>
+By default, <em>r.xtent</em> behaves differently than the original model published by Renfrew and Level in that it will
+always produce a complete partitioning of space where each cell is assigned to the territory of exactly one center.
+<br>
+The original definition of the XTENT formula demands that <em>I>=0.0</em>. This can be enforced using the "strict" flag 
+(<em>-s</em>) in which case cells for which no center produces an <em>I>=0.0</em> will be set to NULL in the result map.
+This allows modeling incomplete partitionings of space where one ore more cells may not be assigned to the territory of
+any center. Another way of achieving an incomplete partitioning, which offers a bit more
+control, is to specify a "reach" attribute for each center (see section on "CONSTRAINTS" below).
+<p>
+
+The <em>a</em> and <em>k</em> coefficients are set globally, but center weight <e>C</e> must be set individually for
+each center. This is done by specifying the name of a double type attribute in the input vector points map (option <em>c=</em>). 
+The program will read each center's weight from that attribute. If no attribute name is given, then C will be set
+to constant "1.0" for every center in the input map.
+
+<h3>CATEGORIES, LABELS, COLORS AND REPORTS</h3>
+
+The basic output map is an integer (CELL) type raster map. Each cell stores the unique number (ID) that represents
+the most dominant center at that location. By default, the integer type attribute "cat", which should be present
+in any GRASS vector map will be used to assign category numbers to each center. As an alternative, any attribute
+in the input points vector map of type integer may be chosen to represent the category number (option <em>categories=</em>)
+, but the user must make sure that every value is unique!<br>
+If no category value is specified and "cat" (the default category attribute for GRASS vector maps) is not present,
+the new IDs will be generated automaticall starting at "1" and being increased by one for each center in the
+input map.<br>
+Output map analysis may be facilitated if in addition to this a string (text) type attribute is specified to
+label the output map (i.e. for providing center names; option <em>labels=</em>).
+<p>
+The color of centers' territories in the output map can be controlled by suppling an attribute of type string that
+is set to the format RRR:GGG:BBB to specify red, green and blue intensity, respectively (option <em>rgb_column=</em>). 
+Intensities can be in the range 0 to 255 for each component. E.g. 125:125:125 is a neutral gray. 
+By default, <em>r.xtent</em> looks for a coloring attribute named "GRASSRGB" in the input map, which is in 
+accordance with the behavior of <em>d.vect</em>.
+<p>
+Category and color attributes have default names ("cat" and "GRASSRGB"), which will be used, if present.
+If the respective attributes are not found or not of the rigth type, a warning will be issued and defaults used 
+(i.e., a new index starting at "1" and a random color table).
+<p>
+A summary of the model output can be written to an ASCII file using the <em>report=</em> option. To get an output
+that is better suited for import into a spreadsheet, set the "tabular" flag (<em>-t</em>).
+<p>
+The report will contain at most the following fields for each center
+(some of the fields will not be shown or set to "n.a.", depending on the model option and results):
+
+<ul>
+  <li>id: the category value of the center</li>
+  <li>name: the name of the current center</li>  
+  <li>dominates: a list of other centers (ids and names) that lie within the territory of the current site</li>
+  <li>dominated by: id and name of the center in whose territory the current center lies</li>
+  <li>cells: the number of map cells within the current site's territory</li>
+  <li>area: current site's territory in square meters (does not work for non-world coordinate systems)</li>
+  <li>reach cost/dist: (cost) distance between current center and farthest cell within its territory</li>
+  <li>aggressor: number of times that the current center is second in influence to any other center</li>
+  <li>competitor: id and name of the most frequent competitor for this center (see later)</li>
+  <li>competitor strength avg/var/std: statistics for the competitor's strength within the current center's territory</li>
+</ul>
+	
+<p>
+The "dominates" line is skipped in the tabular report output as it will potentially create very long fields. 
+The "dominates" relationship can be vizualized using a vector map symbology based on the "dominated by" attribute.
+
+
+<h3>DISTANCE AND MOVEMENT COSTS</h3>
+
+One straight-forward step towards more realism is to replace the straight line measure (which is actually a geodetic distance
+in the case of a lat/long region) used in the distance term <em>k*d</em> with a cost of movement measure that considers the actual, physical effort of moving 
+on the ground from one location (cell) to another. For this purpose, <em>r.xtent</em> uses a cost surface map for each center <em>c</em> 
+in the input vector points map that records the cost of movement from each cell in the map to the cell containing <em>c</em>. 
+For each center, the user must first calculate a cost surface using an appropriate tools such as GRASS' <em>r.cost</em> 
+and <em>r.walk</em> modules. The name of the corresponding raster map must then be added as a text type attribute field in the input map.
+The <em>costs_att=</em> attribute is used to tell <em>r.xtent</em> which attribute to read the cost map names from.
+
+
+<h3>BOUNDARIES AND PATHWAYS</h3>
+
+Boundaries and pathways are topographic features (usually of line geometry) that block or facilitate movement. Examples for
+boundaries may be broad rivers, mountain ridges or built walls. Pathways could be natural passes or built roads. Exactly what qualifies 
+as a boundary or pathway depends on the type of movement modeled in the territorial allocation process.
+<p>
+If boundaries and/or pathways are to be added to the cost surfaces then they should be "burned" into a friction surfaces for
+use with <em>r.walk</em>. The <em>r.burn.frict</em> module should be used for this purpose.
+<p>
+Pathways should be "burned" after boundaries if pathways across boundaries (such as bridges) need to be modeled.
+
+
+<h3>COMPETITORS</h3>
+
+Territorial allocation is not always a clear-cut case. Many different combinations of variables may lead to situations where a
+center <em>A</em> "wins" highest <em>I</em> only by a relatively small margin over another center <em>B</em>. In this context, we will refer to center <em>B</em>
+as the "competitor" and to the inverse of the margin between <em>A</em> and <em>B</em> as "competition strength". Thus, whenever there is reason to say
+that "center <em>B</em> is almost as influential as center <em>A</em>" at a location <em>x</em>, then the strength of competition will be high and <em>B</em> will 
+be classified as the competitor at that location (cell). Strength of competition is normalized to the range 0..1 for the entire region,
+with "1.0" being the highest strength of competition achievable.
+<p>
+Both the competitor's ID and the competition strength can be mapped (options <em>comp_id=</em> and <em>comp_strength=</em>) 
+and may form the basis for interpretations.
+It is possible, e.g., to map "conflict" zones between center <em>A</em> and any number of other centers by isolating the cells within the
+territory of <em>A</em> whose competition exceeds a threshold value (e.g. 0.5) and optionally filtering them by the IDs of one or more
+possible competitors.
+<p>
+Competitor ID and competitor's strength can only be calculated for models in which at least two territories share at least one boundary.
+<p>
+Alternatively, competition strength can be interpreted as an error measure, with higher competition in locations where the territorial
+allocation may be erroneous due to flawed input data.
+
+<h3>CONSTRAINTS</h3>
+
+Further modeling flexibility may be gained by including <em>a priori</em> information as model constraints. 
+It is possible to define a maximum distance (or costs) for each center, beyond which it cannot exercise and influence, 
+no matter how marginal. Use the <em>reach=</em> option to specify a double type attribute that stores a maximum
+"reach" for each center. Set it to "-1.0" for centers with unrestricted reach.
+<p>
+It is also possible to define a center <em>A</em> as being dominated (ruled) by another center <em>B</em>, which means that it cannot compete against 
+its "ruler" and any territory dominated by <em>A</em> will be allocated to <em>B</em>. This is done by specifying an integer attribute
+in the input vector map which should point to the ID of the ruling center or to that of the center itself in case there is no "ruler" (option <em>ruler=</em>).
+
+<h2>HINTS</h2>
+
+Model parameters (<em>C</em>,<em>a</em> and <em>k</em>) will most likely have to be adjusted if running in strict mode,
+otherwise the output may be a map with only NULL cells (<em>r.xtent</em> should issue a warning if this is the case).
+This can happen easily if the site weights are quantified in a smaller range than the distances. Unfortunately, 
+the two may happen to use completely different value ranges. E.g. population size might give consistently much 
+smaller values than distance in meters.
+<br>
+The model's parameters can be hard to control. It is advisable to go with the defaults for <em>a</em> and <em>k</em> check if there are centers 
+with an extreme difference in weight.
+<p>
+The competitor's ID map in combination with a threshold error value can be used to map border regions from the 
+perspective of any center. The extent of border zones could indicate potential "trouble zones". Zones with high error are zones 
+that are potentially hard to control for the dominant center. There may also be a close third, fourth etc. contestant, so care
+must be exercised with the interpretation.
+
+
+<h3>CAVEATS AND LIMITATIONS</h3>
+
+Attributes in the input vector map that are to be used in the model (e.g. center weight, category attribute, labeling attribute)
+must be complete. There has to be a value for each center. The program's behavior for missing values is currently undefined.
+<p>
+Keep in mind that the calculation of costs between any cell in the region and a center is done by calculating the globally optimal
+shortest path from that cell to the center on a cost surface (or straight line). This assumes total spatial information being available, 
+to the entities "on the move", an assumption that may or may not hold in a real-world scenario.
+<p>
+Territories should not get fragmented but form contiguous spatial phenomena. There are extreme cases, however, in which some small degree
+of fragmentation may occur, e.g. in topographically complex situations.
+<p>
+
+
+<h3>COMPUTATIONAL EFFICIENCY</h3>
+
+The memory footprint of <em>r.xtent</em> is very low and CPU time will grow linearly with the number of centers.
+If "ruler" constraints are given, however, processing time will increase exponentially.
+
+<H2>EXAMPLES</h2>
+
+The following are examples of territorial models with increasing complexity.
+
+<p>
+
+A basic model with center weight approximated by population size and store in the attribute "size" in the input
+map "towns"
+<div class="code"><pre>
+r.xtent centers=towns output=territories c=size
+</pre></div>
+
+<p align="center"><img src="r.xtent.001.png" alt="BPN chart"></p>
+
+<p>
+
+The same model, but this time combined with an elevation map to get a more realistic cost of movement distance 
+measure (attribute table field "map_names" stores the names of the cost surface maps):
+
+<div class="code"><pre>
+r.xtent centers=towns output=territories c=size costs_att=map_names
+</pre></div>
+
+<p align="center"><img src="r.xtent.002.png" alt="BPN chart"><img src="r.xtent.003.png" alt="BPN chart"></p>
+
+<p>
+
+Here, an additional vector input map of a river representing a natural boundary has been added to
+a friction map using <em>r.burn.frict</em> and used in the cost surface calculation with <em>r.walk</em>:
+
+
+<p align="center"><img src="r.xtent.004.png" alt="BPN chart"><img src="r.xtent.005.png" alt="BPN chart"></p>
+
+<p>
+
+Another variation, with a smaller boundary weight (read from an attribute stored in the vector map "river" when performing the <em>r.burn.frict</em> step)
+to model a river that is easier to cross:
+
+
+<p align="center"><img src="r.xtent.006.png" alt="BPN chart"></p>
+
+<p>
+
+Another basic model, but this time with the additional <em>a priori</em> information that two of the towns are ruled by
+the third. This relationship is set in the integer attribute "ruler" in the input map "towns". The value of
+"ruler" is set to the category value of the ruling town (or to that of the town itself):
+
+<div class="code"><pre>
+r.xtent centers=towns output=territories c=size ruler=ruler --o
+</pre></div>
+
+<p align="center"><img src="r.xtent.007.png" alt="BPN chart"></p>
+
+
+<h2>BUGS</h2>
+
+The program may create temporary maps in the current mapset. If it crashes unexpectedly, it might leave 
+those (prefixed with "XTENT") in the user's mapset. Use <em>g.mremove</em> to delete them.
+
+<H2>SEE ALSO</H2>
+<p>
+<EM><A HREF="v.voronoi">v.voronoi</A></EM>,
+<EM><A HREF="d.vect.html">d.vect</A></EM>,
+<EM><A HREF="r.cost.html">r.walk</A></EM>,
+<EM><A HREF="r.walk.html">r.walk</A></EM>,
+<EM><A HREF="r.burn.frict.html">r.burn.frict</A></EM>
+<EM><A HREF="g.mremove.html">g.mremove</A></EM>
+
+<H2>REFERENCES</H2>
+
+Renfrew, C. and Level, E. V. 1979: Exploring Dominance: Predicting Polities from Centers. In Transformations:
+Mathematical Approaches to Culture Change, edited by C. Renfrew and K. L. Cooke (Academic Press, New York), pp. 145-166.
+
+<H2>AUTHORS</h2>
+
+Benjamin Ducke (benjamin.ducke AT oadigital.net)
+
+<p><i>Last changed: 2009/09/28</i>

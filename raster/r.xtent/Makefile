@@ -1,0 +1,15 @@
+MODULE_TOPDIR = ../..
+
+PGM = r.xtent
+
+LIBES = $(GISLIB) $(DATETIMELIB) $(VECTLIB) $(DBMILIB)
+
+DEPENDENCIES = $(RASTERDEP) $(VECTDEP) $(DBMIDEP) $(GISDEP)
+
+EXTRA_CFLAGS = $(VECT_CFLAGS)
+EXTRA_INC = $(VECT_INC)
+
+
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
