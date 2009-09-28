@@ -1,6 +1,6 @@
 <H2>DESCRIPTION</H2>
 
-<em>r.xtent</em> outputs a raster map layer representing the Voronoi diagram,
+<em>r.xtent</em> computes a raster map layer representing the Voronoi diagram,
 weighted Voronoi diagram or a more complex territorial partitioning of space around points (centers) 
 in a vector input map (option <em>centers=</em>), based on the XTENT formula.
 
@@ -26,7 +26,7 @@ Under certain parameters (specifically: <em>k=1</em>, no <em>-s</em> flag given 
 will produce the equivalent of a simple (constant <em>C=1</em> and <em>a=0.5</em>) or weighted (variable <em>C</em>) Voronoi diagram. 
 Using a distance measurement derived from a cost surface raster will improve result accuracy.
 
-<h2>USAGE</h2>
+<h2>BASIC USAGE</h2>
 
 In the most simple case, using the default values <em>a</em>=0.5 and <em>k</em>=1.0 and keeping <em>C</em>=1.0 
 (see below), the result will equal that of a voronoi diagram calculated with <em>v.voronoi</em>. But <em>r.xtent</em> offers many options for 
@@ -46,7 +46,9 @@ control, is to specify a "reach" attribute for each center (see section on "CONS
 The <em>a</em> and <em>k</em> coefficients are set globally, but center weight <e>C</e> must be set individually for
 each center. This is done by specifying the name of a double type attribute in the input vector points map (option <em>c=</em>). 
 The program will read each center's weight from that attribute. If no attribute name is given, then C will be set
-to constant "1.0" for every center in the input map.
+to constant "1.0" for every center in the input map. Note: attribute values will be normalized to be in the range [0..1].
+<p>
+
 
 <h3>CATEGORIES, LABELS, COLORS AND REPORTS</h3>
 
@@ -143,27 +145,12 @@ allocation may be erroneous due to flawed input data.
 Further modeling flexibility may be gained by including <em>a priori</em> information as model constraints. 
 It is possible to define a maximum distance (or costs) for each center, beyond which it cannot exercise and influence, 
 no matter how marginal. Use the <em>reach=</em> option to specify a double type attribute that stores a maximum
-"reach" for each center. Set it to "-1.0" for centers with unrestricted reach.
+"reach" for each center. In combination with the <em>-s</em> flag, this provides a simple way to control model behavior.
+Set it to "-1.0" for centers with unrestricted reach.
 <p>
 It is also possible to define a center <em>A</em> as being dominated (ruled) by another center <em>B</em>, which means that it cannot compete against 
 its "ruler" and any territory dominated by <em>A</em> will be allocated to <em>B</em>. This is done by specifying an integer attribute
 in the input vector map which should point to the ID of the ruling center or to that of the center itself in case there is no "ruler" (option <em>ruler=</em>).
-
-<h2>HINTS</h2>
-
-Model parameters (<em>C</em>,<em>a</em> and <em>k</em>) will most likely have to be adjusted if running in strict mode,
-otherwise the output may be a map with only NULL cells (<em>r.xtent</em> should issue a warning if this is the case).
-This can happen easily if the site weights are quantified in a smaller range than the distances. Unfortunately, 
-the two may happen to use completely different value ranges. E.g. population size might give consistently much 
-smaller values than distance in meters.
-<br>
-The model's parameters can be hard to control. It is advisable to go with the defaults for <em>a</em> and <em>k</em> check if there are centers 
-with an extreme difference in weight.
-<p>
-The competitor's ID map in combination with a threshold error value can be used to map border regions from the 
-perspective of any center. The extent of border zones could indicate potential "trouble zones". Zones with high error are zones 
-that are potentially hard to control for the dominant center. There may also be a close third, fourth etc. contestant, so care
-must be exercised with the interpretation.
 
 
 <h3>CAVEATS AND LIMITATIONS</h3>
