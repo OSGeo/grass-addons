@@ -1,0 +1,57 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.in.geoplot</em>
+<p>
+A module for easy import of Geoplot 3.0 ASCII data. Note that Geoplot data is in a local, non-geodetic reference system. 
+Another tool such as <EM><A HREF="v.transform.html">v.transform</A></EM> will commonly be necessary to georeference and integrate it with existing data.
+<p>
+Geoplot is produced by and copyright of <a href="http://www.geoscan-research.co.uk">Geoscan Research</a>.
+<P>
+
+<h2>BACKGROUND</h2>
+
+This module provides a way to import Geoplot data at full resolution and precision into GRASS GIS in a straight-forward manner.
+It is assumed that the user has already fully post-processed the raw data, applying filters, normalizing value ranges etc. as needed in Geoplot.
+Data should then be exported from Geoplot as ASCII values so they can be read and converted to a vector map with this module.
+<p>
+The result of the import operation will be a new vector points map with each point representing exactly one record of the input file.
+Each record's nanotesla value will be stored in the double precision type field "nt" of the result map's attribute table.
+In addition, the original (local grid) coordinates of the record will be preserved as attribute fields "x" and "y".
+
+<h2>USAGE</h2>
+Geoplot is capable of producing a variety of different ASCII formats. The recommended way is to export "XYZ" files.
+However, lists of only Z values can also be imported, in which case the <em>xincrement=</em>, <em>yincrement=</em> and <em>length=</em> options have to be specified.
+All other export options, specifically the delimiter character, the NULL value representation and the "reference corner" are matched by equivalent options of <em>v.in.geoplot</em>.
+If no value is given fort <em>null=</em>, all records will be imported.
+
+<h2>EXAMPLE</h2>
+
+Given a Geoplot XYZ ASCII file named "readings.xyz" with the following structure:
+
+<div class="code"><pre>
+0       0       1.374888
+.125    0       1.074888
+.25     0       .9748878
+.375    0       .8748878
+.5      0       .6748878
+.625    0       .2748878
+.75     0       .3748878
+.875    0       .5748878
+1       0       .8748878
+[..]
+</pre></div>
+
+The correct syntax is:
+
+<div class="code"><pre>
+v.in.geoplot in=readings.xyz out=readings null=2047.5
+</pre></div>
+
+This will create a new vector map "readings" with the import result.
+
+<h2>AUTHOR</h2>
+Benjamin Ducke, benjamin.ducke AT oadigital.net
+<p>
+<i>Last changed: Mon Sep 28 2009</i>
+</p>
+
