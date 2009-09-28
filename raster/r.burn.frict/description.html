@@ -1,0 +1,21 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.burn.frict</em>
+<p>
+Converts vector geometries to raster cells, using a simple anti-aliasing method to close "gaps" between diagonal cells.
+Useful for "burning" vector geometries into a friction surface, making sure that simulated movement does not "slip" through converted cells that have only diagonal neighbours.
+
+<h2>BACKGROUND</h2>
+
+In movement analysis using cost surfaces and shortest path algorithms, it may be desirable to add vectorial features to the friction surface to simulate bounded
+features that impact movement, such as pathways or barriers. 
+If those features are represented by vector lines (e.g. road networks), then it must be ensured that the conversion to raster cells will not leave "gaps" between
+diagonal cells as this would allow simulated movement to "slip" through them.
+This module performs simple gap closing in a 2x2 cell window. It replaces gaps with the average of two neighbouring cells (on one side only), which results in the same friction for crossing cells, no matter in which direction.
+
+<h2>AUTHOR</h2>
+Benjamin Ducke, benjamin.ducke AT oadigital.net
+<p>
+<i>Last changed: Mon Sep 28 2009</i>
+</p>
+

@@ -1,0 +1,126 @@
+#!/bin/sh
+
+############################################################################
+#
+# MODULE:       r.burn.frict
+# AUTHOR(S):    Benjamin Ducke <benjamin.ducke AT oadigital.net>
+# PURPOSE:      Converts vector geometries to raster cells, using a simple
+#		anti-aliasing methods to close "gaps" between diagonal cells.
+#		Useful for "burning" vector geometries into a friction surface,
+#               making sure that simulated movement does not "slip" through
+#               converted cells that have only diagonal neighbours.
+#
+# COPYRIGHT:    (C) 2009 by Benjamin Ducke
+#
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+#############################################################################
+
+#%Module
+#% description: "Burns" vector features into a raster map, closing diagonal gaps between burned cells.
+#% keywords: vector, raster, friction
+#%End
+
+#%Option
+#% key: features
+#% type: string
+#% required: yes
+#% multiple: no
+#% key_desc: name
+#% description: Name of input vector map (features)
+#% gisprompt: old,vector,vector
+#%End
+
+#%Option
+#% key: surface
+#% type: string
+#% required: no
+#% multiple: no
+#% key_desc: name
+#% description: Name of input raster map (friction surface)
+#% gisprompt: old,cell,raster
+#%End
+
+#%Option
+#% key: output
+#% type: string
+#% required: yes
+#% multiple: no
+#% key_desc: name
+#% description: Name of output raster map
+#% gisprompt: new,cell,raster
+#%End
+
+#%Option
+#% key: const
+#% type: double
+#% required: no
+#% multiple: no
+#% description: Constant value to burn into friction surface.
+#%End
+
+#%Option
+#% key: column
+#% type: string
+#% required: no
+#% multiple: no
+#% key_desc: name
+#% description: Name of column with value to burn into friction surface
+#% gisprompt: old_dbcolumn,dbcolumn,dbcolumn
+#%End
+
+
+if [ -z "$GISBASE" ] ; then
+    echo "ERROR: You must be in GRASS GIS to run this program." 1>&2
+    exit 1
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+    exec g.parser "$0" "$@"
+fi
+
+if [ -z "$GIS_OPT_CONST" ] && [ -z "$GIS_OPT_COLUMN" ] ; then
+    echo "ERROR: Please specify either a constant value or a column name" 1>&2
+    exit 1
+fi
+
+if [ -n "$GIS_OPT_CONST" ] && [ -n "$GIS_OPT_COLUMN" ] ; then
+    echo "ERROR: Please specify either a constant value or a column name" 1>&2
+    exit 1
+fi
+
+
+# burn vectors into output map: CONST value
+if [ -n "$GIS_OPT_CONST" ] ; then
+    CMD="use=val value=${GIS_OPT_CONST}"
+fi
+
+# burn vectors into output map: COLUMN value
+if [ -n "$GIS_OPT_COLUMN" ] ; then
+    CMD="use=attr column=${GIS_OPT_COLUMN}"
+fi
+
+# do it!
+v.to.rast input=$GIS_OPT_FEATURES output=$GIS_OPT_OUTPUT $CMD
+
+# Perform simple gap closing in a 2x2 window: replace gap with average
+# of two neighbouring cells (on one side only).
+# This results in the same friction for crossing cells, no matter in
+# which direction.
+MAP=$GIS_OPT_OUTPUT
+r.mapcalc "$MAP=if(isnull($MAP) && !isnull($MAP[-1,0]) && isnull($MAP[-1,1])  && !isnull($MAP[0,1]) ,($MAP[-1,0]+$MAP[0,1] )/2.0,$MAP)"
+r.mapcalc "$MAP=if(isnull($MAP) && !isnull($MAP[0,-1]) && isnull($MAP[-1,-1]) && !isnull($MAP[-1,0]),($MAP[0,-1]+$MAP[-1,0])/2.0,$MAP)"
+
+# if no surface is given, replace all NULL cells in the output map with "1.0" ...
+if [ -z "$GIS_OPT_SURFACE" ] ; then
+    r.mapcalc "$MAP=if(isnull($MAP),1.0,$MAP)"
+fi
+
+# ... otherwise with the cell values in the friction map.
+if [ -n "$GIS_OPT_SURFACE" ] ; then
+    r.mapcalc "$MAP=if(isnull($MAP),$GIS_OPT_SURFACE,$MAP)"
+fi
+
+exit 0
