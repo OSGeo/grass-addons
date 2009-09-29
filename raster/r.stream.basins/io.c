@@ -98,17 +98,17 @@ int max_link(void)
 {
     char *cur_mapset;
     CELL c_min, c_max;
-    struct Range *stream_range;
+    struct Range stream_range;
 
-    G_init_range(stream_range);
+    G_init_range(&stream_range);
     cur_mapset = G_find_cell2(in_streams, "");
-    G_read_range(in_streams, cur_mapset, stream_range);
-    G_get_range_min_max(stream_range, &c_min, &c_max);
+    G_read_range(in_streams, cur_mapset, &stream_range);
+    G_get_range_min_max(&stream_range, &c_min, &c_max);
     return c_max;
 }				/* end_max_link       */
 
 
-int write_chatchment()
+int write_chatchment(void)
 {
     int r;
     int fdo = 0;
