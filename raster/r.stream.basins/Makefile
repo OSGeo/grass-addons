@@ -2,7 +2,7 @@
 # or use absolute path to the GRASS source code
 MODULE_TOPDIR = ../..
 
-PGM = r.stream.basins
+PGM = r.stream.del
 
 LIBES = $(GISLIB)
 DEPENDENCIES = $(GISDEP)

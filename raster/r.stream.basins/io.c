@@ -108,25 +108,26 @@ int max_link(void)
 }				/* end_max_link       */
 
 
-int write_chatchment(void)
+int write_map(void)
 {
     int r;
     int fdo = 0;
 
-    if ((fdo = G_open_raster_new(name_catchments, CELL_TYPE)) < 0)
-	G_fatal_error(_("Unable to create raster map <%s>"), name_catchments);
+    if ((fdo = G_open_raster_new(out_streams, CELL_TYPE)) < 0)
+	G_fatal_error(_("Unable to create raster map <%s>"), out_streams);
 
     for (r = 0; r < nrows; ++r)
 	G_put_c_raster_row(fdo, streams[r]);
     G_close_cell(fdo);
-    G_short_history(name_catchments, "raster", &history);
-    G_write_history(name_catchments, &history);
-    G_message(_("%s Done!"), name_catchments);
+    G_short_history(out_streams, "raster", &history);
+    G_write_history(out_streams, &history);
+    G_message(_("%s Done!"), out_streams);
 
     G_free(streams);
 
     return 0;
 }
+
 
 int set_null(void)
 {

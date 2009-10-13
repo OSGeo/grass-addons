@@ -6,23 +6,9 @@
 
 
 					/* define */
-
-/*define directions for code simplicity
-
-directions according to r.watershed: MUST check all directions
-|3|2|1|
-|4| |8|
-|5|6|7|
-
-*/
-
-#define POINT struct points	
-POINT {
-	int r, c;
-	};
 	
-#define OUTLET struct outs
-OUTLET { 
+#define SPRING struct sprs
+SPRING { 
 	int r, c;
 	int val;
 	};	
@@ -30,19 +16,14 @@ OUTLET {
 					/* functions.c */ 
 
 /* io.c */
-int open_raster(char *mapname);
 int create_maps(void);
 int max_link(void);
-int write_chatchment(void);
+int write_map(void);
 int set_null(void);
 
-/* cachments */
-int find_outlets(void);
-int reset_catchments(void);
-int fill_catchments (OUTLET outlet);
-int fifo_insert (POINT point);
-POINT fifo_return_del (void);
-
+/* delete */
+int find_springs(int max_link);
+int delete_join(int springs_num);
 
 				/* variables */
 
@@ -54,20 +35,15 @@ POINT fifo_return_del (void);
 
 GLOBAL struct Cell_head window;
 GLOBAL char *in_dirs, *in_streams;	/* input dirrection and accumulation raster names*/
-GLOBAL char *name_catchments;
-GLOBAL int zeros, cats, lasts; /* flags */
+GLOBAL char *out_streams;
+GLOBAL int zeros; /* flags */
+GLOBAL int threshold;
 
 GLOBAL CELL **dirs, **streams; /* matrix with input data streams is used as output data*/
 
 GLOBAL int nrows, ncols; 
 
-POINT *fifo_outlet;
-int tail, head;
-int outlets_num;
-int fifo_max;
-	
-GLOBAL int out; /* number of strahler and horton outlets: index */
-OUTLET *outlets;
+SPRING *springs;
 
 GLOBAL struct History history;	/* holds meta-data (title, comments,..) */
 
