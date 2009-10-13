@@ -50,10 +50,10 @@ int do_astar(void)
 	astar_pts[first_cum] = astp;
 	first_cum--;
 
-	r = astp.r;
-	c = astp.c;
+	thisindex = astp.idx;
+	r = thisindex / ncols;
+	c = thisindex - r * ncols;
 
-	thisindex = INDEX(r, c);
 	ele_val = ele[thisindex];
 
 	for (ct_dir = 0; ct_dir < sides; ct_dir++) {
@@ -103,7 +103,7 @@ int heap_cmp(CELL ele1, unsigned int index1, CELL ele2, unsigned int index2)
 
 int sift_up(unsigned int start, CELL elec)
 {
-    unsigned int child, child_added, parent, nindex;
+    unsigned int child, child_added, parent;
     CELL elep;
     struct ast_point childp;
 
@@ -114,9 +114,7 @@ int sift_up(unsigned int start, CELL elec)
     while (child > 1) {
 	parent = get_parent(child);
 
-	nindex = INDEX(astar_pts[parent].r, astar_pts[parent].c);
-
-	elep = ele[nindex];
+	elep = ele[astar_pts[parent].idx];
 
 	/* child < parent */
 	if (heap_cmp(elec, child_added, elep, astar_added[parent]) == 1) {
@@ -156,8 +154,7 @@ unsigned int heap_add(int r, int c, CELL ele, char asp)
 	G_fatal_error(_("heapsize too large"));
 
     astar_added[heap_size] = nxt_avail_pt;
-    astar_pts[heap_size].r = r;
-    astar_pts[heap_size].c = c;
+    astar_pts[heap_size].idx = INDEX(r, c);
     astar_pts[heap_size].asp = asp;
 
     nxt_avail_pt++;
@@ -188,13 +185,13 @@ unsigned int heap_drop(void)
     parent = 1;
     while ((child = get_child(parent)) <= heap_size) {
 
-	elec = ele[INDEX(astar_pts[child].r, astar_pts[child].c)];
+	elec = ele[astar_pts[child].idx];
 
 	if (child < heap_size) {
 	    childr = child + 1;
-	    i = child + 3;	/* change the number, GET_CHILD() and GET_PARENT() to play with different d-ary heaps */
+	    i = child + 3;
 	    while (childr <= heap_size && childr < i) {
-		eler = ele[INDEX(astar_pts[childr].r, astar_pts[childr].c)];
+		eler = ele[astar_pts[childr].idx];
 
 		if (heap_cmp
 		    (eler, astar_added[childr], elec,
@@ -217,7 +214,7 @@ unsigned int heap_drop(void)
 	astar_added[parent] = astar_added[heap_size];
 	astar_pts[parent] = astar_pts[heap_size];
 
-	elec = ele[INDEX(astar_pts[parent].r, astar_pts[parent].c)];
+	elec = ele[astar_pts[parent].idx];
 	/* sift up last swapped point, only necessary if hole moved to heap end */
 	sift_up(parent, elec);
     }

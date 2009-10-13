@@ -100,6 +100,9 @@ int thin_streams(void)
 	thisindex = INDEX(r, c);
 	stream_id = stream[thisindex];
 
+	if (stream_id == 0)
+	    continue;
+
 	/* add root node to stack */
 	G_debug(2, "add root node");
 	top = 0;

@@ -16,7 +16,7 @@ struct ddir
 
 struct ast_point
 {
-    int r, c;
+    int idx;
     char asp;
 };
 
@@ -62,12 +62,18 @@ int load_maps(int, int, int);
 int do_astar(void);
 unsigned int heap_add(int, int, CELL, char);
 
+/* streams.c */
+int do_accum(double);
+int extract_streams(double, double, int, int);
+
 /* thin.c */
 int thin_streams(void);
 
-/* streams.c */
-int do_accum(double);
-int extract_streams(double, double, int);
+/* del_streams.c */
+int del_streams(int);
+int seg_length(int, unsigned int *);
+int del_stream_seg(int);
+int update_stream_id(int, int);
 
 /* close.c */
 int close_maps(char *, char *, char *);

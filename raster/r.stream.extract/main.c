@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
 	struct Option *ele, *acc, *weight;
 	struct Option *threshold, *d8cut;
 	struct Option *mont_exp;
+	struct Option *min_stream_length;
     } input;
     struct
     {
@@ -40,6 +41,7 @@ int main(int argc, char *argv[])
     struct GModule *module;
     int ele_fd, acc_fd, weight_fd;
     double threshold, d8cut, mont_exp;
+    int min_stream_length = 0;
     char *mapset;
 
     G_gisinit(argv[0]);
@@ -95,6 +97,16 @@ int main(int argc, char *argv[])
     input.mont_exp->description =
 	_("Montgomery: accumulation is multiplied with pow(slope,mexp) and then compared with threshold.");
 
+    input.min_stream_length = G_define_option();
+    input.min_stream_length->key = "stream_length";
+    input.min_stream_length->type = TYPE_INTEGER;
+    input.min_stream_length->required = NO;
+    input.min_stream_length->answer = "0";
+    input.min_stream_length->label =
+	_("Delete stream segments shorter than stream_length cells.");
+    input.min_stream_length->description =
+	_("Applies only to first-order stream segments (springs/stream heads).");
+
     output.stream_rast = G_define_standard_option(G_OPT_R_OUTPUT);
     output.stream_rast->key = "stream_rast";
     output.stream_rast->description =
@@ -121,7 +133,6 @@ int main(int argc, char *argv[])
 
     /***********************/
     /*    check options    */
-
     /***********************/
 
     /* input maps exist ? */
@@ -168,6 +179,16 @@ int main(int argc, char *argv[])
     else
 	mont_exp = 0;
 
+    /* Minimum stream segment length */
+    if (input.min_stream_length->answer) {
+	min_stream_length = atoi(input.min_stream_length->answer);
+	if (min_stream_length < 0)
+	    G_fatal_error(_("Minimum stream length must be positive or zero but is %d"),
+			  min_stream_length);
+    }
+    else
+	min_stream_length = 0;
+
     /* Check for some output map */
     if ((output.stream_rast->answer == NULL)
 	&& (output.stream_vect->answer == NULL)) {
@@ -176,7 +197,6 @@ int main(int argc, char *argv[])
 
     /*********************/
     /*    preparation    */
-
     /*********************/
 
     /* open input maps */
@@ -213,6 +233,7 @@ int main(int argc, char *argv[])
 
     /* allocate memory */
     ele = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
+    /* TODO: allocate acc and stream memory only after A* Search */
     acc = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
     stream = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
     if (input.weight->answer)
@@ -226,7 +247,6 @@ int main(int argc, char *argv[])
 
     /********************/
     /*    processing    */
-
     /********************/
 
     /* sort elevation and get initial stream direction */
@@ -237,15 +257,14 @@ int main(int argc, char *argv[])
     if (acc_fd < 0) {
 	if (do_accum(d8cut) < 0)
 	    G_fatal_error(_("could not calculate flow accumulation"));
-	if (extract_streams
-	    (threshold, mont_exp, (input.weight->answer != NULL)) < 0)
-	    G_fatal_error(_("could not extract streams"));
     }
     else {
-	if (extract_streams
-	    (threshold, mont_exp, (input.weight->answer != NULL)) < 0)
-	    G_fatal_error(_("could not extract streams"));
+	/* load accumulation */
     }
+
+    if (extract_streams
+	(threshold, mont_exp, (input.weight->answer != NULL), min_stream_length) < 0)
+	G_fatal_error(_("could not extract streams"));
 
     G_free(ele);
     G_free(acc);
@@ -255,6 +274,12 @@ int main(int argc, char *argv[])
     /* thin streams */
     if (thin_streams() < 0)
 	G_fatal_error(_("could not extract streams"));
+
+    /* delete short streams */
+    if (min_stream_length) {
+	if (del_streams(min_stream_length) < 0)
+	    G_fatal_error(_("could not extract streams"));
+    }
 
     /* write output maps */
     if (close_maps(output.stream_rast->answer, output.stream_vect->answer,

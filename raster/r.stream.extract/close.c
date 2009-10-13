@@ -56,6 +56,9 @@ int close_streamvect(char *stream_vect)
 	thisindex = INDEX(r, c);
 	stream_id = stream[thisindex];
 
+	if (!stream_id)
+	    continue;
+
 	Vect_reset_line(Points);
 	Vect_reset_cats(Cats);
 
@@ -194,7 +197,7 @@ int close_streamvect(char *stream_vect)
 
 	sprintf(buf, "insert into %s values ( %d, \'%s\', %d )",
 		Fi->table, i,
-		(stream_node[i].n_trib > 0 ? "start" : "intermediate"),
+		(stream_node[i].n_trib > 0 ? "intermediate" : "start"),
 		(stream_node[i].n_trib > 0));
 
 	db_set_string(&dbsql, buf);
