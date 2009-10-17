@@ -106,12 +106,13 @@ fi
 
 if [ "$IS_LL_WGS84" = "false" ] ; then
    # check convergence angle is less than (arbitrary) 1px per 1280x1024 (~= 0.09 degrees)
-  eval `g.region -gn`
-  CONV_ANGLE_3INT=`echo $converge_angle | sed -e 's/\.//' | cut -b 1-3`
-  if [ "$CONV_ANGLE_3INT" -gt 009 ] ; then
+   # also test conv angle at 4 corners? (world wide scale image might be ok at 0,0 center, but horrible elsewhere)
+   eval `g.region -gn`
+   CONV_ANGLE_3INT=`echo $converge_angle | sed -e 's/\.//' | cut -b 1-3`
+   if [ "$CONV_ANGLE_3INT" -gt 009 ] ; then
      g.message -e "Convergence angle too great for undistorted output, reproject first. ($converge_angle degrees)"
      exit 1
-  fi
+   fi
 fi
 
 
