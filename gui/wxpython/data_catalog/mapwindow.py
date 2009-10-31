@@ -28,7 +28,7 @@ import wx
 import globalvar
 import gselect
 from debug import Debug
-from vdigit import PseudoDC
+
 
 
     
@@ -39,19 +39,20 @@ class BufferedWindow(wx.Window):
                  size = wx.DefaultSize,
                  style=wx.NO_FULL_REPAINT_ON_RESIZE,Map=None):
 
-        wx.Window.__init__(self, parent, id, pos, size, style)
-        Debug.msg(4, "BufferedWindow.__init(): Map=%s" % Map)
-	self.Map = Map
-	self.flag = False
-        self.Bind(wx.EVT_PAINT,        self.OnPaint)
-        self.buffer = wx.EmptyBitmap(max(1, self.Map.width), max(1, self.Map.height))
-        self.mapfile = None
-        self.img = ""
+		wx.Window.__init__(self, parent, id, pos, size, style)
+		Debug.msg(4, "BufferedWindow.__init(): Map=%s" % Map)
+		self.Map = Map
+	    
+		self.Bind(wx.EVT_PAINT,        self.OnPaint)
+		self.buffer = wx.EmptyBitmap(max(1, self.Map.width), max(1, self.Map.height))
+		self.mapfile = None
+		self.img = ""
 
-        self.imagedict = {}   
-        self.select = {}
-        self.pdc = PseudoDC()
-        self.pdcTmp = PseudoDC()
+		self.imagedict = {}   
+		self.select = {}
+		self.pdc = wx.PseudoDC()
+
+
 
 
     def Draw(self, pdc, img=None, drawid=None, pdctype='image', coords=[0, 0, 0, 0]):
@@ -86,7 +87,7 @@ class BufferedWindow(wx.Window):
         return drawid
 
 
-    def OnPaint(self, event):
+    def OnPaint(self,event):
         #Debug.msg(4, "BufferedWindow.OnPaint(): redrawAll=%s" % self.redrawAll)
         dc = wx.BufferedPaintDC(self, self.buffer)
         dc.Clear()
@@ -94,14 +95,10 @@ class BufferedWindow(wx.Window):
         self.bufferLast = None
         self.pdc.DrawToDC(dc)
         self.bufferLast = dc.GetAsBitmap(wx.Rect(0, 0, self.Map.width, self.Map.height))
-        pdcLast = PseudoDC()
+        pdcLast =  wx.PseudoDC()
         pdcLast.DrawBitmap(self.bufferLast, 0, 0, False)
         pdcLast.DrawToDC(dc)
-        self.pdcTmp.DrawToDC(dc)
 
-	if self.flag :
-	        self.UpdateMap(render=True)
-		self.flag=False
 
 
     def GetImage(self):
@@ -119,36 +116,30 @@ class BufferedWindow(wx.Window):
 
     def UpdateMap(self, render=True, renderVector=True):
 
-        start = time.clock()
+		if self.img is None:
+			render = True
 
-        if self.img is None:
-            render = True
+		if render:
+			# update display size
+			self.Map.ChangeMapSize(self.GetClientSize())
+			self.mapfile = self.Map.Render(force=True,  windres=False)
+		else:
+			self.mapfile = self.Map.Render(force=False)
 
-        if render:
-            # update display size
-            self.Map.ChangeMapSize(self.GetClientSize())
-            self.mapfile = self.Map.Render(force=True,  windres=False)
-        else:
-            self.mapfile = self.Map.Render(force=False)
+		self.img = self.GetImage() # id=99
+		self.pdc.Clear()
+		self.pdc.RemoveAll()
         
-        self.img = self.GetImage() # id=99
+		if not self.img:
+			self.Draw(self.pdc, pdctype='clear')
+		else:
+			try:
+				id = self.imagedict[self.img]['id']
+			except:
+				return False
 
-        for pdc in (self.pdc,  self.pdcTmp):
-            pdc.Clear()
-            pdc.RemoveAll()
-        
-        if not self.img:
-            self.Draw(self.pdc, pdctype='clear')
-        else:
-            try:
-                id = self.imagedict[self.img]['id']
-            except:
-                return False
-
-            self.Draw(self.pdc, self.img, drawid=id)
-        
-        stop = time.clock()
+			self.Draw(self.pdc, self.img, drawid=id)      
      
-        return True
+		return True
 
 
