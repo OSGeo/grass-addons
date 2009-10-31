@@ -286,7 +286,6 @@ class DataCatalog(wx.Frame):
 			self.Map.AddLayer(type='raster', name='layer1', command=self.cmd)	
 			self.Map.region = self.Map.GetRegion()
 			self.MapWindow.Map = self.Map
-			self.MapWindow.flag = True
 			self.MapWindow.UpdateMap(render=True)
 
 		if self.viewInfo is True:
