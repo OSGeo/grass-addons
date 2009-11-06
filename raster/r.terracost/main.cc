@@ -515,13 +515,13 @@ main(int argc, char *argv[]) {
   sprintf(buf, "%s=%s", STREAM_TMPDIR, opt->streamdir);
   if(getenv(STREAM_TMPDIR) == NULL) {
     printf("setenv %s\n", buf);
-    if (putenv(buf) != 0) {
+    if (putenv(G_store(buf)) != 0) {
       printf("cannot setenv %s\n",buf);
       exit(1); 
     }
   }
   if (getenv(STREAM_TMPDIR) == NULL) {
-    G_fatal_error("TREAM_TMPDIR not set");
+    G_fatal_error("STREAM_TMPDIR not set");
     exit(1); 
   } else {
     fprintf(stdout, "STREAM temporary files in %s\n", getenv(STREAM_TMPDIR)); 
@@ -536,7 +536,7 @@ main(int argc, char *argv[]) {
   if (getenv(VTMPDIR) == NULL) {
     /* if not already set  */
     printf("setenv %s\n", buf);
-    if(putenv(buf) !=0) {
+    if(putenv(G_store(buf)) !=0) {
       printf("cannot setenv %s\n",buf);
       exit(1); 
     }
