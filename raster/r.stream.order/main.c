@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     in_acc_opt->answer = NULL;
     in_acc_opt->gisprompt = "old,cell,raster";
     in_acc_opt->description =
-	"Name of accumulation file (r.watershed or r.stream.extract)";
+	"(Not recommended) Name of accumulation file (r.watershed or r.stream.extract)";
 
     /*      output option - at least one is reqired */
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
     out_hrt_opt->answer = NULL;
     out_hrt_opt->gisprompt = "new,cell,raster";
     out_hrt_opt->description =
-	"Name of Horton's stream order output map (require accum file)";
+	"Name of Horton's stream order output map";
     out_hrt_opt->guisection = _("Output options");
 
     out_hck_opt = G_define_option();
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     out_hck_opt->answer = NULL;
     out_hck_opt->gisprompt = "new,cell,raster";
     out_hck_opt->description =
-	"Name of Hack's main streams output map (require accum file)";
+	"Name of Hack's main streams output map";
     out_hck_opt->guisection = _("Output options");
 
     /* Define flags */
@@ -119,8 +119,7 @@ int main(int argc, char *argv[])
     if (!out_str_opt->answer && !out_shr_opt->answer && !out_hck_opt->answer
 	&& !out_hrt_opt->answer)
 	G_fatal_error(_("You must select one or more output maps: strahler, horton, shreeve or hack"));
-    if (out_hrt_opt->answer && !in_acc_opt->answer)
-	G_fatal_error(_("If you select horton or hack, accum is neccessary"));
+    
 
     /* stores input options to variables */
     in_dirs = in_dir_opt->answer;
@@ -155,10 +154,13 @@ int main(int argc, char *argv[])
     ncols = G_window_cols();
 
     create_base_maps();
-    stream_num = stream_number();
-    stack_max = stream_num;	/* stack's size depends on number of streams */
+	stream_num = stream_number();
+
+	stack_max = stream_num;	/* stack's size depends on number of streams */
     init_streams(stream_num);
     find_nodes(stream_num);
+    if ((out_hack || out_horton) && !in_accum)
+   do_cum_length();
     if (out_strahler || out_horton)
 	strahler();
     if (out_shreeve)

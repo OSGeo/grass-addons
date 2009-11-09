@@ -24,14 +24,14 @@ int trib_nums(int r, int c)
 	G_fatal_error(_("Error finding nodes. Stream and direction maps probably do not match..."));
     if (trib > 3)
 	G_warning(_("Stream network may be too dense..."));
-    return trib;
+
+   return trib;
 }				/* end trib_num */
 
 int init_streams(int stream_num)
 {
     int i;
     s_streams = (STREAM *) G_malloc((stream_num + 1) * sizeof(STREAM));
-
     for (i = 0; i <= stream_num; ++i) {
 	s_streams[i].next_stream = -1;
 	s_streams[i].stream = -1;
@@ -39,7 +39,8 @@ int init_streams(int stream_num)
 	s_streams[i].shreeve = -1;
 	s_streams[i].hack = -1;
 	s_streams[i].horton = -1;
-	s_streams[i].accum = 0.0;
+	s_streams[i].accum = 0.;
+	/* s_streams[i].length = 0.0; */
 	s_streams[i].trib[0] = 0;
 	s_streams[i].trib[1] = 0;
 	s_streams[i].trib[2] = 0;
@@ -65,6 +66,7 @@ int find_nodes(int stream_num)
 
     outlets = (int *)G_malloc((stream_num) * sizeof(int));
     springs = (int *)G_malloc((stream_num) * sizeof(int));
+    s_inits = (INITS *)G_malloc((stream_num) *sizeof(INITS));
 
     for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
@@ -102,23 +104,27 @@ int find_nodes(int stream_num)
 			G_fatal_error(_("Error finding nodes. Stream and direction maps probably do not match..."));
 
 		    s_streams[cur_stream].trib_num = 0;
+		    s_inits[springs_num].r=r;
+		    s_inits[springs_num].c=c;
 		    springs[springs_num++] = cur_stream;	/* collecting springs */
+
 		}
 
 		if (trib_num > 1) {	/* adding tributuaries */
 		    s_streams[cur_stream].trib_num = trib_num;
+		    
 		    for (i = 1; i < 9; ++i) {
-
 			if (trib > 4)
 			    G_fatal_error(_("Error finding nodes. Stream and direction maps probably do not match..."));
 
 			if (r + nextr[i] < 0 || r + nextr[i] > (nrows - 1) ||
 			    c + nextc[i] < 0 || c + nextc[i] > (ncols - 1))
 			    continue;
+
 			j = (i + 4) > 8 ? i - 4 : i + 4;
 			if (streams[r + nextr[i]][c + nextc[i]] > 0 &&
 			    dirs[r + nextr[i]][c + nextc[i]] == j) {
-			    if (in_accum) {	/* only if horton and hack */
+			    if (in_accum) {	/* only if accum map is selected */
 				s_streams[streams[r + nextr[i]]
 					  [c + nextc[i]]].accum =
 				    fabs(accum[r + nextr[i]][c + nextc[i]]);
@@ -133,6 +139,76 @@ int find_nodes(int stream_num)
 	}			/* c */
     }				/* r */
     return 0;
+}
+
+int do_cum_length (void) {
+
+	int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
+  int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
+
+  int i, s, d;		/* s - streams index, d - direction */
+  int done = 1;
+  int r, c;
+  int next_r, next_c;
+  int cur_stream, next_stream;
+  float cur_northing, cur_easting;
+  float next_northing, next_easting;
+  double cur_length=0.;
+		
+	G_begin_distance_calculations();
+	
+	for (s=0; s<springs_num; ++s) { /* main loop on springs */
+		r = s_inits[s].r;
+		c = s_inits[s].c;
+		cur_stream=streams[r][c];
+		cur_length=0;
+		done=1;
+		
+		while(streams && done) {
+
+		 cur_northing = window.north - (r + .5) * window.ns_res;
+	   cur_easting = window.west + (c + .5) * window.ew_res;
+			d=dirs[r][c];
+			if (d<1 || /* end of route: sink, border or something else */
+				r + nextr[d] < 0 || r + nextr[d] > (nrows - 1) ||
+		    c + nextc[d] < 0 || c + nextc[d] > (ncols - 1)) { 
+				
+		 next_northing = window.north - (r + .5) * window.ns_res;
+		 next_easting = 	window.west + (c + .5) * window.ew_res;	 
+		 cur_length=G_distance(next_easting, next_northing, cur_easting,  cur_northing);
+		 s_streams[cur_stream].accum += cur_length;	   
+	   break;
+			}
+	   
+	   next_r=r+nextr[dirs[r][c]];
+	   next_c=c+nextc[dirs[r][c]];
+		 next_northing = window.north - (next_r + .5) * window.ns_res;
+		 next_easting = 	window.west + (next_c + .5) * window.ew_res;
+		 cur_length =	G_distance(next_easting, next_northing, cur_easting,  cur_northing);
+		 s_streams[cur_stream].accum += cur_length;
+		 r=next_r;
+		 c=next_c;
+		 
+		 if (streams[next_r][next_c] != cur_stream) {
+			 next_stream=streams[next_r][next_c];
+
+				if (s_streams[next_stream].accum<s_streams[cur_stream].accum)
+			s_streams[next_stream].accum=s_streams[cur_stream].accum;
+			
+			 for (i=0; i<s_streams[next_stream].trib_num;++i){
+				if (s_streams[s_streams[next_stream].trib[i]].accum==0)
+			done=0;	
+			 }
+			
+			cur_stream=next_stream; 
+  		}/* end if */
+		} /* end while */
+	} /* end for */
+
+/* for (i=1;i<stream_num+1;++i) {
+	G_message(_("%d: %f"),i,s_streams[i].length);
+} */
+return 0;
 }
 
 /* 

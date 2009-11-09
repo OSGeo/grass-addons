@@ -116,6 +116,7 @@ int create_base_maps(void)
 
 int stream_number(void)
 {
+
 	char *cur_mapset;
 	CELL c_min, c_max;
 	struct Range stream_range;
@@ -124,6 +125,18 @@ int stream_number(void)
 	G_read_range(in_streams,cur_mapset,&stream_range);
 	G_get_range_min_max(&stream_range, &c_min, &c_max);
 	return c_max;
+/*
+
+int r, c;
+int max=0;
+    for (r = 0; r < nrows; ++r) {
+		for (c = 0; c < ncols; ++c) { 
+		if (streams[r][c]>max)
+			max=streams[r][c];
+		}	
+	}
+	return max;
+*/
 }
 
 int write_maps(void)

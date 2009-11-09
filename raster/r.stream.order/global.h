@@ -44,8 +44,14 @@ STREAM {
 
     /*  int *trib; */
     double accum;
+    /* float length; */
 };
 
+#define INITS struct init
+INITS {
+	int r;
+	int c;
+};
 
 	  /* functions.c */
 
@@ -53,6 +59,7 @@ STREAM {
 int trib_nums(int r, int c);
 int init_streams(int stream_num);
 int find_nodes(int stream_num);
+int do_cum_length (void);
 int strahler(void);
 int horton(void);
 int shreeve(void);
@@ -82,5 +89,6 @@ GLOBAL int stack_max;
 GLOBAL int nrows, ncols;
 
 GLOBAL STREAM *s_streams;	/* stream structure all parameters we have here */
+GLOBAL INITS *s_inits;
 int *springs, *outlets;
 int springs_num, outlets_num;
