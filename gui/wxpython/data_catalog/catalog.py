@@ -91,6 +91,7 @@ class DataCatalog(wx.Frame):
 		#creating controls
 		self.mInfo = wx.TextCtrl(self.pRight, wx.ID_ANY, style = wx.TE_MULTILINE|wx.HSCROLL|wx.TE_READONLY)
 		self.chkInfo = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"display Info", wx.DefaultPosition, wx.DefaultSize)
+		self.treeExpand = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"Expand All", wx.DefaultPosition, wx.DefaultSize)
 		self.lbLocation = wx.StaticText(self.cmbPanel, wx.ID_ANY, "Location")
 		self.lbMapset = wx.StaticText(self.cmbPanel, wx.ID_ANY, "Mapset")
 		self.cmbLocation = wx.ComboBox(self.cmbPanel, value = "Select Location",size=wx.DefaultSize, choices=self.loclist)
@@ -106,12 +107,19 @@ class DataCatalog(wx.Frame):
 
 		#By default v/r.info will be displayed
 		self.chkInfo.SetValue(True) 
+		self.treeExpand.SetValue(False)
 
 		#apply bindings and setting layouts
 		self.doBindings()
 		self.doLayout()
 		self.Centre()
-        
+
+	def OnToggleExpand(self,event):  
+		if self.treeExpand.GetValue() == True:
+			self.tree.ExpandAll()
+		else: 
+			self.tree.CollapseAll()
+
     
 	def OnToggleInfo(self,event):  
 		if self.chkInfo.GetValue() == True:
@@ -311,8 +319,7 @@ class DataCatalog(wx.Frame):
 		self.gisrc['LOCATION_NAME'] = str(self.cmbLocation.GetValue())
 		self.gisrc['MAPSET'] = str(self.cmbMapset.GetValue())
 		self.update_grassrc(self.gisrc)
-		gcmd.RunCommand("g.gisenv", set = "LOCATION_NAME=%s" % str(self.cmbLocation.GetValue()))
-		gcmd.RunCommand("g.gisenv", set = "MAPSET=%s" % str(self.cmbMapset.GetValue()))
+		#gcmd.RunCommand("g.gisenv", set = "MAPSET=%s" % str(self.cmbMapset.GetValue()))
 
 
 	def OnLocationChange(self,event):
@@ -327,6 +334,7 @@ class DataCatalog(wx.Frame):
 		maplists = self.GetMapsets(self.cmbLocation.GetValue())
 		for mapsets in maplists:
 			self.cmbMapset.Append(str(mapsets))
+
 
 	def AddTreeNodes(self,location,mapset):
 		"""
@@ -373,7 +381,6 @@ class DataCatalog(wx.Frame):
 		for mapset in glob.glob(os.path.join(self.gisdbase, location, "*")):
 			if os.path.isdir(mapset) and os.path.isfile(os.path.join(self.gisdbase, location, mapset, "WIND")):
 				maplist.append(os.path.basename(mapset))
-				print mapset
 		return maplist
 
 	def GetLocations(self):
@@ -409,6 +416,7 @@ class DataCatalog(wx.Frame):
 
 		#Event bindings for v/r.info checkbox
 		self.Bind(wx.EVT_CHECKBOX, self.OnToggleInfo,self.chkInfo)
+		self.Bind(wx.EVT_CHECKBOX, self.OnToggleExpand,self.treeExpand)
 
 	def doLayout(self):
 
@@ -418,6 +426,7 @@ class DataCatalog(wx.Frame):
 		self.cmbSizer.Add(self.cmbLocation,pos=(2,0),flag=wx.ALL)
 		self.cmbSizer.Add(self.cmbMapset,pos=(2,1),flag=wx.ALL)
 		self.cmbSizer.Add(self.chkInfo,pos=(2,2),flag=wx.ALL)
+		self.cmbSizer.Add(self.treeExpand,pos=(2,3),flag=wx.ALL)
 		self.cmbPanel.SetSizer(self.cmbSizer)
 
 		#splitter window sizers
