@@ -78,31 +78,6 @@ class DataCatalog(wx.Frame):
 		#populate location combobox
 		self.loclist = self.GetLocations()
 
-<<<<<<< .mine
-		#setting splitter window
-		self.win = wx.SplitterWindow(self)
-		self.pLeft = wx.Panel(self.win, style=wx.SUNKEN_BORDER)
-		self.pRight = wx.Panel(self.win, style=wx.SUNKEN_BORDER)
-		self.cmbPanel = wx.Panel(self)
-		self.pRight.SetBackgroundColour("white")
-		self.pLeft.Hide()
-		self.pRight.Hide()
-		self.win.Initialize(self.pLeft)
-		self.win.SplitVertically(self.pLeft, self.pRight, 310)
-=======
-        #setting splitter window
-        self.win = wx.SplitterWindow(self)
-        self.pLeft = wx.Panel(self.win, style=wx.SUNKEN_BORDER)
-        self.pRight = wx.Panel(self.win, style=wx.SUNKEN_BORDER)
-        self.cmbPanel = wx.Panel(self)
-        self.pRight.SetBackgroundColour("white")
-        self.pLeft.Hide()
-        self.pRight.Hide()
-        self.win.Initialize(self.pLeft)
-        self.win.SplitVertically(self.pLeft, self.pRight, 310)
->>>>>>> .r39717
-
-
 		#creating controls
 		self.mInfo = wx.TextCtrl(self.pRight, wx.ID_ANY, style = wx.TE_MULTILINE|wx.HSCROLL|wx.TE_READONLY)
 		self.chkInfo = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"Display Info", wx.DefaultPosition, wx.DefaultSize)
