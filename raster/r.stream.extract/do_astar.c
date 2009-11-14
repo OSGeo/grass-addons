@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <math.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
@@ -15,22 +16,51 @@ unsigned int get_child(unsigned int p)
 
 unsigned int heap_drop(void);
 
+double get_slope2(CELL, CELL, double);
+
 int do_astar(void)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
     struct ast_point astp;
-    int count, is_in_list;
+    int count, is_in_list, is_worked;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    CELL ele_val, ele_up;
+    CELL ele_val, ele_up, ele_nbr[8];
     char asp_val;
     unsigned int thisindex, nindex;
+    /* sides
+     * |7|1|4|
+     * |2| |3|
+     * |5|0|6|
+     */
+    int nbr_ew[8] = { 0, 1, 2, 3, 1, 0, 0, 1 };
+    int nbr_ns[8] = { 0, 1, 2, 3, 3, 2, 3, 2 };
+    double dx, dy, dist_to_nbr[8], ew_res, ns_res;
+    double slope[8];
+    struct Cell_head window;
 
     count = 0;
 
     first_cum = n_points;
 
     G_message(_("A* Search..."));
+
+    G_get_set_window(&window);
+
+    for (ct_dir = 0; ct_dir < sides; ct_dir++) {
+	/* get r, c (r_nbr, c_nbr) for neighbours */
+	r_nbr = nextdr[ct_dir];
+	c_nbr = nextdc[ct_dir];
+	/* account for rare cases when ns_res != ew_res */
+	dy = abs(r_nbr) * window.ns_res;
+	dx = abs(c_nbr) * window.ew_res;
+	if (ct_dir < 4)
+	    dist_to_nbr[ct_dir] = dx + dy;
+	else
+	    dist_to_nbr[ct_dir] = sqrt(dx * dx + dy * dy);
+    }
+    ew_res = window.ew_res;
+    ns_res = window.ns_res;
 
     while (heap_size > 0) {
 	G_percent(count++, n_points, 1);
@@ -60,10 +90,36 @@ int do_astar(void)
 	    /* get r, c (r_nbr, c_nbr) for neighbours */
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
+	    slope[ct_dir] = ele_nbr[ct_dir] = 0;
 	    /* check that neighbour is within region */
 	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
 
 		is_in_list = FLAG_GET(in_list, r_nbr, c_nbr);
+		is_worked = FLAG_GET(worked, r_nbr, c_nbr);
+		if (!is_worked) {
+		    nindex = INDEX(r_nbr, c_nbr);
+		    ele_nbr[ct_dir] = ele[nindex];
+		    slope[ct_dir] =
+			get_slope2(ele_val, ele_nbr[ct_dir],
+				   dist_to_nbr[ct_dir]);
+		    /* avoid diagonal flow direction bias */
+		    if (ct_dir > 3) {
+			if (slope[nbr_ew[ct_dir]]) {
+			    /* slope to ew nbr > slope to center */
+			    if (slope[ct_dir] <
+				get_slope2(ele_nbr[nbr_ew[ct_dir]],
+					   ele_nbr[ct_dir], ew_res))
+				is_in_list = 1;
+			}
+			if (!is_in_list && slope[nbr_ns[ct_dir]]) {
+			    /* slope to ns nbr > slope to center */
+			    if (slope[ct_dir] <
+				get_slope2(ele_nbr[nbr_ns[ct_dir]],
+					   ele_nbr[ct_dir], ns_res))
+				is_in_list = 1;
+			}
+		    }
+		}
 
 		if (is_in_list == 0) {
 		    nindex = INDEX(r_nbr, c_nbr);
@@ -73,9 +129,9 @@ int do_astar(void)
 		    FLAG_SET(in_list, r_nbr, c_nbr);
 		}
 	    }
-	}			/* end neighbours */
+	}    /* end neighbours */
 	FLAG_SET(worked, r, c);
-    }				/* end A* search */
+    }    /* end A* search */
 
     G_percent(n_points, n_points, 1);	/* finish it */
 
@@ -160,7 +216,6 @@ unsigned int heap_add(int r, int c, CELL ele, char asp)
     nxt_avail_pt++;
 
     /* sift up: move new point towards top of heap */
-
     sift_up(heap_size, ele);
 
     return heap_size;
@@ -223,4 +278,12 @@ unsigned int heap_drop(void)
     heap_size--;
 
     return heap_size;
+}
+
+double get_slope2(CELL ele, CELL up_ele, double dist)
+{
+    if (ele == up_ele)
+	return 0.5 / dist;
+    else
+	return (double)(up_ele - ele) / dist;
 }
