@@ -8,6 +8,9 @@ function dominant_dir = dominant_dir(dir)
 %   32 64 128
 %   16 *   1
 %   8  4   2
+%
+% USAGE:  this scipt is a helper function for use by the
+%         calc_terraflow_dir.m script
 
 switch(dir)
   case {1,2,4,8,16,32,64,128}

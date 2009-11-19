@@ -13,9 +13,11 @@
 %   32 64 128
 %   16 *   1
 %   8  4   2
-
-% !r.out.mat in=terraflow.dir out=tf.mat
-% load tf.mat
+%
+% USAGE:
+%  !r.out.mat in=terraflow.dir out=tf.mat
+%  load tf.mat
+%  then run this script
 
 if ( exist('map_data') ~= 1)
     disp('you have to import map from GRASS first. r.out.mat->load file.mat')
@@ -56,3 +58,4 @@ if(0)
 !r.colors terraflow_aspect col=aspect
 !d.rast.arrow terraflow_aspect
 end
+
