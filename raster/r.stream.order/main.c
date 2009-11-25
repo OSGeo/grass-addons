@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *in_dir_opt, *in_stm_opt, *in_acc_opt, *out_str_opt, *out_shr_opt, *out_hck_opt, *out_hrt_opt;	/* options */
     struct Flag *out_back;	/* flags */
-    int stream_num;
+    int stream_num, i;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -161,6 +161,8 @@ int main(int argc, char *argv[])
     find_nodes(stream_num);
     if ((out_hack || out_horton) && !in_accum)
    do_cum_length();
+
+
     if (out_strahler || out_horton)
 	strahler();
     if (out_shreeve)
