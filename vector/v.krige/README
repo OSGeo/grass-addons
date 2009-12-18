@@ -1,0 +1,4 @@
+v.krige has been moved to trunk (GRASS 7.0) and devbr6 (GRASS
+6.5). Please install GRASS 6.5+ to use v.krige module.
+
+Martin Landa, 2009-12-18
