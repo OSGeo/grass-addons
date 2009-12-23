@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     output.dir_rast = G_define_standard_option(G_OPT_R_OUTPUT);
     output.dir_rast->key = "direction";
     output.dir_rast->description =
-	_("Output raster map with flow direction for streams");
+	_("Output raster map with flow direction");
     output.dir_rast->required = NO;
     output.dir_rast->guisection = _("Output options");
 
@@ -233,9 +233,8 @@ int main(int argc, char *argv[])
 
     /* allocate memory */
     ele = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
-    /* TODO: allocate acc and stream memory only after A* Search */
+    asp = (char *) G_malloc(nrows * ncols * sizeof(char));
     acc = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
-    stream = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
     if (input.weight->answer)
 	accweight = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
     else
@@ -258,15 +257,12 @@ int main(int argc, char *argv[])
 	if (do_accum(d8cut) < 0)
 	    G_fatal_error(_("could not calculate flow accumulation"));
     }
-    else {
-	/* load accumulation */
-    }
 
+    stream = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
     if (extract_streams
 	(threshold, mont_exp, (input.weight->answer != NULL), min_stream_length) < 0)
 	G_fatal_error(_("could not extract streams"));
 
-    G_free(ele);
     G_free(acc);
     if (input.weight->answer)
 	G_free(accweight);
@@ -286,7 +282,9 @@ int main(int argc, char *argv[])
 		   output.dir_rast->answer) < 0)
 	G_fatal_error(_("could not write output maps"));
 
+    G_free(ele);
     G_free(stream);
+    G_free(asp);
 
     exit(EXIT_SUCCESS);
 }

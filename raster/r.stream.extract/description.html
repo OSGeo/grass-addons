@@ -90,13 +90,11 @@ points. Points with category 1 = intermediate in layer 2 are at the
 location of confluences.
 <p>
 <dt><em>direction</em>
-<dd>Output raster map with flow direction for extracted streams. Flow
-direction is of D8 type with a range of 1 to 8. Multiplying values with
-45 gives degrees CCW from East. Flow direction was adjusted during
-thinning, taking shortcuts and skipping cells that were eliminated by
-the thinning procedure. Non-stream cells are set to NULL. A full,
-corrected flow direction map can be created by patching the
-<em>direction</em> output map with the flow direction map of r.watershed.
+<dd>Output raster map with flow direction for all non-NULL cells in
+input elevation. Flow direction is of D8 type with a range of 1 to 8.
+Multiplying values with 45 gives degrees CCW from East. Flow direction
+was adjusted during thinning, taking shortcuts and skipping cells that
+were eliminated by the thinning procedure.
 </dl>
 
 <h2>NOTES</h2>

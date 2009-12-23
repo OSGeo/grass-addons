@@ -236,7 +236,6 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
     CELL *cell_buf1, *cell_buf2;
     unsigned int thisindex;
     struct History history;
-    struct ddir draindir, *founddir;
 
     /* cheating... */
     stream_fd = dir_fd = -1;
@@ -266,17 +265,13 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
 	    if (stream[thisindex] > 0) {
 		if (stream_rast)
 		    cell_buf1[c] = stream[thisindex];
-		if (dir_rast) {
-		    draindir.pos = thisindex;
-		    if ((founddir =
-			 rbtree_find(draintree, &draindir)) != NULL) {
-			cell_buf2[c] = founddir->dir;
-		    }
-		    else {
-			cell_buf2[c] = 0;
-		    }
+	    }
+	    if (dir_rast) {
+		if (!G_is_c_null_value(&ele[thisindex])) {
+		    cell_buf2[c] = asp[thisindex];
 		}
 	    }
+	    
 	}
 	if (stream_rast)
 	    G_put_raster_row(stream_fd, cell_buf1, CELL_TYPE);

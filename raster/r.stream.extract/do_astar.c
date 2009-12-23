@@ -21,12 +21,11 @@ double get_slope2(CELL, CELL, double);
 int do_astar(void)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
-    struct ast_point astp;
+    unsigned int astp;
     int count, is_in_list, is_worked;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     CELL ele_val, ele_up, ele_nbr[8];
-    char asp_val;
     unsigned int thisindex, nindex;
     /* sides
      * |7|1|4|
@@ -38,6 +37,7 @@ int do_astar(void)
     double dx, dy, dist_to_nbr[8], ew_res, ns_res;
     double slope[8];
     struct Cell_head window;
+    int skip_me;
 
     count = 0;
 
@@ -80,7 +80,7 @@ int do_astar(void)
 	astar_pts[first_cum] = astp;
 	first_cum--;
 
-	thisindex = astp.idx;
+	thisindex = astp;
 	r = thisindex / ncols;
 	c = thisindex - r * ncols;
 
@@ -91,42 +91,50 @@ int do_astar(void)
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
 	    slope[ct_dir] = ele_nbr[ct_dir] = 0;
+	    skip_me = 0;
 	    /* check that neighbour is within region */
 	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
 
 		is_in_list = FLAG_GET(in_list, r_nbr, c_nbr);
 		is_worked = FLAG_GET(worked, r_nbr, c_nbr);
+		nindex = INDEX(r_nbr, c_nbr);
 		if (!is_worked) {
-		    nindex = INDEX(r_nbr, c_nbr);
 		    ele_nbr[ct_dir] = ele[nindex];
 		    slope[ct_dir] =
 			get_slope2(ele_val, ele_nbr[ct_dir],
 				   dist_to_nbr[ct_dir]);
+		}
+		if (!is_in_list) {
 		    /* avoid diagonal flow direction bias */
-		    if (ct_dir > 3) {
-			if (slope[nbr_ew[ct_dir]]) {
+		    if (ct_dir > 3 && slope[ct_dir] > 0) {
+			if (slope[nbr_ew[ct_dir]] > 0) {
 			    /* slope to ew nbr > slope to center */
 			    if (slope[ct_dir] <
 				get_slope2(ele_nbr[nbr_ew[ct_dir]],
 					   ele_nbr[ct_dir], ew_res))
-				is_in_list = 1;
+				skip_me = 1;
 			}
-			if (!is_in_list && slope[nbr_ns[ct_dir]]) {
+			if (!skip_me && slope[nbr_ns[ct_dir]] > 0) {
 			    /* slope to ns nbr > slope to center */
 			    if (slope[ct_dir] <
 				get_slope2(ele_nbr[nbr_ns[ct_dir]],
 					   ele_nbr[ct_dir], ns_res))
-				is_in_list = 1;
+				skip_me = 1;
 			}
 		    }
 		}
 
-		if (is_in_list == 0) {
-		    nindex = INDEX(r_nbr, c_nbr);
+		if (is_in_list == 0 && skip_me == 0) {
 		    ele_up = ele[nindex];
-		    asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-		    heap_add(r_nbr, c_nbr, ele_up, asp_val);
+		    asp[nindex] = drain[r_nbr - r + 1][c_nbr - c + 1];
+		    heap_add(r_nbr, c_nbr, ele_up, asp[nindex]);
 		    FLAG_SET(in_list, r_nbr, c_nbr);
+		}
+		else if (is_in_list && is_worked == 0) {
+		    /* neighbour is edge in list, not yet worked */
+		    if (asp[nindex] < 0) {
+			asp[nindex] = drain[r_nbr - r + 1][c_nbr - c + 1];
+		    }
 		}
 	    }
 	}    /* end neighbours */
@@ -161,7 +169,7 @@ int sift_up(unsigned int start, CELL elec)
 {
     unsigned int child, child_added, parent;
     CELL elep;
-    struct ast_point childp;
+    unsigned int childp;
 
     child = start;
     child_added = astar_added[child];
@@ -170,7 +178,7 @@ int sift_up(unsigned int start, CELL elec)
     while (child > 1) {
 	parent = get_parent(child);
 
-	elep = ele[astar_pts[parent].idx];
+	elep = ele[astar_pts[parent]];
 
 	/* child < parent */
 	if (heap_cmp(elec, child_added, elep, astar_added[parent]) == 1) {
@@ -210,8 +218,7 @@ unsigned int heap_add(int r, int c, CELL ele, char asp)
 	G_fatal_error(_("heapsize too large"));
 
     astar_added[heap_size] = nxt_avail_pt;
-    astar_pts[heap_size].idx = INDEX(r, c);
-    astar_pts[heap_size].asp = asp;
+    astar_pts[heap_size] = INDEX(r, c);
 
     nxt_avail_pt++;
 
@@ -240,13 +247,13 @@ unsigned int heap_drop(void)
     parent = 1;
     while ((child = get_child(parent)) <= heap_size) {
 
-	elec = ele[astar_pts[child].idx];
+	elec = ele[astar_pts[child]];
 
 	if (child < heap_size) {
 	    childr = child + 1;
 	    i = child + 3;
 	    while (childr <= heap_size && childr < i) {
-		eler = ele[astar_pts[childr].idx];
+		eler = ele[astar_pts[childr]];
 
 		if (heap_cmp
 		    (eler, astar_added[childr], elec,
@@ -269,7 +276,7 @@ unsigned int heap_drop(void)
 	astar_added[parent] = astar_added[heap_size];
 	astar_pts[parent] = astar_pts[heap_size];
 
-	elec = ele[astar_pts[parent].idx];
+	elec = ele[astar_pts[parent]];
 	/* sift up last swapped point, only necessary if hole moved to heap end */
 	sift_up(parent, elec);
     }

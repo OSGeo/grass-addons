@@ -26,7 +26,7 @@ int ele_round(double x)
 int load_maps(int ele_fd, int acc_fd, int weight_fd)
 {
     int r, c, thisindex;
-    char asp_value;
+    char asp_value, *aspp;
     void *ele_buf, *ptr, *acc_buf = NULL, *acc_ptr = NULL, *weight_buf =
 	NULL, *weight_ptr = NULL;
     CELL *loadp, ele_value;
@@ -37,7 +37,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
     int is_worked;
     size_t ele_size, acc_size = 0, weight_size = 0;
     int ele_map_type, acc_map_type = 0, weight_map_type = 0;
-    CELL *streamp;
     DCELL *accp, *weightp;
 
     if (acc_fd < 0 && weight_fd < 0)
@@ -85,7 +84,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
     in_list = flag_create(nrows, ncols);
 
     loadp = ele;
-    streamp = stream;
     accp = acc;
     weightp = accweight;
 
@@ -121,8 +119,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 
 	    FLAG_UNSET(worked, r, c);
 	    FLAG_UNSET(in_list, r, c);
-
-	    *streamp = 0;
 
 	    /* check for masked and NULL cells */
 	    if (G_is_null_value(ptr, ele_map_type)) {
@@ -177,7 +173,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 
 	    loadp++;
 	    accp++;
-	    streamp++;
 	    ptr = G_incr_void_ptr(ptr, ele_size);
 	    if (acc_fd >= 0)
 		acc_ptr = G_incr_void_ptr(acc_ptr, acc_size);
@@ -203,8 +198,8 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
     }
 
     astar_pts =
-	(struct ast_point *)G_malloc((n_points + 1) *
-				     sizeof(struct ast_point));
+	(unsigned int *)G_malloc((n_points + 1) *
+				     sizeof(unsigned int));
 
     /* astar_heap will track astar_pts in ternary min-heap */
     /* astar_heap is one-based */
@@ -216,11 +211,13 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
     /* load edge cells to A* heap */
     G_message(_("set edge points"));
     loadp = ele;
+    aspp = asp;
     for (r = 0; r < nrows; r++) {
 
 	G_percent(r, nrows, 2);
 	for (c = 0; c < ncols; c++) {
 
+	    *aspp = 0;
 	    is_worked = FLAG_GET(worked, r, c);
 
 	    if (is_worked)
@@ -249,6 +246,7 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 		thisindex = INDEX(r, c);
 		ele_value = ele[thisindex];
 		heap_add(r, c, ele_value, asp_value);
+		asp[thisindex] = asp_value;
 		FLAG_SET(in_list, r, c);
 		continue;
 	    }
@@ -266,12 +264,13 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 		    thisindex = INDEX(r, c);
 		    ele_value = ele[thisindex];
 		    heap_add(r, c, ele_value, asp_value);
+		    asp[thisindex] = asp_value;
 		    FLAG_SET(in_list, r, c);
 
 		    break;
 		}
 	    }
-
+	    aspp++;
 	}
     }
     G_percent(nrows, nrows, 2);	/* finish it */

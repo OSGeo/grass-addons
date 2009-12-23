@@ -260,16 +260,10 @@ int do_accum(double d8cut)
     for (killer = 1; killer <= n_points; killer++) {
 	G_percent(killer, n_points, 1);
 
-	thisindex = astar_pts[killer].idx;
+	thisindex = astar_pts[killer];
 	r = thisindex / ncols;
 	c = thisindex - r * ncols;
-	aspect = astar_pts[killer].asp;
-
-	/* do not distribute flow along edges */
-	if (aspect < 0) {
-	    G_debug(3, "edge");
-	    continue;
-	}
+	aspect = asp[thisindex];
 
 	if (aspect) {
 	    dr = r + asp_r[abs((int)aspect)];
@@ -287,7 +281,6 @@ int do_accum(double d8cut)
 
 	/***************************************/
 	/*  get weights for flow distribution  */
-
 	/***************************************/
 
 	max_weight = 0;
@@ -359,7 +352,6 @@ int do_accum(double d8cut)
 
 	/************************************/
 	/*  distribute and accumulate flow  */
-
 	/************************************/
 
 	/* MFD, A * path not included, add to mfd_cells */
@@ -433,6 +425,7 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 {
     int r, c, dr, dc;
     CELL is_swale, ele_val, ele_nbr;
+    CELL *streamp;
     DCELL value, valued;
     struct Cell_head window;
     int mfd_cells, stream_cells, swale_cells, astar_not_set, is_null;
@@ -497,15 +490,24 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
     /* reset worked flag */
     flag_clear_all(worked);
 
+    /* initialize streams */
+    streamp = stream;
+    for (r = 0; r < nrows; r++) {
+	for (c = 0; c < ncols; c++) {
+	    *streamp = 0;
+	    streamp++;
+	}
+    }
+
     workedon = 0;
 
     for (killer = 1; killer <= n_points; killer++) {
 	G_percent(killer, n_points, 1);
 
-	thisindex = astar_pts[killer].idx;
+	thisindex = astar_pts[killer];
 	r = thisindex / ncols;
 	c = thisindex - r * ncols;
-	aspect = astar_pts[killer].asp;
+	aspect = asp[thisindex];
 
 	/* do not distribute flow along edges */
 	if (aspect < 0) {
@@ -537,8 +539,8 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 	    dc = c;
 	}
 
-	r_max = dr;
-	c_max = dc;
+	r_nbr = r_max = dr;
+	c_nbr = c_max = dc;
 
 	value = acc[thisindex];
 
@@ -556,7 +558,7 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 	is_null = 0;
 	edge = 0;
 	flat = 1;
-	/* this loop is needed to get the sum of weights */
+	/* find main drainage direction */
 	for (ct_dir = 0; ct_dir < sides; ct_dir++) {
 	    /* get r_nbr, c_nbr for neighbours */
 	    r_nbr = r + nextdr[ct_dir];
@@ -630,6 +632,10 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 		outlets[n_outlets].r = r;
 		outlets[n_outlets].c = c;
 		n_outlets++;
+		if (asp[thisindex] > 0) {
+		    aspect = -1 * drain[r - r_nbr + 1][c - c_nbr + 1];
+		    asp[thisindex] = aspect;
+		}
 	    }
 	    continue;
 	}
@@ -655,6 +661,11 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 	else if (mfd_cells == 0) {
 	    flat = 0;
 	    max_side = np_side;
+	}
+
+	/* update aspect */
+	if ((r_max != dr || c_max != dc) && (r_max != r || c_max != c)) {
+	    asp[thisindex] = drain[r - r_max + 1][c - c_max + 1];
 	}
 
 	is_swale = stream[thisindex];
@@ -717,23 +728,25 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 	/*  continue stream  */
 	/*********************/
 
-	/* can't continue stream, add outlet point */
-	if (is_swale > 0 && r_max == r && c_max == c) {
-	    G_debug(2, "can't continue stream at %d %d", r, c);
+	if (is_swale > 0) {
+	    /* can't continue stream, add outlet point */
+	    if (r_max == r && c_max == c) {
+		G_debug(2, "can't continue stream at %d %d", r, c);
 
-	    if (n_outlets >= n_alloc_outlets) {
-		n_alloc_outlets += stream_node_step;
-		outlets =
-		    (struct point *)G_malloc(n_alloc_outlets *
-					     sizeof(struct point));
+		if (n_outlets >= n_alloc_outlets) {
+		    n_alloc_outlets += stream_node_step;
+		    outlets =
+			(struct point *)G_malloc(n_alloc_outlets *
+						 sizeof(struct point));
+		}
+		outlets[n_outlets].r = r;
+		outlets[n_outlets].c = c;
+		n_outlets++;
 	    }
-	    outlets[n_outlets].r = r;
-	    outlets[n_outlets].c = c;
-	    n_outlets++;
-	}
-	else if (is_swale > 0) {
-	    continue_stream(is_swale, r, c, r_max, c_max, thisindex,
-			    &stream_no, min_length);
+	    else {
+		continue_stream(is_swale, r, c, r_max, c_max, thisindex,
+				&stream_no, min_length);
+	    }
 	}
 
 	FLAG_SET(worked, r, c);
@@ -744,6 +757,7 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 
     flag_destroy(worked);
     G_free(dist_to_nbr);
+    G_free(astar_pts);
 
     G_debug(1, "%d outlets", n_outlets);
     G_debug(1, "%d nodes", n_stream_nodes);

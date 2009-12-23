@@ -14,12 +14,6 @@ struct ddir
     int dir;
 };
 
-struct ast_point
-{
-    int idx;
-    char asp;
-};
-
 struct point
 {
     int r, c;
@@ -37,7 +31,7 @@ struct snode
 } *stream_node;
 
 int nrows, ncols;
-struct ast_point *astar_pts;
+unsigned int *astar_pts;
 unsigned int n_search_points, n_points, nxt_avail_pt;
 unsigned int heap_size, *astar_added;
 unsigned int n_stream_nodes, n_alloc_nodes;
@@ -45,8 +39,8 @@ struct point *outlets;
 unsigned int n_outlets, n_alloc_outlets;
 DCELL *acc, *accweight;
 CELL *ele;
+char *asp;
 CELL *stream;
-int *strahler, *horton;   /* strahler and horton order */
 FLAG *worked, *in_list;
 extern char drain[3][3];
 unsigned int first_cum;

@@ -58,6 +58,7 @@ int thin_seg(int stream_id)
 		last_r = r_nbr;
 		last_c = c_nbr;
 		draindir.pos = INDEX(last_r, last_c);
+		asp[draindir.pos] = founddir->dir;
 
 		thinned = 1;
 	    }
