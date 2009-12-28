@@ -184,12 +184,12 @@ map_comment="1:$scale"
 
 
 # create cpt color table from raster's colr file
-eval `g.findfile elem=colr file="$MAP_NAME" | grep "^file="`
+eval `g.findfile elem=colr file="$GIS_OPT_INPUT" | grep "^file="`
 COLR_FILE="$file"
 
 echo "#" > "$OUTPUT_CPT"
 echo "# GMT colormap created by the `g.version` r.out.gmt script" >> "$OUTPUT_CPT"
-echo "# from base map [$MAP_NAME]" >> "$OUTPUT_CPT"
+echo "# from base map [$GIS_OPT_INPUT]" >> "$OUTPUT_CPT"
 echo "# created by ${USER}@${HOSTNAME} at `date`" >> "$OUTPUT_CPT"
 echo "#" >> "$OUTPUT_CPT"
 echo "# COLOR_MODEL = RGB" >> "$OUTPUT_CPT"

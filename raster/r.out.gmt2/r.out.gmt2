@@ -219,7 +219,7 @@ annotated_tic_interval=`expr $tic_interval '*' 10`
 eval "comment=\"$comment\""
 
 # create cpt color table from raster's colr file
-eval `g.findfile elem=colr file="$map_name" | grep "^file="`
+eval `g.findfile elem=colr file="$input_map" | grep "^file="`
 colr_file="$file"
 
 cat<<EOT > "$output_cpt"
