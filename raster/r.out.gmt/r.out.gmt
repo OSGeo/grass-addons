@@ -113,11 +113,11 @@ MAP_TYPE=`r.info -t "$MAP_NAME" | cut -f2 -d'='`
 
 case "$MAP_TYPE" in
     CELL)
-	MAP_TAG="=2" ;;
+	MAP_TAG="=bs" ;;
     FCELL)
-	MAP_TAG="=1" ;;
+	MAP_TAG="=bf" ;;
     DCELL)
-	MAP_TAG="=1"
+	MAP_TAG="=bf"
 	echo "WARNING: Converting from double precision to floating point map" 1>&2
 	r.mapcalc "tmp_gmt_$$=float($MAP_NAME)"
 	MAP_NAME=tmp_gmt_$$
@@ -235,14 +235,17 @@ if [ $GIS_FLAG_p -eq 1 ] ; then
     echo "==================================================" 1>&2
     echo 1>&2
     # setup basemap
-    echo "psbasemap -J$projection_string -R${w}/${e}/${s}/${n} \\
+    echo "psbasemap -J$projection_string \\
+   -R${w}/${e}/${s}/${n} \\
    -Bpf${tic_interval}a${annotated_tic_interval}:\"Easting (m)\":/f${tic_interval}a${annotated_tic_interval}:\"Northing (m)\"::.\"$OUT_BASE\":WeSn \\
-   -X$x_offset -Y$y_offset -U\"scale $map_comment\" \\
-   --D_FORMAT='%.15g' -K -V > $OUTPUT_PS"
+   -X$x_offset -Y$y_offset \\
+   -U\"scale $map_comment\" \\
+   --D_FORMAT='%.15g' \\
+   -K -V > $OUTPUT_PS"
 
     echo 1>&2
     # render the grid with the translated color palette
-    # note that we append a =2 after the grd filename- this instructs GMT to read it as an INT GRD
+    # note that we append a =bs after the grd filename- this instructs GMT to read it as an INT GRD
     # -J inherit the projection information from previous declaration
     # -R inherit the region information from previous declaration (important when regions of grd files do not match!!)
     # -K allows for further PS additions later ("K"eeps PostScript file open)
