@@ -158,7 +158,8 @@ projection_string="X${map_width}i/${map_length}i"
 # might need to play around with these so that none of the image is cropped by the printer
 #  x_offset=".25i"    
 x_offset="c"	#have GMT horizontally center the map
-y_offset="0.7i"
+#y_offset="0.7i"
+y_offset="c"
 
 # compute the scale in meters
 # 39.369 inch/meter
@@ -236,16 +237,16 @@ if [ $GIS_FLAG_p -eq 1 ] ; then
     # setup basemap
     echo "psbasemap -J$projection_string -R${w}/${e}/${s}/${n} \\
    -Bpf${tic_interval}a${annotated_tic_interval}:\"Easting (m)\":/f${tic_interval}a${annotated_tic_interval}:\"Northing (m)\"::.\"$OUT_BASE\":WeSn \\
-   -X$x_offset -Y$y_offset -U\"scale $map_comment\" -P -K -V > $OUTPUT_PS"
+   -X$x_offset -Y$y_offset -U\"scale $map_comment\" \\
+   --D_FORMAT='%.15g' -K -V > $OUTPUT_PS"
 
     echo 1>&2
     # render the grid with the translated color palette
     # note that we append a =2 after the grd filename- this instructs GMT to read it as an INT GRD
     # -J inherit the projection information from previous declaration
-       # ?? "-J" on its own doesn't work ?? GMT Debian/Sarge Version: 3.4.4-1
     # -R inherit the region information from previous declaration (important when regions of grd files do not match!!)
-    # -K allows for further PS additions later
-    # -O uses preset plotting grid
+    # -K allows for further PS additions later ("K"eeps PostScript file open)
+    # -O uses preset plotting grid ("O"verlays)
     echo grdimage "${OUTPUT_GRD}${MAP_TAG} -C${OUTPUT_CPT} -J$projection_string \\
    -R -K -O -V >> $OUTPUT_PS"
 
