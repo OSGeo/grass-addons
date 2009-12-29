@@ -1,0 +1,133 @@
+#!/bin/sh
+#
+############################################################################
+#
+# MODULE:       v.in.lines
+#
+# AUTHOR(S):    Hamish Bowman
+#
+# PURPOSE:      Import point data as lines ('v.in.mapgen -f' wrapper script)
+#
+# COPYRIGHT:    (c) 2009 The GRASS Development Team
+#
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+#############################################################################
+#%Module
+#% description: Import ASCII x,y[,z] coordinates as a series of lines.
+#% keywords: vector, import
+#%End
+#%flag
+#% key: z
+#% description: Create a 3D line from 3 column data 
+#%end
+#%option
+#% key: input
+#% type: string
+#% gisprompt: old_file,file,input
+#% description: Name of input file (or "-" to read from stdin)
+#% required : yes
+#%end
+#%option
+#% key: output
+#% type: string
+#% gisprompt: new,vector,vector
+#% description: Name for output vector map
+#% required : yes
+#%end
+#%option
+#% key: fs
+#% type: string
+#% key_desc: character
+#% description: Field separator
+#% answer: |
+#% required: no
+#%end
+
+
+if [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program." >&2
+    exit 1
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+  exec g.parser "$0" "$@"
+fi
+
+
+#### setup temporary file
+TMP="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$TMP" ] ; then
+    g.message -e "unable to create temporary files"
+    exit 1
+fi
+
+#### trap ctrl-c so that we can clean up tmp
+trap 'rm -f "$TMP"' 2 3 15
+
+#### parse field separator
+if [ "$GIS_OPT_FS" = "space" ] || [ "$GIS_OPT_FS" = "tab" ] ; then
+   fs=" "
+else
+   fs="`echo "$GIS_OPT_FS" | cut -c1`"
+fi
+
+
+if [ "$GIS_OPT_INPUT" = "-" ] ; then
+   # read from stdin to temp file  (code borrowed from m.proj)
+   EXITCODE=0
+   while [ $EXITCODE -eq 0 ] ; do
+      unset REPLY
+      read REPLY
+      EXITCODE=$?
+      if [ -n "$REPLY" ] ; then
+	 echo "$REPLY" >> "$TMP.raw"
+      fi
+   done
+
+   if [ "$fs" = " " ] ; then
+     \mv -f "$TMP.raw" "$TMP"
+   else
+     tr "$fs" ' ' < "$TMP.raw" > "$TMP"
+     \rm  -f "$TMP.raw"
+   fi
+
+   # make sure we have at least one line of data
+   if [ "`wc -l "$TMP" | cut -f1 -d' '`" -eq 0 ] ; then
+      g.message -e "Problem reading data from stdin"
+      exit 1
+   fi
+
+   INFILE="$TMP"
+else
+   if [ "$fs" = " " ] ; then
+      INFILE="$GIS_OPT_INPUT"
+   else
+      tr "$fs" ' ' < "$GIS_OPT_INPUT" > "$TMP"
+      INFILE="$TMP"
+   fi
+fi
+
+
+if [ "$GIS_FLAG_Z" -eq 1 ] ; then
+   ZFLAG="-z"
+else
+   ZFLAG=""
+fi
+
+if [ -z "`head -n 1 "$INFILE" | sed -e 's/[^ \t]*$//'`" ] ; then
+   g.message -e "Not enough data columns. (incorrect fs setting?)"
+   rm -f "$TMP"
+   exit 1
+fi
+
+v.in.mapgen -f $ZFLAG in="$INFILE" out="$GIS_OPT_OUTPUT"
+EXITCODE=$?
+
+#cleanup
+rm -f "$TMP"
+
+
+exit $EXITCODE
