@@ -130,6 +130,22 @@ cleanup()
 trap 'cleanup' 2 3 15
 
 
+SCAN_COLUMN_DEF="timestamp VARCHAR(30), unix_time DOUBLE PRECISION, \
+    center_lon DOUBLE PRECISION, center_lat DOUBLE PRECISION, \
+    headng_deg DOUBLE PRECISION, velo_km_hr DOUBLE PRECISION, \
+    tdrdepth_m DOUBLE PRECISION, roll_degr DOUBLE PRECISION, \
+    pitch_degr DOUBLE PRECISION, heave_m DOUBLE PRECISION"
+
+PT_COLUMN_DEF="port_lon DOUBLE PRECISION, port_lat DOUBLE PRECISION, \
+    stbd_lon DOUBLE PRECISION, stbd_lat DOUBLE PRECISION"
+
+LINE_COLUMN_DEF="cat INTEGER, filename VARCHAR(255), start_time VARCHAR(30), \
+    end_time VARCHAR(30), start_lat DOUBLE PRECISION, \
+    start_lon DOUBLE PRECISION, end_lat DOUBLE PRECISION, \
+    end_lon DOUBLE PRECISION"
+
+
+
 cat "$GIS_OPT_INPUT" | cut -f3-4 > "$TMP.trk"
 cat "$GIS_OPT_INPUT" | cut -f12,14 > "$TMP.port.trk"
 cat "$GIS_OPT_INPUT" | cut -f16,18 > "$TMP.stbd.trk"
@@ -137,9 +153,14 @@ cat "$GIS_OPT_INPUT" | cut -f16,18 > "$TMP.stbd.trk"
 if [ -z "$GRASS_VERBOSE" ] ; then
     GRASS_VERBOSE=0
     export GRASS_VERBOSE
+    VERBOSE_PRESET=false
+else
+    VERBOSE_PRESET=true
 fi
 
-# import vector coordinates
+
+#### import vector coordinates ####
+
 case "$GIS_OPT_TYPE" in
     track)
 	v.in.mapgen -f in="$TMP.trk" out="tmp_v_in_fnv_$$_1"
@@ -187,8 +208,9 @@ case "$GIS_OPT_TYPE" in
 	# and yet... something's wrong.
 	;;
     track_pts)
-	v.in.ascii in="$GIS_OPT_INPUT" out="$GIS_OPT_OUTPUT" x=3 y=4 fs=tab \
-	    columns="$COLUMN_DEF"
+	tr -s '\t' '|' < "$GIS_OPT_INPUT" | v.in.ascii \
+	    out="$GIS_OPT_OUTPUT" x=3 y=4 fs='|' \
+	    columns="$SCAN_COLUMN_DEF, $PT_COLUMN_DEF"
 	;;
     all_pts)
 	 awk 'BEGIN { R=0 } 
@@ -196,13 +218,19 @@ case "$GIS_OPT_TYPE" in
            "$GIS_OPT_INPUT" > "${TMP}_all.pts"
 
 	v.in.ascii in="${TMP}_all.pts" out="$GIS_OPT_OUTPUT" x=3 y=4 fs=tab \
-	    columns='scanline integer, side varchar(6), lon double precision, lat double precision'
+	    columns='scanline INTEGER, side VARCHAR(6), lon DOUBLE PRECISION, lat DOUBLE PRECISION'
 	;;
 esac
 
+if [ $? -ne 0 ] ; then
+    g.message -e "Import failed."
+    cleanup
+    exit 1
+fi
 
-#### attach attributes
-# see v.in.garmin for example
+
+
+#### attach attributes ####
 
 START_TIME=`head -n 1 "$GIS_OPT_INPUT" | cut -f1`
 END_TIME=`tail -n 1 "$GIS_OPT_INPUT" | cut -f1`
@@ -210,11 +238,6 @@ START_LAT=`head -n 1 "$TMP.trk" | cut -f2`
 END_LAT=`tail -n 1 "$TMP.trk" | cut -f2`
 START_LON=`head -n 1 "$TMP.trk" | cut -f1`
 END_LON=`tail -n 1 "$TMP.trk" | cut -f1`
-
-
-SCAN_COLUMN_DEF='cat INTEGER, timestamp VARCHAR(21), unix_time DOUBLE PRECISION, center_lon DOUBLE PRECISION, center_lat DOUBLE PRECISION, headng_deg DOUBLE PRECISION, velo_km_hr DOUBLE PRECISION, trn_dept_m DOUBLE PRECISION, roll_degr DOUBLE PRECISION, pitch_degr DOUBLE PRECISION, heave_m DOUBLE PRECISION'
-PT_COLUMN_DEF='port_lon DOUBLE PRECISION, port_lat DOUBLE PRECISION, stbd_lon DOUBLE PRECISION, stbd_lat DOUBLE PRECISION'
-LINE_COLUMN_DEF='cat INTEGER, filename VARCHAR(255), start_time VARCHAR(30), end_time VARCHAR(30), start_lat DOUBLE PRECISION, start_lon DOUBLE PRECISION, end_lat DOUBLE PRECISION, end_lon DOUBLE PRECISION'
 
 # Start/end points for port & stbd tracks refer to the ship's start/end points,
 #  not the outward beam's (that data is stored in the coords if you really
@@ -239,26 +262,12 @@ case "$GIS_OPT_TYPE" in
 	;;
 esac
 
-case "$GIS_OPT_TYPE" in
-    scanlines | track_pts | all_pts)
-	v.db.addtable map="$GIS_OPT_OUTPUT" columns="$SCAN_COLUMN_DEF"
-	echo "DELETE FROM $GIS_OPT_OUTPUT" | db.execute
 
-	###cat "$GIS_OPT_INPUT" | awk '{print $1 $2 $3 ...}' | db.execute
-
-	#echo "INSERT INTO  $GIS_OPT_OUTPUT  VALUES \
-	#  ($GIS_OPT_CAT, '`basename $GIS_OPT_INPUT`', '$START_TIME', \
-	#   '$END_TIME', $START_LAT, $START_LON, $END_LAT, $END_LON)" \
-	#   | db.execute
-	;;
-esac
-case "$GIS_OPT_TYPE" in
-    track_pts | all_pts)
-	v.db.addcol map="$GIS_OPT_OUTPUT" columns="$PT_COLUMN_DEF"
-	# paste  "$TMP.port.trk" "$TMP.stbd.trk" | sed | db.execute
-	;;
-esac
-
+if [ $? -ne 0 ] ; then
+    g.message -e "Import failed."
+    cleanup
+    exit 1
+fi
 
 
 case "$GIS_OPT_TYPE" in
@@ -269,32 +278,48 @@ case "$GIS_OPT_TYPE" in
 	    units=meters column=length_m
 	TRK_LENGTH=`v.db.select -c map="$GIS_OPT_OUTPUT" col=length_m`
 	v.support -r map="$GIS_OPT_OUTPUT" \
-	    map_name="Ship's track began $START_TIME and travelled $TRK_LENGTH meters"
+	    map_name="Ship's track for `basename $GIS_OPT_INPUT`" \
+	    comment="Track began $START_TIME and travelled $TRK_LENGTH meters"
 	;;
     port_trk)
 	v.db.update map="$GIS_OPT_OUTPUT" column="side" value='port'
 	v.support -r map="$GIS_OPT_OUTPUT" \
-	    map_name="Outward end of port beam beginning $START_TIME"
+	    map_name="Port beam extent of `basename $GIS_OPT_INPUT`" \
+	    comment="Outward end of port beam beginning $START_TIME"
 	;;
     stbd_trk)
 	v.db.update map="$GIS_OPT_OUTPUT" column="side" value='stbd'
 	v.support -r map="$GIS_OPT_OUTPUT" \
-	    map_name="Outward end of stbd beam beginning $START_TIME"
+	    map_name="Starboard beam extent of `basename $GIS_OPT_INPUT`" \
+	    comment="Outward end of stbd beam beginning $START_TIME"
 	;;
     scanlines)
 	# 1 entry per line of .fnv. No need for endpoints, already encoded.
-	# includes time, roll, pitch, etc, width!
+	# includes time, roll, pitch, etc, and we add line width with v.to.db.
+	v.db.addtable map="$GIS_OPT_OUTPUT" \
+	   columns="cat INTEGER, $SCAN_COLUMN_DEF"
+	echo "DELETE FROM $GIS_OPT_OUTPUT" | db.execute
 
+	awk -F'\t' -v NAME="$GIS_OPT_OUTPUT" 'BEGIN{ R = 0 }
+	   { R++;
+	     printf("INSERT INTO %s VALUES (%d, ^%s^, %.3f, %s, %s, %s, %s, %s, %s, %s, %s);\n",
+		    NAME, R, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10) }' \
+	     "$GIS_OPT_INPUT" | tr '^' \' | db.execute
 
+	v.db.addcol map="$GIS_OPT_OUTPUT" columns="width_m DOUBLE PRECISION"
 
+	if [ "$VERBOSE_PRESET" = "true" ] ; then
+	    v.to.db map="$GIS_OPT_OUTPUT" type=line option=length \
+		units=meters column=width_m
+	else
+	    GRASS_VERBOSE=2 \
+	      v.to.db map="$GIS_OPT_OUTPUT" type=line option=length \
+		units=meters column=width_m
+	fi
 
-
-    	v.db.addcol map="$GIS_OPT_OUTPUT" \
-	    columns="width_m DOUBLE PRECISION"
-	v.to.db map="$GIS_OPT_OUTPUT" type=line option=length \
-	    units=meters column=width_m
 	v.support -r map="$GIS_OPT_OUTPUT" \
-	    map_name="Scanlines for `basename $GIS_OPT_INPUT`"
+	    map_name="Scanlines for `basename $GIS_OPT_INPUT`" \
+	    comment="Track began at $START_TIME"
 	;;
     swath)
 	v.db.addcol map="$GIS_OPT_OUTPUT" columns="area_sq_m DOUBLE PRECISION"
@@ -305,19 +330,23 @@ case "$GIS_OPT_TYPE" in
 	    comment="Track began at $START_TIME"
 	;;
     track_pts)
-	#v.db.addcol map="$GIS_OPT_OUTPUT" columns="filename varchar(255)"
-	#  $COLUMN_DEF
 	v.support -r map="$GIS_OPT_OUTPUT" \
-	    map_name="Ship's track for `basename $GIS_OPT_INPUT`"
+	    map_name="Ship's track for `basename $GIS_OPT_INPUT`" \
+	    comment="Track began at $START_TIME"
 	;;
     all_pts)
+	v.db.dropcol map="$GIS_OPT_OUTPUT" column="lat"
+	v.db.dropcol map="$GIS_OPT_OUTPUT" column="lon"
 	v.support -r map="$GIS_OPT_OUTPUT" \
-	    map_name="Ship's track and beam ends for `basename $GIS_OPT_INPUT`"
+	    map_name="Ship's track & beam ends for `basename $GIS_OPT_INPUT`" \
+	    comment="Track began at $START_TIME"
 	;;
 esac
 
+EXITCODE=$?
+
 cleanup
-exit
+exit $EXITCODE
 
 
 

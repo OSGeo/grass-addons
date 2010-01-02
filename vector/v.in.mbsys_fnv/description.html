@@ -1,23 +1,60 @@
 <H2>DESCRIPTION</H2>
 
+This module will import <tt>.fnv</tt> format navigation files generated
+by <a href="http://www.ldeo.columbia.edu/res/pi/MB-System/">MB-System</a>.
+Ship's track and swath coverage information may be imported in a number
+of different ways.
 
 
 <H2>NOTES</H2>
 
+Geodesic line length/swath width (in meters) is provided for the <i>track</i>
+line and <i>scanline</i> types, and geodesic area (in square meters) is given
+for the swath coverage type.
+<P>
+The databases for <i>port_trk</i> and <i>stbd_trk</i> line maps contain
+the ship's <i>center track line</i> lat/lon starting and ending position,
+not the starting and ending position of the outward beams. Positions
+for the start and end points of the outward beams are encoded in the
+map data and may be extracted with e.g. the <em>v.to.db</em> module.
+
+
+<H2>EXAMPLE</H2>
+
+The <em>v.patch</em> module can be used to group many scan lines together
+into the same map.
+
+<div class="code"><pre>
+COUNT=0
+for TRACK in `cut -f1 survey-datalines.txt` ; do
+   COUNT=`expr $COUNT + 1`
+   v.in.mbsys_fnv in="${TRACK}.fnv" out=trk_"`basename $TRACK`" type=track cat=$COUNT
+done
+
+v.patch -e in=`g.mlist vect=trk_* sep=,` out=all_tracks bbox=all_tracks_bbox
+</pre></div>
 
 
 <H2>SEE ALSO</H2>
 <em>
 <A HREF="v.in.ascii.html">v.in.ascii</A><br>
 <A HREF="v.in.mapgen.html">v.in.mapgen</A><br>
-<A HREF="r.in.xyz.html">r.in.xyz</A>
+<A HREF="r.in.xyz.html">r.in.xyz</A><br>
+<A HREF="v.patch.html">v.patch</A><br>
+<A HREF="v.to.db.html">v.to.db</A>
 </em>
+<BR><BR>
+<a href="http://www.ldeo.columbia.edu/res/pi/MB-System/">MB-System</a>
+ software for multibeam and sidescan sonar processing
 
 
 <H2>AUTHOR</H2>
 
 Hamish Bowman<BR>
-Dunedin, New Zealand
+<i>Dept. Marine Science<br>
+University of Otago<br>
+Dunedin, New Zealand</i>
+<BR>
 
 <p>
 <i>Last changed: $Date$</i>
