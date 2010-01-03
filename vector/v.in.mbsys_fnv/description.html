@@ -17,21 +17,50 @@ the ship's <i>center track line</i> lat/lon starting and ending position,
 not the starting and ending position of the outward beams. Positions
 for the start and end points of the outward beams are encoded in the
 map data and may be extracted with e.g. the <em>v.to.db</em> module.
+<P>
+If you want to patch the tracks together later it is suggested to extract
+some sort of integer from the input filename to set as the category
+number. GRASS vector maps must have SQL compliant names, i.e. they
+may not start with a number or contain characters such as "." or "-".
 
 
 <H2>EXAMPLE</H2>
 
-The <em>v.patch</em> module can be used to group many scan lines together
-into the same map.
+Here is a loop to read in all the maps listed in the
+<tt>datalist-1</tt> file and import tracks and swath coverages for them.
+Category is simply left as an incrementing number as naming schemes will
+be dataset or equipment specific.
 
 <div class="code"><pre>
-COUNT=0
-for TRACK in `cut -f1 survey-datalines.txt` ; do
-   COUNT=`expr $COUNT + 1`
-   v.in.mbsys_fnv in="${TRACK}.fnv" out=trk_"`basename $TRACK`" type=track cat=$COUNT
-done
+for TYPE in track swath ; do
+   COUNT=0
+   for TRACK in `cut -f1 -d' ' datalist-1` ; do
+      COUNT=`expr $COUNT + 1`
+      OUTNAME="${TYPE}_$( echo "`basename $TRACK .fnv`" | sed -e 's/[- .]/_/g' )"
+      echo "Importing <$OUTNAME> ..."
 
-v.patch -e in=`g.mlist vect=trk_* sep=,` out=all_tracks bbox=all_tracks_bbox
+      v.in.mbsys_fnv in="${TRACK}.fnv" out="$OUTNAME" type=$TYPE cat=$COUNT
+   done
+done
+</pre></div>
+
+Here is an example of how you might derive a category number from the filename,
+in this case it is concatenating the Julian day with the hour/minute timestamp:
+<div class="code"><pre>
+#FILENAME="MB2004-132-1219.xtf.fnv"
+OUTNAME=track_MB2004_132_1219_xtf
+
+CAT=`echo "$OUTNAME" | cut -f3,4 -d'_' | tr -d '_'`
+
+# cat is now set as 1321219
+</pre></div>
+
+
+The <em>v.patch</em> module can be used to group many scan lines together
+into the same map:
+<div class="code"><pre>
+v.patch -e in=`g.mlist type=vect pattern=trk_* sep=,` out=all_tracks \
+   bbox=all_tracks_bbox
 </pre></div>
 
 
