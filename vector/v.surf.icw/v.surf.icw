@@ -137,7 +137,7 @@ if [ "$FRICTION" -lt 1 ] || [ "$FRICTION" -gt 6 ]; then
     exit 1
 fi
 
-unset DIVISOR
+DIVISOR=""
 if [ "$FRICTION" -eq 4 ] ; then DIVISOR=" / 10.0" ; fi
 if [ "$FRICTION" -eq 5 ] ; then DIVISOR=" / 100.0" ; fi
 if [ "$FRICTION" -eq 6 ] ; then DIVISOR=" / 500.0" ; fi
