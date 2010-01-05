@@ -101,7 +101,7 @@
 #%end
 #%flag
 #% key: v
-#% description: Verbose mode
+#% description: Verbose mode (to be removed soon; use --verbose instead)
 #%end
 
 
