@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: r.stream.pos</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>r.stream.pos</b></em>  - Route azimuth, direction and relation to streams of higher order
+<h2>KEYWORDS</h2>
+stream, order, route azimuth, route direction
+<h2>SYNOPSIS</h2>
+<b>r.stream.pos</b><br>
+<b>r.stream.pos help</b><br>
+<b>r.stream.pos</b> [-<b>s</b>] <b>stream</b>=<em>string</em> <b>dir</b>=<em>string</em> <b>multipier</b>=<em>integer</em>  [<b>cells</b>=<em>string</em>]   [<b>lengths</b>=<em>string</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
+
+<h3>Flags:</h3>
+<DL>
+<DT><b>-s</b></DT>
+<DD>Create new stream category sequence</DD>
+
+<DT><b>--overwrite</b></DT>
+<DD>Allow output files to overwrite existing files</DD>
+<DT><b>--verbose</b></DT>
+<DD>Verbose module output</DD>
+<DT><b>--quiet</b></DT>
+<DD>Quiet module output</DD>
+</DL>
+
+<h3>Parameters:</h3>
+<DL>
+<DT><b>stream</b>=<em>string</em></DT>
+<DD>Name of stream mask input map (r.watershed or r.stream.extract)</DD>
+
+<DT><b>dir</b>=<em>string</em></DT>
+<DD>Name of direction input map (r.watershed or r.stream.extract)</DD>
+
+<DT><b>multipier</b>=<em>integer</em></DT>
+<DD>Multipier to store stream index value</DD>
+<DD>Must be &gt; 0</DD>
+<DD>Default: <em>1000</em></DD>
+
+<DT><b>cells</b>=<em>string</em></DT>
+<DD>File to store pixel's position</DD>
+
+<DT><b>lengths</b>=<em>string</em></DT>
+<DD>File to store current stream length</DD>
+
+</DL>
+<HR>
+<P><a href="index.html">Main index</a> - <a href="raster.html">raster index</a> - <a href="full_index.html">Full index</a></P>
+<P>&copy; 2003-2009 <a href="http://grass.osgeo.org">GRASS Development Team</a></p>
+</body>
+</html>
