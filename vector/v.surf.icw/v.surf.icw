@@ -231,7 +231,7 @@ for POS in `cat "$TMP_POINTS"` ; do
     fi
 
 #    echo "$EASTING $NORTHING $DATA_VALUE" | v.in.ascii output=tmp_idw_cost_site_$$ fs=space --o 2> /dev/null
-    r.cost $VERBOSE -k in=tmp_icw_area_$$ out=cost_site.$NUM coordinate=$EASTING,$NORTHING
+    r.cost $VERBOSE -k in=tmp_icw_area_$$ output=cost_site.$NUM coordinate=$EASTING,$NORTHING
         #start_points=tmp_idw_cost_site_$$
 
     # so the divisor exists and the weighting is huge at the exact sample spots
