@@ -145,10 +145,12 @@ if [ "$FRICTION" -eq 6 ] ; then DIVISOR=" / 500.0" ; fi
 
 POINTS_FILE="$GIS_OPT_INPUT"
 
-unset VERBOSE
-# test to see if G_V exists before integer compare?
-if [ $GIS_FLAG_V -eq 1 ] || [ "$GRASS_VERBOSE" -gt 1 ] ; then
+
+if [ $GIS_FLAG_V -eq 1 ] || \
+ ( [ -n "$GRASS_VERBOSE" ] && [ "$GRASS_VERBOSE" -gt 1 ] ) ; then
    VERBOSE="-v"
+else
+   VERBOSE=""
 fi
 
 ### Check that we have the column and it is the correct type
