@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <grass/gis.h>
+#include <grass/Vect.h>
 
 
 					/* define */
@@ -26,7 +27,7 @@ OUTLET {
 	int r, c;
 	int val;
 	};	
-
+	
 					/* functions.c */ 
 
 /* io.c */
@@ -35,6 +36,9 @@ int create_maps(void);
 int max_link(void);
 int write_chatchment(void);
 int set_null(void);
+int process_coors (char **answers);
+int process_cats (char **answers);
+int process_vector (char *in_point);
 
 /* cachments */
 int find_outlets(void);
@@ -42,7 +46,6 @@ int reset_catchments(void);
 int fill_catchments (OUTLET outlet);
 int fifo_insert (POINT point);
 POINT fifo_return_del (void);
-
 
 				/* variables */
 
@@ -53,7 +56,7 @@ POINT fifo_return_del (void);
 #endif
 
 GLOBAL struct Cell_head window;
-GLOBAL char *in_dirs, *in_streams;	/* input dirrection and accumulation raster names*/
+GLOBAL char *in_dirs, *in_streams, *in_point;	/* input dirrection and accumulation raster names*/
 GLOBAL char *name_catchments;
 GLOBAL int zeros, cats, lasts; /* flags */
 
@@ -67,7 +70,10 @@ int outlets_num;
 int fifo_max;
 	
 GLOBAL int out; /* number of strahler and horton outlets: index */
+GLOBAL int *categories;
+
 OUTLET *outlets;
+
 
 GLOBAL struct History history;	/* holds meta-data (title, comments,..) */
 
