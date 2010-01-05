@@ -125,18 +125,7 @@ int stream_number(void)
 	G_read_range(in_streams,cur_mapset,&stream_range);
 	G_get_range_min_max(&stream_range, &c_min, &c_max);
 	return c_max;
-/*
 
-int r, c;
-int max=0;
-    for (r = 0; r < nrows; ++r) {
-		for (c = 0; c < ncols; ++c) { 
-		if (streams[r][c]>max)
-			max=streams[r][c];
-		}	
-	}
-	return max;
-*/
 }
 
 int write_maps(void)
@@ -257,3 +246,195 @@ int write_maps(void)
     return 0;
 
 }				/* end write_maps */
+
+int create_table (void)
+{
+	
+	int i,j;
+	int index_cat=0;
+	int max_trib=0;
+	/*
+	char *mapset;
+	struct Map_info Map;
+	char out_table[30];
+	*/
+	char* out_table;
+	dbConnection conn;
+	dbDriver *driver;
+	dbHandle handle;
+	dbString table_name, db_sql, val_string;
+	char buf[1000];
+	char ins_prev_streams[50]; /* insert */
+	
+	/* table definition */
+	char* tab_cat_col_name="cat integer";
+	char* tab_stream="stream integer";
+	char* tab_next_stream="next_stream integer";
+	char* tab_prev_streams;
+	char* tab_strahler="strahler integer";
+	char* tab_horton="horton integer";
+	char* tab_shreve="shreve integer";
+	char* tab_hack="hack integer";
+	char* tab_length="length double precision";
+	char* tab_cumlength="cum_length double precision";
+	char* tab_stright="stright double precision";
+	char* tab_fractal="fractal double precision";
+	
+	G_message("Adding table...");
+	
+	/* trib num */
+	for (i=0;i<stream_num;++i) {
+			if (s_streams[i].trib_num>max_trib) 
+		max_trib=s_streams[i].trib_num;
+	}
+		
+		/*
+		mapset = G_find_vector(in_vector, "");
+		if (mapset == NULL)
+	G_fatal_error(_("Vector map <%s> not found"), in_vector);
+	
+	  if (Vect_open_update(&Map, in_vector, mapset) < 0)
+	G_fatal_error("Cannot open vector map <%s>", in_vector);
+
+		if(in_table)
+	sprintf(out_table, "%s",in_table);
+		else
+	sprintf(out_table, "%s_new",in_vector);
+	*/
+	
+	sprintf(out_table, "%s",in_table);
+	
+	/* init */
+	
+	db_init_string(&db_sql);
+	db_init_string(&val_string);
+	db_init_string(&table_name);
+	db_init_handle(&handle);
+	
+	/* string to db */
+	
+	db_get_connection(&conn);
+	driver=db_start_driver_open_database(conn.driverName, conn.databaseName);
+	
+		if(db_table_exists(conn.driverName, conn.databaseName,out_table)>0)
+	G_fatal_error("table %s exists. Choose different table name or check and remove existing table",out_table);
+
+	/* creating table */
+
+	switch (max_trib) {
+		case 2:
+	tab_prev_streams="prev_str01 integer, prev_str02 integer";
+	break;
+		case 3:
+	tab_prev_streams="prev_str01 integer, prev_str02 integer, prev_str03 integer";
+	break;
+		case 4:
+	tab_prev_streams="prev_str01 integer, prev_str02 integer, prev_str03 integer prev_str04 integer";
+	break;
+		case 5:
+	tab_prev_streams="prev_str01 integer, prev_str02 integer, prev_str03 integer prev_str04 integer, prev_str05 integer";
+	break;
+		default:
+	G_fatal_error("Error with number of tributuaries");
+	break;
+	}
+		
+	
+	sprintf(buf,"create table %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+		out_table,
+		tab_cat_col_name,
+		tab_stream,
+		tab_next_stream,
+		tab_prev_streams,
+		tab_strahler,
+		tab_horton,
+		tab_shreve,
+		tab_hack,
+		tab_length,
+		tab_cumlength,
+		tab_stright,
+		tab_fractal);
+		
+	db_set_string(&db_sql, buf);
+
+	if(db_execute_immediate(driver,&db_sql) !=DB_OK) {
+		db_close_database(driver);
+		db_shutdown_driver(driver);
+		G_fatal_error("Cannot create table %s", db_get_string(&db_sql));
+	}
+	
+		if (db_create_index2(driver,out_table,tab_cat_col_name) !=DB_OK)
+	G_warning("cannot create index");
+	
+		if (db_grant_on_table(driver,out_table,DB_PRIV_SELECT, DB_GROUP |DB_PUBLIC) !=DB_OK)
+	G_fatal_error("cannot grant privileges on table %s", out_table);
+
+	db_begin_transaction(driver);
+
+	for (i=0;i<stream_num;++i) {
+		
+			if(s_streams[i].stream<0)
+		continue;
+		
+		switch (max_trib) {
+			case 2:
+			sprintf(ins_prev_streams,"%d, %d",s_streams[i].trib[0],s_streams[i].trib[1]);
+		break;
+			case 3:
+			sprintf(ins_prev_streams,"%d ,%d, %d",s_streams[i].trib[0],s_streams[i].trib[1],s_streams[i].trib[2]);
+		break;
+			case 4:
+		sprintf(ins_prev_streams,"%d, %d, %d, %d",s_streams[i].trib[0],s_streams[i].trib[1],s_streams[i].trib[2],s_streams[i].trib[3]);
+		break;
+			case 5:
+		sprintf(ins_prev_streams,"%d, %d, %d, %d, %d",s_streams[i].trib[0],s_streams[i].trib[1],s_streams[i].trib[2],s_streams[i].trib[3],s_streams[i].trib[4]);
+		break;
+			default:
+			G_fatal_error("Error with number of tributuaries");
+		break;
+	}
+	
+		sprintf(buf,"insert into %s  values	\
+			(%d, %d, %d, %s, %d, %d, %d, %d, %f, %f , %f, %f)",
+		out_table,
+		i,
+		s_streams[i].stream,
+		s_streams[i].next_stream,
+		ins_prev_streams,
+		s_streams[i].strahler,
+		s_streams[i].horton,
+		s_streams[i].shreeve,
+		s_streams[i].hack,
+		s_streams[i].length,
+		s_streams[i].accum,
+		s_streams[i].stright,
+		s_streams[i].fractal);
+	
+		db_set_string(&db_sql,buf);
+	
+			if(db_execute_immediate(driver,&db_sql) !=DB_OK) {
+				db_close_database(driver);
+				db_shutdown_driver(driver);
+				G_fatal_error("Cannot inset new row: %s", db_get_string(&db_sql));
+			}
+	}
+
+db_commit_transaction(driver);
+db_close_database_shutdown_driver(driver);
+
+/*
+		if(Vect_map_check_dblink(&Map,1)) 
+	Vect_map_del_dblink(&Map,1);
+	
+	Vect_map_add_dblink(&Map, 1, NULL, out_table,
+		tab_cat_col_name, conn.driverName, conn.databaseName);
+	
+	  Vect_hist_command(&Map);
+    Vect_build(&Map);
+    Vect_close(&Map);
+*/
+
+G_message("Table %s created. You can join it to vector created with r.stream.extract \
+						using v.db.connect", out_table);
+	return 0;
+}

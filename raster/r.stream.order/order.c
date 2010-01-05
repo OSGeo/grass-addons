@@ -32,14 +32,18 @@ int init_streams(int stream_num)
 {
     int i;
     s_streams = (STREAM *) G_malloc((stream_num + 1) * sizeof(STREAM));
-    for (i = 0; i <= stream_num; ++i) {
+        for (i = 0; i <= stream_num; ++i) {
 	s_streams[i].next_stream = -1;
 	s_streams[i].stream = -1;
+	s_streams[i].trib_num = -1;
 	s_streams[i].strahler = -1;
 	s_streams[i].shreeve = -1;
 	s_streams[i].hack = -1;
 	s_streams[i].horton = -1;
 	s_streams[i].accum = 0.;
+	s_streams[i].length = 0.;
+	s_streams[i].stright = 0.;
+	s_streams[i].fractal = 0.;
 	s_streams[i].trib[0] = 0;
 	s_streams[i].trib[1] = 0;
 	s_streams[i].trib[2] = 0;
@@ -87,7 +91,7 @@ int find_nodes(int stream_num)
 		cur_stream = streams[r][c];
 
 		if (cur_stream != next_stream) {	/* building hierarchy */
-
+		
 		    if (outlets_num > (stream_num - 1))
 			G_fatal_error(_("Error finding nodes. Stream and direction maps probably do not match..."));
 
@@ -111,6 +115,7 @@ int find_nodes(int stream_num)
 
 		if (trib_num > 1) {	/* adding tributuaries */
 		    s_streams[cur_stream].trib_num = trib_num;
+		    //G_message("HERE %d %d", cur_stream, s_streams[cur_stream].trib_num);
 		    
 		    for (i = 1; i < 9; ++i) {
 			if (trib > 4)
@@ -152,8 +157,10 @@ int do_cum_length (void) {
   int cur_stream;
   float cur_northing, cur_easting;
   float next_northing, next_easting;
+  float init_northing, init_easting;//
   double cur_length=0.;
   double cur_accum=0.;
+	
 	G_message(_("Finding longests streams..."));
 	G_begin_distance_calculations();
 	
@@ -164,10 +171,14 @@ int do_cum_length (void) {
 		cur_length=0;
 		done=1;
 		
+		init_northing = window.north - (r + .5) * window.ns_res; //
+	  init_easting = window.west + (c + .5) * window.ew_res; //
+		
 		while(done) {
 
 		 cur_northing = window.north - (r + .5) * window.ns_res;
 	   cur_easting = window.west + (c + .5) * window.ew_res;
+		 		 
 		 d=dirs[r][c];
 		 next_r=r+nextr[d];
 	   next_c=c+nextc[d];
@@ -177,25 +188,35 @@ int do_cum_length (void) {
 		c + nextc[d] < 0 || c + nextc[d] > (ncols - 1) ||
 		streams[next_r][next_c]<1) { /* mask */
 			
-			next_northing = window.north - (r + .5) * window.ns_res;
-			next_easting = 	window.west + (c + .5) * window.ew_res;	 
-			cur_length=G_distance(next_easting, next_northing, cur_easting,  cur_northing);
-			s_streams[cur_stream].accum += cur_length;	   
+			cur_length=(window.ns_res+window.ew_res)/2;
+			s_streams[cur_stream].accum += cur_length;
+			s_streams[cur_stream].length += cur_length;
+			s_streams[cur_stream].stright =
+				G_distance(cur_easting, cur_northing, init_easting,  init_northing);
+			s_streams[cur_stream].fractal = 
+				s_streams[cur_stream].length/s_streams[cur_stream].stright;
 			break;
 		}
- 
 
 		 next_northing = window.north - (next_r + .5) * window.ns_res;
 		 next_easting = 	window.west + (next_c + .5) * window.ew_res;
 		 cur_length =	G_distance(next_easting, next_northing, cur_easting,  cur_northing);
 		 s_streams[cur_stream].accum += cur_length;
+		 s_streams[cur_stream].length += cur_length;
 		 r=next_r;
 		 c=next_c;
 		 
 			if (streams[next_r][next_c] != cur_stream) {
+				s_streams[cur_stream].stright =
+					G_distance(next_easting, next_northing, init_easting,  init_northing);
+				s_streams[cur_stream].fractal = 
+				s_streams[cur_stream].length/s_streams[cur_stream].stright;	
+				init_northing = cur_northing;
+				init_easting = cur_easting;
+			
 				cur_stream=streams[next_r][next_c];
 				cur_accum=0;
-			
+						
 				for (i = 0; i < s_streams[cur_stream].trib_num; ++i) {
 					if (s_streams[s_streams[cur_stream].trib[i]].accum == 0) {
 						done=0;
@@ -205,6 +226,7 @@ int do_cum_length (void) {
 					if(s_streams[s_streams[cur_stream].trib[i]].accum>cur_accum) 
 						cur_accum=s_streams[s_streams[cur_stream].trib[i]].accum;
 				} /* end for i */
+				if(!in_accum)
 			s_streams[cur_stream].accum=cur_accum;
 			}/* end if */
 		} /* end while */

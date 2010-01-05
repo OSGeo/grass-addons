@@ -25,9 +25,9 @@ int main(int argc, char *argv[])
 {
 
     struct GModule *module;	/* GRASS module for parsing arguments */
-    struct Option *in_dir_opt, *in_stm_opt, *in_acc_opt, *out_str_opt, *out_shr_opt, *out_hck_opt, *out_hrt_opt;	/* options */
+    struct Option *in_dir_opt, *in_stm_opt, /* *in_vect_opt,*/ *in_table_opt, *in_acc_opt, *out_str_opt, *out_shr_opt, *out_hck_opt, *out_hrt_opt;	/* options */
     struct Flag *out_back;	/* flags */
-    int stream_num, i;
+    int i;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -56,7 +56,22 @@ int main(int argc, char *argv[])
     in_dir_opt->gisprompt = "old,cell,raster";
     in_dir_opt->description =
 	"Name of direction input map (r.watershed or r.stream.extract)";
-
+		/*	
+    in_vect_opt = G_define_option();	
+    in_vect_opt->key = "vector";
+    in_vect_opt->type = TYPE_STRING;
+    in_vect_opt->required = NO;
+    in_vect_opt->gisprompt = "old,vector,vector";
+    in_vect_opt->description =
+	"Name of stream vector file (r.stream.extract output only)";
+		*/
+		in_table_opt = G_define_option();	/* optional tabe name */
+    in_table_opt->key = "table";
+    in_table_opt->type = TYPE_STRING;
+    in_table_opt->required = NO;
+    in_table_opt->description =
+	"Name of new table to create";
+    
     in_acc_opt = G_define_option();	/* input stream mask file - optional */
     in_acc_opt->key = "accum";	/* required if strahler stream order is calculated for existing stream network */
     in_acc_opt->type = TYPE_STRING;
@@ -124,6 +139,8 @@ int main(int argc, char *argv[])
     /* stores input options to variables */
     in_dirs = in_dir_opt->answer;
     in_streams = in_stm_opt->answer;
+    /* in_vector = in_vect_opt->answer; */
+		in_table = in_table_opt->answer;
     in_accum = in_acc_opt->answer;
 
     /* stores output options to variables */
@@ -135,19 +152,19 @@ int main(int argc, char *argv[])
 
 		if (out_strahler) {
  	if (G_legal_filename(out_strahler) < 0)
-		G_fatal_error(_("<%s> is an illegal file name"), out_strahler);
+		G_fatal_error("<%s> is an illegal file name", out_strahler);
 	  }
 		if (out_shreeve) {
 	if (G_legal_filename(out_shreeve) < 0)
-	  G_fatal_error(_("<%s> is an illegal file name"), out_shreeve);
+	  G_fatal_error("<%s> is an illegal file name", out_shreeve);
 		}
 		if (out_hack) {
 	if (G_legal_filename(out_hack) < 0)
-		G_fatal_error(_("<%s> is an illegal file name"), out_hack);
+		G_fatal_error("<%s> is an illegal file name", out_hack);
 		}
 		if (out_horton) {
 	if (G_legal_filename(out_horton) < 0)
-		G_fatal_error(_("<%s> is an illegal file name"), out_horton);
+		G_fatal_error("<%s> is an illegal file name", out_horton);
 		}
 		
     nrows = G_window_rows();
@@ -159,19 +176,23 @@ int main(int argc, char *argv[])
 	stack_max = stream_num;	/* stack's size depends on number of streams */
     init_streams(stream_num);
     find_nodes(stream_num);
-    if ((out_hack || out_horton) && !in_accum)
+    if (out_hack || out_horton || in_table)
    do_cum_length();
 
-
-    if (out_strahler || out_horton)
+	
+    if (out_strahler || out_horton || in_table)
 	strahler();
-    if (out_shreeve)
+    if (out_shreeve || in_table)
 	shreeve();
-    if (out_horton)
+    if (out_horton || in_table)
 	horton();
-    if (out_hack)
+    if (out_hack || in_table)
 	hack();
-    write_maps();
+  
+  write_maps();
+
+		if(in_table)
+	create_table();
 
     exit(EXIT_SUCCESS);
 }

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <math.h>
 #include <grass/gis.h>
+#include <grass/Vect.h>
+#include <grass/dbmi.h>
 
 	  /* define */
 #define NODES struct node
@@ -40,10 +42,13 @@ STREAM {
     int strahler, shreeve, horton, hack;	/* orders */
     int next_stream;
     int trib_num;
-    int trib[5];		/* for now, I have problems with realock */
-
+    int trib[5];	
+    
     /*  int *trib; */
     double accum;
+    double length;
+    double stright;
+    double fractal;
     /* float length; */
 };
 
@@ -73,12 +78,13 @@ int open_accum(void);
 int destroy_c_data(CELL ** data_name);
 int destroy_d_data(DCELL ** data_name);
 int write_maps(void);
+int create_table (void);
 
 
 	  /* variables */
 
 GLOBAL struct Cell_head window;
-GLOBAL char *in_dirs, *in_streams, *in_accum;	/* input dirrection and accumulation raster names */
+GLOBAL char *in_dirs, *in_streams, *in_vector, *in_table, *in_accum;	/* input dirrection and accumulation raster names */
 GLOBAL char *out_strahler, *out_shreeve, *out_hack, *out_horton;	/* output strahler, shreeve and class raster names */
 GLOBAL int out_zero; /* zero-value background */
 
@@ -91,4 +97,4 @@ GLOBAL int nrows, ncols;
 GLOBAL STREAM *s_streams;	/* stream structure all parameters we have here */
 GLOBAL INITS *s_inits;
 int *springs, *outlets;
-int springs_num, outlets_num;
+int springs_num, outlets_num, stream_num;
