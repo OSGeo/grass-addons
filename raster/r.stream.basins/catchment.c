@@ -25,19 +25,23 @@ int find_outlets(void)
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
 
-    G_message(_("Finding nodes..."));
+    G_message("Finding nodes...");
     outlets = (OUTLET *) G_malloc((out_max) * sizeof(OUTLET));
 
     outlets_num = 0;
 
     for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
-	    if (streams[r][c] > 0) {
-		if (outlets_num > (out_max - 1)) {
-		    outlets =
-			(OUTLET *) G_realloc(outlets,
-					     out_max * 2 * sizeof(OUTLET));
-		}
+	  
+	  if (streams[r][c] > 0) {
+		
+			if (outlets_num > 2*(out_max - 1))
+		G_fatal_error("Stream and direction maps probably do not match");
+		
+			if (outlets_num > (out_max - 1)) 
+		outlets =	(OUTLET *) G_realloc(outlets,
+				out_max * 2 * sizeof(OUTLET));
+
 
 		d = abs(dirs[r][c]);	/* abs */
 		if (r + nextr[d] < 0 || r + nextr[d] > (nrows - 1) ||
@@ -51,10 +55,16 @@ int find_outlets(void)
 		}
 		if (d == 0)
 		    next_stream = -1;
+		
 		cur_stream = streams[r][c];
 
 		if (lasts) {
 		    if (cur_stream != next_stream && next_stream < 0) {	/* is outlet! */
+				
+					if (categories) { /* but not in list */
+						if (categories[streams[r][c]]==-1)
+					continue;	
+					}
 			outlets[outlets_num].r = r;
 			outlets[outlets_num].c = c;
 			outlets[outlets_num].val =
@@ -64,6 +74,12 @@ int find_outlets(void)
 		}
 		else {
 		    if (cur_stream != next_stream) {	/* is outlet or node! */
+					
+					if (categories) { /* but not in list */
+						if (categories[streams[r][c]]==-1)
+					continue;	
+					}
+			
 			outlets[outlets_num].r = r;
 			outlets[outlets_num].c = c;
 			outlets[outlets_num].val =
@@ -90,18 +106,21 @@ int find_outlets(void)
  */
 int reset_catchments(void)
 {
-    int r, c, i;
-
+  int r, c, i;
+  
     for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
-	    streams[r][c] = 0;
+	   streams[r][c] = 0;
 	}
     }
-    for (i = 0; i < outlets_num; ++i) {
+    
+  if (in_streams) {
+		for (i = 0; i < outlets_num; ++i) 
 	streams[outlets[i].r][outlets[i].c] = outlets[i].val;
-    }
+		}
     return 0;
 }
+
 
 /*
    algorithm uses fifo queue for determining basins area. 
