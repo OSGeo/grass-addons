@@ -254,6 +254,15 @@ case "$GIS_OPT_TYPE" in
 	  ($GIS_OPT_CAT, '`basename $GIS_OPT_INPUT`', '$START_TIME', \
 	   '$END_TIME', $START_LAT, $START_LON, $END_LAT, $END_LON)" \
 	   | db.execute
+
+	# add bounding box
+	v.db.addcol map="$GIS_OPT_OUTPUT" columns="\
+	   bbox_north DOUBLE PRECISION, bbox_south DOUBLE PRECISION, \
+	   bbox_east DOUBLE PRECISION, bbox_west DOUBLE PRECISION"
+	eval `v.info -g "$GIS_OPT_OUTPUT"`
+	echo "UPDATE $GIS_OPT_OUTPUT SET \
+	   bbox_north = $north, bbox_south = $south, \
+	   bbox_east = $east, bbox_west = $west" | db.execute
 	;;
 esac
 case "$GIS_OPT_TYPE" in
