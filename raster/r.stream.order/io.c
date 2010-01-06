@@ -302,7 +302,7 @@ int create_table (void)
 	sprintf(out_table, "%s_new",in_vector);
 	*/
 	
-	sprintf(out_table, "%s",in_table);
+	out_table=in_table;
 	
 	/* init */
 	
