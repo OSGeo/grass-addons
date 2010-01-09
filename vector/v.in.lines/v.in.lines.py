@@ -129,18 +129,17 @@ def main():
 
 
     ##### check that there are at least two columns (three if -z is given)
-    inf = file(infile)
+    inf = file(runfile)
     line = inf.readline()
     numcols = len(line.split(' '))
     if (do3D and numcols < 3) or (not do3D and numcols < 2):
-        g.message -e "Not enough data columns. (incorrect fs setting?)"
+        grass.fatal(_("Not enough data columns. (incorrect fs setting?)"))
     inf.close()
 
 
     grass.run_command('v.in.mapgen', flags = 'f' + do3D,
                       input = runfile, output = output)
 
-)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
