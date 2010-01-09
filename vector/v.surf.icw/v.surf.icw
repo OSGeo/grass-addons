@@ -68,7 +68,7 @@
 #%end
 #%option
 #% key: friction
-#% type: integer
+#% type: double
 #% description: Friction of distance, (the 'n' in 1/d^n)
 #% answer: 2
 #% options: 1-6
@@ -88,6 +88,14 @@
 #% description: Example: income < 1000 and inhab >= 10000
 #% required : no
 #%end
+
+##%option
+##% key: max_cost
+##% type: integer
+##% description: Optional maximum cumulative cost before setting weight to zero
+##% required : no
+##%end
+
 #%option
 #% key: post_mask
 #% type: string
@@ -137,10 +145,13 @@ if [ "$FRICTION" -lt 1 ] || [ "$FRICTION" -gt 6 ]; then
     exit 1
 fi
 
-DIVISOR=""
-if [ "$FRICTION" -eq 4 ] ; then DIVISOR=" / 10.0" ; fi
-if [ "$FRICTION" -eq 5 ] ; then DIVISOR=" / 100.0" ; fi
-if [ "$FRICTION" -eq 6 ] ; then DIVISOR=" / 500.0" ; fi
+# adjust so that tiny numbers don't hog all the FP precision space
+#DIVISOR=""
+#if [ "$FRICTION" -eq 4 ] ; then DIVISOR=" / 10.0" ; fi
+#if [ "$FRICTION" -eq 5 ] ; then DIVISOR=" / 100.0" ; fi
+#if [ "$FRICTION" -eq 6 ] ; then DIVISOR=" / 500.0" ; fi
+# fp version:
+DIVISOR=`echo "$FRICTION" | awk '{if ( $1 > 4 ) {print 0.01 * $1^6 }}'`
 
 
 POINTS_FILE="$GIS_OPT_INPUT"
@@ -233,7 +244,9 @@ for POS in `cat "$TMP_POINTS"` ; do
     fi
 
 #    echo "$EASTING $NORTHING $DATA_VALUE" | v.in.ascii output=tmp_idw_cost_site_$$ fs=space --o 2> /dev/null
-    r.cost $VERBOSE -k in=tmp_icw_area_$$ output=cost_site.$NUM coordinate=$EASTING,$NORTHING
+    r.cost $VERBOSE -k in=tmp_icw_area_$$ output=cost_site.$NUM \
+        coordinate=$EASTING,$NORTHING
+        #max_cost="$GIS_OPT_MAX_COST"  : commented out until r.null cleansing/continue code is sorted out
         #start_points=tmp_idw_cost_site_$$
 
     # so the divisor exists and the weighting is huge at the exact sample spots
