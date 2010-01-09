@@ -60,7 +60,7 @@ def main():
 
     infile_opt = options['input']
     output = options['output']
-    fsep = options['fs']
+    fs = options['fs']
     threeD = flags['z']
 
     prog = 'v.in.lines'
@@ -131,7 +131,7 @@ def main():
     ##### check that there are at least two columns (three if -z is given)
     inf = file(runfile)
     line = inf.readline()
-    numcols = len(line.split(' '))
+    numcols = len(line.split())
     if (do3D and numcols < 3) or (not do3D and numcols < 2):
         grass.fatal(_("Not enough data columns. (incorrect fs setting?)"))
     inf.close()
