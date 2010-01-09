@@ -72,6 +72,10 @@ def main():
     else:
         do3D = ''
 
+
+    tmp = grass.tempfile()
+
+
     #### parse field separator
     if fs in ('space', 'tab'):
         fs = ' '
@@ -95,8 +99,6 @@ def main():
             grass.fatal(_("Unable to read input data"))
         grass.debug("input file=[%s]" % infile)
 
-
-    tmp = grass.tempfile()
 
     if not infile:
         # read from stdin and write to tmpfile (v.in.mapgen wants a real file)
