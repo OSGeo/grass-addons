@@ -96,7 +96,7 @@ def main():
     else:
         infile = infile_opt
         if not os.path.exists(infile):
-            grass.fatal(_("Unable to read input data"))
+            grass.fatal(_("Unable to read input file <%s>") % infile)
         grass.debug("input file=[%s]" % infile)
 
 
@@ -104,8 +104,8 @@ def main():
         # read from stdin and write to tmpfile (v.in.mapgen wants a real file)
         outf = file(tmp, 'w')
         for line in inf:
-            if len(line) == 0 or line[0] == '#':
-	        continue
+            if len(line.lstrip()) == 0 or line[0] == '#':
+                continue
             outf.write(line.replace(fs, ' '))
 
         outf.close()
@@ -115,25 +115,26 @@ def main():
         if fs == ' ':
             runfile = infile
         else:
-	    inf = file(infile)
+            inf = file(infile)
             outf = file(tmp, 'w')
 
             for line in inf:
-                if len(line) == 0 or line[0] == '#':
-	            continue
+                if len(line.lstrip()) == 0 or line[0] == '#':
+                    continue
                 outf.write(line.replace(fs, ' '))
 
+            inf.close()
             outf.close()
             runfile = tmp
-
-    if infile:
-        inf.close()
 
 
     ##### check that there are at least two columns (three if -z is given)
     inf = file(runfile)
-    line = inf.readline()
-    numcols = len(line.split())
+    for line in inf:
+        if len(line.lstrip()) == 0 or line[0] == '#':
+            continue
+        numcols = len(line.split())
+        break
     if (do3D and numcols < 3) or (not do3D and numcols < 2):
         grass.fatal(_("Not enough data columns. (incorrect fs setting?)"))
     inf.close()
@@ -147,4 +148,3 @@ if __name__ == "__main__":
     options, flags = grass.parser()
     atexit.register(cleanup)
     main()
-
