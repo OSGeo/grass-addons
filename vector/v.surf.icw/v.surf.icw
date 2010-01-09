@@ -151,7 +151,7 @@ fi
 #if [ "$FRICTION" -eq 5 ] ; then DIVISOR=" / 100.0" ; fi
 #if [ "$FRICTION" -eq 6 ] ; then DIVISOR=" / 500.0" ; fi
 # fp version:
-DIVISOR=`echo "$FRICTION" | awk '{if ( $1 > 4 ) {print 0.01 * $1^6 }}'`
+DIVISOR=`echo "$FRICTION" | awk '{if ( $1 > 4 ) {print " / " 0.01 * $1^6 }}'`
 
 
 POINTS_FILE="$GIS_OPT_INPUT"
