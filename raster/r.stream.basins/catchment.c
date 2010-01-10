@@ -1,4 +1,3 @@
-#include <grass/glocale.h>
 #include "global.h"
 
 /* 

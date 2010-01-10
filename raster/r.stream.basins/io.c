@@ -1,4 +1,3 @@
-#include <grass/glocale.h>
 #include "global.h"
 
 int open_raster(char *mapname)
