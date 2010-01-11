@@ -16,7 +16,7 @@
 #
 #############################################################################
 #%Module
-#% description: Imports MB-System naviagation data from a fnv-file.
+#% description: Imports MB-System naviagation data from a .fnv file.
 #% keywords: vector, import
 #%End
 #%option
