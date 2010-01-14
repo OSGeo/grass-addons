@@ -55,10 +55,10 @@ int thin_seg(int stream_id)
 		draindir.pos = thisindex;
 		founddir = rbtree_find(draintree, &draindir);
 		founddir->dir = drain[r - r_nbr + 1][c - c_nbr + 1];
+		asp[draindir.pos] = founddir->dir;
 		last_r = r_nbr;
 		last_c = c_nbr;
 		draindir.pos = INDEX(last_r, last_c);
-		asp[draindir.pos] = founddir->dir;
 
 		thinned = 1;
 	    }

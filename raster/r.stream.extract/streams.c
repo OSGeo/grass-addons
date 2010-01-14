@@ -575,14 +575,17 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 		is_swale = stream[nindex];
 		if (is_swale > 0)
 		    swale_cells++;
+
 		/* check for stream cells */
 		valued = fabs(acc[nindex]);
-		if (valued >= threshold)
+		ele_nbr = ele[nindex];
+		/* if (valued >= threshold) */
+		if (valued >= threshold && ct_dir != np_side &&
+		    ele_nbr > ele_val)
 		    stream_cells++;
 
 		is_worked = FLAG_GET(worked, r_nbr, c_nbr);
 		if (is_worked == 0) {
-		    ele_nbr = ele[nindex];
 		    if (ele_nbr != ele_val)
 			flat = 0;
 		    edge = G_is_c_null_value(&ele_nbr);
@@ -697,7 +700,7 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 	}
 
 	if (is_swale < 1 && flat == 0 && fabs(value) >= threshold &&
-	    stream_cells < 4 && swale_cells < 1) {
+	    stream_cells < 1 && swale_cells < 1) {
 	    G_debug(2, "start new stream");
 	    is_swale = stream[thisindex] = ++stream_no;
 	    /* add stream node */
