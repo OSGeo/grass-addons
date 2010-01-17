@@ -8,10 +8,11 @@ the raster map and the results uploaded to the vector map attribute table.
 New columns are generated in the attribute table if not already present.
 <p>
 Nine columns are generated (n, min, max, range, mean, stddev, variance, 
-coeff_var, sum) according to the output of <em>r.univar2.zonal</em>.
-If the <B>-e</B> extended statistics flag is given the 1st quartile,
-median, 3rd quartile, and given percentile are also calculated.
-
+coeff_var, sum) according to the output of <em>r.univar2.zonal</em>. Column n 
+complies column <em>non_null_cells</em> from <em>r.univar2.zonal</em> and all 
+univariate statistics are based on <em>non_null_cells</em>. If the <B>-e</B> 
+extended statistics flag is given the 1st quartile, median, 3rd quartile, 
+and given percentile are also calculated.
 
 <H2>NOTES</H2>
 
@@ -32,7 +33,12 @@ will be chopped off.
 <p>
 If a MASK is present, it will be restored after the script finished.
 The script changes temporarily to the resolution of the given raster map.
-<P>
+<p>
+At the moment not all univariate statistics calculated by 
+<em>r.univar2.zonal</em> are added to the vector attribute table. It is 
+currently limited to the values used in the GRASS module 
+<em>v.rast.stats</em>.
+<p>
 <!-- r.univar limitation
 Large amounts of system memory can be used when the <B>-e</B> extended
 statistics flag is used with a very large region setting. If the region
