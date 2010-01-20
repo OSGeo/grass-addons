@@ -8,8 +8,8 @@ the raster map and the results uploaded to the vector map attribute table.
 New columns are generated in the attribute table if not already present.
 <p>
 Nine columns are generated (n, min, max, range, mean, stddev, variance, 
-coeff_var, sum) according to the output of <em>r.univar2.zonal</em>. Column n 
-complies column <em>non_null_cells</em> from <em>r.univar2.zonal</em> and all 
+coeff_var, sum) according to the output of <em>r.univar.zonal</em>. Column n 
+complies column <em>non_null_cells</em> from <em>r.univar.zonal</em> and all 
 univariate statistics are based on <em>non_null_cells</em>. If the <B>-e</B> 
 extended statistics flag is given the 1st quartile, median, 3rd quartile, 
 and given percentile are also calculated.
@@ -35,7 +35,7 @@ If a MASK is present, it will be restored after the script finished.
 The script changes temporarily to the resolution of the given raster map.
 <p>
 At the moment not all univariate statistics calculated by 
-<em>r.univar2.zonal</em> are added to the vector attribute table. It is 
+<em>r.univar.zonal</em> are added to the vector attribute table. It is 
 currently limited to the values used in the GRASS module 
 <em>v.rast.stats</em>.
 <p>
@@ -68,7 +68,7 @@ v.univar myfields column=dem_range type=centroid
 
 <EM>
 <A HREF="r.univar.html">r.univar</A>,
-<A HREF="r.univar2.zonal.html">r.univar2.zonal</A>, 
+<A HREF="r.univar2.zonal.html">r.univar.zonal</A>, 
 <A HREF="v.univar.html">v.univar</A>,
 <A HREF="v.rast.stats.html">v.rast.stats</A>,
 <a HREF="v.what.rast.html">v.what.rast</a>,
