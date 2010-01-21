@@ -70,15 +70,18 @@ fi
 COLLIST=`db.describe  -c "$GIS_OPT_TABLE" | grep '^Column ' | sed 's+ ++g' | cut -d':' -f2`
 OCOLLIST=`db.describe  -c "$GIS_OPT_OTABLE" | grep '^Column ' | sed 's+ ++g' | cut -d':' -f2`
 # heck, types may have white space
-OCOLTYPES=`db.describe -c "$GIS_OPT_OTABLE" | grep '^Column ' | cut -d':' -f3 | tr -s ' ' '_'`
+OCOLTYPES=`db.describe -c "$GIS_OPT_OTABLE" | grep '^Column ' | cut -d':' -f3 | tr -s ' ' '_' | tr '[:upper:]' '[:lower:]'`
 
 i=1
 for col in $OCOLLIST ; do
   CURRTYPE=`echo $OCOLTYPES | cut -d' ' -f$i | tr -s '_' ' '`
+  AVOIDDUP=0
   # we cannot have the same column name twice
   for incol in $COLLIST ; do
       if [ "$col" = "$incol" ] ; then
+         origcol=$col
          col=${col}b
+         AVOIDDUP=1
       fi
   done
   echo "ALTER TABLE $GIS_OPT_TABLE ADD COLUMN $col $CURRTYPE" | db.execute
@@ -86,8 +89,14 @@ for col in $OCOLLIST ; do
 	g.message -e "Cannot continue."
 	exit 1
   fi
-  echo "UPDATE $GIS_OPT_TABLE SET $col=(SELECT $col
-        FROM $GIS_OPT_OTABLE WHERE $GIS_OPT_OTABLE.$GIS_OPT_OCOLUMN=$GIS_OPT_TABLE.$GIS_OPT_COLUMN);" | db.execute
+  if [ $AVOIDDUP -eq 1 ] ; then
+     echo "UPDATE $GIS_OPT_TABLE SET $col=(SELECT $origcol
+          FROM $GIS_OPT_OTABLE WHERE $GIS_OPT_OTABLE.$GIS_OPT_OCOLUMN=$GIS_OPT_TABLE.$GIS_OPT_COLUMN);" | db.execute
+  else
+     echo "UPDATE $GIS_OPT_TABLE SET $col=(SELECT $col
+           FROM $GIS_OPT_OTABLE WHERE $GIS_OPT_OTABLE.$GIS_OPT_OCOLUMN=$GIS_OPT_TABLE.$GIS_OPT_COLUMN);" | db.execute
+  fi
+
   i=`expr $i + 1`
 done
 
