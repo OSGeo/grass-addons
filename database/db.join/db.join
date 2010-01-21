@@ -70,7 +70,7 @@ fi
 COLLIST=`db.describe  -c "$GIS_OPT_TABLE" | grep '^Column ' | sed 's+ ++g' | cut -d':' -f2`
 OCOLLIST=`db.describe  -c "$GIS_OPT_OTABLE" | grep '^Column ' | sed 's+ ++g' | cut -d':' -f2`
 # heck, types may have white space
-OCOLTYPES=`db.describe -c "$GIS_OPT_OTABLE" | grep '^Column ' | sed 's+ ++g' | cut -d':' -f3 | tr -s ' ' '_'`
+OCOLTYPES=`db.describe -c "$GIS_OPT_OTABLE" | grep '^Column ' | cut -d':' -f3 | tr -s ' ' '_'`
 
 i=1
 for col in $OCOLLIST ; do
@@ -81,7 +81,7 @@ for col in $OCOLLIST ; do
          col=${col}b
       fi
   done
-  echo "ALTER TABLE $GIS_OPT_TABLE ADD COLUMN $col $OCURRTYPE" | db.execute
+  echo "ALTER TABLE $GIS_OPT_TABLE ADD COLUMN $col $CURRTYPE" | db.execute
   if [ $? -ne 0 ] ; then
 	g.message -e "Cannot continue."
 	exit 1
