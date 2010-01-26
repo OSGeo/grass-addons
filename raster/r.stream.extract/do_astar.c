@@ -104,8 +104,8 @@ int do_astar(void)
 			get_slope2(ele_val, ele_nbr[ct_dir],
 				   dist_to_nbr[ct_dir]);
 		}
+		/* avoid diagonal flow direction bias */
 		if (!is_in_list) {
-		    /* avoid diagonal flow direction bias */
 		    if (ct_dir > 3 && slope[ct_dir] > 0) {
 			if (slope[nbr_ew[ct_dir]] > 0) {
 			    /* slope to ew nbr > slope to center */
@@ -289,8 +289,8 @@ unsigned int heap_drop(void)
 
 double get_slope2(CELL ele, CELL up_ele, double dist)
 {
-    if (ele == up_ele)
-	return 0.5 / dist;
+    if (ele >= up_ele)
+	return 0.0;
     else
 	return (double)(up_ele - ele) / dist;
 }

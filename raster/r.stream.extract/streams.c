@@ -643,16 +643,8 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 	    continue;
 	}
 
-	/* honour A * path 
-	 * mfd_cells == 0: fine, SFD along A * path
-	 * mfd_cells == 1 && astar_not_set == 0: fine, SFD along A * path
-	 * mfd_cells > 0 && astar_not_set == 1: A * path not included, add to mfd_cells
-	 */
-
-	/* MFD, A * path not included, add to mfd_cells */
-	if (mfd_cells > 0 && astar_not_set == 1) {
-	    mfd_cells++;
-	    /* get main drainage direction */
+	/* set main drainage direction to A* path if possible */
+	if (mfd_cells > 0 && max_side != np_side) {
 	    nindex = INDEX(dr, dc);
 	    if (fabs(acc[nindex]) >= max_acc) {
 		max_acc = fabs(acc[nindex]);
@@ -661,7 +653,7 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 		max_side = np_side;
 	    }
 	}
-	else if (mfd_cells == 0) {
+	if (mfd_cells == 0) {
 	    flat = 0;
 	    max_side = np_side;
 	}
@@ -699,8 +691,8 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 	    }
 	}
 
-	if (is_swale < 1 && flat == 0 && fabs(value) >= threshold &&
-	    stream_cells < 1 && swale_cells < 1) {
+	if (is_swale < 1 && fabs(value) >= threshold && stream_cells < 1 &&
+	    swale_cells < 1 && !flat) {
 	    G_debug(2, "start new stream");
 	    is_swale = stream[thisindex] = ++stream_no;
 	    /* add stream node */
