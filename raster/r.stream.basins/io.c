@@ -178,7 +178,7 @@ int process_cats (char **answers) {
 		if(!answers)
 	return;
 	
-	categories = G_malloc(link_max* sizeof(int));
+	categories = G_malloc((link_max+1)* sizeof(int));
 	
 	for (i=0;i<(link_max+1);++i)
 		categories[i]=-1;
