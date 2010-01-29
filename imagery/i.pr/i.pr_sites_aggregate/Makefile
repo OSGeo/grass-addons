@@ -1,7 +1,7 @@
 MODULE_TOPDIR = ../../..
 
 PRINCLUDE = ../include/
-EXTRA_CFLAGS = -I$(PRINCLUDE)
+EXTRA_CFLAGS = $(VECT_CFLAGS) -I$(PRINCLUDE)
 PRLIB = -lgrass_pr
 
 PGM = i.pr.sites_aggregate

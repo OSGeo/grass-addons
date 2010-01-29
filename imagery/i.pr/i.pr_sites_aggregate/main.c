@@ -111,6 +111,7 @@ int main(argc,argv)
 
   fp=fopen(opt1->answer,"r");
   
+  /* better to use G_tokenize() here? */
   npoints=0;
   while((line=GetLine(fp))!=NULL){
     sscanf(line,"%lf", &(data[npoints][0]));
