@@ -24,23 +24,27 @@ int start_map(void)
     double fact, d_ns, ns, d_ew, ew;
 
     /* default position */
-    if (PS.map_x < 0) {
-        PS.map_x = PS.page.left + PS.brd.width;
+    if (PS.map_x < 0)
+    {
+	PS.map_x = PS.page.left + PS.brd.width;
     }
-    if (PS.map_top < 0) {
-        PS.map_top = PS.page.top + PS.brd.width;
+    if (PS.map_top < 0)
+    {
+	PS.map_top = PS.page.top + PS.brd.width;
     }
 
     /* maximun space to print from position */
-    width  = PS.page.width - PS.map_x - (PS.page.right + PS.brd.width);
+    width = PS.page.width - PS.map_x - (PS.page.right + PS.brd.width);
     height = PS.page.height - PS.map_top - (PS.page.bot + PS.brd.width);
 
     /* default size */
-    if (PS.map_w < 0 || PS.map_w > width) {
-        PS.map_w = width;
+    if (PS.map_w < 0 || PS.map_w > width)
+    {
+	PS.map_w = width;
     }
-    if (PS.map_h < 0 || PS.map_h > height) {
-        PS.map_h = height;
+    if (PS.map_h < 0 || PS.map_h > height)
+    {
+	PS.map_h = height;
     }
 
     /* distance calculation, throught center of map */
@@ -48,43 +52,43 @@ int start_map(void)
 
     if (PS.map.proj == PROJECTION_LL)
     {
-        ns = (PS.map.north + PS.map.south)/2.;
-        d_ew = G_distance(PS.map.east, ns, PS.map.west, ns);
+	ns = (PS.map.north + PS.map.south) / 2.;
+	d_ew = G_distance(PS.map.east, ns, PS.map.west, ns);
 
-        ew = (PS.map.east + PS.map.west)/2.;
-        d_ns = G_distance(ew, PS.map.north, ew, PS.map.south);
+	ew = (PS.map.east + PS.map.west) / 2.;
+	d_ns = G_distance(ew, PS.map.north, ew, PS.map.south);
     }
     else
     {
-        d_ew = (PS.map.east - PS.map.west);
-        d_ns = (PS.map.north - PS.map.south);
+	d_ew = (PS.map.east - PS.map.west);
+	d_ns = (PS.map.north - PS.map.south);
     }
 
     /* to define the scale */
     if (PS.scale > 0)
     {
-        fact = MT_TO_POINT / (double)PS.scale;
-        ew = fact * d_ew;
-        ns = fact * d_ns;
-        if (ew <= PS.map_w && ns <= PS.map_h)
-        {
-            PS.map_w = ew;
-            PS.map_h = ns;
-        }
-        else
-            PS.scale = 0;   /* forze readjust scale */
+	fact = MT_TO_POINT / (double)PS.scale;
+	ew = fact * d_ew;
+	ns = fact * d_ns;
+	if (ew <= PS.map_w && ns <= PS.map_h)
+	{
+	    PS.map_w = ew;
+	    PS.map_h = ns;
+	}
+	else
+	    PS.scale = 0;	/* forze readjust scale */
     }
     /* auto scale */
     if (PS.scale <= 0)
     {
-        ew = d_ew / PS.map_w;
-        ns = d_ns / PS.map_h;
-        fact = (ew > ns) ? ew : ns;
-        PS.scale = (int)(MT_TO_POINT * fact);
+	ew = d_ew / PS.map_w;
+	ns = d_ns / PS.map_h;
+	fact = (ew > ns) ? ew : ns;
+	PS.scale = (int)(MT_TO_POINT * fact);
 
-        fact = 1000. * MM_TO_POINT / (double)PS.scale;
-        PS.map_w = fact * d_ew;
-        PS.map_h = fact * d_ns;
+	fact = 1000. * MM_TO_POINT / (double)PS.scale;
+	PS.map_w = fact * d_ew;
+	PS.map_h = fact * d_ns;
     }
 
     G_message(_("Scale set to  1 : %d"), PS.scale);
@@ -94,11 +98,10 @@ int start_map(void)
 
     /* to complete */
     PS.map_right = PS.map_x + PS.map_w;
-    PS.map_top   = PS.map_y + PS.map_h;
+    PS.map_top = PS.map_y + PS.map_h;
 
     G_setup_plot(10. * (PS.map_y + PS.map_h), 10. * PS.map_y,
-                 10. * PS.map_x, 10. * (PS.map_x + PS.map_w),
-                 move_local, cont_local);
+		 10. * PS.map_x, 10. * (PS.map_x + PS.map_w), move_local, cont_local);
 
     return 0;
 }
@@ -106,12 +109,11 @@ int start_map(void)
 /* Needed by G_setup_plot */
 int move_local(int x, int y)
 {
-    fprintf(PS.fp, "%.1f %.1f M\n", (double)x/10., (double)y/10.);
+    fprintf(PS.fp, "%.1f %.1f M\n", (double)x / 10., (double)y / 10.);
     return 0;
 }
 int cont_local(int x, int y)
 {
-    fprintf(PS.fp, "%.1f %.1f L ", (double)x/10., (double)y/10.);
+    fprintf(PS.fp, "%.1f %.1f L ", (double)x / 10., (double)y / 10.);
     return 0;
 }
-

@@ -19,13 +19,14 @@ int raster_close(void)
 
     for (i = 0; i < 3; i++)
     {
-        if (PS.rst.fd[i] >= 0) {
-    	    G_close_cell(PS.rst.fd[i]);
-	        G_free(PS.rst.name[i]);
-	        G_free(PS.rst.mapset[i]);
-	        G_free_colors(&(PS.rst.colors[i]));
-	        PS.rst.fd[i] = -1;
-        }
+	if (PS.rst.fd[i] >= 0)
+	{
+	    G_close_cell(PS.rst.fd[i]);
+	    G_free(PS.rst.name[i]);
+	    G_free(PS.rst.mapset[i]);
+	    G_free_colors(&(PS.rst.colors[i]));
+	    PS.rst.fd[i] = -1;
+	}
     }
 
     return 1;

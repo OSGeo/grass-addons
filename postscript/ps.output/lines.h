@@ -27,11 +27,12 @@
 
 typedef struct
 {
-    double width;   /* width of line */
-    PSCOLOR color;  /* color of line */
-    int cap;        /* linecap style */
-    int join;       /* linejoin style */
-    char *dash;     /* dash ps format */
+    double width;		/* width of line */
+    PSCOLOR color;		/* color of line */
+    int cap;			/* linecap style */
+    int join;			/* linejoin style */
+    char *dash;			/* dash ps format */
+    int odash;			/* offset dash */
 } PSLINE;
 
 #endif

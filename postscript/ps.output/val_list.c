@@ -11,36 +11,38 @@
 
 
 /* Sort categories by user */
-int sort_list(char *order, int items, CELL **item)
+int sort_list(char *order, int items, CELL ** item)
 {
     int i, j, k, count, tmp;
     CELL *ip, val;
     DCELL *vlist;
 
     /* initial order */
-    ip = (CELL *)G_malloc(sizeof(CELL) * items);
+    ip = (CELL *) G_malloc(sizeof(CELL) * items);
     for (i = 0; i < items; i++)
-        ip[i] = i;
+	ip[i] = i;
 
     /* if any to order */
-    if (order[0] != 0 &&
-       (count = parse_val_list(order, &vlist)) > 0)
+    if (order[0] != 0 && (count = parse_val_list(order, &vlist)) > 0)
     {
-        for (i = 0, j = 0; j < count; j += 2)
-        {
-            for (val = vlist[j]; val <= vlist[j+1]; val++)
-            {
-                for (k = i; k < items; k++)
-                {
-                    if ((*item)[k] == val)
-                    {
-                        tmp = ip[k]; ip[k] = ip[i]; ip[i] = tmp;
-                        (*item)[k] = (*item)[i]; i++;
-                        break;
-                    }
-                }
-            }
-        }
+	for (i = 0, j = 0; j < count; j += 2)
+	{
+	    for (val = vlist[j]; val <= vlist[j + 1]; val++)
+	    {
+		for (k = i; k < items; k++)
+		{
+		    if ((*item)[k] == val)
+		    {
+			tmp = ip[k];
+			ip[k] = ip[i];
+			ip[i] = tmp;
+			(*item)[k] = (*item)[i];
+			i++;
+			break;
+		    }
+		}
+	    }
+	}
     }
 
     G_free(*item);
@@ -71,7 +73,7 @@ int sort_list(char *order, int items, CELL **item)
  ********************************************************/
 #include <grass/gis.h>
 
-int parse_val_list(char *buf, DCELL **list)
+int parse_val_list(char *buf, DCELL ** list)
 {
     int count;
     DCELL a, b;
@@ -81,36 +83,37 @@ int parse_val_list(char *buf, DCELL **list)
     lp = (DCELL *) G_malloc(sizeof(DCELL));
     while (*buf)
     {
-        while (*buf == ' ' || *buf == '\t' ||
-               *buf == ',' || *buf == '\n')
-        {
-            buf++;
-        }
-        if (sscanf(buf, "%lf-%lf", &a, &b) == 2)
-        {
-            if (a > b) {
-                DCELL t;
-                t = a;
-                a = b;
-                b = t;
-            }
-            lp = (DCELL *) G_realloc(lp, (count + 2) * sizeof(DCELL));
-            lp[count++] = a;
-            lp[count++] = b;
-        }
-        else if (sscanf(buf, "%lf", &a) == 1)
-        {
-            lp = (DCELL *) G_realloc(lp, (count + 2) * sizeof(DCELL));
-            lp[count++] = a;
-            lp[count++] = a;
-        }
-        else
-        {
-            G_free(lp);
-            return -1;
-        }
-        while (*buf && (*buf != ','))
-            buf++;
+	while (*buf == ' ' || *buf == '\t' || *buf == ',' || *buf == '\n')
+	{
+	    buf++;
+	}
+	if (sscanf(buf, "%lf-%lf", &a, &b) == 2)
+	{
+	    if (a > b)
+	    {
+		DCELL t;
+
+		t = a;
+		a = b;
+		b = t;
+	    }
+	    lp = (DCELL *) G_realloc(lp, (count + 2) * sizeof(DCELL));
+	    lp[count++] = a;
+	    lp[count++] = b;
+	}
+	else if (sscanf(buf, "%lf", &a) == 1)
+	{
+	    lp = (DCELL *) G_realloc(lp, (count + 2) * sizeof(DCELL));
+	    lp[count++] = a;
+	    lp[count++] = a;
+	}
+	else
+	{
+	    G_free(lp);
+	    return -1;
+	}
+	while (*buf && (*buf != ','))
+	    buf++;
     }
     *list = lp;
     return count;

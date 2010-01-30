@@ -11,11 +11,15 @@
  *             for details.
  */
 
+#include "colors.h"
+
 typedef struct
 {
     char *name;
     int width, height;
     double left, right, top, bot;
+    PSCOLOR fcolor;
+
 } PAPER;
 
 #endif

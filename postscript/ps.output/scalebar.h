@@ -33,8 +33,8 @@ typedef struct
     PSFONT font;
     PSCOLOR fcolor;
 
-    int labels, segments;   /* normal segments */
-    int sublabs, subsegs;   /* first segment subdivisions */
+    int labels, segments;	/* normal segments */
+    int sublabs, subsegs;	/* first segment subdivisions */
 
     int ucode;
     char units[50];

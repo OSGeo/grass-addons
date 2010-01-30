@@ -22,7 +22,7 @@ typedef struct
 
     struct Categories cats;
     struct Colors colors[3];
-    CELL min, max;  /* to get color table, in gradient */
+    CELL min, max;		/* to get color table, in gradient */
 
     int fd[3];
     char *name[3], *mapset[3];

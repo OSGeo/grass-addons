@@ -16,14 +16,18 @@
 
 typedef struct
 {
-    double x, y;          /* left-top corner */
-    double xset, yset;    /* x and y offset */
-    int xref, yref;       /* reference point */
-    double border;        /* outer border width */
-    PSCOLOR color;        /* border color */
-    PSCOLOR fcolor;       /* fill color */
-    double margin;        /* inner margin */
+    double x, y;		/* left-top corner */
+    double xset, yset;		/* x and y offset */
+    int xref, yref;		/* reference point */
+
+    double border;		/* outer border width */
+    PSCOLOR color;		/* border color */
+
+    PSCOLOR fcolor;		/* fill color */
+
+    double margin;		/* inner margin */
     double rotate;
+
 } PSFRAME;
 
 #endif

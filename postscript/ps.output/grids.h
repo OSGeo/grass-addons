@@ -17,18 +17,20 @@
 
 typedef struct
 {
-    int sep;         /* major separation between lines */
+    int sep;			/* major separation between lines */
     PSLINE line;
 
     PSFONT font;
     PSCOLOR fcolor;
+    int lsides;			/* label, default 2 sides, else 4 */
 
-    int msep;        /* minor separation between lines */
+    int msep;			/* minor separation between lines */
     PSLINE mline;
 
-    int format;      /* formats: 0 inner, 1 outer, ... */
-    int round;       /* digits to cut if zero */
-    double cross;    /* length of crosses */
+    int format;			/* border formats: 0 inner, 1 outer, ... */
+    int trim;			/* digits of labels to cutoff if zero */
+    double cross;		/* length of not LL crosses */
+    int msubdiv;
 } GRID;
 
 #endif

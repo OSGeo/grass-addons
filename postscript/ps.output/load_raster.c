@@ -46,40 +46,43 @@ int load_group(char *name)
     I_init_group_ref(&ref);
 
     /* get group info */
-    if (I_get_group_ref(PS.rst.title, &ref) == 0) {
-        G_fatal_error(_("Can't get group information"));
+    if (I_get_group_ref(PS.rst.title, &ref) == 0)
+    {
+	G_fatal_error(_("Can't get group information"));
     }
 
     G_message(_("Reading map group <%s> ..."), name);
 
     /* get filenames for R, G, and B */
     I_init_ref_color_nums(&ref);
-    PS.rst.name[0]   = G_store(ref.file[ref.red.n].name);
+    PS.rst.name[0] = G_store(ref.file[ref.red.n].name);
     PS.rst.mapset[0] = G_store(ref.file[ref.red.n].mapset);
-    PS.rst.name[1]   = G_store(ref.file[ref.grn.n].name);
+    PS.rst.name[1] = G_store(ref.file[ref.grn.n].name);
     PS.rst.mapset[1] = G_store(ref.file[ref.grn.n].mapset);
-    PS.rst.name[2]   = G_store(ref.file[ref.blu.n].name);
+    PS.rst.name[2] = G_store(ref.file[ref.blu.n].name);
     PS.rst.mapset[2] = G_store(ref.file[ref.blu.n].mapset);
 
     /* check load colors */
     for (i = 0; i < 3; i++)
     {
-        if (G_read_colors(PS.rst.name[i], PS.rst.mapset[i], &(PS.rst.colors[i])) == -1) {
-            sprintf(fullname, "%s in %s", PS.rst.name[i], PS.rst.mapset[i]);
-            error(fullname, "", "can't load color table");
-            return 0;
-        }
+	if (G_read_colors(PS.rst.name[i], PS.rst.mapset[i], &(PS.rst.colors[i])) == -1)
+	{
+	    sprintf(fullname, "%s in %s", PS.rst.name[i], PS.rst.mapset[i]);
+	    error(fullname, "", "can't load color table");
+	    return 0;
+	}
     }
 
     /* check open raster maps */
     for (i = 0; i < 3; i++)
     {
-        if ((PS.rst.fd[i] = G_open_cell_old(PS.rst.name[i], PS.rst.mapset[i])) < 0) {
-            sprintf(fullname, "%s in %s", PS.rst.name[i], PS.rst.mapset[i]);
-            error(fullname, "", "can't open raster map");
-            G_free_colors(&(PS.rst.colors[i]));
-            return 0;
-        }
+	if ((PS.rst.fd[i] = G_open_cell_old(PS.rst.name[i], PS.rst.mapset[i])) < 0)
+	{
+	    sprintf(fullname, "%s in %s", PS.rst.name[i], PS.rst.mapset[i]);
+	    error(fullname, "", "can't open raster map");
+	    G_free_colors(&(PS.rst.colors[i]));
+	    return 0;
+	}
     }
 
     I_free_group_ref(&ref);
@@ -93,26 +96,30 @@ int load_cell(int slot, char *name)
     char fullname[100];
 
     /* close raster cell, if any */
-    if (PS.rst.fd[slot] >= 0) {
-        G_close_cell(PS.rst.fd[slot]);
-        G_free(PS.rst.name[slot]);
-        G_free(PS.rst.mapset[slot]);
-        G_free_colors(&(PS.rst.colors[slot]));
-        PS.rst.fd[slot] = -1;
+    if (PS.rst.fd[slot] >= 0)
+    {
+	G_close_cell(PS.rst.fd[slot]);
+	G_free(PS.rst.name[slot]);
+	G_free(PS.rst.mapset[slot]);
+	G_free_colors(&(PS.rst.colors[slot]));
+	PS.rst.fd[slot] = -1;
     }
 
     /* get mapset */
     ptr = strchr(name, '@');
-    if (ptr) {
-        *ptr = '\0';
-        mapset = ptr + 1;
+    if (ptr)
+    {
+	*ptr = '\0';
+	mapset = ptr + 1;
     }
-    else {
-        mapset = G_find_file2("cell", name, "");
-        if (!mapset) {
-            error(name, "", "not found");
-            return 0;
-        }
+    else
+    {
+	mapset = G_find_file2("cell", name, "");
+	if (!mapset)
+	{
+	    error(name, "", "not found");
+	    return 0;
+	}
     }
 
     /* store data of cell */
@@ -123,17 +130,19 @@ int load_cell(int slot, char *name)
     G_message(_("  Reading raster map <%s> ..."), fullname);
 
     /* load colors */
-    if (G_read_colors(name, mapset, &PS.rst.colors[slot]) == -1) {
-		error(fullname, "", "can't load color table");
-		return 0;
+    if (G_read_colors(name, mapset, &PS.rst.colors[slot]) == -1)
+    {
+	error(fullname, "", "can't load color table");
+	return 0;
     }
     G_get_color_range(&(PS.rst.min), &(PS.rst.max), &(PS.rst.colors[slot]));
 
     /* open raster map */
-    if ((PS.rst.fd[slot] = G_open_cell_old(name, mapset)) < 0) {
-		error(fullname, "", "can't open raster map");
-		G_free_colors(&PS.rst.colors[slot]);
-    	return 0;
+    if ((PS.rst.fd[slot] = G_open_cell_old(name, mapset)) < 0)
+    {
+	error(fullname, "", "can't open raster map");
+	G_free_colors(&PS.rst.colors[slot]);
+	return 0;
     }
 
     return 1;

@@ -24,49 +24,49 @@ int set_mask(void)
     static int bit[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 
 
-    if (PS.rst.fd[1] < 0) /* there is no mask */
-    {
-        G_warning(_("Any raster mask to read, don't mask!"));
-        if (PS.need_mask)
-            PS.need_mask = 0;
-        return 0;
+    if (PS.rst.fd[1] < 0)
+    {				/* there is no mask */
+	G_warning(_("Any raster mask to read, don't mask!"));
+	if (PS.need_mask)
+	    PS.need_mask = 0;
+	return 0;
     }
 
     fprintf(PS.fp, "currentfile /ASCIIHexDecode filter /ReusableStreamDecode filter\n");
 
     /* storing the bytes of the mask */
     map_type = G_get_raster_map_type(PS.rst.fd[1]);
-    cbuf     = G_allocate_raster_buf(map_type);
+    cbuf = G_allocate_raster_buf(map_type);
     for (br = 0, row = 0; row < PS.map.rows; row++)
     {
-        G_get_raster_row(PS.rst.fd[1], cbuf, row, map_type);
-        cptr = cbuf;
-        i = byte = 0;
-        for (col = 0; col < PS.map.cols; col++)
-        {
-            if (G_is_null_value(cptr, map_type))
-            {
-                byte |= bit[i];
-            }
-            ++i;
-            if (i == 8)
-            {
-                fprintf(PS.fp, "%02x", byte);
-                i = byte = 0;
-            }
-            if (br++ == 45)
-            {
-                br = 0;
-                fprintf(PS.fp, "\n");
-            }
-            cptr = G_incr_void_ptr(cptr, G_raster_size(map_type));
-        }
-        if (i)
-        {
-            while (i < 8)
-                byte |= bit[i++];
-            fprintf(PS.fp, "%02x", byte);
-        }
+	G_get_raster_row(PS.rst.fd[1], cbuf, row, map_type);
+	cptr = cbuf;
+	i = byte = 0;
+	for (col = 0; col < PS.map.cols; col++)
+	{
+	    if (G_is_null_value(cptr, map_type))
+	    {
+		byte |= bit[i];
+	    }
+	    ++i;
+	    if (i == 8)
+	    {
+		fprintf(PS.fp, "%02x", byte);
+		i = byte = 0;
+	    }
+	    if (br++ == 45)
+	    {
+		br = 0;
+		fprintf(PS.fp, "\n");
+	    }
+	    cptr = G_incr_void_ptr(cptr, G_raster_size(map_type));
+	}
+	if (i)
+	{
+	    while (i < 8)
+		byte |= bit[i++];
+	    fprintf(PS.fp, "%02x", byte);
+	}
     }
     fprintf(PS.fp, "\n> /maskstream exch def\n");
 

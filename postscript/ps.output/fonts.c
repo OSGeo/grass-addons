@@ -14,22 +14,20 @@
 #include "local_proto.h"
 #include "fonts.h"
 
-double set_ps_font_nocolor(PSFONT *font)
+double set_ps_font_nocolor(PSFONT * font)
 {
     if (font->extend == 1. || font->extend <= 0.)
     {
-        fprintf(PS.fp, "(%s) FN %.1f FS\n",
-                font->name, font->size);
+	fprintf(PS.fp, "(%s) FN %.1f FS\n", font->name, font->size);
     }
     else
     {
-        fprintf(PS.fp, "(%s) FN %.1f %.2f FE\n",
-                font->name, font->size, font->extend);
+	fprintf(PS.fp, "(%s) FN %.1f %.2f FE\n", font->name, font->size, font->extend);
     }
     return font->size;
 }
 
-double set_ps_font(PSFONT *font)
+double set_ps_font(PSFONT * font)
 {
     set_ps_color(&(font->color));
     set_ps_font_nocolor(font);

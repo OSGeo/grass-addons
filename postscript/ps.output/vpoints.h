@@ -18,19 +18,21 @@
 
 typedef struct
 {
-    int type;           /* centroid or point */
+    int type;			/* centroid, point, boundary or line */
     char *symbol;
-
-    double scale;
 
     PSLINE line;
     PSCOLOR fcolor;
 
-    double size;
-    char * sizecol;
+    double size, scale, bias;   /* standard size, scale and bias to draw */
+    char *sizecol;		/* size from database or rule */
 
-    double rotate;
-    char * rotatecol;
+    double rotate;		/* standard rotate */
+    char *rotatecol;		/* rotate from database */
+
+    PSLINE cline;		/* conection line */
+    double distance;		/* distance between symbols on the conection line */
+    double voffset;		/* vertical offset of the symbol */
 
 } VPOINTS;
 

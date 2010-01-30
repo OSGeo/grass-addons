@@ -16,17 +16,17 @@
 #include "local_proto.h"
 
 
-void unset_color(PSCOLOR *color)
+void unset_color(PSCOLOR * color)
 {
     color->none = 1;
     color->r = color->g = color->b = 0.;
 }
 
-int set_color_name(PSCOLOR *color, char *name)
+int set_color_name(PSCOLOR * color, char *name)
 {
     int R, G, B;
 
-    if (strcmp(name, "none") == 0)
+    if (*name == 0 || strcmp(name, "none") == 0)
     {
         unset_color(color);
         return 1;
@@ -46,36 +46,69 @@ int set_color_name(PSCOLOR *color, char *name)
     return 0;
 }
 
-void set_color_rgb(PSCOLOR *color, int r, int g, int b)
+void set_color_rgb(PSCOLOR * color, int r, int g, int b)
 {
     color->none = 0;
 
+    color->a = 1.;
     color->r = (double)r / 255.;
     color->g = (double)g / 255.;
     color->b = (double)b / 255.;
 }
 
-/* PostScript shortcut */
-
-void set_ps_color(PSCOLOR *color)
+void set_color_pscolor(PSCOLOR * color, PSCOLOR * pscolor)
 {
-    if (!color->none)
-        fprintf(PS.fp, "%.3f %.3f %.3f C ",
-                color->r, color->g, color->b);
+    color->none = pscolor->none;
+
+    color->a = pscolor->a;
+    color->r = pscolor->r;
+    color->g = pscolor->g;
+    color->b = pscolor->b;
 }
 
-int set_ps_grey(PSCOLOR *color)
+long color_to_long(PSCOLOR * color)
 {
-    if (!color->none)
-        fprintf(PS.fp, "%.3f %.3f %.3f CG ",
-                color->r, color->g, color->b);
+    return (16711680 * color->r + 65280 * color->g + 255 * color->b);
+}
+
+int long_to_color(long ln, PSCOLOR * color)
+{
+    color->none = 0;
+
+    color->r = (double)((ln & 16711680) >> 16) / 255.;
+    color->g = (double)((ln & 65280) >> 8) / 255.;
+    color->b = (double)(ln & 255) / 255.;
+    /*
+       fprintf(PS.fp, "%.3f %.3f %.3f ",
+       (double)((ln & 16711680) >> 16)/255.,
+       (double)((ln & 65280) >> 8)/255.,
+       (double)(ln & 255)/255.);
+     */
     return 0;
 }
 
-void set_ps_rgb(int R, int G, int B)
+/* PostScript shortcut */
+
+int set_ps_color(PSCOLOR * color)
 {
-    fprintf(PS.fp, "%.3f %.3f %.3f C ",
-            (double)R/255., (double)G/255., (double)B/255.);
+    if (!color->none)
+    {
+	fprintf(PS.fp, "%.3f %.3f %.3f C ", color->r, color->g, color->b);
+
+	if ((PS.flag & 1) && color->a > 0.)
+	    fprintf(PS.fp, "%.2f O ", color->a);
+    }
+    return 0;
 }
 
+int set_ps_grey(PSCOLOR * color)
+{
+    if (!color->none)
+    {
+	fprintf(PS.fp, "%.3f %.3f %.3f CG ", color->r, color->g, color->b);
 
+	if ((PS.flag & 1) && color->a > 0.)
+	    fprintf(PS.fp, "%.2f O ", color->a);
+    }
+    return 0;
+}

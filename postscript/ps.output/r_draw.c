@@ -23,24 +23,32 @@ int read_draw(char *name)
 {
     char buf[1024];
     char *key, *data;
+    int type = 0;
 
     G_debug(1, "Reading draw settings ..");
 
+    if (strcmp(name, "free") == 0)
+	type = 1;
+    if (strcmp(name, "paper") == 0)
+	type = 2;
+
     /* process options */
     while (input(2, buf))
+    {
+	if (!key_data(buf, &key, &data))
 	{
-		if (!key_data(buf, &key, &data)) {
-			continue;
-        }
+	    continue;
+	}
 
-        PS.draw.key[PS.n_draws]  = G_store(key);
-        PS.draw.data[PS.n_draws] = G_store(data);
-        ++PS.n_draws;
-        if (PS.n_draws == MAX_DRAWS)
-            error(key, data, "many draw commands sub-request");
+	/* TODO: permit command with ';' separation */
+
+	PS.draw.flag[PS.n_draws] = type;
+	PS.draw.key[PS.n_draws] = G_store(key);
+	PS.draw.data[PS.n_draws] = G_store(data);
+	++PS.n_draws;
+	if (PS.n_draws == MAX_DRAWS)
+	    error(key, data, "many draw commands sub-request");
     }
 
     return 0;
 }
-
-

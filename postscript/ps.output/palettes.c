@@ -30,7 +30,7 @@ int palette_new(int n)
     return i;
 }
 
-int PS_str_to_color(char *name, PSCOLOR *color)
+int PS_str_to_color(char *name, PSCOLOR * color)
 {
     int i;
 
@@ -47,6 +47,16 @@ int PS_str_to_color(char *name, PSCOLOR *color)
     return 0;
 }
 
+/*
+void PL_set_name(int k, char *name, int i)
+{
+    if (Palette[k].h < 0.)    Palette[k].h += 360.;
+    if (Palette[k].h >= 360.) Palette[k].h -= 360.;
+
+    sprintf(Palette[k].name, "%s%d", name, i);
+}
+*/
+
 /* pure colors: color-wheel */
 int pure_color(char *name, int div)
 {
@@ -56,21 +66,44 @@ int pure_color(char *name, int div)
     /* alloc memory */
     k = palette_new(div);
 
-    step = 360./div;
+    step = 360. / div;
 
     for (i = 0; i < div; i++, k++)
     {
-        Palette[k].h = (double)i * step;
+        Palette[k].h = (double)i *step;
+
         Palette[k].s = 1.;
         Palette[k].v = 1.;
-        sprintf(Palette[k].name, "%s%d", name, i);
+        sprintf(Palette[k].name, "%s%d", name, i+1);
+    }
+
+    return 1;
+}
+
+/* gray color: white to black */
+int gray(char *name, int div)
+{
+    int i, k;
+    double step;
+
+    /* alloc memory */
+    k = palette_new(div);
+    step = (div > 1) ? (1. / (double)(div - 1)) : 0.;
+
+    for (i = 0; i < div; i++, k++)
+    {
+        Palette[k].h = 0.;
+        Palette[k].s = 0.;
+        Palette[k].v = (double)i * step; /* ((double)i * step) ^ (1.5) */
+
+        sprintf(Palette[k].name, "%s%d", name, i+1);
     }
 
     return 1;
 }
 
 /* monochrome color: white to color */
-int monochrome(char *name, PSCOLOR *rgb, int div)
+int monochrome(char *name, PSCOLOR * rgb, int div)
 {
     int i, k;
     double step;
@@ -86,90 +119,22 @@ int monochrome(char *name, PSCOLOR *rgb, int div)
 
     /* alloc memory */
     k = palette_new(div);
+    step = (div > 1) ? (1. / (double)(div - 1)) : 0.;
 
-    if (div > 1) {
-        step = 1./(double)(div-1);
-    }
     for (i = 0; i < div; i++, k++)
     {
         Palette[k].h = hsv.h;
         Palette[k].s = (double)i * step;
-        Palette[k].v = 1.;
-        sprintf(Palette[k].name, "%s%d", name, i);
-    }
+        Palette[k].v = 1. + (double)i * step * (hsv.v - 1.); /* if pure v = 1. */
 
-    return 1;
-}
-
-/* gradient */
-int gradient(char *name, PSCOLOR *A, PSCOLOR *B, int div, int pure)
-{
-    int i, k;
-    double hstep, sstep, vstep;
-    PALETTE pal_A, pal_B;
-
-    RGB_HSV(A, &pal_A);
-    RGB_HSV(B, &pal_B);
-
-    if (pal_A.h == pal_B.h)
-        return 0;
-
-    if (pal_B.h < pal_A.h) {
-        i = pal_A.h;
-        pal_A.h = pal_B.h;
-        pal_B.h = i;
-    }
-
-    /* alloc memory */
-    k = palette_new(div);
-
-    hstep = (pal_B.h - pal_A.h)/(div-1.);
-    sstep = (pal_B.s - pal_A.s)/(div-1.);
-    vstep = (pal_B.v - pal_A.v)/(div-1.);
-
-    for (i = 0; i < div; i++, k++)
-    {
-        Palette[k].h = pal_A.h + (double)i * hstep;
-        Palette[k].s = pure ? 1. : pal_A.s + (double)i * sstep;
-        Palette[k].v = pure ? 1. : pal_A.v + (double)i * vstep;
-        sprintf(Palette[k].name, "%s%d", name, i);
-    }
-
-    return 1;
-}
-
-/* analogous or similar color */
-int analogous(char *name, PSCOLOR *rgb, int div)
-{
-    int i, k;
-    double h, step;
-    PALETTE hsv;
-
-    RGB_HSV(rgb, &hsv);
-
-    /* alloc memory */
-    k = palette_new(div);
-
-    if (div > 1) {
-        hsv.h -= 40.;
-        step = 80./(double)(div-1);
-    }
-
-    for (i = 0; i < div; i++, k++)
-    {
-        Palette[k].h = hsv.h + (double)i * step;
-        if (Palette[k].h < 0.)    Palette[k].h += 360.;
-        if (Palette[k].h >= 360.) Palette[k].h -= 360.;
-        Palette[k].s = hsv.s;
-        Palette[k].v = hsv.v;
-        sprintf(Palette[k].name, "%s%d", name, i);
+        sprintf(Palette[k].name, "%s%d", name, i+1);
     }
 
     return 1;
 }
 
 /* complementary or contrast color */
-int complementary(char *name, PSCOLOR *rgb, int div)
+int complementary(char *name, PSCOLOR * rgb, int div, double sector)
 {
     int i, k;
     double step;
@@ -179,48 +144,126 @@ int complementary(char *name, PSCOLOR *rgb, int div)
 
     /* alloc memory */
     k = palette_new(div);
+    step = (div > 1) ? (sector / (double)(div - 1)) : 0.;
 
-    if (div > 1) {
-        hsv.h += 140.;
-        step = 80./(double)(div-1);
-    }
-    else {
-        hsv.h += 180.;
-    }
+    hsv.h += 180.;
+    if (div > 1)
+        hsv.h -= (sector/2.);
+
     for (i = 0; i < div; i++, k++)
     {
         Palette[k].h = hsv.h + (double)i * step;
-        if (Palette[k].h < 0.)
-            Palette[k].h += 360.;
-        if (Palette[k].h >= 360.)
-            Palette[k].h -= 360.;
         Palette[k].s = hsv.s;
         Palette[k].v = hsv.v;
-        sprintf(Palette[k].name, "%s%d", name, i);
+
+        if (Palette[k].h < 0.)    Palette[k].h += 360.;
+        if (Palette[k].h >= 360.) Palette[k].h -= 360.;
+        sprintf(Palette[k].name, "%s%d", name, i+1);
     }
 
     return 1;
 }
 
-
-/* gray color */
-int gray(char *name, int div)
+/* analogous or similar color */
+int analogous(char *name, PSCOLOR * rgb, int div, double sector)
 {
     int i, k;
     double step;
+    PALETTE hsv;
+
+    RGB_HSV(rgb, &hsv);
+
+    /* alloc memory */
+    k = palette_new(div);
+    step = (div > 1) ? (sector / (double)(div - 1)) : 0.;
+
+    if (div > 1)
+        hsv.h -= (sector/2.);
+
+    for (i = 0; i < div; i++, k++)
+    {
+        Palette[k].h = hsv.h + (double)i *step;
+        Palette[k].s = hsv.s;
+        Palette[k].v = hsv.v;
+
+        if (Palette[k].h < 0.)    Palette[k].h += 360.;
+        if (Palette[k].h >= 360.) Palette[k].h -= 360.;
+        sprintf(Palette[k].name, "%s%d", name, i+1);
+    }
+
+    return 1;
+}
+
+/* gradient */
+int gradient(char *name, PSCOLOR * A, PSCOLOR * B, int div, int pure)
+{
+    int i, k;
+    double h_step, s_step, v_step;
+    PALETTE pal_A, pal_B;
+
+    RGB_HSV(A, &pal_A);
+    RGB_HSV(B, &pal_B);
+
+    if (pal_A.h == pal_B.h || div < 2)
+        return 0;
 
     /* alloc memory */
     k = palette_new(div);
 
-    if (div > 1) {
-        step = 1./(double)(div-1);
-    }
+    if (pal_A.h < pal_B.h)
+        pal_A.h += 360;
+
+    h_step = (pal_B.h - pal_A.h) / (div - 1.);
+    s_step = (pal_B.s - pal_A.s) / (div - 1.);
+    v_step = (pal_B.v - pal_A.v) / (div - 1.);
+
     for (i = 0; i < div; i++, k++)
     {
-        Palette[k].h = 0.;
-        Palette[k].s = 0.;
-        Palette[k].v = (double)i * step;
-        sprintf(Palette[k].name, "%s%d", name, i);
+        Palette[k].h = pal_A.h + (double)i * h_step;
+        Palette[k].s = pure ? 1. : pal_A.s + (double)i * s_step;
+        Palette[k].v = pure ? 1. : pal_A.v + (double)i * v_step;
+
+        if (Palette[k].h < 0.)    Palette[k].h += 360.;
+        if (Palette[k].h >= 360.) Palette[k].h -= 360.;
+        sprintf(Palette[k].name, "%s%d", name, i+1);
+    }
+
+    return 1;
+}
+
+/* diverging */
+int diverging(char *name, PSCOLOR * A, PSCOLOR * B, int div)
+{
+    int i, k;
+    double h_step, v_step, tmp;
+    PALETTE pal_A, pal_B;
+
+    RGB_HSV(A, &pal_A);
+    RGB_HSV(B, &pal_B);
+
+    if (pal_A.h == pal_B.h || div < 2)
+        return 0;
+
+    /* alloc memory */
+    k = palette_new(div);
+
+    if (pal_A.h < pal_B.h)
+        pal_A.h += 360;
+
+    div -= 1;
+    h_step = (pal_B.h - pal_A.h) / div;
+    v_step = (pal_B.v - pal_A.v) / div;
+
+    for (i = 0; i < (div+1); i++, k++)
+    {
+        tmp = (2. * i / div - 1.);
+        Palette[k].h = pal_A.h + (double)i * h_step;
+        Palette[k].s = tmp * tmp;
+        Palette[k].v = pal_A.v + (double)i * v_step;
+
+        if (Palette[k].h < 0.)    Palette[k].h += 360.;
+        if (Palette[k].h >= 360.) Palette[k].h -= 360.;
+        sprintf(Palette[k].name, "%s%d", name, i+1);
     }
 
     return 1;
@@ -232,98 +275,107 @@ int gray(char *name, int div)
  */
 
 /* r, g, b values are from 0 to 1
- * h = [0,360], s = [0,1], v = [0,1]
- */
-void RGB_HSV(PSCOLOR *col, PALETTE *pal)
+   h = [0,360], s = [0,1], v = [0,1]
+*/
+void RGB_HSV(PSCOLOR * col, PALETTE * pal)
 {
-    double min, max;
+    double min, max, delta;
+    int r_max = 1, b_max = 0;
 
-    if (col->r == col->g && col->g == col->b)
+    min = max = col->r;
+    if(min > col->g)
     {
-        pal->h = pal->s = 0.;   /* achromatic, gray */
-        pal->v = col->b;
-        return;
-    }
-    else if (col->r > col->g && col->r > col->b)
-    {
-        max = col->r;
-        min = (col->g < col->b) ? col->g : col->b;
-        pal->h = (col->g - col->b)/(max - min);
-    }
-    else if (col->g > col->b && col->g > col->r)
-    {
-        max = col->g;
-        min = (col->r < col->b) ? col->r : col->b;
-        pal->h = 2. + (col->b - col->r)/(max - min);
+        if(col->b < col->g)
+        {
+            min = col->b;
+        }
+        else
+        {
+            min = col->g;
+            if(col->b > col->r)
+            {
+                max = col->b;
+                b_max = 1;
+                r_max = 0;
+            }
+        }
     }
     else
     {
-        max = col->b;
-        min = (col->g < col->r) ? col->g : col->r;
-        pal->h = 4. + (col->r - col->g)/(max - min);
+        if(col->b > col->g)
+        {
+            max = col->b;
+            b_max = 1;
+            r_max = 0;
+        }
+        else
+        {
+            max = col->g;
+            r_max = 0;
+            if(col->b < col->r)
+                min = col->b;
+        }
     }
 
-    /* hue */
-    pal->h *= 60.;
-    if (pal->h < 0.) pal->h += 360.;
-    /* saturation */
-    pal->s = (max - min) / max;
-    /* value */
     pal->v = max;
+    if( max == 0 || (delta = max - min) == 0)
+    {
+        pal->s = pal->h = 0;
+        return;
+    }
+    pal->s = delta / max;
+    if (r_max == 1)
+    {
+        pal->h = ( col->g - col->b ) / delta;
+    }
+    else if (b_max == 1)
+    {
+        pal->h = 4 + ( col->r - col->g ) / delta;
+    }
+    else
+    {
+        pal->h = 2 + ( col->b - col->r ) / delta;
+    }
+    pal->h *= 60.;
+    if (pal->h < 0)
+        pal->h += 360.;
 
     return;
 }
 
+
 /* r, g, b values are from 0 to 1
- * h = [0,360], s = [0,1], v = [0,1]
- */
-void HSV_RGB(PALETTE *pal, PSCOLOR *col)
+   h = [0,360], s = [0,1], v = [0,1]
+*/
+void HSV_RGB(PALETTE * pal, PSCOLOR * col)
 {
     /* achromatic, gray */
-    if (pal->s == 0) {
+    if (pal->s == 0)
+    {
         col->r = col->g = col->b = pal->v;
         return;
     }
 
-    int i;
     double f, p, q, t;
-    i = floor(pal->h/60.);
-    f = pal->h/60. - (double)i;
-    p = pal->v * ( 1. - pal->s );
-    q = pal->v * ( 1. - pal->s * f );
-    t = pal->v * ( 1. - pal->s * ( 1. - f ) );
+    int i;
+
+//     f = modf(pal->h * 60, &t);
+//     i = ((int) t) % 60;
+    i = floor(pal->h / 60.);
+    f = pal->h / 60. - (double)i;
+
+    p = pal->v * (1. - pal->s);
+    q = pal->v * (1. - pal->s * f);
+    t = pal->v * (1. - pal->s * (1. - f));
     switch (i)
     {
-        case 0:
-            col->r = pal->v;
-            col->g = t;
-            col->b = p;
-            break;
-        case 1:
-            col->r = q;
-            col->g = pal->v;
-            col->b = p;
-            break;
-        case 2:
-            col->r = p;
-            col->g = pal->v;
-            col->b = t;
-            break;
-        case 3:
-            col->r = p;
-            col->g = q;
-            col->b = pal->v;
-            break;
-        case 4:
-            col->r = t;
-            col->g = p;
-            col->b = pal->v;
-            break;
-        default: /* 5 */
-            col->r = pal->v;
-            col->g = p;
-            col->b = q;
-            break;
+    case 0: col->r = pal->v; col->g = t;      col->b = p;      break;
+    case 1: col->r = q;      col->g = pal->v; col->b = p;      break;
+    case 2: col->r = p;      col->g = pal->v; col->b = t;      break;
+    case 3: col->r = p;      col->g = q;      col->b = pal->v; break;
+    case 4: col->r = t;      col->g = p;      col->b = pal->v; break;
+    case 5: col->r = pal->v; col->g = p;      col->b = q;      break;
+    default:
+        col->none = 1;
     }
 }
-

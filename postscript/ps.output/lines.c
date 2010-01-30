@@ -19,35 +19,35 @@
 int set_ps_linewidth(double width)
 {
     if (width > 0.)
-        fprintf(PS.fp, "%.3f LW ", width);
+	fprintf(PS.fp, "%.3f LW ", width);
     return 0;
 
 }
 
-int set_ps_line(PSLINE *line)
+int set_ps_line(PSLINE * line)
 {
     set_ps_color(&(line->color));
     set_ps_linewidth(line->width);
 
-    fprintf(PS.fp, "[%s] 0 LD ", line->dash);
+    fprintf(PS.fp, "[%s] %d LD ", line->dash, line->odash);
     if (line->cap > 0)
-        fprintf(PS.fp, "%d LC ", line->cap);
+	fprintf(PS.fp, "%d LC ", line->cap);
     if (line->join > 0)
-        fprintf(PS.fp, "%d LJ ", line->join);
+	fprintf(PS.fp, "%d LJ ", line->join);
 
     fprintf(PS.fp, "\n");
     return 0;
 }
 
-int set_ps_line_no_color(PSLINE *line)
+int set_ps_line_no_color(PSLINE * line)
 {
     set_ps_linewidth(line->width);
 
-    fprintf(PS.fp, "[%s] 0 LD ", line->dash);
+    fprintf(PS.fp, "[%s] %d LD ", line->dash, line->odash);
     if (line->cap > 0)
-        fprintf(PS.fp, "%d LC ", line->cap);
+	fprintf(PS.fp, "%d LC ", line->cap);
     if (line->join > 0)
-        fprintf(PS.fp, "%d LJ ", line->join);
+	fprintf(PS.fp, "%d LJ ", line->join);
 
     return 0;
 }

@@ -17,8 +17,9 @@
 
 typedef struct
 {
-    char * key[MAX_DRAWS];
-    char * data[MAX_DRAWS];
+    int flag[MAX_DRAWS];	/* paper (watermark), free or none (clip to map) */
+    char *key[MAX_DRAWS];
+    char *data[MAX_DRAWS];
 
 } PSDRAW;
 

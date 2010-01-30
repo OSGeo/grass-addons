@@ -19,32 +19,33 @@ extern FILE *inputfd;
 int input(int level, char *buf)
 {
     int i;
-    char command[10], empty[3];
+    char command[20], empty[3];
 
     if (level && isatty(fileno(inputfd)))
-    	fprintf(stdout, "enter 'end' when done, 'exit' to quit\n");
+	fprintf(stdout, "enter 'end' when done, 'exit' to quit\n");
 
     do
     {
-        if (level && isatty(fileno(inputfd)))
-        {
-            fprintf(stdout, "%s ", level == 1 ? ">" : ">>");
-        }
-        if (!G_getl2(buf, 1024, inputfd))
-        {
-            if (inputfd != stdin) {
-                fclose(inputfd);
-                inputfd = stdin;
-            }
-            return 0;
-        }
-        if (sscanf(buf, "%5s %1s", command, empty) == 1)
-        {
-            if (strcmp(command, "end") == 0)
-                return 0;
-            if (strcmp(command, "exit") == 0)
-                exit(0);
-        }
+	if (level && isatty(fileno(inputfd)))
+	{
+	    fprintf(stdout, "%s ", level == 1 ? ">" : ">>");
+	}
+	if (!G_getl2(buf, 1024, inputfd))
+	{
+	    if (inputfd != stdin)
+	    {
+		fclose(inputfd);
+		inputfd = stdin;
+	    }
+	    return 0;
+	}
+	if (sscanf(buf, "%5s %1s", command, empty) == 1)
+	{
+	    if (strcmp(command, "end") == 0)
+		return 0;
+	    if (strcmp(command, "exit") == 0)
+		exit(0);
+	}
     }
     while (*buf == '#');
 
@@ -57,18 +58,21 @@ int key_data(char *buf, char **k, char **d)
     char *key, *data;
 
     key = buf;
-    while (*key && *key <= ' ') key++;
+    while (*key && *key <= ' ')
+	key++;
 
-    if (*key == 0) {
-        *k = *d = key;
-        return 0;
+    if (*key == 0)
+    {
+	*k = *d = key;
+	return 0;
     }
 
     data = key;
-    while (*data && *data > ' ') data++;
+    while (*data && *data > ' ')
+	data++;
 
     if (*data)
-        *data++ = 0;
+	*data++ = 0;
 
     *k = key;
     *d = data;
@@ -84,9 +88,9 @@ int error(char *a, char *b, char *c)
     sprintf(msg, "%s%s%s : %s", a, *b ? " " : "", b, c);
 
     if (isatty(0))
-        fprintf(stderr, "%s\n", msg);
+	fprintf(stderr, "%s\n", msg);
     else
-        G_fatal_error(msg);
+	G_fatal_error(msg);
 
     exit(0);
 

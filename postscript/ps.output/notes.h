@@ -17,12 +17,13 @@
 
 typedef struct
 {
-	PSFRAME box;
+    PSFRAME box;
     PSFONT font;
 
-	char text[1024];
+    char text[1024];
 
     double angle;
+    double width;
 
 } NOTES;
 

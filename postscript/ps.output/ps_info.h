@@ -31,12 +31,14 @@
 struct PS3_info
 {
     FILE *fp;
-    int level;              /* PostScript level */
-    int draft;              /* Grid of 1x1 cm */
-    char *mapset;           /* current mapset */
-    struct Cell_head map;   /* current region */
+    int level;			/* PostScript level: 0 = EPS */
+    int flag;			/* 1 = GhostScript, 2 = Upper numbers */
+    int draft;			/* Grid of 1x1 cm */
+    char *mapset;		/* current mapset */
+    struct Cell_head map;	/* current region */
 
-    int scale;              /* 1 : scale of the map */
+    int scale;			/* 1 : scale of the map */
+    PSFONT font;		/* default font of map */
 
     /* rasters */
     RASTER rst;
@@ -59,8 +61,8 @@ struct PS3_info
     SCALEBAR sbar;
 
     /* notes */
-    NOTES note[MAX_NOTES];      /* notes */
-    int n_notes;                /* number of notes */
+    NOTES note[MAX_NOTES];	/* notes */
+    int n_notes;		/* number of notes */
 
     /* draw commands */
     PSDRAW draw;
@@ -70,20 +72,18 @@ struct PS3_info
     PAPER page;
 
     /* dimension and location of the map */
-    double map_x, map_y, map_w, map_h;
-    double map_top, map_right; /* to check outside */
-
-    /* current point to draw */
     double x, y;
+    double map_x, map_y, map_w, map_h;
+    double map_top, map_right;
+
 };
 
 #endif
 
 #ifdef MAIN
-    struct PS3_info PS;
-    int sec_draw;   /* used in PS_plot */
+struct PS3_info PS;
+int sec_draw;			/* used in PS_plot */
 #else
-    extern struct PS3_info PS;
-    extern int sec_draw;
+extern struct PS3_info PS;
+extern int sec_draw;
 #endif
-

@@ -19,14 +19,15 @@
 
 typedef struct
 {
-    int type;           /* line or boundary */
+    int type;			/* line or boundary */
 
     PSLINE line;
     PSLINE hline;
 
-    char *rgbcol;       /* line color from database */
+    char *idcol;		/* if set, id rule for legend */
+    char *rgbcol;		/* line color from database */
 
-    double offset;      /* offset parallel line */
+    double offset;		/* offset parallel line */
 
 } VLINES;
 

@@ -19,11 +19,11 @@ typedef struct
 
 
 #ifdef MAIN
-    PALETTE *Palette;
-    int ncolors;
+PALETTE *Palette;
+int ncolors;
 #else
-    extern PALETTE *Palette;
-    extern int ncolors;
+extern PALETTE *Palette;
+extern int ncolors;
 #endif
 
 

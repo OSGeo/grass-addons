@@ -20,14 +20,17 @@ typedef struct
     PSLINE line;
 
     PSCOLOR fcolor;
-    char *rgbcol;       /* if set, fcolor for legends */
 
-    int type_pat;       /* private: 1 colored pattern, 2 uncolored pattern */
-    char *pat;          /* name of pattern */
-    double pwidth;      /* pattern width */
-    double scale;       /* pattern scale */
+    char *rgbcol;		/* if set, fcolor for legend */
+    char *idcol;		/* if set, id rule for legend */
 
-    double width;       /* width of area */
+    char *name_pat;		/* name of pattern */
+    double lw_pat;		/* pattern linewidth */
+    double sc_pat;		/* pattern scale */
+    int type_pat;		/* private: 1 colored pattern, 2 uncolored pattern */
+
+    double width;		/* width of area */
+    int island;			/* draw island */
 
 } VAREAS;
 

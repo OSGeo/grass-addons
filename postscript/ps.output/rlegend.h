@@ -14,23 +14,28 @@
 #include <stdio.h>
 #include "legends.h"
 
+#define MAX_CATS    512
+
 typedef struct
 {
     char name[128];
     char mapset[128];
-	LEGEND legend;
+
+    LEGEND legend;
 
     /* category rlegend */
-    int do_nodata;          /* show no data categoty */
-    char cat_order[512];    /* category custom order */
+    int do_nodata;		/* show no data categoty */
+    char cat_order[MAX_CATS];	/* category custom order */
 
     /* gradient rlegend */
-    int do_gradient;        /* forze gradient when no float */
-    double height;          /* Next only for float raster */
-	int custom_range;
+    double height;
+    int custom_range;
     double min, max;
     int tickbar;
-	int whiteframe;
+    int whiteframe;
+
+    int do_gradient;		/* forze gradient when no float */
+
 } RLEGEND;
 
 #endif

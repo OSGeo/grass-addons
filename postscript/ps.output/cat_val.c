@@ -13,8 +13,10 @@
 #include <grass/glocale.h>
 #include "vector.h"
 
+static char catval_str[128];
+
 /* LOAD CAT_VAL */
-int load_catval_array(VECTOR *vector, const char *colname, dbCatValArray *cvarr)
+int load_catval_array(VECTOR * vector, const char *colname, dbCatValArray * cvarr)
 {
     int n_records;
     struct field_info *Fi;
@@ -23,19 +25,19 @@ int load_catval_array(VECTOR *vector, const char *colname, dbCatValArray *cvarr)
     db_CatValArray_init(cvarr);
 
     Fi = Vect_get_field(&(vector->Map), vector->layer);
-    if (Fi == NULL) {
-        G_fatal_error(_("Unable to get layer info for vector map"));
+    if (Fi == NULL)
+    {
+	G_fatal_error(_("Unable to get layer info for vector map"));
     }
 
     driver = db_start_driver_open_database(Fi->driver, Fi->database);
     if (driver == NULL)
-        G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
-                      Fi->database, Fi->driver);
+	G_fatal_error(_("Unable to open database <%s> by driver <%s>"), Fi->database, Fi->driver);
 
     n_records = db_select_CatValArray(driver, Fi->table, Fi->key, colname, NULL, cvarr);
 
     if (n_records < 0)
-        G_fatal_error(_("Unable to select data from table"));
+	G_fatal_error(_("Unable to select data from table"));
 
     db_close_database_shutdown_driver(driver);
 
@@ -46,7 +48,7 @@ int load_catval_array(VECTOR *vector, const char *colname, dbCatValArray *cvarr)
 /* GET CAT_VAL */
 
 /* return a double number from a dbCatValArray */
-int get_number(dbCatValArray *cvarr, int cat, double *d)
+void get_number(dbCatValArray * cvarr, int cat, double *d)
 {
     int ret, int_val;
     dbCatVal *cv = NULL;
@@ -55,51 +57,78 @@ int get_number(dbCatValArray *cvarr, int cat, double *d)
 
     if (cvarr->ctype == DB_C_TYPE_INT)
     {
-        ret = db_CatValArray_get_value_int(cvarr, cat, &int_val);
-        if (ret != DB_OK) {
-            G_warning(_("No record for category [%d]"), cat);
-        }
-        else
-            *d = (double)int_val;
+	ret = db_CatValArray_get_value_int(cvarr, cat, &int_val);
+	if (ret != DB_OK)
+	{
+	    G_warning(_("No record for category [%d]"), cat);
+	}
+	else
+	    *d = (double)int_val;
     }
     else if (cvarr->ctype == DB_C_TYPE_DOUBLE)
     {
-        ret = db_CatValArray_get_value_double(cvarr, cat, d);
-        if (ret != DB_OK) {
-            G_warning(_("No record for category [%d]"), cat);
-        }
+	ret = db_CatValArray_get_value_double(cvarr, cat, d);
+	if (ret != DB_OK)
+	{
+	    G_warning(_("No record for category [%d]"), cat);
+	}
     }
     else if (cvarr->ctype == DB_C_TYPE_STRING)
     {
-        ret = db_CatValArray_get_value(cvarr, cat, &cv);
-        if (ret != DB_OK) {
-            G_warning(_("No record for category [%d]"), cat);
-        }
-        else
-            *d = atof(db_get_string(cv->val.s));
+	ret = db_CatValArray_get_value(cvarr, cat, &cv);
+	if (ret != DB_OK)
+	{
+	    G_warning(_("No record for category [%d]"), cat);
+	}
+	else
+	    *d = atof(db_get_string(cv->val.s));
     }
-
-    return 1;
 }
 
 /* return a string from a dbCatValArray */
-char * get_string(dbCatValArray *cvarr, int cat)
+char *get_string(dbCatValArray * cvarr, int cat, int dec)
 {
-    int ret;
+    int ret, int_val;
+    double double_val;
     dbCatVal *cv = NULL;
-    char *str = NULL;
+    char buf[10], *str = NULL;
 
     if (cvarr->ctype == DB_C_TYPE_STRING)
     {
-        ret = db_CatValArray_get_value(cvarr, cat, &cv);
-        if (ret != DB_OK) {
-            G_warning(_("No record for category [%d]"), cat);
-        }
-        else
-            str = db_get_string(cv->val.s);
+	ret = db_CatValArray_get_value(cvarr, cat, &cv);
+	if (ret != DB_OK)
+	{
+	    G_warning(_("No record for category [%d]"), cat);
+	}
+	else
+	    str = db_get_string(cv->val.s);
     }
-    else {
-        G_warning(_("It is not a string field [%d]"), cat);
+    else if (cvarr->ctype == DB_C_TYPE_INT)
+    {
+	ret = db_CatValArray_get_value_int(cvarr, cat, &int_val);
+	if (ret != DB_OK)
+	{
+	    G_warning(_("No record for category [%d]"), cat);
+	}
+	else
+	{
+	    sprintf(catval_str, "%d", int_val);
+	    str = catval_str;
+	}
+    }
+    else if (cvarr->ctype == DB_C_TYPE_DOUBLE)
+    {
+	ret = db_CatValArray_get_value_double(cvarr, cat, &double_val);
+	if (ret != DB_OK)
+	{
+	    G_warning(_("No record for category [%d]"), cat);
+	}
+	else
+	{
+	    sprintf(buf, "%%0.%df", dec);
+	    sprintf(catval_str, buf, double_val);
+	    str = catval_str;
+	}
     }
     return str;
 }

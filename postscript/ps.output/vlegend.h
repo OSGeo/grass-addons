@@ -14,11 +14,10 @@
 #include <stdio.h>
 #include "legends.h"
 
+
 typedef struct
 {
-	LEGEND legend;
-
-    char order[512];    /* category custom order */
+    LEGEND legend;
 
 } VLEGEND;
 

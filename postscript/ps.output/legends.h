@@ -16,17 +16,23 @@
 #include "fonts.h"
 #include "frames.h"
 
+#define TITLE_LEN   60
+
+
 typedef struct
 {
-    PSFRAME box;        /* frame box */
-    PSFONT font;        /* legend font */
+    PSFRAME box;		/* frame box */
 
-	int cols;           /* column number */
-    double span;        /* column separation */
-    double width;       /* symbol width  */
+    char title[TITLE_LEN];	/* text title */
+    PSFONT title_font;		/* title font */
 
-    char title[51];     /* text title */
-    PSFONT title_font;  /* title font */
+    PSFONT font;		/* legend font */
+
+    int cols;			/* number of columns */
+    double width;		/* symbol width  */
+    double xspan;		/* separation between columns */
+    double yspan;		/* separation between rows */
+
 } LEGEND;
 
 #endif

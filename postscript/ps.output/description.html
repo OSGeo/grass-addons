@@ -1,45 +1,51 @@
 <H2>DESCRIPTION</H2>
 
-<EM>ps.output</EM> is a cartographic mapping program for producing high quality
-hardcopy maps in PostScript-3 format. Output can include a raster map, any
+<EM>ps.out</EM> is a cartographic mapping program for producing high quality
+hardcopy maps in PostScript-3 format. Output can include a combination of two raster maps, any
 number of vector overlays, notes, decorations, and other spatial data.
 
 <P>
 A file of mapping instructions that describes the various spatial and textual
-information to be printed must be prepared prior to running <EM>ps.output</EM>.
+information to be printed must be prepared prior to running <EM>ps.out</EM>.
+Then, the better use is writing a script file as:
 
-
-<H2>NOTES</H2>
-
-<P>
-The order of commands is generally unimportant but may affect how some layers
-are drawn. For example to plot <B>vpoints</B> above <B>vareas</B> list the
-<B>vpoints</B> entry first. Raster maps are always drawn first, and only a
-single raster map and an optional background may be used
-(or 3 if part of a RGB group).
+<PRE>
+ps.out [flags] output=FILE << EOF
+(ps.out commands)
+EOF
+</PRE>
 
 <P>
 The hash character ('<tt>#</tt>') may be used at the beginning of a line
 to indicate that the line is a comment. Blank lines will also be ignored.
 
+<H2>NOTES</H2>
+
+<P>
+The order of commands is generally unimportant but may affect how some layers
+are drawn. <EM>ps.out</EM> first draw the masked areas, lines, points, and labels,
+second the unmasked areas and lines, and finally the grids, unmasked points and unmasked labels.
+Raster maps are always drawn first, and only a raster map command may be used.
+
 <P>
 Be aware that some mapping instructions require the <i>end</i> command
 and some do not. Any instruction that allows subcommands will require
-it, any instruction that does not allow subcommands will not.
+it.
 
 <P>
-The resolution and extent of raster maps plotted with <EM>ps.output</EM> are controlled by the current region settings via the <a href="g.region.html">g.region</a> module. The output filesize is largely a function of the region resolution, so special care should be taken if working with large raster datasets.
+The resolution and extent of raster maps plotted with <EM>ps.out</EM> are controlled by the current region settings via the <a href="g.region.html">g.region</a> module. The output filesize is largely a function of the region resolution, so special care should be taken if working with large raster datasets.
 For example if the desired output is Letter sized paper at 300dpi, with 1" margins and the raster filling the entire page, the usable area on the page will be 6.5" x 9", which at 300 dots/inch is equivalent to a region of 1950 columns x 2700 rows (see "<tt>g.region -p</tt>"). Any higher resolution settings will make the output file larger, but with a consumer printer you probably won't be able to resolve any better detail in the hardcopy.
 
 <P>
 The user can specify negative or greater than 100 percentage values for positioning several map decorations and embedded EPS-files, to move them outside the current map box region (for example to position a caption, barscale, or legend above or below the map box).
 
 <P>
-One "pixel" is 1/72 of an inch or 127/360 (~ 0.35) of a millimetre.
+One "pixel" is 1/72 of an inch or 127/360 (aprox. 0.35) of a millimetre.
 
 <P>
-For users wanting to use special characters (such as accented characters) it is important to note that <em>ps.output</em> uses <tt>ISO-8859-1</tt> encoding. This means that your instructions file will have to be encoded in this encoding. If you normally work in a different encoding environment (such as <tt>UTF-8</tt>), you have to transform your file to the <tt>ISO-8859-1</tt> encoding, for example by using the <tt>iconv</tt> utility:
+For users wanting to use special characters (such as accented characters) it is important to note that <em>ps.out</em> uses <tt>ISO-8859-1</tt> encoding. This means that your instructions file will have to be encoded in this encoding. If you normally work in a different encoding environment (such as <tt>UTF-8</tt>), you have to transform your file to the <tt>ISO-8859-1</tt> encoding, for example by using the <tt>iconv</tt> utility:
 </P>
+
 <DIV class="code"><PRE>
 iconv -f UTF-8 -t ISO_8859-1 utf_file > iso_file
 </PRE></DIV>
@@ -50,34 +56,36 @@ iconv -f UTF-8 -t ISO_8859-1 utf_file > iso_file
 <H2>MAPPING INSTRUCTIONS</H2>
 
 The mapping instructions allow the user to specify various spatial data to be plotted. These instructions are normally prepared in a regular text file using a system editor. Except <em>scale</em>, all instructions are multiple line followed by a subsection of one or more additional instructions and are terminated with an <i>end</i> instruction.
-<P>
 
-<h3>Instruction keywords:</h3>
+<P>
+<H3>Instruction keywords:</H3>
 
 <a href="#draw">draw</a>&nbsp;<BR>
-<a href="#geogrid">geogrid</a>&nbsp; ERROR IN SOUTH HEMISPHERE<BR>
+<a href="#geogrid">geogrid</a>&nbsp; ERROR IN SOUTH HEMISPHERE?<BR>
 <a href="#grid">grid</a>&nbsp;<BR>
 <a href="#maparea">maparea</a>&nbsp;<BR>
 <a href="#note">note</a>&nbsp;<BR>
-<a href="#palette">palette</a>&nbsp; CHECK<BR>
+<a href="#palette">palette</a>&nbsp;<BR>
 <a href="#paper">paper</a>&nbsp;<BR>
 <a href="#raster">raster</a>&nbsp;<BR>
 <a href="#rlegend">rlegend</a>&nbsp;<BR>
 <a href="#scale">scale</a>&nbsp;<BR>
 <a href="#scalebar">scalebar</a>&nbsp;<BR>
 <a href="#vareas">vareas</a>&nbsp;<BR>
+<a href="#vlabels">vlabel</a>&nbsp;<BR>
 <a href="#vlines">vlines</a>&nbsp;<BR>
 <a href="#vpoints">vpoints</a>&nbsp;<BR>
 <a href="#vlegend">vlegend</a>&nbsp;<BR>
 
 
-<h3>Convention in description of instructions:</h3>
+<h3>Convention in description of some instructions:</h3>
 
 <DL>
-<DT><B>#</B> <EM>number</EM>
-<P>
-<DT><B>#-</B> <EM>dimension</EM> name (number with units)
-<DD> Acceptable units are <em>mm</em> (millimeters), <em>cm</em> (centimeters), and <em>inch</em> (inches).
+<DT><B>#</B> <EM>number without dimension</EM>
+<DD>The number is considered in points.
+</DD><P>
+<DT><B>#-</B> <EM>number with dimension</EM>
+<DD> Acceptable units are <em>mm</em> (millimeters), <em>cm</em> (centimeters), <em>inch</em> (inches), and <em>%</em> (percent of map dimensions).
 </DD><P>
 <DT><B>CAT</B> <EM>List of categories</EM> e.g. 1,3,5-7
 <P>
@@ -85,16 +93,17 @@ The mapping instructions allow the user to specify various spatial data to be pl
 <P>
 <DT><b>T</b> <em>Text</em>
 <P>
-<DT><b>R</b> <em>Raster</em> file or group name if first character is ':'
+<DT><b>R</b> <em>Raster</em> file or group name if the first character is ':'
 <P>
-<DT><b>V</b> <em>Vector</em> file
+<DT><b>V</b> <em>Vector</em> file name if equal to '(none)' then don't draw but there is present in vlegend.
 <P>
-
 <DT><b>color</b> <em>Color</em> name
-<DD>The color may be either a standard <a name="NAMED_COLORS">GRASS color</a>, a <tt>R:G:B</tt> triplet (e.g '<tt>255:0:0</tt>'), or <tt>none</tt>.
-The following colors names are accepted by <EM>ps.output</EM>:
-<tt>aqua, black, blue, brown, cyan, gray, grey, green, indigo, magenta, orange, purple, red, violet, white, yellow</tt>.
-</DD><P>
+<DD>The color may be either a standard <a name="NAMED_COLORS">GRASS color</a>, a <tt>R:G:B</tt> triplet (e.g '<tt>255:0:0</tt>'), or <tt>none</tt>. In all cases could be follow by <em>$alpha</em> to set the opacity (if use -g flag).
+ The following colors names are accepted by <EM>ps.out</EM>: <tt>aqua, black, blue, brown, cyan, gray, grey, green, indigo, magenta, orange, purple, red, violet, white, yellow</tt>.
+<P>
+<DT><b>COOR</b> <em>Coordinates</em> as pair of <b>east north</b>
+<P>
+</DD>
 
 <DT><B>font</B> command:
 <PRE>
@@ -148,54 +157,52 @@ line
 end
 </PRE>
 
-<DT><b>COOR</b> <em>Coordinates</em> as pair of <b>east north</b>
-<P>
-
-
-
-
 </DL>
+
+
 <P>
-
-
-
-
 <H2>COMPOSE THE MAP</H2>
 
+<a name="paper"><h3>paper</h3></a> Specifies paper size, margins and orientation.
 
-<h3>paper</h3>
-<a name="paper"></a>
-Specifies paper size, margins and orientation.
-
-<PRE>
+<P><PRE>
 USAGE
-<B>paper</B> [paper type], default: A4
+<B>paper</B> [paper type]: default A4
     <B>height</B> [#-]
     <B>width</B>  [#-]
-    <B>left</B>   [#-], default 0.5inch
-    <B>right</B>  [#-], default 0.5inch
-    <B>bottom</B> [#-], default 1.0inch
-    <B>top</B>    [#-], default 1.0inch
-    <B>landscape</B> [y|N], default N
+    <B>left</B>   [#-]: default 0.5inch
+    <B>right</B>  [#-]: default 0.5inch
+    <B>bottom</B> [#-]: default 1.0inch
+    <B>top</B>    [#-]: default 1.0inch
+    <B>landscape</B> [y|N]: default N
+    <B>draw</B>   (draw)
+    <B>font</B>   (font): set the default font
 <B>end</B>
 </PRE>
 
-<P>
-Paper types: A0-6, B0-6, Executive, Folio, Ledger, Legal, Letter, Tabloid.<BR>
+<UL>
+<LI><em>paper types</em>: A0-6, B0-6, Executive, Folio, Ledger, Legal, Letter, Tabloid.</LI>
+<LI><em>left</em> and <em>top</em>: They are referenced to upper-left margin of the paper and they specify the position of the map area (i.e. grids growth outside this limits).
+<LI><em>draw</em>: This paints the features before any part of map. Usefull to draw logos, watermarks...</LI>
+</UL>
 
-<PRE>
+<P><PRE>
 <i>EXAMPLE</i>
 paper A4
     left 2cm
     top 4cm
     landscape y
+    font
+        name Univers
+        size 8
+    end
 end
 </PRE>
+
+This example set the size of paper to landscape A4 and Univers 8 point as defualt font.
+
 <P>
-
-
-<h3>scale</h3>
-Selects a scale for the output map.
+<a name="scale"><h3>scale</h3></a>. Selects a scale for the output map.
 
 <PRE>
 USAGE
@@ -213,9 +220,10 @@ The scale is selected as a relative ratio, e.g. 1:25000. Use maparea to select a
 This example would set the scale of the map to 1 unit = 25000 units.
 
 
-<h3>maparea</h3>
-
-Positions the map area on the page.
+<a name="maparea"><h3>maparea</h3></a>
+Position of the map area on the page.<BR>
+The upper left corner of the map will be positioned <EM>left</EM> units from the left edge of the page and <EM>top</EM> units from the top of the page. If <EM>width</EM> and <EM>height</EM> are present, the map will be rescaled, if necessary, to fit.
+<P>
 
 <PRE>
 USAGE
@@ -226,29 +234,27 @@ USAGE
     <B>height</B> [#-]
     <B>border</B> [#-]
     <B>color</B>  [color]
+    <B>fcolor</B> [color]
  <B>end</B>
 </PRE>
 
-The upper left corner of the map will be positioned <EM>left</EM> units from the left edge of the page and <EM>top</EM> units from the top of the page. If <EM>width</EM> and <EM>height</EM> are present, the map will be rescaled, if necessary, to fit.
-<P>
+<UL>
+<LI><em>border</em> and <em>color</em>: To control the which and color of the line is drawn around the map area.</LI>
+<LI><em>fcolor</em>: Fill map-area with color (or none), e.g. aqua to sea color.
+</LI>
 
-<em>border</em> and <em>color</em> controls the which and color of the line is drawn around the map area.
-<P>
-
-<PRE>
+<P><PRE>
 <i>EXAMPLE</i>
 maparea
-	left 2cm
-	top 3.5cm
-	border 1mm
-	color black
+    left 2cm
+    top 3.5cm
+    border 1mm
+    color black
+    fcolor none
 end
 </PRE>
 
 This example positions the upper left corner of the map 2.0 cm from the left edge and 3.5 cm from the top edge of the map. And draw a black border of 1 mm of width around the map area.
-
-<h3>palette</h3>
-
 
 
 
@@ -266,14 +272,17 @@ USAGE
     <B>cross</B>  [#]
     <B>font</B>   [font]
     <B>fcolor</B> [color]
-    <B>format</B> [#], number (0-2) or 'in', 'out' or 'iho'
-    <B>round</B>  [#]
+    <B>format</B> ['in', 'out', '+out' or 'iho']
+    <B>cutoff</B> [#]
  <B>end</B>
 </PRE>
 
-<PRE>
+<table border=1 cellspacing=10>
+<td>
 <I>EXAMPLE</I>
+<PRE>
 grid
+    format in
     major 1000
         width .1mm
         color gray
@@ -290,10 +299,16 @@ grid
         color white
     end
     fcolor black
-    format 0
-    round 3
+    cutoff 3
 end
 </PRE>
+</td>
+<td></td>
+<td><image src="ps.out_in.jpg"><br><br>format: in</td>
+<td><image src="ps.out_out.jpg"><br><br>format: out</td>
+<td><image src="ps.out_iho.jpg"><br><br>format: iho</td>
+<td><image src="ps.out_can.jpg"><br><br>format: can</td>
+</table>
 
 This example would overlay a gray grid with a spacing of 10000 meters (for a metered database, like UTM) onto the output map.  Alternate grid lines would be numbered with white numbers on black boxes.
 
@@ -308,7 +323,7 @@ USAGE
     <B>minor</B>  [#] (line)
     <B>font</B>   [font]
     <B>fcolor</B> [color]
-    <B>format</B> [#], number (0-1) or 'in' or 'out'
+    <B>format</B> ['in' or 'out' or '+out']
  <B>end</B>
 </PRE>
 
@@ -344,8 +359,8 @@ end
 <B>scalebar</B>   [scalebar type]
     <B>length</B> [#]
     <B>units</B>  [code T]
-    <B>major</B>  [# #], divisions and seperation text label
-    <B>minor</B>  [# #], divisions and seperation text label
+    <B>major</B>  [# #], divisions and label separation
+    <B>minor</B>  [# #], divisions and label separation
     <B>frame</B>  [frame]
     <B>font</B>   [font]
     <B>height</B> [#-]
@@ -389,6 +404,7 @@ USAGE
     <B>frame</B> [frame]
     <B>font</B> [font]
     <B>angle</B> [#] in degrees
+    <B>width</B> [#-]
  <B>end</B>
 </PRE>
 
@@ -420,6 +436,44 @@ end
 </PRE>
 
 
+<a name="palette"><h3>palette</h3></a>
+
+
+<a name="draw"><h3>draw</h3></a>
+
+<PRE>
+USAGE
+<B>draw</B> [free]
+    <b>direct</B> (T)
+    <B>color</B> (color)
+    <B>fcolor</B> (fill color)
+    <B>linewidth</B> line_width
+    <B>linedash</B> line_width
+    <B>font</B> name size [extend]
+
+    <B>[l,r,c,x,v,]text</B> east north label or -1 angle label
+    <B>textc</B> east north label
+    <B>labels</B> filename
+
+    <B>moveto</B> east north
+    <B>lineto</B> east north
+    <B>endline</B>
+
+    <B>line</B> east1 north1 east2 north2
+    <B>rectangle</B> east1 north1 east2 north2 [fillcolor]
+    <B>circle</B> east north radius
+    <B>arc</B> east1, noth1, diameter, east2, north2
+    <B>border</B> width
+
+    <B>psfile</B> scale east north filename
+
+    <B>maplimits</B>
+    <b>north</B> east north radius
+    <B>compass</B> east north radius
+    <B>rute</B> east north label
+<B>end</B>
+</PRE>
+
 
 <h2>ADDING RASTER MAPS</h2>
 
@@ -428,12 +482,12 @@ Selects a raster map for output.
 
 <PRE>
 <I>USAGE</I>
-<B>raster</B> [R|R R R], required: one raster, one group name (:name) or three raster (RGB)
+<B>raster</B> [R|R R R], required: one raster, one group name (:name) or three raster (R G B)
     <B>grey</B>      [y|N]. Output in shades of grey.
     <B>maskcolor</B> [color]. Color to be used for mask.
     <B>maskcell</B>  [R (R)]. Raster used as mask and optionally a raster for background.
     <B>outline</B>   [line]. Specifications of outline.
-    <B>setcolor</B>  [cat color]. Overrides the color of cat
+    <B>setcolor</B>  [CAT color]. Overrides the color of cat
 end
 </PRE>
 
@@ -456,39 +510,56 @@ end
 
 <a name="vareas"><H3>vareas</H3></a>
 
+Draw a vector of areas with optional pattern. Fill or pattern color can be fixed or reed from database.
+A line vector could be drawn as an area when lwidth is not zero (positive or negative).
+
+If label = "" not block title.
+
 <PRE>
 USAGE
-<B>vareas</B> [V]. Vector map name
-    <b>width</b>  [#-], default 0 (positive or negative, permit draw a line as area).
+<B>vareas</B> [V]
+    <b>lwidth</b> [#-], default: 0 (area).
+
+    <b>line</b>   (line)
+    <b>fcolor</b> (color | RGBCOL$alpha [IDCOL])
+
+    <b>pat</b>    [TXT]. Pattern EPS file.
+    <b>pscale</b> [#]. Pattern scale.
+    <b>pwidth</b> [#]. Pattern line width.
+
+    <b>island</b> [Y|n]. Draw island as normal areas (fill as normal area then hide it).
+
     <b>layer</b>  [#], default: 1. Layer number used with cats/where option
     <b>cats</b>   [CAT]
-    <b>where</b>  [SQL].
-    <b>line</b>   (line)
-    <b>fcolor</b> (color) ([T]). Fill color and, optionally RGB column name (also apply to pattern).
-    <b>pat</b>    [T]. Pattern EPS file.
-    <b>scale</b>  [#]
-    <b>pwidth</b> [#]
-    <b>masked</b> [y|N]. Masked by raster mask
-    <b>label</b>  [T]. For description in vlegend
-    <b>lpos</b>   [#]. Position vector is plotted in legend
+    <b>where</b>  [SQL]
+    <b>masked</b> [y|N]. Masked or not by raster mask
+    <b>label</b>  [TXT]. For description or title in vlegend
+    <b>lpos</b>   [# #]. Position where vector is plotted in legend and block
+
+    <b>setrule</b> [ID.CAT[:ID] TXT]. Set a label for the CAT.
 <b>end</b>
 </PRE>
 
 <a name="vlines"><H3>vlines</H3></a>
 
+Perhaps offset dont run well in Lat/Lon
+
 <PRE>
 USAGE
-<B>vlines</B> [V]. Vector map name
+<B>vlines</B> [V].
     <b>type</b>   [line|boundary], default: line
+
+    <b>line</b>   (line)
+    <b>rgbcol</b> [T]. Column name with line color data
+    <b>hline</b>  (line)
+    <b>offset</b> [#-]. hline offset, default: 0.
+
     <b>layer</b>  [#], default: 1. Layer number used with cats/where option
     <b>cats</b>   [CAT]
     <b>where</b>  [SQL]
-    <b>line</b>   (line)
-    <b>rgbcol</b> [T]. Column name with line color data
-    <b>hline</b>  [# (line)], default: 0; and enter line command. Offset dimen from midline
     <b>masked</b> [y|N]. Masked by raster mask
     <b>label</b>  [T]. For description in vlegend
-    <b>lpos</b>   [#]. Position vector is plotted in legend
+    <b>lpos</b>   [# #]. Position where vector is plotted in legend and block
 <b>end</b>
 </PRE>
 
@@ -511,22 +582,33 @@ end
 
 <a name="vpoints"><H3>vpoints</H3></a>
 
+Draw a vector of points with a symbol.<br>
+A line vector could be drawn as a lines ...
+
 <PRE>
 USAGE
-<B>vpoints</B> [V]. Vector map name
-    <b>type</b>   [point|centroid], default: point
-    <b>layer</b>  [#], default: 1. Layer number used with cats/where option
-    <b>cats</b>   [CAT]
-    <b>where</b>  [SQL]
+<B>vpoints</B> [V].
+    <b>type</b>   [point|centroid|line|boundary], default: point
+
     <b>symbol</b> [T]. Symbol standard or EPS file.
     <b>line</b>   (line)
     <b>fcolor</b> (color). Fillcolor
-    <b>size</b>   [# ([T])]. Size and optionally size column.
-    <b>scale</b>  [#]. Scale
-    <b>rotate</b> [# ([T])]. Rotate and optionally rotate column.
+    <b>size</b>   [# | SIZECOL #]. Size or size column (and legend size).
+    <b>scale</b>  [#- #-]. Scale and bias to rescale sizecol.
+    <b>rotate</b> [# | ROTATECOL]. Rotate or rotate column.
+
+    <b>dist</b>   [#-]. Distance between symbol on the cline
+    <b>offset</b> [#-]. Vertical offset of the symbol
+    <b>cline</B> (line). Conection line of the symbols
+
+    <b>layer</b>  [#], default: 1. Layer number used with cats/where option
+    <b>cats</b>   [CAT]
+    <b>where</b>  [SQL]
     <b>masked</b> [y|N]. Masked by raster mask
     <b>label</b>  [T]. For description in vlegend
-    <b>lpos</b>   [#]. Position vector is plotted in legend
+    <b>lpos</b>   [# #]. Position where vector is plotted in legend and block
+
+    <b>setrule</b> [SIZE.CAT[:ID] TXT]. Set a label for the CAT.
 <b>end</b>
 </PRE>
 
@@ -545,6 +627,33 @@ vpoints precip_30ynormals
 end
 </PRE>
 
+<a name="vlabels"><H3>vlabels</H3></a>
+
+<PRE>
+USAGE
+<B>vlabels</B> [V].
+    <b>labelcol</b> [T]
+    <b>font</b>  (font)
+    <b>decimals</b> [#]
+    <b>circled</b> [Y|n]
+
+    <b>layer</b>  [#]
+    <b>cats</b>   [CAT]
+    <b>where</b>  [SQL]
+    <b>masked</b> [y|N]
+    <b>label</b>  [T]
+    <b>lpos</b>   [#]
+<b>end</b>
+</PRE>
+
+<PRE>
+<i>EXAMPLE</i>
+vlabels railroads
+    labelcol cat
+    masked n
+end
+</PRE>
+
 <h2>ADDING LEGENDS</h2>
 
 <a name="rlegend"><H3>rlegend</H3></a>
@@ -557,11 +666,12 @@ USAGE
     <b>frame</b>
     <b>font</b>
     <b>cols</b>
-    <b>width</b>
+    <b>swidth</b>
     <b>height</b>
     <b>tick</b>
     <b>order</b>
     <b>whiteframe</b>
+    <b>gradient</b>
 <b>end</b>
 </PRE>
 
@@ -601,13 +711,13 @@ end
 
 <PRE>
 USAGE
-<B>vlegend</B>
-    <b>title</b> (first char point to center)
+<B>vlegend</B> [T] Title of legend
     <b>frame</b>
+    <b>title_font</b>
     <b>font</b>
     <b>cols</b>
-    <b>width</b>
-    <b>order</b>
+    <b>swidth</b>
+    <b>dy</b>
 <b>end</b>
 </PRE>
 
@@ -629,9 +739,26 @@ vlegend
         name Univers
         size 9
     end
-#   cols 1
-#   width 1cm
 end
+</PRE>
+
+
+<a name="vlabel"><h3>vlabel</h3></a>
+
+<PRE>
+USAGE
+<B>vlabel</B> [code T]
+    <B>font</B> [font]
+    <B>labelcol</B> [T]
+    <B>decimals</B> [#]
+
+    <b>layer</b>  [#], default: 1. Layer number used with cats/where option
+    <b>cats</b>   [CAT]
+    <b>where</b>  [SQL]
+    <b>masked</b> [y|N]. Masked by raster mask
+    <b>label</b>  [T]. For description in vlegend
+    <b>lpos</b>   [#]. Position vector is plotted in legend
+<B>end</B>
 </PRE>
 
 
