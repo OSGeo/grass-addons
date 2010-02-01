@@ -1,0 +1,52 @@
+<h2>DESCRIPTION</h2>
+
+
+<em>v.points.cog</em> condenses points or centroids sharing
+a common attribute into a single point in a new vector map at their
+average position (center of gravity).
+<p>
+For this to work well your clusters of points must be gregarious
+(Gaussian distribution) - if two groups of points habitate in two
+corners of the map the output point will fall in the center and
+match niether well.
+<p>
+If needed you can use <em>v.digit</em> to adjust point positions
+created by this module. <!-- repel 2 points if v.distance < minimum? -->
+
+<!--<p> appropriate for lat/lon? -->
+<!-- does label have to be string -->
+
+
+<h2>EXAMPLE</h2>
+
+Create single points at the average of all points in the
+<tt>bugsites</tt> map, and place a single label there.
+
+<div class="code"><pre>
+v.points.cog in=bugsites out=bug_cog column=str1
+
+d.vect -c bugsites color=none icon=basic/circle
+
+d.vect bug_cog disp=attr attrcol=str1 lcolor=black \
+   lsize=14 xref=center yref=center bgcolor=white
+</pre></div>
+
+
+<H2>SEE ALSO</H2>
+<em>
+<A HREF="v.label.sa.html">v.label.sa</A><br>
+<A HREF="v.label.html">v.label</A><br>
+<A HREF="v.digit.html">v.digit</A>
+</em>
+
+
+<H2>AUTHOR</H2>
+
+Hamish Bowman<BR>
+<i>Dept. Marine Science<br>
+University of Otago<br>
+Dunedin, New Zealand</i>
+<BR>
+
+<p>
+<i>Last changed: $Date$</i>
