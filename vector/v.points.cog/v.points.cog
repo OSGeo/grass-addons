@@ -123,5 +123,11 @@ done
 ) | v.in.ascii out="$GIS_OPT_OUTPUT" columns="x double, y double, $OUT_COLUMN $COLUMN_DEFN"
 #echo columns="x double, y double, $OUT_COLUMN $COLUMN_DEFN"
 
+retval=$?
 
-exit
+# cleanup cheap hack
+if [ $COLUMN = "cat" ] ; then
+   v.db.dropcol map="$GIS_OPT_OUTPUT" column="cat_" --quiet
+fi
+
+exit $retval
