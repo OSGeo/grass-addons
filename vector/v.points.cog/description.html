@@ -11,10 +11,11 @@ corners of the map the output point will fall in the center and
 match niether well.
 <p>
 If needed you can use <em>v.digit</em> to adjust point positions
-created by this module. <!-- repel 2 points if v.distance < minimum? -->
+created by this module, <!-- repel 2 points if v.distance < minimum? -->
+or use this module as a preprocessing step before running
+<em>v.label.sa</em> to deal with overlapping labels automatically. 
 
-<!--<p> appropriate for lat/lon? -->
-<!-- does label have to be string -->
+<!--<p> appropriate for lat/lon? (weighted avg for y by cos(y)?) -->
 
 
 <h2>EXAMPLE</h2>
