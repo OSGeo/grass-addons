@@ -43,6 +43,12 @@ int init_streams(void)
 		if (cur_stream != next_stream) {	/* is outlet or node! */
 		    outlets[outlets_num].r = r;
 		    outlets[outlets_num].c = c;
+				
+					if (next_stream==-1)
+				outlets[outlets_num].is_outlet=1;
+					else
+				outlets[outlets_num].is_outlet=0;	
+		    
 		    outlets_num++;
 		}
 	    }			/* end if streams */
@@ -53,6 +59,7 @@ int init_streams(void)
     for (i = 0; i < outlets_num; ++i) {
 	stat_streams[i].r = outlets[i].r;
 	stat_streams[i].c = outlets[i].c;
+	stat_streams[i].is_outlet = outlets[i].is_outlet;
 	stat_streams[i].index = i;
 	stat_streams[i].slope = 0.;
 	stat_streams[i].gradient = 0.;
@@ -74,7 +81,7 @@ int calculate_streams(void)
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
 
-    int i, j, s;		/* s - streams index */
+    int i, j, s, d;		/* s - streams index */
     int done = 1;
     int r, c;
     float cur_northing, cur_easting;
@@ -87,6 +94,22 @@ int calculate_streams(void)
     for (s = 0; s < outlets_num; ++s) {
 	r = stat_streams[s].r;
 	c = stat_streams[s].c;
+	
+		cur_northing = window.north - (r + .5) * window.ns_res;
+	cur_easting = window.west + (c + .5) * window.ew_res;
+	d= (dirs[r][c]==0) ? 2 : abs(dirs[r][c]);
+	
+			next_northing =
+	window.north - (r + nextr[d] + .5) * window.ns_res;
+	    next_easting =
+	window.west + (c + nextc[d] + .5) * window.ew_res;
+
+
+/* init length */
+			stat_streams[s].length=
+	G_distance(next_easting, next_northing, cur_easting,
+				   cur_northing);
+	
 	done = 1;
 
 	while (done) {
@@ -136,16 +159,21 @@ int calculate_streams(void)
 int calculate_basins(void)
 {
     int i;
+    total_basins=0.;
 
     G_begin_cell_area_calculations();
     fifo_max = 4 * (nrows + ncols);
     fifo_outlet = (POINT *) G_malloc((fifo_max + 1) * sizeof(POINT));
 
-    for (i = 0; i < outlets_num; ++i)
+    for (i = 0; i < outlets_num; ++i) {
 	stat_streams[i].basin_area =
 	    fill_basin(stat_streams[i].r, stat_streams[i].c);
-
+	
+		if (stat_streams[i].is_outlet)
+	total_basins += stat_streams[i].basin_area;
+	}
     G_free(fifo_outlet);
+    return 0;
 }
 
 
@@ -389,7 +417,7 @@ int stats(void)
     ord_snum = (ord_num == 1) ? 0 : (float)ord_num / (ord_num - 1);
 
     stats_total.order = order_max;
-    stats_total.sum_area = ord_stats[order_max].sum_area;
+    stats_total.sum_area = total_basins;
     stats_total.sum_length = stats_total.sum_length;
 
     stats_total.bifur_ratio = stats_total.bifur_ratio / ord_num;

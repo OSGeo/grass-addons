@@ -19,11 +19,13 @@ directions according to r.watershed: MUST check all directions
 #define POINT struct points	
 POINT {
 	int r, c;
+	int is_outlet;
 	};
 	
 #define STREAM struct strs
 STREAM { 
 	int index;
+	int is_outlet;
 	int r, c; /* outlet */
 	float elev_diff;
 	float elev_spring, elev_outlet;
@@ -94,6 +96,8 @@ int print_stats(void);
 GLOBAL char *in_dirs, *in_streams, *in_elev;	/* input dirrection and accumulation raster names*/
 GLOBAL char *out_file;
 GLOBAL int hack; /* flags */
+
+GLOBAL float total_basins;
 
 
 GLOBAL CELL **dirs, **streams; /* matrix with input data*/
