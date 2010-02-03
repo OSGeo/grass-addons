@@ -24,6 +24,13 @@ import sys
 import tempfile
 
 import wx
+gbase = os.getenv("GISBASE") 
+pypath = os.path.join(gbase,'etc','wxpython','gui_modules')
+sys.path.append(pypath)
+
+pypath = os.path.join(gbase,'etc','wxpython')
+sys.path.append(pypath)
+
 
 import grass.script as grass
 
