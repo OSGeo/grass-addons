@@ -66,6 +66,10 @@ import wx
 import gcmd
 import glob
 import render
+
+pypath = os.path.join(gbase,'etc','wxpython')
+sys.path.append(pypath)
+
 import gui_modules.gdialogs as gdialogs
 import gui_modules.goutput as goutput
 import gui_modules.histogram as histogram
@@ -85,7 +89,6 @@ import gui_modules.georect as georect
 import gui_modules.dbm as dbm
 import gui_modules.workspace as workspace
 import gui_modules.colorrules as colorrules
-import gui_modules.ogc_services as ogc_services
 import newprompt as prompt
 from   gui_modules.help import MenuTreeWindow
 from   gui_modules.help import AboutWindow
