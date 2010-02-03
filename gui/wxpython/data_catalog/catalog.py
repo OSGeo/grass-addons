@@ -225,6 +225,9 @@ class DataCatalog(wx.Frame):
     def OnRunScript(self):
         print "asdf"
 
+    def OnQuit(self):
+        print "asdf"
+
     def GetMapDisplay(self):
         self.winlist = self.GetChildren()
         for win in self.winlist:
