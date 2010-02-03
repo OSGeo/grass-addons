@@ -228,6 +228,9 @@ class DataCatalog(wx.Frame):
     def OnQuit(self):
         print "asdf"
 
+    def OnXTerm(self):
+        print "asdf"
+
     def GetMapDisplay(self):
         self.winlist = self.GetChildren()
         for win in self.winlist:
