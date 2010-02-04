@@ -57,7 +57,7 @@ grassPath = os.path.join(globalvar.ETCDIR, "python")
 sys.path.append(grassPath)
 
 import render
-import toolbars
+import toolbars1
 import menuform
 import gselect
 import disp_print
@@ -378,7 +378,7 @@ class MapFrame(wx.Panel):
         """
         # default toolbar
         if name == "map":
-            self.toolbars['map'] = toolbars.MapToolbar(self, self.Map)
+            self.toolbars['map'] = toolbars1.MapToolbar(self, self.Map)
 
             self._mgr.AddPane(self.toolbars['map'].toolbar,
                               wx.aui.AuiPaneInfo().

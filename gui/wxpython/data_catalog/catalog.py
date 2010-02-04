@@ -227,11 +227,7 @@ class DataCatalog(wx.Frame):
         self.Map =    self.GetMapDisplay()
 
 
-    def OnRunScript(self)
-        print "asdf"
 
-    def OnQuit(self)
-        print "asdf"
 
     def GetMapDisplay(self):
         self.winlist = self.GetChildren()
@@ -371,6 +367,12 @@ class DataCatalog(wx.Frame):
         self.Bind(wx.EVT_MENU, rhandler, menuItem)
 
     def OnXTerm(self):
+        print "asdf"
+
+    def OnRunScript(self):
+        print "asdf"
+
+    def OnQuit(self):
         print "asdf"
 
     def OnRunCmd(self, event):
