@@ -17,7 +17,7 @@ License (>=v2). Read the file COPYING that comes with GRASS
 for details.
 
 @author Martin Landa <landa.martin gmail.com>
-@author Mohammed Rashad K.M <rashadkm at gmail dot com> (modified for DataCatalog)
+@author Mohammed Rashad K.M <rashadkm at gmail dot com> (only modified for DataCatalog)
 """
 
 import os

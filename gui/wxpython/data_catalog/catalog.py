@@ -27,6 +27,7 @@ import re
 import string
 import getopt
 import platform
+import shlex
 
 try:
     import xml.etree.ElementTree as etree
@@ -66,10 +67,6 @@ import wx
 import gcmd
 import glob
 import render
-
-pypath = os.path.join(gbase,'etc','wxpython')
-sys.path.append(pypath)
-
 import gui_modules.gdialogs as gdialogs
 import gui_modules.goutput as goutput
 import gui_modules.histogram as histogram
@@ -89,12 +86,13 @@ import gui_modules.georect as georect
 import gui_modules.dbm as dbm
 import gui_modules.workspace as workspace
 import gui_modules.colorrules as colorrules
+#import gui_modules.ogc_services as ogc_services
 import newprompt as prompt
-from   gui_modules.help import MenuTreeWindow
-from   gui_modules.help import AboutWindow
+#from   gui_modules.help import MenuTreeWindow
+#from   gui_modules.help import AboutWindow
 from   icons.icon import Icons
 
-from gmconsole import GLog
+#from gmconsole import GLog
 from mapdisplay import MapFrame
 from LayerTree import LayerTree
 import wx.lib.flatnotebook as FN
@@ -206,13 +204,16 @@ class DataCatalog(wx.Frame):
 
         
         self.notebook  = self.__createNoteBook()
-        self.cmdprompt, self.cmdinput = self.__createCommandPrompt()
+        self.cmdprompt = self.__createCommandPrompt()
 
        # self._mgr = self.pg_panel._layerManager
 
 #        self._mgr.AddPane(self.cmdprompt, wx.aui.AuiPaneInfo().CentrePane().Dockable(False).BestSize((-1,-1)).CloseButton(False).DestroyOnClose(True). Layer(0))
 
         self.current = self.notebook.GetCurrentPage()      
+
+        self.goutput = goutput.GMConsole(self, pageid=1)
+        self.goutput.Hide()
 
     
 
@@ -225,14 +226,7 @@ class DataCatalog(wx.Frame):
         self.Map =    self.GetMapDisplay()
 
 
-    def OnRunScript(self):
-        print "asdf"
 
-    def OnQuit(self):
-        print "asdf"
-
-    def OnXTerm(self):
-        print "asdf"
 
     def GetMapDisplay(self):
         self.winlist = self.GetChildren()
@@ -267,7 +261,37 @@ class DataCatalog(wx.Frame):
 
     def __createCommandPrompt(self):
         """!Creates command-line input area"""
-        p = prompt.GPrompt(parent=self.cmbPanel)
+        self.cmdprompt = wx.Panel(self)
+
+        label = wx.StaticText(parent=self.cmdprompt, id=wx.ID_ANY, label="Cmd >")
+	# label.SetFont(wx.Font(pointSize=11, family=wx.FONTFAMILY_DEFAULT,
+        #                      style=wx.NORMAL, weight=wx.BOLD))
+        input = wx.TextCtrl(parent=self.cmdprompt, id=wx.ID_ANY,
+                            value="",
+                            style=wx.TE_LINEWRAP | wx.TE_PROCESS_ENTER,
+                            size=(-1, 25))
+
+        input.SetFont(wx.Font(10, wx.FONTFAMILY_MODERN, wx.NORMAL, wx.NORMAL, 0, ''))
+
+        wx.CallAfter(input.SetInsertionPoint, 0)
+
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnRunCmd,        input)
+        #self.Bind(wx.EVT_TEXT,       self.OnUpdateStatusBar, input)
+
+        # layout
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(item=label, proportion=0,
+                  flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER,
+                  border=4)
+        sizer.Add(item=input, proportion=1,
+                  flag=wx.EXPAND | wx.ALL,
+                  border=1)
+
+        self.cmdprompt.SetSizer(sizer)
+        sizer.Fit(self.cmdprompt)
+        self.cmdprompt.Layout()
+
+        return self.cmdprompt
 
         return p.GetPanel(), p.GetInput()
 
@@ -285,8 +309,9 @@ class DataCatalog(wx.Frame):
         self.Bind(wx.EVT_MENU_HIGHLIGHT_ALL, self.OnMenuHighlight)
         return menu
 
-    def __createMenuItem(self, menu, label, help, handler, gcmd, keywords, shortcut = '', kind = wx.ITEM_NORMAL):
-        """!Creates menu items"""
+#    def __createMenuItem(self, menu, label, help, handler, gcmd, keywords, shortcut = '', kind = wx.ITEM_NORMAL):
+    def __createMenuItem(self, menu, label, help, handler, gcmd, kind=wx.ITEM_NORMAL):
+        """Creates menu items"""
 
         if not label:
             menu.AppendSeparator()
@@ -296,10 +321,7 @@ class DataCatalog(wx.Frame):
             helpString = gcmd + ' -- ' + help
         else:
             helpString = help
-        
-        if shortcut:
-            label += '\t' + shortcut
-        
+
         menuItem = menu.Append(wx.ID_ANY, label, helpString, kind)
         
         self.menucmd[menuItem.GetId()] = gcmd
@@ -312,6 +334,31 @@ class DataCatalog(wx.Frame):
 
         self.Bind(wx.EVT_MENU, rhandler, menuItem)
 
+    def OnXTerm(self):
+        print "asdf"
+
+    def OnRunCmd(self, event):
+        """Run command"""
+        cmdString = event.GetString()
+
+        if cmdString[:2] == 'd.' and not self.curr_page:
+            self.NewDisplay(show=True)
+        
+        cmd = shlex.split(str(cmdString))
+        if len(cmd) > 1:
+            self.goutput.RunCmd(cmd, switchPage=True)
+        else:
+            self.goutput.RunCmd(cmd, switchPage=False)
+        
+        self.OnUpdateStatusBar(None)
+
+
+    def OnUpdateStatusBar(self, event):
+        #if event is None:
+         #   self.statusbar.SetStatusText("")
+        #else:
+         #   self.statusbar.SetStatusText(_("Type GRASS command and run by pressing ENTER"))
+        print "asdf"
 
 
     def __createToolBar(self):

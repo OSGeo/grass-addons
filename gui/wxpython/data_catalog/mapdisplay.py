@@ -22,7 +22,7 @@ for details.
 @author Michael Barton
 @author Jachym Cepicky
 @author Martin Landa <landa.martin gmail.com>
-@author Mohammed Rashad K.M <rashadkm at gmail dot com> (modified for DataCatalog)
+@author Mohammed Rashad K.M <rashadkm at gmail dot com> (only modified for DataCatalog)
 """
 
 import os
@@ -63,7 +63,6 @@ import gselect
 import disp_print
 import gcmd
 import dbm
-import dbm_dialogs
 import histogram
 import profile
 import globalvar
@@ -74,7 +73,7 @@ from debug import Debug
 from preferences import globalSettings as UserSettings
 
 
-from mapdisp_window import BufferedWindow
+from mapdisp_1 import BufferedWindow
 
 
 
@@ -97,7 +96,7 @@ class MapFrame(wx.Panel):
     def __init__(self, parent=None, id=wx.ID_ANY, title=_("GRASS GIS - Map display"),
                  pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=wx.DEFAULT_FRAME_STYLE, toolbars=["map"],
-                 tree=None, notebook=None, lmgr=None, page=None,
+                 tree=None, notebook=None, gismgr=None, page=None,
                  Map=None, auimgr=None,frame=None,flag=False):
         """
         Main map display window with toolbars, statusbar and
@@ -110,7 +109,8 @@ class MapFrame(wx.Panel):
         @param page notebook page with layer tree
         @param Map instance of render.Map
         """
-        self._layerManager = lmgr   # Layer Manager object
+        self.gismanager = gismgr   # Layer Manager object
+        self._layerManager = self.gismanager
         self.Map        = Map       # instance of render.Map
         self.tree       = tree      # Layer Manager layer tree object
         self.page       = page      # Notebook page holding the layer tree
@@ -119,6 +119,8 @@ class MapFrame(wx.Panel):
         self.frame = frame
         self.statusFlag = flag
         self.statusbar = None
+
+        
 
         
         #
@@ -263,8 +265,7 @@ class MapFrame(wx.Panel):
         #
         # Init map display (buffered DC & set default cursor)
         #
-        self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,
-                                          Map=self.Map, tree=self.tree, lmgr=self._layerManager)
+        self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,   Map=self.Map, tree=self.tree, gismgr=self._layerManager)
         # default is 2D display mode
         self.MapWindow = self.MapWindow2D
         #self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
@@ -333,6 +334,18 @@ class MapFrame(wx.Panel):
         splitter= rightpanel.GetParent()
         self.lmgr= splitter.GetParent()
 
+        self.onRenderGauge = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
+                                      range=0, style=wx.GA_HORIZONTAL)
+
+        self.compResolution = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
+                                         label=_("Constrain display resolution to computational settings"))
+        self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleResolution, self.compResolution)
+        self.compResolution.SetValue(UserSettings.Get(group='display', key='compResolution', subkey='enabled'))
+        self.compResolution.Hide()
+        self.compResolution.SetToolTip(wx.ToolTip (_("Constrain display resolution "
+                                                     "to computational region settings. "
+                                                     "Default value for new map displays can "
+                                                     "be set up in 'User GUI settings' dialog.")))
 
         self.maptree = wx_utils.AddLayerTree(self, id=wx.ID_ANY, pos=wx.DefaultPosition,
                                                       size=wx.DefaultSize, style=wx.TR_HAS_BUTTONS
@@ -1748,7 +1761,7 @@ class MapFrame(wx.Panel):
             mstring = 'segment = %s %s\ttotal distance = %s %s' \
                 % (strdist,dunits,strtotdist,tdunits)
 
-        self._layerManager.goutput.WriteLog(mstring)
+        self.gismanager.goutput.WriteLog(mstring)
 
         return dist
 
@@ -2028,7 +2041,7 @@ class MapFrame(wx.Panel):
         
     def IsStandalone(self):
         """!Check if Map display is standalone"""
-        if self._layerManager:
+        if self.gismanager:
             return False
         
         return True
@@ -2039,7 +2052,7 @@ class MapFrame(wx.Panel):
         @return window reference
         @return None (if standalone)
         """
-        return self._layerManager
+        return self.gismanager
     
 # end of class MapFrame
 
