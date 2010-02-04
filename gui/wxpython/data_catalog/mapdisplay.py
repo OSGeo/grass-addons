@@ -73,7 +73,7 @@ from debug import Debug
 from preferences import globalSettings as UserSettings
 
 
-from mapdisp_1 import BufferedWindow
+from mapframe import BufferedWindow
 
 
 
@@ -261,6 +261,10 @@ class MapFrame(wx.Panel):
         self.statusbarWin['progress'].Hide()
         
         self.StatusbarReposition() # reposition statusbar
+
+        self.maskInfo = wx.StaticText(parent = self.statusbar, id = wx.ID_ANY,
+                                                  label = '')
+        self.maskInfo.SetForegroundColour(wx.Colour(255, 0, 0))
 
         #
         # Init map display (buffered DC & set default cursor)
