@@ -167,6 +167,7 @@ class DataCatalog(wx.Frame):
 
         #populate location combobox
         self.loclist = self.GetLocations()
+        self.loclist.sort()
 
         #self.pg_panel4 = None
 
