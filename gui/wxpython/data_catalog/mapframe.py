@@ -254,6 +254,12 @@ class BufferedWindow(MapWindow, wx.Window):
         self.tree = tree
         self.gismanager = gismgr
 
+        book= self.GetParent()
+        q=book.GetParent()
+        r=q.GetParent()
+        splitter=r.GetParent()
+        self.gframe=splitter.GetParent()
+
         #
         # Flags
         #
@@ -801,14 +807,16 @@ class BufferedWindow(MapWindow, wx.Window):
         #
         if len(self.polycoords) > 0:
             self.DrawLines(self.pdcTmp)
-        
-        if self.gismanager.georectifying:
+
+
+
+        if self.gframe.georectifying:
             # -> georectifier (redraw GCPs)
             if self.parent.toolbars['georect']:
                 coordtype = 'gcpcoord'
             else:
                 coordtype = 'mapcoord'
-            self.parent.gismanager.georectifying.DrawGCP(coordtype)
+            self.gframe.georectifying.DrawGCP(coordtype)
             
         # 
         # clear measurement
