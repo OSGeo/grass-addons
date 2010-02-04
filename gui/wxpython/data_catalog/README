@@ -1,0 +1,4 @@
+To run DataCatalog
+from grass shell type:
+
+python catalog.py
