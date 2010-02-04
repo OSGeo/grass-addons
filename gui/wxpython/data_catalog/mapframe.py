@@ -54,7 +54,12 @@ sys.path.append(gmpath)
 
 import render
 import toolbars
-import track
+
+
+version = os.getenv("GRASS_VERSION")
+if version == "6.4.0svn":
+    import track
+
 import menuform
 import gselect
 import disp_print
@@ -807,7 +812,6 @@ class BufferedWindow(MapWindow, wx.Window):
         #
         if len(self.polycoords) > 0:
             self.DrawLines(self.pdcTmp)
-
 
 
         if self.gframe.georectifying:

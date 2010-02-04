@@ -306,7 +306,11 @@ class DataCatalog(wx.Frame):
                 subMenu = self.__createMenu(eachItem[1])
                 menu.AppendMenu(wx.ID_ANY, label, subMenu)
             else:
-                self.__createMenuItem(menu, *eachItem)
+                version = os.getenv("GRASS_VERSION")
+                if version == "6.4.0svn":
+                    self.__createMenuItem(menu, *eachItem)
+                else:
+                    self.__createMenuItem2(menu, *eachItem)
         self.Bind(wx.EVT_MENU_HIGHLIGHT_ALL, self.OnMenuHighlight)
         return menu
 
@@ -325,6 +329,33 @@ class DataCatalog(wx.Frame):
 
         menuItem = menu.Append(wx.ID_ANY, label, helpString, kind)
         
+        self.menucmd[menuItem.GetId()] = gcmd
+
+        if len(gcmd) > 0 and \
+                gcmd.split()[0] not in globalvar.grassCmd['all']:
+            menuItem.Enable (False)
+
+        rhandler = eval(handler)
+
+        self.Bind(wx.EVT_MENU, rhandler, menuItem)
+
+    def __createMenuItem2(self, menu, label, help, handler, gcmd, keywords, shortcut = '', kind = wx.ITEM_NORMAL):
+        """!Creates menu items"""
+
+        if not label:
+            menu.AppendSeparator()
+            return
+
+        if len(gcmd) > 0:
+            helpString = gcmd + ' -- ' + help
+        else:
+            helpString = help
+        
+        if shortcut:
+            label += '\t' + shortcut
+        
+        menuItem = menu.Append(wx.ID_ANY, label, helpString, kind)
+
         self.menucmd[menuItem.GetId()] = gcmd
 
         if len(gcmd) > 0 and \
