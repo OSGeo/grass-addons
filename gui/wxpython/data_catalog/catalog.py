@@ -28,6 +28,7 @@ import string
 import getopt
 import platform
 import shlex
+import gc
 
 try:
     import xml.etree.ElementTree as etree
@@ -107,6 +108,7 @@ class DataCatalog(wx.Frame):
     def __init__(self, parent=None, id=wx.ID_ANY, title=_("Data Catalog"),
                  workspace=None,size=wx.DefaultSize,pos=wx.DefaultPosition):
 
+        gc.enable()        
         self.iconsize  = (16, 16)
         self.baseTitle = title
 
@@ -143,17 +145,6 @@ class DataCatalog(wx.Frame):
         self.g_catalog=None
 
 
-        self.ID_REN= wx.NewId()
-        self.ID_COPY = wx.NewId()
-        self.ID_DEL = wx.NewId()
-
-        acel = wx.AcceleratorTable([ 
-                (wx.ACCEL_CTRL,  ord('R'), self.ID_REN ) ,
-                (wx.ACCEL_CTRL,  ord('C'), self.ID_COPY) ,
-                (wx.ACCEL_NORMAL, wx.WXK_DELETE, self.ID_DEL) ])
-
-
-        self.SetAcceleratorTable(acel)
         self.menucmd       = dict() 
 
 
@@ -225,6 +216,8 @@ class DataCatalog(wx.Frame):
         self.cmbSizer.Add(self.cmdprompt)
 
         self.Map =    self.GetMapDisplay()
+
+        
 
 
 
@@ -1589,6 +1582,7 @@ class DataCatalog(wx.Frame):
         self.notebook.DeleteAllPages()
         self.Destroy()
 
+
         
     def MsgNoLayerSelected(self):
         """!Show dialog message 'No layer selected'"""
@@ -1650,22 +1644,23 @@ class DataCatalog(wx.Frame):
     def doBindings(self):
         
 	    #Event bindings for combo boxes
-	    self.Bind(wx.EVT_COMBOBOX,self.OnMapsetChange,self.cmbMapset)
-	    self.Bind(wx.EVT_COMBOBOX,self.OnLocationChange,self.cmbLocation)
+        self.Bind(wx.EVT_COMBOBOX,self.OnMapsetChange,self.cmbMapset)
+        self.Bind(wx.EVT_COMBOBOX,self.OnLocationChange,self.cmbLocation)
 
-	    #Event bindings for tree -(display,popup,label edit.)
-	    self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.ltree.OnDisplay,self.ltree)
-	    self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK,self.ltree.OnTreePopUp,self.ltree)
-	    self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.ltree.OnEndRename,self.ltree)
-	    self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.ltree.OnBeginRename,self.ltree)
+        #Event bindings for tree -(display,popup,label edit.)
+        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.ltree.OnDisplay,self.ltree)
+        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK,self.ltree.OnTreePopUp,self.ltree)
+        self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.ltree.OnEndRename,self.ltree)
+        self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.ltree.OnBeginRename,self.ltree)
 
 	    #Event bindings for tree menu
-	    self.Bind(wx.EVT_MENU,self.ltree.OnCopy,id=self.ltree.ID_COPY)
-	    self.Bind(wx.EVT_MENU,self.ltree.OnRename,id=self.ltree.ID_REN)
-	    self.Bind(wx.EVT_MENU,self.ltree.OnDelete,id=self.ltree.ID_DEL)
+        self.Bind(wx.EVT_MENU,self.ltree.OnCopy,id=self.ltree.ID_COPY)
+        self.Bind(wx.EVT_MENU,self.ltree.OnRename,id=self.ltree.ID_REN)
+        self.Bind(wx.EVT_MENU,self.ltree.OnDelete,id=self.ltree.ID_DEL)
+        self.Bind(wx.EVT_MENU,self.ltree.OnOssim,id=self.ltree.ID_OSSIM)
 
 
-	    self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
 
 	    #Event bindings for v/r.info checkbox
 	    #self.Bind(wx.EVT_CHECKBOX, self.OnToggleInfo,self.chkInfo)

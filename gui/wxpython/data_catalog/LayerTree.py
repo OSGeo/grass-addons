@@ -1,29 +1,9 @@
-"""
-@package layertree.py
-
-@brief Tree widget for listing maps raster, vector and DBF.
-
-Classes:
- - LayerTree
-
-
-(C) 2006-2009 by the GRASS Development Team
-This program is free software under the GNU General Public
-License (>=v2). Read the file COPYING that comes with GRASS
-for details.
-
-@author Michael Barton (Arizona State University)
-@author Jachym Cepicky (Mendel University of Agriculture)
-@author Martin Landa <landa.martin gmail.com>
-@author Mohammed Rashad K.M <rashadkm at gmail dot com> (modified for DataCatalog)
-"""
-
 import os
 import sys
 import wx
 import glob
 import render
-
+from threading import Thread
 
 
 #To run DataCatalog from any directory set this pathname for access to gui_modules 
@@ -58,6 +38,7 @@ class LayerTree(wx.TreeCtrl):
         self.ID_REN= wx.NewId()
         self.ID_COPY = wx.NewId()
         self.ID_DEL = wx.NewId()
+        self.ID_OSSIM = wx.NewId()
 
         acel = wx.AcceleratorTable([ 
 		        (wx.ACCEL_CTRL,  ord('R'), self.ID_REN ) ,
@@ -145,18 +126,19 @@ class LayerTree(wx.TreeCtrl):
 
 
     def OnTreePopUp(self,event):
-	    """
-	    Display a popupMenu for copy,rename & delete operations
-	    """
-	    item =  event.GetItem()
-	    if not self.ItemHasChildren(item) and \
-		       self.GetItemFont(item) != self.itemFont:
+        """
+        Display a popupMenu for copy,rename & delete operations
+        """
+        item =  event.GetItem()
+        if not self.ItemHasChildren(item) and \
+               self.GetItemFont(item) != self.itemFont:
 
-		    self.popupmenu = wx.Menu()
-		    mnuCopy = self.popupmenu.Append(self.ID_COPY,'&Copy\tCtrl+C')
-		    mnuRename = self.popupmenu.Append(self.ID_REN,'&Rename\tCtrl-R')
-		    mnuDel = self.popupmenu.Append(self.ID_DEL,'&Delete\tDEL')
-		    self.PopupMenu(self.popupmenu)
+            self.popupmenu = wx.Menu()
+            mnuCopy = self.popupmenu.Append(self.ID_COPY,'&Copy\tCtrl+C')
+            mnuRename = self.popupmenu.Append(self.ID_REN,'&Rename\tCtrl-R')
+            mnuDel = self.popupmenu.Append(self.ID_DEL,'&Delete\tDEL')
+            mnuOssim = self.popupmenu.Append(self.ID_OSSIM,'&send to OssimPlanet')
+            self.PopupMenu(self.popupmenu)
 
 
     def OnCopy( self,event ):
@@ -259,6 +241,27 @@ class LayerTree(wx.TreeCtrl):
         elif ret == wx.ID_CANCEL:
          dlg.Destroy()
          return
+
+    def OnOssim( self,event ):
+        """
+        Performs grass command for deleting a map
+        """
+        item =  self.GetSelection()
+        
+        parent  =self.GetItemParent(item) 
+        if self.GetItemText(parent) == "Raster Map" :
+            cmdflag = 'r.planet.py -a map=' + str(self.GetItemText(item))
+        elif self.tree.GetItemText(parent) == "Vector Map" :
+            cmdflag = 'v.planet.py -a map=' + str(self.GetItemText(item))
+
+        if cmdflag:
+            
+            #command = ["r.planet.py", cmdflag]
+            #gcmd.CommandThread(command,stdout=None,stderr=None).run()
+            current = OssimPlanet(cmdflag)
+            current.start()
+
+        
         
 
 
@@ -312,6 +315,11 @@ class LayerTree(wx.TreeCtrl):
             panel.MapWindow2D.flag = True
             panel.MapWindow2D.UpdateMap(render=True)
 
-		
+class OssimPlanet(Thread):
+   def __init__ (self,cmd):
+      Thread.__init__(self)
+      self.cmd =  cmd
+   def run(self):
+      os.system(self.cmd)		
 
 
