@@ -1,0 +1,60 @@
+<H2>DESCRIPTION</H2>
+
+
+<EM><B>r.ipso</B></EM> outputs the Ipsometric and Ipsographic curve from elevation dataset and print out percentiles.
+
+
+<H2>Options</H2>
+
+<B>[-a]</B> Output ipsometric graph.
+
+<Br>
+<Br>
+<B>[-b]</B> Output ipsographic graph.
+
+</B>
+
+<H2>NOTES</H2>
+
+This curve gives the distribution of surfaces in different altitude ranges. Each
+ipsografica point on the curve has a value of quota as ordered and as the abscissa
+proportion of the surface of the basin placed above the share in question. Having to
+provide a DEM, the curve that is obtained simply as a vector, ordered
+decreasing effect of allowances of pixels. Representing the carrier on a diagram
+Descartes, no ordinal is proportional to the area above the quota and is given
+the abscissa.
+The curve is represented by the shares corresponding to percentages of area dominated
+(2.5%, 5%, 10%, 25%, 50%, 75%, 90%, 95%, 97.5%).
+The ipsometric graph is the same as ipsographic graph but using adimensional axes.
+
+<H2>EXAMPLE</H2>
+
+Generate iposographic graph
+
+<div class="code"><pre>
+r.ipso.py -b map=elevation.10m image=path/to/output/prefix
+</pre></div>
+<p>
+
+Generate iposmetric graph
+
+<div class="code"><pre>
+r.ipso.py -a map=elevation.10m image=path/to/output/prefix
+</pre></div>
+
+
+
+<H2>REFERENCES</H2>
+ 
+Fractal River Basins - Chance and self organization ( Igatio Rodriguez-Iturbe & Andrea Rinaldo ).
+
+<H2>SEE ALSO</H2>
+
+<EM><A HREF="r.wf.html">r.wf.py</A></EM>
+
+<H2>AUTHOR</H2>
+
+Massimo Di Stefano, Francesco Di Stefano <br>
+
+
+<p><i>Last changed: $Date: 2010-02-07 00:45:10 +0200 (Mon, 7 Feb 2010) $</i>
