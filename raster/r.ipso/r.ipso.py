@@ -3,7 +3,7 @@
 #
 # MODULE:       r.ipso.py
 #
-# AUTHOR(S):    Massimo Di Stefano, Francesco Di Stefano 2010-02-7
+# AUTHOR(S):    Massimo Di Stefano, Francesco Di Stefano , Margherita Di Leo 2010-02-7
 #               
 #
 # PURPOSE:      Output a Ipsometric and ipsographic graph 
