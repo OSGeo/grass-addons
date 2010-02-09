@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.ipso
+PGM = r.ipso.py
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
