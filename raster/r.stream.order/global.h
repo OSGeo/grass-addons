@@ -49,6 +49,8 @@ STREAM {
     double length;
     double stright;
     double fractal;
+    double distance; /* distance to outlet */
+    int topo_dim; /* topological dimension */
     /* float length; */
 };
 
@@ -85,7 +87,7 @@ int create_table (void);
 
 GLOBAL struct Cell_head window;
 GLOBAL char *in_dirs, *in_streams, *in_vector, *in_table, *in_accum;	/* input dirrection and accumulation raster names */
-GLOBAL char *out_strahler, *out_shreeve, *out_hack, *out_horton;	/* output strahler, shreeve and class raster names */
+GLOBAL char *out_strahler, *out_shreeve, *out_hack, *out_horton, *out_topo;	/* output strahler, shreeve and class raster names */
 GLOBAL int out_zero; /* zero-value background */
 
 GLOBAL CELL **dirs, **streams;	/* matrix with input data */

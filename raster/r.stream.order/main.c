@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 {
 
     struct GModule *module;	/* GRASS module for parsing arguments */
-    struct Option *in_dir_opt, *in_stm_opt, /* *in_vect_opt,*/ *in_table_opt, *in_acc_opt, *out_str_opt, *out_shr_opt, *out_hck_opt, *out_hrt_opt;	/* options */
+    struct Option *in_dir_opt, *in_stm_opt, /* *in_vect_opt,*/ *in_table_opt, *in_acc_opt, *out_str_opt, *out_shr_opt, *out_hck_opt, *out_hrt_opt, *out_topo_opt ;	/* options */
     struct Flag *out_back;	/* flags */
     int i;
 
@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
     in_table_opt->key = "table";
     in_table_opt->type = TYPE_STRING;
     in_table_opt->required = NO;
+    in_table_opt->answer = NULL;
     in_table_opt->description =
 	"Name of new table to create";
     
@@ -120,6 +121,16 @@ int main(int argc, char *argv[])
     out_hck_opt->description =
 	"Name of Hack's main streams output map";
     out_hck_opt->guisection = _("Output options");
+    
+    out_topo_opt = G_define_option();
+    out_topo_opt->key = "topo";
+    out_topo_opt->type = TYPE_STRING;
+    out_topo_opt->required = NO;
+    out_topo_opt->answer = NULL;
+    out_topo_opt->gisprompt = "new,cell,raster";
+    out_topo_opt->description =
+	"Name of topological dimension output map";
+    out_topo_opt->guisection = _("Output options");
 
     /* Define flags */
     out_back = G_define_flag();
@@ -132,8 +143,8 @@ int main(int argc, char *argv[])
     G_get_window(&window);
 
     if (!out_str_opt->answer && !out_shr_opt->answer && !out_hck_opt->answer
-	&& !out_hrt_opt->answer)
-	G_fatal_error(_("You must select one or more output maps: strahler, horton, shreeve or hack"));
+	&& !out_hrt_opt->answer && !out_topo_opt->answer && !in_table_opt->answer)
+	G_fatal_error(_("You must select one or more output maps: strahler, horton, shreeve, hack, topo or insert the table name"));
     
 
     /* stores input options to variables */
@@ -148,6 +159,7 @@ int main(int argc, char *argv[])
     out_shreeve = out_shr_opt->answer;
     out_hack = out_hck_opt->answer;
     out_horton = out_hrt_opt->answer;
+    out_topo = out_topo_opt->answer;
     out_zero = (out_back->answer != 0);
 
 		if (out_strahler) {
@@ -176,7 +188,7 @@ int main(int argc, char *argv[])
 	stack_max = stream_num;	/* stack's size depends on number of streams */
     init_streams(stream_num);
     find_nodes(stream_num);
-    if (out_hack || out_horton || in_table)
+    if (out_hack || out_horton || in_table || out_topo)
    do_cum_length();
 
 	
@@ -186,7 +198,7 @@ int main(int argc, char *argv[])
 	shreeve();
     if (out_horton || in_table)
 	horton();
-    if (out_hack || in_table)
+    if (out_hack || out_topo || in_table)
 	hack();
   
   write_maps();

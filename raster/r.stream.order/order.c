@@ -31,7 +31,7 @@ int trib_nums(int r, int c)
 int init_streams(int stream_num)
 {
     int i;
-    s_streams = (STREAM *) G_malloc((stream_num + 1) * sizeof(STREAM));
+		s_streams = (STREAM *) G_malloc((stream_num + 1) * sizeof(STREAM));
         for (i = 0; i <= stream_num; ++i) {
 	s_streams[i].next_stream = -1;
 	s_streams[i].stream = -1;
@@ -44,6 +44,8 @@ int init_streams(int stream_num)
 	s_streams[i].length = 0.;
 	s_streams[i].stright = 0.;
 	s_streams[i].fractal = 0.;
+	s_streams[i].distance=0.;
+	s_streams[i].topo_dim=0;
 	s_streams[i].trib[0] = 0;
 	s_streams[i].trib[1] = 0;
 	s_streams[i].trib[2] = 0;
@@ -233,6 +235,7 @@ int do_cum_length (void) {
 	} /* end for s*/
 return 0;
 }
+
 
 /* 
    All algorithms used in analysis ar not recursive. For Strahler order and Shreve magnitude starts from initial channel and  proceed downstream. Algortitms try to assgin order for branch and if it is imposible start from next initial channel, till all branches are ordered.
@@ -429,7 +432,7 @@ int horton(void)
     return 0;
 }
 
-int hack(void)
+int hack(void) /* also calculate topological dimension */
 {
 
     int *stack;
@@ -437,17 +440,23 @@ int hack(void)
     int cur_stream, cur_hack;
     double max_accum;
     int up_stream = 0;
+    
+    double cur_distance=0;
+    int cur_topo_dim=0;
 
-    G_message(_("Calculating Hack's main streams ..."));
+    G_message(_("Calculating Hack's main streams and topological dimension..."));
     stack = (int *)G_malloc(stack_max * sizeof(int));
 
     for (j = 0; j < outlets_num; ++j) {
+
 	cur_stream = s_streams[outlets[j]].stream;	/* outlet: init */
 	cur_hack = 1;
 	stack[0] = 0;
 	stack[1] = cur_stream;
 	top = 1;
-
+	
+	s_streams[cur_stream].topo_dim=top;
+	cur_distance=s_streams[cur_stream].distance=s_streams[cur_stream].length;
 	do {
 	    max_accum = 0;
 
@@ -473,20 +482,29 @@ int hack(void)
 		}		/* end determining up_stream */
 
 		if (up_stream) {	/* at least one branch is not assigned */
+			
 		    if (s_streams[cur_stream].hack < 0) {
 			s_streams[cur_stream].hack = cur_hack;
-		    }
+				 }
 		    else {
 			cur_hack = s_streams[cur_stream].hack;
 			++cur_hack;
+			
 		    }
+
+				cur_distance=s_streams[cur_stream].distance;
+
 		    cur_stream = up_stream;
 		    stack[++top] = cur_stream;
-
+    
+				s_streams[cur_stream].distance=cur_distance+s_streams[cur_stream].length;
+				s_streams[cur_stream].topo_dim=top;
+			
+			
 		}
 		else {		/* all asigned, go downstream */
-
 		    cur_stream = stack[--top];
+
 
 		}		/* end up_stream */
 	    }			/* end spring/node */

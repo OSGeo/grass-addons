@@ -14,8 +14,13 @@ Background values of NULL are by default produced by r.watershed and r.stream.ex
 Also <em>stream</em> network and <em>accumulation</em> maps must have the same resolution. It is checked by default. If resolutions differ the module informs about it and stops. Region boundary
 and maps boundary may be differ but it may lead to unexpected results.</DD>
 <p>
+<DT><b>table</b></DT>
+<DD>Table where stream network topology can be stored. Because r.stream.order is prepared to work both with r.watershed and r.stream.extract, table by default is not attached to vector, but if stream network is produced by r.stream.extract it can be simply added to file using <a href="v.db.coonect.html">v.db.connect</a>. See DESCRIPTION for details</DD>
+
+<p>
 <DT><b>accum</b></DT>
 <DD>Flow accumulation (optional, not recommended): name of flow accumulation file produced by r.watershed or used in r.stream.extract. This map is an option only if Horton's or Hack's ordering is performed. Normally both Horton and Hack ordering is calculated on cumulative stream lrngth wchich is calculated internaly. Flow accumulation can be used if user want to calculate main stream as most accumulated stream. Flow accumulation map shall be of DCELL type, as is by default produced by r.watershed or converted do DCELL with r.mapcalc.</DD>
+
 <h2>OUTPUTS</h2>
 
 <P>At least one output map is required: </p>
@@ -29,7 +34,10 @@ and maps boundary may be differ but it may lead to unexpected results.</DD>
 <DD>Name of Horton's stream order output map (require accum file): see notes for detail.</DD>
 
 <DT><b>hack</b></DT>
-<DD>Name of Hack's main streams output map (require accum file): see notes for detail.</DD>
+<DD>Name of Hack's main streams output map : see notes for detail.</DD>
+
+<DT><b>top</b></DT>
+<DD>Name of topological dimensions streams output map: see notes for detail.</DD>
 
 </DL>
 
@@ -72,10 +80,30 @@ This method of ordering calculates main streams of main catchment and every subc
 <BR>
 <B>Advantages and disadvantages of main stream ordering:</B>
 The biggest advantage of that method is the possibility to compare and analyze topology upstream, according to main streams. Because all tributaries of main channel have order of 2, streams can be quickly and easily filtered and its proprieties and relation to main stream determined. The main disadvantage of that method is the problem with the comparison of subcatchment topology of the same order. Subcatchments of the same order may be both highly branched and widespread in the catchment area and a small subcatchment with only one stream. 
+<H4>Topological dimension streams order</H4>
+This method of ordering calculates topological distance of every stream from catchment outlet. The topopological distance is defined as the number of segments which separates the current segment from the outlet basin 
+<BR>
+
+
+<H4>Stream network topology table description</H4>
+	<li><b>cat</b> integer: category;
+	<li><b>stream</b>integer: stream number, usually equal to cat;
+	<li><b>next_stream</b> integer: stream to which contribute current stream (downstream);
+	<li><b>prev_streams</b>; two or more contributing streams (upstream);
+	<li><b>strahler</b> integer: Strahler's stream order:
+	<li><b>horton</b> integer: Hortons's stream order:
+	<li><b>shreve</b> integer: Shreve's stream magnitude;
+	<li><b>hack</b> integer: Hack's main streams order;
+	<li><b>topo</b> integer: Topological dimension streams order;
+	<li><b>length</b> double precision: stream length;
+	<li><b>cum_length</b> double precision: length of stream from source;
+	<li><b>out_dist</b> double precision: distance of current stream init from outlet;
+	<li><b>stright</b> double precision: length of stream as stright line;
+	<li><b>fractal</b> double precision: fractal dimention: stream length/stright stream length
 
 <h2>NOTES</H2>
 <P>
-Module can work only if direction map, stream map and region map has same settings. It is also required that stream map and direction map come from the same source. For lots of reason this limitation probably cannot be omitted.   this means if stream map comes from r.stream.extract also direction map from r.stream.extract must be used. If stream network was generated with MFD method also MFD direction map must be used. Nowadays f direction map comes from r.stream.extract  must be patched by direction map from r.watershed. (with r.patch). 
+Module can work only if direction map, stream map and region map has same settings. It is also required that stream map and direction map come from the same source. For lots of reason this limitation probably cannot be omitted. This means if stream map comes from r.stream.extract also direction map from r.stream.extract must be used. If stream network was generated with MFD method also MFD direction map must be used. Nowadays f direction map comes from r.stream.extract  must be patched by direction map from r.watershed. (with r.patch). 
 
 <h2>SEE ALSO</h2>
 
@@ -88,19 +116,21 @@ Module can work only if direction map, stream map and region map has same settin
 </em>
 
 
-
 <h2>REFERENCES</h2>
+Claps, P., Fiorentino, M., Oliveto, G., (1994), <i>Informational entropy of fractal river networks</i>,
+Journal of Hydrology, 187(1-2), 145-156 .</p>
 Hack, J., (1957), <i>Studies of longitudinal stream profiles in Virginia and Maryland</i>, 
 <b>U.S. Geological Survey Professional Paper</b>, 294-B<p>
 Horton, R. E. (1945), <i>Erosional development of streams and their drainage basins: hydro-physical approach to quantitative morphology</i>, 
-<b>Geological Society of America Bulletin</b> 56 (3): 275-370<BR>
-<a h
-<p>
+<b>Geological Society of America Bulletin</b> 56 (3): 275-370<p>
 Shreve, R., <i>Statistical Law of Stream Numbers</i>, <b>J. Geol.</b>, 74, (1966), 17-37.<p>
 Strahler, A. N. (1952), <i>Hypsometric (area-altitude) analysis of erosional topology</i>, 
 <b>Geological Society of America Bulletin</b> 63 (11): 1117–1142<p>
 Strahler, A. N. (1957), <i>Quantitative analysis of watershed geomorphology</i>, 
 <b>Transactions of the American Geophysical Union</b> 8 (6): 913–920.<p>
+
+
+
 <h2>AUTHOR</h2>
 Jarek  Jasiewicz, Markus Metz
 

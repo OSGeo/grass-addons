@@ -124,6 +124,8 @@ int stream_number(void)
 	cur_mapset = G_find_cell2(in_streams, "");
 	G_read_range(in_streams,cur_mapset,&stream_range);
 	G_get_range_min_max(&stream_range, &c_min, &c_max);
+		if(c_max<1)
+	G_fatal_error("No streams found"	);
 	return c_max;
 
 }
@@ -131,8 +133,8 @@ int stream_number(void)
 int write_maps(void)
 {
     int r, c;
-    CELL *strahler_buf, *shreeve_buf, *hack_buf, *horton_buf;
-    int out_str_fd, out_shr_fd, out_hck_fd, out_hrt_fd;	/* output file descriptors: outstr_fd - strahler... etc */
+    CELL *strahler_buf, *shreeve_buf, *hack_buf, *horton_buf, *topo_buf;
+    int out_str_fd, out_shr_fd, out_hck_fd, out_hrt_fd, out_topo_fd;	/* output file descriptors: outstr_fd - strahler... etc */
     struct History history;	/* holds meta-data (title, comments,..) */
 
     /* routine check if legal file names and we able to opuen files */
@@ -160,6 +162,12 @@ int write_maps(void)
 	    G_fatal_error(_("Unable to create raster map <%s>"), out_horton);
 	horton_buf = G_allocate_cell_buf();
     }
+    
+     if (out_topo) {
+	if ((out_topo_fd = G_open_raster_new(out_topo, CELL_TYPE)) < 0)
+	    G_fatal_error(_("Unable to create raster map <%s>"), out_topo);
+	topo_buf = G_allocate_cell_buf();
+    }
 
     G_message(_("Writing maps..."));
 
@@ -174,6 +182,8 @@ int write_maps(void)
 	    G_set_c_null_value(hack_buf, ncols);
 	if (out_horton)
 	    G_set_c_null_value(horton_buf, ncols);
+	if (out_topo)
+	    G_set_c_null_value(topo_buf, ncols);    
 
 	for (c = 0; c < ncols; ++c) {
 	    if (!out_zero) {
@@ -186,6 +196,8 @@ int write_maps(void)
 			hack_buf[c] = s_streams[streams[r][c]].hack;
 		    if (out_horton)
 			horton_buf[c] = s_streams[streams[r][c]].horton;
+				if (out_topo)
+			topo_buf[c] = s_streams[streams[r][c]].topo_dim;
 		}		/* end if streams */
 	    }
 	    else if (out_zero) {
@@ -197,6 +209,9 @@ int write_maps(void)
 		    hack_buf[c] = s_streams[streams[r][c]].hack;
 		if (out_horton)
 		    horton_buf[c] = s_streams[streams[r][c]].horton;
+		if (out_topo)
+		    topo_buf[c] = s_streams[streams[r][c]].topo_dim;
+		    
 	    }
 	}			/* end for cols */
 
@@ -208,6 +223,9 @@ int write_maps(void)
 	    G_put_c_raster_row(out_hck_fd, hack_buf);
 	if (out_horton)
 	    G_put_c_raster_row(out_hrt_fd, horton_buf);
+	if (out_topo)
+	    G_put_c_raster_row(out_topo_fd, topo_buf);    
+	    
     }				/* end for r */
 
     G_percent(r, nrows, 2);
@@ -242,6 +260,14 @@ int write_maps(void)
 	G_write_history(out_horton, &history);
 	G_message(_("%s Done!"),out_horton);
     }
+    
+  if (out_topo) {
+	G_close_cell(out_topo_fd);
+	G_free(topo_buf);
+	G_short_history(out_topo, "raster", &history);
+	G_write_history(out_topo, &history);
+	G_message(_("%s Done!"),out_topo);
+    }  
 
     return 0;
 
@@ -265,7 +291,8 @@ int create_table (void)
 	dbString table_name, db_sql, val_string;
 	char buf[1000];
 	char ins_prev_streams[50]; /* insert */
-	
+	char* cat_col_name="cat";	
+
 	/* table definition */
 	char* tab_cat_col_name="cat integer";
 	char* tab_stream="stream integer";
@@ -279,11 +306,13 @@ int create_table (void)
 	char* tab_cumlength="cum_length double precision";
 	char* tab_stright="stright double precision";
 	char* tab_fractal="fractal double precision";
+	char* tab_distance="out_dist double precision";
+	char* tab_topo_dim="topo_dim integer";
 	
 	G_message("Adding table...");
 	
 	/* trib num */
-	for (i=0;i<stream_num;++i) {
+	for (i=0;i<stream_num+1;++i) {
 			if (s_streams[i].trib_num>max_trib) 
 		max_trib=s_streams[i].trib_num;
 	}
@@ -301,9 +330,9 @@ int create_table (void)
 		else
 	sprintf(out_table, "%s_new",in_vector);
 	*/
-	
+
 	out_table=in_table;
-	
+
 	/* init */
 	
 	db_init_string(&db_sql);
@@ -340,7 +369,7 @@ int create_table (void)
 	}
 		
 	
-	sprintf(buf,"create table %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+	sprintf(buf,"create table %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
 		out_table,
 		tab_cat_col_name,
 		tab_stream,
@@ -350,8 +379,10 @@ int create_table (void)
 		tab_horton,
 		tab_shreve,
 		tab_hack,
+		tab_topo_dim,
 		tab_length,
 		tab_cumlength,
+		tab_distance,
 		tab_stright,
 		tab_fractal);
 		
@@ -363,7 +394,7 @@ int create_table (void)
 		G_fatal_error("Cannot create table %s", db_get_string(&db_sql));
 	}
 	
-		if (db_create_index2(driver,out_table,tab_cat_col_name) !=DB_OK)
+		if (db_create_index2(driver,out_table,cat_col_name) !=DB_OK)
 	G_warning("cannot create index");
 	
 		if (db_grant_on_table(driver,out_table,DB_PRIV_SELECT, DB_GROUP |DB_PUBLIC) !=DB_OK)
@@ -371,7 +402,7 @@ int create_table (void)
 
 	db_begin_transaction(driver);
 
-	for (i=0;i<stream_num;++i) {
+	for (i=0;i<stream_num+1;++i) {
 		
 			if(s_streams[i].stream<0)
 		continue;
@@ -395,7 +426,7 @@ int create_table (void)
 	}
 	
 		sprintf(buf,"insert into %s  values	\
-			(%d, %d, %d, %s, %d, %d, %d, %d, %f, %f , %f, %f)",
+			(%d, %d, %d, %s, %d, %d, %d, %d, %d, %f, %f , %f, %f, %f)",
 		out_table,
 		i,
 		s_streams[i].stream,
@@ -405,8 +436,10 @@ int create_table (void)
 		s_streams[i].horton,
 		s_streams[i].shreeve,
 		s_streams[i].hack,
+		s_streams[i].topo_dim,
 		s_streams[i].length,
 		s_streams[i].accum,
+		s_streams[i].distance,
 		s_streams[i].stright,
 		s_streams[i].fractal);
 	
