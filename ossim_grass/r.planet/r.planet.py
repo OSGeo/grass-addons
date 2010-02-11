@@ -56,6 +56,13 @@
 #% description: Position Port 
 #% required : no
 #%end
+#%option
+#% key: tile
+#% type: double
+#% key_desc: tile
+#% description: tile
+#% required : no
+#%end
 #%flag
 #% key: a
 #% description: Add raster
@@ -83,13 +90,14 @@ def main():
 	host = options['host']
 	dport = options['dport']
 	pport = options['pport']
+	tile = options['tile']
 	grassenv = grass.gisenv()
 	mappa = options['map'].replace("@"," ")
 	mappa = mappa.split()
 	
-	nflags = len(filter(None, [add, remove]))
+	nflags = len(filter(None, [add, remove, orthoigen]))
 	if nflags > 1:
-		grass.run_command('g.message' , message = 'Cannot add & remove a map at same time.')
+		grass.run_command('g.message' , message = 'Cannot add & remove a map or use orthoigen at the same time.')
 	if nflags < 1:
 		grass.run_command('g.message' , message = 'No action requested , please choose one from "-a : add" or "-r : remove" flags.')
 	try :
@@ -117,26 +125,32 @@ def main():
 	lat = zoom_position[0]
 	lon = zoom_position[1]
 	distance = zoom_position[2]
-	if add :
-		addzoom(output,lon,lat,distance,host,dport,pport)
-		print 'Added raster file :', mappa[0]
-		print 'Camera positioned to : '
-		print 'Longitude = ',lon
-		print 'Latitude = ', lat
-		print 'Altitude = ' , distance
-	if remove :
-		removefile(output,host,dport)
-		print 'Removed raster file :', mappa[0]
-	if orthoigen :
-		path = os.path.dirname(output)
-		print path
-		elevdir = os.path.join(path,'elevation',mappa[0])
-		os.makedirs(elevdir)
-		print elevdir
-		elev = mappa[0]+'.tiff'
-		exportiff(output,elev)
-		instr = make3d(10801, elev, elevdir)
-		os.system(instr)
+	if nflags == 1:
+		if add :
+			try :
+				addzoom(output,lon,lat,distance,host,dport,pport)
+				print 'Added raster file :', mappa[0]
+				print 'Camera positioned to : '
+				print 'Longitude = ',lon
+				print 'Latitude = ', lat
+				print 'Altitude = ' , distance
+			except :
+				print "conecction error"
+		if remove :
+			removefile(output,host,dport)
+			print 'Removed raster file :', mappa[0]
+		if orthoigen :
+			if tile != '':
+				path = os.path.dirname(output)
+				elevdir = os.path.join(path,'elevation',mappa[0])
+				if not os.path.exists(d):
+					os.makedirs(elevdir)
+				elev = mappa[0]+'.tiff'
+				exportiff(output,elev)
+				instr = make3d(tile, elev, elevdir)
+				os.system(instr)
+			if tile == '':
+				print 'please set the tile dimension'
 
 
 def exportiff(infile,outfile):
