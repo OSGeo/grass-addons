@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 ################################################################################
 #
-# MODULE:       r.planet.py
+# MODULE:       ogrTovrt.py
 #
-# AUTHOR(S):    Massimo Di Stefano 2010-02-7 - massimodisasha@yahoo.it
-#               (original code : ogr2vrt.py - Frank Warmerdam, warmerdam@pobox.com)
+# AUTHOR(S):    Massimo Di Stefano 2010-02-7 
+#               relicensed with permission by 
+#               Frank Warmerdam - warmerdam@pobox.com - original author
+#               original code : ogr2vrt.py
 #               
 #
 # PURPOSE:      Create OGR VRT from source datasource and 
