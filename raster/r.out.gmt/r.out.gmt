@@ -119,8 +119,8 @@ case "$MAP_TYPE" in
     DCELL)
 	MAP_TAG="=bf"
 	echo "WARNING: Converting from double precision to floating point map" 1>&2
-	r.mapcalc "tmp_gmt_$$=float($MAP_NAME)"
-	MAP_NAME=tmp_gmt_$$
+	r.mapcalc "tmp_gmt_$$ = float($MAP_NAME)"
+	MAP_NAME="tmp_gmt_$$"
 	;;
 esac
 
