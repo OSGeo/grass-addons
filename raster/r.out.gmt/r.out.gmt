@@ -83,7 +83,7 @@ export LC_NUMERIC=C
 MAP_NAME="$GIS_OPT_input"
 
 if [ -z "$GIS_OPT_output" ] ; then
-    OUT_BASE="$GIS_OPT_input"
+    OUT_BASE=`echo "$GIS_OPT_input" | cut -f1 -d'@'`
 else
     OUT_BASE="$GIS_OPT_output"
 fi
@@ -105,7 +105,7 @@ trap "exitprocedure" 2 3 15
 cleanup()
 {
     if [ "$MAP_TYPE" = "DCELL" ] ; then
-	g.remove tmp_gmt_$$ > /dev/null
+	g.remove "tmp_gmt_$$" --quiet
     fi
 }
 
