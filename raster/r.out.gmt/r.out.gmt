@@ -38,6 +38,7 @@
 
 #%Module
 #% description: Exports a GRASS raster map into a GMT grid file and color table
+#% keywords: raster, export, GMT
 #%End
 #%option
 #% key: input
