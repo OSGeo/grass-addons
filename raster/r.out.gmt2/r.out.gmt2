@@ -36,6 +36,7 @@
 
 #%module
 #% description: Exports a GRASS raster map into a GMT grd file and color table.
+#% keywords: raster, export, GMT
 #%end
 #%option
 #% key: input
@@ -114,7 +115,7 @@ map_name="$GIS_OPT_INPUT"
 input_map="$map_name"
 
 if [ -z "$GIS_OPT_OUTPUT" ]; then
-    output_base="$GIS_OPT_INPUT"
+    output_base=`echo "$GIS_OPT_INPUT" | cut -f1 -d'@'`
 else
     output_base="$GIS_OPT_OUTPUT"
 fi
@@ -148,7 +149,7 @@ trap "exit_procedure" 2 3 15
 cleanup()
 {
     if [ "$map_type" = "DCELL" ]; then
-	g.remove tmp_gmt_$$ > /dev/null
+	g.remove tmp_gmt_$$ --quiet
     fi
 }
 
@@ -164,9 +165,9 @@ FCELL)
 DCELL)
     map_tag="=1"
     echo "WARNING: Converting from double precision to floating point map" 1>&2
-    r.mapcalc "tmp_gmt_$$=float($map_name)"
+    r.mapcalc "tmp_gmt_$$ = float($map_name)"
     r.colors map="tmp_gmt_$$" raster="$map_name"
-    map_name=tmp_gmt_$$
+    map_name="tmp_gmt_$$"
     ;;
 esac
 
