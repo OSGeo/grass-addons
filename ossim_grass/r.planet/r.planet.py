@@ -103,14 +103,17 @@ def main():
 	try :
 		rasterpath = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], mappa[1], 'cellhd') 
 		mapfile = os.path.join(rasterpath, mappa[0])
-		vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], mappa[1], 'vrt')
+		vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], mappa[1], 'vrt/raster/')
+		#print vrtdir
 	except :
 		rasterpath = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], grassenv['MAPSET'], 'cellhd')
 		mapfile = os.path.join(rasterpath, mappa[0])   
-		vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], grassenv['MAPSET'], 'vrt')
+		vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], grassenv['MAPSET'], 'vrt/raster/')
+		#print vrtdir
 	d = os.path.dirname(vrtdir)
 	if not os.path.exists(d):
 		os.makedirs(d)
+	#os.makedirs(d)
 	vrtfilename =  mappa[0] + '.vrt'
 	output = os.path.join(vrtdir, vrtfilename) 
 	if not os.path.exists(output):
@@ -142,8 +145,8 @@ def main():
 		if orthoigen :
 			if tile != '':
 				path = os.path.dirname(output)
-				elevdir = os.path.join(path,'elevation',mappa[0])
-				if not os.path.exists(d):
+				elevdir = os.path.join(path,'elevation',mappa[0]+'/')
+				if not os.path.exists(elevdir):
 					os.makedirs(elevdir)
 				elev = mappa[0]+'.tiff'
 				exportiff(output,elev)
@@ -164,6 +167,7 @@ def addfile(output,host,dport):
 	ossimdata.connect((host, int(dport)))
 	ossimdata.send(ossim_data_xml)
 	ossimdata.close()
+	
 
 def zoomto(lon,lat,distance,host,pport):
 	ossim_zoom_xml = '<Set target=":navigator" vref="wgs84"><Camera><longitude>%s</longitude><latitude>%s</latitude><altitude>%s</altitude><heading>0</heading><pitch>0</pitch><roll>0</roll><altitudeMode>absolute</altitudeMode><range>%s</range></Camera></Set>' % (lon, lat, distance, distance)

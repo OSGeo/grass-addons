@@ -131,11 +131,11 @@ def main():
 	try :
 		vectorpath = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], mappa[1], 'vector' , mappa[0] ) 
 		mapfile = os.path.join(vectorpath, 'head')
-		vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], mappa[1], 'vrt', 'vector')
+		vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], mappa[1], 'vrt', 'vector/')
 	except :
 		vectorpath = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], grassenv['MAPSET'], mappa[0] )
 		mapfile = os.path.join(vectorpath, 'head' )   
-		vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], grassenv['MAPSET'], 'vrt', 'vector')
+		vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], grassenv['MAPSET'], 'vrt', 'vector/')
 	d = os.path.dirname(vrtdir)
 	if not os.path.exists(d):
 		os.makedirs(d)
