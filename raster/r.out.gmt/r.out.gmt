@@ -81,12 +81,12 @@ unset LC_ALL
 export LC_NUMERIC=C
 
 
-MAP_NAME="$GIS_OPT_input"
+MAP_NAME="$GIS_OPT_INPUT"
 
-if [ -z "$GIS_OPT_output" ] ; then
-    OUT_BASE=`echo "$GIS_OPT_input" | cut -f1 -d'@'`
+if [ -z "$GIS_OPT_OUTPUT" ] ; then
+    OUT_BASE=`echo "$GIS_OPT_INPUT" | cut -f1 -d'@'`
 else
-    OUT_BASE="$GIS_OPT_output"
+    OUT_BASE="$GIS_OPT_OUTPUT"
 fi
 
 OUTPUT_GRD="${OUT_BASE}.grd"
@@ -231,7 +231,7 @@ fi
 
 
 # show suggested PostScript creation commands
-if [ $GIS_FLAG_p -eq 1 ] ; then
+if [ $GIS_FLAG_P -eq 1 ] ; then
     echo "Suggested GMT PostScript creation commands follow:" 1>&2
     echo "==================================================" 1>&2
     echo 1>&2
