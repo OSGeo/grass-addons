@@ -193,11 +193,12 @@ int main(int argc, char *argv[])
     while (param.percentile->answers[i])
 	i++;
     stats = create_univar_stat_struct(map_type, i);
-    for (i = 0; i < stats->n_perc; i++) {
-	sscanf(param.percentile->answers[i], "%i", &stats->perc[i]);
+    for (i = 0; i < zone_info.n_zones; i++) {
+	for (j = 0; j < stats[i].n_perc; j++) {
+	    sscanf(param.percentile->answers[j], "%lf", &(stats[i].perc[j]));
+	}
     }
 
-    stats->n = 0;
     for (z = 0; z < depths; z++) {	/*From the bottom to the top */
 	if (!(param.shell_style->answer))
 	    G_percent(z, depths - 1, 10);
