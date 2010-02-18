@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 
    for (i=0; i < A->rows ; i++)   /* copy rowwise */
      for (j=0; j < A->cols; j++)  /* copy colwise */
-          G_matrix_get_element(A_tilde, [i][j])= A->G_matrix_get_element[i][j];
+          G_matrix_get_element(A_tilde, i, j)= A->G_matrix_get_element[i][j];
 
    /* fill last row with 1 elements */
    for (j=0; j < A->cols ; j++)
