@@ -1,0 +1,36 @@
+MODULE_TOPDIR = ..
+
+SUBDIRS = \
+	adehabitat \
+	net.analyze \
+	v.autokrige \
+	v.curvature \
+	v.db.calc \
+	v.in.gama \
+	v.in.geoplot \
+	v.in.gshhs \
+	v.in.mbsys_fnv \
+	v.in.ncdc \
+	v.in.postgis \
+	v.out.ascii.db \
+	v.out.ascii.mat \
+	v.out.gmt \
+	v.out.postgis \
+	v.points.cog \
+	v.profile \
+	v.random.cover \
+	v.rast.stats2 \
+	v.selmany \
+	v.strahler \
+	v.surf.icw \
+	v.swathwidth \
+	v.transect.kia \
+	v.what.rast.buffer
+
+include $(MODULE_TOPDIR)/include/Make/Dir.make
+
+default: htmldir
+
+htmldir: subdirs
+
+clean: cleansubdirs
