@@ -43,7 +43,7 @@ void set_params()
 
     param.percentile = G_define_option();
     param.percentile->key = "percentile";
-    param.percentile->type = TYPE_INTEGER;
+    param.percentile->type = TYPE_DOUBLE;
     param.percentile->required = NO;
     param.percentile->multiple = YES;
     param.percentile->options = "0-100";
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
     univar_stat *stats;
 
     char *infile, *zonemap;
-    void *map, *zmap;
+    void *map, *zmap = NULL;
     G3D_Region region;
     unsigned int i;
     unsigned int rows, cols, depths;
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     zone_info.n_zones = 0;
 
     /* open 3D zoning raster with default region */
-    if ((zonemap = param.zonefile->answer)) {
+    if ((zonemap = param.zonefile->answer) != NULL) {
 	if (NULL == (mapset = G_find_grid3(zonemap, "")))
 	    G3d_fatalError(_("Requested g3d map <%s> not found"), zonemap);
 
@@ -194,6 +194,7 @@ int main(int argc, char *argv[])
 	i++;
     stats = create_univar_stat_struct(map_type, i);
     for (i = 0; i < zone_info.n_zones; i++) {
+	unsigned int j;
 	for (j = 0; j < stats[i].n_perc; j++) {
 	    sscanf(param.percentile->answers[j], "%lf", &(stats[i].perc[j]));
 	}

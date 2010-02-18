@@ -42,7 +42,7 @@ void set_params()
 
     param.percentile = G_define_option();
     param.percentile->key = "percentile";
-    param.percentile->type = TYPE_INTEGER;
+    param.percentile->type = TYPE_DOUBLE;
     param.percentile->required = NO;
     param.percentile->multiple = YES;
     param.percentile->options = "0-100";
@@ -228,7 +228,7 @@ static univar_stat *univar_stat_with_percentiles(int map_type)
     stats = create_univar_stat_struct(map_type, i);
     for (i = 0; i < n_zones; i++) {
 	for (j = 0; j < stats[i].n_perc; j++) {
-	    sscanf(param.percentile->answers[j], "%i", &(stats[i].perc[j]));
+	    sscanf(param.percentile->answers[j], "%lf", &(stats[i].perc[j]));
 	}
     }
 
