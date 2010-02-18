@@ -186,47 +186,53 @@ map_comment="1:$scale"
 
 # create cpt color table from raster's colr file
 eval `g.findfile elem=colr file="$GIS_OPT_INPUT" | grep "^file="`
-COLR_FILE="$file"
+if [ -z "$file" ] ; then
+   g.message "Input map does not have explicit color rules defined. CPT file not created."
+   OUTPUT_CPT=jet.cpt
+else
+   COLR_FILE="$file"
+   
+   echo "#" > "$OUTPUT_CPT"
+   echo "# GMT colormap created by the `g.version` r.out.gmt script" >> "$OUTPUT_CPT"
+   echo "# from base map [$GIS_OPT_INPUT]" >> "$OUTPUT_CPT"
+   echo "# created by ${USER}@${HOSTNAME} at `date`" >> "$OUTPUT_CPT"
+   echo "#" >> "$OUTPUT_CPT"
+   echo "# COLOR_MODEL = RGB" >> "$OUTPUT_CPT"
+   
+   for line in `cat "$COLR_FILE" | tail -n+2 | grep -v "^nv" | tr ' ' '|'` ; do
+       C_BEGIN="`echo "$line" | cut -f1 -d'|'`"
+       C_END="`echo "$line" | cut -f2 -d'|'`"
+   
+       C_BEGIN="`echo "$line" | cut -f1 -d'|'`"
+       C_END="`echo "$line" | cut -f2 -d'|'`"
+   
+       # translate 1 color value into 3
+       if [ "`echo "$C_BEGIN" | tr ':' '\n' | wc -l`" -eq 2 ] ; then
+   	RULE_CAT="`echo "$C_BEGIN" | cut -f1 -d:`"
+   	RULE_COLOR="`echo "$C_BEGIN" | cut -f2 -d:`"
+   	C_BEGIN="${RULE_CAT}:${RULE_COLOR}:${RULE_COLOR}:${RULE_COLOR}"
+       fi
+       if [ "`echo "$C_END" | tr ':' '\n' | wc -l`" -eq 2 ] ; then
+   	RULE_CAT="`echo "$C_END" | cut -f1 -d:`"
+   	RULE_COLOR="`echo "$C_END" | cut -f2 -d:`"
+   	C_END="${RULE_CAT}:${RULE_COLOR}:${RULE_COLOR}:${RULE_COLOR}"
+       fi     
+   
+       C_STRING="${C_BEGIN}:${C_END}"
+       echo "$C_STRING" | tr ':' '\t' >> "$OUTPUT_CPT"
+   done
+   # copy color of null value, if any
+   C_NULL="`grep "^nv" "$COLR_FILE" | cut -f2 -d':'`"
+   if [ -n "$C_NULL" ] ; then
+       if [ "`echo "$C_NULL" | tr ':' '\n' | wc -l`" -eq 1 ] ; then
+   	C_STRING="N:${C_NULL}:${C_NULL}:${C_NULL}"
+       else
+   	C_STRING="N:${C_NULL}"
+       fi
+       
+       echo "$C_STRING" | tr ':' '\t' >> "$OUTPUT_CPT"
+   fi
 
-echo "#" > "$OUTPUT_CPT"
-echo "# GMT colormap created by the `g.version` r.out.gmt script" >> "$OUTPUT_CPT"
-echo "# from base map [$GIS_OPT_INPUT]" >> "$OUTPUT_CPT"
-echo "# created by ${USER}@${HOSTNAME} at `date`" >> "$OUTPUT_CPT"
-echo "#" >> "$OUTPUT_CPT"
-echo "# COLOR_MODEL = RGB" >> "$OUTPUT_CPT"
-
-for line in `cat "$COLR_FILE" | tail -n+2 | grep -v "^nv" | tr ' ' '|'` ; do
-    C_BEGIN="`echo "$line" | cut -f1 -d'|'`"
-    C_END="`echo "$line" | cut -f2 -d'|'`"
-
-    C_BEGIN="`echo "$line" | cut -f1 -d'|'`"
-    C_END="`echo "$line" | cut -f2 -d'|'`"
-
-    # translate 1 color value into 3
-    if [ "`echo "$C_BEGIN" | tr ':' '\n' | wc -l`" -eq 2 ] ; then
-	RULE_CAT="`echo "$C_BEGIN" | cut -f1 -d:`"
-	RULE_COLOR="`echo "$C_BEGIN" | cut -f2 -d:`"
-	C_BEGIN="${RULE_CAT}:${RULE_COLOR}:${RULE_COLOR}:${RULE_COLOR}"
-    fi
-    if [ "`echo "$C_END" | tr ':' '\n' | wc -l`" -eq 2 ] ; then
-	RULE_CAT="`echo "$C_END" | cut -f1 -d:`"
-	RULE_COLOR="`echo "$C_END" | cut -f2 -d:`"
-	C_END="${RULE_CAT}:${RULE_COLOR}:${RULE_COLOR}:${RULE_COLOR}"
-    fi     
-
-    C_STRING="${C_BEGIN}:${C_END}"
-    echo "$C_STRING" | tr ':' '\t' >> "$OUTPUT_CPT"
-done
-# copy color of null value, if any
-C_NULL="`grep "^nv" "$COLR_FILE" | cut -f2 -d':'`"
-if [ -n "$C_NULL" ] ; then
-    if [ "`echo "$C_NULL" | tr ':' '\n' | wc -l`" -eq 1 ] ; then
-	C_STRING="N:${C_NULL}:${C_NULL}:${C_NULL}"
-    else
-	C_STRING="N:${C_NULL}"
-    fi
-    
-    echo "$C_STRING" | tr ':' '\t' >> "$OUTPUT_CPT"
 fi
 
 

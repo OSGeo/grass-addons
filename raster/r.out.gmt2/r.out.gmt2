@@ -221,9 +221,13 @@ eval "comment=\"$comment\""
 
 # create cpt color table from raster's colr file
 eval `g.findfile elem=colr file="$input_map" | grep "^file="`
-colr_file="$file"
-
-cat<<EOT > "$output_cpt"
+if [ -z "$file" ] ; then
+   g.message "Input map does not have explicit color rules defined. CPT file not created."
+   output_cpt=jet.cpt
+else
+   colr_file="$file"
+   
+   cat<<EOT > "$output_cpt"
 #
 # GMT colormap created by the `g.version` r.out.gmt2 script
 # from base map [$input_map]
@@ -231,41 +235,43 @@ cat<<EOT > "$output_cpt"
 #
 # COLOR_MODEL = RGB
 EOT
-
-for line in `cat "$colr_file" | tail -n+2 | grep -v "^nv" | tr ' ' '|'`; do
-    c_begin="`echo "$line" | cut -f1 -d'|'`"
-    c_end="`echo "$line" | cut -f2 -d'|'`"
-
-    c_begin="`echo "$line" | cut -f1 -d'|'`"
-    c_end="`echo "$line" | cut -f2 -d'|'`"
-
-    # translate 1 color value into 3
-    if [ "`echo "$c_begin" | tr ':' '\n' | wc -l`" -eq 2 ]; then
-	rule_cat="`echo "$c_begin" | cut -f1 -d:`"
-	rule_color="`echo "$c_begin" | cut -f2 -d:`"
-	c_begin="$rule_cat:$rule_color:$rule_color:$rule_color"
-    fi
-    if [ "`echo "$c_end" | tr ':' '\n' | wc -l`" -eq 2 ]; then
-	rule_cat="`echo "$c_end" | cut -f1 -d:`"
-	rule_color="`echo "$c_end" | cut -f2 -d:`"
-	c_end="$rule_cat:$rule_color:$rule_color:$rule_color"
-    fi
-
-    c_string="$c_begin:$c_end"
-    echo "$c_string" | tr ':' '\t' >> "$output_cpt"
-done
-
-# copy color of null value, if any
-c_null="`grep "^nv" "$colr_file" | cut -f2 -d':'`"
-if [ -n "$c_null" ]; then
-    if [ "`echo "$c_null" | tr ':' '\n' | wc -l`" -eq 1 ]; then
-	c_string="N:$c_null:$c_null:$c_null"
-    else
-	c_string="N:$c_null"
-    fi
-
-    echo "$c_string" | tr ':' '\t' >> "$output_cpt"
+   
+   for line in `cat "$colr_file" | tail -n+2 | grep -v "^nv" | tr ' ' '|'`; do
+       c_begin="`echo "$line" | cut -f1 -d'|'`"
+       c_end="`echo "$line" | cut -f2 -d'|'`"
+   
+       c_begin="`echo "$line" | cut -f1 -d'|'`"
+       c_end="`echo "$line" | cut -f2 -d'|'`"
+   
+       # translate 1 color value into 3
+       if [ "`echo "$c_begin" | tr ':' '\n' | wc -l`" -eq 2 ]; then
+   	rule_cat="`echo "$c_begin" | cut -f1 -d:`"
+   	rule_color="`echo "$c_begin" | cut -f2 -d:`"
+   	c_begin="$rule_cat:$rule_color:$rule_color:$rule_color"
+       fi
+       if [ "`echo "$c_end" | tr ':' '\n' | wc -l`" -eq 2 ]; then
+   	rule_cat="`echo "$c_end" | cut -f1 -d:`"
+   	rule_color="`echo "$c_end" | cut -f2 -d:`"
+   	c_end="$rule_cat:$rule_color:$rule_color:$rule_color"
+       fi
+   
+       c_string="$c_begin:$c_end"
+       echo "$c_string" | tr ':' '\t' >> "$output_cpt"
+   done
+   
+   # copy color of null value, if any
+   c_null="`grep "^nv" "$colr_file" | cut -f2 -d':'`"
+   if [ -n "$c_null" ]; then
+       if [ "`echo "$c_null" | tr ':' '\n' | wc -l`" -eq 1 ]; then
+   	c_string="N:$c_null:$c_null:$c_null"
+       else
+   	c_string="N:$c_null"
+       fi
+   
+       echo "$c_string" | tr ':' '\t' >> "$output_cpt"
+   fi
 fi
+
 
 # show suggested PostScript creation commands
 if [ $GIS_FLAG_P -eq 1 ]; then
