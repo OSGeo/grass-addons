@@ -1,10 +1,11 @@
 /*
  *  Calculates univariate statistics from the non-null cells
  *
- *   Copyright (C) 2004-2007 by the GRASS Development Team
+ *   Copyright (C) 2004-2010 by the GRASS Development Team
  *   Author(s): Soeren Gebbert
  *              Based on r.univar from Hamish Bowman, University of Otago, New Zealand
  *              and Martin Landa
+ *              zonal loop by Markus Metz
  *
  *      This program is free software under the GNU General Public
  *      License (>=v2). Read the file COPYING that comes with GRASS
@@ -20,6 +21,7 @@
 #include <math.h>
 #include <grass/gis.h>
 #include <grass/G3d.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 
 /*- Parameters and global variables -----------------------------------------*/
@@ -30,7 +32,7 @@ typedef struct
     double min;
     double max;
     unsigned int n_perc;
-    int *perc;
+    double *perc;
     double sum_abs;
     int n;
     int size;
@@ -57,13 +59,8 @@ typedef struct
     struct Flag *shell_style, *extended, *table;
 } param_type;
 
-#ifdef MAIN
-param_type param;
-zone_type zone_info;
-#else
 extern param_type param;
 extern zone_type zone_info;
-#endif
 
 /* fn prototypes */
 void heapsort_double(double *data, int n);

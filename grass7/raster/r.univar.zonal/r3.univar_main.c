@@ -16,12 +16,11 @@
  */
 
 #include <string.h>
-#define MAIN
 #include "globals.h"
 #include "grass/G3d.h"
 
-/* local proto */
-void set_params();
+param_type param;
+zone_type zone_info;
 
 /* ************************************************************************* */
 /* Set up the arguments we are expecting ********************************** */
@@ -43,7 +42,7 @@ void set_params()
 
     param.percentile = G_define_option();
     param.percentile->key = "percentile";
-    param.percentile->type = TYPE_INTEGER;
+    param.percentile->type = TYPE_DOUBLE;
     param.percentile->required = NO;
     param.percentile->multiple = YES;
     param.percentile->options = "0-100";
@@ -82,7 +81,7 @@ int main(int argc, char *argv[])
     univar_stat *stats;
 
     char *infile, *zonemap;
-    void *map, *zmap;
+    void *map, *zmap = NULL;
     G3D_Region region;
     unsigned int i;
     unsigned int rows, cols, depths;
@@ -97,7 +96,8 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster3d, statistics");
+    G_add_keyword(_("raster3d"));
+    G_add_keyword(_("statistics"));
     module->description =
 	_("Calculates univariate statistics from the non-null 3d cells of a raster3d map.");
 
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
     zone_info.n_zones = 0;
 
     /* open 3D zoning raster with default region */
-    if ((zonemap = param.zonefile->answer)) {
+    if ((zonemap = param.zonefile->answer) != NULL) {
 	if (NULL == (mapset = G_find_grid3(zonemap, "")))
 	    G3d_fatalError(_("Requested g3d map <%s> not found"), zonemap);
 
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 	if (G3d_readRange(zonemap, mapset, &zone_range) == -1)
 	    G_fatal_error("Can not read range for zoning raster");
 	G3d_range_min_max(zmap, &dmin, &dmax);
-	if (G_read_raster_cats(zonemap, mapset, &(zone_info.cats)))
+	if (Rast_read_cats(zonemap, mapset, &(zone_info.cats)))
 	    G_warning("no category support for zoning raster");
 
 	/* properly round dmin and dmax */
@@ -193,11 +193,13 @@ int main(int argc, char *argv[])
     while (param.percentile->answers[i])
 	i++;
     stats = create_univar_stat_struct(map_type, i);
-    for (i = 0; i < stats->n_perc; i++) {
-	sscanf(param.percentile->answers[i], "%i", &stats->perc[i]);
+    for (i = 0; i < zone_info.n_zones; i++) {
+	unsigned int j;
+	for (j = 0; j < stats[i].n_perc; j++) {
+	    sscanf(param.percentile->answers[j], "%lf", &(stats[i].perc[j]));
+	}
     }
 
-    stats->n = 0;
     for (z = 0; z < depths; z++) {	/*From the bottom to the top */
 	if (!(param.shell_style->answer))
 	    G_percent(z, depths - 1, 10);

@@ -1,23 +1,18 @@
 
 MODULE_TOPDIR = ../..
 
-LIBES = $(G3DLIB) $(GISLIB)
-DEPENDENCIES = $(G3DDEP) $(GISDEP)
+LIBES2 = $(RASTERLIB) $(GISLIB) $(MATHLIB)
+LIBES3 = $(G3DLIB) $(GISLIB) $(MATHLIB)
+DEPENDENCIES = $(G3DDEP) $(GISDEP) $(RASTERDEP)
 
-#needed for htmlmulti
 PROGRAMS = r.univar.zonal r3.univar.zonal
+
+r_univar_zonal_OBJS = r.univar_main.o sort.o stats.o
+r3_univar_zonal_OBJS = r3.univar_main.o sort.o stats.o
 
 include $(MODULE_TOPDIR)/include/Make/Multi.make
 
-R3UNIVAR = $(BIN)/r3.univar.zonal$(EXE)
-RUNIVAR = $(BIN)/r.univar.zonal$(EXE)
+default: multi
 
-default: $(RUNIVAR) $(R3UNIVAR)
-	$(MAKE) htmlmulti
-
-$(RUNIVAR): $(OBJDIR)/r.univar_main.o $(OBJDIR)/sort.o $(OBJDIR)/stats.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(FMODE_OBJ) $(LIBES) $(XDRLIB) $(MATHLIB)
-
-$(R3UNIVAR): $(OBJDIR)/r3.univar_main.o $(OBJDIR)/sort.o $(OBJDIR)/stats.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(FMODE_OBJ) $(LIBES) $(XDRLIB) $(MATHLIB)
-
+$(BIN)/r.univar.zonal$(EXE): LIBES = $(LIBES2)
+$(BIN)/r3.univar.zonal$(EXE): LIBES = $(LIBES3)

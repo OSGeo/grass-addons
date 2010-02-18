@@ -34,7 +34,7 @@ univar_stat *create_univar_stat_struct(int map_type, int n_perc)
 	stats[i].max = 0.0 / 0.0;	/*set to nan as default */
 	stats[i].n_perc = n_perc;
 	if (n_perc > 0)
-	    stats[i].perc = (int *)G_malloc(n_perc * sizeof(int));
+	    stats[i].perc = (double *)G_malloc(n_perc * sizeof(double));
 	else
 	    stats[i].perc = NULL;
 	stats[i].sum_abs = 0.0;
@@ -135,8 +135,11 @@ int print_stats(univar_stat * stats)
 	sprintf(sum_str, "%.10f", stats[z].sum);
 	G_trim_decimal(sum_str);
 
-	if (zone_info.n_zones)
-	    fprintf(stdout, "\nzone %d %s\n\n", z + zone_info.min, G_get_cat(z + zone_info.min, &(zone_info.cats)));
+	if (zone_info.n_zones) {
+	    int z_cat = z + zone_info.min;
+	    
+	    fprintf(stdout, "\nzone %d %s\n\n", z_cat, Rast_get_c_cat(&z_cat, &(zone_info.cats)));
+	}
 
 	if (!param.shell_style->answer) {
 	    fprintf(stdout, "total null and non-null cells: %d\n", stats[z].size);
@@ -240,7 +243,10 @@ int print_stats(univar_stat * stats)
 		fprintf(stdout, "median=%g\n", median);
 		fprintf(stdout, "third_quartile=%g\n", quartile_75);
 		for (i = 0; i < stats[z].n_perc; i++) {
-		    fprintf(stdout, "percentile_%d=%g\n", stats[z].perc[i],
+		    char buf[24];
+		    sprintf(buf, "%.15g", stats[z].perc[i]);
+		    G_strchg(buf, '.', '_');
+		    fprintf(stdout, "percentile_%s=%g\n", buf,
 			    quartile_perc[i]);
 		}
 	    }
@@ -255,18 +261,26 @@ int print_stats(univar_stat * stats)
 
 
 		for (i = 0; i < stats[z].n_perc; i++) {
-		    if (stats[z].perc[i] % 10 == 1 && stats[z].perc[i] != 11)
-			fprintf(stdout, "%dst percentile: %g\n", stats[z].perc[i],
+		    if (stats[z].perc[i] == (int)stats[z].perc[i]) {
+			/* percentile is an exact integer */
+			if ((int)stats[z].perc[i] % 10 == 1 && (int)stats[z].perc[i] != 11)
+			    fprintf(stdout, "%dst percentile: %g\n", (int)stats[z].perc[i],
+				    quartile_perc[i]);
+			else if ((int)stats[z].perc[i] % 10 == 2 && (int)stats[z].perc[i] != 12)
+			    fprintf(stdout, "%dnd percentile: %g\n", (int)stats[z].perc[i],
+				    quartile_perc[i]);
+			else if ((int)stats[z].perc[i] % 10 == 3 && (int)stats[z].perc[i] != 13)
+			    fprintf(stdout, "%drd percentile: %g\n", (int)stats[z].perc[i],
+				    quartile_perc[i]);
+			else
+			    fprintf(stdout, "%dth percentile: %g\n", (int)stats[z].perc[i],
+				    quartile_perc[i]);
+		    }
+		    else {
+			/* percentile is not an exact integer */
+			fprintf(stdout, "%.15g percentile: %g\n", stats[z].perc[i],
 				quartile_perc[i]);
-		    else if (stats[z].perc[i] % 10 == 2 && stats[z].perc[i] != 12)
-			fprintf(stdout, "%dnd percentile: %g\n", stats[z].perc[i],
-				quartile_perc[i]);
-		    else if (stats[z].perc[i] % 10 == 3 && stats[z].perc[i] != 13)
-			fprintf(stdout, "%drd percentile: %g\n", stats[z].perc[i],
-				quartile_perc[i]);
-		    else
-			fprintf(stdout, "%dth percentile: %g\n", stats[z].perc[i],
-				quartile_perc[i]);
+		    }
 		}
 	    }
 	    G_free((void *)quartile_perc);
@@ -313,7 +327,18 @@ int print_stats_table(univar_stat * stats)
 	fprintf(stdout, "%smedian", zone_info.sep);
 	fprintf(stdout, "%sthird_quart", zone_info.sep);
 	for (i = 0; i < stats[0].n_perc; i++) {
-	    fprintf(stdout, "%sperc_%d", zone_info.sep, stats[0].perc[i]);
+
+	    if (stats[0].perc[i] == (int)stats[0].perc[i]) {
+		/* percentile is an exact integer */
+		fprintf(stdout, "%sperc_%d", zone_info.sep, (int)stats[0].perc[i]);
+	    }
+	    else {
+		/* percentile is not an exact integer */
+		char buf[24];
+		sprintf(buf, "%.15g", stats[0].perc[i]);
+		G_strchg(buf, '.', '_');
+		fprintf(stdout, "%sperc_%s", zone_info.sep, buf);
+	    }
 	}
     }
     fprintf(stdout, "\n");
@@ -344,10 +369,11 @@ int print_stats_table(univar_stat * stats)
 	var_coef = (stdev / mean) * 100.;	/* perhaps stdev/fabs(mean) ? */
 
 	if (zone_info.n_zones) {
+	    int z_cat = z + zone_info.min;
 	    /* zone number */
 	    fprintf(stdout, "%d%s", z + zone_info.min, zone_info.sep);
 	    /* zone label */
-	    fprintf(stdout,"%s%s", G_get_cat(z + zone_info.min, &(zone_info.cats)), zone_info.sep);
+	    fprintf(stdout,"%s%s", Rast_get_c_cat(&z_cat, &(zone_info.cats)), zone_info.sep);
 	}
 
 	/* total cells */
