@@ -57,7 +57,7 @@ grassPath = os.path.join(globalvar.ETCDIR, "python")
 sys.path.append(grassPath)
 
 import render
-import toolbars1
+import toolbars
 import menuform
 import gselect
 import disp_print
@@ -68,6 +68,7 @@ import profile
 import globalvar
 import utils
 import gdialogs
+import goutput
 from grass.script import core as grass
 from debug import Debug
 from preferences import globalSettings as UserSettings
@@ -110,7 +111,7 @@ class MapFrame(wx.Panel):
         @param Map instance of render.Map
         """
         self.gismanager = gismgr   # Layer Manager object
-        self._layerManager = self.gismanager
+        self._layerManager = gismgr
         self.Map        = Map       # instance of render.Map
         self.tree       = tree      # Layer Manager layer tree object
         self.page       = page      # Notebook page holding the layer tree
@@ -120,7 +121,7 @@ class MapFrame(wx.Panel):
         self.statusFlag = flag
         self.statusbar = None
 
-        
+        #FIX THIS
 
         
         #
@@ -157,7 +158,13 @@ class MapFrame(wx.Panel):
         # Fancy gui
         #
         # self._mgr = auimgr
+
+      
+
         self._mgr = wx.aui.AuiManager(self)
+        
+        #self._layerManager.goutput = goutput.GMConsole(self.parent.GetParent(), pageid=1)
+        #self._layerManager.goutput.Hide()
 
         #
         # Add toolbars
@@ -269,6 +276,7 @@ class MapFrame(wx.Panel):
         #
         # Init map display (buffered DC & set default cursor)
         #
+
         self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,   Map=self.Map, tree=self.tree, gismgr=self._layerManager)
         # default is 2D display mode
         self.MapWindow = self.MapWindow2D
@@ -378,7 +386,7 @@ class MapFrame(wx.Panel):
         """
         # default toolbar
         if name == "map":
-            self.toolbars['map'] = toolbars1.MapToolbar(self, self.Map)
+            self.toolbars['map'] = toolbars.MapToolbar(self, self.Map)
 
             self._mgr.AddPane(self.toolbars['map'].toolbar,
                               wx.aui.AuiPaneInfo().
@@ -491,8 +499,8 @@ class MapFrame(wx.Panel):
             # create GL window & NVIZ toolbar
             #
             if not self.MapWindow3D:
-                self.MapWindow3D = nviz.GLWindow(self, id=wx.ID_ANY,
-                                                 Map=self.Map, tree=self.tree, lmgr=self._layerManager)
+                print "xx " + self.GetName()
+                self.MapWindow3D = nviz.GLWindow(self, id=wx.ID_ANY, Map=self.Map, tree=self.maptree, gismgr=self._layerManager)
                 # -> show after paint
                 self.nvizToolWin = nviz.NvizToolWindow(self, id=wx.ID_ANY,
                                                        mapWindow=self.MapWindow3D)

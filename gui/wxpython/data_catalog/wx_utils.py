@@ -1,11 +1,13 @@
 """!
-@package wx_utils.py
+@package wxgui_utils.py
 
 @brief Utility classes for GRASS wxPython GUI. Main functions include
 tree control for GIS map layer management, command console, and
 command parsing.
 
 Classes:
+ - AbstractLayer
+ - Layer
  - LayerTree
 
 (C) 2007-2009 by the GRASS Development Team
@@ -16,7 +18,7 @@ for details.
 @author Michael Barton (Arizona State University)
 @author Jachym Cepicky (Mendel University of Agriculture)
 @author Martin Landa <landa.martin gmail.com>
-@author Mohammed Rashad K.M <rashadkm at gmail dot com> (modified for DataCatalog)
+@author Mohammed Rashad K.M <rashadkm at gmail dot com> (only modified for DataCatalog)
 """
 
 import os
@@ -653,6 +655,9 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         """
         self.first = True
         params = {} # no initial options parameters
+
+       # import pdb
+       # pdb.set_trace()
 
         # deselect active item
         if self.layer_selected:

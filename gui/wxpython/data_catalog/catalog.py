@@ -28,7 +28,6 @@ import string
 import getopt
 import platform
 import shlex
-import gc
 
 try:
     import xml.etree.ElementTree as etree
@@ -108,7 +107,7 @@ class DataCatalog(wx.Frame):
     def __init__(self, parent=None, id=wx.ID_ANY, title=_("Data Catalog"),
                  workspace=None,size=wx.DefaultSize,pos=wx.DefaultPosition):
 
-        gc.enable()        
+       
         self.iconsize  = (16, 16)
         self.baseTitle = title
 
@@ -169,9 +168,9 @@ class DataCatalog(wx.Frame):
 
         #setting splitter window
         self.win = wx.SplitterWindow(self)
-        self.pLeft = wx.Panel(self.win, style=wx.SUNKEN_BORDER)
+        self.pLeft = wx.Panel(self.win, style=wx.SUNKEN_BORDER,name="leftpanel")
         self.pRight = wx.Panel(self.win, style=wx.SUNKEN_BORDER,name="rightpanel")
-        self.cmbPanel = wx.Panel(self)
+        self.cmbPanel = wx.Panel(self,name="cmbpanel")
         self.rightPanel = wx.Panel(self.pRight)
         self.pRight.SetBackgroundColour("white")
         self.pLeft.Hide()
@@ -231,11 +230,12 @@ class DataCatalog(wx.Frame):
         self.books = self.splitter.GetChildren()
         for self.book in self.books:
                 if type(self.book) == wx.lib.flatnotebook.FlatNotebook:
+                    ##self.book.SetSelection(self.book.GetCurrentPage())
                     self.panel = self.book.GetChildren()
                     for self.subpanel in self.panel:
                         if self.subpanel.GetName() == "pg_panel":
-                            self.mapnew = self.subpanel.Map
-        return self.mapnew
+                            self.newmap = self.subpanel.Map
+        return self.newmap
                             
 
     def __createMenuBar(self):
@@ -257,37 +257,43 @@ class DataCatalog(wx.Frame):
         """!Creates command-line input area"""
         self.cmdprompt = wx.Panel(self)
 
-        label = wx.StaticText(parent=self.cmdprompt, id=wx.ID_ANY, label="Cmd >")
+        button = wx.Button(parent=self.cmdprompt, id=wx.ID_ANY, label="Cmd >",
+                            size=(70,23))
+        button.SetToolTipString(_("Click for erasing command prompt"))
 	# label.SetFont(wx.Font(pointSize=11, family=wx.FONTFAMILY_DEFAULT,
         #                      style=wx.NORMAL, weight=wx.BOLD))
-        input = wx.TextCtrl(parent=self.cmdprompt, id=wx.ID_ANY,
+        self.cinput = wx.TextCtrl(parent=self.cmdprompt, id=wx.ID_ANY,
                             value="",
-                            style=wx.TE_LINEWRAP | wx.TE_PROCESS_ENTER,
-                            size=(-1, 25))
+                            style= wx.TE_PROCESS_ENTER,
+                            size=(250,20))
 
-        input.SetFont(wx.Font(10, wx.FONTFAMILY_MODERN, wx.NORMAL, wx.NORMAL, 0, ''))
+        #cinput.SetFont(wx.Font(10, wx.FONTFAMILY_MODERN, wx.NORMAL, wx.NORMAL, 0, ''))
 
-        wx.CallAfter(input.SetInsertionPoint, 0)
+        wx.CallAfter(self.cinput.SetInsertionPoint, 0)
 
-        self.Bind(wx.EVT_TEXT_ENTER, self.OnRunCmd,        input)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnRunCmd,   self.cinput)
+        self.Bind(wx.EVT_BUTTON,     self.OnCmdClear,      button)
         #self.Bind(wx.EVT_TEXT,       self.OnUpdateStatusBar, input)
 
         # layout
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(item=label, proportion=0,
+        sizer.Add(item=button, proportion=0,
                   flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER,
                   border=4)
-        sizer.Add(item=input, proportion=1,
+        sizer.Add(item=self.cinput, proportion=1,
                   flag=wx.EXPAND | wx.ALL,
                   border=1)
 
         self.cmdprompt.SetSizer(sizer)
-        sizer.Fit(self.cmdprompt)
+        #sizer.Fit(self.cmdprompt)
         self.cmdprompt.Layout()
 
         return self.cmdprompt
 
-        return p.GetPanel(), p.GetInput()
+
+    def OnCmdClear(self,event):
+        self.cinput.SetValue('')
+        self.cinput.SetFocus()
 
     def __createMenu(self, menuData):
         """!Creates menu"""
@@ -360,19 +366,19 @@ class DataCatalog(wx.Frame):
         self.Bind(wx.EVT_MENU, rhandler, menuItem)
 
     def OnXTerm(self):
-        print "asdf"
+        print "asdf1"
 
     def OnRunScript(self):
-        print "asdf"
+        print "asdf2"
 
     def OnQuit(self):
-        print "asdf"
+        print "asdf3"
 
     def OnRunCmd(self, event):
         """Run command"""
         cmdString = event.GetString()
 
-        if cmdString[:2] == 'd.' and not self.curr_page:
+        if cmdString[:2] == 'd.' and not self.current:
             self.NewDisplay(show=True)
         
         cmd = shlex.split(str(cmdString))
@@ -389,7 +395,7 @@ class DataCatalog(wx.Frame):
          #   self.statusbar.SetStatusText("")
         #else:
          #   self.statusbar.SetStatusText(_("Type GRASS command and run by pressing ENTER"))
-        print "asdf"
+        print "asdf4"
 
 
     def __createToolBar(self):
@@ -434,12 +440,12 @@ class DataCatalog(wx.Frame):
 
         # create displays notebook widget and add it to main notebook page
         cbStyle = globalvar.FNPageStyle
-        self.notebook = FN.FlatNotebook(parent=self.pRight, id=wx.ID_ANY, style=cbStyle,name="mynotebook")
+        self.notebook = FN.FlatNotebook(parent=self.pRight, id=wx.ID_ANY, style=cbStyle)
         
         self.notebook.SetTabAreaColour(globalvar.FNPageColor)
 
-
-        self.pg_panel = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(),  size=globalvar.MAP_WINDOW_SIZE,frame=self,flag=True)
+       # self._lmgr=wx.aui.AuiManager(self)
+        self.pg_panel = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(),  size=globalvar.MAP_WINDOW_SIZE,frame=self,flag=True,gismgr=self)
         
         self.disp_idx = self.disp_idx + 1
         self.notebook.AddPage(self.pg_panel, text="Display "+ str(self.disp_idx), select = True)
@@ -480,7 +486,9 @@ class DataCatalog(wx.Frame):
         pass
 
     def OnPageChanged(self,event):
-        self.current = event.GetSelection()
+        self.current = self.notebook.GetPage(event.GetSelection())
+        #self.current = self.notebook.GetCurrentPage()
+        #self.current.Map = self.GetMapDisplay()
         event.Skip()
 
 
@@ -526,7 +534,7 @@ class DataCatalog(wx.Frame):
         self.disp_idx = self.disp_idx - 1
         self.notebook.DeletePage(self.notebook.GetCurrentPage())
         self.current = self.notebook.GetCurrentPage()
-        self.current.Map.Clean()
+        #self.current.Map.Clean()
         event.Skip()
 
         
@@ -590,6 +598,8 @@ class DataCatalog(wx.Frame):
         
     def OnNewVector(self, event):
         """!Create new vector map layer"""
+        import pdb
+        pdb.set_trace()
         name, add = gdialogs.CreateNewVector(self, cmd = (('v.edit',  { 'tool' : 'create' }, 'map')))
         
         if name and add:
@@ -1760,8 +1770,13 @@ class CatalogApp(wx.App):
 
 # Run the program
 if __name__ == "__main__":
+
+
+    #gc.enable()
+    #gc.set_debug(gc.DEBUG_LEAK)
     g_catalog = CatalogApp(0)
     g_catalog.MainLoop()
+
     #sys.exit(0)	
     
 

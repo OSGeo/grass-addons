@@ -228,7 +228,7 @@ class LayerTree(wx.TreeCtrl):
             parent  =self.GetItemParent(item) 
             if self.GetItemText(parent) == "Raster Map" :
                 cmdflag = 'rast=' + str(self.GetItemText(item))
-            elif self.tree.GetItemText(parent) == "Vector Map" :
+            elif self.GetItemText(parent) == "Vector Map" :
                 cmdflag = 'vect=' + str(self.GetItemText(item))
 
             if cmdflag:
@@ -251,7 +251,7 @@ class LayerTree(wx.TreeCtrl):
         parent  =self.GetItemParent(item) 
         if self.GetItemText(parent) == "Raster Map" :
             cmdflag = 'r.planet.py -a map=' + str(self.GetItemText(item))
-        elif self.tree.GetItemText(parent) == "Vector Map" :
+        elif self.GetItemText(parent) == "Vector Map" :
             cmdflag = 'v.planet.py -a map=' + str(self.GetItemText(item))
 
         if cmdflag:
@@ -262,23 +262,9 @@ class LayerTree(wx.TreeCtrl):
             current.start()
 
         
-        
-
-
-    def OnCloseWindow(self,event):
-
-	    if self.gisrc['LOCATION_NAME'] != self.iLocation or \
-		    self.gisrc['MAPSET'] != self.iMapset:
-		    self.gisrc['LOCATION_NAME'] = self.iLocation
-		    self.gisrc['MAPSET'] = self.iMapset
-		    self.update_grassrc(self.gisrc)	
-
-	    self.Map.Clean()
-	    event.Skip()
-        #self.Destroy()
-
 
     def OnDisplay(self, event):
+
         item =  event.GetItem()
         pText = self.GetItemText(self.GetItemParent(item)) 
 
@@ -290,30 +276,41 @@ class LayerTree(wx.TreeCtrl):
         winlist = window2.GetChildren()
         for win in winlist:
             if type(win) == wx.lib.flatnotebook.FlatNotebook:
+                #win.SetSelection(0)
                 child=win.GetChildren()
                 for panel in child:
                     if panel.GetName() == "pg_panel":
-                        ss = panel.GetName()
+                        mapframe = panel
 
-
+       # mtree = mapframe.maptree
+        #print mtree.GetName()
+        
 
         if not self.ItemHasChildren(item):
-            self.mapname = "map=" + self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
-            #self.mapname = "map=" + self.GetItemText(item) + "@PERMANENT" 
-            if pText == "Raster Map" :
-	            self.cmd= ['d.rast', str(self.mapname)]
-	            self.infocmd = ["r.info", str(self.mapname)]
-            elif pText == "Vector Map" :
-	            self.cmd= ['d.vect', str(self.mapname)]
-	            self.infocmd = ["v.info", str(self.mapname)]
+            self.mapname =  self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
+            #for f in frames:
+            #    print f.GetName()     
 
-        if self.cmd:
-            panel.Map.Clean()
-            panel.Map.__init__()			#to update projection and region
-            panel.Map.AddLayer(type='raster', name='layer1', command=self.cmd)	
-            panel.Map.region = panel.Map.GetRegion()
-            panel.MapWindow2D.flag = True
-            panel.MapWindow2D.UpdateMap(render=True)
+            if pText == "Raster Map" :
+                self.cmd= ['d.rast', str("map=" + self.mapname)]
+                mapframe.maptree.AddLayer(ltype="raster", lname=self.mapname, lchecked=True,lcmd=self.cmd)
+                l_type="raster"
+	            #self.infocmd = ["r.info", str(self.mapname)]
+            elif pText == "Vector Map" :
+                self.cmd= ['d.vect', str("map=" + self.mapname)]
+                mapframe.maptree.AddLayer(ltype="vector", lname=self.mapname, lchecked=True,lcmd=self.cmd)
+                l_type="vector"
+	            #self.infocmd = ["r.info", str(self.mapname)]
+                
+
+
+       # if self.cmd:
+         #  mapframe.Map.Clean()
+         #  mapframe.Map.__init__()			#to update projection and region
+         #  mapframe.Map.AddLayer(type=l_type, name='layer1', command=self.cmd)	
+         #  mapframe.Map.region = panel.Map.GetRegion()
+         #  mapframe.MapWindow2D.flag = True
+         #  mapframe.MapWindow2D.UpdateMap(render=True)
 
 class OssimPlanet(Thread):
    def __init__ (self,cmd):
