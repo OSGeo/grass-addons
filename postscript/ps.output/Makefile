@@ -11,9 +11,3 @@ EXTRA_CFLAGS = $(VECT_CFLAGS)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
-default: cmd patt
-
-patt:
-	$(MKDIR) $(ETC)/paint/patterns/
-	$(INSTALL_DATA) patterns/*.eps $(ETC)/paint/patterns/
-
