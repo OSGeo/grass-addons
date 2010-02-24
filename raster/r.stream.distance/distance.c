@@ -1,100 +1,134 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-int find_outlets(void)
-{
-    int d, i, j;		/* d: direction, i: iteration */
-    int r, c;
-    int next_stream = -1, cur_stream;
-    int out_max = ncols + nrows;
+int calculate_upstream(void) {
+	int r,c;
+	int next_r, next_c;
+	float easting, northing;
+	float cell_easting, cell_northing;
+	int i,j,k;
+	int done;
+	int n_inits=0;
+	float cur_dist;
+	POINT* d_inits;
+	float* tmp_elevation=NULL; /* only for elevation */
+	float tmp_dist=0;
+	float tmp_elev=0;
+	float target_elev=0;
+	int tmp_inits=0;
+	
+	int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
+	int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
+	
+	for (r = 0; r < nrows; ++r) {
+		for (c = 0; c < ncols; ++c) {
+	
+			for (i=1;i<9;++i) {
+					if (r + nextr[i] < 0 || r + nextr[i] > (nrows - 1) ||	c + nextc[i] < 0 || c + nextc[i] > (ncols - 1))
+				continue;	/* out of border */
+					
+				j = (i + 4) > 8 ? i - 4 : i + 4;
+					
+				if (dirs[r + nextr[i]][c + nextc[i]] == j && 
+						distance[r][c]!=0) {/* is contributing cell */
+					distance[r][c]=-1;
+					break;
+				}	
+			}
+				if(distance[r][c]==1 && dirs[r][c]>0) 
+			n_inits++;
+				else if (dirs[r][c]>0)
+			distance[r][c]=-1;	
+		}		
+	}		
 
-    int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
-    int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-
-    G_message(_("Finding nodes..."));
-    outlets = (OUTLET *) G_malloc((out_max) * sizeof(OUTLET));
-
-    outlets_num = 0;
-
-    for (r = 0; r < nrows; ++r) {
-	for (c = 0; c < ncols; ++c) {
-	    if (streams[r][c] > 0) {
-		if (outlets_num > (out_max - 1)) {
-		    out_max *= 2;
-		    outlets =
-			(OUTLET *) G_realloc(outlets,
-					     out_max * sizeof(OUTLET));
+		d_inits=(POINT *) G_malloc(n_inits * sizeof(POINT));
+	
+	if(out_elev) {
+		tmp_elevation=(float *) G_malloc(nrows*ncols*sizeof(float));	
+		for (r = 0; r < nrows; ++r) {
+			for (c = 0; c < ncols; ++c) {
+		tmp_elevation[r*ncols+c]=elevation[r][c];
+			}	
 		}
-
-		d = abs(dirs[r][c]);	/* abs */
-		if (r + nextr[d] < 0 || r + nextr[d] > (nrows - 1) ||
-		    c + nextc[d] < 0 || c + nextc[d] > (ncols - 1)) {
-		    next_stream = -1;	/* border */
+	}
+	
+	
+	k=0;
+	for (r = 0; r < nrows; ++r) {
+		for (c = 0; c < ncols; ++c) {
+		
+			if(distance[r][c]==1) {
+				distance[r][c]=0;
+					if(out_elev) 
+				elevation[r][c]=0;
+				
+				if(dirs[r+nextr[dirs[r][c]]][c+nextc[dirs[r][c]]]<0) 
+					continue;
+				if(distance[next_r][next_c]==0)
+					continue;
+				
+				d_inits[k].r=r;
+				d_inits[k].c=c;
+				d_inits[k].cur_dist=0;
+				
+					if(out_elev) 
+				d_inits[k].target_elev=tmp_elevation[r*ncols+c];
+	
+				k++;
+			}
 		}
-		else {
-		    next_stream = streams[r + nextr[d]][c + nextc[d]];
-		    if (next_stream < 1)
-			next_stream = -1;
-		}
-		if (d == 0)
-		    next_stream = -1;
-		cur_stream = streams[r][c];
+	}
+n_inits=k;
 
-		if (subs && outs) {	/* in stream mode subs is ignored */
-		    if (cur_stream != next_stream) {	/* is outlet or node! */
-			outlets[outlets_num].r = r;
-			outlets[outlets_num].c = c;
-			outlets[outlets_num].northing =
-			    window.north - (r + .5) * window.ns_res;
-			outlets[outlets_num].easting =
-			    window.west + (c + .5) * window.ew_res;
-			outlets_num++;
-		    }
-		}
-		else {
-		    if (cur_stream != next_stream && next_stream < 0) {	/* is outlet! */
-			outlets[outlets_num].r = r;
-			outlets[outlets_num].c = c;
-			outlets[outlets_num].northing =
-			    window.north - (r + .5) * window.ns_res;
-			outlets[outlets_num].easting =
-			    window.west + (c + .5) * window.ew_res;
-			outlets_num++;
-		    }
-		}		/* end lasts */
-	    }			/* end if streams */
-	}			/* end for */
-    }				/* end for */
+while (n_inits>0) { 
+	k=0;
 
-    return 0;
+	for(i=0;i<n_inits;++i) {
+		r=d_inits[i].r;
+		c=d_inits[i].c;
+		next_r=r+nextr[dirs[r][c]];
+		next_c=c+nextc[dirs[r][c]];
+		tmp_dist=d_inits[i].cur_dist;
+		
+		if(out_elev) 
+			target_elev=d_inits[i].target_elev;
+		
+		easting=window.west + (c + 0.5) * window.ew_res;
+		northing=window.north - (r + 0.5) * window.ns_res;
+		cell_easting=window.west + (next_c + 0.5) * window.ew_res;
+		cell_northing=window.north - (next_r + 0.5) * window.ns_res;
+		
+		cur_dist=tmp_dist+G_distance(easting,northing,cell_easting,cell_northing);
+		
+		
+			if(near)
+		done=(distance[next_r][next_c]>cur_dist||distance[next_r][next_c]==-1) ? 1: 0;
+			else
+		done=(distance[next_r][next_c]<cur_dist||distance[next_r][next_c]==-1) ? 1: 0;
+		
+			
+		if(done) {
+			distance[next_r][next_c]=cur_dist;
+				if(out_elev) 
+			elevation[next_r][next_c]=target_elev-tmp_elevation[next_r*ncols+next_c];
+
+				if(dirs[r+nextr[dirs[r][c]]][c+nextc[dirs[r][c]]]<1) 
+			continue;
+
+			d_inits[k].r=next_r;
+			d_inits[k].c=next_c;
+			d_inits[k].cur_dist=cur_dist;
+
+				if(out_elev)
+			d_inits[k].target_elev=target_elev;
+			
+			k++;
+		} /* end of if done */
+	}
+	n_inits=k;
 }
-
-int reset_distance(void)
-{
-    int r, c, i;
-
-    distance = (FCELL **) G_malloc(sizeof(FCELL *) * nrows);
-    if (!outs) {		/* stream mode */
-	for (r = 0; r < nrows; ++r) {
-	    distance[r] = (FCELL *) G_malloc(sizeof(FCELL) * ncols);
-	    for (c = 0; c < ncols; ++c) {
-		distance[r][c] = (streams[r][c]) ? 0 : -1;
-	    }			/* r */
-	}			/* r */
-    }
-    else {			/* outlets mode */
-	for (r = 0; r < nrows; ++r) {
-	    distance[r] = (FCELL *) G_malloc(sizeof(FCELL) * ncols);
-	    for (c = 0; c < ncols; ++c) {
-		distance[r][c] = -1;
-	    }
-	}
-	for (i = 0; i < outlets_num; ++i) {
-
-	    distance[outlets[i].r][outlets[i].c] = 0;
-	}
-    }
-    return 0;
+return 0;
 }
 
 

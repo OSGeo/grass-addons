@@ -16,20 +16,22 @@ directions according to r.watershed: MUST check all directions
 
 */
 #define SQRT2 1.414214
-#define POINT struct points	
+#define POINT struct points
+#define UPSTREAM 0
+#define DOWNSTREAM 1
+#define RELATIVE 2
+
 POINT {
 	int r, c;
 float cur_dist;
 float target_elev;
-float northing;
-float easting;
 	};
 	
 #define OUTLET struct outs
 OUTLET { 
 	int r, c;
-	float northing;
 	float easting;
+	float northing;
 	};	
 
 					/* functions.c */ 
@@ -42,9 +44,14 @@ int write_distance(void);
 int write_elevation(void);
 int set_null_elev(void);
 
-/* distance */
+/* inits */
+int find_chatchment_outlets(void);
+int fill_catchments(OUTLET outlet);
 int find_outlets(void);
 int reset_distance(void);
+
+/* distance */
+int calculate_upstream(void);
 int fill_maps(OUTLET outlet);
 int fifo_insert (POINT point);
 POINT fifo_return_del (void);
@@ -60,8 +67,8 @@ POINT fifo_return_del (void);
 
 GLOBAL char *in_dirs, *in_streams, *in_elev;	/* input dirrection and accumulation raster names*/
 GLOBAL char *out_dist, *out_elev;
-GLOBAL int zeros, outs, subs; /* flags */
-
+GLOBAL int zeros, outs, subs, near; /* flags */
+GLOBAL int method;
 
 GLOBAL CELL **dirs, **streams; /* matrix with input data*/
 GLOBAL FCELL **elevation, **distance; 

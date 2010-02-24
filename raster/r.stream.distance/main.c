@@ -29,14 +29,22 @@
  * 
  * 
  */
+
 int main(int argc, char *argv[])
 {
 
     struct GModule *module;	/* GRASS module for parsing arguments */
-    struct Option *in_dir_opt, *in_stm_opt, *in_elev_opt, *out_dist_opt, *out_elev_opt;	/* options */
-    struct Flag *out_outs, *out_sub;	/* flags */
+    struct Option *in_dir_opt, 
+									*in_stm_opt, 
+									*in_elev_opt, 
+									*in_method_opt, 
+									*out_dist_opt, 
+									*out_elev_opt;	/* options */
+    struct Flag *out_outs, *out_sub, *out_near;	/* flags */
 
     int link_max;
+		char* method_name[]={"upstream","downstream"};
+		
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -69,6 +77,14 @@ int main(int argc, char *argv[])
     in_elev_opt->required = NO;
     in_elev_opt->gisprompt = "old,cell,raster";
     in_elev_opt->description = "Name of elevation map";
+     
+    in_method_opt = G_define_option();
+		in_method_opt->key = "method";
+    in_method_opt->description ="Calculation method";
+    in_method_opt->type = TYPE_STRING;
+    in_method_opt->required = YES;
+    in_method_opt->options ="upstream,downstream";
+    in_method_opt->answer = "downstream";
 
     /*  output option - at least one is reqired  */
 
@@ -88,17 +104,20 @@ int main(int argc, char *argv[])
     out_elev_opt->gisprompt = "new,cell,raster";
     out_elev_opt->description = "Output elevation map";
 
-    /* Define the different flags */
     out_outs = G_define_flag();
     out_outs->key = 'o';
     out_outs->description =
-	_("Calculate parameters for outlets (outlet mode) instead of streams (stream mode: default)");
+	_("Calculate parameters for outlets (outlet mode) instead of (default) streams");
 
-    /* Define the different flags */
     out_sub = G_define_flag();
     out_sub->key = 's';
     out_sub->description =
 	_("Calculate parameters for subbasins (ignored in stream mode)");
+	
+	  out_near = G_define_flag();
+    out_near->key = 'n';
+    out_near->description =
+	_("Calculate nearest local maximum (ignored in downstream calculation)");
 
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
@@ -116,6 +135,7 @@ int main(int argc, char *argv[])
     out_elev = out_elev_opt->answer;
     outs = (out_outs->answer != 0);
     subs = (out_sub->answer != 0);
+    near = (out_near->answer != 0);
 
     if (out_dist) {
 	if (G_legal_filename(out_dist) < 0)
@@ -126,6 +146,12 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("<%s> is an illegal file name"), out_elev);
     }
 
+
+			if (!strcmp(in_method_opt->answer, "upstream"))
+		method = UPSTREAM;
+			else if (!strcmp(in_method_opt->answer, "downstream"))
+		method = DOWNSTREAM;
+		
     nrows = G_window_rows();
     ncols = G_window_cols();
     G_get_window(&window);
@@ -135,20 +161,34 @@ int main(int argc, char *argv[])
     find_outlets();
     reset_distance();
     free_streams();
-
+		G_message(_("Calculate %s distance"),method_name[method]);
+  
+  if (method==UPSTREAM) { 
+		int j; 
+		fifo_max = 4 * (nrows + ncols);
+		fifo_outlet = (POINT *) G_malloc((fifo_max + 1) * sizeof(POINT));
+		
+		for (j = 0; j < outlets_num; ++j) {
+			fill_catchments(outlets[j]);
+		}
+		G_free(fifo_outlet);
+		calculate_upstream();
+	} 
+    
+  if (method==DOWNSTREAM) {  
+    
     /* fifo queue for contributing cell */
 
     fifo_max = 4 * (nrows + ncols);
     fifo_outlet = (POINT *) G_malloc((fifo_max + 1) * sizeof(POINT));
-    {				/* block */
-	int j;
-
-	G_message(_("Calculate..."));
-	for (j = 0; j < outlets_num; ++j) {
+    {				
+			int j;
+			for (j = 0; j < outlets_num; ++j) {
 	    fill_maps(outlets[j]);
-	}
-    }				/* end block */
+			}
+    }				
     G_free(fifo_outlet);
+	}
 
     if (out_elev) {
 	set_null(elevation);
@@ -158,7 +198,6 @@ int main(int argc, char *argv[])
 	set_null(distance);
 	write_maps(out_dist, distance);
     }
-
 
     exit(EXIT_SUCCESS);
 }
