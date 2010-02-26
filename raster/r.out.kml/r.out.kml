@@ -181,8 +181,7 @@ esac
 
 # create KMZ if requested
 if [ "$GIS_FLAG_Z" -eq 1 ] ; then
-  zip "$OUT_NAME.kmz"  "$OUT_NAME.kml" "$OUT_NAME.$IMG_EXT"
-  rm -f "$OUT_NAME.kml" "$OUT_NAME.$IMG_EXT"
+   zip -m "$OUT_NAME.kmz"  "$OUT_NAME.kml" "$OUT_NAME.$IMG_EXT"
 fi
 
 
