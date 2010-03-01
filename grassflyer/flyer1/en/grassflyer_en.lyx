@@ -1,0 +1,908 @@
+#LyX 1.6.5 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass leaflet
+\begin_preamble
+% GRASS PROMOTION FLYER
+% (c) 2007 GRASS PROMOTION TEAM
+% GNU Free Documentation License                        
+% Version 1.2                                           
+% Needs leaflet.cls
+% www.ctan.org/tex-archive/macros/latex/contrib/leaflet/%
+
+% to get "leaflet.cls" working to LyX use the default "article.layout":
+%
+%   a. copy "leadlet.cls" in the directory where LyX looks for classes (".cls" files)
+%   b. copy "article.layout" as "leaflet.layout" in the directory where LyX looks for layouts
+%   c. edit the "leaflet.layout" and change the second line
+%       from "\DeclareLaTeXClass{article}"
+%       to "\DeclareLaTeXClass{leaflet}"
+%   d. reconfigure LyX
+%
+% source: http://www.mail-archive.com/lyx-users@lists.lyx.org/msg52621.html
+
+% transfered to ".lyx" from ".tex" by Nikos Alexandris, March 2010
+
+
+% Sometimes printing engines need the 2nd side upside down
+% in this case, use tumble (which is default) instead of notumble
+
+% If this causes problems, use notumble
+% If you need a foldmark, delete nofoldmark
+
+% no date
+\date{}
+
+% \documentclass[notumble,a4paper,10pt,nofoldmark]{leaflet}
+\usepackage{helvet,courier,xcolor}
+
+% Set Helvetica as the default font
+\renewcommand*\familydefault\sfdefault
+
+% Let LaTeX knows that pictures are found in ./pix
+% \graphicspath{{pix/}}
+
+% Setting up things for the captions
+\usepackage{caption}[2004/07/16]
+\captionsetup{%
+  font={small,it},%
+  labelformat=empty,% Leaves out label: ``Figure 1''
+  labelsep=none,%
+  aboveskip=0pt%
+}
+
+% Defining a new 'figure' environment for the document
+% \newenvironment{myfig}[1][0pt plus 1.5ex minus .5ex]{\par\vspace*{#1}\begin{minipage}{\textwidth}\centering}{\end{minipage}}
+
+% Defining the GRASS homepage
+\newcommand{\GRASSurl}{\url{http://grass.osgeo.org}}
+
+% Define a color for the URIs
+\definecolor{darkblue}{RGB}{0,0,88}
+
+% \usepackage{hyperref}
+% Setting up some document info
+\hypersetup{%
+  colorlinks=true,%
+  urlcolor=darkblue,% Redefine this color to change URIs color
+  pdfauthor={The GRASS Community},%
+  pdftitle={GRASS GIS: Efficiency through Freedom \& Transparency},%
+  pdfsubject={GRASS Promotion Flyer},%
+  breaklinks=true,%
+  plainpages=false%
+}
+\end_preamble
+\options notumble,a4paper,nofoldmark
+\use_default_options true
+\begin_modules
+logicalmkup
+minimalistic
+\end_modules
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans helvet
+\font_typewriter default
+\font_default_family sfdefault
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\float_placement h
+\paperfontsize default
+\spacing single
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pdfusetitle true
+\papersize a4paper
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\leftmargin 1.5cm
+\topmargin 1.5cm
+\rightmargin 1.5cm
+\bottommargin 1.5cm
+\headsep 1cm
+\footskip 1cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation skip
+\defskip smallskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+\noindent
+
+\series bold
+\size huge
+GRASS GIS
+\series default
+\size small
+
+\begin_inset Newline newline
+\end_inset
+
+
+\size larger
+\emph on
+Efficiency through Freedom 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+&
+\end_layout
+
+\end_inset
+
+ Transparency
+\end_layout
+
+\begin_layout Author
+
+\size normal
+The GRASS Community
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\size normal
+A little smaller than the font size used in the original .tex file
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset Graphics
+	filename pix/grasslogo_vector.pdf
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+For some reason some of the pdf files won't appear on-LyX-screen.
+ However, they are in place in the produced pdf.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+large
+\backslash
+GRASSurl
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+thispagestyle{empty}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+thispagestyle{empty}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+What is GRASS
+\end_layout
+
+\begin_layout Standard
+GRASS (Geographic Resources Analysis Support System) is a free and Open
+ Source Software for performing spatial analysis.
+ It consists of more than 350 modules for processing vector (2D/3D), raster
+ and voxel data.
+ Many interfaces to other programs in related domains like geostatistics,
+ databases, mapserver and even other GIS software exist.
+ It is the largest Open Source GIS.
+ It can serve as a Desktop GIS and as the backbone of a complete GIS Infrastruct
+ure.
+\end_layout
+
+\begin_layout Section*
+Where is GRASS used
+\end_layout
+
+\begin_layout Standard
+GRASS is used in scientific applications, commercial settings and by public
+ authorities all over the world.
+ GRASS has shown strong potential for solving geospatial problems in numerous
+ situations world-wide.
+\end_layout
+
+\begin_layout Section*
+History
+\end_layout
+
+\begin_layout Standard
+GRASS was originally developed in the beginning of the 1980's by the US
+ Army Construction Engineering Research Laboratories (USA-CERL) and was
+ published as public domain software.
+ When the USA-CERL withdrew from GRASS development, an international developer
+ team took over this work.
+ Since 1999, GRASS has been published as free software under the terms of
+ the GNU General Public Licence.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset Graphics
+	filename pix/visibility.png
+	lyxscale 70
+	width 70col%
+	groupId 70% text width
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Viewshed analysis performed with GRASS
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Open Source Philosophy
+\end_layout
+
+\begin_layout Standard
+The Open Source philosophy provides the user the ability to see the source
+ code and structure of the program which offers a great transparency.
+ Users can extend the program for their own needs.
+ Immediate source code peer review increases the quality.
+ With the help of the extension manager new modules can be created without
+ GRASS package source code.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Section*
+Technical Data Sheet
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Subsection*
+License
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+GNU General Public License (Free Software Foundation)
+\end_layout
+
+\begin_layout Subsection*
+Supported platforms
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+GRASS runs on nearly all platforms.
+ It supports GNU/Linux, Posix compliant Unix Systems, MS-Windows and MacOS
+ X.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Subsection*
+Design
+\end_layout
+
+\begin_layout Itemize
+Modular
+\end_layout
+
+\begin_layout Itemize
+Consists of more than 350 modules
+\end_layout
+
+\begin_layout Subsection*
+Programming Languages
+\end_layout
+
+\begin_layout Itemize
+ANSI C
+\end_layout
+
+\begin_layout Itemize
+GRASS- SWIG interface
+\end_layout
+
+\begin_layout Itemize
+Python for WebGIS applications
+\end_layout
+
+\begin_layout Itemize
+Java Version: JGRASS
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Is this still valid?
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Data Management Capabilities
+\end_layout
+
+\begin_layout Itemize
+Raster / Vector / Voxel data processing
+\end_layout
+
+\begin_layout Itemize
+2D / 3D Raster / Vector modelling
+\end_layout
+
+\begin_layout Itemize
+Image manipulation
+\end_layout
+
+\begin_layout Itemize
+Vector topology / Network analysis
+\end_layout
+
+\begin_layout Itemize
+Geostatistics (Interface to R)
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset Graphics
+	filename pix/trento3d.pdf
+	lyxscale 70
+	width 70col%
+	groupId 70% text width
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+A flyby of the city of Trento, Italy
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Supported File Formats
+\end_layout
+
+\begin_layout Standard
+GRASS supports nearly all common GIS file formats through the use of the
+ GDAL/OGR library.
+ In addition it supports the Open GIS Consortium's Simple Features.
+\end_layout
+
+\begin_layout Subsection*
+Vector File formats
+\end_layout
+
+\begin_layout Standard
+ASCII, ARC/INFO ungenerate, ARC/INFO E00, Arc
+\backslash
+-View SHAPE, BIL, DLG (U.S.), DXF, DXF3D, GMT, GPS-ASCII USGS-DEM, IDRISI,
+ MOSS, MapInfo MIF, PostGIS, TIGER, VRML, 
+\backslash
+dots
+\end_layout
+
+\begin_layout Subsection*
+Raster File Formats
+\end_layout
+
+\begin_layout Standard
+ASCII, ARC/GRID, E00, GIF, GMT, TIF, PNG, Vis5D, SURFER (.grd),
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+dots
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset Graphics
+	filename pix/isodist.png
+	lyxscale 70
+	width 70col%
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+A newer screenshot would be better...
+ (?)
+\end_layout
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Default GUI configuration showing GRASS  network analysis capabilites
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Image File Formats
+\end_layout
+
+\begin_layout Standard
+CEOS (SAR, SRTM, LANDSAT7 etc.), ERDAS LAN / IMG, HDF, LANDSAT TM/MSS, NHAP
+ aerial photos, SAR, SPOT, 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+dots
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset Graphics
+	filename pix/ndvi.png
+	lyxscale 70
+	width 70col%
+
+\end_inset
+
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Image processing capabilities of GRASS
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Database support
+\end_layout
+
+\begin_layout Itemize
+PostgreSQL / PostGIS
+\end_layout
+
+\begin_layout Itemize
+MySQL
+\end_layout
+
+\begin_layout Itemize
+SQLite
+\end_layout
+
+\begin_layout Itemize
+ODBC
+\end_layout
+
+\begin_layout Itemize
+DBF
+\end_layout
+
+\begin_layout Subsection*
+Output
+\end_layout
+
+\begin_layout Itemize
+Modules for creating maps
+\end_layout
+
+\begin_layout Itemize
+NVIZ for visualization of 2.5D and 3D data (creation of animations 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+&
+\end_layout
+
+\end_inset
+
+ flybys)
+\end_layout
+
+\begin_layout Itemize
+GMT export
+\end_layout
+
+\begin_layout Itemize
+VRML, VTK, POVray
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Breaking this in two lines pushes some of the following content in the other
+ page = does not look nice!
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+WebGIS via Mapserver, Python, etc.
+\end_layout
+
+\begin_layout Subsection*
+Interoperability to other GIS- related Software
+\end_layout
+
+\begin_layout Itemize
+Quantum GIS (Free Geodata Viewer and more)
+\end_layout
+
+\begin_layout Itemize
+R- Language (Statistics)
+\end_layout
+
+\begin_layout Itemize
+Gstat (Geostatistics)
+\end_layout
+
+\begin_layout Itemize
+UMN Mapserver (Webmapping)
+\end_layout
+
+\begin_layout Section*
+Where to find more information
+\end_layout
+
+\begin_layout Itemize
+Project Website: 
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+GRASSurl
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+GRASS Wiki:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://grass.osgeo.org/wiki
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+GRASS Promotion Team:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+malte@perlomat.de
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+GRASS mailing lists:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://grass.osgeo.org/community/support.php
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace vfill
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+OSGeo
+\end_layout
+
+\begin_layout Standard
+GRASS is a founding project of the Open Source Geospatial Foundation which
+ has the aim to create high quality open source geospatial software.
+ For further information visit the OSGeo homepage:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename pix/OSGeo_CMYK.pdf
+	lyxscale 80
+	width 80col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\noindent
+\align center
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://www.osgeo.org
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
