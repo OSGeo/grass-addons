@@ -167,7 +167,14 @@ EOF
 
 case "$GIS_OPT_FORMAT" in
    png)
-     r.out.png input="$MAP_NAME" output="$OUT_NAME.$IMG_EXT" --quiet
+     # NULL transparency flag new for r.out.png in GRASS 6.5+
+     if [ `r.out.png --interface-description | grep -c '<flag name="t">'` -eq 1 ] ; then
+	TRANSP="-t"
+     else
+	g.message -w "NULL cell transparency requires a newer version of GRASS"
+	TRANSP=""
+     fi
+     r.out.png input="$MAP_NAME" output="$OUT_NAME.$IMG_EXT" --quiet $TRANSP
      ;;
    jpeg)
      r.out.ppm input="$MAP_NAME" output="$OUT_NAME.ppm" --quiet
