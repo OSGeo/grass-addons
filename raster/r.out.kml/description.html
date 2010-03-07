@@ -1,0 +1,45 @@
+<H2>DESCRIPTION</H2>
+
+<em>r.out.kml</em> creates KML and image files suitable for Google Earth
+from a GRASS raster map. Alternatively the user may create a compressed
+KMZ file by using the <b>-z</b> flag.
+
+<H2>NOTES</H2>
+
+KML expects data to be in Latitude-Longitude using the WGS84 datum and
+EGM96 vertical datum. This script will work for non-geographic map
+projections, but only if the projection's local deviation from true-north
+(the convergence angle) is small enough to ensure correct output. You can
+use the <em>r.proj</em> module from a Latitude-Longitude location to
+reproject maps if needed.
+At this time vertical datum is not checked by this module as support for
+it is relatively new in <em>r.support</em> and <em>r.info</em>.
+<P>
+KMZ output requires the "zip" program to be installed.
+<P>
+Transparency for NULL cells in PNG images is automatically enabled if the
+version of GRASS used supports it. <!-- currently >= 6.5svn
+but may backport for 6.4.1 -->
+
+
+<H2>SEE ALSO</H2>
+
+<em>
+<a HREF="d.out.file.html">d.out.file</a><BR>
+<a HREF="g.region.html">g.region</a><BR>
+<a HREF="r.out.gdal.html">r.out.gdal</a><BR>
+<a HREF="r.out.png.html">r.out.png</a><BR>
+<a HREF="r.out.ppm.html">r.out.ppm</a><BR>
+<a HREF="r.proj.html">r.proj</a>
+</em>
+
+
+<H2>AUTHOR</H2>
+
+Hamish Bowman<BR>
+<i>Dunedin, New Zealand</i>
+<p>
+<i>With thanks to Roger André and Peter Loewe for ideas and testing.</i>
+
+<p>
+<i>Last changed: $Date$</i>
