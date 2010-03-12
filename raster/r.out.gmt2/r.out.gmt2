@@ -235,11 +235,13 @@ else
 #
 # COLOR_MODEL = RGB
 EOT
-   
+
+   if [ `grep -c ':' "$colr_file"` -eq 0 ] then
+      g.message -w "Old-style colr files not yet supported. CPT file will be bogus."
+      # e.g. streams@spearfish
+   fi
+
    for line in `cat "$colr_file" | tail -n+2 | grep -v "^nv" | tr ' ' '|'`; do
-       c_begin="`echo "$line" | cut -f1 -d'|'`"
-       c_end="`echo "$line" | cut -f2 -d'|'`"
-   
        c_begin="`echo "$line" | cut -f1 -d'|'`"
        c_end="`echo "$line" | cut -f2 -d'|'`"
    
