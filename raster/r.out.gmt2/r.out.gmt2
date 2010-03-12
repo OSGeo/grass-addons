@@ -236,7 +236,7 @@ else
 # COLOR_MODEL = RGB
 EOT
 
-   if [ `grep -c ':' "$colr_file"` -eq 0 ] then
+   if [ `grep -c ':' "$colr_file"` -eq 0 ] ; then
       g.message -w "Old-style colr files not yet supported. CPT file will be bogus."
       # e.g. streams@spearfish
    fi

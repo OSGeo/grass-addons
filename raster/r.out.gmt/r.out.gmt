@@ -199,7 +199,7 @@ else
    echo "#" >> "$OUTPUT_CPT"
    echo "# COLOR_MODEL = RGB" >> "$OUTPUT_CPT"
 
-   if [ `grep -c ':' "$COLR_FILE"` -eq 0 ] then
+   if [ `grep -c ':' "$COLR_FILE"` -eq 0 ] ; then
       g.message -w "Old-style colr files not yet supported. CPT file will be bogus."
       # e.g. streams@spearfish
    fi
