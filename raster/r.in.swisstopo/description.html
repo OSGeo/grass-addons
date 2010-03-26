@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: r.in.swisstopo</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>r.in.swisstopo</b></em>  - Imports a digital elevation model from swisstopo into a Grass raster map and interpolates it into the current mapset's resolution. The name of the raster map is defined by the user input. A further raster layer (with the appendix '_origres') is automatically created and contains the input data in its original resolution. Resultant raster maps will contain elevation data in meters.
+<h2>KEYWORDS</h2>
+swisstopo, DHM, DEM, Raster, Import
+<h2>SYNOPSIS</h2>
+<b>r.in.swisstopo</b><br>
+<b>r.in.swisstopo help</b><br>
+<b>r.in.swisstopo</b> <b>input</b>=<em>input</em> <b>output</b>=<em>raster</em>  [<b>method</b>=<em>string</em>]   [<b>type</b>=<em>string</em>]   [<b>zrange</b>=<em>min,max</em>]   [<b>percent</b>=<em>integer</em>]   [<b>method_resamp</b>=<em>string</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
+
+<h3>Flags:</h3>
+<DL>
+<DT><b>--overwrite</b></DT>
+<DD>Force overwrite of output files</DD>
+<DT><b>--verbose</b></DT>
+<DD>Verbose module output</DD>
+<DT><b>--quiet</b></DT>
+<DD>Quiet module output</DD>
+</DL>
+
+<h3>Parameters:</h3>
+<DL>
+<DT><b>input</b>=<em>input</em></DT>
+<DD>Swisstopo file containing DEM data (*.mlt, *.mbl or *.xyz)</DD>
+
+<DT><b>output</b>=<em>raster</em></DT>
+<DD>Name of the raster layer, that will be created out of the imported data</DD>
+
+<DT><b>method</b>=<em>string</em></DT>
+<DD>Statistic to use for raster values</DD>
+<DD>Options: <em>n,min,max,range,sum,mean,stddev,variance,coeff_var</em></DD>
+<DD>Default: <em>mean</em></DD>
+
+<DT><b>type</b>=<em>string</em></DT>
+<DD>Storage type for resultant raster map</DD>
+<DD>Options: <em>CELL,FCELL,DCELL</em></DD>
+<DD>Default: <em>FCELL</em></DD>
+
+<DT><b>zrange</b>=<em>min,max</em></DT>
+<DD>Filter range for z data (min,max)</DD>
+
+<DT><b>percent</b>=<em>integer</em></DT>
+<DD>Percentage of map to keep in memory</DD>
+<DD>Options: <em>1-100</em></DD>
+<DD>Default: <em>100</em></DD>
+
+<DT><b>method_resamp</b>=<em>string</em></DT>
+<DD>Interpolation method for interpolation of input data to current region's resolution (using r.resamp.interp)</DD>
+<DD>Options: <em>nearest,bilinear,bicubic</em></DD>
+<DD>Default: <em>bilinear</em></DD>
+
+<h2>Manual download and installation of the module (without svn)</h2>
+<p>You can find the current version of r.in.swisstopo <a href="www.">here</a><br>
+<br>
+Installation:<br>
+You might need to have root privileges for the following. If you do not have these, please ask your system administrator
+<br>
+<ul>
+<li>Simply copy the file 'r.in.swisstopo.sh' into your $GISBASE/scripts/ directory.<br>
+(To find out your $GISBASE directory, call the following command from within a GRASS terminal:<br>
+<i>env | grep $GISBASE</i>)<br>
+Or directly copy the file from within the GRASS terminal with something like:
+<i>cp r.in.swisstopo.sh $GISBASE/scripts/</i>
+<br></li>
+<li>Additionally, you might have to make the script executable with:<br>
+<i>chmod +x $GISBASE/scripts/r.in.swisstopo.sh</i>
+<br></li>
+<li>Finally, copy this file (description.html) into the $GISBASE/docs/html/ directory and name it r.in.swisstopo.sh
+<br></li>
+</ul>
+<br>
+That's it!
+</p>
+
+<h2>SEE ALSO</h2>
+<p>
+<a href="r.in.xyz.html">r.in.xyz</a><br>
+<a href="r.resamp.interp.html">r.resamp.interp</a><br>
+</p>
+
+<h2>Note</h2>
+<p>If you find any bugs or find the module helpful or have any questions, feel free to contact the author (Juergen.Hansmann["at"]erdw.ethz.ch)</p>
+
+<h2>Author</h2>
+<p>J&uuml;rgen Hansmann<br>
+<i>Department of Earth Sciences<br>
+Swiss Federal Institute of Technology (ETH)<br>
+Zurich<br>
+</i></p>
+<p><i>Last changed: $Date: 03/26/2010 $</i> </p> 
+
+</DL>
+</body>
+</html>
