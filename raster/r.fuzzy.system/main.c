@@ -1,7 +1,16 @@
-/*
- * 
- * 
- */
+/* ***************************************************************************
+ *
+ * MODULE:       r.fuzzy.system
+ * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
+ * PURPOSE:      Full fuzzy logic standalone classification system with few fuzzy logic families 
+ * 							 implication and defuzzification and methods.
+ * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
+ *
+ *************************************************************************** */
 
 #define MAIN
 #include "local_proto.h"
