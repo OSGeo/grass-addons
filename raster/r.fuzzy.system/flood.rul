@@ -1,0 +1,4 @@
+#flood.rul
+$ unprob {elevation = high & distance = far};
+$ prob {distance = near | elevation = low};
+$ veryprob {distance = near & elevation = low};

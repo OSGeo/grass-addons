@@ -1,0 +1,15 @@
+#flood.map
+
+	%elevation
+$ low {right; 2,6; sshaped; 0; 1}
+$ high {left; 2,6; sshaped; 0; 1}
+
+	%distance
+$ near {right; 40,80; sshaped; 0; 1}
+$ far {left; 40,80; sshaped; 0; 1}
+
+#output map
+	%flood
+$ unprob {both; 0,20,20,40; linear; 0;1}
+$ prob {both; 20,40,40,60; linear; 0;1}
+$ veryprob {both; 40,60,60,80; linear; 0;1}
