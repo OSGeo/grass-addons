@@ -34,9 +34,15 @@ set_native_eol()
    fi
 }
 
-# will only set if previously empty
 set_mime_type()
 {
+   # remove generic default for images
+   if [ `echo "$2" | cut -f1 -d/` = "image" ] ; then
+      if [ `svn propget svn:mime-type "$1"` = "application/octet-stream" ] ; then
+         svn propdel svn:mime-type "$1"
+      fi
+   fi
+
    if [ `svn proplist "$1" | grep -c 'svn:mime-type'` -eq 0 ] ; then
       svn propset svn:mime-type "$2" "$1"
    fi
