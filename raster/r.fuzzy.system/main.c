@@ -3,7 +3,7 @@
  * MODULE:       r.fuzzy.system
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
  * PURPOSE:      Full fuzzy logic standalone classification system with few fuzzy logic families 
- * 							 implication and defuzzification and methods.
+ *                                                       implication and defuzzification and methods.
  * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -17,221 +17,221 @@
 
 int main(int argc, char **argv)
 {
-	struct Option *file_vars, 
-								*file_rules, 
-								*par_family,
-								*par_resolution,
-								*par_defuzzify,
-								*par_implication,
-								*in_coor_opt,
-								*opt_output;
-		
-	struct History history;
-	
-	struct Flag *out_multiple;
-	
-	int nrows, ncols;
-	int row, col;
-	int outfd;
-	float tmp;
-	FCELL *out_buf;		
-		
-	int i,j, n;
-	G_gisinit(argv[0]);
+    struct Option *file_vars,
+	*file_rules,
+	*par_family,
+	*par_resolution,
+	*par_defuzzify, *par_implication, *in_coor_opt, *opt_output;
 
-  file_vars = G_define_standard_option(G_OPT_F_INPUT);
-  file_vars->key = "maps";
-  file_vars->required = NO;
-  file_vars->description = _("Name of fuzzy variable file");
-    
-  file_rules = G_define_standard_option(G_OPT_F_INPUT);
-  file_rules->key = "rules";
-  file_rules->required = NO;
-  file_rules->description = _("Name of rules file");
-    
-	par_family=G_define_option();
-	par_family->key = "family";
-	par_family->type = TYPE_STRING;
-	par_family->options = "Zadeh,product,drastic,Lukasiewicz,Fodor,Hamacher";
-	par_family->answer = "Zadeh";
-	par_family->required = YES;
-	par_family->description = _("Fuzzy logic family");
-	par_family->guisection = _("Advanced options");
+    struct History history;
 
-	par_defuzzify=G_define_option();
-	par_defuzzify->key = "defuz";
-	par_defuzzify->type = TYPE_STRING;
-	par_defuzzify->options = "centeroid,bisector,min,max,mean";
-	par_defuzzify->answer = "bisector";
-	par_defuzzify->required = YES;
-	par_defuzzify->description = _("Defuzzyfication method");
-	par_defuzzify->guisection = _("Advanced options");
-	
-	par_implication=G_define_option();
-	par_implication->key = "imp";
-	par_implication->type = TYPE_STRING;
-	par_implication->options = "minimum, product";
-	par_implication->answer = "minimum";
-	par_implication->required = YES;
-	par_implication->description = _("Implication method");
-	par_implication->guisection = _("Advanced options");
-	
-	par_resolution=G_define_option();
-	par_resolution->key = "res";
-	par_resolution->type = TYPE_INTEGER;
-	par_resolution->answer = "100";
-	par_resolution->required = YES;
-	par_resolution->description = _("Universe resolution");
-	par_resolution->guisection = _("Advanced options");
-	
-	in_coor_opt = G_define_option();	/* input coordinates de outlet */
-  in_coor_opt->key = "coors";
-  in_coor_opt->type = TYPE_STRING;
-  in_coor_opt->key_desc = "x,y";
-  in_coor_opt->answer = NULL;
-  in_coor_opt->required = NO;
-  in_coor_opt->multiple = NO;
-  in_coor_opt->description = "Coordinate of cell for witch output  detail data";
-  in_coor_opt->guisection = _("Visual Output");
+    struct Flag *out_multiple;
 
-  out_multiple = G_define_flag();
-  out_multiple->key = 'm';
-  out_multiple->description = _("Create addational fuzzy output maps for every rule");
-  
-  
-  opt_output = G_define_standard_option(G_OPT_R_OUTPUT);
-  opt_output->description = _("Name of output file");
-    
+    int nrows, ncols;
+    int row, col;
+    int outfd;
+    float tmp;
+    FCELL *out_buf;
+
+    int i, j, n;
+
+    G_gisinit(argv[0]);
+
+    file_vars = G_define_standard_option(G_OPT_F_INPUT);
+    file_vars->key = "maps";
+    file_vars->required = NO;
+    file_vars->description = _("Name of fuzzy variable file");
+
+    file_rules = G_define_standard_option(G_OPT_F_INPUT);
+    file_rules->key = "rules";
+    file_rules->required = NO;
+    file_rules->description = _("Name of rules file");
+
+    par_family = G_define_option();
+    par_family->key = "family";
+    par_family->type = TYPE_STRING;
+    par_family->options = "Zadeh,product,drastic,Lukasiewicz,Fodor,Hamacher";
+    par_family->answer = "Zadeh";
+    par_family->required = YES;
+    par_family->description = _("Fuzzy logic family");
+    par_family->guisection = _("Advanced options");
+
+    par_defuzzify = G_define_option();
+    par_defuzzify->key = "defuz";
+    par_defuzzify->type = TYPE_STRING;
+    par_defuzzify->options = "centeroid,bisector,min,max,mean";
+    par_defuzzify->answer = "bisector";
+    par_defuzzify->required = YES;
+    par_defuzzify->description = _("Defuzzyfication method");
+    par_defuzzify->guisection = _("Advanced options");
+
+    par_implication = G_define_option();
+    par_implication->key = "imp";
+    par_implication->type = TYPE_STRING;
+    par_implication->options = "minimum, product";
+    par_implication->answer = "minimum";
+    par_implication->required = YES;
+    par_implication->description = _("Implication method");
+    par_implication->guisection = _("Advanced options");
+
+    par_resolution = G_define_option();
+    par_resolution->key = "res";
+    par_resolution->type = TYPE_INTEGER;
+    par_resolution->answer = "100";
+    par_resolution->required = YES;
+    par_resolution->description = _("Universe resolution");
+    par_resolution->guisection = _("Advanced options");
+
+    in_coor_opt = G_define_option();	/* input coordinates de outlet */
+    in_coor_opt->key = "coors";
+    in_coor_opt->type = TYPE_STRING;
+    in_coor_opt->key_desc = "x,y";
+    in_coor_opt->answer = NULL;
+    in_coor_opt->required = NO;
+    in_coor_opt->multiple = NO;
+    in_coor_opt->description =
+	"Coordinate of cell for witch output  detail data";
+    in_coor_opt->guisection = _("Visual Output");
+
+    out_multiple = G_define_flag();
+    out_multiple->key = 'm';
+    out_multiple->description =
+	_("Create addational fuzzy output maps for every rule");
+
+
+    opt_output = G_define_standard_option(G_OPT_R_OUTPUT);
+    opt_output->description = _("Name of output file");
+
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
-		
-	
-	var_name_file=file_vars->answer;
-	rule_name_file=file_rules->answer;
-	output = opt_output->answer;
-	multiple = (out_multiple->answer != 0);
-	coor_proc = (in_coor_opt->answer) ? 1 : 0;
-	
-	resolution = atoi(par_resolution->answer);
-		if(resolution<10)
+
+
+    var_name_file = file_vars->answer;
+    rule_name_file = file_rules->answer;
+    output = opt_output->answer;
+    multiple = (out_multiple->answer != 0);
+    coor_proc = (in_coor_opt->answer) ? 1 : 0;
+
+    resolution = atoi(par_resolution->answer);
+    if (resolution < 10)
 	G_fatal_error(_("Universe resolution too small, choose greater value"));
-			if(resolution>500)
+    if (resolution > 500)
 	G_warning(_("Universe resolution is very high, computation may take a long time"));
 
-	  		if (!strcmp(par_family->answer, "Zadeh"))
-	family=l_ZADEH;
-		else if (!strcmp(par_family->answer, "product"))
-	family=l_PRODUCT;
-		else if (!strcmp(par_family->answer, "drastic"))
-	family=l_DRASTIC;
-		else if (!strcmp(par_family->answer, "Lukasiewicz"))
-	family=l_LUKASIEWICZ;
-		else if (!strcmp(par_family->answer, "Fodor"))
-	family=l_FODOR;
-			else if (!strcmp(par_family->answer, "Hamacher"))
-	family=l_HAMACHER;
-	
-				 if (!strcmp(par_implication->answer, "minimum"))
-	implication=i_MIN;
-		else if (!strcmp(par_implication->answer, "product"))
-	implication=i_PROD;
+    if (!strcmp(par_family->answer, "Zadeh"))
+	family = l_ZADEH;
+    else if (!strcmp(par_family->answer, "product"))
+	family = l_PRODUCT;
+    else if (!strcmp(par_family->answer, "drastic"))
+	family = l_DRASTIC;
+    else if (!strcmp(par_family->answer, "Lukasiewicz"))
+	family = l_LUKASIEWICZ;
+    else if (!strcmp(par_family->answer, "Fodor"))
+	family = l_FODOR;
+    else if (!strcmp(par_family->answer, "Hamacher"))
+	family = l_HAMACHER;
 
-	  		if (!strcmp(par_defuzzify->answer, "centeroid"))
-	defuzzyfication=d_CENTEROID;
-		else if (!strcmp(par_defuzzify->answer, "bisector"))
-	defuzzyfication=d_BISECTOR;
-		else if (!strcmp(par_defuzzify->answer, "min_of_heightest"))
-	defuzzyfication=d_MINOFHIGHEST;
-		else if (!strcmp(par_defuzzify->answer, "max_of_heightest"))
-	defuzzyfication=d_MAXOFHIGHEST;
-		else if (!strcmp(par_defuzzify->answer, "mean_of_heightest"))
-	defuzzyfication=d_MEANOFHIGHEST;
-			
-	nrows = G_window_rows();
-	ncols = G_window_cols();
-	
-	parse_map_file (var_name_file);
-	parse_rule_file (rule_name_file);
-	get_universe();
-	open_maps();
-	
-		if(coor_proc)
-	process_coors (in_coor_opt->answer);
-		
-	   if ((outfd = G_open_raster_new(output, FCELL_TYPE)) < 0)
+    if (!strcmp(par_implication->answer, "minimum"))
+	implication = i_MIN;
+    else if (!strcmp(par_implication->answer, "product"))
+	implication = i_PROD;
+
+    if (!strcmp(par_defuzzify->answer, "centeroid"))
+	defuzzyfication = d_CENTEROID;
+    else if (!strcmp(par_defuzzify->answer, "bisector"))
+	defuzzyfication = d_BISECTOR;
+    else if (!strcmp(par_defuzzify->answer, "min_of_heightest"))
+	defuzzyfication = d_MINOFHIGHEST;
+    else if (!strcmp(par_defuzzify->answer, "max_of_heightest"))
+	defuzzyfication = d_MAXOFHIGHEST;
+    else if (!strcmp(par_defuzzify->answer, "mean_of_heightest"))
+	defuzzyfication = d_MEANOFHIGHEST;
+
+    nrows = G_window_rows();
+    ncols = G_window_cols();
+
+    parse_map_file(var_name_file);
+    parse_rule_file(rule_name_file);
+    get_universe();
+    open_maps();
+
+    if (coor_proc)
+	process_coors(in_coor_opt->answer);
+
+    if ((outfd = G_open_raster_new(output, FCELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), output);
-	out_buf = G_allocate_f_raster_buf();
-	
-	
-	
-		if(multiple)
+    out_buf = G_allocate_f_raster_buf();
+
+
+
+    if (multiple)
 	create_output_maps();
-	
-		G_message("Calculate...");
-	
-		for (row=0;row<nrows;++row) {
-			G_percent(row, nrows, 2);
-			get_rows(row);
-				for (col=0; col<ncols;++col) {
 
-					if(get_cells(col)) {
-						G_set_f_null_value(&out_buf[col],1);
-							
-							if(multiple) {
-									for (i=0;i<nrules;++i)
-								G_set_f_null_value(&m_outputs[i].out_buf[col],1);	
-							}	
-					}	else {
-						out_buf[col]=implicate();
-							if (out_buf[col]==-9999)
-						G_set_f_null_value(&out_buf[col],1);	
-							
-							if(multiple) {
-									for (i=0;i<nrules;++i)
-								m_outputs[i].out_buf[col]=antecedents[i];
-							}
-					}
-				}	
+    G_message("Calculate...");
 
-					if (G_put_raster_row(outfd, out_buf, FCELL_TYPE) < 0)
-	    G_fatal_error(_("Failed writing raster map <%s> at row <%d>"), output,row);
-	    
-						if(multiple)
-					for (i=0;i<nrules;++i)
-						if (G_put_raster_row(m_outputs[i].ofd, m_outputs[i].out_buf, FCELL_TYPE) < 0)
-	    G_fatal_error(_("Failed writing raster map <%s> at row <%d>"), m_outputs[i].output_name,row);
+    for (row = 0; row < nrows; ++row) {
+	G_percent(row, nrows, 2);
+	get_rows(row);
+	for (col = 0; col < ncols; ++col) {
+
+	    if (get_cells(col)) {
+		G_set_f_null_value(&out_buf[col], 1);
+
+		if (multiple) {
+		    for (i = 0; i < nrules; ++i)
+			G_set_f_null_value(&m_outputs[i].out_buf[col], 1);
 		}
-		G_percent(row, nrows, 2);
+	    }
+	    else {
+		out_buf[col] = implicate();
+		if (out_buf[col] == -9999)
+		    G_set_f_null_value(&out_buf[col], 1);
 
-	
-	G_message("Close...");
-	for (i=0;i<nmaps;++i) {
-			if (s_maps[i].output)
-		continue;
-			
-		G_free(s_maps[i].in_buf);
-		G_close_cell(s_maps[i].cfd);
+		if (multiple) {
+		    for (i = 0; i < nrules; ++i)
+			m_outputs[i].out_buf[col] = antecedents[i];
+		}
+	    }
 	}
 
-	G_free(out_buf);
-	G_close_cell(outfd);
-	G_short_history(output, "raster", &history);
-	G_command_history(&history);
-	G_write_history(output, &history);
-	
-			if(multiple)
-	for (i=0;i<nrules;++i) {
-		G_free(m_outputs[i].out_buf);
-		G_close_cell(m_outputs[i].ofd);
-		G_short_history(m_outputs[i].output_name, "raster", &history);
-		G_command_history(&history);
-		G_write_history(m_outputs[i].output_name, &history);
-	}	
-G_message("Done!");
-exit(EXIT_SUCCESS);
+	if (G_put_raster_row(outfd, out_buf, FCELL_TYPE) < 0)
+	    G_fatal_error(_("Failed writing raster map <%s> at row <%d>"),
+			  output, row);
+
+	if (multiple)
+	    for (i = 0; i < nrules; ++i)
+		if (G_put_raster_row
+		    (m_outputs[i].ofd, m_outputs[i].out_buf, FCELL_TYPE) < 0)
+		    G_fatal_error(_("Failed writing raster map <%s> at row <%d>"),
+				  m_outputs[i].output_name, row);
+    }
+    G_percent(row, nrows, 2);
+
+
+    G_message("Close...");
+    for (i = 0; i < nmaps; ++i) {
+	if (s_maps[i].output)
+	    continue;
+
+	G_free(s_maps[i].in_buf);
+	G_close_cell(s_maps[i].cfd);
+    }
+
+    G_free(out_buf);
+    G_close_cell(outfd);
+    G_short_history(output, "raster", &history);
+    G_command_history(&history);
+    G_write_history(output, &history);
+
+    if (multiple)
+	for (i = 0; i < nrules; ++i) {
+	    G_free(m_outputs[i].out_buf);
+	    G_close_cell(m_outputs[i].ofd);
+	    G_short_history(m_outputs[i].output_name, "raster", &history);
+	    G_command_history(&history);
+	    G_write_history(m_outputs[i].output_name, &history);
+	}
+    G_message("Done!");
+    exit(EXIT_SUCCESS);
 
 }
-
-
-
-

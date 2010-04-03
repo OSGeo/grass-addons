@@ -5,17 +5,17 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 /*
-PI2= PI/2
-PI4= PI/4
-*/
+   PI2= PI/2
+   PI4= PI/4
+ */
 #ifndef PI2
-	#define PI2 (2*atan(1))
+#define PI2 (2*atan(1))
 #endif
 
 #ifndef PI4
-	#define PI4 (atan(1))
+#define PI4 (atan(1))
 #endif
-	
+
 
 #define LINEAR 0
 #define SSHAPE 1
@@ -29,7 +29,7 @@ PI4= PI/4
 char *input, *output;
 float shape, height;
 int type, side;
-double p[4]; /* inflection points */
+double p[4];			/* inflection points */
 int num_points;
 
-float fuzzy (FCELL cell);
+float fuzzy(FCELL cell);
