@@ -1,3 +1,4 @@
+
 /****************************************************************************
  *
  * MODULE:       r.roughset
@@ -15,11 +16,17 @@
  *   	    	 for details.
  *
  *****************************************************************************/
+
 /***                                                                       ***/
+
 /***             FUNCTIONS OF ACCESS TO SYSTEM TABLES                      ***/
+
 /***                                                                       ***/
+
 /***  part of the RSL system written by M.Gawrys J. Sienkiewicz            ***/
+
 /***                                                                       ***/
+
 /*****************************************************************************/
 
 
@@ -31,35 +38,40 @@
 #define ELEM_OF_MAT    _table_element
 #define ElemOfRule(rules,num,attr) (rules)[(num)*(_mainsys->attributes_num)+(attr)]
 
-extern setA     _table_element;
-extern setA     _table_end;
-extern int	_table_row;
-extern int      _table_column;
-extern int	_table_no;
+extern setA _table_element;
+extern setA _table_end;
+extern int _table_row;
+extern int _table_column;
+extern int _table_no;
 
 
-int  start_of_tab(int matrix_type);
+int start_of_tab(int matrix_type);
 void next_of_tab(void);
-int  end_of_tab(void);
+int end_of_tab(void);
 
 
-int CompareA(int ob1,int ob2,setA P);
-int CompareD(int ob1,int ob2,setA P);
+int CompareA(int ob1, int ob2, setA P);
+int CompareD(int ob1, int ob2, setA P);
+
 	/* compares two objects, returns 1 if all attributes from */
 	/* the set P are identical, otherwise returns 0 */
 
-int SingCompA(int ob1,int ob2,int atr);
-int SingCompD(int ob1,int ob2,int atr);
+int SingCompA(int ob1, int ob2, int atr);
+int SingCompD(int ob1, int ob2, int atr);
+
 	/* compares two objects on the sigle attribute atr */
 	/* returns 1 if identical, otherwise returns 0 */
 
-setA GetD(int ob1,int ob2);
+setA GetD(int ob1, int ob2);
+
 	/* returns a single element of matrix D, if this set */
 	/* is going to be changed, it has to be first copied */
 
-value_type GetA(int obj,int atr);
+value_type GetA(int obj, int atr);
+
 	/* returns value of attribute atr of object obj */
 	/* from matrix A */
 
-int GetDfromA(setA elem,int ob1,int ob2);
+int GetDfromA(setA elem, int ob1, int ob2);
+
 	/* generate a single element of matrix D into elem */

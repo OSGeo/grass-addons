@@ -9,12 +9,7 @@
 
 struct input
 {
-	char *name, *mapset;
-	int fd;
-	CELL *buf;
+    char *name, *mapset;
+    int fd;
+    CELL *buf;
 };
-
-
-
-
-

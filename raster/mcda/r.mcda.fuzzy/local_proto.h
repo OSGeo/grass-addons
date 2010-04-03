@@ -9,7 +9,7 @@
 
 struct input
 {
-	char *name, *mapset; /* input raster name  and mapset name*/
-	int infd;
-	void *inrast;		/* input buffer */
+    char *name, *mapset;	/* input raster name  and mapset name */
+    int infd;
+    void *inrast;		/* input buffer */
 };
