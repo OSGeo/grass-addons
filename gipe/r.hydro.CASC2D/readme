@@ -46,7 +46,13 @@ rain_thiessen.c  raingage rainfall distribution function based on Thiessen
 read_gage_file.c function to read raingage file 
 write_files.c    function to write output raster maps
 
+
 To try in Spearfish Dataset
 ---------------------------
 
-r.hydro.CASC2D elevation=elevation.10m@PERMANENT outlet_eastNnorthNslope=601220.607477,4927674.62617,0.1 Manning_n=0.1 unif_rain_int=50 time_step=1 rain_duration=10800 tot_time=10800 write_time_step=600 discharge=try depth_map=CASC2D_depth  
+r.hydro.CASC2D elevation=elevation.10m@PERMANENT \
+  outlet_eastNnorthNslope=601220.607477,4927674.62617,0.1 \
+  Manning_n=0.1 unif_rain_int=50 time_step=1 rain_duration=10800 tot_time=10800 \
+  write_time_step=600 discharge=try depth_map=CASC2D_depth
+
+
