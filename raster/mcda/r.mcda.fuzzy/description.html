@@ -1,21 +1,36 @@
 <H2>DESCRIPTION</H2>
-<P><em>r.mcda.fuzzy </em> 
-is the implementation of the FUZZY multicriteria algorithm proposed by Yager R., in GRASS GIS environment. It is one of the available tools in the r.mcda suite. It requires as an input the list of raster representing the criteria to be assessed in the multicriteria evaluation and the vector of linguistic modifiers to be assigned. Every single cell of the GRASS region is considered as one of the possible alternatives to evaluate and it is described with the 
-value assumed for the same cell by the raster used as criteria. It is possible to get three different output files as the result of the intersection operator, the union operator and the ordered weighted averaging (OWA) operator. </P>
-<BR
+
+<em>r.mcda.fuzzy</em> is the implementation of the FUZZY multicriteria
+algorithm proposed by Yager R., in GRASS GIS environment. It is one of the
+available tools in the r.mcda suite. It requires as an input the list of
+raster representing the criteria to be assessed in the multicriteria
+evaluation and the vector of linguistic modifiers to be assigned. Every
+single cell of the GRASS region is considered as one of the possible
+alternatives to evaluate and it is described with the value assumed for
+the same cell by the raster used as criteria. It is possible to get three
+different output files as the result of the intersection operator, the
+union operator and the ordered weighted averaging (OWA) operator.
+
+
 <H2>NOTES</H2>
-<P>The module does not standardize the raster-criteria. Therefore, they must be prepared before by using, for example, r.mapcalc. The linguistic modifiers vector is always normalized so that the sum of the weights is 1.</P>
-<BR>
+The module does not standardize the raster-criteria. Therefore, they must
+be prepared before by using, for example, r.mapcalc. The linguistic
+modifiers vector is always normalized so that the sum of the weights is 1.
+
+
 <H2>REFERENCE</H2>
-<P>Yager R. (1977) - Multiple objective decision making using fuzzy set, International Journal of Man-Machine Studies, 12, 299-322;</P>
+<P>Yager R. (1977) - Multiple objective decision making using fuzzy set,
+ International Journal of Man-Machine Studies, 12, 299-322;</P>
 <P>GRASS Development Team (2008)</P>
-<BR>
+
+
 <H2>SEE ALSO</H2>
-<P><EM>r.mcda.regime, r.mcda.electre, r.roughet, r.mapcalc</EM></P>
-<BR>
+<EM>r.mcda.regime, r.mcda.electre, r.roughet, r.mapcalc</EM>
+
+
 <H2>AUTHORS</H2>
-<P>Antonio Boggia - Gianluca Massei
-<BR>Department of Economics and Appraisal - University of Perugia - Italy 
-</P>
+Antonio Boggia - Gianluca Massei<BR>
+Department of Economics and Appraisal - University of Perugia - Italy 
+
 <p>
-<i>Last changed: $Date: 2009-04-23 23:16:42 +0200 (Tue, 22 Apr 2009) $</i>
+<i>Last changed: $Date$</i>

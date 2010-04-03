@@ -1,54 +1,59 @@
 <H2>DESCRIPTION</H2>
+
 <em>r.roughset</em> is the implementation of the rough set theory [1,2] in GRASS GIS environment. It requires the following input:
 <BR>1. the geographical attributes constituting the information system for the rough set analysis; they have to describe environmental, economic or social issues(<B>attributes</B>=<EM>string[,string,...]</EM>);<BR> 2.the theme in which areas with the issues to be studied are identified (<B>decision</B>=<EM>string</EM>).
+
+<P>An information system is generated and the functions of version 2 of rough set library (RSL, ver. 2.0) [3] are applied, following one of the decision strategies available with the option<B>strgy</B>=<EM>string.</EM></P>
+<P><EM>The choice of the classification strategy, </EM><EM><B>clssfy</B></EM><EM>=string
+</EM><EM> is necessary to generate a map based on the attributes and the decision rules. Three options are available:</EM><EM><I>Classify1,Classify2,Classify3</I></EM><EM> </EM><EM>each of them is referred to a different algorithm. [3]. </EM><BR><BR>It is possible to get three different output files; two of them are text files, the third is a raster file: </P>
+<P>a. <I>text file</I> structured following the standard of the rough set library, having the name registered in the  <B>outTXT</B><I><SPAN STYLE="font-weight: normal">=string</I> without any additional extension. The file can be used as well with RSL implementation out of GIS environment.</P>
+<P><I>NAME:  name of the information system </I></P>
+<P><I>ATTRIBUTES: 4 (number of attributes) </I></P>
+<P><I>OBJECTS: 8 (number of objects)</I></P>
+<P><I>0 0 0 0 </I>
 </P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm">An information system is generated and the functions of version 2 of rough set library (RSL, ver. 2.0) [3] are applied, following one of the decision strategies available with the option<B>strgy</B>=<EM>string.</EM></P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><EM><SPAN STYLE="font-style: normal">The choice of the classification strategy, </SPAN></EM><EM><SPAN STYLE="font-style: normal"><B>clssfy</B></SPAN></EM><EM>=string
-</EM><EM><SPAN STYLE="font-style: normal"> is necessary to generate a map based on the attributes and the decision rules. Three options are available:</SPAN></EM><EM><I>Classify1,Classify2,Classify3</I></EM><EM> </EM><EM><SPAN STYLE="font-style: normal">each of them is referred to a different algorithm. [3]. </SPAN></EM><BR><BR>It is possible to get three different output files; two of them are text files, the third is a raster file: </P>
-<P ALIGN=JUSTIFY>a. <I>text file</I> structured following the standard of the rough set library, having the name registered in the  <B>outTXT</B><I><SPAN STYLE="font-weight: normal">=string</SPAN></I> without any additional extension. The file can be used as well with RSL implementation out of GIS environment.</P>
-<P STYLE="margin-bottom: 0cm"><I>NAME:  name of the information system </I></P>
-<P STYLE="margin-bottom: 0cm"><I>ATTRIBUTES: 4 (number of attributes) </I></P>
-<P STYLE="margin-bottom: 0cm"><I>OBJECTS: 8 (number of objects)</I></P>
-<P STYLE="margin-bottom: 0cm"><I>0 0 0 0 </I>
+<P><I>1 0 1 1</I></P>
+<P><I>1 1 0 0 </I>
 </P>
-<P STYLE="margin-bottom: 0cm"><I>1 0 1 1</I></P>
-<P STYLE="margin-bottom: 0cm"><I>1 1 0 0 </I>
+<P><I>0 2 0 1 </I>
 </P>
-<P STYLE="margin-bottom: 0cm"><I>0 2 0 1 </I>
+<P><I>1 2 0 1 </I>
 </P>
-<P STYLE="margin-bottom: 0cm"><I>1 2 0 1 </I>
+<P><I>1 0 0 0 </I>
 </P>
-<P STYLE="margin-bottom: 0cm"><I>1 0 0 0 </I>
+<P><I>1 2 0 1 </I>
 </P>
-<P STYLE="margin-bottom: 0cm"><I>1 2 0 1 </I>
-</P>
-<P STYLE="margin-bottom: 0cm"><I>0 0 1 1 </I>
+<P><I>0 0 1 1 </I>
 </P>
 
-<P ALIGN=JUSTIFY>The number of attributes is the number of raster given as input at <B>attributes</B>=<EM>string[,string,...]
-</EM><EM><SPAN STYLE="font-style: normal"> plus the decision raster </SPAN></EM><EM>(</EM><EM><SPAN STYLE="font-style: normal"><B>decision</B></SPAN></EM><EM>=string) </EM><EM><SPAN STYLE="font-style: normal">located in the last column of the information system, by default. </SPAN></EM></P>
-<P ALIGN=JUSTIFY>b. <I>text file</I>, having the name defined in  <B>outTXT</B><I><SPAN STYLE="font-weight: normal">=string</SPAN></I>
+<P>The number of attributes is the number of raster given as input at <B>attributes</B>=<EM>string[,string,...]
+</EM><EM> plus the decision raster </EM><EM>(</EM><EM><B>decision</B></EM><EM>=string) </EM><EM>located in the last column of the information system, by default. </EM></P>
+<P>b. <I>text file</I>, having the name defined in  <B>outTXT</B><I><SPAN STYLE="font-weight: normal">=string</I>
 and the .<I>out</I>, extension. It contains the decision rules extracted from the geographic information system; decision rules are expressed as: 
-&nbsp;<I>if ... then </I> and they are easy to read and to be interpreted by the user; <BR>c. <I>raster, </I><SPAN STYLE="font-style: normal">having the name defined in the field </SPAN> <SPAN STYLE="font-style: normal"><B>outMAP</B></SPAN><I>=string,
-</I><SPAN STYLE="font-style: normal"> resulting from the application of the decision rules generated by the geographic information system following one of the classification strategies in  </SPAN><EM><SPAN STYLE="font-style: normal"><B>clssfy</B></SPAN></EM><EM>=string.
-</EM><EM><SPAN STYLE="font-style: normal"> Rules to apply can derive from an information system generated from the data entered in </SPAN></EM><EM><SPAN STYLE="font-style: normal"><B>attributes</B></SPAN></EM><EM><SPAN STYLE="font-style: normal">=</SPAN></EM><EM>string
-</EM><EM><SPAN STYLE="font-style: normal">and</SPAN></EM><EM>
-</EM><EM><SPAN STYLE="font-style: normal"><B>decision</B></SPAN></EM><EM>=string
-</EM><EM><SPAN STYLE="font-style: normal">or from a text file generated from a previous processing stage. In this case the file structure must be as the one reported in box 1. </SPAN></EM></P>
+&nbsp;<I>if ... then </I> and they are easy to read and to be interpreted by the user; <BR>c. <I>raster, </I>having the name defined in the field  <B>outMAP</B><I>=string,
+</I> resulting from the application of the decision rules generated by the geographic information system following one of the classification strategies in  <EM><B>clssfy</B></EM><EM>=string.
+</EM><EM> Rules to apply can derive from an information system generated from the data entered in </EM><EM><B>attributes</B></EM><EM>=</EM><EM>string
+</EM><EM>and</EM><EM>
+</EM><EM><B>decision</B></EM><EM>=string
+</EM><EM>or from a text file generated from a previous processing stage. In this case the file structure must be as the one reported in box 1. </EM></P>
+
+
 <H2>NOTES</H2>
-<P ALIGN=JUSTIFY>The module can process CELL raster, and calculations can be made only with integer (int) variables. This is a constraint imposed by the rough set library. The decision rules, therefore, provide only integer information. </P>
+<P>The module can process CELL raster, and calculations can be made only with integer (int) variables. This is a constraint imposed by the rough set library. The decision rules, therefore, provide only integer information. </P>
+
+
 <H2>REFERENCE</H2>
 <OL>
-	<LI><P ALIGN=JUSTIFY>Pawlak Z. Rough Sets, International Journal of
+	<LI><P>Pawlak Z. Rough Sets, International Journal of
 	Information&nbsp;and Computer Science Vol. 11, No. 5, 1982, pp.
 	344-356.</P>
-	<LI><P ALIGN=JUSTIFY>Pawlak Z. Rough Sets, Theoretical Aspects of
+	<LI><P>Pawlak Z. Rough Sets, Theoretical Aspects of
 	Reasoning&nbsp;about Data, Kluwer Academic Publishers, 1991.</P>
-	<LI><P ALIGN=JUSTIFY>Gawrys M.,&nbsp;Sienkiewicz J. Rough Set
+	<LI><P>Gawrys M.,&nbsp;Sienkiewicz J. Rough Set
 	Library - User's manual&nbsp;(ver. 2.0), September 1993</P>
-	<LI><P ALIGN=JUSTIFY><A HREF="http://en.wikipedia.org/wiki/Rough_set">http://en.wikipedia.org/wiki/Rough_set</A>
+	<LI><P><A HREF="http://en.wikipedia.org/wiki/Rough_set">http://en.wikipedia.org/wiki/Rough_set</A>
 	- &ldquo;rough set&rdquo;</P>
-	<P ALIGN=JUSTIFY>
+	<P>
 	</P>
 </OL>
 
@@ -56,7 +61,8 @@ and the .<I>out</I>, extension. It contains the decision rules extracted from th
 <P><EM>r.mcda.fuzzy, r.mcda.electre, r.mcda.regime</EM></P>
 
 <H2>AUTHORS</H2>
-<P>Antonio Boggia - Gianluca Massei
-<BR>Department of Economics and Appraisal - University of Perugia - Italy 
-</P>
-<i>Last changed: $Date: 2009-04-23 23:16:42 +0200 (Tue, 22 Apr 2009) $</i>
+Antonio Boggia - Gianluca Massei<BR>
+Department of Economics and Appraisal - University of Perugia - Italy 
+
+<p>
+<i>Last changed: $Date$</i>
