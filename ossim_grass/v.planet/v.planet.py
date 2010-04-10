@@ -75,7 +75,7 @@
 #% key: pen
 #% type: string
 #% key_desc: pen
-#% description: brush color  
+#% description: pen color  
 #% required : no
 #%end
 #%option
@@ -111,7 +111,7 @@ try:
 except ImportError:
     import osr, ogr, gdal
 
-from ogrTovrt import ogrvrt, makestile
+from ogrTovrt import ogrvrt #, makestile
 
 
 def main():
@@ -281,6 +281,22 @@ def setCPRJ(map):
 
 def makeoverview(input):
     os.system("ossim-img2rr %s" % input)
+    
+
+def makestile(outfile, brush, pen, size, fill, thickness):
+    brush = brush.split(',')
+    pen = pen.split(',')
+    size = size.split(',')
+    outfile = outfile.replace('.vrt','')
+    outfile = outfile+'.omd'
+    omd = '// vector file rendering options\n'
+    omd += 'brush_color: %s %s %s \n' % (brush[0], brush[1], brush[2])
+    omd += 'pen_color: %s %s %s \n' % (pen[0], pen[1], pen[2])
+    omd += 'point_width_height: %s %s \n' % (size[0], size[1])
+    omd += 'fill_flag: %s \n' % (fill)
+    omd += 'thickness: %s \n' % (thickness)
+    open(outfile,'w').write(omd)
+    print omd
 
 
 
