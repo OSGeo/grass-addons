@@ -42,7 +42,7 @@
 #%end
 #%option
 #% key: dport
-#% type: double
+#% type: integer
 #% key_desc: dport
 #% answer: 8000
 #% description: Data Port 
@@ -50,7 +50,7 @@
 #%end
 #%option
 #% key: pport
-#% type: double
+#% type: integer
 #% key_desc: port
 #% answer: 7000
 #% description: Position Port 
