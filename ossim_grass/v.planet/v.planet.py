@@ -98,6 +98,7 @@
 #% key_desc: thickness
 #% description: thickness 
 #% required : no
+#% answer: 1
 #%end
 
 import sys
@@ -143,7 +144,8 @@ def main():
     output = os.path.join(vrtdir, vrtfilename)
     if not os.path.exists(output):
         ogrvrt(mapfile,output)
-        makestile(output, options['brush'], options['pen'], options['size'], options['fill'], options['thickness'])
+    print 'try to make omd'
+    makestile(output, options['brush'], options['pen'], options['size'], options['fill'], options['thickness'])
     proj_info = projinfo()
     unit = proj_info['units']
     if unit.lower() == 'meters':
@@ -280,13 +282,15 @@ def setCPRJ(map):
     return center
 
 def makeoverview(input):
-    os.system("ossim-img2rr %s" % input)
+    print 'vector object should alredy have internal preview, make overview skipped'
+    #os.system("ossim-img2rr %s" % input)
     
 
 def makestile(outfile, brush, pen, size, fill, thickness):
     brush = brush.split(',')
     pen = pen.split(',')
     size = size.split(',')
+    print brush, pen, size
     outfile = outfile.replace('.vrt','')
     outfile = outfile+'.omd'
     omd = '// vector file rendering options\n'
