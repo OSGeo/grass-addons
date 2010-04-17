@@ -14,6 +14,9 @@
 %If you need a foldmark, delete nofoldmark
 \documentclass[notumble,a4paper,10pt,nofoldmark]{leaflet}
 \usepackage{helvet,courier,xcolor}
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage[polish]{babel}
 
 % Set Helvetica as the default font
 \renewcommand*\familydefault\sfdefault
@@ -53,7 +56,7 @@
 \title{\textbf{\huge GRASS GIS}\\%
 \textsl{Efektywność dzięki Wolności \& Przejrzystości}}
 \author{Społeczność GRASS-a}
-\date{\includegraphics[width=\textwidth]{pix/grasslogo_vector}\\[2ex]
+\date{\includegraphics[width=\textwidth]{grasslogo_vector}\\[2ex]
 \large\GRASSurl}
 
 \begin{document}
@@ -75,7 +78,7 @@ GRASS jest używany na całym śwecie przez środowiska akademickie, komercyjne 
 
 GRASS was originally developed in the beginning of the 1980's by the US Army Construction Engineering Research Laboratories (USA-CERL) and was published as public domain software. When the USA-CERL withdrew from GRASS development, an international developer team took over this work. Since 1999, GRASS has been published as free software under the terms of the GNU General Public Licence.
 \begin{myfig}[1.5ex]
-\includegraphics[width=0.7\textwidth]{pix/visibility}
+\includegraphics[width=0.7\textwidth]{visibility}
 \captionof{figure}{Viewshed analysis performed with GRASS}
 \end{myfig}
 
@@ -120,7 +123,7 @@ GRASS działa na prawie wszystkich platformach operacyjnych. Zarówno na GNU/Lin
 \end{itemize}
 
 \begin{myfig}[1ex]
-\includegraphics[width=0.7\textwidth]{pix/trento3d}
+\includegraphics[width=0.7\textwidth]{trento3d}
 \captionof{figure}{Przelot nad Trydentem, Włochy}
 \end{myfig}
 
@@ -134,7 +137,7 @@ ASCII, ARC/INFO ungenerate, ARC/INFO E00, Arc\-View SHAPE, BIL, DLG (U.S.), DXF,
 \subsection{Formaty rastrowe}
 ASCII, ARC/GRID, E00, GIF, GMT, TIF, PNG, Vis5D, SURFER (.grd),\dots
 \begin{myfig}
-\includegraphics[width=0.7\textwidth]{pix/isodist}
+\includegraphics[width=0.7\textwidth]{isodist}
 \captionof{figure}{Domyślna konfiguracja GUI przedstawiająca możliwości analiz sieciowych GRASS-a}
 \end{myfig}
 
@@ -142,7 +145,7 @@ ASCII, ARC/GRID, E00, GIF, GMT, TIF, PNG, Vis5D, SURFER (.grd),\dots
 
 CEOS (SAR, SRTM, LANDSAT7 etc.), ERDAS LAN / IMG, HDF, LANDSAT TM/MSS, NHAP aerial photos, SAR, SPOT, \dots
 \begin{myfig}[1.5ex]
-\includegraphics[width=0.7\textwidth]{pix/ndvi}
+\includegraphics[width=0.7\textwidth]{ndvi}
 \captionof{figure}{Możliwości obróbki zobrazowań w GRASS-ie}
 \end{myfig}
 
@@ -194,7 +197,7 @@ CEOS (SAR, SRTM, LANDSAT7 etc.), ERDAS LAN / IMG, HDF, LANDSAT TM/MSS, NHAP aeri
 
 GRASS is a founding project of the Open Source Geospatial Foundation which has the aim to create high quality open source geospatial software. For further information visit the OSGeo homepage:
 \begin{center}
-\includegraphics[width=0.8\textwidth]{pix/OSGeo_CMYK}\\
+\includegraphics[width=0.8\textwidth]{OSGeo_CMYK}\\
 \url{http://www.osgeo.org}
 \end{center}
 
