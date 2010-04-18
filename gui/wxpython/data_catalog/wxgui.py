@@ -347,12 +347,14 @@ class GMFrame(wx.Panel):
         old_pgnum = event.GetOldSelection()
         new_pgnum = event.GetSelection()
         
-        self.curr_page   = self.gm_cb.GetCurrentPage()
-        self.curr_pagenum = self.gm_cb.GetSelection()
+        self.curr_page   = self.notebook.GetCurrentPage()
+        self.curr_pagenum = self.notebook.GetSelection()
         
         try:
             self.curr_page.maptree.mapdisplay.SetFocus()
             self.curr_page.maptree.mapdisplay.Raise()
+            print self.curr_page.ltree + "ddd"
+
         except:
             pass
         
@@ -360,7 +362,10 @@ class GMFrame(wx.Panel):
 
     def OnPageChanged(self, event):
         """!Page in notebook changed"""
-        page = event.GetSelection()
+        pageno = event.GetSelection()
+        self.page = self.notebook.GetPage(pageno)
+        self.page.Map.__init__()	
+        self.page.Map.region = self.page.Map.GetRegion()
         if page == self.goutput.pageid:
             # remove '(...)'
             self.notebook.SetPageText(page, _("Command output"))
@@ -400,8 +405,8 @@ class GMFrame(wx.Panel):
                     return
                 dlg.Destroy()
         
-        self.gm_cb.GetPage(event.GetSelection()).maptree.Map.Clean()
-        self.gm_cb.GetPage(event.GetSelection()).maptree.Close(True)
+        self.notebook.GetPage(event.GetSelection()).maptree.Map.Clean()
+        self.notebook.GetPage(event.GetSelection()).maptree.Close(True)
         
         self.curr_page = None
         
@@ -647,7 +652,7 @@ class GMFrame(wx.Panel):
         mapdisplay = []
         for display in gxwXml.displays:
             mapdisplay.append(self.NewDisplay(show=False))
-            maptree = self.gm_cb.GetPage(displayId).maptree
+            maptree = self.notebook.GetPage(displayId).maptree
             
             # set windows properties
             mapdisplay[-1].SetProperties(render=display['render'],
@@ -687,7 +692,7 @@ class GMFrame(wx.Panel):
         #
         for layer in gxwXml.layers:
             display = layer['display']
-            maptree = self.gm_cb.GetPage(display).maptree
+            maptree = self.notebook.GetPage(display).maptree
             
             newItem = maptree.AddLayer(ltype=layer['type'],
                                        lname=layer['name'],
@@ -772,7 +777,7 @@ class GMFrame(wx.Panel):
 
         maptree = None
         for layer in workspace.ProcessGrcFile(filename).read(self):
-            maptree = self.gm_cb.GetPage(layer['display']).maptree
+            maptree = self.notebook.GetPage(layer['display']).maptree
             newItem = maptree.AddLayer(ltype=layer['type'],
                                        lname=layer['name'],
                                        lchecked=layer['checked'],
@@ -872,8 +877,8 @@ class GMFrame(wx.Panel):
         self.SetTitle(self.baseTitle)
 
         displays = []
-        for page in range(0, self.gm_cb.GetPageCount()):
-            displays.append(self.gm_cb.GetPage(page).maptree.mapdisplay)
+        for page in range(0, self.notebook.GetPageCount()):
+            displays.append(self.notebook.GetPage(page).maptree.mapdisplay)
         
         for display in displays:
             display.OnCloseWindow(event)
@@ -1128,17 +1133,20 @@ class GMFrame(wx.Panel):
         Debug.msg(1, "GMFrame.NewDisplay(): idx=%d" % self.disp_idx)
 
         # make a new page in the bookcontrol for the layer tree (on page 0 of the notebook)
-        self.pg_panel = wx.Panel(self.gm_cb, id=wx.ID_ANY, style= wx.EXPAND)
-        self.gm_cb.AddPage(self.pg_panel, text="Display "+ str(self.disp_idx + 1), select = True)
-        self.curr_page = self.gm_cb.GetCurrentPage()
+        self.pg_panel = wx.Panel(self.notebook, id=wx.ID_ANY, style= wx.EXPAND)
+        self.notebook.AddPage(self.pg_panel, text="Display "+ str(self.disp_idx + 1), select = True)
+        self.curr_page = self.notebook.GetCurrentPage()
 
         # create layer tree (tree control for managing GIS layers)  and put on new notebook page
         self.curr_page.maptree = wxgui_utils.LayerTree(self.curr_page, id=wx.ID_ANY, pos=wx.DefaultPosition,
                                                        size=wx.DefaultSize, style=wx.TR_HAS_BUTTONS
                                                        |wx.TR_LINES_AT_ROOT|wx.TR_HIDE_ROOT
                                                        |wx.TR_DEFAULT_STYLE|wx.NO_BORDER|wx.FULL_REPAINT_ON_RESIZE,
-                                                       idx=self.disp_idx, lmgr=self, notebook=self.gm_cb,
+                                                       idx=self.disp_idx, lmgr=self, notebook=self.notebook,
                                                        auimgr=self._auimgr, showMapDisplay=show)
+        #self.pg_panel.Map.__init__()	
+        #self.pg_panel.Map.region = self.pg_panel.Map.GetRegion()
+
 
         # layout for controls
         cb_boxsizer = wx.BoxSizer(wx.VERTICAL)

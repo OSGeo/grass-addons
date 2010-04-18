@@ -66,7 +66,7 @@ class LayerTree(wx.TreeCtrl):
 	    glocs = glob.glob(os.path.join(self.gisdbase,location, mapset,"*"))
 	    for gloc in glocs:
 		    if not os.path.isfile(gloc) and os.path.isdir(gloc):
-			    if(os.path.basename(gloc)=='cats'):
+			    if(os.path.basename(gloc)=='cellhd'):
 				    for rast in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
 					    self.AppendItem(node_raster, os.path.basename(rast))
 			    elif(os.path.basename(gloc)=='vector'):
@@ -317,6 +317,7 @@ class OssimPlanet(Thread):
       Thread.__init__(self)
       self.cmd =  cmd
    def run(self):
-      os.system(self.cmd)		
+      os.system(self.cmd)	
+
 
 

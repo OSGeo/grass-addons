@@ -99,6 +99,7 @@ import wx.lib.flatnotebook as FN
 from   icons.icon import Icons
 import wx_utils as wx_utils
 from preferences import globalSettings as UserSettings
+import render
 
 
 class DataCatalog(wx.Frame):
@@ -644,11 +645,11 @@ class DataCatalog(wx.Frame):
 
     def OnChangeLocation(self, event):
         """Change current location"""
-        print "asdf"
+        pass
                     
     def OnChangeMapset(self, event):
         """Change current mapset"""
-        print "asdf"
+        pass
         
     def OnNewVector(self, event):
         """!Create new vector map layer"""
@@ -1667,17 +1668,39 @@ class DataCatalog(wx.Frame):
         self.gisrc['LOCATION_NAME'] = str(self.cmbLocation.GetValue())
         self.gisrc['MAPSET'] = str(self.cmbMapset.GetValue())
         self.update_grassrc(self.gisrc)
-        #gcmd.RunCommand("g.gisenv", set = "MAPSET=%s" % str(self.cmbMapset.GetValue()))
 
+        #self.pg_panel.Map.__init__()	
+        #self.pg_panel.Map.region = self.pg_panel.Map.GetRegion()
+
+        self.page = self.notebook.GetPage(self.notebook.GetSelection())
+        self.page.Map.__init__()	
+        self.page.Map.region = self.page.Map.GetRegion()
+
+
+        
+    def OnRunScript():
+        print "for grass7"
+
+    def OnQuit():
+        print "for grass7"
 
     def OnLocationChange(self,event):
         """
         Populate mapset combobox with selected location.
         """
+        count = self.current.maptree.GetCount()
+        firstitem = self.current.maptree.GetFirstVisibleItem()
+        for i in range(1, count):
+            nextitem = self.current.maptree.GetNext(firstitem);
+            self.current.maptree.Delete(nextitem)
+        if firstitem:
+            self.current.maptree.Delete(firstitem)
+
 
         self.cmbMapset.Clear()
         self.cmbMapset.SetValue("Select Mapset")
         self.ltree.DeleteAllItems()
+
 
         maplists = self.GetMapsets(self.cmbLocation.GetValue())
         for mapsets in maplists:
@@ -1762,7 +1785,7 @@ class DataCatalog(wx.Frame):
 
     def read_gisrc(self):
 	    """
-	    Read variables from $HOME/.grassrc7 file
+	    Read variables gisrc file
 	    """
 
 	    rc = {}
@@ -1781,29 +1804,36 @@ class DataCatalog(wx.Frame):
 	    return rc
 
     def update_grassrc(self,gisrc):
-	    """
-	    Update $HOME/.grassrc7 and gisrc files
-	    """
+        """
+        Update $HOME/.grassrc(6/7) and gisrc files
+        """
+        rc = os.getenv("GISRC")
+        version = os.getenv("GRASS_VERSION")
+        if version == "7.0.svn":
+            grassrc = os.path.join(os.getenv('HOME'), ".grassrc7.%s" % os.uname()[1])
+            if not os.access(grassrc, os.R_OK):
+                grassrc = os.path.join(os.getenv('HOME'), ".grassrc7")
 
-	    rc = os.getenv("GISRC")
-	    grassrc = os.path.join(os.getenv('HOME'), ".grassrc7.%s" % os.uname()[1])
-	    if not os.access(grassrc, os.R_OK):
-		    grassrc = os.path.join(os.getenv('HOME'), ".grassrc7")
-	    if rc and os.path.isfile(rc):
-		    try:
-			    f = open(rc, 'w')
-			    for key, val in gisrc.iteritems():
-			        f.write("%s: %s\n" % (key, val))
-		    finally:
-			    f.close()
+        else:
+            grassrc = os.path.join(os.getenv('HOME'), ".grassrc6.%s" % os.uname()[1])
+            if not os.access(grassrc, os.R_OK):
+                grassrc = os.path.join(os.getenv('HOME'), ".grassrc6")
 
-	    if grassrc and os.path.isfile(grassrc):
-		    try:
-			    g = open(grassrc, 'w')
-			    for key, val in gisrc.iteritems():
-			        g.write("%s: %s\n" % (key, val))
-		    finally:
-			        g.close()
+        if rc and os.path.isfile(rc):
+            try:
+	            f = open(rc, 'w')
+	            for key, val in gisrc.iteritems():
+	                f.write("%s: %s\n" % (key, val))
+            finally:
+	            f.close()
+
+        if grassrc and os.path.isfile(grassrc):
+            try:
+	            g = open(grassrc, 'w')
+	            for key, val in gisrc.iteritems():
+	                g.write("%s: %s\n" % (key, val))
+            finally:
+	                g.close()
 
 
 
