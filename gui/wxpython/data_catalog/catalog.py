@@ -144,6 +144,7 @@ class DataCatalog(wx.Frame):
 
         self.g_catalog=None
 
+        self.locationchange = True
 
         self.menucmd       = dict() 
 
@@ -181,6 +182,8 @@ class DataCatalog(wx.Frame):
 
         self.maptree = None
         self.pg_panel = None
+        self.cb_loclist = []
+        self.cb_maplist = []
         
         #creating controls
         #self.mInfo = wx.TextCtrl(self.pRight, wx.ID_ANY, style = wx.TE_MULTILINE|wx.HSCROLL|wx.TE_READONLY)
@@ -509,8 +512,102 @@ class DataCatalog(wx.Frame):
         self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.OnPageClosed)
 
+        self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnCBPageChanged)
+        self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.OnCBPageClosed)
+
 
         return self.notebook
+
+    def OnPageChanged(self, event):
+        """!Page in notebook changed"""
+        pageno = event.GetSelection()
+        self.page = self.notebook.GetPage(pageno)
+        self.page.Map.__init__()	
+        self.page.Map.region = self.page.Map.GetRegion()
+        p =event.GetParent()
+        print "ss"
+        if page == self.goutput.pageid:
+            # remove '(...)'
+            self.notebook.SetPageText(page, _("Command output"))
+        
+        event.Skip()
+
+    def OnCBPageClosed(self, event):
+        """
+        Page of notebook closed
+        Also close associated map display
+        """
+        if UserSettings.Get(group='manager', key='askOnQuit', subkey='enabled'):
+            maptree = self.curr_page.maptree
+            
+            if self.workspaceFile:
+                message = _("Do you want to save changes in the workspace?")
+            else:
+                message = _("Do you want to store current settings "
+                            "to workspace file?")
+            
+            # ask user to save current settings
+            if maptree.GetCount() > 0:
+                dlg = wx.MessageDialog(self,
+                                       message=message,
+                                       caption=_("Close Map Display %d") % (self.curr_pagenum + 1),
+                                       style=wx.YES_NO | wx.YES_DEFAULT |
+                                       wx.CANCEL | wx.ICON_QUESTION | wx.CENTRE)
+                ret = dlg.ShowModal()
+                if ret == wx.ID_YES:
+                    if not self.workspaceFile:
+                        self.OnWorkspaceSaveAs()
+                    else:
+                        self.SaveToWorkspaceFile(self.workspaceFile)
+                elif ret == wx.ID_CANCEL:
+                    event.Veto()
+                    dlg.Destroy()
+                    return
+                dlg.Destroy()
+        
+        self.notebook.GetPage(event.GetSelection()).maptree.Map.Clean()
+        self.notebook.GetPage(event.GetSelection()).maptree.Close(True)
+        
+        self.curr_page = None
+        
+        event.Skip()
+
+    def OnCBPageChanged(self, event):
+        """!Page in notebook (display) changed"""
+        old_pgnum = event.GetOldSelection()
+        new_pgnum = event.GetSelection()
+        
+        self.curr_page   = self.notebook.GetCurrentPage()
+        self.curr_pagenum = self.notebook.GetSelection()
+
+        self.ltree.DeleteAllItems()
+  #      self.cmbMapset.SetValue(self.cb_loclist[self.disp_idx])
+ #       self.cmbLocation.SetValue(self.cb_loclist[self.disp_idx])
+#        self.disp_idx
+        
+        index  = self.notebook.GetSelection()
+        print index
+        #index = index - 1
+        try:
+            a_loc = str(self.cb_loclist[index])
+            a_map =  str(self.cb_maplist[index])
+        except IndexError:
+            a_loc = "Select Location"
+            a_map = "Select Mapset"
+
+        self.cmbLocation.SetValue(a_loc)
+        self.cmbMapset.SetValue(a_map)
+
+        self.ltree.AddTreeNodes(a_loc,a_map)
+        
+        try:
+            self.curr_page.maptree.mapdisplay.SetFocus()
+            self.curr_page.maptree.mapdisplay.Raise()
+        except:
+            pass
+        
+        event.Skip()
+
 
 
     def OnGeorectify(self, event):
@@ -1284,11 +1381,20 @@ class DataCatalog(wx.Frame):
 
         self.disp_idx = self.disp_idx + 1
 #        self.curr_pagenum  = self.disp_idx
+        self.locationchange = True
+
+#        self.cb_loclist.append( str(self.cmbLocation.GetValue()) )
+ #       self.cb_maplist.append( str(self.cmbMapset.GetValue()) )
     
+        #print self.cb_maplist
+        #print self.cb_loclist
+
+        
         self.page = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(),  size=globalvar.MAP_WINDOW_SIZE,frame=self)
         self.notebook.AddPage(self.page, text="Display "+ str(self.disp_idx), select = True)
 
         self.current = self.notebook.GetCurrentPage()
+
 
         
 
@@ -1675,6 +1781,14 @@ class DataCatalog(wx.Frame):
         self.page = self.notebook.GetPage(self.notebook.GetSelection())
         self.page.Map.__init__()	
         self.page.Map.region = self.page.Map.GetRegion()
+        
+        if self.locationchange:
+            self.cb_loclist.append( str(self.cmbLocation.GetValue()) )
+            self.cb_maplist.append( str(self.cmbMapset.GetValue()) )
+            self.locationchange=False
+            print self.cb_loclist            
+             
+
 
 
         
