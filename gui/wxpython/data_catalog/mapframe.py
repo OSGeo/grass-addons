@@ -690,6 +690,7 @@ class BufferedWindow(MapWindow, wx.Window):
         @param render re-render map composition
         @param renderVector re-render vector map layer enabled for editing (used for digitizer)
         """
+
         start = time.clock()
 
         self.resize = False
@@ -4206,6 +4207,9 @@ class MapApp(wx.App):
         self.redraw = False
         return
 # end of class MapApp
+
+
+    
 
 if __name__ == "__main__":
 
