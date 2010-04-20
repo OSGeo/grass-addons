@@ -87,7 +87,12 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.EnableSelectionGradient(True)
         self.SetFirstGradientColour(wx.Colour(100, 100, 100))
         self.SetSecondGradientColour(wx.Colour(150, 150, 150))
+
+        self.mapdict = {}
         
+        self.item = None
+        
+        self.layer = []
  
 
 
@@ -209,7 +214,7 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED,   self.OnActivateLayer)
         self.Bind(wx.EVT_TREE_SEL_CHANGED,      self.OnChangeSel)
         self.Bind(CT.EVT_TREE_ITEM_CHECKED,     self.OnLayerChecked)
-        self.Bind(wx.EVT_TREE_DELETE_ITEM,      self.OnDeleteLayer)
+       # self.Bind(wx.EVT_TREE_DELETE_ITEM,      self.OnDeleteLayer)
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnLayerContextMenu)
         #self.Bind(wx.EVT_TREE_BEGIN_DRAG,       self.OnDrag)
         self.Bind(wx.EVT_TREE_END_DRAG,         self.OnEndDrag)
@@ -287,6 +292,8 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         q= p.GetParent()
         r= q.GetParent()
         frame= r.GetParent()
+        print "Ss"
+        print frame.GetName()
         self.Bind(wx.EVT_MENU, frame.OnDeleteLayer, id=self.popupID1)
 
         if ltype != "command": # rename
@@ -656,8 +663,8 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.first = True
         params = {} # no initial options parameters
 
-       # import pdb
-       # pdb.set_trace()
+        self.mapdict[str(lname)]=str(ltype)
+
 
         # deselect active item
         if self.layer_selected:
@@ -826,6 +833,8 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
                                          l_opacity=lopacity, l_render=render)
             self.GetPyData(layer)[0]['maplayer'] = maplayer
 
+            self.layer.append(maplayer)
+
             # run properties dialog if no properties given
             if len(cmd) == 0:
                 self.PropertiesDialog(layer, show=True)
@@ -970,13 +979,17 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
     def OnDeleteLayer(self, event):
         """!Remove selected layer item from the layer tree"""
 
-        item = event.GetItem()
+        self.item = event.GetItem()
+        item = self.item
+        myString = self.GetItemText(item)
+        substr = myString[0:myString.find(" ")]
+        del self.mapdict[str(substr)]
+        #print self.mapname_list
 
         try:
             item.properties.Close(True)
         except:
             pass
-
         if item != self.root:
             Debug.msg (3, "LayerTree.OnDeleteLayer(): name=%s" % \
                            (self.GetItemText(item)))

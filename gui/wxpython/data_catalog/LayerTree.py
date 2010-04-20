@@ -32,8 +32,8 @@ class LayerTree(wx.TreeCtrl):
 
         self.gisdbase = gisdbase
         self.Map = None
-        if self.Map is not None:
-            print self.Map.width
+        #if self.Map is not None:
+        #    print self.Map.width
 
         self.ID_REN= wx.NewId()
         self.ID_COPY = wx.NewId()
@@ -47,6 +47,8 @@ class LayerTree(wx.TreeCtrl):
 
 
         self.SetAcceleratorTable(acel)
+
+        self.dict = {}
 
 
 
@@ -267,6 +269,7 @@ class LayerTree(wx.TreeCtrl):
 
         item =  event.GetItem()
         pText = self.GetItemText(self.GetItemParent(item)) 
+        
 
         leftpanel=self.GetParent()
         splitter = leftpanel.GetParent()
@@ -279,11 +282,16 @@ class LayerTree(wx.TreeCtrl):
                 #win.SetSelection(0)
                 child=win.GetChildren()
                 for panel in child:
+                    #print panel.GetName()
                     if panel.GetName() == "pg_panel":
                         mapframe = panel
 
+                        
+
        # mtree = mapframe.maptree
         #print mtree.GetName()
+
+
         
 
         if not self.ItemHasChildren(item):
@@ -293,8 +301,33 @@ class LayerTree(wx.TreeCtrl):
 
             if pText == "Raster Map" :
                 self.cmd= ['d.rast', str("map=" + self.mapname)]
-                mapframe.maptree.AddLayer(ltype="raster", lname=self.mapname, lchecked=True,lcmd=self.cmd)
                 l_type="raster"
+                
+                #mapframe.Map.AddLayer(type=l_type, name=self.mapname, command=self.cmd)	
+
+                mapframe.maptree.AddLayer(ltype="raster", lname=self.mapname, lchecked=True,lcmd=self.cmd)
+
+                
+                mapframe.Map.region = mapframe.Map.GetRegion()
+#                mapframe.MapWindow2D.flag = True
+#                mapframe.MapWindow2D.UpdateMap(render=True)
+
+
+               
+
+        #update new layer 
+#        mapframe.maptree.SetPyData(newItem, mapframe.maptree.GetPyData(dragItem))
+
+            
+#                mapframe.maptree.CheckItem(newItem, checked=True) # causes a new render
+#                mapframe.maptree.SelectItem(newItem, select=True)
+
+
+
+
+
+
+
 	            #self.infocmd = ["r.info", str(self.mapname)]
             elif pText == "Vector Map" :
                 self.cmd= ['d.vect', str("map=" + self.mapname)]

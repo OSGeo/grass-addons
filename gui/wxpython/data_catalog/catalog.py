@@ -97,15 +97,14 @@ from mapdisplay import MapFrame
 from LayerTree import LayerTree
 import wx.lib.flatnotebook as FN
 from   icons.icon import Icons
-import wx_utils as wx_utils
 from preferences import globalSettings as UserSettings
 import render
-
+import gc
 
 class DataCatalog(wx.Frame):
 
 
-    def __init__(self, parent=None, id=wx.ID_ANY, title=_("Data Catalog"),
+    def __init__(self, parent=None, id=wx.ID_ANY, title=_("Data Catalog Beta"),
                  workspace=None,size=wx.DefaultSize,pos=wx.DefaultPosition):
 
        
@@ -116,6 +115,8 @@ class DataCatalog(wx.Frame):
  
 
         #self.Maximize()
+
+        self.dict = {}
 
 
         self.gisbase  = os.getenv("GISBASE")
@@ -147,6 +148,9 @@ class DataCatalog(wx.Frame):
         self.locationchange = True
 
         self.menucmd       = dict() 
+        
+       
+  
 
 
      #creating sizers    
@@ -184,6 +188,7 @@ class DataCatalog(wx.Frame):
         self.pg_panel = None
         self.cb_loclist = []
         self.cb_maplist = []
+        self.cb_mapfile = []
         
         #creating controls
         #self.mInfo = wx.TextCtrl(self.pRight, wx.ID_ANY, style = wx.TE_MULTILINE|wx.HSCROLL|wx.TE_READONLY)
@@ -205,7 +210,8 @@ class DataCatalog(wx.Frame):
 
 #        self._mgr.AddPane(self.cmdprompt, wx.aui.AuiPaneInfo().CentrePane().Dockable(False).BestSize((-1,-1)).CloseButton(False).DestroyOnClose(True). Layer(0))
 
-        self.current = self.notebook.GetCurrentPage()      
+        self.current = self.notebook.GetCurrentPage()    
+ 
 
         self.goutput = goutput.GMConsole(self, pageid=1)
         self.goutput.Hide()
@@ -239,6 +245,7 @@ class DataCatalog(wx.Frame):
                     for self.subpanel in self.panel:
                         if self.subpanel.GetName() == "pg_panel":
                             self.newmap = self.subpanel.Map
+                            break
         return self.newmap
                             
 
@@ -313,7 +320,7 @@ class DataCatalog(wx.Frame):
                 if version == "6.4.0svn":
                     self.__createMenuItem(menu, *eachItem)
                 else:
-                    self.__createMenuItem2(menu, *eachItem)
+                    self.__createMenuItem7(menu, *eachItem)
         self.Bind(wx.EVT_MENU_HIGHLIGHT_ALL, self.OnMenuHighlight)
         return menu
 
@@ -342,7 +349,7 @@ class DataCatalog(wx.Frame):
 
         self.Bind(wx.EVT_MENU, rhandler, menuItem)
 
-    def __createMenuItem2(self, menu, label, help, handler, gcmd, keywords, shortcut = '', kind = wx.ITEM_NORMAL):
+    def __createMenuItem7(self, menu, label, help, handler, gcmd, keywords, shortcut = '', kind = wx.ITEM_NORMAL):
         """!Creates menu items"""
 
         if not label:
@@ -509,8 +516,8 @@ class DataCatalog(wx.Frame):
         self.notebook.AddPage(self.pg_panel, text="Display "+ str(self.disp_idx), select = True)
 
 
-        self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
-        self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.OnPageClosed)
+       # self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
+       # self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.OnPageClosed)
 
         self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnCBPageChanged)
         self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.OnCBPageClosed)
@@ -522,10 +529,6 @@ class DataCatalog(wx.Frame):
         """!Page in notebook changed"""
         pageno = event.GetSelection()
         self.page = self.notebook.GetPage(pageno)
-        self.page.Map.__init__()	
-        self.page.Map.region = self.page.Map.GetRegion()
-        p =event.GetParent()
-        print "ss"
         if page == self.goutput.pageid:
             # remove '(...)'
             self.notebook.SetPageText(page, _("Command output"))
@@ -567,6 +570,7 @@ class DataCatalog(wx.Frame):
         
         self.notebook.GetPage(event.GetSelection()).maptree.Map.Clean()
         self.notebook.GetPage(event.GetSelection()).maptree.Close(True)
+        self.disp_idx = self.disp_idx - 1
         
         self.curr_page = None
         
@@ -574,23 +578,54 @@ class DataCatalog(wx.Frame):
 
     def OnCBPageChanged(self, event):
         """!Page in notebook (display) changed"""
+
+
+        #import pdb
+        #pdb.set_trace()
+
+
         old_pgnum = event.GetOldSelection()
         new_pgnum = event.GetSelection()
+
+        self.oldpage = self.notebook.GetPage(old_pgnum)
+
+      
+
+       # self.cb_mapfile.append(render.Map)
+   
+
         
         self.curr_page   = self.notebook.GetCurrentPage()
         self.curr_pagenum = self.notebook.GetSelection()
+
+
+
+
 
         self.ltree.DeleteAllItems()
   #      self.cmbMapset.SetValue(self.cb_loclist[self.disp_idx])
  #       self.cmbLocation.SetValue(self.cb_loclist[self.disp_idx])
 #        self.disp_idx
-        
+
+
         index  = self.notebook.GetSelection()
-        print index
-        #index = index - 1
+        self.page = self.notebook.GetPage(index)
+
+    
+
+        
+
+ #       print index
+#        print self.cb_mapfile
+        #import pdb
+       # pdb.set_trace()
+
         try:
             a_loc = str(self.cb_loclist[index])
             a_map =  str(self.cb_maplist[index])
+          
+           # a_mapfile = self.cb_mapfile[index]
+
         except IndexError:
             a_loc = "Select Location"
             a_map = "Select Mapset"
@@ -600,13 +635,64 @@ class DataCatalog(wx.Frame):
 
         self.ltree.AddTreeNodes(a_loc,a_map)
         
+
         try:
-            self.curr_page.maptree.mapdisplay.SetFocus()
-            self.curr_page.maptree.mapdisplay.Raise()
+            self.gisrc['LOCATION_NAME'] = self.cb_loclist[index]
+            self.gisrc['MAPSET'] = self.cb_maplist[index]
+            #self.page.Map = self.cb_mapfile[index]
+
         except:
             pass
+        #self.page.Map.Region = self.page.Map.GetRegion()
+
+        self.update_grassrc(self.gisrc)
+     #   self.page.Map.GetWindow()
+      #  self.page.Map.InitGisEnv()
+        for key, val in self.page.maptree.mapdict.iteritems():
+            self.mapname = key
+            if val == "raster":
+                l_type="raster"
+                self.cmd= ['d.rast', str("map=" + self.mapname)]
+            else:
+                l_type = "vector"
+                self.cmd= ['d.vect', str("map=" + self.mapname)]
+
+            
+           # self.page.maptree.AddLayer(ltype=l_type, lname=self.mapname, lchecked=True,lcmd=self.cmd)
+            #item1 = self.page.maptree.FindItem(idParent=self.page.maptree.root,prefixOrig=self.mapname)
+                 
+            
+           # print self.page.maptree.GetItemText(item1)
+            #self.page.maptree.Delete(item1)
+            
+        #print self.page.maptree.mapdict
+            
+
+      #  self.page.MapWindow.UpdateMap(render=True)
+        #self.oldpage.Map.region = self.oldpage.Map.GetRegion()
+        #self.page.Map.region = self.page.Map.GetRegion()
+
+ 
+
+#        print self.region
+#        print self.page.Map.region
+#        print self.cmbLocation.GetValue()
+        #self.gisrc['LOCATION_NAME'] = str(self.cmbLocation.GetValue())
+        #self.gisrc['MAPSET'] = str(self.cmbMapset.GetValue())
+        #self.update_grassrc(self.gisrc)
+
+      #  self.curr_page.Map.__init__()	
+    #    self.curr_page.Map.region = self.curr_page.Map.GetRegion()
+
+
         
-        event.Skip()
+       # try:
+            #self.curr_page.maptree.mapdisplay.SetFocus()
+            #self.curr_page.maptree.mapdisplay.Raise()
+       # except:
+       #     pass
+        
+       # event.Skip()
 
 
 
@@ -750,8 +836,6 @@ class DataCatalog(wx.Frame):
         
     def OnNewVector(self, event):
         """!Create new vector map layer"""
-        import pdb
-        pdb.set_trace()
         name, add = gdialogs.CreateNewVector(self, cmd = (('v.edit',  { 'tool' : 'create' }, 'map')))
         
         if name and add:
@@ -1377,6 +1461,11 @@ class DataCatalog(wx.Frame):
         """
         Debug.msg(1, "GMFrame.NewDisplay(): idx=%d" % self.disp_idx)
 
+        wx.MessageBox(parent=self,
+                      message=_("This part is under development. New display does not work when you change location and mapset"),
+                      caption=_("Data Catalog"),
+                      style=wx.OK | wx.ICON_INFORMATION | wx.CENTRE)
+
         # make a new page in the bookcontrol for the layer tree (on page 0 of the notebook)
 
         self.disp_idx = self.disp_idx + 1
@@ -1723,7 +1812,54 @@ class DataCatalog(wx.Frame):
         for layer in self.current.maptree.GetSelections():
             if self.current.maptree.GetPyData(layer)[0]['type'] == 'group':
                 self.current.maptree.DeleteChildren(layer)
-            self.current.maptree.Delete(layer)
+            self.current.maptree.Delete(layer) 
+
+
+
+        item = self.current.maptree.item
+        try:
+            self.current.maptree.item.properties.Close(True)
+        except:
+            pass
+
+        #if item != self.current.maptree.root:
+           # Debug.msg (3, "LayerTree.OnDeleteLayer(): name=%s" % \
+            #               (self.current.maptree.GetItemText(item)))
+       # else:
+         #   self.current.maptree.root = None
+
+        # unselect item
+        self.current.maptree.Unselect()
+        self.current.maptree.layer_selected = None
+
+        #try:
+       # if self.current.maptree.GetPyData(item)[0]['type'] != 'group':
+        nb =        self.notebook.GetCurrentPage()
+        #print nb.maptree
+        index = self.notebook.GetSelection()
+        nb.Map.DeleteLayer( nb.maptree.layer[index])
+        
+        nb.maptree.layer.remove(nb.maptree.layer[index])
+        
+        #except:
+         #   pass
+
+        # redraw map if auto-rendering is enabled
+        self.current.maptree.rerender = True
+        self.current.maptree.reorder = True
+        #if self.mapdisplay.statusbarWin['render'].GetValue():
+        #    print "*** Delete OnRender *****"
+        #    self.mapdisplay.OnRender(None)
+
+
+  #      if self.mapdisplay.toolbars['vdigit']:
+   #         self.mapdisplay.toolbars['vdigit'].UpdateListOfLayers (updateTool=True)
+
+        # update progress bar range (mapwindow statusbar)
+ #       self.mapdisplay.statusbarWin['progress'].SetRange(len(self.Map.GetListOfLayers(l_active=True)))
+
+        #self.current.Map.UpdateMap(render=True)
+
         
     def OnKey(self, event):
         """!Check hotkey"""
@@ -1774,19 +1910,23 @@ class DataCatalog(wx.Frame):
         self.gisrc['LOCATION_NAME'] = str(self.cmbLocation.GetValue())
         self.gisrc['MAPSET'] = str(self.cmbMapset.GetValue())
         self.update_grassrc(self.gisrc)
-
-        #self.pg_panel.Map.__init__()	
-        #self.pg_panel.Map.region = self.pg_panel.Map.GetRegion()
+        
 
         self.page = self.notebook.GetPage(self.notebook.GetSelection())
         self.page.Map.__init__()	
         self.page.Map.region = self.page.Map.GetRegion()
         
-        if self.locationchange:
+        if self.locationchange == True:
             self.cb_loclist.append( str(self.cmbLocation.GetValue()) )
             self.cb_maplist.append( str(self.cmbMapset.GetValue()) )
-            self.locationchange=False
-            print self.cb_loclist            
+
+            #self.cb_mapfile.append( self.page.Map)
+            self.locationchange = False
+
+    
+
+    
+        
              
 
 
@@ -1972,6 +2112,9 @@ if __name__ == "__main__":
 
     #gc.enable()
     #gc.set_debug(gc.DEBUG_LEAK)
+    #print gc.garbage
+    #gc.collect()
+    
     g_catalog = CatalogApp(0)
     g_catalog.MainLoop()
 

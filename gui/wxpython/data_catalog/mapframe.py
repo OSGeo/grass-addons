@@ -347,6 +347,7 @@ class BufferedWindow(MapWindow, wx.Window):
         """
         Draws map and overlay decorations
         """
+
         if drawid == None:
             if pdctype == 'image' and img:
                 drawid = self.imagedict[img]
@@ -692,6 +693,7 @@ class BufferedWindow(MapWindow, wx.Window):
         """
 
         start = time.clock()
+
 
         self.resize = False
 
@@ -2591,6 +2593,8 @@ class MapFrame(wx.Frame):
         self.page       = page      # Notebook page holding the layer tree
         self.layerbook  = notebook  # GIS Manager layer tree notebook
         self.parent     = parent
+
+        self.layers = {}
 
         #
         # available cursors
