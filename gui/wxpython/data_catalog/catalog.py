@@ -149,8 +149,9 @@ class DataCatalog(wx.Frame):
 
         self.menucmd       = dict() 
         
-       
-  
+        self.mapfile = []  
+        self.mapname = None
+        self.cmd = None
 
 
      #creating sizers    
@@ -519,6 +520,7 @@ class DataCatalog(wx.Frame):
        # self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
        # self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.OnPageClosed)
 
+
         self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnCBPageChanged)
         self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CLOSING, self.OnCBPageClosed)
 
@@ -580,29 +582,35 @@ class DataCatalog(wx.Frame):
         """!Page in notebook (display) changed"""
 
 
-        #import pdb
-        #pdb.set_trace()
-
-
         old_pgnum = event.GetOldSelection()
         new_pgnum = event.GetSelection()
 
         self.oldpage = self.notebook.GetPage(old_pgnum)
 
-      
-
-       # self.cb_mapfile.append(render.Map)
-   
-
-        
+       
         self.curr_page   = self.notebook.GetCurrentPage()
         self.curr_pagenum = self.notebook.GetSelection()
 
 
-
-
-
         self.ltree.DeleteAllItems()
+
+        count = self.notebook.GetPageCount()
+        for index in range(0,count):
+            page = self.notebook.GetPage(index)
+            maptree = page.maptree
+            maptree.DeleteAllItems()
+
+            maptree.root = maptree.AddRoot("Map Layers")
+            maptree.SetPyData(maptree.root, (None,None))
+            for i in range(0,len(maptree.layer)):
+                maptree.Map.DeleteLayer(maptree.layer[i])
+                maptree.mapdict[str(maptree.layer[i].name)]=maptree.layer[i].type
+   
+                self.mapfile.append(maptree.layer[i].name)
+            self.oldpage.MapWindow2D.EraseMap()
+
+        print maptree.mapdict
+
   #      self.cmbMapset.SetValue(self.cb_loclist[self.disp_idx])
  #       self.cmbLocation.SetValue(self.cb_loclist[self.disp_idx])
 #        self.disp_idx
@@ -648,14 +656,57 @@ class DataCatalog(wx.Frame):
         self.update_grassrc(self.gisrc)
      #   self.page.Map.GetWindow()
       #  self.page.Map.InitGisEnv()
-        for key, val in self.page.maptree.mapdict.iteritems():
+        page=self.notebook.GetCurrentPage()
+        maptree = page.maptree
+        for key, val in maptree.mapdict.iteritems():
             self.mapname = key
+
             if val == "raster":
                 l_type="raster"
+                maptree.ltype = 'raster'
                 self.cmd= ['d.rast', str("map=" + self.mapname)]
             else:
                 l_type = "vector"
+                maptree.ltype = 'vector'
                 self.cmd= ['d.vect', str("map=" + self.mapname)]
+
+            layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
+            page.MapWindow2D.flag = True
+            page.MapWindow2D.UpdateMap(render=True)
+            #page.MapWindow2D.flag = False
+            maptree.first = True
+            maptree.layer_selected = layer
+            maptree.CheckItem(layer)
+            #self.layer.append(self.maplayer)
+            #maptree.PlusLayer(self.maplayer)
+
+        
+       # try:
+            maptree.Map.AddLayer(type=l_type, name=self.mapname, command=self.cmd)	
+       # except:
+        #    pass
+
+                #mapframe.maptree.AddLayer(ltype="raster", lname=self.mapname, lchecked=True,lcmd=self.cmd)
+
+
+        maptree.Map.region = self.page.maptree.Map.GetRegion()
+
+        #page.MapWindow2D.flag = False
+
+        #page.MapWindow2D.EraseMap()
+
+        
+
+        count = self.notebook.GetPageCount()
+
+        for index in range(0,count):
+            page = self.notebook.GetPage(index)
+           # page.MapWindow2D.flag = False
+
+        page.MapWindow2D.flag = False
+
+        #self.layer.append(self.maplayer)
+        #maptree.PlusLayer(self.maplayer)
 
             
            # self.page.maptree.AddLayer(ltype=l_type, lname=self.mapname, lchecked=True,lcmd=self.cmd)
@@ -692,7 +743,7 @@ class DataCatalog(wx.Frame):
        # except:
        #     pass
         
-       # event.Skip()
+        event.Skip()
 
 
 
@@ -1461,10 +1512,10 @@ class DataCatalog(wx.Frame):
         """
         Debug.msg(1, "GMFrame.NewDisplay(): idx=%d" % self.disp_idx)
 
-        wx.MessageBox(parent=self,
-                      message=_("This part is under development. New display does not work when you change location and mapset"),
-                      caption=_("Data Catalog"),
-                      style=wx.OK | wx.ICON_INFORMATION | wx.CENTRE)
+        #wx.MessageBox(parent=self,
+        #              message=_("This part is under development. New display does not work when you change location and mapset"),
+         #             caption=_("Data Catalog"),
+         #             style=wx.OK | wx.ICON_INFORMATION | wx.CENTRE)
 
         # make a new page in the bookcontrol for the layer tree (on page 0 of the notebook)
 
@@ -1810,8 +1861,6 @@ class DataCatalog(wx.Frame):
             dlg.Destroy()
 
         for layer in self.current.maptree.GetSelections():
-            if self.current.maptree.GetPyData(layer)[0]['type'] == 'group':
-                self.current.maptree.DeleteChildren(layer)
             self.current.maptree.Delete(layer) 
 
 
@@ -1837,9 +1886,11 @@ class DataCatalog(wx.Frame):
         nb =        self.notebook.GetCurrentPage()
         #print nb.maptree
         index = self.notebook.GetSelection()
-        nb.Map.DeleteLayer( nb.maptree.layer[index])
-        
-        nb.maptree.layer.remove(nb.maptree.layer[index])
+        try:
+            nb.Map.DeleteLayer( self.ltree.layer[index])
+            nb.maptree.layer.remove(self.ltree.layer[index])
+        except:
+            pass
         
         #except:
          #   pass
@@ -1915,6 +1966,8 @@ class DataCatalog(wx.Frame):
         self.page = self.notebook.GetPage(self.notebook.GetSelection())
         self.page.Map.__init__()	
         self.page.Map.region = self.page.Map.GetRegion()
+        self.page.Map.projinfo = self.page.Map.ProjInfo()
+        self.page.Map.wind = self.page.Map.GetWindow()
         
         if self.locationchange == True:
             self.cb_loclist.append( str(self.cmbLocation.GetValue()) )

@@ -93,6 +93,8 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.item = None
         
         self.layer = []
+
+        self.ltype = None
  
 
 
@@ -214,7 +216,7 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED,   self.OnActivateLayer)
         self.Bind(wx.EVT_TREE_SEL_CHANGED,      self.OnChangeSel)
         self.Bind(CT.EVT_TREE_ITEM_CHECKED,     self.OnLayerChecked)
-       # self.Bind(wx.EVT_TREE_DELETE_ITEM,      self.OnDeleteLayer)
+       #self.Bind(wx.EVT_TREE_DELETE_ITEM,      self.OnDeleteLayer)
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnLayerContextMenu)
         #self.Bind(wx.EVT_TREE_BEGIN_DRAG,       self.OnDrag)
         self.Bind(wx.EVT_TREE_END_DRAG,         self.OnEndDrag)
@@ -259,10 +261,11 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             event.Skip()
             return
 
-        ltype = self.GetPyData(self.layer_selected)[0]['type']
+        #ltype = 'raster'
+        #print self.ltype
 
         Debug.msg (4, "LayerTree.OnContextMenu: layertype=%s" % \
-                       ltype)
+                       self.ltype)
 
         if not hasattr (self, "popupID1"):
             self.popupID1 = wx.NewId()
@@ -292,25 +295,23 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         q= p.GetParent()
         r= q.GetParent()
         frame= r.GetParent()
-        print "Ss"
-        print frame.GetName()
         self.Bind(wx.EVT_MENU, frame.OnDeleteLayer, id=self.popupID1)
 
-        if ltype != "command": # rename
+        if self.ltype != "command": # rename
             self.popupMenu.Append(self.popupID2, text=_("Rename"))
             self.Bind(wx.EVT_MENU, self.RenameLayer, id=self.popupID2)
             if numSelected > 1:
                 self.popupMenu.Enable(self.popupID2, False)
             
         # map layer items
-        if ltype != "group" and \
-                ltype != "command":
+        if self.ltype != "group" and \
+                self.ltype != "command":
             self.popupMenu.AppendSeparator()
             self.popupMenu.Append(self.popupID8, text=_("Change opacity level"))
             self.Bind(wx.EVT_MENU, self.OnPopupOpacityLevel, id=self.popupID8)
             self.popupMenu.Append(self.popupID3, text=_("Properties"))
             self.Bind(wx.EVT_MENU, self.OnPopupProperties, id=self.popupID3)
-            if ltype in ('raster', 'vector', 'rgb'):
+            if self.ltype in ('raster', 'vector', 'rgb'):
                 self.popupMenu.Append(self.popupID9, text=_("Zoom to selected map(s)"))
                 self.Bind(wx.EVT_MENU, self.mapdisplay.MapWindow2D.OnZoomToMap, id=self.popupID9)
                 self.popupMenu.Append(self.popupID10, text=_("Set computational region from selected map(s)"))
@@ -321,7 +322,7 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             
         # specific items
         try:
-            mltype = self.GetPyData(self.layer_selected)[0]['type']
+            mltype = self.ltype
         except:
             mltype = None
         #
@@ -453,7 +454,7 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         rast3d = []
         for layer in self.GetSelections():
             mapLayer = self.GetPyData(layer)[0]['maplayer']
-            mltype = self.GetPyData(layer)[0]['type']
+            mltype = self.ltype
                 
             if mltype == 'raster':
                 rast.append(mapLayer.name)
@@ -645,6 +646,11 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
     def RenameLayer (self, event):
         """!Rename layer"""
         self.EditLabel(self.layer_selected)
+
+
+    def PlusLayer(self,maplayer):
+        self.layer.append(maplayer)                
+
 
     def AddLayer(self, ltype, lname=None, lchecked=None,
                  lopacity=1.0, lcmd=None, lgroup=None, lvdigit=None, lnviz=None):
@@ -1027,11 +1033,14 @@ class AddLayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         item    = event.GetItem()
         checked = item.IsChecked()
 
+        #import pdb
+        #pdb.set_trace()
+
         digitToolbar = self.mapdisplay.toolbars['vdigit']
 
         if self.first == False:
             # change active parameter for item in layers list in render.Map
-            if self.GetPyData(item)[0]['type'] == 'group':
+            if self.ltype == 'group':
                 child, cookie = self.GetFirstChild(item)
                 while child:
                     self.CheckItem(child, checked)

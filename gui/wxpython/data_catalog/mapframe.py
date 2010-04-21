@@ -270,6 +270,7 @@ class BufferedWindow(MapWindow, wx.Window):
         #
         self.resize = False # indicates whether or not a resize event has taken place
         self.dragimg = None # initialize variable for map panning
+        self.flag = False
 
         #
         # Variable for drawing on DC
@@ -691,174 +692,174 @@ class BufferedWindow(MapWindow, wx.Window):
         @param render re-render map composition
         @param renderVector re-render vector map layer enabled for editing (used for digitizer)
         """
+        if self.flag == True:
+            start = time.clock()
 
-        start = time.clock()
 
+            self.resize = False
 
-        self.resize = False
-
-        # if len(self.Map.GetListOfLayers()) == 0:
-        #    return False
-        
-        if self.img is None:
-            render = True
-
-        #
-        # initialize process bar (only on 'render')
-        #
-        if render is True or renderVector is True:
-            self.parent.onRenderGauge.Show()
-            if self.parent.onRenderGauge.GetRange() > 0:
-                self.parent.onRenderGauge.SetValue(1)
-        
-        #
-        # render background image if needed
-        #
-        
-        # update layer dictionary if there has been a change in layers
-        if self.tree and self.tree.reorder == True:
-            self.tree.ReorderLayers()
-            
-        # reset flag for auto-rendering
-        if self.tree:
-            self.tree.rerender = False
-        
-        if render:
-            # update display size
-            self.Map.ChangeMapSize(self.GetClientSize())
-            if self.parent.compResolution.IsChecked():
-                # use computation region resolution for rendering
-                windres = True
-            else:
-                windres = False
-            self.mapfile = self.Map.Render(force=True, mapWindow=self.parent,
-                                           windres=windres)
-        else:
-            self.mapfile = self.Map.Render(force=False, mapWindow=self.parent)
-        
-        self.img = self.GetImage() # id=99
-            
-        #
-        # clear pseudoDcs
-        #
-        for pdc in (self.pdc,
-                    self.pdcDec,
-                    self.pdcTmp):
-            pdc.Clear()
-            pdc.RemoveAll()
-        
-        #
-        # draw background map image to PseudoDC
-        #
-        if not self.img:
-            self.Draw(self.pdc, pdctype='clear')
-        else:
-            try:
-                id = self.imagedict[self.img]['id']
-            except:
+            if len(self.Map.GetListOfLayers()) == 0:
                 return False
-
-            self.Draw(self.pdc, self.img, drawid=id)
-
-        #
-        # render vector map layer
-        #
-        digitToolbar = self.parent.toolbars['vdigit']
-        if renderVector and digitToolbar and \
-                digitToolbar.GetLayer():
-            # set region
-            self.parent.digit.driver.UpdateRegion()
-            # re-calculate threshold for digitization tool
-            self.parent.digit.driver.GetThreshold()
-            # draw map
-            self.pdcVector.Clear()
-            self.pdcVector.RemoveAll()
-            try:
-                item = self.tree.FindItemByData('maplayer', digitToolbar.GetLayer())
-            except TypeError:
-                item = None
             
-            if item and self.tree.IsItemChecked(item):
-                self.parent.digit.driver.DrawMap()
+            if self.img is None:
+                render = True
 
-            # translate tmp objects (pointer position)
-            if digitToolbar.GetAction() == 'moveLine':
-                if  hasattr(self, "vdigitMove") and \
-                        self.vdigitMove.has_key('beginDiff'):
-                    # move line
-                    for id in self.vdigitMove['id']:
-                        # print self.pdcTmp.GetIdBounds(id)
-                        self.pdcTmp.TranslateId(id,
-                                                self.vdigitMove['beginDiff'][0],
-                                                self.vdigitMove['beginDiff'][1])
-                    del self.vdigitMove['beginDiff']
-        
-        #
-        # render overlays
-        #
-        for img in self.GetOverlay():
-            # draw any active and defined overlays
-            if self.imagedict[img]['layer'].IsActive():
-                id = self.imagedict[img]['id']
-                self.Draw(self.pdc, img=img, drawid=id,
-                          pdctype=self.overlays[id]['pdcType'], coords=self.overlays[id]['coords'])
-
-        for id in self.textdict.keys():
-            self.Draw(self.pdc, img=self.textdict[id], drawid=id,
-                      pdctype='text', coords=[10, 10, 10, 10])
-
-        # optionally draw computational extent box
-        self.DrawCompRegionExtent()
-
-        #
-        # redraw pdcTmp if needed
-        #
-        if len(self.polycoords) > 0:
-            self.DrawLines(self.pdcTmp)
-
-
-        if self.gframe.georectifying:
-            # -> georectifier (redraw GCPs)
-            if self.parent.toolbars['georect']:
-                coordtype = 'gcpcoord'
+            #
+            # initialize process bar (only on 'render')
+            #
+            if render is True or renderVector is True:
+                self.parent.onRenderGauge.Show()
+                if self.parent.onRenderGauge.GetRange() > 0:
+                    self.parent.onRenderGauge.SetValue(1)
+            
+            #
+            # render background image if needed
+            #
+            
+            # update layer dictionary if there has been a change in layers
+            if self.tree and self.tree.reorder == True:
+                self.tree.ReorderLayers()
+                
+            # reset flag for auto-rendering
+            if self.tree:
+                self.tree.rerender = False
+            
+            if render:
+                # update display size
+                self.Map.ChangeMapSize(self.GetClientSize())
+                if self.parent.compResolution.IsChecked():
+                    # use computation region resolution for rendering
+                    windres = True
+                else:
+                    windres = False
+                self.mapfile = self.Map.Render(force=True, mapWindow=self.parent,
+                                               windres=windres)
             else:
-                coordtype = 'mapcoord'
-            self.gframe.georectifying.DrawGCP(coordtype)
+                self.mapfile = self.Map.Render(force=False, mapWindow=self.parent)
             
-        # 
-        # clear measurement
-        #
-        
-        if self.mouse["use"] == "measure":
-            self.ClearLines(pdc=self.pdcTmp)
-            self.polycoords = []
-            self.mouse['use'] = 'pointer'
-            self.mouse['box'] = 'point'
-            self.mouse['end'] = [0, 0]
-            self.SetCursor(self.parent.cursors["default"])
+            self.img = self.GetImage() # id=99
+                
+            #
+            # clear pseudoDcs
+            #
+            for pdc in (self.pdc,
+                        self.pdcDec,
+                        self.pdcTmp):
+                pdc.Clear()
+                pdc.RemoveAll()
             
-        stop = time.clock()
+            #
+            # draw background map image to PseudoDC
+            #
+            if not self.img:
+                self.Draw(self.pdc, pdctype='clear')
+            else:
+                try:
+                    id = self.imagedict[self.img]['id']
+                except:
+                    return False
 
-        #
-        # hide process bar
-        #
-        self.parent.onRenderGauge.Hide()
+                self.Draw(self.pdc, self.img, drawid=id)
 
-        #
-        # update statusbar
-        #
-        ### self.Map.SetRegion()
-        self.parent.StatusbarUpdate()
-        if grass.find_file(name = 'MASK', element = 'cell')['name']:
-            # mask found
-            self.parent.maskInfo.SetLabel(_('MASK'))
-        else:
-            self.parent.maskInfo.SetLabel('')
-        
-        Debug.msg (2, "BufferedWindow.UpdateMap(): render=%s, renderVector=%s -> time=%g" % \
-                   (render, renderVector, (stop-start)))
-        
-        return True
+            #
+            # render vector map layer
+            #
+            digitToolbar = self.parent.toolbars['vdigit']
+            if renderVector and digitToolbar and \
+                    digitToolbar.GetLayer():
+                # set region
+                self.parent.digit.driver.UpdateRegion()
+                # re-calculate threshold for digitization tool
+                self.parent.digit.driver.GetThreshold()
+                # draw map
+                self.pdcVector.Clear()
+                self.pdcVector.RemoveAll()
+                try:
+                    item = self.tree.FindItemByData('maplayer', digitToolbar.GetLayer())
+                except TypeError:
+                    item = None
+                
+                if item and self.tree.IsItemChecked(item):
+                    self.parent.digit.driver.DrawMap()
+
+                # translate tmp objects (pointer position)
+                if digitToolbar.GetAction() == 'moveLine':
+                    if  hasattr(self, "vdigitMove") and \
+                            self.vdigitMove.has_key('beginDiff'):
+                        # move line
+                        for id in self.vdigitMove['id']:
+                            # print self.pdcTmp.GetIdBounds(id)
+                            self.pdcTmp.TranslateId(id,
+                                                    self.vdigitMove['beginDiff'][0],
+                                                    self.vdigitMove['beginDiff'][1])
+                        del self.vdigitMove['beginDiff']
+            
+            #
+            # render overlays
+            #
+            for img in self.GetOverlay():
+                # draw any active and defined overlays
+                if self.imagedict[img]['layer'].IsActive():
+                    id = self.imagedict[img]['id']
+                    self.Draw(self.pdc, img=img, drawid=id,
+                              pdctype=self.overlays[id]['pdcType'], coords=self.overlays[id]['coords'])
+
+            for id in self.textdict.keys():
+                self.Draw(self.pdc, img=self.textdict[id], drawid=id,
+                          pdctype='text', coords=[10, 10, 10, 10])
+
+            # optionally draw computational extent box
+            self.DrawCompRegionExtent()
+
+            #
+            # redraw pdcTmp if needed
+            #
+            if len(self.polycoords) > 0:
+                self.DrawLines(self.pdcTmp)
+
+
+            if self.gframe.georectifying:
+                # -> georectifier (redraw GCPs)
+                if self.parent.toolbars['georect']:
+                    coordtype = 'gcpcoord'
+                else:
+                    coordtype = 'mapcoord'
+                self.gframe.georectifying.DrawGCP(coordtype)
+                
+            # 
+            # clear measurement
+            #
+            
+            if self.mouse["use"] == "measure":
+                self.ClearLines(pdc=self.pdcTmp)
+                self.polycoords = []
+                self.mouse['use'] = 'pointer'
+                self.mouse['box'] = 'point'
+                self.mouse['end'] = [0, 0]
+                self.SetCursor(self.parent.cursors["default"])
+                
+            stop = time.clock()
+
+            #
+            # hide process bar
+            #
+            self.parent.onRenderGauge.Hide()
+
+            #
+            # update statusbar
+            #
+            ### self.Map.SetRegion()
+            self.parent.StatusbarUpdate()
+            if grass.find_file(name = 'MASK', element = 'cell')['name']:
+                # mask found
+                self.parent.maskInfo.SetLabel(_('MASK'))
+            else:
+                self.parent.maskInfo.SetLabel('')
+            
+            Debug.msg (2, "BufferedWindow.UpdateMap(): render=%s, renderVector=%s -> time=%g" % \
+                       (render, renderVector, (stop-start)))
+            
+            return True
 
     def DrawCompRegionExtent(self):
         """
