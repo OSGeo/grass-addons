@@ -344,6 +344,23 @@ class LayerTree(wx.TreeCtrl):
                 mapframe.maptree.AddLayer(ltype="vector", lname=self.mapname, lchecked=True,lcmd=self.cmd)
                 l_type="vector"
 	            #self.infocmd = ["r.info", str(self.mapname)]
+
+                self.maplayer = mapframe.Map.AddLayer(type=l_type, name=self.mapname, command=self.cmd)	
+
+                #mapframe.maptree.AddLayer(ltype="raster", lname=self.mapname, lchecked=True,lcmd=self.cmd)
+                maptree.ltype = 'vector'
+                
+                mapframe.Map.region = mapframe.Map.GetRegion()
+                mapframe.MapWindow2D.flag = True
+                mapframe.MapWindow2D.UpdateMap(render=True)
+                mapframe.MapWindow2D.flag = False
+
+                layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
+                maptree.first = True
+                maptree.layer_selected = layer
+                maptree.CheckItem(layer)
+                #self.layer.append(self.maplayer)
+                maptree.PlusLayer(self.maplayer)
                 
 
 
