@@ -112,7 +112,7 @@ Transport capacity is calculated by combining a rainfall coefficient
 mm), and coefficient for the ability of vegetation to prevent erosion
 (C, unitless) from RUSLE with with an estimate of topographically
 driven stream power as shown in equation (1)</P>
-<P><IMG SRC="r.landscape.evol_html_m11de82c.gif" NAME="Object2" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=157 HEIGHT=21></P>
+<P><IMG SRC="m11de82c.gif" NAME="Object2" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=157 HEIGHT=21></P>
 <P>where <I>A</I> is the upslope contributing area (a measure of
 water flowing through a cell) and <EM>B</EM> is the slope of the
 cell. The exponents <EM>m</EM> and <EM>n</EM> are empirically derived
@@ -146,7 +146,7 @@ process law that is formulated for water flowing in stream channels
 (Howard 1980; Tucker and Hancock 2010). This is done by first
 calculating the reach average shear stress (</SPAN><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">τ</SPAN></FONT><SPAN STYLE="font-weight: normal">),
 here estimated for a cellular landscape simply as:</SPAN></P>
-<P><IMG SRC="r.landscape.evol_html_m2f9c13ec.gif" NAME="Object1" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=119 HEIGHT=22></P>
+<P><IMG SRC="m2f9c13ec.gif" NAME="Object1" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=119 HEIGHT=22></P>
 <P> <SPAN STYLE="font-weight: normal">Where: </SPAN><I><SPAN STYLE="font-weight: normal">9806.65</SPAN></I><SPAN STYLE="font-weight: normal">
 is a constant related to the gravitational acceleration of water, </SPAN><I><SPAN STYLE="font-weight: normal">B</SPAN></I><SPAN STYLE="font-weight: normal">
 is the slope of the cell in degrees, and  </SPAN><I><SPAN STYLE="font-weight: normal">D</SPAN></I><SPAN STYLE="font-weight: normal">
@@ -154,7 +154,7 @@ is the instantaneous depth of flowing water in the cell. </SPAN><I><SPAN STYLE="
 </SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">is</SPAN></SPAN><SPAN STYLE="font-weight: normal">
 here assumed to be roughly equivalent to the depth of flow during the
 average minute of rainfall, calculated by:</SPAN></P>
-<P STYLE="font-weight: normal"><IMG SRC="r.landscape.evol_html_m2c6cce6a.gif" NAME="Object3" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=137 HEIGHT=42></P>
+<P STYLE="font-weight: normal"><IMG SRC="m2c6cce6a.gif" NAME="Object3" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=137 HEIGHT=42></P>
 <P><SPAN STYLE="font-weight: normal">Where: </SPAN><I><SPAN STYLE="font-weight: normal">R</SPAN></I><SUB><I><SPAN STYLE="font-weight: normal">m</SPAN></I></SUB><SPAN STYLE="font-weight: normal">
 is the total annual precipitation in meters, </SPAN><I><SPAN STYLE="font-weight: normal">i</SPAN></I><SPAN STYLE="font-weight: normal">
 is the proportion of rainfall that infiltrates rather than </SPAN><SPAN STYLE="font-weight: normal">runs
@@ -166,7 +166,7 @@ is the number of days on which it rained in a one year period, and
 is a constant relating to the number of minutes in a day.</SPAN></SPAN></P>
 <P STYLE="font-style: normal; font-weight: normal">Then the transport
 capacity is calculated by:</P>
-<P STYLE="font-style: normal; font-weight: normal"><IMG SRC="r.landscape.evol_html_m100fb7e.gif" NAME="Object4" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=76 HEIGHT=28></P>
+<P STYLE="font-style: normal; font-weight: normal"><IMG SRC="m100fb7e.gif" NAME="Object4" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=76 HEIGHT=28></P>
 <P><SPAN STYLE="font-weight: normal">Where: </SPAN><I><SPAN STYLE="font-weight: normal">K</SPAN></I><SUB><I><SPAN STYLE="font-weight: normal">t</SPAN></I></SUB><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
 is the transport efficiency factor related to the character of the
 stream bed (0.001 for normal sediment to 0.000001 for bedrock), and </SPAN></SPAN><I><SPAN STYLE="font-weight: normal">n</SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="font-weight: normal">
@@ -176,7 +176,7 @@ suspended load transport).</SPAN></SPAN></P>
 <P>Net erosion and deposition rates are then computed across the
 entire DEM  as change in sediment flow in the x and y directions
 across a cell as follows”</P>
-<P><IMG SRC="r.landscape.evol_html_m8e0f3ca.gif" NAME="Object6" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=204 HEIGHT=38></P>
+<P><IMG SRC="m8e0f3ca.gif" NAME="Object6" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=204 HEIGHT=38></P>
 <P><SPAN STYLE="font-weight: normal">where ED is net erosion or
 deposition rate for sediment and </SPAN><EM><FONT FACE="Times New Roman, serif"><SPAN STYLE="font-weight: normal">α</SPAN></FONT></EM><SPAN STYLE="font-weight: normal">
 is the topographic aspect (i.e., direction of slope) for a cell.
@@ -218,7 +218,7 @@ Tons/Ha, which means it must be converted in order to calculate the
 change in elevation at each cell (<I>m</I><SUB><I>vert</I></SUB>).
 This is done via a simple algorithm that uses the density of the soil
 and the cell resolution:</P>
-<P><IMG SRC="r.landscape.evol_html_585d862d.gif" NAME="Object5" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=174 HEIGHT=20></P>
+<P><IMG SRC="585d862d.gif" NAME="Object5" ALIGN=ABSMIDDLE HSPACE=8 WIDTH=174 HEIGHT=20></P>
 <P>Where: <I>10000</I> is the number of meters per hectare, <I>Sd </I>is
 the  density of the soil, and <I>Res </I>is the cell resolution
 (width). In order to convert the output back to Tons/Ha (standard
