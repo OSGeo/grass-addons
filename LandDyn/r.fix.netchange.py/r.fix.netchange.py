@@ -103,7 +103,7 @@ def netchange(initdem, pattern, startnum, endnum):
     
     grass_print ('Working on netchange map series, please stand by.....')        
     
-    tempfilename = tempfile.mktemp()
+    tempfilename = tempfile.NamedTemporaryFile()
     nccolors = open(tempfilename, 'w')
     nccolors.write('100% 0 0 100\n1 blue\n0.5 indigo\n0.01 green\n0 white\n-0.01 yellow\n-0.5 orange\n-1 red\n0% 150 0 50')
     nccolors.close()
@@ -132,17 +132,18 @@ def netchange(initdem, pattern, startnum, endnum):
             
             if iter == startnum:
                     mapone = initdem
+            elif pattern+'%i_elevation' % startnum in mapstring:
+                mapone =  pattern+'%i_elevation' % last_iter
             else:
-                    mapone = '%s%i' % (elevpattern, last_iter)
-                    
+                mapone = '%s%i' % (elevpattern, last_iter)
             maptwo = '%s%i' % (elevpattern, iter)
             outmap = '%snetchange_%s' % (pattern, iter)
             
             grass_com('r.mapcalc "%s=%s - %s"' % (outmap, maptwo, mapone))
 
-            grass_com('r.colors --quiet map=%s rules=%s' % (outmap, tempfilename))
+            grass_com('r.colors --quiet map=%s rules=%s' % (outmap, tempfilename.name))
     
-    os.remove(tempfilename)
+    close(tempfilename)
     grass_print('Netchange map series done!')
 
 def accumulate_erdep(pattern, startnum, endnum):
@@ -229,7 +230,7 @@ def stats_file(pattern, startnum, endnum):
         out2dict('r.univar -g -e map=%s percentile=99' % tmpdep, '=', depostats)
 
         grass_com('g.remove --quiet rast=%s,%s' % (tmperosion, tmpdep))
-       			
+
 
 		
         if iter == startnum:
