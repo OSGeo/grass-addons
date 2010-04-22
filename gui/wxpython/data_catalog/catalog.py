@@ -603,11 +603,14 @@ class DataCatalog(wx.Frame):
             maptree.root = maptree.AddRoot("Map Layers")
             maptree.SetPyData(maptree.root, (None,None))
             for i in range(0,len(maptree.layer)):
+
                 maptree.Map.DeleteLayer(maptree.layer[i])
                 maptree.mapdict[str(maptree.layer[i].name)]=maptree.layer[i].type
+                #page.MapWindow2D.EraseMap()
+
    
                 self.mapfile.append(maptree.layer[i].name)
-            self.oldpage.MapWindow2D.EraseMap()
+#            self.oldpage.MapWindow2D.EraseMap()
 
         print maptree.mapdict
 
@@ -671,8 +674,7 @@ class DataCatalog(wx.Frame):
                 self.cmd= ['d.vect', str("map=" + self.mapname)]
 
             layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
-            page.MapWindow2D.flag = True
-            page.MapWindow2D.UpdateMap(render=True)
+
             #page.MapWindow2D.flag = False
             maptree.first = True
             maptree.layer_selected = layer
@@ -682,14 +684,18 @@ class DataCatalog(wx.Frame):
 
         
        # try:
-            maptree.Map.AddLayer(type=l_type, name=self.mapname, command=self.cmd)	
+            maptree.Map.AddLayer(type=l_type, name=self.mapname, command=self.cmd)
+            page.MapWindow2D.flag = True
+            page.MapWindow2D.UpdateMap(render=True)	
+            page.MapWindow2D.flag = False
+            maptree.Map.region = self.page.maptree.Map.GetRegion()
        # except:
         #    pass
 
                 #mapframe.maptree.AddLayer(ltype="raster", lname=self.mapname, lchecked=True,lcmd=self.cmd)
 
 
-        maptree.Map.region = self.page.maptree.Map.GetRegion()
+        
 
         #page.MapWindow2D.flag = False
 
@@ -2167,8 +2173,10 @@ if __name__ == "__main__":
     #gc.set_debug(gc.DEBUG_LEAK)
     #print gc.garbage
     #gc.collect()
+
     
     g_catalog = CatalogApp(0)
+
     g_catalog.MainLoop()
 
     #sys.exit(0)	
