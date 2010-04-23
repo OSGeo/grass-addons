@@ -1,3 +1,22 @@
+"""
+@package LayerTree.py
+
+
+
+@breif A LayerTree for managing maps
+based on selected location and mapset
+
+Classes:
+ - LayerTree
+
+(C) 2007 by the GRASS Development Team
+This program is free software under the GNU General Public
+License (>=v2). Read the file COPYING that comes with GRASS
+for details.
+
+@author Mohammed Rashad K.M <rashadkm at gmail dot com>
+
+"""
 import os
 import sys
 import wx
