@@ -5,14 +5,12 @@
 management functions, and additional toolbars (vector digitizer, 3d
 view).
 
-Can be used either from Layer Manager or as p.mon backend.
-
 Classes:
+- Command
+- MapWindow
+- BufferedWindow
 - MapFrame
-- MapApp
 
-Usage:
-python mapdisp.py monitor-identifier /path/to/command/file
 
 (C) 2006-2009 by the GRASS Development Team
 This program is free software under the GNU General Public
@@ -4572,47 +4570,4 @@ class MapFrame(wx.Panel):
     
 # end of class MapFrame
 
-class MapApp(wx.App):
-    """
-    MapApp class
-    """
 
-    def OnInit(self):
-
-        wx.InitAllImageHandlers()
-        if __name__ == "__main__":
-            Map = render.Map() # instance of Map class to render GRASS display output to PPM file
-        else:
-            Map = None
-
-        self.mapFrm = MapFrame(parent=None, id=wx.ID_ANY, Map=Map,
-                               size=globalvar.MAP_WINDOW_SIZE)
-        #self.SetTopWindow(Map)
-        self.mapFrm.Show()
-
-        if __name__ == "__main__":
-            # redraw map, if new command appears
-            self.redraw = False
-
-
-        return 1
-
-
-# end of class MapApp
-
-if __name__ == "__main__":
-
-    ###### SET command variable
-
-
-    title = "title"
-    cmdfilename = "cmdfilename"
-
-    
-
-    gm_map = MapApp(0)
-    # set title
-    gm_map.mapFrm.SetTitle(_("GRASS GIS Map Display: " +   title +   " - Location: " + grass.gisenv()["LOCATION_NAME"]))
-    
-    gm_map.MainLoop()
-    sys.exit(0)
