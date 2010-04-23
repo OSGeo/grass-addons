@@ -1,6 +1,0 @@
-To run DataCatalog
-from grass shell type:
-
-python catalog.py
-
-To send files to ossimplanet please download r.planet and v.planet and copy it in application directory

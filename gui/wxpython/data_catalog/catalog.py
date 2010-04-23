@@ -86,8 +86,14 @@ import gui_modules.georect as georect
 import gui_modules.dbm as dbm
 import gui_modules.workspace as workspace
 import gui_modules.colorrules as colorrules
+
+version = os.getenv("GRASS_VERSION")
+if version == "6.5.svn":
+    import gui_modules.menu as menu
+    import gui_modules.gmodeler as gmodeler
+
 #import gui_modules.ogc_services as ogc_services
-import newprompt as prompt
+
 #from   gui_modules.help import MenuTreeWindow
 #from   gui_modules.help import AboutWindow
 from   icons.icon import Icons
@@ -122,7 +128,7 @@ class DataCatalog(wx.Frame):
         self.gisbase  = os.getenv("GISBASE")
         self.gisrc  = self.read_gisrc()
         self.viewInfo = True        #to display v/r.info on mapdisplay
-        self.gisdbase = self.gisrc['GISDBASE']
+        self.gisdbase = self.gisrc['GISDBASE'] 
 
         #backup location and mapset from gisrc which may be modified  by datacatalog
         self.iLocation = self.gisrc['LOCATION_NAME']
@@ -152,6 +158,7 @@ class DataCatalog(wx.Frame):
         self.mapfile = []  
         self.mapname = None
         self.cmd = None
+        self.newmap = None
 
 
      #creating sizers    
@@ -167,23 +174,19 @@ class DataCatalog(wx.Frame):
         self.loclist.sort()
 
         #self.pg_panel4 = None
-
-        self.menubar, self.menudata = self.__createMenuBar()
+        version = os.getenv("GRASS_VERSION")
+        if version == "6.5.svn":
+            self.menubar = menu.Menu(parent = self, data = menudata.ManagerData())
+        else:
+            self.menubar, self.menudata = self.__createMenuBar()
         #self.statusbar = self.CreateStatusBar(number=1)
         #self.cmdprompt, self.cmdinput = self.__createCommandPrompt()
         self.toolbar   = self.__createToolBar()
 
         #setting splitter window
-        self.win = wx.SplitterWindow(self)
-        self.pLeft = wx.Panel(self.win, style=wx.SUNKEN_BORDER,name="leftpanel")
-        self.pRight = wx.Panel(self.win, style=wx.SUNKEN_BORDER,name="rightpanel")
+
         self.cmbPanel = wx.Panel(self,name="cmbpanel")
-        self.rightPanel = wx.Panel(self.pRight)
-        self.pRight.SetBackgroundColour("white")
-        self.pLeft.Hide()
-        self.pRight.Hide()
-        self.win.Initialize(self.pLeft)
-        self.win.SplitVertically(self.pLeft, self.pRight, 310)
+
 
         self.maptree = None
         self.pg_panel = None
@@ -199,7 +202,7 @@ class DataCatalog(wx.Frame):
         self.cmbMapset = wx.ComboBox(self.cmbPanel, value = "Select Mapset", size=wx.DefaultSize)	
         #self.tree = wx.TreeCtrl(self.pLeft, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_HIDE_ROOT|wx.TR_HAS_BUTTONS|wx.TR_EDIT_LABELS)
 
-        self.ltree = LayerTree(self.pLeft,wx.ID_ANY,gisdbase=self.gisdbase)
+
 
         self.itemFont = wx.Font(pointSize=9,weight=0, family=wx.FONTFAMILY_DEFAULT ,style=wx.FONTSTYLE_ITALIC)
 
@@ -218,7 +221,7 @@ class DataCatalog(wx.Frame):
         self.goutput.Hide()
 
     
-
+       # self.ltree = LayerTree(self.pLeft,wx.ID_ANY,gisdbase=self.gisdbase,frame=self.pg_panel)
 
         self.doBindings()
         self.doLayout()
@@ -233,28 +236,19 @@ class DataCatalog(wx.Frame):
 
 
     def GetMapDisplay(self):
-        self.winlist = self.GetChildren()
-        for win in self.winlist:
-            if win.GetName()== "splitter":
-                self.splitter = win.GetWindow2()
-               
-        self.books = self.splitter.GetChildren()
-        for self.book in self.books:
-                if type(self.book) == wx.lib.flatnotebook.FlatNotebook:
-                    ##self.book.SetSelection(self.book.GetCurrentPage())
-                    self.panel = self.book.GetChildren()
-                    for self.subpanel in self.panel:
-                        if self.subpanel.GetName() == "pg_panel":
-                            self.newmap = self.subpanel.Map
-                            break
-        return self.newmap
+        self.panel = self.notebook.GetCurrentPage()
+        return self.panel.Map
                             
 
     def __createMenuBar(self):
         """!Creates menubar"""
 
         self.menubar = wx.MenuBar()
-        self.menudata = menudata.Data()
+        version = os.getenv("GRASS_VERSION")
+        if version == "6.5.svn":
+            self.menudata = menudata.ManagerData()
+        else:
+            self.menudata = menudata.Data()        
         for eachMenuData in self.menudata.GetMenu():
             for eachHeading in eachMenuData:
                 menuLabel = eachHeading[0]
@@ -506,7 +500,7 @@ class DataCatalog(wx.Frame):
 
         # create displays notebook widget and add it to main notebook page
         cbStyle = globalvar.FNPageStyle
-        self.notebook = FN.FlatNotebook(parent=self.pRight, id=wx.ID_ANY, style=cbStyle)
+        self.notebook = FN.FlatNotebook(parent=self, id=wx.ID_ANY, style=cbStyle)
         
         self.notebook.SetTabAreaColour(globalvar.FNPageColor)
 
@@ -542,6 +536,7 @@ class DataCatalog(wx.Frame):
         Page of notebook closed
         Also close associated map display
         """
+        self.curr_page = self.notebook.GetCurrentPage()
         if UserSettings.Get(group='manager', key='askOnQuit', subkey='enabled'):
             maptree = self.curr_page.maptree
             
@@ -592,27 +587,6 @@ class DataCatalog(wx.Frame):
         self.curr_pagenum = self.notebook.GetSelection()
 
 
-        self.ltree.DeleteAllItems()
-
-        count = self.notebook.GetPageCount()
-        for index in range(0,count):
-            page = self.notebook.GetPage(index)
-            maptree = page.maptree
-            maptree.DeleteAllItems()
-
-            maptree.root = maptree.AddRoot("Map Layers")
-            maptree.SetPyData(maptree.root, (None,None))
-            for i in range(0,len(maptree.layer)):
-
-                maptree.Map.DeleteLayer(maptree.layer[i])
-                maptree.mapdict[str(maptree.layer[i].name)]=maptree.layer[i].type
-                #page.MapWindow2D.EraseMap()
-
-   
-                self.mapfile.append(maptree.layer[i].name)
-#            self.oldpage.MapWindow2D.EraseMap()
-
-        print maptree.mapdict
 
   #      self.cmbMapset.SetValue(self.cb_loclist[self.disp_idx])
  #       self.cmbLocation.SetValue(self.cb_loclist[self.disp_idx])
@@ -644,110 +618,19 @@ class DataCatalog(wx.Frame):
         self.cmbLocation.SetValue(a_loc)
         self.cmbMapset.SetValue(a_map)
 
-        self.ltree.AddTreeNodes(a_loc,a_map)
-        
+
 
         try:
             self.gisrc['LOCATION_NAME'] = self.cb_loclist[index]
             self.gisrc['MAPSET'] = self.cb_maplist[index]
-            #self.page.Map = self.cb_mapfile[index]
+
 
         except:
             pass
         #self.page.Map.Region = self.page.Map.GetRegion()
 
         self.update_grassrc(self.gisrc)
-     #   self.page.Map.GetWindow()
-      #  self.page.Map.InitGisEnv()
-        page=self.notebook.GetCurrentPage()
-        maptree = page.maptree
-        for key, val in maptree.mapdict.iteritems():
-            self.mapname = key
-
-            if val == "raster":
-                l_type="raster"
-                maptree.ltype = 'raster'
-                self.cmd= ['d.rast', str("map=" + self.mapname)]
-            else:
-                l_type = "vector"
-                maptree.ltype = 'vector'
-                self.cmd= ['d.vect', str("map=" + self.mapname)]
-
-            layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
-
-            #page.MapWindow2D.flag = False
-            maptree.first = True
-            maptree.layer_selected = layer
-            maptree.CheckItem(layer)
-            #self.layer.append(self.maplayer)
-            #maptree.PlusLayer(self.maplayer)
-
-        
-       # try:
-            maptree.Map.AddLayer(type=l_type, name=self.mapname, command=self.cmd)
-            page.MapWindow2D.flag = True
-            page.MapWindow2D.UpdateMap(render=True)	
-            page.MapWindow2D.flag = False
-            maptree.Map.region = self.page.maptree.Map.GetRegion()
-       # except:
-        #    pass
-
-                #mapframe.maptree.AddLayer(ltype="raster", lname=self.mapname, lchecked=True,lcmd=self.cmd)
-
-
-        
-
-        #page.MapWindow2D.flag = False
-
-        #page.MapWindow2D.EraseMap()
-
-        
-
-        count = self.notebook.GetPageCount()
-
-        for index in range(0,count):
-            page = self.notebook.GetPage(index)
-           # page.MapWindow2D.flag = False
-
-        page.MapWindow2D.flag = False
-
-        #self.layer.append(self.maplayer)
-        #maptree.PlusLayer(self.maplayer)
-
-            
-           # self.page.maptree.AddLayer(ltype=l_type, lname=self.mapname, lchecked=True,lcmd=self.cmd)
-            #item1 = self.page.maptree.FindItem(idParent=self.page.maptree.root,prefixOrig=self.mapname)
-                 
-            
-           # print self.page.maptree.GetItemText(item1)
-            #self.page.maptree.Delete(item1)
-            
-        #print self.page.maptree.mapdict
-            
-
-      #  self.page.MapWindow.UpdateMap(render=True)
-        #self.oldpage.Map.region = self.oldpage.Map.GetRegion()
-        #self.page.Map.region = self.page.Map.GetRegion()
-
- 
-
-#        print self.region
-#        print self.page.Map.region
-#        print self.cmbLocation.GetValue()
-        #self.gisrc['LOCATION_NAME'] = str(self.cmbLocation.GetValue())
-        #self.gisrc['MAPSET'] = str(self.cmbMapset.GetValue())
-        #self.update_grassrc(self.gisrc)
-
-      #  self.curr_page.Map.__init__()	
-    #    self.curr_page.Map.region = self.curr_page.Map.GetRegion()
-
-
-        
-       # try:
-            #self.curr_page.maptree.mapdisplay.SetFocus()
-            #self.curr_page.maptree.mapdisplay.Raise()
-       # except:
-       #     pass
+    
         
         event.Skip()
 
@@ -758,6 +641,48 @@ class DataCatalog(wx.Frame):
         Launch georectifier module
         """
         georect.GeorectWizard(self)
+
+
+    def OnGModeler(self, event):
+        """!Launch Graphical Modeler"""
+        win = gmodeler.ModelFrame(parent = self)
+        win.CentreOnScreen()
+        
+        win.Show()
+
+
+    def OnRunModel(self, event):
+        """!Run model"""
+        filename = ''
+        dlg = wx.FileDialog(parent = self, message=_("Choose model to run"),
+                            defaultDir = os.getcwd(),
+                            wildcard=_("GRASS Model File (*.gxm)|*.gxm"))
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+        
+        if not filename:
+            return
+        
+        self.model = gmodeler.Model()
+        self.model.LoadModel(filename)
+        self.SetStatusText(_('Validating model...'), 0)
+        result =  self.model.Validate()
+        if result:
+            dlg = wx.MessageDialog(parent = self,
+                                   message = _('Model is not valid. Do you want to '
+                                               'run the model anyway?\n\n%s') % '\n'.join(errList),
+                                   caption=_("Run model?"),
+                                   style = wx.YES_NO | wx.NO_DEFAULT |
+                                   wx.ICON_QUESTION | wx.CENTRE)
+            ret = dlg.ShowModal()
+            if ret != wx.ID_YES:
+                return
+        
+        self.SetStatusText(_('Running model...'), 0)
+        self.model.Run(log = self.goutput,
+                       onDone = self.OnDone)
+
+
         
     def OnMapsets(self, event):
         """
@@ -935,21 +860,65 @@ class DataCatalog(wx.Frame):
         self.PopupMenu(menu)
         menu.Destroy()
 
-    def OnWorkspaceNew(self, event=None):
+#    def OnWorkspaceNew(self, event=None):
+#        """!Create new workspace file
+#
+#        Erase current workspace settings first"""
+#
+#        Debug.msg(4, "GMFrame.OnWorkspaceNew():")
+#        
+#        # start new map display if no display is available
+#        if not self.current:
+#            self.NewDisplay()
+#        
+#        maptree = self.current.maptree
+#        
+#        # ask user to save current settings
+#        if maptree.GetCount() > 0:
+#             dlg = wx.MessageDialog(self, message=_("Current workspace is not empty. "
+#                                                    "Do you want to store current settings "
+#                                                    "to workspace file?"),
+#                                    caption=_("Create new workspace?"),
+#                                    style=wx.YES_NO | wx.YES_DEFAULT | \
+#                                        wx.CANCEL | wx.ICON_QUESTION)
+#             ret = dlg.ShowModal()
+#             if ret == wx.ID_YES:
+#                 self.OnWorkspaceSaveAs()
+#             elif ret == wx.ID_CANCEL:
+#                 dlg.Destroy()
+#                 return
+#             
+#             dlg.Destroy()
+#        
+#        # delete all items
+#        maptree.DeleteAllItems()
+#        
+#        # add new root element
+#        maptree.root = maptree.AddRoot("Map Layers")
+#        self.current.maptree.SetPyData(maptree.root, (None,None))
+#        
+#        # no workspace file loaded
+#        self.workspaceFile = None
+#        self.SetTitle(self.baseTitle)
+
+
+    def OnWorkspaceNew(self, event = None):
         """!Create new workspace file
 
-        Erase current workspace settings first"""
-
+        Erase current workspace settings first
+        """
         Debug.msg(4, "GMFrame.OnWorkspaceNew():")
         
         # start new map display if no display is available
-        if not self.current:
+        if not self.curr_page:
             self.NewDisplay()
         
-        maptree = self.current.maptree
+        maptree = self.curr_page.maptree
         
         # ask user to save current settings
-        if maptree.GetCount() > 0:
+        if self.workspaceFile and self.workspaceChanged:
+            self.OnWorkspaceSave()
+        elif self.workspaceFile is None and maptree.GetCount() > 0:
              dlg = wx.MessageDialog(self, message=_("Current workspace is not empty. "
                                                     "Do you want to store current settings "
                                                     "to workspace file?"),
@@ -970,11 +939,13 @@ class DataCatalog(wx.Frame):
         
         # add new root element
         maptree.root = maptree.AddRoot("Map Layers")
-        self.current.maptree.SetPyData(maptree.root, (None,None))
+        self.curr_page.maptree.SetPyData(maptree.root, (None,None))
         
         # no workspace file loaded
         self.workspaceFile = None
+        self.workspaceChanged = False
         self.SetTitle(self.baseTitle)
+
         
     def OnWorkspaceOpen(self, event=None):
         """!Open file with workspace definition"""
@@ -1962,8 +1933,10 @@ class DataCatalog(wx.Frame):
         Create the tree nodes based on selected location and mapset.
         Also update gisrc and grassrc files.
         """
-        self.ltree.DeleteAllItems()
-        self.ltree.AddTreeNodes(self.cmbLocation.GetValue(),self.cmbMapset.GetValue())	
+       
+        self.page = self.notebook.GetCurrentPage()
+        
+        self.page.maptree.AddTreeNodes(self.cmbLocation.GetValue(),self.cmbMapset.GetValue())	
         self.gisrc['LOCATION_NAME'] = str(self.cmbLocation.GetValue())
         self.gisrc['MAPSET'] = str(self.cmbMapset.GetValue())
         self.update_grassrc(self.gisrc)
@@ -1972,7 +1945,11 @@ class DataCatalog(wx.Frame):
         self.page = self.notebook.GetPage(self.notebook.GetSelection())
         self.page.Map.__init__()	
         self.page.Map.region = self.page.Map.GetRegion()
-        self.page.Map.projinfo = self.page.Map.ProjInfo()
+        if version == "6.5.svn":
+            self.page.Map.projinfo = self.page.Map._projInfo()
+        else:
+            self.page.Map.projinfo = self.page.Map.ProjInfo()
+
         self.page.Map.wind = self.page.Map.GetWindow()
         
         if self.locationchange == True:
@@ -2001,18 +1978,12 @@ class DataCatalog(wx.Frame):
         """
         Populate mapset combobox with selected location.
         """
-        count = self.current.maptree.GetCount()
-        firstitem = self.current.maptree.GetFirstVisibleItem()
-        for i in range(1, count):
-            nextitem = self.current.maptree.GetNext(firstitem);
-            self.current.maptree.Delete(nextitem)
-        if firstitem:
-            self.current.maptree.Delete(firstitem)
+
 
 
         self.cmbMapset.Clear()
         self.cmbMapset.SetValue("Select Mapset")
-        self.ltree.DeleteAllItems()
+        #self.ltree.DeleteAllItems()
 
 
         maplists = self.GetMapsets(self.cmbLocation.GetValue())
@@ -2048,16 +2019,16 @@ class DataCatalog(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX,self.OnLocationChange,self.cmbLocation)
 
         #Event bindings for tree -(display,popup,label edit.)
-        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.ltree.OnDisplay,self.ltree)
-        self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK,self.ltree.OnTreePopUp,self.ltree)
-        self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.ltree.OnEndRename,self.ltree)
-        self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.ltree.OnBeginRename,self.ltree)
+        #self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.ltree.OnDisplay,self.ltree)
+        #self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK,self.ltree.OnTreePopUp,self.ltree)
+        #self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.ltree.OnEndRename,self.ltree)
+       # self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.ltree.OnBeginRename,self.ltree)
 
 	    #Event bindings for tree menu
-        self.Bind(wx.EVT_MENU,self.ltree.OnCopy,id=self.ltree.ID_COPY)
-        self.Bind(wx.EVT_MENU,self.ltree.OnRename,id=self.ltree.ID_REN)
-        self.Bind(wx.EVT_MENU,self.ltree.OnDelete,id=self.ltree.ID_DEL)
-        self.Bind(wx.EVT_MENU,self.ltree.OnOssim,id=self.ltree.ID_OSSIM)
+        #self.Bind(wx.EVT_MENU,self.ltree.OnCopy,id=self.ltree.ID_COPY)
+        #self.Bind(wx.EVT_MENU,self.ltree.OnRename,id=self.ltree.ID_REN)
+        #self.Bind(wx.EVT_MENU,self.ltree.OnDelete,id=self.ltree.ID_DEL)
+        #self.Bind(wx.EVT_MENU,self.ltree.OnOssim,id=self.ltree.ID_OSSIM)
 
 
         self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
@@ -2085,14 +2056,14 @@ class DataCatalog(wx.Frame):
         self.cmbSizer.Add(self.treeExpand)
         #splitter window sizers
         self.mSizer.Add(self.cmbPanel,flag=wx.EXPAND)
-        self.mSizer.Add(self.win, 1, wx.EXPAND)
-        self.leftSizer.Add(self.ltree,1,wx.EXPAND)
-        self.rightSizer.Add(self.notebook,1,wx.EXPAND)
+        #self.mSizer.Add(self.win, 1, wx.EXPAND)
+        #self.leftSizer.Add(self.ltree,1,wx.EXPAND)
+        self.mSizer.Add(self.notebook,1,wx.EXPAND)
 
         self.cmbPanel.SetSizer(self.cmbSizer)
         self.SetSizer(self.mSizer)
-        self.pLeft.SetSizer(self.leftSizer)
-        self.pRight.SetSizer(self.rightSizer)
+       # self.pLeft.SetSizer(self.leftSizer)
+        #self.pRight.SetSizer(self.rightSizer)
 
 
 
