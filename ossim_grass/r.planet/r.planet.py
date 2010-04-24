@@ -57,6 +57,14 @@
 #% required : no
 #%end
 #%option
+#% key: np
+#% type: integer
+#% key_desc: Processor-Number
+#% answer: 0
+#% description: Mpi Processor Number
+#% required : no
+#%end
+#%option
 #% key: tile
 #% type: double
 #% key_desc: tile
@@ -75,6 +83,10 @@
 #% key: d
 #% description: Orthoigen 
 #%END
+#%flag
+#% key: m
+#% description: MPI 
+#%END
 
 
 import sys
@@ -87,10 +99,12 @@ def main():
     add = flags['a']
     remove = flags['r']
     orthoigen = flags['d']
+    mpi = flags['m']
     host = options['host']
     dport = options['dport']
     pport = options['pport']
     tile = options['tile']
+    np = options['np']
     grassenv = grass.gisenv()
     mappa = options['map'].replace("@"," ")
     mappa = mappa.split()
@@ -277,7 +291,19 @@ def makedir(path):
     if not os.path.exists(d):
         os.makedirs(d)
 
+
+def WhichPlatform():
+    #global platform
+    platforms = platform.system()
+    return platforms
+
+
 def make3d(tile, elev, outdir):
+    systemplatform = WhichPlatform()
+    if systemplatform == 'Darwin':
+        orthoigenexec = '/Users/sasha/OssimBuilds/Release/ossim-orthoigen'
+    else :
+        orthoigenexec = 'ossim-orthoigen'
     makedir(outdir)
     kwl = 'elev.kwl'
     template = 'igen.slave_tile_buffers: 5 \n'
@@ -307,7 +333,11 @@ def make3d(tile, elev, outdir):
     template += 'product.projection.type: ossimEquDistCylProjection \n'
     open(kwl,'w').write(template)
     instr = 'export DYLD_FRAMEWORK_PATH=/Users/sasha/OssimBuilds/Release/ ; '
-    instr += '/Users/sasha/OssimBuilds/Release/ossim-orthoigen'
+    if mpi :
+        instr += 'mpirun -np %s ' % np
+        instr += orthoigenexec
+    else :
+        instr += orthoigenexec
     instr += ' --tiling-template '
     instr += kwl
     instr +=' --view-template '
@@ -323,7 +353,14 @@ def make3d(tile, elev, outdir):
 
 
 def makeoverview(input):
-    os.system("ossim-img2rr %s" % input)
+    if systemplatform == 'Darwin':
+        img2rrexec = '/Users/sasha/OssimBuilds/Release/ossim-img2rr'
+    else :
+        img2rrexec = 'ossim-img2rr'
+    if mpi :
+        os.system("mpirun -np %s %s %s" % np, img2rrexec, input)
+    else :
+        os.system("%s %s" % img2rrexec, input)
 
 
 if __name__ == "__main__":

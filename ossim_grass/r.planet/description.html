@@ -1,8 +1,11 @@
 <h2>DESCRIPTION</h2>
 
 
-<em><b>r.planet.py : </b></em> Scripts to generate vrt layer from a selected grass raster layer and add/zoomTo/remove the data to ossimplanet using the ossimplanet tcp listner.
-
+<em><b>r.planet.py : </b></em> Scripts to : 
+<p>
+- generate vrt layer from a selected grass raster layer and add/zoomTo/remove the data from/to ossimplanet using the ossimplanet tcp listner.
+<p>
+- generate ossimplanet 3d tiles from elevation data.
 
 <h2>EXAMPLE</h2>
 
@@ -14,6 +17,11 @@ r.planet.py map=elevation.10m -a
 Remove selected map from ossimplanet screen :
 <div class="code"><pre>
 r.planet.py map=elevation.10m -r
+</pre></div>
+<p>
+Generate 3D tiles :
+<div class="code"><pre>
+r.planet.py map=elevation.10m -d tile=3601
 </pre></div>
 <p>
 
