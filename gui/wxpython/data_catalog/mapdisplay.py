@@ -5,12 +5,14 @@
 management functions, and additional toolbars (vector digitizer, 3d
 view).
 
-Classes:
-- Command
-- MapWindow
-- BufferedWindow
-- MapFrame
+Can be used either from Layer Manager or as p.mon backend.
 
+Classes:
+- MapFrame
+- MapApp
+
+Usage:
+python mapdisp.py monitor-identifier /path/to/command/file
 
 (C) 2006-2009 by the GRASS Development Team
 This program is free software under the GNU General Public
@@ -692,6 +694,7 @@ class BufferedWindow(MapWindow, wx.Window):
         @param renderVector re-render vector map layer enabled for editing (used for digitizer)
         """
         if self.flag == True:
+            self.flag = False
             start = time.clock()
 
 
@@ -926,7 +929,6 @@ class BufferedWindow(MapWindow, wx.Window):
         dc = wx.BufferedDC(wx.ClientDC(self))
         dc.SetBackground(wx.Brush("White"))
         dc.Clear()
-
         self.dragimg = wx.DragImage(self.buffer)
         self.dragimg.BeginDrag((0, 0), self)
         self.dragimg.GetImageRect(moveto)
@@ -2851,7 +2853,7 @@ class MapFrame(wx.Panel):
         self._mgr.AddPane(self.maptree, wx.aui.AuiPaneInfo().Left().
                                         Dockable(False).BestSize((400,300)).
                                         CloseButton(False).DestroyOnClose(True).
-                                        Layer(0).Caption("MapTree"))
+                                        Layer(0).Caption("Map Tree"))
 
         self._mgr.Update()
 
@@ -3309,7 +3311,9 @@ class MapFrame(wx.Panel):
         """
         Erase the canvas
         """
+
         self.MapWindow.EraseMap()
+
 
     def OnZoomRegion(self, event):
         """
@@ -4570,4 +4574,47 @@ class MapFrame(wx.Panel):
     
 # end of class MapFrame
 
+class MapApp(wx.App):
+    """
+    MapApp class
+    """
 
+    def OnInit(self):
+
+        wx.InitAllImageHandlers()
+        if __name__ == "__main__":
+            Map = render.Map() # instance of Map class to render GRASS display output to PPM file
+        else:
+            Map = None
+
+        self.mapFrm = MapFrame(parent=None, id=wx.ID_ANY, Map=Map,
+                               size=globalvar.MAP_WINDOW_SIZE)
+        #self.SetTopWindow(Map)
+        self.mapFrm.Show()
+
+        if __name__ == "__main__":
+            # redraw map, if new command appears
+            self.redraw = False
+
+
+        return 1
+
+
+# end of class MapApp
+
+if __name__ == "__main__":
+
+    ###### SET command variable
+
+
+    title = "title"
+    cmdfilename = "cmdfilename"
+
+    
+
+    gm_map = MapApp(0)
+    # set title
+    gm_map.mapFrm.SetTitle(_("GRASS GIS Map Display: " +   title +   " - Location: " + grass.gisenv()["LOCATION_NAME"]))
+    
+    gm_map.MainLoop()
+    sys.exit(0)

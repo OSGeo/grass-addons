@@ -1,22 +1,3 @@
-"""
-@package LayerTree.py
-
-
-
-@breif A LayerTree for managing maps
-based on selected location and mapset
-
-Classes:
- - LayerTree
-
-(C) 2007 by the GRASS Development Team
-This program is free software under the GNU General Public
-License (>=v2). Read the file COPYING that comes with GRASS
-for details.
-
-@author Mohammed Rashad K.M <rashadkm at gmail dot com>
-
-"""
 import os
 import sys
 import wx
@@ -119,11 +100,9 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 
         item    = event.GetItem()
         checked = item.IsChecked()
-
+        
 
         pText = self.GetItemText(self.GetItemParent(item)) 
-
-
         leftpanel=self.GetParent()
         notebook = leftpanel.GetParent()
         frame = notebook.GetParent()
@@ -136,37 +115,32 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             #maptree = mapframe.maptree
 
             if pText == "Raster Map" :
-                self.cmd= ['d.rast', str("map=" + self.mapname)]
-                l_type='raster'
-                
-                self.maplayer = self.MapWindow.Map.AddLayer(type='raster', name=self.mapname, command=self.cmd)
-               
-
-                #layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
-                #maptree.first = True
-                #maptree.layer_selected = layer
-                #maptree.CheckItem(layer)
-                #self.layer.append(self.maplayer)
-                #maptree.PlusLayer(self.maplayer)
-
-
+                if checked == True:
+                    self.cmd= ['d.rast', str("map=" + self.mapname)]
+                    self.MapWindow.Map.AddLayer(type='raster', name=self.mapname, command=self.cmd)
+                else:
+                    layers =  self.MapWindow.Map.GetListOfLayers( l_type='raster', l_name=self.mapname)
+                    for layer in layers:
+                        self.MapWindow.Map.DeleteLayer(layer)
+                        self.MapWindow.EraseMap()
+            
+            
+      
+        
             if pText == "Vector Map" :
-                self.cmd= ['d.vect', str("map=" + self.mapname)]
-                l_type='vector'
-                
-                self.maplayer = self.MapWindow.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
-
-
+                if checked == True:
+                    self.cmd= ['d.vect', str("map=" + self.mapname)]
+                    self.MapWindow.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
+                else:
+                    layers =  self.MapWindow.Map.GetListOfLayers( l_type='vector', l_name=self.mapname)
+                    for layer in layers:
+                        self.MapWindow.Map.DeleteLayer(layer)
+                        self.MapWindow.EraseMap()
+            
             self.MapWindow.Map.region = self.MapWindow.Map.GetRegion()
             self.MapWindow.flag = True
             self.MapWindow.UpdateMap(render=True)
             self.MapWindow.flag = False
-                #layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
-                #maptree.first = True
-                #maptree.layer_selected = layer
-                #maptree.CheckItem(layer)
-                #self.layer.append(self.maplayer)
-                #maptree.PlusLayer(self.maplayer)
 
 
 
@@ -189,10 +163,12 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             if not os.path.isfile(gloc) and os.path.isdir(gloc):
 	            if(os.path.basename(gloc)=='cellhd'):
 		            for rast in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
-			            self.PrependItem(node_raster, os.path.basename(rast),ct_type=1)
+			            rlayer = self.PrependItem(node_raster, os.path.basename(rast),ct_type=1)
+                        
 	            elif(os.path.basename(gloc)=='vector'):
 		            for vect in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
-			            self.PrependItem(node_vector, os.path.basename(vect),ct_type=1)
+			            vlayer=self.PrependItem(node_vector, os.path.basename(vect),ct_type=1)
+                        
 	            elif(os.path.basename(gloc)=='dbf'):
 		            for dfile in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
 			            self.PrependItem(node_dbf, os.path.basename(dfile),ct_type=1)
