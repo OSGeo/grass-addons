@@ -7,8 +7,7 @@ GRASS LayerTree.
 MapTree provides functionss such as view,copy,rename and delete mapset
 
 Classes:
- - DataCatalog
- - CatalogApp
+ - LayerTree
 
 (C) 2007 by the GRASS Development Team
 This program is free software under the GNU General Public
