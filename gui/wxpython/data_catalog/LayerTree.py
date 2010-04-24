@@ -1,3 +1,24 @@
+"""
+@package LayerTree.py
+
+GRASS LayerTree.
+
+@breif A MapTree to display maps based on the selected location and mapset
+MapTree provides functionss such as view,copy,rename and delete mapset
+
+Classes:
+ - DataCatalog
+ - CatalogApp
+
+(C) 2007 by the GRASS Development Team
+This program is free software under the GNU General Public
+License (>=v2). Read the file COPYING that comes with GRASS
+for details.
+
+@author Mohammed Rashad K.M <rashadkm at gmail dot com>
+
+"""
+
 import os
 import sys
 import wx
