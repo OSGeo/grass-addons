@@ -16,7 +16,7 @@ int parse_map_file(STRING file)
 
     fd = fopen(file, "r");
     if (!fd)
-	G_fatal_error(_("Cannot open varaible file '%s'"), file);
+	G_fatal_error(_("Cannot open map file '%s'"), file);
 
     fgetpos(fd, &init);
 
@@ -39,7 +39,7 @@ int parse_map_file(STRING file)
 	    continue;
 
 	if (*buf != '%' && *buf != '$')
-	    G_fatal_error(_("Wrong syntax at line %d: line must start with #, % or $ or be empty line"),
+	    G_fatal_error(_("Wrong syntax at line %d: line must start with <#>, <%> or <$> or be empty line"),
 			  line);
 
 	if (*buf == '%') {
@@ -109,7 +109,7 @@ int parse_sets(SETS * set, char buf[], const char mapname[])
 	    G_strcpy(set->setname, tmp);
 	else
 	    G_fatal_error(_("Map: <%s>, Membership: <%s>: Value name cannot be longer than 20 chars, but has %d chars"),
-			  mapname, tmp, strlen(tmp));
+			  mapname, tmp, (int)strlen(tmp));
     }				/* check length of fuzzy value */
 
     {				/* check if side is valid (both,left,right) */

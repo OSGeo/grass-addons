@@ -64,7 +64,7 @@ int parse_rules(int rule_num, int n, char buf[])
     int done = 1;
     int stack_top;
     char tmp[30];
-    char opr[] = { '=', '&', '|', ';', '~', '(', ')', '{', '}' };
+    char opr[] = { '=', '&', '|', '~', '(', ')', '{', '}' };
 
     i = j = stack_top = 0;	/* variables of the while loop */
     char_strip(buf, '$');
@@ -136,7 +136,7 @@ int parse_rules(int rule_num, int n, char buf[])
     /* ******************************************************************* */
 
 
-    {				/* adding weight */
+/*    {				 adding weight: not implemented yet
 
 	char local[900];
 	char weight[10];
@@ -150,7 +150,7 @@ int parse_rules(int rule_num, int n, char buf[])
 	if (s_rules[rule_num].weight <= 0.)
 	    G_fatal_error(_("Weight must be grater than 0 or non-number character"));
 
-    }
+    } */
 
     {				/* check if rule syntax is proper and map names and vars values exist */
 	int k;

@@ -44,7 +44,7 @@ The rule file has his own syntax. Because module creates only one result map, th
 
 <P>An example of fuzzy rules definiton:
 <PRE>
-$ small {distance = high & elev = high};
+$ small {distance = high & elev = high}
 </PRE>
 </DD>
 <h2>ADVANCED OPTIONS</h2>
@@ -153,7 +153,7 @@ First we need two maps created with r.stream package:
 <PRE>
 r.stream.extract elevation=elevation.10m@PERMANENT threshold=2000 stream_rast=streams direction=dirs 
 r.stream.order stream=streams dir=dirs horton=horton
-r.mapcalc "horton3=if(horton>2,horton,null()"
+r.mapcalc "horton3=if(horton>2,horton,null())"
 r.stream.distance stream=streams dir=dirs dem=elevation.10m method=downstream distance=distance elevation=elevation 
 </PRE>
 
@@ -178,14 +178,14 @@ $ veryprob {both; 40,60,60,80; linear; 0;1}
 <P>RULES:
 <PRE>
 #flood.rul
-$ unprob {elevation = high & distance = far};
-$ prob {distance = near | elevation = low};
-$ veryprob {distance = near & elevation = low};
+$ unprob {elevation = high & distance = far}
+$ prob {distance = near | elevation = low}
+$ veryprob {distance = near & elevation = low}
 </PRE>
 
 finally we need run r.fuzzy.system:
 <PRE>
-r.fuzzy.system vars=flood.map rules=flod.rul output=flood 
+r.fuzzy.system maps=flood.map rules=flod.rul output=flood 
 </PRE>
 
 Resulting map should look like this below. Yellow color means no risk, red high risk, green, blue end so on moderate risk.

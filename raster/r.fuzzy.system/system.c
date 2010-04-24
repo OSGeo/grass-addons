@@ -8,11 +8,11 @@ float implicate(void)
     int set_index;
     float consequent;
     float max_antecedent = 0;
+    float result;
 
     agregate = (float *)G_calloc(resolution, sizeof(float));
-    antecedents = (float *)G_malloc(nrules * sizeof(float));
 
-    if (coor_proc)
+    if (coor_proc) /* this is allocated only once */
 	visual_output = (float **)G_malloc(resolution * sizeof(float *));
 
     for (j = 0; j < nrules; ++j) {
@@ -53,7 +53,9 @@ float implicate(void)
 	for (i = 0; i < resolution; ++i)
 	    visual_output[i][j + 1] = agregate[i];
 
-    return defuzzify(agregate, defuzzyfication, max_antecedent);
+     result=defuzzify(agregate, defuzzyfication, max_antecedent);
+     G_free(agregate);
+     return result;
 }
 
 float parse_expression(int n)

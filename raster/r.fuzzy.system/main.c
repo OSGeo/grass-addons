@@ -166,7 +166,8 @@ int main(int argc, char **argv)
 
     if (multiple)
 	create_output_maps();
-
+	antecedents = (float *)G_malloc(nrules * sizeof(float));
+	
     G_message("Calculate...");
 
     for (row = 0; row < nrows; ++row) {
@@ -217,6 +218,7 @@ int main(int argc, char **argv)
 	G_close_cell(s_maps[i].cfd);
     }
 
+    G_free(antecedents);
     G_free(out_buf);
     G_close_cell(outfd);
     G_short_history(output, "raster", &history);
