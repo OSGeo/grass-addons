@@ -94,6 +94,7 @@ import os
 import socket
 import grass.script as grass
 import osgeo.gdal as gdal
+import platform
 
 def main():
     add = flags['a']
@@ -353,14 +354,18 @@ def make3d(tile, elev, outdir):
 
 
 def makeoverview(input):
+    systemplatform = WhichPlatform()
+    mpi = 0
+    np = 1
     if systemplatform == 'Darwin':
-        img2rrexec = '/Users/sasha/OssimBuilds/Release/ossim-img2rr'
+        img2rrexec = 'export DYLD_FRAMEWORK_PATH=/Users/sasha/OssimBuilds/Release/ ; /Users/sasha/OssimBuilds/Release/ossim-img2rr'
     else :
         img2rrexec = 'ossim-img2rr'
-    if mpi :
-        os.system("mpirun -np %s %s %s" % np, img2rrexec, input)
+    if mpi == 1 :
+        os.system("mpirun -np %s %s %s" % (np, img2rrexec, input))
     else :
-        os.system("%s %s" % img2rrexec, input)
+        os.system('%s %s' % (img2rrexec, input))
+        
 
 
 if __name__ == "__main__":
