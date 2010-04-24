@@ -143,22 +143,22 @@ typedef struct _outs
 } OUTPUTS;
 
 
-STRING var_name_file;
-STRING rule_name_file;
-STRING output;
-MAPS *s_maps;
-RULES *s_rules;
-OUTPUTS *m_outputs;
-float **visual_output;
-float *universe;
-float *antecedents;
-int nmaps, nrules, output_index, multiple, coor_proc;
-int resolution;
-implications implication;
-defuzz defuzzyfication;
-logics family;
+GLOBAL STRING var_name_file;
+GLOBAL STRING rule_name_file;
+GLOBAL STRING output;
+GLOBAL MAPS *s_maps;
+GLOBAL RULES *s_rules;
+GLOBAL OUTPUTS *m_outputs;
+GLOBAL float **visual_output;
+GLOBAL float *universe;
+GLOBAL float *antecedents;
+GLOBAL int nmaps, nrules, output_index, multiple, coor_proc;
+GLOBAL int resolution;
+GLOBAL implications implication;
+GLOBAL defuzz defuzzyfication;
+GLOBAL logics family;
 
-char **rules;
+GLOBAL char **rules;
 
 int char_strip(char *buf, char rem);
 int char_copy(const char *buf, char *res, int start, int stop);
@@ -172,7 +172,7 @@ int open_maps(void);
 int create_output_maps(void);
 int get_rows(int row);
 int get_cols(int col);
-
+int get_cells(int col);
 
 int parse_sets(SETS * set, char buf[], const char mapname[]);
 int parse_rules(int rule_num, int n, char buf[]);
