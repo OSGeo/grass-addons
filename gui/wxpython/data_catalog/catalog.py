@@ -1969,7 +1969,7 @@ class DataCatalog(wx.Frame):
 
         
     def OnRunScript():
-        print "for grass7"
+        print "for grass"
 
     def OnQuit():
         print "for grass7"
