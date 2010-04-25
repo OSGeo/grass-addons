@@ -78,6 +78,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.ID_COPY = wx.NewId()
         self.ID_DEL = wx.NewId()
         self.ID_OSSIM = wx.NewId()
+        self.ID_INFO = wx.NewId()
+        self.ID_REPORT = wx.NewId()
 
         acel = wx.AcceleratorTable([ 
 		        (wx.ACCEL_CTRL,  ord('R'), self.ID_REN ) ,
@@ -92,10 +94,9 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.layer = []
         self.maplayer = None
 
+
         d = self.GetParent()
         notebook = d.GetParent()
-
-
         child=notebook.GetChildren()
         for panel in child:
               if panel.GetName() == "pg_panel":
@@ -115,7 +116,48 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.Bind(wx.EVT_MENU,self.OnRename,id=self.ID_REN)
         self.Bind(wx.EVT_MENU,self.OnDelete,id=self.ID_DEL)
         self.Bind(wx.EVT_MENU,self.OnOssim,id=self.ID_OSSIM)
+        self.Bind(wx.EVT_MENU,self.OnInfo,id=self.ID_INFO)
+        self.Bind(wx.EVT_MENU,self.OnReport,id=self.ID_REPORT)
+        
+    def OnInfo(self,event):
 
+        item =  self.GetSelection()
+        parent = self.GetItemParent(item)
+        pText = self.GetItemText(parent)
+
+        leftpanel=self.GetParent()
+        notebook = leftpanel.GetParent()
+        frame = notebook.GetParent()
+
+        if not self.ItemHasChildren(item):
+            self.mapname =  self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
+
+            if pText == "Raster Map" :
+                command = ["r.info", 'map=' +  self.mapname]
+                frame.goutput.RunCmd(command)
+            if pText == "Vector Map" :
+                command = ["v.info", 'map=' +  self.mapname]
+                frame.goutput.RunCmd(command)
+
+    def OnReport(self,event):
+
+        item =  self.GetSelection()
+        parent = self.GetItemParent(item)
+        pText = self.GetItemText(parent)
+
+        leftpanel=self.GetParent()
+        notebook = leftpanel.GetParent()
+        frame = notebook.GetParent()
+        
+        if not self.ItemHasChildren(item):
+            self.mapname =  self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
+            
+            if pText == "Raster Map" :
+                command = ["r.report", 'map=' +  self.mapname]
+                frame.goutput.RunCmd(command)
+            if pText == "Vector Map" :
+                command = ["v.report", 'map=' +  self.mapname]
+                frame.goutput.RunCmd(command)
 
 
 
@@ -268,6 +310,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             mnuRename = self.popupmenu.Append(self.ID_REN,'&Rename\tCtrl-R')
             mnuDel = self.popupmenu.Append(self.ID_DEL,'&Delete\tDEL')
             mnuOssim = self.popupmenu.Append(self.ID_OSSIM,'&send to OssimPlanet')
+            mnuInfo = self.popupmenu.Append(self.ID_INFO,'&Info')
+            mnuReport = self.popupmenu.Append(self.ID_REPORT,'&Report')
             self.PopupMenu(self.popupmenu)
 
 

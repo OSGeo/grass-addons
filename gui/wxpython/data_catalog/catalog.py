@@ -116,6 +116,7 @@ class DataCatalog(wx.Frame):
        
         self.iconsize  = (16, 16)
         self.baseTitle = title
+        self.parent = parent
 
         wx.Frame.__init__(self, parent, id, title, pos=pos, size=size)
  
@@ -217,8 +218,7 @@ class DataCatalog(wx.Frame):
         self.current = self.notebook.GetCurrentPage()    
  
 
-        self.goutput = goutput.GMConsole(self, pageid=1)
-        self.goutput.Hide()
+        #self.goutput.Redirect()
 
     
        # self.ltree = LayerTree(self.pLeft,wx.ID_ANY,gisdbase=self.gisdbase,frame=self.pg_panel)
