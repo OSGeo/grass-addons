@@ -27,7 +27,7 @@ int parse_rule_file(STRING file)
     s_rules = (RULES *) G_malloc((nrules) * sizeof(RULES));
     rules = (char **)G_malloc((nrules) * sizeof(char *));
     for (i = 0; i < nrules; ++i)
-	rules[i] = (char *)G_malloc(21 * sizeof(char *));
+	rules[i] = (char *)G_malloc(21 * sizeof(char));
 
     fsetpos(fd, &init);		/* reset position */
 
@@ -77,6 +77,9 @@ int parse_rules(int rule_num, int n, char buf[])
 	G_strip(buf);
 	G_strip(tmp);
 
+		for (p = 0; p <= rule_num; ++p)
+	strcpy(rules[p],"");
+	
 	done = 1;
 	for (s = 0; s <= s_maps[n - 1].nsets; ++s) {	/* output map */
 

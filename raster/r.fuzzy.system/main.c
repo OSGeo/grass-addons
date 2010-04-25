@@ -160,9 +160,8 @@ int main(int argc, char **argv)
 
     if ((outfd = G_open_raster_new(output, FCELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), output);
+    
     out_buf = G_allocate_f_raster_buf();
-
-
 
     if (multiple)
 	create_output_maps();
@@ -174,7 +173,6 @@ int main(int argc, char **argv)
 	G_percent(row, nrows, 2);
 	get_rows(row);
 	for (col = 0; col < ncols; ++col) {
-
 	    if (get_cells(col)) {
 		G_set_f_null_value(&out_buf[col], 1);
 
@@ -199,12 +197,13 @@ int main(int argc, char **argv)
 	    G_fatal_error(_("Failed writing raster map <%s> at row <%d>"),
 			  output, row);
 
-	if (multiple)
+	if (multiple) 
 	    for (i = 0; i < nrules; ++i)
 		if (G_put_raster_row
 		    (m_outputs[i].ofd, m_outputs[i].out_buf, FCELL_TYPE) < 0)
 		    G_fatal_error(_("Failed writing raster map <%s> at row <%d>"),
 				  m_outputs[i].output_name, row);
+
     }
     G_percent(row, nrows, 2);
 
@@ -233,7 +232,7 @@ int main(int argc, char **argv)
 	    G_command_history(&history);
 	    G_write_history(m_outputs[i].output_name, &history);
 	}
-    G_message("Done!");
+   G_message("Done!");
     exit(EXIT_SUCCESS);
 
 }

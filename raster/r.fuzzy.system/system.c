@@ -35,12 +35,14 @@ float implicate(void)
 
 	if (defuzzyfication > d_BISECTOR && antecedents[j] < max_antecedent)
 	    continue;
+	    
+	    set_index = s_rules[j].output_set_index; //było niżej
 
 	for (i = 0; i < resolution; ++i) {
-
+	    
 	    consequent = fuzzy(universe[i],
 			       &s_maps[output_index].sets[set_index]);
-	    set_index = s_rules[j].output_set_index;
+	    
 	    consequent = (!implication) ? MIN(antecedents[j], consequent) :
 		antecedents[j] * consequent;
 	    agregate[i] = MAX(agregate[i], consequent);
