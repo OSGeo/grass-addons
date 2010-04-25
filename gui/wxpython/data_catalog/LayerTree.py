@@ -66,8 +66,11 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 
         self.gisdbase = gisdbase
 
+        self.layer_selected = None
+
 
         self.Map = None
+        self.root = None
         #if self.Map is not None:
         #    print self.Map.width
 
@@ -97,6 +100,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         for panel in child:
               if panel.GetName() == "pg_panel":
                 self.mapdisplay = panel
+                break
 
         self.MapWindow = self.mapdisplay.MapWindow2D
         self.Bind(CT.EVT_TREE_ITEM_CHECKED,     self.OnLayerChecked)
@@ -128,6 +132,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         frame = notebook.GetParent()
 
 
+
+
         if not self.ItemHasChildren(item):
             self.mapname =  self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
             #for f in frames:
@@ -137,7 +143,9 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             if pText == "Raster Map" :
                 if checked == True:
                     self.cmd= ['d.rast', str("map=" + self.mapname)]
-                    self.MapWindow.Map.AddLayer(type='raster', name=self.mapname, command=self.cmd)
+                    maplayer = self.MapWindow.Map.AddLayer(type='raster', name=self.mapname, command=self.cmd)
+                    self.layer_selected = maplayer
+                    self.type = 'raster'
                 else:
                     layers =  self.MapWindow.Map.GetListOfLayers( l_type='raster', l_name=self.mapname)
                     for layer in layers:
@@ -150,7 +158,9 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             if pText == "Vector Map" :
                 if checked == True:
                     self.cmd= ['d.vect', str("map=" + self.mapname)]
-                    self.MapWindow.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
+                    maplayer = self.MapWindow.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
+                    self.layer_selected = maplayer
+                    self.type = 'vector'
                 else:
                     layers =  self.MapWindow.Map.GetListOfLayers( l_type='vector', l_name=self.mapname)
                     for layer in layers:
@@ -165,17 +175,18 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 
 
 
+
     def AddTreeNodes(self,location,mapset):
         """
         Adds tree nodes. raster,vector and dbf files are identified using 
         their directory structure.
         """
         self.DeleteAllItems()
-        root = self.AddRoot("Map Layers")
-        self.SetPyData(root, (None,None))
-        node_raster = self.AppendItem(root, "Raster Map")
-        node_vector = self.AppendItem(root, "Vector Map")
-        node_dbf = self.AppendItem(root, "DBF")
+        self.root = self.AddRoot("Map Layers")
+        self.SetPyData(self.root, (None,None))
+        node_raster = self.AppendItem(self.root, "Raster Map")
+        node_vector = self.AppendItem(self.root, "Vector Map")
+        node_dbf = self.AppendItem(self.root, "DBF")
         treeNodes = [node_raster,node_vector,node_dbf]
 
         glocs = glob.glob(os.path.join(self.gisdbase,location, mapset,"*"))

@@ -505,10 +505,15 @@ class DataCatalog(wx.Frame):
         self.notebook.SetTabAreaColour(globalvar.FNPageColor)
 
        # self._lmgr=wx.aui.AuiManager(self)
-        self.pg_panel = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(),  size=globalvar.MAP_WINDOW_SIZE,frame=self,flag=True,gismgr=self)
+        self.pg_panel = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(),  size=globalvar.MAP_WINDOW_SIZE,flag=True,frame=self,gismgr=self)
         
         self.disp_idx = self.disp_idx + 1
         self.notebook.AddPage(self.pg_panel, text="Display "+ str(self.disp_idx), select = True)
+
+        self.goutput = goutput.GMConsole(self, pageid=1)
+        self.outpage = self.notebook.AddPage(self.goutput, text=_("Command console"))
+
+        self.notebook.SetSelection(0)
 
 
        # self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
@@ -1441,7 +1446,7 @@ class DataCatalog(wx.Frame):
         
         # available only for vector map layers
         try:
-            maptype = self.current.maptree.GetPyData(layer)[0]['maplayer'].type
+            maptype = self.current.maptree.type
         except:
             maptype = None
         
@@ -1453,15 +1458,15 @@ class DataCatalog(wx.Frame):
                           style=wx.OK | wx.ICON_INFORMATION | wx.CENTRE)
             return
         
-        if not self.current.maptree.GetPyData(layer)[0]:
-            return
-        dcmd = self.current.maptree.GetPyData(layer)[0]['cmd']
+
+        dcmd = self.current.maptree.cmd
         if not dcmd:
             return
         
         busy = wx.BusyInfo(message=_("Please wait, loading attribute data..."),
                            parent=self)
         wx.Yield()
+     
         
         dbmanager = dbm.AttributeManager(parent=self, id=wx.ID_ANY,
                                          size=wx.Size(500, 300),
@@ -1508,9 +1513,10 @@ class DataCatalog(wx.Frame):
 
         
         self.page = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(),  size=globalvar.MAP_WINDOW_SIZE,frame=self)
-        self.notebook.AddPage(self.page, text="Display "+ str(self.disp_idx), select = True)
+        self.notebook.InsertPage(self.disp_idx,self.page, text="Display "+ str(self.disp_idx), select = True)
 
         self.current = self.notebook.GetCurrentPage()
+        self.notebook.SetSelection(0)
 
 
         
@@ -1701,8 +1707,14 @@ class DataCatalog(wx.Frame):
     def AddRaster(self, event):
         if not self.current:
             self.NewDisplay()
+            
+        #cmd = ['d.rast']
+        #menuform.GUI().ParseCommand(cmd,parentframe=self)
 
-        self.current.maptree.AddLayer('raster') 
+        #self.current.maptree.AddLayer('raster') 
+        dlg =     AddLayer(parent=self, title = "Add Raster")
+        dlg.ShowModal()
+
 
     def AddRaster3d(self, event):
         if not self.current:
@@ -1911,7 +1923,7 @@ class DataCatalog(wx.Frame):
         index = 0
         while index < count:
             self.current = self.notebook.GetPage(index)
-            self.current.Map.Clean()
+            #self.current.Map.Clean()
             index = index+1
 
         self.notebook.DeleteAllPages()
@@ -1969,7 +1981,7 @@ class DataCatalog(wx.Frame):
 
         
     def OnRunScript():
-        print "for grass"
+        print "for grass7"
 
     def OnQuit():
         print "for grass7"
@@ -2018,42 +2030,20 @@ class DataCatalog(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX,self.OnMapsetChange,self.cmbMapset)
         self.Bind(wx.EVT_COMBOBOX,self.OnLocationChange,self.cmbLocation)
 
-        #Event bindings for tree -(display,popup,label edit.)
-        #self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.ltree.OnDisplay,self.ltree)
-        #self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK,self.ltree.OnTreePopUp,self.ltree)
-        #self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.ltree.OnEndRename,self.ltree)
-       # self.Bind(wx.EVT_TREE_BEGIN_LABEL_EDIT, self.ltree.OnBeginRename,self.ltree)
-
-	    #Event bindings for tree menu
-        #self.Bind(wx.EVT_MENU,self.ltree.OnCopy,id=self.ltree.ID_COPY)
-        #self.Bind(wx.EVT_MENU,self.ltree.OnRename,id=self.ltree.ID_REN)
-        #self.Bind(wx.EVT_MENU,self.ltree.OnDelete,id=self.ltree.ID_DEL)
-        #self.Bind(wx.EVT_MENU,self.ltree.OnOssim,id=self.ltree.ID_OSSIM)
 
 
         self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
 
 	    #Event bindings for v/r.info checkbox
 	    #self.Bind(wx.EVT_CHECKBOX, self.OnToggleInfo,self.chkInfo)
-	    #self.Bind(wx.EVT_CHECKBOX, self.OnToggleExpand,self.treeExpand)
-
-    def OnToggleExpand(self,event):
-        if self.treeExpand.IsChecked():
-            if not self.gmconsole:
-                self.gmconsole = GLog(parent=self)
-               # self.gmconsole.show()
-#                sys.exit(0)
-            else:
-                self.gmconsole.Raise()
-        else:
-            self.gmconsole.Destroy()
+       
  
     def doLayout(self):
 
 	    #combo panel sizers
         self.cmbSizer.Add(self.cmbLocation)
         self.cmbSizer.Add(self.cmbMapset)
-        self.cmbSizer.Add(self.treeExpand)
+        #self.cmbSizer.Add(self.treeExpand)
         #splitter window sizers
         self.mSizer.Add(self.cmbPanel,flag=wx.EXPAND)
         #self.mSizer.Add(self.win, 1, wx.EXPAND)
@@ -2124,7 +2114,7 @@ class DataCatalog(wx.Frame):
 #End of DataCatalog class
 
 
-
+    
 class CatalogApp(wx.App):
 
     def OnInit(self):
