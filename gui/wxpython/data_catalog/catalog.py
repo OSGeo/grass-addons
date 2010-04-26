@@ -600,6 +600,8 @@ class DataCatalog(wx.Frame):
 
         index  = self.notebook.GetSelection()
         self.page = self.notebook.GetPage(index)
+        
+    
 
     
 
@@ -635,6 +637,7 @@ class DataCatalog(wx.Frame):
         #self.page.Map.Region = self.page.Map.GetRegion()
 
         self.update_grassrc(self.gisrc)
+        
     
         
         event.Skip()
@@ -1515,8 +1518,8 @@ class DataCatalog(wx.Frame):
         self.page = MapFrame(parent=self.notebook, id=wx.ID_ANY, Map=render.Map(),  size=globalvar.MAP_WINDOW_SIZE,frame=self)
         self.notebook.InsertPage(self.disp_idx,self.page, text="Display "+ str(self.disp_idx), select = True)
 
-        self.current = self.notebook.GetCurrentPage()
-        self.notebook.SetSelection(0)
+        #self.current = self.notebook.GetCurrentPage()
+        #self.notebook.SetSelection(0)
 
 
         

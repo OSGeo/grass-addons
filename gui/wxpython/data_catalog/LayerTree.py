@@ -1,23 +1,3 @@
-"""
-@package LayerTree.py
-
-GRASS LayerTree.
-
-@breif A MapTree to display maps based on the selected location and mapset
-MapTree provides functionss such as view,copy,rename and delete mapset
-
-Classes:
- - LayerTree
-
-(C) 2007 by the GRASS Development Team
-This program is free software under the GNU General Public
-License (>=v2). Read the file COPYING that comes with GRASS
-for details.
-
-@author Mohammed Rashad K.M <rashadkm at gmail dot com>
-
-"""
-
 import os
 import sys
 import wx
@@ -66,11 +46,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 
         self.gisdbase = gisdbase
 
-        self.layer_selected = None
-
 
         self.Map = None
-        self.root = None
         #if self.Map is not None:
         #    print self.Map.width
 
@@ -94,14 +71,14 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.layer = []
         self.maplayer = None
 
-
         d = self.GetParent()
         notebook = d.GetParent()
+
+
         child=notebook.GetChildren()
         for panel in child:
               if panel.GetName() == "pg_panel":
                 self.mapdisplay = panel
-                break
 
         self.MapWindow = self.mapdisplay.MapWindow2D
         self.Bind(CT.EVT_TREE_ITEM_CHECKED,     self.OnLayerChecked)
@@ -118,7 +95,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.Bind(wx.EVT_MENU,self.OnOssim,id=self.ID_OSSIM)
         self.Bind(wx.EVT_MENU,self.OnInfo,id=self.ID_INFO)
         self.Bind(wx.EVT_MENU,self.OnReport,id=self.ID_REPORT)
-        
+
+
     def OnInfo(self,event):
 
         item =  self.GetSelection()
@@ -148,6 +126,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         leftpanel=self.GetParent()
         notebook = leftpanel.GetParent()
         frame = notebook.GetParent()
+
+        notebook.SetSelection(notebook.GetPage(notebook.GetPageCount())
         
         if not self.ItemHasChildren(item):
             self.mapname =  self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
@@ -159,6 +139,9 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
                 command = ["v.report", 'map=' +  self.mapname]
                 frame.goutput.RunCmd(command)
 
+        
+
+
 
 
     def OnLayerChecked(self, event):
@@ -166,14 +149,14 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 
         item    = event.GetItem()
         checked = item.IsChecked()
-        
+
 
         pText = self.GetItemText(self.GetItemParent(item)) 
+
+
         leftpanel=self.GetParent()
         notebook = leftpanel.GetParent()
         frame = notebook.GetParent()
-
-
 
 
         if not self.ItemHasChildren(item):
@@ -183,37 +166,37 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             #maptree = mapframe.maptree
 
             if pText == "Raster Map" :
-                if checked == True:
-                    self.cmd= ['d.rast', str("map=" + self.mapname)]
-                    maplayer = self.MapWindow.Map.AddLayer(type='raster', name=self.mapname, command=self.cmd)
-                    self.layer_selected = maplayer
-                    self.type = 'raster'
-                else:
-                    layers =  self.MapWindow.Map.GetListOfLayers( l_type='raster', l_name=self.mapname)
-                    for layer in layers:
-                        self.MapWindow.Map.DeleteLayer(layer)
-                        self.MapWindow.EraseMap()
-            
-            
-      
-        
+                self.cmd= ['d.rast', str("map=" + self.mapname)]
+                l_type='raster'
+                
+                self.maplayer = self.MapWindow.Map.AddLayer(type='raster', name=self.mapname, command=self.cmd)
+               
+
+                #layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
+                #maptree.first = True
+                #maptree.layer_selected = layer
+                #maptree.CheckItem(layer)
+                #self.layer.append(self.maplayer)
+                #maptree.PlusLayer(self.maplayer)
+
+
             if pText == "Vector Map" :
-                if checked == True:
-                    self.cmd= ['d.vect', str("map=" + self.mapname)]
-                    maplayer = self.MapWindow.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
-                    self.layer_selected = maplayer
-                    self.type = 'vector'
-                else:
-                    layers =  self.MapWindow.Map.GetListOfLayers( l_type='vector', l_name=self.mapname)
-                    for layer in layers:
-                        self.MapWindow.Map.DeleteLayer(layer)
-                        self.MapWindow.EraseMap()
-            
+                self.cmd= ['d.vect', str("map=" + self.mapname)]
+                l_type='vector'
+                
+                self.maplayer = self.MapWindow.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
+
+
             self.MapWindow.Map.region = self.MapWindow.Map.GetRegion()
             self.MapWindow.flag = True
             self.MapWindow.UpdateMap(render=True)
             self.MapWindow.flag = False
-
+                #layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
+                #maptree.first = True
+                #maptree.layer_selected = layer
+                #maptree.CheckItem(layer)
+                #self.layer.append(self.maplayer)
+                #maptree.PlusLayer(self.maplayer)
 
 
 
@@ -224,11 +207,11 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         their directory structure.
         """
         self.DeleteAllItems()
-        self.root = self.AddRoot("Map Layers")
-        self.SetPyData(self.root, (None,None))
-        node_raster = self.AppendItem(self.root, "Raster Map")
-        node_vector = self.AppendItem(self.root, "Vector Map")
-        node_dbf = self.AppendItem(self.root, "DBF")
+        root = self.AddRoot("Map Layers")
+        self.SetPyData(root, (None,None))
+        node_raster = self.AppendItem(root, "Raster Map")
+        node_vector = self.AppendItem(root, "Vector Map")
+        node_dbf = self.AppendItem(root, "DBF")
         treeNodes = [node_raster,node_vector,node_dbf]
 
         glocs = glob.glob(os.path.join(self.gisdbase,location, mapset,"*"))
@@ -236,12 +219,10 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             if not os.path.isfile(gloc) and os.path.isdir(gloc):
 	            if(os.path.basename(gloc)=='cellhd'):
 		            for rast in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
-			            rlayer = self.PrependItem(node_raster, os.path.basename(rast),ct_type=1)
-                        
+			            self.PrependItem(node_raster, os.path.basename(rast),ct_type=1)
 	            elif(os.path.basename(gloc)=='vector'):
 		            for vect in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
-			            vlayer=self.PrependItem(node_vector, os.path.basename(vect),ct_type=1)
-                        
+			            self.PrependItem(node_vector, os.path.basename(vect),ct_type=1)
 	            elif(os.path.basename(gloc)=='dbf'):
 		            for dfile in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
 			            self.PrependItem(node_dbf, os.path.basename(dfile),ct_type=1)

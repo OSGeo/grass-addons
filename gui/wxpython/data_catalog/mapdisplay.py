@@ -5,13 +5,14 @@
 management functions, and additional toolbars (vector digitizer, 3d
 view).
 
+Can be used either from Layer Manager or as p.mon backend.
 
 Classes:
-- Command
-- MapWindow
-- BufferedWindow
 - MapFrame
+- MapApp
 
+Usage:
+python mapdisp.py monitor-identifier /path/to/command/file
 
 (C) 2006-2009 by the GRASS Development Team
 This program is free software under the GNU General Public
@@ -58,12 +59,6 @@ sys.path.append(gmpath)
 grassPath = os.path.join(globalvar.ETCDIR, "python")
 sys.path.append(grassPath)
 
-import icons
-gmpath = icons.__path__[0]
-sys.path.append(gmpath)
-
-from icon  import Icons
-
 import render
 import toolbars
 import menuform
@@ -72,12 +67,11 @@ import disp_print
 import gcmd
 import dbm
 import histogram
-import gui_modules.profile as profile
+import profile
 import globalvar
 import utils
 import gdialogs
 import goutput
-import gui_modules.goutput as goutput
 from grass.script import core as grass
 from debug import Debug
 from preferences import globalSettings as UserSettings
@@ -270,13 +264,14 @@ class BufferedWindow(MapWindow, wx.Window):
         mapframe= self.GetParent()
         notebook=mapframe.GetParent()
         self.gframe=notebook.GetParent()
+   
 
-        
         #
         # Flags
         #
         self.resize = False # indicates whether or not a resize event has taken place
         self.dragimg = None # initialize variable for map panning
+        self.flag = False
 
         #
         # Variable for drawing on DC
@@ -320,7 +315,7 @@ class BufferedWindow(MapWindow, wx.Window):
         #
         self.zoomhistory = [] # list of past zoom extents
         self.currzoom = 0 # current set of extents in zoom history being used
-
+        
         self.zoomtype = 1   # 1 zoom in, 0 no zoom, -1 zoom out
         self.hitradius = 10 # distance for selecting map decorations
         self.dialogOffset = 5 # offset for dialog (e.g. DisplayAttributesDialog)
@@ -330,8 +325,14 @@ class BufferedWindow(MapWindow, wx.Window):
         # platforms at initialization, but little harm done.
         ### self.OnSize(None)
 
-        self.DefinePseudoDC()
-
+        # create PseudoDC used for background map, map decorations like scales and legends
+        self.pdc = wx.PseudoDC()
+        # used for digitization tool
+        self.pdcVector = None
+        # decorations (region box, etc.)
+        self.pdcDec = wx.PseudoDC()
+        # pseudoDC for temporal objects (select box, measurement tool, etc.)
+        self.pdcTmp = wx.PseudoDC()
         # redraw all pdc's, pdcTmp layer is redrawn always (speed issue)
         self.redrawAll = True
 
@@ -339,61 +340,16 @@ class BufferedWindow(MapWindow, wx.Window):
         self._buffer = ''
 
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda x:None)
-        self.Bind(wx.EVT_KEY_DOWN , self.OnKeyDown)
-        
+
         # vars for handling mouse clicks
         self.dragid   = -1
         self.lastpos  = (0, 0)
 
-
-
-
-
-
-
-    def DefinePseudoDC(self, vdigit = False):
-        """!Define PseudoDC class to use
-
-        @vdigit True to use PseudoDC from vdigit
-        """
-        # create PseudoDC used for background map, map decorations like scales and legends
-        self.pdc = self.PseudoDC(vdigit)
-        # used for digitization tool
-        self.pdcVector = None
-        # decorations (region box, etc.)
-        self.pdcDec = self.PseudoDC(vdigit)
-        # pseudoDC for temporal objects (select box, measurement tool, etc.)
-        self.pdcTmp = self.PseudoDC(vdigit)
-        
-    def PseudoDC(self, vdigit = False):
-        """!Create PseudoDC instance"""
-        if vdigit:
-            PseudoDC = VDigitPseudoDC
-        else:
-            PseudoDC = wx.PseudoDC
-        
-        return PseudoDC()
-    
-    def CheckPseudoDC(self):
-        """!Try to draw background
-        
-        @return True on success
-        @return False on failure
-        """
-        try:
-            self.pdc.BeginDrawing()
-            self.pdc.SetBackground(wx.Brush(self.GetBackgroundColour()))
-            self.pdc.BeginDrawing()
-        except StandardError, e:
-            traceback.print_exc(file = sys.stderr)
-            return False
-        
-        return True
-    
     def Draw(self, pdc, img=None, drawid=None, pdctype='image', coords=[0, 0, 0, 0]):
-        """!
+        """
         Draws map and overlay decorations
         """
+
         if drawid == None:
             if pdctype == 'image' and img:
                 drawid = self.imagedict[img]
@@ -414,7 +370,6 @@ class BufferedWindow(MapWindow, wx.Window):
             bg = wx.Brush(self.GetBackgroundColour())
 
         pdc.SetBackground(bg)
-        
         ### pdc.Clear()
 
         Debug.msg (5, "BufferedWindow.Draw(): id=%s, pdctype=%s, coord=%s" % \
@@ -439,7 +394,7 @@ class BufferedWindow(MapWindow, wx.Window):
             bitmap = wx.BitmapFromImage(img)
             w,h = bitmap.GetSize()
             pdc.DrawBitmap(bitmap, coords[0], coords[1], True) # draw the composite map
-            pdc.SetIdBounds(drawid, wx.Rect(coords[0],coords[1], w, h))
+            pdc.SetIdBounds(drawid, (coords[0],coords[1], w, h))
 
         elif pdctype == 'box': # draw a box on top of the map
             if self.pen:
@@ -451,30 +406,24 @@ class BufferedWindow(MapWindow, wx.Window):
                 y1 = min(coords[1],coords[3])
                 rwidth = x2-x1
                 rheight = y2-y1
-                rect = wx.Rect(x1, y1, rwidth, rheight)
+                rect = wx.Rect(x1,y1,rwidth,rheight)
                 pdc.DrawRectangleRect(rect)
-                pdc.SetIdBounds(drawid, rect)
-                
+                pdc.SetIdBounds(drawid,rect)
+                # self.ovlcoords[drawid] = coords
+
         elif pdctype == 'line': # draw a line on top of the map
             if self.pen:
                 pdc.SetBrush(wx.Brush(wx.CYAN, wx.TRANSPARENT))
                 pdc.SetPen(self.pen)
-                pdc.DrawLinePoint(wx.Point(coords[0], coords[1]),wx.Point(coords[2], coords[3]))
-                pdc.SetIdBounds(drawid, wx.Rect(coords[0], coords[1], coords[2], coords[3]))
+                pdc.DrawLine(coords[0], coords[1], coords[2], coords[3])
+                pdc.SetIdBounds(drawid,(coords[0], coords[1], coords[2], coords[3]))
                 # self.ovlcoords[drawid] = coords
 
         elif pdctype == 'polyline': # draw a polyline on top of the map
             if self.polypen:
                 pdc.SetBrush(wx.Brush(wx.CYAN, wx.TRANSPARENT))
                 pdc.SetPen(self.polypen)
-                ### pdc.DrawLines(coords)
-                if (len(coords) < 2):
-                    return
-                i = 1
-                while i < len(coords):
-                    pdc.DrawLinePoint(wx.Point(coords[i-1][0], coords[i-1][1]),
-                                      wx.Point(coords[i][0], coords[i][1]))
-                    i += 1
+                pdc.DrawLines(coords)
 
                 # get bounding rectangle for polyline
                 xlist = []
@@ -488,9 +437,9 @@ class BufferedWindow(MapWindow, wx.Window):
                     x2=max(xlist)
                     y1=min(ylist)
                     y2=max(ylist)
-                    pdc.SetIdBounds(drawid, wx.Rect(x1,y1,x2,y2))
+                    pdc.SetIdBounds(drawid,(x1,y1,x2,y2))
                     # self.ovlcoords[drawid] = [x1,y1,x2,y2]
-                    
+
         elif pdctype == 'point': # draw point
             if self.pen:
                 pdc.SetPen(self.pen)
@@ -499,7 +448,7 @@ class BufferedWindow(MapWindow, wx.Window):
                                coords[1] - 5,
                                coords[0] + 5,
                                coords[1] + 5)
-                pdc.SetIdBounds(drawid, wx.Rect(coordsBound))
+                pdc.SetIdBounds(drawid, coordsBound)
                 # self.ovlcoords[drawid] = coords
 
         elif pdctype == 'text': # draw text on top of map
@@ -517,7 +466,7 @@ class BufferedWindow(MapWindow, wx.Window):
                 pdc.DrawText(img['text'], coords[0], coords[1])
             else:
                 pdc.DrawRotatedText(img['text'], coords[0], coords[1], rotation)
-            pdc.SetIdBounds(drawid, wx.Rect(coords[0], coords[1], w, h))
+            pdc.SetIdBounds(drawid, (coords[0], coords[1], w, h))
             
         pdc.EndDrawing()
         
@@ -526,7 +475,7 @@ class BufferedWindow(MapWindow, wx.Window):
         return drawid
 
     def TextBounds(self, textinfo):
-        """!
+        """
         Return text boundary data
 
         @param textinfo text metadata (text, font, color, rotation)
@@ -560,28 +509,8 @@ class BufferedWindow(MapWindow, wx.Window):
         
         return coords, boxw, boxh
 
-    def OnKeyDown(self, event):
-        """!Key pressed"""
-        shift = event.ShiftDown()
-        kc = event.GetKeyCode()
-        
-        vdigitToolbar = self.parent.toolbars['vdigit']
-        ### vdigit
-        if vdigitToolbar:
-            event = None
-            if not shift:
-                if kc == ord('P'):
-                    event = wx.CommandEvent(winid = vdigitToolbar.addPoint)
-                    tool = vdigitToolbar.OnAddPoint
-                elif kc == ord('L'):
-                    event = wx.CommandEvent(winid = vdigitToolbar.addLine)
-                    tool = vdigitToolbar.OnAddLine
-            if event:
-                vdigitToolbar.OnTool(event)
-                tool(event)
-        
     def OnPaint(self, event):
-        """!
+        """
         Draw PseudoDC's to buffered paint DC
 
         self.pdc for background and decorations
@@ -591,7 +520,7 @@ class BufferedWindow(MapWindow, wx.Window):
         If self.redrawAll is False on self.pdcTmp content is re-drawn
         """
         Debug.msg(4, "BufferedWindow.OnPaint(): redrawAll=%s" % self.redrawAll)
-
+        
         dc = wx.BufferedPaintDC(self, self.buffer)
         
         ### dc.SetBackground(wx.Brush("White"))
@@ -643,8 +572,8 @@ class BufferedWindow(MapWindow, wx.Window):
                 # self.bufferLast = wx.BitmapFromImage(self.buffer.ConvertToImage())
                 self.bufferLast = dc.GetAsBitmap(wx.Rect(0, 0, self.Map.width, self.Map.height))
 
-            pdcLast = self.PseudoDC(vdigit = False)
-            pdcLast.DrawBitmap(self.bufferLast, 0, 0, False)
+            pdcLast = wx.PseudoDC()
+            pdcLast.DrawBitmap(bmp=self.bufferLast, x=0, y=0)
             pdcLast.DrawToDC(dc)
 
         # draw decorations (e.g. region box)
@@ -663,7 +592,7 @@ class BufferedWindow(MapWindow, wx.Window):
             self.redrawAll = False
                 
     def OnSize(self, event):
-        """!
+        """
         Scale map image so that it is
         the same size as the Window
         """
@@ -682,7 +611,7 @@ class BufferedWindow(MapWindow, wx.Window):
 
         # get the image to be rendered
         self.img = self.GetImage()
-        
+
         # update map display
         if self.img and self.Map.width + self.Map.height > 0: # scale image during resize
             self.img = self.img.Scale(self.Map.width, self.Map.height)
@@ -699,7 +628,7 @@ class BufferedWindow(MapWindow, wx.Window):
         self.parent.StatusbarUpdate()
 
     def OnIdle(self, event):
-        """!
+        """
         Only re-render a composite map image from GRASS during
         idle time instead of multiple times during resizing.
         """
@@ -709,7 +638,7 @@ class BufferedWindow(MapWindow, wx.Window):
         event.Skip()
 
     def SaveToFile(self, FileName, FileType):
-        """!
+        """
         This draws the psuedo DC to a buffer that
         can be saved to a file.
         """
@@ -720,7 +649,7 @@ class BufferedWindow(MapWindow, wx.Window):
         self.buffer.SaveFile(FileName, FileType)
 
     def GetOverlay(self):
-        """!
+        """
         Converts rendered overlay files to wx.Image
 
         Updates self.imagedict
@@ -738,7 +667,7 @@ class BufferedWindow(MapWindow, wx.Window):
         return imgs
 
     def GetImage(self):
-        """!
+        """
         Converts redered map files to wx.Image
 
         Updates self.imagedict (id=99)
@@ -757,181 +686,185 @@ class BufferedWindow(MapWindow, wx.Window):
         return img
 
     def UpdateMap(self, render=True, renderVector=True):
-        """!
+        """
         Updates the canvas anytime there is a change to the
         underlaying images or to the geometry of the canvas.
 
         @param render re-render map composition
         @param renderVector re-render vector map layer enabled for editing (used for digitizer)
         """
-        start = time.clock()
-        
-        self.resize = False
+        if self.flag == True:
+            self.flag = False
+            start = time.clock()
 
-        # if len(self.Map.GetListOfLayers()) == 0:
-        #    return False
-        
-        if self.img is None:
-            render = True
 
-        #
-        # initialize process bar (only on 'render')
-        #
-        if render is True or renderVector is True:
-            self.parent.statusbarWin['progress'].Show()
-            if self.parent.statusbarWin['progress'].GetRange() > 0:
-                self.parent.statusbarWin['progress'].SetValue(1)
-        
-        #
-        # render background image if needed
-        #
-        
-        # update layer dictionary if there has been a change in layers
-        if self.tree and self.tree.reorder == True:
-            self.tree.ReorderLayers()
-        
-        # reset flag for auto-rendering
-        if self.tree:
-            self.tree.rerender = False
-        
-        if render:
-            # update display size
-            self.Map.ChangeMapSize(self.GetClientSize())
-            if self.parent.statusbarWin['resolution'].IsChecked():
-                # use computation region resolution for rendering
-                windres = True
-            else:
-                windres = False
-            self.mapfile = self.Map.Render(force=True, mapWindow=self.parent,
-                                           windres=windres)
-        else:
-            self.mapfile = self.Map.Render(force=False, mapWindow=self.parent)
-        
-        self.img = self.GetImage() # id=99
-            
-        #
-        # clear pseudoDcs
-        #
-        for pdc in (self.pdc,
-                    self.pdcDec,
-                    self.pdcTmp):
-            pdc.Clear()
-            pdc.RemoveAll()
-        
-        #
-        # draw background map image to PseudoDC
-        #
-        if not self.img:
-            self.Draw(self.pdc, pdctype='clear')
-        else:
-            try:
-                id = self.imagedict[self.img]['id']
-            except:
+            self.resize = False
+
+            if len(self.Map.GetListOfLayers()) == 0:
                 return False
+            
+            if self.img is None:
+                render = True
 
-            self.Draw(self.pdc, self.img, drawid=id)
-        
-        #
-        # render vector map layer
-        #
-        digitToolbar = self.parent.toolbars['vdigit']
-        if renderVector and digitToolbar and \
-                digitToolbar.GetLayer():
-            # set region
-            self.parent.digit.driver.UpdateRegion()
-            # re-calculate threshold for digitization tool
-            self.parent.digit.driver.GetThreshold()
-            # draw map
-            if self.pdcVector:
+            #
+            # initialize process bar (only on 'render')
+            #
+            if render is True or renderVector is True:
+                self.parent.onRenderGauge.Show()
+                if self.parent.onRenderGauge.GetRange() > 0:
+                    self.parent.onRenderGauge.SetValue(1)
+            
+            #
+            # render background image if needed
+            #
+            
+            # update layer dictionary if there has been a change in layers
+            if self.tree and self.tree.reorder == True:
+                self.tree.ReorderLayers()
+                
+            # reset flag for auto-rendering
+            if self.tree:
+                self.tree.rerender = False
+            
+            if render:
+                # update display size
+                self.Map.ChangeMapSize(self.GetClientSize())
+                if self.parent.compResolution.IsChecked():
+                    # use computation region resolution for rendering
+                    windres = True
+                else:
+                    windres = False
+                self.mapfile = self.Map.Render(force=True, mapWindow=self.parent,
+                                               windres=windres)
+            else:
+                self.mapfile = self.Map.Render(force=False, mapWindow=self.parent)
+            
+            self.img = self.GetImage() # id=99
+                
+            #
+            # clear pseudoDcs
+            #
+            for pdc in (self.pdc,
+                        self.pdcDec,
+                        self.pdcTmp):
+                pdc.Clear()
+                pdc.RemoveAll()
+            
+            #
+            # draw background map image to PseudoDC
+            #
+            if not self.img:
+                self.Draw(self.pdc, pdctype='clear')
+            else:
+                try:
+                    id = self.imagedict[self.img]['id']
+                except:
+                    return False
+
+                self.Draw(self.pdc, self.img, drawid=id)
+
+            #
+            # render vector map layer
+            #
+            digitToolbar = self.parent.toolbars['vdigit']
+            if renderVector and digitToolbar and \
+                    digitToolbar.GetLayer():
+                # set region
+                self.parent.digit.driver.UpdateRegion()
+                # re-calculate threshold for digitization tool
+                self.parent.digit.driver.GetThreshold()
+                # draw map
                 self.pdcVector.Clear()
                 self.pdcVector.RemoveAll()
-            try:
-                item = self.tree.FindItemByData('maplayer', digitToolbar.GetLayer())
-            except TypeError:
-                item = None
+                try:
+                    item = self.tree.FindItemByData('maplayer', digitToolbar.GetLayer())
+                except TypeError:
+                    item = None
+                
+                if item and self.tree.IsItemChecked(item):
+                    self.parent.digit.driver.DrawMap()
+
+                # translate tmp objects (pointer position)
+                if digitToolbar.GetAction() == 'moveLine':
+                    if  hasattr(self, "vdigitMove") and \
+                            self.vdigitMove.has_key('beginDiff'):
+                        # move line
+                        for id in self.vdigitMove['id']:
+                            # print self.pdcTmp.GetIdBounds(id)
+                            self.pdcTmp.TranslateId(id,
+                                                    self.vdigitMove['beginDiff'][0],
+                                                    self.vdigitMove['beginDiff'][1])
+                        del self.vdigitMove['beginDiff']
             
-            if item and self.tree.IsItemChecked(item):
-                self.parent.digit.driver.DrawMap()
+            #
+            # render overlays
+            #
+            for img in self.GetOverlay():
+                # draw any active and defined overlays
+                if self.imagedict[img]['layer'].IsActive():
+                    id = self.imagedict[img]['id']
+                    self.Draw(self.pdc, img=img, drawid=id,
+                              pdctype=self.overlays[id]['pdcType'], coords=self.overlays[id]['coords'])
 
-            # translate tmp objects (pointer position)
-            if digitToolbar.GetAction() == 'moveLine':
-                if  hasattr(self, "vdigitMove") and \
-                        self.vdigitMove.has_key('beginDiff'):
-                    # move line
-                    for id in self.vdigitMove['id']:
-                        self.pdcTmp.TranslateId(id,
-                                                self.vdigitMove['beginDiff'][0],
-                                                self.vdigitMove['beginDiff'][1])
-                    del self.vdigitMove['beginDiff']
-        
-        #
-        # render overlays
-        #
-        for img in self.GetOverlay():
-            # draw any active and defined overlays
-            if self.imagedict[img]['layer'].IsActive():
-                id = self.imagedict[img]['id']
-                self.Draw(self.pdc, img=img, drawid=id,
-                          pdctype=self.overlays[id]['pdcType'], coords=self.overlays[id]['coords'])
+            for id in self.textdict.keys():
+                self.Draw(self.pdc, img=self.textdict[id], drawid=id,
+                          pdctype='text', coords=[10, 10, 10, 10])
 
-        for id in self.textdict.keys():
-            self.Draw(self.pdc, img=self.textdict[id], drawid=id,
-                      pdctype='text', coords=[10, 10, 10, 10])
-        
-        # optionally draw computational extent box
-        self.DrawCompRegionExtent()
-        
-        #
-        # redraw pdcTmp if needed
-        #
-        if len(self.polycoords) > 0:
-            self.DrawLines(self.pdcTmp)
-        
-        if not self.parent.IsStandalone() and \
-                self.parent.GetLayerManager().georectifying:
-            # -> georectifier (redraw GCPs)
-            if self.parent.toolbars['georect']:
-                coordtype = 'gcpcoord'
+            # optionally draw computational extent box
+            self.DrawCompRegionExtent()
+
+            #
+            # redraw pdcTmp if needed
+            #
+            if len(self.polycoords) > 0:
+                self.DrawLines(self.pdcTmp)
+
+
+            if self.gframe.georectifying:
+                # -> georectifier (redraw GCPs)
+                if self.parent.toolbars['georect']:
+                    coordtype = 'gcpcoord'
+                else:
+                    coordtype = 'mapcoord'
+                self.gframe.georectifying.DrawGCP(coordtype)
+                
+            # 
+            # clear measurement
+            #
+            
+            if self.mouse["use"] == "measure":
+                self.ClearLines(pdc=self.pdcTmp)
+                self.polycoords = []
+                self.mouse['use'] = 'pointer'
+                self.mouse['box'] = 'point'
+                self.mouse['end'] = [0, 0]
+                self.SetCursor(self.parent.cursors["default"])
+                
+            stop = time.clock()
+
+            #
+            # hide process bar
+            #
+            self.parent.onRenderGauge.Hide()
+
+            #
+            # update statusbar
+            #
+            ### self.Map.SetRegion()
+            self.parent.StatusbarUpdate()
+            if grass.find_file(name = 'MASK', element = 'cell')['name']:
+                # mask found
+                self.parent.maskInfo.SetLabel(_('MASK'))
             else:
-                coordtype = 'mapcoord'
-            self.parent.GetLayerManager().georectifying.DrawGCP(coordtype)
+                self.parent.maskInfo.SetLabel('')
             
-        # 
-        # clear measurement
-        #
-        if self.mouse["use"] == "measure":
-            self.ClearLines(pdc=self.pdcTmp)
-            self.polycoords = []
-            self.mouse['use'] = 'pointer'
-            self.mouse['box'] = 'point'
-            self.mouse['end'] = [0, 0]
-            self.SetCursor(self.parent.cursors["default"])
+            Debug.msg (2, "BufferedWindow.UpdateMap(): render=%s, renderVector=%s -> time=%g" % \
+                       (render, renderVector, (stop-start)))
             
-        stop = time.clock()
-        
-        #
-        # hide process bar
-        #
-        self.parent.statusbarWin['progress'].Hide()
-
-        #
-        # update statusbar 
-        #
-        ### self.Map.SetRegion()
-        self.parent.StatusbarUpdate()
-        if grass.find_file(name = 'MASK', element = 'cell')['name']:
-            # mask found
-            self.parent.statusbarWin['mask'].SetLabel(_('MASK'))
-        else:
-            self.parent.statusbarWin['mask'].SetLabel('')
-        
-        Debug.msg (2, "BufferedWindow.UpdateMap(): render=%s, renderVector=%s -> time=%g" % \
-                   (render, renderVector, (stop-start)))
-        
-        return True
+            return True
 
     def DrawCompRegionExtent(self):
-        """!
+        """
         Draw computational region extent in the display
         
         Display region is drawn as a blue box inside the computational region,
@@ -959,7 +892,7 @@ class BufferedWindow(MapWindow, wx.Window):
             self.DrawLines(pdc=self.pdcDec, polycoords=self.regionCoords)
 
     def IsInRegion(self, region, refRegion):
-        """!
+        """
         Test if 'region' is inside of 'refRegion'
 
         @param region input region
@@ -977,7 +910,7 @@ class BufferedWindow(MapWindow, wx.Window):
         return False
 
     def EraseMap(self):
-        """!
+        """
         Erase the canvas
         """
         self.Draw(self.pdc, pdctype='clear')
@@ -989,23 +922,24 @@ class BufferedWindow(MapWindow, wx.Window):
         self.Draw(self.pdcTmp, pdctype='clear')
         
     def DragMap(self, moveto):
-        """!
-        Drag the entire map image for panning.
-
-        @param moveto dx,dy
         """
+        Drag the entire map image for panning.
+        """
+
         dc = wx.BufferedDC(wx.ClientDC(self))
         dc.SetBackground(wx.Brush("White"))
         dc.Clear()
-        
+
         self.dragimg = wx.DragImage(self.buffer)
         self.dragimg.BeginDrag((0, 0), self)
         self.dragimg.GetImageRect(moveto)
         self.dragimg.Move(moveto)
-        
+
         self.dragimg.DoDrawImage(dc, moveto)
         self.dragimg.EndDrag()
-        
+
+        return True
+
     def DragItem(self, id, event):
         """!
         Drag an overlay decoration item
@@ -1038,13 +972,13 @@ class BufferedWindow(MapWindow, wx.Window):
         self.lastpos = (event.GetX(), event.GetY())
                 
     def MouseDraw(self, pdc=None, begin=None, end=None):
-        """!
+        """
         Mouse box or line from 'begin' to 'end'
 
         If not given from self.mouse['begin'] to self.mouse['end'].
 
         """
-#        self.redrawAll = False
+        self.redrawAll = False
         
         if not pdc:
             return
@@ -1063,13 +997,8 @@ class BufferedWindow(MapWindow, wx.Window):
             mousecoords = [begin[0], begin[1],
                            end[0], end[1]]
             r = pdc.GetIdBounds(boxid)
-            if type(r) is list:
-                r = wx.Rect(r[0], r[1], r[2], r[3])
-            r.Inflate(4, 4)
-            try:
-                pdc.ClearId(boxid)
-            except:
-                pass
+            r.Inflate(4,4)
+            pdc.ClearId(boxid)
             self.RefreshRect(r, False)
             pdc.SetId(boxid)
             self.Draw(pdc, drawid=boxid, pdctype='box', coords=mousecoords)
@@ -1089,10 +1018,11 @@ class BufferedWindow(MapWindow, wx.Window):
                 pass
             self.RefreshRect(r, False)
             pdc.SetId(self.lineid)
+
             self.Draw(pdc, drawid=self.lineid, pdctype='line', coords=mousecoords)
 
     def DrawLines(self, pdc=None, polycoords=None):
-        """!
+        """
         Draw polyline in PseudoDC
 
         Set self.pline to wx.NEW_ID + 1
@@ -1125,7 +1055,7 @@ class BufferedWindow(MapWindow, wx.Window):
 
     def DrawCross(self, pdc, coords, size, rotation=0,
                   text=None, textAlign='lr', textOffset=(5, 5)):
-        """!Draw cross in PseudoDC
+        """Draw cross in PseudoDC
 
         @todo implement rotation
 
@@ -1163,7 +1093,7 @@ class BufferedWindow(MapWindow, wx.Window):
         return self.lineid
 
     def MouseActions(self, event):
-        """!
+        """
         Mouse motion and button click notifier
         """
         if not self.processMouse:
@@ -1196,10 +1126,6 @@ class BufferedWindow(MapWindow, wx.Window):
         elif event.MiddleDown():
             self.OnMiddleDown(event)
 
-        # middle mouse button relesed
-        elif event.MiddleUp():
-            self.OnMiddleUp(event)
-        
         # right mouse button pressed
         elif event.RightDown():
             self.OnRightDown(event)
@@ -1210,11 +1136,11 @@ class BufferedWindow(MapWindow, wx.Window):
 
         elif event.Moving():
             self.OnMouseMoving(event)
-        
-        # event.Skip()
+
+#        event.Skip()
         
     def OnMouseWheel(self, event):
-        """!
+        """
         Mouse wheel moved
         """
         self.processMouse = False
@@ -1226,7 +1152,7 @@ class BufferedWindow(MapWindow, wx.Window):
                  current[1] - self.Map.height / 4)
         end   = (current[0] + self.Map.width / 4,
                  current[1] + self.Map.height / 4)
-        
+
         if wheel > 0:
             zoomtype = 1
         else:
@@ -1248,7 +1174,7 @@ class BufferedWindow(MapWindow, wx.Window):
 #        event.Skip()
 
     def OnDragging(self, event):
-        """!
+        """
         Mouse dragging with left button down
         """
         Debug.msg (5, "BufferedWindow.MouseAction(): Dragging")
@@ -1256,20 +1182,19 @@ class BufferedWindow(MapWindow, wx.Window):
         previous = self.mouse['begin']
         move = (current[0] - previous[0],
                 current[1] - previous[1])
-        
+
         digitToolbar = self.parent.toolbars['vdigit']
-        
+
         # dragging or drawing box with left button
-        if self.mouse['use'] == 'pan' or \
-                event.MiddleIsDown():
+        if self.mouse['use'] == 'pan':
             self.DragMap(move)
-        
+
         # dragging decoration overlay item
         elif (self.mouse['use'] == 'pointer' and 
                 not digitToolbar and 
                 self.dragid != None):
             self.DragItem(self.dragid, event)
-        
+
         # dragging anything else - rubber band box or line
         else:
             if (self.mouse['use'] == 'pointer' and 
@@ -1282,327 +1207,9 @@ class BufferedWindow(MapWindow, wx.Window):
                     digitClass.driver.GetSelected() > 0)):
                 # draw box only when left mouse button is pressed
                 self.MouseDraw(pdc=self.pdcTmp)
-        
-        # event.Skip()
+      
+#        event.Skip()
 
-    def OnLeftDownVDigitAddLine(self, event):
-        """!
-        Left mouse button down - vector digitizer add new line
-        action
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        try:
-            mapLayer = digitToolbar.GetLayer().GetName()
-        except:
-            return
-        
-        if digitToolbar.GetAction('type') in ["point", "centroid"]:
-            # add new point
-            if digitToolbar.GetAction('type') == 'point':
-                point = True
-            else:
-                point = False
-
-            east, north = self.Pixel2Cell(self.mouse['begin'])
-            fid = digitClass.AddPoint(mapLayer, point, east, north)
-            if fid < 0:
-                return
-
-            self.UpdateMap(render=False) # redraw map
-            
-            # add new record into atribute table
-            if UserSettings.Get(group='vdigit', key="addRecord", subkey='enabled')  is True:
-                # select attributes based on layer and category
-                cats = { fid : {
-                        UserSettings.Get(group='vdigit', key="layer", subkey='value') :
-                            (UserSettings.Get(group='vdigit', key="category", subkey='value'), )
-                        }}
-                
-                posWindow = self.ClientToScreen((self.mouse['end'][0] + self.dialogOffset,
-                                                 self.mouse['end'][1] + self.dialogOffset))
-                
-                addRecordDlg = dbm_dialogs.DisplayAttributesDialog(parent=self, map=mapLayer,
-                                                                   cats=cats,
-                                                                   pos=posWindow,
-                                                                   action="add")
-
-                if not point:
-                    self.__geomAttrb(fid, addRecordDlg, 'area', digitClass,
-                                     digitToolbar.GetLayer())
-                    self.__geomAttrb(fid, addRecordDlg, 'perimeter', digitClass,
-                                     digitToolbar.GetLayer())
-
-                if addRecordDlg.mapDBInfo and \
-                        addRecordDlg.ShowModal() == wx.ID_OK:
-                    sqlfile = tempfile.NamedTemporaryFile(mode="w")
-                    for sql in addRecordDlg.GetSQLString():
-                        sqlfile.file.write(sql + ";\n")
-                    sqlfile.file.flush()
-                    
-                    gcmd.RunCommand('db.execute',
-                                    parent = self,
-                                    quiet = True, 
-                                    input = sqlfile.name)
-                
-                if addRecordDlg.mapDBInfo:
-                    self.__updateATM()
-        
-        elif digitToolbar.GetAction('type') in ["line", "boundary"]:
-            # add new point to the line
-            self.polycoords.append(self.Pixel2Cell(event.GetPositionTuple()[:]))
-            self.DrawLines(pdc=self.pdcTmp)
-    
-    def __geomAttrb(self, fid, dialog, attrb, digit, mapLayer):
-        """!Trac geometry attributes?"""
-        item = self.tree.FindItemByData('maplayer', mapLayer)
-        vdigit = self.tree.GetPyData(item)[0]['vdigit']
-        if vdigit and \
-                vdigit.has_key('geomAttr') and \
-                vdigit['geomAttr'].has_key(attrb):
-            val = -1
-            if attrb == 'length':
-                val = digit.GetLineLength(fid)
-                type = attrb
-            elif attrb == 'area':
-                val = digit.GetAreaSize(fid)
-                type = attrb
-            elif attrb == 'perimeter':
-                val = digit.GetAreaPerimeter(fid)
-                type = 'length'
-            
-            if val > 0:
-                layer = int(UserSettings.Get(group='vdigit', key="layer", subkey='value'))
-                column = vdigit['geomAttr'][attrb]['column']
-                val = UnitsConvertValue(val, type, vdigit['geomAttr'][attrb]['units'])
-                dialog.SetColumnValue(layer, column, val)
-                dialog.OnReset()
-        
-    def __geomAttrbUpdate(self, fids):
-        """!Update geometry atrributes of currently selected features
-
-        @param fid list feature id
-        """
-        mapLayer = self.parent.toolbars['vdigit'].GetLayer()
-        vectorName =  mapLayer.GetName()
-        digit = self.parent.digit
-        item = self.tree.FindItemByData('maplayer', mapLayer)
-        vdigit = self.tree.GetPyData(item)[0]['vdigit']
-        
-        if vdigit is None or not vdigit.has_key('geomAttr'):
-            return
-        
-        dbInfo = gselect.VectorDBInfo(vectorName)
-        sqlfile = tempfile.NamedTemporaryFile(mode="w")
-        for fid in fids:
-            for layer, cats in digit.GetLineCats(fid).iteritems():
-                table = dbInfo.GetTable(layer)
-                for attrb, item in vdigit['geomAttr'].iteritems():
-                    val = -1
-                    if attrb == 'length':
-                        val = digit.GetLineLength(fid)
-                        type = attrb
-                    elif attrb == 'area':
-                        val = digit.GetAreaSize(fid)
-                        type = attrb
-                    elif attrb == 'perimeter':
-                        val = digit.GetAreaPerimeter(fid)
-                        type = 'length'
-
-                    if val < 0:
-                        continue
-                    val = UnitsConvertValue(val, type, item['units'])
-                    
-                    for cat in cats:
-                        sqlfile.write('UPDATE %s SET %s = %f WHERE %s = %d;\n' % \
-                                          (table, item['column'], val,
-                                           dbInfo.GetKeyColumn(layer), cat))
-            sqlfile.file.flush()
-            gcmd.RunCommand('db.execute',
-                            parent = True,
-                            quiet = True,
-                            input = sqlfile.name)
-            
-    def __updateATM(self):
-        """!Update open Attribute Table Manager
-
-        @todo: use AddDataRow() instead
-        """
-        # update ATM
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitVector = digitToolbar.GetLayer().GetName()
-                            
-        for atm in self.lmgr.dialogs['atm']:
-            atmVector = atm.GetVectorName()
-            if atmVector == digitVector:
-                layer = UserSettings.Get(group='vdigit', key="layer", subkey='value')
-                # TODO: use AddDataRow instead
-                atm.LoadData(layer)
-        
-    def OnLeftDownVDigitEditLine(self, event):
-        """!
-        Left mouse button down - vector digitizer edit linear feature
-        - add new vertex.
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        self.polycoords.append(self.Pixel2Cell(self.mouse['begin']))
-        self.vdigitMove['id'].append(wx.NewId())
-        self.DrawLines(pdc=self.pdcTmp)
-
-    def OnLeftDownVDigitMoveLine(self, event):
-        """!
-        Left mouse button down - vector digitizer move feature/vertex,
-        edit linear feature
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        self.vdigitMove = {}
-        # geographic coordinates of initial position (left-down)
-        self.vdigitMove['begin'] = None
-        # list of ids to modify    
-        self.vdigitMove['id'] = []
-        # ids geographic coordinates
-        self.vdigitMove['coord'] = {}
-                
-        if digitToolbar.GetAction() in ["moveVertex", "editLine"]:
-            # set pen
-            pcolor = UserSettings.Get(group='vdigit', key="symbol",
-                                      subkey=["highlight", "color"])
-            self.pen = self.polypen = wx.Pen(colour=pcolor,
-                                             width=2, style=wx.SHORT_DASH)
-            self.pdcTmp.SetPen(self.polypen)
-
-    def OnLeftDownVDigitDisplayCA(self, event):
-        """!
-        Left mouse button down - vector digitizer display categories
-        or attributes action
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        try:
-            mapLayer = digitToolbar.GetLayer().GetName()
-        except:
-            return
-        
-        coords = self.Pixel2Cell(self.mouse['begin'])
-        
-        # unselect
-        digitClass.driver.SetSelected([])
-        
-        # select feature by point
-        cats = {}
-        if digitClass.driver.SelectLineByPoint(coords,
-                                               digitClass.GetSelectType()) is None:
-            return
-
-        if UserSettings.Get(group='vdigit', key='checkForDupl',
-                            subkey='enabled'):
-            lines = digitClass.driver.GetSelected()
-        else:
-            lines = (digitClass.driver.GetSelected()[0],) # only first found
-                        
-        for line in lines:
-            cats[line] = digitClass.GetLineCats(line)
-                   
-        posWindow = self.ClientToScreen((self.mouse['end'][0] + self.dialogOffset,
-                                         self.mouse['end'][1] + self.dialogOffset))
-    
-        if digitToolbar.GetAction() == "displayAttrs":
-            # select attributes based on coordinates (all layers)
-            if self.parent.dialogs['attributes'] is None:
-                self.parent.dialogs['attributes'] = \
-                    dbm_dialogs.DisplayAttributesDialog(parent=self, map=mapLayer,
-                                                        cats=cats,
-                                                        action="update")
-            else:
-                # upgrade dialog
-                self.parent.dialogs['attributes'].UpdateDialog(cats=cats)
-
-            if self.parent.dialogs['attributes']:
-                if len(cats.keys()) > 0:
-                    # highlight feature & re-draw map
-                    if not self.parent.dialogs['attributes'].IsShown():
-                        self.parent.dialogs['attributes'].Show()
-                else:
-                    if self.parent.dialogs['attributes'] and \
-                            self.parent.dialogs['attributes'].IsShown():
-                        self.parent.dialogs['attributes'].Hide()
-
-        else: # displayCats
-            if self.parent.dialogs['category'] is None:
-                # open new dialog
-                dlg = VDigitCategoryDialog(parent=self,
-                                           map=mapLayer,
-                                           cats=cats,
-                                           pos=posWindow,
-                                           title=_("Update categories"))
-                self.parent.dialogs['category'] = dlg
-            else:
-                # update currently open dialog
-                self.parent.dialogs['category'].UpdateDialog(cats=cats)
-                            
-            if self.parent.dialogs['category']:
-                if len(cats.keys()) > 0:
-                    # highlight feature & re-draw map
-                    if not self.parent.dialogs['category'].IsShown():
-                        self.parent.dialogs['category'].Show()
-                else:
-                    if self.parent.dialogs['category'].IsShown():
-                        self.parent.dialogs['category'].Hide()
-                
-        self.UpdateMap(render=False)
- 
-    def OnLeftDownVDigitCopyCA(self, event):
-        """!
-        Left mouse button down - vector digitizer copy categories
-        or attributes action
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        if not hasattr(self, "copyCatsList"):
-            self.copyCatsList = []
-        else:
-            self.copyCatsIds = []
-            self.mouse['box'] = 'box'
-        
-    def OnLeftDownVDigitCopyLine(self, event):
-        """!
-        Left mouse button down - vector digitizer copy lines action
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        if not hasattr(self, "copyIds"):
-            self.copyIds = []
-            self.layerTmp = None
-        
-    def OnLeftDownVDigitBulkLine(self, event):
-        """!
-        Left mouse button down - vector digitizer label 3d vector
-        lines
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        if len(self.polycoords) > 1: # start new line
-            self.polycoords = []
-            self.ClearLines(pdc=self.pdcTmp)
-        self.polycoords.append(self.Pixel2Cell(event.GetPositionTuple()[:]))
-        if len(self.polycoords) == 1:
-            begin = self.Pixel2Cell(self.polycoords[-1])
-            end   = self.Pixel2Cell(self.mouse['end'])
-        else:
-            end   = self.Pixel2Cell(self.polycoords[-1])
-            begin = self.Pixel2Cell(self.mouse['begin'])
-            
-            self.DrawLines(self.pdcTmp, polycoords = (begin, end))
-        
     def OnLeftDown(self, event):
         """!
         Left mouse button pressed
@@ -1698,261 +1305,6 @@ class BufferedWindow(MapWindow, wx.Window):
 
         event.Skip()
 
-    def OnLeftUpVDigitVarious(self, event):
-        """!
-        Left mouse button up - vector digitizer various actions
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        pos1 = self.Pixel2Cell(self.mouse['begin'])
-        pos2 = self.Pixel2Cell(self.mouse['end'])
-        
-        nselected = 0
-        # -> delete line || move line || move vertex
-        if digitToolbar.GetAction() in ("moveVertex",
-                                        "editLine"):
-            if len(digitClass.driver.GetSelected()) == 0:
-                nselected = digitClass.driver.SelectLineByPoint(pos1, type=VDigit_Lines_Type)
-                
-                if digitToolbar.GetAction() == "editLine":
-                    try:
-                        selVertex = digitClass.driver.GetSelectedVertex(pos1)[0]
-                    except IndexError:
-                        selVertex = None
-                        
-                    if selVertex:
-                        # self.UpdateMap(render=False)
-                        ids = digitClass.driver.GetSelected(grassId=False)
-                        # move this line to tmp layer
-                        self.polycoords = []
-                        for id in ids:
-                            if id % 2: # register only vertices
-                                e, n = self.Pixel2Cell(self.pdcVector.GetIdBounds(id)[0:2])
-                                self.polycoords.append((e, n))
-                        digitClass.driver.DrawSelected(False) 
-                                
-                        if selVertex < ids[-1] / 2:
-                            # choose first or last node of line
-                            self.vdigitMove['id'].reverse()
-                            self.polycoords.reverse()
-                    else:
-                        # unselect
-                        digitClass.driver.SetSelected([])
-                        del self.vdigitMove
-                
-                    self.UpdateMap(render=False)
-            
-        elif digitToolbar.GetAction() in ("copyCats",
-                                          "copyAttrs"):
-            if not hasattr(self, "copyCatsIds"):
-                # 'from' -> select by point
-                nselected = digitClass.driver.SelectLineByPoint(pos1, digitClass.GetSelectType())
-                if nselected:
-                    self.copyCatsList = digitClass.driver.GetSelected()
-            else:
-                # -> 'to' -> select by bbox
-                digitClass.driver.SetSelected([])
-                # return number of selected features (by box/point)
-                nselected = digitClass.driver.SelectLinesByBox(pos1, pos2,
-                                                               digitClass.GetSelectType())
-                if nselected == 0:
-                    if digitClass.driver.SelectLineByPoint(pos1,
-                                                           digitClass.GetSelectType()) is not None:
-                        nselected = 1
-                        
-                if nselected > 0:
-                    self.copyCatsIds = digitClass.driver.GetSelected()
-
-        elif digitToolbar.GetAction() == "queryLine":
-            selected = digitClass.SelectLinesByQuery(pos1, pos2)
-            nselected = len(selected)
-            if nselected > 0:
-                digitClass.driver.SetSelected(selected)
-
-        else:
-            # -> moveLine || deleteLine, etc. (select by point/box)
-            if digitToolbar.GetAction() == 'moveLine' and \
-                    len(digitClass.driver.GetSelected()) > 0:
-                nselected = 0
-            else:
-                if digitToolbar.GetAction() == 'moveLine':
-                    drawSeg = True
-                else:
-                    drawSeg = False
-
-                nselected = digitClass.driver.SelectLinesByBox(pos1, pos2,
-                                                               digitClass.GetSelectType(),
-                                                               drawSeg)
-                    
-                if nselected == 0:
-                    if digitClass.driver.SelectLineByPoint(pos1,
-                                                           digitClass.GetSelectType()) is not None:
-                        nselected = 1
-        
-        if nselected > 0:
-            if digitToolbar.GetAction() in ("moveLine",
-                                            "moveVertex"):
-                # get pseudoDC id of objects which should be redrawn
-                if digitToolbar.GetAction() == "moveLine":
-                    # -> move line
-                    self.vdigitMove['id'] = digitClass.driver.GetSelected(grassId=False)
-                    self.vdigitMove['coord'] = digitClass.driver.GetSelectedCoord()
-                else: # moveVertex
-                    self.vdigitMove['id'] = digitClass.driver.GetSelectedVertex(pos1)
-                    if len(self.vdigitMove['id']) == 0: # no vertex found
-                        digitClass.driver.SetSelected([])
-                
-            #
-            # check for duplicates
-            #
-            if UserSettings.Get(group='vdigit', key='checkForDupl', subkey='enabled') is True:
-                dupl = digitClass.driver.GetDuplicates()
-                self.UpdateMap(render=False)
-                    
-                if dupl:
-                    posWindow = self.ClientToScreen((self.mouse['end'][0] + self.dialogOffset,
-                                                     self.mouse['end'][1] + self.dialogOffset))
-                    
-                    dlg = VDigitDuplicatesDialog(parent=self, data=dupl, pos=posWindow)
-                    
-                    if dlg.ShowModal() == wx.ID_OK:
-                        digitClass.driver.UnSelect(dlg.GetUnSelected())
-                        # update selected
-                        self.UpdateMap(render=False)
-                
-            if digitToolbar.GetAction() != "editLine":
-                # -> move line || move vertex
-                self.UpdateMap(render=False)
-        
-        else: # no vector object found
-            if not (digitToolbar.GetAction() in ("moveLine",
-                                                 "moveVertex") and \
-                        len(self.vdigitMove['id']) > 0):
-                # avoid left-click when features are already selected
-                self.UpdateMap(render=False, renderVector=False)
-        
-    def OnLeftUpVDigitModifyLine(self, event):
-        """!
-        Left mouse button up - vector digitizer split line, add/remove
-        vertex action
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        pos1 = self.Pixel2Cell(self.mouse['begin'])
-        
-        pointOnLine = digitClass.driver.SelectLineByPoint(pos1,
-                                                          type=VDigit_Lines_Type)
-
-        if not pointOnLine:
-            return
-
-        if digitToolbar.GetAction() in ["splitLine", "addVertex"]:
-            self.UpdateMap(render=False) # highlight object
-            self.DrawCross(pdc=self.pdcTmp, coords=self.Cell2Pixel(pointOnLine),
-                           size=5)
-        else: # removeVertex
-            # get only id of vertex
-            try:
-                id = digitClass.driver.GetSelectedVertex(pos1)[0]
-            except IndexError:
-                id = None
-
-            if id:
-                x, y = self.pdcVector.GetIdBounds(id)[0:2]
-                self.pdcVector.RemoveId(id)
-                self.UpdateMap(render=False) # highlight object
-                self.DrawCross(pdc=self.pdcTmp, coords=(x, y),
-                               size=5)
-            else:
-                # unselect
-                digitClass.driver.SetSelected([])
-                self.UpdateMap(render=False)
-
-    def OnLeftUpVDigitCopyLine(self, event):
-        """!
-        Left mouse button up - vector digitizer copy feature action
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        pos1 = self.Pixel2Cell(self.mouse['begin'])
-        pos2 = self.Pixel2Cell(self.mouse['end'])
-        
-        if UserSettings.Get(group='vdigit', key='bgmap',
-                            subkey='value', internal=True) == '':
-            # no background map -> copy from current vector map layer
-            nselected = digitClass.driver.SelectLinesByBox(pos1, pos2,
-                                                           digitClass.GetSelectType())
-
-            if nselected > 0:
-                # highlight selected features
-                self.UpdateMap(render=False)
-            else:
-                self.UpdateMap(render=False, renderVector=False)
-        else:
-            # copy features from background map
-            self.copyIds += digitClass.SelectLinesFromBackgroundMap(pos1, pos2)
-            if len(self.copyIds) > 0:
-                color = UserSettings.Get(group='vdigit', key='symbol',
-                                         subkey=['highlight', 'color'])
-                colorStr = str(color[0]) + ":" + \
-                    str(color[1]) + ":" + \
-                    str(color[2])
-                dVectTmp = ['d.vect',
-                            'map=%s' % UserSettings.Get(group='vdigit', key='bgmap',
-                                                        subkey='value', internal=True),
-                            'cats=%s' % utils.ListOfCatsToRange(self.copyIds),
-                            '-i',
-                            'color=%s' % colorStr,
-                            'fcolor=%s' % colorStr,
-                            'type=point,line,boundary,centroid',
-                            'width=2']
-                        
-                if not self.layerTmp:
-                    self.layerTmp = self.Map.AddLayer(type='vector',
-                                                      name=globalvar.QUERYLAYER,
-                                                      command=dVectTmp)
-                else:
-                    self.layerTmp.SetCmd(dVectTmp)
-                
-                self.UpdateMap(render=True, renderVector=False)
-            else:
-                self.UpdateMap(render=False, renderVector=False)
-            
-            self.redrawAll = None
-            
-    def OnLeftUpVDigitBulkLine(self, event):
-        """!
-        Left mouse button up - vector digitizer z-bulk line action
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        # select lines to be labeled
-        pos1 = self.polycoords[0]
-        pos2 = self.polycoords[1]
-        nselected = digitClass.driver.SelectLinesByBox(pos1, pos2,
-                                                       digitClass.GetSelectType())
-
-        if nselected > 0:
-            # highlight selected features
-            self.UpdateMap(render=False)
-            self.DrawLines(pdc=self.pdcTmp) # redraw temp line
-        else:
-            self.UpdateMap(render=False, renderVector=False)
-
-    def OnLeftUpVDigitConnectLine(self, event):
-        """!
-        Left mouse button up - vector digitizer connect line action
-        """
-        digitToolbar = self.parent.toolbars['vdigit']
-        digitClass   = self.parent.digit
-        
-        if len(digitClass.driver.GetSelected()) > 0:
-            self.UpdateMap(render=False)
-        
     def OnLeftUp(self, event):
         """!
         Left mouse button released
@@ -1980,6 +1332,7 @@ class BufferedWindow(MapWindow, wx.Window):
             self.Zoom(begin, end, self.zoomtype)
 
             # redraw map
+            self.flag=True
             self.UpdateMap(render=True)
 
             # update statusbar
@@ -1994,6 +1347,7 @@ class BufferedWindow(MapWindow, wx.Window):
             self.parent.QueryVector(self.mouse['begin'][0], self.mouse['begin'][1])
 
             # clear temp canvas
+            self.flag=True
             self.UpdateMap(render=False, renderVector=False)
             
         elif self.mouse["use"] in ["measure", "profile"]:
@@ -2015,6 +1369,7 @@ class BufferedWindow(MapWindow, wx.Window):
                 coordtype = 'mapcoord'
 
             self.parent.GetLayerManager().georectifying.SetGCPData(coordtype, coord, self)
+            self.flag=True
             self.UpdateMap(render=False, renderVector=False)
 
         elif self.mouse["use"] == "pointer" and self.parent.toolbars['vdigit']:
@@ -2074,9 +1429,10 @@ class BufferedWindow(MapWindow, wx.Window):
                 pass
             self.dragid = None
             self.currtxtid = None
-        
+
+
     def OnButtonDClick(self, event):
-        """!
+        """
         Mouse button double click
         """
         Debug.msg (5, "BufferedWindow.OnButtonDClick(): use=%s" % \
@@ -2091,15 +1447,18 @@ class BufferedWindow(MapWindow, wx.Window):
             self.mouse['end'] = [0, 0]
             self.Refresh()
             self.SetCursor(self.parent.cursors["default"])
-
         elif self.mouse["use"] == "profile":
+            # profile
             pass
-
-        elif self.mouse['use'] == 'pointer' and \
-                self.parent.toolbars['vdigit']:
-            # vector digitizer
+        #                self.pdc.ClearId(self.lineid)
+        #                self.pdc.ClearId(self.plineid)
+        #                print 'coordinates: ',self.polycoords
+        #                self.polycoords = []
+        #                self.mouse['begin'] = self.mouse['end'] = [0, 0]
+        #                self.Refresh()
+        elif self.mouse['use'] == 'pointer' and self.parent.toolbars['vdigit']:
+            # digitization tool
             pass
-
         else:
             # select overlay decoration options dialog
             clickposition = event.GetPositionTuple()[:]
@@ -2116,9 +1475,11 @@ class BufferedWindow(MapWindow, wx.Window):
                 self.parent.OnAddBarscale(None)
             elif self.dragid == 1:
                 self.parent.OnAddLegend(None)
-        
+                
+#        event.Skip()
+
     def OnRightDown(self, event):
-        """!
+        """
         Right mouse button pressed
         """
         Debug.msg (5, "BufferedWindow.OnRightDown(): use=%s" % \
@@ -2128,8 +1489,7 @@ class BufferedWindow(MapWindow, wx.Window):
         if digitToolbar:
             digitClass = self.parent.digit
             # digitization tool (confirm action)
-            if digitToolbar.GetAction() in ("moveLine",
-                                            "moveVertex") and \
+            if digitToolbar.GetAction() in ["moveLine", "moveVertex"] and \
                     hasattr(self, "vdigitMove"):
 
                 pFrom = self.vdigitMove['begin']
@@ -2144,18 +1504,15 @@ class BufferedWindow(MapWindow, wx.Window):
                         return
                 elif digitToolbar.GetAction() == "moveVertex":
                     # move vertex
-                    fid = digitClass.MoveSelectedVertex(pFrom, move)
-                    if fid < 0:
+                    if digitClass.MoveSelectedVertex(pFrom, move) < 0:
                         return
-
-                    self.__geomAttrbUpdate([fid,])
                 
                 del self.vdigitMove
                 
         event.Skip()
 
     def OnRightUp(self, event):
-        """!
+        """
         Right mouse button released
         """
         Debug.msg (5, "BufferedWindow.OnRightUp(): use=%s" % \
@@ -2200,9 +1557,7 @@ class BufferedWindow(MapWindow, wx.Window):
                     self.Refresh()
                     
                     # add new record into atribute table
-                    if UserSettings.Get(group='vdigit', key="addRecord", subkey='enabled') and \
-                            (line is True or \
-                                 (not line and fid > 0)):
+                    if UserSettings.Get(group='vdigit', key="addRecord", subkey='enabled') is True:
                         posWindow = self.ClientToScreen((position[0] + self.dialogOffset,
                                                          position[1] + self.dialogOffset))
 
@@ -2211,54 +1566,36 @@ class BufferedWindow(MapWindow, wx.Window):
                                 UserSettings.Get(group='vdigit', key="layer", subkey='value') :
                                     (UserSettings.Get(group='vdigit', key="category", subkey='value'), )
                                 }}
-                        
-                        addRecordDlg = dbm_dialogs.DisplayAttributesDialog(parent=self, map=map,
-                                                                           cats=cats,
-                                                                           pos=posWindow,
-                                                                           action="add")
 
-                        self.__geomAttrb(fid, addRecordDlg, 'length', digitClass,
-                                         digitToolbar.GetLayer())
-                        # auto-placing centroid
-                        self.__geomAttrb(fid, addRecordDlg, 'area', digitClass,
-                                         digitToolbar.GetLayer())
-                        self.__geomAttrb(fid, addRecordDlg, 'perimeter', digitClass,
-                                         digitToolbar.GetLayer())
-
+                        addRecordDlg = dbm.DisplayAttributesDialog(parent=self, map=map,
+                                                                   cats=cats,
+                                                                   pos=posWindow,
+                                                                   action="add")
                         if addRecordDlg.mapDBInfo and \
                                addRecordDlg.ShowModal() == wx.ID_OK:
                             sqlfile = tempfile.NamedTemporaryFile(mode="w")
                             for sql in addRecordDlg.GetSQLString():
                                 sqlfile.file.write(sql + ";\n")
                             sqlfile.file.flush()
-                            gcmd.RunCommand('db.execute',
-                                            parent = True,
-                                            quiet = True,
-                                            input = sqlfile.name)
-                        
-                        if addRecordDlg.mapDBInfo:
-                            self.__updateATM()
-            
+                            executeCommand = gcmd.Command(cmd=["db.execute",
+                                                              "--q",
+                                                              "input=%s" % sqlfile.name])
             elif digitToolbar.GetAction() == "deleteLine":
                 # -> delete selected vector features
                 if digitClass.DeleteSelectedLines() < 0:
                     return
-                self.__updateATM()
             elif digitToolbar.GetAction() == "splitLine":
                 # split line
                 if digitClass.SplitLine(self.Pixel2Cell(self.mouse['begin'])) < 0:
                     return
             elif digitToolbar.GetAction() == "addVertex":
                 # add vertex
-                fid = digitClass.AddVertex(self.Pixel2Cell(self.mouse['begin']))
-                if fid < 0:
+                if digitClass.AddVertex(self.Pixel2Cell(self.mouse['begin'])) < 0:
                     return
             elif digitToolbar.GetAction() == "removeVertex":
                 # remove vertex
-                fid = digitClass.RemoveVertex(self.Pixel2Cell(self.mouse['begin']))
-                if fid < 0:
+                if digitClass.RemoveVertex(self.Pixel2Cell(self.mouse['begin'])) < 0:
                     return
-                self.__geomAttrbUpdate([fid,])
             elif digitToolbar.GetAction() in ("copyCats", "copyAttrs"):
                 try:
                     if digitToolbar.GetAction() == 'copyCats':
@@ -2274,9 +1611,6 @@ class BufferedWindow(MapWindow, wx.Window):
                     del self.copyCatsIds
                 except AttributeError:
                     pass
-                
-                self.__updateATM()
-                
             elif digitToolbar.GetAction() == "editLine" and \
                     hasattr(self, "vdigitMove"):
                 line = digitClass.driver.GetSelected()
@@ -2319,7 +1653,7 @@ class BufferedWindow(MapWindow, wx.Window):
                                         nselected=len(selected))
                 if dlg.ShowModal() == wx.ID_OK:
                     if digitClass.ZBulkLines(pos1, pos2, dlg.value.GetValue(),
-                                             dlg.step.GetValue()) < 0:
+                                            dlg.step.GetValue()) < 0:
                         return
                 self.UpdateMap(render=False, renderVector=True)
             elif digitToolbar.GetAction() == "typeConv":
@@ -2337,15 +1671,13 @@ class BufferedWindow(MapWindow, wx.Window):
 
             self.redrawAll = True
             self.Refresh()
-            
+        
         event.Skip()
 
     def OnMiddleDown(self, event):
-        """!
+        """
         Middle mouse button pressed
         """
-        self.mouse['begin'] = event.GetPositionTuple()[:]
-        
         digitToolbar = self.parent.toolbars['vdigit']
         # digitization tool
         if self.mouse["use"] == "pointer" and digitToolbar:
@@ -2406,27 +1738,9 @@ class BufferedWindow(MapWindow, wx.Window):
                 self.UpdateMap(render=False)
             
             self.redrawAll = True
-
-    def OnMiddleUp(self, event):
-        """!
-        Middle mouse button released
-        """
-        self.mouse['end'] = event.GetPositionTuple()[:]
-        
-        # set region in zoom or pan
-        begin = self.mouse['begin']
-        end = self.mouse['end']
-        
-        self.Zoom(begin, end, 0) # no zoom
-        
-        # redraw map
-        self.UpdateMap(render=True)
-        
-        # update statusbar
-        self.parent.StatusbarUpdate()
-        
+            
     def OnMouseMoving(self, event):
-        """!
+        """
         Motion event and no mouse buttons were pressed
         """
         digitToolbar = self.parent.toolbars['vdigit']
@@ -2493,7 +1807,7 @@ class BufferedWindow(MapWindow, wx.Window):
         event.Skip()
 
     def ClearLines(self, pdc=None):
-        """!
+        """
         Clears temporary drawn lines from PseudoDC
         """
         if not pdc:
@@ -2518,7 +1832,7 @@ class BufferedWindow(MapWindow, wx.Window):
         return True
 
     def Pixel2Cell(self, (x, y)):
-        """!
+        """
         Convert image coordinates to real word coordinates
 
         Input : int x, int y
@@ -2549,7 +1863,7 @@ class BufferedWindow(MapWindow, wx.Window):
         return (east, north)
 
     def Cell2Pixel(self, (east, north)):
-        """!
+        """
         Convert real word coordinates to image coordinates
         """
 
@@ -2576,7 +1890,7 @@ class BufferedWindow(MapWindow, wx.Window):
         return (x, y)
 
     def Zoom(self, begin, end, zoomtype):
-        """!
+        """
         Calculates new region while (un)zoom/pan-ing
         """
         x1, y1 = begin
@@ -2652,120 +1966,95 @@ class BufferedWindow(MapWindow, wx.Window):
             self.redrawAll = True
 
     def ZoomBack(self):
-        """!Zoom to previous extents in zoomhistory list
         """
-        zoom = list()
-        
+        Zoom to previous extents in zoomhistory list
+        """
+
+        zoom = []
         if len(self.zoomhistory) > 1:
             self.zoomhistory.pop()
-            zoom = self.zoomhistory[-1]
-        
-        # disable tool if stack is empty
-        if len(self.zoomhistory) < 2: # disable tool
-            if self.parent.GetName() == 'MapWindow':
-                toolbar = self.parent.toolbars['map']
-            elif self.parent.GetName() == 'GRMapWindow':
-                toolbar = self.parent.toolbars['georect']
-            
-            toolbar.Enable('zoomback', enable = False)
-        
-        # zoom to selected region
-        self.Map.GetRegion(n = zoom[0], s = zoom[1],
-                           e = zoom[2], w = zoom[3],
-                           update = True)
-        # update map
-        self.UpdateMap()
-        
-        # update statusbar
-        self.parent.StatusbarUpdate()
+            zoom = self.zoomhistory[len(self.zoomhistory)-1]
+            # (n, s, e, w)
+        if zoom:
+            # zoom to selected region
+            self.Map.region['center_easting'] = zoom[3] + \
+                (zoom[2] - zoom[3]) / 2
+            self.Map.region['center_northing'] = zoom[1] + \
+                (zoom[0] - zoom[1]) / 2
+            self.Map.region["ewres"] = (zoom[2] - zoom[3]) / self.Map.width
+            self.Map.region["nsres"] = (zoom[0] - zoom[1]) / self.Map.height
+            self.Map.AlignExtentFromDisplay()
+
+            # update map
+            self.UpdateMap()
+
+            # update statusbar
+            self.parent.StatusbarUpdate()
 
     def ZoomHistory(self, n, s, e, w):
-        """!
+        """
         Manages a list of last 10 zoom extents
 
-        @param n,s,e,w north, south, east, west
-
-        @return removed history item if exists (or None)
+        Return removed history item if exists
         """
         removed = None
         self.zoomhistory.append((n,s,e,w))
-        
+
         if len(self.zoomhistory) > 10:
             removed = self.zoomhistory.pop(0)
-        
+
         if removed:
             Debug.msg(4, "BufferedWindow.ZoomHistory(): hist=%s, removed=%s" %
                       (self.zoomhistory, removed))
         else:
             Debug.msg(4, "BufferedWindow.ZoomHistory(): hist=%s" %
                       (self.zoomhistory))
-        
-        # update toolbar
-        if len(self.zoomhistory) > 1:
-            enable = True
-        else:
-            enable = False
 
-        if self.parent.GetName() == 'pg_panel':
-            toolbar = self.parent.toolbars['map']
-        elif self.parent.GetName() == 'GRMapWindow':
-            toolbar = self.parent.toolbars['georect']
-        
-        toolbar.Enable('zoomback', enable)
-        
         return removed
 
-    def ResetZoomHistory(self):
-        """!Reset zoom history"""
-        self.zoomhistory = list()
-        
     def OnZoomToMap(self, event):
-        """!
+        """
         Set display extents to match selected raster (including NULLs)
         or vector map.
         """
         self.ZoomToMap()
 
     def OnZoomToRaster(self, event):
-        """!
+        """
         Set display extents to match selected raster map (ignore NULLs)
         """
-        self.ZoomToMap(ignoreNulls = True)
+        self.ZoomToMap(zoom=True)
         
-    def ZoomToMap(self, layers = None, ignoreNulls = False, render = True):
-        """!
+    def ZoomToMap(self, layer = None, zoom = False):
+        """
         Set display extents to match selected raster
-        or vector map(s).
-
-        @param layer list of layers to be zoom to
-        @param ignoreNulls True to ignore null-values
-        @param render True to re-render display
+        or vector map.
         """
         zoomreg = {}
 
-        if not layers:
-            layers = self.GetSelectedLayer(multi = True)
+        if not layer:
+            layer = self.GetSelectedLayer(multi = True)
         
-        if not layers:
+        if not layer:
             return
-        
+
         rast = []
         vect = []
         updated = False
-        for l in layers:
+        for l in layer:
             # only raster/vector layers are currently supported
             if l.type == 'raster':
                 rast.append(l.name)
             elif l.type == 'vector':
-                digitToolbar = self.parent.toolbars['vdigit']
-                if digitToolbar and digitToolbar.GetLayer() == l:
+                if self.parent.digit and l.name == self.parent.digit.map and \
+                        self.parent.digit.type == 'vdigit':
                     w, s, b, e, n, t = self.parent.digit.driver.GetMapBoundingBox()
                     self.Map.GetRegion(n=n, s=s, w=w, e=e,
                                        update=True)
                     updated = True
                 else:
                     vect.append(l.name)
-        
+
         if not updated:
             self.Map.GetRegion(rast = rast,
                                vect = vect,
@@ -2773,14 +2062,16 @@ class BufferedWindow(MapWindow, wx.Window):
         
         self.ZoomHistory(self.Map.region['n'], self.Map.region['s'],
                          self.Map.region['e'], self.Map.region['w'])
-        
-        if render:
-            self.UpdateMap()
+
+
+        self.flag=True
+
+        self.UpdateMap()
 
         self.parent.StatusbarUpdate()
-        
+
     def ZoomToWind(self, event):
-        """!
+        """
         Set display geometry to match computational
         region settings (set with g.region)
         """
@@ -2795,7 +2086,7 @@ class BufferedWindow(MapWindow, wx.Window):
         self.parent.StatusbarUpdate()
 
     def ZoomToDefault(self, event):
-        """!
+        """
         Set display geometry to match default region settings
         """
         self.Map.region = self.Map.GetRegion(default=True)
@@ -2809,7 +2100,7 @@ class BufferedWindow(MapWindow, wx.Window):
         self.parent.StatusbarUpdate()
         
     def DisplayToWind(self, event):
-        """!
+        """
         Set computational region (WIND file) to
         match display extents
         """
@@ -2820,16 +2111,17 @@ class BufferedWindow(MapWindow, wx.Window):
         # We ONLY want to set extents here. Don't mess with resolution. Leave that
         # for user to set explicitly with g.region
         new = self.Map.AlignResolution()
-        gcmd.RunCommand('g.region',
-                        parent = self,
-                        overwrite = True,
-                        n = new['n'],
-                        s = new['s'],
-                        e = new['e'],
-                        w = new['w'],
-                        rows = int(new['rows']),
-                        cols = int(new['cols']))
         
+        cmdRegion = ["g.region", "--o",
+                     "n=%f"    % new['n'],
+                     "s=%f"    % new['s'],
+                     "e=%f"    % new['e'],
+                     "w=%f"    % new['w'],
+                     "rows=%d" % int(new['rows']),
+                     "cols=%d" % int(new['cols'])]
+        
+        p = gcmd.Command(cmdRegion)
+
         if tmpreg:
             os.environ["GRASS_REGION"] = tmpreg
 
@@ -2837,22 +2129,19 @@ class BufferedWindow(MapWindow, wx.Window):
         """!Set display geometry to match extents in
         saved region file
         """
-        dlg = gdialogs.SavedRegion(parent = self,
+        dlg = gdialogs.SavedRegion(parent = self, id = wx.ID_ANY,
                                    title = _("Zoom to saved region extents"),
+                                   pos=wx.DefaultPosition, size=wx.DefaultSize,
+                                   style=wx.DEFAULT_DIALOG_STYLE,
                                    loadsave='load')
         
-        if dlg.ShowModal() == wx.ID_CANCEL or not dlg.wind:
+        if dlg.ShowModal() == wx.ID_CANCEL:
             dlg.Destroy()
             return
         
-        if not grass.find_file(name = dlg.wind, element = 'windows')['name']:
-            wx.MessageBox(parent = self,
-                          message = _("Region <%s> not found. Operation canceled.") % dlg.wind,
-                          caption = _("Error"), style = wx.ICON_ERROR | wx.OK | wx.CENTRE)
-            dlg.Destroy()
-            return
+        wind = dlg.wind
         
-        self.Map.GetRegion(regionName = dlg.wind,
+        self.Map.GetRegion(regionName = wind,
                            update = True)
         
         dlg.Destroy()
@@ -2863,61 +2152,69 @@ class BufferedWindow(MapWindow, wx.Window):
                          self.Map.region['w'])
         
         self.UpdateMap()
-                
+    
     def SaveDisplayRegion(self, event):
-        """!
+        """
         Save display extents to named region file.
         """
 
-        dlg = gdialogs.SavedRegion(parent = self,
+        dlg = gdialogs.SavedRegion(parent = self, id = wx.ID_ANY,
                                    title = _("Save display extents to region file"),
+                                   pos=wx.DefaultPosition, size=wx.DefaultSize,
+                                   style=wx.DEFAULT_DIALOG_STYLE,
                                    loadsave='save')
-        
-        if dlg.ShowModal() == wx.ID_CANCEL or not dlg.wind:
+        if dlg.ShowModal() == wx.ID_CANCEL:
             dlg.Destroy()
             return
-
-        # test to see if it already exists and ask permission to overwrite
-        if grass.find_file(name = dlg.wind, element = 'windows')['name']:
-            overwrite = wx.MessageBox(parent = self,
-                                      message = _("Region file <%s> already exists. "
-                                                  "Do you want to overwrite it?") % (dlg.wind),
-                                      caption = _("Warning"), style = wx.YES_NO | wx.CENTRE)
-            if (overwrite == wx.YES):
-                self.SaveRegion(dlg.wind)
-        else:
-            self.SaveRegion(dlg.wind)
         
+        wind = dlg.wind
+        
+        # test to see if it already exists and ask permission to overwrite
+        windpath = os.path.join(self.Map.env["GISDBASE"], self.Map.env["LOCATION_NAME"],
+                                self.Map.env["MAPSET"], "windows", wind)
+        
+        if windpath and not os.path.exists(windpath):
+            self.SaveRegion(wind)
+        elif windpath and os.path.exists(windpath):
+            overwrite = wx.MessageBox(_("Region file <%s> already exists. "
+                                        "Do you want to overwrite it?") % (wind),
+                                      _("Warning"), wx.YES_NO | wx.CENTRE)
+            if (overwrite == wx.YES):
+                self.SaveRegion(wind)
+        else:
+            pass
+
         dlg.Destroy()
 
     def SaveRegion(self, wind):
-        """!Save region settings
-
-        @param wind region name
         """
+        Save region settings
+        """
+        ### new = self.Map.AlignResolution()
         new = self.Map.GetCurrentRegion()
+        
+        cmdRegion = ["g.region",
+                     "-u",
+                     "n=%f" % new['n'],
+                     "s=%f" % new['s'],
+                     "e=%f" % new['e'],
+                     "w=%f" % new['w'],
+                     "rows=%d" % new['rows'],
+                     "cols=%d" % new['cols'],
+                     "save=%s" % wind,
+                     "--o"]
 
         tmpreg = os.getenv("GRASS_REGION")
         if tmpreg:
             del os.environ["GRASS_REGION"]
         
-        gcmd.RunCommand('g.region',
-                        overwrite = True,
-                        parent = self,
-                        flags = 'u',
-                        n = new['n'],
-                        s = new['s'],
-                        e = new['e'],
-                        w = new['w'],
-                        rows = int(new['rows']),
-                        cols = int(new['cols']),
-                        save = wind)
-        
+        p = gcmd.Command(cmdRegion)
+
         if tmpreg:
             os.environ["GRASS_REGION"] = tmpreg
 
     def Distance(self, beginpt, endpt, screen=True):
-        """!Calculete distance
+        """Calculete distance
 
         LL-locations not supported
 
@@ -2935,8 +2232,10 @@ class BufferedWindow(MapWindow, wx.Window):
         else:
             dEast  = (x2 - x1)
             dNorth = (y2 - y1)
-        
+            
+
         return (math.sqrt(math.pow((dEast),2) + math.pow((dNorth),2)), (dEast, dNorth))
+
 
 
 class MapFrame(wx.Panel):
@@ -2971,7 +2270,6 @@ class MapFrame(wx.Panel):
         self.frame = frame
         self.statusFlag = flag
         self.statusbar = None
-
 
         #FIX THIS
 
@@ -3046,13 +2344,13 @@ class MapFrame(wx.Panel):
                                                                   key='statusbarMode',
                                                                   subkey='selection'))
 
-#        self.statusbar.Bind(wx.EVT_CHOICE, self.OnToggleStatus, self.statusbarWin['toggle'])
+        self.statusbar.Bind(wx.EVT_CHOICE, self.OnToggleStatus, self.statusbarWin['toggle'])
 
         # auto-rendering checkbox
         self.statusbarWin['render'] = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
                                                   label=_("Render"))
 
-    #    self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleRender, self.statusbarWin['render'])
+        self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleRender, self.statusbarWin['render'])
 
         self.statusbarWin['render'].SetValue(UserSettings.Get(group='display',
                                                               key='autoRendering',
@@ -3132,7 +2430,7 @@ class MapFrame(wx.Panel):
         self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,   Map=self.Map, tree=self.tree, gismgr=self._layerManager)
         # default is 2D display mode
         self.MapWindow = self.MapWindow2D
-        self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
+        #self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
         self.MapWindow.SetCursor(self.cursors["default"])
         # used by Nviz (3D display mode)
         self.MapWindow3D = None 
@@ -3219,17 +2517,12 @@ class MapFrame(wx.Panel):
                                                       size=wx.DefaultSize, style=wx.TR_HAS_BUTTONS
                                                       |wx.TR_LINES_AT_ROOT|wx.TR_HIDE_ROOT,
                                                       gisdbase=self.gisdbase)
-
-        self.tree = self.maptree
         #self.maptree.SetBackgroundColour("red")
 
         self._mgr.AddPane(self.maptree, wx.aui.AuiPaneInfo().Left().
                                         Dockable(False).BestSize((400,300)).
                                         CloseButton(False).DestroyOnClose(True).
                                         Layer(0).Caption("Map Tree"))
-
-
-
 
         self._mgr.Update()
 
