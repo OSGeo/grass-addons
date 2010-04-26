@@ -127,7 +127,6 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         notebook = leftpanel.GetParent()
         frame = notebook.GetParent()
 
-        notebook.SetSelection(notebook.GetPage(notebook.GetPageCount())
         
         if not self.ItemHasChildren(item):
             self.mapname =  self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
