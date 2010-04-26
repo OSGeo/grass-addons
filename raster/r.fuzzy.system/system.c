@@ -36,7 +36,7 @@ float implicate(void)
 	if (defuzzyfication > d_BISECTOR && antecedents[j] < max_antecedent)
 	    continue;
 	    
-	    set_index = s_rules[j].output_set_index; //było niżej
+	    set_index = s_rules[j].output_set_index;
 
 	for (i = 0; i < resolution; ++i) {
 	    
@@ -66,9 +66,9 @@ float parse_expression(int n)
     /*  tokens and actions must heve the same order */
     actions parse_tab[t_size][t_size] = {
 	/* stk -----------INPUT------------------ */
-	/*        {    &    |    ~    =    (    )    }     */
-	/*        --   --   --   --   --   --   --   --
-	   /* { */ {E, S, S, E, E, S, E, A},
+	/*  		{   &  | ~   =  (  )  }   */
+	/*      --  -- -- -- -- -- -- -- */
+	/* { */ {E, S, S, E, E, S, E, A},
 	/* & */ {E, R, R, E, E, S, R, R},
 	/* | */ {E, R, R, E, E, S, R, R},
 	/* ~ */ {E, E, E, E, E, E, E, E},
@@ -87,9 +87,7 @@ float parse_expression(int n)
     int set_index;
     float f_value;
 
-
     do {
-
 	if (s_rules[n].work_stack[i] == t_START) {	/* first token */
 	    if (i > 0)
 		G_fatal_error("operator stack error, contact author");
@@ -102,14 +100,12 @@ float parse_expression(int n)
 		fuzzy(*s_rules[n].value_stack[i].value,
 		      s_rules[n].value_stack[i].set);
 	    values_stack[++val_top] =
-		(s_rules[n].value_stack[i].oper == '~') ? f_not(f_value,
-								family) :
-		f_value;
+		(s_rules[n].value_stack[i].oper == '~') ? 
+			f_not(f_value, family) :	f_value;
 	    continue;
 	}
 
 	if (s_rules[n].work_stack[i] < t_size) {
-
 	    switch (parse_tab[operator_stack[opr_top]]
 		    [s_rules[n].work_stack[i]]) {
 
@@ -149,13 +145,17 @@ float parse_expression(int n)
 		break;
 
 	    case A:		/* accept */
+	
 		if (!val_top)
 		    G_fatal_error("Last Stack error, contact autor");
 		return values_stack[val_top];
-
+	
 	    }
 	}
+
     } while (s_rules[n].work_stack[i++] != t_STOP);
+    
+    G_fatal_error("Parse Stack empty, contact autor");
 }
 
 

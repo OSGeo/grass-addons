@@ -49,7 +49,9 @@ int parse_rule_file(STRING file)
 	/* next rule */
     }
 
-
+			for (i = 0; i < nrules; ++i)
+		G_free(rules[i]);
+		G_free(rules);
     fclose(fd);
     return 0;
 
@@ -162,8 +164,6 @@ int parse_rules(int rule_num, int n, char buf[])
 
 	done = 1;
 	for (i = 0; i < stack_top; ++i) {	/* most external loop */
-	    //if(i>0)
-	    //G_message("PARSE STACK %d %d",s_rules[rule_num].work_stack[i-1],i-1)  ;
 	    if (*s_rules[rule_num].parse_stack[i] == '{') {
 
 		s_rules[rule_num].work_stack[work_stack_pos] = t_START;

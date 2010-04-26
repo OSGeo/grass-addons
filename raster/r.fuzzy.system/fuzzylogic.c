@@ -2,7 +2,6 @@
 
 float fuzzy(FCELL cell, SETS * set)
 {
-
     float x;
 
     if (!set->side) {		/* both left and right */
@@ -83,7 +82,7 @@ float f_and(float x, float y, int family)
 	break;
 
     case l_HAMACHER:
-	return (x == y == 0) ? 0 : (x * y) / ((x + y) - x * y);
+	return (x == 0||y == 0) ? 0 : (x * y) / ((x + y) - x * y);
 	break;
 
 

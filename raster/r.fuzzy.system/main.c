@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 
     struct History history;
 
-    struct Flag *out_multiple;
+    struct Flag *out_multiple, *out_membership;
 
     int nrows, ncols;
     int row, col;
@@ -85,13 +85,19 @@ int main(int argc, char **argv)
     in_coor_opt = G_define_option();	/* input coordinates de outlet */
     in_coor_opt->key = "coors";
     in_coor_opt->type = TYPE_STRING;
-    in_coor_opt->key_desc = "x,y";
+    in_coor_opt->key_desc = "x|y";
     in_coor_opt->answer = NULL;
     in_coor_opt->required = NO;
     in_coor_opt->multiple = NO;
     in_coor_opt->description =
-	"Coordinate of cell for witch output  detail data";
+	"Coordinate of cell for detail data (print end exit)";
     in_coor_opt->guisection = _("Visual Output");
+
+    out_membership = G_define_flag();
+    out_membership->key = 'o';
+    out_membership->description =
+	_("Print only membership values and exit");
+		out_membership->guisection = _("Visual Output");
 
     out_multiple = G_define_flag();
     out_multiple->key = 'm';
@@ -105,11 +111,11 @@ int main(int argc, char **argv)
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-
     var_name_file = file_vars->answer;
     rule_name_file = file_rules->answer;
     output = opt_output->answer;
     multiple = (out_multiple->answer != 0);
+    membership_only = (out_membership->answer != 0);
     coor_proc = (in_coor_opt->answer) ? 1 : 0;
 
     resolution = atoi(par_resolution->answer);
@@ -152,9 +158,14 @@ int main(int argc, char **argv)
 
     parse_map_file(var_name_file);
     parse_rule_file(rule_name_file);
+			
+			if (membership_only)
+    show_membership();
+
     get_universe();
     open_maps();
-
+	
+	antecedents = (float *)G_malloc(nrules * sizeof(float));
     if (coor_proc)
 	process_coors(in_coor_opt->answer);
 
@@ -165,13 +176,13 @@ int main(int argc, char **argv)
 
     if (multiple)
 	create_output_maps();
-	antecedents = (float *)G_malloc(nrules * sizeof(float));
+
 	
     G_message("Calculate...");
 
     for (row = 0; row < nrows; ++row) {
-	G_percent(row, nrows, 2);
-	get_rows(row);
+		G_percent(row, nrows, 2);
+		get_rows(row);
 	for (col = 0; col < ncols; ++col) {
 	    if (get_cells(col)) {
 		G_set_f_null_value(&out_buf[col], 1);
@@ -207,18 +218,19 @@ int main(int argc, char **argv)
     }
     G_percent(row, nrows, 2);
 
-
     G_message("Close...");
     for (i = 0; i < nmaps; ++i) {
+	G_free(s_maps[i].sets);
 	if (s_maps[i].output)
 	    continue;
-
 	G_free(s_maps[i].in_buf);
 	G_close_cell(s_maps[i].cfd);
     }
 
     G_free(antecedents);
     G_free(out_buf);
+    G_free(s_maps);
+    G_free(s_rules);
     G_close_cell(outfd);
     G_short_history(output, "raster", &history);
     G_command_history(&history);
@@ -232,6 +244,7 @@ int main(int argc, char **argv)
 	    G_command_history(&history);
 	    G_write_history(m_outputs[i].output_name, &history);
 	}
+
    G_message("Done!");
     exit(EXIT_SUCCESS);
 

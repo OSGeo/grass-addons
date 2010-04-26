@@ -94,7 +94,7 @@ typedef enum
     t_VAL			/* value a product of MAP and VARIABLE */
 } tokens;
 
-typedef struct _sets
+typedef struct
 {				/* membership definition */
     char setname[21];
     sides side;
@@ -104,7 +104,7 @@ typedef struct _sets
     float height;
 } SETS;
 
-typedef struct map
+typedef struct
 {
     char name[30];
     int nsets;
@@ -117,7 +117,7 @@ typedef struct map
     SETS *sets;
 } MAPS;
 
-typedef struct valuestacks
+typedef struct
 {
     float *value;
     SETS *set;
@@ -125,7 +125,7 @@ typedef struct valuestacks
 } VALUES;
 
 
-typedef struct rule
+typedef struct
 {
     char outname[20];
     int output_set_index;
@@ -143,22 +143,22 @@ typedef struct _outs
 } OUTPUTS;
 
 
-GLOBAL STRING var_name_file;
-GLOBAL STRING rule_name_file;
-GLOBAL STRING output;
-GLOBAL MAPS *s_maps;
-GLOBAL RULES *s_rules;
-GLOBAL OUTPUTS *m_outputs;
-GLOBAL float **visual_output;
-GLOBAL float *universe;
-GLOBAL float *antecedents;
-GLOBAL int nmaps, nrules, output_index, multiple, coor_proc;
-GLOBAL int resolution;
-GLOBAL implications implication;
-GLOBAL defuzz defuzzyfication;
-GLOBAL logics family;
+STRING var_name_file;
+STRING rule_name_file;
+STRING output;
+MAPS *s_maps;
+RULES *s_rules;
+OUTPUTS *m_outputs;
+float **visual_output;
+float *universe;
+float *antecedents;
+int nmaps, nrules, output_index, multiple, membership_only, coor_proc;
+int resolution;
+implications implication;
+defuzz defuzzyfication;
+logics family;
 
-GLOBAL char **rules;
+char **rules;
 
 int char_strip(char *buf, char rem);
 int char_copy(const char *buf, char *res, int start, int stop);
@@ -171,12 +171,13 @@ int parser(void);
 int open_maps(void);
 int create_output_maps(void);
 int get_rows(int row);
-int get_cols(int col);
 int get_cells(int col);
+
 
 int parse_sets(SETS * set, char buf[], const char mapname[]);
 int parse_rules(int rule_num, int n, char buf[]);
-int process_coors(char *answer);
+void process_coors(char *answer);
+void show_membership(void);
 
 float implicate(void);
 float parse_expression(int n);

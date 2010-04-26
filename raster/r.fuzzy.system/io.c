@@ -122,49 +122,6 @@ int create_output_maps(void)
 	m_outputs[i].out_buf = G_allocate_f_raster_buf();
 
     }
-
+return 0;
 }
 
-int process_coors(char *answer)
-{
-
-    struct Cell_head window;
-    double x, y;
-    int i, j;
-    int r, c;
-    int num_points;
-    float result;
-
-    G_get_window(&window);
-    num_points = sscanf(answer, "%lf,%lf", &x, &y);
-
-    r = (int)G_easting_to_col(x, &window);
-    c = (int)G_northing_to_row(y, &window);
-
-    get_rows(r);
-    get_cells(c);
-    result = implicate();
-
-    for (i = 0; i < nrules; ++i)
-
-	fprintf(stdout, "ANTECEDENT %s: %5.3f\n", s_rules[i].outname,
-		antecedents[i]);
-    fprintf(stdout, "RESULT (deffuzified):  %5.3f\n", result);
-
-
-    fprintf(stdout, "UNIVERSE,");
-    for (i = 0; i < nrules; ++i)
-	fprintf(stdout, "%s,", s_rules[i].outname);
-    fprintf(stdout, "AGREGATE \n");
-
-    for (i = 0; i < resolution; ++i)
-	for (j = 0; j < nrules + 2; ++j) {
-	    fprintf(stdout, "%5.3f", visual_output[i][j]);
-	    if (j < nrules + 1)
-		fprintf(stdout, ",");
-	    else
-		fprintf(stdout, "\n");
-	}
-
-    exit(EXIT_SUCCESS);
-}
