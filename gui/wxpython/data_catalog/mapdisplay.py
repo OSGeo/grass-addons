@@ -2430,7 +2430,7 @@ class MapFrame(wx.Panel):
         self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,   Map=self.Map, tree=self.tree, gismgr=self._layerManager)
         # default is 2D display mode
         self.MapWindow = self.MapWindow2D
-        #self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
+        self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
         self.MapWindow.SetCursor(self.cursors["default"])
         # used by Nviz (3D display mode)
         self.MapWindow3D = None 
