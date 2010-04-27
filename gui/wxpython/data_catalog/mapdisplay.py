@@ -1986,6 +1986,7 @@ class BufferedWindow(MapWindow, wx.Window):
             self.Map.AlignExtentFromDisplay()
 
             # update map
+            self.flag =True
             self.UpdateMap()
 
             # update statusbar
@@ -2431,6 +2432,7 @@ class MapFrame(wx.Panel):
         # default is 2D display mode
         self.MapWindow = self.MapWindow2D
         self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
+        self.MapWindow.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
         self.MapWindow.SetCursor(self.cursors["default"])
         # used by Nviz (3D display mode)
         self.MapWindow3D = None 
@@ -2522,11 +2524,18 @@ class MapFrame(wx.Panel):
         self._mgr.AddPane(self.maptree, wx.aui.AuiPaneInfo().Left().
                                         Dockable(False).BestSize((400,300)).
                                         CloseButton(False).DestroyOnClose(True).
-                                        Layer(0).Caption("Map Tree"))
+                                        Layer(0).Caption("MapTree"))
 
         self._mgr.Update()
 
+
+
         #r.rightSizer.Add(self.maptree)
+
+    def OnClick(self,event):
+        x, y = self.MapWindow.Pixel2Cell(event.GetPosition())
+        self.frame.mInfo.SetValue(str(x) + ' , ' + str(y))
+        event.Skip()
 
     def read_gisrc(self):
 	    """
@@ -2888,6 +2897,7 @@ class MapFrame(wx.Panel):
         """
         Pointer button clicked
         """
+
         if self.toolbars['map']:
             if event:
                 self.toolbars['map'].OnTool(event)

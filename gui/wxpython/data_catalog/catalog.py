@@ -196,7 +196,7 @@ class DataCatalog(wx.Frame):
         self.cb_mapfile = []
         
         #creating controls
-        #self.mInfo = wx.TextCtrl(self.pRight, wx.ID_ANY, style = wx.TE_MULTILINE|wx.HSCROLL|wx.TE_READONLY)
+        self.mInfo = wx.TextCtrl(self.cmbPanel, wx.ID_ANY, style = wx.TE_READONLY,size=(300,30))
         #self.chkInfo = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"display Info", wx.DefaultPosition, wx.DefaultSize)
         self.treeExpand = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"Expand All", wx.DefaultPosition, wx.DefaultSize)
         self.cmbLocation = wx.ComboBox(self.cmbPanel, value = "Select Location",size=wx.DefaultSize, choices=self.loclist)
@@ -2046,7 +2046,7 @@ class DataCatalog(wx.Frame):
 	    #combo panel sizers
         self.cmbSizer.Add(self.cmbLocation)
         self.cmbSizer.Add(self.cmbMapset)
-        #self.cmbSizer.Add(self.treeExpand)
+        self.cmbSizer.Add(self.mInfo)
         #splitter window sizers
         self.mSizer.Add(self.cmbPanel,flag=wx.EXPAND)
         #self.mSizer.Add(self.win, 1, wx.EXPAND)
