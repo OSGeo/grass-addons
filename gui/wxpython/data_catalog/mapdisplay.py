@@ -1162,6 +1162,7 @@ class BufferedWindow(MapWindow, wx.Window):
         self.Zoom(begin, end, zoomtype)
 
         # redraw map
+        self.flag=True
         self.UpdateMap()
 
         ### self.OnPaint(None)
@@ -2081,7 +2082,7 @@ class BufferedWindow(MapWindow, wx.Window):
 
         self.ZoomHistory(self.Map.region['n'], self.Map.region['s'],
                          self.Map.region['e'], self.Map.region['w'])
-
+        self.flag = True
         self.UpdateMap()
 
         self.parent.StatusbarUpdate()
@@ -2095,7 +2096,9 @@ class BufferedWindow(MapWindow, wx.Window):
 
         self.ZoomHistory(self.Map.region['n'], self.Map.region['s'],
                          self.Map.region['e'], self.Map.region['w'])
-
+        
+        
+        self.flag=True
         self.UpdateMap()
 
         self.parent.StatusbarUpdate()
@@ -2495,6 +2498,10 @@ class MapFrame(wx.Panel):
         self.viewInfo = True        #to display v/r.info on mapdisplay
         self.gisdbase = self.gisrc['GISDBASE'] 
 
+        self.current_zoom = 100
+        self.zoom_step = 10
+
+
         parent1 = self.GetParent()
         
         rightpanel = parent1.GetParent()
@@ -2534,7 +2541,14 @@ class MapFrame(wx.Panel):
 
     def OnClick(self,event):
         x, y = self.MapWindow.Pixel2Cell(event.GetPosition())
-        self.frame.mInfo.SetValue(str(x) + ' , ' + str(y))
+        if self.MapWindow.mouse['use'] == "zoom":
+            self.current_zoom = self.current_zoom + self.zoom_step
+        self.frame.mInfo.SetValue(str(x) + ' , ' + str(y)+ ' , ' + str(self.current_zoom) + '%')
+
+
+        #print self.current_zoom
+
+
         event.Skip()
 
     def read_gisrc(self):
@@ -2935,6 +2949,9 @@ class MapFrame(wx.Panel):
         Zoom in the map.
         Set mouse cursor, zoombox attributes, and zoom direction
         """
+        
+        self.zoom_step = 10
+     
         if self.toolbars['map']:
             self.toolbars['map'].OnTool(event)
             self.toolbars['map'].action['desc'] = ''
@@ -2952,6 +2969,9 @@ class MapFrame(wx.Panel):
         Zoom out the map.
         Set mouse cursor, zoombox attributes, and zoom direction
         """
+
+        self.zoom_step = -10
+
         if self.toolbars['map']:
             self.toolbars['map'].OnTool(event)
             self.toolbars['map'].action['desc'] = ''
@@ -2997,6 +3017,7 @@ class MapFrame(wx.Panel):
         """
         self.Map.getRegion()
         self.Map.getResolution()
+        self.flag=True
         self.UpdateMap()
         # event.Skip()
 
