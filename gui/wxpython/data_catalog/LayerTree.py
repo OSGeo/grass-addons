@@ -361,7 +361,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             mnuRename = self.popupmenu.Append(self.ID_REN,'&Rename\tCtrl-R')
             mnuDel = self.popupmenu.Append(self.ID_DEL,'&Delete\tDEL')
             #self.popupmenu.AppendSeperator()
-            mnuOssim = self.popupmenu.Append(self.ID_OSSIM,'&send to OssimPlanet')
+            mnuOssim = self.popupmenu.Append(self.ID_OSSIM,'&Send to OssimPlanet')
+            mnuOssim = self.popupmenu.Append(self.ID_OSSIM2,'&Remove from OssimPlanet')
             #self.popupmenu.AppendSeperator()
             mnuInfo = self.popupmenu.Append(self.ID_INFO,'&Info')
 
@@ -488,7 +489,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         if self.GetItemText(parent) == "Raster Map" :
             cmdflag = 'r.planet.py -a map=' + str(self.GetItemText(item))
         elif self.GetItemText(parent) == "Vector Map" :
-            cmdflag = 'v.planet.py -a map=' + str(self.GetItemText(item))
+            cmdflag = 'v.planet.py -a map=' + str(self.GetItemText(item)) + ' brush=' + str('155,155,155') + ' pen=' + str('155,155,155') + ' size=' +str('1,1')
+            print cmdflag
 
         if cmdflag:
             
