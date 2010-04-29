@@ -183,9 +183,9 @@ float implicate(void);
 float parse_expression(int n);
 float defuzzify(float *agregate, int defuzzification, float max_antecedent);
 
-float f_and(float cellx, float celly, int family);
-float f_or(float cellx, float celly, int family);
-float f_not(float cellx, int family);
+float f_and(float cellx, float celly, logics family);
+float f_or(float cellx, float celly, logics family);
+float f_not(float cellx, logics family);
 float fuzzy(FCELL cell, SETS * set);
 
 

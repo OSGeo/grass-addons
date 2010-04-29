@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 
     file_vars = G_define_standard_option(G_OPT_F_INPUT);
     file_vars->key = "maps";
-    file_vars->required = NO;
+    file_vars->required = YES;
     file_vars->description = _("Name of fuzzy variable file");
 
     file_rules = G_define_standard_option(G_OPT_F_INPUT);
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     in_coor_opt = G_define_option();	/* input coordinates de outlet */
     in_coor_opt->key = "coors";
     in_coor_opt->type = TYPE_STRING;
-    in_coor_opt->key_desc = "x|y";
+    in_coor_opt->key_desc = "x,y";
     in_coor_opt->answer = NULL;
     in_coor_opt->required = NO;
     in_coor_opt->multiple = NO;
@@ -107,6 +107,7 @@ int main(int argc, char **argv)
 
     opt_output = G_define_standard_option(G_OPT_R_OUTPUT);
     opt_output->description = _("Name of output file");
+		opt_output->required = NO;
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -117,6 +118,9 @@ int main(int argc, char **argv)
     multiple = (out_multiple->answer != 0);
     membership_only = (out_membership->answer != 0);
     coor_proc = (in_coor_opt->answer) ? 1 : 0;
+
+			if(!membership_only & (!output | !rule_name_file))
+		G_fatal_error(_("for standard analysis both output and rule file are required"));
 
     resolution = atoi(par_resolution->answer);
     if (resolution < 10)
@@ -155,19 +159,18 @@ int main(int argc, char **argv)
 
     nrows = G_window_rows();
     ncols = G_window_cols();
-
-    parse_map_file(var_name_file);
-    parse_rule_file(rule_name_file);
-			
+		
+		parse_map_file(var_name_file);
 			if (membership_only)
     show_membership();
-
+    
+		parse_rule_file(rule_name_file);
     get_universe();
     open_maps();
 	
-	antecedents = (float *)G_malloc(nrules * sizeof(float));
-    if (coor_proc)
-	process_coors(in_coor_opt->answer);
+		antecedents = (float *)G_malloc(nrules * sizeof(float));
+			if (coor_proc)
+		process_coors(in_coor_opt->answer);
 
     if ((outfd = G_open_raster_new(output, FCELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), output);
@@ -176,7 +179,6 @@ int main(int argc, char **argv)
 
     if (multiple)
 	create_output_maps();
-
 	
     G_message("Calculate...");
 

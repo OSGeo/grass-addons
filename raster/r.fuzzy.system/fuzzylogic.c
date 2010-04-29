@@ -2,6 +2,7 @@
 
 float fuzzy(FCELL cell, SETS * set)
 {
+   
     float x;
 
     if (!set->side) {		/* both left and right */
@@ -52,13 +53,11 @@ float fuzzy(FCELL cell, SETS * set)
 
     if (set->height < 1)
 	x = x * set->height;
-
     return (x >= 0 && x <= 1) ? x : -1;
 }
 
-float f_and(float x, float y, int family)
+float f_and(float x, float y, logics family)
 {
-
     switch (family) {
 
     case l_ZADEH:
@@ -91,9 +90,8 @@ float f_and(float x, float y, int family)
     return -1;			/* error */
 }
 
-float f_or(float x, float y, int family)
+float f_or(float x, float y, logics family)
 {
-    float b;
 
     switch (family) {
 
@@ -125,7 +123,7 @@ float f_or(float x, float y, int family)
 }
 
 
-float f_not(float x, int family)
+float f_not(float x, logics family)
 {
 
     if (family == l_HAMACHER)

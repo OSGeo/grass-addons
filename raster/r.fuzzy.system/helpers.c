@@ -97,11 +97,12 @@ void process_coors(char *answer)
     G_get_window(&window);
     num_points = sscanf(answer, "%lf,%lf", &x, &y);
 
-    r = (int)G_easting_to_col(x, &window);
-    c = (int)G_northing_to_row(y, &window);
+    c = (int)G_easting_to_col(x, &window);
+    r = (int)G_northing_to_row(y, &window);
     
 		get_rows(r);
     get_cells(c);
+    
     result = implicate(); /* jump to different function */
 
     for (i = 0; i < nrules; ++i)

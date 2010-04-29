@@ -22,7 +22,7 @@ float implicate(void)
 	     antecedents[j]) ? max_antecedent : antecedents[j];
     }
 
-    if (max_antecedent == 0.)
+    if (max_antecedent == 0. && !coor_proc)
 	return -9999;		/* for all rules value is 0 */
 
     if (coor_proc)
@@ -87,6 +87,7 @@ float parse_expression(int n)
     int set_index;
     float f_value;
 
+
     do {
 	if (s_rules[n].work_stack[i] == t_START) {	/* first token */
 	    if (i > 0)
@@ -97,11 +98,9 @@ float parse_expression(int n)
 
 	if (s_rules[n].work_stack[i] == t_VAL) {
 	    f_value =
-		fuzzy(*s_rules[n].value_stack[i].value,
-		      s_rules[n].value_stack[i].set);
-	    values_stack[++val_top] =
-		(s_rules[n].value_stack[i].oper == '~') ? 
-			f_not(f_value, family) :	f_value;
+		fuzzy(*s_rules[n].value_stack[i].value, s_rules[n].value_stack[i].set);
+	    values_stack[++val_top] =	(s_rules[n].value_stack[i].oper == '~') ? 
+				f_not(f_value, family) :	f_value;
 	    continue;
 	}
 
