@@ -55,6 +55,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.ID_COPY = wx.NewId()
         self.ID_DEL = wx.NewId()
         self.ID_OSSIM = wx.NewId()
+        self.ID_OSSIM2 = wx.NewId()
         self.ID_INFO = wx.NewId()
         self.ID_REPORT = wx.NewId()
 
@@ -93,6 +94,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.Bind(wx.EVT_MENU,self.OnRename,id=self.ID_REN)
         self.Bind(wx.EVT_MENU,self.OnDelete,id=self.ID_DEL)
         self.Bind(wx.EVT_MENU,self.OnOssim,id=self.ID_OSSIM)
+        self.Bind(wx.EVT_MENU,self.OnOssim2,id=self.ID_OSSIM2)
         self.Bind(wx.EVT_MENU,self.OnInfo,id=self.ID_INFO)
         self.Bind(wx.EVT_MENU,self.OnReport,id=self.ID_REPORT)
 
@@ -289,7 +291,8 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             mnuCopy = self.popupmenu.Append(self.ID_COPY,'&Copy\tCtrl+C')
             mnuRename = self.popupmenu.Append(self.ID_REN,'&Rename\tCtrl-R')
             mnuDel = self.popupmenu.Append(self.ID_DEL,'&Delete\tDEL')
-            mnuOssim = self.popupmenu.Append(self.ID_OSSIM,'&send to OssimPlanet')
+            mnuOssim = self.popupmenu.Append(self.ID_OSSIM,'&Send to OssimPlanet')
+            mnuOssim = self.popupmenu.Append(self.ID_OSSIM2,'&Remove from OssimPlanet')
             mnuInfo = self.popupmenu.Append(self.ID_INFO,'&Info')
             mnuReport = self.popupmenu.Append(self.ID_REPORT,'&Report')
             self.PopupMenu(self.popupmenu)
@@ -415,6 +418,25 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             current = OssimPlanet(cmdflag)
             current.start()
 
+
+    def OnOssim2( self,event ):
+        """
+        Performs grass command for deleting a map
+        """
+        item =  self.GetSelection()
+
+        parent  =self.GetItemParent(item) 
+        if self.GetItemText(parent) == "Raster Map" :
+            cmdflag = 'r.planet.py -r map=' + str(self.GetItemText(item))
+        elif self.GetItemText(parent) == "Vector Map" :
+            cmdflag = 'v.planet.py -r map=' + str(self.GetItemText(item))
+
+        if cmdflag:
+
+            #command = ["r.planet.py", cmdflag]
+            #gcmd.CommandThread(command,stdout=None,stderr=None).run()
+            current = OssimPlanet(cmdflag)
+            current.start()
         
 
     def OnDisplay(self, event):

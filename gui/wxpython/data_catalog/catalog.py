@@ -197,8 +197,17 @@ class DataCatalog(wx.Frame):
         
         #creating controls
         self.mInfo = wx.TextCtrl(self.cmbPanel, wx.ID_ANY, style = wx.TE_READONLY,size=(300,30))
+        #
+        # start radiobutton to activate - deactivate the mouse actions to send position to ossimplanet
+        #
+        self.options = ['on', 'off']
+        self.radiobox = wx.RadioBox(self.cmbPanel, wx.ID_ANY, "", pos=(100, 0), choices=self.options, style=wx.HORIZONTAL)
+        self.radiobox.SetSelection(1)
+        #
+        #
         #self.chkInfo = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"display Info", wx.DefaultPosition, wx.DefaultSize)
         self.treeExpand = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"Expand All", wx.DefaultPosition, wx.DefaultSize)
+        #self.treeExpand2 = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"Expand All 2", wx.DefaultPosition, wx.DefaultSize)
         self.cmbLocation = wx.ComboBox(self.cmbPanel, value = "Select Location",size=wx.DefaultSize, choices=self.loclist)
         self.cmbMapset = wx.ComboBox(self.cmbPanel, value = "Select Mapset", size=wx.DefaultSize)	
         #self.tree = wx.TreeCtrl(self.pLeft, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_HIDE_ROOT|wx.TR_HAS_BUTTONS|wx.TR_EDIT_LABELS)
@@ -2047,6 +2056,7 @@ class DataCatalog(wx.Frame):
         self.cmbSizer.Add(self.cmbLocation)
         self.cmbSizer.Add(self.cmbMapset)
         self.cmbSizer.Add(self.mInfo)
+        self.cmbSizer.Add(self.radiobox)
         #splitter window sizers
         self.mSizer.Add(self.cmbPanel,flag=wx.EXPAND)
         #self.mSizer.Add(self.win, 1, wx.EXPAND)
