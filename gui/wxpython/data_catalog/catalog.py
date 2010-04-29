@@ -201,7 +201,7 @@ class DataCatalog(wx.Frame):
         # start radiobutton to activate - deactivate the mouse actions to send position to ossimplanet
         #
         self.options = ['on', 'off']
-        self.radiobox = wx.RadioBox(self.cmbPanel, wx.ID_ANY, "", pos=(100, 0), choices=self.options, style=wx.HORIZONTAL)
+        self.radiobox = wx.RadioBox(self.cmbPanel, wx.ID_ANY, "",  choices=self.options, style=wx.HORIZONTAL)
         self.radiobox.SetSelection(1)
         #
         #
@@ -2036,19 +2036,16 @@ class DataCatalog(wx.Frame):
 	    return loclist
 
 
+
     def doBindings(self):
         
 	    #Event bindings for combo boxes
         self.Bind(wx.EVT_COMBOBOX,self.OnMapsetChange,self.cmbMapset)
         self.Bind(wx.EVT_COMBOBOX,self.OnLocationChange,self.cmbLocation)
 
-
-
         self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
 
-	    #Event bindings for v/r.info checkbox
-	    #self.Bind(wx.EVT_CHECKBOX, self.OnToggleInfo,self.chkInfo)
-       
+
  
     def doLayout(self):
 

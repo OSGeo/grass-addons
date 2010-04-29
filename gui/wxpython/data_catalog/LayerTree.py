@@ -58,6 +58,9 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.ID_OSSIM2 = wx.NewId()
         self.ID_INFO = wx.NewId()
         self.ID_REPORT = wx.NewId()
+        self.ID_AREA = 200
+        self.ID_LENGTH = 201
+        self.ID_COOR = 202
 
         acel = wx.AcceleratorTable([ 
 		        (wx.ACCEL_CTRL,  ord('R'), self.ID_REN ) ,
@@ -68,6 +71,9 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.SetAcceleratorTable(acel)
 
         self.dict = {}
+
+        self.colour = '0:0:0'  #default colour for vector lines
+        self.colour_selected = False
 
         self.layer = []
         self.maplayer = None
@@ -83,7 +89,7 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
 
         self.MapWindow = self.mapdisplay.MapWindow2D
         self.Bind(CT.EVT_TREE_ITEM_CHECKED,     self.OnLayerChecked)
-
+        self.Bind(CT.EVT_TREE_ITEM_ACTIVATED,     self.ChooseColour)
 
         self.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK,self.OnTreePopUp)
         self.Bind(wx.EVT_TREE_END_LABEL_EDIT, self.OnEndRename)
@@ -97,6 +103,36 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.Bind(wx.EVT_MENU,self.OnOssim2,id=self.ID_OSSIM2)
         self.Bind(wx.EVT_MENU,self.OnInfo,id=self.ID_INFO)
         self.Bind(wx.EVT_MENU,self.OnReport,id=self.ID_REPORT)
+        self.Bind(wx.EVT_MENU,self.OnvReport,id=self.ID_AREA)
+        self.Bind(wx.EVT_MENU,self.OnvReport,id=self.ID_LENGTH)
+        self.Bind(wx.EVT_MENU,self.OnvReport,id=self.ID_COOR)
+
+
+    def ChooseColour(self,event):
+
+        colourdialog = wx.ColourDialog(self)
+        colourdialog.ShowModal()
+        rgb = colourdialog.GetColourData().GetColour()
+        rgb = str(rgb)
+        self.colour = rgb.replace(',',':')
+        self.colour = self.colour.strip('(')
+        self.colour = self.colour.strip(')')
+
+        item = event.GetItem()
+        col = colourdialog.GetColourData().GetColour()
+
+        self.SetHilightFocusColour(col)
+        self.SetItemTextColour(item,col)
+        item =  event.GetItem()
+        parent = self.GetItemParent(item)
+        if self.IsItemChecked(parent):
+            self.colour_selected = True
+            self.CheckItem(parent)
+        else:
+            self.CheckItem(parent)
+        
+   
+
 
 
     def OnInfo(self,event):
@@ -136,11 +172,34 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
             if pText == "Raster Map" :
                 command = ["r.report", 'map=' +  self.mapname]
                 frame.goutput.RunCmd(command)
-            if pText == "Vector Map" :
-                command = ["v.report", 'map=' +  self.mapname]
-                frame.goutput.RunCmd(command)
+#            if pText == "Vector Map" :
+#                command = ["v.report", 'map=' +  self.mapname]
+#                frame.goutput.RunCmd(command)
 
         
+    def OnvReport(self,event):
+
+        item =  self.GetSelection()
+        Id = event.GetId()
+        if Id == 200:
+            option = 'area'
+        elif Id == 201:
+            option = 'length'
+        elif Id == 202:
+            option = 'coor'
+        parent = self.GetItemParent(item)
+        pText = self.GetItemText(parent)
+
+        leftpanel=self.GetParent()
+        notebook = leftpanel.GetParent()
+        frame = notebook.GetParent()
+
+        
+        #if not self.ItemHasChildren(item):
+        self.mapname =  self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
+        command = ["v.report", 'map=' +  self.mapname,'option=' + str(option)]
+        frame.goutput.RunCmd(command)
+
 
 
 
@@ -160,44 +219,54 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         frame = notebook.GetParent()
 
 
-        if not self.ItemHasChildren(item):
-            self.mapname =  self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
-            #for f in frames:
-            #    print f.GetName()     
-            #maptree = mapframe.maptree
 
-            if pText == "Raster Map" :
+
+
+        self.mapname =  self.GetItemText(item) + "@" + frame.cmbMapset.GetValue()
+        #for f in frames:
+        #    print f.GetName()     
+        #maptree = mapframe.maptree
+
+        if pText == "Raster Map" :
+            if checked == True:
                 self.cmd= ['d.rast', str("map=" + self.mapname)]
-                l_type='raster'
-                
-                self.maplayer = self.MapWindow.Map.AddLayer(type='raster', name=self.mapname, command=self.cmd)
-               
-
-                #layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
-                #maptree.first = True
-                #maptree.layer_selected = layer
-                #maptree.CheckItem(layer)
-                #self.layer.append(self.maplayer)
-                #maptree.PlusLayer(self.maplayer)
-
-
-            if pText == "Vector Map" :
-                self.cmd= ['d.vect', str("map=" + self.mapname)]
-                l_type='vector'
-                
-                self.maplayer = self.MapWindow.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
+                maplayer = self.MapWindow.Map.AddLayer(type='raster', name=self.mapname, command=self.cmd)
+                self.layer_selected = maplayer
+                self.type = 'raster'
+            else:
+                layers =  self.MapWindow.Map.GetListOfLayers( l_type='raster', l_name=self.mapname)
+                for layer in layers:
+                    self.MapWindow.Map.DeleteLayer(layer)
+                    self.MapWindow.EraseMap()
+        
+        
 
 
-            self.MapWindow.Map.region = self.MapWindow.Map.GetRegion()
-            self.MapWindow.flag = True
-            self.MapWindow.UpdateMap(render=True)
-            self.MapWindow.flag = False
-                #layer = maptree.PrependItem(parent=maptree.root, text=self.mapname, ct_type=1)
-                #maptree.first = True
-                #maptree.layer_selected = layer
-                #maptree.CheckItem(layer)
-                #self.layer.append(self.maplayer)
-                #maptree.PlusLayer(self.maplayer)
+        if pText == "Vector Map" :
+            if checked == True:
+                self.cmd= ['d.vect', str("map=" + self.mapname),str('color=' +  self.colour)]
+                if self.colour_selected == False:
+                    maplayer = self.MapWindow.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
+                else:
+                    self.colour_selected = False
+                    layers =  self.MapWindow.Map.GetListOfLayers( l_type='vector', l_name=self.mapname)
+                    for layer in layers:
+                        maplayer=layer.__init__(type='vector', name=self.mapname, cmd=self.cmd)
+                self.layer_selected = maplayer
+                self.type = 'vector'
+            else:
+                layers =  self.MapWindow.Map.GetListOfLayers( l_type='vector', l_name=self.mapname)
+                for layer in layers:
+                    self.MapWindow.Map.DeleteLayer(layer)
+                    self.MapWindow.EraseMap()
+        
+        self.MapWindow.Map.region = self.MapWindow.Map.GetRegion()
+        self.MapWindow.flag = True
+        self.MapWindow.UpdateMap(render=True)
+        self.MapWindow.flag = False
+
+
+
 
 
 
@@ -218,15 +287,16 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         glocs = glob.glob(os.path.join(self.gisdbase,location, mapset,"*"))
         for gloc in glocs:
             if not os.path.isfile(gloc) and os.path.isdir(gloc):
-	            if(os.path.basename(gloc)=='cellhd'):
-		            for rast in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
-			            self.PrependItem(node_raster, os.path.basename(rast),ct_type=1)
-	            elif(os.path.basename(gloc)=='vector'):
-		            for vect in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
-			            self.PrependItem(node_vector, os.path.basename(vect),ct_type=1)
-	            elif(os.path.basename(gloc)=='dbf'):
-		            for dfile in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
-			            self.PrependItem(node_dbf, os.path.basename(dfile),ct_type=1)
+                if(os.path.basename(gloc)=='cellhd'):
+                    for rast in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
+	                    self.PrependItem(node_raster, os.path.basename(rast),ct_type=1)
+                elif(os.path.basename(gloc)=='vector'):
+                    for vect in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
+                        vectormap = self.PrependItem(node_vector, os.path.basename(vect),ct_type=1)
+                        self.PrependItem(vectormap, "colour")
+                elif(os.path.basename(gloc)=='dbf'):
+                    for dfile in glob.glob(os.path.join(self.gisdbase,location, mapset,gloc, "*")):
+	                    self.PrependItem(node_dbf, os.path.basename(dfile),ct_type=1)
 
         #Nodes with no children are given an italic type font
         for node in treeNodes: 
@@ -243,12 +313,6 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         self.SortChildren(node_raster)
         self.SortChildren(node_vector)
         self.SortChildren(node_dbf)
-
-    def OnToggleExpand(self,event):  
-	    if self.treeExpand.GetValue() == True:
-		    self.ExpandAll()
-	    else: 
-		    self.CollapseAll()
 
 
     def OnBeginRename(self,event):
@@ -284,17 +348,32 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         Display a popupMenu for copy,rename & delete operations
         """
         item =  event.GetItem()
-        if not self.ItemHasChildren(item) and \
-               self.GetItemFont(item) != self.itemFont:
-
+        parent = self.GetItemParent(item)
+        pText = self.GetItemText(parent)
+      #  if not self.ItemHasChildren(item) and \
+      #         self.GetItemFont(item) != self.itemFont:
+        if self.GetItemText(item)!='Raster Map' and \
+                self.GetItemText(item)!='Vector Map' and \
+                self.GetItemText(item)!='DBF' and \
+                self.GetItemFont(item) != self.itemFont:
             self.popupmenu = wx.Menu()
             mnuCopy = self.popupmenu.Append(self.ID_COPY,'&Copy\tCtrl+C')
             mnuRename = self.popupmenu.Append(self.ID_REN,'&Rename\tCtrl-R')
             mnuDel = self.popupmenu.Append(self.ID_DEL,'&Delete\tDEL')
-            mnuOssim = self.popupmenu.Append(self.ID_OSSIM,'&Send to OssimPlanet')
-            mnuOssim = self.popupmenu.Append(self.ID_OSSIM2,'&Remove from OssimPlanet')
+            #self.popupmenu.AppendSeperator()
+            mnuOssim = self.popupmenu.Append(self.ID_OSSIM,'&send to OssimPlanet')
+            #self.popupmenu.AppendSeperator()
             mnuInfo = self.popupmenu.Append(self.ID_INFO,'&Info')
-            mnuReport = self.popupmenu.Append(self.ID_REPORT,'&Report')
+
+            if pText == 'Vector Map':
+                mnuReport = wx.Menu()
+                mnuReport.Append(self.ID_AREA, 'Area')
+                mnuReport.Append(self.ID_LENGTH, 'Length')
+                mnuReport.Append(self.ID_COOR, 'Coordinate')
+                self.popupmenu.AppendMenu(wx.ID_ANY, 'Report', mnuReport)
+            else:
+                mnuReport =self.popupmenu.Append(self.ID_REPORT,'&Report')
+
             self.PopupMenu(self.popupmenu)
 
 
