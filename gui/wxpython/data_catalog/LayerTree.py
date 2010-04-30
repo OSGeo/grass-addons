@@ -484,20 +484,33 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         Performs grass command for deleting a map
         """
         item =  self.GetSelection()
-        
+        cmdflag = None
         parent  =self.GetItemParent(item) 
         if self.GetItemText(parent) == "Raster Map" :
+            #print str(self.GetItemText(item))
             cmdflag = 'r.planet.py -a map=' + str(self.GetItemText(item))
-        elif self.GetItemText(parent) == "Vector Map" :
-            cmdflag = 'v.planet.py -a map=' + str(self.GetItemText(item)) + ' brush=' + str('155,155,155') + ' pen=' + str('155,155,155') + ' size=' +str('1,1')
-            print cmdflag
+        else:
+           # child,cookie = self.GetNextChild(item,cookie=1)
+            if self.GetItemText(item) == 'colour':
+                col=self.GetItemTextColour(item)
+            else:
+                child,cookie = self.GetFirstChild(item)
+                print self.GetItemText(child)
+                col = self.GetItemTextColour(child)
+            if col.IsOk() is True:
+                col=str(col)
+                col = col.strip('(')
+                col = col.strip(')')
 
-        if cmdflag:
-            
-            #command = ["r.planet.py", cmdflag]
-            #gcmd.CommandThread(command,stdout=None,stderr=None).run()
+               # print str(self.GetItemText(item))
+                cmdflag = 'v.planet.py -a map=' + str(self.GetItemText(item)) + ' brush=' + str(col) + ' pen=' + str(col) + ' size=' +str('1,1')
+                #print cmdflag
+
+
+        if cmdflag is not None:        
             current = OssimPlanet(cmdflag)
             current.start()
+
 
 
     def OnOssim2( self,event ):
@@ -505,17 +518,18 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
         Performs grass command for deleting a map
         """
         item =  self.GetSelection()
-
+        cmdflag = None
         parent  =self.GetItemParent(item) 
         if self.GetItemText(parent) == "Raster Map" :
             cmdflag = 'r.planet.py -r map=' + str(self.GetItemText(item))
-        elif self.GetItemText(parent) == "Vector Map" :
-            cmdflag = 'v.planet.py -r map=' + str(self.GetItemText(item))
+        else:
+            if self.GetItemText(item) == 'colour':
+                previtem = self.GetItemParent(item)
+                cmdflag = 'v.planet.py -r map=' + str(self.GetItemText(previtem))
+            else:
+                cmdflag = 'v.planet.py -r map=' + str(self.GetItemText(item))
 
-        if cmdflag:
-
-            #command = ["r.planet.py", cmdflag]
-            #gcmd.CommandThread(command,stdout=None,stderr=None).run()
+        if cmdflag is not None:
             current = OssimPlanet(cmdflag)
             current.start()
         
