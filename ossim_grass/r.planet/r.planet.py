@@ -71,6 +71,13 @@
 #% description: tile
 #% required : no
 #%end
+#%option
+#% key: elev
+#% type: string
+#% key_desc: elevation name
+#% description: elevation name
+#% required : no
+#%end
 #%flag
 #% key: a
 #% description: Add raster
@@ -97,6 +104,8 @@ import osgeo.gdal as gdal
 import platform
 
 def main():
+    global mpi
+    global np
     add = flags['a']
     remove = flags['r']
     orthoigen = flags['d']
@@ -105,6 +114,7 @@ def main():
     dport = options['dport']
     pport = options['pport']
     tile = options['tile']
+    elev = options['elev']
     np = options['np']
     grassenv = grass.gisenv()
     mappa = options['map'].replace("@"," ")
@@ -113,6 +123,7 @@ def main():
     nflags = len(filter(None, [add, remove, orthoigen]))
     if nflags > 1:
         grass.run_command('g.message' , message = 'Cannot add & remove a map or use orthoigen at the same time.')
+        sys.exit()
     if nflags < 1:
         grass.run_command('g.message' , message = 'No action requested , please choose one from "-a : add" or "-r : remove" flags.')
     try :
@@ -145,32 +156,34 @@ def main():
     lat = zoom_position[0]
     lon = zoom_position[1]
     distance = zoom_position[2]
-    if nflags == 1:
-        if add :
-            try :
-                addzoom(output,lon,lat,distance,host,dport,pport)
-                print 'Added raster file :', mappa[0]
-                print 'Camera positioned to : '
-                print 'Longitude = ',lon
-                print 'Latitude = ', lat
-                print 'Altitude = ' , distance
-            except :
-                print "conecction error"
-        if remove :
-            removefile(output,host,dport)
-            print 'Removed raster file :', mappa[0]
-        if orthoigen :
-            if tile != '':
-                path = os.path.dirname(output)
+    if add :
+        try :
+            addzoom(output,lon,lat,distance,host,dport,pport)
+            print 'Added raster file :', mappa[0]
+            print 'Camera positioned to : '
+            print 'Longitude = ',lon
+            print 'Latitude = ', lat
+            print 'Altitude = ' , distance
+        except :
+            print "conecction error"
+    if remove :
+        removefile(output,host,dport)
+        print 'Removed raster file :', mappa[0]
+    if orthoigen :
+        if tile != '':
+            path = os.path.dirname(output)
+            if elev == '':
                 elevdir = os.path.join(path,'elevation',mappa[0]+'/')
-                if not os.path.exists(elevdir):
-                    os.makedirs(elevdir)
-                    elev = mappa[0]+'.tiff'
-                    exportiff(output,elev)
-                    instr = make3d(tile, elev, elevdir)
-                    os.system(instr)
-                if tile == '':
-                    print 'please set the tile dimension'
+            else :
+                elevdir = os.path.join(path,'elevation',elev+'/')
+            if not os.path.exists(elevdir):
+                os.makedirs(elevdir)
+                elev = mappa[0]+'.tiff'
+                exportiff(output,elev)
+                instr = make3d(tile, elev, elevdir)
+                os.system(instr)
+            if tile == '':
+                print 'please set the tile dimension'
 
 def exportiff(infile,outfile):
     gdal.GetDriverByName('GTiff').CreateCopy(outfile,gdal.Open(infile))
@@ -355,16 +368,14 @@ def make3d(tile, elev, outdir):
 
 def makeoverview(input):
     systemplatform = WhichPlatform()
-    mpi = 0
-    np = 1
     if systemplatform == 'Darwin':
         img2rrexec = 'export DYLD_FRAMEWORK_PATH=/Users/sasha/OssimBuilds/Release/ ; /Users/sasha/OssimBuilds/Release/ossim-img2rr'
     else :
         img2rrexec = 'ossim-img2rr'
-    if mpi == 1 :
+    if mpi :
         os.system("mpirun -np %s %s %s" % (np, img2rrexec, input))
     else :
-        os.system('%s %s' % (img2rrexec, input))
+       os.system('%s %s' % (img2rrexec, input))
         
 
 
