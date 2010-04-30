@@ -495,17 +495,17 @@ class LayerTree(treemixin.DragAndDrop, CT.CustomTreeCtrl):
                 col=self.GetItemTextColour(item)
             else:
                 child,cookie = self.GetFirstChild(item)
-                print self.GetItemText(child)
                 col = self.GetItemTextColour(child)
             if col.IsOk() is True:
                 col=str(col)
-                col = col.strip('(')
-                col = col.strip(')')
+                col = col.replace('(','')
+                col = col.replace(')','')
+                col = col.split(',')
 
-               # print str(self.GetItemText(item))
-                cmdflag = 'v.planet.py -a map=' + str(self.GetItemText(item)) + ' brush=' + str(col) + ' pen=' + str(col) + ' size=' +str('1,1')
-                #print cmdflag
-
+                cmdflag = 'v.planet.py -a map=' + str(self.GetItemText(item)) + \
+                            ' brush=' + str(col[0].strip()+','+col[1].strip()+','+col[2].strip()) + \
+                            ' pen=' + str(col[0].strip()+','+col[1].strip()+','+col[2].strip()) + ' size=' +str('1,1')
+                print cmdflag
 
         if cmdflag is not None:        
             current = OssimPlanet(cmdflag)
