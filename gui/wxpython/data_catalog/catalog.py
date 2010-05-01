@@ -36,7 +36,7 @@ except ImportError:
 
 
 gbase = os.getenv("GISBASE") 
-pypath = os.path.join(gbase,'etc','wxpython')
+pypath = os.path.join(gbase,'etc','gui','wxpython')
 sys.path.append(pypath)
 
 
@@ -56,7 +56,7 @@ sys.path.append(gmpath)
 
 #To run DataCatalog from any directory set this pathname for access to gui_modules 
 gbase = os.getenv("GISBASE") 
-pypath = os.path.join(gbase,'etc','wxpython','gui_modules')
+pypath = os.path.join(gbase,'etc','gui','wxpython','gui_modules')
 sys.path.append(pypath)
 
 
@@ -88,7 +88,7 @@ import gui_modules.workspace as workspace
 import gui_modules.colorrules as colorrules
 
 version = os.getenv("GRASS_VERSION")
-if version == "6.5.svn":
+if version != "6.4.svn":
     import gui_modules.menu as menu
     import gui_modules.gmodeler as gmodeler
 
@@ -176,7 +176,7 @@ class DataCatalog(wx.Frame):
 
         #self.pg_panel4 = None
         version = os.getenv("GRASS_VERSION")
-        if version == "6.5.svn":
+        if version != "6.4.svn":
             self.menubar = menu.Menu(parent = self, data = menudata.ManagerData())
         else:
             self.menubar, self.menudata = self.__createMenuBar()
@@ -196,18 +196,16 @@ class DataCatalog(wx.Frame):
         self.cb_mapfile = []
         
         #creating controls
+
         self.mInfo = wx.TextCtrl(self.cmbPanel, wx.ID_ANY, style = wx.TE_READONLY,size=(300,30))
         #
         # start radiobutton to activate - deactivate the mouse actions to send position to ossimplanet
         #
         self.options = ['on', 'off']
-        self.radiobox = wx.RadioBox(self.cmbPanel, wx.ID_ANY, "",  choices=self.options, style=wx.HORIZONTAL)
+        self.radiobox = wx.RadioBox(self.cmbPanel, wx.ID_ANY,  choices=self.options, style=wx.HORIZONTAL)
         self.radiobox.SetSelection(1)
-        #
-        #
         #self.chkInfo = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"display Info", wx.DefaultPosition, wx.DefaultSize)
         self.treeExpand = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"Expand All", wx.DefaultPosition, wx.DefaultSize)
-        #self.treeExpand2 = wx.CheckBox(self.cmbPanel, wx.ID_ANY,"Expand All 2", wx.DefaultPosition, wx.DefaultSize)
         self.cmbLocation = wx.ComboBox(self.cmbPanel, value = "Select Location",size=wx.DefaultSize, choices=self.loclist)
         self.cmbMapset = wx.ComboBox(self.cmbPanel, value = "Select Mapset", size=wx.DefaultSize)	
         #self.tree = wx.TreeCtrl(self.pLeft, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TR_HIDE_ROOT|wx.TR_HAS_BUTTONS|wx.TR_EDIT_LABELS)
@@ -1969,7 +1967,7 @@ class DataCatalog(wx.Frame):
         self.page = self.notebook.GetPage(self.notebook.GetSelection())
         self.page.Map.__init__()	
         self.page.Map.region = self.page.Map.GetRegion()
-        if version == "6.5.svn":
+        if version != "6.4.svn":
             self.page.Map.projinfo = self.page.Map._projInfo()
         else:
             self.page.Map.projinfo = self.page.Map.ProjInfo()
@@ -2036,16 +2034,19 @@ class DataCatalog(wx.Frame):
 	    return loclist
 
 
-
     def doBindings(self):
         
 	    #Event bindings for combo boxes
         self.Bind(wx.EVT_COMBOBOX,self.OnMapsetChange,self.cmbMapset)
         self.Bind(wx.EVT_COMBOBOX,self.OnLocationChange,self.cmbLocation)
 
+
+
         self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
 
-
+	    #Event bindings for v/r.info checkbox
+	    #self.Bind(wx.EVT_CHECKBOX, self.OnToggleInfo,self.chkInfo)
+       
  
     def doLayout(self):
 
@@ -2054,7 +2055,6 @@ class DataCatalog(wx.Frame):
         self.cmbSizer.Add(self.cmbMapset)
         self.cmbSizer.Add(self.mInfo)
         self.cmbSizer.Add(self.radiobox)
-        #splitter window sizers
         self.mSizer.Add(self.cmbPanel,flag=wx.EXPAND)
         #self.mSizer.Add(self.win, 1, wx.EXPAND)
         #self.leftSizer.Add(self.ltree,1,wx.EXPAND)

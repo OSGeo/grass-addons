@@ -32,7 +32,6 @@ import math
 import tempfile
 import copy
 import time
-from tcp4ossim import zoomto
 
 
 
@@ -1987,7 +1986,6 @@ class BufferedWindow(MapWindow, wx.Window):
             self.Map.AlignExtentFromDisplay()
 
             # update map
-            self.flag =True
             self.UpdateMap()
 
             # update statusbar
@@ -2432,11 +2430,7 @@ class MapFrame(wx.Panel):
         self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,   Map=self.Map, tree=self.tree, gismgr=self._layerManager)
         # default is 2D display mode
         self.MapWindow = self.MapWindow2D
-        self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
-        self.MapWindow.Bind(wx.EVT_LEFT_DOWN, self.OnClick)
-        self.MapWindow.Bind(wx.EVT_RADIOBOX, self.printsomething)
-        # test for right click mouse event
-        #self.MapWindow.Bind(wx.EVT_RIGHT_DOWN, self.OnClick3)
+        #self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
         self.MapWindow.SetCursor(self.cursors["default"])
         # used by Nviz (3D display mode)
         self.MapWindow3D = None 
@@ -2528,57 +2522,11 @@ class MapFrame(wx.Panel):
         self._mgr.AddPane(self.maptree, wx.aui.AuiPaneInfo().Left().
                                         Dockable(False).BestSize((400,300)).
                                         CloseButton(False).DestroyOnClose(True).
-                                        Layer(0).Caption("MapTree"))
+                                        Layer(0).Caption("Map Tree"))
 
         self._mgr.Update()
 
-
-
         #r.rightSizer.Add(self.maptree)
-
-
-    def OnClick(self,event):
-        if self.frame.radiobox.GetSelection() == 0:
-            x, y = self.MapWindow.Pixel2Cell(event.GetPosition())
-            out = subprocess.Popen(['m.proj', '-o'], stdout=subprocess.PIPE,  stdin=subprocess.PIPE).communicate("%s %s" % (x,y))[0]
-            f = out.replace("'"," ").replace('d',' ').replace('"',' ').replace('\n','').split('\t')
-            lon = f[0].split(' ')
-            lat = f[1].split(' ')[:-1]
-            if lat[-1] == 'N':
-                signlat = 1
-            if lat[-1] == 'S':
-                signlat = -1
-            if lon[-1] == 'E':
-                signlon = 1
-            if lon[-1] == 'W':
-                signlon = -1
-            lat = (float(lat[0]) + (float(lat[1]) / 60) + float(lat[2]) / 3600) * float(signlat)
-            lon = (float(lon[0]) + (float(lon[1]) / 60) + float(lon[2]) / 3600) * float(signlon)
-            self.frame.mInfo.SetValue(str(lat) + ' , ' + str(lon))
-            zoomto(str(lon),str(lat),15000)
-        event.Skip()
-    
-
-
-    def OnClick2(self,event):
-        x, y = self.MapWindow.Pixel2Cell(event.GetPosition())
-        self.frame.mInfo.SetValue(str(x) + ' , ' + str(y))
-        event.Skip()
-            
-
-    # test for right click mouse event
-    def OnClick3(self,event):
-        x, y = self.MapWindow.Pixel2Cell(event.GetPosition())
-        self.frame.mInfo.SetValue(str(x) + ' , ' + str(y))
-        event.Skip()
-
-    # test for radiobox    
-    def printsomething(self,event):
-        stringa = 'ffffff'
-        self.frame.mInfo.SetValue(str(stringa))
-        print stringa
-        event.Skip()
-        
 
     def read_gisrc(self):
 	    """
@@ -2940,7 +2888,6 @@ class MapFrame(wx.Panel):
         """
         Pointer button clicked
         """
-
         if self.toolbars['map']:
             if event:
                 self.toolbars['map'].OnTool(event)
