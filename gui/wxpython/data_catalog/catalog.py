@@ -36,7 +36,11 @@ except ImportError:
 
 
 gbase = os.getenv("GISBASE") 
-pypath = os.path.join(gbase,'etc','gui','wxpython')
+grassversion = os.getenv("GRASS_VERSION")
+if grassversion == "7.0.svn":
+    pypath = os.path.join(gbase,'etc','gui','wxpython')
+else:
+    pypath = os.path.join(gbase,'etc','wxpython')
 sys.path.append(pypath)
 
 
@@ -56,7 +60,11 @@ sys.path.append(gmpath)
 
 #To run DataCatalog from any directory set this pathname for access to gui_modules 
 gbase = os.getenv("GISBASE") 
-pypath = os.path.join(gbase,'etc','gui','wxpython','gui_modules')
+if grassversion == "7.0.svn":
+    pypath = os.path.join(gbase,'etc','gui','wxpython','gui_modules')
+else:
+    pypath = os.path.join(gbase,'etc','wxpython','gui_modules')
+
 sys.path.append(pypath)
 
 
@@ -87,8 +95,7 @@ import gui_modules.dbm as dbm
 import gui_modules.workspace as workspace
 import gui_modules.colorrules as colorrules
 
-version = os.getenv("GRASS_VERSION")
-if version != "6.4.svn":
+if grassversion != "6.4.0svn":
     import gui_modules.menu as menu
     import gui_modules.gmodeler as gmodeler
 
@@ -175,8 +182,7 @@ class DataCatalog(wx.Frame):
         self.loclist.sort()
 
         #self.pg_panel4 = None
-        version = os.getenv("GRASS_VERSION")
-        if version != "6.4.svn":
+        if grassversion != "6.4.0svn":
             self.menubar = menu.Menu(parent = self, data = menudata.ManagerData())
         else:
             self.menubar, self.menudata = self.__createMenuBar()
@@ -251,8 +257,7 @@ class DataCatalog(wx.Frame):
         """!Creates menubar"""
 
         self.menubar = wx.MenuBar()
-        version = os.getenv("GRASS_VERSION")
-        if version == "6.5.svn":
+        if grassversion == "6.5.svn":
             self.menudata = menudata.ManagerData()
         else:
             self.menudata = menudata.Data()        
@@ -318,8 +323,7 @@ class DataCatalog(wx.Frame):
                 subMenu = self.__createMenu(eachItem[1])
                 menu.AppendMenu(wx.ID_ANY, label, subMenu)
             else:
-                version = os.getenv("GRASS_VERSION")
-                if version == "6.4.0svn":
+                if grassversion == "6.4.0svn":
                     self.__createMenuItem(menu, *eachItem)
                 else:
                     self.__createMenuItem7(menu, *eachItem)
@@ -1967,7 +1971,8 @@ class DataCatalog(wx.Frame):
         self.page = self.notebook.GetPage(self.notebook.GetSelection())
         self.page.Map.__init__()	
         self.page.Map.region = self.page.Map.GetRegion()
-        if version != "6.4.svn":
+        
+        if grassversion != "6.4.0svn":
             self.page.Map.projinfo = self.page.Map._projInfo()
         else:
             self.page.Map.projinfo = self.page.Map.ProjInfo()
@@ -2092,8 +2097,8 @@ class DataCatalog(wx.Frame):
         Update $HOME/.grassrc(6/7) and gisrc files
         """
         rc = os.getenv("GISRC")
-        version = os.getenv("GRASS_VERSION")
-        if version == "7.0.svn":
+        grassversion = os.getenv("GRASS_VERSION")
+        if grassversion == "7.0.svn":
             grassrc = os.path.join(os.getenv('HOME'), ".grassrc7.%s" % os.uname()[1])
             if not os.access(grassrc, os.R_OK):
                 grassrc = os.path.join(os.getenv('HOME'), ".grassrc7")

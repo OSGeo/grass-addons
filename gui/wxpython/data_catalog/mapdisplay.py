@@ -2337,6 +2337,8 @@ class MapFrame(wx.Panel):
         else:
             self.statusbar = self.frame.GetStatusBar()
 
+
+
             
 
         self.statusbarWin = dict()
@@ -2679,6 +2681,8 @@ class MapFrame(wx.Panel):
             #
             if self.tree:
                 self.tree.EnableItemType(type='3d-raster', enable=True)
+
+            self.toggleStatus.Enable(False)
             
             #
             # update status bar
@@ -2775,7 +2779,7 @@ class MapFrame(wx.Panel):
         self.toolbars['map'].combo.SetValue (_("2D view"))
         self.toolbars['map'].Enable2D(True)
         self.statusbarWin['toggle'].Enable(True)
-
+        self.toggleStatus.Enable(True)
         self._mgr.Update()
 
     def __InitDisplay(self):
@@ -2816,6 +2820,12 @@ class MapFrame(wx.Panel):
         
         event.Skip()
 
+    def OnToggleStatus(self, event):
+        """
+        Toggle status text
+        """
+        self.StatusbarUpdate()
+
     def OnMotion(self, event):
         """
         Mouse moved
@@ -2823,10 +2833,6 @@ class MapFrame(wx.Panel):
         """
         # update statusbar if required
         if self.statusbarWin['toggle'].GetSelection() == 0: # Coordinates
-            precision = int(UserSettings.Get(group = 'projection', key = 'format',
-                                             subkey = 'precision'))
-            format = UserSettings.Get(group = 'projection', key = 'format',
-                                      subkey = 'll')
             e, n = self.MapWindow.Pixel2Cell(event.GetPositionTuple())
             if self.toolbars['vdigit'] and \
                     self.toolbars['vdigit'].GetAction() == 'addLine' and \
@@ -2840,42 +2846,16 @@ class MapFrame(wx.Panel):
                     distance_tot += self.MapWindow.Distance(self.MapWindow.polycoords[idx-1],
                                                             self.MapWindow.polycoords[idx],
                                                             screen=False )[0]
-                self.statusbar.SetStatusText("%.*f, %.*f (seg: %.*f; tot: %.*f)" % \
-                                                 (precision, e, precision, n,
-                                                  precision, distance_seg,
-                                                  precision, distance_tot), 0)
+                self.statusbar.SetStatusText("%.2f, %.2f (seg: %.2f; tot: %.2f)" % \
+                                                 (e, n, distance_seg, distance_tot), 0)
             else:
-                if self.statusbarWin['projection'].IsChecked():
-                    if not UserSettings.Get(group='projection', key='statusbar', subkey='proj4'):
-                        self.statusbar.SetStatusText(_("Projection not defined (check the settings)"), 0)
-                    else:
-                        proj, coord  = utils.ReprojectCoordinates(coord = (e, n),
-                                                                  projOut = UserSettings.Get(group='projection',
-                                                                                             key='statusbar',
-                                                                                             subkey='proj4'),
-                                                                  flags = 'd')
-                    
-                        if coord:
-                            e, n = coord
-                            if proj in ('ll', 'latlong', 'longlat') and format == 'DMS':
-                                self.statusbar.SetStatusText("%s" % \
-                                                                 utils.Deg2DMS(e, n, precision = precision),
-                                                             0)
-                            else:
-                                self.statusbar.SetStatusText("%.*f; %.*f" % \
-                                                                 (precision, e, precision, n), 0)
-                        else:
-                            self.statusbar.SetStatusText(_("Error in projection (check the settings)"), 0)
+                if self.Map.projinfo['proj'] == 'll':
+                    self.statusbar.SetStatusText("%s" % utils.Deg2DMS(e, n), 0)
                 else:
-                    if self.Map.projinfo['proj'] == 'll' and format == 'DMS':
-                        self.statusbar.SetStatusText("%s" % \
-                                                         utils.Deg2DMS(e, n, precision = precision),
-                                                     0)
-                    else:
-                        self.statusbar.SetStatusText("%.*f; %.*f" % \
-                                                         (precision, e, precision, n), 0)
-                
+                    self.statusbar.SetStatusText("%.2f, %.2f" % (e, n), 0)
+        
         event.Skip()
+
 
     def OnDraw(self, event):
         """
