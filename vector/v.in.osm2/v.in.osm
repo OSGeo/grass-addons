@@ -94,7 +94,7 @@ else
    wget -O "$TEMPFILE" "$BASEURL/$GIS_OPT_QUERY[bbox=$BBOX]"
 fi
 
-if [ $? -ne 1 ] ; then
+if [ $? -ne 0 ] ; then
    g.message -e "Download failed."
    \rm "$TEMPFILE"
    exit 1
@@ -108,7 +108,7 @@ fi
 
 v.in.gpsbabel $FEAT input="$TEMPFILE" output="$GIS_OPT_OUTPUT" format=osm
 
-if [ $? -ne 1 ] ; then
+if [ $? -ne 0 ] ; then
    g.message -e "Import failed."
    \rm "$TEMPFILE"
    exit 1
