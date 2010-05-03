@@ -68,10 +68,6 @@ if [ ! -x "`which gpsbabel`" ] ; then
     exit 1
 fi
 #### check if we have new enough software
-if [ `g.region --interface-description | grep -c '<flag name="w">'` -ne 1 ] ; then
-   g.message -e "Newer version of GRASS is required."
-   exit 1
-fi
 if [ `gpsbabel --help | grep -wc osm` -ne 1 ] ; then
    g.message -e "Newer version of GpsBabel is required."
    exit 1
