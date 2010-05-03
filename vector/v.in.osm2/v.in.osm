@@ -101,12 +101,12 @@ if [ $? -ne 0 ] ; then
 fi
 
 if [ "$GIS_OPT_FEATURE" = "ways" ] ; then
-   FEAT="-t"
+   FEAT="-r"
 else
    FEAT="-w"
 fi
 
-v.in.gpsbabel $FEAT input="$TEMPFILE" output="$GIS_OPT_OUTPUT" format=osm
+v.in.gpsbabel $FEAT input="$TEMPFILE" output="$GIS_OPT_OUTPUT" format=osm  # --quiet
 
 if [ $? -ne 0 ] ; then
    g.message -e "Import failed."
