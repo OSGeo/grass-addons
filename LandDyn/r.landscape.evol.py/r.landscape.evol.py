@@ -432,7 +432,10 @@ def main(m, o, p, q, r):
         os.remove(os.sep + 'var' + os.sep +'tmp' + os.sep + 'STREAM*')
     else:
         grass_print('Using r.watershed to calculate overland flow accumulation per cell (number of cells uplsope from each cell)')
-        grass_com('r.watershed --quiet -fa elevation=' + old_dem + ' accumulation=' + flowacc + ' convergence=5')
+        if '<flag name="f">' in out2var('r.watershed --interface-description'):
+            grass_com('r.watershed --quiet -fa elevation=' + old_dem + ' accumulation=' + flowacc + ' convergence=5')
+        else:
+            grass_com('r.watershed --quiet -a elevation=' + old_dem + ' accumulation=' + flowacc + ' convergence=5')
 
     grass_print('\n*************************\n Year %s ' % o + 'step 3 of 7: calculating basic sediment transport rates\n*************************\n')  
     error_message = '\n############################################################\n !!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!\n ############################################################ \n \n'
