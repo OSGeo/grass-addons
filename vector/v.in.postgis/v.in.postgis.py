@@ -68,7 +68,8 @@ import traceback
 ##see http://initd.org/pub/software/psycopg/
 import psycopg2 as dbapi2
 ##see http://trac.osgeo.org/grass/browser/grass/trunk/lib/python
-from grass import core as grass
+import grass.script as grass
+
 ##only needed to use Komodo debugger with Komodo IDE. See http://aspn.activestate.com/ASPN/Downloads/Komodo/RemoteDebugging
 #from dbgp.client import brk
 ##see http://pyunit.sourceforge.net/
