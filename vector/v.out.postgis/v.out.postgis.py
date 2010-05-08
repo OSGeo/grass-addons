@@ -48,7 +48,7 @@
 #%end
 
 import sys
-import grass
+import grass.script as grass
 
 def main():
     if not flags['a'] and not options['input']:
