@@ -177,13 +177,13 @@ int calculate_basins(void)
 }
 
 
-int fill_basin(int r, int c)
+double fill_basin(int r, int c)
 {
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
 
     int i, j;
-    float area;
+    double area;
     POINT n_cell;
 
     tail = 0;
@@ -210,7 +210,6 @@ int fill_basin(int r, int c)
 	c = n_cell.c;
 
     }
-
     return area;
 }
 
@@ -377,16 +376,24 @@ int stats(void)
 
 	ord_stats[i - 1].bifur_ratio =
 	    ord_stats[i - 1].stream_num / (float)ord_stats[i].stream_num;
-	ord_stats[i - 1].length_ratio =
-	    ord_stats[i - 1].avg_length / ord_stats[i].avg_length;
-	ord_stats[i - 1].area_ratio =
-	    ord_stats[i - 1].avg_area / ord_stats[i].avg_area;
+	
+	ord_stats[i-1].length_ratio =
+	    (i==1) ? 0 :
+	    ord_stats[i].avg_length / ord_stats[i-1].avg_length;
+	
+	ord_stats[i].area_ratio =
+			(i==1) ? 0 :
+	    ord_stats[i].avg_area / ord_stats[i-1].avg_area;
+	
 	ord_stats[i - 1].slope_ratio =
 	    ord_stats[i - 1].avg_slope / ord_stats[i].avg_slope;
+	
 	ord_stats[i - 1].gradient_ratio =
 	    ord_stats[i - 1].avg_gradient / ord_stats[i].avg_gradient;
+	
 	ord_stats[i].stream_frequency =
 	    ord_stats[i].stream_num / ord_stats[i].sum_area;
+	
 	ord_stats[i].drainage_density =
 	    ord_stats[i].sum_length / ord_stats[i].sum_area;
 
@@ -456,4 +463,5 @@ int stats(void)
     stats_total.drainage_density =
 	stats_total.sum_length / stats_total.sum_area;
 
+return 0;
 }

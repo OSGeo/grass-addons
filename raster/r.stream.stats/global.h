@@ -76,7 +76,7 @@ int create_maps(void);
 
 /* stats */
 int init_streams (void);
-int fill_basin (int r,int c);
+double fill_basin (int r,int c);
 int calculate_basins (void);
 int stats(void);
 int fifo_insert (POINT point);
@@ -97,7 +97,7 @@ GLOBAL char *in_dirs, *in_streams, *in_elev;	/* input dirrection and accumulatio
 GLOBAL char *out_file;
 GLOBAL int hack; /* flags */
 
-GLOBAL float total_basins;
+GLOBAL double total_basins;
 
 
 GLOBAL CELL **dirs, **streams; /* matrix with input data*/
