@@ -4,11 +4,10 @@
 
 int find_outlets(void)
 {
-    int d, i, j;		/* d: direction, i: iteration */
+    int d;		/* d: direction */
     int r, c;
     int next_stream = -1, cur_stream;
     int out_max = ncols + nrows;
-
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
 
@@ -100,11 +99,9 @@ int reset_distance(void)
 
 int fill_catchments(OUTLET outlet)
 {
-
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-
-    int r, c,  i, j;
+    int r, c, i, j;
     float stop, val;
     POINT n_cell;
 
@@ -113,7 +110,7 @@ int fill_catchments(OUTLET outlet)
     r = outlet.r;
     c = outlet.c;
     val = 1;
-    stop =0;
+    stop = 0;
 
     distance[r][c] = stop;
 
@@ -125,14 +122,14 @@ int fill_catchments(OUTLET outlet)
 	    j = (i + 4) > 8 ? i - 4 : i + 4;
 	    if (dirs[r + nextr[i]][c + nextc[i]] == j) {	/* countributing cell */
 
-			//		if (distance[r + nextr[i]][c + nextc[i]] == 0)
-		   // continue;	/* other outlet */
+		/* if (distance[r + nextr[i]][c + nextc[i]] == 0) */
+		/* continue; */ /* other outlet */
 
-		distance[r + nextr[i]][c + nextc[i]]=
-			(distance[r + nextr[i]][c + nextc[i]] == stop) ?
-			stop : val;
-		
-		//distance[r + nextr[i]][c + nextc[i]] = val;
+		distance[r + nextr[i]][c + nextc[i]] =
+		    (distance[r + nextr[i]][c + nextc[i]] == stop) ?
+		    stop : val;
+
+		/* distance[r + nextr[i]][c + nextc[i]] = val; */
 		n_cell.r = (r + nextr[i]);
 		n_cell.c = (c + nextc[i]);
 		fifo_insert(n_cell);
@@ -146,5 +143,3 @@ int fill_catchments(OUTLET outlet)
 
     return 0;
 }
-
-

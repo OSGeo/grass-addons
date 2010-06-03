@@ -86,7 +86,6 @@ int create_maps(void)
 	    G_fatal_error(_("Unable to read raster maps at row <%d>"), r);
 	}
 
-
 	if (in_elev) {
 	    elevation[r] = (FCELL *) G_malloc(sizeof(FCELL) * ncols);
 
@@ -154,6 +153,7 @@ int create_maps(void)
 	/* END dirs & streams  & accums */
 
     }				/*end for r */
+
     switch (elev_type) {
     case CELL_TYPE:
 	G_free(r_dem_c);
@@ -162,7 +162,6 @@ int create_maps(void)
 	G_free(r_dem_d);
 	break;
     }
-
 
     G_free(r_streams);
     G_free(r_dirs);
@@ -184,7 +183,7 @@ void free_streams(void)
 
 int write_maps(char *mapname, FCELL ** map)
 {
-    int r, c;
+    int r;
     int fd = 0;
 
     if ((fd = G_open_raster_new(mapname, FCELL_TYPE)) < 0)

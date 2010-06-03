@@ -22,30 +22,30 @@ directions according to r.watershed: MUST check all directions
 #define RELATIVE 2
 
 POINT {
-	int r, c;
-float cur_dist;
-float target_elev;
-	};
+    int r, c;
+    float cur_dist;
+    float target_elev;
+};
 	
 #define OUTLET struct outs
 OUTLET { 
-	int r, c;
-	float easting;
-	float northing;
-	};	
+    int r, c;
+    float easting;
+    float northing;
+};	
 
 					/* functions.c */ 
 
 /* io.c */
-int open_raster(char *mapname);
+int open_raster(char *);
 int create_maps(void);
+int write_maps(char *, FCELL **);
 void free_streams (void);
 int write_distance(void);
 int write_elevation(void);
-int set_null_elev(void);
+int set_null(FCELL **);
 
 /* inits */
-int find_chatchment_outlets(void);
 int fill_catchments(OUTLET outlet);
 int find_outlets(void);
 int reset_distance(void);
