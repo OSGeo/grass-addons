@@ -30,11 +30,9 @@
  */
 int main(int argc, char *argv[])
 {
-
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *in_dir_opt, *in_stm_opt, *in_threshold, *out_opt;	/* options */
     struct Flag *out_back;	/* flags */
-
     int num_spring, link_max;
 
     /* initialize GIS environment */
@@ -63,8 +61,8 @@ int main(int argc, char *argv[])
     in_threshold->key = "threshold";
     in_threshold->label = _("Minimum number of cell in stream");
     in_threshold->description = _("Must be > 0");
-	in_threshold->required = YES;
-	in_threshold->type = TYPE_INTEGER;
+    in_threshold->required = YES;
+    in_threshold->type = TYPE_INTEGER;
 
     out_opt = G_define_option();
     out_opt->key = "reduced";
@@ -74,13 +72,10 @@ int main(int argc, char *argv[])
     out_opt->gisprompt = "new,cell,raster";
     out_opt->description = "Output reduced stream map";
 
-
     /* Define the different flags */
     out_back = G_define_flag();
     out_back->key = 'z';
     out_back->description = _("Create zero-value background instead of NULL");
-
-
 
     if (G_parser(argc, argv))	/* parser */
 	exit(EXIT_FAILURE);
@@ -95,7 +90,6 @@ int main(int argc, char *argv[])
     if (threshold <= 0)
 	G_fatal_error(_("Threshold must be > 0"));
 
-
     if (G_legal_filename(out_streams) < 0)
 	G_fatal_error(_("<%s> is an illegal file name"), out_streams);
 
@@ -104,11 +98,11 @@ int main(int argc, char *argv[])
     ncols = G_window_cols();
     create_maps();
     link_max = max_link();
-    num_spring=find_springs(link_max);
-		delete_join(num_spring);
-		if (!zeros)
+    num_spring = find_springs(link_max);
+    delete_join(num_spring);
+    if (!zeros)
 	set_null();
-	write_map();
+    write_map();
 
     exit(EXIT_SUCCESS);
 }

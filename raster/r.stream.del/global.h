@@ -9,9 +9,9 @@
 	
 #define SPRING struct sprs
 SPRING { 
-	int r, c;
-	int val;
-	};	
+    int r, c;
+    int val;
+};	
 
 					/* functions.c */ 
 

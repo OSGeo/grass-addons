@@ -32,7 +32,6 @@ int create_maps(void)
 {
     int r, c;
     int in_dir_fd, in_stm_fd;	/* input file descriptors: indir_fd - direction.... etc */
-
     CELL *r_dirs, *r_streams;
 
     in_dir_fd = open_raster(in_dirs);
@@ -81,7 +80,6 @@ int create_maps(void)
 	}
 
 	/* END dirs & streams  & accums */
-
 
     }				/*end for r */
 
