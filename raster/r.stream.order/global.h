@@ -56,8 +56,8 @@ STREAM {
 
 #define INITS struct init
 INITS {
-	int r;
-	int c;
+    int r;
+    int c;
 };
 
 	  /* functions.c */
