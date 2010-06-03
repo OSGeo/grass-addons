@@ -6,12 +6,11 @@
 
 int init_streams(void)
 {
-    int d, i, j;		/* d: direction, i: iteration */
+    int d, i;		/* d: direction, i: iteration */
     int r, c;
     int next_stream = -1, cur_stream;
     int out_max = ncols + nrows;
     POINT *outlets;
-
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
 
@@ -43,12 +42,12 @@ int init_streams(void)
 		if (cur_stream != next_stream) {	/* is outlet or node! */
 		    outlets[outlets_num].r = r;
 		    outlets[outlets_num].c = c;
-				
-					if (next_stream==-1)
-				outlets[outlets_num].is_outlet=1;
-					else
-				outlets[outlets_num].is_outlet=0;	
-		    
+
+		    if (next_stream == -1)
+			outlets[outlets_num].is_outlet = 1;
+		    else
+			outlets[outlets_num].is_outlet = 0;
+
 		    outlets_num++;
 		}
 	    }			/* end if streams */
@@ -77,39 +76,34 @@ int init_streams(void)
 
 int calculate_streams(void)
 {
-
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-
     int i, j, s, d;		/* s - streams index */
     int done = 1;
     int r, c;
     float cur_northing, cur_easting;
     float next_northing, next_easting;
     float diff_elev, cur_length;
-    int cur_stream_order;
 
     G_begin_distance_calculations();
 
     for (s = 0; s < outlets_num; ++s) {
 	r = stat_streams[s].r;
 	c = stat_streams[s].c;
-	
-		cur_northing = window.north - (r + .5) * window.ns_res;
+
+	cur_northing = window.north - (r + .5) * window.ns_res;
 	cur_easting = window.west + (c + .5) * window.ew_res;
-	d= (dirs[r][c]==0) ? 2 : abs(dirs[r][c]);
-	
-			next_northing =
-	window.north - (r + nextr[d] + .5) * window.ns_res;
-	    next_easting =
-	window.west + (c + nextc[d] + .5) * window.ew_res;
+	d = (dirs[r][c] == 0) ? 2 : abs(dirs[r][c]);
+
+	next_northing = window.north - (r + nextr[d] + .5) * window.ns_res;
+	next_easting = window.west + (c + nextc[d] + .5) * window.ew_res;
 
 
-/* init length */
-			stat_streams[s].length=
-	G_distance(next_easting, next_northing, cur_easting,
-				   cur_northing);
-	
+	/* init length */
+	stat_streams[s].length =
+	    G_distance(next_easting, next_northing, cur_easting,
+		       cur_northing);
+
 	done = 1;
 
 	while (done) {
@@ -159,7 +153,8 @@ int calculate_streams(void)
 int calculate_basins(void)
 {
     int i;
-    total_basins=0.;
+
+    total_basins = 0.;
 
     G_begin_cell_area_calculations();
     fifo_max = 4 * (nrows + ncols);
@@ -168,10 +163,10 @@ int calculate_basins(void)
     for (i = 0; i < outlets_num; ++i) {
 	stat_streams[i].basin_area =
 	    fill_basin(stat_streams[i].r, stat_streams[i].c);
-	
-		if (stat_streams[i].is_outlet)
-	total_basins += stat_streams[i].basin_area;
-	}
+
+	if (stat_streams[i].is_outlet)
+	    total_basins += stat_streams[i].basin_area;
+    }
     G_free(fifo_outlet);
     return 0;
 }
@@ -181,7 +176,6 @@ double fill_basin(int r, int c)
 {
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-
     int i, j;
     double area;
     POINT n_cell;
@@ -224,7 +218,7 @@ int fifo_insert(POINT point)
 
 POINT fifo_return_del(void)
 {
-    if (head > fifo_max)
+    if (head >= fifo_max)
 	head = -1;
     return fifo_outlet[++head];
 }
@@ -376,24 +370,23 @@ int stats(void)
 
 	ord_stats[i - 1].bifur_ratio =
 	    ord_stats[i - 1].stream_num / (float)ord_stats[i].stream_num;
-	
-	ord_stats[i-1].length_ratio =
-	    (i==1) ? 0 :
-	    ord_stats[i].avg_length / ord_stats[i-1].avg_length;
-	
+
+	ord_stats[i - 1].length_ratio =
+	    (i == 1) ? 0 :
+	    ord_stats[i].avg_length / ord_stats[i - 1].avg_length;
+
 	ord_stats[i].area_ratio =
-			(i==1) ? 0 :
-	    ord_stats[i].avg_area / ord_stats[i-1].avg_area;
-	
+	    (i == 1) ? 0 : ord_stats[i].avg_area / ord_stats[i - 1].avg_area;
+
 	ord_stats[i - 1].slope_ratio =
 	    ord_stats[i - 1].avg_slope / ord_stats[i].avg_slope;
-	
+
 	ord_stats[i - 1].gradient_ratio =
 	    ord_stats[i - 1].avg_gradient / ord_stats[i].avg_gradient;
-	
+
 	ord_stats[i].stream_frequency =
 	    ord_stats[i].stream_num / ord_stats[i].sum_area;
-	
+
 	ord_stats[i].drainage_density =
 	    ord_stats[i].sum_length / ord_stats[i].sum_area;
 
@@ -463,5 +456,5 @@ int stats(void)
     stats_total.drainage_density =
 	stats_total.sum_length / stats_total.sum_area;
 
-return 0;
+    return 0;
 }

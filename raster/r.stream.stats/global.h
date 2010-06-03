@@ -18,54 +18,54 @@ directions according to r.watershed: MUST check all directions
 #define SQRT2 1.414214
 #define POINT struct points	
 POINT {
-	int r, c;
-	int is_outlet;
-	};
+    int r, c;
+    int is_outlet;
+};
 	
 #define STREAM struct strs
 STREAM { 
-	int index;
-	int is_outlet;
-	int r, c; /* outlet */
-	float elev_diff;
-	float elev_spring, elev_outlet;
-	float slope; /* cumulative */
-	float gradient;
-	float length; /* cumulative */
-	int order;
-	double basin_area; /* basin order */
-	int cell_num;
-	};	
+    int index;
+    int is_outlet;
+    int r, c; /* outlet */
+    float elev_diff;
+    float elev_spring, elev_outlet;
+    float slope; /* cumulative */
+    float gradient;
+    float length; /* cumulative */
+    int order;
+    double basin_area; /* basin order */
+    int cell_num;
+};	
 	
 	
 #define STATS struct statistics
 STATS {
-	int order;
-	int stream_num;
-	float sum_length;
-	float avg_length;
-	float std_length;
-	float avg_slope;
-	float std_slope;
-	float avg_gradient;
-	float std_gradient;
-	double sum_area;
-	double avg_area;
-	double std_area;
-	float avg_elev_diff;
-	float std_elev_diff;
-	float bifur_ratio;
-	float std_bifur_ratio;
-	float length_ratio;
-	float std_length_ratio;
-	float area_ratio;
-	float std_area_ratio;
-	float slope_ratio;
-	float std_slope_ratio;
-	float gradient_ratio;
-	float std_gradient_ratio;
-	float stream_frequency;
-	float drainage_density;
+    int order;
+    int stream_num;
+    float sum_length;
+    float avg_length;
+    float std_length;
+    float avg_slope;
+    float std_slope;
+    float avg_gradient;
+    float std_gradient;
+    double sum_area;
+    double avg_area;
+    double std_area;
+    float avg_elev_diff;
+    float std_elev_diff;
+    float bifur_ratio;
+    float std_bifur_ratio;
+    float length_ratio;
+    float std_length_ratio;
+    float area_ratio;
+    float std_area_ratio;
+    float slope_ratio;
+    float std_slope_ratio;
+    float gradient_ratio;
+    float std_gradient_ratio;
+    float stream_frequency;
+    float drainage_density;
 };
 
 					/* functions.c */ 
@@ -78,6 +78,7 @@ int create_maps(void);
 int init_streams (void);
 double fill_basin (int r,int c);
 int calculate_basins (void);
+int calculate_streams(void);
 int stats(void);
 int fifo_insert (POINT point);
 POINT fifo_return_del (void);

@@ -60,7 +60,6 @@ int create_maps(void)
     streams = (CELL **) G_malloc(sizeof(CELL *) * nrows);
     elevation = (FCELL **) G_malloc(sizeof(FCELL *) * nrows);
 
-
     for (r = 0; r < nrows; ++r) {
 
 	/* dirs & streams */
@@ -115,7 +114,6 @@ int create_maps(void)
 	    break;		/* CELL */
 
 	}			/* end switch */
-
 
 	for (c = 0; c < ncols; ++c) {
 	    if (G_is_c_null_value(&r_dirs[c])) {

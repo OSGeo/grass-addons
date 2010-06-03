@@ -6,7 +6,6 @@
 
 int print_stats(void)
 {
-
     int i;
 
     /* summary statistics */
@@ -88,4 +87,5 @@ int print_stats(void)
 		ord_stats[i].drainage_density * 1000,
 		ord_stats[i].stream_frequency * 1000000);
     }
+    return 0;
 }

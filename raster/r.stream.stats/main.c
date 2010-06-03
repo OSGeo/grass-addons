@@ -31,7 +31,6 @@
  */
 int main(int argc, char *argv[])
 {
-
     struct GModule *module;	/* GRASS module for parsing arguments */
     struct Option *in_dir_opt, *in_stm_opt, *in_elev_opt;	/* options */
     struct Flag *out_hack;	/* flags */
@@ -66,7 +65,6 @@ int main(int argc, char *argv[])
     in_elev_opt->required = YES;
     in_elev_opt->gisprompt = "old,cell,raster";
     in_elev_opt->description = "Name of elevation map";
-
 
     /* Define the different flags */
     /*
