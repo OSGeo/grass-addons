@@ -40,7 +40,7 @@
 STREAM {
     int stream;			/* index */
     int init_r, init_c;
-  };
+};
 
 	
 
@@ -60,7 +60,7 @@ int set_null_c(CELL ** map);
 int trib_nums(int r, int c);
 int init_streams(void);
 int find_inits(void);
-int calculate (void);
+int calculate(void);
 
 
 	  /* variables */
