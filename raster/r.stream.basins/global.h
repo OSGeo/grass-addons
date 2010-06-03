@@ -7,7 +7,7 @@
 #include <grass/glocale.h>
 
 
-					/* define */
+/* define */
 
 /*define directions for code simplicity
 
@@ -20,22 +20,22 @@ directions according to r.watershed: MUST check all directions
 
 #define POINT struct points	
 POINT {
-	int r, c;
-	};
+    int r, c;
+};
 	
 #define OUTLET struct outs
 OUTLET { 
-	int r, c;
-	int val;
-	};	
+    int r, c;
+    int val;
+};	
 	
-					/* functions.c */ 
+/* functions.c */ 
 
 /* io.c */
 int open_raster(char *mapname);
 int create_maps(void);
 int max_link(void);
-int write_chatchment(void);
+int write_catchment(void);
 int set_null(void);
 int process_coors (char **answers);
 int process_cats (char **answers);
@@ -65,15 +65,14 @@ GLOBAL CELL **dirs, **streams; /* matrix with input data streams is used as outp
 
 GLOBAL int nrows, ncols; 
 
-POINT *fifo_outlet;
-int tail, head;
-int outlets_num;
-int fifo_max;
+GLOBAL POINT *fifo_outlet;
+GLOBAL int outlets_num;
+GLOBAL int fifo_max;
 	
 GLOBAL int out; /* number of strahler and horton outlets: index */
 GLOBAL int *categories;
 
-OUTLET *outlets;
+GLOBAL OUTLET *outlets;
 
 
 GLOBAL struct History history;	/* holds meta-data (title, comments,..) */

@@ -1,5 +1,7 @@
 #include "global.h"
 
+int tail, head, has_point;
+
 /* 
    Link: a channel between junction
    Ooutlet: is final cell of every segment
@@ -16,11 +18,10 @@
  */
 int find_outlets(void)
 {
-    int d, i, j;		/* d: direction, i: iteration */
+    int d;		/* d: direction */
     int r, c;
     int next_stream = -1, cur_stream;
     int out_max = ncols + nrows;
-
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
 
@@ -31,15 +32,17 @@ int find_outlets(void)
 
     for (r = 0; r < nrows; ++r) {
 	for (c = 0; c < ncols; ++c) {
-	  
-	  if (streams[r][c] > 0) {
-		
-			if (outlets_num > 2*(out_max - 1))
-		G_fatal_error("Stream and direction maps probably do not match");
-		
-			if (outlets_num > (out_max - 1)) 
-		outlets =	(OUTLET *) G_realloc(outlets,
-				out_max * 2 * sizeof(OUTLET));
+
+	    if (streams[r][c] > 0) {
+
+		if (outlets_num > 2 * (out_max - 1))
+		    G_fatal_error
+			("Stream and direction maps probably do not match");
+
+		if (outlets_num > (out_max - 1))
+		    outlets = (OUTLET *) G_realloc(outlets,
+						   out_max * 2 *
+						   sizeof(OUTLET));
 
 
 		d = abs(dirs[r][c]);	/* abs */
@@ -54,16 +57,16 @@ int find_outlets(void)
 		}
 		if (d == 0)
 		    next_stream = -1;
-		
+
 		cur_stream = streams[r][c];
 
 		if (lasts) {
 		    if (cur_stream != next_stream && next_stream < 0) {	/* is outlet! */
-				
-					if (categories) { /* but not in list */
-						if (categories[streams[r][c]]==-1)
-					continue;	
-					}
+
+			if (categories) {	/* but not in list */
+			    if (categories[streams[r][c]] == -1)
+				continue;
+			}
 			outlets[outlets_num].r = r;
 			outlets[outlets_num].c = c;
 			outlets[outlets_num].val =
@@ -73,12 +76,12 @@ int find_outlets(void)
 		}
 		else {
 		    if (cur_stream != next_stream) {	/* is outlet or node! */
-					
-					if (categories) { /* but not in list */
-						if (categories[streams[r][c]]==-1)
-					continue;	
-					}
-			
+
+			if (categories) {	/* but not in list */
+			    if (categories[streams[r][c]] == -1)
+				continue;
+			}
+
 			outlets[outlets_num].r = r;
 			outlets[outlets_num].c = c;
 			outlets[outlets_num].val =
@@ -105,18 +108,18 @@ int find_outlets(void)
  */
 int reset_catchments(void)
 {
-  int r, c, i;
-  
-    for (r = 0; r < nrows; ++r) {
-	for (c = 0; c < ncols; ++c) {
-	   streams[r][c] = 0;
+    int r, c, i;
+
+    for (r = 0; r < nrows; r++) {
+	for (c = 0; c < ncols; c++) {
+	    streams[r][c] = 0;
 	}
     }
-    
-  if (in_streams) {
-		for (i = 0; i < outlets_num; ++i) 
-	streams[outlets[i].r][outlets[i].c] = outlets[i].val;
-		}
+
+    if (in_streams) {
+	for (i = 0; i < outlets_num; ++i)
+	    streams[outlets[i].r][outlets[i].c] = outlets[i].val;
+    }
     return 0;
 }
 
@@ -126,42 +129,47 @@ int reset_catchments(void)
  */
 int fill_catchments(OUTLET outlet)
 {
-
     int nextr[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int nextc[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-
+    int next_r, next_c;
     int r, c, val, i, j;
     POINT n_cell;
 
     tail = 0;
     head = -1;
+    has_point = 0;
     r = outlet.r;
     c = outlet.c;
     val = outlet.val;
 
+    G_debug(1, "processing outlet at row %d col %d", r, c);
+
     streams[r][c] = val;
 
     while (tail != head) {
-	for (i = 1; i < 9; ++i) {
-	    if (r + nextr[i] < 0 || r + nextr[i] > (nrows - 1) ||
-		c + nextc[i] < 0 || c + nextc[i] > (ncols - 1))
-		continue;	/* border */
-	    j = (i + 4) > 8 ? i - 4 : i + 4;
-	    if (dirs[r + nextr[i]][c + nextc[i]] == j) {	/* countributing cell */
+	for (i = 1; i < 9; i++) {
+	    next_r = r + nextr[i];
+	    next_c = c + nextc[i];
 
-		if (streams[r + nextr[i]][c + nextc[i]] > 0)
-		    continue;	/* other outlet */
+	    if (next_r >= 0 && next_r < nrows && next_c >= 0 && next_c < ncols) {
 
-		streams[r + nextr[i]][c + nextc[i]] = val;
-		n_cell.r = (r + nextr[i]);
-		n_cell.c = (c + nextc[i]);
-		fifo_insert(n_cell);
+		j = (i + 4) > 8 ? i - 4 : i + 4;
+
+		/* countributing cell, not yet assigned to a basin */
+		if (dirs[next_r][next_c] == j && streams[next_r][next_c] == 0) {
+
+		    streams[next_r][next_c] = val;
+		    n_cell.r = next_r;
+		    n_cell.c = next_c;
+		    fifo_insert(n_cell);
+		}
 	    }
 	}			/* end for i... */
 
 	n_cell = fifo_return_del();
 	r = n_cell.r;
 	c = n_cell.c;
+
     }
 
     return 0;
@@ -170,15 +178,26 @@ int fill_catchments(OUTLET outlet)
 /* fifo functions */
 int fifo_insert(POINT point)
 {
+    if (has_point && tail == head + 1)
+	G_fatal_error("fifo queue: circular buffer too small");
+	
     fifo_outlet[tail++] = point;
-    if (tail > fifo_max)
+    has_point = 1;
+    if (tail > fifo_max) {
+	G_debug(1, "tail > fifo_max");
 	tail = 0;
+    }
     return 0;
 }
 
 POINT fifo_return_del(void)
 {
-    if (head > fifo_max)
+    if (head >= fifo_max) {
+	G_debug(1, "head >= fifo_max");
 	head = -1;
-    return fifo_outlet[++head];
+    }
+    if (++head == tail)
+	has_point = 0;
+	
+    return fifo_outlet[head];
 }
