@@ -47,7 +47,7 @@
  1 | 2 | 3 
  */
 
-#define STREAM struct _stream //zostaje
+#define STREAM struct _stream
 STREAM {
     int stream;			/* index */
     int strahler, shreeve, horton, hack;	/* orders */
@@ -61,34 +61,34 @@ STREAM {
     int out_r, out_c;
     float tangent_dir; /* tangent direction at init */
     float stream_dir;  /* final stream  direction */
-    };
+};
 
 
 #define DIRCELLS struct _dircells
 DIRCELLS {
-	int r;
-	int c;
-	float dir_diff;
-	float small_dir_diff;
-	int candidate;
-	int tunning;
-	int decision;
-	int category;
+    int r;
+    int c;
+    float dir_diff;
+    float small_dir_diff;
+    int candidate;
+    int tunning;
+    int decision;
+    int category;
 };
 
-#define SEGMENTS struct _segments //modyfikacja
+#define SEGMENTS struct _segments
 SEGMENTS {
-	int out_stream; /* for streams == stream */
-	int init_stream; /* for streams == stream */
-	int cell_num;
-	int seg_num;
-	float dir_angle; /* final direction */
-	float dir_init, dir_middle, dir_last, dir_full;
-	float *angles;
-	float *lengths;
-	float *drops;
-	int *cellnums;
-	int *cats;
+    int out_stream; /* for streams == stream */
+    int init_stream; /* for streams == stream */
+    int cell_num;
+    int seg_num;
+    float dir_angle; /* final direction */
+    float dir_init, dir_middle, dir_last, dir_full;
+    float *angles;
+    float *lengths;
+    float *drops;
+    int *cellnums;
+    int *cats;
 };
 
 	  /* functions.c */
@@ -162,8 +162,8 @@ int *springs, *outlets;
 int springs_num, outlets_num;
 int stream_num;
 
-struct line_pnts *Segments; //
-struct line_cats *Cats; //
+struct line_pnts *Segments;
+struct line_cats *Cats;
 
 
 

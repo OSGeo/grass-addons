@@ -53,7 +53,6 @@ int create_base_maps(void)
     dirs = (CELL **) G_malloc(sizeof(CELL *) * nrows);
     streams = (CELL **) G_malloc(sizeof(CELL *) * nrows);
 
-    
     if (extended) {
 	in_dem_fd = open_raster(in_elev);
 
@@ -71,9 +70,7 @@ int create_base_maps(void)
 	}
 	elevation = (FCELL **) G_malloc(sizeof(FCELL *) * nrows);
     }
-    
-    
-    
+
     G_message(_("Reading maps..."));
 
     for (r = 0; r < nrows; ++r) {
@@ -90,7 +87,7 @@ int create_base_maps(void)
 	    G_fatal_error(_("Unable to read raster maps at row <%d>"), r);
 	}
 
-if (extended) {
+	if (extended) {
 	    elevation[r] = (FCELL *) G_malloc(sizeof(FCELL) * ncols);
 
 	    switch (elev_type) {
@@ -138,7 +135,6 @@ if (extended) {
 	    }			/* end switch */
 	}			/* end if elev */
 
-
 	for (c = 0; c < ncols; ++c) {
 	    if (G_is_c_null_value(&r_dirs[c])) {
 		dirs[r][c] = 0;
@@ -158,8 +154,8 @@ if (extended) {
 	/* END dirs & streams  & accums */
 
     }				/*end for r */
-    
-   switch (elev_type) {
+
+    switch (elev_type) {
     case CELL_TYPE:
 	G_free(r_dem_c);
 	break;
@@ -167,7 +163,7 @@ if (extended) {
 	G_free(r_dem_d);
 	break;
     }
- 
+
     G_free(r_streams);
     G_free(r_dirs);
     G_percent(r, nrows, 2);
@@ -180,44 +176,45 @@ if (extended) {
 
 int stream_number(void)
 {
-	char *cur_mapset;
-	CELL c_min, c_max;
-	struct Range stream_range;
-	G_init_range(&stream_range);
-	cur_mapset = G_find_cell2(in_streams, "");
-	G_read_range(in_streams,cur_mapset,&stream_range);
-	G_get_range_min_max(&stream_range, &c_min, &c_max);
-	stream_num=c_max;
-	return 0;
+    char *cur_mapset;
+    CELL c_min, c_max;
+    struct Range stream_range;
+
+    G_init_range(&stream_range);
+    cur_mapset = G_find_cell2(in_streams, "");
+    G_read_range(in_streams, cur_mapset, &stream_range);
+    G_get_range_min_max(&stream_range, &c_min, &c_max);
+    stream_num = c_max;
+    return 0;
 }
 
 
-int close_vector () {
-	
-	int i,j;
-	int cur_order;
-	int index_cat=0;
-	float angle, tangent;
-	struct field_info *Fi;
-	dbDriver *driver;
-	dbHandle handle;
-	dbString table_name, db_sql, val_string;
-	char *cat_col_name="cat";
-	char buf[1000];
-	
-	db_init_string(&db_sql);
-	db_init_string(&val_string);
-	db_init_string(&table_name);
-	db_init_handle(&handle);
-	
-	 Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
+int close_vector()
+{
+    int i, j;
+    int cur_order;
+    int index_cat = 0;
+    float angle, tangent;
+    struct field_info *Fi;
+    dbDriver *driver;
+    dbHandle handle;
+    dbString table_name, db_sql, val_string;
+    char *cat_col_name = "cat";
+    char buf[1000];
+
+    db_init_string(&db_sql);
+    db_init_string(&val_string);
+    db_init_string(&table_name);
+    db_init_handle(&handle);
+
+    Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
     driver = db_start_driver_open_database(Fi->driver, Fi->database);
     if (driver == NULL) {
 	G_fatal_error(_("Unable to start driver <%s>"), Fi->driver);
     }
-   
-			if (extended) /* calculate extended topology */
-  sprintf(buf,"create table %s (%s integer, \
+
+    if (extended)		/* calculate extended topology */
+	sprintf(buf, "create table %s (%s integer, \
 		c_stream integer, \
 		segment integer, \
 		c_order integer, \
@@ -227,88 +224,84 @@ int close_vector () {
 		ncells integer, \
 		n_stream integer, \
 		n_tangent double precision\
-		)",
-		Fi->table,cat_col_name);
-			else /* only simple results */
-	sprintf(buf,"create table %s (%s integer, \
+		)", Fi->table, cat_col_name);
+    else			/* only simple results */
+	sprintf(buf, "create table %s (%s integer, \
 		c_stream integer, \
 		c_order integer, \
 		direction double precision, \
 		length double precision \
-		)",
-		Fi->table,cat_col_name);	
-		
-	
-	db_set_string(&db_sql, buf);
+		)", Fi->table, cat_col_name);
 
-	if(db_execute_immediate(driver,&db_sql) !=DB_OK) {
-		db_close_database(driver);
-		db_shutdown_driver(driver);
-		G_fatal_error("Cannot create table %s", db_get_string(&db_sql));
-	}
-	
-		if (db_create_index2(driver,Fi->table,cat_col_name) !=DB_OK)
+
+    db_set_string(&db_sql, buf);
+
+    if (db_execute_immediate(driver, &db_sql) != DB_OK) {
+	db_close_database(driver);
+	db_shutdown_driver(driver);
+	G_fatal_error("Cannot create table %s", db_get_string(&db_sql));
+    }
+
+    if (db_create_index2(driver, Fi->table, cat_col_name) != DB_OK)
 	G_warning("cannot create index");
-	
-		if (db_grant_on_table(driver,Fi->table,
-			DB_PRIV_SELECT, DB_GROUP|DB_PUBLIC) !=DB_OK)
+
+    if (db_grant_on_table(driver, Fi->table,
+			  DB_PRIV_SELECT, DB_GROUP | DB_PUBLIC) != DB_OK)
 	G_fatal_error("cannot grant privileges on table %s", Fi->table);
 
-	db_begin_transaction(driver);
+    db_begin_transaction(driver);
 
-	for (i=1;i<stream_num+1;++i) {
+    for (i = 1; i < stream_num + 1; ++i) {
 
-		for (j=0;j<seg_common[i].seg_num;++j) {
-			index_cat=seg_common[i].cats[j];
-			
-			angle=(radians) ? seg_common[i].angles[j] : rad2deg(seg_common[i].angles[j]); 
-			tangent=(radians) ? 
-				s_streams[s_streams[i].next_stream].tangent_dir :
-				rad2deg(s_streams[s_streams[i].next_stream].tangent_dir);
-			
-			cur_order=(ordering) ? cur_orders(s_streams[i].stream,ordering) : 0;
-			
-					if(extended)
-			sprintf(buf,"insert into %s  values (%d, %d, %d, %d, %f, %f, %f, %d, %d, %f)",
-				Fi->table, 
-				index_cat,
-				s_streams[i].stream,
-				j,
-				cur_order, 
-				angle,
-	 			seg_common[i].lengths[j],
-	 			seg_common[i].drops[j],
-				seg_common[i].cellnums[j],
-				s_streams[i].next_stream,
-				tangent
-			);
-					else
-						sprintf(buf,"insert into %s  values (%d, %d, %d, %f, %f)",
-				Fi->table, 
-				index_cat,
-				s_streams[i].stream,
-				cur_order, 
-				angle,
-				seg_common[i].lengths[j]
-			);		
+	for (j = 0; j < seg_common[i].seg_num; ++j) {
+	    index_cat = seg_common[i].cats[j];
 
-			db_set_string(&db_sql,buf);
+	    angle =
+		(radians) ? seg_common[i].angles[j] : rad2deg(seg_common[i].
+							      angles[j]);
+	    tangent =
+		(radians) ? s_streams[s_streams[i].next_stream].
+		tangent_dir : rad2deg(s_streams[s_streams[i].next_stream].
+				      tangent_dir);
 
-			if(db_execute_immediate(driver,&db_sql) !=DB_OK) {
-				db_close_database(driver);
-				db_shutdown_driver(driver);
-				G_fatal_error("Cannot inset new row: %s", db_get_string(&db_sql));
-			}
- 
-		}
+	    cur_order =
+		(ordering) ? cur_orders(s_streams[i].stream, ordering) : 0;
+
+	    if (extended)
+		sprintf(buf,
+			"insert into %s  values (%d, %d, %d, %d, %f, %f, %f, %d, %d, %f)",
+			Fi->table, index_cat, s_streams[i].stream, j,
+			cur_order, angle, seg_common[i].lengths[j],
+			seg_common[i].drops[j], seg_common[i].cellnums[j],
+			s_streams[i].next_stream, tangent);
+	    else
+		sprintf(buf, "insert into %s  values (%d, %d, %d, %f, %f)",
+			Fi->table,
+			index_cat,
+			s_streams[i].stream,
+			cur_order, angle, seg_common[i].lengths[j]
+		    );
+
+	    db_set_string(&db_sql, buf);
+
+	    if (db_execute_immediate(driver, &db_sql) != DB_OK) {
+		db_close_database(driver);
+		db_shutdown_driver(driver);
+		G_fatal_error("Cannot inset new row: %s",
+			      db_get_string(&db_sql));
+	    }
+
 	}
-	db_commit_transaction(driver);
-	db_close_database_shutdown_driver(driver); 
-	
-	Vect_map_add_dblink(&Out, 1, NULL, Fi->table,
-		cat_col_name, Fi->database, Fi->driver);
-   
-	  Vect_hist_command(&Out);
+    }
+    db_commit_transaction(driver);
+    db_close_database_shutdown_driver(driver);
+
+    Vect_map_add_dblink(&Out, 1, NULL, Fi->table,
+			cat_col_name, Fi->database, Fi->driver);
+
+    Vect_hist_command(&Out);
     Vect_build(&Out);
     Vect_close(&Out);
+
+    return 0;
 }

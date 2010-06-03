@@ -5,7 +5,6 @@
 
 int strahler(void)
 {
-
     int i, j, done = 1;
     int cur_stream, next_stream;
     int max_strahler = 0, max_strahler_num;
@@ -33,14 +32,14 @@ int strahler(void)
 			done = 0;
 			break;	/* strahler is not determined, break for loop */
 		    }
-		    else if (s_streams[s_streams[cur_stream].trib[i]].
-			     strahler > max_strahler) {
+		    else if (s_streams[s_streams[cur_stream].trib[i]].strahler
+			     > max_strahler) {
 			max_strahler =
 			    s_streams[s_streams[cur_stream].trib[i]].strahler;
 			max_strahler_num = 1;
 		    }
-		    else if (s_streams[s_streams[cur_stream].trib[i]].
-			     strahler == max_strahler) {
+		    else if (s_streams[s_streams[cur_stream].trib[i]].strahler
+			     == max_strahler) {
 			++max_strahler_num;
 		    }
 		}		/* end determining strahler */
@@ -60,7 +59,6 @@ int strahler(void)
 
 int shreeve(void)
 {
-
     int i, j, done = 1;
     int cur_stream, next_stream;
     int max_shreeve = 0;
@@ -109,7 +107,6 @@ int shreeve(void)
 
 int horton(void)
 {
-
     int *stack;
     int top, i, j;
     int cur_stream, cur_horton;
@@ -143,25 +140,26 @@ int horton(void)
 		for (i = 0; i < s_streams[cur_stream].trib_num; ++i) {
 		    if (s_streams[s_streams[cur_stream].trib[i]].horton < 0) {
 
-			if (s_streams[s_streams[cur_stream].trib[i]].
-			    strahler > max_strahler) {
+			if (s_streams[s_streams[cur_stream].trib[i]].strahler
+			    > max_strahler) {
 			    max_strahler =
-				s_streams[s_streams[cur_stream].trib[i]].
-				strahler;
+				s_streams[s_streams[cur_stream].
+					  trib[i]].strahler;
 			    max_accum =
-				s_streams[s_streams[cur_stream].trib[i]].
-				accum;
+				s_streams[s_streams[cur_stream].
+					  trib[i]].accum;
 			    up_stream = s_streams[cur_stream].trib[i];
 
 			}
-			else if (s_streams[s_streams[cur_stream].trib[i]].
-				 strahler == max_strahler) {
+			else if (s_streams
+				 [s_streams[cur_stream].trib[i]].strahler ==
+				 max_strahler) {
 
-			    if (s_streams[s_streams[cur_stream].trib[i]].
-				accum > max_accum) {
+			    if (s_streams[s_streams[cur_stream].trib[i]].accum
+				> max_accum) {
 				max_accum =
-				    s_streams[s_streams[cur_stream].trib[i]].
-				    accum;
+				    s_streams[s_streams[cur_stream].
+					      trib[i]].accum;
 				up_stream = s_streams[cur_stream].trib[i];
 			    }
 			}
@@ -192,7 +190,6 @@ int horton(void)
 
 int hack(void)
 {
-
     int *stack;
     int top, i, j;
     int cur_stream, cur_hack;
@@ -226,8 +223,8 @@ int hack(void)
 			if (s_streams[s_streams[cur_stream].trib[i]].accum >
 			    max_accum) {
 			    max_accum =
-				s_streams[s_streams[cur_stream].trib[i]].
-				accum;
+				s_streams[s_streams[cur_stream].
+					  trib[i]].accum;
 			    up_stream = s_streams[cur_stream].trib[i];
 			}
 		    }
