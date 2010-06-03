@@ -86,6 +86,7 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
     loadp = ele;
     accp = acc;
     weightp = accweight;
+    aspp = asp;
 
     G_debug(1, "start loading %d rows, %d cols", nrows, ncols);
     for (r = 0; r < nrows; r++) {
@@ -174,6 +175,8 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 	    loadp++;
 	    accp++;
 	    ptr = G_incr_void_ptr(ptr, ele_size);
+	    *aspp = 0;
+	    aspp++;
 	    if (acc_fd >= 0)
 		acc_ptr = G_incr_void_ptr(acc_ptr, acc_size);
 	    if (weight_fd >= 0) {
@@ -211,13 +214,11 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
     /* load edge cells to A* heap */
     G_message(_("set edge points"));
     loadp = ele;
-    aspp = asp;
     for (r = 0; r < nrows; r++) {
 
 	G_percent(r, nrows, 2);
 	for (c = 0; c < ncols; c++) {
 
-	    *aspp = 0;
 	    is_worked = FLAG_GET(worked, r, c);
 
 	    if (is_worked)
@@ -270,7 +271,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 		    break;
 		}
 	    }
-	    aspp++;
 	}
     }
     G_percent(nrows, nrows, 2);	/* finish it */
