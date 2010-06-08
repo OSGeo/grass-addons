@@ -1,6 +1,6 @@
 #include "global.h"
 
-int tail, head, has_point;
+static int tail, head, has_point;
 
 /* 
    Link: a channel between junction
@@ -178,15 +178,16 @@ int fill_catchments(OUTLET outlet)
 /* fifo functions */
 int fifo_insert(POINT point)
 {
-    if (has_point && tail == head + 1)
-	G_fatal_error("fifo queue: circular buffer too small");
-	
-    fifo_outlet[tail++] = point;
-    has_point = 1;
     if (tail > fifo_max) {
 	G_debug(1, "tail > fifo_max");
 	tail = 0;
     }
+    if (has_point && tail == head + 1)
+	G_fatal_error("fifo queue: circular buffer too small");
+
+    /* allow tail to become fifomax + 1 */
+    fifo_outlet[tail++] = point;
+    has_point = 1;
     return 0;
 }
 
@@ -196,7 +197,9 @@ POINT fifo_return_del(void)
 	G_debug(1, "head >= fifo_max");
 	head = -1;
     }
-    if (++head == tail)
+    /* max value for ++head: fifomax */
+    /* max value for tail: fifomax + 1 */
+    if (++head == tail - 1)
 	has_point = 0;
 	
     return fifo_outlet[head];
