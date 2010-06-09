@@ -10,7 +10,8 @@
 <img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
 
 <h2>NAME</h2>
-<em><b>r.in.swisstopo</b></em>  - Imports a digital elevation model from swisstopo into a Grass raster map and interpolates it into the current mapset's resolution. The name of the raster map is defined by the user input. A further raster layer (with the appendix '_origres') is automatically created and contains the input data in its original resolution. Resultant raster maps will contain elevation data in meters.
+<em><b>r.in.swisstopo</b></em>  - Imports a digital elevation model from swisstopo into a Grass raster map and interpolates it into the current mapset's resolution. The name of the raster map is defined by the user input. A further raster layer (with the appendix '_origres', if it exists already, it will be OVERWRITTEN!) is automatically created and contains the input data in its original resolution. Resultant raster maps will contain elevation data in meters.<br>
+r.in.xyz and r.interp.resamp are invoked from within r.in.swisstopo
 <h2>KEYWORDS</h2>
 swisstopo, DHM, DEM, Raster, Import
 <h2>SYNOPSIS</h2>
@@ -89,7 +90,8 @@ That's it!
 </p>
 
 <h2>Note</h2>
-<p>If you find any bugs or find the module helpful or have any questions, feel free to contact the author (Juergen.Hansmann["at"]erdw.ethz.ch)</p>
+<p>If you find any bugs or find the module helpful or have any questions, feel free to contact the author (Juergen.Hansmann["at"]erdw.ethz.ch)<br>
+The author is not responsible for any consequenced that arise from using this code.</p>
 
 <h2>Author</h2>
 <p>J&uuml;rgen Hansmann<br>
@@ -97,7 +99,7 @@ That's it!
 Swiss Federal Institute of Technology (ETH)<br>
 Zurich<br>
 </i></p>
-<p><i>Last changed: $Date: 03/26/2010 $</i> </p> 
+<p><i>Last changed: $Date: 09/06/2010 $</i> </p> 
 
 </DL>
 </body>

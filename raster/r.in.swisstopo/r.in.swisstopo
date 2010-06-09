@@ -20,9 +20,12 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
+#  The author is not responsible for any consequences that arise from using
+#  this code.
+#
 #############################################################################/
 #%Module
-#% description: Imports a digital elevation model from swisstopo into a Grass raster map and interpolates it into the current mapset's resolution. The name of the raster map is defined by the user input. A further raster layer (with the appendix '_origres') is automatically created and contains the input data in its original resolution. Resultant raster maps will contain elevation data in meters.
+#% description: Imports a digital elevation model from swisstopo into a Grass raster map and interpolates it into the current mapset's resolution. The name of the raster map is defined by the user input. A further raster layer (with the appendix '_origres', if it exists already, it will be OVERWRITTEN!) is automatically created and contains the input data in its original resolution. Resultant raster maps will contain elevation data in meters.
 #% keywords: swisstopo, DHM, DEM, Raster, Import
 #%End
 #%Option
@@ -145,7 +148,6 @@ if [ $? -ne 0 ] || [ -z "$TMP2" ] ; then
   exit 1
 fi
 
-
 # set environment so that awk works properly in all languages
 unset LC_ALL
 LC_NUMERIC=C
@@ -180,7 +182,7 @@ if [ "$file_extension" == "xyz" -o "$file_extension" == "XYZ"  ] ; then
 else
 
 # if the swisstopo input file is in .mlt or .mbl format, a bit more work needs to be done
-  awk ' BEGIN{x_count=0; y_count=0;inc_count=0;start_read=0};
+  awk ' BEGIN{x_count=0; y_count=0;inc_count=0;start_read=0;total_count=0;values_check=0};
     {
 	  if (FNR == 3)
 	    {split($1, a, "-");type=a[2]}	
@@ -195,7 +197,8 @@ else
 	    {x_res=$4; y_res=$5}
 
 	  if ($1 == "MATRIXDIMENSIONEN")
-	    {matrix_increment=$3;}
+	    {matrix_increment=$3;
+	     total_values = $3 * $4;}
 
 	  if ($1 == "ENDHEADER")
 	    {start_read=FNR}
@@ -206,9 +209,11 @@ else
 	      for (i=1; i<=NF; i++)
 		  {
 		  inc_count=inc_count+1;
+		  total_count=total_count+1;
 		  x_utm=min_x+(x_count*x_res);
 		  y_utm=max_y-(y_count*y_res);
-		  print x_utm,y_utm,$i*0.1;
+		  if(total_count <= total_values){
+		  print x_utm,y_utm,$i*0.1;}
 		  x_count=x_count+1
 		  if (inc_count == matrix_increment)
 		    {inc_count=0; x_count=0; y_count=y_count+1};
@@ -216,7 +221,9 @@ else
 	    }
     }
   END{
-  print min_x, max_x, min_y, max_y, x_res, y_res, type >> "'$TMP2'";
+  if(total_count == total_values){values_check=1};
+  if(total_count > total_values){values_check=2};
+  print min_x, max_x, min_y, max_y, x_res, y_res, type, values_check >> "'$TMP2'";
   }' $GIS_OPT_INPUT > $TMP
 
 
@@ -226,6 +233,19 @@ else
   if [ "$type" != "MATRIXMODELL" ] ; then
     g.message -e "Something seems to be wrong with the input file format"
     exit 1
+  fi
+
+  # check, wether the number of imported elevation values is correct. If not: exit!
+  values_check=`awk < $TMP2 '{print $8}'`
+  if [ "$values_check" == "0" ] ; then
+    g.message -e "Number of elevation values does not correspond to file header information (i.e. number of elevation values in input file is too small)!"
+    exit 1
+  fi
+
+  # check, wether there were too many elevation data values in input file. If so, give a warning message!
+  values_check=`awk < $TMP2 '{print $8}'`
+  if [ "$values_check" == "2" ] ; then
+    g.message -w "Number of elevation values larger than defined in file header. This could be due to padding (zero) values at the end of the input file. Import STOPPED, when the number of values that was defined in the header of the input file, was reached. Please check input file an resultant raster map carefully!"
   fi
 
 
@@ -241,27 +261,44 @@ fi
 
 # get current GRASS resolution
 eval `g.region -g`
-# now two variables exist: nsres and ewres, containing the resolution of the current mapset
+# now several variables exist: nsres and ewres, containing the resolution of the current mapset
+# and n, s, w, e, containing the northern, eastern, southern and western region boundaries
+orig_n=$n
+orig_s=$s
+orig_w=$w
+orig_e=$e
+orig_nsres=$nsres
+orig_ewres=$ewres
 
 
-# set resolution to the input dataset resolution
-g.region nsres=$yres ewres=$xres
+# temporarily set region to input dataset resolution and extent
+# first check the extent of the input dataset using r.in.xyz in scanmode
+eval `r.in.xyz -s -g input=$TMP output=not_needed method=n type=FCELL fs="space" x=1 y=2 z=3 percent=1 --overwrite`
+# now n,s,w,e represent the northern, southern, western and eastern boundaries of input data set
+
+# set resolution to the input dataset resolution and boundaries to input data extent.
+# The region is half a cell size larger in all directions, because GRASS uses the cell-center raster convention
+# (see r.in.xyz documentation on gridded data import).
+temp_n=`awk 'BEGIN{print ('$n'+0.5*'$yres')}'`
+temp_s=`awk 'BEGIN{print ('$s'-0.5*'$yres')}'`
+temp_w=`awk 'BEGIN{print ('$w'-0.5*'$xres')}'`
+temp_e=`awk 'BEGIN{print ('$e'+0.5*'$xres')}'`
+g.region nsres=$yres ewres=$xres n=$temp_n s=$temp_s w=$temp_w e=$temp_e
+
 
 # import input data with r.in.xyz
 g.message "invoking r.in.xyz"
-
-
 if [ -z "$GIS_OPT_ZRANGE" ] ; then
   r.in.xyz input=$TMP output=${GIS_OPT_OUTPUT}_origres method=$GIS_OPT_METHOD type=$GIS_OPT_TYPE fs="space" x=1 y=2 z=3 percent=$GIS_OPT_PERCENT
 else
   r.in.xyz input=$TMP output=${GIS_OPT_OUTPUT}_origres method=$GIS_OPT_METHOD type=$GIS_OPT_TYPE fs="space" x=1 y=2 z=3 zrange=$GIS_OPT_ZRANGE percent=$GIS_OPT_PERCENT
 fi
 
-
 # reset resolution to original resolution of the mapset
-g.region nsres=$nsres ewres=$ewres
+g.region nsres=$orig_nsres ewres=$orig_ewres n=$orig_n s=$orig_s w=$orig_w e=$orig_e
 
-r.resamp.interp input=${GIS_OPT_OUTPUT}_origres out=$GIS_OPT_OUTPUT meth=$GIS_OPT_METHOD_RESAMP
+# interpolate input data to original region's resolution
+r.resamp.interp input=${GIS_OPT_OUTPUT}_origres output=$GIS_OPT_OUTPUT method=$GIS_OPT_METHOD_RESAMP
 
 
 #################################################################################################/
