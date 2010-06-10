@@ -22,6 +22,11 @@ int open_map(MAPS* rast) {
 	
 		rast->raster_type = G_get_raster_map_type(rast->fd);
 
+
+    if (window.ew_res < cellhd.ew_res || window.ns_res < cellhd.ns_res)
+	G_fatal_error(_("Region resolution shoudn't be lesser than map %s resolution. Run g.region rast=%s to set proper resolution"),
+		      rast->elevname, rast->elevname);
+
 		tmp_buf=G_allocate_raster_buf(rast->raster_type);
 		rast->elev = (FCELL**) G_malloc((window_size+1) * sizeof(FCELL*));
 	

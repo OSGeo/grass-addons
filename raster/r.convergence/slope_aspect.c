@@ -6,8 +6,7 @@ int get_distance(int once, int row) {
 		
 			if(once) {
 		
-		G_get_window(&window);
-		north = G_row_to_northing(0.5, &window);
+	north = G_row_to_northing(0.5, &window);
     middle = G_row_to_northing(1.5, &window);
     south = G_row_to_northing(2.5, &window);
     east = G_col_to_easting(2.5, &window);

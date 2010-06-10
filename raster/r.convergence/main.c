@@ -93,6 +93,7 @@ int main(int argc, char **argv)
 	G_check_input_output_name(map_dem->answer, map_output->answer, GR_FATAL_EXIT);
 	nrows = G_window_rows();
 	ncols = G_window_cols();
+	G_get_window(&window);
 	radius=window_size/2;
 
 
