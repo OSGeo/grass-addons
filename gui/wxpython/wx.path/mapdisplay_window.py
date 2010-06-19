@@ -108,6 +108,7 @@ class BufferedWindow(MapWindow, wx.Window):
         self.select = {}      # selecting/unselecting decorations for dragging
         self.textdict = {}    # text, font, and color indexed by id
         self.currtxtid = None # PseudoDC id for currently selected text
+        self.flag =False
 
         #
         # Zoom objects
@@ -147,6 +148,7 @@ class BufferedWindow(MapWindow, wx.Window):
             return
 
         self.counter = self.counter + 1
+        self.flag=True
         point =("%.*f|%.*f" %  (precision, e, precision, n))
         self.points.append(point + '|point')
         if self.counter == 2:
@@ -176,6 +178,9 @@ class BufferedWindow(MapWindow, wx.Window):
             self.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
             self.UpdateMap(render=True)
             self.counter =0
+            self.points=[]
+            #os.remove("tmp1")
+            #os.remove("tmp2")
 
     def DefinePseudoDC(self, vdigit = False):
         """!Define PseudoDC class to use
@@ -913,7 +918,7 @@ class BufferedWindow(MapWindow, wx.Window):
         ### self.OnPaint(None)
 
         # update statusbar
-        self.parent.StatusbarUpdate()
+#        self.parent.StatusbarUpdate()
 
         self.Refresh()
         self.processMouse = True

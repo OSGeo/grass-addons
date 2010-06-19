@@ -92,7 +92,7 @@ class NetworkPath(wx.Frame):
 
         self.Maximize()
 
-        wx.MessageBox('Development has only started. currently works with spearfish data (myroads vector file). Kindly bear with me, Thankyou', 'Info')
+        wx.MessageBox('Development has only started. currently works with spearfish data (myroads vector file given in folder). Kindly bear with me, Thankyou', 'Info')
 
 
 
@@ -202,6 +202,8 @@ class NetworkPath(wx.Frame):
                 return
 
         self.statusbar.SetStatusText("%.*f; %.*f" %  (precision, e, precision, n), 0)
+        p = self.statusbar.GetStatusText()
+        self.statusbar.SetStatusText(p + "    Double Click to select Points")
                 
         event.Skip()
 
