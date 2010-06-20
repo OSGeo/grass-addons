@@ -53,7 +53,7 @@ grassPath = os.path.join(globalvar.ETCDIR, "python")
 sys.path.append(grassPath)
 
 import render
-from toolbars import MapToolbar
+import toolbars
 from preferences import globalSettings as UserSettings
 from icon  import Icons
 from mapdisp_command import Command
@@ -306,10 +306,10 @@ class NetworkPath(MapFrame):
             gcmd.CommandThread(command,stdout=None,stderr=None).run()
 
             command=["v.net", "input=myroads",'points=startend', 'out=vnet_out', 'op=connect', 'thresh=200']
-            gcmd.CommandThread(command,stdout=None,stderr=None).run()
+            gcmd.CommandThread(command).run()
 
             command=["v.net.path", 'vnet_out','afcol=forward', 'abcol=backward', 'out=tmp_vnet_path','file=tmp2']
-            gcmd.CommandThread(command,stdout=None,stderr=None).run()
+            gcmd.CommandThread(command).run()
 
             self.mapname = 'tmp_vnet_path@' + grass.gisenv()['MAPSET']
             self.cmd= ['d.vect', str("map=" + self.mapname),'col=red','width=2']
@@ -333,6 +333,86 @@ class NetworkPath(MapFrame):
     def GetLayerManager(self):
         return self
 
+    def AddToolbar(self, name):
+        """!Add defined toolbar to the window
+        """
+        # default toolbar
+        self.toolbars['map'] = Toolbar(self, self.Map)
+
+        self._mgr.AddPane(self.toolbars['map'],
+                          wx.aui.AuiPaneInfo().
+                          Name("maptoolbar").Caption(_("Map Toolbar")).
+                          ToolbarPane().Top().
+                          LeftDockable(False).RightDockable(False).
+                          BottomDockable(False).TopDockable(True).
+                          CloseButton(False).Layer(2).
+                          BestSize((self.toolbars['map'].GetSize())))
+	
+
+class Toolbar(toolbars.MapToolbar):
+    def __init__(self, parent, mapcontent):
+        """!Map Display constructor
+
+        @param parent reference to MapFrame
+        @param mapcontent reference to render.Map (registred by MapFrame)
+        """
+        self.mapcontent = mapcontent # render.Map
+        toolbars.AbstractToolbar.__init__(self, parent = parent) # MapFrame
+        
+        self.InitToolbar(self.ToolbarData())
+        
+        # optional tools
+
+        self.action = { 'id' : self.pointer }
+        self.defaultAction = { 'id' : self.pointer,
+                               'bind' : self.parent.OnPointer }
+        
+        self.OnTool(None)
+        
+        self.EnableTool(self.zoomback, False)
+        
+        self.FixSize(width = 90)
+        
+    def ToolbarData(self):
+        """!Toolbar data"""
+
+        self.pointer = wx.NewId()
+        self.query = wx.NewId()
+        self.pan = wx.NewId()
+        self.zoomin = wx.NewId()
+        self.zoomout = wx.NewId()
+        self.zoomback = wx.NewId()
+        self.zoommenu = wx.NewId()
+        self.zoomextent = wx.NewId()
+
+        
+        # tool, label, bitmap, kind, shortHelp, longHelp, handler
+        return (
+
+            (self.pointer, "pointer", Icons["pointer"].GetBitmap(),
+             wx.ITEM_CHECK, Icons["pointer"].GetLabel(), Icons["pointer"].GetDesc(),
+             self.parent.OnPointer),
+            (self.query, "query", Icons["query"].GetBitmap(),
+             wx.ITEM_CHECK, Icons["query"].GetLabel(), Icons["query"].GetDesc(),
+             self.parent.OnQuery),
+            (self.pan, "pan", Icons["pan"].GetBitmap(),
+             wx.ITEM_CHECK, Icons["pan"].GetLabel(), Icons["pan"].GetDesc(),
+             self.parent.OnPan),
+            (self.zoomin, "zoom_in", Icons["zoom_in"].GetBitmap(),
+             wx.ITEM_CHECK, Icons["zoom_in"].GetLabel(), Icons["zoom_in"].GetDesc(),
+             self.parent.OnZoomIn),
+            (self.zoomout, "zoom_out", Icons["zoom_out"].GetBitmap(),
+             wx.ITEM_CHECK, Icons["zoom_out"].GetLabel(), Icons["zoom_out"].GetDesc(),
+             self.parent.OnZoomOut),
+            (self.zoomextent, "zoom_extent", Icons["zoom_extent"].GetBitmap(),
+             wx.ITEM_NORMAL, Icons["zoom_extent"].GetLabel(), Icons["zoom_extent"].GetDesc(),
+             self.parent.OnZoomToMap),
+            (self.zoomback, "zoom_back", Icons["zoom_back"].GetBitmap(),
+             wx.ITEM_NORMAL, Icons["zoom_back"].GetLabel(), Icons["zoom_back"].GetDesc(),
+             self.parent.OnZoomBack),
+            )
+
+
         
 class PathApp(wx.App):
     """
@@ -344,7 +424,7 @@ class PathApp(wx.App):
             Map = render.Map() 
         else:
             Map = None
-        self.mapname = 'roads@PERMANENT'
+        self.mapname = 'myroads@PERMANENT'
         self.cmd= ['d.vect', str("map=" + self.mapname)]
         Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
 
@@ -359,9 +439,9 @@ class PathApp(wx.App):
 if __name__ == "__main__":
 
 
-    gm_map = PathApp(0)
+    path_app = PathApp(0)
 
-    gm_map.MainLoop()
+    path_app.MainLoop()
 
 
     sys.exit(0)
