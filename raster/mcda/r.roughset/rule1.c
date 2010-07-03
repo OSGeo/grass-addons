@@ -3,11 +3,11 @@
  *
  * MODULE:       r.roughset
  * AUTHOR(S):    GRASS module authors ad Rough Set Library (RSL) maintain:
- *					G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)		
+ *					G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)
  *				 Rough Set Library (RSL) ver. 2 original develop:
- *		         	M.Gawrys - J.Sienkiewicz 
+ *		         	M.Gawrys - J.Sienkiewicz
  *
- * PURPOSE:      Geographics rough set analisys and knowledge discovery 
+ * PURPOSE:      Geographics rough set analisys and knowledge discovery
  *
  * COPYRIGHT:    (C) A.Boggia - G.Massei (2008)
  *
@@ -16,19 +16,12 @@
  *   	    	 for details.
  *
  *****************************************************************************/
-
 /***                                                                       ***/
-
 /***               SOME MORE QUERIES FOR SYSTEM                            ***/
-
 /***                   ( MENAGING RULES )                                  ***/
-
 /***                                                                       ***/
-
 /*** part of the ROUGH system written by M.Gawrys J.Sienkiewicz            ***/
-
 /***                                                                       ***/
-
 /*****************************************************************************/
 
 
@@ -44,7 +37,7 @@ void RuleCopy(value_type * dest, value_type * source)
 int RuleEQ(value_type * first, value_type * second)
 {
     return !memcmp(first, second,
-		   _mainsys->attributes_num * sizeof(value_type));
+                   _mainsys->attributes_num * sizeof(value_type));
 }
 
 
@@ -54,8 +47,8 @@ void AddRule(value_type * rules, int *count, value_type * rule)
     int size = _mainsys->attributes_num;
 
     for (i = 0; i < *count; i++)
-	if (RuleEQ(rules + i * size, rule))
-	    return;
+        if (RuleEQ(rules + i * size, rule))
+            return;
     RuleCopy(rules + (*count) * size, rule);
     *count += 1;
     return;

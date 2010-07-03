@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     module = G_define_module();
     module->keywords = _("raster,MCDA");
     module->description =
-	_("Multicirtieria decision analysis based on REGIME method");
+        _("Multicirtieria decision analysis based on REGIME method");
 
     /* Define the different options as defined in gis.h */
     criteria = G_define_option();	/* Allocates memory for the Option structure and returns a pointer to this memory */
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     criteria->multiple = YES;
     criteria->gisprompt = "old,cell,raster";
     criteria->description =
-	"Input geographics criteria in information system";
+        "Input geographics criteria in information system";
 
     weight = G_define_option();	/* Allocates memory for the Option structure and returns a pointer to this memory */
     weight->key = "weight";
@@ -81,14 +81,15 @@ int main(int argc, char *argv[])
 
     /* options and flags parser */
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
 
     G_message("start: %s", G_date());	/*write calculation start time */
 
     /* number of file (=criteria) */
-    while (criteria->answers[ncriteria] != NULL) {
-	ncriteria++;
+    while (criteria->answers[ncriteria] != NULL)
+    {
+        ncriteria++;
     }
 
     /* process the input maps:  stores options and flags to variables */
@@ -102,29 +103,30 @@ int main(int argc, char *argv[])
 
 
 
-    for (i = 0; i < ncriteria; i++) {
-	struct input *p = &attributes[i];
+    for (i = 0; i < ncriteria; i++)
+    {
+        struct input *p = &attributes[i];
 
-	p->name = criteria->answers[i];
-	p->mapset = G_find_cell2(p->name, "");	/* G_find_cell: Looks for the raster map "name" in the database. */
-	if (p->mapset == NULL)	/* returns NULL if the map was not found in any mapset,   mapset name otherwise */
-	    G_fatal_error(_("Raster file <%s> not found"), p->name);
+        p->name = criteria->answers[i];
+        p->mapset = G_find_cell2(p->name, "");	/* G_find_cell: Looks for the raster map "name" in the database. */
+        if (p->mapset == NULL)	/* returns NULL if the map was not found in any mapset,   mapset name otherwise */
+            G_fatal_error(_("Raster file <%s> not found"), p->name);
 
-	if ((p->infd = G_open_cell_old(p->name, p->mapset)) < 0)	/* G_open_cell_old - returns file destriptor (>0) */
-	    G_fatal_error(_("Unable to open input map <%s> in mapset <%s>"),
-			  p->name, p->mapset);
+        if ((p->infd = G_open_cell_old(p->name, p->mapset)) < 0)	/* G_open_cell_old - returns file destriptor (>0) */
+            G_fatal_error(_("Unable to open input map <%s> in mapset <%s>"),
+                          p->name, p->mapset);
 
-	if (G_get_cellhd(p->name, p->mapset, &cellhd) < 0)	/* controlling, if we can open input raster */
-	    G_fatal_error(_("Unable to read file header of <%s>"), p->name);
+        if (G_get_cellhd(p->name, p->mapset, &cellhd) < 0)	/* controlling, if we can open input raster */
+            G_fatal_error(_("Unable to read file header of <%s>"), p->name);
 
-	p->inrast = G_allocate_d_raster_buf();	/* Allocate an array of DCELL based on the number of columns in the current region. Return DCELL */
+        p->inrast = G_allocate_d_raster_buf();	/* Allocate an array of DCELL based on the number of columns in the current region. Return DCELL */
     }
 
     result_preference = preference->answer;	/* store outputn name in variables */
 
 
     if (G_legal_filename(result_preference) < 0)	/* check for legal database file names */
-	G_fatal_error(_("<%s> is an illegal file name"), result_preference);
+        G_fatal_error(_("<%s> is an illegal file name"), result_preference);
 
     /*values = G_malloc(ncriteria * sizeof(DCELL)); */
 
@@ -133,11 +135,13 @@ int main(int argc, char *argv[])
 
     /*memory allocation for-three dimensional matrix */
     decision_vol = G_malloc(nrows * sizeof(double *));
-    for (i = 0; i < nrows; ++i) {
-	decision_vol[i] = G_malloc(ncols * sizeof(double *));
-	for (j = 0; j < ncols; ++j) {
-	    decision_vol[i][j] = G_malloc((ncriteria + 1) * sizeof(double));	/*NOTE: it's storage enven preference regime index map */
-	}
+    for (i = 0; i < nrows; ++i)
+    {
+        decision_vol[i] = G_malloc(ncols * sizeof(double *));
+        for (j = 0; j < ncols; ++j)
+        {
+            decision_vol[i][j] = G_malloc((ncriteria + 1) * sizeof(double));	/*NOTE: it's storage enven preference regime index map */
+        }
     }
 
     /* Allocate output buffer, use  DCELL_TYPE */
@@ -145,23 +149,26 @@ int main(int argc, char *argv[])
 
     /* controlling, if we can write the raster */
     if ((outfd_preference =
-	 G_open_raster_new(result_preference, DCELL_TYPE)) < 0)
-	G_fatal_error(_("Unable to create raster map <%s>"),
-		      result_preference);
+                G_open_raster_new(result_preference, DCELL_TYPE)) < 0)
+        G_fatal_error(_("Unable to create raster map <%s>"),
+                      result_preference);
 
 
     /*build a three dimensional matrix for storage all critera maps */
-    for (i = 0; i < ncriteria; i++) {
-	for (row1 = 0; row1 < nrows; row1++) {
-	    G_get_raster_row(attributes[i].infd, attributes[i].inrast, row1, DCELL_TYPE);	/* Reads appropriate information into the buffer buf associated with the requested row */
-	    /*G_fatal_error(_("Unable to read raster map <%s> row %d"), criteria->answers[i], row); */
-	    for (col1 = 0; col1 < ncols; col1++) {
-		/* viene letto il valore di cella e lo si attribuisce ad una variabile di tipo DCELL e poi ad un array */
-		DCELL v1 = ((DCELL *) attributes[i].inrast)[col1];
+    for (i = 0; i < ncriteria; i++)
+    {
+        for (row1 = 0; row1 < nrows; row1++)
+        {
+            G_get_raster_row(attributes[i].infd, attributes[i].inrast, row1, DCELL_TYPE);	/* Reads appropriate information into the buffer buf associated with the requested row */
+            /*G_fatal_error(_("Unable to read raster map <%s> row %d"), criteria->answers[i], row); */
+            for (col1 = 0; col1 < ncols; col1++)
+            {
+                /* viene letto il valore di cella e lo si attribuisce ad una variabile di tipo DCELL e poi ad un array */
+                DCELL v1 = ((DCELL *) attributes[i].inrast)[col1];
 
-		decision_vol[row1][col1][i] = (double)(v1);
-	    }
-	}
+                decision_vol[row1][col1][i] = (double)(v1);
+            }
+        }
     }
 
     G_message("build matrix: %s", G_date());
@@ -169,28 +176,30 @@ int main(int argc, char *argv[])
     build_regime_matrix(nrows, ncols, ncriteria, weight_vect, decision_vol);	/*scan all DCELL, make a pairwise comparatione, buil regime index matrix */
 
 
-    for (row1 = 0; row1 < nrows; row1++) {
-	for (col1 = 0; col1 < ncols; col1++) {
-	    ((DCELL *) outrast_preference)[col1] = (DCELL) decision_vol[row1][col1][ncriteria];	/*write concordance map */
-	}
-	if (G_put_raster_row(outfd_preference, outrast_preference, DCELL_TYPE)
-	    < 0)
-	    G_fatal_error(_("Failed writing raster map <%s>"),
-			  result_preference);
+    for (row1 = 0; row1 < nrows; row1++)
+    {
+        for (col1 = 0; col1 < ncols; col1++)
+        {
+            ((DCELL *) outrast_preference)[col1] = (DCELL) decision_vol[row1][col1][ncriteria];	/*write concordance map */
+        }
+        if (G_put_raster_row(outfd_preference, outrast_preference, DCELL_TYPE)
+                < 0)
+            G_fatal_error(_("Failed writing raster map <%s>"),
+                          result_preference);
     }
 
     G_message("end: %s", G_date());
 
     /* memory cleanup */
     for (i = 0; i < ncriteria; i++)
-	G_free(attributes[i].inrast);
+        G_free(attributes[i].inrast);
 
     G_free(outrast_preference);
     G_free(decision_vol);
 
     /* closing raster maps */
     for (i = 0; i < ncriteria; i++)
-	G_close_cell(attributes[i].infd);
+        G_close_cell(attributes[i].infd);
 
     G_close_cell(outfd_preference);
 
