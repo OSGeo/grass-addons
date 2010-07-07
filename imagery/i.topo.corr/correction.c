@@ -135,6 +135,7 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 	    }
 	    else {
 		ref_i = (double)*((DCELL *) pref);
+		G_debug(3,"Old val: %f, cka: %f, cos_i: %f, ckb: %f, kk: %f, New val: %f\n", ref_i, cka, cos_i, ckb, kk, (DCELL) ref_i * pow(cka / (cos_i + ckb), kk));
 		((DCELL *) out->rast)[col] =
 		    (DCELL) (ref_i * pow(cka / (cos_i + ckb), kk));
 	    }
