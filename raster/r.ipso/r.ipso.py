@@ -56,10 +56,13 @@ import numpy as np
 
 def main():
     stats = grass.read_command('r.stats', input = options['map'], fs = 'space', nv = '*', nsteps = '255', flags = 'inc').split('\n')[:-1]
+
+    # res = cellsize
     res = float(grass.read_command('g.region', rast = options['map'], flags = 'm').strip().split('\n')[4].split('=')[1])
     zn = np.zeros((len(stats),6),float)
     kl = np.zeros((len(stats),2),float)
     prc = np.zeros((9,2),float)
+
     for i in range(len(stats)):
         if i == 0:
             zn[i,0], zn[i, 1] = map(float, stats[i].split(' '))
@@ -67,13 +70,18 @@ def main():
         if i != 0:
             zn[i,0], zn[i, 1] = map(float, stats[i].split(' '))
             zn[i,2] = zn[i,1] + zn[i-1,2]
+
     totcell = sum(zn[:,1])
+    print "Tot. cells", totcell
+
     for i in range(len(stats)):
         zn[i,3] = 1 - (zn[i,2] / sum(zn[:,1]))
         zn[i,4] = zn[i,3] * (((res**2)/1000000)*sum(zn[:,1]))
         zn[i,5] = ((zn[i,0] - min(zn[:,0])) / (max(zn[:,0]) - min(zn[:,0])) )
         kl[i,0] = zn[i,0]
         kl[i,1] = 1 - (zn[i,2] / totcell)
+
+    # quantiles
     prc[0,0] , prc[0,1] = findint(kl,0.025) , 0.025
     prc[1,0] , prc[1,1] = findint(kl,0.05) , 0.05
     prc[2,0] , prc[2,1] = findint(kl,0.1) , 0.1
@@ -83,11 +91,28 @@ def main():
     prc[6,0] , prc[6,1] = findint(kl,0.9) , 0.9
     prc[7,0] , prc[7,1] = findint(kl,0.95) , 0.95
     prc[8,0] , prc[8,1] = findint(kl,0.975) , 0.975
+
+    # Managing flag & plot
     if flags['a']:
         plotImage(zn[:,3], zn[:,5],options['image']+'_Ipsometric.png','-','A(i) / A','Z(i) / Zmax','Ipsometric Curve')
     if flags['b']:
         plotImage(zn[:,4], zn[:,0],options['image']+'_Ipsographic.png','-','A [km^2]','Z [m.slm]','Ipsographic Curve')
-    print prc
+
+    print "==========================="
+    print "Ipsometric | quantiles"
+    print "==========================="
+    print '%.0f' %findint(kl,0.025) , "|", 0.025
+    print '%.0f' %findint(kl,0.05) , "|", 0.05
+    print '%.0f' %findint(kl,0.1) , "|", 0.1
+    print '%.0f' %findint(kl,0.25) , "|", 0.25
+    print '%.0f' %findint(kl,0.5) , "|", 0.5
+    print '%.0f' %findint(kl,0.75) , "|", 0.75
+    print '%.0f' %findint(kl,0.7) , "|", 0.7
+    print '%.0f' %findint(kl,0.9) , "|", 0.9
+    print '%.0f' %findint(kl,0.975) , "|", 0.975
+    print '\n'
+    print 'Done!'
+    #print prc
 
 
 def findint(kl,f):
@@ -110,5 +135,6 @@ def plotImage(x,y,image,type,xlabel,ylabel,title):
 if __name__ == "__main__":
 	options, flags = grass.parser()
 	sys.exit(main())
+
 
 
