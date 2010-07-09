@@ -167,6 +167,15 @@ def out2dict(m, n, o):
         y0,y1 = y.split('%s' % n)
         o[y0] = y1.strip('\n')
 
+# m is a grass/bash command that will generate some list of keyed info to stdout where the keys are numeric values, n is the character that seperates the key from the data, o is a defined blank dictionary to write results to
+def out2dictnum(m, n, o):
+    p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
+    p2 = p1.stdout.readlines()
+    for y in p2:
+        y0,y1 = y.split('%s' % n)
+        y0num = float(y0)
+        o[y0num] = y1.strip('\n')
+
 # m is a grass/bash command that will generate some charcater seperated list of info to stdout, n is the character that seperates individual pieces of information, and  o is a defined blank list to write results to
 def out2list2(m, n, o):
         p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
@@ -223,47 +232,90 @@ def main():
         grass_com('r.slope.aspect --quiet --overwrite elevation=' + elev + ' slope=' + slope)
         grass_com('r.mapcalc "MASK=if(' + slope + ' <= ' + sigma + ', 1, null())"')
     else:
-        grass_print('no slope mask created')
+        grass_print('No slope mask created')
 ##################################################
     grass_print('\n\nstep 3 of 4: Calculating buffer\n')
     #set up for loop by getting initial variables from map
     costdict = {}
     out2dict('r.univar -g map=%s' % cost,'=' , costdict)
     maxcost = float(costdict['max'])
-    grass_print("\nMaximum cost distance value= %s\n" % maxcost)
-    arealist = []
-    out2list2('r.stats -a -n input=' + cost + ' fs=, nv=* nsteps=1', ',', arealist)
-    maxarea = int(float(arealist[1]))
-    grass_print('Total map area = %s' % maxarea)
-    cutoff = maxcost
-    mincost = 0.0
-    testarea = maxarea
-    # set up error trap to prevent infinite loops
-    lastcut = 0
+    areadict = {}
+    out2dictnum('r.stats -a -n input=' + cost + ' fs=, nv=* nsteps=255', ',', areadict)
+#    cutoff = maxcost
+#    mincost = 0.0
+    tot_area = 0
+    for key in areadict:
+        tot_area = tot_area + int(float(areadict[key]))
+    grass_print("Maximum cost distance value %s covers an area of %s square meters\n\nCommencing to find a catchment configuration.....\n\n" % (int(maxcost),  tot_area))
+#    # set up error trap to prevent infinite loops
+#    lastcut = 0
+    testarea = 0
     #start the loop, and home in on the target range
-    while testarea not in range((int(area)-int(deviation)),(int(area)+(int(deviation)+1))) and round(lastcut) != round(cutoff):
-        lastcut = cutoff
-        if testarea > area:
-            maxcost = cutoff
-            cutoff = (maxcost+mincost)/2.0
-        else:
-            mincost = cutoff
-            cutoff = (maxcost+mincost)/2.0
-        temp = tempfile.NamedTemporaryFile()
-        temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
-        temp.flush()
-        grass_print('0 thru %s = %s\n' % (int(cutoff),  mapval))
-        grass_com('r.reclass --overwrite --quiet input=%s output=cost.reclass rules=%s' % (cost,  temp.name))
-        temp.close()
-        arealist = []
-        out2list2('r.stats -a -n input=cost.reclass fs=, nv=* nsteps=1', ',', arealist)
-        testarea = int(float(arealist[1]))
-        grass_print('\nTesting with cost distance value = %s......\ncurrent area = %s\n' % (cutoff,  testarea))
-    #loop is done, so print the final stats
-    difference = testarea-area
-    grass_print('\n\n*************************\n\n Final cost distance cutoff of %s produces a catchment of %s square meters.\nThe difference from the requested catchment size is %s square meters.' % (cutoff,  testarea,  difference))
+    for key in sorted(areadict):
+        testarea = testarea +  int(float(areadict[key]))
+        #grass_print("%s | %s" % (int(key),  testarea))
+        if testarea >= area:
+            grass_print("Catchment configuration found! Cost cutoff %s produces a catchment of %s square meters." % (int(key),  testarea))
+            break
+    cutoff = key
+#    while testarea not in range((int(area)-int(deviation)),(int(area)+(int(deviation)+1))):
+#        lastcut = cutoff
+#        if testarea > area:
+#            maxcost = cutoff
+#            cutoff = (maxcost+mincost)/2.0
+#        else:
+#            mincost = cutoff
+#            cutoff = (maxcost+mincost)/2.0
+#        testarea = 0
+#        for key in areadict:
+#            if key <= cutoff:
+#                testarea = testarea +  int(float(areadict[key]))
+#                grass_print('\nTesting with cost distance value = %s......\ncurrent area = %s\n' % (cutoff,  testarea))
+    #loop conditions have been met, and cuttoff point is determined.
+
+#    #set up for loop by getting initial variables from map
+#    costdict = {}
+#    out2dict('r.univar -g map=%s' % cost,'=' , costdict)
+#    maxcost = float(costdict['max'])
+#    grass_print("\nMaximum cost distance value= %s\n" % maxcost)
+#    arealist = []
+#    out2list2('r.stats -a -n input=' + cost + ' fs=, nv=* nsteps=1', ',', arealist)
+#    maxarea = int(float(arealist[1]))
+#    grass_print('Total map area = %s' % maxarea)
+#    cutoff = maxcost
+#    mincost = 0.0
+#    testarea = maxarea
+#    # set up error trap to prevent infinite loops
+#    lastcut = 0
+#    #start the loop, and home in on the target range
+#    while testarea not in range((int(area)-int(deviation)),(int(area)+(int(deviation)+1))) and round(lastcut) != round(cutoff):
+#        lastcut = cutoff
+#        if testarea > area:
+#            maxcost = cutoff
+#            cutoff = (maxcost+mincost)/2.0
+#        else:
+#            mincost = cutoff
+#            cutoff = (maxcost+mincost)/2.0
+#        temp = tempfile.NamedTemporaryFile()
+#        temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
+#        temp.flush()
+#        grass_print('0 thru %s = %s\n' % (int(cutoff),  mapval))
+#        grass_com('r.reclass --overwrite --quiet input=%s output=cost.reclass rules=%s' % (cost,  temp.name))
+#        temp.close()
+#        arealist = []
+#        out2list2('r.stats -a -n input=cost.reclass fs=, nv=* nsteps=1', ',', arealist)
+#        testarea = int(float(arealist[1]))
+#        grass_print('\nTesting with cost distance value = %s......\ncurrent area = %s\n' % (cutoff,  testarea))
+#    #loop is done, so print the final stats
+#    difference = testarea-area
+#    grass_print('\n\n*************************\n\n Final cost distance cutoff of %s produces a catchment of %s square meters.\nThe difference from the requested catchment size is %s square meters.' % (cutoff,  testarea,  difference))
 ####################################################
     grass_print('\n\nstep 4 of 4: Creating output map\n')
+    temp = tempfile.NamedTemporaryFile()
+    temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
+    temp.flush()
+    grass_com('r.reclass --overwrite --quiet input=%s output=cost.reclass rules=%s' % (cost,  temp.name))
+    temp.close()
     grass_com('r.mapcalc "%s=if(isnull(cost.reclass), null(), cost.reclass)"' % buffer)
     grass_print(buffer)
     grass_com('r.colors --quiet map=%s color=ryb' % buffer)
