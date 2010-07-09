@@ -113,13 +113,6 @@
 #% required : yes
 #%END
 #%option
-#% key: deviation
-#% type: integer
-#% description: Percentage to which output buffer can differ from desired buffer size (large values decrease run-time, but results will be less precise) 
-#% answer: 10
-#% required : yes
-#%END
-#%option
 #% key: mapval
 #% type: integer
 #% description: Integer vlaue for out put catchment area (all other areas will be Null)
@@ -134,38 +127,18 @@
 #% key: c
 #% description: -c Keep cost surface used to calculate buffers
 #%END
+#%flag
+#% key: l
+#% description: -l Show a list of all cost surface values and the area of the catchment that they delimit
+#%END
 
 
 import sys
 import os
 import subprocess
 import tempfile
-# first define some useful custom methods
-
-# m is a message (as a string) one wishes to have printed in the output window
-def grass_print(m):
-	subprocess.Popen('g.message message="%s"' % m, shell='bash').wait()
-	return
-# m is grass (or bash) command to execute (written as a string). script will wait for grass command to finish
-def grass_com(m):
-	subprocess.Popen('%s' % m, shell='bash').wait()
-	return
-# m is grass (or bash) command to execute (written as a string). script will not wait for grass command to finish
-def grass_com_nw(m):
-	subprocess.Popen('%s' % m, shell='bash')
-	return
-# m is a grass/bash command that will generate some info to stdout. You must invoke this command in the form of "variable to be made" = out2var('command')
-def out2var(m):
-        pn = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-        return pn.stdout.read()
-
-# m is a grass/bash command that will generate some list of keyed info to stdout, n is the character that seperates the key from the data, o is a defined blank dictionary to write results to
-def out2dict(m, n, o):
-    p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-    p2 = p1.stdout.readlines()
-    for y in p2:
-        y0,y1 = y.split('%s' % n)
-        o[y0] = y1.strip('\n')
+import grass.script as grass
+# first define a useful custom method 
 
 # m is a grass/bash command that will generate some list of keyed info to stdout where the keys are numeric values, n is the character that seperates the key from the data, o is a defined blank dictionary to write results to
 def out2dictnum(m, n, o):
@@ -175,15 +148,6 @@ def out2dictnum(m, n, o):
         y0,y1 = y.split('%s' % n)
         y0num = float(y0)
         o[y0num] = y1.strip('\n')
-
-# m is a grass/bash command that will generate some charcater seperated list of info to stdout, n is the character that seperates individual pieces of information, and  o is a defined blank list to write results to
-def out2list2(m, n, o):
-        p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-        p2 = p1.stdout.readlines()
-        for y in p2:
-            y0,y1 = y.split('%s' % n)
-            o.append(y0)
-            o.append(y1.strip('\n'))
 
 #main block of code starts here
 def main():
@@ -198,147 +162,127 @@ def main():
     d = os.getenv('GIS_OPT_d')
     sigma = os.getenv('GIS_OPT_sigma')
     area = float(os.getenv('GIS_OPT_area'))
-    deviation = area*(float(os.getenv('GIS_OPT_deviation'))/100)
     buffer = os.getenv('GIS_OPT_buffer')
     mapval = os.getenv('GIS_OPT_mapval')
+    w_coefs = a + ',' +  b + ',' + c + ',' + d
 
-    grass_print("Wanted buffer area=%s\n" % int(area)) 
-    grass_com('g.region --quiet rast=' + elev)
+    grass.message("Wanted buffer area=%s\n" % int(area)) 
+    grass.run_command('g.region',  quiet = True, rast = elev)
 ####################################################
     if bool(os.getenv('GIS_OPT_incost')) is True:
-        grass_print('\n\nstep 1 of 4: Using input cost surface\n')
+        grass.message('\n\nUsing input cost surface\n')
         cost = os.getenv('GIS_OPT_incost')
     else:
-        grass_print('\n\nstep 1 of 4: Calculating cost surface\n')
+        grass.message('\n\nstep 1 of 4: Calculating cost surface\n')
         cost = 'temporary.cost'
         if bool(os.getenv('GIS_OPT_frict')) is True:
-            grass_print('Calculating costs using input friction map\n')
+            grass.message('Calculating costs using input friction map\n')
             frict = os.getenv('GIS_OPT_frict')
         else:
-            grass_print('Calculating for time costs only')
+            grass.message('Calculating for time costs only')
             frict = "temporary.friction"
-            grass_com('r.mapcalc "' + frict + '=if(isnull(' + elev + '), null(), 1)"')
+            grass.mapcalc("${out} = if(isnull(${rast1}), null(), 1)",  out = frict,  rast1 = elev)
         if os.getenv('GIS_FLAG_k') == '1':
-            grass_print('Using Knight\'s move\n')
-            grass_com('r.walk --quiet -k elevation=' + elev + ' friction=' + frict + ' output=' + cost +' start_points=' + vect + ' lambda=' + lmbda + ' percent_memory=100 nseg=4 walk_coeff=' + a + ',' + b + ',' + c + ',' + d + ' slope_factor=' + slpfct)
+            grass.message('Using Knight\'s move\n')
+            #NOTE! because "lambda" is an internal python variable, it is impossible to enter the value for key "lambda" in r.walk. It ends up with a python error.
+            grass.run_command('r.walk', quiet = True, flags = 'k', elevation = elev, friction = frict, output = cost, start_points = vect, walk_coeff = w_coefs, slope_factor = slpfct)
         else:
-            grass_com('r.walk --quiet elevation=' + elev + ' friction=' + frict + ' output=' + cost +' start_points=' + vect + ' lambda=' + lmbda + ' percent_memory=100 nseg=4 walk_coeff=' + a + ',' + b + ',' + c + ',' + d + ' slope_factor=' + slpfct)
+            grass.run_command('r.walk', quiet = True, elevation = elev, friction = frict, output = cost, start_points = vect, percent_memory = '100', nseg ='4', walk_coeff = w_coefs, slope_factor = slpfct)
         if bool(os.getenv('GIS_OPT_frict')) is False:
-            grass_com('g.remove --quiet rast=' + frict)
+            grass.run_command('g.remove', quiet = True,  rast = frict)
 #################################################   
-    grass_print('\n\nstep 2 of 4: Creating optional slope mask\n')
+    grass.message('\n\nCreating optional slope mask\n')
     if bool(os.getenv('GIS_OPT_sigma')) is True:
         slope = "temporary.slope"
-        grass_com('r.slope.aspect --quiet --overwrite elevation=' + elev + ' slope=' + slope)
-        grass_com('r.mapcalc "MASK=if(' + slope + ' <= ' + sigma + ', 1, null())"')
+        grass.run_command('r.slope.aspect', quiet = True, overwrite = True,  elevation = elev,  slope = slope)
+        grass.mapcalc("MASK=if(${rast1} <= %s, 1, null())" % sigma,  rast1 = slope)
     else:
-        grass_print('No slope mask created')
+        grass.message('No slope mask created')
 ##################################################
-    grass_print('\n\nstep 3 of 4: Calculating buffer\n')
-    #set up for loop by getting initial variables from map
-    costdict = {}
-    out2dict('r.univar -g map=%s' % cost,'=' , costdict)
-    maxcost = float(costdict['max'])
-    areadict = {}
-    out2dictnum('r.stats -a -n input=' + cost + ' fs=, nv=* nsteps=255', ',', areadict)
-#    cutoff = maxcost
-#    mincost = 0.0
-    tot_area = 0
-    for key in areadict:
-        tot_area = tot_area + int(float(areadict[key]))
-    grass_print("Maximum cost distance value %s covers an area of %s square meters\n\nCommencing to find a catchment configuration.....\n\n" % (int(maxcost),  tot_area))
-#    # set up error trap to prevent infinite loops
-#    lastcut = 0
-    testarea = 0
-    #start the loop, and home in on the target range
-    for key in sorted(areadict):
-        testarea = testarea +  int(float(areadict[key]))
-        #grass_print("%s | %s" % (int(key),  testarea))
-        if testarea >= area:
-            grass_print("Catchment configuration found! Cost cutoff %s produces a catchment of %s square meters." % (int(key),  testarea))
-            break
-    cutoff = key
-#    while testarea not in range((int(area)-int(deviation)),(int(area)+(int(deviation)+1))):
-#        lastcut = cutoff
-#        if testarea > area:
-#            maxcost = cutoff
-#            cutoff = (maxcost+mincost)/2.0
-#        else:
-#            mincost = cutoff
-#            cutoff = (maxcost+mincost)/2.0
-#        testarea = 0
-#        for key in areadict:
-#            if key <= cutoff:
-#                testarea = testarea +  int(float(areadict[key]))
-#                grass_print('\nTesting with cost distance value = %s......\ncurrent area = %s\n' % (cutoff,  testarea))
-    #loop conditions have been met, and cuttoff point is determined.
-
-#    #set up for loop by getting initial variables from map
-#    costdict = {}
-#    out2dict('r.univar -g map=%s' % cost,'=' , costdict)
-#    maxcost = float(costdict['max'])
-#    grass_print("\nMaximum cost distance value= %s\n" % maxcost)
-#    arealist = []
-#    out2list2('r.stats -a -n input=' + cost + ' fs=, nv=* nsteps=1', ',', arealist)
-#    maxarea = int(float(arealist[1]))
-#    grass_print('Total map area = %s' % maxarea)
-#    cutoff = maxcost
-#    mincost = 0.0
-#    testarea = maxarea
-#    # set up error trap to prevent infinite loops
-#    lastcut = 0
-#    #start the loop, and home in on the target range
-#    while testarea not in range((int(area)-int(deviation)),(int(area)+(int(deviation)+1))) and round(lastcut) != round(cutoff):
-#        lastcut = cutoff
-#        if testarea > area:
-#            maxcost = cutoff
-#            cutoff = (maxcost+mincost)/2.0
-#        else:
-#            mincost = cutoff
-#            cutoff = (maxcost+mincost)/2.0
-#        temp = tempfile.NamedTemporaryFile()
-#        temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
-#        temp.flush()
-#        grass_print('0 thru %s = %s\n' % (int(cutoff),  mapval))
-#        grass_com('r.reclass --overwrite --quiet input=%s output=cost.reclass rules=%s' % (cost,  temp.name))
-#        temp.close()
-#        arealist = []
-#        out2list2('r.stats -a -n input=cost.reclass fs=, nv=* nsteps=1', ',', arealist)
-#        testarea = int(float(arealist[1]))
-#        grass_print('\nTesting with cost distance value = %s......\ncurrent area = %s\n' % (cutoff,  testarea))
-#    #loop is done, so print the final stats
-#    difference = testarea-area
-#    grass_print('\n\n*************************\n\n Final cost distance cutoff of %s produces a catchment of %s square meters.\nThe difference from the requested catchment size is %s square meters.' % (cutoff,  testarea,  difference))
-####################################################
-    grass_print('\n\nstep 4 of 4: Creating output map\n')
-    temp = tempfile.NamedTemporaryFile()
-    temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
-    temp.flush()
-    grass_com('r.reclass --overwrite --quiet input=%s output=cost.reclass rules=%s' % (cost,  temp.name))
-    temp.close()
-    grass_com('r.mapcalc "%s=if(isnull(cost.reclass), null(), cost.reclass)"' % buffer)
-    grass_print(buffer)
-    grass_com('r.colors --quiet map=%s color=ryb' % buffer)
-    if os.getenv('GIS_FLAG_c') == '1':
-        if bool(os.getenv('GIS_OPT_incost')) is False:
-            grass_com('g.rename temporary.cost,' + buffer + '_cost_surface')
-            grass_print('Cleaning up...(keeping cost map)')
-            grass_com('g.remove --quiet rast=cost.reclass')
-        else:
-            grass_print('Cleaning up...1')
-            grass_com('g.remove --quiet rast=cost.reclass')
+    if os.getenv('GIS_FLAG_l') == '1':
+            grass.message('\n\nCalculating list of possible catchment configurations\n')
+            grass.message("cost value | catchment area")
+            areadict = {}
+            out2dictnum('r.stats -a -n input=' + cost + ' fs=, nv=* nsteps=255', ',', areadict)
+            testarea = 0
+            #start the loop, and list the values
+            for key in sorted(areadict):
+                testarea = testarea +  int(float(areadict[key]))
+                grass.message("%s | %s" % (int(key),  testarea))
+            if os.getenv('GIS_FLAG_c') == '1':
+                if bool(os.getenv('GIS_OPT_incost')) is False:
+                    grass.run_command('g.rename',  quiet = True,  rast = 'temporary.cost,%s_cost_surface' % (buffer))
+                    grass.message('Cleaning up...(keeping cost map)')
+                    grass.run_command('g.remove',  quiet = True, rast='cost.reclass')
+                else:
+                    grass.message('Cleaning up...1')
+                    grass.run_command('g.remove',  quiet = True, rast='cost.reclass')
+            else:
+                if bool(os.getenv('GIS_OPT_incost')) is False:
+                    grass.message('Cleaning up...2')
+                    grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass,temporary.cost')
+                else:
+                    grass.message('Cleaning up...3')
+                    grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass')
+            if bool(os.getenv('GIS_OPT_sigma')) is True:
+                grass.run_command('g.remove',  quiet = True, rast = slope)
+            grass.run_command('g.remove',  quiet = True, rast = 'MASK')
+            grass.message('     DONE!')
+            return
     else:
-        if bool(os.getenv('GIS_OPT_incost')) is False:
-            grass_print('Cleaning up...2')
-            grass_com('g.remove --quiet rast=cost.reclass,temporary.cost' )
+        grass.message('\n\nCalculating buffer\n')
+        areadict = {}
+        out2dictnum('r.stats -a -n input=' + cost + ' fs=, nv=* nsteps=255', ',', areadict)
+        tot_area = 0
+        for key in sorted(areadict):
+            tot_area = tot_area + int(float(areadict[key]))
+            maxcost = key
+        grass.message("Maximum cost distance value %s covers an area of %s square meters\n\nCommencing to find a catchment configuration.....\n\n" % (int(maxcost),  tot_area))
+        testarea = 0
+        #start the loop, and home in on the target range
+        for key in sorted(areadict):
+            testarea = testarea +  int(float(areadict[key]))
+            if testarea >= area:
+                break
+            lastkey = key
+            lastarea = testarea
+        if (testarea - area) <= (area - lastarea):
+            cutoff = key
+            displayarea = testarea
         else:
-            grass_print('Cleaning up...3')
-            grass_com('g.remove --quiet rast=cost.reclass')
-    if bool(os.getenv('GIS_OPT_sigma')) is True:
-        grass_com('g.remove --quiet rast=' + slope)
-    grass_com('g.remove --quiet rast=MASK')
-    grass_print('     DONE!')
-    return
+            cutoff = lastkey
+            displayarea = lastarea
+        grass.message("Catchment configuration found! Cost cutoff %s produces a catchment of %s square meters." % (int(cutoff),  displayarea))
+    ####################################################
+        grass.message('\n\nCreating output map\n')
+        temp = tempfile.NamedTemporaryFile()
+        temp.write('0 thru %s = %s\n' % (int(cutoff),  mapval))
+        temp.flush()
+        grass.run_command('r.reclass', overwrite = True,  input = cost,  output = 'cost.reclass',  rules = temp.name)
+        temp.close()
+        grass.mapcalc("${out}=if(isnull(cost.reclass), null(), cost.reclass)", out = buffer)
+        grass.message("\nThe output catchment map wil be named %s" % buffer)
+        grass.run_command('r.colors', quiet = True,  map = buffer, color = 'ryb')
+        if os.getenv('GIS_FLAG_c') == '1':
+            if bool(os.getenv('GIS_OPT_incost')) is False:
+                grass.run_command('g.rename',  quiet = True,  rast = 'temporary.cost,%s_cost_surface' % (buffer))
+                grass.message('Cleaning up...(keeping cost map)')
+                grass.run_command('g.remove',  quiet = True, rast='cost.reclass')
+            else:
+                grass.message('Cleaning up...1')
+                grass.run_command('g.remove',  quiet = True, rast='cost.reclass')
+        else:
+            if bool(os.getenv('GIS_OPT_incost')) is False:
+                grass.message('Cleaning up...2')
+                grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass,temporary.cost')
+            else:
+                grass.message('Cleaning up...3')
+                grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass')
+        if bool(os.getenv('GIS_OPT_sigma')) is True:
+            grass.run_command('g.remove',  quiet = True, rast = slope)
+        grass.run_command('g.remove',  quiet = True, rast = 'MASK')
+        grass.message('     DONE!')
+        return
 
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
 if __name__ == "__main__":
