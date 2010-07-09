@@ -100,7 +100,7 @@ In most cases default options shoud not be changed.
 
 <h2>OUTPUTS</h2>
 <DT><b>output</b></DT>
-<DD>Map containing deffuzified values. Map is always of type FCELLS and contains values defined in output universe. The output name must be the same as one of maps in maps definition file.
+<DD>Map containing deffuzified values. Map is always of type FCELLS and contains values defined in output universe.
 </DD>
 <P>
 <DT><b>multipe output flag</b></DT>
@@ -131,7 +131,8 @@ where:
 x current fuzzy value
 A,B,C,D inflection point,
 </code></pre>
-
+<H4>Category information</H4>
+Every cell has a category information showing the membership of result map in any reslut's fuzzy values: for example moderate=0.60, high=0.40 means that cell belongs to moderate class with 0.60 membership and high class with membership = 0.40. The membership is calculated based on _OUTPUT_ definition.
 
 <h2>EXAMPLE</H2>
 <P>
