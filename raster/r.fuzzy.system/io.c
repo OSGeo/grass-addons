@@ -77,7 +77,7 @@ int get_cells(int col)
 	    if (G_is_null_value(&c, CELL_TYPE))
 		return 1;
 	    else
-		s_maps[i].cell = (FCELL) c;
+		s_maps[i].cell = (DCELL) c;
 	    break;
 
 	case FCELL_TYPE:
@@ -85,7 +85,7 @@ int get_cells(int col)
 	    if (G_is_null_value(&f, FCELL_TYPE))
 		return 1;
 	    else
-		s_maps[i].cell = (FCELL) f;
+		s_maps[i].cell = (DCELL) f;
 	    break;
 
 	case DCELL_TYPE:
@@ -93,7 +93,7 @@ int get_cells(int col)
 	    if (G_is_null_value(&d, DCELL_TYPE))
 		return 1;
 	    else
-		s_maps[i].cell = (FCELL) d;
+		s_maps[i].cell = (DCELL) d;
 	    break;
 	}
     }				/* end for */

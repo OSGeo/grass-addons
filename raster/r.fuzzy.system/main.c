@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     par_defuzzify = G_define_option();
     par_defuzzify->key = "defuz";
     par_defuzzify->type = TYPE_STRING;
-    par_defuzzify->options = "centeroid,bisector,min,max,mean";
+    par_defuzzify->options = "centroid,bisector,min_of_highest,max_of_highest,mean_of_highest";
     par_defuzzify->answer = "bisector";
     par_defuzzify->required = YES;
     par_defuzzify->description = _("Defuzzyfication method");
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     par_implication = G_define_option();
     par_implication->key = "imp";
     par_implication->type = TYPE_STRING;
-    par_implication->options = "minimum, product";
+    par_implication->options = "minimum,product";
     par_implication->answer = "minimum";
     par_implication->required = YES;
     par_implication->description = _("Implication method");
@@ -146,15 +146,15 @@ int main(int argc, char **argv)
     else if (!strcmp(par_implication->answer, "product"))
 	implication = i_PROD;
 
-    if (!strcmp(par_defuzzify->answer, "centeroid"))
+    if (!strcmp(par_defuzzify->answer, "centroid"))
 	defuzzyfication = d_CENTEROID;
     else if (!strcmp(par_defuzzify->answer, "bisector"))
 	defuzzyfication = d_BISECTOR;
-    else if (!strcmp(par_defuzzify->answer, "min_of_heightest"))
+    else if (!strcmp(par_defuzzify->answer, "min_of_highest"))
 	defuzzyfication = d_MINOFHIGHEST;
-    else if (!strcmp(par_defuzzify->answer, "max_of_heightest"))
+    else if (!strcmp(par_defuzzify->answer, "max_of_highest"))
 	defuzzyfication = d_MAXOFHIGHEST;
-    else if (!strcmp(par_defuzzify->answer, "mean_of_heightest"))
+    else if (!strcmp(par_defuzzify->answer, "mean_of_highest"))
 	defuzzyfication = d_MEANOFHIGHEST;
 
     nrows = G_window_rows();
@@ -169,6 +169,7 @@ int main(int argc, char **argv)
     open_maps();
 	
 		antecedents = (float *)G_malloc(nrules * sizeof(float));
+		agregate = (float *)G_calloc(resolution, sizeof(float));
 			if (coor_proc)
 		process_coors(in_coor_opt->answer);
 
@@ -179,8 +180,8 @@ int main(int argc, char **argv)
 
     if (multiple)
 	create_output_maps();
-	
-    G_message("Calculate...");
+  
+		G_message("Calculate...");
 
     for (row = 0; row < nrows; ++row) {
 		G_percent(row, nrows, 2);
@@ -219,25 +220,30 @@ int main(int argc, char **argv)
 
     }
     G_percent(row, nrows, 2);
-
+		
     G_message("Close...");
-    for (i = 0; i < nmaps; ++i) {
-	G_free(s_maps[i].sets);
-	if (s_maps[i].output)
-	    continue;
-	G_free(s_maps[i].in_buf);
-	G_close_cell(s_maps[i].cfd);
-    }
 
-    G_free(antecedents);
-    G_free(out_buf);
-    G_free(s_maps);
-    G_free(s_rules);
+		
+
     G_close_cell(outfd);
     G_short_history(output, "raster", &history);
     G_command_history(&history);
     G_write_history(output, &history);
-
+		set_cats();
+		/* free */
+			for (i = 0; i < nmaps; ++i) {
+		G_free(s_maps[i].sets);
+				if (s_maps[i].output)
+	    continue;
+		G_free(s_maps[i].in_buf);
+		G_close_cell(s_maps[i].cfd);
+			}
+    G_free(antecedents);
+    G_free(agregate);
+    G_free(out_buf);
+    G_free(s_maps);
+    G_free(s_rules);
+   
     if (multiple)
 	for (i = 0; i < nrules; ++i) {
 	    G_free(m_outputs[i].out_buf);

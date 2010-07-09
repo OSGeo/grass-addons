@@ -51,13 +51,19 @@ int parse_map_file(STRING file)
 	    G_strip(map);
 	    mapset = G_find_cell2(map, "");
 
-	    if (mapset == NULL && strcmp(map, output))
+	    if (mapset == NULL && strcmp(map, "_OUTPUT_"))
 		G_fatal_error(_("Raster map <%s> not found"), map);
 
+				if (!strcmp(map, "_OUTPUT_")) {
+			G_strcpy(s_maps[nmaps2].name, output);
+			s_maps[nmaps2].output=1;
+				} else {
 	    G_strcpy(s_maps[nmaps2].name, map);
+	    s_maps[nmaps2].output=0;
+				}
 	    s_maps[nmaps2].position = position;
 	    s_maps[nmaps2].nsets = get_nsets(fd, position);
-	    s_maps[nmaps2].output = (strcmp(map, output)) ? 0 : 1;
+	    
 
 	    if (!s_maps[nmaps2].nsets)
 		G_warning(_("map <%s> has no rules"), s_maps[nmaps2].name);

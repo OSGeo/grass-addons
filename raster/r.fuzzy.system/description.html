@@ -2,7 +2,7 @@
 
 <p>
 <DT><b>maps</b></DT>
-<DD>A text file containing maps name and  fuzzy sets connected with map definition. Maps in text file must exist on a search path, except the output map. The name of output map must be identical with that of the output name parameter. If maps are in different mapsets the name require @. Map names in database cannot contain following symbols: <B> %,$ and #</B>. Every map name must start with map name identifier:<B> %</B>. Every set definition connected with cetrain map must follow the map name and must start with set identifier :<B> $</B>. The set definition must be in braces { } and requires parameters separated by semicolon. Any whitespaces like spaces, tabs, empty lines are allowed and may used to visual format of rule file.
+<DD>A text file containing maps name and  fuzzy sets connected with map definition. Maps in text file must exist on a search path, except the output map. The name of output map name is the output name parameter. In map file outmput map is marked by special name <B>_OUTPUT_</B>  If maps are in different mapsets the name require @. Map names in database cannot contain following symbols: <B> %,$ and #</B>. Every map name must start with map name identifier:<B> %</B>. Every set definition connected with cetrain map must follow the map name and must start with set identifier :<B> $</B>. The set definition must be in braces { } and requires parameters separated by semicolon. Any whitespaces like spaces, tabs, empty lines are allowed and may used to visual format of rule file.
 
 <PRE>$ set_name {side; points; boundary_shape; hedge; height }
 <UL>
@@ -81,7 +81,7 @@ In most cases default options shoud not be changed.
 <DT><b>defuzz: deffuzyfication method</b></DT>
 <DD>Before deffuzification all consequents are agregated into one fuzzy set. Defuzzification is the process of conversion of aggregated fuzzy set into one crisp value. The r.fuzzy.system provides 5 methods of deffuzyfication:
 <UL>
-<li><B>centeroid</B> center of mass of the fuzzy set (in practise weighted mean);
+<li><B>centroid</B> center of mass of the fuzzy set (in practise weighted mean);
 <li><B>bisector</B> a value wchich divide fuzzy set on two parts of equal area;
 <li><B>min</B> min (right limit) of highest part of the set;
 <li><B>mean</B> mean (center) of highest part of the set;
@@ -89,7 +89,7 @@ In most cases default options shoud not be changed.
 </UL>
 </DD>
 <DT><b>res: universe resolution</b></DT>
-<DD>The universe is an interval between the lowest and highest values of consequent and agregated fuzzy sets. The resolution provides number of elements of these fuzzy sets. The minimum and maximum for univese is taken from the minimal and maximal values of fuzzy set definition of output map Because it has strong impact on computation time and precision of deffuzification, values lower than 30 may impact on precision of final result, but values above 200 radically slow down computation time.
+<DD>The universe is an interval between the lowest and highest values of consequent and agregated fuzzy sets. The resolution provides number of elements of these fuzzy sets. The minimum and maximum for univese is taken from the minimal and maximal values of fuzzy set definition of output map Because it has strong impact on computation time and precision of deffuzification, values lower than 30 may impact on precision of final result, but values above 200 may slow down computation time.
 </DD>
 <h2>VISUAL OUTPUT</h2>
 <DT><b>coordinates</b></DT>
@@ -139,9 +139,9 @@ Fuzzy sets are sets whose elements have degrees of membership. Zadeh (1965) intr
 <P>
 Suppose we want to determine the flood risk on some area (Spearfish dataset) using two maps: distance to streams and elevation above streams. We can write some common sense rules:
 <PRE>
-IF elevation IS low AND distance IS near THEN risk IS veryprobable
+IF elevation IS low AND distance IS near THEN risk IS very high
 IF elevation IS low OR distance IS near THEN risk IS probable
-IF elevation IS high AND distance IS far THEN risk IS unprobable
+IF elevation IS high AND distance IS far THEN risk IS low
 </PRE>
 In clasical boolean sense, we would taken some limits of ideas "near" "far" etc, but what about walues near the limit? The fuzzy set uses partial memberships which abolish these restrictions. In that sense to set "near" belongs all areas with distance no more than 100 m with full membership and from 100 to 200 m with partial membership grater than 0. Over 200 m we can assume that is not near.
 This allow to formulate fuzzy rules for distance map:
@@ -154,10 +154,12 @@ To recive final map program calculate partial fuzzy set for all rules and next a
 First we need two maps created with r.stream package:
 
 <PRE>
-r.stream.extract elevation=elevation.10m@PERMANENT threshold=2000 stream_rast=streams direction=dirs 
-r.stream.order stream=streams dir=dirs horton=horton
-r.mapcalc "horton3=if(horton>2,horton,null())"
-r.stream.distance stream=streams dir=dirs dem=elevation.10m method=downstream distance=distance elevation=elevation 
+r.watershed -f elevation=elevation.10m@PERMANENT accumulation=accum
+r.mapcalc 'accum_abs=abs(accum)'
+r.stream.extract elevation="elevation.10m@PERMANENT" threshold=1000 stream_rast="stream" direction="dirs"
+r.stream.order stream=streams dir=dirs horton=horton 
+r.mapcalc horton3=if(horton>2,1,0)
+r.stream.distance stream=horton3 dir=dirs dem=elevation.10m@PERMANENT  distance=distance elevation=elevation
 </PRE>
 
 Next, to perform analysis we need two files: one with definition of map used in analysis and definition of fuzzy sets for every map, and second with fuzzy rules. For this example:
@@ -165,33 +167,50 @@ Next, to perform analysis we need two files: one with definition of map used in 
 <P>MAPS
 <PRE>
 #flood.map
+
 	%elevation
-$ low {right; 2,6; sshaped; 0; 1}
-$ high {left; 2,6; sshaped; 0; 1}
+$ low {right; 2,4; sshaped; 0; 1}
+$ moderate {both; 2,4,5,10; sshaped; 0; 1}
+$ high {left; 5,10; sshaped; 0; 1}
+
 	%distance
-$ near {right; 40,80; sshaped; 0; 1}
-$ far {left; 40,80; sshaped; 0; 1}
+$ near {right; 30,70; sshaped; 0; 1}
+$ medium {both; 30,70,100,150; sshaped; 0; 1}
+$ far {both; 100,150,200,300; sshaped; 0; 1}
+$ veryfar {left; 200,300; sshaped; 0; 1}
+	
+	%accum_abs
+$ low {right; 500,5000; sshaped; 0; 1}
+$ $ high {left; 500,5000; sshaped; 0; 1}
+
 #output map
-	%flood
-$ unprob {both; 0,20,20,40; linear; 0;1}
-$ prob {both; 20,40,40,60; linear; 0;1}
-$ veryprob {both; 40,60,60,80; linear; 0;1}
+
+	%_OUTPUT_
+$ none {both; 0,20,20,40; linear; 0;1}
+$ low {both; 20,40,40,60; linear; 0;1}
+$ moderate {both; 40,60,60,80; linear; 0;1}
+$ high {both; 60,80,80,100; linear; 0;1}
+$ veryhigh {both; 80,100,100,120; linear; 0;1}
 
 </PRE>
 <P>RULES:
 <PRE>
 #flood.rul
-$ unprob {elevation = high & distance = far}
-$ prob {distance = near | elevation = low}
-$ veryprob {distance = near & elevation = low}
+$ none {distance = veryfar | elevation = high}
+$ low {distance ~ near & accum_abs = high}
+$ moderate {(distance = medium | distance = far) & (elevation = low | elevation = moderate)}
+$ high {(distance = medium & elevation = low)|(distance = near & elevation = moderate)}
+$ veryhigh {distance = near & elevation = low}
 </PRE>
 
 finally we need run r.fuzzy.system:
 <PRE>
-r.fuzzy.system maps=flood.map rules=flod.rul output=flood 
+A) r.fuzzy.system maps=~/flood.map rules=~/flood.rul family=Zadeh defuz=centroid imp=minimum res=100 output=flood_z_cent
+B) r.fuzzy.system maps=~/flood.map rules=~/flood.rul family=drastic defuz=max_of_highest imp=minimum res=100 output=flood_d_max
+C) r.fuzzy.system maps=~/flood.map rules=~/flood.rul family=Hamacher defuz=mean_of_highest imp=minimum res=100 output=flood_h_mean
 </PRE>
 
-Resulting map should look like this below. Yellow color means no risk, red high risk, green, blue end so on moderate risk.
+Resulting map should look like this below.
 <CENTER><img src=f_result.png border=1></CENTER><br>
 
 <h2>SEE ALSO</h2>

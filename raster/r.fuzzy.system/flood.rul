@@ -1,4 +1,6 @@
 #flood.rul
-$ unprob {elevation = high & distance = far};
-$ prob {distance = near | elevation = low};
-$ veryprob {distance = near & elevation = low};
+$ none {distance = veryfar | elevation = high}
+$ low {distance ~ near & accum_abs = high}
+$ moderate {(distance = medium | distance = far) & (elevation = low | elevation = moderate)}
+$ high {(distance = medium & elevation = low)|(distance = near & elevation = moderate)}
+$ veryhigh {distance = near & elevation = low}

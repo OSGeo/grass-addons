@@ -3,7 +3,7 @@
 int parse_rule_file(STRING file)
 {
     FILE *fd;
-    char buf[800];
+    char buf[1000];
     char tmp[30];
     STRING mapset;
     char map[30];
@@ -116,24 +116,24 @@ int parse_rules(int rule_num, int n, char buf[])
 		    char_copy(buf, tmp, j, i);
 		    if (i > 0) {
 			char_strip(tmp, buf[j]);
-			s_rules[rule_num].parse_stack[stack_top][0] = buf[j];
-			s_rules[rule_num].parse_stack[stack_top++][1] = '\0';
+			s_rules[rule_num].parse_queue[stack_top][0] = buf[j];
+			s_rules[rule_num].parse_queue[stack_top++][1] = '\0';
 			G_strip(tmp);
 		    }
 		    if (strlen(tmp))	/* is not blank */
-			strcpy(s_rules[rule_num].parse_stack[stack_top++],
+			strcpy(s_rules[rule_num].parse_queue[stack_top++],
 			       tmp);
 
 		    j = i;
 		    break;
 		}
 	    }
-	    if (i > 799)
+	    if (i > 999)
 		G_fatal_error(_("rule string is too long or lack of closing element"));
 
-	} while (buf[i++] != '}');	/* rule is rot */
+	} while (buf[i++] != '}');	/* rule has been read */
 
-	strcpy(s_rules[rule_num].parse_stack[stack_top++], "}");	/* add closing element only if OK */
+	strcpy(s_rules[rule_num].parse_queue[stack_top++], "}");	/* add closing element only if OK */
 
 
     }				/* end parse rule expression and create parse stack */
@@ -159,44 +159,44 @@ int parse_rules(int rule_num, int n, char buf[])
 
     {				/* check if rule syntax is proper and map names and vars values exist */
 	int k;
-	int work_stack_pos = 0;
-	int lbrc = 0, rbrc = 0;	/* left and right brackets */
+	int work_queue_pos = 0;
+	int lbrc = 0, rbrc = 0;	/* left and right braces */
 
 	done = 1;
 	for (i = 0; i < stack_top; ++i) {	/* most external loop */
-	    if (*s_rules[rule_num].parse_stack[i] == '{') {
+	    if (*s_rules[rule_num].parse_queue[i] == '{') {
 
-		s_rules[rule_num].work_stack[work_stack_pos] = t_START;
+		s_rules[rule_num].work_queue[work_queue_pos] = t_START;
 
 		if (i > 0)
 		    G_fatal_error(_("line %d Syntax error near <%s %s>"),
 				  rule_num + 1,
-				  s_rules[rule_num].parse_stack[i - 1],
-				  s_rules[rule_num].parse_stack[i]);
+				  s_rules[rule_num].parse_queue[i - 1],
+				  s_rules[rule_num].parse_queue[i]);
 
-		work_stack_pos++;
+		work_queue_pos++;
 		continue;
 	    }			/* END { */
 
-	    if (*s_rules[rule_num].parse_stack[i] == '=' || *s_rules[rule_num].parse_stack[i] == '~') {	/* =, ~ */
+	    if (*s_rules[rule_num].parse_queue[i] == '=' || *s_rules[rule_num].parse_queue[i] == '~') {	/* =, ~ */
 
 		for (j = 0; j < nmaps; ++j) {
 		    if (!strcmp
-			(s_rules[rule_num].parse_stack[i - 1],
+			(s_rules[rule_num].parse_queue[i - 1],
 			 s_maps[j].name)) {
 			for (k = 0; k < s_maps[j].nsets; ++k) {
 			    if (!strcmp
-				(s_rules[rule_num].parse_stack[i + 1],
+				(s_rules[rule_num].parse_queue[i + 1],
 				 s_maps[j].sets[k].setname)) {
 
-				s_rules[rule_num].work_stack[work_stack_pos] =
+				s_rules[rule_num].work_queue[work_queue_pos] =
 				    t_VAL;
-				s_rules[rule_num].value_stack[work_stack_pos].
+				s_rules[rule_num].value_queue[work_queue_pos].
 				    value = &s_maps[j].cell;
-				s_rules[rule_num].value_stack[work_stack_pos].
+				s_rules[rule_num].value_queue[work_queue_pos].
 				    set = &s_maps[j].sets[k];
-				s_rules[rule_num].value_stack[work_stack_pos].
-				    oper = *s_rules[rule_num].parse_stack[i];
+				s_rules[rule_num].value_queue[work_queue_pos].
+				    oper = *s_rules[rule_num].parse_queue[i];
 				done = 0;
 				break;
 			    }
@@ -206,101 +206,101 @@ int parse_rules(int rule_num, int n, char buf[])
 
 		if (done)
 		    G_fatal_error(_("There is no map <%s> or variable <%s>"),
-				  s_rules[rule_num].parse_stack[i - 1],
-				  s_rules[rule_num].parse_stack[i + 1]);
+				  s_rules[rule_num].parse_queue[i - 1],
+				  s_rules[rule_num].parse_queue[i + 1]);
 		/* end for j */
 
-		if (s_rules[rule_num].work_stack[work_stack_pos - 1] != t_AND
-		    && s_rules[rule_num].work_stack[work_stack_pos - 1] !=
+		if (s_rules[rule_num].work_queue[work_queue_pos - 1] != t_AND
+		    && s_rules[rule_num].work_queue[work_queue_pos - 1] !=
 		    t_OR &&
-		    s_rules[rule_num].work_stack[work_stack_pos - 1] !=
+		    s_rules[rule_num].work_queue[work_queue_pos - 1] !=
 		    t_START &&
-		    s_rules[rule_num].work_stack[work_stack_pos - 1] !=
+		    s_rules[rule_num].work_queue[work_queue_pos - 1] !=
 		    t_LBRC)
 		    G_fatal_error(_("line %d Syntax error near <%s %s>"),
 				  rule_num + 1,
-				  s_rules[rule_num].parse_stack[i - 1],
-				  s_rules[rule_num].parse_stack[i]);
+				  s_rules[rule_num].parse_queue[i - 1],
+				  s_rules[rule_num].parse_queue[i]);
 
-		work_stack_pos++;
+		work_queue_pos++;
 		continue;
 	    }			/* END =, ~ */
 
-	    if (*s_rules[rule_num].parse_stack[i] == '&' || *s_rules[rule_num].parse_stack[i] == '|') {	/* &, | */
+	    if (*s_rules[rule_num].parse_queue[i] == '&' || *s_rules[rule_num].parse_queue[i] == '|') {	/* operators &, | */
 
-		s_rules[rule_num].work_stack[work_stack_pos] =
-		    (*s_rules[rule_num].parse_stack[i] == '|') ? t_OR : t_AND;
+		s_rules[rule_num].work_queue[work_queue_pos] =
+		    (*s_rules[rule_num].parse_queue[i] == '|') ? t_OR : t_AND;
 
-		if (s_rules[rule_num].work_stack[work_stack_pos - 1] != t_VAL
-		    && s_rules[rule_num].work_stack[work_stack_pos - 1] !=
+		if (s_rules[rule_num].work_queue[work_queue_pos - 1] != t_VAL
+		    && s_rules[rule_num].work_queue[work_queue_pos - 1] !=
 		    t_RBRC)
 		    G_fatal_error(_("line %d Syntax error near <%s %s>"),
 				  rule_num + 1,
-				  s_rules[rule_num].parse_stack[i - 1],
-				  s_rules[rule_num].parse_stack[i]);
+				  s_rules[rule_num].parse_queue[i - 1],
+				  s_rules[rule_num].parse_queue[i]);
 
-		work_stack_pos++;
+		work_queue_pos++;
 		continue;
 	    }			/* END &, | */
 
-	    if (*s_rules[rule_num].parse_stack[i] == '(') {
+	    if (*s_rules[rule_num].parse_queue[i] == '(') {
 
-		s_rules[rule_num].work_stack[work_stack_pos] = t_LBRC;
+		s_rules[rule_num].work_queue[work_queue_pos] = t_LBRC;
 		lbrc++;
 
-		if (s_rules[rule_num].work_stack[work_stack_pos - 1] != t_AND
-		    && s_rules[rule_num].work_stack[work_stack_pos - 1] !=
+		if (s_rules[rule_num].work_queue[work_queue_pos - 1] != t_AND
+		    && s_rules[rule_num].work_queue[work_queue_pos - 1] !=
 		    t_OR &&
-		    s_rules[rule_num].work_stack[work_stack_pos - 1] !=
+		    s_rules[rule_num].work_queue[work_queue_pos - 1] !=
 		    t_START &&
-		    s_rules[rule_num].work_stack[work_stack_pos - 1] !=
+		    s_rules[rule_num].work_queue[work_queue_pos - 1] !=
 		    t_LBRC)
 		    G_fatal_error(_("line %d Syntax error near <%s %s>"),
 				  rule_num + 1,
-				  s_rules[rule_num].parse_stack[i - 1],
-				  s_rules[rule_num].parse_stack[i]);
+				  s_rules[rule_num].parse_queue[i - 1],
+				  s_rules[rule_num].parse_queue[i]);
 
-		work_stack_pos++;
+		work_queue_pos++;
 		continue;
 	    }			/* END ( */
 
-	    if (*s_rules[rule_num].parse_stack[i] == ')') {
+	    if (*s_rules[rule_num].parse_queue[i] == ')') {
 
-		s_rules[rule_num].work_stack[work_stack_pos] = t_RBRC;
+		s_rules[rule_num].work_queue[work_queue_pos] = t_RBRC;
 		rbrc++;
 
-		if (s_rules[rule_num].work_stack[work_stack_pos - 1] != t_VAL
-		    && s_rules[rule_num].work_stack[work_stack_pos - 1] !=
+		if (s_rules[rule_num].work_queue[work_queue_pos - 1] != t_VAL
+		    && s_rules[rule_num].work_queue[work_queue_pos - 1] !=
 		    t_RBRC)
 		    G_fatal_error(_("line %d Syntax error near <%s %s>"),
 				  rule_num + 1,
-				  s_rules[rule_num].parse_stack[i - 1],
-				  s_rules[rule_num].parse_stack[i]);
+				  s_rules[rule_num].parse_queue[i - 1],
+				  s_rules[rule_num].parse_queue[i]);
 
-		work_stack_pos++;
+		work_queue_pos++;
 		continue;
 	    }			/* END ) */
 
-	    if (*s_rules[rule_num].parse_stack[i] == '}') {
+	    if (*s_rules[rule_num].parse_queue[i] == '}') {
 
-		s_rules[rule_num].work_stack[work_stack_pos] = t_STOP;
+		s_rules[rule_num].work_queue[work_queue_pos] = t_STOP;
 
-		if (s_rules[rule_num].work_stack[work_stack_pos - 1] != t_VAL
-		    && s_rules[rule_num].work_stack[work_stack_pos - 1] !=
+		if (s_rules[rule_num].work_queue[work_queue_pos - 1] != t_VAL
+		    && s_rules[rule_num].work_queue[work_queue_pos - 1] !=
 		    t_RBRC)
 		    G_fatal_error(_("line %d Syntax error near <%s %s>"),
 				  rule_num + 1,
-				  s_rules[rule_num].parse_stack[i - 1],
-				  s_rules[rule_num].parse_stack[i]);
+				  s_rules[rule_num].parse_queue[i - 1],
+				  s_rules[rule_num].parse_queue[i]);
 
-		work_stack_pos++;
+		work_queue_pos++;
 		continue;
 	    }			/* END } */
 
 	}			/* most external loop */
 
 	if (lbrc != rbrc)
-	    G_fatal_error(_("line %d Left and right of brackets do not match"),
+	    G_fatal_error(_("line %d Left and right of braces do not match"),
 			  rule_num + 1);
 
     }				/* END check if rule syntax is proper and map names and vars values exist */

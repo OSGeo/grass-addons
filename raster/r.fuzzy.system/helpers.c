@@ -81,6 +81,8 @@ int get_universe(void)
     for (i = 0; i < resolution; ++i)
 	universe[i] = min + ((max - min) / resolution) * i;
 
+/* visual output */
+
     return 0;
 }
 
@@ -94,6 +96,14 @@ void process_coors(char *answer)
     int num_points;
     float result;
 
+		visual_output = (float **)G_malloc(resolution * sizeof(float *));
+
+				for (j = 0; j < nrules; ++j) 
+		for (i = 0; i < resolution; ++i) {
+	    visual_output[i] = (float *)G_calloc(nrules + 2, sizeof(float));
+	    visual_output[i][0] = universe[i];
+		}
+			
     G_get_window(&window);
     num_points = sscanf(answer, "%lf,%lf", &x, &y);
 
@@ -133,6 +143,10 @@ void process_coors(char *answer)
 	G_close_cell(s_maps[i].cfd);
     }
 
+			for (j = 0; j < nrules; ++j)
+				G_free(visual_output[j]);
+    G_free(visual_output);
+    
     G_free(antecedents);
     G_free(s_maps);
     G_free(s_rules);
@@ -197,4 +211,57 @@ void show_membership(void) {
 
 		exit(EXIT_SUCCESS);
 	
+}
+
+int set_cats(void)
+{
+struct Categories cats;
+float fmin, fmax;
+int cmin, cmax;
+int i, j;
+
+fmin=universe[0];
+fmax=universe[resolution];
+cmin=(int)universe[0];
+cmax=(int)universe[resolution];
+double tmp1, tmp2;
+float fuzzy_val=0;
+char buf[200];
+float rang;
+
+rang=(universe[0]+universe[1])/2.;
+G_read_raster_cats(output, G_mapset(), &cats);
+G_set_raster_cats_title("Result membership", &cats);
+
+	for (i=0;i<resolution;++i) {
+		strcpy(buf,"");
+		for (j=0; j<s_maps[output_index].nsets; ++j) { 
+			fuzzy_val=fuzzy(universe[i],&s_maps[output_index].sets[j]);
+				
+				if(universe[i]<s_maps[output_index].sets[1].points[0] ||
+					universe[i]>s_maps[output_index].sets[s_maps[output_index].nsets-2].points[3])
+			fuzzy_val=1;		
+				if (fuzzy_val>0.)
+			sprintf(buf,"%s %s=%2.2f", buf, s_maps[output_index].sets[j].setname,fuzzy_val);	
+			
+		}
+
+			tmp1=(double)universe[i]-rang;
+			tmp2=(double)universe[i]+rang;
+			if(i==0) tmp1=(double)universe[i];
+			if(i==resolution) tmp2=(double)universe[i];
+			G_set_d_raster_cat(&tmp1, &tmp2, buf, &cats);
+	}	
+G_write_raster_cats(output, &cats);
+G_free_raster_cats(&cats);
+return 0;
+}
+
+
+
+void set_colors(void) { /* not in use yet */
+struct Colors colors;
+G_init_colors(&colors);
+G_add_color_rule(0, 255, 255, 255, 2, 255, 255, 0, &colors);
+G_write_colors(output, G_mapset(), &colors);
 }

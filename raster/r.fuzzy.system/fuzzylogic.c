@@ -2,7 +2,7 @@
 
 float fuzzy(FCELL cell, SETS * set)
 {
-   
+
     float x;
 
     if (!set->side) {		/* both left and right */
@@ -53,6 +53,7 @@ float fuzzy(FCELL cell, SETS * set)
 
     if (set->height < 1)
 	x = x * set->height;
+
     return (x >= 0 && x <= 1) ? x : -1;
 }
 

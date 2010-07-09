@@ -4,36 +4,28 @@ float implicate(void)
 {
 
     int i, j;
-    float *agregate = NULL;
+    //float *agregate = NULL;
     int set_index;
     float consequent;
     float max_antecedent = 0;
+    float max_agregate = 0;
     float result;
 
-    agregate = (float *)G_calloc(resolution, sizeof(float));
-
-    if (coor_proc) /* this is allocated only once */
-	visual_output = (float **)G_malloc(resolution * sizeof(float *));
+    memset(agregate,0,resolution * sizeof(float));
 
     for (j = 0; j < nrules; ++j) {
 	antecedents[j] = parse_expression(j);
 	max_antecedent =
 	    (max_antecedent >
-	     antecedents[j]) ? max_antecedent : antecedents[j];
-    }
+	     antecedents[j]) ? max_antecedent : antecedents[j]; 
+   }
 
     if (max_antecedent == 0. && !coor_proc)
 	return -9999;		/* for all rules value is 0 */
 
-    if (coor_proc)
-	for (i = 0; i < resolution; ++i) {
-	    visual_output[i] = (float *)G_calloc(nrules + 2, sizeof(float));
-	    visual_output[i][0] = universe[i];
-	}
-
     for (j = 0; j < nrules; ++j) {
 
-	if (defuzzyfication > d_BISECTOR && antecedents[j] < max_antecedent)
+	if (defuzzyfication > d_BISECTOR && antecedents[j] < max_antecedent && !coor_proc)
 	    continue;
 	    
 	    set_index = s_rules[j].output_set_index;
@@ -46,17 +38,21 @@ float implicate(void)
 	    consequent = (!implication) ? MIN(antecedents[j], consequent) :
 		antecedents[j] * consequent;
 	    agregate[i] = MAX(agregate[i], consequent);
+	    
+	   max_agregate = (max_agregate > agregate[i]) 
+				? max_agregate : agregate[i];
+	   
 
 	    if (coor_proc)
 		visual_output[i][j + 1] = consequent;
 	}
+	
     }
     if (coor_proc)
 	for (i = 0; i < resolution; ++i)
 	    visual_output[i][j + 1] = agregate[i];
 
-     result=defuzzify(agregate, defuzzyfication, max_antecedent);
-     G_free(agregate);
+     result=defuzzify(defuzzyfication, max_agregate);
      return result;
 }
 
@@ -89,31 +85,31 @@ float parse_expression(int n)
 
 
     do {
-	if (s_rules[n].work_stack[i] == t_START) {	/* first token */
+	if (s_rules[n].work_queue[i] == t_START) {	/* first token */
 	    if (i > 0)
 		G_fatal_error("operator stack error, contact author");
 	    operator_stack[opr_top] = t_START;
 	    continue;
 	}
 
-	if (s_rules[n].work_stack[i] == t_VAL) {
+	if (s_rules[n].work_queue[i] == t_VAL) {
 	    f_value =
-		fuzzy(*s_rules[n].value_stack[i].value, s_rules[n].value_stack[i].set);
-	    values_stack[++val_top] =	(s_rules[n].value_stack[i].oper == '~') ? 
+		fuzzy(*s_rules[n].value_queue[i].value, s_rules[n].value_queue[i].set);
+	    values_stack[++val_top] =	(s_rules[n].value_queue[i].oper == '~') ? 
 				f_not(f_value, family) :	f_value;
 	    continue;
 	}
 
-	if (s_rules[n].work_stack[i] < t_size) {
+	if (s_rules[n].work_queue[i] < t_size) {
 	    switch (parse_tab[operator_stack[opr_top]]
-		    [s_rules[n].work_stack[i]]) {
+		    [s_rules[n].work_queue[i]]) {
 
 	    case E:		/* error */
 		G_fatal_error("Stack error, contact author");
 		break;
 
 	    case S:		/* shift */
-		operator_stack[++opr_top] = s_rules[n].work_stack[i];
+		operator_stack[++opr_top] = s_rules[n].work_queue[i];
 		break;
 
 	    case R:		/* reduce */
@@ -146,21 +142,20 @@ float parse_expression(int n)
 	    case A:		/* accept */
 	
 		if (!val_top)
-		    G_fatal_error("Last Stack error, contact autor");
+		    G_fatal_error("Stack error at end, contact autor");
 		return values_stack[val_top];
 	
 	    }
 	}
 
-    } while (s_rules[n].work_stack[i++] != t_STOP);
+    } while (s_rules[n].work_queue[i++] != t_STOP);
     
     G_fatal_error("Parse Stack empty, contact autor");
 }
 
 
 
-
-float defuzzify(float *agregate, int defuzzification, float max_antecedent)
+float defuzzify(int defuzzyfication, float max_agregate)
 {
     int i;
     float d_value = 0;
@@ -169,7 +164,7 @@ float defuzzify(float *agregate, int defuzzification, float max_antecedent)
 
     for (i = 0; i < resolution; sum_agregate += agregate[i++]) ;
 
-    switch (defuzzification) {
+    switch (defuzzyfication) {
 
     case d_CENTEROID:
 	for (i = 0; i < resolution; ++i)
@@ -181,17 +176,17 @@ float defuzzify(float *agregate, int defuzzification, float max_antecedent)
 	return universe[i];
 
     case d_MINOFHIGHEST:
-	for (i = 0; agregate[i++] < max_antecedent;) ;
+	for (i = 0; agregate[i] < max_agregate;++i) ;
 	return universe[i];
 
     case d_MAXOFHIGHEST:
-	for (i = resolution; agregate[i--] < max_antecedent;) ;
+	for (i = resolution; agregate[i] < max_agregate;--i) ;
 	return universe[i];
 
     case d_MEANOFHIGHEST:
 	sum_agregate = 0;
 	for (i = 0; i < resolution; ++i) {
-	    if (agregate[i] < max_antecedent)
+	    if (agregate[i] < max_agregate)
 		continue;
 	    d_value += (universe[i] * agregate[i]);
 	    sum_agregate += agregate[i];

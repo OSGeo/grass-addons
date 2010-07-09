@@ -112,26 +112,26 @@ typedef struct
     RASTER_MAP_TYPE raster_type;
     fpos_t position;
     void *in_buf;
-    float cell;
+    DCELL cell;
     int cfd;			/* file descriptor */
     SETS *sets;
 } MAPS;
 
 typedef struct
 {
-    float *value;
+    DCELL *value;
     SETS *set;
     char oper;
 } VALUES;
 
 
-typedef struct
+typedef struct /* stores queues with rules */
 {
     char outname[20];
     int output_set_index;
-    char parse_stack[STACKMAX][VARMAX];
-    int work_stack[STACKMAX];
-    VALUES value_stack[STACKMAX];
+    char parse_queue[STACKMAX][VARMAX]; /* original rule */
+    int work_queue[STACKMAX]; /* symbols of values and operators */
+    VALUES value_queue[STACKMAX]; /* pointers to values, operators and sets */
     float weight;
 } RULES;
 
@@ -139,7 +139,7 @@ typedef struct _outs
 {
     char output_name[52];
     int ofd;			/* output file descriptor */
-    float *out_buf;
+    FCELL *out_buf;
 } OUTPUTS;
 
 
@@ -152,6 +152,7 @@ OUTPUTS *m_outputs;
 float **visual_output;
 float *universe;
 float *antecedents;
+float *agregate;
 int nmaps, nrules, output_index, multiple, membership_only, coor_proc;
 int resolution;
 implications implication;
@@ -164,6 +165,7 @@ int char_strip(char *buf, char rem);
 int char_copy(const char *buf, char *res, int start, int stop);
 int get_nsets(FILE * fd, fpos_t position);
 int get_universe(void);
+int set_cats(void);
 
 int parse_map_file(STRING file);
 int parse_rule_file(STRING file);
@@ -173,7 +175,7 @@ int create_output_maps(void);
 int get_rows(int row);
 int get_cells(int col);
 
-
+int HERE;
 int parse_sets(SETS * set, char buf[], const char mapname[]);
 int parse_rules(int rule_num, int n, char buf[]);
 void process_coors(char *answer);
@@ -181,16 +183,13 @@ void show_membership(void);
 
 float implicate(void);
 float parse_expression(int n);
-float defuzzify(float *agregate, int defuzzification, float max_antecedent);
+float defuzzify(int defuzzification, float max_agregate);
 
 float f_and(float cellx, float celly, logics family);
 float f_or(float cellx, float celly, logics family);
 float f_not(float cellx, logics family);
 float fuzzy(FCELL cell, SETS * set);
 
-
 int parse(void);
-
-
-
 void display(void);
+
