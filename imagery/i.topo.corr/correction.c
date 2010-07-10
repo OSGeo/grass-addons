@@ -100,7 +100,7 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 	kk = 1.;
 	break;
     default:			/* COSINE */
-	cka = 0.;
+	cka = cos_z;
 	ckb = 0.;
 	kk = 1.;
     }
