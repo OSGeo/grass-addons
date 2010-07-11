@@ -5,6 +5,7 @@ SRC=/osgeo4w/usr/src
 
 function compile {
     cd $SRC/$1
+    make distclean
     svn up
     ./mswindows/osgeo4w/package.sh
 }
