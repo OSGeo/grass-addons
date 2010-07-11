@@ -113,6 +113,13 @@ apply_python_script()
    #? set_exe "$1"
 }
 
+apply_perl_script()
+{
+   set_mime_type "$1" text/x-perl
+   set_native_eol "$1"
+   #? set_exe "$1"
+}
+
 apply_C_code()
 {
    set_mime_type "$1" text/x-csrc
@@ -171,6 +178,9 @@ for FILE in $* ; do
 	;;
     py)
 	apply_python_script "$FILE"
+	;;
+    pl)
+	apply_perl_script "$FILE"
 	;;
     html)
 	apply_html "$FILE"
