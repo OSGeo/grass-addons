@@ -256,7 +256,7 @@ class NetworkPath(MapFrame):
         # Re-use dialogs
         #
 	self.mapname = 'roads@' + grass.gisenv()['MAPSET']
-	self.cmd= ['d.vect', str("map=" + self.mapname),'width=4']
+	self.cmd= ['d.vect', str("map=" + self.mapname),'width=1']
 	self.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
 	self.MapWindow.UpdateMap(render=True)  
 
@@ -269,6 +269,7 @@ class NetworkPath(MapFrame):
         self.decorationDialog = None # decoration/overlays
 
         #self.Maximize()
+	self.coords = []
 	self.points = []
 
 
@@ -277,12 +278,6 @@ class NetworkPath(MapFrame):
 
     def OnButtonDClick(self,event): 
 
-	self.mapname = 'graph@' + grass.gisenv()['MAPSET']
-	self.Map.RemoveLayer(name=self.mapname)
-	self.MapWindow.UpdateMap(render=True)
-
-       # precision = int(UserSettings.Get(group = 'projection', key = 'format',
-          #                                   subkey = 'precision'))
         try:
             e, n = self.MapWindow.Pixel2Cell(event.GetPositionTuple())
 	    print e,n
@@ -290,42 +285,22 @@ class NetworkPath(MapFrame):
             return
         
         self.counter = self.counter + 1
-        point =("%f|%f" %  ( e,  n))
-        self.points.append(point + '|point')
+        coord =("%f %f" %  ( e,  n))
+        self.coords.append(coord)
+
         if self.counter == 2:
-            f =open("tmp1",'w')
+	    self.points.append("1 ")
+       	    for p in self.coords:
+               self.points.append(p)
+            f =open("tmp",'w')
             for p in self.points:
-               f.write("%s\n" % p)
-            f.close()
-
-            f =open("tmp2",'w')
-            f.write("%d %d %d\n" %(1,1,2) )
+               f.write("%s " % p)
             f.close()
 
 
-            command =["g.remove",'vect=path,vnet,startend']
-            gcmd.CommandThread(command,stdout=None,stderr=None).run()
-    
-
-#            command =["v.in.ascii",'input=tmp1','output=startend']
-            z =gcmd.RunCommand('v.in.ascii',input='tmp1',output='startend')
-
-  	    if z == 1:
-		print "error executing v.in.ascii"
-		return 1
-
-            #command=["v.net", "input=roads",'points=startend', 'output=vnet', 'op=connect', 'thresh=200']
-            y=gcmd.RunCommand('v.net', input='roads',points='startend', output='vnet', op='connect', thresh='200')
-	    if y == 1:
-		print "error executing v.net"
-		return 1
-
-
-            #command=["v.net.path", 'input=vnet', 'output=path','file=tmp2']
-            x= gcmd.RunCommand('v.net.path', input='vnet', output='path', file='tmp2')
-	    if x == 1:
-		print "error executing v.net.path"
-		return 1
+            
+	    command=["v.net.path", 'input=roads', 'output=path','file=tmp','--overwrite']
+    	    gcmd.CommandThread(command).run()
 
 
             self.mapname = 'path@'+ grass.gisenv()['MAPSET']
@@ -333,7 +308,8 @@ class NetworkPath(MapFrame):
             self.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
             self.MapWindow.UpdateMap(render=True)
             self.counter =0
-            self.points=[]
+            self.coords=[]
+	    self.points=[]
 
 
 
