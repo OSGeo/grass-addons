@@ -137,6 +137,8 @@ import sys
 import os
 import subprocess
 import tempfile
+grass_install_tree = os.getenv('GISBASE')
+sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
 import grass.script as grass
 # first define a useful custom method 
 
@@ -203,7 +205,7 @@ def main():
             grass.message('\n\nCalculating list of possible catchment configurations\n')
             grass.message("cost value | catchment area")
             areadict = {}
-            out2dictnum('r.stats -a -n input=' + cost + ' fs=, nv=* nsteps=255', ',', areadict)
+            out2dictnum('r.stats -Aani input=' + cost + ' fs=, nv=* nsteps=255', ',', areadict)
             testarea = 0
             #start the loop, and list the values
             for key in sorted(areadict):
