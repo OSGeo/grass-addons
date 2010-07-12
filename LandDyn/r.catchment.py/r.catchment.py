@@ -234,7 +234,7 @@ def main():
     else:
         grass.message('\n\nCalculating buffer\n')
         areadict = {}
-        out2dictnum('r.stats -a -n input=' + cost + ' fs=, nv=* nsteps=255', ',', areadict)
+        out2dictnum('r.stats -Aani input=' + cost + ' fs=, nv=* nsteps=255', ',', areadict)
         tot_area = 0
         for key in sorted(areadict):
             tot_area = tot_area + int(float(areadict[key]))
