@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 	    /* Abre fichero de bandas y el de salida */
 	    full_open_old(&band, input->answers[i]);
 	    if (band.type != DCELL_TYPE) {
-		G_warning(_("Reflectance of <%s> is not DCELL"),
+		G_warning(_("Reflectance of <%s> is not DCELL - ignored."),
 			  input->answers[i]);
 		G_close_cell(band.fd);
 		continue;
@@ -259,5 +259,6 @@ int main(int argc, char *argv[])
 	G_close_cell(dem.fd);
     }
 
+    G_done_msg(" ");
     exit(EXIT_SUCCESS);
 }
