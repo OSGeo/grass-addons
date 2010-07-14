@@ -1,5 +1,5 @@
 #!/bin/sh
-# Create mdb5sum files
+# Create mdb5sum files for GRASS 6.4, 6.5 and 7.0
 
 HOME=/c/Users/landa/grass_packager
 

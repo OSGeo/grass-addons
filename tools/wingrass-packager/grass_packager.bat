@@ -7,7 +7,6 @@ rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.4.0svn
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.5.svn
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-7.0.svn
 C:\OSGeo4W\apps\msys\bin\bash.exe C:\Users\landa\grass_packager\grass_compile.sh
-C:\OSGeo4W\apps\msys\bin\bash.exe C:\Users\landa\grass_packager\grass_install_70.sh
 
 rem Preparation
 if exist .\grass64 rmdir /S/Q .\grass64

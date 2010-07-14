@@ -1,5 +1,5 @@
 #!/bin/sh
-# Update SVN version
+# Update SVN version info
 
 SRC=/osgeo4w/usr/src
 HOME=/c/Users/landa/grass_packager
