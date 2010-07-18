@@ -255,6 +255,8 @@ class NetworkPath(MapFrame):
         #
         # Re-use dialogs
         #
+	wx.MessageBox("Currently Works for spearfish data. \nIf you need this to work with other grass data.\
+please let me know. I will modify the code and update svn")
 	self.mapname = 'roads@' + grass.gisenv()['MAPSET']
 	self.cmd= ['d.vect', str("map=" + self.mapname),'width=1']
 	self.Map.AddLayer(type='vector', name=self.mapname, command=self.cmd)
@@ -300,7 +302,7 @@ class NetworkPath(MapFrame):
 
             
 	    command=["v.net.path", 'input=roads', 'output=path','file=tmp','--overwrite']
-    	    gcmd.CommandThread(command).run()
+    	    gcmd.CommandThread(command,stout=None,stderr=None).run()
 
 
             self.mapname = 'path@'+ grass.gisenv()['MAPSET']
