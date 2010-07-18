@@ -10,6 +10,8 @@ function compile {
     ./mswindows/osgeo4w/package.sh
 }
 
+export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
+
 compile grass64_release
 compile grass6_devel
 compile grass_trunk
