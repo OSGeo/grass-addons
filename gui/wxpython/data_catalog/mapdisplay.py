@@ -72,16 +72,18 @@ import globalvar
 import utils
 import gdialogs
 import goutput
-import units
+grassversion = os.getenv("GRASS_VERSION")
+if grassversion.rfind("6.4") != 0:
+    import units
 from grass.script import core as grass
 from debug import Debug
 from preferences import globalSettings as UserSettings
 import dbm
-grassversion = os.getenv("GRASS_VERSION")
-if grassversion == "6.4.0.svn":
-	import dbm_dialogs
 
-from units import ConvertValue as UnitsConvertValue
+if grassversion.rfind("6.4") != 0:
+	import dbm_dialogs
+if grassversion.rfind("6.4") != 0:
+    from units import ConvertValue as UnitsConvertValue
 from vdigit import GV_LINES as VDigit_Lines_Type
 from vdigit import VDigitCategoryDialog
 from vdigit import VDigitZBulkDialog
@@ -105,7 +107,13 @@ sys.path.append(imagepath)
 ###
 # for standalone app
 cmdfilename = None
-from mapdisp_window import BufferedWindow
+if grassversion.rfind("6.4") != 0:
+    from mapdisp_window import BufferedWindow
+else:
+    from mapdisp import BufferedWindow
+
+
+from mapdisp_window import MapWindow
 from mapdisp import MapFrame
 
 class MapFrame(wx.Panel,MapFrame):
@@ -184,9 +192,55 @@ class MapFrame(wx.Panel,MapFrame):
             self.statusbar.SetStatusWidths([-5, -2, -1, -1])
         else:
             self.statusbar = self.frame.GetStatusBar()
+            self.statusbar.SetStatusWidths([-5, -2, -1, -1])
+
+        if grassversion.rfind("6.4") == 0:
+            self.autoRender = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
+                                          label=_("Render"))
+            self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleRender, self.autoRender)
+            self.autoRender.SetValue(UserSettings.Get(group='display', key='autoRendering', subkey='enabled'))
+            self.autoRender.SetToolTip(wx.ToolTip (_("Enable/disable auto-rendering")))
+            
+            self.maskInfo = wx.StaticText(parent = self.statusbar, id = wx.ID_ANY,
+                                                      label = '')
+            self.maskInfo.SetForegroundColour(wx.Colour(255, 0, 0))
+
+            self.toggleStatus = wx.Choice(self.statusbar, wx.ID_ANY,
+                                      choices = globalvar.MAP_DISPLAY_STATUSBAR_MODE)
+            self.toggleStatus.SetSelection(UserSettings.Get(group='display', key='statusbarMode', subkey='selection'))
+            self.statusbar.Bind(wx.EVT_CHOICE, self.OnToggleStatus, self.toggleStatus)
+
+            self.onRenderGauge = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
+                                          range=0, style=wx.GA_HORIZONTAL)
+            self.onRenderGauge.Hide()
+        
+            self.mapScale = wx.TextCtrl(parent=self.statusbar, id=wx.ID_ANY,
+                                        value="", style=wx.TE_PROCESS_ENTER,
+                                        size=(150, -1))
+            self.mapScale.Hide()
+            self.statusbar.Bind(wx.EVT_TEXT_ENTER, self.OnChangeMapScale, self.mapScale)
+
+            self.compResolution = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
+                                             label=_("Constrain display resolution to computational settings"))
+            self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleResolution, self.compResolution)
+            self.compResolution.SetValue(UserSettings.Get(group='display', key='compResolution', subkey='enabled'))
+            self.compResolution.Hide()
+            self.compResolution.SetToolTip(wx.ToolTip (_("Constrain display resolution "
+                                                     "to computational region settings. "
+                                                     "Default value for new map displays can "
+                                                     "be set up in 'User GUI settings' dialog.")))
 
 
-
+            self.showRegion = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
+                                      label=_("Show computational extent"))
+            self.showRegion.SetValue(False)
+            self.showRegion.Hide()
+            self.showRegion.SetToolTip(wx.ToolTip (_("Show/hide computational "
+                                                 "region extent (set with g.region). "
+                                                 "Display region drawn as a blue box inside the "
+                                                 "computational region, "
+                                                 "computational region inside a display region "
+                                                 "as a red box).")))
             
 
         self.statusbarWin = dict()
@@ -245,7 +299,8 @@ class MapFrame(wx.Panel,MapFrame):
                                                 value="", style=wx.TE_PROCESS_ENTER,
                                                 size=(300, -1))
         self.statusbarWin['goto'].Hide()
-        self.statusbar.Bind(wx.EVT_TEXT_ENTER, self.OnGoTo, self.statusbarWin['goto'])
+        if grassversion.rfind("6.4") != 0:
+            self.statusbar.Bind(wx.EVT_TEXT_ENTER, self.OnGoTo, self.statusbarWin['goto'])
 
         # projection
         self.statusbarWin['projection'] = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
@@ -289,6 +344,8 @@ class MapFrame(wx.Panel,MapFrame):
 
         self.lmgr= frame
 
+
+
         self.maptree = LayerTree(self, id=wx.ID_ANY, pos=wx.DefaultPosition,
                                                       size=wx.DefaultSize, style=wx.TR_HAS_BUTTONS
                                                       |wx.TR_LINES_AT_ROOT|wx.TR_HIDE_ROOT,
@@ -298,13 +355,15 @@ class MapFrame(wx.Panel,MapFrame):
 
 
         self.tree=self.maptree
-
-        self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,   Map=self.Map, tree=self.tree, lmgr=self._layerManager)
+        if grassversion.rfind("6.4") == 0:
+            self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,Map=self.Map, tree=self.tree, gismgr=self.gismanager)
+        else:
+            self.MapWindow2D = BufferedWindow(self, id=wx.ID_ANY,   Map=self.Map, tree=self.tree, lmgr=self._layerManager)
 
         self.tree.MapWindow = self.MapWindow2D
         # default is 2D display mode
         self.MapWindow = self.MapWindow2D
-        self.MapWindow.Bind(wx.EVT_MOTION, self.OnMotion)
+#        self.MapWindow.Bind(wx.EVT_MOTION, MapWindow.OnMotion)
         #self.MapWindow.Bind(wx.EVT_LEFT_DOWN, self.OnClick) 
         self.MapWindow.SetCursor(self.cursors["default"])
         # used by Nviz (3D display mode)
@@ -380,16 +439,116 @@ class MapFrame(wx.Panel,MapFrame):
                                                      "be set up in 'User GUI settings' dialog.")))
 
 
-        #self.maptree.SetBackgroundColour("red")
 
+
+        self.p = wx.Panel(self)
+        #hb = wx.BoxSizer(wx.HORIZONTAL)
+       
+        self.p.Bind(wx.EVT_PAINT,self.onPaint)
+
+
+        self.p.Bind(wx.EVT_LEFT_DOWN,self.OnButtonDClick)
+
+
+        self.p.Bind(wx.EVT_MOTION, self.move)
+        self.moveFlag = False
+
+        self._mgr.AddPane(self.p, wx.aui.AuiPaneInfo().Right().
+                                        Dockable(True).BestSize((400,300)).
+                                        CloseButton(True).DestroyOnClose(True).
+                                        Layer(0).Caption("KeyMap"))
+
+
+
+ 
         self._mgr.AddPane(self.maptree, wx.aui.AuiPaneInfo().Left().
                                         Dockable(False).BestSize((400,300)).
                                         CloseButton(False).DestroyOnClose(True).
                                         Layer(0).Caption("Map Tree"))
 
+        
+        self.previous = [0,0]
+        self.current  = [0,0]
+
+
         self._mgr.Update()
 
         #r.rightSizer.Add(self.maptree)
+
+    def OnButtonDClick(self,event): 
+
+        try:
+            e, n = event.GetPositionTuple()
+	    #print e,n
+
+        except AttributeError:
+            return
+
+        self.paintwindow((e-50),(n-37),100,75,"/tmp/keymap.ppm")
+        begin = e,n
+        if self.moveFlag == False:
+            self.moveFlag=True
+            self.current = event.GetPositionTuple()[:]
+
+            
+        else:
+           self.moveFlag = False
+           self.previous = event.GetPositionTuple()[:]
+           #print self.current
+           #print self.previous
+           move = (self.current[0] - self.previous[0],
+                self.current[1] - self.previous[1])
+           self.MapWindow.DragMap(move)
+
+        
+
+
+
+    def move(self,event):
+        #print "here"
+        if self.moveFlag == True:
+            e,n = event.GetPosition()
+            self.paintwindow((e-50),(n-37),100,75,"/tmp/keymap.ppm")
+
+
+
+    def onPaint(self,event):
+        #print "here"
+        if self.MapWindow.mapfile is not None:
+            cmd = 'cp ' + self.MapWindow.mapfile + ' '+ '/tmp/keymap.ppm'
+            os.system(cmd)
+            self.paintwindow(50,50,100,75,"/tmp/keymap.ppm")
+
+    def paintwindow(self,x,y,length,breadth,imageFile):
+        #imageFile = "/home/rashad/keymap.png"
+        #self.dc = wx.PaintDC(self.p)
+
+        try:
+            png = wx.Image(_(imageFile), wx.BITMAP_TYPE_ANY).Scale(210,160,wx.IMAGE_QUALITY_HIGH)
+        except:
+            pass
+    
+        #self.hbitmap = wx.StaticBitmap(self.p, -1, png, (10, 5), (50,50))
+        #self.hbitmap.SetCursor(wx.StockCursor(wx.CURSOR_MAGNIFIER))
+
+
+        self.wxbmp=png.ConvertToBitmap()
+        #self.wxbmp.Bind(wx.EVT_MOTION, self.move)
+        #self.dc.DrawBitmap(self.wxbmp, 0,0, True)
+        #self.dc.SetPen(wx.Pen("RED",style=wx.TRANSPARENT))
+        self.dc = wx.PaintDC(self.p)
+        self.dc.Clear()
+        self.dc.BeginDrawing()
+        self.dc.SetPen(wx.Pen("RED"))
+        self.dc.SetBrush(wx.Brush("WHITE",style=wx.TRANSPARENT))
+
+        self.dc.DrawBitmap(self.wxbmp, 0,0, True)
+        # set x, y, w, h for rectangle
+        #self.dc.DrawLine(10,10,30, 30)
+        self.dc.EndDrawing()
+
+        #self.dc.SetBrush(wx.Brush("RED"))
+        self.dc.DrawRectangle(x, y, length, breadth)
 
     def read_gisrc(self):
 	    """

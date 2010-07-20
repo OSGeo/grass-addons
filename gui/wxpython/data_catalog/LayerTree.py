@@ -10,7 +10,9 @@ import gui_modules.menuform as menuform
 import gdialogs
 from preferences import globalSettings as UserSettings
 from vdigit import haveVDigit
-from gcmd import GMessage
+grassversion = os.getenv("GRASS_VERSION")
+if grassversion.rfind("6.4") != 0:
+    from gcmd import GMessage
 import histogram
 import gui_modules.profile as profile
 
@@ -38,10 +40,12 @@ import gcmd
 
 import utils
 from grass.script import core as grass
-import gui_modules.layertree as layertree
+if grassversion.rfind("6.4") != 0:
+    from gui_modules.layertree import LayerTree as layertree
+else:
+    from gui_modules.wxgui_utils import LayerTree as layertree
 
-
-class LayerTree(layertree.LayerTree):
+class LayerTree(layertree):
 
 
 
@@ -191,12 +195,14 @@ class LayerTree(layertree.LayerTree):
         self.Bind(wx.EVT_TREE_END_DRAG,         self.OnEndDrag)
         self.Bind(wx.EVT_KEY_UP,                self.OnKeyUp)
         self.Bind(wx.EVT_IDLE,                  self.OnIdle)
+        self.addon = os.getenv("integrated-gui")
 
   
    
 
 
     def Minimal(self,item):
+        print "here"
         mnuCopy = self.popupMenu.Append(self.ID_COPY,'&Copy Map\tCtrl+C')
         mnuRename = self.popupMenu.Append(self.ID_REN,'&Rename Map\tCtrl-R')
         mnuDel = self.popupMenu.Append(self.ID_DEL,'&Delete Map\tDEL')
@@ -205,19 +211,23 @@ class LayerTree(layertree.LayerTree):
         mnuOssim = self.popupMenu.Append(self.ID_OSSIM2,'&Remove from OssimPlanet')
 
 
-        
+
     def OnLayerContextMenu (self, event):
         """!Contextual menu for item/layer"""
         if not self.layer_selected:
             event.Skip()
             return
-		
+
         self.popupMenu = wx.Menu()
         item =  event.GetItem()
         if self.IsItemChecked(item) == False:
-            self.Minimal(item)
+
+            if self.addon == "True":
+                self.Minimal(item)
         else:
-            self.Minimal(item)
+
+            if self.addon == "True":
+                self.Minimal(item)
             ltype =  self.GetPyData(self.layer_selected)[0]['type']
 
             Debug.msg (4, "LayerTree.OnContextMenu: layertype=%s" % \
@@ -528,6 +538,19 @@ class LayerTree(layertree.LayerTree):
 			ret = dlg.ShowModal()
 			if ret == wx.ID_YES:
 				dlg.Destroy()
+                mapLayer = self.GetPyData(self.layer_selected)[0]['maplayer']
+                mltype = self.GetPyData(self.layer_selected)[0]['type']
+
+        if mltype == 'raster':
+            cmd = ['g.remove rast=']
+        elif mltype == 'vector':
+            cmd = ['g.remove vect=']
+        cmd.append('%s' % mapLayer.name)
+
+        # print output to command log area
+        self.lmgr.goutput.RunCmd(cmd, switchPage=True)
+
+
 				parent  =self.GetItemParent(item) 
 				if self.GetItemText(parent) == "Raster Map" :
 					cmdflag = 'rast=' + str(self.GetItemText(item))

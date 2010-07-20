@@ -29,6 +29,10 @@ import getopt
 import platform
 import shlex
 
+
+#os.system("export integ=True")
+os.environ['integrated-gui'] = "True"
+
 try:
     import xml.etree.ElementTree as etree
 except ImportError:
@@ -94,10 +98,11 @@ import gui_modules.georect as georect
 import gui_modules.dbm as dbm
 import gui_modules.workspace as workspace
 import gui_modules.colorrules as colorrules
-import gui_modules.vclean as vclean
+
+#import gui_modules.vclean as vclean
 import gui_modules.nviz_tools as nviz_tools
 
-if grassversion != "6.4.0svn":
+if grassversion.rfind("6.4") != 0:
     import gui_modules.menu as menu
     import gui_modules.gmodeler as gmodeler
 
@@ -114,10 +119,11 @@ from   icons.icon import Icons
 from preferences import globalSettings as UserSettings
 import render
 import gc
-from   gui_modules.ghelp import MenuTreeWindow
-from   gui_modules.ghelp import AboutWindow
-from   gui_modules.toolbars import LayerManagerToolbar
-from   gui_modules.ghelp import InstallExtensionWindow
+if grassversion.rfind("6.4") != 0:
+    from   gui_modules.ghelp import MenuTreeWindow
+    from   gui_modules.ghelp import AboutWindow
+    from   gui_modules.toolbars import LayerManagerToolbar
+    from   gui_modules.ghelp import InstallExtensionWindow
 from wxgui import GMFrame
 from grass.script import core as grass
 
@@ -127,7 +133,6 @@ class DataCatalog(GMFrame):
     def __init__(self, parent=None, id=wx.ID_ANY, title=_("Data Catalog Beta"),
                  workspace=None,size=wx.DefaultSize,pos=wx.DefaultPosition):
 
-       
         self.iconsize  = (16, 16)
         self.baseTitle = title
         self.parent = parent
@@ -159,14 +164,20 @@ class DataCatalog(GMFrame):
         self.dialogs        = dict()
         self.dialogs['preferences'] = None
         self.dialogs['atm'] = list()
+
+        #print os.getenv("integrated-gui")
         
         # creating widgets
-        self.menubar = menu.Menu(parent = self, data = menudata.ManagerData())
-        self.SetMenuBar(self.menubar)
-        self.menucmd = self.menubar.GetCmd()
+        if grassversion.rfind("6.4") != 0:
+            self.menubar = menu.Menu(parent = self, data = menudata.ManagerData())
+            self.SetMenuBar(self.menubar)
+            self.menucmd = self.menubar.GetCmd()
         self.statusbar = self.CreateStatusBar(number=1)
         self.notebook  = self.__createNoteBook()
-        self.toolbar = LayerManagerToolbar(parent = self)
+        if grassversion.rfind("6.4") != 0:
+            self.toolbar = LayerManagerToolbar(parent = self)
+        else:
+            self.toolbar   = self.__createToolBar()
         self.SetToolBar(self.toolbar)
 
 
@@ -189,13 +200,13 @@ class DataCatalog(GMFrame):
         self.loclist.sort()
 
         #self.pg_panel4 = None
-        if grassversion != "6.4.0svn":
+        if grassversion.rfind("6.4") != 0:
             self.menubar = menu.Menu(parent = self, data = menudata.ManagerData())
         else:
             self.menubar, self.menudata = self.__createMenuBar()
         self.SetMenuBar(self.menubar)
         self.menucmd = self.menubar.GetCmd()
-        self.statusbar = self.CreateStatusBar(number=1)
+        self.statusbar = self.CreateStatusBar(number=4, style=0)
         self.notebook  = self.__createNoteBook()
         self.toolbar = LayerManagerToolbar(parent = self)
         self.SetToolBar(self.toolbar)
@@ -237,6 +248,55 @@ class DataCatalog(GMFrame):
         
         self.doBindings()
         self.doLayout()
+
+
+    def OnCloseWindow(self, event):
+        """!Cleanup when wxGUI is quit"""
+        if not self.curr_page:
+            self._auimgr.UnInit()
+            self.Destroy()
+            return
+        os.environ['integrated-gui'] = "False"
+        maptree = self.curr_page.maptree
+        if self.workspaceChanged and \
+                UserSettings.Get(group='manager', key='askOnQuit', subkey='enabled'):
+            if self.workspaceFile:
+                message = _("Do you want to save changes in the workspace?")
+            else:
+                message = _("Do you want to store current settings "
+                            "to workspace file?")
+            
+            # ask user to save current settings
+            if maptree.GetCount() > 0:
+                dlg = wx.MessageDialog(self,
+                                       message=message,
+                                       caption=_("Quit GRASS GUI"),
+                                       style=wx.YES_NO | wx.YES_DEFAULT |
+                                       wx.CANCEL | wx.ICON_QUESTION | wx.CENTRE)
+                ret = dlg.ShowModal()
+                if ret == wx.ID_YES:
+                    if not self.workspaceFile:
+                        self.OnWorkspaceSaveAs()
+                    else:
+                        self.SaveToWorkspaceFile(self.workspaceFile)
+                elif ret == wx.ID_CANCEL:
+                    event.Veto()
+                    dlg.Destroy()
+                    return
+                dlg.Destroy()
+        
+        # don't ask any more...
+        UserSettings.Set(group = 'manager', key = 'askOnQuit', subkey = 'enabled',
+                         value = False)
+
+        for page in range(self.gm_cb.GetPageCount()):
+            self.gm_cb.GetPage(0).maptree.mapdisplay.OnCloseWindow(event)
+
+        self.gm_cb.DeleteAllPages()
+        
+        self._auimgr.UnInit()
+        self.Destroy()
+        
 
 
     def __createNoteBook(self):
