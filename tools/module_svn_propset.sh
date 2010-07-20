@@ -38,7 +38,7 @@ set_mime_type()
 {
    # remove generic default for images
    if [ `echo "$2" | cut -f1 -d/` = "image" ] ; then
-      if [ `svn propget svn:mime-type "$1"` = "application/octet-stream" ] ; then
+      if [ "`svn propget svn:mime-type "$1"`" = "application/octet-stream" ] ; then
          svn propdel svn:mime-type "$1"
       fi
    fi
@@ -191,9 +191,11 @@ for FILE in $* ; do
     pdf)
 	apply_pdf "$FILE"
 	;;
-    png | jpg | jpeg | gif | bmp)
+    png | jpg | jpeg | gif | bmp | svg)
 	if [ "$FILE_SUFFIX" = "jpg" ] ; then
 	    FILE_SUFFIX="jpeg"
+	elif [ "$FILE_SUFFIX" = "svg" ] ; then
+	    FILE_SUFFIX='svg+xml'
 	fi
 	apply_image "$FILE" "$FILE_SUFFIX"
 	;;
