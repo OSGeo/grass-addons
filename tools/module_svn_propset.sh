@@ -200,6 +200,9 @@ for FILE in $* ; do
     txt)
 	apply_text "$FILE"
 	;;
+    rst)
+	apply_text "$FILE"
+	;;
     *)
 	if [ "$FILE" = "Makefile" ] ; then
 	   apply_makefile "$FILE"
