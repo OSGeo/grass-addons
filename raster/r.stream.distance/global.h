@@ -22,30 +22,30 @@ directions according to r.watershed: MUST check all directions
 #define RELATIVE 2
 
 POINT {
-    int r, c;
-    float cur_dist;
-    float target_elev;
-};
+	int r, c;
+float cur_dist;
+float target_elev;
+	};
 	
 #define OUTLET struct outs
 OUTLET { 
-    int r, c;
-    float easting;
-    float northing;
-};	
+	int r, c;
+	float easting;
+	float northing;
+	};	
 
 					/* functions.c */ 
 
 /* io.c */
-int open_raster(char *);
+int open_raster(char *mapname);
 int create_maps(void);
-int write_maps(char *, FCELL **);
 void free_streams (void);
 int write_distance(void);
 int write_elevation(void);
-int set_null(FCELL **);
+int set_null_elev(void);
 
 /* inits */
+int find_chatchment_outlets(void);
 int fill_catchments(OUTLET outlet);
 int find_outlets(void);
 int reset_distance(void);
@@ -76,13 +76,13 @@ GLOBAL FCELL **elevation, **distance;
 
 GLOBAL int nrows, ncols; 
 
-POINT *fifo_outlet;
-int tail, head;
-int outlets_num;
-int fifo_max;
+GLOBAL POINT *fifo_outlet;
+GLOBAL int tail, head;
+GLOBAL int outlets_num;
+GLOBAL int fifo_max;
 	
 GLOBAL int out; /* number of strahler and horton outlets: index */
-OUTLET *outlets;
+GLOBAL OUTLET *outlets;
 
 GLOBAL struct History history;	/* holds meta-data (title, comments,..) */
 GLOBAL struct Cell_head window;
