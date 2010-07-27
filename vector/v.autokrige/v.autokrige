@@ -326,7 +326,7 @@ tryCatch({
 
 	#creation of another grid object: SpatialGridDataFrame
 	#this is a matrix whose values receive spatial coordinates associated to interpolated values
-	#matrix size must be equal to the number of GridTopology cells 
+	#matrix size must be equal to the number of GridTopology cells
 	#we create first a classical data.frame
 	data <- data.frame(list(k=rep(1,(floor(G$cols)*floor(G$rows)))))
 	cat("SpatialGridDataFrame creation","\n")
@@ -402,3 +402,4 @@ fi
 echo "done"
 cleanup
 exit 0
+
