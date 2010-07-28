@@ -7,4 +7,4 @@ PGM = v.krige.py
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
 default: script
-	${INSTALL} vkrige_gui.py ${ETCDIR}/scripts/
+	${INSTALL} v_krige_wxGUI.py ${ETCDIR}/scripts/
