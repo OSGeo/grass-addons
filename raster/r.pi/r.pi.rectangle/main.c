@@ -77,7 +77,7 @@ int main (int argc, char *argv[])
 	parm.input->type       = TYPE_STRING ;
 	parm.input->required   = YES ;
 	parm.input->gisprompt  = "old,cell,raster" ;
-	parm.input->description= _("Name of existing raster file") ;
+	parm.input->description= _("raster file with single pixels representing sampling points") ;
 
 	parm.output = G_define_option() ;
 	parm.output->key        = "output" ;
@@ -90,19 +90,19 @@ int main (int argc, char *argv[])
 	parm.keyval->key        = "keyval" ;
 	parm.keyval->type       = TYPE_INTEGER ;
 	parm.keyval->required   = YES ;
-	parm.keyval->description= _("Value of relevant pixels in the input raster") ;
+	parm.keyval->description= _("Pixel value in the input raster to be used") ;
 	
 	parm.x = G_define_option() ;
 	parm.x->key        = "x" ;
 	parm.x->type       = TYPE_INTEGER ;
 	parm.x->required   = YES ;
-	parm.x->description= _("Width of the buffer") ;
+	parm.x->description= _("extent of generated area on the x axis (width) in pixel") ;
 
 	parm.y = G_define_option() ;
 	parm.y->key        = "y" ;
 	parm.y->type       = TYPE_INTEGER ;
 	parm.y->required   = YES ;
-	parm.y->description= _("Height of the buffer") ;
+	parm.y->description= _("extent of generated area on the y axis (height) in pixel") ;
 	
 	parm.alignment = G_define_option() ;
 	parm.alignment->key        = "alignment" ;
@@ -117,7 +117,7 @@ int main (int argc, char *argv[])
 			*str = 0;
 		strcat (str, alignments[n].name);
 	}
-	parm.alignment->description= _("Alignment of the buffer relative to the key pixel") ;
+	parm.alignment->description= _("alignment of the rectangle relative to the input pixel. options: center, top-left, top-right, bottom") ;
 
 	parm.title = G_define_option() ;
 	parm.title->key        = "title" ;

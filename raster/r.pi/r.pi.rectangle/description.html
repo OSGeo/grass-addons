@@ -1,61 +1,3 @@
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>r.pi.rectangle</b></em> converts sampling points (e.g. GPS coordinates)
-of the corner of a sampling site into an area by generating a defined rectangle.
-<h2>KEYWORDS</h2>
-raster, patch index, landscape ecology
-<h2>SYNOPSIS</h2>
-<b>r.pi.rectangle</b><br>
-<b>r.pi.rectangle help</b><br>
-
-
-
-<b>r.pi.rectangle</b> <b>input</b>=<em>name</em>
-<b>output</b>=<em>name</em> 
-<b>keyval</b>=<em>val</em>   <b>x</b>=<em>value</em>
-<b>y</b>=<em>value</em>
-<b>alignment</b>=<em>string</em>
-[<b>title</b>=<em>phrase</em>]  [--<b>overwrite</b>]  [--<b>verbose</b>] 
-[--<b>quiet</b>] 
-
-<h3>Flags:</h3>
-<DL>
-<DT><b>--overwrite</b></DT>
-<DD>Allow output files to overwrite existing files</DD>
-<DT><b>--verbose</b></DT>
-<DD>Verbose module output</DD>
-<DT><b>--quiet</b></DT>
-<DD>Quiet module output</DD>
-</DL>
-
-
-<h3>Parameters:</h3>
-<DL>
-<DT><b>input</b>=<em>name</em></DT>
-<DD>raster file with single pixels representing sampling points</DD>
-
-
-<DT><b>x</b>=<em>value</em></DT>
-<DD>extent of generated area on the x axis (width) in pixel</DD>
-
-<DT><b>y</b>=<em>value</em></DT>
-<DD>extent of generated area on the y axis (height) in pixel</DD>
-
-<DT><b>alignment</b>=<em>string</em></DT>
-<DD>alignment of the rectangle relative to the input pixel. options:
-center, top-left, top-right, bottom</DD>
-
-<DT><b>title</b>=<em>name</em></DT>
-<DD>Optional title of output map</DD>
-
-</DL>
-
-
-
 <H2>DESCRIPTION</H2>
 
 <P>
@@ -97,5 +39,3 @@ as wish and might be implemented in the future.
 Programming: Elshad Shirinov<br>
 Scientific concept: Dr. Martin Wegmann <br>
 Department of Remote Sensing <br>Remote Sensing and Biodiversity Unit<br> University of Wuerzburg, Germany
-
-<p><i>Last changed: $Date: 2006/04/13 19:01:37 $</i>
