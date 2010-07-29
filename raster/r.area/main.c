@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 	  if (G_get_cellhd(input->answer, mapset, &cellhd) < 0)
 	G_fatal_error(_("Unable to read file header of <%s>"), input->answer);
 	
-		if (G_raster_map_type(input->answer, input->answer) != CELL_TYPE)
+		if (G_raster_map_type(input->answer, mapset) != CELL_TYPE)
 	 G_fatal_error(_("<%s> is not of type CELL, probably not crated with r.clump"), input->answer);
 	 
 	G_init_range(&range);
