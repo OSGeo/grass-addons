@@ -93,7 +93,7 @@ int main (int argc, char *argv[])
 	parm.max->key        = "max" ;
 	parm.max->type       = TYPE_INTEGER ;
 	parm.max->required   = YES ;
-	parm.max->description= _("Correlation maximum value") ;
+	parm.max->description= _("Value to be set for the correlation value 1.0 in order to receive more information of the decimal places, e.g. set it to 1000") ;
 
 	parm.title = G_define_option() ;
 	parm.title->key        = "title" ;
