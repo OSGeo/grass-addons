@@ -1,0 +1,40 @@
+<H2>DESCRIPTION</H2>
+
+Available options for the index to be computed for patches within a certain class are: area (area), perimeter (perim), SHAPE (shape), Border-Index (bor), Compactness (comp), Asymmetry (asym), area-perimeter ratio (apr), fractal dimension (fract), distance to euclidean nearest neighbour (ENN)</DD>
+
+<P>
+
+The program will be run non-interactively if the user specifies program arguments (see OPTIONS) on the command
+line.  Alternately, the user can simply type <B>r.pi.index</B> on the command line, without program
+arguments.  In this case, the user will be prompted for flag settings and parameter values.
+
+
+<H2>NOTES</H2>
+
+The <EM>Nearest Neighbour Index</EM> (ENN) analyse the Euclidean Nearest 
+Neighbour to the first neighbouring patch. The output value is in pixel and can
+be converted to a distance values using g.region resolution information.
+<EM>r.pi.ENN</EM> and <EM>r.pi.FNN</EM> provide the same analysis concerning the
+ first nearest neighbour (NN), but are extended to the n-th NN. However due to
+code construction does the <EM>r.pi.index</EM> distance analysis to first ENN perform faster.
+
+
+<P>
+
+<H2>BUGS</H2>
+Landscapes with more than 10 000 patches might cause a memory
+allocation error depending on your system.
+
+
+<H2>SEE ALSO</H2>
+
+<EM><A HREF="r.pi.ENN.html">r.pi.ENN</A></EM><br>
+<EM><A HREF="r.pi.FNN.html">r.pi.FNN</A></EM><br>
+<EM><A HREF="r.pi.dist.html">r.pi.dist</A></EM><br>
+<EM><A HREF="r.li.setup.html">r.li.setup</A></EM><br>
+
+<H2>AUTHOR</H2>
+Programming: Elshad Shirinov<br>
+Scientific concept: Dr. Martin Wegmann <br>
+Department of Remote Sensing <br>Remote Sensing and Biodiversity Unit<br> University of Wuerzburg, Germany
+
