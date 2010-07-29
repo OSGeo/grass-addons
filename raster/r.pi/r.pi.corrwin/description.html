@@ -1,0 +1,94 @@
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>r.pi.corrwin</b></em>  provides information concerning the correlation
+of pixels inside a moving window between two raster files.
+<h2>KEYWORDS</h2>
+raster, patch index, landscape ecology
+<h2>SYNOPSIS</h2>
+<b>r.pi.corrwin</b><br>
+<b>r.pi.corrwin help</b><br>
+<b>r.pi.corrwin</b> [-<b>a</b>] <b>input1</b>=<em>name</em>
+<b>input2</b>=<em>name</em>
+<b>output</b>=<em>name</em> 
+<b>size</b>=<em>val</em>   <b>max</b>=<em>name</em>
+[<b>title</b>=<em>name</em>]  [--<b>overwrite</b>]  [--<b>verbose</b>] 
+[--<b>quiet</b>] 
+
+<h3>Flags:</h3>
+<DL>
+
+<DT><b>--overwrite</b></DT>
+<DD>Allow output files to overwrite existing files</DD>
+<DT><b>--verbose</b></DT>
+<DD>Verbose module output</DD>
+<DT><b>--quiet</b></DT>
+<DD>Quiet module output</DD>
+</DL>
+
+
+<h3>Parameters:</h3>
+<DL>
+<DT><b>input1</b>=<em>name</em></DT>
+<DD>Name of an existing raster (continuous values)</DD>
+
+<DT><b>input2</b>=<em>name</em></DT>
+<DD>Name of an existing raster (continuous values)</DD>
+
+<DT><b>output</b>=<em>name</em></DT>
+<DD>Output raster map of correlation coefficient</DD>
+
+<DT><b>size</b>=<em>val</em></DT>
+<DD>The size of the moving window. Options:
+1,3,5,7,9,11,13,15,17,19,21,23,25</DD>
+
+<DT><b>max</b>=<em>value</em></DT>
+<DD>Value to be set for the correlation value 1.0 in order to receive more information of the decimal places, e.g. set it to 1000
+
+<DT><b>title</b>=<em>name</em></DT>
+<DD>Optional title of output map</DD>
+
+</DL>
+
+
+
+<H2>DESCRIPTION</H2>
+
+<P>
+This module computes the correlation between two raster files but unlike
+<EM>r.pi.lm</EM> for moving windows of a specific size. This module used code sniplets from r.neighbours and r.covar.
+
+The program will be run non-interactively if the user specifies program
+arguments (see OPTIONS) on the command
+line.  Alternately, the user can simply type <B>r.pi.corrwin</B> on the command line, without program
+arguments.  In this case, the user will be prompted for flag settings and parameter values.
+
+
+</DL>
+<H2>NOTES</H2>
+
+
+
+
+<P>
+
+<H2>BUGS</H2>
+
+
+
+<H2>SEE ALSO</H2>
+
+<EM><A HREF="r.pi.lm.html">r.pi.ENN</A></EM><br>
+<EM><A HREF="r.pi.probmw.html">r.pi.FNN</A></EM><br>
+<EM><A HREF="r.li.setup.html">r.li.setup</A></EM><br>
+
+<H2>AUTHOR</H2>
+Programming: Elshad Shirinov<br>
+Scientific concept: Dr. Martin Wegmann <br>
+Department of Remote Sensing <br>Remote Sensing and Biodiversity Unit<br> University of Wuerzburg, Germany
+
+
+<p><i>Last changed: $Date: 2006/04/13 19:01:37 $</i>
