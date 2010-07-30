@@ -1,10 +1,10 @@
 
-struct ncb  /* neighborhood control block */
+struct ncb			/* neighborhood control block */
 {
-    DCELL **buf1, **buf2;     /* for reading cell file */
-    int *value;     /* neighborhood values */
-    int nsize;      /* size of the neighborhood */
-    int dist;       /* nsize/2 */
+    DCELL **buf1, **buf2;	/* for reading cell file */
+    int *value;			/* neighborhood values */
+    int nsize;			/* size of the neighborhood */
+    int dist;			/* nsize/2 */
     struct Categories cats;
     char title[1024];
     FILE *out;
@@ -17,4 +17,3 @@ struct ncb  /* neighborhood control block */
 };
 
 extern struct ncb ncb;
-

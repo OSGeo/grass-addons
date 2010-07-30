@@ -11,6 +11,7 @@
 #include <time.h>
 
 /* buffer.c */
-void set_buffer(CELL* buffer, int x, int y, int width, int height, int sx, int sy, int align);
+void set_buffer(CELL * buffer, int x, int y, int width, int height, int sx,
+		int sy, int align);
 
 #endif /* LOCAL_PROTO_H */

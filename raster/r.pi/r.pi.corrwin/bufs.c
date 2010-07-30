@@ -9,51 +9,53 @@
 
  */
 
-int allocate_bufs (void)
+int allocate_bufs(void)
 {
     int i;
+
     int bufsize;
 
-    bufsize = (G_window_cols() + 2 * ncb.nsize) * sizeof (DCELL);
+    bufsize = (G_window_cols() + 2 * ncb.nsize) * sizeof(DCELL);
 
-    ncb.buf1   = (DCELL **) G_malloc (ncb.nsize * sizeof(DCELL *));
-    ncb.buf2   = (DCELL **) G_malloc (ncb.nsize * sizeof(DCELL *));
-    for (i = 0; i < ncb.nsize; i++)
-    {
-		ncb.buf1[i] = (DCELL *) G_malloc (bufsize) ;
-		ncb.buf2[i] = (DCELL *) G_malloc (bufsize) ;
-		G_set_d_null_value(ncb.buf1[i], G_window_cols() + 2 * ncb.nsize);
-		G_set_d_null_value(ncb.buf2[i], G_window_cols() + 2 * ncb.nsize);
-	}
+    ncb.buf1 = (DCELL **) G_malloc(ncb.nsize * sizeof(DCELL *));
+    ncb.buf2 = (DCELL **) G_malloc(ncb.nsize * sizeof(DCELL *));
+    for (i = 0; i < ncb.nsize; i++) {
+	ncb.buf1[i] = (DCELL *) G_malloc(bufsize);
+	ncb.buf2[i] = (DCELL *) G_malloc(bufsize);
+	G_set_d_null_value(ncb.buf1[i], G_window_cols() + 2 * ncb.nsize);
+	G_set_d_null_value(ncb.buf2[i], G_window_cols() + 2 * ncb.nsize);
+    }
 
     return 0;
 }
 
-int rotate_bufs (int bufnumber)
+int rotate_bufs(int bufnumber)
 {
     DCELL *temp;
-    int i;
-	
-	if (bufnumber < 1 || bufnumber > 2)
-		return -1;
-	
-	if (bufnumber == 1) {
-    	temp = ncb.buf1[0];
 
-    	for (i = 1; i < ncb.nsize; i++) {
-			ncb.buf1[i-1] = ncb.buf1[i];
-		}
-    
-    	ncb.buf1[ncb.nsize-1] = temp;
-	} else {
-		temp = ncb.buf2[0];
-		
-		for (i = 1; i < ncb.nsize; i++) {
-			ncb.buf2[i-1] = ncb.buf2[i];
-		}
-		
-		ncb.buf2[ncb.nsize-1] = temp;
+    int i;
+
+    if (bufnumber < 1 || bufnumber > 2)
+	return -1;
+
+    if (bufnumber == 1) {
+	temp = ncb.buf1[0];
+
+	for (i = 1; i < ncb.nsize; i++) {
+	    ncb.buf1[i - 1] = ncb.buf1[i];
 	}
+
+	ncb.buf1[ncb.nsize - 1] = temp;
+    }
+    else {
+	temp = ncb.buf2[0];
+
+	for (i = 1; i < ncb.nsize; i++) {
+	    ncb.buf2[i - 1] = ncb.buf2[i];
+	}
+
+	ncb.buf2[ncb.nsize - 1] = temp;
+    }
 
     return 0;
 }
