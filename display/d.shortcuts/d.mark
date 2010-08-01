@@ -51,6 +51,13 @@
 #% answer: 12
 #% required : no
 #%end
+#%option
+#% key: rotation
+#% type: double
+#% description: Rotation angle in degrees (counter-clockwise)
+#% answer: 0
+#% required : no
+#%end
 #%flag
 #% key: m
 #% description: Coordinates are given in map units
@@ -73,5 +80,15 @@ fi
 
 COORD=`echo "$GIS_OPT_AT" | tr ',' ' '`
 
-echo "symbol basic/$GIS_OPT_SYMBOL $GIS_OPT_SIZE $COORD $GIS_OPT_COLOR $GIS_OPT_FCOLOR" \
-  | d.graph $MAPUN
+if [ "$GIS_OPT_ROTATION" != "0" ] ; then
+   DOROT="rotation $GIS_OPT_ROTATION"
+else
+   DOROT=""
+fi
+
+(
+cat << EOF
+$DOROT
+symbol basic/$GIS_OPT_SYMBOL $GIS_OPT_SIZE $COORD $GIS_OPT_COLOR $GIS_OPT_FCOLOR
+EOF
+) | d.graph $MAPUN
