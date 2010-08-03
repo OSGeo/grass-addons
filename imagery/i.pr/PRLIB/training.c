@@ -64,7 +64,8 @@ void read_training(file,training)
   training->file=file;
 
   line=GetLine(fp);
-  line=GetLine(fp);
+
+  /*line=GetLine(fp);*/
   
 
   if(strcmp(line,"GrassTraining") == 0){

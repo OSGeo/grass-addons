@@ -226,7 +226,7 @@ char *argv[];
   
   /*read first rows*/
   for(r=0;r<features.training.rows;r++){
-    rowbuf = (DCELL *)G_calloc(features.training.rows*cellhd.cols,sizeof(DCELL));
+    rowbuf = (DCELL *)G_calloc(features.training.nlayers*cellhd.cols,sizeof(DCELL));
     tf=rowbuf;
     for(l=0;l<features.training.nlayers;l++){
       if(G_get_d_raster_row(fd[l], tf, r)<0){
@@ -438,3 +438,4 @@ int extract_array_with_null(R,C,c,bc,mat,wind_vect)
     return 0;
   }
 }
+
