@@ -16,7 +16,7 @@
 
 
 #%Module
-#%  description: Creates a raster buffer of specified area around vector points using cost distances. Requires r.walk.
+#%  description: Creates a raster buffer of specified area around vector points using cost distances. Requires r.walk. NOTE: please run g.region first to make sure region boundaries and resoultion match input elevation map.
 #%END
 
 
@@ -169,7 +169,7 @@ def main():
     w_coefs = a + ',' +  b + ',' + c + ',' + d
 
     grass.message("Wanted buffer area=%s\n" % int(area)) 
-    grass.run_command('g.region',  quiet = True, rast = elev)
+
 ####################################################
     if bool(os.getenv('GIS_OPT_incost')) is True:
         grass.message('\n\nUsing input cost surface\n')
@@ -282,7 +282,10 @@ def main():
                 grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass')
         if bool(os.getenv('GIS_OPT_sigma')) is True:
             grass.run_command('g.remove',  quiet = True, rast = slope)
-        grass.run_command('g.remove',  quiet = True, rast = 'MASK')
+        try:
+            grass.run_command('g.remove',  quiet = True, rast = 'MASK')
+        except:
+            pass
         grass.message('     DONE!')
         return
 
