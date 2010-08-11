@@ -23,7 +23,7 @@
 #% key: inmap
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: input landcover map (integer values aligned with reclass rules)
+#% description: input landcover map (values aligned with reclass rules)
 #% required : yes
 #%END
 
@@ -41,7 +41,7 @@
 #% type: string
 #% gisprompt: string
 #% description: path to recode rules file for c-factor map
-#% answer: /usr/local/grass-6.5.svn/scripts/rules/cfactor_recode_rules.txt
+#% answer:
 #% required : yes
 #%END
 
@@ -50,24 +50,17 @@
 #% type: string
 #% gisprompt: string
 #% description: path to color rules file for c-factor map
-#% answer: /usr/local/grass-6.5.svn/scripts/rules/cfactor_colors.txt
+#% answer: 
 #% required : yes
 #%END
 
 import sys
 import os
 import subprocess
-import tempfile
-# first define some useful custom methods
+grass_install_tree = os.getenv('GISBASE')
+sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
+import grass.script as grass
 
-# m is a message (as a string) one wishes to have printed in the output window
-def grass_print(m):
-	subprocess.Popen('g.message message="%s"' % m, shell='bash').wait()
-	return
-# m is grass (or bash) command to execute (written as a string). script will wait for grass command to finish
-def grass_com(m):
-	subprocess.Popen('%s' % m, shell='bash').wait()
-	return
 #main block of code starts here
 def main():
     #setting up variables for use later on
@@ -76,14 +69,13 @@ def main():
     cfact_rules = os.getenv("GIS_OPT_cfact_rules")
     cfact_color = os.getenv("GIS_OPT_cfact_color")
     #setting initial conditions of map area
-    grass_com('g.region rast=' + inmap)
-    grass_com('r.mask --quiet input=' + inmap + ' maskcats=*') 
+    grass.run_command('r.mask', quiet = True, input = inmap, maskcats = '*')
     #creating c-factor map and setting colors
-    grass_com('r.recode --quiet input=' + inmap + ' output=' + outcfact + ' rules=' + cfact_rules)
-    grass_com('r.colors map=' + outcfact + ' rules=' + cfact_color)
-    grass_print('\nCleaning up\n')
-    grass_com('g.remove --quiet rast=MASK')
-    grass_print('\nDONE\n')
+    grass.run_command('r.recode', quiet = True, input = inmap, output = outcfact, rules = cfact_rules)
+    grass.run_command('r.colors',  quiet = True, map = outcfact, rules = cfact_color)
+    grass.message('\nCleaning up\n')
+    grass.run_command('g.remove',  quiet = True, rast= 'MASK')
+    grass.message('\nDONE\n')
     return
 
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
