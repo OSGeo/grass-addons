@@ -36,6 +36,14 @@
 #%END
 
 #%option
+#% key: villages
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: input map of village locations (coded as the landcover value for village surfaces)
+#% required : yes
+#%END
+
+#%option
 #% key: sfertil
 #% type: string
 #% gisprompt: old,cell,raster
@@ -56,7 +64,7 @@
 #% type: string
 #% gisprompt: string
 #% description: maximum value for landcover maps (number for climax veg)
-#% answer: 50
+#% answer: 50.0
 #% required : yes
 #%END
 
@@ -74,7 +82,7 @@
 #% type: string
 #% gisprompt: string
 #% description: Path to reclass rules file for making a "labels" map. If no rules specified, no labels map will be made.
-#% answer: /usr/local/grass-6.5.svn/scripts/rules/luse_reclass_rules.txt
+#% answer:
 #% required : no
 #%END
 
@@ -83,7 +91,7 @@
 #% type: string
 #% gisprompt: string
 #% description: Path to color rules file for landcover map
-#% answer: /usr/local/grass-6.5.svn/scripts/rules/luse_colors.txt
+#% answer:
 #% required : no
 #%END
 
@@ -92,46 +100,25 @@
 #% description: -s Output text file of land-use stats from the simulation (will be named "prefix"_luse_stats.txt, and will be overwritten if you run the simulation again with the same prefix)
 #%END
 
+#%flag
+#% key: r
+#% description: -r Save the map of vegetation regrowth rates.
+#%END
+
 import sys
 import os
 import subprocess
 import tempfile
-# first define some useful custom methods
-
-# m is a message (as a string) one wishes to have printed in the output window
-def grass_print(m):
-	subprocess.Popen('g.message message="%s"' % m, shell='bash').wait()
-	return
-# m is grass (or bash) command to execute (written as a string). script will wait for grass command to finish
-def grass_com(m):
-	subprocess.Popen('%s' % m, shell='bash').wait()
-	return
-# m is grass (or bash) command to execute (written as a string). script will not wait for grass command to finish
-def grass_com_nw(m):
-	subprocess.Popen('%s' % m, shell='bash')
-	return
-# m is a grass/bash command that will generate some list of keyed info to stdout, n is the character that seperates the key from the data, o is a defined blank dictionary to write results to
-def out2dict(m, n, o):
-    p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-    p2 = p1.stdout.readlines()
-    for y in p2:
-        y0,y1 = y.split('%s' % n)
-        o[y0] = y1.strip('\n')
-
-# m is a grass/bash command that will generate some charcater seperated list of info to stdout, n is the character that seperates individual pieces of information, and  o is a defined blank list to write results to
-def out2list2(m, n, o):
-        p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-        p2 = p1.stdout.readlines()
-        for y in p2:
-            y0,y1 = y.split('%s' % n)
-            o.append(y0)
-            o.append(y1.strip('\n'))
+grass_install_tree = os.getenv('GISBASE')
+sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
+import grass.script as grass
 
 #main block of code starts here
 def main():
     #setting up variables for use later on
     inmap = os.getenv('GIS_OPT_inmap') 
     impacts = os.getenv('GIS_OPT_impacts') 
+    villages = os.getenv('GIS_OPT_villages')
     sfertil = os.getenv('GIS_OPT_sfertil') 
     sdepth = os.getenv('GIS_OPT_sdepth') 
     outmap = os.getenv('GIS_OPT_outmap') 
@@ -140,42 +127,49 @@ def main():
     lc_color = os.getenv('GIS_OPT_lc_color') 
     txtout = outmap + '_landcover_stats.txt'
     temp_rate = 'temp_rate'
+    temp_lcov = 'temp_lcov'
+    temp_reclass = 'temp_reclass'
     reclass_out = outmap + '_labels'
     #setting initial conditions of map area
-    grass_com('g.region --quiet rast=' + inmap)
-    grass_com('r.mask --quiet input=' + inmap + ' maskcats=*')
+    grass.run_command('r.mask', quiet = True, input = inmap, maskcats = '*')
     # calculating rate of regrowth based on current soil fertility and depths. Recoding fertility (0 to 100) and depth (0 to >= 1) with a power regression curve from 0 to 1, then taking the mean of the two as the regrowth rate
-    grass_com('r.mapcalc "' + temp_rate + '=if(' + sdepth + ' <= 1, ( ( ( (-0.000118528 * (exp(' + sfertil + ',2))) + (0.0215056 * ' + sfertil + ') + 0.0237987 ) + ( ( -0.000118528 * (exp((100*' + sdepth + '),2))) + (0.0215056 * (100*' + sdepth + ')) + 0.0237987 ) ) / 2 ), ( ( ( (-0.000118528 * (exp(' + sfertil + ',2))) + (0.0215056 * ' + sfertil + ') + 0.0237987 ) + 1) / 2 ) )"')
+    grass.mapcalc('${out}=if(${map1} <= 1.0, ( ( ( (-0.000118528 * (exp(${map2},2.0))) + (0.0215056 * ${map2}) + 0.0237987 ) + ( ( -0.000118528 * (exp((100*${map1}),2.0))) + (0.0215056 * (100*${map1})) + 0.0237987 ) ) / 2.0 ), ( ( ( (-0.000118528 * (exp(${map2},2.0))) + (0.0215056 * ${map2}) + 0.0237987 ) + 1.0) / 2.0 ) )', out = temp_rate,  map1 = sdepth,  map2 = sfertil)
     #updating raw landscape category numbers based on agent impacts and newly calculated regrowth rate
-    grass_com('r.mapcalc "' + outmap + '=if(' + inmap  + '== ' + max + ' && isnull(' + impacts + '), ' + max + ', if(' + inmap  + '< ' + max + ' && isnull(' + impacts + '), (' + inmap + ' + ' + temp_rate + '), if(' + inmap + ' > ' + max + ', (' + max + ' - ' + impacts + '), if(' + inmap + ' <= 0, 0, (' + inmap + ' - ' + impacts + ') )  )   )    )"')
-    grass_com('r.colors --quiet map=' + outmap + ' rules=' + lc_color)
+    grass.mapcalc('${out}=if(${inm} == ${m} && isnull(${imp}), double(${m}), if(${inm} < ${m} && isnull(${imp}), (double(${inm}) + double(${tr})), if(${inm} > ${m}, (double(${m}) - double(${imp})), if(${inm} <= 0.0, 0.0, (double(${inm}) - double(${imp})) ) ) ) )',  out = temp_lcov, m = max, inm = inmap,  imp = impacts,  tr = temp_rate)
     try:
         lc_rules
     except NameError:
         lc_rules = None
     if lc_rules is None:
-        grass_print( "No Labels reclass rules specified, so no Labels map will be made")
+        grass.message( "No Labels reclass rules specified, so no Labels map will be made")
     else:
-        grass_print( 'Creating reclassed Lables map (' + reclass_out +') of text descriptions to raw landscape categories')
-        grass_com('r.reclass --quiet input=' + outmap + ' output=' + reclass_out + ' rules=' + lc_rules)
-        grass_com('r.colors --quiet map=' + reclass_out + ' rules=' + lc_color)
+        grass.message( 'Creating reclassed Lables map (' + reclass_out +') of text descriptions to raw landscape categories')
+        grass.run_command('r.reclass', quiet = True,  input = temp_lcov,  output = temp_reclass,  rules = lc_rules)
+        grass.mapcalc('${out}=${input}', out = reclass_out, input = temp_reclass)
+        grass.run_command('r.colors',  quiet = True,  map = reclass_out,  rules = lc_color)
     #checking total area of updated cells
-    statlist = []
-    out2list2('r.stats -a -n input=' + impacts + ' fs=, nv=* nsteps=1', ',', statlist)
-    grass_print('Total area of impacted zones = ' + statlist[1] + ' square meters\n')
+    statdict = grass.parse_command('r.stats', quiet = True,  flags = 'Aan', input = impacts, fs = ':', nv ='*',  parse = (grass.parse_key_val, { 'sep' : ':' }))
+    sumofimpacts = 0.0
+    for key in statdict:
+        sumofimpacts = sumofimpacts + float(statdict[key])
+    grass.message('Total area of impacted zones = %s square meters\n' % sumofimpacts)
     #creating optional output text file of stats
     if os.getenv('GIS_FLAG_s') == '1':
         f = file(txtout,  'wt')
-        f.write('Stats for ' + prfx + '_landcover\n\nTotal area of impacted zones = ' + statlist[1] + ' square meters\n\n\nLandcover class #, Landcover description, Area (sq. m)\n')
-        p1 = grass_com_nw('r.stats --quiet -a -l -n input=' + prfx +'_landuse1 fs=, nv=* nsteps=' + max )
-        p2 = p1.stdout.readlines()
-        for y in p2:
-            f.write(y)
+        f.write('Stats for ' + prfx + '_landcover\n\nTotal area of impacted zones = %s square meters\n\n\nLandcover class #, Landcover description, Area (sq. m)\n' % sumofimpacts)
+        p1 = grass.parse_command('r.stats', quiet = True, flags = 'aln', input = prfx + '_landuse1', fs = ':', nv ='*', nsteps = max,  parse = (grass.parse_key_val, { 'sep' : ':' }))
+        for key in p1:
+            f.write(str(key) + ',' + str(p1[key]))
         f.close()
-
-    grass_print('\nCleaning up\n')
-    grass_com('g.remove --quiet rast=MASK,' + temp_rate)
-    grass_print("\nDONE!\n")
+    grass.run_command('r.patch', quiet = True,  input = villages + ',' + temp_lcov, output= outmap)
+    grass.run_command('r.colors',  quiet = True,  map = outmap, rules = lc_color)
+    grass.message('\nCleaning up\n')
+    if os.getenv('GIS_FLAG_r') == '1':
+        grass.run_command('g.remove',  quiet =True, rast = 'MASK,temp_reclass,temp_lcov')
+        grass.run_command('g.rename', quiet = True, rast='temp_rate,' + outmap +'_rate')
+    else:
+        grass.run_command('g.remove',  quiet =True, rast = 'MASK,temp_rate,temp_reclass,temp_lcov')
+    grass.message("\nDONE!\n")
     return
 
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
