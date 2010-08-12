@@ -62,8 +62,18 @@ typedef struct
 
 } AREA_CAT;
 
+/* compare function for qsort and bsearch */
+static int cmp_area(const void *pa, const void *pb)
+{
+    AREA_CAT *p1 = (AREA_CAT *) pa;
+    AREA_CAT *p2 = (AREA_CAT *) pb;
 
-static int cmp_area(const void *, const void *);
+    if (p1->area_cat < p2->area_cat)
+	return -1;
+    if (p1->area_cat > p2->area_cat)
+	return 1;
+    return 0;
+}
 
 int main(int argc, char *argv[])
 {
@@ -220,7 +230,7 @@ int main(int argc, char *argv[])
 	    *fs = '|';
     }
 
-    /* some checks for stats */
+    /* check for stats */
     if (point_column_opt->answer) {
 	if (!method_opt->answer)
 	    G_fatal_error("No method for statistics selected");
@@ -268,14 +278,12 @@ int main(int argc, char *argv[])
 	/* establish the statsvalue routine */
 	statsvalue = menu[method].method;
 
-	/* category number of lowest value */
-	if ((strcmp(menu[method].name, menu[5].name) == 0))
-	    use_catno = 1;
-	/* category number of highest value */
-	if ((strcmp(menu[method].name, menu[7].name) == 0))
+	/* category number of lowest/highest value */
+	if ((strcmp(menu[method].name, menu[5].name) == 0) ||
+	    (strcmp(menu[method].name, menu[7].name) == 0))
 	    use_catno = 1;
 
-	G_debug(1, "method: %s, use cat no: %s", menu[method].name,
+	G_debug(1, "method: %s, use cat value: %s", menu[method].name,
 		(use_catno == 1 ? "yes" : "no"));
     }
 
@@ -360,6 +368,8 @@ int main(int argc, char *argv[])
     Pdriver = NULL;
     if (method_opt->answer) {
 
+	G_verbose_message(_("collecting attributes from points vector..."));
+
 	PFi = Vect_get_field(&PIn, point_field);
 	if (PFi == NULL)
 	    G_fatal_error(_("Database connection not defined for layer %d"),
@@ -395,8 +405,7 @@ int main(int argc, char *argv[])
 	db_CatValArray_init(&cvarr);
 	nrec = db_select_CatValArray(Pdriver, PFi->table, PFi->key,
 				     point_column_opt->answer, NULL, &cvarr);
-	G_debug(3, "selected values = %d", nrec);
-
+	G_debug(1, "selected values = %d", nrec);
 	db_close_database_shutdown_driver(Pdriver);
     }
 
@@ -439,11 +448,13 @@ int main(int argc, char *argv[])
 
 	}
     }
+
     G_debug(1, "%d cats loaded from vector (including duplicates)", nacats);
-    /* Sort by cats and remove duplicates */
+
+    /* Sort by category */
     qsort((void *)Area_cat, nacats, sizeof(AREA_CAT), cmp_area);
 
-    /* remove duplicates */
+    /* remove duplicate categories */
     for (i = 1; i < nacats; i++) {
 	if (Area_cat[i].area_cat == Area_cat[i - 1].area_cat) {
 	    for (j = i; j < nacats - 1; j++) {
@@ -463,6 +474,7 @@ int main(int argc, char *argv[])
 	(struct pvalcat *)G_calloc(npvalcatsalloc, sizeof(struct pvalcat));
 
     /* remove for GRASS 7 */
+    G_verbose_message(_("creating spatial index"));
     Vect_build_spatial_index(&PIn);
 
     G_message(_("Selecting points for each area..."));
@@ -688,19 +700,11 @@ int main(int argc, char *argv[])
 
     if (!print_flag->answer) {
 	G_percent(nacats, nacats, 2);
+	db_close_database_shutdown_driver(Adriver);
+	db_free_string(&stmt);
 	G_message(_("%d records updated"), update_ok);
 	if (update_err > 0)
 	    G_message(_("%d update errors"), update_err);
-    }
-
-
-    if (!print_flag->answer) {
-	db_close_database_shutdown_driver(Adriver);
-	db_free_string(&stmt);
-
-	G_message(_("%d records inserted"), update_ok);
-	if (update_err > 0)
-	    G_message(_("%d insert errors"), update_err);
 
 	Vect_set_db_updated(&AIn);
     }
@@ -710,18 +714,4 @@ int main(int argc, char *argv[])
     G_done_msg(" ");
 
     exit(EXIT_SUCCESS);
-}
-
-
-static int cmp_area(const void *pa, const void *pb)
-{
-    AREA_CAT *p1 = (AREA_CAT *) pa;
-
-    AREA_CAT *p2 = (AREA_CAT *) pb;
-
-    if (p1->area_cat < p2->area_cat)
-	return -1;
-    if (p1->area_cat > p2->area_cat)
-	return 1;
-    return 0;
 }
