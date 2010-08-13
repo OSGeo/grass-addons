@@ -1,0 +1,63 @@
+Index: main.c
+===================================================================
+--- main.c	(revision 43092)
++++ main.c	(working copy)
+@@ -24,7 +24,7 @@
+ #include <grass/glocale.h>
+ #include <grass/stats.h>
+ #include <grass/dbmi.h>
+-#include <grass/Vect.h>
++#include <grass/vector.h>
+ 
+ struct menu
+ {
+@@ -108,7 +108,7 @@
+     char buf[2000];
+     int update_ok, update_err;
+     struct ilist *List;
+-    BOUND_BOX box;
++    struct bound_box box;
+     dbCatValArray cvarr;
+     dbColumn *column;
+     struct pvalcat
+@@ -125,7 +125,9 @@
+     G_gisinit(argv[0]);
+ 
+     module = G_define_module();
+-    module->keywords = _("vector, database, attribute table");
++    G_add_keyword(_("vector"));
++    G_add_keyword(_("database"));
++    G_add_keyword(_("attribute table"));
+     module->description = _("Count points in areas, calculate statistics.");
+ 
+     point_opt = G_define_standard_option(G_OPT_V_INPUT);
+@@ -169,7 +171,7 @@
+     method_opt->options = p;
+     method_opt->description = _("Method for aggregate statistics");
+ 
+-    point_column_opt = G_define_standard_option(G_OPT_COLUMN);
++    point_column_opt = G_define_standard_option(G_OPT_DB_COLUMN);
+     point_column_opt->key = "pcolumn";
+     point_column_opt->required = NO;
+     point_column_opt->multiple = NO;
+@@ -478,10 +480,6 @@
+     pvalcats =
+ 	(struct pvalcat *)G_calloc(npvalcatsalloc, sizeof(struct pvalcat));
+ 
+-    /* remove for GRASS 7 */
+-    G_verbose_message(_("creating spatial index"));
+-    Vect_build_spatial_index(&PIn);
+-
+     G_message(_("Selecting points for each area..."));
+     count = 0;
+     for (area = 1; area <= nareas; area++) {
+@@ -657,7 +655,8 @@
+ 
+ 	if (Area_cat[i].count > 0 && method_opt->answer) {
+ 	    /* get stats */
+-	    statsvalue(&result, Area_cat[i].values, Area_cat[i].nvalues);
++	    statsvalue(&result, Area_cat[i].values, Area_cat[i].nvalues,
++			NULL);
+ 
+ 	    if (half)
+ 		result += 0.5;
