@@ -139,18 +139,18 @@ int main(int argc, char *argv[])
     /* area_opt->guisection = _("Required"); */
 
     point_type_opt = G_define_standard_option(G_OPT_V_TYPE);
-    point_type_opt->key = "point_type";
+    point_type_opt->key = "type";
     point_type_opt->options = "point,centroid";
     point_type_opt->answer = "point";
     point_type_opt->label = _("Feature type");
     point_type_opt->required = NO;
 
     point_field_opt = G_define_standard_option(G_OPT_V_FIELD);
-    point_field_opt->key = "point_layer";
+    point_field_opt->key = "player";
     point_field_opt->label = _("Layer number for points map");
 
     area_field_opt = G_define_standard_option(G_OPT_V_FIELD);
-    area_field_opt->key = "area_layer";
+    area_field_opt->key = "alayer";
     area_field_opt->label = _("Layer number for area map");
 
     method_opt = G_define_option();
@@ -170,6 +170,7 @@ int main(int argc, char *argv[])
     method_opt->description = _("Method for aggregate statistics");
 
     point_column_opt = G_define_standard_option(G_OPT_COLUMN);
+    point_column_opt->key = "pcolumn";
     point_column_opt->required = NO;
     point_column_opt->multiple = NO;
     point_column_opt->label =
@@ -177,20 +178,20 @@ int main(int argc, char *argv[])
     point_column_opt->description = _("Column of points map must be numeric");
 
     count_column_opt = G_define_option();
-    count_column_opt->key = "count_column";
+    count_column_opt->key = "ccolumn";
     count_column_opt->type = TYPE_STRING;
     count_column_opt->required = NO;
     count_column_opt->multiple = NO;
-    count_column_opt->label = _("Column name for points count");
+    count_column_opt->label = _("Column name to upload points count");
     count_column_opt->description =
 	_("Column to hold points count, must be of type integer, will be created if not existing");
 
     stats_column_opt = G_define_option();
-    stats_column_opt->key = "stats_column";
+    stats_column_opt->key = "scolumn";
     stats_column_opt->type = TYPE_STRING;
     stats_column_opt->required = NO;
     stats_column_opt->multiple = NO;
-    stats_column_opt->label = _("Column name for statistics");
+    stats_column_opt->label = _("Column name to upload statistics");
     stats_column_opt->description =
 	_("Column to hold statistics, must be of type double, will be created if not existing");
 
@@ -231,17 +232,21 @@ int main(int argc, char *argv[])
     }
 
     /* check for stats */
+    if (method_opt->answer) {
+	if (!point_column_opt->answer) {
+	    G_fatal_error("Method but no point column selected");
+	}
+	if (!print_flag->answer && !stats_column_opt->answer)
+	    G_fatal_error("Name for stats column is missing");
+    }
+
     if (point_column_opt->answer) {
 	if (!method_opt->answer)
 	    G_fatal_error("No method for statistics selected");
 	if (!print_flag->answer && !stats_column_opt->answer)
 	    G_fatal_error("Name for stats column is missing");
     }
-    else {
-	method_opt->answer = NULL;
-	stats_column_opt->answer = NULL;
-    }
-
+    
     /* Open points vector */
     if ((mapset = G_find_vector2(point_opt->answer, "")) == NULL)
 	G_fatal_error(_("Vector map <%s> not found"), point_opt->answer);
@@ -305,7 +310,7 @@ int main(int argc, char *argv[])
 			  AFi->database, AFi->driver);
 
 	if (!count_column_opt->answer)
-	    G_fatal_error(_("count_column is required to upload point counts"));
+	    G_fatal_error(_("ccolumn is required to upload point counts"));
 
 	/* check if count column exists */
 	db_get_column(Adriver, AFi->table, count_column_opt->answer, &column);
@@ -313,27 +318,27 @@ int main(int argc, char *argv[])
 	    /* check count column type */
 	    if (db_column_Ctype(Adriver, AFi->table, count_column_opt->answer)
 		!= DB_C_TYPE_INT)
-		G_fatal_error(_("count_column must be of type integer"));
+		G_fatal_error(_("ccolumn must be of type integer"));
 
 	    db_free_column(column);
 	    column = NULL;
 	}
 	else {
 	    /* create column */
-	    db_set_string(&stmt, "alter table ");
-	    db_append_string(&stmt, AFi->table);
-	    db_append_string(&stmt, " add column ");
-	    db_append_string(&stmt, count_column_opt->answer);
-	    db_append_string(&stmt, " integer");
-
-	    if (db_execute_immediate(Adriver, &stmt) != DB_OK)
-		G_fatal_error(_("Unable to add column: '%s'"),
-			      db_get_string(&stmt));
+	    db_init_column(column);
+	    db_set_column_name(column, count_column_opt->answer);
+	    db_set_column_sqltype(column, DB_SQL_TYPE_INTEGER);
+	    db_set_string(&dbstr, AFi->table);
+	    if (db_add_column(Adriver, &dbstr, column) != DB_OK)
+		G_fatal_error(_("Unable to add column <%s>"),
+			      count_column_opt->answer);
+	    db_free_column(column);
+	    column = NULL;
 	}
 
 	if (method_opt->answer) {
 	    if (!stats_column_opt->answer)
-		G_fatal_error(_("stats_column is required to upload point stats"));
+		G_fatal_error(_("scolumn is required to upload point stats"));
 
 	    /* check if stats column exists */
 	    db_get_column(Adriver, AFi->table, stats_column_opt->answer,
@@ -343,22 +348,22 @@ int main(int argc, char *argv[])
 		if (db_column_Ctype
 		    (Adriver, AFi->table,
 		     stats_column_opt->answer) != DB_C_TYPE_DOUBLE)
-		    G_fatal_error(_("stats_column must be of type double"));
+		    G_fatal_error(_("scolumn must be of type double"));
 
 		db_free_column(column);
 		column = NULL;
 	    }
 	    else {
 		/* create column */
-		db_set_string(&stmt, "alter table ");
-		db_append_string(&stmt, AFi->table);
-		db_append_string(&stmt, " add column ");
-		db_append_string(&stmt, stats_column_opt->answer);
-		db_append_string(&stmt, " double precision");
-
-		if (db_execute_immediate(Adriver, &stmt) != DB_OK)
-		    G_fatal_error(_("Unable to add column: '%s'"),
-				  db_get_string(&stmt));
+		db_init_column(column);
+		db_set_column_name(column, stats_column_opt->answer);
+		db_set_column_sqltype(column, DB_SQL_TYPE_DOUBLE_PRECISION);
+		db_set_string(&dbstr, AFi->table);
+		if (db_add_column(Adriver, &dbstr, column) != DB_OK)
+		    G_fatal_error(_("Unable to add column <%s>"),
+				  stats_column_opt->answer);
+		db_free_column(column);
+		column = NULL;
 	    }
 	}
     }
@@ -652,8 +657,7 @@ int main(int argc, char *argv[])
 
 	if (Area_cat[i].count > 0 && method_opt->answer) {
 	    /* get stats */
-	    statsvalue(&result, Area_cat[i].values, Area_cat[i].nvalues,
-		       NULL);
+	    statsvalue(&result, Area_cat[i].values, Area_cat[i].nvalues);
 
 	    if (half)
 		result += 0.5;
