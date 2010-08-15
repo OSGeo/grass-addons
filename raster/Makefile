@@ -21,6 +21,7 @@ SUBDIRS = \
 	r.out.kml \
 	r.out.netcdf \
 	r.pack \
+	r.pi \
 	r.prominence \
 	r.rast4d \
 	r.roughness \
