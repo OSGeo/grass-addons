@@ -6,7 +6,7 @@
 # AUTHOR(S):    iullah
 # COPYRIGHT:    (C) 2009 GRASS Development Team/iullah
 #
-#  description: Create raster maps of net erosion/depostion, the modified terrain surface (DEM) after net erosion/deposition using the USPED equation, bedrock elevations after soil production, and soil depth maps. This module uses appropriate flow on different landforms by default; however, singular flow regimes can be chosen instead. THIS SCRIPT WILL PRODUCE MANY TEMPORARY MAPS AND REQUIRES A LOT OF FREE FILE SPACE! Note that all flags are disabled! Currently flags -z -b -n -f are hard coded to run by default.
+#  description: Create raster maps of net erosion/depostion, the modified terrain surface (DEM) after net erosion/deposition using the USPED equation, bedrock elevations after soil production, and soil depth maps. This module uses appropriate flow on different landforms by default; however, singular flow regimes can be chosen instead. THIS SCRIPT WILL PRODUCE MANY TEMPORARY MAPS AND REQUIRES A LOT OF FREE FILE SPACE! 
 
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #
 #############################################################################/
 #%Module
-#% description: Create raster maps of net erosion/depostion, the modified terrain surface (DEM) after net erosion/deposition using the USPED equation, bedrock elevations after soil production, and soil depth maps. This module uses appropriate flow on different landforms by default; however, singular flow regimes can be chosen instead. THIS SCRIPT WILL PRODUCE MANY TEMPORARY MAPS AND REQUIRES A LOT OF FREE FILE SPACE! Note that all flags are disabled! Currently flags -z -b -n -f are hard coded to run by default.
+#% description: Create raster maps of net erosion/depostion, the modified terrain surface (DEM) after net erosion/deposition using the USPED equation, bedrock elevations after soil production, and soil depth maps. This module uses appropriate flow on different landforms by default; however, singular flow regimes can be chosen instead. THIS SCRIPT WILL PRODUCE MANY TEMPORARY MAPS AND REQUIRES A LOT OF FREE FILE SPACE! 
 #%End
 #%option
 #% key: elev
@@ -96,11 +96,6 @@
 #%flag
 #% key: e
 #% description: -e Keep initial soil depths map (for year 0)
-#% guisection: Input
-#%end
-#%flag
-#% key: z
-#% description: -z Do not stay zoomed into output maps (return to default region settings)
 #% guisection: Input
 #%end
 #%flag
@@ -292,11 +287,14 @@ import sys
 import os
 import subprocess
 import tempfile
+grass_install_tree = os.getenv('GISBASE')
+sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
+import grass.script as grass
 
 # first define some useful custom methods
 
 # m is a message (as a string) one wishes to have printed in the output window
-def grass_print(m):
+def grass_message(m):
 	subprocess.Popen('g.message message="%s"' % m, shell='bash').wait()
 	return
 
@@ -324,7 +322,7 @@ def out2list(m, n):
         p2 = p1.stdout.readlines()
         for y in p2:
             n.append(y.strip('\n'))
-
+#SAVE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # m is a grass/bash command that will generate some info to stdout. You must invoke this command in the form of "variable to be made" = out2var('command')
 def out2var(m):
         pn = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
@@ -398,7 +396,7 @@ def main(m, o, p, q, r):
         old_dem = '%s' % os.getenv("GIS_OPT_elev")
         old_bdrk = '%s' % os.getenv("GIS_OPT_initbdrk")
         old_soil = "%s%s_init" % (prefx, os.getenv("GIS_OPT_outsoil"))
-        grass_com('r.mapcalc "%s=%s - %s"' % (old_soil, old_dem, old_bdrk))
+        grass.mapcalc('${out}=${m1}-${m2}', out = old_soil, m1 = old_dem, m2 = old_bdrk)
     else :
         old_dem = '%s%s%s' % (p, os.getenv("GIS_OPT_outdem"), m)
         old_bdrk = '%s%s%s' % (p, os.getenv("GIS_OPT_outbdrk"), m)
@@ -416,38 +414,38 @@ def main(m, o, p, q, r):
         new_dem = '%s%s%s' % (p, outdem, o)
         new_bdrk = '%s%s%s' % (p, outbdrk, o)
         new_soil = '%s%s%s' % (p, outsoil, o)
-    grass_print('\n##################################################\n\n*************************\n Year %s ' % o + 'step 1 of 7: calculating slope and aspect\n*************************\n')
-    grass_com('r.slope.aspect --quiet elevation=%s slope=%s aspect=%s pcurv=%s tcurv=%s' % (old_dem, slope, aspect, pc, tc))
-    grass_print('\n*************************\n Year %s ' % o + 'step 2 of 7: calculating upslope accumulated flow\n*************************\n')       
+    grass.message('\n##################################################\n\n*************************\n Year %s ' % o + 'step 1 of 7: calculating slope and aspect\n*************************\n')
+    grass.run_command('r.slope.aspect',  quiet = True, elevation = old_dem, slope = slope, aspect = aspect,  pcurv = pc, tcurv = tc)
+    grass.message('\n*************************\n Year %s ' % o + 'step 2 of 7: calculating upslope accumulated flow\n*************************\n')       
     if ( os.getenv("GIS_FLAG_f") == "1" ):
-        grass_print('using r.terraflow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)\n\n')   
+        grass.message('using r.terraflow to calculate overland flow accumulation per cell (number of cells uplsope from each cell)\n\n')   
         #First we need to grab the amount of free RAM for r.terraflow
         mem = getram()
         #r.terraflow can't handle it if you tell it to use more than 2 Gigs of RAM, so if you have more than that, we have to tell r.terraflow to only use up to 2 Gigs of the free RAM... 
         if int(mem) > 2000:
             mem = '2000'    
-        grass_print('Amount of free RAM being allocated for this step: %s Megabites' % mem)
-        grass_com('r.terraflow --q elev=' + old_dem + ' filled=' + p + '.filled direction=' + p + '.direct swatershed=' + p + '.sink accumulation=' + flowacc + ' tci=' + p + '.tci d8cut=infinity memory=' +  mem+ ' STREAM_DIR=/var/tmp ')
-        grass_com('g.remove --quiet rast=%s.filled,%s.direct,%s.sink,%s.tci,%s' % (p, p, p, p, tmpdirection))
-        os.remove(os.sep + 'var' + os.sep +'tmp' + os.sep + 'STREAM*')
+        grass.message('Amount of free RAM being allocated for this step: %s Megabites' % mem)
+        grass.run_command('r.terraflow',  quiet = True,  elev = old_dem, filled = p + '.filled', direction = p + '.direct', swatershed = p + '.sink', accumulation = flowacc, tci = p + '.tci',  d8cut = 'infinity', memory = mem, STREAM_DIR = os.path.expanduser('~'))
+        grass.run_command('g.remove', quiet =True, rast = p + '.filled, ' + p + '.direct, ' + p + '.sink, ' + p + '.tci')
+        os.remove(os.path.expanduser('~') + os.sep + 'STREAM*')
     else:
-        grass_print('Using r.watershed to calculate overland flow accumulation per cell (number of cells uplsope from each cell)')
+        grass.message('Using r.watershed to calculate overland flow accumulation per cell (number of cells uplsope from each cell)')
         if '<flag name="f">' in out2var('r.watershed --interface-description'):
-            grass_com('r.watershed --quiet -fa elevation=' + old_dem + ' accumulation=' + flowacc + ' convergence=5')
+            grass.run_command('r.watershed',  quiet = True,  flags = 'fa',  elevation = old_dem, accumulation = flowacc,  convergence = '5')
         else:
-            grass_com('r.watershed --quiet -a elevation=' + old_dem + ' accumulation=' + flowacc + ' convergence=5')
+            grass.run_command('r.watershed',  quiet = True,  flags = 'a',  elevation = old_dem, accumulation = flowacc,  convergence = '5')
 
-    grass_print('\n*************************\n Year %s ' % o + 'step 3 of 7: calculating basic sediment transport rates\n*************************\n')  
+    grass.message('\n*************************\n Year %s ' % o + 'step 3 of 7: calculating basic sediment transport rates\n*************************\n')  
     error_message = '\n############################################################\n !!!!!!!!!YOU MUST SELECT ONLY ONE TYPE OF EROSION!!!!!!!!!!!\n ############################################################ \n \n'
     if ( os.getenv("GIS_FLAG_w") == "1" and  os.getenv("GIS_FLAG_d") == "0" and os.getenv("GIS_FLAG_r") == "0" ):
-        grass_print('calculating for sheetwash across the entire map')
-        grass_com('r.mapcalc "%s=%s * sin(%s)"' % (sflowtopo, flowacc, slope))
+        grass.message('calculating for sheetwash across the entire map')
+        grass.mapcalc('${sflowtopo} = ${flowacc} * sin(${slope})',  sflowtopo = sflowtopo,  flowacc = flowacc,  slope = slope)
     elif ( os.getenv("GIS_FLAG_w") == "0" and  os.getenv("GIS_FLAG_d") == "0" and os.getenv("GIS_FLAG_r") == "1" ):
-        grass_print('calculating for channelzed flow across the entire map')
-        grass_com('r.mapcalc "%s=exp((%s),1.6) * exp(sin(%s),1.3)"' % (sflowtopo, flowacc, slope))
+        grass.message('calculating for channelzed flow across the entire map')
+        grass.mapcalc('${sflowtopo} = exp(${flowacc}, 1.6) * exp(sin(${slope}), 1.3)',  sflowtopo = sflowtopo,  flowacc = flowacc,  slope = slope)
     elif ( os.getenv("GIS_FLAG_w") == "0" and  os.getenv("GIS_FLAG_d") == "1" and os.getenv("GIS_FLAG_r") == "0" ):
-        grass_print('calculating for diffusive flow across the entire map')
-        grass_com('r.mapcalc "%s=%s * exp((%s),2) * sin(%s)"' % (sflowtopo, kappa, r, slope))
+        grass.message('calculating for diffusive flow across the entire map')
+        grass.mapcalc('${sflowtopo} = ${kappa} * exp((${r},2) * sin(${slope})',  out = sflowtopo,  kappa = kappa,  r = r,  slope = slope)
     elif ( os.getenv("GIS_FLAG_w") == "0" and  os.getenv("GIS_FLAG_d") == "1" and os.getenv("GIS_FLAG_r") == "1" ):
         sys.exit(error_message)
     elif ( os.getenv("GIS_FLAG_w") == "1" and  os.getenv("GIS_FLAG_d") == "0" and os.getenv("GIS_FLAG_r") == "1" ):
@@ -458,89 +456,86 @@ def main(m, o, p, q, r):
         sys.exit(error_message)
     else:
         # This step calculates the force of the flowing water at every cell on the landscape using the proper transport process law for the specific point in the flow regime. For upper hillslopes (below cutoff point 1) this done by multiplying the diffusion coeficient by the accumulated flow/cell res width. For midslopes (between cutoff 1 and 2) this is done by multiplying slope by accumulated flow with the m and n exponents set to 1. For channel catchment heads (between cutoff 2 and 3), this is done by multiplying slope by accumulated flow with the m and n exponents set to 1.6 and 1.3 respectively. For Channelized flow in streams (above cutoff 3), this is done by calculating the reach average shear stress (hydraulic radius [here estimated for a cellular landscape simply as the depth of flow]  times  slope times accumulated flow [cells] times gravitatiopnal acceleration of water [9806.65 newtons], all raised to the appropriate exponant for the type of transport (bedload or suspended load]). Depth of flow is claculated as a mean "instantaneous depth" during any given rain event, here assumed to be roughly equivelent tothe average depth of flow during 1 minute. 
-        grass_com('r.mapcalc "' + sflowtopo + '= if(' + flowacc + ' >= ' + cutoff3 + ', exp((9806.65 * ((' + rain + ' - (' + rain + ' * ' + infilt + ')) / (' + raindays + ' * 1440)) * ' + flowacc + ' * ' + slope + '), ' + loadexp + '), if(' + flowacc + ' >= ' + cutoff2 + ' && ' + flowacc + ' < ' + cutoff3 + ', (exp((' + flowacc + '*' + r + '),1.6000000) * exp(sin(' + slope + '),1.3000000)), if(' + flowacc + ' >= ' + cutoff1 + ' && ' + flowacc + ' < ' + cutoff2 + ', ((' + flowacc + '*' + r + ') * sin(' + slope + ')), (' + kappa + ' * sin(' + slope + ') ))))"')
+        grass.mapcalc('${sflowtopo}= if(${flowacc} >= ${cutoff3}, exp((9806.65 * ((${rain} - (${rain} * ${infilt})) / (${raindays} * 1440)) * ${flowacc} * ${slope}), ${loadexp}), if(${flowacc} >= ${cutoff2} && ${flowacc} < ${cutoff3}, (exp((${flowacc}*${r}),1.6000000) * exp(sin(${slope}),1.3000000)), if(${flowacc} >= ${cutoff1} && ${flowacc} < ${cutoff2}, ((${flowacc}*${r}) * sin(${slope})), (${kappa} * sin(${slope}) ))))', sflowtopo = sflowtopo, rain = rain, infilt = infilt, raindays = raindays, flowacc = flowacc, cutoff1 = cutoff1,  cutoff2 = cutoff2,  cutoff3 = cutoff3,  slope = slope, kappa = kappa,  loadexp = loadexp,  r = r)
     
-    grass_print('\n*************************\n Year %s ' % o + 'step 4 of 7: calculating sediment transport capacity in x and y directions\n*************************\n\n')
+    grass.message('\n*************************\n Year %s ' % o + 'step 4 of 7: calculating sediment transport capacity in x and y directions\n*************************\n\n')
         #This step calculates the stream power or sediment carrying capacity (qs) of the water flowing at each part of the map by multiplying the reach average shear stress (channelized flow in streams) or the estimated flow force (overland flow) by the transport coeficient (estimated by R*K*C for hillslopes or kt for streams). This is a "Transport Limited" equation, however, we add some constraints on detachment by checking to see if the sediment supply has been exhausted: if the current soil depth is 0 or negative (checking for a negative value is kind of an error trap) then we make the transport coefficient small (0.000001) to simulate erosion on bedrock.
+    grass.mapcalc('${qsx}=if(${old_soil} <= 0, (0.000001 * ${sflowtopo} * cos(${aspect})), if(${old_soil} > 0 && ${flowacc} >= ${cutoff3}, (${Kt} * ${sflowtopo} * cos(${aspect})), (${R} * ${K} * ${C} * ${sflowtopo} * cos(${aspect}))))', qsx = qsx, old_soil = old_soil, flowacc = flowacc, sflowtopo = sflowtopo, aspect = aspect, cutoff3 = cutoff3, Kt = Kt, R = R, K = K, C = C)
+    grass.mapcalc('${qsy}=if(${old_soil} <= 0, (0.000001 * ${sflowtopo} * sin(${aspect})), if(${old_soil} > 0 && ${flowacc} >= ${cutoff3}, (${Kt} * ${sflowtopo} * sin(${aspect})), (${R} * ${K} * ${C} * ${sflowtopo} * sin(${aspect}))))', qsy = qsy, old_soil = old_soil, flowacc = flowacc, sflowtopo = sflowtopo, aspect = aspect, cutoff3 = cutoff3, Kt = Kt, R = R, K = K, C = C)
 
-    grass_com('r.mapcalc "' + qsx + '=if(' + old_soil + ' <= 0, (0.000001 * ' + sflowtopo + ' * cos(' + aspect + ')), if(' + old_soil + ' > 0 && ' + flowacc + ' >= ' + cutoff3 + ', (' + Kt + ' * ' + sflowtopo + ' * cos(' + aspect + ')), (' + R + ' * ' + K + ' * ' + C + ' * ' + sflowtopo + ' * cos(' + aspect + '))))"')
 
-    grass_com('r.mapcalc "' + qsy + '=if(' + old_soil + ' <= 0, (0.000001 * ' + sflowtopo + ' * sin(' + aspect + ')), if(' + old_soil + ' > 0 && ' + flowacc + ' >= ' + cutoff3 + ', (' + Kt + ' * ' + sflowtopo + ' * sin(' + aspect + ')), (' + R + ' * ' + K + ' * ' + C + ' * ' + sflowtopo + ' * sin(' + aspect + '))))"')
+    grass.message('\n*************************\n Year %s ' % o + 'step 5 of 7: calculating partial derivatives for sediment transport\n*************************\n\n')
+    grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsx, dx = qsxdx)
+    grass.run_command('r.slope.aspect',  quiet = True,  elevation = qsy, dy = qsydy)
 
-    grass_print('\n*************************\n Year %s ' % o + 'step 5 of 7: calculating partial derivatives for sediment transport\n*************************\n\n')
-    grass_com('r.slope.aspect --q %s dx=%s' % (qsx ,qsxdx))
-    grass_com('r.slope.aspect --q %s dy=%s' % (qsy ,qsydy))
-
-    grass_print('\n*************************\n Year %s ' % o + 'step 6 of 7: calculating net erosion and deposition in meters of vertical change per cell\n*************************\n\n')
+    grass.message('\n*************************\n Year %s ' % o + 'step 6 of 7: calculating net erosion and deposition in meters of vertical change per cell\n*************************\n\n')
     #Then we add the x and y flux's for total flux "T" in Mg/Ha. Then if we multiply T times 100, we get a rate in grams/squaremeter. This new rate times the resolution gives us grams per cell width. Then we divide this by the density to get cubic centimeters per cell width. This measure is then divided by the area of the cell in centimeters (resolution squared x 100 squared) to get vertical change per cell width in centimeters. We dived this by 100 to get that measure in meters. Several of these facctors cancel out to make a final equation of "T/(10,000*density*resolution)". This equation changes the orignal T from Mg/Ha to vertical change in meters over the length of one cell's width.  In order to convert the output back to Mg/Ha (standard rate for USPED/RUSLE equations), you can multiply the netchange output map by "(10000 x resolution x soil density)" to create a map of soil erosion/deposition rates across the landscape. The rest of this mampcalc statement just checks the amount of erodable soil in a given cell against the amount of erosion calculated, and keeps the cell from eroding past this amount (if there is soil, then if the amount of erosion is more than the amount of soil, just remove all the soil and stop, else remove the amount of caclulated erosion. It also runs an error catch that checks to make sure that soil depth is not negative, and if it is, corrects it).
-    grass_com('r.mapcalc "' + erdep + '= if( ' + old_soil + ' >= 0, if( (-1 * ( ( (' + qsxdx + ' + ' + qsydy + ') ) / ( 10000 * ' + sdensity + ' ) ) ) >= ' + old_soil + ', ( -1 * ' + old_soil + ' ), ( ( (' + qsxdx + ' + ' + qsydy + ') )/ ( 10000 * ' + sdensity + ' ) ) ), ( ( (' + qsxdx + ' + ' + qsydy + ') ) / ( 10000 * ' + sdensity + ' ) ) )"')
-
-    grass_print('\n*************************\n Year %s ' % o + 'step 7 of 7: calculating terrain evolution, new bedrock elevations, and new soil depths\n *************************\n\n')
+    grass.mapcalc('${erdep}= if( ${old_soil} >= 0, if( (-1 * ( ( (${qsxdx} + ${qsydy}) ) / ( 10000 * ${sdensity} ) ) ) >= ${old_soil}, ( -1 * ${old_soil} ), ( ( (${qsxdx} + ${qsydy}) )/ ( 10000 * ${sdensity} ) ) ), ( ( (${qsxdx} + ${qsydy}) ) / ( 10000 * ${sdensity} ) ) )', erdep = erdep, old_soil = old_soil, qsxdx = qsxdx, sdensity = sdensity, qsydy = qsydy)
+    
+    grass.message('\n*************************\n Year %s ' % o + 'step 7 of 7: calculating terrain evolution, new bedrock elevations, and new soil depths\n *************************\n\n')
     #put the net dz back where it is supposed to go (correct for the fact that, in grass, derivitaves of slope are calculated and stored one cell downslope from the cell where they actually belong) must be calulatedand then subtract it from dem to make new dem
-    grass_com('r.mapcalc "' + netchange + ' =eval(x=if((' + aspect + '  < 22.5 ||  ' + aspect + '  >= 337.5) && ' + aspect + '  != 0, (' + erdep + ' [1,0]), if (' + aspect + '  >= 22.5 && ' + aspect + '  < 67.5, (' + erdep + ' [1,-1]), if (' + aspect + '  >= 67.5 && ' + aspect + '  < 112.5, (' + erdep + ' [0,-1]), if (' + aspect + '  >= 112.5 && ' + aspect + '  < 157.5, (' + erdep + ' [-1,-1]), if (' + aspect + '  >= 157.5 && ' + aspect + '  < 202.5, (' + erdep + ' [-1,0]), if (' + aspect + '  >= 202.5 && ' + aspect + '  < 247.5, (' + erdep + ' [-1,1]), if (' + aspect + '  >= 247.5 && ' + aspect + '  < 292.5, (' + erdep + ' [0,1]), if (' + aspect + '  >= 292.5 && ' + aspect + '  < 337.5, (' + erdep + ' [1,1]), (' + erdep + ' ))))))))), (if(isnull(x), ' + erdep + ' , x)))"')
+    grass.mapcalc('${netchange} =eval(x=if((${aspect}  < 22.5 ||  ${aspect}  >= 337.5) && ${aspect}  != 0, (${erdep} [1,0]), if (${aspect}  >= 22.5 && ${aspect}  < 67.5, (${erdep} [1,-1]), if (${aspect}  >= 67.5 && ${aspect}  < 112.5, (${erdep} [0,-1]), if (${aspect}  >= 112.5 && ${aspect}  < 157.5, (${erdep} [-1,-1]), if (${aspect}  >= 157.5 && ${aspect}  < 202.5, (${erdep} [-1,0]), if (${aspect}  >= 202.5 && ${aspect}  < 247.5, (${erdep} [-1,1]), if (${aspect}  >= 247.5 && ${aspect}  < 292.5, (${erdep} [0,1]), if (${aspect}  >= 292.5 && ${aspect}  < 337.5, (${erdep} [1,1]), (${erdep} ))))))))), (if(isnull(x), ${erdep} , x)))', netchange = netchange, aspect = aspect, erdep = erdep)
+
     temp_dem = '%stemp_dem' % p
-    grass_com('r.mapcalc "' + temp_dem + '=' + old_dem + ' + ' + netchange + '"')
+    grass.mapcalc('' + temp_dem + '=' + old_dem + ' + ' + netchange + '', temp_dem = temp_dem, old_dem = old_dem, netchange = netchange)
     #do patch-job to catch the shrinking edge problem
-    grass_com('r.patch --quiet input=%s,%s output=%s' % (temp_dem, old_dem, new_dem))
+    grass.run_command('r.patch', quiet = True,  input = temp_dem + ',' + old_dem,  output= new_dem)
     #set colors for elevation map to match other dems
-    grass_com('r.colors --q map=' + new_dem + ' rast=' + os.getenv("GIS_OPT_elev"))
-    grass_com('g.remove --quiet rast=%s' % temp_dem)
+    grass.run_command('r.colors',  quiet = True, map = new_dem, rast = os.getenv("GIS_OPT_elev"))
+    grass.run_command('g.remove', quiet = True, rast = temp_dem)
     #if asked, calculate amount of bedrock weathered and update soildepths map with this info, else just make a new soildepths map based on amount of erosion deposition
     if ( os.getenv("GIS_FLAG_b") == "1" ):
-        grass_print('\nstep 8.5: Experimental bedrock weathering\n')
-        grass_com('r.mapcalc "' + meancurv + '=((' + pc + ' + ' + tc + ') / 2)"')
+        grass.message('\nstep 8.5: Experimental bedrock weathering\n')
+        grass.mapcalc('${meancurv}=((${pc} + ${tc}) / 2)', meancurv = meancurv, pc = pc,  tc = tc)
         # create dictionary to record max and min curvature
-        statdict2 = {}
-        out2dict('r.info -r map=%s' % meancurv, '=', statdict2)
-        grass_print('\nThe raw max (' + statdict2['max'] + ') and min (' + statdict2['min'] + ') curvature will be rescaled from 2 to 0\n')
+        statdict2 = grass.parse_command('r.info',  flags = 'r', map =meancurv)
+        grass.message('\nThe raw max (' + statdict2['max'] + ') and min (' + statdict2['min'] + ') curvature will be rescaled from 2 to 0\n')
         # create map of bedrock weathering rates
-        grass_com('r.mapcalc "' + rate + '=' + kappa + '*(2-(' + meancurv + '*(2/(' + statdict2['max'] + ')-(' + statdict2['min'] + '))))"')
+        grass.mapcalc('${rate}=${kappa}*(2-(${meancurv}*(2/(${max})-(${min}))))', rate = rate, kappa = kappa, meancurv = meancurv,  max = statdict2['max]'], min = statdict2['min'])
         #rate is actually the net change in bedrock elevation due to soil production, so lets use it to find the new bedrock elev, and the new soil depth!
-        grass_com('r.mapcalc "' + new_bdrk + '=' + old_bdrk + ' - ' + rate + '"')
-        grass_print('Calculating new soil depths using new bedrock map')
-        grass_com('r.mapcalc "' + new_soil + '=if ((' + new_dem + ' - ' + new_bdrk + ') < 0, 0, (' + new_dem + ' - ' + new_bdrk + '))"')
+        grass.mapcalc('${new_bdrk}=${old_bdrk} - ${rate}', new_bdrk = new_bdrk, old_bdrk = old_bdrk, rate = rate)
+        grass.message('Calculating new soil depths using new bedrock map')
+        grass.mapcalc('${new_soil}=if ((${new_dem} - ${new_bdrk}) < 0, 0, (${new_dem} - ${new_bdrk}))',  new_soil = new_soil, new_dem = new_dem, new_bdrk = new_bdrk)
         #these are the old soil equations that I failed to be able to implement... I leave them in for documentation purposes
         #r.mapcalc "$new_bdrk=$initbdrk - ($Ba * ($Bb*($erdep - $initbdrk)))"
         #r.mapcalc "$new_soil=if (($erdep - $initbdrk) < 0, 0, ($erdep - $initbdrk))"
-        grass_com('g.remove --quiet rast=' + rate + ',' + meancurv )
+        grass.run_command('g.remove', quiet = True, rast = rate + ',' + meancurv)
     else:
-        grass_print('\nCalculating new soil depths keeping bedrock elevations static\n')
-        grass_com('r.mapcalc "' + new_soil + '=if ((' + new_dem + ' - ' + initbdrk + ') < 0, 0, (' + new_dem + ' - ' + initbdrk + '))"')
+        grass.message('\nCalculating new soil depths keeping bedrock elevations static\n')
+        grass.mapcalc('${new_soil}=if ((${new_dem} - ${initbdrk}) < 0, 0, (${new_dem} - ${initbdrk}))', new_soil = new_soil, new_dem = new_dem, initbdrk = initbdrk)
     #setting colors for new soil depth map
-    grass_print('reading color rules from %s' % sdcolors.name)
-    grass_print (sdcolors.readlines())
-    grass_com('r.colors --quiet  map=%s rules=%s' % (new_soil ,  sdcolors.name))
+    grass.message('reading color rules from %s' % sdcolors.name)
+    grass.message (sdcolors.readlines())
+    grass.run_command('r.colors', quiet = True, map = new_soil, rules = sdcolors.name)
     #make some temp maps of just erosion and just deposition so we can grab some stats from them
     tmperosion = p + 'tmperosion%s' % o
     tmpdep = p + 'tmpdep%s' % o
-    grass_com('r.mapcalc "' + tmperosion + '=if(' + netchange + ' < 0, ' + netchange + ', null())"')
-    grass_com('r.mapcalc "' + tmpdep + '=if(' + netchange + ' > 0, ' + netchange + ', null())"')
+    grass.mapcalc('' + tmperosion + '=if(' + netchange + ' < 0, ' + netchange + ', null())', tmperosion = tmperosion, netchange = netchange)
+    grass.mapcalc('' + tmpdep + '=if(' + netchange + ' > 0, ' + netchange + ', null())', tmpdep = tmpdep, netchange = netchange)
+
     #grab the stats fromt hese temp files and save them to dictionaries
-    soilstats = {}
-    out2dict('r.univar -g -e map=' + new_soil + ' percentile=99',  '=', soilstats)
-    erosstats = {}
-    out2dict('r.univar -g -e map=' + tmperosion + ' percentile=1',  '=', erosstats)
-    depostats = {}
-    out2dict('r.univar -g -e map=' + tmpdep + ' percentile=99',  '=',  depostats)
-    #clena up temp maps
-    grass_com('g.remove --quiet rast=' + tmperosion + ',' + tmpdep)
+    soilstats = grass.parse_command('r.univar', flags = 'ge', map = new_soil, percentile = '99')
+    erosstats = grass.parse_command('r.univar', flags = 'ge', map = tmperosion, percentile = '1')
+    depostats = grass.parse_command('r.univar', flags = 'ge', map = tmpdep,  percentile = '99')
+    #clean up temp maps
+    grass.run_command('g.remove',  quiet = True, rast = tmperosion + ',' + tmpdep)
     #write stats to a new line in the stats file
-    grass_print('outputing stats to textfile: ' + q)
+    grass.message('Outputing stats to textfile: ' + q)
     f.write('\n%s' % o + ',,' + erosstats['mean'] + ',' + erosstats['min'] + ',' + erosstats['max'] + ',' + erosstats['percentile_1'] + ',,' + depostats['mean'] + ',' + depostats['min'] + ',' + depostats['max'] + ',' + depostats['percentile_99'] + ',,' + soilstats['mean'] + ',' + soilstats['min'] + ',' + soilstats['max'] + ',' + soilstats['percentile_99'])
-    #delete netchange map, if asked to, otherwise set colors foroutput netchange map
+    #delete netchange map, if asked to, otherwise set colors for output netchange map
     if ( os.getenv("GIS_FLAG_n") == "1" ):
-        grass_print('Not keeping a netchange map')
-        grass_com('g.remove --quiet rast=' + netchange)
+        grass.message('Not keeping a netchange map')
+        grass.run_command('g.remove', quiet = True, rast = netchange)
     else:
-        grass_com('r.colors --quiet  map=%s rules=%s' % (netchange, nccolors.name))
+        grass.run_command('r.colors', quiet = True, map = netchange, rules = nccolors.name)
     sdcolors.close()
     nccolors.close()
-    grass_print('\n*************************\nDone with Year %s ' % o + '\n*************************\n')
+    grass.message('\n*************************\nDone with Year %s ' % o + '\n*************************\n')
     if ( m == '0' and os.getenv("GIS_FlAG_e") == "1" ):
-        grass_print('\nkeeping initial soil depths map ' + old_soil + '\n')
+        grass.message('\nkeeping initial soil depths map ' + old_soil + '\n')
     elif m == '0':
-        grass_com('g.remove --quiet rast=' + old_soil)
-    grass_print('\nIf made, raster map ' + netchange + ' shows filtered net erosion/deposition\nIf made, raster map ' + new_soil + ' shows soildpeths\nRaster map ' + new_dem + ' shows new landscape (new elevations) after net erosion/depostion\n*************************\n')
+        grass.run_command('g.remove', quiet = True, rast = old_soil)
+    grass.message('\nIf made, raster map ' + netchange + ' shows filtered net erosion/deposition\nIf made, raster map ' + new_soil + ' shows soildpeths\nRaster map ' + new_dem + ' shows new landscape (new elevations) after net erosion/depostion\n*************************\n')
 
 
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
@@ -553,54 +548,46 @@ if __name__ == "__main__":
         prefx = os.getenv("GIS_OPT_prefx")
         #make the stats out file with correct column headers
         if os.getenv("GIS_OPT_statsout") == "":
-            proc = subprocess.Popen("g.gisenv get=MAPSET", stdout=subprocess.PIPE, shell='bash')
-            out = proc.stdout.read()
-            mapset = out.strip()
+            env = grass.gisenv()
+            mapset = env['MAPSET']
             statsout = '%s_%s_lsevol_stats.txt' % (mapset, prefx)
         else:
             statsout = os.getenv("GIS_OPT_statsout")
         f = file(statsout, 'wt')
         f.write('Year,,Mean Erosion,Max Erosion,Min Erosion,99th Percentile Erosion,,Mean Deposition,Min Deposition,Max Deposition,99th Percentile Deposition,,Mean Soil Depth,Min Soil Depth,Max Soil Depth,99th Percentile Soil Depth')
-        #let's grab the current resolution
-        reg1 = {}
-        out2dict('g.region -p -m -g', '=', reg1)
-        # we must set the region to the map being used. otherwise r.flow will not work
-        grass_print('Setting region to %s' % os.getenv("GIS_OPT_elev"))
-        reg2 = {}
-        out2dict('g.region -a -p -m -g rast=%s' % os.getenv("GIS_OPT_elev"), '=', reg2)
-        #print resolution before and after
-        grass_print('Old resolution was %s' % reg1['nsres'])
-        grass_print('New resolution is %s' % reg2['nsres'])
-        grass_print('\n##################################################\n##################################################\n\n STARTING SIMULATION\n\nBeginning iteration sequence. This may take some time.\nProcess is not finished until you see the message: \'Done with everything\'\n _____________________________________________________________\n_____________________________________________________________\n')
-        grass_print("Total number of iterations to be run is %s years" % years)
+        #region MUST be set to the map being used. otherwise r.flow will not work.
+        #let's grab the current region
+        region1 = grass.region()
+        #now get map extents and resolution of input maps
+        mapextent = grass.raster_info(os.getenv("GIS_OPT_elev"))
+        #Now test to see if region extents and res matches map extents and res
+        if (region1['e'] != mapextent['east'] or region1['w'] != mapextent['west'] or region1['n'] != mapextent['north'] or region1['s'] != mapextent['south'] or region1['nsres'] != mapextent['nsres'] or region1['ewres'] != mapextent['ewres'] ):
+            grass.fatal('Region MUST be set to match input map: ' + os.getenv("GIS_OPT_elev") + '/n Please run g.region and then try again!')
+        grass.message('\n##################################################\n##################################################\n\n STARTING SIMULATION\n\nBeginning iteration sequence. This may take some time.\nProcess is not finished until you see the message: \'Done with everything\'\n _____________________________________________________________\n_____________________________________________________________\n')
+        grass.message("Total number of iterations to be run is %s years" % years)
         # This is the loop!
         for x in range(int(years)):
-            grass_print("Iteration = %s" % (x + 1))
-            main(x, (x + 1), prefx, statsout,  reg2['nsres']);
+            grass.message("Iteration = %s" % (x + 1))
+            main(x, (x + 1), prefx, statsout,  region1['nsres']);
         #since we are now done with the loop, close the stats file.
         f.close()
-        #reset the region if we were asked to
-        if os.getenv("GIS_FLAG_z") == "1":
-            grass_print('\nIterations complete, restoring default region settings\n')
-            grass_com('g.region -d -g')
-        else:
-             grass_print('\nIterations complete, keeping region set to output maps\n')
+        grass.message('\nIterations complete, keeping region set to output maps\n')
         if os.getenv("GIS_FLAG_k") == "1":
-            grass_print('\nTemporary maps have NOT been deleted\n')
+            grass.message('\nTemporary maps have NOT been deleted\n')
         else:
-            grass_print('\nCleaning up temporary maps...\n\n')
+            grass.message('\nCleaning up temporary maps...\n\n')
             if os.getenv("GIS_FLAG_p") == "0":
-                grass_com('g.remove -f --quiet rast=%sslope*' % prefx)
-            grass_com('g.mremove -f --quiet rast=%sflowacc*' % prefx)
-            grass_com('g.mremove -f --quiet rast=%saspect*' % prefx)
-            grass_com('g.mremove -f --quiet rast=%ssflowtopo*' % prefx)
-            grass_com('g.mremove -f --quiet rast=%sqsx*' % prefx)
-            grass_com('g.mremove -f --quiet rast=%sqsy*' % prefx)
-            grass_com('g.mremove -f --quiet rast=%serosdep*' % prefx)
-            grass_com('g.mremove -f --quiet rast=%spc*' % prefx)
-            grass_com('g.mremove -f --quiet rast=%stc*' % prefx)
-            grass_print('\nDone\n\n')
-        grass_print("\n\nDone with everything")
+                grass.run_command('g.mremove', quiet =True, flags = 'f', rast = prefx + 'slope*')
+            grass.run_command('g.mremove', quiet =True, flags = 'f', rast = prefx + 'flowacc*')
+            grass.run_command('g.mremove', quiet =True, flags = 'f', rast = prefx + 'aspect*')
+            grass.run_command('g.mremove', quiet =True, flags = 'f', rast = prefx + 'sflowtop*')
+            grass.run_command('g.mremove', quiet =True, flags = 'f', rast = prefx + 'qsx*')
+            grass.run_command('g.mremove', quiet =True, flags = 'f', rast = prefx + 'qsy*')
+            grass.run_command('g.mremove', quiet =True, flags = 'f', rast = prefx + 'erosdep*')
+            grass.run_command('g.mremove', quiet =True, flags = 'f', rast = prefx + 'pc*')
+            grass.run_command('g.mremove', quiet =True, flags = 'f', rast = prefx + 'tc*')
+            grass.message('\nDone\n\n')
+        grass.message("\n\nDone with everything")
 
 
 
