@@ -1,0 +1,14 @@
+MODULE_TOPDIR = ../../..
+
+PGM = r.stream.order
+
+LIBES = $(GISLIB) $(RASTERLIB) $(SEGMENTLIB) $(VECTLIB) $(DBMILIB)
+DEPENDENCIES = $(GISDEP) $(RASTERDEP) $(SEGMENTDEP) $(VECTDEP) $(DBMIDEP)
+
+EXTRA_INC = $(VECT_INC)
+EXTRA_CFLAGS = $(VECT_CFLAGS)
+
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
+
