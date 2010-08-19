@@ -1,0 +1,84 @@
+############################################################################
+#
+# MODULE:       savanna
+# AUTHOR(S):    Jonathan A. Greenberg <rgridengine@estarcion.net> and Quinn Hart
+# PURPOSE:      Distributes GRASS raster commands across a gridengine cluster.
+# COPYRIGHT:    (C) 2010 by the Jonathan A. Greenberg
+#
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+#############################################################################
+
+savanna is designed to distribute GRASS raster commands across a sun gridengine ("SGE") cluster.
+	The name "savanna" refers to the fact that we are creating a field of GRASS to solve our
+	raster problem.
+
+Overview:
+savanna takes a raster command and a region setting, and runs through these steps to distribute
+	the process across a gridengine cluster:
+1) Initialization: savanna creates a "grid" of polygons which represent the boundaries of each tile
+	which will be processed.  This grid is based on the tile size, the overlap size, and the extent
+	of the g.region.
+2) Tiling: each tile is processed as a SGE job using GRASS's batch mode and g.regions set to the 
+	tile extents.
+3) Copying: each output tile is then cropped (if there is an overlap) and copied back into a central directory.
+4) Mosaic: all of the output tiles are then mosaicked back into a single image.
+5) [TODO]: Once the process has been successfully run, the temporary tile mapsets/files are cleaned up.
+
+Usage:
+[COMING SOON]
+
+Configuring global parameters:
+Edit the "savanna_global_parameters.sh" file to fit your local installation.  
+
+savanna_path: the full path to the savanna*.sh files (where you are probably reading this README)
+savanna_tmp: a path to the temporary outputs of savanna (this is where the output and error logfiles 
+	are stored of the run, so its a good place to check to see how the process is proceding and for 
+	troubleshooting.
+gridengine_settings: this is the full path to the gridengine "settings.sh" file.  Your local admin 
+	should know where this is, if gridengine is installed and running.  A standard install would be
+	something like "/pathto/ge6.2u5/default/common/settings.sh"
+
+Configuring savanna parameter file:
+[this will be a command line argument via getopts eventually, right now you have to edit savanna.sh to the 
+	parameter file.]
+Important: DON'T FORGET THE @mapset -- this scripts launches externally to GRASS, so it has no idea
+	what mapset you want to use.
+Note the use of \ if you need to continue to the next line.
+
+grassdata_directory: the full path to your grass datra directory, e.g.:
+	grassdata_directory='/pathto/grass'
+base_location: the location the savanna run will be performed in, e.g.:
+	base_location='savanna_location'
+gregion: this needs to be a properly formatted g.region statement using rast=raster@mapset, example:
+	"g.region rast=savanna_test@savanna_test_mapset"
+command: a properly formatted r.* command that outputs raster files of the same extent as the input, example:
+	"r.slope.aspect elevation=savanna_test@savanna_test_mapset \
+	slope=savanna_test_slope \
+	aspect=savanna_test_aspect \
+	format=degrees prec=float zfactor=1.0 min_slp_allowed=0.0"
+outputs: this needs to be the output of the raster statement; use wildcards if need be.  Without this, savanna
+	can't perform the copy and mosaic phases (it has no idea what the outputs of your command are).  Example:
+	outputs="savanna_test_*"
+tilexsize and tileysize: these are the requested tile sizes per gridengine job.  The idea is to get these tiles small
+	enough to keep the memory footprint low, while not excessively small so that there is a lot of overhead during
+	the copy/mosaic phases. Example:
+	tilexsize=500
+	tileysize=500
+tileoverlap: if your process requires some level of local neighborhood (e.g. slope and aspect), you need to set an overlap
+	between tiles, otherwise you will have seamlines resulting.  Set this depending on your particular process (straight
+	raster algebra via mapcalc, for instance, could have the overlap set to 0.
+	tileoverlap=10
+mask: UNUSED RIGHT NOW
+	
+TODO:
+Lots of error checking.
+Better command line interface.
+Include example raster.
+Cleanup.
+
+LINKS:
+SGE setup
+SGE main site
