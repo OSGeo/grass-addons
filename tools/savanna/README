@@ -1,7 +1,7 @@
 ############################################################################
 #
 # MODULE:       savanna
-# AUTHOR(S):    Jonathan A. Greenberg <rgridengine@estarcion.net> and Quinn Hart
+# AUTHOR(S):    Jonathan A. Greenberg <savanna@estarcion.net> and Quinn Hart
 # PURPOSE:      Distributes GRASS raster commands across a gridengine cluster.
 # COPYRIGHT:    (C) 2010 by the Jonathan A. Greenberg
 #
