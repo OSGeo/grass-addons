@@ -98,5 +98,5 @@ GLOBAL int nrows, ncols;
 
 GLOBAL STREAM *s_streams;	/* stream structure all parameters we have here */
 GLOBAL INITS *s_inits;
-int *springs, *outlets;
-int springs_num, outlets_num, stream_num;
+GLOBAL int *springs, *outlets;
+GLOBAL int springs_num, outlets_num, stream_num;
