@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.seg
@@ -22,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <grass/gis.h>
 #include <grass/config.h>
 #include <grass/glocale.h>
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     {
 	struct Option *lambda, *kepsilon, *alpha, *beta, *tol, *max_iter;	/* other parameters */
     } opts;
-    struct Flag *flag_k, *flag_s;	/* flag, k = use MSK instead of MS */
+    struct Flag *flag_k;	/* flag, k = use MSK instead of MS */
 
 
     /* initialize GRASS environment */
