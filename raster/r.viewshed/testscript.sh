@@ -29,5 +29,10 @@ r.los hemisphere out=hemisphere_los coord=250,250 max=1000000 obs=100 --o
 d.mon x1
 d.his h=hemisphere_los i=hemisphere.shade
 
+r.mapcalc "hemisphere_diff = hemisphere_viewshed - hemisphere_los"
+r.colors hemisphere_diff color=differences
+d.mon x2
+d.rast.leg pos=80 map=hemisphere_diff
+
 nviz hemisphere col=hemisphere_viewshed
 
