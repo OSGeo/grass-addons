@@ -23,23 +23,22 @@ int ele_round(double x)
  * gets start points for A* Search
  * start points are edges
  */
-int load_maps(int ele_fd, int acc_fd, int weight_fd)
+int load_maps(int ele_fd, int acc_fd)
 {
     int r, c, thisindex;
     char asp_value, *aspp;
-    void *ele_buf, *ptr, *acc_buf = NULL, *acc_ptr = NULL, *weight_buf =
-	NULL, *weight_ptr = NULL;
+    void *ele_buf, *ptr, *acc_buf = NULL, *acc_ptr = NULL;
     CELL *loadp, ele_value;
     DCELL dvalue;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     int r_nbr, c_nbr, ct_dir;
     int is_worked;
-    size_t ele_size, acc_size = 0, weight_size = 0;
-    int ele_map_type, acc_map_type = 0, weight_map_type = 0;
-    DCELL *accp, *weightp;
+    size_t ele_size, acc_size = 0;
+    int ele_map_type, acc_map_type = 0;
+    DCELL *accp;
 
-    if (acc_fd < 0 && weight_fd < 0)
+    if (acc_fd < 0)
 	G_message(_("load elevation map and get start points"));
     else
 	G_message(_("load input maps and get start points"));
@@ -66,16 +65,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 	}
     }
 
-    if (weight_fd >= 0) {
-	weight_map_type = G_get_raster_map_type(weight_fd);
-	weight_size = G_raster_size(weight_map_type);
-	weight_buf = G_allocate_raster_buf(weight_map_type);
-	if (weight_buf == NULL) {
-	    G_warning(_("could not allocate memory"));
-	    return -1;
-	}
-    }
-
     ele_scale = 1;
     if (ele_map_type == FCELL_TYPE || ele_map_type == DCELL_TYPE)
 	ele_scale = 1000;	/* should be enough to do the trick */
@@ -85,7 +74,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 
     loadp = ele;
     accp = acc;
-    weightp = accweight;
     aspp = asp;
 
     G_debug(1, "start loading %d rows, %d cols", nrows, ncols);
@@ -107,15 +95,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 	    acc_ptr = acc_buf;
 	}
 
-	if (weight_fd >= 0) {
-	    if (G_get_raster_row(weight_fd, weight_buf, r, weight_map_type) <
-		0) {
-		G_warning(_("could not read raster maps at row <%d>"), r);
-		return -1;
-	    }
-	    weight_ptr = weight_buf;
-	}
-
 	for (c = 0; c < ncols; c++) {
 
 	    FLAG_UNSET(worked, r, c);
@@ -127,8 +106,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 		FLAG_SET(in_list, r, c);
 		G_set_c_null_value(loadp, 1);
 		*accp = 0;
-		if (weight_fd >= 0)
-		    *weightp = 0;
 	    }
 	    else {
 		if (ele_map_type == CELL_TYPE) {
@@ -157,17 +134,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 			*accp = *((DCELL *) acc_ptr);
 		    }
 		}
-		if (weight_fd >= 0) {
-		    if (weight_map_type == CELL_TYPE) {
-			*weightp = *((CELL *) weight_ptr);
-		    }
-		    else if (weight_map_type == FCELL_TYPE) {
-			*weightp = *((FCELL *) weight_ptr);
-		    }
-		    else if (weight_map_type == DCELL_TYPE) {
-			*weightp = *((DCELL *) weight_ptr);
-		    }
-		}
 
 		n_points++;
 	    }
@@ -179,10 +145,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
 	    aspp++;
 	    if (acc_fd >= 0)
 		acc_ptr = G_incr_void_ptr(acc_ptr, acc_size);
-	    if (weight_fd >= 0) {
-		weight_ptr = G_incr_void_ptr(weight_ptr, weight_size);
-		weightp++;
-	    }
 	}
     }
     G_percent(nrows, nrows, 1);	/* finish it */
@@ -193,11 +155,6 @@ int load_maps(int ele_fd, int acc_fd, int weight_fd)
     if (acc_fd >= 0) {
 	G_close_cell(acc_fd);
 	G_free(acc_buf);
-    }
-
-    if (weight_fd >= 0) {
-	G_close_cell(weight_fd);
-	G_free(weight_buf);
     }
 
     astar_pts =

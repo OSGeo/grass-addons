@@ -421,7 +421,7 @@ int do_accum(double d8cut)
 /*
  * extracts streams for threshold, accumulation is provided
  */
-int extract_streams(double threshold, double mont_exp, int use_weight, int min_length)
+int extract_streams(double threshold, double mont_exp, int min_length)
 {
     int r, c, dr, dc;
     CELL is_swale, ele_val, ele_nbr;
@@ -646,7 +646,7 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 	/* set main drainage direction to A* path if possible */
 	if (mfd_cells > 0 && max_side != np_side) {
 	    nindex = INDEX(dr, dc);
-	    if (fabs(acc[nindex]) >= max_acc) {
+	    if (fabs(acc[nindex] >= max_acc)) {
 		max_acc = fabs(acc[nindex]);
 		r_max = dr;
 		c_max = dc;
@@ -669,10 +669,6 @@ int extract_streams(double threshold, double mont_exp, int use_weight, int min_l
 	/*  start new stream  */
 	/**********************/
 
-	/* weight map has precedence over Montgomery */
-	if (use_weight) {
-	    value *= accweight[thisindex];
-	}
 	/* Montgomery's stream initiation acc * (tan(slope))^mont_exp */
 	/* uses whatever unit is accumulation */
 	if (mont_exp > 0) {

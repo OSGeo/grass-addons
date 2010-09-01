@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 {
     struct
     {
-	struct Option *ele, *acc, *weight;
+	struct Option *ele, *acc;
 	struct Option *threshold, *d8cut;
 	struct Option *mont_exp;
 	struct Option *min_stream_length;
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 	struct Option *dir_rast;
     } output;
     struct GModule *module;
-    int ele_fd, acc_fd, weight_fd;
+    int ele_fd, acc_fd;
     double threshold, d8cut, mont_exp;
     int min_stream_length = 0;
     char *mapset;
@@ -62,13 +62,6 @@ int main(int argc, char *argv[])
     input.acc->required = NO;
     input.acc->description =
 	_("Stream extraction will use provided accumulation instead of calculating it anew");
-
-    input.weight = G_define_standard_option(G_OPT_R_INPUT);
-    input.weight->key = "weight";
-    input.weight->label = _("Weight map for accumulation");
-    input.weight->required = NO;
-    input.weight->description =
-	_("Map used as weight for flow accumulation when initiating streams");
 
     input.threshold = G_define_option();
     input.threshold->key = "threshold";
@@ -144,12 +137,6 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("Raster map <%s> not found"), input.acc->answer);
     }
 
-    if (input.weight->answer) {
-	if (!G_find_cell(input.weight->answer, ""))
-	    G_fatal_error(_("Raster map <%s> not found"),
-			  input.weight->answer);
-    }
-
     /* threshold makes sense */
     threshold = atof(input.threshold->answer);
     if (threshold <= 0)
@@ -191,7 +178,8 @@ int main(int argc, char *argv[])
 
     /* Check for some output map */
     if ((output.stream_rast->answer == NULL)
-	&& (output.stream_vect->answer == NULL)) {
+	&& (output.stream_vect->answer == NULL)
+	&& (output.dir_rast->answer == NULL)) {
 	G_fatal_error(_("Sorry, you must choose at least one output map."));
     }
 
@@ -215,16 +203,6 @@ int main(int argc, char *argv[])
     else
 	acc_fd = -1;
 
-    if (input.weight->answer) {
-	mapset = G_find_cell2(input.weight->answer, "");
-	weight_fd = G_open_cell_old(input.weight->answer, mapset);
-	if (weight_fd < 0)
-	    G_fatal_error(_("could not open input map %s"),
-			  input.weight->answer);
-    }
-    else
-	weight_fd = -1;
-
     /* set global variables */
     nrows = G_window_rows();
     ncols = G_window_cols();
@@ -235,13 +213,9 @@ int main(int argc, char *argv[])
     ele = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
     asp = (char *) G_malloc(nrows * ncols * sizeof(char));
     acc = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
-    if (input.weight->answer)
-	accweight = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
-    else
-	accweight = NULL;
 
     /* load maps */
-    if (load_maps(ele_fd, acc_fd, weight_fd) < 0)
+    if (load_maps(ele_fd, acc_fd) < 0)
 	G_fatal_error(_("could not load input map(s)"));
 
     /********************/
@@ -260,12 +234,10 @@ int main(int argc, char *argv[])
 
     stream = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
     if (extract_streams
-	(threshold, mont_exp, (input.weight->answer != NULL), min_stream_length) < 0)
+	(threshold, mont_exp, min_stream_length) < 0)
 	G_fatal_error(_("could not extract streams"));
 
     G_free(acc);
-    if (input.weight->answer)
-	G_free(accweight);
 
     /* thin streams */
     if (thin_streams() < 0)

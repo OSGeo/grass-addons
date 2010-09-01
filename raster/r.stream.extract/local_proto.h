@@ -37,7 +37,7 @@ unsigned int heap_size, *astar_added;
 unsigned int n_stream_nodes, n_alloc_nodes;
 struct point *outlets;
 unsigned int n_outlets, n_alloc_outlets;
-DCELL *acc, *accweight;
+DCELL *acc;
 CELL *ele;
 char *asp;
 CELL *stream;
@@ -50,7 +50,7 @@ int ele_scale;
 struct RB_TREE *draintree;
 
 /* load.c */
-int load_maps(int, int, int);
+int load_maps(int, int);
 
 /* do_astar.c */
 int do_astar(void);
@@ -58,10 +58,13 @@ unsigned int heap_add(int, int, CELL, char);
 
 /* streams.c */
 int do_accum(double);
-int extract_streams(double, double, int, int);
+int extract_streams(double, double, int);
 
 /* thin.c */
 int thin_streams(void);
+
+/* basins.c */
+int basin_borders(void);
 
 /* del_streams.c */
 int del_streams(int);
