@@ -25,7 +25,7 @@
 #include <grass/gis.h>
 #include <grass/config.h>
 #include <grass/glocale.h>
-#include <grass/varseg.h>
+#include "varseg.h"
 
 int main(int argc, char *argv[])
 {

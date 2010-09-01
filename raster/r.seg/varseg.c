@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * LIBRARY:      varseg
@@ -28,7 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <grass/varseg.h>	/* change this line according to $(ARCH_INCDIR) when using this library outside GRASS */
+#include "varseg.h"
 
 #define max(a,b) ((a)>(b) ? (a) : (b))
 

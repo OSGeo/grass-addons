@@ -1,10 +1,14 @@
 MODULE_TOPDIR = ../..
 
-SUBDIRS = varseglib \
-          rseg
+PGM = r.seg
 
-include $(MODULE_TOPDIR)/include/Make/Dir.make
+LIBES = $(SEGLIB) $(GISLIB)
+DEPENDENCIES = $(SEGDEP) $(GISDEP)
 
-default: subdirs
+include $(MODULE_TOPDIR)/include/Make/Module.make
+include $(MODULE_TOPDIR)/include/Make/Doxygen.make
 
-clean: cleansubdirs
+default: cmd
+
+#doxygen:
+DOXNAME = r.seg
