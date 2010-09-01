@@ -1,3 +1,8 @@
+GRASS 6.4+: install with
+  g.extension r.seg
+
+---------------------
+Old method:
 r.seg GRASS GIS module for image segmentation and edge detection 
 	Alfonso Vitti <alfonso.vitti [at] ing.unitn.it>
 	see www.ing.unitn.it/~vittia/sw
