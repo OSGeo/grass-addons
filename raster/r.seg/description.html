@@ -106,16 +106,16 @@ r.seg in_g=ortho_2001_t792_1m@PERMANENT out_u=u_OF out_z=z_OF lambda=10 alpha=20
 r.colors u_OF rast=ortho_2001_t792_1m
 
 # compute the difference between the input raster map and the output raster map <em>u_OF</em>:
-r.mapcalc 'abs(ortho_2001_t792_1m@PERMANENT-u_OF)'
+r.mapcalc "diff = abs(ortho_2001_t792_1m@PERMANENT - u_OF)"
 
 # for a better visualization of the differences, compute the natural logarithm of the <em>diff</em> map:
-r.mapcalc 'log_diff=log(1+diff)'
+r.mapcalc "log_diff = log(1 + diff)"
 
 # and set its color table to the "differences" style:
-r.colors log_diff c=differences
+r.colors log_diff color=differences
 
 # for a better visualization of the output raster map <em>u_OF</em>, set its color table to:
-r.colors z_OF c=bgyr
+r.colors z_OF color=bgyr
 
 # run r.seg with different parameter values:
 r.seg in_g=ortho_2001_t792_1m@PERMANENT out_u=u1_OF out_z=z1_OF lambda=10 alpha=65 mxi=250
