@@ -27,7 +27,7 @@ Remove any MASK before the execution of the module. If
 a MASK is present, the module stops after just one iteration.
 <br><br>
 
-Replace (r.null) any null data with the map average value (r.univar).
+Replace (<em>r.null</em>) any null data with the map average value (get with <em>r.univar</em>).
 <br><br>
 
 The segmentation depends on the parameters alpha and lambda:
@@ -95,34 +95,34 @@ data set</a>, [complete GRASS location].
 <div><pre class="code">
 # set the region to match the <em>ortho_2001_t792_1m</em> raster map:
 g.region rast=ortho_2001_t792_1m
-#
+
 # select a smaller region:
 g.region n=221725 s=220225 w=638350 e=639550
-#
+
 # run r.seg:
 r.seg in_g=ortho_2001_t792_1m@PERMANENT out_u=u_OF out_z=z_OF lambda=10 alpha=200 mxi=250
-#
+
 # for a better visualization of the output raster map <em>u_OF</em>, set its color table to:
 r.colors u_OF rast=ortho_2001_t792_1m
-#
+
 # compute the difference between the input raster map and the output raster map <em>u_OF</em>:
 r.mapcalc 'abs(ortho_2001_t792_1m@PERMANENT-u_OF)'
-#
+
 # for a better visualization of the differences, compute the natural logarithm of the <em>diff</em> map:
 r.mapcalc 'log_diff=log(1+diff)'
-#
+
 # and set its color table to the "differences" style:
 r.colors log_diff c=differences
-#
+
 # for a better visualization of the output raster map <em>u_OF</em>, set its color table to:
 r.colors z_OF c=bgyr
-#
+
 # run r.seg with different parameter values:
 r.seg in_g=ortho_2001_t792_1m@PERMANENT out_u=u1_OF out_z=z1_OF lambda=10 alpha=65 mxi=250
 r.seg in_g=ortho_2001_t792_1m@PERMANENT out_u=u2_OF out_z=z2_OF lambda=10 alpha=600 mxi=250
 r.seg in_g=ortho_2001_t792_1m@PERMANENT out_u=u3_OF out_z=z3_OF lambda=0.1 alpha=200 mxi=250
 r.seg in_g=ortho_2001_t792_1m@PERMANENT out_u=u4_OF out_z=z4_OF lambda=1 alpha=200 mxi=250
-#
+
 # visualize and compare the different results
 </pre></div>
 
@@ -144,16 +144,18 @@ href="http://www.ing.unitn.it/~vittia/misc/vitti_phd.pdf">http://www.ing.unitn.i
 
 
 <h2>SEE ALSO</h2>
+
+<em><a href="i.smap.html">i.smap</a></em>,
 <em><a href="i.zc.html">i.zc</a></em>,
 <em><a href="r.mfilter.html">r.mfilter</a></em>
 
 
 <h2>AUTHOR</h2>
+
 Alfonso Vitti <br> 
 &nbsp; Dept. Civil and
 Environmental Engineering <br> 
 &nbsp; University of Trento - Italy<br>
 &nbsp; alfonso.vitti [at] ing.unitn.it
 
-<p><i>Last changed: $Date: 2010-08-10 12:00:00 +0200 (Tue, 10 Aug
-2010)$</i>
+<p><i>Last changed: $Date: 2010-08-10 12:00:00 +0200 (Tue, 10 Aug 2010)$</i>

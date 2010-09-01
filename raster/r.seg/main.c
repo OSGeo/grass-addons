@@ -73,8 +73,7 @@ int main(int argc, char *argv[])
     module = G_define_module();
     module->keywords = _("image segmentation, edge detection, smooth");
     module->description =
-	_
-	("Generates a smooth approximation of the input raster and a discontinuity map");
+	_("Generates a smooth approximation of the input raster and a discontinuity map");
 
     parm.in_g = G_define_option();
     parm.in_g->key = "in_g";
@@ -103,14 +102,14 @@ int main(int argc, char *argv[])
     opts.lambda->type = TYPE_DOUBLE;
     opts.lambda->required = NO;
     opts.lambda->answer = "1.0";
-    opts.lambda->description = _("lambda ___ smoothness coefficient [>0]");
+    opts.lambda->description = _("Smoothness coefficient [>0]");
 
     opts.alpha = G_define_option();
     opts.alpha->key = "alpha";
     opts.alpha->type = TYPE_DOUBLE;
     opts.alpha->required = NO;
     opts.alpha->answer = "1.0";
-    opts.alpha->description = _("alpha ___ discontinuity coefficient [>0]");
+    opts.alpha->description = _("Discontinuity coefficient [>0]");
 
     opts.max_iter = G_define_option();
     opts.max_iter->key = "mxi";
@@ -118,14 +117,14 @@ int main(int argc, char *argv[])
     opts.max_iter->required = NO;
     opts.max_iter->answer = "100";
     opts.max_iter->description =
-	_("mxi ___ max number of numerical iterations");
+	_("Maximal number of numerical iterations");
 
     opts.tol = G_define_option();
     opts.tol->key = "tol";
     opts.tol->type = TYPE_DOUBLE;
     opts.tol->required = NO;
     opts.tol->answer = "0.001";
-    opts.tol->description = _("tol ___ convergence tolerance [>0]");
+    opts.tol->description = _("Convergence tolerance [>0]");
 
     opts.kepsilon = G_define_option();
     opts.kepsilon->key = "kepsilon";
@@ -133,14 +132,14 @@ int main(int argc, char *argv[])
     opts.kepsilon->required = NO;
     opts.kepsilon->answer = "1.0";
     opts.kepsilon->description =
-	_("kepsilon ___ discontinuity thickness [>0]");
+	_("Discontinuity thickness [>0]");
 
     opts.beta = G_define_option();
     opts.beta->key = "beta";
     opts.beta->type = TYPE_DOUBLE;
     opts.beta->required = NO;
     opts.beta->answer = "0.0";
-    opts.beta->description = _("beta ___ curvature coefficient [>=0]");
+    opts.beta->description = _("Curvature coefficient [>=0]");
     /* 
      * beta = 0 leads to MS
      * beta > 0 leads to MSK
@@ -151,7 +150,7 @@ int main(int argc, char *argv[])
 
     flag_k = G_define_flag();
     flag_k->key = 'k';
-    flag_k->description = _("Activate MSK");
+    flag_k->description = _("Activate MSK model (Mumford-Shah with curvature term)");
 
 
     /* parameters and flags parser */
