@@ -7,11 +7,11 @@
 
 typedef struct
 {
-	int     fd;
-	char    name[128];
-	char *	mapset;
-	void *  rast;
-	RASTER_MAP_TYPE type;
+    int fd;
+    char name[128];
+    char *mapset;
+    void *rast;
+    RASTER_MAP_TYPE type;
 } Gfile;
 
 #define LAMBERTIAN		 	 0
@@ -21,8 +21,9 @@ typedef struct
 #define MINNAERT			11
 #define C_CORRECT			12
 
-
-void eval_cosi(Gfile *, Gfile *, double, double);
+void eval_c_cosi(Gfile *, Gfile *, double, double);
+void eval_f_cosi(Gfile *, Gfile *, double, double);
+void eval_d_cosi(Gfile *, Gfile *, double, double);
 void eval_tcor(int, Gfile *, Gfile *, Gfile *, double);
 
 #endif

@@ -22,10 +22,6 @@
 
 #include "local_proto.h"
 
-extern void eval_c_cosi(Gfile *, Gfile *, double, double);
-extern void eval_f_cosi(Gfile *, Gfile *, double, double);
-extern void eval_d_cosi(Gfile *, Gfile *, double, double);
-
 int full_open_old(Gfile * gf, char *fname)
 {
     gf->fd = -1;
@@ -259,6 +255,5 @@ int main(int argc, char *argv[])
 	G_close_cell(dem.fd);
     }
 
-    G_done_msg(" ");
     exit(EXIT_SUCCESS);
 }

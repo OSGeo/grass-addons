@@ -83,25 +83,22 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
     /* Calculating Constants */
     switch (method) {
     case MINNAERT:
-	cka = cos_z;
-	ckb = 0.;
+	cka = ckb = 0.;
 	kk = m;
 	G_message("Minnaert constant = %lf", kk);
 	break;
     case C_CORRECT:
-	cka = cos_z + a / m;
-	ckb = a / m;
+	cka = ckb = m / a;
 	kk = 1.;
-	G_message("C-factor constant = %lf (a=%.4f; m=%.4f)", a / m, a, m);
+	G_message("C-factor constant = %lf (a=%.4f; m=%.4f)", cka, a, m);
 	break;
     case PERCENT:
-	cka = 2.;
+	cka = 2. - cos_z;
 	ckb = 1.;
 	kk = 1.;
 	break;
     default:			/* COSINE */
-	cka = cos_z;
-	ckb = 0.;
+	cka = ckb = 0.;
 	kk = 1.;
     }
     /* Topographic correction */
@@ -135,21 +132,12 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 	    }
 	    else {
 		ref_i = (double)*((DCELL *) pref);
-		if (method == MINNAERT) {
-		    G_debug(3,
-			    "Old val: %f, cka: %f, cos_i: %f, ckb: %f, kk: %f, New val: %f",
-			    ref_i, cka, cos_i, ckb, kk, (DCELL) (ref_i * pow(cos_z / cos_i, kk)));
-		    ((DCELL *) out->rast)[col] =
-			(DCELL) (ref_i * pow(cos_z / cos_i, kk));
-		}
-		else {
-		    G_debug(3,
-			    "Old val: %f, cka: %f, cos_i: %f, ckb: %f, kk: %f, New val: %f",
-			    ref_i, cka, cos_i, ckb, kk, (DCELL) (ref_i * (cka / (cos_i + ckb))));
-		    ((DCELL *) out->rast)[col] =
-			(DCELL) (ref_i * (cka / (cos_i + ckb)));
-		}
-
+		((DCELL *) out->rast)[col] =
+		    (DCELL) (ref_i * pow((cos_z + cka) / (cos_i + ckb), kk));
+		G_debug(3,
+			"Old val: %f, cka: %f, cos_i: %f, ckb: %f, kk: %f, New val: %f",
+			ref_i, cka, cos_i, ckb, kk,
+			((DCELL *) out->rast)[col]);
 	    }
 	}
 	G_put_raster_row(out->fd, out->rast, out->type);
