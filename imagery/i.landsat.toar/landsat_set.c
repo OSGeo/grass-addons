@@ -54,7 +54,7 @@ void sensor_TM(lsat_data * lsat)
 		lsat->band[i].wavemax = *(wmax + i);
 		lsat->band[i].wavemin = *(wmin + i);
 		lsat->band[i].qcalmax = 255.;
-		lsat->band[i].qcalmin = 0.;
+		lsat->band[i].qcalmin = 0.;	/* Modified in set_TM5 by date */
 		lsat->band[i].thermal = (lsat->band[i].number == 6 ? 1 : 0);
 	}
 	return;
@@ -337,7 +337,7 @@ void set_MSS5(lsat_data * lsat)
 void set_TM5(lsat_data * lsat)
 {
     int i, j;
-    double julian, *lmax, *lmin;
+    double julian, *lmax, *lmin, jbuf;
 
     /** Gyanesh Chander and Brian Markham.
         IEEE Transactions On Geoscience And Remote Sensing, Vol. 41, No. 11, November 2003 */
@@ -367,7 +367,8 @@ void set_TM5(lsat_data * lsat)
         }
     }
 
-	int flag = julian > julian_char("2004-04-04") ? 0 : 1;
+	jbuf = julian_char("2004-04-04");
+	if (julian >= jbuf) G_warning("Using QCalMin=1.0 as a NLAPS product processed after 4/4/2004");
 
     lsat->number = 5;
     sensor_TM( lsat );
@@ -376,6 +377,7 @@ void set_TM5(lsat_data * lsat)
 
     for (i = 0; i < lsat->bands; i++) {
         j = lsat->band[i].number - 1;
+		if (julian >= jbuf) lsat->band[i].qcalmin = 1.;
 	    lsat->band[i].esun = *(esun + j);
 	    lsat->band[i].lmax = *(lmax + j);
 	    lsat->band[i].lmin = *(lmin + j);
@@ -383,7 +385,6 @@ void set_TM5(lsat_data * lsat)
             lsat->band[i].K1 = 607.76;
             lsat->band[i].K2 = 1260.56;
         }
-		if (flag == 0) lsat->band[i].qcalmin = 1.;
     }
     return;
 }
