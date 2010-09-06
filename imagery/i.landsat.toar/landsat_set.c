@@ -28,7 +28,7 @@ void sensor_MSS(lsat_data * lsat)
 		lsat->band[i].code = *(code + i);
 		lsat->band[i].wavemax = *(wmax + i);
 		lsat->band[i].wavemin = *(wmin + i);
-		lsat->band[i].qcalmax = 127.;
+		lsat->band[i].qcalmax = 255.;
 		lsat->band[i].qcalmin = 0.;
 		lsat->band[i].thermal = 0;
 	}
