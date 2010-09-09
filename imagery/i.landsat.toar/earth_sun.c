@@ -1065,8 +1065,8 @@ double julian_int(int year, int month, int day)
 	b = 2 - a + (a / 4);
     }
 
-    return ((int)(365.25 * (year + 4716)) + (int)(30.6001 * (month + 1)) + day +
-	    b - 1524.5);
+    return ((int)(365.25 * (year + 4716)) + (int)(30.6001 * (month + 1)) +
+	    day + b - 1524.5);
 }
 
 /* Get Julian day form Gregorian string yyyy-mm-dd */
