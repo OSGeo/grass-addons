@@ -56,11 +56,11 @@
   como opciones desde el programa main.
  ---------------------------------------------------------*/
 
-double th_1   = 0.08;            /* Band 3 Brightness Thershold */
+double th_1   = 0.08;            /* Band 3 Brightness Threshold */
 double th_1_b = 0.07;
 double th_2[] = { -0.25, 0.70 }; /* Normalized Snow Difference Index */
 double th_2_b = 0.8;
-double th_3   = 300.;            /* Band 6 Temperature Thershold */
+double th_3   = 300.;            /* Band 6 Temperature Threshold */
 double th_4   = 225.;            /* Band 5/6 Composite */
 double th_4_b = 0.08;
 double th_5   = 2.35;            /* Band 4/3 Ratio */
@@ -269,13 +269,13 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
                 nsdi = (pixel[BAND2] - pixel[BAND5]) /
                        (pixel[BAND2] + pixel[BAND5]);
                 /* ----------------------------------------------------- */
-                /* Brightness Thershold: Eliminates dark images */
+                /* Brightness Threshold: Eliminates dark images */
                 if (pixel[BAND3] > th_1)
                 {
                     /* Normalized Snow Difference Index: Eliminates many types of snow */
                     if (nsdi > th_2[0] && nsdi < th_2[1])
                     {
-                        /* Temperature Thershold: Eliminates warm image features */
+                        /* Temperature Threshold: Eliminates warm image features */
                         if (pixel[BAND6] < th_3)
                         {
                             rat56 = (1 - pixel[BAND4]) * pixel[BAND6];
@@ -350,7 +350,7 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 void acca_second(int verbose, Gfile * out, Gfile band,
                  int warm_ambiguous, double upper, double lower)
 {
-    int i, row, col, nrows, ncols;
+    int row, col, nrows, ncols;
     char *mapset;
 
     int code;

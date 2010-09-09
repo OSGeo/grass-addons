@@ -40,7 +40,7 @@ void hist_put(double t, int hist[])
 double mean(int hist[])
 {
     int i, total;
-    double value, mean;
+    double mean;
 
     total = 0;
     mean  = 0.;

@@ -95,7 +95,6 @@ int main(int argc, char *argv[])
     struct Option *input, *output, *hist;
     struct Flag *shadow, *sat5, *filter, *pass2;
     char *in_name, *out_name;
-    double p;
 
     Gfile band[5], out;
 
