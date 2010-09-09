@@ -124,7 +124,7 @@ void lsat_bandctes(lsat_data * lsat, int i, char method,
 		Edown = (Lp < 0. ? 0. : PI * Lp);
 		break;
 	    }
-	default:		/* DOS1 and Without atmosferic-correction */
+	default:		/* DOS1 and Without atmospheric-correction */
 	    TAUv = 1.;
 	    TAUz = 1.;
 	    Edown = 0.;
@@ -139,7 +139,7 @@ void lsat_bandctes(lsat_data * lsat, int i, char method,
     }
 
 	/** Digital number to radiance coefficients.
-		Whitout atmosferic calibration for thermal bands.
+		Whitout atmospheric calibration for thermal bands.
 	*/
     lsat->band[i].gain = ((lsat->band[i].lmax - lsat->band[i].lmin) /
 			  (lsat->band[i].qcalmax - lsat->band[i].qcalmin));

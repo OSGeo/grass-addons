@@ -111,8 +111,8 @@ int main(int argc, char *argv[])
     metho->type = TYPE_STRING;
     metho->required = NO;
     metho->options = "uncorrected,corrected,dos1,dos2,dos2b,dos3,dos4";
-    metho->gisprompt = _("atmosferic correction method");
-    metho->description = _("Atmosferic correction method");
+    metho->gisprompt = _("atmospheric correction method");
+    metho->description = _("Atmospheric correction method");
     metho->answer = "uncorrected";
 
     perc = G_define_option();
