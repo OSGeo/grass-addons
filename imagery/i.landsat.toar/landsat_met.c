@@ -45,7 +45,7 @@ void met_ETM(char *metfile, lsat_data * lsat)
     FILE *f;
     char mettext[ETM_MET_SIZE];
     char name[MAX_STR], value[MAX_STR];
-    int i, j;
+    int i;
 
     static int band[] = { 1, 2, 3, 4, 5, 6, 6, 7, 8 };
     static int code[] = { 1, 2, 3, 4, 5, 61, 62, 7, 8 };
@@ -53,9 +53,9 @@ void met_ETM(char *metfile, lsat_data * lsat)
     static double esun[] =
 	{ 1969., 1840., 1551., 1044., 225.7, 0., 82.07, 1368. };
 
-    if ((f = fopen(metfile, "r")) == NULL) {
+    if ((f = fopen(metfile, "r")) == NULL)
 	G_fatal_error(_(".met file [%s] not found"), metfile);
-    }
+
     fread(mettext, 1, ETM_MET_SIZE, f);
 
     /* --------------------------------------- */
@@ -138,11 +138,12 @@ void met_TM5(char *metfile, lsat_data * lsat)
 {
     FILE *f;
     char mettext[TM5_MET_SIZE];
-    char metdate[MAX_STR], value[MAX_STR];
+    char value[MAX_STR];
+    /* char metdate[MAX_STR]; */
 
-    if ((f = fopen(metfile, "r")) == NULL) {
+    if ((f = fopen(metfile, "r")) == NULL)
 	G_fatal_error(_(".met file [%s] not found"), metfile);
-    }
+
     fread(mettext, 1, TM5_MET_SIZE, f);
 
     /* --------------------------------------- */
