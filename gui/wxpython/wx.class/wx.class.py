@@ -24,6 +24,7 @@ import glob
 import math
 import tempfile
 import copy
+import time
 
 gbase = os.getenv("GISBASE") 
 pypath = os.path.join(gbase,'etc','wxpython','gui_modules')
@@ -57,8 +58,14 @@ import toolbars
 from preferences import globalSettings as UserSettings
 from icon  import Icons
 from mapdisp import Command
-from mapdisp_window import BufferedWindow
-from mapdisp_window import MapWindow
+grassversion = os.getenv("GRASS_VERSION")
+if grassversion.rfind("6.4") != 0:
+    from mapdisp_window import BufferedWindow
+    from mapdisp_window import MapWindow
+else:
+    from mapdisp import BufferedWindow
+    from mapdisp import MapWindow
+
 from mapdisp import MapFrame
 from debug import Debug
 import images
@@ -153,6 +160,7 @@ class IClass(MapFrame):
         #
         # Add statusbar
         #
+
         self.statusbar = self.CreateStatusBar(number=4, style=0)
         self.statusbar.SetStatusWidths([-5, -2, -1, -1])
         self.statusbarWin = dict()
@@ -213,7 +221,8 @@ class IClass(MapFrame):
                                                 value="", style=wx.TE_PROCESS_ENTER,
                                                 size=(300, -1))
         self.statusbarWin['goto'].Hide()
-        self.statusbar.Bind(wx.EVT_TEXT_ENTER, self.OnGoTo, self.statusbarWin['goto'])
+        #self.statusbar.Bind(wx.EVT_TEXT_ENTER, MapFrame.OnGoTo, self.statusbarWin['goto'])
+
 
         # projection
         self.statusbarWin['projection'] = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
@@ -236,8 +245,67 @@ class IClass(MapFrame):
         self.statusbarWin['progress'] = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
                                       range=0, style=wx.GA_HORIZONTAL)
         self.statusbarWin['progress'].Hide()
+
+        if grassversion.rfind("6.4") != 0:
+            self.StatusbarReposition() # reposition statusbar
+        else:
+            self.toggleStatus = wx.Choice(self.statusbar, wx.ID_ANY,
+                                          choices = globalvar.MAP_DISPLAY_STATUSBAR_MODE)
+            self.toggleStatus.SetSelection(UserSettings.Get(group='display', key='statusbarMode', subkey='selection'))
+            self.statusbar.Bind(wx.EVT_CHOICE, self.OnToggleStatus, self.toggleStatus)
+            # auto-rendering checkbox
+            self.autoRender = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
+                                          label=_("Render"))
+            self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleRender, self.autoRender)
+            self.autoRender.SetValue(UserSettings.Get(group='display', key='autoRendering', subkey='enabled'))
+            self.autoRender.SetToolTip(wx.ToolTip (_("Enable/disable auto-rendering")))
+            # show region
+            self.showRegion = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
+                                          label=_("Show computational extent"))
+            self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleShowRegion, self.showRegion)
+            
+            self.showRegion.SetValue(False)
+            self.showRegion.Hide()
+            self.showRegion.SetToolTip(wx.ToolTip (_("Show/hide computational "
+                                                     "region extent (set with g.region). "
+                                                     "Display region drawn as a blue box inside the "
+                                                     "computational region, "
+                                                     "computational region inside a display region "
+                                                     "as a red box).")))
+            # set resolution
+            self.compResolution = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
+                                             label=_("Constrain display resolution to computational settings"))
+            self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleResolution, self.compResolution)
+            self.compResolution.SetValue(UserSettings.Get(group='display', key='compResolution', subkey='enabled'))
+            self.compResolution.Hide()
+            self.compResolution.SetToolTip(wx.ToolTip (_("Constrain display resolution "
+                                                         "to computational region settings. "
+                                                         "Default value for new map displays can "
+                                                         "be set up in 'User GUI settings' dialog.")))
+            # map scale
+            self.mapScale = wx.TextCtrl(parent=self.statusbar, id=wx.ID_ANY,
+                                        value="", style=wx.TE_PROCESS_ENTER,
+                                        size=(150, -1))
+            self.mapScale.Hide()
+            self.statusbar.Bind(wx.EVT_TEXT_ENTER, self.OnChangeMapScale, self.mapScale)
+
+            # mask
+            self.maskInfo = wx.StaticText(parent = self.statusbar, id = wx.ID_ANY,
+                                                      label = '')
+            self.maskInfo.SetForegroundColour(wx.Colour(255, 0, 0))
+            
+
+            # on-render gauge
+            self.onRenderGauge = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
+                                          range=0, style=wx.GA_HORIZONTAL)
+            self.onRenderGauge.Hide()
+            
+            self.StatusbarReposition() # reposition statusbar
+
+
+
         
-        self.StatusbarReposition() # reposition statusbar
+
         #
         # Init map display (buffered DC & set default cursor)
         #
@@ -245,7 +313,7 @@ class IClass(MapFrame):
                                           Map=self.Map, tree=self.tree, lmgr=self.gismanager)
         # default is 2D display mode
         self.MapWindow = self.MapWindow2D
-        self.MapWindow.Bind(wx.EVT_MOTION, self.MapWindow.OnMotion)
+        self.MapWindow.Bind(wx.EVT_MOTION, MapFrame.OnMotion)
         self.MapWindow.SetCursor(self.cursors["default"])
         # used by Nviz (3D display mode)
         self.MapWindow3D = None 
@@ -977,6 +1045,8 @@ class BufferedWindow2(BufferedWindow):
         self.resize = False # indicates whether or not a resize event has taken place
         self.dragimg = None # initialize variable for map panning
 
+        self.tree = tree
+        self.Map = Map
         # variables for drawing on DC
         self.pen = None      # pen for drawing zoom boxes, etc.
         self.polypen = None  # pen for drawing polylines (measurements, profiles, etc)
@@ -993,7 +1063,12 @@ class BufferedWindow2(BufferedWindow):
         self.Bind(wx.EVT_IDLE,         self.OnIdle)
         ### self.Bind(wx.EVT_MOTION,       self.MouseActions)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.MouseActions)
-        self.Bind(wx.EVT_MOTION,       self.OnMotion)
+
+        if grassversion.rfind("6.4") != 0:
+            self.Bind(wx.EVT_MOTION,       self.OnMotion)
+
+
+
         
         self.processMouse = True
         
@@ -1021,8 +1096,17 @@ class BufferedWindow2(BufferedWindow):
         # This might result in OnSize getting called twice on some
         # platforms at initialization, but little harm done.
         ### self.OnSize(None)
+        if grassversion.rfind("6.4") != 0:
+            self.DefinePseudoDC()
+        else:
+            self.pdc = wx.PseudoDC()
+            # used for digitization tool
+            self.pdcVector = None
+            # decorations (region box, etc.)
+            self.pdcDec = wx.PseudoDC()
+            # pseudoDC for temporal objects (select box, measurement tool, etc.)
+            self.pdcTmp = wx.PseudoDC()
 
-        self.DefinePseudoDC()
         # redraw all pdc's, pdcTmp layer is redrawn always (speed issue)
         self.redrawAll = True
 
@@ -1148,6 +1232,181 @@ class BufferedWindow2(BufferedWindow):
             i += 1
         self.pdc.EndDrawing()
         self.Refresh()
+
+    def UpdateMap(self, render=True, renderVector=True):
+        """!
+        Updates the canvas anytime there is a change to the
+        underlaying images or to the geometry of the canvas.
+        
+        @param render re-render map composition
+        @param renderVector re-render vector map layer enabled for editing (used for digitizer)
+        """
+        start = time.clock()
+        
+        self.resize = False
+        
+        # if len(self.Map.GetListOfLayers()) == 0:
+        #    return False
+        
+        if self.img is None:
+            render = True
+        
+        #
+        # initialize process bar (only on 'render')
+        #
+        if render is True or renderVector is True:
+            self.parent.statusbarWin['progress'].Show()
+            if self.parent.statusbarWin['progress'].GetRange() > 0:
+                self.parent.statusbarWin['progress'].SetValue(1)
+        
+        #
+        # render background image if needed
+        #
+        
+        # update layer dictionary if there has been a change in layers
+        if self.tree and self.tree.reorder == True:
+            self.tree.ReorderLayers()
+        
+        # reset flag for auto-rendering
+        if self.tree:
+            self.tree.rerender = False
+        
+        if render:
+            # update display size
+            self.Map.ChangeMapSize(self.GetClientSize())
+            if self.parent.statusbarWin['resolution'].IsChecked():
+                # use computation region resolution for rendering
+                windres = True
+            else:
+                windres = False
+            self.mapfile = self.Map.Render(force=True, mapWindow=self.parent,
+                                           windres=windres)
+        else:
+            self.mapfile = self.Map.Render(force=False, mapWindow=self.parent)
+        
+        self.img = self.GetImage() # id=99
+            
+        #
+        # clear pseudoDcs
+        #
+        for pdc in (self.pdc,
+                    self.pdcDec,
+                    self.pdcTmp):
+            pdc.Clear()
+            pdc.RemoveAll()
+        
+        #
+        # draw background map image to PseudoDC
+        #
+        if not self.img:
+            self.Draw(self.pdc, pdctype='clear')
+        else:
+            try:
+                id = self.imagedict[self.img]['id']
+            except:
+                return False
+
+            self.Draw(self.pdc, self.img, drawid=id)
+        
+        #
+        # render vector map layer
+        #
+        digitToolbar = self.parent.toolbars['vdigit']
+        if renderVector and digitToolbar and \
+                digitToolbar.GetLayer():
+            # set region
+            self.parent.digit.driver.UpdateRegion()
+            # re-calculate threshold for digitization tool
+            self.parent.digit.driver.GetThreshold()
+            # draw map
+            if self.pdcVector:
+                self.pdcVector.Clear()
+                self.pdcVector.RemoveAll()
+            try:
+                item = self.tree.FindItemByData('maplayer', digitToolbar.GetLayer())
+            except TypeError:
+                item = None
+            
+            if item and self.tree.IsItemChecked(item):
+                self.parent.digit.driver.DrawMap()
+
+            # translate tmp objects (pointer position)
+            if digitToolbar.GetAction() == 'moveLine':
+                if  hasattr(self, "vdigitMove") and \
+                        self.vdigitMove.has_key('beginDiff'):
+                    # move line
+                    for id in self.vdigitMove['id']:
+                        self.pdcTmp.TranslateId(id,
+                                                self.vdigitMove['beginDiff'][0],
+                                                self.vdigitMove['beginDiff'][1])
+                    del self.vdigitMove['beginDiff']
+        
+        #
+        # render overlays
+        #
+        for img in self.GetOverlay():
+            # draw any active and defined overlays
+            if self.imagedict[img]['layer'].IsActive():
+                id = self.imagedict[img]['id']
+                self.Draw(self.pdc, img=img, drawid=id,
+                          pdctype=self.overlays[id]['pdcType'], coords=self.overlays[id]['coords'])
+
+        for id in self.textdict.keys():
+            self.Draw(self.pdc, img=self.textdict[id], drawid=id,
+                      pdctype='text', coords=[10, 10, 10, 10])
+        
+        # optionally draw computational extent box
+        self.DrawCompRegionExtent()
+        
+        #
+        # redraw pdcTmp if needed
+        #
+        if len(self.polycoords) > 0:
+            self.DrawLines(self.pdcTmp)
+        
+        if not self.parent.IsStandalone() and \
+                self.parent.GetLayerManager().georectifying:
+            # -> georectifier (redraw GCPs)
+            if self.parent.toolbars['georect']:
+                coordtype = 'gcpcoord'
+            else:
+                coordtype = 'mapcoord'
+            self.parent.GetLayerManager().georectifying.DrawGCP(coordtype)
+            
+        # 
+        # clear measurement
+        #
+        if self.mouse["use"] == "measure":
+            self.ClearLines(pdc=self.pdcTmp)
+            self.polycoords = []
+            self.mouse['use'] = 'pointer'
+            self.mouse['box'] = 'point'
+            self.mouse['end'] = [0, 0]
+            self.SetCursor(self.parent.cursors["default"])
+            
+        stop = time.clock()
+        
+        #
+        # hide process bar
+        #
+        self.parent.statusbarWin['progress'].Hide()
+
+        #
+        # update statusbar 
+        #
+        ### self.Map.SetRegion()
+        self.parent.StatusbarUpdate()
+        if grass1.find_file(name = 'MASK', element = 'cell')['name']:
+            # mask found
+            self.parent.statusbarWin['mask'].SetLabel(_('MASK'))
+        else:
+            self.parent.statusbarWin['mask'].SetLabel('')
+        
+        Debug.msg (2, "BufferedWindow.UpdateMap(): render=%s, renderVector=%s -> time=%g" % \
+                   (render, renderVector, (stop-start)))
+        
+        return True
+
 
 
 class IClassApp(wx.App):
