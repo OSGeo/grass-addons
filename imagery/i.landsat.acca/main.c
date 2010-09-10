@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
     struct Flag *shadow, *sat5, *filter, *pass2;
     char *in_name, *out_name;
     struct Categories cats;
+    char title[RECORD_LEN];
 
     Gfile band[5], out;
 
@@ -134,22 +135,18 @@ int main(int argc, char *argv[])
     sat5 = G_define_flag();
     sat5->key = '5';
     sat5->description = _("Landsat-5 TM");
-    sat5->answer = 0;
 
     filter = G_define_flag();
     filter->key = 'f';
     filter->description = _("Use final filter holes");
-    filter->answer = 0;
 
     pass2 = G_define_flag();
     pass2->key = '2';
-    pass2->description = _("With pass two processing");
-    pass2->answer = 0;
+    pass2->description = _("Use two-pass processing");
 
     shadow = G_define_flag();
     shadow->key = 's';
     shadow->description = _("Add class for cloud shadows");
-    shadow->answer = 0;
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -197,7 +194,10 @@ int main(int argc, char *argv[])
 
     /* write out map title and category labels */
     G_init_cats((CELL) 0, "", &cats);
-    G_set_raster_cats_title("LANDSAT TM/ETM+ Automatic Cloud Cover Assessment", &cats);
+    sprintf(title, "LANDSAT-%s Automatic Cloud Cover Assessment",
+	    sat5->answer ? "5 TM" : "7 ETM+");
+    G_set_raster_cats_title(title, &cats);
+
     G_set_cat(IS_SHADOW, "Shadow", &cats);
     G_set_cat(IS_COLD_CLOUD, "Cold cloud", &cats);
     G_set_cat(IS_WARM_CLOUD, "Warm cloud", &cats);
