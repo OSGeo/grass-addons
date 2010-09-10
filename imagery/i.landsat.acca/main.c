@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
     struct Option *input, *output, *hist;
     struct Flag *shadow, *sat5, *filter, *pass2;
     char *in_name, *out_name;
+    struct Categories cats;
 
     Gfile band[5], out;
 
@@ -194,10 +195,19 @@ int main(int argc, char *argv[])
 	G_close_cell(band[i].fd);
     }
 
-    //      struct Categories cats;
-    //      G_read_raster_cats(out.name, char *mapset, cats)
-    //      G_write_raster_cats(out.name, &cats);
+    /* write out map title and category labels */
+    G_init_cats((CELL) 0, "", &cats);
+    G_set_raster_cats_title("LANDSAT TM/ETM+ Automatic Cloud Cover Assessment", &cats);
+    G_set_cat(IS_SHADOW, "Shadow", &cats);
+    G_set_cat(IS_COLD_CLOUD, "Cold cloud", &cats);
+    G_set_cat(IS_WARM_CLOUD, "Warm cloud", &cats);
 
+    if (G_write_cats(out.name, &cats) <= 0)
+        G_warning(_("Cannot write category file for raster map <%s>"),
+                  out.name);
+    G_free_cats(&cats);
+
+    /* write out command line opts */
     G_short_history(out.name, "raster", &history);
     G_command_history(&history);
     G_write_history(out.name, &history);
