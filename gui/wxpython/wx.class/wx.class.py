@@ -313,7 +313,7 @@ class IClass(MapFrame):
                                           Map=self.Map, tree=self.tree, lmgr=self.gismanager)
         # default is 2D display mode
         self.MapWindow = self.MapWindow2D
-        self.MapWindow.Bind(wx.EVT_MOTION, MapFrame.OnMotion)
+        #self.MapWindow.Bind(wx.EVT_MOTION, BufferedWindow2.OnMotion)
         self.MapWindow.SetCursor(self.cursors["default"])
         # used by Nviz (3D display mode)
         self.MapWindow3D = None 
@@ -1311,37 +1311,9 @@ class BufferedWindow2(BufferedWindow):
         #
         # render vector map layer
         #
-        digitToolbar = self.parent.toolbars['vdigit']
-        if renderVector and digitToolbar and \
-                digitToolbar.GetLayer():
-            # set region
-            self.parent.digit.driver.UpdateRegion()
-            # re-calculate threshold for digitization tool
-            self.parent.digit.driver.GetThreshold()
-            # draw map
-            if self.pdcVector:
-                self.pdcVector.Clear()
-                self.pdcVector.RemoveAll()
-            try:
-                item = self.tree.FindItemByData('maplayer', digitToolbar.GetLayer())
-            except TypeError:
-                item = None
-            
-            if item and self.tree.IsItemChecked(item):
-                self.parent.digit.driver.DrawMap()
 
-            # translate tmp objects (pointer position)
-            if digitToolbar.GetAction() == 'moveLine':
-                if  hasattr(self, "vdigitMove") and \
-                        self.vdigitMove.has_key('beginDiff'):
-                    # move line
-                    for id in self.vdigitMove['id']:
-                        self.pdcTmp.TranslateId(id,
-                                                self.vdigitMove['beginDiff'][0],
-                                                self.vdigitMove['beginDiff'][1])
-                    del self.vdigitMove['beginDiff']
-        
-        #
+
+
         # render overlays
         #
         for img in self.GetOverlay():
@@ -1364,25 +1336,11 @@ class BufferedWindow2(BufferedWindow):
         if len(self.polycoords) > 0:
             self.DrawLines(self.pdcTmp)
         
-        if not self.parent.IsStandalone() and \
-                self.parent.GetLayerManager().georectifying:
-            # -> georectifier (redraw GCPs)
-            if self.parent.toolbars['georect']:
-                coordtype = 'gcpcoord'
-            else:
-                coordtype = 'mapcoord'
-            self.parent.GetLayerManager().georectifying.DrawGCP(coordtype)
-            
+       
         # 
         # clear measurement
         #
-        if self.mouse["use"] == "measure":
-            self.ClearLines(pdc=self.pdcTmp)
-            self.polycoords = []
-            self.mouse['use'] = 'pointer'
-            self.mouse['box'] = 'point'
-            self.mouse['end'] = [0, 0]
-            self.SetCursor(self.parent.cursors["default"])
+
             
         stop = time.clock()
         
@@ -1406,6 +1364,98 @@ class BufferedWindow2(BufferedWindow):
                    (render, renderVector, (stop-start)))
         
         return True
+
+    def OnMotion(self, event):
+        """!Mouse moved
+        Track mouse motion and update status bar
+        """
+        if self.parent.statusbarWin['toggle'].GetSelection() == 0: # Coordinates
+            precision = int(UserSettings.Get(group = 'projection', key = 'format',
+                                             subkey = 'precision'))
+            format = UserSettings.Get(group = 'projection', key = 'format',
+                                      subkey = 'll')
+            try:
+                e, n = self.Pixel2Cell(event.GetPositionTuple())
+            except (TypeError, ValueError):
+                self.parent.statusbar.SetStatusText("", 0)
+                return
+            
+            if self.parent.toolbars['vdigit'] and \
+                    self.parent.toolbars['vdigit'].GetAction() == 'addLine' and \
+                    self.parent.toolbars['vdigit'].GetAction('type') in ('line', 'boundary') and \
+                    len(self.polycoords) > 0:
+                # for linear feature show segment and total length
+                distance_seg = self.Distance(self.polycoords[-1],
+                                             (e, n), screen=False)[0]
+                distance_tot = distance_seg
+                for idx in range(1, len(self.polycoords)):
+                    distance_tot += self.Distance(self.polycoords[idx-1],
+                                                  self.polycoords[idx],
+                                                  screen=False )[0]
+                self.parent.statusbar.SetStatusText("%.*f, %.*f (seg: %.*f; tot: %.*f)" % \
+                                                 (precision, e, precision, n,
+                                                  precision, distance_seg,
+                                                  precision, distance_tot), 0)
+            else:
+                if self.parent.statusbarWin['projection'].IsChecked():
+                    if not UserSettings.Get(group='projection', key='statusbar', subkey='proj4'):
+                        self.parent.statusbar.SetStatusText(_("Projection not defined (check the settings)"), 0)
+                    else:
+                        proj, coord  = utils.ReprojectCoordinates(coord = (e, n),
+                                                                  projOut = UserSettings.Get(group='projection',
+                                                                                             key='statusbar',
+                                                                                             subkey='proj4'),
+                                                                  flags = 'd')
+                    
+                        if coord:
+                            e, n = coord
+                            if proj in ('ll', 'latlong', 'longlat') and format == 'DMS':
+                                self.parent.statusbar.SetStatusText(utils.Deg2DMS(e, n, precision = precision),
+                                                                    0)
+                            else:
+                                self.parent.statusbar.SetStatusText("%.*f; %.*f" % \
+                                                                        (precision, e, precision, n), 0)
+                        else:
+                            self.parent.statusbar.SetStatusText(_("Error in projection (check the settings)"), 0)
+                else:
+                    if self.parent.Map.projinfo['proj'] == 'll' and format == 'DMS':
+                        self.parent.statusbar.SetStatusText(utils.Deg2DMS(e, n, precision = precision),
+                                                            0)
+                    else:
+                        self.parent.statusbar.SetStatusText("%.*f; %.*f" % \
+                                                                (precision, e, precision, n), 0)
+        event.Skip()
+
+    def OnLeftUp(self, event):
+        """!Left mouse button released
+        """
+        Debug.msg (5, "BufferedWindow.OnLeftUp(): use=%s" % \
+                       self.mouse["use"])
+
+        self.mouse['end'] = event.GetPositionTuple()[:]
+        
+        if self.mouse['use'] in ["zoom", "pan"]:
+            # set region in zoom or pan
+            begin = self.mouse['begin']
+            end = self.mouse['end']
+            
+            if self.mouse['use'] == 'zoom':
+                # set region for click (zero-width box)
+                if begin[0] - end[0] == 0 or \
+                        begin[1] - end[1] == 0:
+                    # zoom 1/2 of the screen (TODO: settings)
+                    begin = (end[0] - self.Map.width / 4,
+                             end[1] - self.Map.height / 4)
+                    end   = (end[0] + self.Map.width / 4,
+                             end[1] + self.Map.height / 4)
+            
+            self.Zoom(begin, end, self.zoomtype)
+
+            # redraw map
+            self.UpdateMap(render=True)
+
+            # update statusbar
+            self.parent.StatusbarUpdate()
 
 
 
