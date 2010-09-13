@@ -58,14 +58,14 @@
 
 double th_1 = 0.08;		/* Band 3 Brightness Threshold */
 double th_1_b = 0.07;
-double th_2[] = { -0.25, 0.70 };	/* Normalized Snow Difference Index */
+double th_2[] = { -0.25, 0.70 }; /* Normalized Snow Difference Index */
 double th_2_b = 0.8;
 double th_3 = 300.;		/* Band 6 Temperature Threshold */
 double th_4 = 225.;		/* Band 5/6 Composite */
 double th_4_b = 0.08;
 double th_5 = 2.35;		/* Band 4/3 Ratio */
 double th_6 = 2.16248;		/* Band 4/2 Ratio */
-double th_7 = 1.0; /* Band 4/5 Ratio */ ;
+double th_7 = 1.0;		/* Band 4/5 Ratio */
 double th_8 = 210.;		/* Band 5/6 Composite */
 
 extern int hist_n;
