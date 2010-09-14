@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     int sensor_id;
     double qcal, rad, ref, percent, ref_mode, sat_zenith, rayleigh;
 
+    struct Colors colors;
     unsigned long hist[256], h_max;
 
     /* initialize GIS environment */
@@ -530,10 +531,10 @@ int main(int argc, char *argv[])
 	G_free(outrast);
 	G_close_cell(outfd);
 
-	char command[300];
-
-	sprintf(command, "r.colors map=%s color=grey", band_out);
-	system(command);
+	/* set grey255 colortable */
+	G_init_colors(&colors);
+	G_add_color_rule(0, 0, 0, 0, 255, 255, 255, 255, &colors);
+	G_write_colors(band_out, G_mapset(), &colors);
 
 	G_short_history(band_out, "raster", &history);
 
@@ -590,6 +591,8 @@ int main(int argc, char *argv[])
 
 	G_command_history(&history);
 	G_write_history(band_out, &history);
+
+	G_put_cell_title(band_out, history.edhist[0]);
     }
 
     exit(EXIT_SUCCESS);
