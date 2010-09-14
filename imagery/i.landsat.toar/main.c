@@ -4,6 +4,7 @@
  * MODULE:       i.landsat.toar
  *
  * AUTHOR(S):    E. Jorge Tizado - ej.tizado@unileon.es
+ *		 Hamish Bowman (small grassification cleanups)
  *
  * PURPOSE:      Calculate TOA Radiance or Reflectance and Kinetic Temperature
  *               for Landsat 1/2/3/4/5 MS, 4/5 TM or 7 ETM+
@@ -51,6 +52,8 @@ int main(int argc, char *argv[])
     double qcal, rad, ref, percent, ref_mode, sat_zenith, rayleigh;
 
     struct Colors colors;
+    struct FPRange range;
+    double min, max;
     unsigned long hist[256], h_max;
 
     /* initialize GIS environment */
@@ -375,6 +378,9 @@ int main(int argc, char *argv[])
 		      rayleigh);
     }
 
+    if (strlen(lsat.creation) == 0)
+	G_fatal_error(_("Unknown production date"));
+
 	/*****************************************
 	 * ------------ VERBOSE ------------------
 	 *****************************************/
@@ -468,9 +474,9 @@ int main(int argc, char *argv[])
 	nrows = G_window_rows();
 	ncols = G_window_cols();
 	/* ================================================================= */
-	G_message("%s of %s to %s",
-		  (frad->answer ? "Radiance"
-		   : (lsat.band[i].thermal) ? "Temperature" : "Reflectance"),
+	G_message(_("Writing %s of <%s> to <%s> ..."),
+		  (frad->answer ? _("radiance")
+		   : (lsat.band[i].thermal) ? _("temperature") : _("reflectance")),
 		  band_in, band_out);
 
 	for (row = 0; row < nrows; row++) {
@@ -531,9 +537,15 @@ int main(int argc, char *argv[])
 	G_free(outrast);
 	G_close_cell(outfd);
 
+/* needed ?
+	if (out_type != CELL_TYPE)
+	    G_quantize_fp_map_range(band_out, G_mapset(), 0., 360., 0, 360);
+*/
 	/* set grey255 colortable */
 	G_init_colors(&colors);
-	G_add_color_rule(0, 0, 0, 0, 255, 255, 255, 255, &colors);
+        G_read_fp_range(band_out, G_mapset(), &range);
+        G_get_fp_range_min_max(&range, &min, &max);
+        G_make_grey_scale_fp_colors(&colors, min, max);
 	G_write_colors(band_out, G_mapset(), &colors);
 
 	G_short_history(band_out, "raster", &history);
@@ -593,6 +605,12 @@ int main(int argc, char *argv[])
 	G_write_history(band_out, &history);
 
 	G_put_cell_title(band_out, history.edhist[0]);
+
+	if(lsat.band[i].thermal)
+	    G_write_raster_units(band_out, "Kelvin");
+	/* else units = ...? */
+	/* set raster timestamp from acq date? (see r.timestamp module) */
+
     }
 
     exit(EXIT_SUCCESS);
