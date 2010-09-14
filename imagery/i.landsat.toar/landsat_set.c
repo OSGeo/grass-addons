@@ -105,9 +105,11 @@ void set_MSS1(lsat_data * lsat)
 
     /** Markham and Barker. EOSAT Landsat Technical Notes, No. 1, 1986;
         Chander, Markham and Helder. Remote Sensing of Environment, 113 (2009)*/
+
     /* Spectral radiances at detector */
     double lmax[] = { 248., 200., 176., 153. };
     double lmin[] = { 0., 0., 0., 0. };
+
     /* Solar exoatmospheric spectral irradiances */
     double esun[] = { 1823., 1559., 1276., 880.1 };
 
@@ -136,13 +138,17 @@ void set_MSS2(lsat_data * lsat)
 
     /** Markham and Barker. EOSAT Landsat Technical Notes, No. 1, 1986;
         Chander, Markham and Helder. Remote Sensing of Environment, 113 (2009)*/
+
     /* Spectral radiances at detector */
-    double Lmax[][4] = { {210., 156., 140., 138.},	/* before      July 16, 1975 */
-    {263., 176., 152., 130.333}
-    };				/* on or after July 16, 1975 */
-    double Lmin[][4] = { {10., 7., 7., 5.},
-    {8., 6., 6., 3.667}
+    double Lmax[][4] = {
+	{210., 156., 140., 138.},   /* before      July 16, 1975 */
+	{263., 176., 152., 130.333} /* on or after July 16, 1975 */
     };
+    double Lmin[][4] = {
+	{10., 7., 7., 5.},
+	{8., 6., 6., 3.667}
+    };
+
     /* Solar exoatmospheric spectral irradiances */
     double esun[] = { 1829., 1539., 1268., 886.6 };
 
@@ -182,11 +188,13 @@ void set_MSS3(lsat_data * lsat)
     /** Markham and Barker. EOSAT Landsat Technical Notes, No. 1, 1986;
         Chander, Markham and Helder. Remote Sensing of Environment, 113 (2009)*/
     /* Spectral radiances at detector */
-    double Lmax[][4] = { {220., 175., 145., 147.},	/* before      June 1, 1978 */
-    {259., 179., 149., 128.}
-    };				/* on or after June 1, 1978 */
-    double Lmin[][4] = { {4., 3., 3., 1.},
-    {4., 3., 3., 1.}
+    double Lmax[][4] = {
+	{220., 175., 145., 147.},  /* before      June 1, 1978 */
+	{259., 179., 149., 128.}   /* on or after June 1, 1978 */
+    };
+    double Lmin[][4] = {
+	{4., 3., 3., 1.},
+	{4., 3., 3., 1.}
     };
     /* Solar exoatmospheric spectral irradiances */
     double esun[] = { 1839., 1555., 1291., 887.9 };
@@ -224,15 +232,19 @@ void set_MSS4(lsat_data * lsat)
 
     /** Markham and Barker. EOSAT Landsat Technical Notes, No. 1, 1986;
         Chander, Markham and Helder. Remote Sensing of Environment, 113 (2009)*/
+
     /* Spectral radiances at detector */
-    double Lmax[][4] = { {250., 180., 150., 133.},	/* before      August 26, 1982 */
-    {230., 180., 130., 133.},	/* between                     */
-    {238., 164., 142., 116.}
-    };				/* on or after April 1, 1983   */
-    double Lmin[][4] = { {2., 4., 4., 3.},
-    {2., 4., 4., 3.},
-    {4., 4., 5., 4.}
+    double Lmax[][4] = {
+	{250., 180., 150., 133.}, /* before      August 26, 1982 */
+	{230., 180., 130., 133.}, /* between                     */
+	{238., 164., 142., 116.}  /* on or after April 1, 1983   */
     };
+    double Lmin[][4] = {
+	{2., 4., 4., 3.},
+	{2., 4., 4., 3.},
+	{4., 4., 5., 4.}
+    };
+
     /* Solar exoatmospheric spectral irradiances */
     double esun[] = { 1827., 1569., 1260., 866.4 };
 
@@ -268,18 +280,22 @@ void set_TM4(lsat_data * lsat)
     /** Brian L. Markham and John L. Barker.
         EOSAT Landsat Technical Notes, No. 1, 1986 */
     /* Spectral radiances at detector */
-    double Lmax[][7] = { {158.42, 308.17, 234.63, 224.32, 32.42, 15.64, 17.00},	/* before August 1983      */
-    {142.86, 291.25, 225.00, 214.29, 30.00, 12.40, 15.93},	/* before January 15, 1984 */
-    {152.10, 296.81, 204.30, 206.20, 27.19, 15.3032, 14.38}
-    };				/* after  Jaunary 15, 1984 */
-    double Lmin[][7] = { {-1.52, -2.84, -1.17, -1.51, -0.37, 2.00, -0.15},
-    {0.00, 0.00, 0.00, 0.00, 0.00, 4.84, 0.00},
-    {-1.50, -2.80, -1.20, -1.50, -0.37, 1.2378, -0.15}
+    double Lmax[][7] = {
+	{158.42, 308.17, 234.63, 224.32, 32.42, 15.64, 17.00},	 /* before August 1983      */
+	{142.86, 291.25, 225.00, 214.29, 30.00, 12.40, 15.93},	 /* before January 15, 1984 */
+	{152.10, 296.81, 204.30, 206.20, 27.19, 15.3032, 14.38}	 /* after  Jaunary 15, 1984 */
+    };
+    double Lmin[][7] = {
+	{-1.52, -2.84, -1.17, -1.51, -0.37, 2.00, -0.15},
+	{0.00, 0.00, 0.00, 0.00, 0.00, 4.84, 0.00},
+	{-1.50, -2.80, -1.20, -1.50, -0.37, 1.2378, -0.15}
     };
 
     /** Chander, Markham and Helder. Remote Sensing of Environment, 113 (2009) */
+
     /* Solar exoatmospheric spectral irradiances */
     double esun[] = { 1983., 1795., 1539., 1028., 219.8, 0., 83.49 };
+
     /* Thermal band calibration constants: K1 = 671.62   K2 = 1284.30 */
 
     julian = julian_char(lsat->creation);
@@ -323,14 +339,17 @@ void set_MSS5(lsat_data * lsat)
     /** Brian L. Markham and John L. Barker.
         EOSAT Landsat Technical Notes, No. 1, 1986 */
     /* Spectral radiances at detector */
-    double Lmax[][4] = { {240., 170., 150., 127.},	/* before   April 6, 1984    */
-    {268., 179., 159., 123.},	/* betweeen                  */
-    {268., 179., 148., 123.}
-    };				/* after    November 9, 1984 */
-    double Lmin[][4] = { {4., 3., 4., 2.},
-    {3., 3., 4., 3.},
-    {3., 3., 5., 3.}
+    double Lmax[][4] = {
+	{240., 170., 150., 127.},   /* before	April 6, 1984	 */
+	{268., 179., 159., 123.},   /* betweeen 		 */
+	{268., 179., 148., 123.}    /* after    November 9, 1984 */
     };
+    double Lmin[][4] = {
+	{4., 3., 4., 2.},
+	{3., 3., 4., 3.},
+	{3., 3., 5., 3.}
+    };
+
     /* Solar exoatmospheric spectral irradiances */
     double esun[] = { 1824., 1570., 1249., 853.4 };
 
@@ -365,19 +384,24 @@ void set_TM5(lsat_data * lsat)
 
     /** Gyanesh Chander and Brian Markham.
         IEEE Transactions On Geoscience And Remote Sensing, Vol. 41, No. 11, November 2003 */
+
     /* Spectral radiances at detector */
-    double Lmax[][7] = { {152.10, 296.81, 204.30, 206.20, 27.19, 15.303, 14.38},	/* before May 4, 2003 */
-    {193.00, 365.00, 264.00, 221.00, 30.20, 15.303, 16.50},	/* after May 4, 2003 */
-    {169.00, 333.00, 264.00, 221.00, 30.20, 15.303, 16.50}
-    };				/* after April 2, 2007 */
-    double Lmin[][7] = { {-1.52, -2.84, -1.17, -1.51, -0.37, 1.2378, -0.15},
-    {-1.52, -2.84, -1.17, -1.51, -0.37, 1.2378, -0.15},
-    {-1.52, -2.84, -1.17, -1.51, -0.37, 1.2378, -0.15}
+    double Lmax[][7] = {
+	{152.10, 296.81, 204.30, 206.20, 27.19, 15.303, 14.38},  /* before May 4, 2003 */
+	{193.00, 365.00, 264.00, 221.00, 30.20, 15.303, 16.50},  /* after May 4, 2003 */
+	{169.00, 333.00, 264.00, 221.00, 30.20, 15.303, 16.50}   /* after April 2, 2007 */
+    };
+    double Lmin[][7] = {
+	{-1.52, -2.84, -1.17, -1.51, -0.37, 1.2378, -0.15},
+	{-1.52, -2.84, -1.17, -1.51, -0.37, 1.2378, -0.15},
+	{-1.52, -2.84, -1.17, -1.51, -0.37, 1.2378, -0.15}
     };
 
 	/** Chander, Markham and Helder. Remote Sensing of Environment, 113 (2009) */
+
     /* Solar exoatmospheric spectral irradiances */
     double esun[] = { 1983., 1796., 1536., 1031., 220.0, 0., 83.44 };
+
     /* Thermal band calibration constants: K1 = 607.76   K2 = 1260.56 */
 
     julian = julian_char(lsat->creation);
@@ -434,26 +458,32 @@ void set_ETM(lsat_data * lsat, char gain[])
 
     /** Richard Irish.
         Landsat 7. Science Data Users Handbook. Last update: February 17, 2007 */
+
     /* Spectral radiances at detector */
     /* - LOW GAIN - */
-    double LmaxL[][8] = { {297.5, 303.4, 235.5, 235.0, 47.70, 17.04, 16.60, 244.0},	/* before      July 1, 2000 */
-    {293.7, 300.9, 234.4, 241.1, 47.57, 17.04, 16.54, 243.1}
-    };				/* on or after July 1, 2000 */
-    double LminL[][8] = { {-6.2, -6.0, -4.5, -4.5, -1.0, 0.0, -0.35, -5.0},
-    {-6.2, -6.4, -5.0, -5.1, -1.0, 0.0, -0.35, -4.7}
+    double LmaxL[][8] = {
+	{297.5, 303.4, 235.5, 235.0, 47.70, 17.04, 16.60, 244.0},   /* before	   July 1, 2000 */
+	{293.7, 300.9, 234.4, 241.1, 47.57, 17.04, 16.54, 243.1}    /* on or after July 1, 2000 */
+    };
+    double LminL[][8] = {
+	{-6.2, -6.0, -4.5, -4.5, -1.0, 0.0, -0.35, -5.0},
+	{-6.2, -6.4, -5.0, -5.1, -1.0, 0.0, -0.35, -4.7}
     };
     /* - HIGH GAIN - */
-    double LmaxH[][8] =
-	{ {194.3, 202.4, 158.6, 157.5, 31.76, 12.65, 10.932, 158.4},
-    {191.6, 196.5, 152.9, 157.4, 31.06, 12.65, 10.80, 158.3}
+    double LmaxH[][8] =	{
+	{194.3, 202.4, 158.6, 157.5, 31.76, 12.65, 10.932, 158.4},
+	{191.6, 196.5, 152.9, 157.4, 31.06, 12.65, 10.80, 158.3}
     };
-    double LminH[][8] = { {-6.2, -6.0, -4.5, -4.5, -1.0, 3.2, -0.35, -5.0},
-    {-6.2, -6.4, -5.0, -5.1, -1.0, 3.2, -0.35, -4.7}
+    double LminH[][8] = {
+	{-6.2, -6.0, -4.5, -4.5, -1.0, 3.2, -0.35, -5.0},
+	{-6.2, -6.4, -5.0, -5.1, -1.0, 3.2, -0.35, -4.7}
     };
 
 	/** Chander, Markham and Helder. Remote Sensing of Environment, 113 (2009) */
+
     /* Solar exoatmospheric spectral irradiances */
     double esun[] = { 1997., 1812., 1533., 1039., 230.8, 0., 84.90, 1362. };
+
     /*  Thermal band calibration constants: K1 = 666.09   K2 = 1282.71 */
 
     julian = julian_char(lsat->creation);
