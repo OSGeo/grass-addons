@@ -146,37 +146,38 @@ void filter_holes(int verbose, Gfile * out)
     /* Open to read */
     mapset = G_find_cell2(out->name, "");
     if (mapset == NULL)
-	G_fatal_error("cell file [%s] not found", out->name);
+	G_fatal_error(_("Raster map <%s> not found"), out->name);
+
     arast = G_allocate_raster_buf(CELL_TYPE);
     brast = G_allocate_raster_buf(CELL_TYPE);
     crast = G_allocate_raster_buf(CELL_TYPE);
+
     if ((out->fd = G_open_cell_old(out->name, mapset)) < 0)
-	G_fatal_error("Cannot open cell file [%s]", out->name);
+	G_fatal_error(_("Unable to open raster map <%s>"), out->name);
 
     /* Open to write */
     sprintf(tmp.name, "_%d.BBB", getpid());
     tmp.rast = G_allocate_raster_buf(CELL_TYPE);
-    if ((tmp.fd = G_open_raster_new(tmp.name, CELL_TYPE)) < 0)
-	G_fatal_error(_("Could not open <%s>"), tmp.name);
 
-    fprintf(stdout, "Filling cloud holes ... \n");
+    if ((tmp.fd = G_open_raster_new(tmp.name, CELL_TYPE)) < 0)
+	G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
+
+    G_message(_("Filling small holes in clouds ..."));
 
 
     for (row = 0; row < nrows; row++) {
-	if (verbose) {
-	    G_percent(row, nrows, 2);
-	}
+
 	/* Read row values */
 	if (row != 0) {
 	    if (G_get_c_raster_row(out->fd, arast, row - 1) < 0)
-		G_fatal_error(_("Could not read from <%s>"), out->name);
+		G_fatal_error(_("Unable to read raster map <%s> row %d"), out->name, row - 1);
 	}
 	if (G_get_c_raster_row(out->fd, brast, row) < 0) {
-	    G_fatal_error(_("Could not read from <%s>"), out->name);
+	    G_fatal_error(_("Unable to read raster map <%s> row %d"), out->name, row);
 	}
 	if (row != (nrows - 1)) {
 	    if (G_get_c_raster_row(out->fd, crast, row + 1) < 0)
-		G_fatal_error(_("Could not read from <%s>"), out->name);
+		G_fatal_error(_("Unable to read raster map <%s> row %d"), out->name, row + 1);
 	}
 	/* Analysis of all pixels */
 	for (col = 0; col < ncols; col++) {
@@ -267,14 +268,16 @@ void filter_holes(int verbose, Gfile * out)
 		    }
 		}
 
-		//                 pixel[1] = (row == 0 || col == 0)                 ? -1 : pval(arast, col - 1);
-		//                 pixel[2] = (row == 0)                             ? -1 : pval(arast, col);
-		//                 pixel[3] = (row == 0 || col == (ncols-1))         ? -1 : pval(arast, col + 1);
-		//                 pixel[4] = (col == 0)                             ? -1 : pval(brast, col - 1);
-		//                 pixel[5] = (col == (ncols-1))                     ? -1 : pval(brast, col + 1);
-		//                 pixel[6] = (row == (nrows-1) || col == 0)         ? -1 : pval(crast, col - 1);
-		//                 pixel[7] = (row == (nrows-1))                     ? -1 : pval(crast, col);
-		//                 pixel[8] = (row == (nrows-1) || col == (ncols-1)) ? -1 : pval(crast, col + 1);
+		/*
+		pixel[1] = (row == 0 || col == 0)                 ? -1 : pval(arast, col - 1);
+		pixel[2] = (row == 0)                             ? -1 : pval(arast, col);
+		pixel[3] = (row == 0 || col == (ncols-1))	  ? -1 : pval(arast, col + 1);
+		pixel[4] = (col == 0)				  ? -1 : pval(brast, col - 1);
+		pixel[5] = (col == (ncols-1))			  ? -1 : pval(brast, col + 1);
+		pixel[6] = (row == (nrows-1) || col == 0)	  ? -1 : pval(crast, col - 1);
+		pixel[7] = (row == (nrows-1))			  ? -1 : pval(crast, col);
+		pixel[8] = (row == (nrows-1) || col == (ncols-1)) ? -1 : pval(crast, col + 1);
+		*/
 
 		cold = warm = shadow = nulo = 0;
 		for (i = 1; i < 9; i++) {
@@ -311,9 +314,11 @@ void filter_holes(int verbose, Gfile * out)
 		G_set_c_null_value((CELL *) tmp.rast + col, 1);
 	    }
 	}
-	if (G_put_raster_row(tmp.fd, tmp.rast, CELL_TYPE) < 0) {
-	    G_fatal_error(_("Cannot write to <%s>"), tmp.name);
-	}
+
+	if (G_put_raster_row(tmp.fd, tmp.rast, CELL_TYPE) < 0)
+	    G_fatal_error(_("Failed writing raster map <%s> row %d"), tmp.name, row);
+
+	G_percent(row, nrows, 2);
     }
 
     G_free(arast);

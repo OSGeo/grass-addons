@@ -166,7 +166,7 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	fprintf(stdout, "      Skewness:           %.2lf\n", value[SKEW]);
 	fprintf(stdout, "      97.50 percentile:   %.2lf K\n", value[KUPPER]);
 	fprintf(stdout, "      83.50 percentile:   %.2lf K\n", value[KLOWER]);
-	//         fprintf(stdout, "      50.00 percentile:   %.2lf K\n", quantile(0.5,hist_cold) + K_BASE);
+	/* fprintf(stdout, "      50.00 percentile:   %.2lf K\n", quantile(0.5,hist_cold) + K_BASE); */
     }
     else {
 	if (signa[KMEAN] < 295.) {
@@ -212,10 +212,10 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
     /* Creation of output file */
     out->rast = G_allocate_raster_buf(CELL_TYPE);
     if ((out->fd = G_open_raster_new(out->name, CELL_TYPE)) < 0)
-	G_fatal_error(_("Could not open <%s>"), out->name);
+	G_fatal_error(_("Unable to create raster map <%s>"), out->name);
 
     /* ----- ----- */
-    fprintf(stdout, "Pass one processing ... \n");
+    G_message(_("Pass one processing ..."));
 
     stats[SUM_COLD] = 0.;
     stats[SUM_WARM] = 0.;
@@ -226,13 +226,11 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
     ncols = G_window_cols();
 
     for (row = 0; row < nrows; row++) {
-	if (verbose) {
-	    G_percent(row, nrows, 2);
-	}
+
 	for (i = BAND2; i <= BAND6; i++) {
 	    if (G_get_d_raster_row(band[i].fd, band[i].rast, row) < 0)
-		G_fatal_error(_("Could not read row from <%s>"),
-			      band[i].name);
+		G_fatal_error(_("Unable to read raster map <%s> row %d"),
+			      band[i].name, row);
 	}
 	for (col = 0; col < ncols; col++) {
 	    code = NO_DEFINED;
@@ -328,9 +326,11 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 		((CELL *) out->rast)[col] = code;
 	    }
 	}
-	if (G_put_raster_row(out->fd, out->rast, CELL_TYPE) < 0) {
-	    G_fatal_error(_("Cannot write row to <%s>"), out->name);
-	}
+
+	if (G_put_raster_row(out->fd, out->rast, CELL_TYPE) < 0)
+	    G_fatal_error(_("Failed writing raster map <%s> row %d"), out->name, row);
+
+	G_percent(row, nrows, 2);
     }
     /* ----- ----- */
 
@@ -354,21 +354,21 @@ void acca_second(int verbose, Gfile * out, Gfile band,
     /* Open to read */
     mapset = G_find_cell2(out->name, "");
     if (mapset == NULL)
-	G_fatal_error("cell file [%s] not found", out->name);
+	G_fatal_error(_("Raster map <%s> not found"), out->name);
     out->rast = G_allocate_raster_buf(CELL_TYPE);
     if ((out->fd = G_open_cell_old(out->name, mapset)) < 0)
-	G_fatal_error("Cannot open cell file [%s]", out->name);
+	G_fatal_error(_("Unable to open raster map <%s>"), out->name);
 
     /* Open to write */
     sprintf(tmp.name, "_%d.BBB", getpid());
     tmp.rast = G_allocate_raster_buf(CELL_TYPE);
     if ((tmp.fd = G_open_raster_new(tmp.name, CELL_TYPE)) < 0)
-	G_fatal_error(_("Could not open <%s>"), tmp.name);
+	G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
 
     if (upper == 0.)
-	fprintf(stdout, "Removing ambiguous pixels ... \n");
+	G_message(_("Removing ambiguous pixels ..."));
     else
-	fprintf(stdout, "Pass two processing ... \n");
+	G_message(_("Pass two processing ..."));
 
     nrows = G_window_rows();
     ncols = G_window_cols();
@@ -378,9 +378,9 @@ void acca_second(int verbose, Gfile * out, Gfile band,
 	    G_percent(row, nrows, 2);
 	}
 	if (G_get_d_raster_row(band.fd, band.rast, row) < 0)
-	    G_fatal_error(_("Could not read from <%s>"), band.name);
+	    G_fatal_error(_("Unable to read raster map <%s> row %d"), band.name, row);
 	if (G_get_c_raster_row(out->fd, out->rast, row) < 0)
-	    G_fatal_error(_("Could not read from <%s>"), out->name);
+	    G_fatal_error(_("Unable to read raster map <%s> row %d"), out->name, row);
 
 	for (col = 0; col < ncols; col++) {
 	    if (G_is_c_null_value((void *)((CELL *) out->rast + col))) {

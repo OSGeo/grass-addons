@@ -55,27 +55,27 @@ int check_raster(char *raster_name)
 
     mapset = G_find_cell2(raster_name, "");
     if (mapset == NULL) {
-	G_message("cell file [%s] not found", raster_name);
+	G_warning(_("Raster map <%s> not found"), raster_name);
 	return -1;
     }
     if (G_legal_filename(raster_name) < 0) {
-	G_message("[%s] is an illegal name", raster_name);
+	G_warning(_("<%s> is an illegal file name"), raster_name);
 	return -1;
     }
     if ((raster_fd = G_open_cell_old(raster_name, mapset)) < 0) {
-	G_message("Cannot open cell file [%s]", raster_name);
+	G_warning(_("Unable to open raster map <%s>"), raster_name);
 	return -1;
     }
     if (G_get_cellhd(raster_name, mapset, &cellhd) < 0) {
-	G_message("Cannot read file header of [%s]", raster_name);
+	G_warning(_("Unable to read header of raster map <%s>"), raster_name);
 	return -1;
     }
     if (G_set_window(&cellhd) < 0) {
-	G_message("Unable to set region");
+	G_warning(_("Cannot reset current region"));
 	return -1;
     }
     if ((map_type = G_raster_map_type(raster_name, mapset)) != DCELL_TYPE) {
-	G_message("Map is not of DCELL_TYPE");
+	G_warning(_("Map is not DCELL type (process DN to radiance first)"));
 	return -1;
     }
     return raster_fd;
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 	snprintf(band[i].name, 127, "%s.%d%c", in_name, i + 2,
 		 (i == BAND6 && !sat5->answer ? '1' : '\0'));
 	if ((band[i].fd = check_raster(band[i].name)) < 0) {
-	    G_fatal_error(_("Error in filename [%s]!"), band[i].name);
+	    G_fatal_error(_("Error in map name <%s>!"), band[i].name);
 	}
 	band[i].rast = G_allocate_raster_buf(DCELL_TYPE);
     }
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
     snprintf(out.name, 127, "%s", out_name);
     if (G_legal_filename(out_name) < 0)
-	G_fatal_error(_("<%s> is an illegal map name"), out.name);
+	G_fatal_error(_("<%s> is an illegal file name"), out.name);
 
     /* --------------------------------------- */
 
