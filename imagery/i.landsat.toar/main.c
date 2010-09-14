@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
     metfn->key = "metfile";
     metfn->type = TYPE_STRING;
     metfn->required = NO;
+    metfn->gisprompt = "old_file,file,file";
     metfn->description = _("Landsat ETM+ or TM5 header file (.met)");
 
     metho = G_define_option();
