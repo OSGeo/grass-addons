@@ -1,0 +1,208 @@
+#!/bin/sh
+############################################################################
+#
+# MODULE:       v.random.cover
+# AUTHOR:       M. Hamish Bowman, Dept. Marine Science, Otago Univeristy,
+#                 New Zealand
+# PURPOSE:      Extract 'Centre of Source' "S" coords from a P1/90 nav data
+#		file into .csv and grass ascii format files, then import
+#		as vector points and lines maps.
+#
+# COPYRIGHT:    (c) 2010 Hamish Bowman, and the GRASS Development Team
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+#############################################################################
+# see ukooa_p1_90.pdf for P1/90 format spec:
+#  http://www.seg.org/SEGportalWEBproject/prod/SEG-Publications/Pub-Technical-Standards/Documents/ukooa_p1_90.pdf
+
+#%Module
+#% description: Extract 'Centre of Source' "S" coordinates from UKOOA P1/90 data files into CSV and import as GRASS vector points and lines maps.
+#% keywords: vector, import, geology
+#%End
+#%option
+#% key: input
+#% type: string
+#% gisprompt: old_file,file,file
+#% label: Name of input file(s)
+#% description: (wildcards for multiple files and gzipped files are ok)
+#% required : yes
+#%end
+#%option
+#% key: output
+#% type: string
+#% gisprompt: new,vector,vector
+#% key_desc: name
+#% description: Base name for output vector maps
+#% required : yes
+#%end
+#%flag
+#% key: k
+#% description: Retain processed ASCII files
+#%end
+
+if [ -z "$GISBASE" ] ; then
+   echo "You must be in GRASS GIS to run this program." 1>&2
+#  echo "USAGE:  p190_to_csv.sh  \"/path/to/infiles*.p190[.gz]\"  outfile_base"
+   exit 1
+fi
+
+# check if we have awk
+if [ ! -x "`which awk`" ] ; then
+    g.message -e "awk required, please install awk/gawk first"
+    exit 1
+fi
+
+# setting environment, so that awk works properly in all languages
+unset LC_ALL
+LC_NUMERIC=C
+export LC_NUMERIC
+
+# set up tempfiles
+TEMPFILES="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$TEMPFILES" ] ; then
+    echo "ERROR: unable to create temporary files" 1>&2
+    exit 1
+fi
+
+
+INFILES="$GIS_OPT_INPUT"
+OUTFILE="$GIS_OPT_OUTPUT"
+
+
+first_file=true
+n=0
+for file in $INFILES ; do
+   g.message -v message="[$file]"
+
+   # test if file is gzip'd, if so use zgrep instead of normal grep
+   # todo: support bzip2'd as well  (bzgrep)
+   # todo: test for zgrep, bzgrep if they are requested
+   if [ `basename "$file" .gz` = `basename "$file"` ] ; then
+      GREP=grep
+   else
+      GREP=zgrep
+   fi
+
+   # write out header info from first P190 file
+   if [ "$first_file" = "true" ] ; then
+      $GREP '^H' "$file" | sed -e 's/^/# /' -e 's/\r$//'> "$OUTFILE.points.dat"
+      echo "#" >> "$OUTFILE.points.dat"
+      echo "#line_name|point_num|lat_wgs84|long_wgs84|easting|northing|depth_m|julian_day|time_" >> "$OUTFILE.points.dat"
+
+      $GREP '^H' "$file" | sed -e 's/^/# /' -e 's/\r$//' > "$OUTFILE.lines.asc"
+      echo "#" >> "$OUTFILE.lines.asc"
+
+      rm -f "$OUTFILE.lines.txt"
+
+      first_file=false
+   fi
+
+    # put a '|' after column two using sed:
+    #  echo 1234567890 | sed -e 's/^\(.\{2\}\)/\1|/'
+    #   (do it backwards as each '|' shifts the columns over by one)
+    # then work our way back adding punctuation
+    # then crop out columns 14-16
+    # then remove any leftover spaces and DOS newline cruft
+    # (sed may be ugly, but it's fast)
+
+   # extract points
+#       -e 's/^S/D/' \
+   $GREP '^S' "$file" | sed \
+     -e 's/^\(.\{79\}\)/\1|/' \
+     -e 's/^\(.\{73\}\)/\1|/' \
+     -e 's/^\(.\{70\}\)/\1|/' \
+     -e 's/^\(.\{64\}\)/\1|/' \
+     -e 's/^\(.\{55\}\)/\1|/' \
+     -e 's/^\(.\{46\}\)/\1|/' \
+     -e 's/^\(.\{35\}\)/\1|/' \
+     -e 's/^\(.\{25\}\)/\1|/' \
+     -e 's/^\(.\{19\}\)/\1|/' \
+     -e 's/| $//'\
+     -e 's/^\(.\{85\}\)/\1:/' \
+     -e 's/^\(.\{83\}\)/\1:/' \
+     \
+     -e 's/^\(.\{43\}\)/\1:/' \
+     -e 's/^\(.\{41\}\)/\1:/' \
+     -e 's/^\(.\{31\}\)/\1:/' \
+     -e 's/^\(.\{29\}\)/\1:/' \
+     -e 's/^\(.\{13\}\)....../\1/' \
+     -e 's/|[ ]*/|/g' -e 's/[ ]*|/|/g' -e 's/|\r\?$//' \
+     -e 's/^S//' >> "$OUTFILE.points.dat"
+
+
+   # extract line by line
+   LINES=`grep '^[^#]' "$OUTFILE.points.dat" | cut -f1 -d'|' | uniq`
+   for LINE_NAME in $LINES ; do
+      #LINE_NAME=`$GREP -m1 '^S' "$file" | cut -c2-13`
+      #LINE_NAME=`$GREP -m1 '^S' "$file" | cut -c1-13 | sed -e 's/^S/D/'`
+      echo "#" >> "$OUTFILE.lines.asc"
+      echo "#line: $LINE_NAME" >> "$OUTFILE.lines.asc"
+
+      # count number of points in the line
+      NUM_VERTICES=`$GREP -c "^$LINE_NAME|" "$OUTFILE.points.dat"`
+      echo "L  $NUM_VERTICES 1" >> "$OUTFILE.lines.asc"
+
+      # write out the line
+      grep "^$LINE_NAME|" "$OUTFILE.points.dat" | \
+         awk -F'|' '{
+           if ($7 == 9999.9) {printf(" %s %s nan\n", $4, $3)}
+           else {printf(" %s %s %s\n", $4, $3, $7)}
+         }' >> "$OUTFILE.lines.asc"
+# {printf(" %s %s %s\n", $4, $3, $7)}
+      n=`expr $n + 1`
+      echo " 1 $n"  >> "$OUTFILE.lines.asc"
+
+      echo "$n|$LINE_NAME" >> "$OUTFILE.lines.txt"
+   done
+done
+
+
+# need to run through and make any 183.25E into 176.75W, etc.  using awk?
+# easier: make 183:45E into 183.75, as degrees=0-360 is supported.
+
+
+
+# Import into GRASS GIS:
+#SURVEY=`basename $GIS_OPT_INPUT` # cut of extention, whatever it may be,
+# make sure legal chars for map name..
+
+# import as points:
+### 
+# not everyone sticks to spec. hit number can have letters, depth, date are sometime
+#  not there... some adjustment to the column string may be required.
+
+# v.in.ascii in=${SURVEY}_p190_nav.points.dat \
+#     out=${SURVEY}_p190_nav_points x=4 y=3 z=7 -z \
+#     columns='line_name varchar(13), point_num integer, lat_wgs84 double, long_wgs84 double, easting double, northing double, depth_m double, julian_day integer, time_ varchar(8)'
+
+# remove garbage depth points?  take from range= option?
+# v.extract in=${SURVEY}_p190_nav_points out=${SURVEY}_p190_nav_points_clean_depths \
+#    where="depth_m < 9999.9"
+
+
+####
+# Lines:
+#  v.in.ascii -z -n in=${SURVEY}_p190_nav.lines.asc \
+#    out=${SURVEY}_p190_nav_lines format=standard
+
+#  v.db.addtable ${SURVEY}_p190_nav_lines column='cat integer, line_name varchar(13)'
+#  while read line ; do
+#    CAT=`echo $line | cut -f1 -d'|'`
+#    VALUE=`echo $line | cut -f2 -d'|'`
+#    v.db.update ${SURVEY}_p190_nav_lines col=line_name value="$VALUE" where="cat = $CAT"
+#  done < ${SURVEY}.lines.txt
+#  v.colors ${SURVEY}_p190_nav_lines column=cat color=random 
+
+# if [ `v.to.db --interface-description | grep -c '<name>azimuth</name>'` -gt 0 ] ; then
+#   v.db.addcol ${SURVEY}_p190_nav_lines column='azimuth double'
+#   v.to.db map=${SURVEY}_p190_nav_lines option=azimuth column="azimuth" type=line  #grass6.5+
+# fi
+
+
+# rm tempfiles ...
+
+
+# done!
+
