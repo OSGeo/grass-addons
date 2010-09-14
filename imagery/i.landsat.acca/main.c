@@ -109,25 +109,21 @@ int main(int argc, char *argv[])
 	_("Landsat TM/ETM+ Automatic Cloud Cover Assessment (ACCA)");
 
     input = G_define_option();
-    input->key = _("band_prefix");
+    input->key = "band_prefix";
     input->type = TYPE_STRING;
     input->required = YES;
-    input->gisprompt = _("input,cell,raster");
+    input->gisprompt = "input,cell,raster";
     input->description =
 	_("Base name of the landsat band rasters ([band_prefix].[band_number])");
 
-    output = G_define_option();
-    output->key = _("output");
-    output->type = TYPE_STRING;
+    output = G_define_standard_option(G_OPT_R_OUTPUT);
     output->required = YES;
-    output->gisprompt = _("input,cell,raster");
-    output->description = _("Output file name");
+
 
     hist = G_define_option();
-    hist->key = _("histogram");
+    hist->key = "histogram";
     hist->type = TYPE_INTEGER;
     hist->required = NO;
-    hist->gisprompt = _("input,integer");
     hist->description =
 	_("Number of classes in the cloud temperature histogram");
     hist->answer = "100";
@@ -138,7 +134,7 @@ int main(int argc, char *argv[])
 
     filter = G_define_flag();
     filter->key = 'f';
-    filter->description = _("Use final filter holes");
+    filter->description = _("Apply post-processing filter to remove small holes");
 
     pass2 = G_define_flag();
     pass2->key = '2';
@@ -146,10 +142,11 @@ int main(int argc, char *argv[])
 
     shadow = G_define_flag();
     shadow->key = 's';
-    shadow->description = _("Add class for cloud shadows");
+    shadow->description = _("Include a category for cloud shadows");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
 
     /* stores OPTIONS and FLAGS to variables */
 
@@ -172,7 +169,7 @@ int main(int argc, char *argv[])
 
     snprintf(out.name, 127, "%s", out_name);
     if (G_legal_filename(out_name) < 0)
-	G_fatal_error(_("[%s] is an illegal name"), out.name);
+	G_fatal_error(_("<%s> is an illegal map name"), out.name);
 
     /* --------------------------------------- */
 
