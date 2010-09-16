@@ -27,6 +27,15 @@ static int heap_alloced = 0;
 static int heap_step;
 static long *heap_index;
 
+int cmp_clump(long cid1, long cid2)
+{
+    if (!cid1)
+	return 0;
+    if (!cid2)
+	return 1;
+    return (cid1 < cid2);
+}
+
 int init_pq(int step)
 {
     pqsize = 0;
@@ -57,7 +66,7 @@ long sift_up(long start, long child_pnt)
 	parent = GET_PARENT(child);
 
 	/* child is larger */
-	if (clump_id[child_pnt] > clump_id[heap_index[parent]]) {
+	if (cmp_clump(clump_id[child_pnt], clump_id[heap_index[parent]])) {
 	    /* push parent point down */
 	    heap_index[child] = heap_index[parent];
 	    child = parent;
@@ -120,8 +129,8 @@ long drop_pnt(void)
 	    i = child + 3;
 	    /* get largest child */
 	    while (childr < i && childr <= pqsize) {
-		if (clump_id[heap_index[childr]] >
-		    clump_id[heap_index[child]]) {
+		if (cmp_clump(clump_id[heap_index[childr]], 
+		    clump_id[heap_index[child]])) {
 		    child = childr;
 		}
 		childr++;
