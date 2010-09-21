@@ -107,7 +107,7 @@ for file in $INFILES ; do
     # then remove any leftover spaces and DOS newline cruft
     # (sed may be ugly, but it's fast)
 
-   # extract points
+   #### extract points ####
 #       -e 's/^S/D/' \
    $GREP '^S' "$file" | sed \
      -e 's/^\(.\{79\}\)/\1|/' \
@@ -131,8 +131,13 @@ for file in $INFILES ; do
      -e 's/|[ ]*/|/g' -e 's/[ ]*|/|/g' -e 's/|\r\?$//' \
      -e 's/^S//' >> "$OUTFILE.points.dat"
 
+    # count number of columns in points file
+    NUM_COL=`grep -v '^#\|^[ \t]*$' "$OUTFILE.points.dat" | \
+       head -n 1 | sed -e 's/[^|]//g' | wc -c`
 
-   # extract line by line
+
+   #### extract line by line ####
+
    LINES=`grep '^[^#]' "$OUTFILE.points.dat" | cut -f1 -d'|' | uniq`
    for LINE_NAME in $LINES ; do
       #LINE_NAME=`$GREP -m1 '^S' "$file" | cut -c2-13`
@@ -159,9 +164,67 @@ for file in $INFILES ; do
 done
 
 
-# need to run through and make any 183.25E into 176.75W, etc.  using awk?
-# easier: make 183:45E into 183.75, as degrees=0-360 is supported.
+#### run through and convert any e.g. 183:45E into +183.75
+if [ `grep -c '18[0-9]:..:..\...E' "$OUTFILE.lines.asc"` -gt 0 ] ; then
 
+   ## vector lines
+   mv "$OUTFILE.lines.asc" "$OUTFILE.lines.tmp$$"
+
+   awk '{
+       if ( $0 ~ /18[0-9]:..:..\...E/) {
+          split($1,degree,"E");
+          split(degree[1],dms,":");
+          DD=dms[1];
+          MM=dms[2];
+          SS=dms[3];
+          DDdddE = DD + MM/60.0 + SS/3600.0;
+
+          split($2,degree,"S");
+          split(degree[1],dms,":");
+          DD=dms[1];
+          MM=dms[2];
+          SS=dms[3];
+          DDdddN = DD + MM/60.0 + SS/3600.0;
+
+          if ( degree[2] = "S" ) {
+             hemiN="-";
+          } else {
+             hemiN=" ";
+          }
+
+          printf(" %.15g %c%.15g\n", DDdddE, hemiN, DDdddN);
+       } else {
+          print
+       }
+     }' "$OUTFILE.lines.tmp$$" > "$OUTFILE.lines.asc"
+
+   \rm "$OUTFILE.lines.tmp$$"
+
+
+   # vector points
+   mv "$OUTFILE.points.dat" "$OUTFILE.points.tmp"
+
+   awk -F'|' -v NCOL="$NUM_COL" '{
+       if ( $4 ~ /18[0-9]:..:..\...E/) {
+          split($4,degree,"E");
+          split(degree[1],dms,":");
+          DD=dms[1];
+          MM=dms[2];
+          SS=dms[3];
+          DDdddE = DD + MM/60.0 + SS/3600.0;
+
+          printf("%s|%s|%s|%.15g", $1, $2, $3, DDdddE);
+          for ( i=5; i<=NCOL; i++) {
+             printf("|%s", $i);
+          }
+          printf("\n");
+       } else {
+          print
+       }
+     }' "$OUTFILE.points.tmp" > "$OUTFILE.points.dat"
+   \rm "$OUTFILE.points.tmp"
+
+fi
 
 
 # Import into GRASS GIS:
@@ -195,6 +258,7 @@ done
 #  done < ${SURVEY}.lines.txt
 #  v.colors ${SURVEY}_p190_nav_lines column=cat color=random 
 
+#### avoid if projection is not Mercator?
 # if [ `v.to.db --interface-description | grep -c '<name>azimuth</name>'` -gt 0 ] ; then
 #   v.db.addcol ${SURVEY}_p190_nav_lines column='azimuth double'
 #   v.to.db map=${SURVEY}_p190_nav_lines option=azimuth column="azimuth" type=line  #grass6.5+
