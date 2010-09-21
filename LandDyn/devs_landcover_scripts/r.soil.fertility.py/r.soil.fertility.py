@@ -36,11 +36,11 @@
 #%END
 
 #%option
-#% key: max
+#% key: recovery
 #% type: string
 #% gisprompt: string
-#% description: maximum value for soil fertility maps (number for highest fertility)
-#% answer: 100
+#% description: The rate at which soil recovers it's fertility per cycle (max fertility is 100)
+#% answer: 1
 #% required : yes
 #%END
 
@@ -71,32 +71,10 @@ import sys
 import os
 import subprocess
 import tempfile
-# first define some useful custom methods
-
-# m is a message (as a string) one wishes to have printed in the output window
-def grass_print(m):
-	subprocess.Popen('g.message message="%s"' % m, shell='bash').wait()
-	return
-# m is grass (or bash) command to execute (written as a string). script will wait for grass command to finish
-def grass_com(m):
-	subprocess.Popen('%s' % m, shell='bash').wait()
-	return
-# m is grass (or bash) command to execute (written as a string). script will not wait for grass command to finish
-def grass_com_nw(m):
-	subprocess.Popen('%s' % m, shell='bash')
-	return
-# m is a grass/bash command that will generate some info to stdout. You must invoke this command in the form of "variable to be made" = out2var('command')
-def out2var(m):
-        pn = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-        return pn.stdout.read()
-# m is a grass/bash command that will generate some list of info to stdout, n is the character that seperates individual pieces of information, and  o is a defined blank list to write results to
-def out2list2(m, n, o):
-        p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-        p2 = p1.stdout.readlines()
-        for y in p2:
-            y0,y1 = y.split('%s' % n)
-            o.append(y0)
-            o.append(y1.strip('\n'))
+import  random
+grass_install_tree = os.getenv('GISBASE')
+sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
+import grass.script as grass
 
 #main block of code starts here
 def main():
@@ -104,31 +82,38 @@ def main():
     inmap = os.getenv('GIS_OPT_inmap')
     impacts = os.getenv('GIS_OPT_impacts')
     outmap = os.getenv('GIS_OPT_outmap')
-    max = os.getenv('GIS_OPT_max')
+    recovery = os.getenv('GIS_OPT_recovery')
     sf_color = os.getenv('GIS_OPT_sf_color')
     txtout = outmap + '_sfertil_stats.txt'
-    #setting initial conditions of map area
-    grass_com('g.region rast=' + inmap)
-    grass_com('r.mask --quiet -o input=' + inmap + ' maskcats=*')
+    #Check to see if there is a MASK already, and if so, temporarily rename it
+    if "MASK" in grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
+        ismask = 1
+        tempmask = 'mask_%i' % random.randint(0,100)
+        grass.run_command('g.rename', quiet = "True", rast = 'MASK,' + tempmask)
+    else:
+        ismask = 0
+    #Set MASK to input DEM
+    grass.run_command('r.mask', input = inmap)
     #updating raw soil fertility category numbers
-    grass_com('r.mapcalc "' + outmap + '=if(' + inmap + ' == ' + max + ' && isnull(' + impacts + '), ' + max + ', (if (' + inmap + ' < ' + max + ' && isnull(' + impacts + '), (' + inmap + ' + 1), if (' + inmap + ' > ' + max + ', (' + max + ' - ' + impacts + '), if (' + inmap + ' < 0, 0, (' + inmap + ' - ' + impacts + '))))))"')
-    grass_com('r.colors --quiet map=' + outmap + ' rules=' + sf_color)
+    grass.mapcalc('${outmap}=if(isnull(${impacts}) && ${inmap} >= 100 - ${recovery}, 100, if(isnull(${impacts}), (${inmap} + ${recovery}), if(${inmap} >= ${impacts}, (${inmap} - ${impacts}), 0 )))', outmap =  outmap, inmap = inmap, recovery = recovery, impacts =impacts )
+    grass.run_command('r.colors', quiet = 'True', map = outmap, rules = sf_color)
     #checking total area of updated cells
-    temparea = []
-    out2list2('r.stats -a -n input=' + impacts + ' fs=, nv=* nsteps=1',  ',',  temparea)
-    grass_print('\n\nTotal area of impacted zones = %s square meters\n\n' % temparea[1])
+    totarea = grass.read_command('r.stats',  flags = 'an', input = impacts, fs = ',', nsteps = '1').split(',')
+    
+    grass.message('\n\nTotal area of impacted zones = %s square meters\n\n' % totarea[1])
     #creating optional output text file of stats
     if os.getenv('GIS_FLAG_s') == '1':
         f = file(txtout, 'wt')
-        f.write('Stats for ' + outmap+ '\n\nTotal area of impacted zones = ' + temparea[1] + ' square meters\n\nSoil Fertility Value,Area (sq. m)\n\n')
-        p1 = subprocess.Popen('r.stats -A -a -n input=' + outmap + ' fs=, nv=* nsteps=' + max, stdout=subprocess.PIPE, shell='bash')
-        p2 = p1.stdout.readlines()
-        for y in p2:
-            f.write(y)
+        f.write('Stats for ' + outmap+ '\n\nTotal area of impacted zones = ' + totarea[1] + ' square meters\n\nSoil Fertility Value,Area (sq. m)\n')
+        areadict = grass.parse_command('r.stats',  flags = 'an', input = impacts)
+        for key in areadict:
+            f.write(key + '\n')
         f.close()
-    grass_print('\nCleaning up...\n\n')
-    grass_com('g.remove --quiet rast=MASK')
-    grass_print('DONE!\n\n')
+    grass.message('\nCleaning up...\n\n')
+    grass.run_command('r.mask', flags = 'r')
+    if ismask == 1:
+        grass.run_command('g.rename', quiet = "True", rast = tempmask +',MASK')
+    grass.message('DONE!\n\n')
 
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
 if __name__ == "__main__":
