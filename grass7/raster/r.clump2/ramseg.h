@@ -2,16 +2,26 @@
 #define __RAMSEG_H__
 
 
-#define RAMSEG		int
+#define RAMSEG		long
 #define RAMSEGBITS 	4
 #define DOUBLEBITS 	8	/* 2 * ramsegbits       */
 #define SEGLENLESS 	15	/* 2 ^ ramsegbits - 1   */
 
-#define SEG_INDEX(s,r,c) (int) \
+#define LARGE_MAPS 1
+
+#ifdef LARGE_MAPS
+
+#define SEG_INDEX(s,r,c) (long) ((r) * (s) + (c))
+
+#else
+
+#define SEG_INDEX(s,r,c) (long) \
    (((((r) >> RAMSEGBITS) * (s) + ((c) >> RAMSEGBITS)) << DOUBLEBITS) \
     + (((r) & SEGLENLESS) << RAMSEGBITS) + ((c) & SEGLENLESS))
+    
+#endif
 
-int size_array(int *, int, int);
-int seg_index_rc(int, int, int *, int *);
+long size_array(long *, int, int);
+long seg_index_rc(long, long, int *, int *);
 
 #endif /* __RAMSEG_H__ */

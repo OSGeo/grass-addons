@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     void *in_ptr, *in_buf;
     int map_type, in_size;
     FLAG *inlist;
-    int ramseg;
+    long ramseg;
     long index, index_nbr;
     int sides, s, r_nbr, c_nbr, have_seeds = 0, *id_map = NULL;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
@@ -118,6 +118,28 @@ int main(int argc, char *argv[])
 
     nrows = window.rows;
     ncols = window.cols;
+    
+    {
+	long mem;
+	
+	mem = (long) nrows * ncols * sizeof(CELL) + nrows * ((ncols + 7) / 8) * sizeof(unsigned char);
+	
+	if (mem < 1024)
+	    G_verbose_message(_("Will need %ld bytes of memory"), mem);
+	else {
+	    if (mem / 1024 < 1024)
+		G_verbose_message(_("Will need %.2f KB of memory"), (double) mem / 1024);
+	    else {
+		mem /= 1024;
+		if (mem / 1024 < 1024)
+		    G_verbose_message(_("Will need %.2f MB of memory"), (double) mem / 1024);
+		else {
+		    mem /= 1024;
+		    G_verbose_message(_("Will need %.2f GB of memory"), (double) mem / 1024);
+		}
+	    }
+	}
+    }
 
     if ((double)nrows * ncols > LONG_MAX)
 	G_fatal_error(_("Current region is too large, can't process raster map <%s>"),
@@ -134,7 +156,7 @@ int main(int argc, char *argv[])
 
     inlist = flag_create(nrows, ncols);
 
-    G_message(_("load input map ..."));
+    G_message(_("Loading input map ..."));
     for (r = 0; r < nrows; r++) {
 	Rast_get_row(in_fd, in_buf, r, map_type);
 	in_ptr = in_buf;
@@ -170,7 +192,7 @@ int main(int argc, char *argv[])
 	struct Cell_head window;
 	
 	/* get start point coordinates */
-	G_message(_("get start point coordinates ..."));
+	G_message(_("Get start point coordinates ..."));
 
 	G_get_window(&window);
 	
@@ -197,6 +219,7 @@ int main(int argc, char *argv[])
 		clump_id[index] = clump_no++;
 		add_pnt(index);
 		FLAG_SET(inlist, row, col);
+		have_seeds = 1;
 	    }
 	}
 
@@ -204,7 +227,8 @@ int main(int argc, char *argv[])
 	for (i = 0; i < clump_no; i++)
 	    id_map[i] = i;
 
-	have_seeds = 1;
+	if (!have_seeds)
+	    G_fatal_error(_("All start coordinates fall into NULL (nodata) areas"));
     }
     else {
 	index = SEG_INDEX(ramseg, 0, 0);
@@ -215,12 +239,16 @@ int main(int argc, char *argv[])
     }
 
     /* determine clumps */
-    G_message(_("determine clumps ..."));
+    G_message(_("Determine clumps ..."));
 
+    int perc = -1, lastperc;
     while (pqsize > 0) {
 	int start_new = 1;
 
-	G_percent(counter++, ncells, 2);
+	lastperc = perc;
+	perc = (double) (counter++ / (double)ncells) * 1000000;
+	if (perc > lastperc && perc < 1000000)
+	    G_percent(perc, 1000000, 2);
 
 	index = drop_pnt();
 	seg_index_rc(ramseg, index, &r, &c);
@@ -278,10 +306,12 @@ int main(int argc, char *argv[])
 
     if (counter < ncells) {
 	if (!have_seeds)
-	    G_warning("missed some cells!");
+	    G_warning("Missed some cells!");
 	else
-	    G_percent(ncells, ncells, 1);
+	    G_percent(1, 1, 1);
     }
+    else if ((double) ((double)counter++ / ncells) * 1000000 < 1000000)
+	G_percent(1, 1, 1);
     
     if (have_seeds && clump_no > 1) {
 	int i;
@@ -293,7 +323,7 @@ int main(int argc, char *argv[])
     }
     
     /* write output */
-    G_message(_("write output map ..."));
+    G_message(_("Write output map ..."));
     out_buf = Rast_allocate_buf(CELL_TYPE);
     for (r = 0; r < nrows; r++) {
 	G_percent(r, nrows, 2);

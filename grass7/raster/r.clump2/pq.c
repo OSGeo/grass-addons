@@ -24,7 +24,7 @@
 #define GET_CHILD(p) (int) (((p) * 3) - 1)
 
 static int heap_alloced = 0;
-static int heap_step;
+static long heap_step;
 static long *heap_index;
 
 int cmp_clump(long cid1, long cid2)
@@ -36,7 +36,7 @@ int cmp_clump(long cid1, long cid2)
     return (cid1 < cid2);
 }
 
-int init_pq(int step)
+int init_pq(long step)
 {
     pqsize = 0;
     if (step < 100)

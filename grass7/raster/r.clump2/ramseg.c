@@ -1,12 +1,32 @@
 #include <stdio.h>
 #include "ramseg.h"
 
-int size_array(int *ram_seg, int nrows, int ncols)
+#ifdef LARGE_MAPS
+
+long size_array(long *ramseg, int nrows, int ncols)
 {
-    int size, segs_in_col;
+    *ramseg = (long)ncols;
+    
+    return ((long) nrows * ncols);
+}
+
+/* get r, c from seg_index */
+long seg_index_rc(long ramseg, long seg_index, int *r, int *c)
+{
+    *r = seg_index / ramseg;
+    *c = seg_index - *r * ramseg;
+    
+    return 0;
+}
+
+#else
+
+long size_array(long *ramseg, int nrows, int ncols)
+{
+    long size, segs_in_col;
 
     segs_in_col = ((nrows - 1) >> RAMSEGBITS) + 1;
-    *ram_seg = ((ncols - 1) >> RAMSEGBITS) + 1;
+    *ramseg = ((ncols - 1) >> RAMSEGBITS) + 1;
     size = ((((nrows - 1) >> RAMSEGBITS) + 1) << RAMSEGBITS) *
 	((((ncols - 1) >> RAMSEGBITS) + 1) << RAMSEGBITS);
     size -= ((segs_in_col << RAMSEGBITS) - nrows) << RAMSEGBITS;
@@ -15,9 +35,9 @@ int size_array(int *ram_seg, int nrows, int ncols)
 }
 
 /* get r, c from seg_index */
-int seg_index_rc(int ramseg, int seg_index, int *r, int *c)
+long seg_index_rc(long ramseg, long seg_index, int *r, int *c)
 {
-    int seg_no, seg_remainder;
+    long seg_no, seg_remainder;
 
     seg_no = seg_index >> DOUBLEBITS;
     seg_remainder = seg_index - (seg_no << DOUBLEBITS);
@@ -26,3 +46,5 @@ int seg_index_rc(int ramseg, int seg_index, int *r, int *c)
 	seg_remainder - (((*r) & SEGLENLESS) << RAMSEGBITS);
     return seg_no;
 }
+
+#endif

@@ -28,7 +28,7 @@ extern long pqsize;
 extern CELL *clump_id;
 
 /* pq.c */
-int init_pq(int);
+int init_pq(long);
 int free_pq(void);
 int add_pnt(long);
 long drop_pnt(void);
