@@ -116,8 +116,8 @@ void lsat_bandctes(lsat_data * lsat, int i, char method,
 					  PI * Lp) / pi_d2;
 		    Tz = 1 - (4 * pi_d2 * Lp) / (lsat->band[i].esun * sin_e);
 		    Tv = exp(sin_e * log(Tz) / cos_v);
-		    //  G_message("TAUv = %.5f (%.5f), TAUz = %.5f (%.5f) and Edown = %.5f\n", TAUv, Tv, TAUz, Tz, PI * Lp );
-		    // } while( abs(TAUv - Tv) > 0.0000001 || abs(TAUz - Tz) > 0.0000001);
+		    /* G_message("TAUv = %.5f (%.5f), TAUz = %.5f (%.5f) and Edown = %.5f\n", TAUv, Tv, TAUz, Tz, PI * Lp ); */
+		    /* } while( abs(TAUv - Tv) > 0.0000001 || abs(TAUz - Tz) > 0.0000001); */
 		} while (TAUv != Tv && TAUz != Tz);
 		TAUz = (Tz < 1. ? Tz : 1.);
 		TAUv = (Tv < 1. ? Tv : 1.);
