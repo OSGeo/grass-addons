@@ -54,7 +54,7 @@ void met_ETM(char *metfile, lsat_data * lsat)
 	{ 1969., 1840., 1551., 1044., 225.7, 0., 82.07, 1368. };
 
     if ((f = fopen(metfile, "r")) == NULL)
-	G_fatal_error(_(".met file [%s] not found"), metfile);
+	G_fatal_error(_("Metadata file <%s> not found"), metfile);
 
     fread(mettext, 1, ETM_MET_SIZE, f);
 
@@ -142,7 +142,7 @@ void met_TM5(char *metfile, lsat_data * lsat)
     /* char metdate[MAX_STR]; */
 
     if ((f = fopen(metfile, "r")) == NULL)
-	G_fatal_error(_(".met file [%s] not found"), metfile);
+	G_fatal_error(_("Metadata file <%s> not found"), metfile);
 
     fread(mettext, 1, TM5_MET_SIZE, f);
 
@@ -156,7 +156,7 @@ void met_TM5(char *metfile, lsat_data * lsat)
     }
 
     if (lsat->creation[0] == 0)
-	G_fatal_error(_("Product creation date not in .met file [%s]"),
+	G_fatal_error(_("Product creation date not in metadata file <%s>"),
 		      metfile);
 
     get_value_met(mettext, "SolarElevation", value);

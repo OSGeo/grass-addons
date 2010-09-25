@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
 		G_message("Landsat-1 MSS");
 	    }
 	    else {
-		G_fatal_error(_("Unuknown satellite type"));
+		G_fatal_error(_("Unknown satellite type"));
 	    }
 	}
     }
@@ -310,15 +310,15 @@ int main(int argc, char *argv[])
 	    snprintf(band_in, 127, "%s.%d", name, lsat.band[i].code);
 	    mapset = G_find_cell2(band_in, "");
 	    if (mapset == NULL) {
-		G_warning(_("Raster file [%s] not found"), band_in);
+		G_warning(_("Raster map <%s> not found"), band_in);
 		continue;
 	    }
 	    if ((infd = G_open_cell_old(band_in, mapset)) < 0)
-		G_fatal_error(_("Cannot open cell file [%s]"), band_in);
+		G_fatal_error(_("Unable to open raster map <%s>"), band_in);
 	    if (G_get_cellhd(band_in, mapset, &cellhd) < 0)
-		G_fatal_error(_("Cannot read file header of [%s]"), band_in);
+		G_fatal_error(_("Unable to read header of raster map <%s>"), band_in);
 	    if (G_set_window(&cellhd) < 0)
-		G_fatal_error(_("Unable to set region"));
+		G_fatal_error(_("Cannot reset current region"));
 
 	    in_data_type = G_raster_map_type(band_in, mapset);
 	    inrast = G_allocate_raster_buf(in_data_type);
@@ -446,27 +446,27 @@ int main(int argc, char *argv[])
 
 	mapset = G_find_cell2(band_in, "");
 	if (mapset == NULL) {
-	    G_warning(_("raster file [%s] not found"), band_in);
+	    G_warning(_("Raster map <%s> not found"), band_in);
 	    continue;
 	}
 
 	in_data_type = G_raster_map_type(band_in, mapset);
 	if ((infd = G_open_cell_old(band_in, mapset)) < 0)
-	    G_fatal_error(_("Cannot open cell file [%s]"), band_in);
+	    G_fatal_error(_("Unable to open raster map <%s>"), band_in);
 
 	if (G_get_cellhd(band_in, mapset, &cellhd) < 0)
-	    G_fatal_error(_("Cannot read file header of [%s]"), band_in);
+	    G_fatal_error(_("Unable to read header of raster map <%s>"), band_in);
 
 	/* set same size as original band raster */
 	if (G_set_window(&cellhd) < 0)
-	    G_fatal_error(_("Unable to set region"));
+	    G_fatal_error(_("Cannot reset current region"));
 
 	/* controlling, if we can write the raster */
 	if (G_legal_filename(band_out) < 0)
-	    G_fatal_error(_("[%s] is an illegal name"), band_out);
+	    G_fatal_error(_("<%s> is an illegal file name"), band_out);
 
 	if ((outfd = G_open_raster_new(band_out, DCELL_TYPE)) < 0)
-	    G_fatal_error(_("Could not open <%s>"), band_out);
+	    G_fatal_error(_("Unable to create raster map <%s>"), band_out);
 
 	/* Allocate input and output buffer */
 	inrast = G_allocate_raster_buf(in_data_type);
@@ -523,7 +523,7 @@ int main(int argc, char *argv[])
 		}
 	    }
 	    if (G_put_raster_row(outfd, outrast, DCELL_TYPE) < 0)
-		G_fatal_error(_("Cannot write to <%s>"), band_out);
+		G_fatal_error(_("Failed writing raster map <%s> row %d"), band_out, row);
 	}
 	ref_mode = 0.;
 	if (method > DOS && !lsat.band[i].thermal) {
