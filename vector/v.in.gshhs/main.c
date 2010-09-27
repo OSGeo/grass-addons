@@ -268,7 +268,7 @@ int main(int argc, char **argv)
 	version = (version >> 8) & 255;
     }
 
-    /* check version support */
+    /* check version support (GSHHS_DATA_RELEASE is defined in gshhs.h)*/
     if (version < 4)  /* not sure if that check works... */
 	G_fatal_error("Trying to import version %d, only GSHHS versions 4 to %d (2.0) are supported.", version, (int)GSHHS_DATA_RELEASE);
     if (version > GSHHS_DATA_RELEASE)
