@@ -31,11 +31,11 @@ at-sensor temperature in Kelvin degrees.</p>
 
 <p>
 Radiometric calibration converts QCAL to <b>at-sensor radiance</b>, a
-radiometric quantity measured in  W/(m²·sr·µm) using the equations:
+radiometric quantity measured in  W/(m&sup2; * sr * &micro;m) using the equations:
   <ul>
   <li> gain = (Lmax - Lmin) / (QCALmax - QCALmin)</li>
-  <li> bias = Lmin - gain · QCALmin </li>
-  <li> radiance = gain · QCAL + bias </li>
+  <li> bias = Lmin - gain * QCALmin </li>
+  <li> radiance = gain * QCAL + bias </li>
   </ul>
 where,
 <em>Lmax</em> and <em>Lmin</em> are the calibration constants, and
@@ -46,13 +46,13 @@ of the range of rescaled radiance in QCAL.
 <p>
 Then, to calculate <b>at-sensor reflectance</b> the equations are:
     <ul>
-    <li> sun_radiance = [Esun · sin(e)] / (PI · d^2)</li>
+    <li> sun_radiance = [Esun * sin(e)] / (PI * d^2)</li>
     <li> reflectance = radiance / sun_radiance </li>
   </ul>
 where,
 <em>d</em> is the earth-sun distance in astronomical units,
 <em>e</em> is the solar elevation angle, and
-<em>Esun</em> is the mean solar exoatmospheric irradiance in W/(m²·µm).
+<em>Esun</em> is the mean solar exoatmospheric irradiance in W/(m&sup2; * &micro;m).
 </p>
 
 
@@ -86,8 +86,8 @@ of solar illumination. To output these simple <b>at-surface radiance</b>
 and <b>at-surface reflectance</b>, the equations are (not for thermal
 bands):
     <ul>
-    <li> sun_radiance = TAUv · [Esun · sin(e) · TAUz + Esky] / (PI · d^2) </li>
-    <li> radiance_path = radiance_dark - percent · sun_radiance </li>
+    <li> sun_radiance = TAUv * [Esun * sin(e) * TAUz + Esky] / (PI * d^2) </li>
+    <li> radiance_path = radiance_dark - percent * sun_radiance </li>
     <li> radiance = (at-sensor_radiance - radiance_path) </li>
     <li> reflectance = radiance / sun_radiance </li>
   </ul>
@@ -111,7 +111,7 @@ The values are,
 	<li>DOS3: TAUv = exp[-t/cos(sat_zenith)],
 	   TAUz = exp[-t/sin(e)], Esky = rayleigh</li>
 	<li>DOS4: TAUv = exp[-t/cos(sat_zenith)],
-	   TAUz = exp[-t/sin(e)], Esky = PI · radiance_dark </li>
+	   TAUz = exp[-t/sin(e)], Esky = PI * radiance_dark </li>
 	</ul>
 
 <p>

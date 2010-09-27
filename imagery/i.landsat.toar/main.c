@@ -411,7 +411,7 @@ int main(int argc, char *argv[])
 		    lsat.band[i].qcalmin, lsat.band[i].qcalmax);
 	    fprintf(stdout, "   calibration constants (L): %.3lf to %.3lf\n",
 		    lsat.band[i].lmin, lsat.band[i].lmax);
-	    fprintf(stdout, "   at-%s radiance = %.5lf · DN + %.5lf\n",
+	    fprintf(stdout, "   at-%s radiance = %.5lf * DN + %.5lf\n",
 		    (method > DOS ? "surface" : "sensor"), lsat.band[i].gain,
 		    lsat.band[i].bias);
 	    if (lsat.band[i].thermal) {
