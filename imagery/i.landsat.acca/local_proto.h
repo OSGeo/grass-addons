@@ -21,24 +21,24 @@
 
 typedef struct
 {
-    int fd;
-    void *rast;
-    char name[1024];
+    int     fd;
+    void *  rast;
+    char    name[1024];
 
 } Gfile;
 
 
-void acca_algorithm(int, Gfile *, Gfile[], int, int);
-void acca_first(int, Gfile *, Gfile[], int, int[], int[], int[], double[]);
+void acca_algorithm(int, Gfile *, Gfile [], int, int);
+void acca_first (int, Gfile *, Gfile [], int, int [], int [], int [], double []);
 void acca_second(int, Gfile *, Gfile, int, double, double);
 
-int shadow_algorithm(double[]);
+int shadow_algorithm(double []);
 
 void filter_holes(int, Gfile *);
 
 void hist_put(double t, int hist[]);
 double mean(int hist[]);
 double quantile(double q, int hist[]);
-double moment(int n, int hist[]);
+double moment(int n, int hist[], int k);
 
 #endif
