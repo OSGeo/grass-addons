@@ -30,7 +30,7 @@
 #define KUPPER      1
 #define MEAN        2
 #define SKEW        3
-#define VARI        4
+#define DSTD        4
 
 /*
     Con Landsat-7 funciona bien pero con Landsat-5 falla
@@ -100,8 +100,7 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	value[SOIL] = (double)count[SOIL] / (double)count[TOTAL];
 
 	value[0] = (double)(count[WARM] + count[COLD]);
-	idesert = (value[0] == 0. ? 0. : value[0] /
-									(value[0] + (double)count[SOIL]));
+	idesert = (value[0] == 0. ? 0. : 1. / (1. + (double)count[SOIL])/value[0]);
 
 	/* BAND-6 CLOUD SIGNATURE DEVELOPMENT */
 	if (value[SNOW] > 0.01)
@@ -122,6 +121,7 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	}
 
 	signa[KMEAN] = (signa[SUM_COLD] / (double)count[COLD]) * SCALE;
+    /* signa[KMEAN] = quantile( 0.50, hist_cold ) :::::: median */
 	signa[COVER] = (double)count[COLD] / (double)count[TOTAL];
 
 	fprintf(stdout, "  PRELIMINARY SCENE ANALYSIS\n");
@@ -139,15 +139,15 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	{
 		value[KUPPER] = quantile( 0.975, hist_cold ) + K_BASE;
 		value[KLOWER] = quantile( 0.835, hist_cold ) + K_BASE;
-		value[MEAN]   = mean(hist_cold) + K_BASE;
-		value[VARI]   = moment( 2, hist_cold );
-		value[SKEW]   = moment( 3, hist_cold );
+		value[MEAN]   = mean(hist_cold) + K_BASE; /* quantile( 0.5, hist_cold ): */
+		value[DSTD]   = sqrt( moment(2, hist_cold, 1) );
+		value[SKEW]   = moment( 3, hist_cold, 3 ) / pow( value[DSTD], 3);
 
 		if (value[SKEW] > 0.)
 		{
 			shift = value[SKEW];
 			if (shift > 1.) shift = 1.;
-			shift *= sqrt( value[VARI] );
+			shift *= value[DSTD];
 
 			x = quantile( 0.9875, hist_cold ) + K_BASE;
 			if ((value[KUPPER] + shift) > x)
@@ -165,10 +165,10 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 		fprintf(stdout, "  HISTOGRAM CLOUD SIGNATURE\n");
 		fprintf(stdout, "      Histogram classes:  %d\n", hist_n);
 		fprintf(stdout, "      Mean temperature:   %.2lf K\n", value[MEAN]);
-		fprintf(stdout, "      Standard deviation: %.2lf\n", sqrt(value[VARI]));
-		fprintf(stdout, "      Skewness:           %.2lf\n", value[SKEW]);
-		fprintf(stdout, "      97.50 percentile:   %.2lf K\n", value[KUPPER]);
-		fprintf(stdout, "      83.50 percentile:   %.2lf K\n", value[KLOWER]);
+		fprintf(stdout, "      Standard deviation: %.2lf  \n", value[DSTD]);
+		fprintf(stdout, "      Skewness:           %.2lf  \n", value[SKEW]);
+		fprintf(stdout, "      97.50 quantile:     %.2lf K\n", value[KUPPER]);
+		fprintf(stdout, "      83.50 quantile:     %.2lf K\n", value[KLOWER]);
 	}
 	else
 	{
