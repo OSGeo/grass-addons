@@ -36,6 +36,7 @@
 /* updating to a newer GSHHS version can be as easy as replacing
  * struct GSHHS2 und updating GSHHS_DATA_RELEASE in gshhs.h
  * if not too many changes were introduced */
+/* TODO 9/2010: GSHHS1 and GSHHS2 have been unified in gshhs.h, simplify code here */
 #include "gshhs.h"
 
 /* GSHHS version 1.x import */
@@ -61,7 +62,7 @@ int main(int argc, char **argv)
     FILE *fp;
     int i, n_read, flip, version;
     int cnt = 0;
-    struct GSHHS1 h;
+    struct GSHHS h;
     /* GRASS specific */
     struct Key_Value *out_proj_keys, *out_unit_keys;
     int zone;
@@ -257,7 +258,7 @@ int main(int argc, char **argv)
     }
 
     /* read header from GSHHS database */
-    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS1), (size_t) 1, fp);
+    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
     version = (h.flag >> 8) & 255;
 
     /* Take as sign that byte-swapping is needed */
@@ -378,7 +379,7 @@ int gshhs_import1(struct Map_info *Map, FILE *fp, int limit_to_region,
     int max_east = 180000000;	/* max_east = 270000000: confuses GRASS */
     int cnt = 0, getme = 0;
     struct GSHHS_POINT p;	/* renamed to avoid conflict */
-    struct GSHHS1 h;
+    struct GSHHS h;
     /* GRASS specific */
     int type;
     struct line_pnts *Points, **BPoints;
@@ -386,7 +387,7 @@ int gshhs_import1(struct Map_info *Map, FILE *fp, int limit_to_region,
     int use_bpoints, n_bpoints, bpoints_alloc = 10;
 
     /* read header from GSHHS database */
-    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS1), (size_t) 1, fp);
+    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
     version = (h.flag >> 8) & 255;
 
     /* Take as sign that byte-swapping is needed */
@@ -676,7 +677,7 @@ int gshhs_import1(struct Map_info *Map, FILE *fp, int limit_to_region,
 	/* max_east = 180000000; */ /* Only Eurasiafrica needs 270 */
 
 	n_read =
-	    fread((void *)&h, (size_t) sizeof(struct GSHHS1), (size_t) 1, fp);
+	    fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
     }
 
     Vect_destroy_line_struct(Points);
@@ -690,6 +691,7 @@ int gshhs_import1(struct Map_info *Map, FILE *fp, int limit_to_region,
 /* GSHHS version 2.x import, works with data release 7 */
 /* the only difference between gshhs_import1 and gshhs_import2 is
  * the use of struct GSHHS1 or struct GSHHS2, respectively */
+/* TODO 9/2010: GSHHS1 and GSHHS2 have been unified in gshhs.h, simplify code here */
 int gshhs_import2(struct Map_info *Map, FILE *fp, int limit_to_region,
 		  double minx, double maxx, double miny, double maxy)
 {
@@ -700,7 +702,7 @@ int gshhs_import2(struct Map_info *Map, FILE *fp, int limit_to_region,
     int max_east = 180000000;	/* max_east = 270000000: confuses GRASS */
     int cnt = 0, getme = 0;
     struct GSHHS_POINT p;	/* renamed to avoid conflict */
-    struct GSHHS2 h;
+    struct GSHHS h;
     /* GRASS specific */
     int type;
     struct line_pnts *Points, **BPoints;
@@ -708,7 +710,7 @@ int gshhs_import2(struct Map_info *Map, FILE *fp, int limit_to_region,
     int use_bpoints, n_bpoints, bpoints_alloc = 10;
 
     /* read header from GSHHS database */
-    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS2), (size_t) 1, fp);
+    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
     version = (h.flag >> 8) & 255;
 
     /* Take as sign that byte-swapping is needed */
@@ -998,7 +1000,7 @@ int gshhs_import2(struct Map_info *Map, FILE *fp, int limit_to_region,
 	/* max_east = 180000000; */ /* Only Eurasiafrica needs 270 */
 
 	n_read =
-	    fread((void *)&h, (size_t) sizeof(struct GSHHS2), (size_t) 1, fp);
+	    fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
     }
 
     Vect_destroy_line_struct(Points);
