@@ -1,4 +1,3 @@
-
 /**********************************************************************
  * 
  * MODULE:       v.in.gshhs (based on gshhstograss.c)
@@ -249,12 +248,12 @@ int main(int argc, char **argv)
 
     /* open GSHHS shoreline for reading */
     if ((fp = fopen(dataname, "rb")) == NULL) {
-	G_fatal_error(_("Could not find file <%s>"), dataname);
+	G_fatal_error(_("Unable to open input file <%s>"), dataname);
     }
 
     /* Open new vector */
     if (0 > Vect_open_new(&Map, outname, 0)) {
-	G_fatal_error(_("Cannot open new vector map <%s>"), outname);
+	G_fatal_error(_("Unable to create vector map <%s>"), outname);
     }
 
     /* read header from GSHHS database */
