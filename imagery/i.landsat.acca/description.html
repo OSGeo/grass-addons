@@ -1,51 +1,30 @@
 <H2>DESCRIPTION</H2>
 
-<EM>i.landsat.acca</EM> implements the Automated Cloud-Cover Assessment
-(ACCA) Algorithm from Irish (2000) with the constant values for pass filter
-one from Irish et al. (2006). To do this, it needs the band numbers 2, 3,
-4, 5, and 6 (or band 61 for Landsat-7 ETM+) which have already been
-processed from DN into reflectance and band-6 temperature (for example with
-<em>i.landsat.toar</em>).
+<EM>i.landsat.acca</EM> is to implement the Automated Cloud-Cover Assessment (ACCA) Algorithm from Irish (2000) with the constant values for pass filter one from Irish et al. (2006). To do, it need the band numbers 2, 3, 4, 5, and 6 (band 61 of Landsat-7 ETM+).</p>
 
-<p>
-The ACCA gives good results over most of the planet with the exception of
-ice sheets because ACCA operates on the premise that clouds are colder than
-the land surface they cover. The algorithm was designed to Landsat-7 ETM+
-but because of they use reflectances it usefull also for Landsat-4/5 TM.
+<p>The ACCA gives good results over most of the planet with the exception of ice sheets because ACCA operates on the premise that clouds are colder than the land surface they cover. The algorithm was designed to Landsat-7 ETM+ but because of they use reflectances it usefull also for Landsat-4/5 TM.</p>
+
 
 
 <H2>NOTES</H2>
 
-<em>i.landsat.acca</em> works on the full raster, thus it does not take
-account the current region settings. <!-- this may have to change before the
-module can be added to the main source archive -->
-
+<em>i.landsat.acca</em> use full raster and it do not take account the current region.
 
 <H2>EXAMPLES</H2>
 
-To run the standard ACCA algorithm with two pass processing (the <b>-2</b> flag)
-and filling cloud holes (the <b>-f</b> flag):
-<p>
-With per-band reflectance raster maps named <tt>226_62.toar.1,
-226_62.toar.2, </tt> [...] and LANDSAT-7 thermal band <tt>226_62.toar.61</tt>,
-outputing to a new raster map named <tt>226_62.acca</tt>:
+<p>To make standard ACCA algorithm with two pass processing (flag 2) and filling cloud holes (flag f).</p>
+Reflectances in band rasters 226_62.toar.1, 226_62.toar.2 [...] and thermal band 226_62.toar.61 to output file 226_62.acca:</p>
 
 <div class="code"><pre>
-i.landsat.acca -2 -f band_prefix=226_62.toar output=226_62.acca
+i.landsat.acca -f2 band=226_62.toar out=226_62.acca
 </pre></div>
+
 
 
 <H2>REFERENCES</H2>
 <ol>
-    <li>Irish R.R., Barker J.L., Goward S.N., and Arvidson T., 2006.
-	Characterization of the Landsat-7 ETM+ Automated Cloud-Cover
-	Assessment (ACCA) Algorithm. Photogrammetric Engineering and Remote
-        Sensing vol. 72(10): 1179-1188.</li>
-
-    <li>Irish, R.R., 2000. Landsat 7 Automatic Cloud Cover Assessment. In
-        S.S. Shen and M.R. Descour (Eds.): Algorithms for Multispectral,
-        Hyperspectral, and Ultraspectral Imagery VI. Proceedings of SPIE,
-        4049: 348-355.</li>
+    <li>Irish R.R., Barker J.L., Goward S.N., and Arvidson T., 2006. Characterization of the Landsat-7 ETM+ Automated Cloud-Cover Assessment (ACCA) Algorithm. Photogrammetric Engineering and Remote Sensing vol. 72(10): 1179-1188.</li>
+    <li>Irish, R.R., 2000. Landsat 7 Automatic Cloud Cover Assessment. In S.S. Shen and M.R. Descour (Eds.): Algorithms for Multispectral, Hyperspectral, and Ultraspectral Imagery VI. Proceedings of SPIE, 4049: 348-355.</li>
 </ol>
 
 
@@ -60,8 +39,7 @@ i.landsat.acca -2 -f band_prefix=226_62.toar output=226_62.acca
 <H2>AUTHOR</H2>
 
 E. Jorge Tizado  (ej.tizado unileon es)<br>
-Dept. Biodiversity and Environmental Management,
-University of León, Spain<BR>
+Dept. Biodiversity and Environmental Management, University of León, Spain<BR>
 
 <p>
 <i>Last changed: $Date: 2007/07/07 00:00:00 $</i>
