@@ -28,7 +28,7 @@ typedef struct
 } Gfile;
 
 
-void acca_algorithm(int, Gfile *, Gfile[], int, int);
+void acca_algorithm(int, Gfile *, Gfile[], int, int, int);
 void acca_first(int, Gfile *, Gfile[], int, int[], int[], int[], double[]);
 void acca_second(int, Gfile *, Gfile, int, double, double);
 

@@ -74,10 +74,10 @@ extern int hist_n;
 #define K_BASE  240.
 
 void acca_algorithm(int verbose, Gfile * out, Gfile band[],
-		    int two_pass, int with_shadow)
+		    int two_pass, int with_shadow, int cloud_signature)
 {
     int i, count[5], hist_cold[hist_n], hist_warm[hist_n];
-    double x, value[5], signa[5], idesert, warm_ambiguous, shift;
+    double max, value[5], signa[5], idesert, review_warm, shift;
 
     /* Reset variables ... */
     for (i = 0; i < 5; i++) {
@@ -100,20 +100,18 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 
     value[0] = (double)(count[WARM] + count[COLD]);
     idesert =
-	(value[0] == 0. ? 0. : 1. / (1. + (double)count[SOIL]) / value[0]);
+	(value[0] == 0. ? 0. : 1. / (1. + ((double)count[SOIL]) / value[0]));
 
     /* BAND-6 CLOUD SIGNATURE DEVELOPMENT */
-    if (value[SNOW] > 0.01)
-	//     if (idesert <= .5 || value[SNOW] > 0.01)
-    {
+    if (idesert <= .5 || value[SNOW] > 0.01) {
 	/* Only the cold clouds are used
 	   if snow or desert soil is present */
-	warm_ambiguous = 1;
+	review_warm = 1;
     }
     else {
 	/* The cold and warm clouds are combined
 	   and treated as a single population */
-	warm_ambiguous = 0;
+	review_warm = 0;
 	count[COLD] += count[WARM];
 	value[COLD] += value[WARM];
 	signa[SUM_COLD] += signa[SUM_WARM];
@@ -124,62 +122,68 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
     signa[KMEAN] = (signa[SUM_COLD] / (double)count[COLD]) * SCALE;
     signa[COVER] = (double)count[COLD] / (double)count[TOTAL];
 
-    G_message("  PRELIMINARY SCENE ANALYSIS\n");
-    G_message("    Desert index:  %.3lf\n", idesert);
-    G_message("    Snow cover  :  %.3lf %%\n", 100. * value[SNOW]);
-    G_message("    Cloud cover :  %.3lf %%\n", 100. * signa[COVER]);
-    G_message("    Temperature of %s clouds\n",
-	      (warm_ambiguous ? "cold" : "all"));
-    G_message("      Maximum: %.2lf K\n", signa[KMAX]);
-    G_message("      Mean   : %.2lf K\n", signa[KMEAN]);
-    G_message("      Minimum: %.2lf K\n", signa[KMIN]);
+    G_message(">  PRELIMINARY SCENE ANALYSIS\n");
+    G_message(">    Desert index:  %.3lf", idesert);
+    G_message(">    Snow cover:    %.3lf %%", 100. * value[SNOW]);
+    G_message(">    Cloud cover:   %.3lf %%", 100. * signa[COVER]);
+    G_message(">    Temperature of clouds");
+    G_message(">      Maximum: %.2lf K\n", signa[KMAX]);
+    G_message(">      Mean (%s cloud)  : %.2lf K\n",
+	      (review_warm ? "cold" : "all"), signa[KMEAN]);
+    G_message(">      Minimum: %.2lf K\n", signa[KMIN]);
 
-    /* WARNING: variable 'value' reutilizada con nuevos valores */
+    /* WARNING: re-use of the variable 'value' with new meaning */
 
-    if (idesert > 0.5 && signa[COVER] > 0.004 && signa[KMEAN] < 295.) {
-	value[KUPPER] = quantile(0.975, hist_cold) + K_BASE;
-	value[KLOWER] = quantile(0.835, hist_cold) + K_BASE;
-	value[MEAN] = mean(hist_cold) + K_BASE;	/* quantile( 0.5, hist_cold ): */
+    /* step 14 */
+    if (cloud_signature ||
+	(idesert <= .5 && signa[COVER] > 0.004 && signa[KMEAN] < 295.)) {
+	value[MEAN] = quantile(0.5, hist_cold) + K_BASE;	/* mean(hist_cold) + K_BASE; */
 	value[DSTD] = sqrt(moment(2, hist_cold, 1));
 	value[SKEW] = moment(3, hist_cold, 3) / pow(value[DSTD], 3);
 
-	if (value[SKEW] > 0.) {
-	    shift = value[SKEW];
-	    if (shift > 1.)
-		shift = 1.;
-	    shift *= value[DSTD];
+	shift = value[SKEW];
+	if (shift > 1.)
+	    shift = 1.;
+	else if (shift < 0.)
+	    shift = 0.;
 
-	    x = quantile(0.9875, hist_cold) + K_BASE;
-	    if ((value[KUPPER] + shift) > x) {
-		value[KUPPER] = x;
-		value[KLOWER] = x - shift;		   /* ??? COMPROBAR */
+	shift *= value[DSTD];
+
+	max = quantile(0.9875, hist_cold) + K_BASE;
+	value[KUPPER] = quantile(0.975, hist_cold) + K_BASE;
+	value[KLOWER] = quantile(0.835, hist_cold) + K_BASE;
+	/* step 17 & 18 */
+	if (shift > 0.) {
+	    if ((value[KUPPER] * shift) > max) {
+		value[KLOWER] += (value[KUPPER] * (shift - 1.));
+		value[KUPPER] = max;
 	    }
 	    else {
-		value[KUPPER] += shift;
-		value[KLOWER] += shift;
+		value[KLOWER] *= shift;
+		value[KUPPER] *= shift;
 	    }
 	}
 
-	G_message("  HISTOGRAM CLOUD SIGNATURE\n");
-	G_message("      Histogram classes:  %d\n", hist_n);
-	G_message("      Mean temperature:   %.2lf K\n", value[MEAN]);
-	G_message("      Standard deviation: %.2lf  \n", value[DSTD]);
-	G_message("      Skewness:           %.2lf  \n", value[SKEW]);
-	G_message("      97.50 quantile:     %.2lf K\n", value[KUPPER]);
-	G_message("      83.50 quantile:     %.2lf K\n", value[KLOWER]);
+	G_message(">  HISTOGRAM CLOUD SIGNATURE\n");
+	G_message(">      Histogram classes:  %d\n", hist_n);
+	G_message(">      Mean temperature:   %.2lf K\n", value[MEAN]);
+	G_message(">      Standard deviation: %.2lf  \n", value[DSTD]);
+	G_message(">      Skewness:           %.2lf  \n", value[SKEW]);
+	G_message(">      Cold cloud: maximun %.2lf K\n", value[KUPPER]);
+	G_message(">      Warn cloud: maximun %.2lf K\n", value[KLOWER]);
     }
     else {
 	if (signa[KMEAN] < 295.) {
 	    /* Retained warm and cold clouds */
 	    G_message("    Scene with clouds\n");
-	    warm_ambiguous = 0;
+	    review_warm = 0;
 	    value[KUPPER] = 0.;
 	    value[KLOWER] = 0.;
 	}
 	else {
 	    /* Retained cold clouds */
 	    G_message("    Scene cloud free\n");
-	    warm_ambiguous = 1;
+	    review_warm = 1;
 	    value[KUPPER] = 0.;
 	    value[KLOWER] = 0.;
 	}
@@ -187,14 +191,14 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 
     /* SECOND FILTER ... */
     /* By-pass two processing but it retains warm and cold clouds */
-    if (two_pass == 0) {
-	warm_ambiguous = 0;
+    if (two_pass == 1) {
+	review_warm = -1.;
 	value[KUPPER] = 0.;
 	value[KLOWER] = 0.;
     }
     acca_second(verbose, out, band[BAND6],
-		warm_ambiguous, value[KUPPER], value[KLOWER]);
-    /* CATEGORIES: WARM_CLOUD, COLD_CLOUD, NULL (= NO_CLOUD) */
+		review_warm, value[KUPPER], value[KLOWER]);
+    /* CATEGORIES: IS_WARM_CLOUD, IS_COLD_CLOUD, IS_SHADOW, NULL (= NO_CLOUD) */
 
     return;
 }
@@ -212,10 +216,10 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
     /* Creation of output file */
     out->rast = G_allocate_raster_buf(CELL_TYPE);
     if ((out->fd = G_open_raster_new(out->name, CELL_TYPE)) < 0)
-	G_fatal_error(_("Could not open <%s>"), out->name);
+	G_fatal_error(_("Unable to create raster map <%s>"), out->name);
 
     /* ----- ----- */
-    G_message("Pass one processing ... \n");
+    G_message("Pass one processing ...");
 
     stats[SUM_COLD] = 0.;
     stats[SUM_WARM] = 0.;
@@ -226,13 +230,10 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
     ncols = G_window_cols();
 
     for (row = 0; row < nrows; row++) {
-	if (verbose) {
-	    G_percent(row, nrows, 2);
-	}
 	for (i = BAND2; i <= BAND6; i++) {
 	    if (G_get_d_raster_row(band[i].fd, band[i].rast, row) < 0)
-		G_fatal_error(_("Could not read row from <%s>"),
-			      band[i].name);
+		G_fatal_error(_("Unable to read raster map <%s> row %d"),
+			      band[i].name, row);
 	}
 	for (col = 0; col < ncols; col++) {
 	    code = NO_DEFINED;
@@ -333,7 +334,10 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 	    }
 	}
 	if (G_put_raster_row(out->fd, out->rast, CELL_TYPE) < 0) {
-	    G_fatal_error(_("Cannot write row to <%s>"), out->name);
+	    G_fatal_error(_("Failed writing raster map <%s> row %d"),
+			  out->name, row);
+
+	    G_percent(row, nrows, 2);
 	}
     }
 
@@ -345,7 +349,7 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 
 
 void acca_second(int verbose, Gfile * out, Gfile band,
-		 int warm_ambiguous, double upper, double lower)
+		 int review_warm, double upper, double lower)
 {
     int i, row, col, nrows, ncols;
     char *mapset;
@@ -357,21 +361,21 @@ void acca_second(int verbose, Gfile * out, Gfile band,
     /* Open to read */
     mapset = G_find_cell2(out->name, "");
     if (mapset == NULL)
-	G_fatal_error("cell file [%s] not found", out->name);
+	G_fatal_error(_("Raster map <%s> not found"), out->name);
     out->rast = G_allocate_raster_buf(CELL_TYPE);
     if ((out->fd = G_open_cell_old(out->name, mapset)) < 0)
-	G_fatal_error("Cannot open cell file [%s]", out->name);
+	G_fatal_error(_("Unable to open raster map <%s>"), out->name);
 
     /* Open to write */
     sprintf(tmp.name, "_%d.BBB", getpid());
     tmp.rast = G_allocate_raster_buf(CELL_TYPE);
     if ((tmp.fd = G_open_raster_new(tmp.name, CELL_TYPE)) < 0)
-	G_fatal_error(_("Could not open <%s>"), tmp.name);
+	G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
 
     if (upper == 0.)
-	G_message("Removing ambiguous pixels ... \n");
+	G_message(_("Removing ambiguous pixels ..."));
     else
-	G_message("Pass two processing ... \n");
+	G_message(_("Pass two processing ..."));
 
     nrows = G_window_rows();
     ncols = G_window_cols();
@@ -381,9 +385,11 @@ void acca_second(int verbose, Gfile * out, Gfile band,
 	    G_percent(row, nrows, 2);
 	}
 	if (G_get_d_raster_row(band.fd, band.rast, row) < 0)
-	    G_fatal_error(_("Could not read from <%s>"), band.name);
+	    G_fatal_error(_("Unable to read raster map <%s> row %d"),
+			  band.name, row);
 	if (G_get_c_raster_row(out->fd, out->rast, row) < 0)
-	    G_fatal_error(_("Could not read from <%s>"), out->name);
+	    G_fatal_error(_("Unable to read raster map <%s> row %d"),
+			  out->name, row);
 
 	for (col = 0; col < ncols; col++) {
 	    if (G_is_c_null_value((void *)((CELL *) out->rast + col))) {
@@ -393,28 +399,30 @@ void acca_second(int verbose, Gfile * out, Gfile band,
 		code = (int)((CELL *) out->rast)[col];
 		/* Resolve ambiguous pixels */
 		if (code == NO_DEFINED ||
-		    (code == WARM_CLOUD) && warm_ambiguous == 1) {
+		    (code == WARM_CLOUD && review_warm == 1)) {
 		    temp = (double)((DCELL *) band.rast)[col];
 		    if (temp > upper) {
 			G_set_c_null_value((CELL *) tmp.rast + col, 1);
 		    }
 		    else {
 			((CELL *) tmp.rast)[col] =
-			    (temp < lower) ? IS_COLD_CLOUD : IS_WARM_CLOUD;
+			    (temp < lower) ? IS_WARM_CLOUD : IS_COLD_CLOUD;
 		    }
 		}
 		else
-		    /* Join warm (not ambiguous) and cold clouds */
-		if (code == COLD_CLOUD ||
-			(code == WARM_CLOUD) && warm_ambiguous == 0) {
-		    ((CELL *) tmp.rast)[col] = IS_COLD_CLOUD;
+		    /* Joint warm (not ambiguous) and cold clouds */
+		if (code == COLD_CLOUD || code == WARM_CLOUD) {
+		    ((CELL *) tmp.rast)[col] = (code == WARM_CLOUD &&
+						review_warm ==
+						0) ? IS_WARM_CLOUD :
+			IS_COLD_CLOUD;
 		}
 		else
 		    ((CELL *) tmp.rast)[col] = IS_SHADOW;
 	    }
 	}
 	if (G_put_raster_row(tmp.fd, tmp.rast, CELL_TYPE) < 0) {
-	    G_fatal_error(_("Cannot write to <%s>"), tmp.name);
+	    G_fatal_error(_("Cannot write to raster map <%s>"), tmp.name);
 	}
     }
 
@@ -449,9 +457,15 @@ void acca_second(int verbose, Gfile * out, Gfile band,
 
 int shadow_algorithm(double pixel[])
 {
-    if (pixel[BAND3] < 0.07 && (1 - pixel[BAND4]) * pixel[BAND6] > 240. && pixel[BAND4] / pixel[BAND2] > 1.	// Quita agua 1
-	//         && (pixel[BAND3] - pixel[BAND5]) / (pixel[BAND3] + pixel[BAND5]) < 0.10
-	) {
+    /*
+       if (pixel[BAND3] < 0.07 && (1 - pixel[BAND4]) * pixel[BAND6] > 240. &&
+       pixel[BAND4] / pixel[BAND2] > 1.) {
+     */
+    /* I think this filter is better but not in any paper */
+    if (pixel[BAND3] < 0.07 && (1 - pixel[BAND4]) * pixel[BAND6] > 240. &&
+	pixel[BAND4] / pixel[BAND2] > 1. &&
+	(pixel[BAND3] - pixel[BAND5]) / (pixel[BAND3] + pixel[BAND5]) <
+	0.10) {
 	return IS_SHADOW;
     }
 
