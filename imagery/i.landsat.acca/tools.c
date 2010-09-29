@@ -63,24 +63,6 @@ double moment(int n, int hist[], int k)
     return value;
 }
 
-/* Real data mean */
-double mean(int hist[])
-{
-    int i, total;
-    double value, mean;
-
-    total = 0;
-    mean = 0.;
-    for (i = 0; i < hist_n; i++) {
-	total += hist[i];
-	mean += (double)(i * hist[i]);
-    }
-    mean /= (double)total;
-
-    /* remove scale factor */
-    return (mean / ((double)hist_n / 100.));
-}
-
 /* Real data quantile */
 double quantile(double q, int hist[])
 {
@@ -92,6 +74,7 @@ double quantile(double q, int hist[])
 	total += hist[i];
     }
 
+    value = 0;
     qmax = 1.;
     for (i = hist_n - 1; i >= 0; i--) {
 	qmin = qmax - (double)hist[i] / (double)total;
@@ -117,9 +100,9 @@ int pval(void *rast, int i)
     void *ptr = (void *)((CELL *) rast + i);
 
     if (G_is_c_null_value(ptr))
-        return 0;
+	return 0;
     else
-        return (int)((CELL *) rast)[i];
+	return (int)((CELL *) rast)[i];
 }
 
 void filter_holes(int verbose, Gfile * out)
@@ -136,23 +119,23 @@ void filter_holes(int verbose, Gfile * out)
     ncols = G_window_cols();
 
     if (nrows < 3 || ncols < 3)
-        return;
+	return;
 
     /* Open to read */
     mapset = G_find_cell2(out->name, "");
     if (mapset == NULL)
-        G_fatal_error(_("Raster map <%s> not found"), out->name);
+	G_fatal_error(_("Raster map <%s> not found"), out->name);
     arast = G_allocate_raster_buf(CELL_TYPE);
     brast = G_allocate_raster_buf(CELL_TYPE);
     crast = G_allocate_raster_buf(CELL_TYPE);
     if ((out->fd = G_open_cell_old(out->name, mapset)) < 0)
-        G_fatal_error("Unable to open raster map <%s>", out->name);
+	G_fatal_error("Unable to open raster map <%s>", out->name);
 
     /* Open to write */
     sprintf(tmp.name, "_%d.BBB", getpid());
     tmp.rast = G_allocate_raster_buf(CELL_TYPE);
     if ((tmp.fd = G_open_raster_new(tmp.name, CELL_TYPE)) < 0)
-        G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
+	G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
 
     G_message(_("Filling small holes in cloud ..."));
 
@@ -162,150 +145,150 @@ void filter_holes(int verbose, Gfile * out)
      */
 
     for (row = 0; row < nrows; row++) {
-        /* Read row values */
-        if (row != 0) {
-            if (G_get_c_raster_row(out->fd, arast, row - 1) < 0)
-                G_fatal_error(_("Unable to read raster map <%s> row %d"),
-                              out->name, row - 1);
-        }
-        if (G_get_c_raster_row(out->fd, brast, row) < 0) {
-            G_fatal_error(_("Unable to read raster map <%s> row %d"),
-                          out->name, row);
-        }
-        if (row != (nrows - 1)) {
-            if (G_get_c_raster_row(out->fd, crast, row + 1) < 0)
-                G_fatal_error(_("Unable to read raster map <%s> row %d"),
-                              out->name, row + 1);
-        }
-        /* Analysis of all pixels */
-        for (col = 0; col < ncols; col++) {
-            pixel[0] = pval(brast, col);
-            if (pixel[0] == 0) {
-                if (row == 0) {
-                    pixel[1] = -1;
-                    pixel[2] = -1;
-                    pixel[3] = -1;
-                    if (col == 0) {
-                        pixel[4] = -1;
-                        pixel[5] = pval(brast, col + 1);
-                        pixel[6] = -1;
-                        pixel[7] = pval(crast, col);
-                        pixel[8] = pval(crast, col + 1);
-                    }
-                    else if (col != (ncols - 1)) {
-                        pixel[4] = pval(brast, col - 1);
-                        pixel[5] = pval(brast, col + 1);
-                        pixel[6] = pval(crast, col - 1);
-                        pixel[7] = pval(crast, col);
-                        pixel[8] = pval(crast, col + 1);
-                    }
-                    else {
-                        pixel[4] = pval(brast, col - 1);
-                        pixel[5] = -1;
-                        pixel[6] = pval(crast, col - 1);
-                        pixel[7] = pval(crast, col);
-                        pixel[8] = -1;
-                    }
-                }
-                else if (row != (nrows - 1)) {
-                    if (col == 0) {
-                        pixel[1] = -1;
-                        pixel[2] = pval(arast, col);
-                        pixel[3] = pval(arast, col + 1);
-                        pixel[4] = -1;
-                        pixel[5] = pval(brast, col + 1);
-                        pixel[6] = -1;
-                        pixel[7] = pval(crast, col);
-                        pixel[8] = pval(crast, col + 1);
-                    }
-                    else if (col != (ncols - 1)) {
-                        pixel[1] = pval(arast, col - 1);
-                        pixel[2] = pval(arast, col);
-                        pixel[3] = pval(arast, col + 1);
-                        pixel[4] = pval(brast, col - 1);
-                        pixel[5] = pval(brast, col + 1);
-                        pixel[6] = pval(crast, col - 1);
-                        pixel[7] = pval(crast, col);
-                        pixel[8] = pval(crast, col + 1);
-                    }
-                    else {
-                        pixel[1] = pval(arast, col - 1);
-                        pixel[2] = pval(arast, col);
-                        pixel[3] = -1;
-                        pixel[4] = pval(brast, col - 1);
-                        pixel[5] = -1;
-                        pixel[6] = pval(crast, col - 1);
-                        pixel[7] = pval(crast, col);
-                        pixel[8] = -1;
-                    }
-                }
-                else {
-                    pixel[6] = -1;
-                    pixel[7] = -1;
-                    pixel[8] = -1;
-                    if (col == 0) {
-                        pixel[1] = -1;
-                        pixel[2] = pval(arast, col);
-                        pixel[3] = pval(arast, col + 1);
-                        pixel[4] = -1;
-                        pixel[5] = pval(brast, col + 1);
-                    }
-                    else if (col != (ncols - 1)) {
-                        pixel[1] = pval(arast, col - 1);
-                        pixel[2] = pval(arast, col);
-                        pixel[3] = pval(arast, col + 1);
-                        pixel[4] = pval(brast, col - 1);
-                        pixel[5] = pval(brast, col + 1);
-                    }
-                    else {
-                        pixel[1] = pval(arast, col - 1);
-                        pixel[2] = pval(arast, col);
-                        pixel[3] = -1;
-                        pixel[4] = pval(brast, col - 1);
-                        pixel[5] = -1;
-                    }
-                }
+	/* Read row values */
+	if (row != 0) {
+	    if (G_get_c_raster_row(out->fd, arast, row - 1) < 0)
+		G_fatal_error(_("Unable to read raster map <%s> row %d"),
+			      out->name, row - 1);
+	}
+	if (G_get_c_raster_row(out->fd, brast, row) < 0) {
+	    G_fatal_error(_("Unable to read raster map <%s> row %d"),
+			  out->name, row);
+	}
+	if (row != (nrows - 1)) {
+	    if (G_get_c_raster_row(out->fd, crast, row + 1) < 0)
+		G_fatal_error(_("Unable to read raster map <%s> row %d"),
+			      out->name, row + 1);
+	}
+	/* Analysis of all pixels */
+	for (col = 0; col < ncols; col++) {
+	    pixel[0] = pval(brast, col);
+	    if (pixel[0] == 0) {
+		if (row == 0) {
+		    pixel[1] = -1;
+		    pixel[2] = -1;
+		    pixel[3] = -1;
+		    if (col == 0) {
+			pixel[4] = -1;
+			pixel[5] = pval(brast, col + 1);
+			pixel[6] = -1;
+			pixel[7] = pval(crast, col);
+			pixel[8] = pval(crast, col + 1);
+		    }
+		    else if (col != (ncols - 1)) {
+			pixel[4] = pval(brast, col - 1);
+			pixel[5] = pval(brast, col + 1);
+			pixel[6] = pval(crast, col - 1);
+			pixel[7] = pval(crast, col);
+			pixel[8] = pval(crast, col + 1);
+		    }
+		    else {
+			pixel[4] = pval(brast, col - 1);
+			pixel[5] = -1;
+			pixel[6] = pval(crast, col - 1);
+			pixel[7] = pval(crast, col);
+			pixel[8] = -1;
+		    }
+		}
+		else if (row != (nrows - 1)) {
+		    if (col == 0) {
+			pixel[1] = -1;
+			pixel[2] = pval(arast, col);
+			pixel[3] = pval(arast, col + 1);
+			pixel[4] = -1;
+			pixel[5] = pval(brast, col + 1);
+			pixel[6] = -1;
+			pixel[7] = pval(crast, col);
+			pixel[8] = pval(crast, col + 1);
+		    }
+		    else if (col != (ncols - 1)) {
+			pixel[1] = pval(arast, col - 1);
+			pixel[2] = pval(arast, col);
+			pixel[3] = pval(arast, col + 1);
+			pixel[4] = pval(brast, col - 1);
+			pixel[5] = pval(brast, col + 1);
+			pixel[6] = pval(crast, col - 1);
+			pixel[7] = pval(crast, col);
+			pixel[8] = pval(crast, col + 1);
+		    }
+		    else {
+			pixel[1] = pval(arast, col - 1);
+			pixel[2] = pval(arast, col);
+			pixel[3] = -1;
+			pixel[4] = pval(brast, col - 1);
+			pixel[5] = -1;
+			pixel[6] = pval(crast, col - 1);
+			pixel[7] = pval(crast, col);
+			pixel[8] = -1;
+		    }
+		}
+		else {
+		    pixel[6] = -1;
+		    pixel[7] = -1;
+		    pixel[8] = -1;
+		    if (col == 0) {
+			pixel[1] = -1;
+			pixel[2] = pval(arast, col);
+			pixel[3] = pval(arast, col + 1);
+			pixel[4] = -1;
+			pixel[5] = pval(brast, col + 1);
+		    }
+		    else if (col != (ncols - 1)) {
+			pixel[1] = pval(arast, col - 1);
+			pixel[2] = pval(arast, col);
+			pixel[3] = pval(arast, col + 1);
+			pixel[4] = pval(brast, col - 1);
+			pixel[5] = pval(brast, col + 1);
+		    }
+		    else {
+			pixel[1] = pval(arast, col - 1);
+			pixel[2] = pval(arast, col);
+			pixel[3] = -1;
+			pixel[4] = pval(brast, col - 1);
+			pixel[5] = -1;
+		    }
+		}
 
-                cold = warm = shadow = nulo = 0;
-                for (i = 1; i < 9; i++) {
-                    switch (pixel[i]) {
-                    case IS_COLD_CLOUD:
-                        cold++;
-                        break;
-                    case IS_WARM_CLOUD:
-                        warm++;
-                        break;
-                    case IS_SHADOW:
-                        shadow++;
-                        break;
-                    default:
-                        nulo++;
-                        break;
-                    }
-                }
-                lim = (int)(cold + warm + shadow + nulo) / 2;
+		cold = warm = shadow = nulo = 0;
+		for (i = 1; i < 9; i++) {
+		    switch (pixel[i]) {
+		    case IS_COLD_CLOUD:
+			cold++;
+			break;
+		    case IS_WARM_CLOUD:
+			warm++;
+			break;
+		    case IS_SHADOW:
+			shadow++;
+			break;
+		    default:
+			nulo++;
+			break;
+		    }
+		}
+		lim = (int)(cold + warm + shadow + nulo) / 2;
 
-                /* Entra pixel[0] = 0 */
-                if (nulo < lim) {
-                    if (shadow >= (cold + warm))
-                        pixel[0] = IS_SHADOW;
-                    else
-                        pixel[0] =
-                            (warm > cold) ? IS_WARM_CLOUD : IS_COLD_CLOUD;
-                }
-            }
-            if (pixel[0] != 0) {
-                ((CELL *) tmp.rast)[col] = pixel[0];
-            }
-            else {
-                G_set_c_null_value((CELL *) tmp.rast + col, 1);
-            }
-        }
-        if (G_put_raster_row(tmp.fd, tmp.rast, CELL_TYPE) < 0)
-            G_fatal_error(_("Failed writing raster map <%s> row %d"),
-                          tmp.name, row);
+		/* Entra pixel[0] = 0 */
+		if (nulo < lim) {
+		    if (shadow >= (cold + warm))
+			pixel[0] = IS_SHADOW;
+		    else
+			pixel[0] =
+			    (warm > cold) ? IS_WARM_CLOUD : IS_COLD_CLOUD;
+		}
+	    }
+	    if (pixel[0] != 0) {
+		((CELL *) tmp.rast)[col] = pixel[0];
+	    }
+	    else {
+		G_set_c_null_value((CELL *) tmp.rast + col, 1);
+	    }
+	}
+	if (G_put_raster_row(tmp.fd, tmp.rast, CELL_TYPE) < 0)
+	    G_fatal_error(_("Failed writing raster map <%s> row %d"),
+			  tmp.name, row);
 
-        G_percent(row, nrows, 2);
+	G_percent(row, nrows, 2);
     }
 
     G_free(arast);
@@ -330,4 +313,3 @@ void filter_holes(int verbose, Gfile * out)
 
     return;
 }
-

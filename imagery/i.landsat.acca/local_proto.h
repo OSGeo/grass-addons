@@ -37,7 +37,6 @@ int shadow_algorithm(double[]);
 void filter_holes(int, Gfile *);
 
 void hist_put(double t, int hist[]);
-double mean(int hist[]);
 double quantile(double q, int hist[]);
 double moment(int n, int hist[], int k);
 

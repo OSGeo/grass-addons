@@ -8,7 +8,7 @@
 
 #include "local_proto.h"
 
-#define SCALE   100.
+#define SCALE   200.
 
 /* value and count */
 #define TOTAL 0
@@ -137,7 +137,7 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
     /* step 14 */
     if (cloud_signature ||
 	(idesert <= .5 && signa[COVER] > 0.004 && signa[KMEAN] < 295.)) {
-	value[MEAN] = quantile(0.5, hist_cold) + K_BASE;	/* mean(hist_cold) + K_BASE; */
+	value[MEAN] = quantile(0.5, hist_cold) + K_BASE;
 	value[DSTD] = sqrt(moment(2, hist_cold, 1));
 	value[SKEW] = moment(3, hist_cold, 3) / pow(value[DSTD], 3);
 
@@ -333,12 +333,11 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 		((CELL *) out->rast)[col] = code;
 	    }
 	}
-	if (G_put_raster_row(out->fd, out->rast, CELL_TYPE) < 0) {
+	if (G_put_raster_row(out->fd, out->rast, CELL_TYPE) < 0)
 	    G_fatal_error(_("Failed writing raster map <%s> row %d"),
 			  out->name, row);
 
-	    G_percent(row, nrows, 2);
-	}
+	G_percent(row, nrows, 2);
     }
 
     G_free(out->rast);
@@ -457,15 +456,15 @@ void acca_second(int verbose, Gfile * out, Gfile band,
 
 int shadow_algorithm(double pixel[])
 {
-    /*
-       if (pixel[BAND3] < 0.07 && (1 - pixel[BAND4]) * pixel[BAND6] > 240. &&
-       pixel[BAND4] / pixel[BAND2] > 1.) {
-     */
     /* I think this filter is better but not in any paper */
     if (pixel[BAND3] < 0.07 && (1 - pixel[BAND4]) * pixel[BAND6] > 240. &&
 	pixel[BAND4] / pixel[BAND2] > 1. &&
 	(pixel[BAND3] - pixel[BAND5]) / (pixel[BAND3] + pixel[BAND5]) <
 	0.10) {
+	/*
+	   if (pixel[BAND3] < 0.07 && (1 - pixel[BAND4]) * pixel[BAND6] > 240. &&
+	   pixel[BAND4] / pixel[BAND2] > 1.) {
+	 */
 	return IS_SHADOW;
     }
 
