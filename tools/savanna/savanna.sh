@@ -18,16 +18,6 @@ echo 'Setting up parameters...'
 export parameter_file="/home/jongreen/code/grass/savanna/v06/savanna_parameters_00008m_rsun.sh"
 . $parameter_file
 
-# These should be left alone without good reason.
-export savanna_init_job_file="savanna_init_job.sh"
-export savanna_init_grass_file="savanna_init_grass.sh"
-export savanna_tiling_job_file="savanna_tiling_job.sh"
-export savanna_tiling_grass_file="savanna_tiling_grass.sh"
-export savanna_copy_job_file="savanna_copy_job.sh"
-export savanna_copy_grass_file="savanna_copy_grass.sh"
-export savanna_mosaic_job_file="savanna_mosaic_job.sh"
-export savanna_mosaic_grass_file="savanna_mosaic_grass.sh"
-
 echo 'Checking gridengine...'
 . $gridengine_settings
 
