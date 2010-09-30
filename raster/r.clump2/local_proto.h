@@ -20,7 +20,6 @@
 #define __LOCAL_PROTO_H__
 
 #include <grass/gis.h>
-#include <grass/raster.h>
 #include "flag.h"
 #include "ramseg.h"
 

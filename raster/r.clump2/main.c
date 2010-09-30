@@ -8,7 +8,7 @@
  * PURPOSE:      Recategorizes data in a raster map layer by grouping cells
  *		 that form physically discrete areas into unique categories.
  *
- * COPYRIGHT:    (C) 2009 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2010 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -58,9 +58,7 @@ int main(int argc, char *argv[])
     /* Define the different options */
 
     module = G_define_module();
-    G_add_keyword(_("raster"));
-    G_add_keyword(_("statistics"));
-    G_add_keyword(_("reclass"));
+    module->keywords = (_("raster, statistics, reclass"));
     module->description =
 	_("Recategorizes data in a raster map by grouping cells "
 	  "that form physically discrete areas into unique categories.");
@@ -91,11 +89,11 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    in_fd = Rast_open_old(opt_in->answer, "");
+    in_fd = G_open_cell_old(opt_in->answer, "");
     if (in_fd < 0)
 	G_fatal_error(_("Unable to open raster map <%s>"), opt_in->answer);
 
-    out_fd = Rast_open_c_new(opt_out->answer);
+    out_fd = G_open_cell_new(opt_out->answer);
     if (out_fd < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), opt_out->answer);
 
@@ -106,7 +104,7 @@ int main(int argc, char *argv[])
 
     /* some checks */
     G_get_set_window(&window);
-    Rast_get_cellhd(opt_in->answer, "", &cellhd);
+    G_get_cellhd(opt_in->answer, "", &cellhd);
 
     if (fabs(window.ew_res - cellhd.ew_res) > GRASS_EPSILON ||
 	fabs(window.ns_res - cellhd.ns_res) > GRASS_EPSILON) {
@@ -150,20 +148,20 @@ int main(int argc, char *argv[])
 	(CELL *) G_malloc(size_array(&ramseg, nrows, ncols) * sizeof(CELL));
 
     /* read input */
-    map_type = Rast_get_map_type(in_fd);
-    in_size = Rast_cell_size(map_type);
-    in_buf = Rast_allocate_buf(map_type);
+    map_type = G_get_raster_map_type(in_fd);
+    in_size = G_raster_size(map_type);
+    in_buf = G_allocate_raster_buf(map_type);
 
     inlist = flag_create(nrows, ncols);
 
     G_message(_("Loading input map ..."));
     for (r = 0; r < nrows; r++) {
-	Rast_get_row(in_fd, in_buf, r, map_type);
+	G_get_raster_row(in_fd, in_buf, r, map_type);
 	in_ptr = in_buf;
 	G_percent(r, nrows, 2);
 	for (c = 0; c < ncols; c++) {
 	    index = SEG_INDEX(ramseg, r, c);
-	    if (Rast_is_null_value(in_ptr, map_type))
+	    if (G_is_null_value(in_ptr, map_type))
 		clump_id[index] = 0;
 	    else
 		clump_id[index] = 1;
@@ -175,7 +173,7 @@ int main(int argc, char *argv[])
     }
     G_percent(nrows, nrows, 2);
 
-    Rast_close(in_fd);
+    G_close_cell(in_fd);
     G_free(in_buf);
 
     ncells = nrows * ncols;
@@ -324,7 +322,7 @@ int main(int argc, char *argv[])
     
     /* write output */
     G_message(_("Write output map ..."));
-    out_buf = Rast_allocate_buf(CELL_TYPE);
+    out_buf = G_allocate_raster_buf(CELL_TYPE);
     for (r = 0; r < nrows; r++) {
 	G_percent(r, nrows, 2);
 	for (c = 0; c < ncols; c++) {
@@ -337,16 +335,16 @@ int main(int argc, char *argv[])
 		    clump_id[index] = id_map[clump_id[index]];
 	    }
 	    if (clump_id[index] == 0)
-		Rast_set_c_null_value(&out_buf[c], 1);
+		G_set_c_null_value(&out_buf[c], 1);
 	    else
 		out_buf[c] = clump_id[index];
 
 	}
-	Rast_put_row(out_fd, out_buf, CELL_TYPE);
+	G_put_raster_row(out_fd, out_buf, CELL_TYPE);
     }
     G_percent(nrows, nrows, 2);
     G_free(out_buf);
-    Rast_close(out_fd);
+    G_close_cell(out_fd);
     G_free(clump_id);
     flag_destroy(inlist);
     if (id_map)
@@ -361,11 +359,11 @@ int main(int argc, char *argv[])
     else
 	sprintf(title, "clump of <%s@%s>", name, G_mapset());
 
-    Rast_put_cell_title(opt_out->answer, title);
-    Rast_read_range(opt_out->answer, G_mapset(), &range);
-    Rast_get_range_min_max(&range, &min, &max);
-    Rast_make_random_colors(&colr, min, max);
-    Rast_write_colors(opt_out->answer, G_mapset(), &colr);
+    G_put_cell_title(opt_out->answer, title);
+    G_read_range(opt_out->answer, G_mapset(), &range);
+    G_get_range_min_max(&range, &min, &max);
+    G_make_random_colors(&colr, min, max);
+    G_write_colors(opt_out->answer, G_mapset(), &colr);
 
     G_done_msg(_("%d clumps."), range.max);
 
