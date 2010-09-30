@@ -129,7 +129,7 @@ void filter_holes(int verbose, Gfile * out)
     brast = G_allocate_raster_buf(CELL_TYPE);
     crast = G_allocate_raster_buf(CELL_TYPE);
     if ((out->fd = G_open_cell_old(out->name, mapset)) < 0)
-	G_fatal_error("Unable to open raster map <%s>", out->name);
+	G_fatal_error(_("Unable to open raster map <%s>"), out->name);
 
     /* Open to write */
     sprintf(tmp.name, "_%d.BBB", getpid());
@@ -137,7 +137,7 @@ void filter_holes(int verbose, Gfile * out)
     if ((tmp.fd = G_open_raster_new(tmp.name, CELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
 
-    G_message(_("Filling small holes in cloud ..."));
+    G_message(_("Filling small holes in clouds ..."));
 
     /* Se puede acelerar creandolos nulos y luego arast = brast
        brast = crast y cargando crast solamente

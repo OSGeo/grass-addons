@@ -56,17 +56,17 @@
   como opciones desde el programa main.
  ---------------------------------------------------------*/
 
-double th_1 = 0.08;		/* Band 3 Brightness Thershold */
+double th_1 = 0.08;		/* Band 3 Brightness Threshold */
 double th_1_b = 0.07;
-double th_2[] = { -0.25, 0.70 };	/* Normalized Snow Difference Index */
+double th_2[] = { -0.25, 0.70 }; /* Normalized Snow Difference Index */
 
 double th_2_b = 0.8;
-double th_3 = 300.;		/* Band 6 Temperature Thershold */
+double th_3 = 300.;		/* Band 6 Temperature Threshold */
 double th_4 = 225.;		/* Band 5/6 Composite */
 double th_4_b = 0.08;
 double th_5 = 2.35;		/* Band 4/3 Ratio */
 double th_6 = 2.16248;		/* Band 4/2 Ratio */
-double th_7 = 1.0; /* Band 4/5 Ratio */ ;
+double th_7 = 1.0; 		/* Band 4/5 Ratio */ ;
 double th_8 = 210.;		/* Band 5/6 Composite */
 
 extern int hist_n;
@@ -74,7 +74,7 @@ extern int hist_n;
 #define K_BASE  240.
 
 void acca_algorithm(int verbose, Gfile * out, Gfile band[],
-		    int two_pass, int with_shadow, int cloud_signature)
+		    int single_pass, int with_shadow, int cloud_signature)
 {
     int i, count[5], hist_cold[hist_n], hist_warm[hist_n];
     double max, value[5], signa[5], idesert, review_warm, shift;
@@ -122,15 +122,15 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
     signa[KMEAN] = (signa[SUM_COLD] / (double)count[COLD]) * SCALE;
     signa[COVER] = (double)count[COLD] / (double)count[TOTAL];
 
-    G_message(">  PRELIMINARY SCENE ANALYSIS\n");
+    G_message(">  PRELIMINARY SCENE ANALYSIS");
     G_message(">    Desert index:  %.3lf", idesert);
     G_message(">    Snow cover:    %.3lf %%", 100. * value[SNOW]);
     G_message(">    Cloud cover:   %.3lf %%", 100. * signa[COVER]);
     G_message(">    Temperature of clouds");
-    G_message(">      Maximum: %.2lf K\n", signa[KMAX]);
-    G_message(">      Mean (%s cloud)  : %.2lf K\n",
+    G_message(">      Maximum: %.2lf K", signa[KMAX]);
+    G_message(">      Mean (%s cloud)  : %.2lf K",
 	      (review_warm ? "cold" : "all"), signa[KMEAN]);
-    G_message(">      Minimum: %.2lf K\n", signa[KMIN]);
+    G_message(">      Minimum: %.2lf K", signa[KMIN]);
 
     /* WARNING: re-use of the variable 'value' with new meaning */
 
@@ -164,25 +164,25 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	    }
 	}
 
-	G_message(">  HISTOGRAM CLOUD SIGNATURE\n");
-	G_message(">      Histogram classes:  %d\n", hist_n);
-	G_message(">      Mean temperature:   %.2lf K\n", value[MEAN]);
-	G_message(">      Standard deviation: %.2lf  \n", value[DSTD]);
-	G_message(">      Skewness:           %.2lf  \n", value[SKEW]);
-	G_message(">      Cold cloud: maximun %.2lf K\n", value[KUPPER]);
-	G_message(">      Warn cloud: maximun %.2lf K\n", value[KLOWER]);
+	G_message(">  HISTOGRAM CLOUD SIGNATURE");
+	G_message(">      Histogram classes:  %d", hist_n);
+	G_message(">      Mean temperature:   %.2lf K", value[MEAN]);
+	G_message(">      Standard deviation: %.2lf", value[DSTD]);
+	G_message(">      Skewness:           %.2lf", value[SKEW]);
+	G_message(">      Cold cloud: maximun %.2lf K", value[KUPPER]);
+	G_message(">      Warn cloud: maximun %.2lf K", value[KLOWER]);
     }
     else {
 	if (signa[KMEAN] < 295.) {
 	    /* Retained warm and cold clouds */
-	    G_message("    Scene with clouds\n");
+	    G_message("    Scene with clouds");
 	    review_warm = 0;
 	    value[KUPPER] = 0.;
 	    value[KLOWER] = 0.;
 	}
 	else {
 	    /* Retained cold clouds */
-	    G_message("    Scene cloud free\n");
+	    G_message("    Scene cloud free");
 	    review_warm = 1;
 	    value[KUPPER] = 0.;
 	    value[KLOWER] = 0.;
@@ -191,7 +191,7 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 
     /* SECOND FILTER ... */
     /* By-pass two processing but it retains warm and cold clouds */
-    if (two_pass == 1) {
+    if (single_pass == TRUE) {
 	review_warm = -1.;
 	value[KUPPER] = 0.;
 	value[KLOWER] = 0.;
@@ -219,7 +219,7 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 	G_fatal_error(_("Unable to create raster map <%s>"), out->name);
 
     /* ----- ----- */
-    G_message("Pass one processing ...");
+    G_message(_("Processing first pass ..."));
 
     stats[SUM_COLD] = 0.;
     stats[SUM_WARM] = 0.;
@@ -256,11 +256,11 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 		nsdi = (pixel[BAND2] - pixel[BAND5]) /
 		    (pixel[BAND2] + pixel[BAND5]);
 		/* ----------------------------------------------------- */
-		/* Brightness Thershold: Eliminates dark images */
+		/* Brightness Threshold: Eliminates dark images */
 		if (pixel[BAND3] > th_1) {
 		    /* Normalized Snow Difference Index: Eliminates many types of snow */
 		    if (nsdi > th_2[0] && nsdi < th_2[1]) {
-			/* Temperature Thershold: Eliminates warm image features */
+			/* Temperature Threshold: Eliminates warm image features */
 			if (pixel[BAND6] < th_3) {
 			    rat56 = (1. - pixel[BAND5]) * pixel[BAND6];
 			    /* Band 5/6 Composite: Eliminates numerous categories including ice */
@@ -409,7 +409,7 @@ void acca_second(int verbose, Gfile * out, Gfile band,
 		    }
 		}
 		else
-		    /* Joint warm (not ambiguous) and cold clouds */
+		    /* Join warm (not ambiguous) and cold clouds */
 		if (code == COLD_CLOUD || code == WARM_CLOUD) {
 		    ((CELL *) tmp.rast)[col] = (code == WARM_CLOUD &&
 						review_warm ==

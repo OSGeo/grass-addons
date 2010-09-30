@@ -119,11 +119,6 @@ int main(int argc, char *argv[])
 	_("Base name of the landsat band rasters ([band_prefix].[band_number])");
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
-    output->key = _("output");
-    output->type = TYPE_STRING;
-    output->required = YES;
-    output->gisprompt = _("output,cell,raster");
-    output->description = _("Output file name");
 
     b56c = G_define_option();
     b56c->key = "b56composite";
@@ -136,41 +131,36 @@ int main(int argc, char *argv[])
     hist->key = "histogram";
     hist->type = TYPE_INTEGER;
     hist->required = NO;
-    hist->gisprompt = _("input,integer");
     hist->description =
 	_("Number of classes in the cloud temperature histogram");
     hist->answer = "100";
 
     sat5 = G_define_flag();
     sat5->key = '5';
-    sat5->description =
-	_("Landsat-5 TM (i.e. thermal band is '.6' not '.61')");
-    sat5->answer = 0;
+    sat5->label = _("Data is Landsat-5 TM");
+    sat5->description = _("(i.e. thermal band is '.6' not '.61')");
 
     filter = G_define_flag();
     filter->key = 'f';
     filter->description =
 	_("Apply post-processing filter to remove small holes");
-    filter->answer = 0;
 
     csig = G_define_flag();
     csig->key = 'x';
     csig->description = _("Always use cloud signature (step 14)");
-    csig->answer = 0;
 
     pass2 = G_define_flag();
     pass2->key = '2';
     pass2->description =
-	_("By-pass second processing, and join warm (not ambiguous) and cold clouds");
-    pass2->answer = 0;
+	_("Bypass second-pass processing, and merge warm (not ambiguous) and cold clouds");
 
     shadow = G_define_flag();
     shadow->key = 's';
     shadow->description = _("Include a category for cloud shadows");
-    shadow->answer = 0;
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
 
     /* stores OPTIONS and FLAGS to variables */
 
