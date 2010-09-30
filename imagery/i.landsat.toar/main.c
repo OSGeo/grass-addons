@@ -208,12 +208,10 @@ int main(int argc, char *argv[])
     sat_zenith = atof(satz->answer);
     rayleigh = atof(atmo->answer);
 
-    if (met == NULL) {
-	if (sensor->answer)
-	    sensor_id = atoi(sensor->answer);
-	else
-	    G_fatal_error(_("Must select type of satellite"));
-    }
+    if (sensor->answer)
+	sensor_id = atoi(sensor->answer);
+    else
+	G_fatal_error(_("Must select type of satellite"));
 
     /* Data from MET file: only Landsat-7 ETM+ and Landsat-5 TM  */
     if (met != NULL) {
