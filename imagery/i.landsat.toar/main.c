@@ -196,8 +196,8 @@ int main(int argc, char *argv[])
     if (pdate->answer != NULL) {
 	strncpy(lsat.creation, pdate->answer, 11);
 	lsat.creation[10] = '\0';
-	if (strlen(lsat.date) != 10)
-	    G_fatal_error(_("Illegal date format: [%s] (yyyy-mm-dd)"), lsat.date);
+	if (strlen(lsat.creation) != 10)
+	    G_fatal_error(_("Illegal date format: [%s] (yyyy-mm-dd)"), lsat.creation);
     }
     else
 	lsat.creation[0] = '\0';
