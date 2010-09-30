@@ -2,24 +2,29 @@
 
 <EM>i.landsat.acca</EM> implements the Automated Cloud-Cover Assessment
 (ACCA) Algorithm from Irish (2000) with the constant values for pass filter
-one from Irish et al. (2006). To do this, it needs the band numbers 2, 3,
+one from Irish et al. (2006). To do this, it needs Landsat band numbers 2, 3,
 4, 5, and 6 (or band 61 for Landsat-7 ETM+) which have already been
 processed from DN into reflectance and band-6 temperature (for example with
 <em>i.landsat.toar</em>).
 
-<p>The ACCA gives good results over most of the planet with the exception of
+<p>
+The ACCA algorithm gives good results over most of the planet with the exception of
 ice sheets because ACCA operates on the premise that clouds are colder than
-the land surface they cover. The algorithm was designed to Landsat-7 ETM+
-but because of they use reflectances it usefull also for Landsat-4/5 TM.
+the land surface they cover. The algorithm was designed for Landsat-7 ETM+
+but because reflectance is used it is also useful for Landsat-4/5 TM.
+
 
 <H2>NOTES</H2>
 
 <em>i.landsat.acca</em> works in the current region settings.
 
+
 <H2>EXAMPLES</H2>
 
-To run the standard ACCA algorithm with and filling cloud holes (the <b>-f</b> flag):
+Run the standard ACCA algorithm with filling of small cloud holes (the <b>-f</b> flag):
 <p>
+<!-- maybe include i.landsat.toar step as well here to reinforce the point? -->
+
 With per-band reflectance raster maps named <tt>226_62.toar.1,
 226_62.toar.2, </tt> [...] and LANDSAT-7 thermal band <tt>226_62.toar.61</tt>,
 outputing to a new raster map named <tt>226_62.acca</tt>:
@@ -58,4 +63,4 @@ Dept. Biodiversity and Environmental Management,
 University of León, Spain<BR>
 
 <p>
-<i>Last changed: $Date: 2010/09/29 00:00:00 $</i>
+<i>Last changed: $Date$</i>
