@@ -350,7 +350,7 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 void acca_second(int verbose, Gfile * out, Gfile band,
 		 int review_warm, double upper, double lower)
 {
-    int i, row, col, nrows, ncols;
+    int row, col, nrows, ncols;
     char *mapset;
 
     int code;
