@@ -86,14 +86,14 @@ int main(int argc, char *argv[])
 	opt_vector->key="vector";
 	opt_vector->required = NO;
 	opt_vector->description =_("OUTPUT vector file to write stream atributes");
-	opt_vector->guisection=_("Optional");
+	opt_vector->guisection=_("Output");
 
 			for (i=0;i<orders_size;++i) {
 	opt_output[i] = G_define_standard_option(G_OPT_R_OUTPUT);
   opt_output[i]->key = output[i].name;
   opt_output[i]->required = NO;
   opt_output[i]->description = _(output[i].description);
-  opt_output[i]->guisection = _("Output orders");
+  opt_output[i]->guisection = _("Output");
 		}
 	
 	opt_swapsize = G_define_option();
