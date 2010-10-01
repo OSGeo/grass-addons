@@ -40,13 +40,10 @@ int ram_init_streams(CELL** streams, CELL** dirs, FCELL** elevation)
 			for (r = 0; r < nrows; ++r) 
 		for (c = 0; c < ncols; ++c) 
 	if (streams[r][c] > 0) {
-
-			if (outlets_num > 2 * (out_max - 1))
-		G_fatal_error(_
-				("Stream and direction maps probably do not match"));
-			if (outlets_num > (out_max - 1))
-		outlets = (POINT *)G_realloc(outlets,out_max*2*sizeof(POINT));
-		
+		if (outlets_num > (out_max - 1)) {
+		    out_max *= 2;
+		    outlets =	(POINT *) G_realloc(outlets, out_max * sizeof(POINT));
+		}
 		d = abs(dirs[r][c]);	
 			if (NOT_IN_REGION(d)) 
 		next_stream = -1;	/* border */
@@ -95,7 +92,7 @@ int ram_init_streams(CELL** streams, CELL** dirs, FCELL** elevation)
   G_free(outlets);
   return 0;
 }
-
+/////
 
 int seg_init_streams(SEGMENT* streams, SEGMENT* dirs, SEGMENT* elevation)
 {
@@ -113,12 +110,11 @@ int seg_init_streams(SEGMENT* streams, SEGMENT* dirs, SEGMENT* elevation)
 			for (r = 0; r < nrows; ++r) 
 		for (c = 0; c < ncols; ++c) {
 			segment_get(streams,&streams_cell,r,c);
-
-			if (outlets_num > 2 * (out_max - 1))
-		G_fatal_error(_
-				("Stream and direction maps probably do not match"));
-			if (outlets_num > (out_max - 1))
-		outlets = (POINT *)G_realloc(outlets,out_max*2*sizeof(POINT));
+	if (streams_cell > 0) {
+		if (outlets_num > (out_max - 1)) {
+		    out_max *= 2;
+		    outlets =	(POINT *) G_realloc(outlets, out_max * sizeof(POINT));
+		}
 		
 		segment_get(dirs,&dirs_cell,r,c);
 		d = abs(dirs_cell);	
@@ -145,9 +141,10 @@ int seg_init_streams(SEGMENT* streams, SEGMENT* dirs, SEGMENT* elevation)
     
 		    outlets_num++;
 		    
+		    
 		}
 	}			/* end if streams */
-		
+		}
 
     stat_streams = (STREAM *) G_malloc((outlets_num) * sizeof(STREAM));
 

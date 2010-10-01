@@ -4,7 +4,7 @@ int print_stats(int order_max)
 {
 	
     int i;
-
+		fflush(stdout);
     /* summary statistics */
     fprintf(stdout, "\n");
     fprintf(stdout, "Summary:\n");
@@ -95,9 +95,12 @@ int print_stats(int order_max)
 		ord_stats[i].drainage_density * 1000,
 		ord_stats[i].stream_frequency * 1000000);
     }
+    fflush(stdout);
+    return 0;
 }
 
 int print_stats_total(void) {
+	fflush(stdout);
 	fprintf(stdout,"Catchment's characteristics (based on regresion):  \n");
   fprintf(stdout,"Max order: %d \n",stats_total.order); 
   fprintf(stdout,"Total number of streams: %d \n",stats_total.stream_num);
@@ -110,12 +113,14 @@ int print_stats_total(void) {
   fprintf(stdout,"Area ratio: %2.4f \n",stats_total.reg_area_ratio);
   fprintf(stdout,"Slope ratio: %2.4f \n",stats_total.reg_slope_ratio);
   fprintf(stdout,"Gradient ratio: %2.4f \n",stats_total.reg_gradient_ratio); 
+  fflush(stdout);
   return 0;
 }
 
 int print_stats_orders(int order_max) {
 
 	int i;
+  fflush(stdout);
   fprintf(stdout,"Order's summary: \n");
   fprintf(stdout,"order,num_of_streams,avg_length,avg_area,avg_slope,avg_grad,avg_elev.diff,sum_length,sum_area\n");
 
@@ -131,5 +136,6 @@ int print_stats_orders(int order_max) {
 		ord_stats[i].sum_length / 1000,
 		ord_stats[i].sum_area / 1000000);
     }
+  fflush(stdout);
   return 0;
 }

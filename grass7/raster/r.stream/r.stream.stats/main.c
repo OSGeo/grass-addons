@@ -53,7 +53,6 @@ int main(int argc, char *argv[])
 
     /* initialize module */
   module = G_define_module();
-  G_add_keyword("Horton statisctics");
   module->description =
 	_("Calculate Horton's statistics for Strahler and Horton ordered networks created with r.stream.");
   G_add_keyword("Horton's statistics");
