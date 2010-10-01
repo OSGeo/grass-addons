@@ -17,12 +17,13 @@ int ram_find_outlets(CELL** streams, int number_of_streams, CELL** dirs, int sub
 			for (r = 0; r < nrows; ++r) 
 		for (c = 0; c < ncols; ++c) 
 	if (streams[r][c]>0) {
-
-			if (outlets_num > 2 * (out_max - 1))
-		G_fatal_error(_
-				("Stream and direction maps probably do not match"));
-			if (outlets_num > (out_max - 1))
-		outlets = (OUTLET *)G_realloc(outlets,out_max*2*sizeof(OUTLET));
+			if (outlets_num > (out_max - 1)) {
+				if (outlets_num > 4 * (out_max - 1))
+			G_fatal_error
+					("Stream and direction maps probably do not match");
+		out_max *= 4;
+		outlets =	(OUTLET *) G_realloc(outlets, (out_max) * sizeof(OUTLET));
+			}
 	
 		d = abs(dirs[r][c]);	/* r.watershed */
 
@@ -79,12 +80,13 @@ int seg_find_outlets(SEGMENT* streams, int number_of_streams, SEGMENT* dirs, int
 	segment_get(streams,&streams_cell,r,c);
 	
 	if (streams_cell>0) {
-
-			if (outlets_num > 2 * (out_max - 1))
-		G_fatal_error(_
-				("Stream and direction maps probably do not match"));
-			if (outlets_num > (out_max - 1))
-		outlets = (OUTLET *)G_realloc(outlets,out_max*2*sizeof(OUTLET));
+			if (outlets_num > (out_max - 1)) {
+				if (outlets_num > 4 * (out_max - 1))
+			G_fatal_error
+					("Stream and direction maps probably do not match");
+		out_max *= 4;
+		outlets =	(OUTLET *) G_realloc(outlets, (out_max) * sizeof(OUTLET));
+			}
 	
 		segment_get(dirs,&dirs_cell,r,c);
 		d = abs(dirs_cell);	/* r.watershed */
