@@ -9,7 +9,7 @@ GRASSSVNDIR=/home/yann/tmp/grass_yann
 ADDONSVNDIR=/home/yann/coding/grass-addons
 
 # This Assumes you start in GIPE directory
-GIPEDIR=$ADDONSVNDIR/gipe
+GIPEDIR=$ADDONSVNDIR/imagery/gipe
 #HFDIR=$ADDONSVNDIR/HydroFOSS
 RSTDIR=$ADDONSVNDIR/raster
 
