@@ -158,11 +158,19 @@ void met_TM5(char *metfile, lsat_data * lsat)
     if (lsat->creation[0] == 0)
 	G_fatal_error(_("Product creation date not in metadata file <%s>"),
 		      metfile);
+    G_debug(1, "met_TM5: Product creation date = [%s]", lsat->creation);
+
 
     get_value_met(mettext, "SolarElevation", value);
-    lsat->sun_elev = atof(value);
+    if (!value)
+	G_warning("Unable to read solar elevation from metadata file");
+    else
+	lsat->sun_elev = atof(value);
+    G_debug(1, "met_TM5: value=[%s], SolarElevation = %.2f", value, lsat->sun_elev);
+
 
     get_value_met(mettext, "PLATFORMSHORTNAME", value);
+    G_debug(1, "met_TM5: PLATFORMSHORTNAME=[%s]", value);
     switch (value[8]) {
     case '1':
 	set_MSS1(lsat);
@@ -186,6 +194,9 @@ void met_TM5(char *metfile, lsat_data * lsat)
 	    set_MSS5(lsat);
 	else
 	    set_TM5(lsat);
+	break;
+    default:
+	G_warning("Unable to recognize satellite platform [%s]", value);
 	break;
     }
 

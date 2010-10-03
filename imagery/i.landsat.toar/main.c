@@ -220,6 +220,10 @@ int main(int argc, char *argv[])
 	else
 	    met_TM5(met, &lsat);
 
+	G_debug(1, "lsat.number = %d, lsat.sensor = [%s]", lsat.number, lsat.sensor);
+	if (!lsat.sensor || lsat.number > 7 || lsat.number < 1)
+	    G_fatal_error(_("Failed to identify satellite"));
+
 	G_message(_("Landsat-%d %s with data set in met file [%s]"),
 		  lsat.number, lsat.sensor, met);
 	if (elev->answer != NULL)
