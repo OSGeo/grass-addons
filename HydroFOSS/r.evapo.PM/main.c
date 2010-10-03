@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	
 	module = G_define_module();
 	module->description = _("Potontial Evapotranspiration Calculation with hourly Penman-Monteith");
-	
+
 	/* Define different options */
 	input_DEM = G_define_option();
 	input_DEM->key	= "DEM";
