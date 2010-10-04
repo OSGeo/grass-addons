@@ -42,7 +42,7 @@ void hist_put(double t, int hist[])
 double moment(int n, int hist[], int k)
 {
     int i, total;
-    double value, mean, cte;
+    double value, mean;
 
     k = 0;
 
@@ -52,15 +52,15 @@ double moment(int n, int hist[], int k)
 	total += hist[i];
 	mean += (double)(i * hist[i]);
     }
-    mean /= (double)total;	/* histogram mean */
+    mean /= ((double)total);	/* histogram mean */
 
     value = 0.;
-    cte = 100. / ((double)hist_n * (double)(total - k));
     for (i = 0; i < hist_n; i++) {
-	value += (pow((i - mean), n) * (double)hist[i] * cte);
+	value += (pow((i - mean), n) * ((double)hist[i]));
     }
+    value /= (double)(total - k);
 
-    return value;
+    return (value / pow((double)hist_n / 100., n) );
 }
 
 /* Real data quantile */

@@ -23,13 +23,12 @@ but because reflectance is used it is also useful for Landsat-4/5 TM.
 
 Run the standard ACCA algorithm with filling of small cloud holes (the <b>-f</b> flag):
 <p>
-<!-- maybe include i.landsat.toar step as well here to reinforce the point? -->
-
 With per-band reflectance raster maps named <tt>226_62.toar.1,
 226_62.toar.2, </tt> [...] and LANDSAT-7 thermal band <tt>226_62.toar.61</tt>,
 outputing to a new raster map named <tt>226_62.acca</tt>:
 
 <div class="code"><pre>
+i.landsat.toar sensor=7 gain=HHHLHLHHL date=2003-04-07 product_date=2008-11-27 band_prefix=226_62 solar_elevation=49.51654
 i.landsat.acca -f band_prefix=226_62.toar output=226_62.acca
 </pre></div>
 

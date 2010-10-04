@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     struct GModule *module;
 
     int i, verbose = 1;
-    struct Option *input, *output, *hist, *b56c;
+    struct Option *input, *output, *hist, *b56c, *b45r;
     struct Flag *shadow, *filter, *sat5, *pass2, *csig;
     char *in_name, *out_name;
     struct Categories cats;
@@ -124,8 +124,15 @@ int main(int argc, char *argv[])
     b56c->key = "b56composite";
     b56c->type = TYPE_DOUBLE;
     b56c->required = NO;
-    b56c->description = _("Value for step 6: B56composite");
+    b56c->description = _("B56composite (step 6)");
     b56c->answer = "225.";
+
+    b45r = G_define_option();
+    b45r->key = "b45ratio";
+    b45r->type = TYPE_DOUBLE;
+    b45r->required = NO;
+    b45r->description = _("B45ratio: Desert detection (step 10)");
+    b45r->answer = "1.";
 
     hist = G_define_option();
     hist->key = "histogram";
@@ -161,7 +168,6 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-
     /* stores OPTIONS and FLAGS to variables */
 
     hist_n = atoi(hist->answer);
@@ -187,6 +193,7 @@ int main(int argc, char *argv[])
 
     /* --------------------------------------- */
     th_4 = atof(b56c->answer);
+    th_7 = atof(b45r->answer);
     acca_algorithm(verbose, &out, band, pass2->answer, shadow->answer,
 		   csig->answer);
 

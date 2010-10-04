@@ -1,3 +1,13 @@
+/* File: algorithm.c
+ *
+ *  AUTHOR:    E. Jorge Tizado, Spain 2010
+ *
+ *  COPYRIGHT: (c) 2010 E. Jorge Tizado
+ *             This program is free software under the GNU General Public
+ *             License (>=v2). Read the file COPYING that comes with GRASS
+ *             for details.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +19,8 @@
 #include "local_proto.h"
 
 #define SCALE   200.
+#define K_BASE  230.
+
 
 /* value and count */
 #define TOTAL 0
@@ -32,17 +44,6 @@
 #define SKEW        3
 #define DSTD        4
 
-/*
-   Con Landsat-7 funciona bien pero con Landsat-5 falla
-   la primera pasada metiendo terreno desertico como nube fría
-   y luego se equivoca en resolver los ambiguos en áreas
-   con mucha humedad ambiental.
-
-   Habría que reajustar las constantes para Landsat-5
- */
-
-
-
 
 /**********************************************************
  *
@@ -58,7 +59,7 @@
 
 double th_1 = 0.08;		/* Band 3 Brightness Threshold */
 double th_1_b = 0.07;
-double th_2[] = { -0.25, 0.70 }; /* Normalized Snow Difference Index */
+double th_2[] = { -0.25, 0.70 };	/* Normalized Snow Difference Index */
 
 double th_2_b = 0.8;
 double th_3 = 300.;		/* Band 6 Temperature Threshold */
@@ -66,12 +67,10 @@ double th_4 = 225.;		/* Band 5/6 Composite */
 double th_4_b = 0.08;
 double th_5 = 2.35;		/* Band 4/3 Ratio */
 double th_6 = 2.16248;		/* Band 4/2 Ratio */
-double th_7 = 1.0; 		/* Band 4/5 Ratio */ ;
+double th_7 = 1.0; /* Band 4/5 Ratio */ ;
 double th_8 = 210.;		/* Band 5/6 Composite */
 
 extern int hist_n;
-
-#define K_BASE  240.
 
 void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 		    int single_pass, int with_shadow, int cloud_signature)
@@ -99,8 +98,7 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
     value[SOIL] = (double)count[SOIL] / (double)count[TOTAL];
 
     value[0] = (double)(count[WARM] + count[COLD]);
-    idesert =
-	(value[0] == 0. ? 0. : 1. / (1. + ((double)count[SOIL]) / value[0]));
+    idesert = (value[0] == 0. ? 0. : value[0] / ((double)count[SOIL]));
 
     /* BAND-6 CLOUD SIGNATURE DEVELOPMENT */
     if (idesert <= .5 || value[SNOW] > 0.01) {
@@ -119,27 +117,34 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	    hist_cold[i] += hist_warm[i];
     }
 
-    signa[KMEAN] = (signa[SUM_COLD] / (double)count[COLD]) * SCALE;
-    signa[COVER] = (double)count[COLD] / (double)count[TOTAL];
+    signa[KMEAN] = SCALE * signa[SUM_COLD] / ((double)count[COLD]);
+    signa[COVER] = ((double)count[COLD]) / ((double)count[TOTAL]);
 
-    G_message(">  PRELIMINARY SCENE ANALYSIS");
-    G_message(">    Desert index:  %.3lf", idesert);
-    G_message(">    Snow cover:    %.3lf %%", 100. * value[SNOW]);
-    G_message(">    Cloud cover:   %.3lf %%", 100. * signa[COVER]);
-    G_message(">    Temperature of clouds");
-    G_message(">      Maximum: %.2lf K", signa[KMAX]);
-    G_message(">      Mean (%s cloud)  : %.2lf K",
-	      (review_warm ? "cold" : "all"), signa[KMEAN]);
-    G_message(">      Minimum: %.2lf K", signa[KMIN]);
+    fprintf(stdout, "   PRELIMINARY SCENE ANALYSIS\n");
+    fprintf(stdout, "    Desert index:  %.2lf\n", idesert);
+    fprintf(stdout, "    Snow cover:    %.2lf %%\n", 100. * value[SNOW]);
+    fprintf(stdout, "    Cloud cover:   %.2lf %%\n", 100. * signa[COVER]);
+    fprintf(stdout, "    Temperature of clouds\n");
+    fprintf(stdout, "      Maximum: %.2lf K\n", signa[KMAX]);
+    fprintf(stdout, "      Mean (%s cloud)  : %.2lf K\n",
+	    (review_warm ? "cold" : "all"), signa[KMEAN]);
+    fprintf(stdout, "      Minimum: %.2lf K\n", signa[KMIN]);
 
     /* WARNING: re-use of the variable 'value' with new meaning */
 
     /* step 14 */
     if (cloud_signature ||
 	(idesert <= .5 && signa[COVER] > 0.004 && signa[KMEAN] < 295.)) {
+	fprintf(stdout, "   HISTOGRAM CLOUD SIGNATURE\n");
+
 	value[MEAN] = quantile(0.5, hist_cold) + K_BASE;
 	value[DSTD] = sqrt(moment(2, hist_cold, 1));
 	value[SKEW] = moment(3, hist_cold, 3) / pow(value[DSTD], 3);
+
+	fprintf(stdout, "      Mean temperature:   %.2lf K\n", value[MEAN]);
+	fprintf(stdout, "      Standard deviation: %.2lf\n", value[DSTD]);
+	fprintf(stdout, "      Skewness:           %.2lf\n", value[SKEW]);
+	fprintf(stdout, "      Histogram classes:  %d\n", hist_n);
 
 	shift = value[SKEW];
 	if (shift > 1.)
@@ -147,30 +152,31 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	else if (shift < 0.)
 	    shift = 0.;
 
-	shift *= value[DSTD];
-
 	max = quantile(0.9875, hist_cold) + K_BASE;
 	value[KUPPER] = quantile(0.975, hist_cold) + K_BASE;
 	value[KLOWER] = quantile(0.835, hist_cold) + K_BASE;
+
+	fprintf(stdout, "      98.75 percentile:   %.2lf K\n", max);
+	fprintf(stdout, "      97.50 percentile:   %.2lf K\n", value[KUPPER]);
+	fprintf(stdout, "      83.50 percentile:   %.2lf K\n", value[KLOWER]);
+
 	/* step 17 & 18 */
 	if (shift > 0.) {
-	    if ((value[KUPPER] * shift) > max) {
-		value[KLOWER] += (value[KUPPER] * (shift - 1.));
+	    shift *= value[DSTD];
+
+	    if ((value[KUPPER] + shift) > max) {
+		value[KLOWER] += (max - value[KUPPER]);
 		value[KUPPER] = max;
 	    }
 	    else {
-		value[KLOWER] *= shift;
-		value[KUPPER] *= shift;
+		value[KLOWER] += shift;
+		value[KUPPER] += shift;
 	    }
 	}
 
-	G_message(">  HISTOGRAM CLOUD SIGNATURE");
-	G_message(">      Histogram classes:  %d", hist_n);
-	G_message(">      Mean temperature:   %.2lf K", value[MEAN]);
-	G_message(">      Standard deviation: %.2lf", value[DSTD]);
-	G_message(">      Skewness:           %.2lf", value[SKEW]);
-	G_message(">      Cold cloud: maximun %.2lf K", value[KUPPER]);
-	G_message(">      Warn cloud: maximun %.2lf K", value[KLOWER]);
+	fprintf(stdout, "      Maximum temperature\n");
+	fprintf(stdout, "        Cold cloud: %.2lf K\n", value[KUPPER]);
+	fprintf(stdout, "        Warn cloud: %.2lf K\n", value[KLOWER]);
     }
     else {
 	if (signa[KMEAN] < 295.) {
@@ -256,45 +262,50 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 		nsdi = (pixel[BAND2] - pixel[BAND5]) /
 		    (pixel[BAND2] + pixel[BAND5]);
 		/* ----------------------------------------------------- */
-		/* Brightness Threshold: Eliminates dark images */
+		/* step 1. Brightness Threshold: Eliminates dark images */
 		if (pixel[BAND3] > th_1) {
-		    /* Normalized Snow Difference Index: Eliminates many types of snow */
+		    /* step 3. Normalized Snow Difference Index: Eliminates many types of snow */
 		    if (nsdi > th_2[0] && nsdi < th_2[1]) {
-			/* Temperature Threshold: Eliminates warm image features */
+			/* step 5. Temperature Threshold: Eliminates warm image features */
 			if (pixel[BAND6] < th_3) {
 			    rat56 = (1. - pixel[BAND5]) * pixel[BAND6];
-			    /* Band 5/6 Composite: Eliminates numerous categories including ice */
+			    /* step 6. Band 5/6 Composite: Eliminates numerous categories including ice */
 			    if (rat56 < th_4) {
-				/* Eliminates growing vegetation */
-				/* Eliminates senescing vegetation */
-				if (pixel[BAND4] / pixel[BAND3] < th_5 &&
-				    pixel[BAND4] / pixel[BAND2] < th_6) {
-				    rat45 = pixel[BAND4] / pixel[BAND5];
-				    /* Eliminates rocks and desert */
-				    if (rat45 > th_7) {
-					/* Distinguishes warm clouds from cold clouds */
-					if (rat56 < th_8) {
-					    code = COLD_CLOUD;
-					    count[COLD]++;
-					    /* for statistic */
-					    stats[SUM_COLD] +=
-						(pixel[BAND6] / SCALE);
-					    hist_put(pixel[BAND6] - K_BASE,
-						     cold);
+				/* step 8. Eliminates growing vegetation */
+				if ((pixel[BAND4] / pixel[BAND3]) < th_5) {
+				    /* step 9. Eliminates senescing vegetation */
+				    if ((pixel[BAND4] / pixel[BAND2]) < th_6) {
+					/* step 10. Eliminates rocks and desert */
+					count[SOIL]++;
+					if ((pixel[BAND4] / pixel[BAND5]) >
+					    th_7) {
+					    /* step 11. Distinguishes warm clouds from cold clouds */
+					    if (rat56 < th_8) {
+						code = COLD_CLOUD;
+						count[COLD]++;
+						/* for statistic */
+						stats[SUM_COLD] +=
+						    (pixel[BAND6] / SCALE);
+						hist_put(pixel[BAND6] -
+							 K_BASE, cold);
+					    }
+					    else {
+						code = WARM_CLOUD;
+						count[WARM]++;
+						/* for statistic */
+						stats[SUM_WARM] +=
+						    (pixel[BAND6] / SCALE);
+						hist_put(pixel[BAND6] -
+							 K_BASE, warm);
+					    }
+					    if (pixel[BAND6] > stats[KMAX])
+						stats[KMAX] = pixel[BAND6];
+					    if (pixel[BAND6] < stats[KMIN])
+						stats[KMIN] = pixel[BAND6];
 					}
 					else {
-					    code = WARM_CLOUD;
-					    count[WARM]++;
-					    /* for statistic */
-					    stats[SUM_WARM] +=
-						(pixel[BAND6] / SCALE);
-					    hist_put(pixel[BAND6] - K_BASE,
-						     warm);
+					    code = NO_DEFINED;
 					}
-					if (pixel[BAND6] > stats[KMAX])
-					    stats[KMAX] = pixel[BAND6];
-					if (pixel[BAND6] < stats[KMIN])
-					    stats[KMIN] = pixel[BAND6];
 				    }
 				    else {
 					code = NO_DEFINED;
@@ -306,6 +317,7 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 				}
 			    }
 			    else {
+				/* step 7 */
 				code =
 				    (pixel[BAND5] <
 				     th_4_b) ? NO_CLOUD : NO_DEFINED;
@@ -316,12 +328,14 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 			}
 		    }
 		    else {
+			/* step 3 */
 			code = NO_CLOUD;
 			if (nsdi > th_2_b)
 			    count[SNOW]++;
 		    }
 		}
 		else {
+		    /* step 2 */
 		    code = (pixel[BAND3] < th_1_b) ? NO_CLOUD : NO_DEFINED;
 		}
 		/* ----------------------------------------------------- */
@@ -459,12 +473,12 @@ int shadow_algorithm(double pixel[])
     /* I think this filter is better but not in any paper */
     if (pixel[BAND3] < 0.07 && (1 - pixel[BAND4]) * pixel[BAND6] > 240. &&
 	pixel[BAND4] / pixel[BAND2] > 1. &&
-	(pixel[BAND3] - pixel[BAND5]) / (pixel[BAND3] + pixel[BAND5]) <
-	0.10) {
+	(pixel[BAND3] - pixel[BAND5]) / (pixel[BAND3] + pixel[BAND5]) < 0.10)
 	/*
 	   if (pixel[BAND3] < 0.07 && (1 - pixel[BAND4]) * pixel[BAND6] > 240. &&
-	   pixel[BAND4] / pixel[BAND2] > 1.) {
+	   pixel[BAND4] / pixel[BAND2] > 1.)
 	 */
+    {
 	return IS_SHADOW;
     }
 
