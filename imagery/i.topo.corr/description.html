@@ -4,7 +4,7 @@
 from imagery files, e.g. obtained with <EM>i.landsat.toar</EM>, using a
 sun illumination terrain model. This illumination model represents the
 cosine of the incident angle, i.e. the  angle between the normal to the
-ground and the sun rays. It can be obtained with <em>r.sun</em> 
+ground and the sun rays. It can be obtained with <em>r.sun</em>
 (parameter incidout), and then calculating its cosine with float precision.</p>
 
 <p>Using flag -i and given an elevation map as basemap (UTM), <em>i.topo.corr</em>
@@ -37,7 +37,7 @@ the original reflectance (ref_o) using one of the four offered methods
 	<li>ref_c = ref_o * (cos_z / cos_i) ^ k</li>
 </ul>
 where,
-<em>k</em> is obtained by linear regression of ln(ref_o) = ln(ref_c) - k ln(cos_z/cos_i)</p>
+<em>k</em> is obtained by linear regression of ln(ref_o) = ln(ref_c) - k ln(cos_i/cos_z)</p>
 
 <H3>Method: c-factor</H3>
 
@@ -46,13 +46,13 @@ where,
 	<li>ref_c = ref_o * (cos_z + c)/ (cos_i + c)</li>
 </ul>
 where,
-<em>c</em> is m/a from ref_o = a + m cos_i.</p>
+<em>c</em> is a/m from ref_o = a + m * cos_i</p>
 
 <H3>Method: percent</H3>
 
-<p>As cos_i varies from -1 to +1, then (cos_i + 1)/2 varied from 0 
-(surface in the side in opposition to the sun: infinite correction) to 1 
-(direct exhibition to the sun: no correction) and it can be calculated as
+<p>We can use cos_i to estimate the percent of solar incidence on the surface, then the transformation (cos_i + 1)/2 varied from 0
+(surface in the side in opposition to the sun: infinite correction) to 1
+(direct exhibition to the sun: no correction) and the corrected reflectance can be calculated as
 <ul>
 	<li>ref_c = ref_o * 2 / (cos_i + 1)</li>
 </ul>
@@ -64,7 +64,7 @@ where,
 <ol>
 <li>The illumination model (cos_i) with flag -i uses the actual region
     as limits and the resolution of the elevation map.</li>
-<li>The topographic correction use the full reflectance file (null remain 
+<li>The topographic correction use the full reflectance file (null remain
     null) and its resolution.</li>
 <!-- TODO: really UTM or just metric? -->
 <li>The elevation map to calculate the illumination model should be UTM.</li>
@@ -72,8 +72,8 @@ where,
 
 <H2>EXAMPLES</H2>
 
-<p>First, make a illumination model from the elevation map (here, SRTM), and then make 
-topographic correction of the bands toar.5, toar.4 and toar.3 with output 
+<p>First, make a illumination model from the elevation map (here, SRTM), and then make
+topographic correction of the bands toar.5, toar.4 and toar.3 with output
 as tcor.toar.5, tcor.toar.4, and tcor.toar.3 using c-factor (= c-correction) method.</p>
 
 <div class="code">
@@ -85,19 +85,19 @@ i.topo.corr base=cosi input=toar.5,toar.4,toar.3 out=tcor zenith=33.3631 method=
 <H2>REFERENCES</H2>
 
 <ul>
-<li>Law K.H. and Nichol J, 2004. Topographic Correction For Differential 
-    Illumination Effects On Ikonos Satellite Imagery. International Archives of 
+<li>Law K.H. and Nichol J, 2004. Topographic Correction For Differential
+    Illumination Effects On Ikonos Satellite Imagery. International Archives of
     Photogrammetry Remote Sensing and Spatial Information, pp. 641-646.</li>
 <li>Meyer, P. and Itten, K.I. and Kellenberger, KJ and Sandmeier, S. and Sandmeier, R., 1993.
-    Radiometric corrections of topographically induced effects on Landsat TM data in 
+    Radiometric corrections of topographically induced effects on Landsat TM data in
     alpine terrain. Photogrammetric Engineering and Remote Sensing 48(17).
 </li>
-<li>Ria&ntilde;o, D. and Chuvieco, E. and Salas, J. and Aguado, I., 2003. 
-    Assessment of Different Topographic Corrections in Landsat-TM 
-    Data for Mapping Vegetation Types. IEEE Transactions On Geoscience 
+<li>Ria&ntilde;o, D. and Chuvieco, E. and Salas, J. and Aguado, I., 2003.
+    Assessment of Different Topographic Corrections in Landsat-TM
+    Data for Mapping Vegetation Types. IEEE Transactions On Geoscience
     And Remote Sensing, Vol. 41, No. 5</li>
-<li>Twele A. and Erasmi S, 2005. Evaluating topographic correction algorithms 
-    for improved land cover discrimination in mountainous areas of 
+<li>Twele A. and Erasmi S, 2005. Evaluating topographic correction algorithms
+    for improved land cover discrimination in mountainous areas of
     Central Sulawesi. G&ouml;ttinger Geographische Abhandlungen, vol. 113.</li>
 </ul>
 

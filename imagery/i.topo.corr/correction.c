@@ -1,3 +1,13 @@
+/* File: correction.c
+ *
+ *  AUTHOR:    E. Jorge Tizado, Spain 2010
+ *
+ *  COPYRIGHT: (c) 2007-10 E. Jorge Tizado
+ *             This program is free software under the GNU General Public
+ *             License (>=v2). Read the file COPYING that comes with GRASS
+ *             for details.
+ */
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
@@ -56,7 +66,9 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 		    case MINNAERT:
 			if (cos_i > 0. && cos_z > 0. && ref_i > 0.) {
 			    n++;
-			    tx = log(cos_i / cos_z);
+                            /* tx = log(cos_i / cos_z) */
+                            /* cos_z is constant then m not changes */
+                            tx = log(cos_i);
 			    ty = log(ref_i);
 			    sx += tx;
 			    sxx += tx * tx;
@@ -88,7 +100,7 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 	G_message("Minnaert constant = %lf", kk);
 	break;
     case C_CORRECT:
-	cka = ckb = m / a;
+	cka = ckb = a / m; /* Richter changes to m/a */
 	kk = 1.;
 	G_message("C-factor constant = %lf (a=%.4f; m=%.4f)", cka, a, m);
 	break;

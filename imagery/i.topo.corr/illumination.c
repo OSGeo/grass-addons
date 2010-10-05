@@ -1,3 +1,13 @@
+/* File: illumination.c
+ *
+ *  AUTHOR:    E. Jorge Tizado, Spain 2010
+ *
+ *  COPYRIGHT: (c) 2007-10 E. Jorge Tizado
+ *             This program is free software under the GNU General Public
+ *             License (>=v2). Read the file COPYING that comes with GRASS
+ *             for details.
+ */
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
