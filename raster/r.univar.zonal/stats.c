@@ -113,7 +113,7 @@ int print_stats(univar_stat * stats)
 	char sum_str[100];
 	double mean, variance, stdev, var_coef;
 
-	/*for extendet stats */
+	/* for extendet stats */
 	double quartile_25 = 0.0, quartile_75 = 0.0, *quartile_perc;
 	double median = 0.0;
 	unsigned int i;
@@ -122,7 +122,6 @@ int print_stats(univar_stat * stats)
 	/* stats collected for this zone? */
 	if (stats[z].n == 0)
 	    continue;
-
 
 	/* all these calculations get promoted to doubles, so any DIV0 becomes nan */
 	mean = stats[z].sum / stats[z].n;
@@ -145,8 +144,9 @@ int print_stats(univar_stat * stats)
 	}
 
 	if (param.shell_style->answer) {
-	    fprintf(stdout, "non_null_cells=%d\n", stats[z].n);
+	    fprintf(stdout, "n=%d\n", stats[z].n);
 	    fprintf(stdout, "null_cells=%d\n", stats[z].size - stats[z].n);
+	    fprintf(stdout, "cells=%d\n", stats->size);
 	    fprintf(stdout, "min=%.15g\n", stats[z].min);
 	    fprintf(stdout, "max=%.15g\n", stats[z].max);
 	    fprintf(stdout, "range=%.15g\n", stats[z].max - stats[z].min);

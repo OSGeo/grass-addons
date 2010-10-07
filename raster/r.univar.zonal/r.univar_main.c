@@ -50,6 +50,9 @@ void set_params()
     param.percentile->description =
 	_("Percentile to calculate (requires extended statistics flag)");
 
+    param.separator = G_define_standard_option(G_OPT_F_SEP);
+    param.separator->description = _("Special characters: space, comma, tab");
+
     param.shell_style = G_define_flag();
     param.shell_style->key = 'g';
     param.shell_style->description =
@@ -87,7 +90,6 @@ int main(int argc, char *argv[])
     struct Range zone_range;
     char *mapset, *name;
 
-
     G_gisinit(argv[0]);
 
     module = G_define_module();
@@ -112,11 +114,19 @@ int main(int argc, char *argv[])
     rows = region.rows;
     cols = region.cols;
 
-    /* TODO: make table field separator an option */
-    zone_info.sep = "|";
+    /* table field separator */
+    zone_info.sep = param.separator->answer;
+    if (strcmp(zone_info.sep, "\\t") == 0)
+	zone_info.sep = "\t";
+    if (strcmp(zone_info.sep, "tab") == 0)
+	zone_info.sep = "\t";
+    if (strcmp(zone_info.sep, "space") == 0)
+	zone_info.sep = " ";
+    if (strcmp(zone_info.sep, "comma") == 0)
+	zone_info.sep = ",";
 
-    zone_info.min = 0.0 / 0.0;	/*set to nan as default */
-    zone_info.max = 0.0 / 0.0;	/*set to nan as default */
+    zone_info.min = 0.0 / 0.0;	/* set to nan as default */
+    zone_info.max = 0.0 / 0.0;	/* set to nan as default */
     zone_info.n_zones = 0;
 
     fdz = -1;
