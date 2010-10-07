@@ -6,6 +6,7 @@
  *   Copyright (C) 2004-2006 by the GRASS Development Team
  *   Author(s): Hamish Bowman, University of Otago, New Zealand
  *              Extended stats: Martin Landa
+ *              Zonal stats: Markus Metz
  *
  *      This program is free software under the GNU General Public
  *      License (>=v2). Read the file COPYING that comes with GRASS

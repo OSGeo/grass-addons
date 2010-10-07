@@ -8,6 +8,7 @@
  *              Based on r.univar from Hamish Bowman, University of Otago, New Zealand
  *              and Martin Landa
  *              heapsort code from http://de.wikipedia.org/wiki/Heapsort
+ *              Zonal stats: Markus Metz
  *
  *      This program is free software under the GNU General Public
  *      License (>=v2). Read the file COPYING that comes with GRASS
