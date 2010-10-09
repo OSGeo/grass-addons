@@ -1,6 +1,7 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
+	LandDyn \
 	mcda \
 	r.boxcount \
 	r.boxcount.sh \
