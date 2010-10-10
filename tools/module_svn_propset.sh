@@ -208,6 +208,8 @@ for FILE in $* ; do
     *)
 	if [ "$FILE" = "Makefile" ] ; then
 	   apply_makefile "$FILE"
+	elif [ "$FILE" = "README" ] ; then
+	   apply_text "$FILE"
 	elif [ `file "$FILE" | grep -c "shell script"` -eq 1 ] ; then
 	   apply_shell_script "$FILE"
 	else
