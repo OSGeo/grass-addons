@@ -1,7 +1,7 @@
 /****************************************************************************
  *
  * MODULE:       r.roughset
- * AUTHOR(S):    GRASS module authors ad Rough Set Library (RSL) maintain:
+ * AUTHOR(S):    GRASS module authors and Rough Set Library (RSL) maintain:
  *					G.Massei (g_massa@libero.it)-A.Boggia (boggia@unipg.it)
  *				 Rough Set Library (RSL) ver. 2 original develop:
  *		         	M.Gawrys - J.Sienkiewicz
