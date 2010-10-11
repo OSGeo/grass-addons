@@ -4,12 +4,11 @@
 # MODULE:       r.mcda.roughset
 # AUTHOR:       Gianluca Massei - Antonio Boggia
 # PURPOSE:      Generate a MCDA map from several criteria maps using Dominance Rough Set Approach - DRSA 
-#                       (DOMLEM algorithm proposed by  (S. Greco, B. Matarazzo, R. Slowinski)
-#               
-# COPYRIGHT:    c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS 
-#               Development Team. This program is free software under the 
-#               GNU General PublicLicense (>=v2). Read the file COPYING 
-#               that comes with GRASS for details.
+#                       (DOMLEM algorithm proposed by  (S. Greco, B. Matarazzo, R. Slowinski)     
+# COPYRIGHT:  c) 2010 Gianluca Massei, Antonio Boggia  and the GRASS 
+#                       Development Team. This program is free software under the 
+#                       GNU General PublicLicense (>=v2). Read the file COPYING 
+#                       that comes with GRASS for details.
 #
 #############################################################################
 
