@@ -33,19 +33,18 @@ at-sensor temperature in Kelvin degrees.</p>
 Radiometric calibration converts QCAL to <b>at-sensor radiance</b>, a
 radiometric quantity measured in  W/(m&sup2; * sr * &micro;m) using the equations:
   <ul>
-  <li> gain = (Lmax - Lmin) / (QCALmax - QCALmin)</li>
-  <li> bias = Lmin - gain * QCALmin </li>
-  <li> radiance = gain * QCAL + bias </li>
+    <li> gain = (Lmax - Lmin) / (QCALmax - QCALmin)</li>
+    <li> bias = Lmin - gain * QCALmin </li>
+    <li> radiance = gain * QCAL + bias </li>
   </ul>
 where,
 <em>Lmax</em> and <em>Lmin</em> are the calibration constants, and
 <em>QCALmax</em> and <em>QCALmin</em> are the highest and the lowest points
 of the range of rescaled radiance in QCAL.
-</p>
 
 <p>
 Then, to calculate <b>at-sensor reflectance</b> the equations are:
-    <ul>
+  <ul>
     <li> sun_radiance = [Esun * sin(e)] / (PI * d^2)</li>
     <li> reflectance = radiance / sun_radiance </li>
   </ul>
@@ -53,7 +52,6 @@ where,
 <em>d</em> is the earth-sun distance in astronomical units,
 <em>e</em> is the solar elevation angle, and
 <em>Esun</em> is the mean solar exoatmospheric irradiance in W/(m&sup2; * &micro;m).
-</p>
 
 
 <H2>Corrected at-sensor values (method=corrected)</H2>
@@ -65,11 +63,11 @@ negative number then the at-sensor values can also be negative. To avoid
 these possible negative values and set the minimum possible values
 at-sensor to zero, this method corrects the radiance to output a corrected
 at-sensor values using the equations (not for thermal bands):
-    <ul>
+  <ul>
     <li> radiance = (uncorrected_radiance - Lmin) </li>
     <li> reflectance = radiance / sun_radiance </li>
   </ul>
-</p>
+
 
 <p>
 <b>Note</b>: Other possibility to avoid negative values is set to zero this
@@ -85,7 +83,7 @@ radiance, i.e. the stray light from the atmosphere, and the spectral effect
 of solar illumination. To output these simple <b>at-surface radiance</b>
 and <b>at-surface reflectance</b>, the equations are (not for thermal
 bands):
-    <ul>
+  <ul>
     <li> sun_radiance = TAUv * [Esun * sin(e) * TAUz + Esky] / (PI * d^2) </li>
     <li> radiance_path = radiance_dark - percent * sun_radiance </li>
     <li> radiance = (at-sensor_radiance - radiance_path) </li>
@@ -100,10 +98,10 @@ to the ground surface, and
 ground surface to the sensor.
 <em>radiance_dark</em> is the at-sensor radiance calculated from the
 darkest object, i.e. DN with a least 'dark_parameter' (usually 1000) pixels
-for the entire image.</p>
+for the entire image.
 
 The values are,
-	<ul>
+  <ul>
 	<li>DOS1: TAUv = 1.0, TAUz = 1.0 and Esky = 0.0</li>
 	<li>DOS2: TAUv = 1.0, Esky = 0.0, and TAUz = sin(e) for all bands
 	   with maximum wave length less than 1. (i.e. bands 4-6 MSS, 1-4 TM,
@@ -112,7 +110,7 @@ The values are,
 	   TAUz = exp[-t/sin(e)], Esky = rayleigh</li>
 	<li>DOS4: TAUv = exp[-t/cos(sat_zenith)],
 	   TAUz = exp[-t/sin(e)], Esky = PI * radiance_dark </li>
-	</ul>
+  </ul>
 
 <p>
 <b>Attention</b>: Output radiance remain untouched (i.e. no set to 0. when
@@ -129,7 +127,7 @@ parameters used in the transformations.</p>
 <p>
 Production date is not an exact value but it is necessary to apply correct
 calibration constants, which were changed in the dates:
-    <ul>
+  <ul>
     <li>Landsat-1 MSS: never </li>
     <li>Landsat-2 MSS: July 16, 1975</li>
     <li>Landsat-3 MSS: June 1, 1978</li>
@@ -138,8 +136,7 @@ calibration constants, which were changed in the dates:
     <li>Landsat-5 MSS: April 6, 1984 and November 9, 1984</li>
     <li>Landsat-5 TM:  May 4, 2003 and April, 2 2007</li>
     <li>Landsat-7 ETM+: July 1, 2000</li>
-    </ul>
-</p>
+  </ul>
 
 
 <H2>EXAMPLES</H2>
