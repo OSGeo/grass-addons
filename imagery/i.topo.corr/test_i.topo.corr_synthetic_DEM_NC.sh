@@ -46,8 +46,9 @@ solarzenith=`echo $sunangleabovehorizon | awk '{printf "%f", 90. - $1}'`
 
 # shade relief
 r.shaded.relief map=myplane_pyr shadedmap=myplane_pyr_shaded altitude=$sunangleabovehorizon azimuth=$sunazimuth
+d.mon stop=x0
 d.mon x0
-d.rast myplane_pyr_shaded
+d.rast.leg myplane_pyr_shaded
 
 # pre-run: illumination map
 i.topo.corr -i input=myplane_pyr_shaded output=myplane_pyr_illumination basemap=myplane_pyr zenith=$solarzenith azimuth=$sunazimuth method=c-factor
@@ -60,19 +61,22 @@ d.rast myplane_pyr
 ## test it:
 # percent
 METHOD=percent
-i.topo.corr input=myplane_pyr_shaded output=myplane_pyr_topocorr_percent basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
+i.topo.corr input=myplane_pyr_shaded output=myplane_pyr_topocorr_${METHOD} basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
+d.mon stop=x1
 d.mon x1
 d.rast.leg myplane_pyr_topocorr_${METHOD}.myplane_pyr_shaded
 
 # minnaert
 METHOD=minnaert
-i.topo.corr input=myplane_pyr_shaded output=myplane_pyr_topocorr_percent basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
+i.topo.corr input=myplane_pyr_shaded output=myplane_pyr_topocorr_${METHOD} basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
+d.mon stop=x2
 d.mon x2
 d.rast.leg myplane_pyr_topocorr_${METHOD}.myplane_pyr_shaded
 
 # c-factor
 METHOD=c-factor
-i.topo.corr input=myplane_pyr_shaded output=myplane_pyr_topocorr_percent basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
+i.topo.corr input=myplane_pyr_shaded output=myplane_pyr_topocorr_${METHOD} basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
+d.mon stop=x3
 d.mon x3
-d.rast.leg myplane_pyr_topocorr_cfactor.myplane_pyr_shaded
+d.rast.leg myplane_pyr_topocorr_${METHOD}.myplane_pyr_shaded
 
