@@ -34,7 +34,7 @@ r.plane --o myplane0 dip=45 az=0 east=637500 north=221750 elev=1000 type=float
 r.plane --o myplane90 dip=45 az=90 east=684800 north=221750 elev=1000 type=float
 r.plane --o myplane180 dip=45 az=180 east=684800 north=260250 elev=1000 type=float
 r.plane --o myplane270 dip=45 az=270 east=684800 north=221750 elev=1000 type=float
-r.mapcalc "myplane_pyr = min(myplane90,myplane270,myplane0,myplane180)"
+r.mapcalc "myplane_pyr = double(min(myplane90,myplane270,myplane0,myplane180)/10 + 8600)"
 
 # nviz
 # nviz myplane_pyr
@@ -48,35 +48,41 @@ solarzenith=`echo $sunangleabovehorizon | awk '{printf "%f", 90. - $1}'`
 r.shaded.relief map=myplane_pyr shadedmap=myplane_pyr_shaded altitude=$sunangleabovehorizon azimuth=$sunazimuth
 d.mon stop=x0
 d.mon x0
-d.rast.leg myplane_pyr_shaded
+d.rast myplane_pyr_shaded
 
 # pre-run: illumination map
-i.topo.corr -i input=myplane_pyr_shaded output=myplane_pyr_illumination basemap=myplane_pyr zenith=$solarzenith azimuth=$sunazimuth method=c-factor
+i.topo.corr -i input=myplane_pyr output=myplane_pyr_illumination basemap=myplane_pyr zenith=$solarzenith azimuth=$sunazimuth method=c-factor
 
 # show original
 d.erase -f
 r.colors myplane_pyr col=grey
-d.rast myplane_pyr
+d.rast.leg myplane_pyr
+
+#making the 'band' reflectance file
+r.mapcalc "myplane_pyr_band = double((myplane_pyr_shaded - 60.)/18.)"
+d.mon stop=x0
+d.mon x0
+d.rast.leg myplane_pyr_band
 
 ## test it:
 # percent
 METHOD=percent
-i.topo.corr input=myplane_pyr_shaded output=myplane_pyr_topocorr_${METHOD} basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
+i.topo.corr input=myplane_pyr_band output=myplane_pyr_topocorr_${METHOD} basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
 d.mon stop=x1
 d.mon x1
-d.rast.leg myplane_pyr_topocorr_${METHOD}.myplane_pyr_shaded
+d.rast.leg myplane_pyr_topocorr_${METHOD}.myplane_pyr_band
 
 # minnaert
 METHOD=minnaert
-i.topo.corr input=myplane_pyr_shaded output=myplane_pyr_topocorr_${METHOD} basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
+i.topo.corr input=myplane_pyr_band output=myplane_pyr_topocorr_${METHOD} basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
 d.mon stop=x2
 d.mon x2
-d.rast.leg myplane_pyr_topocorr_${METHOD}.myplane_pyr_shaded
+d.rast.leg myplane_pyr_topocorr_${METHOD}.myplane_pyr_band
 
 # c-factor
 METHOD=c-factor
-i.topo.corr input=myplane_pyr_shaded output=myplane_pyr_topocorr_${METHOD} basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
+i.topo.corr input=myplane_pyr_band output=myplane_pyr_topocorr_${METHOD} basemap=myplane_pyr_illumination zenith=$solarzenith method=$METHOD
 d.mon stop=x3
 d.mon x3
-d.rast.leg myplane_pyr_topocorr_${METHOD}.myplane_pyr_shaded
+d.rast.leg myplane_pyr_topocorr_${METHOD}.myplane_pyr_band
 
