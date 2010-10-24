@@ -45,7 +45,8 @@ void sensor_TM(lsat_data * lsat)
     double wmin[] = { 0.45, 0.52, 0.63, 0.76, 1.55, 10.40, 2.08 };
     /* 30, 30, 30, 30, 30, 120, 30 */
 
-    strcpy(lsat->sensor, "TM");
+    if (!lsat->sensor)
+      strcpy(lsat->sensor, "TM");
 
     lsat->bands = 7;
     for (i = 0; i < lsat->bands; i++) {
@@ -141,8 +142,8 @@ void set_MSS2(lsat_data * lsat)
 
     /* Spectral radiances at detector */
     double Lmax[][4] = {
-	{210., 156., 140., 138.},   /* before      July 16, 1975 */
-	{263., 176., 152., 130.333} /* on or after July 16, 1975 */
+	{210., 156., 140., 138.},	/* before      July 16, 1975 */
+	{263., 176., 152., 130.333}	/* on or after July 16, 1975 */
     };
     double Lmin[][4] = {
 	{10., 7., 7., 5.},
@@ -189,8 +190,8 @@ void set_MSS3(lsat_data * lsat)
         Chander, Markham and Helder. Remote Sensing of Environment, 113 (2009)*/
     /* Spectral radiances at detector */
     double Lmax[][4] = {
-	{220., 175., 145., 147.},  /* before      June 1, 1978 */
-	{259., 179., 149., 128.}   /* on or after June 1, 1978 */
+	{220., 175., 145., 147.},	/* before      June 1, 1978 */
+	{259., 179., 149., 128.}	/* on or after June 1, 1978 */
     };
     double Lmin[][4] = {
 	{4., 3., 3., 1.},
@@ -235,9 +236,9 @@ void set_MSS4(lsat_data * lsat)
 
     /* Spectral radiances at detector */
     double Lmax[][4] = {
-	{250., 180., 150., 133.}, /* before      August 26, 1982 */
-	{230., 180., 130., 133.}, /* between                     */
-	{238., 164., 142., 116.}  /* on or after April 1, 1983   */
+	{250., 180., 150., 133.},	/* before      August 26, 1982 */
+	{230., 180., 130., 133.},	/* between                     */
+	{238., 164., 142., 116.}	/* on or after April 1, 1983   */
     };
     double Lmin[][4] = {
 	{2., 4., 4., 3.},
@@ -281,9 +282,9 @@ void set_TM4(lsat_data * lsat)
         EOSAT Landsat Technical Notes, No. 1, 1986 */
     /* Spectral radiances at detector */
     double Lmax[][7] = {
-	{158.42, 308.17, 234.63, 224.32, 32.42, 15.64, 17.00},	 /* before August 1983      */
-	{142.86, 291.25, 225.00, 214.29, 30.00, 12.40, 15.93},	 /* before January 15, 1984 */
-	{152.10, 296.81, 204.30, 206.20, 27.19, 15.3032, 14.38}	 /* after  Jaunary 15, 1984 */
+	{158.42, 308.17, 234.63, 224.32, 32.42, 15.64, 17.00},	/* before August 1983      */
+	{142.86, 291.25, 225.00, 214.29, 30.00, 12.40, 15.93},	/* before January 15, 1984 */
+	{152.10, 296.81, 204.30, 206.20, 27.19, 15.3032, 14.38}	/* after  Jaunary 15, 1984 */
     };
     double Lmin[][7] = {
 	{-1.52, -2.84, -1.17, -1.51, -0.37, 2.00, -0.15},
@@ -340,9 +341,9 @@ void set_MSS5(lsat_data * lsat)
         EOSAT Landsat Technical Notes, No. 1, 1986 */
     /* Spectral radiances at detector */
     double Lmax[][4] = {
-	{240., 170., 150., 127.},   /* before	April 6, 1984	 */
-	{268., 179., 159., 123.},   /* betweeen 		 */
-	{268., 179., 148., 123.}    /* after    November 9, 1984 */
+	{240., 170., 150., 127.},	/* before   April 6, 1984    */
+	{268., 179., 159., 123.},	/* betweeen                  */
+	{268., 179., 148., 123.}	/* after    November 9, 1984 */
     };
     double Lmin[][4] = {
 	{4., 3., 4., 2.},
@@ -387,9 +388,9 @@ void set_TM5(lsat_data * lsat)
 
     /* Spectral radiances at detector */
     double Lmax[][7] = {
-	{152.10, 296.81, 204.30, 206.20, 27.19, 15.303, 14.38},  /* before May 4, 2003 */
-	{193.00, 365.00, 264.00, 221.00, 30.20, 15.303, 16.50},  /* after May 4, 2003 */
-	{169.00, 333.00, 264.00, 221.00, 30.20, 15.303, 16.50}   /* after April 2, 2007 */
+	{152.10, 296.81, 204.30, 206.20, 27.19, 15.303, 14.38},	/* before May 4, 2003 */
+	{193.00, 365.00, 264.00, 221.00, 30.20, 15.303, 16.50},	/* after May 4, 2003 */
+	{169.00, 333.00, 264.00, 221.00, 30.20, 15.303, 16.50}	/* after April 2, 2007 */
     };
     double Lmin[][7] = {
 	{-1.52, -2.84, -1.17, -1.51, -0.37, 1.2378, -0.15},
@@ -422,10 +423,11 @@ void set_TM5(lsat_data * lsat)
     }
 
     jbuf = julian_char("2004-04-04");
-    if (julian >= jbuf)
+    if (julian >= jbuf) {
 	G_warning
 	    ("Using QCalMin=1.0 as a NLAPS product processed after 4/4/2004");
-
+	G_warning("Discard this message if using the L5_MTL (-t) flag");
+    }
     lsat->number = 5;
     sensor_TM(lsat);
 
@@ -462,15 +464,15 @@ void set_ETM(lsat_data * lsat, char gain[])
     /* Spectral radiances at detector */
     /* - LOW GAIN - */
     double LmaxL[][8] = {
-	{297.5, 303.4, 235.5, 235.0, 47.70, 17.04, 16.60, 244.0},   /* before	   July 1, 2000 */
-	{293.7, 300.9, 234.4, 241.1, 47.57, 17.04, 16.54, 243.1}    /* on or after July 1, 2000 */
+	{297.5, 303.4, 235.5, 235.0, 47.70, 17.04, 16.60, 244.0},	/* before      July 1, 2000 */
+	{293.7, 300.9, 234.4, 241.1, 47.57, 17.04, 16.54, 243.1}	/* on or after July 1, 2000 */
     };
     double LminL[][8] = {
 	{-6.2, -6.0, -4.5, -4.5, -1.0, 0.0, -0.35, -5.0},
 	{-6.2, -6.4, -5.0, -5.1, -1.0, 0.0, -0.35, -4.7}
     };
     /* - HIGH GAIN - */
-    double LmaxH[][8] =	{
+    double LmaxH[][8] = {
 	{194.3, 202.4, 158.6, 157.5, 31.76, 12.65, 10.932, 158.4},
 	{191.6, 196.5, 152.9, 157.4, 31.06, 12.65, 10.80, 158.3}
     };

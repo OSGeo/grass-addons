@@ -6,6 +6,7 @@
 
 void met_ETM(char *, lsat_data *);
 void met_TM5(char *, lsat_data *);
+void mtl_TM5(char *, lsat_data *);
 
 void set_MSS1(lsat_data *);
 void set_MSS2(lsat_data *);

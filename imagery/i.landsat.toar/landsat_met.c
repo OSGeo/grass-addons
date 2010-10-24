@@ -28,7 +28,7 @@ void get_value_met7(const char mettext[], char *text, char value[])
 {
     char *ptr;
 
-    value[0] = 0;
+    value[0] = '\0';
 
     ptr = strstr(mettext, text);
     if (ptr == NULL)
@@ -139,6 +139,7 @@ void met_TM5(char *metfile, lsat_data * lsat)
     FILE *f;
     char mettext[TM5_MET_SIZE];
     char value[MAX_STR];
+
     /* char metdate[MAX_STR]; */
 
     if ((f = fopen(metfile, "r")) == NULL)
@@ -162,11 +163,12 @@ void met_TM5(char *metfile, lsat_data * lsat)
 
 
     get_value_met(mettext, "SolarElevation", value);
-    if (!value)
+    if (!value[0])
 	G_warning("Unable to read solar elevation from metadata file");
     else
 	lsat->sun_elev = atof(value);
-    G_debug(1, "met_TM5: value=[%s], SolarElevation = %.2f", value, lsat->sun_elev);
+    G_debug(1, "met_TM5: value=[%s], SolarElevation = %.2f", value,
+	    lsat->sun_elev);
 
 
     get_value_met(mettext, "PLATFORMSHORTNAME", value);
@@ -200,6 +202,84 @@ void met_TM5(char *metfile, lsat_data * lsat)
 	break;
     }
 
+    (void)fclose(f);
+    return;
+}
+
+
+
+/****************************************************************************
+ * PURPOSE:     Read values of Landsat TM5 from header (.mtl) file
+ *****************************************************************************/
+
+/****************************************************************************
+ * EXPLANATION: This module is a modification of the met_ETM() found before
+ *              to allow TM5 from GLOVIS to use .MTL extension that responds
+ *              near to perfectly to the .met parser. While L7 files using
+ *              .MTL from GLOVIS can be processed as if having .met files
+ *              seemlessly, TM5 using .MTL need to read basic info and 
+ *              additionally the LMIN, LMAX, QCALMIN, QCALMAX being explicitely
+ *              provided in the .MTL as if in a .met file.
+ *****************************************************************************/
+void mtl_TM5(char *metfile, lsat_data * lsat)
+{
+    FILE *f;
+    char mettext[ETM_MET_SIZE];
+    char name[MAX_STR], value[MAX_STR];
+    int i;
+
+    static int code[] = { 1, 2, 3, 4, 5, 6, 7 };
+
+    if ((f = fopen(metfile, "r")) == NULL)
+	G_fatal_error(_("Metadata file <%s> not found"), metfile);
+
+    fread(mettext, 1, ETM_MET_SIZE, f);
+
+    /* --------------------------------------- */
+    get_value_met7(mettext, "SENSOR_ID", value);
+    if (value[1] == 'M')
+	chrncpy(lsat->sensor, value + 1, 4);
+    else
+	chrncpy(lsat->sensor, value + 1, 3);
+    
+    if (lsat->creation[0] == 0) {
+	get_value_met7(mettext, "PRODUCT_CREATION_TIME", value);
+	chrncpy(lsat->creation, value, 11);
+    }
+
+    get_value_met7(mettext, "ACQUISITION_DATE", value);
+    chrncpy(lsat->date, value, 11);
+    lsat->dist_es = earth_sun(lsat->date);
+
+    get_value_met7(mettext, "SUN_ELEVATION", value);
+    lsat->sun_elev = atof(value);
+
+    /* We still have to initialize most of the info */
+    /* So instead of rewriting a new function, we use set_TM5()... */
+    set_TM5(lsat);
+    /* ... and we rewrite the necessary 'a la Landsat 7' */
+
+    if (strcmp(lsat->sensor, "MSS") == 0)
+	lsat->bands = 4;
+    else
+	lsat->bands = 7;
+    for (i = 0; i < lsat->bands; i++) {
+	lsat->band[i].code = *(code + i);
+	snprintf(name, MAX_STR, "LMAX_BAND%d", lsat->band[i].code);
+	get_value_met7(mettext, name, value);
+	lsat->band[i].lmax = atof(value);
+	snprintf(name, MAX_STR, "LMIN_BAND%d", lsat->band[i].code);
+	get_value_met7(mettext, name, value);
+	lsat->band[i].lmin = atof(value);
+	snprintf(name, MAX_STR, "QCALMAX_BAND%d", lsat->band[i].code);
+	get_value_met7(mettext, name, value);
+	lsat->band[i].qcalmax = atof(value);
+	snprintf(name, MAX_STR, "QCALMIN_BAND%d", lsat->band[i].code);
+	get_value_met7(mettext, name, value);
+	lsat->band[i].qcalmin = atof(value);
+	if (lsat->band[i].number == 6)
+	    lsat->band[i].thermal = 1;
+    }
     (void)fclose(f);
     return;
 }
