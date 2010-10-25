@@ -388,7 +388,7 @@ void acca_second(Gfile * out, Gfile band,
     /* Open to write */
     sprintf(tmp.name, "_%d.BBB", getpid());
     tmp.rast = G_allocate_raster_buf(CELL_TYPE);
-    if ((tmp.fd = G_open_new(tmp.name, CELL_TYPE)) < 0)
+    if ((tmp.fd = G_open_raster_new(tmp.name, CELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
 
     if (upper == 0.)
