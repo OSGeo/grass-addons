@@ -216,15 +216,19 @@ void acca_first(Gfile *out, Gfile band[],
 		int count[], int cold[], int warm[], double stats[])
 {
     int i, row, col, nrows, ncols;
+    char *mapset;
 
     char code;
     double pixel[5], nsdi, rat56;
 
     /* Creation of output file */
-    out->rast = G_allocate_raster_buf(CELL_TYPE);
+    mapset = G_find_cell2(out->name, "");
+    if (mapset == NULL)
+	G_fatal_error(_("Raster map <%s> not found"), out->name);
     if ((out->fd = G_open_new(out->name, CELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), out->name);
 
+    out->rast = G_allocate_raster_buf(CELL_TYPE);
     /* ----- ----- */
     G_message(_("Processing first pass..."));
 
