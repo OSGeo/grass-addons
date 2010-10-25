@@ -6,8 +6,9 @@
  * AUTHOR(S):    E. Jorge Tizado - ej.tizado@unileon.es
  *
  * PURPOSE:      Landsat TM/ETM+ Automatic Cloud Cover Assessment
+ *               Adopted for GRASS 7 by Martin Landa <landa.martin gmail.com>
  *
- * COPYRIGHT:    (C) 2008 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2008, 2010 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
@@ -48,24 +49,17 @@ extern double th_8;
  *----------------------------------------------*/
 int check_raster(char *raster_name)
 {
-    struct Cell_head cellhd;
     RASTER_MAP_TYPE map_type;
     int raster_fd;
     char *mapset;
-
+    
     mapset = G_find_cell2(raster_name, "");
-    if (mapset == NULL) {
-	G_warning(_("Raster map <%s> not found"), raster_name);
-	return -1;
-    }
-    if (G_legal_filename(raster_name) < 0) {
-	G_warning(_("<%s> is an illegal file name"), raster_name);
-	return -1;
-    }
-    if ((raster_fd = G_open_cell_old(raster_name, mapset)) < 0) {
-	G_warning(_("Unable to open raster map <%s>"), raster_name);
-	return -1;
-    }
+    if (mapset == NULL)
+	G_fatal_error(_("Raster map <%s> not found"), raster_name);
+    
+    if ((raster_fd = G_open_cell_old(raster_name, "")) < 0)
+	G_fatal_error(_("Unable to open raster map <%s>"), raster_name);
+    
     /* Uncomment to work in full raster map
        if (G_get_cellhd(raster_name, mapset, &cellhd) < 0) {
        G_warning(_("Unable to read header of raster map <%s>"), raster_name);
@@ -76,10 +70,10 @@ int check_raster(char *raster_name)
        return -1;
        }
      */
-    if ((map_type = G_raster_map_type(raster_name, mapset)) != DCELL_TYPE) {
-	G_warning(_("Map is not DCELL type (process DN to radiance first)"));
-	return -1;
-    }
+    if ((map_type = G_raster_map_type(raster_name, mapset)) != DCELL_TYPE)
+	G_fatal_error(_("Input raster map <%s> is not floating point "
+			"(process DN using i.landsat.toar to radiance first)"), raster_name);
+    
     return raster_fd;
 }
 
@@ -93,31 +87,32 @@ int main(int argc, char *argv[])
     struct History history;
     struct GModule *module;
 
-    int i, verbose = 1;
-    struct Option *input, *output, *hist, *b56c, *b45r;
+    int i;
+    struct Option *band_prefix, *output, *hist, *b56c, *b45r;
     struct Flag *shadow, *filter, *sat5, *pass2, *csig;
     char *in_name, *out_name;
     struct Categories cats;
-    char title[RECORD_LEN];
 
     Gfile band[5], out;
 
+    char title[1024];
+    
     /* initialize GIS environment */
     G_gisinit(argv[0]);
 
     /* initialize module */
     module = G_define_module();
     module->description =
-	_("Landsat TM/ETM+ Automatic Cloud Cover Assessment (ACCA)");
-
-    input = G_define_option();
-    input->key = "band_prefix";
-    input->type = TYPE_STRING;
-    input->required = YES;
-    input->gisprompt = "input,cell,raster";
-    input->description =
-	_("Base name of the landsat band rasters ([band_prefix].[band_number])");
-
+	_("Landsat TM/ETM+ Automatic Cloud Cover Assessment (ACCA).");
+    module->keywords = _("imagery, landsat, acca");
+    
+    band_prefix = G_define_option();
+    band_prefix->key = "band_prefix";
+    band_prefix->label = _("Base name of input raster bands");
+    band_prefix->description = _("Example: 'B.' for B.1, B.2, ...");
+    band_prefix->type = TYPE_STRING;
+    band_prefix->required = YES;
+    
     output = G_define_standard_option(G_OPT_R_OUTPUT);
 
     b56c = G_define_option();
@@ -141,11 +136,12 @@ int main(int argc, char *argv[])
     hist->description =
 	_("Number of classes in the cloud temperature histogram");
     hist->answer = "100";
-
+    hist->guisection = _("Cloud settings");
+    
     sat5 = G_define_flag();
     sat5->key = '5';
     sat5->label = _("Data is Landsat-5 TM");
-    sat5->description = _("(i.e. thermal band is '.6' not '.61')");
+    sat5->description = _("I.e. Thermal band is '.6' not '.61')");
 
     filter = G_define_flag();
     filter->key = 'f';
@@ -155,15 +151,18 @@ int main(int argc, char *argv[])
     csig = G_define_flag();
     csig->key = 'x';
     csig->description = _("Always use cloud signature (step 14)");
+    csig->guisection = _("Cloud settings");
 
     pass2 = G_define_flag();
     pass2->key = '2';
     pass2->description =
 	_("Bypass second-pass processing, and merge warm (not ambiguous) and cold clouds");
+    pass2->guisection = _("Cloud settings");
 
     shadow = G_define_flag();
     shadow->key = 's';
     shadow->description = _("Include a category for cloud shadows");
+    shadow->guisection = _("Cloud settings");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -174,31 +173,29 @@ int main(int argc, char *argv[])
     if (hist_n < 10)
 	hist_n = 10;
 
-    in_name = input->answer;
+    in_name = band_prefix->answer;
 
     for (i = BAND2; i <= BAND6; i++) {
-	snprintf(band[i].name, 127, "%s.%d%c", in_name, i + 2,
+	sprintf(band[i].name, "%s%d%c", in_name, i + 2,
 		 (i == BAND6 && !sat5->answer ? '1' : '\0'));
-	if ((band[i].fd = check_raster(band[i].name)) < 0) {
-	    G_fatal_error(_("Error in map name <%s>!"), band[i].name);
-	}
+	band[i].fd = check_raster(band[i].name);
 	band[i].rast = G_allocate_raster_buf(DCELL_TYPE);
     }
 
     out_name = output->answer;
 
-    snprintf(out.name, 127, "%s", out_name);
+    sprintf(out.name, "%s", out_name);
     if (G_legal_filename(out_name) < 0)
 	G_fatal_error(_("<%s> is an illegal file name"), out.name);
 
     /* --------------------------------------- */
     th_4 = atof(b56c->answer);
     th_7 = atof(b45r->answer);
-    acca_algorithm(verbose, &out, band, pass2->answer, shadow->answer,
+    acca_algorithm(&out, band, pass2->answer, shadow->answer,
 		   csig->answer);
 
     if (filter->answer)
-	filter_holes(verbose, &out);
+	filter_holes(&out);
     /* --------------------------------------- */
 
     for (i = BAND2; i <= BAND6; i++) {
@@ -210,15 +207,13 @@ int main(int argc, char *argv[])
     G_init_cats((CELL) 0, "", &cats);
     sprintf(title, "LANDSAT-%s Automatic Cloud Cover Assessment",
 	    sat5->answer ? "5 TM" : "7 ETM+");
-    G_set_raster_cats_title(title, &cats);
+    G_set_cats_title(title, &cats);
 
     G_set_cat(IS_SHADOW, "Shadow", &cats);
     G_set_cat(IS_COLD_CLOUD, "Cold cloud", &cats);
     G_set_cat(IS_WARM_CLOUD, "Warm cloud", &cats);
-
-    if (G_write_cats(out.name, &cats) <= 0)
-	G_warning(_("Cannot write category file for raster map <%s>"),
-		  out.name);
+    
+    G_write_cats(out.name, &cats);
     G_free_cats(&cats);
 
     /* write out command line opts */

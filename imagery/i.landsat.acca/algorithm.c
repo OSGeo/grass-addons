@@ -14,6 +14,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 
 #include "local_proto.h"
@@ -72,7 +73,7 @@ double th_8 = 210.;		/* Band 5/6 Composite */
 
 extern int hist_n;
 
-void acca_algorithm(int verbose, Gfile * out, Gfile band[],
+void acca_algorithm(Gfile * out, Gfile band[],
 		    int single_pass, int with_shadow, int cloud_signature)
 {
     int i, count[5], hist_cold[hist_n], hist_warm[hist_n];
@@ -88,7 +89,7 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
     }
 
     /* FIRST FILTER ... */
-    acca_first(verbose, out, band, with_shadow,
+    acca_first(out, band, with_shadow,
 	       count, hist_cold, hist_warm, signa);
     /* CATEGORIES: NO_DEFINED, WARM_CLOUD, COLD_CLOUD, NULL (= NO_CLOUD) */
 
@@ -120,31 +121,31 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
     signa[KMEAN] = SCALE * signa[SUM_COLD] / ((double)count[COLD]);
     signa[COVER] = ((double)count[COLD]) / ((double)count[TOTAL]);
 
-    fprintf(stdout, "   PRELIMINARY SCENE ANALYSIS\n");
-    fprintf(stdout, "    Desert index:  %.2lf\n", idesert);
-    fprintf(stdout, "    Snow cover:    %.2lf %%\n", 100. * value[SNOW]);
-    fprintf(stdout, "    Cloud cover:   %.2lf %%\n", 100. * signa[COVER]);
-    fprintf(stdout, "    Temperature of clouds\n");
-    fprintf(stdout, "      Maximum: %.2lf K\n", signa[KMAX]);
-    fprintf(stdout, "      Mean (%s cloud)  : %.2lf K\n",
+    G_message(_("Preliminary scene analysis:"));
+    G_message(_("* Desert index: %.2lf"), idesert);
+    G_message(_("* Snow cover: %.2lf %%"), 100. * value[SNOW]);
+    G_message(_("* Cloud cover: %.2lf %%"), 100. * signa[COVER]);
+    G_message(_("* Temperature of clouds:"));
+    G_message(_("** Maximum: %.2lf "), signa[KMAX]);
+    G_message(_("** Mean (%s cloud)  : %.2lf K"),
 	    (review_warm ? "cold" : "all"), signa[KMEAN]);
-    fprintf(stdout, "      Minimum: %.2lf K\n", signa[KMIN]);
+    G_message(_("** Minimum: %.2lf K"), signa[KMIN]);
 
     /* WARNING: re-use of the variable 'value' with new meaning */
 
     /* step 14 */
     if (cloud_signature ||
 	(idesert <= .5 && signa[COVER] > 0.004 && signa[KMEAN] < 295.)) {
-	fprintf(stdout, "   HISTOGRAM CLOUD SIGNATURE\n");
+	G_message(_("Histogram cloud signature:"));
 
 	value[MEAN] = quantile(0.5, hist_cold) + K_BASE;
 	value[DSTD] = sqrt(moment(2, hist_cold, 1));
 	value[SKEW] = moment(3, hist_cold, 3) / pow(value[DSTD], 3);
 
-	fprintf(stdout, "      Mean temperature:   %.2lf K\n", value[MEAN]);
-	fprintf(stdout, "      Standard deviation: %.2lf\n", value[DSTD]);
-	fprintf(stdout, "      Skewness:           %.2lf\n", value[SKEW]);
-	fprintf(stdout, "      Histogram classes:  %d\n", hist_n);
+	G_message(_("* Mean temperature: %.2lf K"), value[MEAN]);
+	G_message(_("* Standard deviation: %.2lf"), value[DSTD]);
+	G_message(_("* Skewness: %.2lf"), value[SKEW]);
+	G_message(_("* Histogram classes: %d"), hist_n);
 
 	shift = value[SKEW];
 	if (shift > 1.)
@@ -156,9 +157,9 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	value[KUPPER] = quantile(0.975, hist_cold) + K_BASE;
 	value[KLOWER] = quantile(0.835, hist_cold) + K_BASE;
 
-	fprintf(stdout, "      98.75 percentile:   %.2lf K\n", max);
-	fprintf(stdout, "      97.50 percentile:   %.2lf K\n", value[KUPPER]);
-	fprintf(stdout, "      83.50 percentile:   %.2lf K\n", value[KLOWER]);
+	G_message(_("* 98.75 percentile: %.2lf K"), max);
+	G_message(_("* 97.50 percentile: %.2lf K"), value[KUPPER]);
+	G_message(_("* 83.50 percentile: %.2lf K"), value[KLOWER]);
 
 	/* step 17 & 18 */
 	if (shift > 0.) {
@@ -174,21 +175,21 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	    }
 	}
 
-	fprintf(stdout, "      Maximum temperature\n");
-	fprintf(stdout, "        Cold cloud: %.2lf K\n", value[KUPPER]);
-	fprintf(stdout, "        Warn cloud: %.2lf K\n", value[KLOWER]);
+	G_message(_("Maximum temperature:"));
+	G_message(_("* Cold cloud: %.2lf K"), value[KUPPER]);
+	G_message(_("* Warn cloud: %.2lf K"), value[KLOWER]);
     }
     else {
 	if (signa[KMEAN] < 295.) {
 	    /* Retained warm and cold clouds */
-	    G_message("    Scene with clouds");
+	    G_message(_("Result: Scene with clouds"));
 	    review_warm = 0;
 	    value[KUPPER] = 0.;
 	    value[KLOWER] = 0.;
 	}
 	else {
 	    /* Retained cold clouds */
-	    G_message("    Scene cloud free");
+	    G_message(_("Result: Scene cloud free"));
 	    review_warm = 1;
 	    value[KUPPER] = 0.;
 	    value[KLOWER] = 0.;
@@ -202,7 +203,7 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 	value[KUPPER] = 0.;
 	value[KLOWER] = 0.;
     }
-    acca_second(verbose, out, band[BAND6],
+    acca_second(out, band[BAND6],
 		review_warm, value[KUPPER], value[KLOWER]);
     /* CATEGORIES: IS_WARM_CLOUD, IS_COLD_CLOUD, IS_SHADOW, NULL (= NO_CLOUD) */
 
@@ -210,22 +211,22 @@ void acca_algorithm(int verbose, Gfile * out, Gfile band[],
 }
 
 
-void acca_first(int verbose, Gfile * out, Gfile band[],
+void acca_first(Gfile *out, Gfile band[],
 		int with_shadow,
 		int count[], int cold[], int warm[], double stats[])
 {
     int i, row, col, nrows, ncols;
 
     char code;
-    double pixel[5], nsdi, rat56, rat45;
+    double pixel[5], nsdi, rat56;
 
     /* Creation of output file */
     out->rast = G_allocate_raster_buf(CELL_TYPE);
-    if ((out->fd = G_open_raster_new(out->name, CELL_TYPE)) < 0)
+    if ((out->fd = G_open_new(out->name, CELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), out->name);
 
     /* ----- ----- */
-    G_message(_("Processing first pass ..."));
+    G_message(_("Processing first pass..."));
 
     stats[SUM_COLD] = 0.;
     stats[SUM_WARM] = 0.;
@@ -236,6 +237,7 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
     ncols = G_window_cols();
 
     for (row = 0; row < nrows; row++) {
+	G_percent(row, nrows, 2);
 	for (i = BAND2; i <= BAND6; i++) {
 	    if (G_get_d_raster_row(band[i].fd, band[i].rast, row) < 0)
 		G_fatal_error(_("Unable to read raster map <%s> row %d"),
@@ -350,10 +352,9 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 	if (G_put_raster_row(out->fd, out->rast, CELL_TYPE) < 0)
 	    G_fatal_error(_("Failed writing raster map <%s> row %d"),
 			  out->name, row);
-
-	G_percent(row, nrows, 2);
     }
-
+    G_percent(1, 1, 1);
+    
     G_free(out->rast);
     G_close_cell(out->fd);
 
@@ -361,12 +362,12 @@ void acca_first(int verbose, Gfile * out, Gfile band[],
 }
 
 
-void acca_second(int verbose, Gfile * out, Gfile band,
+void acca_second(Gfile * out, Gfile band,
 		 int review_warm, double upper, double lower)
 {
     int row, col, nrows, ncols;
     char *mapset;
-
+    
     int code;
     double temp;
     Gfile tmp;
@@ -375,35 +376,35 @@ void acca_second(int verbose, Gfile * out, Gfile band,
     mapset = G_find_cell2(out->name, "");
     if (mapset == NULL)
 	G_fatal_error(_("Raster map <%s> not found"), out->name);
-    out->rast = G_allocate_raster_buf(CELL_TYPE);
-    if ((out->fd = G_open_cell_old(out->name, mapset)) < 0)
+    if ((out->fd = G_open_cell_old(out->name, "")) < 0)
 	G_fatal_error(_("Unable to open raster map <%s>"), out->name);
-
+    
+    out->rast = G_allocate_raster_buf(CELL_TYPE);
+    
     /* Open to write */
     sprintf(tmp.name, "_%d.BBB", getpid());
     tmp.rast = G_allocate_raster_buf(CELL_TYPE);
-    if ((tmp.fd = G_open_raster_new(tmp.name, CELL_TYPE)) < 0)
+    if ((tmp.fd = G_open_new(tmp.name, CELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
 
     if (upper == 0.)
-	G_message(_("Removing ambiguous pixels ..."));
+	G_message(_("Removing ambiguous pixels..."));
     else
-	G_message(_("Pass two processing ..."));
+	G_message(_("Pass two processing..."));
 
     nrows = G_window_rows();
     ncols = G_window_cols();
 
     for (row = 0; row < nrows; row++) {
-	if (verbose) {
-	    G_percent(row, nrows, 2);
-	}
+	G_percent(row, nrows, 2);
+	
 	if (G_get_d_raster_row(band.fd, band.rast, row) < 0)
 	    G_fatal_error(_("Unable to read raster map <%s> row %d"),
 			  band.name, row);
 	if (G_get_c_raster_row(out->fd, out->rast, row) < 0)
 	    G_fatal_error(_("Unable to read raster map <%s> row %d"),
 			  out->name, row);
-
+	
 	for (col = 0; col < ncols; col++) {
 	    if (G_is_c_null_value((void *)((CELL *) out->rast + col))) {
 		G_set_c_null_value((CELL *) tmp.rast + col, 1);
@@ -438,9 +439,8 @@ void acca_second(int verbose, Gfile * out, Gfile band,
 	    G_fatal_error(_("Cannot write to raster map <%s>"), tmp.name);
 	}
     }
-
-    /* Finalización */
-
+    G_percent(1, 1, 1);
+    
     G_free(tmp.rast);
     G_close_cell(tmp.fd);
 

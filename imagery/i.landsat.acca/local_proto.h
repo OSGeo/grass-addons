@@ -23,18 +23,18 @@ typedef struct
 {
     int fd;
     void *rast;
-    char name[1024];
+    char name[GNAME_MAX];
 
 } Gfile;
 
 
-void acca_algorithm(int, Gfile *, Gfile[], int, int, int);
-void acca_first(int, Gfile *, Gfile[], int, int[], int[], int[], double[]);
-void acca_second(int, Gfile *, Gfile, int, double, double);
+void acca_algorithm(Gfile *, Gfile[], int, int, int);
+void acca_first(Gfile *, Gfile[], int, int[], int[], int[], double[]);
+void acca_second(Gfile *, Gfile, int, double, double);
 
 int shadow_algorithm(double[]);
 
-void filter_holes(int, Gfile *);
+void filter_holes(Gfile *);
 
 void hist_put(double t, int hist[]);
 double quantile(double q, int hist[]);

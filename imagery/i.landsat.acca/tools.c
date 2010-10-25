@@ -105,11 +105,11 @@ int pval(void *rast, int i)
 	return (int)((CELL *) rast)[i];
 }
 
-void filter_holes(int verbose, Gfile * out)
+void filter_holes(Gfile * out)
 {
     int row, col, nrows, ncols;
     char *mapset;
-
+    
     void *arast, *brast, *crast;
     int i, pixel[9], cold, warm, shadow, nulo, lim;
 
@@ -125,11 +125,13 @@ void filter_holes(int verbose, Gfile * out)
     mapset = G_find_cell2(out->name, "");
     if (mapset == NULL)
 	G_fatal_error(_("Raster map <%s> not found"), out->name);
+    
+    if ((out->fd = G_open_cell_old(out->name, "")) < 0)
+	G_fatal_error(_("Unable to open raster map <%s>"), out->name);
+    
     arast = G_allocate_raster_buf(CELL_TYPE);
     brast = G_allocate_raster_buf(CELL_TYPE);
     crast = G_allocate_raster_buf(CELL_TYPE);
-    if ((out->fd = G_open_cell_old(out->name, mapset)) < 0)
-	G_fatal_error(_("Unable to open raster map <%s>"), out->name);
 
     /* Open to write */
     sprintf(tmp.name, "_%d.BBB", getpid());
@@ -151,10 +153,9 @@ void filter_holes(int verbose, Gfile * out)
 		G_fatal_error(_("Unable to read raster map <%s> row %d"),
 			      out->name, row - 1);
 	}
-	if (G_get_c_raster_row(out->fd, brast, row) < 0) {
+	if (G_get_c_raster_row(out->fd, brast, row) < 0)
 	    G_fatal_error(_("Unable to read raster map <%s> row %d"),
 			  out->name, row);
-	}
 	if (row != (nrows - 1)) {
 	    if (G_get_c_raster_row(out->fd, crast, row + 1) < 0)
 		G_fatal_error(_("Unable to read raster map <%s> row %d"),
@@ -287,7 +288,6 @@ void filter_holes(int verbose, Gfile * out)
 	if (G_put_raster_row(tmp.fd, tmp.rast, CELL_TYPE) < 0)
 	    G_fatal_error(_("Failed writing raster map <%s> row %d"),
 			  tmp.name, row);
-
 	G_percent(row, nrows, 2);
     }
 
