@@ -219,6 +219,16 @@ int PS3_map(void)
 	set_vector(UNMASKED, POINTS);
 	set_vector(UNMASKED, LABELS);
     }
+    /* CLIPED CUSTOM DRAWS ONTO ALL MAP ITEMS */
+    if (PS.n_draws > 0)
+    {
+        /* fprintf(PS.fp, "0 0 0 C "); /* default color */
+        for (i = 0; i < PS.n_draws; i++)
+        {
+            if (PS.draw.flag[i] == 3)
+                set_draw(PS.draw.key[i], PS.draw.data[i]);
+        }
+    }
     /* no more work in the map area */
 
     /********************************/

@@ -29,8 +29,12 @@ int read_draw(char *name)
 
     if (strcmp(name, "free") == 0)
 	type = 1;
+    else
     if (strcmp(name, "paper") == 0)
-	type = 2;
+        type = 2;
+    else
+    if (strcmp(name, "legend") == 0)
+        type = 3;
 
     /* process options */
     while (input(2, buf))
