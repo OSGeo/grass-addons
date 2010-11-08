@@ -139,7 +139,7 @@ void filter_holes(Gfile * out)
     if ((tmp.fd = G_open_raster_new(tmp.name, CELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
 
-    G_message(_("Filling small holes in clouds ..."));
+    G_important_message(_("Filling small holes in clouds..."));
 
     /* Se puede acelerar creandolos nulos y luego arast = brast
        brast = crast y cargando crast solamente
@@ -148,6 +148,8 @@ void filter_holes(Gfile * out)
 
     for (row = 0; row < nrows; row++) {
 	/* Read row values */
+	G_percent(row, nrows, 2);
+	
 	if (row != 0) {
 	    if (G_get_c_raster_row(out->fd, arast, row - 1) < 0)
 		G_fatal_error(_("Unable to read raster map <%s> row %d"),
@@ -288,9 +290,9 @@ void filter_holes(Gfile * out)
 	if (G_put_raster_row(tmp.fd, tmp.rast, CELL_TYPE) < 0)
 	    G_fatal_error(_("Failed writing raster map <%s> row %d"),
 			  tmp.name, row);
-	G_percent(row, nrows, 2);
     }
-
+    G_percent(1, 1, 1);
+    
     G_free(arast);
     G_free(brast);
     G_free(crast);

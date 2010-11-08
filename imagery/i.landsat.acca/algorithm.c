@@ -227,7 +227,7 @@ void acca_first(Gfile *out, Gfile band[],
 
     out->rast = G_allocate_raster_buf(CELL_TYPE);
     /* ----- ----- */
-    G_message(_("Processing first pass..."));
+    G_important_message(_("Processing first pass..."));
 
     stats[SUM_COLD] = 0.;
     stats[SUM_WARM] = 0.;
