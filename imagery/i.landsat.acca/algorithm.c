@@ -222,9 +222,6 @@ void acca_first(Gfile *out, Gfile band[],
     double pixel[5], nsdi, rat56;
 
     /* Creation of output file */
-    mapset = G_find_cell2(out->name, "");
-    if (mapset == NULL)
-	G_fatal_error(_("Raster map <%s> not found"), out->name);
     if ((out->fd = G_open_raster_new(out->name, CELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), out->name);
 
