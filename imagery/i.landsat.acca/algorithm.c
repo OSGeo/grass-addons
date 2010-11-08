@@ -389,9 +389,9 @@ void acca_second(Gfile * out, Gfile band,
 	G_fatal_error(_("Unable to create raster map <%s>"), tmp.name);
 
     if (upper == 0.)
-	G_message(_("Removing ambiguous pixels..."));
+	G_important_message(_("Removing ambiguous pixels..."));
     else
-	G_message(_("Pass two processing..."));
+	G_important_message(_("Pass two processing..."));
 
     nrows = G_window_rows();
     ncols = G_window_cols();
