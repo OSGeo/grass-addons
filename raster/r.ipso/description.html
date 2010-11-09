@@ -1,51 +1,52 @@
-<h2>DESCRIPTION</h2>
-
-
-<em><b>r.ipso</b></em> outputs the Ipsometric and Ipsographic curve from elevation dataset and print out percentiles.
-
-
-
-<h2>NOTES</h2>
-
-This curve gives the distribution of surfaces in different altitude ranges. Each
-ipsografica point on the curve has a value of quota as ordered and as the abscissa
-proportion of the surface of the basin placed above the share in question. Having to
-provide a DEM, the curve that is obtained simply as a vector, ordered
-decreasing effect of allowances of pixels. Representing the carrier on a diagram
-Descartes, no ordinal is proportional to the area above the quota and is given
-the abscissa.
-The curve is represented by the shares corresponding to percentages of area dominated
-(2.5%, 5%, 10%, 25%, 50%, 75%, 90%, 95%, 97.5%).
-The ipsometric graph is the same as ipsographic graph but using adimensional axes.
-
-<h2>EXAMPLE</h2>
-
-Generate iposographic graph
-
-<div class="code"><pre>
-r.ipso.py -b map=elevation.10m image=path/to/output/prefix
-</pre></div>
-<p>
-
-Generate iposmetric graph
-
-<div class="code"><pre>
-r.ipso.py -a map=elevation.10m image=path/to/output/prefix
-</pre></div>
-
-
-
-<h2>REFERENCES</h2>
- 
-Fractal River Basins - Chance and self organization ( Igatio Rodriguez-Iturbe & Andrea Rinaldo ).
-
-<h2>SEE ALSO</h2>
-
-<em><A HREF="r.wf.html">r.wf.py</A></em>
-
-<h2>AUTHOR</h2>
-
-Massimo Di Stefano, Francesco Di Stefano , Margherita Di Leo <br>
-
-
-<p><i>Last changed: $Date: 2010-02-07 00:45:10 +0200 (Mon, 7 Feb 2010) $</i>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="madi ">
+	<META NAME="CHANGED" CONTENT="20101109;12391300">
+	<STYLE TYPE="text/css">
+	<!--
+		PRE.cjk { font-family: "DejaVu Sans", monospace }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H2>DESCRIPTION</H2>
+<P><EM><B>r.ipso</B></EM> produces the Ipsometric and Ipsographic
+curve related to a digital elevation model and prints the
+percentiles. 
+</P>
+<H2>NOTES</H2>
+<P>This curve gives the distribution of surfaces in different
+altitude ranges. Each point on the curve has on the y-axis the
+elevation and on the x-axis the portion of the basin surface placed
+above such elevation value.  The ipsometric curve uses adimensional
+axes. 
+</P>
+<H2 STYLE="page-break-after: avoid">Flags:</H2>
+<P>-a  : generates ipsometric curve</P>
+<P>-b :  generates iposographic curve</P>
+<H2>EXAMPLE</H2>
+<P>To generate iposographic curve 
+</P>
+<PRE CLASS="western" STYLE="margin-bottom: 0.2in">r.ipso.py -b map=elevation.10m image=path/to/output/prefix</PRE><P>
+To generate ipsometric curve 
+</P>
+<PRE CLASS="western" STYLE="margin-bottom: 0.2in">r.ipso.py -a map=elevation.10m image=path/to/output/prefix</PRE><H2>
+REFERENCES</H2>
+<P>Fractal River Basins - Chance and self organization
+(Rodriguez-Iturbe &amp; Rinaldo ). 
+</P>
+<H2>SEE ALSO</H2>
+<P><EM><A HREF="r.wf.html">r.wf.py</A></EM> 
+</P>
+<H2>AUTHORS</H2>
+<P>Massimo Di Stefano, Francesco Di Stefano , Margherita Di Leo 
+</P>
+<P><I>Last changed:  (Tue, Nov 9, 2010) </I>
+</P>
+</BODY>
+</HTML>
