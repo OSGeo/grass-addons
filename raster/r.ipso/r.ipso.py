@@ -15,7 +15,7 @@
 #               for details.
 #
 # REQUIRES:     Matplotlib
-#                 http://matplotlib.sourceforge.net/
+#               http://matplotlib.sourceforge.net/
 #               
 #
 ################################################################################
@@ -67,7 +67,7 @@ def main():
         if i == 0:
             zn[i,0], zn[i, 1] = map(float, stats[i].split(' '))
             zn[i,2] = zn[i,1]
-        if i != 0:
+        else:
             zn[i,0], zn[i, 1] = map(float, stats[i].split(' '))
             zn[i,2] = zn[i,1] + zn[i-1,2]
 
