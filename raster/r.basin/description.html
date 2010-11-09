@@ -1,185 +1,144 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="madi ">
-	<META NAME="CHANGED" CONTENT="20101109;17351700">
-	<META NAME="CHANGEDBY" CONTENT="madi ">
-	<META NAME="CHANGEDBY" CONTENT="madi ">
-	<META NAME="CHANGEDBY" CONTENT="Margherita">
-	<META NAME="CHANGEDBY" CONTENT="Margherita">
-	<STYLE TYPE="text/css">
-	<!--
-		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
-		H2.cjk { font-family: "HG Mincho Light J"; font-size: 14pt; font-style: italic }
-		H2.ctl { font-family: "Arial Unicode MS"; font-size: 14pt; font-style: italic }
-		H4.western { font-family: "Albany", sans-serif; font-size: 11pt; font-style: italic }
-		H4.cjk { font-family: "HG Mincho Light J"; font-size: 11pt; font-style: italic }
-		H4.ctl { font-family: "Arial Unicode MS"; font-size: 11pt; font-style: italic }
-	-->
-	</STYLE>
+<TITLE>r.basin</TITLE>
+<STYLE TYPE="text/css">
+<!--
+h2 {
+    font-size: 14pt;
+}
+
+h4 {
+    font-size: 11pt;
+}
+
+.header {
+    font-family: "Albany", sans-serif;
+    font-style: italic;
+    color: #00ae00;
+}
+
+.subheader {
+    font-family: "Albany", sans-serif;
+    font-style: italic;
+}
+-->
+</STYLE>
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<P STYLE="border-top: none; border-bottom: 2.50pt solid #808080; border-left: none; border-right: none; padding-top: 0in; padding-bottom: 0.02in; padding-left: 0in; padding-right: 0in">
-<BR><BR>
+<BODY>
+<H2 CLASS="header">DESCRIPTION</H2>
+<P>
+The tool gives the main morphometric parameters of the basin
+starting from the digital terrain model and the coordinates of
+the basin closing section.
 </P>
-<H2 CLASS="western"><FONT COLOR="#00ae00">DESCRIPTION</FONT></H2>
-<P><EM><SPAN STYLE="font-style: normal">The tool</SPAN></EM><EM>
-</EM><EM><SPAN STYLE="font-style: normal">gives the main morphometric
-parameters of the basin starting from the digital terrain model and
-the coordinates of the basin closing section. </SPAN></EM>
-</P>
-<H2 CLASS="western" STYLE="page-break-after: avoid"><FONT COLOR="#00ae00"><FONT FACE="Albany, sans-serif">KEYWORDS</FONT></FONT></H2>
-<P><EM><SPAN STYLE="font-style: normal">Raster</SPAN></EM></P>
-<H2 CLASS="western" STYLE="page-break-after: avoid"><FONT COLOR="#00ae00"><FONT FACE="Albany, sans-serif">USAGE</FONT></FONT></H2>
+<H2 CLASS="header">KEYWORDS</H2>
+<P>Raster</P>
+<H2 CLASS="header">USAGE</H2>
+<BLOCKQUOTE>
+<EM>r.basin.py [-ac] map=name prefix=output prefix easting=easting northing=northing [threshold=threshold]</EM>
+</BLOCKQUOTE>
+<H4 CLASS="subheader">Flags</H4>
 <DL>
-	<DD><EM>r.basin.py [-ac] map=name prefix=output prefix
-	easting=easting northing=northing [threshold=threshold] </EM>
-	</DD><DD>
-	<BR>
-	</DD><DD STYLE="margin-left: 0in">
-	<EM><SPAN STYLE="font-style: normal">Flags: </SPAN></EM>
-	</DD><DD>
-	<EM><SPAN STYLE="font-style: normal">-a Use default Threshold
-	(1km^2) </SPAN></EM>
-	</DD><DD>
-	<EM><SPAN STYLE="font-style: normal">-c No maps output </SPAN></EM>
-	</DD><DD>
-	<BR>
-	</DD><DD STYLE="margin-left: 0in">
-	<EM><SPAN STYLE="font-style: normal">Parameters: </SPAN></EM>
-	</DD><DD>
-	<EM><SPAN STYLE="font-style: normal">map Name of elevation raster
-	map </SPAN></EM>
-	</DD><DD>
-	<EM><SPAN STYLE="font-style: normal">prefix output prefix (must
-	start with a letter) </SPAN></EM>
-	</DD><DD>
-	<EM><SPAN STYLE="font-style: normal">easting east coordinate of the
-	closing section (must belong to river network) </SPAN></EM>
-	</DD><DD>
-	<EM><SPAN STYLE="font-style: normal">northing north coordinate of
-	the closing section (must belong to river network) </SPAN></EM>
-	</DD><DD STYLE="margin-bottom: 0.2in">
-	<EM><SPAN STYLE="font-style: normal">threshold threshold
-	(r.watershed threshold)</SPAN></EM></DD></DL>
-<H2 CLASS="western" STYLE="page-break-after: avoid">
-<FONT COLOR="#00ae00"><FONT FACE="Albany, sans-serif">OUTPUT</FONT></FONT></H2>
-<P><B><SPAN STYLE="background: #ffffff">Morphometric parameters of
-basin : </SPAN></B>
-</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The main parameters are:</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The coordinates of the
-vertices of the rectangle containing the basin.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in"><A NAME="result_box3"></A>
-The center of gravity of the basin: the coordinates of the pixel
-nearest to the center of gravity of the geometric figure resulting
-from the projection of the basin on the horizontal plane.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in"><A NAME="result_box2"></A>
-The area of the basin: is the area of a single cell multiplied by the
-number of cells belonging to the basin.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The perimeter: is the
-length of the contour of the figure resulting by the projection of
-the basin on the horizontal plane.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">Characteristic values of
-elevation: the highest and the lowest altitude, the difference
-between them and the mean elevation calculated as the sum of the
-values of the cells divided by the number of the cells.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The mean slope,
-calculated averaging the slope map.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The length of the
-directing vector: the length of the vector linking the outlet to the
-center of gravity of the basin.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The prevalent
-orientation: in Grass GIS the aspect categories represent the number
-degrees of east and they increase counterclockwise: (90deg is North,
+    <DT>-a</DT><DD>Use default threshold (1km<sup>2</sup>)</DD>
+	<DT>-c</DT><DD>No maps output</DD>
+</DL>
+<H4 CLASS="subheader">Parameters</H4>
+<DL>
+    <DT>map</DT>
+    <DD>Name of elevation raster map</DD>
+    <DT>prefix</DT>
+    <DD>output prefix (must start with a letter)</DD>
+    <DT>easting</DT>
+    <DD>east coordinate of the closing section (must belong to river network)</DD>
+    <DT>northing</DT>
+    <DD>north coordinate of the closing section (must belong to river network)</DD>
+    <DT>threshold</DT>
+    <DD>threshold (<EM>r.watershed</EM> threshold)</DD>
+</DL>
+<H2 CLASS="header">OUTPUT</H2>
+<H4 CLASS="subheader">Morphometric parameters of basin</H4>
+<P>The main parameters are:</P>
+<UL>
+<LI>The coordinates of the vertices of the rectangle containing the basin.</LI>
+<LI>The center of gravity of the basin: the coordinates of the pixel nearest
+to the center of gravity of the geometric figure resulting from the projection
+of the basin on the horizontal plane.</LI>
+<LI>The area of the basin: is the area of a single cell multiplied by the
+number of cells belonging to the basin.</LI>
+<LI>The perimeter: is the length of the contour of the figure resulting by the
+projection of the basin on the horizontal plane.</LI>
+<LI>Characteristic values of elevation: the highest and the lowest altitude,
+the difference between them and the mean elevation calculated as the sum of
+the values of the cells divided by the number of the cells.</LI>
+<LI>The mean slope, calculated averaging the slope map.</LI>
+<LI>The length of the directing vector: the length of the vector linking the
+outlet to the center of gravity of the basin.</LI>
+<LI>The prevalent orientation: in Grass GIS the aspect categories represent
+the number degrees of east and they increase counterclockwise: (90deg is North,
 180 is West, 270 is South 360 is East). The aspect value 0 is used to
 indicate undefined aspect in flat areas with slope=0. We instead
 calculate the orientation as the number of degree from north,
-increasing counterclockwise.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in"><A NAME="result_box4"></A>
-The length of main channel: is the length of the longest succession
-of segments that connect a source to the outlet of the basin.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The mean slope of main
-channel: it is calculated as follows</P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0in"><IMG SRC="description_html_13154be6.gif" NAME="Object8" ALIGN=ABSMIDDLE HSPACE=10 WIDTH=195 HEIGHT=53 BORDER=0></P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">where N is the
-topological diameter, i.e. the number of links in which the main
-channel can be divided on the basis of the junctions.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The circularity ratio: is
-the ratio between the area of the basin and the area of the circle
-having the same perimeter of the basin.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The elongation ratio: is
-the ratio between the diameter of the circle having the same area of
-the basin and the length of the main channel.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The compactness
-coefficient: is the ratio between the perimeter of the basin and the
-diameter of the circle having the same area of the basin.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The shape factor: is the
-ratio between the area of the basin and the square of the length of
-the main channel.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The concentration time
-(Giandotti, 1934):</P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0in"><IMG SRC="description_html_m4b98ba49.gif" NAME="Object9" ALIGN=ABSMIDDLE HSPACE=10 WIDTH=172 HEIGHT=54 BORDER=0></P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">Where A is the area, L
-the length of the main channel and H the difference between the
-highest and the lowest elevation of the basin.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The mean hillslope
-length: is the mean of the distances calculated along the flow
-direction of each point non belonging to the river network from the
-point in which flows into the network.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The magnitudo: is the
-number of the branches of order 1 following the Strahler hierarchy.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The max order: is the
-order of the basin, following the Strahler hierarchy.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The number of streams: is
-the number of the branches of the river network.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The total stream length:
-is the sum of the length of every branches.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The first order stream
-frequency: is the ratio between the magnitudo and the area of the
-basin.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The drainage density: is
-the ratio between the total length of the river network and the area.</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in">The Horton ratios
-(Horton, 1945; Strahler, 1957).</P>
-<P ALIGN=JUSTIFY STYLE="margin-bottom: 0in"><BR>
-</P>
-<H4 CLASS="western" STYLE="page-break-after: avoid"><FONT FACE="Albany, sans-serif"><SPAN STYLE="background: #ffffff">Plots</SPAN></FONT></H4>
-<P><SPAN STYLE="background: #ffffff">The distance-area function, also
-known as Width Function: in x axis is the length and in y axis is the
-area. The hypsographic curve provides the distribution of the areas
-at different altitudes. Each point on the hypsographic curve has on
-the y-axis the altitude and on the x-axis the percentage of basin
-surface placed above that altitude. The ipsometric curve has the same
-shape but is dimensionless.</SPAN></P>
-<H4 CLASS="western"><FONT FACE="Albany, sans-serif">Dependencies </FONT>
-</H4>
-<DL>
-	<DD STYLE="margin-left: 0in; margin-bottom: 0.2in; font-style: normal; font-weight: normal">
-	Matplotlib</DD><DD STYLE="margin-left: 0in; margin-bottom: 0.2in; font-style: normal; font-weight: normal">
-	r.stream.basin, r.stream.extract, r.stream.stats, r.stream.distance,
-	r.stream.order, r.wf.py, r.ipso.py</DD></DL>
-<H2 CLASS="western" STYLE="page-break-after: avoid">
-<FONT COLOR="#00ae00"><FONT FACE="Albany, sans-serif">SEE ALSO</FONT></FONT></H2>
-<DL>
-	<DD STYLE="margin-left: 0in; margin-bottom: 0.2in"><EM><FONT COLOR="#000080"><SPAN STYLE="font-style: normal"><U><SPAN STYLE="font-weight: normal">r.stream.basin,
-	r.stream.extract, r.stream.stats, r.stream.distance, r.stream.order,
-	r.wf.py, r.ipso.py</SPAN></U></SPAN></FONT></EM></DD></DL>
-<H2 CLASS="western">
-<FONT COLOR="#00ae00">REFERENCES</FONT></H2>
-<P>Rodriguez-Iturbe I., Rinaldo A., Fractal River Basins, Chance and
-Self – Organization. Cambridge Press (2001)</P>
-<P>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A.
-Caratterizzazione morfometrica del bacino idrografico in GRASS GIS
-(Morphometric characterization of the catchment in GRASS GIS
-environment), Geomatics Workbooks n.9, 2010</P>
-<H2 CLASS="western"><FONT COLOR="#00ae00">AUTHORS</FONT></H2>
+increasing counterclockwise.</LI>
+<LI>The length of main channel: is the length of the longest succession
+of segments that connect a source to the outlet of the basin.</LI>
+<LI>The mean slope of main channel: it is calculated as follows<BR>
+<P ALIGN=CENTER><IMG SRC="description_html_13154be6.gif" WIDTH=195 HEIGHT=53 BORDER=0></P>
+where N is the topological diameter, i.e. the number of links in which the main
+channel can be divided on the basis of the junctions.</LI>
+<LI>The circularity ratio: is the ratio between the area of the basin and the
+area of the circle having the same perimeter of the basin.</LI>
+<LI>The elongation ratio: is the ratio between the diameter of the circle having
+the same area of the basin and the length of the main channel.</LI>
+<LI>The compactness coefficient: is the ratio between the perimeter of the basin
+and the diameter of the circle having the same area of the basin.</LI>
+<LI>The shape factor: is the ratio between the area of the basin and the square
+of the length of the main channel.</LI>
+<LI>The concentration time (Giandotti, 1934):<BR>
+<P ALIGN=CENTER><IMG SRC="description_html_m4b98ba49.gif" WIDTH=172 HEIGHT=54 BORDER=0></P>
+Where A is the area, L the length of the main channel and H the difference between
+the highest and the lowest elevation of the basin.</LI>
+<LI>The mean hillslope length: is the mean of the distances calculated along
+the flow direction of each point non belonging to the river network from the
+point in which flows into the network.</LI>
+<LI>The magnitudo: is the number of the branches of order 1 following the
+Strahler hierarchy.</LI>
+<LI>The max order: is the order of the basin, following the Strahler hierarchy.</LI>
+<LI>The number of streams: is the number of the branches of the river network.</LI>
+<LI>The total stream length: is the sum of the length of every branches.</LI>
+<LI>The first order stream frequency: is the ratio between the magnitudo and the
+area of the basin.</LI>
+<LI>The drainage density: is the ratio between the total length of the river
+network and the area.</LI>
+<LI>The Horton ratios (Horton, 1945; Strahler, 1957).</LI>
+</UL>
+<H4 CLASS="subheader">Plots</H4>
+<P>The distance-area function, also known as Width Function: in x axis
+is the length and in y axis is the area. The hypsographic curve provides
+the distribution of the areas at different altitudes. Each point on the
+hypsographic curve has on the y-axis the altitude and on the x-axis the
+percentage of basin surface placed above that altitude. The ipsometric
+curve has the same shape but is dimensionless.</P>
+<H4 CLASS="subheader">Dependencies</H4>
+<UL>
+<LI>Matplotlib</LI>
+<LI>r.stream.basin</LI>
+<LI>r.stream.extract</LI>
+<LI>r.stream.stats</LI>
+<LI>r.stream.distance</LI>
+<LI>r.stream.order</LI>
+<LI>r.wf.py</LI>
+<LI>r.ipso.py</LI>
+</UL>
+<H2 CLASS="header">SEE ALSO</H2>
+<P>r.stream.basin, r.stream.extract, r.stream.stats, r.stream.distance, r.stream.order, r.wf.py, r.ipso.py</P>
+<H2 CLASS="header">REFERENCES</H2>
+<P>Rodriguez-Iturbe I., Rinaldo A. &mdash; Fractal River Basins, Chance and Self-Organization. Cambridge Press (2001)</P>
+<P>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A. &mdash; Caratterizzazione morfometrica del bacino idrografico in GRASS GIS
+(Morphometric characterization of the catchment in GRASS GIS environment), Geomatics Workbooks n. 9 (2010)</P>
+<H2 CLASS="header">AUTHORS</H2>
 <P>Margherita Di Leo, Massimo Di Stefano, Francesco Di Stefano</P>
-<P><I>Last changed: (Tue, Nov 9, 2010) </I>
-</P>
+<P><I>Last changed: (Tue, Nov 9, 2010)</I></P>
 </BODY>
 </HTML>
+
