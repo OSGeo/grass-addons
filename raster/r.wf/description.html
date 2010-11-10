@@ -1,70 +1,34 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Unix)">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Margherita">
-	<META NAME="CHANGED" CONTENT="20100516;20582200">
-	<META NAME="CHANGEDBY" CONTENT="Margherita">
-	<STYLE TYPE="text/css">
-	<!--
-		@page { size: 8.5in 11in }
-		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
-		H2.cjk { font-family: "HG Mincho Light J"; font-size: 14pt; font-style: italic }
-		H2.ctl { font-family: "Arial Unicode MS"; font-size: 14pt; font-style: italic }
-		H4.western { font-family: "Albany", sans-serif; font-size: 11pt; font-style: italic }
-		H4.cjk { font-family: "HG Mincho Light J"; font-size: 11pt; font-style: italic }
-		H4.ctl { font-family: "Arial Unicode MS"; font-size: 11pt; font-style: italic }
-	-->
-	</STYLE>
-</HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H2 CLASS="western"></H2>
-<HR SIZE=5 NOSHADE>
-<H2 CLASS="western"><FONT COLOR="#00ae00">DESCRIPTION</FONT></H2>
-<P><EM><SPAN STYLE="font-style: normal">The module produces the Width
-Function of a basin. The Width Function W(x) gives the number of the
-cells in a basin at a flow distance x from the outlet (it is also
-referred as distance-area function). It is important to underline
-the fact that the distance is not the euclidean one, but it is
-measured along the flowpath towards the outlet.</SPAN></EM></P>
-<H2 CLASS="western" STYLE="page-break-after: avoid"><FONT COLOR="#00ae00"><FONT FACE="Albany, sans-serif">KEYWORDS</FONT></FONT></H2>
-<P><EM><SPAN STYLE="font-style: normal">Raster</SPAN></EM></P>
-<H2 CLASS="western" STYLE="page-break-after: avoid"><FONT COLOR="#00ae00"><FONT FACE="Albany, sans-serif">INPUT</FONT></FONT></H2>
-<DL>
-	<DT><EM>Distance to outlet map</EM> 
-	</DT><DD STYLE="margin-bottom: 0.2in">
-	Input map, required: This map is obtained by r.stream.distance (with
-	the option: distance to outlet, flag -o) 
-	</DD><DT>
-	<EM>output plot</EM> 
-	</DT><DD STYLE="margin-bottom: 0.2in">
-	Path and name of the plot</DD></DL>
-<H2 CLASS="western" STYLE="page-break-after: avoid">
-<FONT COLOR="#00ae00"><FONT FACE="Albany, sans-serif">OUTPUT</FONT></FONT></H2>
-<H4 CLASS="western">Parameters 
-</H4>
-<P><SPAN STYLE="background: #ffffff">It provides the quantiles of the
-distance distribution</SPAN></P>
-<H4 CLASS="western" STYLE="page-break-after: avoid"><FONT FACE="Albany, sans-serif"><SPAN STYLE="background: #ffffff">Plots</SPAN></FONT></H4>
-<P><SPAN STYLE="background: #ffffff">Width Function. In x axis is the
-length and in y axis is the area.</SPAN></P>
-<H4 CLASS="western"><FONT FACE="Albany, sans-serif">Dependencies </FONT>
-</H4>
-<DL>
-	<DD STYLE="margin-left: 0in; margin-bottom: 0.2in; font-style: normal; font-weight: medium">
-	matplotlib</DD></DL>
-<H2 CLASS="western" STYLE="page-break-after: avoid">
-<FONT COLOR="#00ae00"><FONT FACE="Albany, sans-serif">SEE ALSO</FONT></FONT></H2>
-<P><EM><FONT COLOR="#000080"><U><SPAN STYLE="font-weight: medium">r.stream.distance</SPAN></U></FONT></EM></P>
-<H2 CLASS="western"><FONT COLOR="#00ae00">REFERENCES</FONT></H2>
-<P>Rodriguez-Iturbe I., Rinaldo A., Fractal River Basins, Chance and
-Self – Organization. Cambridge Press (2001)</P>
-<H2 CLASS="western"><FONT COLOR="#00ae00">AUTHORS</FONT></H2>
-<P>Margherita Di Leo, Massimo Di Stefano, Francesco Di Stefano</P>
-<P><I>Last changed: $Date: 2010-05-16 20:55:06 +0100 (Sun, 16 May
-2010) $</I></P>
-</BODY>
-</HTML>
+<h2>DESCRIPTION</h2>
+<em>r.wf</em> produces the Width Function of a basin. The Width Function W(x) gives the number of the cells in a basin at a flow distance x from the outlet (it is also referred as distance-area function). It is important to underline the fact that the distance is not the euclidean one, but it is measured along the flowpath towards the outlet.
+
+<h3>Input</h3>
+
+<dt><em>Distance to outlet map: </em>Input map, required. It is obtained by r.stream.distance (with
+	the option: distance to outlet, flag -o) </dt>
+	
+<dt><em>Output plot: </em> Path and name of the plot</dt>
+
+<h3>Output</h3>
+<p>It provides the quantiles of the area - distance distribution and the plot of the Width Function. In x axis is reported the distance and in y axis is the area.
+
+<h3>Dependencies</h3>
+<ul>
+<li>Matplotlib</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.stream.distance.html">r.stream.distance</a>,
+<a href="r.basin.html">r.basin</a>,
+</em>
+
+<h2>REFERENCES</h2>
+<p><em>Rodriguez-Iturbe I., Rinaldo A. &mdash; Fractal River Basins, Chance and Self-Organization. Cambridge Press (2001)</em>
+<p><em>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A. &mdash; Caratterizzazione morfometrica del bacino idrografico in GRASS GIS
+(Morphometric characterization of the catchment in GRASS GIS environment), <a href="http://geomatica.como.polimi.it/workbooks/">Geomatics Workbooks</a>, n. 9 (2010)</em>
+</a>
+<h2>AUTHORS</h2>
+<p>Margherita Di Leo (dileomargherita AT gmail DOT com), Massimo Di Stefano, Francesco Di Stefano
+<p><i>Last changed: (Tue, Nov 10, 2010)</i>
+
