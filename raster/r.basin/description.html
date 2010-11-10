@@ -1,42 +1,8 @@
-
-<title>GRASS GIS manual: r.basin</title>
-
-<h2>NAME</h2>
-<em><b>r.basin</b></em> - Generates the main morphometric parameters of the basin
+<h2>DESCRIPTION</h2>
+<em>r.basin</em> generates the main morphometric parameters of the basin
 starting from the digital elevation model and the coordinates of
 the basin's closing section.
 
-<h2>KEYWORDS</h2>
-<p>Raster, hydrology
-
-<h2>SYNOPSIS</h2>
-<b>r.basin.py</b><br>
-<b>r.basin.py help</b><br>
-<b>r.basin.py [-ac] map=name prefix=output prefix easting=easting northing=northing [threshold=threshold] </b>
-
-<h3>Flags</h3>
-<dl>
-<dt><b>-a</b></dt>
-<dd>Use default threshold (1km<sup>2</sup>)</dd>
-<dt><b>-c</b></dt>
-<dd>No maps output</dd>
-</dl>
-
-<h3>Parameters</h3>
-<dl>
-<dt><b>map</b>=<em>name</em></dt>
-<dd>Name of elevation raster map</dd>
-<dt><b>prefix</b>=<em>name</em></dt>
-<dd>output prefix (must start with a letter)</dd>
-<dt><b>easting</b>=<em>easting</em></dt>
-<dd>east coordinate of the closing section (must belong to river network)</dd>
-<dt><b>northing</b>=<em>northing</em></dt>
-<dd>north coordinate of the closing section (must belong to river network)</dd>
-<dt><b>threshold</b>=<em>integer</em></dt>
-<dd>threshold (<em>r.watershed</em> threshold)</dd>
-</dl>
-
-<h2>OUTPUT</h2>
 <h3>Morphometric parameters of basin</h3>
 <p>The main parameters are:
 <ul>
@@ -63,7 +29,7 @@ increasing counterclockwise.</li>
 <li>The length of main channel: is the length of the longest succession
 of segments that connect a source to the outlet of the basin.</li>
 <li>The mean slope of main channel: it is calculated as follows<br>
-<p ALIGN=CENTER><IMG SRC="description_html_13154be6.gif" WIDTH=195 HEIGHT=53 BORDER=0></p>
+<p ALIGN=CENTER><IMG SRC="r.basin1.gif" BORDER=0 ALT="mean slope"></p>
 where N is the topological diameter, i.e. the number of links in which the main
 channel can be divided on the basis of the junctions.</li>
 <li>The circularity ratio: is the ratio between the area of the basin and the
@@ -75,7 +41,7 @@ and the diameter of the circle having the same area of the basin.</li>
 <li>The shape factor: is the ratio between the area of the basin and the square
 of the length of the main channel.</li>
 <li>The concentration time (Giandotti, 1934):<br>
-<p ALIGN=CENTER><IMG SRC="description_html_m4b98ba49.gif" WIDTH=172 HEIGHT=54 BORDER=0></p>
+<p ALIGN=CENTER><IMG SRC="r.basin1.gif" BORDER=0 ALT="concentration time"></p>
 Where A is the area, L the length of the main channel and H the difference between
 the highest and the lowest elevation of the basin.</li>
 <li>The mean hillslope length: is the mean of the distances calculated along
@@ -101,8 +67,7 @@ is the length and in y axis is the area.</li>
 the distribution of the areas at different altitudes. Each point on the
 hypsographic curve has on the y-axis the altitude and on the x-axis the
 percentage of basin surface placed above that altitude.</li> 
-<li>The ipsometric
-curve has the same shape but is dimensionless.</li> 
+<li>The ipsometric curve has the same shape but is dimensionless.</li> 
 </ul>
 
 <h3>Dependencies</h3>
@@ -118,13 +83,24 @@ curve has the same shape but is dimensionless.</li>
 </ul>
 
 <h2>SEE ALSO</h2>
-<p>r.stream.basin, r.stream.extract, r.stream.stats, r.stream.distance, r.stream.order, r.wf.py, r.ipso.py, r.watershed
+
+<em>
+<a href="r.stream.basin.html">r.stream.basin</a>,
+<a href="r.stream.distance.html">r.stream.distance</a>,
+<a href="r.stream.extract.html">r.stream.extract</a>,
+<a href="r.stream.order.html">r.stream.order</a>,
+<a href="r.stream.stats.html">r.stream.stats</a>,
+<a href="r.wf.py.html">r.wf.py</a>,
+<a href="r.ipso.py.html">r.ipso.py</a>,
+<a href="r.watershed.html">r.watershed</a>
+</em>
+
 
 <h2>REFERENCES</h2>
 <p><em>Rodriguez-Iturbe I., Rinaldo A. &mdash; Fractal River Basins, Chance and Self-Organization. Cambridge Press (2001)</em>
 <p><em>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A. &mdash; Caratterizzazione morfometrica del bacino idrografico in GRASS GIS
-(Morphometric characterization of the catchment in GRASS GIS environment), Geomatics Workbooks n. 9 (2010)</em>
-
+(Morphometric characterization of the catchment in GRASS GIS environment), <a href="http://geomatica.como.polimi.it/workbooks/">Geomatics Workbooks</a>, n. 9 (2010)</em>
+</a>
 <h2>AUTHORS</h2>
 <p>Margherita Di Leo (dileomargherita AT gmail DOT com), Massimo Di Stefano
 <p><i>Last changed: (Tue, Nov 10, 2010)</i>
