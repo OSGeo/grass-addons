@@ -1,52 +1,40 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="madi ">
-	<META NAME="CHANGED" CONTENT="20101109;12391300">
-	<STYLE TYPE="text/css">
-	<!--
-		PRE.cjk { font-family: "DejaVu Sans", monospace }
-	-->
-	</STYLE>
-</HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H2>DESCRIPTION</H2>
-<P><EM><B>r.ipso</B></EM> produces the Ipsometric and Ipsographic
-curve related to a digital elevation model and prints the
-percentiles. 
-</P>
-<H2>NOTES</H2>
-<P>This curve gives the distribution of surfaces in different
-altitude ranges. Each point on the curve has on the y-axis the
-elevation and on the x-axis the portion of the basin surface placed
-above such elevation value.  The ipsometric curve uses adimensional
+<h2>DESCRIPTION</h2>
+<em>r.ipso</em> produces the Ipsometric and Ipsographic curve related to a digital elevation model and prints the percentiles. 
+
+<h2>NOTES</h2>
+<p>The <em>ipsographic curve</em> gives the distribution of surfaces in different altitude ranges. Each point on the function reports on the y-axis the elevation and on the x-axis the portion of the basin surface placed above such elevation value. The <em>ipsometric curve</em> uses adimensional
 axes. 
-</P>
-<H2 STYLE="page-break-after: avoid">Flags:</H2>
-<P>-a  : generates ipsometric curve</P>
-<P>-b :  generates iposographic curve</P>
-<H2>EXAMPLE</H2>
-<P>To generate iposographic curve 
-</P>
-<PRE CLASS="western" STYLE="margin-bottom: 0.2in">r.ipso.py -b map=elevation.10m image=path/to/output/prefix</PRE><P>
-To generate ipsometric curve 
-</P>
-<PRE CLASS="western" STYLE="margin-bottom: 0.2in">r.ipso.py -a map=elevation.10m image=path/to/output/prefix</PRE><H2>
-REFERENCES</H2>
-<P>Fractal River Basins - Chance and self organization
-(Rodriguez-Iturbe &amp; Rinaldo ). 
-</P>
-<H2>SEE ALSO</H2>
-<P><EM><A HREF="r.wf.html">r.wf.py</A></EM> 
-</P>
-<H2>AUTHORS</H2>
-<P>Massimo Di Stefano, Francesco Di Stefano , Margherita Di Leo 
-</P>
-<P><I>Last changed:  (Tue, Nov 9, 2010) </I>
-</P>
-</BODY>
-</HTML>
+
+<h2>Flags:</h2>
+<p>-a : generates ipsometric curve
+<p>-b :  generates iposographic curve
+
+<h2>EXAMPLE</h2>
+
+<p>r.ipso.py -b map=elevation.10m image=path/to/output/prefix
+<p>generates ipsographic curve, and
+
+<p>r.ipso.py -a map=elevation.10m image=path/to/output/prefix
+<p>generates ipsometric curve
+
+<h3>Dependencies</h3>
+<ul>
+<li>Matplotlib</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.basin.html">r.basin</a>,
+</em>
+
+<h2>REFERENCES</h2>
+<p><em>Rodriguez-Iturbe I., Rinaldo A. &mdash; Fractal River Basins, Chance and Self-Organization. Cambridge Press (2001)</em>
+<p><em>In Italian: Di Leo M., Di Stefano M., Claps P., Sole A. &mdash; Caratterizzazione morfometrica del bacino idrografico in GRASS GIS
+(Morphometric characterization of the catchment in GRASS GIS environment), <a href="http://geomatica.como.polimi.it/workbooks/">Geomatics Workbooks</a>, n. 9 (2010)</em>
+</a>
+<h2>AUTHORS</h2>
+<p>Margherita Di Leo (dileomargherita AT gmail DOT com), Massimo Di Stefano, Francesco Di Stefano
+<p><i>Last changed: (Tue, Nov 10, 2010)</i>
+
+
