@@ -11,20 +11,20 @@
 #
 
 #%Module
-#%  description: UnPacks a raster map packed with r.pack
+#%  description: Unoacks a raster map packed with r.pack.
 #%End
 #%option
 #% key: input
 #% type: string
-#% gisprompt: old_file,file,input
-#% description: Name of an existing pack file
+#% gisprompt: old,file,input
+#% description: Name of input pack file
 #% required : yes
 #%end
 #%option
 #% key: output
 #% type: string
 #% gisprompt: new,cell,raster
-#% description: Output raster map (default: taken from input file internals)
+#% description: Name for output raster map (default: taken from input file internals)
 #% required : no
 #%end
 #%flag
