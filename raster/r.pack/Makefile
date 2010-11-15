@@ -4,4 +4,4 @@ PGM = r.pack
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
-default: cmd
+default: script
