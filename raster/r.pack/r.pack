@@ -11,13 +11,13 @@
 #
 
 #%Module
-#%  description: Packs up a raster map and support files for copying
+#%  description: Packs up a raster map and support files for copying.
 #%End
 #%option
 #% key: input
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of an existing raster map
+#% description: Name of raster map to pack up
 #% required : yes
 #%end
 #%option
