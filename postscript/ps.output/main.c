@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     draft = G_define_flag();
     draft->key = 'd';
-    draft->description = _("draf: Create a 1x1cm grid on paper to easy place and drawing");
+    draft->description = _("draft: Create a 1x1cm grid on paper to easy place and drawing");
 
     eps = G_define_flag();
     eps->key = 'e';
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
     ghost = G_define_flag();
     ghost->key = 'g';
-    ghost->description = _("ghostscript: Use the extended PostScript of Ghostscript (for transparent colors");
+    ghost->description = _("ghostscript: Use the extended PostScript of Ghostscript (for transparent colors)");
 
     style = G_define_flag();
     style->key = 's';
