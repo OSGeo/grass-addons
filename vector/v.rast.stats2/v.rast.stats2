@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ############################################################################
 #
@@ -347,7 +347,7 @@ for var in $BASECOLS $EXTRACOLS ; do
 done
 
 # create array with new column names
-col="`cat $COLNAMETMP | tr '\n' ' '`"
+col=`cat "$COLNAMETMP" | tr '\n' ' '`
 
 # create SQL file for extended and normal statistics
 g.message -v "Creating SQL file ..."
