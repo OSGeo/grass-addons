@@ -58,11 +58,11 @@ int main(int argc, char *argv[])
 
     draft = G_define_flag();
     draft->key = 'd';
-    draft->description = _("draft: Create a 1x1cm grid on paper to easy place and drawing");
+    draft->description = _("draft: Draw a 1x1 cm grid on paper to help the placement of the elements of the map");
 
     eps = G_define_flag();
     eps->key = 'e';
-    eps->description = _("eps: Create a EPS file to easy include in ps.out (no stand-alone)");
+    eps->description = _("eps: Create output as EPS file for embedding into another ps.out map");
 
     ghost = G_define_flag();
     ghost->key = 'g';
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
     style = G_define_flag();
     style->key = 's';
-    style->description = _("special: Special number style: lower");
+    style->description = _("special: Draw the small digit in the coordinate numbers to lower instead upper position");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
