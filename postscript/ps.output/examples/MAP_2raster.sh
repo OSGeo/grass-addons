@@ -1,6 +1,6 @@
 #!/bin/bash
 
-g.region rast=elevation −a
+g.region rast=elevation -a
 
 ps.output out=MAP_2raster.ps << EOF
 paper A4
@@ -46,7 +46,7 @@ rlegend
  frame
   where 100% 0%
   ref right upper
-  offset 0 −10
+  offset 0 -10
   margin 8
   border 1
   fcolor 220:220:220
@@ -70,4 +70,6 @@ note :file ps_output_2raster
  end
 end
 EOF
+
+ps2pdf14 MAP_2raster.ps MAP_2raster.pdf
 

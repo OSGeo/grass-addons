@@ -2,11 +2,11 @@
 
 RASTER=zipcodes_wake
 
-g.region rast=$RASTER res=60 −a
+g.region rast=$RASTER res=60 -a
 
-g.region n=n+1000 s=s−1000 w=w−1000 e=e+1000
+g.region n=n+1000 s=s-1000 w=w-1000 e=e+1000
 
-ps.out out=MAP_raster.ps << EOF
+ps.output out=MAP_raster.ps << EOF
 paper A4
  landscape n
 end
@@ -51,7 +51,7 @@ end
 
 rlegend
  title .Zip Codes (wake)
-  name Univers−Bold
+  name Univers-Bold
   size 10
   extend 1.5
   color black
@@ -63,7 +63,7 @@ rlegend
  frame
   where 100% 0%
   ref right upper
-  offset 0 −10
+  offset 0 -10
   margin 8
   border 1
   fcolor 220:220:220

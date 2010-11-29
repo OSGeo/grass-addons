@@ -2,7 +2,7 @@
 
 r.mask input=urban_mask_neg
 
-ps.output −d out=MAP_cat.ps << EOF
+ps.output -d out=MAP_cat.ps << EOF
 palette
  pure red yellow 7 color
 end
@@ -64,4 +64,7 @@ raster landclass96
 end
 EOF
 
-r.mask −r input=−
+r.mask -r input=-
+
+ps2pdf14 MAP_cat.ps MAP_cat.pdf
+
