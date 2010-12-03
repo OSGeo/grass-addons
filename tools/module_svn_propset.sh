@@ -153,16 +153,32 @@ apply_pdf()
    unset_exe "$1"
 }
 
+apply_OBJ_code()
+{
+    OBJTMP=$$
+    echo "*.tmp.html" > ignore_$OBJTMP.txt
+    echo "*OBJ*" >> ignore_$OBJTMP.txt
+    svn propset -F ignore_$OBJTMP.txt svn:ignore .
+    rm -f ignore_$OBJTMP.txt
+}
+
 
 ########
 
 
-for FILE in $* ; do
+for FILE in `ls` ; do
   #echo "Processing <$FILE> ..."
 
   if [ ! -e "$FILE" ] ; then
      echo "ERROR: file not found <$FILE>"
      continue
+  fi
+
+  if test -d "$FILE" ; then
+     DIRPREF=`echo "$FILE" | cut -d'.' -f1`
+     if [ "$DIRPREF" = "OBJ" ] ; then
+	apply_OBJ_code "$FILE"
+     fi
   fi
 
   FILE_SUFFIX=`echo "$FILE" | sed -e 's/^.*\.//'`
@@ -213,7 +229,9 @@ for FILE in $* ; do
 	elif [ `file "$FILE" | grep -c "shell script"` -eq 1 ] ; then
 	   apply_shell_script "$FILE"
 	else
-	    echo "WARNING: unknown file type <$FILE>"
+	    if test ! -d "$FILE" ; then
+		echo "WARNING: unknown file type <$FILE>"
+	    fi
 	fi
 	;;
   esac
