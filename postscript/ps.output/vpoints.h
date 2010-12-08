@@ -24,7 +24,7 @@ typedef struct
     PSLINE line;
     PSCOLOR fcolor;
 
-    double size, scale, bias;   /* standard size, scale and bias to draw */
+    double size, scale, bias;	/* standard size, scale and bias to draw */
     char *sizecol;		/* size from database or rule */
 
     double rotate;		/* standard rotate */

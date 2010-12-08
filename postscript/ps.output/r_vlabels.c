@@ -21,8 +21,11 @@
 int read_vlabels(char *name)
 {
     int i;
+
     char buf[1024];
+
     char *key, *data, *mapset;
+
     VLABELS *vector;
 
 
@@ -31,11 +34,9 @@ int read_vlabels(char *name)
     i = vector_new();		/* G_realloc */
 
     /* inline argument */
-    if (strcmp(name, "(none)") != 0)
-    {
-        mapset = G_find_vector(name, "");
-	if (mapset == NULL)
-	{
+    if (strcmp(name, "(none)") != 0) {
+	mapset = G_find_vector(name, "");
+	if (mapset == NULL) {
 	    error("ERROR:", name, "Can't find vector map");
 	}
 	PS.vct[i].name = G_store(name);
@@ -45,8 +46,7 @@ int read_vlabels(char *name)
 	Vect_set_open_level(2);	/* level 2: topology */
 	Vect_set_fatal_error(GV_FATAL_PRINT);
 
-	if (2 > Vect_open_old(&(PS.vct[i].Map), name, mapset))
-	{
+	if (2 > Vect_open_old(&(PS.vct[i].Map), name, mapset)) {
 	    sprintf(buf, "%s in %s", name, mapset);
 	    error("ERROR:", buf, "can't open vector map");
 	    return 0;
@@ -66,84 +66,70 @@ int read_vlabels(char *name)
     vector->style = 0;
 
     /* process options */
-    while (input(2, buf))
-    {
-	if (!key_data(buf, &key, &data))
-	{
+    while (input(2, buf)) {
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
-	if (KEY("font"))
-	{
+	if (KEY("font")) {
 	    read_font(data, &(vector->font));
 	    continue;
 	}
-	if (KEY("labelcol"))
-	{
+	if (KEY("labelcol")) {
 	    G_strip(data);
 	    vector->labelcol = G_store(data);
-	    G_warning("Request label column from database '%s' (vlabel)", vector->labelcol);
+	    G_warning("Request label column from database '%s' (vlabel)",
+		      vector->labelcol);
 	    continue;
 	}
-	if (KEY("decimals"))
-	{
+	if (KEY("decimals")) {
 	    vector->decimals = atoi(data);
 	    continue;
 	}
-        if (KEY("circled"))
-	{
-            scan_dimen(data, &(vector->style));
+	if (KEY("circled")) {
+	    scan_dimen(data, &(vector->style));
 	    continue;
 	}
 	/* common options of all vectors */
-	if (KEY("layer"))
-	{
+	if (KEY("layer")) {
 	    G_strip(data);
 	    PS.vct[i].layer = atoi(data);
 	    if (PS.vct[i].layer < 1)
 		PS.vct[i].layer = 1;
 	    continue;
 	}
-	if (KEY("cats") || KEY("cat"))
-	{
+	if (KEY("cats") || KEY("cat")) {
 	    G_strip(data);
 	    PS.vct[i].cats = G_store(data);
 	    continue;
 	}
-	if (KEY("where"))
-	{
+	if (KEY("where")) {
 	    G_strip(data);
 	    PS.vct[i].where = G_store(data);
 	    continue;
 	}
-	if (KEY("masked"))
-	{
+	if (KEY("masked")) {
 	    PS.vct[i].masked = scan_yesno(key, data);
 	    if (PS.vct[i].masked)
 		PS.need_mask = 1;
 	    continue;
 	}
-	if (KEY("label"))
-	{
+	if (KEY("label")) {
 	    G_strip(data);
 	    PS.vct[i].label = G_store(data);
 	    continue;
 	}
-	if (KEY("legend") || KEY("lpos"))
-	{
+	if (KEY("legend") || KEY("lpos")) {
 	    int k;
 
-	    if (sscanf(data, "%d", &k) == 1)
-	    {
+	    if (sscanf(data, "%d", &k) == 1) {
 		PS.vct[i].lpos = k;
 	    }
-	    else
-	    {
+	    else {
 		read_block(i);
 	    }
 	    continue;
 	}
-	if (KEY("setrule"))
-	{
+	if (KEY("setrule")) {
 	    char catsbuf[128], labelbuf[128];
 
 	    sscanf(data, "%s %[^\n]", catsbuf, labelbuf);
@@ -154,13 +140,12 @@ int read_vlabels(char *name)
     }
 
     /* default label */
-    if (PS.vct[i].label == NULL)
-    {
+    if (PS.vct[i].label == NULL) {
 	sprintf(buf, "%s (%s)", PS.vct[i].name, PS.vct[i].mapset);
 	PS.vct[i].label = G_store(buf);
     }
 
-    PS.vct[i].lpos = -1; /* Not in legends */
+    PS.vct[i].lpos = -1;	/* Not in legends */
 
     return 1;
 }

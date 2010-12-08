@@ -16,20 +16,20 @@
 #include "conversion.h"
 
 int move_local(int x, int y);
+
 int cont_local(int x, int y);
 
 int start_map(void)
 {
     double width, height;
+
     double fact, d_ns, ns, d_ew, ew;
 
     /* default position */
-    if (PS.map_x < 0)
-    {
+    if (PS.map_x < 0) {
 	PS.map_x = PS.page.left + PS.brd.width;
     }
-    if (PS.map_top < 0)
-    {
+    if (PS.map_top < 0) {
 	PS.map_top = PS.page.top + PS.brd.width;
     }
 
@@ -38,40 +38,34 @@ int start_map(void)
     height = PS.page.height - PS.map_top - (PS.page.bot + PS.brd.width);
 
     /* default size */
-    if (PS.map_w < 0 || PS.map_w > width)
-    {
+    if (PS.map_w < 0 || PS.map_w > width) {
 	PS.map_w = width;
     }
-    if (PS.map_h < 0 || PS.map_h > height)
-    {
+    if (PS.map_h < 0 || PS.map_h > height) {
 	PS.map_h = height;
     }
 
     /* distance calculation, throught center of map */
     G_begin_distance_calculations();
 
-    if (PS.map.proj == PROJECTION_LL)
-    {
+    if (PS.map.proj == PROJECTION_LL) {
 	ns = (PS.map.north + PS.map.south) / 2.;
 	d_ew = G_distance(PS.map.east, ns, PS.map.west, ns);
 
 	ew = (PS.map.east + PS.map.west) / 2.;
 	d_ns = G_distance(ew, PS.map.north, ew, PS.map.south);
     }
-    else
-    {
+    else {
 	d_ew = (PS.map.east - PS.map.west);
 	d_ns = (PS.map.north - PS.map.south);
     }
 
     /* to define the scale */
-    if (PS.scale > 0)
-    {
+    if (PS.scale > 0) {
 	fact = MT_TO_POINT / (double)PS.scale;
 	ew = fact * d_ew;
 	ns = fact * d_ns;
-	if (ew <= PS.map_w && ns <= PS.map_h)
-	{
+	if (ew <= PS.map_w && ns <= PS.map_h) {
 	    PS.map_w = ew;
 	    PS.map_h = ns;
 	}
@@ -79,8 +73,7 @@ int start_map(void)
 	    PS.scale = 0;	/* forze readjust scale */
     }
     /* auto scale */
-    if (PS.scale <= 0)
-    {
+    if (PS.scale <= 0) {
 	ew = d_ew / PS.map_w;
 	ns = d_ns / PS.map_h;
 	fact = (ew > ns) ? ew : ns;
@@ -101,7 +94,8 @@ int start_map(void)
     PS.map_top = PS.map_y + PS.map_h;
 
     G_setup_plot(10. * (PS.map_y + PS.map_h), 10. * PS.map_y,
-		 10. * PS.map_x, 10. * (PS.map_x + PS.map_w), move_local, cont_local);
+		 10. * PS.map_x, 10. * (PS.map_x + PS.map_w), move_local,
+		 cont_local);
 
     return 0;
 }
@@ -112,6 +106,7 @@ int move_local(int x, int y)
     fprintf(PS.fp, "%.1f %.1f M\n", (double)x / 10., (double)y / 10.);
     return 0;
 }
+
 int cont_local(int x, int y)
 {
     fprintf(PS.fp, "%.1f %.1f L ", (double)x / 10., (double)y / 10.);

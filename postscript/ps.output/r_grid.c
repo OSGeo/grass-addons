@@ -21,6 +21,7 @@
 int read_grid(GRID * grid, int type)
 {
     char buf[1024];
+
     char *key, *data;
 
     G_debug(1, "Reading grid settings ..");
@@ -39,115 +40,92 @@ int read_grid(GRID * grid, int type)
     grid->msubdiv = -1;
 
     /* process options */
-    while (input(2, buf))
-    {
-	if (!key_data(buf, &key, &data))
-	{
+    while (input(2, buf)) {
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
-	if (KEY("major") || KEY("line"))
-	{
+	if (KEY("major") || KEY("line")) {
 	    char str[50];
 
-	    if (sscanf(data, "%s", str) != 1)
-	    {
+	    if (sscanf(data, "%s", str) != 1) {
 		error(key, data, "illegal major request (grid)");
 	    }
-	    if (G_projection() == PROJECTION_LL || type == 0)
-	    {
+	    if (G_projection() == PROJECTION_LL || type == 0) {
 		double seconds;
 
 		scan_second(str, &seconds);
 		grid->sep = (int)seconds;
 	    }
-	    else
-	    {
+	    else {
 		grid->sep = atoi(str);	/* units, usually meters */
 	    }
-	    if (grid->sep <= 0)
-	    {
+	    if (grid->sep <= 0) {
 		error(key, data, "illegal major request (grid)");
 	    }
 	    read_psline("", &(grid->line));
 	    continue;
 	}
-	if (KEY("minor"))
-	{
+	if (KEY("minor")) {
 	    char str[50];
 
-	    if (sscanf(data, "%s", str) != 1)
-	    {
+	    if (sscanf(data, "%s", str) != 1) {
 		error(key, data, "illegal minor request (grid)");
 	    }
-	    if (G_projection() == PROJECTION_LL || type == 0)
-	    {
+	    if (G_projection() == PROJECTION_LL || type == 0) {
 		double seconds;
 
 		scan_second(str, &seconds);
 		grid->msep = (int)seconds;
 	    }
-	    else
-	    {
+	    else {
 		grid->msep = atoi(str);	/* units, usually meters */
 	    }
 	    read_psline("", &(grid->mline));
 	    continue;
 	}
-	if (KEY("subminor"))
-	{
+	if (KEY("subminor")) {
 	    G_strip(data);
 	    grid->msubdiv = atoi(data);
 	    continue;
 	}
-	if (KEY("format"))
-	{
+	if (KEY("format")) {
 	    G_strip(data);
-	    if (strncmp(data, "in", 2) == 0)
-	    {
+	    if (strncmp(data, "in", 2) == 0) {
 		grid->format = 0;
 	    }
-	    else if (strncmp(data, "out", 3) == 0)
-	    {
+	    else if (strncmp(data, "out", 3) == 0) {
 		grid->format = 1;
 	    }
-	    else if (strncmp(data, "+out", 4) == 0)
-	    {
+	    else if (strncmp(data, "+out", 4) == 0) {
 		grid->format = 1;
 		grid->lsides = 4;
 	    }
-	    else if (strcmp(data, "iho") == 0)
-	    {
+	    else if (strcmp(data, "iho") == 0) {
 		grid->format = 2;
 	    }
-	    else if (strcmp(data, "can") == 0)
-	    {
+	    else if (strcmp(data, "can") == 0) {
 		grid->format = 3;
 	    }
 	    else
 		grid->format = atoi(data);
 	    continue;
 	}
-	if (KEY("trim"))
-	{
+	if (KEY("trim")) {
 	    G_strip(data);
 	    grid->trim = atoi(data);
 	    continue;
 	}
-	if (KEY("font"))
-	{
+	if (KEY("font")) {
 	    read_font(data, &(grid->font));
 	    continue;
 	}
-	if (KEY("fcolor"))
-	{
-	    if (!scan_color(data, &(grid->fcolor)))
-	    {
+	if (KEY("fcolor")) {
+	    if (!scan_color(data, &(grid->fcolor))) {
 		error(key, data, "illegal fcolor request (grid)");
 	    }
 	    continue;
 	}
-	if (KEY("cross"))
-	{
+	if (KEY("cross")) {
 	    grid->cross = atof(data);
 	    continue;
 	}
@@ -155,8 +133,7 @@ int read_grid(GRID * grid, int type)
     }
 
     /* swap major and minor if ... */
-    if (grid->sep < grid->msep)
-    {
+    if (grid->sep < grid->msep) {
 	int tmp;
 
 	tmp = grid->msep;
@@ -165,8 +142,7 @@ int read_grid(GRID * grid, int type)
     }
 
     /* draw minor? .... */
-    if (grid->mline.width <= 0. || grid->msep == 0)
-    {
+    if (grid->mline.width <= 0. || grid->msep == 0) {
 	grid->msep = 0;		/* dont draw minor grid */
     }
 

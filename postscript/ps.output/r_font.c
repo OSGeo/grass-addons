@@ -31,10 +31,8 @@ int get_font(char *data)
     dp = data;
     if (*dp >= 'a' && *dp <= 'z')
 	*dp = *dp - 'a' + 'A';
-    while (*dp)
-    {
-	if (*dp == ' ')
-	{
+    while (*dp) {
+	if (*dp == ' ') {
 	    *dp++ = '-';
 	    if (*dp >= 'a' && *dp <= 'z')
 		*dp = *dp - 'a' + 'A';
@@ -57,6 +55,7 @@ int default_font(PSFONT * font)
 int read_font(char *arg, PSFONT * font)
 {
     char buf[1024];
+
     char *key, *data;
 
     G_debug(1, "Reading font settings ..");
@@ -66,40 +65,31 @@ int read_font(char *arg, PSFONT * font)
 
 
     /* process options */
-    while (input(3, buf))
-    {
-	if (!key_data(buf, &key, &data))
-	{
+    while (input(3, buf)) {
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
-	if (KEY("name"))
-	{
+	if (KEY("name")) {
 	    get_font(data);
 	    strcpy(font->name, data);
 	    continue;
 	}
-	if (KEY("size"))
-	{
-	    if (scan_dimen(data, &(font->size)) != 1)
-	    {
+	if (KEY("size")) {
+	    if (scan_dimen(data, &(font->size)) != 1) {
 		font->size = 10.;
 		error(key, data, "illegal size request (font)");
 	    }
 	    continue;
 	}
-	if (KEY("extend"))
-	{
-	    if (scan_dimen(data, &(font->extend)) != 1)
-	    {
+	if (KEY("extend")) {
+	    if (scan_dimen(data, &(font->extend)) != 1) {
 		font->extend = 1.;
 		error(key, data, "illegal extent request (font)");
 	    }
 	    continue;
 	}
-	if (KEY("color"))
-	{
-	    if (!scan_color(data, &(font->color)))
-	    {
+	if (KEY("color")) {
+	    if (!scan_color(data, &(font->color))) {
 		error(key, data, "illegal color request (font)");
 	    }
 	    continue;

@@ -19,6 +19,7 @@
 int read_vlegend(char *arg)
 {
     char buf[1024];
+
     char *key, *data;
 
 
@@ -36,61 +37,50 @@ int read_vlegend(char *arg)
     PS.vl.legend.yspan = -1;
 
     /* process options */
-    while (input(2, buf))
-    {
-	if (!key_data(buf, &key, &data))
-	{
+    while (input(2, buf)) {
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
-	if (KEY("title") || KEY("title_font"))
-	{
+	if (KEY("title") || KEY("title_font")) {
 	    G_strip(data);
 	    read_font(data, &(PS.vl.legend.title_font));
 	    continue;
 	}
-	if (KEY("font"))
-	{
+	if (KEY("font")) {
 	    read_font(data, &(PS.vl.legend.font));
 	    continue;
 	}
-	if (KEY("frame"))
-	{
+	if (KEY("frame")) {
 	    read_frame(&(PS.vl.legend.box));
 	    continue;
 	}
-        if (KEY("cols"))
-        {
-            int n = sscanf(data, "%d %lf",
-                           &(PS.vl.legend.cols), &(PS.vl.legend.xspan));
+	if (KEY("cols")) {
+	    int n = sscanf(data, "%d %lf",
+			   &(PS.vl.legend.cols), &(PS.vl.legend.xspan));
 
-            if (n == 1 || n == 2)
-            {
-                if (PS.vl.legend.cols <= 0)
-                    PS.vl.legend.cols = 1;
-                if (n == 1)
-                    PS.vl.legend.xspan = -1.;
-            }
-            else
-                error(key, data, "illegal cols/xspan request (vlegend)");
-            continue;
-        }
-        if (KEY("swidth"))
-        {
-            if (scan_dimen(data, &(PS.vl.legend.width)) != 1)
-            {
-                PS.vl.legend.width = -1.;
-                error(key, data, "illegal swidth request (vlegend)");
-            }
-            continue;
-        }
-        if (KEY("interline") || KEY("dy"))
-        {
-            if (scan_dimen(data, &(PS.vl.legend.yspan)) != 1)
-            {
-                error(key, data, "illegal interline request (vlegend)");
-            }
-            continue;
-        }
+	    if (n == 1 || n == 2) {
+		if (PS.vl.legend.cols <= 0)
+		    PS.vl.legend.cols = 1;
+		if (n == 1)
+		    PS.vl.legend.xspan = -1.;
+	    }
+	    else
+		error(key, data, "illegal cols/xspan request (vlegend)");
+	    continue;
+	}
+	if (KEY("swidth")) {
+	    if (scan_dimen(data, &(PS.vl.legend.width)) != 1) {
+		PS.vl.legend.width = -1.;
+		error(key, data, "illegal swidth request (vlegend)");
+	    }
+	    continue;
+	}
+	if (KEY("interline") || KEY("dy")) {
+	    if (scan_dimen(data, &(PS.vl.legend.yspan)) != 1) {
+		error(key, data, "illegal interline request (vlegend)");
+	    }
+	    continue;
+	}
 
 	error(key, data, "illegal vlegend sub-request");
     }

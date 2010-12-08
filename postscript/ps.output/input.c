@@ -19,28 +19,24 @@ extern FILE *inputfd;
 int input(int level, char *buf)
 {
     int i;
+
     char command[20], empty[3];
 
     if (level && isatty(fileno(inputfd)))
 	fprintf(stdout, "enter 'end' when done, 'exit' to quit\n");
 
-    do
-    {
-	if (level && isatty(fileno(inputfd)))
-	{
+    do {
+	if (level && isatty(fileno(inputfd))) {
 	    fprintf(stdout, "%s ", level == 1 ? ">" : ">>");
 	}
-	if (!G_getl2(buf, 1024, inputfd))
-	{
-	    if (inputfd != stdin)
-	    {
+	if (!G_getl2(buf, 1024, inputfd)) {
+	    if (inputfd != stdin) {
 		fclose(inputfd);
 		inputfd = stdin;
 	    }
 	    return 0;
 	}
-	if (sscanf(buf, "%5s %1s", command, empty) == 1)
-	{
+	if (sscanf(buf, "%5s %1s", command, empty) == 1) {
 	    if (strcmp(command, "end") == 0)
 		return 0;
 	    if (strcmp(command, "exit") == 0)
@@ -61,8 +57,7 @@ int key_data(char *buf, char **k, char **d)
     while (*key && *key <= ' ')
 	key++;
 
-    if (*key == 0)
-    {
+    if (*key == 0) {
 	*k = *d = key;
 	return 0;
     }

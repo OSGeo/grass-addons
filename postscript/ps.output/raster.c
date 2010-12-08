@@ -17,10 +17,8 @@ int raster_close(void)
 {
     int i;
 
-    for (i = 0; i < 3; i++)
-    {
-	if (PS.rst.fd[i] >= 0)
-	{
+    for (i = 0; i < 3; i++) {
+	if (PS.rst.fd[i] >= 0) {
 	    G_close_cell(PS.rst.fd[i]);
 	    G_free(PS.rst.name[i]);
 	    G_free(PS.rst.mapset[i]);

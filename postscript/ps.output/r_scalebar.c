@@ -23,6 +23,7 @@
 int read_scalebar(void)
 {
     char buf[1024];
+
     char *key, *data;
 
     G_debug(1, "Reading scalebar settings ..");
@@ -41,52 +42,40 @@ int read_scalebar(void)
     set_color_rgb(&(PS.sbar.fcolor), 255, 255, 255);
 
     /* process options */
-    while (input(2, buf))
-    {
-	if (!key_data(buf, &key, &data))
-	{
+    while (input(2, buf)) {
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
-	if (KEY("frame"))
-	{
+	if (KEY("frame")) {
 	    read_frame(&(PS.sbar.box));
 	    continue;
 	}
-	if (KEY("font"))
-	{
+	if (KEY("font")) {
 	    read_font(data, &(PS.sbar.font));
 	    continue;
 	}
-	if (KEY("fcolor"))
-	{
-	    if (!scan_color(data, &(PS.sbar.fcolor)))
-	    {
+	if (KEY("fcolor")) {
+	    if (!scan_color(data, &(PS.sbar.fcolor))) {
 		error(key, data, "illegal fcolor request (scalebar)");
 	    }
 	    continue;
 	}
-	if (KEY("height"))
-	{
-	    if (scan_dimen(data, &(PS.sbar.height)) != 1)
-	    {
+	if (KEY("height")) {
+	    if (scan_dimen(data, &(PS.sbar.height)) != 1) {
 		error(key, data, "illegal height request (scalebar)");
 	    }
 	    continue;
 	}
-	if (KEY("length"))
-	{
-	    if (scan_dimen(data, &(PS.sbar.length)) != 1)
-	    {
+	if (KEY("length")) {
+	    if (scan_dimen(data, &(PS.sbar.length)) != 1) {
 		error(key, data, "illegal length request (scalebar)");
 	    }
 	    continue;
 	}
-	if (KEY("major") || KEY("segments"))
-	{
+	if (KEY("major") || KEY("segments")) {
 	    int i, j;
 
-	    switch (sscanf(data, "%d %d", &i, &j))
-	    {
+	    switch (sscanf(data, "%d %d", &i, &j)) {
 	    case 1:
 		PS.sbar.segments = ABS(i);
 		PS.sbar.labels = 1;
@@ -101,12 +90,10 @@ int read_scalebar(void)
 	    }
 	    continue;
 	}
-	if (KEY("minor"))
-	{
+	if (KEY("minor")) {
 	    int i, j;
 
-	    switch (sscanf(data, "%d %d", &i, &j))
-	    {
+	    switch (sscanf(data, "%d %d", &i, &j)) {
 	    case 1:
 		PS.sbar.subsegs = ABS(i);
 		PS.sbar.sublabs = 1;
@@ -121,54 +108,48 @@ int read_scalebar(void)
 	    }
 	    continue;
 	}
-	if (KEY("units"))
-	{
+	if (KEY("units")) {
 	    int ret;
+
 	    char stra[50], strb[50];
 
 	    G_strip(data);
 	    ret = sscanf(data, "%s %s", stra, strb);
-	    if (ret != 1 && ret != 2)
-	    {
+	    if (ret != 1 && ret != 2) {
 		error(key, data, "illegal units request (scalebar)");
 	    }
-	    if (strcmp(stra, "auto") == 0)
-	    {
+	    if (strcmp(stra, "auto") == 0) {
 		PS.sbar.units[0] = 0;
 		PS.sbar.ucode = SB_UNITS_AUTO;
 		continue;
 	    }
-	    else if (G_projection() == PROJECTION_XY)
-	    {
-		error(key, data, "Earth units not available in simple XY location");
+	    else if (G_projection() == PROJECTION_XY) {
+		error(key, data,
+		      "Earth units not available in simple XY location");
 	    }
-	    else if (strcmp(stra, "meters") == 0 || strcmp(stra, "m") == 0)
-	    {
+	    else if (strcmp(stra, "meters") == 0 || strcmp(stra, "m") == 0) {
 		strcpy(PS.sbar.units, "meters");
 		PS.sbar.ucode = SB_UNITS_METERS;
 	    }
-	    else if (strcmp(stra, "kilometers") == 0 || strcmp(stra, "km") == 0)
-	    {
+	    else if (strcmp(stra, "kilometers") == 0 ||
+		     strcmp(stra, "km") == 0) {
 		strcpy(PS.sbar.units, "kilometers");
 		PS.sbar.ucode = SB_UNITS_KM;
 	    }
-	    else if (strcmp(stra, "feet") == 0 || strcmp(stra, "ft") == 0)
-	    {
+	    else if (strcmp(stra, "feet") == 0 || strcmp(stra, "ft") == 0) {
 		strcpy(PS.sbar.units, "feet");
 		PS.sbar.ucode = SB_UNITS_FEET;
 	    }
-	    else if (strcmp(stra, "miles") == 0 || strcmp(stra, "mil") == 0)
-	    {
+	    else if (strcmp(stra, "miles") == 0 || strcmp(stra, "mil") == 0) {
 		strcpy(PS.sbar.units, "miles");
 		PS.sbar.ucode = SB_UNITS_MILES;
 	    }
-	    else if (strcmp(stra, "nautmiles") == 0 || strcmp(stra, "nm") == 0)
-	    {
+	    else if (strcmp(stra, "nautmiles") == 0 ||
+		     strcmp(stra, "nm") == 0) {
 		strcpy(PS.sbar.units, "nautical miles");
 		PS.sbar.ucode = SB_UNITS_NMILES;
 	    }
-	    else
-	    {
+	    else {
 		error(key, data, "illegal units request (scalebar)");
 	    }
 	    if (ret == 2)

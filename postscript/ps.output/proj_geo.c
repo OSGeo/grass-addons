@@ -46,9 +46,11 @@ void init_proj(struct pj_info *iproj, struct pj_info *oproj)
  *
  */
 int find_limits(double *north, double *south,
-		double *east, double *west, struct pj_info *ll_proj, struct pj_info *xy_proj)
+		double *east, double *west, struct pj_info *ll_proj,
+		struct pj_info *xy_proj)
 {
     int x, y;
+
     double d, z;
 
     /* West */

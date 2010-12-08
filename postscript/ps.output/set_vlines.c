@@ -24,13 +24,11 @@
 /* TO DRAW LINES */
 int vector_line(struct line_pnts *lpoints)
 {
-    if (lpoints->n_points > 0)
-    {
+    if (lpoints->n_points > 0) {
 	register int i;
 
 	set_ps_where('M', lpoints->x[0], lpoints->y[0]);
-	for (i = 1; i <= lpoints->n_points - 1; i++)
-	{
+	for (i = 1; i <= lpoints->n_points - 1; i++) {
 	    set_ps_where('L', lpoints->x[i], lpoints->y[i]);
 	}
     }
@@ -41,8 +39,11 @@ int vector_line(struct line_pnts *lpoints)
 int set_vlines(VECTOR * vec, VLINES * vl, int flag)
 {
     int ret, cat;
+
     int ln, nlines, pt, npoints;
+
     struct line_cats *lcats;
+
     struct line_pnts *lpoints;
 
 
@@ -51,15 +52,18 @@ int set_vlines(VECTOR * vec, VLINES * vl, int flag)
     fprintf(PS.fp, "GS 1 setlinejoin NP\n");	/* lines with linejoin = round */
 
     /* Create vector array, if required */
-    if (vec->cats != NULL)
-    {
+    if (vec->cats != NULL) {
 	vec->Varray = Vect_new_varray(nlines);
-	ret = Vect_set_varray_from_cat_string(&(vec->Map), vec->layer, vec->cats, vl->type, 1, vec->Varray);
+	ret =
+	    Vect_set_varray_from_cat_string(&(vec->Map), vec->layer,
+					    vec->cats, vl->type, 1,
+					    vec->Varray);
     }
-    else if (vec->where != NULL)
-    {
+    else if (vec->where != NULL) {
 	vec->Varray = Vect_new_varray(nlines);
-	ret = Vect_set_varray_from_db(&(vec->Map), vec->layer, vec->where, vl->type, 1, vec->Varray);
+	ret =
+	    Vect_set_varray_from_db(&(vec->Map), vec->layer, vec->where,
+				    vl->type, 1, vec->Varray);
     }
     else
 	vec->Varray = NULL;
@@ -70,17 +74,15 @@ int set_vlines(VECTOR * vec, VLINES * vl, int flag)
 
     /* process only vectors in current window */
     Vect_set_constraint_region(&(vec->Map),
-                               PS.map.north, PS.map.south,
-                               PS.map.east, PS.map.west,
-                               PORT_DOUBLE_MAX, -PORT_DOUBLE_MAX);
+			       PS.map.north, PS.map.south,
+			       PS.map.east, PS.map.west,
+			       PORT_DOUBLE_MAX, -PORT_DOUBLE_MAX);
 
     /* load attributes if fcolor is named */
     dbCatValArray rgbcv, idcv;
 
-    if (flag == DRAW_LINE)
-    {
-        if (vl->rgbcol != NULL)
-        {
+    if (flag == DRAW_LINE) {
+	if (vl->rgbcol != NULL) {
 	    load_catval_array(&(vec->Map), vl->rgbcol, &rgbcv);
 	    if (vl->idcol != NULL)
 		load_catval_array(&(vec->Map), vl->idcol, &idcv);
@@ -88,8 +90,7 @@ int set_vlines(VECTOR * vec, VLINES * vl, int flag)
     }
 
     /* read and plot lines */
-    for (ln = 1; ln <= nlines; ln++)
-    {
+    for (ln = 1; ln <= nlines; ln++) {
 	ret = Vect_read_line(&(vec->Map), lpoints, lcats, ln);
 	if (ret < 0)
 	    continue;
@@ -100,11 +101,10 @@ int set_vlines(VECTOR * vec, VLINES * vl, int flag)
 
 	/* Oops the line is correct, I can draw it */
 	/* How I can draw it? */
-	if (flag == DRAW_HLINE)
-	{
-	    if (vl->offset != 0.)
-	    {
+	if (flag == DRAW_HLINE) {
+	    if (vl->offset != 0.) {
 		double dis;
+
 		struct line_pnts *opoints = Vect_new_line_struct();
 
 		/* perhaps dont run in Lat/Lon */
@@ -112,21 +112,17 @@ int set_vlines(VECTOR * vec, VLINES * vl, int flag)
 		Vect_line_parallel(lpoints, dis, 0.1, 0, opoints);
 		vector_line(opoints);
 	    }
-	    else
-	    {
+	    else {
 		vector_line(lpoints);
 	    }
 	    set_ps_line(&(vl->hline));
 	}
-	else
-	{
+	else {
 	    vector_line(lpoints);
-	    if (vl->rgbcol == NULL)
-	    {
+	    if (vl->rgbcol == NULL) {
 		set_ps_color(&(vl->line.color));
 	    }
-	    else
-	    {
+	    else {
 		PSCOLOR color;
 
 		Vect_cat_get(lcats, 1, &cat);
@@ -134,8 +130,7 @@ int set_vlines(VECTOR * vec, VLINES * vl, int flag)
 		color.a = vl->line.color.a;
 		set_ps_color(&color);
 
-		if (vl->idcol != NULL)
-		{
+		if (vl->idcol != NULL) {
 		    double value;
 
 		    get_number(&idcv, cat, &value);

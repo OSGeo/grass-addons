@@ -28,8 +28,7 @@ int set_vlegend()
     G_debug(1, "Placing vlegend ...");
 
     /* How many vectors to draw? */
-    for (n_vct = 0, i = 0; i < PS.vct_files; i++)
-    {
+    for (n_vct = 0, i = 0; i < PS.vct_files; i++) {
 	if (PS.vct[i].lpos >= 0)
 	    ++n_vct;
     }
@@ -39,17 +38,13 @@ int set_vlegend()
     /* Reorder as defined by the user */
     int *ip = (int *)G_malloc(n_vct * sizeof(int));
 
-    for (i = 0; i < n_vct; i++)
-    {
+    for (i = 0; i < n_vct; i++) {
 	ip[i] = -1;
     }
-    for (i = 0; i < PS.vct_files; i++)
-    {
-	if (PS.vct[i].lpos > 0)
-	{
+    for (i = 0; i < PS.vct_files; i++) {
+	if (PS.vct[i].lpos > 0) {
 	    j = PS.vct[i].lpos - 1;
-	    if (j < n_vct && ip[j] < 0)
-	    {
+	    if (j < n_vct && ip[j] < 0) {
 		ip[j] = i;
 		PS.vct[i].lpos = -1;
 	    }
@@ -57,10 +52,8 @@ int set_vlegend()
 		PS.vct[i].lpos = 0;
 	}
     }
-    for (i = 0; i < PS.vct_files; i++)
-    {
-	if (PS.vct[i].lpos == 0)
-	{
+    for (i = 0; i < PS.vct_files; i++) {
+	if (PS.vct[i].lpos == 0) {
 	    j = 0;
 	    while (j < n_vct && ip[j] >= 0)
 		j++;
@@ -74,7 +67,7 @@ int set_vlegend()
 	PS.vl.legend.box.margin = 0.4 * PS.vl.legend.font.size;
 
     if (PS.vl.legend.width <= 0)
-        PS.vl.legend.width = 2.4 * PS.vl.legend.font.size;
+	PS.vl.legend.width = 2.4 * PS.vl.legend.font.size;
 
     if (PS.vl.legend.xspan <= 0)
 	PS.vl.legend.xspan = PS.vl.legend.box.margin;
@@ -99,43 +92,36 @@ int set_vlegend()
     /* Prepare the content of legend by vector */
     int K, n;
 
-    for (i = 0; i < n_vct; i++)
-    {
+    for (i = 0; i < n_vct; i++) {
 	j = ip[i];
-        qsort(PS.vct[j].item, PS.vct[j].n_item, sizeof(ITEMS), cmpitems);
-        if (PS.vct[j].yspan <= 0)
+	qsort(PS.vct[j].item, PS.vct[j].n_item, sizeof(ITEMS), cmpitems);
+	if (PS.vct[j].yspan <= 0)
 	    PS.vct[j].yspan = PS.vl.legend.yspan;
     }
     set_ps_font(&(PS.vl.legend.font));
-    for (K = 0, i = 0; i < n_vct; i++, K++)
-    {
-        j = ip[i];
-        /* if (PS.vct[j].n_item == 1) continue; con K-- */
-        if (PS.vct[j].n_item == 1)
-        {
-            n = 0;
-            while ((i+n) < n_vct && PS.vct[ip[i+n]].n_item == 1)
-            {
-                ++n;
-            }
-            set_vlegend_simple(K, ip + i, n);
-            i += (n-1);
-        }
-        else
-        {
-            set_vlegend_multi(K, &(PS.vct[j]));
-        }
+    for (K = 0, i = 0; i < n_vct; i++, K++) {
+	j = ip[i];
+	/* if (PS.vct[j].n_item == 1) continue; con K-- */
+	if (PS.vct[j].n_item == 1) {
+	    n = 0;
+	    while ((i + n) < n_vct && PS.vct[ip[i + n]].n_item == 1) {
+		++n;
+	    }
+	    set_vlegend_simple(K, ip + i, n);
+	    i += (n - 1);
+	}
+	else {
+	    set_vlegend_multi(K, &(PS.vct[j]));
+	}
     }
     n_vct = K;
     G_free(ip);
 
     /* Prepare the title of the legend */
-    if (!PS.vl.legend.title || PS.vl.legend.title[0] == 0)
-    {
+    if (!PS.vl.legend.title || PS.vl.legend.title[0] == 0) {
 	fprintf(PS.fp, "/mgy 0 def\n");
     }
-    else
-    {
+    else {
 	fprintf(PS.fp, "GS ");
 	set_ps_font(&(PS.vl.legend.title_font));
 	fprintf(PS.fp, "(%s) SWH ", PS.vl.legend.title);
@@ -145,18 +131,20 @@ int set_vlegend()
     }
 
     /* Prepare and draw the frame of the legend */
-    fprintf(PS.fp, "hg BKh {add dyy add} forall dyy sub BKt {add} forall /hg XD\n");
-    fprintf(PS.fp, "wd BKw {mg 2 mul add 2 copy lt {exch} if pop} forall /wd XD\n");
+    fprintf(PS.fp,
+	    "hg BKh {add dyy add} forall dyy sub BKt {add} forall /hg XD\n");
+    fprintf(PS.fp,
+	    "wd BKw {mg 2 mul add 2 copy lt {exch} if pop} forall /wd XD\n");
     set_box_orig(&(PS.vl.legend.box));
     set_box_draw(&(PS.vl.legend.box));
 
 
     /* Draw the title of the legend */
-    if (PS.vl.legend.title && PS.vl.legend.title[0] != 0)
-    {
+    if (PS.vl.legend.title && PS.vl.legend.title[0] != 0) {
 	fprintf(PS.fp, "GS ");
 	set_ps_font(&(PS.vl.legend.title_font));
-	fprintf(PS.fp, "xo mg add yo mgy sub M wd mg 2 mul sub (%s) SHS\n", PS.vl.legend.title);
+	fprintf(PS.fp, "xo mg add yo mgy sub M wd mg 2 mul sub (%s) SHS\n",
+		PS.vl.legend.title);
 	fprintf(PS.fp, "GR\n");
     }
 
@@ -166,36 +154,39 @@ int set_vlegend()
 	    "dup 0 get /dy XD\n"
 	    "dup 1 get dup length 0 eq {pop} {x y dy add MS} ifelse y roh sub /y XD /yt y def\n"
 	    "dup 2 exch length 2 sub getinterval {"
-            "dup 0 3 2 index length -- {"
-            "3 getinterval aload pop /code XD aload pop\n");
+	    "dup 0 3 2 index length -- {"
+	    "3 getinterval aload pop /code XD aload pop\n");
     fprintf(PS.fp,
 	    "code %d eq {"
 	    "GS 0 ne {LW 0 LD C x syw add 0 roh sub 2 div neg y add dup x exch ML [] 0 LD} if "
-            "x syw 2 div add 0.65 roh mul 2 div y add TR SC ROT LW cvx cvn exec GR} if\n", POINTS);
+	    "x syw 2 div add 0.65 roh mul 2 div y add TR SC ROT LW cvx cvn exec GR} if\n",
+	    POINTS);
+    fprintf(PS.fp, "code %d eq {"
+	    //            "GS {LW 0 LD C roh .35 mul /z XD x y z add M syw .3 mul z neg syw .6 mul z syw .9 mul 0 rcurveto S} repeat GR} if\n", LINES);
+	    "GS {LW 0 LD C x syw add y roh 0.35 mul add dup x exch ML} repeat GR} if\n",
+	    LINES);
     fprintf(PS.fp,
-            "code %d eq {"
-//            "GS {LW 0 LD C roh .35 mul /z XD x y z add M syw .3 mul z neg syw .6 mul z syw .9 mul 0 rcurveto S} repeat GR} if\n", LINES);
-            "GS {LW 0 LD C x syw add y roh 0.35 mul add dup x exch ML} repeat GR} if\n", LINES);
-    fprintf(PS.fp,
-            "code %d eq {"
-            "GS [] 0 LD x y -- x syw .9 mul add y roh add -- B "
-            "GS 0 ne {0 eq {C} {setpattern} ifelse fill} if GR 0 ne {LW 0 LD C S} if GR} if\n", AREAS);
+	    "code %d eq {"
+	    "GS [] 0 LD x y -- x syw .9 mul add y roh add -- B "
+	    "GS 0 ne {0 eq {C} {setpattern} ifelse fill} if GR 0 ne {LW 0 LD C S} if GR} if\n",
+	    AREAS);
     set_ps_color(&(PS.vl.legend.font.color));
     fprintf(PS.fp,
 	    "x syw add y MS\n"
-            "y roh dy add sub /y XD dup} for pop pop\n" "x cow dxx add add /x XD yt /y XD} forall} D\n");
+	    "y roh dy add sub /y XD dup} for pop pop\n"
+	    "x cow dxx add add /x XD yt /y XD} forall} D\n");
 
     fprintf(PS.fp, "yo mgy mg add sub /yo XD\n");
-    for (i = 0; i < n_vct; i++)
-    {
-        /* caja del elemento *
-        fprintf(PS.fp, "GS .2 LW [1] 0 LD ");
-        fprintf(PS.fp, "xo mg add yo BKw %d get BKh %d get BKt %d get add neg RE GR\n", i, i, i);
-        */
+    for (i = 0; i < n_vct; i++) {
+	/* caja del elemento *
+	   fprintf(PS.fp, "GS .2 LW [1] 0 LD ");
+	   fprintf(PS.fp, "xo mg add yo BKw %d get BKh %d get BKt %d get add neg RE GR\n", i, i, i);
+	 */
 	fprintf(PS.fp, "/x xo mg add def ");
 	fprintf(PS.fp, "/y yo BKt %d get sub def\n", i);
 	fprintf(PS.fp, "BK%d VLEGEND\n", i);
-	fprintf(PS.fp, "yo BKh %i get BKt %d get dyy add add sub /yo XD\n", i, i);
+	fprintf(PS.fp, "yo BKh %i get BKt %d get dyy add add sub /yo XD\n", i,
+		i);
     }
 
     return 1;
@@ -204,6 +195,7 @@ int set_vlegend()
 void make_vareas(VECTOR * vec, int rows)
 {
     int i, item;
+
     VAREAS *va = (VAREAS *) vec->data;
 
     /* Set the title of the vector */
@@ -214,61 +206,48 @@ void make_vareas(VECTOR * vec, int rows)
 
     /* Iterate by items */
     fprintf(PS.fp, "[\n");
-    for (item = 0, i = 0; i < vec->n_item; i++, item++)
-    {
-	if (item == rows)
-	{
+    for (item = 0, i = 0; i < vec->n_item; i++, item++) {
+	if (item == rows) {
 	    item = 0;
 	    fprintf(PS.fp, "][\n");
 	}
 	/* set the label of the item */
-	if (va->rgbcol == NULL)
-	{
+	if (va->rgbcol == NULL) {
 	    fprintf(PS.fp, "( %s)", vec->label);
 	}
-	else
-	{
-            int id = vec->item[i].rule;
+	else {
+	    int id = vec->item[i].rule;
 
-	    if (id == -1)
-	    {
+	    if (id == -1) {
 		fprintf(PS.fp, "( )");
 	    }
-	    else
-	    {
+	    else {
 		fprintf(PS.fp, "( %s)", vec->rule[id].label);
 	    }
 	    long_to_color(vec->item[i].data, &(va->fcolor));
 	}
 	/* set the specific data of the item */
 	fprintf(PS.fp, " [");
-	if (va->line.color.none || va->line.width <= 0)
-	{
+	if (va->line.color.none || va->line.width <= 0) {
 	    fprintf(PS.fp, "0 ");
 	}
-	else
-	{
+	else {
 	    fprintf(PS.fp, "%.3f %.3f %.3f [%s] %.3f 1 ",
-                    va->line.color.r, va->line.color.g, va->line.color.b,
-                    va->line.dash, va->line.width);
+		    va->line.color.r, va->line.color.g, va->line.color.b,
+		    va->line.dash, va->line.width);
 	}
-	if (va->fcolor.none && va->name_pat == NULL)
-	{
+	if (va->fcolor.none && va->name_pat == NULL) {
 	    fprintf(PS.fp, "0");
 	}
-	else
-	{
-	    if (va->name_pat == NULL || va->type_pat == 2)
-	    {
-                fprintf(PS.fp, "%.3f %.3f %.3f ",
-                        va->fcolor.r, va->fcolor.g, va->fcolor.b);
+	else {
+	    if (va->name_pat == NULL || va->type_pat == 2) {
+		fprintf(PS.fp, "%.3f %.3f %.3f ",
+			va->fcolor.r, va->fcolor.g, va->fcolor.b);
 	    }
-	    if (va->name_pat != NULL)
-	    {
+	    if (va->name_pat != NULL) {
 		fprintf(PS.fp, "PATTERN%d 1 1", vec->id);
 	    }
-	    else
-	    {
+	    else {
 		fprintf(PS.fp, "0 1");
 	    }
 	}
@@ -280,6 +259,7 @@ void make_vareas(VECTOR * vec, int rows)
 void make_vlines(VECTOR * vec, int rows)
 {
     int i, item;
+
     VLINES *vl = (VLINES *) vec->data;
 
     /* Set the title of the vector */
@@ -290,28 +270,22 @@ void make_vlines(VECTOR * vec, int rows)
 
     /* Iterate by items */
     fprintf(PS.fp, "[\n");
-    for (item = 0, i = 0; i < vec->n_item; i++, item++)
-    {
-	if (item == rows)
-	{
+    for (item = 0, i = 0; i < vec->n_item; i++, item++) {
+	if (item == rows) {
 	    item = 0;
 	    fprintf(PS.fp, "][\n");
 	}
 	/* set the label of the item */
-	if (vl->rgbcol == NULL)
-	{
+	if (vl->rgbcol == NULL) {
 	    fprintf(PS.fp, "( %s)", vec->label);
 	}
-	else
-	{
-            int id = vec->item[i].rule;
+	else {
+	    int id = vec->item[i].rule;
 
-	    if (id == -1)
-	    {
+	    if (id == -1) {
 		fprintf(PS.fp, "( )");
 	    }
-	    else
-	    {
+	    else {
 		fprintf(PS.fp, "( %s)", vec->rule[id].label);
 	    }
 	    long_to_color(vec->item[i].data, &(vl->line.color));
@@ -319,15 +293,15 @@ void make_vlines(VECTOR * vec, int rows)
 	/* set the specific data of the item */
 	fprintf(PS.fp, " [");
 	fprintf(PS.fp, "%.3f %.3f %.3f [%s] %.4f",
-		vl->line.color.r, vl->line.color.g, vl->line.color.b, vl->line.dash, vl->line.width);
-	if (vl->hline.width <= 0)
-	{
+		vl->line.color.r, vl->line.color.g, vl->line.color.b,
+		vl->line.dash, vl->line.width);
+	if (vl->hline.width <= 0) {
 	    fprintf(PS.fp, " 1");
 	}
-	else
-	{
+	else {
 	    fprintf(PS.fp, " %.3f %.3f %.3f [%s] %.4f",
-		    vl->hline.color.r, vl->hline.color.g, vl->hline.color.b, vl->hline.dash, vl->hline.width);
+		    vl->hline.color.r, vl->hline.color.g, vl->hline.color.b,
+		    vl->hline.dash, vl->hline.width);
 	    fprintf(PS.fp, " 2");
 	}
 	fprintf(PS.fp, "] %d\n", vec->type);
@@ -338,6 +312,7 @@ void make_vlines(VECTOR * vec, int rows)
 void make_vpoints(VECTOR * vec, int rows)
 {
     int i, item;
+
     VPOINTS *vp = (VPOINTS *) vec->data;
 
     /* Set the title of the vector */
@@ -348,31 +323,25 @@ void make_vpoints(VECTOR * vec, int rows)
 
     /* Iterate by items */
     fprintf(PS.fp, "[\n");
-    for (item = 0, i = 0; i < vec->n_item; i++, item++)
-    {
+    for (item = 0, i = 0; i < vec->n_item; i++, item++) {
 	/* if vp->size == 0 => no draw? */
 
-	if (item == rows)
-	{
+	if (item == rows) {
 	    item = 0;
 	    fprintf(PS.fp, "][\n");
 	}
 	/* set the label of the item */
-	if (vp->sizecol == NULL || vec->n_rule == 0)
-	{
+	if (vp->sizecol == NULL || vec->n_rule == 0) {
 	    fprintf(PS.fp, "( %s)", vec->label);
 	}
-	else
-	{
-            int id = vec->item[i].rule;
+	else {
+	    int id = vec->item[i].rule;
 
-	    if (id == -1)
-	    {
+	    if (id == -1) {
 		vp->size = (double)(vec->item[i].data / 1000.);
-                fprintf(PS.fp, "( %.3f)", vp->size);
+		fprintf(PS.fp, "( %.3f)", vp->size);
 	    }
-	    else
-	    {
+	    else {
 		fprintf(PS.fp, "( %s)", vec->rule[id].label);
 		vp->size = vec->rule[id].value;
 	    }
@@ -381,21 +350,20 @@ void make_vpoints(VECTOR * vec, int rows)
 	/* set the specific data of the item */
 	fprintf(PS.fp, " [");
 	fprintf(PS.fp, "(SYMBOL%d)", vec->id);
-// 	fprintf(PS.fp, " %.4f", vp->line.width / vp->size);	/* div! 0 */
-    if (vp->size == 0.)
-        fprintf(PS.fp, " %.4f", vp->line.width);
-    else
-        fprintf(PS.fp, " %.4f", vp->line.width / vp->size);
+	//      fprintf(PS.fp, " %.4f", vp->line.width / vp->size);     /* div! 0 */
+	if (vp->size == 0.)
+	    fprintf(PS.fp, " %.4f", vp->line.width);
+	else
+	    fprintf(PS.fp, " %.4f", vp->line.width / vp->size);
 	fprintf(PS.fp, " %.3f", vp->rotate);
 	fprintf(PS.fp, " %.3f dup", vp->size);
-	if (vp->distance != 0.)
-	{
+	if (vp->distance != 0.) {
 	    fprintf(PS.fp, " %.3f %.3f %.3f [%s] %.4f",
-		    vp->cline.color.r, vp->cline.color.g, vp->cline.color.b, vp->cline.dash, vp->cline.width);
+		    vp->cline.color.r, vp->cline.color.g, vp->cline.color.b,
+		    vp->cline.dash, vp->cline.width);
 	    fprintf(PS.fp, " 1");
 	}
-	else
-	{
+	else {
 	    fprintf(PS.fp, " 0");
 	}
 	fprintf(PS.fp, "] %d\n", vec->type);
@@ -404,7 +372,7 @@ void make_vpoints(VECTOR * vec, int rows)
 }
 
 /* Join vector legend with simple line */
-int set_vlegend_simple(int i, const int * ip, int items)
+int set_vlegend_simple(int i, const int *ip, int items)
 {
     int x, rows, cols, item;
 
@@ -414,50 +382,40 @@ int set_vlegend_simple(int i, const int * ip, int items)
 	++rows;
 
     fprintf(PS.fp, "/BK%d [\n%.4f ()\n[\n", i, PS.vl.legend.yspan);
-    for (item = 0, x = 0; x < items; x++, item++)
-    {
+    for (item = 0, x = 0; x < items; x++, item++) {
 	VECTOR *vec = &(PS.vct[ip[x]]);
 
-	if (item == rows)
-	{
+	if (item == rows) {
 	    item = 0;
 	    fprintf(PS.fp, "][\n");
 	}
 	fprintf(PS.fp, "( %s)", vec->label);
-	switch (vec->type)
-	{
+	switch (vec->type) {
 	case AREAS:
 	    {
 		VAREAS *va = (VAREAS *) vec->data;
 
 		fprintf(PS.fp, " [");
-		if (va->line.color.none || va->line.width <= 0)
-		{
+		if (va->line.color.none || va->line.width <= 0) {
 		    fprintf(PS.fp, "0 ");
 		}
-		else
-		{
+		else {
 		    fprintf(PS.fp, "%.3f %.3f %.3f [%s] %.3f 1 ",
-                            va->line.color.r, va->line.color.g, va->line.color.b,
-                            va->line.dash, va->line.width);
+			    va->line.color.r, va->line.color.g,
+			    va->line.color.b, va->line.dash, va->line.width);
 		}
-		if (va->fcolor.none && va->name_pat == NULL)
-		{
+		if (va->fcolor.none && va->name_pat == NULL) {
 		    fprintf(PS.fp, "0");
 		}
-		else
-		{
-		    if (va->name_pat == NULL || va->type_pat == 2)
-		    {
-                        fprintf(PS.fp, "%.3f %.3f %.3f ",
-                                va->fcolor.r, va->fcolor.g, va->fcolor.b);
+		else {
+		    if (va->name_pat == NULL || va->type_pat == 2) {
+			fprintf(PS.fp, "%.3f %.3f %.3f ",
+				va->fcolor.r, va->fcolor.g, va->fcolor.b);
 		    }
-		    if (va->name_pat != NULL)
-		    {
+		    if (va->name_pat != NULL) {
 			fprintf(PS.fp, "PATTERN%d 1 1", vec->id);
 		    }
-		    else
-		    {
+		    else {
 			fprintf(PS.fp, "0 1");
 		    }
 		}
@@ -470,17 +428,16 @@ int set_vlegend_simple(int i, const int * ip, int items)
 
 		fprintf(PS.fp, " [");
 		fprintf(PS.fp, "%.3f %.3f %.3f [%s] %.4f",
-                        vl->line.color.r, vl->line.color.g, vl->line.color.b,
-                        vl->line.dash, vl->line.width);
-		if (vl->hline.width <= 0)
-		{
+			vl->line.color.r, vl->line.color.g, vl->line.color.b,
+			vl->line.dash, vl->line.width);
+		if (vl->hline.width <= 0) {
 		    fprintf(PS.fp, " 1");
 		}
-		else
-		{
+		else {
 		    fprintf(PS.fp, " %.3f %.3f %.3f [%s] %.4f",
-                            vl->hline.color.r, vl->hline.color.g, vl->hline.color.b,
-                            vl->hline.dash, vl->hline.width);
+			    vl->hline.color.r, vl->hline.color.g,
+			    vl->hline.color.b, vl->hline.dash,
+			    vl->hline.width);
 		    fprintf(PS.fp, " 2");
 		}
 		fprintf(PS.fp, "] %d\n", vec->type);
@@ -495,15 +452,14 @@ int set_vlegend_simple(int i, const int * ip, int items)
 		fprintf(PS.fp, " %.4f", vp->line.width / vp->size);	/* div! 0 */
 		fprintf(PS.fp, " %.3f", vp->rotate);
 		fprintf(PS.fp, " %.3f dup", vp->size);
-		if (vp->distance != 0.)
-		{
+		if (vp->distance != 0.) {
 		    fprintf(PS.fp, " %.3f %.3f %.3f [%s] %.4f",
-                            vp->cline.color.r, vp->cline.color.g, vp->cline.color.b,
-                            vp->cline.dash, vp->cline.width);
+			    vp->cline.color.r, vp->cline.color.g,
+			    vp->cline.color.b, vp->cline.dash,
+			    vp->cline.width);
 		    fprintf(PS.fp, " 1");
 		}
-		else
-		{
+		else {
 		    fprintf(PS.fp, " 0");
 		}
 		fprintf(PS.fp, "] %d\n", vec->type);
@@ -532,22 +488,21 @@ int set_vlegend_multi(int i, VECTOR * vec)
 
     /* Make de legend */
     fprintf(PS.fp, "/BK%d [\n%.4f ", i, vec->yspan);
-    switch (vec->type)
-    {
+    switch (vec->type) {
     case AREAS:
-        {
-	make_vareas(vec, rows);
-        }
+	{
+	    make_vareas(vec, rows);
+	}
 	break;
     case LINES:
-        {
-	make_vlines(vec, rows);
-        }
+	{
+	    make_vlines(vec, rows);
+	}
 	break;
     case POINTS:
-        {
-	make_vpoints(vec, rows);
-        }
+	{
+	    make_vpoints(vec, rows);
+	}
 	break;
     }
     fprintf(PS.fp, "] def\n");
@@ -562,14 +517,16 @@ int set_vlegend_multi(int i, VECTOR * vec)
 void set_vlegend_ps(int i, int rows, int cols)
 {
     fprintf(PS.fp, "BK%d aload length 2 sub {"
-            "aload length 3 idiv"
-            "{pop pop SW syw add cow 2 copy lt {pop} {exch /cow XD} ifelse pop}"
-            "repeat} repeat exch /dy XD\n", i);
+	    "aload length 3 idiv"
+	    "{pop pop SW syw add cow 2 copy lt {pop} {exch /cow XD} ifelse pop}"
+	    "repeat} repeat exch /dy XD\n", i);
 
     fprintf(PS.fp, "BKh %d roh dy add %d mul dy sub put\n", i, rows);
     fprintf(PS.fp, "BKw %d cow dxx add %d mul dxx sub put\n", i, cols);
 
     fprintf(PS.fp, "dup length 0 eq {BKt %d 0 put} ", i);
     fprintf(PS.fp, "{SWH BKt %d 3 -1 roll dy add put ", i);
-    fprintf(PS.fp, "BKw %d get 2 copy gt {pop BKw %d 3 -1 roll put} {pop pop} ifelse} ifelse\n", i, i);
+    fprintf(PS.fp,
+	    "BKw %d get 2 copy gt {pop BKw %d 3 -1 roll put} {pop pop} ifelse} ifelse\n",
+	    i, i);
 }

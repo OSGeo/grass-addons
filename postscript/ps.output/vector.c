@@ -47,13 +47,10 @@ int vector_rule_find(VECTOR * vct, double value)
 {
     int i, j;
 
-    for (i = 0; i < vct->n_rule; i++)
-    {
-	for (j = 0; j < vct->rule[i].count; j++)
-	{
-            if (value >= vct->rule[i].val_list[j] &&
-                value <= vct->rule[i].val_list[j + 1])
-	    {
+    for (i = 0; i < vct->n_rule; i++) {
+	for (j = 0; j < vct->rule[i].count; j++) {
+	    if (value >= vct->rule[i].val_list[j] &&
+		value <= vct->rule[i].val_list[j + 1]) {
 		return i;
 	    }
 	}
@@ -69,16 +66,13 @@ int vector_item_new(VECTOR * vct, double value, long data)
     rule = vector_rule_find(vct, value);
 
     /* Check if already exist */
-    for (k = 0; k < vct->n_item; k++)
-    {
-        if (vct->item[k].rule == -1)
-	{
+    for (k = 0; k < vct->n_item; k++) {
+	if (vct->item[k].rule == -1) {
 	    if (vct->item[k].data == data)
 		return k;
 	}
-	else
-	{
-            if (vct->item[k].rule == rule)
+	else {
+	    if (vct->item[k].rule == rule)
 		return k;
 	}
     }

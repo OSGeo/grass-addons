@@ -20,7 +20,9 @@
 int read_rlegend(char *arg)
 {
     char buf[1024];
+
     char *key, *data, *mapset;
+
     double dimen;
 
     G_debug(1, "Reading rlegend settings ..");
@@ -45,45 +47,37 @@ int read_rlegend(char *arg)
     strncpy(PS.rl.legend.title, arg, TITLE_LEN);
 
     /* process options */
-    while (input(2, buf))
-    {
-	if (!key_data(buf, &key, &data))
-	{
+    while (input(2, buf)) {
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
-	if (KEY("title"))
-	{
+	if (KEY("title")) {
 	    G_strip(data);
 	    read_font(data, &(PS.rl.legend.title_font));
 	    continue;
 	}
-	if (KEY("font"))
-	{
+	if (KEY("font")) {
 	    G_strip(data);
 	    read_font(data, &(PS.rl.legend.font));
 	    continue;
 	}
-	if (KEY("frame"))
-	{
+	if (KEY("frame")) {
 	    read_frame(&(PS.rl.legend.box));
 	    continue;
 	}
-    if (KEY("swidth"))
-	{
-	    if (scan_dimen(data, &(PS.rl.legend.width)) != 1)
-	    {
+	if (KEY("swidth")) {
+	    if (scan_dimen(data, &(PS.rl.legend.width)) != 1) {
 		PS.rl.legend.width = -1.;
 		error(key, data, "illegal width request (rlegend)");
 	    }
 	    continue;
 	}
-	if (KEY("cols"))
-	{
+	if (KEY("cols")) {
 	    int n;
 
-	    n = sscanf(data, "%d %lf", &(PS.rl.legend.cols), &(PS.rl.legend.xspan));
-	    if (n == 1 || n == 2)
-	    {
+	    n = sscanf(data, "%d %lf", &(PS.rl.legend.cols),
+		       &(PS.rl.legend.xspan));
+	    if (n == 1 || n == 2) {
 		if (PS.rl.legend.cols < 0)
 		    PS.rl.legend.cols = 1;
 		if (n == 1)
@@ -93,20 +87,16 @@ int read_rlegend(char *arg)
 		error(key, data, "illegal cols/span request (rlegend)");
 	    continue;
 	}
-	if (KEY("height"))
-	{
-	    if (scan_dimen(data, &(PS.rl.height)) != 1)
-	    {
+	if (KEY("height")) {
+	    if (scan_dimen(data, &(PS.rl.height)) != 1) {
 		error(key, data, "illegal height request (rlegend)");
 	    }
 	    continue;
 	}
-	if (KEY("raster"))
-	{
+	if (KEY("raster")) {
 	    G_strip(data);
 	    mapset = G_find_file("cell", data, "");
-	    if (PS.rl.mapset == NULL)
-	    {
+	    if (PS.rl.mapset == NULL) {
 		PS.rl.name[0] = 0;
 		error(key, data, "illegal raster request (rlegend)");
 	    }
@@ -114,20 +104,16 @@ int read_rlegend(char *arg)
 	    strcpy(PS.rl.mapset, mapset);
 	    continue;
 	}
-	if (KEY("range"))
-	{
-	    if (sscanf(data, "%lf %lf", &(PS.rl.min), &(PS.rl.max)) != 2)
-	    {
+	if (KEY("range")) {
+	    if (sscanf(data, "%lf %lf", &(PS.rl.min), &(PS.rl.max)) != 2) {
 		PS.rl.custom_range = FALSE;
 		error(key, data, "illegal range request (rlegend)");
 	    }
-	    else
-	    {
+	    else {
 		double tmpD;
 
 		PS.rl.custom_range = TRUE;
-		if (PS.rl.min > PS.rl.max)
-		{
+		if (PS.rl.min > PS.rl.max) {
 		    tmpD = PS.rl.min;
 		    PS.rl.min = PS.rl.max;
 		    PS.rl.max = tmpD;
@@ -135,36 +121,29 @@ int read_rlegend(char *arg)
 		continue;
 	    }
 	}
-	if (KEY("nodata"))
-	{
+	if (KEY("nodata")) {
 	    PS.rl.do_nodata = scan_yesno(key, data);
 	    continue;
 	}
-	if (KEY("gradient"))
-	{
+	if (KEY("gradient")) {
 	    PS.rl.do_gradient = scan_yesno(key, data);
 	    continue;
 	}
-	if (KEY("tick"))
-	{
-	    if (scan_dimen(data, &dimen) != 1)
-	    {
+	if (KEY("tick")) {
+	    if (scan_dimen(data, &dimen) != 1) {
 		error(key, data, "illegal tickbar request (rlegend)");
 	    }
 	    PS.rl.tickbar = (int)(dimen);
 	    continue;
 	}
-	if (KEY("whiteframe"))
-	{
-	    if (scan_dimen(data, &dimen) != 1)
-	    {
+	if (KEY("whiteframe")) {
+	    if (scan_dimen(data, &dimen) != 1) {
 		error(key, data, "illegal whiteframe request (rlegend)");
 	    }
 	    PS.rl.whiteframe = (int)(dimen);
 	    continue;
 	}
-	if (KEY("order"))
-	{
+	if (KEY("order")) {
 	    G_strip(data);
 	    strncpy(PS.rl.cat_order, data, MAX_CATS);
 	    //            PS.rl.cat_order[510] = 0;
@@ -174,8 +153,7 @@ int read_rlegend(char *arg)
     }
 
     /* end check */
-    if (!PS.rl.name)
-    {
+    if (!PS.rl.name) {
 	PS.do_rlegend = 0;
 	error(key, data, "rlegend need 'raster' option sub-request");
     }

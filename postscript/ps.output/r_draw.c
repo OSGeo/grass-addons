@@ -22,25 +22,23 @@
 int read_draw(char *name)
 {
     char buf[1024];
+
     char *key, *data;
+
     int type = 0;
 
     G_debug(1, "Reading draw settings ..");
 
     if (strcmp(name, "free") == 0)
 	type = 1;
-    else
-    if (strcmp(name, "paper") == 0)
-        type = 2;
-    else
-    if (strcmp(name, "legend") == 0)
-        type = 3;
+    else if (strcmp(name, "paper") == 0)
+	type = 2;
+    else if (strcmp(name, "legend") == 0)
+	type = 3;
 
     /* process options */
-    while (input(2, buf))
-    {
-	if (!key_data(buf, &key, &data))
-	{
+    while (input(2, buf)) {
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
 

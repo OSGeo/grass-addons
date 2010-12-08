@@ -79,13 +79,14 @@ int scan_yesno(char *key, char *data)
 int scan_color(char *data, PSCOLOR * color)
 {
     int ret;
+
     char name[20];
+
     double alpha;
 
     ret = sscanf(data, "%[^$]$%lf", name, &alpha);
 
-    if (set_color_name(color, name))
-    {
+    if (set_color_name(color, name)) {
 	color->a = (ret == 2) ? alpha : 1.;
 	return 1;
     }
@@ -97,20 +98,19 @@ int scan_color(char *data, PSCOLOR * color)
 int scan_dimen(char *data, double *d)
 {
     int ret;
+
     char unit = ' ';
 
     ret = sscanf(data, "%lf%c", d, &unit);
 
     if (ret == 1)
 	unit = ' ';
-    else if (ret != 2)
-    {
+    else if (ret != 2) {
 	*d = 0.;
 	return 0;
     }
 
-    switch (unit)
-    {
+    switch (unit) {
 	/* metric to points */
     case 'i':
 	*d *= INCH_TO_POINT;
@@ -133,14 +133,14 @@ int scan_dimen(char *data, double *d)
 int scan_second(char *data, double *d)
 {
     int ret;
+
     char unit = ' ';
 
     ret = sscanf(data, "%lf%c", d, &unit);
 
     if (ret == 1)
 	unit = ' ';
-    else if (ret != 2 || *d < 0.)
-    {
+    else if (ret != 2 || *d < 0.) {
 	*d = 0.;
 	return 0;
     }

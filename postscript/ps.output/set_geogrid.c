@@ -34,7 +34,9 @@ int set_lines_geogrid(void)
 int set_geogrid_lines(PSLINE * line, int grid_sep)
 {
     double sep, n_min, nmin, e_min, emin;
+
     double e, n, east, west, north, south;
+
     struct pj_info ll_proj, proj;
 
     if (PS.geogrid.sep <= 0 || PS.geogrid.line.color.none)
@@ -53,10 +55,8 @@ int set_geogrid_lines(PSLINE * line, int grid_sep)
     e_min = ceil(east / sep) * sep;
 
     /* latitude lines */
-    for (nmin = n_min; nmin >= south; nmin -= sep)
-    {
-	for (emin = e_min; emin >= west; emin -= sep)
-	{
+    for (nmin = n_min; nmin >= south; nmin -= sep) {
+	for (emin = e_min; emin >= west; emin -= sep) {
 	    e = emin;
 	    n = nmin;
 	    pj_do_proj(&e, &n, &ll_proj, &proj);	/* LL to PROJ */
@@ -69,10 +69,8 @@ int set_geogrid_lines(PSLINE * line, int grid_sep)
 	}
     }
     /* longitude lines */
-    for (emin = e_min; emin >= west; emin -= sep)
-    {
-	for (nmin = n_min; nmin >= south; nmin -= sep)
-	{
+    for (emin = e_min; emin >= west; emin -= sep) {
+	for (nmin = n_min; nmin >= south; nmin -= sep) {
 	    e = emin;
 	    n = nmin;
 	    pj_do_proj(&e, &n, &ll_proj, &proj);
@@ -94,10 +92,15 @@ int set_geogrid_lines(PSLINE * line, int grid_sep)
 int set_numbers_geogrid(void)
 {
     char label[50];
+
     int i, x, y;
+
     double dx, dy;
+
     double grid_sep, nmin, emin, dif;
+
     double e, n, east, west, north, south;
+
     struct pj_info ll_proj, proj;
 
     if (PS.geogrid.sep <= 0)
@@ -115,8 +118,7 @@ int set_numbers_geogrid(void)
     /* vertical-right numbers */
     fprintf(PS.fp, "/GRR [\n");
     nmin = floor(north / grid_sep) * grid_sep;
-    for (; nmin > south; nmin -= grid_sep)
-    {
+    for (; nmin > south; nmin -= grid_sep) {
 	e = east;
 	n = nmin;
 	pj_do_proj(&e, &n, &ll_proj, &proj);
@@ -137,8 +139,7 @@ int set_numbers_geogrid(void)
     /* horizontal-bottom numbers */
     fprintf(PS.fp, "/GRB [\n");
     emin = floor(east / grid_sep) * grid_sep;
-    for (; emin > west; emin -= grid_sep)
-    {
+    for (; emin > west; emin -= grid_sep) {
 	n = south;
 	e = emin;
 	pj_do_proj(&e, &n, &ll_proj, &proj);
@@ -157,8 +158,7 @@ int set_numbers_geogrid(void)
     fprintf(PS.fp, "] def\n");
 
     /* select format */
-    switch (PS.geogrid.format)
-    {
+    switch (PS.geogrid.format) {
     case 0:
 	set_geogrid_inner_numbers();
 	break;
@@ -183,7 +183,9 @@ int set_geogrid_inner_numbers(void)
     if (PS.geogrid.fcolor.none)
 	fprintf(PS.fp, "SW .5 add neg .5 MR ");
     else
-	fprintf(PS.fp, "SWH m 2 mul add 1 index m 1 add add neg " "exch dup -2 div 0 exch MR Rf ++ neg m MR ");
+	fprintf(PS.fp,
+		"SWH m 2 mul add 1 index m 1 add add neg "
+		"exch dup -2 div 0 exch MR Rf ++ neg m MR ");
     set_ps_color(&(PS.geogrid.font.color));
     fprintf(PS.fp, "%s} for\n", (PS.geogrid.trim < 0 ? "COOR" : "SHL"));
 
@@ -193,9 +195,12 @@ int set_geogrid_inner_numbers(void)
     if (PS.geogrid.fcolor.none)
 	fprintf(PS.fp, "pop -.5 .5 MR ");
     else
-	fprintf(PS.fp, "SWH m 2 mul add exch m 1 add add 1 index -2 div 0 MR " "1 index exch Rf m sub 1 MR ");
+	fprintf(PS.fp,
+		"SWH m 2 mul add exch m 1 add add 1 index -2 div 0 MR "
+		"1 index exch Rf m sub 1 MR ");
     set_ps_color(&(PS.geogrid.font.color));
-    fprintf(PS.fp, "GS 90 ROT %s GR} for\n", (PS.geogrid.trim < 0 ? "COOR" : "SHL"));
+    fprintf(PS.fp, "GS 90 ROT %s GR} for\n",
+	    (PS.geogrid.trim < 0 ? "COOR" : "SHL"));
 
     fprintf(PS.fp, "GR\n");
     return 0;
@@ -210,12 +215,14 @@ int set_geogrid_outer_numbers(void)
     /* vertical numbers */
     fprintf(PS.fp,
 	    "0 1 GRR length -- {GRR exch GET M dup "
-	    "SW 2 div %.2f exch MR GS 270 ROT %s GR} for ", PS.brd.width + 1., (PS.geogrid.trim < 0 ? "COOR" : "SHL"));
+	    "SW 2 div %.2f exch MR GS 270 ROT %s GR} for ", PS.brd.width + 1.,
+	    (PS.geogrid.trim < 0 ? "COOR" : "SHL"));
 
     /* horizontal numbers */
     fprintf(PS.fp,
 	    "0 1 GRB length -- {GRB exch GET M dup "
-	    "SWH %.2f add neg exch -2 div exch MR %s} for ", PS.brd.width + 1., (PS.geogrid.trim < 0 ? "COOR" : "SHL"));
+	    "SWH %.2f add neg exch -2 div exch MR %s} for ",
+	    PS.brd.width + 1., (PS.geogrid.trim < 0 ? "COOR" : "SHL"));
 
     fprintf(PS.fp, "GR\n");
     return 0;

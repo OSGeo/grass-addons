@@ -26,21 +26,18 @@ int set_color_name(PSCOLOR * color, char *name)
 {
     int R, G, B;
 
-    if (*name == 0 || strcmp(name, "none") == 0)
-    {
-        unset_color(color);
-        return 1;
+    if (*name == 0 || strcmp(name, "none") == 0) {
+	unset_color(color);
+	return 1;
     }
     /* standard GRASS colors */
-    if (G_str_to_color(name, &R, &G, &B) == 1)
-    {
-        set_color_rgb(color, R, G, B);
-        return 1;
+    if (G_str_to_color(name, &R, &G, &B) == 1) {
+	set_color_rgb(color, R, G, B);
+	return 1;
     }
     /* PS3 palette colors */
-    if (PS_str_to_color(name, color) == 1)
-    {
-        return 1;
+    if (PS_str_to_color(name, color) == 1) {
+	return 1;
     }
     unset_color(color);
     return 0;
@@ -91,8 +88,7 @@ int long_to_color(long ln, PSCOLOR * color)
 
 int set_ps_color(PSCOLOR * color)
 {
-    if (!color->none)
-    {
+    if (!color->none) {
 	fprintf(PS.fp, "%.3f %.3f %.3f C ", color->r, color->g, color->b);
 
 	if ((PS.flag & 1) && color->a > 0.)
@@ -103,8 +99,7 @@ int set_ps_color(PSCOLOR * color)
 
 int set_ps_grey(PSCOLOR * color)
 {
-    if (!color->none)
-    {
+    if (!color->none) {
 	fprintf(PS.fp, "%.3f %.3f %.3f CG ", color->r, color->g, color->b);
 
 	if ((PS.flag & 1) && color->a > 0.)

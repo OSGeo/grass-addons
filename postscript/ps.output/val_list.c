@@ -14,7 +14,9 @@
 int sort_list(char *order, int items, CELL ** item)
 {
     int i, j, k, count, tmp;
+
     CELL *ip, val;
+
     DCELL *vlist;
 
     /* initial order */
@@ -23,16 +25,11 @@ int sort_list(char *order, int items, CELL ** item)
 	ip[i] = i;
 
     /* if any to order */
-    if (order[0] != 0 && (count = parse_val_list(order, &vlist)) > 0)
-    {
-	for (i = 0, j = 0; j < count; j += 2)
-	{
-	    for (val = vlist[j]; val <= vlist[j + 1]; val++)
-	    {
-		for (k = i; k < items; k++)
-		{
-		    if ((*item)[k] == val)
-		    {
+    if (order[0] != 0 && (count = parse_val_list(order, &vlist)) > 0) {
+	for (i = 0, j = 0; j < count; j += 2) {
+	    for (val = vlist[j]; val <= vlist[j + 1]; val++) {
+		for (k = i; k < items; k++) {
+		    if ((*item)[k] == val) {
 			tmp = ip[k];
 			ip[k] = ip[i];
 			ip[i] = tmp;
@@ -76,21 +73,19 @@ int sort_list(char *order, int items, CELL ** item)
 int parse_val_list(char *buf, DCELL ** list)
 {
     int count;
+
     DCELL a, b;
+
     DCELL *lp;
 
     count = 0;
     lp = (DCELL *) G_malloc(sizeof(DCELL));
-    while (*buf)
-    {
-	while (*buf == ' ' || *buf == '\t' || *buf == ',' || *buf == '\n')
-	{
+    while (*buf) {
+	while (*buf == ' ' || *buf == '\t' || *buf == ',' || *buf == '\n') {
 	    buf++;
 	}
-	if (sscanf(buf, "%lf-%lf", &a, &b) == 2)
-	{
-	    if (a > b)
-	    {
+	if (sscanf(buf, "%lf-%lf", &a, &b) == 2) {
+	    if (a > b) {
 		DCELL t;
 
 		t = a;
@@ -101,14 +96,12 @@ int parse_val_list(char *buf, DCELL ** list)
 	    lp[count++] = a;
 	    lp[count++] = b;
 	}
-	else if (sscanf(buf, "%lf", &a) == 1)
-	{
+	else if (sscanf(buf, "%lf", &a) == 1) {
 	    lp = (DCELL *) G_realloc(lp, (count + 2) * sizeof(DCELL));
 	    lp[count++] = a;
 	    lp[count++] = a;
 	}
-	else
-	{
+	else {
 	    G_free(lp);
 	    return -1;
 	}

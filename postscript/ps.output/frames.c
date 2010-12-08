@@ -18,8 +18,7 @@ void set_box_orig(PSFRAME * box)
 {
     double x, y;
 
-    if (box->x <= 0.0)
-    {
+    if (box->x <= 0.0) {
 	box->x = PS.map_x - PS.map_w * (box->x / 100.);
     }
     /*
@@ -27,12 +26,10 @@ void set_box_orig(PSFRAME * box)
        box->x = 0 + box->x;
        }
      */
-    if (box->y <= 0.0)
-    {
+    if (box->y <= 0.0) {
 	box->y = PS.map_y - PS.map_h * (box->y / 100.);
     }
-    else
-    {
+    else {
 	box->y = PS.page.height - box->y;
     }
 }
@@ -46,15 +43,13 @@ void set_box_size(PSFRAME * box, double width, double height)
     fprintf(PS.fp, "/mg %.4f def\n", box->margin);
 
     /* Height "hg" and content height "chg" */
-    if (height > 0.)
-    {
+    if (height > 0.) {
 	fprintf(PS.fp, "/hg %.4f def\n", height);	/* height */
 	fprintf(PS.fp, "/chg hg mg 2 mul sub def\n");	/* content height */
     }
 
     /* Width "wd" and content width "cwd" */
-    if (width > 0.)
-    {
+    if (width > 0.) {
 	fprintf(PS.fp, "/wd %.4f def\n", width);	/* width */
 	fprintf(PS.fp, "/cwd wd mg 2 mul sub def\n");	/* content width */
     }
@@ -79,14 +74,12 @@ void set_box_draw(PSFRAME * box)
 	fprintf(PS.fp, "/yo %.4f def\n", box->y + box->yset);
 
     /* Make color background, if set */
-    if (!box->fcolor.none)
-    {
+    if (!box->fcolor.none) {
 	set_ps_color(&(box->fcolor));
 	fprintf(PS.fp, "xo yo wd hg neg RF\n");
     }
     /* Draw the border, if set */
-    if (box->border > 0.)
-    {
+    if (box->border > 0.) {
 	set_ps_color(&(box->color));
 	fprintf(PS.fp, "%.4f LW xo yo wd hg neg RO\n", box->border);
     }
@@ -109,7 +102,7 @@ void set_box_auto(PSFRAME * box, PSFONT * font, double factor)
 
     /* Height "hg", content height "chg", and interline "dy" */
     fprintf(PS.fp, "/dy %.4f def\n", factor * font->size);	/* standard row sep */
-    fprintf(PS.fp, "/chg dy neg ARh {add dy add} forall def\n"); /* content height */
+    fprintf(PS.fp, "/chg dy neg ARh {add dy add} forall def\n");	/* content height */
     fprintf(PS.fp, "/hg chg mg 2 mul add def\n");	/* height */
 
     /* Width "wd", content width "cwd", and intercolum "dx" */
@@ -122,28 +115,24 @@ void set_box_auto(PSFRAME * box, PSFONT * font, double factor)
 /* Readjust the size of a box with new margins */
 void set_inner_readjust(double left, double top, double width, double height)
 {
-    if (left > 0.)
-    {
+    if (left > 0.) {
 	if (width >= 0.)
 	    width += left;
 	else
 	    width = left;
 	fprintf(PS.fp, "/mgx mg %.4f add def\n", left);
     }
-    if (top > 0.)
-    {
+    if (top > 0.) {
 	if (height >= 0.)
 	    height += top;
 	else
 	    height = top;
 	fprintf(PS.fp, "/mgy mg %.4f add def\n", top);
     }
-    if (height > 0.)
-    {
+    if (height > 0.) {
 	fprintf(PS.fp, "/hg hg %.4f add def\n", height);
     }
-    if (width > 0.)
-    {
+    if (width > 0.) {
 	fprintf(PS.fp, "/wd wd %.4f add def\n", width);
     }
 }

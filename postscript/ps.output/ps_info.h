@@ -82,8 +82,10 @@ struct PS3_info
 
 #ifdef MAIN
 struct PS3_info PS;
+
 int sec_draw;			/* used in PS_plot */
 #else
 extern struct PS3_info PS;
+
 extern int sec_draw;
 #endif

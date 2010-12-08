@@ -16,13 +16,12 @@
 
 double set_ps_font_nocolor(PSFONT * font)
 {
-    if (font->extend == 1. || font->extend <= 0.)
-    {
+    if (font->extend == 1. || font->extend <= 0.) {
 	fprintf(PS.fp, "(%s) FN %.1f FS\n", font->name, font->size);
     }
-    else
-    {
-	fprintf(PS.fp, "(%s) FN %.1f %.2f FE\n", font->name, font->size, font->extend);
+    else {
+	fprintf(PS.fp, "(%s) FN %.1f %.2f FE\n", font->name, font->size,
+		font->extend);
     }
     return font->size;
 }

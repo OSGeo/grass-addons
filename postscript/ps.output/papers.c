@@ -63,10 +63,8 @@ int set_paper(char *name)
 {
     register int i;
 
-    for (i = 0; papers[i].name != NULL; i++)
-    {
-	if (strcmp(papers[i].name, name) == 0)
-	{
+    for (i = 0; papers[i].name != NULL; i++) {
+	if (strcmp(papers[i].name, name) == 0) {
 	    PS.page.width = papers[i].width;
 	    PS.page.height = papers[i].height;
 	    PS.page.left = papers[i].left;

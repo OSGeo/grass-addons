@@ -22,22 +22,25 @@
 int set_vlabels(VECTOR * vec, VLABELS * vx)
 {
     int ret, cat;
+
     int x, y, pt, npoints;
+
     struct line_cats *lcats;
+
     struct line_pnts *lpoints;
 
     npoints = Vect_get_num_lines(&(vec->Map));
 
     /* Create vector array, if required */
-    if (vec->cats != NULL)
-    {
+    if (vec->cats != NULL) {
 	vec->Varray = Vect_new_varray(npoints);
-        Vect_set_varray_from_cat_string(&(vec->Map), vec->layer, vec->cats, vx->type, 1, vec->Varray);
+	Vect_set_varray_from_cat_string(&(vec->Map), vec->layer, vec->cats,
+					vx->type, 1, vec->Varray);
     }
-    else if (vec->where != NULL)
-    {
+    else if (vec->where != NULL) {
 	vec->Varray = Vect_new_varray(npoints);
-        Vect_set_varray_from_db(&(vec->Map), vec->layer, vec->where, vx->type, 1, vec->Varray);
+	Vect_set_varray_from_db(&(vec->Map), vec->layer, vec->where, vx->type,
+				1, vec->Varray);
     }
     else
 	vec->Varray = NULL;
@@ -49,9 +52,8 @@ int set_vlabels(VECTOR * vec, VLABELS * vx)
     /* load attributes if any */
     dbCatValArray cv_label;
 
-    if (vx->labelcol != NULL)
-    {
-        load_catval_array(&(vec->Map), vx->labelcol, &cv_label);
+    if (vx->labelcol != NULL) {
+	load_catval_array(&(vec->Map), vx->labelcol, &cv_label);
     }
     else
 	return 0;
@@ -60,12 +62,11 @@ int set_vlabels(VECTOR * vec, VLABELS * vx)
     set_ps_font(&(vx->font));
 
     /* read and plot lines */
-    for (pt = 1; pt <= npoints; pt++)
-    {
+    for (pt = 1; pt <= npoints; pt++) {
 	ret = Vect_read_line(&(vec->Map), lpoints, lcats, pt);
 	if (ret < 0)
 	    continue;
-        if (!(ret & GV_POINTS) || !(ret & vx->type))
+	if (!(ret & GV_POINTS) || !(ret & vx->type))
 	    continue;
 	if (vec->Varray != NULL && vec->Varray->c[pt] == 0)
 	    continue;
@@ -73,19 +74,19 @@ int set_vlabels(VECTOR * vec, VLABELS * vx)
 	G_plot_where_xy(lpoints->x[0], lpoints->y[0], &x, &y);
 	PS.x = (double)x / 10.;
 	PS.y = (double)y / 10.;
-	if (PS.x < PS.map_x || PS.x > PS.map_right || PS.y < PS.map_y || PS.y > PS.map_top)
+	if (PS.x < PS.map_x || PS.x > PS.map_right || PS.y < PS.map_y ||
+	    PS.y > PS.map_top)
 	    continue;
 	/* Oops the point is correct, I can draw it */
 	Vect_cat_get(lcats, 1, &cat);
 
-        fprintf(PS.fp, "%.4f %.4f M (%s) ",
-                PS.x, PS.y, get_string(&cv_label, cat, vx->decimals));
+	fprintf(PS.fp, "%.4f %.4f M (%s) ",
+		PS.x, PS.y, get_string(&cv_label, cat, vx->decimals));
 
 	/* Draw text with a style */
-        if (vx->style != 0)
-        {
-            fprintf(PS.fp, "GS %.2f LW [] 0 LD dup TCIR GR\n", vx->style);
-        }
+	if (vx->style != 0) {
+	    fprintf(PS.fp, "GS %.2f LW [] 0 LD dup TCIR GR\n", vx->style);
+	}
 	fprintf(PS.fp, "SHCC ");
     }
     fprintf(PS.fp, "GR\n");

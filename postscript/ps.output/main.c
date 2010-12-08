@@ -31,8 +31,11 @@ FILE *inputfd;
 int main(int argc, char *argv[])
 {
     struct Option *input_file;
+
     struct Option *output_file;
+
     struct GModule *module;
+
     struct Flag *draft, *eps, *ghost, *style;
 
     G_gisinit(argv[0]);
@@ -58,19 +61,23 @@ int main(int argc, char *argv[])
 
     draft = G_define_flag();
     draft->key = 'd';
-    draft->description = _("draft: Draw a 1x1 cm grid on paper to help the placement of the elements of the map");
+    draft->description =
+	_("draft: Draw a 1x1 cm grid on paper to help the placement of the elements of the map");
 
     eps = G_define_flag();
     eps->key = 'e';
-    eps->description = _("eps: Create output as EPS file for embedding into another ps.out map");
+    eps->description =
+	_("eps: Create output as EPS file for embedding into another ps.out map");
 
     ghost = G_define_flag();
     ghost->key = 'g';
-    ghost->description = _("ghostscript: Use the extended PostScript of Ghostscript (for transparent colors)");
+    ghost->description =
+	_("ghostscript: Use the extended PostScript of Ghostscript (for transparent colors)");
 
     style = G_define_flag();
     style->key = 's';
-    style->description = _("special: Draw the small digit in the coordinate numbers to lower instead upper position");
+    style->description =
+	_("special: Draw the small digit in the coordinate numbers to lower instead upper position");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -83,13 +90,12 @@ int main(int argc, char *argv[])
     if (!isatty(0))
 	G_disable_interactive();
 
-    if (output_file->answer)
-    {
+    if (output_file->answer) {
 	if ((PS.fp = fopen(output_file->answer, "w")) == NULL)
-	    G_fatal_error("%s - %s: %s", G_program_name(), output_file->answer, strerror(errno));
+	    G_fatal_error("%s - %s: %s", G_program_name(),
+			  output_file->answer, strerror(errno));
     }
-    else
-    {
+    else {
 	G_message(_("\nERROR: Required parameter <%s> not set:\n    (%s).\n"),
 		  output_file->key, output_file->description);
 	exit(EXIT_FAILURE);
@@ -137,57 +143,48 @@ int main(int argc, char *argv[])
 
     /* process options */
     char buf[1024];
+
     double number;
 
-    while (input(1, buf))
-    {
+    while (input(1, buf)) {
 	char *key;
+
 	char *data;
 
-	if (!key_data(buf, &key, &data))
-	{
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
 	/* General information */
-	if (KEY("paper"))
-	{
+	if (KEY("paper")) {
 	    read_paper(data);
 	    continue;
 	}
-	if (KEY("palette"))
-	{
+	if (KEY("palette")) {
 	    read_palette();
 	    continue;
 	}
-	if (KEY("maparea"))
-	{
+	if (KEY("maparea")) {
 	    read_maparea();
 	    continue;
 	}
-	if (KEY("scale"))
-	{
-	    if (sscanf(data, "1:%d", &(PS.scale)) != 1)
-	    {
+	if (KEY("scale")) {
+	    if (sscanf(data, "1:%d", &(PS.scale)) != 1) {
 		error(key, data, "illegal scale request");
 	    }
 	    continue;
 	}
 
 	/* Raster map related information */
-	if (KEY("cell") || KEY("rast") || KEY("raster") || KEY("rgb"))
-	{
-	    if (PS.rst.files != 0)
-	    {
+	if (KEY("cell") || KEY("rast") || KEY("raster") || KEY("rgb")) {
+	    if (PS.rst.files != 0) {
 		error(key, data, "only one raster command");
 		continue;
 	    }
 	    read_raster(data);
 	    continue;
 	}
-	if (KEY("rlegend"))
-	{
-	    if (PS.do_rlegend != 0)
-	    {
+	if (KEY("rlegend")) {
+	    if (PS.do_rlegend != 0) {
 		error(key, data, "only one rlegend command");
 	    }
 	    read_rlegend(data);
@@ -195,50 +192,40 @@ int main(int argc, char *argv[])
 	}
 
 	/* Vector map related information */
-	if (KEY("vlines") || KEY("vline"))
-	{
+	if (KEY("vlines") || KEY("vline")) {
 	    G_strip(data);
-	    if (*data == 0)
-	    {
+	    if (*data == 0) {
 		error(key, data, "vlines need vector map");
 	    }
 	    read_vlines(data);
 	    continue;
 	}
-	if (KEY("vareas") || KEY("varea"))
-	{
+	if (KEY("vareas") || KEY("varea")) {
 	    G_strip(data);
-	    if (*data == 0)
-	    {
+	    if (*data == 0) {
 		error(key, data, "vareas need vector map");
 	    }
 	    read_vareas(data);
 	    continue;
 	}
-	if (KEY("vpoints") || KEY("vpoint"))
-	{
+	if (KEY("vpoints") || KEY("vpoint")) {
 	    G_strip(data);
-	    if (*data == 0)
-	    {
+	    if (*data == 0) {
 		error(key, data, "vpoints need vector map");
 	    }
 	    read_vpoints(data);
 	    continue;
 	}
-	if (KEY("vlabels") || KEY("vlabel"))
-	{
+	if (KEY("vlabels") || KEY("vlabel")) {
 	    G_strip(data);
-	    if (*data == 0)
-	    {
+	    if (*data == 0) {
 		error(key, data, "vlabels need vector map");
 	    }
 	    read_vlabels(data);
 	    continue;
 	}
-	if (KEY("vlegend"))
-	{
-	    if (PS.do_vlegend != 0)
-	    {
+	if (KEY("vlegend")) {
+	    if (PS.do_vlegend != 0) {
 		error(key, data, "only one vlegend command");
 	    }
 	    read_vlegend(data);
@@ -246,29 +233,25 @@ int main(int argc, char *argv[])
 	}
 
 	/* Grid and scalebar related */
-	if (KEY("grid"))
-	{
+	if (KEY("grid")) {
 	    read_grid(&(PS.grid), 1);
 	    continue;
 	}
-	if (KEY("geogrid"))
-	{
-	    if (G_projection() == PROJECTION_XY)
-	    {
-		error(key, data, "geogrid is not available for XY projection");
+	if (KEY("geogrid")) {
+	    if (G_projection() == PROJECTION_XY) {
+		error(key, data,
+		      "geogrid is not available for XY projection");
 	    }
-	    else if (G_projection() == PROJECTION_LL)
-	    {
+	    else if (G_projection() == PROJECTION_LL) {
 		error(key, data, "grid just uses LL projection");
 	    }
 	    read_grid(&(PS.geogrid), 0);
 	    continue;
 	}
-	if (KEY("scalebar"))
-	{
-	    if (G_projection() == PROJECTION_LL)
-	    {
-		error(key, data, "scalebar is not appropriate for this projection");
+	if (KEY("scalebar")) {
+	    if (G_projection() == PROJECTION_LL) {
+		error(key, data,
+		      "scalebar is not appropriate for this projection");
 	    }
 	    if (sscanf(data, "%c", &(PS.sbar.type)) != 1)
 		PS.sbar.type = 'I';	/* default new style scalebar */
@@ -277,20 +260,16 @@ int main(int argc, char *argv[])
 	}
 
 	/* Addons related data */
-	if (KEY("note"))
-	{
-	    if (PS.n_notes >= MAX_NOTES)
-	    {
+	if (KEY("note")) {
+	    if (PS.n_notes >= MAX_NOTES) {
 		G_warning("Only %d notes by map", MAX_NOTES);
 		continue;
 	    }
 	    read_note(data);
 	    continue;
 	}
-	if (KEY("draw"))
-	{
-	    if (PS.n_draws >= MAX_DRAWS)
-	    {
+	if (KEY("draw")) {
+	    if (PS.n_draws >= MAX_DRAWS) {
 		G_warning("Only %d draw commands by map", MAX_DRAWS);
 		continue;
 	    }
@@ -303,8 +282,7 @@ int main(int argc, char *argv[])
     }
 
     /* last minute adjust */
-    if (PS.grid.format >= 2)
-    {				/* IHO */
+    if (PS.grid.format >= 2) {	/* IHO */
 	PS.brd.width = 2. * MM_TO_POINT;	/* 12.7 */
     }
 

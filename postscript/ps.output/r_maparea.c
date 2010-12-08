@@ -21,7 +21,9 @@
 int read_maparea(void)
 {
     char buf[1024];
+
     char *key, *data;
+
     double point;
 
     G_debug(1, "Reading maparea settings ..");
@@ -30,70 +32,54 @@ int read_maparea(void)
     default_psline(&(PS.brd));
 
     /* process options */
-    while (input(2, buf))
-    {
-	if (!key_data(buf, &key, &data))
-	{
+    while (input(2, buf)) {
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
-	if (KEY("border"))
-	{
-	    if (scan_dimen(data, &(point)) != 1)
-	    {
+	if (KEY("border")) {
+	    if (scan_dimen(data, &(point)) != 1) {
 		error(key, data, "illegal border width request (maparea)");
 	    }
 	    PS.brd.width = point;
 	    PS.do_border = 1;
 	    continue;
 	}
-	if (KEY("color"))
-	{
-	    if (!scan_color(data, &(PS.brd.color)))
-	    {
+	if (KEY("color")) {
+	    if (!scan_color(data, &(PS.brd.color))) {
 		error(key, data, "illegal border color request (maparea)");
 	    }
 	    continue;
 	}
-	if (KEY("fcolor"))
-	{
-	    if (!scan_color(data, &(PS.fcolor)))
-	    {
+	if (KEY("fcolor")) {
+	    if (!scan_color(data, &(PS.fcolor))) {
 		error(key, data, "illegal fcolor request (maparea)");
 	    }
 	    continue;
 	}
-	if (KEY("width"))
-	{
-	    if (scan_dimen(data, &(point)) != 1)
-	    {
+	if (KEY("width")) {
+	    if (scan_dimen(data, &(point)) != 1) {
 		error(key, data, "illegal map width request (maparea)");
 	    }
 	    PS.map_w = point;
 	    continue;
 	}
-	if (KEY("height"))
-	{
-	    if (scan_dimen(data, &(point)) != 1)
-	    {
+	if (KEY("height")) {
+	    if (scan_dimen(data, &(point)) != 1) {
 		error(key, data, "illegal map height request (maparea)");
 	    }
 	    PS.map_h = point;
 	    continue;
 	}
-	if (KEY("top"))
-	{
-	    if (scan_dimen(data, &(point)) != 1)
-	    {
+	if (KEY("top")) {
+	    if (scan_dimen(data, &(point)) != 1) {
 		error(key, data, "illegal map top request (maparea)");
 	    }
 	    PS.map_top = point;
 	    continue;
 	    continue;
 	}
-	if (KEY("left"))
-	{
-	    if (scan_dimen(data, &(point)) != 1)
-	    {
+	if (KEY("left")) {
+	    if (scan_dimen(data, &(point)) != 1) {
 		error(key, data, "illegal map left request (maparea)");
 	    }
 	    PS.map_x = point;

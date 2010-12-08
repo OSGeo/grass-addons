@@ -36,6 +36,7 @@ int default_frame(PSFRAME * box, int refx, int refy)
 int read_frame(PSFRAME * box)
 {
     char buf[1024];
+
     char *key, *data;
 
     G_debug(1, "Reading frame settings ..");
@@ -45,22 +46,17 @@ int read_frame(PSFRAME * box)
 
 
     /* process options */
-    while (input(3, buf))
-    {
-	if (!key_data(buf, &key, &data))
-	{
+    while (input(3, buf)) {
+	if (!key_data(buf, &key, &data)) {
 	    continue;
 	}
-	if (KEY("where"))
-	{
+	if (KEY("where")) {
 	    char xx[50], yy[50];
 
-	    if (sscanf(data, "%s %s", xx, yy) != 2)
-	    {
+	    if (sscanf(data, "%s %s", xx, yy) != 2) {
 		error(key, data, "illegal box where request");
 	    }
-	    else
-	    {
+	    else {
 		if (scan_dimen(xx, &(box->x)) == 2)
 		    box->x *= -1;
 		if (scan_dimen(yy, &(box->y)) == 2)
@@ -68,58 +64,44 @@ int read_frame(PSFRAME * box)
 		continue;
 	    }
 	}
-	if (KEY("offset"))
-	{
-	    if (sscanf(data, "%lf %lf", &(box->xset), &(box->yset)) != 2)
-	    {
+	if (KEY("offset")) {
+	    if (sscanf(data, "%lf %lf", &(box->xset), &(box->yset)) != 2) {
 		error(key, data, "illegal box offset request");
 	    }
 	    continue;
 	}
-	if (KEY("ref"))
-	{
-	    if (!scan_ref(data, &(box->xref), &(box->yref)))
-	    {
+	if (KEY("ref")) {
+	    if (!scan_ref(data, &(box->xref), &(box->yref))) {
 		error(key, data, "illegal box ref request");
 	    }
 	    continue;
 	}
-	if (KEY("border"))
-	{
-	    if (scan_dimen(data, &(box->border)) != 1)
-	    {
+	if (KEY("border")) {
+	    if (scan_dimen(data, &(box->border)) != 1) {
 		box->border = -1;
 	    }
 	    continue;
 	}
-	if (KEY("color"))
-	{
-	    if (!scan_color(data, &(box->color)))
-	    {
+	if (KEY("color")) {
+	    if (!scan_color(data, &(box->color))) {
 		error(key, data, "illegal box color request");
 	    }
 	    continue;
 	}
-	if (KEY("fcolor"))
-	{
-	    if (!scan_color(data, &(box->fcolor)))
-	    {
+	if (KEY("fcolor")) {
+	    if (!scan_color(data, &(box->fcolor))) {
 		error(key, data, "illegal box fcolor request");
 	    }
 	    continue;
 	}
-	if (KEY("margin"))
-	{
-	    if (scan_dimen(data, &(box->margin)) != 1)
-	    {
+	if (KEY("margin")) {
+	    if (scan_dimen(data, &(box->margin)) != 1) {
 		error(key, data, "illegal box margin request");
 	    }
 	    continue;
 	}
-	if (KEY("rotate"))
-	{
-	    if (scan_dimen(data, &(box->rotate)) != 1)
-	    {
+	if (KEY("rotate")) {
+	    if (scan_dimen(data, &(box->rotate)) != 1) {
 		error(key, data, "illegal box rotate request");
 	    }
 	    continue;
