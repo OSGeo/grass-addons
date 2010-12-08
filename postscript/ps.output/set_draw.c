@@ -301,7 +301,7 @@ int set_draw(char *key, char *data)
 	int dg, mn;
 	double conv, sec;
 
-	if (sscanf(data, "%lf %lf %lf %lf", east, north, &d, &conv) != 4)
+	if (sscanf(data, "%lf %lf %lf %lf", &east, &north, &d, &conv) != 4)
 	{
 	    error(key, data, "compass: x, y, radius and magnetic declination");
 	}

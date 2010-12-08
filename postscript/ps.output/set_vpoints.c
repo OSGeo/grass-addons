@@ -114,7 +114,7 @@ int set_vpoints(VECTOR * vec, VPOINTS * vp)
 	}
 	else
 	{
-	    rotate = get_number(&rotcv, cat);
+	    get_number(&rotcv, cat, &rotate);
 	}
 	if (rotate > 0.)
 	    fprintf(PS.fp, "%.3f ROT ", rotate);
@@ -183,7 +183,7 @@ int set_vpoints_line(VECTOR * vec, VPOINTS * vp)
     }
     else
     {
-	size = get_number(&cv_size, cat);
+	get_number(&cv_size, cat, &size);
 	size *= vp->scale;
     }
     if (size > 0.)
@@ -195,7 +195,7 @@ int set_vpoints_line(VECTOR * vec, VPOINTS * vp)
     }
     else
     {
-	rotate = get_number(&cv_rot, cat);
+	get_number(&cv_rot, cat, &rotate);
     }
     if (rotate > 0.)
 	fprintf(PS.fp, "%.3f ROT ", rotate);

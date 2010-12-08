@@ -14,7 +14,7 @@
 #define DEF_FONT "Helvetica"
 
 /* cat_val.c */
-#ifdef DBMIN_H
+#ifdef GRASS_DBMI_H
 int load_catval_array(VECTOR *, const char *, dbCatValArray *);
 void get_number(dbCatValArray *, int, double *);
 char *get_string(dbCatValArray *, int, int);
@@ -70,7 +70,7 @@ int key_data(char *, char **, char **);
 int error(char *, char *, char *);
 
 /* legends.c */
-#ifdef _LEGENG_H_
+#ifdef _LEGEND_H_
 void set_legend_adjust(LEGEND *, double);
 #endif
 
@@ -85,6 +85,16 @@ int set_ps_line_no_color(PSLINE *);
 int load_group(char *);
 int load_cell(int, char *);
 int load_rgb(char *, char *, char *);
+
+/* palettes.c */
+#ifdef _PSCOLOR_H_
+int analogous(char *, PSCOLOR *, int, double);
+int complementary(char *, PSCOLOR *, int, double);
+int diverging(char *, PSCOLOR *, PSCOLOR *, int);
+int gradient(char *, PSCOLOR *, PSCOLOR *, int, int);
+int PS_str_to_color(char *, PSCOLOR *);
+#endif
+int pure_color(char *, int);
 
 /* paper.c */
 int set_paper(char *);
@@ -119,7 +129,7 @@ int read_frame(PSFRAME *);
 #endif
 
 /* r_grid.c */
-#ifdef _GRID_H_
+#ifdef _PSGRID_H_
 int read_grid(GRID *, int);
 #endif
 
@@ -135,6 +145,12 @@ int read_maparea(void);
 /* r_note.c */
 int read_note(char *);
 
+/* r_palette.c */
+#ifdef _PSCOLOR_H_
+int monochrome(char *, PSCOLOR *, int);
+#endif
+int read_palette(void);
+
 /* r_paper.c */
 int read_paper(char *);
 
@@ -144,8 +160,14 @@ int read_raster(char *);
 /* r_rlegend.c */
 int read_rlegend(char *);
 
+/* r_scalebar.c */
+int read_scalebar(void);
+
 /* r_vareas.c */
 int r_vareas(char *);
+
+/* read_vareas.c */
+int read_vareas(char *);
 
 /* r_vlabels.c */
 int read_vlabels(char *);
@@ -156,8 +178,14 @@ int read_vlegend(char *);
 /* r_vlines.c */
 int r_vlines(char *);
 
+/* reqad_vlines.c */
+int read_vlines(char *);
+
 /* r_vpoints.c */
 int r_vpoints(char *);
+
+/* read_vpoints.c */
+int read_vpoints(char *);
 
 /* raster.c */
 int raster_close(void);
@@ -178,6 +206,7 @@ int scan_color(char *, PSCOLOR *);
 
 /* set_draw.c */
 int set_draw(char *, char *);
+int set_on_paper(char *, char *, char *, char *);
 
 /* set_geogrid.c */
 int set_lines_geogrid(void);
@@ -212,6 +241,9 @@ int set_mask(void);
 /* set_note.c */
 int note_int_file(char *);
 int set_note(int);
+
+/* set_outline.c */
+int set_outline(void);
 
 /* set_ps.c */
 void set_ps_rect(double, double, double, double);
@@ -276,7 +308,9 @@ int start_map(void);
 /* symbol.c */
 #if defined GRASS_SYMB_H
 int draw_chain(SYMBCHAIN *, double);
+#ifdef _VPOINTS_H_
 int symbol_save(int, VPOINTS *, SYMBOL *);
+#endif
 #endif
 
 /* val_list.c */

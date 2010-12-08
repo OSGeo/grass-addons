@@ -12,7 +12,7 @@
 #include "vareas.h"
 #include "vpoints.h"
 #include "ps_info.h"
-
+#include "local_proto.h"
 
 
 void set_ps_rect(double x, double y, double w, double h)
@@ -109,7 +109,7 @@ int set_ps_pattern(int code, char *eps, VAREAS * va)
     if (llx == 0. && lly == 0. && urx == 0. && ury == 0.)
     {
 	fclose(fp);
-	error("ERROR:", "", "Bounding box in <%s> was not found\n", eps);
+	error(eps, "", "ERROR: Bounding box in <%s> was not found");
     }
 
     llx *= va->sc_pat;

@@ -50,7 +50,8 @@ int PS3_map(void)
 		"    currentdict F0 known {pop pop}\n"
 		"    {findfont dup length dict begin {1 index /FID ne {def} {pop pop} ifelse } forall\n"
 		"        /Encoding ISOLatin1Encoding def\n"
-		"        /FontName 0 index def\n" "        currentdict end definefont pop} ifelse} D\n");
+		"        /FontName 0 index def\n"
+		"        currentdict end definefont pop} ifelse} D\n");
 	fprintf(PS.fp, "/FS {/FS0 exch def F0 findfont FS0 scalefont setfont} D\n");
     fprintf(PS.fp, "/FE {F0 findfont 3 1 roll 1 index dup /FS0 exch def mul 0 0 4 -1 roll 0 0 6 packedarray makefont setfont} D\n");
 	fprintf(PS.fp, "/FA {currentfont [1 0 0 1.25 0 0] makefont setfont} D\n");
@@ -197,7 +198,7 @@ int PS3_map(void)
     /* CLIPED CUSTOM DRAWS */
     if (PS.n_draws > 0)
     {
-	/* fprintf(PS.fp, "0 0 0 C "); /* default color */
+	/* fprintf(PS.fp, "0 0 0 C "); // default color */
 	for (i = 0; i < PS.n_draws; i++)
 	{
 	    if (PS.draw.flag[i] == 0)
@@ -222,7 +223,7 @@ int PS3_map(void)
     /* CLIPED CUSTOM DRAWS ONTO ALL MAP ITEMS */
     if (PS.n_draws > 0)
     {
-        /* fprintf(PS.fp, "0 0 0 C "); /* default color */
+        /* fprintf(PS.fp, "0 0 0 C "); // default color */
         for (i = 0; i < PS.n_draws; i++)
         {
             if (PS.draw.flag[i] == 3)
