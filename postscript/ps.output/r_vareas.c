@@ -21,11 +21,8 @@
 int read_vareas(char *name)
 {
     int i;
-
     char buf[1024];
-
     char *key, *data, *mapset;
-
     VAREAS *vector = NULL;
 
     G_debug(1, "Reading vareas settings ..");
@@ -83,7 +80,6 @@ int read_vareas(char *name)
 	}
 	if (KEY("fcolor")) {
 	    char stra[50], strb[50];
-
 	    int ret = sscanf(data, "%s %[^\n]", stra, strb);
 
 	    if (ret == 1 || ret == 2) {
@@ -165,7 +161,6 @@ int read_vareas(char *name)
 	}
 	if (KEY("setrule")) {
 	    double val;
-
 	    char str[128], catsbuf[128], labelbuf[128];
 
 	    if (sscanf(data, "%s %[^\n]", str, labelbuf) > 0) {

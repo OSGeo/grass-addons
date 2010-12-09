@@ -46,13 +46,9 @@ int vector_area(struct line_pnts *lpoints, double sep)
 int set_vareas(VECTOR * vec, VAREAS * va)
 {
     int k, ret, cat;
-
     int area, nareas, island, nislands, centroid;
-
     struct line_cats *lcats;
-
     struct line_pnts *lpoints;
-
     BOUND_BOX box;
 
     nareas = Vect_get_num_areas(&(vec->Map));
@@ -172,13 +168,9 @@ int set_vareas(VECTOR * vec, VAREAS * va)
 int set_vareas_line(VECTOR * vec, VAREAS * va)
 {
     int ret, cat;
-
     int ln, nlines, pt, npoints;
-
     double width;
-
     struct line_cats *lcats;
-
     struct line_pnts *lpoints;
 
 

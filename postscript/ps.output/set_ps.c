@@ -42,7 +42,6 @@ void set_ps_brd2(double lwidth, double margin)
 int set_ps_where(char action, double east, double north)
 {
     int x, y;
-
     double dx, dy;
 
     G_plot_where_xy(east, north, &x, &y);
@@ -60,7 +59,6 @@ int set_ps_where(char action, double east, double north)
 int set_xy_where(char *pre, double east, double north, char *post)
 {
     int x, y;
-
     double dx, dy;
 
     G_plot_where_xy(east, north, &x, &y);
@@ -75,7 +73,6 @@ int set_xy_where(char *pre, double east, double north, char *post)
 int is_xy_outside(double east, double north)
 {
     int x, y;
-
     double dx, dy;
 
     G_plot_where_xy(east, north, &x, &y);
@@ -96,11 +93,8 @@ int is_xy_outside(double east, double north)
 int set_ps_pattern(int code, char *eps, VAREAS * va)
 {
     FILE *fp;
-
     char buf[1024];
-
     int ret = 0;
-
     double llx, lly, urx, ury;
 
     if ((fp = fopen(eps, "r")) == NULL) {
@@ -155,7 +149,6 @@ int set_ps_pattern(int code, char *eps, VAREAS * va)
 int set_ps_symbol_eps(int code, char *eps)
 {
     FILE *fp;
-
     char buf[1024];
 
     if ((fp = fopen(eps, "r")) == NULL) {

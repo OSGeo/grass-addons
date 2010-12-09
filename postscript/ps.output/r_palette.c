@@ -26,13 +26,9 @@
 int read_palette(void)
 {
     char buf[1024];
-
     char *key, *data;
-
     int i;
-
     char name[50];
-
     PSCOLOR color, colorb;
 
     G_debug(1, "Reading palette settings ..");

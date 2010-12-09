@@ -19,7 +19,6 @@
 int read_vlegend(char *arg)
 {
     char buf[1024];
-
     char *key, *data;
 
 

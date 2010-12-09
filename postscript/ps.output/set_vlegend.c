@@ -195,7 +195,6 @@ int set_vlegend()
 void make_vareas(VECTOR * vec, int rows)
 {
     int i, item;
-
     VAREAS *va = (VAREAS *) vec->data;
 
     /* Set the title of the vector */
@@ -259,7 +258,6 @@ void make_vareas(VECTOR * vec, int rows)
 void make_vlines(VECTOR * vec, int rows)
 {
     int i, item;
-
     VLINES *vl = (VLINES *) vec->data;
 
     /* Set the title of the vector */
@@ -312,7 +310,6 @@ void make_vlines(VECTOR * vec, int rows)
 void make_vpoints(VECTOR * vec, int rows)
 {
     int i, item;
-
     VPOINTS *vp = (VPOINTS *) vec->data;
 
     /* Set the title of the vector */

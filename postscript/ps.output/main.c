@@ -31,11 +31,8 @@ FILE *inputfd;
 int main(int argc, char *argv[])
 {
     struct Option *input_file;
-
     struct Option *output_file;
-
     struct GModule *module;
-
     struct Flag *draft, *eps, *ghost, *style;
 
     G_gisinit(argv[0]);
@@ -143,12 +140,10 @@ int main(int argc, char *argv[])
 
     /* process options */
     char buf[1024];
-
     double number;
 
     while (input(1, buf)) {
 	char *key;
-
 	char *data;
 
 	if (!key_data(buf, &key, &data)) {

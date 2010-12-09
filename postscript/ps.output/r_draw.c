@@ -22,9 +22,7 @@
 int read_draw(char *name)
 {
     char buf[1024];
-
     char *key, *data;
-
     int type = 0;
 
     G_debug(1, "Reading draw settings ..");

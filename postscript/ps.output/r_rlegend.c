@@ -20,9 +20,7 @@
 int read_rlegend(char *arg)
 {
     char buf[1024];
-
     char *key, *data, *mapset;
-
     double dimen;
 
     G_debug(1, "Reading rlegend settings ..");

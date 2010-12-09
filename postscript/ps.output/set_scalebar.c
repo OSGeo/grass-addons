@@ -12,7 +12,6 @@ char *strnumber(double num);
 int set_scalebar(void)
 {
     int i, j;
-
     double width, segment;
 
     if (PS.sbar.length <= 0 || PS.sbar.segments <= 0)

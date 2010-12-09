@@ -79,9 +79,7 @@ int scan_yesno(char *key, char *data)
 int scan_color(char *data, PSCOLOR * color)
 {
     int ret;
-
     char name[20];
-
     double alpha;
 
     ret = sscanf(data, "%[^$]$%lf", name, &alpha);
@@ -98,7 +96,6 @@ int scan_color(char *data, PSCOLOR * color)
 int scan_dimen(char *data, double *d)
 {
     int ret;
-
     char unit = ' ';
 
     ret = sscanf(data, "%lf%c", d, &unit);
@@ -133,7 +130,6 @@ int scan_dimen(char *data, double *d)
 int scan_second(char *data, double *d)
 {
     int ret;
-
     char unit = ' ';
 
     ret = sscanf(data, "%lf%c", d, &unit);

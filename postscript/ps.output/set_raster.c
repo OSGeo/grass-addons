@@ -102,9 +102,7 @@ int set_raster(void)
 int set_raster_cell(void)
 {
     int row, col, br, R, G, B;
-
     void *cbuf, *cptr;
-
     RASTER_MAP_TYPE map_type;
 
 
@@ -145,11 +143,8 @@ int set_raster_cell(void)
 int set_raster_rgb(void)
 {
     int i, row, col, br;
-
     int R[3], G[3], B[3];
-
     void *cbuf[3], *cptr[3];
-
     RASTER_MAP_TYPE map_type[3];
 
 
@@ -206,13 +201,9 @@ int set_raster_rgb(void)
 int set_raster_maskcell(void)
 {
     int i, row, col, br;
-
     int r, g, b, R[3], G[3], B[3];
-
     double f, red, green, blue;
-
     void *cbuf[3], *cptr[3];
-
     RASTER_MAP_TYPE map_type[3];
 
     red = (1. - PS.rst.mask_color.r);
@@ -295,11 +286,8 @@ int set_raster_maskcell(void)
 int set_raster_maskcolor(void)
 {
     int i, row, col, br;
-
     int color, r, g, b, R, G, B;
-
     void *cbuf[2], *cptr[2];
-
     RASTER_MAP_TYPE map_type[2];
 
     if (PS.rst.mask_color.none) {

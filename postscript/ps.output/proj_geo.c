@@ -50,7 +50,6 @@ int find_limits(double *north, double *south,
 		struct pj_info *xy_proj)
 {
     int x, y;
-
     double d, z;
 
     /* West */

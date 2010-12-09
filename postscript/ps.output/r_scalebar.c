@@ -23,7 +23,6 @@
 int read_scalebar(void)
 {
     char buf[1024];
-
     char *key, *data;
 
     G_debug(1, "Reading scalebar settings ..");
@@ -110,7 +109,6 @@ int read_scalebar(void)
 	}
 	if (KEY("units")) {
 	    int ret;
-
 	    char stra[50], strb[50];
 
 	    G_strip(data);

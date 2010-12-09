@@ -23,7 +23,6 @@
 int PS3_map(void)
 {
     int i, j;
-
     double d;
 
     /* PostScript header */

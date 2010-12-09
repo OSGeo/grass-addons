@@ -18,9 +18,7 @@
 int eps_bbox(char *eps, double *llx, double *lly, double *urx, double *ury)
 {
     char buf[201];
-
     FILE *fp;
-
     int v1, v2, v3, v4;
 
     /* test if file is realy eps and find bbox */
@@ -72,7 +70,6 @@ int eps_trans(double llx, double lly, double urx, double ury,
 int eps_save(FILE * fp, char *epsf, char *name)
 {
     char buf[1024];
-
     FILE *epsfp;
 
     if ((epsfp = fopen(epsf, "r")) == NULL)
@@ -111,7 +108,6 @@ int eps_draw(FILE * fp, char *eps, double x, double y, double scale,
 	     double rotate)
 {
     char buf[1024];
-
     FILE *epsfp;
 
     if ((epsfp = fopen(eps, "r")) == NULL)
@@ -138,7 +134,6 @@ int eps_draw(FILE * fp, char *eps, double x, double y, double scale,
 int pat_save(FILE * fp, char *epsf, char *name)
 {
     char buf[1024];
-
     FILE *epsfp;
 
     if ((epsfp = fopen(epsf, "r")) == NULL)

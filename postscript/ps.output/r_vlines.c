@@ -21,11 +21,8 @@
 int read_vlines(char *name)
 {
     int i;
-
     char buf[1024];
-
     char *key, *data, *mapset;
-
     VLINES *vector;
 
 
@@ -86,9 +83,7 @@ int read_vlines(char *name)
 	}
 	if (KEY("rgbcol")) {
 	    double alpha;
-
 	    char stra[50], strb[50];
-
 	    int ret = sscanf(data, "%s %[^\n]", stra, strb);
 
 	    if (ret != 1 && ret != 2) {

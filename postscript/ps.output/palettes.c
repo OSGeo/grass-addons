@@ -17,7 +17,6 @@
 #include "palettes.h"
 
 void RGB_HSV(PSCOLOR *, PALETTE *);
-
 void HSV_RGB(PALETTE *, PSCOLOR *);
 
 
@@ -60,7 +59,6 @@ int PS_str_to_color(char *name, PSCOLOR * color)
 int pure_color(char *name, int div)
 {
     int i, k;
-
     double step;
 
     /* alloc memory */
@@ -83,7 +81,6 @@ int pure_color(char *name, int div)
 int gray(char *name, int div)
 {
     int i, k;
-
     double step;
 
     /* alloc memory */
@@ -105,9 +102,7 @@ int gray(char *name, int div)
 int monochrome(char *name, PSCOLOR * rgb, int div)
 {
     int i, k;
-
     double step;
-
     PALETTE hsv;
 
     if (rgb->r == rgb->g && rgb->g == rgb->b) {
@@ -124,7 +119,6 @@ int monochrome(char *name, PSCOLOR * rgb, int div)
     for (i = 0; i < div; i++, k++) {
 	Palette[k].h = hsv.h;
 	Palette[k].s = (double)i *step;
-
 	Palette[k].v = 1. + (double)i *step * (hsv.v - 1.);	/* if pure v = 1. */
 
 	sprintf(Palette[k].name, "%s%d", name, i + 1);
@@ -137,9 +131,7 @@ int monochrome(char *name, PSCOLOR * rgb, int div)
 int complementary(char *name, PSCOLOR * rgb, int div, double sector)
 {
     int i, k;
-
     double step;
-
     PALETTE hsv;
 
     RGB_HSV(rgb, &hsv);
@@ -172,9 +164,7 @@ int complementary(char *name, PSCOLOR * rgb, int div, double sector)
 int analogous(char *name, PSCOLOR * rgb, int div, double sector)
 {
     int i, k;
-
     double step;
-
     PALETTE hsv;
 
     RGB_HSV(rgb, &hsv);
@@ -206,9 +196,7 @@ int analogous(char *name, PSCOLOR * rgb, int div, double sector)
 int gradient(char *name, PSCOLOR * A, PSCOLOR * B, int div, int pure)
 {
     int i, k;
-
     double h_step, s_step, v_step;
-
     PALETTE pal_A, pal_B;
 
     RGB_HSV(A, &pal_A);
@@ -229,9 +217,7 @@ int gradient(char *name, PSCOLOR * A, PSCOLOR * B, int div, int pure)
 
     for (i = 0; i < div; i++, k++) {
 	Palette[k].h = pal_A.h + (double)i *h_step;
-
 	Palette[k].s = pure ? 1. : pal_A.s + (double)i *s_step;
-
 	Palette[k].v = pure ? 1. : pal_A.v + (double)i *v_step;
 
 	if (Palette[k].h < 0.)
@@ -248,9 +234,7 @@ int gradient(char *name, PSCOLOR * A, PSCOLOR * B, int div, int pure)
 int diverging(char *name, PSCOLOR * A, PSCOLOR * B, int div)
 {
     int i, k;
-
     double h_step, v_step, tmp;
-
     PALETTE pal_A, pal_B;
 
     RGB_HSV(A, &pal_A);
@@ -297,7 +281,6 @@ int diverging(char *name, PSCOLOR * A, PSCOLOR * B, int div)
 void RGB_HSV(PSCOLOR * col, PALETTE * pal)
 {
     double min, max, delta;
-
     int r_max = 1, b_max = 0;
 
     min = max = col->r;
@@ -363,7 +346,6 @@ void HSV_RGB(PALETTE * pal, PSCOLOR * col)
     }
 
     double f, p, q, t;
-
     int i;
 
     //     f = modf(pal->h * 60, &t);

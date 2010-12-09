@@ -27,13 +27,9 @@ static PSCOLOR fcolor;
 int set_draw(char *key, char *data)
 {
     char h, label[100], buf[256];
-
     char e1[20], n1[20], e2[20], n2[20];
-
     int i, x, y, dg, mg;
-
     double east, north, lw, d, sg;
-
     PSCOLOR color;
 
     if (KEY("direct")) {
@@ -265,9 +261,7 @@ int set_draw(char *key, char *data)
     }
     else if (KEY("compass") || KEY("rose")) {
 	char h;
-
 	int dg, mn;
-
 	double conv, sec;
 
 	if (sscanf(data, "%lf %lf %lf %lf", &east, &north, &d, &conv) != 4) {
@@ -306,15 +300,10 @@ int set_draw(char *key, char *data)
 void label_in_file(char *name)
 {
     FILE *in = NULL;
-
     char buf[1024], code[1024], data[1024];
-
     int x, y;
-
     double n;
-
     PSFRAME frame;
-
     PSFONT font;
 
     frame.xref = CENTER;
@@ -422,9 +411,7 @@ void label_in_file(char *name)
 int set_on_paper(char *pre, char *c_x, char *c_y, char *post)
 {
     char xunit, yunit;
-
     int xret, yret, x, y;
-
     double dx, dy;
 
     xret = sscanf(c_x, "%lf%c", &dx, &xunit);

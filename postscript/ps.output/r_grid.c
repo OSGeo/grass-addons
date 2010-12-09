@@ -21,7 +21,6 @@
 int read_grid(GRID * grid, int type)
 {
     char buf[1024];
-
     char *key, *data;
 
     G_debug(1, "Reading grid settings ..");

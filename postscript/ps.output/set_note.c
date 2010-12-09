@@ -21,9 +21,7 @@ int note_in_file(char *name);
 int set_note(int i)
 {
     int rows, type;
-
     double x, y, dy, fontsize;
-
     char *chr, *str, txt[1024];
 
     rows = 0;			/* useful to decide if write it */
@@ -138,9 +136,7 @@ int set_note(int i)
 int note_in_file(char *name)
 {
     FILE *in = NULL;
-
     char buf[1024];
-
     int r = 0;
 
     if (*name) {

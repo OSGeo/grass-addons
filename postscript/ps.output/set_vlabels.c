@@ -22,11 +22,8 @@
 int set_vlabels(VECTOR * vec, VLABELS * vx)
 {
     int ret, cat;
-
     int x, y, pt, npoints;
-
     struct line_cats *lcats;
-
     struct line_pnts *lpoints;
 
     npoints = Vect_get_num_lines(&(vec->Map));

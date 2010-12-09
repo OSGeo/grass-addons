@@ -21,11 +21,8 @@
 int read_vlabels(char *name)
 {
     int i;
-
     char buf[1024];
-
     char *key, *data, *mapset;
-
     VLABELS *vector;
 
 

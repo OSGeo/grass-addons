@@ -18,11 +18,8 @@
 int set_outline(void)
 {
     int row, col;
-
     double nrow, n_rw, erow, e_rw;
-
     void *rbuf, *nbuf, *rptr, *nptr, *next;
-
     RASTER_MAP_TYPE map_type;
 
     /* let user know what's happenning */

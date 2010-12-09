@@ -55,7 +55,6 @@ int default_font(PSFONT * font)
 int read_font(char *arg, PSFONT * font)
 {
     char buf[1024];
-
     char *key, *data;
 
     G_debug(1, "Reading font settings ..");

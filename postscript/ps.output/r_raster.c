@@ -20,11 +20,8 @@
 int read_raster(char *arg)
 {
     char buf[1024];
-
     char *key, *data;
-
     char name[3][100];
-
     int ret;
 
     G_debug(1, "Reading raster settings ..");
@@ -96,11 +93,8 @@ int read_raster(char *arg)
 	}
 	if (KEY("setcolor")) {
 	    int i, count, R, G, B;
-
 	    PSCOLOR color;
-
 	    DCELL *val_list, dmin, dmax;
-
 	    char colorbuf[100], catsbuf[100];
 
 	    /* set color inline */

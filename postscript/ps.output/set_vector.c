@@ -23,7 +23,6 @@
 int set_vector(int masked, int type)
 {
     int i;
-
     char buf[1024];
 
     for (i = PS.vct_files - 1; i >= 0; i--) {
@@ -66,7 +65,6 @@ int set_vector(int masked, int type)
 	}
 	else if (PS.vct[i].type == POINTS) {
 	    SYMBOL *symb;
-
 	    VPOINTS *vp = (VPOINTS *) PS.vct[i].data;
 
 	    symb = S_read(vp->symbol);

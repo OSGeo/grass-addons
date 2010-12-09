@@ -37,9 +37,7 @@ int load_rgb(char *red, char *green, char *blue)
 int load_group(char *name)
 {
     int i;
-
     struct Ref ref;
-
     char fullname[100];
 
     /* close open rasters */
@@ -92,7 +90,6 @@ int load_group(char *name)
 int load_cell(int slot, char *name)
 {
     char *mapset, *ptr;
-
     char fullname[100];
 
     /* close raster cell, if any */

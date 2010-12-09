@@ -17,9 +17,7 @@
 void format_northing(double north, char *buf, int map_proj)
 {
     char h;
-
     int d, m;
-
     double s;
 
     if (map_proj == PROJECTION_LL) {
@@ -49,9 +47,7 @@ void format_northing(double north, char *buf, int map_proj)
 void format_easting(double east, char *buf, int map_proj)
 {
     char h;
-
     int d, m;
-
     double s;
 
     if (map_proj == PROJECTION_LL) {
@@ -82,9 +78,7 @@ void format_easting(double east, char *buf, int map_proj)
 void format_iho(double value, char *buf)
 {
     char h;
-
     int d, m;
-
     double s;
 
     if (PS.map.proj == PROJECTION_LL) {

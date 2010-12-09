@@ -34,9 +34,7 @@ int set_lines_geogrid(void)
 int set_geogrid_lines(PSLINE * line, int grid_sep)
 {
     double sep, n_min, nmin, e_min, emin;
-
     double e, n, east, west, north, south;
-
     struct pj_info ll_proj, proj;
 
     if (PS.geogrid.sep <= 0 || PS.geogrid.line.color.none)
@@ -92,15 +90,10 @@ int set_geogrid_lines(PSLINE * line, int grid_sep)
 int set_numbers_geogrid(void)
 {
     char label[50];
-
     int i, x, y;
-
     double dx, dy;
-
     double grid_sep, nmin, emin, dif;
-
     double e, n, east, west, north, south;
-
     struct pj_info ll_proj, proj;
 
     if (PS.geogrid.sep <= 0)

@@ -19,9 +19,7 @@
 int set_mask(void)
 {
     int i, byte, row, col, br;
-
     void *cbuf, *cptr;
-
     RASTER_MAP_TYPE map_type;
     static int bit[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 

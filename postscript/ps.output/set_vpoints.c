@@ -22,13 +22,9 @@
 int set_vpoints(VECTOR * vec, VPOINTS * vp)
 {
     int ret, cat;
-
     int pt, npoints;
-
     double tmp, size, rotate;
-
     struct line_cats *lcats;
-
     struct line_pnts *lpoints;
 
     npoints = Vect_get_num_lines(&(vec->Map));
@@ -127,13 +123,9 @@ int set_vpoints(VECTOR * vec, VPOINTS * vp)
 int set_vpoints_line(VECTOR * vec, VPOINTS * vp)
 {
     int ret, cat;
-
     double size, rotate;
-
     int ln, nlines, pt, npoints;
-
     struct line_cats *lcats;
-
     struct line_pnts *lpoints;
 
 

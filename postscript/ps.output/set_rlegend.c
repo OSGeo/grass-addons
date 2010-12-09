@@ -20,13 +20,9 @@ static double nice_step(double, int, int *);
 int set_rlegend_cats(void)
 {
     int i, j, k, n, R, G, B;
-
     char *label;
-
     int num_cats, rows, cols;
-
     double fontsize, fwidth;
-
     DCELL dmin, dmax, val;
 
     /* Let user know what's happenning */
@@ -186,19 +182,12 @@ int set_rlegend_cats(void)
 int set_rlegend_gradient(void)
 {
     int i, k, rows, nlines, dec;
-
     int R, G, B;
-
     DCELL dmin, dmax, val;
-
     double fontsize, step, fwidth;
-
     struct Colors colors;
-
     struct FPRange range;
-
     char *units[GNAME_MAX];
-
     char format[50];
 
     /* let user know what's happenning */

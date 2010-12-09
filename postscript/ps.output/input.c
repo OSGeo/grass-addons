@@ -19,7 +19,6 @@ extern FILE *inputfd;
 int input(int level, char *buf)
 {
     int i;
-
     char command[20], empty[3];
 
     if (level && isatty(fileno(inputfd)))

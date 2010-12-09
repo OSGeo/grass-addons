@@ -36,7 +36,6 @@ int default_frame(PSFRAME * box, int refx, int refy)
 int read_frame(PSFRAME * box)
 {
     char buf[1024];
-
     char *key, *data;
 
     G_debug(1, "Reading frame settings ..");

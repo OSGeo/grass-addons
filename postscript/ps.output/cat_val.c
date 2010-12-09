@@ -20,9 +20,7 @@ int load_catval_array(VECTOR * vector, const char *colname,
 		      dbCatValArray * cvarr)
 {
     int n_records;
-
     struct field_info *Fi;
-
     dbDriver *driver;
 
     db_CatValArray_init(cvarr);
@@ -56,7 +54,6 @@ int load_catval_array(VECTOR * vector, const char *colname,
 void get_number(dbCatValArray * cvarr, int cat, double *d)
 {
     int ret, int_val;
-
     dbCatVal *cv = NULL;
 
     *d = -1.;
@@ -89,11 +86,8 @@ void get_number(dbCatValArray * cvarr, int cat, double *d)
 char *get_string(dbCatValArray * cvarr, int cat, int dec)
 {
     int ret, int_val;
-
     double double_val;
-
     dbCatVal *cv = NULL;
-
     char buf[10], *str = NULL;
 
     if (cvarr->ctype == DB_C_TYPE_STRING) {

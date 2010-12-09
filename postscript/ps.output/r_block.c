@@ -20,7 +20,6 @@
 int read_block(int i)
 {
     char buf[1024];
-
     char *key, *data;
 
     G_debug(1, "Reading legend settings ..");

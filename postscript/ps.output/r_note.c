@@ -22,7 +22,6 @@
 int read_note(char *name)
 {
     char buf[1024];
-
     char *key, *data;
 
     G_debug(1, "Reading note settings ..");

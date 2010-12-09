@@ -16,13 +16,11 @@
 #include "conversion.h"
 
 int move_local(int x, int y);
-
 int cont_local(int x, int y);
 
 int start_map(void)
 {
     double width, height;
-
     double fact, d_ns, ns, d_ew, ew;
 
     /* default position */

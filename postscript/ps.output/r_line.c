@@ -31,9 +31,7 @@ int default_psline(PSLINE * line)
 int read_psline(char *arg, PSLINE * line)
 {
     char buf[1024];
-
     char *key, *data;
-
     char i, dash[31];
 
     G_debug(1, "Reading line settings ..");
@@ -70,7 +68,6 @@ int read_psline(char *arg, PSLINE * line)
 	}
 	if (KEY("style")) {
 	    char str[50];
-
 	    int x, o;
 
 	    x = sscanf(data, "%s %s", str, &o);

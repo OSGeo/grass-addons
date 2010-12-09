@@ -21,9 +21,7 @@
 int read_maparea(void)
 {
     char buf[1024];
-
     char *key, *data;
-
     double point;
 
     G_debug(1, "Reading maparea settings ..");

@@ -39,11 +39,8 @@ int vector_line(struct line_pnts *lpoints)
 int set_vlines(VECTOR * vec, VLINES * vl, int flag)
 {
     int ret, cat;
-
     int ln, nlines, pt, npoints;
-
     struct line_cats *lcats;
-
     struct line_pnts *lpoints;
 
 
@@ -104,7 +101,6 @@ int set_vlines(VECTOR * vec, VLINES * vl, int flag)
 	if (flag == DRAW_HLINE) {
 	    if (vl->offset != 0.) {
 		double dis;
-
 		struct line_pnts *opoints = Vect_new_line_struct();
 
 		/* perhaps dont run in Lat/Lon */

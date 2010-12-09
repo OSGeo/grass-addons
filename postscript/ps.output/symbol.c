@@ -14,9 +14,7 @@
 int draw_chain(SYMBCHAIN * chain, double s)
 {
     int k, l;
-
     char *mvcmd;
-
     SYMBEL *elem;
 
     for (k = 0; k < chain->count; k++) {
@@ -52,11 +50,8 @@ int draw_chain(SYMBCHAIN * chain, double s)
 int symbol_save(int code, VPOINTS * vp, SYMBOL * Symb)
 {
     SYMBPART *part;
-
     SYMBCHAIN *chain;
-
     int i, j, points;
-
     double s, xo[4], yo[4];
 
     points = 4;

@@ -14,9 +14,7 @@
 int sort_list(char *order, int items, CELL ** item)
 {
     int i, j, k, count, tmp;
-
     CELL *ip, val;
-
     DCELL *vlist;
 
     /* initial order */
@@ -73,9 +71,7 @@ int sort_list(char *order, int items, CELL ** item)
 int parse_val_list(char *buf, DCELL ** list)
 {
     int count;
-
     DCELL a, b;
-
     DCELL *lp;
 
     count = 0;

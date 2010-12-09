@@ -33,9 +33,7 @@ int set_lines_grid(void)
 int set_grid_lines(char code, PSLINE * line, int grid_sep)
 {
     char label[50], h;
-
     int i, x, y, zero, d, m;
-
     double sep, north, west, dx, dy, s;
 
     if (grid_sep <= 0)
@@ -145,7 +143,6 @@ int set_numbers_grid(void)
 	if (PS.grid.msep > 0) {
 	    if (PS.grid.msubdiv >= 0) {
 		double mrga = 0.4 * PS.brd.width - .2 * MM_TO_POINT;
-
 		double mrgb = 0.6 * PS.brd.width - .2 * MM_TO_POINT;
 
 		set_grid_minordiv_border(PS.grid.msubdiv, .2 * MM_TO_POINT,

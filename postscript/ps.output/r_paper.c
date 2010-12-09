@@ -18,11 +18,8 @@
 int read_paper(char *arg)
 {
     char buf[1024];
-
     char *key, *data;
-
     int do_landscape;
-
     double point;
 
     G_debug(1, "Reading paper settings ..");

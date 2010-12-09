@@ -21,11 +21,8 @@
 int read_vpoints(char *name)
 {
     int i;
-
     char buf[1024];
-
     char *key, *data, *mapset;
-
     VPOINTS *vector;
 
 
@@ -220,7 +217,6 @@ int read_vpoints(char *name)
 	}
 	if (KEY("setrule")) {
 	    double val;
-
 	    char str[128], catsbuf[128], labelbuf[128];
 
 	    if (sscanf(data, "%s %[^\n]", str, labelbuf) > 0) {
