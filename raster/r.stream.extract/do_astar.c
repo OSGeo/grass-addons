@@ -128,11 +128,14 @@ int do_astar(void)
 		    ele_up = ele[nindex];
 		    asp[nindex] = drain[r_nbr - r + 1][c_nbr - c + 1];
 		    heap_add(r_nbr, c_nbr, ele_up, asp[nindex]);
-		    FLAG_SET(in_list, r_nbr, c_nbr);
 		}
 		else if (is_in_list && is_worked == 0) {
 		    /* neighbour is edge in list, not yet worked */
 		    if (asp[nindex] < 0) {
+			asp[nindex] = drain[r_nbr - r + 1][c_nbr - c + 1];
+		    }
+		    /* neighbour is inside real depression, not yet worked */
+		    if (asp[nindex] == 0 && ele_val <= ele[nindex]) {
 			asp[nindex] = drain[r_nbr - r + 1][c_nbr - c + 1];
 		    }
 		}

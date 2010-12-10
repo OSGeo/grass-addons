@@ -8,7 +8,6 @@ format from a required input <em>elevation</em> map and optional input
 
 <dl>
 <dt><em>elevation</em> 
-
 <dd>Input map, required: Elevation on which entire analysis is based.
 NULL (nodata) cells are ignored, zero and negative values are valid
 elevation data. Gaps in the elevation map that are located within the
@@ -28,6 +27,16 @@ first calculated from <em>elevation</em> and then adjusted to
 <em>accumulation</em>. It is not necessary to provide <em>accumulation</em>
 as the number of cells, it can also be the optionally adjusted or
 weighed total contributing area in square meters or any other unit. 
+<p>
+<dt><em>depression</em> 
+<dd>Input map, optional: All non-NULL and non-zero cells will be regarded
+as real depressions. Streams will not be routed out of depressions. If an
+area is marked as depression but the elevation model has no depression
+at this location, streams will not stop there. If a flow accumulation map
+and a map with real depressions are provided, the flow accumulation map
+must match the depression map such that flow is not distributed out of 
+the indicated depressions. It is recommended to use internally computed
+flow accumulation if a depression map is provided.
 <p>
 <dt><em>threshold</em>
 <dd>Required: <em>threshold</em> for stream initiation by overland flow:

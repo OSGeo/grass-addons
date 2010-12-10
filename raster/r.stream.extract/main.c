@@ -20,14 +20,33 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
+/* global variables */
+int nrows, ncols;
+unsigned int *astar_pts;
+unsigned int n_search_points, n_points, nxt_avail_pt;
+unsigned int heap_size, *astar_added;
+unsigned int n_stream_nodes, n_alloc_nodes;
+struct point *outlets;
+unsigned int n_outlets, n_alloc_outlets;
+DCELL *acc;
+CELL *ele;
+char *asp;
+CELL *stream;
+FLAG *worked, *in_list;
 char drain[3][3] = { {7, 6, 5}, {8, 0, 4}, {1, 2, 3} };
+unsigned int first_cum;
+char sides;
+int c_fac;
+int ele_scale;
+int have_depressions;
+struct RB_TREE *draintree;
 
 
 int main(int argc, char *argv[])
 {
     struct
     {
-	struct Option *ele, *acc;
+	struct Option *ele, *acc, *depression;
 	struct Option *threshold, *d8cut;
 	struct Option *mont_exp;
 	struct Option *min_stream_length;
@@ -39,7 +58,7 @@ int main(int argc, char *argv[])
 	struct Option *dir_rast;
     } output;
     struct GModule *module;
-    int ele_fd, acc_fd;
+    int ele_fd, acc_fd, depr_fd;
     double threshold, d8cut, mont_exp;
     int min_stream_length = 0;
     char *mapset;
@@ -62,6 +81,13 @@ int main(int argc, char *argv[])
     input.acc->required = NO;
     input.acc->description =
 	_("Stream extraction will use provided accumulation instead of calculating it anew");
+
+    input.depression = G_define_standard_option(G_OPT_R_INPUT);
+    input.depression->key = "depression";
+    input.depression->label = _("Map with real depressions");
+    input.depression->required = NO;
+    input.depression->description =
+	_("Streams will not be routed out of real depressions");
 
     input.threshold = G_define_option();
     input.threshold->key = "threshold";
@@ -137,6 +163,14 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("Raster map <%s> not found"), input.acc->answer);
     }
 
+    if (input.depression->answer) {
+	if (!G_find_cell(input.depression->answer, ""))
+	    G_fatal_error(_("Raster map <%s> not found"), input.depression->answer);
+	have_depressions = 1;
+    }
+    else
+	have_depressions = 0;
+
     /* threshold makes sense */
     threshold = atof(input.threshold->answer);
     if (threshold <= 0)
@@ -203,6 +237,16 @@ int main(int argc, char *argv[])
     else
 	acc_fd = -1;
 
+    if (input.depression->answer) {
+	mapset = G_find_cell2(input.depression->answer, "");
+	depr_fd = G_open_cell_old(input.depression->answer, mapset);
+	if (depr_fd < 0)
+	    G_fatal_error(_("could not open input map %s"),
+			  input.depression->answer);
+    }
+    else
+	depr_fd = -1;
+
     /* set global variables */
     nrows = G_window_rows();
     ncols = G_window_cols();
@@ -215,7 +259,7 @@ int main(int argc, char *argv[])
     acc = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
 
     /* load maps */
-    if (load_maps(ele_fd, acc_fd) < 0)
+    if (load_maps(ele_fd, acc_fd, depr_fd) < 0)
 	G_fatal_error(_("could not load input map(s)"));
 
     /********************/

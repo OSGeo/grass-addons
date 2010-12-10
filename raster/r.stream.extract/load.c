@@ -23,12 +23,13 @@ int ele_round(double x)
  * gets start points for A* Search
  * start points are edges
  */
-int load_maps(int ele_fd, int acc_fd)
+int load_maps(int ele_fd, int acc_fd, int depr_fd)
 {
     int r, c, thisindex;
     char asp_value, *aspp;
     void *ele_buf, *ptr, *acc_buf = NULL, *acc_ptr = NULL;
     CELL *loadp, ele_value;
+    CELL *depr_buf;
     DCELL dvalue;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
@@ -124,14 +125,19 @@ int load_maps(int ele_fd, int acc_fd)
 		if (acc_fd < 0)
 		    *accp = 1;
 		else {
-		    if (acc_map_type == CELL_TYPE) {
+		    if (G_is_null_value(acc_ptr, acc_map_type))
+			G_fatal_error(_("Accumulation map does not match elevation map!"));
+
+		    switch (acc_map_type) {
+		    case CELL_TYPE:
 			*accp = *((CELL *) acc_ptr);
-		    }
-		    else if (acc_map_type == FCELL_TYPE) {
+			break;
+		    case FCELL_TYPE:
 			*accp = *((FCELL *) acc_ptr);
-		    }
-		    else if (acc_map_type == DCELL_TYPE) {
+			break;
+		    case DCELL_TYPE:
 			*accp = *((DCELL *) acc_ptr);
+			break;
 		    }
 		}
 
@@ -168,12 +174,24 @@ int load_maps(int ele_fd, int acc_fd)
 
     nxt_avail_pt = heap_size = 0;
 
-    /* load edge cells to A* heap */
+    /* load edge cells and real depressions to A* heap */
+    if (depr_fd >= 0)
+	depr_buf = G_allocate_raster_buf(CELL_TYPE);
+    else
+	depr_buf = NULL;
+
     G_message(_("set edge points"));
     loadp = ele;
     for (r = 0; r < nrows; r++) {
-
 	G_percent(r, nrows, 2);
+
+	if (depr_fd >= 0) {
+	    if (G_get_raster_row(depr_fd, depr_buf, r, CELL_TYPE) < 0) {
+		G_warning(_("could not read raster map at row <%d>"), r);
+		return -1;
+	    }
+	}
+
 	for (c = 0; c < ncols; c++) {
 
 	    is_worked = FLAG_GET(worked, r, c);
@@ -203,13 +221,13 @@ int load_maps(int ele_fd, int acc_fd)
 
 		thisindex = INDEX(r, c);
 		ele_value = ele[thisindex];
-		heap_add(r, c, ele_value, asp_value);
 		asp[thisindex] = asp_value;
-		FLAG_SET(in_list, r, c);
+		heap_add(r, c, ele_value, asp_value);
 		continue;
 	    }
 
 	    /* any neighbour NULL ? */
+	    asp_value = 0;
 	    for (ct_dir = 0; ct_dir < sides; ct_dir++) {
 		/* get r, c (r_nbr, c_nbr) for neighbours */
 		r_nbr = r + nextdr[ct_dir];
@@ -221,16 +239,32 @@ int load_maps(int ele_fd, int acc_fd)
 		    asp_value = drain[r - r_nbr + 1][c - c_nbr + 1];
 		    thisindex = INDEX(r, c);
 		    ele_value = ele[thisindex];
-		    heap_add(r, c, ele_value, asp_value);
 		    asp[thisindex] = asp_value;
-		    FLAG_SET(in_list, r, c);
+		    heap_add(r, c, ele_value, asp_value);
 
 		    break;
+		}
+	    }
+	    if (asp_value) /* some neighbour was NULL, point added to list */
+		continue;
+	    
+	    /* real depression ? */
+	    if (depr_fd >= 0) {
+		if (!G_is_c_null_value(&depr_buf[c]) && depr_buf[c] != 0) {
+		    thisindex = INDEX(r, c);
+		    ele_value = ele[thisindex];
+		    asp[thisindex] = 0;
+		    heap_add(r, c, ele_value, 0);
 		}
 	    }
 	}
     }
     G_percent(nrows, nrows, 2);	/* finish it */
+
+    if (depr_fd >= 0) {
+	G_close_cell(depr_fd);
+	G_free(depr_buf);
+    }
 
     G_debug(1, "%d edge cells", heap_size);
     G_debug(1, "%d non-NULL cells", n_points);

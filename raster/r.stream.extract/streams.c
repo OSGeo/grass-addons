@@ -217,7 +217,7 @@ int do_accum(double d8cut)
     DCELL value, valued;
     int count;
     struct Cell_head window;
-    int mfd_cells, astar_not_set, is_null;
+    int mfd_cells, astar_not_set;
     double *dist_to_nbr, *weight, sum_weight, max_weight;
     double dx, dy;
     int r_nbr, c_nbr, r_max, c_max, ct_dir, np_side;
@@ -257,6 +257,7 @@ int do_accum(double d8cut)
     /* reset worked flag */
     flag_clear_all(worked);
 
+    /* distribute and accumulate */
     for (killer = 1; killer <= n_points; killer++) {
 	G_percent(killer, n_points, 1);
 
@@ -272,6 +273,12 @@ int do_accum(double d8cut)
 	else {
 	    dr = r;
 	    dc = c;
+	    /* can only happen with real depressions */
+	    if (!have_depressions)
+		G_fatal_error(_("Bug in stream extraction"));
+	    FLAG_SET(worked, r, c);
+	    G_debug(1, "bottom of real depression");
+	    continue;
 	}
 
 	r_max = dr;
@@ -289,7 +296,6 @@ int do_accum(double d8cut)
 	mfd_cells = 0;
 	astar_not_set = 1;
 	ele_val = ele[thisindex];
-	is_null = 0;
 	edge = 0;
 	/* this loop is needed to get the sum of weights */
 	for (ct_dir = 0; ct_dir < sides; ct_dir++) {
@@ -305,9 +311,8 @@ int do_accum(double d8cut)
 		is_worked = FLAG_GET(worked, r_nbr, c_nbr);
 		if (is_worked == 0) {
 		    ele_nbr = ele[nindex];
-		    is_null = G_is_c_null_value(&ele_nbr);
-		    edge = is_null;
-		    if (!is_null && ele_nbr <= ele_val) {
+		    edge = G_is_c_null_value(&ele_nbr);
+		    if (!edge && ele_nbr <= ele_val) {
 			if (ele_nbr < ele_val) {
 			    weight[ct_dir] =
 				mfd_pow((ele_val -
@@ -341,6 +346,7 @@ int do_accum(double d8cut)
 	/* do not distribute flow along edges, this causes artifacts */
 	if (edge) {
 	    G_debug(3, "edge");
+	    FLAG_SET(worked, r, c);
 	    continue;
 	}
 
@@ -501,6 +507,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 
     workedon = 0;
 
+    /* extract streams */
     for (killer = 1; killer <= n_points; killer++) {
 	G_percent(killer, n_points, 1);
 
@@ -510,7 +517,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	aspect = asp[thisindex];
 
 	/* do not distribute flow along edges */
-	if (aspect < 0) {
+	if (aspect <= 0) {
 	    G_debug(3, "edge");
 	    is_swale = stream[thisindex];
 	    if (is_swale) {
@@ -527,6 +534,13 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 		outlets[n_outlets].c = c;
 		n_outlets++;
 	    }
+	    FLAG_SET(worked, r, c);
+	    if (aspect == 0) {
+		/* can only happen with real depressions */
+		if (!have_depressions)
+		    G_fatal_error(_("Bug in stream extraction"));
+		G_debug(1, "bottom of real depression");
+	    } 
 	    continue;
 	}
 
@@ -535,6 +549,8 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	    dc = c + asp_c[abs((int)aspect)];
 	}
 	else {
+	    /* can only happen with real depressions,
+	     * but should not get to here */
 	    dr = r;
 	    dc = c;
 	}
@@ -579,7 +595,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 		/* check for stream cells */
 		valued = fabs(acc[nindex]);
 		ele_nbr = ele[nindex];
-		/* if (valued >= threshold) */
+		/* check all upstream neighbours */
 		if (valued >= threshold && ct_dir != np_side &&
 		    ele_nbr > ele_val)
 		    stream_cells++;
@@ -659,6 +675,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	}
 
 	/* update aspect */
+	/* r_max == r && c_max == c should not happen */
 	if ((r_max != dr || c_max != dc) && (r_max != r || c_max != c)) {
 	    asp[thisindex] = drain[r - r_max + 1][c - c_max + 1];
 	}
@@ -674,7 +691,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	if (mont_exp > 0) {
 	    if (r_max == r && c_max == c)
 		G_warning
-		    ("Can't use Montgomery's method, no stream direction found");
+		    (_("Can't use Montgomery's method, no stream direction found"));
 	    else {
 		ele_nbr = ele[INDEX(r_max, c_max)];
 
@@ -720,9 +737,10 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	/*********************/
 
 	if (is_swale > 0) {
-	    /* can't continue stream, add outlet point */
 	    if (r_max == r && c_max == c) {
-		G_debug(2, "can't continue stream at %d %d", r, c);
+		/* can't continue stream, add outlet point
+		 * r_max == r && c_max == c should not happen */
+		G_debug(1, "can't continue stream at r %d c %d", r, c);
 
 		if (n_outlets >= n_alloc_outlets) {
 		    n_alloc_outlets += stream_node_step;
