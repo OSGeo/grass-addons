@@ -1,8 +1,8 @@
 Index: main.c
 ===================================================================
---- main.c	(revision 43092)
+--- main.c	(revision 44581)
 +++ main.c	(working copy)
-@@ -657,7 +657,8 @@
+@@ -656,7 +656,8 @@
  
  	if (Area_cat[i].count > 0 && method_opt->answer) {
  	    /* get stats */
