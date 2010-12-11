@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     int area, nareas, nacats, nacatsalloc;
     int ctype, nrec;
     struct field_info *PFi, *AFi;
-    dbString stmt, dbstr;
+    dbString stmt;
     dbDriver *Pdriver, *Adriver;
     char buf[2000];
     int update_ok, update_err;
@@ -294,7 +294,6 @@ int main(int argc, char *argv[])
 
     /* Open database driver */
     db_init_string(&stmt);
-    db_init_string(&dbstr);
     Adriver = NULL;
 
     if (!print_flag->answer) {
@@ -313,6 +312,7 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("ccolumn is required to upload point counts"));
 
 	/* check if count column exists */
+	G_debug(1, "check if count column exists");
 	db_get_column(Adriver, AFi->table, count_column_opt->answer, &column);
 	if (column) {
 	    /* check count column type */
@@ -324,16 +324,15 @@ int main(int argc, char *argv[])
 	    column = NULL;
 	}
 	else {
-	    /* create column */
-	    db_init_column(column);
-	    db_set_column_name(column, count_column_opt->answer);
-	    db_set_column_sqltype(column, DB_SQL_TYPE_INTEGER);
-	    db_set_string(&dbstr, AFi->table);
-	    if (db_add_column(Adriver, &dbstr, column) != DB_OK)
+	    /* create count column */
+	    /* db_add_column() exists but is not implemented,
+	     * see lib/db/stubs/add_col.c */
+	    sprintf(buf, "alter table %s add column %s integer",
+	                    AFi->table, count_column_opt->answer);
+	    db_set_string(&stmt, buf);
+	    if (db_execute_immediate(Adriver, &stmt) != DB_OK)
 		G_fatal_error(_("Unable to add column <%s>"),
 			      count_column_opt->answer);
-	    db_free_column(column);
-	    column = NULL;
 	}
 
 	if (method_opt->answer) {
@@ -341,6 +340,7 @@ int main(int argc, char *argv[])
 		G_fatal_error(_("scolumn is required to upload point stats"));
 
 	    /* check if stats column exists */
+	    G_debug(1, "check if stats column exists");
 	    db_get_column(Adriver, AFi->table, stats_column_opt->answer,
 			  &column);
 	    if (column) {
@@ -354,16 +354,15 @@ int main(int argc, char *argv[])
 		column = NULL;
 	    }
 	    else {
-		/* create column */
-		db_init_column(column);
-		db_set_column_name(column, stats_column_opt->answer);
-		db_set_column_sqltype(column, DB_SQL_TYPE_DOUBLE_PRECISION);
-		db_set_string(&dbstr, AFi->table);
-		if (db_add_column(Adriver, &dbstr, column) != DB_OK)
+		/* create stats column */
+		/* db_add_column() exists but is not implemented,
+		 * see lib/db/stubs/add_col.c */
+		sprintf(buf, "alter table %s add column %s double",
+				AFi->table, stats_column_opt->answer);
+		db_set_string(&stmt, buf);
+		if (db_execute_immediate(Adriver, &stmt) != DB_OK)
 		    G_fatal_error(_("Unable to add column <%s>"),
 				  stats_column_opt->answer);
-		db_free_column(column);
-		column = NULL;
 	    }
 	}
     }
@@ -385,7 +384,7 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("Unable to open database <%s> with driver <%s>"),
 			  PFi->database, PFi->driver);
 
-	/* check if column exists */
+	/* check if point column exists */
 	db_get_column(Pdriver, PFi->table, point_column_opt->answer, &column);
 	if (column) {
 	    db_free_column(column);
@@ -545,7 +544,7 @@ int main(int argc, char *argv[])
 
 				case DB_C_TYPE_DOUBLE:
 				    pvalcats[npvalcats].dval = catval->val.d;
-				    pvalcats++;
+				    npvalcats++;
 				    break;
 				}
 				if (npvalcats >= npvalcatsalloc) {
