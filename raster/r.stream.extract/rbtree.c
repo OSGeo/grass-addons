@@ -35,7 +35,6 @@
 #include "rbtree.h"
 
 /* internal functions */
-void rbtree_destroy2(struct RB_NODE *);
 struct RB_NODE *rbtree_single(struct RB_NODE *, int);
 struct RB_NODE *rbtree_double(struct RB_NODE *, int);
 void *rbtree_first(struct RB_TRAV *);
@@ -52,7 +51,7 @@ struct RB_TREE *rbtree_create(rb_compare_fn *compare, size_t rb_datasize)
     struct RB_TREE *tree = G_malloc(sizeof(*tree));
 
     if (tree == NULL) {
-	G_warning("RB tree: Out of memory!");
+	G_warning("RB Search Tree: Out of memory!");
 	return NULL;
     }
 
@@ -411,19 +410,34 @@ void *rbtree_next(struct RB_TRAV *trav)
 }
 
 /* destroy the tree */
-void rbtree_destroy(struct RB_TREE *tree) {
-    rbtree_destroy2(tree->root);
-    G_free(tree);
-}
-
-void rbtree_destroy2(struct RB_NODE *root)
+void rbtree_destroy(struct RB_TREE *tree)
 {
-    if (root != NULL) {
-	rbtree_destroy2(root->link[0]);
-	rbtree_destroy2(root->link[1]);
-	G_free(root->data);
-	G_free(root);
+    struct RB_NODE *it;
+    struct RB_NODE *save = tree->root;
+
+    /*
+    Rotate away the left links so that
+    we can treat this like the destruction
+    of a linked list
+    */
+    while((it = save) != NULL) {
+	if (it->link[0] == NULL) {
+	    /* No left links, just kill the node and move on */
+	    save = it->link[1];
+	    G_free(it->data);
+	    it->data = NULL;
+	    G_free(it);
+	    it = NULL;
+	}
+	else {
+	    /* Rotate away the left link and check again */
+	    save = it->link[0];
+	    it->link[0] = save->link[1];
+	    save->link[1] = it;
+	}
     }
+    G_free(tree);
+    tree = NULL;
 }
 
 /* used for debugging: check for errors in tree structure */
