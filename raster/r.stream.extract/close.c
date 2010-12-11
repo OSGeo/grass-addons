@@ -30,7 +30,7 @@ int close_streamvect(char *stream_vect)
     double north_offset, west_offset, ns_res, ew_res;
     int next_cat;
 
-    G_message(_("write vector maps"));
+    G_message(_("Write vector map <%s>..."), stream_vect);
 
     if (0 > Vect_open_new(&Out, stream_vect, 0)) {
 	G_fatal_error(_("Unable to create vector map <%s>"), stream_vect);
@@ -138,7 +138,7 @@ int close_streamvect(char *stream_vect)
 		    }
 		    draindir.pos = INDEX(r_nbr, c_nbr);
 		    if (stream[INDEX(r_nbr, c_nbr)] <= 0)
-			G_fatal_error("stream id not set");
+			G_fatal_error(_("BUG: stream id not set"));
 
 		    Vect_append_point(Points, west_offset + c_nbr * ew_res,
 				      north_offset - r_nbr * ns_res, 0);
@@ -152,7 +152,7 @@ int close_streamvect(char *stream_vect)
     }
     G_percent(n_outlets, n_outlets, 1);	/* finish it */
 
-    G_message(_("write vector attribute table"));
+    G_message(_("Write vector attribute table"));
 
     /* Prepeare strings for use in db_* calls */
     db_init_string(&dbsql);
@@ -210,15 +210,13 @@ int close_streamvect(char *stream_vect)
 	}
     }
 
-    G_message(_("close vector"));
-
     db_commit_transaction(driver);
     db_close_database_shutdown_driver(driver);
 
     Vect_map_add_dblink(&Out, 1, NULL, Fi->table,
 			cat_col_name, Fi->database, Fi->driver);
 
-    G_message(_("close vector"));
+    G_debug(1, "close vector");
 
     Vect_hist_command(&Out);
     Vect_build(&Out);
@@ -241,7 +239,8 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
     stream_fd = dir_fd = -1;
     cell_buf1 = cell_buf2 = NULL;
 
-    G_message(_("write raster maps"));
+    G_message(_("Write raster %s"),
+              (stream_rast != NULL) + (dir_rast != NULL) > 1 ? "maps" : "map");
 
     /* write requested output rasters */
     if (stream_rast) {

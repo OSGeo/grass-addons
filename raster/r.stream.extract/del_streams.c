@@ -13,7 +13,7 @@ int del_streams(int min_length)
     int curr_stream, stream_id, other_trib, tmp_trib;
     int slength;
 
-    G_message(_("delete stream segments shorter than %d cells..."), min_length);
+    G_message(_("Delete stream segments shorter than %d cells..."), min_length);
 
     /* go through all nodes */
     for (i = 1; i <= n_stream_nodes; i++) {
@@ -71,7 +71,7 @@ int del_streams(int min_length)
 	}
     }
 
-    G_debug(1, "%d stream segments deleted", n_deleted);
+    G_verbose_message(_("%d stream segments deleted"), n_deleted);
 
     return n_deleted;
 }

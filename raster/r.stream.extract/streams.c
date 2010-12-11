@@ -108,7 +108,7 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 
 	/* debug */
 	if (n_stream_nodes != *stream_no)
-	    G_warning(_("stream_no %d and n_stream_nodes %d out of sync"),
+	    G_warning(_("BUG: stream_no %d and n_stream_nodes %d out of sync"),
 		      *stream_no, n_stream_nodes);
 
 	/* add all tributaries */
@@ -167,12 +167,12 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 	while ((founddir = rbtree_find(draintree, &draindir)) != NULL) {
 	    if (asp_r[(int)founddir->dir] == 0 &&
 		asp_c[(int)founddir->dir] == 0)
-		G_fatal_error("no valid stream direction");
+		G_fatal_error(_("BUG: no valid stream direction"));
 	    r_nbr = r_nbr + asp_r[(int)founddir->dir];
 	    c_nbr = c_nbr + asp_c[(int)founddir->dir];
 	    draindir.pos = INDEX(r_nbr, c_nbr);
 	    if (stream[INDEX(r_nbr, c_nbr)] <= 0)
-		G_fatal_error("stream id not set");
+		G_fatal_error(_("BUG: stream id not set"));
 	    else
 		stream[INDEX(r_nbr, c_nbr)] = curr_stream;
 	}
@@ -201,7 +201,7 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 
     G_debug(2, "%d tribs", stream_node[curr_stream].n_trib);
     if (stream_node[curr_stream].n_trib == 1)
-	G_warning("stream node %d only 1 trib: %d", curr_stream,
+	G_warning(_("BUG: stream node %d has only 1 tributary: %d"), curr_stream,
 		  stream_node[curr_stream].trib[0]);
 
     return 1;
@@ -231,7 +231,7 @@ int do_accum(double d8cut)
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     unsigned int thisindex, nindex, workedon, killer;
 
-    G_message(_("calculate flow accumulation..."));
+    G_message(_("Calculate flow accumulation..."));
 
     count = 0;
 
@@ -456,7 +456,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
     int stream_no = 0, stream_node_step = 1000;
     double slope, diag;
 
-    G_message(_("extract streams..."));
+    G_message(_("Extract streams..."));
 
     /* init BST for drainage direction */
     draintree = rbtree_create(draindir_compare, sizeof(struct ddir));
@@ -728,7 +728,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 
 	    /* debug */
 	    if (n_stream_nodes != stream_no)
-		G_warning(_("stream_no %d and n_stream_nodes %d out of sync"),
+		G_warning(_("BUG: stream_no %d and n_stream_nodes %d out of sync"),
 			  stream_no, n_stream_nodes);
 	}
 

@@ -20,7 +20,7 @@ int thin_seg(int stream_id)
 
     curr_stream = stream[thisindex];
     if (curr_stream != stream_id)
-	G_fatal_error(_("stream node and stream not identical: stream id %d, stream node id %d, stream %d"),
+	G_fatal_error(_("BUG: stream node and stream not identical: stream id %d, stream node id %d, stream %d"),
 		      stream_id, stream_node[stream_id].id, curr_stream);
 
     draindir.pos = thisindex;
@@ -90,7 +90,7 @@ int thin_streams(void)
     int top = 0, stack_step = 1000;
     int n_trib_total;
 
-    G_message(_("thin stream segments"));
+    G_message(_("Thin stream segments..."));
 
     nodestack = (struct sstack *)G_malloc(stack_step * sizeof(struct sstack));
 

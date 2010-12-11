@@ -65,11 +65,11 @@ int do_astar(void)
     while (heap_size > 0) {
 	G_percent(count++, n_points, 1);
 	if (count > n_points)
-	    G_fatal_error("broken A* Search, %d surplus points", heap_size);
+	    G_fatal_error(_("BUG in A* Search: %d surplus points"), heap_size);
 
 	if (heap_size > n_points)
 	    G_fatal_error
-		("broken A* Search, too many points in heap %d, should be %d",
+		(_("BUG in A* Search: too many points in heap %d, should be %d"),
 		 heap_size, n_points);
 
 	astp = astar_pts[1];
@@ -216,9 +216,6 @@ unsigned int heap_add(int r, int c, CELL ele, char asp)
     /* add point to next free position */
 
     heap_size++;
-
-    if (heap_size > n_points)
-	G_fatal_error(_("heapsize too large"));
 
     astar_added[heap_size] = nxt_avail_pt;
     astar_pts[heap_size] = INDEX(r, c);

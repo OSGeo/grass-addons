@@ -225,13 +225,13 @@ int main(int argc, char *argv[])
     mapset = G_find_cell2(input.ele->answer, "");
     ele_fd = G_open_cell_old(input.ele->answer, mapset);
     if (ele_fd < 0)
-	G_fatal_error(_("could not open input map %s"), input.ele->answer);
+	G_fatal_error(_("Could not open input map %s"), input.ele->answer);
 
     if (input.acc->answer) {
 	mapset = G_find_cell2(input.acc->answer, "");
 	acc_fd = G_open_cell_old(input.acc->answer, mapset);
 	if (acc_fd < 0)
-	    G_fatal_error(_("could not open input map %s"),
+	    G_fatal_error(_("Could not open input map %s"),
 			  input.acc->answer);
     }
     else
@@ -241,7 +241,7 @@ int main(int argc, char *argv[])
 	mapset = G_find_cell2(input.depression->answer, "");
 	depr_fd = G_open_cell_old(input.depression->answer, mapset);
 	if (depr_fd < 0)
-	    G_fatal_error(_("could not open input map %s"),
+	    G_fatal_error(_("Could not open input map %s"),
 			  input.depression->answer);
     }
     else
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
 
     /* load maps */
     if (load_maps(ele_fd, acc_fd, depr_fd) < 0)
-	G_fatal_error(_("could not load input map(s)"));
+	G_fatal_error(_("Could not load input map(s)"));
 
     /********************/
     /*    processing    */
@@ -268,35 +268,35 @@ int main(int argc, char *argv[])
 
     /* sort elevation and get initial stream direction */
     if (do_astar() < 0)
-	G_fatal_error(_("could not sort elevation map"));
+	G_fatal_error(_("Could not sort elevation map"));
 
     /* extract streams */
     if (acc_fd < 0) {
 	if (do_accum(d8cut) < 0)
-	    G_fatal_error(_("could not calculate flow accumulation"));
+	    G_fatal_error(_("Could not calculate flow accumulation"));
     }
 
     stream = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
     if (extract_streams
 	(threshold, mont_exp, min_stream_length) < 0)
-	G_fatal_error(_("could not extract streams"));
+	G_fatal_error(_("Could not extract streams"));
 
     G_free(acc);
 
     /* thin streams */
     if (thin_streams() < 0)
-	G_fatal_error(_("could not extract streams"));
+	G_fatal_error(_("Could not extract streams"));
 
     /* delete short streams */
     if (min_stream_length) {
 	if (del_streams(min_stream_length) < 0)
-	    G_fatal_error(_("could not extract streams"));
+	    G_fatal_error(_("Could not extract streams"));
     }
 
     /* write output maps */
     if (close_maps(output.stream_rast->answer, output.stream_vect->answer,
 		   output.dir_rast->answer) < 0)
-	G_fatal_error(_("could not write output maps"));
+	G_fatal_error(_("Could not write output maps"));
 
     G_free(ele);
     G_free(stream);

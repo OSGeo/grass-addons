@@ -40,9 +40,9 @@ int load_maps(int ele_fd, int acc_fd, int depr_fd)
     DCELL *accp;
 
     if (acc_fd < 0)
-	G_message(_("load elevation map and get start points"));
+	G_message(_("Load elevation map and get start points..."));
     else
-	G_message(_("load input maps and get start points"));
+	G_message(_("Load input maps and get start points..."));
 
     n_search_points = n_points = 0;
 
@@ -52,7 +52,7 @@ int load_maps(int ele_fd, int acc_fd, int depr_fd)
     ele_buf = G_allocate_raster_buf(ele_map_type);
 
     if (ele_buf == NULL) {
-	G_warning(_("could not allocate memory"));
+	G_warning(_("Could not allocate memory"));
 	return -1;
     }
 
@@ -61,7 +61,7 @@ int load_maps(int ele_fd, int acc_fd, int depr_fd)
 	acc_size = G_raster_size(acc_map_type);
 	acc_buf = G_allocate_raster_buf(acc_map_type);
 	if (acc_buf == NULL) {
-	    G_warning(_("could not allocate memory"));
+	    G_warning(_("Could not allocate memory"));
 	    return -1;
 	}
     }
@@ -83,14 +83,14 @@ int load_maps(int ele_fd, int acc_fd, int depr_fd)
 	G_percent(r, nrows, 2);
 
 	if (G_get_raster_row(ele_fd, ele_buf, r, ele_map_type) < 0) {
-	    G_warning(_("could not read raster maps at row <%d>"), r);
+	    G_warning(_("Could not read raster maps at row <%d>"), r);
 	    return -1;
 	}
 	ptr = ele_buf;
 
 	if (acc_fd >= 0) {
 	    if (G_get_raster_row(acc_fd, acc_buf, r, acc_map_type) < 0) {
-		G_warning(_("could not read raster maps at row <%d>"), r);
+		G_warning(_("Could not read raster maps at row <%d>"), r);
 		return -1;
 	    }
 	    acc_ptr = acc_buf;
@@ -180,14 +180,14 @@ int load_maps(int ele_fd, int acc_fd, int depr_fd)
     else
 	depr_buf = NULL;
 
-    G_message(_("set edge points"));
+    G_message(_("Set edge points..."));
     loadp = ele;
     for (r = 0; r < nrows; r++) {
 	G_percent(r, nrows, 2);
 
 	if (depr_fd >= 0) {
 	    if (G_get_raster_row(depr_fd, depr_buf, r, CELL_TYPE) < 0) {
-		G_warning(_("could not read raster map at row <%d>"), r);
+		G_warning(_("Could not read raster map at row <%d>"), r);
 		return -1;
 	    }
 	}
@@ -266,7 +266,7 @@ int load_maps(int ele_fd, int acc_fd, int depr_fd)
 	G_free(depr_buf);
     }
 
-    G_debug(1, "%d edge cells", heap_size);
+    G_debug(1, "%d edge (and depression) cells", heap_size);
     G_debug(1, "%d non-NULL cells", n_points);
 
     return 1;
