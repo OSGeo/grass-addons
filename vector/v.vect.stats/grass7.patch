@@ -1,6 +1,6 @@
 Index: main.c
 ===================================================================
---- main.c	(revision 43092)
+--- main.c	(revision 44581)
 +++ main.c	(working copy)
 @@ -24,7 +24,7 @@
  #include <grass/glocale.h>
@@ -40,7 +40,7 @@ Index: main.c
      point_column_opt->key = "pcolumn";
      point_column_opt->required = NO;
      point_column_opt->multiple = NO;
-@@ -478,10 +480,6 @@
+@@ -477,10 +479,6 @@
      pvalcats =
  	(struct pvalcat *)G_calloc(npvalcatsalloc, sizeof(struct pvalcat));
  
@@ -51,7 +51,7 @@ Index: main.c
      G_message(_("Selecting points for each area..."));
      count = 0;
      for (area = 1; area <= nareas; area++) {
-@@ -657,7 +655,8 @@
+@@ -656,7 +654,8 @@
  
  	if (Area_cat[i].count > 0 && method_opt->answer) {
  	    /* get stats */
