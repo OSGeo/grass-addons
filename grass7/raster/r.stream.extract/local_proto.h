@@ -16,7 +16,7 @@ POINT {
 
 #define HEAP_PNT    struct heap_point
 HEAP_PNT {
-   int added;
+   unsigned int added;
    CELL ele;
    POINT pnt;
 };

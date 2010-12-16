@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
     int min_stream_length = 0, memory;
     int seg_cols, seg_rows;
     int num_open_segs, num_open_array_segs, num_seg_total;
+    double memory_divisor, heap_mem;
     const char *mapset;
 
     G_gisinit(argv[0]);
@@ -230,7 +231,6 @@ int main(int argc, char *argv[])
     }
     else
 	memory = 300;
-    memory = 4000;
 
     /* Check for some output map */
     if ((output.stream_rast->answer == NULL)
@@ -282,26 +282,58 @@ int main(int argc, char *argv[])
      * stream: 4 byte -> 16 KB / segment
      * flag: 1 byte -> 4 KB / segment
      * 
-     * Total MB / segment so far: <0.082
+     * Total MB / segment so far: 0.07
      * 
-     * astar_points: 9 byte -> XX KB / segment
-     * heap_points: 17 byte -> XX KB / segment
+     * astar_points: 8 byte -> 32 KB / segment
+     * heap_points: 16 byte -> 64 KB / segment
+     * 
+     * Total MB / segment: 0.16
      */
-     
-    num_open_segs = memory / 0.082;
+    
+    /* balance segment files */
+    /* elevation + accumulation: * 2 */
+    memory_divisor =  48 * 2;
+    /* aspect: as is */
+    memory_divisor += 4;
+    /* stream ids: / 2 */
+    memory_divisor += 16 / 2;
+    /* flags: * 4 */
+    memory_divisor += 4 * 4;
+    /* astar_points: / 16 */
+    /* ideally only a few but large segments */
+    memory_divisor += 32 / 16;
+    /* heap points: / 5 */
+    memory_divisor += 64. / 5.;
+    
+    /* KB -> MB */
+    memory_divisor /= 1024.;
+
+    num_open_segs = memory / memory_divisor;
+    heap_mem = num_open_segs * 64. / (5. * 1024.);
     num_seg_total = (ncols / seg_cols + 1) * (nrows / seg_rows + 1);
-    if (num_open_segs > num_seg_total)
+    if (num_open_segs > num_seg_total) {
+	heap_mem += (num_open_segs - num_seg_total) * memory_divisor;
+	heap_mem -= (num_open_segs - num_seg_total) * 64. / (5. * 1024.);
 	num_open_segs = num_seg_total;
+    }
+    if (num_open_segs < 16) {
+	num_open_segs = 16;
+	heap_mem = num_open_segs * 64. / 5.;
+    }
     G_verbose_message(_("%d of %d segments are kept in memory"),
                       num_open_segs, num_seg_total);
 
     /* open segment files */
     G_verbose_message(_("Create temporary files..."));
-    seg_open(&watalt, nrows, ncols, seg_rows, seg_cols, num_open_segs,
+    seg_open(&watalt, nrows, ncols, seg_rows, seg_cols, num_open_segs * 2,
         sizeof(WAT_ALT), 1);
-    cseg_open(&stream, seg_rows, seg_cols, num_open_segs);
+    if (num_open_segs * 2 > num_seg_total)
+	heap_mem += (num_open_segs * 2 - num_seg_total) * 48. * 2. / 1024.;
+    cseg_open(&stream, seg_rows, seg_cols, num_open_segs / 2.);
     bseg_open(&asp, seg_rows, seg_cols, num_open_segs);
-    bseg_open(&bitflags, seg_rows, seg_cols, num_open_segs);
+    bseg_open(&bitflags, seg_rows, seg_cols, num_open_segs * 4);
+    if (num_open_segs * 4 > num_seg_total)
+	heap_mem += (num_open_segs * 4 - num_seg_total) * 4. * 4. / 1024.;
 
     /* load maps */
     if (load_maps(ele_fd, acc_fd) < 0)
@@ -310,52 +342,43 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("No non-NULL cells in input map(s)"));
 
     G_debug(1, "open segments for A* points");
-    /* rounded down power of 2 */
-    seg_cols = (int) (pow(2, (int)(log(num_open_segs / 8.0) / log(2) + 0.5)) + 0.5);
-    if (seg_cols < 2)
-	seg_cols = 2;
-    num_open_array_segs = num_open_segs / seg_cols;
-    if (num_open_array_segs == 0)
-	num_open_array_segs = 1;
-    /* n cols in segment */
-    seg_cols *= seg_rows * seg_rows;
-    /* n segments in row */
+    /* columns per segment */
+    seg_cols = seg_rows * seg_rows;
     num_seg_total = n_points / seg_cols;
     if (n_points % seg_cols > 0)
 	num_seg_total++;
     /* no need to have more segments open than exist */
+    num_open_array_segs = num_open_segs / 16.;
     if (num_open_array_segs > num_seg_total)
 	num_open_array_segs = num_seg_total;
-
-    if (num_open_array_segs > 4)
-	num_open_array_segs = 4;
+    if (num_open_array_segs < 1)
+	num_open_array_segs = 1;
     
-    G_debug(0, "segment size for A* points: %d", seg_cols);
+    G_debug(1, "segment size for A* points: %d", seg_cols);
     seg_open(&astar_pts, 1, n_points, 1, seg_cols, num_open_array_segs,
 	     sizeof(POINT), 1);
 
     /* one-based d-ary search_heap with astar_pts */
     G_debug(1, "open segments for A* search heap");
-    /* rounded down power of 2 */
-    seg_cols = (int) (pow(2, (int)(log(num_open_segs / 8.0) / log(2) + 0.5)) + 0.5);
-    if (seg_cols < 2)
-	seg_cols = 2;
-    num_open_array_segs = num_open_segs / seg_cols;
-    if (num_open_array_segs == 0)
-	num_open_array_segs = 1;
-    /* n cols in segment */
-    seg_cols *= seg_rows * seg_rows;
-    /* n segments in row */
-    num_seg_total = (n_points + 1) / seg_cols;
-    if ((n_points + 1) % seg_cols > 0)
+	
+    /* allowed memory for search heap in MB */
+    G_debug(1, "heap memory %.2f MB", heap_mem);
+    /* columns per segment */
+    /* larger is faster */
+    seg_cols = seg_rows * seg_rows * seg_rows;
+    num_seg_total = n_points / seg_cols;
+    if (n_points % seg_cols > 0)
 	num_seg_total++;
     /* no need to have more segments open than exist */
+    num_open_array_segs = 1024. * 1024. * heap_mem / (seg_cols * 16.);
     if (num_open_array_segs > num_seg_total)
 	num_open_array_segs = num_seg_total;
+    if (num_open_array_segs < 2)
+	num_open_array_segs = 2;
 
-    G_debug(0, "A* search heap open segments %d, target 8, total %d",
+    G_debug(1, "A* search heap open segments %d, total %d",
             num_open_array_segs, num_seg_total);
-    G_debug(0, "segment size for heap points: %d", seg_cols);
+    G_debug(1, "segment size for heap points: %d", seg_cols);
     /* the search heap will not hold more than 5% of all points at any given time ? */
     /* chances are good that the heap will fit into one large segment */
     seg_open(&search_heap, 1, n_points + 1, 1, seg_cols,

@@ -483,7 +483,7 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 		/* can only happen with real depressions */
 		if (!have_depressions)
 		    G_fatal_error(_("Bug in stream extraction"));
-		G_debug(1, "bottom of real depression");
+		G_debug(2, "bottom of real depression");
 	    } 
 	    continue;
 	}
@@ -698,7 +698,7 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 	    if (r_max == r && c_max == c) {
 		/* can't continue stream, add outlet point
 		 * r_max == r && c_max == c should not happen */
-		G_debug(0, "can't continue stream at r %d c %d", r, c);
+		G_debug(1, "can't continue stream at r %d c %d", r, c);
 
 		if (n_outlets >= n_alloc_outlets) {
 		    n_alloc_outlets += stream_node_step;
@@ -726,9 +726,9 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
     G_free(ele_nbr);
     G_free(flag_nbr);
 
-    G_debug(0, "%d outlets", n_outlets);
-    G_debug(0, "%d nodes", n_stream_nodes);
-    G_debug(0, "%d streams", stream_no);
+    G_debug(1, "%d outlets", n_outlets);
+    G_debug(1, "%d nodes", n_stream_nodes);
+    G_debug(1, "%d streams", stream_no);
 
     return 1;
 }
