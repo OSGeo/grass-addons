@@ -16,31 +16,32 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
-#include <grass/gis.h>
+#include <math.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
 
 /* global variables */
 int nrows, ncols;
-unsigned int *astar_pts;
 unsigned int n_search_points, n_points, nxt_avail_pt;
-unsigned int heap_size, *astar_added;
+unsigned int heap_size;
 unsigned int n_stream_nodes, n_alloc_nodes;
-struct point *outlets;
+POINT *outlets;
 unsigned int n_outlets, n_alloc_outlets;
-DCELL *acc;
-CELL *ele;
-char *asp;
-CELL *stream;
-FLAG *worked, *in_list;
 char drain[3][3] = { {7, 6, 5}, {8, 0, 4}, {1, 2, 3} };
-unsigned int first_cum;
 char sides;
 int c_fac;
 int ele_scale;
 int have_depressions;
-struct RB_TREE *draintree;
 
+SSEG search_heap;
+SSEG astar_pts;
+BSEG bitflags;
+SSEG watalt;
+BSEG asp;
+CSEG stream;
+
+CELL *astar_order;
 
 int main(int argc, char *argv[])
 {
@@ -50,6 +51,7 @@ int main(int argc, char *argv[])
 	struct Option *threshold, *d8cut;
 	struct Option *mont_exp;
 	struct Option *min_stream_length;
+	struct Option *memory;
     } input;
     struct
     {
@@ -60,14 +62,17 @@ int main(int argc, char *argv[])
     struct GModule *module;
     int ele_fd, acc_fd, depr_fd;
     double threshold, d8cut, mont_exp;
-    int min_stream_length = 0;
-    char *mapset;
+    int min_stream_length = 0, memory;
+    int seg_cols, seg_rows;
+    int num_open_segs, num_open_array_segs, num_seg_total;
+    const char *mapset;
 
     G_gisinit(argv[0]);
 
     /* Set description */
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("hydrology"));
     module->description = _("Stream network extraction");
 
     input.ele = G_define_standard_option(G_OPT_R_INPUT);
@@ -126,6 +131,13 @@ int main(int argc, char *argv[])
     input.min_stream_length->description =
 	_("Applies only to first-order stream segments (springs/stream heads).");
 
+    input.memory = G_define_option();
+    input.memory->key = "memory";
+    input.memory->type = TYPE_INTEGER;
+    input.memory->required = NO;
+    input.memory->answer = "300";
+    input.memory->description = _("Maximum memory to be used in MB");
+
     output.stream_rast = G_define_standard_option(G_OPT_R_OUTPUT);
     output.stream_rast->key = "stream_rast";
     output.stream_rast->description =
@@ -155,16 +167,16 @@ int main(int argc, char *argv[])
     /***********************/
 
     /* input maps exist ? */
-    if (!G_find_cell(input.ele->answer, ""))
+    if (!G_find_raster(input.ele->answer, ""))
 	G_fatal_error(_("Raster map <%s> not found"), input.ele->answer);
 
     if (input.acc->answer) {
-	if (!G_find_cell(input.acc->answer, ""))
+	if (!G_find_raster(input.acc->answer, ""))
 	    G_fatal_error(_("Raster map <%s> not found"), input.acc->answer);
     }
 
     if (input.depression->answer) {
-	if (!G_find_cell(input.depression->answer, ""))
+	if (!G_find_raster(input.depression->answer, ""))
 	    G_fatal_error(_("Raster map <%s> not found"), input.depression->answer);
 	have_depressions = 1;
     }
@@ -209,6 +221,16 @@ int main(int argc, char *argv[])
     }
     else
 	min_stream_length = 0;
+	
+    if (input.memory->answer) {
+	memory = atoi(input.memory->answer);
+	if (memory <= 0)
+	    G_fatal_error(_("Memory must be positive but is %d"),
+			  memory);
+    }
+    else
+	memory = 300;
+    memory = 4000;
 
     /* Check for some output map */
     if ((output.stream_rast->answer == NULL)
@@ -222,14 +244,14 @@ int main(int argc, char *argv[])
     /*********************/
 
     /* open input maps */
-    mapset = G_find_cell2(input.ele->answer, "");
-    ele_fd = G_open_cell_old(input.ele->answer, mapset);
+    mapset = G_find_raster2(input.ele->answer, "");
+    ele_fd = Rast_open_old(input.ele->answer, mapset);
     if (ele_fd < 0)
 	G_fatal_error(_("Could not open input map %s"), input.ele->answer);
 
     if (input.acc->answer) {
-	mapset = G_find_cell2(input.acc->answer, "");
-	acc_fd = G_open_cell_old(input.acc->answer, mapset);
+	mapset = G_find_raster2(input.acc->answer, "");
+	acc_fd = Rast_open_old(input.acc->answer, mapset);
 	if (acc_fd < 0)
 	    G_fatal_error(_("Could not open input map %s"),
 			  input.acc->answer);
@@ -238,8 +260,8 @@ int main(int argc, char *argv[])
 	acc_fd = -1;
 
     if (input.depression->answer) {
-	mapset = G_find_cell2(input.depression->answer, "");
-	depr_fd = G_open_cell_old(input.depression->answer, mapset);
+	mapset = G_find_raster2(input.depression->answer, "");
+	depr_fd = Rast_open_old(input.depression->answer, mapset);
 	if (depr_fd < 0)
 	    G_fatal_error(_("Could not open input map %s"),
 			  input.depression->answer);
@@ -248,49 +270,132 @@ int main(int argc, char *argv[])
 	depr_fd = -1;
 
     /* set global variables */
-    nrows = G_window_rows();
-    ncols = G_window_cols();
-    sides = 8;			/* not a user option */
-    c_fac = 5;			/* not a user option, MFD covergence factor 5 gives best results  */
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
+    sides = 8;	/* not a user option */
+    c_fac = 5;	/* not a user option, MFD covergence factor 5 gives best results */
 
-    /* allocate memory */
-    ele = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
-    asp = (char *) G_malloc(nrows * ncols * sizeof(char));
-    acc = (DCELL *) G_malloc(nrows * ncols * sizeof(DCELL));
+    /* segment structures */
+    seg_rows = seg_cols = 64;
+    /* elevation + accumulation: 12 byte -> 48 KB / segment
+     * aspect: 1 byte -> 4 KB / segment
+     * stream: 4 byte -> 16 KB / segment
+     * flag: 1 byte -> 4 KB / segment
+     * 
+     * Total MB / segment so far: <0.082
+     * 
+     * astar_points: 9 byte -> XX KB / segment
+     * heap_points: 17 byte -> XX KB / segment
+     */
+     
+    num_open_segs = memory / 0.082;
+    num_seg_total = (ncols / seg_cols + 1) * (nrows / seg_rows + 1);
+    if (num_open_segs > num_seg_total)
+	num_open_segs = num_seg_total;
+    G_verbose_message(_("%d of %d segments are kept in memory"),
+                      num_open_segs, num_seg_total);
+
+    /* open segment files */
+    G_verbose_message(_("Create temporary files..."));
+    seg_open(&watalt, nrows, ncols, seg_rows, seg_cols, num_open_segs,
+        sizeof(WAT_ALT), 1);
+    cseg_open(&stream, seg_rows, seg_cols, num_open_segs);
+    bseg_open(&asp, seg_rows, seg_cols, num_open_segs);
+    bseg_open(&bitflags, seg_rows, seg_cols, num_open_segs);
 
     /* load maps */
-    if (load_maps(ele_fd, acc_fd, depr_fd) < 0)
+    if (load_maps(ele_fd, acc_fd) < 0)
 	G_fatal_error(_("Could not load input map(s)"));
+    else if (!n_points)
+	G_fatal_error(_("No non-NULL cells in input map(s)"));
+
+    G_debug(1, "open segments for A* points");
+    /* rounded down power of 2 */
+    seg_cols = (int) (pow(2, (int)(log(num_open_segs / 8.0) / log(2) + 0.5)) + 0.5);
+    if (seg_cols < 2)
+	seg_cols = 2;
+    num_open_array_segs = num_open_segs / seg_cols;
+    if (num_open_array_segs == 0)
+	num_open_array_segs = 1;
+    /* n cols in segment */
+    seg_cols *= seg_rows * seg_rows;
+    /* n segments in row */
+    num_seg_total = n_points / seg_cols;
+    if (n_points % seg_cols > 0)
+	num_seg_total++;
+    /* no need to have more segments open than exist */
+    if (num_open_array_segs > num_seg_total)
+	num_open_array_segs = num_seg_total;
+
+    if (num_open_array_segs > 4)
+	num_open_array_segs = 4;
+    
+    G_debug(0, "segment size for A* points: %d", seg_cols);
+    seg_open(&astar_pts, 1, n_points, 1, seg_cols, num_open_array_segs,
+	     sizeof(POINT), 1);
+
+    /* one-based d-ary search_heap with astar_pts */
+    G_debug(1, "open segments for A* search heap");
+    /* rounded down power of 2 */
+    seg_cols = (int) (pow(2, (int)(log(num_open_segs / 8.0) / log(2) + 0.5)) + 0.5);
+    if (seg_cols < 2)
+	seg_cols = 2;
+    num_open_array_segs = num_open_segs / seg_cols;
+    if (num_open_array_segs == 0)
+	num_open_array_segs = 1;
+    /* n cols in segment */
+    seg_cols *= seg_rows * seg_rows;
+    /* n segments in row */
+    num_seg_total = (n_points + 1) / seg_cols;
+    if ((n_points + 1) % seg_cols > 0)
+	num_seg_total++;
+    /* no need to have more segments open than exist */
+    if (num_open_array_segs > num_seg_total)
+	num_open_array_segs = num_seg_total;
+
+    G_debug(0, "A* search heap open segments %d, target 8, total %d",
+            num_open_array_segs, num_seg_total);
+    G_debug(0, "segment size for heap points: %d", seg_cols);
+    /* the search heap will not hold more than 5% of all points at any given time ? */
+    /* chances are good that the heap will fit into one large segment */
+    seg_open(&search_heap, 1, n_points + 1, 1, seg_cols,
+	     num_open_array_segs, sizeof(HEAP_PNT), 1);
 
     /********************/
     /*    processing    */
     /********************/
 
+    /* initialize A* search */
+    if (init_search(depr_fd) < 0)
+	G_fatal_error(_("Could not initialize search"));
+
     /* sort elevation and get initial stream direction */
     if (do_astar() < 0)
 	G_fatal_error(_("Could not sort elevation map"));
+    seg_close(&search_heap);
 
-    /* extract streams */
     if (acc_fd < 0) {
+	/* accumulate surface flow */
 	if (do_accum(d8cut) < 0)
 	    G_fatal_error(_("Could not calculate flow accumulation"));
     }
 
-    stream = (CELL *) G_malloc(nrows * ncols * sizeof(CELL));
+    /* extract streams */
     if (extract_streams
-	(threshold, mont_exp, min_stream_length) < 0)
+	(threshold, mont_exp, min_stream_length, acc_fd < 0) < 0)
 	G_fatal_error(_("Could not extract streams"));
 
-    G_free(acc);
+    seg_close(&astar_pts);
+    seg_close(&watalt);
 
     /* thin streams */
     if (thin_streams() < 0)
-	G_fatal_error(_("Could not extract streams"));
+	G_fatal_error(_("Could not thin streams"));
 
     /* delete short streams */
     if (min_stream_length) {
 	if (del_streams(min_stream_length) < 0)
-	    G_fatal_error(_("Could not extract streams"));
+	    G_fatal_error(_("Could not delete short stream segments"));
     }
 
     /* write output maps */
@@ -298,9 +403,9 @@ int main(int argc, char *argv[])
 		   output.dir_rast->answer) < 0)
 	G_fatal_error(_("Could not write output maps"));
 
-    G_free(ele);
-    G_free(stream);
-    G_free(asp);
+    bseg_close(&asp);
+    cseg_close(&stream);
+    bseg_close(&bitflags);
 
     exit(EXIT_SUCCESS);
 }

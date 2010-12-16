@@ -7,58 +7,48 @@ int thin_seg(int stream_id)
 {
     int thinned = 0;
     int r, c, r_nbr, c_nbr, last_r, last_c;
-    unsigned int thisindex, lastindex;
-    struct ddir draindir, *founddir;
-    int curr_stream;
+    CELL curr_stream, no_stream = 0;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
+    char flag_value, aspect;
 
     r = stream_node[stream_id].r;
     c = stream_node[stream_id].c;
 
-    thisindex = INDEX(r, c);
+    cseg_get(&stream, &curr_stream, r, c);
 
-    curr_stream = stream[thisindex];
-    if (curr_stream != stream_id)
-	G_fatal_error(_("BUG: stream node and stream not identical: stream id %d, stream node id %d, stream %d"),
-		      stream_id, stream_node[stream_id].id, curr_stream);
-
-    draindir.pos = thisindex;
-    if ((founddir = rbtree_find(draintree, &draindir)) != NULL) {
+    bseg_get(&asp, &aspect, r, c);
+    if (aspect > 0) {
 	/* get downstream point */
-	last_r = r + asp_r[(int)founddir->dir];
-	last_c = c + asp_c[(int)founddir->dir];
-	curr_stream = stream[INDEX(last_r, last_c)];
+	last_r = r + asp_r[(int)aspect];
+	last_c = c + asp_c[(int)aspect];
+	cseg_get(&stream, &curr_stream, last_r, last_c);
 
 	if (curr_stream != stream_id)
 	    return thinned;
 
 	/* get next downstream point */
-	draindir.pos = INDEX(last_r, last_c);
-	while ((founddir = rbtree_find(draintree, &draindir)) != NULL) {
-	    r_nbr = last_r + asp_r[(int)founddir->dir];
-	    c_nbr = last_c + asp_c[(int)founddir->dir];
+	bseg_get(&asp, &aspect, last_r, last_c);
+	while (aspect > 0) {
+	    r_nbr = last_r + asp_r[(int)aspect];
+	    c_nbr = last_c + asp_c[(int)aspect];
 
 	    if (r_nbr == last_r && c_nbr == last_c)
 		return thinned;
 	    if (r_nbr < 0 || r_nbr >= nrows || c_nbr < 0 || c_nbr >= ncols)
 		return thinned;
-	    if ((curr_stream = stream[INDEX(r_nbr, c_nbr)]) != stream_id)
+	    cseg_get(&stream, &curr_stream, r_nbr, c_nbr);
+	    if (curr_stream != stream_id)
 		return thinned;
 	    if (abs(r_nbr - r) < 2 && abs(c_nbr - c) < 2) {
 		/* eliminate last point */
-		lastindex = INDEX(last_r, last_c);
-		stream[lastindex] = 0;
-		draindir.pos = lastindex;
-		rbtree_remove(draintree, &draindir);
+		cseg_put(&stream, &no_stream, last_r, last_c);
+		bseg_get(&bitflags, &flag_value, last_r, last_c);
+		FLAG_UNSET(flag_value, STREAMFLAG);
+		bseg_put(&bitflags, &flag_value, last_r, last_c);
 		/* update start point */
-		draindir.pos = thisindex;
-		founddir = rbtree_find(draintree, &draindir);
-		founddir->dir = drain[r - r_nbr + 1][c - c_nbr + 1];
-		asp[draindir.pos] = founddir->dir;
-		last_r = r_nbr;
-		last_c = c_nbr;
-		draindir.pos = INDEX(last_r, last_c);
+		aspect = drain[r - r_nbr + 1][c - c_nbr + 1];
+		bseg_put(&asp, &aspect, r, c);
 
 		thinned = 1;
 	    }
@@ -66,11 +56,10 @@ int thin_seg(int stream_id)
 		/* nothing to eliminate, continue from last point */
 		r = last_r;
 		c = last_c;
-		last_r = r_nbr;
-		last_c = c_nbr;
-		thisindex = INDEX(r, c);
-		draindir.pos = INDEX(last_r, last_c);
 	    }
+	    last_r = r_nbr;
+	    last_c = c_nbr;
+	    bseg_get(&asp, &aspect, last_r, last_c);
 	}
     }
 
@@ -80,8 +69,8 @@ int thin_seg(int stream_id)
 int thin_streams(void)
 {
     int i, j, r, c, done;
-    int stream_id, next_node;
-    unsigned int thisindex;
+    CELL stream_id;
+    int next_node;
     struct sstack
     {
 	int stream_id;
@@ -89,6 +78,7 @@ int thin_streams(void)
     } *nodestack;
     int top = 0, stack_step = 1000;
     int n_trib_total;
+    int n_thinned = 0;
 
     G_message(_("Thin stream segments..."));
 
@@ -98,8 +88,7 @@ int thin_streams(void)
 	G_percent(i, n_outlets, 2);
 	r = outlets[i].r;
 	c = outlets[i].c;
-	thisindex = INDEX(r, c);
-	stream_id = stream[thisindex];
+	cseg_get(&stream, &stream_id, r, c);
 
 	if (stream_id == 0)
 	    continue;
@@ -147,8 +136,10 @@ int thin_streams(void)
 
 		if (thin_seg(stream_id) == 0)
 		    G_debug(3, "segment %d not thinned", stream_id);
-		else
+		else {
 		    G_debug(3, "segment %d thinned", stream_id);
+		    n_thinned++;
+		}
 
 		top--;
 		/* count tributaries */
@@ -174,6 +165,8 @@ int thin_streams(void)
     G_percent(n_outlets, n_outlets, 1);	/* finish it */
 
     G_free(nodestack);
+    
+    G_verbose_message(_("%d of %d stream segments were thinned"), n_thinned, n_stream_nodes);
 
     return 1;
 }

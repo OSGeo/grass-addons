@@ -1,63 +1,36 @@
 #ifndef __FLAG_H__
 #define __FLAG_H__
 
-
-/* flag.[ch] is a set of routines which will set up an array of bits
- ** that allow the programmer to "flag" cells in a raster map.
- **
- ** FLAG *
- ** flag_create(nrows,ncols)
- ** int nrows, ncols;
- **     opens the structure flag.  
- **     The flag structure will be a two dimensional array of bits the
- **     size of nrows by ncols.  Will initalize flags to zero (unset).
- **
- ** flag_destroy(flags)
- ** FLAG *flags;
- **     closes flags and gives the memory back to the system.
- **
- ** flag_clear_all(flags)
- ** FLAG *flags;
- **     sets all values in flags to zero.
- **
- ** FLAG_UNSET(flags, row, col)
- ** FLAG *flags;
- ** int row, col;
- **     sets the value of (row, col) in flags to zero.
- **
- ** FLAG_SET(flags, row, col)
- ** FLAG *flags;
- ** int row, col;
- **     will set the value of (row, col) in flags to one.
- **
- ** int
- ** FLAG_GET(flags, row, col)
- ** FLAG *flags;
- ** int row, col;
- **     returns the value in flags that is at (row, col).
- **
- ** idea by Michael Shapiro
- ** code by Chuck Ehlschlaeger
- ** April 03, 1989
+/* a set of routines that allow the programmer to "flag" cells in a
+ * raster map. A flag is of type unsigned char, i.e. 8 bits can be set. 
+ *
+ * int flag_set(flag, bitno)
+ *     sets the flag at position bitno to one.
+ *
+ * int flag_unset(flag, bitno)
+ *     sets the flag at position bitno to zero.
+ *
+ * int flag_get(flag, bitno)
+ *     checks if the flag is set at postion bitno.
+ *
+ * Examples:
+ * set flag at position 0: FLAG_SET(flag, 0)
+ * unset (clear) flag at position 7: FLAG_UNSET(flag, 7)
+ * check flag at position 5: is_set_at_5 = FLAG_GET(flag, 5)
  */
-#define FLAG struct _flagsss_
-FLAG {
-    int nrows, ncols, leng;
-    unsigned char **array;
-};
 
-#define FLAG_UNSET(flags,row,col) \
-	(flags)->array[(row)][(col)>>3] &= ~(1<<((col) & 7))
+/* flag positions */
+#define NULLFLAG         0      /* elevation is NULL */
+#define EDGEFLAG         1      /* edge cell */
+#define INLISTFLAG       2      /* in open A* list */
+#define WORKEDFLAG       3      /* in closed A* list/ accumulation done */
+#define STREAMFLAG       4      /* stream */
+#define DEPRFLAG         5      /* real depression */
+#define WORKED2FLAG      6      /* extraction done */
+/* last bit is unused */
 
-#define FLAG_SET(flags,row,col) \
-	(flags)->array[(row)][(col)>>3] |= (1<<((col) & 7))
-
-#define FLAG_GET(flags,row,col) \
-	(flags)->array[(row)][(col)>>3] & (1<<((col) & 7))
-
-/* flag.c */
-int flag_clear_all(FLAG *);
-FLAG *flag_create(int, int);
-int flag_destroy(FLAG *);
+#define FLAG_SET(flag,bitno) ((flag) |= (1 << (bitno)))
+#define FLAG_UNSET(flag,bitno) ((flag) &= ~(1 << (bitno)))
+#define FLAG_GET(flag,bitno) ((flag) & (1 << (bitno)))
 
 #endif /* __FLAG_H__ */

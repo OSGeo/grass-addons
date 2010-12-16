@@ -1,27 +1,8 @@
 #include <stdlib.h>
 #include <math.h>
-#include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
-
-/*
- * compare function for search tree
- * returns 1 if a > b
- * returns -1 if a < b
- * returns 0 if a == b
- */
-int draindir_compare(const void *itema, const void *itemb)
-{
-    struct ddir *a = (struct ddir *)itema;
-    struct ddir *b = (struct ddir *)itemb;
-
-    if (a->pos > b->pos)
-	return 1;
-    else if (a->pos < b->pos)
-	return -1;
-
-    return 0;
-}
 
 double mfd_pow(double base)
 {
@@ -39,55 +20,41 @@ double mfd_pow(double base)
 }
 
 int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
-		    unsigned int thisindex, int *stream_no, int min_length)
+		    int *stream_no)
 {
     char aspect;
-    int curr_stream;
-    int r_nbr, c_nbr, ct_dir;
+    CELL curr_stream, stream_nbr, old_stream;
+    int r_nbr, c_nbr;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-    int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
-    int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     int stream_node_step = 1000;
-    struct ddir draindir, *founddir;
+    char this_flag_value;
 
     G_debug(3, "continue stream");
+    
+    cseg_get(&stream, &curr_stream, r_max, c_max);
 
-    /* set drainage direction */
-    aspect = drain[r - r_max + 1][c - c_max + 1];
-
-    /* add to search tree */
-    draindir.pos = thisindex;
-    draindir.dir = aspect;
-    rbtree_insert(draintree, &draindir);
-
-    curr_stream = stream[INDEX(r_max, c_max)];
-    if (curr_stream < 0)
-	curr_stream = 0;
-    /* confluence */
     if (curr_stream <= 0) {
 	/* no confluence, just continue */
-	G_debug(2, "no confluence, just continue stream");
-	stream[INDEX(r_max, c_max)] = stream_id;
+	G_debug(3, "no confluence, just continue stream");
+	curr_stream = stream_id;
+	cseg_put(&stream, &curr_stream, r_max, c_max);
+	bseg_get(&bitflags, &this_flag_value, r_max, c_max);
+	FLAG_SET(this_flag_value, STREAMFLAG);
+	bseg_put(&bitflags, &this_flag_value, r_max, c_max);
 	return 0;
     }
 
-    G_debug(2, "confluence");
-    /* delete short stream segments */
-    /* if (min_length && stream_node[stream_id].n_trib == 0) {
-	if (seg_length(stream_id, NULL) < min_length) {
-	    del_stream_seg(stream_id);
-	    return 0;
-	}
-    }
-    */
+    G_debug(3, "confluence");
 	    
     /* new confluence */
     if (stream_node[curr_stream].r != r_max ||
 	stream_node[curr_stream].c != c_max) {
-	G_debug(2, "new confluence");
+	size_t new_size;
+	
+	G_debug(3, "new confluence");
 	/* set new stream id */
-	curr_stream = stream[INDEX(r_max, c_max)] = ++(*stream_no);
+	(*stream_no)++;
 	/* add stream node */
 	if (*stream_no >= n_alloc_nodes - 1) {
 	    n_alloc_nodes += stream_node_step;
@@ -103,7 +70,6 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 	stream_node[*stream_no].n_trib_total = 0;
 	stream_node[*stream_no].n_alloc = 0;
 	stream_node[*stream_no].trib = NULL;
-	stream_node[*stream_no].acc = NULL;
 	n_stream_nodes++;
 
 	/* debug */
@@ -111,75 +77,43 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 	    G_warning(_("BUG: stream_no %d and n_stream_nodes %d out of sync"),
 		      *stream_no, n_stream_nodes);
 
-	/* add all tributaries */
-	G_debug(2, "add all tributaries");
-	for (ct_dir = 0; ct_dir < sides; ct_dir++) {
-	    /* get r_nbr, c_nbr for neighbours */
-	    r_nbr = r_max + nextdr[ct_dir];
-	    c_nbr = c_max + nextdc[ct_dir];
-	    /* check that neighbour is within region */
-	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 &&
-		c_nbr < ncols) {
-		draindir.pos = INDEX(r_nbr, c_nbr);
-		if ((founddir =
-		     rbtree_find(draintree, &draindir)) != NULL) {
-		    if (r_nbr + asp_r[(int)founddir->dir] == r_max &&
-			c_nbr + asp_c[(int)founddir->dir] == c_max) {
 
-			/* add tributary to stream node */
-			if (stream_node[curr_stream].n_trib >=
-			    stream_node[curr_stream].n_alloc) {
-			    size_t new_size;
+	stream_node[*stream_no].n_alloc += 2;
+	new_size = stream_node[*stream_no].n_alloc * sizeof(int);
+	stream_node[*stream_no].trib =
+	    (int *)G_realloc(stream_node[*stream_no].trib, new_size);
 
-			    stream_node[curr_stream].n_alloc += 2;
-			    new_size =
-				stream_node[curr_stream].n_alloc *
-				sizeof(int);
-			    stream_node[curr_stream].trib =
-				(int *)G_realloc(stream_node[curr_stream].
-						 trib, new_size);
-			    new_size =
-				stream_node[curr_stream].n_alloc *
-				sizeof(double);
-			    stream_node[curr_stream].acc =
-				(double *)
-				G_realloc(stream_node[curr_stream].acc,
-					  new_size);
-			}
-
-			stream_node[curr_stream].
-			    trib[stream_node[curr_stream].n_trib] =
-			    stream[draindir.pos];
-			stream_node[curr_stream].
-			    acc[stream_node[curr_stream].n_trib++] =
-			    acc[draindir.pos];
-		    }
-		}
-	    }
-	}
+	/* add the two tributaries */
+	G_debug(3, "add tributaries");
+	stream_node[*stream_no].trib[stream_node[*stream_no].n_trib++] =
+	    curr_stream;
+	stream_node[*stream_no].trib[stream_node[*stream_no].n_trib++] =
+	    stream_id;
 
 	/* update stream IDs downstream */
-	G_debug(2, "update stream IDs downstream");
+	G_debug(3, "update stream IDs downstream");
 	r_nbr = r_max;
 	c_nbr = c_max;
-	draindir.pos = INDEX(r_nbr, c_nbr);
+	old_stream = curr_stream;
+	curr_stream = *stream_no;
+	cseg_put(&stream, &curr_stream, r_nbr, c_nbr);
+	bseg_get(&asp, &aspect, r_nbr, c_nbr);
 
-	while ((founddir = rbtree_find(draintree, &draindir)) != NULL) {
-	    if (asp_r[(int)founddir->dir] == 0 &&
-		asp_c[(int)founddir->dir] == 0)
-		G_fatal_error(_("BUG: no valid stream direction"));
-	    r_nbr = r_nbr + asp_r[(int)founddir->dir];
-	    c_nbr = c_nbr + asp_c[(int)founddir->dir];
-	    draindir.pos = INDEX(r_nbr, c_nbr);
-	    if (stream[INDEX(r_nbr, c_nbr)] <= 0)
-		G_fatal_error(_("BUG: stream id not set"));
-	    else
-		stream[INDEX(r_nbr, c_nbr)] = curr_stream;
+	while (aspect > 0) {
+	    r_nbr = r_nbr + asp_r[(int)aspect];
+	    c_nbr = c_nbr + asp_c[(int)aspect];
+	    cseg_get(&stream, &stream_nbr, r_nbr, c_nbr);
+	    if (stream_nbr != old_stream)
+		aspect = -1;
+	    else {
+		cseg_put(&stream, &curr_stream, r_nbr, c_nbr);
+		bseg_get(&asp, &aspect, r_nbr, c_nbr);
+	    }
 	}
     }
     else {
 	/* stream node already existing here */
-	G_debug(2, "existing confluence");
+	G_debug(3, "existing confluence");
 	/* add new tributary to stream node */
 	if (stream_node[curr_stream].n_trib >=
 	    stream_node[curr_stream].n_alloc) {
@@ -189,17 +123,13 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 	    new_size = stream_node[curr_stream].n_alloc * sizeof(int);
 	    stream_node[curr_stream].trib =
 		(int *)G_realloc(stream_node[curr_stream].trib, new_size);
-	    new_size = stream_node[curr_stream].n_alloc * sizeof(double);
-	    stream_node[curr_stream].acc =
-		(double *)G_realloc(stream_node[curr_stream].acc,
-				    new_size);
 	}
 
 	stream_node[curr_stream].trib[stream_node[curr_stream].n_trib++] =
-	    stream[thisindex];
+	    stream_id;
     }
 
-    G_debug(2, "%d tribs", stream_node[curr_stream].n_trib);
+    G_debug(3, "%d tribs", stream_node[curr_stream].n_trib);
     if (stream_node[curr_stream].n_trib == 1)
 	G_warning(_("BUG: stream node %d has only 1 tributary: %d"), curr_stream,
 		  stream_node[curr_stream].trib[0]);
@@ -208,14 +138,13 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 }
 
 /*
- * extracts streams for threshold
+ * accumulate surface flow
  */
 int do_accum(double d8cut)
 {
     int r, c, dr, dc;
-    CELL ele_val, ele_nbr;
-    DCELL value, valued;
-    int count;
+    CELL ele_val, *ele_nbr;
+    DCELL value, *wat_nbr;
     struct Cell_head window;
     int mfd_cells, astar_not_set;
     double *dist_to_nbr, *weight, sum_weight, max_weight;
@@ -229,15 +158,19 @@ int do_accum(double d8cut)
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    unsigned int thisindex, nindex, workedon, killer;
+    unsigned int workedon, killer, count;
+    char *flag_nbr, this_flag_value;
+    POINT astarpoint;
+    WAT_ALT wa;
 
     G_message(_("Calculate flow accumulation..."));
-
-    count = 0;
 
     /* distances to neighbours */
     dist_to_nbr = (double *)G_malloc(sides * sizeof(double));
     weight = (double *)G_malloc(sides * sizeof(double));
+    flag_nbr = (char *)G_malloc(sides * sizeof(char));
+    wat_nbr = (DCELL *)G_malloc(sides * sizeof(DCELL));
+    ele_nbr = (CELL *)G_malloc(sides * sizeof(CELL));
 
     G_get_set_window(&window);
 
@@ -254,37 +187,42 @@ int do_accum(double d8cut)
 	    dist_to_nbr[ct_dir] = sqrt(dx * dx + dy * dy);
     }
 
-    /* reset worked flag */
-    flag_clear_all(worked);
-
     /* distribute and accumulate */
-    for (killer = 1; killer <= n_points; killer++) {
-	G_percent(killer, n_points, 1);
+    count = 0;
+    for (killer = 0; killer < n_points; killer++) {
 
-	thisindex = astar_pts[killer];
-	r = thisindex / ncols;
-	c = thisindex - r * ncols;
-	aspect = asp[thisindex];
+	G_percent(killer, n_points, 1);
+	
+	seg_get(&astar_pts, (char *)&astarpoint, 0, killer);
+	r = astarpoint.r;
+	c = astarpoint.c;
+
+	bseg_get(&asp, &aspect, r, c);
+
+	/* do not distribute flow along edges or out of real depressions */
+	if (aspect <= 0) {
+	    bseg_get(&bitflags, &this_flag_value, r, c);
+	    FLAG_UNSET(this_flag_value, WORKEDFLAG);
+	    bseg_put(&bitflags, &this_flag_value, r, c);
+	    continue;
+	}
 
 	if (aspect) {
 	    dr = r + asp_r[abs((int)aspect)];
 	    dc = c + asp_c[abs((int)aspect)];
 	}
-	else {
-	    dr = r;
-	    dc = c;
-	    /* can only happen with real depressions */
-	    if (!have_depressions)
-		G_fatal_error(_("Bug in stream extraction"));
-	    FLAG_SET(worked, r, c);
-	    G_debug(1, "bottom of real depression");
-	    continue;
-	}
 
 	r_max = dr;
 	c_max = dc;
 
-	value = acc[thisindex];
+	seg_get(&watalt, (char *)&wa, r, c);
+	value = wa.wat;
+
+	/* WORKEDFLAG has been set during A* Search
+	 * reversed meaning here: 0 = done, 1 = not yet done */
+	bseg_get(&bitflags, &this_flag_value, r, c);
+	FLAG_UNSET(this_flag_value, WORKEDFLAG);
+	bseg_put(&bitflags, &this_flag_value, r, c);
 
 	/***************************************/
 	/*  get weights for flow distribution  */
@@ -295,7 +233,7 @@ int do_accum(double d8cut)
 	np_side = -1;
 	mfd_cells = 0;
 	astar_not_set = 1;
-	ele_val = ele[thisindex];
+	ele_val = wa.ele;
 	edge = 0;
 	/* this loop is needed to get the sum of weights */
 	for (ct_dir = 0; ct_dir < sides; ct_dir++) {
@@ -303,22 +241,30 @@ int do_accum(double d8cut)
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
 	    weight[ct_dir] = -1;
+	    wat_nbr[ct_dir] = 0;
+	    ele_nbr[ct_dir] = 0;
+
 	    /* check that neighbour is within region */
 	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
 
-		nindex = INDEX(r_nbr, c_nbr);
+		bseg_get(&bitflags, &flag_nbr[ct_dir], r_nbr, c_nbr);
+		if ((edge = FLAG_GET(flag_nbr[ct_dir], NULLFLAG)))
+		    break;
+		seg_get(&watalt, (char *)&wa, r_nbr, c_nbr);
+		wat_nbr[ct_dir] = wa.wat;
+		ele_nbr[ct_dir] = wa.ele;
 
-		is_worked = FLAG_GET(worked, r_nbr, c_nbr);
+		/* WORKEDFLAG has been set during A* Search
+		 * reversed meaning here: 0 = done, 1 = not yet done */
+		is_worked = FLAG_GET(flag_nbr[ct_dir], WORKEDFLAG) == 0;
 		if (is_worked == 0) {
-		    ele_nbr = ele[nindex];
-		    edge = G_is_c_null_value(&ele_nbr);
-		    if (!edge && ele_nbr <= ele_val) {
-			if (ele_nbr < ele_val) {
+		    if (ele_nbr[ct_dir] <= ele_val) {
+			if (ele_nbr[ct_dir] < ele_val) {
 			    weight[ct_dir] =
 				mfd_pow((ele_val -
-					 ele_nbr) / dist_to_nbr[ct_dir]);
+					 ele_nbr[ct_dir]) / dist_to_nbr[ct_dir]);
 			}
-			if (ele_nbr == ele_val) {
+			if (ele_nbr[ct_dir] == ele_val) {
 			    weight[ct_dir] =
 				mfd_pow(0.5 / dist_to_nbr[ct_dir]);
 			}
@@ -346,7 +292,6 @@ int do_accum(double d8cut)
 	/* do not distribute flow along edges, this causes artifacts */
 	if (edge) {
 	    G_debug(3, "edge");
-	    FLAG_SET(worked, r, c);
 	    continue;
 	}
 
@@ -383,18 +328,16 @@ int do_accum(double d8cut)
 		/* check that neighbour is within region */
 		if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 &&
 		    c_nbr < ncols && weight[ct_dir] > -0.5) {
-		    is_worked = FLAG_GET(worked, r_nbr, c_nbr);
+		    is_worked = FLAG_GET(flag_nbr[ct_dir], WORKEDFLAG) == 0;
 		    if (is_worked == 0) {
 
 			weight[ct_dir] = weight[ct_dir] / sum_weight;
 			/* check everything sums up to 1.0 */
 			prop += weight[ct_dir];
 
-			nindex = INDEX(r_nbr, c_nbr);
-
-			valued = acc[nindex];
-			valued += value * weight[ct_dir];
-			acc[nindex] = valued;
+			wa.wat = wat_nbr[ct_dir] + value * weight[ct_dir];
+			wa.ele = ele_nbr[ct_dir];
+			seg_put(&watalt, (char *)&wa, r_nbr, c_nbr);
 		    }
 		    else if (ct_dir == np_side) {
 			/* check for consistency with A * path */
@@ -409,17 +352,18 @@ int do_accum(double d8cut)
 	}
 	/* get out of depression in SFD mode */
 	else {
-	    nindex = INDEX(dr, dc);
-	    valued = acc[INDEX(dr, dc)];
-	    valued += value;
-	    acc[INDEX(dr, dc)] = valued;
+	    wa.wat = wat_nbr[np_side] + value;
+	    wa.ele = ele_nbr[np_side];
+	    seg_put(&watalt, (char *)&wa, dr, dc);
 	}
-
-	FLAG_SET(worked, r, c);
     }
+    G_percent(1, 1, 2);
 
     G_free(dist_to_nbr);
     G_free(weight);
+    G_free(wat_nbr);
+    G_free(ele_nbr);
+    G_free(flag_nbr);
 
     return 1;
 }
@@ -427,14 +371,13 @@ int do_accum(double d8cut)
 /*
  * extracts streams for threshold, accumulation is provided
  */
-int extract_streams(double threshold, double mont_exp, int min_length)
+int extract_streams(double threshold, double mont_exp, int min_length, int internal_acc)
 {
     int r, c, dr, dc;
-    CELL is_swale, ele_val, ele_nbr;
-    CELL *streamp;
-    DCELL value, valued;
+    CELL is_swale, ele_val, *ele_nbr;
+    DCELL value, valued, *wat_nbr;
     struct Cell_head window;
-    int mfd_cells, stream_cells, swale_cells, astar_not_set, is_null;
+    int mfd_cells, stream_cells, swale_cells, astar_not_set;
     double *dist_to_nbr;
     double dx, dy;
     int r_nbr, c_nbr, r_max, c_max, ct_dir, np_side, max_side;
@@ -452,14 +395,14 @@ int extract_streams(double threshold, double mont_exp, int min_length)
      *  | 2 |   | 3 |
      *  | 5 | 0 | 6 |
      */
-    unsigned int thisindex, nindex, workedon, killer;
+    unsigned int workedon, killer, count;
     int stream_no = 0, stream_node_step = 1000;
     double slope, diag;
+    char *flag_nbr, this_flag_value;
+    POINT astarpoint;
+    WAT_ALT wa;
 
     G_message(_("Extract streams..."));
-    
-    /* init BST for drainage direction */
-    draintree = rbtree_create(draindir_compare, sizeof(struct ddir));
 
     /* init stream nodes */
     n_alloc_nodes = stream_node_step;
@@ -470,11 +413,14 @@ int extract_streams(double threshold, double mont_exp, int min_length)
     /* init outlet nodes */
     n_alloc_outlets = stream_node_step;
     outlets =
-	(struct point *)G_malloc(n_alloc_outlets * sizeof(struct point));
+	(POINT *)G_malloc(n_alloc_outlets * sizeof(POINT));
     n_outlets = 0;
 
     /* distances to neighbours */
     dist_to_nbr = (double *)G_malloc(sides * sizeof(double));
+    flag_nbr = (char *)G_malloc(sides * sizeof(char));
+    wat_nbr = (DCELL *)G_malloc(sides * sizeof(DCELL));
+    ele_nbr = (CELL *)G_malloc(sides * sizeof(CELL));
 
     G_get_set_window(&window);
 
@@ -493,44 +439,40 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 
     diag = sqrt(2);
 
-    /* reset worked flag */
-    flag_clear_all(worked);
-
-    /* initialize streams */
-    streamp = stream;
-    for (r = 0; r < nrows; r++) {
-	for (c = 0; c < ncols; c++) {
-	    *streamp = 0;
-	    streamp++;
-	}
-    }
-
     workedon = 0;
 
     /* extract streams */
-    for (killer = 1; killer <= n_points; killer++) {
+    count = 0;
+    for (killer =  0; killer < n_points; killer++) {
 	G_percent(killer, n_points, 1);
+	
+	seg_get(&astar_pts, (char *)&astarpoint, 0, killer);
+	r = astarpoint.r;
+	c = astarpoint.c;
 
-	thisindex = astar_pts[killer];
-	r = thisindex / ncols;
-	c = thisindex - r * ncols;
-	aspect = asp[thisindex];
+	bseg_get(&asp, &aspect, r, c);
 
-	FLAG_SET(worked, r, c);
+	bseg_get(&bitflags, &this_flag_value, r, c);
+	/* internal acc: SET, external acc: UNSET */
+	if (internal_acc)
+	    FLAG_SET(this_flag_value, WORKEDFLAG);
+	else
+	    FLAG_UNSET(this_flag_value, WORKEDFLAG);
+	bseg_put(&bitflags, &this_flag_value, r, c);
 
 	/* do not distribute flow along edges */
 	if (aspect <= 0) {
 	    G_debug(3, "edge");
-	    is_swale = stream[thisindex];
+	    is_swale = FLAG_GET(this_flag_value, STREAMFLAG);
 	    if (is_swale) {
 		G_debug(2, "edge outlet");
 		/* add outlet point */
 		if (n_outlets >= n_alloc_outlets) {
 		    n_alloc_outlets += stream_node_step;
 		    outlets =
-			(struct point *)G_realloc(outlets,
+			(POINT *)G_realloc(outlets,
 						  n_alloc_outlets *
-						  sizeof(struct point));
+						  sizeof(POINT));
 		}
 		outlets[n_outlets].r = r;
 		outlets[n_outlets].c = c;
@@ -560,7 +502,8 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	r_nbr = r_max = dr;
 	c_nbr = c_max = dc;
 
-	value = acc[thisindex];
+	seg_get(&watalt, (char *)&wa, r, c);
+	value = wa.wat;
 
 	/**********************************/
 	/*  find main drainage direction  */
@@ -572,8 +515,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	stream_cells = 0;
 	swale_cells = 0;
 	astar_not_set = 1;
-	ele_val = ele[thisindex];
-	is_null = 0;
+	ele_val = wa.ele;
 	edge = 0;
 	flat = 1;
 	/* find main drainage direction */
@@ -581,33 +523,43 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	    /* get r_nbr, c_nbr for neighbours */
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
+	    wat_nbr[ct_dir] = 0;
+	    ele_nbr[ct_dir] = 0;
+	    flag_nbr[ct_dir] = 0;
+
 	    /* check that neighbour is within region */
 	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
 
 		if (dr == r_nbr && dc == c_nbr)
 		    np_side = ct_dir;
 
-		nindex = INDEX(r_nbr, c_nbr);
+		bseg_get(&bitflags, &flag_nbr[ct_dir], r_nbr, c_nbr);
+		if ((edge = FLAG_GET(flag_nbr[ct_dir], NULLFLAG)))
+		    break;
+		seg_get(&watalt, (char *)&wa, r_nbr, c_nbr);
+		wat_nbr[ct_dir] = wa.wat;
+		ele_nbr[ct_dir] = wa.ele;
 
 		/* check for swale cells */
-		is_swale = stream[nindex];
-		if (is_swale > 0)
+		is_swale = FLAG_GET(flag_nbr[ct_dir], STREAMFLAG);
+		if (is_swale)
 		    swale_cells++;
 
 		/* check for stream cells */
-		valued = fabs(acc[nindex]);
-		ele_nbr = ele[nindex];
+		valued = fabs(wat_nbr[ct_dir]);
 		/* check all upstream neighbours */
 		if (valued >= threshold && ct_dir != np_side &&
-		    ele_nbr > ele_val)
+		    ele_nbr[ct_dir] > ele_val)
 		    stream_cells++;
 
-		is_worked = FLAG_GET(worked, r_nbr, c_nbr);
+		is_worked = FLAG_GET(flag_nbr[ct_dir], WORKEDFLAG);
+		if (!internal_acc)
+		    is_worked = is_worked == 0;
+
 		if (is_worked == 0) {
-		    if (ele_nbr != ele_val)
+		    if (ele_nbr[ct_dir] != ele_val)
 			flat = 0;
-		    edge = G_is_c_null_value(&ele_nbr);
-		    if (!edge && ele_nbr <= ele_val) {
+		    if (ele_nbr[ct_dir] <= ele_val) {
 
 			mfd_cells++;
 
@@ -624,7 +576,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 			}
 		    }
 		}
-		else if (ct_dir == np_side) {
+		else if (ct_dir == np_side && !edge) {
 		    /* check for consistency with A * path */
 		    workedon++;
 		}
@@ -635,7 +587,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 		break;
 	}
 
-	is_swale = stream[thisindex];
+	is_swale = FLAG_GET(this_flag_value, STREAMFLAG);
 
 	/* do not continue streams along edges, these are artifacts */
 	if (edge) {
@@ -646,26 +598,28 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 		if (n_outlets >= n_alloc_outlets) {
 		    n_alloc_outlets += stream_node_step;
 		    outlets =
-			(struct point *)G_realloc(outlets,
+			(POINT *)G_realloc(outlets,
 						  n_alloc_outlets *
-						  sizeof(struct point));
+						  sizeof(POINT));
 		}
 		outlets[n_outlets].r = r;
 		outlets[n_outlets].c = c;
 		n_outlets++;
-		if (asp[thisindex] > 0) {
+		if (aspect > 0) {
 		    aspect = -1 * drain[r - r_nbr + 1][c - c_nbr + 1];
-		    asp[thisindex] = aspect;
+		    bseg_put(&asp, &aspect, r, c);
 		}
 	    }
 	    continue;
 	}
 
+	if (np_side < 0)
+	    G_fatal_error("np_side < 0");
+	    
 	/* set main drainage direction to A* path if possible */
 	if (mfd_cells > 0 && max_side != np_side) {
-	    nindex = INDEX(dr, dc);
-	    if (fabs(acc[nindex] >= max_acc)) {
-		max_acc = fabs(acc[nindex]);
+	    if (fabs(wat_nbr[np_side] >= max_acc)) {
+		max_acc = fabs(wat_nbr[np_side]);
 		r_max = dr;
 		c_max = dc;
 		max_side = np_side;
@@ -673,16 +627,17 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	}
 	if (mfd_cells == 0) {
 	    flat = 0;
+	    r_max = dr;
+	    c_max = dc;
 	    max_side = np_side;
 	}
 
 	/* update aspect */
 	/* r_max == r && c_max == c should not happen */
 	if ((r_max != dr || c_max != dc) && (r_max != r || c_max != c)) {
-	    asp[thisindex] = drain[r - r_max + 1][c - c_max + 1];
+	    aspect = drain[r - r_max + 1][c - c_max + 1];
+	    bseg_put(&asp, &aspect, r, c);
 	}
-
-	is_swale = stream[thisindex];
 
 	/**********************/
 	/*  start new stream  */
@@ -695,9 +650,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 		G_warning
 		    (_("Can't use Montgomery's method, no stream direction found"));
 	    else {
-		ele_nbr = ele[INDEX(r_max, c_max)];
-
-		slope = (double)(ele_val - ele_nbr) / ele_scale;
+		slope = (double)(ele_val - ele_nbr[max_side]) / ele_scale;
 
 		if (max_side > 3)
 		    slope /= diag;
@@ -706,10 +659,13 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	    }
 	}
 
-	if (is_swale < 1 && fabs(value) >= threshold && stream_cells < 1 &&
+	if (!is_swale && fabs(value) >= threshold && stream_cells < 1 &&
 	    swale_cells < 1 && !flat) {
 	    G_debug(2, "start new stream");
-	    is_swale = stream[thisindex] = ++stream_no;
+	    is_swale = ++stream_no;
+	    cseg_put(&stream, &is_swale, r, c);
+	    FLAG_SET(this_flag_value, STREAMFLAG);
+	    bseg_put(&bitflags, &this_flag_value, r, c);
 	    /* add stream node */
 	    if (stream_no >= n_alloc_nodes - 1) {
 		n_alloc_nodes += stream_node_step;
@@ -725,7 +681,6 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	    stream_node[stream_no].n_trib_total = 0;
 	    stream_node[stream_no].n_alloc = 0;
 	    stream_node[stream_no].trib = NULL;
-	    stream_node[stream_no].acc = NULL;
 	    n_stream_nodes++;
 
 	    /* debug */
@@ -739,38 +694,41 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	/*********************/
 
 	if (is_swale > 0) {
+	    cseg_get(&stream, &is_swale, r, c);
 	    if (r_max == r && c_max == c) {
 		/* can't continue stream, add outlet point
 		 * r_max == r && c_max == c should not happen */
-		G_debug(1, "can't continue stream at r %d c %d", r, c);
+		G_debug(0, "can't continue stream at r %d c %d", r, c);
 
 		if (n_outlets >= n_alloc_outlets) {
 		    n_alloc_outlets += stream_node_step;
 		    outlets =
-			(struct point *)G_malloc(n_alloc_outlets *
-						 sizeof(struct point));
+			(POINT *)G_malloc(n_alloc_outlets *
+						 sizeof(POINT));
 		}
 		outlets[n_outlets].r = r;
 		outlets[n_outlets].c = c;
 		n_outlets++;
 	    }
 	    else {
-		continue_stream(is_swale, r, c, r_max, c_max, thisindex,
-				&stream_no, min_length);
+		continue_stream(is_swale, r, c, r_max, c_max, 
+				&stream_no);
 	    }
 	}
     }
+    G_percent(1, 1, 2);
     if (workedon)
-	G_warning(_("MFD: A * path already processed when distributing flow: %d of %d cells"),
+	G_warning(_("MFD: A * path already processed when setting drainage direction: %d of %d cells"),
 		  workedon, n_points);
 
-    flag_destroy(worked);
     G_free(dist_to_nbr);
-    G_free(astar_pts);
+    G_free(wat_nbr);
+    G_free(ele_nbr);
+    G_free(flag_nbr);
 
-    G_debug(1, "%d outlets", n_outlets);
-    G_debug(1, "%d nodes", n_stream_nodes);
-    G_debug(1, "%d streams", stream_no);
+    G_debug(0, "%d outlets", n_outlets);
+    G_debug(0, "%d nodes", n_stream_nodes);
+    G_debug(0, "%d streams", stream_no);
 
     return 1;
 }

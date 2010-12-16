@@ -1,14 +1,15 @@
-#include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/glocale.h>
+#include <grass/vector.h>
 #include <grass/dbmi.h>
-#include <grass/Vect.h>
 #include "local_proto.h"
 
 int close_streamvect(char *stream_vect)
 {
     int i, r, c, r_nbr, c_nbr, done;
-    int stream_id, next_node;
-    unsigned int thisindex;
+    CELL stream_id, stream_nbr;
+    char aspect;
+    int next_node;
     struct sstack
     {
 	int stream_id;
@@ -17,7 +18,6 @@ int close_streamvect(char *stream_vect)
     int top = 0, stack_step = 1000;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-    struct ddir draindir, *founddir;
     struct Map_info Out;
     static struct line_pnts *Points;
     struct line_cats *Cats;
@@ -53,8 +53,7 @@ int close_streamvect(char *stream_vect)
 	G_percent(i, n_outlets, 2);
 	r = outlets[i].r;
 	c = outlets[i].c;
-	thisindex = INDEX(r, c);
-	stream_id = stream[thisindex];
+	cseg_get(&stream, &stream_id, r, c);
 
 	if (!stream_id)
 	    continue;
@@ -112,7 +111,10 @@ int close_streamvect(char *stream_vect)
 
 		r_nbr = stream_node[stream_id].r;
 		c_nbr = stream_node[stream_id].c;
-		draindir.pos = INDEX(r_nbr, c_nbr);
+
+		cseg_get(&stream, &stream_nbr, r_nbr, c_nbr);
+		if (stream_nbr <= 0)
+		    G_fatal_error("stream id %d not set, top is %d, parent is %d", stream_id, top, nodestack[top - 1].stream_id);
 
 		Vect_cat_set(Cats, 1, stream_id);
 		if (stream_node[stream_id].n_trib == 0)
@@ -125,23 +127,22 @@ int close_streamvect(char *stream_vect)
 
 		Vect_write_line(&Out, GV_POINT, Points, Cats);
 
-		while ((founddir = rbtree_find(draintree, &draindir)) != NULL) {
-		    r_nbr = r_nbr + asp_r[(int)founddir->dir];
-		    c_nbr = c_nbr + asp_c[(int)founddir->dir];
-
-		    if (stream[founddir->pos] != stream_id) {
-			/* append first point of parent stream */
-			Vect_append_point(Points,
-					  west_offset + c_nbr * ew_res,
-					  north_offset - r_nbr * ns_res, 0);
-			break;
-		    }
-		    draindir.pos = INDEX(r_nbr, c_nbr);
-		    if (stream[INDEX(r_nbr, c_nbr)] <= 0)
-			G_fatal_error(_("BUG: stream id not set"));
+		bseg_get(&asp, &aspect, r_nbr, c_nbr);
+		while (aspect > 0) {
+		    r_nbr = r_nbr + asp_r[(int)aspect];
+		    c_nbr = c_nbr + asp_c[(int)aspect];
+		    
+		    cseg_get(&stream, &stream_nbr, r_nbr, c_nbr);
+		    if (stream_nbr <= 0)
+			G_fatal_error("stream id not set while tracing");
 
 		    Vect_append_point(Points, west_offset + c_nbr * ew_res,
 				      north_offset - r_nbr * ns_res, 0);
+		    if (stream_nbr != stream_id) {
+			/* first point of parent stream */
+			break;
+		    }
+		    bseg_get(&asp, &aspect, r_nbr, c_nbr);
 		}
 
 		Vect_write_line(&Out, GV_LINE, Points, Cats);
@@ -232,8 +233,10 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
 {
     int stream_fd, dir_fd, r, c, i;
     CELL *cell_buf1, *cell_buf2;
-    unsigned int thisindex;
     struct History history;
+    char flag_value;
+    CELL stream_id;
+    char aspect;
 
     /* cheating... */
     stream_fd = dir_fd = -1;
@@ -244,54 +247,56 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
 
     /* write requested output rasters */
     if (stream_rast) {
-	stream_fd = G_open_raster_new(stream_rast, CELL_TYPE);
-	cell_buf1 = G_allocate_cell_buf();
+	stream_fd = Rast_open_new(stream_rast, CELL_TYPE);
+	cell_buf1 = Rast_allocate_c_buf();
     }
     if (dir_rast) {
-	dir_fd = G_open_raster_new(dir_rast, CELL_TYPE);
-	cell_buf2 = G_allocate_cell_buf();
+	dir_fd = Rast_open_new(dir_rast, CELL_TYPE);
+	cell_buf2 = Rast_allocate_c_buf();
     }
 
     for (r = 0; r < nrows; r++) {
 	G_percent(r, nrows, 2);
 	if (stream_rast)
-	    G_set_c_null_value(cell_buf1, ncols);	/* reset row to all NULL */
+	    Rast_set_c_null_value(cell_buf1, ncols);	/* reset row to all NULL */
 	if (dir_rast)
-	    G_set_c_null_value(cell_buf2, ncols);	/* reset row to all NULL */
+	    Rast_set_c_null_value(cell_buf2, ncols);	/* reset row to all NULL */
 
 	for (c = 0; c < ncols; c++) {
-	    thisindex = INDEX(r, c);
-	    if (stream[thisindex] > 0) {
-		if (stream_rast)
-		    cell_buf1[c] = stream[thisindex];
+	    if (stream_rast) {
+		cseg_get(&stream, &stream_id, r, c);
+		if (stream_id)
+		    cell_buf1[c] = stream_id;
 	    }
 	    if (dir_rast) {
-		if (!G_is_c_null_value(&ele[thisindex])) {
-		    cell_buf2[c] = asp[thisindex];
+		bseg_get(&bitflags, &flag_value, r, c);
+		if (!FLAG_GET(flag_value, NULLFLAG)) {
+		    bseg_get(&asp, &aspect, r, c);
+		    cell_buf2[c] = aspect;
 		}
 	    }
 	    
 	}
 	if (stream_rast)
-	    G_put_raster_row(stream_fd, cell_buf1, CELL_TYPE);
+	    Rast_put_row(stream_fd, cell_buf1, CELL_TYPE);
 	if (dir_rast)
-	    G_put_raster_row(dir_fd, cell_buf2, CELL_TYPE);
+	    Rast_put_row(dir_fd, cell_buf2, CELL_TYPE);
     }
     G_percent(nrows, nrows, 2);	/* finish it */
 
     if (stream_rast) {
-	G_close_cell(stream_fd);
+	Rast_close(stream_fd);
 	G_free(cell_buf1);
-	G_short_history(stream_rast, "raster", &history);
-	G_command_history(&history);
-	G_write_history(stream_rast, &history);
+	Rast_short_history(stream_rast, "raster", &history);
+	Rast_command_history(&history);
+	Rast_write_history(stream_rast, &history);
     }
     if (dir_rast) {
-	G_close_cell(dir_fd);
+	Rast_close(dir_fd);
 	G_free(cell_buf2);
-	G_short_history(dir_rast, "raster", &history);
-	G_command_history(&history);
-	G_write_history(dir_rast, &history);
+	Rast_short_history(dir_rast, "raster", &history);
+	Rast_command_history(&history);
+	Rast_write_history(dir_rast, &history);
     }
 
     /* close stream vector */
@@ -301,14 +306,12 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
     }
 
     /* rearranging desk chairs on the Titanic... */
-    rbtree_destroy(draintree);
     G_free(outlets);
 
     /* free stream nodes */
     for (i = 1; i <= n_stream_nodes; i++) {
 	if (stream_node[i].n_alloc > 0) {
 	    G_free(stream_node[i].trib);
-	    G_free(stream_node[i].acc);
 	}
     }
     G_free(stream_node);
