@@ -457,7 +457,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
     double slope, diag;
 
     G_message(_("Extract streams..."));
-
+    
     /* init BST for drainage direction */
     draintree = rbtree_create(draindir_compare, sizeof(struct ddir));
 
@@ -516,6 +516,8 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 	c = thisindex - r * ncols;
 	aspect = asp[thisindex];
 
+	FLAG_SET(worked, r, c);
+
 	/* do not distribute flow along edges */
 	if (aspect <= 0) {
 	    G_debug(3, "edge");
@@ -534,7 +536,7 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 		outlets[n_outlets].c = c;
 		n_outlets++;
 	    }
-	    FLAG_SET(worked, r, c);
+
 	    if (aspect == 0) {
 		/* can only happen with real depressions */
 		if (!have_depressions)
@@ -757,8 +759,6 @@ int extract_streams(double threshold, double mont_exp, int min_length)
 				&stream_no, min_length);
 	    }
 	}
-
-	FLAG_SET(worked, r, c);
     }
     if (workedon)
 	G_warning(_("MFD: A * path already processed when distributing flow: %d of %d cells"),

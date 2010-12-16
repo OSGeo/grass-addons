@@ -236,7 +236,7 @@ int load_maps(int ele_fd, int acc_fd, int depr_fd)
 		is_worked = FLAG_GET(worked, r_nbr, c_nbr);
 
 		if (is_worked) {
-		    asp_value = drain[r - r_nbr + 1][c - c_nbr + 1];
+		    asp_value = -drain[r - r_nbr + 1][c - c_nbr + 1];
 		    thisindex = INDEX(r, c);
 		    ele_value = ele[thisindex];
 		    asp[thisindex] = asp_value;
