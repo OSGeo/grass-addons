@@ -1,6 +1,6 @@
 GIPE Modules list
 -----------------
-Yann Chemin, 2008 August 20th, Los Banos, The Philippines.
+Yann Chemin, 2011 January 12th, Wagga Wagga, Australia.
 ----------------------------------------------------------
 Those modules are getting installed when you run the script: install_yanns_grass.sh
 (works in WinGRASS and Linux)
@@ -23,6 +23,9 @@ Cleaning
 20090619: Moved i.eb.g0, i.eb.evapfr, i.eb.h_SEBAL01, i.eb.eta to main SVN
 20090619: Renamed i.eb.g0 to i.eb.soilheatflux inside main SVN
 20090623: Moved i.biomass to main SVN
+20110101: Moved i.dn2ref.ast to i.aster.toar in main SVN
+	Also removed i.dn2ref.l5/7 as they are superseeded by i.landsat.toar in main SVN
+20110112: Moved i.netrad, r/i.evapo.PM/PT/MH to main SVN
 
 Imagery modules
 ---------------
@@ -38,12 +41,12 @@ i.water:	Identifies water (from Terra-MODIS and generic method)
 i.wi:		Calculates a water index
 
 -----IMPORT from DN to reflectance, radiance temperature or potential ET -------------
-i.dn2full.l5:	imports DN into radiance or reflectance/temperature for Landsat 5
-i.dn2full.l7:	imports DN into radiance or reflectance/temperature for Landsat 7 
+**i.dn2full.l5:	imports DN into radiance or reflectance/temperature for Landsat 5
+**i.dn2full.l7:	imports DN into radiance or reflectance/temperature for Landsat 7 
 i.dn2potrad.l5: Calculates potential Evapotranspiration from Landsat 5 DN directly
 i.dn2potrad.l7: Calculates potential Evapotranspiration from Landsat 7 DN directly
-i.dn2ref.ast:	imports DN into radiance or reflectance for Terra-ASTER (not temperature)
-i.dn2ref.l7:	imports DN into radiance or reflectance for Landsat 7 (not temperature)
+**i.dn2ref.ast:	imports DN into radiance or reflectance for Terra-ASTER (not temperature)
+**i.dn2ref.l7:	imports DN into radiance or reflectance for Landsat 7 (not temperature)
 --------------------------------------------------------------------------------------
 
 -----ENERGY balance-------------------------------------------------------------------
@@ -57,7 +60,7 @@ i.eb.h_iter:	Energy-Balance: Calculates the Sensible Heat Flux after Pawan (2004
 **i.eb.h_SEBAL01:(Now in main SVN) Energy-Balance: Calculates the Sensible Heat Flux after SEBAL (small areas)
 i.eb.h_SEBAL95: Energy-Balance: Calculates the Sensible Heat Flux after SEBAL 1995
 i.eb.molength:	Energy-Balance: Calculates the Monin-Obukov Length
-i.eb.netrad:	Energy-Balance: Calculates the Net Radiation
+**i.eb.netrad:	Energy-Balance: Calculates the Net Radiation
 i.eb.psi:	Energy-Balance: Calculates the Psichrometric components
 i.eb.rah: 	Energy-Balance: Calculates a aerodynamic resistance to heat momentum
 i.eb.rohair:	Energy-Balance: Calculates the air density
@@ -70,7 +73,7 @@ i.eb.z0m0: 	Energy-Balance: Calculates the roughness length (more for crops)
 
 -----EVAPOTRANSPIRATION reference, potential, actual, time integration, automatic modes--
 i.evapo.potrad: Calculates the Potential Evapotranspiration from Astronomical equations
-i.evapo.PT: 	Calculates Priestley and Taylor Potential Evapotranspiration
+**i.evapo.PT: 	Calculates Priestley and Taylor Potential Evapotranspiration
 i.evapo.senay: 	Calculates Actual evapotranspiration after Senay (2007)
 **i.evapo.time_integration: (Now in main SVN) Integrates Actual ET over time using daily ETo meteo data
 i.evapo.TSA: 	Unfinished: Calculates Actual Evapotranspiration after Chen et al. (2005)
@@ -89,8 +92,8 @@ r.hydro.CASC2D:	(ported from GRASS 5.x): hydrological model
 r.out.vic: 	Creates input files to VIC Hydrological model
 
 -----EVAPOTRANSPIRATION reference, potential, ET data assimilation--
-r.evapo.MH: 	Calculates the Evapotranspiration from Hargreaves and modified versions.
-r.evapo.PM:	(from HydroFOSS) Calculates the Evapotranspiration from Penman-Monteith (1972) 
+**r.evapo.MH: 	Calculates the Evapotranspiration from Hargreaves and modified versions.
+**r.evapo.PM:	(from HydroFOSS) Calculates the Evapotranspiration from Penman-Monteith (1972) 
 r.gaswap.serial: RS ETa data assimilation of SWAP agro-hydrological model
 -------------------------------------------------------------------------------------
 
