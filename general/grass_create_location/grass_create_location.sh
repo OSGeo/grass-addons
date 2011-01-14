@@ -5,7 +5,7 @@
 # MODULE:       grass_create_location.sh
 # AUTHOR(S):    Markus Neteler
 # PURPOSE:      Create new GRASS location from outside GRASS session
-# COPYRIGHT:    (C) 2009 by the GRASS Development Team, Markus Neteler
+# COPYRIGHT:    (C) 2009, 2011 by the GRASS Development Team, Markus Neteler
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -33,7 +33,7 @@ if test "$GISBASE" != ""; then
 fi
 
 if [ $# -ne 3 ] ; then
-   echo "Usage: $0 type file|epsgcode locationname"
+   echo "Usage: $0 <type> <filename>|<epsgcode> <location>"
    echo ""
    echo "type: gisfile,wktfile,epsgcode"
    echo ""
