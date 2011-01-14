@@ -4,7 +4,7 @@
 #
 # MODULE:       grass_create_location.sh
 # AUTHOR(S):    Markus Neteler
-# PURPOSE:      Calculates univariate statistics from a GRASS raster map
+# PURPOSE:      Create new GRASS location from outside GRASS session
 # COPYRIGHT:    (C) 2009 by the GRASS Development Team, Markus Neteler
 #
 #               This program is free software under the GNU General Public
@@ -37,8 +37,10 @@ if [ $# -ne 3 ] ; then
    echo ""
    echo "type: gisfile,wktfile,epsgcode"
    echo ""
-   echo "Example:"
-   echo "  $0 epsgcode 4326 latlong"
+   echo "Examples:"
+   echo "  $0 province.shp latlong"
+   echo "  $0 myfile.wkt latlong"
+   echo "  $0 4326 latlong"
    exit 1
 fi
 
