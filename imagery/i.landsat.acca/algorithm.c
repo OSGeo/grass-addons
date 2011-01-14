@@ -134,8 +134,11 @@ void acca_algorithm(Gfile * out, Gfile band[],
     /* WARNING: re-use of the variable 'value' with new meaning */
 
     /* step 14 */
+
+    /* To correct Irish2006: idesert has to be bigger than 0.5 to start pass 2 processing (see Irish2000)
+       because then we have no desert condition (thanks to Matthias Eder, Germany) */
     if (cloud_signature ||
-	(idesert <= .5 && signa[COVER] > 0.004 && signa[KMEAN] < 295.)) {
+	(idesert > .5 && signa[COVER] > 0.004 && signa[KMEAN] < 295.)) {
 	G_message(_("Histogram cloud signature:"));
 
 	value[MEAN] = quantile(0.5, hist_cold) + K_BASE;
@@ -166,7 +169,12 @@ void acca_algorithm(Gfile * out, Gfile band[],
 	    shift *= value[DSTD];
 
 	    if ((value[KUPPER] + shift) > max) {
-		value[KLOWER] += (max - value[KUPPER]);
+                if ((value[KLOWER] + shift) > max) {
+                    value[KLOWER] += (max - value[KUPPER]);
+                }
+                else {
+                    value[KLOWER] += shift;
+                }
 		value[KUPPER] = max;
 	    }
 	    else {
@@ -355,7 +363,7 @@ void acca_first(Gfile *out, Gfile band[],
 			  out->name, row);
     }
     G_percent(1, 1, 1);
-    
+
     G_free(out->rast);
     G_close_cell(out->fd);
 
@@ -368,7 +376,7 @@ void acca_second(Gfile * out, Gfile band,
 {
     int row, col, nrows, ncols;
     char *mapset;
-    
+
     int code;
     double temp;
     Gfile tmp;
@@ -379,9 +387,9 @@ void acca_second(Gfile * out, Gfile band,
 	G_fatal_error(_("Raster map <%s> not found"), out->name);
     if ((out->fd = G_open_cell_old(out->name, "")) < 0)
 	G_fatal_error(_("Unable to open raster map <%s>"), out->name);
-    
+
     out->rast = G_allocate_raster_buf(CELL_TYPE);
-    
+
     /* Open to write */
     sprintf(tmp.name, "_%d.BBB", getpid());
     tmp.rast = G_allocate_raster_buf(CELL_TYPE);
@@ -398,14 +406,14 @@ void acca_second(Gfile * out, Gfile band,
 
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 2);
-	
+
 	if (G_get_d_raster_row(band.fd, band.rast, row) < 0)
 	    G_fatal_error(_("Unable to read raster map <%s> row %d"),
 			  band.name, row);
 	if (G_get_c_raster_row(out->fd, out->rast, row) < 0)
 	    G_fatal_error(_("Unable to read raster map <%s> row %d"),
 			  out->name, row);
-	
+
 	for (col = 0; col < ncols; col++) {
 	    if (G_is_c_null_value((void *)((CELL *) out->rast + col))) {
 		G_set_c_null_value((CELL *) tmp.rast + col, 1);
@@ -441,7 +449,7 @@ void acca_second(Gfile * out, Gfile band,
 	}
     }
     G_percent(1, 1, 1);
-    
+
     G_free(tmp.rast);
     G_close_cell(tmp.fd);
 
