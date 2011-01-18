@@ -117,7 +117,7 @@ def main():
     simpson = grass.run_command('r.li.simpson', map = map_in, out = map_out + '_simpson', conf = 'conf_diversity')
     shannon = grass.run_command('r.li.shannon', map = map_in, out = map_out+ '_shannon', conf = 'conf_diversity')
     pielou = grass.run_command('r.li.pielou', map = map_in, out = map_out+ '_pielou', conf = 'conf_diversity')
-    renyi = grass.run_command('r.li.renyi', map = map_in, out = map_out+ '_renyi', conf = 'conf_diversity', alpha = alpha_value)
+    renyi = grass.run_command('r.li.renyi', map = map_in, out = map_out+ '_renyi_' + str(alpha_value), conf = 'conf_diversity', alpha = alpha_value)
     
     os.remove(confilename)
     print 'All works are terminated'
