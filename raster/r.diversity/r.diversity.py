@@ -63,7 +63,7 @@ def main():
     # set the home path
     home=os.path.expanduser('~')
     # set the name of conf file
-    confilename = homePath+'/.r.li/history/conf_diversity'
+    confilename = home+'/.r.li/history/conf_diversity'
     # check if GISBASE is set
     if "GISBASE" not in os.environ:
 	# return an error advice
@@ -94,19 +94,19 @@ def main():
 	# check if ~/.r.li/history path exists
 	if os.path.exists(home+'/.r.li/history'):
 	    # create configuration file
-	    createConfFile(res,map_in,home)
+	    createConfFile(res,map_in,confilename)
 	else:
 	    # create ~/.r.li/history path
 	    os.path.mkdir(home+'/.r.li/history')
 	    # create configuration file
-	    createConfFile(res,map_in,home)
+	    createConfFile(res,map_in,confilename)
     else:
 	# create ~/.r.li
 	os.path.mkdir(home+'/.r.li/')
 	# create ~/.r.li/history
 	os.path.mkdir(home+'/.r.li/history')
 	# create configuration file
-	createConfFile(res,map_in,home)
+	createConfFile(res,map_in,confilename)
 
 
     ### calculate r.li indices
@@ -123,7 +123,7 @@ def main():
     print 'All works are terminated'
 
 #create configuration file instead using r.li.setup
-def createConfFile(res,inpumap,homePath):
+def createConfFile(res,inpumap,filename):
     # start the text for the conf file
     outputLine = ['SAMPLINGFRAME 0|0|1|1\n']
     # return r.info about input file
@@ -140,7 +140,7 @@ def createConfFile(res,inpumap,homePath):
     outputLine.append('SAMPLEAREA -1|-1|'+str(rV)+'|'+str(cV)+'\n')
     outputLine.append('MOVINGWINDOW\n')
     # open configuration file
-    fileConf=open(confilename,'w')
+    fileConf=open(filename,'w')
     # write file 
     fileConf.writelines(outputLine)
     # close file
