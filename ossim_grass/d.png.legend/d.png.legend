@@ -1,0 +1,281 @@
+#!/bin/sh
+
+############################################################################
+#
+# MODULE:       d.legend.png
+#
+# AUTHOR(S):    Di Stefano Massimo
+#               
+#
+# PURPOSE:      generate legend in png
+#               
+#
+# COPYRIGHT:    (c) 2006 by the GRASS Development Team
+#
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+#               
+#
+#############################################################################
+
+#%Module
+#% description: generate legend in png 
+#%End
+#%option
+#% guisection: Options
+#% key: input
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Input raster data
+#% multiple : yes
+#% required: yes
+#%end
+#%option
+#% guisection: Options
+#% key: color
+#% type: string
+#% answer:red
+#% options :red,orange,yellow,green,blue,indigo,violet,white,black,gray,brown,magenta,aqua,grey,cyan,purple
+#% description: Legend text color
+#% required : yes
+#%end
+#%option
+#% guisection: Options
+#% key: output_directory
+#% type: string
+#% gisprompt: new_file,directory,output
+#% description: Directory where save output 
+#% required : yes
+#%end
+#%option
+#% guisection: Options
+#% key_desc: string
+#% key: TRUECOLOR
+#% answer:TRUE
+#% options :TRUE,FALSE
+#% type: string
+#% description: Sets true-color support
+#% required : no
+#%end
+#%option
+#% guisection: Options
+#% key_desc: string
+#% key: TRANSPARENT
+#% answer:TRUE
+#% options :TRUE,FALSE
+#% type: string
+#% description: Sets transparent background ON or OFF
+#% required : no
+#%end
+#%option
+#% guisection: Options
+#% key_desc: string
+#% key: PNG_READ
+#% answer:FALSE
+#% options :TRUE,FALSE
+#% type: string
+#% description: If TRUE, the PNG driver will initialize the image from the contents of GRASS_PNGFILE.
+#% required : no
+#%end
+#%option
+#% guisection: Options
+#% key: BACKGROUNDCOLOR
+#% answer: 000000
+#% type: string
+#% description: Specifies the background color to use in RGB notation (hex values)
+#% required : no
+#%end
+#%option
+#% guisection: Options
+#% key: PNG_COMPRESSION
+#% answer: 9
+#% options :1,2,3,4,5,6,7,8,9
+#% type: integer
+#% description: Compression level of PNG files 
+#% required : no
+#%end
+#%option
+#% guisection: Options
+#% key: width
+#% type: double
+#% answer: 640
+#% description: width
+#% required : no
+#%end
+#%option
+#% guisection: Options
+#% key: height
+#% type: double
+#% answer: 480
+#% description: height
+#% required : no
+#%end
+#%option
+#% guisection: Options
+#% key: at
+#% type: double
+#% description: Placement as percentage of screen coordinates
+#% required : no
+#%end
+
+#%flag
+#% guisection: Advanced
+#% key: v
+#% description: Do not show category labels
+#%END
+#%flag
+#% guisection: Advanced
+#% key: c
+#% description: Do not show category numbers
+#%END
+#%flag
+#% guisection: Advanced
+#% key: n
+#% description: Skip category with no labels
+#%END
+#%flag
+#% guisection: Advanced
+#% key: s
+#% description: Draw smooth gradient
+#%END
+#%flag
+#% guisection: Advanced
+#% key: f
+#% description: Flip legend
+#%END
+#%flag
+#% guisection: Advanced
+#% key: z
+#% description: Export Image
+#%END
+
+
+#%option
+#% guisection: Advanced
+#% key: lines
+#% type: integer
+#% answer: 0
+#% description: Number of text lines
+#% required : no
+#%end
+#%option
+#% guisection: Advanced
+#% key: thin
+#% type: integer
+#% answer: 1
+#% description: Number of text labels for smooth gradient legend
+#% required : no
+#%end
+#%option
+#% guisection: Advanced
+#% key: labelnum
+#% type: integer
+#% answer: 5
+#% description: Number of text labels for smooth gradient legend
+#% required : no
+#%end
+#%option
+#% guisection: Advanced
+#% key: use
+#% type: string
+#% description: List of discrete category for numbers/values for legend
+#% required : no
+#%end
+#%option
+#% guisection: Advanced
+#% key: range
+#% type: string
+#% description: Use a subset of the map range for the legend
+#% required : no
+#%end
+
+
+
+    input=$GIS_OPT_input
+    color=$GIS_OPT_color
+    TRUECOLOR=$GIS_OPT_TRUECOLOR
+    TRANSPARENT=$GIS_OPT_TRANSPARENT
+    PNG_READ=$GIS_OPT_PNG_READ
+    BACKGROUNDCOLOR=$GIS_OPT_BACKGROUNDCOLOR
+    PNG_COMPRESSION=$GIS_OPT_PNG_COMPRESSION
+    width=$GIS_OPT_width
+    height=$GIS_OPT_height
+    output_directory=$GIS_OPT_output_directory
+
+    lines=$GIS_OPT_lines
+    thin=$GIS_OPT_thin
+    labelnum=$GIS_OPT_labelnum
+    at=$GIS_OPT_at
+    use=$GIS_OPT_use
+    range=$GIS_OPT_range
+
+    if  [ -z $GISBASE ] ; then
+    	     echo "You must be in GRASS GIS to run this program."
+	     exit 1
+    fi   
+
+    if [ "$1" != "@ARGS_PARSED@" ] ; then
+    exec g.parser "$0" "$@"
+    fi
+
+
+eval `g.gisenv`
+: ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
+LOCATION=$GISDBASE/$LOCATION_NAME/$MAPSET
+
+
+
+if [ $GIS_FLAG_v -eq 1 ] ; then
+	flag_v="-v "
+fi
+
+if [ $GIS_FLAG_c -eq 1 ] ; then
+	flag_c="-c "
+fi
+
+if [ $GIS_FLAG_n -eq 1 ] ; then
+	flag_n="-n "
+fi
+
+if [ $GIS_FLAG_f -eq 1 ] ; then
+	flag_f="-f "
+fi
+
+if [ $GIS_FLAG_s -eq 1 ] ; then
+	flag_s="-s"
+fi
+
+flags=$flag_v$flag_c$flag_n$flag_f$flag_s
+
+
+export GRASS_RENDER_IMMEDIATE=TRUE
+export GRASS_TRUECOLOR=$GIS_OPT_TRUECOLOR
+export GRASS_TRANSPARENT=$GIS_OPT_TRANSPARENT
+export GRASS_PNG_READ=$GIS_OPT_PNG_READ
+export GRASS_BACKGROUNDCOLOR=$GIS_OPT_BACKGROUNDCOLOR
+export GRASS_PNG_COMPRESSION=$GIS_OPT_PNG_COMPRESSION
+export GRASS_WIDTH=$GIS_OPT_width
+export GRASS_HEIGHT=$GIS_OPT_height
+
+# at=$at use=$use range=$range
+
+
+
+STRING=`echo $GIS_OPT_input | sed s/,/\ /g`
+for i in $STRING
+    do
+	export GRASS_PNGFILE=$output_directory/$i.png
+	d.legend map=$i color=$color $flags lines=$lines thin=$thin labelnum=$labelnum
+done
+
+if [ $GIS_FLAG_z -eq 1 ] ; then
+	for i in $STRING
+	do
+		#export GRASS_TRANSPARENT=FALSE
+		export GRASS_PNGFILE=$output_directory/image_$i.png
+		d.rast $i
+		d.legend map=$i color=$color $flags lines=$lines thin=$thin labelnum=$labelnum
+	done
+fi
