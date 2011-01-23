@@ -134,7 +134,7 @@ def main():
         mapfile = os.path.join(vectorpath, 'head')
         vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], mappa[1], 'vrt', 'vector/')
     except :
-        vectorpath = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], grassenv['MAPSET'], 'vector', mappa[0] )
+        vectorpath = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], grassenv['MAPSET'], mappa[0] )
         mapfile = os.path.join(vectorpath, 'head' )   
         vrtdir = os.path.join(grassenv['GISDBASE'], grassenv['LOCATION_NAME'], grassenv['MAPSET'], 'vrt', 'vector/')
     d = os.path.dirname(vrtdir)
@@ -142,23 +142,23 @@ def main():
         os.makedirs(d)
     vrtfilename =  mappa[0] + '.vrt'
     output = os.path.join(vrtdir, vrtfilename)
+    if not os.path.exists(output):
+        ogrvrt(mapfile,output)
+        print 'try to make omd'
+        makestile(output, options['brush'], options['pen'], options['size'], options['fill'], options['thickness'])
+        proj_info = projinfo()
+        unit = proj_info['units']
+        if unit.lower() == 'meters':
+            zoom_position = setCPRJ(options['map'])
+        if unit.lower() == 'metres':
+            zoom_position = setCPRJ(options['map'])
+        if unit == 'Degrees':
+            zoom_position = setCLL(options['map'])
+        lat = zoom_position[0]
+        lon = zoom_position[1]
+        distance = zoom_position[2]
     if add :
         try:
-            if not os.path.exists(output):
-                ogrvrt(mapfile,output)
-            print 'try to make omd'
-            makestile(output, options['brush'], options['pen'], options['size'], options['fill'], options['thickness'])
-            proj_info = projinfo()
-            unit = proj_info['units']
-            if unit.lower() == 'meters':
-                zoom_position = setCPRJ(options['map'])
-            if unit.lower() == 'metres':
-                zoom_position = setCPRJ(options['map'])
-            if unit == 'Degrees':
-                zoom_position = setCLL(options['map'])
-            lat = zoom_position[0]
-            lon = zoom_position[1]
-            distance = zoom_position[2]
             addzoom(output,lon,lat,distance,host,dport,pport)
             print 'Added vector file :', mappa[0]
             print 'Camera positioned to : '
