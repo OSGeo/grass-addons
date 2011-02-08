@@ -9,6 +9,8 @@ map for each index.
 <h2>NOTES</h2>
 The user does not need to create a "conf" file with <em>r.li.setup</em> because this file 
 will be created automatically by the script.<br> 
+In size option it is possible use more values: the user can set more values with comma (,) and a range with minus (-)<br> 
+If you calculate Renyi entropy remember to add the alpha option. <br>
 If the input raster contains NULL value cells, <em>r.diversity</em> 
 returns -1 for these cells.<br> 
 If the user wants to keep NULL values instead, run subsequently on the resulting map:
@@ -29,6 +31,15 @@ To calculate the set of indices from a NDVI map, with a moving window of 7 x 7 p
 r.diversity input=ndvi_map out=test alpha=0.5 size=7
 </pre></div>
 
+To calculate only Pielou and Simpson indices from a NDVI map, with several moving window (3 x 3, 5 x 5, 7 x 7, 9 x 9), run:
+<div class="code"><pre>
+r.diversity input=ndvi_map out=test size=3-9 method=pielou,simpson
+</pre></div>
+
+To calculate all methods excluding Pielou from a NDVI map, with two moving window (3 x 3, 9 x 9), run:
+<div class="code"><pre>
+r.diversity input=ndvi_map out=test size=3,9 exclude=pielou alpha=2
+</pre></div>
 
 <h2>SEE ALSO</h2>
 
