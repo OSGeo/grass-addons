@@ -155,11 +155,8 @@ apply_pdf()
 
 apply_OBJ_code()
 {
-    OBJTMP=$$
-    echo "*.tmp.html" > ignore_$OBJTMP.txt
-    echo "*OBJ*" >> ignore_$OBJTMP.txt
-    svn propset -F ignore_$OBJTMP.txt svn:ignore .
-    rm -f ignore_$OBJTMP.txt
+   svn propset svn:ignore "OBJ.*
+*.tmp.html" .
 }
 
 
