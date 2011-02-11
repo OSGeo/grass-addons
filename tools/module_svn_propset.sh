@@ -166,7 +166,7 @@ apply_OBJ_code()
 ########
 
 
-for FILE in `ls` ; do
+for FILE in $* ; do
   #echo "Processing <$FILE> ..."
 
   if [ ! -e "$FILE" ] ; then
