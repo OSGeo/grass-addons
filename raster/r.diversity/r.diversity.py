@@ -42,6 +42,7 @@
 #% gisprompt: alpha value
 #% key_desc: alpha value for Renyi entropy
 #% description: Order of generalized entropy (> 0.0; undefined for 1.0)
+#% multiple: yes
 #% required: no
 #%end
 #%option
@@ -97,15 +98,18 @@ def main():
     # resolution of moving windows
     res = options['size']
     # alpha value for r.renyi
-    alpha_value = options['alpha']
+    alpha = options['alpha']
     # method to use
     methods = options['method']
     # excluded method
     excludes = options['exclude']
 
 
-    resolution = checkResValues(res)
+    resolution = checkValues(res)
     
+    if alpha != '':
+	alpha_value = checkValues(alpha,True)
+	print alpha_value
     # check if ~/.r.li path exists
     if not os.path.exists(home+'/.r.li/'):
 	# create ~/.r.li
@@ -154,13 +158,14 @@ def calculateAll(home, map_in, map_out, res, alpha):
 	r = str(r)	
 	grass.run_command('r.li.simpson', map = map_in, out = map_out + 
 	'_simpson_size_' + r, conf = 'conf_diversity_' + r)
-	grass.run_command('r.li.shannon', map = map_in, out = map_out+ 
+	grass.run_command('r.li.shannon', map = map_in, out = map_out + 
 	'_shannon_size_' + r, conf = 'conf_diversity_' + r)
-	grass.run_command('r.li.pielou', map = map_in, out = map_out+ 
+	grass.run_command('r.li.pielou', map = map_in, out = map_out + 
 	'_pielou_size_' + r, conf = 'conf_diversity_' + r)
-	grass.run_command('r.li.renyi', map = map_in, out = map_out+ 
-	'_renyi_size_' + r + '_alpha_'+ str(alpha), conf = 'conf_diversity_' + r, 
-	alpha = alpha)  
+	for alp in alpha:
+	    grass.run_command('r.li.renyi', map = map_in, out = map_out+ 
+	    '_renyi_size_' + r + '_alpha_'+ str(alp), conf = 
+	    'conf_diversity_' + r, alpha = alp)  
 
 # calculate only method included in method option
 def calculateM(home, map_in, map_out, res, alpha, method):
@@ -171,9 +176,10 @@ def calculateM(home, map_in, map_out, res, alpha, method):
 	# for each method in method option calculate index
 	for i in method:
 	    if i == 'renyi':
-		grass.run_command('r.li.renyi', map = map_in, out = map_out + 
-		'_renyi_size_' + r + '_alpha_' + str(alpha), conf = 
-		'conf_diversity_' + r, alpha = alpha)
+		for alp in alpha:
+		    grass.run_command('r.li.renyi', map = map_in, out = 
+		    map_out + '_renyi_size_' + r + '_alpha_' + str(alp), 
+		    conf = 'conf_diversity_' + r, alpha = alp)
 	    else:
 		grass.run_command('r.li.' + i, map = map_in, out = map_out + 
 		'_' + i + '_size_' + r, conf = 'conf_diversity_' + r)
@@ -191,25 +197,27 @@ def calculateE(home, map_in, map_out, res, alpha, method):
 	    # if method it isn't in exclude option it is possible to calculate
 	    if method.count(i) == 0:
 		if i == 'renyi':
-		    grass.run_command('r.li.renyi', map = map_in, out = 
-		    map_out + '_renyi_size_' + r + '_alpha_' + str(alpha), 
-		    conf = 'conf_diversity_' + r, alpha = alpha)
+		    for alp in alpha:
+			grass.run_command('r.li.renyi', map = map_in, out = 
+			map_out + '_renyi_size_' + r + '_alpha_' + str(alp), 
+			conf = 'conf_diversity_' + r, alpha = alp)
 		else:
 		    grass.run_command('r.li.' + i, map = map_in, out = map_out +
 		    '_' + i+ '_size_' + r, conf = 'conf_diversity_' + r)
 
 # check if alpha value it's set when renyi entropy must be calculate
-def checkAlpha(method,alpha,negative=False):
-    # it's used when we check the exclude option
-    if negative:
-	if method.count('renyi') != 1 and alpha == '':
-	    print "Please you must set alpha value for Renyi entropy"
-	    sys.exit(1)
-    # it's used when we check the method option    
-    else:
-	if method.count('renyi') == 1 and alpha == '':
-	    print "Please you must set alpha value for Renyi entropy"
-	    sys.exit(1)
+def checkAlpha(method,alpha_val,negative=False):
+    for alpha in alpha_val:
+      # it's used when we check the exclude option
+      if negative:
+	  if method.count('renyi') != 1 and alpha == '':
+	      print "Please you must set alpha value for Renyi entropy"
+	      sys.exit(1)
+      # it's used when we check the method option    
+      else:
+	  if method.count('renyi') == 1 and alpha == '':
+	      print "Please you must set alpha value for Renyi entropy"
+	      sys.exit(1)
 
 #create configuration file instead using r.li.setup
 def createConfFile(res,inpumap,home):
@@ -238,30 +246,34 @@ def createConfFile(res,inpumap,home):
     fileConf.close()
 
 # return a list of resolution
-def checkResValues(res):
+def checkValues(res,alpha=False):
     # check if more values are passed
     if res.count(',') == 1:
-      typ = 'values'
-      reso = res.split(',')
+	typ = 'values'
+	reso = res.split(',')
     # check if a range of values are passed	  
     elif res.count('-') == 1:
-      typ = 'range'
-      reso = res.split('-')
+	typ = 'range'
+	reso = res.split('-')
     # else only a value is passed
     else:
-      typ = 'value'
-      reso = [res]
+	typ = 'value'
+	reso = [res]
     # trasforn string to int and check if is a odd number
     for i in range(len(reso)):
-      # check if is a odd number
-      reso[i] = int(reso[i])
-      if reso[i] % 2 == 0:
-	  # return the error advice
-	  print "Your size option could not contain odd number"
-	  sys.exit(1)
+	# check if is a odd number
+	reso[i] = float(reso[i])
+	if reso[i] % 2 == 0:
+	    # return the error advice
+	    print "Your size option could not contain odd number"
+	    sys.exit(1)
     # create a range
     if typ == 'range':
-      reso = range(reso[0],reso[1]+1,2)
+	    if alpha:
+		print "Range for alpha values it isn't supported"
+		sys.exit(1)
+	    else:
+		reso = range(reso[0],reso[1]+1,2)
     return reso
 
 def removeConfFile(res,home):
