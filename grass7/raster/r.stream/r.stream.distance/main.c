@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
   out_dist_opt = G_define_standard_option(G_OPT_R_OUTPUT);
   out_dist_opt->key = "distance";
   out_dist_opt->required=NO;
-  out_dist_opt->description = "Output distance map";
+  out_dist_opt->description = "Output distance/accumulation map";
 
   out_diff_opt = G_define_standard_option(G_OPT_R_OUTPUT);
   out_diff_opt->key = "difference";
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
   flag_near->key = 'n';
   flag_near->description =
 	_("Calculate nearest local maximum (ignored in downstream calculation)");
-	
+
 	flag_segmentation = G_define_flag();
   flag_segmentation->key = 'm';
   flag_segmentation->description = _("Use memory swap (operation is slow)");
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
   subs = (flag_sub->answer != 0);
   near = (flag_near->answer != 0);
   segmentation = (flag_segmentation->answer != 0);
-		
+
 	nrows = Rast_window_rows();
   ncols = Rast_window_cols();
 	G_begin_distance_calculations();

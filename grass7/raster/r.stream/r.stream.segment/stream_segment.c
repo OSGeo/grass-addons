@@ -223,8 +223,8 @@ int calc_tangents(STREAM* cur_stream,	int seg_length, int seg_skip, int number_s
 	cur_stream->length=calc_length(cur_stream->distance,1,last_cell);
 	cur_stream->stright=calc_stright(r_up,c_up,r_down,c_down);
 	cur_stream->drop=calc_drop(cur_stream->elevation,1,last_cell);
-	
-		if(next_stream==-1) {
+
+		if(next_stream<1) {
 	cur_stream->tangent=-1;
 	cur_stream->continuation=-1;	
 	return 0;
@@ -251,12 +251,12 @@ int calc_tangents(STREAM* cur_stream,	int seg_length, int seg_skip, int number_s
 	cell_down = i >= (SA[next_stream].number_of_cells-seg_length) ?
 		SA[next_stream].number_of_cells-seg_length-1 : seg_length;
 	
-	r=(int)P[i]/ncols;
-	c=(int)P[i]%ncols;
-	r_up=(int)P[i-cell_up]/ncols;
-	c_up=(int)P[i-cell_up]%ncols;
-	r_down=(int)P[i+cell_down]/ncols;
-	c_down=(int)P[i+cell_down]%ncols;
+	r=(int)SA[next_stream].points[i]/ncols;
+	c=(int)SA[next_stream].points[i]%ncols;
+	r_up=(int)SA[next_stream].points[i-cell_up]/ncols;
+	c_up=(int)SA[next_stream].points[i-cell_up]%ncols;
+	r_down=(int)SA[next_stream].points[i+cell_down]/ncols;
+	c_down=(int)SA[next_stream].points[i+cell_down]%ncols;
 	
 	cur_stream->continuation=calc_dir(r,c,r_down,c_down);
 	cur_stream->tangent = i==1 ? -1 :

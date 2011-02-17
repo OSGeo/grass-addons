@@ -35,7 +35,7 @@ int stream_init(int min_index_of_stream, int max_index_of_stream) {
 	all_orders[i]=(int*)G_malloc((number_of_streams+1)*sizeof(int));
 
 			for(i=0;i<orders_size;++i)
-		for(j=0;j<number_of_streams;++j)
+		for(j=0;j<number_of_streams+1;++j)
 	all_orders[i][j]=-1;
 
     return 0;

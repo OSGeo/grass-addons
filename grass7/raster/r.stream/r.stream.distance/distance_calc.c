@@ -324,7 +324,7 @@ int ram_calculate_upstream(FCELL** distance, CELL** dirs, FCELL** elevation, FCE
 	struct Cell_head window;
 	
 	Rast_get_window(&window);
-	
+		
 				if(elevation) {
 		elevation_data_size=Rast_cell_size(FCELL_TYPE);			
 		  for (r = 0; r < nrows; ++r) 
@@ -333,7 +333,7 @@ int ram_calculate_upstream(FCELL** distance, CELL** dirs, FCELL** elevation, FCE
 				
     for (r = 0; r < nrows; ++r) 
 	for (c = 0; c < ncols; ++c) {
-
+	
 	    for (i = 1; i < 9; ++i) {
 		if (NOT_IN_REGION(i)) 
 		    continue;	/* out of border */
@@ -341,9 +341,9 @@ int ram_calculate_upstream(FCELL** distance, CELL** dirs, FCELL** elevation, FCE
 		j = DIAG(i);
 		next_r=NR(i);
 		next_c=NC(i);
-				if (dirs[next_r][next_c] == j && distance[r][c] != 0) {	/* is contributing cell */
-		  distance[r][c] = -1;
-		  break;
+			if (dirs[next_r][next_c] == j && distance[r][c] != 0) {	/* is contributing cell */
+			distance[r][c] = -1;
+			break;
 				}
 	    }
 	  if (distance[r][c] == 1 && dirs[r][c] > 0)
@@ -360,7 +360,7 @@ int ram_calculate_upstream(FCELL** distance, CELL** dirs, FCELL** elevation, FCE
 
 	    if (distance[r][c] == 1) {
 		
-		distance[r][c] = 0;
+		distance[r][c] =  0;
 			if (elevation)
 		elevation[r][c] = 0;
 
@@ -372,6 +372,7 @@ int ram_calculate_upstream(FCELL** distance, CELL** dirs, FCELL** elevation, FCE
 		d_inits[k].r = r;
 		d_inits[k].c = c;
 		d_inits[k].cur_dist = 0;
+		
 
 			if (elevation)
 		d_inits[k].target_elev = tmp_elevation[r][c];
@@ -381,7 +382,7 @@ int ram_calculate_upstream(FCELL** distance, CELL** dirs, FCELL** elevation, FCE
 	}
 
     counter = n_inits = k;
-
+	//return 0; // do usunięcia
 	G_message("Calculate upstream parameters...");		
     while (n_inits > 0) {
 	k = 0;
@@ -404,7 +405,6 @@ int ram_calculate_upstream(FCELL** distance, CELL** dirs, FCELL** elevation, FCE
 
 	  cur_dist =	tmp_dist + 
 			G_distance(easting, northing, cell_easting, cell_northing);
-		
 		
 	    if (near)
 		done = (distance[next_r][next_c] > cur_dist ||

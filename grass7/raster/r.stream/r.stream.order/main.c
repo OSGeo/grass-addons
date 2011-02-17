@@ -219,7 +219,6 @@ if (segmentation) {
 		
 	seg_create_map(&map_streams,SROWS, SCOLS, number_of_segs, CELL_TYPE);
 	seg_read_map(&map_streams,in_streams,1,CELL_TYPE);
-	seg_write_map(&map_streams,"test_streams",CELL_TYPE,0,0);
 	seg_create_map(&map_dirs,SROWS, SCOLS, number_of_segs, CELL_TYPE);
 	seg_read_map(&map_dirs,in_dirs,1,CELL_TYPE);
 	stream_init((int)map_streams.min,(int)map_streams.max);

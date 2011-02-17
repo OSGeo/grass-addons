@@ -4,7 +4,12 @@ SUBDIRS = \
 	r.stream.order \
 	r.stream.baisns \
 	r.stream.distance \
-	r.stream.stats
+	r.stream.stats \
+	r.stream.slope \
+	r.stream.channel \
+	r.stream.segment \
+	r.stream.snap
+
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 

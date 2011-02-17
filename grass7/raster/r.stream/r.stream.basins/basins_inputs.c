@@ -46,7 +46,7 @@ int process_vector(char *in_point)
     struct Map_info Map;
     struct bound_box box;
     int num_point = 0;
-    int type, i, cat;
+    int type, i,j, cat;
     int r,c;
     struct line_pnts *sites;
     struct line_cats *cats;
@@ -74,9 +74,9 @@ int process_vector(char *in_point)
 
     outlets = (OUTLET *) G_malloc(num_point * sizeof(OUTLET));
 
-    for (i = 0; i < num_point; ++i) {
+    for (j = 0; j < num_point; ++j) {
 
-	type = Vect_read_line(&Map, sites, cats, i + 1);
+	type = Vect_read_line(&Map, sites, cats, j + 1);
 	if (type != GV_POINT)
 	    continue;
 
@@ -89,7 +89,8 @@ int process_vector(char *in_point)
 	outlets[i].c = (int)Rast_easting_to_col(sites->x[0], &window);
 	outlets[i].val = cat;
     }
-    return num_point;
+	i++;    
+	return num_point;
 }
 
 int ram_process_streams(char** cat_list, CELL** streams, int number_of_streams, CELL** dirs, int lasts, int cats)
@@ -121,12 +122,12 @@ int ram_process_streams(char** cat_list, CELL** streams, int number_of_streams, 
 		   for (r = 0; r < nrows; ++r) 
 		for (c = 0; c < ncols; ++c)
 	if (streams[r][c]>0) {
-
-			if (outlets_num > 2 * (out_max - 1))
+			if (outlets_num > 6 * (out_max - 1))
 		G_fatal_error(_
 				("Stream and direction maps probably do not match"));
+
 			if (outlets_num > (out_max - 1))
-		outlets = (OUTLET *)G_realloc(outlets,out_max*2*sizeof(OUTLET));
+		outlets = (OUTLET *)G_realloc(outlets,out_max*6*sizeof(OUTLET));
 
 		d = abs(dirs[r][c]);	/* r.watershed */
 
@@ -206,12 +207,12 @@ int seg_process_streams(char **cat_list,  SEGMENT* streams, int number_of_stream
 
 	segment_get(streams,&streams_cell,r,c);
 	if (streams_cell>0) {
-
-			if (outlets_num > 2 * (out_max - 1))
+			if (outlets_num > 6 * (out_max - 1))
 		G_fatal_error
 				("Stream and direction maps probably do not match");
+
 			if (outlets_num > (out_max - 1))
-		outlets = (OUTLET *)G_realloc(outlets,out_max*2*sizeof(OUTLET));
+		outlets = (OUTLET *)G_realloc(outlets,out_max*6*sizeof(OUTLET));
 
 		segment_get(dirs,&dirs_cell,r,c);
 		d = abs(dirs_cell);	/* abs */

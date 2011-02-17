@@ -32,7 +32,8 @@ int create_sector_vector(char* out_vector, int number_of_streams, int radians)
 	stop=1;
 			for(j=0;j<SA[i].number_of_sectors;++j) {
 		start=stop;
-		stop=SA[i].sector_breakpoints[j];
+		stop= (j==SA[i].number_of_sectors-1) ?
+				SA[i].sector_breakpoints[j]+1 : SA[i].sector_breakpoints[j]+1;
 		Vect_cat_set(Cats, 1, SA[i].sector_cats[j]);
 				for(k=start;k<=stop;++k) {
 					if(SA[i].points[k]==-1) {
@@ -307,12 +308,14 @@ for(i=1;i<number_of_streams;++i) {
 		if(!radians) {
 	direction=RAD2DEG(direction);
 	azimuth=RAD2DEG(azimuth);
-	out_direction=RAD2DEG(direction);
-	out_azimuth=RAD2DEG(azimuth);		
-	next_direction=RAD2DEG(direction);
-	next_azimuth=RAD2DEG(azimuth);	
+	out_direction=RAD2DEG(out_direction);
+	out_azimuth=RAD2DEG(out_azimuth);		
+	tangent_dir=RAD2DEG(tangent_dir);
+	tangent_azimuth=RAD2DEG(tangent_azimuth);	
+	next_direction=RAD2DEG(next_direction);
+	next_azimuth=RAD2DEG(next_azimuth);	
 		}
-	
+
 	sprintf(buf,"insert into %s values( %d, %d, %d, %d, %d, \
 																			%f, %f, %f, %f, %f, \
 																			%f, %f, %f, %f,			\

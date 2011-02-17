@@ -223,13 +223,13 @@ if(segmentation) {
 
 
 
-/*	
-		int i;
+	
+
 		for(i=1;i<number_of_streams;++i)
 	G_message("%d %d %d",stream_attributes[i].stream,
 		stream_attributes[i].next_stream, 
 		stream_attributes[i].last_cell_dir); 
-*/
+
 
 /*
 		for(i=1;i<number_of_streams;++i)
@@ -240,6 +240,7 @@ if(segmentation) {
 
 */		
 	G_message("Creating sectors and calculating attributes...");
+		
 		for(i=1;i<number_of_streams;++i) {
 	create_sectors(&stream_attributes[i],seg_length, seg_skip,seg_treshold);
 	calc_tangents(&stream_attributes[i],seg_length,seg_skip,number_of_streams);

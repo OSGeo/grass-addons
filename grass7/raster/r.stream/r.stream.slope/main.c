@@ -312,7 +312,8 @@ DCELL calculate_max_curvature(int r, int c)
 			j=i;
 				}
 		}	
-		
+		if(elev_max==-1000)
+	elev_max=elev_rows[r][c];	
 	diff_up=elev_max-elev_rows[r][c];
 	diff_down=elev_rows[r][c] - elev_rows[NR(d)][NC(d)];
 	diff_elev = elev_max-elev_rows[NR(d)][NC(d)];
@@ -361,6 +362,8 @@ DCELL calculate_min_curvature(int r, int c)
 		}	
 
 		
+		if(elev_min==9999)
+	elev_min=elev_rows[r][c];	
 	diff_up=elev_min-elev_rows[r][c];
 	diff_down=elev_rows[r][c] - elev_rows[NR(d)][NC(d)];
 	diff_elev = elev_min-elev_rows[NR(d)][NC(d)];

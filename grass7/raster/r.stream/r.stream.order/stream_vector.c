@@ -164,8 +164,8 @@ int seg_create_vector(SEGMENT* streams, SEGMENT* dirs, char* out_vector, int num
 	}
 
 /* build vector after adding table */
-//	if(0<stream_add_table(number_of_streams))
-//G_warning(_("Cannot add table to vector %s"),out_vector);
+	if(0<stream_add_table(number_of_streams))
+G_warning(_("Cannot add table to vector %s"),out_vector);
 Vect_hist_command(&Out);
 Vect_build(&Out);
 Vect_close(&Out);
@@ -207,7 +207,7 @@ int stream_add_table (int number_of_streams) {
 	int scheidegger, drwal_old=-1;
 	double sinusoid=1, elev_drop, out_drop=0, gradient=-1;
 	double flow_accum;
-	char insert_orders[20]; /* must have to be increased if new orders are added */
+	char insert_orders[60]; /* must have to be increased if new orders are added */
 
 	db_init_string(&db_sql);
 	db_init_string(&val_string);
@@ -230,10 +230,10 @@ int stream_add_table (int number_of_streams) {
 	tab_prev_streams="prev_str01 integer, prev_str02 integer, prev_str03 integer";
 	break;
 		case 4:
-	tab_prev_streams="prev_str01 integer, prev_str02 integer, prev_str03 integer prev_str04 integer";
+	tab_prev_streams="prev_str01 integer, prev_str02 integer, prev_str03 integer, prev_str04 integer";
 	break;
 		case 5:
-	tab_prev_streams="prev_str01 integer, prev_str02 integer, prev_str03 integer prev_str04 integer, prev_str05 integer";
+	tab_prev_streams="prev_str01 integer, prev_str02 integer, prev_str03 integer, prev_str04 integer, prev_str05 integer";
 	break;
 		default:
 	G_fatal_error("Error with number of tributuaries");

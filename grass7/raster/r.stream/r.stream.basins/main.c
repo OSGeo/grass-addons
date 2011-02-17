@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("One basin's outlet definition is required"));
 
 	  if (in_stm_cat_opt->answers && !in_stm_opt->answer)
-	G_fatal_error(_("With cats, stream file is required"));
+	G_fatal_error(_("If cats stream file is required"));
 
 		if (in_coor_opt->answers)
 	b_test += 1;
