@@ -63,6 +63,7 @@ typedef struct viewpoint_
 {
     dimensionType row, col;
     float elev;
+    float target_offset;
 } Viewpoint;
 
 
@@ -106,6 +107,9 @@ typedef struct viewOptions_
 
     float obsElev;
     /* observer elevation above the terrain */
+
+    float tgtElev;
+    /* target elevation offset above the terrain */
 
     float maxDist;
     /* points that are farther than this distance from the viewpoint are

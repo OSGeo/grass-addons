@@ -63,22 +63,22 @@ extern "C"
  */
 float adjust_for_curvature(Viewpoint vp, dimensionType row,
 			   dimensionType col, float h,
-			   ViewOptions viewOptions)
+			   ViewOptions viewOptions, GridHeader *hd)
 {
 
     if (!viewOptions.doCurv)
 	return h;
 
     assert(viewOptions.ellps_a != 0);
-    double dif_x, dif_y, sqdist;
 
-    dif_x = (vp.col - col);
-    dif_y = (vp.row - row);
-    sqdist =
-	(dif_x * dif_x +
-	 dif_y * dif_y) * viewOptions.cellsize * viewOptions.cellsize;
+    /* distance must be in meters because ellps_a is in meters */
 
-    return h - (sqdist / (2.0 * viewOptions.ellps_a));
+    double dist = G_distance(G_col_to_easting(vp.col + 0.5, &(hd->window)),
+                             G_row_to_northing(vp.row + 0.5, &(hd->window)),
+			     G_col_to_easting(col + 0.5, &(hd->window)),
+			     G_row_to_northing(row + 0.5, &(hd->window)));
+		    
+    return h - ((dist * dist) / (2.0 * viewOptions.ellps_a));
 }
 
 
@@ -149,7 +149,7 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 				MemoryVisibilityGrid * visgrid)
 {
 
-    G_verbose_message(_("computing events ..."));
+    G_message(_("computing events ..."));
     assert(eventList && vp && visgrid);
     //GRASS should be defined 
 
@@ -194,15 +194,18 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
     dimensionType i, j, k;
     double ax, ay;
     AEvent e;
+    int nrows = G_window_rows();
 
     e.angle = -1;
-    for (i = 0; i < G_window_rows(); i++) {
+    for (i = 0; i < nrows; i++) {
 	/*read in the raster row */
 	int rasterRowResult = G_get_raster_row(infd, inrast, i, data_type);
 
 	if (rasterRowResult <= 0)
 	    G_fatal_error(_("Coord not read from row %d of <%s>"), i,
 			  rastName);
+
+	G_percent(i, nrows, 2);
 
 	/*fill event list with events from this row */
 	for (j = 0; j < G_window_cols(); j++) {
@@ -226,7 +229,7 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 	    }
 
 	    /* adjust for curvature */
-	    e.elev = adjust_for_curvature(*vp, i, j, e.elev, viewOptions);
+	    e.elev = adjust_for_curvature(*vp, i, j, e.elev, viewOptions, hd);
 
 	    /*write it into the row of data going through the viewpoint */
 	    if (i == vp->row) {
@@ -236,6 +239,10 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 	    /* set the viewpoint, and don't insert it into eventlist */
 	    if (i == vp->row && j == vp->col) {
 		set_viewpoint_elev(vp, e.elev + viewOptions.obsElev);
+		if (viewOptions.tgtElev > 0)
+		    vp->target_offset = viewOptions.tgtElev;
+		else
+		    vp->target_offset = 0.;
 		if (isnull) {
 		    /*what to do when viewpoint is NODATA ? */
 		    G_warning(_("Viewpoint is NODATA."));
@@ -285,6 +292,7 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 
 	}
     }
+    G_percent(nrows, nrows, 2);
 
     G_message(_("...done creating event list"));
     G_close_cell(infd);
@@ -310,7 +318,6 @@ AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
 					     double **data,
 					     IOVisibilityGrid * visgrid)
 {
-
     G_message(_("computing events ..."));
     assert(rastName && vp && hd && visgrid);
 
@@ -352,11 +359,14 @@ AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
     dimensionType i, j, k;
     double ax, ay;
     AEvent e;
+    int nrows = G_window_rows();
 
     e.angle = -1;
 
     /*start scanning through the grid */
-    for (i = 0; i < G_window_rows(); i++) {
+    for (i = 0; i < nrows; i++) {
+	
+	G_percent(i, nrows, 2);
 
 	/*read in the raster row */
 	if (G_get_raster_row(infd, inrast, i, data_type) <= 0)
@@ -385,7 +395,7 @@ AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
 	    }
 
 	    /* adjust for curvature */
-	    e.elev = adjust_for_curvature(*vp, i, j, e.elev, viewOptions);
+	    e.elev = adjust_for_curvature(*vp, i, j, e.elev, viewOptions, hd);
 
 	    if (data != NULL) {
 
@@ -398,6 +408,10 @@ AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
 	    /* set the viewpoint */
 	    if (i == vp->row && j == vp->col) {
 		set_viewpoint_elev(vp, e.elev + viewOptions.obsElev);
+		if (viewOptions.tgtElev > 0)
+		    vp->target_offset = viewOptions.tgtElev;
+		else
+		    vp->target_offset = 0.;
 		/*what to do when viewpoint is NODATA */
 		if (is_nodata(hd, e.elev)) {
 		    G_warning("Viewpoint is NODATA.");
@@ -443,6 +457,7 @@ AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
 	}			/* for j */
 
     }				/* for i */
+    G_percent(nrows, nrows, 2);
 
     G_message(_("...done creating event list\n"));
     G_close_cell(infd);

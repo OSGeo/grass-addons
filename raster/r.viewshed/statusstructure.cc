@@ -74,10 +74,11 @@ float get_vertical_angle(Viewpoint vp, StatusNode sn, int doCurv)
 
     /*calculate and return the angle in degrees */
     assert(fabs(sn.dist2vp) > 0.001);
+
     if (diffElev >= 0.0)
-	return (atan(sn.dist2vp / diffElev) * (180 / M_PI));
+	return (atan(sqrt(sn.dist2vp) / diffElev) * (180 / M_PI));
     else
-	return ((atan(fabs(diffElev) / sn.dist2vp) * (180 / M_PI)) + 90);
+	return ((atan(fabs(diffElev) / sqrt(sn.dist2vp)) * (180 / M_PI)) + 90);
 }
 
 
@@ -105,19 +106,28 @@ long long get_active_str_size_bytes(GridHeader * hd)
 /*given a StatusNode, fill in its dist2vp and gradient */
 void calculate_dist_n_gradient(StatusNode * sn, Viewpoint * vp)
 {
-
     assert(sn && vp);
     /*sqrt is expensive
        //sn->dist2vp = sqrt((float) ( pow(sn->row - vp->row,2.0) + 
        //               pow(sn->col - vp->col,2.0)));
        //sn->gradient = (sn->elev  - vp->elev)/(sn->dist2vp); */
+       
+    double elevDiff = (double)sn->elev - vp->elev;
+
     sn->dist2vp = (sn->row - vp->row) * (sn->row - vp->row) +
 	(sn->col - vp->col) * (sn->col - vp->col);
-    sn->gradient =
-	(sn->elev - vp->elev) * (sn->elev - vp->elev) / (sn->dist2vp);
+    sn->gradient = elevDiff * elevDiff / (sn->dist2vp);
+    sn->gradient = atan(sqrt(sn->gradient));
     /*maintain sign */
     if (sn->elev < vp->elev)
 	sn->gradient = -sn->gradient;
+
+    elevDiff += vp->target_offset;
+    sn->gradient_offset = elevDiff * elevDiff / (sn->dist2vp);
+    sn->gradient_offset = atan(sqrt(sn->gradient_offset));
+    /*maintain sign */
+    if (sn->elev + vp->target_offset < vp->elev)
+	sn->gradient_offset = -sn->gradient_offset;
     return;
 }
 

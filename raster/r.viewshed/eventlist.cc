@@ -42,6 +42,11 @@
 #include <stdio.h>
 #include <assert.h>
 
+extern "C"
+{
+#include <grass/gis.h>
+}
+
 #include "eventlist.h"
 
 
@@ -145,6 +150,7 @@ double
 calculate_angle(double eventX, double eventY,
 		double viewpointX, double viewpointY)
 {
+    double angle = atan(fabs(eventY - viewpointY) / fabs(eventX - viewpointX));
 
     /*M_PI is defined in math.h to represent 3.14159... */
     if (viewpointY == eventY && eventX > viewpointX) {
@@ -152,7 +158,7 @@ calculate_angle(double eventX, double eventY,
     }
     else if (eventX > viewpointX && eventY < viewpointY) {
 	/*first quadrant */
-	return atan((viewpointY - eventY) / (eventX - viewpointX));
+	return angle;
 
     }
     else if (viewpointX == eventX && viewpointY > eventY) {
@@ -162,8 +168,7 @@ calculate_angle(double eventX, double eventY,
     }
     else if (eventX < viewpointX && eventY < viewpointY) {
 	/*second quadrant */
-	return ((M_PI) / 2 +
-		atan((viewpointX - eventX) / (viewpointY - eventY)));
+	return ((M_PI) - angle);
 
     }
     else if (viewpointY == eventY && eventX < viewpointX) {
@@ -173,17 +178,16 @@ calculate_angle(double eventX, double eventY,
     }
     else if (eventY > viewpointY && eventX < viewpointX) {
 	/*3rd quadrant */
-	return (M_PI + atan((eventY - viewpointY) / (viewpointX - eventX)));
+	return (M_PI + angle);
 
     }
     else if (viewpointX == eventX && viewpointY < eventY) {
 	/*between 3rd and 4th quadrant */
-	return (M_PI * 3.0 / 2.0);
+	return ((M_PI) + (M_PI) / 2);
     }
     else if (eventX > viewpointX && eventY > viewpointY) {
 	/*4th quadrant */
-	return (M_PI * 3.0 / 2.0 +
-		atan((eventX - viewpointX) / (eventY - viewpointY)));
+	return ((M_PI) * 2.0 - angle);
     }
     assert(eventX == viewpointX && eventY == viewpointY);
     return 0;
@@ -206,7 +210,6 @@ void
 calculate_event_position(AEvent e, dimensionType viewpointRow,
 			 dimensionType viewpointCol, double *y, double *x)
 {
-
     assert(x && y);
     *x = 0;
     *y = 0;
@@ -413,6 +416,19 @@ int is_point_outside_max_dist(Viewpoint vp, GridHeader hd,
     /* it is not too smart to compare floats */
     if ((int)maxDist == INFINITY_DISTANCE)
 	return 0;
+	
+#ifdef _GRASS_
+    if (maxDist < G_distance(G_col_to_easting(vp.col + 0.5, &hd.window),
+                             G_row_to_northing(vp.row + 0.5, &hd.window),
+	                     G_col_to_easting(col + 0.5, &hd.window),
+			     G_row_to_northing(row + 0.5, &hd.window))) {
+	return 1;
+    }
+    else {
+	return 0;
+    }
+
+#else
 
     double dif_x, dif_y, sqdist;
 
@@ -428,6 +444,7 @@ int is_point_outside_max_dist(Viewpoint vp, GridHeader hd,
     else {
 	return 0;
     }
+#endif
 }
 
 

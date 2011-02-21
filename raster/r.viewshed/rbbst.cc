@@ -632,7 +632,7 @@ double find_max_value(TreeNode * root)
 
 
 
-/*find max within the max key */
+/* find max within the max key */
 double find_max_value_within_key(TreeNode * root, double maxKey)
 {
     TreeNode *keyNode = search_for_node(root, maxKey);

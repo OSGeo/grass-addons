@@ -58,6 +58,7 @@ typedef struct statusnode_
     float elev;			/*elevation of cell */
     double dist2vp;		/*distance to the viewpoint */
     double gradient;		/*gradient of the Line of Sight */
+    double gradient_offset;	/*gradient of the Line of Sight with local elevation offset */
 } StatusNode;
 
 

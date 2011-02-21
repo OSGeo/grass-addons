@@ -315,8 +315,17 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
     long nvis = 0;		/*number of visible cells */
     AEvent *e;
 
+#ifdef __GRASS__
+    G_message("Determine visibility...");
+    G_percent(0, 100, 2);
+#endif
     for (size_t i = 0; i < nevents; i++) {
 
+#ifdef __GRASS__
+	int perc = (int)((double)i / nevents * 1000000000.);
+	if (perc > 0)
+	    G_percent(perc, 1000000000, 2);
+#endif
 	/*get out one event at a time and process it according to its type */
 	e = &(eventList[i]);
 
@@ -360,7 +369,7 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
 		find_max_gradient_in_status_struct(status_struct, sn.dist2vp);
 
 	    /*the point is visible: store its vertical angle  */
-	    if (max <= sn.gradient) {
+	    if (max <= sn.gradient_offset) {
 		add_result_to_inmem_visibilitygrid(visgrid, sn.row, sn.col,
 						   get_vertical_angle(*vp, sn,
 								      viewOptions.
@@ -457,6 +466,9 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
 
     /* ------------------------------ */
     /*sort the events radially by angle */
+#ifdef __GRASS__
+    G_message("Sort the events...");
+#endif
     rt_start(sortEventTime);
     sort_event_list(&eventList);
     eventList->seek(0);		/*this does not seem to be ensured by sort?? */
@@ -471,8 +483,15 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
        structure */
     StatusNode sn;
 
+#ifdef __GRASS__
+    G_message("Calculate distances...");
+#endif
     rt_start(sweepTime);
     for (dimensionType i = vp->col + 1; i < hd->ncols; i++) {
+
+#ifdef __GRASS__
+	G_percent(i, hd->ncols, 2);
+#endif
 	sn.col = i;
 	sn.row = vp->row;
 	sn.elev = data[i];
@@ -491,6 +510,7 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
 	}
     }
 #ifdef __GRASS__
+    G_percent(hd->ncols, hd->ncols, 2);
     G_free(data);
 #else
     free(data);
@@ -507,8 +527,17 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
 
     /*printf("nbEvents = %ld\n", (long) nbEvents); */
 
+#ifdef __GRASS__
+    G_message("Determine visibility...");
+    G_percent(0, 100, 2);
+#endif
     for (off_t i = 0; i < nbEvents; i++) {
-
+	
+#ifdef __GRASS__
+	int perc = (int)((double)i / nbEvents * 1000000000.);
+	if (perc > 0)
+	    G_percent(perc, 1000000000, 2);
+#endif
 	/*get out one event at a time and process it according to its type */
 	ae = eventList->read_item(&e);
 	assert(ae == AMI_ERROR_NO_ERROR);
@@ -553,7 +582,7 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
 		find_max_gradient_in_status_struct(status_struct, sn.dist2vp);
 
 	    /*the point is visible */
-	    if (max <= sn.gradient) {
+	    if (max <= sn.gradient_offset) {
 		viscell.angle =
 		    get_vertical_angle(*vp, sn, viewOptions.doCurv);
 		assert(viscell.angle >= 0);

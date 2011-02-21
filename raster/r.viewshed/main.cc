@@ -198,6 +198,7 @@ int main(int argc, char *argv[])
 #ifdef __GRASS__
     hd = read_header_from_GRASS(viewOptions.inputfname, &region);
     assert(hd);
+    G_get_set_window(&(hd->window));
 
     /* LT: there is no need to exit if viewpoint is outside grid,
        the algorithm will work correctly in theory. But this
@@ -239,12 +240,14 @@ int main(int argc, char *argv[])
 	G_warning(_("Problems obtaining current ellipsoid parameters, using sphere (6370997.0)"));
 	viewOptions.ellps_a = 6370997.00;
     }
+
+    G_begin_distance_calculations();
+    
 #else
     /* in standalone mode we do not know how to adjust for curvature */
     assert(viewOptions.doCurv == 0);
     viewOptions.ellps_a = 0;
 #endif
-
 
 
 
@@ -567,6 +570,18 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     obsElevOpt->answer = "1.75";
     obsElevOpt->guisection = _("Input_options");
 
+    /* target elevation offset */
+    struct Option *tgtElevOpt;
+
+    tgtElevOpt = G_define_option();
+    tgtElevOpt->key = "tgt_elev";
+    tgtElevOpt->type = TYPE_DOUBLE;
+    tgtElevOpt->required = NO;
+    tgtElevOpt->key_desc = "value";
+    tgtElevOpt->description = _("Offset for target elevation above the ground");
+    tgtElevOpt->answer = "0.0";
+    tgtElevOpt->guisection = _("Input_options");
+
     /* max distance */
     struct Option *maxDistOpt;
 
@@ -605,7 +620,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
 #ifdef __MINGW32__
     streamdirOpt->answer     = G_convert_dirseps_from_host(G_store(getenv("TEMP")));
 #else
-    streamdirOpt->answer     = G_store("/var/tmp/");
+    streamdirOpt->answer     = "/var/tmp/";
 #endif
     streamdirOpt->description=
        _("Directory to hold temporary files (they can be large)");
@@ -621,6 +636,8 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     strcpy(viewOptions->streamdir,streamdirOpt->answer);
 
     viewOptions->obsElev = atof(obsElevOpt->answer);
+    if(tgtElevOpt->answer)
+	viewOptions->tgtElev = atof(tgtElevOpt->answer);
 
     viewOptions->maxDist = atof(maxDistOpt->answer);
     if (viewOptions->maxDist < 0 && viewOptions->maxDist != INFINITY_DISTANCE) {
@@ -645,6 +662,8 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     }
     *memSizeBytes = (long long)memSizeMB;
     *memSizeBytes = (*memSizeBytes) << 20;
+
+    G_get_set_window(window);
 
     /*The algorithm runs with the viewpoint row and col, so depending
        on if the row_col flag is present we either need to store the

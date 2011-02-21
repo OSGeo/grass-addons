@@ -738,7 +738,7 @@ unsigned long solve_in_memory(AMI_STREAM < AEvent > *eventList,
 	    viscell.row = sn.row;
 	    viscell.col = sn.col;
 
-	    if (max <= sn.gradient) {
+	    if (max <= sn.gradient_offset) {
 		/*the point is visible */
 		viscell.angle =
 		    get_vertical_angle(*vp, sn, viewOptions.doCurv);

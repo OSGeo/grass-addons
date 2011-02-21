@@ -47,7 +47,12 @@
 #include <stdio.h>
 #include <limits.h>
 
-
+#ifdef __GRASS__
+extern "C"
+{
+#include <grass/gis.h>
+}
+#endif
 
 /* this should accomodate grid sizes up to 2^16-1=65,535
    If this is not enough, change type and recompile */
@@ -63,6 +68,11 @@ typedef struct grid_header
     float yllcorner;		/*yllcorner refers to the southern edge of grid */
     float cellsize;		/*the resolution of the grid */
     float nodata_value;		/*the value that represents missing data */
+    
+#ifdef __GRASS__
+    /* GRASS */
+    struct Cell_head window;
+#endif
 } GridHeader;
 
 
