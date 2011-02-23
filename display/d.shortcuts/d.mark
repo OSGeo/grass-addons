@@ -58,6 +58,13 @@
 #% answer: 0
 #% required : no
 #%end
+#%option
+#% key: width
+#% type: double
+#% description: Line width
+#% answer: 0
+#% required : no
+#%end
 #%flag
 #% key: m
 #% description: Coordinates are given in map units
@@ -80,6 +87,13 @@ fi
 
 COORD=`echo "$GIS_OPT_AT" | tr ',' ' '`
 
+
+if [ "$GIS_OPT_WIDTH" != "0" ] ; then
+   DOWIDTH="width $GIS_OPT_WIDTH"
+else
+   DOWIDTH=""
+fi
+
 if [ "$GIS_OPT_ROTATION" != "0" ] ; then
    DOROT="rotation $GIS_OPT_ROTATION"
 else
@@ -88,6 +102,7 @@ fi
 
 (
 cat << EOF
+$DOWIDTH
 $DOROT
 symbol basic/$GIS_OPT_SYMBOL $GIS_OPT_SIZE $COORD $GIS_OPT_COLOR $GIS_OPT_FCOLOR
 EOF
