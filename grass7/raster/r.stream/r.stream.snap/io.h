@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <grass/glocale.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/segment.h>
+#include <grass/glocale.h>
 
 #define NOT_IN_REGION(x) (r+nextr[(x)] < 0 || r+nextr[(x)] > (nrows-1) || c+nextc[(x)] < 0 || c+nextc[(x)] > (ncols-1))
 #define NR(x) r + nextr[(x)]
