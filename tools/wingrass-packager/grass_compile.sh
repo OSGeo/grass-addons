@@ -4,6 +4,7 @@
 SRC=/osgeo4w/usr/src
 
 function compile {
+    echo "Compiling $1..."
     cd $SRC/$1
     rm -f mswindows/osgeo4w/configure-stamp
     svn up || (svn cleanup && svn up)
