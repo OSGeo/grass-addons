@@ -16,25 +16,19 @@
 
 #define SQR(x) ((x) * (x))
 
-typedef struct {
-	int r,c;
-	int di,dj; /* shift */
-	int cat;
-  double accum;
-  int stream;
-  int status; /* 1=skipped,2=unresolved,3=snapped,4=correct */
+typedef struct
+{
+    int r, c;
+    int di, dj;			/* shift */
+    int cat;
+    double accum;
+    int stream;
+    int status;			/* 1=skipped,2=unresolved,3=snapped,4=correct */
 } OUTLET;
 
 GLOBAL int nextr[9];
 GLOBAL int nextc[9];
 
-GLOBAL OUTLET* points;
+GLOBAL OUTLET *points;
 GLOBAL int nrows, ncols;
-GLOBAL float** distance_mask;
-
-
-
-
-
-
-
+GLOBAL float **distance_mask;
