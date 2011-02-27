@@ -11,7 +11,7 @@
 #
 
 #%Module
-#%  description: Unoacks a raster map packed with r.pack.
+#%  description: Unpacks a raster map packed with r.pack.
 #%End
 #%option
 #% key: input
