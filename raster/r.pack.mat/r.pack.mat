@@ -1,5 +1,5 @@
 #!/bin/sh
-#  r.pack   --  pack up a raster map:
+#  r.pack   --  pack up a raster map as binary MAT-File:
 #     r.out.mat file + support files => gzip
 #
 #   (c) 2004 GRASS Development Team
@@ -11,7 +11,7 @@
 #
 
 #%Module
-#%  description: Packs up a raster map and support files for copying
+#%  description: Packs up a raster map as binary MAT-File and support files for copying
 #%End
 #%option
 #% key: input
