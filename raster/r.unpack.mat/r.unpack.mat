@@ -1,5 +1,5 @@
 #!/bin/sh
-#  r.unpack   --  unpack up a raster map packed with r.pack:
+#  r.unpack.mat   --  unpack up a binary MAT-File(v4) map packed with r.pack.mat:
 #     tar+gzip => r.in.mat + support files
 #
 #   (c) 2004 GRASS Development Team
@@ -11,7 +11,7 @@
 #
 
 #%Module
-#%  description: UnPacks a raster map packed with r.pack
+#%  description: Unpacks a binary MAT-File map packed with r.pack.mat
 #%End
 #%option
 #% key: input
