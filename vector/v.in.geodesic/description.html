@@ -1,0 +1,69 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.in.geodesic</em> creates a new vector map containing a great circle
+line. The user can select to use either a starting and ending point,
+or a starting point with initial azimuth and line length.
+<P>
+The initial azimuth is measured in degrees clockwise from north.
+Line length and segment distance are both measured in meters.
+<!-- or ellipsoid units if that's not in meters (???) -->
+<P>
+If the <b>distance</b> parameter is given, polyline segments will be broken
+at that distance interval. Otherwise the line will be broken into
+<b>nsteps</b> equally spaced segments.
+
+
+<H2>NOTES</H2>
+
+Currently this module only works from a Lat/Long location.
+Use <em>v.proj</em> to reproject the results if needed.
+<P>
+This module requires the <tt>geod</tt> program from
+ <a href="http://proj.osgeo.org">PROJ.4</a> to be installed.
+ (often this is already installed with the GRASS package)
+
+
+<h2>EXAMPLES</h2>
+
+Create a geodesic line between two points:
+<div class="code"><pre>
+start_lat=-49
+start_lon=125
+end_lat=-32
+end_lon=180
+
+v.in.geodesic map=geodesic_line coor="$start_lon,$start_lat,$end_lon,$end_lat"
+</pre></div>
+
+
+Create a geodesic line from a starting point, initial azimuth of ENE
+(67.5 deg), and 500 km long:
+<div class="code"><pre>
+start_lat=-40.5
+start_lon=172.5
+azimuth=67.5
+length=500000
+
+v.in.geodesic map=geodesic_line line="$start_lon,$start_lat,$azimuth,$length"
+</pre></div>
+
+
+<H2>SEE ALSO</H2>
+<em>
+<A HREF="d.geodesic.html">d.geodesic</A><br>
+<A HREF="d.rhumbline.html">d.rhumbline</A><br>
+<A HREF="m.cogo.html">m.cogo</A><br>
+<A HREF="r.profile.html">r.profile</A><br>
+<A HREF="r.transect.html">r.transect</A>
+</em>
+
+<H2>AUTHOR</H2>
+
+Hamish Bowman<BR>
+<i>Dept. Marine Science<br>
+University of Otago<br>
+Dunedin, New Zealand</i>
+<BR>
+
+<p>
+<i>Last changed: $Date$</i>
