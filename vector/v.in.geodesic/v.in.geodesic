@@ -19,7 +19,7 @@
 ############################################################################
 #%Module
 #% description: Creates a vector map containing a great circle line.
-#% keywords: vector, geodesic, great circle
+#% keywords: vector, geodesic, great circle, transect
 #%End
 #%Option
 #% key: map
@@ -72,7 +72,7 @@
 #% type: double
 #% required: no
 #% multiple: no
-#% description: Distance between vertices in map units
+#% description: Distance between vertices in meters
 #%End
 
 
@@ -226,3 +226,4 @@ LINE_LEN=`v.to.db -p "$GIS_OPT_MAP" option=length \
 
 g.message message="Line length:  $LINE_LEN m"  # $GIS_OPT_UNITS
 g.message message="`basename $0` complete."
+
