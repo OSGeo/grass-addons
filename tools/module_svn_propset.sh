@@ -127,6 +127,13 @@ apply_C_code()
    unset_exe "$1"
 }
 
+apply_Fortran_code()
+{
+   set_mime_type "$1" text/x-fortran
+   set_native_eol "$1"
+   unset_exe "$1"
+}
+
 apply_C_header()
 {
    set_mime_type "$1" text/x-chdr
@@ -182,6 +189,12 @@ for FILE in $* ; do
   case "$FILE_SUFFIX" in
     c)
 	apply_C_code "$FILE"
+	;;
+    f77)
+	apply_Fortran_code "$FILE"
+	;;
+    f90)
+	apply_Fortran_code "$FILE"
 	;;
     h)
 	apply_C_header "$FILE"
