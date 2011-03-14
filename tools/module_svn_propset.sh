@@ -84,6 +84,13 @@ apply_html()
    unset_exe "$1"
 }
 
+apply_xml()
+{
+   set_mime_type "$1" text/xml
+   set_native_eol "$1"
+   unset_exe "$1"
+}
+
 apply_text()
 {
    set_keywords "$1"
@@ -210,6 +217,9 @@ for FILE in $* ; do
 	;;
     html)
 	apply_html "$FILE"
+	;;
+    xml)
+	apply_xml "$FILE"
 	;;
     sh)
 	apply_shell_script "$FILE"
