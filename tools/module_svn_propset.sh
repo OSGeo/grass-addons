@@ -87,9 +87,9 @@ apply_html()
 apply_xml()
 {
    # While given as "application" in /etc/mime.types, "text" is desired
-   #  here. see RFC 3023 and
+   #  here due to the way SVN uses the mime type. See RFC 3023 and
    #   http://www.imc.org/ietf-xml-mime/mail-archive/msg00496.html
-   #  Unfortunately svn treats "application" as "binary" and then refuses
+   #  Unfortunately SVN treats "application" as "binary" and then refuses
    #  to do text diffs. (same problem with PostScript)
    set_mime_type "$1" text/xml
    set_native_eol "$1"
