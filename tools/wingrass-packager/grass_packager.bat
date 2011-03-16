@@ -38,6 +38,6 @@ C:\DevTools\makensis.exe .\grass70\GRASS-Installer.nsi
 
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_md5sum.sh
 
-pscp.exe -i .\ssh\id_dsa.ppk .\grass64\WinGRASS*.exe* landa@josef:/var/www/wingrass/grass64
-pscp.exe -i .\ssh\id_dsa.ppk .\grass65\WinGRASS*.exe* landa@josef:/var/www/wingrass/grass65
-pscp.exe -i .\ssh\id_dsa.ppk .\grass70\WinGRASS*.exe* landa@josef:/var/www/wingrass/grass70
+pscp.exe -i .\ssh\id_dsa.ppk .\grass64\WinGRASS*.exe* landa@geo102:/work/wingrass/grass64
+pscp.exe -i .\ssh\id_dsa.ppk .\grass65\WinGRASS*.exe* landa@geo102:/work/wingrass/grass65
+pscp.exe -i .\ssh\id_dsa.ppk .\grass70\WinGRASS*.exe* landa@geo102:/work/wingrass/grass70
