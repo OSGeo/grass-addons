@@ -59,6 +59,9 @@ Icons['psMap'] = {
                             label = _('Generate instruction file')),
     'export'     : MetaIcon(img = iconSet['ps-export'],
                             label = _('Generate PostScript output')),
+    'loadFile'     : MetaIcon(img = iconSet['open'],
+                            label = _('Load file'), 
+                            desc = _('Load file with mapping instructions')),                           
     'pageSetup'  : MetaIcon(img = iconSet['settings'],
                             label = _('Page setup'),
                             desc = _('Specify paper size, margins and orientation')),
@@ -138,6 +141,7 @@ class PsMapToolbar(AbstractToolbar):
         self.preview = wx.NewId()
         self.instructionFile = wx.NewId()
         self.generatePS = wx.NewId()
+        self.loadFile = wx.NewId()
         self.pan = wx.NewId()
 
         icons = Icons['psMap']
@@ -172,6 +176,8 @@ class PsMapToolbar(AbstractToolbar):
                                       self.parent.OnInstructionFile),
                                      (self.generatePS, 'generatePS', icons['export'],
                                       self.parent.OnPSFile),
+                                     (self.loadFile, 'loadFile', icons['loadFile'],
+                                      self.parent.OnLoadFile),                                    
                                      (None, ),
                                      (self.quit, 'quit', icons['quit'],
                                       self.parent.OnCloseWindow))
@@ -295,11 +301,7 @@ class PsMapFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Bind(EVT_CMD_DONE, self.OnCmdDone)
         
-##        # load instructions
-##        self.readObjectId = []
-##        self.readInstruction = Instruction(parent = self, objectsToDraw = self.readObjectId)
-##        self.readInstruction.Read('/home/anna/Desktop/reading.txt')
-##        print '%%%%%%%%%%%%%%%%%%%\n',self.readInstruction
+        
     
     def _layout(self):
         """!Do layout
@@ -430,8 +432,38 @@ class PsMapFrame(wx.Frame):
         if filename:    
             instrFile = open(filename, "w")
             instrFile.write(self.InstructionFile())
-            instrFile.close()            
-        
+            instrFile.close()   
+                     
+    def OnLoadFile(self, event):
+        """!Load file and read instructions"""
+        #find file
+        filename = ''
+        dlg = wx.FileDialog(self, message = "Find instructions file", defaultDir = "", 
+                            defaultFile = '', wildcard = "All files (*.*)|*.*",
+                            style = wx.CHANGE_DIR|wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+        dlg.Destroy()
+        if not filename:
+            return
+        # load instructions
+        #filename = '/home/anna/Desktop/reading.txt'
+        readObjectId = []
+        readInstruction = Instruction(parent = self, objectsToDraw = readObjectId)
+        ok = readInstruction.Read(filename)
+        if not ok:
+            GMessage(_("Failed to read file {0}.").format(filename))
+        else:
+            self.instruction = self.canvas.instruction = readInstruction
+            self.objectId = self.canvas.objectId = readObjectId
+            self.pageId = self.canvas.pageId = self.instruction.FindInstructionByType('page').id
+            self.canvas.UpdateMapLabel()
+            self.canvas.dragId = -1
+            self.canvas.Clear()
+            #self.canvas.ZoomAll()
+            
+            self.DialogDataChanged(self.objectId)
+                        
     def OnPageSetup(self, event = None):
         """!Specify paper size, margins and orientation"""
         id = self.instruction.FindInstructionByType('page').id
@@ -504,7 +536,10 @@ class PsMapFrame(wx.Frame):
             self.toolbar.ToggleTool(self.actionOld, True)
             self.toolbar.ToggleTool(self.toolbar.action['id'], False)
             self.toolbar.action['id'] = self.actionOld
-            self.canvas.SetCursor(self.cursorOld) 
+            try:
+                self.canvas.SetCursor(self.cursorOld) 
+            except AttributeError:
+                pass
    
             dlg = MapDialog(parent = self, id  = id, settings = self.instruction,
                             notebook = notebook)
@@ -910,9 +945,14 @@ class PsMapBufferedWindow(wx.Window):
         self.pdcPaper.SetBackground(bg)
         self.pdcPaper.Clear()
         self.pdcPaper.EndDrawing()
+        
+        self.pdcObj.RemoveAll()
+        self.pdcTmp.RemoveAll()
+        
+
+
         if not self.preview:
             self.SetPage()
-        
 
     
     def CanvasPaperCoordinates(self, rect, canvasToPaper = True):
@@ -981,7 +1021,7 @@ class PsMapBufferedWindow(wx.Window):
             
         texts = self.instruction.FindInstructionByType('text', list = True)
         for text in texts:
-            e, n = PaperMapCoordinates(self, mapId = mapId, x = self.instruction[text.id]['where'][0],
+            e, n = PaperMapCoordinates(map = self.instruction[mapId], x = self.instruction[text.id]['where'][0],
                                                 y = self.instruction[text.id]['where'][1], paperToMap = True)
             self.instruction[text.id]['east'], self.instruction[text.id]['north'] = e, n
             
@@ -1480,6 +1520,7 @@ class PsMapBufferedWindow(wx.Window):
         
     def UpdateMapLabel(self):
         """!Updates map frame label"""
+
         mapId = self.instruction.FindInstructionByType('map').id
         vector = self.instruction.FindInstructionByType('vector')
         vectorId = vector.id if vector else None

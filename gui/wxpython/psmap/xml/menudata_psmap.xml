@@ -9,6 +9,13 @@
 		  <handler>OnPageSetup</handler>
 		  <shortcut>Ctrl+P</shortcut>
 		</menuitem>
+		<separator/>
+		<menuitem>
+		  <label>Load file</label>
+		  <help>Load text file with mapping instructions</help>
+		  <handler>OnLoadFile</handler>
+		  <shortcut>Ctrl+O</shortcut>
+		</menuitem>
 		<menuitem>
 		  <label>Export to text file</label>
 		  <help>Generate text file with mapping instructions</help>
