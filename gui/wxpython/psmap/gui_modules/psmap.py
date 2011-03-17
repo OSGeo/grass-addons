@@ -24,8 +24,9 @@ import textwrap
 import Queue
 try:
     import Image
+    haveImage = True
 except ImportError:
-    sys.exit("Python Imaging Library is not available")
+    haveImage = False
 from math import ceil, sin, cos, pi
 from collections import namedtuple
 
@@ -122,7 +123,9 @@ class PsMapToolbar(AbstractToolbar):
         self.defaultAction = { 'id' : self.pointer,
                                'bind' : self.parent.OnPointer }
         self.OnTool(None)
-
+        
+        if not haveImage:
+            self.EnableTool(self.preview, False)
         
     def _toolbarData(self):
         """!Toolbar data
@@ -281,9 +284,6 @@ class PsMapFrame(wx.Frame):
         self.previewCanvas = PsMapBufferedWindow(parent = self, mouse = self.mouse, cursors = self.cursors,
                                                     pen = self.pen, brush = self.brush, preview = True)
         
-        
-
-        
         # set WIND_OVERRIDE
         grass.use_temp_region()
         
@@ -301,8 +301,17 @@ class PsMapFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         self.Bind(EVT_CMD_DONE, self.OnCmdDone)
         
+        if not haveImage:
+            wx.CallAfter(self._showErrMsg)
         
-    
+    def _showErrMsg(self):
+        """!Show error message (missing preview)
+        """
+        GError(parent = self,
+               message = _("Python Imaging Library is not available.\n"
+                           "'Preview' functionality won't work."),
+               showTraceback = False)
+        
     def _layout(self):
         """!Do layout
         """
@@ -373,26 +382,26 @@ class PsMapFrame(wx.Frame):
             GMessage(parent = self,
                    message = _("Ps.map exited with return code %s") % event.returncode)
             return 
-        
-        try:
-            im = Image.open(event.userData['filename'])
-            if self.instruction[self.pageId]['Orientation'] == 'Landscape':
-                im = im.rotate(270)
-            im.save(self.imgName)
-            
-        except IOError, e:
-            GError(parent = self,
-                   message = _("Unable to generate preview. %s") % e)
-        
-        
-        rect = self.previewCanvas.ImageRect()
-        self.previewCanvas.image = wx.Image(self.imgName, wx.BITMAP_TYPE_PNG)
-        self.previewCanvas.DrawImage(rect = rect)
-        
-        self.SetStatusText(_('Preview generated'), 0)
-        self.book.SetSelection(1)
-        self.currentPage = 1
 
+        if haveImage:
+            try:
+                im = Image.open(event.userData['filename'])
+                if self.instruction[self.pageId]['Orientation'] == 'Landscape':
+                    im = im.rotate(270)
+                im.save(self.imgName)
+            
+            except IOError, e:
+                GError(parent = self,
+                       message = _("Unable to generate preview. %s") % e)
+                
+            rect = self.previewCanvas.ImageRect()
+            self.previewCanvas.image = wx.Image(self.imgName, wx.BITMAP_TYPE_PNG)
+            self.previewCanvas.DrawImage(rect = rect)
+            
+            self.SetStatusText(_('Preview generated'), 0)
+            self.book.SetSelection(1)
+            self.currentPage = 1
+        
         grass.try_remove(event.userData['instrFile'])
         if event.userData['temp']:
             grass.try_remove(event.userData['filename'])
