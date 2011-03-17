@@ -1300,8 +1300,8 @@ class PsMapBufferedWindow(wx.Window):
             if self.mouse['use'] == 'zoomout':
                 zoomFactor = 1./zoomFactor
             x,y = self.mouse['begin']
-            xView = x - cW/(zoomFactor * 2)
-            yView = y - cH/(zoomFactor * 2)
+            xView = x - x/zoomFactor#x - cW/(zoomFactor * 2)
+            yView = y - y/zoomFactor#y - cH/(zoomFactor * 2)
 
         else:   #dragging    
             rW, rH = float(rect.GetWidth()), float(rect.GetHeight())
