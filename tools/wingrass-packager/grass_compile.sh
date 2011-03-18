@@ -3,6 +3,12 @@
 
 SRC=/osgeo4w/usr/src
 
+function update {
+    echo "Updating $1..."     
+    cd $SRC/$1
+    svn up || (svn cleanup && svn up)
+}
+
 function compile {
     echo "Compiling $1..."
     cd $SRC/$1
@@ -12,6 +18,8 @@ function compile {
 }
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
+
+update grass_addons
 
 compile grass64_release
 compile grass6_devel
