@@ -41,6 +41,10 @@ import wx.lib.scrolledpanel as scrolled
 import  wx.lib.filebrowsebutton as filebrowse
 from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
+try:
+    from agw import floatspin as fs
+except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.floatspin as fs
 
 try:
     from agw import flatnotebook as fnb
@@ -537,7 +541,7 @@ class Instruction:
         try:
             RunCommand(cmd[0], **cmd[1])
             
-        except ScriptError, e:
+        except grass.ScriptError, e:
             GError(_("Region cannot be set\n{0}").format(e))
             return False
           
@@ -1114,9 +1118,9 @@ class RasterLegend(InstructionObject):
                                         fs = ':').strip().split('\n')
                 rows = ceil( float(len(cat)) / cols )
             except grass.ScriptError:
-                range = grass.read_command('r.info', flags = 'r', map = raster).strip().split('\n')
-                minim, maxim = range[0].split('=')[1], range[1].split('=')[1]
-                rows = ceil( float(maxim) / cols )
+                rinfo = grass.raster_info(raster)
+                minim, maxim = rinfo['min'], rinfo['max']
+                rows = ceil( maxim / cols )
                             
                 
             height = self.unitConv.convert(value =  1.5 * rows * fontsize, fromUnit = 'point', toUnit = 'inch')
@@ -1127,14 +1131,14 @@ class RasterLegend(InstructionObject):
         """!Estimate size to draw raster legend"""
         
         if discrete == 'n':
-            range = grass.read_command('r.info', flags = 'r', map = raster).strip().split('\n')
-            minim, maxim = range[0].split('=')[1], range[1].split('=')[1]
+            rinfo = grass.raster_info(raster)
+            minim, maxim = rinfo['min'], rinfo['max']
             if width:
                 width = width
             else:
                 width = self.unitConv.convert(value = fontsize * 2,
                                                     fromUnit = 'point', toUnit = 'inch')
-            text = len(max(minim, maxim, key = len))
+            text = len(max(str(minim), str(maxim), key = len))
             textPart = self.unitConv.convert(value = text * fontsize / 2,
                                                     fromUnit = 'point', toUnit = 'inch')
             width += textPart
@@ -1482,7 +1486,7 @@ class VProperties(InstructionObject):
             elif line.startswith('label'):
                 instr['label'] = line.split()[1]
             elif line.startswith('layer'):
-                instr['layer'] = int(line.split()[1])
+                instr['layer'] = line.split()[1]
             elif line.startswith('masked'):
                 if line.split()[1].lower() in ('y', 'yes'):
                     instr['masked'] = 'y'
@@ -2695,6 +2699,7 @@ class VPropertiesDialog(PsmapDialog):
             self.warning = wx.StaticText(panel, id = wx.ID_ANY, label = _("Database connection is not defined in DB file."))
         text = wx.StaticText(panel, id = wx.ID_ANY, label = _("Select layer:"))
         self.layerChoice = wx.Choice(panel, id = wx.ID_ANY, choices = map(str, self.layers), size = self.spinCtrlSize)
+        
         self.layerChoice.SetStringSelection(self.currLayer)
                 
         table = self.mapDBInfo.layers[int(self.currLayer)]['table'] if self.connection else ""
@@ -2765,7 +2770,11 @@ class VPropertiesDialog(PsmapDialog):
         self.outlineCheck.SetValue(self.vPropertiesDict['color'] != 'none')
         
         widthText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Width (pts):"))
-        self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1, size = self.spinCtrlSize)
+        self.widthSpin = fs.FloatSpin(panel, id = wx.ID_ANY, min_val = 0, max_val = 30,
+                                       increment = 0.5, value = 1, extrastyle = fs.FS_RIGHT)
+        self.widthSpin.SetFormat("%f")
+        self.widthSpin.SetDigits(2)
+##        self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1, size = self.spinCtrlSize)
         self.widthSpin.SetValue(self.vPropertiesDict['width'] if self.vPropertiesDict['color'] != 'none' else 1)
         
         colorText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Color:"))
@@ -2850,9 +2859,14 @@ class VPropertiesDialog(PsmapDialog):
         self.outlineCheck.SetToolTipString(_("No effect for fill color from table column"))
         
         widthText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Width (pts):"))
-        self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1, size = self.spinCtrlSize)
-        self.widthSpin.SetValue(self.vPropertiesDict['hwidth'] if self.vPropertiesDict['hcolor'] != 'none' else 1)
-        
+        self.outWidthSpin = fs.FloatSpin(panel, id = wx.ID_ANY, min_val = 0, max_val = 30,
+                                       increment = 0.5, value = 1, extrastyle = fs.FS_RIGHT)
+        self.outWidthSpin.SetFormat("%f")
+        self.outWidthSpin.SetDigits(1)
+##        self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1, size = self.spinCtrlSize)
+
+        self.outWidthSpin.SetValue(self.vPropertiesDict['hwidth'] if self.vPropertiesDict['hcolor'] != 'none' else 1)
+
         colorText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Color:"))
         self.colorPicker = wx.ColourPickerCtrl(panel, id = wx.ID_ANY)
         self.colorPicker.SetColour(convertRGB(self.vPropertiesDict['hcolor']) if self.vPropertiesDict['hcolor'] != 'none' else 'black')
@@ -2860,7 +2874,7 @@ class VPropertiesDialog(PsmapDialog):
         
         self.gridBagSizerO.Add(self.outlineCheck, pos = (0, 0), span = (1,2), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)        
         self.gridBagSizerO.Add(widthText, pos = (1, 1), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)        
-        self.gridBagSizerO.Add(self.widthSpin, pos = (1, 2), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)        
+        self.gridBagSizerO.Add(self.outWidthSpin, pos = (1, 2), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)        
         self.gridBagSizerO.Add(colorText, pos = (2, 1), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)                
         self.gridBagSizerO.Add(self.colorPicker, pos = (2, 2), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)        
         
@@ -3046,7 +3060,11 @@ class VPropertiesDialog(PsmapDialog):
         gridBagSizer = wx.GridBagSizer(hgap = 5, vgap = 5)
         
         widthText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Set width (pts):"))
-        self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1)
+        self.widthSpin = fs.FloatSpin(panel, id = wx.ID_ANY, min_val = 0, max_val = 30,
+                                       increment = 0.5, value = 1, extrastyle = fs.FS_RIGHT)
+        self.widthSpin.SetFormat("%f")
+        self.widthSpin.SetDigits(1)
+##        self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1)
         self.cwidthCheck = wx.CheckBox(panel, id = wx.ID_ANY, label = _("multiply width by category value"))
         
         if self.vPropertiesDict['width']:
@@ -3258,7 +3276,8 @@ class VPropertiesDialog(PsmapDialog):
                 #hcolor only when no rgbcolumn
             if self.outlineCheck.GetValue():# and self.fillCheck.GetValue() and self.colorColRadio.GetValue():
                 self.vPropertiesDict['hcolor'] = convertRGB(self.colorPicker.GetColour())
-                self.vPropertiesDict['hwidth'] = self.widthSpin.GetValue()
+                self.vPropertiesDict['hwidth'] = self.outWpidthSpin.GetValue()
+                
             else:
                 self.vPropertiesDict['hcolor'] = 'none'
                 
@@ -3449,8 +3468,8 @@ class LegendDialog(PsmapDialog):
         self.ticks.SetValue(True if self.rLegendDict['tickbar'] == 'y' else False)
         # range
         if self.rasterId and self.instruction[self.rasterId]['raster']:
-            range = RunCommand('r.info', flags = 'r', read = True, map = self.instruction[self.rasterId]['raster']).strip().split('\n')
-            self.minim, self.maxim = range[0].split('=')[1], range[1].split('=')[1]
+            rinfo = grass.raster_info(self.instruction[self.rasterId]['raster'])
+            self.minim, self.maxim = rinfo['min'], rinfo['max']
         else:
             self.minim, self.maxim = 0,0
         self.range = wx.CheckBox(panel, id = wx.ID_ANY, label = _("range"))
@@ -3888,8 +3907,8 @@ class LegendDialog(PsmapDialog):
             rasterType = getRasterType(self.rLegendDict['raster'])
             self.rLegendDict['type'] = rasterType
             
-            range = RunCommand('r.info', flags = 'r', read = True, map = self.rLegendDict['raster']).strip().split('\n')
-            minim, maxim = range[0].split('=')[1], range[1].split('=')[1]
+##            rinfo = grass.raster_info(self.rLegendDict['raster'])
+##            minim, maxim = rinfo['min'], rinfo['max']
             
             #discrete
             if self.discrete.GetValue():
@@ -5087,9 +5106,8 @@ def GetMapBounds(filename):
 def getRasterType(map):
     """!Returns type of raster map (CELL, FCELL, DCELL)"""
     try:
-        rasterType = RunCommand('r.info', flags = 't', read = True, 
-                                map = map).strip().split('=')
-    except ScriptError:
-        GError(_("Unable to get type of raster map"))
+        rasterType = grass.raster_info(map)['datatype']
+    except grass.ScriptError:
+        #GError(_("Unable to get type of raster map"))
         return None
-    return (rasterType[1] if rasterType[0] else None)
+    return rasterType
