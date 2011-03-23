@@ -1,0 +1,82 @@
+<h2>DESCRIPTION</h2>
+
+Draws arrows, straws, or wind barbs.
+Can use either raster or vector input maps, and either u,v velocity
+component or direction and magnitude input data.
+
+
+<h2>NOTES</h2>
+
+Cartesian aspect is measures in degreess CCW from the positive x-axis (east).
+Compass aspect is measures in degreess CW from north.
+<P>
+Rendering is scaled so largest stick covers 20% of the display frame
+for arrows and straws, use the scale parameter to adjust from there.
+<P>
+Wind barbs are all of equal length, but that length may be adjusted
+by the scale parameter.
+<P>
+Wind barbs assume velocity data is given in knots. Actually it
+doesn't care, but effectively maxes out at velo=150.
+<!--
+  units=
+  m/s    m_per_sec
+  km/hr  km_per_hr
+  mi/hr  mi_per_hr
+  knots  knots
+??
+-->
+
+
+<h2>EXAMPLES</h2>
+
+<h4>Eularian field from raster grid</h4>
+<div class="code"><pre>
+d.barb
+</pre></div>
+
+<h4>Sparse staion data from vector maps</h4>
+
+First prepare some dummy data, then plot it.
+<div class="code"><pre>
+# Spearfish dataset
+g.copy vect=bugsites,dummy_map
+v.db.addcol map=dummy_map \
+    columns='direction DOUBLE PRECISION, magnitude DOUBLE PRECISION'
+v.db.update dummy_map column=direction value='cat * 4.0'
+v.db.update dummy_map column=magnitude value='cat / 2.0'
+
+g.region -d
+d.barb input=dummy_map direction=direction magnitude=magnitude aspect=compass
+</pre></div>
+
+
+<h4>Create a legend</h4>
+<div class="code"><pre>
+d.graph << EOF
+ color 230:230:210
+ polygon
+  80 5
+  80 35
+  97 35
+  97 5
+EOF
+
+d.barb legend_velo=5,10,15,20,25 \
+   legend_at=90,30,90,25,90,20,90,15,90,10 \
+   color=black legend_fontsize=20 style=arrow
+</pre></div>
+
+
+
+<h2>SEE ALSO</h2>
+d.rast.arrow
+d.graph
+d.vect
+
+
+<h2>AUTHOR</h2>
+Hamish Bowman
+Dept Marine Science
+University of Otago
+
