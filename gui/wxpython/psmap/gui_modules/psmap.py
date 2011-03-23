@@ -19,7 +19,6 @@ This program is free software under the GNU General Public License
 
 import os
 import sys
-import tempfile
 import textwrap
 import Queue
 try:
@@ -27,8 +26,7 @@ try:
     haveImage = True
 except ImportError:
     haveImage = False
-from math import ceil, sin, cos, pi
-from collections import namedtuple
+from math import sin, cos, pi
 
 import grass.script as grass
 if int(grass.version()['version'].split('.')[0]) > 6:
@@ -41,14 +39,12 @@ import globalvar
 import menu
 from   goutput    import CmdThread, EVT_CMD_DONE
 from   menudata   import MenuData, etcwxdir
-from   gselect    import Select
 from   toolbars   import AbstractToolbar
 from   icon       import Icons, MetaIcon, iconSet
 from   gcmd       import RunCommand, GError, GMessage
 from psmap_dialogs import *
 
 import wx
-import wx.lib.scrolledpanel as scrolled
 
 try:
     from agw import flatnotebook as fnb
@@ -1432,10 +1428,6 @@ class PsMapBufferedWindow(wx.Window):
         fontsize = str(textDict['fontsize'] * self.currScale)
         background = textDict['background'] if textDict['background'] != 'none' else None
         
-        dc = wx.PaintDC(self) # dc created because of method GetTextExtent, which pseudoDC lacks
-        dc.SetFont(wx.FontFromNativeInfoString(textDict['font'] + " " + fontsize))
-        textExtent = dc.GetTextExtent(textDict['text'])
-        
         pdc.RemoveId(drawId)
         pdc.SetId(drawId)
         pdc.BeginDrawing()
@@ -1446,6 +1438,7 @@ class PsMapBufferedWindow(wx.Window):
         else:
             pdc.SetBackground(wx.TRANSPARENT_BRUSH)
             pdc.SetBackgroundMode(wx.TRANSPARENT)
+        
         pdc.SetFont(wx.FontFromNativeInfoString(textDict['font'] + " " + fontsize))    
 ##        pdc.SetTextForeground(convertRGB(textDict['color']))        
         pdc.SetTextForeground(textDict['color'])        
@@ -1530,7 +1523,6 @@ class PsMapBufferedWindow(wx.Window):
     def UpdateMapLabel(self):
         """!Updates map frame label"""
 
-        mapId = self.instruction.FindInstructionByType('map').id
         vector = self.instruction.FindInstructionByType('vector')
         vectorId = vector.id if vector else None
         raster = self.instruction.FindInstructionByType('raster')
