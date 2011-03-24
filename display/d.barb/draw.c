@@ -171,10 +171,10 @@ void draw_circle(double easting, double northing, double radius, int fill)
 
     G_debug(4, "draw_circle()");
 
-    n = (int)(360 / step) + 2; /* number of vertices */
+    n = (int)(360 / step) + 1; /* number of vertices */
 
-    xi = G_calloc(n, sizeof(int));
-    yi = G_calloc(n, sizeof(int));
+    xi = G_calloc(n + 1, sizeof(int));
+    yi = G_calloc(n + 1, sizeof(int));
 
     /* for loop moving around the circle */ 
     for (i = 0; i <= n; i++) {
