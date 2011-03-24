@@ -166,23 +166,15 @@ void mark_the_spot(double perc_x, double perc_y)
 void draw_circle(double easting, double northing, double radius, int fill)
 {
     int i, n;
-    double x, y, angle, step = 5.;
+    double angle, step = 5.0;
     int *xi, *yi;
 
     G_debug(4, "draw_circle()");
 
-    n = (int)(360 / step) + 1; /* number of vertices */
+    n = (int)(360 / step) + 2; /* number of vertices */
 
     xi = G_calloc(n, sizeof(int));
     yi = G_calloc(n, sizeof(int));
-/*
-    x = (int)round(D_u_to_d_col(easting));
-    y = (int)round(D_u_to_d_row(northing));
-    G_debug(0, "  x=%d  y=%d", (int)x, (int)y);
-
-    R_move_abs(x, y);
-    R_move_rel((int)(radius + 0.5), 0);
-*/
 
     /* for loop moving around the circle */ 
     for (i = 0; i <= n; i++) {
@@ -214,8 +206,9 @@ void draw_circle(double easting, double northing, double radius, int fill)
 void draw_feather(double easting, double northing, double radius, double velocity,
 		  double compass_deg)
 {
-    double x, y, dx, dy, angle, rot_angle;
+    double x, y, dx, dy, angle, rot_angle, back_angle, rot_angle180;
     double stem_length = 5.;   /* length of tail */
+    int xi[4], yi[4];
 
     G_debug(4, "draw_feather()");
 
@@ -227,17 +220,24 @@ void draw_feather(double easting, double northing, double radius, double velocit
 	angle -= 360;
 
     rot_angle = angle + 60;
-        if(rot_angle < 0)
-	rot_angle += 360;
-    else if(rot_angle > 360)
+    if(rot_angle > 360)
 	rot_angle -= 360;
+
+    back_angle = rot_angle + 30;
+    if(back_angle > 360)
+	back_angle -= 360;
+
+    rot_angle180 = rot_angle + 180;
+    if(rot_angle180 > 360)
+	rot_angle180 -= 360;
+
 
     G_debug(5, "  compass_deg=%.2f   angle=%.2f   rot_angle=%.2f", compass_deg, angle, rot_angle);
 
 //D_line_width(2);
 
     if (velocity < 5) {
-//	draw_circle(easting, northing, 2.0, TRUE);
+//dot	draw_circle(easting, northing, 2.0, TRUE);
 	draw_circle(easting, northing, 3*radius/4, FALSE);
 	return;
     }
@@ -329,12 +329,27 @@ void draw_feather(double easting, double northing, double radius, double velocit
     else
 	return;
 
-//R_RGB_color(255, 0, 255);
+R_RGB_color(255, 0, 255);
     if ( velocity >= 50 ) {
 	/* beyond 50 kts gets a filled triangle (flag) at the end */
 // inner angle is same as barb lines, outer angle is equal but opposite
-	dx = D_u_to_d_col(easting) + (stem_length - 2) * radius * cos(D2R(angle));
-	dy = D_u_to_d_row(northing) + (stem_length - 2) * radius * sin(D2R(angle));
+	xi[0] = (int)floor(0.5 + D_u_to_d_col(easting) + stem_length * radius * cos(D2R(angle)));
+	yi[0] = (int)floor(0.5 + D_u_to_d_row(northing) + stem_length * radius * sin(D2R(angle)));
+	
+	xi[1] = (int)floor(0.5 + xi[0] + radius*2 * cos(D2R(back_angle)));
+	yi[1] = (int)floor(0.5 + yi[0] + radius*2 * sin(D2R(back_angle)));
+
+//	xi[2] = xi[1] + (int)floor(0.5 + radius*2 * cos(D2R(rot_angle180)));
+//	yi[2] = yi[1] + (int)floor(0.5 + radius*2 * sin(D2R(rot_angle180)));
+	xi[2] = (int)floor(0.5 + D_u_to_d_col(easting) + stem_length * radius*.8 * cos(D2R(angle)));
+	yi[2] = (int)floor(0.5 + D_u_to_d_row(northing) + stem_length * radius*.8 * sin(D2R(angle)));
+
+	xi[3] = xi[0];
+	yi[3] = yi[0];
+	R_polygon_abs(xi, yi, 4);
+
+	dx = D_u_to_d_col(easting) + (stem_length - 3) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 3) * radius * sin(D2R(angle));
 	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	x = dx + radius*2 * cos(D2R(rot_angle));
 	y = dy + radius*2 * sin(D2R(rot_angle));

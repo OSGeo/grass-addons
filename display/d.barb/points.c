@@ -67,8 +67,6 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
 	}
     }
 
-    peak = max_magnitude(magn, num_pts);
-
 // to figure out:
 //   also pass u,v columns and calc dir,mag prior to filling dirn,magn arrays
 
@@ -91,6 +89,8 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
        if (aspect_type == TYPE_COMPASS)
        dir = 90 - dir;
 */
+    peak = max_magnitude(magn, num_pts);
+    G_debug(0, "  peak = %.2f", peak);
 
     peak = 1.;    // TODO: window width * 0.20 
     scale_fact = (peak ) * scale;
@@ -225,6 +225,7 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
             G_fatal_error(_("Can't read vector map"));
         case -2:                /* EOF */
 	    db_close_database_shutdown_driver(driver);
+	    G_debug(0, "  Array fill done.");
             return;
         }
 
