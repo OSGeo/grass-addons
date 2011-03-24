@@ -187,8 +187,8 @@ void draw_circle(double easting, double northing, double radius, int fill)
     /* for loop moving around the circle */ 
     for (i = 0; i <= n; i++) {
 	angle = D2R(step * i);
-	xi[i] = (int)round( D_u_to_d_col(easting) + radius * cos(angle) );
-	yi[i] = (int)round( D_u_to_d_row(northing) + radius * sin(angle) );
+	xi[i] = (int)floor(0.5 + D_u_to_d_col(easting) + radius * cos(angle));
+	yi[i] = (int)floor(0.5 + D_u_to_d_row(northing) + radius * sin(angle));
 	G_debug(5, "angle=%.2f   xi[%d]=%d  yi[%d]=%d", step*i, i, xi[i], i, yi[i]);
     }
 
@@ -247,24 +247,24 @@ void draw_feather(double easting, double northing, double radius, double velocit
     /* move to head */
     x = D_u_to_d_col(easting) + radius * cos(D2R(angle));
     y = D_u_to_d_row(northing) + radius * sin(D2R(angle));
-    R_move_abs((int)round(x), (int)round(y));
+    R_move_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
 
     /* draw to tail */
     dx = D_u_to_d_col(easting) + stem_length * radius * cos(D2R(angle));
     dy = D_u_to_d_row(northing) + stem_length * radius * sin(D2R(angle));
-    R_cont_abs((int)round(dx), (int)round(dy));
+    R_cont_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 
 //R_RGB_color(0, 255, 0);
     /* TODO: simplify following into a loop */
     if ( velocity >= 10 ) {
 	x = dx + radius*2 * cos(D2R(rot_angle));
 	y = dy + radius*2 * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else if (velocity >= 5) {
 	x = dx + radius * cos(D2R(rot_angle));
 	y = dy + radius * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else
 	return;
@@ -273,18 +273,18 @@ void draw_feather(double easting, double northing, double radius, double velocit
     if ( velocity >= 20 ) {
 	dx = D_u_to_d_col(easting) + (stem_length - 0.5) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 0.5) * radius * sin(D2R(angle));
-	R_move_abs((int)round(dx), (int)round(dy));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	x = dx + radius*2 * cos(D2R(rot_angle));
 	y = dy + radius*2 * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else if (velocity >= 15) {
     	dx = D_u_to_d_col(easting) + (stem_length - 0.5) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 0.5) * radius * sin(D2R(angle));
-	R_move_abs((int)round(dx), (int)round(dy));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	x = dx + radius * cos(D2R(rot_angle));
 	y = dy + radius * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else
 	return;
@@ -293,18 +293,18 @@ void draw_feather(double easting, double northing, double radius, double velocit
     if ( velocity >= 30 ) {
 	dx = D_u_to_d_col(easting) + (stem_length - 1) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 1) * radius * sin(D2R(angle));
-	R_move_abs((int)round(dx), (int)round(dy));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	x = dx + radius*2 * cos(D2R(rot_angle));
 	y = dy + radius*2 * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else if (velocity >= 25) {
     	dx = D_u_to_d_col(easting) + (stem_length - 1) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 1) * radius * sin(D2R(angle));
-	R_move_abs((int)round(dx), (int)round(dy));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	x = dx + radius * cos(D2R(rot_angle));
 	y = dy + radius * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else
 	return;
@@ -313,18 +313,18 @@ void draw_feather(double easting, double northing, double radius, double velocit
     if ( velocity >= 40 ) {
 	dx = D_u_to_d_col(easting) + (stem_length - 1.5) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 1.5) * radius * sin(D2R(angle));
-	R_move_abs((int)round(dx), (int)round(dy));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	x = dx + radius*2 * cos(D2R(rot_angle));
 	y = dy + radius*2 * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else if (velocity >= 35) {
     	dx = D_u_to_d_col(easting) + (stem_length - 1.5) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 1.5) * radius * sin(D2R(angle));
-	R_move_abs((int)round(dx), (int)round(dy));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	x = dx + radius * cos(D2R(rot_angle));
 	y = dy + radius * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else
 	return;
@@ -335,18 +335,18 @@ void draw_feather(double easting, double northing, double radius, double velocit
 // inner angle is same as barb lines, outer angle is equal but opposite
 	dx = D_u_to_d_col(easting) + (stem_length - 2) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 2) * radius * sin(D2R(angle));
-	R_move_abs((int)round(dx), (int)round(dy));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	x = dx + radius*2 * cos(D2R(rot_angle));
 	y = dy + radius*2 * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else if (velocity >= 45) {
     	dx = D_u_to_d_col(easting) + (stem_length - 2) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 2) * radius * sin(D2R(angle));
-	R_move_abs((int)round(dx), (int)round(dy));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 	x = dx + radius * cos(D2R(rot_angle));
 	y = dy + radius * sin(D2R(rot_angle));
-	R_cont_abs((int)round(x), (int)round(y));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
     }
     else
 	return;
