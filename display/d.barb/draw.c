@@ -32,7 +32,7 @@ void draw_barb(double easting, double northing, double velocity,
     }
     else {
 	/* calc barb parameters */
-
+//compass_deg=0;
 	/* draw barb bits */
 	draw_circle(easting, northing, 10.0, FALSE);
 	draw_feather(easting, northing, 10.0 /*radius*/, velocity, compass_deg);
@@ -206,7 +206,7 @@ void draw_circle(double easting, double northing, double radius, int fill)
 void draw_feather(double easting, double northing, double radius, double velocity,
 		  double compass_deg)
 {
-    double x, y, dx, dy, angle, rot_angle, back_angle, rot_angle180;
+    double x, y, dx, dy, angle, rot_angle, flag_angle1, flag_angle2;
     double stem_length = 5.;   /* length of tail */
     int xi[4], yi[4];
 
@@ -223,13 +223,13 @@ void draw_feather(double easting, double northing, double radius, double velocit
     if(rot_angle > 360)
 	rot_angle -= 360;
 
-    back_angle = rot_angle + 30;
-    if(back_angle > 360)
-	back_angle -= 360;
-
-    rot_angle180 = rot_angle + 180;
-    if(rot_angle180 > 360)
-	rot_angle180 -= 360;
+    flag_angle1 = rot_angle + 30;
+    if(flag_angle1 > 360)
+	flag_angle1 -= 360;
+// 150 is good   45,195
+    flag_angle2 = flag_angle1 + 150;
+    if(flag_angle2 > 360)
+	flag_angle2 -= 360;
 
 
     G_debug(5, "  compass_deg=%.2f   angle=%.2f   rot_angle=%.2f", compass_deg, angle, rot_angle);
@@ -242,7 +242,6 @@ void draw_feather(double easting, double northing, double radius, double velocit
 	return;
     }
 
-
 //R_RGB_color(255, 0, 0);
     /* move to head */
     x = D_u_to_d_col(easting) + radius * cos(D2R(angle));
@@ -254,8 +253,10 @@ void draw_feather(double easting, double northing, double radius, double velocit
     dy = D_u_to_d_row(northing) + stem_length * radius * sin(D2R(angle));
     R_cont_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 
-//R_RGB_color(0, 255, 0);
     /* TODO: simplify following into a loop */
+
+  if (velocity < 50) {
+//R_RGB_color(0, 255, 0);
     if ( velocity >= 10 ) {
 	x = dx + radius*2 * cos(D2R(rot_angle));
 	y = dy + radius*2 * sin(D2R(rot_angle));
@@ -329,33 +330,7 @@ void draw_feather(double easting, double northing, double radius, double velocit
     else
 	return;
 
-R_RGB_color(255, 0, 255);
-    if ( velocity >= 50 ) {
-	/* beyond 50 kts gets a filled triangle (flag) at the end */
-// inner angle is same as barb lines, outer angle is equal but opposite
-	xi[0] = (int)floor(0.5 + D_u_to_d_col(easting) + stem_length * radius * cos(D2R(angle)));
-	yi[0] = (int)floor(0.5 + D_u_to_d_row(northing) + stem_length * radius * sin(D2R(angle)));
-	
-	xi[1] = (int)floor(0.5 + xi[0] + radius*2 * cos(D2R(back_angle)));
-	yi[1] = (int)floor(0.5 + yi[0] + radius*2 * sin(D2R(back_angle)));
-
-//	xi[2] = xi[1] + (int)floor(0.5 + radius*2 * cos(D2R(rot_angle180)));
-//	yi[2] = yi[1] + (int)floor(0.5 + radius*2 * sin(D2R(rot_angle180)));
-	xi[2] = (int)floor(0.5 + D_u_to_d_col(easting) + stem_length * radius*.8 * cos(D2R(angle)));
-	yi[2] = (int)floor(0.5 + D_u_to_d_row(northing) + stem_length * radius*.8 * sin(D2R(angle)));
-
-	xi[3] = xi[0];
-	yi[3] = yi[0];
-	R_polygon_abs(xi, yi, 4);
-
-	dx = D_u_to_d_col(easting) + (stem_length - 3) * radius * cos(D2R(angle));
-	dy = D_u_to_d_row(northing) + (stem_length - 3) * radius * sin(D2R(angle));
-	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
-	x = dx + radius*2 * cos(D2R(rot_angle));
-	y = dy + radius*2 * sin(D2R(rot_angle));
-	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
-    }
-    else if (velocity >= 45) {
+    if (velocity >= 45) {
     	dx = D_u_to_d_col(easting) + (stem_length - 2) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 2) * radius * sin(D2R(angle));
 	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
@@ -365,12 +340,255 @@ R_RGB_color(255, 0, 255);
     }
     else
 	return;
-
-// ...
-
-/* beyond 100 kts gets two 50kt flags at the end */
+  }
 
 
+//R_RGB_color(255, 0, 255);
+    if ( velocity >= 50 ) {
+	/* beyond 50 kts gets a filled triangle (flag) at the end */
+// inner angle is same as barb lines, outer angle is equal but opposite
+
+// TODO: calc x2 using trig instead of 2.35 approx.
+// TODO: store/hold as double* array and only rount to int for R_() at last minute
+
+	xi[0] = (int)floor(0.5 + D_u_to_d_col(easting) + stem_length * radius * cos(D2R(angle)));
+	yi[0] = (int)floor(0.5 + D_u_to_d_row(northing) + stem_length * radius * sin(D2R(angle)));
+	xi[1] = (int)floor(0.5 + xi[0] + radius*2 * cos(D2R(flag_angle1)));
+	yi[1] = (int)floor(0.5 + yi[0] + radius*2 * sin(D2R(flag_angle1)));
+	xi[2] = xi[1] + (int)floor(0.5 + radius*2.35 * cos(D2R(flag_angle2)));
+	yi[2] = yi[1] + (int)floor(0.5 + radius*2.35 * sin(D2R(flag_angle2)));
+	xi[3] = xi[0];
+	yi[3] = yi[0];
+	R_polygon_abs(xi, yi, 4);
+    }
+
+  if ( velocity < 100 ) {
+  
+    if (velocity >= 60) {
+	dx = D_u_to_d_col(easting) + (stem_length - 1.6) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 1.6) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius*2 * cos(D2R(rot_angle));
+	y = dy + radius*2 * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else if (velocity >= 55) {
+	dx = D_u_to_d_col(easting) + (stem_length - 1.6) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 1.6) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+
+    if (velocity >= 70) {
+	dx = D_u_to_d_col(easting) + (stem_length - 2.1) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 2.1) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius*2 * cos(D2R(rot_angle));
+	y = dy + radius*2 * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else if (velocity >= 65) {
+	dx = D_u_to_d_col(easting) + (stem_length - 2.1) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 2.1) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+
+    if (velocity >= 80) {
+	dx = D_u_to_d_col(easting) + (stem_length - 2.6) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 2.6) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius*2 * cos(D2R(rot_angle));
+	y = dy + radius*2 * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else if (velocity >= 75) {
+	dx = D_u_to_d_col(easting) + (stem_length - 2.6) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 2.6) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+
+    if (velocity >= 90) {
+	dx = D_u_to_d_col(easting) + (stem_length - 3.1) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 3.1) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius*2 * cos(D2R(rot_angle));
+	y = dy + radius*2 * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else if (velocity >= 85) {
+	dx = D_u_to_d_col(easting) + (stem_length - 3.1) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 3.1) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+
+    if (velocity >= 95) {
+    	dx = D_u_to_d_col(easting) + (stem_length - 3.6) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 3.6) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+  }
+
+
+    if ( velocity >= 100 ) {
+	/* beyond 100 kts gets two 50kt flags at the end */
+// inner angle is same as barb lines, outer angle is equal but opposite
+	xi[0] = xi[2];
+	yi[0] = yi[2];
+//	xi[0] = (int)floor(0.5 + D_u_to_d_col(easting) + (stem_length - 1.3) * radius * cos(D2R(angle)));
+//	yi[0] = (int)floor(0.5 + D_u_to_d_row(northing) + (stem_length - 1.3) * radius * sin(D2R(angle)));
+	xi[1] = (int)floor(0.5 + xi[0] + radius*2 * cos(D2R(flag_angle1)));
+	yi[1] = (int)floor(0.5 + yi[0] + radius*2 * sin(D2R(flag_angle1)));
+	xi[2] = xi[1] + (int)floor(0.5 + radius*2.35 * cos(D2R(flag_angle2)));
+	yi[2] = yi[1] + (int)floor(0.5 + radius*2.35 * sin(D2R(flag_angle2)));
+	xi[3] = xi[0];
+	yi[3] = yi[0];
+	R_polygon_abs(xi, yi, 4);
+    }
+
+/////
+  if ( velocity < 150 ) {
+  
+    if (velocity >= 110) {
+	dx = D_u_to_d_col(easting) + (stem_length - 2.8) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 2.8) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius*2 * cos(D2R(rot_angle));
+	y = dy + radius*2 * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else if (velocity >= 105) {
+	dx = D_u_to_d_col(easting) + (stem_length - 2.8) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 2.8) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+
+    if (velocity >= 120) {
+	dx = D_u_to_d_col(easting) + (stem_length - 3.2) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 3.2) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius*2 * cos(D2R(rot_angle));
+	y = dy + radius*2 * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else if (velocity >= 115) {
+	dx = D_u_to_d_col(easting) + (stem_length - 3.2) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 3.2) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+
+    if (velocity >= 130) {
+	dx = D_u_to_d_col(easting) + (stem_length - 3.7) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 3.7) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius*2 * cos(D2R(rot_angle));
+	y = dy + radius*2 * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else if (velocity >= 125) {
+	dx = D_u_to_d_col(easting) + (stem_length - 3.7) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 3.7) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+
+    if (velocity >= 140) {
+	dx = D_u_to_d_col(easting) + (stem_length - 4.2) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 4.2) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius*2 * cos(D2R(rot_angle));
+	y = dy + radius*2 * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else if (velocity >= 135) {
+	dx = D_u_to_d_col(easting) + (stem_length - 4.2) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 4.2) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+
+    if (velocity >= 145) {
+    	dx = D_u_to_d_col(easting) + (stem_length - 4.7) * radius * cos(D2R(angle));
+	dy = D_u_to_d_row(northing) + (stem_length - 4.7) * radius * sin(D2R(angle));
+	R_move_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
+	x = dx + radius * cos(D2R(rot_angle));
+	y = dy + radius * sin(D2R(rot_angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+
+	R_move_abs((int)(D_u_to_d_col(easting) + 0.5),
+		   (int)(D_u_to_d_row(northing) + 0.5));
+	x = D_u_to_d_col(easting) + radius * cos(D2R(angle));
+	y = D_u_to_d_row(northing) + radius * sin(D2R(angle));
+	R_cont_abs((int)floor(x + 0.5), (int)floor(y + 0.5));
+    }
+    else
+	return;
+  }
+
+
+    if ( velocity >= 150 ) {
+	/* beyond 150 kts gets three 50kt flags at the end */
+// inner angle is same as barb lines, outer angle is equal but opposite
+	xi[0] = xi[2];
+	yi[0] = yi[2];
+//	xi[0] = (int)floor(0.5 + D_u_to_d_col(easting) + (stem_length - 1.3) * radius * cos(D2R(angle)));
+//	yi[0] = (int)floor(0.5 + D_u_to_d_row(northing) + (stem_length - 1.3) * radius * sin(D2R(angle)));
+	xi[1] = (int)floor(0.5 + xi[0] + radius*2 * cos(D2R(flag_angle1)));
+	yi[1] = (int)floor(0.5 + yi[0] + radius*2 * sin(D2R(flag_angle1)));
+	xi[2] = xi[1] + (int)floor(0.5 + radius*2.35 * cos(D2R(flag_angle2)));
+	yi[2] = yi[1] + (int)floor(0.5 + radius*2.35 * sin(D2R(flag_angle2)));
+	xi[3] = xi[0];
+	yi[3] = yi[0];
+	R_polygon_abs(xi, yi, 4);
+    }
+
+
+//TODO: move out of loop
+    if ( velocity >= 155 )
+	G_warning(_("Maximum wind barb displayed is 150 knots"));
+
+/////// ...
 
     return;
 }
