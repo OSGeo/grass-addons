@@ -47,9 +47,9 @@ from psmap_dialogs import *
 import wx
 
 try:
-    from agw import flatnotebook as fnb
-except ImportError: # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.flatnotebook as fnb
+except ImportError:
+    import wx.lib.flatnotebook as fnb
 
 Icons['psMap'] = {
     'script'     : MetaIcon(img = iconSet['ps-script'],

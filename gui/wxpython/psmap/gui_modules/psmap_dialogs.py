@@ -44,14 +44,9 @@ import  wx.lib.filebrowsebutton as filebrowse
 from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
 from wx.lib.expando import ExpandoTextCtrl, EVT_ETC_LAYOUT_NEEDED
 try:
-    from agw import floatspin as fs
-except ImportError: # if it's not there locally, try the wxPython lib.
     import wx.lib.agw.floatspin as fs
-
-try:
-    from agw import flatnotebook as fnb
-except ImportError: # if it's not there locally, try the wxPython lib.
-    import wx.lib.agw.flatnotebook as fnb
+except ImportError:
+    fs = None
 
 grass.set_raise_on_error(True)
 
@@ -2903,11 +2898,15 @@ class VPropertiesDialog(PsmapDialog):
         self.outlineCheck.SetValue(self.vPropertiesDict['color'] != 'none')
         
         widthText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Width (pts):"))
-        self.widthSpin = fs.FloatSpin(panel, id = wx.ID_ANY, min_val = 0, max_val = 30,
-                                       increment = 0.5, value = 1, extrastyle = fs.FS_RIGHT)
-        self.widthSpin.SetFormat("%f")
-        self.widthSpin.SetDigits(2)
-##        self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1, size = self.spinCtrlSize)
+        if fs:
+            self.widthSpin = fs.FloatSpin(panel, id = wx.ID_ANY, min_val = 0, max_val = 30,
+                                          increment = 0.5, value = 1, extrastyle = fs.FS_RIGHT)
+            self.widthSpin.SetFormat("%f")
+            self.widthSpin.SetDigits(2)
+        else:
+            self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1,
+                                         size = self.spinCtrlSize)
+        
         self.widthSpin.SetValue(self.vPropertiesDict['width'] if self.vPropertiesDict['color'] != 'none' else 1)
         
         colorText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Color:"))
@@ -2992,12 +2991,15 @@ class VPropertiesDialog(PsmapDialog):
         self.outlineCheck.SetToolTipString(_("No effect for fill color from table column"))
         
         widthText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Width (pts):"))
-        self.outWidthSpin = fs.FloatSpin(panel, id = wx.ID_ANY, min_val = 0, max_val = 30,
-                                       increment = 0.5, value = 1, extrastyle = fs.FS_RIGHT)
-        self.outWidthSpin.SetFormat("%f")
-        self.outWidthSpin.SetDigits(1)
-##        self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1, size = self.spinCtrlSize)
-
+        if fs:
+            self.outWidthSpin = fs.FloatSpin(panel, id = wx.ID_ANY, min_val = 0, max_val = 30,
+                                             increment = 0.5, value = 1, extrastyle = fs.FS_RIGHT)
+            self.outWidthSpin.SetFormat("%f")
+            self.outWidthSpin.SetDigits(1)
+        else:
+            self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1,
+                                         size = self.spinCtrlSize)
+        
         self.outWidthSpin.SetValue(self.vPropertiesDict['hwidth'] if self.vPropertiesDict['hcolor'] != 'none' else 1)
 
         colorText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Color:"))
