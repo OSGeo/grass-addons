@@ -459,7 +459,7 @@ class PsMapFrame(wx.Frame):
         readInstruction = Instruction(parent = self, objectsToDraw = readObjectId)
         ok = readInstruction.Read(filename)
         if not ok:
-            GMessage(_("Failed to read file {0}.").format(filename))
+            GMessage(_("Failed to read file %s.") % filename)
         else:
             self.instruction = self.canvas.instruction = readInstruction
             self.objectId = self.canvas.objectId = readObjectId
