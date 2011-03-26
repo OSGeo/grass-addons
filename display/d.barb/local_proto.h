@@ -22,7 +22,7 @@ double max_magnitude(double *, int);
 
 /* draw.c */
 void draw_barb(double, double, double, double, int, double, int);
-void unknown_(int, int);
+void unknown_(double, double);
 void arrow_mag(double, double, double, double, int);
 void arrow_360(double, double, double, int, double, int);
 void mark_the_spot(double, double);

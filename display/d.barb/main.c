@@ -5,7 +5,7 @@
  *              points map with data stored as attributes in database column
  *
  * AUTHORS:     Hamish Bowman, Dunedin, New Zealand
- *              Parts of code derived from d.rast.arrow and d.barscale.
+ *              Grid code derived from d.rast.arrow
  *
  * COPYRIGHT:   (c) 2008-2011 by Hamish Bowman, and The GRASS Development Team
  *              This program is free software under the GNU General Public
@@ -234,6 +234,7 @@ int main(int argc, char *argv[])
 	do_legend(keyat_opt->answers, keyvelo_opt->answers, num_leg_velo,
 		  key_fontsize, style, scale, peak, color);
 
+	D_add_to_list(G_recreate_command());
 	R_close_driver();
 	exit(EXIT_SUCCESS);
     }

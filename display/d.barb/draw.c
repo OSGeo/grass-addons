@@ -6,7 +6,6 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-#define PI M_PI
 #define RpD ((2 * M_PI) / 360.) 	/* radians/degree */
 #define D2R(d) (double)(d * RpD)	/* degrees->radians */
 
@@ -17,7 +16,7 @@ void draw_barb(double easting, double northing, double velocity,
 {
     G_debug(3, "in draw_barb()");
 
-    unknown_(150, 50);
+//dbg:    unknown_(594578,4920392);
 
     R_standard_color(color);
 
@@ -32,12 +31,12 @@ void draw_barb(double easting, double northing, double velocity,
     }
     else {
 	/* calc barb parameters */
-//compass_deg=0;
+//dbg: compass_deg=0;
 	/* draw barb bits */
 	draw_circle(easting, northing, 10.0, FALSE);
 	draw_feather(easting, northing, 10.0 /*radius*/, velocity, compass_deg);
 
-//      int i;
+//dbg:      int i;
 //	for (i=0; i < 360; i+=20)
 //	    draw_feather(easting, northing, 20.0 /*radius*/, velocity, i);
 
@@ -50,7 +49,8 @@ void draw_barb(double easting, double northing, double velocity,
 void arrow_360(double easting, double northing, double theta, int aspect_type,
 	       double scale, int style)
 {
-    arrow_mag(easting, northing, aspect_type == TYPE_GRASS ? theta : 90 - theta, scale, style);
+    arrow_mag(easting, northing,
+	      aspect_type == TYPE_GRASS ? theta : 90 - theta, scale, style);
     return;
 }
 
@@ -59,63 +59,62 @@ void arrow_360(double easting, double northing, double theta, int aspect_type,
 /* angle is measured in degrees counter-clockwise from east */
 void arrow_mag(double easting, double northing, double theta, double length, int style)
 {
-    double x, y, dx, dy, mid_x, mid_y;
+    double x, y, dx, dy, tail_x, tail_y;
     double theta_offset;
-    int col, row;
 
-    G_debug(0, "in arrow_mag()");
+    G_debug(4, "in arrow_mag()");
 
-    //tmp init
-//    col = row = 0;
-col=(int)(D_u_to_d_col(easting) + 0.5);
-row=(int)(D_u_to_d_row(northing) + 0.5);
-G_debug(0, "  col=%d  row=%d", col, row);
-    theta *= -1;		/* display coords use inverse y */
+    /* convert to compass dir ?! */
+    theta = 90 - theta;
+    if (theta < 0)
+	theta += 360;
 
-    /* find the display coordinates of the middle of the cell */
-    mid_x = col + (.5);
-    mid_y = row + (.5);
+    /* display coords use inverse y */
+    theta *= -1;
+
+    tail_x = D_u_to_d_col(easting);
+    tail_y = D_u_to_d_row(northing);
 
     /* tail */
-    R_move_abs(mid_x, mid_y);
+    R_move_abs((int)(tail_x + 0.5), (int)(tail_y + 0.5));
 
     /* head */
-    x = mid_x + (length * cos(D2R(theta)));
-    y = mid_y + (length * sin(D2R(theta)));
-    R_cont_abs(x, y);
+    x = tail_x + (length * cos(D2R(theta)));
+    y = tail_y + (length * sin(D2R(theta)));
+    R_cont_abs((int)(x + 0.5), (int)(y + 0.5));
 
 
     if (style == TYPE_ARROW) {
-	/* fin 1 */
 	theta_offset = theta + 20;
-	dx = mid_x + (0.6 * length * cos(D2R(theta_offset)));
-	dy = mid_y + (0.6 * length * sin(D2R(theta_offset)));
-	R_cont_abs(dx, dy);
+	if(theta_offset > 360)
+	    theta_offset -= 360;
+
+	/* fin 1 */
+	dx = tail_x + (0.6 * length * cos(D2R(theta_offset)));
+	dy = tail_y + (0.6 * length * sin(D2R(theta_offset)));
+	R_cont_abs((int)(dx + 0.5), (int)(dy + 0.5));
 
 	/* fin 2 */
-	R_move_abs(x, y);
+	R_move_abs((int)(x + 0.5), (int)(y + 0.5));
 	theta_offset = theta - 20;
-	dx = mid_x + (0.6 * length * cos(D2R(theta_offset)));
-	dy = mid_y + (0.6 * length * sin(D2R(theta_offset)));
-	R_cont_abs(dx, dy);
+	dx = tail_x + (0.6 * length * cos(D2R(theta_offset)));
+	dy = tail_y + (0.6 * length * sin(D2R(theta_offset)));
+	R_cont_abs((int)(dx + 0.5), (int)(dy + 0.5));
     }
 }
 
 
 /* draw a grey '?' if data is non-sensical */
-// FIXME: change x,y to _east,north_ or %x %y of display _frame_
-void unknown_(int x, int y)
+void unknown_(double easting, double northing)
 {
-    // ref center,center
-    //    x = D_x + (int)(D_ew * .3);
-    //    y = D_y + (int)(D_ns * .4);
+    double x, y;
 
-//    int x, y;
-//    x = (int?)D_U_to_d_col(easting);
-//    y = D_u_to_d_row(northing);
+    x = D_u_to_d_col(easting);
+    y = D_u_to_d_row(northing);
 
     R_standard_color(D_translate_color("grey"));
-    R_move_abs(x, y);
+
+    R_move_abs((int)(x + 0.5), (int)(y + 0.5));
     R_text_size(8, 8);
     R_text("?");
 }
@@ -208,7 +207,8 @@ void draw_feather(double easting, double northing, double radius, double velocit
 {
     double x, y, dx, dy, angle, rot_angle, flag_angle1, flag_angle2;
     double stem_length = 5.;   /* length of tail */
-    int xi[4], yi[4];
+    double xd[4], yd[4];
+    int i, xi[4], yi[4];
 
     G_debug(4, "draw_feather()");
 
@@ -226,7 +226,7 @@ void draw_feather(double easting, double northing, double radius, double velocit
     flag_angle1 = rot_angle + 30;
     if(flag_angle1 > 360)
 	flag_angle1 -= 360;
-// 150 is good   45,195
+    /* for equilateral flag ~150 is good, try 45,195 */
     flag_angle2 = flag_angle1 + 150;
     if(flag_angle2 > 360)
 	flag_angle2 -= 360;
@@ -234,10 +234,10 @@ void draw_feather(double easting, double northing, double radius, double velocit
 
     G_debug(5, "  compass_deg=%.2f   angle=%.2f   rot_angle=%.2f", compass_deg, angle, rot_angle);
 
-//D_line_width(2);
+    /* D_line_width(2); */
 
     if (velocity < 5) {
-//dot	draw_circle(easting, northing, 2.0, TRUE);
+	/*dot:	draw_circle(easting, northing, 2.0, TRUE); */
 	draw_circle(easting, northing, 3*radius/4, FALSE);
 	return;
     }
@@ -253,8 +253,7 @@ void draw_feather(double easting, double northing, double radius, double velocit
     dy = D_u_to_d_row(northing) + stem_length * radius * sin(D2R(angle));
     R_cont_abs((int)floor(dx + 0.5), (int)floor(dy + 0.5));
 
-    /* TODO: simplify following into a loop */
-
+    /* TODO: simplify following into loops */
   if (velocity < 50) {
 //R_RGB_color(0, 255, 0);
     if ( velocity >= 10 ) {
@@ -344,21 +343,22 @@ void draw_feather(double easting, double northing, double radius, double velocit
 
 
 //R_RGB_color(255, 0, 255);
+    /* beyond 50 kts gets a filled triangle (flag) at the end */
     if ( velocity >= 50 ) {
-	/* beyond 50 kts gets a filled triangle (flag) at the end */
-// inner angle is same as barb lines, outer angle is equal but opposite
+	/* inner angle is same as barb lines, outer angle is perpendicular to the barb */
+	xd[0] = D_u_to_d_col(easting) + stem_length * radius * cos(D2R(angle));
+	yd[0] = D_u_to_d_row(northing) + stem_length * radius * sin(D2R(angle));
+	xd[1] = xd[0] + radius*2 * cos(D2R(flag_angle1));
+	yd[1] = yd[0] + radius*2 * sin(D2R(flag_angle1));
+	xd[2] = xd[1] + radius*2 * (2/sqrt(3)) * cos(D2R(flag_angle2)); /* cos(30)=sqrt(3)/2 */
+	yd[2] = yd[1] + radius*2 * (2/sqrt(3)) * sin(D2R(flag_angle2));
+	xd[3] = xd[0];
+	yd[3] = yd[0];
 
-// TODO: calc x2 using trig instead of 2.35 approx.
-// TODO: store/hold as double* array and only rount to int for R_() at last minute
-
-	xi[0] = (int)floor(0.5 + D_u_to_d_col(easting) + stem_length * radius * cos(D2R(angle)));
-	yi[0] = (int)floor(0.5 + D_u_to_d_row(northing) + stem_length * radius * sin(D2R(angle)));
-	xi[1] = (int)floor(0.5 + xi[0] + radius*2 * cos(D2R(flag_angle1)));
-	yi[1] = (int)floor(0.5 + yi[0] + radius*2 * sin(D2R(flag_angle1)));
-	xi[2] = xi[1] + (int)floor(0.5 + radius*2.35 * cos(D2R(flag_angle2)));
-	yi[2] = yi[1] + (int)floor(0.5 + radius*2.35 * sin(D2R(flag_angle2)));
-	xi[3] = xi[0];
-	yi[3] = yi[0];
+	for (i = 0; i < 4; i++) {
+	    xi[i] = (int)floor(xd[i] + 0.5);
+	    yi[i] = (int)floor(yd[i] + 0.5);
+	}
 	R_polygon_abs(xi, yi, 4);
     }
 
@@ -452,26 +452,28 @@ void draw_feather(double easting, double northing, double radius, double velocit
 	return;
   }
 
-
+    /* beyond 100 kts gets two 50kt flags at the end */
     if ( velocity >= 100 ) {
-	/* beyond 100 kts gets two 50kt flags at the end */
-// inner angle is same as barb lines, outer angle is equal but opposite
-	xi[0] = xi[2];
-	yi[0] = yi[2];
-//	xi[0] = (int)floor(0.5 + D_u_to_d_col(easting) + (stem_length - 1.3) * radius * cos(D2R(angle)));
-//	yi[0] = (int)floor(0.5 + D_u_to_d_row(northing) + (stem_length - 1.3) * radius * sin(D2R(angle)));
-	xi[1] = (int)floor(0.5 + xi[0] + radius*2 * cos(D2R(flag_angle1)));
-	yi[1] = (int)floor(0.5 + yi[0] + radius*2 * sin(D2R(flag_angle1)));
-	xi[2] = xi[1] + (int)floor(0.5 + radius*2.35 * cos(D2R(flag_angle2)));
-	yi[2] = yi[1] + (int)floor(0.5 + radius*2.35 * sin(D2R(flag_angle2)));
-	xi[3] = xi[0];
-	yi[3] = yi[0];
+	/* inner angle is same as barb lines, outer angle is perpendicular to the barb */
+	xd[0] = xd[2];
+	yd[0] = yd[2];
+	xd[1] = xd[0] + radius*2 * cos(D2R(flag_angle1));
+	yd[1] = yd[0] + radius*2 * sin(D2R(flag_angle1));
+	xd[2] = xd[1] + radius*2 * (2/sqrt(3)) * cos(D2R(flag_angle2)); /* cos(30)=sqrt(3)/2 */
+	yd[2] = yd[1] + radius*2 * (2/sqrt(3)) * sin(D2R(flag_angle2));
+	xd[3] = xd[0];
+	yd[3] = yd[0];
+
+	for (i = 0; i < 4; i++) {
+	    xi[i] = (int)floor(xd[i] + 0.5);
+	    yi[i] = (int)floor(yd[i] + 0.5);
+	}
 	R_polygon_abs(xi, yi, 4);
     }
 
-/////
+
   if ( velocity < 150 ) {
-  
+
     if (velocity >= 110) {
 	dx = D_u_to_d_col(easting) + (stem_length - 2.8) * radius * cos(D2R(angle));
 	dy = D_u_to_d_row(northing) + (stem_length - 2.8) * radius * sin(D2R(angle));
@@ -567,28 +569,26 @@ void draw_feather(double easting, double northing, double radius, double velocit
   }
 
 
+    /* beyond 150 kts gets three 50kt flags at the end */
     if ( velocity >= 150 ) {
-	/* beyond 150 kts gets three 50kt flags at the end */
-// inner angle is same as barb lines, outer angle is equal but opposite
-	xi[0] = xi[2];
-	yi[0] = yi[2];
-//	xi[0] = (int)floor(0.5 + D_u_to_d_col(easting) + (stem_length - 1.3) * radius * cos(D2R(angle)));
-//	yi[0] = (int)floor(0.5 + D_u_to_d_row(northing) + (stem_length - 1.3) * radius * sin(D2R(angle)));
-	xi[1] = (int)floor(0.5 + xi[0] + radius*2 * cos(D2R(flag_angle1)));
-	yi[1] = (int)floor(0.5 + yi[0] + radius*2 * sin(D2R(flag_angle1)));
-	xi[2] = xi[1] + (int)floor(0.5 + radius*2.35 * cos(D2R(flag_angle2)));
-	yi[2] = yi[1] + (int)floor(0.5 + radius*2.35 * sin(D2R(flag_angle2)));
-	xi[3] = xi[0];
-	yi[3] = yi[0];
+	/* inner angle is same as barb lines, outer angle is perpendicular to the barb */
+	xd[0] = xd[2];
+	yd[0] = yd[2];
+	xd[1] = xd[0] + radius*2 * cos(D2R(flag_angle1));
+	yd[1] = yd[0] + radius*2 * sin(D2R(flag_angle1));
+	xd[2] = xd[1] + radius*2 * (2/sqrt(3)) * cos(D2R(flag_angle2)); /* cos(30)=sqrt(3)/2 */
+	yd[2] = yd[1] + radius*2 * (2/sqrt(3)) * sin(D2R(flag_angle2));
+	xd[3] = xd[0];
+	yd[3] = yd[0];
+
+	for (i = 0; i < 4; i++) {
+	    xi[i] = (int)floor(xd[i] + 0.5);
+	    yi[i] = (int)floor(yd[i] + 0.5);
+	}
 	R_polygon_abs(xi, yi, 4);
     }
 
-
-//TODO: move out of loop
-    if ( velocity >= 155 )
-	G_warning(_("Maximum wind barb displayed is 150 knots"));
-
-/////// ...
+    /* barb rendering currenly saturates at 150 kts */
 
     return;
 }

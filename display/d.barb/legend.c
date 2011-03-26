@@ -9,13 +9,18 @@ void do_legend(char **at_list, char **velo_list, int num_velos,
 	       double key_fontsize, int style, double scale, double peak,
 	       int color)
 {
-    double easting, northing, px, py, velo;
+    double easting, northing, px, py, velo, angle;
     int Xpx, Ypx;
     int t, b, l, r;
     int i;
     char buff[1024];
 
     G_debug(1, "Doing legend ... (%d entries)", num_velos);
+
+    if (style == TYPE_BARB)
+	angle = 90;
+    else
+	angle = 0;
 
     D_get_screen_window(&t, &b, &l, &r);
 
@@ -48,16 +53,20 @@ void do_legend(char **at_list, char **velo_list, int num_velos,
 	/* Y: center justify: */
 	R_move_abs(Xpx, Ypx + key_fontsize/2);
 
-	/* X: right justify the text + 10px buffer: */
+	/* X: right justify the text + 10px buffer (a wee bit more for wind barbs) */
  	/* text width is 0.81 of text height? so even though we set width 
            to txsiz with R_text_size(), we still have to reduce.. hmmm */
-	R_move_rel(-10 - (strlen(buff) * key_fontsize * 0.81), 0);
+	if (style == TYPE_BARB)
+	    R_move_rel(-20 - (strlen(buff) * key_fontsize * 0.81), 0);
+	else
+	    R_move_rel(-10 - (strlen(buff) * key_fontsize * 0.81), 0);
+	
 	R_text_size(key_fontsize, key_fontsize);
 	R_text(buff);
 
 	/* arrow then starts at the given x-percent, to the right of the text */
 	R_move_abs(Xpx, Ypx + key_fontsize/2);
-	draw_barb(easting, northing, velo, 0.0, color, scale, style);
+	draw_barb(easting, northing, velo, angle, color, scale, style);
 
     }
 

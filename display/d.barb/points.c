@@ -91,6 +91,9 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
 */
     peak = max_magnitude(magn, num_pts);
     G_debug(0, "  peak = %.2f", peak);
+    if (style == TYPE_BARB && peak > 150)
+	G_warning(_("Maximum wind barb displayed is 150 knots"));
+
 
     peak = 1.;    // TODO: window width * 0.20 
     scale_fact = (peak ) * scale;

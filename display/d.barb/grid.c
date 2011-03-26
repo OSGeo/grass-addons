@@ -22,6 +22,7 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
     int no_arrow;		/* boolean */
     float aspect_f = -1.0;
     float length = -1.0;
+    double easting, northing;
 
     G_debug(0, "Doing Eulerian field ...");
     G_warning("Not working yet -- use d.rast.arrow instead.");
@@ -125,31 +126,33 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 
 
 	   /** Now draw the arrows **/
+	    if (G_is_null_value(dir_u_ptr, dir_u_raster_type))
+		continue;
+
+	    R_standard_color(color);
+
+	    easting = G_col_to_easting(col + 0.5, &window);
+	    northing = G_row_to_northing(row + 0.5, &window);
 
 	    /* case switch for standard GRASS aspect map 
 	       measured in degrees counter-clockwise from east */
-	    R_standard_color(color);
-
-	    if (G_is_null_value(dir_u_ptr, dir_u_raster_type))
-		continue;
-	    else if (aspect_f >= 0.0 && aspect_f <= 360.0) {
+	    if (aspect_f >= 0.0 && aspect_f <= 360.0) {
 		if (mag_v_map) {
 		    if (aspect_type == TYPE_GRASS)
-			arrow_mag(3.,4., aspect_f, length, style);
+			arrow_mag(easting, northing, aspect_f, length, style);
 		    else
-			arrow_mag(3.,4., 90 - aspect_f, length, style);
+			arrow_mag(easting, northing, 90 - aspect_f, length, style);
 		}
 		else {
-		    if (aspect_type == TYPE_GRASS) ;	//todo                        arrow_360(aspect_f);
+		    if (aspect_type == TYPE_GRASS) ;	//todo   arrow_360(aspect_f);
 		    else;	//  arrow_360(90 - aspect_f);
 		}
 	    }
 	    else {
 		R_standard_color(D_parse_color("grey", 0));
-		unknown_(10, 10);
+		unknown_(easting, northing);
 		R_standard_color(color);
 	    }
-
 
 	    dir_u_ptr =
 		G_incr_void_ptr(dir_u_ptr, G_raster_size(dir_u_raster_type));
