@@ -2997,7 +2997,7 @@ class VPropertiesDialog(PsmapDialog):
             self.outWidthSpin.SetFormat("%f")
             self.outWidthSpin.SetDigits(1)
         else:
-            self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1,
+            self.outWidthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 30, initial = 1,
                                          size = self.spinCtrlSize)
         
         self.outWidthSpin.SetValue(self.vPropertiesDict['hwidth'] if self.vPropertiesDict['hcolor'] != 'none' else 1)
@@ -3195,11 +3195,14 @@ class VPropertiesDialog(PsmapDialog):
         gridBagSizer = wx.GridBagSizer(hgap = 5, vgap = 5)
         
         widthText = wx.StaticText(panel, id = wx.ID_ANY, label = _("Set width (pts):"))
-        self.widthSpin = fs.FloatSpin(panel, id = wx.ID_ANY, min_val = 0, max_val = 30,
-                                       increment = 0.5, value = 1, extrastyle = fs.FS_RIGHT)
-        self.widthSpin.SetFormat("%f")
-        self.widthSpin.SetDigits(1)
-##        self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 25, initial = 1)
+        if fs:
+            self.widthSpin = fs.FloatSpin(panel, id = wx.ID_ANY, min_val = 0, max_val = 30,
+                                        increment = 0.5, value = 1, extrastyle = fs.FS_RIGHT)
+            self.widthSpin.SetFormat("%f")
+            self.widthSpin.SetDigits(1)
+        else:
+            self.widthSpin = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 1, max = 30, initial = 1)
+            
         self.cwidthCheck = wx.CheckBox(panel, id = wx.ID_ANY, label = _("multiply width by category value"))
         
         if self.vPropertiesDict['width']:
