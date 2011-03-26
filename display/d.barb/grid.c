@@ -141,7 +141,8 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 		    if (aspect_type == TYPE_GRASS)
 			arrow_mag(easting, northing, aspect_f, length, style);
 		    else
-			arrow_mag(easting, northing, 90 - aspect_f, length, style);
+			arrow_mag(easting, northing, 90 - aspect_f, length,
+				  style);
 		}
 		else {
 		    if (aspect_type == TYPE_GRASS) ;	//todo   arrow_360(aspect_f);

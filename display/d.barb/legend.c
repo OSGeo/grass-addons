@@ -31,12 +31,12 @@ void do_legend(char **at_list, char **velo_list, int num_velos,
 
 	G_debug(4, "Legend entry: %.15g at [%.2f,%.2f]", velo, px, py);
 
-// frame percent, utm, display pixels, raster array coords.  all -> utm ?
+	// frame percent, utm, display pixels, raster array coords.  all -> utm ?
 	/* convert screen percentage to east,north */
-// check if +.5 rounding is really needed
+	// check if +.5 rounding is really needed
 
 	Xpx = (int)((px * (r - l) / 100.) + 0.5);
-	Ypx = (int)(((100. - py) * (b - t) / 100.)+0.5);
+	Ypx = (int)(((100. - py) * (b - t) / 100.) + 0.5);
 	easting = D_d_to_u_col(Xpx);
 	northing = D_d_to_u_row(Ypx);
 
@@ -51,25 +51,24 @@ void do_legend(char **at_list, char **velo_list, int num_velos,
 	sprintf(buff, "%s", velo_list[i]);
 
 	/* Y: center justify: */
-	R_move_abs(Xpx, Ypx + key_fontsize/2);
+	R_move_abs(Xpx, Ypx + key_fontsize / 2);
 
 	/* X: right justify the text + 10px buffer (a wee bit more for wind barbs) */
- 	/* text width is 0.81 of text height? so even though we set width 
-           to txsiz with R_text_size(), we still have to reduce.. hmmm */
+	/* text width is 0.81 of text height? so even though we set width 
+	   to txsiz with R_text_size(), we still have to reduce.. hmmm */
 	if (style == TYPE_BARB)
 	    R_move_rel(-20 - (strlen(buff) * key_fontsize * 0.81), 0);
 	else
 	    R_move_rel(-10 - (strlen(buff) * key_fontsize * 0.81), 0);
-	
+
 	R_text_size(key_fontsize, key_fontsize);
 	R_text(buff);
 
 	/* arrow then starts at the given x-percent, to the right of the text */
-	R_move_abs(Xpx, Ypx + key_fontsize/2);
+	R_move_abs(Xpx, Ypx + key_fontsize / 2);
 	draw_barb(easting, northing, velo, angle, color, scale, style);
 
     }
 
     return;
 }
-
