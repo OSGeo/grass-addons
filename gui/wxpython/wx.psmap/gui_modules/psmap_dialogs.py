@@ -50,6 +50,8 @@ except ImportError:
 
 grass.set_raise_on_error(True)
 
+PSMAP_COLORS = ['aqua', 'black', 'blue', 'brown', 'cyan', 'gray', 'grey', 'green', 'indigo',
+                'magenta','orange', 'purple', 'red', 'violet', 'white', 'yellow']
 class UnitConversion:
     """! Class for converting units"""
     def __init__(self, parent = None):
@@ -4057,10 +4059,10 @@ class LegendDialog(PsmapDialog):
 ##            self.rLegendDict['font'] = font.GetFaceName()
 ##            self.rLegendDict['fontsize'] = font.GetPointSize()
             color = self.panelRaster.font['colorCtrl'].GetColour()
-            if color.GetAsString(wx.C2S_NAME):
-                self.rLegendDict['color'] = color.GetAsString(wx.C2S_NAME) 
-            else:
-                self.rLegendDict['color'] = convertRGB(color)
+##            if color.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
+##                self.rLegendDict['color'] = color.GetAsString(wx.C2S_NAME) 
+##            else:
+            self.rLegendDict['color'] = convertRGB(color)
 
             # position
             x = self.unitConv.convert(value = float(self.panelRaster.position['xCtrl'].GetValue()), fromUnit = currUnit, toUnit = 'inch')
@@ -4199,10 +4201,10 @@ class LegendDialog(PsmapDialog):
                 #border
                 if self.borderCheck.GetValue():
                     color = self.borderColorCtrl.GetColour()
-                    if color.GetAsString(wx.C2S_NAME):
-                        self.vLegendDict['border'] = color.GetAsString(wx.C2S_NAME) 
-                    else:
-                        self.vLegendDict['border'] = convertRGB(color)
+##                    if color.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
+##                        self.vLegendDict['border'] = color.GetAsString(wx.C2S_NAME) 
+##                    else:
+                    self.vLegendDict['border'] = convertRGB(color)
                     
                 else:
                     self.vLegendDict['border'] = 'none'
@@ -4412,26 +4414,26 @@ class MapinfoDialog(PsmapDialog):
 ##        self.mapinfoDict['fontsize'] = font.GetPointSize()
         #colors
         color = self.panel.font['colorCtrl'].GetColour()
-        if color.GetAsString(wx.C2S_NAME):
-            self.mapinfoDict['color'] = color.GetAsString(wx.C2S_NAME) 
-        else:
-            self.mapinfoDict['color'] = convertRGB(color)
+##        if color.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
+##            self.mapinfoDict['color'] = color.GetAsString(wx.C2S_NAME) 
+##        else:
+        self.mapinfoDict['color'] = convertRGB(color)
         
         if self.colors['backgroundCtrl'].GetValue():    
             background = self.colors['backgroundColor'].GetColour()
-            if background.GetAsString(wx.C2S_NAME):
-                self.mapinfoDict['background'] = background.GetAsString(wx.C2S_NAME) 
-            else:
-                self.mapinfoDict['background'] = convertRGB(background)
+##            if background.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
+##                self.mapinfoDict['background'] = background.GetAsString(wx.C2S_NAME) 
+##            else:
+            self.mapinfoDict['background'] = convertRGB(background)
         else:
             self.mapinfoDict['background'] = 'none'
 
         if self.colors['borderCtrl'].GetValue():    
             border = self.colors['borderColor'].GetColour()
-            if border.GetAsString(wx.C2S_NAME):
-                self.mapinfoDict['border'] = border.GetAsString(wx.C2S_NAME) 
-            else:
-                self.mapinfoDict['border'] = convertRGB(border)
+##            if border.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
+##                self.mapinfoDict['border'] = border.GetAsString(wx.C2S_NAME) 
+##            else:
+            self.mapinfoDict['border'] = convertRGB(border)
         else:
             self.mapinfoDict['border'] = 'none'
         
@@ -4811,7 +4813,7 @@ class TextDialog(PsmapDialog):
                                             if self.textDict['background'] != 'none' else 'white')
         self.effect['highlightCtrl'].SetValue(True if self.textDict['hcolor'] != 'none' else False)
         self.effect['highlightColor'].SetColour(convertRGB(self.textDict['hcolor']) 
-                                            if self.textDict['hcolor'] != 'none' else 'grey')
+                                            if self.textDict['hcolor'] != 'none' else convertRGB('grey'))
         self.effect['highlightWidth'].SetValue(float(self.textDict['hwidth']))
         self.effect['borderCtrl'].SetValue(True if self.textDict['border'] != 'none' else False)
         self.effect['borderColor'].SetColour(convertRGB(self.textDict['border']) 
@@ -5042,26 +5044,26 @@ class TextDialog(PsmapDialog):
 ##        self.textDict['font'] = font.GetFaceName()
 ##        self.textDict['fontsize'] = font.GetPointSize()
         color = self.textPanel.font['colorCtrl'].GetColour()
-        if color.GetAsString(wx.C2S_NAME):
-            self.textDict['color'] = color.GetAsString(wx.C2S_NAME) 
-        else:
-            self.textDict['color'] = convertRGB(color)
+##        if color.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
+##            self.textDict['color'] = color.GetAsString(wx.C2S_NAME) 
+##        else:
+        self.textDict['color'] = convertRGB(color)
         #effects
         if self.effect['backgroundCtrl'].GetValue():
             background = self.effect['backgroundColor'].GetColour()
-            if background.GetAsString(wx.C2S_NAME):
-                self.textDict['background'] = background.GetAsString(wx.C2S_NAME)
-            else:
-                self.textDict['background'] = convertRGB(background)
+##            if background.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
+##                self.textDict['background'] = background.GetAsString(wx.C2S_NAME)
+##            else:
+            self.textDict['background'] = convertRGB(background)
         else:
             self.textDict['background'] = 'none'        
                 
         if self.effect['borderCtrl'].GetValue():
             border = self.effect['borderColor'].GetColour()
-            if border.GetAsString(wx.C2S_NAME):
-                self.textDict['border'] = border.GetAsString(wx.C2S_NAME)
-            else:
-                self.textDict['border'] = convertRGB(border)
+##            if border.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
+##                self.textDict['border'] = border.GetAsString(wx.C2S_NAME)
+##            else:
+            self.textDict['border'] = convertRGB(border)
         else:
             self.textDict['border'] = 'none' 
                      
@@ -5069,10 +5071,10 @@ class TextDialog(PsmapDialog):
         
         if self.effect['highlightCtrl'].GetValue():
             highlight = self.effect['highlightColor'].GetColour()
-            if highlight.GetAsString(wx.C2S_NAME):
-                self.textDict['hcolor'] = highlight.GetAsString(wx.C2S_NAME)
-            else:
-                self.textDict['hcolor'] = convertRGB(highlight)
+##            if highlight.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
+##                self.textDict['hcolor'] = highlight.GetAsString(wx.C2S_NAME)
+##            else:
+            self.textDict['hcolor'] = convertRGB(highlight)
         else:
             self.textDict['hcolor'] = 'none'
 
@@ -5136,14 +5138,36 @@ class TextDialog(PsmapDialog):
 def convertRGB(rgb):
     """!Converts wx.Colour(255,255,255,255) and string '255:255:255',
             depends on input""" 
+    psmapColors = { "white" : (1.00, 1.00, 1.00),
+                    "black" : (0.00, 0.00, 0.00),
+                    "red" : (1.00, 0.00, 0.00),
+                    "green" : (0.00, 1.00, 0.00),
+                    "blue" : (0.00, 0.00, 1.00),
+                    "yellow" : (1.00, 1.00, 0.00),
+                    "magenta" : (1.00, 0.00, 1.00),
+                    "cyan" : (0.00, 1.00, 1.00),
+                    "aqua" : (0.00, 0.75, 0.75),
+                    "grey" : (0.75, 0.75, 0.75),
+                    "gray" : (0.75, 0.75, 0.75),
+                    "orange" : (1.00, 0.50, 0.00),
+                    "brown" : (0.75, 0.50, 0.25),
+                    "purple" : (0.50, 0.00, 1.00),
+                    "violet" : (0.50, 0.00, 1.00),
+                    "indigo" : (0.00, 0.50, 1.00)}
+    
     if type(rgb) == wx.Colour:
+        for name, color in psmapColors.items(): 
+            if  rgb.Red() == int(color[0] * 255) and\
+                rgb.Green() == int(color[1] * 255) and\
+                rgb.Blue() == int(color[2] * 255):
+                return name
         return str(rgb.Red()) + ':' + str(rgb.Green()) + ':' + str(rgb.Blue())
     elif type(rgb) == str or type(rgb) == unicode:
         if ':' in rgb:
             return wx.Colour(*map(int, rgb.split(':')))
         else:
-            color = wx.Color()
-            color.SetFromName(rgb)
+            color = map(lambda x: int(x * 255), psmapColors[rgb])
+            color = wx.Color(*color)
             return color if color.IsOk() else None
 
         
