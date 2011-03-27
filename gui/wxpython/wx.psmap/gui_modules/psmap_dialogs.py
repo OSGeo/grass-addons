@@ -1597,8 +1597,8 @@ class PsmapDialog(wx.Dialog):
          
         if color:
             parent.font['colorLabel'] = wx.StaticText(parent, id = wx.ID_ANY, label = _("Choose color:"))
-            parent.font['colorCtrl'] = wx.ColourPickerCtrl(parent, id = wx.ID_ANY, style=wx.FNTP_FONTDESC_AS_LABEL)
-            parent.font['colorCtrl'].SetColour(dialogDict['color'])
+            parent.font['colorCtrl'] = wx.ColourPickerCtrl(parent, id = wx.ID_ANY)
+            parent.font['colorCtrl'].SetColour(convertRGB(dialogDict['color']))
 ##            parent.font['colorLabel'] = wx.StaticText(parent, id = wx.ID_ANY, label = _("Color:"))
 ##            colorChoices = [  'aqua', 'black', 'blue', 'brown', 'cyan', 'gray', 'green', 'indigo', 'magenta',\
 ##                                'orange', 'purple', 'red', 'violet', 'white', 'yellow']
@@ -1856,6 +1856,12 @@ class MapDialog(PsmapDialog):
         
         return False
     
+    def OnCancel(self, event):
+        """!Close dialog and remove tmp red box"""
+        self.parent.canvas.pdcTmp.RemoveId(self.parent.canvas.idZoomBoxTmp)
+        self.parent.canvas.Refresh() 
+        self.Close()
+        
     def updateDialog(self):
         """!Update raster and vector information"""
         if self.mPanel.scaleChoice.GetSelection() == 0:
@@ -3711,7 +3717,7 @@ class LegendDialog(PsmapDialog):
             self.borderColorCtrl.SetColour('black')
             self.borderCheck.SetValue(False)
         else:
-            self.borderColorCtrl.SetColour(self.vLegendDict['border'])
+            self.borderColorCtrl.SetColour(convertRGB(self.vLegendDict['border']))
             self.borderCheck.SetValue(True)
             
         flexGridSizer.Add(self.borderCheck, proportion = 0, flag = wx.ALIGN_CENTER_VERTICAL, border = 0)    
@@ -4050,7 +4056,11 @@ class LegendDialog(PsmapDialog):
 ##            font = self.panelRaster.font['fontCtrl'].GetSelectedFont()
 ##            self.rLegendDict['font'] = font.GetFaceName()
 ##            self.rLegendDict['fontsize'] = font.GetPointSize()
-            self.rLegendDict['color'] = self.panelRaster.font['colorCtrl'].GetColour().GetAsString(wx.C2S_NAME)
+            color = self.panelRaster.font['colorCtrl'].GetColour()
+            if color.GetAsString(wx.C2S_NAME):
+                self.rLegendDict['color'] = color.GetAsString(wx.C2S_NAME) 
+            else:
+                self.rLegendDict['color'] = convertRGB(color)
 
             # position
             x = self.unitConv.convert(value = float(self.panelRaster.position['xCtrl'].GetValue()), fromUnit = currUnit, toUnit = 'inch')
@@ -4188,9 +4198,16 @@ class LegendDialog(PsmapDialog):
                 
                 #border
                 if self.borderCheck.GetValue():
-                    self.vLegendDict['border'] = self.borderColorCtrl.GetColour().GetAsString(flags=wx.C2S_NAME)
+                    color = self.borderColorCtrl.GetColour()
+                    if color.GetAsString(wx.C2S_NAME):
+                        self.vLegendDict['border'] = color.GetAsString(wx.C2S_NAME) 
+                    else:
+                        self.vLegendDict['border'] = convertRGB(color)
+                    
                 else:
                     self.vLegendDict['border'] = 'none'
+                    
+                    
              
         if not self.id[1] in self.instruction:
             vectorLegend = VectorLegend(self.id[1])
@@ -4340,14 +4357,12 @@ class MapinfoDialog(PsmapDialog):
         
         self.colors['borderCtrl'].SetValue(True if self.mapinfoDict['border'] != 'none' else False)
         self.colors['backgroundCtrl'].SetValue(True if self.mapinfoDict['background'] != 'none' else False)
-        self.colors['borderColor'].SetColour(self.mapinfoDict['border']
+        self.colors['borderColor'].SetColour(convertRGB(self.mapinfoDict['border'])
                                             if self.mapinfoDict['border'] != 'none' else 'black')
-##        self.colors['borderColor'].SetColour(convertRGB(self.mapinfoDict['border']) 
-##                                            if self.mapinfoDict['border'] != 'none' else 'black')
-        self.colors['backgroundColor'].SetColour(self.mapinfoDict['background']
+
+        self.colors['backgroundColor'].SetColour(convertRGB(self.mapinfoDict['background'])
                                             if self.mapinfoDict['background'] != 'none' else 'black')
-##        self.colors['backgroundColor'].SetColour(convertRGB(self.mapinfoDict['background']) 
-##                                            if self.mapinfoDict['background'] != 'none' else 'black')
+
         
         flexSizer.Add(self.colors['borderCtrl'], proportion = 0, flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
         flexSizer.Add(self.colors['borderColor'], proportion = 0, flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
@@ -4396,15 +4411,29 @@ class MapinfoDialog(PsmapDialog):
 ##        self.mapinfoDict['font'] = font.GetFaceName()
 ##        self.mapinfoDict['fontsize'] = font.GetPointSize()
         #colors
-        self.mapinfoDict['color'] = self.panel.font['colorCtrl'].GetColour().GetAsString(flags=wx.C2S_NAME)
-        self.mapinfoDict['background'] = self.colors['backgroundColor'].GetColour().GetAsString(flags=wx.C2S_NAME)\
-                                        if self.colors['backgroundCtrl'].GetValue() else 'none'
-##        self.mapinfoDict['background'] = (convertRGB(self.colors['backgroundColor'].GetColour())
-##                                        if self.colors['backgroundCtrl'].GetValue() else 'none') 
-        self.mapinfoDict['border'] = self.colors['borderColor'].GetColour().GetAsString(flags=wx.C2S_NAME)\
-                                        if self.colors['borderCtrl'].GetValue() else 'none'
-##        self.mapinfoDict['border'] = (convertRGB(self.colors['borderColor'].GetColour())
-##                                        if self.colors['borderCtrl'].GetValue() else 'none')
+        color = self.panel.font['colorCtrl'].GetColour()
+        if color.GetAsString(wx.C2S_NAME):
+            self.mapinfoDict['color'] = color.GetAsString(wx.C2S_NAME) 
+        else:
+            self.mapinfoDict['color'] = convertRGB(color)
+        
+        if self.colors['backgroundCtrl'].GetValue():    
+            background = self.colors['backgroundColor'].GetColour()
+            if background.GetAsString(wx.C2S_NAME):
+                self.mapinfoDict['background'] = background.GetAsString(wx.C2S_NAME) 
+            else:
+                self.mapinfoDict['background'] = convertRGB(background)
+        else:
+            self.mapinfoDict['background'] = 'none'
+
+        if self.colors['borderCtrl'].GetValue():    
+            border = self.colors['borderColor'].GetColour()
+            if border.GetAsString(wx.C2S_NAME):
+                self.mapinfoDict['border'] = border.GetAsString(wx.C2S_NAME) 
+            else:
+                self.mapinfoDict['border'] = convertRGB(border)
+        else:
+            self.mapinfoDict['border'] = 'none'
         
         # estimation of size
         self.mapinfoDict['rect'] = self.mapinfo.EstimateRect(self.mapinfoDict)
@@ -5012,15 +5041,41 @@ class TextDialog(PsmapDialog):
 ##        font = self.textPanel.font['fontCtrl'].GetSelectedFont()
 ##        self.textDict['font'] = font.GetFaceName()
 ##        self.textDict['fontsize'] = font.GetPointSize()
-        self.textDict['color'] = self.textPanel.font['colorCtrl'].GetColour().GetAsString(flags=wx.C2S_NAME)
+        color = self.textPanel.font['colorCtrl'].GetColour()
+        if color.GetAsString(wx.C2S_NAME):
+            self.textDict['color'] = color.GetAsString(wx.C2S_NAME) 
+        else:
+            self.textDict['color'] = convertRGB(color)
         #effects
-        self.textDict['background'] = (convertRGB(self.effect['backgroundColor'].GetColour())
-                                        if self.effect['backgroundCtrl'].GetValue() else 'none') 
-        self.textDict['border'] = (convertRGB(self.effect['borderColor'].GetColour())
-                                        if self.effect['borderCtrl'].GetValue() else 'none')
+        if self.effect['backgroundCtrl'].GetValue():
+            background = self.effect['backgroundColor'].GetColour()
+            if background.GetAsString(wx.C2S_NAME):
+                self.textDict['background'] = background.GetAsString(wx.C2S_NAME)
+            else:
+                self.textDict['background'] = convertRGB(background)
+        else:
+            self.textDict['background'] = 'none'        
+                
+        if self.effect['borderCtrl'].GetValue():
+            border = self.effect['borderColor'].GetColour()
+            if border.GetAsString(wx.C2S_NAME):
+                self.textDict['border'] = border.GetAsString(wx.C2S_NAME)
+            else:
+                self.textDict['border'] = convertRGB(border)
+        else:
+            self.textDict['border'] = 'none' 
+                     
         self.textDict['width'] = self.effect['borderWidth'].GetValue()
-        self.textDict['hcolor'] = (convertRGB(self.effect['highlightColor'].GetColour())
-                                        if self.effect['highlightCtrl'].GetValue() else 'none')
+        
+        if self.effect['highlightCtrl'].GetValue():
+            highlight = self.effect['highlightColor'].GetColour()
+            if highlight.GetAsString(wx.C2S_NAME):
+                self.textDict['hcolor'] = highlight.GetAsString(wx.C2S_NAME)
+            else:
+                self.textDict['hcolor'] = convertRGB(highlight)
+        else:
+            self.textDict['hcolor'] = 'none'
+
         self.textDict['hwidth'] = self.effect['highlightWidth'].GetValue()
         
         #offset
@@ -5080,14 +5135,17 @@ class TextDialog(PsmapDialog):
         
 def convertRGB(rgb):
     """!Converts wx.Colour(255,255,255,255) and string '255:255:255',
-            depends on input"""    
+            depends on input""" 
     if type(rgb) == wx.Colour:
         return str(rgb.Red()) + ':' + str(rgb.Green()) + ':' + str(rgb.Blue())
-    elif type(rgb) == str:
+    elif type(rgb) == str or type(rgb) == unicode:
         if ':' in rgb:
             return wx.Colour(*map(int, rgb.split(':')))
         else:
-            return rgb
+            color = wx.Color()
+            color.SetFromName(rgb)
+            return color if color.IsOk() else None
+
         
         
 def PaperMapCoordinates(map, x, y, paperToMap = True):

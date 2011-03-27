@@ -1516,8 +1516,7 @@ class PsMapBufferedWindow(wx.Window):
             pdc.SetBackgroundMode(wx.TRANSPARENT)
         
         pdc.SetFont(wx.FontFromNativeInfoString(textDict['font'] + " " + fontsize))    
-##        pdc.SetTextForeground(convertRGB(textDict['color']))        
-        pdc.SetTextForeground(textDict['color'])        
+        pdc.SetTextForeground(convertRGB(textDict['color']))        
         pdc.DrawRotatedText(textDict['text'], coords[0], coords[1], rot)
 
         pdc.SetIdBounds(drawId, wx.Rect(*bounds))
