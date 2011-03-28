@@ -10,7 +10,7 @@ function update {
 }
 
 function update_wxgui_psmap {
-    psmap_dir="$SRC/grass_addons/gui/wxpython/psmap"
+    psmap_dir="$SRC/grass_addons/gui/wxpython/wx.psmap"
     cd $SRC/$1/gui
     cp $psmap_dir/docs/*.html      wxpython/docs/
     cp $psmap_dir/gui_modules/*.py wxpython/gui_modules/
