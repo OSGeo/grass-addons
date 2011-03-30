@@ -32,6 +32,12 @@ doesn't care, but effectively maxes out at velo=150.
 
 <h4>Eularian field from raster grid</h4>
 <div class="code"><pre>
+
+# create polar coordinate maps from cartesian components
+r.mapcalc "magnitude = sqrt($MAPu^2 + $MAPv^2)"
+r.mapcalc "direction = atan($MAPu, $MAPv)"
+
+
 d.barb
 </pre></div>
 
