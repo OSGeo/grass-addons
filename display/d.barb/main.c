@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
     skip_opt->key = "skip";
     skip_opt->type = TYPE_INTEGER;
     skip_opt->required = NO;
-    skip_opt->answer = "100";
+    skip_opt->answer = "10";
     skip_opt->description = _("Draw arrow every Nth grid cell");
     skip_opt->guisection = _("Raster");
 

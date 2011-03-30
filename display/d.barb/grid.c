@@ -25,7 +25,7 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
     double easting, northing;
 
     G_debug(0, "Doing Eulerian field ...");
-    G_warning("Not working yet -- use d.rast.arrow instead.");
+    G_warning("Not fully working yet -- use d.rast.arrow instead.");
 
     /* figure out arrow scaling */
     G_init_fp_range(&range);	/* really needed? */
@@ -33,7 +33,9 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	G_fatal_error(_("Problem reading range file"));
     G_get_fp_range_min_max(&range, &mag_min, &mag_max);
 
-    scale *= 1.5 / fabs(mag_max);
+    if(style != TYPE_BARB) {
+	scale *= 1.5 / fabs(mag_max);
+    }
     G_debug(3, "scaling=%.2f  rast_max=%.2f", scale, mag_max);
 
     // howto figure for u,v maps where max_mag is not known until combined in render step?
@@ -139,10 +141,11 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	    if (aspect_f >= 0.0 && aspect_f <= 360.0) {
 		if (mag_v_map) {
 		    if (aspect_type == TYPE_GRASS)
-			arrow_mag(easting, northing, aspect_f, length, style);
+			draw_barb(easting, northing, length, aspect_f, 
+				  color, scale, style);
 		    else
-			arrow_mag(easting, northing, 90 - aspect_f, length,
-				  style);
+			draw_barb(easting, northing, length, 90 - aspect_f, 
+				  color, scale, style);
 		}
 		else {
 		    if (aspect_type == TYPE_GRASS) ;	//todo   arrow_360(aspect_f);
