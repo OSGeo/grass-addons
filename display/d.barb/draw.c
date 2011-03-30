@@ -218,11 +218,15 @@ void draw_feather(double easting, double northing, double radius,
 
     G_debug(4, "draw_feather()");
 
-    /* barb points to FROM direction */
     angle = compass_deg - 90;
     if (angle < 0)
 	angle += 360;
     else if (angle > 360)
+	angle -= 360;
+
+    /* barb points to FROM direction */
+    angle += 180;
+    if (angle > 360)
 	angle -= 360;
 
     rot_angle = angle + 60;

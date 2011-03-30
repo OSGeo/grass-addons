@@ -32,6 +32,7 @@ int main(int argc, char *argv[])
 	*color_opt, *type_opt, *skip_opt, *scale_opt,
 	*vinput_opt, *vlayer_opt, *style_opt, *keyat_opt,
 	*keyvelo_opt, *keyfont_opt, *peak_opt;
+    struct Flag *from_to;
 
     int color, aspect_type, skip, vlayer, style;
     int is_vector, is_component;	/* boolean */
@@ -149,6 +150,12 @@ int main(int argc, char *argv[])
     keyfont_opt->answer = "14";
     keyfont_opt->description = _("Font size used in legend");
     keyfont_opt->guisection = _("Legend");
+
+    /* TODO */
+    from_ro = G_define_flag();
+    from_to->key = 'r';
+    from_to->description =
+	_("Reverse direction 180 degrees");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
