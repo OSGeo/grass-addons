@@ -4,9 +4,167 @@
 development.</em>
 
 <p>
-<b>Hardcopy Map Utility</b> is
-a <em><a href="wxGUI.html">wxGUI</a></em> extension which allows the
-user ...
+<b>Hardcopy Map Utility</b> also called wx.psmap is
+a <em><a href="wxGUI.html">wxGUI</a></em> extension which allows the user to create interactively hardcopy map outputs. This tool generates <a href="ps.map.html">ps.map</a> configuration file and then runs <a href="ps.map.html">ps.map</a> to create PostScript output. There are two modes - <em>Draft mode</em> for map composing and <em>Preview mode</em> to see the final output. In draft mode map features (like legend or scalebar) are represented by a colored rectangle with a label.
+
+<p>
+Possible output files:
+<ul>
+  <li> <a href="ps.map.html">ps.map</a> instructions file
+  <li> PostScript/EPS file
+</ul>
+<p>
+Hardcopy Map Utility enables to load in saved instructions file. It works better with files created by wx.psmap (more tested).
+
+<p>
+Currently supported <a href="ps.map.html">ps.map</a> instructions:
+
+<ul>
+  <li> paper
+  <li> maploc
+  <li> scale
+  <li> border
+  <li> raster
+  <li> colortable
+  <li> vpoints
+  <li> vlines
+  <li> vareas
+  <li> vlegend
+  <li> text
+  <li> scalebar
+  <li> mapinfo
+</ul>
+
+<h3>HARDCOPY MAP UTILITY TOOLBAR</h3>
+
+<dl>
+  <dt><img src="icons/grass/settings.png">&nbsp;
+    <em>Page setup</em></dt>
+  <dd>Specify paper size, margins and orientation</dd>
+  
+  <dt><img src="icons/grass/pointer.png">&nbsp;
+    <em>Pointer</em></dt>
+  <dd>Select object on the paper by clicking, drag the cursor while pressing the left mouse button to move it or resize object (currently only map frame) by clicking on a small black box in its bottom right corner. Double click to show object properties dialog</dd>
+    
+  <dt><img src="icons/grass/pan.png">&nbsp;
+    <em>Pan</em></dt>
+  <dd>Drag the pan cursor while pressing the left mouse button to move your view. </dd>
+
+
+  <dt><img src="icons/grass/zoom-in.png">&nbsp;
+    <em>Zoom in</em></dt>
+  <dd>Interactive zooming with the mouse in both draft and preview mode. Drawing a box or just a left click with the mouse and zoom-in cursor causes the display to zoom in so that the area defined by the box fills the display.</dd>
+
+
+  <dt><img src="icons/grass/zoom-out.png">&nbsp;
+    <em>Zoom out</em></dt>
+  <dd>Interactive zooming with the mouse in both draft and preview mode. Drawing a box or just a left click with the mouse and zoom-out cursor causes the display to zoom out so that the area displayed shrinks to fill the area defined by the box.</dd>
+  
+  <dt><img src="icons/grass/zoom-extent.png">&nbsp;
+    <em>Zoom to page</em></dt>
+  <dd>Zoom to display the entire page </dd>
+  
+  
+  <dt><img src="icons/grass/layer-add.png">&nbsp;
+    <em>Map frame</em></dt>
+  <dd>Click and drag to place map frame. If map frame is already drawn, open a dialog to set its properties. </dd>
+  
+  <dt><img src="icons/grass/layer-raster-add.png">&nbsp;
+    <em>Raster map</em></dt>
+  <dd>Shows a dialog to add or change the raster map.</dd>
+  
+  <dt><img src="icons/grass/layer-vector-add.png">&nbsp;
+    <em>Vector map</em></dt>
+  <dd>Shows a dialog to add or change current vector maps and their properties:</dd><br>
+    <dl>
+      <dt><em>Data selection</em></dt>
+        <dd>
+        Select data to draw:
+        </dd><br>
+        
+        <dl>
+          <dt><em>Feature type</em></dt>
+            <dd> Select which data type to draw. In case of point data, points or centroids
+            can be drawn, in case of line data, lines or boundaries. </dd>
+          <dt><em>Layer selection</em></dt>
+            <dd>Select layer and limit data by a SQL query or chose only certain categories.</dd>
+          <dt><em>Mask</em></dt>
+            <dd>Whether to use mask or not.</dd>
+        </dl> 
+      </dt><br>
+      <dt><em>Colors</em></dt>
+        <dd>
+        Color settings:
+        </dd><br>
+        
+        <dl>
+          <dt><em>Outline</em></dt>
+            <dd> Select outline color and width in points. In case of lines, outline means highlighting.</dd>
+          <dt><em>Fill</em></dt>
+            <dd>Select fill color, one color for all vector elements or color from rgb column.</dd>
+        </dl> 
+      </dt><br>
+      <dt><em>Size and style</em></dt>
+        <dd>
+        Sets size, style, symbols, pattern; depends on data type:
+        </dd><br>
+        
+        <dl>
+          <dt><em>Symbology</em></dt>
+            <dd> Available for point data. Choose symbol or EPS file to draw points with.</dd>
+          <dt><em>Line style</em></dt>
+            <dd>Available for line data. Select line style (solid, dashed, ...) and the look of the ends of the line (butt, round, ...)</dd>
+          <dt><em>Pattern</em></dt>
+          <dd> Available for areas. Choose pattern file and set the width of the pattern.</dd>
+          <dt><em>Size</em></dt>
+          <dd> Available for point data. Choose size (number of times larger than the size in the icon file) as a single value or take the size from a map table column.</dd>
+          <dt><em>Rotation</em></dt>
+          <dd> Available for point data. Rotate symbols counterclockwise with the given value or with the value from a map table column</dd>
+          <dt><em>Width</em></dt>
+          <dd> Available for line data. Set line width in points or take the value from a map table column.</dd>
+        </dl> 
+      </dt>
+  
+  
+    </dl>
+  
+  
+   <dt><img src="icons/grass/overlay-add.png">&nbsp;
+    <em>Add map elements</em></dt>
+   <dd>Add map elements: legend, scalebar, map info, text </dd><br>
+    <dl>
+      <dt><img src="icons/grass/legend-add.png">&nbsp;
+        <em>Add legend</em></dt>
+      <dl>Add raster or vector legend or edit their properties.</dl>
+      <dt><img src="icons/grass/legend-add.png">&nbsp;
+        <em>Add map info</em></dt>
+      <dl>Add information about region, grid and scale or edit properties.</dl>
+      <dt><img src="icons/grass/scalebar-add.png">&nbsp;
+        <em>Add scalebar</em></dt>
+      <dl>Add scalebar or edit its properties.</dl>
+      <dt><img src="icons/grass/text-add.png">&nbsp;
+        <em>Add text</em></dt>
+      <dl>Add text label.</dl>    
+    </dl>
+    
+  <dt><img src="icons/grass/layer-remove.png">&nbsp;
+    <em>Remove selected element</em></dt>
+  <dd>Select an object and remove it. Pressing Delete key does the same. </dd>
+  
+  <dt><img src="icons/grass/execute.png">&nbsp;
+    <em>Show preview</em></dt>
+  <dd> Generates output and switches to Preview mode to see the result. Be patient, it can take a while.</dd>
+  
+  <dt><img src="icons/grass/ps-script.png">&nbsp;
+    <em>Generate instructions file</em></dt>
+  <dd> Generates and saves instructions file.</dd>
+  <dt><img src="icons/grass/ps-export.png">&nbsp;
+    <em>Generate hardcopy map output </em></dt>
+  <dd> Generates hardcopy map output in PostScript/EPS file.</dd>
+  
+</dl>
+
+
 
 <h2>SEE ALSO</h2>
 

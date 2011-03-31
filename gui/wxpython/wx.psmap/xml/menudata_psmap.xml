@@ -17,7 +17,7 @@
 		  <shortcut>Ctrl+O</shortcut>
 		</menuitem>
 		<menuitem>
-		  <label>Export to text file</label>
+		  <label>Export instruction file</label>
 		  <help>Generate text file with mapping instructions</help>
 		  <handler>OnInstructionFile</handler>
 		  <shortcut>Ctrl+Shift+E</shortcut>
