@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 ############################################################################
 #
@@ -259,12 +259,18 @@ else
 fi
 
 unset ADDCOLS
+unset COLNAMES
 for i in $BASECOLS $EXTRACOLS ; do
   # check if column already present
   if [ $DBFDRIVER -eq 1 ] ; then
      CURRCOLUMN="`echo "${COLPREFIX}_${i}" | cut -b1-10`"
   else
      CURRCOLUMN="${COLPREFIX}_${i}"
+  fi
+  if [ -n "$COLNAMES" ] ; then
+     COLNAMES="${COLNAMES},$CURRCOLUMN"
+  else
+     COLNAMES="$CURRCOLUMN"
   fi
   v.info -c $VECTORFULL layer="$GIS_OPT_LAYER" --quiet | sed 's+^+|+g' | sed 's+$+|+g' | \
     grep "|$CURRCOLUMN|" --quiet
@@ -335,26 +341,29 @@ if [ $GIS_FLAG_E -eq 1 ] && [ $DBFDRIVER -eq 1 ] ; then
     eval "$PERCCOL=\$percentile_$GIS_OPT_PERCENTILE"
 fi
 
-for var in $BASECOLS $EXTRACOLS ; do
-    eval value=\${$var}
-
-    if [ $DBFDRIVER -eq 1 ] ; then
-	colname="`echo "${COLPREFIX}_${var}" | cut -b1-10`"
-    else
-	colname="${COLPREFIX}_${var}"
-    fi
-    echo "$colname" >> "$COLNAMETMP" 
-done
-
 # create array with new column names
-col=`cat "$COLNAMETMP" | tr '\n' ' '`
+col1="`echo $COLNAMES | cut -f1 -d','`"
+col2="`echo $COLNAMES | cut -f2 -d','`"
+col3="`echo $COLNAMES | cut -f3 -d','`"
+col4="`echo $COLNAMES | cut -f4 -d','`"
+col5="`echo $COLNAMES | cut -f5 -d','`"
+col6="`echo $COLNAMES | cut -f6 -d','`"
+col7="`echo $COLNAMES | cut -f7 -d','`"
+col8="`echo $COLNAMES | cut -f8 -d','`"
+col9="`echo $COLNAMES | cut -f9 -d','`"
+if [ $GIS_FLAG_E -eq 1 ] ; then
+   col10="`echo $COLNAMES | cut -f10 -d','`"
+   col11="`echo $COLNAMES | cut -f11 -d','`"
+   col12="`echo $COLNAMES | cut -f12 -d','`"
+   col13="`echo $COLNAMES | cut -f13 -d','`"
+fi
 
 # create SQL file for extended and normal statistics
 g.message -v "Creating SQL file ..."
 if [ $GIS_FLAG_E -eq 1 ] ; then
-    sed -e '1d' "$STATSTMP" | awk -F "|" '{printf "\nUPDATE '${TABLE}' SET '${col[0]}' = %i , '${col[1]}' = %.2f , '${col[2]}' = %.2f , '${col[3]}' = %.2f , '${col[4]}' = %.2f , '${col[5]}' = %.2f , '${col[6]}' = %.2f , '${col[7]}' = %.2f , '${col[8]}' = %.2f , '${col[9]}' = %.2f , '${col[10]}' = %.2f , '${col[11]}' = %2f , '${col[12]}' = %.2f WHERE '${KEYCOL}' = %i;", $2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$1}' > "$SQLTMP"
+    sed -e '1d' "$STATSTMP" | awk -F "|" '{printf "\nUPDATE '${TABLE}' SET '${col1}' = %i , '${col2}' = %.2f , '${col3}' = %.2f , '${col4}' = %.2f , '${col5}' = %.2f , '${col6}' = %.2f , '${col7}' = %.2f , '${col8}' = %.2f , '${col9}' = %.2f , '${col10}' = %.2f , '${col11}' = %.2f , '${col12}' = %2f , '${col13}' = %.2f WHERE '${KEYCOL}' = %i;", $2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$1}' > "$SQLTMP"
 else
-    sed -e '1d' "$STATSTMP" | awk -F "|" '{printf "\nUPDATE '${TABLE}' SET '${col[0]}' = %i , '${col[1]}' = %.2f , '${col[2]}' = %.2f , '${col[3]}' = %.2f , '${col[4]}' = %.2f , '${col[5]}' = %.2f , '${col[6]}' = %.2f , '${col[7]}' = %.2f , '${col[8]}' = %.2f WHERE '${KEYCOL}' = %i;", $2,$3,$4,$5,$6,$7,$8,$9,$10,$1}' > "$SQLTMP"   
+    sed -e '1d' "$STATSTMP" | awk -F "|" '{printf "\nUPDATE '${TABLE}' SET '${col1}' = %i , '${col2}' = %.2f , '${col3}' = %.2f , '${col4}' = %.2f , '${col5}' = %.2f , '${col6}' = %.2f , '${col7}' = %.2f , '${col8}' = %.2f , '${col9}' = %.2f WHERE '${KEYCOL}' = %i;", $2,$3,$4,$5,$6,$7,$8,$9,$10,$1}' > "$SQLTMP"   
 fi
 
 g.message -v "Updating the database ..."
