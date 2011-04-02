@@ -316,7 +316,8 @@ class Instruction:
         vectorMapNumber = 1
         file.seek(0)
         for line in file:
-
+            if not line.strip(): 
+                continue
             line = line.strip()
             if isBuffer:
                 buffer.append(line)
@@ -656,7 +657,7 @@ class MapFrame(InstructionObject):
         
         # scale
         if self.instruction['scaleType'] == 3: #fixed scale
-            scaleInstruction = "scale 1:%.0f" % 1/self.instruction['scale']
+            scaleInstruction = "scale 1:%.0f" % (1/self.instruction['scale'])
             instr += scaleInstruction
             instr += '\n'
         # border
@@ -862,7 +863,7 @@ class Text(InstructionObject):
         
     def __str__(self):
         text = self.instruction['text'].replace('\n','\\n')
-        instr = "text %.3f %.3f" % (self.instruction['east'], self.instruction['north'])
+        instr = "text %s %s" % (self.instruction['east'], self.instruction['north'])
         instr += " %s\n" % text
         instr += string.Template("    font $font\n    fontsize $fontsize\n    color $color\n").substitute(self.instruction)
         instr += string.Template("    hcolor $hcolor\n").substitute(self.instruction)
@@ -920,9 +921,9 @@ class Text(InstructionObject):
                 elif sub == 'rotate':
                     instr['rotate'] = float(line.split(None, 1)[1])
                 elif sub == 'xoffset':
-                    instr['xoffset'] = float(line.split(None, 1)[1])
+                    instr['xoffset'] = int(line.split(None, 1)[1])
                 elif sub == 'yoffset':
-                    instr['yoffset'] = float(line.split(None, 1)[1])
+                    instr['yoffset'] = int(line.split(None, 1)[1])
                 elif sub == 'opaque':
                     if line.split(None, 1)[1].lower() in ('n', 'none'):
                         instr['background'] = 'none'
@@ -1507,7 +1508,7 @@ class VProperties(InstructionObject):
             if line.startswith('lpos'):
                 instr['lpos'] = int(line.split()[1])
             elif line.startswith('label'):
-                instr['label'] = line.split()[1]
+                instr['label'] = line.split(None, 1)[1]
             elif line.startswith('layer'):
                 instr['layer'] = line.split()[1]
             elif line.startswith('masked'):
@@ -2466,6 +2467,7 @@ class VectorPanel(wx.Panel):
         
         if notebook:
             self.parent.AddPage(page = self, text = _("Vector maps"))
+            self.parent = self.parent.GetParent()
             
     def _layout(self):
         """!Do layout"""
@@ -5051,18 +5053,12 @@ class TextDialog(PsmapDialog):
         #effects
         if self.effect['backgroundCtrl'].GetValue():
             background = self.effect['backgroundColor'].GetColour()
-##            if background.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
-##                self.textDict['background'] = background.GetAsString(wx.C2S_NAME)
-##            else:
             self.textDict['background'] = convertRGB(background)
         else:
             self.textDict['background'] = 'none'        
                 
         if self.effect['borderCtrl'].GetValue():
             border = self.effect['borderColor'].GetColour()
-##            if border.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
-##                self.textDict['border'] = border.GetAsString(wx.C2S_NAME)
-##            else:
             self.textDict['border'] = convertRGB(border)
         else:
             self.textDict['border'] = 'none' 
@@ -5071,9 +5067,6 @@ class TextDialog(PsmapDialog):
         
         if self.effect['highlightCtrl'].GetValue():
             highlight = self.effect['highlightColor'].GetColour()
-##            if highlight.GetAsString(wx.C2S_NAME) in PSMAP_COLORS:
-##                self.textDict['hcolor'] = highlight.GetAsString(wx.C2S_NAME)
-##            else:
             self.textDict['hcolor'] = convertRGB(highlight)
         else:
             self.textDict['hcolor'] = 'none'

@@ -386,7 +386,7 @@ class PsMapFrame(wx.Frame):
                 im = Image.open(event.userData['filename'])
                 if self.instruction[self.pageId]['Orientation'] == 'Landscape':
                     im = im.rotate(270)
-                im.save(self.imgName)
+                im.save(self.imgName, format = 'png', optimize = 1)
             
             except IOError, e:
                 GError(parent = self,
@@ -796,6 +796,7 @@ class PsMapFrame(wx.Frame):
             ids = [id]
         for id in ids:
             itype = self.instruction[id].type
+            
             if itype in ('scalebar', 'mapinfo'):
                 drawRectangle = self.canvas.CanvasPaperCoordinates(
                                     rect = self.instruction[id]['rect'], canvasToPaper = False)
@@ -855,7 +856,7 @@ class PsMapFrame(wx.Frame):
                 self.canvas.RedrawSelectBox(id)
                 self.canvas.pdcTmp.RemoveId(self.canvas.idZoomBoxTmp)
                 # redraw to get map to the bottom layer
-                self.canvas.Zoom(zoomFactor = 1, view = (0, 0))
+                #self.canvas.Zoom(zoomFactor = 1, view = (0, 0))
                 
             if itype == 'rasterLegend':
                 if self.instruction[id]['rLegend']:
@@ -1276,7 +1277,8 @@ class PsMapBufferedWindow(wx.Window):
                                                         map = self.instruction[mapId]['map'],
                                                         mapType = self.instruction[mapId]['mapType'], 
                                                         rect = self.instruction[mapId]['rect'])
-                        if self.instruction[mapId]['scaleType'] == 1:
+                            
+                        elif self.instruction[mapId]['scaleType'] == 1:
                             scale, foo, rect = AutoAdjust(self, scaleType = 1,
                                                         region = self.instruction[mapId]['region'],
                                                         rect = self.instruction[mapId]['rect'])
