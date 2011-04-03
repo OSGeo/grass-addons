@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     keyfont_opt->guisection = _("Legend");
 
     /* TODO */
-    from_ro = G_define_flag();
+    from_to = G_define_flag();
     from_to->key = 'r';
     from_to->description =
 	_("Reverse direction 180 degrees");
