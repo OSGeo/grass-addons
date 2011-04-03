@@ -10,6 +10,10 @@
 #define TYPE_BARB 1
 #define TYPE_ARROW 2
 
+#define RpD ((2 * M_PI) / 360.)		/* radians/degree */
+#define D2R(d) (double)(d * RpD)	/* degrees->radians */
+#define R2D(d) (double)(d / RpD)	/* radians->degrees */
+
 /* grid.c */
 void do_barb_grid(char *, char *, int, int, int, double, int, int);
 

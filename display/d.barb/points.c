@@ -67,28 +67,11 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
 	}
     }
 
-    // to figure out:
-    //   also pass u,v columns and calc dir,mag prior to filling dirn,magn arrays
-
-
-    /* somehow check, load attributes            see d.vect  */
-
-
-    /*
-       if(is_component) {
-       read u attrib;
-       read v attrib;
-       dir= ...calc;
-       velo= ...calc;
-       }
-       else {
-       read dir attrib;
-       read velo attrib;
-       }
-
-       if (aspect_type == TYPE_COMPASS)
-       dir = 90 - dir;
+    /* todone?
+    if (aspect_type == TYPE_COMPASS)
+           dir = 90 - dir;
      */
+
     peak = max_magnitude(magn, num_pts);
     G_debug(0, "  peak = %.2f", peak);
     if (style == TYPE_BARB && peak > 150)
@@ -167,6 +150,7 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
     dbDriver *driver = NULL;
     dbCatValArray cvarr_dir_u, cvarr_mag_v;
     dbCatVal *cv_dir_u = NULL, *cv_mag_v = NULL;
+    double theta, r;
 
     G_debug(0, "fill_arrays()");
 
@@ -248,9 +232,9 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
 	G_debug(5, "  Xs[%d] = %.2f  Ys[%d] = %.2f  cat = %d", i, Xs[i],
 		i, Ys[i], Cats->cat[0]);
 
+
 	/* Read rotation from db */
-	if (db_CatValArray_get_value(&cvarr_dir_u, Cats->cat[0], &cv_dir_u) !=
-	    DB_OK)
+	if (db_CatValArray_get_value(&cvarr_dir_u, Cats->cat[0], &cv_dir_u) != DB_OK)
 	    Dirs[i] = 0.0 / 0.0;	/* NaN */
 	else
 	    Dirs[i] = cvarr_dir_u.ctype == DB_C_TYPE_INT ?
@@ -265,10 +249,20 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
 	    else
 		Mags[i] = cvarr_mag_v.ctype == DB_C_TYPE_INT ?
 		    (double)cv_mag_v->val.i : cv_mag_v->val.d;
-
-	    if (Mags[i] < 0)	/* magnitude is scalar and can only be positive */
-		Mags[i] = 0;
+	    if (!is_uv) {
+		if (Mags[i] < 0)  /* magnitude is scalar and can only be positive */
+		    Mags[i] = 0;
+	    }
 	}
+
+	if(is_uv) {
+	    /* now that we have the data loaded, cycle back and process it */
+	    theta = R2D(atan2(Mags[i], Dirs[i]));
+	    r = sqrt(Dirs[i]*Dirs[i] + Mags[i]*Mags[i]);
+	    Dirs[i] = theta;
+	    Mags[i] = r;
+	}
+
 	G_debug(5, "    Dirs[%d] = %.2f  Mags[%d] = %.2f", i, Dirs[i],
 		i, Mags[i]);
 	i++;

@@ -6,9 +6,6 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-#define RpD ((2 * M_PI) / 360.)	/* radians/degree */
-#define D2R(d) (double)(d * RpD)	/* degrees->radians */
-
 
 /* draw a single barb at the given map coordinates */
 void draw_barb(double easting, double northing, double velocity,

@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 
     if (u_opt->answer && v_opt->answer) {
 	is_component = TRUE;
-	strncpy(dir_u_map, u_opt->answer, sizeof(dir_u_map) - 1);	/* FIXME: not well null terminated on overflow */
+	strncpy(dir_u_map, u_opt->answer, sizeof(dir_u_map) - 1);
 	strncpy(mag_v_map, v_opt->answer, sizeof(mag_v_map) - 1);
     }
     else if (dir_opt->answer && magn_opt->answer) {
@@ -181,6 +181,8 @@ int main(int argc, char *argv[])
 	strncpy(dir_u_map, dir_opt->answer, sizeof(dir_u_map) - 1);
 	strncpy(mag_v_map, magn_opt->answer, sizeof(mag_v_map) - 1);
     }
+    dir_u_map[sizeof(dir_u_map) - 1] = '\0'; /* strncpy() doesn't null-terminate on overflow */
+    mag_v_map[sizeof(mag_v_map) - 1] = '\0';
 
     if (vinput_opt->answer)
 	is_vector = TRUE;
@@ -230,8 +232,6 @@ int main(int argc, char *argv[])
     /* Parse and select foreground color */
     color = D_parse_color(color_opt->answer, 0);
 
-
-    /*////// do it ////////// */
 
     // is D_setup() actually needed?
     D_setup(0);
