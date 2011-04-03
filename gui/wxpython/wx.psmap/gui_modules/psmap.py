@@ -841,10 +841,16 @@ class PsMapFrame(wx.Frame):
                     resol = grass.parse_key_val(resol, val_type = float)
                     RunCommand('g.region', nsres = resol['nsres'], ewres = resol['ewres'])
                     # change current raster in raster legend
+                    
                 if 'rasterLegend' in self.openDialogs:
                     self.openDialogs['rasterLegend'].updateDialog()
                 id = self.instruction.FindInstructionByType('map').id
-                   
+                
+                #check resolution
+                if itype == 'raster':
+                    SetResolution(dpi = self.instruction[id]['resolution'], 
+                                    width = self.instruction[id]['rect'].width,
+                                    height = self.instruction[id]['rect'].height)   
                 rectCanvas = self.canvas.CanvasPaperCoordinates(rect = self.instruction[id]['rect'],
                                                                     canvasToPaper = False)
                 self.canvas.RecalculateEN()
@@ -1235,20 +1241,13 @@ class PsMapBufferedWindow(wx.Window):
                     self.Refresh()
                     return
                 rectPaper = self.CanvasPaperCoordinates(rect = rectTmp, canvasToPaper = True)                
-##                
-##                dlg = MapDialog(parent = self.parent, id = [None, None, None], settings = self.instruction, 
-##                                         rect = rectPaper)
-##                dlg.ShowModal()
                 
                 dlg = MapDialog(parent = self.parent, id = [None, None, None], settings = self.instruction, 
                                          rect = rectPaper)
                 self.openDialogs['map'] = dlg
                 self.openDialogs['map'].Show()
                 
-##                if  self.instruction.FindInstructionByType('map'):
-##                    #redraw objects to lower map to the bottom
                 
-
                 self.mouse['use'] = self.parent.mouseOld
 
                 self.SetCursor(self.parent.cursorOld)
@@ -1256,8 +1255,6 @@ class PsMapBufferedWindow(wx.Window):
                 self.parent.toolbar.ToggleTool(self.parent.toolbar.action['id'], False)
                 self.parent.toolbar.action['id'] = self.parent.actionOld
                     
-##                self.pdcTmp.RemoveId(self.idZoomBoxTmp)
-##                self.Refresh() 
 
 
             # resize resizable objects (only map sofar)
@@ -1294,6 +1291,10 @@ class PsMapBufferedWindow(wx.Window):
                                     
                     elif self.instruction[mapId]['scaleType'] == 3:
                         ComputeSetRegion(self, mapDict = self.instruction[mapId].GetInstruction())
+                    #check resolution
+                    SetResolution(dpi = self.instruction[mapId]['resolution'],
+                                    width = self.instruction[mapId]['rect'].width,
+                                    height = self.instruction[mapId]['rect'].height)
                         
                     self.RedrawSelectBox(mapId)
                     self.Zoom(zoomFactor = 1, view = (0, 0))

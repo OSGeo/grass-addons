@@ -309,6 +309,8 @@ class Instruction:
         w = units.convert(value = mapRect.Get()[2], fromUnit = 'inch', toUnit = 'meter') / toM
         map['scale'] = w / abs((region['w'] - region['e']))
         
+        SetResolution(dpi = 300, width = map['rect'].width, height = map['rect'].height)
+        
         # read file again, now with information about map bounds
         isBuffer = False
         buffer = []
@@ -626,7 +628,7 @@ class MapFrame(InstructionObject):
         # default values
         self.defaultInstruction = dict( map = None, mapType = None, drawMap = True, region = None,
                                         rect = wx.Rect2D(), scaleType = 0, scale = None, center = None,
-                                        border = 'y', width = 1, color = '0:0:0') 
+                                        resolution = 300, border = 'y', width = 1, color = '0:0:0') 
         # current values
         self.instruction = dict(self.defaultInstruction)
         
@@ -2020,6 +2022,19 @@ class MapFramePanel(wx.Panel):
         sizerC.Add(self.centerSizer, proportion = 1, flag = wx.EXPAND|wx.ALL, border = 5)
         gridBagSizer.Add(sizerC, pos = (3, 0), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)
         
+        
+        #resolution
+        flexSizer = wx.FlexGridSizer(rows = 1, cols = 2, hgap = 5, vgap = 5)
+        
+        resolutionText = wx.StaticText(self, id = wx.ID_ANY, label = _("Map max resolution (dpi):"))
+        self.resolutionSpin = wx.SpinCtrl(self, id = wx.ID_ANY, min = 1, max = 1000, initial = 300)
+        
+        flexSizer.Add(resolutionText, proportion = 0, flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
+        flexSizer.Add(self.resolutionSpin, proportion = 0, flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
+        self.resolutionSpin.SetValue(self.mapFrameDict['resolution'])
+        
+        gridBagSizer.Add(flexSizer, pos = (4, 0), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)
+        
         sizer.Add(gridBagSizer, proportion = 1, flag = wx.EXPAND|wx.ALL, border = 5)
         border.Add(item = sizer, proportion = 0, flag = wx.ALL | wx.EXPAND, border = 5)
         
@@ -2185,7 +2200,8 @@ class MapFramePanel(wx.Panel):
     def update(self):
         """!Save changes"""
         mapFrameDict = dict(self.mapFrameDict)
-        
+        # resolution
+        mapFrameDict['resolution'] = self.resolutionSpin.GetValue()
         #scale
         scaleType = self.scaleType
         mapFrameDict['scaleType'] = scaleType
@@ -2258,6 +2274,9 @@ class MapFramePanel(wx.Panel):
                         RunCommand('g.region', vect = mapFrameDict['map'], rast = self.instruction[rasterId]['raster'])
                     else:
                         RunCommand('g.region', vect = mapFrameDict['map'])
+                
+                    
+                
             else:
                 wx.MessageBox(message = _("No map selected!"),
                                     caption = _('Invalid input'), style = wx.OK|wx.ICON_ERROR)
@@ -2327,6 +2346,9 @@ class MapFramePanel(wx.Panel):
         
             ComputeSetRegion(self, mapDict = mapFrameDict)
         
+        # check resolution
+        SetResolution(dpi = mapFrameDict['resolution'], width = mapFrameDict['rect'].width,
+                                                        height = mapFrameDict['rect'].height)
         # border
         mapFrameDict['border'] = 'y' if self.borderCheck.GetValue() else 'n'
         if mapFrameDict['border'] == 'y':
@@ -5260,6 +5282,20 @@ def AutoAdjust(self, scaleType,  rect, map = None, mapType = None, region = None
     cN = (currRegionDict['n'] + currRegionDict['s'])/2
     return scale, (cE, cN), wx.Rect2D(x, y, rWNew, rHNew) #inch
 
+def SetResolution(dpi, width, height):
+    """!If resolution is too high, lower it
+    
+    @param dpi max DPI
+    @param width map frame width
+    @param height map frame height
+    """
+    region = grass.region()
+    if region['cols'] > width * dpi or region['rows'] > height * dpi:
+        rows = height * dpi
+        cols = width * dpi
+        RunCommand('g.region', rows = rows, cols = cols)
+        
+        
 def ComputeSetRegion(self, mapDict):
     """!Computes and sets region from current scale, map center coordinates and map rectangle"""
 
