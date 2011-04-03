@@ -269,7 +269,7 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
     }
 
     db_close_database_shutdown_driver(driver);
-    return;			/* shouldn't get here */
+    return;	/* shouldn't get here */
 }
 
 

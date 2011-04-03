@@ -20,8 +20,8 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
     struct Cell_head window;
     int nrows, ncols, row, col;
     int no_arrow;		/* boolean */
-    float aspect_f = -1.0;
-    float length = -1.0;
+    double aspect_f = -1.0, theta;
+    double length = -1.0, r;
     double easting, northing;
 
     G_debug(0, "Doing Eulerian field ...");
@@ -103,13 +103,12 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	    else if (mag_v_raster_type == DCELL_TYPE)
 		length = *((DCELL *) mag_v_ptr);
 
-	    length *= scale;
 
 	    if (G_is_null_value(mag_v_ptr, mag_v_raster_type)) {
 		G_debug(5, "Invalid arrow length [NULL]. Skipping.");
 		no_arrow = TRUE;
 	    }
-	    else if (length <= 0.0) {	/* use fabs() or theta+=180? */
+	    else if (length < 0 && !is_component) {	/* use fabs() or theta+=180? */
 		G_debug(5, "Illegal arrow length [%.3f]. Skipping.", length);
 		no_arrow = TRUE;
 	    }
@@ -126,6 +125,28 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 		continue;
 	    }
 
+	    if(is_component) {
+		/* convert u,v to dir,mag */
+		r = sqrt(length*length + aspect_f*aspect_f);
+		theta = R2D(atan2(length, aspect_f));
+		length = r;
+		aspect_f = theta;
+		if(aspect_f < 0)
+		    aspect_f += 360;
+		else if (aspect_f > 360)
+		    aspect_f -= 360;
+	    }
+
+	    /* convert cartesian to compass convention */
+	    if (aspect_type == TYPE_GRASS)
+		aspect_f = 90 - aspect_f;
+
+	    if(aspect_f < 0)
+		aspect_f += 360;
+	    else if (aspect_f > 360)
+		aspect_f -= 360;
+
+	    length *= scale;
 
 	   /** Now draw the arrows **/
 	    if (G_is_null_value(dir_u_ptr, dir_u_raster_type))
@@ -136,20 +157,16 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	    easting = G_col_to_easting(col + 0.5, &window);
 	    northing = G_row_to_northing(row + 0.5, &window);
 
-	    /* case switch for standard GRASS aspect map 
-	       measured in degrees counter-clockwise from east */
+
 	    if (aspect_f >= 0.0 && aspect_f <= 360.0) {
 		if (mag_v_map) {
-		    if (aspect_type == TYPE_GRASS)
-			draw_barb(easting, northing, length, aspect_f, 
-				  color, scale, style);
-		    else
-			draw_barb(easting, northing, length, 90 - aspect_f, 
-				  color, scale, style);
+		    draw_barb(easting, northing, length, aspect_f,
+			      color, scale, style);
 		}
 		else {
-		    if (aspect_type == TYPE_GRASS) ;	//todo   arrow_360(aspect_f);
-		    else;	//  arrow_360(90 - aspect_f);
+		    //todo   arrow_360(aspect_f);
+		    draw_barb(easting, northing, 1.0, aspect_f,
+			      color, scale, style);
 		}
 	    }
 	    else {

@@ -17,7 +17,11 @@ Wind barbs are all of equal length, but that length may be adjusted
 by the scale parameter.
 <P>
 Wind barbs assume velocity data is given in knots. Actually it
-doesn't care, but effectively maxes out at velo=150.
+doesn't care, but effectively maxes out at velo=150. When the
+style is set to wind barbs, the <b>scale</b> parameter becomes
+a magnitude multiplier instead of changing the size of the barb.
+In this way <b>scale</b>=<tt>1.852</tt> can be used to convert
+data stored in m/s to knots without altering the data.
 <!--
   units=
   m/s    m_per_sec
