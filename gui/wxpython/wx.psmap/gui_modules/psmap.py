@@ -52,14 +52,13 @@ except ImportError:
     import wx.lib.flatnotebook as fnb
 
 Icons['psMap'] = {
-    'script'     : MetaIcon(img = iconSet['ps-script'],
-                            label = _('Generate instruction file')),
-    'export'     : MetaIcon(img = iconSet['ps-export'],
-                            label = _('Generate PostScript output')),
-    'loadFile'     : MetaIcon(img = iconSet['open'],
-                            label = _('Load file'), 
-                            desc = _('Load file with mapping instructions')),                           
-    'pageSetup'  : MetaIcon(img = iconSet['settings'],
+    'scriptSave'     : MetaIcon(img = iconSet['script-save'],
+                                label = _('Generate text file with mapping instructions')),
+    'scriptLoad'     : MetaIcon(img = iconSet['script-load'],
+                                label = _('Load text file with mapping instructions')),                           
+    'psExport'       : MetaIcon(img = iconSet['ps-export'],
+                                label = _('Generate PostScript output')),
+    'pageSetup'  : MetaIcon(img = iconSet['page-settings'],
                             label = _('Page setup'),
                             desc = _('Specify paper size, margins and orientation')),
     'fullExtent' : MetaIcon(img = iconSet['zoom-extent'],
@@ -82,7 +81,7 @@ Icons['psMap'] = {
                            label = _('Quit Hardcopy Map Utility')),
     'addText'   : MetaIcon(img = iconSet['text-add'],
                             label = _('Add text')),
-    'addMapinfo': MetaIcon(img = iconSet['legend-add'],
+    'addMapinfo': MetaIcon(img = iconSet['map-settings'],
                             label = _('Add map info')),
     'addLegend' : MetaIcon(img = iconSet['legend-add'],
                             label = _('Add legend')),
@@ -144,7 +143,12 @@ class PsMapToolbar(AbstractToolbar):
         self.pan = wx.NewId()
 
         icons = Icons['psMap']
-        return self._getToolbarData(((self.pagesetup, 'page setup', icons['pageSetup'],
+        return self._getToolbarData(((self.loadFile, 'loadFile', icons['scriptLoad'],
+                                      self.parent.OnLoadFile),                                    
+                                     (self.instructionFile, 'psScript', icons['scriptSave'],
+                                      self.parent.OnInstructionFile),
+                                     (None, ),
+                                     (self.pagesetup, 'page setup', icons['pageSetup'],
                                       self.parent.OnPageSetup),
                                      (None, ),
                                      (self.pointer, "pointer", Icons["displayWindow"]["pointer"],
@@ -171,18 +175,13 @@ class PsMapToolbar(AbstractToolbar):
                                      (None, ),
                                      (self.preview, "preview", icons["preview"],
                                       self.parent.OnPreview),
-                                     (self.instructionFile, 'psScript', icons['script'],
-                                      self.parent.OnInstructionFile),
-                                     (self.generatePS, 'generatePS', icons['export'],
+                                     (self.generatePS, 'generatePS', icons['psExport'],
                                       self.parent.OnPSFile),
-                                     (self.loadFile, 'loadFile', icons['loadFile'],
-                                      self.parent.OnLoadFile),                                    
                                      (None, ),
                                      (self.quit, 'quit', icons['quit'],
                                       self.parent.OnCloseWindow))
                                     )
-
-                
+    
 class PsMapFrame(wx.Frame):
     def __init__(self, parent = None, id = wx.ID_ANY,
                  title = _("GRASS GIS Hardcopy Map Output Utility"), **kwargs):
