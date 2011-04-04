@@ -357,9 +357,14 @@ class PsMapFrame(wx.Frame):
         instrFileFd.close()
         
         temp = False
+        regOld = grass.region()
         if not filename:
             temp = True
             filename = grass.tempfile()
+            if self.instruction.FindInstructionByType('map'):
+                mapId = self.instruction.FindInstructionByType('map').id
+                SetResolution(dpi = 100, width = self.instruction[mapId]['rect'][2],
+                                height = self.instruction[mapId]['rect'][3])
         
         cmd = ['ps.map', '--overwrite']
         if os.path.splitext(filename)[1] == '.eps':
@@ -370,7 +375,8 @@ class PsMapFrame(wx.Frame):
         cmd.append('output=%s' % filename)
         self.SetStatusText(_('Generating preview...'), 0)
          
-        self.cmdThread.RunCmd(cmd, userData = {'instrFile' : instrFile, 'filename' : filename, 'temp' : temp })
+        self.cmdThread.RunCmd(cmd, userData = {'instrFile' : instrFile, 'filename' : filename,
+                                            'temp' : temp, 'regionOld' : regOld})
         
     def OnCmdDone(self, event):
         """!ps.map process finished"""
@@ -380,12 +386,13 @@ class PsMapFrame(wx.Frame):
                    message = _("Ps.map exited with return code %s") % event.returncode)
             return 
 
-        if haveImage:
+        if haveImage and event.userData['temp']:
+            RunCommand('g.region', cols = event.userData['regionOld']['cols'], rows = event.userData['regionOld']['rows'])
             try:
                 im = Image.open(event.userData['filename'])
                 if self.instruction[self.pageId]['Orientation'] == 'Landscape':
                     im = im.rotate(270)
-                im.save(self.imgName, format = 'png', optimize = 1)
+                im.save(self.imgName, format = 'png')
             
             except IOError, e:
                 GError(parent = self,
@@ -825,7 +832,7 @@ class PsMapFrame(wx.Frame):
                     self.instruction[id]['coords'][1] += extent[0]/2 * sin(rot/180*pi)
                     
                 self.instruction[id]['coords'][0] += self.instruction[id]['xoffset']
-                self.instruction[id]['coords'][1] += self.instruction[id]['yoffset']
+                self.instruction[id]['coords'][1] -= self.instruction[id]['yoffset']
                 coords = self.instruction[id]['coords']
                 self.instruction[id]['rect'] = bounds = self.getModifiedTextBounds(coords[0], coords[1], extent, rot)
                 self.canvas.DrawRotText(pdc = self.canvas.pdcObj, drawId = id,
@@ -1346,7 +1353,7 @@ class PsMapBufferedWindow(wx.Window):
                                                              
             elif  itype == 'text':
                 x, y = self.instruction[id]['coords'][0] - self.instruction[id]['xoffset'],\
-                        self.instruction[id]['coords'][1] - self.instruction[id]['yoffset']
+                        self.instruction[id]['coords'][1] + self.instruction[id]['yoffset']
                 extent = self.parent.getTextExtent(textDict = self.instruction[id])
                 rot = float(self.instruction[id]['rotate'])/180*pi if self.instruction[id]['rotate'] is not None else 0
                 if self.instruction[id]['ref'].split()[0] == 'lower':
