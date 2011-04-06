@@ -2719,7 +2719,7 @@ class VectorPanel(wx.Panel):
     
 class RasterDialog(PsmapDialog):
     def __init__(self, parent, id, settings):
-        PsmapDialog.__init__(self, parent = parent, id = id, title = "Raster map settings", settings = settings)
+        PsmapDialog.__init__(self, parent = parent, id = id, title = _("Raster map settings"), settings = settings)
         self.objectType = ('raster',)
         
         self.rPanel = RasterPanel(parent = self, id = self.id, settings = self.instruction, notebook = False)
@@ -2756,7 +2756,7 @@ class RasterDialog(PsmapDialog):
                 
 class MainVectorDialog(PsmapDialog):
     def __init__(self, parent, id, settings):
-        PsmapDialog.__init__(self, parent = parent, id = id, title = "Vector maps settings", settings = settings)
+        PsmapDialog.__init__(self, parent = parent, id = id, title = _("Vector maps settings"), settings = settings)
         self.objectType = ('vector',)
         self.vPanel = VectorPanel(parent = self, id = self.id, settings = self.instruction, notebook = False)
 
@@ -5373,7 +5373,7 @@ def GetMapBounds(filename):
                                         flags = 'b',
                                         input = filename).strip().split('=')[1].split(','))
     except (grass.ScriptError, IndexError):
-        GError(message = _("Unable to run ps.map -b "))
+        GError(message = _("Unable to run `ps.map -b`"))
         return None
     return wx.Rect2D(bb[0], bb[3], bb[2] - bb[0], bb[1] - bb[3])
 
