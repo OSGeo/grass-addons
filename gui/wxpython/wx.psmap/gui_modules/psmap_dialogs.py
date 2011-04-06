@@ -2497,7 +2497,7 @@ class VectorPanel(wx.Panel):
         
         # choose vector map
         
-        box   = wx.StaticBox (parent = self, id = wx.ID_ANY, label = " %s " % _("Choose map"))
+        box   = wx.StaticBox (parent = self, id = wx.ID_ANY, label = " %s " % _("Add map"))
         sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
         gridBagSizer = wx.GridBagSizer (hgap = 5, vgap = 5)
         
@@ -2520,7 +2520,7 @@ class VectorPanel(wx.Panel):
         
         # manage vector layers
         
-        box   = wx.StaticBox (parent = self, id = wx.ID_ANY, label = " %s " % _("Vector maps order"))
+        box   = wx.StaticBox (parent = self, id = wx.ID_ANY, label = " %s " % _("Manage vector maps"))
         sizer = wx.StaticBoxSizer(box, wx.VERTICAL)
         gridBagSizer = wx.GridBagSizer (hgap = 5, vgap = 5)
         gridBagSizer.AddGrowableCol(0,2)
@@ -2535,7 +2535,7 @@ class VectorPanel(wx.Panel):
         self.btnDel = wx.Button(self, id = wx.ID_ANY, label = _("Delete"))
         self.btnProp = wx.Button(self, id = wx.ID_ANY, label = _("Properties"))
         
-        self.updateListBox()
+        self.updateListBox(selected = 0)
         
         
         gridBagSizer.Add(text, pos = (0,0), span = (1,2), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
@@ -2557,6 +2557,8 @@ class VectorPanel(wx.Panel):
         
         self.SetSizer(border)
         self.Fit()
+        
+        self.Bind(wx.EVT_LISTBOX_DCLICK, self.OnProperties, self.listbox)
 
     def OnVector(self, event):
         """!Gets info about toplogy and enables/disables choices point/line/area"""
@@ -2604,6 +2606,7 @@ class VectorPanel(wx.Panel):
             self.listbox.SetSelection(0)  
             self.listbox.EnsureVisible(0)
             self.btnProp.SetFocus()
+            self.enableButtons()
             
     def OnDelete(self, event):
         """!Deletes vector map from the list"""
@@ -2617,6 +2620,8 @@ class VectorPanel(wx.Panel):
                 if self.vectorList[i][3]:# can be 0
                     self.vectorList[i][3] -= 1
             self.updateListBox(selected = pos if pos < len(self.vectorList) -1 else len(self.vectorList) -1)
+            if self.listbox.IsEmpty():
+                self.enableButtons(False)
             
             
     def OnUp(self, event):
@@ -2651,7 +2656,12 @@ class VectorPanel(wx.Panel):
             
             self.parent.FindWindowById(wx.ID_OK).SetFocus()
            
-
+    def enableButtons(self, enable = True):
+        """!Enable/disable up, down, properties, delete buttons"""
+        self.btnUp.Enable(enable)
+        self.btnDown.Enable(enable)
+        self.btnProp.Enable(enable)
+        self.btnDel.Enable(enable)
     
     def updateListBox(self, selected = None):
         mapList = ["%s - %s" % (item[0], item[1]) for item in self.vectorList]
@@ -2659,6 +2669,10 @@ class VectorPanel(wx.Panel):
         if selected is not None:
             self.listbox.SetSelection(selected)  
             self.listbox.EnsureVisible(selected)  
+        if self.listbox.IsEmpty():
+            self.enableButtons(False)
+        else:
+            self.enableButtons(True)
               
     def reposition(self):
         """!Update position in legend, used only if there is no vlegend yet"""
@@ -2705,7 +2719,7 @@ class VectorPanel(wx.Panel):
     
 class RasterDialog(PsmapDialog):
     def __init__(self, parent, id, settings):
-        PsmapDialog.__init__(self, parent = parent, id = id, title = "Choose raster map", settings = settings)
+        PsmapDialog.__init__(self, parent = parent, id = id, title = "Raster map settings", settings = settings)
         self.objectType = ('raster',)
         
         self.rPanel = RasterPanel(parent = self, id = self.id, settings = self.instruction, notebook = False)
@@ -2742,7 +2756,7 @@ class RasterDialog(PsmapDialog):
                 
 class MainVectorDialog(PsmapDialog):
     def __init__(self, parent, id, settings):
-        PsmapDialog.__init__(self, parent = parent, id = id, title = "Choose vector maps", settings = settings)
+        PsmapDialog.__init__(self, parent = parent, id = id, title = "Vector maps settings", settings = settings)
         self.objectType = ('vector',)
         self.vPanel = VectorPanel(parent = self, id = self.id, settings = self.instruction, notebook = False)
 

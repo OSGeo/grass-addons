@@ -388,20 +388,27 @@ class PsMapFrame(wx.Frame):
 
         if haveImage and event.userData['temp']:
             RunCommand('g.region', cols = event.userData['regionOld']['cols'], rows = event.userData['regionOld']['rows'])
+## wx.BusyInfo does not display the message
+##            busy = wx.BusyInfo(message = "Generating preview, wait please", parent = self)
+
             try:
                 im = Image.open(event.userData['filename'])
                 if self.instruction[self.pageId]['Orientation'] == 'Landscape':
                     im = im.rotate(270)
+                
                 im.save(self.imgName, format = 'png')
-            
+                
             except IOError, e:
                 GError(parent = self,
                        message = _("Unable to generate preview. %s") % e)
+            
+            
                 
             rect = self.previewCanvas.ImageRect()
             self.previewCanvas.image = wx.Image(self.imgName, wx.BITMAP_TYPE_PNG)
             self.previewCanvas.DrawImage(rect = rect)
             
+##            busy.Destroy()
             self.SetStatusText(_('Preview generated'), 0)
             self.book.SetSelection(1)
             self.currentPage = 1
@@ -931,6 +938,7 @@ class PsMapFrame(wx.Frame):
             os.remove(self.imgName)
         except OSError:
             pass
+        grass.set_raise_on_error(False)
         self.Destroy()
 
 
