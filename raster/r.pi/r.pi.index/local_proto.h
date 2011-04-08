@@ -1,6 +1,12 @@
 #ifndef LOCAL_PROTO_H
 #define LOCAL_PROTO_H
 
+#ifdef MAIN
+#define GLOBAL
+#else
+#define GLOBAL extern
+#endif
+
 #define MAX_DOUBLE 1000000.0
 
 typedef struct
@@ -30,14 +36,11 @@ extern int f_frac_dim(DCELL *, Coords **, int);
 extern int f_nearest_dist(DCELL *, Coords **, int);
 
 /* global variables */
-int nrows, ncols;
+GLOBAL int nrows, ncols;
+GLOBAL Coords **fragments;
+GLOBAL int *flagbuf;
 
-Coords **fragments;
-
-int *flagbuf;
-
-Coords *actpos;
-
-int verbose;
+GLOBAL Coords *actpos;
+GLOBAL int verbose;
 
 #endif /* LOCAL_PROTO_H */

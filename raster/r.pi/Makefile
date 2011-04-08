@@ -9,8 +9,7 @@ SUBDIRS = \
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
-default: htmldir
-
-htmldir: subdirs
+default: parsubdirs
+	$(INSTALL_DATA) description.html $(GISBASE)/docs/html/r.pi.html
 
 clean: cleansubdirs
