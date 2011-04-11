@@ -1176,13 +1176,22 @@ class PsMapBufferedWindow(wx.Window):
 
                 if foundResize and foundResize[0] == self.idResizeBoxTmp:
                     self.mouse['use'] = 'resize'
+                    
+                    # when resizing, proportions match region
+                    if self.instruction[self.dragId].type == 'map':
+                        self.constraint = False
+                        self.mapBounds = self.pdcObj.GetIdBounds(self.dragId)
+                        if self.instruction[self.dragId]['scaleType'] in (0, 1, 2):
+                            self.constraint = True
+                            self.mapBounds = self.pdcObj.GetIdBounds(self.dragId)
+                    
                 elif found:
                     self.dragId = found[0]  
                     self.RedrawSelectBox(self.dragId)
                     if self.instruction[self.dragId].type != 'map':
                         self.pdcTmp.RemoveId(self.idResizeBoxTmp)
                         self.Refresh()
-
+                        
                 else:
                     self.dragId = -1
                     self.pdcTmp.RemoveId(self.idBoxTmp)
@@ -1224,17 +1233,29 @@ class PsMapBufferedWindow(wx.Window):
                 
             # resize object
             if self.mouse['use'] == 'resize':
-                bounds = self.pdcObj.GetIdBounds(self.dragId)
                 type = self.instruction[self.dragId].type
-                self.mouse['end'] = event.GetPosition()
-                diffX = self.mouse['end'][0] - self.begin[0]
-                diffY = self.mouse['end'][1] - self.begin[1]
-                bounds.Inflate(diffX, diffY)
+                pos = event.GetPosition()
+                x, y = self.mapBounds.GetX(), self.mapBounds.GetY()
+                width, height = self.mapBounds.GetWidth(), self.mapBounds.GetHeight()
+                diffX = pos[0] - self.mouse['begin'][0]
+                diffY = pos[1] - self.mouse['begin'][1]
+                # match given region
+                if self.constraint:
+                    if width > height:
+                        newWidth = width + diffX
+                        newHeight = height + diffX * (float(height) / width)
+                    else:
+                        newWidth = width + diffY * (float(width) / height)
+                        newHeight = height + diffY
+                else:
+                    newWidth = width + diffX
+                    newHeight = height + diffY
+                    
                 
+                bounds = wx.Rect(x, y, newWidth, newHeight)    
                 self.Draw(pen = self.pen[type], brush = self.brush[type], pdc = self.pdcObj, drawid = self.dragId,
                             pdctype = 'rectText', bb = bounds)
                 self.RedrawSelectBox(self.dragId)
-                self.begin = event.GetPosition()
                 
         elif event.LeftUp():
             # zoom in, zoom out

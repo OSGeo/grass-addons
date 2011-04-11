@@ -2533,19 +2533,19 @@ class VectorPanel(wx.Panel):
         self.btnUp = wx.Button(self, id = wx.ID_ANY, label = _("Up"))
         self.btnDown = wx.Button(self, id = wx.ID_ANY, label = _("Down"))
         self.btnDel = wx.Button(self, id = wx.ID_ANY, label = _("Delete"))
-        self.btnProp = wx.Button(self, id = wx.ID_ANY, label = _("Properties"))
+        self.btnProp = wx.Button(self, id = wx.ID_ANY, label = _("Properties..."))
         
         self.updateListBox(selected = 0)
         
         
-        gridBagSizer.Add(text, pos = (0,0), span = (1,2), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
+        gridBagSizer.Add(text, pos = (0,0), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
         gridBagSizer.Add(self.listbox, pos = (1,0), span = (4, 1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)
-        gridBagSizer.Add(self.btnUp, pos = (1,1), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
-        gridBagSizer.Add(self.btnDown, pos = (2,1), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
-        gridBagSizer.Add(self.btnDel, pos = (3,1), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
-        gridBagSizer.Add(self.btnProp, pos = (4,1), flag = wx.ALIGN_CENTER_VERTICAL, border = 0)
+        gridBagSizer.Add(self.btnUp, pos = (1,1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)
+        gridBagSizer.Add(self.btnDown, pos = (2,1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)
+        gridBagSizer.Add(self.btnDel, pos = (3,1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)
+        gridBagSizer.Add(self.btnProp, pos = (4,1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)
         
-        sizer.Add(gridBagSizer, proportion = 1, flag = wx.EXPAND|wx.ALL, border = 5)
+        sizer.Add(gridBagSizer, proportion = 0, flag = wx.ALL, border = 5)
         border.Add(item = sizer, proportion = 0, flag = wx.ALL | wx.EXPAND, border = 5)
         
         self.Bind(wx.EVT_BUTTON, self.OnAddVector, self.AddVector)
@@ -3820,6 +3820,7 @@ class LegendDialog(PsmapDialog):
         else: 
             w = ''
         panel.widthCtrl = wx.TextCtrl(panel, id = wx.ID_ANY, value = str(w), validator = TCValidator("DIGIT_ONLY"))
+        panel.widthCtrl.SetToolTipString(_("Leave the edit field empty, to use default values."))
         
         if legendType == 'raster':
 ##            panel.defaultSize = wx.CheckBox(panel, id = wx.ID_ANY, label = _("Use default size"))
