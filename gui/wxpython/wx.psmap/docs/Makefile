@@ -1,5 +1,7 @@
 MODULE_TOPDIR = ../../..
 
+include $(MODULE_TOPDIR)/include/Make/Platform.make
+
 ifeq ($(GRASS_VERSION_MAJOR), 7)
 FILES := $(wildcard *.html)
 
@@ -9,7 +11,6 @@ HTML_SOURCES := $(wildcard *.html)
 HTML_FILES := $(filter-out $(wildcard *.tmp.html),$(HTML_SOURCES))
 FILES := $(subst .html,,$(HTML_FILES))
 
-include $(MODULE_TOPDIR)/include/Make/Platform.make
 include $(MODULE_TOPDIR)/include/Make/Grass.make
 include $(MODULE_TOPDIR)/include/Make/Rules.make
 endif
