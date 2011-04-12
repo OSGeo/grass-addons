@@ -232,7 +232,7 @@ for FILE in $* ; do
     pdf)
 	apply_pdf "$FILE"
 	;;
-    png | jpg | jpeg | gif | bmp | svg)
+    png | jpg | jpeg | gif | bmp | svg | xpm)
 	if [ "$FILE_SUFFIX" = "jpg" ] ; then
 	    FILE_SUFFIX="jpeg"
 	elif [ "$FILE_SUFFIX" = "svg" ] ; then
