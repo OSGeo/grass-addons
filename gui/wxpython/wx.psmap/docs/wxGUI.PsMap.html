@@ -10,7 +10,7 @@ user to create interactively hardcopy map outputs. This tool
 generates <em><a href="ps.map.html">ps.map</a></em> configuration file
 and then runs <em><a href="ps.map.html">ps.map</a></em> to create
 PostScript output. There are two modes - <em>Draft mode</em> for map
-composing and <em>Preview mode</em> to see the final output. In draft
+composing and <em>Preview mode</em> to see how the result will look like. In draft
 mode map features (like legend or scalebar) are represented by a
 colored rectangle with a label.
 
@@ -47,9 +47,17 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
 <h3>HARDCOPY MAP UTILITY TOOLBAR</h3>
 
 <dl>
-  <dt><img src="icons/grass/settings.png">&nbsp;
+  <dt><img src="icons/grass/script-save.png">&nbsp;
+    <em>Generate instructions file</em></dt>
+  <dd>Generates and saves text file with mapping instructions.</dd>
+  
+  <dt><img src="icons/grass/script-load.png">&nbsp;
+    <em>Load instructions file</em></dt>
+  <dd>Load text file with mapping instructions.</dd>
+  
+  <dt><img src="icons/grass/page-settings.png">&nbsp;
     <em>Page setup</em></dt>
-  <dd>Specify paper size, margins and orientation</dd>
+  <dd>Specify paper size, margins and orientation.</dd>
   
   <dt><img src="icons/grass/pointer.png">&nbsp;
     <em>Pointer</em></dt>
@@ -145,9 +153,9 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
       <dt><img src="icons/grass/legend-add.png">&nbsp;
         <em>Add legend</em></dt>
       <dl>Add raster or vector legend or edit their properties.</dl>
-      <dt><img src="icons/grass/legend-add.png">&nbsp;
+      <dt><img src="icons/grass/map-info.png">&nbsp;
         <em>Add map info</em></dt>
-      <dl>Add information about region, grid and scale or edit properties.</dl>
+      <dl>Add information about region, grid and scale or edit map info properties.</dl>
       <dt><img src="icons/grass/scalebar-add.png">&nbsp;
         <em>Add scalebar</em></dt>
       <dl>Add scalebar or edit its properties.</dl>
@@ -164,9 +172,7 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
     <em>Show preview</em></dt>
   <dd> Generates output and switches to Preview mode to see the result. Be patient, it can take a while.</dd>
   
-  <dt><img src="icons/grass/script-load.png">&nbsp;
-    <em>Generate instructions file</em></dt>
-  <dd> Generates and saves instructions file.</dd>
+
   <dt><img src="icons/grass/ps-export.png">&nbsp;
     <em>Generate hardcopy map output </em></dt>
   <dd> Generates hardcopy map output in PostScript/EPS file.</dd>

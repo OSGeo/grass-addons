@@ -1251,6 +1251,8 @@ class PsMapBufferedWindow(wx.Window):
                     newWidth = width + diffX
                     newHeight = height + diffY
                     
+                if newWidth < 10 or newHeight < 10:
+                    return
                 
                 bounds = wx.Rect(x, y, newWidth, newHeight)    
                 self.Draw(pen = self.pen[type], brush = self.brush[type], pdc = self.pdcObj, drawid = self.dragId,
