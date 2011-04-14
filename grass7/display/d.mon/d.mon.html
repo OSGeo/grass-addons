@@ -17,7 +17,7 @@ at the end of the session. You can put it somewhere else with the
 <b>tempfile</b> option. For example, when working remotely with
 PuTTY (ssh without tunnelled X) + Apache:
 <pre>
-   alias d.mon='eval `d.mon.py -b tempfile=/var/www/grass/grassmap.png`'
+   alias d.mon='eval `d.mon.py -b handler=none tempfile=/var/www/grassmap.png`'
 </pre>
 then just hit reload in your web browser whenever a refresh is needed.
 

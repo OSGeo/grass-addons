@@ -32,7 +32,7 @@
 #% key: handler
 #% type: string
 #% description: Window program to use
-#% options: ximgview,wximgview,wxpyimgview,qiv
+#% options: ximgview,wximgview,wxpyimgview,qiv,none
 #% answer: wximgview
 #%End
 #%option
@@ -99,7 +99,9 @@ def main():
         print('export GRASS_PNGFILE GRASS_WIDTH GRASS_HEIGHT GRASS_RENDER_IMMEDIATE GRASS_PNG_MAPPED GRASS_PNG_READ;')
 
         print('d.erase color=%s;' % options['color'])
-        if handler == "qiv":
+        if handler == "none":
+            grass.message("Image file is '%s'" % img_tmp)
+        elif handler == "qiv":
             print('qiv -T "%s" &' % img_tmp)  # add --center ?
         else:
             print('%s image="%s" percent=%s &' % ( handler, img_tmp, options['percent']) )
