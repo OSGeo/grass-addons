@@ -48,6 +48,10 @@ if [ -z "$GISBASE" ] ; then
    exit 1
 fi
 
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+  exec g.parser "$0" "$@"
+fi
+
 # check if we have awk
 if [ ! -x "`which awk`" ] ; then
     g.message -e "awk required, please install awk/gawk first"
