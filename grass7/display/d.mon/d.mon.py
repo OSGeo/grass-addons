@@ -67,7 +67,6 @@ from grass.script import core as grass
 
 def main():
     handler = options['handler']
-    use_cairo = flags['c']
 
     img_tmp = grass.tempfile()
     os.remove(img_tmp)
