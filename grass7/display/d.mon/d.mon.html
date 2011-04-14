@@ -11,6 +11,16 @@ Add this to your ~/.grass.bashrc file:
   fi
 </pre>
 
+<p>
+By default the temporary file will be stored in $MAPSET/.tmp/ and cleared
+at the end of the session. You can put it somewhere else with the
+<b>tempfile</b> option. For example, when working remotely with
+PuTTY (ssh without tunnelled X) + Apache:
+<pre>
+   alias d.mon='eval `d.mon.py -b tempfile=/var/www/grass/grassmap.png`'
+</pre>
+then just hit reload in your web browser whenever a refresh is needed.
+
 
 <h2>AUTHOR</h2>
 Hamish Bowman<br>

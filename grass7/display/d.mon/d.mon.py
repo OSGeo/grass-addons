@@ -36,6 +36,13 @@
 #% answer: wximgview
 #%End
 #%option
+#% key: tempfile
+#% type: string
+#% gisprompt: new_file,file,input
+#% description: Name and location of temp file
+#% required : no
+#%end
+#%option
 #% key: percent
 #% type: integer
 #% description: Percentage of CPU time to use
@@ -68,9 +75,13 @@ from grass.script import core as grass
 def main():
     handler = options['handler']
 
-    img_tmp = grass.tempfile()
-    os.remove(img_tmp)
-    img_tmp += ".bmp"
+    if options['tempfile']:
+        img_tmp = options['tempfile']
+        #TODO: add option for GRASS_PNG_COMPRESSION=0,1-9
+    else:
+        img_tmp = grass.tempfile()
+        os.remove(img_tmp)
+        img_tmp += ".bmp"
 
 
     if flags['b']:
