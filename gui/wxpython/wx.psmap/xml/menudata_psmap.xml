@@ -28,6 +28,12 @@
 	  <handler>OnPSFile</handler>
 	  <shortcut>Ctrl+E</shortcut>
 	</menuitem>
+	<menuitem>
+	  <label>Export to PDF</label>
+	  <help>Generate PDF output</help>
+	  <handler>OnPDFFile</handler>
+	  <shortcut>Ctrl+F</shortcut>
+	</menuitem>
 	<separator/>
 	<menuitem>
 	  <label>Quit</label>

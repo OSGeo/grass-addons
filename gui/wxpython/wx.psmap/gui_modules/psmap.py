@@ -19,6 +19,7 @@ This program is free software under the GNU General Public License
 
 import os
 import sys
+import subprocess
 import textwrap
 import Queue
 try:
@@ -58,6 +59,8 @@ Icons['psMap'] = {
                                 label = _('Load text file with mapping instructions')),                           
     'psExport'       : MetaIcon(img = iconSet['ps-export'],
                                 label = _('Generate PostScript output')),
+    'pdfExport'      : MetaIcon(img = iconSet['ps-export'],
+                                label = _('Generate PDF output')),
     'pageSetup'  : MetaIcon(img = iconSet['page-settings'],
                             label = _('Page setup'),
                             desc = _('Specify paper size, margins and orientation')),
@@ -139,6 +142,7 @@ class PsMapToolbar(AbstractToolbar):
         self.preview = wx.NewId()
         self.instructionFile = wx.NewId()
         self.generatePS = wx.NewId()
+        self.generatePDF = wx.NewId()
         self.loadFile = wx.NewId()
         self.pan = wx.NewId()
 
@@ -177,6 +181,8 @@ class PsMapToolbar(AbstractToolbar):
                                       self.parent.OnPreview),
                                      (self.generatePS, 'generatePS', icons['psExport'],
                                       self.parent.OnPSFile),
+                                    ( self.generatePDF, 'generatePDF', icons['pdfExport'],
+                                      self.parent.OnPDFFile),
                                      (None, ),
                                      (self.quit, 'quit', icons['quit'],
                                       self.parent.OnCloseWindow))
@@ -338,17 +344,25 @@ class PsMapFrame(wx.Frame):
         return str(self.instruction)
 
     def OnPSFile(self, event):
+        """!Generate PostScript"""
         filename = self.getFile(wildcard = "PostScript (*.ps)|*.ps|Encapsulated PostScript (*.eps)|*.eps")
         if filename:
             self.PSFile(filename)
-            
+    
+    
+    def OnPDFFile(self, event):
+        """!Generate PDF from PS with ps2pdf if available"""
+        filename = self.getFile(wildcard = "PDF (*.pdf)|*.pdf")
+        if filename:  
+            self.PSFile(filename, pdf = True)   
+               
     def OnPreview(self, event):
         """!Run ps.map and show result"""
         self.PSFile()
 
 
         
-    def PSFile(self, filename = None):
+    def PSFile(self, filename = None, pdf = False):
         """!Create temporary instructions file and run ps.map with output = filename"""
         instrFile = grass.tempfile()
         instrFileFd = open(instrFile, mode = 'w')
@@ -358,13 +372,20 @@ class PsMapFrame(wx.Frame):
         
         temp = False
         regOld = grass.region()
-        if not filename:
+        
+        if pdf:
+            pdfname = filename
+        else:
+            pdfname = None
+        #preview or pdf
+        if not filename or (filename and pdf):
             temp = True
             filename = grass.tempfile()
-            if self.instruction.FindInstructionByType('map'):
-                mapId = self.instruction.FindInstructionByType('map').id
-                SetResolution(dpi = 100, width = self.instruction[mapId]['rect'][2],
-                                height = self.instruction[mapId]['rect'][3])
+            if not pdf: # lower resolution for preview
+                if self.instruction.FindInstructionByType('map'):
+                    mapId = self.instruction.FindInstructionByType('map').id
+                    SetResolution(dpi = 100, width = self.instruction[mapId]['rect'][2],
+                                    height = self.instruction[mapId]['rect'][3])
         
         cmd = ['ps.map', '--overwrite']
         if os.path.splitext(filename)[1] == '.eps':
@@ -373,10 +394,15 @@ class PsMapFrame(wx.Frame):
             cmd.append('-r')
         cmd.append('input=%s' % instrFile)
         cmd.append('output=%s' % filename)
-        self.SetStatusText(_('Generating preview...'), 0)
+        if pdf:
+            self.SetStatusText(_('Generating PDF...'), 0)
+        elif not temp:
+            self.SetStatusText(_('Generating PostScript...'), 0)
+        else:
+            self.SetStatusText(_('Generating preview...'), 0)
          
         self.cmdThread.RunCmd(cmd, userData = {'instrFile' : instrFile, 'filename' : filename,
-                                            'temp' : temp, 'regionOld' : regOld})
+                                            'pdfname' : pdfname, 'temp' : temp, 'regionOld' : regOld})
         
     def OnCmdDone(self, event):
         """!ps.map process finished"""
@@ -384,9 +410,25 @@ class PsMapFrame(wx.Frame):
         if event.returncode != 0:
             GMessage(parent = self,
                    message = _("Ps.map exited with return code %s") % event.returncode)
-            return 
-
-        if haveImage and event.userData['temp']:
+                
+            grass.try_remove(event.userData['instrFile'])
+            if event.userData['temp']:
+                grass.try_remove(event.userData['filename']) 
+            return
+        
+        if event.userData['pdfname']:
+            try:
+                ret = subprocess.call(['ps2pdf', '-dPDFSETTINGS=/prepress', '-r1200', event.userData['filename'], event.userData['pdfname']])
+                if ret > 0:
+                    GMessage(parent = self,
+                    message = _("ps2pdf exited with return code %s") % ret)
+                    
+            except OSError, e:
+                GError(parent = self,
+                       message = _("Program ps2pdf is not available. Please install it to create PDF.\n\n %s") % e)
+          
+        # show preview only when user doesn't want to create ps or pdf 
+        if haveImage and event.userData['temp'] and not event.userData['pdfname']:
             RunCommand('g.region', cols = event.userData['regionOld']['cols'], rows = event.userData['regionOld']['rows'])
 ## wx.BusyInfo does not display the message
 ##            busy = wx.BusyInfo(message = "Generating preview, wait please", parent = self)
