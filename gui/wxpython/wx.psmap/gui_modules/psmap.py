@@ -352,6 +352,15 @@ class PsMapFrame(wx.Frame):
     
     def OnPDFFile(self, event):
         """!Generate PDF from PS with ps2pdf if available"""
+        try:
+            p = subprocess.Popen(["ps2pdf"], stderr = subprocess.PIPE)
+            p.stderr.close()
+
+        except OSError:
+            GMessage(parent = self,
+                    message = _("Program ps2pdf is not available. Please install it first to create PDF."))
+            return
+            
         filename = self.getFile(wildcard = "PDF (*.pdf)|*.pdf")
         if filename:  
             self.PSFile(filename, pdf = True)   
@@ -359,8 +368,6 @@ class PsMapFrame(wx.Frame):
     def OnPreview(self, event):
         """!Run ps.map and show result"""
         self.PSFile()
-
-
         
     def PSFile(self, filename = None, pdf = False):
         """!Create temporary instructions file and run ps.map with output = filename"""
@@ -418,11 +425,14 @@ class PsMapFrame(wx.Frame):
         
         if event.userData['pdfname']:
             try:
-                ret = subprocess.call(['ps2pdf', '-dPDFSETTINGS=/prepress', '-r1200', event.userData['filename'], event.userData['pdfname']])
+                proc = subprocess.Popen(['ps2pdf', '-dPDFSETTINGS=/prepress', '-r1200', 
+                                        event.userData['filename'], event.userData['pdfname']])
+                
+                ret = proc.wait()                        
                 if ret > 0:
                     GMessage(parent = self,
                     message = _("ps2pdf exited with return code %s") % ret)
-                    
+
             except OSError, e:
                 GError(parent = self,
                        message = _("Program ps2pdf is not available. Please install it to create PDF.\n\n %s") % e)
