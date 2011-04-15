@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
     module = G_define_module();
     module->keywords = _("stream, order, catchments");
     module->description =
-	_("Calculate distance to and alavation above streams \
-    and outlets according user' input. It can work in stream mode where target are streams and outlets mode \
+	_("Calculate distance to and elevation above streams \
+    and outlets according user input. It can work in stream mode where target are streams and outlets mode \
     where targets are outlets");
 
     in_stm_opt = G_define_option();	/* input stream mask file - optional */

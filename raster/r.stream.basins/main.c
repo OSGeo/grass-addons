@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     module->keywords = _("stream, order, catchments");
-    module->description = _("Calculate basins according user' input");
+    module->description = _("Calculate basins according user input");
 
     in_dir_opt = G_define_option();	/* input directon file */
     in_dir_opt->key = "dir";

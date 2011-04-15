@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     /* initialize module */
     module = G_define_module();
     module->keywords = _("stream, order, catchments");
-    module->description = _("Calculate basins according user' input");
+    module->description = _("Calculate basins according user input");
 
     in_stm_opt = G_define_option();	/* input stream mask file - optional */
     in_stm_opt->key = "stream";

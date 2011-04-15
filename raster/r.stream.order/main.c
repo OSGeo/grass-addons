@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     module->keywords =
 	_("stream, order, magnitude, Horton, Strahler, Shreeve");
     module->description =
-	_("Calculate Strahler's and Horton's stream order Hack's main streams and Shreeve's stream magnitude. It use r.watershed or r.stream.extract output files: stream, direction and optionally accumulation. Otput data can be eighter from r.watershed or r.stream.extract but not from both together");
+	_("Calculate Strahler's and Horton's stream order Hack's main streams and Shreeve's stream magnitude. It use r.watershed or r.stream.extract output files: stream, direction and optionally accumulation. Output data can be either from r.watershed or r.stream.extract but not from both together");
 
     /*input option direction is reqired, acummulation is optional */
 

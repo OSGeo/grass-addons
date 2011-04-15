@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     module->keywords =
 	_("stream, order, Strahler, Horton, Hack, statisctics");
     module->description =
-	_("Calculate Horton's and optionaly Hack's statistics according user' input.");
+	_("Calculate Horton's and optionally Hack's statistics according to user input.");
 
     in_stm_opt = G_define_option();	/* input stream mask file - optional */
     in_stm_opt->key = "stream";
