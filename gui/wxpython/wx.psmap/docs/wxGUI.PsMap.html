@@ -1,3 +1,15 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS Manual: wxGUI Hardcopy Map Utility</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+<h2>NAME</h2>
+<em><b>wxGUI Hardcopy Map Utility</b></em>
+
 <h2>DESCRIPTION</h2>
 
 <b>Note:</b> <em>wxGUI Hardcopy Map Utility is currently under
@@ -12,10 +24,10 @@ and then runs <em><a href="ps.map.html">ps.map</a></em> to create
 PostScript output. There are two modes - <em>Draft mode</em> for map
 composing and <em>Preview mode</em> to see how the result will look like. In draft
 mode map features (like legend or scalebar) are represented by a
-colored rectangle with a label.
+colored rectangle with a label.</p>
 
 <p>
-Possible output files:
+Possible output files:</p>
 <ul>
   <li> <em><a href="ps.map.html">ps.map</a></em> instructions file
   <li> PostScript/EPS file
@@ -24,10 +36,10 @@ Possible output files:
 
 <p>
 Hardcopy Map Utility enables to load in saved instructions file. It
-works better with files created by wx.psmap (more tested).
+works better with files created by wx.psmap (more tested).</p>
 
 <p>
-Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
+Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:</p>
 
 <ul>
   <li> paper
@@ -45,8 +57,8 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
   <li> mapinfo
 </ul>
 
-<h3>HARDCOPY MAP UTILITY TOOLBAR</h3>
 
+<h3>HARDCOPY MAP UTILITY TOOLBAR</h3>
 <dl>
   <dt><img src="icons/grass/script-save.png">&nbsp;
     <em>Generate instructions file</em></dt>
@@ -93,12 +105,10 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
   
   <dt><img src="icons/grass/layer-vector-add.png">&nbsp;
     <em>Vector map</em></dt>
-  <dd>Shows a dialog to add or change current vector maps and their properties:</dd><br>
+  <dd>Shows a dialog to add or change current vector maps and their properties:
     <dl>
       <dt><em>Data selection</em></dt>
-        <dd>
-        Select data to draw:
-        </dd><br>
+        <dd>Select data to draw:
         
         <dl>
           <dt><em>Feature type</em></dt>
@@ -109,11 +119,12 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
           <dt><em>Mask</em></dt>
             <dd>Whether to use mask or not.</dd>
         </dl> 
-      </dt><br>
+        </dd>
+      
       <dt><em>Colors</em></dt>
-        <dd>
-        Color settings:
-        </dd><br>
+        <dd>Color settings:
+        
+        
         
         <dl>
           <dt><em>Outline</em></dt>
@@ -121,11 +132,11 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
           <dt><em>Fill</em></dt>
             <dd>Select fill color, one color for all vector elements or color from rgb column.</dd>
         </dl> 
-      </dt><br>
+      </dd>
       <dt><em>Size and style</em></dt>
         <dd>
         Sets size, style, symbols, pattern; depends on data type:
-        </dd><br>
+        
         
         <dl>
           <dt><em>Symbology</em></dt>
@@ -141,30 +152,31 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
           <dt><em>Width</em></dt>
           <dd> Available for line data. Set line width in points or take the value from a map table column.</dd>
         </dl> 
-      </dt>
+      </dd>
   
   
     </dl>
+    </dd>
   
   
    <dt><img src="icons/grass/overlay-add.png">&nbsp;
     <em>Add map elements</em></dt>
-   <dd>Add map elements: legend, scalebar, map info, text </dd><br>
+   <dd>Add map elements: legend, scalebar, map info, text 
     <dl>
       <dt><img src="icons/grass/legend-add.png">&nbsp;
         <em>Add legend</em></dt>
-      <dl>Add raster or vector legend or edit their properties.</dl>
+      <dd>Add raster or vector legend or edit their properties.</dd>
       <dt><img src="icons/grass/map-info.png">&nbsp;
         <em>Add map info</em></dt>
-      <dl>Add information about region, grid and scale or edit map info properties.</dl>
+      <dd>Add information about region, grid and scale or edit map info properties.</dd>
       <dt><img src="icons/grass/scalebar-add.png">&nbsp;
         <em>Add scalebar</em></dt>
-      <dl>Add scalebar or edit its properties.</dl>
+      <dd>Add scalebar or edit its properties.</dd>
       <dt><img src="icons/grass/text-add.png">&nbsp;
         <em>Add text</em></dt>
-      <dl>Add text label.</dl>    
+      <dd>Add text label.</dd>    
     </dl>
-    
+    </dd>
   <dt><img src="icons/grass/layer-remove.png">&nbsp;
     <em>Remove selected element</em></dt>
   <dd>Select an object and remove it. Pressing Delete key does the same. </dd>
@@ -183,6 +195,7 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:
   
 </dl>
 
+
 <h2>SEE ALSO</h2>
 
 <em>
@@ -197,13 +210,13 @@ Other wxGUI components:<br>
   <a href="wxGUI.Nviz.html">3D Viewer</a><br>
   <a href="wxGUI.GCP_Manager.html">Manage Ground Control Points</a><br>
 </em>
-
+</p>
 <p>
 See also <a href="http://grass.osgeo.org/wiki/GUI_for_ps.map">wiki</a> page.
-
+</p>
 <h2>AUTHORS</h2>
 
 Anna Kratochvilova, CTU in Prague, Czech Republic (bachelor's final project 2011, mentor: Martin Landa)
 
 <p>
-<i>$Date$</i>
+<i>$Date$</i></p>
