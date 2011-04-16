@@ -19,7 +19,6 @@ This program is free software under the GNU General Public License
 
 import os
 import sys
-import subprocess
 import textwrap
 import Queue
 try:
@@ -353,9 +352,9 @@ class PsMapFrame(wx.Frame):
     def OnPDFFile(self, event):
         """!Generate PDF from PS with ps2pdf if available"""
         try:
-            p = subprocess.Popen(["ps2pdf"], stderr = subprocess.PIPE)
+            p = grass.Popen(["ps2pdf"], stderr = grass.PIPE)
             p.stderr.close()
-
+        
         except OSError:
             GMessage(parent = self,
                     message = _("Program ps2pdf is not available. Please install it first to create PDF."))
@@ -425,8 +424,8 @@ class PsMapFrame(wx.Frame):
         
         if event.userData['pdfname']:
             try:
-                proc = subprocess.Popen(['ps2pdf', '-dPDFSETTINGS=/prepress', '-r1200', 
-                                        event.userData['filename'], event.userData['pdfname']])
+                proc = grass.Popen(['ps2pdf', '-dPDFSETTINGS=/prepress', '-r1200', 
+                                    event.userData['filename'], event.userData['pdfname']])
                 
                 ret = proc.wait()                        
                 if ret > 0:
