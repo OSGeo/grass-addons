@@ -144,6 +144,7 @@ class PsMapToolbar(AbstractToolbar):
         self.generatePDF = wx.NewId()
         self.loadFile = wx.NewId()
         self.pan = wx.NewId()
+        self.help = wx.NewId()
 
         icons = Icons['psMap']
         return self._getToolbarData(((self.loadFile, 'loadFile', icons['scriptLoad'],
@@ -183,6 +184,8 @@ class PsMapToolbar(AbstractToolbar):
                                     ( self.generatePDF, 'generatePDF', icons['pdfExport'],
                                       self.parent.OnPDFFile),
                                      (None, ),
+                                     (self.help, "help", Icons['misc']['help'],
+                                      self.parent.OnHelp),
                                      (self.quit, 'quit', icons['quit'],
                                       self.parent.OnCloseWindow))
                                     )
