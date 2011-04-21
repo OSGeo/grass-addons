@@ -540,7 +540,7 @@ class Instruction:
             cmd = CmdToTuple(regionInstruction.strip('# ').split())
             
             # define scaleType
-            if len(cmd[1]) == 1:
+            if len(cmd[1]) <= 3:
                 if 'rast' in cmd[1]:
                     map['scaleType'] = 0
                     map['mapType'] = 'raster'   
@@ -637,15 +637,17 @@ class MapFrame(InstructionObject):
         comment = ''
         
         #region settings
+        region = grass.region()
         if self.instruction['scaleType'] == 0: #match map
             map = self.instruction['map']
-            mapType = 'rast' if self.instruction['mapType'] == 'raster' else 'vect'
-            comment = "# g.region %s=%s\n" % (mapType, map)
+            if self.instruction['mapType'] == 'raster':
+                comment = "# g.region rast=%s cols=%s rows=%s\n" % (map, region['cols'], region['rows'])
+            else:
+                comment = "# g.region vect=%s\n" % (map)
         elif self.instruction['scaleType'] == 1:# saved region
             region = self.instruction['region']
             comment = "# g.region region=%s\n" % region
         elif self.instruction['scaleType'] in (2, 3): #current region, fixed scale
-            region = grass.region()
             comment = string.Template("# g.region n=$n s=$s e=$e w=$w rows=$rows cols=$cols \n").substitute(**region)
         
         instr += comment
