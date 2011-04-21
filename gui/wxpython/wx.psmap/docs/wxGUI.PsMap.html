@@ -4,15 +4,15 @@
 development.</em>
 
 <p>
-<b>Hardcopy Map Utility</b> also called wx.psmap is
+<b>wxGUI Hardcopy Map Utility</b> also called <em>wx.psmap</em> is
 a <em><a href="wxGUI.html">wxGUI</a></em> extension which allows the
 user to create interactively hardcopy map outputs. This tool
 generates <em><a href="ps.map.html">ps.map</a></em> configuration file
 and then runs <em><a href="ps.map.html">ps.map</a></em> to create
 PostScript output. There are two modes - <em>Draft mode</em> for map
-composing and <em>Preview mode</em> to see how the result will look like. In draft
-mode map features (like legend or scalebar) are represented by a
-colored rectangle with a label.</p>
+composing and <em>Preview mode</em> to see how the result will look
+like. In draft mode map features (like legend or scalebar) are
+represented by a colored rectangle with a label.</p>
 
 <p>
 Possible output files:</p>
@@ -48,50 +48,50 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:</p>
 
 <h3>HARDCOPY MAP UTILITY TOOLBAR</h3>
 <dl>
-  <dt><img src="icons/grass/script-save.png">&nbsp;
+  <dt><img src="icons/script-save.png">&nbsp;
     <em>Generate instructions file</em></dt>
   <dd>Generates and saves text file with mapping instructions.</dd>
   
-  <dt><img src="icons/grass/script-load.png">&nbsp;
+  <dt><img src="icons/script-load.png">&nbsp;
     <em>Load instructions file</em></dt>
   <dd>Load text file with mapping instructions.</dd>
   
-  <dt><img src="icons/grass/page-settings.png">&nbsp;
+  <dt><img src="icons/page-settings.png">&nbsp;
     <em>Page setup</em></dt>
   <dd>Specify paper size, margins and orientation.</dd>
   
-  <dt><img src="icons/grass/pointer.png">&nbsp;
+  <dt><img src="icons/pointer.png">&nbsp;
     <em>Pointer</em></dt>
   <dd>Select object on the paper by clicking, drag the cursor while pressing the left mouse button to move it or resize object (currently only map frame) by clicking on a small black box in its bottom right corner. Double click to show object properties dialog</dd>
     
-  <dt><img src="icons/grass/pan.png">&nbsp;
+  <dt><img src="icons/pan.png">&nbsp;
     <em>Pan</em></dt>
   <dd>Drag the pan cursor while pressing the left mouse button to move your view. </dd>
 
 
-  <dt><img src="icons/grass/zoom-in.png">&nbsp;
+  <dt><img src="icons/zoom-in.png">&nbsp;
     <em>Zoom in</em></dt>
   <dd>Interactive zooming with the mouse in both draft and preview mode. Drawing a box or just a left click with the mouse and zoom-in cursor causes the display to zoom in so that the area defined by the box fills the display.</dd>
 
 
-  <dt><img src="icons/grass/zoom-out.png">&nbsp;
+  <dt><img src="icons/zoom-out.png">&nbsp;
     <em>Zoom out</em></dt>
   <dd>Interactive zooming with the mouse in both draft and preview mode. Drawing a box or just a left click with the mouse and zoom-out cursor causes the display to zoom out so that the area displayed shrinks to fill the area defined by the box.</dd>
   
-  <dt><img src="icons/grass/zoom-extent.png">&nbsp;
+  <dt><img src="icons/zoom-extent.png">&nbsp;
     <em>Zoom to page</em></dt>
   <dd>Zoom to display the entire page </dd>
   
   
-  <dt><img src="icons/grass/layer-add.png">&nbsp;
+  <dt><img src="icons/layer-add.png">&nbsp;
     <em>Map frame</em></dt>
   <dd>Click and drag to place map frame. If map frame is already drawn, open a dialog to set its properties. </dd>
   
-  <dt><img src="icons/grass/layer-raster-add.png">&nbsp;
+  <dt><img src="icons/layer-raster-add.png">&nbsp;
     <em>Raster map</em></dt>
   <dd>Shows a dialog to add or change the raster map.</dd>
   
-  <dt><img src="icons/grass/layer-vector-add.png">&nbsp;
+  <dt><img src="icons/layer-vector-add.png">&nbsp;
     <em>Vector map</em></dt>
   <dd>Shows a dialog to add or change current vector maps and their properties:
     <dl>
@@ -111,9 +111,7 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:</p>
       
       <dt><em>Colors</em></dt>
         <dd>Color settings:
-        
-        
-        
+                
         <dl>
           <dt><em>Outline</em></dt>
             <dd> Select outline color and width in points. In case of lines, outline means highlighting.</dd>
@@ -124,7 +122,6 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:</p>
       <dt><em>Size and style</em></dt>
         <dd>
         Sets size, style, symbols, pattern; depends on data type:
-        
         
         <dl>
           <dt><em>Symbology</em></dt>
@@ -147,37 +144,37 @@ Currently supported <em><a href="ps.map.html">ps.map</a></em> instructions:</p>
     </dd>
   
   
-   <dt><img src="icons/grass/overlay-add.png">&nbsp;
+   <dt><img src="icons/overlay-add.png">&nbsp;
     <em>Add map elements</em></dt>
    <dd>Add map elements: legend, scalebar, map info, text 
     <dl>
-      <dt><img src="icons/grass/legend-add.png">&nbsp;
+      <dt><img src="icons/legend-add.png">&nbsp;
         <em>Add legend</em></dt>
       <dd>Add raster or vector legend or edit their properties.</dd>
-      <dt><img src="icons/grass/map-info.png">&nbsp;
+      <dt><img src="icons/map-info.png">&nbsp;
         <em>Add map info</em></dt>
       <dd>Add information about region, grid and scale or edit map info properties.</dd>
-      <dt><img src="icons/grass/scalebar-add.png">&nbsp;
+      <dt><img src="icons/scalebar-add.png">&nbsp;
         <em>Add scalebar</em></dt>
       <dd>Add scalebar or edit its properties.</dd>
-      <dt><img src="icons/grass/text-add.png">&nbsp;
+      <dt><img src="icons/text-add.png">&nbsp;
         <em>Add text</em></dt>
       <dd>Add text label.</dd>    
     </dl>
     </dd>
-  <dt><img src="icons/grass/layer-remove.png">&nbsp;
+  <dt><img src="icons/layer-remove.png">&nbsp;
     <em>Remove selected element</em></dt>
   <dd>Select an object and remove it. Pressing Delete key does the same. </dd>
   
-  <dt><img src="icons/grass/execute.png">&nbsp;
+  <dt><img src="icons/execute.png">&nbsp;
     <em>Show preview</em></dt>
   <dd> Generates output and switches to Preview mode to see the result. Be patient, it can take a while.</dd>
   
 
-  <dt><img src="icons/grass/ps-export.png">&nbsp;
+  <dt><img src="icons/ps-export.png">&nbsp;
     <em>Generate hardcopy map output in PS</em></dt>
   <dd> Generates hardcopy map output in PostScript/EPS file.</dd>
-   <dt><img src="icons/grass/pdf-export.png">&nbsp;
+   <dt><img src="icons/pdf-export.png">&nbsp;
     <em>Generate hardcopy map output in PDF</em></dt>
   <dd> Generates hardcopy map output in PDF using ps2pdf.</dd>
   
