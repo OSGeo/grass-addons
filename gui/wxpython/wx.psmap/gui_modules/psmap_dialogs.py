@@ -4548,7 +4548,7 @@ class ScalebarDialog(PsmapDialog):
         
         self._layout(self.panel)
         
-        self.mapUnit = projInfo()['units']
+        self.mapUnit = projInfo()['units'].lower()
         if projInfo()['proj'] == 'xy':
             self.mapUnit = 'meters'
         if self.mapUnit not in self.unitConv.getAllUnits():
