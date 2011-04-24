@@ -1,13 +1,39 @@
 """!
 @package psmap_dialogs
 
-@brief dialogs for ps.map
+@brief map feature objects and dialogs for ps.map
 
 Classes:
  - UnitConversion
+ - TCValidator
+ - PenStyleComboBox
+ - CheckListCtrl
+ - Instruction
+ - InstructionObject
+ - InitMap
+ - MapFrame
+ - PageSetup
+ - Mapinfo
+ - Text
+ - Scalebar
+ - RasterLegend
+ - VectorLegend
+ - Raster
+ - Vector
+ - VProperties
+ - PsmapDialog
  - PageSetupDialog
- - MapDialog 
+ - MapDialog
+ - MapFramePanel
+ - RasterPanel
+ - VectorPanel
+ - RasterDialog
+ - MainVectorDialog
+ - VPropertiesDialog
  - LegendDialog
+ - MapinfoDialog
+ - ScalebarDialog
+ - TextDialog
 
 (C) 2011 by Anna Kratochvilova, and the GRASS Development Team
 This program is free software under the GNU General Public License
@@ -2567,9 +2593,7 @@ class VectorPanel(wx.Panel):
         vmap = self.select.GetValue()   
         try:     
             topoInfo = grass.vector_info_topo(map = vmap)
-        except grass.ScriptError, e:
-            GError(parent = self,
-                   message = e.value)
+        except grass.ScriptError:
             return
         
         self.vectorType.EnableItem(2, bool(topoInfo['areas']))
