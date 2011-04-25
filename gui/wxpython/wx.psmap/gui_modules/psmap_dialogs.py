@@ -592,7 +592,7 @@ class Instruction:
         try:
             RunCommand(cmd[0], **cmd[1])
             
-        except grass.ScriptException, e:
+        except grass.ScriptError, e:
             GError(_("Region cannot be set\n%s") % e)
             return False
           
@@ -1167,14 +1167,14 @@ class RasterLegend(InstructionObject):
                                                     
         if discrete == 'y':
             cols = cols if cols else 1 
-            try:
-                cat = grass.read_command('r.category', map = raster,
-                                        fs = ':').strip().split('\n')
-                rows = ceil( float(len(cat)) / cols )
-            except grass.ScriptException:
-                rinfo = grass.raster_info(raster)
+            rinfo = grass.raster_info(raster)
+            if rinfo['datatype'] in ('DCELL', 'FCELL'):
                 minim, maxim = rinfo['min'], rinfo['max']
                 rows = ceil( maxim / cols )
+            else:
+                cat = grass.read_command('r.category', map = raster,
+                                    fs = ':').strip().split('\n')
+                rows = ceil( float(len(cat)) / cols )
                             
                 
             height = self.unitConv.convert(value =  1.5 * rows * fontsize, fromUnit = 'point', toUnit = 'inch')
@@ -1300,7 +1300,7 @@ class Raster(InstructionObject):
             return False
         try:
             info = grass.find_file(map, element = 'cell')
-        except grass.ScriptException, e:
+        except grass.ScriptError, e:
             GError(message = e.value)
             return False
         instr['raster'] = info['fullname']
@@ -1338,7 +1338,7 @@ class Vector(InstructionObject):
                 vmap = line.split()[1]
                 try:
                     info = grass.find_file(vmap, element = 'vector')
-                except grass.ScriptException, e:
+                except grass.ScriptError, e:
                     GError(message = e.value)
                     return False
                 vmap = info['fullname']
@@ -1453,15 +1453,15 @@ class VProperties(InstructionObject):
         instr = {}
         try:
             info = grass.find_file(name = text[0].split()[1], element = 'vector')
-        except grass.ScriptException, e:
+        except grass.ScriptError, e:
             GError(message = e.value)
             return False
         instr['name'] = info['fullname']
         #connection
         instr['connection'] = True
-        try:
-            self.mapDBInfo = dbm_base.VectorDBInfo(instr['name'])
-        except grass.ScriptException:
+        self.mapDBInfo = dbm_base.VectorDBInfo(instr['name'])
+        self.layers = self.mapDBInfo.layers.keys()
+        if not self.layers:
             instr['connection'] = False
             
         # points
@@ -2240,10 +2240,14 @@ class MapFramePanel(wx.Panel):
                 mapFrameDict['map'] = self.select.GetValue()
                 mapFrameDict['mapType'] = self.mapType
                 mapFrameDict['region'] = None
-
+                
                 if mapFrameDict['drawMap']:
 
                     if mapFrameDict['mapType'] == 'raster':
+                        mapFile = grass.find_file(mapFrameDict['map'], element = 'cell')
+                        if mapFile['file'] == '':
+                            GMessage("Raster %s not found" % mapFrameDict['map'])
+                            return False
                         raster = self.instruction.FindInstructionByType('raster')
                         if raster:
                             raster['raster'] = mapFrameDict['map']
@@ -2254,7 +2258,12 @@ class MapFramePanel(wx.Panel):
                             self.instruction.AddInstruction(raster)
 
                     elif mapFrameDict['mapType'] == 'vector':
-
+                        
+                        mapFile = grass.find_file(mapFrameDict['map'], element = 'vector')
+                        if mapFile['file'] == '':
+                            GMessage("Vector %s not found" % mapFrameDict['map'])
+                            return False
+                        
                         vector = self.instruction.FindInstructionByType('vector')
                         isAdded = False
                         if vector:
@@ -2262,8 +2271,8 @@ class MapFramePanel(wx.Panel):
                                 if each[0] == mapFrameDict['map']:
                                     isAdded = True
                         if not isAdded:
-                            try:
-                                topoInfo = grass.vector_info_topo(map = mapFrameDict['map'])
+                            topoInfo = grass.vector_info_topo(map = mapFrameDict['map'])
+                            if topoInfo:
                                 if bool(topoInfo['areas']):
                                     topoType = 'areas'
                                 elif bool(topoInfo['lines']):
@@ -2271,9 +2280,7 @@ class MapFramePanel(wx.Panel):
                                 else:
                                     topoType = 'points'
                                 label = '('.join(mapFrameDict['map'].split('@')) + ')'
-                            except grass.ScriptException:
-                                pass
-                            else:
+                           
                                 if not vector:
                                     vector = Vector(wx.NewId())
                                     vector['list'] = []
@@ -2283,7 +2290,9 @@ class MapFramePanel(wx.Panel):
                                 vProp = VProperties(id, topoType)
                                 vProp['name'], vProp['label'], vProp['lpos'] = mapFrameDict['map'], label, 1
                                 self.instruction.AddInstruction(vProp)
-
+                            else:
+                                return False
+                            
                 self.scale[0], self.center[0], self.rectAdjusted = AutoAdjust(self, scaleType = 0, map = mapFrameDict['map'],
                                                                    mapType = self.mapType, rect = self.mapFrameDict['rect'])
                                                
@@ -2593,18 +2602,19 @@ class VectorPanel(wx.Panel):
         vmap = self.select.GetValue()   
         try:     
             topoInfo = grass.vector_info_topo(map = vmap)
-        except grass.ScriptException:
+        except grass.ScriptError:
             return
         
-        self.vectorType.EnableItem(2, bool(topoInfo['areas']))
-        self.vectorType.EnableItem(1, bool(topoInfo['boundaries']) or bool(topoInfo['lines']))
-        self.vectorType.EnableItem(0, bool(topoInfo['centroids'] or bool(topoInfo['points']) ))
-        for item in range(2,-1,-1):
-            if self.vectorType.IsItemEnabled(item):
-                self.vectorType.SetSelection(item)
-                break
-        
-        self.AddVector.SetFocus()        
+        if topoInfo:
+            self.vectorType.EnableItem(2, bool(topoInfo['areas']))
+            self.vectorType.EnableItem(1, bool(topoInfo['boundaries']) or bool(topoInfo['lines']))
+            self.vectorType.EnableItem(0, bool(topoInfo['centroids'] or bool(topoInfo['points']) ))
+            for item in range(2,-1,-1):
+                if self.vectorType.IsItemEnabled(item):
+                    self.vectorType.SetSelection(item)
+                    break
+            
+            self.AddVector.SetFocus()        
             
     def OnAddVector(self, event):
         """!Adds vector map to list"""
@@ -2824,10 +2834,12 @@ class VPropertiesDialog(PsmapDialog):
         try:
             self.mapDBInfo = dbm_base.VectorDBInfo(self.vectorName)
             self.layers = self.mapDBInfo.layers.keys()
-        except grass.ScriptException:
+        except grass.ScriptError:
             self.connection = False
             self.layers = []
-
+        if not self.layers:
+            self.connection = False
+            self.layers = []
             
         self.currLayer = self.vPropertiesDict['layer']
         
@@ -4108,6 +4120,8 @@ class LegendDialog(PsmapDialog):
         if self.rLegendDict['raster']:
             # type and range of map
             rasterType = getRasterType(self.rLegendDict['raster'])
+            if rasterType is None:
+                return False
             self.rLegendDict['type'] = rasterType
             
             
@@ -5267,7 +5281,7 @@ def AutoAdjust(self, scaleType,  rect, map = None, mapType = None, region = None
         if mapType == 'raster': 
             try:
                 res = grass.read_command("g.region", flags = 'gu', rast = map)
-            except grass.ScriptException:
+            except grass.ScriptError:
                 pass
         elif mapType == 'vector':
             res = grass.read_command("g.region", flags = 'gu', vect = map)
@@ -5399,16 +5413,19 @@ def GetMapBounds(filename):
         bb = map(float, grass.read_command('ps.map',
                                         flags = 'b',
                                         input = filename).strip().split('=')[1].split(','))
-    except (grass.ScriptException, IndexError):
+    except (grass.ScriptError, IndexError):
         GError(message = _("Unable to run `ps.map -b`"))
         return None
     return wx.Rect2D(bb[0], bb[3], bb[2] - bb[0], bb[1] - bb[3])
 
 def getRasterType(map):
     """!Returns type of raster map (CELL, FCELL, DCELL)"""
-    try:
+    if map is None:
+        map = ''
+    file = grass.find_file(name = map, element = 'cell')
+    if file['file']:
         rasterType = grass.raster_info(map)['datatype']
-    except grass.ScriptException:
-        #GError(_("Unable to get type of raster map"))
+        return rasterType
+    else:
         return None
-    return rasterType
+   
