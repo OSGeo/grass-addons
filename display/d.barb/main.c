@@ -154,13 +154,16 @@ int main(int argc, char *argv[])
     /* TODO */
     from_to = G_define_flag();
     from_to->key = 'r';
+    from_to->label =
+	_("Rotate direction 180 degrees");
     from_to->description =
-	_("Reverse direction 180 degrees");
+	_("Useful for switching between atmospheric and oceanographic conventions");
+
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    G_warning("This module is a work in progress. Don't expect it to work.");
+    G_warning("This module is still a work in progress.");
 
     /* check parms */
     if ((u_opt->answer && (dir_opt->answer || magn_opt->answer)) ||
@@ -249,10 +252,10 @@ int main(int argc, char *argv[])
     if (is_vector)
 	do_barb_points(vinput_opt->answer, vlayer,
 		       dir_u_map, mag_v_map, is_component, color,
-		       aspect_type, scale, style);
+		       aspect_type, scale, style, from_to->answer);
     else
 	do_barb_grid(dir_u_map, mag_v_map, is_component, color,
-		     aspect_type, scale, skip, style);
+		     aspect_type, scale, skip, style, from_to->answer);
 
 
     D_add_to_list(G_recreate_command());

@@ -18,9 +18,9 @@ void do_legend(char **at_list, char **velo_list, int num_velos,
     G_debug(1, "Doing legend ... (%d entries)", num_velos);
 
     if (style == TYPE_BARB)
-	angle = 90;
+	angle = -90;
     else
-	angle = 0;
+	angle = 90;
 
     D_get_screen_window(&t, &b, &l, &r);
 

@@ -34,17 +34,6 @@ data stored in m/s to knots without altering the data.
 
 <h2>EXAMPLES</h2>
 
-<h4>Eularian field from raster grid</h4>
-<div class="code"><pre>
-
-# create polar coordinate maps from cartesian components
-r.mapcalc "magnitude = sqrt($MAPu^2 + $MAPv^2)"
-r.mapcalc "direction = atan($MAPu, $MAPv)"
-
-
-d.barb
-</pre></div>
-
 <h4>Sparse staion data from vector maps</h4>
 
 First prepare some dummy data, then plot it.
@@ -56,10 +45,39 @@ v.db.addcol map=dummy_map \
 v.db.update dummy_map column=direction value='cat * 4.0'
 v.db.update dummy_map column=magnitude value='cat / 2.0'
 
-g.region -d
-d.barb input=dummy_map direction=direction magnitude=magnitude aspect=compass
+g.region n=4918590 s=4914780 w=591510 e=595650
+d.erase
+d.barb input=dummy_map direction=direction magnitude=magnitude \
+   aspect=compass style=barb
 </pre></div>
 
+<h4>Eularian field from raster grid</h4>
+<div class="code"><pre>
+# r.surf.volcano module from GRASS-addons
+g.region -d
+r.surf.volcano output=gauss method=gaussian sigma=1
+r.colors -ne gauss color=bcyr
+r.slope.aspect elev=gauss slope=gauss.slope aspect=gauss.aspect
+d.barb dir=gauss.aspect mag=gauss.slope scale=20 color=aqua
+</pre></div>
+
+<!-- useful, but not really needed
+<h4>Create polar coordinate maps from cartesian components</h4>
+
+<div class="code"><pre>
+MAPu=velocity.u
+MAPv=velocity.v
+r.mapcalc "magnitude = sqrt($MAPu^2 + $MAPv^2)"
+r.mapcalc "direction = atan($MAPu, $MAPv)"
+</pre></div>
+
+and back again:
+
+<div class="code"><pre>
+r.mapcalc "u_component = magnitude * cos(direction)"
+r.mapcalc "v_component = magnitude * sin(direction)"
+</pre></div>
+-->
 
 <h4>Create a legend</h4>
 <div class="code"><pre>
@@ -85,15 +103,28 @@ d.barb legend_velo=5,10,15,20,25 \
 </pre></div>
 
 
+<h2>BUGS</h2>
+
+Probably ...
+<ul>
+<li>Scaling of legend does not yet match normal operation.
+</ul>
 
 <h2>SEE ALSO</h2>
-d.rast.arrow
-d.graph
-d.vect
+<i>
+<a href="d.rast.arrow.html">d.rast.arrow</a>,
+<a href="d.graph.html">d.graph</a>,
+<a href="d.vect.html">d.vect</a>
+</i>
 
 
 <h2>AUTHOR</h2>
-Hamish Bowman
-Dept Marine Science
-University of Otago
+Hamish Bowman<br> <i>
+Department of Marine Science<br>
+University of Otago<br>
+New Zealand</i><br>
+
+<br>
+<p>
+<i>Last changed: $Date$</i></p>
 

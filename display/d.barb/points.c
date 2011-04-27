@@ -9,7 +9,7 @@
 /* load and plot barbs from data stored in a vector map's attribute table */
 void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
 		    char *mag_v_col, int is_component, int color,
-		    int aspect_type, double scale, int style)
+		    int aspect_type, double scale, int style, int reverse)
 {
 
     struct Map_info vMap;
@@ -26,7 +26,7 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
 
     magn = NULL;		/* init in case it isn't used */
 
-    G_debug(0, "Doing sparse points ...");
+    G_debug(1, "Doing sparse points ...");
 
     if ((mapset = G_find_vector2(vinput_name, "")) == NULL)
 	G_fatal_error(_("Vector map <%s> not found"), vinput_name);
@@ -39,13 +39,13 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
     if (1 > Vect_open_old(&vMap, vinput_name, mapset))
 	G_fatal_error(_("Unable to open vector map <%s>"), vinput_name);
 
-    G_debug(0, "<%s> is open", vinput_name);
+    G_debug(3, "<%s> is open", vinput_name);
 
     /* we need to scan through and find the greatest value in of the
        magnitude within the current region and scale from that. hence
        the following complexity ... */
     num_pts = count_pts_in_region(&vMap);
-    G_debug(0, "  %d points found in region", num_pts);
+    G_debug(2, "  %d points found in region", num_pts);
 
     coord_x = G_calloc(num_pts + 1, sizeof(double));
     coord_y = G_calloc(num_pts + 1, sizeof(double));
@@ -60,20 +60,24 @@ void do_barb_points(char *vinput_name, int vlayer, char *dir_u_col,
 
     if (aspect_type == TYPE_GRASS) {
 	for (i = 0; i < num_pts; i++) {
-	    //          G_debug(0, "in=%.1f  out=%.1f", dirn[i], 90-dirn[i] < 0 ? 360+90-dirn[i] : 90-dirn[i]);
+	    //G_debug(5, "in=%.1f  out=%.1f", dirn[i], 90-dirn[i] < 0 ? 360+90-dirn[i] : 90-dirn[i]);
 	    dirn[i] = 90 - dirn[i];
 	    if (dirn[i] < 0)
 		dirn[i] += 360;
 	}
     }
 
-    /* todone?
-    if (aspect_type == TYPE_COMPASS)
-           dir = 90 - dir;
-     */
+    if (reverse) {
+	for (i = 0; i < num_pts; i++) {
+	    //G_debug(5, "in=%.1f  out=%.1f", dirn[i], 90-dirn[i] < 0 ? 360+90-dirn[i] : 90-dirn[i]);
+	    dirn[i] = dirn[i] + 180;
+	    if (dirn[i] > 360)
+		dirn[i] -= 360;
+	}
+    }
 
     peak = max_magnitude(magn, num_pts);
-    G_debug(0, "  peak = %.2f", peak);
+    G_debug(2, "  peak = %.2f", peak);
     if (style == TYPE_BARB && peak > 150)
 	G_warning(_("Maximum wind barb displayed is 150 knots"));
 
@@ -99,9 +103,9 @@ int count_pts_in_region(struct Map_info *Map)
     struct line_cats *Cats;
     struct Cell_head window;
 
-    G_debug(0, "count_pts_in_region()");
+    G_debug(3, "count_pts_in_region()");
     G_get_window(&window);
-    G_debug(0, "  n=%.2f s=%.2f e=%.2f w=%.2f", window.north, window.south,
+    G_debug(4, "  n=%.2f s=%.2f e=%.2f w=%.2f", window.north, window.south,
 	    window.east, window.west);
 
     /* Create and initialize struct's where to store points/lines and categories */
@@ -109,7 +113,7 @@ int count_pts_in_region(struct Map_info *Map)
     Cats = Vect_new_cats_struct();
 
     nlines = Vect_get_num_lines(Map);
-    G_debug(0, "  %d features found in map", nlines);
+    G_debug(2, "  %d features found in map", nlines);
 
     Vect_rewind(Map);
 
@@ -152,7 +156,7 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
     dbCatVal *cv_dir_u = NULL, *cv_mag_v = NULL;
     double theta, r;
 
-    G_debug(0, "fill_arrays()");
+    G_debug(3, "fill_arrays()");
 
     G_get_window(&window);
 
@@ -180,7 +184,7 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
 
     nrec = db_select_CatValArray(driver, fi->table, fi->key,
 				 dir_u, NULL, &cvarr_dir_u);
-    G_debug(0, "nrec (%s) = %d", dir_u, nrec);
+    G_debug(3, "nrec (%s) = %d", dir_u, nrec);
 
     if (cvarr_dir_u.ctype != DB_C_TYPE_INT &&
 	cvarr_dir_u.ctype != DB_C_TYPE_DOUBLE)
@@ -188,12 +192,12 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
 
     if (nrec < 0)
 	G_fatal_error(_("Cannot select data (%s) from table"), dir_u);
-    G_debug(0, "%d records selected from table", nrec);
+    G_debug(3, "%d records selected from table", nrec);
 
     if (Mags) {
 	nrec = db_select_CatValArray(driver, fi->table, fi->key,
 				     mag_v, NULL, &cvarr_mag_v);
-	G_debug(0, "nrec (%s) = %d", mag_v, nrec);
+	G_debug(4, "nrec (%s) = %d", mag_v, nrec);
 
 	if (cvarr_mag_v.ctype != DB_C_TYPE_INT &&
 	    cvarr_mag_v.ctype != DB_C_TYPE_DOUBLE)
@@ -202,7 +206,7 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
 
 	if (nrec < 0)
 	    G_fatal_error(_("Cannot select data (%s) from table"), mag_v);
-	G_debug(0, "%d records selected from table", nrec);
+	G_debug(3, "%d records selected from table", nrec);
     }
 
     Vect_rewind(Map);
@@ -216,7 +220,7 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
 	    G_fatal_error(_("Can't read vector map"));
 	case -2:		/* EOF */
 	    db_close_database_shutdown_driver(driver);
-	    G_debug(0, "  Array fill done.");
+	    G_debug(3, "  Array fill done.");
 	    return;
 	}
 

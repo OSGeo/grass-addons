@@ -9,7 +9,7 @@
 /* load and plot barbs from data stored in two raster maps */
 void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 		  int color, int aspect_type, double scale, int skip,
-		  int style)
+		  int style, int reverse)
 {
     /* from d.rast.arrow */
     struct FPRange range;
@@ -24,8 +24,7 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
     double length = -1.0, r;
     double easting, northing;
 
-    G_debug(0, "Doing Eulerian field ...");
-    G_warning("Not fully working yet -- use d.rast.arrow instead.");
+    G_debug(1, "Doing Eulerian field ...");
 
     /* figure out arrow scaling */
     G_init_fp_range(&range);	/* really needed? */
@@ -144,6 +143,11 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	    if(aspect_f < 0)
 		aspect_f += 360;
 	    else if (aspect_f > 360)
+		aspect_f -= 360;
+
+	    if(reverse)
+	        aspect_f += 180;
+	    if (aspect_f > 360)
 		aspect_f -= 360;
 
 	    length *= scale;

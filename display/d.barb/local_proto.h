@@ -15,10 +15,10 @@
 #define R2D(d) (double)(d / RpD)	/* radians->degrees */
 
 /* grid.c */
-void do_barb_grid(char *, char *, int, int, int, double, int, int);
+void do_barb_grid(char *, char *, int, int, int, double, int, int, int);
 
 /* points.c */
-void do_barb_points(char *, int, char *, char *, int, int, int, double, int);
+void do_barb_points(char *, int, char *, char *, int, int, int, double, int, int);
 int count_pts_in_region(struct Map_info *);
 void fill_arrays(struct Map_info *, int, char *, char *, int, double *,
 		 double *, double *, double *);
