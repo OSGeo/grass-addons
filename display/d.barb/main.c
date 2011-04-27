@@ -154,8 +154,7 @@ int main(int argc, char *argv[])
     /* TODO */
     from_to = G_define_flag();
     from_to->key = 'r';
-    from_to->label =
-	_("Rotate direction 180 degrees");
+    from_to->label = _("Rotate direction 180 degrees");
     from_to->description =
 	_("Useful for switching between atmospheric and oceanographic conventions");
 
@@ -184,7 +183,7 @@ int main(int argc, char *argv[])
 	strncpy(dir_u_map, dir_opt->answer, sizeof(dir_u_map) - 1);
 	strncpy(mag_v_map, magn_opt->answer, sizeof(mag_v_map) - 1);
     }
-    dir_u_map[sizeof(dir_u_map) - 1] = '\0'; /* strncpy() doesn't null-terminate on overflow */
+    dir_u_map[sizeof(dir_u_map) - 1] = '\0';	/* strncpy() doesn't null-terminate on overflow */
     mag_v_map[sizeof(mag_v_map) - 1] = '\0';
 
     if (vinput_opt->answer)

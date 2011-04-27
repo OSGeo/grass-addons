@@ -32,7 +32,7 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	G_fatal_error(_("Problem reading range file"));
     G_get_fp_range_min_max(&range, &mag_min, &mag_max);
 
-    if(style != TYPE_BARB) {
+    if (style != TYPE_BARB) {
 	scale *= 1.5 / fabs(mag_max);
     }
     G_debug(3, "scaling=%.2f  rast_max=%.2f", scale, mag_max);
@@ -69,7 +69,7 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	G_get_raster_row(dir_u_fd, dir_u_raster_row, row, dir_u_raster_type);
 	dir_u_ptr = dir_u_raster_row;
 
-	// should magnitude be manditory?
+	// should magnitude be mandatory?
 	if (mag_v_map) {
 	    G_get_raster_row(mag_v_fd, mag_v_raster_row, row,
 			     mag_v_raster_type);
@@ -124,29 +124,29 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 		continue;
 	    }
 
-	    if(is_component) {
+	    if (is_component) {
 		/* convert u,v to dir,mag */
-		r = sqrt(length*length + aspect_f*aspect_f);
+		r = sqrt(length * length + aspect_f * aspect_f);
 		theta = R2D(atan2(length, aspect_f));
 		length = r;
 		aspect_f = theta;
-		if(aspect_f < 0)
+		if (aspect_f < 0)
 		    aspect_f += 360;
 		else if (aspect_f > 360)
 		    aspect_f -= 360;
 	    }
 
-	    /* convert cartesian to compass convention */
+	    /* convert Cartesian to compass convention */
 	    if (aspect_type == TYPE_GRASS)
 		aspect_f = 90 - aspect_f;
 
-	    if(aspect_f < 0)
+	    if (aspect_f < 0)
 		aspect_f += 360;
 	    else if (aspect_f > 360)
 		aspect_f -= 360;
 
-	    if(reverse)
-	        aspect_f += 180;
+	    if (reverse)
+		aspect_f += 180;
 	    if (aspect_f > 360)
 		aspect_f -= 360;
 

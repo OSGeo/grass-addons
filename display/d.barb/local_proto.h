@@ -10,7 +10,7 @@
 #define TYPE_BARB 1
 #define TYPE_ARROW 2
 
-#define RpD ((2 * M_PI) / 360.)		/* radians/degree */
+#define RpD ((2 * M_PI) / 360.)	/* radians/degree */
 #define D2R(d) (double)(d * RpD)	/* degrees->radians */
 #define R2D(d) (double)(d / RpD)	/* radians->degrees */
 
@@ -18,7 +18,8 @@
 void do_barb_grid(char *, char *, int, int, int, double, int, int, int);
 
 /* points.c */
-void do_barb_points(char *, int, char *, char *, int, int, int, double, int, int);
+void do_barb_points(char *, int, char *, char *, int, int, int, double, int,
+		    int);
 int count_pts_in_region(struct Map_info *);
 void fill_arrays(struct Map_info *, int, char *, char *, int, double *,
 		 double *, double *, double *);

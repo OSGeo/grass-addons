@@ -202,9 +202,9 @@ void draw_circle(double easting, double northing, double radius, int fill)
 }
 
 
-/* draws the stem and tail of a wind barb centered at e,n.
+/* draws the stem and tail of a wind barb centred at e,n.
    radius is scaling in display pixels, velocity is assumed as knots,
-   angle is cartesian convention CCW from positive x-axis */
+   angle is Cartesian convention CCW from positive x-axis */
 void draw_feather(double easting, double northing, double radius,
 		  double velocity, double compass_deg)
 {
@@ -648,7 +648,7 @@ void draw_feather(double easting, double northing, double radius,
 	R_polygon_abs(xi, yi, 4);
     }
 
-    /* barb rendering currenly saturates at 150 kts */
+    /* barb rendering currently saturates at 150 kts */
 
     return;
 }

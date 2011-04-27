@@ -7,12 +7,14 @@ component or direction and magnitude input data.
 
 <h2>NOTES</h2>
 
-Cartesian aspect is measures in degreess CCW from the positive x-axis (east).
-Compass aspect is measures in degreess CW from north.
+Cartesian aspect is measured in degrees CCW from the positive x-axis (east).
+Compass aspect is measured in degrees CW from north.
 <P>
+<!--I haven't added this yet, and I'm not sure that if I will. Leaning towards not.
 Rendering is scaled so largest stick covers 20% of the display frame
 for arrows and straws, use the scale parameter to adjust from there.
 <P>
+-->
 Wind barbs are all of equal length, but that length may be adjusted
 by the scale parameter.
 <P>
@@ -34,7 +36,7 @@ data stored in m/s to knots without altering the data.
 
 <h2>EXAMPLES</h2>
 
-<h4>Sparse staion data from vector maps</h4>
+<h4>Sparse station data from vector maps</h4>
 
 First prepare some dummy data, then plot it.
 <div class="code"><pre>
@@ -51,7 +53,7 @@ d.barb input=dummy_map direction=direction magnitude=magnitude \
    aspect=compass style=barb
 </pre></div>
 
-<h4>Eularian field from raster grid</h4>
+<h4>Eulerian field from raster grid</h4>
 <div class="code"><pre>
 # r.surf.volcano module from GRASS-addons
 g.region -d
@@ -62,7 +64,7 @@ d.barb dir=gauss.aspect mag=gauss.slope scale=20 color=aqua
 </pre></div>
 
 <!-- useful, but not really needed
-<h4>Create polar coordinate maps from cartesian components</h4>
+<h4>Create polar coordinate maps from Cartesian components</h4>
 
 <div class="code"><pre>
 MAPu=velocity.u
@@ -127,4 +129,3 @@ New Zealand</i><br>
 <br>
 <p>
 <i>Last changed: $Date$</i></p>
-

@@ -254,15 +254,15 @@ void fill_arrays(struct Map_info *Map, int layer, char *dir_u, char *mag_v,
 		Mags[i] = cvarr_mag_v.ctype == DB_C_TYPE_INT ?
 		    (double)cv_mag_v->val.i : cv_mag_v->val.d;
 	    if (!is_uv) {
-		if (Mags[i] < 0)  /* magnitude is scalar and can only be positive */
+		if (Mags[i] < 0)	/* magnitude is scalar and can only be positive */
 		    Mags[i] = 0;
 	    }
 	}
 
-	if(is_uv) {
+	if (is_uv) {
 	    /* now that we have the data loaded, cycle back and process it */
 	    theta = R2D(atan2(Mags[i], Dirs[i]));
-	    r = sqrt(Dirs[i]*Dirs[i] + Mags[i]*Mags[i]);
+	    r = sqrt(Dirs[i] * Dirs[i] + Mags[i] * Mags[i]);
 	    Dirs[i] = theta;
 	    Mags[i] = r;
 	}
