@@ -479,7 +479,11 @@ class PsMapFrame(wx.Frame):
                 s = '.' + s
             suffix.append(s)
         raster = self.instruction.FindInstructionByType('raster')
-        rasterId = raster.id if raster else None
+        if raster:
+            rasterId = raster.id 
+        else:
+            rasterId = None
+
 
         if rasterId and self.instruction[rasterId]['raster']:
             mapName = self.instruction[rasterId]['raster'].split('@')[0] + suffix[0]
@@ -575,11 +579,20 @@ class PsMapFrame(wx.Frame):
         
     def OnZoomAll(self, event):
         self.mouseOld = self.mouse['use']
-        self.cursorOld = self.canvas.GetCursor() if self.currentPage == 0 else self.previewCanvas.GetCursor()
+        if self.currentPage == 0:
+            self.cursorOld = self.canvas.GetCursor() 
+        else:
+            self.previewCanvas.GetCursor()
         self.mouse["use"] = "zoomin"
-        self.canvas.ZoomAll() if self.currentPage == 0 else self.previewCanvas.ZoomAll()
+        if self.currentPage == 0:
+            self.canvas.ZoomAll()
+        else:
+            self.previewCanvas.ZoomAll()
         self.mouse["use"] = self.mouseOld 
-        self.canvas.SetCursor(self.cursorOld)  if self.currentPage == 0 else self.previewCanvas.SetCursor(self.cursorOld)
+        if self.currentPage == 0:
+            self.canvas.SetCursor(self.cursorOld)
+        else:
+            self.previewCanvas.SetCursor(self.cursorOld)
         
         
     def OnAddMap(self, event, notebook = False):
@@ -821,7 +834,11 @@ class PsMapFrame(wx.Frame):
         scale = mapInitRect.Get()[2]/realWidth  
         
         initMap = self.instruction.FindInstructionByType('initMap')
-        id = initMap.id if initMap else None
+        if initMap:
+            id = initMap.id 
+        else:
+            id = None
+
         
         if not id:
             id = wx.NewId()
@@ -874,7 +891,11 @@ class PsMapFrame(wx.Frame):
                 
             if itype == 'text':
                 
-                rot = float(self.instruction[id]['rotate']) if self.instruction[id]['rotate'] else 0
+                if self.instruction[id]['rotate']:
+                    rot = float(self.instruction[id]['rotate']) 
+                else:
+                    rot = 0
+
                 
                 extent = self.getTextExtent(textDict = self.instruction[id].GetInstruction())
                 rect = wx.Rect2D(self.instruction[id]['where'][0], self.instruction[id]['where'][1], 0, 0)
@@ -1440,7 +1461,11 @@ class PsMapBufferedWindow(wx.Window):
                 x, y = self.instruction[id]['coords'][0] - self.instruction[id]['xoffset'],\
                         self.instruction[id]['coords'][1] + self.instruction[id]['yoffset']
                 extent = self.parent.getTextExtent(textDict = self.instruction[id])
-                rot = float(self.instruction[id]['rotate'])/180*pi if self.instruction[id]['rotate'] is not None else 0
+                if self.instruction[id]['rotate'] is not None:
+                    rot = float(self.instruction[id]['rotate'])/180*pi 
+                else:
+                    rot = 0
+
                 if self.instruction[id]['ref'].split()[0] == 'lower':
                     y += extent[1]
                 elif self.instruction[id]['ref'].split()[0] == 'center':
@@ -1473,7 +1498,11 @@ class PsMapBufferedWindow(wx.Window):
             rW, rH = float(rect.GetWidth()), float(rect.GetHeight())
             zoomFactor = 1/max(rW/cW, rH/cH)
             # when zooming to full extent, in some cases, there was zoom 1.01..., which causes problem
-            zoomFactor = zoomFactor if abs(zoomFactor - 1) > 0.01 else 1.
+            if abs(zoomFactor - 1) > 0.01:
+                zoomFactor = zoomFactor 
+            else:
+                zoomFactor = 1.
+
 
             if self.mouse['use'] == 'zoomout':
                 zoomFactor = min(rW/cW, rH/cH) 
@@ -1522,7 +1551,11 @@ class PsMapBufferedWindow(wx.Window):
                     self.DrawRotText(pdc = self.pdcObj, drawId = id, textDict = self.instruction[id],
                      coords = coords, bounds = oRect )
                     extent = self.parent.getTextExtent(textDict = self.instruction[id])
-                    rot = float(self.instruction[id]['rotate']) if self.instruction[id]['rotate'] else 0
+                    if self.instruction[id]['rotate']:
+                        rot = float(self.instruction[id]['rotate']) 
+                    else:
+                        rot = 0
+
                     self.instruction[id]['rect'] = bounds = self.parent.getModifiedTextBounds(coords[0], coords[1], extent, rot)
                     self.pdcObj.SetIdBounds(id, bounds)
                 else:
@@ -1594,9 +1627,17 @@ class PsMapBufferedWindow(wx.Window):
         return drawid
     
     def DrawRotText(self, pdc, drawId, textDict, coords, bounds):
-        rot = float(textDict['rotate']) if textDict['rotate'] else 0
+        if textDict['rotate']:
+            rot = float(textDict['rotate']) 
+        else:
+            rot = 0
+
         fontsize = str(textDict['fontsize'] * self.currScale)
-        background = textDict['background'] if textDict['background'] != 'none' else None
+        if textDict['background'] != 'none':
+            background = textDict['background'] 
+        else:
+            background = None
+
         
         pdc.RemoveId(drawId)
         pdc.SetId(drawId)
@@ -1693,9 +1734,17 @@ class PsMapBufferedWindow(wx.Window):
         """!Updates map frame label"""
 
         vector = self.instruction.FindInstructionByType('vector')
-        vectorId = vector.id if vector else None
+        if vector:
+            vectorId = vector.id 
+        else:
+            vectorId = None
+
         raster = self.instruction.FindInstructionByType('raster')
-        rasterId = raster.id if raster else None
+        if raster:
+            rasterId = raster.id 
+        else:
+            rasterId = None
+
         rasterName = 'None'
         if rasterId:
             rasterName = self.instruction[rasterId]['raster'].split('@')[0]
