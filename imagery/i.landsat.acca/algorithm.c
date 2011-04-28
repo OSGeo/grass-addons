@@ -185,7 +185,7 @@ void acca_algorithm(Gfile * out, Gfile band[],
 
 	G_message(_("Maximum temperature:"));
 	G_message(_("* Cold cloud: %.2lf K"), value[KUPPER]);
-	G_message(_("* Warn cloud: %.2lf K"), value[KLOWER]);
+	G_message(_("* Warm cloud: %.2lf K"), value[KLOWER]);
     }
     else {
 	if (signa[KMEAN] < 295.) {
