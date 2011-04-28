@@ -28,10 +28,18 @@ thermal band <tt>226_62.toar.61</tt>, outputing to a new raster map
 named <tt>226_62.acca</tt>:
 
 <div class="code"><pre>
-    i.landsat.toar sensor=7 gain=HHHLHLHHL date=2003-04-07 product_date=2008-11-27 band_prefix=226_62 solar_elevation=49.51654
-    i.landsat.acca -f band_prefix=226_62.toar output=226_62.acca
+i.landsat.toar sensor=tm7 gain=HHHLHLHHL date=2003-04-07 product_date=2008-11-27 input_prefix=226_62 \
+  output_prefix=226_62_toar solar_elevation=49.51654
+i.landsat.acca -f band_prefix=226_62.toar output=226_62.acca
 </pre></div>
 
+or
+
+<div class="code"><pre>
+i.landsat.toar input_prefix=L5121060_06020060714. output_prefix=L5121060_06020060714_toar sensor=tm5 \
+  metfile=L5121060_06020060714_MTL.txt -t
+i.landsat.acca -5 -f input_prefix=L5121060_06020060714_toar. output=L5121060_06020060714.acca
+</pre></div>
 
 <h2>REFERENCES</h2>
 
