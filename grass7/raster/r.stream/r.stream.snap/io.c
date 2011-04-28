@@ -11,7 +11,7 @@ int ram_create_map(MAP * map, RASTER_MAP_TYPE data_type)
      * map type to be created must be CELL, FCELL, DCELL;
      * */
 
-    int r, c;
+    int r;
 
     if (data_type < 0 || data_type > 2)
 	G_fatal_error(_("ram_creat: Cannot create map of unrecognised type"));
@@ -233,7 +233,7 @@ int ram_write_map(MAP * map, char *output_map_name,
     return 0;
 }
 
-int ram_release_map(MAP * map)
+int ram_release_map(MAP *map)
 {
     /* 
      * free memory allocated for map, set pointer to null;
@@ -467,6 +467,8 @@ int seg_reset_map(SEG * seg, int value)
     for (r = 0; r < seg->nrows; ++r)
 	for (c = 0; c < seg->ncols; ++c)
 	    segment_put(&(seg->seg), &value, r, c);
+
+    return 0;
 }
 
 int seg_write_map(SEG * seg, char *output_map_name,

@@ -42,7 +42,7 @@ POINT fifo_return_del(void)
 	head = -1;
     }
     fifo_count--;
-	
+
     return fifo_points[++head];
 }
 
@@ -56,31 +56,31 @@ POINT fifo_return_del(void)
    continue; 
 
    It is simple trick but allow gives module its real funcionality
-   
+
    Buffer is an correction wchich allow to delinate basins even if vector point 
    or coordinates do not lie exactly on stream. In that case a small one pixel buffer
    is created. This is little risk functionality and must be used carefully.
  */
 
-int ram_add_outlets(CELL** basins, int outlets_num)
+int ram_add_outlets(CELL **basins, int outlets_num)
 {
-  int i;
+    int i;
 
-			for (i = 0; i < outlets_num; ++i)
+    for (i = 0; i < outlets_num; ++i)
 	basins[outlets[i].r][outlets[i].c] = outlets[i].val;
 
-	return 0;
+    return 0;
 }
 
-int seg_add_outlets(SEGMENT* basins, int outlets_num)
+int seg_add_outlets(SEGMENT *basins, int outlets_num)
 {
 
-  int i;
-	int* basins_cell;
- 
-		for (i = 0; i < outlets_num; ++i) {
-	basins_cell=&outlets[i].val;
-	segment_put(basins,basins_cell,outlets[i].r,outlets[i].c);
+    int i;
+    int *basins_cell;
+
+    for (i = 0; i < outlets_num; ++i) {
+	basins_cell = &outlets[i].val;
+	segment_put(basins, basins_cell, outlets[i].r, outlets[i].c);
     }
     return 0;
 }
@@ -89,7 +89,7 @@ int seg_add_outlets(SEGMENT* basins, int outlets_num)
    algorithm uses fifo queue for determining basins area. 
  */
 
-int ram_fill_basins(OUTLET outlet, CELL** basins, CELL** dirs)
+int ram_fill_basins(OUTLET outlet, CELL **basins, CELL **dirs)
 {
     int next_r, next_c;
     int r, c, val, i, j;
@@ -98,8 +98,8 @@ int ram_fill_basins(OUTLET outlet, CELL** basins, CELL** dirs)
     tail = 0;
     head = -1;
     fifo_count = 0;
-		r=outlet.r;
-		c=outlet.c;
+    r = outlet.r;
+    c = outlet.c;
     val = outlet.val;
 
     G_debug(1, "processing outlet at row %d col %d", r, c);
@@ -111,69 +111,70 @@ int ram_fill_basins(OUTLET outlet, CELL** basins, CELL** dirs)
 	    next_r = NR(i);
 	    next_c = NC(i);
 
-	    if (NOT_IN_REGION(i)) 
+	    if (NOT_IN_REGION(i))
 		continue;
-		j = DIAG(i);
+	    j = DIAG(i);
 
-		/* countributing cell, not yet assigned to a basin */
-		if (dirs[next_r][next_c] == j && basins[next_r][next_c] == 0) {
-		    basins[next_r][next_c] = val;
-				n_cell.r = next_r;
-				n_cell.c = next_c;
-		    fifo_insert(n_cell);
-		}
+	    /* countributing cell, not yet assigned to a basin */
+	    if (dirs[next_r][next_c] == j && basins[next_r][next_c] == 0) {
+		basins[next_r][next_c] = val;
+		n_cell.r = next_r;
+		n_cell.c = next_c;
+		fifo_insert(n_cell);
+	    }
 	}			/* end for i... */
 
 	n_cell = fifo_return_del();
 	r = n_cell.r;
 	c = n_cell.c;
-    } /* end while */
+    }				/* end while */
     return 0;
 }
 
-int seg_fill_basins(OUTLET outlet, SEGMENT* basins, SEGMENT* dirs)
+int seg_fill_basins(OUTLET outlet, SEGMENT *basins, SEGMENT *dirs)
 {
     int next_r, next_c;
     int r, c, val, i, j;
     POINT n_cell;
-		int dirs_cell, basins_cell;
+    int dirs_cell, basins_cell;
+
     tail = 0;
     head = -1;
     fifo_count = 0;
-		r=outlet.r;
-		c=outlet.c;
+    r = outlet.r;
+    c = outlet.c;
     val = outlet.val;
 
     G_debug(1, "processing outlet at row %d col %d", r, c);
 
-    segment_put(basins,&val,r,c);
-    
+    segment_put(basins, &val, r, c);
+
     while (tail != head) {
 	for (i = 1; i < 9; i++) {
 	    next_r = NR(i);
 	    next_c = NC(i);
 
-	    if (NOT_IN_REGION(i)) 
+	    if (NOT_IN_REGION(i))
 		continue;
-		j = DIAG(i);
+	    j = DIAG(i);
 
-		/* countributing cell, not yet assigned to a basin */
-		segment_get(basins,&basins_cell,next_r,next_c);
-		segment_get(dirs,&dirs_cell,next_r,next_c);
-		
-		if (dirs_cell == j && basins_cell == 0) {
-				segment_put(basins,&val,next_r,next_c);
-				n_cell.r = next_r;
-				n_cell.c = next_c;
-		    fifo_insert(n_cell);
-		}
+	    /* countributing cell, not yet assigned to a basin */
+	    segment_get(basins, &basins_cell, next_r, next_c);
+	    segment_get(dirs, &dirs_cell, next_r, next_c);
+
+	    if (dirs_cell == j && basins_cell == 0) {
+		segment_put(basins, &val, next_r, next_c);
+		n_cell.r = next_r;
+		n_cell.c = next_c;
+		fifo_insert(n_cell);
+	    }
 	}			/* end for i... */
 
 	n_cell = fifo_return_del();
 	r = n_cell.r;
 	c = n_cell.c;
 
-    } /* end while */
+    }				/* end while */
 
     return 0;
 }

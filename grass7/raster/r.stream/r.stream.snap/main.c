@@ -28,16 +28,13 @@ int main(int argc, char *argv[])
 
     struct GModule *module;
     struct Option *in_points_opt,
-	*in_points_cat_opt,
 	*out_points_opt,
 	*in_stream_opt,
 	*in_accum_opt,
 	*opt_accum_treshold, *opt_distance_treshold, *opt_swapsize;
 
-
-    int snap_to_streams;
     int i;
-    SEG map_dirs, map_streams, map_accum;
+    SEG map_streams, map_accum;
     SEGMENT *streams = NULL, *accum = NULL;
     int number_of_segs;
     int number_of_points;
@@ -92,7 +89,7 @@ int main(int argc, char *argv[])
 	exit(EXIT_FAILURE);
 
     number_of_segs = (int)atof(opt_swapsize->answer);
-    number_of_segs < 32 ? (int)(32 / 0.12) : number_of_segs / 0.12;
+    number_of_segs = number_of_segs < 32 ? (int)(32 / 0.12) : number_of_segs / 0.12;
 
     radius = atoi(opt_distance_treshold->answer);
     accum_treshold = atof(opt_accum_treshold->answer);

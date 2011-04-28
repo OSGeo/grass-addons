@@ -2,9 +2,10 @@
 
 int print_stats(int order_max)
 {
-	
+
     int i;
-		fflush(stdout);
+
+    fflush(stdout);
     /* summary statistics */
     fprintf(stdout, "\n");
     fprintf(stdout, "Summary:\n");
@@ -25,24 +26,21 @@ int print_stats(int order_max)
 	    stats_total.reg_bifur_ratio,
 	    stats_total.reg_length_ratio,
 	    stats_total.reg_area_ratio,
-	    stats_total.reg_slope_ratio, 
-	    stats_total.reg_gradient_ratio);    
-    fprintf(stdout, "\n");    
+	    stats_total.reg_slope_ratio, stats_total.reg_gradient_ratio);
+    fprintf(stdout, "\n");
     fprintf(stdout, "Avaraged stream ratios with standard deviations:\n");
     fprintf(stdout, " Bif.rt. | Len.rt. | Area.rt. | Slo.rt. | Grd.rt. \n");
     fprintf(stdout, " %7.4f | %7.4f | %8.4f | %7.4f | %7.4f\n",
 	    stats_total.bifur_ratio,
 	    stats_total.length_ratio,
 	    stats_total.area_ratio,
-	    stats_total.slope_ratio, 
-	    stats_total.gradient_ratio);
+	    stats_total.slope_ratio, stats_total.gradient_ratio);
 
     fprintf(stdout, " %7.4f | %7.4f | %8.4f | %7.4f | %7.4f\n",
 	    stats_total.std_bifur_ratio,
 	    stats_total.std_length_ratio,
 	    stats_total.std_area_ratio,
-	    stats_total.std_slope_ratio, 
-	    stats_total.std_gradient_ratio);
+	    stats_total.std_slope_ratio, stats_total.std_gradient_ratio);
     fprintf(stdout, "\n");
 
     /* base parameters */
@@ -99,30 +97,40 @@ int print_stats(int order_max)
     return 0;
 }
 
-int print_stats_total(void) {
-	fflush(stdout);
-	fprintf(stdout,"Catchment's characteristics (based on regresion):  \n");
-  fprintf(stdout,"Max order: %d \n",stats_total.order); 
-  fprintf(stdout,"Total number of streams: %d \n",stats_total.stream_num);
-  fprintf(stdout,"Total stream length (km): %2.4f \n",stats_total.sum_length / 1000);
-  fprintf(stdout,"Total cachment area (km2): %2.4f \n",stats_total.sum_area / 1000000);
-  fprintf(stdout,"Drainage density: %2.4f\n",stats_total.drainage_density * 1000); 
-  fprintf(stdout,"Stream frequency: %2.4f \n",stats_total.stream_frequency * 1000000);
-  fprintf(stdout,"Bifurcation ratio: %2.4f \n",stats_total.reg_bifur_ratio); 
-  fprintf(stdout,"Length ratio: %2.4f \n",stats_total.reg_length_ratio);
-  fprintf(stdout,"Area ratio: %2.4f \n",stats_total.reg_area_ratio);
-  fprintf(stdout,"Slope ratio: %2.4f \n",stats_total.reg_slope_ratio);
-  fprintf(stdout,"Gradient ratio: %2.4f \n",stats_total.reg_gradient_ratio); 
-  fflush(stdout);
-  return 0;
+int print_stats_total(void)
+{
+    fflush(stdout);
+    fprintf(stdout, "Catchment's characteristics (based on regresion):  \n");
+    fprintf(stdout, "Max order: %d \n", stats_total.order);
+    fprintf(stdout, "Total number of streams: %d \n", stats_total.stream_num);
+    fprintf(stdout, "Total stream length (km): %2.4f \n",
+	    stats_total.sum_length / 1000);
+    fprintf(stdout, "Total cachment area (km2): %2.4f \n",
+	    stats_total.sum_area / 1000000);
+    fprintf(stdout, "Drainage density: %2.4f\n",
+	    stats_total.drainage_density * 1000);
+    fprintf(stdout, "Stream frequency: %2.4f \n",
+	    stats_total.stream_frequency * 1000000);
+    fprintf(stdout, "Bifurcation ratio: %2.4f \n",
+	    stats_total.reg_bifur_ratio);
+    fprintf(stdout, "Length ratio: %2.4f \n", stats_total.reg_length_ratio);
+    fprintf(stdout, "Area ratio: %2.4f \n", stats_total.reg_area_ratio);
+    fprintf(stdout, "Slope ratio: %2.4f \n", stats_total.reg_slope_ratio);
+    fprintf(stdout, "Gradient ratio: %2.4f \n",
+	    stats_total.reg_gradient_ratio);
+    fflush(stdout);
+    return 0;
 }
 
-int print_stats_orders(int order_max) {
+int print_stats_orders(int order_max)
+{
 
-	int i;
-  fflush(stdout);
-  fprintf(stdout,"Order's summary: \n");
-  fprintf(stdout,"order,num_of_streams,avg_length,avg_area,avg_slope,avg_grad,avg_elev.diff,sum_length,sum_area\n");
+    int i;
+
+    fflush(stdout);
+    fprintf(stdout, "Order's summary: \n");
+    fprintf(stdout,
+	    "order,num_of_streams,avg_length,avg_area,avg_slope,avg_grad,avg_elev.diff,sum_length,sum_area\n");
 
     for (i = 1; i <= order_max; ++i) {
 	fprintf(stdout, "%d,%d,%f,%f,%f,%f,%f,%f,%f\n",
@@ -131,11 +139,11 @@ int print_stats_orders(int order_max) {
 		ord_stats[i].avg_length / 1000,
 		ord_stats[i].avg_area / 1000000,
 		ord_stats[i].avg_slope,
-		ord_stats[i].avg_gradient, 
+		ord_stats[i].avg_gradient,
 		ord_stats[i].avg_elev_diff,
 		ord_stats[i].sum_length / 1000,
 		ord_stats[i].sum_area / 1000000);
     }
-  fflush(stdout);
-  return 0;
+    fflush(stdout);
+    return 0;
 }

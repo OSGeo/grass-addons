@@ -5,15 +5,15 @@
 int fifo_insert(POINT point);
 POINT fifo_return_del(void);
 /* ram version */
-int ram_init_streams(CELL** streams, CELL** dirs, FCELL** elevation);
-int ram_calculate_streams(CELL** streams, CELL** dirs, FCELL** elevation);
-double ram_calculate_basins_area(CELL** dirs, int r, int c);
-int ram_calculate_basins(CELL** dirs);
+int ram_init_streams(CELL **streams, CELL **dirs, FCELL **elevation);
+int ram_calculate_streams(CELL **streams, CELL **dirs, FCELL **elevation);
+double ram_calculate_basins_area(CELL **dirs, int r, int c);
+int ram_calculate_basins(CELL **dirs);
 /* seg version */
-int seg_init_streams(SEGMENT* streams, SEGMENT* dirs, SEGMENT* elevation);
-int seg_calculate_streams(SEGMENT* streams, SEGMENT* dirs, SEGMENT* elevation);
-double seg_calculate_basins_area(SEGMENT* dirs, int r, int c);
-int seg_calculate_basins(SEGMENT* dirs);
+int seg_init_streams(SEGMENT *streams, SEGMENT *dirs, SEGMENT *elevation);
+int seg_calculate_streams(SEGMENT *streams, SEGMENT *dirs, SEGMENT *elevation);
+double seg_calculate_basins_area(SEGMENT *dirs, int r, int c);
+int seg_calculate_basins(SEGMENT *dirs);
 
 /* stats calculate */
 double stats_linear_reg(int max_order, double* statistic);

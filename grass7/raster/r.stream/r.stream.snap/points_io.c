@@ -9,7 +9,6 @@ int read_points(char *in_point, SEGMENT * streams, SEGMENT * accum)
     int num_point = 0;
     int total_points = 0;
     int type, i, j, cat;
-    int r, c;
     struct line_pnts *sites;
     struct line_cats *cats;
     double absaccum;

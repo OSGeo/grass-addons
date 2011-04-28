@@ -1,6 +1,6 @@
 #include "local_proto.h"
-#define SQRT(x) ((x) * (x))
-static int num;
+
+#define SQRT(x) ((x) * (x))   /* ??? */
 
 int create_distance_mask(int radius)
 {
@@ -22,13 +22,12 @@ int create_distance_mask(int radius)
     return 0;
 }
 
-int snap_point(OUTLET * point, int radius, SEGMENT * streams, SEGMENT * accum,
+int snap_point(OUTLET *point, int radius, SEGMENT *streams, SEGMENT *accum,
 	       double accum_treshold)
 {
 
     int i, j, di = -1, dj = -1;
     int status = 3;
-    int number_of_cells = radius * radius;
     int teststream = 0;
     float cur_distance = radius;
     float distance = 0;
