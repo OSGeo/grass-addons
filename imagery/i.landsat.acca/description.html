@@ -41,6 +41,13 @@ i.landsat.toar input_prefix=L5121060_06020060714. output_prefix=L5121060_0602006
 i.landsat.acca -5 -f input_prefix=L5121060_06020060714_toar. output=L5121060_06020060714.acca
 </pre></div>
 
+Using the cloud mask:
+<div class="code"><pre>
+ # Mask out the clouds:
+ r.mapcalc "MASK = if(isnull(L5121060_06020060714.acca))"
+ d.rast L5121060_06020060714_toar.1
+</pre></div>
+
 <h2>REFERENCES</h2>
 
 <ol>
