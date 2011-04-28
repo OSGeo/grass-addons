@@ -92,18 +92,18 @@ def main():
 
     # flood map
     print 'Calculating flood raster map.. '
-    grass.mapcalc("r_flood = if($rast1 >  $mti_th, 1, null())", rast1 = r_mti, mti_th = mti_th)
+    grass.mapcalc("r_flood = if($rast1 >  $mti_th, 1, 0)", rast1 = r_mti, mti_th = mti_th)
 
-    ## # Attempt to eliminate isolated pixels (doesn't seem to work properly)
+    ## # Deleting isolated pixels 
     # Recategorizes data in a raster map by grouping cells that form physically discrete areas into unique categories (preliminar to r.area)
     print 'Running r.clump..'
-    grass.run_command('r.clump', input = 'r_flood', output = 'r_clump')
+    grass.run_command('r.clump', input = 'r_flood', output = 'r_clump', flags = '-o')
     
     # Delete areas of less than a threshold of cells (corresponding to 1 square kilometer)
     # Calculating threshold
-    th = 1000000 / resolution**2
-    print 'Deleting areas of less than ', th, ' cells.. '
-    grass.run_command('r.area', input = 'r_clump', output = 'r_flood_th', treshold = 'th')
+    th = int(1000000 / resolution**2)
+    print 'Deleting areas of less than ', th, ' cells.. '   
+    grass.run_command('r.area', input = 'r_clump', output = 'r_flood_th', treshold = th, flags = 'b')
 
     # New flood map
     grass.mapcalc("$r_flood_map = $rast1 / $rast1", r_flood_map = r_flood_map, rast1 = 'r_flood_th')
