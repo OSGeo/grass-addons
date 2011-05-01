@@ -1,29 +1,64 @@
+<h2>DESCRIPTION</h2>
+
 <h2>OPTIONS</h2>
 <DL>
 <DT><b>-r</b></DT>
 <DD>Directions and azimut output in radians. Default is degrees.</DD>
 <DT><b>-m</b></DT>
-<DD>Only for very large data sets. Use segment library to optimize memory consumption during analysis</DD>
+<DD>Only for very large data sets. Use segment library to optimize memory
+consumption during analysis</DD>
 <DT><b>stream</b></DT>
-<DD>Stream network: name of input stream map. Streams shall be ordered according one of the r.stream.order ordering system as well as unordered (with original stream identifiers)  Because streams network produced by r.watershed and r.stream.extract may slighty differ in detail it is required to use both stream and direction map produced by the same module. Stream background shall have NULL value or zero value. Background values of NULL are by default produced by r.watershed and r.stream.extract. If not 0 or NULL use <a href="r.mapcalc.html">r.mapcalc</a> to set background values to null.  
+<DD>Stream network: name of input stream map. Streams shall be ordered according
+one of the r.stream.order ordering system as well as unordered (with original
+stream identifiers)  Because streams network produced by r.watershed and
+r.stream.extract may slighty differ in detail it is required to use both stream
+and direction map produced by the same module. Stream background shall have NULL
+value or zero value. Background values of NULL are by default produced by
+r.watershed and r.stream.extract. If not 0 or NULL use <a
+href="r.mapcalc.html">r.mapcalc</a> to set background values to null.  
 </DD>
 <DT><b>dirs</b></DT>
-<DD>Flow direction: name of input direction map produced by r.watershed or r.stream.extract. If r.stream.extract output map is used, it only has non-NULL values in places where streams occur. NULL (nodata) cells are ignored, zero and negative values are valid direction data if they vary from -8 to 8 (CCW from East in steps of 45 degrees). Direction map shall be of type CELL values. Region resolution and map resoultion must be the same. 
-Also <em>stream</em> network map must have the same resolution. It is checked by default. If resolutions differ the module informs about it and stops. Region boundary and maps boundary may be differ but it may lead to unexpected results.</DD>
+<DD>Flow direction: name of input direction map produced by r.watershed or
+r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
+values in places where streams occur. NULL (nodata) cells are ignored, zero and
+negative values are valid direction data if they vary from -8 to 8 (CCW from
+East in steps of 45 degrees). Direction map shall be of type CELL values. Region
+resolution and map resoultion must be the same. 
+Also <em>stream</em> network map must have the same resolution. It is checked by
+default. If resolutions differ the module informs about it and stops. Region
+boundary and maps boundary may be differ but it may lead to unexpected
+results.</DD>
 <DT><b>elevation</b></DT>
-<DD>Elevation: name of input elevation map. Map can be of type CELL, FCELL or DCELL. It is not restricted to resolution of region settings as streams and dirs.</DD>
+<DD>Elevation: name of input elevation map. Map can be of type CELL, FCELL or
+DCELL. It is not restricted to resolution of region settings as streams and
+dirs.</DD>
 <DT><b>length</b></DT>
-<DD>Integer values indicating the search length (in cells) to determine stright line. The longest length parameter the module treats more tolerant local stream undulation and inequalities. Default value of 15 is suitable for  30 meters DEMS. More detail DEMS may requre longer length.</DD>
+<DD>Integer values indicating the search length (in cells) to determine stright
+line. The longest length parameter the module treats more tolerant local stream
+undulation and inequalities. Default value of 15 is suitable for  30 meters
+DEMS. More detail DEMS may requre longer length.</DD>
 
 <DT><b>skip</b></DT>
-<DD>Integer values indicating the length (in cells) local short segment to skip and join them to the longer neigbour. The shortest length parameter the more short segments will be produced by the module due to undulation and inequalities. Default value of 5 is suitable for  30 meters DEMS. More details DEMS may requre longer length.</DD>
+<DD>Integer values indicating the length (in cells) local short segment to skip
+and join them to the longer neigbour. The shortest length parameter the more
+short segments will be produced by the module due to undulation and
+inequalities. Default value of 5 is suitable for  30 meters DEMS. More details
+DEMS may requre longer length.</DD>
 
 <DT><b>treshold</b></DT>
-<DD>real value indicates the internal angle between upstream and downsteam direction to treat actual cell as lying on the stright line. Grater value (up to 180 degrees) produces more segments. Lesser values produced less segments. Values below 90 in most cases will not produce any addational segments to these resulting from ordering
+<DD>real value indicates the internal angle between upstream and downsteam
+direction to treat actual cell as lying on the stright line. Grater value (up to
+180 degrees) produces more segments. Lesser values produced less segments.
+Values below 90 in most cases will not produce any addational segments to these
+resulting from ordering
 </DL>
 <DL>
 <h2>OUTPUTS</h2>
-<P>The module produces two vector maps: one representing original segments (where segment is a streamline where its order remains unchanged) and second divided into near stright line sectors resulting form segmentation proccess. Most of segment and sectors attributes are the same as in r.stream.order vector output.</p>
+<P>The module produces two vector maps: one representing original segments
+(where segment is a streamline where its order remains unchanged) and second
+divided into near stright line sectors resulting form segmentation proccess.
+Most of segment and sectors attributes are the same as in r.stream.order vector
+output.</p>
 <DL>
 <DT><b>segments</b></DT>
 <DD>
@@ -36,21 +71,30 @@ Vector map where every segment has its own category and following attributes:
 <li><B>direction</B>: double precision, full segment direction (0-360)
 <li><B>azimuth</B>: double precision, full segment azimuth (0-180) 
 <li><B>length</B>: double precision, segment length
-<li><B>stright</B>: double precision, length of stright line between segment nodes
+<li><B>stright</B>: double precision, length of stright line between segment
+nodes
 <li><B>sinusoid</B>: double precision, sinusoid (length/stright)
-<li><B>elev_min</B>: double precision, minimum elevation (elevation at segment start)
-<li><B>elev_max</B>: double precision, maximum elevation (elevation at segment end)
-<li><B>s_drop</B>: double precision, deifference between start and end of the segment
+<li><B>elev_min</B>: double precision, minimum elevation (elevation at segment
+start)
+<li><B>elev_max</B>: double precision, maximum elevation (elevation at segment
+end)
+<li><B>s_drop</B>: double precision, deifference between start and end of the
+segment
 <li><B>gradient</B>: double precision, drop/length
-<li><B>out_direction</B>: double precision, direction (0-360) of segment end sector
+<li><B>out_direction</B>: double precision, direction (0-360) of segment end
+sector
 <li><B>out_azimuth</B>: double precision,  azimuth (0-180) of segment end sector
 <li><B>out_length</B>: double precision, length of segment end sector
 <li><B>out_drop</B>: double precision, drop of segment end sector
 <li><B>out_gradient</B>: double precision, gradient of segment end sector
-<li><B>tangent_dir</B>: double precision, direction of tangent in segment outlet to the next stream 
-<li><B>tangent_azimuth</B>: double precision, azimuth of tangent in segment outlet to the next stream 
-<li><B>next_direction</B>: double precision, direction of next stream in join with current segment 
-<li><B>next_azimuth</B>: double precision, azimuth of next stream in join with current segment 
+<li><B>tangent_dir</B>: double precision, direction of tangent in segment outlet
+to the next stream 
+<li><B>tangent_azimuth</B>: double precision, azimuth of tangent in segment
+outlet to the next stream 
+<li><B>next_direction</B>: double precision, direction of next stream in join
+with current segment 
+<li><B>next_azimuth</B>: double precision, azimuth of next stream in join with
+current segment 
 </ul>
 <img src="dirs.png">
 </DD>
@@ -63,28 +107,65 @@ Vector map where every segment has its own category and following attributes:
 <li><B>direction</B>: double precision, sector direction
 <li><B>azimuth</B>: double precision, sector azimuth
 <li><B>length</B>: double precision, sector length
-<li><B>stright</B>: double precision, length of stright line between sector nodes
+<li><B>stright</B>: double precision, length of stright line between sector
+nodes
 <li><B>sinusoid</B>: double precision, sinusoid (length/stright)
-<li><B>elev_min</B>: double precision, minimum elevation (elevation at sector start)
-<li><B>elev_max</B>: double precision, minimum elevation (elevation at sector end)
-<li><B>s_drop</B>: double precision, deifference between start and end of the sector
+<li><B>elev_min</B>: double precision, minimum elevation (elevation at sector
+start)
+<li><B>elev_max</B>: double precision, minimum elevation (elevation at sector
+end)
+<li><B>s_drop</B>: double precision, deifference between start and end of the
+sector
 <li><B>gradient</B>: double precision, drop/length
 </ul>
 <img src="sectors.png">
 Relation between segments and sector may be set up by segment key.
 </DD>
 </DL>
-<h2>DESCRIPTION</h2>
 <P>
-The main idea comes from works of Horton (1932) and Howard (1971, 1990). The module is designed to inverstigate network lineaments and calculate angle relations between tributaries and its major streams. The main problem in calculating directional parameters is that streams usually are not straight lines. Therefore as the first step of the procedure, partitioning of streams into near-straight-line segments is required.
+The main idea comes from works of Horton (1932) and Howard (1971, 1990). The
+module is designed to inverstigate network lineaments and calculate angle
+relations between tributaries and its major streams. The main problem in
+calculating directional parameters is that streams usually are not straight
+lines. Therefore as the first step of the procedure, partitioning of streams
+into near-straight-line segments is required.
 <P>
-The segmentation process uses a method similar to the one used by Van & Ventura (1997) to detect corners and partition curves into straight lines and gentle arcs. Because it is almost impossible to determine exactly straight sections without creating numerous very short segments, the division process requires some approximation. The approximation is made based on three parameters: (1) the downstream/upstream search length, (2) the short segment skipping threshold, and (3) the maximum angle between downstream/upstream segments to be considered as a straight line. In order to designate straight sections of the streams, the algorithm is searching for those points where curves significantly change their direction.
-The definition of stream segments depends on the ordering method selected by the user,  Strahler's, Horton's or Hack's main stream, or the network may remain unordered. All junctions of streams to streams of higher order are always split points, but for ordered networks, streams of higher order may be divided into sections which ignore junctions with streams of lower order. In unordered networks all junctions are always split points.
-In extended mode the module also calculates the direction of a stream to its higher order stream If the higher order stream begins at the junction with the current stream (Strahler's ordering only) or if the network is unordered, the direction is calculated as the direction of the line between junction point and downstream point (Howard 1971) within the user-defined global search distance. If a higher order stream continues at the junction, its direction is calculated as the direction of the tangent line to the stream of higher order at the junction point. To avoid local fluctuation, the tangent line is approximated as a secant line joining downstream/upstream points at a distance globally defined by the search length parameter (1). Such a definition of the angle between streams is not fully compatible with Horton's original criterion.
+The segmentation process uses a method similar to the one used by Van & Ventura
+(1997) to detect corners and partition curves into straight lines and gentle
+arcs. Because it is almost impossible to determine exactly straight sections
+without creating numerous very short segments, the division process requires
+some approximation. The approximation is made based on three parameters: (1) the
+downstream/upstream search length, (2) the short segment skipping threshold, and
+(3) the maximum angle between downstream/upstream segments to be considered as a
+straight line. In order to designate straight sections of the streams, the
+algorithm is searching for those points where curves significantly change their
+direction.
+The definition of stream segments depends on the ordering method selected by the
+user,  Strahler's, Horton's or Hack's main stream, or the network may remain
+unordered. All junctions of streams to streams of higher order are always split
+points, but for ordered networks, streams of higher order may be divided into
+sections which ignore junctions with streams of lower order. In unordered
+networks all junctions are always split points.
+In extended mode the module also calculates the direction of a stream to its
+higher order stream If the higher order stream begins at the junction with the
+current stream (Strahler's ordering only) or if the network is unordered, the
+direction is calculated as the direction of the line between junction point and
+downstream point (Howard 1971) within the user-defined global search distance.
+If a higher order stream continues at the junction, its direction is calculated
+as the direction of the tangent line to the stream of higher order at the
+junction point. To avoid local fluctuation, the tangent line is approximated as
+a secant line joining downstream/upstream points at a distance globally defined
+by the search length parameter (1). Such a definition of the angle between
+streams is not fully compatible with Horton's original criterion.
 
 <h2>NOTES</h2>
 <P>
-Module can work only if direction map, stream map and region map has same settings. It is also required that stream map and direction map come from the same source. For lots of reason this limitation probably cannot be omitted.   this means if stream map comes from r.stream.extract also direction map from r.stream.extract must be used. If stream network was generated with MFD method also MFD direction map must be used.
+Module can work only if direction map, stream map and region map has same
+settings. It is also required that stream map and direction map come from the
+same source. For lots of reason this limitation probably cannot be omitted.  
+this means if stream map comes from r.stream.extract also direction map from
+r.stream.extract must be used. If stream network was generated with MFD method
+also MFD direction map must be used.
 
 
 <h2>SEE ALSO</h2>
@@ -100,10 +181,19 @@ Module can work only if direction map, stream map and region map has same settin
 </em>
 
 <h2>REFERENCES</h2>
-<P>Horton, R. E., (1932). Drainage basin characteristics: Am. Geophys. Union Trans., (3), 350-361.
-<P>Howard, A.D. (1971). Optimal angles of stream junction: Geometric, Stability to capture and Minimum Power Criteria, Water Resour. Res. 7(4), 863-873.
-<P>Howard, A.D. (1990). Theoretical model of optimal drainage networks Water Resour. Res., 26(9),  2107-2117.
-<P>Van, W., Ventura, J.A. (1997). Segmentation of Planar Curves into Straight-Line Segments and Elliptical Arcs, Graphical Models and Image Processing 59(6), 484-494.
+<P>Horton, R. E., (1932). Drainage basin characteristics: Am. Geophys. Union
+Trans., (3), 350-361.
+<P>Howard, A.D. (1971). Optimal angles of stream junction: Geometric, Stability
+to capture and Minimum Power Criteria, Water Resour. Res. 7(4), 863-873.
+<P>Howard, A.D. (1990). Theoretical model of optimal drainage networks Water
+Resour. Res., 26(9),  2107-2117.
+<P>Van, W., Ventura, J.A. (1997). Segmentation of Planar Curves into
+Straight-Line Segments and Elliptical Arcs, Graphical Models and Image
+Processing 59(6), 484-494.
 
 <h2>AUTHOR</h2>
-Jarek Jasiewicz, Adam Mickiewicz University, Geoecology and Geoinformation Institute.
+Jarek Jasiewicz, Adam Mickiewicz University, Geoecology and Geoinformation
+Institute.
+
+<p><i>Last changed: $Date$</i>
+
