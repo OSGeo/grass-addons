@@ -144,7 +144,7 @@ sample dataset spearfish60 and uses valleys determined with
 <a href="r.param.scale.html">r.param.scale</a> to weigh an accumulation
 map produced with <a href="r.watershed.html">r.watershed</a>.
 
-<pre>
+<div class="code"><pre>
 # set region
 g.region -p rast=elevation.10m@PERMANENT
 
@@ -170,13 +170,13 @@ r.mapcalc "elevation.10m.acc.weighed = elevation.10m.acc * weight"
 
 # copy color table from original accumulation map
 r.colors map=elevation.10m.acc.weighed raster=elevation.10m.acc
-</pre>
+</pre></div>
 
 Display both the original and the weighed accumulation map.
 <br>
 Compare them and proceed if the weighed accumulation map makes sense.
 
-<pre>
+<div class="code"><pre>
 # extract streams
 r.stream.extract elevation=elevation.10m@PERMANENT \
                  accumulation=elevation.10m.acc.weighed \
@@ -188,7 +188,7 @@ r.stream.extract elevation=elevation.10m@PERMANENT \
                  accumulation=elevation.10m.acc \
 		 threshold=1000 \
 		 stream_rast=elevation.10m.streams.noweight
-</pre>
+</pre></div>
 
 Now display both stream maps and decide which one is more realistic.
 
