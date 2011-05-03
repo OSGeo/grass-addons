@@ -62,7 +62,7 @@ def main():
     # Detect cellsize of the DEM
     info_region = grass.read_command('g.region', flags = 'p', rast = '%s' % (r_elevation))
     dict_region = grass.parse_key_val(info_region, ':')
-    resolution = float(dict_region['nsres'])
+    resolution = (float(dict_region['nsres']) + float(dict_region['ewres']))/2
     grass.message("Cellsize : %s " % resolution) 
 
     # Flow accumulation map MFD
