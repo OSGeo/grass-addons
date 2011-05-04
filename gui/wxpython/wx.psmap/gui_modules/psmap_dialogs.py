@@ -792,7 +792,8 @@ class PageSetup(InstructionObject):
                 if line.startswith('paper'): 
                     if len(line.split()) > 1:
                         pformat = line.split()[1]
-                        availableFormats = self._toDict(grass.read_command('ps.map', flags = 'p'))
+                        availableFormats = self._toDict(grass.read_command('ps.map', flags = 'p',
+                                                                           quiet = True))
                         # e.g. paper a3 
                         try:
                             instr['Format'] = pformat
@@ -1728,7 +1729,7 @@ class PageSetupDialog(PsmapDialog):
         PsmapDialog.__init__(self, parent = parent, id = id, title = "Page setup",  settings = settings)
         
         self.cat = ['Units', 'Format', 'Orientation', 'Width', 'Height', 'Left', 'Right', 'Top', 'Bottom']
-        paperString = RunCommand('ps.map', flags = 'p', read = True)
+        paperString = RunCommand('ps.map', flags = 'p', read = True, quiet = True)
         self.paperTable = self._toList(paperString) 
         self.unitsList = self.unitConv.getPageUnits()
         self.pageSetupDict = settings[id].GetInstruction()
@@ -5695,8 +5696,9 @@ def GetMapBounds(filename):
     """!Run ps.map -b to get information about map bounding box"""
     try:
         bb = map(float, grass.read_command('ps.map',
-                                        flags = 'b',
-                                        input = filename).strip().split('=')[1].split(','))
+                                           flags = 'b',
+                                           quiet = True,
+                                           input = filename).strip().split('=')[1].split(','))
     except (grass.ScriptError, IndexError):
         GError(message = _("Unable to run `ps.map -b`"))
         return None
