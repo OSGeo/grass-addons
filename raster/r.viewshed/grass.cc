@@ -1,3 +1,4 @@
+
 /****************************************************************************
  *
  * MODULE:       r.viewshed
@@ -645,17 +646,21 @@ save_grid_to_GRASS(Grid * grid, char *filename, RASTER_MAP_TYPE type,
     for (i = 0; i < G_window_rows(); i++) {
 	for (j = 0; j < G_window_cols(); j++) {
 
-	    switch (type) {
-	    case CELL_TYPE:
-		((CELL *) outrast)[j] = (CELL) fun(grid->grid_data[i][j]);
-		break;
-	    case FCELL_TYPE:
-		((FCELL *) outrast)[j] = (FCELL) fun(grid->grid_data[i][j]);
-		break;
-	    case DCELL_TYPE:
-		((DCELL *) outrast)[j] = (DCELL) fun(grid->grid_data[i][j]);
-		break;
+	    if (is_visible(grid->grid_data[i][j])) {
+		switch (type) {
+		case CELL_TYPE:
+		    ((CELL *) outrast)[j] = (CELL) fun(grid->grid_data[i][j]);
+		    break;
+		case FCELL_TYPE:
+		    ((FCELL *) outrast)[j] = (FCELL) fun(grid->grid_data[i][j]);
+		    break;
+		case DCELL_TYPE:
+		    ((DCELL *) outrast)[j] = (DCELL) fun(grid->grid_data[i][j]);
+		    break;
+		}
 	    }
+	    else
+		writeNodataValue(outrast, j, type);
 	}			/* for j */
 	G_put_raster_row(outfd, outrast, type);
     }				/* for i */
@@ -756,8 +761,12 @@ save_vis_elev_to_GRASS(Grid * visgrid, char *elevfname, char *visfname,
 		/* elevation cannot be null */
 		assert(!isNull);
 		/* write INVISIBLE */
+		/*
 		viewshed_value = INVISIBLE;
 		writeValue(visrast, j, viewshed_value, elev_data_type);
+		*/
+		/* write  NODATA */
+		writeNodataValue(visrast, j, elev_data_type);
 	    }
 	    else {
 		/* nodata */
@@ -864,7 +873,10 @@ save_io_visibilitygrid_to_GRASS(IOVisibilityGrid * visgrid,
 	    if (curResult->row == i && curResult->col == j) {
 		/*cell is recodred in the visibility stream: it must be
 		   either visible, or NODATA  */
-		writeValue(visrast, j, fun(curResult->angle), type);
+		if (is_visible(curResult->angle))
+		    writeValue(visrast, j, fun(curResult->angle), type);
+		else
+		    writeNodataValue(visrast, j, type);
 
 		/*read next element of stream */
 		if (counter < streamLen) {
@@ -874,8 +886,8 @@ save_io_visibilitygrid_to_GRASS(IOVisibilityGrid * visgrid,
 		}
 	    }
 	    else {
-		/*  this cell is not in stream, so it is  invisible */
-		writeValue(visrast, j, fun(INVISIBLE), type);
+		/*  this cell is not in stream, so it is invisible */
+		writeNodataValue(visrast, j, type);
 	    }
 	}			/* for j */
 
@@ -1000,7 +1012,7 @@ save_io_vis_and_elev_to_GRASS(IOVisibilityGrid * visgrid, char *elevfname,
 	    }
 	    else {
 		/*  this cell is not in stream, so it is  invisible */
-		writeValue(visrast, j, INVISIBLE, elev_data_type);
+		    writeNodataValue(visrast, j, elev_data_type);
 	    }
 	}			/* for j */
 
