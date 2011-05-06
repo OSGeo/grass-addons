@@ -5,11 +5,12 @@
  *
  * AUTHOR(S):    Laura Toma, Bowdoin College - ltoma@bowdoin.edu
  *               Yi Zhuang - yzhuang@bowdoin.edu
-
+ *
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
+ *               Markus Metz: surface interpolation
  *
- * Date:         oct 2008 
+ * Date:         april 2011 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -17,12 +18,10 @@
  * considered visible to each other if the cells where they belong are
  * visible to each other.  Two cells are visible to each other if the
  * line-of-sight that connects their centers does not intersect the
- * terrain. The height of a cell is assumed to be constant, and the
- * terrain is viewed as a tesselation of flat cells.  This model is
- * suitable for high resolution rasters; it may not be accurate for
- * low resolution rasters, where it may be better to interpolate the
- * height at a point based on the neighbors, rather than assuming
- * cells are "flat".  The viewshed algorithm is efficient both in
+ * terrain. The terrain is NOT viewed as a tesselation of flat cells, 
+ * i.e. if the line-of-sight does not pass through the cell center, 
+ * elevation is determined using bilinear interpolation.
+ * The viewshed algorithm is efficient both in
  * terms of CPU operations and I/O operations. It has worst-case
  * complexity O(n lg n) in the RAM model and O(sort(n)) in the
  * I/O-model.  For the algorithm and all the other details see the
@@ -41,13 +40,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+extern "C"
+{
+#include "grass/gis.h"
+#include "grass/glocale.h"
+}
+
 #include "viewshed.h"
 #include "visibility.h"
 #include "eventlist.h"
 #include "statusstructure.h"
-#ifdef __GRASS
 #include "grass.h"
-#endif
 
 
 #define VIEWSHEDDEBUG if(0)
@@ -65,27 +68,25 @@ long long get_viewshed_memory_usage(GridHeader * hd)
     /* the output  visibility grid */
     long long totalcells = (long long)hd->nrows * (long long)hd->ncols;
 
-    printf("rows=%d, cols=%d, total = %lld\n", hd->nrows, hd->ncols,
+    G_verbose_message(_("rows=%d, cols=%d, total = %lld"), hd->nrows, hd->ncols,
 	   totalcells);
     long long gridMemUsage = totalcells * sizeof(float);
 
-    VIEWSHEDDEBUG {
-	printf("grid usage=%lld\n", gridMemUsage);
-    }
+    G_debug(1, "grid usage=%lld", gridMemUsage);
 
     /* the event array */
     long long eventListMemUsage = totalcells * 3 * sizeof(AEvent);
 
-    VIEWSHEDDEBUG {
-	printf("memory_usage: eventList=%lld\n", eventListMemUsage);
-    }
+    G_debug(1, "memory_usage: eventList=%lld", eventListMemUsage);
 
     /* the double array <data> that stores all the cells in the same row
        as the viewpoint */
     long long dataMemUsage = (long long)(hd->ncols * sizeof(double));
 
-    printf("viewshed memory usage: size AEvent=%dB, nevents=%lld, \
- total=%lld B (%d MB)\n", (int)sizeof(AEvent), totalcells * 3, gridMemUsage + eventListMemUsage + dataMemUsage, (int)((gridMemUsage + eventListMemUsage + dataMemUsage) >> 20));
+    G_debug(1, "viewshed memory usage: size AEvent=%dB, nevents=%lld, \
+            total=%lld B (%d MB)", (int)sizeof(AEvent), totalcells * 3,
+            gridMemUsage + eventListMemUsage + dataMemUsage,
+	    (int)((gridMemUsage + eventListMemUsage + dataMemUsage) >> 20));
 
     return (gridMemUsage + eventListMemUsage + dataMemUsage);
 
@@ -100,22 +101,16 @@ print_viewshed_timings(Rtimer initEventTime,
 
     char timeused[1000];
 
-    printf("sweep timings:\n");
+    G_verbose_message(_("sweep timings:"));
     rt_sprint_safe(timeused, initEventTime);
-    printf("\t%30s", "init events: ");
-    printf(timeused);
-    printf("\n");
+    G_verbose_message("init events: %s", timeused);
 
     rt_sprint_safe(timeused, sortEventTime);
-    printf("\t%30s", "sort events: ");
-    printf(timeused);
-    printf("\n");
+    G_verbose_message("sort events: %s", timeused);
 
     rt_sprint_safe(timeused, sweepTime);
-    printf("\t%30s", "process events: ");
-    printf(timeused);
-    printf("\n");
-    fflush(stdout);
+    G_verbose_message("process events: %s", timeused);
+
     return;
 }
 
@@ -123,8 +118,8 @@ print_viewshed_timings(Rtimer initEventTime,
 /* ------------------------------------------------------------ */
 static void print_statusnode(StatusNode sn)
 {
-    printf("processing (row=%d, col=%d, elev=%f, dist=%f, grad=%f)",
-	   sn.row, sn.col, sn.elev, sn.dist2vp, sn.gradient);
+    G_debug(3, "processing (row=%d, col=%d, dist=%f, grad=%f)",
+	   sn.row, sn.col, sn.dist2vp, sn.gradient[1]);
     return;
 }
 
@@ -143,40 +138,37 @@ AEvent *allocate_eventlist(GridHeader * hd)
     long long totalsize = hd->ncols * hd->nrows * 3;
 
     totalsize *= sizeof(AEvent);
-    printf("total size of eventlist is %lld B (%d MB);  ",
+    G_debug(1, "total size of eventlist is %lld B (%d MB);  ",
 	   totalsize, (int)(totalsize >> 20));
 
     /* what's the size of size_t on this machine? */
     int sizet_size;
 
     sizet_size = (int)sizeof(size_t);
-    printf("size_t is %lu B\n", sizeof(size_t));
+    G_debug(1, "size_t is %d B", sizet_size);
 
     if (sizet_size >= 8) {
-	printf("64-bit platform, great.\n");
+	G_debug(1, "64-bit platform, great.");
     }
     else {
 	/* this is the max value of size_t */
 	long long maxsizet = ((long long)1 << (sizeof(size_t) * 8)) - 1;
 
-	printf("max size_t is %lld\n", maxsizet);
+	G_debug(1, "max size_t is %lld", maxsizet);
 
 	/* checking whether allocating totalsize causes an overflow */
 	if (totalsize > maxsizet) {
-	    printf
-		("running the program in-memory mode requires memory beyond the capability of the platform. Use external mode, or 64-bit platform.\n");
-	    exit(1);
+	    G_fatal_error(_("Running the program in-memory mode requires " \
+	                    "memory beyond the capability of the platform. " \
+			    "Use external mode, or a 64-bit platform."));
 	}
     }
 
-    printf("allocating..");
-#ifdef __GRASS__
+    G_debug(1, "allocating eventList...");
     eventList = (AEvent *) G_malloc(totalsize);
-#else
-    eventList = (AEvent *) malloc(totalsize * sizeof(char));
-#endif
+
     assert(eventList);
-    printf("..ok\n");
+    G_debug(1, "...ok");
 
     return eventList;
 }
@@ -206,8 +198,7 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
 {
 
     assert(inputfname && hd && vp);
-    printf("Start sweeping.\n");
-    fflush(stdout);
+    G_verbose_message(_("Start sweeping."));
 
     /* ------------------------------ */
     /* create the visibility grid  */
@@ -217,20 +208,17 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
     /* set everything initially invisible */
     set_inmem_visibilitygrid(visgrid, INVISIBLE);
     assert(visgrid);
-    VIEWSHEDDEBUG {
-	printf("visibility grid size:  %d x %d x %d B (%d MB)\n",
+    G_debug(1, "visibility grid size:  %d x %d x %d B (%d MB)",
 	       hd->nrows, hd->ncols, (int)sizeof(float),
 	       (int)(((long long)(hd->nrows * hd->ncols *
 				  sizeof(float))) >> 20));
-    }
-
 
 
     /* ------------------------------ */
     /* construct the event list corresponding to the given input file
        and viewpoint; this creates an array of all the cells on the
        same row as the viewpoint */
-    double *data;
+    surface_type **data;
     size_t nevents;
 
     Rtimer initEventTime;
@@ -239,23 +227,19 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
 
     AEvent *eventList = allocate_eventlist(hd);
 
-#ifdef __GRASS__
-    nevents = grass_init_event_list_in_memory(eventList, inputfname, vp, hd,
-					      viewOptions, &data, visgrid);
-#else
     nevents = init_event_list_in_memory(eventList, inputfname, vp, hd,
-					viewOptions, &data, visgrid);
-#endif
+					      viewOptions, &data, visgrid);
+
     assert(data);
     rt_stop(initEventTime);
-    printf("actual nb events is %lu\n", nevents);
+    G_debug(1, "actual nb events is %lu", (long unsigned int)nevents);
 
     /* ------------------------------ */
     /*sort the events radially by angle */
     Rtimer sortEventTime;
 
     rt_start(sortEventTime);
-    printf("sorting events..");
+    G_verbose_message(_("sorting events..."));
     fflush(stdout);
 
     /*this is recursive and seg faults for large arrays
@@ -268,11 +252,9 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
     RadialCompare cmpObj;
 
     quicksort(eventList, nevents, cmpObj);
-    printf("done\n");
+    G_verbose_message(_("done"));
     fflush(stdout);
     rt_stop(sortEventTime);
-
-
 
 
     /* ------------------------------ */
@@ -285,28 +267,52 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
 
     rt_start(sweepTime);
     for (dimensionType i = vp->col + 1; i < hd->ncols; i++) {
+	AEvent e;
+	double ax, ay;
+
 	sn.col = i;
 	sn.row = vp->row;
-	sn.elev = data[i];
-	if (!is_nodata(visgrid->grid->hd, sn.elev) &&
+	e.col = i;
+	e.row = vp->row;
+	e.elev[0] = data[0][i];
+	e.elev[1] = data[1][i];
+	e.elev[2] = data[2][i];
+	
+	if (!is_nodata(visgrid->grid->hd, data[1][i]) &&
 	    !is_point_outside_max_dist(*vp, *hd, sn.row, sn.col,
 				       viewOptions.maxDist)) {
 	    /*calculate Distance to VP and Gradient, store them into sn */
-	    calculate_dist_n_gradient(&sn, vp);
-	    VIEWSHEDDEBUG {
-		printf("inserting: ");
-		print_statusnode(sn);
-		printf("\n");
-	    }
+	    /* need either 3 elevation values or 
+	     * 3 gradients calculated from 3 elevation values */
+	    /* need also 3 angles */
+	    e.eventType = ENTERING_EVENT;
+	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[0] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_event_gradient(&sn, 0, ay, ax, e.elev[0], vp, *hd);
+
+	    e.eventType = CENTER_EVENT;
+	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[1] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_dist_n_gradient(&sn, e.elev[1], vp, *hd);
+
+	    e.eventType = EXITING_EVENT;
+	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[2] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_event_gradient(&sn, 2, ay, ax, e.elev[2], vp, *hd);
+	    
+	    assert(sn.angle[1] == 0);
+
+	    if (sn.angle[0] > sn.angle[1])
+		sn.angle[0] -= 2 * M_PI;
+
+	    G_debug(2, "inserting: ");
+	    print_statusnode(sn);
 	    /*insert sn into the status structure */
 	    insert_into_status_struct(sn, status_struct);
 	}
     }
-#ifdef __GRASS__
+    G_free(data[0]);
     G_free(data);
-#else
-    free(data);
-#endif
 
 
 
@@ -315,66 +321,93 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
     long nvis = 0;		/*number of visible cells */
     AEvent *e;
 
-#ifdef __GRASS__
-    G_message("Determine visibility...");
+    G_message(_("Determine visibility..."));
     G_percent(0, 100, 2);
-#endif
+
     for (size_t i = 0; i < nevents; i++) {
 
-#ifdef __GRASS__
-	int perc = (int)((double)i / nevents * 1000000000.);
-	if (perc > 0)
-	    G_percent(perc, 1000000000, 2);
-#endif
+	int perc = (int)((double)i / nevents * 1000000.);
+	if (perc > 0 && perc < 1000000)
+	    G_percent(perc, 1000000, 2);
+
 	/*get out one event at a time and process it according to its type */
 	e = &(eventList[i]);
 
 	sn.col = e->col;
 	sn.row = e->row;
-	sn.elev = e->elev;
+	//sn.elev = e->elev;
 
 	/*calculate Distance to VP and Gradient */
-	calculate_dist_n_gradient(&sn, vp);
-	INMEMORY_DEBUG {
-	    printf("event: ");
-	    print_event(*e);
-	    printf("sn.dist=%f, sn.gradient=%f\n", sn.dist2vp, sn.gradient);
-	}
+	calculate_dist_n_gradient(&sn, e->elev[1] + vp->target_offset, vp, *hd);
+	G_debug(3, "event: ");
+	print_event(*e, 3);
+	G_debug(3, "sn.dist=%f, sn.gradient=%f", sn.dist2vp, sn.gradient[1]);
 
 	switch (e->eventType) {
 	case ENTERING_EVENT:
+	    double ax, ay;
 	    /*insert node into structure */
-	    VIEWSHEDDEBUG {
-		printf("..ENTER-EVENT: insert\n");
+	    G_debug(3, "..ENTER-EVENT: insert");
+
+	    /* need either 3 elevation values or 
+	     * 3 gradients calculated from 3 elevation values */
+	    /* need also 3 angles */
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    //sn.angle[0] = calculate_angle(ax, ay, vp->col, vp->row);
+	    sn.angle[0] = e->angle;
+	    calculate_event_gradient(&sn, 0, ay, ax, e->elev[0], vp, *hd);
+
+	    e->eventType = CENTER_EVENT;
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[1] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_dist_n_gradient(&sn, e->elev[1], vp, *hd);
+
+	    e->eventType = EXITING_EVENT;
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[2] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_event_gradient(&sn, 2, ay, ax, e->elev[2], vp, *hd);
+
+	    e->eventType = ENTERING_EVENT;
+
+	    if (e->angle < M_PI) {
+		if (sn.angle[0] > sn.angle[1])
+		    sn.angle[0] -= 2 * M_PI;
 	    }
+	    else {
+		if (sn.angle[0] > sn.angle[1]) {
+		    sn.angle[1] += 2 * M_PI;
+		    sn.angle[2] += 2 * M_PI;
+		}
+	    }
+
 	    insert_into_status_struct(sn, status_struct);
 	    break;
 
 	case EXITING_EVENT:
 	    /*delete node out of status structure */
-	    VIEWSHEDDEBUG {
-		printf("..EXIT-EVENT: delete\n");
-	    }
+	    G_debug(3, "..EXIT-EVENT: delete");
+	    /* need only distance */
 	    delete_from_status_struct(status_struct, sn.dist2vp);
 	    break;
 
 	case CENTER_EVENT:
-	    VIEWSHEDDEBUG {
-		printf("..QUERY-EVENT: query\n");
-	    }
+	    G_debug(3, "..QUERY-EVENT: query");
 	    /*calculate visibility */
 	    double max;
 
+	    /* consider current angle and gradient */
 	    max =
-		find_max_gradient_in_status_struct(status_struct, sn.dist2vp);
+		find_max_gradient_in_status_struct(status_struct, sn.dist2vp,
+		                          e->angle, sn.gradient[1]);
 
 	    /*the point is visible: store its vertical angle  */
-	    if (max <= sn.gradient_offset) {
+	    if (max <= sn.gradient[1]) {
+		float vert_angle = get_vertical_angle(*vp, sn, e->elev[1] + vp->target_offset,
+		                                      viewOptions.doCurv);
+
 		add_result_to_inmem_visibilitygrid(visgrid, sn.row, sn.col,
-						   get_vertical_angle(*vp, sn,
-								      viewOptions.
-								      doCurv));
-		assert(get_vertical_angle(*vp, sn, viewOptions.doCurv) >= 0);
+						   vert_angle);
+		assert(vert_angle >= 0);
 		/* when you write the visibility grid you assume that
 		   visible values are positive */
 		nvis++;
@@ -388,9 +421,10 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
 	}
     }
     rt_stop(sweepTime);
+    G_percent(1, 1, 1);
 
-    printf("Sweeping done.\n");
-    printf("Total cells %ld, visible cells %ld (%.1f percent).\n",
+    G_verbose_message(_("Sweeping done."));
+    G_verbose_message(_("Total cells %ld, visible cells %ld (%.1f percent)."),
 	   (long)visgrid->grid->hd->nrows * visgrid->grid->hd->ncols,
 	   nvis,
 	   (float)((float)nvis * 100 /
@@ -400,14 +434,9 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
     print_viewshed_timings(initEventTime, sortEventTime, sweepTime);
 
     /*cleanup */
-#ifdef __GRASS__
     G_free(eventList);
-#else
-    free(eventList);
-#endif
 
     return visgrid;
-
 }
 
 
@@ -430,8 +459,7 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
 {
 
     assert(inputfname && hd && vp);
-    printf("Start sweeping.\n");
-    fflush(stdout);
+    G_message(_("Start sweeping."));
 
 
     /* ------------------------------ */
@@ -448,16 +476,13 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
     Rtimer initEventTime, sortEventTime, sweepTime;
 
     AMI_STREAM < AEvent > *eventList;
-    double *data;
+    surface_type **data;
 
     rt_start(initEventTime);
-#ifdef __GRASS__
-    eventList = grass_init_event_list(inputfname, vp, hd, viewOptions,
+
+    eventList = init_event_list(inputfname, vp, hd, viewOptions,
 				      &data, visgrid);
-#else
-    eventList =
-	init_event_list(inputfname, vp, hd, viewOptions, &data, visgrid);
-#endif
+
     assert(eventList && data);
     eventList->seek(0);
     rt_stop(initEventTime);
@@ -466,9 +491,8 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
 
     /* ------------------------------ */
     /*sort the events radially by angle */
-#ifdef __GRASS__
-    G_message("Sort the events...");
-#endif
+    G_verbose_message(_("Sorting events..."));
+
     rt_start(sortEventTime);
     sort_event_list(&eventList);
     eventList->seek(0);		/*this does not seem to be ensured by sort?? */
@@ -483,38 +507,59 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
        structure */
     StatusNode sn;
 
-#ifdef __GRASS__
-    G_message("Calculate distances...");
-#endif
+    G_message(_("Calculating distances..."));
+
     rt_start(sweepTime);
     for (dimensionType i = vp->col + 1; i < hd->ncols; i++) {
+	AEvent e;
+	double ax, ay;
 
-#ifdef __GRASS__
 	G_percent(i, hd->ncols, 2);
-#endif
+
 	sn.col = i;
 	sn.row = vp->row;
-	sn.elev = data[i];
-	if (!is_nodata(visgrid->hd, sn.elev) &&
+	e.col = i;
+	e.row = vp->row;
+	e.elev[0] = data[0][i];
+	e.elev[1] = data[1][i];
+	e.elev[2] = data[2][i];
+	if (!is_nodata(visgrid->hd, data[1][i]) &&
 	    !is_point_outside_max_dist(*vp, *hd, sn.row, sn.col,
 				       viewOptions.maxDist)) {
 	    /*calculate Distance to VP and Gradient, store them into sn */
-	    calculate_dist_n_gradient(&sn, vp);
-	    VIEWSHEDDEBUG {
-		printf("inserting: ");
-		print_statusnode(sn);
-		printf("\n");
-	    }
+	    /* need either 3 elevation values or 
+	     * 3 gradients calculated from 3 elevation values */
+	    /* need also 3 angles */
+	    e.eventType = ENTERING_EVENT;
+	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[0] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_event_gradient(&sn, 0, ay, ax, e.elev[0], vp, *hd);
+
+	    e.eventType = CENTER_EVENT;
+	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[1] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_dist_n_gradient(&sn, e.elev[1], vp, *hd);
+
+	    e.eventType = EXITING_EVENT;
+	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[2] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_event_gradient(&sn, 2, ay, ax, e.elev[2], vp, *hd);
+	    
+	    assert(sn.angle[1] == 0);
+
+	    if (sn.angle[0] > sn.angle[1])
+		sn.angle[0] -= 2 * M_PI;
+
+	    G_debug(3, "inserting: ");
+	    print_statusnode(sn);
+
 	    /*insert sn into the status structure */
 	    insert_into_status_struct(sn, status_struct);
 	}
     }
-#ifdef __GRASS__
     G_percent(hd->ncols, hd->ncols, 2);
+    G_free(data[0]);
     G_free(data);
-#else
-    free(data);
-#endif
 
 
     /* ------------------------------ */
@@ -527,64 +572,93 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
 
     /*printf("nbEvents = %ld\n", (long) nbEvents); */
 
-#ifdef __GRASS__
-    G_message("Determine visibility...");
+    G_message(_("Determine visibility..."));
     G_percent(0, 100, 2);
-#endif
+
     for (off_t i = 0; i < nbEvents; i++) {
-	
-#ifdef __GRASS__
-	int perc = (int)((double)i / nbEvents * 1000000000.);
+
+	int perc = (int)((double)i / nbEvents * 1000000.);
 	if (perc > 0)
-	    G_percent(perc, 1000000000, 2);
-#endif
+	    G_percent(perc, 1000000, 2);
+
 	/*get out one event at a time and process it according to its type */
 	ae = eventList->read_item(&e);
 	assert(ae == AMI_ERROR_NO_ERROR);
 
 	sn.col = e->col;
 	sn.row = e->row;
-	sn.elev = e->elev;
+	//sn.elev = e->elev;
 	/*calculate Distance to VP and Gradient */
-	calculate_dist_n_gradient(&sn, vp);
-	VIEWSHEDDEBUG {
-	    printf("next event: ");
-	    print_statusnode(sn);
-	}
+	calculate_dist_n_gradient(&sn, e->elev[1] + vp->target_offset, vp, *hd);
+
+	G_debug(3, "next event: ");
+	print_statusnode(sn);
 
 	switch (e->eventType) {
 	case ENTERING_EVENT:
+	    double ax, ay;
+
 	    /*insert node into structure */
-	    VIEWSHEDDEBUG {
-		printf("..ENTER-EVENT: insert\n");
+	    /* need either 3 elevation values or 
+	     * 3 gradients calculated from 3 elevation values */
+	    /* need also 3 angles */
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    //sn.angle[0] = calculate_angle(ax, ay, vp->col, vp->row);
+	    sn.angle[0] = e->angle;
+	    calculate_event_gradient(&sn, 0, ay, ax, e->elev[0], vp, *hd);
+
+	    e->eventType = CENTER_EVENT;
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[1] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_dist_n_gradient(&sn, e->elev[1], vp, *hd);
+
+	    e->eventType = EXITING_EVENT;
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[2] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_event_gradient(&sn, 2, ay, ax, e->elev[2], vp, *hd);
+
+	    e->eventType = ENTERING_EVENT;
+
+	    if (e->angle < M_PI) {
+		if (sn.angle[0] > sn.angle[1])
+		    sn.angle[0] -= 2 * M_PI;
 	    }
+	    else {
+		if (sn.angle[0] > sn.angle[1]) {
+		    sn.angle[1] += 2 * M_PI;
+		    sn.angle[2] += 2 * M_PI;
+		}
+	    }
+
+	    G_debug(3, "..ENTER-EVENT: insert");
+
 	    insert_into_status_struct(sn, status_struct);
 	    break;
 
 	case EXITING_EVENT:
 	    /*delete node out of status structure */
-	    VIEWSHEDDEBUG {
-		printf("..EXIT-EVENT: delete\n");
-	    }
+
+	    G_debug(3, "..EXIT-EVENT: delete");
+
 	    delete_from_status_struct(status_struct, sn.dist2vp);
 	    break;
 
 	case CENTER_EVENT:
-	    VIEWSHEDDEBUG {
-		printf("..QUERY-EVENT: query\n");
-	    }
+	    G_debug(3, "..QUERY-EVENT: query");
+
 	    /*calculate visibility */
 	    viscell.row = sn.row;
 	    viscell.col = sn.col;
 	    double max;
 
 	    max =
-		find_max_gradient_in_status_struct(status_struct, sn.dist2vp);
+		find_max_gradient_in_status_struct(status_struct, sn.dist2vp,
+		                          e->angle, sn.gradient[1]);
 
 	    /*the point is visible */
-	    if (max <= sn.gradient_offset) {
+	    if (max <= sn.gradient[1]) {
 		viscell.angle =
-		    get_vertical_angle(*vp, sn, viewOptions.doCurv);
+		    get_vertical_angle(*vp, sn, e->elev[1] + vp->target_offset, viewOptions.doCurv);
 		assert(viscell.angle >= 0);
 		/* viscell.vis = VISIBLE; */
 		add_result_to_io_visibilitygrid(visgrid, &viscell);
@@ -601,9 +675,10 @@ IOVisibilityGrid *viewshed_external(char *inputfname, GridHeader * hd,
 	}
     }				/* for each event  */
     rt_stop(sweepTime);
+    G_percent(1, 1, 1);
 
-    printf("Sweeping done.\n");
-    printf("Total cells %ld, visible cells %ld (%.1f percent).\n",
+    G_message(_("Sweeping done."));
+    G_verbose_message(_("Total cells %ld, visible cells %ld (%.1f percent)."),
 	   (long)visgrid->hd->nrows * visgrid->hd->ncols,
 	   nvis,
 	   (float)((float)nvis * 100 /

@@ -8,8 +8,9 @@
 
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
+ *               Markus Metz: surface interpolation
  *
- * Date:         july 2008 
+ * Date:         april 2011 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -17,12 +18,10 @@
  * considered visible to each other if the cells where they belong are
  * visible to each other.  Two cells are visible to each other if the
  * line-of-sight that connects their centers does not intersect the
- * terrain. The height of a cell is assumed to be constant, and the
- * terrain is viewed as a tesselation of flat cells.  This model is
- * suitable for high resolution rasters; it may not be accurate for
- * low resolution rasters, where it may be better to interpolate the
- * height at a point based on the neighbors, rather than assuming
- * cells are "flat".  The viewshed algorithm is efficient both in
+ * terrain. The terrain is NOT viewed as a tesselation of flat cells, 
+ * i.e. if the line-of-sight does not pass through the cell center, 
+ * elevation is determined using bilinear interpolation.
+ * The viewshed algorithm is efficient both in
  * terms of CPU operations and I/O operations. It has worst-case
  * complexity O(n lg n) in the RAM model and O(sort(n)) in the
  * I/O-model.  For the algorithm and all the other details see the
@@ -37,14 +36,11 @@
  *****************************************************************************/
 #include <stdio.h>
 
-#ifdef __GRASS__
 extern "C"
 {
-#include <grass/config.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
 }
-#endif
 
 #include "grid.h"
 #include "visibility.h"
@@ -56,7 +52,7 @@ extern "C"
 /* viewpoint functions */
 void print_viewpoint(Viewpoint vp)
 {
-    printf("vp=(%d, %d, %.1f) ", vp.row, vp.col, vp.elev);
+    G_debug(3, "vp=(%d, %d, %.1f) ", vp.row, vp.col, vp.elev);
     return;
 }
 
@@ -98,11 +94,8 @@ MemoryVisibilityGrid *create_inmem_visibilitygrid(GridHeader hd, Viewpoint vp)
 
     MemoryVisibilityGrid *visgrid;
 
-#ifdef __GRASS__
     visgrid = (MemoryVisibilityGrid *) G_malloc(sizeof(MemoryVisibilityGrid));
-#else
-    visgrid = (MemoryVisibilityGrid *) malloc(sizeof(MemoryVisibilityGrid));
-#endif
+
     assert(visgrid);
 
 
@@ -111,11 +104,8 @@ MemoryVisibilityGrid *create_inmem_visibilitygrid(GridHeader hd, Viewpoint vp)
     assert(visgrid->grid);
 
     /* create the header */
-#ifdef __GRASS__
     visgrid->grid->hd = (GridHeader *) G_malloc(sizeof(GridHeader));
-#else
-    visgrid->grid->hd = (GridHeader *) malloc(sizeof(GridHeader));
-#endif
+
     assert(visgrid->grid->hd);
 
     /* set the header */
@@ -125,11 +115,8 @@ MemoryVisibilityGrid *create_inmem_visibilitygrid(GridHeader hd, Viewpoint vp)
     alloc_grid_data(visgrid->grid);
 
     /*allocate viewpoint */
-#ifdef __GRASS__
     visgrid->vp = (Viewpoint *) G_malloc(sizeof(Viewpoint));
-#else
-    visgrid->vp = (Viewpoint *) malloc(sizeof(Viewpoint));
-#endif
+
     assert(visgrid->vp);
     copy_viewpoint(visgrid->vp, vp);
 
@@ -148,18 +135,11 @@ void free_inmem_visibilitygrid(MemoryVisibilityGrid * visgrid)
     if (visgrid->grid) {
 	destroy_grid(visgrid->grid);
     }
-#ifdef __GRASS__
     if (visgrid->vp) {
 	G_free(visgrid->vp);
     }
     G_free(visgrid);
 
-#else
-    if (visgrid->vp) {
-	free(visgrid->vp);
-    }
-    free(visgrid);
-#endif
     return;
 }
 
@@ -228,16 +208,12 @@ int is_visible(float x)
 {
     /* if GRASS is on, we cannot guarantee that NODATA is negative; so
        we need to check */
-#ifdef __GRASS__
-    int isnull = G_is_f_null_value(&x);
+    int isnull = G_is_null_value(&x, G_SURFACE_TYPE);
 
     if (isnull)
 	return 0;
     else
 	return (x >= 0);
-#else
-    return (x >= 0);
-#endif
 }
 int is_invisible_not_nodata(float x)
 {
@@ -274,10 +250,6 @@ float angleVisibilityOutput(float x)
 }
 
 
-
-
-
-
 /* ------------------------------------------------------------ */
 /* visgrid is the structure that records the visibility information
    after the sweep is done.  Use it to write the visibility output
@@ -287,7 +259,6 @@ void save_inmem_visibilitygrid(MemoryVisibilityGrid * visgrid,
 			       ViewOptions viewOptions, Viewpoint vp)
 {
 
-#ifdef __GRASS__
     if (viewOptions.outputMode == OUTPUT_BOOL)
 	save_grid_to_GRASS(visgrid->grid, viewOptions.outputfname, CELL_TYPE,
 			   booleanVisibilityOutput);
@@ -299,22 +270,6 @@ void save_inmem_visibilitygrid(MemoryVisibilityGrid * visgrid,
 	save_vis_elev_to_GRASS(visgrid->grid, viewOptions.inputfname,
 			       viewOptions.outputfname,
 			       vp.elev + viewOptions.obsElev);
-#else
-    if (viewOptions.outputMode == OUTPUT_BOOL)
-	save_grid_to_arcascii_file(visgrid->grid, viewOptions.outputfname,
-				   booleanVisibilityOutput);
-    else if (viewOptions.outputMode == OUTPUT_ANGLE)
-	save_grid_to_arcascii_file(visgrid->grid, viewOptions.outputfname,
-				   angleVisibilityOutput);
-    else {
-	/* elevation  output */
-	printf("Elevation output not implemented in the standalone version.");
-	printf("Output in angle mode\n");
-	save_grid_to_arcascii_file(visgrid->grid, viewOptions.outputfname,
-				   angleVisibilityOutput);
-	/* if you want elevation output, use grass */
-    }
-#endif
 
     free_inmem_visibilitygrid(visgrid);
 
@@ -323,13 +278,9 @@ void save_inmem_visibilitygrid(MemoryVisibilityGrid * visgrid,
 
 
 
-
-
 /* ------------------------------------------------------------ */
 /* IOVisibilityGrid functions */
 /* ------------------------------------------------------------ */
-
-
 
 /* ------------------------------------------------------------ */
 /*create grid from given header and viewpoint */
@@ -337,28 +288,19 @@ IOVisibilityGrid *init_io_visibilitygrid(GridHeader hd, Viewpoint vp)
 {
     IOVisibilityGrid *visgrid;
 
-#ifdef __GRASS__
     visgrid = (IOVisibilityGrid *) G_malloc(sizeof(IOVisibilityGrid));
-#else
-    visgrid = (IOVisibilityGrid *) malloc(sizeof(IOVisibilityGrid));
-#endif
+
     assert(visgrid);
 
     /*header */
-#ifdef __GRASS__
     visgrid->hd = (GridHeader *) G_malloc(sizeof(GridHeader));
-#else
-    visgrid->hd = (GridHeader *) malloc(sizeof(GridHeader));
-#endif
+
     assert(visgrid->hd);
     copy_header(visgrid->hd, hd);
 
     /*viewpoint */
-#ifdef __GRASS__
     visgrid->vp = (Viewpoint *) G_malloc(sizeof(Viewpoint));
-#else
-    visgrid->vp = (Viewpoint *) malloc(sizeof(Viewpoint));
-#endif
+
     assert(visgrid->vp);
     copy_viewpoint(visgrid->vp, vp);
 
@@ -376,7 +318,7 @@ IOVisibilityGrid *init_io_visibilitygrid(GridHeader hd, Viewpoint vp)
 void free_io_visibilitygrid(IOVisibilityGrid * grid)
 {
     assert(grid);
-#ifdef __GRASS__
+
     if (grid->hd)
 	G_free(grid->hd);
     if (grid->vp)
@@ -385,21 +327,9 @@ void free_io_visibilitygrid(IOVisibilityGrid * grid)
 	delete grid->visStr;
 
     G_free(grid);
-#else
-    if (grid->hd)
-	free(grid->hd);
-    if (grid->vp)
-	free(grid->vp);
-    if (grid->visStr)
-	delete grid->visStr;
 
-    free(grid);
-#endif
     return;
 }
-
-
-
 
 
 
@@ -418,7 +348,6 @@ void add_result_to_io_visibilitygrid(IOVisibilityGrid * visgrid,
     assert(ae == AMI_ERROR_NO_ERROR);
     return;
 }
-
 
 
 /* ------------------------------------------------------------ */
@@ -464,14 +393,12 @@ void sort_io_visibilitygrid(IOVisibilityGrid * visGrid)
 }
 
 
-
 /* ------------------------------------------------------------ */
 void
 save_io_visibilitygrid(IOVisibilityGrid * visgrid,
 		       ViewOptions viewOptions, Viewpoint vp)
 {
 
-#ifdef __GRASS__
     if (viewOptions.outputMode == OUTPUT_BOOL)
 	save_io_visibilitygrid_to_GRASS(visgrid, viewOptions.outputfname,
 					CELL_TYPE, booleanVisibilityOutput);
@@ -484,97 +411,9 @@ save_io_visibilitygrid(IOVisibilityGrid * visgrid,
 	save_io_vis_and_elev_to_GRASS(visgrid, viewOptions.inputfname,
 				      viewOptions.outputfname,
 				      vp.elev + viewOptions.obsElev);
-#else
-    if (viewOptions.outputMode == OUTPUT_BOOL)
-	save_io_visibilitygrid_to_arcascii(visgrid, viewOptions.outputfname,
-					   booleanVisibilityOutput);
-    else if (viewOptions.outputMode == OUTPUT_ANGLE)
-	save_io_visibilitygrid_to_arcascii(visgrid, viewOptions.outputfname,
-					   angleVisibilityOutput);
-    else {
-	/* elevation  output */
-	printf("Elevation output not implemented in the standalone version.");
-	printf("Output in angle mode\n");
-	save_io_visibilitygrid_to_arcascii(visgrid, viewOptions.outputfname,
-					   angleVisibilityOutput);
-	/* if you want elevation output, use grass */
-    }
-#endif
 
     /*free visibiliyty grid */
     free_io_visibilitygrid(visgrid);
 
-    return;
-}
-
-
-
-
-/* ------------------------------------------------------------ */
-/*write visibility grid to arcascii file. assume all cells that are
-   not in stream are NOT visible. assume stream is sorted in (i,j)
-   order. for each value x it writes to grass fun(x) */
-void
-save_io_visibilitygrid_to_arcascii(IOVisibilityGrid * visgrid,
-				   char *outputfname, float (*fun) (float))
-{
-
-    assert(visgrid && outputfname);
-
-    /*open file */
-    FILE *fp = fopen(outputfname, "w");
-
-    assert(fp);
-
-    /*write header */
-    print_grid_header(fp, visgrid->hd);
-
-    /*sort the stream in (i,j) order */
-    /*sortVisGrid(visgrid); */
-
-    /* set up visibility stream */
-    AMI_STREAM < VisCell > *vstr = visgrid->visStr;
-    off_t streamLen, counter = 0;
-
-    streamLen = vstr->stream_len();
-    vstr->seek(0);
-
-
-    /*read the first element */
-    AMI_err ae;
-    VisCell *curResult = NULL;
-
-    if (streamLen > 0) {
-	ae = vstr->read_item(&curResult);
-	assert(ae == AMI_ERROR_NO_ERROR);
-	counter++;
-    }
-    for (dimensionType i = 0; i < visgrid->hd->nrows; i++) {
-	for (dimensionType j = 0; j < visgrid->hd->ncols; j++) {
-
-	    if (curResult->row == i && curResult->col == j) {
-		/* this cell is present in the visibility stream; it must
-		   be either visible, or NODATA */
-		fprintf(fp, "%.1f ", fun(curResult->angle));
-
-		/*read next element of stream */
-		if (counter < streamLen) {
-		    ae = vstr->read_item(&curResult);
-		    assert(ae == AMI_ERROR_NO_ERROR);
-		    counter++;
-		}
-	    }
-	    else {
-		/*  this cell is not in stream, then it is  invisible */
-		fprintf(fp, "%.1f ", fun(INVISIBLE));
-	    }
-	}			/* for j */
-	fprintf(fp, "\n");
-    }				/* for i */
-
-    /* assert that we read teh entire file, otherwise something is
-       wrong */
-    assert(counter == streamLen);
-    fclose(fp);
     return;
 }

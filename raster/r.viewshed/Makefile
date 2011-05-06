@@ -8,10 +8,9 @@ PGM = r.viewshed
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
 SOURCES = main.cc distribute.cc eventlist.cc grid.cc grass.cc viewshed.cc \
-	rbbst.cc statusstructure.cc visibility.cc \
-	print_message.cc
+	rbbst.cc statusstructure.cc visibility.cc
 HEADERS = distribute.h eventlist.h grid.h grass.h viewshed.h \
-	rbbst.h  statusstructure.h visibility.h print_message.h
+	rbbst.h  statusstructure.h visibility.h
 
 
 OBJARCH=OBJ.$(ARCH)

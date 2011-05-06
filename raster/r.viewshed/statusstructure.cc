@@ -8,8 +8,9 @@
 
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
+ *               Markus Metz: surface interpolation
  *
- * Date:         july 2008 
+ * Date:         april 2011 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -17,12 +18,10 @@
  * considered visible to each other if the cells where they belong are
  * visible to each other.  Two cells are visible to each other if the
  * line-of-sight that connects their centers does not intersect the
- * terrain. The height of a cell is assumed to be constant, and the
- * terrain is viewed as a tesselation of flat cells.  This model is
- * suitable for high resolution rasters; it may not be accurate for
- * low resolution rasters, where it may be better to interpolate the
- * height at a point based on the neighbors, rather than assuming
- * cells are "flat".  The viewshed algorithm is efficient both in
+ * terrain. The terrain is NOT viewed as a tesselation of flat cells, 
+ * i.e. if the line-of-sight does not pass through the cell center, 
+ * elevation is determined using bilinear interpolation.
+ * The viewshed algorithm is efficient both in
  * terms of CPU operations and I/O operations. It has worst-case
  * complexity O(n lg n) in the RAM model and O(sort(n)) in the
  * I/O-model.  For the algorithm and all the other details see the
@@ -42,15 +41,12 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef __GRASS__
 extern "C"
 {
-#include <grass/config.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
 }
 #include "grass.h"
-#endif
 
 #include "statusstructure.h"
 
@@ -62,23 +58,31 @@ extern "C"
 /*find the vertical angle in degrees between the viewpoint and the
    point represented by the StatusNode.  Assumes all values (except
    gradient) in sn have been filled. The value returned is in [0,
-   180]. if doCurv is set we need to consider the curvature of the
+   180]. A value of 0 is directly below the specified viewing position,
+   90 is due horizontal, and 180 is directly above the observer. 
+   If doCurv is set we need to consider the curvature of the
    earth */
-float get_vertical_angle(Viewpoint vp, StatusNode sn, int doCurv)
+float get_vertical_angle(Viewpoint vp, StatusNode sn, surface_type elev, int doCurv)
 {
 
     /*determine the difference in elevation, based on the curvature */
-    float diffElev;
-
-    diffElev = vp.elev - sn.elev;
+    double diffElev;
+    diffElev = vp.elev - elev;
 
     /*calculate and return the angle in degrees */
     assert(fabs(sn.dist2vp) > 0.001);
 
+    /* 0 above, 180 below */
     if (diffElev >= 0.0)
 	return (atan(sqrt(sn.dist2vp) / diffElev) * (180 / M_PI));
     else
-	return ((atan(fabs(diffElev) / sqrt(sn.dist2vp)) * (180 / M_PI)) + 90);
+	return (atan(fabs(diffElev) / sqrt(sn.dist2vp)) * (180 / M_PI) + 90);
+
+    /* 180 above, 0 below */
+    if (diffElev >= 0.0)
+	return (atan(diffElev / sqrt(sn.dist2vp)) * (180 / M_PI) + 90);
+    else
+	return (atan(sqrt(sn.dist2vp) / fabs(diffElev)) * (180 / M_PI));
 }
 
 
@@ -90,21 +94,20 @@ long long get_active_str_size_bytes(GridHeader * hd)
 
     long long sizeBytes;
 
-    printf("Estimated size active structure:");
-    printf(" (key=%d, ptr=%d, total node=%d B)",
+    G_verbose_message(_("Estimated size active structure:"));
+    G_verbose_message(_(" (key=%d, ptr=%d, total node=%d B)"),
 	   (int)sizeof(TreeValue),
 	   (int)sizeof(TreeNode *), (int)sizeof(TreeNode));
     sizeBytes = sizeof(TreeNode) * max(hd->ncols, hd->nrows);
-    printf(" Total= %lld B\n", sizeBytes);
+    G_verbose_message(_(" Total= %lld B"), sizeBytes);
     return sizeBytes;
 }
 
 
-
-
 /* ------------------------------------------------------------ */
 /*given a StatusNode, fill in its dist2vp and gradient */
-void calculate_dist_n_gradient(StatusNode * sn, Viewpoint * vp)
+void calculate_dist_n_gradient(StatusNode * sn, double elev,
+                               Viewpoint * vp, GridHeader hd)
 {
     assert(sn && vp);
     /*sqrt is expensive
@@ -112,26 +115,79 @@ void calculate_dist_n_gradient(StatusNode * sn, Viewpoint * vp)
        //               pow(sn->col - vp->col,2.0)));
        //sn->gradient = (sn->elev  - vp->elev)/(sn->dist2vp); */
        
-    double elevDiff = (double)sn->elev - vp->elev;
+    double diffElev = elev - vp->elev;
+    double dx = ((double)sn->col - vp->col) * hd.ew_res;
+    double dy = ((double)sn->row - vp->row) * hd.ns_res;
+    
+    sn->dist2vp = (dx * dx) + (dy * dy);
 
-    sn->dist2vp = (sn->row - vp->row) * (sn->row - vp->row) +
-	(sn->col - vp->col) * (sn->col - vp->col);
-    sn->gradient = elevDiff * elevDiff / (sn->dist2vp);
-    sn->gradient = atan(sqrt(sn->gradient));
-    /*maintain sign */
-    if (sn->elev < vp->elev)
-	sn->gradient = -sn->gradient;
+    if (diffElev == 0) {
+	sn->gradient[1] = 0;
+	return;
+    }
 
-    elevDiff += vp->target_offset;
-    sn->gradient_offset = elevDiff * elevDiff / (sn->dist2vp);
-    sn->gradient_offset = atan(sqrt(sn->gradient_offset));
+    /* PI / 2 above, - PI / 2 below, like r.los */
+    sn->gradient[1] = atan(diffElev / sqrt(sn->dist2vp));
+
+    return;
+
+    /* PI above, 0 below. slower than r.los - like */
+    if (diffElev >= 0.0)
+	sn->gradient[1] = (atan(diffElev / sqrt(sn->dist2vp)) + M_PI / 2);
+    else
+	sn->gradient[1] = (atan(sqrt(sn->dist2vp) / fabs(diffElev)));
+
+    return;
+
+    /* a little bit faster but not accurate enough */
+    sn->gradient[1] = (diffElev * diffElev) / (sn->dist2vp);
     /*maintain sign */
-    if (sn->elev + vp->target_offset < vp->elev)
-	sn->gradient_offset = -sn->gradient_offset;
+    if (elev < vp->elev)
+	sn->gradient[1] = -sn->gradient[1];
+	
     return;
 }
 
 
+/* ------------------------------------------------------------ */
+/* calculate gradient for ENTERING or EXITING event */
+void calculate_event_gradient(StatusNode * sn, int e_idx, 
+                    double row, double col, double elev,
+		    Viewpoint * vp, GridHeader hd)
+{
+    assert(sn && vp);
+    /*sqrt is expensive
+       //sn->dist2vp = sqrt((float) ( pow(sn->row - vp->row,2.0) + 
+       //               pow(sn->col - vp->col,2.0)));
+       //sn->gradient = (sn->elev  - vp->elev)/(sn->dist2vp); */
+       
+    double diffElev = elev - vp->elev;
+    double dx = (col - vp->col) * hd.ew_res;
+    double dy = (row - vp->row) * hd.ns_res;
+    double dist2vp = (dx * dx) + (dy * dy);
+
+
+    /* PI / 2 above, - PI / 2 below */
+    sn->gradient[e_idx] = atan(diffElev / sqrt(dist2vp));
+
+    return;
+
+    /* PI above, 0 below. slower than r.los - like */
+    if (diffElev >= 0.0)
+	sn->gradient[e_idx] = (atan(diffElev / sqrt(dist2vp)) + M_PI / 2);
+    else
+	sn->gradient[e_idx] = (atan(sqrt(dist2vp) / fabs(diffElev)));
+
+    return;
+
+    /* faster but not accurate enough */
+    sn->gradient[e_idx] = (diffElev * diffElev) / (dist2vp);
+    /*maintain sign */
+    if (elev < vp->elev)
+	sn->gradient[e_idx] = -sn->gradient[e_idx];
+
+    return;
+}
 
 
 /* ------------------------------------------------------------ */
@@ -140,16 +196,17 @@ StatusList *create_status_struct()
 {
     StatusList *sl;
 
-#ifdef __GRASS__
     sl = (StatusList *) G_malloc(sizeof(StatusList));
-#else
-    sl = (StatusList *) malloc(sizeof(StatusList));
-#endif
     assert(sl);
 
     TreeValue tv;
 
-    tv.gradient = SMALLEST_GRADIENT;
+    tv.gradient[0] = SMALLEST_GRADIENT;
+    tv.gradient[1] = SMALLEST_GRADIENT;
+    tv.gradient[2] = SMALLEST_GRADIENT;
+    tv.angle[0] = 0;
+    tv.angle[1] = 0;
+    tv.angle[2] = 0;
     tv.key = 0;
     tv.maxGradient = SMALLEST_GRADIENT;
 
@@ -165,11 +222,8 @@ void delete_status_structure(StatusList * sl)
 {
     assert(sl);
     delete_tree(sl->rbt);
-#ifdef __GRASS__
     G_free(sl);
-#else
-    free(sl);
-#endif
+
     return;
 }
 
@@ -194,9 +248,15 @@ void insert_into_status_struct(StatusNode sn, StatusList * sl)
     TreeValue tv;
 
     tv.key = sn.dist2vp;
-    tv.gradient = sn.gradient;
+    tv.gradient[0] = sn.gradient[0];
+    tv.gradient[1] = sn.gradient[1];
+    tv.gradient[2] = sn.gradient[2];
+    tv.angle[0] = sn.angle[0];
+    tv.angle[1] = sn.angle[1];
+    tv.angle[2] = sn.angle[2];
     tv.maxGradient = SMALLEST_GRADIENT;
     insert_into(sl->rbt, tv);
+
     return;
 }
 
@@ -204,7 +264,7 @@ void insert_into_status_struct(StatusNode sn, StatusList * sl)
 /* ------------------------------------------------------------ */
 /*find the node with max Gradient within the distance (from viewpoint)
    //given */
-double find_max_gradient_in_status_struct(StatusList * sl, double dist)
+double find_max_gradient_in_status_struct(StatusList * sl, double dist, double angle, double gradient)
 {
     assert(sl);
     /*note: if there is nothing in the status struccture, it means this
@@ -214,10 +274,10 @@ double find_max_gradient_in_status_struct(StatusList * sl, double dist)
     /*it is also possible that the status structure is not empty, but
        there are no events with key < dist ---in this case it returns
        SMALLEST_GRADIENT; */
-    return find_max_gradient_within_key(sl->rbt, dist);
+    return find_max_gradient_within_key(sl->rbt, dist, angle, gradient);
 }
 
-/*returns true is it is empty */
+/*returns true if it is empty */
 int is_empty(StatusList * sl)
 {
     assert(sl);

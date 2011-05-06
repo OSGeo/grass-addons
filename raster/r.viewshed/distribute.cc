@@ -8,8 +8,9 @@
 
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
+ *               Markus Metz: surface interpolation
  *
- * Date:         july 2008 
+ * Date:         april 2011 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -17,12 +18,10 @@
  * considered visible to each other if the cells where they belong are
  * visible to each other.  Two cells are visible to each other if the
  * line-of-sight that connects their centers does not intersect the
- * terrain. The height of a cell is assumed to be constant, and the
- * terrain is viewed as a tesselation of flat cells.  This model is
- * suitable for high resolution rasters; it may not be accurate for
- * low resolution rasters, where it may be better to interpolate the
- * height at a point based on the neighbors, rather than assuming
- * cells are "flat".  The viewshed algorithm is efficient both in
+ * terrain. The terrain is NOT viewed as a tesselation of flat cells, 
+ * i.e. if the line-of-sight does not pass through the cell center, 
+ * elevation is determined using bilinear interpolation.
+ * The viewshed algorithm is efficient both in
  * terms of CPU operations and I/O operations. It has worst-case
  * complexity O(n lg n) in the RAM model and O(sort(n)) in the
  * I/O-model.  For the algorithm and all the other details see the
@@ -42,7 +41,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#ifdef __GRASS__
 extern "C"
 {
 #include <grass/config.h>
@@ -53,14 +51,8 @@ extern "C"
 /* include IOSTREAM header */
 #include <grass/iostream/ami.h>
 
-#else
-/* if GRASS is not defined */
-#include <ami.h>
-#endif
 
-
-
-/*note: MAX_STREAM_OPEN defined in IOStrea/include/ami_stream.h, which
+/*note: MAX_STREAM_OPEN defined in IOStream/include/ami_stream.h, which
    is included by ami.h  */
 
 #include "distribute.h"
@@ -68,10 +60,7 @@ extern "C"
 #include "visibility.h"
 #include "eventlist.h"
 #include "statusstructure.h"
-#include "print_message.h"
-#ifdef __GRASS__
 #include "grass.h"
-#endif
 
 
 #define DISTRIBDEBUG if(0)
@@ -82,7 +71,7 @@ extern "C"
 
 
 #define ANGLE_FACTOR 1
-#define EPSILON .00000001
+#define EPSILON GRASS_EPSILON
 #define PRINT_DISTRIBUTE if(0)
 
 
@@ -97,15 +86,14 @@ IOVisibilityGrid *distribute_and_sweep(char *inputfname,
 {
 
     assert(inputfname && hd && vp);
-    print_message("Start distributed sweeping.\n");
-    fflush(stdout);
+    G_message(_("Start distributed sweeping."));
 
     /* ------------------------------ */
     /*initialize the visibility grid */
     IOVisibilityGrid *visgrid;
 
     visgrid = init_io_visibilitygrid(*hd, *vp);
-    printf("distribute_and_sweep: visgrid=%s\n", visgrid->visStr->name());
+    G_debug(1, "distribute_and_sweep: visgrid=%s", visgrid->visStr->name());
 
 
     /* ------------------------------ */
@@ -114,17 +102,14 @@ IOVisibilityGrid *distribute_and_sweep(char *inputfname,
 
     rt_start(initEventTime);
     AMI_STREAM < AEvent > *eventList;
-#ifdef __GRASS__
-    eventList = grass_init_event_list(inputfname, vp, hd,
+
+    eventList = init_event_list(inputfname, vp, hd,
 				      viewOptions, NULL, visgrid);
-#else
-    eventList =
-	init_event_list(inputfname, vp, hd, viewOptions, NULL, visgrid);
-#endif
+
     assert(eventList);
     eventList->seek(0);
     rt_stop(initEventTime);
-    printf("distribute_and_sweep: eventlist=%s\n", eventList->sprint());
+    G_debug(1, "distribute_and_sweep: eventlist=%s", eventList->sprint());
 
 
     /* ------------------------------ */
@@ -132,22 +117,16 @@ IOVisibilityGrid *distribute_and_sweep(char *inputfname,
     Rtimer sortEventTime;
 
     rt_start(sortEventTime);
-    PRINT_DISTRIBUTE {
-	print_message("sorting events by distance from viewpoint..");
-	fflush(stdout);
-    }
+    G_debug(1, "Sorting events by distance from viewpoint..");
 
     sort_event_list_by_distance(&eventList, *vp);
-    PRINT_DISTRIBUTE {
-	print_message("..sorting done.\n");
-	fflush(stdout);
-    }
+    G_debug(1, "..sorting done.");
 
     /* debugging */
     /*sortCheck(eventList, *vp); */
     eventList->seek(0);		/*this does not seem to be ensured by sort */
     rt_stop(sortEventTime);
-    printf("distribute_and_sweep: eventlist=%s\n", eventList->sprint());
+    G_debug(1, "distribute_and_sweep: eventlist=%s", eventList->sprint());
 
 
 
@@ -161,16 +140,15 @@ IOVisibilityGrid *distribute_and_sweep(char *inputfname,
     /*distribute recursively the events and write results to visgrid.
        invariant: distribute_sector deletes its eventlist */
     nvis = distribute_sector(eventList, NULL, 0, ANGLE_FACTOR * 2 * M_PI,
-			     visgrid, vp, viewOptions);
+			     visgrid, vp, hd, viewOptions);
     rt_stop(sweepTime);
 
 
     /* ------------------------------ */
     /*cleanup */
-    print_message("Distribution sweeping done.\n");
-    fflush(stdout);
+    G_message(_("Distribution sweeping done."));
 
-    printf("Total cells %ld, visible cells %ld (%.1f percent).\n",
+    G_verbose_message("Total cells %ld, visible cells %ld (%.1f percent).",
 	   (long)visgrid->hd->nrows * visgrid->hd->ncols,
 	   nvis,
 	   (float)((float)nvis * 100 /
@@ -202,19 +180,19 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 				AMI_STREAM < AEvent > *enterBndEvents,
 				double start_angle, double end_angle,
 				IOVisibilityGrid * visgrid, Viewpoint * vp,
-				ViewOptions viewOptions)
+				GridHeader *hd, ViewOptions viewOptions)
 {
 
 
     assert(eventList && visgrid && vp);
     /*enterBndEvents may be NULL first time */
 
-    PRINT_DISTRIBUTE printf("***DISTRIBUTE sector [%.4f, %.4f]***\n",
+    G_debug(2, "***  DISTRIBUTE sector [%.4f, %.4f]  ***",
 			    start_angle, end_angle);
-    printf("initial_gradient: %lf\n", SMALLEST_GRADIENT);
-    printf("eventlist: %s\n", eventList->sprint());
+    G_debug(2, "initial_gradient: %lf", SMALLEST_GRADIENT);
+    G_debug(2, "eventlist: %s", eventList->sprint());
     if (enterBndEvents)
-	printf("BndEvents: %s\n", enterBndEvents->sprint());
+	G_debug(2, "BndEvents: %s", enterBndEvents->sprint());
     PRINT_DISTRIBUTE LOG_avail_memo();
 
     unsigned long nvis = 0;
@@ -226,8 +204,8 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 	MM_manager.memory_available()) {
 	if (enterBndEvents) {
 	    nvis += solve_in_memory(eventList, enterBndEvents,
-				    start_angle, end_angle, visgrid, vp,
-				    viewOptions);
+				    start_angle, end_angle, visgrid, hd,
+				    vp, viewOptions);
 	    return nvis;
 	}
 	else {
@@ -240,7 +218,7 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
     }
 
     /*else, must recurse */
-    PRINT_DISTRIBUTE print_message("in EXTERNAL memory\n");
+    PRINT_DISTRIBUTE G_debug(2, "In EXTERNAL memory");
 
     /*compute number of sectors */
     int nsect = compute_n_sectors();
@@ -299,20 +277,19 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 	    double ssize = (end_angle - start_angle) / nsect;
 
 	    boundaryEvents++;
-	    PRINTWARNING {
-		print_message("WARNING!event ");
-		print_event(*e);
-		print_message("CLOSE TO BOUNDARY\n");
-		printf("angle=%f close to  sector boundaries=[%f, %f]\n",
-		       e->angle, s * ssize, (s + 1) * ssize);
-	    }
+
+	    G_debug(2, "WARNING! event ");
+	    print_event(*e, 3);
+	    G_debug(2, "close to boundary");
+	    G_debug(2, "angle=%f close to sector boundaries=[%f, %f]",
+		   e->angle, s * ssize, (s + 1) * ssize);
 	}
 
-	DISTRIBDEBUG printf("event %7lu: ", (unsigned long)i);
-	DISTRIBDEBUG print_event(*e);
-	DISTRIBDEBUG printf("d=%8.1f, ",
+	G_debug(2, "event %7lu: ", (unsigned long)i);
+	print_event(*e, 2);
+	G_debug(2, "d=%8.1f, ",
 			    get_square_distance_from_viewpoint(*e, *vp));
-	DISTRIBDEBUG printf("s=%3d ", s);
+	G_debug(2, "s=%3d ", s);
 
 	assert(is_inside(s, nsect));
 	total[s]++;
@@ -329,8 +306,8 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 	    exit_angle = calculate_exit_angle(e->row, e->col, vp);
 	    exit_s =
 		get_event_sector(exit_angle, start_angle, end_angle, nsect);
-	    DISTRIBDEBUG
-		printf(" ENTER (a=%.2f,s=%3d)---> EXIT (a=%.2f,s=%3d) ",
+
+	    G_debug(2, " ENTER (a=%.2f,s=%3d)---> EXIT (a=%.2f,s=%3d) ",
 		       e->angle, s, exit_angle, exit_s);
 	    /*note: exit_s can be -1 (outside) */
 	    if (exit_s == s) {
@@ -359,8 +336,8 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 	    enter_angle = calculate_enter_angle(e->row, e->col, vp);
 	    enter_s =
 		get_event_sector(enter_angle, start_angle, end_angle, nsect);
-	    DISTRIBDEBUG
-		printf("  EXIT (a=%.2f,s=%3d)--->ENTER (a=%.2f,s=%3d) ",
+
+	    G_debug(2, "  EXIT (a=%.2f,s=%3d)--->ENTER (a=%.2f,s=%3d) ",
 		       e->angle, s, enter_angle, enter_s);
 
 	    /*don't need to check spanned sectors because it is done on its
@@ -373,12 +350,12 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 		/*semi-short event 
 		   //the corresponding ENTER event must insert itself in sectorBnd[s] */
 		e->eventType = ENTERING_EVENT;
-		BND_DEBUG {
-		    print_message("BND event ");
-		    print_event(*e);
-		    printf("in bndSector %d\n", s);
-		    fflush(stdout);
-		}
+
+		G_debug(2, "BND event ");
+		print_event(*e, 2);
+		G_debug(2, "in bndSector %d", s);
+
+
 		insert_event_in_sector(e, s, &sectorBnd[s], high[s],
 				       vp, bndInsert, bndDrop);
 
@@ -389,12 +366,11 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 		longEvents++;
 		/*the corresponding ENTER event must insert itself in sectorBnd[s] */
 		e->eventType = ENTERING_EVENT;
-		BND_DEBUG {
-		    print_message("BND event ");
-		    print_event(*e);
-		    printf("in bndSector %d\n", s);
-		    fflush(stdout);
-		}
+
+		G_debug(2, "BND event ");
+		print_event(*e, 2);
+		G_debug(2, "in bndSector %d", s);
+
 		insert_event_in_sector(e, s, &sectorBnd[s], high[s],
 				       vp, bndInsert, bndDrop);
 	    }
@@ -402,7 +378,7 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 
 	}			/*switch event-type */
 
-	DISTRIBDEBUG print_message("\n");
+	G_debug(2, "\n");
     }				/*for event i */
 
 
@@ -414,7 +390,7 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 			      bndDrop);
 
     /*sanity checks */
-    PRINT_DISTRIBUTE printf("boundary events in distribution: %ld\n",
+    G_debug(2, "boundary events in distribution: %ld",
 			    boundaryEvents);
     print_sector_stats(nbEvents, nsect, high, total, insert, drop, sector,
 		       sectorBnd, bndInsert,
@@ -434,21 +410,17 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 	delete enterBndEvents;
 
     /*save stream names of new sectors */
-#ifdef __GRASS__
     char **sectorName = (char **)G_malloc(nsect * sizeof(char *));
     char **sectorBndName = (char **)G_malloc(nsect * sizeof(char *));
-#else
-    char **sectorName = (char **)malloc(nsect * sizeof(char *));
-    char **sectorBndName = (char **)malloc(nsect * sizeof(char *));
-#endif
+
     assert(sectorName && sectorBndName);
     for (int i = 0; i < nsect; i++) {
 	sector[i].name(&sectorName[i]);
-	PRINT_DISTRIBUTE printf("saving stream %d: %s\t", i, sectorName[i]);
+	G_debug(2, "saving stream %d: %s\t", i, sectorName[i]);
 
 	sector[i].persist(PERSIST_PERSISTENT);
 	sectorBnd[i].name(&sectorBndName[i]);
-	PRINT_DISTRIBUTE printf("saving BndStr %d: %s\n", i,
+	G_debug(2, "saving BndStr %d: %s", i,
 				sectorBndName[i]);
 	sectorBnd[i].persist(PERSIST_PERSISTENT);
     }
@@ -465,20 +437,20 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
     for (int i = 0; i < nsect; i++) {
 
 	/*recover stream */
-	PRINT_DISTRIBUTE printf("\nopening sector stream %s ", sectorName[i]);
+	G_debug(3, "opening sector stream %s ", sectorName[i]);
 
 	AMI_STREAM < AEvent > *str =
 	    new AMI_STREAM < AEvent > (sectorName[i]);
 	assert(str);
-	PRINT_DISTRIBUTE printf(" len=%lu\n",
+	G_debug(3, " len=%lu",
 				(unsigned long)str->stream_len());
 	/*recover boundary stream */
-	PRINT_DISTRIBUTE printf("opening boundary sector stream %s ",
+	G_debug(3, "opening boundary sector stream %s ",
 				sectorBndName[i]);
 	AMI_STREAM < AEvent > *bndStr =
 	    new AMI_STREAM < AEvent > (sectorBndName[i]);
 	assert(str);
-	PRINT_DISTRIBUTE printf(" len=%lu\n",
+	G_debug(3, " len=%lu",
 				(unsigned long)bndStr->stream_len());
 
 
@@ -488,19 +460,14 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 				  start_angle + (i +
 						 1) * ((end_angle -
 							start_angle) / nsect),
-				  visgrid, vp, viewOptions);
+				  visgrid, vp, hd, viewOptions);
     }
 
     /*cleanup */
-#ifdef __GRASS__
     G_free(sectorName);
     G_free(sectorBndName);
-#else
-    free(sectorName);
-    free(sectorBndName);
-#endif
 
-    PRINT_DISTRIBUTE printf("Distribute sector [ %.4f, %.4f] done.\n",
+    G_debug(2, "Distribute sector [ %.4f, %.4f] done.",
 			    start_angle, end_angle);
 
     return nvis;
@@ -524,7 +491,7 @@ distribute_bnd_events(AMI_STREAM < AEvent > *bndEvents,
 		      double *high, long *insert, long *drop)
 {
 
-    PRINT_DISTRIBUTE printf("Distribute boundary of sector [ %.4f, %.4f] ",
+    G_debug(3, "Distribute boundary of sector [ %.4f, %.4f] ",
 			    start_angle, end_angle);
     assert(bndEvents && sectorBnd && vp && high && insert && drop);
     AEvent *e;
@@ -560,8 +527,7 @@ distribute_bnd_events(AMI_STREAM < AEvent > *bndEvents,
 
     }				/*for i */
 
-    PRINT_DISTRIBUTE
-	printf("Distribute boundary of sector [ %.4f, %.4f] done.\n",
+    G_debug(3, "Distribute boundary of sector [ %.4f, %.4f] done.",
 	       start_angle, end_angle);
 
     return;
@@ -571,7 +537,7 @@ distribute_bnd_events(AMI_STREAM < AEvent > *bndEvents,
 
 
 //***********************************************************************
-/* Solves a segment it inemory. it is called by distribute() when
+/* Solves a segment in memory. it is called by distribute() when
    sector fits in memory.  eventList is the list of events in
    increasing order of distance from the viewpoint; enterBndEvents is
    the list of ENTER events that are outside the sector, whose
@@ -581,19 +547,19 @@ distribute_bnd_events(AMI_STREAM < AEvent > *bndEvents,
    solved by switching to radial sweep.  */
 unsigned long solve_in_memory(AMI_STREAM < AEvent > *eventList,
 			      AMI_STREAM < AEvent > *enterBndEvents,
-			      double start_angle,
-			      double end_angle, IOVisibilityGrid * visgrid,
+			      double start_angle, double end_angle,
+			      IOVisibilityGrid * visgrid, GridHeader *hd,
 			      Viewpoint * vp, ViewOptions viewOptions)
 {
 
     assert(eventList && visgrid && vp);
-    PRINT_DISTRIBUTE print_message("solve INTERNAL memory\n");
+    G_debug(2, "solve INTERNAL memory");
 
     unsigned long nvis = 0;	/*number of visible cells */
 
-    printf("solve_in_memory: eventlist: %s\n", eventList->sprint());
+    G_debug(2, "solve_in_memory: eventlist: %s", eventList->sprint());
     if (enterBndEvents)
-	printf("BndEvents: %s\n", enterBndEvents->sprint());
+	G_debug(2, "BndEvents: %s", enterBndEvents->sprint());
 
     if (eventList->stream_len() == 0) {
 	delete eventList;
@@ -646,29 +612,47 @@ unsigned long solve_in_memory(AMI_STREAM < AEvent > *eventList,
        assert(ae == AMI_ERROR_END_OF_STREAM); 
      */
     if (enterBndEvents) {
+	double ax, ay;
+	
 	enterBndEvents->seek(0);
 	inevents = enterBndEvents->stream_len();
 	for (off_t i = 0; i < inevents; i++) {
 	    ae = enterBndEvents->read_item(&e);
 	    assert(ae == AMI_ERROR_NO_ERROR);
-	    DEBUGINIT {
-		print_message("INMEM init: initializing boundary ");
-		print_event(*e);
-		print_message("\n");
-	    }
+
+	    G_debug(3, "INMEM init: initializing boundary ");
+	    print_event(*e, 3);
+	    G_debug(3, "\n");
+
 	    /*this must span the first boundary of this sector; insert it
 	       //in status structure */
 	    sn.col = e->col;
 	    sn.row = e->row;
-	    sn.elev = e->elev;
-	    calculate_dist_n_gradient(&sn, vp);
+
+	    e->eventType = ENTERING_EVENT;
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[0] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_event_gradient(&sn, 0, ay, ax, e->elev[0], vp, *hd);
+
+	    e->eventType = CENTER_EVENT;
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[1] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_dist_n_gradient(&sn, e->elev[1], vp, *hd);
+
+	    e->eventType = EXITING_EVENT;
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[2] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_event_gradient(&sn, 2, ay, ax, e->elev[2], vp, *hd);
+
+	    if (sn.angle[0] > sn.angle[1])
+		sn.angle[0] -= 2 * M_PI;
+
+	    //calculate_dist_n_gradient(&sn, vp);
 	    insert_into_status_struct(sn, status_struct);
 	}
     }
-    PRINT_DISTRIBUTE {
-	printf("initialized active structure with %d events\n", inevents);
-	fflush(stdout);
-    }
+
+    G_debug(2, "initialized active structure with %d events", inevents);
 
 
     /*sweep the event list */
@@ -678,42 +662,73 @@ unsigned long solve_in_memory(AMI_STREAM < AEvent > *eventList,
     /*printf("nbEvents = %ld\n", (long) nbEvents); */
     eventList->seek(0);
     for (off_t i = 0; i < nbEvents; i++) {
-
 	/*get out one event at a time and process it according to its type */
 	ae = eventList->read_item(&e);
 	assert(ae == AMI_ERROR_NO_ERROR);
-	SOLVEINMEMDEBUG {
-	    print_message("INMEM sweep: next event: ");
-	    print_event(*e);
-	}
+
+	G_debug(3, "INMEM sweep: next event: ");
+	print_event(*e, 3);
 
 	sn.col = e->col;
 	sn.row = e->row;
-	sn.elev = e->elev;
+	//sn.elev = e->elev;
 	/*calculate Distance to VP and Gradient */
-	calculate_dist_n_gradient(&sn, vp);
+	calculate_dist_n_gradient(&sn, e->elev[1] + vp->target_offset, vp, *hd);
 
 	switch (e->eventType) {
 	case ENTERING_EVENT:
+	    double ax, ay;
+
 	    /*insert node into structure */
-	    SOLVEINMEMDEBUG {
-		print_message("..ENTER-EVENT: insert\n");
-	    }
+	    G_debug(3, "..ENTER-EVENT: insert");
+
 	    /*don't insert if its close to the boundary---the segment was
 	       //already inserted in initialization above
 	       //if (!is_almost_on_boundary(e->angle, start_angle)) 
 	       //insertIntoStatusStruct(sn,status_struct); */
+	    sn.angle[0] = calculate_enter_angle(sn.row, sn.col, vp);
+	    sn.angle[1] = calculate_angle(sn.col, sn.row, vp->col, vp->row);
+	    sn.angle[2] = calculate_exit_angle(sn.row, sn.col, vp);
+
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    //sn.angle[0] = calculate_angle(ax, ay, vp->col, vp->row);
+	    sn.angle[0] = e->angle;
+	    calculate_event_gradient(&sn, 0, ay, ax, e->elev[0], vp, *hd);
+
+	    e->eventType = CENTER_EVENT;
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[1] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_dist_n_gradient(&sn, e->elev[1], vp, *hd);
+
+	    e->eventType = EXITING_EVENT;
+	    calculate_event_position(*e, vp->row, vp->col, &ay, &ax);
+	    sn.angle[2] = calculate_angle(ax, ay, vp->col, vp->row);
+	    calculate_event_gradient(&sn, 2, ay, ax, e->elev[2], vp, *hd);
+
+	    e->eventType = ENTERING_EVENT;
+
+	    if (e->angle < M_PI) {
+		if (sn.angle[0] > sn.angle[1])
+		    sn.angle[0] -= 2 * M_PI;
+	    }
+	    else {
+		if (sn.angle[0] > sn.angle[1]) {
+		    sn.angle[1] += 2 * M_PI;
+		    sn.angle[2] += 2 * M_PI;
+		}
+	    }
+
 	    insert_into_status_struct(sn, status_struct);
 	    break;
 
 	case EXITING_EVENT:
 	    /*delete node out of status structure */
 	    SOLVEINMEMDEBUG {
-		print_message("..EXIT-EVENT: delete\n");
+		G_debug(3, "..EXIT-EVENT: delete");
 		/*find its corresponding enter event and its sector */
 		double enter_angle =
 		    calculate_enter_angle(e->row, e->col, vp);
-		printf("  EXIT (a=%f)--->ENTER (a=%f) ", e->angle,
+		G_debug(3, "  EXIT (a=%f)--->ENTER (a=%f) ", e->angle,
 		       enter_angle);
 	    }
 	    delete_from_status_struct(status_struct, sn.dist2vp);
@@ -721,7 +736,7 @@ unsigned long solve_in_memory(AMI_STREAM < AEvent > *eventList,
 
 	case CENTER_EVENT:
 	    SOLVEINMEMDEBUG {
-		print_message("..QUERY-EVENT: query\n");
+		G_debug(3, "..QUERY-EVENT: query");
 	    }
 	    /*calculate visibility
 
@@ -733,15 +748,16 @@ unsigned long solve_in_memory(AMI_STREAM < AEvent > *eventList,
 	    double max;
 
 	    max =
-		find_max_gradient_in_status_struct(status_struct, sn.dist2vp);
+		find_max_gradient_in_status_struct(status_struct, sn.dist2vp,
+		                          e->angle, sn.gradient[1]);
 
 	    viscell.row = sn.row;
 	    viscell.col = sn.col;
 
-	    if (max <= sn.gradient_offset) {
+	    if (max <= sn.gradient[1]) {
 		/*the point is visible */
 		viscell.angle =
-		    get_vertical_angle(*vp, sn, viewOptions.doCurv);
+		    get_vertical_angle(*vp, sn, e->elev[1] + vp->target_offset, viewOptions.doCurv);
 		assert(viscell.angle > 0);
 		/* viscell.vis = VISIBLE; */
 		add_result_to_io_visibilitygrid(visgrid, &viscell);
@@ -760,10 +776,9 @@ unsigned long solve_in_memory(AMI_STREAM < AEvent > *eventList,
     }				/* for each event */
 
 
-    PRINT_DISTRIBUTE print_message("in memory sweeping done.\n");
+    G_debug(2, "in memory sweeping done.");
 
-    PRINT_DISTRIBUTE
-	printf("Total cells %lu, visible cells %lu (%.1f percent).\n",
+    G_debug(2, "Total cells %lu, visible cells %lu (%.1f percent).",
 	       (unsigned long)eventList->stream_len(), nvis,
 	       (float)((float)nvis * 100 / (float)(eventList->stream_len())));
 
@@ -868,7 +883,7 @@ process_long_cell(int start_s, int end_s, int nsect,
 		  Viewpoint * vp, AEvent * e, double *high)
 {
 
-    DISTRIBDEBUG printf("LONG CELL: spans [%3d, %3d] ", start_s, end_s);
+    G_debug(4, "LONG CELL: spans [%3d, %3d] ", start_s, end_s);
     double ctrgrad = calculate_center_gradient(e, vp);
 
     /*ENTER event is outside */
@@ -954,49 +969,27 @@ print_sector_stats(off_t nevents, int nsect, double *high,
     }
     assert(totalSector == nevents);
 
-#ifdef __GRASS__
     PRINT_DISTRIBUTE {
-	G_message("-----nsectors=%d\n", nsect);
+	G_debug(3, "-----nsectors=%d", nsect);
 	for (int i = 0; i < nsect; i++) {
-	    G_message("\ts=%3d  ", i);
-	    G_message("[%.4f, %.4f] ",
+	    G_debug(3, "\ts=%3d  ", i);
+	    G_debug(3, "[%.4f, %.4f] ",
 		      get_sector_start(i, start_angle, end_angle, nsect),
 		      get_sector_end(i, start_angle, end_angle, nsect));
-	    G_message("high = %9.1f, ", high[i]);
-	    G_message("total = %10ld, ", total[i]);
-	    G_message("inserted = %10ld, ", insert[i]);
-	    G_message("dropped = %10ld, ", drop[i]);
-	    G_message("BOUNDARY = %5ld", bndInsert[i]);
-	    G_message("\n");
+	    G_debug(3, "high = %9.1f, ", high[i]);
+	    G_debug(3, "total = %10ld, ", total[i]);
+	    G_debug(3, "inserted = %10ld, ", insert[i]);
+	    G_debug(3, "dropped = %10ld, ", drop[i]);
+	    G_debug(3, "BOUNDARY = %5ld", bndInsert[i]);
+	    G_debug(3, "\n");
 	}
     }
-    G_message("Distribute [%.4f, %.4f]: nsect=%d, ", start_angle, end_angle,
-	      nsect);
-    G_message
-	("total events %lu, inserted %lu, dropped %lu, long events=%ld\n",
+    G_debug(3, "Distribute [%.4f, %.4f]: nsect=%d, ",
+	    start_angle, end_angle, nsect);
+    G_debug(3, 
+	"total events %lu, inserted %lu, dropped %lu, long events=%ld",
 	 totalSector, totalInsert, totalDrop, longEvents);
-#else
-    PRINT_DISTRIBUTE {
-	printf("-----nsectors=%d\n", nsect);
-	for (int i = 0; i < nsect; i++) {
-	    printf("\ts=%3d  ", i);
-	    printf("[%.4f, %.4f] ",
-		   get_sector_start(i, start_angle, end_angle, nsect),
-		   get_sector_end(i, start_angle, end_angle, nsect));
-	    printf("high = %9.1f, ", high[i]);
-	    printf("total = %10ld, ", total[i]);
-	    printf("inserted = %10ld, ", insert[i]);
-	    printf("dropped = %10ld, ", drop[i]);
-	    printf("BOUNDARY = %5ld", bndInsert[i]);
-	    printf("\n");
-	}
-    }
-    printf("Distribute [%.4f, %.4f]: nsect=%d, ", start_angle, end_angle,
-	   nsect);
-    printf("total events %lu, inserted %lu, dropped %lu, long events=%ld\n",
-	   totalSector, totalInsert, totalDrop, longEvents);
-    fflush(stdout);
-#endif
+
     return;
 }
 
@@ -1033,8 +1026,8 @@ int compute_n_sectors()
 	if (2 * nsect > MAX_STREAMS_OPEN - 10)
 	    nsect = (MAX_STREAMS_OPEN - 10) / 2;
     }
-    printf("nsectors set to %d\n", nsect);
-    fflush(stdout);
+    G_debug(1, "nsectors set to %d", nsect);
+
     return nsect;
 }
 
@@ -1101,8 +1094,8 @@ insert_event_in_sector_no_drop(AEvent * e, int s, AMI_STREAM < AEvent > *str,
 
     /*note: if on boundary, PRECISION ISSUES??  should insert both sectors? */
     DISTRIBDEBUG {
-	print_event(*e);
-	printf(" insert in sector %3d\n", s);
+	print_event(*e, 2);
+	G_debug(2, " insert in sector %3d", s);
     }
     AMI_err ae;
 
@@ -1127,8 +1120,8 @@ insert_event_in_sector(AEvent * e, int s, AMI_STREAM < AEvent > *str,
     if (!is_center_gradient_occluded(e, high_s, vp)) {
 	insert[s]++;
 	DISTRIBDEBUG {
-	    print_event(*e);
-	    printf(" insert in sector %3d\n", s);
+	    print_event(*e, 2);
+	    G_debug(2, " insert in sector %3d", s);
 	}
 	AMI_err ae;
 
@@ -1171,7 +1164,7 @@ void print_dropped(AEvent * e, Viewpoint * vp, double high)
     assert(e && vp);
     double eg = calculate_center_gradient(e, vp);
 
-    printf(" dropping grad=%.2f, high=%.2f\n", eg, high);
+    G_debug(3, " dropping grad=%.2f, high=%.2f", eg, high);
 
     return;
 }

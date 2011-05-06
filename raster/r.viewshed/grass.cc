@@ -5,11 +5,12 @@
  *
  * AUTHOR(S):    Laura Toma, Bowdoin College - ltoma@bowdoin.edu
  *               Yi Zhuang - yzhuang@bowdoin.edu
-
+ *
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
+ *               Markus Metz: surface interpolation
  *
- * Date:         july 2008 
+ * Date:         april 2011 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -17,12 +18,10 @@
  * considered visible to each other if the cells where they belong are
  * visible to each other.  Two cells are visible to each other if the
  * line-of-sight that connects their centers does not intersect the
- * terrain. The height of a cell is assumed to be constant, and the
- * terrain is viewed as a tesselation of flat cells.  This model is
- * suitable for high resolution rasters; it may not be accurate for
- * low resolution rasters, where it may be better to interpolate the
- * height at a point based on the neighbors, rather than assuming
- * cells are "flat".  The viewshed algorithm is efficient both in
+ * terrain. The terrain is NOT viewed as a tesselation of flat cells, 
+ * i.e. if the line-of-sight does not pass through the cell center, 
+ * elevation is determined using bilinear interpolation.
+ * The viewshed algorithm is efficient both in
  * terms of CPU operations and I/O operations. It has worst-case
  * complexity O(n lg n) in the RAM model and O(sort(n)) in the
  * I/O-model.  For the algorithm and all the other details see the
@@ -39,8 +38,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
-#ifdef __GRASS__
 
 extern "C"
 {
@@ -61,8 +58,8 @@ extern "C"
    curvature of the earth; otherwise return the passed height
    unchanged. 
  */
-float adjust_for_curvature(Viewpoint vp, dimensionType row,
-			   dimensionType col, float h,
+surface_type adjust_for_curvature(Viewpoint vp, double row,
+			   double col, surface_type h,
 			   ViewOptions viewOptions, GridHeader *hd)
 {
 
@@ -72,7 +69,6 @@ float adjust_for_curvature(Viewpoint vp, dimensionType row,
     assert(viewOptions.ellps_a != 0);
 
     /* distance must be in meters because ellps_a is in meters */
-
     double dist = G_distance(G_col_to_easting(vp.col + 0.5, &(hd->window)),
                              G_row_to_northing(vp.row + 0.5, &(hd->window)),
 			     G_col_to_easting(col + 0.5, &(hd->window)),
@@ -86,9 +82,8 @@ float adjust_for_curvature(Viewpoint vp, dimensionType row,
 
 
 /* ************************************************************ */
-/*return a GridHeader that has all the relevant data filled in from
-   GRASS */
-GridHeader *read_header_from_GRASS(char *rastName, Cell_head * region)
+/*return a GridHeader that has all the relevant data filled in */
+GridHeader *read_header(char *rastName, Cell_head * region)
 {
 
     assert(rastName);
@@ -123,15 +118,44 @@ GridHeader *read_header_from_GRASS(char *rastName, Cell_head * region)
 		    "this case this may result in innacuracies."));
 	//    exit(EXIT_FAILURE);
     }
-    hd->cellsize = (float)region->ew_res;
+    hd->ew_res = region->ew_res;
+    hd->ns_res = region->ns_res;
     //store the null value of the map
-    G_set_f_null_value(&(hd->nodata_value), 1);
+    G_set_null_value(&(hd->nodata_value), 1, G_SURFACE_TYPE);
     G_message("Nodata value set to %f", hd->nodata_value);
+    
+    
+    
     return hd;
 }
 
+/* calculate ENTER and EXIT event elevation (bilinear interpolation) */
+surface_type calculate_event_elevation(AEvent e, int nrows, int ncols,
+                                       dimensionType vprow, dimensionType vpcol,
+				       G_SURFACE_T **inrast, RASTER_MAP_TYPE data_type)
+{
+    int row1, col1;
+    surface_type event_elev;
+    G_SURFACE_T elev1, elev2, elev3, elev4;
+    
+    calculate_event_row_col(e, vprow, vpcol, &row1, &col1);
+    if (row1 >= 0 && row1 < nrows && col1 >= 0 && col1 < ncols) {
+	elev1 = inrast[row1 - e.row + 1][col1];
+	elev2 = inrast[row1 - e.row + 1][e.col];
+	elev3 = inrast[1][col1];
+	elev4 = inrast[1][e.col];
+	if (G_is_null_value(&elev1, data_type) || G_is_null_value(&elev2, data_type) ||
+	    G_is_null_value(&elev3, data_type) || G_is_null_value(&elev4, data_type))
+	    event_elev = inrast[1][e.col];
+	else {
+	    event_elev = (elev1 + elev2 + elev3 + elev4) / 4.;
+	}
+    }
+    else
+	event_elev = inrast[1][e.col];
 
-
+    return event_elev;
+}
 
 
 /*  ************************************************************ */
@@ -143,9 +167,9 @@ GridHeader *read_header_from_GRASS(char *rastName, Cell_head * region)
    AEvent* with all the events for the map.  Used when solving in
    memory, so the AEvent* should fit in memory.  */
 size_t
-grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
+init_event_list_in_memory(AEvent * eventList, char *rastName,
 				Viewpoint * vp, GridHeader * hd,
-				ViewOptions viewOptions, double **data,
+				ViewOptions viewOptions, surface_type ***data,
 				MemoryVisibilityGrid * visgrid)
 {
 
@@ -155,8 +179,12 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 
     /*alloc data ; data is used to store all the cells on the same row
        as the viewpoint. */
-    *data = (double *)malloc(G_window_cols() * sizeof(double));
+    *data = (surface_type **)G_malloc(3 * sizeof(surface_type *));
     assert(*data);
+    (*data)[0] = (surface_type *)G_malloc(3 * G_window_cols() * sizeof(surface_type));
+    assert((*data)[0]);
+    (*data)[1] = (*data)[0] + G_window_cols();
+    (*data)[2] = (*data)[1] + G_window_cols();
 
     /*get the mapset name */
     char *mapset;
@@ -174,13 +202,26 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
     /*get the data_type */
     RASTER_MAP_TYPE data_type;
 
-    data_type = G_raster_map_type(rastName, mapset);
+    /* data_type = G_raster_map_type(rastName, mapset); */
+    data_type = G_SURFACE_TYPE;
 
-    /*buffer to hold a row */
-    void *inrast;
+    /*buffer to hold 3 rows */
+    G_SURFACE_T **inrast;
+    int nrows = G_window_rows();
+    int ncols = G_window_rows();
 
-    inrast = G_allocate_raster_buf(data_type);
+    inrast = (G_SURFACE_T **)G_malloc(3 * sizeof(G_SURFACE_T *));
     assert(inrast);
+    inrast[0] = (G_SURFACE_T *)G_allocate_raster_buf(data_type);
+    assert(inrast[0]);
+    inrast[1] = (G_SURFACE_T *)G_allocate_raster_buf(data_type);
+    assert(inrast[1]);
+    inrast[2] = (G_SURFACE_T *)G_allocate_raster_buf(data_type);
+    assert(inrast[2]);
+    
+    G_set_null_value(inrast[0], ncols, data_type);
+    G_set_null_value(inrast[1], ncols, data_type);
+    G_set_null_value(inrast[2], ncols, data_type);
 
     /*DCELL to check for loss of prescion- haven't gotten that to work
        yet though */
@@ -192,14 +233,28 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 
     /*scan through the raster data */
     dimensionType i, j, k;
+    int row1, col1;
     double ax, ay;
+    G_SURFACE_T *elev1, *elev2, *elev3, *elev4;
     AEvent e;
-    int nrows = G_window_rows();
+    
+    /* read first row */
+    G_get_raster_row(infd, inrast[2], 0, data_type);
 
     e.angle = -1;
     for (i = 0; i < nrows; i++) {
 	/*read in the raster row */
-	int rasterRowResult = G_get_raster_row(infd, inrast, i, data_type);
+	int rasterRowResult = 1;
+	
+	G_SURFACE_T *tmprast = inrast[0];
+	inrast[0] = inrast[1];
+	inrast[1] = inrast[2];
+	inrast[2] = tmprast;
+
+	if (i < nrows - 1)
+	    rasterRowResult = G_get_raster_row(infd, inrast[2], i + 1, data_type);
+	else
+	    G_set_null_value(inrast[2], ncols, data_type);
 
 	if (rasterRowResult <= 0)
 	    G_fatal_error(_("Coord not read from row %d of <%s>"), i,
@@ -212,33 +267,23 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 	    e.row = i;
 	    e.col = j;
 
-	    /*read the elevation value into the event, depending on data_type */
-	    switch (data_type) {
-	    case CELL_TYPE:
-		isnull = G_is_c_null_value(&(((CELL *) inrast)[j]));
-		e.elev = (float)(((CELL *) inrast)[j]);
-		break;
-	    case FCELL_TYPE:
-		isnull = G_is_f_null_value(&(((FCELL *) inrast)[j]));
-		e.elev = (float)(((FCELL *) inrast)[j]);
-		break;
-	    case DCELL_TYPE:
-		isnull = G_is_d_null_value(&(((DCELL *) inrast)[j]));
-		e.elev = (float)(((DCELL *) inrast)[j]);
-		break;
-	    }
+	    /*read the elevation value into the event */
+	    isnull = G_is_null_value(&(inrast[1][j]), data_type);
+	    e.elev[1] = inrast[1][j];
 
 	    /* adjust for curvature */
-	    e.elev = adjust_for_curvature(*vp, i, j, e.elev, viewOptions, hd);
+	    e.elev[1] = adjust_for_curvature(*vp, i, j, e.elev[1], viewOptions, hd);
 
 	    /*write it into the row of data going through the viewpoint */
 	    if (i == vp->row) {
-		(*data)[j] = e.elev;
+		(*data)[0][j] = e.elev[1];
+		(*data)[1][j] = e.elev[1];
+		(*data)[2][j] = e.elev[1];
 	    }
 
 	    /* set the viewpoint, and don't insert it into eventlist */
 	    if (i == vp->row && j == vp->col) {
-		set_viewpoint_elev(vp, e.elev + viewOptions.obsElev);
+		set_viewpoint_elev(vp, e.elev[1] + viewOptions.obsElev);
 		if (viewOptions.tgtElev > 0)
 		    vp->target_offset = viewOptions.tgtElev;
 		else
@@ -249,6 +294,9 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 		    G_message(_("Will assume its elevation is = %f"),
 			      vp->elev);
 		}
+
+		add_result_to_inmem_visibilitygrid(visgrid, i, j,
+						   180);
 		continue;
 	    }
 
@@ -271,6 +319,34 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
 	    /* if it got here it is not the viewpoint, not NODATA, and
 	       within max distance from viewpoint; generate its 3 events
 	       and insert them */
+
+	    /* get ENTER elevation */
+	    e.eventType = ENTERING_EVENT;
+	    e.elev[0] = calculate_event_elevation(e, nrows, ncols,
+                                       vp->row, vp->col, inrast, data_type);
+	    /* adjust for curvature */
+	    if (viewOptions.doCurv) {
+		calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+		e.elev[0] = adjust_for_curvature(*vp, ay, ax, e.elev[0], viewOptions, hd);
+	    }
+
+	    /* get EXIT elevation */
+	    e.eventType = EXITING_EVENT;
+	    e.elev[2] = calculate_event_elevation(e, nrows, ncols,
+                                       vp->row, vp->col, inrast, data_type);
+	    /* adjust for curvature */
+	    if (viewOptions.doCurv) {
+		calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+		e.elev[2] = adjust_for_curvature(*vp, ay, ax, e.elev[2], viewOptions, hd);
+	    }
+
+	    /*write adjusted elevation into the row of data going through the viewpoint */
+	    if (i == vp->row) {
+		(*data)[0][j] = e.elev[0];
+		(*data)[1][j] = e.elev[1];
+		(*data)[2][j] = e.elev[2];
+	    }
+
 	    /*put event into event list */
 	    e.eventType = ENTERING_EVENT;
 	    calculate_event_position(e, vp->row, vp->col, &ay, &ax);
@@ -294,8 +370,13 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
     }
     G_percent(nrows, nrows, 2);
 
-    G_message(_("...done creating event list"));
     G_close_cell(infd);
+
+    G_free(inrast[0]);
+    G_free(inrast[1]);
+    G_free(inrast[2]);
+    G_free(inrast);
+
     return nevents;
 }
 
@@ -312,20 +393,25 @@ grass_init_event_list_in_memory(AEvent * eventList, char *rastName,
    if data is not NULL, it creates an array that stores all events on
    the same row as the viewpoint. 
  */
-AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
+AMI_STREAM < AEvent > *init_event_list(char *rastName, Viewpoint * vp,
 					     GridHeader * hd,
 					     ViewOptions viewOptions,
-					     double **data,
+					     surface_type ***data,
 					     IOVisibilityGrid * visgrid)
 {
+
     G_message(_("computing events ..."));
     assert(rastName && vp && hd && visgrid);
 
     if (data != NULL) {
 	/*data is used to store all the cells on the same row as the
 	   //viewpoint. */
-	*data = (double *)G_malloc(G_window_cols() * sizeof(double));
+	*data = (surface_type **)G_malloc(3 * sizeof(surface_type *));
 	assert(*data);
+	(*data)[0] = (surface_type *)G_malloc(3 * G_window_cols() * sizeof(surface_type));
+	assert((*data)[0]);
+	(*data)[1] = (*data)[0] + G_window_cols();
+	(*data)[2] = (*data)[1] + G_window_cols();
     }
 
     /*create the event stream that will hold the events */
@@ -347,19 +433,36 @@ AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
 
     RASTER_MAP_TYPE data_type;
 
-    data_type = G_raster_map_type(rastName, mapset);
-    void *inrast;
+    /* data_type = G_raster_map_type(rastName, mapset); */
+    data_type = G_SURFACE_TYPE;
+    G_SURFACE_T **inrast;
+    int nrows = G_window_rows();
+    int ncols = G_window_rows();
 
-    inrast = G_allocate_raster_buf(data_type);
+    inrast = (G_SURFACE_T **)G_malloc(3 * sizeof(G_SURFACE_T *));
     assert(inrast);
+    inrast[0] = (G_SURFACE_T *)G_allocate_raster_buf(data_type);
+    assert(inrast[0]);
+    inrast[1] = (G_SURFACE_T *)G_allocate_raster_buf(data_type);
+    assert(inrast[1]);
+    inrast[2] = (G_SURFACE_T *)G_allocate_raster_buf(data_type);
+    assert(inrast[2]);
+    
+    G_set_null_value(inrast[0], ncols, data_type);
+    G_set_null_value(inrast[1], ncols, data_type);
+    G_set_null_value(inrast[2], ncols, data_type);
 
     /*scan through the raster data */
     DCELL d;
     int isnull = 0;
     dimensionType i, j, k;
+    int row1, col1;
     double ax, ay;
+    G_SURFACE_T *elev1, *elev2, *elev3, *elev4;
     AEvent e;
-    int nrows = G_window_rows();
+
+    /* read first row */
+    G_get_raster_row(infd, inrast[2], 0, data_type);
 
     e.angle = -1;
 
@@ -369,62 +472,68 @@ AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
 	G_percent(i, nrows, 2);
 
 	/*read in the raster row */
-	if (G_get_raster_row(infd, inrast, i, data_type) <= 0)
-	    G_fatal_error(_("Coord not read from row %d of %s"), i, rastName);
+	int rasterRowResult = 1;
+	
+	G_SURFACE_T *tmprast = inrast[0];
+	inrast[0] = inrast[1];
+	inrast[1] = inrast[2];
+	inrast[2] = tmprast;
+
+	if (i < nrows - 1)
+	    rasterRowResult = G_get_raster_row(infd, inrast[2], i + 1, data_type);
+	else
+	    G_set_null_value(inrast[2], ncols, data_type);
+
+	if (rasterRowResult <= 0)
+	    G_fatal_error(_("Coord not read from row %d of <%s>"), i,
+			  rastName);
 
 	/*fill event list with events from this row */
-	for (j = 0; j < G_window_cols(); j++) {
+	for (j = 0; j < ncols; j++) {
 
 	    e.row = i;
 	    e.col = j;
 
-	    /*read the elevation value into the event, depending on data_type */
-	    switch (data_type) {
-	    case CELL_TYPE:
-		isnull = G_is_c_null_value(&(((CELL *) inrast)[j]));
-		e.elev = (float)(((CELL *) inrast)[j]);
-		break;
-	    case FCELL_TYPE:
-		isnull = G_is_f_null_value(&(((FCELL *) inrast)[j]));
-		e.elev = (float)(((FCELL *) inrast)[j]);
-		break;
-	    case DCELL_TYPE:
-		isnull = G_is_d_null_value(&(((DCELL *) inrast)[j]));
-		e.elev = (float)(((DCELL *) inrast)[j]);
-		break;
-	    }
+	    /*read the elevation value into the event */
+	    isnull = G_is_null_value(&(inrast[1][j]), data_type);
+	    e.elev[1] = inrast[1][j];
 
 	    /* adjust for curvature */
-	    e.elev = adjust_for_curvature(*vp, i, j, e.elev, viewOptions, hd);
+	    e.elev[1] = adjust_for_curvature(*vp, i, j, e.elev[1], viewOptions, hd);
 
 	    if (data != NULL) {
 
-		/**write the row of data going through the viewpoint */
+		/*write the row of data going through the viewpoint */
 		if (i == vp->row) {
-		    (*data)[j] = e.elev;
+		    (*data)[0][j] = e.elev[1];
+		    (*data)[1][j] = e.elev[1];
+		    (*data)[2][j] = e.elev[1];
 		}
 	    }
 
 	    /* set the viewpoint */
 	    if (i == vp->row && j == vp->col) {
-		set_viewpoint_elev(vp, e.elev + viewOptions.obsElev);
+		set_viewpoint_elev(vp, e.elev[1] + viewOptions.obsElev);
+		/*what to do when viewpoint is NODATA */
+		if (is_nodata(hd, e.elev[1])) {
+		    G_warning("Viewpoint is NODATA.");
+		    G_message("Will assume its elevation is %.f", e.elev[1]);
+		};
 		if (viewOptions.tgtElev > 0)
 		    vp->target_offset = viewOptions.tgtElev;
 		else
 		    vp->target_offset = 0.;
-		/*what to do when viewpoint is NODATA */
-		if (is_nodata(hd, e.elev)) {
-		    G_warning("Viewpoint is NODATA.");
-		    G_message("Will assume its elevation is %.f", e.elev);
-		};
+
+		/* add viewpoint to visibility grid */
+		VisCell visCell = { i, j, 180 };
+		add_result_to_io_visibilitygrid(visgrid, &visCell);
+
+		/*don't insert viewpoint into eventlist */
+		continue;
 	    }
 
-	    /*don't insert viewpoint into eventlist */
-	    if (i == vp->row && j == vp->col)
-		continue;
-
 	    /*don't insert the nodata cell events */
-	    if (is_nodata(hd, e.elev)) {
+	    if (is_nodata(hd, e.elev[1])) {
 		/* record this cell as being NODATA. ; this is necessary so
 		   that we can distingush invisible events, from nodata
 		   events in the output */
@@ -438,6 +547,36 @@ AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
 	    if (is_point_outside_max_dist
 		(*vp, *hd, i, j, viewOptions.maxDist))
 		continue;
+
+	    /* get ENTER elevation */
+	    e.eventType = ENTERING_EVENT;
+	    e.elev[0] = calculate_event_elevation(e, nrows, ncols,
+                                       vp->row, vp->col, inrast, data_type);
+	    /* adjust for curvature */
+	    if (viewOptions.doCurv) {
+		calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+		e.elev[0] = adjust_for_curvature(*vp, ay, ax, e.elev[0], viewOptions, hd);
+	    }
+
+	    /* get EXIT elevation */
+	    e.eventType = EXITING_EVENT;
+	    e.elev[2] = calculate_event_elevation(e, nrows, ncols,
+                                       vp->row, vp->col, inrast, data_type);
+	    /* adjust for curvature */
+	    if (viewOptions.doCurv) {
+		calculate_event_position(e, vp->row, vp->col, &ay, &ax);
+		e.elev[2] = adjust_for_curvature(*vp, ay, ax, e.elev[2], viewOptions, hd);
+	    }
+
+	    if (data != NULL) {
+
+		/*write the row of data going through the viewpoint */
+		if (i == vp->row) {
+		    (*data)[0][j] = e.elev[0];
+		    (*data)[1][j] = e.elev[1];
+		    (*data)[2][j] = e.elev[2];
+		}
+	    }
 
 	    /*put event into event list */
 	    e.eventType = ENTERING_EVENT;
@@ -459,14 +598,19 @@ AMI_STREAM < AEvent > *grass_init_event_list(char *rastName, Viewpoint * vp,
     }				/* for i */
     G_percent(nrows, nrows, 2);
 
-    G_message(_("...done creating event list\n"));
     G_close_cell(infd);
-    G_message("nbEvents = %lu", (unsigned long)eventList->stream_len());
-    G_message("Event stream length: %lu x %dB (%lu MB)",
+
+    G_free(inrast[0]);
+    G_free(inrast[1]);
+    G_free(inrast[2]);
+    G_free(inrast);
+
+    G_debug(1, "nbEvents = %lu", (unsigned long)eventList->stream_len());
+    G_debug(1, "Event stream length: %lu x %dB (%lu MB)",
 	      (unsigned long)eventList->stream_len(), (int)sizeof(AEvent),
 	      (unsigned long)(((long long)(eventList->stream_len() *
 					   sizeof(AEvent))) >> 20));
-    fflush(stdout);
+
     return eventList;
 }
 
@@ -868,7 +1012,3 @@ save_io_vis_and_elev_to_GRASS(IOVisibilityGrid * visgrid, char *elevfname,
     G_close_cell(visfd);
     return;
 }
-
-
-
-#endif

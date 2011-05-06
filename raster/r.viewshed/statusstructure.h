@@ -8,8 +8,9 @@
 
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
+ *               Markus Metz: surface interpolation
  *
- * Date:         july 2008 
+ * Date:         april 2011 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -17,12 +18,10 @@
  * considered visible to each other if the cells where they belong are
  * visible to each other.  Two cells are visible to each other if the
  * line-of-sight that connects their centers does not intersect the
- * terrain. The height of a cell is assumed to be constant, and the
- * terrain is viewed as a tesselation of flat cells.  This model is
- * suitable for high resolution rasters; it may not be accurate for
- * low resolution rasters, where it may be better to interpolate the
- * height at a point based on the neighbors, rather than assuming
- * cells are "flat".  The viewshed algorithm is efficient both in
+ * terrain. The terrain is NOT viewed as a tesselation of flat cells, 
+ * i.e. if the line-of-sight does not pass through the cell center, 
+ * elevation is determined using bilinear interpolation.
+ * The viewshed algorithm is efficient both in
  * terms of CPU operations and I/O operations. It has worst-case
  * complexity O(n lg n) in the RAM model and O(sort(n)) in the
  * I/O-model.  For the algorithm and all the other details see the
@@ -44,9 +43,7 @@
    This header file defines the status structure and related functions.
  */
 
-#ifdef __GRASS__
-#include <grass/config.h>
-#endif
+#include <grass/gis.h>
 
 #include "grid.h"
 #include "rbbst.h"
@@ -55,10 +52,12 @@
 typedef struct statusnode_
 {
     dimensionType row, col;	/*position of the cell */
-    float elev;			/*elevation of cell */
+    
+    /* float elev; */			/*elevation of cell */
     double dist2vp;		/*distance to the viewpoint */
-    double gradient;		/*gradient of the Line of Sight */
-    double gradient_offset;	/*gradient of the Line of Sight with local elevation offset */
+    double gradient[3];		/*ENTER, CENTER, EXIT gradients of the Line of Sight */
+    double angle[3];		/*ENTER, CENTER, EXIT angles of the Line of Sight */
+    /* double gradient_offset; */	/*gradient of the Line of Sight with local elevation offset */
 } StatusNode;
 
 
@@ -75,9 +74,14 @@ typedef struct statuslist_
 long long get_active_str_size_bytes(GridHeader * hd);
 
 
-//given a StatusNode, fill in its dist2vp and gradient
-void calculate_dist_n_gradient(StatusNode * sn, Viewpoint * vp);
+/*given a StatusNode, fill in its dist2vp and gradient */
+void calculate_dist_n_gradient(StatusNode * sn, double elev,
+                               Viewpoint * vp, GridHeader hd);
 
+/* calculate gradient for ENTERING or EXITING event */
+void calculate_event_gradient(StatusNode * sn, int e_idx, 
+			      double row, double col, double elev,
+		              Viewpoint * vp, GridHeader hd);
 
 /*create an empty status list. */
 StatusList *create_status_struct();
@@ -96,12 +100,12 @@ void insert_into_status_struct(StatusNode sn, StatusList * sl);
 
 /*find the node with max Gradient. The node must be
    //within the distance (from viewpoint) given */
-double find_max_gradient_in_status_struct(StatusList * sl, double dist);
+double find_max_gradient_in_status_struct(StatusList * sl, double dist, double angle, double gradient);
 
 /*find the vertical angle in degrees between the viewpoint and the
    point represented by the StatusNode.  Assumes all values (except
    gradient) in sn have been filled. */
-float get_vertical_angle(Viewpoint vp, StatusNode sn, int doCurv);
+float get_vertical_angle(Viewpoint vp, StatusNode sn, surface_type elev, int doCurv);
 
 
 #endif

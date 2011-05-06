@@ -32,8 +32,9 @@ Nodata/null
 
 <li> -1, if the point is not visible
 
-<li> a value in [0, 180] representing the vertical angle wrt
-viewpoint, in degrees, if the point is visible. 
+<li> a value in [0, 180] representing the vertical angle with regard to
+the viewpoint, in degrees, if the point is visible. 0 degrees: directly 
+above the observer, 180 degrees: directly below the observer
 
 </ul>
 
@@ -75,6 +76,11 @@ height=0 above the terrain.  The user can change this using option
 <em>obs_elev=...</em>. The value entered is in the same units
 as the elevation.
 
+<p>Target elevation: By default the target is assumed to have
+height=0 above the terrain.  The user can change this using option
+<em>tgt_elev=...</em> to determine if objects of a given height would be 
+visible. The value entered is in the same units as the elevation.
+
 <p>Maximum visibility distance: By default there is no restriction on
 the maximum distance to which the observer can see.  The user can set
 a maximum distance of visibility using option <em>max_dist=...</em>.
@@ -109,20 +115,16 @@ and using virtual memory, which is slower than the external mode.
 <h3>The algorithm:</h3>
 <p>
 <em>r.viewshed</em> uses the following model for determining
-visibility: Each point in the raster is assumed to represent the
-elevation of a flat cell centered at that point (the "circum-cell" of
-the grid point). The height of a cell is assumed to be constant,
-and thus the terrain is viewed as a tesselation of flat cells.  Two
-points are visible to each other if their line-of-sight does not
-intersect the terrain. Since for an arbitrary point x in the terrain,
-the closest grid point to it is the one whose "circum-cell" contains
-x, this means that this model does a nearest-neighbor interpolation of
-heights.
+visibility: The height of a cell is assumed to be variable, and the 
+actual height of a point falling into a cell, but not identical the cell 
+center, is interpolated. Thus the terrain is viewed as a smooth surface. 
+Two points are visible to each other if their line-of-sight does not
+intersect the terrain. The height for an arbitrary point x in the terrain 
+is interpolated from the 4 surrounding neighbours. This means that this 
+model does a bilinear interpolation of heights.
 
-This model is suitable for high resolution rasters; it may not be
-accurate for low resolution rasters, where it may be better to
-interpolate the height at a point based on several neighbors, rather
-than just nearest neighbor.
+This model is suitable for both low and high resolution rasters as well 
+as terrain with flat and steep slopes.
 
 <p>The core of the algorithm is determining, for each cell, the
 line-of-sight and its intersections with the cells in the terrain. For
@@ -150,9 +152,7 @@ and the viewpoint, and finds the maximum gradient among these.  If the
 cell's gradient is higher, it is marked as visible, whereas if it is
 lower, it is marked as invisible.
 
-<p>The advantage of considering the cells to be flat is that the
-algorithm can keep track and query efficiently the active events.
-For a (square) raster of <em>n</em> point in total, the standard
+<p>For a (square) raster of <em>n</em> point in total, the standard
 viewshed algorithm uses <em>O(n sqrt(n))= O(n<sup>3/2</sup>)</em>
 time, while the sweep-line algorithm uses <em>O(n lg n)</em> time.
 This algorithm is efficient in terms of CPU operations and can be also
@@ -209,6 +209,8 @@ r.viewshed input=elevation.10m output=viewshed coordinate=598869,4916642 mem=800
 <p> Yi Zhuang (Carnegie-Mellon University): <tt>yzhuang@andrew.cmu.edu</tt>
 
 <p>William Richard (Bowdoin College): <tt>willster3021@gmail.com </tt>
+
+<p>Markus Metz
 
 <p><i>Last changed: $Date$</i>
 

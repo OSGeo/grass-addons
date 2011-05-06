@@ -8,8 +8,9 @@
 
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
+ *               Markus Metz: surface interpolation
  *
- * Date:         july 2008 
+ * Date:         april 2011 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -17,12 +18,10 @@
  * considered visible to each other if the cells where they belong are
  * visible to each other.  Two cells are visible to each other if the
  * line-of-sight that connects their centers does not intersect the
- * terrain. The height of a cell is assumed to be constant, and the
- * terrain is viewed as a tesselation of flat cells.  This model is
- * suitable for high resolution rasters; it may not be accurate for
- * low resolution rasters, where it may be better to interpolate the
- * height at a point based on the neighbors, rather than assuming
- * cells are "flat".  The viewshed algorithm is efficient both in
+ * terrain. The terrain is NOT viewed as a tesselation of flat cells, 
+ * i.e. if the line-of-sight does not pass through the cell center, 
+ * elevation is determined using bilinear interpolation.
+ * The viewshed algorithm is efficient both in
  * terms of CPU operations and I/O operations. It has worst-case
  * complexity O(n lg n) in the RAM model and O(sort(n)) in the
  * I/O-model.  For the algorithm and all the other details see the
@@ -74,7 +73,7 @@ unsigned long distribute_sector(AMI_STREAM < AEvent > *eventList,
 				AMI_STREAM < AEvent > *enterBndEvents,
 				double start_angle, double end_angle,
 				IOVisibilityGrid * visgrid, Viewpoint * vp,
-				ViewOptions viewOptions);
+				GridHeader *hd, ViewOptions viewOptions);
 
 /* bndEvents is a stream of events that cross into the sector's
    (first) boundary; they must be distributed to the boundary streams
@@ -101,8 +100,8 @@ void distribute_bnd_events(AMI_STREAM < AEvent > *bndEvents,
 unsigned long solve_in_memory(AMI_STREAM < AEvent > *eventList,
 			      AMI_STREAM < AEvent > *enterBndEvents,
 			      double start_angle, double end_angle,
-			      IOVisibilityGrid * visgrid, Viewpoint * vp,
-			      ViewOptions viewOptions);
+			      IOVisibilityGrid * visgrid, GridHeader *hd,
+			      Viewpoint * vp, ViewOptions viewOptions);
 
 
 /*returns 1 if enter angle is within epsilon from boundary angle */
