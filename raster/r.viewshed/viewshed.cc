@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.viewshed
@@ -101,15 +100,15 @@ print_viewshed_timings(Rtimer initEventTime,
 
     char timeused[1000];
 
-    G_verbose_message(_("sweep timings:"));
+    G_verbose_message(_("Sweep timings:"));
     rt_sprint_safe(timeused, initEventTime);
-    G_verbose_message("init events: %s", timeused);
+    G_verbose_message("Init events: %s", timeused);
 
     rt_sprint_safe(timeused, sortEventTime);
-    G_verbose_message("sort events: %s", timeused);
+    G_verbose_message("Sort events: %s", timeused);
 
     rt_sprint_safe(timeused, sweepTime);
-    G_verbose_message("process events: %s", timeused);
+    G_verbose_message("Process events: %s", timeused);
 
     return;
 }
@@ -239,7 +238,7 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
     Rtimer sortEventTime;
 
     rt_start(sortEventTime);
-    G_verbose_message(_("sorting events..."));
+    G_verbose_message(_("Sorting events..."));
     fflush(stdout);
 
     /*this is recursive and seg faults for large arrays
@@ -252,7 +251,7 @@ MemoryVisibilityGrid *viewshed_in_memory(char *inputfname, GridHeader * hd,
     RadialCompare cmpObj;
 
     quicksort(eventList, nevents, cmpObj);
-    G_verbose_message(_("done"));
+    G_verbose_message(_("Done."));
     fflush(stdout);
     rt_stop(sortEventTime);
 

@@ -643,15 +643,15 @@ print_timings_internal(Rtimer sweepTime, Rtimer outputTime, Rtimer totalTime)
     G_verbose_message("TOTAL TIMING:");
 
     rt_sprint_safe(timeused, sweepTime);
-    G_verbose_message("sweep: %s", timeused);
+    G_verbose_message("Sweep: %s", timeused);
     G_verbose_message("\n");
 
     rt_sprint_safe(timeused, outputTime);
-    G_verbose_message("output: %s", timeused);
+    G_verbose_message("Output: %s", timeused);
     G_verbose_message("\n");
 
     rt_sprint_safe(timeused, totalTime);
-    G_verbose_message("total: %s", timeused);
+    G_verbose_message("Total: %s", timeused);
     G_verbose_message("\n");
 }
 
@@ -669,10 +669,10 @@ print_timings_external_memory(Rtimer totalTime, Rtimer viewshedTime,
     G_verbose_message("\n\nTOTAL TIMING:");
 
     rt_sprint_safe(timeused, viewshedTime);
-    G_verbose_message("total sweep: %s", timeused);
+    G_verbose_message("Total sweep: %s", timeused);
 
     rt_sprint_safe(timeused, sortOutputTime);
-    G_verbose_message("sort output: %s", timeused);
+    G_verbose_message("Sort output: %s", timeused);
 
     rt_sprint_safe(timeused, outputTime);
     G_verbose_message("Write result grid: %s", timeused);

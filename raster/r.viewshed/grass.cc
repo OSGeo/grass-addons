@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.viewshed
@@ -173,7 +172,7 @@ init_event_list_in_memory(AEvent * eventList, char *rastName,
 				MemoryVisibilityGrid * visgrid)
 {
 
-    G_message(_("computing events ..."));
+    G_message(_("Computing events ..."));
     assert(eventList && vp && visgrid);
     //GRASS should be defined 
 
@@ -400,7 +399,7 @@ AMI_STREAM < AEvent > *init_event_list(char *rastName, Viewpoint * vp,
 					     IOVisibilityGrid * visgrid)
 {
 
-    G_message(_("computing events ..."));
+    G_message(_("Computing events ..."));
     assert(rastName && vp && hd && visgrid);
 
     if (data != NULL) {
