@@ -1,16 +1,15 @@
-
 /****************************************************************************
  *
  * MODULE:       r.viewshed
  *
  * AUTHOR(S):    Laura Toma, Bowdoin College - ltoma@bowdoin.edu
  *               Yi Zhuang - yzhuang@bowdoin.edu
-
+ *
  *               Ported to GRASS by William Richard -
  *               wkrichar@bowdoin.edu or willster3021@gmail.com
  *               Markus Metz: surface interpolation
  *
- * Date:         april 2011 
+ * Date:         July 2008; April 2011 
  * 
  * PURPOSE: To calculate the viewshed (the visible cells in the
  * raster) for the given viewpoint (observer) location.  The
@@ -28,7 +27,7 @@
  * paper: "Computing Visibility on * Terrains in External Memory" by
  * Herman Haverkort, Laura Toma and Yi Zhuang.
  *
- * COPYRIGHT: (C) 2008 by the GRASS Development Team
+ * COPYRIGHT: (C) 2008-2011 by the GRASS Development Team
  *
  * This program is free software under the GNU General Public License
  * (>=v2). Read the file COPYING that comes with GRASS for details.
@@ -86,8 +85,6 @@ extern "C"
 
 
 
-
-
 /* ------------------------------------------------------------ */
 /* forward declarations */
 /* ------------------------------------------------------------ */
@@ -99,9 +96,6 @@ void print_timings_external_memory(Rtimer totalTime, Rtimer viewshedTime,
 void parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
 		ViewOptions * viewOptions, long long *memSizeBytes,
 		Cell_head * window);
-
-
-
 
 
 
@@ -363,12 +357,9 @@ int main(int argc, char *argv[])
 
 
 
-
-
-	  /************************************************************/
+	/************************************************************/
 	/* external memory, recursive distribution sweeping recursion */
-
-	  /************************************************************ */
+	/************************************************************ */
 	else {			/* if not  BASE_CASE */
 #ifndef FORCE_DISTRIBUTION
 	    G_debug(1, "---Active structure does not fit in memory,");
@@ -450,17 +441,10 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     struct Option *outputOpt;
 
     outputOpt = G_define_standard_option(G_OPT_R_OUTPUT);
+    outputOpt->label = _("Name of output viewshed raster map");
     outputOpt->description =
-	_("Name of output viewshed raster map\n\t\tdefault format: {NODATA, -1 (invisible), vertical angle wrt viewpoint (visible)}");
+	_("default format: {NULL (invisible), vertical angle wrt viewpoint (visible)}");
     outputOpt->guisection = _("Output_options");
-
-    /* row-column flag */
-    struct Flag *row_col;
-
-    row_col = G_define_flag();
-    row_col->key = 'r';
-    row_col->description =
-	_("Use row-column location rather than latitude-longitude location");
 
     /* curvature flag */
     struct Flag *curvature;
@@ -494,9 +478,8 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     viewLocOpt->key = "coordinate";
     viewLocOpt->type = TYPE_STRING;
     viewLocOpt->required = YES;
-    viewLocOpt->key_desc = "lat,long";
-    viewLocOpt->description =
-	_("Coordinates of viewing position in latitude-longitude (if -r flag is present, then coordinates are row-column)");
+    viewLocOpt->key_desc = "east,north";
+    viewLocOpt->description = _("Coordinates of viewing position");
     viewLocOpt->guisection = _("Input_options");
 
     /* observer elevation */
@@ -586,7 +569,6 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     }
 
 
-
     viewOptions->doCurv = curvature->answer;
     if (booleanOutput->answer)
 	viewOptions->outputMode = OUTPUT_BOOL;
@@ -607,23 +589,12 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
 
     G_get_set_window(window);
 
-    /*The algorithm runs with the viewpoint row and col, so depending
-       on if the row_col flag is present we either need to store the
-       row and col, or convert the lat-lon coordinates to row and
-       column format */
-    if (row_col->answer) {
-	*vpRow = atoi(viewLocOpt->answers[1]);
-	*vpCol = atoi(viewLocOpt->answers[0]);
-	G_debug(1, "viewpoint in row-col mode: (%d,%d)", *vpRow, *vpCol);
-    }
-    else {
-	*vpRow = (int)G_northing_to_row(atof(viewLocOpt->answers[1]), window);
-	*vpCol = (int)G_easting_to_col(atof(viewLocOpt->answers[0]), window);
-	G_debug(1, "viewpoint converted from current projection: (%.3f, %.3f)  to row, col (%d, %d)",
-	        atof(viewLocOpt->answers[1]), atof(viewLocOpt->answers[0]), *vpRow, *vpCol);
-
-    }
-
+    /*The algorithm runs with the viewpoint row and col, so we need to
+        convert the lat-lon coordinates to row and column format */
+    *vpRow = (int)G_northing_to_row(atof(viewLocOpt->answers[1]), window);
+    *vpCol = (int)G_easting_to_col(atof(viewLocOpt->answers[0]), window);
+    G_debug(3, "viewpoint converted from current projection: (%.3f, %.3f)  to col, row (%d, %d)",
+        atof(viewLocOpt->answers[0]), atof(viewLocOpt->answers[1]), *vpCol, *vpRow);
 
     return;
 }
