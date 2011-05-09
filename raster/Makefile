@@ -1,5 +1,7 @@
 MODULE_TOPDIR = ..
 
+# r.convert
+# r.roughness
 SUBDIRS = \
 	LandDyn \
 	mcda \
@@ -8,8 +10,6 @@ SUBDIRS = \
 	r.burn.frict \
 	r.clim \
 	r.colors.quantiles \
-	r.colors.tools \
-	r.convert \
 	r.denoise \
 	r.game_of_life \
 	r.inund.fluv \
@@ -25,7 +25,6 @@ SUBDIRS = \
 	r.pi \
 	r.prominence \
 	r.rast4d \
-	r.roughness \
 	r.soils.texture \
 	r.stream.basins \
 	r.stream.del \

@@ -1,3 +1,4 @@
+#define MAIN
 #include "local_proto.h"
 
 /*
