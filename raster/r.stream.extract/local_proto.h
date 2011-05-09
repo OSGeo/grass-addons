@@ -19,7 +19,14 @@ struct point
     int r, c;
 };
 
-struct snode
+/* global variables */
+#ifdef MAIN
+#       define GLOBAL
+#else
+#       define GLOBAL extern
+#endif
+
+GLOBAL struct snode
 {
     int r, c;
     int id;
@@ -31,25 +38,25 @@ struct snode
 } *stream_node;
 
 /* global variables */
-extern int nrows, ncols;
-extern unsigned int *astar_pts;
-extern unsigned int n_search_points, n_points, nxt_avail_pt;
-extern unsigned int heap_size, *astar_added;
-extern unsigned int n_stream_nodes, n_alloc_nodes;
-extern struct point *outlets;
-extern unsigned int n_outlets, n_alloc_outlets;
-extern DCELL *acc;
-extern CELL *ele;
-extern char *asp;
-extern CELL *stream;
-extern FLAG *worked, *in_list;
-extern char drain[3][3];
-extern unsigned int first_cum;
-extern char sides;
-extern int c_fac;
-extern int ele_scale;
-extern int have_depressions;
-extern struct RB_TREE *draintree;
+GLOBAL int nrows, ncols;
+GLOBAL unsigned int *astar_pts;
+GLOBAL unsigned int n_search_points, n_points, nxt_avail_pt;
+GLOBAL unsigned int heap_size, *astar_added;
+GLOBAL unsigned int n_stream_nodes, n_alloc_nodes;
+GLOBAL struct point *outlets;
+GLOBAL unsigned int n_outlets, n_alloc_outlets;
+GLOBAL DCELL *acc;
+GLOBAL CELL *ele;
+GLOBAL char *asp;
+GLOBAL CELL *stream;
+GLOBAL FLAG *worked, *in_list;
+GLOBAL char drain[3][3];
+GLOBAL unsigned int first_cum;
+GLOBAL char sides;
+GLOBAL int c_fac;
+GLOBAL int ele_scale;
+GLOBAL int have_depressions;
+GLOBAL struct RB_TREE *draintree;
 
 /* load.c */
 int load_maps(int, int, int);

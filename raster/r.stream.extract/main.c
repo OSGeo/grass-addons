@@ -18,6 +18,7 @@
 #include <float.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
+#define MAIN
 #include "local_proto.h"
 
 /* global variables */
