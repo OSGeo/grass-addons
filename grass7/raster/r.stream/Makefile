@@ -2,7 +2,7 @@ MODULE_TOPDIR = ../..
 
 SUBDIRS = \
 	r.stream.order \
-	r.stream.baisns \
+	r.stream.basins \
 	r.stream.distance \
 	r.stream.stats \
 	r.stream.slope \

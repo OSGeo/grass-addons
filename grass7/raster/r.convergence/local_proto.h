@@ -64,15 +64,15 @@ typedef struct {
   int r,g,b
 } FCOLORS;
 
-int gradient, f_circular, f_slope, f_method, window_size,radius;
-float *aspect_matrix, *distance_matrix;
-MAPS elevation;
-FCELL** slope;
-FCELL** aspect;
+GLOBAL int gradient, f_circular, f_slope, f_method, window_size,radius;
+GLOBAL float *aspect_matrix, *distance_matrix;
+GLOBAL MAPS elevation;
+GLOBAL FCELL** slope;
+GLOBAL FCELL** aspect;
 
-int nrows, ncols;
-double H,V;
-struct Cell_head window;
+GLOBAL int nrows, ncols;
+GLOBAL double H,V;
+GLOBAL struct Cell_head window;
 
 int open_map(MAPS* rast);
 int create_maps(void);
