@@ -27,7 +27,14 @@ WAT_ALT {
    DCELL wat;
 };
 
-struct snode
+/* global variables */
+#ifdef MAIN
+#       define GLOBAL
+#else
+#       define GLOBAL extern
+#endif
+
+GLOBAL struct snode
 {
     int r, c;
     int id;
@@ -37,25 +44,24 @@ struct snode
     int *trib;
 } *stream_node;
 
-/* global variables */
-extern int nrows, ncols;
-extern unsigned int n_search_points, n_points, nxt_avail_pt;
-extern unsigned int heap_size;
-extern unsigned int n_stream_nodes, n_alloc_nodes;
-extern POINT *outlets;
-extern unsigned int n_outlets, n_alloc_outlets;
-extern char drain[3][3];
-extern char sides;
-extern int c_fac;
-extern int ele_scale;
-extern int have_depressions;
+GLOBAL int nrows, ncols;
+GLOBAL unsigned int n_search_points, n_points, nxt_avail_pt;
+GLOBAL unsigned int heap_size;
+GLOBAL unsigned int n_stream_nodes, n_alloc_nodes;
+GLOBAL POINT *outlets;
+GLOBAL unsigned int n_outlets, n_alloc_outlets;
+GLOBAL char drain[3][3];
+GLOBAL char sides;
+GLOBAL int c_fac;
+GLOBAL int ele_scale;
+GLOBAL int have_depressions;
 
-extern SSEG search_heap;
-extern SSEG astar_pts;
-extern BSEG bitflags;
-extern SSEG watalt;
-extern BSEG asp;
-extern CSEG stream;
+GLOBAL SSEG search_heap;
+GLOBAL SSEG astar_pts;
+GLOBAL BSEG bitflags;
+GLOBAL SSEG watalt;
+GLOBAL BSEG asp;
+GLOBAL CSEG stream;
 
 /* load.c */
 int load_maps(int, int);
