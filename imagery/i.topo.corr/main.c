@@ -7,7 +7,7 @@
  *
  * PURPOSE:      Topographic corrections
  *
- * COPYRIGHT:    (C) 2002, 2005 2008 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002, 2005, 2008 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -48,13 +48,13 @@ int full_open_new(Gfile * gf, char *fname, RASTER_MAP_TYPE ftype)
 
     snprintf(gf->name, 127, "%s", fname);
     if (G_legal_filename(gf->name) < 0)
-	G_fatal_error("[%s] is an illegal name", gf->name);
+	G_fatal_error(_("<%s> is an illegal name"), gf->name);
 
     gf->type = ftype;
     gf->mapset = G_mapset();
     gf->fd = G_open_raster_new(gf->name, gf->type);
     if (gf->fd < 0)
-	G_fatal_error(_("Cannot create file [%s] in mapset [%s]"), gf->name,
+	G_fatal_error(_("Cannot create file <%s> in mapset <%s>"), gf->name,
 		      gf->mapset);
 
     return gf->fd;
@@ -66,8 +66,7 @@ int main(int argc, char *argv[])
     struct GModule *module;
     struct Cell_head hd_band, hd_dem, window;
 
-    char bufname[128];
-    int nrows, ncols, row, col;
+    char bufname[128];		/* TODO: use GNAME_MAX? */
 
     int i;
     struct Option *base, *output, *input, *zeni, *azim, *metho;
@@ -95,7 +94,7 @@ int main(int argc, char *argv[])
     input->multiple = YES;
     input->gisprompt = _("input,cell,raster");
     input->description =
-	_("List of reflectance band files to correct topographically");
+	_("List of reflectance band maps to correct topographically");
 
     output = G_define_option();
     output->key = _("output");
@@ -144,17 +143,16 @@ int main(int argc, char *argv[])
 	exit(EXIT_FAILURE);
 
     if (ilum->answer && azim->answer == NULL)
-	G_fatal_error
-	    ("Solar azimuth is necessary to calculate ilumination terrain model.");
+	G_fatal_error(_("Solar azimuth is necessary to calculate ilumination terrain model"));
 
     if (!ilum->answer && input->answer == NULL)
 	G_fatal_error
-	    ("Reflectance files are necessary to make topographic correction.");
+	    (_("Reflectance maps are necessary to make topographic correction"));
 
     zenith = atof(zeni->answer);
 
     /* Evaluate only cos_i raster file */
-    // i.topo.corr -i out=cosi.on07 base=SRTM_v2 zenith=33.3631 azimuth=59.8897
+    /* i.topo.corr -i out=cosi.on07 base=SRTM_v2 zenith=33.3631 azimuth=59.8897 */
     if (ilum->answer) {
 	azimuth = atof(azim->answer);
 	/* Warning: make buffers and output after set window */
@@ -193,13 +191,14 @@ int main(int argc, char *argv[])
 	G_write_history(out.name, &history);
     }
     /* Evaluate topographic correction for all bands */
-    // i.topo.corr input=on07.toar.1 out=tcor base=cosi.on07 zenith=33.3631 method=c-factor
+    /* i.topo.corr input=on07.toar.1 out=tcor base=cosi.on07 zenith=33.3631 method=c-factor */
     else {
-	//              if (G_strcasecmp(metho->answer, "cosine") == 0)        method = COSINE;
-	//              else if (G_strcasecmp(metho->answer, "percent") == 0)  method = PERCENT;
-	//              else if (G_strcasecmp(metho->answer, "minnaert") == 0) method = MINNAERT;
-	//              else if (G_strcasecmp(metho->answer, "c-factor") == 0) method = C_CORRECT;
-	//              else G_fatal_error(_("Invalid method: %s"), metho->answer);
+	/*              if (G_strcasecmp(metho->answer, "cosine") == 0)        method = COSINE;
+	 *               else if (G_strcasecmp(metho->answer, "percent") == 0)  method = PERCENT;
+	 *               else if (G_strcasecmp(metho->answer, "minnaert") == 0) method = MINNAERT;
+	 *               else if (G_strcasecmp(metho->answer, "c-factor") == 0) method = C_CORRECT;
+	 *               else G_fatal_error(_("Invalid method: %s"), metho->answer);
+	 */
 
 	if (metho->answer[1] == 'o')
 	    method = COSINE;
@@ -214,14 +213,14 @@ int main(int argc, char *argv[])
 
 	full_open_old(&dem, base->answer);
 	if (dem.type == CELL_TYPE)
-	    G_fatal_error(_("Illumination model is CELL"));
+	    G_fatal_error(_("Illumination model is of CELL type"));
 
 	for (i = 0; input->answers[i] != NULL; i++) {
 	    G_message("\nBand %s: ", input->answers[i]);
 	    /* Abre fichero de bandas y el de salida */
 	    full_open_old(&band, input->answers[i]);
 	    if (band.type != DCELL_TYPE) {
-		G_warning(_("Reflectance of <%s> is not DCELL - ignored."),
+		G_warning(_("Reflectance of <%s> is not of DCELL type - ignored."),
 			  input->answers[i]);
 		G_close_cell(band.fd);
 		continue;
@@ -249,6 +248,7 @@ int main(int argc, char *argv[])
 
 	    char command[300];
 
+	    /* TODO: better avoid system() */
 	    sprintf(command, "r.colors map=%s color=grey", out.name);
 	    system(command);
 	}

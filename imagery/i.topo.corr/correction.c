@@ -8,9 +8,9 @@
  *             for details.
  */
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include <unistd.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
@@ -20,7 +20,7 @@
 void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 	       double zenith)
 {
-    int i, row, col, nrows, ncols;
+    int row, col, nrows, ncols;
     void *pref, *pcos;
 
     double cos_z, cos_i, ref_i;

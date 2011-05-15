@@ -8,9 +8,9 @@
  *             for details.
  */
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include <unistd.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
@@ -21,7 +21,7 @@ void eval_c_cosi(Gfile * out, Gfile * dem, double zenith, double azimuth)
 {
     struct Cell_head window;
 
-    int i, row, col, nrows, ncols;
+    int row, col, nrows, ncols;
     CELL *cell[3], *temp;
     CELL *c1, *c2, *c3, *c4, *c5, *c6, *c7, *c8, *c9;
     double H, V, dx, dy, key, north, east, south, west, center;
@@ -114,7 +114,7 @@ void eval_f_cosi(Gfile * out, Gfile * dem, double zenith, double azimuth)
 {
     struct Cell_head window;
 
-    int i, row, col, nrows, ncols;
+    int row, col, nrows, ncols;
     FCELL *cell[3], *temp;
     FCELL *c1, *c2, *c3, *c4, *c5, *c6, *c7, *c8, *c9;
     double H, V, dx, dy, key, north, east, south, west, center;
@@ -207,7 +207,7 @@ void eval_d_cosi(Gfile * out, Gfile * dem, double zenith, double azimuth)
 {
     struct Cell_head window;
 
-    int i, row, col, nrows, ncols;
+    int row, col, nrows, ncols;
     DCELL *cell[3], *temp;
     DCELL *c1, *c2, *c3, *c4, *c5, *c6, *c7, *c8, *c9;
     double H, V, dx, dy, key, north, east, south, west, center;
