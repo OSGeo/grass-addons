@@ -28,7 +28,7 @@
 #  w(d)= 1/d^p    where p is user definable, usually 2.
 #
 # Notes:
-#  A cost surface containing molasses barrier data may by used as well.
+#  A cost surface containing molasses barrier data may be used as well.
 #  Input data points need not have direct line of sight to each other.
 #  Try and keep the number of input sites to under a few dozen, as the
 #  process is very computationally expensive. You might consider creating
