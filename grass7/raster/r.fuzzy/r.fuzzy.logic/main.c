@@ -2,8 +2,8 @@
  *
  * MODULE:       r.fuzzy.logic
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
- * PURPOSE:      Peroforms logical operatations on membership images created with 
- * 							 r.fuzzy or dofferent method. Use families for fuzzy logic
+ * PURPOSE:      Performs logical operations on membership images created with 
+ *                   r.fuzzy or different method. Use families for fuzzy logic
  * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -13,7 +13,7 @@
  ****************************************************************************
  */
 
-#define MAIN
+#include <grass/gis.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
 
@@ -46,16 +46,21 @@ int main(int argc, char *argv[])
 	
 	G_gisinit(argv[0]);
 	
+    module = G_define_module();
+    module->keywords = _("raster, fuzzy logic");
+    module->description =
+        _("xxxx");
+
 	par_inputx = G_define_standard_option(G_OPT_R_INPUT);
-  par_inputx->description = _("x operand (membership map)");
-  par_inputx->key = "xmap";
+    par_inputx->description = _("x operand (membership map)");
+    par_inputx->key = "xmap";
   
-  par_inputy = G_define_standard_option(G_OPT_R_INPUT);
-  par_inputy->description = _("y operand (membership map)");
-  par_inputy->key = "ymap";
-  par_inputy->required = NO;
+    par_inputy = G_define_standard_option(G_OPT_R_INPUT);
+    par_inputy->description = _("y operand (membership map)");
+    par_inputy->key = "ymap";
+    par_inputy->required = NO;
   
-  par_output = G_define_standard_option(G_OPT_R_OUTPUT);
+    par_output = G_define_standard_option(G_OPT_R_OUTPUT);
 	par_output->description = _("Resulting map");
 
 	par_operation=G_define_option();

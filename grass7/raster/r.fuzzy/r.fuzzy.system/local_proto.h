@@ -6,12 +6,6 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-#ifdef MAIN
-#  define GLOBAL
-#else
-#  define GLOBAL extern
-#endif
-
 /*
    PI2= PI/2
    PI4= PI/4
@@ -144,24 +138,24 @@ typedef struct _outs
 } OUTPUTS;
 
 
-GLOBAL STRING var_name_file;
-GLOBAL STRING rule_name_file;
-GLOBAL STRING output;
-GLOBAL MAPS *s_maps;
-GLOBAL RULES *s_rules;
-GLOBAL OUTPUTS *m_outputs;
-GLOBAL float **visual_output;
-GLOBAL float *universe;
-GLOBAL float *antecedents;
-GLOBAL float *agregate;
-GLOBAL int nmaps, nrules, output_index, multiple, membership_only, coor_proc;
-GLOBAL int resolution;
-GLOBAL implications implication;
-GLOBAL defuzz defuzzyfication;
-GLOBAL logics family;
+extern STRING var_name_file;
+extern STRING rule_name_file;
+extern STRING output;
+extern MAPS *s_maps;
+extern RULES *s_rules;
+extern OUTPUTS *m_outputs;
+extern float **visual_output;
+extern float *universe;
+extern float *antecedents;
+extern float *agregate;
+extern int nmaps, nrules, output_index, multiple, membership_only, coor_proc;
+extern int resolution;
+extern implications implication;
+extern defuzz defuzzyfication;
+extern logics family;
 
-GLOBAL char **rules;
-GLOBAL int HERE;
+extern char **rules;
+extern int HERE;
 
 int char_strip(char *buf, char rem);
 int char_copy(const char *buf, char *res, int start, int stop);

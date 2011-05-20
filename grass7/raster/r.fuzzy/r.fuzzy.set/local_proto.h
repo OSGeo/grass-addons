@@ -27,16 +27,10 @@ PI4= PI/4
 #define LEFT 1
 #define RIGHT 2
 
-#ifdef MAIN
-#       define GLOBAL
-#else
-#       define GLOBAL extern
-#endif
-
-GLOBAL char *input, *output;
-GLOBAL float shape, height;
-GLOBAL int type, side;
-GLOBAL double p[4]; /* inflection points */
-GLOBAL int num_points;
+extern char *input, *output;
+extern float shape, height;
+extern int type, side;
+extern double p[4]; /* inflection points */
+extern int num_points;
 
 float fuzzy (FCELL cell);

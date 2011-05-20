@@ -13,8 +13,15 @@
  */
 
 #define MAIN
+#include <grass/gis.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
+
+char *input, *output;
+float shape, height;
+int type, side;
+double p[4]; /* inflection points */
+int num_points;
 
 int main(int argc, char *argv[])
 {
