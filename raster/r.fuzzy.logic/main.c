@@ -2,8 +2,8 @@
  *
  * MODULE:       r.fuzzy.logic
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
- * PURPOSE:      Peroforms logical operatations on membership images created with 
- *                                                       r.fuzzy or dofferent method. Use families for fuzzy logic
+ * PURPOSE:      Performs logical operations on membership images created with 
+ *                   r.fuzzy or different method. Use families for fuzzy logic
  * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -13,7 +13,6 @@
  ****************************************************************************
  */
 
-#define MAIN
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
@@ -44,6 +43,11 @@ int main(int argc, char *argv[])
 
     G_gisinit(argv[0]);
 
+    module = G_define_module();
+    module->keywords = _("raster, fuzzy logic");
+    module->description =
+        _("xxxx");
+
     par_inputx = G_define_standard_option(G_OPT_R_INPUT);
     par_inputx->description = _("x operand (membership map)");
     par_inputx->key = "xmap";
@@ -58,7 +62,7 @@ int main(int argc, char *argv[])
 
     par_operation = G_define_option();
     par_operation->key = "operator";
-    par_operation->type = "TYPE_STRING";
+    par_operation->type = TYPE_STRING;
     par_operation->options = "AND,OR,NOT,IMP";
     par_operation->answer = "AND";
     par_operation->multiple = NO;
@@ -67,7 +71,7 @@ int main(int argc, char *argv[])
 
     par_family = G_define_option();
     par_family->key = "family";
-    par_family->type = "TYPE_STRING";
+    par_family->type = TYPE_STRING;
     par_family->options = "Zadeh,product,drastic,Lukasiewicz,Fodor,Hamacher";
     par_family->answer = "Zadeh";
     par_family->multiple = NO;

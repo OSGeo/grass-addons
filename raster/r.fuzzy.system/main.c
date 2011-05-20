@@ -3,7 +3,7 @@
  * MODULE:       r.fuzzy.system
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
  * PURPOSE:      Full fuzzy logic standalone classification system with few fuzzy logic families 
- *                                                       implication and defuzzification and methods.
+ *                                                   implication and defuzzification and methods.
  * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -12,8 +12,28 @@
  *
  *************************************************************************** */
 
-#define MAIN
+#include <grass/gis.h>
+#include <grass/glocale.h>
 #include "local_proto.h"
+
+STRING var_name_file;
+STRING rule_name_file;
+STRING output;
+MAPS *s_maps;
+RULES *s_rules;
+OUTPUTS *m_outputs;
+float **visual_output;
+float *universe;
+float *antecedents;
+float *agregate;
+int nmaps, nrules, output_index, multiple, membership_only, coor_proc;
+int resolution;
+implications implication;
+defuzz defuzzyfication;
+logics family;
+
+char **rules;
+int HERE;
 
 int main(int argc, char **argv)
 {
@@ -25,6 +45,7 @@ int main(int argc, char **argv)
 
     struct History history;
 
+    struct GModule *module;
     struct Flag *out_multiple, *out_membership;
 
     int nrows, ncols;
@@ -36,6 +57,11 @@ int main(int argc, char **argv)
     int i, j, n;
 
     G_gisinit(argv[0]);
+
+    module = G_define_module();
+    module->keywords = _("raster, fuzzy logic");
+    module->description =
+        _("xxxx");
 
     file_vars = G_define_standard_option(G_OPT_F_INPUT);
     file_vars->key = "maps";

@@ -12,18 +12,23 @@
  ****************************************************************************
  */
 
-#define MAIN
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
 
+char *input, *output;
+float shape, height;
+int type, side;
+double p[4];                     /* inflection points */
+int num_points;
+
 int main(int argc, char *argv[])
 {
-    struct GModule *module;
     struct Option *par_input,
 	*par_output,
 	*par_points, *par_side, *par_type, *par_height, *par_shape;
 
+    struct GModule *module;
     struct Cell_head cellhd;
     struct History history;
 
@@ -39,6 +44,11 @@ int main(int argc, char *argv[])
 
     G_gisinit(argv[0]);
 
+    module = G_define_module();
+    module->keywords = _("raster, fuzzy logic");
+    module->description =
+        _("xxxx");
+
     par_input = G_define_standard_option(G_OPT_R_INPUT);
     par_input->description = _("Raster map to be fuzzified");
 
@@ -47,7 +57,7 @@ int main(int argc, char *argv[])
 
     par_points = G_define_option();
     par_points->key = "points";
-    par_points->type = "TYPE_STRING";
+    par_points->type = TYPE_STRING;
     par_points->answer = "a,b[,c,d]";
     par_points->multiple = YES;
     par_points->required = YES;
@@ -55,7 +65,7 @@ int main(int argc, char *argv[])
 
     par_side = G_define_option();
     par_side->key = "side";
-    par_side->type = "TYPE_STRING";
+    par_side->type = TYPE_STRING;
     par_side->options = "both,left,right";
     par_side->answer = "both";
     par_side->multiple = NO;
@@ -64,7 +74,7 @@ int main(int argc, char *argv[])
 
     par_type = G_define_option();
     par_type->key = "boundary";
-    par_type->type = "TYPE_STRING";
+    par_type->type = TYPE_STRING;
     par_type->options = "Linear,S-shaped,J-shaped,G-shaped";
     par_type->answer = "S-shaped";
     par_type->multiple = NO;
@@ -74,7 +84,7 @@ int main(int argc, char *argv[])
 
     par_shape = G_define_option();
     par_shape->key = "shape";
-    par_shape->type = "TYPE_FLOAT";
+    par_shape->type = TYPE_DOUBLE;
     par_shape->options = "-1 to 1";
     par_shape->answer = "0.";
     par_shape->multiple = NO;
@@ -84,7 +94,7 @@ int main(int argc, char *argv[])
 
     par_height = G_define_option();
     par_height->key = "height";
-    par_height->type = "TYPE_FLOAT";
+    par_height->type = TYPE_DOUBLE;
     par_height->options = "0 to 1";
     par_height->answer = "1";
     par_height->multiple = NO;
