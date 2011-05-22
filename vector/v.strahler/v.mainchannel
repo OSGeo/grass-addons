@@ -105,7 +105,7 @@ v.net input=out_1add points=end_basin output=out_basin operation=connect \
 v.net.iso input=out_basin output=out_isodistance type=line \
    alayer=1 nlayer=2 ccats=1-99999999 costs=$cost
 
-echo "v.net.iso eseguito"
+echo "v.net.iso executed"
 
 v.category input=out_isodistance opt=report -g > "$TMP.1"
 grep 'line' "$TMP.1" | cut -f5 -d ' ' > "$TMP.2"
