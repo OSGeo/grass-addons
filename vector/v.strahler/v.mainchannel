@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 #
 ############################################################################
 #
@@ -105,6 +105,8 @@ v.net input=out_1add points=end_basin output=out_basin operation=connect \
 v.net.iso input=out_basin output=out_isodistance type=line \
    alayer=1 nlayer=2 ccats=1-99999999 costs=$cost
 
+echo "v.net.iso eseguito"
+
 v.category input=out_isodistance opt=report -g > "$TMP.1"
 grep 'line' "$TMP.1" | cut -f5 -d ' ' > "$TMP.2"
 
@@ -117,21 +119,24 @@ v.category input=out_2points output=out_2addp type=point option=add \
 
 v.drape input=out_2addp type=point,line rast=$dem method=nearest output=out_3D
 v.db.addtable map=out_3D table=tab_coord layer=2 \
-   'columns=cat integer, x double precision, y double precision, z double precision'
+   'columns=cat integer, x double precision, y double precision, z integer'
 v.to.db map=out_3D type=point layer=2 qlayer=1 option=coor units=meters 'column=x, y, z'
 v.univar -g map=out_3D type=point column=z layer=2 percentile=90 > "$TMP.3"
 
 max=`cat "$TMP.3" | grep max | cut -f2 -d'='`
+
 db_driver=`db.connect -p | grep driver | cut -f2 -d':'`
 db_database=`db.connect -p | grep database | cut -f2 -d':'`
 x_max=`db.select -c table=tab_coord database=$db_database driver=$db_driver 'sql=select x from tab_coord where z='$max''`
 y_max=`db.select -c table=tab_coord database=$db_databese driver=$db_driver 'sql=select y from tab_coord where z='$max''`
 
+echo "x_max e y_max valgono: $x_max e $y_max"
+
 echo "1 $x_max $y_max $xcoor $ycoor" |  v.net.path input=out_isodistance \
    output=$output type=line alayer=1 nlayer=2
 
 
-if [ "$GIS_FLAG_DISPLAY" -eq 1 ] ; then
+if [ "$GIS_FLAG_D" -eq 1 ] ; then
    #plot the result of elaboration in relation to the strahler ordered stream network
    #d.mon stop=x0
    d.mon start=x0
@@ -142,7 +147,7 @@ if [ "$GIS_FLAG_DISPLAY" -eq 1 ] ; then
 fi
 
 
-g.remove vect=end_basin,out_1del,out_1add,out_basin,out_2,out_2del,out_2points,out_2addp,out_3D
+#g.remove vect=end_basin,out_1del,out_1add,out_basin,out_2,out_2del,out_2points,out_2addp,out_3D
 
 \rm "$TMP" "$TMP".[1-3]
 
