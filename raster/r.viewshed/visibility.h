@@ -122,6 +122,7 @@ typedef struct viewOptions_
        when calculating.  Only implemented for GRASS version. */
 
     int doRefr;
+    double refr_coef;
     /*determines if atmospheric refraction should be considered
        when calculating.  Only implemented for GRASS version. */
 

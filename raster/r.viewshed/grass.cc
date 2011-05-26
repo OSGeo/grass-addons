@@ -81,26 +81,8 @@ surface_type adjust_for_curvature(Viewpoint vp, double row,
     if (!viewOptions.doRefr)
 	return h - adjustment;
 
-    /* in future we should calculate this based on the physics, for now we
-       just fudge by the 1/7th approximation.
-
-	?? See ??
-
-	@article{yoeli1985making,
-	  title={The making of intervisibility maps with computer and plotter},
-	  author={Yoeli, Pinhas},
-	  journal={Cartographica: The International Journal for Geographic Information and Geovisualization},
-	  volume={22},
-	  number={3},
-	  pages={88--103},
-	  year={1985},
-	  publisher={UT Press}
-	}
-
-    */
-    return h - (adjustment * 6.0/7.0);
+    return h - (adjustment * (1.0 - viewOptions.refr_coef));
 }
-
 
 
 

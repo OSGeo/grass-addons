@@ -146,8 +146,9 @@ int main(int argc, char *argv[])
     viewOptions.obsElev = DEFAULT_OBS_ELEVATION;
     viewOptions.maxDist = INFINITY_DISTANCE;
     viewOptions.outputMode = OUTPUT_ANGLE;
-    viewOptions.doCurv = 0;
-    viewOptions.doRefr = 0;
+    viewOptions.doCurv = FALSE;
+    viewOptions.doRefr = FALSE;
+    viewOptions.refr_coef = 1.0/7.0;
 
     parse_args(argc, argv, &vpRow, &vpCol, &viewOptions, &memSizeBytes,
 	       &region);
@@ -531,6 +532,33 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     maxDistOpt->answer = infdist;
     maxDistOpt->guisection = _("Input_options");
 
+    /* atmospheric refraction coeff. 1/7 for visual, 0.325 for radio waves, ... */
+    /* in future we might calculate this based on the physics, for now we
+       just fudge by the 1/7th approximation.
+
+        ?? See ??
+
+        @article{yoeli1985making,
+          title={The making of intervisibility maps with computer and plotter},
+          author={Yoeli, Pinhas},
+          journal={Cartographica: The International Journal for Geographic Information and Geovisualization},
+          volume={22},
+          number={3},
+          pages={88--103},
+          year={1985},
+          publisher={UT Press}
+        }
+    */
+    struct Option *refrCoeffOpt;
+
+    refrCoeffOpt = G_define_option();
+    refrCoeffOpt->key = "refraction_coeff";
+    refrCoeffOpt->description = _("Refraction coefficient");
+    refrCoeffOpt->type = TYPE_DOUBLE;
+    refrCoeffOpt->required = NO;
+    refrCoeffOpt->answer = "0.14286";
+    refrCoeffOpt->options = "0.0-1.0";
+
     /* memory size */
     struct Option *memAmountOpt;
 
@@ -579,11 +607,11 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
 
     viewOptions->doCurv = curvature->answer;
     viewOptions->doRefr = refractionFlag->answer;
-
     if (refractionFlag->answer && !curvature->answer)
 	G_fatal_error(_("Atmospheric refraction is only calculated with "
 			"respect to the curvature of the Earth. "
 			"Enable the -c flag as well."));
+    viewOptions->refr_coef = atof(refrCoeffOpt->answer);
 
     if (booleanOutput->answer)
 	viewOptions->outputMode = OUTPUT_BOOL;
