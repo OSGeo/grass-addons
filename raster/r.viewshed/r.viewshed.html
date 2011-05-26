@@ -15,94 +15,91 @@ To run <em>r.viewshed</em>, the user must specify an input map name,
 an output map name, and the location of the viewpoint.  
 
 <p>Viewpoint (<em>coordinate</em> parameter): For the time being the viewpoint
-is assumed to be located inside the terrain.  The viewpoint location is, by
-default, in coordinate format, but if the <b>-r</b> flag is set, it is in
-row-column format instead.
+is assumed to be located inside the terrain.  The viewpoint location is
+given in map coordinates.
 
 <p>Output: The output map may have one of three possible formats,
 based on which flags are set.
 
-<ol>
-<li>By default, if no flag is set, the output is in angle-mode, and
-each point in the output map is marked as:
+<p>
+By default, if no flag is set, the output is in angle-mode, and
+each point in the output map is marked as NULL if the point is not
+visible or the respective point in the elevation map is NULL.
 
-<ul>
-<li> Nodata/null, if the respective point in the elevation map is
-Nodata/null 
+Otherwise, a value in [0, 180] representing the vertical angle with
+regard to the viewpoint, in degrees, if the point is visible.
+0 degrees: directly above the observer,
+180 degrees: directly below the observer
 
-<li> -1, if the point is not visible
-
-<li> a value in [0, 180] representing the vertical angle with regard to
-the viewpoint, in degrees, if the point is visible. 0 degrees: directly 
-above the observer, 180 degrees: directly below the observer
-
-</ul>
-
-
-<li>If the -b flag is set, the output is in boolean-mode, and each point
+<p>
+If the <b>-b</b> flag is set, the output is in boolean-mode, and each point
 in the output map is marked as:
-
 <ul>
-
-<li> 0 if the point is Nodata/null or not visible
-
-<li> 1 if the point is visible.
-
+  <li> 0 if the point is Nodata/null or not visible
+  <li> 1 if the point is visible.
 </ul>
 
 
-<li>If the -e flag is set, the output is in elevation-mode, and each point
+<p>
+If the <b>-e</b> flag is set, the output is in elevation-mode, and each point
 in the output map is marked as:
-
+<!-- Check & FIXME -->
 <ul>
-<li> Nodata (null), if the respective point in the elevation map is
-Nodata (null) 
-
-<li> -1, if the point is not visible
-
-<li> the difference in elevation between the point and the viewpoint,
-if the point is visible.
-
+  <li> Nodata (null), if the respective point in the elevation map is Nodata (null) 
+  <li> -1, if the point is not visible
+  <li> the difference in elevation between the point and the viewpoint, if the point is visible.
 </ul>
 
-</ol>
+<p>
+If you wish to identify the area of the map which is within the search
+radius but not visible, a combination of <em>r.buffer</em> and
+<em>r.mapcalc</em> can be used to create a negative of the viewshed map.
 
-<p>Curvature of the earth: By default the elevations are not adjusted for
+
+
+<p>
+Curvature of the earth: By default the elevations are not adjusted for
 the curvature of the earth. The user can turn this on with flag
 <b>-c</b>.
 
-<p>Observer elevation: By default the observer is assumed to have
+<p>
+Observer elevation: By default the observer is assumed to have
 height=0 above the terrain.  The user can change this using option
 <em>obs_elev=...</em>. The value entered is in the same units
 as the elevation.
 
-<p>Target elevation: By default the target is assumed to have
+<p>
+Target elevation: By default the target is assumed to have
 height=0 above the terrain.  The user can change this using option
 <em>tgt_elev=...</em> to determine if objects of a given height would be 
 visible. The value entered is in the same units as the elevation.
 
-<p>Maximum visibility distance: By default there is no restriction on
+<p>
+Maximum visibility distance: By default there is no restriction on
 the maximum distance to which the observer can see.  The user can set
 a maximum distance of visibility using option <em>max_dist=...</em>.
 The value entered is in the same units as the cell size of the raster.
 
-
-<p>Main memory usage: By default <em>r.viewshed</em> assumes it has
+<p>
+Main memory usage: By default <em>r.viewshed</em> assumes it has
 500MB of main memory, and sets up its internal data structures so that
 it does not require more than this amount of RAM.  The user can set
 the amount of memory used by the program by setting the
 <em>memory_usage</em> to the number of MB of memory they would like to
 be used.
 
+
 <h3>Memory mode</h3>
-<p> The algorithm can run in two modes: in internal memory, which
+
+The algorithm can run in two modes: in internal memory, which
 means that it keeps all necessary data structures in memory during the
 computation. And in external memory, which means that the data
 structures are external, i.e. on disk.  <em>r.viewshed</em> decides
 which mode to run in using the amount of main memory specified by the
 user.  The internal mode is (much) faster than the external mode.
 
-<p>Ideally, the user should specify on the command line the amount of
+<p>
+Ideally, the user should specify on the command line the amount of
 physical memory that is free for the program to use. Underestimating
 the memory may result in <em>r.viewshed</em> running in external mode
 instead of internal, which is slower. Overestimating the amount of
@@ -113,7 +110,7 @@ and using virtual memory, which is slower than the external mode.
 
 
 <h3>The algorithm:</h3>
-<p>
+
 <em>r.viewshed</em> uses the following model for determining
 visibility: The height of a cell is assumed to be variable, and the 
 actual height of a point falling into a cell, but not identical the cell 
@@ -184,6 +181,7 @@ g.region rast=elevation.10m
 r.viewshed input=elevation.10m output=viewshed coordinate=598869,4916642 mem=800
 </pre></div>
 
+
 <h3>REFERENCES</h3>
 
 <ul>
@@ -205,12 +203,9 @@ r.viewshed input=elevation.10m output=viewshed coordinate=598869,4916642 mem=800
 <h3>AUTHORS</h3>
 
 <p>Laura Toma (Bowdoin College): <tt>ltoma@bowdoin.edu</tt>
-
 <p> Yi Zhuang (Carnegie-Mellon University): <tt>yzhuang@andrew.cmu.edu</tt>
-
 <p>William Richard (Bowdoin College): <tt>willster3021@gmail.com </tt>
-
 <p>Markus Metz
 
-<p><i>Last changed: $Date$</i>
-
+<p>
+<i>Last changed: $Date$</i>
