@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
     viewOptions.maxDist = INFINITY_DISTANCE;
     viewOptions.outputMode = OUTPUT_ANGLE;
     viewOptions.doCurv = 0;
+    viewOptions.doRefr = 0;
 
     parse_args(argc, argv, &vpRow, &vpCol, &viewOptions, &memSizeBytes,
 	       &region);
@@ -454,6 +455,13 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     curvature->description =
 	_("Consider the curvature of the earth (current ellipsoid)");
 
+    /* atmospheric refraction flag */
+    struct Flag *refractionFlag;
+
+    refractionFlag = G_define_flag();
+    refractionFlag->key = 'r';
+    refractionFlag->description =
+	_("Consider the effect of atmospheric refraction");
 
     /* boolean output flag */
     struct Flag *booleanOutput;
@@ -470,6 +478,7 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
     elevationFlag->key = 'e';
     elevationFlag->description =
 	_("Output format is invisible = NULL, else current elev - viewpoint_elev");
+
 
     /* viewpoint coordinates */
     struct Option *viewLocOpt;
@@ -568,8 +577,14 @@ parse_args(int argc, char *argv[], int *vpRow, int *vpCol,
 	G_fatal_error(_("A negative max distance value is not allowed"));
     }
 
-
     viewOptions->doCurv = curvature->answer;
+    viewOptions->doRefr = refractionFlag->answer;
+
+    if (refractionFlag->answer && !curvature->answer)
+	G_fatal_error(_("Atmospheric refraction is only calculated with "
+			"respect to the curvature of the Earth. "
+			"Enable the -c flag as well."));
+
     if (booleanOutput->answer)
 	viewOptions->outputMode = OUTPUT_BOOL;
     else if (elevationFlag->answer)

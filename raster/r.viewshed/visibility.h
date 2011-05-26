@@ -112,16 +112,17 @@ typedef struct viewOptions_
 
     OutputMode outputMode;
     /* The mode the viewshed is output; 
-
-       in angle mode, the values recorded are   {NODATA, INVISIBLE, angle}
-
-       in boolean mode, the values recorded are {BOOL_INVISIBLE, BOOL_VISIBLE}
-
-       in elev mode, the values recorded are    {NODATA, INVISIBLE, elevation}
+       - in angle mode, the values recorded are   {NODATA, INVISIBLE, angle}
+       - in boolean mode, the values recorded are {BOOL_INVISIBLE, BOOL_VISIBLE}
+       - in elev mode, the values recorded are    {NODATA, INVISIBLE, elevation}
      */
 
     int doCurv;
     /*determines if the curvature of the earth should be considered
+       when calculating.  Only implemented for GRASS version. */
+
+    int doRefr;
+    /*determines if atmospheric refraction should be considered
        when calculating.  Only implemented for GRASS version. */
 
     double ellps_a;		/* the parameter of the ellipsoid */

@@ -54,9 +54,11 @@ extern "C"
 
 
 /* ------------------------------------------------------------ */
-/* if viewOptions.doCurv is on then adjust the passed height for
+/* If viewOptions.doCurv is on then adjust the passed height for
    curvature of the earth; otherwise return the passed height
-   unchanged. 
+   unchanged.
+   If viewOptions.doRefr is on then adjust the curved height for
+   the effect of atmospheric refraction too.
  */
 surface_type adjust_for_curvature(Viewpoint vp, double row,
 			   double col, surface_type h,
@@ -73,10 +75,31 @@ surface_type adjust_for_curvature(Viewpoint vp, double row,
                              G_row_to_northing(vp.row + 0.5, &(hd->window)),
 			     G_col_to_easting(col + 0.5, &(hd->window)),
 			     G_row_to_northing(row + 0.5, &(hd->window)));
-		    
-    return h - ((dist * dist) / (2.0 * viewOptions.ellps_a));
-}
 
+    double adjustment = (dist * dist) / (2.0 * viewOptions.ellps_a);
+
+    if (!viewOptions.doRefr)
+	return h - adjustment;
+
+    /* in future we should calculate this based on the physics, for now we
+       just fudge by the 1/7th approximation.
+
+	?? See ??
+
+	@article{yoeli1985making,
+	  title={The making of intervisibility maps with computer and plotter},
+	  author={Yoeli, Pinhas},
+	  journal={Cartographica: The International Journal for Geographic Information and Geovisualization},
+	  volume={22},
+	  number={3},
+	  pages={88--103},
+	  year={1985},
+	  publisher={UT Press}
+	}
+
+    */
+    return h - (adjustment * 6.0/7.0);
+}
 
 
 
