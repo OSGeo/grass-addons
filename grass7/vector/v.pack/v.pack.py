@@ -15,13 +15,13 @@
 #############################################################################
 
 #%module
-#% description: Packs up a vecto map and support files for copying.
+#% description: Packs up a vector map and support files for copying.
 #% keywords: vector, export, copying
 #%end
 #%option
 #% key: input
 #% type: string
-#% gisprompt: old,cell,raster
+#% gisprompt: old,cell,vector
 #% description: Name of vector map to pack up
 #% key_desc: name
 #% required : yes

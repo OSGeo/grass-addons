@@ -29,7 +29,7 @@
 #%option
 #% key: output
 #% type: string
-#% gisprompt: new,cell,raster
+#% gisprompt: new,cell,vector
 #% description: Name for output vector map (default: taken from input file internals)
 #% key_desc: name
 #% required : no
