@@ -29,7 +29,7 @@
 #%option
 #% key: output
 #% type: string
-#% gisprompt: new,cell,vector
+#% gisprompt: new,vector,vector
 #% description: Name for output vector map (default: taken from input file internals)
 #% key_desc: name
 #% required : no
@@ -54,18 +54,14 @@ def cleanup():
 
 def main():
     infile = options['input']
-    
+    # create tempory directory
     global tmp_dir
     tmp_dir = grass.tempdir()
     grass.debug('tmp_dir = %s' % tmp_dir)
-    
+    #check if the file exist
     if not os.path.exists(infile):
         grass.fatal(_("File <%s> not found" % infile))
-    
-    gisenv = grass.gisenv()
-    mset_dir = os.path.join(gisenv['GISDBASE'],
-                            gisenv['LOCATION_NAME'],
-                            gisenv['MAPSET'])
+    #copy the files to tmp dir
     input_base = os.path.basename(infile)
     shutil.copyfile(infile, os.path.join(tmp_dir, input_base))
     os.chdir(tmp_dir)
@@ -74,17 +70,28 @@ def main():
         data_name = tar.getnames()[0]
     except:
         grass.fatal(_("Pack file unreadable"))
-    
+    #set the output name
     if options['output']:
         map_name = options['output']
     else:
         map_name = data_name
+    # grass env
+    gisenv = grass.gisenv()
+    mset_dir = os.path.join(gisenv['GISDBASE'],
+                            gisenv['LOCATION_NAME'],
+                            gisenv['MAPSET'])
     
+    new_dir = os.path.join(mset_dir,'vector',data_name)
+
     gfile = grass.find_file(name = map_name, element = 'vector',
                             mapset = '.')
     overwrite = os.getenv('GRASS_OVERWRITE')
     if gfile['file'] and overwrite != '1':
         grass.fatal(_("Vector map <%s> already exists") % map_name)
+    elif overwrite == '1' and gfile['file']:
+        grass.warning(_("Vector map <%s> already exists and will be overwritten") % map_name)
+        grass.run_command('g.remove', quiet = True, vect = map_name)
+        shutil.rmtree(new_dir,True)
     
     # extract data
     tar.extractall()
@@ -96,26 +103,49 @@ def main():
         else:
             grass.fatal(_("Projection information does not match. Aborting."))
 
-    vect_dir = os.path.join(mset_dir,'vector')
-    new_dir = os.path.join(vect_dir,data_name)
+    #new db
+    fromdb = os.path.join(new_dir, 'db.sqlite')
+    #copy file
     shutil.copytree(data_name, new_dir)
+    #exist fromdb
+    if os.path.exists(fromdb):
+        #the db connection in the output mapset
+        dbconn = grassdb.db_connection()
+        if dbconn['database'].find('GISDBASE'):
+            dbstr = os.path.sep.join(dbconn['database'].split(os.path.sep)[3:])
+            todb = os.path.join(mset_dir, dbstr)
+        else:
+            todb = dbconn['database']
+        #return all tables
+        list_fromtable = grass.read_command('db.tables',driver='sqlite',database=fromdb)
+        list_fromtable = list_fromtable.split('\n')
+        #for each table copy and connect db
+        for i in list_fromtable:
+            if i == '':
+                continue
+            elif i != '' and len(i.split('_LAYER')) == 2:
+                #the name of table
+                lname = i.split('_LAYER')[0]
+                #a list where first value is layer number and the second value
+                #is the key
+                NKlayer = i.split('_LAYER')[1].split('_KEY')
+                cptable = grass.run_command('db.copy', to_driver = dbconn['driver'], 
+                          to_database = todb, to_table =  lname, 
+                          from_driver = 'sqlite', from_database = fromdb,
+                          from_table= i)
 
-    dbconn = grassdb.db_connection()
-    if dbconn['database'].find('GISDBASE'):
-        dbstr = os.path.sep.join(dbconn['database'].split(os.path.sep)[3:])
-        todb = os.path.join(mset_dir, dbstr)
-
-    cptable = grass.run_command('db.copy', to_driver = dbconn['driver'], 
-                               to_database = todb, to_table =  map_name, 
-                               from_driver = 'sqlite', 
-                               from_database = os.path.join(new_dir, 'db.sqlite'),
-                               from_table= map_name)
-
+                contable = grass.run_command('v.db.connect', flags = "o", 
+                          driver = dbconn['driver'], database = todb, 
+                          map =  map_name, key = NKlayer[1],
+                          layer = NKlayer[0],table = lname)
+            else:
+                grass.fatal(_("Something wrong in the packaging operation, " \
+                "please run again v.pack"
+                ))
+    #remove 
     os.remove(os.path.join(new_dir,'PROJ_INFO'))
     os.remove(os.path.join(new_dir,'PROJ_UNITS'))
     os.remove(os.path.join(new_dir,'db.sqlite'))
-
-    import pdb; pdb.set_trace()
 
     grass.verbose(_("Vector map saved to <%s>") % map_name)
 
