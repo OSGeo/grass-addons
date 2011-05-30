@@ -21,7 +21,7 @@
 #%option
 #% key: input
 #% type: string
-#% gisprompt: old,cell,vector
+#% gisprompt: old,vector,vector
 #% description: Name of vector map to pack up
 #% key_desc: name
 #% required : yes
@@ -41,19 +41,23 @@ import shutil
 import tarfile
 
 from grass.script import core as grass
-from grass.script import db as grassdb
+from grass.script import vector as vector
 
 def main():
     infile = options['input']
-    if options['output']:
-        outfile = options['output']
-    else:
-        outfile = infile + '.pack'
-        
+    #search if file exist
     gfile = grass.find_file(infile, element = 'vector')
     if not gfile['name']:
         grass.fatal(_("Vector map <%s> not found") % infile)
-
+    #output name
+    if options['output']:
+        outfile = options['output']
+    else:
+        #split the name if there is the mapset name
+        if infile.find('@'):
+            infile = infile.split('@')[0]
+        outfile = infile + '.pack'
+    #check if exists the output file
     if os.path.exists(outfile):
         if os.getenv('GRASS_OVERWRITE'):
             grass.warning(_("Pack file <%s> already exists and will be overwritten") % outfile)
@@ -63,29 +67,37 @@ def main():
     grass.message(_("Packing <%s> to <%s>...") % (gfile['fullname'], outfile))
     basedir = os.path.sep.join(gfile['file'].split(os.path.sep)[:-2])
     olddir  = os.getcwd()
-    
-    dbconn = grassdb.db_connection()
-    if dbconn['database'].find('GISDBASE'):
-      dbstr = os.path.sep.join(dbconn['database'].split(os.path.sep)[3:])
-      fromdb = os.path.join(basedir, dbstr)
+    #check if exist a db connection for the vector 
+    db_vect = vector.vector_db(gfile['fullname'])
 
-    sqlitedb = os.path.join(basedir, 'vector', infile, 'db.sqlite')
-    
-    cptable = grass.run_command('db.copy', from_driver = dbconn['driver'], 
-                               from_database = fromdb, from_table =  infile, 
-                               to_driver = 'sqlite', to_database = sqlitedb, 
-                               to_table= infile)
-
+    #db not exist and skip the db copy
+    if not db_vect:
+        grass.message('There is not database connected with vector %s' % gfile['fullname'])
+    else:
+        # for each layer connection save a table
+        for i, dbconn in db_vect.iteritems():
+            sqlitedb = os.path.join(basedir, 'vector', infile, 'db.sqlite')
+            
+            cptable = grass.run_command('db.copy', from_driver = dbconn['driver'], 
+                      from_database = dbconn['database'], from_table =  dbconn['table'], 
+                      to_driver = 'sqlite', to_database = sqlitedb, 
+                      #add _LAYER for remember the layer and _KEY for the key, 
+                      #they are usefull for v.db.connect during v.unpack
+                      to_table = "%s_LAYER%i_KEY%s" % (dbconn['table'],i,dbconn['key']))
+    #write tar file
     tar = tarfile.open(outfile, "w:gz")   
     tar.add(os.path.join(basedir,'vector',infile),infile)
     gisenv = grass.gisenv()
+    #add to the tar file the PROJ files to check when unpack file
     for support in ['INFO', 'UNITS']:
         path = os.path.join(gisenv['GISDBASE'], gisenv['LOCATION_NAME'],
                             'PERMANENT', 'PROJ_' + support)
         if os.path.exists(path):
           tar.add(path,os.path.join(infile,'PROJ_' + support))
     tar.close()
-    os.remove(sqlitedb)
+    #remove the db from the vector directory #ONLY THE DB FOR THE COPY NOT DB OF GRASS
+    if db_vect:
+        os.remove(sqlitedb)
     grass.verbose(_("Vector map saved to '%s'" % os.path.join(olddir, outfile)))
             
 if __name__ == "__main__":
