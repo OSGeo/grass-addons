@@ -70,9 +70,18 @@ def parser_4eMka2_rule(tags):
                   'decision':string.join(decision),
                   'support':int(row[-2].strip('[.,;]')),
                   'strength':row[-1].strip('[,:]')}
-            rules_list.append(rule)  
-
+            rules_list.append(rule)
+            
+    rls = open('rules',"w")
+    for l in rules_list:
+        factor=l['decision'].strip('()').split(' ')
+        rls.write('%s=%s %s \n' % (l['id_rule'],l['id_rule'], " ".join(factor))) 
+    rls.close
     return rules_list
+    
+def parser_JAMM_rule(tags):
+    "parser file *.rls from JAMM software and extract information for make new classified raster"
+
     
 def parser_mapcalc(rules,i):
     "parser to build a formula to be included  in mapcalc command"
@@ -100,7 +109,7 @@ def clean_rules(rules):
 
 def main():
     input_rules = options['input']
-    output_map = options['output']
+    outputMap = options['output']
 
     gregion = grass.region()
     nrows = gregion['rows']
@@ -112,15 +121,31 @@ def main():
     tags=input_rules.readlines()   
     
     rules=[]  #single rule (dictionary) in array
+    maps=[]
     rules=parser_4eMka2_rule(tags)
 ##    clean_rules(rules)
     for i in range(len(rules)):
         mappa="rule"+rules[i]['id_rule']
         formula=parser_mapcalc(rules,i)
-        print mappa +"="+ formula
         grass.mapcalc(mappa +"=" +formula)
- 
+        maps.append(mappa)
         
+    mapstring=",".join(maps)	
+    
+    for m in maps:
+        grass.run_command("r.to.vect", overwrite='True', flags='s', input=m, output=m, feature='area')
+        grass.run_command("v.db.addcol", map=m, columns='rule varchar(25)')
+        grass.run_command("v.db.update", map=m, column='rule', value=m)
+    grass.run_command("v.patch", overwrite='True', flags='e', input=mapstring, output=outputMap)
+       
+    grass.run_command("r.patch", input=maps,  flags='-o', output='rulesMap')
+    grass.run_command("r.reclass", input='rulesMap', flags='-o',  output='roughMAP', rules='rules')
+    grass.run_command("r.to.vect", input='roughMAP', flags='-o', output=outputMap, feature='area')
+    
+    grass.run_command("g.remove",  rast=mapstring)
+    grass.run_command("g.remove",  vect=mapstring)
+    grass.run_command("g.remove",  vect="rulesMap,roughMAP")
+    
     input_rules.close()
 
 if __name__ == "__main__":

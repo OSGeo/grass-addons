@@ -66,9 +66,7 @@ void build_regime_matrix(int nrows, int ncols, int ncriteria,
 
                     for (i = 0; i < ncriteria; i++)
                     {
-                        double d =
-                            decision_vol[row1][col1][i] -
-                            decision_vol[row2][col2][i];
+                        double d = decision_vol[row1][col1][i]-decision_vol[row2][col2][i];
                         if (d > 0)
                             reg += (1 * weight_vect[i]);
                         else if (d < 0)

@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
 
     classify_vect = G_malloc(sizeof(int) * (nrows * ncols));	/* memory allocation */
 
-    rough_analysis(nrows, ncols, output_txt->answer, classify_vect, attributes, dec_txt->answer, strgy, cls);	/* extract rules from RSL and generate classified vectpr */
+    rough_analysis(nrows, ncols, output_txt->answer, classify_vect, attributes, dec_txt->answer, strgy, cls);	/* extract rules from RSL and generate classified vector */
 
     /* controlling, if we can write the raster */
     if ((outfd = G_open_raster_new(result, CELL_TYPE)) < 0)
@@ -245,6 +245,7 @@ int main(int argc, char *argv[])
         {
             c = ((CELL *) classify_vect[j]);
             ((CELL *) outrast)[col] = c;
+	    G_message("%d", c);
             j++;
         }
 
