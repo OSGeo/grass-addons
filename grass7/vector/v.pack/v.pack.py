@@ -76,14 +76,11 @@ def main():
     else:
         # for each layer connection save a table
         for i, dbconn in db_vect.iteritems():
-            sqlitedb = os.path.join(basedir, 'vector', infile, 'db.sqlite')
-            
+            sqlitedb = os.path.join(basedir, 'vector', infile, 'db.sqlite') 
             cptable = grass.run_command('db.copy', from_driver = dbconn['driver'], 
                       from_database = dbconn['database'], from_table =  dbconn['table'], 
                       to_driver = 'sqlite', to_database = sqlitedb, 
-                      #add _LAYER for remember the layer and _KEY for the key, 
-                      #they are usefull for v.db.connect during v.unpack
-                      to_table = "%s_LAYER%i_KEY%s" % (dbconn['table'],i,dbconn['key']))
+                      to_table = dbconn['table'])
     #write tar file
     tar = tarfile.open(outfile, "w:gz")   
     tar.add(os.path.join(basedir,'vector',infile),infile)

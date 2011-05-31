@@ -97,7 +97,8 @@ def main():
     tar.extractall()
 
     # check projection compatibility in a rather crappy way
-    if not filecmp.cmp(os.path.join(data_name,'PROJ_INFO'), os.path.join(mset_dir, '..', 'PERMANENT', 'PROJ_INFO')):
+    loc_proj = os.path.join(mset_dir, '..', 'PERMANENT', 'PROJ_INFO')
+    if not filecmp.cmp(os.path.join(data_name,'PROJ_INFO'), loc_proj):
         if flags['o']:
             grass.warning(_("Projection information does not match. Proceeding..."))
         else:
@@ -119,29 +120,28 @@ def main():
         #return all tables
         list_fromtable = grass.read_command('db.tables',driver='sqlite',database=fromdb)
         list_fromtable = list_fromtable.split('\n')
-        #for each table copy and connect db
-        for i in list_fromtable:
-            if i == '':
-                continue
-            elif i != '' and len(i.split('_LAYER')) == 2:
-                #the name of table
-                lname = i.split('_LAYER')[0]
-                #a list where first value is layer number and the second value
-                #is the key
-                NKlayer = i.split('_LAYER')[1].split('_KEY')
-                cptable = grass.run_command('db.copy', to_driver = dbconn['driver'], 
-                          to_database = todb, to_table =  lname, 
-                          from_driver = 'sqlite', from_database = fromdb,
-                          from_table= i)
+        #return the list of old connection for extract layer number and key
+        dbln = open(os.path.join(data_name,'dbln'),'r')
+        dbnlist = dbln.readlines()
+        dbln.close()
+	#for each old connection
+	for t in dbnlist:
+	    #it split the line of each connection, to found layer number and key
+	    if len(t.split('|')) != 1:
+		values = t.split('|')
+	    else:
+		values = t.split(' ')
+	    #copy the table in the default database
+	    cptable = grass.run_command('db.copy', to_driver = dbconn['driver'], 
+		      to_database = todb, to_table =  values[1], 
+		      from_driver = 'sqlite', from_database = fromdb,
+		      from_table = values[1])
+	    #and connect the new tables with the rigth layer
+	    contable = grass.run_command('v.db.connect', flags = "o", 
+		      driver = dbconn['driver'], database = todb, 
+		      map =  map_name, key = values[2],
+		      layer = values[0].split('/')[0], table = values[1])
 
-                contable = grass.run_command('v.db.connect', flags = "o", 
-                          driver = dbconn['driver'], database = todb, 
-                          map =  map_name, key = NKlayer[1],
-                          layer = NKlayer[0],table = lname)
-            else:
-                grass.fatal(_("Something wrong in the packaging operation, " \
-                "please run again v.pack"
-                ))
     #remove 
     os.remove(os.path.join(new_dir,'PROJ_INFO'))
     os.remove(os.path.join(new_dir,'PROJ_UNITS'))
