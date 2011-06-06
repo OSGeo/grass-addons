@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = i.evapo.pt
+PGM = i.evapo.zk
 
 LIBES = $(RASTERLIB) $(GISLIB)
 DEPENDENCIES = $(RASTERDEP) $(GISDEP)
