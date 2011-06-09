@@ -1,0 +1,34 @@
+<h2>DESCRIPTION</h2>
+
+The <em>r.modis</em> suite is a toolset to import MODIS data in GRASS GIS. It use the <a href="http://gis.cri.fmach.it/development/pyModis">pyModis</a> library and the <a href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool">MODIS Reprojection Tool</a> softwares to convert, mosaik and process MODIS data. Please check to have <a href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool">MODIS Reprojection Tool</a> on your Operation System, <a href="http://gis.cri.fmach.it/development/pyModis">pyModis</a> it is distributed with <em>r.modis</em> program.
+The suite offers three modules for interface with MODIS data. Each modules it is useful for a specific operation, read below for more info.
+It can download several products, tiles and days of MODIS data from NASA FTP servers. After, it can import the 3 Level products as single image or daily mosaik or process the raw data.
+
+<h2>NOTE</h2>
+The first time that you use <em>r.modis</em> suite you have to do some easy operations to work corectly with <em>r.modis</em> modules.
+<ul>
+  <li>Create a r.modis folder inside $HOME/.grass7</li>
+  <li>Create SETTING.py file inside $HOME/.grass7/r.modis and compile like below:
+    <div class="code"><pre>
+    #!/usr/bin/python
+
+    USERNAME='your_NASA_FTP_username'
+    PASSWORD='your_NASA_FTP_password'
+    MRTPATH='your_path_to_MRT_software'
+    </pre></div>
+  </li>
+</ul>
+$HOME/.grass7/r.modis is also the default path where <em>r.modis</em> suite creates some subfolder to store the different MODIS files. Each module permits to change the previous folder with another directory using an module's option.
+
+<h2>SEE ALSO</h2>
+<ul>
+  <li> <a href="r.modis.download.html">r.modis.download</a>: Download MODIS products</li>
+<!--   <li> <a href="r.modis.import.html">r.modis.import</a>: Import into GRASS GIS 3 Level MODIS products as single image or daily mosaik</li> -->
+<!--  <li> <a href="r.modis.process.html">r.modis.process</a>: Calculates range of patch area size on a raster map</li>-->
+</ul>
+ 
+<h2>AUTHOR</h2>
+
+Luca Delucchi, Google Summer of Code 2011
+
+<p><i>Last changed: $Date: 2011-06-03 14:44:59 +0200 (Mon, 09 May 2011) $</i>
