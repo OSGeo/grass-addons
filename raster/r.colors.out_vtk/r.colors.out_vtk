@@ -81,7 +81,7 @@ if [ ! -x `which r.colors.out` ] ; then
 fi
 
 
-# --overwrite test
+#### --overwrite test
 if [ -e "$GIS_OPT_OUTPUT" ] ; then
    if [ -z "$GRASS_OVERWRITE" ] || [ "$GRASS_OVERWRITE" -ne 1 ] ; then
       g.message -e "File <$GIS_OPT_OUTPUT> already exists"
@@ -89,13 +89,17 @@ if [ -e "$GIS_OPT_OUTPUT" ] ; then
    fi
 fi
 
-#
-# test here if input map actually exists?
-#
+
+#### test if map exists
+eval `g.findfile element=cell file="$GIS_OPT_MAP"`
+if [ -z "$fullname" ] ; then
+   g.message -e "Raster map <$GIS_OPT_MAP> not found"
+   exit 1
+fi
 
 
+#### start writing it
 echo "<ColorMap name=\"$GIS_OPT_MAP\" space=\"RGB\">" > "$GIS_OPT_OUTPUT"
-
 
 if [ $GIS_FLAG_N -eq 1 ] ; then
    r.colors.out -p map="$GIS_OPT_MAP" rules=- | grep '^[0-9]' | tr ':' ' ' | \
@@ -104,17 +108,14 @@ if [ $GIS_FLAG_N -eq 1 ] ; then
                   $1/100., $1/100., $2/255., $3/255., $4/255.)}' \
       >> "$GIS_OPT_OUTPUT"
 
-   RCO_EXITCODE=$?
 else
    r.colors.out map="$GIS_OPT_MAP" rules=- | grep '^[0-9]' | tr ':' ' ' | \
       awk '{printf("  <Point x=\"%.15g\" o=\"1\" r=\"%.3f\" g=\"%.3f\" b=\"%.3f\" />\n", \
                    $1, $2/255., $3/255., $4/255.)}' >> "$GIS_OPT_OUTPUT"
 
-   RCO_EXITCODE=$?
 fi
 
 echo "</ColorMap>" >> "$GIS_OPT_OUTPUT"
 
 
-#done!
-exit $RCO_EXITCODE
+#### done!
