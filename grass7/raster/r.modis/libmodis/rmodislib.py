@@ -23,18 +23,25 @@ class product:
         urlbase = 'e4ftl01u.ecs.nasa.gov'
         usrsnow = 'n4ftl01u.ecs.nasa.gov'
 	self.prod = value
-	self.products = {'lst_aqua_daily':{'url':urlbase,
-	  'folder':'MOLA/MYD11A1.005'},'lst_terra_daily':{'url':urlbase,
-	  'folder':'MOLT/MOD11A1.005'},'snow_terra_eight':{'url':usrsnow,
-	  'folder':'SAN/MOST/MOD10A2.005'}, 'ndvi_terra_sixte':{'url':urlbase,
-          'folder':'MOLT/MOD13Q1.005'} }
+	self.products = {
+          'lst_aqua_daily':{'url':urlbase,'folder':'MOLA/MYD11A1.005','res':1000, 
+          'spec':'( 1 0 0 0 1 0 0 0 0 0 0 0 )','spec_qa':'( 0 1 0 0 0 1 0 0 0 0 0 0 )'},
+          'lst_terra_daily':{'url':urlbase,'folder':'MOLT/MOD11A1.005','res':1000, 
+          'spec':'( 1 0 0 0 1 0 0 0 0 0 0 0 )','spec_qa':'( 0 1 0 0 0 1 0 0 0 0 0 0 )'}, 
+          'snow_terra_eight':{'url':usrsnow,'folder':'SAN/MOST/MOD10A2.005','res':500,
+          'spec':'( 1 1 0 0 0 0 0 0 0 0 0 )','spec_qa':'( 0 0 0 0 0 0 0 0 0 0 0 )'}, 
+          'ndvi_terra_sixte':{'url':urlbase, 'folder':'MOLT/MOD13Q1.005','res':250,
+          'spec':'( 1 1 0 0 0 0 0 0 0 0 0 )','spec_qa':'( 0 0 1 1 0 0 0 0 0 0 0 )'}
+        }
 
     def returned(self):
 	return self.products[self.prod]
 
     def __str__(self):
 	prod = self.returned()
-	string = "url: " + prod['url'] + ", folder: " + prod['folder']
+	string = "url: " + prod['url'] + ", folder: " + prod['folder'] + \
+                ", spectral subset: " + prod['spec'] + ", spectral subset qa:" + \
+                prod['spec_qa']
 	return string
 
 class resampling:
@@ -65,7 +72,7 @@ class datum:
     datumare supported"""
     def __init__(self,value):
         self.datum = value
-        self.datumlist = {'AGGIUNGERE'}
+        self.datumlist = {'AGGIUNGERE':'AGGIUNGERE'}
 
     def returned(self):
         return self.datumlist[self.datum]
