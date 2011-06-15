@@ -99,20 +99,20 @@ echo "<ColorMap name=\"$GIS_OPT_MAP\" space=\"RGB\">" > "$GIS_OPT_OUTPUT"
 
 if [ $GIS_FLAG_N -eq 1 ] ; then
 
-   eval `r.info -r "$GIS_OPT_INPUT"`
+   eval `r.info -r "$GIS_OPT_MAP"`
 
-   r.colors.out -p map="$GIS_OPT_INPUT" rules=- | \
-      tr ':' ' ' | awk -v MIN="$min" -v MAX="$max" \
+   r.colors.out -p map="$GIS_OPT_MAP" rules=- | grep '^[0-9]' | tr ':' ' ' | \
+      awk -v MIN="$min" -v MAX="$max" \
        '{ VALUE = ($1 - MIN)/(MAX - MIN)
-           printf("<Point x=\"%g\" o=\"%g\" r=\"%.3f\" g=\"%.3f\" b=\"%.3f\"/>\n", \
+           printf("  <Point x=\"%g\" o=\"%g\" r=\"%.3f\" g=\"%.3f\" b=\"%.3f\"/>\n", \
                   VALUE, VALUE, $2/255., $3/255., $4/255.)}' \
       >> "$GIS_OPT_OUTPUT"
 
    RCO_EXITCODE=$?
 else
-   r.colors.out map="$GIS_OPT_INPUT" rules=- | \
-      tr ':' ' ' | awk '{printf("<Point x=\"%g\" o=\"1\" r=\"%.3f\" g=\"%.3f\" b=\"%.3f\"/>\n", \
-          $1, $2/255., $3/255., $4/255.)}' >> "$GIS_OPT_OUTPUT"
+   r.colors.out map="$GIS_OPT_MAP" rules=- | grep '^[0-9]' | tr ':' ' ' | \
+      awk '{printf("  <Point x=\"%g\" o=\"1\" r=\"%.3f\" g=\"%.3f\" b=\"%.3f\"/>\n", \
+                   $1, $2/255., $3/255., $4/255.)}' >> "$GIS_OPT_OUTPUT"
 
    RCO_EXITCODE=$?
 fi
