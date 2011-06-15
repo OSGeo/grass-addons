@@ -51,3 +51,21 @@ class resampling:
 class projection:
     """Definition of projection for convert from sinusoidal projection to
     another one. Not all projection systems are supported"""
+    def __init__(self,value):
+        self.proj = value
+        self.projections = {'latlong':'GEO', 'lcc':'LAMBERT CONFORMAL CONIC',
+             'merc':'MERCARTOR', 'polar':'POLARSTEREOGRAFIC', 'utm':'UTM', 
+             'tmerc':'TRANSFERT MERCARTOR'}
+
+    def returned(self):
+        return self.projections[self.proj]
+
+class datum:
+    """Definition of datum for convert from sinusoidal projection. Not all 
+    datumare supported"""
+    def __init__(self,value):
+        self.datum = value
+        self.datumlist = {'AGGIUNGERE'}
+
+    def returned(self):
+        return self.datumlist[self.datum]
