@@ -19,7 +19,7 @@
 class product:
     """Definition of modis product with url and path in the ftp server
     """
-    def __init__(self,value):
+    def __init__(self,value = None):
         urlbase = 'e4ftl01u.ecs.nasa.gov'
         usrsnow = 'n4ftl01u.ecs.nasa.gov'
 	self.prod = value
@@ -36,6 +36,14 @@ class product:
 
     def returned(self):
 	return self.products[self.prod]
+
+    def fromcode(self,code):
+        import string
+        for k,v in self.products.iteritems():
+          if string.find(v['folder'],code) != -1:
+            return self.products[k]
+        return "The code insert is not supported yet. Can you ask to the dev "\
+               + "mailing list for a support in the future"
 
     def __str__(self):
 	prod = self.returned()
