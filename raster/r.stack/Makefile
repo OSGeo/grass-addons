@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.game_of_life
+PGM = r.stack
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
