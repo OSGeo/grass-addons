@@ -15,6 +15,32 @@
 #		for details.
 #
 #############################################################################
+from grass.script import read_command,parse_command
+# interface to g.proj -p
+def get_proj():
+    """!Returns the output from running "g.proj -p" plus towgs84 parameter (g.proj -d), 
+    as a dictionary. Example:
+
+    \code
+    >>> proj = grass.get_proj()
+    >>> (proj['name'], proj['ellps'], proj['datum'])
+    (Lat/Lon, wgs84, wgs84)
+    \endcode
+
+    @return dictionary of projection values
+    """
+    gproj = read_command('g.proj',flags='p')
+    listproj = gproj.split('\n')
+    listproj.remove('-PROJ_INFO-------------------------------------------------')
+    listproj.remove('-PROJ_UNITS------------------------------------------------')
+    listproj.remove('')
+    proj = {}
+    for i in listproj:
+        ilist = i.split(':')
+        proj[ilist[0].strip()] = ilist[1].strip()
+    towgs = parse_command('g.proj',flags='d')
+    proj['towgs84']=towgs['towgs84']
+    return proj
 
 class product:
     """Definition of modis product with url and path in the ftp server
@@ -80,7 +106,8 @@ class datum:
     datumare supported"""
     def __init__(self,value):
         self.datum = value
-        self.datumlist = {'AGGIUNGERE':'AGGIUNGERE'}
+        self.datumlist = {'none':'NONE', 'nad27':'NAD27', 'nad83':'NAD83', 
+        'wgs66':'WGS66', 'wgs72':'WGS72', 'wgs84':'WGS84'}
 
     def returned(self):
         return self.datumlist[self.datum]

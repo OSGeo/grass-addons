@@ -1,30 +1,38 @@
 <h2>DESCRIPTION</h2>
 
-The <em>r.modis</em> suite is a toolset to import MODIS data in GRASS GIS. It use the <a href="http://gis.cri.fmach.it/development/pyModis">pyModis</a> library and the <a href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool">MODIS Reprojection Tool</a> softwares to convert, mosaik and process MODIS data. Please check to have <a href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool">MODIS Reprojection Tool</a> on your Operation System, <a href="http://gis.cri.fmach.it/development/pyModis">pyModis</a> it is distributed with <em>r.modis</em> program.
-The suite offers three modules for interface with MODIS data. Each modules it is useful for a specific operation, read below for more info.
-It can download several products, tiles and days of MODIS data from NASA FTP servers. After, it can import the 3 Level products as single image or daily mosaik or process the raw data.
+The <em>r.modis</em> suite is a toolset to import MODIS satellite data in GRASS GIS. 
+It uses the <a href="http://gis.cri.fmach.it/development/pyModis">pyModis</a>
+library and the <a
+href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool"> MODIS
+Reprojection Tool</a> software to convert, mosaik and process MODIS data.
+It requires the <a
+href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool">MODIS
+Reprojection Tool</a> to be installed while <a
+href="http://gis.cri.fmach.it/development/pyModis">pyModis</a> is
+included in the <em>r.modis</em> suite.
+The suite offers three modules as interface with MODIS data. Each modules
+is dedicated to for a specific operation.
+It can download several MODIS products, those by tiles and observation days from 
+the releated NASA FTP server. It process Level 2 data using the r.modis.process module.
+It also import Level 3 (georeferenced) products either as single image or as daily mosaik.
 
-<h2>NOTE</h2>
-The first time that you use <em>r.modis</em> suite you have to do some easy operations to work corectly with <em>r.modis</em> modules.
+<h4>Products</h4>
+The products already supported: 
 <ul>
-  <li>Create a r.modis folder inside $HOME/.grass7</li>
-  <li>Create SETTING.py file inside $HOME/.grass7/r.modis and compile like below:
-    <div class="code"><pre>
-    #!/usr/bin/python
-
-    USERNAME='your_NASA_FTP_username'
-    PASSWORD='your_NASA_FTP_password'
-    MRTPATH='your_path_to_MRT_software'
-    </pre></div>
-  </li>
+  <li>Land Surface Temperature daily (Terra): product provides per-pixel temperature and emissivity values in a sequence of swath-based to grid-based global products. The MODIS/Terra LST/E Daily L3 Global 1 km Grid product (MOD11A1), is tile-based and gridded in the Sinusoidal projection, and produced daily at 1 km spatial resolution. </li>
+  <li>Land Surface Temperature daily (Aqua): product provides per-pixel temperature and emissivity values in a sequence of swath-based to grid-based global products. The MODIS/Aqua LST/E Daily L3 Global 1 Km Grid product (MYD11A1), is tile-based and gridded in the Sinusoidal projection, and produced daily at 1 Km spatial resolution.</li>
+  <li>NDVI sixteen days (Terra): MODIS Normalized Difference Vegetation Index (NDVI) complements NOAA's Advanced Very High Resolution Radiometer (AVHRR) NDVI products and provides continuity for time series historical applications. data are provided every 16 days at 250-meter spatial resolution as a gridded level-3 product (MOD13Q1) in the Sinusoidal projection.</li>
+  <li>Snow eight days: </li>
 </ul>
-$HOME/.grass7/r.modis is also the default path where <em>r.modis</em> suite creates some subfolder to store the different MODIS files. Each module permits to change the previous folder with another directory using an module's option.
 
 <h2>SEE ALSO</h2>
 <ul>
-  <li> <a href="r.modis.download.html">r.modis.download</a>: Download MODIS products</li>
-<!--   <li> <a href="r.modis.import.html">r.modis.import</a>: Import into GRASS GIS 3 Level MODIS products as single image or daily mosaik</li> -->
-<!--  <li> <a href="r.modis.process.html">r.modis.process</a>: Calculates range of patch area size on a raster map</li>-->
+  <li> <a href="r.modis.download.html">r.modis.download</a>: Download MODIS
+products</li>
+<!--   <li> <a href="r.modis.import.html">r.modis.import</a>: Import into GRASS
+GIS 3 Level MODIS products as single image or daily mosaik</li> -->
+<!--  <li> <a href="r.modis.process.html">r.modis.process</a>: Calculates range
+of patch area size on a raster map</li>-->
 </ul>
  
 <h2>AUTHOR</h2>

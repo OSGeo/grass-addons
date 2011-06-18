@@ -4,55 +4,42 @@
 
 <h2>NOTE</h2>
 
-The first time that you use <em>r.modis</em> suite you have to do some easy operations to work corectly with <em>r.modis</em> modules.
-<ul>
-  <li>Create a r.modis folder inside $HOME/.grass7</li>
-  <li>Create SETTING.py file inside $HOME/.grass7/r.modis and compile like below:
-    <div class="code"><pre>
-    #!/usr/bin/python
+To set the username and password options  you have to use <em>setting</em> option; you can use a file, in this case the first line is the username, usually is 'anonymous', in the second line the password, your e-mail address
+<div class="code"><pre>
+  your_NASA_FTP_username
+  your_NASA_FTP_password
+</pre></div>
+otherwise you can pass the values from standard input.<br>
 
-    USERNAME='your_NASA_FTP_username'
-    PASSWORD='your_NASA_FTP_password'
-    MRTPATH='your_path_to_MRT_software'
-    </pre></div>
-  </li>
-</ul>
-
-The username and password should not be required but it's better set them; the username is anonymous and password is your mail. Instead NASA FTP server it is open
 <b>Warning</b>: NASA policy don't permit to open more then ten connections with the FTP servers. Please don't run more 10 the <em>r.modis.download</em> process at the same time.<br>
-By default the data downladed are store in <em>$HOME/.grass7/r.modis/download/</em>; you can change the directory with <em>folder</em> options.<br>
+By default the files downladed are store in the path where is the setting file; you can change the directory with <em>folder</em> options. You have to set <em>folder</em> option if you send user and password by standard input<br>
 The time of download change with the number of tiles, days and the type of product, for example NDVI product it is from 5 MB to 270 MB and LST is from 2 MB to 21 MB.
-
-<h4>Products</h4>
-The products already supported: 
-<ul>
-  <li>Land Surface Temperature daily (Terra): product provides per-pixel temperature and emissivity values in a sequence of swath-based to grid-based global products. The MODIS/Terra LST/E Daily L3 Global 1 km Grid product (MOD11A1), is tile-based and gridded in the Sinusoidal projection, and produced daily at 1 km spatial resolution. </li>
-  <li>Land Surface Temperature daily (Aqua): product provides per-pixel temperature and emissivity values in a sequence of swath-based to grid-based global products. The MODIS/Aqua LST/E Daily L3 Global 1 Km Grid product (MYD11A1), is tile-based and gridded in the Sinusoidal projection, and produced daily at 1 Km spatial resolution.</li>
-  <li>NDVI sixteen days (Terra): MODIS Normalized Difference Vegetation Index (NDVI) complements NOAA's Advanced Very High Resolution Radiometer (AVHRR) NDVI products and provides continuity for time series historical applications. data are provided every 16 days at 250-meter spatial resolution as a gridded level-3 product (MOD13Q1) in the Sinusoidal projection.</li>
-  <li>Snow eight days: </li>
-</ul>
 
 <h2>EXAMPLES</h2>
 
-To download LST Terra product using the default options (using $HOME/.grass7/r.modis/ as folder, SETTING.py file for username and password, starting from today until ten days ago) you can launch  
+To download LST Terra product using the default options and set the user and password by standard input you can launch  
 <div class="code"><pre>
-    r.modis.download
+    r.modis.download setting=-
 </pre></div>
 
-To download LST Terra product using the default options (using $HOME/.grass7/r.modis/ as folder, SETTING.py file for username and password) and change the starting and ending dates
+Reading the user and password options from file
 <div class="code"><pre>
-    r.modis.download startday=2011-05-31 endday=2011-05-01
+    r.modis.download setting=/home/user/.grass/r.modis/SETTING
+</pre></div>
+
+To download LST Terra product using the default options and change the starting and ending dates
+<div class="code"><pre>
+    r.modis.download setting=/home/user/.grass/r.modis/SETTING startday=2011-05-31 endday=2011-05-01
 </pre></div>
 
 To downlad another product (for example <em>Snow eight days</em>), with other default options
 <div class="code"><pre>
-    r.modis.download product=snow_terra_eight
+    r.modis.download setting=/home/user/.grass/r.modis/SETTING product=snow_terra_eight
 </pre></div>
 
-To use username and password specified (note that the command
-lines history will store the password in this way) and use the other default options
+To use <em>r.modis.download</em> in a script with one of the other module you have to set -g flag to return the name of the file containing a list of HDF names downladed
 <div class="code"><pre>
-    r.modis.download username=user password=*****
+    r.modis.download -g setting=/home/user/.grass/r.modis/SETTING startday=2011-05-31 endday=2011-05-01
 </pre></div>
 
 <h2>SEE ALSO</h2>
@@ -66,4 +53,4 @@ lines history will store the password in this way) and use the other default opt
 
 Luca Delucchi, Google Summer of Code 2011
 
-<p><i>Last changed: $Date: 2011-06-03 14:44:59 +0200 (Mon, 09 May 2011) $</i>
+<p><i>Last changed: $Date: 2011-06-18 14:44:59 +0200 (Mon, 18 June 2011) $</i>

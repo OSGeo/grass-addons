@@ -20,34 +20,30 @@
 #% description: Download several tiles of MODIS products using pyModis
 #% keywords: raster
 #%end
+#%flag
+#% key: d
+#% description: For debug mode, it will write more info in the log file
+#%end
+#%flag
+#% key: g
+#% description: Return the name of file containing the list of HDF tiles downloaded in shell script style
+#%end
+#%option
+#% key: setting
+#% type: string
+#% gisprompt: old,file,input
+#% label: Full path to setting file.
+#% description: "-" to pass the parameter from stdin
+#% required: yes
+#% guisection: Define
+#%end
 #%option
 #% key: product
 #% type: string
 #% description: Name of MODIS product
-#% required: yes
+#% required: no
 #% options: lst_aqua_daily, lst_terra_daily, snow_terra_eight, ndvi_terra_sixte
 #% answer: lst_terra_daily
-#%end
-#%option
-#% key: username
-#% type: string
-#% key_desc: username
-#% description: Name of user to NASA ftp access, it's better use SETTING.py
-#% required: no
-#%end
-#%option
-#% key: password
-#% type: string
-#% key_desc: password
-#% description: Password of user to NASA ftp access, it's better use SETTING.py
-#% required: no
-#%end
-#%option
-#% key: folder
-#% type: string
-#% description: Folder where saves the data, full path
-#% answer: $HOME/.grass7/r.modis/download
-#% required: no
 #%end
 #%option
 #% key: tiles
@@ -67,9 +63,11 @@
 #% description: The day to stop download. If not set the download stops 10 day before the start day
 #% required: no
 #%end
-#%flag
-#% key: d
-#% description: For debug mode, it will write more info in the log file
+#%option
+#% key: folder
+#% type: string
+#% description: The folder where store the data downloaded. If not set it take the path of setting file
+#% required: no
 #%end
 
 # import library
@@ -87,18 +85,15 @@ try:
 except ImportError:
     pass
 
-
-def check(home,suffix):
-    """ Function to check the path necessary to work this module
+def check(home):
+    """ Check if a folder it is writable by the user that launch the process
     """
-
-    # check if ~/.grass7/r.modis/download exist or create it
-    if not os.path.exists(home):
-        os.mkdir(home)
-        os.mkdir(os.path.join(home,suffix))
-    elif not os.path.exists(os.path.join(home,suffix)):
-        os.mkdir(os.path.join(home,suffix))
-    return 1
+    if os.access(home,os.W_OK):
+        return 1
+    else:
+        grass.fatal(_("Folder to write downloaded files doesn't" \
+        + " exist or is not writeable"))
+        return 0
 
 def checkdate(options):
     """ Function to check the data and return the correct value to download the
@@ -125,7 +120,6 @@ def checkdate(options):
     # set only end day
     elif options['startday'] == '' and options['endday'] != '':
         today = date.today().strftime("%Y-%m-%d")
-        import pdb; pdb.set_trace()
         if today <= options['endday']:
             grass.fatal(_('The last day cannot before >= of the first day'))
             return 0
@@ -139,79 +133,79 @@ def checkdate(options):
     elif options['startday'] != '' and options['endday'] != '':
         valueDay, valueEnd, valueDelta = check2day(options['endday'],options['startday'])
     return valueDay, valueEnd, valueDelta 
+
 # main function
 def main():
-
     # check if you are in GRASS
     gisbase = os.getenv('GISBASE')
     if not gisbase:
         grass.fatal(_('$GISBASE not defined'))
         return 0
-
-    # set the home path
-    home = os.path.expanduser('~')
-     
+    # set username, password and folder if settings are insert by stdin
+    if options['setting'] == '-':
+        if options['folder']:
+            if check(options['folder']):
+                fold = options['folder']
+            user = raw_input(_('Insert username (usually anonymous): '))
+            passwd = raw_input(_('Insert password (your mail): '))
+        else:
+            grass.fatal(_("Please set folder option if you want pass username " \
+            + "and password by stdin"))
+            return 0
+    # set username, password and folder by file
+    else:
+        # open the file and read the the user and password:
+        # first line is username
+        # second line is password
+        filesett = open(options['setting'],'r')
+        fileread = filesett.readlines()
+        user = fileread[0].strip()
+        passwd = fileread[1].strip()
+        filesett.close()
+        # set the folder by option folder
+        if options['folder']:
+            if check(options['folder']):
+                fold = options['folder']
+        # set the folder from path where setting file is stored 
+        else:
+            path = os.path.split(options['setting'])[0]
+            if check(path):
+                fold = path
     # check the version
     version = grass.core.version()
     # this is would be set automatically
-    if version['version'].find('7.') != -1:
-        session_path = '.grass7'
-        grass_fold = os.path.join(home,session_path)
-        if not os.path.exists(grass_fold):
-          os.mkdir(grass_fold)
-    else: 
+    if version['version'].find('7.') == -1:
         grass.fatal(_('You are not in GRASS GIS version 7'))
         return 0
-    # path to ~/grass7/r.modis
-    path = os.path.join(grass_fold,'r.modis')
     # first date and delta
     firstday, finalday, delta = checkdate(options)
-    #username and password are optional because the command lines history 
-    #will store the password in this these options; so you are the possibility
-    #to use a file
-    if options['username'] == '' and options['password'] == '':
-        sett_file = os.path.join(path,'SETTING.py')
-        grass.message("For setting will use %s" % sett_file)
-        try:
-            sys.path.append(path)
-            import SETTING
-        except ImportError:
-            grass.fatal("%s not exist or is not well formatted. Create "\
-            "the file with inside:\n\n#!/usr/bin/env python\n\nusername="\
-            "your_user\npassword=xxxxx" % sett_file)
-            return 0
-        user = SETTING.username
-        passwd = SETTING.username
-    else:
-        grass.message("For setting will use username and password options")
-        user = options['username']
-        passwd = options['password']        
-    
+    # the product
     prod = product(options['product']).returned()
-    # set folder
-    if options['folder'].find('HOME/.grass7/r.modis/download') == 1:
-        fold = os.path.join(path,'download')
-        # some check
-        check(path,'download')
-    else:
-        fold = options['folder']
     # set tiles
     if options['tiles'] == '':
         tiles = None
     else:
         tiles = options['tiles']
-        
-    # start modis class
+    # set the debug
+    if flags['d']:
+      debug_opt = True
+    else:
+      debug_opt = False
+    #start modis class
     modisOgg = downModis(url = prod['url'], user = user,password = passwd, 
             destinationFolder = fold, tiles = tiles, path = prod['folder'], 
-            today = firstday, enddate = finalday, delta = delta)
+            today = firstday, enddate = finalday, delta = delta, debug = debug_opt)
     # connect to ftp
     modisOgg.connectFTP()
     # download tha tiles
     modisOgg.downloadsAllDay()
-    grass.message("All data are downloaded, now you can use r.in.modis.import "\
-    "or r.in.modis.process with option 'conf=" + modisOgg.filelist.name)
-    
+    if flags['g']:
+      grass.message(modisOgg.filelist.name)
+    else:
+      grass.message(_("Downloading MODIS product..."))
+      grass.message(_("All data are downloaded, now you can use r.in.modis.import "\
+      + "or r.in.modis.process with option 'conf=" + modisOgg.filelist.name + '\''))
+
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
