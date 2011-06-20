@@ -46,8 +46,7 @@ void do_legend(char **at_list, char **velo_list, int num_velos,
 	G_debug(5, "  (aka east=%.2f  north=%2.f)", easting, northing);
 	G_debug(5, "  (aka pixelX=%d  pixelY=%d)", Xpx, Ypx);
 
-
-	R_standard_color(color);
+	D_raster_use_color(color);
 	sprintf(buff, "%s", velo_list[i]);
 
 	/* Y: center justify: */

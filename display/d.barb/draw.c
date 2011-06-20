@@ -15,7 +15,7 @@ void draw_barb(double easting, double northing, double velocity,
 
     //dbg:    unknown_(594578,4920392);
 
-    R_standard_color(color);
+    D_raster_use_color(color);
 
     R_move_abs((int)(D_u_to_d_col(easting) + 0.5),
 	       (int)(D_u_to_d_row(northing) + 0.5));

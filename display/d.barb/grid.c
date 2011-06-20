@@ -156,7 +156,7 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	    if (G_is_null_value(dir_u_ptr, dir_u_raster_type))
 		continue;
 
-	    R_standard_color(color);
+	    D_raster_use_color(color);
 
 	    easting = G_col_to_easting(col + 0.5, &window);
 	    northing = G_row_to_northing(row + 0.5, &window);
@@ -176,7 +176,7 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	    else {
 		R_standard_color(D_parse_color("grey", 0));
 		unknown_(easting, northing);
-		R_standard_color(color);
+		D_raster_use_color(color);
 	    }
 
 	    dir_u_ptr =
