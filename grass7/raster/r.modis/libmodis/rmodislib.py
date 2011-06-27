@@ -43,7 +43,7 @@ def get_proj():
     return proj
 
 class product:
-    """Definition of modis product with url and path in the ftp server
+    """Definition of MODIS product with url and path in the ftp server
     """
     def __init__(self,value = None):
         urlbase = 'e4ftl01u.ecs.nasa.gov'
@@ -68,8 +68,8 @@ class product:
         for k,v in self.products.iteritems():
           if string.find(v['folder'],code) != -1:
             return self.products[k]
-        return "The code insert is not supported yet. Can you ask to the dev "\
-               + "mailing list for a support in the future"
+        return "The code insert is not supported yet. Consider to ask on the grass-dev "\
+               + "mailing list for future support"
 
     def __str__(self):
 	prod = self.returned()
@@ -84,26 +84,26 @@ class resampling:
     def __init__(self,value):
         self.code = value
         self.resampling = {'NN': 'NEAREST_NEIGHBOR','BI' : 'BICUBIC',
-        'CC' : '','NONE' : 'NONE'}
+        'CC' : 'CUBIC CONVOLUTION','NONE' : 'NONE'}
 
     def returned(self):
         return self.resampling[self.code]
 
 class projection:
-    """Definition of projection for convert from sinusoidal projection to
+    """Definition of projection for converting from sinusoidal projection to
     another one. Not all projection systems are supported"""
     def __init__(self,value):
         self.proj = value
         self.projections = {'latlong':'GEO', 'lcc':'LAMBERT CONFORMAL CONIC',
-             'merc':'MERCARTOR', 'polar':'POLARSTEREOGRAFIC', 'utm':'UTM', 
-             'tmerc':'TRANSFERT MERCARTOR'}
+             'merc':'MERCATOR', 'polar':'POLAR STEREOGRAPHIC', 'utm':'UTM', 
+             'tmerc':'TRANSVERSE MERCATOR'}
 
     def returned(self):
         return self.projections[self.proj]
 
 class datum:
-    """Definition of datum for convert from sinusoidal projection. Not all 
-    datumare supported"""
+    """Definition of datum for converting from sinusoidal projection. Not all 
+    datums are supported"""
     def __init__(self,value):
         self.datum = value
         self.datumlist = {'none':'NONE', 'nad27':'NAD27', 'nad83':'NAD83', 
@@ -111,3 +111,4 @@ class datum:
 
     def returned(self):
         return self.datumlist[self.datum]
+
