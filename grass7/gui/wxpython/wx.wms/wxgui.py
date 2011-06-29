@@ -1,5 +1,5 @@
 """!
-@package wxgui.py
+@package wxgui.py 
 
 @brief Main Python app for GRASS wxPython GUI. Main menu, layer management
 toolbar, notebook control for display management and access to
@@ -18,7 +18,7 @@ for details.
 @author Jachym Cepicky (Mendel University of Agriculture)
 @author Martin Landa <landa.martin gmail.com>
 @author Vaclav Petras <wenzeslaus gmail.com> (menu customization)
-"""
+""" 
 
 import sys
 import os

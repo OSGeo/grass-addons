@@ -1,6 +1,6 @@
 from xml.dom.minidom import parse, parseString
 from urllib2 import Request, urlopen, URLError, HTTPError
-    
+     
 def parsexml(xml):
     dom = parseString(xml)
     layerlist = dom.getElementsByTagName('Layer')

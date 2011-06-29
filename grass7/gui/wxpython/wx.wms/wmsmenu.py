@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+ 
 
 from urllib2 import Request, urlopen, URLError, HTTPError
 import wx
