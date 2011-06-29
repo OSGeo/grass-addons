@@ -8,5 +8,16 @@ State of the art-
 
 The project uses WMS service to fetch images of the maps. The Get Feature service of WMS services provides a GML based interface to access the information about various layers available. The WMS layer knowledge is used to update the GUI of the GRASS according to the available features for a particular layer. Thw WX-GUI is to be modified and to be integrated with the WMS services. 
 
+How to run the add-on
+1) Copy files wmsmenu.py , parse.py to gui/wxpython/gui_modules/
+2) Patch wxgui.py and toolbars.py with command "cd path/to/sourceroot && cat core.diff | patch -p0"
+3) make the source code
+3) Now run it , when launched , a new button shall appear in Main GUI window beside 'New Display button'
+4) Click on it, and a new wms window shall be launched. 
+5) Enter url of WMS 
+6) Click on Get Capabilites. 
+
+
+
 Author - 
 Sudeep Singh Walia
