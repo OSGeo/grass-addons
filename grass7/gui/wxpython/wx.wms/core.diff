@@ -1,0 +1,100 @@
+Index: gui/wxpython/wxgui.py
+===================================================================
+--- gui/wxpython/wxgui.py	(revision 46749)
++++ gui/wxpython/wxgui.py	(working copy)
+@@ -81,6 +81,7 @@
+ from gui_modules import gmodeler
+ from gui_modules import vclean
+ from gui_modules import nviz_tools
++from gui_modules.wmsmenu import func as func1 #sudeep
+ from gui_modules.debug    import Debug
+ from gui_modules.ghelp    import MenuTreeWindow, AboutWindow, InstallExtensionWindow
+ from gui_modules.toolbars import LMWorkspaceToolbar, LMDataToolbar, LMToolsToolbar, LMMiscToolbar
+@@ -1176,10 +1177,64 @@
+         # show ATM window
+         dbmanager.Show()
+         
++    def OnNewDisplay1(self, event = None):
++        """!Create new layer tree and map display instance"""
++        self.NewDisplay1()
++
++    def NewDisplay1(self, show = True):
++        Debug.msg(1, "GMFrame.NewDisplay(): idx=%d" % self.disp_idx)
++    	func1()
++    	
++    	
++        """!Create new layer tree, which will
++        create an associated map display frame
++
++        @param show show map display window if True
++
++        @return reference to mapdisplay intance
++        """
++  	'''      Debug.msg(1, "GMFrame.NewDisplay(): idx=%d" % self.disp_idx)
++        
++        # make a new page in the bookcontrol for the layer tree (on page 0 of the notebook)
++        self.pg_panel = wx.Panel(self.gm_cb, id = wx.ID_ANY, style = wx.EXPAND)
++        self.gm_cb.AddPage(self.pg_panel, text = "Display "+ str(self.disp_idx + 1), select = True)
++        self.curr_page = self.gm_cb.GetCurrentPage()
++        
++        # create layer tree (tree control for managing GIS layers)  and put on new notebook page
++        self.curr_page.maptree = layertree.LayerTree(self.curr_page, id = wx.ID_ANY, pos = wx.DefaultPosition,
++                                                     size = wx.DefaultSize, style = wx.TR_HAS_BUTTONS |
++                                                     wx.TR_LINES_AT_ROOT| wx.TR_HIDE_ROOT |
++                                                     wx.TR_DEFAULT_STYLE| wx.NO_BORDER | wx.FULL_REPAINT_ON_RESIZE,
++                                                     idx = self.disp_idx, lmgr = self, notebook = self.gm_cb,
++                                                     auimgr = self._auimgr, showMapDisplay = show)
++        
++        # layout for controls
++        cb_boxsizer = wx.BoxSizer(wx.VERTICAL)
++        cb_boxsizer.Add(self.curr_page.maptree, proportion = 1, flag = wx.EXPAND, border = 1)
++        self.curr_page.SetSizer(cb_boxsizer)
++        cb_boxsizer.Fit(self.curr_page.maptree)
++        self.curr_page.Layout()
++        self.curr_page.maptree.Layout()
++        
++        # use default window layout
++        if UserSettings.Get(group = 'general', key = 'defWindowPos', subkey = 'enabled'):
++            dim = UserSettings.Get(group = 'general', key = 'defWindowPos', subkey = 'dim')
++            idx = 4 + self.disp_idx * 4
++            try:
++                x, y = map(int, dim.split(',')[idx:idx + 2])
++                w, h = map(int, dim.split(',')[idx + 2:idx + 4])
++                self.curr_page.maptree.mapdisplay.SetPosition((x, y))
++                self.curr_page.maptree.mapdisplay.SetSize((w, h))
++            except:
++                pass
++        
++        self.disp_idx += 1
++        
++        return self.curr_page.maptree.mapdisplay'''
+     def OnNewDisplay(self, event = None):
+         """!Create new layer tree and map display instance"""
+         self.NewDisplay()
+-
++       
+     def NewDisplay(self, show = True):
+         """!Create new layer tree, which will
+         create an associated map display frame
+Index: gui/wxpython/gui_modules/toolbars.py
+===================================================================
+--- gui/wxpython/gui_modules/toolbars.py	(revision 46749)
++++ gui/wxpython/gui_modules/toolbars.py	(working copy)
+@@ -270,6 +270,8 @@
+         icons = Icons['displayWindow']
+         return self._getToolbarData((('displaymap', icons['display'],
+                                       self.parent.OnDraw),
++                                      ('displaymap', icons['display'],
++                                      self.parent.OnDraw),
+                                      ('rendermap', icons['render'],
+                                       self.parent.OnRender),
+                                      ('erase', icons['erase'],
+@@ -1472,6 +1474,8 @@
+         icons = Icons['layerManager']
+         return self._getToolbarData((('newdisplay', icons["newdisplay"],
+                                       self.parent.OnNewDisplay),
++                                      ('newdisplay', icons["newdisplay"],
++                                      self.parent.OnNewDisplay1),
+                                      (None, ),
+                                      ('workspaceNew', icons["workspaceNew"],
+                                       self.parent.OnWorkspaceNew),
