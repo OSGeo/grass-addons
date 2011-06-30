@@ -1,16 +1,22 @@
 MODULE_TOPDIR = ../../..
 
-PGM = libmodis
+include $(MODULE_TOPDIR)/include/Make/Other.make
+include $(MODULE_TOPDIR)/include/Make/Python.make
 
-include $(MODULE_TOPDIR)/include/Make/Script.make
+MODULES = modis rmodislib
 
-SRCFILES = rmodislib.py modis.py
-DSTFILES := $(patsubst %,$(ETC)/r.modis/%,$(SRCFILES))
+DSTDIR = $(ETC)/r.modis
 
-default: $(DSTFILES)
+PYFILES := $(patsubst %,$(DSTDIR)/%.py,$(MODULES))
+PYCFILES := $(patsubst %,$(DSTDIR)/%.pyc,$(MODULES))
 
-$(ETC)/r.modis/%: % | $(ETC)/r.modis
-	$(INSTALL) $< $@
+default: $(PYFILES) $(PYCFILES)
 
-$(ETC)/r.modis:
+$(DSTDIR):
 	$(MKDIR) $@
+
+$(DSTDIR)/%: % | $(DSTDIR)
+	$(INSTALL_DATA) $< $@
+
+install:
+	cp -r $(DSTDIR) $(INST_DIR)/etc/
