@@ -51,13 +51,13 @@ class product:
 	self.prod = value
 	self.products = {
           'lst_aqua_daily':{'url':urlbase,'folder':'MOLA/MYD11A1.005','res':1000, 
-          'spec':'( 1 0 0 0 1 0 0 0 0 0 0 0 )','spec_qa':'( 0 1 0 0 0 1 0 0 0 0 0 0 )'},
+          'spec':'( 1 0 0 0 1 0 0 0 0 0 0 0 )','spec_qa':'( 1 1 0 0 1 1 0 0 0 0 0 0 )'},
           'lst_terra_daily':{'url':urlbase,'folder':'MOLT/MOD11A1.005','res':1000, 
-          'spec':'( 1 0 0 0 1 0 0 0 0 0 0 0 )','spec_qa':'( 0 1 0 0 0 1 0 0 0 0 0 0 )'}, 
+          'spec':'( 1 0 0 0 1 0 0 0 0 0 0 0 )','spec_qa':'( 1 1 0 0 1 1 0 0 0 0 0 0 )'}, 
           'snow_terra_eight':{'url':usrsnow,'folder':'SAN/MOST/MOD10A2.005','res':500,
           'spec':'( 1 1 0 0 0 0 0 0 0 0 0 )','spec_qa':'( 0 0 0 0 0 0 0 0 0 0 0 )'}, 
           'ndvi_terra_sixte':{'url':urlbase, 'folder':'MOLT/MOD13Q1.005','res':250,
-          'spec':'( 1 1 0 0 0 0 0 0 0 0 0 )','spec_qa':'( 0 0 1 1 0 0 0 0 0 0 0 )'}
+          'spec':'( 1 1 0 0 0 0 0 0 0 0 0 )','spec_qa':'( 1 1 1 1 0 0 0 0 0 0 0 )'}
         }
 
     def returned(self):
@@ -94,7 +94,7 @@ class projection:
     another one. Not all projection systems are supported"""
     def __init__(self,value):
         self.proj = value
-        self.projections = {'latlong':'GEO', 'lcc':'LAMBERT CONFORMAL CONIC',
+        self.projections = {'ll':'GEO', 'lcc':'LAMBERT CONFORMAL CONIC',
              'merc':'MERCATOR', 'polar':'POLAR STEREOGRAPHIC', 'utm':'UTM', 
              'tmerc':'TRANSVERSE MERCATOR'}
 
