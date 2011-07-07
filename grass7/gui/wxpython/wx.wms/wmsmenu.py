@@ -67,7 +67,7 @@ class Example(wx.Frame):
 
         self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
         
-        self.btn1 = wx.Button(self.panel, label='Server Management', size=(150, 30))
+        self.btn1 = wx.Button(self.panel, label='GetMaps', size=(150, 30))
         self.hbox5.Add(self.btn1)
         self.btn2 = wx.Button(self.panel, label='GetCapabilities', size=(150, 30))
         self.hbox5.Add(self.btn2, flag=wx.LEFT|wx.BOTTOM, border=5)
@@ -81,8 +81,24 @@ class Example(wx.Frame):
         self.tc.SetValue('http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms')
 
     def OnServerManagment(self, event):
-        print self.tc.GetValue()
-        print " No task assigned"
+        url = self.tc.GetValue()
+        url = 'http://www.gisnet.lv/cgi-bin/topo?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:4326&layers=Atlants&bbox=-180,0,0,90'
+	req = Request(url)
+	try:
+	    response = urlopen(req)
+	    image = response.read()
+	    outfile = open('map.png','wb')
+	    outfile.write(image)
+	    outfile.close()
+	    
+	except HTTPError, e:
+	    print 'The server couldn\'t fulfill the request.'
+	    print 'Error code: ', e.code
+	except URLError, e:
+	    print 'We failed to reach a server.'
+	    print 'Reason: ', e.reason
+	else:
+	    print 'Successful'
 
     def OnGetCapabilities(self, event):
     	#url = 'http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms'
