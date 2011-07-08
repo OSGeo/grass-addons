@@ -1,16 +1,15 @@
 #!/usr/bin/python
- 
+
 
 from urllib2 import Request, urlopen, URLError, HTTPError
 import wx
 from parse import parsexml
-import cStringIO
-from image import NewImageFrame
+from WMSMapDisplay import NewImageFrame
 
-class WMSGUI(wx.Frame):
+class Example(wx.Frame):
   
     def __init__(self, parent, title):
-        super(WMSGUI, self).__init__(parent, title=title, 
+        super(Example, self).__init__(parent, title=title, 
             size=(390, 350))
             
         self.InitUI()
@@ -69,7 +68,7 @@ class WMSGUI(wx.Frame):
 
         self.hbox5 = wx.BoxSizer(wx.HORIZONTAL)
         
-        self.btn1 = wx.Button(self.panel, label='GetMaps', size=(150, 30))
+        self.btn1 = wx.Button(self.panel, label='Get Map', size=(150, 30))
         self.hbox5.Add(self.btn1)
         self.btn2 = wx.Button(self.panel, label='GetCapabilities', size=(150, 30))
         self.hbox5.Add(self.btn2, flag=wx.LEFT|wx.BOTTOM, border=5)
@@ -81,6 +80,7 @@ class WMSGUI(wx.Frame):
         self.panel.SetSizer(self.vbox)
         
         self.tc.SetValue('http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms')
+        #service=WMS&request=GetMap http://www.gisnet.lv/cgi-bin/topo?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:4326&layers=Atlants&bbox=-180,0,0,90
 
     def OnServerManagment(self, event):
         url = self.tc.GetValue()
@@ -93,8 +93,9 @@ class WMSGUI(wx.Frame):
 	    outfile.write(image)
 	    outfile.close()
 	    
+	    
 	    NewImageFrame()
-        
+	    
 	    
 	except HTTPError, e:
 	    print 'The server couldn\'t fulfill the request.'
@@ -102,9 +103,6 @@ class WMSGUI(wx.Frame):
 	except URLError, e:
 	    print 'We failed to reach a server.'
 	    print 'Reason: ', e.reason
-	except IOError:
-       	    print "Image file %s not found" % imageFile
-            raise SystemExit
 	else:
 	    print 'Successful'
 
@@ -130,22 +128,10 @@ class WMSGUI(wx.Frame):
 	    print 'Reason: ', e.reason
 	else:
 	    print 'Successful'
-'''
-class MyAppsudeep(wx.App):
-    def OnInit(self):
-        frame = MyToolBar(None, -1, 'toolbar.py')
-        frame.Show(True)
-        return True
-'''
-def func():
+
+def DisplayWMSMenu():
 	app = wx.App()
    	WMSGUI(None, title='WMS')
      	app.MainLoop()
 	
-	'''
-
-if __name__ == '__main__':
-  
-    app = wx.App()
-    WMSGUI(None, title='WMS')
-    app.MainLoop() '''
+	
