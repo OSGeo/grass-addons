@@ -6,10 +6,10 @@ import wx
 from parse import parsexml
 from WMSMapDisplay import NewImageFrame
 
-class Example(wx.Frame):
+class WMSGUI(wx.Frame):
   
     def __init__(self, parent, title):
-        super(Example, self).__init__(parent, title=title, 
+        super(WMSGUI, self).__init__(parent, title=title, 
             size=(390, 350))
             
         self.InitUI()
