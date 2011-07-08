@@ -47,13 +47,7 @@ class TabPanelOne(wx.Panel):
         self.parent = parent
         
         # define the panel for select maps
-	self.panel = wx.Panel(self)
-
-        # define gselect
-        self.mapselect = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
-                                    type = 'rast', multiple = False)
-        # binder of gselect
-        self.mapselect.Bind(wx.EVT_TEXT, self.OnSelect)                                    
+	self.panel = wx.Panel(self)                                  
 
 	# create the layout
         self._layout()
@@ -61,17 +55,118 @@ class TabPanelOne(wx.Panel):
     def _layout(self): 
 
 	# create the grid for gselect
-        select = wx.GridBagSizer(8, 5)
+        select = wx.GridBagSizer(20, 5)
+
+        #----------------------------
+        #---------Input maps---------
 
         # Ask user for digital elevation model
+        text1 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Elevation map (required)") 
+        select.Add(item = text1, flag = wx.LEFT, pos = (1,0), span = (1,2))
 
-        text1 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "Elevation") #FIXME text does not appear
-        select.Add(item = text1, flag = wx.LEFT, pos = (1,0),span = (1,2))
+        # Add the box for choosing the map
+        select1 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
+                               type = 'rast', multiple = False)
+        select.Add(item = select1, pos = (2,0), span = (1,2))
 
-        select.Add(item = self.mapselect, pos = (2,0),
-                     span = (1,2))
-                     
-        self.SetSizer(select)
+        # binder
+        select1.Bind(wx.EVT_TEXT, self.OnSelect)
+
+        #----------------------------
+
+        # Ask user for Flow accumulation
+        text2 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT/OUTPUT : Flow accumulation (required)") 
+        select.Add(item = text2, flag = wx.LEFT, pos = (3,0), span = (1,2))
+
+        # Flow accum can be either existent or to be calculated
+        # Check box
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+
+        cb1 = wx.CheckBox(parent = self.panel, label='Create by MFD algorithm')
+        hbox1.Add(item = cb1, flag = wx.LEFT, border=10)
+        cb2 = wx.CheckBox(parent = self.panel, label='Create by SFD algorithm')
+        hbox1.Add(item = cb2, flag = wx.LEFT, border=10)
+        cb3 = wx.CheckBox(parent = self.panel, label='Custom (select existing map)')
+        hbox1.Add(item = cb3, flag = wx.LEFT, border=10)
+
+        select.Add(item = hbox1, pos = (4,0))
+        
+        # Check box binder
+
+        # Box to insert name of new acc map (to be created)
+        txtOne = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
+        select.Add(item = txtOne, flag = wx.LEFT | wx.EXPAND , pos = (5,0), span = (1,2))
+
+        # Add the box for choosing the map
+        select2 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
+                               type = 'rast', multiple = False)
+        select.Add(item = select2, pos = (6,0), span = (1,2))
+
+        # binder
+        select2.Bind(wx.EVT_TEXT, self.OnSelect)
+
+        #----------------------------
+
+        # Ask user for Mask
+        text3 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Mask (optional)") 
+        select.Add(item = text3, flag = wx.LEFT, pos = (7,0), span = (1,2))
+
+        # Add the box for choosing the map
+        select3 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
+                               type = 'rast', multiple = False)
+        select.Add(item = select3, pos = (8,0), span = (1,2))
+
+        # binder
+        select3.Bind(wx.EVT_TEXT, self.OnSelect)
+
+        #----------------------------
+
+        # Ask user for threshold
+        text4 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Threshold (required)") 
+        select.Add(item = text4, flag = wx.LEFT, pos = (9,0), span = (1,2))
+
+        # Box to insert threshold
+        txtTwo = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
+        select.Add(item = txtTwo, flag = wx.LEFT, pos = (10,0), span = (1,2))
+
+
+        #----------------------------
+        #---------Output maps---------
+
+
+        # Flow direction map
+        text5 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Flow direction map (required)") 
+        select.Add(item = text5, flag = wx.LEFT | wx.EXPAND, pos = (11,0), span = (1,2))
+
+        # Box to insert name of new flow dir map (to be created)
+        txtThr = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
+        select.Add(item = txtThr, flag = wx.LEFT | wx.EXPAND , pos = (12,0), span = (1,2))
+
+        #----------------------------
+
+        # Streams map
+        text6 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Streams (required)") 
+        select.Add(item = text6, flag = wx.LEFT | wx.EXPAND, pos = (13,0), span = (1,2))
+
+        # Box to insert name of new streams map (to be created)
+        txtFou = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
+        select.Add(item = txtFou, flag = wx.LEFT | wx.EXPAND , pos = (14,0), span = (1,2))
+
+        #----------------------------
+
+        # Network map
+        text7 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Network (required)") 
+        select.Add(item = text7, flag = wx.LEFT | wx.EXPAND, pos = (15,0), span = (1,2))
+
+        # Box to insert name of new streams map (to be created)
+        txtFiv = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
+        select.Add(item = txtFiv, flag = wx.LEFT | wx.EXPAND , pos = (16,0), span = (1,2))
+
+
+
+        #----------------------------
+ 
+        self.panel.SetSizer(select)
 
         btnPanel = wx.Panel(self)
 
@@ -129,8 +224,7 @@ class TabPanel(wx.Panel):
         sizer = wx.BoxSizer(wx.VERTICAL)
         txtOne = wx.TextCtrl(self, wx.ID_ANY, "")
         txtTwo = wx.TextCtrl(self, wx.ID_ANY, "")
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
+ 
         sizer.Add(txtOne, 0, wx.ALL, 5)
         sizer.Add(txtTwo, 0, wx.ALL, 5)
 
@@ -154,7 +248,6 @@ class RStreamFrame(wx.Frame):
         wx.Frame.__init__(self, parent = parent, id = id, title = title, name = "RStream", **kwargs)
         self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
         
-        #panel = ParentPanel(self)
         # create the AuiNotebook instance
         nb = wx.aui.AuiNotebook(self)
 
