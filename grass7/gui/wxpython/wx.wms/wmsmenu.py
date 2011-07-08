@@ -4,11 +4,13 @@
 from urllib2 import Request, urlopen, URLError, HTTPError
 import wx
 from parse import parsexml
+import cStringIO
+from image import NewImageFrame
 
-class Example(wx.Frame):
+class WMSGUI(wx.Frame):
   
     def __init__(self, parent, title):
-        super(Example, self).__init__(parent, title=title, 
+        super(WMSGUI, self).__init__(parent, title=title, 
             size=(390, 350))
             
         self.InitUI()
@@ -91,12 +93,18 @@ class Example(wx.Frame):
 	    outfile.write(image)
 	    outfile.close()
 	    
+	    NewImageFrame()
+        
+	    
 	except HTTPError, e:
 	    print 'The server couldn\'t fulfill the request.'
 	    print 'Error code: ', e.code
 	except URLError, e:
 	    print 'We failed to reach a server.'
 	    print 'Reason: ', e.reason
+	except IOError:
+       	    print "Image file %s not found" % imageFile
+            raise SystemExit
 	else:
 	    print 'Successful'
 
@@ -131,7 +139,7 @@ class MyAppsudeep(wx.App):
 '''
 def func():
 	app = wx.App()
-   	Example(None, title='WMS')
+   	WMSGUI(None, title='WMS')
      	app.MainLoop()
 	
 	'''
@@ -139,5 +147,5 @@ def func():
 if __name__ == '__main__':
   
     app = wx.App()
-    Example(None, title='WMS')
+    WMSGUI(None, title='WMS')
     app.MainLoop() '''
