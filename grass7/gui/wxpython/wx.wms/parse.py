@@ -1,14 +1,19 @@
-from xml.dom.minidom import parse, parseString
+from BeautifulSoup import BeautifulSoup
+import re
 from urllib2 import Request, urlopen, URLError, HTTPError
-     
+
 def parsexml(xml):
-    dom = parseString(xml)
-    layerlist = dom.getElementsByTagName('Layer')
-    for node in layerlist:
-    	#print node.toxml()
-    	namelist = node.getElementsByTagName('Name')
-    	l = []
-    	for name in namelist:
-    		l = l + [(name.toxml())]
-    	return l
+
+ xmltext = xml
+ soup = BeautifulSoup(xmltext)
+ #layers = soup.findAll('layer', queryable="1")
+ layers = soup.findAll('layer')
+ namelist = []
+ for layer in layers:
+	soupname = BeautifulSoup(str(layer))
+	names =  soupname.findAll('name')
+	if len(names) > 0:
+		namelist += names[0]
+ return namelist
+	
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-
+from wxPython.wx import *
 from urllib2 import Request, urlopen, URLError, HTTPError
 import wx
 from parse import parsexml
@@ -37,9 +37,16 @@ class WMSGUI(wx.Frame):
         self.vbox.Add((-1, 10))
 
         self.hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        self.st2 = wx.StaticText(self.panel, label=':::')
+        self.st2 = wx.StaticText(self.panel, label='Enter Layer Name')
         self.st2.SetFont(self.font)
         self.hbox2.Add(self.st2)
+        
+        #Create a Text box to take layer input
+	self.inputlayer = wx.TextCtrl ( self.panel, 100, style = wx.TE_PROCESS_ENTER )
+	EVT_TEXT_ENTER ( self.panel, 100, self.OnInputLayer )
+	self.hbox2.Add(self.inputlayer, proportion=1)
+	#Layer input ends here
+	
         self.vbox.Add(self.hbox2, flag=wx.LEFT | wx.TOP, border=10)
 
         self.vbox.Add((-1, 10))
@@ -74,18 +81,29 @@ class WMSGUI(wx.Frame):
         self.hbox5.Add(self.btn2, flag=wx.LEFT|wx.BOTTOM, border=5)
         self.vbox.Add(self.hbox5, flag=wx.ALIGN_CENTER|wx.CENTER, border=10)
         
-        self.btn1.Bind(wx.EVT_BUTTON, self.OnServerManagment)
+        self.btn1.Bind(wx.EVT_BUTTON, self.OnGetMap)
 	self.btn2.Bind(wx.EVT_BUTTON, self.OnGetCapabilities)
+	
+	
 	
         self.panel.SetSizer(self.vbox)
         
         self.tc.SetValue('http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms')
         #service=WMS&request=GetMap http://www.gisnet.lv/cgi-bin/topo?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:4326&layers=Atlants&bbox=-180,0,0,90
 
-    def OnServerManagment(self, event):
-        url = self.tc.GetValue()
-        url = 'http://www.gisnet.lv/cgi-bin/topo?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:4326&layers=Atlants&bbox=-180,0,0,90'
-	req = Request(url)
+    def OnInputLayer(self, event):
+	print 'yoyo'	
+
+    def OnGetMap(self, event):
+        layername = self.inputlayer.GetValue()
+        
+        getMap_request_url = 'http://www.gisnet.lv/cgi-bin/topo?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:3059&layers='+layername+'&bbox=584344,397868,585500,398500'
+        
+        
+        
+	print getMap_request_url
+	
+	req = Request(getMap_request_url)
 	try:
 	    response = urlopen(req)
 	    image = response.read()
@@ -128,6 +146,7 @@ class WMSGUI(wx.Frame):
 	    print 'Reason: ', e.reason
 	else:
 	    print 'Successful'
+
 
 def DisplayWMSMenu():
 	app = wx.App()
