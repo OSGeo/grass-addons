@@ -19,7 +19,7 @@ class wmsFrame(wx.Frame):
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.URL = wx.StaticText(self, -1, "URL")
-        self.urlInput = wx.TextCtrl(self, -1, "")
+        self.ServerList = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_SIMPLE)
         self.Layer = wx.StaticText(self, -1, "Layer")
         self.layerSelected = wx.TextCtrl(self, -1, "")
         self.Layers = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY)
@@ -30,15 +30,29 @@ class wmsFrame(wx.Frame):
         self.__set_properties()
         self.__do_layout()
 
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnServerListEnter, self.ServerList)
+        self.Bind(wx.EVT_COMBOBOX, self.OnServerList, self.ServerList)
         self.Bind(wx.EVT_BUTTON, self.OnGetCapabilities, self.GetCapabilities)
         self.Bind(wx.EVT_BUTTON, self.OnGetMaps, self.GetMaps)
         # end wxGlade
-        self.urlInput.SetValue('http://www.gisnet.lv/cgi-bin/topo')
-
+        
+        #Sudeep's Code Starts
+        #self.urlInput.SetValue('http://www.gisnet.lv/cgi-bin/topo')
+        f = open('serverList.txt','r')
+        lines = f.readlines()
+        self.servers = {}
+        for line in lines:
+            row = line.split()
+            if(len(row) == 2) :
+	            self.servers[row[0]] = row[1]
+            name = row[0]+" "+row[1][7:45]
+            self.ServerList.Append(name)
+        f.close()
+        self.selectedURL="No server selected"
+        #Sudeep's Code Ends
     def __set_properties(self):
         # begin wxGlade: wmsFrame.__set_properties
         self.SetTitle("wmsFrame")
-        self.urlInput.SetMinSize((300, 27))
         self.layerSelected.SetMinSize((150, 27))
         self.Layers.SetMinSize((400, 250))
         # end wxGlade
@@ -51,7 +65,7 @@ class wmsFrame(wx.Frame):
         sizer_5 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3.Add(self.URL, 0, 0, 0)
-        sizer_3.Add(self.urlInput, 0, 0, 0)
+        sizer_3.Add(self.ServerList, 0, 0, 0)
         sizer_2.Add(sizer_3, 1, wx.EXPAND, 0)
         sizer_5.Add(self.Layer, 0, 0, 0)
         sizer_5.Add(self.layerSelected, 0, wx.ALL, 0)
@@ -69,10 +83,11 @@ class wmsFrame(wx.Frame):
     
 
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
-        #url = 'http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms'
-    	url = self.urlInput.GetValue()
-    	
-    	url = url + '?request=GetCapabilities&service=wms'
+        #Sudeep's Code Starts
+        #url = 'http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms&version=1.1.1'
+    	#url = self.urlInput.GetValue()
+    	url = self.selectedURL
+    	url = url + '?request=GetCapabilities&service=wms&version=1.1.1'
     	print url
 	req = Request(url)
 	try:
@@ -88,17 +103,20 @@ class wmsFrame(wx.Frame):
 	except HTTPError, e:
 	    print 'The server couldn\'t fulfill the request.'
 	    print 'Error code: ', e.code
-	except URLError, e:
+	except URLError, e: 
 	    print 'We failed to reach a server.'
 	    print 'Reason: ', e.reason
 	else:
 	    print 'Successful'
+	    #Sudeep's Code Ends
         event.Skip()
 
     def OnGetMaps(self, event): # wxGlade: wmsFrame.<event_handler>
+        #Sudeep's Code Starts
         layername = self.layerSelected.GetValue()
-        url = self.urlInput.GetValue()
-    	self.url_in = url
+        #url = self.urlInput.GetValue()
+    	
+    	self.url_in = self.selectedURL
         getMap_request_url = self.url_in+'?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:3059&layers='+layername+'&bbox=584344,397868,585500,398500'
         
         
@@ -125,11 +143,48 @@ class wmsFrame(wx.Frame):
 	    print 'Reason: ', e.reason
 	else:
 	    print 'Successful'
+        #Sudeep's Code Ends
+        event.Skip()
 
+    def OnServerListEnter(self, event): # wxGlade: wmsFrame.<event_handler>
+        print "Event handler `OnServerListEnter' not implemented"
+        #Sudeep's Code Starts
+        print self.ServerList.CurrentSelection
+        newUrl = self.ServerList.GetValue()
+        self.ServerList.Append(newUrl)
+        
+        url = newUrl.split()
+        if(len(url)==2):
+            self.servers[url[0]] = url[1]
+            f = open('serverList.txt','a')
+            f.write(newUrl+"\n")
+            f.close()
+            self.selectedURL = url[1]
+            print self.selectedURL
+            print self.servers
+  
+        else:
+            print "Format not recognized, Format: Severname URL"
+        #Sudeep's Code Ends
+        event.Skip()
+
+    def OnServerList(self, event): # wxGlade: wmsFrame.<event_handler>
+        print "Event handler `OnServerList' not implemented"
+        #Sudeep's Code Starts
+        print self.ServerList.CurrentSelection
+        url = self.ServerList.GetValue()
+        urlarr = url.split()
+        if(len(urlarr)==2):
+            self.selectedURL = self.servers[urlarr[0]]
+            print self.selectedURL
+        else:
+            print "Wrong format of URL selected"
+        #Sudeep's Code Ends
         event.Skip()
 
 # end of class wmsFrame
 
+#Sudeep's Code Starts
 def DisplayWMSMenu():
      	app = wx.PySimpleApp(0)
     	wx.InitAllImageHandlers()
@@ -137,6 +192,7 @@ def DisplayWMSMenu():
    	app.SetTopWindow(wms_Frame)
     	wms_Frame.Show()
     	app.MainLoop()
+#Sudeep's Code Ends
 
 if __name__ == "__main__":
     app = wx.PySimpleApp(0)
