@@ -1,20 +1,37 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+"""!
+@package rstream.py
+
+@brief GUI for r.stream.* modules
+
+See http://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
+
+Classes:
+ - RStreamFrame
+
+(C) 2011 by Margherita Di Leo, and the GRASS Development Team
+This program is free software under the GNU General Public License
+(>=v2). Read the file COPYING that comes with GRASS for details.
+
+@author Margherita Di Leo (GSoC student 2011)
+"""
+
 import wx
 import gselect
 
 # First panel # Network extraction
 
 class TabPanelOne(wx.Panel):
-    def __init__(self, parent):
 
+    def __init__(self, parent):
         wx.Panel.__init__(self, parent, id = wx.ID_ANY)
        
         self.parent = parent
         
         # define the panel for select maps
-	self.panel = wx.Panel(self)                                  
+	self.panel = wx.Panel(self)                        
 
 	# create the layout
         self._layout()
@@ -44,17 +61,18 @@ class TabPanelOne(wx.Panel):
         # Ask user for Flow accumulation
         text2 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT/OUTPUT : Flow accumulation (required)") 
         select.Add(item = text2, flag = wx.LEFT, pos = (3,0), span = wx.DefaultSpan)
+        
 
         # Flow accum can be either existent or to be calculated
         # Check box
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 
-        cb1 = wx.CheckBox(parent = self.panel, label='Create by MFD algorithm')
-        hbox1.Add(item = cb1, flag = wx.LEFT, border=10)
-        cb2 = wx.CheckBox(parent = self.panel, label='Create by SFD algorithm')
-        hbox1.Add(item = cb2, flag = wx.LEFT, border=10)
-        cb3 = wx.CheckBox(parent = self.panel, label='Custom (select existing map)')
-        hbox1.Add(item = cb3, flag = wx.LEFT, border=10)
+        cb1 = wx.CheckBox(parent = self.panel, label = 'Create by MFD algorithm')
+        hbox1.Add(item = cb1, flag = wx.LEFT, border = 0)
+        cb2 = wx.CheckBox(parent = self.panel, label = 'Create by SFD algorithm')
+        hbox1.Add(item = cb2, flag = wx.LEFT, border = 0)
+        cb3 = wx.CheckBox(parent = self.panel, label = 'Custom (select existing map)')
+        hbox1.Add(item = cb3, flag = wx.LEFT, border = 0)
 
         select.Add(item = hbox1, pos = (4,0))
         
@@ -146,14 +164,21 @@ class TabPanelOne(wx.Panel):
         sizer.Add(self.panel, 1, wx.EXPAND)
         sizer.Add(btnPanel, 0, wx.EXPAND)
         self.SetSizer(sizer)
-
+    
         
     def OnSelect(self, event):
-            """!Gets raster map or function selection and send it to
-            insertion method
-            """
-            item = event.GetString()
-            self._addSomething(item)        
+        """!Gets raster map or function selection and send it to
+        insertion method
+        """
+        item = event.GetString()
+        self._addSomething(item)  
+        import pdb; pdb.set_trace()
+
+    def _addSomething(self, what):
+        """!builds the list of variables 
+        """
+        pass 
+      
 
     def buttonData(self):
         return (("Update Preview", self.OnPreview),        
