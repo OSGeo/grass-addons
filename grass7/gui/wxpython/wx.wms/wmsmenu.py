@@ -20,18 +20,17 @@ class wmsFrame(wx.Frame):
         wx.Frame.__init__(self, *args, **kwds)
         self.URL = wx.StaticText(self, -1, "URL")
         self.ServerList = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_SIMPLE)
-        self.Layer = wx.StaticText(self, -1, "Layer")
-        self.layerSelected = wx.TextCtrl(self, -1, "")
-        self.Layers = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_READONLY)
+        self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
         self.GetCapabilities = wx.Button(self, -1, "GetCapabilities")
         self.GetMaps = wx.Button(self, -1, "GetMaps")
-        self.static_line_1 = wx.StaticLine(self, -1)
 
         self.__set_properties()
         self.__do_layout()
 
         self.Bind(wx.EVT_TEXT_ENTER, self.OnServerListEnter, self.ServerList)
         self.Bind(wx.EVT_COMBOBOX, self.OnServerList, self.ServerList)
+        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnLayerTreeSelChanged, self.LayerTree)
+        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnLayerTreeActivated, self.LayerTree)
         self.Bind(wx.EVT_BUTTON, self.OnGetCapabilities, self.GetCapabilities)
         self.Bind(wx.EVT_BUTTON, self.OnGetMaps, self.GetMaps)
         # end wxGlade
@@ -49,12 +48,15 @@ class wmsFrame(wx.Frame):
             self.ServerList.Append(name)
         f.close()
         self.selectedURL="No server selected"
+        self.layerTreeRoot = self.LayerTree.AddRoot("Layers")
+        items = ["a", "b", "c"]
+        #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
+        #self.LayerTree.AppendItem(itemId, "inside")
         #Sudeep's Code Ends
     def __set_properties(self):
         # begin wxGlade: wmsFrame.__set_properties
         self.SetTitle("wmsFrame")
-        self.layerSelected.SetMinSize((150, 27))
-        self.Layers.SetMinSize((400, 250))
+        self.LayerTree.SetMinSize((400, 250))
         # end wxGlade
 
     def __do_layout(self):
@@ -62,20 +64,15 @@ class wmsFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_5 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3.Add(self.URL, 0, 0, 0)
         sizer_3.Add(self.ServerList, 0, 0, 0)
-        sizer_2.Add(sizer_3, 1, wx.EXPAND, 0)
-        sizer_5.Add(self.Layer, 0, 0, 0)
-        sizer_5.Add(self.layerSelected, 0, wx.ALL, 0)
-        sizer_2.Add(sizer_5, 1, wx.EXPAND, 0)
-        sizer_2.Add(self.Layers, 0, wx.ALL, 0)
+        sizer_2.Add(sizer_3, 0, 0, 0)
+        sizer_2.Add(self.LayerTree, 1, wx.EXPAND, 0)
         sizer_4.Add(self.GetCapabilities, 0, 0, 0)
         sizer_4.Add(self.GetMaps, 0, 0, 0)
-        sizer_2.Add(sizer_4, 1, wx.ALIGN_CENTER_HORIZONTAL, 0)
-        sizer_1.Add(sizer_2, 1, wx.ALL|wx.EXPAND, 0)
-        sizer_1.Add(self.static_line_1, 0, wx.EXPAND, 0)
+        sizer_2.Add(sizer_4, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        sizer_1.Add(sizer_2, 1, wx.ALL|wx.EXPAND|wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.SHAPED, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
@@ -98,7 +95,8 @@ class wmsFrame(wx.Frame):
 	    st = ''
 	    for res in reslist:
 	    	   st = st + res + '\n'
-	    self.Layers.SetValue(st) 
+	    	   self.LayerTree.AppendItem(self.layerTreeRoot, res)
+	    #self.Layers.SetValue(st) 
 	    #print xml
 	except HTTPError, e:
 	    print 'The server couldn\'t fulfill the request.'
@@ -113,11 +111,11 @@ class wmsFrame(wx.Frame):
 
     def OnGetMaps(self, event): # wxGlade: wmsFrame.<event_handler>
         #Sudeep's Code Starts
-        layername = self.layerSelected.GetValue()
+        #self.layerName = self.layerSelected.GetValue()
         #url = self.urlInput.GetValue()
     	
     	self.url_in = self.selectedURL
-        getMap_request_url = self.url_in+'?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:3059&layers='+layername+'&bbox=584344,397868,585500,398500'
+        getMap_request_url = self.url_in+'?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:3059&layers='+self.layerName+'&bbox=584344,397868,585500,398500'
         
         
         
@@ -180,6 +178,19 @@ class wmsFrame(wx.Frame):
         else:
             print "Wrong format of URL selected"
         #Sudeep's Code Ends
+        event.Skip()
+
+    def OnLayerTreeActivated(self, event): # wxGlade: wmsFrame.<event_handler>
+        #Sudeep's Code Starts
+        print "OnLayerTreeActivated: ", self.LayerTree.GetItemText(event.GetItem())
+        #Sudeep's Code Ends
+        print "Event handler `OnLayerTreeActivated' not implemented"
+        event.Skip()
+
+    def OnLayerTreeSelChanged(self, event): # wxGlade: wmsFrame.<event_handler>
+        self.layerName = self.LayerTree.GetItemText(event.GetItem())
+        print "Event handler `OnLayerTreeSelChanged' not implemented"
+        
         event.Skip()
 
 # end of class wmsFrame
