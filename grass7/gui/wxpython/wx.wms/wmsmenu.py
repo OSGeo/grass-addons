@@ -82,7 +82,8 @@ class wmsFrame(wx.Frame):
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
         #Sudeep's Code Starts
         #url = 'http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms&version=1.1.1'
-    	#url = self.urlInput.GetValue()
+    	self.LayerTree.CollapseAndReset(self.layerTreeRoot)
+    	#url = self.urlInput.GetValue() 
     	url = self.selectedURL
     	url = url + '?request=GetCapabilities&service=wms&version=1.1.1'
     	print url
@@ -98,6 +99,7 @@ class wmsFrame(wx.Frame):
 	    	   self.LayerTree.AppendItem(self.layerTreeRoot, res)
 	    #self.Layers.SetValue(st) 
 	    #print xml
+	    self.LayerTree.Expand(self.layerTreeRoot)
 	except HTTPError, e:
 	    print 'The server couldn\'t fulfill the request.'
 	    print 'Error code: ', e.code
