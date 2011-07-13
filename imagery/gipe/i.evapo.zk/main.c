@@ -22,7 +22,7 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-double eta (double biome_type, double ndvi, double tday, double sh, double patm,double Rn, double G, double dem);
+double zk_daily_et(double biome_type, double ndvi, double tday, double sh, double patm,double Rn, double G, double dem);
 
 int main(int argc, char *argv[])
 {
@@ -188,10 +188,24 @@ int main(int argc, char *argv[])
             d_dem = ((DCELL *) inrast_dem)[col];
 
 	    /*Calculate ET */
-	    d_daily_et = zk_daily_et(d_biomt, d_ndvi, d_tday, d_sh, d_patm, d_rnetd, d_g0, d_dem);
-
-	    /* write calculated ETP to output line buffer */
-	    outrast[col] = d_daily_et;
+            if(Rast_is_d_null_value(&d_biomt) ||
+                Rast_is_d_null_value(&d_ndvi) ||
+                Rast_is_d_null_value(&d_tday) ||
+                Rast_is_d_null_value(&d_sh) ||
+                Rast_is_d_null_value(&d_patm) ||
+                Rast_is_d_null_value(&d_rnetd) ||
+                Rast_is_d_null_value(&d_g0) ||
+                Rast_is_d_null_value(&d_dem)) {
+                    Rast_set_d_null_value(&outrast[col], 1);
+            }
+            else {
+		if(d_rnetd-d_g0<0) d_g0=d_rnetd*0.1;
+	        d_daily_et=zk_daily_et(d_biomt,d_ndvi,d_tday,d_sh,d_patm,d_rnetd,d_g0,d_dem);
+    //            G_message("%f %f %f %f %f %f %f %f %f",d_biomt,d_ndvi,d_tday,d_sh,d_patm,d_rnetd,d_g0,d_dem,d_daily_et);
+                if (d_daily_et == -28768)  Rast_set_d_null_value(&outrast[col], 1);
+                /* write calculated ETP to output line buffer */
+	        else outrast[col] = d_daily_et;
+            }
 	}
 
 	/* write output line buffer to output raster file */

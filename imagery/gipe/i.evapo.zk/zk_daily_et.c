@@ -22,7 +22,11 @@ double fc( double ndvi ){
 	/*Fraction of vegetation cover*/
 	ndvimin = 0.05;
 	ndvimax = 0.95;
-	return ( ( ndvi - ndvimin ) / ( ndvimax - ndvimin ) );
+	double fc;
+	if (ndvi < 0.05) fc=0.0;
+	if (ndvi > 0.95) fc=1.0;
+	if (ndvi > 0.05 && ndvi < 0.95)	fc=( ( ndvi - ndvimin ) / ( ndvimax - ndvimin ) );
+	return fc;
 }
 
 double bdpc( double ndvi, double b1, double b2, double b3, double b4 ){
@@ -272,45 +276,49 @@ double zk_daily_et ( double biome_type, double ndvi, double tday, double sh, dou
 		/* Configuration is invalid*/
 		valid_conf = 0;
 	}
+	//G_message("Valid Biome type? %i",valid_conf);
 	/*Compute potential conductance for this biome and this NDVI*/
 	g0 = bdpc(ndvi,b1,b2,b3,b4);
 	/*Preprocessing for Surface conductance (gs) in PM (FAO56), gc in this article*/
 	mtday = mTday( tday, tclosemin, topenmax, topt, beta );
 	/*relative humidity*/
 	rh = rhumidity( sh, tday, patm );
-	/*printf("rh\t=%f\t[-]\n",rh);*/
+	//G_message("rh\t=%f\t[-]",rh);
 	vpd = vpdeficit( rh, tday );
-	/*printf("vpd\t=%f\t\t[Pa]\n",vpd);*/
+	//G_message("vpd\t=%f\t\t[Pa]",vpd);
 	mvpd = mVPD( vpd, vpdclose, vpdopen );
 	/*Actually computing Surface conductance (gs) in PM (FAO56), gc in this article*/
 	gs = g0 * mtday * mvpd;
-	/*print "rs\t=%f\t[s/m]\n",1/gs);*/
+	//G_message("rs\t=%f\t[s/m]",1/gs);
 	/*Fraction of vegetation cover*/
 	fracveg = fc(ndvi);
-	/*printf("fc\t=%f\t[-]\n", fracveg);*/
+	//G_message("fc\t=%f\t[-]", fracveg);
 	/*preprocessing for soil Evaporation*/
 	latent = 2.45; /*MJ/Kg FAO56*/
 	MaMw = 0.622; /* - FAO56*/
 	Cp = 1.013 * 0.001; /* MJ/Kg/C FAO56 */
 	psi = patm * Cp / (MaMw * latent); /*psi = patm * 0.6647 / 1000*/
-	/*printf("psi\t=%f\t[Pa/C]\n",psi);*/
+	//G_message("psi\t=%f\t[Pa/C]",psi);
 	gtotc = gtot * ((273.15+tday) / 293.13) * (101300.0 /  patm);
 	Delta = slopesvpcurve( tday ); /*slope in Pa/C*/
-	/*printf("Delta\t=%f\t[de/dt]\n",Delta);*/
+	//G_message("Delta\t=%f\t[de/dt]",Delta);
 	rho = rhoair( dem, tday );
-	/*printf("rho\t=%f\t[kg/m3]\n",rho);*/
+	//G_message("rho\t=%f\t[kg/m3]",rho);
 	/*soil Evaporation*/
 	Esoil = pow(rh,vpd/k) * (Delta*(1-fracveg)*(rnetd-soilHF)+rho*Cp*vpd*ga) / (Delta+psi*ga/gtotc);
 	/*Canopy evapotranspiration*/
 	Ecanopy = (Delta*fracveg*(rnetd-soilHF)+rho*Cp*vpd*ga) / (Delta+psi*(1.0+ga/gs));
-	/*printf("------------------------------------------------------\n");*/
-	/*printf("Esoil\t=%f\t[mm/d]\n", Esoil);*/
-	/*printf("Ecanopy\t=%f\t[mm/d]\n", Ecanopy);*/
-	/*printf("------------------------------------------------------\n");*/
-	if (valid_conf){
-		return( (1-fracveg) * Esoil + fracveg * Ecanopy );
+	//G_message("------------------------------------------------------");
+	//G_message("Esoil\t=%f\t[mm/d]", Esoil);
+	//G_message("Ecanopy\t=%f\t[mm/d]", Ecanopy);
+	double out;
+	if (valid_conf==1){
+		out= (1-fracveg) * Esoil + fracveg * Ecanopy ;
 	} else {
-		return( -28768 );
+		out= -28768 ;
 	}
+	//G_message("E\t=%f\t[mm/d]",out);
+	//G_message("------------------------------------------------------");
+	return (out);
 }
 
