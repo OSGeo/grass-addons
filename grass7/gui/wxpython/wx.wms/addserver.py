@@ -15,7 +15,7 @@ class ServerAdd(wx.Frame):
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.Servers = wx.StaticText(self, -1, "Servers")
-        self.combo_box_1 = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN)
+        self.ServerList = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN)
         self.static_line_1 = wx.StaticLine(self, -1)
         self.ServerName = wx.StaticText(self, -1, "ServerName")
         self.ServerNameText = wx.TextCtrl(self, -1, "")
@@ -24,21 +24,31 @@ class ServerAdd(wx.Frame):
         self.Username = wx.StaticText(self, -1, "Username")
         self.UsernameText = wx.TextCtrl(self, -1, "")
         self.Password = wx.StaticText(self, -1, "Password")
-        self.PasswordText = wx.TextCtrl(self, -1, "")
+        self.PasswordText = wx.TextCtrl(self, -1, "", style=wx.TE_PASSWORD)
         self.static_line_2 = wx.StaticLine(self, -1)
         self.Save = wx.Button(self, -1, "Save")
         self.Remove = wx.Button(self, -1, "Remove")
         self.AddNew = wx.Button(self, -1, "AddNew")
         self.Quit = wx.Button(self, -1, "Quit")
+        self.StatusBar = self.CreateStatusBar(1, 0)
 
         self.__set_properties()
         self.__do_layout()
+
+        self.Bind(wx.EVT_BUTTON, self.OnSave, self.Save)
+        self.Bind(wx.EVT_BUTTON, self.OnRemove, self.Remove)
+        self.Bind(wx.EVT_BUTTON, self.OnAddNew, self.AddNew)
+        self.Bind(wx.EVT_BUTTON, self.OnQuit, self.Quit)
         # end wxGlade
+        
+        self.__populate_Url_List(self.ServerList)
 
     def __set_properties(self):
         # begin wxGlade: ServerAdd.__set_properties
-        self.SetTitle("frame_2")
+        self.SetTitle("AddServer")
+        self.SetSize((422, 250))
         self.Servers.SetMinSize((90, 17))
+        self.ServerList.SetMinSize((189, 29))
         self.ServerName.SetMinSize((90, 20))
         self.ServerNameText.SetMinSize((189, 25))
         self.URL.SetMinSize((90, 20))
@@ -47,6 +57,11 @@ class ServerAdd(wx.Frame):
         self.UsernameText.SetMinSize((189, 25))
         self.Password.SetMinSize((90, 20))
         self.PasswordText.SetMinSize((189, 25))
+        self.StatusBar.SetStatusWidths([-1])
+        # statusbar fields
+        StatusBar_fields = ["StatusBar"]
+        for i in range(len(StatusBar_fields)):
+            self.StatusBar.SetStatusText(StatusBar_fields[i], i)
         # end wxGlade
 
     def __do_layout(self):
@@ -59,7 +74,7 @@ class ServerAdd(wx.Frame):
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_2.Add(self.Servers, 0, 0, 0)
-        sizer_2.Add(self.combo_box_1, 0, 0, 0)
+        sizer_2.Add(self.ServerList, 0, 0, 0)
         sizer_1.Add(sizer_2, 0, wx.EXPAND, 0)
         sizer_1.Add(self.static_line_1, 0, wx.EXPAND, 0)
         sizer_3.Add(self.ServerName, 0, 0, 0)
@@ -78,15 +93,65 @@ class ServerAdd(wx.Frame):
         sizer_7.Add(self.Save, 0, 0, 0)
         sizer_7.Add(self.Remove, 0, 0, 0)
         sizer_7.Add(self.AddNew, 0, 0, 0)
-        sizer_7.Add(self.Quit, 0, 0, 0)
+        sizer_7.Add(self.Quit, 0, 0, 6)
         sizer_1.Add(sizer_7, 1, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
-        sizer_1.Fit(self)
         self.Layout()
         # end wxGlade
 
+    def __populate_Url_List(self, ComboBox):
+    	f = open('serverList.txt','r')
+        lines = f.readlines()
+        self.servers = {}
+        for line in lines:
+            row = line.split()
+            if(len(row) == 2) :
+	            self.servers[row[0]] = row[1]
+            name = row[0]+" "+row[1][7:45]
+            ComboBox.Append(name)
+        f.close()
+        
+    def OnSave(self, event): # wxGlade: ServerAdd.<event_handler>
+        #print "Event handler `OnSave' not implemented"
+        newServerName = self.ServerNameText.GetValue()
+        newUrl = self.URLText.GetValue()
+        self.ServerList.Append(newServerName+" "+newUrl)
+        
+        url = newUrl.split()
+        if(len(newUrl) != 0 and len(newServerName) != 0 ):
+            self.servers[newServerName] = newUrl
+            f = open('serverList.txt','a')
+            f.write(newServerName+" "+newUrl+"\n")
+            f.close()
+            self.selectedURL = newUrl
+            print self.selectedURL
+            print self.servers
+  	    #Update_Url_List(newServerName+" "+newUrl)
+        else:
+            print "Please Enter the Name of the Server and the URL of the Server"
+        event.Skip()
+
+    def OnRemove(self, event): # wxGlade: ServerAdd.<event_handler>
+        print "Event handler `OnRemove' not implemented"
+        event.Skip()
+
+    def OnAddNew(self, event): # wxGlade: ServerAdd.<event_handler>
+        print "Event handler `OnAddNew' not implemented"
+        event.Skip()
+
+    def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
+        print "Event handler `OnQuit' not implemented"
+        event.Skip()
+
 # end of class ServerAdd
 
+def AddServerFrame():
+    app = wx.PySimpleApp(0)
+    wx.InitAllImageHandlers()
+    frame_2 = ServerAdd(None, -1, "")
+    app.SetTopWindow(frame_2)
+    frame_2.Show()
+    app.MainLoop()
 
 if __name__ == "__main__":
     app = wx.PySimpleApp(0)

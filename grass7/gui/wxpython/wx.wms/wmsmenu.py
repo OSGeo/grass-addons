@@ -7,6 +7,7 @@ from wxPython.wx import *
 from urllib2 import Request, urlopen, URLError, HTTPError
 from parse import parsexml
 from WMSMapDisplay import NewImageFrame
+from addserver import AddServerFrame
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -23,6 +24,7 @@ class wmsFrame(wx.Frame):
         self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
         self.GetCapabilities = wx.Button(self, -1, "GetCapabilities")
         self.GetMaps = wx.Button(self, -1, "GetMaps")
+        self.addServer = wx.Button(self, -1, "AddServer")
 
         self.__set_properties()
         self.__do_layout()
@@ -33,23 +35,15 @@ class wmsFrame(wx.Frame):
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnLayerTreeActivated, self.LayerTree)
         self.Bind(wx.EVT_BUTTON, self.OnGetCapabilities, self.GetCapabilities)
         self.Bind(wx.EVT_BUTTON, self.OnGetMaps, self.GetMaps)
+        self.Bind(wx.EVT_BUTTON, self.OnAddServer, self.addServer)
         # end wxGlade
         
         #Sudeep's Code Starts
         #self.urlInput.SetValue('http://www.gisnet.lv/cgi-bin/topo')
-        f = open('serverList.txt','r')
-        lines = f.readlines()
-        self.servers = {}
-        for line in lines:
-            row = line.split()
-            if(len(row) == 2) :
-	            self.servers[row[0]] = row[1]
-            name = row[0]+" "+row[1][7:45]
-            self.ServerList.Append(name)
-        f.close()
+	self.__populate_Url_List(self.ServerList)
         self.selectedURL="No server selected"
         self.layerTreeRoot = self.LayerTree.AddRoot("Layers")
-        items = ["a", "b", "c"]
+        #items = ["a", "b", "c"]
         #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
         #self.LayerTree.AppendItem(itemId, "inside")
         #Sudeep's Code Ends
@@ -71,13 +65,27 @@ class wmsFrame(wx.Frame):
         sizer_2.Add(self.LayerTree, 1, wx.EXPAND, 0)
         sizer_4.Add(self.GetCapabilities, 0, 0, 0)
         sizer_4.Add(self.GetMaps, 0, 0, 0)
+        sizer_4.Add(self.addServer, 0, 0, 0)
         sizer_2.Add(sizer_4, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
         sizer_1.Add(sizer_2, 1, wx.ALL|wx.EXPAND|wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM|wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL|wx.SHAPED, 0)
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
         self.Layout()
         # end wxGlade
-    
+    def update_Url_List(self, name):
+	ComboBox = self.ServerList
+    	ComboBox.Append(name)
+    def __populate_Url_List(self, ComboBox):
+    	f = open('serverList.txt','r')
+        lines = f.readlines()
+        self.servers = {}
+        for line in lines:
+            row = line.split()
+            if(len(row) == 2) :
+	            self.servers[row[0]] = row[1]
+            name = row[0]+" "+row[1][7:45]
+            ComboBox.Append(name)
+        f.close()
 
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
         #Sudeep's Code Starts
@@ -193,6 +201,11 @@ class wmsFrame(wx.Frame):
         self.layerName = self.LayerTree.GetItemText(event.GetItem())
         print "Event handler `OnLayerTreeSelChanged' not implemented"
         
+        event.Skip()
+
+    def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
+    	AddServerFrame()
+        #print "Event handler `OnAddServer' not implemented"
         event.Skip()
 
 # end of class wmsFrame
