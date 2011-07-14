@@ -90,7 +90,7 @@ libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
 sys.path.append(libmodis)
 # try to import pymodis (modis) and some class for r.modis.download
 try:
-    from rmodislib import resampling, product, get_proj, projection, datum
+    from rmodislib import resampling, product, get_proj, projection
     from modis  import parseModis, convertModis, createMosaic
 except ImportError:
     pass
@@ -145,14 +145,11 @@ def confile(hdf,opts,q,mosaik=False):
     # create parseModis class and the parameter file
     pm = parseModis(hdf)
     # return projection and datum 
-    inproj = get_proj()
-    proj = projection(inproj['proj']).returned()
-    if proj != 'GEO':
-        grass.fatal(_('Projection different to Lat/Long is not working yet. Sorry'))
-        return 0
-    dat = datum(inproj['datum']).returned()
+    projObj = projection()
+    proj = projObj.returned()
+    dat = projObj.datum()
     if proj == 'UTM':
-        zone = prod['zone']
+        zone = projObj.utmzone()
     else:
         zone = None
     cod = os.path.split(hdf)[1].split('.')[0]
@@ -163,8 +160,8 @@ def confile(hdf,opts,q,mosaik=False):
         spectr = spectral(opts, cod,q)
     # resampling
     resampl = resampling(opts['resampl']).returned()
-    # projpar TO DO
-    projpar = '( 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )'
+    # projpar
+    projpar = projObj.return_params()
     return pm.confResample(spectr, None, None, dat, resampl, proj, zone, projpar)
 
 def import_tif(hdf,basedir,rem,target=False):
@@ -173,16 +170,24 @@ def import_tif(hdf,basedir,rem,target=False):
     prefix = os.path.split(hdf)[1].rstrip('.hdf')
     # list of tif files
     tifiles = glob.glob1(basedir, prefix + "*.tif")
+    # check if is in latlong location to set flag l
+    if projection().val == 'll':
+        f = "l"
+    else:
+        f = None
     # for each file import it
     for t in tifiles:
         basename = os.path.splitext(t)[0]
         name = os.path.join(basedir,t)
-        grass.run_command('r.in.gdal', input = name, 
-        output = basename, flags = "l", overwrite = True, quiet = True)
-        if rem:
-            os.remove(name)
-        if target:
-             shutil.move(name,target)
+        try:
+            grass.run_command('r.in.gdal', input = name, 
+            output = basename, flags = f, overwrite = True, quiet = True)
+            if rem:
+                os.remove(name)
+            if target:
+                shutil.move(name,target)
+        except:
+            grass.fatal(_('Error during import'))
     return 0
 
 def single(options,remove,qa):

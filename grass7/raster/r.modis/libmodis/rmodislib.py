@@ -38,8 +38,7 @@ def get_proj():
     for i in listproj:
         ilist = i.split(':')
         proj[ilist[0].strip()] = ilist[1].strip()
-    towgs = parse_command('g.proj',flags='d')
-    proj['towgs84']=towgs['towgs84']
+    proj.update(parse_command('g.proj',flags='j'))
     return proj
 
 class product:
@@ -92,23 +91,65 @@ class resampling:
 class projection:
     """Definition of projection for converting from sinusoidal projection to
     another one. Not all projection systems are supported"""
-    def __init__(self,value):
-        self.proj = value
+    def __init__(self):
+        self.proj = get_proj()
+        self.val = self.proj['proj']
+        self.dat = self.proj['datum']
         self.projections = {'ll':'GEO', 'lcc':'LAMBERT CONFORMAL CONIC',
              'merc':'MERCATOR', 'polar':'POLAR STEREOGRAPHIC', 'utm':'UTM', 
              'tmerc':'TRANSVERSE MERCATOR'}
-
-    def returned(self):
-        return self.projections[self.proj]
-
-class datum:
-    """Definition of datum for converting from sinusoidal projection. Not all 
-    datums are supported"""
-    def __init__(self,value):
-        self.datum = value
         self.datumlist = {'none':'NONE', 'nad27':'NAD27', 'nad83':'NAD83', 
         'wgs66':'WGS66', 'wgs72':'WGS72', 'wgs84':'WGS84'}
 
     def returned(self):
-        return self.datumlist[self.datum]
+        """Return the projection in the MRT style"""
+        return self.projections[self.val]
 
+    def _par(self,key):
+        """Function use in return_params"""
+        if self.proj[key]:
+            SMinor = self.proj[key]
+        else:
+            SMinor = 0.0
+
+    def return_params(self):
+        """ Return the 13 paramaters for parameter file """
+        if self.val == 'll' or self.val == 'utm':
+            return '( 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )'
+        elif self.val == 'lcc':
+            SMajor = self._par('+a')
+            SMinor = self._par('+b')
+            STDPR1 = self._par('+lat_1')
+            STDPR2 = self._par('+lat_2')
+            CentMer = self._par('+lon_0')
+            CentLat = self._par('+lat_0')
+            FE = self._par('+x_0')
+            FN = self._par('+y_0')
+            st = '( %i %i %d %d %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )' % ( 
+            SMajor, SMinor, STDPR1, STDPR2, CentMer, CentLat, FE, FN )
+            return st
+        elif self.val == 'merc' or self.val == 'polar' or self.val == 'tmerc':
+            SMajor = self._par('+a')
+            SMinor = self._par('+b')
+            CentMer = self._par('+lon_0')
+            if self.val == 'tmerc':
+                Factor = self._par('+k_0')
+            else:
+                Factor = 0.0
+            TrueScale = self._par('+lat_ts')
+            FE = self._par('+x_0')
+            FN = self._par('+y_0')
+            st = '( %i %i %d 0.0 %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )' % ( 
+            SMajor, SMinor, Factor, CentMer, TrueScale, FE, FN )
+            return st
+        else:
+            grass.fatal(_('Projection not supported, please contact the' \
+                          'GRASS-dev mailing list'))
+
+    def datum(self):
+        """Return the datum in the MRT style"""
+        return self.datumlist[self.dat]
+
+    def utmzone(self):
+        """Return the utm zone number"""
+        return self.proj['zone']
