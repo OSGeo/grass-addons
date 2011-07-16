@@ -75,7 +75,7 @@ class RStreamFrame(wx.Frame):
         """
         self.parent = parent
         
-        wx.Frame.__init__(self, parent = parent, id = id, title = title, name = "RStream", size = (700, 900), **kwargs)
+        wx.Frame.__init__(self, parent = parent, id = id, title = title, name = "RStream", size = (600, 900), **kwargs)
         self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
         
         # create the AuiNotebook instance
