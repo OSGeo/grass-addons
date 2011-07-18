@@ -46,7 +46,7 @@ class wmsFrame(wx.Frame):
         #items = ["a", "b", "c"]
         #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
         #self.LayerTree.AppendItem(itemId, "inside")
-        #Sudeep's Code Ends
+        #Sudeep's Code Ends 
     def __set_properties(self):
         # begin wxGlade: wmsFrame.__set_properties
         self.SetTitle("wmsFrame")
@@ -81,7 +81,8 @@ class wmsFrame(wx.Frame):
         self.servers = {}
         for line in lines:
             row = line.split()
-            if(len(row) == 2) :
+            print row
+            if(len(row) == 4) :
 	            self.servers[row[0]] = row[1]
             name = row[0]+" "+row[1][7:45]
             ComboBox.Append(name)
@@ -215,7 +216,7 @@ def DisplayWMSMenu():
      	app = wx.PySimpleApp(0)
     	wx.InitAllImageHandlers()
     	wms_Frame = wmsFrame(None, -1, "")
-   	app.SetTopWindow(wms_Frame)
+        app.SetTopWindow(wms_Frame)
     	wms_Frame.Show()
     	app.MainLoop()
 #Sudeep's Code Ends
