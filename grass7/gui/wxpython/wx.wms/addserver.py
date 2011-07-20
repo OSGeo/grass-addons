@@ -108,6 +108,8 @@ class ServerAdd(wx.Frame):
         self.servers = {}
         for line in lines:
             row = line.split()
+            print 'row =' 
+            print row
             if(len(row) == 4) :
                 servername = row[0]
                 url = row[1]
@@ -119,16 +121,17 @@ class ServerAdd(wx.Frame):
                 serverdata.username = username
                 serverdata.password = password
                 self.servers[servername] = serverdata
-            name = row[0]+" "+row[1][7:45]
-            ComboBox.Append(name)
+                name = row[0]+" "+row[1]
+                print 'yoyo '+name
+                ComboBox.Append(name)
         f.close()
         print self.servers
         
     def __update_URL_List(self):
         self.ServerList.Clear()
         for k,v in self.servers.iteritems():
-            name = v.servername+" "+v.url[7:45]
-        
+            name = v.servername+" "+v.url
+            self.ServerList.Append(name)
         
     def OnSave(self, event): # wxGlade: ServerAdd.<event_handler>
         #print "Event handler `OnSave' not implemented"
@@ -141,19 +144,23 @@ class ServerAdd(wx.Frame):
         newUserName = self.UsernameText.GetValue()
         newPassword = self.PasswordText.GetValue()
         
-        serverData = ServerData
-        self.ServerList.Append(newServerName+" "+newUrl)
+        serverData = ServerData()
+        #self.ServerList.Append(newServerName+" "+newUrl)
         
         url = newUrl.split()
         if(len(newUrl) != 0 and len(newServerName) != 0 and len(newUserName) !=0 and len(newPassword) != 0 ):
-            self.servers[newServerName] = newUrl
+            serverData.servername = newServerName
+            serverData.url = newUrl
+            serverData.username = newUserName
+            serverData.password = newPassword
+            self.servers[newServerName] = serverData
             f = open('serverList.txt','a')
             f.write(newServerName+" "+newUrl+ " "+newUserName+" "+newPassword+"\n")
             f.close()
             self.selectedURL = newUrl
             print self.selectedURL
             print self.servers
-            __update_URL_List()
+            self.__update_URL_List()
   	    #Update_Url_List(newServerName+" "+newUrl)
         else:
             print "Please Fill all the fields"
@@ -164,10 +171,16 @@ class ServerAdd(wx.Frame):
         if(len(serverName) > 0):
             print self.servers
             del self.servers[serverName]
+            self.__update_URL_List()
+            self.ServerNameText.Clear()
+            self.PasswordText.Clear()
+            self.URLText.Clear()
+            self.UsernameText.Clear()
             print self.servers
         else:
             print 'No server selected'
         #print "Event handler `OnRemove' not implemented"
+        
         event.Skip()
 
     def OnAddNew(self, event): # wxGlade: ServerAdd.<event_handler>
@@ -181,16 +194,17 @@ class ServerAdd(wx.Frame):
     def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
         out = open('serverList.txt','w')
         for k,v in self.servers.iteritems():
-            out.write(v.servername+" "+v.url+" "+v.username+" "+v.password)
+            out.write(v.servername+" "+v.url+" "+v.username+" "+v.password+"\n")
         #print "Event handler `OnQuit' not implemented"
         event.Skip()
 
     def OnServerList(self, event): # wxGlade: ServerAdd.<event_handler>
         #print self.ServerList.CurrentSelection
         url = self.ServerList.GetValue()
-        #print url
+        print 'here'
+        print url
         urlarr = url.split()
-        #print urlarr
+        print urlarr
         print self.servers
         if(len(urlarr)==2):
             self.selectedServer = self.servers[urlarr[0]]
