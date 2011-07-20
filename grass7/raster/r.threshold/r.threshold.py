@@ -31,7 +31,6 @@
 
 
 import grass.script as grass
-import grass.script.array as garray
 import os, sys
 import math
 import numpy as np
@@ -62,7 +61,10 @@ in the second the number of cells, in the third the distance from origin is calc
     index = np.where(distance==min(distance))
     th = area[index]
 
-    grass.message("Suggested threshold is %d" % th )
+    if th < 0:
+        grass.message("Warning: Flow accumulation contains negative values")
+    else:
+        grass.message("Suggested threshold is %d" % th )
 
     grass.message( 'Done!' )	 
 
