@@ -43,7 +43,7 @@ class ServerAdd(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnAddNew, self.AddNew)
         self.Bind(wx.EVT_BUTTON, self.OnQuit, self.Quit)
         # end wxGlade
-         
+        self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.__populate_URL_List(self.ServerList)
 
     def __set_properties(self):
@@ -192,9 +192,11 @@ class ServerAdd(wx.Frame):
         event.Skip()
 
     def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
+        print 'zumzum'
         out = open('serverList.txt','w')
         for k,v in self.servers.iteritems():
             out.write(v.servername+" "+v.url+" "+v.username+" "+v.password+"\n")
+        exit()
         #print "Event handler `OnQuit' not implemented"
         event.Skip()
 
