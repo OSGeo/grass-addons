@@ -5,7 +5,7 @@
 import wx
 from wxPython.wx import *
 from urllib2 import Request, urlopen, URLError, HTTPError
-from parse import parsexml
+from parse import parsexml, isServiceException
 from WMSMapDisplay import NewImageFrame
 from addserver import AddServerFrame
 
@@ -21,7 +21,7 @@ class wmsFrame(wx.Frame):
         wx.Frame.__init__(self, *args, **kwds)
         self.URL = wx.StaticText(self, -1, "URL")
         self.ServerList = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_SIMPLE)
-        self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
+        self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_MULTIPLE|wx.TR_MULTIPLE|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
         self.GetCapabilities = wx.Button(self, -1, "GetCapabilities")
         self.GetMaps = wx.Button(self, -1, "GetMaps")
         self.addServer = wx.Button(self, -1, "AddServer")
@@ -136,12 +136,14 @@ class wmsFrame(wx.Frame):
 	try:
 	    response = urlopen(req)
 	    image = response.read()
-	    outfile = open('map.png','wb')
-	    outfile.write(image)
-	    outfile.close()
-	    
-	    
-	    NewImageFrame()
+	    #print image
+	    if(isServiceException(image)):
+	    	print 'Service Exception has occured'
+	    else:
+	    	outfile = open('map.png','wb')
+	    	outfile.write(image)
+	    	outfile.close()
+	    	NewImageFrame()
 	    
 	    
 	except HTTPError, e:

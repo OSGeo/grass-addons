@@ -23,3 +23,18 @@ f = open('wmsmaris.xml','r')
 a=f.read()
 print a
 #parsexml(a) '''
+
+def isServiceException(xml):
+	print 'here'
+	#print xml
+	soup = BeautifulSoup(xml)
+	#print soup
+	exceptions = soup.findAll('ServiceException')
+	#print exceptions
+	exceptionList = []
+	xmltext = str(xml)
+	if(xmltext.count('ServiceException') > 0):
+		return True
+	else:
+		return False
+	print 'done'

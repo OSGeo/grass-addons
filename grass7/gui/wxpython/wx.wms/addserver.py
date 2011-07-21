@@ -197,6 +197,7 @@ class ServerAdd(wx.Frame):
         for k,v in self.servers.iteritems():
             out.write(v.servername+" "+v.url+" "+v.username+" "+v.password+"\n")
         exit()
+        #ServerAdd.Close()
         #print "Event handler `OnQuit' not implemented"
         event.Skip()
 

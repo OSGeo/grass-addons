@@ -1,2 +1,0 @@
-GisNetServer http://www.gisnet.lv/cgi-bin/topo
-VIZ_Globe http://viz.globe.gov/viz-bin/wmt.cgi
