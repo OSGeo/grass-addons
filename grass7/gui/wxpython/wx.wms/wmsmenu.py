@@ -21,7 +21,8 @@ class wmsFrame(wx.Frame):
         wx.Frame.__init__(self, *args, **kwds)
         self.URL = wx.StaticText(self, -1, "URL")
         self.ServerList = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_SIMPLE)
-        self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_MULTIPLE|wx.TR_MULTIPLE|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
+        #self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_MULTIPLE|wx.TR_MULTIPLE|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
+        self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_MULTIPLE|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
         self.GetCapabilities = wx.Button(self, -1, "GetCapabilities")
         self.GetMaps = wx.Button(self, -1, "GetMaps")
         self.addServer = wx.Button(self, -1, "AddServer")
@@ -201,9 +202,19 @@ class wmsFrame(wx.Frame):
         event.Skip()
 
     def OnLayerTreeSelChanged(self, event): # wxGlade: wmsFrame.<event_handler>
-        self.layerName = self.LayerTree.GetItemText(event.GetItem())
-        print "Event handler `OnLayerTreeSelChanged' not implemented"
-        
+        #self.layerName = self.LayerTree.GetItemText(event.GetItem())
+        #print "Event handler `OnLayerTreeSelChanged' not implemented"
+        self.selectedLayerList = []
+        self.layerName = ""
+        print "Selected layers:"
+        for sellayer in self.LayerTree.GetSelections():
+            layerName = self.LayerTree.GetItemText(sellayer)
+            self.selectedLayerList += [layerName]
+            self.layerName += ","+layerName
+            
+        self.layerName = self.layerName[1:]
+        print self.layerName
+        #print "Event handler `OnLayerTreeSelChanged' not implemented"
         event.Skip()
 
     def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>

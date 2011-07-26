@@ -1,0 +1,5 @@
+VIZ_Globe http://viz.globe.gov/viz-bin/wmt.cgi u psas
+VIZ_Globe1 http://viz.globe.gov/viz-bin/wmt.cgi u psas
+dsfsdf sdsdf sdfsdf sdsdf
+qw qw qw qw
+GisNet http://www.gisnet.lv/cgi-bin/topo sudeep password
