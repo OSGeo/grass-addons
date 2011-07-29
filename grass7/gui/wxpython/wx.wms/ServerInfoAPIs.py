@@ -1,5 +1,27 @@
 from BeautifulSoup import BeautifulSoup, Tag, BeautifulStoneSoup
 
+class ServerData():
+    pass
+
+def initServerInfoBase(fileName):
+    try:
+        f = open(fileName,'r+')
+        xml = f.read()   
+        soup = BeautifulStoneSoup(xml)
+        serverinfolist = soup.findAll('serverinfo')
+        print len(serverinfolist)    
+    except:
+        f = open(fileName,'w')
+        serverinfolist = []
+        soup = BeautifulSoup()
+    
+    if(len(serverinfolist) == 0):
+            serverinfo = Tag(soup, "serverinfo")
+            soup.insert(0, serverinfo)
+            
+    return soup, f
+
+
 def addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue):
     elements = soup.findAll(id = snamevalue)
     if(len(elements)!=0):
@@ -48,3 +70,21 @@ def updateServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwor
             return False
     else:
         return False
+
+def getAllRows(soup):
+    elements = soup.findAll('server')
+    servers = []
+    for element in elements:
+        servername = element.findAll('servername')[0]
+        serverurl = element.findAll('serverurl')[0]
+        username = element.findAll('username')[0]
+        password = element.findAll('password')[0]
+        serverdata = ServerData()
+        serverdata.servername = servername
+        serverdata.url = serverurl
+        serverdata.username = username
+        serverdata.password = password
+        print servername
+        #servers[servername] = serverdata
+        
+    return servers
