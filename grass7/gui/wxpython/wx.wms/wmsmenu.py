@@ -8,6 +8,7 @@ from urllib2 import Request, urlopen, URLError, HTTPError
 from parse import parsexml, isServiceException
 from WMSMapDisplay import NewImageFrame
 from addserver import AddServerFrame
+from passwordPopUp import PasswordPopUpFrame
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -41,7 +42,7 @@ class wmsFrame(wx.Frame):
         
         #Sudeep's Code Starts
         #self.urlInput.SetValue('http://www.gisnet.lv/cgi-bin/topo')
-	self.__populate_Url_List(self.ServerList)
+        self.__populate_Url_List(self.ServerList)
         self.selectedURL="No server selected"
         self.layerTreeRoot = self.LayerTree.AddRoot("Layers")
         #items = ["a", "b", "c"]
@@ -74,17 +75,17 @@ class wmsFrame(wx.Frame):
         self.Layout()
         # end wxGlade
     def update_Url_List(self, name):
-	ComboBox = self.ServerList
-    	ComboBox.Append(name)
+        ComboBox = self.ServerList
+        ComboBox.Append(name)
     def __populate_Url_List(self, ComboBox):
-    	f = open('serverList.txt','r')
+        f = open('serverList.txt','r')
         lines = f.readlines()
         self.servers = {}
         for line in lines:
             row = line.split()
             print row
             if(len(row) == 4) :
-	            self.servers[row[0]] = row[1]
+                self.servers[row[0]] = row[1]
             name = row[0]+" "+row[1][7:45]
             ComboBox.Append(name)
         f.close()
@@ -92,72 +93,75 @@ class wmsFrame(wx.Frame):
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
         #Sudeep's Code Starts
         #url = 'http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms&version=1.1.1'
-    	self.LayerTree.CollapseAndReset(self.layerTreeRoot)
-    	#url = self.urlInput.GetValue() 
-    	url = self.selectedURL
-    	url = url + '?request=GetCapabilities&service=wms&version=1.1.1'
-    	print url
-	req = Request(url)
-	try:
-	    response = urlopen(req)
-	    xml = response.read()
-	    #self.statusbar.SetStatusText(xml) 
-	    reslist = parsexml(xml)
-	    st = ''
-	    for res in reslist:
-	    	   st = st + res + '\n'
-	    	   self.LayerTree.AppendItem(self.layerTreeRoot, res)
-	    #self.Layers.SetValue(st) 
-	    #print xml
-	    self.LayerTree.Expand(self.layerTreeRoot)
-	except HTTPError, e:
-	    print 'The server couldn\'t fulfill the request.'
-	    print 'Error code: ', e.code
-	except URLError, e: 
-	    print 'We failed to reach a server.'
-	    print 'Reason: ', e.reason
-	else:
-	    print 'Successful'
-	    #Sudeep's Code Ends
+        self.LayerTree.CollapseAndReset(self.layerTreeRoot)
+        #url = self.urlInput.GetValue() 
+        url = self.selectedURL
+        url = url + '?request=GetCapabilities&service=wms&version=1.1.1'
+        print url
+        req = Request(url)
+        try:
+            response = urlopen(req)
+            xml = response.read()
+            #self.statusbar.SetStatusText(xml) 
+            reslist = parsexml(xml)
+            st = ''
+            for res in reslist:
+                   st = st + res + '\n'
+                   self.LayerTree.AppendItem(self.layerTreeRoot, res)
+            #self.Layers.SetValue(st) 
+            #print xml
+            self.LayerTree.Expand(self.layerTreeRoot)
+        except HTTPError, e:
+            print 'The server couldn\'t fulfill the request.'
+            print 'Error code: ', e.code
+        except URLError, e: 
+            print 'We failed to reach a server.'
+            print 'Reason: ', e.reason
+        else:
+            print 'Successful'
+            #Sudeep's Code Ends
         event.Skip()
-
+        
+        
     def OnGetMaps(self, event): # wxGlade: wmsFrame.<event_handler>
         #Sudeep's Code Starts
         #self.layerName = self.layerSelected.GetValue()
         #url = self.urlInput.GetValue()
-    	
-    	self.url_in = self.selectedURL
-        getMap_request_url = self.url_in+'?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:3059&layers='+self.layerName+'&bbox=584344,397868,585500,398500'
+        PasswordPopUpFrame()
         
+        self.url_in = self.selectedURL
+        getMap_request_url = self.url_in
+        getMap_request_url += '?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:3059&layers='
+        getMap_request_url += self.layerName+'&bbox=584344,397868,585500,398500'
         
-        
-	print getMap_request_url
-	
-	req = Request(getMap_request_url)
-	try:
-	    response = urlopen(req)
-	    image = response.read()
-	    #print image
-	    if(isServiceException(image)):
-	    	print 'Service Exception has occured'
-	    else:
-	    	outfile = open('map.png','wb')
-	    	outfile.write(image)
-	    	outfile.close()
-	    	NewImageFrame()
-	    
-	    
-	except HTTPError, e:
-	    print 'The server couldn\'t fulfill the request.'
-	    print 'Error code: ', e.code
-	except URLError, e:
-	    print 'We failed to reach a server.'
-	    print 'Reason: ', e.reason
-	else:
-	    print 'Successful'
-        #Sudeep's Code Ends
-        event.Skip()
+        print getMap_request_url
+    
+        req = Request(getMap_request_url)
+        try:
+            response = urlopen(req)
+            image = response.read()
+            #print image
+            if(isServiceException(image)):
+                print 'Service Exception has occured'
+            else:
+                outfile = open('map.png','wb')
+                outfile.write(image)
+                outfile.close()
+                NewImageFrame()
+            
+            
+        except HTTPError, e:
+            print 'The server couldn\'t fulfill the request.'
+            print 'Error code: ', e.code
+        except URLError, e:
+            print 'We failed to reach a server.'
+            print 'Reason: ', e.reason
+        else:
+            print 'Successful'
+            #Sudeep's Code Ends
+            event.Skip()
 
+    
     def OnServerListEnter(self, event): # wxGlade: wmsFrame.<event_handler>
         print "Event handler `OnServerListEnter' not implemented"
         #Sudeep's Code Starts
@@ -218,7 +222,7 @@ class wmsFrame(wx.Frame):
         event.Skip()
 
     def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
-    	AddServerFrame()
+        AddServerFrame()
         #print "Event handler `OnAddServer' not implemented"
         event.Skip()
 
@@ -226,12 +230,12 @@ class wmsFrame(wx.Frame):
 
 #Sudeep's Code Starts
 def DisplayWMSMenu():
-     	app = wx.PySimpleApp(0)
-    	wx.InitAllImageHandlers()
-    	wms_Frame = wmsFrame(None, -1, "")
+        app = wx.PySimpleApp(0)
+        wx.InitAllImageHandlers()
+        wms_Frame = wmsFrame(None, -1, "")
         app.SetTopWindow(wms_Frame)
-    	wms_Frame.Show()
-    	app.MainLoop()
+        wms_Frame.Show()
+        app.MainLoop()
 #Sudeep's Code Ends
 
 if __name__ == "__main__":
