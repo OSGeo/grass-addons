@@ -118,7 +118,7 @@ class ServerAdd(wx.Frame):
             ComboBox.Append(value.servername+" "+value.url)
         print self.servers
         return
-    	f = open('serverList.txt','r')
+    	''''f = open('serverList.txt','r')
         lines = f.readlines()
         self.servers = {}
         for line in lines:
@@ -140,7 +140,7 @@ class ServerAdd(wx.Frame):
                 print 'yoyo '+name
                 ComboBox.Append(name)
         f.close()
-        print self.servers
+        print self.servers'''
         
     def __update_URL_List(self):
         self.ServerList.Clear()
@@ -152,8 +152,11 @@ class ServerAdd(wx.Frame):
         #print "Event handler `OnSave' not implemented"
         newServerName = self.ServerNameText.GetValue()
         if(self.servers.has_key(newServerName)):
-            print 'Server Name already exists'
-            return
+            update = True
+            #print 'Server Name already exists'
+            #return
+        else:
+            update = False
             
         newUrl = self.URLText.GetValue()
         newUserName = self.UsernameText.GetValue()
@@ -169,9 +172,18 @@ class ServerAdd(wx.Frame):
             serverData.username = newUserName
             serverData.password = newPassword
             self.servers[newServerName] = serverData
+            if(update):
+                if(updateServerInfo(self.soup, self.soup.serverinfo, newServerName, newUrl, newUserName, newPassword)):
+                    print 'update save successful'
+                else:
+                    print 'update save not successful'
+            else:    
+                if(addServerInfo(self.soup, self.soup.serverinfo, newServerName, newUrl, newUserName, newPassword)):
+                    print 'soup save successfully'
+                else:
+                    print "False returned by addServerInfo, save not successful"
+            
             f = open('serverList.txt','a')
-            serverInfo = '<serverinfo>'
-            serverINFO += '<servername>'
             f.write(newServerName+" "+newUrl+ " "+newUserName+" "+newPassword+"\n")
             f.close()
             self.selectedURL = newUrl
@@ -186,6 +198,10 @@ class ServerAdd(wx.Frame):
     def OnRemove(self, event): # wxGlade: ServerAdd.<event_handler>
         serverName = self.ServerNameText.GetValue()
         if(len(serverName) > 0):
+            if(removeServerInfo(self.soup, serverName)):
+                print 'remove successful'
+            else:
+                print 'remove unsuccessful'
             print self.servers
             del self.servers[serverName]
             self.__update_URL_List()
@@ -209,7 +225,11 @@ class ServerAdd(wx.Frame):
         event.Skip()
 
     def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
-        print 'zumzum'
+        print 'onQuit pressed'
+        xml = self.soup.prettify()
+        f = open('out.xml','w')
+        f.write(xml)
+        f.close()
         out = open('serverList.txt','w')
         for k,v in self.servers.iteritems():
             out.write(v.servername+" "+v.url+" "+v.username+" "+v.password+"\n")

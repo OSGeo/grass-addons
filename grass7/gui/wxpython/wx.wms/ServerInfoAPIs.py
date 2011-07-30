@@ -10,9 +10,9 @@ def initServerInfoBase(fileName):
         f.close()
         soup = BeautifulStoneSoup(xml)
         serverinfolist = soup.findAll('serverinfo')
-        print 'serverinfolisthere'
-        print serverinfolist
-        print len(serverinfolist)    
+        #print 'serverinfolisthere'
+        #print serverinfolist
+        #print len(serverinfolist)    
     except:
         serverinfolist = []
         soup = BeautifulSoup()
@@ -67,7 +67,6 @@ def removeServerInfo(soup, serverID):
 
 def updateServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue):
     if(removeServerInfo(soup, snamevalue)):
-        print "1"
         if(addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue)):
             return True
         else:
