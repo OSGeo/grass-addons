@@ -27,10 +27,12 @@ import copy
 import time
 
 gbase = os.getenv("GISBASE") 
-pypath = os.path.join(gbase,'etc','wxpython','gui_modules')
+pypath = os.path.join(gbase,'etc','gui','wxpython','gui_modules')
 
 sys.path.append(pypath)
 
+pypath = os.path.join(gbase,'etc','python')
+sys.path.append(pypath)
 
 import globalvar
 if not os.getenv("GRASS_WXBUNDLED"):
@@ -57,41 +59,36 @@ import render
 import toolbars
 from preferences import globalSettings as UserSettings
 from icon  import Icons
-from mapdisp import Command
-grassversion = os.getenv("GRASS_VERSION")
-if grassversion.rfind("6.4") != 0:
-    from mapdisp_window import BufferedWindow
-    from mapdisp_window import MapWindow
-else:
-    from mapdisp import BufferedWindow
-    from mapdisp import MapWindow
+
+from mapdisp_window import BufferedWindow
+from mapdisp_window import MapWindow
+
 
 from mapdisp import MapFrame
 from debug import Debug
-import images
+
 import gcmd
 from grass.script import core as grass1
 
-from grass.lib import grass as grasslib
+from grass.lib import gis as grasslib
+
+from grass.lib import raster as raster
 
 
 import toolbars
 
 
-imagepath = images.__path__[0]
-sys.path.append(imagepath)
+
+
 
 
 #from Numeric import *
 from ctypes import *
 import platform
-if platform.system() == "Linux":
-    grass = CDLL("libgrass_gis.so")
-else:
-    grass = CDLL("libgrass_gis.6.4.0RC6.dll")
-s = subprocess.Popen(['g.version','-r'], stdout=subprocess.PIPE).communicate()[0]
+grass = CDLL("libgrass_gis.7.0.svn.dll")
+s = subprocess.Popen(['g.version.exe','-r'], stdout=subprocess.PIPE).communicate()[0]
 for line in s.splitlines():
-    if line.startswith('Revision:'):
+    if line.startswith('libgis Revision:'):
         version = '$' + line + '$'
 grass.G__gisinit(version, '')
 
@@ -154,8 +151,8 @@ class IClass(MapFrame):
                           'vdigit' : None,
                           'georect' : None, 
                           'nviz' : None }
-        for toolb in toolbars:
-            self.AddToolbar(toolb)
+      #  for toolb in toolbars:
+#            self.AddToolbar(toolb)
 
         #
         # Add statusbar
@@ -245,66 +242,8 @@ class IClass(MapFrame):
         self.statusbarWin['progress'] = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
                                       range=0, style=wx.GA_HORIZONTAL)
         self.statusbarWin['progress'].Hide()
+        self.StatusbarReposition() # reposition statusbar
 
-        if grassversion.rfind("6.4") != 0:
-            self.StatusbarReposition() # reposition statusbar
-        else:
-            self.toggleStatus = wx.Choice(self.statusbar, wx.ID_ANY,
-                                          choices = globalvar.MAP_DISPLAY_STATUSBAR_MODE)
-            self.toggleStatus.SetSelection(UserSettings.Get(group='display', key='statusbarMode', subkey='selection'))
-            self.statusbar.Bind(wx.EVT_CHOICE, self.OnToggleStatus, self.toggleStatus)
-            # auto-rendering checkbox
-            self.autoRender = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
-                                          label=_("Render"))
-            self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleRender, self.autoRender)
-            self.autoRender.SetValue(UserSettings.Get(group='display', key='autoRendering', subkey='enabled'))
-            self.autoRender.SetToolTip(wx.ToolTip (_("Enable/disable auto-rendering")))
-            # show region
-            self.showRegion = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
-                                          label=_("Show computational extent"))
-            self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleShowRegion, self.showRegion)
-            
-            self.showRegion.SetValue(False)
-            self.showRegion.Hide()
-            self.showRegion.SetToolTip(wx.ToolTip (_("Show/hide computational "
-                                                     "region extent (set with g.region). "
-                                                     "Display region drawn as a blue box inside the "
-                                                     "computational region, "
-                                                     "computational region inside a display region "
-                                                     "as a red box).")))
-            # set resolution
-            self.compResolution = wx.CheckBox(parent=self.statusbar, id=wx.ID_ANY,
-                                             label=_("Constrain display resolution to computational settings"))
-            self.statusbar.Bind(wx.EVT_CHECKBOX, self.OnToggleResolution, self.compResolution)
-            self.compResolution.SetValue(UserSettings.Get(group='display', key='compResolution', subkey='enabled'))
-            self.compResolution.Hide()
-            self.compResolution.SetToolTip(wx.ToolTip (_("Constrain display resolution "
-                                                         "to computational region settings. "
-                                                         "Default value for new map displays can "
-                                                         "be set up in 'User GUI settings' dialog.")))
-            # map scale
-            self.mapScale = wx.TextCtrl(parent=self.statusbar, id=wx.ID_ANY,
-                                        value="", style=wx.TE_PROCESS_ENTER,
-                                        size=(150, -1))
-            self.mapScale.Hide()
-            self.statusbar.Bind(wx.EVT_TEXT_ENTER, self.OnChangeMapScale, self.mapScale)
-
-            # mask
-            self.maskInfo = wx.StaticText(parent = self.statusbar, id = wx.ID_ANY,
-                                                      label = '')
-            self.maskInfo.SetForegroundColour(wx.Colour(255, 0, 0))
-            
-
-            # on-render gauge
-            self.onRenderGauge = wx.Gauge(parent=self.statusbar, id=wx.ID_ANY,
-                                          range=0, style=wx.GA_HORIZONTAL)
-            self.onRenderGauge.Hide()
-            
-            self.StatusbarReposition() # reposition statusbar
-
-
-
-        
 
         #
         # Init map display (buffered DC & set default cursor)
@@ -333,7 +272,7 @@ class IClass(MapFrame):
         #
         #self.Bind(wx.EVT_ACTIVATE, self.OnFocus)
         self.Bind(wx.EVT_CLOSE,    self.OnCloseWindow)
-        self.Bind(render.EVT_UPDATE_PRGBAR, self.OnUpdateProgress)
+        #self.Bind(render.EVT_UPDATE_PRGBAR, self.OnUpdateProgress)
         
         #
         # Update fancy gui style
@@ -357,10 +296,6 @@ class IClass(MapFrame):
         #
         # Init zoom history
         #
-        self.MapWindow.ZoomHistory(self.Map.region['n'],
-                                   self.Map.region['s'],
-                                   self.Map.region['e'],
-                                   self.Map.region['w'])
 
         #
         # Re-use dialogs
@@ -383,6 +318,8 @@ class IClass(MapFrame):
         self.Map.AddLayer(type='raster', name=self.mapname, command=self.cmd)
         self.MapWindow.UpdateMap(render=True)  
 
+
+
         self.dialogs = {}
         self.dialogs['attributes'] = None
         self.dialogs['category'] = None
@@ -399,6 +336,7 @@ class IClass(MapFrame):
         self.tempY = [] 
  
         self.npoints = 0
+    
         self.VX = []
         self.VY = []
         self.perimeter_npoints = 0
@@ -421,7 +359,7 @@ class IClass(MapFrame):
 
         # find map in search path
 
-        self.name = ['lsat7_2002_10','lsat7_2002_20','lsat7_2002_30','lsat7_2002_40','lsat7_2002_50','lsat7_2002_70']
+        self.name = ['lsat7_2000_10','lsat7_2000_20','lsat7_2000_30','lsat7_2000_40','lsat7_2000_50','lsat7_2000_70']
         # determine the inputmap type (CELL/FCELL/DCELL) */
      #   for n in range(0,6):
       #      self.data_type = grass.G_raster_map_type(name[n], mapset)
@@ -433,7 +371,7 @@ class IClass(MapFrame):
 
          
         # determine the inputmap type (CELL/FCELL/DCELL) */
-        self.mapset ='PERMANENT'
+        self.mapset ='landsat'
         self.mapset = c_char_p(self.mapset).value
 
         self.open_band_files()
@@ -447,13 +385,13 @@ class IClass(MapFrame):
         self.view()
         self.viewhistogram()
 
-        self.mapset ='PERMANENT'
+        
         self.cellhd = grasslib.Cell_head()
 
 
-        if (grasslib.G_get_cellhd('lsat7_2002_10', self.mapset, self.cellhd))!=0 :
+        if (raster.Rast_get_cellhd('lsat7_2000_10', self.mapset, byref(self.cellhd)))==0 :
             print "error1"
-
+#9400694566
 
         self.Band_cellhd = self.cellhd
         self.dst = self.adjust_window_to_box(self.cellhd, self.vnrows, self.vncols)
@@ -633,7 +571,7 @@ class IClass(MapFrame):
 
         for n in xrange(6):
 
-            self.data_type.append(grass.G_raster_map_type(self.name[n], self.mapset))
+            self.data_type.append(raster.Rast_map_type(self.name[n], self.mapset))
 
             if self.data_type[n] == 0:
                 ptype = POINTER(c_int)
@@ -642,8 +580,8 @@ class IClass(MapFrame):
             elif self.data_type[n] == 2:
                 ptype = POINTER(c_double)
 
-            self.infd.append(grass.G_open_cell_old(self.name[n], self.mapset))
-            self.Bandbuf.append(grass.G_allocate_raster_buf(self.data_type[n]))
+            self.infd.append(raster.Rast_open_old(self.name[n], self.mapset))
+            self.Bandbuf.append(raster.Rast_allocate_buf(self.data_type[n]))
             self.Bandbuf[n] = cast(c_void_p(self.Bandbuf[n]), ptype)
 
     
@@ -655,7 +593,7 @@ class IClass(MapFrame):
             self.y = 0
 
         for n in range(0,6):
-                grass.G_get_raster_row(self.infd[n], self.Bandbuf[n], self.y, self.data_type[n])
+                raster.Rast_get_row(self.infd[n], self.Bandbuf[n], self.y, self.data_type[n])
 
 
         
@@ -702,7 +640,7 @@ class IClass(MapFrame):
 
 
     def Redraw(self):
-        self.polypen = wx.Pen(colour="RED", width=1, style=wx.SOLID)
+        self.polypen = wx.Pen(colour="RED", width=2, style=wx.SOLID)
         pdc = wx.PaintDC(self.MapWindow)
         pdc.BeginDrawing()
         pdc.SetBrush(wx.Brush(wx.CYAN, wx.TRANSPARENT))
@@ -715,6 +653,7 @@ class IClass(MapFrame):
                               wx.Point(self.coords[i][0], self.coords[i][1]))
             i += 1
         pdc.EndDrawing()
+        self.MapWindow.UpdateMap()
 
     def RDClick(self,event):
         self.outline()
@@ -736,8 +675,8 @@ class IClass(MapFrame):
             tmpy = self.view_to_col(x)
             tmp_n = self.row_to_northing(tmpy, 0.5)
             tmp_e = self.col_to_easting(tmpx, 0.5)
-            self.tempY.append(grasslib.G_northing_to_row(tmp_n, self.Band_cellhd))
-            self.tempX.append(grasslib.G_easting_to_col(tmp_e, self.Band_cellhd))
+            self.tempY.append(raster.Rast_northing_to_row(tmp_n, byref(self.Band_cellhd)))
+            self.tempX.append(raster.Rast_easting_to_col(tmp_e, byref(self.Band_cellhd)))
 
         first = -1
         prev = self.npoints -1
@@ -1062,10 +1001,10 @@ class BufferedWindow2(BufferedWindow):
         self.Bind(wx.EVT_SIZE,         self.OnSize)
         self.Bind(wx.EVT_IDLE,         self.OnIdle)
         ### self.Bind(wx.EVT_MOTION,       self.MouseActions)
-        self.Bind(wx.EVT_MOUSE_EVENTS, self.MouseActions)
+       # self.Bind(wx.EVT_MOUSE_EVENTS, self.MouseActions)
 
-        if grassversion.rfind("6.4") != 0:
-            self.Bind(wx.EVT_MOTION,       self.OnMotion)
+#        if grassversion.rfind("6.4") != 0:
+       #     self.Bind(wx.EVT_MOTION,       self.OnMotion)
 
 
 
@@ -1096,16 +1035,14 @@ class BufferedWindow2(BufferedWindow):
         # This might result in OnSize getting called twice on some
         # platforms at initialization, but little harm done.
         ### self.OnSize(None)
-        if grassversion.rfind("6.4") != 0:
-            self.DefinePseudoDC()
-        else:
-            self.pdc = wx.PseudoDC()
-            # used for digitization tool
-            self.pdcVector = None
-            # decorations (region box, etc.)
-            self.pdcDec = wx.PseudoDC()
-            # pseudoDC for temporal objects (select box, measurement tool, etc.)
-            self.pdcTmp = wx.PseudoDC()
+#        if grassversion.rfind("6.4") != 0:
+        self.pdc = wx.PseudoDC()
+        # used for digitization tool
+        self.pdcVector = None
+        # decorations (region box, etc.)
+        self.pdcDec = wx.PseudoDC()
+        # pseudoDC for temporal objects (select box, measurement tool, etc.)
+        self.pdcTmp = wx.PseudoDC()
 
         # redraw all pdc's, pdcTmp layer is redrawn always (speed issue)
         self.redrawAll = True
