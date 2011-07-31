@@ -8,7 +8,7 @@ from urllib2 import Request, urlopen, URLError, HTTPError
 from parse import parsexml, isServiceException
 from WMSMapDisplay import NewImageFrame
 from addserver import AddServerFrame
-from passwordPopUp import PasswordPopUpFrame
+from passwordPopUp import PasswordPopUpFrame, check
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -22,8 +22,11 @@ class wmsFrame(wx.Frame):
         wx.Frame.__init__(self, *args, **kwds)
         self.URL = wx.StaticText(self, -1, "URL")
         self.ServerList = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_SIMPLE)
-        #self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_MULTIPLE|wx.TR_MULTIPLE|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
-        self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_MULTIPLE|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
+        self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_MULTIPLE|wx.TR_MULTIPLE|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
+        self.username = wx.StaticText(self, -1, "UserName")
+        self.usernameInput = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_TAB)
+        self.password = wx.StaticText(self, -1, "Password")
+        self.passwordInput = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_TAB|wx.TE_PASSWORD)
         self.GetCapabilities = wx.Button(self, -1, "GetCapabilities")
         self.GetMaps = wx.Button(self, -1, "GetMaps")
         self.addServer = wx.Button(self, -1, "AddServer")
@@ -45,6 +48,8 @@ class wmsFrame(wx.Frame):
         self.__populate_Url_List(self.ServerList)
         self.selectedURL="No server selected"
         self.layerTreeRoot = self.LayerTree.AddRoot("Layers")
+        self.usernameInput.Disable()
+        self.passwordInput.Disable()
         #items = ["a", "b", "c"]
         #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
         #self.LayerTree.AppendItem(itemId, "inside")
@@ -53,6 +58,8 @@ class wmsFrame(wx.Frame):
         # begin wxGlade: wmsFrame.__set_properties
         self.SetTitle("wmsFrame")
         self.LayerTree.SetMinSize((400, 250))
+        self.usernameInput.SetMinSize((189, 27))
+        self.passwordInput.SetMinSize((189, 27))
         # end wxGlade
 
     def __do_layout(self):
@@ -60,11 +67,17 @@ class wmsFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
+        grid_sizer_1 = wx.FlexGridSizer(2, 2, 1, 1)
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3.Add(self.URL, 0, 0, 0)
         sizer_3.Add(self.ServerList, 0, 0, 0)
         sizer_2.Add(sizer_3, 0, 0, 0)
         sizer_2.Add(self.LayerTree, 1, wx.EXPAND, 0)
+        grid_sizer_1.Add(self.username, 0, 0, 0)
+        grid_sizer_1.Add(self.usernameInput, 0, 0, 0)
+        grid_sizer_1.Add(self.password, 0, 0, 0)
+        grid_sizer_1.Add(self.passwordInput, 0, 0, 0)
+        sizer_2.Add(grid_sizer_1, 0, wx.EXPAND, 0)
         sizer_4.Add(self.GetCapabilities, 0, 0, 0)
         sizer_4.Add(self.GetMaps, 0, 0, 0)
         sizer_4.Add(self.addServer, 0, 0, 0)
@@ -91,6 +104,8 @@ class wmsFrame(wx.Frame):
         f.close()
 
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
+        self.usernameInput.Enable()
+        self.passwordInput.Enable()
         #Sudeep's Code Starts
         #url = 'http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms&version=1.1.1'
         self.LayerTree.CollapseAndReset(self.layerTreeRoot)
@@ -122,12 +137,16 @@ class wmsFrame(wx.Frame):
             #Sudeep's Code Ends
         event.Skip()
         
-        
+    
     def OnGetMaps(self, event): # wxGlade: wmsFrame.<event_handler>
         #Sudeep's Code Starts
         #self.layerName = self.layerSelected.GetValue()
         #url = self.urlInput.GetValue()
-        PasswordPopUpFrame()
+        print self.selectedURL
+        if(self.selectedURL == "No server selected"):
+            print 'no url selected\n returning...\n'
+            return
+            
         
         self.url_in = self.selectedURL
         getMap_request_url = self.url_in
