@@ -1,4 +1,4 @@
-from BeautifulSoup import BeautifulSoup
+from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 import re
 from urllib2 import Request, urlopen, URLError, HTTPError
 
@@ -38,3 +38,28 @@ def isServiceException(xml):
 	else:
 		return False
 	print 'done'
+
+
+   
+def getLayers(xml):
+    soup = BeautifulStoneSoup(xml)
+    print 'dfs starting'
+    #print soup
+    dfs(soup," ")
+    print 'dfs ending'
+    
+def dfs(root, indent):
+    if not hasattr(root, 'contents'):
+        #print root.string
+        return
+    else:
+        #print root.name
+        if(root.name == 'layer'):
+            print indent + root.name
+        children = root.contents
+        for child in children:
+            dfs(child,indent+"  ")
+            return
+
+
+
