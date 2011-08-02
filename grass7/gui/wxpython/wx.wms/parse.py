@@ -2,6 +2,7 @@ from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 import re
 from urllib2 import Request, urlopen, URLError, HTTPError
 
+
 def parsexml(xml):
 
  xmltext = xml
@@ -41,25 +42,30 @@ def isServiceException(xml):
 
 
    
-def getLayers(xml):
-    soup = BeautifulStoneSoup(xml)
-    print 'dfs starting'
-    #print soup
-    dfs(soup," ")
-    print 'dfs ending'
-    
-def dfs(root, indent):
-    if not hasattr(root, 'contents'):
-        #print root.string
-        return
-    else:
-        #print root.name
-        if(root.name == 'layer'):
-            print indent + root.name
-        children = root.contents
-        for child in children:
-            dfs(child,indent+"  ")
-            return
-
-
+def populateLayerTree(xml,LayerTree, layerTreeRoot):
+	f = open('cacheGetCapabilities.xml','w')
+	f.write(xml)
+	f.close()
+	
+	f = open('cacheGetCapabilities.xml','r')
+	xml = f.read()
+	#print xml
+	soup = BeautifulSoup(xml)
+	dfs(soup,LayerTree, layerTreeRoot)
+	
+def dfs(root,LayerTree, ltr):
+	if not hasattr(root, 'contents'):
+		#print root.string
+		return
+	else:
+		id = ltr
+		#print root.name
+		if(root.name == 'layer'):
+			names = root.findAll('name')
+			id = LayerTree.AppendItem(ltr,names[0].string)
+			print  names[0].string
+		children = root.contents
+		for child in children:
+			dfs(child, LayerTree, id)
+    		return
 

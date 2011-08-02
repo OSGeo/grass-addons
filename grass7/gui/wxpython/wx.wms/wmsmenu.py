@@ -5,7 +5,7 @@
 import wx
 from wxPython.wx import *
 from urllib2 import Request, urlopen, URLError, HTTPError
-from parse import parsexml, isServiceException, getLayers
+from parse import parsexml, isServiceException, populateLayerTree
 from WMSMapDisplay import NewImageFrame
 from addserver import AddServerFrame
 from passwordPopUp import PasswordPopUpFrame, check
@@ -118,10 +118,11 @@ class wmsFrame(wx.Frame):
             response = urlopen(req)
             xml = response.read()
             #self.statusbar.SetStatusText(xml) 
-            getLayers(xml)
+            
             reslist = parsexml(xml)
-            for res in reslist:
-                   self.LayerTree.AppendItem(self.layerTreeRoot, res)
+            populateLayerTree(xml,self.LayerTree, self.layerTreeRoot)
+            #for res in reslist:
+            #       self.LayerTree.AppendItem(self.layerTreeRoot, res)
             #self.Layers.SetValue(st) 
             #print xml
             self.LayerTree.Expand(self.layerTreeRoot)
