@@ -1,70 +1,78 @@
 #include <unistd.h>
 #include <string.h>
 #include "globals.h"
+#include <grass/gis.h>
+#include <grass/glocale.h>
 
 /* read the target for the group and cast it into the alternate GRASS env */
 
 static int which_env;
 
-int get_target (void)
+int get_target(void)
 {
-    char location[40];
-    char mapset[40];
-    char buf[1024];
+    char location[GNAME_MAX];
+    char mapset[GNAME_MAX];
+    char buf[GPATH_MAX];
     int stat;
 
-    if (!I_get_target(group.name, location, mapset))
-    {
-	sprintf(buf, "Target information for group [%s] missing\n", group.name);
-	goto error;
+    G_debug(1, "get_target()");
+
+    if (!I_get_target(group.name, location, mapset)) {
+        G_fatal_error(_("No target specified for group <%s>"), group.name);
     }
 
-    sprintf (buf, "%s/%s", G_gisdbase(), location);
-    if (access(buf,0) != 0)
-    {
-	sprintf (buf,"Target location [%s] not found\n", location);
-	goto error;
+    sprintf(buf, "%s/%s", G_gisdbase(), location);
+    if (access(buf, 0) != 0) {
+	G_warning(_("Target location <%s> not found"), location);
+	G_warning(_("Please run i.target for group <%s>"), group.name);
+	G_fatal_error(_("Can not continue"));
     }
+
     G__create_alt_env();
-    G__setenv ("LOCATION_NAME", location);
+    G__setenv("LOCATION_NAME", location);
     stat = G__mapset_permissions(mapset);
-    if (stat > 0)
-    {
-	G__setenv ("MAPSET", mapset);
+    if (stat > 0) {
+	G__setenv("MAPSET", mapset);
 	G__create_alt_search_path();
 	G__switch_env();
 	G__switch_search_path();
-	which_env = 0;
+	which_env = SRC_ENV;
 	return 1;
     }
-    sprintf (buf, "Mapset [%s] in target location [%s] - ",
-		mapset, location);
-    strcat (buf, stat == 0 ? "permission denied\n" : "not found\n");
-error:
-    strcat (buf, "Please run i.target for group ");
-    strcat (buf, group.name);
-    G_fatal_error (buf);
+    G_fatal_error(_("Mapset <%s> in target location <%s> - %s"),
+		    mapset, location, stat == 0 ? _("permission denied") : _("not found"));
+
+    return 0;
 }
 
-int select_current_env (void)
+int select_env(int env)
 {
-    if (which_env != 0)
-    {
+    if (which_env != env) {
 	G__switch_env();
 	G__switch_search_path();
-	which_env = 0;
+	which_env = env;
     }
 
     return 0;
 }
 
-int select_target_env (void)
+int select_current_env(void)
 {
-    if (which_env != 1)
-    {
+    if (which_env != SRC_ENV) {
 	G__switch_env();
 	G__switch_search_path();
-	which_env = 1;
+	which_env = SRC_ENV;
+    }
+
+    return 0;
+}
+
+int select_target_env(void)
+{
+    if (which_env != TGT_ENV) {
+	G__switch_env();
+	G__switch_search_path();
+	which_env = TGT_ENV;
     }
 
     return 0;

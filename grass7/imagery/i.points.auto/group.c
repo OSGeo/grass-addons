@@ -1,70 +1,58 @@
+#include <unistd.h>
 #include <string.h>
-#include <stdlib.h>
-#include <grass/gis.h>
 #include "globals.h"
-#include "local_proto.h"
+#include <grass/glocale.h>
 
-static int cmp(const void *, const void *);
+/* get group */
 
-int prepare_group_list (void)
+int get_group(void)
 {
-    FILE *fd;
-    int *idx;
-    int n;
-    int len,len1,len2;
+    int i, check_ok;
+    char xname[GNAME_MAX], xmapset[GMAPSET_MAX];
+    char *sname, *smapset;
 
-/* open file to store group file names */
-    fd = fopen (group_list, "w");
-    if (fd == NULL)
-	G_fatal_error ("Can't open any tempfiles");
+    G_debug(1, "get_group()");
 
-/*
- * build sorted index into group files
- * so that all cell files for a mapset to appear together
- */
-    idx = (int *) G_calloc (group.ref.nfiles, sizeof (int));
-    for (n = 0; n < group.ref.nfiles; n++)
-	idx[n] = n;
-    qsort (idx, group.ref.nfiles, sizeof(int), cmp);
+    /* check if group exists */
+    if (!I_find_group(group.name))
+        G_fatal_error(_("Imagery group <%s> does not exist"), group.name);
 
-/* determine length of longest mapset name, and longest cell file name */
-    len1 = len2 = 0;
-    for (n = 0; n < group.ref.nfiles; n++)
-    {
-	len = strlen (group.ref.file[n].name);
-	if (len > len1)
-	    len1 = len;
-	len = strlen (group.ref.file[n].mapset);
-	if (len > len2)
-	    len2 = len;
+    /* check if any files are in the group */
+    if (!I_get_group_ref(group.name, &group.ref))
+        G_fatal_error(_("No imagery defined for group <%s>"), group.name);
+
+    if (group.ref.nfiles <= 0)
+        G_fatal_error(_("Group <%s> contains no imagery"), group.name);
+
+    /* check if selected source image exists */
+    if (!G_find_file2("cell", group.img, ""))
+        G_fatal_error(_("Source image <%s> does not exist"), group.img);
+
+    /* check if selected source image is in group */
+    /* split file in name and mapset */
+    if (G_name_is_fully_qualified(group.img, xname, xmapset)) {
+	sname = xname;
+	smapset = xmapset;
     }
+    else {
+	sname = group.img;
+	smapset = NULL;
+    }
+    check_ok = 0;
+    
+    for (i = 0; i < group.ref.nfiles; i++) {
+	if (!strcmp(sname, group.ref.file[i].name)) {
+	    if (!smapset)
+		check_ok = 1;
+	    else if (!strcmp(smapset, group.ref.file[i].mapset)) {
+		check_ok = 1;
+	    }
+	}
+	if (check_ok)
+	    break;
+    }
+    if (!check_ok)
+        G_fatal_error(_("Source map <%s> is not in group <%s>"), group.img, group.name);
 
-/* write lengths, names to file */
-    fwrite (&len1, sizeof (len1), 1, fd);
-    fwrite (&len2, sizeof (len2), 1, fd);
-    for (n = 0; n < group.ref.nfiles; n++)
-	fprintf (fd, "%s %s\n", group.ref.file[idx[n]].name, group.ref.file[idx[n]].mapset);
-    fclose (fd);
-
-    G_free (idx);
-
-    return 0;
-}
-
-static int cmp (const void *aa, const void *bb)
-{
-    const int *a = aa, *b = bb;
-    int n;
-
-    if(n = strcmp (group.ref.file[*a].mapset, group.ref.file[*b].mapset))
-	return n;
-    return strcmp (group.ref.file[*a].name, group.ref.file[*b].name);
-}
-
-/* ask the user to pick a file */
-int choose_groupfile (char *name,char *mapset)
-{
-    int stat;
-    stat = ask_gis_files ("raster", group_list, name, mapset, -1);
-    return(stat);
+    return 1;
 }

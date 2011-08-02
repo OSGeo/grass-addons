@@ -1,0 +1,40 @@
+<H2>DESCRIPTION</H2>
+
+<em>i.points.auto</em> tries to automatically generate the given number
+of new gound control points. It is recommended to use maps filtered with
+the filters DIVERSITY or STDDEV (of GRASS) with a window of 3x3 or 5x5
+pixels. However, the algorithm sometimes works well also with the
+original maps.
+<p>
+The actual number of newly generated ground control points will likely
+be less than the given maximum number of ground control points because
+each generated point is filtered using its FFT correlation
+coefficient and optionally also by the given RMS threshold.
+<p>
+<em>i.points.auto</em> supports the usual transformation orders 1-3 and
+requires the corresponding number of previously set ground control
+points: 3 for order 1, 6 for order 2, 10 for order 3.
+
+<H2>SEE ALSO</H2>
+
+The GRASS 4 <em>
+<A HREF="http://grass.osgeo.org/gdp/imagery/imagery.ps.gz">Image
+Processing manual</A></EM>
+
+<P>
+<EM>
+<A HREF="g.mapsets.html">g.mapsets</A><br>
+<A HREF="i.group.html">i.group</A><br>
+<A HREF="i.rectify.html">i.rectify</A><br>
+<A HREF="i.target.html">i.target</A><br>
+<A HREF="i.vpoints.html">i.vpoints</A><br>
+<a href="wxGUI.GCP_Manager.html">Ground Control Point Manager</a>
+</em>
+
+
+<H2>AUTHORS</H2>
+Ivan Michelazzi<br>
+Luca Miori<br>
+Markus Metz
+
+<p><i>Last changed: $Date: 2006/06/22 07:46:46 $</i></p>

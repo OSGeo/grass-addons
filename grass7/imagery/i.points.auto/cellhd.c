@@ -1,25 +1,63 @@
 #include "globals.h"
 #include "local_proto.h"
 
-int 
-Outline_cellhd (View *view, struct Cell_head *cellhd)
+int set_target_window(void)
 {
-    int row,col;
-    int top, bottom, left, right;
+    double e, n;
 
-    row = northing_to_row (&view->cell.head, cellhd->north) + .5;
-    top = row_to_view (view, row);
+    G_debug(1, "set_target_window()");
 
-    col = easting_to_col (&view->cell.head, cellhd->west) + .5;
-    left = col_to_view (view, col);
+    /* NW corner */
+    CRS_georef(curr_window.west, curr_window.north, &e, &n,
+                group.E12, group.N12, transform_order);
 
-    row = northing_to_row (&view->cell.head, cellhd->south) + .5;
-    bottom = row_to_view (view, row);
+    tgt_window.north = tgt_window.south = n;
+    tgt_window.east = tgt_window.west = e;
+		
+    /* NE corner */
+    CRS_georef(curr_window.east, curr_window.north, &e, &n,
+                group.E12, group.N12, transform_order);
 
-    col = easting_to_col (&view->cell.head, cellhd->east) + .5;
-    right = col_to_view (view, col);
+    if (tgt_window.north < n)
+	tgt_window.north = n;
+    if (tgt_window.south > n)
+	tgt_window.south = n;
+    if (tgt_window.east < e)
+	tgt_window.east = e;
+    if (tgt_window.west > e)
+	tgt_window.west = e;
 
-    Outline_box (top, bottom, left, right);
+    /* SE corner */
+    CRS_georef(curr_window.east, curr_window.south, &e, &n,
+                group.E12, group.N12, transform_order);
 
-    return 0;
+    if (tgt_window.north < n)
+	tgt_window.north = n;
+    if (tgt_window.south > n)
+	tgt_window.south = n;
+    if (tgt_window.east < e)
+	tgt_window.east = e;
+    if (tgt_window.west > e)
+	tgt_window.west = e;
+
+    /* SW corner */
+    CRS_georef(curr_window.west, curr_window.south, &e, &n,
+                group.E12, group.N12, transform_order);
+
+    if (tgt_window.north < n)
+	tgt_window.north = n;
+    if (tgt_window.south > n)
+	tgt_window.south = n;
+    if (tgt_window.east < e)
+	tgt_window.east = e;
+    if (tgt_window.west > e)
+	tgt_window.west = e;
+
+    tgt_window.ew_res = (tgt_window.east - tgt_window.west) / curr_window.cols;
+    tgt_window.ns_res = (tgt_window.north - tgt_window.south) / curr_window.rows;
+    tgt_window.cols = curr_window.cols;
+    tgt_window.rows = curr_window.rows;
+    G_adjust_Cell_head(&tgt_window, 0, 0);
+
+    return 1;
 }
