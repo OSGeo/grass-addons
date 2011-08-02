@@ -49,7 +49,7 @@ class ServerAdd(wx.Frame):
         
         
         #sudeep code starts
-        self.soup = initServerInfoBase('out.xml')
+        self.soup = initServerInfoBase('ServersList.xml')
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.__populate_URL_List(self.ServerList)
         #sudeep code ends
@@ -227,7 +227,7 @@ class ServerAdd(wx.Frame):
     def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
         print 'onQuit pressed'
         xml = self.soup.prettify()
-        f = open('out.xml','w')
+        f = open('ServersList.xml','w')
         f.write(xml)
         f.close()
         out = open('serverList.txt','w')

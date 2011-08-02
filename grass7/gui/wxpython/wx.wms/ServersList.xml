@@ -1,0 +1,44 @@
+<serverinfo>
+ <server id="a3">
+  <servername>
+   a3
+  </servername>
+  <serverurl>
+   b3
+  </serverurl>
+  <username>
+   c3
+  </username>
+  <password>
+   d3
+  </password>
+ </server>
+ <server id="GISNetServer">
+  <servername>
+   GISNetServer
+  </servername>
+  <serverurl>
+   http://www.gisnet.lv/cgi-bin/topo
+  </serverurl>
+  <username>
+   uname
+  </username>
+  <password>
+   password
+  </password>
+ </server>
+ <server id="a2">
+  <servername>
+   a2
+  </servername>
+  <serverurl>
+   b2
+  </serverurl>
+  <username>
+   c2
+  </username>
+  <password>
+   d2
+  </password>
+ </server>
+</serverinfo>
