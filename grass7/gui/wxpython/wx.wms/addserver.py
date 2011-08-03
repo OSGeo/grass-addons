@@ -166,7 +166,8 @@ class ServerAdd(wx.Frame):
         #self.ServerList.Append(newServerName+" "+newUrl)
         
         url = newUrl.split()
-        if(len(newUrl) != 0 and len(newServerName) != 0 and len(newUserName) !=0 and len(newPassword) != 0 ):
+        #if(len(newUrl) != 0 and len(newServerName) != 0 and len(newUserName) !=0 and len(newPassword) != 0 ):
+        if(len(newUrl) != 0 and len(newServerName) != 0):
             serverData.servername = newServerName
             serverData.url = newUrl
             serverData.username = newUserName

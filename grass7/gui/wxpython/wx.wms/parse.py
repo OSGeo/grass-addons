@@ -55,15 +55,16 @@ def populateLayerTree(xml,LayerTree, layerTreeRoot):
 	
 def dfs(root,LayerTree, ltr):
 	if not hasattr(root, 'contents'):
-		#print root.string
+		print root.string
 		return
 	else:
 		id = ltr
-		#print root.name
+		print root.name
 		if(root.name == 'layer'):
 			names = root.findAll('name')
-			id = LayerTree.AppendItem(ltr,names[0].string)
-			print  names[0].string
+			if(len(names)>0):
+				id = LayerTree.AppendItem(ltr,names[0].string)
+				print  names[0].string
 		children = root.contents
 		for child in children:
 			dfs(child, LayerTree, id)

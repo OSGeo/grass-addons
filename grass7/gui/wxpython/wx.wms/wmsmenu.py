@@ -8,7 +8,6 @@ from urllib2 import Request, urlopen, URLError, HTTPError
 from parse import parsexml, isServiceException, populateLayerTree
 from WMSMapDisplay import NewImageFrame
 from addserver import AddServerFrame
-from passwordPopUp import PasswordPopUpFrame, check
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -117,6 +116,9 @@ class wmsFrame(wx.Frame):
         try:
             response = urlopen(req)
             xml = response.read()
+            f=open('in1.xml','r')
+            xml=f.read()
+            f.close()
             #self.statusbar.SetStatusText(xml) 
             
             reslist = parsexml(xml)
