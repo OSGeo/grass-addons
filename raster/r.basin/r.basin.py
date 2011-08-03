@@ -70,7 +70,7 @@ from numpy import array
 from numpy import zeros
 
 if not os.environ.has_key("GISBASE"):
-    print "You must be in GRASS GIS to run this program."
+    grass.message( "You must be in GRASS GIS to run this program." )
     sys.exit(1)
 
 def main():
@@ -122,7 +122,7 @@ def main():
         dict_region = grass.parse_key_val(info_region, ':')
         resolution = float(dict_region['nsres'])
         th = 1000000 / (resolution**2)
-        print 'threshold : ', th
+        grass.message( "threshold : %s" % th ) 
     else :
         th = options['threshold']
 
@@ -134,7 +134,7 @@ def main():
     
     # Delineation of basin 
     grass.run_command('r.stream.basins', dir = r_drainage , basins = r_basin , coors = '%s,%s' % (east , north) )
-    print "Delineation of basin done"
+    grass.message( "Delineation of basin done" )
     
     # Backup and mask
     elevation_name = r_elevation = r_elevation.split('@')[0]
@@ -157,7 +157,7 @@ def main():
     grass.run_command('v.to.db', map = v_basin , type = 'line,boundary' , layer = 1, qlayer = 1, option = 'perimeter' , units = 'kilometers', columns = 'cat', qcolumn = 'cat')
     
     # Creation of order maps: strahler, horton, hack, shreeve
-    print 'creating', r_hack
+    grass.message( "Creating %s" % r_hack ) 
     grass.run_command('r.stream.order', stream = r_stream_e , dir = r_drainage_e , strahler = r_strahler , shreve = r_shreve , horton = r_horton , hack = r_hack )
     
     # Distance to outlet
@@ -242,7 +242,7 @@ def main():
         D_topo = float(grass.read_command('v.info', map = v_mainchannel_dim, layer = 1, flags = 't').split('\n')[2].split('=')[1])
     except:
         D_topo = 1
-        print 'Topological Diameter = WARNING'
+        grass.message( "Topological Diameter = WARNING" )
     
     # Mean slope of mainchannel
     grass.run_command('v.to.points', flags='n', input = v_mainchannel_dim, output = v_mainchannel_dim+'_point', type = 'line')
@@ -262,7 +262,7 @@ def main():
             pendenze.append(pendenza)
             mainchannel_slope = sum(pendenze) / len(pendenze) * 100
         except :
-            print 'Mean slope of mainchannel = WARNING'
+            grass.message( "Mean slope of mainchannel = WARNING" )
             
     # Elongation Ratio
     R_al = (2 * math.sqrt( area_basin / math.pi) ) / mainchannel
@@ -299,7 +299,7 @@ def main():
     
     # Statistics
     stream_stats = grass.read_command('r.stream.stats', stream = r_strahler, dir = r_drainage_e, dem = r_elevation+'_crop' )
-    print 'output r.stream.stats', stream_stats
+    grass.message( "output r.stream.stats %s" % stream_stats ) 
     stream_stats_summary = stream_stats.split('\n')[4].split('|')
     stream_stats_mom = stream_stats.split('\n')[8].split('|')
     Max_order , Num_streams , Len_streams , Stream_freq = stream_stats_summary[0] , stream_stats_summary[1] , stream_stats_summary[2] , stream_stats_summary[5] 
@@ -382,45 +382,44 @@ def main():
     parametri_bacino["Slope_ratio"] = float(Slope_ratio)
     parametri_bacino["drainage_density"] = float(drainage_density)
     parametri_bacino["FSF"] = float(FSF) 
-    print "\n"
-    print "##################################" 
-    print "Morphometric parameters of basin :"
-    print "##################################\n"	
-    print "Easting Centroid of basin : " , basin_east 
-    print "Northing Centroid of Basin : " , basin_north 
-    print "Rectangle containing basin (N-W) : " , nw 
-    print "Rectangle containing basin (S-E) : " , se 
-    print "Area of basin [km^2] : " , '%.2f' % area_basin 
-    print "Perimeter of basin [km] : " , '%.2f' % perimeter_basin 
-    print "Max Elevation [m s.l.m.] : " , '%.2f' % H1
-    print "Min Elevation [m s.l.m.]: " , '%.2f' % H2 
-    print "Elevation Difference [m]: " , '%.2f' % HM
-    print "Mean Elevation [m s.l.m.]: " , '%.2f' % mean_elev        
-    print "Mean Slope : " , mean_slope 
-    print "Length of Directing Vector [km] : " , '%.2f' % L_orienting_vect 
-    print "Prevalent Orientation [degree from north, counterclockwise] : " , '%.3f' % prevalent_orientation
-    print "Compactness Coefficient : " , '%.2f' % C_comp 
-    print "Circularity Ratio : " , '%.2f' % R_c       
-    print "Topological Diameter : " , '%.2f' % D_topo 
-    print "Elongation Ratio : " , '%.2f' % R_al 
-    print "Shape Factor : " , '%.2f' % S_f
-    print "Concentration Time (Giandotti, 1934) [hr] : " , '%.2f' % t_c
-    print "Length of Mainchannel [km] : " , '%.2f' % mainchannel 
-    print "Mean slope of mainchannel [%]: " , '%.2f' % mainchannel_slope
-    print "Mean hillslope length [m] : " , '%.2f' % mean_hillslope_length
-    print "Magnitudo : " , '%.0f' % magnitudo
-    print "Max order (Strahler) : " , Max_order 
-    print "Number of streams : " , Num_streams 
-    print "Total Stream Length [km] : " , Len_streams 
-    print "First order stream frequency : " , '%.2f' % FSF
-    print "Drainage Density [km/km^2]: " , '%.2f' % drainage_density
-    print "Bifurcation Ratio (Horton) : " , Bif_ratio 
-    print "Length Ratio (Horton) : " , Len_ratio 
-    print "Area ratio (Horton) : " , Area_ratio
-    print "Slope ratio (Horton): " , Slope_ratio, "\n"
-    
-    #print parametri_bacino
-    grass.run_command('g.message' , message = 'Done!')	
+    grass.message( "\n" ) 
+    grass.message( "##################################" )
+    grass.message( "Morphometric parameters of basin :" )
+    grass.message( "##################################\n" )	
+    grass.message( "Easting Centroid of basin : %s " % basin_east )
+    grass.message( "Northing Centroid of Basin : %s " % basin_north )
+    grass.message( "Rectangle containing basin N-W : %s , %s " % nw ) 
+    grass.message( "Rectangle containing basin S-E : %s , %s " % se )
+    grass.message( "Area of basin [km^2] : %s " % area_basin )
+    grass.message( "Perimeter of basin [km] : %s " % perimeter_basin )
+    grass.message( "Max Elevation [m s.l.m.] : %s " % H1 )
+    grass.message( "Min Elevation [m s.l.m.]: %s " % H2 )
+    grass.message( "Elevation Difference [m]: %s " % HM )
+    grass.message( "Mean Elevation [m s.l.m.]: %s " % mean_elev )       
+    grass.message( "Mean Slope : %s " % mean_slope )
+    grass.message( "Length of Directing Vector [km] : %s " % L_orienting_vect )
+    grass.message( "Prevalent Orientation [degree from north, counterclockwise] : %s " % prevalent_orientation )
+    grass.message( "Compactness Coefficient : %s " % C_comp )
+    grass.message( "Circularity Ratio : %s " % R_c )      
+    grass.message( "Topological Diameter : %s " % D_topo )
+    grass.message( "Elongation Ratio : %s " % R_al )
+    grass.message( "Shape Factor : %s " % S_f )
+    grass.message( "Concentration Time (Giandotti, 1934) [hr] : %s " % t_c )
+    grass.message( "Length of Mainchannel [km] : %s " % mainchannel )
+    grass.message( "Mean slope of mainchannel [percent] : %f " % mainchannel_slope )
+    grass.message( "Mean hillslope length [m] : %s " % mean_hillslope_length )
+    grass.message( "Magnitudo : %s " % magnitudo )
+    grass.message( "Max order (Strahler) : %s " % Max_order )
+    grass.message( "Number of streams : %s " % Num_streams )
+    grass.message( "Total Stream Length [km] : %s " % Len_streams )
+    grass.message( "First order stream frequency : %s " % FSF )
+    grass.message( "Drainage Density [km/km^2] : %s " % drainage_density )
+    grass.message( "Bifurcation Ratio (Horton) : %s " % Bif_ratio )
+    grass.message( "Length Ratio (Horton) : %s " % Len_ratio )
+    grass.message( "Area ratio (Horton) : %s " % Area_ratio )
+    grass.message( "Slope ratio (Horton): %s " % Slope_ratio )
+    grass.message( "\n" )
+    grass.message( "Done!")
 
 if __name__ == "__main__":
     options, flags = grass.parser()
