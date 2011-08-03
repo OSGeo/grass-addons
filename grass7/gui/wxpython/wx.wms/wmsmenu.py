@@ -101,7 +101,7 @@ class wmsFrame(wx.Frame):
         return
     
     
-        f = open('serverList.txt','r')
+        '''f = open('serverList.txt','r')
         lines = f.readlines()
         self.servers = {}
         for line in lines:
@@ -111,7 +111,7 @@ class wmsFrame(wx.Frame):
                 self.servers[row[0]] = row[1]
             name = row[0]+" "+row[1][7:45]
             ComboBox.Append(name)
-        f.close()
+        f.close()'''
 
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
         self.usernameInput.Enable()
@@ -127,9 +127,10 @@ class wmsFrame(wx.Frame):
         try:
             response = urlopen(req)
             xml = response.read()
-            f=open('in1.xml','r')
-            xml=f.read()
-            f.close()
+            #for testing pruposes
+            #f=open('in1.xml','r')
+            #xml=f.read()
+            #f.close()
             #self.statusbar.SetStatusText(xml) 
             
             reslist = parsexml(xml)
@@ -223,7 +224,7 @@ class wmsFrame(wx.Frame):
         url = self.ServerList.GetValue()
         urlarr = url.split()
         if(len(urlarr)==2):
-            self.selectedURL = self.servers[urlarr[0]]
+            self.selectedURL = self.servers[urlarr[0]].url
             print self.selectedURL
         else:
             print "Wrong format of URL selected"
