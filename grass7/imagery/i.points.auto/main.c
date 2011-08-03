@@ -211,10 +211,10 @@ int main(int argc, char *argv[])
         tgt_window.south >= cellhd2.north ||
         tgt_window.west >= cellhd2.east ||
         tgt_window.east <= cellhd2.west) {
-	G_debug(0, "north: %.4G <= %.4G", tgt_window.north, cellhd2.south);
-	G_debug(0, "south: %.4G >= %.4G", tgt_window.south, cellhd2.north);
-	G_debug(0, "west: %.4G >= %.4G", tgt_window.west, cellhd2.east);
-	G_debug(0, "east: %.4G <= %.4G", tgt_window.east, cellhd2.west);
+	G_debug(1, "north: %.4G <= %.4G", tgt_window.north, cellhd2.south);
+	G_debug(1, "south: %.4G >= %.4G", tgt_window.south, cellhd2.north);
+	G_debug(1, "west: %.4G >= %.4G", tgt_window.west, cellhd2.east);
+	G_debug(1, "east: %.4G <= %.4G", tgt_window.east, cellhd2.west);
 	if (c_flag->answer)
 	    G_fatal_error(_("Source current region and target image do not overlap"));
 	else
