@@ -130,7 +130,7 @@ def main():
     grass.run_command('r.watershed', elevation = r_elevation , threshold = th , accumulation = r_accumulation , drainage = r_drainage , stream = r_stream+'_nothin' , convergence = 5, flags = 'a')
 
     # Stream extraction
-    grass.run_command('r.stream.extract', elevation = r_elevation, accumulation = r_accumulation, threshold = th, d8cut = 'infinity', mexp = 0, stream_rast = r_stream_e, stream_vect = v_stream_e, direction = r_drainage_e, flags ='-o')
+    grass.run_command('r.stream.extract', elevation = r_elevation, accumulation = r_accumulation, threshold = th, d8cut = 'infinity', mexp = 0, stream_rast = r_stream_e, stream_vect = v_stream_e, direction = r_drainage_e, overwrite = True)
     
     # Delineation of basin 
     grass.run_command('r.stream.basins', dir = r_drainage , basins = r_basin , coors = '%s,%s' % (east , north) )
@@ -139,13 +139,13 @@ def main():
     # Backup and mask
     elevation_name = r_elevation = r_elevation.split('@')[0]
     grass.run_command('g.copy', rast = r_elevation+','+elevation_name+'_crop')	
-    grass.run_command('r.mapcalculator', amap = r_basin , formula = '%s/%s' % (r_basin, r_basin) , outfile = r_mask, flags = '-o')
-    grass.run_command('r.mapcalculator', amap = r_accumulation , formula = '%s*%s' % (r_accumulation, r_mask) , outfile = r_accumulation, flags = '-o')
-    grass.run_command('r.mapcalculator', amap = r_drainage , formula = '%s*%s' % (r_drainage, r_mask) , outfile = r_drainage, flags = '-o')
-    grass.run_command('r.mapcalculator', amap = r_stream+'_nothin' , formula = '%s*%s' % (r_stream+'_nothin', r_mask) , outfile = r_stream+'_nothin', flags = '-o')
-    grass.run_command('r.mapcalculator', amap = r_elevation , formula = '%s*%s' % (r_elevation, r_mask) , outfile = r_elevation+'_crop', flags = '-o')
-    grass.run_command('r.mapcalculator', amap = r_drainage_e , formula = '%s*%s' % (r_drainage_e, r_mask) , outfile = r_drainage_e, flags = '-o')
-    grass.run_command('r.mapcalculator', amap = r_stream_e , formula = '%s*%s' % (r_stream_e, r_mask) , outfile = r_stream_e, flags = '-o')
+    grass.run_command('r.mapcalculator', amap = r_basin , formula = '%s/%s' % (r_basin, r_basin) , outfile = r_mask, overwrite = True)
+    grass.run_command('r.mapcalculator', amap = r_accumulation , formula = '%s*%s' % (r_accumulation, r_mask) , outfile = r_accumulation, overwrite = True)
+    grass.run_command('r.mapcalculator', amap = r_drainage , formula = '%s*%s' % (r_drainage, r_mask) , outfile = r_drainage, overwrite = True)
+    grass.run_command('r.mapcalculator', amap = r_stream+'_nothin' , formula = '%s*%s' % (r_stream+'_nothin', r_mask) , outfile = r_stream+'_nothin', overwrite = True)
+    grass.run_command('r.mapcalculator', amap = r_elevation , formula = '%s*%s' % (r_elevation, r_mask) , outfile = r_elevation+'_crop', overwrite = True)
+    grass.run_command('r.mapcalculator', amap = r_drainage_e , formula = '%s*%s' % (r_drainage_e, r_mask) , outfile = r_drainage_e, overwrite = True)
+    grass.run_command('r.mapcalculator', amap = r_stream_e , formula = '%s*%s' % (r_stream_e, r_mask) , outfile = r_stream_e, overwrite = True)
     grass.run_command('r.thin', input = r_stream_e , output = r_stream_e+'_thin' )
     grass.run_command('r.to.vect', input = r_stream_e+'_thin' , output = v_network , feature = 'line' )
     
@@ -246,12 +246,12 @@ def main():
     
     # Mean slope of mainchannel
     grass.run_command('v.to.points', flags='n', input = v_mainchannel_dim, output = v_mainchannel_dim+'_point', type = 'line')
-    vertex = grass.read_command('v.out.ascii', flags = '-v' , input = v_mainchannel_dim+'_point').strip().split('\n')
+    vertex = grass.read_command('v.out.ascii', verbose = True , input = v_mainchannel_dim+'_point').strip().split('\n')
     nodi = zeros((len(vertex),4),float)
     pendenze = []
     for i in range(len(vertex)):
         x, y = float(vertex[i].split('|')[0]) , float(vertex[i].split('|')[1])
-        vertice = grass.read_command('r.what', flags = '-v' , input = r_elevation+'_crop', east_north='%s,%s' % (x,y)).replace('\n','').replace('||','|').split('|')
+        vertice = grass.read_command('r.what', verbose = True , input = r_elevation+'_crop', east_north='%s,%s' % (x,y)).replace('\n','').replace('||','|').split('|')
         nodi[i,0],nodi[i,1], nodi[i,2] = float(vertice[0]), float(vertice[1]), float(vertice[2])
     for i in range(0,len(vertex)-1,2):
         dist = math.sqrt(math.fabs((nodi[i,0] - nodi[i+1,0]))**2 + math.fabs((nodi[i,1] - nodi[i+1,1]))**2)
