@@ -1,3 +1,0 @@
-a3 b3 c3 d3
-a2 b2 c2 d2
-GISNetServer http://www.gisnet.lv/cgi-bin/topo uname password
