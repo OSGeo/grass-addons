@@ -6,5 +6,6 @@ Arabic String or any right indented string doesnt work quite well with the curre
 
 2.On closing add server window, main window also closes. To be fixed. 
 
+3.Coding Standards of wxgui programming not followed exactly till now. Code to be modified soon for that. 
 More to be added...
 
