@@ -8,6 +8,8 @@ from urllib2 import Request, urlopen, URLError, HTTPError
 from parse import parsexml, isServiceException, populateLayerTree
 from WMSMapDisplay import NewImageFrame
 from addserver import AddServerFrame
+from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, initServerInfoBase, getAllRows
+
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -44,6 +46,7 @@ class wmsFrame(wx.Frame):
         
         #Sudeep's Code Starts
         #self.urlInput.SetValue('http://www.gisnet.lv/cgi-bin/topo')
+        self.soup = initServerInfoBase('ServersList.xml')
         self.__populate_Url_List(self.ServerList)
         self.selectedURL="No server selected"
         self.layerTreeRoot = self.LayerTree.AddRoot("Layers")
@@ -89,7 +92,15 @@ class wmsFrame(wx.Frame):
     def update_Url_List(self, name):
         ComboBox = self.ServerList
         ComboBox.Append(name)
+        
     def __populate_Url_List(self, ComboBox):
+        self.servers = getAllRows(self.soup)
+        for key, value in self.servers.items():
+            ComboBox.Append(value.servername+" "+value.url)
+        print self.servers
+        return
+    
+    
         f = open('serverList.txt','r')
         lines = f.readlines()
         self.servers = {}
