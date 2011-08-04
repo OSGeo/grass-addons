@@ -1,22 +1,38 @@
 <serverinfo>
- <server id="cd">
+ <server id="123">
   <servername>
-   cd
+   123
   </servername>
   <serverurl>
-   cswd
+   123
   </serverurl>
   <username>
+   123
   </username>
   <password>
+   123
   </password>
  </server>
- <server id="āšņ ēčžģ1">
+ <server id="asd">
   <servername>
-   āšņ ēčžģ1
+   asd
   </servername>
   <serverurl>
-   12
+   asd
+  </serverurl>
+  <username>
+   asd
+  </username>
+  <password>
+   asd
+  </password>
+ </server>
+ <server id="āšņ ēčžģ12">
+  <servername>
+   āšņ ēčžģ12
+  </servername>
+  <serverurl>
+   asd12
   </serverurl>
   <username>
   </username>
@@ -47,32 +63,6 @@
   <password>
   </password>
  </server>
- <server id="qw">
-  <servername>
-   qw
-  </servername>
-  <serverurl>
-   qw1
-  </serverurl>
-  <username>
-  </username>
-  <password>
-  </password>
- </server>
- <server id="a3">
-  <servername>
-   a3
-  </servername>
-  <serverurl>
-   b3
-  </serverurl>
-  <username>
-   c3
-  </username>
-  <password>
-   d3
-  </password>
- </server>
  <server id="GISNetServer">
   <servername>
    GISNetServer
@@ -85,20 +75,6 @@
   </username>
   <password>
    password
-  </password>
- </server>
- <server id="a2">
-  <servername>
-   a2
-  </servername>
-  <serverurl>
-   b2
-  </serverurl>
-  <username>
-   c2
-  </username>
-  <password>
-   d2
   </password>
  </server>
 </serverinfo>

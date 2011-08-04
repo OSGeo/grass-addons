@@ -4,6 +4,7 @@
 
 import wx
 from wxPython.wx import *
+from wx.lib.pubsub import Publisher
 from urllib2 import Request, urlopen, URLError, HTTPError
 from parse import parsexml, isServiceException, populateLayerTree
 from WMSMapDisplay import NewImageFrame
@@ -56,7 +57,7 @@ class wmsFrame(wx.Frame):
         self.__populate_Url_List(self.ServerList)
         self.selectedURL="No server selected"
         self.layerTreeRoot = self.LayerTree.AddRoot("Layers")
-        
+        Publisher().subscribe(self.updateServerList, ("update.serverList"))
         
         #items = ["a", "b", "c"]
         #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
@@ -95,9 +96,13 @@ class wmsFrame(wx.Frame):
         sizer_1.Fit(self)
         self.Layout()
         # end wxGlade
-    def update_Url_List(self, name):
-        ComboBox = self.ServerList
-        ComboBox.Append(name)
+    def __update_Url_List(self, ComboBox):
+        ComboBox.Clear()
+        for key, value in self.servers.items():
+            ComboBox.Append(value.servername+self.name_url_delimiter+value.url)
+            #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
+        print self.servers
+        return
         
    
 
@@ -280,11 +285,25 @@ class wmsFrame(wx.Frame):
         #print "Event handler `OnLayerTreeSelChanged' not implemented"
         event.Skip()
 
+    def updateServerList(self, msg):
+        """
+        Shows the frame and shows the message sent in the
+        text control
+        """
+        print 'yoyo'
+        self.servers = msg.data
+        self.__update_Url_List(self.ServerList)
+        print 'yoyo'
+        #frame = self.GetParent()
+        #frame.Show()
+        
     def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
-        AddServerFrame()
+        print 'before add server call'
+        AddServerFrame(self)
+        #print 'after add server call'
         #print "Event handler `OnAddServer' not implemented"
-        event.Skip()
-
+        #event.Skip()
+        return 
 # end of class wmsFrame
 
 #Sudeep's Code Starts
