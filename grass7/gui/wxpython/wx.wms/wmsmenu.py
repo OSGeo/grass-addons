@@ -9,7 +9,7 @@ from parse import parsexml, isServiceException, populateLayerTree
 from WMSMapDisplay import NewImageFrame
 from addserver import AddServerFrame
 from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, initServerInfoBase, getAllRows
-
+from LoadConfig import loadConfigFile
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -46,12 +46,18 @@ class wmsFrame(wx.Frame):
         
         #Sudeep's Code Starts
         #self.urlInput.SetValue('http://www.gisnet.lv/cgi-bin/topo')
+        self.usernameInput.Disable()
+        self.passwordInput.Disable()
+        if( not loadConfigFile(self)):
+            print 'Config File Error, Unable to start application...'
+            self.Close()
+
         self.soup = initServerInfoBase('ServersList.xml')
         self.__populate_Url_List(self.ServerList)
         self.selectedURL="No server selected"
         self.layerTreeRoot = self.LayerTree.AddRoot("Layers")
-        self.usernameInput.Disable()
-        self.passwordInput.Disable()
+        
+        
         #items = ["a", "b", "c"]
         #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
         #self.LayerTree.AppendItem(itemId, "inside")
@@ -93,10 +99,14 @@ class wmsFrame(wx.Frame):
         ComboBox = self.ServerList
         ComboBox.Append(name)
         
+   
+
+
     def __populate_Url_List(self, ComboBox):
         self.servers = getAllRows(self.soup)
         for key, value in self.servers.items():
-            ComboBox.Append(value.servername+" "+value.url)
+            ComboBox.Append(value.servername+self.name_url_delimiter+value.url)
+            #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
         print self.servers
         return
     
@@ -114,6 +124,10 @@ class wmsFrame(wx.Frame):
         f.close()'''
 
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
+        if(self.selectedURL == "No server selected"):
+            print 'no url selected\n returning...\n'
+            return
+        
         self.usernameInput.Enable()
         self.passwordInput.Enable()
         #Sudeep's Code Starts
@@ -196,6 +210,8 @@ class wmsFrame(wx.Frame):
 
     
     def OnServerListEnter(self, event): # wxGlade: wmsFrame.<event_handler>
+        return
+        '''
         print "Event handler `OnServerListEnter' not implemented"
         #Sudeep's Code Starts
         print self.ServerList.CurrentSelection
@@ -216,15 +232,25 @@ class wmsFrame(wx.Frame):
             print "Format not recognized, Format: Severname URL"
         #Sudeep's Code Ends
         event.Skip()
-
+        '''
+    def printDict(self,dict):
+        for key in dict.keys():
+            print "the key name is" + key + "and its value is" 
+        
     def OnServerList(self, event): # wxGlade: wmsFrame.<event_handler>
         print "Event handler `OnServerList' not implemented"
         #Sudeep's Code Starts
         print self.ServerList.CurrentSelection
         url = self.ServerList.GetValue()
-        urlarr = url.split()
+        urlarr = url.split(self.name_url_delimiter)
+        print "OnServerList:printing urlarr"
+        print urlarr
+        print urlarr[0]
+        print urlarr[0].encode()
+        self.printDict(self.servers)
+        print "OnServerList: done"
         if(len(urlarr)==2):
-            self.selectedURL = self.servers[urlarr[0]].url
+            self.selectedURL = self.servers[urlarr[0].encode()].url
             print self.selectedURL
         else:
             print "Wrong format of URL selected"

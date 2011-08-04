@@ -27,6 +27,7 @@ def initServerInfoBase(fileName):
 
 
 def addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue):
+    snamevalue = unicode(snamevalue)
     elements = soup.findAll(id = snamevalue)
     if(len(elements)!=0):
         return False
@@ -47,6 +48,7 @@ def addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordva
         server.insert(3, password)
     
         #Adding attribute to server tag
+        
         server['id'] = snamevalue
     
         #Adding text values to the server info fields
@@ -57,6 +59,7 @@ def addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordva
         return True
 
 def removeServerInfo(soup, serverID):
+    serverID = unicode(serverID)
     elements = soup.findAll(id = serverID)
     if(len(elements)==0):
         return False
@@ -66,6 +69,7 @@ def removeServerInfo(soup, serverID):
         return True
 
 def updateServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue):
+    snamevalue = unicode(snamevalue)
     if(removeServerInfo(soup, snamevalue)):
         if(addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue)):
             return True
@@ -83,7 +87,7 @@ def getAllRows(soup):
         username = element.findAll('username')[0]
         password = element.findAll('password')[0]
         serverdata = ServerData()
-        serverdata.servername = servername.contents[0].strip()
+        serverdata.servername = unicode(servername.contents[0].strip())
         serverdata.url = serverurl.contents[0].strip()
         serverdata.username = username.contents[0].strip()
         serverdata.password = password.contents[0].strip()

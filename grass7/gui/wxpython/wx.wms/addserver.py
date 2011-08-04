@@ -5,6 +5,8 @@
 import wx
 from BeautifulSoup import BeautifulSoup, Tag, NavigableString, BeautifulStoneSoup
 from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, initServerInfoBase, getAllRows
+from LoadConfig import loadConfigFile
+
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -49,6 +51,10 @@ class ServerAdd(wx.Frame):
         
         
         #sudeep code starts
+        if( not loadConfigFile(self)):
+            print 'Config File Error, Unable to start application...'
+            self.Close()
+
         self.soup = initServerInfoBase('ServersList.xml')
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.__populate_URL_List(self.ServerList)
@@ -115,7 +121,8 @@ class ServerAdd(wx.Frame):
     def __populate_URL_List(self, ComboBox):
         self.servers = getAllRows(self.soup)
         for key, value in self.servers.items():
-            ComboBox.Append(value.servername+" "+value.url)
+            ComboBox.Append(value.servername+self.name_url_delimiter+value.url)
+            #ComboBox.Append(value.servername+" "+value.url)
         print self.servers
         return
     	''''f = open('serverList.txt','r')
@@ -144,13 +151,16 @@ class ServerAdd(wx.Frame):
         
     def __update_URL_List(self):
         self.ServerList.Clear()
-        for k,v in self.servers.iteritems():
-            name = v.servername+" "+v.url
-            self.ServerList.Append(name)
+        for key,value in self.servers.iteritems():
+            #name = v.servername+" "+v.url
+            self.ServerList.Append(value.servername+self.name_url_delimiter+value.url)
+            #self.ServerList.Append(name)
         
     def OnSave(self, event): # wxGlade: ServerAdd.<event_handler>
         #print "Event handler `OnSave' not implemented"
-        newServerName = self.ServerNameText.GetValue()
+        newServerName = unicode(self.ServerNameText.GetValue())
+        print newServerName
+        print 'check12'
         if(self.servers.has_key(newServerName)):
             update = True
             #print 'Server Name already exists'
@@ -193,11 +203,11 @@ class ServerAdd(wx.Frame):
             self.__update_URL_List()
   	    #Update_Url_List(newServerName+" "+newUrl)
         else:
-            print "Please Fill all the fields"
+            print "Please Fill servername and url fields"
         event.Skip()
 
     def OnRemove(self, event): # wxGlade: ServerAdd.<event_handler>
-        serverName = self.ServerNameText.GetValue()
+        serverName = unicode(self.ServerNameText.GetValue())
         if(len(serverName) > 0):
             if(removeServerInfo(self.soup, serverName)):
                 print 'remove successful'
@@ -231,10 +241,10 @@ class ServerAdd(wx.Frame):
         f = open('ServersList.xml','w')
         f.write(xml)
         f.close()
-        out = open('serverList.txt','w')
+        '''out = open('serverList.txt','w')
         for k,v in self.servers.iteritems():
             out.write(v.servername+" "+v.url+" "+v.username+" "+v.password+"\n")
-        exit()
+        exit()'''
         #ServerAdd.Close()
         #print "Event handler `OnQuit' not implemented"
         event.Skip()
@@ -244,11 +254,11 @@ class ServerAdd(wx.Frame):
         url = self.ServerList.GetValue()
         print 'here'
         print url
-        urlarr = url.split()
+        urlarr = url.split(self.name_url_delimiter)
         print urlarr
         print self.servers
         if(len(urlarr)==2):
-            self.selectedServer = self.servers[urlarr[0]]
+            self.selectedServer = self.servers[unicode(urlarr[0])]
             print self.selectedServer
             self.ServerNameText.SetValue(self.selectedServer.servername)
             self.URLText.SetValue(self.selectedServer.url)
