@@ -1,22 +1,24 @@
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<p><EM>i.topo.corr</EM> is used to topographically correct reflectance
-from imagery files, e.g. obtained with <EM>i.landsat.toar</EM>, using a
+<em>i.topo.corr</em> is used to topographically correct reflectance
+from imagery files, e.g. obtained with <em>i.landsat.toar</em>, using a
 sun illumination terrain model. This illumination model represents the
 cosine of the incident angle, i.e. the  angle between the normal to the
 ground and the sun rays. It can be obtained with <em>r.sun</em>
-(parameter incidout), and then calculating its cosine with float precision.</p>
+(parameter incidout), and then calculating its cosine with float precision.
 
-<p>Using flag -i and given an elevation map as basemap (UTM),
+<p>
+Using flag -i and given an elevation map as basemap (UTM),
 <em>i.topo.corr</em> permits to obtain a simple illumination model from the formula:
 <ul>
 	<li> cos_i = cos(s) * cos(z) + sin(s) * sin(z) * sin(a - o) </li>
 </ul>
 where,
 <em>s</em> is the terrain slope angle, <em>z</em> is the solar zenith angle,
-<em>a</em> the solar azimuth angle, <em>o</em> the terrain aspect angle.</p>
+<em>a</em> the solar azimuth angle, <em>o</em> the terrain aspect angle.
 
-<p>For each band file, the corrected reflectance (ref_c) is calculate from
+<p>
+For each band file, the corrected reflectance (ref_c) is calculate from
 the original reflectance (ref_o) using one of the four offered methods
 <!-- TODO: fix next numbers -->
 (one lambertian and two non-lambertian).</p>
@@ -65,7 +67,7 @@ be calculated as
 <li>The elevation map to calculate the illumination model should be metric.</li>
 </ol>
 
-<H2>EXAMPLES</H2>
+<h2>EXAMPLES</h2>
 
 First, make a illumination model from the elevation map (here, SRTM), and
 then make topographic correction of the bands toar.5, toar.4 and toar.3 with
@@ -107,7 +109,7 @@ i.topo.corr base=SRTM.illumination input=toar.5,toar.4,toar.3 out=tcor \
 <A HREF="r.sun.html">r.sun</A>
 </em>
 
-<H2>AUTHOR</H2>
+<h2>AUTHOR</h2>
 
 E. Jorge Tizado  (ej.tizado unileon es)<br>
 Dept. Biodiversity and Environmental Management, University of Le&oacute;n, Spain
