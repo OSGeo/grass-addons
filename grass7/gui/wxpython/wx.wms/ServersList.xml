@@ -1,4 +1,64 @@
 <serverinfo>
+ <server id="cd">
+  <servername>
+   cd
+  </servername>
+  <serverurl>
+   cswd
+  </serverurl>
+  <username>
+  </username>
+  <password>
+  </password>
+ </server>
+ <server id="āšņ ēčžģ1">
+  <servername>
+   āšņ ēčžģ1
+  </servername>
+  <serverurl>
+   12
+  </serverurl>
+  <username>
+  </username>
+  <password>
+  </password>
+ </server>
+ <server id="ڝڍڑڭڏڧڲ">
+  <servername>
+   ڝڍڑڭڏڧڲ
+  </servername>
+  <serverurl>
+   asdasd
+  </serverurl>
+  <username>
+  </username>
+  <password>
+  </password>
+ </server>
+ <server id="āšņ ēčžģ">
+  <servername>
+   āšņ ēčžģ
+  </servername>
+  <serverurl>
+   asd
+  </serverurl>
+  <username>
+  </username>
+  <password>
+  </password>
+ </server>
+ <server id="qw">
+  <servername>
+   qw
+  </servername>
+  <serverurl>
+   qw1
+  </serverurl>
+  <username>
+  </username>
+  <password>
+  </password>
+ </server>
  <server id="a3">
   <servername>
    a3
