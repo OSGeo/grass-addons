@@ -246,11 +246,11 @@ class wmsFrame(wx.Frame):
         print "OnServerList:printing urlarr"
         print urlarr
         print urlarr[0]
-        print urlarr[0].encode()
+        #print urlarr[0].encode()
         self.printDict(self.servers)
         print "OnServerList: done"
         if(len(urlarr)==2):
-            self.selectedURL = self.servers[urlarr[0].encode()].url
+            self.selectedURL = self.servers[urlarr[0]].url
             print self.selectedURL
         else:
             print "Wrong format of URL selected"
