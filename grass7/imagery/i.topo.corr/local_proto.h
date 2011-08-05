@@ -11,7 +11,6 @@ typedef struct
 {
     int fd;
     char name[GNAME_MAX];
-    char *mapset;
     void *rast;
     RASTER_MAP_TYPE type;
 } Gfile;
