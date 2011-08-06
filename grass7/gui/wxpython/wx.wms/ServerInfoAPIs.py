@@ -1,11 +1,18 @@
 from BeautifulSoup import BeautifulSoup, Tag, BeautifulStoneSoup
+import os.path
 
 class ServerData():
     pass
 
 def initServerInfoBase(fileName):
-    try:
-        f = open(fileName,'r')
+    if(os.path.exists(fileName)):
+        try:
+            os.system('chmod 777 '+fileName)
+            f = open(fileName,'r')
+        except:
+            print 'Unable to open File '+fileName
+            print 'exiting application...'
+            return None, False
         xml = f.read()   
         f.close()
         soup = BeautifulStoneSoup(xml)
@@ -13,17 +20,16 @@ def initServerInfoBase(fileName):
         #print 'serverinfolisthere'
         #print serverinfolist
         #print len(serverinfolist)    
-    except:
+    else:
         serverinfolist = []
         soup = BeautifulSoup()
         xml = "null"
     
     if(len(serverinfolist) == 0):
-
             serverinfo = Tag(soup, "serverinfo")
             soup.insert(0, serverinfo)
             
-    return soup
+    return soup, True
 
 
 def addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue):

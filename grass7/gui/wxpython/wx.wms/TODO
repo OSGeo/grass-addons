@@ -12,6 +12,8 @@ Arabic String or any right indented string doesnt work quite well with the curre
 
 5.Layers fetched are not being displayed hierarchly, bug known, to be fixed. 
 
+6.In case, on adding or removing a server, if the write to file is unsuccessful, the application removes it from the serverlist, even though is not written in the file.
+So when the application restarts, all the changes done are lost, since data was not written to file successfuly. 
 
 More to be added...
 

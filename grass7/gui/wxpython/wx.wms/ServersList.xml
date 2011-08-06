@@ -1,18 +1,4 @@
 <serverinfo>
- <server id="123">
-  <servername>
-   123
-  </servername>
-  <serverurl>
-   123
-  </serverurl>
-  <username>
-   123
-  </username>
-  <password>
-   123
-  </password>
- </server>
  <server id="asd">
   <servername>
    asd
@@ -25,18 +11,6 @@
   </username>
   <password>
    asd
-  </password>
- </server>
- <server id="āšņ ēčžģ12">
-  <servername>
-   āšņ ēčžģ12
-  </servername>
-  <serverurl>
-   asd12
-  </serverurl>
-  <username>
-  </username>
-  <password>
   </password>
  </server>
  <server id="ڝڍڑڭڏڧڲ">

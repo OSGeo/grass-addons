@@ -31,7 +31,7 @@ class wmsFrame(wx.Frame):
         self.passwordInput = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_TAB|wx.TE_PASSWORD)
         self.GetCapabilities = wx.Button(self, -1, "GetCapabilities")
         self.GetMaps = wx.Button(self, -1, "GetMaps")
-        self.addServer = wx.Button(self, -1, "AddServer")
+        self.addServer = wx.Button(self, -1, "Manage Servers")
 
         self.__set_properties()
         self.__do_layout()
@@ -52,12 +52,20 @@ class wmsFrame(wx.Frame):
         if( not loadConfigFile(self)):
             print 'Config File Error, Unable to start application...'
             self.Close()
+            return
 
-        self.soup = initServerInfoBase('ServersList.xml')
+        self.soup, open = initServerInfoBase('ServersList.xml')
+        if(not open):
+            self.Close()
+            return
         self.__populate_Url_List(self.ServerList)
         self.selectedURL="No server selected"
         self.layerTreeRoot = self.LayerTree.AddRoot("Layers")
-        Publisher().subscribe(self.updateServerList, ("update.serverList"))
+        Publisher().subscribe(self.onAddServerFrameClose, ("Add_Server_Frame_Closed"))
+        Publisher().subscribe(self.onUpdateServerListmessage, ("update.serverList"))
+        
+        self.Bind(wx.EVT_CLOSE, self.OnQuit)
+        self.AddServerisClosed = True
         
         #items = ["a", "b", "c"]
         #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
@@ -101,7 +109,7 @@ class wmsFrame(wx.Frame):
         for key, value in self.servers.items():
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url)
             #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
-        print self.servers
+        #print self.servers
         return
         
    
@@ -112,7 +120,7 @@ class wmsFrame(wx.Frame):
         for key, value in self.servers.items():
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url)
             #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
-        print self.servers
+        #print self.servers
         return
     
     
@@ -151,7 +159,6 @@ class wmsFrame(wx.Frame):
             #xml=f.read()
             #f.close()
             #self.statusbar.SetStatusText(xml) 
-            
             reslist = parsexml(xml)
             populateLayerTree(xml,self.LayerTree, self.layerTreeRoot)
             #for res in reslist:
@@ -165,6 +172,11 @@ class wmsFrame(wx.Frame):
         except URLError, e: 
             print 'We failed to reach a server.'
             print 'Reason: ', e.reason
+        except ValueError, e:
+            print 'Value error'
+            print 'Reason: ', e.reason
+        except:
+            print 'urlopen exception, unable to fetch data for getcapabilities'
         else:
             print 'Successful'
             #Sudeep's Code Ends
@@ -252,7 +264,7 @@ class wmsFrame(wx.Frame):
         print urlarr
         print urlarr[0]
         #print urlarr[0].encode()
-        self.printDict(self.servers)
+        #self.printDict(self.servers)
         print "OnServerList: done"
         if(len(urlarr)==2):
             self.selectedURL = self.servers[urlarr[0]].url
@@ -285,25 +297,35 @@ class wmsFrame(wx.Frame):
         #print "Event handler `OnLayerTreeSelChanged' not implemented"
         event.Skip()
 
-    def updateServerList(self, msg):
-        """
-        Shows the frame and shows the message sent in the
-        text control
-        """
-        print 'yoyo'
+    def onAddServerFrameClose(self, msg):
+        self.AddServerisClosed = True
+        self.addServer.Enable()
         self.servers = msg.data
         self.__update_Url_List(self.ServerList)
-        print 'yoyo'
         #frame = self.GetParent()
         #frame.Show()
+    
+    def onUpdateServerListmessage(self, msg):
+        self.servers = msg.data
+        self.__update_Url_List(self.ServerList)
         
     def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
         print 'before add server call'
+        self.AddServerisClosed = False
+        self.addServer.Disable()
         AddServerFrame(self)
         #print 'after add server call'
         #print "Event handler `OnAddServer' not implemented"
         #event.Skip()
         return 
+    
+    def OnQuit(self, event):
+        msg = ""
+        print 'in quit'
+        if(not self.AddServerisClosed):
+            Publisher().sendMessage(("WMS_Menu_Close"), msg)
+        self.Destroy()
+        return
 # end of class wmsFrame
 
 #Sudeep's Code Starts
