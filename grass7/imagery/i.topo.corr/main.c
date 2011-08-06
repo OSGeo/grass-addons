@@ -48,33 +48,23 @@ int main(int argc, char *argv[])
     G_add_keyword(_("raster"));
     G_add_keyword(_("terrain"));
     G_add_keyword(_("topographic correction"));
-    module->description = _("Topografic correction of reflectance");
+    module->description = _("Computes topographic correction of reflectance.");
 
     /* It defines the different parameters */
 
-    input = G_define_option();
-    input->key = "input";
-    input->type = TYPE_STRING;
+    input = G_define_standard_option(G_OPT_R_INPUTS);
     input->required = NO;
     input->multiple = YES;
-    input->gisprompt = "old,cell,raster";
     input->description =
-	_("List of reflectance band maps to correct topographically");
+	_("Name of reflectance raster maps to be corrected topographically");
 
-    output = G_define_option();
-    output->key = "output";
-    output->type = TYPE_STRING;
-    output->required = YES;
-    output->gisprompt = "new,cell,raster";
+    output = G_define_standard_option(G_OPT_R_OUTPUT);
     output->description =
-	_("File name of output (flag -i) or prefix of output files");
+	_("Name (flag -i) or prefix for output raster maps");
 
-    base = G_define_option();
+    base = G_define_standard_option(G_OPT_R_MAP);
     base->key = "basemap";
-    base->type = TYPE_STRING;
-    base->required = YES;
-    base->gisprompt = "old,cell,raster";
-    base->description = _("Base map for analysis (elevation or ilumination)");
+    base->description = _("Name of input base raster map (elevation or illumination)");
 
     zeni = G_define_option();
     zeni->key = "zenith";
@@ -98,14 +88,13 @@ int main(int argc, char *argv[])
 
     ilum = G_define_flag();
     ilum->key = 'i';
-    ilum->description = _("To output sun ilumination terrain model");
-    ilum->answer = 0;
-
+    ilum->description = _("Output sun illumination terrain model");
+    
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
     if (ilum->answer && azim->answer == NULL)
-	G_fatal_error(_("Solar azimuth is necessary to calculate ilumination terrain model"));
+	G_fatal_error(_("Solar azimuth is necessary to calculate illumination terrain model"));
 
     if (!ilum->answer && input->answer == NULL)
 	G_fatal_error
