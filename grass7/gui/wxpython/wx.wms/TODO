@@ -1,4 +1,4 @@
-Here is a list of known issues with wms layer implementation. These bugs are known and are to be fixed soon. 
+Here is a list of known issues with wms layer implementation. These bugs are known and are to be fixed soon. Please feel free to report an bugs you find in this version by email at sudeep495@gmail.com . This version is under development so, quite a number of bugs are expected. More these are reported, better it is. 
 
 1.Right Indented User Names 
 ڝڍڑڭڏڧڲڝڍڑڭڏڧڲ
@@ -15,6 +15,12 @@ Arabic String or any right indented string doesnt work quite well with the curre
 6.In case, on adding or removing a server, if the write to file is unsuccessful, the application removes it from the serverlist, even though is not written in the file.
 So when the application restarts, all the changes done are lost, since data was not written to file successfuly. 
 
+7.Name of temporary file to be changed to ServersList.xml~ from tempList.xml
+
+8.The Save/Dont Save/Cancel popup works fine for the first time, but for the 2nd time leads to PyDeadObjectError error. This bug is known and is of serious nature. Fix to be done soon. 
+Some other issues detected with this popup. Like when adding a new server name "</servername>" , and then click on save and then on quit, the popup appears, now click on cancel. After clicking on cancel, another popup appears and this continues. Serious issue. This popups code needs to be checked throughly. 
+
+
 More to be added...
 
 
@@ -26,3 +32,103 @@ Things done
 1.[Fixed]Username checked for delimeter presence
 2.[Fixed]On closing add server window, main window also closes.
 3.[Fixed]In addserver.py when pressing the quit button or closing it, main wmsmenu window closes, and it gives an error of maximum recurssion depth reached error. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Following are issues reported by Maris and their current status. (Issues marked with [done] are fixed). 
+
+
+Issues reportes by Maris , Mail 1
+
+
+AddServer dialog:
+* TODO: Dialog layout doesn't re-size well; Text doesn't fit.
+*[done] Quit button quits application and not just closes server editing dialog.
+* Save button should save edits to current server and not create a new
+one; "Save as a new" should create a new entry.
+* TODO: check for name duplication before adding a new server to avoid
+existence of server entries with identical names. That would break
+current XML too, as common name is used as ID. ID should be something
+more generic. UUID?
+*[done]  Only server name and URL should be mandatory
+* TODO: StatusBar should provide real info on application state:
+editing existing entry; creating a new one; saved successfully; save
+failed + popup with error message etc.
+* If a new server is saved successfully, preselect it in servers drop-down list.
+*[done]  Failure to save server list should not wipe existing server list.
+This is important! Use copy on success trick (save to temporary file;
+in case of success, copy temporary file over original one).
+*[done]  All fields should accept non-ascii characters.
+* TODO: validate user provided URL by doing getCapabilities request.
+* When server is removed, it should switch dropdown server list to
+other entry to indicate it's removal.
+
+wmsmenu:
+*[done]  Code makes assumptions that serverlist files are readable and
+writable. This might not be true. Just chmod -r serverlist* to see how
+it affects program.
+* TODO: server list storage in Location OR users preferences. This
+should be offered as a choice to user.
+*[done]  "AddServer" should be called "Edit server list" or some of edit
+icons on button should be used.
+* getCapabilities should provide not only layer list, but also access
+to any data about layer from capabilities document.
+Comments/description are most important. I.e. for gisnet.lv topo
+service layer name "DTC" (desmit tūkstoši, C sistēma) is meaningful
+only to some folks, still description contains more infromation
+* getCapabilities layers might be in hierarchical system (layer groups)
+
+Design decisions to be made:
+* Should we store EPSG code; preferred image format in server settings?
+* How to determine automatically locations EPSG code? You should ask
+-dev mailing list.
+
+Coding style, variable naming etc. You already know.
+
+
+
+
+Issue reported by Maris, Mail 2
+
+* To display important error messages to user use wx.MessageDialog
+with standard options (OK, ERROR icon). For example, "fill all fields"
+should be changed to popup dialog and it also should list missing
+fields. Like: "Following required fields are missing: <LIST OF
+FIELDS>"
+*[done] Saving a new server should send a signal to main windows (wmsFrame)
+server list to update itself.
+*[done] Closing main application window (wmsFrame) should close also AddServer dialog.
+* If user has edited some of server fields without Save or SaveNew,
+onClose should ask "There are unsaved changes. Save/SaveNew"
+
+More important:
+*[done] getCapabilities response should be validated. HTTP code 200 doesn't
+mean it's a valid response. I.e. create a server with url
+http://slashdot.org and it will threat it's responses as
+getCapabilities documents!
+*[done] server name might contain characters that are forbidden in XML. They
+should be encoded/escaped on save and decoded/unescaped on XML read.
+I.e. create a server called </servername> and see how it breaks Your
+XML...
+
++ some of previous issues...
+
+
+
+
+
+
+
+
+

@@ -6,11 +6,12 @@ import wx
 from wxPython.wx import *
 from wx.lib.pubsub import Publisher
 from urllib2 import Request, urlopen, URLError, HTTPError
-from parse import parsexml, isServiceException, populateLayerTree
+from parse import parsexml, isServiceException, populateLayerTree, isValidResponse
 from WMSMapDisplay import NewImageFrame
 from addserver import AddServerFrame
 from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, initServerInfoBase, getAllRows
 from LoadConfig import loadConfigFile
+
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -154,6 +155,12 @@ class wmsFrame(wx.Frame):
         try:
             response = urlopen(req)
             xml = response.read()
+            if(not isValidResponse(xml)):
+                print 'Not a valid Get Capabilities reponse'
+                return
+            if(isServiceException(xml)):
+                print 'Service Exception in Get Capabilities'
+                return
             #for testing pruposes
             #f=open('in1.xml','r')
             #xml=f.read()

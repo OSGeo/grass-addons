@@ -8,6 +8,7 @@ from wx.lib.pubsub import Publisher
 from BeautifulSoup import BeautifulSoup, Tag, NavigableString, BeautifulStoneSoup
 from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, initServerInfoBase, getAllRows
 from LoadConfig import loadConfigFile
+from savepopup import SavePopUp
 
 
 # begin wxGlade: extracode
@@ -45,6 +46,10 @@ class ServerAdd(wx.Frame):
         self.__do_layout()
 
         self.Bind(wx.EVT_COMBOBOX, self.OnServerList, self.ServerList)
+        self.Bind(wx.EVT_TEXT, self.OnText, self.ServerNameText)
+        self.Bind(wx.EVT_TEXT, self.OnText, self.URLText)
+        self.Bind(wx.EVT_TEXT, self.OnText, self.UsernameText)
+        self.Bind(wx.EVT_TEXT, self.OnText, self.PasswordText)
         self.Bind(wx.EVT_BUTTON, self.OnSave, self.Save)
         self.Bind(wx.EVT_BUTTON, self.OnRemove, self.Remove)
         self.Bind(wx.EVT_BUTTON, self.OnAddNew, self.AddNew)
@@ -62,7 +67,11 @@ class ServerAdd(wx.Frame):
             return
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.__populate_URL_List(self.ServerList)
-        Publisher().subscribe(self.onWMSMenuClose, ("WMS_Menu_Close"))
+        Publisher().subscribe(self.OnWMSMenuClose, ("WMS_Menu_Close"))
+        Publisher().subscribe(self.OnPopupSaveRequest, ("PopupSaveRequest"))
+        Publisher().subscribe(self.OnPopupNotSaveRequest, ("PopupNotSaveRequest"))
+        Publisher().subscribe(self.OnPopupCancelRequest, ("PopupCancelRequest"))
+        self.editOn = False
         #sudeep code ends
 
     def __set_properties(self):
@@ -122,52 +131,45 @@ class ServerAdd(wx.Frame):
         self.SetSizer(sizer_1)
         self.Layout()
         # end wxGlade
-
-    def __populate_URL_List(self, ComboBox):
-        self.servers = getAllRows(self.soup)
-        for key, value in self.servers.items():
-            ComboBox.Append(value.servername+self.name_url_delimiter+value.url)
-            #ComboBox.Append(value.servername+" "+value.url)
-        #print self.servers
-        return
-    	''''f = open('serverList.txt','r')
-        lines = f.readlines()
-        self.servers = {}
-        for line in lines:
-            row = line.split()
-            print 'row =' 
-            print row
-            if(len(row) == 4) :
-                servername = row[0]
-                url = row[1]
-                username = row[2]
-                password = row[3]
-                serverdata = ServerData()
-                serverdata.servername = servername
-                serverdata.url = url
-                serverdata.username = username
-                serverdata.password = password
-                self.servers[servername] = serverdata
-                name = row[0]+" "+row[1]
-                print 'yoyo '+name
-                ComboBox.Append(name)
-        f.close()
-        print self.servers'''
-        
-    def __update_URL_List(self):
-        self.ServerList.Clear()
-        for key,value in self.servers.iteritems():
-            #name = v.servername+" "+v.url
-            self.ServerList.Append(value.servername+self.name_url_delimiter+value.url)
-            #self.ServerList.Append(name)
         
     def OnSave(self, event): # wxGlade: ServerAdd.<event_handler>
         #print "Event handler `OnSave' not implemented"
         newServerName = unicode(self.ServerNameText.GetValue())
+        newUrl = self.URLText.GetValue()
+        newUserName = self.UsernameText.GetValue()
+        newPassword = self.PasswordText.GetValue()
+        
+        
         if(newServerName.count(self.name_url_delimiter)>0):
                 print "Warning: UserName cannot consist of "+self.name_url_delimiter
                 print "Please give another username, save failed..."
                 return
+            
+        if(newUrl.count(self.name_url_delimiter)>0):
+                print "Warning: URL cannot consist of "+self.name_url_delimiter
+                print "Change in config file required to use different character as delimeter which doesnot appears in url"
+                return
+            
+        character = '>'
+        if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
+            print character+' is not allowed in a Field'
+            return
+
+        character = '<'
+        if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
+            print character+' is not allowed in a Field'
+            return
+        
+        character = '&'
+        if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
+            print character+' is not allowed in a Field'
+            return
+        
+        print 'before '+newUrl
+        if(not newUrl.startswith('http://')):
+            newUrl = 'http://'+newUrl
+        print 'after '+newUrl
+        
         print newServerName
         print 'check12'
         if(self.servers.has_key(newServerName)):
@@ -177,9 +179,7 @@ class ServerAdd(wx.Frame):
         else:
             update = False
             
-        newUrl = self.URLText.GetValue()
-        newUserName = self.UsernameText.GetValue()
-        newPassword = self.PasswordText.GetValue()
+       
         
         serverData = ServerData()
         #self.ServerList.Append(newServerName+" "+newUrl)
@@ -220,7 +220,9 @@ class ServerAdd(wx.Frame):
   	    #Update_Url_List(newServerName+" "+newUrl)
         else:
             print "Please Fill servername and url fields"
-        event.Skip()
+        self.editOn = False
+        if(event):
+            event.Skip()
 
     def OnRemove(self, event): # wxGlade: ServerAdd.<event_handler>
         serverName = unicode(self.ServerNameText.GetValue())
@@ -246,7 +248,7 @@ class ServerAdd(wx.Frame):
         else:
             print 'No server selected'
         #print "Event handler `OnRemove' not implemented"
-        
+        self.editOn = False
         event.Skip()
 
     def OnAddNew(self, event): # wxGlade: ServerAdd.<event_handler>
@@ -255,34 +257,14 @@ class ServerAdd(wx.Frame):
         self.PasswordText.Clear()
         self.URLText.Clear()
         self.UsernameText.Clear()
+        self.editOn = False
         event.Skip()
-        
-    def saveXMLData(self):
-        xml = self.soup.prettify()
-        try:
-            f = open('templist.xml','w')
-            f.write(xml)
-            f.close()
-        except:
-            print 'Unable to write in templist.xml file, Save not successful'
-            return False
-        try:    
-            os.system('chmod 777 ServersList.xml')
-            os.system("cp templist.xml ServersList.xml")
-            #f = open('ServersList.xml','w')
-        except:
-            #print 'cant open file in write mode'
-            print 'cp templist.xml ServersList.xml failed'
-            print 'Save not successful'
-            return False
-        return True
-        
-    def onWMSMenuClose(self, msg):
-        self.Destroy()
-        return
     
     def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
         print 'onQuit pressed'
+        if(self.editOn):
+            print "Do you want to save the unsaved changes ?"
+            SavePopUp()
         self.saveXMLData()
         msg = self.servers
         Publisher().sendMessage(("Add_Server_Frame_Closed"), msg)
@@ -318,6 +300,70 @@ class ServerAdd(wx.Frame):
         #self.ServerNameText.SetValue(self.servers)
         event.Skip()
 
+    def OnText(self, event): # wxGlade: ServerAdd.<event_handler>
+        self.editOn = True
+        event.Skip()
+    #wxGlade methods ends
+    
+    #Sudeeps methods start
+    def __populate_URL_List(self, ComboBox):
+        self.servers = getAllRows(self.soup)
+        for key, value in self.servers.items():
+            ComboBox.Append(value.servername+self.name_url_delimiter+value.url)
+            #ComboBox.Append(value.servername+" "+value.url)
+        #print self.servers
+        return
+    
+    def __update_URL_List(self):
+        self.ServerList.Clear()
+        for key,value in self.servers.iteritems():
+            #name = v.servername+" "+v.url
+            self.ServerList.Append(value.servername+self.name_url_delimiter+value.url)
+            #self.ServerList.Append(name)
+
+    def saveXMLData(self):
+        xml = self.soup.prettify()
+        try:
+            f = open('templist.xml','w')
+            f.write(xml)
+            f.close()
+        except:
+            print 'Unable to write in templist.xml file, Save not successful'
+            return False
+        try:    
+            os.system('chmod 777 ServersList.xml')
+            os.system("cp templist.xml ServersList.xml")
+            #f = open('ServersList.xml','w')
+        except:
+            #print 'cant open file in write mode'
+            print 'cp templist.xml ServersList.xml failed'
+            print 'Save not successful'
+            return False
+        return True
+        
+    def OnWMSMenuClose(self, msg):
+        self.Close()
+        self.Destroy()
+        return
+    
+    def OnPopupSaveRequest(self, msg):
+        self.OnSave(None)
+        self.saveXMLData()
+        msg = self.servers
+        Publisher().sendMessage(("Add_Server_Frame_Closed"), msg)
+        self.Quit
+        self.Close()
+        #self.Destroy()
+    
+    def OnPopupNotSaveRequest(self, msg):
+        self.saveXMLData()
+        msg = self.servers
+        Publisher().sendMessage(("Add_Server_Frame_Closed"), msg)
+        self.Close()
+        self.Destroy()
+
+    def OnPopupCancelRequest(self, msg):
+        return
 # end of class ServerAdd
 
 def AddServerFrame(parentWMS):

@@ -24,7 +24,17 @@ f = open('wmsmaris.xml','r')
 a=f.read()
 print a
 #parsexml(a) '''
-
+def isValidResponse(xml):
+	soup = BeautifulSoup(xml)
+	getCapabilities = soup.findAll('wmt_ms_capabilities')
+	print 'heeeeeeeeereeeeee'
+	print len(getCapabilities)
+	if(len(getCapabilities)==0):
+		print 'False'
+		return False
+	else:
+		print 'True'
+		return True
 def isServiceException(xml):
 	print 'here'
 	#print xml
