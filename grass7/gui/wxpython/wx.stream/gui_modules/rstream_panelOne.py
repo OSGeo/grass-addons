@@ -64,96 +64,93 @@ class TabPanelOne(wx.Panel):
     def _layout(self): 
 
 	# create the grid for gselect
-        select = wx.GridBagSizer(20, 5)
+        self.select = wx.GridBagSizer(20, 5)
 
         #----------------------------
         #---------Input maps---------
 
         # Ask user for digital elevation model
-        text1 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Elevation map (required)") 
-        select.Add(item = text1, flag = wx.LEFT, pos = (1,0), span = wx.DefaultSpan, border = 0)
+        self.text1 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Elevation map (required)") 
+        self.select.Add(item = self.text1, flag = wx.LEFT, pos = (1,0), span = wx.DefaultSpan, border = 0)
 
         # Add the box for choosing the map 
-        select1 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
+        self.select1 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
                                type = 'rast', multiple = False)
-        select.Add(item = select1, pos = (2,0), span = wx.DefaultSpan)
+        self.select.Add(item = self.select1, pos = (2,0), span = wx.DefaultSpan)
 
         # binder
-        select1.Bind(wx.EVT_TEXT, self.OnSelectElev)
+        self.select1.Bind(wx.EVT_TEXT, self.OnSelectElev)
 
         #----------------------------
 
         # Ask user for Flow accumulation
-        text2 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT/OUTPUT : Flow accumulation (required)") 
-        select.Add(item = text2, flag = wx.LEFT, pos = (3,0), span = wx.DefaultSpan)
+        self.text2 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT/OUTPUT : Flow accumulation (required)") 
+        self.select.Add(item = self.text2, flag = wx.LEFT, pos = (3,0), span = wx.DefaultSpan)
         
 
         # Flow accum can be either existent or to be calculated
         # RadioButton
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 
-        cb1 = wx.RadioButton(parent = self.panel, id = wx.ID_ANY, label = "Custom (select existing map)", style = wx.RB_GROUP)
-        hbox1.Add(item = cb1, flag = wx.LEFT)
-        cb2 = wx.RadioButton(parent = self.panel, id = wx.ID_ANY, label = "Create by MFD algorithm")
-        hbox1.Add(item = cb2, flag = wx.LEFT)
-        cb3 = wx.RadioButton(parent = self.panel, id = wx.ID_ANY, label = "Create by SFD algorithm")
-        hbox1.Add(item = cb3, flag = wx.LEFT)
+        self.cb1 = wx.RadioButton(parent = self.panel, id = wx.ID_ANY, label = "Custom (select existing map)", style = wx.RB_GROUP)
+        self.hbox1.Add(item = self.cb1, flag = wx.LEFT)
+        self.cb2 = wx.RadioButton(parent = self.panel, id = wx.ID_ANY, label = "Create by MFD algorithm")
+        self.hbox1.Add(item = self.cb2, flag = wx.LEFT)
+        self.cb3 = wx.RadioButton(parent = self.panel, id = wx.ID_ANY, label = "Create by SFD algorithm")
+        self.hbox1.Add(item = self.cb3, flag = wx.LEFT)
 
-        select.Add(item = hbox1, pos = (4,0))
+        self.select.Add(item = self.hbox1, pos = (4,0))
 
         # Box to insert name of acc map 
-
-        global select2, textOne
-
-        select2 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
+        self.select2 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
                                type = 'rast', multiple = False) # select existing map
-        select.Add(item = select2, pos = (5,0), span = wx.DefaultSpan)
-        textOne = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT) 
-        select.Add(item = textOne, flag = wx.LEFT | wx.EXPAND , pos = (6,0), span = wx.DefaultSpan)
+        self.select.Add(item = self.select2, pos = (5,0), span = wx.DefaultSpan)
+        self.textOne = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT) 
+        self.select.Add(item = self.textOne, flag = wx.LEFT | wx.EXPAND , pos = (6,0), span = wx.DefaultSpan)
 
 
         # linking buttons and text
-        self.texts = {"Custom (select existing map)" : select2,
-                      "Create by MFD algorithm" : textOne,
-                      "Create by SFD algorithm" : textOne}
+        self.texts = {"Custom (select existing map)" : self.select2,
+                      "Create by MFD algorithm" : self.textOne,
+                      "Create by SFD algorithm" : self.textOne}
 
 
-        self.selectedText = select2 # default is select existing map
+        self.selectedText = self.select2 # default is select existing map
 
         # Disable 
-        textOne.Enable(False)
+        self.textOne.Enable(False)
 
         # RadioButton binders
-        cb1.Bind(wx.EVT_RADIOBUTTON, self.OnSelectExistAcc)
-        cb2.Bind(wx.EVT_RADIOBUTTON, self.OnSelectMFDAcc)
-        cb3.Bind(wx.EVT_RADIOBUTTON, self.OnSelectSFDAcc)
+        self.cb1.Bind(wx.EVT_RADIOBUTTON, self.OnSelectExistAcc)
+        self.cb2.Bind(wx.EVT_RADIOBUTTON, self.OnSelectMFDAcc)
+        self.cb3.Bind(wx.EVT_RADIOBUTTON, self.OnSelectSFDAcc)
 
         #----------------------------
 
         # Ask user for Mask
-        text3 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Mask (optional)") 
-        select.Add(item = text3, flag = wx.LEFT, pos = (7,0), span = wx.DefaultSpan)
+        self.text3 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Mask (optional)") 
+        self.select.Add(item = self.text3, flag = wx.LEFT, pos = (7,0), span = wx.DefaultSpan)
 
         # Add the box for choosing the map
-        select3 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
+        self.select3 = gselect.Select(parent = self.panel, id = wx.ID_ANY, size = (250, -1),
                                type = 'rast', multiple = False)
-        select.Add(item = select3, pos = (8,0), span = wx.DefaultSpan)
+        self.select.Add(item = self.select3, pos = (8,0), span = wx.DefaultSpan)
 
         # binder
-        select3.Bind(wx.EVT_TEXT, self.OnSelectMask)
+        self.select3.Bind(wx.EVT_TEXT, self.OnSelectMask)
 
         #----------------------------
 
         # Ask user for threshold
-        text4 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Threshold (required)") 
-        select.Add(item = text4, flag = wx.LEFT, pos = (9,0), span = wx.DefaultSpan)
+        self.text4 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "INPUT : Threshold (required)") 
+        self.select.Add(item = self.text4, flag = wx.LEFT, pos = (9,0), span = wx.DefaultSpan)
 
         # Box to insert threshold
-        txtTwo = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
-        select.Add(item = txtTwo, flag = wx.LEFT, pos = (10,0), span = wx.DefaultSpan)
+        self.txtTwo = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
+        self.select.Add(item = self.txtTwo, flag = wx.LEFT, pos = (10,0), span = wx.DefaultSpan)
 
         # binder
-        txtTwo.Bind(wx.EVT_TEXT, self.OnSelecTh)
+        self.txtTwo.Bind(wx.EVT_TEXT, self.OnSelecTh)
 
 
         #----------------------------
@@ -161,59 +158,56 @@ class TabPanelOne(wx.Panel):
 
 
         # Flow direction map
-        text5 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Flow direction map (required)") 
-        select.Add(item = text5, flag = wx.LEFT | wx.EXPAND, pos = (11,0), span = wx.DefaultSpan)
+        self.text5 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Flow direction map (required)") 
+        self.select.Add(item = self.text5, flag = wx.LEFT | wx.EXPAND, pos = (11,0), span = wx.DefaultSpan)
 
         # Box to insert name of new flow dir map (to be created)
-        txtThr = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
-        select.Add(item = txtThr, flag = wx.LEFT | wx.EXPAND , pos = (12,0), span = wx.DefaultSpan)
+        self.txtThr = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
+        self.select.Add(item = self.txtThr, flag = wx.LEFT | wx.EXPAND , pos = (12,0), span = wx.DefaultSpan)
 
         # binder
-        txtThr.Bind(wx.EVT_TEXT, self.OnSelecFd)
+        self.txtThr.Bind(wx.EVT_TEXT, self.OnSelecFd)
 
 
         #----------------------------
 
         # Streams map
-        text6 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Streams (required)") 
-        select.Add(item = text6, flag = wx.LEFT | wx.EXPAND, pos = (13,0), span = wx.DefaultSpan)
+        self.text6 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Streams (required)") 
+        self.select.Add(item = self.text6, flag = wx.LEFT | wx.EXPAND, pos = (13,0), span = wx.DefaultSpan)
 
         # Box to insert name of new streams map (to be created)
-        txtFou = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
-        select.Add(item = txtFou, flag = wx.LEFT | wx.EXPAND , pos = (14,0), span = wx.DefaultSpan)
+        self.txtFou = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
+        self.select.Add(item = self.txtFou, flag = wx.LEFT | wx.EXPAND , pos = (14,0), span = wx.DefaultSpan)
 
         # binder
-        txtFou.Bind(wx.EVT_TEXT, self.OnSelecStr)
+        self.txtFou.Bind(wx.EVT_TEXT, self.OnSelecStr)
 
         #----------------------------
 
         # Network map
-        text7 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Network (required)") 
-        select.Add(item = text7, flag = wx.LEFT | wx.EXPAND, pos = (15,0), span = wx.DefaultSpan)
+        self.text7 = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = "OUTPUT : Network (required)") 
+        self.select.Add(item = self.text7, flag = wx.LEFT | wx.EXPAND, pos = (15,0), span = wx.DefaultSpan)
 
         # Box to insert name of new streams map (to be created)
-        txtFiv = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
-        select.Add(item = txtFiv, flag = wx.LEFT | wx.EXPAND , pos = (16,0), span = wx.DefaultSpan)
+        self.txtFiv = wx.TextCtrl(parent = self.panel, id = wx.ID_ANY, style = wx.TE_LEFT)
+        self.select.Add(item = self.txtFiv, flag = wx.LEFT | wx.EXPAND , pos = (16,0), span = wx.DefaultSpan)
 
         # binder
-        txtFiv.Bind(wx.EVT_TEXT, self.OnSelecNet)
+        self.txtFiv.Bind(wx.EVT_TEXT, self.OnSelecNet)
 
 
         #----------------------------
  
-        self.panel.SetSizer(select)
-
-        btnPanel = wx.Panel(self)
+        self.panel.SetSizer(self.select)
+        self.btnPanel = wx.Panel(self)
 
         #-------------Buttons-------------
 
-        self.createButtonBar(btnPanel)
-        
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        
-        sizer.Add(self.panel, 1, wx.EXPAND)
-        sizer.Add(btnPanel, 0, wx.EXPAND)
-        self.SetSizer(sizer)
+        self.createButtonBar(self.btnPanel)       
+        self.sizer = wx.BoxSizer(wx.VERTICAL)        
+        self.sizer.Add(self.panel, 1, wx.EXPAND)
+        self.sizer.Add(self.btnPanel, 0, wx.EXPAND)
+        self.SetSizer(self.sizer)
     
         
     #-------------input maps-------------
@@ -229,15 +223,12 @@ class TabPanelOne(wx.Panel):
         if self.selectedText:
             self.selectedText.Enable(False)
         radioSelected = event.GetEventObject()
-        self.r_acc = self.texts[radioSelected.GetLabel()]
-        self.r_acc.Enable(True)
-        self.SelectedText = self.r_acc
+        self.acc = self.texts[radioSelected.GetLabel()]
+        self.acc.Enable(True)
+        self.SelectedText = self.acc
+        self.r_acc = self.acc.GetValue()
 
-        #select2.Bind(wx.EVT_TEXT, self.OnSelectExistAcc
-        #r_acc = event.GetString()
-        # r.watershed elevation = r_elev accumulation = r_acc -a (MFD)
-
-        gcmd.RunCommand('r.watershed', elevation = 'r_elev' , accumulation = 'r_acc' , drainage = 'r_new_dir' , convergence = 5 , flags = 'a')
+        print self.r_acc
 
     def OnSelectSFDAcc(self, event):
         """!Gets new flow accum map and assign it to var
@@ -245,24 +236,22 @@ class TabPanelOne(wx.Panel):
         if self.selectedText:
             self.selectedText.Enable(False)
         radioSelected = event.GetEventObject()
-        self.r_acc = self.texts[radioSelected.GetLabel()]
-        self.r_acc.Enable(True)
-        self.SelectedText = self.r_acc
-
-        #r_acc = event.GetString()
-        # r.watershed elevation = r_elev accumulation = r_acc -a (SFD, flag = -s)
-
-        gcmd.RunCommand('r.watershed', elevation = 'r_elev' , accumulation = 'r_acc' , drainage = 'r_new_dir' , convergence = 5 , flags = 'sa')
+        self.acc = self.texts[radioSelected.GetLabel()]
+        self.acc.Enable(True)
+        self.SelectedText = self.acc
+        self.r_acc = self.acc.GetValue()
 
     def OnSelectExistAcc(self, event):
         """!Gets existing flow acc map and assign it to var
         """
+        self.textOne.Enable(False)
         if self.selectedText:
             self.selectedText.Enable(False)
         radioSelected = event.GetEventObject()
-        self.r_acc = self.texts[radioSelected.GetLabel()]
-        self.r_acc.Enable(True)
-        self.SelectedText = self.r_acc
+        self.acc = self.texts[radioSelected.GetLabel()]
+        self.acc.Enable(True)
+        self.SelectedText = self.acc
+        self.r_acc = self.acc.GetValue()
 
     def OnSelectMask(self, event):
         """!Gets mask map and assign it to var
@@ -321,17 +310,31 @@ class TabPanelOne(wx.Panel):
     #-------------Network extraction-------------
     
     def OnRun(self, event):
+
+        radioval1 = self.cb1.GetValue()
+        radioval2 = self.cb2.GetValue()
+        radioval3 = self.cb3.GetValue()
         
+        # MFD
+        if radioval2 == 'True':
+            grass.message('Creating flow accumulation map with MFD algorithm..')
+            grass.run_command('r.watershed', elevation = self.r_elev , accumulation = self.r_acc , convergence = 5 , flags = 'a', overwrite = True )
+
+        # SFD
+        if radioval3 == 'True':
+            grass.message('Creating flow accumulation map with SFD algorithm..')
+            grass.run_command('r.watershed', elevation = self.r_elev , accumulation = self.r_acc , drainage = self.r_drain , convergence = 5 , flags = 'sa', overwrite = True)
+
+        grass.message('Network extraction..')
+        grass.run_command('r.stream.extract', elevation = self.r_elev , accumulation = self.r_acc , threshold = self.thre, 
+                        stream_rast = self.r_stre, stream_vect = self.v_net, direction = self.r_drain, overwrite = True)
+
+        
+        # Debug
         print self.r_elev
         print self.r_acc
         print self.thre
         print self.r_stre
         print self.v_net
         print self.r_drain
-
-        gcmd.RunCommand('r.stream.extract', elevation = self.r_elev , accumulation = self.r_acc , threshold = self.thre, 
-                        stream_rast = self.r_stre, stream_vect = self.v_net, direction = self.r_drain)
-
-
-
 
