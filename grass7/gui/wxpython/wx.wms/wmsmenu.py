@@ -4,6 +4,7 @@
 
 import wx
 from wxPython.wx import *
+import imghdr
 from wx.lib.pubsub import Publisher
 from urllib2 import Request, urlopen, URLError, HTTPError
 from parse import parsexml, isServiceException, populateLayerTree, isValidResponse
@@ -67,6 +68,7 @@ class wmsFrame(wx.Frame):
         
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.AddServerisClosed = True
+        self.layerName = ""
         
         #items = ["a", "b", "c"]
         #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
@@ -117,7 +119,7 @@ class wmsFrame(wx.Frame):
 
 
     def __populate_Url_List(self, ComboBox):
-        self.servers = getAllRows(self.soup)
+        self.servers, self.map_servernameTouid = getAllRows(self.soup)
         for key, value in self.servers.items():
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url)
             #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
@@ -212,12 +214,19 @@ class wmsFrame(wx.Frame):
             response = urlopen(req)
             image = response.read()
             #print image
+            
             if(isServiceException(image)):
                 print 'Service Exception has occured'
             else:
                 outfile = open('map.png','wb')
                 outfile.write(image)
                 outfile.close()
+                if(imghdr.what('./map.png') != 'png'):
+                    print 'uiui'
+                    print imghdr.what('./map.png')
+                    print 'Not a valid PNG Image, Unable to display, returning'
+                    return
+                
                 NewImageFrame()
             
             
@@ -274,7 +283,8 @@ class wmsFrame(wx.Frame):
         #self.printDict(self.servers)
         print "OnServerList: done"
         if(len(urlarr)==2):
-            self.selectedURL = self.servers[urlarr[0]].url
+            uid = self.map_servernameTouid[urlarr[0]]
+            self.selectedURL = self.servers[uid].url
             print self.selectedURL
         else:
             print "Wrong format of URL selected"

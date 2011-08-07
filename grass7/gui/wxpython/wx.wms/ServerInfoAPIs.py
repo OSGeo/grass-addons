@@ -31,11 +31,20 @@ def initServerInfoBase(fileName):
             
     return soup, True
 
+def ifServerNameExists(soup,servername):
+    servers = soup.findAll('servername')
+    for server in servers:
+        name = server.string.strip()
+        if(name == servername):
+            return True
+        else:
+            return False
+    return False
+    
 
-def addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue):
+def addServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passwordvalue):
     snamevalue = unicode(snamevalue)
-    elements = soup.findAll(id = snamevalue)
-    if(len(elements)!=0):
+    if(ifServerNameExists(soup, snamevalue)):
         return False
     else:
         server = Tag(soup, "server")
@@ -55,7 +64,7 @@ def addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordva
     
         #Adding attribute to server tag
         
-        server['id'] = snamevalue
+        server['id'] = uid
     
         #Adding text values to the server info fields
         servername.insert(0,snamevalue)
@@ -74,10 +83,10 @@ def removeServerInfo(soup, serverID):
             element.extract()
         return True
 
-def updateServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue):
+def updateServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passwordvalue):
     snamevalue = unicode(snamevalue)
-    if(removeServerInfo(soup, snamevalue)):
-        if(addServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwordvalue)):
+    if(removeServerInfo(soup, uid)):
+        if(addServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passwordvalue)):
             return True
         else:
             return False
@@ -87,7 +96,9 @@ def updateServerInfo(soup, serverinfo, snamevalue, urlvalue, unamevalue, passwor
 def getAllRows(soup):
     elements = soup.findAll('server')
     servers = {}
+    map_servernameTouid = {}
     for element in elements:
+        uid = element['id']
         servername = element.findAll('servername')[0]
         serverurl = element.findAll('serverurl')[0]
         username = element.findAll('username')[0]
@@ -97,6 +108,6 @@ def getAllRows(soup):
         serverdata.url = serverurl.contents[0].strip()
         serverdata.username = username.contents[0].strip()
         serverdata.password = password.contents[0].strip()
-        servers[serverdata.servername] = serverdata
-        
-    return servers
+        servers[uid] = serverdata
+        map_servernameTouid[serverdata.servername] = uid
+    return servers, map_servernameTouid

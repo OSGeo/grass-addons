@@ -20,6 +20,7 @@ So when the application restarts, all the changes done are lost, since data was 
 8.The Save/Dont Save/Cancel popup works fine for the first time, but for the 2nd time leads to PyDeadObjectError error. This bug is known and is of serious nature. Fix to be done soon. 
 Some other issues detected with this popup. Like when adding a new server name "</servername>" , and then click on save and then on quit, the popup appears, now click on cancel. After clicking on cancel, another popup appears and this continues. Serious issue. This popups code needs to be checked throughly. 
 
+9.On quiting the application it leads to segmentation error or even after quiting application the console doesnot quits. Need to use ctrl-c right now.
 
 More to be added...
 
@@ -32,7 +33,7 @@ Things done
 1.[Fixed]Username checked for delimeter presence
 2.[Fixed]On closing add server window, main window also closes.
 3.[Fixed]In addserver.py when pressing the quit button or closing it, main wmsmenu window closes, and it gives an error of maximum recurssion depth reached error. 
-
+4.[Fixed]Reply from wms server on getmap should be an image or a service exception, Now this check is being made. 
 
 
 
@@ -70,15 +71,15 @@ failed + popup with error message etc.
 This is important! Use copy on success trick (save to temporary file;
 in case of success, copy temporary file over original one).
 *[done]  All fields should accept non-ascii characters.
-* TODO: validate user provided URL by doing getCapabilities request.
-* When server is removed, it should switch dropdown server list to
+* TODO: validate user provided URL by doing getCapabilities request.[Can it be validated ?, sometimes a server might be down, so instead we leave it at user to decide if he gives a valid url, as in case he gives something like www.google.com or any other website, the application can handle the wrong responses recieved]
+*[Need help in this, could not figure out the function to preselect something] When server is removed, it should switch dropdown server list to
 other entry to indicate it's removal.
 
 wmsmenu:
 *[done]  Code makes assumptions that serverlist files are readable and
 writable. This might not be true. Just chmod -r serverlist* to see how
 it affects program.
-* TODO: server list storage in Location OR users preferences. This
+*[?] TODO: server list storage in Location OR users preferences. This
 should be offered as a choice to user.
 *[done]  "AddServer" should be called "Edit server list" or some of edit
 icons on button should be used.

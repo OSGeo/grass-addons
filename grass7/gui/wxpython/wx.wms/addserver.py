@@ -4,6 +4,7 @@
 
 import wx
 import os
+import uuid
 from wx.lib.pubsub import Publisher
 from BeautifulSoup import BeautifulSoup, Tag, NavigableString, BeautifulStoneSoup
 from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, initServerInfoBase, getAllRows
@@ -72,6 +73,7 @@ class ServerAdd(wx.Frame):
         Publisher().subscribe(self.OnPopupNotSaveRequest, ("PopupNotSaveRequest"))
         Publisher().subscribe(self.OnPopupCancelRequest, ("PopupCancelRequest"))
         self.editOn = False
+        self.selectedUid = None
         #sudeep code ends
 
     def __set_properties(self):
@@ -131,53 +133,59 @@ class ServerAdd(wx.Frame):
         self.SetSizer(sizer_1)
         self.Layout()
         # end wxGlade
-        
+    def valueExists(self,dict, newServerName):
+        print 'Enter here'
+        print newServerName
+        try:
+            for key, value in dict.items():
+                #print key, value.servername
+                if(value.servername == newServerName):
+                    print 'returning true'
+                    return True
+            print 'returning False'
+            return False
+        except:
+            print 'Exception while iterating dictionary elements'
+            return False
     def OnSave(self, event): # wxGlade: ServerAdd.<event_handler>
         #print "Event handler `OnSave' not implemented"
+        print '-------------------------------------------------------------------> OnSave'
         newServerName = unicode(self.ServerNameText.GetValue())
         newUrl = self.URLText.GetValue()
         newUserName = self.UsernameText.GetValue()
         newPassword = self.PasswordText.GetValue()
         
-        
-        if(newServerName.count(self.name_url_delimiter)>0):
-                print "Warning: UserName cannot consist of "+self.name_url_delimiter
-                print "Please give another username, save failed..."
-                return
-            
-        if(newUrl.count(self.name_url_delimiter)>0):
-                print "Warning: URL cannot consist of "+self.name_url_delimiter
-                print "Change in config file required to use different character as delimeter which doesnot appears in url"
-                return
-            
-        character = '>'
-        if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
-            print character+' is not allowed in a Field'
-            return
-
-        character = '<'
-        if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
-            print character+' is not allowed in a Field'
+        if(not self.allFieldsValid(newServerName, newUrl, newUserName, newPassword)):
             return
         
-        character = '&'
-        if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
-            print character+' is not allowed in a Field'
-            return
         
-        print 'before '+newUrl
         if(not newUrl.startswith('http://')):
             newUrl = 'http://'+newUrl
-        print 'after '+newUrl
+        
         
         print newServerName
         print 'check12'
-        if(self.servers.has_key(newServerName)):
+        
+        if(self.selectedUid == None):
+            update = False
+        else:
+            update = True
+        '''print newServerName
+        print self.map_servernameTouid
+        if(self.map_servernameTouid.has_key(newServerName)):
+            CurrentUid = self.map_servernameTouid[newServerName]
+            update = True
+            print 'key present'
+        else:
+            print 'key not present'
+            CurrentUid = None
+            update = False
+        if(self.servers.has_key(Uid)):
             update = True
             #print 'Server Name already exists'
             #return
         else:
-            update = False
+            update = False'''
             
        
         
@@ -187,22 +195,38 @@ class ServerAdd(wx.Frame):
         url = newUrl.split()
         #if(len(newUrl) != 0 and len(newServerName) != 0 and len(newUserName) !=0 and len(newPassword) != 0 ):
         if(len(newUrl) != 0 and len(newServerName) != 0):
+            if(not self.selectedServer.servername == newServerName):
+                if(self.valueExists(self.servers, newServerName)):
+                    print 'Please Enter a different Servername'
+                    return
+            #del self.servers[self.selectedUid]
             serverData.servername = newServerName
             serverData.url = newUrl
             serverData.username = newUserName
             serverData.password = newPassword
-            self.servers[newServerName] = serverData
+            
+            
             if(update):
-                if(updateServerInfo(self.soup, self.soup.serverinfo, newServerName, newUrl, newUserName, newPassword)):
+                if(updateServerInfo(self.soup, self.soup.serverinfo, self.selectedUid, newServerName, newUrl, newUserName, newPassword)):
                     print 'update save successful'
+                    self.servers[self.selectedUid] = serverData
+                    del self.map_servernameTouid[self.selectedServer.servername]
+                    self.selectedServer = serverData
+                    self.map_servernameTouid[newServerName] = self.selectedUid
                     self.saveXMLData()
                     msg = self.servers
                     Publisher().sendMessage(("update.serverList"), msg)
                 else:
                     print 'update save not successful'
             else:    
-                if(addServerInfo(self.soup, self.soup.serverinfo, newServerName, newUrl, newUserName, newPassword)):
+                uid = str(uuid.uuid4())
+                
+                if(addServerInfo(self.soup, self.soup.serverinfo, uid, newServerName, newUrl, newUserName, newPassword)):
                     print 'soup save successfully'
+                    self.selectedUid = uid
+                    self.servers[self.selectedUid] = serverData
+                    self.selectedServer = serverData
+                    self.map_servernameTouid[newServerName] = uid
                     self.saveXMLData()
                     msg = self.servers
                     Publisher().sendMessage(("update.serverList"), msg)
@@ -225,16 +249,21 @@ class ServerAdd(wx.Frame):
             event.Skip()
 
     def OnRemove(self, event): # wxGlade: ServerAdd.<event_handler>
-        serverName = unicode(self.ServerNameText.GetValue())
-        if(len(serverName) > 0):
-            if(removeServerInfo(self.soup, serverName)):
+        print '-------------------------------------------------------------------> OnRemove'
+        if(self.selectedUid == None):
+            print 'No Uid is selected....Remove Unsuccessful'
+            return
+        else:
+            if(removeServerInfo(self.soup, self.selectedUid)):
                 print 'remove successful'
+                del self.map_servernameTouid[self.selectedServer.servername]
             else:
                 print 'remove unsuccessful'
                 return
             #print self.servers
             
-            del self.servers[serverName]
+            del self.servers[self.selectedUid]
+            self.selectedUid = None
             self.__update_URL_List()
             
             self.ServerNameText.Clear()
@@ -245,14 +274,15 @@ class ServerAdd(wx.Frame):
             self.saveXMLData()
             msg = self.servers
             Publisher().sendMessage(("update.serverList"), msg)
-        else:
-            print 'No server selected'
+        
         #print "Event handler `OnRemove' not implemented"
         self.editOn = False
         event.Skip()
 
     def OnAddNew(self, event): # wxGlade: ServerAdd.<event_handler>
+        print '-------------------------------------------------------------------> OnAddNew'
         #print "Event handler `OnAddNew' not implemented"
+        self.selectedUid = None
         self.ServerNameText.Clear()
         self.PasswordText.Clear()
         self.URLText.Clear()
@@ -261,6 +291,7 @@ class ServerAdd(wx.Frame):
         event.Skip()
     
     def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
+        print '-------------------------------------------------------------------> OnQuit'
         print 'onQuit pressed'
         if(self.editOn):
             print "Do you want to save the unsaved changes ?"
@@ -280,6 +311,7 @@ class ServerAdd(wx.Frame):
         event.Skip()
 
     def OnServerList(self, event): # wxGlade: ServerAdd.<event_handler>
+        print '-------------------------------------------------------------------> OnServerList'
         #print self.ServerList.CurrentSelection
         url = self.ServerList.GetValue()
         print 'here'
@@ -288,7 +320,9 @@ class ServerAdd(wx.Frame):
         print urlarr
         #print self.servers
         if(len(urlarr)==2):
-            self.selectedServer = self.servers[unicode(urlarr[0])]
+            uid = self.map_servernameTouid[urlarr[0]]
+            self.selectedUid = uid
+            self.selectedServer = self.servers[uid]
             print self.selectedServer
             self.ServerNameText.SetValue(self.selectedServer.servername)
             self.URLText.SetValue(self.selectedServer.url)
@@ -307,7 +341,7 @@ class ServerAdd(wx.Frame):
     
     #Sudeeps methods start
     def __populate_URL_List(self, ComboBox):
-        self.servers = getAllRows(self.soup)
+        self.servers, self.map_servernameTouid = getAllRows(self.soup)
         for key, value in self.servers.items():
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url)
             #ComboBox.Append(value.servername+" "+value.url)
@@ -340,7 +374,37 @@ class ServerAdd(wx.Frame):
             print 'Save not successful'
             return False
         return True
+    
+    def allFieldsValid(self, newServerName, newUrl, newUserName, newPassword):
+        if(newServerName.count(self.name_url_delimiter)>0):
+                print "Warning: UserName cannot consist of "+self.name_url_delimiter
+                print "Please give another username, save failed..."
+                return False
+            
+        if(newUrl.count(self.name_url_delimiter)>0):
+                print "Warning: URL cannot consist of "+self.name_url_delimiter
+                print "Change in config file required to use different character as delimeter which doesnot appears in url"
+                return False
+            
+        character = '>'
+        if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
+            print character+' is not allowed in a Field'
+            return False
+
+        character = '<'
+        if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
+            print character+' is not allowed in a Field'
+            return False
         
+        character = '&'
+        if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
+            print character+' is not allowed in a Field'
+            return False
+        
+        return True
+    
+
+
     def OnWMSMenuClose(self, msg):
         self.Close()
         self.Destroy()
