@@ -426,7 +426,18 @@ class parseModis:
     # return the code of tile for conf file
     self.code = os.path.split(self.hdfname)[1].split('.')[-2]
     self.path = os.path.split(self.hdfname)[0]
+    ## lists of parameters accepted by resample MRT software
+    # projections
+    self.proj_list = ('GEO', 'HAM', 'IGH', 'ISIN', 'LA', 'LCC', 'MOL', 'PS', 
+                      'SIN','TM', 'UTM', 'MERCAT')
+    # resampling
+    self.resam_list = ('NEAREST_NEIGHBOR', 'BICUBIC', 'CUBIC_CONVOLUTION', 'NONE')
+    self.resam_list_swath = ('NN', 'BI', 'CC')
     
+    # datum
+    self.datum_list = ('NONE', 'NAD27', 'NAD83', 'WGS66', 'WGS72', 'WGS84')
+    self.sphere_list = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)
+
   def __str__(self):
     """Print the file without xml tags"""
     retString = ""
@@ -552,12 +563,14 @@ class parseModis:
     meStat = mespc.find('QAStats')
     qastat = {}
     for i in meStat.getiterator():
-      qastat[i.tag] = i.text
+      if i.tag != 'QAStats':
+        qastat[i.tag] = i.text
     value['QAStats'] = qastat
     meFlag = mespc.find('QAFlags')
     flagstat = {}
-    for i in meStat.getiterator():
-      flagstat[i.tag] = i.text
+    for i in meFlag.getiterator():
+      if i.tag != 'QAFlags':
+        flagstat[i.tag] = i.text
     value['QAFlags'] = flagstat
     return value
 
@@ -589,7 +602,8 @@ class parseModis:
     value = []
     self.getGranule()
     for i in self.granule.find('InputGranule').getiterator():
-      value.append(i.text)
+      if i.tag != 'InputGranule':
+        value.append(i.text)
     return value
 
   def retBrowseProduct(self):
@@ -629,14 +643,6 @@ class parseModis:
                 WGS76, WGS84, NONE
         projpar = a list of projection parameters
         """
-    ## lists of parameters accepted by resample MRT software
-    # projections
-    proj_list = ('GEO', 'HAM', 'IGH', 'ISIN', 'LA', 'LCC', 'MOL', 'PS', 'SIN', 
-                'TM', 'UTM')
-    # resampling
-    resam_list = ('NEAREST_NEIGHBOR', 'BICUBIC', 'CUBIC_CONVOLUTION', 'NONE')
-    # datum
-    datum_list = ('NONE', 'NAD27', 'NAD83', 'WGS66', 'WGS72', 'WGS84')
     # output name
     if not output:
       fileout = self.tifname
@@ -661,20 +667,20 @@ class parseModis:
                                                               bound['max_lon']))
     conFile.write("OUTPUT_FILENAME = %s\n" % fileout)
     # if resampl is in resam_list set the parameter otherwise return an error
-    if resampl in resam_list:
+    if resampl in self.resam_list:
       conFile.write("RESAMPLING_TYPE = %s\n" % resampl)
     else:
       raise IOError('The resampling type %s is not supportet.\n' \
                    'The resampling type supported are %s' % (resampl,resam_list))
     # if projtype is in proj_list set the parameter otherwise return an error
-    if projtype in proj_list:
+    if projtype in self.proj_list:
       conFile.write("OUTPUT_PROJECTION_TYPE = %s\n" % projtype)
     else:
       raise IOError('The projection type %s is not supported.\n' \
                    'The projections supported are %s' % (projtype,proj_list))
     conFile.write("OUTPUT_PROJECTION_PARAMETERS = %s\n" % projpar)
     # if datum is in datum_list set the parameter otherwise return an error
-    if datum in datum_list:
+    if datum in self.datum_list:
       conFile.write("DATUM = %s\n" % datum)
     else:
       raise IOError('The datum %s is not supported.\n' \
@@ -687,6 +693,349 @@ class parseModis:
       conFile.write("OUTPUT_PIXEL_SIZE = %i\n" % res)
     conFile.close()
     return filename
+
+  def confResample_swath(self, sds, geoloc, res, output = None, 
+                  sphere = '8', resampl = 'NN', projtype = 'GEO',  utm = None,
+                  projpar = '0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0',
+                  ):
+    """Create the parameter file to use with resample MRT software to create
+       tif file
+        sds = Name of band/s (Science Data Set) to resample
+        geoloc = Name geolocation file (example MOD3, MYD3)
+        res = the resolution for the output file, it must be set in the map 
+              unit of output projection system. The software will use the original
+              resolution of input file if res it isn't set
+        output = the output name, if it doesn't set will use the prefix name of 
+                 input hdf file
+        sphere = Output sphere number. Valid options are: 
+                 0=Clarke 1866, 1=Clarke 1880, 2=Bessel, 3=International 1967, 
+                 4=International 1909, 5=WGS 72, 6=Everest, 7=WGS 66, 
+                 8=GRS1980/WGS 84, 9=Airy, 10=Modified Everest, 11=Modified Airy, 
+                 12=Walbeck, 13=Southeast Asia, 14=Australian National, 
+                 15=Krassovsky, 16=Hough, 17=Mercury1960, 18=Modified Mercury1968, 
+                 19=Sphere 19 (Radius 6370997), 20=MODIS Sphere (Radius 6371007.181)
+        resampl = the type of resampling, the valid values are: NN (nearest 
+                  neighbor), BI (bilinear), CC (cubic convolution)
+        projtype = the output projection system, the valid values are: 
+                   AEA (Albers Equal Area), ER (Equirectangular), 
+                   GEO (Geographic Latitude/Longitude), HAM (Hammer), 
+                   ISIN (Integerized Sinusoidal),IGH (Interrupted Goode Homolosine), 
+                   LA (Lambert Azimuthal), LCC (LambertConformal Conic),
+                   MERCAT (Mercator), MOL (Mollweide), PS (Polar Stereographic),
+                   SIN ()Sinusoidal), UTM (Universal TransverseMercator)
+        utm = the UTM zone if projection system is UTM
+        projpar = a list of projection parameters
+        """
+    # output name
+    if not output:
+      fileout = self.tifname
+    else:
+      fileout = output
+    # the name of the output parameters files for resample MRT software
+    filename = os.path.join(self.path,'%s_mrt_resample.prm' % self.code)
+    # if the file already exists it remove it 
+    if os.path.exists(filename):
+      os.remove(filename)
+    # open the file
+    conFile = open(filename, 'w')
+    conFile.write("INPUT_FILENAME = %s\n" % self.hdfname)
+    conFile.write("GEOLOCATION_FILENAME = %s\n" % geoloc)
+    conFile.write("INPUT_SDS_NAME = %s\n" % sds)
+    conFile.write("OUTPUT_SPATIAL_SUBSET_TYPE = LAT_LONG\n")
+    # return the boundary from the input xml file
+    bound = self.retBoundary()
+    # Order:  UL: N W  - LR: S E
+    conFile.write("OUTPUT_SPACE_UPPER_LEFT_CORNER (LONG LAT) = %f %f\n" % (bound['max_lat'],
+                                                              bound['min_lon']))
+    conFile.write("OUTPUT_SPACE_LOWER_RIGHT_CORNER (LONG LAT) = %f %f\n" % (bound['min_lat'],
+                                                              bound['max_lon']))
+    conFile.write("OUTPUT_FILENAME = %s\n" % fileout)
+    conFile.write("OUTPUT_FILE_FORMAT = GEOTIFF_FMT\n")
+    # if resampl is in resam_list set the parameter otherwise return an error
+    if resampl in self.resam_list_swath:
+      conFile.write("KERNEL_TYPE (CC/BI/NN) = %s\n" % resampl)
+    else:
+      raise IOError('The resampling type %s is not supportet.\n' \
+                   'The resampling type supported are %s' % (resampl,self.resam_list_swath))
+    # if projtype is in proj_list set the parameter otherwise return an error
+    if projtype in self.proj_list:
+      conFile.write("OUTPUT_PROJECTION_NUMBER = %s\n" % projtype)
+    else:
+      raise IOError('The projection type %s is not supported.\n' \
+                   'The projections supported are %s' % (projtype,proj_list))
+    conFile.write("OUTPUT_PROJECTION_PARAMETER = %s\n" % projpar)
+    # if sphere is in sphere_list set the parameter otherwise return an error
+    if int(sphere) in self.sphere_list:
+      conFile.write("OUTPUT_PROJECTION_SPHERE = %s\n" % sphere)
+    else:
+      raise IOError('The sphere %s is not supported.\n' \
+                   'The spheres supported are %s' % (sphere,self.sphere_list))
+    # if utm is not None write the UTM_ZONE parameter in the file
+    if utm:
+      if utm < '-60' or utm > '60':
+        raise IOError('The valid UTM zone are -60 to 60')
+      else:
+        conFile.write("OUTPUT_PROJECTION_ZONE = %s\n" % utm)
+    # if res is not None write the OUTPUT_PIXEL_SIZE parameter in the file
+    if res:
+      conFile.write("OUTPUT_PIXEL_SIZE = %f\n" % res)
+    conFile.close()
+    return filename
+
+class parseModisMulti:
+  """A class to some variable for the xml file of a mosaic
+  """
+  def __init__(self,hdflist):
+    from xml.etree import ElementTree
+    self.ElementTree = ElementTree
+    self.hdflist = hdflist
+    self.parModis = []
+    self.nfiles = 0
+    for i in hdflist:
+      self.parModis.append(parseModis(i))
+      self.nfiles += 1
+
+  def _checkval(self,vals):
+    if vals.count(vals[0]) == self.nfiles:
+      return [vals[0]]
+    else:
+      outvals = []
+      for i in vals:
+        if outvals.count(i) == 0:
+          outvals.append(i)
+      return outvals
+      
+  def _checkvaldict(self,vals):
+    keys = vals[0].keys()
+    outvals = {}
+    for k in keys:
+      valtemp = []
+      for v in vals:
+        valtemp.append(v[k])
+      if valtemp.count(valtemp[0]) == self.nfiles:
+        outvals[k] = valtemp[0]
+      else:
+        raise IOError('Something wrong reading XML files')
+      
+    return outvals
+
+  def _minval(self, vals):
+    outval = vals[0]
+    for i in range(1,len(vals)):
+      if outval > i:
+        outval = i
+    return outval
+    
+  def _maxval(self, vals):
+    outval = vals[0]
+    for i in range(1,len(vals)):
+      if outval < i:
+        outval = i
+    return outval
+    
+  def _cicle_values(self, ele,values):
+    """Function to add values from a dictionary"""
+    for k,v in values.iteritems():
+      elem = self.ElementTree.SubElement(ele,k)
+      elem.text = v
+
+  def valDTD(self,obj):
+    values = []
+    for i in self.parModis:
+      values.append(i.retDTD())
+    for i in self._checkval(values):
+      dtd = self.ElementTree.SubElement(obj,'DTDVersion')
+      dtd.text = i
+
+  def valDataCenter(self,obj):
+    values = []
+    for i in self.parModis:
+      values.append(i.retDataCenter())
+    for i in self._checkval(values):
+      dci = self.ElementTree.SubElement(obj,'DataCenterId')
+      dci.text = i
+      
+  def valGranuleUR(self,obj):
+    values = []
+    for i in self.parModis:
+      values.append(i.retGranuleUR())
+    for i in self._checkval(values):
+      gur = self.ElementTree.SubElement(obj,'GranuleUR')
+      gur.text = i
+
+  def valDbID(self,obj):
+    values = []
+    for i in self.parModis:
+      values.append(i.retDbID())
+    for i in self._checkval(values):
+      dbid = self.ElementTree.SubElement(obj,'DbID')
+      dbid.text = i
+      
+  def valInsTime(self,obj):
+    values = []
+    for i in self.parModis:
+      values.append(i.retInsertTime())
+    obj.text = self._minval(values)
+  
+  def valCollectionMetaData(self,obj):
+    values = []
+    for i in self.parModis:
+      values.append(i.retCollectionMetaData())
+    self._cicle_values(obj,self._checkvaldict(values))
+  
+  def valDataFiles(self, obj):
+    values = []
+    for i in self.parModis:
+      values.append(i.retDataFiles())
+    for i in values:
+      dfc = self.ElementTree.SubElement(obj, 'DataFileContainer')
+      self._cicle_values(dfc,i)
+    
+  def valPGEVersion(self,obj):
+    values = []
+    for i in self.parModis:
+      values.append(i.retPGEVersion())
+    for i in self._checkval(values):
+      pge = self.ElementTree.SubElement(obj,'PGEVersion')
+      pge.text = i
+  
+  def valRangeTime(self,obj):
+    values = []
+    for i in self.parModis:
+      values.append(i.retRangeTime())
+    self._cicle_values(obj,self._checkvaldict(values))
+  
+  def valBound(self):
+    boundary = self.parModis[0].retBoundary()
+    for i in range(1,len(self.parModis)):
+      bound = self.parModis[i].retBoundary()
+      if bound['min_lat'] < boundary['min_lat']:
+        boundary['min_lat'] = bound['min_lat']
+      if bound['min_lon'] < boundary['min_lon']:
+        boundary['min_lon'] = bound['min_lon']
+      if bound['max_lat'] > boundary['max_lat']:
+        boundary['max_lat'] = bound['max_lat']
+      if bound['max_lon'] > boundary['max_lon']:
+        boundary['max_lon'] = bound['max_lon']
+    self.boundary = boundary
+  
+  def valMeasuredParameter(self,obj):
+    valuesQAStats = []
+    valuesQAFlags = []
+    valuesParameter = []
+    for i in self.parModis:
+      valuesQAStats.append(i.retMeasure()['QAStats'])
+      valuesQAFlags.append(i.retMeasure()['QAFlags'])
+      valuesParameter.append(i.retMeasure()['ParameterName'])
+    for i in self._checkval(valuesParameter):
+      pn = self.ElementTree.SubElement(obj,'ParameterName')
+      pn.text = i
+  
+  def valInputPointer(self,obj):
+    for i in self.parModis:
+      import pdb; pdb.set_trace()
+      for v in i.retInputGranule():
+        ip = self.ElementTree.SubElement(obj,'InputPointer')
+        ip.text = v
+  
+  def addPoint(self,obj,lon,lat):
+    pt = self.ElementTree.SubElement(obj, 'Point')
+    ptlon = self.ElementTree.SubElement(pt, 'PointLongitude')
+    ptlon.text = str(self.boundary[lon])
+    ptlat = self.ElementTree.SubElement(pt, 'PointLatitude')
+    ptlat.text = str(self.boundary[lat])
+  
+  def valPlatform(self, obj):
+    valuesSName = []
+    valuesInstr = []
+    valuesSensor = []
+    for i in self.parModis:
+        valuesSName.append(i.retPlatform()['PlatformShortName'])
+        valuesInstr.append(i.retPlatform()['InstrumentShortName'])
+        valuesSensor.append(i.retPlatform()['SensorShortName'])
+    for i in self._checkval(valuesSName):
+      pn = self.ElementTree.SubElement(obj,'PlatformShortName')
+      pn.text = i
+      
+    valInstr = self._checkval(valuesInstr)
+    valSens = self._checkval(valuesSensor)
+    
+    if len(valInstr) != len(valSens):
+      raise IOError('Something wrong reading XML files')
+    else:
+      for i in range(len(valInstr)):
+        ins = self.ElementTree.SubElement(obj,'Instrument')
+        pn = self.ElementTree.SubElement(ins,'InstrumentShortName')
+        pn.text = valInstr[i]
+        sens = self.ElementTree.SubElement(ins,'Sensor')
+        ps = self.ElementTree.SubElement(sens,'SensorShortName')
+        ps.text = valSens[i]
+
+  def writexml(self,outputname):
+    """Return a xml file for a mosaic"""
+    # the root element
+    granule = self.ElementTree.Element('GranuleMetaDataFile')
+    # add DTDVersion
+    self.valDTD(granule)
+    # add DataCenterId
+    self.valDataCenter(granule)
+    # add GranuleURMetaData
+    gurmd = self.ElementTree.SubElement(granule,'GranuleURMetaData')
+    # add GranuleUR
+    self.valGranuleUR(gurmd)
+    # add dbID
+    self.valDbID(gurmd)
+    
+    # TODO ADD InsertTime LastUpdate
+
+    # add CollectionMetaData
+    cmd = self.ElementTree.SubElement(gurmd,'CollectionMetaData')
+    self.valCollectionMetaData(cmd)
+    # add DataFiles
+    df = self.ElementTree.SubElement(gurmd,'DataFiles')
+    self.valDataFiles(df)
+    
+    # TODO ADD ECSDataGranule
+    
+    # add PGEVersionClass
+    pgevc = self.ElementTree.SubElement(gurmd,'PGEVersionClass')
+    self.valPGEVersion(pgevc)
+    # add RangeDateTime
+    rdt = self.ElementTree.SubElement(gurmd,'RangeDateTime')
+    self.valRangeTime(rdt)
+    # SpatialDomainContainer
+    sdc = self.ElementTree.SubElement(gurmd,'SpatialDomainContainer')
+    hsdc = self.ElementTree.SubElement(sdc,'HorizontalSpatialDomainContainer')
+    gp = self.ElementTree.SubElement(hsdc,'GPolygon')
+    bound = self.ElementTree.SubElement(gp,'Boundary')
+    self.valBound()
+    self.addPoint(bound,'min_lon','max_lat')
+    self.addPoint(bound,'max_lon','max_lat')
+    self.addPoint(bound,'min_lon','min_lat')
+    self.addPoint(bound,'max_lon','min_lat')
+    # add MeasuredParameter
+    mp = self.ElementTree.SubElement(gurmd,'MeasuredParameter')
+    mpc = self.ElementTree.SubElement(mp,'MeasuredParameterContainer')
+    self.valMeasuredParameter(mpc)
+    
+    # TODO ADD qstats qflags
+
+    # Platform
+    pl = self.ElementTree.SubElement(gurmd,'Platform')
+    self.valPlatform(pl)
+
+    # add PSAs
+    psas = self.ElementTree.SubElement(gurmd,'PSAs')
+    # TODO ADD all PSA
+    # add InputGranule and InputPointer
+    ig = self.ElementTree.SubElement(gurmd,'InputGranule')
+    self.valInputPointer(ig)
+    # TODO ADD BrowseProduct
+    output = open(outputname, 'w')
+    output.write('<?xml version="1.0" encoding="UTF-8"?>')
+    output.write('<!DOCTYPE GranuleMetaDataFile SYSTEM "http://ecsinfo.gsfc.nasa.gov/ECSInfo/ecsmetadata/dtds/DPL/ECS/ScienceGranuleMetadata.dtd">')
+    output.write(self.ElementTree.tostring(granule))
+    output.close()
 
 class convertModis:
   """A class to convert modis data from hdf to tif using resample (from MRT tools)
@@ -751,7 +1100,8 @@ class createMosaic:
               listfile,
               outprefix,
               mrtpath,
-              subset = False):
+              subset = False
+              ):
     # check if the hdf file exists
     if os.path.exists(listfile):
       self.basepath = os.path.split(listfile)[0]
@@ -778,126 +1128,17 @@ class createMosaic:
     self.outxml = os.path.join(self.basepath, self.out + '.xml')
     self.subset = subset
 
-  def boundaries(self):
-    """Return the max extend for the mosaic"""
-    pm = parseModis(os.path.join(self.basepath,self.HDFfiles[0].strip()))
-    boundary = pm.retBoundary()
-    for i in range(1,len(self.HDFfiles)):
-      pm = parseModis(os.path.join(self.basepath,self.HDFfiles[i].strip()))
-      bound = pm.retBoundary()
-      if bound['min_lat'] < boundary['min_lat']:
-        boundary['min_lat'] = bound['min_lat']
-      if bound['min_lon'] < boundary['min_lon']:
-        boundary['min_lon'] = bound['min_lon']
-      if bound['max_lat'] > boundary['max_lat']:
-        boundary['max_lat'] = bound['max_lat']
-      if bound['max_lon'] > boundary['max_lon']:
-        boundary['max_lon'] = bound['max_lon']
-    return boundary
-
   def write_mosaic_xml(self):
-    """Return a xml file for a mosaic"""
-    from xml.etree import ElementTree
-
-    def cicle_values(ele,values):
-      """Function to add values from a dictionary"""
-      for k,v in values.iteritems():
-        elem = ElementTree.SubElement(ele,k)
-        elem.text = v
-
-    # take the data similar for different files from the first
-    pm = parseModis(os.path.join(self.basepath,self.HDFfiles[0].strip()))
-    # the root element
-    granule = ElementTree.Element('GranuleMetaDataFile')
-    # add DTDVersion
-    dtd = ElementTree.SubElement(granule,'DTDVersion')
-    dtd.text = pm.retDTD()    
-    # add DataCenterId
-    dci = ElementTree.SubElement(granule,'DataCenterId')
-    dci.text = pm.retDataCenter()
-    # add GranuleURMetaData
-    gurmd = ElementTree.SubElement(granule,'GranuleURMetaData')
-
-    #gur = ElementTree.SubElement(gurmd,'GranuleUR')
-    #gur.text = pm.retGranuleUR()
-    # TODO ADD GranuleUR DbID InsertTime LastUpdate
-
-    # add CollectionMetaData
-    coll = pm.retCollectionMetaData()
-    cmd = ElementTree.SubElement(gurmd,'CollectionMetaData')
-    cicle_values(cmd,coll)
-
-    ## DA RIVEDERE DataFileContainer
-    #dataf = pm.retDataFiles()
-    #df = ElementTree.SubElement(gurmd,'CollectionMetaData')
-    #dfc = ElementTree.SubElement(df,'DataFileContainer')
-    #cicle_values(dfc,dataf)
-
-    # add PGEVersionClass
-    pgevc = ElementTree.SubElement(gurmd,'PGEVersionClass')
-    pgevc.text = pm.retPGEVersion()
-    # add RangeDateTime
-    datime = pm.retRangeTime()
-    rdt = ElementTree.SubElement(gurmd,'RangeDateTime')
-    cicle_values(rdt,datime)
-    # SpatialDomainContainer
-    maxbound = self.boundaries()
-    sdc = ElementTree.SubElement(gurmd,'SpatialDomainContainer')
-    hsdc = ElementTree.SubElement(sdc,'HorizontalSpatialDomainContainer')
-    gp = ElementTree.SubElement(hsdc,'GPolygon')
-    bound = ElementTree.SubElement(gp,'Boundary')
-    pt1 = ElementTree.SubElement(bound, 'Point')
-    pt1lon = ElementTree.SubElement(pt1, 'PointLongitude')
-    pt1lon.text = str(maxbound['min_lon'])
-    pt1lat = ElementTree.SubElement(pt1, 'PointLatitude')
-    pt1lat.text = str(maxbound['max_lat'])
-    pt2 = ElementTree.SubElement(bound, 'Point')
-    pt2lon = ElementTree.SubElement(pt2, 'PointLongitude')
-    pt2lon.text = str(maxbound['max_lon'])
-    pt2lat = ElementTree.SubElement(pt2, 'PointLatitude')
-    pt2lat.text = str(maxbound['max_lat'])
-    pt3 = ElementTree.SubElement(bound, 'Point')
-    pt3lon = ElementTree.SubElement(pt3, 'PointLongitude')
-    pt3lon.text = str(maxbound['min_lon'])
-    pt3lat = ElementTree.SubElement(pt3, 'PointLatitude')
-    pt3lat.text = str(maxbound['min_lat'])
-    pt4 = ElementTree.SubElement(bound, 'Point')
-    pt4lon = ElementTree.SubElement(pt4, 'PointLongitude')
-    pt4lon.text = str(maxbound['max_lon'])
-    pt4lat = ElementTree.SubElement(pt4, 'PointLatitude')
-    pt4lat.text = str(maxbound['min_lat'])
-    # add MeasuredParameter
-    mp = ElementTree.SubElement(gurmd,'MeasuredParameter')
-    mpc = ElementTree.SubElement(mp,'MeasuredParameterContainer')
-    pn = ElementTree.SubElement(mpc,'ParameterName')
-    measure = pm.retMeasure()
-    pn.text = measure['ParameterName']
-
-    # TODO ADD qstats qflags
-    # add Platform
-    platvalues = pm.retPlatform()
-    plat = ElementTree.SubElement(gurmd,'Platform')
-    psn = ElementTree.SubElement(plat,'PlatformShortName')
-    psn.text = platvalues['PlatformShortName']
-    ins = ElementTree.SubElement(plat,'Instrument')
-    isn = ElementTree.SubElement(ins,'InstrumentShortName')
-    isn.text = platvalues['InstrumentShortName']
-    sens = ElementTree.SubElement(ins,'Sensor')
-    ssn = ElementTree.SubElement(sens,'SensorShortName')
-    ssn.text = platvalues['SensorShortName']
-    # add PSAs
-    psas = ElementTree.SubElement(gurmd,'PSAs')
-    # TODO ADD all PSA
-    ig = ElementTree.SubElement(gurmd,'InputGranule')
+    listHDF = []
     for i in self.HDFfiles:
-      ip = ElementTree.SubElement(ig,'InputPointer')
-      ip.text = i
-    # TODO ADD BrowseProduct
-    output = open(self.outxml, 'w')
-    output.write('<?xml version="1.0" encoding="UTF-8"?>')
-    output.write('<!DOCTYPE GranuleMetaDataFile SYSTEM "http://ecsinfo.gsfc.nasa.gov/ECSInfo/ecsmetadata/dtds/DPL/ECS/ScienceGranuleMetadata.dtd">')
-    output.write(ElementTree.tostring(granule))
-    output.close()
+      if i.find(self.basepath) == -1:
+        print "Attection maybe you have the not full path in the HDF file list"
+        listHDF.append(os.path.join(self.basepath,i.strip()))
+      else:
+        listHDF.append(i.strip())
+    pmm = parseModisMulti(listHDF)
+    pmm.writexml(self.outxml)
+
 
   def executable(self):
     """Return the executable of mrtmosaic MRT software
@@ -925,3 +1166,63 @@ class createMosaic:
         subprocess.call([execut,'-i',self.listfiles,'-o',self.out], stderr = 
                         subprocess.STDOUT)
     return "The mosaic file %s is created" % self.out
+
+class processModis:
+  """A class to process raw modis data from hdf to tif using swath2grid (from MRT Swath tools)
+  """
+  def __init__(self, 
+              hdfname, confile, mrtpath, 
+              inputhdf = None, outputhdf = None, geolocfile = None
+  ):
+    """Initialization function :
+       hdfname = the full path to the hdf file
+       confile = the full path to the paramater file
+       mrtpath = the full path to mrt directory where inside you have bin and 
+                 data directories
+    """
+    # check if the hdf file exists
+    if os.path.exists(hdfname):
+      self.name = hdfname
+    else:
+      raise IOError('%s not exists' % hdfname)
+    # check if confile exists
+    if os.path.exists(confile):
+      self.conf = confile
+    else:
+      raise IOError('%s not exists' % confile)
+    # check if mrtpath and subdirectories exists and set environment variables
+    if os.path.exists(mrtpath):
+      if os.path.exists(os.path.join(mrtpath,'bin')):
+        self.mrtpathbin = os.path.join(mrtpath,'bin')
+        os.environ['PATH'] = "%s:%s" % (os.environ['PATH'],os.path.join(mrtpath,
+                                                                        'data'))
+      else:
+        raise IOError('The path %s not exists' % os.path.join(mrtpath,'bin'))
+      if os.path.exists(os.path.join(mrtpath,'data')):
+        self.mrtpathdata = os.path.join(mrtpath,'data')
+        os.environ['MRTDATADIR'] = os.path.join(mrtpath,'data')
+      else:
+        raise IOError('The path %s not exists' % os.path.join(mrtpath,'data'))
+    else:
+      raise IOError('The path %s not exists' % mrtpath)
+
+  def executable(self):
+    """Return the executable of resample MRT software
+    """
+    if sys.platform.count('linux') != -1:
+      if os.path.exists(os.path.join(self.mrtpathbin,'swath2grid')):
+        return os.path.join(self.mrtpathbin,'swath2grid')
+    elif sys.platform.count('win32') != -1:
+      if os.path.exists(os.path.join(self.mrtpathbin,'swath2grid.exe')):
+        return os.path.join(self.mrtpath,'swath2grid.exe')
+
+  def run(self):
+    """Exec the process"""
+    import subprocess
+    execut = self.executable()
+    if not os.path.exists(execut):
+      raise IOError('The path %s not exists, could be an erroneus path or '\
+                    + 'software') % execut
+    else:
+      subprocess.call([execut,'-pf=%s' % self.conf])
+    return "The hdf file %s was converted" % self.name

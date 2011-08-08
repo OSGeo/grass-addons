@@ -5,8 +5,8 @@
 #
 # MODULE:        r.modis.import
 # AUTHOR(S):     Luca Delucchi
-# PURPOSE:       r.modis.import is an internafe to pyModis to download 
-#                several tiles of MODIS produts from NASA ftp
+# PURPOSE:       r.modis.import is an interface to pyModis for import into GRASS
+#                GIS level 3 MODIS produts
 #
 # COPYRIGHT:        (C) 2011 by Luca Delucchi
 #
@@ -170,6 +170,8 @@ def import_tif(hdf,basedir,rem,target=False):
     prefix = os.path.split(hdf)[1].rstrip('.hdf')
     # list of tif files
     tifiles = glob.glob1(basedir, prefix + "*.tif")
+    if not tifiles:
+        grass.fatal(_('Error during the conversion'))
     # check if is in latlong location to set flag l
     if projection().val == 'll':
         f = "l"
@@ -208,6 +210,9 @@ def single(options,remove,qa):
         os.remove(confname)
 
     return grass.message(_('All files imported correctly'))
+
+#def createXMLmosaic(listfiles):
+    #modis.
 
 def mosaic(options,remove,qa):
     """Create a daily mosaic of hdf files convert to tif and import it
@@ -272,10 +277,10 @@ def main():
         return 0
     # return an error if both dns and files option are set or not
     if options['dns'] == '' and options['files'] == '':
-        grass.fatal(_('You have to choese one of "dns" or "spectral" option'))
+        grass.fatal(_('You have to choose one of "dns" or "files" options'))
         return 0
     elif options['dns'] != '' and options['files'] != '':
-        grass.fatal(_('It is not possible set  "dns" and "spectral" option together'))
+        grass.fatal(_('It is not possible set "dns" and "files" options together'))
         return 0
     # check the version
     version = grass.core.version()

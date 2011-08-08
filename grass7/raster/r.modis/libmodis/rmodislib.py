@@ -58,23 +58,38 @@ class product:
           'ndvi_terra_sixte':{'url':urlbase, 'folder':'MOLT/MOD13Q1.005','res':250,
           'spec':'( 1 1 0 0 0 0 0 0 0 0 0 )','spec_qa':'( 1 1 1 1 0 0 0 0 0 0 0 )'}
         }
-
+        self.products_swath = {
+          'lstemi_terra_daily':{'url':urlbase,'folder':'MOLT/MOD11_L2.005',
+          'spec':'LST; QC; Error_LST; Emis_31; Emis_32; View_angle; View_time'}, 'lstemi_aqua_daily':{'url':urlbase,'folder':'MOLA/MYD11_L2.005',
+          'spec':'LST; QC; Error_LST; Emis_31; Emis_32; View_angle; View_time'}
+        }
     def returned(self):
-	return self.products[self.prod]
+        if self.products.keys().count(self.prod) == 1:
+            return self.products[self.prod]
+        elif self.products_swath.keys().count(self.prod) == 1:
+            return self.products_swath[self.prod]
+        else:
+            grass.fatal(_("The code insert is not supported yet. Consider to ask " \
+                      + "on the grass-dev mailing list for future support"))
 
     def fromcode(self,code):
         import string
         for k,v in self.products.iteritems():
           if string.find(v['folder'],code) != -1:
             return self.products[k]
-        return "The code insert is not supported yet. Consider to ask on the grass-dev "\
-               + "mailing list for future support"
+        for k,v in self.products_swath.iteritems():
+          if string.find(v['folder'],code) != -1:
+            return self.products_swath[k]
+        grass.fatal(_("The code insert is not supported yet. Consider to ask " \
+                      "on the grass-dev mailing list for future support"))
 
     def __str__(self):
 	prod = self.returned()
-	string = "url: " + prod['url'] + ", folder: " + prod['folder'] + \
-                ", spectral subset: " + prod['spec'] + ", spectral subset qa:" + \
-                prod['spec_qa']
+	string = "url: " + prod['url'] + ", folder: " + prod['folder']
+        if prod.keys().count('spec') == 1:
+                string += ", spectral subset: " + prod['spec']
+        if prod.keys().count('spec_qa') == 1:
+                string += ", spectral subset qa:" + prod['spec_qa']
 	return string
 
 class resampling:
@@ -100,6 +115,13 @@ class projection:
              'tmerc':'TRANSVERSE MERCATOR'}
         self.datumlist = {'none':'NONE', 'nad27':'NAD27', 'nad83':'NAD83', 
         'wgs66':'WGS66', 'wgs72':'WGS72', 'wgs84':'WGS84'}
+        self.datumlist_swath = {'Clarke 1866' : 0, 'Clarke 1880' : 1, 'bessel' : 2
+            , 'International 1967' : 3, 'International 1909': 4, 'wgs72' : 5, 
+            'Everest' : 6, 'wgs66' : 7, 'wgs84' : 8, 'Airy' : 9, 
+            'Modified Everest' : 10, 'Modified Airy' : 11, 'Walbeck' : 12, 
+            'Southeast Asia' : 13, 'Australian National' : 14, 'Krassovsky' : 15, 
+            'Hough' : 16, 'Mercury1960' : 17, 'Modified Mercury1968' : 18, 
+            'Sphere 19 (Radius 6370997)' : 19, 'MODIS Sphere (Radius 6371007.181)' : 20}
 
     def returned(self):
         """Return the projection in the MRT style"""
@@ -112,10 +134,18 @@ class projection:
         else:
             SMinor = 0.0
 
-    def return_params(self):
+    def _outpar(self, SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN,swath):
+        if swath:
+          return '%i %i %d %d %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0' % ( 
+                SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN )
+        else:
+          return '( %i %i %d %d %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )' % ( 
+                SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN )
+
+    def return_params(self, swath = False):
         """ Return the 13 paramaters for parameter file """
         if self.val == 'll' or self.val == 'utm':
-            return '( 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )'
+            return self._outpar(0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, swath)
         elif self.val == 'lcc':
             SMajor = self._par('+a')
             SMinor = self._par('+b')
@@ -125,9 +155,8 @@ class projection:
             CentLat = self._par('+lat_0')
             FE = self._par('+x_0')
             FN = self._par('+y_0')
-            st = '( %i %i %d %d %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )' % ( 
-            SMajor, SMinor, STDPR1, STDPR2, CentMer, CentLat, FE, FN )
-            return st
+            return self._outpar(SMajor, SMinor, STDPR1, STDPR2, CentMer, 
+                                CentLat, FE, FN, swath)
         elif self.val == 'merc' or self.val == 'polar' or self.val == 'tmerc':
             SMajor = self._par('+a')
             SMinor = self._par('+b')
@@ -139,9 +168,8 @@ class projection:
             TrueScale = self._par('+lat_ts')
             FE = self._par('+x_0')
             FN = self._par('+y_0')
-            st = '( %i %i %d 0.0 %d %d %d %d 0.0 0.0 0.0 0.0 0.0 0.0 0.0 )' % ( 
-            SMajor, SMinor, Factor, CentMer, TrueScale, FE, FN )
-            return st
+            return self._outpar(SMajor, SMinor, 0.0, Factor, CentMer, 
+                                 TrueScale, FE, FN, swath)
         else:
             grass.fatal(_('Projection not supported, please contact the' \
                           'GRASS-dev mailing list'))
@@ -149,6 +177,9 @@ class projection:
     def datum(self):
         """Return the datum in the MRT style"""
         return self.datumlist[self.dat]
+
+    def datumswath(self):
+        return self.datumlist_swath[self.dat]
 
     def utmzone(self):
         """Return the utm zone number"""

@@ -5,7 +5,7 @@
 #
 # MODULE:        r.in.modis.download
 # AUTHOR(S):     Luca Delucchi
-# PURPOSE:       r.in.modis.download is an internafe to pyModis to download 
+# PURPOSE:       r.in.modis.download is an interface to pyModis for download 
 #                several tiles of MODIS produts from NASA ftp
 #
 # COPYRIGHT:        (C) 2011 by Luca Delucchi
