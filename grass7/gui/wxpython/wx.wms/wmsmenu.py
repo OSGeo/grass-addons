@@ -34,6 +34,7 @@ class wmsFrame(wx.Frame):
         self.GetCapabilities = wx.Button(self, -1, "GetCapabilities")
         self.GetMaps = wx.Button(self, -1, "GetMaps")
         self.addServer = wx.Button(self, -1, "Manage Servers")
+        self.StatusBar = self.CreateStatusBar(1, 0)
 
         self.__set_properties()
         self.__do_layout()
@@ -80,6 +81,11 @@ class wmsFrame(wx.Frame):
         self.LayerTree.SetMinSize((400, 250))
         self.usernameInput.SetMinSize((189, 27))
         self.passwordInput.SetMinSize((189, 27))
+        self.StatusBar.SetStatusWidths([-1])
+        # statusbar fields
+        StatusBar_fields = ["StatusBar"]
+        for i in range(len(StatusBar_fields)):
+            self.StatusBar.SetStatusText(StatusBar_fields[i], i)
         # end wxGlade
 
     def __do_layout(self):
@@ -153,14 +159,20 @@ class wmsFrame(wx.Frame):
         url = self.selectedURL
         url = url + '?request=GetCapabilities&service=wms&version=1.1.1'
         print url
+        StatusBar_fields = ["GetCapabilities Request Sent..."]
+        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
         req = Request(url)
         try:
             response = urlopen(req)
             xml = response.read()
             if(not isValidResponse(xml)):
+                StatusBar_fields = ["Invalid GetCapabilities response"]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 print 'Not a valid Get Capabilities reponse'
                 return
             if(isServiceException(xml)):
+                StatusBar_fields = ["Service Exception in Get Capabilities"]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 print 'Service Exception in Get Capabilities'
                 return
             #for testing pruposes
@@ -176,18 +188,27 @@ class wmsFrame(wx.Frame):
             #print xml
             self.LayerTree.Expand(self.layerTreeRoot)
         except HTTPError, e:
-            print 'The server couldn\'t fulfill the request.'
-            print 'Error code: ', e.code
+            message = 'The server couldn\'t fulfill the request.'
+            print message
+            #print 'Error code: ', e.code
         except URLError, e: 
-            print 'We failed to reach a server.'
-            print 'Reason: ', e.reason
+            message = 'We failed to reach a server.'
+            print message
+            #print 'Reason: ', e.reason
         except ValueError, e:
-            print 'Value error'
-            print 'Reason: ', e.reason
+            message = 'Value error'
+            print message
+            #print 'Reason: ', e.reason
         except:
-            print 'urlopen exception, unable to fetch data for getcapabilities'
+            message = 'urlopen exception, unable to fetch data for getcapabilities'
+            print message
         else:
-            print 'Successful'
+            message = 'Successful'
+            print message
+            
+        StatusBar_fields = [message]
+        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+ 
             #Sudeep's Code Ends
         event.Skip()
         
@@ -198,7 +219,10 @@ class wmsFrame(wx.Frame):
         #url = self.urlInput.GetValue()
         print self.selectedURL
         if(self.selectedURL == "No server selected"):
-            print 'no url selected\n returning...\n'
+            message = 'no url selected\n returning...\n'
+            print message
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             return
             
         
@@ -211,35 +235,61 @@ class wmsFrame(wx.Frame):
     
         req = Request(getMap_request_url)
         try:
+            
+            message = 'GetMaps request sent. Waiting for response...'
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             response = urlopen(req)
             image = response.read()
             #print image
             
             if(isServiceException(image)):
-                print 'Service Exception has occured'
+                message = 'Service Exception has occured'
+                print message
+                StatusBar_fields = [message]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             else:
                 outfile = open('map.png','wb')
                 outfile.write(image)
                 outfile.close()
                 if(imghdr.what('./map.png') != 'png'):
-                    print 'uiui'
-                    print imghdr.what('./map.png')
-                    print 'Not a valid PNG Image, Unable to display, returning'
+                    #print 'uiui'
+                    #print imghdr.what('./map.png')
+                    message = 'Not a valid PNG Image, Unable to display, returning'
+                    print message
+                    StatusBar_fields = [message]
+                    self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                     return
-                
+                message = 'GetMap response obtained'
+                StatusBar_fields = [message]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 NewImageFrame()
             
             
         except HTTPError, e:
-            print 'The server couldn\'t fulfill the request.'
-            print 'Error code: ', e.code
-        except URLError, e:
-            print 'We failed to reach a server.'
-            print 'Reason: ', e.reason
+            message = 'The server couldn\'t fulfill the request.'
+            print message
+            #print 'Error code: ', e.code
+        except URLError, e: 
+            message = 'We failed to reach a server.'
+            print message
+            #print 'Reason: ', e.reason
+        except ValueError, e:
+            message = 'Value error'
+            print message
+            #print 'Reason: ', e.reason
+        except:
+            message = 'urlopen exception, unable to fetch data for getcapabilities'
+            print message
         else:
-            print 'Successful'
-            #Sudeep's Code Ends
-            event.Skip()
+            message = 'Successful'
+            print message
+                   
+        print message
+        StatusBar_fields = [message]
+        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+        #Sudeep's Code Ends
+        event.Skip()
 
     
     def OnServerListEnter(self, event): # wxGlade: wmsFrame.<event_handler>
