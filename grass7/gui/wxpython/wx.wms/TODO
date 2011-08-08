@@ -56,23 +56,23 @@ Issues reportes by Maris , Mail 1
 AddServer dialog:
 * TODO: Dialog layout doesn't re-size well; Text doesn't fit.
 *[done] Quit button quits application and not just closes server editing dialog.
-* Save button should save edits to current server and not create a new
+*[done] Save button should save edits to current server and not create a new
 one; "Save as a new" should create a new entry.
-* TODO: check for name duplication before adding a new server to avoid
+*[done] TODO: check for name duplication before adding a new server to avoid
 existence of server entries with identical names. That would break
 current XML too, as common name is used as ID. ID should be something
 more generic. UUID?
 *[done]  Only server name and URL should be mandatory
-* TODO: StatusBar should provide real info on application state:
+* [done] TODO: StatusBar should provide real info on application state:
 editing existing entry; creating a new one; saved successfully; save
 failed + popup with error message etc.
-* If a new server is saved successfully, preselect it in servers drop-down list.
+*[Need help] If a new server is saved successfully, preselect it in servers drop-down list.
 *[done]  Failure to save server list should not wipe existing server list.
 This is important! Use copy on success trick (save to temporary file;
 in case of success, copy temporary file over original one).
 *[done]  All fields should accept non-ascii characters.
 * TODO: validate user provided URL by doing getCapabilities request.[Can it be validated ?, sometimes a server might be down, so instead we leave it at user to decide if he gives a valid url, as in case he gives something like www.google.com or any other website, the application can handle the wrong responses recieved]
-*[Need help in this, could not figure out the function to preselect something] When server is removed, it should switch dropdown server list to
+*[Need help ] When server is removed, it should switch dropdown server list to
 other entry to indicate it's removal.
 
 wmsmenu:

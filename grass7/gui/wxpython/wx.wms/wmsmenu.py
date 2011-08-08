@@ -147,7 +147,11 @@ class wmsFrame(wx.Frame):
 
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
         if(self.selectedURL == "No server selected"):
-            print 'no url selected\n returning...\n'
+            message = 'No Server selected'
+            self.ShowMessage(message, 'Warning')
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+            print message
             return
         
         self.usernameInput.Enable()
@@ -166,14 +170,18 @@ class wmsFrame(wx.Frame):
             response = urlopen(req)
             xml = response.read()
             if(not isValidResponse(xml)):
-                StatusBar_fields = ["Invalid GetCapabilities response"]
+                message = "Invalid GetCapabilities response"
+                self.ShowMessage(message, 'Warning')
+                StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                print 'Not a valid Get Capabilities reponse'
+                print message
                 return
             if(isServiceException(xml)):
-                StatusBar_fields = ["Service Exception in Get Capabilities"]
+                message = 'Service Exception in Get Capabilities'
+                self.ShowMessage(message, 'Warning')
+                StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                print 'Service Exception in Get Capabilities'
+                print message                
                 return
             #for testing pruposes
             #f=open('in1.xml','r')
@@ -206,8 +214,13 @@ class wmsFrame(wx.Frame):
             message = 'Successful'
             print message
             
-        StatusBar_fields = [message]
-        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+        if(not message=='Successful'):
+                self.ShowMessage(message, 'Warning')
+                StatusBar_fields = [message]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+        else:
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
  
             #Sudeep's Code Ends
         event.Skip()
@@ -219,8 +232,9 @@ class wmsFrame(wx.Frame):
         #url = self.urlInput.GetValue()
         print self.selectedURL
         if(self.selectedURL == "No server selected"):
-            message = 'no url selected\n returning...\n'
+            message = 'No server selected'
             print message
+            self.ShowMessage(message, 'Warning')
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             return
@@ -245,6 +259,7 @@ class wmsFrame(wx.Frame):
             
             if(isServiceException(image)):
                 message = 'Service Exception has occured'
+                self.ShowMessage(message, 'Warning')
                 print message
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
@@ -255,7 +270,8 @@ class wmsFrame(wx.Frame):
                 if(imghdr.what('./map.png') != 'png'):
                     #print 'uiui'
                     #print imghdr.what('./map.png')
-                    message = 'Not a valid PNG Image, Unable to display, returning'
+                    message = 'Not a valid PNG Image, Unable to display Map'
+                    self.ShowMessage(message, 'Warning')
                     print message
                     StatusBar_fields = [message]
                     self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
@@ -286,8 +302,14 @@ class wmsFrame(wx.Frame):
             print message
                    
         print message
-        StatusBar_fields = [message]
-        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+        if(message != 'Successful'):
+            self.ShowMessage(message, 'Warning')
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+        else:
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+        
         #Sudeep's Code Ends
         event.Skip()
 
@@ -393,6 +415,10 @@ class wmsFrame(wx.Frame):
             Publisher().sendMessage(("WMS_Menu_Close"), msg)
         self.Destroy()
         return
+    
+    def ShowMessage(self, message, type = 'Warning'):
+        wx.MessageBox(message, type)
+    
 # end of class wmsFrame
 
 #Sudeep's Code Starts
