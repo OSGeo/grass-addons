@@ -7,7 +7,6 @@ class ServerData():
 def initServerInfoBase(fileName):
     if(os.path.exists(fileName)):
         try:
-            os.system('chmod 777 '+fileName)
             f = open(fileName,'r')
         except:
             print 'Unable to open File '+fileName

@@ -74,6 +74,7 @@ class ServerAdd(wx.Frame):
         Publisher().subscribe(self.OnPopupCancelRequest, ("PopupCancelRequest"))
         self.editOn = False
         self.selectedUid = None
+        self.selectedServer = None
         #sudeep code ends
 
     def __set_properties(self):
@@ -180,7 +181,8 @@ class ServerAdd(wx.Frame):
             print 'key not present'
             CurrentUid = None
             update = False
-        if(self.servers.has_key(Uid)):
+        if(self.servers.has_key(Uid)):StatusBar_fields = [character+' is not allowed in a Field']
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             update = True
             #print 'Server Name already exists'
             #return
@@ -195,10 +197,13 @@ class ServerAdd(wx.Frame):
         url = newUrl.split()
         #if(len(newUrl) != 0 and len(newServerName) != 0 and len(newUserName) !=0 and len(newPassword) != 0 ):
         if(len(newUrl) != 0 and len(newServerName) != 0):
-            if(not self.selectedServer.servername == newServerName):
-                if(self.valueExists(self.servers, newServerName)):
-                    print 'Please Enter a different Servername'
-                    return
+            if(self.selectedServer is not None):
+                if(not self.selectedServer.servername == newServerName):
+                    if(self.valueExists(self.servers, newServerName)):
+                        StatusBar_fields = ["ServerName already exists. Please enter a differnet ServerName"]
+                        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+                        print 'Please Enter a different Servername'
+                        return
             #del self.servers[self.selectedUid]
             serverData.servername = newServerName
             serverData.url = newUrl
@@ -209,28 +214,39 @@ class ServerAdd(wx.Frame):
             if(update):
                 if(updateServerInfo(self.soup, self.soup.serverinfo, self.selectedUid, newServerName, newUrl, newUserName, newPassword)):
                     print 'update save successful'
+                    
+                    #self.StatusBar.setStatusText("Information Updated")
                     self.servers[self.selectedUid] = serverData
                     del self.map_servernameTouid[self.selectedServer.servername]
                     self.selectedServer = serverData
                     self.map_servernameTouid[newServerName] = self.selectedUid
                     self.saveXMLData()
                     msg = self.servers
+                    StatusBar_fields = ["Server Info Updated"]
+                    self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                     Publisher().sendMessage(("update.serverList"), msg)
                 else:
+                    StatusBar_fields = ["Update not Successful"]
+                    self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                     print 'update save not successful'
             else:    
                 uid = str(uuid.uuid4())
                 
                 if(addServerInfo(self.soup, self.soup.serverinfo, uid, newServerName, newUrl, newUserName, newPassword)):
                     print 'soup save successfully'
+                    
                     self.selectedUid = uid
                     self.servers[self.selectedUid] = serverData
                     self.selectedServer = serverData
                     self.map_servernameTouid[newServerName] = uid
                     self.saveXMLData()
                     msg = self.servers
+                    StatusBar_fields = ["Server Info Saved Successfully"]
+                    self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                     Publisher().sendMessage(("update.serverList"), msg)
                 else:
+                    StatusBar_fields = ["Save not Successful"]
+                    self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                     print "False returned by addServerInfo, save not successful"
             '''
             f = open('serverList.txt','a')
@@ -243,6 +259,8 @@ class ServerAdd(wx.Frame):
             self.__update_URL_List()
   	    #Update_Url_List(newServerName+" "+newUrl)
         else:
+            StatusBar_fields = ["Please Fill servername and url fields"]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             print "Please Fill servername and url fields"
         self.editOn = False
         if(event):
@@ -251,13 +269,21 @@ class ServerAdd(wx.Frame):
     def OnRemove(self, event): # wxGlade: ServerAdd.<event_handler>
         print '-------------------------------------------------------------------> OnRemove'
         if(self.selectedUid == None):
+            StatusBar_fields = ["No Server selected....Remove Unsuccessful"]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             print 'No Uid is selected....Remove Unsuccessful'
             return
         else:
             if(removeServerInfo(self.soup, self.selectedUid)):
+                StatusBar_fields = ["Remove Successful"]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 print 'remove successful'
                 del self.map_servernameTouid[self.selectedServer.servername]
+                if(len(self.servers) > 0):
+                    self.ServerList.SetSelection(0)
             else:
+                StatusBar_fields = ["Remove Unsuccessful"]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 print 'remove unsuccessful'
                 return
             #print self.servers
@@ -265,7 +291,7 @@ class ServerAdd(wx.Frame):
             del self.servers[self.selectedUid]
             self.selectedUid = None
             self.__update_URL_List()
-            
+            self.selectedServer = None
             self.ServerNameText.Clear()
             self.PasswordText.Clear()
             self.URLText.Clear()
@@ -288,6 +314,9 @@ class ServerAdd(wx.Frame):
         self.URLText.Clear()
         self.UsernameText.Clear()
         self.editOn = False
+        self.selectedServer=None
+        StatusBar_fields = [""]
+        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
         event.Skip()
     
     def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
@@ -329,6 +358,8 @@ class ServerAdd(wx.Frame):
             self.UsernameText.SetValue(self.selectedServer.username)
             self.PasswordText.SetValue(self.selectedServer.password)
         else:
+            StatusBar_fields = ["Wrong format of URL selected"]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             print "Wrong format of URL selected"
             
         #self.ServerNameText.SetValue(self.servers)
@@ -365,7 +396,7 @@ class ServerAdd(wx.Frame):
             print 'Unable to write in templist.xml file, Save not successful'
             return False
         try:    
-            os.system('chmod 777 ServersList.xml')
+            #os.system('chmod 777 ServersList.xml')
             os.system("cp templist.xml ServersList.xml")
             #f = open('ServersList.xml','w')
         except:
@@ -377,27 +408,37 @@ class ServerAdd(wx.Frame):
     
     def allFieldsValid(self, newServerName, newUrl, newUserName, newPassword):
         if(newServerName.count(self.name_url_delimiter)>0):
+                StatusBar_fields = ["Warning: UserName cannot consist of "+self.name_url_delimiter]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 print "Warning: UserName cannot consist of "+self.name_url_delimiter
                 print "Please give another username, save failed..."
                 return False
             
         if(newUrl.count(self.name_url_delimiter)>0):
+                StatusBar_fields = ["Warning: URL Delimiter conflict. Edit config file"]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 print "Warning: URL cannot consist of "+self.name_url_delimiter
                 print "Change in config file required to use different character as delimeter which doesnot appears in url"
                 return False
             
         character = '>'
         if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
+            StatusBar_fields = [character+' is not allowed in a Field']
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             print character+' is not allowed in a Field'
             return False
 
         character = '<'
         if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
+            StatusBar_fields = [character+' is not allowed in a Field']
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             print character+' is not allowed in a Field'
             return False
         
         character = '&'
         if(newServerName.count(character) > 0 or newUrl.count(character) > 0 or newUserName.count(character) > 0 or newPassword.count(character) > 0):
+            StatusBar_fields = [character+' is not allowed in a Field']
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             print character+' is not allowed in a Field'
             return False
         
