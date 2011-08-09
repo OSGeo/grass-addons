@@ -42,7 +42,7 @@
 #% type: string
 #% description: Name of MODIS product
 #% required: no
-#% options: lst_aqua_daily, lst_terra_daily, snow_terra_eight, ndvi_terra_sixte
+#% options: lst_aqua_daily, lst_terra_daily, snow_terra_eight, ndvi_terra_sixteen
 #% answer: lst_terra_daily
 #%end
 #%option
