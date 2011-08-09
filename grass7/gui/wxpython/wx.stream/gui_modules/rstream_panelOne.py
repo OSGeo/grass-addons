@@ -24,7 +24,8 @@ import sys
 sys.path.append(os.path.join(os.getenv('GISBASE'), 'etc', 'gui', 'wxpython', 'gui_modules'))
 
 import wx
-import wx.aui
+#import wx.aui
+import wx.lib.flatnotebook as FN
 
 from debug import Debug as Debug
 from preferences import globalSettings as UserSettings
@@ -36,8 +37,8 @@ import dbm
 import globalvar
 import utils
 import menuform
+import mapdisp_window
 
-from rstream_panelOne import *
 
 
 # First panel # Network extraction
@@ -54,6 +55,7 @@ class TabPanelOne(wx.Panel):
         self.r_stre = 'r_stre'
         self.v_net = 'v_net'
         self.r_drain = 'r_drain'
+        #self.mapdisp = 
         
         # define the panel for select maps
 	self.panel = wx.Panel(self)                        
@@ -305,6 +307,27 @@ class TabPanelOne(wx.Panel):
 
     def OnPreview(self, event):
         pass
+        info_region = grass.read_command('g.region', flags = 'p')
+
+        # message box 
+        self.msg = wx.MessageDialog(parent = self.panel, message = "Please select the center of preview window on the map",
+                                    caption = "Preview utility", style = wx.OK | wx.CANCEL, pos = wx.DefaultPosition)
+        self.retCode = self.msg.ShowModal()
+        if self.retCode == wx.ID_OK:
+            print "OK"
+
+            # get current Map Display
+            self.mapdisp.Raise()
+
+            # Get position by panel on mouse click
+            
+
+
+        else:
+            print "Cancel"
+        
+        
+        
     
 
     #-------------Network extraction-------------

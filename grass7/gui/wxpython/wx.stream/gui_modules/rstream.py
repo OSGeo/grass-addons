@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 """!
 @package rstream.py
 
@@ -21,7 +24,8 @@ import sys
 sys.path.append(os.path.join(os.getenv('GISBASE'), 'etc', 'gui', 'wxpython', 'gui_modules'))
 
 import wx
-import wx.aui
+#import wx.aui
+import wx.lib.flatnotebook as FN
 
 from debug import Debug as Debug
 from preferences import globalSettings as UserSettings
@@ -49,14 +53,14 @@ class TabPanel(wx.Panel):
 
         wx.Panel.__init__(self, parent = parent, id = wx.ID_ANY)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        txtOne = wx.TextCtrl(self, wx.ID_ANY, "")
-        txtTwo = wx.TextCtrl(self, wx.ID_ANY, "")
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.txtOne = wx.TextCtrl(self, wx.ID_ANY, "")
+        self.txtTwo = wx.TextCtrl(self, wx.ID_ANY, "")
  
-        sizer.Add(txtOne, 0, wx.ALL, 5)
-        sizer.Add(txtTwo, 0, wx.ALL, 5)
+        self.sizer.Add(self.txtOne, 0, wx.ALL, 5)
+        self.sizer.Add(self.txtTwo, 0, wx.ALL, 5)
 
-        self.SetSizer(sizer)
+        self.SetSizer(self.sizer)
 
 
 ## #-------------Main Frame-------------
@@ -79,37 +83,37 @@ class RStreamFrame(wx.Frame):
         self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
         
         # create the AuiNotebook instance
-        nb = wx.aui.AuiNotebook(self)
+        #nb = wx.aui.AuiNotebook(self)
 
-       
+        self.nb = FN.FlatNotebook(parent = self, id = wx.ID_ANY,
+                                        style = FN.FNB_NO_NAV_BUTTONS |
+                                        FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
 
         # add some pages to the notebook
-        pages = [(TabPanelOne(nb), "Network extraction"),
-                 (TabPanel(nb), "Network ordering"),
-                 (TabPanel(nb), "Tab 3")]
+        self.pages = [(TabPanelOne(self.nb), "Network extraction"),
+                      (TabPanel(self.nb), "Network ordering"),
+                      (TabPanel(self.nb), "Tab 3")]
 
-        for page, label in pages:
-            nb.AddPage(page, label)
+        for page, label in self.pages:
+            self.nb.AddPage(page, label)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(nb, 1, wx.EXPAND)
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.nb, 1, wx.EXPAND)
 
         # button for close and other
-        button = wx.BoxSizer(wx.HORIZONTAL)
+        self.button = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_close = wx.Button(parent = self, id = wx.ID_CLOSE)
         self.btn_close.Bind(wx.EVT_BUTTON, self.OnClose)
-        button.Add(item=self.btn_close,flag = wx.ALL, border = 5)        
-        sizer.Add(button)
+        self.button.Add(item=self.btn_close,flag = wx.ALL, border = 5)        
+        self.sizer.Add(self.button)
         
-        self.SetSizer(sizer)
+        self.SetSizer(self.sizer)
+
+        self.mapdisp = self.parent.curr_page.maptree.mapdisplay
 
     def OnClose(self, event): 
         self.Destroy()        
         self.Show()
-
-
-
-
 
 def main():
     app = wx.PySimpleApp()
