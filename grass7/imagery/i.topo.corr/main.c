@@ -166,6 +166,7 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("Invalid method: %s"), metho->answer);
 
 	dem.fd = Rast_open_old(base->answer, "");
+	dem.type= Rast_open_old(base->answer, "");
 	if (dem.type == CELL_TYPE)
 	    G_fatal_error(_("Illumination model is of CELL type"));
 
