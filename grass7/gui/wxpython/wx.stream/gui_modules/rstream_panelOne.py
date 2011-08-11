@@ -9,7 +9,8 @@
 See http://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
 
 Classes:
- - RStreamFrame
+ - SPD
+ - TabPanelOne
 
 (C) 2011 by Margherita Di Leo, and the GRASS Development Team
 This program is free software under the GNU General Public License
@@ -24,7 +25,6 @@ import sys
 sys.path.append(os.path.join(os.getenv('GISBASE'), 'etc', 'gui', 'wxpython', 'gui_modules'))
 
 import wx
-#import wx.aui
 import wx.lib.flatnotebook as FN
 
 from debug import Debug as Debug
@@ -39,11 +39,65 @@ import utils
 import menuform
 import mapdisp_window
 
+from wxgui import GMFrame # for SPD class
+from render import MapLayer
 
 
-# First panel # Network extraction
+# SPD = Select Point Display 
+class SPD(GMFrame, wx.Frame):
+    """!Secondary Map Display that allows user to select the point which is the centre of preview region
+    """
+
+    def __init__(self, parent, grwiz = None, id = wx.ID_ANY,
+                 title = _("Select the centre of Preview region"),
+                 size = (700, 300), Map = None, lmgr = None):
+
+        GMFrame.__init__(self, parent, id = wx.ID_ANY, title = "SPDMapWindow",
+                 workspace = None,
+                 size = globalvar.GM_WINDOW_SIZE, style = wx.DEFAULT_FRAME_STYLE)  
+
+        #
+        # init variables
+        #
+        self.parent = parent # TabPanelOne
+        
+
+class SPDCanvas(MapLayer):
+    def __init__(self, type, cmd, name = None,
+                 active = True, hidden = False, opacity = 1.0): 
+        """!Represents map layer in the map canvas
+        @param type layer type ('raster', 'vector', 'command', etc.)
+        @param cmd GRASS command to render layer,
+        given as list, e.g. ['d.rast', 'map=elevation@PERMANENT']
+        @param name layer name, e.g. 'elevation@PERMANENT' (for layer tree) or None
+        @param active layer is active, will be rendered only if True
+        @param hidden layer is hidden, won't be listed in Layer Manager if True
+        @param opacity layer opacity <0;1>
+        """
+        MapLayer.__init__(self, type, cmd, name,
+                       active, hidden, opacity)
+                       
+    def GetMapset(self):
+        """!Get mapset of map layer
+        
+        @return mapset name
+        @return '' on error (no name given)
+        """
+        if not self.name:
+            return ''
+        
+        try:
+            return self.name.split('@')[1]
+        except IndexError:
+            return self.name
+        
+        
+
+
 
 class TabPanelOne(wx.Panel):
+    """!First panel for Network extraction
+    """
 
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, id = wx.ID_ANY)
@@ -55,17 +109,13 @@ class TabPanelOne(wx.Panel):
         self.r_stre = 'r_stre'
         self.v_net = 'v_net'
         self.r_drain = 'r_drain'
-        #self.mapdisp = 
-        
-        # define the panel for select maps
-	self.panel = wx.Panel(self)                        
 
-	# create the layout
+        self.panel = wx.Panel(self)                        
         self._layout()
+        
 
     def _layout(self): 
 
-	# create the grid for gselect
         self.select = wx.GridBagSizer(20, 5)
 
         #----------------------------
@@ -306,6 +356,8 @@ class TabPanelOne(wx.Panel):
     #-------------Preview funct-------------
 
     def OnPreview(self, event):
+        """!Allows to watch a preview of the analysis on a small region
+        """
         pass
         info_region = grass.read_command('g.region', flags = 'p')
 
@@ -317,7 +369,10 @@ class TabPanelOne(wx.Panel):
             print "OK"
 
             # get current Map Display
-            self.mapdisp.Raise()
+            self.mapdisp = SPD(parent = self)
+            self.spddisp = SPDCanvas(type = 'command', cmd = ['d.rast', 'map = self.r_elev']) # FIXME
+
+              
 
             # Get position by panel on mouse click
             
@@ -333,6 +388,8 @@ class TabPanelOne(wx.Panel):
     #-------------Network extraction-------------
     
     def OnRun(self, event):
+        """!Calculates flow accumulation if it is missing, and runs stream extraction
+        """
 
         radioval1 = self.cb1.GetValue()
         radioval2 = self.cb2.GetValue()

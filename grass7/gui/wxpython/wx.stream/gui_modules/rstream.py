@@ -67,7 +67,7 @@ class TabPanel(wx.Panel):
 
 class RStreamFrame(wx.Frame):
 
-    def __init__(self, parent = None, id = wx.ID_ANY, style = wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER,
+    def __init__(self, parent, id = wx.ID_ANY, style = wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER,
                  title = _("GRASS GIS Hydrological Modelling Utility"), **kwargs):
         """!Main window of r.stream's GUI
         
@@ -109,7 +109,7 @@ class RStreamFrame(wx.Frame):
         
         self.SetSizer(self.sizer)
 
-        self.mapdisp = self.parent.curr_page.maptree.mapdisplay
+        #self.mapdisp = self.parent.curr_page.maptree.mapdisplay
 
     def OnClose(self, event): 
         self.Destroy()        
