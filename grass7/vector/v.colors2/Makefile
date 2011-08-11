@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = v.colors
+PGM = v.colors2
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
