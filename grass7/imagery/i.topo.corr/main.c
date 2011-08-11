@@ -174,6 +174,7 @@ int main(int argc, char *argv[])
 	    /* Abre fichero de bandas y el de salida */
 	    strcpy(band.name, input->answers[i]);
 	    band.fd = Rast_open_old(band.name, "");
+	    band.type = Rast_get_map_type(band.fd);
 	    if (band.type != DCELL_TYPE) {
 		G_warning(_("Reflectance of <%s> is not of DCELL type - ignored."),
 			  input->answers[i]);
