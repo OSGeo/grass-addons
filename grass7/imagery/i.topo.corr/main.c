@@ -105,15 +105,16 @@ int main(int argc, char *argv[])
     /* Evaluate only cos_i raster file */
     /* i.topo.corr -i out=cosi.on07 base=SRTM_v2 zenith=33.3631 azimuth=59.8897 */
     if (ilum->answer) {
+	Rast_get_window(&window);
 	azimuth = atof(azim->answer);
 	/* Warning: make buffers and output after set window */
 	strcpy(dem.name, base->answer);
 	dem.fd = Rast_open_old(dem.name, "");
+	dem.type = Rast_get_map_type(dem.fd);
 	/* Set window to DEM file */
 	Rast_get_window(&window);
 	Rast_get_cellhd(dem.name, "", &hd_dem);
 	Rast_align_window(&window, &hd_dem);
-	Rast_set_window(&window);
 	/* Open and buffer of the output file */
 	strcpy(out.name, output->answer);
 	out.fd = Rast_open_new(output->answer, DCELL_TYPE);

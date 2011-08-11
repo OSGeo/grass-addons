@@ -28,7 +28,7 @@ void eval_c_cosi(Gfile * out, Gfile * dem, double zenith, double azimuth)
     double H, V, dx, dy, key, north, east, south, west, center;
     double cos_i, cos_z, sin_z, slope, aspect;
 
-    G_get_set_window(&window);
+    Rast_get_window(&window);
 
     G_begin_distance_calculations();
     north = Rast_row_to_northing(0.5, &window);
