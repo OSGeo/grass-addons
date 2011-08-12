@@ -10,6 +10,7 @@ See http://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
 
 Classes:
  - SPD
+ - SPDCanvas
  - TabPanelOne
 
 (C) 2011 by Margherita Di Leo, and the GRASS Development Team
@@ -370,7 +371,19 @@ class TabPanelOne(wx.Panel):
 
             # get current Map Display
             self.mapdisp = SPD(parent = self)
-            self.spddisp = SPDCanvas(type = 'command', cmd = ['d.rast', 'map = self.r_elev']) # FIXME
+            SPDCanvas(type = 'command', cmd = ['d.rast', 'map = self.r_elev']).Render() # FIXME #
+            
+            # Debug
+            print type(dir(SPDCanvas))
+            lista = []
+            lista.append(dir(SPDCanvas))
+        
+            for i in dir(SPDCanvas):
+                print i
+            
+            
+
+            
 
               
 
@@ -391,7 +404,7 @@ class TabPanelOne(wx.Panel):
         """!Calculates flow accumulation if it is missing, and runs stream extraction
         """
 
-        radioval1 = self.cb1.GetValue()
+        #radioval1 = self.cb1.GetValue()
         radioval2 = self.cb2.GetValue()
         radioval3 = self.cb3.GetValue()
         
