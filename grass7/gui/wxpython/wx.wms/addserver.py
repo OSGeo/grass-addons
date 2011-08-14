@@ -243,6 +243,9 @@ class ServerAdd(wx.Frame):
                     self.servers[self.selectedUid] = serverData
                     self.selectedServer = serverData
                     self.map_servernameTouid[newServerName] = uid
+                    print 'Onsave(): printing the self.map_servernameTouid'
+                    print self.map_servernameTouid
+                    print '--------------------------'
                     self.saveXMLData()
                     msg = self.servers
                     StatusBar_fields = ["Server Info Saved Successfully"]
@@ -295,6 +298,8 @@ class ServerAdd(wx.Frame):
                 del self.map_servernameTouid[self.selectedServer.servername]
                 if(len(self.servers) > 0):
                     self.ServerList.SetSelection(0)
+                if(len(self.servers) == 0):
+                    self.ServerList.Clear()
             else:
                 message = "Remove Unsuccessful"
                 self.ShowMessage(message, 'Warning')

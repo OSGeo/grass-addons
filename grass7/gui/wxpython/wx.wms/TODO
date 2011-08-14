@@ -22,6 +22,13 @@ Some other issues detected with this popup. Like when adding a new server name "
 
 9.On quiting the application it leads to segmentation error or even after quiting application the console doesnot quits. Need to use ctrl-c right now.
 
+10.If a single server is present, unable to select a server because selection depends on the change of selection. need to modify this. 
+
+11.Tab doessnot work to switch between different fields while filling server info. 
+
+12.If ServersList.xml doesnot exist, then when new servers are added in manager servers window, then on selecting getcapabities, somehow the self.map_servernameTouid doesnot gets updated and is shows a key error. 
+
+13.when a server requires username and password, this is not figured out yet. 
 More to be added...
 
 

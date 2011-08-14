@@ -14,15 +14,18 @@ Libraries to be installed
 
 
 How to run the add-on
-1) Copy files wmsmenu.py , parse.py to gui/wxpython/gui_modules/
-2) Patch wxgui.py and toolbars.py with command "cd path/to/sourceroot && cat core.diff | patch -p0"
-3) make the source code
-3) Now run it , when launched , a new button shall appear in Main GUI window beside 'New Display button'
-4) Click on it, and a new wms window shall be launched. 
-5) Enter url of WMS 
-6) Click on Get Capabilites. 
+
+1) Create a directory wms in as grass_trunk/gui/wxpython/gui_modules/wms. Place all the files in the svn root/grass-addons/grass7/gui/wxpython/wx.wmswms directory in the created wms directory. 
+2) Change the path for config file in the file LoadConfig.py as per the where config file is placed. (This need is temporary, will be resolved soon)
+3) Patch wxgui.py and toolbars.py with command "cd path/to/sourceroot && cat core.diff | patch -p0"
+4) make the source code
+5) Now run it , when launched , a new button shall appear in Main GUI window beside 'Start New Map Display'
+6) Click on it, and a new wms window shall be launched. 
 
 
+Bugs:
+
+Known bugs are in TODO file
 
 Author - 
 Sudeep Singh Walia

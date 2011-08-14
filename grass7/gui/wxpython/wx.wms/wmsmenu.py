@@ -355,9 +355,13 @@ class wmsFrame(wx.Frame):
         #self.printDict(self.servers)
         print "OnServerList: done"
         if(len(urlarr)==2):
-            uid = self.map_servernameTouid[urlarr[0]]
-            self.selectedURL = self.servers[uid].url
-            print self.selectedURL
+            try:
+            	uid = self.map_servernameTouid[urlarr[0]]
+            	self.selectedURL = self.servers[uid].url
+            	print self.selectedURL
+            except KeyError:
+            	print 'key error reported'
+            	print self.map_servernameTouid
         else:
             print "Wrong format of URL selected"
         #Sudeep's Code Ends

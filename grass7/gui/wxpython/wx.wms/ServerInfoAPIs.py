@@ -8,6 +8,7 @@ def initServerInfoBase(fileName):
     if(os.path.exists(fileName)):
         try:
             f = open(fileName,'r')
+            print 'ServersList.xml found, loading ... '
         except:
             print 'Unable to open File '+fileName
             print 'exiting application...'
@@ -20,6 +21,7 @@ def initServerInfoBase(fileName):
         #print serverinfolist
         #print len(serverinfolist)    
     else:
+    	print 'ServersList.xml not found, creating a new file'
         serverinfolist = []
         soup = BeautifulSoup()
         xml = "null"
