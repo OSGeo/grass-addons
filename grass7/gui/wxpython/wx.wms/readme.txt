@@ -16,7 +16,7 @@ Libraries to be installed
 How to run the add-on
 
 1) Create a directory wms in as grass_trunk/gui/wxpython/gui_modules/wms. Place all the files in the svn root/grass-addons/grass7/gui/wxpython/wx.wmswms directory in the created wms directory. 
-2) Change the path for config file in the file LoadConfig.py as per the where config file is placed. (This need is temporary, will be resolved soon)
+2) Place the config file and ServersList.xml file in grass_trunk
 3) Patch wxgui.py and toolbars.py with command "cd path/to/sourceroot && cat core.diff | patch -p0"
 4) Patch grass_trunk/gui/wxpython/Makefile with comamnd "cd path/to/sourceroot && cat Makefile.diff | patch -p0"
 5) Place __init__.py file in the grass_trunk/gui/wxpython/gui_modules/wms . 
