@@ -24,7 +24,6 @@ import sys
 sys.path.append(os.path.join(os.getenv('GISBASE'), 'etc', 'gui', 'wxpython', 'gui_modules'))
 
 import wx
-#import wx.aui
 import wx.lib.flatnotebook as FN
 
 from debug import Debug as Debug
@@ -82,15 +81,13 @@ class RStreamFrame(wx.Frame):
         wx.Frame.__init__(self, parent = parent, id = id, title = title, name = "RStream", size = (600, 900), **kwargs)
         self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
         
-        # create the AuiNotebook instance
-        #nb = wx.aui.AuiNotebook(self)
 
         self.nb = FN.FlatNotebook(parent = self, id = wx.ID_ANY,
                                         style = FN.FNB_NO_NAV_BUTTONS |
                                         FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
 
-        # add some pages to the notebook
-        self.pages = [(TabPanelOne(self.nb), "Network extraction"),
+        # add pages to the notebook
+        self.pages = [(TabPanelOne(self.nb, self.parent), "Network extraction"),
                       (TabPanel(self.nb), "Network ordering"),
                       (TabPanel(self.nb), "Tab 3")]
 
@@ -109,7 +106,7 @@ class RStreamFrame(wx.Frame):
         
         self.SetSizer(self.sizer)
 
-        #self.mapdisp = self.parent.curr_page.maptree.mapdisplay
+        self.mapdisp = self.parent.curr_page.maptree.mapdisplay
 
     def OnClose(self, event): 
         self.Destroy()        
