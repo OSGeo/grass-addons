@@ -87,7 +87,7 @@ class RStreamFrame(wx.Frame):
                                         FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
 
         # add pages to the notebook
-        self.pages = [(TabPanelOne(self.nb, self.parent, self.parent), "Network extraction"),
+        self.pages = [(TabPanelOne(self.nb, self.parent, self), "Network extraction"),
                       (TabPanel(self.nb), "Network ordering"),
                       (TabPanel(self.nb), "Tab 3")]
 
@@ -106,7 +106,7 @@ class RStreamFrame(wx.Frame):
         
         self.SetSizer(self.sizer)
 
-        self.mapdisp = self.parent.curr_page.maptree.mapdisplay
+        
 
     def OnClose(self, event): 
         self.Destroy()        
