@@ -15,7 +15,7 @@
 #		for details.
 #
 #############################################################################
-from grass.script import read_command,parse_command
+import grass.script as grass
 # interface to g.proj -p
 def get_proj():
     """!Returns the output from running "g.proj -p" plus towgs84 parameter (g.proj -d), 
@@ -29,7 +29,7 @@ def get_proj():
 
     @return dictionary of projection values
     """
-    gproj = read_command('g.proj',flags='p')
+    gproj = grass.read_command('g.proj',flags='p')
     listproj = gproj.split('\n')
     listproj.remove('-PROJ_INFO-------------------------------------------------')
     listproj.remove('-PROJ_UNITS------------------------------------------------')
@@ -38,7 +38,7 @@ def get_proj():
     for i in listproj:
         ilist = i.split(':')
         proj[ilist[0].strip()] = ilist[1].strip()
-    proj.update(parse_command('g.proj',flags='j'))
+    proj.update(grass.parse_command('g.proj',flags='j'))
     return proj
 
 class product:
@@ -47,21 +47,92 @@ class product:
     def __init__(self,value = None):
         urlbase = 'e4ftl01u.ecs.nasa.gov'
         usrsnow = 'n4ftl01u.ecs.nasa.gov'
+        lst_spec = '( 1 0 0 0 1 0 0 0 0 0 0 0 )'
+        lst_specqa = '( 1 1 0 0 1 1 0 0 0 0 0 0 )'
+        lstvi_specall = '( 1 1 1 1 1 1 1 1 1 1 1 1)'
+        lst_patt = [ " == 2", " == 3", " >= 81" ]
+        lst_suff = {'.LST_Day_1km':'.QC_Day','.LST_Night_1km':'.QC_Night'}
+        lst_color = ['modis_lst']
+        vi_spec = '( 1 1 0 0 0 0 0 0 0 0 0 )'
+        vi_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 )'
+        vi_patt = []
+        vi_color = ['ndvi','evi']
+        vi_suff = {'.250m_16_days_NDVI.tif' : '250m_16_days_VI_Quality.tif',
+        '.250m_16_days_EVI.tif' : '250m_16_days_VI_Quality.tif'}
+        
+        snow_spec = ('( 1 1 )')
+        snow_color = ('evi') #TODO CREATE THE COLOR FOR MODIS_SNOW
+        lstL2_spec = 'LST; QC; Error_LST; Emis_31; Emis_32; View_angle; View_time'
+        
 	self.prod = value
-	self.products = {
-          'lst_aqua_daily':{'url':urlbase,'folder':'MOLA/MYD11A1.005','res':1000, 
-          'spec':'( 1 0 0 0 1 0 0 0 0 0 0 0 )','spec_qa':'( 1 1 0 0 1 1 0 0 0 0 0 0 )'},
-          'lst_terra_daily':{'url':urlbase,'folder':'MOLT/MOD11A1.005','res':1000, 
-          'spec':'( 1 0 0 0 1 0 0 0 0 0 0 0 )','spec_qa':'( 1 1 0 0 1 1 0 0 0 0 0 0 )'}, 
-          'snow_terra_eight':{'url':usrsnow,'folder':'SAN/MOST/MOD10A2.005','res':500,
-          'spec':'( 1 1 0 0 0 0 0 0 0 0 0 )','spec_qa':'( 0 0 0 0 0 0 0 0 0 0 0 )'}, 
-          'ndvi_terra_sixte':{'url':urlbase, 'folder':'MOLT/MOD13Q1.005','res':250,
-          'spec':'( 1 1 0 0 0 0 0 0 0 0 0 )','spec_qa':'( 1 1 1 1 0 0 0 0 0 0 0 )'}
+	lst = {'lst_aqua_daily_1000' : {'url' : urlbase, 'folder' : 'MOLA/MYD11A1.005',
+                                  'res' : 1000, 'spec' : lst_spec, 'spec_qa' : lst_specqa,
+                                  'spec_all' : lstvi_specall, 'suff' : lst_suff, 
+                                  'pattern' : lst_patt, 'color' : lst_color},
+              'lst_terra_daily_1000' : {'url' : urlbase, 'folder' : 'MOLT/MOD11A1.005',
+                                  'res' : 1000, 'spec': lst_spec,'spec_qa': lst_specqa, 
+                                  'spec_all' : lstvi_specall, 'suff' : lst_suff, 
+                                  'pattern' : lst_patt, 'color' : lst_color}, 
+              'lst_terra_eight_1000' : {'url' : urlbase, 'folder' : 'MOLT/MOD11A2.005',
+                                  'res' : 1000, 'spec': lst_spec,'spec_qa': lst_specqa, 
+                                  'spec_all' : lstvi_specall, 'suff' : lst_suff, 
+                                  'pattern' : lst_patt, 'color' : lst_color},
+              'lst_aqua_eight_1000' : {'url' : urlbase, 'folder' : 'MOLA/MYD11A2.005',
+                                  'res' : 1000, 'spec': lst_spec,'spec_qa': lst_specqa, 
+                                  'spec_all' : lstvi_specall, 'suff' : lst_suff, 
+                                  'pattern' : lst_patt, 'color' : lst_color},
+              'lst_terra_daily_6000' : {'url' : urlbase, 'folder' : 'MOLT/MOD11B1.005',
+                                  'res' : 6000, 'spec': lst_spec,'spec_qa': lst_specqa, 
+                                  'spec_all' : lstvi_specall, 'suff' : lst_suff, 
+                                  'pattern' : lst_patt, 'color' : lst_color}, 
+              'lst_aqua_daily_6000' : {'url' : urlbase, 'folder' : 'MOLA/MYD11B1.005',
+                                  'res' : 6000, 'spec': lst_spec,'spec_qa': lst_specqa, 
+                                  'spec_all' : lstvi_specall, 'suff' : lst_suff, 
+                                  'pattern' : lst_patt, 'color' : lst_color},
+
         }
-        self.products_swath = {
-          'lstemi_terra_daily':{'url':urlbase,'folder':'MOLT/MOD11_L2.005',
-          'spec':'LST; QC; Error_LST; Emis_31; Emis_32; View_angle; View_time'}, 'lstemi_aqua_daily':{'url':urlbase,'folder':'MOLA/MYD11_L2.005',
-          'spec':'LST; QC; Error_LST; Emis_31; Emis_32; View_angle; View_time'}
+	vi = {'ndvi_terra_sixteen_250':{'url':urlbase, 'folder':'MOLT/MOD13Q1.005',
+                                    'res':250,'spec': vi_spec,'spec_qa': vi_specqa,
+                                    'spec_all' : lstvi_specall, 'suff' : vi_suff, 
+                                    'pattern' : vi_patt, 'color' : vi_color
+                                    },
+              'ndvi_aqua_sixteen_250':{'url':urlbase, 'folder':'MOLA/MYD13Q1.005',
+                                    'res':250,'spec': vi_spec,'spec_qa': vi_specqa,
+                                    'spec_all' : lstvi_specall, 'suff' : vi_suff, 
+                                    'pattern' : vi_patt, 'color' : vi_color
+                                    },
+              'ndvi_terra_sixteen_500':{'url':urlbase, 'folder':'MOLT/MOD13A2.005',
+                                    'res':500,'spec': vi_spec,'spec_qa': vi_specqa,
+                                    'spec_all' : lstvi_specall, 'suff' : vi_suff, 
+                                    'pattern' : vi_patt, 'color' : vi_color
+                                    },
+              'ndvi_aqua_sixteen_500':{'url':urlbase, 'folder':'MOLA/MYD13A2.005',
+                                    'res':500,'spec': vi_spec,'spec_qa': vi_specqa,
+                                    'spec_all' : lstvi_specall, 'suff' : vi_suff, 
+                                    'pattern' : vi_patt, 'color' : vi_color
+                                    }
+        }
+        snow = {'snow_terra_daily_500' : {'url' : usrsnow, 'folder' : 
+				'SAN/MOST/MOD10A1.005', 'res' : 500, 'spec' : snow_spec
+				,'spec_qa': None}, 
+		'snow_aqua_daily_500' : {'url' : usrsnow, 'folder' : 
+                                'SAN/MOSA/MYD10A1.005', 'res' : 500, 'spec' : snow_spec
+                                ,'spec_qa': None},
+                'snow_terra_eight_500' : {'url' : usrsnow, 'folder' : 
+                                'SAN/MOST/MOD10A2.005', 'res' : 500, 'spec' : snow_spec
+                                ,'spec_qa': None}, 
+                'snow_aqua_eight_500' : {'url' : usrsnow, 'folder' : 
+                                'SAN/MOSA/MYD10A2.005', 'res' : 500, 'spec' : snow_spec
+                                ,'spec_qa': None}
+				}
+	self.products = { }
+	self.products.update(lst)
+	self.products.update(vi)
+	self.products.update(snow)
+        self.products_swath = { 
+          'lst_terra_daily':{'url':urlbase,'folder':'MOLT/MOD11_L2.005',
+          'spec': lstL2_spec}, 'lst_aqua_daily':{'url':urlbase,'folder':'MOLA/MYD11_L2.005',
+          'spec': lstL2_spec}
         }
     def returned(self):
         if self.products.keys().count(self.prod) == 1:
@@ -82,6 +153,25 @@ class product:
             return self.products_swath[k]
         grass.fatal(_("The code insert is not supported yet. Consider to ask " \
                       "on the grass-dev mailing list for future support"))
+
+    def color(self,code = None):
+        if code:
+          return self.fromcode(code)['color']
+        else:
+          return self.returned()['color']
+
+
+    def pattern(self,code = None):
+        if code:
+          return self.fromcode(code)['pattern']
+        else:
+          return self.returned()['pattern']
+
+    def suffix(self,code = None):
+        if code:
+          return self.fromcode(code)['suff']
+        else:
+          return self.returned()['suff']
 
     def __str__(self):
 	prod = self.returned()
@@ -148,7 +238,10 @@ class projection:
             return self._outpar(0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, swath)
         elif self.val == 'lcc':
             SMajor = self._par('+a')
-            SMinor = self._par('+b')
+            if self._par('+b'):
+                SMinor = self._par('+b')
+            elif self._par('+rf'):
+                SMinor = self._par('+rf')
             STDPR1 = self._par('+lat_1')
             STDPR2 = self._par('+lat_2')
             CentMer = self._par('+lon_0')
@@ -159,7 +252,10 @@ class projection:
                                 CentLat, FE, FN, swath)
         elif self.val == 'merc' or self.val == 'polar' or self.val == 'tmerc':
             SMajor = self._par('+a')
-            SMinor = self._par('+b')
+            if self._par('+b'):
+                SMinor = self._par('+b')
+            elif self._par('+rf'):
+                SMinor = self._par('+rf')
             CentMer = self._par('+lon_0')
             if self.val == 'tmerc':
                 Factor = self._par('+k_0')
