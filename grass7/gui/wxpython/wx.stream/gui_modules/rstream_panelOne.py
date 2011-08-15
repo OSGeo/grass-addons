@@ -38,14 +38,17 @@ import utils
 import menuform
 
 
+
+
 # First panel # Network extraction
 
 class TabPanelOne(wx.Panel):
 
-    def __init__(self, parent, layerManager):
+    def __init__(self, parent, layerManager, MapFrame):
         wx.Panel.__init__(self, parent, id = wx.ID_ANY)
         
         self.layerManager = layerManager
+        self.mapdisp = MapFrame
         self.parent = parent
         self.thre = 0
         self.r_elev = 'r_elev'
@@ -56,6 +59,7 @@ class TabPanelOne(wx.Panel):
         
         self.panel = wx.Panel(self)                        
         self._layout()
+       
         
 
     def _layout(self): 
@@ -305,16 +309,23 @@ class TabPanelOne(wx.Panel):
         info_region = grass.read_command('g.region', flags = 'p')
 
         # message box 
-        self.msg = wx.MessageDialog(parent = self.panel, message = "Please select the center of preview window on the map",
-                                    caption = "Preview utility", style = wx.OK | wx.CANCEL, pos = wx.DefaultPosition)
+        self.msg = wx.MessageDialog(parent = self.panel, 
+                                    message = "Please select the center of preview window on the map",
+                                    caption = "Preview utility", 
+                                    style = wx.OK | wx.CANCEL, 
+                                    pos = wx.DefaultPosition)
         self.retCode = self.msg.ShowModal()
         if self.retCode == wx.ID_OK:
             print "OK"
 
             # get current Map Display
-            mapdisp = self.layerManager.GetLayerTree().GetMapDisplay()
-            mapdisp.Raise()
-            #grass.run_command('d.rast', map = self.r_elev)
+            self.mapdisp = self.layerManager.GetLayerTree().GetMapDisplay()
+            self.mapdisp.Raise()
+            self.mapdisp.Map.AddLayer(type = 'raster', 
+                                 command = ['d.rast', 'map=%s' % self.r_elev])
+            self.mapdisp.OnRender(None)
+            
+            
 
             # Get position by panel on mouse click
             
@@ -338,16 +349,27 @@ class TabPanelOne(wx.Panel):
         # MFD
         if radioval2 == 'True':
             grass.message('Creating flow accumulation map with MFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev , accumulation = self.r_acc , convergence = 5 , flags = 'a', overwrite = True )
+            grass.run_command('r.watershed', elevation = self.r_elev , 
+                              accumulation = self.r_acc , 
+                              convergence = 5 , 
+                              flags = 'a', overwrite = True )
 
         # SFD
         if radioval3 == 'True':
             grass.message('Creating flow accumulation map with SFD algorithm..')
-            grass.run_command('r.watershed', elevation = self.r_elev , accumulation = self.r_acc , drainage = self.r_drain , convergence = 5 , flags = 'sa', overwrite = True)
+            grass.run_command('r.watershed', elevation = self.r_elev , 
+                              accumulation = self.r_acc , 
+                              drainage = self.r_drain , 
+                              convergence = 5 , 
+                              flags = 'sa', overwrite = True)
 
         grass.message('Network extraction..')
-        grass.run_command('r.stream.extract', elevation = self.r_elev , accumulation = self.r_acc , threshold = self.thre, 
-                        stream_rast = self.r_stre, stream_vect = self.v_net, direction = self.r_drain, overwrite = True)
+        grass.run_command('r.stream.extract', elevation = self.r_elev , 
+                          accumulation = self.r_acc , 
+                          threshold = self.thre, 
+                          stream_rast = self.r_stre, 
+                          stream_vect = self.v_net, 
+                          direction = self.r_drain, overwrite = True)
 
         
         # Debug
