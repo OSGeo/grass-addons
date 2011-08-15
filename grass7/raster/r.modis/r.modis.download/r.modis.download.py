@@ -40,33 +40,36 @@
 #%option
 #% key: product
 #% type: string
-#% description: Name of MODIS product
+#% label: Name of MODIS product
 #% required: no
-#% options: lst_aqua_daily, lst_terra_daily, snow_terra_eight, ndvi_terra_sixteen
-#% answer: lst_terra_daily
+#% options: lst_terra_daily_1000, lst_aqua_daily_1000, lst_terra_eight_1000, lst_aqua_eight_1000, lst_terra_daily_6000, lst_aqua_daily_6000, ndvi_terra_sixteen_250, ndvi_aqua_sixteen_250, ndvi_terra_sixteen_500, ndvi_aqua_sixteen_500, snow_terra_eight_500
+#% answer: lst_terra_daily_1000
 #%end
 #%option
 #% key: tiles
 #% type: string
-#% description: The names of tile/s to download
+#% label: The names of tile/s to download
 #% required: no
 #%end
 #%option
 #% key: startday
 #% type: string
-#% description: The day from start download. If not set the download starts from today
+#% label: The day to start download.
+#% description: If not set the download stops 10 day before the endday
 #% required: no
 #%end
 #%option
 #% key: endday
 #% type: string
-#% description: The day to stop download. If not set the download stops 10 day before the start day
+#% label: The day from stop download.
+#% description: If not set the download starts from today
 #% required: no
 #%end
 #%option
 #% key: folder
 #% type: string
-#% description: The folder where store the data downloaded. If not set it take the path of setting file
+#% label: The folder where store the data downloaded.
+#% description: If not set it take the path of setting file
 #% required: no
 #%end
 
@@ -118,20 +121,20 @@ def checkdate(options):
     if options['startday'] == '' and options['endday'] == '':
         return None, None, 10
     # set only end day
-    elif options['startday'] == '' and options['endday'] != '':
-        today = date.today().strftime("%Y-%m-%d")
-        if today <= options['endday']:
-            grass.fatal(_('The last day cannot before >= of the first day'))
-            return 0
-        valueDay, valueEnd, valueDelta = check2day(options['endday'])
-    # set only start day
     elif options['startday'] != '' and options['endday'] == '':
-        valueDay = options['startday']
+        today = date.today().strftime("%Y-%m-%d")
+        if today >= options['startday']:
+            grass.fatal(_('The last day cannot be >= of the first day'))
+            return 0
+        valueDay, valueEnd, valueDelta = check2day(options['startday'])
+    # set only start day
+    elif options['startday'] == '' and options['endday'] != '':
+        valueDay = options['endday']
         valueEnd = None
         valueDelta = 10
     # set start and end day
     elif options['startday'] != '' and options['endday'] != '':
-        valueDay, valueEnd, valueDelta = check2day(options['endday'],options['startday'])
+        valueDay, valueEnd, valueDelta = check2day(options['startday'],options['endday'])
     return valueDay, valueEnd, valueDelta 
 
 # main function
@@ -184,6 +187,7 @@ def main():
     # set tiles
     if options['tiles'] == '':
         tiles = None
+        grass.warning(_("Option 'tiles' not set. Downloading all available tiles"))
     else:
         tiles = options['tiles']
     # set the debug
@@ -198,13 +202,13 @@ def main():
     # connect to ftp
     modisOgg.connectFTP()
     # download tha tiles
+    grass.message(_("Downloading MODIS product..."))
     modisOgg.downloadsAllDay()
     if flags['g']:
       grass.message(modisOgg.filelist.name)
     else:
-      grass.message(_("Downloading MODIS product..."))
-      grass.message(_("All data are downloaded, now you can use r.in.modis.import "\
-      + "or r.in.modis.process with option 'conf=" + modisOgg.filelist.name + '\''))
+      grass.message(_("All data are downloaded, now you can use "\
+      + "r.in.modis.import or with option 'conf=%s'" % modisOgg.filelist.name))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
