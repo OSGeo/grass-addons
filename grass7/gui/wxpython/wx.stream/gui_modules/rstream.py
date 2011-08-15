@@ -87,7 +87,7 @@ class RStreamFrame(wx.Frame):
                                         FN.FNB_FANCY_TABS | FN.FNB_NO_X_BUTTON)
 
         # add pages to the notebook
-        self.pages = [(TabPanelOne(self.nb, self.parent), "Network extraction"),
+        self.pages = [(TabPanelOne(self.nb, self.parent, self.parent), "Network extraction"),
                       (TabPanel(self.nb), "Network ordering"),
                       (TabPanel(self.nb), "Tab 3")]
 
