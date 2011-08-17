@@ -9,6 +9,7 @@
 See http://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
 
 Classes:
+ - CoorWindow
  - RStreamFrame
 
 (C) 2011 by Margherita Di Leo, and the GRASS Development Team
@@ -38,11 +39,83 @@ import utils
 import menuform
 
 
+#-------------------------------------------------------------
+
+class CoorWindow(wx.Dialog):
+    """!Get coordinates from map display
+    """
+    def __init__(self, parent, mapwindow, id = wx.ID_ANY, **kwargs):
+        wx.Dialog.__init__(self, parent, id, **kwargs)
+#        self.parent = parent
+                
+        text_static = wx.StaticText(self, label = "Coordinates:")
+        
+        font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        font.SetWeight(wx.BOLD)
+        
+        text_static.SetFont(font)
+        
+        self.text_values = wx.StaticText(self, label = " "*40)
+        
+        self.buttonCoor = wx.Button(self, label = 'Get coordinates')
+        self.buttonCoor.Bind(wx.EVT_BUTTON, self.OnButtonCoor)
+        
+        self.buttonGenPrev = wx.Button(self, label = 'Generate preview')
+        self.buttonGenPrev.Bind(wx.EVT_BUTTON, self.OnGenPrev)
+        
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
+        
+        buttonSizer.Add(self.buttonCoor, 0, wx.ALL, 10)
+        buttonSizer.Add((0, 0), 1, wx.EXPAND)
+        buttonSizer.Add(self.buttonGenPrev, 0, wx.ALL, 10)
+        
+        mainSizer.Add(buttonSizer, 0, wx.EXPAND)
+        
+        textSizer = wx.BoxSizer(wx.HORIZONTAL)
+        textSizer.Add(text_static, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 15)
+        textSizer.Add(self.text_values, 1, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 15)
+        
+        mainSizer.Add(textSizer, 0, wx.EXPAND)
+        
+        width, height = self.GetTextExtent("M"*50)
+        self.SetSize((width, -1))
+
+        self.SetSizer(mainSizer)
+        mainSizer.Layout()
+        
+        self.mapwin = mapwindow.GetWindow()
+        
+    def OnGenPrev(self, event):
+        pass
+            
+    def OnButtonCoor(self, event):
+        
+        if self.mapwin.RegisterMouseEventHandler(wx.EVT_LEFT_DOWN, self.OnMouseAction,
+                                                 wx.StockCursor(wx.CURSOR_CROSS)):
+            self.mapwin.Raise()
+        else:
+            self.text.SetLabel('Cannot get coordinates')
+    
+    def OnMouseAction(self, event):
+        coor = self.mapwin.Pixel2Cell(event.GetPositionTuple()[:])
+        print coor
+        
+        x, y = coor
+        x, y = "%0.3f"%x, "%0.3f"%y
+        
+        self.text_values.SetLabel("Easting=%s, Northing=%s"%(x, y))
+        self.mapwin.UnregisterMouseEventHandler(wx.EVT_LEFT_DOWN)
+        event.Skip()
 
 
-# First panel # Network extraction
+
+
+#-------------------------------------------------------------
 
 class TabPanelOne(wx.Panel):
+    """!Main panel for network extraction and preview 
+    """
 
     def __init__(self, parent, layerManager, MapFrame):
         wx.Panel.__init__(self, parent, id = wx.ID_ANY)
@@ -59,7 +132,6 @@ class TabPanelOne(wx.Panel):
         
         self.panel = wx.Panel(self)                        
         self._layout()
-       
         
 
     def _layout(self): 
@@ -302,6 +374,9 @@ class TabPanelOne(wx.Panel):
     
 
     #-------------Preview funct-------------
+    
+
+
 
     def OnPreview(self, event):
         """!Allows to watch a preview of the analysis on a small region
@@ -318,16 +393,27 @@ class TabPanelOne(wx.Panel):
         if self.retCode == wx.ID_OK:
             print "OK"
 
-            # get current Map Display
-            self.mapdisp = self.layerManager.GetLayerTree().GetMapDisplay()
-            self.mapdisp.Raise()
+            # Raise a new Map Display
+
+            self.mapdisp = self.layerManager.NewDisplay()
+            
+            # Display the elevation map
             self.mapdisp.Map.AddLayer(type = 'raster', 
                                  command = ['d.rast', 'map=%s' % self.r_elev])
+                                 
             self.mapdisp.OnRender(None)
             
+            # Gets current region
             
-
-            # Get position by panel on mouse click
+            self.region = self.mapdisp.Map.GetRegion()
+            print self.region
+            
+            #TODO parse region
+            
+            # Click on map
+            
+            coorWin = CoorWindow(parent = self, mapwindow = self.mapdisp)
+            coorWin.Show()
             
 
 
