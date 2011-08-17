@@ -281,7 +281,8 @@ def analize(pref, an, cod, parse):
             import pdb; pdb.set_trace()
             grass.mapcalc(finalmap)
             grass.run_command('g.remove', rast=(valname, valname + '.2'))
-            grass.run_command('g.mremove', flag="f", rast = ("%s.*" % qaname)
+            grass.run_command('g.mremove', flag="f", quiet = True,
+			      rast = ("%s.*" % qaname))
             grass.run_command('g.rename', rast=(valname + '.3', valname))
             #TODO check in modis.py to adjust the xml file of mosaic
             #metadata(parse, valfull, col)
