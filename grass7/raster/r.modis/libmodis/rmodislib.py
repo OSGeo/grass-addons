@@ -50,12 +50,13 @@ class product:
         lst_spec = '( 1 0 0 0 1 0 0 0 0 0 0 0 )'
         lst_specqa = '( 1 1 0 0 1 1 0 0 0 0 0 0 )'
         lstvi_specall = '( 1 1 1 1 1 1 1 1 1 1 1 1)'
-        lst_patt = [ " == 2", " == 3", " >= 81" ]
+        lst_patt = {3 : [2, 3], 128 : [81, 85], 255 : [129, 133, 145, 149]}
         lst_suff = {'.LST_Day_1km':'.QC_Day','.LST_Night_1km':'.QC_Night'}
         lst_color = ['modis_lst']
         vi_spec = '( 1 1 0 0 0 0 0 0 0 0 0 )'
         vi_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 )'
-        vi_patt = []
+        vi_patt = {3 : [2, 3], 63 : [13, 14, 15], 128 : [3], 1024 : [1], 
+        8192 : [0, 6, 7], 16384 : [1], 32768 : [1]}
         vi_color = ['ndvi','evi']
         vi_suff = {'.250m_16_days_NDVI.tif' : '250m_16_days_VI_Quality.tif',
         '.250m_16_days_EVI.tif' : '250m_16_days_VI_Quality.tif'}

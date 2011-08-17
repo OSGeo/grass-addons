@@ -180,7 +180,7 @@ def prefix(options, name = False):
     else:
         return None  
 
-def import_tif(out, basedir, rem, target=False):
+def import_tif(out, basedir, rem, target=None):
     """Import TIF files"""
     # list of tif files
     tifiles = glob.glob1(basedir, out + "*.tif")
@@ -204,8 +204,9 @@ def import_tif(out, basedir, rem, target=False):
             grass.fatal(_('Error during import'))
         if rem:
             os.remove(name)
-        if target != basedir:
-            shutil.move(name,target)
+        if target: 
+            if target != basedir:
+                shutil.move(name,target)
     return outfile
 
 def findfile(pref, suff):
@@ -249,8 +250,14 @@ def analize(pref, an, cod, parse):
         qaname = qa[n]['name']
         qafull = qa[n]['fullname']
         grass.run_command('r.null', map = valfull)
-        mapc = "%s.2 = (%s * 0.0200) - 273.15" % (valname, valfull)
-        grass.mapcalc(mapc)
+        if string.find(cod,'13Q1') or string.find(cod,'13A2'):
+          mapc = "%s.2 = %s / 10000" % (valname, valfull)
+          grass.mapcalc(mapc)
+        elif string.find(cod,'11A1') or string.find(cod,'11A2') or string.find(cod,'11B1'):
+          mapc = "%s.2 = (%s * 0.0200) - 273.15" % (valname, valfull)
+          grass.mapcalc(mapc)
+        else:
+          grass.run_command('g.copy', rast = (valfull,valname + '.2'))
         if an == 'noqa':
             grass.run_command('g.remove', rast = valfull)
             grass.run_command('g.rename', rast= (valname + '.2', valfull))
@@ -259,17 +266,22 @@ def analize(pref, an, cod, parse):
             #metadata(parse, qafull, 'byr')
             
         if an == 'all':
-            qamapcal = "%s.badpixels = if( " % qaname
-            for p in pat:
-                qamapcal += "%s%s || " % (qaname, p)
-            qamapcal.strip(' || ')
-            qamapcal += "1, null() )"
-            grass.mapcalc(qamapcal)
-            finalmap = "%s.3=if( isnull(%s.badpixels), %s.2, null())" % (
-                        valname, qaname, valname)
+            finalmap = "%s.3=if(" % valname
+            for key,value in prod['pattern'].iteritems():
+                for v in value:
+                  outpat = "%s.%i.%i" % (qaname, key, v)
+                  grass.run_command('r.bitpattern', quiet=True, input = qafull, 
+                  output = outpat, pattern = key, patval= v)
+                  finalmap += "%s == 0 && " % outpat
+            if string.find(cod,'13Q1') or string.find(cod,'13A2'):
+                finalmap += "%s.2 <= 1.000" % valname
+            else:
+                finalmap.rstrip(' && ')
+            finalmap += ",%s.2, null() )" % valname
+            import pdb; pdb.set_trace()
             grass.mapcalc(finalmap)
-            grass.run_command('g.remove', rast=(qaname + '.badpixels', valname,
-                                                valname + '.2'))
+            grass.run_command('g.remove', rast=(valname, valname + '.2'))
+            grass.run_command('g.mremove', flag="f", rast = ("%s.*" % qaname)
             grass.run_command('g.rename', rast=(valname + '.3', valname))
             #TODO check in modis.py to adjust the xml file of mosaic
             #metadata(parse, valfull, col)
