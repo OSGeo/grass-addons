@@ -60,9 +60,12 @@ class product:
         vi_color = ['ndvi','evi']
         vi_suff = {'.250m_16_days_NDVI.tif' : '250m_16_days_VI_Quality.tif',
         '.250m_16_days_EVI.tif' : '250m_16_days_VI_Quality.tif'}
+        snow1_spec = ('( 1 )')
+        snow1_specqa = ('( 1 1 )')
+        snow1suff = {'Snow_Cover_Daily_Tile':'Snow_Spatial_QA'}
         
-        snow_spec = ('( 1 1 )')
-        snow_color = ('evi') #TODO CREATE THE COLOR FOR MODIS_SNOW
+        snow8_spec = ('( 1 1 )')
+        snow8_color = ('evi') #TODO CREATE THE COLOR FOR MODIS_SNOW
         lstL2_spec = 'LST; QC; Error_LST; Emis_31; Emis_32; View_angle; View_time'
         
 	self.prod = value
@@ -114,16 +117,16 @@ class product:
                                     }
         }
         snow = {'snow_terra_daily_500' : {'url' : usrsnow, 'folder' : 
-				'SAN/MOST/MOD10A1.005', 'res' : 500, 'spec' : snow_spec
-				,'spec_qa': None}, 
+				'SAN/MOST/MOD10A1.005', 'res' : 500, 'spec' : snow1_spec
+				,'spec_qa': snow1_specqa, 'suff' : snow1suff}, 
 		'snow_aqua_daily_500' : {'url' : usrsnow, 'folder' : 
-                                'SAN/MOSA/MYD10A1.005', 'res' : 500, 'spec' : snow_spec
-                                ,'spec_qa': None},
+                                'SAN/MOSA/MYD10A1.005', 'res' : 500, 'spec' : snow1_spec
+                                ,'spec_qa': snow1_specqa, 'suff' : snow1suff},
                 'snow_terra_eight_500' : {'url' : usrsnow, 'folder' : 
-                                'SAN/MOST/MOD10A2.005', 'res' : 500, 'spec' : snow_spec
+                                'SAN/MOST/MOD10A2.005', 'res' : 500, 'spec' : snow8_spec
                                 ,'spec_qa': None}, 
                 'snow_aqua_eight_500' : {'url' : usrsnow, 'folder' : 
-                                'SAN/MOSA/MYD10A2.005', 'res' : 500, 'spec' : snow_spec
+                                'SAN/MOSA/MYD10A2.005', 'res' : 500, 'spec' : snow8_spec
                                 ,'spec_qa': None}
 				}
 	self.products = { }

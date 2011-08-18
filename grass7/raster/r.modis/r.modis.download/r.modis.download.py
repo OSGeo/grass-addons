@@ -146,7 +146,7 @@ def main():
         return 0
     # set username, password and folder if settings are insert by stdin
     if options['setting'] == '-':
-        if options['folder']:
+        if options['folder'] != '':
             if check(options['folder']):
                 fold = options['folder']
             user = raw_input(_('Insert username (usually anonymous): '))
@@ -166,7 +166,7 @@ def main():
         passwd = fileread[1].strip()
         filesett.close()
         # set the folder by option folder
-        if options['folder']:
+        if options['folder'] != '':
             if check(options['folder']):
                 fold = options['folder']
         # set the folder from path where setting file is stored 
