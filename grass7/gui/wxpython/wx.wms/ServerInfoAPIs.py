@@ -1,3 +1,27 @@
+"""!
+@package ServerInfoAPIs.py
+
+@brief Python code providing API's for managing the xml
+based file storing of the server information. 
+
+Classes:
+ - ServerData
+Functions:
+ - initServerInfoBase
+ - ifServerNameExists
+ - addServerInfo
+ - removeServerInfo
+ - updateServerInfo
+ - getAllRows
+
+(C) 2006-2011 by the GRASS Development Team
+This program is free software under the GNU General Public
+License (>=v2). Read the file COPYING that comes with GRASS
+for details.
+
+@author: Maris Nartiss (maris.nartiss gmail.com)
+@author Sudeep Singh Walia (Indian Institute of Technology, Kharagpur , sudeep495@gmail.com)
+"""
 from BeautifulSoup import BeautifulSoup, Tag, BeautifulStoneSoup
 import os.path
 

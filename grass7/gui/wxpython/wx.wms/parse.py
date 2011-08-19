@@ -1,3 +1,27 @@
+"""!
+@package parse.py
+
+@brief Python app for parsing the getCapabilties reponse, checking
+service exception in the wms server reply and hierarchical display
+of layers.
+
+Functions:
+ - parsexml
+ - isValidResponse
+ - isServiceException
+ - populateLayerTree
+ - dfs
+
+(C) 2006-2011 by the GRASS Development Team
+This program is free software under the GNU General Public
+License (>=v2). Read the file COPYING that comes with GRASS
+for details.
+
+@author: Maris Nartiss (maris.nartiss gmail.com)
+@author Sudeep Singh Walia (Indian Institute of Technology, Kharagpur , sudeep495@gmail.com)
+"""
+
+from grass.script import core as grass
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 import re
 from urllib2 import Request, urlopen, URLError, HTTPError
@@ -53,11 +77,17 @@ def isServiceException(xml):
 
    
 def populateLayerTree(xml,LayerTree, layerTreeRoot):
-	f = open('cacheGetCapabilities.xml','w')
+	TMP = grass.tempfile()
+	if TMP is None:
+		grass.fatal("Unable to create temporary files")
+	print '########################'
+	print TMP
+	print '########################'
+	f = open(TMP,'w')
 	f.write(xml)
 	f.close()
 	
-	f = open('cacheGetCapabilities.xml','r')
+	f = open(TMP,'r')
 	xml = f.read()
 	#print xml
 	soup = BeautifulSoup(xml)

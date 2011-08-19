@@ -1,9 +1,8 @@
 all = [
-    "addserver",
-    "parse",
-    "passwordPopUp",
-    "ServerInfoAPIs",
-    "WMSMapDisplay",
-    "wmsmenu",
+    "addserver.py",
+    "parse.py",
+    "ServerInfoAPIs.py",
+    "WMSMapDisplay.py",
+    "wmsmenu.py",
     "LoadConfig.py"
 ]

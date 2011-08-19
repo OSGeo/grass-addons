@@ -15,9 +15,9 @@ Arabic String or any right indented string doesnt work quite well with the curre
 6.In case, on adding or removing a server, if the write to file is unsuccessful, the application removes it from the serverlist, even though is not written in the file.
 So when the application restarts, all the changes done are lost, since data was not written to file successfuly. 
 
-7.Name of temporary file to be changed to ServersList.xml~ from tempList.xml
+7.[done]Name of temporary file to be changed to ServersList.xml~ from tempList.xml
 
-8.The Save/Dont Save/Cancel popup works fine for the first time, but for the 2nd time leads to PyDeadObjectError error. This bug is known and is of serious nature. Fix to be done soon. 
+8.[done]The Save/Dont Save/Cancel popup works fine for the first time, but for the 2nd time leads to PyDeadObjectError error. This bug is known and is of serious nature. Fix to be done soon. 
 Some other issues detected with this popup. Like when adding a new server name "</servername>" , and then click on save and then on quit, the popup appears, now click on cancel. After clicking on cancel, another popup appears and this continues. Serious issue. This popups code needs to be checked throughly. 
 
 9.On quiting the application it leads to segmentation error or even after quiting application the console doesnot quits. Need to use ctrl-c right now.
@@ -29,6 +29,23 @@ Some other issues detected with this popup. Like when adding a new server name "
 12.If ServersList.xml doesnot exist, then when new servers are added in manager servers window, then on selecting getcapabities, somehow the self.map_servernameTouid doesnot gets updated and is shows a key error. 
 
 13.when a server requires username and password, this is not figured out yet. 
+
+14.[done]On giving servername = now++ and url = now++, and then saving it.  it behaves starngely in hitting quit after saving. 
+
+15.[done]To check the getmap functionality (now uses temp file) 
+
+16.To check return values of self.savexml()
+
+17.SUBMITTING_PYTHON point 13 to be implemented
+
+18.ErrorTrace2.log
+
+19.ErrorTrace1.log
+
+20.Add a reduntant blank item in the serverlist which is displayed
+
+21.In integerated version, when the application is started closed and then again started it gives pydeadobject error. this is probably due to improper exiting in the first quit
+
 More to be added...
 
 
@@ -107,9 +124,9 @@ Coding style, variable naming etc. You already know.
 
 
 
-Issue reported by Maris, Mail 2
+Issues reported by Maris, Mail 2
 
-* To display important error messages to user use wx.MessageDialog
+*[done] To display important error messages to user use wx.MessageDialog
 with standard options (OK, ERROR icon). For example, "fill all fields"
 should be changed to popup dialog and it also should list missing
 fields. Like: "Following required fields are missing: <LIST OF
@@ -117,7 +134,7 @@ FIELDS>"
 *[done] Saving a new server should send a signal to main windows (wmsFrame)
 server list to update itself.
 *[done] Closing main application window (wmsFrame) should close also AddServer dialog.
-* If user has edited some of server fields without Save or SaveNew,
+*[done] If user has edited some of server fields without Save or SaveNew,
 onClose should ask "There are unsaved changes. Save/SaveNew"
 
 More important:
@@ -134,7 +151,47 @@ XML...
 
 
 
+Issues reported by Maris, Mail 3
 
+Add server:
+*[done] Impossible to close window without saving changes ("Don't save" doesn't work)
+*[done, rigorous testing needs to be done] URL field doesn't accept & symbol, still it's a valid URL symbol and
+should be allowed as some WMS URLs require GET parameters and they are
+separated by &
+
+WMS menu:
+*[done] If GetCapabilities times out, it should display a pop-up window with error.
+*[done][requests now time out after time set in config file, default 5 seconds] After GetCapabilities request has timed out, wmsmenu window is
+locked and it's impossible to do anything. It should be back in
+working state.
+* FEATURE: Add ability to stop running request.
+* Current server list implementation:
+**[done] fails to select a new server when it is added to list (one can
+select it, still it fails with "No server selected")
+**[done] long URLs break dropdown list
+**[done] sometimes throws key/value error instead of GetCapabilities action
+OnServerList: done
+key error reported
+{}
+
+* URLs should be pre-processed before using them!
+** URL already might contain some parameters. Here's an list of valid
+URLs. Your code should be ready to use all of them by removing or
+adding necessary URL parts:
+http://www.gisnet.lv/cgi-bin/topo
+http://giz.zpr.gov.lv/glog/Glog/entry.php?class=Mapman.MapmanWms&mapProject=mapproject0&instance=&SERVICE=WMS&REQUEST=GetCapabilities
+http://kaart.maaamet.ee/wms/alus?
+http://deli.dnr.state.mn.us/cgi-bin/wms?map=/mapfiles/contour.map&
+
+* GetMap doesn't check request EPSG code in list of service provided
+EPSG codes. Clients can request only one of servers provided EPSG SRS
+or fail.
+* GetMap doesn't perform WMS version check. Client has to use one of
+servers supported WMS versions or fail.
+* GetMap doesn't perform check of supported output formats. Some
+services might not provide PNG as an output option.
+
+I think it would be enough for now.
 
 
 

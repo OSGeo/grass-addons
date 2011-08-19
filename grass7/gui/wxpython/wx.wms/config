@@ -1,1 +1,3 @@
-delimeter_servername_url #
+delimeter_servername_url:--
+timeoutValueSeconds:20
+urlLength:50
