@@ -11,10 +11,17 @@ Reprojection Tool</a> to be installed while <a
 href="http://gis.cri.fmach.it/development/pyModis">pyModis</a> is
 included in the <em>r.modis</em> suite.
 The suite offers three modules as interface with MODIS data. Each modules
-is dedicated to for a specific operation.
-It can download several MODIS products, those by tiles and observation days from 
-the releated NASA FTP server. It process Level 2 data using the r.modis.process module.
-It also import Level 3 (georeferenced) products either as single image or as daily mosaik.
+is dedicated to for a specific operation. The module <em>r.modis.download</em>
+is used to download MODIS HDF products from NASA FTP. These files can then
+be imported with <em>r.modis.import</em> which supports import of Level 3 
+MODIS products as single image or daily mosaik into GRASS GIS.
+<p>
+The user can download several MODIS products, by single or multiple tiles and
+also ranges of observation days retrieving data from the related NASA FTP server.
+<!--
+The suite process Level 2 data using the <em>r.modis.process</em> module.
+-->
+It imports Level 3 (georeferenced) products either as single image or as daily mosaik.
 
 <h4>Products</h4>
 The products already supported: 
@@ -101,16 +108,18 @@ The products already supported:
 </ul>
 
 <h2>SEE ALSO</h2>
-<ul>
-  <li> <a href="r.modis.download.html">r.modis.download</a>: Download MODIS HDF products from NASA FTP</li>
-  <li> <a href="r.modis.import.html">r.modis.import</a>: Import Level 3 MODIS products as 
-single image or daily mosaik into GRASS GIS</li>
-  <li> <a href="http://modis-land.gsfc.nasa.gov/index.htm">MODIS Land homepage</a><li>
-  <li> <a href="http://modis-snow-ice.gsfc.nasa.gov/">MODIS Snow homepage</a><li>
-  <li> <a href="https://lpdaac.usgs.gov/lpdaac/products/modis_products_table">MODIS Land products table</a><li>
 
-<!--  <li> <a href="r.modis.process.html">r.modis.process</a>: Calculates range
-of patch area size on a raster map</li>-->
+<em>
+<a href="r.modis.import.html">r.modis.import</a>,
+<a href="r.modis.download.html">r.modis.download</a>
+<!-- <a href="r.modis.process.html">r.modis.process</a>,-->
+</em>
+<p>
+<ul>
+ <li><a href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool">MODIS Reprojection Tool</a></li>
+ <li> <a href="http://modis-land.gsfc.nasa.gov/index.htm">MODIS Land homepage</a></li>
+ <li> <a href="http://modis-snow-ice.gsfc.nasa.gov/">MODIS Snow homepage</a></li>
+ <li> <a href="https://lpdaac.usgs.gov/lpdaac/products/modis_products_table">MODIS Land products table</a></li>
 </ul>
  
 <h2>AUTHOR</h2>
