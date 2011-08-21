@@ -41,8 +41,9 @@
 #% key: product
 #% type: string
 #% label: Name of MODIS product
+#% multiple: yes
 #% required: no
-#% options: lst_terra_daily_1000, lst_aqua_daily_1000, lst_terra_eight_1000, lst_aqua_eight_1000, lst_terra_daily_6000, lst_aqua_daily_6000, ndvi_terra_sixteen_250, ndvi_aqua_sixteen_250, ndvi_terra_sixteen_500, ndvi_aqua_sixteen_500, snow_terra_eight_500
+#% options: lst_terra_daily_1000, lst_aqua_daily_1000, lst_terra_eight_1000, lst_aqua_eight_1000, lst_terra_daily_6000, lst_aqua_daily_6000, ndvi_terra_sixteen_250, ndvi_aqua_sixteen_250, ndvi_terra_sixteen_500, ndvi_aqua_sixteen_500, snow_terra_daily_500, snow_aqua_daily_500, snow_terra_eight_500, snow_aqua_eight_500
 #% answer: lst_terra_daily_1000
 #%end
 #%option
@@ -55,14 +56,14 @@
 #% key: startday
 #% type: string
 #% label: The day to start download.
-#% description: If not set the download stops 10 day before the endday
+#% description: If not set the download starts from today and go back 10 days. If not endday the download stops 10 days after the endday
 #% required: no
 #%end
 #%option
 #% key: endday
 #% type: string
 #% label: The day from stop download.
-#% description: If not set the download starts from today
+#% description: To use only with startday
 #% required: no
 #%end
 #%option
@@ -122,16 +123,16 @@ def checkdate(options):
         return None, None, 10
     # set only end day
     elif options['startday'] != '' and options['endday'] == '':
-        today = date.today().strftime("%Y-%m-%d")
-        if today >= options['startday']:
-            grass.fatal(_('The last day cannot be >= of the first day'))
-            return 0
-        valueDay, valueEnd, valueDelta = check2day(options['startday'])
+        valueDelta = 10
+        valueEnd = options['startday']
+        firstSplit = valueEnd.split('-')
+        firstDay = date(int(firstSplit[0]),int(firstSplit[1]),int(firstSplit[2]))
+        delta = timedelta(10)
+        lastday = firstDay + delta
+        valueDay = lastday.strftime("%Y-%m-%d")
     # set only start day
     elif options['startday'] == '' and options['endday'] != '':
-        valueDay = options['endday']
-        valueEnd = None
-        valueDelta = 10
+        grass.fatal(_("It is not possible use <endday> option without <startday> option"))
     # set start and end day
     elif options['startday'] != '' and options['endday'] != '':
         valueDay, valueEnd, valueDelta = check2day(options['startday'],options['endday'])
@@ -180,10 +181,10 @@ def main():
     if version['version'].find('7.') == -1:
         grass.fatal(_('You are not in GRASS GIS version 7'))
         return 0
+    # the product
+    products = options['product'].split(',')
     # first date and delta
     firstday, finalday, delta = checkdate(options)
-    # the product
-    prod = product(options['product']).returned()
     # set tiles
     if options['tiles'] == '':
         tiles = None
@@ -195,20 +196,22 @@ def main():
       debug_opt = True
     else:
       debug_opt = False
-    #start modis class
-    modisOgg = downModis(url = prod['url'], user = user,password = passwd, 
-            destinationFolder = fold, tiles = tiles, path = prod['folder'], 
-            today = firstday, enddate = finalday, delta = delta, debug = debug_opt)
-    # connect to ftp
-    modisOgg.connectFTP()
-    # download tha tiles
-    grass.message(_("Downloading MODIS product..."))
-    modisOgg.downloadsAllDay()
-    if flags['g']:
-      grass.message(modisOgg.filelist.name)
-    else:
-      grass.message(_("All data are downloaded, now you can use "\
-      + "r.in.modis.import or with option 'conf=%s'" % modisOgg.filelist.name))
+    for produ in products:
+      prod = product(produ).returned()
+      #start modis class
+      modisOgg = downModis(url = prod['url'], user = user,password = passwd, 
+              destinationFolder = fold, tiles = tiles, path = prod['folder'], 
+              today = firstday, enddate = finalday, delta = delta, debug = debug_opt)
+      # connect to ftp
+      modisOgg.connectFTP()
+      # download tha tiles
+      grass.message(_("Downloading MODIS product..."))
+      modisOgg.downloadsAllDay()
+      if flags['g']:
+        grass.message(modisOgg.filelist.name)
+      else:
+        grass.message(_("All data are downloaded, now you can use "\
+        + "r.in.modis.import or with option 'files=%s'" % modisOgg.filelist.name))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
