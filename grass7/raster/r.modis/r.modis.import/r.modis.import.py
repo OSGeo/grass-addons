@@ -36,11 +36,11 @@
 #%end
 #%flag
 #% key: q
-#% description: Doesn't use the QA map 
+#% description: Doesn't use the QA map, don't use with "r" flag
 #%end
 #%flag
 #% key: r
-#% description: Doesn't resampling the output map 
+#% description: Doesn't resampling the output map
 #%end
 #%option
 #% key: mrtpath
@@ -175,12 +175,15 @@ def confile(pm, opts, q, mosaik=False):
     return pm.confResample(spectr, None, pref, dat, resampl, proj, zone, projpar)
 
 def prefix(options, name = False):
+    """Return the prefix of output file if not set return None to use default
+       value
+    """
     if options['output']:
         return options['output']
     else:
         return None  
 
-def import_tif(out, basedir, rem, target=None):
+def import_tif(out, basedir, rem, write, target=None):
     """Import TIF files"""
     # list of tif files
     tifiles = glob.glob1(basedir, out + "*.tif")
@@ -197,8 +200,8 @@ def import_tif(out, basedir, rem, target=None):
         basename = os.path.splitext(t)[0]
         name = os.path.join(basedir,t)
         try:
-            grass.run_command('r.in.gdal', input = name, 
-            output = basename, flags = f, overwrite = True, quiet = True)
+            grass.run_command('r.in.gdal', input = name, output = basename,
+                              flags = f, overwrite = write, quiet = True)
             outfile.append(basename)
         except:
             grass.fatal(_('Error during import'))
@@ -210,45 +213,55 @@ def import_tif(out, basedir, rem, target=None):
     return outfile
 
 def findfile(pref, suff):
+    """ Check if a file exists on mapset """
     if grass.find_file(pref + suff)['file']:
         return grass.find_file(pref + suff)
     else:
-        grass.fatal(_("Raster map <%s> not found") % pref + suff)
+        grass.warning(_("Raster map <%s> not found") % (pref + suff))
 
 def metadata(pars, mapp, coll):
+    """ Set metadata to the imported files """
+    # metadata
     meta = pars.metastring()
-    grass.run_command('r.support', map=mapp, hist=meta)
+    grass.run_command('r.support', quiet = True, map=mapp, hist=meta)
+    # timestamp
     rangetime = pars.retRangeTime()
     data = rangetime['RangeBeginningDate'].split('-')
     dataobj = date(int(data[0]),int(data[1]),int(data[2]))
-    grass.run_command('r.timestamp', map=mapp, date=dataobj.strftime("%d %b %Y"))
-    if coll:
-        grass.run_command('r.colors', map=mapp, color = coll)
+    grass.run_command('r.timestamp', map=mapp, date=dataobj.strftime("%d %b %Y"),
+                      quiet = True)
+    # color
+    if string.find(mapp, 'QA'):
+        grass.run_command('r.colors', quiet = True, map=mapp, color = coll)
+    elif string.find(mapp, 'NDVI'):
+        grass.run_command('r.colors', quiet = True, map=mapp, color = coll[0])
+    elif string.find(mapp, 'EVI'):
+        grass.run_command('r.colors', quiet = True, map=mapp, color = coll[1])
+    elif string.find(mapp, 'LST'):
+        grass.run_command('r.colors', quiet = True, map=mapp, color = coll[0])
+    elif string.find(mapp, 'Snow'):
+        grass.run_command('r.colors', quiet = True, map=mapp, color = coll[0])
 
-def analize(pref, an, cod, parse):
+def analize(pref, an, cod, parse, write):
+    """ Analiza the MODIS data using QA if present """
     prod = product().fromcode(cod)
     if not prod['spec_qa']:
         grass.warning(_("There is not QA file, analysis will be skipped"))
-        an = 'noqa' 
+        an = 'noqa'
     pat = prod['pattern']
     suf = prod['suff']
     col = prod['color']
     val = []
     qa = []
-    for v,q in suf.iteritems(): 
-      val.append(findfile(pref,v))
-      qa.append(findfile(pref,q))
-
+    for v,q in suf.iteritems():
+        val.append(findfile(pref,v))
+        if q:
+            qa.append(findfile(pref,q))
     grass.run_command('g.region', rast = val[0]['fullname'])
 
-    if len(qa) != len(val):
-        grass.fatal(_("The number of QA and value maps is different, something wrong"))
-
-    for n in range(len(qa)):
+    for n in range(len(val)):
         valname = val[n]['name']
         valfull = val[n]['fullname']
-        qaname = qa[n]['name']
-        qafull = qa[n]['fullname']
         grass.run_command('r.null', map = valfull)
         if string.find(cod,'13Q1') or string.find(cod,'13A2'):
           mapc = "%s.2 = %s / 10000" % (valname, valfull)
@@ -256,39 +269,47 @@ def analize(pref, an, cod, parse):
         elif string.find(cod,'11A1') or string.find(cod,'11A2') or string.find(cod,'11B1'):
           mapc = "%s.2 = (%s * 0.0200) - 273.15" % (valname, valfull)
           grass.mapcalc(mapc)
-        else:
-          grass.run_command('g.copy', rast = (valfull,valname + '.2'))
         if an == 'noqa':
-            grass.run_command('g.remove', rast = valfull)
-            grass.run_command('g.rename', rast= (valname + '.2', valfull))
+            #grass.run_command('g.remove', quiet = True, rast = valfull)
+            try:
+                grass.run_command('g.rename', quiet = True, overwrite = write, 
+                                  rast= (valname + '.2', valname + '.check'))
+            except:
+                pass
             #TODO check in modis.py to adjust the xml file of mosaic
-            #metadata(parse, valfull, col)
+            #metadata(parse, valname, col)
+            #metadata(parse, valname + '.check', col)
             #metadata(parse, qafull, 'byr')
-            
         if an == 'all':
+            if len(qa) != len(val):
+                grass.fatal(_("The number of QA and value maps is different, something wrong"))
+            qaname = qa[n]['name']
+            qafull = qa[n]['fullname']
             finalmap = "%s.3=if(" % valname
             for key,value in prod['pattern'].iteritems():
                 for v in value:
                   outpat = "%s.%i.%i" % (qaname, key, v)
-                  grass.run_command('r.bitpattern', quiet=True, input = qafull, 
-                  output = outpat, pattern = key, patval= v)
+                  grass.run_command('r.bitpattern', quiet = True, input = qafull, 
+                                    output = outpat, pattern = key, patval= v)
                   finalmap += "%s == 0 && " % outpat
             if string.find(cod,'13Q1') or string.find(cod,'13A2'):
                 finalmap += "%s.2 <= 1.000" % valname
             else:
                 finalmap.rstrip(' && ')
             finalmap += ",%s.2, null() )" % valname
-            import pdb; pdb.set_trace()
             grass.mapcalc(finalmap)
-            grass.run_command('g.remove', rast=(valname, valname + '.2'))
-            grass.run_command('g.mremove', flag="f", quiet = True,
+            #grass.run_command('g.remove', quiet = True, rast=(valname, valname + '.2'))
+            grass.run_command('g.remove', quiet = True, rast=(valname + '.2'))
+            grass.run_command('g.mremove', flags="f", quiet = True,
 			      rast = ("%s.*" % qaname))
-            grass.run_command('g.rename', rast=(valname + '.3', valname))
+            grass.run_command('g.rename', quiet = True, overwrite = write,
+                              rast=(valname + '.3', valname + '.check'))
             #TODO check in modis.py to adjust the xml file of mosaic
-            #metadata(parse, valfull, col)
+            #metadata(parse, valname, col)
+            #metadata(parse, valname + '.check', col)
             #metadata(parse, qafull, 'byr')
             
-def single(options,remove,an):
+def single(options,remove,an,ow):
     """Convert the hdf file to tif and import it
     """
     listfile, basedir = list_files(options)
@@ -306,14 +327,14 @@ def single(options,remove,an):
         if not output:
             output = os.path.split(hdf)[1].rstrip('.hdf')
         # import tif files
-        maps_import = import_tif(output,basedir,remove)
+        maps_import = import_tif(output,basedir,remove,ow)
         if an:
             cod = os.path.split(pm.hdfname)[1].split('.')[0]
-            analize(output, an, cod, pm)
+            analize(output, an, cod, pm, ow)
         os.remove(confname)
     return grass.message(_('All files imported correctly'))
 
-def mosaic(options,remove,an):
+def mosaic(options,remove,an,ow):
     """Create a daily mosaic of hdf files convert to tif and import it
     """
     dictfile, targetdir = list_files(options,True)
@@ -331,7 +352,7 @@ def mosaic(options,remove,an):
         spectr = spectral(options,listfiles[0].split('/')[-1].split('.')[0],an, True)
         spectr = spectr.lstrip('( ').rstrip(' )')
         # create mosaic
-        cm = createMosaic(tempfile.name,outname,options['mrtpath'],spectr)
+        cm = createMosaic(tempfile.name, outname, options['mrtpath'], spectr)
         cm.run()
         # list of hdf files
         hdfiles = glob.glob1(basedir, outname + "*.hdf")
@@ -342,24 +363,24 @@ def mosaic(options,remove,an):
             pm = parseModis(hdf)
             confname = confile(pm,options,an)
             # create convertModis class and convert it in tif file
-            execmodis = convertModis(hdf,confname,options['mrtpath'])
+            execmodis = convertModis(hdf, confname, options['mrtpath'])
             execmodis.run()
             # remove hdf 
             if remove:
                 # import tif files
-                import_tif(outname,basedir,remove)
+                import_tif(outname, basedir, remove, ow)
                 if an:
                     cod = os.path.split(pm.hdfname)[1].split('.')[0]
-                    analize(outname, an, cod, pm)
+                    analize(outname, an, cod, pm, ow)
                 os.remove(hdf)
                 os.remove(hdf + '.xml')
             # or move the hdf and hdf.xml to the dir where are the original files
             else:
                 # import tif files
-                import_tif(outname,basedir,remove,targetdir)
+                import_tif(outname, basedir, remove, ow, targetdir)
                 if an:
                     cod = os.path.split(pm.hdfname)[1].split('.')[0]
-                    analize(outname, an, cod, pm)
+                    analize(outname, an, cod, pm, ow)
                 try: 
                     shutil.move(hdf,targetdir)
                     shutil.move(hdf + '.xml',targetdir)
@@ -368,6 +389,7 @@ def mosaic(options,remove,an):
             # remove the conf file
             os.remove(confname)
         grass.try_remove(tempfile.name)
+        grass.try_remove(os.path.join(targetdir,'mosaic',str(os.getpid())))
     return grass.message(_('All files imported correctly'))
 
 def main():
@@ -377,9 +399,9 @@ def main():
         grass.fatal(_('$GISBASE not defined'))
         return 0
     # return an error if q and spectral are set
-    if flags['q'] and options['spectral'] != '':
-        grass.fatal(_('It is not possible set flag "q" and "spectral" option'))
-        return 0
+    if not flags['q'] and options['spectral'] != '':
+        grass.warning(_('If you have not choose QA layer in the "spectral" option'\
+        + 'the command would be report an error'))
     # return an error if both dns and files option are set or not
     if options['dns'] == '' and options['files'] == '':
         grass.fatal(_('You have to choose one of "dns" or "files" options'))
@@ -398,10 +420,14 @@ def main():
         remove = False
     else:
         remove = True
+    if grass.overwrite():
+        over = True
+    else:
+        over = False
     # check if do check quality, resampling and setting of color
     if flags['r']:
         analize = None
-    if flags['q']:
+    elif flags['q']:
         analize = 'noqa'
     else:
         analize = 'all'
@@ -410,9 +436,9 @@ def main():
         grass.fatal(_('It is not possible to create a mosaic with a single HDF file'))
         return 0
     elif flags['m']:
-        mosaic(options,remove,analize)
+        mosaic(options,remove,analize,over)
     else:
-        single(options,remove,analize)
+        single(options,remove,analize,over)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
