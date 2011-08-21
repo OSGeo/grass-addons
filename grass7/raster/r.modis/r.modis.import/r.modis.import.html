@@ -4,51 +4,60 @@
 
 <h2>NOTE</h2>
 
-The input file is the list of full path to HDF files, one for line.
-The input file have to be inside the folder where the HDF files are.<br>
-The mrtpath option is the path to the main folder of Modis Reprojection Tools; it contain bin and data folder, this two folders are essential for a successful result.<br>
-It is not possible to use flag "q" and option "spectral" together.
-<br>
-<br>
+The input file is given as list of full paths to the MODIS HDF files,
+one per line. The input file(s) have to be inside the folder where 
+the HDF files are stored.
+<p>
+The <em>mrtpath</em> option is the path to the main folder of the
+MODIS Reprojection Tools (MRT) binaries, i.e. the folder which contains
+the bin/ and the data/ folder since these two folders are essential for
+obtaining a successful result.<br>
+It is not possible to use flag <em>--q</em> and the option <em>spectral</em>
+together.
+<p>
 
 <b>Warning</b>: 
 <ul>
-  <li>Currently it's tested only with Lat/Long, but also the follow projection systems are supported:  Lambert Conformal Conic, Mercator, Polar Stereographic, Transverse Mercator, Universal Transverse Mercator</li>
+  <li>The module has currently only been tested with Lat/Long locations, but also
+   the follow projection systems are supported:  Lambert Conformal Conic,
+   Mercator, Polar Stereographic, Transverse Mercator, Universal Transverse Mercator</li>
 </ul>
 
 <h2>EXAMPLES</h2>
 
-Import a single file with the default subset without QA layer
+Import a single file with the default subset without QA layer:
 <div class="code"><pre>
-    r.modis.import dsn=/path/to/file mrtpath=/path/to/mrt
+r.modis.import dsn=/path/to/file mrtpath=/path/to/mrt
 </pre></div>
 
-Import a single file with your own subset of layers
+Import a single file with your own subset of layers:
 <div class="code"><pre>
-    r.modis.import dsn=/path/to/file mrtpath=/path/to/mrt spectral="( 1 0 1 0)"
+r.modis.import dsn=/path/to/file mrtpath=/path/to/mrt spectral="( 1 0 1 0 )"
 </pre></div>
 
-Import more files with the default subset without QA layer
+Import more files with the default subset without QA layer:
 <div class="code"><pre>
-    r.modis.import filename=/path/to/listfile mrtpath=/path/to/mrt
+r.modis.import filename=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
-Import more files like a daily mosais with the default subset with QA layer
+Import more files like a daily mosaics with the default subset with QA layer:
 <div class="code"><pre>
-    r.modis.import -qm filename=/path/to/listfile mrtpath=/path/to/mrt
+r.modis.import -qm filename=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
-Import more files with your own subset of layers
+Import more files with your own subset of layers:
 <div class="code"><pre>
-    r.modis.import filename=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
+r.modis.import filename=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
 </pre></div>
 
 <h2>SEE ALSO</h2>
-<ul>
-  <li> <a href="r.modis.html">r.modis</a></li>
-  <li> <a href="r.modis.download.html">r.modis.download</a></li>
-<!--  <li> <a href="r.modis.process.html">r.modis.process</a>: Calculates range of patch area size on a raster map</li>-->
-</ul>
+
+<em>
+<a href="r.modis.html">r.modis</a>,
+<a href="r.modis.download.html">r.modis.download</a>
+<!-- <a href="r.modis.process.html">r.modis.process</a>,-->
+</em><br>
+<a href="https://lpdaac.usgs.gov/lpdaac/tools/modis_reprojection_tool">MODIS Reprojection Tools</a>
  
 <h2>AUTHOR</h2>
 
