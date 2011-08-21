@@ -1,53 +1,74 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.modis.download</em> download MODIS products. It can download several tiles and days of each MODIS product.
+<em>r.modis.download</em> downloads selected MODIS products. The module
+can download several tiles at once and also multiple observation days
+for each MODIS product.
 
 <h2>NOTE</h2>
 
-To set the username and password options  you have to use <em>setting</em> option; you can use a file, in this case the first line is the username, usually is 'anonymous', in the second line the password, your e-mail address
+The connection to the FTP data site requires a default login.
+To set the username and password options the user has to use
+the <em>setting</em> option; a file can be used (in this case the first
+line is the username, usually it is 'anonymous', in the second line
+the password is given, usually the user's e-mail address):
 <div class="code"><pre>
   your_NASA_FTP_username
   your_NASA_FTP_password
 </pre></div>
-otherwise you can pass the values from standard input.<br>
+As alternative, the user can pass the values from standard input.
+<p>
 
-<b>Warning</b>: NASA policy don't permit to open more then ten connections with the FTP servers. Please don't run more 10 the <em>r.modis.download</em> process at the same time.<br>
-By default the files downladed are store in the path where is the setting file; you can change the directory with <em>folder</em> options. You have to set <em>folder</em> option if you send user and password by standard input<br>
-The time of download change with the number of tiles, days and the type of product, for example NDVI product it is from 5 MB to 270 MB and LST is from 2 MB to 21 MB.
+<b>Warning</b>: The NASA policy does not permit to open more then ten
+connections in parallel with their FTP server. Hence no more than ten
+process of <em>r.modis.download</em> should run at the same time.
+<p>
+By default the downloaded files are stored in the path where the setting
+file is saved. The user can change this directory with <em>folder</em>
+option. The user has <!-- NOT?? --> to set the <em>folder</em> option if
+user and password are sent by standard input.
+<p>
+The time for the download depends on the number of requested tiles, days
+and the type of the MODIS product. For example, the NDVI product ranges 
+from 5 MB to 270 MB and the LST product ranges from 2 MB to 21 MB.
 
 <h2>EXAMPLES</h2>
 
-To download LST Terra product using the default options and set the user and password by standard input you can launch  
+To download the MODIS LST product from the Terra satellite using the default
+options and setting the user and password by standard input, launch:
 <div class="code"><pre>
-    r.modis.download setting=-
+r.modis.download setting=-
 </pre></div>
 
-Reading the user and password options from file
+Reading the user and password options from file:
 <div class="code"><pre>
-    r.modis.download setting=/home/user/.grass/r.modis/SETTING
+r.modis.download setting=/home/user/.grass7/r.modis/SETTING
 </pre></div>
 
-To download LST Terra product using the default options and change the starting and ending dates
+To download LST Terra product using the default options and changing
+the starting and ending dates to custom values:
 <div class="code"><pre>
-    r.modis.download setting=/home/user/.grass/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
+r.modis.download setting=/home/user/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
-To downlad another product (for example <em>Snow eight days 500 m</em>), with other default options
+To downlad another product (for example <em>Snow eight days 500 m</em>),
+with other default options:
 <div class="code"><pre>
-    r.modis.download setting=/home/user/.grass/r.modis/SETTING product=snow_terra_eight_500
+r.modis.download setting=/home/user/.grass7/r.modis/SETTING product=snow_terra_eight_500
 </pre></div>
 
-To use <em>r.modis.download</em> in a script with one of the other module you have to set -g flag to return the name of the file containing a list of HDF names downladed
+To use <em>r.modis.download</em> in a script with one of the other module
+the user has to set the <em>-g</em> flag to return the name of the file
+containing a list of downloaded HDF names:
 <div class="code"><pre>
-    r.modis.download -g setting=/home/user/.grass/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
+r.modis.download -g setting=/home/user/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
 </pre></div>
 
 <h2>SEE ALSO</h2>
-<ul>
-  <li> <a href="r.modis.html">r.modis</a></li>
-  <li> <a href="r.modis.import.html">r.modis.import</a></li>
-<!--  <li> <a href="r.modis.process.html">r.modis.process</a>: Calculates range of patch area size on a raster map</li>-->
-</ul>
+<em>
+<a href="r.modis.html">r.modis</a>,
+<a href="r.modis.import.html">r.modis.import</a>
+<!-- <a href="r.modis.process.html">r.modis.process</a>,-->
+</em>
  
 <h2>AUTHOR</h2>
 
