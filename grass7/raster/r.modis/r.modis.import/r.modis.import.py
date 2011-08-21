@@ -36,11 +36,11 @@
 #%end
 #%flag
 #% key: q
-#% description: Doesn't use the QA map, don't use with "r" flag
+#% description: Do not use the QA map, do not use with "r" flag
 #%end
 #%flag
 #% key: r
-#% description: Doesn't resampling the output map
+#% description: Do not resample the output map
 #%end
 #%option
 #% key: mrtpath

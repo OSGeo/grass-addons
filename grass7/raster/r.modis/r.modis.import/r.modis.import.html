@@ -25,33 +25,33 @@ together.
 
 <h2>EXAMPLES</h2>
 
-Import a single file with the default subset with QA layer analisys to remove bad pixels
+Import a single file with the default subset with QA layer analysis to remove bad pixels:
 <div class="code"><pre>
 r.modis.import dsn=/path/to/file mrtpath=/path/to/mrt
 </pre></div>
 
-Import more files with the default subset with QA layer
+Import more files with the default subset with QA layer:
 <div class="code"><pre>
 r.modis.import filename=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
-Import more files like daily mosaic with the default subset without QA layer
+Import more files like daily mosaic with the default subset without QA layer:
 <div class="code"><pre>
 r.modis.import filename=/path/to/listfile mrtpath=/path/to/mrt
 </pre></div>
 
-Import a single file with the default subset without QA layer analisys and it doesn't 
-rescale the pixel
+Import a single file with the default subset without QA layer analysis and without
+rescaling the pixel:
 <div class="code"><pre>
 r.modis.import -r dsn=/path/to/file mrtpath=/path/to/mrt
 </pre></div>
 
-Import a single file with your own subset of layers (for power user)
+Import a single file with your own subset of layers (for power user):
 <div class="code"><pre>
 r.modis.import dsn=/path/to/file mrtpath=/path/to/mrt spectral="( 1 0 1 0)"
 </pre></div>
 
-Import more files with your own subset of layers and without QA layer analisys (for power user)
+Import more files with your own subset of layers and without QA layer analysis (for power users):
 <div class="code"><pre>
 r.modis.import -q filename=/path/to/listfile mrtpath=/path/to/mrt spectral="( 1 )"
 </pre></div>
