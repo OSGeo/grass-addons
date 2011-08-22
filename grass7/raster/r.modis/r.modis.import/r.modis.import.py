@@ -22,7 +22,7 @@
 #############################################################################
 
 #%module
-#% description: Import single or more tiles of MODIS products using pyModis/MRT
+#% description: Import single or multiple tiles of MODIS products using pyModis/MRT
 #% keywords: raster
 #% keywords: MODIS
 #%end
@@ -36,17 +36,17 @@
 #%end
 #%flag
 #% key: q
-#% description: Do not use the QA map, do not use with "r" flag
+#% description: Ignore the QA map layer, do not use with "r" flag
 #%end
 #%flag
 #% key: r
-#% description: Do not resample the output map
+#% description: Do not rescale the output map values to destination units
 #%end
 #%option
 #% key: mrtpath
 #% type: string
 #% key_desc: path
-#% description: The full path to MRT directory
+#% description: Full path to MRT directory
 #% gisprompt: old,dir,input
 #% required: yes
 #%end
@@ -54,7 +54,7 @@
 #% key: dns
 #% type: string
 #% key_desc: path
-#% description: Path to single HDF file
+#% description: Full path to single HDF file
 #% gisprompt: old,file,input
 #% required: no
 #%end
@@ -62,7 +62,7 @@
 #% key: files
 #% type: string
 #% key_desc: file
-#% description: Path to a file with a list of HDF files 
+#% description: Full path to file with list of HDF files 
 #% gisprompt: old,file,input
 #% required: no
 #%end
@@ -74,7 +74,7 @@
 #% key: resampl
 #% type: string
 #% key_desc: resampling
-#% description: Code of resampling type
+#% description: Code of spatial resampling method
 #% options: NN, BI, CC, NONE
 #% answer: NN
 #% required: no
@@ -83,7 +83,7 @@
 #% key: spectral
 #% type: string
 #% key_desc: spectral subset
-#% description: A string to choose the subset of HDF file to use
+#% description: String to choose subset of layers in HDF file for import 
 #% required: no
 #%end
 
@@ -93,7 +93,7 @@ from datetime import date
 # add the folder containing libraries to python path
 libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
 sys.path.append(libmodis)
-# try to import pymodis (modis) and some class for r.modis.download
+# try to import pymodis (modis) and some classes for r.modis.download
 try:
     from rmodislib import resampling, product, get_proj, projection
     from modis  import parseModis, convertModis, createMosaic
@@ -101,8 +101,8 @@ except ImportError:
     pass
 
 def list_files(opt, mosaik = False):
-    """Return a list of hdf files from the filelist on function single 
-    Return a dictionary with a list o hdf file for each day on function mosaic
+    """If used in function single(): Return a list of HDF files from the file list
+    If used in function mosaic(): Return a dictionary with a list of HDF files for each day
     """
     # read the file with the list of HDF
     if opt['files'] != '':
@@ -133,7 +133,7 @@ def list_files(opt, mosaik = False):
 
 def spectral(opts, code, q, m = False):
     """Return spectral string"""
-    # return the spectral set by the user
+    # return the spectral set selected by the user
     if opts['spectral'] != '':
         spectr = opts['spectral']
     # return the spectral by default
@@ -243,10 +243,10 @@ def metadata(pars, mapp, coll):
         grass.run_command('r.colors', quiet = True, map=mapp, color = coll[0])
 
 def analize(pref, an, cod, parse, write):
-    """ Analiza the MODIS data using QA if present """
+    """ Analyze the MODIS data using QA if present """
     prod = product().fromcode(cod)
     if not prod['spec_qa']:
-        grass.warning(_("There is not QA file, analysis will be skipped"))
+        grass.warning(_("There is no QA layer, analysis and filtering will be skipped"))
         an = 'noqa'
     pat = prod['pattern']
     suf = prod['suff']
@@ -282,7 +282,7 @@ def analize(pref, an, cod, parse, write):
             #metadata(parse, qafull, 'byr')
         if an == 'all':
             if len(qa) != len(val):
-                grass.fatal(_("The number of QA and value maps is different, something wrong"))
+                grass.fatal(_("The number of QA and value maps is different, something is wrong"))
             qaname = qa[n]['name']
             qafull = qa[n]['fullname']
             finalmap = "%s.3=if(" % valname
@@ -310,7 +310,7 @@ def analize(pref, an, cod, parse, write):
             #metadata(parse, qafull, 'byr')
             
 def single(options,remove,an,ow):
-    """Convert the hdf file to tif and import it
+    """Convert the HDF file to TIF and import it
     """
     listfile, basedir = list_files(options)
     # for each file
@@ -335,7 +335,7 @@ def single(options,remove,an,ow):
     return grass.message(_('All files imported correctly'))
 
 def mosaic(options,remove,an,ow):
-    """Create a daily mosaic of hdf files convert to tif and import it
+    """Create a daily mosaic of HDF files convert to TIF and import it
     """
     dictfile, targetdir = list_files(options,True)
     # for each day
@@ -400,11 +400,11 @@ def main():
         return 0
     # return an error if q and spectral are set
     if not flags['q'] and options['spectral'] != '':
-        grass.warning(_('If you have not choose QA layer in the "spectral" option'\
-        + 'the command would be report an error'))
+        grass.warning(_('If no QA layer chosen in the "spectral" option'\
+        + 'the command will report an error'))
     # return an error if both dns and files option are set or not
     if options['dns'] == '' and options['files'] == '':
-        grass.fatal(_('You have to choose one of "dns" or "files" options'))
+        grass.fatal(_('Choose one of "dns" or "files" options'))
         return 0
     elif options['dns'] != '' and options['files'] != '':
         grass.fatal(_('It is not possible set "dns" and "files" options together'))
@@ -413,7 +413,7 @@ def main():
     version = grass.core.version()
     # this is would be set automatically
     if version['version'].find('7.') == -1:
-        grass.fatal(_('You are not in GRASS GIS version 7'))
+        grass.fatal(_('GRASS GIS version 7 required'))
         return 0
     # check if remove the files or not
     if flags['t']:
@@ -443,3 +443,4 @@ def main():
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
+
