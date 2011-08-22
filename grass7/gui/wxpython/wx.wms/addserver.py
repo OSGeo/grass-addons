@@ -25,10 +25,12 @@ import wx
 import os
 import popen2
 import uuid
+from urllib2 import Request, urlopen, URLError, HTTPError
 from grass.script import core as grass
 from wx.lib.pubsub import Publisher
 from BeautifulSoup import BeautifulSoup, Tag, NavigableString, BeautifulStoneSoup
 from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, initServerInfoBase, getAllRows
+from parse import parsexml, isServiceException, populateLayerTree, isValidResponse
 from LoadConfig import loadConfigFile
 
 
@@ -93,9 +95,6 @@ class ServerAdd(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.__populate_URL_List(self.ServerList)
         Publisher().subscribe(self.OnWMSMenuClose, ("WMS_Menu_Close"))
-        Publisher().subscribe(self.OnPopupSaveRequest, ("PopupSaveRequest"))
-        Publisher().subscribe(self.OnPopupNotSaveRequest, ("PopupNotSaveRequest"))
-        Publisher().subscribe(self.OnPopupCancelRequest, ("PopupCancelRequest"))
         self.editOn = False
         self.selectedUid = None
         self.selectedServer = None
@@ -217,7 +216,7 @@ class ServerAdd(wx.Frame):
         serverData = ServerData()
         #self.ServerList.Append(newServerName+" "+newUrl)
         
-        url = newUrl.split()
+        #url = newUrl.split()
         #if(len(newUrl) != 0 and len(newServerName) != 0 and len(newUserName) !=0 and len(newPassword) != 0 ):
         if(len(newUrl) != 0 and len(newServerName) != 0):
             if(self.selectedServer is not None):
@@ -233,6 +232,22 @@ class ServerAdd(wx.Frame):
             #del self.servers[self.selectedUid]
             if(not newUrl.startswith('http://')):
                 newUrl = 'http://'+newUrl
+            
+            validUrl, message = self.validateUrl(newUrl)
+            if(not validUrl):
+                message = "Unable to validate URL ("+message+")"
+                self.ShowMessage(message, 'Warning')
+                grass.warning(message)
+            else:
+                message = "Url validated ("+message+")"
+            
+            
+            
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+            
+            print message
+                
             serverData.servername = newServerName
             serverData.url = newUrl
             serverData.username = newUserName
@@ -381,6 +396,25 @@ class ServerAdd(wx.Frame):
             return
         else:
             if(removeServerInfo(self.soup, self.selectedUid)):
+                if(not self.saveXMLData()):
+                    uid = self.selectedUid
+                    servername = self.servers[uid].servername
+                    url = self.servers[uid].url
+                    username = self.servers[uid].username
+                    password = self.servers[uid].password
+                    if(addServerInfo(self.soup, self.soup.serverinfo, uid, servername, url, username, password)):
+                        message = 'Unable to write data in file, Changes reverted, Remove unsuccessful'
+                        grass.warning(message)
+                        StatusBar_fields = [message]
+                        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+                        return
+                    else:
+                        message = 'Unable to write data in file, Unable to revert changes, Remove unsuccessful'
+                        grass.warning(message)
+                        StatusBar_fields = [message]
+                        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+                        return
+                        
                 message = "Remove Successful"
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
@@ -391,6 +425,19 @@ class ServerAdd(wx.Frame):
                     self.ServerList.SetSelection(0)
                 if(len(self.servers) == 0):
                     self.ServerList.Clear()
+                
+                del self.servers[self.selectedUid]
+                self.selectedUid = None
+                self.__update_URL_List()
+                self.selectedServer = None
+                self.ServerNameText.Clear()
+                self.PasswordText.Clear()
+                self.URLText.Clear()
+                self.UsernameText.Clear()
+                #print self.servers
+                
+                msg = self.servers
+                Publisher().sendMessage(("update.serverList"), msg)
             else:
                 message = "Remove Unsuccessful"
                 self.ShowMessage(message, 'Warning')
@@ -401,18 +448,7 @@ class ServerAdd(wx.Frame):
                 return
             #print self.servers
             
-            del self.servers[self.selectedUid]
-            self.selectedUid = None
-            self.__update_URL_List()
-            self.selectedServer = None
-            self.ServerNameText.Clear()
-            self.PasswordText.Clear()
-            self.URLText.Clear()
-            self.UsernameText.Clear()
-            #print self.servers
-            self.saveXMLData()
-            msg = self.servers
-            Publisher().sendMessage(("update.serverList"), msg)
+           
         
         #print "Event handler `OnRemove' not implemented"
         self.editOn = False
@@ -444,7 +480,14 @@ class ServerAdd(wx.Frame):
         if(self.checkIfModified(event) == wx.ID_CANCEL):
             return
         #patch1e
-        self.saveXMLData()
+        if(not self.saveXMLData()):
+            message = 'Unable to write in file, Exiting Application'
+            grass.message(message)
+            print message
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+            
+            
         msg = self.servers
         Publisher().sendMessage(("Add_Server_Frame_Closed"), msg)
         self.Destroy()
@@ -464,10 +507,12 @@ class ServerAdd(wx.Frame):
         #patch1e
         print '-------------------------------------------------------------------> OnServerList'
         #print self.ServerList.CurrentSelection
-        url = self.ServerList.GetValue()
+        info = self.ServerList.GetValue()
+        if(len(info) == 0):
+            return
         print 'here'
-        print url
-        urlarr = url.split(self.name_url_delimiter)
+        print info
+        urlarr = info.split(self.name_url_delimiter)
         print urlarr
         #print self.servers
         if(len(urlarr)==2):
@@ -520,6 +565,7 @@ class ServerAdd(wx.Frame):
         
     def __populate_URL_List(self, ComboBox):
         self.servers, self.map_servernameTouid = getAllRows(self.soup)
+        ComboBox.Append("")
         for key, value in self.servers.items():
             #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
             #ComboBox.Append(string)
@@ -530,9 +576,10 @@ class ServerAdd(wx.Frame):
     
     def __update_URL_List(self):
         self.ServerList.Clear()
+        ComboBox = self.ServerList
+        ComboBox.Append("")
         for key,value in self.servers.iteritems():
             #name = v.servername+" "+v.url
-            ComboBox = self.ServerList
             #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
             #ComboBox.Append(string)
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
@@ -634,13 +681,39 @@ class ServerAdd(wx.Frame):
         
         return True
     
+    def validateUrl(self,url):
+        message = 'Validating Url...'
+        StatusBar_fields = [message]
+        self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+        req = Request(url)
+        message = 'Successful'
+        try:
+            response = urlopen(req, None, self.timeoutValueSeconds)
+            xml = response.read()
+            if(not isValidResponse(xml)):
+                message = 'Invalid GetCapabilties response'
+            if(isServiceException(xml)):
+                message = 'Service Exception'
+        except HTTPError, e:
+            message = 'The server couldn\'t fulfill the request.'
+        except URLError, e: 
+            message = 'Failed to reach a server.'
+        except ValueError, e:
+            message = 'Value error'
+        except Exception, e:
+            message = 'urlopen exception, unable to fetch data for getcapabilities'
+            message = str(e)
 
+        if(not message=='Successful'):
+            return False, message
+        else:
+            return True, message
 
     def OnWMSMenuClose(self, msg):
         self.Close()
         self.Destroy()
         return
-    
+    '''
     def OnPopupSaveRequest(self, msg):
         self.OnSave(None)
         self.saveXMLData()
@@ -659,6 +732,7 @@ class ServerAdd(wx.Frame):
 
     def OnPopupCancelRequest(self, msg):
         return
+        '''
 # end of class ServerAdd
 
 def AddServerFrame(parentWMS):

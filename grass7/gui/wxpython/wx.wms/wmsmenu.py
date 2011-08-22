@@ -28,7 +28,7 @@ from grass.script import core as grass
 import imghdr
 from wx.lib.pubsub import Publisher
 from urllib2 import Request, urlopen, URLError, HTTPError
-from parse import parsexml, isServiceException, populateLayerTree, isValidResponse
+from parse import *
 from WMSMapDisplay import NewImageFrame
 from addserver import AddServerFrame
 from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, initServerInfoBase, getAllRows
@@ -38,6 +38,57 @@ from LoadConfig import loadConfigFile
 # begin wxGlade: extracode
 # end wxGlade
 
+class LayerData():
+    name = None
+    title = None
+    abstract = None
+    srs = None
+    
+    def printLayerData(self,layerDataDict):
+        for key, value in layerDataDict.iteritems():
+            print key
+            print value.name
+            print value.title
+            print value.abstract
+            srss = value.srs
+            for srs in srss:
+                a = srs.string
+                a = a.split(':')
+                print a[0]+' '+a[1]
+            print '--------------------------------------------'
+            
+    def appendLayerTree(self, layerDataDict, LayerTree, layerTreeRoot):
+        for key, value in layerDataDict.iteritems():
+            name = value.name
+            title = value.title
+            abstract = value.abstract
+            string = str(key)+"-"+name+":"+title+":"+abstract
+            LayerTree.AppendItem(layerTreeRoot, string)
+    
+    def setKeyToEPSGCodes(self, layerDataDict):
+        keytoepsgcodes = {}
+        for key, value in layerDataDict.iteritems():
+            srss = value.srs
+            l=[]
+            for srs in srss:
+                a = srs.string
+                a = a.split(':')
+                l = l+[a[1]]
+            print 'here'
+            print 'key = ' + str(key) 
+            print l
+            print 'now'
+            keytoepsgcodes[str(key)] = l
+            
+            print 'dict value now is '
+            print keytoepsgcodes
+            print 'dict printed'
+        
+        print 'final dict'
+        print keytoepsgcodes
+        print 'final dcit printed'
+        return keytoepsgcodes
+
 class Message():
     pass
 
@@ -46,17 +97,19 @@ class wmsFrame(wx.Frame):
         # begin wxGlade: wmsFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
+        self.StatusBar = self.CreateStatusBar(1, 0)
         self.URL = wx.StaticText(self, -1, "URL")
         self.ServerList = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_SIMPLE)
         self.LayerTree = wx.TreeCtrl(self, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_MULTIPLE|wx.TR_MULTIPLE|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
         self.username = wx.StaticText(self, -1, "UserName")
         self.usernameInput = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_TAB)
+        self.EPSG = wx.StaticText(self, -1, "EPSG")
         self.password = wx.StaticText(self, -1, "Password")
         self.passwordInput = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_TAB|wx.TE_PASSWORD)
+        self.epsgList = wx.ComboBox(self, -1, choices=[], style=wx.CB_DROPDOWN|wx.CB_SIMPLE|wx.CB_DROPDOWN)
         self.GetCapabilities = wx.Button(self, -1, "GetCapabilities")
         self.GetMaps = wx.Button(self, -1, "GetMaps")
         self.addServer = wx.Button(self, -1, "Manage Servers")
-        self.StatusBar = self.CreateStatusBar(1, 0)
 
         self.__set_properties()
         self.__do_layout()
@@ -92,7 +145,7 @@ class wmsFrame(wx.Frame):
         Publisher().subscribe(self.onUpdateServerListmessage, ("update.serverList"))
         Publisher().subscribe(self.onUpdateMapListmessage, ("update.map_servernameTouid"))
         
-        
+        self.keyToEPSGCodes = {}
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.AddServerisClosed = True
         self.layerName = ""
@@ -104,14 +157,14 @@ class wmsFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: wmsFrame.__set_properties
         self.SetTitle("wmsFrame")
-        self.LayerTree.SetMinSize((400, 250))
-        self.usernameInput.SetMinSize((189, 27))
-        self.passwordInput.SetMinSize((189, 27))
         self.StatusBar.SetStatusWidths([-1])
         # statusbar fields
         StatusBar_fields = ["StatusBar"]
         for i in range(len(StatusBar_fields)):
             self.StatusBar.SetStatusText(StatusBar_fields[i], i)
+        self.LayerTree.SetMinSize((400, 250))
+        self.usernameInput.SetMinSize((189, 27))
+        self.passwordInput.SetMinSize((189, 27))
         # end wxGlade
 
     def __do_layout(self):
@@ -119,7 +172,7 @@ class wmsFrame(wx.Frame):
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
-        grid_sizer_1 = wx.FlexGridSizer(2, 2, 1, 1)
+        grid_sizer_1 = wx.FlexGridSizer(2, 3, 1, 1)
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3.Add(self.URL, 0, 0, 0)
         sizer_3.Add(self.ServerList, 0, 0, 0)
@@ -127,8 +180,10 @@ class wmsFrame(wx.Frame):
         sizer_2.Add(self.LayerTree, 1, wx.EXPAND, 0)
         grid_sizer_1.Add(self.username, 0, 0, 0)
         grid_sizer_1.Add(self.usernameInput, 0, 0, 0)
+        grid_sizer_1.Add(self.EPSG, 0, 0, 0)
         grid_sizer_1.Add(self.password, 0, 0, 0)
         grid_sizer_1.Add(self.passwordInput, 0, 0, 0)
+        grid_sizer_1.Add(self.epsgList, 0, 0, 0)
         sizer_2.Add(grid_sizer_1, 0, wx.EXPAND, 0)
         sizer_4.Add(self.GetCapabilities, 0, 0, 0)
         sizer_4.Add(self.GetMaps, 0, 0, 0)
@@ -139,43 +194,18 @@ class wmsFrame(wx.Frame):
         sizer_1.Fit(self)
         self.Layout()
         # end wxGlade
-    def __update_Url_List(self, ComboBox):
-        ComboBox.Clear()
-        for key, value in self.servers.items():
-            #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
-            #ComboBox.Append(string)
-            ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
-            #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
-        #print self.servers
-        return
-        
-   
-
-
-    def __populate_Url_List(self, ComboBox):
-        self.servers, self.map_servernameTouid = getAllRows(self.soup)
-        for key, value in self.servers.items():
-            #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
-            #ComboBox.Append(string)
-            ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
-            #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
-        #print self.servers
-        return
     
-    
-        '''f = open('serverList.txt','r')
-        lines = f.readlines()
-        self.servers = {}
-        for line in lines:
-            row = line.split()
-            print row
-            if(len(row) == 4) :
-                self.servers[row[0]] = row[1]
-            name = row[0]+" "+row[1][7:45]
-            ComboBox.Append(name)
-        f.close()'''
 
-    def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>
+    def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>            
+        ''''f=open('check.xml','r')
+        xml=f.read()
+        f.close()
+        layerDataDict = parsexml2(xml)
+        ld = LayerData()
+        #ld.printLayerData(layerDataDict)
+        ld.appendLayerTree(layerDataDict, self.LayerTree, self.layerTreeRoot)
+        self.LayerTree.Expand(self.layerTreeRoot)
+        return'''
         if(self.selectedURL == "No server selected"):
             message = 'No Server selected'
             self.ShowMessage(message, 'Warning')
@@ -221,8 +251,18 @@ class wmsFrame(wx.Frame):
             #xml=f.read()
             #f.close()
             #self.statusbar.SetStatusText(xml) 
-            reslist = parsexml(xml)
-            populateLayerTree(xml,self.LayerTree, self.layerTreeRoot)
+            #reslist = parsexml(xml)
+            #populateLayerTree(xml,self.LayerTree, self.layerTreeRoot)
+            print 'check1'
+            layerDataDict = parsexml2(xml)
+            print 'check2'
+            ld = LayerData()
+            print 'check3'
+            #ld.printLayerData(layerDataDict)
+            ld.appendLayerTree(layerDataDict, self.LayerTree, self.layerTreeRoot)
+            self.keyToEPSGCodes = ld.setKeyToEPSGCodes(layerDataDict)
+            print self.keyToEPSGCodes
+            print 'check4'
             #for res in reslist:
             #       self.LayerTree.AppendItem(self.layerTreeRoot, res)
             #self.Layers.SetValue(st) 
@@ -386,16 +426,16 @@ class wmsFrame(wx.Frame):
         #Sudeep's Code Ends
         event.Skip()
         '''
-    def printDict(self,dict):
-        for key in dict.keys():
-            print "the key name is" + key + "and its value is" 
+    
         
     def OnServerList(self, event): # wxGlade: wmsFrame.<event_handler>
         print "Event handler `OnServerList' not implemented"
         #Sudeep's Code Starts
         print self.ServerList.CurrentSelection
-        url = self.ServerList.GetValue()
-        urlarr = url.split(self.name_url_delimiter)
+        info = self.ServerList.GetValue()
+        if(len(info) == 0):
+            return
+        urlarr = info.split(self.name_url_delimiter)
         print "OnServerList:printing urlarr"
         print urlarr
         print urlarr[0]
@@ -431,23 +471,57 @@ class wmsFrame(wx.Frame):
         #self.layerName = self.LayerTree.GetItemText(event.GetItem())
         #print "Event handler `OnLayerTreeSelChanged' not implemented"
         self.selectedLayerList = []
+        keys =[]
         self.layerName = ""
         print "Selected layers:"
         for sellayer in self.LayerTree.GetSelections():
-            layerName = self.LayerTree.GetItemText(sellayer)
+            layerNameString = self.LayerTree.GetItemText(sellayer)
+            print 'here'
+            print layerNameString
+            layerNameStringList = layerNameString.split(':')
+            print layerNameStringList
+            print len(layerNameStringList)
+            if(len(layerNameStringList)==0):
+                message = 'Unable to select layers'
+                self.ShowMessage(message, 'Warning')
+                grass.warning(message)
+                StatusBar_fields = [message]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+                return
+            layerName = layerNameStringList[0].split('-')[1]
+            key = layerNameStringList[0].split('-')[0]
+            print layerName
+            print 'done'
             self.selectedLayerList += [layerName]
             self.layerName += ","+layerName
-            
+            keys += [key]
+          
+          
         self.layerName = self.layerName[1:]
         print self.layerName
+        self.epsgList.Clear()
+        print self.keyToEPSGCodes
+        for key in keys:
+            lEPSG = self.keyToEPSGCodes[key]
+            self.epsgList.AppendItems(lEPSG)
+                
         #print "Event handler `OnLayerTreeSelChanged' not implemented"
         event.Skip()
+        
+    def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
+        print 'before add server call'
+        self.AddServerisClosed = False
+        self.addServer.Disable()
+        AddServerFrame(self)
+        #print 'after add server call'
+        #print "Event handler `OnAddServer' not implemented"
+        #event.Skip()
+        return 
+    
 
     def onAddServerFrameClose(self, msg):
         self.AddServerisClosed = True
         self.addServer.Enable()
-        self.servers = msg.data
-        self.__update_Url_List(self.ServerList)
         #frame = self.GetParent()
         #frame.Show()
     
@@ -468,16 +542,6 @@ class wmsFrame(wx.Frame):
         self.printDict(self.map_servernameTouid)
         #patch5e
         
-    def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
-        print 'before add server call'
-        self.AddServerisClosed = False
-        self.addServer.Disable()
-        AddServerFrame(self)
-        #print 'after add server call'
-        #print "Event handler `OnAddServer' not implemented"
-        #event.Skip()
-        return 
-    
     def OnQuit(self, event):
         msg = ""
         print 'in quit'
@@ -489,6 +553,46 @@ class wmsFrame(wx.Frame):
     def ShowMessage(self, message, type = 'Warning'):
         wx.MessageBox(message, type)
     
+    def __update_Url_List(self, ComboBox):
+        ComboBox.Clear()
+        ComboBox.Append("")
+        for key, value in self.servers.items():
+            #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
+            #ComboBox.Append(string)
+            ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
+            #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
+        #print self.servers
+        return
+        
+    def __populate_Url_List(self, ComboBox):
+        self.servers, self.map_servernameTouid = getAllRows(self.soup)
+        ComboBox.Append("")
+        for key, value in self.servers.items():
+            #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
+            #ComboBox.Append(string)
+            ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
+            #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
+        #print self.servers
+        return
+    
+    
+        '''f = open('serverList.txt','r')
+        lines = f.readlines()
+        self.servers = {}
+        for line in lines:
+            row = line.split()
+            print row
+            if(len(row) == 4) :
+                self.servers[row[0]] = row[1]
+            name = row[0]+" "+row[1][7:45]
+            ComboBox.Append(name)
+        f.close()'''
+
+    def printDict(self,dict):
+        for key in dict.keys():
+            print "the key name is" + key + "and its value is" 
+    
+
 # end of class wmsFrame
 
 #Sudeep's Code Starts

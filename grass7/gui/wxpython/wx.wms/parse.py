@@ -27,6 +27,33 @@ import re
 from urllib2 import Request, urlopen, URLError, HTTPError
 
 
+class LayerData():
+	name = None
+	title = None
+	abstract = None
+	srs = None
+	
+	def printLayerData(self,layerDataDict):
+		for key, value in layerDataDict.iteritems():
+			print key
+			print value.name.string
+			print value.title.string
+			print value.abstract.string
+			srss = value.srs
+			for srs in srss:
+				a = srs.string
+				a = a.split(':')
+				print a[0]+' '+a[1]
+			print '--------------------------------------------'
+	def appendLayerTree(self, layerDataDict, LayerTree, layerTreeRoot):
+		for key, value in layerDataDict.iteritems():
+			name = value.name.string
+			title = value.title.string
+			abstract = value.abstract.string
+			string = str(key)+"-"+name+":"+title+":"+abstract
+			LayerTree.AppendItem(layerTreeRoot, string)
+
+
 def parsexml(xml):
 
  xmltext = xml
@@ -48,6 +75,61 @@ f = open('wmsmaris.xml','r')
 a=f.read()
 print a
 #parsexml(a) '''
+
+
+def parsexml2(xml):
+ print 'c1'
+ layerDataDict={}
+ count = -1
+ xmltext = xml
+ soup = BeautifulSoup(xmltext)
+ layers = soup.findAll('layer')
+ namelist = []
+ for layer in layers:
+ 	
+	soupname = BeautifulSoup(str(layer))
+	names =  soupname.findAll('name')
+	titles = soupname.findAll('title')
+	abstracts = soupname.findAll('abstract')
+	srs = soupname.findAll('srs')
+	print 'c2'
+	print names
+	print titles
+	print abstracts
+	print srs
+	print 'a1'
+	if(len(names)>0):
+		count = count + 1
+		layerDataDict[count] = LayerData()
+		layerDataDict[count].name = unicode(names[0].string)
+		print layerDataDict[count].name
+	else:
+		continue
+	print 'a2'	
+	if(len(titles)>0):
+		print 'b1'
+		layerDataDict[count].title = unicode(titles[0].string)
+		print 'b2'
+	else:
+		print 'b3'
+		layerDataDict[count].title = ''
+		print 'b4'
+	print 'a3'
+	if(len(abstracts)>0):
+		layerDataDict[count].abstract = unicode(abstracts[0].string)
+	else:
+		layerDataDict[count].abstract = ''
+	print 'a4'
+	if(len(srs)>0):
+		layerDataDict[count].srs = srs
+	else:
+		layerDataDict[count].srs = ''
+	
+	print 'c3'
+ return layerDataDict
+
+
+
 def isValidResponse(xml):
 	soup = BeautifulSoup(xml)
 	getCapabilities = soup.findAll('wmt_ms_capabilities')
