@@ -57,14 +57,14 @@
 #%option
 #% key: startday
 #% type: string
-#% label: The day to start download
+#% label: First date to download
 #% description: Format: YYYY-MM-DD. If not set the download starts from today and go back 10 days. If not endday the download stops 10 days after the endday
 #% required: no
 #%end
 #%option
 #% key: endday
 #% type: string
-#% label: The day to stop download
+#% label: Last date to download
 #% description: Format: YYYY-MM-DD. To use only together with startday
 #% required: no
 #%end
