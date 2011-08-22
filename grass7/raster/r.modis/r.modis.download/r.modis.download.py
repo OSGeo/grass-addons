@@ -216,7 +216,7 @@ def main():
         grass.message(modisOgg.filelist.name)
       else:
         grass.message(_("All data are downloaded, continue with "\
-        + "r.in.modis.import or with the option 'files=%s'" % modisOgg.filelist.name))
+        + "r.modis.import with the option 'files=%s' and mrtpath=/path/to/mrt/" % modisOgg.filelist.name))
 
 if __name__ == "__main__":
     options, flags = grass.parser()

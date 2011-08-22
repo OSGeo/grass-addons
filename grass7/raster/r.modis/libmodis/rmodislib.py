@@ -233,8 +233,9 @@ class projection:
         self.proj = get_proj()
         self.val = self.proj['proj']
         self.dat = self.proj['datum']
-        self.projections = {'ll':'GEO', 'lcc':'LAMBERT CONFORMAL CONIC',
-             'merc':'MERCATOR', 'polar':'POLAR STEREOGRAPHIC', 'utm':'UTM', 
+        self.projections = {'laea' : 'LAMBERT AZIMUTHAL EQUAL AREA','ll':'GEO', 
+             'lcc':'LAMBERT CONFORMAL CONIC', 'merc':'MERCATOR', 
+             'polar':'POLAR STEREOGRAPHIC', 'utm':'UTM', 
              'tmerc':'TRANSVERSE MERCATOR'}
         self.datumlist = {'none':'NONE', 'nad27':'NAD27', 'nad83':'NAD83', 
         'wgs66':'WGS66', 'wgs72':'WGS72', 'wgs84':'WGS84'}
