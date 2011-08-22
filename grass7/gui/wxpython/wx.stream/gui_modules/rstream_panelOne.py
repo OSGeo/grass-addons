@@ -10,7 +10,7 @@ See http://grass.osgeo.org/wiki/Wx.stream_GSoC_2011
 
 Classes:
  - CoorWindow
- - RStreamFrame
+ - TabPanelOne
 
 (C) 2011 by Margherita Di Leo, and the GRASS Development Team
 This program is free software under the GNU General Public License
@@ -39,14 +39,25 @@ import utils
 import menuform
 
 
+
+
+
 #-------------------------------------------------------------
 
 class CoorWindow(wx.Dialog):
-    """!Get coordinates from map display
+    """!Get coordinates from map display and generates preview
     """
-    def __init__(self, parent, mapwindow, id = wx.ID_ANY, **kwargs):
+    def __init__(self, parent, mapwindow, rad2, rad3, elev, acc, thre, net, drain, id = wx.ID_ANY, **kwargs):                                
         wx.Dialog.__init__(self, parent, id, **kwargs)
-#        self.parent = parent
+        self.parent = parent
+        self.radioval2 = rad2
+        self.radioval3 = rad3
+        self.r_elev = elev
+        self.r_acc = acc
+        self.thre = thre
+        #self.stre = stre
+        self.v_net = net
+        self.r_drain = drain
                 
         text_static = wx.StaticText(self, label = "Coordinates:")
         
@@ -63,12 +74,17 @@ class CoorWindow(wx.Dialog):
         self.buttonGenPrev = wx.Button(self, label = 'Generate preview')
         self.buttonGenPrev.Bind(wx.EVT_BUTTON, self.OnGenPrev)
         
+        self.buttonClose = wx.Button(self, label = 'Close')
+        self.buttonClose.Bind(wx.EVT_BUTTON, self.OnClose)
+        
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         buttonSizer = wx.BoxSizer(wx.HORIZONTAL)
         
         buttonSizer.Add(self.buttonCoor, 0, wx.ALL, 10)
         buttonSizer.Add((0, 0), 1, wx.EXPAND)
         buttonSizer.Add(self.buttonGenPrev, 0, wx.ALL, 10)
+        buttonSizer.Add((0, 0), 1, wx.EXPAND)
+        buttonSizer.Add(self.buttonClose, 0, wx.ALL, 10)
         
         mainSizer.Add(buttonSizer, 0, wx.EXPAND)
         
@@ -86,8 +102,147 @@ class CoorWindow(wx.Dialog):
         
         self.mapwin = mapwindow.GetWindow()
         
+        
     def OnGenPrev(self, event):
-        pass
+        
+        # read current region
+        infoRegion = grass.read_command('g.region',
+                        flags = 'p')
+        dictRegion = grass.parse_key_val(infoRegion, ':')
+        original_rows  = int(dictRegion['rows'])
+        original_cols  = int(dictRegion['cols'])
+        original_nsres = float(dictRegion['nsres'])
+        original_ewres = float(dictRegion['ewres'])
+        original_e     = float(dictRegion['east'])
+        original_n     = float(dictRegion['north'])
+        original_s     = float(dictRegion['south'])
+        original_w     = float(dictRegion['west'])
+        
+        print original_rows, original_cols, original_nsres, original_ewres, original_e, original_n, original_s, original_w
+        
+        # new_ewres = 1/4 original_ewres
+        # new_nsres = 1/4 original_nsres
+        #TODO testing about time, to adjust optimal dimension of preview 
+        
+        new_ewres = original_ewres / 4
+        new_nsres = original_nsres / 4
+        
+        mid_new_ewres = new_ewres / 2
+        mid_new_nsres = new_nsres / 2
+        
+        x = float(self.x)
+        y = float(self.y)
+        
+        tentative_new_n = y + mid_new_nsres
+        tentative_new_s = y - mid_new_nsres
+        tentative_new_e = x + mid_new_ewres
+        tentative_new_w = x - mid_new_ewres
+        
+        if tentative_new_n >= original_n:
+    	    new_n = original_n
+    	    new_s = original_n - nsres
+			
+    	elif tentative_new_s <= original_s:
+            new_s = original_s
+            new_n = original_s + nsres
+		    
+        else:
+            new_n = tentative_new_n
+            new_s = tentative_new_s
+	        
+        #---
+	        
+        if tentative_new_e >= original_e:
+            new_e = original_e
+            new_w = original_e - ewres
+	        
+        elif tentative_new_w <= original_w:
+            new_w = original_w
+            new_e = original_w + ewres
+	        
+        else:
+            new_w = tentative_new_w
+            new_e = tentative_new_e
+        
+        # set new temporary region
+        
+        grass.run_command('g.region', 
+                         flags = 'ap',
+                         n = new_n,
+                         s = new_s,
+                         w = new_w,
+                         e = new_e)
+                    
+        # run stream extraction on the smaller region
+
+        # MFD
+        
+        if self.radioval2 == 'True':
+            print self.radioval2 
+            grass.message('Creating flow accumulation map with MFD algorithm..')
+            grass.run_command('r.watershed', elevation = self.r_elev , 
+                              accumulation = self.r_acc , 
+                              convergence = 5 , 
+                              flags = 'a', overwrite = True)
+            print self.r_acc
+        
+            grass.run_command('r.stream.extract', elevation = self.r_elev , 
+                          accumulation = self.r_acc , 
+                          threshold = self.thre, 
+                          stream_vect = self.v_net, 
+                          direction = self.r_drain, overwrite = True)
+
+        # SFD  
+        elif self.radioval3 == 'True':
+            print self.radioval3 
+            grass.message('Creating flow accumulation map with SFD algorithm..')
+            grass.run_command('r.watershed', elevation = self.r_elev , 
+                              accumulation = self.r_acc , 
+                              drainage = self.r_drain , 
+                              convergence = 5 , 
+                              flags = 'sa', overwrite = True)
+            print self.r_acc
+            
+            grass.run_command('r.stream.extract', elevation = self.r_elev , 
+                          accumulation = self.r_acc , 
+                          threshold = self.thre, 
+                          stream_vect = self.v_net, 
+                          direction = self.r_drain, overwrite = True)
+                          
+        else:
+
+            grass.run_command('r.stream.extract', elevation = self.r_elev , 
+                          accumulation = self.r_acc , 
+                          threshold = self.thre,  
+                          stream_vect = self.v_net, 
+                          direction = self.r_drain, overwrite = True)
+            print self.v_net
+
+        
+        # Create temporary files to be visualized in the preview 
+        img_tmp = grass.tempfile() + ".png"
+        print  img_tmp 
+        grass.run_command( 'd.mon', start = 'png', output = img_tmp) 
+        grass.run_command( 'd.rast', map = self.r_elev ) 
+        grass.run_command( 'd.vect', map = self.v_net)  
+        print "Exported in file " + img_tmp
+        
+        
+        
+        # set region to original region
+        
+        grass.run_command('g.region', 
+                         flags = 'ap',
+                         n = original_n,
+                         s = original_s,
+                         w = original_w,
+                         e = original_e)
+        
+        
+        
+        
+        
+        
             
     def OnButtonCoor(self, event):
         
@@ -96,15 +251,21 @@ class CoorWindow(wx.Dialog):
             self.mapwin.Raise()
         else:
             self.text.SetLabel('Cannot get coordinates')
+            
+            
+    def OnClose(self, event): 
+        self.Destroy()        
+        self.Show()
+    
     
     def OnMouseAction(self, event):
         coor = self.mapwin.Pixel2Cell(event.GetPositionTuple()[:])
         print coor
         
-        x, y = coor
-        x, y = "%0.3f"%x, "%0.3f"%y
+        self.x, self.y = coor
+        self.x, self.y = "%0.3f"%self.x, "%0.3f"%self.y
         
-        self.text_values.SetLabel("Easting=%s, Northing=%s"%(x, y))
+        self.text_values.SetLabel("Easting=%s, Northing=%s"%(self.x, self.y))
         self.mapwin.UnregisterMouseEventHandler(wx.EVT_LEFT_DOWN)
         event.Skip()
 
@@ -114,7 +275,7 @@ class CoorWindow(wx.Dialog):
 #-------------------------------------------------------------
 
 class TabPanelOne(wx.Panel):
-    """!Main panel for network extraction and preview 
+    """!Main panel for layout, network extraction and preview 
     """
 
     def __init__(self, parent, layerManager, MapFrame):
@@ -122,11 +283,13 @@ class TabPanelOne(wx.Panel):
         
         self.layerManager = layerManager
         self.mapdisp = MapFrame
+        self.radioval2 = False
+        self.radioval3 = False
         self.parent = parent
         self.thre = 0
         self.r_elev = 'r_elev'
         self.r_acc = 'r_acc'
-        self.r_stre = 'r_stre'
+        #self.r_stre = 'r_stre'
         self.v_net = 'v_net'
         self.r_drain = 'r_drain'
         
@@ -346,7 +509,8 @@ class TabPanelOne(wx.Panel):
     def OnSelecStr(self, event):
         """!Gets stream map and assign it to var
         """
-        self.r_stre = event.GetString()
+        pass
+        #self.r_stre = event.GetString()
 
     def OnSelecNet(self, event):
         """!Gets network map and assign it to var
@@ -381,7 +545,9 @@ class TabPanelOne(wx.Panel):
     def OnPreview(self, event):
         """!Allows to watch a preview of the analysis on a small region
         """
-        info_region = grass.read_command('g.region', flags = 'p')
+        
+        self.radioval2 = self.cb2.GetValue()
+        self.radioval3 = self.cb3.GetValue()
 
         # message box 
         self.msg = wx.MessageDialog(parent = self.panel, 
@@ -394,7 +560,6 @@ class TabPanelOne(wx.Panel):
             print "OK"
 
             # Raise a new Map Display
-
             self.mapdisp = self.layerManager.NewDisplay()
             
             # Display the elevation map
@@ -402,18 +567,22 @@ class TabPanelOne(wx.Panel):
                                  command = ['d.rast', 'map=%s' % self.r_elev])
                                  
             self.mapdisp.OnRender(None)
-            
-            # Gets current region
-            
-            self.region = self.mapdisp.Map.GetRegion()
-            print self.region
-            
-            #TODO parse region
-            
-            # Click on map
-            
-            coorWin = CoorWindow(parent = self, mapwindow = self.mapdisp)
+                     
+            # Call CoorWindow
+            coorWin = CoorWindow(parent    = self, 
+                                 mapwindow = self.mapdisp, 
+                                 rad2      = self.radioval2, 
+                                 rad3      = self.radioval3,
+                                 elev      = self.r_elev,
+                                 acc       = self.r_acc,
+                                 thre      = self.thre,
+                                 #stre      = self.stre,
+                                 net       = self.v_net,
+                                 drain     = self.r_drain)
+                                 
             coorWin.Show()
+            
+
             
 
 
@@ -427,13 +596,12 @@ class TabPanelOne(wx.Panel):
     #-------------Network extraction-------------
     
     def OnRun(self, event):
-
-        # radioval1 = self.cb1.GetValue()
-        radioval2 = self.cb2.GetValue()
-        radioval3 = self.cb3.GetValue()
+        
+        self.radioval2 = self.cb2.GetValue()
+        self.radioval3 = self.cb3.GetValue()
         
         # MFD
-        if radioval2 == 'True':
+        if self.radioval2 == 'True':
             grass.message('Creating flow accumulation map with MFD algorithm..')
             grass.run_command('r.watershed', elevation = self.r_elev , 
                               accumulation = self.r_acc , 
@@ -441,7 +609,7 @@ class TabPanelOne(wx.Panel):
                               flags = 'a', overwrite = True )
 
         # SFD
-        if radioval3 == 'True':
+        if self.radioval3 == 'True':
             grass.message('Creating flow accumulation map with SFD algorithm..')
             grass.run_command('r.watershed', elevation = self.r_elev , 
                               accumulation = self.r_acc , 
@@ -453,7 +621,7 @@ class TabPanelOne(wx.Panel):
         grass.run_command('r.stream.extract', elevation = self.r_elev , 
                           accumulation = self.r_acc , 
                           threshold = self.thre, 
-                          stream_rast = self.r_stre, 
+                          #stream_rast = self.r_stre, 
                           stream_vect = self.v_net, 
                           direction = self.r_drain, overwrite = True)
 
@@ -462,7 +630,7 @@ class TabPanelOne(wx.Panel):
         print self.r_elev
         print self.r_acc
         print self.thre
-        print self.r_stre
+        #print self.r_stre
         print self.v_net
         print self.r_drain
 
