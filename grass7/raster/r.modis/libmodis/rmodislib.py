@@ -273,7 +273,19 @@ class projection:
         """ Return the 13 paramaters for parameter file """
         if self.val == 'll' or self.val == 'utm':
             return self._outpar(0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, swath)
-        elif self.val == 'lcc':
+        elif self.val == 'laea':
+            SMajor = self._par('+a')
+            if self._par('+b'):
+                SMinor = self._par('+b')
+            elif self._par('+rf'):
+                SMinor = self._par('+rf')
+            CentMer = self._par('+lon_0')
+            CentLat = self._par('+lat_0')
+            FE = self._par('+x_0')
+            FN = self._par('+y_0')
+            return self._outpar(SMajor, SMinor, 0.0, 0.0, CentMer, 
+                                CentLat, FE, FN, swath)
+        elif self.val == 'lcc' or self.val == 'laea':
             SMajor = self._par('+a')
             if self._par('+b'):
                 SMinor = self._par('+b')
@@ -304,15 +316,15 @@ class projection:
             return self._outpar(SMajor, SMinor, 0.0, Factor, CentMer, 
                                  TrueScale, FE, FN, swath)
         else:
-            grass.fatal(_('Projection not supported, please contact the' \
+            grass.fatal(_('Projection not supported, please contact the ' \
                           'GRASS-dev mailing list'))
 
     def datum(self):
         """Return the datum in the MRT style"""
-        if self.dat is not in self.datumlist.keys():
+        if self.dat not in self.datumlist.keys():
             grass.fatal(_("Datum <%s> is not supported") % self.dat)
         elif self.dat == 'etrs89':
-            grass.warning(_("Changing etrs89 to wgs84"))
+            grass.warning(_("Changing datum <%s> to <%s>") % (self.dat, 'wgs84'))
         return self.datumlist[self.dat]
 
     def datumswath(self):
