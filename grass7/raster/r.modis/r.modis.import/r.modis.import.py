@@ -243,7 +243,7 @@ def metadata(pars, mapp, coll):
     elif string.find(mapp, 'Snow') != -1:
         grass.run_command('r.colors', quiet = True, map=mapp, color = coll[0])
 
-def analize(pref, an, cod, parse, write):
+def analyze(pref, an, cod, parse, write):
     """ Analyze the MODIS data using QA if present """
     prod = product().fromcode(cod)
     if not prod['spec_qa']:
@@ -330,7 +330,7 @@ def single(options,remove,an,ow):
         maps_import = import_tif(output,basedir,remove,ow)
         if an:
             cod = os.path.split(pm.hdfname)[1].split('.')[0]
-            analize(output, an, cod, pm, ow)
+            analyze(output, an, cod, pm, ow)
         os.remove(confname)
     return grass.message(_('All files imported correctly'))
 
@@ -371,7 +371,7 @@ def mosaic(options,remove,an,ow):
                 import_tif(outname, basedir, remove, ow)
                 if an:
                     cod = os.path.split(pm.hdfname)[1].split('.')[0]
-                    analize(outname, an, cod, pm, ow)
+                    analyze(outname, an, cod, pm, ow)
                 os.remove(hdf)
                 os.remove(hdf + '.xml')
             # or move the hdf and hdf.xml to the dir where are the original files
@@ -380,7 +380,7 @@ def mosaic(options,remove,an,ow):
                 import_tif(outname, basedir, remove, ow, targetdir)
                 if an:
                     cod = os.path.split(pm.hdfname)[1].split('.')[0]
-                    analize(outname, an, cod, pm, ow)
+                    analyze(outname, an, cod, pm, ow)
                 try: 
                     shutil.move(hdf,targetdir)
                     shutil.move(hdf + '.xml',targetdir)
@@ -426,19 +426,19 @@ def main():
         over = False
     # check if do check quality, resampling and setting of color
     if flags['r']:
-        analize = None
+        analyze = None
     elif flags['q']:
-        analize = 'noqa'
+        analyze = 'noqa'
     else:
-        analize = 'all'
+        analyze = 'all'
     # check if import simple file or mosaic
     if flags['m'] and options['dns'] != '':
         grass.fatal(_('It is not possible to create a mosaic with a single HDF file'))
         return 0
     elif flags['m']:
-        mosaic(options,remove,analize,over)
+        mosaic(options,remove,analyze,over)
     else:
-        single(options,remove,analize,over)
+        single(options,remove,analyze,over)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
