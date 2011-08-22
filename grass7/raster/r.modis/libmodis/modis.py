@@ -546,10 +546,10 @@ class parseModis:
     horizontal = spatialContainer.find('HorizontalSpatialDomainContainer')
     boundary = horizontal.find('GPolygon').find('Boundary')
     for i in boundary.findall('Point'):
-      la = float(i.find('PointLongitude').text)
-      lo = float(i.find('PointLatitude').text)
-      lon.append(la)
-      lat.append(lo)
+      lo = float(i.find('PointLongitude').text)
+      la = float(i.find('PointLatitude').text)
+      lon.append(lo)
+      lat.append(la)
       self.boundary.append({'lat': la, 'lon':lo})
     extent = {'min_lat':min(lat),'max_lat':max(lat),'min_lon':min(lon),
                 'max_lon':max(lon)}
