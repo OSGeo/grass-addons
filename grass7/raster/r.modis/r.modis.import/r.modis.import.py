@@ -71,12 +71,12 @@
 #% guisection: Import
 #%end
 #%option
-#% key: resampl
+#% key: method
 #% type: string
 #% key_desc: resampling
 #% description: Code of spatial resampling method
-#% options: NN, BI, CC, NONE
-#% answer: NN
+#% options: nearest, bilinear, cubic
+#% answer: nearest
 #% required: no
 #%end
 #%option
@@ -169,7 +169,7 @@ def confile(pm, opts, q, mosaik=False):
     # out prefix
     pref = prefix(opts)
     # resampling
-    resampl = resampling(opts['resampl']).returned()
+    resampl = resampling(opts['method']).returned()
     # projpar
     projpar = projObj.return_params()
     if projpar != "( 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 )":
@@ -256,6 +256,7 @@ def analyze(pref, an, cod, parse, write):
     col = prod['color']
     val = []
     qa = []
+
     for v,q in suf.iteritems():
         val.append(findfile(pref,v))
         if q:
@@ -266,10 +267,10 @@ def analyze(pref, an, cod, parse, write):
         valname = val[n]['name']
         valfull = val[n]['fullname']
         grass.run_command('r.null', map = valfull)
-        if string.find(cod,'13Q1') or string.find(cod,'13A2'):
+        if string.find(cod,'13Q1') >= 0 or string.find(cod,'13A2') >= 0:
           mapc = "%s.2 = %s / 10000" % (valname, valfull)
           grass.mapcalc(mapc)
-        elif string.find(cod,'11A1') or string.find(cod,'11A2') or string.find(cod,'11B1'):
+        elif string.find(cod,'11A1') >= 0 or string.find(cod,'11A2') >= 0 or string.find(cod,'11B1') >= 0:
           mapc = "%s.2 = (%s * 0.0200) - 273.15" % (valname, valfull)
           grass.mapcalc(mapc)
         if an == 'noqa':
@@ -289,17 +290,22 @@ def analyze(pref, an, cod, parse, write):
             qaname = qa[n]['name']
             qafull = qa[n]['fullname']
             finalmap = "%s.3=if(" % valname
+            first_map = 1
             for key,value in prod['pattern'].iteritems():
                 for v in value:
                   outpat = "%s.%i.%i" % (qaname, key, v)
                   grass.run_command('r.bitpattern', quiet = True, input = qafull, 
                                     output = outpat, pattern = key, patval= v)
-                  finalmap += "%s == 0 && " % outpat
-            if string.find(cod,'13Q1') or string.find(cod,'13A2'):
+                  if first_map:
+			        first_map = 0
+			        finalmap += "%s == 0 " % outpat
+                  else:
+			        finalmap += "&& %s == 0 " % outpat
+
+            if string.find(cod,'13Q1') >= 0 or string.find(cod,'13A2') >= 0:
                 finalmap += "%s.2 <= 1.000" % valname
-            else:
-                finalmap.rstrip(' && ')
             finalmap += ",%s.2, null() )" % valname
+            # grass.message("mapc finalmap: %s" % finalmap)
             grass.mapcalc(finalmap)
             #grass.run_command('g.remove', quiet = True, rast=(valname, valname + '.2'))
             grass.run_command('g.remove', quiet = True, rast=(valname + '.2'))
@@ -426,7 +432,7 @@ def main():
         over = True
     else:
         over = False
-    # check if do check quality, resampling and setting of color
+    # check if do check quality, rescaling and setting of colors
     if flags['r']:
         analyze = None
     elif flags['q']:
