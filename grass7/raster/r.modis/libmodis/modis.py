@@ -514,8 +514,9 @@ class parseModis:
     self._getGranule()
     datagran = {}
     for i in self.granule.find('ECSDataGranule').getiterator():
-      if i.text.strip() != '':
-        datagran[i.tag] = i.text
+      if i.text:
+        if i.text.strip() != '':
+          datagran[i.tag] = i.text
     return datagran
 
   def retPGEVersion(self):
@@ -530,7 +531,7 @@ class parseModis:
     self._getGranule()
     rangeTime = {}
     for i in self.granule.find('RangeDateTime').getiterator():
-      if i.text != None:
+      if i.text:
         if i.text.strip() != '':
           rangeTime[i.tag] = i.text
     return rangeTime
@@ -554,7 +555,7 @@ class parseModis:
                 'max_lon':max(lon)}
     return extent
 
-  def retMeasure(self):
+  def retMeasure(self,flag = True):
     """Return statistics inside a dictionary"""
     value = {}
     self._getGranule()
@@ -567,12 +568,13 @@ class parseModis:
       if i.tag != 'QAStats':
         qastat[i.tag] = i.text
     value['QAStats'] = qastat
-    meFlag = mespc.find('QAFlags')
-    flagstat = {}
-    for i in meFlag.getiterator():
-      if i.tag != 'QAFlags':
-        flagstat[i.tag] = i.text
-    value['QAFlags'] = flagstat
+    if flag:
+      meFlag = mespc.find('QAFlags')
+      flagstat = {}
+      for i in meFlag.getiterator():
+        if i.tag != 'QAFlags':
+          flagstat[i.tag] = i.text
+      value['QAFlags'] = flagstat
     return value
 
   def retPlatform(self):
@@ -617,7 +619,7 @@ class parseModis:
        to set the metadata with r.support command
     """
     date = self.retRangeTime()
-    qa = self.retMeasure()
+    qa = self.retMeasure(False)
     pge = self.retPGEVersion()
     daynight = self.retDataGranule()
     stri = "Date:%s;BeginningTime:%s;EndingTime:%s;DayNightFlag:%s;"
@@ -820,10 +822,13 @@ class parseModisMulti:
       values.append(getattr(i,funct)())
     return values
 
-  def _checkval(self,vals):
+  def _checkval(self, vals, one=False, key = None):
     """Internal function to return the different values from a list"""
     if vals.count(vals[0]) == self.nfiles:
       return [vals[0]]
+    if vals.count(vals[0]) != self.nfiles and one == True:
+      raise IOError('Something strange reading XML files, %s parameters have ' \
+                    'different values' % key)
     else:
       outvals = []
       for i in vals:
@@ -842,7 +847,12 @@ class parseModisMulti:
       if valtemp.count(valtemp[0]) == self.nfiles:
         outvals[k] = valtemp[0]
       else:
-        raise IOError('Something wrong reading XML files')
+        if string.count(k,'Ending') != -1 or string.count(k,'End') != -1:
+          outvals[k] = self._maxval(valtemp)
+        elif string.count(k,'Beginning') != -1 or string.count(k,'Start') != -1:
+          outvals[k] = self._minval(valtemp)
+        else:
+          raise IOError('Something wrong reading XML files')
     return outvals
 
   def _minval(self, vals):
@@ -906,6 +916,26 @@ class parseModisMulti:
     for i in values:
       dfc = self.ElementTree.SubElement(obj, 'DataFileContainer')
       self._cicle_values(dfc,i)
+
+  def _valECSDataGranule(self, obj):
+    values = {}
+    # add all keys
+    keys = self.parModis[0].retDataGranule().keys()
+    for i in keys:
+      values[i] = []
+    # for each key create a list of values
+    for i in self.parModis:
+      for k,v in i.retDataGranule().iteritems():
+        values[k].append(v)    
+    elem = self.ElementTree.SubElement(obj,'SizeMBECSDataGranule')
+    elem.text = str(self._meanval(values['SizeMBECSDataGranule']))
+    for i in ['ReprocessingPlanned','ReprocessingActual','DayNightFlag','LocalVersionID']:
+      elem = self.ElementTree.SubElement(obj,i)
+      elem.text = self._checkval(values[i], True, i)[0]
+    for k in ['LocalGranuleID', 'ProductionDateTime']:
+      for i in values[k]:
+        elem = self.ElementTree.SubElement(obj,k)
+        elem.text = i
 
   def _valPGEVersion(self,obj):
     """Function to add PGEVersion values"""
@@ -1063,9 +1093,9 @@ class parseModisMulti:
     # add DataFiles
     df = self.ElementTree.SubElement(gurmd,'DataFiles')
     self._valDataFiles(df)
-    
-    # TODO ADD ECSDataGranule
-    
+    # add ECSDataGranule
+    ecs = self.ElementTree.SubElement(gurmd,'ECSDataGranule')
+    self._valECSDataGranule(ecs)
     # add PGEVersionClass
     pgevc = self.ElementTree.SubElement(gurmd,'PGEVersionClass')
     self._valPGEVersion(pgevc)
@@ -1098,7 +1128,10 @@ class parseModisMulti:
     # add InputGranule and InputPointer
     ig = self.ElementTree.SubElement(gurmd,'InputGranule')
     self._valInputPointer(ig)
-    # TODO ADD BrowseProduct
+    # add BrowseProduct
+    bp = self.ElementTree.SubElement(gurmd,'BrowseProduct')
+    self._moreValues(bp, 'retBrowseProduct', 'BrowseGranuleId')
+    
     # write output file
     output = open(outputname, 'w')
     output.write('<?xml version="1.0" encoding="UTF-8"?>')

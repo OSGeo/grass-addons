@@ -231,15 +231,16 @@ def metadata(pars, mapp, coll):
     grass.run_command('r.timestamp', map=mapp, date=dataobj.strftime("%d %b %Y"),
                       quiet = True)
     # color
-    if string.find(mapp, 'QA'):
+    if string.find(mapp, 'QC') != -1 or string.find(mapp, 'Quality') != -1 or \
+    string.find(mapp, 'QA') != -1:
         grass.run_command('r.colors', quiet = True, map=mapp, color = coll)
-    elif string.find(mapp, 'NDVI'):
+    elif string.find(mapp, 'NDVI') != -1:
         grass.run_command('r.colors', quiet = True, map=mapp, color = coll[0])
-    elif string.find(mapp, 'EVI'):
+    elif string.find(mapp, 'EVI') != -1:
         grass.run_command('r.colors', quiet = True, map=mapp, color = coll[1])
-    elif string.find(mapp, 'LST'):
+    elif string.find(mapp, 'LST') != -1:
         grass.run_command('r.colors', quiet = True, map=mapp, color = coll[0])
-    elif string.find(mapp, 'Snow'):
+    elif string.find(mapp, 'Snow') != -1:
         grass.run_command('r.colors', quiet = True, map=mapp, color = coll[0])
 
 def analize(pref, an, cod, parse, write):
@@ -277,9 +278,9 @@ def analize(pref, an, cod, parse, write):
             except:
                 pass
             #TODO check in modis.py to adjust the xml file of mosaic
-            #metadata(parse, valname, col)
-            #metadata(parse, valname + '.check', col)
-            #metadata(parse, qafull, 'byr')
+            metadata(parse, valname, col)
+            metadata(parse, valname + '.check', col)
+            metadata(parse, qafull, 'byr')
         if an == 'all':
             if len(qa) != len(val):
                 grass.fatal(_("The number of QA and value maps is different, something is wrong"))
@@ -305,10 +306,9 @@ def analize(pref, an, cod, parse, write):
             grass.run_command('g.rename', quiet = True, overwrite = write,
                               rast=(valname + '.3', valname + '.check'))
             #TODO check in modis.py to adjust the xml file of mosaic
-            #metadata(parse, valname, col)
-            #metadata(parse, valname + '.check', col)
-            #metadata(parse, qafull, 'byr')
-            
+            metadata(parse, valname, col)
+            metadata(parse, valname + '.check', col)
+            metadata(parse, qafull, 'byr')
 def single(options,remove,an,ow):
     """Convert the HDF file to TIF and import it
     """

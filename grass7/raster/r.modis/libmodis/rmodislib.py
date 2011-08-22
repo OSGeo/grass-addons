@@ -72,6 +72,7 @@ class product:
         ### values of snow product:
         snow1_spec = ('( 1 )')
         snow1_specqa = ('( 1 1 )')
+        snow1_specall = ('( 1 1 1 1 )')
         snow1_suff = {'.Snow_Cover_Daily_Tile':'.Snow_Spatial_QA'}
         snow1_patt = {3 : [2,3], 7 : [6, 7], 15 : [10, 11, 14, 15]}
         
@@ -136,13 +137,15 @@ class product:
         }
         snow = {'snow_terra_daily_500' : {'url' : usrsnow, 'folder' : 
 				'SAN/MOST/MOD10A1.005', 'res' : 500, 'spec' : snow1_spec
-				,'spec_qa': snow1_specqa, 'suff' : snow1_suff,
-				'pattern' : snow1_patt, 'color' : snow_color
+				,'spec_qa': snow1_specqa,'spec_all' :snow1_specall ,
+				'suff' : snow1_suff, 'pattern' : snow1_patt, 
+				'color' : snow_color
 		}, 
 		'snow_aqua_daily_500' : {'url' : usrsnow, 'folder' : 
                                 'SAN/MOSA/MYD10A1.005', 'res' : 500, 'spec' : snow1_spec
-                                ,'spec_qa': snow1_specqa, 'suff' : snow1_suff,
-                                'pattern' : snow1_patt, 'color' : snow_color
+                                ,'spec_qa': snow1_specqa, 'spec_all' : snow1_specall,
+                                'suff' : snow1_suff, 'pattern' : snow1_patt, 
+                                'color' : snow_color
                 },
                 'snow_terra_eight_500' : {'url' : usrsnow, 'folder' : 
                                 'SAN/MOST/MOD10A2.005', 'res' : 500, 'spec' : snow8_spec
