@@ -41,7 +41,7 @@
 #%option
 #% key: product
 #% type: string
-#% label: Name of MODIS product
+#% label: Name of MODIS product(s)
 #% multiple: yes
 #% required: no
 #% options: lst_terra_daily_1000, lst_aqua_daily_1000, lst_terra_eight_1000, lst_aqua_eight_1000, lst_terra_daily_6000, lst_aqua_daily_6000, ndvi_terra_sixteen_250, ndvi_aqua_sixteen_250, ndvi_terra_sixteen_500, ndvi_aqua_sixteen_500, snow_terra_daily_500, snow_aqua_daily_500, snow_terra_eight_500, snow_aqua_eight_500
@@ -50,21 +50,22 @@
 #%option
 #% key: tiles
 #% type: string
-#% label: The names of tile/s to download
+#% label: The name(s) of tile(s) to download (comma separated)
+#% description: e.g.: h18v04
 #% required: no
 #%end
 #%option
 #% key: startday
 #% type: string
 #% label: The day to start download
-#% description: If not set the download starts from today and go back 10 days. If not endday the download stops 10 days after the endday
+#% description: Format: YYYY-MM-DD. If not set the download starts from today and go back 10 days. If not endday the download stops 10 days after the endday
 #% required: no
 #%end
 #%option
 #% key: endday
 #% type: string
-#% label: The day from stop download
-#% description: To use only with startday
+#% label: The day to stop download
+#% description: Format: YYYY-MM-DD. To use only together with startday
 #% required: no
 #%end
 #%option
@@ -154,7 +155,7 @@ def main():
             user = raw_input(_('Insert username (usually anonymous): '))
             passwd = raw_input(_('Insert password (your mail): '))
         else:
-            grass.fatal(_("Please set folder option if you want pass username " \
+            grass.fatal(_("Please set folder option to want pass username " \
             + "and password by stdin"))
             return 0
     # set username, password and folder by file
@@ -162,11 +163,14 @@ def main():
         # open the file and read the the user and password:
         # first line is username
         # second line is password
-        filesett = open(options['setting'],'r')
-        fileread = filesett.readlines()
-        user = fileread[0].strip()
-        passwd = fileread[1].strip()
-        filesett.close()
+	if check(options['setting']):
+           filesett = open(options['setting'],'r')
+           fileread = filesett.readlines()
+           user = fileread[0].strip()
+           passwd = fileread[1].strip()
+           filesett.close()
+	else:
+	   grass.fatal(_("File <%s> not found") % options['setting'])
         # set the folder by option folder
         if options['folder'] != '':
             if check(options['folder']):
