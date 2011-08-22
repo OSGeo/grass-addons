@@ -19,6 +19,7 @@
 #%module
 #% description: Download several tiles of MODIS products using pyModis
 #% keywords: raster
+#% keywords: import
 #%end
 #%flag
 #% key: d
@@ -32,7 +33,7 @@
 #% key: setting
 #% type: string
 #% gisprompt: old,file,input
-#% label: Full path to setting file.
+#% label: Full path to setting file
 #% description: "-" to pass the parameter from stdin
 #% required: yes
 #% guisection: Define
@@ -55,22 +56,22 @@
 #%option
 #% key: startday
 #% type: string
-#% label: The day to start download.
+#% label: The day to start download
 #% description: If not set the download starts from today and go back 10 days. If not endday the download stops 10 days after the endday
 #% required: no
 #%end
 #%option
 #% key: endday
 #% type: string
-#% label: The day from stop download.
+#% label: The day from stop download
 #% description: To use only with startday
 #% required: no
 #%end
 #%option
 #% key: folder
 #% type: string
-#% label: The folder where store the data downloaded.
-#% description: If not set it take the path of setting file
+#% label: The folder where store the downloaded data
+#% description: If not set it uses the path of setting file
 #% required: no
 #%end
 
@@ -95,7 +96,7 @@ def check(home):
     if os.access(home,os.W_OK):
         return 1
     else:
-        grass.fatal(_("Folder to write downloaded files doesn't" \
+        grass.fatal(_("Folder to write downloaded files does not" \
         + " exist or is not writeable"))
         return 0
 
@@ -179,7 +180,7 @@ def main():
     version = grass.core.version()
     # this is would be set automatically
     if version['version'].find('7.') == -1:
-        grass.fatal(_('You are not in GRASS GIS version 7'))
+        grass.fatal(_('GRASS GIS version 7 required'))
         return 0
     # the product
     products = options['product'].split(',')
@@ -210,8 +211,8 @@ def main():
       if flags['g']:
         grass.message(modisOgg.filelist.name)
       else:
-        grass.message(_("All data are downloaded, now you can use "\
-        + "r.in.modis.import or with option 'files=%s'" % modisOgg.filelist.name))
+        grass.message(_("All data are downloaded, continue with "\
+        + "r.in.modis.import or with the option 'files=%s'" % modisOgg.filelist.name))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
