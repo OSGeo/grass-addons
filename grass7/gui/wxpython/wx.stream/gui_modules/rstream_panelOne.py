@@ -38,7 +38,8 @@ import globalvar
 import utils
 import menuform
 
-
+import rstream_ImageViewer
+from rstream_ImageViewer import ImgFrame
 
 
 
@@ -227,7 +228,8 @@ class CoorWindow(wx.Dialog):
         grass.run_command( 'd.vect', map = self.v_net)  
         print "Exported in file " + img_tmp
         
-        
+        directory = os.path.dirname(img_tmp)
+        print directory
         
         # set region to original region
         
@@ -237,12 +239,14 @@ class CoorWindow(wx.Dialog):
                          s = original_s,
                          w = original_w,
                          e = original_e)
+                         
+        os.chdir(directory) 
+        # Call ImageViewer
+        ImgVvr = wx.PySimpleApp()
+        frame = ImgFrame(directory)
+        ImgVvr.MainLoop()
         
-        
-        
-        
-        
-        
+
             
     def OnButtonCoor(self, event):
         
