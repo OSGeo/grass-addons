@@ -220,8 +220,8 @@ class resampling:
     """
     def __init__(self,value):
         self.code = value
-        self.resampling = {'NN': 'NEAREST_NEIGHBOR','BI' : 'BICUBIC',
-        'CC' : 'CUBIC CONVOLUTION','NONE' : 'NONE'}
+        self.resampling = {'nearest': 'NEAREST_NEIGHBOR', 'bilinear': 'BILINEAR',
+        'cubic': 'CUBIC CONVOLUTION'}
 
     def returned(self):
         return self.resampling[self.code]

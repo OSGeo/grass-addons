@@ -431,7 +431,7 @@ class parseModis:
     self.proj_list = ('GEO', 'HAM', 'IGH', 'ISIN', 'LA', 'LCC', 'MOL', 'PS', 
                       'SIN','TM', 'UTM', 'MERCAT')
     # resampling
-    self.resam_list = ('NEAREST_NEIGHBOR', 'BICUBIC', 'CUBIC_CONVOLUTION', 'NONE')
+    self.resam_list = ('NEAREST_NEIGHBOR', 'BILINEAR', 'CUBIC_CONVOLUTION')
     self.resam_list_swath = ('NN', 'BI', 'CC')
     
     # datum
