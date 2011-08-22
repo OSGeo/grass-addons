@@ -191,7 +191,7 @@ def import_tif(out, basedir, rem, write, target=None):
     tifiles = glob.glob1(basedir, out + "*.tif")
     if not tifiles:
         grass.fatal(_('Error during the conversion'))
-    # check if is in latlong location to set flag l
+    # check if user is in latlong location to set flag l
     if projection().val == 'll':
         f = "l"
     else:
@@ -261,14 +261,15 @@ def analyze(pref, an, cod, parse, write):
         val.append(findfile(pref,v))
         if q:
             qa.append(findfile(pref,q))
-    grass.run_command('g.region', rast = val[0]['fullname'])
 
+    # TODO: save region here
     for n in range(len(val)):
         valname = val[n]['name']
         valfull = val[n]['fullname']
-        grass.run_command('r.null', map = valfull)
+        grass.run_command('g.region', rast = valfull)
+        grass.run_command('r.null', map = valfull, setnull = 0)
         if string.find(cod,'13Q1') >= 0 or string.find(cod,'13A2') >= 0:
-          mapc = "%s.2 = %s / 10000" % (valname, valfull)
+          mapc = "%s.2 = %s / 10000." % (valname, valfull)
           grass.mapcalc(mapc)
         elif string.find(cod,'11A1') >= 0 or string.find(cod,'11A2') >= 0 or string.find(cod,'11B1') >= 0:
           mapc = "%s.2 = (%s * 0.0200) - 273.15" % (valname, valfull)
@@ -317,6 +318,9 @@ def analyze(pref, an, cod, parse, write):
             metadata(parse, valname, col)
             metadata(parse, valname + '.check', col)
             metadata(parse, qafull, 'byr')
+
+    # TODO: restore region here
+
 def single(options,remove,an,ow):
     """Convert the HDF file to TIF and import it
     """
