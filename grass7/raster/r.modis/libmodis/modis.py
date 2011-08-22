@@ -537,7 +537,7 @@ class parseModis:
     return rangeTime
 
   def retBoundary(self):
-    """Return the maximum extend of the MODIS file inside a dictionary"""
+    """Return the maximum extent of the MODIS file inside a dictionary"""
     self._getGranule()
     self.boundary = []
     lat = []
@@ -590,7 +590,7 @@ class parseModis:
     return value
 
   def retPSA(self):
-    """Return the PSA values inside a dictionary, the PSAName is he key and
+    """Return the PSA values inside a dictionary, the PSAName is the key and
        and PSAValue is the value
     """
     value = {}
@@ -654,7 +654,7 @@ class parseModis:
         projtype = the output projection system, the valid values are: AEA 
                    (Albers Equal Area), ER (Equirectangular), GEO (Geographic 
                    Latitude/Longitude), HAM (Hammer), ISIN (Integerized Sinusoidal), 
-                   IGH (Interrupted Goode Homolosine), LA (Lambert Azimuthal), 
+                   IGH (Interrupted Goode Homolosine), LA (Lambert Azimuthal Equal Area), 
                    LCC (LambertConformal Conic), MERCAT (Mercator), MOL (Mollweide), 
                    PS (Polar Stereographic), SIN ()Sinusoidal), UTM (Universal 
                    TransverseMercator)
@@ -692,7 +692,7 @@ class parseModis:
     if resampl in self.resam_list:
       conFile.write("RESAMPLING_TYPE = %s\n" % resampl)
     else:
-      raise IOError('The resampling type %s is not supportet.\n' \
+      raise IOError('The resampling type %s is not supported.\n' \
                    'The resampling type supported are %s' % (resampl,resam_list))
     # if projtype is in proj_list set the parameter otherwise return an error
     if projtype in self.proj_list:
@@ -742,7 +742,7 @@ class parseModis:
                    AEA (Albers Equal Area), ER (Equirectangular), 
                    GEO (Geographic Latitude/Longitude), HAM (Hammer), 
                    ISIN (Integerized Sinusoidal),IGH (Interrupted Goode Homolosine), 
-                   LA (Lambert Azimuthal), LCC (LambertConformal Conic),
+                   LA (Lambert Azimuthal Equal Area), LCC (LambertConformal Conic),
                    MERCAT (Mercator), MOL (Mollweide), PS (Polar Stereographic),
                    SIN ()Sinusoidal), UTM (Universal TransverseMercator)
         utm = the UTM zone if projection system is UTM

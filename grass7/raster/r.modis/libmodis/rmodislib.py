@@ -233,14 +233,12 @@ class projection:
         self.proj = get_proj()
         self.val = self.proj['proj']
         self.dat = self.proj['datum']
-        self.projections = {'laea' : 'LAMBERT AZIMUTHAL EQUAL AREA','ll':'GEO', 
-             'lcc':'LAMBERT CONFORMAL CONIC', 'merc':'MERCATOR', 
-             'polar':'POLAR STEREOGRAPHIC', 'utm':'UTM', 
-             'tmerc':'TRANSVERSE MERCATOR'}
+        self.projections = {'laea' : 'LA','ll':'GEO', 'lcc':'LCC',
+             'merc':'MERCAT', 'polar':'PS', 'utm':'UTM', 'tmerc':'TM'}
         self.datumlist = {'none':'NONE', 'nad27':'NAD27', 'nad83':'NAD83', 
         'wgs66':'WGS66', 'wgs72':'WGS72', 'wgs84':'WGS84', 'etrs89':'WGS84'}
-        self.datumlist_swath = {'Clarke 1866' : 0, 'Clarke 1880' : 1, 'bessel' : 2
-            , 'International 1967' : 3, 'International 1909': 4, 'wgs72' : 5, 
+        self.datumlist_swath = {'Clarke 1866' : 0, 'Clarke 1880' : 1, 'bessel' : 2,
+            'International 1967' : 3, 'International 1909': 4, 'wgs72' : 5, 
             'Everest' : 6, 'wgs66' : 7, 'wgs84' : 8, 'Airy' : 9, 
             'Modified Everest' : 10, 'Modified Airy' : 11, 'Walbeck' : 12, 
             'Southeast Asia' : 13, 'Australian National' : 14, 'Krassovsky' : 15, 
@@ -257,9 +255,10 @@ class projection:
     def _par(self,key):
         """Function use in return_params"""
         if self.proj[key]:
-            SMinor = self.proj[key]
+            Val = self.proj[key]
         else:
-            SMinor = 0.0
+            Val = 0.0
+        return float(Val)
 
     def _outpar(self, SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN,swath):
         if swath:
@@ -270,14 +269,14 @@ class projection:
                 SMajor, SMinor, Val, Factor, CentMer, TrueScale, FE, FN )
 
     def return_params(self, swath = False):
-        """ Return the 13 paramaters for parameter file """
+        """ Return the 13 parameters for MRT parameter file """
         if self.val == 'll' or self.val == 'utm':
             return self._outpar(0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, swath)
         elif self.val == 'laea':
             SMajor = self._par('+a')
-            if self._par('+b'):
+            try:
                 SMinor = self._par('+b')
-            elif self._par('+rf'):
+            except:
                 SMinor = self._par('+rf')
             CentMer = self._par('+lon_0')
             CentLat = self._par('+lat_0')
@@ -285,11 +284,11 @@ class projection:
             FN = self._par('+y_0')
             return self._outpar(SMajor, SMinor, 0.0, 0.0, CentMer, 
                                 CentLat, FE, FN, swath)
-        elif self.val == 'lcc' or self.val == 'laea':
+        elif self.val == 'lcc':
             SMajor = self._par('+a')
-            if self._par('+b'):
+            try:
                 SMinor = self._par('+b')
-            elif self._par('+rf'):
+            except:
                 SMinor = self._par('+rf')
             STDPR1 = self._par('+lat_1')
             STDPR2 = self._par('+lat_2')
@@ -301,9 +300,9 @@ class projection:
                                 CentLat, FE, FN, swath)
         elif self.val == 'merc' or self.val == 'polar' or self.val == 'tmerc':
             SMajor = self._par('+a')
-            if self._par('+b'):
+            try:
                 SMinor = self._par('+b')
-            elif self._par('+rf'):
+            except:
                 SMinor = self._par('+rf')
             CentMer = self._par('+lon_0')
             if self.val == 'tmerc':
