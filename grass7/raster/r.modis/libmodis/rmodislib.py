@@ -238,7 +238,7 @@ class projection:
              'polar':'POLAR STEREOGRAPHIC', 'utm':'UTM', 
              'tmerc':'TRANSVERSE MERCATOR'}
         self.datumlist = {'none':'NONE', 'nad27':'NAD27', 'nad83':'NAD83', 
-        'wgs66':'WGS66', 'wgs72':'WGS72', 'wgs84':'WGS84'}
+        'wgs66':'WGS66', 'wgs72':'WGS72', 'wgs84':'WGS84', 'etrs89':'WGS84'}
         self.datumlist_swath = {'Clarke 1866' : 0, 'Clarke 1880' : 1, 'bessel' : 2
             , 'International 1967' : 3, 'International 1909': 4, 'wgs72' : 5, 
             'Everest' : 6, 'wgs66' : 7, 'wgs84' : 8, 'Airy' : 9, 
@@ -249,7 +249,10 @@ class projection:
 
     def returned(self):
         """Return the projection in the MRT style"""
-        return self.projections[self.val]
+        if self.val not in self.projections.keys():
+            grass.fatal(_("Projection <%s> is not supported") % self.val)
+        else:
+            return self.projections[self.val]
 
     def _par(self,key):
         """Function use in return_params"""
@@ -306,6 +309,10 @@ class projection:
 
     def datum(self):
         """Return the datum in the MRT style"""
+        if self.dat is not in self.datumlist.keys():
+            grass.fatal(_("Datum <%s> is not supported") % self.dat)
+        elif self.dat == 'etrs89':
+            grass.warning(_("Changing etrs89 to wgs84"))
         return self.datumlist[self.dat]
 
     def datumswath(self):
