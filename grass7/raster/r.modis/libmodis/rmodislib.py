@@ -58,7 +58,7 @@ class product:
         lst1km_suff = {'.LST_Day_1km':'.QC_Day','.LST_Night_1km':'.QC_Night'}
         lst6km_suff = {'.LST_Day_6km':'.QC_Day','.LST_Night_6km':'.QC_Night'}
         # color for lst product
-        lst_color = ['modis_lst']
+        lst_color = ['celsius']
         # all the possible layers of lst and vi products, it is used when mosaic it's created
         lstvi_specall = '( 1 1 1 1 1 1 1 1 1 1 1 1)'
         ### values of vi product:
@@ -77,7 +77,7 @@ class product:
         snow1_patt = {3 : [2,3], 7 : [6, 7], 15 : [10, 11, 14, 15]}
         
         snow8_spec = ('( 1 1 )')
-        snow_color = ['evi'] #TODO CREATE THE COLOR FOR MODIS_SNOW
+        snow_color = ['gyr'] #TODO CREATE THE COLOR TABLE FOR MODIS_SNOW
         snow8_suff = {'.Maximum_Snow_Extent' : None, '.Eight_Day_Snow_Cover' : None}
         lstL2_spec = 'LST; QC; Error_LST; Emis_31; Emis_32; View_angle; View_time'
         

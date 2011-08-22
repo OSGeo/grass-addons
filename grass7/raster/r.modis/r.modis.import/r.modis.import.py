@@ -172,6 +172,8 @@ def confile(pm, opts, q, mosaik=False):
     resampl = resampling(opts['resampl']).returned()
     # projpar
     projpar = projObj.return_params()
+    if projpar != "( 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 )":
+        dat = "NoDatum"
     return pm.confResample(spectr, None, pref, dat, resampl, proj, zone, projpar)
 
 def prefix(options, name = False):
