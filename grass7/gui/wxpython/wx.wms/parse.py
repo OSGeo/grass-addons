@@ -192,3 +192,13 @@ def dfs(root,LayerTree, ltr):
 			dfs(child, LayerTree, id)
     		return
 
+def parseGrass_Region(grassRegion, dir):
+	grassRegion = 'n-s resol: 26.266417; n-s resol3: 100; rows: 533; north: 4928000.0; t-b resol: 1; zone: 13; bottom: 0; rows3: 140; west: 590000.0; top: 1; cols: 698; cols3: 190; depths: 1; e-w resol: 27.220630; proj: 1; e-w resol3: 100; east: 609000.0; south: 4914000.0;' 
+	width = '698'
+	Height = '533'
+	s = grassRegion.find(dir)
+	g = grassRegion[s:]
+	g = g.split()
+	g = g[1].strip(';')
+	print g
+	return float(g)
