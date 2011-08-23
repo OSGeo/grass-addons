@@ -256,13 +256,11 @@ def analyze(pref, an, cod, parse, write):
     col = prod['color']
     val = []
     qa = []
-
     for v,q in suf.iteritems():
         val.append(findfile(pref,v))
         if q:
             qa.append(findfile(pref,q))
 
-    # TODO: save region here
     for n in range(len(val)):
         valname = val[n]['name']
         valfull = val[n]['fullname']
@@ -277,13 +275,14 @@ def analyze(pref, an, cod, parse, write):
         if an == 'noqa':
             #grass.run_command('g.remove', quiet = True, rast = valfull)
             try:
+		grass.run_command('g.rename', quiet = True, overwrite = write, 
+				  rast=(valname,valname + '.orig'))
                 grass.run_command('g.rename', quiet = True, overwrite = write, 
-                                  rast= (valname + '.2', valname + '.check'))
+                                  rast= (valname + '.2', valname))
             except:
                 pass
-            #TODO check in modis.py to adjust the xml file of mosaic
             metadata(parse, valname, col)
-            metadata(parse, valname + '.check', col)
+            metadata(parse, valname, col)
             metadata(parse, qafull, 'byr')
         if an == 'all':
             if len(qa) != len(val):
@@ -309,17 +308,16 @@ def analyze(pref, an, cod, parse, write):
             # grass.message("mapc finalmap: %s" % finalmap)
             grass.mapcalc(finalmap)
             #grass.run_command('g.remove', quiet = True, rast=(valname, valname + '.2'))
+            grass.run_command('g.rename', quiet = True, overwrite = write, 
+			      rast=(valname,valname + '.orig'))
             grass.run_command('g.remove', quiet = True, rast=(valname + '.2'))
             grass.run_command('g.mremove', flags="f", quiet = True,
 			      rast = ("%s.*" % qaname))
             grass.run_command('g.rename', quiet = True, overwrite = write,
-                              rast=(valname + '.3', valname + '.check'))
-            #TODO check in modis.py to adjust the xml file of mosaic
+                              rast=(valname + '.3', valname))
             metadata(parse, valname, col)
-            metadata(parse, valname + '.check', col)
+            metadata(parse, valname, col)
             metadata(parse, qafull, 'byr')
-
-    # TODO: restore region here
 
 def single(options,remove,an,ow):
     """Convert the HDF file to TIF and import it
@@ -341,6 +339,14 @@ def single(options,remove,an,ow):
         # import tif files
         maps_import = import_tif(output,basedir,remove,ow)
         if an:
+	    grass.run_command('g.region', save = 'oldregion.%s' % str(os.getpid()))
+	    try:
+		cod = os.path.split(pm.hdfname)[1].split('.')[0]
+		analyze(outname, an, cod, pm, ow)
+	    except:
+		grass.run_command('g.region', region = 'oldregion.%s' % str(os.getpid()))
+		grass.run_command('g.remove',quiet = True, 
+				 region = 'oldregion.%s' % str(os.getpid()))
             cod = os.path.split(pm.hdfname)[1].split('.')[0]
             analyze(output, an, cod, pm, ow)
         os.remove(confname)
@@ -378,12 +384,18 @@ def mosaic(options,remove,an,ow):
             execmodis = convertModis(hdf, confname, options['mrtpath'])
             execmodis.run()
             # remove hdf 
-            if remove:
+            if remove:  
                 # import tif files
                 import_tif(outname, basedir, remove, ow)
                 if an:
-                    cod = os.path.split(pm.hdfname)[1].split('.')[0]
-                    analyze(outname, an, cod, pm, ow)
+		    grass.run_command('g.region', save = 'oldregion.%s' % str(os.getpid()))
+		    try:
+			cod = os.path.split(pm.hdfname)[1].split('.')[0]
+			analyze(outname, an, cod, pm, ow)
+                    except:
+			grass.run_command('g.region', region = 'oldregion.%s' % str(os.getpid()))
+			grass.run_command('g.remove',quiet = True,
+				    region = 'oldregion.%s' % str(os.getpid()))
                 os.remove(hdf)
                 os.remove(hdf + '.xml')
             # or move the hdf and hdf.xml to the dir where are the original files
@@ -391,8 +403,13 @@ def mosaic(options,remove,an,ow):
                 # import tif files
                 import_tif(outname, basedir, remove, ow, targetdir)
                 if an:
-                    cod = os.path.split(pm.hdfname)[1].split('.')[0]
-                    analyze(outname, an, cod, pm, ow)
+		    grass.run_command('g.region', save = 'oldregion.%s' % str(os.getpid()))
+		    try:
+			cod = os.path.split(pm.hdfname)[1].split('.')[0]
+			analyze(outname, an, cod, pm, ow)
+                    except:
+			grass.run_command('g.region', region = 'oldregion.%s' % str(os.getpid()))
+			grass.run_command('g.remove', region = 'oldregion.%s' % str(os.getpid()))
                 try: 
                     shutil.move(hdf,targetdir)
                     shutil.move(hdf + '.xml',targetdir)
