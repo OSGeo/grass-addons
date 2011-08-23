@@ -131,23 +131,22 @@ def list_files(opt, mosaik = False):
         basedir = os.path.split(filelist[0])[0]
     return filelist, basedir
 
-def spectral(opts, code, q, m = False):
+def spectral(opts, prod, q, m = False):
     """Return spectral string"""
     # return the spectral set selected by the user
     if opts['spectral'] != '':
         spectr = opts['spectral']
     # return the spectral by default
     else:
-        prod = product().fromcode(code)
-        if m:
-            spectr = prod['spec_all']
-        elif q:
+        if q:
             if prod['spec_qa']:
                 spectr = prod['spec_qa']
             else: 
                 spectr = prod['spec']
         else:
             spectr = prod['spec']
+        if m:
+	    spectr = spectr.replace(' 0', '')
     return spectr
 
 def confile(pm, opts, q, mosaik=False):
@@ -161,11 +160,13 @@ def confile(pm, opts, q, mosaik=False):
     else:
         zone = None
     cod = os.path.split(pm.hdfname)[1].split('.')[0]
+    prod = product().fromcode(cod)
     if mosaik:
-        # if mosaic import all because the layers are choosen during mosaic
-        spectr = spectral(opts, cod, q, True)
+        # if mosaic it remove all the 0 from the subset string to convert all 
+        # the right layer
+        spectr = spectral(opts, prod, q, True)
     else:
-        spectr = spectral(opts, cod, q)
+        spectr = spectral(opts, prod, q)
     # out prefix
     pref = prefix(opts)
     # resampling
@@ -174,7 +175,12 @@ def confile(pm, opts, q, mosaik=False):
     projpar = projObj.return_params()
     if projpar != "( 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 )":
         dat = "NoDatum"
-    return pm.confResample(spectr, None, pref, dat, resampl, proj, zone, projpar)
+    # resolution
+    if proj != 'GEO':
+	res = int(prod['res']) * int(projObj.proj['meters'])
+    else:
+	res = None
+    return pm.confResample(spectr, res, pref, dat, resampl, proj, zone, projpar)
 
 def prefix(options, name = False):
     """Return the prefix of output file if not set return None to use default
@@ -260,7 +266,6 @@ def analyze(pref, an, cod, parse, write):
         val.append(findfile(pref,v))
         if q:
             qa.append(findfile(pref,q))
-
     for n in range(len(val)):
         valname = val[n]['name']
         valfull = val[n]['fullname']
@@ -268,10 +273,9 @@ def analyze(pref, an, cod, parse, write):
         grass.run_command('r.null', map = valfull, setnull = 0)
         if string.find(cod,'13Q1') >= 0 or string.find(cod,'13A2') >= 0:
           mapc = "%s.2 = %s / 10000." % (valname, valfull)
-          grass.mapcalc(mapc)
         elif string.find(cod,'11A1') >= 0 or string.find(cod,'11A2') >= 0 or string.find(cod,'11B1') >= 0:
           mapc = "%s.2 = (%s * 0.0200) - 273.15" % (valname, valfull)
-          grass.mapcalc(mapc)
+        grass.mapcalc(mapc)
         if an == 'noqa':
             #grass.run_command('g.remove', quiet = True, rast = valfull)
             try:
@@ -303,7 +307,7 @@ def analyze(pref, an, cod, parse, write):
 			        finalmap += "&& %s == 0 " % outpat
 
             if string.find(cod,'13Q1') >= 0 or string.find(cod,'13A2') >= 0:
-                finalmap += "%s.2 <= 1.000" % valname
+                finalmap += "&& %s.2 <= 1.000" % valname
             finalmap += ",%s.2, null() )" % valname
             # grass.message("mapc finalmap: %s" % finalmap)
             grass.mapcalc(finalmap)
@@ -323,6 +327,7 @@ def single(options,remove,an,ow):
     """Convert the HDF file to TIF and import it
     """
     listfile, basedir = list_files(options)
+    pid = str(os.getpid())
     # for each file
     for i in listfile:
         # the full path to hdf file
@@ -339,14 +344,14 @@ def single(options,remove,an,ow):
         # import tif files
         maps_import = import_tif(output,basedir,remove,ow)
         if an:
-	    grass.run_command('g.region', save = 'oldregion.%s' % str(os.getpid()))
+	    grass.run_command('g.region', save = 'oldregion.%s' % pid)
 	    try:
 		cod = os.path.split(pm.hdfname)[1].split('.')[0]
 		analyze(outname, an, cod, pm, ow)
 	    except:
-		grass.run_command('g.region', region = 'oldregion.%s' % str(os.getpid()))
+		grass.run_command('g.region', region = 'oldregion.%s' % pid)
 		grass.run_command('g.remove',quiet = True, 
-				 region = 'oldregion.%s' % str(os.getpid()))
+				 region = 'oldregion.%s' % pid)
             cod = os.path.split(pm.hdfname)[1].split('.')[0]
             analyze(output, an, cod, pm, ow)
         os.remove(confname)
@@ -356,10 +361,11 @@ def mosaic(options,remove,an,ow):
     """Create a daily mosaic of HDF files convert to TIF and import it
     """
     dictfile, targetdir = list_files(options,True)
+    pid = str(os.getpid())
     # for each day
     for dat, listfiles in dictfile.iteritems():
         # create the file with the list of name
-        tempfile = open(os.path.join(targetdir,str(os.getpid())),'w')
+        tempfile = open(os.path.join(targetdir,pid),'w')
         tempfile.writelines(listfiles)
         tempfile.close()
         # basedir of tempfile, where hdf files are write
@@ -367,7 +373,8 @@ def mosaic(options,remove,an,ow):
         outname = "%s.%s.mosaic" % (listfiles[0].split('/')[-1].split('.')[0],
                                     listfiles[0].split('/')[-1].split('.')[1])
         # return the spectral subset in according mrtmosaic tool format
-        spectr = spectral(options,listfiles[0].split('/')[-1].split('.')[0],an, True)
+        prod = product().fromcode(listfiles[0].split('/')[-1].split('.')[0])
+        spectr = spectral(options,prod,an)
         spectr = spectr.lstrip('( ').rstrip(' )')
         # create mosaic
         cm = createMosaic(tempfile.name, outname, options['mrtpath'], spectr)
@@ -379,7 +386,7 @@ def mosaic(options,remove,an,ow):
             hdf = os.path.join(basedir,i)
             # create conf file fro mrt tools
             pm = parseModis(hdf)
-            confname = confile(pm,options,an)
+            confname = confile(pm,options,an, True)
             # create convertModis class and convert it in tif file
             execmodis = convertModis(hdf, confname, options['mrtpath'])
             execmodis.run()
@@ -388,14 +395,14 @@ def mosaic(options,remove,an,ow):
                 # import tif files
                 import_tif(outname, basedir, remove, ow)
                 if an:
-		    grass.run_command('g.region', save = 'oldregion.%s' % str(os.getpid()))
+		    grass.run_command('g.region', save = 'oldregion.%s' % pid)
 		    try:
 			cod = os.path.split(pm.hdfname)[1].split('.')[0]
 			analyze(outname, an, cod, pm, ow)
                     except:
-			grass.run_command('g.region', region = 'oldregion.%s' % str(os.getpid()))
+			grass.run_command('g.region', region = 'oldregion.%s' % pid)
 			grass.run_command('g.remove',quiet = True,
-				    region = 'oldregion.%s' % str(os.getpid()))
+				    region = 'oldregion.%s' % pid)
                 os.remove(hdf)
                 os.remove(hdf + '.xml')
             # or move the hdf and hdf.xml to the dir where are the original files
@@ -403,13 +410,13 @@ def mosaic(options,remove,an,ow):
                 # import tif files
                 import_tif(outname, basedir, remove, ow, targetdir)
                 if an:
-		    grass.run_command('g.region', save = 'oldregion.%s' % str(os.getpid()))
+		    grass.run_command('g.region', save = 'oldregion.%s' % pid)
 		    try:
 			cod = os.path.split(pm.hdfname)[1].split('.')[0]
 			analyze(outname, an, cod, pm, ow)
                     except:
-			grass.run_command('g.region', region = 'oldregion.%s' % str(os.getpid()))
-			grass.run_command('g.remove', region = 'oldregion.%s' % str(os.getpid()))
+			grass.run_command('g.region', region = 'oldregion.%s' % pid)
+			grass.run_command('g.remove', region = 'oldregion.%s' % pid)
                 try: 
                     shutil.move(hdf,targetdir)
                     shutil.move(hdf + '.xml',targetdir)
@@ -418,7 +425,7 @@ def mosaic(options,remove,an,ow):
             # remove the conf file
             os.remove(confname)
         grass.try_remove(tempfile.name)
-        grass.try_remove(os.path.join(targetdir,'mosaic',str(os.getpid())))
+        grass.try_remove(os.path.join(targetdir,'mosaic',pid))
     return grass.message(_('All files imported correctly'))
 
 def main():
