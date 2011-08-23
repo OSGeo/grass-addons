@@ -116,6 +116,7 @@ class wmsFrame(wx.Frame):
 
         self.Bind(wx.EVT_TEXT_ENTER, self.OnServerListEnter, self.ServerList)
         self.Bind(wx.EVT_COMBOBOX, self.OnServerList, self.ServerList)
+        self.Bind(wx.EVT_COMBOBOX, self.OnEPSGList, self.epsgList)
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnLayerTreeSelChanged, self.LayerTree)
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.OnLayerTreeActivated, self.LayerTree)
         self.Bind(wx.EVT_BUTTON, self.OnGetCapabilities, self.GetCapabilities)
@@ -149,6 +150,7 @@ class wmsFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.AddServerisClosed = True
         self.layerName = ""
+        self.selectedEPSG = None
         
         #items = ["a", "b", "c"]
         #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
@@ -262,6 +264,7 @@ class wmsFrame(wx.Frame):
             ld.appendLayerTree(layerDataDict, self.LayerTree, self.layerTreeRoot)
             self.keyToEPSGCodes = ld.setKeyToEPSGCodes(layerDataDict)
             print self.keyToEPSGCodes
+            self.selectedEPSG = None
             print 'check4'
             #for res in reslist:
             #       self.LayerTree.AppendItem(self.layerTreeRoot, res)
@@ -316,11 +319,28 @@ class wmsFrame(wx.Frame):
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             return
+        
+        if(self.selectedEPSG == None):
+            message = 'No EPSG code selected'
+            print message
+            grass.warning(message)
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+            self.ShowMessage(message, 'Warning')
+            return
+        if(not self.selectedEPSG.isdigit()):
+            message = 'EPSG code selected is not a number'
+            print message
+            grass.warning(message)
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+            self.ShowMessage(message, 'Warning')
             
+            return
         
         self.url_in = self.selectedURL
         getMap_request_url = self.url_in
-        getMap_request_url += '?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:3059&layers='
+        getMap_request_url += '?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:'+self.selectedEPSG+'&layers='
         getMap_request_url += self.layerName+'&bbox=584344,397868,585500,398500'
         
         print getMap_request_url
@@ -426,7 +446,18 @@ class wmsFrame(wx.Frame):
         #Sudeep's Code Ends
         event.Skip()
         '''
-    
+    def OnEPSGList(self,event):
+        info = self.epsgList.GetValue()
+        if(not info.isdigit()):
+            message = 'Please select an EPSG Code'
+            print message
+            grass.warning(message)
+            seld.show_message(message)
+            StatusBar_fields = [message]
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+            return
+        self.selectedEPSG = info
+        print 'epsg = '+info
         
     def OnServerList(self, event): # wxGlade: wmsFrame.<event_handler>
         print "Event handler `OnServerList' not implemented"
@@ -470,6 +501,7 @@ class wmsFrame(wx.Frame):
     def OnLayerTreeSelChanged(self, event): # wxGlade: wmsFrame.<event_handler>
         #self.layerName = self.LayerTree.GetItemText(event.GetItem())
         #print "Event handler `OnLayerTreeSelChanged' not implemented"
+        self.epsgList.Clear()
         self.selectedLayerList = []
         keys =[]
         self.layerName = ""
@@ -495,15 +527,19 @@ class wmsFrame(wx.Frame):
             self.selectedLayerList += [layerName]
             self.layerName += ","+layerName
             keys += [key]
-          
+            
+            lEPSG = self.keyToEPSGCodes[key]
+            self.epsgList.Append('<'+layerName+'>')
+            self.epsgList.AppendItems(lEPSG)
+            
           
         self.layerName = self.layerName[1:]
         print self.layerName
-        self.epsgList.Clear()
+        self.selectedEPSG = None
         print self.keyToEPSGCodes
-        for key in keys:
-            lEPSG = self.keyToEPSGCodes[key]
-            self.epsgList.AppendItems(lEPSG)
+        #for key in keys:
+        #    lEPSG = self.keyToEPSGCodes[key]
+        #    self.epsgList.AppendItems(lEPSG)
                 
         #print "Event handler `OnLayerTreeSelChanged' not implemented"
         event.Skip()
