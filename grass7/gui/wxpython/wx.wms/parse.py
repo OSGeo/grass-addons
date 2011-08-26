@@ -60,9 +60,7 @@ def parsexml(xml):
  soup = BeautifulSoup(xmltext)
  #layers = soup.findAll('layer', queryable="1")
  layers = soup.findAll('layer')
- '''
- for attr, value in soup.find('layer').attrs:
- 	print attr, "       =          ", value '''
+ 
  namelist = []
  for layer in layers:
 	soupname = BeautifulSoup(str(layer))
@@ -70,15 +68,9 @@ def parsexml(xml):
 	if len(names) > 0:
 		namelist += names[0]
  return namelist
-'''
-f = open('wmsmaris.xml','r')
-a=f.read()
-print a
-#parsexml(a) '''
 
 
 def parsexml2(xml):
- print 'c1'
  layerDataDict={}
  count = -1
  xmltext = xml
@@ -86,46 +78,33 @@ def parsexml2(xml):
  layers = soup.findAll('layer')
  namelist = []
  for layer in layers:
- 	
 	soupname = BeautifulSoup(str(layer))
 	names =  soupname.findAll('name')
 	titles = soupname.findAll('title')
 	abstracts = soupname.findAll('abstract')
 	srs = soupname.findAll('srs')
-	print 'c2'
-	print names
-	print titles
-	print abstracts
-	print srs
-	print 'a1'
 	if(len(names)>0):
 		count = count + 1
 		layerDataDict[count] = LayerData()
 		layerDataDict[count].name = unicode(names[0].string)
-		print layerDataDict[count].name
 	else:
 		continue
-	print 'a2'	
 	if(len(titles)>0):
-		print 'b1'
 		layerDataDict[count].title = unicode(titles[0].string)
-		print 'b2'
 	else:
-		print 'b3'
 		layerDataDict[count].title = ''
-		print 'b4'
-	print 'a3'
+
 	if(len(abstracts)>0):
 		layerDataDict[count].abstract = unicode(abstracts[0].string)
 	else:
 		layerDataDict[count].abstract = ''
-	print 'a4'
+
 	if(len(srs)>0):
 		layerDataDict[count].srs = srs
 	else:
 		layerDataDict[count].srs = ''
 	
-	print 'c3'
+
  return layerDataDict
 
 
@@ -133,45 +112,29 @@ def parsexml2(xml):
 def isValidResponse(xml):
 	soup = BeautifulSoup(xml)
 	getCapabilities = soup.findAll('wmt_ms_capabilities')
-	print 'heeeeeeeeereeeeee'
-	print len(getCapabilities)
 	if(len(getCapabilities)==0):
-		print 'False'
 		return False
 	else:
-		print 'True'
 		return True
 def isServiceException(xml):
-	print 'here'
-	#print xml
 	soup = BeautifulSoup(xml)
-	#print soup
 	exceptions = soup.findAll('ServiceException')
-	#print exceptions
 	exceptionList = []
 	xmltext = str(xml)
 	if(xmltext.count('ServiceException') > 0):
 		return True
 	else:
 		return False
-	print 'done'
 
-
-   
 def populateLayerTree(xml,LayerTree, layerTreeRoot):
 	TMP = grass.tempfile()
 	if TMP is None:
 		grass.fatal("Unable to create temporary files")
-	print '########################'
-	print TMP
-	print '########################'
 	f = open(TMP,'w')
 	f.write(xml)
 	f.close()
-	
 	f = open(TMP,'r')
 	xml = f.read()
-	#print xml
 	soup = BeautifulSoup(xml)
 	dfs(soup,LayerTree, layerTreeRoot)
 	
@@ -200,5 +163,4 @@ def parseGrass_Region(grassRegion, dir):
 	g = grassRegion[s:]
 	g = g.split()
 	g = g[1].strip(';')
-	print g
 	return float(g)

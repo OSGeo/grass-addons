@@ -33,7 +33,8 @@ class ImagePanel(wx.Panel):
         png = wx.Image(imageFile, wx.BITMAP_TYPE_ANY).ConvertToBitmap() 
         wx.StaticBitmap(self, -1, png, (10 + png.GetWidth(), 5), (png.GetWidth(), png.GetHeight()))
     except IOError:
-        print "Image file %s not found" % imageFile
+        message = "Image file %s not found" % imageFile
+        grass.warning(message)
         raise SystemExit
 
 def NewImageFrame(tempFile): 

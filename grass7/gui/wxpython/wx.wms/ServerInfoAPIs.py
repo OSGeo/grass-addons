@@ -32,20 +32,13 @@ def initServerInfoBase(fileName):
     if(os.path.exists(fileName)):
         try:
             f = open(fileName,'r')
-            print 'ServersList.xml found, loading ... '
         except:
-            print 'Unable to open File '+fileName
-            print 'exiting application...'
             return None, False
         xml = f.read()   
         f.close()
         soup = BeautifulStoneSoup(xml)
         serverinfolist = soup.findAll('serverinfo')
-        #print 'serverinfolisthere'
-        #print serverinfolist
-        #print len(serverinfolist)    
     else:
-    	print 'ServersList.xml not found, creating a new file'
         serverinfolist = []
         soup = BeautifulSoup()
         xml = "null"
@@ -74,23 +67,18 @@ def addServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passw
     else:
         server = Tag(soup, "server")
         serverinfo.insert(0,server)
-        
         #Creating server info tags
         servername = Tag(soup, "servername")
         serverurl = Tag(soup, "serverurl")
         username = Tag(soup, "username")
         password = Tag(soup, "password")
-        
         #Inserting server info fields
         server.insert(0, servername)
         server.insert(1, serverurl)
         server.insert(2, username)
         server.insert(3, password)
-    
         #Adding attribute to server tag
-        
         server['id'] = uid
-    
         #Adding text values to the server info fields
         servername.insert(0,snamevalue)
         serverurl.insert(0, urlvalue)

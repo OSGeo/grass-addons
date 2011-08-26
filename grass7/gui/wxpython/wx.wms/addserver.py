@@ -35,8 +35,6 @@ from LoadConfig import loadConfigFile
 
 
 
-# begin wxGlade: extracode
-# end wxGlade
 
 class ServerData():
     pass
@@ -85,7 +83,6 @@ class ServerAdd(wx.Frame):
         
         #sudeep code starts
         if( not loadConfigFile(self)):
-            print 'Config File Error, Unable to start application...'
             grass.fatal_error('Config File Error, Unable to start application...')
             self.Close()
         
@@ -158,22 +155,15 @@ class ServerAdd(wx.Frame):
         self.Layout()
         # end wxGlade
     def valueExists(self,dict, newServerName):
-        print 'Enter here'
-        print newServerName
         try:
             for key, value in dict.items():
-                #print key, value.servername
                 if(value.servername == newServerName):
-                    print 'returning true'
                     return True
-            print 'returning False'
             return False
         except:
-            print 'Exception while iterating dictionary elements'
             return False
+
     def OnSave(self, event): # wxGlade: ServerAdd.<event_handler>
-        #print "Event handler `OnSave' not implemented"
-        print '-------------------------------------------------------------------> OnSave'
         newServerName = unicode(self.ServerNameText.GetValue())
         newUrl = self.URLText.GetValue()
         newUserName = self.UsernameText.GetValue()
@@ -181,43 +171,14 @@ class ServerAdd(wx.Frame):
         
         if(not self.allFieldsValid(newServerName, newUrl, newUserName, newPassword)):
             return
-        
-        
-        
-        
-        
-        print newServerName
-        print 'check12'
-        
+
         if(self.selectedUid == None):
             update = False
         else:
             update = True
-        '''print newServerName
-        print self.map_servernameTouid
-        if(self.map_servernameTouid.has_key(newServerName)):
-            CurrentUid = self.map_servernameTouid[newServerName]
-            update = True
-            print 'key present'
-        else:
-            print 'key not present'
-            CurrentUid = None
-            update = False
-        if(self.servers.has_key(Uid)):StatusBar_fields = [character+' is not allowed in a Field']
-            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            update = True
-            #print 'Server Name already exists'
-            #return
-        else:
-            update = False'''
-            
-       
-        
+                  
         serverData = ServerData()
-        #self.ServerList.Append(newServerName+" "+newUrl)
-        
-        #url = newUrl.split()
-        #if(len(newUrl) != 0 and len(newServerName) != 0 and len(newUserName) !=0 and len(newPassword) != 0 ):
+
         if(len(newUrl) != 0 and len(newServerName) != 0):
             if(self.selectedServer is not None):
                 if(not self.selectedServer.servername == newServerName):
@@ -227,9 +188,8 @@ class ServerAdd(wx.Frame):
                         grass.warning(message)
                         StatusBar_fields = [message]
                         self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                        print message
                         return
-            #del self.servers[self.selectedUid]
+
             if(not newUrl.startswith('http://')):
                 newUrl = 'http://'+newUrl
             
@@ -244,140 +204,89 @@ class ServerAdd(wx.Frame):
             
             
             StatusBar_fields = [message]
-            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            
-            print message
-                
+            self.StatusBar.SetStatusText(StatusBar_fields[0], 0)            
             serverData.servername = newServerName
             serverData.url = newUrl
             serverData.username = newUserName
             serverData.password = newPassword
             
-            
             if(update):
                 if(updateServerInfo(self.soup, self.soup.serverinfo, self.selectedUid, newServerName, newUrl, newUserName, newPassword)):
-                    
-                    #patch7s
                     if(not self.saveXMLData()):
                         oldInfo = self.servers[self.selectedUid]
                         if(updateServerInfo(self.soup, self.soup.serverinfo, self.selectedUid, oldInfo.servername, oldInfo.url, oldInfo.username, oldInfo.password)):
                             message = 'Unable to SaveXML, changes reverted back'
-                            print message
                             grass.warning(message)
                             return
                         else:
                             message = 'Unable to SaveXML, changes will be reverted back on restart'
-                            print message
                             grass.warning(message)
                             return
-                    #patch7e
-                    #self.StatusBar.setStatusText("Information Updated")
                     message = 'update save successful'
-                    print message
                     grass.message(message)
                     self.servers[self.selectedUid] = serverData
                     del self.map_servernameTouid[self.selectedServer.servername]
                     self.selectedServer = serverData
                     self.map_servernameTouid[newServerName] = self.selectedUid
-                    
-                    #patch5s
+
                     msg = self.servers
-                    print 'sending serverlist as message'
                     Publisher().sendMessage(("update.serverList"), msg)
-                    print 'message sent'
                     
                     msg = self.map_servernameTouid
-                    print 'sending map_servernameTouid as a message'
                     Publisher().sendMessage(("update.map_servernameTouid"), msg)
-                    print 'message sent'
-                    #patch5e
                     message = "Server Info Updated"
-                    print message
                     grass.message(message)
                     StatusBar_fields = [message]
                     self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                    self.setModified(False)
-                    
+                    self.setModified(False)                    
                 else:
                     message = "Update not Successful"
                     self.ShowMessage(message, 'Warning')
                     grass.warning(message)
                     StatusBar_fields = [message]
                     self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                    print message
             else:    
                 uid = str(uuid.uuid4())
-                
                 if(addServerInfo(self.soup, self.soup.serverinfo, uid, newServerName, newUrl, newUserName, newPassword)):
-                    #patch7s
                     if(not self.saveXMLData()):
-                        #oldInfo = self.servers[uid]
                         if(removeServerInfo(self.soup, uid)):
                             message = 'Unable to SaveXML, Info not saved'
-                            print message
                             grass.warning(message)
                             return
                         else:
                             message = 'Unable to SaveXML, changes will be reverted back on restart'
                             grass.warning(message)
-                            print message
                             return
-                    #patch7e
                     message = 'soup save successfully'
-                    print message 
                     grass.message(message)
                     self.selectedUid = uid
                     self.servers[self.selectedUid] = serverData
                     self.selectedServer = serverData
                     self.map_servernameTouid[newServerName] = uid
-                    print 'Onsave(): printing the self.map_servernameTouid'
-                    print self.map_servernameTouid
-                    print '--------------------------'
-                    #self.saveXMLData()
-                            #patch5s
                     msg = self.servers
-                    print 'sending serverlist as message'
                     Publisher().sendMessage(("update.serverList"), msg)
-                    print 'message sent'
-                    
                     msg = self.map_servernameTouid
-                    print 'sending map_servernameTouid as a message'
                     Publisher().sendMessage(("update.map_servernameTouid"), msg)
-                    print 'message sent'
-                    #patch5e
-                    #msg = self.servers
                     message = "Server Info Saved Successfully"
                     grass.message(message)
                     StatusBar_fields = [message]
                     self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                     self.setModified(False)
-                    #Publisher().sendMessage(("update.serverList"), msg)
                 else:
                     message = "Save not successful"
                     self.ShowMessage(message, 'Warning')
                     "Server Info Saved Successfully"
                     StatusBar_fields = [message]
                     self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                    print message
                     
-                  
-            '''
-            f = open('serverList.txt','a')
-            f.write(newServerName+" "+newUrl+ " "+newUserName+" "+newPassword+"\n")
-            f.close()
-            '''
             self.selectedURL = newUrl
-            print self.selectedURL
-            #print self.servers
             self.__update_URL_List()
-  	    #Update_Url_List(newServerName+" "+newUrl)
         else:
             message = "Please fill servername and url fields"
             self.ShowMessage(message, 'Warning')
             grass.warning(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            print message
                     
             
         self.editOn = False
@@ -385,14 +294,12 @@ class ServerAdd(wx.Frame):
             event.Skip()
 
     def OnRemove(self, event): # wxGlade: ServerAdd.<event_handler>
-        print '-------------------------------------------------------------------> OnRemove'
         if(self.selectedUid == None):
             message = "No Server selected....Remove Unsuccessful"
             self.ShowMessage(message, 'Warning')
             grass.warning(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            print message
             return
         else:
             if(removeServerInfo(self.soup, self.selectedUid)):
@@ -419,7 +326,6 @@ class ServerAdd(wx.Frame):
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 grass.message(message)
-                print message
                 del self.map_servernameTouid[self.selectedServer.servername]
                 if(len(self.servers) > 0):
                     self.ServerList.SetSelection(0)
@@ -434,8 +340,6 @@ class ServerAdd(wx.Frame):
                 self.PasswordText.Clear()
                 self.URLText.Clear()
                 self.UsernameText.Clear()
-                #print self.servers
-                
                 msg = self.servers
                 Publisher().sendMessage(("update.serverList"), msg)
             else:
@@ -444,22 +348,13 @@ class ServerAdd(wx.Frame):
                 grass.warning(message)
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                print message
                 return
-            #print self.servers
             
-           
-        
-        #print "Event handler `OnRemove' not implemented"
         self.editOn = False
         event.Skip()
 
     def OnAddNew(self, event): # wxGlade: ServerAdd.<event_handler>
-        #patch1s
         self.checkIfModified(event)
-        #patch1e
-        print '-------------------------------------------------------------------> OnAddNew'
-        #print "Event handler `OnAddNew' not implemented"
         self.selectedUid = None
         self.ServerNameText.Clear()
         self.PasswordText.Clear()
@@ -467,59 +362,34 @@ class ServerAdd(wx.Frame):
         self.UsernameText.Clear()
         self.editOn = False
         self.selectedServer=None
-        #patch3s
         StatusBar_fields = ["Fill in the Info fields"]
-        #patch3e
         self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
         event.Skip()
     
     def OnQuit(self, event): # wxGlade: ServerAdd.<event_handler>
-        print '-------------------------------------------------------------------> OnQuit'
-        print 'onQuit pressed'
-        #patch1s
         if(self.checkIfModified(event) == wx.ID_CANCEL):
             return
-        #patch1e
         if(not self.saveXMLData()):
             message = 'Unable to write in file, Exiting Application'
             grass.message(message)
-            print message
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            
             
         msg = self.servers
         Publisher().sendMessage(("Add_Server_Frame_Closed"), msg)
         self.Destroy()
-        #exit()
-        #self.Close()
-        '''out = open('serverList.txt','w')
-        for k,v in self.servers.iteritems():
-            out.write(v.servername+" "+v.url+" "+v.username+" "+v.password+"\n")
-        exit()'''
-        #ServerAdd.Close()
-        #print "Event handler `OnQuit' not implemented"
         event.Skip()
 
     def OnServerList(self, event): # wxGlade: ServerAdd.<event_handler>
-        #patch1s
         self.checkIfModified(event)
-        #patch1e
-        print '-------------------------------------------------------------------> OnServerList'
-        #print self.ServerList.CurrentSelection
         info = self.ServerList.GetValue()
         if(len(info) == 0):
             return
-        print 'here'
-        print info
         urlarr = info.split(self.name_url_delimiter)
-        print urlarr
-        #print self.servers
         if(len(urlarr)==2):
             uid = self.map_servernameTouid[urlarr[0]]
             self.selectedUid = uid
             self.selectedServer = self.servers[uid]
-            print self.selectedServer
             self.ServerNameText.SetValue(self.selectedServer.servername)
             self.URLText.SetValue(self.selectedServer.url)
             self.UsernameText.SetValue(self.selectedServer.username)
@@ -528,19 +398,15 @@ class ServerAdd(wx.Frame):
             message = "Wrong format of URL selected"
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            print message
             grass.fatal_error(message)
             
-        #self.ServerNameText.SetValue(self.servers)
         event.Skip()
 
     def OnText(self, event): # wxGlade: ServerAdd.<event_handler>
         self.editOn = True
         event.Skip()
     #wxGlade methods ends
-    
-    #Sudeeps methods start
-    #patch1s
+
     def setModified(self, booleanValue):
         self.ServerNameText.SetModified(booleanValue)
         self.URLText.SetModified(booleanValue)
@@ -550,15 +416,13 @@ class ServerAdd(wx.Frame):
     def checkIfModified(self, event):
         if(self.URLText.IsModified() or self.ServerNameText.IsModified() or self.UsernameText.IsModified() or self.PasswordText.IsModified()):
             dial = wx.MessageDialog(None, 'You have unsaved changes.\n Do you want to save them ?', 'Quit',
-                                    wx.STAY_ON_TOP | wx.YES_NO | wx.YES_DEFAULT | wx.CANCEL | wx.ICON_QUESTION)
-        
+                                    wx.STAY_ON_TOP | wx.YES_NO | wx.YES_DEFAULT | wx.CANCEL | wx.ICON_QUESTION)        
             val = dial.ShowModal()
             if val == wx.ID_CANCEL:
                 return val
             if val == wx.ID_YES:
-                self.OnSave(event) #well, the parameter is unused
+                self.OnSave(event)
                 return val
-    #patch1e
     
     def ShowMessage(self, message, type = 'Warning'):
         wx.MessageBox(message, type)
@@ -567,11 +431,7 @@ class ServerAdd(wx.Frame):
         self.servers, self.map_servernameTouid = getAllRows(self.soup)
         ComboBox.Append("")
         for key, value in self.servers.items():
-            #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
-            #ComboBox.Append(string)
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
-            #ComboBox.Append(value.servername+" "+value.url)
-        #print self.servers
         return
     
     def __update_URL_List(self):
@@ -579,30 +439,22 @@ class ServerAdd(wx.Frame):
         ComboBox = self.ServerList
         ComboBox.Append("")
         for key,value in self.servers.iteritems():
-            #name = v.servername+" "+v.url
-            #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
-            #ComboBox.Append(string)
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
-            #self.ServerList.Append(name)
 
     def saveXMLData(self):
-        xml = self.soup.prettify()
-        
+        xml = self.soup.prettify()        
         try:
             TMP = grass.tempfile()
             if TMP is None:
                 grass.fatal_error("Unable to create temporary files")
-            print TMP
             f = open(TMP,'w')
             f.write(xml)
             f.close()
         except:
             message = 'Unable to write in '+TMP+' file, Save not successful'
-            print message
             grass.warning(message)
             return False
         try:    
-            #os.system('chmod 777 ServersList.xml')
             copyCommand = "cp "+TMP+" ServersList.xml"
             r, w, e = popen2.popen3(copyCommand)
             if(len(e.readlines())!=0):
@@ -615,14 +467,9 @@ class ServerAdd(wx.Frame):
             r.close()
             w.close()
             e.close()
-
-            #os.system("cp templist.xml ServersList.xml")
-            #f = open('ServersList.xml','w')
         except:
-            #print 'cant open file in write mode'
-            print 'cp templist.xml ServersList.xml failed'
-            print 'Save not successful'
             return False
+        
         return True
     
     def allFieldsValid(self, newServerName, newUrl, newUserName, newPassword):
@@ -632,8 +479,6 @@ class ServerAdd(wx.Frame):
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 self.ShowMessage(message, 'Warning')
                 grass.warning(message)
-                print "Warning: UserName cannot consist of "+self.name_url_delimiter
-                print "Please give another username, save failed..."
                 return False
             
         if(newUrl.count(self.name_url_delimiter)>0):
@@ -642,8 +487,6 @@ class ServerAdd(wx.Frame):
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 self.ShowMessage(message, 'Warning')
                 grass.warning(message)
-                print "Warning: URL cannot consist of "+self.name_url_delimiter
-                print "Change in config file required to use different character as delimeter which doesnot appears in url"
                 return False
             
         character = '>'
@@ -653,7 +496,6 @@ class ServerAdd(wx.Frame):
             grass.warning(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            print message
             return False
 
         character = '<'
@@ -663,20 +505,15 @@ class ServerAdd(wx.Frame):
             grass.warning(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            print message
             return False
         
         character = '&'
-        #patch2s
-        #or newUrl.count(character) > 0
-        #patch2e
         if(newServerName.count(character) > 0  or newUserName.count(character) > 0 or newPassword.count(character) > 0):
             message = character+' is not allowed in a Field'
             self.ShowMessage(message, 'Warning')
             grass.warning(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-            print message
             return False
         
         return True
@@ -713,26 +550,6 @@ class ServerAdd(wx.Frame):
         self.Close()
         self.Destroy()
         return
-    '''
-    def OnPopupSaveRequest(self, msg):
-        self.OnSave(None)
-        self.saveXMLData()
-        msg = self.servers
-        Publisher().sendMessage(("Add_Server_Frame_Closed"), msg)
-        self.Quit
-        self.Close()
-        #self.Destroy()
-    
-    def OnPopupNotSaveRequest(self, msg):
-        self.saveXMLData()
-        msg = self.servers
-        Publisher().sendMessage(("Add_Server_Frame_Closed"), msg)
-        self.Close()
-        self.Destroy()
-
-    def OnPopupCancelRequest(self, msg):
-        return
-        '''
 # end of class ServerAdd
 
 def AddServerFrame(parentWMS):

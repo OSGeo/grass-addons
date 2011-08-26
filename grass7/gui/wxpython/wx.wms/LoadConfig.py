@@ -17,6 +17,7 @@ Functions:
 """
 
 import os
+import grass
 def loadConfigFile(self):
     try:
         f=open('config','r')
@@ -26,24 +27,17 @@ def loadConfigFile(self):
         #patch4s
         try:
             if(len(lines)!=3):
-                print 'Insufficient number of arguments,3 paramters required name_url_delimiter, timeoutValueSeconds, urlLength'
+                message = 'Insufficient number of arguments,3 paramters required name_url_delimiter, timeoutValueSeconds, urlLength'
+                grass.fatal_error(message)
                 raise Exception
             self.name_url_delimiter = lines[0].split(':')[1]
             self.timeoutValueSeconds = int(lines[1].split(':')[1])
             self.urlLength = int(lines[2].split(':')[1])
-            #self.name_url_delimiter = '\n'
-            print self.timeoutValueSeconds
         except Exception, e:
-            print e
-            print 'Internal exception, config file format error, using default values'
             self.name_url_delimiter = '#'
             self.timeoutValueSeconds = 5
             self.urlLength = 50
-        #patch4e
-        print "config file loaded successfully"
-        print self.name_url_delimiter
+            
         return True
     except:
-    	os.system("find ./ -name config")
-    	print "Unable to load config file"
         return False

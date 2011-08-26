@@ -35,9 +35,6 @@ from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, in
 from LoadConfig import loadConfigFile
 
 
-# begin wxGlade: extracode
-# end wxGlade
-
 class LayerData():
     name = None
     title = None
@@ -74,19 +71,7 @@ class LayerData():
                 a = srs.string
                 a = a.split(':')
                 l = l+[a[1]]
-            print 'here'
-            print 'key = ' + str(key) 
-            print l
-            print 'now'
             keytoepsgcodes[str(key)] = l
-            
-            print 'dict value now is '
-            print keytoepsgcodes
-            print 'dict printed'
-        
-        print 'final dict'
-        print keytoepsgcodes
-        print 'final dcit printed'
         return keytoepsgcodes
 
 class Message():
@@ -123,14 +108,10 @@ class wmsFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnGetMaps, self.GetMaps)
         self.Bind(wx.EVT_BUTTON, self.OnAddServer, self.addServer)
         # end wxGlade
-        
-        #Sudeep's Code Starts
-        #self.urlInput.SetValue('http://www.gisnet.lv/cgi-bin/topo')
+
         self.usernameInput.Disable()
         self.passwordInput.Disable()
-        print 'new version'
         if( not loadConfigFile(self)):
-            print 'Config File Error, Unable to start application...'
             grass.fatal_error('Config File Error, Unable to start application...')
             self.Close()
             return
@@ -152,10 +133,6 @@ class wmsFrame(wx.Frame):
         self.layerName = ""
         self.selectedEPSG = None
         
-        #items = ["a", "b", "c"]
-        #itemId = self.LayerTree.AppendItem(self.layerTreeRoot, "item")
-        #self.LayerTree.AppendItem(itemId, "inside")
-        #Sudeep's Code Ends 
     def __set_properties(self):
         # begin wxGlade: wmsFrame.__set_properties
         self.SetTitle("wmsFrame")
@@ -199,36 +176,23 @@ class wmsFrame(wx.Frame):
     
 
     def OnGetCapabilities(self, event): # wxGlade: wmsFrame.<event_handler>            
-        ''''f=open('check.xml','r')
-        xml=f.read()
-        f.close()
-        layerDataDict = parsexml2(xml)
-        ld = LayerData()
-        #ld.printLayerData(layerDataDict)
-        ld.appendLayerTree(layerDataDict, self.LayerTree, self.layerTreeRoot)
-        self.LayerTree.Expand(self.layerTreeRoot)
-        return'''
         if(self.selectedURL == "No server selected"):
             message = 'No Server selected'
             self.ShowMessage(message, 'Warning')
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             grass.warning(message)
-            print message
             return
         try:
             self.epsgList.SetSelection(0)
         except:
-            print 'epsg list is empty'
+            message = 'epsg list is empty'
+            grass.warning(message)
         self.usernameInput.Enable()
         self.passwordInput.Enable()
-        #Sudeep's Code Starts
-        #url = 'http://www.gisnet.lv/cgi-bin/topo?request=GetCapabilities&service=wms&version=1.1.1'
-        self.LayerTree.CollapseAndReset(self.layerTreeRoot)
-        #url = self.urlInput.GetValue() 
+        self.LayerTree.CollapseAndReset(self.layerTreeRoot) 
         url = self.selectedURL
         url = url + '?request=GetCapabilities&service=wms&version=1.1.1'
-        print url
         StatusBar_fields = ["GetCapabilities Request Sent..."]
         self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
         req = Request(url)
@@ -241,61 +205,35 @@ class wmsFrame(wx.Frame):
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
                 grass.warning(message)
-                print message
                 return
             if(isServiceException(xml)):
                 message = 'Service Exception in Get Capabilities'
                 self.ShowMessage(message, 'Warning')
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-                grass.warning(message)
-                print message                
+                grass.warning(message)               
                 return
-            #for testing pruposes
-            #f=open('in1.xml','r')
-            #xml=f.read()
-            #f.close()
-            #self.statusbar.SetStatusText(xml) 
-            #reslist = parsexml(xml)
-            #populateLayerTree(xml,self.LayerTree, self.layerTreeRoot)
-            print 'check1'
             layerDataDict = parsexml2(xml)
-            print 'check2'
             ld = LayerData()
-            print 'check3'
-            #ld.printLayerData(layerDataDict)
             ld.appendLayerTree(layerDataDict, self.LayerTree, self.layerTreeRoot)
             self.keyToEPSGCodes = ld.setKeyToEPSGCodes(layerDataDict)
-            print self.keyToEPSGCodes
             self.selectedEPSG = None
-            print 'check4'
-            #for res in reslist:
-            #       self.LayerTree.AppendItem(self.layerTreeRoot, res)
-            #self.Layers.SetValue(st) 
-            #print xml
             self.LayerTree.Expand(self.layerTreeRoot)
         except HTTPError, e:
             message = 'The server couldn\'t fulfill the request.'
-            print message
-            #print 'Error code: ', e.code
+            message = str(e)
         except URLError, e: 
             message = 'Failed to reach a server.'
-            print message
-            #print 'Reason: ', e.reason
+            message = str(e)
         except ValueError, e:
             message = 'Value error'
-            print message
-            #print 'Reason: ', e.reason
+            message = str(e)
         except Exception, e:
             message = 'urlopen exception, unable to fetch data for getcapabilities'
             message = str(e)
-            print 'printing exception here'
-            print message
-            print 'done'
         else:
             message = 'Successful'
-            print message
-            
+                        
         if(not message=='Successful'):
                 self.ShowMessage(message, 'Warning')
                 StatusBar_fields = [message]
@@ -310,13 +248,8 @@ class wmsFrame(wx.Frame):
         
     
     def OnGetMaps(self, event): # wxGlade: wmsFrame.<event_handler>
-        #Sudeep's Code Starts
-        #self.layerName = self.layerSelected.GetValue()
-        #url = self.urlInput.GetValue()
-        print self.selectedURL
         if(self.selectedURL == "No server selected"):
             message = 'No server selected'
-            print message
             grass.warning(message)
             self.ShowMessage(message, 'Warning')
             StatusBar_fields = [message]
@@ -325,7 +258,6 @@ class wmsFrame(wx.Frame):
         
         if(self.selectedEPSG == None):
             message = 'No EPSG code selected'
-            print message
             grass.warning(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
@@ -333,12 +265,10 @@ class wmsFrame(wx.Frame):
             return
         if(not self.selectedEPSG.isdigit()):
             message = 'EPSG code selected is not a number'
-            print message
             grass.warning(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             self.ShowMessage(message, 'Warning')
-            
             return
         
         bbox = self.getBBOXParameters()
@@ -347,24 +277,18 @@ class wmsFrame(wx.Frame):
         getMap_request_url = self.url_in
         getMap_request_url += '?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:'+self.selectedEPSG+'&layers='
         getMap_request_url += self.layerName+'&bbox='+bbox
-        #'584344,397868,585500,398500'
-        print bbox
-        print getMap_request_url
     
         req = Request(getMap_request_url)
         try:
-            
             message = 'GetMaps request sent. Waiting for response...'
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             response = urlopen(req, None, self.timeoutValueSeconds)
             image = response.read()
-            #print image
             
             if(isServiceException(image)):
                 message = 'Service Exception has occured'
                 self.ShowMessage(message, 'Warning')
-                print message
                 grass.warning(message)
                 StatusBar_fields = [message]
                 self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
@@ -372,17 +296,12 @@ class wmsFrame(wx.Frame):
                 TMP = grass.tempfile()
                 if TMP is None:
                     grass.fatal("Unable to create temporary files")
-                print TMP
-                
                 outfile = open(TMP,'wb')
                 outfile.write(image)
                 outfile.close()
                 if(imghdr.what(TMP) != 'png'):
-                    #print 'uiui'
-                    #print imghdr.what('./map.png')
                     message = 'Not a valid PNG Image, Unable to display Map'
                     self.ShowMessage(message, 'Warning')
-                    print message
                     grass.warning(message)
                     StatusBar_fields = [message]
                     self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
@@ -396,24 +315,19 @@ class wmsFrame(wx.Frame):
             
         except HTTPError, e:
             message = 'The server couldn\'t fulfill the request.'
-            print message
-            #print 'Error code: ', e.code
+            message = str(e)
         except URLError, e: 
             message = 'Failed to reach a server.'
-            print message
-            #print 'Reason: ', e.reason
+            message = str(e)
         except ValueError, e:
             message = 'Value error'
-            print message
-            #print 'Reason: ', e.reason
-        except:
+            message = str(e)
+        except Exception, e:
             message = 'urlopen exception, unable to fetch data for getcapabilities'
-            print message
+            message = str(e)
         else:
             message = 'Successful'
-            print message
-                   
-        print message
+            
         if(message != 'Successful'):
             self.ShowMessage(message, 'Warning')
             grass.warning(message)
@@ -423,103 +337,53 @@ class wmsFrame(wx.Frame):
             grass.message(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
-        
-        #Sudeep's Code Ends
+            
         event.Skip()
-
-    
-    def OnServerListEnter(self, event): # wxGlade: wmsFrame.<event_handler>
-        return
-        '''
-        print "Event handler `OnServerListEnter' not implemented"
-        #Sudeep's Code Starts
-        print self.ServerList.CurrentSelection
-        newUrl = self.ServerList.GetValue()
-        self.ServerList.Append(newUrl)
         
-        url = newUrl.split()
-        if(len(url)==2):
-            self.servers[url[0]] = url[1]
-            f = open('serverList.txt','a')
-            f.write(newUrl+"\n")
-            f.close()
-            self.selectedURL = url[1]
-            print self.selectedURL
-            print self.servers
-  
-        else:
-            print "Format not recognized, Format: Severname URL"
-        #Sudeep's Code Ends
-        event.Skip()
-        '''
     def OnEPSGList(self,event):
         info = self.epsgList.GetValue()
         if(not info.isdigit()):
             message = 'Please select an EPSG Code'
-            print message
             grass.warning(message)
             seld.show_message(message)
             StatusBar_fields = [message]
             self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
             return
         self.selectedEPSG = info
-        print 'epsg = '+info
         
     def OnServerList(self, event): # wxGlade: wmsFrame.<event_handler>
-        print "Event handler `OnServerList' not implemented"
-        #Sudeep's Code Starts
-        print self.ServerList.CurrentSelection
         info = self.ServerList.GetValue()
         if(len(info) == 0):
             return
         urlarr = info.split(self.name_url_delimiter)
-        print "OnServerList:printing urlarr"
-        print urlarr
-        print urlarr[0]
-        #print urlarr[0].encode()
-        #self.printDict(self.servers)
-        print "OnServerList: done"
         if(len(urlarr)==2):
             try:
             	uid = self.map_servernameTouid[urlarr[0]]
             	self.selectedURL = self.servers[uid].url
-            	print self.selectedURL
             except KeyError,e:
-                print e
             	message = 'key error reported'
-                print message
-            	print self.map_servernameTouid
                 grass.warning(message)
         else:
             message = "Wrong format of URL selected"
-            print message
             grass.warning(message)
-        #Sudeep's Code Ends
+            
         event.Skip()
 
     def OnLayerTreeActivated(self, event): # wxGlade: wmsFrame.<event_handler>
-        #Sudeep's Code Starts
-        print "OnLayerTreeActivated: ", self.LayerTree.GetItemText(event.GetItem())
-        #Sudeep's Code Ends
-        print "Event handler `OnLayerTreeActivated' not implemented"
+        event.Skip()
+    
+    def OnServerListEnter(self, event): # wxGlade: wmsFrame.<event_handler>
         event.Skip()
 
-    def OnLayerTreeSelChanged(self, event): # wxGlade: wmsFrame.<event_handler>
-        #self.layerName = self.LayerTree.GetItemText(event.GetItem())
-        #print "Event handler `OnLayerTreeSelChanged' not implemented"
+    def OnLayerTreeSelChanged(self, event): # wxGlade: wmsFrame.<event_handler>"
         self.epsgList.Clear()
         self.epsgList.Append('')
         self.selectedLayerList = []
         keys =[]
         self.layerName = ""
-        print "Selected layers:"
         for sellayer in self.LayerTree.GetSelections():
             layerNameString = self.LayerTree.GetItemText(sellayer)
-            print 'here'
-            print layerNameString
             layerNameStringList = layerNameString.split(':')
-            print layerNameStringList
-            print len(layerNameStringList)
             if(len(layerNameStringList)==0):
                 message = 'Unable to select layers'
                 self.ShowMessage(message, 'Warning')
@@ -529,65 +393,41 @@ class wmsFrame(wx.Frame):
                 return
             layerName = layerNameStringList[0].split('-')[1]
             key = layerNameStringList[0].split('-')[0]
-            print layerName
-            print 'done'
             self.selectedLayerList += [layerName]
             self.layerName += ","+layerName
             keys += [key]
-            
             lEPSG = self.keyToEPSGCodes[key]
             self.epsgList.Append('<'+layerName+'>')
             self.epsgList.AppendItems(lEPSG)
             
           
         self.layerName = self.layerName[1:]
-        print self.layerName
         self.selectedEPSG = None
-        print self.keyToEPSGCodes
-        #for key in keys:
-        #    lEPSG = self.keyToEPSGCodes[key]
-        #    self.epsgList.AppendItems(lEPSG)
-                
-        #print "Event handler `OnLayerTreeSelChanged' not implemented"
+        
         event.Skip()
         
     def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
-        print 'before add server call'
         self.AddServerisClosed = False
         self.addServer.Disable()
         AddServerFrame(self)
-        #print 'after add server call'
-        #print "Event handler `OnAddServer' not implemented"
-        #event.Skip()
         return 
     
-
     def onAddServerFrameClose(self, msg):
         self.AddServerisClosed = True
         self.addServer.Enable()
-        #frame = self.GetParent()
-        #frame.Show()
-    
+        
     def onUpdateServerListmessage(self, msg):
-        #patch5s
         self.servers = msg.data
-        print 'in update serverlistmessage()'
-        print 'printing serverlist'
-        self.printDict(self.servers)
-        #patch5e
+        #self.printDict(self.servers)
         self.__update_Url_List(self.ServerList)
         
-        #patch5s
-    def onUpdateMapListmessage(self, msg):
-        print 'in update maplistmessage()' 
+    def onUpdateMapListmessage(self, msg): 
         self.map_servernameTouid = msg.data
-        print 'printing map_servernametouid'
-        self.printDict(self.map_servernameTouid)
-        #patch5e
+        #self.printDict(self.map_servernameTouid)
         
     def OnQuit(self, event):
         msg = ""
-        print 'in quit'
+
         if(not self.AddServerisClosed):
             Publisher().sendMessage(("WMS_Menu_Close"), msg)
         self.Destroy()
@@ -600,22 +440,15 @@ class wmsFrame(wx.Frame):
         ComboBox.Clear()
         ComboBox.Append("")
         for key, value in self.servers.items():
-            #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
-            #ComboBox.Append(string)
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
-            #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
-        #print self.servers
         return
         
     def __populate_Url_List(self, ComboBox):
         self.servers, self.map_servernameTouid = getAllRows(self.soup)
         ComboBox.Append("")
         for key, value in self.servers.items():
-            #string = '{0}{1}{2}'.format(value.servername,self.name_url_delimiter,value.url[0:self.urlLength])
-            #ComboBox.Append(string)
             ComboBox.Append(value.servername+self.name_url_delimiter+value.url[0:self.urlLength])
-            #ComboBox.Append(value.servername+" "+self.name_url_delimiter+" "+value.url)
-        #print self.servers
+
         return
     
     def getBBOXParameters(self):
@@ -641,17 +474,6 @@ class wmsFrame(wx.Frame):
         res = str(minx)+','+str(miny)+','+str(maxx)+','+str(maxy)
         return res
 
-        '''f = open('serverList.txt','r')
-        lines = f.readlines()
-        self.servers = {}
-        for line in lines:
-            row = line.split()
-            print row
-            if(len(row) == 4) :
-                self.servers[row[0]] = row[1]
-            name = row[0]+" "+row[1][7:45]
-            ComboBox.Append(name)
-        f.close()'''
 
     def printDict(self,dict):
         for key in dict.keys():
@@ -660,16 +482,13 @@ class wmsFrame(wx.Frame):
 
 # end of class wmsFrame
 
-#Sudeep's Code Starts
 def DisplayWMSMenu():
-        print 'DisplayWMSMenu loaded...'
         app = wx.PySimpleApp(0)
         wx.InitAllImageHandlers()
         wms_Frame = wmsFrame(None, -1, "")
         app.SetTopWindow(wms_Frame)
         wms_Frame.Show()
         app.MainLoop()
-#Sudeep's Code Ends
 
 if __name__ == "__main__":
     app = wx.PySimpleApp(0)
