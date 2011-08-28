@@ -35,6 +35,14 @@ from ServerInfoAPIs import addServerInfo, removeServerInfo, updateServerInfo, in
 from LoadConfig import loadConfigFile
 
 
+class newLayerData():
+    name = None
+    title = None
+    abstract = None
+    srsList = None
+
+
+
 class LayerData():
     name = None
     title = None
@@ -76,6 +84,33 @@ class LayerData():
 
 class Message():
     pass
+
+class ManageLayerTree():
+    
+    def getAllChild(self,LayerTree, parentId):
+        children = []
+        currentchild,obj = LayerTree.GetFirstChild(parentId)
+        while(1):
+                if(not currentchild.IsOk()):
+                    break
+                children += [currentchild]
+                nextchild = LayerTree.GetNextSibling(currentchild)
+                currentchild = nextchild
+        return children
+    
+    def layerTreeItemDFS(self,parent,LayerTree,nodeId):
+        if(not nodeId.IsOk()):
+            return
+        currentLayerDetails = LayerTree.GetItemText(nodeId)
+        currentLayerName = (currentLayerDetails.split(':')[0]).split('-')[1]
+        currentLayerKey = (currentLayerDetails.split(':')[0]).split('-')[0]
+        parent.epsgList.Append('<'+currentLayerName+'>')
+        listEPSG = parent.layerDataDict1[currentLayerKey].srsList
+        parent.epsgList.AppendItems(listEPSG)
+        parent.layersString += ',' + currentLayerName
+        allChild = self.getAllChild(LayerTree, nodeId)
+        for child in allChild:
+            self.layerTreeItemDFS(parent,LayerTree,child)
 
 class wmsFrame(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -131,6 +166,7 @@ class wmsFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnQuit)
         self.AddServerisClosed = True
         self.layerName = ""
+        self.layerDataDict1 = {}
         self.selectedEPSG = None
         
     def __set_properties(self):
@@ -215,9 +251,11 @@ class wmsFrame(wx.Frame):
                 return
             layerDataDict = parsexml2(xml)
             ld = LayerData()
-            ld.appendLayerTree(layerDataDict, self.LayerTree, self.layerTreeRoot)
+            #ld.appendLayerTree(layerDataDict, self.LayerTree, self.layerTreeRoot)
             self.keyToEPSGCodes = ld.setKeyToEPSGCodes(layerDataDict)
             self.selectedEPSG = None
+            self.layerDataDict1 = test(xml,self.LayerTree,self.layerTreeRoot)
+            print self.layerDataDict1
             self.LayerTree.Expand(self.layerTreeRoot)
         except HTTPError, e:
             message = 'The server couldn\'t fulfill the request.'
@@ -272,12 +310,12 @@ class wmsFrame(wx.Frame):
             return
         
         bbox = self.getBBOXParameters()
-        bbox = '584344,397868,585500,398500'
+        #bbox = '584344,397868,585500,398500'
         self.url_in = self.selectedURL
         getMap_request_url = self.url_in
         getMap_request_url += '?service=WMS&request=GetMap&version=1.1.1&format=image/png&width=800&height=600&srs=EPSG:'+self.selectedEPSG+'&layers='
         getMap_request_url += self.layerName+'&bbox='+bbox
-    
+        print getMap_request_url
         req = Request(getMap_request_url)
         try:
             message = 'GetMaps request sent. Waiting for response...'
@@ -374,6 +412,9 @@ class wmsFrame(wx.Frame):
     
     def OnServerListEnter(self, event): # wxGlade: wmsFrame.<event_handler>
         event.Skip()
+        
+    
+            
 
     def OnLayerTreeSelChanged(self, event): # wxGlade: wmsFrame.<event_handler>"
         self.epsgList.Clear()
@@ -381,6 +422,22 @@ class wmsFrame(wx.Frame):
         self.selectedLayerList = []
         keys =[]
         self.layerName = ""
+        print len(self.LayerTree.GetSelections())
+        res = ''
+        self.layersString=''
+        manageLT = ManageLayerTree()
+        for sellayer in self.LayerTree.GetSelections():
+            #res = res + ','+self.LayerTree.GetItemText(sellayer)
+            manageLT.layerTreeItemDFS(self,self.LayerTree, sellayer)
+                
+                
+            #print child
+        print self.layersString[1:]
+        self.layerName = self.layersString[1:]
+        print self.layerDataDict1
+        self.selectedEPSG = None
+        
+        '''
         for sellayer in self.LayerTree.GetSelections():
             layerNameString = self.LayerTree.GetItemText(sellayer)
             layerNameStringList = layerNameString.split(':')
@@ -403,7 +460,7 @@ class wmsFrame(wx.Frame):
           
         self.layerName = self.layerName[1:]
         self.selectedEPSG = None
-        
+        '''
         event.Skip()
         
     def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
@@ -483,6 +540,7 @@ class wmsFrame(wx.Frame):
 # end of class wmsFrame
 
 def DisplayWMSMenu():
+        #print os.environ
         app = wx.PySimpleApp(0)
         wx.InitAllImageHandlers()
         wms_Frame = wmsFrame(None, -1, "")

@@ -24,8 +24,17 @@ for details.
 from grass.script import core as grass
 from BeautifulSoup import BeautifulSoup, BeautifulStoneSoup
 import re
+from xml.dom.minidom import parse, parseString
 from urllib2 import Request, urlopen, URLError, HTTPError
 
+
+key = 0
+
+class newLayerData():
+	name = None
+	title = None
+	abstract = None
+	srsList = None
 
 class LayerData():
 	name = None
@@ -137,8 +146,39 @@ def populateLayerTree(xml,LayerTree, layerTreeRoot):
 	xml = f.read()
 	soup = BeautifulSoup(xml)
 	dfs(soup,LayerTree, layerTreeRoot)
+
+def test(xml,LayerTree,layerTreeRoot):
+	f = open('/home/sudeep/in3.xml','w')
+	f.write(xml)
+	f.close()
+	f = open('/home/sudeep/in3.xml','r')
+	xml1=f.read()
+	'''
+	#xml1=xml
+	#xml='<root> '+xml1+' </root>'
+	a=xml1.find('<WMT_MS_Capabilities')
+	print 'a1='+str(a)
+	if(a==-1):
+		print 'a2='+str(a)
+		a=xml1.find('<wmt_ms_capabilities')
+	if(a==-1):
+		print 'a3='+str(a)
+		print 'serious mix up'
+		return
+	print 'a4='+str(a)
+	#print xml1[a:]
+	'''
+	dom=parseString(xml1)
+	root=dom.firstChild
+	lData = {}
+	global key
+	key = 0
+	dfs1(dom,LayerTree,layerTreeRoot,lData)
+	return lData
+
 	
 def dfs(root,LayerTree, ltr):
+	
 	if not hasattr(root, 'contents'):
 		print root.string
 		return
@@ -155,6 +195,66 @@ def dfs(root,LayerTree, ltr):
 			dfs(child, LayerTree, id)
     		return
 
+def getAttributeLayers(node, attribute):
+	Attribute = attribute.capitalize() 
+	l=node.getElementsByTagName(attribute)
+	g=None
+	if(len(l)>0):
+		g=l[0].firstChild
+	else:
+		l=node.getElementsByTagName(Attribute)
+		if(len(l)>0):
+			g=l[0].firstChild
+	if(g is not None):
+		return unicode(g.nodeValue)
+	else:
+		return None
+	    
+def dfs1(node,LayerTree, ltr,lData):
+	global key
+	if ( hasattr(node,'data')):
+		return
+	id = ltr
+	if(hasattr(node,'tagName')):
+		if(node.tagName == 'Layer' or node.tagName == 'layer'):
+		   	name = getAttributeLayers(node, 'name')
+		   	if(name is not None):
+		 		lData[str(key)] = newLayerData()
+		   		title = getAttributeLayers(node, 'title')
+		   		abstract = getAttributeLayers(node, 'abstract')
+		   		if(title is None):
+		   			title = unicode('')
+		   		else:
+		   			title = ':'+title
+		   			
+		   		if(abstract is None):
+		   			abstract = unicode('')
+		   		else:
+		   			abstract = ':'+abstract
+		   			
+		   		description = unicode(str(key)+'-'+name+title+abstract)
+		   		id = LayerTree.AppendItem(ltr,description)
+		   		
+		   		SRS = node.getElementsByTagName('SRS')
+		   		srsList = []
+		   		for srs in SRS:
+		   			#print srs.toxml()
+		   			#print srs.firstChild.nodeValue
+		   			srsList += [str(srs.firstChild.nodeValue)[5:]]
+		   		print srsList
+		   		lData[str(key)].name = name
+		   		lData[str(key)].abstract = abstract
+		   		lData[str(key)].title = title
+		   		lData[str(key)].srsList = srsList
+		   		key = key + 1
+		   			
+		   		
+	for child in node.childNodes:
+		dfs1(child,LayerTree,id,lData)
+	return
+	
+	
+	
 def parseGrass_Region(grassRegion, dir):
 	grassRegion = 'n-s resol: 26.266417; n-s resol3: 100; rows: 533; north: 4928000.0; t-b resol: 1; zone: 13; bottom: 0; rows3: 140; west: 590000.0; top: 1; cols: 698; cols3: 190; depths: 1; e-w resol: 27.220630; proj: 1; e-w resol3: 100; east: 609000.0; south: 4914000.0;' 
 	width = '698'
