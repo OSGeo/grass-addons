@@ -120,21 +120,8 @@ int main(int argc, char *argv[])
 	out.fd = Rast_open_new(output->answer, DCELL_TYPE);
 	out.rast = Rast_allocate_buf(out.type);
 	/* Open and buffer of the elevation file */
-	if (dem.type == CELL_TYPE) {
-	    dem.rast = Rast_allocate_buf(CELL_TYPE);
-	    eval_c_cosi(&out, &dem, zenith, azimuth);
-	}
-	else if (dem.type == FCELL_TYPE) {
-	    dem.rast = Rast_allocate_buf(FCELL_TYPE);
-	    eval_f_cosi(&out, &dem, zenith, azimuth);
-	}
-	else if (dem.type == DCELL_TYPE) {
-	    dem.rast = Rast_allocate_buf(DCELL_TYPE);
-	    eval_d_cosi(&out, &dem, zenith, azimuth);
-	}
-	else {
-	    G_fatal_error(_("Elevation file of unknown type"));
-	}
+	dem.rast = Rast_allocate_buf(DCELL_TYPE);
+	eval_cosi(&out, &dem, zenith, azimuth);
 	/* Close files, buffers, and write history */
 	G_free(dem.rast);
 	Rast_close(dem.fd);
