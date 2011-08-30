@@ -40,6 +40,7 @@ class newLayerData():
     title = None
     abstract = None
     srsList = None
+    queryable = None
 
 
 
@@ -101,13 +102,15 @@ class ManageLayerTree():
     def layerTreeItemDFS(self,parent,LayerTree,nodeId):
         if(not nodeId.IsOk()):
             return
+        
         currentLayerDetails = LayerTree.GetItemText(nodeId)
         currentLayerName = (currentLayerDetails.split(':')[0]).split('-')[1]
         currentLayerKey = (currentLayerDetails.split(':')[0]).split('-')[0]
-        parent.epsgList.Append('<'+currentLayerName+'>')
-        listEPSG = parent.layerDataDict1[currentLayerKey].srsList
-        parent.epsgList.AppendItems(listEPSG)
-        parent.layersString += ',' + currentLayerName
+        if(parent.layerDataDict1[currentLayerKey].queryable == 1):
+            parent.epsgList.Append('<'+currentLayerName+'>')
+            listEPSG = parent.layerDataDict1[currentLayerKey].srsList
+            parent.epsgList.AppendItems(listEPSG)
+            parent.layersString += ',' + currentLayerName
         allChild = self.getAllChild(LayerTree, nodeId)
         for child in allChild:
             self.layerTreeItemDFS(parent,LayerTree,child)
@@ -422,7 +425,7 @@ class wmsFrame(wx.Frame):
         self.selectedLayerList = []
         keys =[]
         self.layerName = ""
-        print len(self.LayerTree.GetSelections())
+        #print len(self.LayerTree.GetSelections())
         res = ''
         self.layersString=''
         manageLT = ManageLayerTree()
@@ -434,7 +437,7 @@ class wmsFrame(wx.Frame):
             #print child
         print self.layersString[1:]
         self.layerName = self.layersString[1:]
-        print self.layerDataDict1
+        #print self.layerDataDict1
         self.selectedEPSG = None
         
         '''

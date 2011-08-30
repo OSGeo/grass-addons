@@ -35,6 +35,7 @@ class newLayerData():
 	title = None
 	abstract = None
 	srsList = None
+	queryable = None
 
 class LayerData():
 	name = None
@@ -217,6 +218,15 @@ def dfs1(node,LayerTree, ltr,lData):
 	id = ltr
 	if(hasattr(node,'tagName')):
 		if(node.tagName == 'Layer' or node.tagName == 'layer'):
+			queryable = None
+			try:
+				print 'hoopla'
+				queryable = node.attributes["queryable"].value
+			except Exception,e:
+				print 'ghapla'
+				print e
+				queryable = 1
+			
 		   	name = getAttributeLayers(node, 'name')
 		   	if(name is not None):
 		 		lData[str(key)] = newLayerData()
@@ -231,8 +241,8 @@ def dfs1(node,LayerTree, ltr,lData):
 		   			abstract = unicode('')
 		   		else:
 		   			abstract = ':'+abstract
-		   			
-		   		description = unicode(str(key)+'-'+name+title+abstract)
+		   		queryablestr = ':<Queryable = '+str(queryable)+'>'
+		   		description = unicode(str(key)+'-'+name+title+abstract+queryablestr)
 		   		id = LayerTree.AppendItem(ltr,description)
 		   		
 		   		SRS = node.getElementsByTagName('SRS')
@@ -241,11 +251,12 @@ def dfs1(node,LayerTree, ltr,lData):
 		   			#print srs.toxml()
 		   			#print srs.firstChild.nodeValue
 		   			srsList += [str(srs.firstChild.nodeValue)[5:]]
-		   		print srsList
+		   		#print srsList
 		   		lData[str(key)].name = name
 		   		lData[str(key)].abstract = abstract
 		   		lData[str(key)].title = title
 		   		lData[str(key)].srsList = srsList
+		   		lData[str(key)].queryable = queryable
 		   		key = key + 1
 		   			
 		   		
