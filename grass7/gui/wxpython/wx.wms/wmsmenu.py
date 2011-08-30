@@ -104,13 +104,16 @@ class ManageLayerTree():
             return
         
         currentLayerDetails = LayerTree.GetItemText(nodeId)
-        currentLayerName = (currentLayerDetails.split(':')[0]).split('-')[1]
-        currentLayerKey = (currentLayerDetails.split(':')[0]).split('-')[0]
-        if(parent.layerDataDict1[currentLayerKey].queryable == 1):
-            parent.epsgList.Append('<'+currentLayerName+'>')
-            listEPSG = parent.layerDataDict1[currentLayerKey].srsList
-            parent.epsgList.AppendItems(listEPSG)
-            parent.layersString += ',' + currentLayerName
+        if(not(currentLayerDetails == 'Layers' and currentLayerDetails.count(':')==0)): 
+            currentLayerName = (currentLayerDetails.split(':')[0]).split('-')[1]
+            currentLayerKey = (currentLayerDetails.split(':')[0]).split('-')[0]
+            if(not currentLayerKey in parent.selectedLayersKeys):    
+                parent.selectedLayersKeys += [currentLayerKey]
+                if(parent.layerDataDict1[currentLayerKey].queryable == 1):
+                    parent.epsgList.Append('<'+currentLayerName+'>')
+                    listEPSG = parent.layerDataDict1[currentLayerKey].srsList
+                    parent.epsgList.AppendItems(listEPSG)
+                    parent.layersString += ',' + currentLayerName
         allChild = self.getAllChild(LayerTree, nodeId)
         for child in allChild:
             self.layerTreeItemDFS(parent,LayerTree,child)
@@ -429,6 +432,7 @@ class wmsFrame(wx.Frame):
         res = ''
         self.layersString=''
         manageLT = ManageLayerTree()
+        self.selectedLayersKeys = []
         for sellayer in self.LayerTree.GetSelections():
             #res = res + ','+self.LayerTree.GetItemText(sellayer)
             manageLT.layerTreeItemDFS(self,self.LayerTree, sellayer)
