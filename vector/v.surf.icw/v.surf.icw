@@ -114,13 +114,13 @@
 
 
 
-if [ -z $GISBASE ] ; then
+if [ -z "$GISBASE" ] ; then
     echo "You have to be in GRASS to use this." 1>&2
     exit 1
 fi
 
 if [ "$1" != "@ARGS_PARSED@" ] ; then
-  exec $GISBASE/bin/g.parser "$0" "$@"
+  exec "$GISBASE/bin/g.parser" "$0" "$@"
 fi
 
 if [ -z "$GIS_OPT_POST_MASK" ] ; then
@@ -139,7 +139,7 @@ if [ "$GIS_FLAG_R" -eq 1 ] ; then
 fi
 echo "------------------------------------------------------------------------"
 
-FRICTION=$GIS_OPT_FRICTION
+FRICTION="$GIS_OPT_FRICTION"
 if [ "$FRICTION" -lt 1 ] || [ "$FRICTION" -gt 6 ]; then
     echo "Friction of Distance out of range [1-6]" 1>&2
     exit 1
@@ -229,7 +229,7 @@ for POS in `cat "$TMP_POINTS"` ; do
     CAT=`echo "$POS" | cut -f"$CATCOL" -d"|"`
     DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select $COL_NAME from tmp_icw_points_$$ where cat=${CAT}"`"
 
-    echo Site $NUM of $N  e=$EASTING  n=$NORTHING data=$DATA_VALUE
+    echo "Site $NUM of $N  e=$EASTING  n=$NORTHING data=$DATA_VALUE"
 
     if [ -z "$DATA_VALUE" ] ; then
 	echo "  Skipping, no data here." 1>&2
@@ -279,7 +279,7 @@ echo "Finding sum of squares.." 1>&2
 INPUT_MAPS=1by_cost_site_sqrd.1
 NUM=2
 while [ $NUM -le $N ] ; do
-    INPUT_MAPS=$INPUT_MAPS,1by_cost_site_sqrd.$NUM
+    INPUT_MAPS="$INPUT_MAPS,1by_cost_site_sqrd.$NUM"
     NUM="`expr $NUM + 1`"
 done
 
@@ -289,7 +289,7 @@ if [ -n "$GIS_OPT_POST_MASK" ] ; then
 fi
 
 echo "Summation of cost weights.." 1>&2
-r.series method=sum in=$INPUT_MAPS out=sum_of_1by_cost_sqs
+r.series method=sum in="$INPUT_MAPS" out=sum_of_1by_cost_sqs
 
 if [ -n "$GIS_OPT_POST_MASK" ] ; then
     echo "Removing post_mask [$GIS_OPT_POST_MASK]" 1>&2
