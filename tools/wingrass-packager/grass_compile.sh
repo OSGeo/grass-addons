@@ -14,15 +14,18 @@ function compile {
     cd $SRC/$1
     rm -f mswindows/osgeo4w/configure-stamp
     svn up || (svn cleanup && svn up)
-    ./mswindows/osgeo4w/package.sh
+    ./mswindows/osgeo4w/package.sh $2
 }
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 
+# empty for native installer
+PACKAGE=$1
+
 update grass_addons
 
-compile grass64_release
-compile grass6_devel
-compile grass_trunk
+compile grass64_release $PACKAGE
+compile grass6_devel $PACKAGE
+compile grass_trunk $PACKAGE
 
 exit 0
