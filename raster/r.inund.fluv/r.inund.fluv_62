@@ -465,7 +465,7 @@ g.remove rast=inondazione_step3_isnull,diff_inond,inondazione_step5,inondazione_
 g.remove vect=inondazione_step1,inondazione_step2,reticolo 
 g.remove vect=diff_inond1,reticolo_interno,inondazione1,overlap 
 
-if [ "$inondazione" == "inondazione" ]
+if [ "$inondazione" = "inondazione" ]
 then
  echo " "
 else

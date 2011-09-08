@@ -135,7 +135,7 @@ please take care of following rules:
 8.  Testing the existence of variables. For portability, use
 	if [ -z "$VARIABLE" ] ; then
     instead of
-	if [ "$VARIABLE" == "" ] ; then
+	if [ "$VARIABLE" = "" ] ; then
 
     and
 
