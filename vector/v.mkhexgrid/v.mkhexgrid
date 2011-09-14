@@ -90,7 +90,7 @@ from grass.script import db as gdb
 #
 #
 
-def WriteHexGridVectors(vf, sf, table_name, schema, side_len, xstart, ystart, xlimit, ylimit):
+def WriteHexGridVectors(vf, sf, table_name, side_len, xstart, ystart, xlimit, ylimit):
     
     # basic trig
     angle_a = math.radians(30)
@@ -109,12 +109,8 @@ def WriteHexGridVectors(vf, sf, table_name, schema, side_len, xstart, ystart, xl
             name = 'x%f_y%f' % (x,y)
             outstring = CreateHexagon((x, y), side_len, cat)
             vf.write(outstring)
-            if schema == '':
-                outstring = "UPDATE %s SET row_num = %d, col_num = %d, row_col = '%d_%d' WHERE cat = %d;\n" % \
-                    (table_name,row,col,row,col,cat)
-            else:
-                outstring = "UPDATE %s.%s SET row_num = %d, col_num = %d, row_col = '%d_%d' WHERE cat = %d;\n" % \
-                    (schema,table_name,row,col,row,col,cat)
+            outstring = "UPDATE %s SET row_num = %d, col_num = %d, row_col = '%d_%d' WHERE cat = %d;\n" % \
+                (table_name,row,col,row,col,cat)
             sf.write(outstring)
             cat = cat + 1
             x = x + (2*side_len) + (2*side_a)
@@ -258,9 +254,13 @@ def main():
     vf = open(vectorfile, "w")
     sf = open(sqlfile, "w")
     WriteGrassHeader(vf,vectorfile,xstart,ystart,xmax,ymax)
-    table_name = options['output'].split('@')[0]
+    tname = options['output'].split('@')[0]
     schema = gdb.db_connection()['schema']
-    WriteHexGridVectors(vf, sf, table_name, schema, float(side_len), float(xstart), float(ystart), float(xmax), float(ymax))
+    if schema.strip() == '':
+        table_name = tname
+    else:
+        table_name = schema + '.' + tname
+    WriteHexGridVectors(vf, sf, table_name, float(side_len), float(xstart), float(ystart), float(xmax), float(ymax))
     vf.close()
     sf.close()
     # now import and clean up the vector
@@ -276,7 +276,7 @@ def main():
     grass.message('Cleaning and building topology')
     try:
         r = grass.run_command('v.clean', flags='-q', input=tempname, \
-            output=table_name, type='point,line,boundary,centroid,area', tool='rmdupl')
+            output=tname, type='point,line,boundary,centroid,area', tool='rmdupl')
         if r <> 0:
             raise
     except:
@@ -289,7 +289,7 @@ def main():
     grass.message(vectorfile)
     try:
          # add attribute table
-        r = grass.run_command('v.db.addtable', map=table_name, table=schema+'.'+table_name, layer=1, columns='cat integer, row_num integer, col_num integer, row_col varchar(255)' )
+        r = grass.run_command('v.db.addtable', map=tname, table=table_name, layer=1, columns='cat integer, row_num integer, col_num integer, row_col varchar(255)' )
         if r <> 0:
             raise
     except:
