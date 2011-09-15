@@ -2,8 +2,8 @@
 
 <p>
 <DT><b>input</b></DT>
-<DD>Name of input raster map to be fuzified. This map may be of any type and may
-require null values. 
+<DD>Name of input raster map to be fuzzified. This map may be of any type and may
+contain null values. 
 </DD>
 <p>
 
@@ -12,63 +12,57 @@ require null values.
 Points must not to be in map range, but it may lead to only 0 o 1 membership for
 the whole map. For "both" side parameters range between A and D defines base,
 but range between B and C core of the fuzzy set. Between A and B and C and D are
-set's boundaries. If side is "both" it require 4 points, else 2 points.</DD>
+the set's boundaries. If side is "both" it require 4 points, else 2 points.</DD>
 <p>
 
-<center>
 <h3>Fuzzy set definition:</h3>
 <img src=set.png border=1><br>
-</center>
 
 <DT><b>side</b></DT>
-<DD>Option indicat if set is fuzzified ob both side s (both), left or right
-side. See description for details.</DD>
+<DD>This option indicates if the set is fuzzified on both sides (both),
+or the left or right side. See description for details.</DD>
 <p>
 
 <h2>OUTPUTS</h2>
 <DT><b>output</b></DT>
-<DD>Map containing membership value of original map. Map is alvays of type
-FCELLS and contains values from 0 (no membership) to 1 (full membership). Values
+<DD>Map containing membership value of original map. Map is always of type
+FCELL and contains values from 0 (no membership) to 1 (full membership). Values
 between 0 and 1 indicate partial membership</DD>
 <p>
 
 <h2>FUZZY SET PARAMETERS</h2>
 
 <DT><b>boundary</b></DT>
-<DD>Parameter definied the shape of the fuzzy boundary. The default and most
+<DD>This parameter defines the shape of the fuzzy boundary. The default and most
 popular is S-shaped, linear, J-shaped and G-shaped boundaries are also
-available. The same boundaires are appled to the both sides.</DD>
+available. The same boundaries are applied to both sides.</DD>
 <p>
 
-<center>
-<h3>Boundary definition:<h3>
+<h3>Boundary definition:</h3>
 <img src=boundary.png border=1><br>
-</center
 
 <DT><b>shape</b></DT>
 <DD>Optional shape modifier. Range from -1 to 1. The default value is 0 and
-shoud  not be changed in most of the time. The negative values indicate more
-dilatant set, the positive values more concentrate set. See description for
+in most cases should not be changed. Negative values indicate a more
+dilettante set, positive values a more concentrated set. See description for
 details.</DD>
 <p>
 
-<center>
-<h3>Impact of shape parameter on shape boundary:<h3>
+<h3>Impact of shape parameter on shape boundary:</h3>
 <img src=shape.png border=1><br>
-</center
 
 <DT><b>height</b></DT>
 <DD>Optional height modifier. Range from 0 to 1. The default value is 1 and
-indicate full membership beteen points B and C. If height is lesser than one the
-maximum memebrship is equal to height. See image: Fuzzy set definition.</DD>
+indicates full membership between points B and C. If height is less than one the
+maximum membership is equal to height. See image: Fuzzy set definition.</DD>
 <p>
 
-</DL>
 
 <h2>DESCRIPTION</h2>
 
 <P>
 <H4>Definition of fuzzy set</H4>
+
 Fuzzy sets are sets whose elements have degrees of membership. Zadeh (1965)
 introduced Fuzzy sets as an extension of the classical notion of set. Classical 
 membership of elements in a set are binary terms: an element either belongs or
@@ -77,17 +71,20 @@ membership of elements in a set. A membership function valued in the real unit
 interval [0, 1]. Classical sets, are special cases of the membership functions
 of fuzzy sets, if the latter only take values 0 or 1. Classical sets are in
 fuzzy set theory usually called crisp sets. The fuzzy set theory can be used in
-a wide range of domains in which information is  imprecise, such as most of the
+a wide range of domains in which information is imprecise, such as most
 GIS operations.
 
 
 
 <h2>NOTES</H2>
+
 <H4>Calculation of boundary shape</H4>
-Depending on type of the boundary different equation are used to determine its
+
+Depending on the boundary type, different equations are used to determine its
 shape:
 <P>
-<B>Linear:</B> the membership is calculated according following equation:<br>
+<B>Linear:</B> the membership is calculated according to the following equation:<br>
+
 <pre><code>
 value  <=  A -> x = 0
 A< value > B -> x = (value-A)/(B-A)
@@ -98,10 +95,12 @@ value  >=  D -> x = 0
 where x: membership
 </code></pre>
 <P>
-<B>S-shaped:</B> it use following equation:
+
+<B>S-shaped:</B> uses the following equation:
+
 <pre><code>
 sin(x * Pi/2)^m (for positive shape parameter)
-1-cos(x * Pi/2)^m (for nagative shape parameter)
+1-cos(x * Pi/2)^m (for negative shape parameter)
 
 where x: membership, and 
 m = 2^exp(2,shape) (for positive shape parameter)
@@ -109,11 +108,13 @@ m = 2^(1+shape) (for negative shape parameter)
 where m: shape parameter.
 </code></pre>
 
-For default shape parameter = 0 m is = 2 whcich is most common parameter for
+For the default shape parameter = 0, m is = 2 which is the most common parameter for
 that equation.
 
 <P>
-<B>G-shaped and J shaped:</B> it use following equations: 
+
+<B>G-shaped and J shaped:</B> use the following equations: 
+
 <pre><code>
 tan(x * Pi/4)^m (for J-shaped)
 tan(x * Pi/4)^1/m (for G-shaped)
@@ -129,13 +130,13 @@ where m: shape parameter.
 
 <em>
 <a href="r.fuzzy.logic.html">r.fuzzy.logic</a>,
-<a href="r.mapcalc.html">r.mapcalc</a>,
+<a href="r.mapcalc.html">r.mapcalc</a>
 </em>
 
 
 <h2>REFERENCES</h2>
 
-Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338–353.
+Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338--353.
 doi:10.1016/S0019-9958(65)90241-X. ISSN 0019-9958.<P>
 
 Novák, Vilém (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
@@ -154,8 +155,10 @@ Statistical Software, 31(2), 1{27. URL http://www.jstatsoft.org/v31/i02/.<P>
 Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
 R~package version~1.0, URL http://CRAN.R-project.org/package=sets.<P>
 
+
 <h2>AUTHOR</h2>
 Jarek  Jasiewicz
 
-<p><i>Last changed: $Date$</i>
+<p>
+<i>Last changed: $Date$</i>
 

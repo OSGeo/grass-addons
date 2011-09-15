@@ -1,16 +1,15 @@
-/* ***************************************************************************
+/* **************************************************************************
  *
  * MODULE:       r.fuzzy
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
  * PURPOSE:      Calculate membership value of any raster map according user's rules
- * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
+ * COPYRIGHT:    (C) 1999-2011 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
  *               for details.
  *
- ****************************************************************************
- */
+ ****************************************************************************/
 
 #include <grass/gis.h>
 #include <grass/glocale.h>
@@ -46,8 +45,7 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     module->keywords = _("raster, fuzzy logic");
-    module->description =
-        _("xxxx");
+    module->description = _("Cluster raster maps using fuzzy logic.");
 
     par_input = G_define_standard_option(G_OPT_R_INPUT);
     par_input->description = _("Raster map to be fuzzified");
@@ -85,7 +83,7 @@ int main(int argc, char *argv[])
     par_shape = G_define_option();
     par_shape->key = "shape";
     par_shape->type = TYPE_DOUBLE;
-    par_shape->options = "-1 to 1";
+    par_shape->options = "-1.0-1.0";
     par_shape->answer = "0.";
     par_shape->multiple = NO;
     par_shape->required = YES;
@@ -95,7 +93,7 @@ int main(int argc, char *argv[])
     par_height = G_define_option();
     par_height->key = "height";
     par_height->type = TYPE_DOUBLE;
-    par_height->options = "0 to 1";
+    par_height->options = "0.0-1.0";
     par_height->answer = "1";
     par_height->multiple = NO;
     par_height->required = YES;
