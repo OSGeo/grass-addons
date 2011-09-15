@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 
     height = atof(par_height->answer);
     if (height > 1 || height < 0)
-	G_fatal_error(_("Heght modifier must be between 0 and 1"));
+	G_fatal_error(_("Height modifier must be between 0 and 1"));
 
     num_points = sscanf(par_points->answer,
 			"%lf,%lf,%lf,%lf", &p[0], &p[1], &p[2], &p[3]);
