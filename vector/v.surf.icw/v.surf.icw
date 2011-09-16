@@ -140,10 +140,10 @@ fi
 echo "------------------------------------------------------------------------"
 
 FRICTION="$GIS_OPT_FRICTION"
-if [ "$FRICTION" -lt 1 ] || [ "$FRICTION" -gt 6 ]; then
-    echo "Friction of Distance out of range [1-6]" 1>&2
-    exit 1
-fi
+#if [ "$FRICTION" -lt 1 ] || [ "$FRICTION" -gt 6 ]; then
+#    echo "Friction of Distance out of range [1-6]" 1>&2
+#    exit 1
+#fi
 
 # adjust so that tiny numbers don't hog all the FP precision space
 #DIVISOR=""

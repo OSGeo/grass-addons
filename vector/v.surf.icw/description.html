@@ -1,0 +1,100 @@
+<H2>DESCRIPTION</H2>
+
+Inverse cost weighting is like inverse distance weighted (IDW) interpolation,
+but uses <i>cost</i> instead of shortest Euclidean distance. In this way
+solid barriers and molasses zones may be correctly taken into account.
+<P>
+Input data points do not need to have direct line of sight to each other.
+This is interpolation "as the fish swims", not "as the crow flies", and can
+see around headlands or across land-bridges without polluting over barriers
+which the natural value (or flightless bird) can not cross.
+<P>
+It was initially written to interpolate water chemistry in two parallel
+arms of a fjord, but may just as well be used for population abundance
+constrained by topography, or in studies of archeologic technology transfer.
+
+
+<H2>NOTES</H2>
+
+In the simplest case, the cost map will just be a mask raster with values
+of 1 in areas to interpolate, and NULL in impenetrable areas.
+Fancier cost maps can be used, for example, to make it more expensive for
+a measured pollutant to diffuse upstream in an estuary, or to make it more
+expensive for a stone tool technology to cross waterways.
+<P>
+Since generating cost maps can take a long time, it is recommended to keep
+the raster region relatively small and limit the number of starting points
+to less than 100.
+<P>
+Higher values of <b>friction</b> will help limit unconstrained boundary
+effects at the edges of your coverage, but will incur more of a stepped
+transition between sites.
+<P>
+The <b>post_mask</b>, if given, is applied after the interpolation is
+complete. A common use for that might be to only present data within
+a certain distance (thus confidence) of an actual sampling station.
+In that case the <em>r.cost</em> module can be used to create the mask.
+
+
+<H2>EXAMPLE</H2>
+
+In this example we'll generate some fake island barriers from the
+standard North Carolina GRASS dataset, then interpolate a continuous
+variable between given point stations. We'll use rainfall, but for the
+purposes of the exercise pretend it is a nutrient concentration in our
+fake wayerway.  Point data stations outside of the current region or
+in NULL areas of the <i>cost_map</i> will be ignored.
+
+<div class="code"><pre>
+# set up a fake sea with islands:
+g.region n=276000 s=144500 w=122000 e=338500 res=500
+r.mapcalc "pseudo_elev = elev_state_500m - 1100"
+r.colors pseudo_elev color=etopo2
+r.mapcalc "navigable_mask = if(pseudo_elev < 0, 1, null())"
+
+# pick a data column from the points vector:
+v.info -c precip_30ynormals
+
+# run the interpolation:
+v.surf.icw input=precip_30ynormals column=annual output=annual_interp.3 \
+   cost_map=navigable_mask friction=3 --quiet
+
+# equalize colors to show maximum detail:
+r.colors -e annual_interp.3 color=bcyr
+
+# display results in an Xmonitor:
+d.erase black
+d.rast -o annual_interp.3
+d.vect precip_30ynormals fcolor=red icon=basic/circle
+d.legend annual_interp.3 color=white at=48.4,94.8,3.4,6.0
+</pre></div>
+
+
+<!-- todo
+<H2>REFERENCES</H2>
+
+ * Hamish's MfE reports / published confernce proceedings?
+ * Ben D's journal article (Deutsch)
+-->
+
+
+<H2>SEE ALSO</H2>
+
+<EM>
+<A HREF="v.surf.idw.html">v.surf.idw</A><BR>
+<A HREF="v.surf.rst.html">v.surf.rst</A><BR>
+<A HREF="v.surf.bspline.html">v.surf.bspline</A><BR>
+<A HREF="r.cost.html">r.cost</A><BR>
+<A HREF="r.surf.idw.html">r.surf.idw</A><BR>
+<A HREF="r.surf.idw2.html">r.surf.idw2</A><BR>
+</EM>
+
+
+<H2>AUTHOR</H2>
+
+Hamish Bowman<BR>
+<i>Department of Marine Science,<BR>
+Dunedin, New Zealand</i>
+
+<p>
+<i>Last changed: $Date$</i>
