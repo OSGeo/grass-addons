@@ -31,6 +31,14 @@ from urllib2 import Request, urlopen, URLError, HTTPError
 key = 0
 
 class newLayerData():
+	"""
+	Data Structure to hold information about a layer.
+	name ,String - Name of the layer
+	title, String - Title for the layer
+	abstract, String - Abstract for the layer
+	srsList, List - List to hold srs values for this layer
+	queryable, int - whether a layer is queryable or not. queryable = 1 , is layer is queryable else 0. 
+	"""
 	name = None
 	title = None
 	abstract = None
@@ -65,61 +73,77 @@ class LayerData():
 
 
 def parsexml(xml):
-
- xmltext = xml
- soup = BeautifulSoup(xmltext)
- #layers = soup.findAll('layer', queryable="1")
- layers = soup.findAll('layer')
- 
- namelist = []
- for layer in layers:
-	soupname = BeautifulSoup(str(layer))
-	names =  soupname.findAll('name')
-	if len(names) > 0:
-		namelist += names[0]
- return namelist
+	"""
+     @description: parses the xml response of the getCapabilites request. Called in getCapabilities of wmsFrame
+     @todo:None
+     @param xml: xml, xml to be parsed
+     @return: List, list of layers parsed
+    	"""
+ 	xmltext = xml
+  	soup = BeautifulSoup(xmltext)
+   	#layers = soup.findAll('layer', queryable="1")
+    	layers = soup.findAll('layer')
+ 	namelist = []
+  	for layer in layers:
+	  	soupname = BeautifulSoup(str(layer))
+		names =  soupname.findAll('name')
+		if len(names) > 0:
+			namelist += names[0]
+ 	return namelist
 
 
 def parsexml2(xml):
- layerDataDict={}
- count = -1
- xmltext = xml
- soup = BeautifulSoup(xmltext)
- layers = soup.findAll('layer')
- namelist = []
- for layer in layers:
-	soupname = BeautifulSoup(str(layer))
-	names =  soupname.findAll('name')
-	titles = soupname.findAll('title')
-	abstracts = soupname.findAll('abstract')
-	srs = soupname.findAll('srs')
-	if(len(names)>0):
-		count = count + 1
-		layerDataDict[count] = LayerData()
-		layerDataDict[count].name = unicode(names[0].string)
-	else:
-		continue
-	if(len(titles)>0):
-		layerDataDict[count].title = unicode(titles[0].string)
-	else:
-		layerDataDict[count].title = ''
+	"""
+     @description: parses the xml response of the getCapabilites request. Called in getCapabilities of wmsFrame
+     @todo:None
+     @param xml: xml, xml to be parsed
+     @return: List, list of layers parsed
+    	"""
+    	layerDataDict={}
+    	count = -1
+    	xmltext = xml
+    	soup = BeautifulSoup(xmltext)
+    	layers = soup.findAll('layer')
+    	namelist = []
+    	for layer in layers:
+		soupname = BeautifulSoup(str(layer))
+		names =  soupname.findAll('name')
+		titles = soupname.findAll('title')
+		abstracts = soupname.findAll('abstract')
+		srs = soupname.findAll('srs')
+		if(len(names)>0):
+			count = count + 1
+			layerDataDict[count] = LayerData()
+			layerDataDict[count].name = unicode(names[0].string)
+		else:
+			continue
+		if(len(titles)>0):
+			layerDataDict[count].title = unicode(titles[0].string)
+		else:
+			layerDataDict[count].title = ''
 
-	if(len(abstracts)>0):
-		layerDataDict[count].abstract = unicode(abstracts[0].string)
-	else:
-		layerDataDict[count].abstract = ''
+		if(len(abstracts)>0):
+			layerDataDict[count].abstract = unicode(abstracts[0].string)
+		else:
+			layerDataDict[count].abstract = ''
 
-	if(len(srs)>0):
-		layerDataDict[count].srs = srs
-	else:
-		layerDataDict[count].srs = ''
+		if(len(srs)>0):
+			layerDataDict[count].srs = srs
+		else:
+			layerDataDict[count].srs = ''
 	
 
- return layerDataDict
+ 	return layerDataDict
 
 
 
 def isValidResponse(xml):
+	"""
+     @description: Checks for the validity of the xml response, if it is a genuine WMS get Capabilities request.  
+     @todo:None
+     @param xml: XML, xml String to be checked. 
+     @return: Boolean, True if a valid response, else False
+    """
 	soup = BeautifulSoup(xml)
 	getCapabilities = soup.findAll('wmt_ms_capabilities')
 	if(len(getCapabilities)==0):
@@ -127,6 +151,12 @@ def isValidResponse(xml):
 	else:
 		return True
 def isServiceException(xml):
+	"""
+     @description: Checks for the service exception in the xml response 
+     @todo:None
+     @param xml: XML, xml String to be checked. 
+     @return: Boolean, True if service exception occurs response, else False
+    """
 	soup = BeautifulSoup(xml)
 	exceptions = soup.findAll('ServiceException')
 	exceptionList = []
@@ -212,6 +242,15 @@ def getAttributeLayers(node, attribute):
 		return None
 	    
 def dfs1(node,LayerTree, ltr,lData):
+	"""
+     @description: DFS search for all the layers in the GetCapabilties response. 
+     @todo:None
+     @param node: TreeItem, current node
+     @param LayerTree: TreeCtrl, to display the layers in the GUI
+     @param ltr:
+     @param lData:   
+     @return: None
+    """
 	global key
 	if ( hasattr(node,'data')):
 		return
@@ -220,10 +259,8 @@ def dfs1(node,LayerTree, ltr,lData):
 		if(node.tagName == 'Layer' or node.tagName == 'layer'):
 			queryable = None
 			try:
-				print 'hoopla'
 				queryable = node.attributes["queryable"].value
 			except Exception,e:
-				print 'ghapla'
 				print e
 				queryable = 1
 			

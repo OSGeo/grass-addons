@@ -29,6 +29,12 @@ class ServerData():
     pass
 
 def initServerInfoBase(fileName):
+    """
+     @description: Intializes soup for the Beautiful soup parser. Reads the exisitng Data from the fileName paramter. 
+     @todo:None
+     @param xml: String, Name of file to be loaded in soup.  
+     @return: Boolean, True if a successful, else False
+    """
     if(os.path.exists(fileName)):
         try:
             f = open(fileName,'r')
@@ -50,6 +56,13 @@ def initServerInfoBase(fileName):
     return soup, True
 
 def ifServerNameExists(soup,servername):
+    """
+     @description: Checks for the membership of servername in the soup
+     @todo:None
+     @param soup: soup
+     @param servername: String, name of the server to be checked for
+     @return: Boolean, True if found, else False
+    """
     servers = soup.findAll('servername')
     for server in servers:
         name = server.string.strip()
@@ -61,6 +74,18 @@ def ifServerNameExists(soup,servername):
     
 
 def addServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passwordvalue):
+    """
+     @description: Adds server info to the soup
+     @todo:None
+     @param soup: soup
+     @param serverinfo: 
+     @param uid: Unique Id of the server
+     @param snamevalue: String, server name
+     @param urlvalue: String, url of the server
+     @param unamevalue: String, UserName for the server
+     @param passwordvalue: String, password for the server 
+     @return: Boolean, True if added successfuly, else False
+    """
     snamevalue = unicode(snamevalue)
     if(ifServerNameExists(soup, snamevalue)):
         return False
@@ -87,6 +112,13 @@ def addServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passw
         return True
 
 def removeServerInfo(soup, serverID):
+    """
+     @description: removes server with uid = serverID
+     @todo:None
+     @param soup: soup
+     @param serverID: String, UID of the server to be removed.
+     @return: Boolean, True if successfuly removed, else False
+    """
     serverID = unicode(serverID)
     elements = soup.findAll(id = serverID)
     if(len(elements)==0):
@@ -97,6 +129,18 @@ def removeServerInfo(soup, serverID):
         return True
 
 def updateServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passwordvalue):
+    """
+     @description: updates server with uid = uid
+     @todo:None
+     @param soup: soup
+     @param serverinfo: 
+     @param uid: Unique Id of the server
+     @param snamevalue: String, server name
+     @param urlvalue: String, url of the server
+     @param unamevalue: String, UserName for the server
+     @param passwordvalue: String, password for the server 
+     @return: Boolean, True if updated successfuly, else False
+    """
     snamevalue = unicode(snamevalue)
     if(removeServerInfo(soup, uid)):
         if(addServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, passwordvalue)):
@@ -107,6 +151,12 @@ def updateServerInfo(soup, serverinfo, uid, snamevalue, urlvalue, unamevalue, pa
         return False
 
 def getAllRows(soup):
+    """
+     @description: returns all the rows in the xml file table.
+     @todo:None
+     @param soup: soup
+     @return: servers(dictionary), map_servernameTouid(dictionary) 
+    """
     elements = soup.findAll('server')
     servers = {}
     map_servernameTouid = {}
