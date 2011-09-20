@@ -43,13 +43,13 @@
 #%end
 
 if [ -z "$GISBASE" ] ; then
-   echo "You must be in GRASS GIS to run this program." 1>&2
-#  echo "USAGE:  p190_to_csv.sh  \"/path/to/infiles*.p190[.gz]\"  outfile_base"
-   exit 1
+    echo "You must be in GRASS GIS to run this program." 1>&2
+    #echo "USAGE:  p190_to_csv.sh  \"/path/to/infiles*.p190[.gz]\"  outfile_base"
+    exit 1
 fi
 
 if [ "$1" != "@ARGS_PARSED@" ] ; then
-  exec g.parser "$0" "$@"
+    exec g.parser "$0" "$@"
 fi
 
 # check if we have awk
@@ -74,9 +74,15 @@ fi
 INFILES="$GIS_OPT_INPUT"
 OUTFILE="$GIS_OPT_OUTPUT"
 
+TMP_LINES_VASC="$TEMPFILES.lines.asc"
+TMP_LINES_TABLE="$TEMPFILES.lines.txt"
+TMP_POINTS_DATA="$TEMPFILES.points.dat"
+#todo: convert rest below to use $TMP_*
+
 
 first_file=true
 n=0
+#fixme: no spaces in filepath names allowed using this method!
 for file in $INFILES ; do
    g.message -v message="[$file]"
 
@@ -93,7 +99,8 @@ for file in $INFILES ; do
    if [ "$first_file" = "true" ] ; then
       $GREP '^H' "$file" | sed -e 's/^/# /' -e 's/\r$//'> "$OUTFILE.points.dat"
       echo "#" >> "$OUTFILE.points.dat"
-      echo "#line_name|point_num|lat_wgs84|long_wgs84|easting|northing|depth_m|julian_day|time_" >> "$OUTFILE.points.dat"
+      echo "#line_name|point_num|lat_wgs84|long_wgs84|easting|northing|depth_m|julian_day|timestamp" \
+         >> "$OUTFILE.points.dat"
 
       $GREP '^H' "$file" | sed -e 's/^/# /' -e 's/\r$//' > "$OUTFILE.lines.asc"
       echo "#" >> "$OUTFILE.lines.asc"
@@ -231,45 +238,64 @@ if [ `grep -c '18[0-9]:..:..\...E' "$OUTFILE.lines.asc"` -gt 0 ] ; then
 fi
 
 
+exit 0
+######################################
 # Import into GRASS GIS:
 #SURVEY=`basename $GIS_OPT_INPUT` # cut of extention, whatever it may be,
 # make sure legal chars for map name..
+if [ `echo "$OUTFILE" | grep -c '[^a-zA-Z_0-9]'` -ne 0 ] ; then
+    g.message -e 'Output map name not SQL compliant. Cannot continue with import.'
+    exit 1
+fi
+
 
 # import as points:
 ### 
 # not everyone sticks to spec. hit number can have letters, depth, date are sometime
 #  not there... some adjustment to the column string may be required.
 
-# v.in.ascii in=${SURVEY}_p190_nav.points.dat \
-#     out=${SURVEY}_p190_nav_points x=4 y=3 z=7 -z \
-#     columns='line_name varchar(13), point_num integer, lat_wgs84 double, long_wgs84 double, easting double, northing double, depth_m double, julian_day integer, time_ varchar(8)'
+COL_DEFN='line_name varchar(13), point_num integer, lat_wgs84 double,
+    long_wgs84 double, easting double, northing double, depth_m double,
+    julian_day integer, timestamp varchar(8)'
+
+v.in.ascii in="$TMP_POINTS_DATA" out="$OUTFILE"_nav_points \
+    x=4 y=3 z=7 -z columns="$COL_DEFN"
 
 # remove garbage depth points?  take from range= option?
-# v.extract in=${SURVEY}_p190_nav_points out=${SURVEY}_p190_nav_points_clean_depths \
+# v.extract in="$OUTFILE"_nav_points out="$OUTFILE"_nav_points_clean_depths \
 #    where="depth_m < 9999.9"
 
 
 ####
 # Lines:
-#  v.in.ascii -z -n in=${SURVEY}_p190_nav.lines.asc \
-#    out=${SURVEY}_p190_nav_lines format=standard
+v.in.ascii -z -n in="$TMP_LINES_VASC" out="${OUTFILE}_nav_lines" format=standard
 
-#  v.db.addtable ${SURVEY}_p190_nav_lines column='cat integer, line_name varchar(13)'
-#  while read line ; do
-#    CAT=`echo $line | cut -f1 -d'|'`
-#    VALUE=`echo $line | cut -f2 -d'|'`
-#    v.db.update ${SURVEY}_p190_nav_lines col=line_name value="$VALUE" where="cat = $CAT"
-#  done < ${SURVEY}.lines.txt
-#  v.colors ${SURVEY}_p190_nav_lines column=cat color=random 
+v.db.addtable "${OUTFILE}_nav_lines" column='cat integer, line_name varchar(13)'
+while read line ; do
+    CAT=`echo "$line" | cut -f1 -d'|'`
+    VALUE=`echo "$line" | cut -f2 -d'|'`
+    v.db.update "${OUTFILE}_nav_lines" col=line_name value="$VALUE" where="cat = $CAT"
+done < "$TMP_LINES_TABLE"
+
+v.colors "${OUTFILE}_nav_lines" column=cat color=random
 
 #### avoid if projection is not Mercator?
 # if [ `v.to.db --interface-description | grep -c '<name>azimuth</name>'` -gt 0 ] ; then
-#   v.db.addcol ${SURVEY}_p190_nav_lines column='azimuth double'
-#   v.to.db map=${SURVEY}_p190_nav_lines option=azimuth column="azimuth" type=line  #grass6.5+
+#   v.db.addcol"${OUTFILE}_nav_lines" column='azimuth double'
+#   v.to.db map="${OUTFILE}_nav_lines" option=azimuth column="azimuth" type=line  #grass6.5+
 # fi
 
 
-# rm tempfiles ...
+# cleanup tempfiles ...
+if [ "$GIS_FLAG_K" -eq 1 ] ; then
+   \mv "$TMP_LINES_VASC" "$OUTFILE.lines.asc"
+   \mv "$TMP_LINES_TABLE" "$OUTFILE.lines.txt"
+   \mv "$TMP_POINTS_DATA" "$OUTFILE.points.dat"
+else
+   \rm "$TMP_LINES_VASC"
+   \rm "$TMP_LINES_TABLE"
+   \rm "$TMP_POINTS_DATA"
+fi
 
 
 # done!
