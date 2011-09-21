@@ -56,7 +56,7 @@ class ServerAdd(wx.Frame):
         self.ServerNameText = wx.TextCtrl(self, -1, "")
         self.URL = wx.StaticText(self, -1, "  URL*")
         self.URLText = wx.TextCtrl(self, -1, "")
-        self.Username = wx.StaticText(self, -1, "  Username*")
+        self.Username = wx.StaticText(self, -1, "  Username")
         self.UsernameText = wx.TextCtrl(self, -1, "")
         self.Password = wx.StaticText(self, -1, "  Password")
         self.PasswordText = wx.TextCtrl(self, -1, "", style=wx.TE_PASSWORD)

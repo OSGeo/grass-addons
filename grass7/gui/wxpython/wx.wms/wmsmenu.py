@@ -151,19 +151,27 @@ class ManageLayerTree():
             return
         
         currentLayerDetails = LayerTree.GetItemText(nodeId)
+        print currentLayerDetails
         if(not(currentLayerDetails == 'Layers' and currentLayerDetails.count(':')==0)): 
             currentLayerName = (currentLayerDetails.split(':')[0]).split('-')[1]
+            print 'name = ' + currentLayerName
             currentLayerKey = (currentLayerDetails.split(':')[0]).split('-')[0]
+            print 'key = ' + currentLayerKey
             if(not currentLayerKey in parent.selectedLayersKeys):    
                 parent.selectedLayersKeys += [currentLayerKey]
-                if(parent.layerDataDict1[currentLayerKey].queryable == 1):
+                print 'selected layers = ' 
+                print parent.selectedLayersKeys
+                print 'queryable = ' 
+                print int(parent.layerDataDict1[currentLayerKey].queryable)
+                if(int(parent.layerDataDict1[currentLayerKey].queryable) == 1):
                     parent.epsgList.Append('<'+currentLayerName+'>')
                     listEPSG = parent.layerDataDict1[currentLayerKey].srsList
                     parent.epsgList.AppendItems(listEPSG)
                     parent.layersString += ',' + currentLayerName
-        allChild = self.getAllChild(LayerTree, nodeId)
-        for child in allChild:
-            self.layerTreeItemDFS(parent,LayerTree,child)
+                    print 'layersString = ' + parent.layersString
+        #allChild = self.getAllChild(LayerTree, nodeId)
+        #for child in allChild:
+        #    self.layerTreeItemDFS(parent,LayerTree,child)
 
 class wmsFrame(wx.Frame):
     def __init__(self, *args, **kwds):
@@ -499,7 +507,7 @@ class wmsFrame(wx.Frame):
 
     def OnLayerTreeSelChanged(self, event): # wxGlade: wmsFrame.<event_handler>"
         """
-     @description: called on selection of a layer from self.LayerTree. Sets self.selectedURL variable.
+     @description: called on selection of a layer from self.LayerTree. Sets self.layerName variable.
      @todo:None
      @param self: reference variable
      @param event: event associated. 
@@ -526,6 +534,30 @@ class wmsFrame(wx.Frame):
         #print self.layerDataDict1
         self.selectedEPSG = None
         event.Skip()
+        '''
+        for sellayer in self.LayerTree.GetSelections():
+            layerNameString = self.LayerTree.GetItemText(sellayer)
+            layerNameStringList = layerNameString.split(':')
+            if(len(layerNameStringList)==0):
+                message = 'Unable to select layers'
+                self.ShowMessage(message, 'Warning')
+                grass.warning(message)
+                StatusBar_fields = [message]
+                self.StatusBar.SetStatusText(StatusBar_fields[0], 0)
+                return
+            layerName = layerNameStringList[0].split('-')[1]
+            key = layerNameStringList[0].split('-')[0]
+            self.selectedLayerList += [layerName]
+            self.layerName += ","+layerName
+            keys += [key]
+            lEPSG = self.keyToEPSGCodes[key]
+            self.epsgList.Append('<'+layerName+'>')
+            self.epsgList.AppendItems(lEPSG)
+            
+          
+        self.layerName = self.layerName[1:]
+        print self.layerName
+        self.selectedEPSG = None'''
         
     def OnAddServer(self, event): # wxGlade: wmsFrame.<event_handler>
         """
