@@ -79,6 +79,11 @@ TMP_LINES_TABLE="$TEMPFILES.lines.txt"
 TMP_POINTS_DATA="$TEMPFILES.points.dat"
 #todo: convert rest below to use $TMP_*
 
+cleanup()
+{
+   \rm -f "$TEMPFILES" "$TMP_LINES_VASC" "$TMP_LINES_TABLE" "$TMP_POINTS_DATA"
+}
+
 
 first_file=true
 n=0
@@ -87,25 +92,30 @@ for file in $INFILES ; do
    g.message -v message="[$file]"
 
    # test if file is gzip'd, if so use zgrep instead of normal grep
-   # todo: support bzip2'd as well  (bzgrep)
-   # todo: test for zgrep, bzgrep if they are requested
-   if [ `basename "$file" .gz` = `basename "$file"` ] ; then
-      GREP=grep
-   else
+   if [ `echo "$file" | grep -c '\.gz$'` -eq 1 ] ; then
       GREP=zgrep
+   elif [ `echo "$file" | grep -c '\.bz2$'` -eq 1 ] ; then
+      GREP=bzgrep
+   else
+      GREP=grep
+   fi
+   if [ ! -x "`which $GREP`" ] ; then
+      g.message -e "$GREP required, please install it first"
+      cleanup
+      exit 1
    fi
 
    # write out header info from first P190 file
    if [ "$first_file" = "true" ] ; then
-      $GREP '^H' "$file" | sed -e 's/^/# /' -e 's/\r$//'> "$OUTFILE.points.dat"
-      echo "#" >> "$OUTFILE.points.dat"
+      $GREP '^H' "$file" | sed -e 's/^/# /' -e 's/\r$//'> "$TMP_POINTS_DATA"
+      echo "#" >> "$TMP_POINTS_DATA"
       echo "#line_name|point_num|lat_wgs84|long_wgs84|easting|northing|depth_m|julian_day|timestamp" \
-         >> "$OUTFILE.points.dat"
+         >> "$TMP_POINTS_DATA"
 
-      $GREP '^H' "$file" | sed -e 's/^/# /' -e 's/\r$//' > "$OUTFILE.lines.asc"
-      echo "#" >> "$OUTFILE.lines.asc"
+      $GREP '^H' "$file" | sed -e 's/^/# /' -e 's/\r$//' > "$TMP_LINES_VASC"
+      echo "#" >> "$TMP_LINES_VASC"
 
-      rm -f "$OUTFILE.lines.txt"
+      rm -f "$TMP_LINES_TABLE"
 
       first_file=false
    fi
@@ -140,46 +150,46 @@ for file in $INFILES ; do
      -e 's/^\(.\{29\}\)/\1:/' \
      -e 's/^\(.\{13\}\)....../\1/' \
      -e 's/|[ ]*/|/g' -e 's/[ ]*|/|/g' -e 's/|\r\?$//' \
-     -e 's/^S//' >> "$OUTFILE.points.dat"
+     -e 's/^S//' >> "$TMP_POINTS_DATA"
 
     # count number of columns in points file
-    NUM_COL=`grep -v '^#\|^[ \t]*$' "$OUTFILE.points.dat" | \
+    NUM_COL=`grep -v '^#\|^[ \t]*$' "$TMP_POINTS_DATA" | \
        head -n 1 | sed -e 's/[^|]//g' | wc -c`
 
 
    #### extract line by line ####
 
-   LINES=`grep '^[^#]' "$OUTFILE.points.dat" | cut -f1 -d'|' | uniq`
+   LINES=`grep '^[^#]' "$TMP_POINTS_DATA" | cut -f1 -d'|' | uniq`
    for LINE_NAME in $LINES ; do
       #LINE_NAME=`$GREP -m1 '^S' "$file" | cut -c2-13`
       #LINE_NAME=`$GREP -m1 '^S' "$file" | cut -c1-13 | sed -e 's/^S/D/'`
-      echo "#" >> "$OUTFILE.lines.asc"
-      echo "#line: $LINE_NAME" >> "$OUTFILE.lines.asc"
+      echo "#" >> "$TMP_LINES_VASC"
+      echo "#line: $LINE_NAME" >> "$TMP_LINES_VASC"
 
       # count number of points in the line
-      NUM_VERTICES=`$GREP -c "^$LINE_NAME|" "$OUTFILE.points.dat"`
-      echo "L  $NUM_VERTICES 1" >> "$OUTFILE.lines.asc"
+      NUM_VERTICES=`$GREP -c "^$LINE_NAME|" "$TMP_POINTS_DATA"`
+      echo "L  $NUM_VERTICES 1" >> "$TMP_LINES_VASC"
 
       # write out the line
-      grep "^$LINE_NAME|" "$OUTFILE.points.dat" | \
+      grep "^$LINE_NAME|" "$TMP_POINTS_DATA" | \
          awk -F'|' '{
            if ($7 == 9999.9) {printf(" %s %s nan\n", $4, $3)}
            else {printf(" %s %s %s\n", $4, $3, $7)}
-         }' >> "$OUTFILE.lines.asc"
+         }' >> "$TMP_LINES_VASC"
 # {printf(" %s %s %s\n", $4, $3, $7)}
       n=`expr $n + 1`
-      echo " 1 $n"  >> "$OUTFILE.lines.asc"
+      echo " 1 $n"  >> "$TMP_LINES_VASC"
 
-      echo "$n|$LINE_NAME" >> "$OUTFILE.lines.txt"
+      echo "$n|$LINE_NAME" >> "$TMP_LINES_TABLE"
    done
 done
 
 
 #### run through and convert any e.g. 183:45E into +183.75
-if [ `grep -c '18[0-9]:..:..\...E' "$OUTFILE.lines.asc"` -gt 0 ] ; then
+if [ `grep -c '18[0-9]:..:..\...E' "$TMP_LINES_VASC"` -gt 0 ] ; then
 
    ## vector lines
-   mv "$OUTFILE.lines.asc" "$OUTFILE.lines.tmp$$"
+   mv "$TMP_LINES_VASC" "$TEMPFILES.lines.tmp$$"
 
    awk '{
        if ( $0 ~ /18[0-9]:..:..\...E/) {
@@ -207,13 +217,13 @@ if [ `grep -c '18[0-9]:..:..\...E' "$OUTFILE.lines.asc"` -gt 0 ] ; then
        } else {
           print
        }
-     }' "$OUTFILE.lines.tmp$$" > "$OUTFILE.lines.asc"
+     }' "$TEMPFILES.lines.tmp$$" > "$TMP_LINES_VASC"
 
-   \rm "$OUTFILE.lines.tmp$$"
+   \rm "$TEMPFILES.lines.tmp$$"
 
 
    # vector points
-   mv "$OUTFILE.points.dat" "$OUTFILE.points.tmp"
+   mv "$TMP_POINTS_DATA" "$TEMPFILES.points.tmp$$"
 
    awk -F'|' -v NCOL="$NUM_COL" '{
        if ( $4 ~ /18[0-9]:..:..\...E/) {
@@ -232,19 +242,20 @@ if [ `grep -c '18[0-9]:..:..\...E' "$OUTFILE.lines.asc"` -gt 0 ] ; then
        } else {
           print
        }
-     }' "$OUTFILE.points.tmp" > "$OUTFILE.points.dat"
-   \rm "$OUTFILE.points.tmp"
+     }' "$TEMPFILES.points.tmp$$" > "$TMP_POINTS_DATA"
+   \rm "$TEMPFILES.points.tmp$$"
 
 fi
 
-
-exit 0
+#cleanup
+#exit 0
 ######################################
 # Import into GRASS GIS:
 #SURVEY=`basename $GIS_OPT_INPUT` # cut of extention, whatever it may be,
 # make sure legal chars for map name..
 if [ `echo "$OUTFILE" | grep -c '[^a-zA-Z_0-9]'` -ne 0 ] ; then
     g.message -e 'Output map name not SQL compliant. Cannot continue with import.'
+    cleanup
     exit 1
 fi
 
@@ -291,12 +302,9 @@ if [ "$GIS_FLAG_K" -eq 1 ] ; then
    \mv "$TMP_LINES_VASC" "$OUTFILE.lines.asc"
    \mv "$TMP_LINES_TABLE" "$OUTFILE.lines.txt"
    \mv "$TMP_POINTS_DATA" "$OUTFILE.points.dat"
-else
-   \rm "$TMP_LINES_VASC"
-   \rm "$TMP_LINES_TABLE"
-   \rm "$TMP_POINTS_DATA"
 fi
 
+cleanup
 
 # done!
 
