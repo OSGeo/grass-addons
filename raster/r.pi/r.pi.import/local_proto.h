@@ -1,5 +1,10 @@
 #ifndef LOCAL_PROTO_H
 #define LOCAL_PROTO_H
+#ifdef MAIN
+#define GLOBAL
+#else
+#define GLOBAL extern
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -53,7 +58,6 @@ GLOBAL Coords **fragments;
 GLOBAL Coords *cells;
 GLOBAL int fragcount;
 GLOBAL int sx, sy;
-GLOBAL int *id_map;
 
 GLOBAL int *adj_matrix;
 

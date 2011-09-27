@@ -1,11 +1,23 @@
-#define MAIN
-#include "local_proto.h"
-
 /*
-   Import of patch values and generating a corresponding raster
+ ****************************************************************************
+ *
+ * MODULE:       r.pi.import
+ * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ * PURPOSE:      Import of patch information based on ID patch raster 
+ *                               (Reads a text-file with Patch IDs and values and creates 
+ *                               a raster file with these values for patches)
+ *
+ * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
+ *
+ *****************************************************************************/
 
-   by Elshad Shirinov.
- */
+#define MAIN
+
+#include "local_proto.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,16 +29,12 @@ int main(int argc, char *argv[])
 
     /* in and out file pointers */
     int in_fd;
-
     int out_fd;
 
     /* parameters */
     int keyval;
-
     int id_col;
-
     int val_col;
-
     int neighb_count;
 
     /* maps */
@@ -37,38 +45,26 @@ int main(int argc, char *argv[])
 
     /* helper variables */
     int row, col;
-
     DCELL *d_res;
-
     DCELL *values;
-
     int *result;
-
     int i, n;
-
     int x, y;
-
     Coords *p;
-
-    char output_name[256];
-
+    char output_name[GNAME_MAX];
     char *str;
-
     DCELL val;
 
     RASTER_MAP_TYPE map_type;
-
     struct Cell_head ch, window;
 
     struct GModule *module;
-
     struct
     {
 	struct Option *input, *raster, *output;
 	struct Option *keyval, *id_col, *val_col;
 	struct Option *title;
     } parm;
-
     struct
     {
 	struct Flag *adjacent, *quiet;
@@ -78,8 +74,7 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     module->keywords = _("raster");
-    module->description =
-	_("Reads a text-file with Patch IDs and values and creates a raster file with these values for patches.");
+    module->description = _("Import and generation of patch raster data");
 
     parm.input = G_define_option();
     parm.input->key = "input";
@@ -88,26 +83,16 @@ int main(int argc, char *argv[])
     parm.input->gisprompt = "old_file,file,input";
     parm.input->description = _("Name of the input ASCII-file");
 
-    parm.raster = G_define_option();
+    parm.raster = G_define_standard_option(G_OPT_R_INPUT);
     parm.raster->key = "raster";
-    parm.raster->type = TYPE_STRING;
-    parm.raster->required = YES;
-    parm.raster->gisprompt = "old,cell,raster";
-    parm.raster->description = _("Name of existing raster file");
 
-    parm.output = G_define_option();
-    parm.output->key = "output";
-    parm.output->type = TYPE_STRING;
-    parm.output->required = YES;
-    parm.output->gisprompt = "new,cell,raster";
-    parm.output->description = _("Name of the new raster file");
+    parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
 
     parm.keyval = G_define_option();
     parm.keyval->key = "keyval";
     parm.keyval->type = TYPE_INTEGER;
     parm.keyval->required = YES;
-    parm.keyval->description =
-	_("Category value of the patches in the existing raster file");
+    parm.keyval->description = _("Category value of the patches");
 
     parm.id_col = G_define_option();
     parm.id_col->key = "id_col";
@@ -126,12 +111,12 @@ int main(int argc, char *argv[])
     parm.title->key_desc = "\"phrase\"";
     parm.title->type = TYPE_STRING;
     parm.title->required = NO;
-    parm.title->description = _("Title of the output raster file");
+    parm.title->description = _("Title for resultant raster map");
 
     flag.adjacent = G_define_flag();
     flag.adjacent->key = 'a';
     flag.adjacent->description =
-	_("Set for 8 cell-neighbors. 4 cell-neighbors are default.");
+	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -140,12 +125,9 @@ int main(int argc, char *argv[])
     oldname = parm.raster->answer;
 
     /* test raster files existance */
-    if ((oldmapset = G_find_cell2(oldname, "")) == NULL) {
-	G_fatal_error(_("%s: <%s> raster file not found\n"), G_program_name(),
-		      oldname);
-	G_usage();
-	exit(EXIT_FAILURE);
-    }
+    oldmapset = G_find_cell2(oldname, "");
+    if (oldmapset == NULL)
+        G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* get number of cell-neighbors */
     neighb_count = flag.adjacent->answer ? 8 : 4;
@@ -161,12 +143,8 @@ int main(int argc, char *argv[])
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
-    if (G_legal_filename(newname) < 0) {
-	G_fatal_error(_("%s: <%s> illegal file name\n"), G_program_name(),
-		      newname);
-	G_usage();
-	exit(EXIT_FAILURE);
-    }
+    if (G_legal_filename(newname) < 0)
+	    G_fatal_error(_("<%s> is an illegal file name"), newname);
     newmapset = G_mapset();
 
     /* get size */
@@ -185,12 +163,9 @@ int main(int argc, char *argv[])
     memset(map, 0, sx * sy * sizeof(int));
 
     /* open map */
-    if ((in_fd = G_open_cell_old(oldname, oldmapset)) < 0) {
-	G_fatal_error(_("can't open cell file <%s> in mapset %s\n"), oldname,
-		      oldmapset);
-	G_usage();
-	exit(EXIT_FAILURE);
-    }
+    in_fd = G_open_cell_old(oldname, oldmapset);
+    if (in_fd < 0)
+	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read map */
     G_message("Reading map file... ");
@@ -214,15 +189,12 @@ int main(int argc, char *argv[])
     /* parse input */
     parse(values, parm.input->answer, id_col, val_col);
 
-    G_message("Writing output ... ");
+    G_message("Writing output...");
 
     /* open new cellfile  */
     out_fd = G_open_raster_new(newname, DCELL_TYPE);
-    if (out_fd < 0) {
-	G_fatal_error(_("can't create new cell file <%s> in mapset %s\n"),
-		      newname, newmapset);
-	exit(EXIT_FAILURE);
-    }
+    if (out_fd < 0)
+	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* write the output file */
     for (row = 0; row < sy; row++) {

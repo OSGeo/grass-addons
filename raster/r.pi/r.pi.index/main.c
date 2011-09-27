@@ -1,4 +1,20 @@
+/*
+ ****************************************************************************
+ *
+ * MODULE:       r.pi.index
+ * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ * PURPOSE:      Fragmentation analysis - basic spatial indices
+ *
+ * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
+ *
+ *****************************************************************************/
+
 #define MAIN
+
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -7,12 +23,6 @@
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "local_proto.h"
-
-/*
-   Fragmentation analysis - basic indices in r.pi.index
-
-   by Elshad Shirinov.
- */
 
 typedef int (*f_func) (DCELL *, Coords **, int);
 
@@ -41,23 +51,18 @@ int main(int argc, char *argv[])
 {
     /* input */
     char *newname, *oldname, *newmapset, *oldmapset;
-
     char title[1024];
 
     /* in and out file pointers */
     int in_fd;
-
     int out_fd;
-
     DCELL *result, res[30];
 
     /* map_type and categories */
     RASTER_MAP_TYPE map_type;
-
     struct Categories cats;
 
     int method;
-
     f_func compute_values;
 
     /* neighbors count */
@@ -66,37 +71,26 @@ int main(int argc, char *argv[])
     char *p;
 
     int row, col, i, j;
-
     int readrow;
-
     int keyval;
-
-    DCELL range = MAX_DOUBLE;
-
     int n;
-
-    int copycolr;
-
     struct Colors colr;
-
+    struct Range range;
+    CELL min, max;
     struct GModule *module;
-
     struct
     {
 	struct Option *input, *output;
 	struct Option *keyval, *method;
 	struct Option *title;
     } parm;
-
     struct
     {
 	struct Flag *adjacent, *quiet;
     } flag;
 
     DCELL *values;
-
     Coords *cells;
-
     int fragcount = 0;
 
     struct Cell_head ch, window;
@@ -105,21 +99,12 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     module->keywords = _("raster");
-    module->description =
-	_("Provides basic patch based indices, like area, SHAPE or Nearest Neighbour distance.");
+    module->description = _("Basic patch based indices");
 
-    parm.input = G_define_option();
-    parm.input->key = "input";
-    parm.input->type = TYPE_STRING;
-    parm.input->required = YES;
-    parm.input->gisprompt = "old,cell,raster";
+    parm.input = G_define_standard_option(G_OPT_R_INPUT);
     parm.input->description = _("Raster map containing categories");
 
-    parm.output = G_define_option();
-    parm.output->key = "output";
-    parm.output->type = TYPE_STRING;
-    parm.output->required = YES;
-    parm.output->gisprompt = "new,cell,raster";
+    parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
     parm.output->description = _("Output patch-based result as raster map");
 
     parm.keyval = G_define_option();
@@ -147,37 +132,32 @@ int main(int argc, char *argv[])
     parm.title->key_desc = "\"phrase\"";
     parm.title->type = TYPE_STRING;
     parm.title->required = NO;
-    parm.title->description = _("Title of the output raster file");
+    parm.title->description = _("Title for resultant raster map");
 
     flag.adjacent = G_define_flag();
     flag.adjacent->key = 'a';
     flag.adjacent->description =
-	_("Set for 8 cell-neighbors. 4 cell-neighbors are default.");
+	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
 
     flag.quiet = G_define_flag();
     flag.quiet->key = 'q';
     flag.quiet->description = _("Run quietly");
 
     if (G_parser(argc, argv))
-	exit(1);
+	    exit(EXIT_FAILURE);
 
     /* get names of input files */
     oldname = parm.input->answer;
 
     /* test input files existance */
-    if (NULL == (oldmapset = G_find_cell2(oldname, ""))) {
-	fprintf(stderr, "%s: <%s> raster file not found\n",
-		G_program_name(), oldname);
-	exit(1);
-    }
+    oldmapset = G_find_cell2(oldname, "");
+	if (oldmapset == NULL)
+        G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
-    if (G_legal_filename(newname) < 0) {
-	fprintf(stderr, "%s: <%s> illegal file name\n",
-		G_program_name(), newname);
-	exit(1);
-    }
+    if (G_legal_filename(newname) < 0)
+	    G_fatal_error(_("<%s> is an illegal file name"), newname);
     newmapset = G_mapset();
 
     /* get size */
@@ -185,20 +165,12 @@ int main(int argc, char *argv[])
     ncols = G_window_cols();
 
     /* open cell files */
-    if ((in_fd = G_open_cell_old(oldname, oldmapset)) < 0) {
-	char msg[200];
-
-	sprintf(msg, "can't open cell file <%s> in mapset %s\n",
-		oldname, oldmapset);
-	G_fatal_error(msg);
-	exit(-1);
-    }
+    in_fd = G_open_cell_old(oldname, oldmapset);
+    if (in_fd < 0)
+        G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* get map type */
-    map_type = DCELL_TYPE;	//G_raster_map_type(oldname, oldmapset);
-
-    /* copy color table */
-    copycolr = (G_read_colors(oldname, oldmapset, &colr) > 0);
+    map_type = DCELL_TYPE;	/* G_raster_map_type(oldname, oldmapset); */
 
     /* get key value */
     sscanf(parm.keyval->answer, "%d", &keyval);
@@ -236,17 +208,11 @@ int main(int argc, char *argv[])
 
     /* open the new cellfile  */
     out_fd = G_open_raster_new(newname, map_type);
-    if (out_fd < 0) {
-	char msg[200];
-
-	sprintf(msg, "can't create new cell file <%s> in mapset %s\n",
-		newname, newmapset);
-	G_fatal_error(msg);
-	exit(1);
-    }
+    if (out_fd < 0)
+	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     if (verbose = !flag.quiet->answer)
-	fprintf(stderr, "Loading Patches ... ");
+	G_message("Loading patches...");
 
     /* find fragments */
     for (row = 0; row < nrows; row++) {
@@ -274,7 +240,7 @@ int main(int argc, char *argv[])
 
     /* perform actual function on the patches */
     if (verbose = !flag.quiet->answer)
-	fprintf(stderr, "Performing operation ... ");
+	G_message("Performing operation...");
     values = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
     compute_values(values, fragments, fragcount);
     if (verbose)
@@ -282,7 +248,7 @@ int main(int argc, char *argv[])
 
     /* write the output file */
     if (verbose = !flag.quiet->answer)
-	fprintf(stderr, "Writing output ... ");
+	G_message("Writing output...");
     for (row = 0; row < nrows; row++) {
 	G_set_d_null_value(result, ncols);
 
@@ -313,8 +279,11 @@ int main(int argc, char *argv[])
     G_init_cats(0, title, &cats);
     G_write_cats(newname, &cats);
 
-    if (copycolr)
-	G_write_colors(newname, newmapset, &colr);
+    G_read_range(newname, newmapset, &range);
+    G_get_range_min_max(&range, &min, &max);
+    G_make_bgyr_colors(&colr, min, max);
+    G_write_colors(newname, newmapset, &colr);
+    G_free_colors(&colr);
 
-    exit(0);
+    exit(EXIT_SUCCESS);
 }

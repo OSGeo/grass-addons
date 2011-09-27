@@ -3,11 +3,8 @@
 void parse_line(DCELL * values, char *buffer, int id_col, int val_col)
 {
     int counter = 1;
-
     char *p = buffer;
-
     int id;
-
     DCELL value;
 
     while (*p != 0) {
@@ -37,10 +34,8 @@ void parse_line(DCELL * values, char *buffer, int id_col, int val_col)
 
 void parse(DCELL * values, char *file_name, int id_col, int val_col)
 {
-    char buffer[256];
-
+    char buffer[GNAME_MAX];
     FILE *fp;
-
     int i;
 
     fp = fopen(file_name, "r");
@@ -53,7 +48,7 @@ void parse(DCELL * values, char *file_name, int id_col, int val_col)
     }
 
     /* read lines */
-    while (fgets(buffer, 256, fp)) {
+    while (fgets(buffer, GNAME_MAX, fp)) {
 	parse_line(values, buffer, id_col, val_col);
     }
 

@@ -1,0 +1,63 @@
+<h2>DESCRIPTION</h2>
+
+Patch relevance for Euclidean Nearest Neighbor patches.
+
+<em>r.pi.enn.iter</em> is part of the patch based fragmentation analysis
+package r.pi.* (Patch Index). It computes distance and area
+differences for the first NN after removal of patch i.
+
+
+<h2>NOTES</h2>
+
+The user must specify the names of the raster map layers to
+be used for <em>input</em> and <em>output</em>, the <em>keyval</em> the
+<em>method</em> (e.g. distance, area) and <em>statmethod</em> used (i.e., average).
+<p>
+
+Within <em>r.fragment.NN</em> the following setting have to be set:
+
+<h3>keyval setting:</h3>
+
+The <em>keyval</em> operator determines which category value is taken for
+the Patch Index analysis.
+
+<h3>Method setting:</h3>
+
+The <em>method</em> operators determine what measure is applied 
+on the nth NN.
+
+<h2>Output</h2>
+
+Differences of distance/area after removal of patch i.<br>
+Amount of patches to be affected by removal (percent) (PP)<br>
+Amount of area in these patches (PA - Percent Area)
+
+<h2>EXAMPLE</h2>
+
+An example for the North Carolina sample dataset:
+
+<div class="code"><pre>
+g.region -d
+...
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.pi.index.html">r.pi.index</a>,
+<a href="r.fragment.dist.html">r.fragment.dist</a>,
+<a href="r.pi.enn.html">r.pi.enn</a>,
+<a href="r.fragment.neighbors.html">r.fragment.neighbors</a>,
+<a href="r.fragment.nn.html">r.fragment.nn</a>,
+<a href="r.li.setup.html">r.li</a>
+</em>
+
+<h2>AUTHORS</h2>
+Programming: Elshad Shirinov<br>
+Scientific concept: Dr. Martin Wegmann<br>
+Department of Remote Sensing<br>
+Remote Sensing and Biodiversity Unit<br>
+University of Wuerzburg, Germany
+
+<p>
+<i>Last changed: $Date$</i>

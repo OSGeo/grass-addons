@@ -1,0 +1,45 @@
+@ Martin
+
+- renaming:
+  - a name concept should be discussed
+  - I renamed all modules to r.pi.*
+
+#####################################
+C-code:
+
+- fix all the unused variables
+- fix compiler warnings
+- there are LOTs of cloned files, put them into a r.pi library (example:
+  ~/grass64/vector/lidar/lidarlib/)
+  
+  File counts:
+  - draw.c 4
+  - search.c 5
+  - helpers.c 13
+  - stat_method.c 13
+  - func.c 16
+  - frag.c 24
+
+  To compare:
+   for i in draw.c search.c helpers.c stat_method.c func.c frag.c ; do
+       echo "####### $i:"
+       ls -l */$i
+   done
+
+
+- fix SVN propsets with this helper script when uploading to Addons (Markus will do):
+   grass-addons/tools/module_svn_propset.sh
+
+- some modules use
+#define TYPE_NOTHING 0
+ while others use
+#define TYPE_NOTHING -1
+  --> suggestion: use -1 everywhere
+
+#####################################
+HTML Descriptions TODO:
+
+- Add North Carolina example to each module, a section has been included everywhere
+- ./description.html (overview): polish and update to current module names
+- module/description.html files: still TOO GENERAL
+

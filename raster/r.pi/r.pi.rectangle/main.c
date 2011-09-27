@@ -1,10 +1,20 @@
-#include "local_proto.h"
-
 /*
-   r.pi.rectangle programming.
+ ****************************************************************************
+ *
+ * MODULE:       r.pi.rectangle
+ * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ * PURPOSE:      Delineation of rectangular study areas based on GPS location
+ *                               of the respective corners
+ *
+ * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
+ *
+ *****************************************************************************/
 
-   by Elshad Shirinov.
- */
+#include "local_proto.h"
 
 struct alignment
 {
@@ -32,16 +42,12 @@ int main(int argc, char *argv[])
 
     /* in and out file pointers */
     int in_fd;
-
     int out_fd;
 
     /* parameters */
     int keyval;
-
     int x, y;
-
     int align;
-
     int sx, sy;
 
     /* maps */
@@ -52,19 +58,13 @@ int main(int argc, char *argv[])
 
     /* helper variables */
     int row, col;
-
     CELL *result;
-
     char *str;
-
     int n, i;
-
     RASTER_MAP_TYPE map_type;
 
     struct Cell_head ch, window;
-
     struct GModule *module;
-
     struct
     {
 	struct Option *input, *output;
@@ -80,20 +80,11 @@ int main(int argc, char *argv[])
     module->description =
 	_("Generates a rectangle based on a corner coordinate.");
 
-    parm.input = G_define_option();
-    parm.input->key = "input";
-    parm.input->type = TYPE_STRING;
-    parm.input->required = YES;
-    parm.input->gisprompt = "old,cell,raster";
+    parm.input = G_define_standard_option(G_OPT_R_INPUT);
     parm.input->description =
-	_("raster file with single pixels representing sampling points");
+	_("Raster map with single pixels representing sampling points");
 
-    parm.output = G_define_option();
-    parm.output->key = "output";
-    parm.output->type = TYPE_STRING;
-    parm.output->required = YES;
-    parm.output->gisprompt = "new,cell,raster,output";
-    parm.output->description = _("Name for the output raster file");
+    parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
 
     parm.keyval = G_define_option();
     parm.keyval->key = "keyval";
@@ -107,14 +98,14 @@ int main(int argc, char *argv[])
     parm.x->type = TYPE_INTEGER;
     parm.x->required = YES;
     parm.x->description =
-	_("extent of generated area on the x axis (width) in pixel");
+	_("Extent of generated area on the x axis (width) in pixel");
 
     parm.y = G_define_option();
     parm.y->key = "y";
     parm.y->type = TYPE_INTEGER;
     parm.y->required = YES;
     parm.y->description =
-	_("extent of generated area on the y axis (height) in pixel");
+	_("Extent of generated area on the y axis (height) in pixel");
 
     parm.alignment = G_define_option();
     parm.alignment->key = "alignment";
@@ -129,14 +120,14 @@ int main(int argc, char *argv[])
 	strcat(str, alignments[n].name);
     }
     parm.alignment->description =
-	_("alignment of the rectangle relative to the input pixel. options: center, top-left, top-right, bottom");
+	_("Alignment of the rectangle relative to the input pixel. options: center, top-left, top-right, bottom");
 
     parm.title = G_define_option();
     parm.title->key = "title";
     parm.title->key_desc = "\"phrase\"";
     parm.title->type = TYPE_STRING;
     parm.title->required = NO;
-    parm.title->description = _("Title of the output raster file");
+    parm.title->description = _("Title for resultant raster map");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -145,19 +136,14 @@ int main(int argc, char *argv[])
     oldname = parm.input->answer;
 
     /* test input files existence */
-    if ((oldmapset = G_find_cell2(oldname, "")) == NULL) {
-	G_warning(_("%s: <%s> raster file not found\n"), G_program_name(),
-		  oldname);
-	G_usage();
-	exit(EXIT_FAILURE);
-    }
+    oldmapset = G_find_cell2(oldname, "");
+	if (oldmapset == NULL)
+        G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* check if the new file name is correct */
     newname = parm.output->answer;
-    if (G_legal_filename(newname) < 0) {
-	G_warning("%s: <%s> illegal file name\n", G_program_name(), newname);
-	exit(EXIT_FAILURE);
-    }
+    if (G_legal_filename(newname) < 0)
+	G_fatal_error(_("<%s> is an illegal file name"), newname);
     newmapset = G_mapset();
 
     /* read keyval */
@@ -197,15 +183,12 @@ int main(int argc, char *argv[])
     G_set_c_null_value(newmap, sx * sy);
 
     /* open map */
-    if ((in_fd = G_open_cell_old(oldname, oldmapset)) < 0) {
-	G_fatal_error(_("can't open cell file <%s> in mapset %s\n"), oldname,
-		      oldmapset);
-	G_usage();
-	exit(EXIT_FAILURE);
-    }
+    in_fd = G_open_cell_old(oldname, oldmapset);
+    if (in_fd < 0)
+	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read map */
-    G_message("Reading map file:\n");
+    G_message("Reading map:");
     for (row = 0; row < sy; row++) {
 	G_get_c_raster_row(in_fd, map + row * sx, row);
 
@@ -225,18 +208,15 @@ int main(int argc, char *argv[])
     G_close_cell(in_fd);
 
     /* write the output file */
-    G_message("Writing output ... ");
+    G_message("Writing output...");
 
     /* open cell file */
     if ((in_fd = G_open_cell_old(oldname, oldmapset)) < 0) {
     }
     /* open new cell file  */
     out_fd = G_open_raster_new(newname, CELL_TYPE);
-    if (out_fd < 0) {
-	G_fatal_error("Can't create new cell file <%s> in mapset %s", newname,
-		      newmapset);
-	exit(EXIT_FAILURE);
-    }
+    if (out_fd < 0)
+	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
     /* write output */
     for (row = 0; row < sy; row++) {

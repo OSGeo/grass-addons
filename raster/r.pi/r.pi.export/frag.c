@@ -14,9 +14,7 @@ int getNeighbors(Position * res, DCELL * flagbuf, int x, int y, int nx,
 		 int ny, int nbr_cnt)
 {
     int left, right, top, bottom;
-
     int i, j;
-
     int cnt = 0;
 
     switch (nbr_cnt) {
@@ -67,13 +65,9 @@ Coords *writeFrag(DCELL * flagbuf, Coords * actpos, int row, int col,
 		  int nrows, int ncols, int nbr_cnt)
 {
     int x, y, i;
-
     Position *list = (Position *) G_malloc(nrows * ncols * sizeof(Position));
-
     Position *first = list;
-
     Position *last = list;
-
     Position *nbr_list = (Position *) G_malloc(8 * sizeof(Position));
 
     /* count neighbors */
@@ -111,17 +105,13 @@ Coords *writeFrag(DCELL * flagbuf, Coords * actpos, int row, int col,
     while (first < last) {
 	/* get position from fifo-list */
 	int r = first->y;
-
 	int c = first->x;
 
 	first++;
 
 	int left = c > 0 ? c - 1 : 0;
-
 	int top = r > 0 ? r - 1 : 0;
-
 	int right = c < ncols - 1 ? c + 1 : ncols - 1;
-
 	int bottom = r < nrows - 1 ? r + 1 : nrows - 1;
 
 	/* add neighbors to fifo-list */
@@ -173,7 +163,6 @@ Coords *writeFrag(DCELL * flagbuf, Coords * actpos, int row, int col,
 void writeFragments(DCELL * flagbuf, int nrows, int ncols, int nbr_cnt)
 {
     int row, col, i;
-
     Coords *p;
 
     fragcount = 0;

@@ -1,11 +1,21 @@
-#define MAIN
-#include "local_proto.h"
-
 /*
-   Export of patch based values
+ ****************************************************************************
+ *
+ * MODULE:       r.pi.export
+ * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ * PURPOSE:      Export of patch based raster information
+ *
+ * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
+ *
+ *****************************************************************************/
 
-   by Elshad Shirinov.
- */
+#define MAIN
+
+#include "local_proto.h"
 
 struct statmethod
 {
@@ -16,13 +26,12 @@ struct statmethod
 };
 
 static struct statmethod statmethods[] = {
-    {average, "average", "average of patch values", "avg"},
-    {variance, "variance", "variance of patch values", "var"},
-    {std_deviat, "standard deviation", "standard deviation of patch values",
-     "dev"},
-    {median, "median", "median of patch values", "med"},
-    {min, "min", "minimum of patch values", "min"},
-    {max, "max", "maximum of patch values", "max"},
+    {average, "average", "average of values", "avg"},
+    {variance, "variance", "variance of values", "var"},
+    {std_deviat, "standard deviation", "standard deviation of values", "dev"},
+    {median, "median", "median of values", "med"},
+    {min, "min", "minimum of values", "min"},
+    {max, "max", "maximum of values", "max"},
     {0, 0, 0, 0}
 };
 
@@ -39,20 +48,15 @@ int main(int argc, char *argv[])
 
     /* in and out file pointers */
     int in_fd;
-
     FILE *out_fp;		/* ASCII - output */
 
     int out_fd;
 
     /* parameters */
     int keyval;
-
-    int stats[256];
-
+    int stats[GNAME_MAX];
     int stat_count;
-
     int ratio_flag;
-
     int neighb_count;
 
     /* maps */
@@ -63,39 +67,24 @@ int main(int argc, char *argv[])
 
     /* helper variables */
     int row, col;
-
     int *result;
-
     DCELL *d_res;
-
     int i, j, n;
-
     int x, y;
-
     Coords *p;
-
-    char output_name[256];
-
+    char output_name[GNAME_MAX];
     char *str;
-
     int method;
-
     f_statmethod perform_method;
-
     DCELL val;
-
     DCELL *values;
-
     int count;
-
     int area;
 
     RASTER_MAP_TYPE map_type;
-
     struct Cell_head ch, window;
 
     struct GModule *module;
-
     struct
     {
 	struct Option *input, *output;
@@ -103,7 +92,6 @@ int main(int argc, char *argv[])
 	struct Option *patch_rast, *stats;
 	struct Option *title;
     } parm;
-
     struct
     {
 	struct Flag *adjacent, *quiet;
@@ -113,23 +101,16 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     module->keywords = _("raster");
-    module->description =
-	_("Performs statistical analysis and export of values within a patch");
+    module->description = _("Export of patch based information.");
 
-    parm.input = G_define_option();
-    parm.input->key = "input";
-    parm.input->type = TYPE_STRING;
-    parm.input->required = YES;
-    parm.input->gisprompt = "old,cell,raster";
-    parm.input->description = _("Name of existing raster file");
+    parm.input = G_define_standard_option(G_OPT_R_INPUT);
 
     parm.output = G_define_option();
     parm.output->key = "output";
     parm.output->type = TYPE_STRING;
     parm.output->required = YES;
     parm.output->gisprompt = "new_file,file,output";
-    parm.output->description =
-	_("Name for the output ASCII-file with statistical values");
+    parm.output->description = _("Name for the output ASCII-file");
 
     parm.values = G_define_option();
     parm.values->key = "values";
@@ -144,14 +125,14 @@ int main(int argc, char *argv[])
     parm.id_rast->type = TYPE_STRING;
     parm.id_rast->required = NO;
     parm.id_rast->gisprompt = "new,cell,raster";
-    parm.id_rast->description = _("Name for the id raster");
+    parm.id_rast->description = _("Name for the ID raster map");
 
     parm.patch_rast = G_define_option();
     parm.patch_rast->key = "patch_raster";
     parm.patch_rast->type = TYPE_STRING;
     parm.patch_rast->required = NO;
     parm.patch_rast->gisprompt = "new,cell,raster";
-    parm.patch_rast->description = _("Name for the binary patch raster");
+    parm.patch_rast->description = _("Name for the patch raster map");
 
     parm.stats = G_define_option();
     parm.stats->key = "stats";
@@ -174,12 +155,12 @@ int main(int argc, char *argv[])
     parm.title->key_desc = "\"phrase\"";
     parm.title->type = TYPE_STRING;
     parm.title->required = NO;
-    parm.title->description = _("Title of the output raster file");
+    parm.title->description = _("Title for resultant raster map");
 
     flag.adjacent = G_define_flag();
     flag.adjacent->key = 'a';
     flag.adjacent->description =
-	_("Set for 8 cell-neighbors. 4 cell-neighbors are default.");
+	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
 
     flag.quiet = G_define_flag();
     flag.quiet->key = 'q';
@@ -192,12 +173,9 @@ int main(int argc, char *argv[])
     oldname = parm.input->answer;
 
     /* test input files existance */
-    if ((oldmapset = G_find_cell2(oldname, "")) == NULL) {
-	G_fatal_error(_("%s: <%s> raster file not found\n"), G_program_name(),
-		      oldname);
-	G_usage();
-	exit(EXIT_FAILURE);
-    }
+    oldmapset = G_find_cell2(oldname, "");
+    if (oldmapset == NULL)
+        G_fatal_error(_("Raster map <%s> not found"), oldname);
 
     /* get verbose */
     verbose = !flag.quiet->answer;
@@ -207,27 +185,15 @@ int main(int argc, char *argv[])
 
     /* check if the id file name is correct */
     idname = parm.id_rast->answer;
-    if (idname) {
-	if (G_legal_filename(idname) < 0) {
-	    G_fatal_error(_("%s: <%s> illegal file name\n"), G_program_name(),
-			  idname);
-	    G_usage();
-	    exit(EXIT_FAILURE);
-	}
+    if (G_legal_filename(idname) < 0)
+	    G_fatal_error(_("<%s> is an illegal file name"), idname);
 	idmapset = G_mapset();
-    }
 
     /* check if the patch file name is correct */
     patchname = parm.patch_rast->answer;
-    if (patchname) {
-	if (G_legal_filename(patchname) < 0) {
-	    G_fatal_error(_("%s: <%s> illegal file name\n"), G_program_name(),
-			  patchname);
-	    G_usage();
-	    exit(EXIT_FAILURE);
-	}
+    if (G_legal_filename(patchname) < 0)
+	    G_fatal_error(_("<%s> is an illegal file name"), patchname);
 	patchmapset = G_mapset();
-    }
 
     /* get size */
     sx = G_window_cols();
@@ -265,16 +231,13 @@ int main(int argc, char *argv[])
     G_set_c_null_value(id_map, sx * sy);
 
     /* open map */
-    if ((in_fd = G_open_cell_old(oldname, oldmapset)) < 0) {
-	G_fatal_error(_("can't open cell file <%s> in mapset %s\n"), oldname,
-		      oldmapset);
-	G_usage();
-	exit(EXIT_FAILURE);
-    }
+    in_fd = G_open_cell_old(oldname, oldmapset);
+    if (in_fd < 0)
+	    G_fatal_error(_("Unable to open raster map <%s>"), oldname);
 
     /* read map */
     if (verbose)
-	G_message("Reading map file:\n");
+	G_message("Reading map:");
     for (row = 0; row < sy; row++) {
 	G_get_d_raster_row(in_fd, map + row * sx, row);
 
@@ -291,13 +254,13 @@ int main(int argc, char *argv[])
     writeFragments(map, sy, sx, neighb_count);
 
     if (verbose)
-	G_message("Writing output ... ");
+	G_message("Writing output...");
 
     /* open ASCII-file or use stdout */
     if (parm.values->answer) {
 	if (strcmp(parm.values->answer, "-") != 0) {
 	    if (!(out_fp = fopen(parm.values->answer, "w"))) {
-		G_fatal_error(_("Error creating file <%s>."),
+		G_fatal_error(_("Error creating file <%s>"),
 			      parm.values->answer);
 	    }
 	}
@@ -343,7 +306,7 @@ int main(int argc, char *argv[])
     /* open ASCII-file or use stdout */
     if (parm.output->answer && strcmp(parm.output->answer, "-") != 0) {
 	if (!(out_fp = fopen(parm.output->answer, "w"))) {
-	    G_fatal_error(_("Error creating file <%s>."),
+	    G_fatal_error(_("Error creating file <%s>"),
 			  parm.output->answer);
 	}
     }
@@ -386,11 +349,8 @@ int main(int argc, char *argv[])
     if (idname) {
 	/* open new cellfile  */
 	out_fd = G_open_raster_new(idname, CELL_TYPE);
-	if (out_fd < 0) {
-	    G_fatal_error(_("can't create new cell file <%s> in mapset %s\n"),
-			  idname, idmapset);
-	    exit(EXIT_FAILURE);
-	}
+	if (out_fd < 0)
+	    G_fatal_error(_("Cannot create raster map <%s>"), idname);
 
 	/* write the output file */
 	for (row = 0; row < sy; row++) {
@@ -407,11 +367,8 @@ int main(int argc, char *argv[])
     if (patchname) {
 	/* open new cellfile  */
 	out_fd = G_open_raster_new(patchname, CELL_TYPE);
-	if (out_fd < 0) {
-	    G_fatal_error(_("can't create new cell file <%s> in mapset %s\n"),
-			  patchname, patchmapset);
-	    exit(EXIT_FAILURE);
-	}
+	if (out_fd < 0)
+	    G_fatal_error(_("Cannot create raster map <%s>"), patchname);
 
 	/* write the output file */
 	for (row = 0; row < sy; row++) {

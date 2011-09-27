@@ -26,7 +26,6 @@ int f_area(DCELL * vals, Coords ** frags, int count)
 int f_perim(DCELL * vals, Coords ** frags, int count)
 {
     Coords *p;
-
     int i;
 
     /* for all patches */
@@ -50,7 +49,6 @@ int f_perim(DCELL * vals, Coords ** frags, int count)
 int f_shapeindex(DCELL * vals, Coords ** frags, int count)
 {
     Coords *p;
-
     int i;
 
     /* for all patches */
@@ -60,7 +58,6 @@ int f_shapeindex(DCELL * vals, Coords ** frags, int count)
 	    G_percent(i, count, 2);
 
 	int border = 0;
-
 	int area = (DCELL) (frags[i + 1] - frags[i]);
 
 	/* for all cells in a patch */
@@ -76,7 +73,6 @@ int f_shapeindex(DCELL * vals, Coords ** frags, int count)
 int f_borderindex(DCELL * vals, Coords ** frags, int count)
 {
     Coords *p;
-
     int i;
 
     /* for all patches */
@@ -86,11 +82,8 @@ int f_borderindex(DCELL * vals, Coords ** frags, int count)
 	    G_percent(i, count, 2);
 
 	int border = 0;
-
 	int maxx, maxy, minx, miny;
-
 	int l = 0;
-
 	int w = 0;
 
 	maxx = minx = frags[i]->x;
@@ -114,7 +107,6 @@ int f_borderindex(DCELL * vals, Coords ** frags, int count)
 int f_compactness(DCELL * vals, Coords ** frags, int count)
 {
     Coords *p;
-
     int i;
 
     /* for all patches */
@@ -124,11 +116,8 @@ int f_compactness(DCELL * vals, Coords ** frags, int count)
 	    G_percent(i, count, 2);
 
 	int area = 0;
-
 	int maxx, maxy, minx, miny;
-
 	int l = 0;
-
 	int w = 0;
 
 	maxx = minx = frags[i]->x;
@@ -152,7 +141,6 @@ int f_compactness(DCELL * vals, Coords ** frags, int count)
 int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 {
     Coords *p;
-
     int i;
 
     /* for all patches */
@@ -165,11 +153,8 @@ int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 	/* formula: a(x) = sum(x_i), b(x) = sum(x_i²), var(x) = (b(x) - a(x)² / n) / n */
 	/* covar(x*y) = (a(x * y) - a(x) * a(y) / n) /n */
 	int ax, ay, axy;
-
 	int bx, by;
-
 	DCELL vx, vy, vxy, vsum, invn;
-
 	int n = 0;
 
 	ax = ay = axy = 0;
@@ -178,9 +163,7 @@ int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 	//              fprintf(stderr, "\npatch %d: ", i);
 	for (p = frags[i]; p < frags[i + 1]; p++, n++) {
 	    int x = p->x;
-
 	    int y = p->y;
-
 	    int xy = p->x * p->y;
 
 	    ax += x;
@@ -203,7 +186,6 @@ int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 int f_area_perim_ratio(DCELL * vals, Coords ** frags, int count)
 {
     Coords *p;
-
     int i;
 
     /* for all patches */
@@ -213,7 +195,6 @@ int f_area_perim_ratio(DCELL * vals, Coords ** frags, int count)
 	    G_percent(i, count, 2);
 
 	int border = 0;
-
 	int area = (DCELL) (frags[i + 1] - frags[i]);
 
 	/* for all cells in a patch */
@@ -229,7 +210,6 @@ int f_area_perim_ratio(DCELL * vals, Coords ** frags, int count)
 int f_frac_dim(DCELL * vals, Coords ** frags, int count)
 {
     Coords *p;
-
     int i;
 
     /* for all patches */
@@ -239,7 +219,6 @@ int f_frac_dim(DCELL * vals, Coords ** frags, int count)
 	    G_percent(i, count, 2);
 
 	int border = 0;
-
 	int area = (DCELL) (frags[i + 1] - frags[i]);
 
 	/* for all cells in a patch */
@@ -255,15 +234,10 @@ int f_frac_dim(DCELL * vals, Coords ** frags, int count)
 DCELL dist(Coords * p1, Coords * p2)
 {
     int x1 = p1->x;
-
     int y1 = p1->y;
-
     int x2 = p2->x;
-
     int y2 = p2->y;
-
     int dx = x2 - x1;
-
     int dy = y2 - y1;
 
     return sqrt(dx * dx + dy * dy);
@@ -272,7 +246,6 @@ DCELL dist(Coords * p1, Coords * p2)
 DCELL min_dist(Coords ** frags, int n1, int n2)
 {
     Coords *p1, *p2;
-
     DCELL min = 1000000.0;
 
     // for all cells in the first patch

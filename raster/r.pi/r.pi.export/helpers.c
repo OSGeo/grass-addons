@@ -68,7 +68,6 @@ void print_array(DCELL * buffer, int size)
 void print_fragments()
 {
     int f;
-
     Coords *p;
 
     for (f = 0; f < fragcount; f++) {

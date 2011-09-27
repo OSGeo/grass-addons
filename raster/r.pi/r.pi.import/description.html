@@ -1,29 +1,60 @@
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-The <EM>r.pi.import</EM> module imports values and assigns them to corresponding patches using a previously exported raster by <EM>r.pi.export</EM>. The raster must have the 
-same extent, spatial resolution etc. in order to detect the same patches and assign the same patch IDs for all patches.
+Import and generation of patch raster data based on individual patch based raster data.
 
-<P>
+<h2>NOTES</h2>
 
-The program will be run non-interactively if the user specifies program arguments (see OPTIONS) on the command
-line.  Alternately, the user can simply type <B>r.pi.import</B> on the command line, without program
-arguments.  In this case, the user will be prompted for flag settings and parameter values.
+...
+
+<h2>EXAMPLE</h2>
+
+An example for the North Carolina sample dataset:
+
+In order to run <em>r.pi.import</em> we need an exported patch index raster:
+<div class="code"><pre>
+<b> r.pi.index input=</b>landclass96 <b>output=</b>landclass96_forestclass5_area <b>keyval=</b>5 <b>method=</b>area
+</pre></div>
+
+export this resulting map:
+<div class="code"><pre>
+<b>r.pi.export input=</b>landclass96_forestclass5_area <b>output=</b>patch_area_out <b>values=</b>patch_area_values <b>id_raster=</b>forestclass5_ID <b>stats=</b>average,variance,min
+</pre></div>
+
+modify it with R or just import the file again and assign the percentage coverage to each fragment. You need the <em>patch_area_values</em> file and the previously used input file <em>forestclass96</em> raster (important: the same patch coverage is mandatory otherwise patch ID in the text file and raster are not congruent!):
+
+<div class="code"><pre>
+<b>r.pi.import input=</b>patch_area_values <b>raster=</b>landclass96 <b>output=</b>imported_values <b>keyval=</b>5 <b>id_col=</b>1 <b>val_col=</b>2
+</pre></div>
+
+if you want to export the patch values to R and do e.g. a linear regression of two patch values and import them again in GRASS, do:<br>
+
+apply r.pi.export with two indices (A and B), in R do:
+
+<div class="code"><pre>
+resid.AB <b><- resid(lm(A[,3]~B[,3]))</b> #write residuals of a linear regression
+df.resid.AB <b><- data.frame(A[,1],resid.AB)</b> #merge patch IDs and resid into same data frame
+<b>write.table(</b>df.resid.AB,"resid.for.GRASS"<b>,row.names=F,col.names=F)</b>
+</pre></div>
+
+exit R and run in GRASS:
+<div class="code"><pre>
+<b>r.pi.import input=</b>resid.for.GRASS <b>raster=</b>landclass96 <b>output=</b>resid.AB <b>keyval=</b>5 <b>id_col=</b>1 <b>val_col=</b>2
+</pre></div>
 
 
-<H2>NOTES</H2>
+<h2>SEE ALSO</h2>
 
-For export and import of patch values after e.g. R calculation <EM>r.pi.export</EM> and <EM>r.pi.import</EM> can be applied using the same raster.
+<em>
+<a href="r.pi.export.html">r.pi.export</a>,
+<a href="r.pi.html">r.pi</a>
+</em>
 
-
-
-<H2>SEE ALSO</H2>
-
-<EM><A HREF="r.pi.export.html">r.pi.export</A></EM><br>
-
-<H2>AUTHOR</H2>
+<h2>AUTHORS</h2>
 Programming: Elshad Shirinov<br>
-Scientific concept: Dr. Martin Wegmann <br>
-Department of Remote Sensing <br>Remote Sensing and Biodiversity Unit<br> University of Wuerzburg, Germany
+Scientific concept: Dr. Martin Wegmann<br>
+Department of Remote Sensing<br>
+Remote Sensing and Biodiversity Unit<br>
+University of Wuerzburg, Germany
 
 <p><i>Last changed: $Date$</i>
 

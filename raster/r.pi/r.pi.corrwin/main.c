@@ -1,18 +1,29 @@
+/*
+ ****************************************************************************
+ *
+ * MODULE:       r.pi.corrwin
+ * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
+ * PURPOSE:      Moving window correlation analysis
+ *               Put together from pieces of r.covar and r.neighbors
+ *
+ * COPYRIGHT:    (C) 2009-2011 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
+ *
+ *****************************************************************************/
+
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
 #include "ncb.h"
 #include "local_proto.h"
-#include <math.h>
 
-/*
-   Moving window correlation analyse.
-
-   Put together from pieces of r.covar and r.neighbors by Elshad Shirinov.
- */
 
 typedef int (*ifunc) (void);
 
@@ -67,32 +78,17 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     module->keywords = _("raster");
-    module->description =
-	_("Calculates correlation of two raster maps "
-	  "by calculating correlation function of two "
-	  "corresponding rectangular areas for each "
-	  "raster point and writing the result into a new raster map.");
+    module->description = _("Moving window correlation analysis.");
 
-    parm.input1 = G_define_option();
+    parm.input1 = G_define_standard_option(G_OPT_R_INPUT);
     parm.input1->key = "input1";
-    parm.input1->type = TYPE_STRING;
-    parm.input1->required = YES;
     parm.input1->gisprompt = "old,cell,raster,1";
-    parm.input1->description = _("Name of existing raster file");
 
-    parm.input2 = G_define_option();
+    parm.input2 = G_define_standard_option(G_OPT_R_INPUT);
     parm.input2->key = "input2";
-    parm.input2->type = TYPE_STRING;
-    parm.input2->required = YES;
     parm.input2->gisprompt = "old,cell,raster,2";
-    parm.input2->description = _("Name of existing raster file");
 
-    parm.output = G_define_option();
-    parm.output->key = "output";
-    parm.output->type = TYPE_STRING;
-    parm.output->required = YES;
-    parm.output->gisprompt = "new,cell,raster";
-    parm.output->description = _("Name of the new raster file");
+    parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
 
     parm.size = G_define_option();
     parm.size->key = "size";
@@ -113,64 +109,47 @@ int main(int argc, char *argv[])
     parm.title->key_desc = "\"phrase\"";
     parm.title->type = TYPE_STRING;
     parm.title->required = NO;
-    parm.title->description = _("Title of the output raster file");
+    parm.title->description = _("Title for resultant raster map");
 
     flag.quiet = G_define_flag();
     flag.quiet->key = 'q';
     flag.quiet->description = _("Run quietly");
 
     if (G_parser(argc, argv))
-	exit(1);
+	exit(EXIT_FAILURE);
 
-    // get names of input files
+    /* get names of input files */
     p1 = ncb.oldcell1.name = parm.input1->answer;
     p2 = ncb.oldcell2.name = parm.input2->answer;
-    // test input files existance
-    if (NULL == (ncb.oldcell1.mapset = G_find_cell2(p1, ""))) {
-	fprintf(stderr, "%s: <%s> raster file not found\n",
-		G_program_name(), p1);
-	exit(1);
-    }
-    if (NULL == (ncb.oldcell2.mapset = G_find_cell2(p2, ""))) {
-	fprintf(stderr, "%s: <%s> raster file not found\n",
-		G_program_name(), p2);
-	exit(1);
-    }
-    // check if new file name is correct
+    /* test input files existance */
+    ncb.oldcell1.mapset = G_find_cell2(p1, "");
+    if (ncb.oldcell1.mapset == NULL)
+        G_fatal_error(_("Raster map <%s> not found"), p1);
+    ncb.oldcell2.mapset = G_find_cell2(p2, "");
+    if (ncb.oldcell2.mapset == NULL)
+        G_fatal_error(_("Raster map <%s> not found"), p2);
+
+    /* check if new file name is correct */
     p = ncb.newcell.name = parm.output->answer;
-    if (G_legal_filename(p) < 0) {
-	fprintf(stderr, "%s: <%s> illegal file name\n", G_program_name(), p);
-	exit(1);
-    }
+    if (G_legal_filename(p) < 0)
+	    G_fatal_error(_("<%s> is an illegal file name"), p);
     ncb.newcell.mapset = G_mapset();
 
-    // get window size
+    /* get window size */
     nrows = G_window_rows();
     ncols = G_window_cols();
 
     fprintf(stderr, "%d x %d ", nrows, ncols);
 
     /* open cell files */
-    if ((in_fd1 =
-	 G_open_cell_old(ncb.oldcell1.name, ncb.oldcell1.mapset)) < 0) {
-	char msg[200];
+    in_fd1 = G_open_cell_old(ncb.oldcell1.name, ncb.oldcell1.mapset);
+	if (in_fd1 < 0)
+	    G_fatal_error(_("Unable to open raster map <%s>"), ncb.oldcell1.name);
+    in_fd2 = G_open_cell_old(ncb.oldcell2.name, ncb.oldcell2.mapset);
+	if (in_fd2 < 0)
+	    G_fatal_error(_("Unable to open raster map <%s>"), ncb.oldcell2.name);
 
-	sprintf(msg, "can't open cell file <%s> in mapset %s\n",
-		ncb.oldcell1.name, ncb.oldcell1.mapset);
-	G_fatal_error(msg);
-	exit(-1);
-    }
-    if ((in_fd2 =
-	 G_open_cell_old(ncb.oldcell2.name, ncb.oldcell2.mapset)) < 0) {
-	char msg[200];
-
-	sprintf(msg, "can't open cell file <%s> in mapset %s\n",
-		ncb.oldcell2.name, ncb.oldcell2.mapset);
-	G_fatal_error(msg);
-	exit(-1);
-    }
-
-    // get map types
+    /* get map types */
     map_type1 = G_raster_map_type(ncb.oldcell1.name, ncb.oldcell1.mapset);
     map_type2 = G_raster_map_type(ncb.oldcell2.name, ncb.oldcell2.mapset);
 
@@ -208,10 +187,10 @@ int main(int argc, char *argv[])
 	readrow++;
     }
 
-    /*open the new cellfile */
+    /* open the new cellfile */
     out_fd = G_open_raster_new(ncb.newcell.name, map_type1);
     if (out_fd < 0)
-	exit(1);
+	    G_fatal_error(_("Cannot create raster map <%s>"), ncb.newcell.name);
 
     if (verbose = !flag.quiet->answer)
 	fprintf(stderr, "Percent complete ... ");
@@ -219,7 +198,7 @@ int main(int argc, char *argv[])
     for (row = 0; row < nrows; row++) {
 	if (verbose)
 	    G_percent(row, nrows, 2);
-	// read the next row into buffer
+	/* read the next row into buffer */
 	readcell(in_fd1, 1, readrow, nrows, ncols);
 	readcell(in_fd2, 2, readrow, nrows, ncols);
 	readrow++;
@@ -235,15 +214,15 @@ int main(int argc, char *argv[])
 
 	    DCELL ii, jj;
 
-	    // set pointer to actual position in the result
+	    /* set pointer to actual position in the result */
 	    DCELL *rp = &result[col];
 
-	    // gather values from actual window
+	    /* gather values from actual window */
 	    gather(values1, 1, col);
 	    gather(values2, 2, col);
-	    // go through all values of the window
+	    /* go through all values of the window */
 	    for (i = 0; i < ncb.nsize * ncb.nsize; i++) {
-		// ignore values if both are nan
+		/* ignore values if both are nan */
 		if (!
 		    (G_is_d_null_value(&values1[i]) &&
 		     G_is_d_null_value(&values2[i]))) {
@@ -258,7 +237,7 @@ int main(int argc, char *argv[])
 		    if (!G_is_d_null_value(&values1[i]) &&
 			!G_is_d_null_value(&values2[i]))
 			mul += values1[i] * values2[i];
-		    // count the number of values actually processed
+		    /* count the number of values actually processed */
 		    count++;
 		}
 	    }
@@ -266,18 +245,18 @@ int main(int argc, char *argv[])
 		*rp = 0;
 		continue;
 	    }
-	    // calculate normalization
+	    /* calculate normalization */
 	    ii = sqrt((mul1 - sum1 * sum1 / count) / (count - 1.0));
 	    jj = sqrt((mul2 - sum2 * sum2 / count) / (count - 1.0));
 
-	    // set result
+	    /* set result */
 	    *rp =
 		maxval * (mul -
 			  sum1 * sum2 / count) / (ii * jj * (count - 1.0));
 	    if (G_is_d_null_value(rp))
 		G_set_d_null_value(rp, 1);
 	}
-	// write actual result row to the output file
+	/* write actual result row to the output file */
 	G_put_d_raster_row(out_fd, result);
     }
     if (verbose)
@@ -290,5 +269,5 @@ int main(int argc, char *argv[])
     if (copycolr)
 	G_write_colors(ncb.newcell.name, ncb.newcell.mapset, &colr);
 
-    exit(0);
+    exit(EXIT_SUCCESS);
 }

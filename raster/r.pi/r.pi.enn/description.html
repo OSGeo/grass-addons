@@ -1,0 +1,133 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.pi.enn</em> computes the euclidean distance between patches (1-n NN).
+
+Analysis of n-th euclidean nearest neighbour distance. 
+
+<h2>NOTES</h2>
+
+The user must specify the names of the raster map layers to
+be used for <em>input</em> and <em>output</em>, the <em>keyval</em> the
+<em>method</em> (e.g. distance, area) and <em>statmethod</em> used (i.e.,
+average).
+<p>
+
+Within <em>r.pi.enn</em> the following setting have to be set:
+
+<h3>keyval setting:</h3>
+
+The <em>keyval</em> operator determines which category value is taken for the Patch Index analysis.
+
+<h3>Method setting:</h3>
+
+The <em>method</em> operators determine what measure is applied 
+on the nth NN.
+
+<p>
+<dt><b>Distance</b> 
+
+<dd>The <em>Average</em> computes the average distance of the n NN.
+
+
+<dt><b>Path distance</b> 
+
+<dd>The <em>path_distance</em> computes the actual distance to the n NN.
+
+
+<dt><b>Area</b> 
+
+<dd>The <em>area</em> computes the area of the n NN.
+
+<dt><b>Perimeter</b> 
+
+<dd>The <em>perimeter</em> computes the perimeter of the n NN.
+
+<dt><b>SHAPE Index</b> 
+
+<dd>The <em>shapeindex</em> computes the SHAPE Index of the n NN.
+
+
+<h3>Statmethod setting:</h3>
+
+The <em>statmethod</em> operators determine what statistic measure is applied 
+on the nth NN.
+
+<p>
+<dt><b>Average</b> 
+
+<dd>The <em>Average</em> computes the average distance of the n NN.
+
+
+<dt><b>Variance</b> 
+
+<dd>The <em>Variance</em> computes the variance of the distance of the n NN.
+
+
+<dt><b>Std. Dev.</b> 
+
+<dd>The <em>Std. Dev</em> computes the std. dev. of the distance of the n NN.
+
+
+
+<h3>Number:</h3>
+
+The <em>keyval</em> operator determines which or how many Nearest Neighbour are analysed.
+
+<em> 1,2,5 </em> will analyse the 1, 2 and 5th Nearest Neigbour.
+
+<em> 1-10 </em> will analyse the 1, 2, 3, ... 10th Nearest Neighbour.
+
+<em> 0 </em> will analyse all Nearest Neighbours.
+
+
+<h3>Distancematrix:</h3>
+
+The <em>dmout</em> operator is optional and determines if a distance matrix is written (first NN only).
+
+<em> 1,2,5 </em> will analyse the 1, 2 and 5th Nearest Neigbour.
+
+<em> 1-10 </em> will analyse the 1, 2, 3, ... 10th Nearest Neighbour.
+
+<em> 0 </em> will analyse all Nearest Neighbours.
+
+
+</dl>
+
+<h2>EXAMPLE</h2>
+
+An example for the North Carolina sample dataset:
+
+<div class="code"><pre>
+r.pi.enn input=landclass96 output=dist1.c5 keyval=5 method=distance number=1 statmethod=average 
+# -> gives a map of patches (all of category of 5) with the average distance to their first NN
+
+r.pi.enn input=landclass96 output=dist10.c5 keyval=5 method=distance number=10 statmethod=average 
+# -> gives a map of patches (all of category of 5) with the average distance to their first-10th NN
+
+r.pi.enn input=landclass96 output=dist1.5.10,c5 keyval=5 method=distance number=1,5,10 statmethod=average 
+# -> gives a map of patches (all of category of 5) with the average distance to their first, first-to-fifth and first-to-10th NN
+
+r.pi.enn input=landclass96 output=dist10b.c5 keyval=5 method=path_distance number=10 statmethod=average 
+# -> gives a map of patches (all of category of 5) with the actual distance to the 10th NN
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.pi.index.html">r.pi.index</a>,
+<a href="r.fragment.dist.html">r.fragment.dist</a>,
+<a href="r.pi.enn.html">r.pi.enn</a>,
+<a href="r.pi.enn.iter.html">r.pi.enn.iter</a>,
+<a href="r.fragment.neighbors.html">r.fragment.neighbors</a>,
+<a href="r.li.setup.html">r.li</a>
+</em>
+
+<h2>AUTHORS</h2>
+Programming: Elshad Shirinov<br>
+Scientific concept: Dr. Martin Wegmann<br>
+Department of Remote Sensing<br>
+Remote Sensing and Biodiversity Unit<br>
+University of Wuerzburg, Germany
+
+<p>
+<i>Last changed: $Date$</i>

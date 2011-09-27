@@ -1,30 +1,44 @@
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<P>
 This module computes the correlation between two raster files but unlike
-<EM>r.pi.lm</EM> for moving windows of a specific size. This module used code sniplets from r.neighbours and r.covar.
+<em>r.pi.lm</em> for moving windows of a specific size. This module used
+code sniplets from <em>r.neighbours</em> and <em>r.covar</em>.
 
-The program will be run non-interactively if the user specifies program
-arguments (see OPTIONS) on the command
-line.  Alternately, the user can simply type <B>r.pi.corrwin</B> on the command line, without program
-arguments.  In this case, the user will be prompted for flag settings and parameter values.
+<h2>EXAMPLE</h2>
 
-<H2>NOTES</H2>
+An example for the North Carolina sample dataset:
 
+<div class="code"><pre>
+g.region -d
+...
+</pre></div>
 
-<H2>BUGS</H2>
+<h2>SEE ALSO</h2>
 
+<em>
+<a href="r.pi.corearea.html">r.pi.corearea</a>,
+<a href="r.pi.csr.mw.html">r.pi.csr.mw</a>,
+<a href="r.pi.export.html">r.pi.export</a>,
+<a href="r.pi.graph.html">r.pi.graph</a>,
+<a href="r.pi.graph.dec.html">r.pi.graph.dec</a>,
+<a href="r.pi.graph.iter.html">r.pi.graph.iter</a>,
+<a href="r.pi.graph.red.html">r.pi.graph.red</a>,
+<a href="r.pi.grow.html">r.pi.grow</a>,
+<a href="r.pi.import.html">r.pi.import</a>,
+<a href="r.pi.index.html">r.pi.index</a>,
+<a href="r.pi.lm.html">r.pi.lm</a>,
+<a href="r.pi.odc.html">r.pi.odc</a>,
+<a href="r.pi.prob.mw.html">r.pi.prob.mw</a>,
+<a href="r.pi.rectangle.html">r.pi.rectangle</a>,
+<a href="r.pi.html">r.pi</a>
+</em>
 
-<H2>SEE ALSO</H2>
-
-<EM><A HREF="r.pi.lm.html">r.pi.ENN</A></EM><br>
-<EM><A HREF="r.pi.probmw.html">r.pi.FNN</A></EM><br>
-<EM><A HREF="r.li.setup.html">r.li.setup</A></EM><br>
-
-<H2>AUTHOR</H2>
+<h2>AUTHORS</h2>
 Programming: Elshad Shirinov<br>
-Scientific concept: Dr. Martin Wegmann <br>
-Department of Remote Sensing <br>Remote Sensing and Biodiversity Unit<br> University of Wuerzburg, Germany
+Scientific concept: Dr. Martin Wegmann<br>
+Department of Remote Sensing<br>
+Remote Sensing and Biodiversity Unit<br>
+University of Wuerzburg, Germany
 
-<p><i>Last changed: $Date$</i>
-
+<p>
+<i>Last changed: $Date$</i>
