@@ -100,6 +100,11 @@ fi
 
 
 MAP_IS_3D=`v.info "$GIS_OPT_INPUT" | grep "Map is 3D" | cut -f2 -d: | awk '{print $1}'`
+if [ "$MAP_IS_3D" = "No" ] ; then
+   MAP_IS_3D=0
+elif [ "$MAP_IS_3D" = "Yes" ] ; then
+   MAP_IS_3D=1
+fi
 
 if [ "$MAP_IS_3D" -eq 0 ] ; then
    NAN_STR="NaN\tNaN"
