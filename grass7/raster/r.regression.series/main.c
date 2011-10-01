@@ -2,11 +2,16 @@
 /****************************************************************************
  *
  * MODULE:       r.series
- * AUTHOR(S):    Glynn Clements <glynn gclements.plus.com> (original contributor)
+ * 
+ * AUTHOR(S):    Markus Metz
+ *               based on r.series by
+ *               Glynn Clements <glynn gclements.plus.com> (original contributor)
  *               Hamish Bowman <hamish_b yahoo.com>, Jachym Cepicky <jachym les-ejk.cz>,
  *               Martin Wegmann <wegmann biozentrum.uni-wuerzburg.de>
- * PURPOSE:      
- * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
+ * 
+ * PURPOSE:      regression between two time series
+ * 
+ * COPYRIGHT:    (C) 2011 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -16,42 +21,134 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#include <grass/stats.h>
+
+#define REGRESSION_SLOPE		0
+#define REGRESSION_OFFSET		1
+#define REGRESSION_COEFF_DET		2
+#define REGRESSION_COEFF_DET_ADJ	3
+#define REGRESSION_F_VALUE		4
+#define REGRESSION_T_VALUE		5
+
+static void reg(DCELL *result, DCELL (*values)[2], int n, int which)
+{
+    DCELL sumX, sumY, sumsqX, sumsqY, sumXY;
+    DCELL meanX, meanY;
+    DCELL A, B, R, F, T;
+    int count;
+    int i;
+
+    sumX = sumY = sumsqX = sumsqY = sumXY = 0.0;
+    meanX = meanY = 0.0;
+    count = 0;
+
+    for (i = 0; i < n; i++) {
+	if (Rast_is_d_null_value(&values[i][0]) ||
+	    Rast_is_d_null_value(&values[i][1]))
+	    continue;
+
+	sumX += values[i][0];
+	sumY += values[i][1];
+	sumsqX += values[i][0] * values[i][0];
+	sumsqY += values[i][1] * values[i][1];
+	sumXY += values[i][0] * values[i][1];
+	count++;
+    }
+
+    if (count < 2) {
+	Rast_set_d_null_value(result, 1);
+	return;
+    }
+
+    B = (sumXY - sumX * sumY / count) / (sumsqX - sumX * sumX / count);
+    R = (sumXY - sumX * sumY / count) /
+	sqrt((sumsqX - sumX * sumX / count) * (sumsqY - sumY * sumY / count));
+
+    meanX = sumX / count;
+
+    meanY = sumY / count;
+
+    switch (which) {
+    case REGRESSION_SLOPE:
+	*result = B;
+	break;
+    case REGRESSION_OFFSET:
+	A = meanY - B * meanX;
+	*result = A;
+	break;
+    case REGRESSION_COEFF_DET:
+	*result = R;
+	break;
+    case REGRESSION_COEFF_DET_ADJ:
+	*result = 1 - (1 - R) * ((count - 1) / (count - 2 - 1));
+	break;
+    case REGRESSION_F_VALUE:
+	F = R * R / (1 - R * R / count - 2);
+	*result = F;
+	break;
+    case REGRESSION_T_VALUE:
+	T = sqrt(R) * sqrt((count - 2) / (1 - R));
+	*result = T;
+	break;
+    default:
+	Rast_set_d_null_value(result, 1);
+	break;
+    }
+
+    /* Check for NaN */
+    if (*result != *result)
+	Rast_set_d_null_value(result, 1);
+}
+
+void reg_m(DCELL * result, DCELL (*values)[2], int n)
+{
+    reg(result, values, n, REGRESSION_SLOPE);
+}
+
+void reg_c(DCELL * result, DCELL (*values)[2], int n)
+{
+    reg(result, values, n, REGRESSION_OFFSET);
+}
+
+void reg_r2(DCELL * result, DCELL (*values)[2], int n)
+{
+    reg(result, values, n, REGRESSION_COEFF_DET);
+}
+
+void reg_r2_adj(DCELL * result, DCELL (*values)[2], int n)
+{
+    reg(result, values, n, REGRESSION_COEFF_DET);
+}
+
+void reg_f(DCELL * result, DCELL (*values)[2], int n)
+{
+    reg(result, values, n, REGRESSION_F_VALUE);
+}
+
+void reg_t(DCELL * result, DCELL (*values)[2], int n)
+{
+    reg(result, values, n, REGRESSION_T_VALUE);
+}
+
+typedef void stat_func(DCELL *, DCELL (*)[2], int);
 
 struct menu
 {
     stat_func *method;		/* routine to compute new value */
-    int is_int;			/* result is an integer */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
 } menu[] = {
-    {c_ave,    0, "average",    "average value"},
-    {c_count,  1, "count",      "count of non-NULL cells"},
-    {c_median, 0, "median",     "median value"},
-    {c_mode,   0, "mode",       "most frequently occuring value"},
-    {c_min,    0, "minimum",    "lowest value"},
-    {c_minx,   1, "min_raster", "raster with lowest value"},
-    {c_max,    0, "maximum",    "highest value"},
-    {c_maxx,   1, "max_raster", "raster with highest value"},
-    {c_stddev, 0, "stddev",     "standard deviation"},
-    {c_range,  0, "range",      "range of values"},
-    {c_sum,    0, "sum",        "sum of values"},
-    {c_var,    0, "variance",   "statistical variance"},
-    {c_divr,   1, "diversity",  "number of different values"},
-    {c_reg_m,  0, "slope",      "linear regression slope"},
-    {c_reg_c,  0, "offset",     "linear regression offset"},
-    {c_reg_r2, 0, "detcoeff",   "linear regression coefficient of determination"},
-    {c_quart1, 0, "quart1",     "first quartile"},
-    {c_quart3, 0, "quart3",     "third quartile"},
-    {c_perc90, 0, "perc90",     "ninetieth percentile"},
-    {c_quant,  0, "quantile",   "arbitrary quantile"},
-    {c_skew,   0, "skewness",   "skewness"},
-    {c_kurt,   0, "kurtosis",   "kurtosis"},
-    {NULL,     0, NULL,         NULL}
+    {reg_m,      "slope",       "linear regression slope"},
+    {reg_c,      "offset",      "linear regression offset"},
+    {reg_r2,     "detcoeff",    "linear regression coefficient of determination"},
+    {reg_r2_adj, "adjdetcoeff", "adjusted coefficient of determination"},
+    {reg_f,      "f",           "F statistic"},
+    {reg_t,      "t",           "T statistic"},
+    {NULL,         NULL,          NULL}
 };
 
 struct input
@@ -67,7 +164,6 @@ struct output
     int fd;
     DCELL *buf;
     stat_func *method_fn;
-    double quantile;
 };
 
 static char *build_method_list(void)
@@ -107,7 +203,7 @@ int main(int argc, char *argv[])
     struct GModule *module;
     struct
     {
-	struct Option *input, *output, *method, *quantile, *range;
+	struct Option *xinput, *yinput, *output, *method;
     } parm;
     struct
     {
@@ -115,14 +211,13 @@ int main(int argc, char *argv[])
     } flag;
     int i;
     int num_inputs;
-    struct input *inputs;
+    struct input *xinputs, *yinputs;
     int num_outputs;
     struct output *outputs;
     struct History history;
-    DCELL *values, *values_tmp;
+    DCELL (*values)[2], (*values_tmp)[2];
     int nrows, ncols;
     int row, col;
-    double lo, hi;
 
     G_gisinit(argv[0]);
 
@@ -134,7 +229,11 @@ int main(int argc, char *argv[])
 	  "function of the values assigned to the corresponding cells "
 	  "in the input raster map layers.");
 
-    parm.input = G_define_standard_option(G_OPT_R_INPUTS);
+    parm.xinput = G_define_standard_option(G_OPT_R_INPUTS);
+    parm.xinput->key = "xseries";
+
+    parm.yinput = G_define_standard_option(G_OPT_R_INPUTS);
+    parm.yinput->key = "yseries";
 
     parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
     parm.output->multiple = YES;
@@ -144,22 +243,8 @@ int main(int argc, char *argv[])
     parm.method->type = TYPE_STRING;
     parm.method->required = YES;
     parm.method->options = build_method_list();
-    parm.method->description = _("Aggregate operation");
+    parm.method->description = _("Regression parameters");
     parm.method->multiple = YES;
-
-    parm.quantile = G_define_option();
-    parm.quantile->key = "quantile";
-    parm.quantile->type = TYPE_DOUBLE;
-    parm.quantile->required = NO;
-    parm.quantile->description = _("Quantile to calculate for method=quantile");
-    parm.quantile->options = "0.0-1.0";
-    parm.quantile->multiple = YES;
-
-    parm.range = G_define_option();
-    parm.range->key = "range";
-    parm.range->type = TYPE_DOUBLE;
-    parm.range->key_desc = "lo,hi";
-    parm.range->description = _("Ignore values outside this range");
 
     flag.nulls = G_define_flag();
     flag.nulls->key = 'n';
@@ -168,28 +253,39 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    if (parm.range->answer) {
-	lo = atof(parm.range->answers[0]);
-	hi = atof(parm.range->answers[1]);
-    }
-
     /* process the input maps */
-    for (i = 0; parm.input->answers[i]; i++)
+    for (i = 0; parm.xinput->answers[i]; i++)
 	;
     num_inputs = i;
 
-    if (num_inputs < 1)
-	G_fatal_error(_("Raster map not found"));
+    for (i = 0; parm.yinput->answers[i]; i++)
+	;
+    if (num_inputs != i)
+	G_fatal_error(_("The number of '%s' and '%s' maps must be identical"),
+		      parm.xinput->key, parm.yinput->key);
 
-    inputs = G_malloc(num_inputs * sizeof(struct input));
+    if (num_inputs < 3)
+	G_fatal_error(_("Regression parameters can not be calculated for less than 3 maps per series"));
+
+    if (num_inputs < 7)
+	G_warning(_("Regression parameters are dubious for less than 7 maps per series"));
+
+    xinputs = G_malloc(num_inputs * sizeof(struct input));
+    yinputs = G_malloc(num_inputs * sizeof(struct input));
 
     for (i = 0; i < num_inputs; i++) {
-	struct input *p = &inputs[i];
+	struct input *px = &xinputs[i];
+	struct input *py = &yinputs[i];
 
-	p->name = parm.input->answers[i];
-	G_message(_("Reading raster map <%s>..."), p->name);
-	p->fd = Rast_open_old(p->name, "");
-	p->buf = Rast_allocate_d_buf();
+	px->name = parm.xinput->answers[i];
+	G_message(_("Reading raster map <%s>..."), px->name);
+	px->fd = Rast_open_old(px->name, "");
+	px->buf = Rast_allocate_d_buf();
+
+	py->name = parm.yinput->answers[i];
+	G_message(_("Reading raster map <%s>..."), py->name);
+	py->fd = Rast_open_old(py->name, "");
+	py->buf = Rast_allocate_d_buf();
     }
 
     /* process the output maps */
@@ -212,17 +308,13 @@ int main(int argc, char *argv[])
 
 	out->name = output_name;
 	out->method_fn = menu[method].method;
-	out->quantile = (parm.quantile->answer && parm.quantile->answers[i])
-	    ? atof(parm.quantile->answers[i])
-	    : 0;
 	out->buf = Rast_allocate_d_buf();
-	out->fd = Rast_open_new(output_name,
-				menu[method].is_int ? CELL_TYPE : DCELL_TYPE);
+	out->fd = Rast_open_new(output_name, DCELL_TYPE);
     }
 
     /* initialise variables */
-    values = G_malloc(num_inputs * sizeof(DCELL));
-    values_tmp = G_malloc(num_inputs * sizeof(DCELL));
+    values = (DCELL(*)[2]) G_malloc(num_inputs * 2 * sizeof(DCELL));
+    values_tmp = (DCELL(*)[2]) G_malloc(num_inputs * 2 * sizeof(DCELL));
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -233,23 +325,23 @@ int main(int argc, char *argv[])
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 2);
 
-	for (i = 0; i < num_inputs; i++)
-	    Rast_get_d_row(inputs[i].fd, inputs[i].buf, row);
+	for (i = 0; i < num_inputs; i++) {
+	    Rast_get_d_row(xinputs[i].fd, xinputs[i].buf, row);
+	    Rast_get_d_row(yinputs[i].fd, yinputs[i].buf, row);
+	}
 
 	for (col = 0; col < ncols; col++) {
 	    int null = 0;
 
 	    for (i = 0; i < num_inputs; i++) {
-		DCELL v = inputs[i].buf[col];
+		DCELL x = xinputs[i].buf[col];
+		DCELL y = yinputs[i].buf[col];
 
-		if (Rast_is_d_null_value(&v))
+		if (Rast_is_d_null_value(&x) || Rast_is_d_null_value(&y))
 		    null = 1;
-		else if (parm.range->answer && (v < lo || v > hi)) {
-		    Rast_set_d_null_value(&v, 1);
-		    null = 1;
-		}
 
-		values[i] = v;
+		values[i][0] = x;
+		values[i][1] = y;
 	    }
 
 	    for (i = 0; i < num_outputs; i++) {
@@ -258,8 +350,8 @@ int main(int argc, char *argv[])
 		if (null && flag.nulls->answer)
 		    Rast_set_d_null_value(&out->buf[col], 1);
 		else {
-		    memcpy(values_tmp, values, num_inputs * sizeof(DCELL));
-		    (*out->method_fn)(&out->buf[col], values_tmp, num_inputs, &out->quantile);
+		    memcpy(values_tmp, values, num_inputs * 2 * sizeof(DCELL));
+		    (*out->method_fn)(&out->buf[col], values_tmp, num_inputs);
 		}
 	    }
 	}
@@ -281,8 +373,10 @@ int main(int argc, char *argv[])
 	Rast_write_history(out->name, &history);
     }
 
-    for (i = 0; i < num_inputs; i++)
-	Rast_close(inputs[i].fd);
+    for (i = 0; i < num_inputs; i++) {
+	Rast_close(xinputs[i].fd);
+	Rast_close(yinputs[i].fd);
+    }
 
     exit(EXIT_SUCCESS);
 }

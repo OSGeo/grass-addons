@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.series
+PGM = r.regression.series
 
 LIBES = $(STATSLIB) $(RASTERLIB) $(GISLIB)
 DEPENDENCIES = $(STATSDEP) $(RASTERDEP) $(GISDEP)
