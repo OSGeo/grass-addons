@@ -2,7 +2,7 @@
 # Compile GRASS 6.4, 6.5 and 7.0 (update source code from SVN repository)
 
 SRC=/osgeo4w/usr/src
-PACKAGEDIR="mswindows/osgeo4w/package"
+PACKAGEDIR=mswindows/osgeo4w/package
 
 function update {
     echo "Updating $1..."     
@@ -14,12 +14,6 @@ function rm_package_7 {
     for f in `/c/OSGeo4W/apps/msys/bin/find $PACKAGEDIR/grass*.tar.bz2 -mtime +7 2>/dev/null`; do
         rm -rfv $f
     done
-}
-
-function rsync_package {
-    dst="/c/Users/landa/grass_packager/grass$1"
-    rm -rf $dst/package
-    cp -r $PACKAGEDIR $dst
 }
 
 function compile {
@@ -35,7 +29,6 @@ function compile {
     rm -f mswindows/osgeo4w/configure-stamp
     svn up || (svn cleanup && svn up)
     ./mswindows/osgeo4w/package.sh $package
-    rsync_package $2
 }
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin

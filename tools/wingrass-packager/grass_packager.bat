@@ -34,6 +34,7 @@ copy .\msys.bat .\grass64\GRASS-64-Dev-Package\msys\
 copy .\msys.bat .\grass65\GRASS-65-Dev-Package\msys\
 copy .\msys.bat .\grass70\GRASS-70-Dev-Package\msys\
 
+C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_osgeo4w.sh
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_svn_info.sh
 
 C:\DevTools\makensis.exe .\grass64\GRASS-Installer.nsi
@@ -43,8 +44,8 @@ C:\DevTools\makensis.exe .\grass70\GRASS-Installer.nsi
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_md5sum.sh
 
 pscp.exe -i .\ssh\id_dsa.ppk .\grass64\WinGRASS*.exe* landa@geo102:/work/wingrass/grass64
-pscp.exe -i .\ssh\id_dsa.ppk .\grass64\osgeo4w\package\grass*.tar.bz2 landa@geo102:/work/wingrass/grass64/osgeo4w
+pscp.exe -i .\ssh\id_dsa.ppk .\grass64\grass*.tar.bz2 landa@geo102:/work/wingrass/grass64/osgeo4w
 pscp.exe -i .\ssh\id_dsa.ppk .\grass65\WinGRASS*.exe* landa@geo102:/work/wingrass/grass65
-pscp.exe -i .\ssh\id_dsa.ppk .\grass65\osgeo4w\package\grass*.tar.bz2 landa@geo102:/work/wingrass/grass65/osgeo4w
+pscp.exe -i .\ssh\id_dsa.ppk .\grass65\grass*.tar.bz2 landa@geo102:/work/wingrass/grass65/osgeo4w
 pscp.exe -i .\ssh\id_dsa.ppk .\grass70\WinGRASS*.exe* landa@geo102:/work/wingrass/grass70
-pscp.exe -i .\ssh\id_dsa.ppk .\grass70\osgeo4w\package\grass*.tar.bz2 landa@geo102:/work/wingrass/grass70/osgeo4w
+pscp.exe -i .\ssh\id_dsa.ppk .\grass70\grass*.tar.bz2 landa@geo102:/work/wingrass/grass70/osgeo4w
