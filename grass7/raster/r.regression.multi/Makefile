@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.regression.line
+PGM = r.regression.multi
 
 LIBES = $(RASTERLIB) $(GISLIB) $(MATHLIB)
 DEPENDENCIES = $(GISDEP) $(RASTERDEP)
