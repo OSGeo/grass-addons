@@ -213,7 +213,7 @@ init_event_list_in_memory(AEvent * eventList, char *rastName,
     /*buffer to hold 3 rows */
     G_SURFACE_T **inrast;
     int nrows = G_window_rows();
-    int ncols = G_window_rows();
+    int ncols = G_window_cols();
 
     inrast = (G_SURFACE_T **)G_malloc(3 * sizeof(G_SURFACE_T *));
     assert(inrast);
@@ -442,7 +442,7 @@ AMI_STREAM < AEvent > *init_event_list(char *rastName, Viewpoint * vp,
     data_type = G_SURFACE_TYPE;
     G_SURFACE_T **inrast;
     int nrows = G_window_rows();
-    int ncols = G_window_rows();
+    int ncols = G_window_cols();
 
     inrast = (G_SURFACE_T **)G_malloc(3 * sizeof(G_SURFACE_T *));
     assert(inrast);
