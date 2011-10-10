@@ -49,7 +49,7 @@ DCELL median(DCELL * vals, int count)
     int l = 0;
     int h = count - 1;
     DCELL pivot, tmp;
-    int i, j, z;
+    int i, j;
 
     if (count <= 0)
 	return 0;

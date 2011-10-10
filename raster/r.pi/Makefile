@@ -3,6 +3,7 @@ MODULE_TOPDIR = ..
 PGM = r.pi
 
 SUBDIRS = \
+	r.pi.library \
 	r.pi.corearea \
 	r.pi.corrwin \
 	r.pi.corrwindow \
