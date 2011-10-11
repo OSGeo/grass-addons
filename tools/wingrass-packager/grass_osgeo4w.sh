@@ -12,7 +12,7 @@ function rsync_package {
 	package=1
     fi
 
-    cp $dir/grass*-$package-*.tar.bz2 $HOME/grass$1
+    cp $dir/grass*-$package*.tar.bz2 $HOME/grass$1
 }
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
