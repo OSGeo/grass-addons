@@ -1,4 +1,4 @@
-#include "local_proto.h"
+#include "r_pi.h"
 
 int Round(double d)
 {
@@ -8,8 +8,8 @@ int Round(double d)
 int Random(int max)
 {
     return max <=
-	RAND_MAX ? rand() % max : floor((double)rand() /
-					(double)(RAND_MAX + 1) * max);
+	RAND_MAX ? rand() % max :
+	           floor((((double) RAND_MAX + 1) / ((double) rand())) * max);
 }
 
 double Randomf()
@@ -65,7 +65,7 @@ void print_array(DCELL * buffer, int size)
     fprintf(stderr, "\n");
 }
 
-void print_fragments()
+void print_fragments(Coords** fragments, int fragcount)
 {
     int f;
     Coords *p;
@@ -73,7 +73,7 @@ void print_fragments()
     for (f = 0; f < fragcount; f++) {
 	fprintf(stderr, "frag%d: ", f);
 	for (p = fragments[f]; p < fragments[f + 1]; p++) {
-	    fprintf(stderr, "(%d,%d), n=%d ", p->x, p->y, p->neighbors);
+	    fprintf(stderr, "(%d,%d), n=%d, val=%0.2f;", p->x, p->y, p->neighbors, p->value);
 	}
 	fprintf(stderr, "\n");
     }

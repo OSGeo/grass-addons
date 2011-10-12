@@ -1,4 +1,4 @@
-#include "local_proto.h"
+#include "r_pi.h"
 
 inline void swap(int *a, int *b)
 {

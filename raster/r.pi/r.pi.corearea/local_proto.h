@@ -8,6 +8,7 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
+#include "../r.pi.library/r_pi.h"
 
 #ifdef MAIN
 #define GLOBAL
@@ -15,15 +16,6 @@
 #define GLOBAL extern
 #endif
 
-#define TYPE_NOTHING 0
-
-#define MAX_DOUBLE 1000000.0
-
-typedef struct
-{
-    int x, y;
-    int neighbors;
-} Coords;
 
 typedef struct
 {
@@ -53,10 +45,6 @@ void find_borders(int *flagbuf);
 void init_border_values(double distance, double angle, int buffer,
 			f_statmethod stat, double dist_weight);
 void propagate(int neighbor_count, f_propmethod prop_method);
-
-/* stat_method.c */
-DCELL average(DCELL * vals, int count);
-DCELL median(DCELL * vals, int count);
 
 /* prop_method.c */
 DCELL linear(DCELL value, DCELL propcost);

@@ -10,6 +10,7 @@ typedef struct
 {
     int x, y;
     int neighbors;
+    double value;
 } Coords;
 
 /* frag.c */

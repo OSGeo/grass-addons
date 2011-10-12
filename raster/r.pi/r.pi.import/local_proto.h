@@ -14,6 +14,7 @@
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
+#include "../r.pi.library/r_pi.h"
 
 #ifdef MAIN
 #define GLOBAL
@@ -32,6 +33,7 @@ typedef struct
 {
     int x, y;
     int neighbors;
+    double value;
 } Coords;
 
 typedef DCELL(*f_statmethod) (DCELL *, int);

@@ -5,7 +5,7 @@ void valmap_output()
     int out_fd;
     DCELL *result;
 
-    result = G_allocate_c_raster_buf();
+    result = (DCELL *) G_allocate_c_raster_buf();
 
     /* write output */
     /* open the new cellfile  */

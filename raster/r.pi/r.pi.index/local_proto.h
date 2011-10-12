@@ -13,6 +13,7 @@ typedef struct
 {
     int x, y;
     int neighbors;
+    double value;
 } Coords;
 
 extern void writeFrag(int row, int col, int nbr_cnt);
