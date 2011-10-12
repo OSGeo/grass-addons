@@ -13,9 +13,8 @@ int f_area(DCELL * vals, Coords ** frags, int count)
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// display progress
-	if (verbose)
-	    G_percent(i, count, 2);
+	/* display progress */
+	G_percent(i, count, 2);
 
 	vals[i] = (DCELL) (frags[i + 1] - frags[i]);
     }
@@ -30,11 +29,10 @@ int f_perim(DCELL * vals, Coords ** frags, int count)
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// display progress
-	if (verbose)
-	    G_percent(i, count, 2);
-
 	int border = 0;
+
+	/* display progress */
+	G_percent(i, count, 2);
 
 	/* for all cells in a patch */
 	for (p = frags[i]; p < frags[i + 1]; p++) {
@@ -53,12 +51,11 @@ int f_shapeindex(DCELL * vals, Coords ** frags, int count)
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// display progress
-	if (verbose)
-	    G_percent(i, count, 2);
-
 	int border = 0;
 	int area = (DCELL) (frags[i + 1] - frags[i]);
+
+	/* display progress */
+	G_percent(i, count, 2);
 
 	/* for all cells in a patch */
 	for (p = frags[i]; p < frags[i + 1]; p++) {
@@ -77,14 +74,13 @@ int f_borderindex(DCELL * vals, Coords ** frags, int count)
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// display progress
-	if (verbose)
-	    G_percent(i, count, 2);
-
 	int border = 0;
 	int maxx, maxy, minx, miny;
 	int l = 0;
 	int w = 0;
+
+	/* display progress */
+	G_percent(i, count, 2);
 
 	maxx = minx = frags[i]->x;
 	maxy = miny = frags[i]->y;
@@ -111,14 +107,13 @@ int f_compactness(DCELL * vals, Coords ** frags, int count)
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// display progress
-	if (verbose)
-	    G_percent(i, count, 2);
-
 	int area = 0;
 	int maxx, maxy, minx, miny;
 	int l = 0;
 	int w = 0;
+
+	/* display progress */
+	G_percent(i, count, 2);
 
 	maxx = minx = frags[i]->x;
 	maxy = miny = frags[i]->y;
@@ -145,10 +140,6 @@ int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// display progress
-	if (verbose)
-	    G_percent(i, count, 2);
-
 	/* compute variance for x,y and xy in the patch */
 	/* formula: a(x) = sum(x_i), b(x) = sum(x_i²), var(x) = (b(x) - a(x)² / n) / n */
 	/* covar(x*y) = (a(x * y) - a(x) * a(y) / n) /n */
@@ -157,10 +148,13 @@ int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 	DCELL vx, vy, vxy, vsum, invn;
 	int n = 0;
 
+	/* display progress */
+	G_percent(i, count, 2);
+
 	ax = ay = axy = 0;
 	bx = by = 0;
 	/* for all cells in a patch */
-	//              fprintf(stderr, "\npatch %d: ", i);
+	/*              fprintf(stderr, "\npatch %d: ", i); */
 	for (p = frags[i]; p < frags[i + 1]; p++, n++) {
 	    int x = p->x;
 	    int y = p->y;
@@ -171,16 +165,18 @@ int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 	    axy += xy;
 	    bx += x * x;
 	    by += y * y;
-	    //                      fprintf(stderr, "x_%d = %d, y_%d = %d; ", n, x, n, y);
+	    /*                      fprintf(stderr, "x_%d = %d, y_%d = %d; ", n, x, n, y); */
 	}
 	invn = 1.0 / (DCELL) n;
 	vx = ((DCELL) bx - (DCELL) ax * (DCELL) ax * invn) * invn;
 	vy = ((DCELL) by - (DCELL) ay * (DCELL) ay * invn) * invn;
 	vxy = ((DCELL) axy - (DCELL) ax * (DCELL) ay * invn) * invn;
-	//              fprintf(stderr, " axy = %d, ax = %d, ay = %d, n = %d", axy, ax, ay, n);
+	/*              fprintf(stderr, " axy = %d, ax = %d, ay = %d, n = %d", axy, ax, ay, n); */
 	vsum = vx + vy;
 	vals[i] = 2 * sqrt(0.25 * vsum * vsum + vxy * vxy - vx * vy) / vsum;
     }
+
+    return 1;
 }
 
 int f_area_perim_ratio(DCELL * vals, Coords ** frags, int count)
@@ -190,12 +186,11 @@ int f_area_perim_ratio(DCELL * vals, Coords ** frags, int count)
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// display progress
-	if (verbose)
-	    G_percent(i, count, 2);
-
 	int border = 0;
 	int area = (DCELL) (frags[i + 1] - frags[i]);
+
+	/* display progress */
+	G_percent(i, count, 2);
 
 	/* for all cells in a patch */
 	for (p = frags[i]; p < frags[i + 1]; p++) {
@@ -214,12 +209,11 @@ int f_frac_dim(DCELL * vals, Coords ** frags, int count)
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// display progress
-	if (verbose)
-	    G_percent(i, count, 2);
-
 	int border = 0;
 	int area = (DCELL) (frags[i + 1] - frags[i]);
+
+	/* display progress */
+	G_percent(i, count, 2);
 
 	/* for all cells in a patch */
 	for (p = frags[i]; p < frags[i + 1]; p++) {
@@ -248,13 +242,13 @@ DCELL min_dist(Coords ** frags, int n1, int n2)
     Coords *p1, *p2;
     DCELL min = 1000000.0;
 
-    // for all cells in the first patch
+    /* for all cells in the first patch */
     for (p1 = frags[n1]; p1 < frags[n1 + 1]; p1++) {
-	// if cell at the border
+	/* if cell at the border */
 	if (p1->neighbors < 4) {
-	    // for all cells in the second patch
+	    /* for all cells in the second patch */
 	    for (p2 = frags[n2]; p2 < frags[n2 + 1]; p2++) {
-		// if cell at the border
+		/* if cell at the border */
 		if (p2->neighbors < 4) {
 		    DCELL d = dist(p1, p2);
 
@@ -274,11 +268,10 @@ int f_nearest_dist(DCELL * vals, Coords ** frags, int count)
 
     /* for all patches */
     for (i = 0; i < count; i++) {
-	// display progress
-	if (verbose)
-	    G_percent(i, count, 2);
-
 	DCELL min = 1000000.0;
+
+	/* display progress */
+	G_percent(i, count, 2);
 
 	for (j = 0; j < count; j++) {
 	    if (i != j) {

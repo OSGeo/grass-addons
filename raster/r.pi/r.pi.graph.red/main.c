@@ -20,21 +20,21 @@
 
 struct neighborhood
 {
-    f_neighborhood method;	/* routine to build adjacency matrix */
+    f_neighborhood *method;	/* routine to build adjacency matrix */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
 };
 
 struct index
 {
-    f_index method;		/* routine to calculate cluster index */
+    f_index *method;		/* routine to calculate cluster index */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
 };
 
 struct statmethod
 {
-    f_statmethod method;	/* routine to compute statistical value */
+    f_statmethod *method;	/* routine to compute statistical value */
     char *name;			/* method name */
     char *suffix;		/* abbreviation to be displayed in the output */
     char *text;			/* menu display - full description */
@@ -114,9 +114,9 @@ int main(int argc, char *argv[])
     char *p;
     int row, col, i, j, m;
     int n;
-    f_neighborhood build_graph;
-    f_index calc_index;
-    f_statmethod calc_stat;
+    f_neighborhood *build_graph;
+    f_index *calc_index;
+    f_statmethod *calc_stat;
     int *curpos;
     CELL *result;
     DCELL *d_res;
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     parm.neighborhood->key = "neighborhood";
     parm.neighborhood->type = TYPE_STRING;
     parm.neighborhood->required = YES;
-    p = parm.neighborhood->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; neighborhoods[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -182,6 +182,7 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, neighborhoods[n].name);
     }
+    parm.neighborhood->options = p;
     parm.neighborhood->description = _("Neighborhood definition");
 
     parm.index = G_define_option();
@@ -189,7 +190,7 @@ int main(int argc, char *argv[])
     parm.index->type = TYPE_STRING;
     parm.index->required = YES;
     parm.index->multiple = YES;
-    p = parm.index->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; indices[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -197,13 +198,14 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, indices[n].name);
     }
+    parm.index->options = p;
     parm.index->description = _("Cluster index");
 
     parm.stats = G_define_option();
     parm.stats->key = "stats";
     parm.stats->type = TYPE_STRING;
     parm.stats->required = YES;
-    p = parm.stats->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; statmethods[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -211,6 +213,7 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, statmethods[n].name);
     }
+    parm.stats->options = p;
     parm.stats->description =
 	_("Statistical method to perform on the values");
 
@@ -379,7 +382,7 @@ int main(int argc, char *argv[])
     /*      calc_index = indices[index].method;
        calc_index(ref_values, clusters, clustercount, adjmatrix, fragments, fragcount, distmatrix);
 
-       /*fprintf(stderr, "Reference values:");
+       fprintf(stderr, "Reference values:");
        for(i = 0; i < clustercount; i++) {
        fprintf(stderr, " %0.2f", ref_values[i]);
        }

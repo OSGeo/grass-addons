@@ -1,6 +1,8 @@
 #ifndef LOCAL_PROTO_H
 #define LOCAL_PROTO_H
 
+#include "../r.pi.library/r_pi.h"
+
 #ifdef MAIN
 #define GLOBAL
 #else
@@ -24,6 +26,5 @@ GLOBAL int nrows, ncols;
 GLOBAL Coords **fragments;
 GLOBAL int *flagbuf;
 GLOBAL Coords *actpos;
-GLOBAL int verbose;
 
 #endif /* LOCAL_PROTO_H */

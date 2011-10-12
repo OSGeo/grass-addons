@@ -15,11 +15,11 @@ int gather_border(Position * res, int neighbors)
 
 		switch (neighbors) {
 		case 4:
-		    if (col > 0 && flagbuf[row * ncols + col - 1] == 1 ||
-			col < ncols - 1 && flagbuf[row * ncols + col + 1] == 1
-			|| row > 0 && flagbuf[(row - 1) * ncols + col] == 1 ||
-			row < nrows - 1 &&
-			flagbuf[(row + 1) * ncols + col] == 1) {
+		    if ((col > 0 && flagbuf[row * ncols + col - 1] == 1) ||
+			(col < ncols - 1 && flagbuf[row * ncols + col + 1] == 1) ||
+			(row > 0 && flagbuf[(row - 1) * ncols + col] == 1) ||
+			(row < nrows - 1 &&
+			flagbuf[(row + 1) * ncols + col] == 1)) {
 			/* add position to the list */
 			Position pos = { col, row };
 			res[count] = pos;

@@ -21,8 +21,8 @@ typedef struct
     int x, y;
 } Position;
 
-typedef void (*f_neighborhood) (DCELL max_dist);
-typedef void (*f_index) ();
+typedef void (f_neighborhood) (DCELL max_dist);
+typedef void (f_index) ();
 
 /* frag.c */
 void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
@@ -55,6 +55,9 @@ DCELL nearest_points(Coords ** frags, int n1, int n2, Coords * np1,
 void draw_line(int *map, int val, int x1, int y1, int x2, int y2, int sx,
 	       int sy, int width);
 void flood_fill(int *map, int val, int x, int y, int sx, int sy);
+
+/* hull.c */
+void convex_hull(int *map);
 
 /* global variables */
 GLOBAL int nrows, ncols;

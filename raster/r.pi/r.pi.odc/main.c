@@ -54,17 +54,13 @@ int main(int argc, char *argv[])
 {
     /* input */
     char *oldname, *oldmapset;
-
     /* output */
     char *newname, *newmapset;
-
     /* mask */
     char *maskname, *maskmapset;
-
     /* in and out file pointers */
     int in_fd, out_fd;
     FILE *out_fp;		/* ASCII - output */
-
     /* parameters */
     int keyval;
     int stats[GNAME_MAX];
@@ -73,13 +69,10 @@ int main(int argc, char *argv[])
     int diag_grow;
     int compmethod;
     int neighbor_level;
-
     /* maps */
     int *map;
-
     /* other parameters */
     char *title;
-
     /* helper variables */
     int row, col;
     CELL *result;
@@ -93,9 +86,9 @@ int main(int argc, char *argv[])
     char output_name[GNAME_MAX];
     char *str;
     int method;
-    f_statmethod *method_array;
+    f_statmethod **method_array;
     DCELL area;
-    f_compensate compensate;
+    f_compensate *compensate;
 
     RASTER_MAP_TYPE map_type;
     struct Cell_head ch, window;
@@ -140,7 +133,7 @@ int main(int argc, char *argv[])
     parm.ratio->key = "ratio";
     parm.ratio->type = TYPE_STRING;
     parm.ratio->required = YES;
-    str = parm.ratio->options = G_malloc(1024);
+    str = G_malloc(1024);
     for (n = 0; compmethods[n].name; n++) {
 	if (n)
 	    strcat(str, ",");
@@ -148,6 +141,7 @@ int main(int argc, char *argv[])
 	    *str = 0;
 	strcat(str, compmethods[n].name);
     }
+    parm.ratio->options = str;
     parm.ratio->description =
 	_("Compensation method to perform on the values");
 
@@ -156,7 +150,7 @@ int main(int argc, char *argv[])
     parm.stats->type = TYPE_STRING;
     parm.stats->required = YES;
     parm.stats->multiple = YES;
-    str = parm.stats->options = G_malloc(1024);
+    str = G_malloc(1024);
     for (n = 0; statmethods[n].name; n++) {
 	if (n)
 	    strcat(str, ",");
@@ -164,6 +158,7 @@ int main(int argc, char *argv[])
 	    *str = 0;
 	strcat(str, statmethods[n].name);
     }
+    parm.stats->options = str;
     parm.stats->description =
 	_("Statistical method to perform on the values");
 
@@ -464,7 +459,7 @@ int main(int argc, char *argv[])
     neighb_values =
 	(DCELL *) G_malloc(3 * fragcount * stat_count * sizeof(DCELL));
     method_array =
-	(f_statmethod *) G_malloc(stat_count * sizeof(f_statmethod));
+	(f_statmethod **) G_malloc(stat_count * sizeof(f_statmethod *));
     for (i = 0; i < stat_count; i++) {
 	method_array[i] = statmethods[stats[i]].method;
     }

@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     char output_name[GNAME_MAX];
     char *str;
     int method;
-    f_statmethod perform_method;
+    f_statmethod *perform_method;
     DCELL val;
     DCELL *values;
     int count;
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
     parm.stats->type = TYPE_STRING;
     parm.stats->required = YES;
     parm.stats->multiple = YES;
-    str = parm.stats->options = G_malloc(1024);
+    str = G_malloc(1024);
     for (n = 0; statmethods[n].name; n++) {
 	if (n)
 	    strcat(str, ",");
@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
 	    *str = 0;
 	strcat(str, statmethods[n].name);
     }
+    parm.stats->options = str;
     parm.stats->description =
 	_("Statistical method to perform on the values");
 

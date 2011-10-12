@@ -299,8 +299,8 @@ void indi_step(int indi, int *map, DCELL * costmap, double step)
 
     /* if new position is a patch, then set finished = true */
     /*act_cell = map[(int)newy * sx + (int)newx];
-       if (act_cell > TYPE_NOTHING) {
-       /* count patch immigrants for this patch */
+       if (act_cell > TYPE_NOTHING) { */
+	/* count patch immigrants for this patch */
     /*patch_imi[act_cell]++;
        individual->finished = 1;
        } */
@@ -351,11 +351,11 @@ DCELL window_run(int x, int y, int *map, DCELL * costmap)
    performs a search run for each fragment
  */
 void perform_search(DCELL * values, int *map, DCELL * costmap, int size,
-		    f_statmethod * stats, int stat_count)
+		    f_statmethod **stats, int stat_count)
 {
     int fragment, i;
     int steps;
-    f_statmethod func;
+    f_statmethod *func;
     int x, y;
 
     /* allocate paths array */

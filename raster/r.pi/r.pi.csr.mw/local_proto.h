@@ -17,27 +17,9 @@
 #define GLOBAL extern
 #endif
 
-typedef DCELL(*f_statmethod) (DCELL *, int);
-typedef void (*f_method) (DCELL * values, int *map, int *mask, int n,
+typedef DCELL(f_statmethod) (DCELL *, int);
+typedef void (f_method) (DCELL * values, int *map, int *mask, int n,
 			  int size);
-
-/* helpers.c */
-int Round(double d);
-int Random(int max);
-double Randomf();
-void print_buffer(int *buffer, int sx, int sy);
-void print_d_buffer(DCELL * buffer, int sx, int sy);
-void print_map(double *map, int size);
-void print_array(DCELL * buffer, int size);
-void print_fragments();
-
-/* stat_method.c */
-DCELL average(DCELL * vals, int count);
-DCELL variance(DCELL * vals, int count);
-DCELL std_deviat(DCELL * vals, int count);
-DCELL median(DCELL * vals, int count);
-DCELL min(DCELL * vals, int count);
-DCELL max(DCELL * vals, int count);
 
 /* analysis.c */
 void clark_evans(DCELL * values, int *map, int *mask, int n, int size);

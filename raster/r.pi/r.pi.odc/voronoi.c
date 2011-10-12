@@ -347,7 +347,7 @@ void voronoi(DCELL * values, int *map, int sx, int sy, int diag_grow)
 
    res = ( areas( stat1(patch1, patch2, ...), stat2(patch1, patch2, ...), ...  ), odds(), ... )
  */
-void calc_neighbors(DCELL * res, DCELL * focals, f_statmethod * methods,
+void calc_neighbors(DCELL * res, DCELL * focals, f_statmethod **methods,
 		    int stat_count, f_compensate compensate,
 		    int neighbor_level)
 {

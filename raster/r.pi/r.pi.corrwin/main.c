@@ -25,53 +25,37 @@
 #include "local_proto.h"
 
 
-typedef int (*ifunc) (void);
+typedef int (ifunc) (void);
 
 struct ncb ncb;
 
 int main(int argc, char *argv[])
 {
     char *p, *p1, *p2;
-
     int verbose;
-
-    // in and out file pointers
+    /* in and out file pointers */
     int in_fd1, in_fd2;
-
     int out_fd;
-
     DCELL *result;
-
     RASTER_MAP_TYPE map_type1, map_type2;
-
     int row, col, i, j;
-
     int readrow;
-
     int maxval;
-
     int nrows, ncols;
-
     int n;
-
     int copycolr;
-
     struct Colors colr;
-
     struct GModule *module;
-
     struct
     {
 	struct Option *input1, *input2, *output;
 	struct Option *size, *max;
 	struct Option *title;
     } parm;
-
     struct
     {
 	struct Flag *quiet;
     } flag;
-
     DCELL *values1, *values2;	/* list of neighborhood values */
 
     G_gisinit(argv[0]);
@@ -192,7 +176,7 @@ int main(int argc, char *argv[])
     if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), ncb.newcell.name);
 
-    if (verbose = !flag.quiet->answer)
+    if ((verbose = !flag.quiet->answer))
 	fprintf(stderr, "Percent complete ... ");
 
     for (row = 0; row < nrows; row++) {

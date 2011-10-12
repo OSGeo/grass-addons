@@ -22,12 +22,13 @@ typedef struct
     int x, y;
 } Position;
 
-typedef int (*f_method) (Position *, int, int);
+typedef int (f_method) (Position *, int, int);
 
 /* func.c */
 int f_circular(Position * list, int count, int neighbors);
 int f_random(Position * list, int count, int neighbors);
 int f_costbased(Position * list, int count, int neighbors);
+int gather_border(Position * res, int neighbors);
 
 /* global variables */
 GLOBAL int nrows, ncols;

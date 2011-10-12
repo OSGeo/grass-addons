@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
     /* parameters */
     int stats[GNAME_MAX];
-    f_statmethod *methods;
+    f_statmethod **methods;
     int stat_count;
 
     int dif_stats[GNAME_MAX];
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
     parm.stats->type = TYPE_STRING;
     parm.stats->required = YES;
     parm.stats->multiple = YES;
-    str = parm.stats->options = G_malloc(1024);
+    str = G_malloc(1024);
     for (n = 0; statmethods[n].name; n++) {
 	if (n)
 	    strcat(str, ",");
@@ -180,6 +180,7 @@ int main(int argc, char *argv[])
 	    *str = 0;
 	strcat(str, statmethods[n].name);
     }
+    parm.stats->options = str;
     parm.stats->description =
 	_("Statistical method to perform on the pathlengths of the individuals");
     parm.stats->guisection = _("Required");
@@ -189,7 +190,7 @@ int main(int argc, char *argv[])
     parm.dif_stats->type = TYPE_STRING;
     parm.dif_stats->required = YES;
     parm.dif_stats->multiple = YES;
-    str = parm.dif_stats->options = G_malloc(1024);
+    str = G_malloc(1024);
     for (n = 0; statmethods[n].name; n++) {
 	if (n)
 	    strcat(str, ",");
@@ -197,6 +198,7 @@ int main(int argc, char *argv[])
 	    *str = 0;
 	strcat(str, statmethods[n].name);
     }
+    parm.dif_stats->options = str;
     parm.dif_stats->description =
 	_("Statistical method to perform on the difference values");
     parm.dif_stats->guisection = _("Required");
@@ -479,7 +481,7 @@ int main(int argc, char *argv[])
     memset(deleted_arr, 0, fragcount * sizeof(char));
 
     /* fill methods array */
-    methods = (f_statmethod *) G_malloc(stat_count * sizeof(f_statmethod));
+    methods = (f_statmethod **) G_malloc(stat_count * sizeof(f_statmethod *));
     for (method = 0; method < stat_count; method++) {
 	methods[method] = statmethods[stats[method]].method;
     }
@@ -536,7 +538,7 @@ int main(int argc, char *argv[])
 		   (fragcount - frag - 1) * sizeof(DCELL));
 
 	    for (difmethod = 0; difmethod < dif_stat_count; difmethod++) {
-		f_statmethod func = statmethods[dif_stats[difmethod]].method;
+		f_statmethod *func = statmethods[dif_stats[difmethod]].method;
 		DCELL val = func(dummy, fragcount - 1);
 
 		output_values[(difmethod * stat_count + method) * fragcount +

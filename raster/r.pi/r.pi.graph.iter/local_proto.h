@@ -28,9 +28,9 @@ typedef struct
     int count;
 } Cluster;
 
-typedef void (*f_neighborhood) (int *adjacency_matrix, DCELL * distmatrix,
+typedef void (f_neighborhood) (int *adjacency_matrix, DCELL * distmatrix,
 				int fragcount, DCELL max_dist);
-typedef void (*f_index) (DCELL * values, Cluster * cluster_list,
+typedef void (f_index) (DCELL * values, Cluster * cluster_list,
 			 int clustercount, int *adjacency_matrix,
 			 Patch * fragments, int fragcount,
 			 DCELL * distmatrix);

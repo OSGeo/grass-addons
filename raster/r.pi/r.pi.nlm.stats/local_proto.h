@@ -22,13 +22,9 @@ typedef struct
     int x, y;
 } Point;
 
-typedef DCELL(*f_statmethod) (DCELL *, int);
-typedef int (*f_func) (DCELL *, Coords **, int);
+typedef DCELL(f_statmethod) (DCELL *, int);
+typedef int (f_func) (DCELL *, Coords **, int);
 
-/* helpers.c */
-int Round(double d);
-int Random(int max);
-double Randomf();
 void print_buffer(int *buffer, int sx, int sy);
 void print_map(double *map, int size);
 
@@ -40,14 +36,6 @@ double CutValues(double *map, double mapcover, int size);
 double UpSample(int *map, int x, int y, int oldcols, int oldrows,
 		int newsize);
 void MinMax(double *map, double *min, double *max, int size);
-
-/* stat_method.c */
-DCELL average(DCELL * vals, int count);
-DCELL variance(DCELL * vals, int count);
-DCELL mode(DCELL * vals, int count);
-DCELL median(DCELL * vals, int count);
-DCELL min(DCELL * vals, int count);
-DCELL max(DCELL * vals, int count);
 
 /* method.c */
 int f_nearest_dist(DCELL * vals, Coords ** frags, int count);

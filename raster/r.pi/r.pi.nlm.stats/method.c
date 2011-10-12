@@ -150,6 +150,7 @@ int f_asymmetry(DCELL * vals, Coords ** frags, int count)
 	vsum = vx + vy;
 	vals[i] = 2 * sqrt(0.25 * vsum * vsum + vxy * vxy - vx * vy) / vsum;
     }
+    return 1;
 }
 
 int f_area_perim_ratio(DCELL * vals, Coords ** frags, int count)

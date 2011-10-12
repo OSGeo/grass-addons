@@ -24,10 +24,10 @@ void print_buffer(int *buffer, int sx, int sy)
 	for (x = 0; x < sx; x++) {
 	    switch (buffer[x + y * sx]) {
 	    case TYPE_NOTHING:
-		fprintf(stderr, "* ", TYPE_NOTHING);
+		fprintf(stderr, " * ");
 		break;
 	    case TYPE_NOGO:
-		fprintf(stderr, "X ", TYPE_NOGO);
+		fprintf(stderr, "X ");
 		break;
 	    default:
 		fprintf(stderr, "%d ", buffer[x + y * sx]);
@@ -104,18 +104,6 @@ void plant(int *buffer, int sx, int sy, int x, int y, int patch)
 	    }			/* if */
 	}			/* for x */
     }				/* for y */
-}
-
-int Round(double d)
-{
-    return d < 0 ? d - 0.5 : d + 0.5;
-}
-
-int Random(int max)
-{
-    return max <=
-	RAND_MAX ? rand() % max : floor((double)rand() /
-					(double)(RAND_MAX + 1) * max);
 }
 
 void create_patches(int *buffer, int sx, int sy, int patch_count,

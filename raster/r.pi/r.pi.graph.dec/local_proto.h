@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <math.h>
+#include <time.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/stats.h>
@@ -28,13 +29,13 @@ typedef struct
     int count;
 } Cluster;
 
-typedef void (*f_neighborhood) (int *adjacency_matrix, DCELL * distmatrix,
+typedef void (f_neighborhood) (int *adjacency_matrix, DCELL * distmatrix,
 				int fragcount, DCELL max_dist);
-typedef void (*f_index) (DCELL * values, Cluster * cluster_list,
+typedef void (f_index) (DCELL * values, Cluster * cluster_list,
 			 int cluster_count, int *adjacency_matrix,
 			 Patch * fragments, int fragcount,
 			 DCELL * distmatrix);
-typedef int (*f_choice) (int cluster_index, Cluster * cluster_list,
+typedef int (f_choice) (int cluster_index, Cluster * cluster_list,
 			 int cluster_count, int *adjacency_matrix,
 			 Patch * fragments, int fragcount,
 			 DCELL * distmatrix);

@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     int n;
     int size;
     int method;
-    f_method method_func;
+    f_method *method_func;
 
     /* maps */
     int *map;
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     parm.method->type = TYPE_STRING;
     parm.method->required = YES;
     parm.method->multiple = NO;
-    str = parm.method->options = G_malloc(1024);
+    str = G_malloc(1024);
     for (n = 0; methods[n].name; n++) {
 	if (n)
 	    strcat(str, ",");
@@ -143,6 +143,7 @@ int main(int argc, char *argv[])
 	    *str = 0;
 	strcat(str, methods[n].name);
     }
+    parm.method->options = str;
     parm.method->description = _("Method to calculate resulting index");
 
     parm.size = G_define_option();
@@ -226,7 +227,7 @@ int main(int argc, char *argv[])
 
     /* allocate map buffers */
     map = (int *)G_malloc(sx * sy * sizeof(int));
-    mask = (DCELL *) G_malloc(sx * sy * sizeof(int));
+    mask = (int *) G_malloc(sx * sy * sizeof(int));
 
     result = G_allocate_c_raster_buf();
     d_res = G_allocate_d_raster_buf();

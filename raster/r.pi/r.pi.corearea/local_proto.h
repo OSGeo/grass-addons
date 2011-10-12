@@ -33,8 +33,8 @@ typedef struct
     int count;
 } PatchBorderList;
 
-typedef DCELL(*f_statmethod) (DCELL *, int);
-typedef DCELL(*f_propmethod) (DCELL, DCELL);
+typedef DCELL(f_statmethod) (DCELL *, int);
+typedef DCELL(f_propmethod) (DCELL, DCELL);
 
 /* frag.c */
 void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);

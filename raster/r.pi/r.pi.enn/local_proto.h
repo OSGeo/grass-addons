@@ -16,16 +16,12 @@
 #define GLOBAL extern
 #endif
 
-typedef DCELL(*f_statmethod) (DCELL *, int);
-typedef int (*f_func) (DCELL *, int, int *, int, f_statmethod);
+typedef DCELL(f_statmethod) (DCELL *, int);
+typedef int (f_func) (DCELL *, int, int *, int, f_statmethod);
 
 void writeFrag(int row, int col, int nbr_cnt);
 
-DCELL average(DCELL * vals, int count);
-DCELL variance(DCELL * vals, int count);
-DCELL std_deviat(DCELL * vals, int count);
 DCELL value(DCELL * vals, int count);
-DCELL sum(DCELL * vals, int count);
 
 int get_dist_matrix(int count);
 

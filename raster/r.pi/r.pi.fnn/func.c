@@ -1,68 +1,11 @@
 #include "local_proto.h"
 
-DCELL average(DCELL * vals, int count)
-{
-    if (count <= 0)
-	return 0;
-
-    int i;
-    DCELL res = 0;
-
-    for (i = 0; i < count; i++)
-	res += vals[i];
-
-    return res / count;
-}
-
-DCELL variance(DCELL * vals, int count)
-{
-    if (count <= 0)
-	return 0;
-
-    int i;
-    DCELL mean;
-    DCELL s = 0;
-    DCELL ss = 0;
-
-    for (i = 0; i < count; i++) {
-	DCELL val = vals[i];
-
-	s += val;
-	ss += val * val;
-    }
-
-    mean = s / (DCELL) count;
-    return ss / count - mean * mean;
-}
-
-DCELL std_deviat(DCELL * vals, int count)
-{
-    if (count <= 0)
-	return 0;
-
-    return sqrt(variance(vals, count));
-}
-
 DCELL value(DCELL * vals, int count)
 {
     if (count <= 0)
 	return 0;
 
     return vals[count - 1];
-}
-
-DCELL sum(DCELL * vals, int count)
-{
-    if (count <= 0)
-	return 0;
-
-    int i;
-    DCELL res = 0;
-
-    for (i = 0; i < count; i++)
-	res += vals[i];
-
-    return res;
 }
 
 DCELL euclid_dist(int x1, int y1, int x2, int y2)

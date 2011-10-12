@@ -9,8 +9,8 @@ int is_less(Position p1, Position p2, Position ref)
 
     int cross = dx1 * dy2 - dx2 * dy1;
 
-    return cross > 0 || cross == 0 &&
-	(abs(dx1) + abs(dy1)) > (abs(dx2) + abs(dy2));
+    return cross > 0 || (cross == 0 &&
+	(abs(dx1) + abs(dy1)) > (abs(dx2) + abs(dy2)));
 }
 
 int concave(Position p1, Position p2, Position p3)

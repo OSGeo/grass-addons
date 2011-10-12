@@ -22,8 +22,8 @@ typedef struct
     int x, y;
 } Point;
 
-typedef DCELL(*f_statmethod) (DCELL *, int);
-typedef int (*f_func) (DCELL *, Coords **, int, f_statmethod);
+typedef DCELL(f_statmethod) (DCELL *, int);
+typedef void (f_func) (DCELL *, Coords **, int, f_statmethod);
 
 /* frag.c */
 void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
@@ -33,10 +33,6 @@ void f_distance(DCELL * vals, Coords ** frags, int count,
 		f_statmethod statmethod);
 void f_area(DCELL * vals, Coords ** frags, int count,
 	    f_statmethod statmethod);
-
-/* statmethods.c */
-DCELL sum(DCELL * vals, int count);
-DCELL average(DCELL * vals, int count);
 
 /* global parameters */
 GLOBAL int verbose;

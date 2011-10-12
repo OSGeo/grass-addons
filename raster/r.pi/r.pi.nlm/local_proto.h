@@ -39,12 +39,6 @@ void list_remove_range(int patch, int pos, int size);
 int list_indexOf(int patch, int x, int y);
 void list_shuffle(int patch);
 
-/* helpers.c */
-int Round(double d);
-int Random(int max);
-double Randomf();
-void print_buffer(int *buffer, int sx, int sy);
-void print_map(double *map, int size);
 
 /* func.c */
 void FractalIter(double *map, double d, double dmod, int n, int size);

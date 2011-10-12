@@ -19,7 +19,7 @@
 
 struct statmethod
 {
-    f_statmethod method;	/* routine to compute new value */
+    f_statmethod *method;	/* routine to compute new value */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
     char *suffix;		/* output suffix */
@@ -33,7 +33,7 @@ static struct statmethod statmethods[] = {
 
 struct propmethod
 {
-    f_propmethod method;	/* routine to compute new value */
+    f_propmethod *method;	/* routine to compute new value */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
     char *suffix;		/* output suffix */
@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
     int buffer;
     double distance;
     double angle;
-    f_statmethod method;
-    f_propmethod prop_method;
+    f_statmethod *method;
+    f_propmethod *prop_method;
     double dist_weight;
 
     /* map_type and categories */

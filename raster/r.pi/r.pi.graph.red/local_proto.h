@@ -28,13 +28,13 @@ typedef struct
     int count;
 } Cluster;
 
-typedef void (*f_neighborhood) (int *adjacency_matrix, DCELL * distmatrix,
+typedef void (f_neighborhood) (int *adjacency_matrix, DCELL * distmatrix,
 				int fragcount, DCELL max_dist);
-typedef void (*f_index) (DCELL * values, Cluster * cluster_list,
+typedef void (f_index) (DCELL * values, Cluster * cluster_list,
 			 int clustercount, int *adjacency_matrix,
 			 Patch * fragments, int fragcount,
 			 DCELL * distmatrix);
-typedef DCELL(*f_statmethod) (DCELL * vals, int count);
+typedef DCELL (f_statmethod) (DCELL * vals, int count);
 
 
 /* frag.c */
@@ -96,17 +96,6 @@ int find_clusters(Cluster * cluster_list, int *adjacency_matrix,
 
 DCELL nearest_points(Patch * frags, int n1, int n2, Coords * np1,
 		     Coords * np2);
-
-/* stat_methods.c */
-
-DCELL average(DCELL * vals, int count);
-DCELL median(DCELL * vals, int count);
-DCELL min(DCELL * vals, int count);
-DCELL max(DCELL * vals, int count);
-DCELL average(DCELL * vals, int count);
-DCELL variance(DCELL * vals, int count);
-DCELL std_deviat(DCELL * vals, int count);
-
 /* draw.c */
 void draw_line(int *map, int val, int x1, int y1, int x2, int y2, int sx,
 	       int sy, int width);

@@ -380,7 +380,7 @@ void f_connectance_index(DCELL * values, Cluster * cluster_list,
 
 	/* no patches are 0% connected */
 	if (n == 0) {
-	    values[i] == 0.0;
+	    values[i] = 0.0;
 	    continue;
 	}
 

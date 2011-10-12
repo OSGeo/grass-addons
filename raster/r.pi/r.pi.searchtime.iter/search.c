@@ -481,11 +481,11 @@ DCELL frag_run(int *map, DCELL * costmap, int frag)
    output in "values": ( stat1(patch1, patch2, patch3, ...), stat2(patch1, patch2, ...) )
  */
 void perform_search(DCELL * values, int *map, DCELL * costmap,
-		    f_statmethod * stats, int stat_count)
+		    f_statmethod **stats, int stat_count)
 {
     int fragment, i;
     int steps;
-    f_statmethod func;
+    f_statmethod *func;
 
     /* allocate paths array */
     DCELL *indi_paths = (DCELL *) G_malloc(n * sizeof(DCELL));

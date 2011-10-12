@@ -40,16 +40,12 @@ int main(int argc, char *argv[])
 {
     /* input */
     char *oldname, *oldmapset;
-
     /* output */
     char *newname, *newmapset;
-
     /* mask */
     char *maskname, *maskmapset;
-
     /* in and out file pointers */
     int in_fd, out_fd;
-
     /* parameters */
     int stats[GNAME_MAX];
     f_statmethod *methods;
@@ -213,7 +209,7 @@ int main(int argc, char *argv[])
 
     /* allocate map buffers */
     map = (int *)G_malloc(sx * sy * sizeof(int));
-    mask = (DCELL *) G_malloc(sx * sy * sizeof(int));
+    mask = (int *) G_malloc(sx * sy * sizeof(int));
     cells = (Coords *) G_malloc(sx * sy * sizeof(Coords));
 
     result = G_allocate_c_raster_buf();

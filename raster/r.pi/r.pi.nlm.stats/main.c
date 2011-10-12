@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
     parm.method->key = "method";
     parm.method->type = TYPE_STRING;
     parm.method->required = YES;
-    actname = parm.method->options = G_malloc(1024);
+    actname = G_malloc(1024);
     for (n = 0; methodlist[n].name != NULL; n++) {
 	if (n)
 	    strcat(actname, ",");
@@ -175,6 +175,7 @@ int main(int argc, char *argv[])
 	    *actname = 0;
 	strcat(actname, methodlist[n].name);
     }
+    parm.method->options = actname;
     parm.method->multiple = YES;
     parm.method->description = _("Operation to perform on fragments");
 
@@ -182,7 +183,7 @@ int main(int argc, char *argv[])
     parm.statmethod->key = "statmethod";
     parm.statmethod->type = TYPE_STRING;
     parm.statmethod->required = YES;
-    actname = parm.statmethod->options = G_malloc(1024);
+    actname = G_malloc(1024);
     for (n = 0; statmethodlist[n].name != NULL; n++) {
 	if (n)
 	    strcat(actname, ",");
@@ -190,6 +191,7 @@ int main(int argc, char *argv[])
 	    *actname = 0;
 	strcat(actname, statmethodlist[n].name);
     }
+    parm.statmethod->options = actname;
     parm.statmethod->multiple = YES;
     parm.statmethod->description =
 	_("Statistical method to perform on the values");
@@ -406,7 +408,7 @@ int main(int argc, char *argv[])
 
 	/* calculate requested values */
 	for (m = 0; m < method_count; m++) {
-	    f_func calculate;
+	    f_func *calculate;
 
 	    method = methods[m];
 	    calculate = methodlist[method].method;
@@ -414,7 +416,7 @@ int main(int argc, char *argv[])
 	    calculate(res, fragments, fragcount);
 
 	    for (sm = 0; sm < statmethod_count; sm++) {
-		f_statmethod calcstat;
+		f_statmethod *calcstat;
 		DCELL val;
 
 		statmethod = statmethods[sm];
@@ -453,7 +455,7 @@ int main(int argc, char *argv[])
 	for (m = 0; m < method_count; m++) {
 	    int cnt;
 
-	    f_func calculate;
+	    f_func *calculate;
 
 	    method = methods[m];
 	    calculate = methodlist[method].method;
@@ -461,7 +463,7 @@ int main(int argc, char *argv[])
 	    calculate(res, fragments, fragcount);
 
 	    for (sm = 0; sm < statmethod_count; sm++) {
-		f_statmethod calcstat;
+		f_statmethod *calcstat;
 		DCELL val;
 
 		statmethod = statmethods[sm];

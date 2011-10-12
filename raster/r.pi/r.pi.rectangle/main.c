@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     parm.alignment->key = "alignment";
     parm.alignment->type = TYPE_STRING;
     parm.alignment->required = YES;
-    str = parm.alignment->options = G_malloc(1024);
+    str = G_malloc(1024);
     for (n = 0; alignments[n].name; n++) {
 	if (n)
 	    strcat(str, ",");
@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
 	    *str = 0;
 	strcat(str, alignments[n].name);
     }
+    parm.alignment->options = str;
     parm.alignment->description =
 	_("Alignment of the rectangle relative to the input pixel. options: center, top-left, top-right, bottom");
 

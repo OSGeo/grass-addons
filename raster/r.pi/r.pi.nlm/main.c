@@ -35,7 +35,6 @@ int main(int argc, char *argv[])
     int rand_seed;
 
     /* other parameters */
-    int verbose;
     char *title;
 
     /* helper variables */
@@ -61,8 +60,9 @@ int main(int argc, char *argv[])
     } parm;
     struct
     {
-	struct Flag *quiet;
+	struct Flag *report;
     } flag;
+
 
     G_gisinit(argv[0]);
 
@@ -120,9 +120,10 @@ int main(int argc, char *argv[])
     parm.title->required = NO;
     parm.title->description = _("Title for resultant raster map");
 
-    flag.quiet = G_define_flag();
-    flag.quiet->key = 'q';
-    flag.quiet->description = _("Run quietly");
+    flag.report = G_define_flag();
+    flag.report->key = 'r';
+    flag.report->description =
+	_("Print report to stdout");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -191,8 +192,6 @@ int main(int argc, char *argv[])
 	sharpness = Randomf();
     }
 
-    /* get verbose */
-    verbose = !flag.quiet->answer;
 
     /* allocate the cell buffer */
     buffer = (int *)G_malloc(sx * sy * sizeof(int));
@@ -295,24 +294,21 @@ int main(int argc, char *argv[])
     G_close_cell(out_fd);
 
     /* print report */
-    if (verbose) {
-	fprintf(stderr, "report:\n");
-	fprintf(stderr, "written file: <%s>\n", newname);
+    if (flag.report->answer) {
+	fprintf(stdout, "report:\n");
+	fprintf(stdout, "written file: <%s>\n", newname);
 
 	cnt = 0;
 	for (i = 0; i < sx * sy; i++)
 	    if (buffer[i] == 1)
 		cnt++;
 	landcover = (double)cnt / ((double)sx * (double)sy) * 100;
-	fprintf(stderr, "landcover: %0.2lf%%\n", landcover);
+	fprintf(stdout, "landcover: %0.2lf%%\n", landcover);
     }
 
     G_free(buffer);
     G_free(bigbuf);
     G_free(result);
-
-    if (verbose)
-	G_percent(100, 100, 2);
 
     exit(EXIT_SUCCESS);
 }

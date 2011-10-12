@@ -20,21 +20,21 @@
 
 struct neighborhood
 {
-    f_neighborhood method;	/* routine to build adjacency matrix */
+    f_neighborhood *method;	/* routine to build adjacency matrix */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
 };
 
 struct index
 {
-    f_index method;		/* routine to calculate cluster index */
+    f_index *method;		/* routine to calculate cluster index */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
 };
 
 struct choice
 {
-    f_choice method;		/* routine to determine the next patch to delete */
+    f_choice *method;		/* routine to determine the next patch to delete */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
 };
@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
     char *p;
     int row, col, i, j, m;
     int n;
-    f_neighborhood build_graph;
-    f_index calc_index;
-    f_choice choose_patch;
+    f_neighborhood *build_graph;
+    f_index *calc_index;
+    f_choice *choose_patch;
     int *curpos;
     CELL *result;
     DCELL *d_res;
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
     parm.neighborhood->key = "neighborhood";
     parm.neighborhood->type = TYPE_STRING;
     parm.neighborhood->required = YES;
-    p = parm.neighborhood->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; neighborhoods[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -182,13 +182,14 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, neighborhoods[n].name);
     }
+    parm.neighborhood->options = p;
     parm.neighborhood->description = _("Neighborhood definition");
 
     parm.index = G_define_option();
     parm.index->key = "index";
     parm.index->type = TYPE_STRING;
     parm.index->required = YES;
-    p = parm.index->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; indices[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -196,13 +197,14 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, indices[n].name);
     }
+    parm.index->options = p;
     parm.index->description = _("Cluster index");
 
     parm.choice = G_define_option();
     parm.choice->key = "choice";
     parm.choice->type = TYPE_STRING;
     parm.choice->required = YES;
-    p = parm.choice->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; choices[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -210,6 +212,7 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, choices[n].name);
     }
+    parm.choice->options = p;
     parm.choice->description = _("Cluster index");
 
     parm.seed = G_define_option();

@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
     parm.stats->type = TYPE_STRING;
     parm.stats->required = YES;
     parm.stats->multiple = YES;
-    str = parm.stats->options = G_malloc(1024);
+    str = G_malloc(1024);
     for (method = 0; statmethods[method].name; method++) {
 	if (method)
 	    strcat(str, ",");
@@ -203,6 +203,7 @@ int main(int argc, char *argv[])
 	    *str = 0;
 	strcat(str, statmethods[method].name);
     }
+    parm.stats->options = str;
     parm.stats->description =
 	_("Statistical method to perform on the pathlengths of the individuals");
     parm.stats->guisection = _("Required");
@@ -601,7 +602,7 @@ int main(int argc, char *argv[])
 	    }
 	}
 	for (method = 0; method < stat_count; method++) {
-	    f_statmethod func = statmethods[stats[method]].method;
+	    f_statmethod *func = statmethods[stats[method]].method;
 	    int index = method * fragcount + frag;
 
 	    out_immi[index] = func(dummy, fragcount - 1);

@@ -29,7 +29,7 @@ static struct menu menu[] = {
     {max, "max", "maximum of patch-values within certain range"},
     {average, "average", "average of patch-values within certain range"},
     {variance, "var", "variance of patch-values within certain range"},
-    {0, 0, 0, 0, 0}
+    {0, 0, 0}
 };
 
 int main(int argc, char *argv[])
@@ -38,7 +38,6 @@ int main(int argc, char *argv[])
     char *newname, *oldname, *newmapset, *oldmapset;
     char *vals_name, *vals_mapset;
     char title[1024];
-    int verbose;
 
     /* in and out file pointers */
     int in_fd;
@@ -50,7 +49,7 @@ int main(int argc, char *argv[])
     struct Categories cats;
 
     int method;
-    f_func stat_method;
+    f_func *stat_method;
 
     char *p;
 
@@ -75,7 +74,7 @@ int main(int argc, char *argv[])
     } parm;
     struct
     {
-	struct Flag *adjacent, *quiet;
+	struct Flag *adjacent;
     } flag;
 
     DCELL *values;
@@ -111,7 +110,7 @@ int main(int argc, char *argv[])
     parm.method->key = "method";
     parm.method->type = TYPE_STRING;
     parm.method->required = YES;
-    p = parm.method->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; menu[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -119,6 +118,7 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, menu[n].name);
     }
+    parm.method->options = p;
     parm.method->description = _("Operation to perform on fragments");
 
     parm.min = G_define_option();
@@ -146,10 +146,6 @@ int main(int argc, char *argv[])
     parm.title->type = TYPE_STRING;
     parm.title->required = NO;
     parm.title->description = _("Title for resultant raster map");
-
-    flag.quiet = G_define_flag();
-    flag.quiet->key = 'q';
-    flag.quiet->description = _("Run quietly");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -237,8 +233,7 @@ int main(int argc, char *argv[])
     if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
-    if (verbose = !flag.quiet->answer)
-	fprintf(stderr, "Percent complete ... ");
+    fprintf(stderr, "Percent complete ... ");
 
     /* create flag buffer */
     for (row = 0; row < nrows; row++) {
@@ -256,8 +251,7 @@ int main(int argc, char *argv[])
     fragcount = 0;
     for (row = 0; row < nrows; row++) {
 	/* display progress */
-	if (verbose)
-	    G_percent(row, nrows, 2);
+	G_percent(row, nrows, 2);
 
 	for (col = 0; col < ncols; col++) {
 	    if (flagbuf[row * ncols + col] == 1) {
@@ -268,16 +262,14 @@ int main(int argc, char *argv[])
 	}
     }
 
-    if (verbose)
-	G_percent(1, 1, 2);
+    G_percent(1, 1, 2);
 
     /* open patch-values file */
     in_fd = G_open_cell_old(vals_name, vals_mapset);
     if (in_fd < 0)
         G_fatal_error(_("Unable to open raster map <%s>"), vals_name);
 
-    if (verbose = !flag.quiet->answer)
-	G_message("Read patch-values...");
+    G_message("Read patch-values...");
 
     /* read patch-values */
     valsbuf = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
@@ -285,8 +277,7 @@ int main(int argc, char *argv[])
 	col = fragments[i]->x;
 	row = fragments[i]->y;
 
-	if (verbose)
-	    G_percent(i, fragcount, 2);
+	G_percent(i, fragcount, 2);
 
 	G_get_d_raster_row(in_fd, result, row);
 	valsbuf[i] = result[col];
@@ -311,8 +302,7 @@ int main(int argc, char *argv[])
 	G_put_d_raster_row(out_fd, result);
     }
 
-    if (verbose)
-	G_percent(row, nrows, 2);
+    G_percent(row, nrows, 2);
 
     G_close_cell(in_fd);
     G_close_cell(out_fd);

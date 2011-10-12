@@ -37,7 +37,7 @@ typedef struct
     int x, y;
 } Displacement;
 
-typedef DCELL(*f_statmethod) (DCELL *, int);
+typedef DCELL(f_statmethod) (DCELL *, int);
 
 /* helpers.c */
 int Round(double d);
@@ -54,7 +54,7 @@ void writeFragments(int *flagbuf, int nrows, int ncols, int nbr_cnt);
 
 /* search.c */
 void perform_search(DCELL * values, int *map, DCELL * costmap,
-		    f_statmethod * stats, int stat_count);
+		    f_statmethod **stats, int stat_count);
 
 /* stat_method.c */
 DCELL average(DCELL * vals, int count);

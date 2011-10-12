@@ -26,7 +26,7 @@ struct method
 
 struct statmethod
 {
-    f_func *statmethod;		/* routine to compute new value */
+    f_statmethod *statmethod;		/* routine to compute new value */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
 };
@@ -57,12 +57,12 @@ int main(int argc, char *argv[])
     int keyval;
     int neighb_count;
     int method;
-    f_func perform_method;
+    f_func *perform_method;
     int statmethod;
-    f_func perform_statmethod;
+    f_statmethod *perform_statmethod;
 
     /* other parameters */
-    char *title[1024];
+    char title[1024];
 
     /* helper variables */
     RASTER_MAP_TYPE map_type;
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     parm.method->key = "method";
     parm.method->type = TYPE_STRING;
     parm.method->required = YES;
-    p = parm.method->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (act_method = 0; methods[act_method].name; act_method++) {
 	if (act_method > 0)
 	    strcat(p, ",");
@@ -118,13 +118,14 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, methods[act_method].name);
     }
+    parm.method->options = p;
     parm.method->description = _("Aspect of the nearest patch to use.");
 
     parm.statmethod = G_define_option();
     parm.statmethod->key = "statmethod";
     parm.statmethod->type = TYPE_STRING;
     parm.statmethod->required = YES;
-    p = parm.statmethod->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (act_method = 0; statmethods[act_method].name; act_method++) {
 	if (act_method > 0)
 	    strcat(p, ",");
@@ -132,6 +133,7 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, statmethods[act_method].name);
     }
+    parm.statmethod->options = p;
     parm.statmethod->description =
 	_("Statistical method to perform on differences.");
 

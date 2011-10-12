@@ -24,11 +24,11 @@
 #include <grass/stats.h>
 #include "local_proto.h"
 
-typedef int (*f_func) (DCELL *, Coords **, int);
+typedef int (f_func) (DCELL *, Coords **, int);
 
 struct menu
 {
-    f_func method;		/* routine to compute new value */
+    f_func *method;		/* routine to compute new value */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
 };
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     struct Categories cats;
 
     int method;
-    f_func compute_values;
+    f_func *compute_values;
 
     /* neighbors count */
     int neighb_count;
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     } parm;
     struct
     {
-	struct Flag *adjacent, *quiet;
+	struct Flag *adjacent;
     } flag;
 
     DCELL *values;
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     parm.method->key = "method";
     parm.method->type = TYPE_STRING;
     parm.method->required = YES;
-    p = parm.method->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; menu[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, menu[n].name);
     }
+    parm.method->options = p;
     parm.method->description = _("Operation to perform on fragments");
 
     parm.title = G_define_option();
@@ -138,10 +139,6 @@ int main(int argc, char *argv[])
     flag.adjacent->key = 'a';
     flag.adjacent->description =
 	_("Set for 8 cell-neighbors. 4 cell-neighbors are default");
-
-    flag.quiet = G_define_flag();
-    flag.quiet->key = 'q';
-    flag.quiet->description = _("Run quietly");
 
     if (G_parser(argc, argv))
 	    exit(EXIT_FAILURE);
@@ -211,8 +208,7 @@ int main(int argc, char *argv[])
     if (out_fd < 0)
 	    G_fatal_error(_("Cannot create raster map <%s>"), newname);
 
-    if (verbose = !flag.quiet->answer)
-	G_message("Loading patches...");
+    G_message("Loading patches...");
 
     /* find fragments */
     for (row = 0; row < nrows; row++) {
@@ -222,8 +218,7 @@ int main(int argc, char *argv[])
 		flagbuf[row * ncols + col] = 1;
 	}
 
-	if (verbose)
-	    G_percent(row, nrows, 2);
+	G_percent(row, nrows, 2);
     }
 
     for (row = 0; row < nrows; row++) {
@@ -235,20 +230,16 @@ int main(int argc, char *argv[])
 	    }
 	}
     }
-    if (verbose)
-	G_percent(nrows, nrows, 2);
+    G_percent(nrows, nrows, 2);
 
     /* perform actual function on the patches */
-    if (verbose = !flag.quiet->answer)
-	G_message("Performing operation...");
+    G_message("Performing operation...");
     values = (DCELL *) G_malloc(fragcount * sizeof(DCELL));
     compute_values(values, fragments, fragcount);
-    if (verbose)
-	G_percent(fragcount, fragcount, 2);
+    G_percent(fragcount, fragcount, 2);
 
     /* write the output file */
-    if (verbose = !flag.quiet->answer)
-	G_message("Writing output...");
+    G_message("Writing output...");
     for (row = 0; row < nrows; row++) {
 	G_set_d_null_value(result, ncols);
 
@@ -262,12 +253,10 @@ int main(int argc, char *argv[])
 
 	G_put_d_raster_row(out_fd, result);
 
-	if (verbose)
-	    G_percent(row, nrows, 2);
+	G_percent(row, nrows, 2);
     }
 
-    if (verbose)
-	G_percent(nrows, nrows, 2);
+    G_percent(nrows, nrows, 2);
 
     G_close_cell(out_fd);
     G_close_cell(in_fd);

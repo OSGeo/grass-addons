@@ -82,6 +82,78 @@ DCELL median(DCELL * vals, int count)
     return vals[k];
 }
 
+void quicksort(DCELL * vals, int begin, int end)
+{
+    int i, j;
+    DCELL pivot, tmp;
+
+    if (end <= begin)
+	return;
+
+    i = begin;
+    j = end - 1;
+    pivot = vals[end];
+
+    while (i <= j) {
+	while (i <= j && vals[i] < pivot)
+	    i++;
+	while (i <= j && vals[j] >= pivot)
+	    j--;
+
+	if (i < j) {
+	    tmp = vals[i];
+	    vals[i] = vals[j];
+	    vals[j] = tmp;
+	    i++;
+	    j--;
+	}
+    }
+
+    tmp = vals[i];
+    vals[i] = vals[end];
+    vals[end] = tmp;
+    i++;
+
+    quicksort(vals, begin, j);
+    quicksort(vals, i, end);
+}
+
+DCELL mode(DCELL * vals, int count)
+{
+    DCELL actval, maxval;
+    int actcnt, maxcnt;
+    int actpos;
+    int i;
+
+    if (count <= 0)
+	return 0;
+
+    quicksort(vals, 0, count - 1);
+
+    fprintf(stderr, "vals = (%0.2f", vals[0]);
+    for (i = 1; i < count; i++)
+	fprintf(stderr, ",%0.2f", vals[i]);
+    fprintf(stderr, ")\n\n");
+
+    maxval = 0;
+    maxcnt = 0;
+    actpos = 0;
+    while (actpos < count) {
+	actcnt = 0;
+	actval = vals[actpos];
+	while (actpos < count && actval == vals[actpos]) {
+	    actcnt++;
+	    actpos++;
+	}
+	if (actcnt > maxcnt) {
+	    maxcnt = actcnt;
+	    maxval = actval;
+	}
+    }
+
+    return maxval;
+}
+
 DCELL min(DCELL * vals, int count)
 {
     int i;
@@ -110,6 +182,20 @@ DCELL max(DCELL * vals, int count)
     for (i = 0; i < count; i++)
 	if (vals[i] > res)
 	    res = vals[i];
+
+    return res;
+}
+
+DCELL sum(DCELL * vals, int count)
+{
+    if (count <= 0)
+	return 0;
+
+    int i;
+    DCELL res = 0;
+
+    for (i = 0; i < count; i++)
+	res += vals[i];
 
     return res;
 }

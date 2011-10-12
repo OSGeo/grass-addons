@@ -90,8 +90,8 @@ int main(int argc, char *argv[])
     char *p;
     int row, col, i, j, m;
     int n;
-    f_neighborhood build_graph;
-    f_index calc_index;
+    f_neighborhood *build_graph;
+    f_index *calc_index;
     int *curpos;
     DCELL *values;
     CELL *result;
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
     parm.neighborhood->key = "neighborhood";
     parm.neighborhood->type = TYPE_STRING;
     parm.neighborhood->required = YES;
-    p = parm.neighborhood->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; neighborhoods[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -152,13 +152,14 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, neighborhoods[n].name);
     }
+    parm.neighborhood->options = p;
     parm.neighborhood->description = _("Neighborhood definition");
 
     parm.index = G_define_option();
     parm.index->key = "index";
     parm.index->type = TYPE_STRING;
     parm.index->required = YES;
-    p = parm.index->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; indices[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -166,6 +167,7 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, indices[n].name);
     }
+    parm.index->options = p;
     parm.index->description = _("Cluster index");
 
     flag.adjacent = G_define_flag();
@@ -433,7 +435,7 @@ int main(int argc, char *argv[])
     G_set_c_null_value(clustermap, nrows * ncols);
 
     /* calculate the convex hull */
-    convex_hull();
+    convex_hull(clustermap);
 
     /* write output */
     for (row = 0; row < nrows; row++) {

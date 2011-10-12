@@ -17,12 +17,8 @@
 #define GLOBAL extern
 #endif
 
-typedef DCELL(*f_statmethod) (DCELL *, int);
+typedef DCELL(f_statmethod) (DCELL *, int);
 
-/* helpers.c */
-int Round(double d);
-int Random(int max);
-double Randomf();
 void print_buffer(int *buffer, int sx, int sy);
 void print_d_buffer(DCELL * buffer, int sx, int sy);
 void print_map(double *map, int size);
@@ -34,14 +30,6 @@ void perform_analysis(DCELL * values, int *map, int *mask, int n, int size, int 
 
 /* frag.c */
 void writeFragments(int *flagbuf, int nrows, int ncols, double distance);
-
-/* stat_method.c */
-DCELL average(DCELL * vals, int count);
-DCELL variance(DCELL * vals, int count);
-DCELL std_deviat(DCELL * vals, int count);
-DCELL median(DCELL * vals, int count);
-DCELL min(DCELL * vals, int count);
-DCELL max(DCELL * vals, int count);
 
 /* global parameters */
 GLOBAL int sx, sy;

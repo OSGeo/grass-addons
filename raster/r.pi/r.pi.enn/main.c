@@ -74,8 +74,8 @@ int main(int argc, char *argv[])
     int statmethod;
     int method;
     int methods[GNAME_MAX];
-    f_func compute_values;
-    f_func compute_stat;
+    f_func *compute_values;
+    f_statmethod *compute_stat;
 
     char *p;
 
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
     parm.method->key = "method";
     parm.method->type = TYPE_STRING;
     parm.method->required = YES;
-    p = parm.method->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; menu[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -141,6 +141,7 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, menu[n].name);
     }
+    parm.method->options = p;
     parm.method->multiple = YES;
     parm.method->description = _("Operation to perform on fragments");
 
@@ -156,7 +157,7 @@ int main(int argc, char *argv[])
     parm.statmethod->key = "statmethod";
     parm.statmethod->type = TYPE_STRING;
     parm.statmethod->required = YES;
-    p = parm.statmethod->options = G_malloc(1024);
+    p = G_malloc(1024);
     for (n = 0; statmethods[n].name; n++) {
 	if (n)
 	    strcat(p, ",");
@@ -164,6 +165,7 @@ int main(int argc, char *argv[])
 	    *p = 0;
 	strcat(p, statmethods[n].name);
     }
+    parm.statmethod->options = p;
     parm.statmethod->description =
 	_("Statistical method to perform on the values");
 
@@ -290,7 +292,7 @@ int main(int argc, char *argv[])
     else
 	sprintf(title, "Fragmentation of file: %s", oldname);
 
-    if (verbose = !flag.quiet->answer)
+    if ((verbose = !flag.quiet->answer))
 	G_message("Loading patches...");
 
     /* find fragments */
@@ -335,7 +337,7 @@ int main(int argc, char *argv[])
 	compute_values = menu[methods[m]].method;
 
 	/* perform current function on the patches */
-	if (verbose = !flag.quiet->answer)
+	if ((verbose = !flag.quiet->answer))
 	    G_message("Performing operation %s ... ", menu[methods[m]].name);
 	values = (DCELL *) G_malloc(fragcount * number * sizeof(DCELL));
 	compute_values(values, fragcount, parseres, number, compute_stat);
@@ -344,7 +346,7 @@ int main(int argc, char *argv[])
 	    G_percent(fragcount, fragcount, 2);
 
 	/* write output files */
-	if (verbose = !flag.quiet->answer)
+	if ((verbose = !flag.quiet->answer))
 	    G_message("Writing output...");
 
 	/* for all requested patches */

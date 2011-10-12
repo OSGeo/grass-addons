@@ -1,3 +1,5 @@
+#include "../r.pi.library/r_pi.h"
+
 #ifdef MAIN
 #define GLOBAL
 #else

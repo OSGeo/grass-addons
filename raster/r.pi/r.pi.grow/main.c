@@ -19,7 +19,7 @@
 
 struct method
 {
-    f_method method;		/* routine to compute new value */
+    f_method *method;		/* routine to compute new value */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
     char *suffix;		/* output suffix */
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     /* parameters */
     int keyval;
     int area;
-    f_method method;
+    f_method *method;
     int nbr_count;
 
     /* map_type and categories */
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
     parm.method->key = "method";
     parm.method->type = TYPE_STRING;
     parm.method->required = YES;
-    str = parm.method->options = G_malloc(1024);
+    str = G_malloc(1024);
     for (n = 0; methods[n].name; n++) {
 	if (n)
 	    strcat(str, ",");
@@ -115,6 +115,7 @@ int main(int argc, char *argv[])
 	    *str = 0;
 	strcat(str, methods[n].name);
     }
+    parm.method->options = str;
     parm.method->description = _("Method of growth");
 
     parm.seed = G_define_option();

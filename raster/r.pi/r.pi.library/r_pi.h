@@ -46,8 +46,10 @@ DCELL average(DCELL * vals, int count);
 DCELL variance(DCELL * vals, int count);
 DCELL std_deviat(DCELL * vals, int count);
 DCELL median(DCELL * vals, int count);
+DCELL mode(DCELL * vals, int count);
 DCELL min(DCELL * vals, int count);
 DCELL max(DCELL * vals, int count);
+DCELL sum(DCELL * vals, int count);
 DCELL linear(DCELL value, DCELL propcost);
 DCELL exponential(DCELL value, DCELL propcost);
 

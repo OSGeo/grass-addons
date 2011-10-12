@@ -22,16 +22,12 @@ typedef struct
     DCELL f, g;
 } Path_Coords;
 
-typedef DCELL(*f_statmethod) (DCELL *, int);
-typedef int (*f_func) (DCELL *, int, int *, int, f_statmethod);
+typedef DCELL(f_statmethod) (DCELL *, int);
+typedef int (f_func) (DCELL *, int, int *, int, f_statmethod);
 
 void writeFrag(int row, int col, int nbr_cnt);
 
-DCELL average(DCELL * vals, int count);
-DCELL variance(DCELL * vals, int count);
-DCELL std_deviat(DCELL * vals, int count);
 DCELL value(DCELL * vals, int count);
-DCELL sum(DCELL * vals, int count);
 
 /* heap.c */
 void heap_alloc(int size);
@@ -39,7 +35,9 @@ void heap_free();
 Path_Coords heap_delete(int pos);
 void heap_insert(int x, int y, DCELL f, DCELL g);
 void upheap(int pos);
+int heap_search(int x, int y);
 
+/* func.c */
 int get_dist_matrix(int count);
 
 int get_nearest_indices(int count, int *num_array, int num_count);

@@ -13,21 +13,13 @@
 #define GLOBAL extern
 #endif
 
-typedef DCELL(*f_func) (DCELL * values, int count);
+typedef DCELL(f_func) (DCELL * values, int count);
 
 /* frag.c */
 void writeFrag(int row, int col, int nbr_cnt);
 
 /* func.c */
 void compute_values(DCELL * vals, int min, int max, f_func stat_method);
-
-/* stat_method.c */
-DCELL average(DCELL * vals, int count);
-DCELL variance(DCELL * vals, int count);
-DCELL mode(DCELL * vals, int count);
-DCELL median(DCELL * vals, int count);
-DCELL min(DCELL * vals, int count);
-DCELL max(DCELL * vals, int count);
 
 /* global variables */
 GLOBAL int nrows, ncols;
