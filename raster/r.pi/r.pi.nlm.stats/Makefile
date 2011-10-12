@@ -2,7 +2,10 @@ MODULE_TOPDIR = ../../..
 
 PGM = r.pi.nlm.stats
 
-LIBES = $(STATSLIB) $(GISLIB)
+LIB_NAME = grass_rpi
+RPI_LIB  = -l$(LIB_NAME)
+
+LIBES = $(STATSLIB) $(GISLIB) $(RPI_LIB)
 DEPENDENCIES = $(STATSDEP) $(GISDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
