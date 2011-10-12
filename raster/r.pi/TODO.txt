@@ -7,6 +7,9 @@
 #####################################
 C-code:
 
+- remmove custom 'quiet' flag
+- convert C++ style comments
+- code must conform to C89 (variable declarations)
 - fix all the unused variables
 - fix compiler warnings
 - there are LOTs of cloned files, put them into a r.pi library (example:
