@@ -17,20 +17,6 @@
 #define GLOBAL extern
 #endif
 
-#define TYPE_NOTHING -1
-
-#define RESOLUTION 10000
-
-#define MIN_DOUBLE -1000000
-#define MAX_DOUBLE 1000000
-
-typedef struct
-{
-    int x, y;
-    int neighbors;
-    double value;
-} Coords;
-
 typedef DCELL(*f_statmethod) (DCELL *, int);
 typedef void (*f_method) (DCELL * values, int *map, int *mask, int n,
 			  int size);

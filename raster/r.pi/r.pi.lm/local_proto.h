@@ -10,6 +10,4 @@
 #include "../r.pi.library/r_pi.h"
 #include <math.h>
 
-#define MAX_DOUBLE 1000000.0
-
 #endif /* LOCAL_PROTO_H */

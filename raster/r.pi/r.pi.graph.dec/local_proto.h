@@ -16,16 +16,6 @@
 #define GLOBAL extern
 #endif
 
-#define MAX_DOUBLE 1000000.0
-#define MAX_INT 0x7FFFFFFF
-
-typedef struct
-{
-    int x, y;
-    int neighbors;
-    double value;
-} Coords;
-
 typedef struct
 {
     Coords *first_cell;

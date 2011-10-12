@@ -16,7 +16,6 @@
 #define GLOBAL extern
 #endif
 
-
 typedef struct
 {
     int x, y;

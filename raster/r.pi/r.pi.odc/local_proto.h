@@ -17,21 +17,6 @@
 #define GLOBAL extern
 #endif
 
-#define NOGO -2
-#define NOTHING -1
-
-#define RESOLUTION 10000
-
-#define MIN_DOUBLE -1000000
-#define MAX_DOUBLE 1000000
-
-typedef struct
-{
-    int x, y;
-    int neighbors;
-    double value;
-} Coords;
-
 typedef struct
 {
     int x, y;

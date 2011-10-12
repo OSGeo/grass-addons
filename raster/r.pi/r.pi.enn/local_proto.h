@@ -16,15 +16,6 @@
 #define GLOBAL extern
 #endif
 
-#define MAX_DOUBLE 1000000.0
-
-typedef struct
-{
-    int x, y;
-    int neighbors;
-    double value;
-} Coords;
-
 typedef DCELL(*f_statmethod) (DCELL *, int);
 typedef int (*f_func) (DCELL *, int, int *, int, f_statmethod);
 

@@ -332,10 +332,10 @@ int main(int argc, char *argv[])
 	    G_get_c_raster_row(in_fd, result, row);
 	    for (col = 0; col < sx; col++) {
 		if (result[col] == 1) {
-		    map[row * sx + col] = NOTHING;
+		    map[row * sx + col] = TYPE_NOTHING;
 		}
 		else {
-		    map[row * sx + col] = NOGO;
+		    map[row * sx + col] = TYPE_NOGO;
 		}
 	    }
 
@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
     }
     else {
 	for (i = 0; i < sx * sy; i++) {
-	    map[i] = NOTHING;
+	    map[i] = TYPE_NOTHING;
 	}
     }
 

@@ -26,7 +26,7 @@ void init_voronoi(int *map, int sx, int sy)
     empty_count = 0;
     for (x = 0; x < sx; x++) {
 	for (y = 0; y < sy; y++) {
-	    if (map[x + y * sx] == NOTHING) {
+	    if (map[x + y * sx] == TYPE_NOTHING) {
 		empty_space[empty_count].x = x;
 		empty_space[empty_count].y = y;
 		empty_count++;
@@ -102,7 +102,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
 	for (nx = l; nx <= r; nx++) {
 	    for (ny = t; ny <= b; ny++) {
 		val = map[nx + ny * sx];
-		if (val > NOTHING && checklist[val] == 0) {
+		if (val > TYPE_NOTHING && checklist[val] == 0) {
 		    checklist[val] = 1;
 		    res[count] = val;
 		    count++;
@@ -113,7 +113,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
     else {
 	if (x > 0) {		// left
 	    val = map[x - 1 + y * sx];
-	    if (val > NOTHING && checklist[val] == 0) {
+	    if (val > TYPE_NOTHING && checklist[val] == 0) {
 		checklist[val] = 1;
 		res[count] = val;
 		count++;
@@ -121,7 +121,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
 	}
 	if (x < sx - 1) {	// right
 	    val = map[x + 1 + y * sx];
-	    if (val > NOTHING && checklist[val] == 0) {
+	    if (val > TYPE_NOTHING && checklist[val] == 0) {
 		checklist[val] = 1;
 		res[count] = val;
 		count++;
@@ -129,7 +129,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
 	}
 	if (y > 0) {		// up
 	    val = map[x + (y - 1) * sx];
-	    if (val > NOTHING && checklist[val] == 0) {
+	    if (val > TYPE_NOTHING && checklist[val] == 0) {
 		checklist[val] = 1;
 		res[count] = val;
 		count++;
@@ -137,7 +137,7 @@ int gather_neighbors(int *res, int *map, int x, int y, int sx, int sy,
 	}
 	if (y < sy - 1) {	// left
 	    val = map[x + (y + 1) * sx];
-	    if (val > NOTHING && checklist[val] == 0) {
+	    if (val > TYPE_NOTHING && checklist[val] == 0) {
 		checklist[val] = 1;
 		res[count] = val;
 		count++;
@@ -181,7 +181,7 @@ void grow_step(int *map, int sx, int sy, int diag_grow)
 	    /* add new edge point */
 	    new_edge[new_count].x = x;
 	    new_edge[new_count].y = y;
-	    new_edge[new_count].patch = neighb_cnt == 1 ? neighbors[0] : NOGO;
+	    new_edge[new_count].patch = neighb_cnt == 1 ? neighbors[0] : TYPE_NOGO;
 	    new_count++;
 
 	    /* add voronoi area to patches respectively */
@@ -199,7 +199,7 @@ void grow_step(int *map, int sx, int sy, int diag_grow)
 	patch = new_edge[i].patch;
 	map[x + y * sx] = patch;
 
-	if (patch > NOTHING) {
+	if (patch > TYPE_NOTHING) {
 	    /* test adjacency and mark adjacent patches in the matrix */
 	    neighb_cnt =
 		gather_neighbors(neighbors, map, x, y, sx, sy, diag_grow);

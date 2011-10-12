@@ -11,14 +11,6 @@
 #include <math.h>
 #include <time.h>
 
-#define TYPE_NOTHING 0
-#define TYPE_NOGO -1
-
-#define RESOLUTION 10000
-
-#define MIN_DOUBLE -1000000
-#define MAX_DOUBLE 1000000
-
 typedef struct
 {
     int x, y;

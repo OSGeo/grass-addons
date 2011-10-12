@@ -10,8 +10,13 @@
 #include <grass/stats.h>
 
 #define TYPE_NOTHING -1
+#define TYPE_NOGO -2
 
+/* TODO: we need to talk about these definitions... */
+#define MIN_DOUBLE -1000000
 #define MAX_DOUBLE 1000000.0
+#define MAX_INT 0x7FFFFFFF
+#define RESOLUTION 10000
 
 typedef struct
 {

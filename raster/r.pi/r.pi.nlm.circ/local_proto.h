@@ -11,9 +11,6 @@
 #include <math.h>
 #include <time.h>
 
-#define TYPE_NOTHING -1
-#define TYPE_NOGO -2
-
 typedef struct
 {
     int x, y;

@@ -1,17 +1,8 @@
-#define MAX_DOUBLE 1000000.0
-
 #ifdef MAIN
 #define GLOBAL
 #else
 #define GLOBAL extern
 #endif
-
-typedef struct
-{
-    int x, y;
-    int neighbors;
-    double value;
-} Coords;
 
 /* frag.c */
 void writeFrag(int row, int col, int nbr_cnt);
