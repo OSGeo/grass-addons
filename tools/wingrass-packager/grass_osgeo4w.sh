@@ -5,7 +5,7 @@ HOME=/c/Users/landa/grass_packager
 
 function rsync_package {
     dir=$HOME/grass$1/osgeo4w/package
-    curr=`ls -t $dir/ 2>/dev/null | head -n1 | cut -d'-' -f3 | cut -d'.' -f1`
+    curr=`ls -t $dir/ 2>/dev/null | head -n1 | cut -d'-' -f4 | cut -d'.' -f1`
     if [ $? -eq 0 ]; then
 	package=$curr
     else
