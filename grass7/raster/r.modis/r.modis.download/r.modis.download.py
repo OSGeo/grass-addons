@@ -82,8 +82,13 @@ from datetime import *
 import grass.script as grass
 
 # add the folder containing libraries to python path
-libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
-sys.path.append(libmodis)
+if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')):
+    libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
+elif os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis')):
+    libmodis = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis')
+else:
+    print "ERROR: path to libraries not found"
+    sys.exit()
 # try to import pymodis (modis) and some class for r.modis.download
 try:
     from rmodislib import product
