@@ -1,4 +1,18 @@
 #!/usr/bin/env python
+#
+###################################################################
+#
+# MODULE:    	v.eqsm.py
+# AUTHOR(S): 	Annalisa Minelli <annalisa.minelli AT gmail.com>
+# PURPOSE:   	Performs vertical sorting analysis prediction for one or more points in a river reach using Blom&Parker Equilibrium Sorting Model (2006)
+# COPYRIGHT: 	(C) 2009 by the GRASS Development Team
+#
+# 		This program is free software under the GNU General Public
+# 		License (>=v2). Read the file COPYING that comes with GRASS
+# 		for details.
+#
+####################################################################
+#
 #%Module
 #%  description: Implements Equilibrium Sorting Model at reach scale for a bimodal sediment mixture (Blom&Parker)
 #%  keywords: eqsm
