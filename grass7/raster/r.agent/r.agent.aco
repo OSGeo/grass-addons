@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+############################################################################
+#
+# MODULE:       r.agent.aco
+# AUTHOR(S):    michael lustenberger inofix.ch
+# PURPOSE:      r.agent.aco is used to organize ant-like agents in a raster
+#               based playground. As decribed by the Ant Colony Optimization
+#               algorithm, the ants wander around looking for attractors,
+#               marking their paths if they find any.
+# COPYRIGHT:    (C) 2011 by the GRASS Development Team
+#
+#               This program is free software under the GNU General Public
+#               License (>=v2). Read the file COPYING that comes with GRASS
+#               for details.
+#
+#############################################################################
+
+import sys
+
+from libagent import error, aco
+
+world = aco.ACO()
+
+for arg in sys.argv[1:]:
+    arglist = arg.split("=")
+    if arglist[0] == "output":
+        if world.pherovapour == None:
+            layer = world.createlayer("phero", "raster", None, str(arglist[1]))
+            world.pherovapour = layer.raster
+        else:
+            world.exportlayer("phero", None, str(arglist[1]))
+    elif arglist[0] == "costoutput":
+        if world.costsurface == None:
+            layer = world.createlayer("costs", "raster", None, str(arglist[1]))
+            world.costsurface = layer.raster
+        else:
+            world.exportlayer("phero", None, str(arglist[1]))
+    elif arglist[0] == "costraster":
+        if world.costsurface == None:
+            layer = world.importlayer("costs", "raster", str(arglist[1]))
+            world.costsurface = layer.raster
+        else:
+            world.importlayer("costs", None, str(arglist[1]))
+        world.playground.setboundsfromlayer("costs")
+    elif arglist[0] == "sloperaster":
+        layer = world.importlayer("slope", "raster", str(arglist[1]))
+        world.surfaceslope = layer.raster
+        world.playground.setboundsfromlayer("slope")
+        if world.costsurface == None:
+            layer = world.createlayer("costs", "raster", None, None)
+            world.costsurface = layer.raster
+    elif arglist[0] == "vectorholes":
+        layer = world.importlayer("holes", "vector", str(arglist[1]))
+        world.holes = layer.objects
+    elif arglist[0] == "pheroraster":
+        if world.pherovapour == None:
+            layer = world.importlayer("phero", "raster", str(arglist[1]))
+            world.pherovapour = layer.raster
+        else:
+            world.importlayer("phero", None, str(arglist[1]))
+    elif arglist[0] == "rounds":
+        world.rounds = int(arglist[1])
+    elif arglist[0] == "outrounds" or arglist[0] == "outputrounds":
+        world.outrounds = int(arglist[1])
+    elif arglist[0] == "maxpheromone":
+        world.maxpheromone = int(arglist[1])
+    elif arglist[0] == "minpheromone":
+        world.minpheromone = int(arglist[1])
+    elif arglist[0] == "volatilizationtime":
+        world.volatilizationtime = int(arglist[1])
+    elif arglist[0] == "stepintensity":
+        world.stepintensity = int(arglist[1])
+    elif arglist[0] == "pathintensity":
+        world.pathintensity = int(arglist[1])
+    elif arglist[0] == "maxants":
+        world.maxants = int(arglist[1])
+    elif arglist[0] == "antslife":
+        world.antslife = int(arglist[1])
+    elif arglist[0] == "decisionalgorithm":
+        world.decisionbase = str(arglist[1])
+    elif arglist[0] == "neighbourposition":
+        world.validposition = str(arglist[1])
+    elif arglist[0] == "agentfreedom":
+        world.globalfreedom = int(arglist[1])
+    elif arglist[0] == "pheromoneweight":
+        world.pheroweight = int(arglist[1])
+    elif arglist[0] == "randomnessweight":
+        world.randomweight = int(arglist[1])
+    elif arglist[0] == "costweight":
+        world.costweight = int(arglist[1])
+    elif arglist[0] == "stability":
+        #TODO ask silvia..
+        pass
+    else:
+        print "parameter", arglist[0], "not supported.."
+
+try:
+    world.checkvalues()
+    world.letantsdance()
+    print "FINISH"
+except error.DataError:
+    print "Failed to parse args.."
+    sys.exit(1)
+

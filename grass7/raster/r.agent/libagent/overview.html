@@ -1,0 +1,85 @@
+<h2>general oversimplified abstract overview</h2>
+
+<ul><li>world
+<ul><li>e.g. an anthill, or a planet..
+</li><li>organizes how things work together
+</li><li>has:
+<ul><li>playground
+</li><li>list of agents
+<ul><li>killagent(agent)
+</li></ul></li><li>list of artefacts
+</li></ul></li></ul></li><li>aco - world
+<ul><li>is a:
+<ul><li>world
+</li></ul></li><li>for ants as agents with Ant Colony Optimization Algorithm as interaction rule
+</li><li>has:
+<ul><li>playground with
+<ul><li>penalty raster layer
+</li><li>pheromone raster layer
+</li><li>vector layer with holes/anthills
+</li></ul></li><li>list of ants
+</li><li>list of attractors..
+</li><li>list of holes/anthills..
+</li><li>several values that control the behaviour..
+</li></ul></li></ul></li><li>playground
+<ul><li>e.g. dirt, dead wood/leaves/needles, pheromone, etc.
+</li><li>manages layers =&gt; coordinates or graph(?)
+</li><li>has:
+<ul><li>layers
+<ul><li>knows its borders
+<ul><li>start/end coordinates
+</li><li>graph ...
+</li></ul></li><li>calcgraph(raster, degreeoffreedom, sizeofstep)
+</li><li>neighbours(node)-&gt;listofedges
+</li><li>neighbours(coordinates)-&gt;mapofcoordinate=&gt;value's
+</li></ul></li></ul></li></ul></li><li>layer (meta)
+<ul><li>one aspect from playground (one layer therefore..)
+</li></ul></li><li>rasterlayer - layer
+<ul><li>is a:
+<ul><li>layer
+</li></ul></li><li>e.g. pheromone "smell"
+</li><li>represents gis-rasterlayer
+</li><li>has:
+<ul><li>borders
+</li><li>matrix
+</li></ul></li></ul></li><li>vectorlayer - layer
+<ul><li>is a:
+<ul><li>layer
+</li></ul></li><li>e.g. holes in the ground
+</li><li>represents gis-vectorlayer
+</li><li>has:
+<ul><li>borders
+</li><li>list of vector objects/points/..
+</li></ul></li></ul></li><li>graph - layer (not yet available...)
+<ul><li>is a:
+<ul><li>layer
+</li></ul></li><li>made from raster-/vectorlayer
+</li><li>has:
+<ul><li>map of nodes
+<ul><li>node
+<ul><li>id
+</li><li>n:edges list
+</li></ul></li></ul></li><li>list of edges
+<ul><li>edge
+<ul><li>2:nodes
+</li><li>mapof'attribute=value's
+</li></ul></li></ul></li></ul></li></ul></li><li>agent
+<ul><li>e.g. a passenger or an ant
+</li><li>"lives" sort of in the world and on the playground
+</li><li>has:
+<ul><li>ttl
+</li><li>knowscompass
+</li><li>degreeoffreedom - (might be different from playground)
+</li><li>walk()
+</li></ul></li></ul></li><li>ant - agent
+<ul><li>is a:
+<ul><li>agent
+</li></ul></li><li>actor in an aco world
+</li><li>has:
+<ul><li>home position / position of origin / birthplace
+</li><li>list of its positions visited
+</li><li>pheromone intensity to use on certain circumstances
+</li><li>penalty value for its moving velocity
+</li><li>decisionbase for knowing how to find new positions
+</li><li>decisionbase for remembering visited positions
+</li></ul></li></ul></li></ul>
