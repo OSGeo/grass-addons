@@ -251,7 +251,7 @@ for FILE in $* ; do
 	   apply_makefile "$FILE"
 	elif [ "$FILE" = "README" ] ; then
 	   apply_text "$FILE"
-	elif [ `file "$FILE" | grep -c "shell script"` -eq 1 ] ; then
+	elif [ `file "$FILE" | grep -c "shell script\|sh script"` -eq 1 ] ; then
 	   apply_shell_script "$FILE"
 	else
 	    if test ! -d "$FILE" ; then
