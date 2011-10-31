@@ -50,9 +50,10 @@ ACO works best on dynamic maps -- it constantly tries to improve paths...
 
 <h2>EXAMPLE</h2>
 
-A fictive usecase could look something like this:
+A fictive usecase could look something like this (note: at the moment the
+in- and output variables are still ascii-files):
 <p>
-# ./r.agent.aco output=out.map costraster=penalty.grid vectorholes=sites.vect rounds=10 outputrounds=10 volatilizationtime=5000 antslife=2000 maxants=400 pathintensity=1000000
+GRASS 7.0.svn (synthetic@foobar):ragentdir &gt;  ./r.agent.aco  outputmap=out.map penaltymap=testpenalty.grid sitesmap=sites.vect rounds=100 outrounds=100 volatilizationtime=5000 antslife=2000 maxants=400 pathintensity=1000000
 <p>
 For running the total test suite on the libraries,
 i.e. to run all the tests that are at the end
@@ -60,7 +61,7 @@ of each python file, use this test collection
 (for certain tests, the following files must exist though:
  "elev.grid", and "arch.vect"):
 <p>
-# cd library
+user@host:libagent$ cd library
 <p>
 # ./alltests.py
 
