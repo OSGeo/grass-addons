@@ -44,6 +44,7 @@ class ACO(world.World):
         self.outfilename = ""
         self.maxpheromone = 2147483647
         self.minpheromone = 10
+#        self.maxpenalty = 999
         self.volatilizationtime = 1
         self.stepintensity = 10
         self.pathintensity = 10000
@@ -96,6 +97,8 @@ class ACO(world.World):
     def addneighbour(self, positions, position):
         position[2] = self.costsurface[position[0]][position[1]]
 # TODO > or >=
+#        if position[2] > self.maxpenalty:
+#            return
         if position[2] >= 0:
             position[3] = self.pherovapour[position[0]][position[1]]
             positions.append(position)
