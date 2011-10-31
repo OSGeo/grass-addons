@@ -15,90 +15,221 @@
 #
 #############################################################################
 
+#%Module
+#% description: Creates a special kind of world, that follows the rules of ACO - with ant-like agents in it.
+#%End
+#%option
+#% key: outputmap
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Name of penalty output map
+#% required : yes
+#%end
+#%option
+#% key: inpheromap
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Name of pheromone map, input raster data (e.g. from prior run)
+#% required : no
+#%end
+#%option
+#% key: penaltymap
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Name of penalty map, input raster data
+#% required : yes
+#%end
+#%option
+#% key: sitesmap
+#% type: string
+#% gisprompt: vector
+#% description: Name of sites map, vector data with possible points of origin
+#% required : yes
+#%end
+#%option
+#% key: rounds
+#% type: integer
+#% gisprompt: number
+#% description: Number of rounds to run
+#% options: 0-999999
+#% required : yes
+#%end
+#%option
+#% key: outrounds
+#% type: integer
+#% gisprompt: number
+#% description: Produce output after this number of rounds run
+#% options: 0-999999
+#% required : no
+#%end
+#%option
+#% key: maxpheromone
+#% type: integer
+#% gisprompt: number
+#% description: Maximum value for pheromone
+#% options: 0-2147483647
+#% required : no
+#%end
+#%option
+#% key: minpheromone
+#% type: integer
+#% gisprompt: number
+#% description: Name of vector data map that shows possible points of origin
+#% options: 0-2147483647
+#% required : no
+#%end
+#%option
+#% key: volatilizationtime
+#% type: integer
+#% gisprompt: number
+#% description: Half-life for pheromone to volatize
+#% options: 0-2147483647
+#% required : no
+#%end
+#%option
+#% key: stepintensity
+#% type: integer
+#% gisprompt: number
+#% description: Pheromone intensity to leave on each step
+#% options: 0-2147483647
+#% required : no
+#%end
+#%option
+#% key: pathintensity
+#% type: integer
+#% gisprompt: number
+#% description: Pheromone intensity to leave on found paths
+#% options: 0-2147483647
+#% required : no
+#%end
+#%option
+#% key: maxants
+#% type: integer
+#% gisprompt: number
+#% description: Maximum amount of ants that may live concurrently
+#% options: 0-2147483647
+#% required : no
+#%end
+#%option
+#% key: antslife
+#% type: integer
+#% gisprompt: number
+#% description: Time to live for an ant
+#% options: 0-2147483647
+#% required : no
+#%end
+#%option
+#% key: decisionalgorithm
+#% type: string
+#% gisprompt: algorithm
+#% description: What algorithm is used for walking step
+#% options: standard,random,test
+#% required : no
+#%end
+#%option
+#% key: validposition
+#% type: string
+#% gisprompt: algorithm
+#% description: What algorithm is used for finding and remembering paths 
+#% options: specials,avoidloop,forgetloop,avoidorforgetloop
+#% required : no
+#%end
+#%option
+#% key: agentfreedom
+#% type: integer
+#% gisprompt: number
+#% description: What are the possible directions the ant can take
+#% options: 4,8
+#% required : no
+#%end
+#%option
+#% key: pheromoneweight
+#% type: integer
+#% gisprompt: number
+#% description: How is the pheromone value weighted when walking
+#% options: 0-999
+#% required : no
+#%end
+#%option
+#% key: randomnessweight
+#% type: integer
+#% gisprompt: number
+#% description: How is the random value weighted when walking
+#% options: 0-999
+#% required : no
+#%end
+#%option
+#% key: costweight
+#% type: integer
+#% gisprompt: number
+#% description: How is the penalty value weighted when walking
+#% options: 0-999
+#% required : no
+#%end
+
 import sys
+from grass.script import core as grass
 
 from libagent import error, aco
 
-world = aco.ACO()
+def main():
+    world = aco.ACO()
 
-for arg in sys.argv[1:]:
-    arglist = arg.split("=")
-    if arglist[0] == "output":
-        if world.pherovapour == None:
-            layer = world.createlayer("phero", "raster", None, str(arglist[1]))
-            world.pherovapour = layer.raster
-        else:
-            world.exportlayer("phero", None, str(arglist[1]))
-    elif arglist[0] == "costoutput":
-        if world.costsurface == None:
-            layer = world.createlayer("costs", "raster", None, str(arglist[1]))
-            world.costsurface = layer.raster
-        else:
-            world.exportlayer("phero", None, str(arglist[1]))
-    elif arglist[0] == "costraster":
-        if world.costsurface == None:
-            layer = world.importlayer("costs", "raster", str(arglist[1]))
-            world.costsurface = layer.raster
-        else:
-            world.importlayer("costs", None, str(arglist[1]))
-        world.playground.setboundsfromlayer("costs")
-    elif arglist[0] == "sloperaster":
-        layer = world.importlayer("slope", "raster", str(arglist[1]))
-        world.surfaceslope = layer.raster
-        world.playground.setboundsfromlayer("slope")
-        if world.costsurface == None:
-            layer = world.createlayer("costs", "raster", None, None)
-            world.costsurface = layer.raster
-    elif arglist[0] == "vectorholes":
-        layer = world.importlayer("holes", "vector", str(arglist[1]))
-        world.holes = layer.objects
-    elif arglist[0] == "pheroraster":
-        if world.pherovapour == None:
-            layer = world.importlayer("phero", "raster", str(arglist[1]))
-            world.pherovapour = layer.raster
-        else:
-            world.importlayer("phero", None, str(arglist[1]))
-    elif arglist[0] == "rounds":
-        world.rounds = int(arglist[1])
-    elif arglist[0] == "outrounds" or arglist[0] == "outputrounds":
-        world.outrounds = int(arglist[1])
-    elif arglist[0] == "maxpheromone":
-        world.maxpheromone = int(arglist[1])
-    elif arglist[0] == "minpheromone":
-        world.minpheromone = int(arglist[1])
-    elif arglist[0] == "volatilizationtime":
-        world.volatilizationtime = int(arglist[1])
-    elif arglist[0] == "stepintensity":
-        world.stepintensity = int(arglist[1])
-    elif arglist[0] == "pathintensity":
-        world.pathintensity = int(arglist[1])
-    elif arglist[0] == "maxants":
-        world.maxants = int(arglist[1])
-    elif arglist[0] == "antslife":
-        world.antslife = int(arglist[1])
-    elif arglist[0] == "decisionalgorithm":
-        world.decisionbase = str(arglist[1])
-    elif arglist[0] == "neighbourposition":
-        world.validposition = str(arglist[1])
-    elif arglist[0] == "agentfreedom":
-        world.globalfreedom = int(arglist[1])
-    elif arglist[0] == "pheromoneweight":
-        world.pheroweight = int(arglist[1])
-    elif arglist[0] == "randomnessweight":
-        world.randomweight = int(arglist[1])
-    elif arglist[0] == "costweight":
-        world.costweight = int(arglist[1])
-    elif arglist[0] == "stability":
-        #TODO ask silvia..
-        pass
+    layer = world.importlayer("costs", "raster", options['penaltymap'])
+    world.costsurface = layer.raster
+    world.playground.setboundsfromlayer("costs")
+
+    if options['inpheromap']:
+        layer = world.importlayer("phero", "raster", options['inpheromap'])
+        world.outfilename = options['outputmap']
     else:
-        print "parameter", arglist[0], "not supported.."
+        layer = world.createlayer("phero", "raster", None, options['outputmap'])
+        world.pherovapour = layer.raster
 
-try:
-    world.checkvalues()
-    world.letantsdance()
-    print "FINISH"
-except error.DataError:
-    print "Failed to parse args.."
-    sys.exit(1)
+    layer = world.importlayer("holes", "vector", options['sitesmap'])
+    world.holes = layer.objects
+
+    world.rounds = int(options['rounds'])
+    if options['outrounds']:
+        world.outrounds = int(options['outrounds'])
+    if options['maxpheromone']:
+        world.maxpheromone = int(options['maxpheromone'])
+    if options['minpheromone']:
+        world.minpheromone = int(options['minpheromone'])
+    if options['volatilizationtime']:
+        world.volatilizationtime = int(options['volatilizationtime'])
+    if options['stepintensity']:
+        world.stepintensity = int(options['stepintensity'])
+    if options['pathintensity']:
+        world.pathintensity = int(options['pathintensity'])
+    if options['maxants']:
+        world.maxants = int(options['maxants'])
+    if options['antslife']:
+        world.antslife = int(options['antslife'])
+    if options['decisionalgorithm']:
+        world.decisionbase = str(options['decisionalgorithm'])
+    if options['validposition']:
+        world.validposition = str(options['validposition'])
+    if options['agentfreedom']:
+        world.globalfreedom = int(options['agentfreedom'])
+    if options['pheromoneweight']:
+        world.pheroweight = int(options['pheromoneweight'])
+    if options['randomnessweight']:
+        world.randomweight = int(options['randomnessweight'])
+    if options['costweight']:
+        world.costweight = int(options['costweight'])
+    #if arglist[0] == "stability":
+        #TODO ask silvia..
+    try:
+        world.checkvalues()
+        world.letantsdance()
+        print "FINISH"
+    except error.DataError:
+        print "Failed to parse args.."
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    options, flags = grass.parser()
+    main()
 
