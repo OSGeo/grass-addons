@@ -4,7 +4,7 @@
 # MODULE:       r.agent.*
 # AUTHOR(S):    michael lustenberger inofix.ch
 # PURPOSE:      very basic test collection for the r.agent.* suite
-# COPYRIGHT:    (C) 2011 by the GRASS Development Team
+# COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
