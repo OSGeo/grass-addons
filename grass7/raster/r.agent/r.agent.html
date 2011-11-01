@@ -9,8 +9,7 @@ a modular usage is still suffering..
 <em>r.agent</em> is written in python for more transparency and
 better extendability.
 <p>
-As a first world example there is an ACO-based
-environement
+As a first world example there is an ACO-based environment
 (see <a href="http://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms">Ant Colony Optimization</a>)
 available.
 <p>
@@ -42,8 +41,8 @@ in the future due to a better integration in GRASS and other refactoring.
 <p>
 Unfortunately this script colletion is not very well included in GRASS yet.
 At the moment <em>r.agent</em> only handles ASCII grid and vector in- and
-output data. With a better GRASS integration not only will the code
-get lighter but also this drawbacks shall vanish.
+output data. With a better GRASS integration (arrays) not only will the code
+get lighter but also these drawbacks shall vanish.
 <p>
 ACO works best on dynamic maps -- it constantly tries to improve paths...
 
@@ -53,7 +52,11 @@ ACO works best on dynamic maps -- it constantly tries to improve paths...
 A fictive usecase could look something like this (note: at the moment the
 in- and output variables are still ascii-files):
 <p>
-GRASS 7.0.svn (synthetic@foobar):ragentdir &gt;  ./r.agent.aco  outputmap=out.map penaltymap=testpenalty.grid sitesmap=sites.vect rounds=100 outrounds=100 volatilizationtime=5000 antslife=2000 maxants=400 pathintensity=1000000
+<div class="code"><pre>
+r.agent.aco outputmap=out.map penaltymap=testpenalty.grid \
+  sitesmap=sites.vect rounds=100 outrounds=100 volatilizationtime=5000 \
+  antslife=2000 maxants=400 pathintensity=1000000
+</pre></div>
 <p>
 For running the total test suite on the libraries,
 i.e. to run all the tests that are at the end
@@ -61,10 +64,11 @@ of each python file, use this test collection
 (for certain tests, the following files must exist though:
  "elev.grid", and "arch.vect"):
 <p>
+<div class="code"><pre>
 user@host:~$ cd /&lt;pathtoaddons&gt;/r.agent/libagent
-<p>
-user@host:libagent$ ./alltests.py
 
+user@host:libagent$ ./alltests.py
+</pre></div>
 
 <h2>TODO</h2>
 
@@ -81,7 +85,6 @@ Try to avoid high penalty fields.
 Think about heuristics too.
 <p>
 Implement other ABM scenarios.
-
 
 <h2>SEE ALSO</h2>
 
