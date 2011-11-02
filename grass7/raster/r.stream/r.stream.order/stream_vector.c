@@ -220,7 +220,9 @@ int stream_add_table(int number_of_streams)
     db_init_handle(&handle);
 
     Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
-    driver = db_start_driver_open_database(Fi->driver, Fi->database);
+    driver = db_start_driver_open_database(Fi->driver,
+					   Vect_subst_var(Fi->database,
+							         &Out));
 
     /* create table */
     for (i = 0; i < number_of_streams; ++i)
