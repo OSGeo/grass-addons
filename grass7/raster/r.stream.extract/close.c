@@ -164,7 +164,9 @@ int close_streamvect(char *stream_vect)
     /* Preparing database for use */
     /* Create database for new vector map */
     Fi = Vect_default_field_info(&Out, 1, NULL, GV_1TABLE);
-    driver = db_start_driver_open_database(Fi->driver, Fi->database);
+    driver = db_start_driver_open_database(Fi->driver,
+					   Vect_subst_var(Fi->database,
+							          &Out));
     if (driver == NULL) {
 	G_fatal_error(_("Unable to start driver <%s>"), Fi->driver);
     }
