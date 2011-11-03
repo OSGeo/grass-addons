@@ -48,6 +48,15 @@
 #%  description: For example: "way[highway=track|path]"
 #%  required : no
 #%end
+#%option
+#%  key: server
+#%  type: string
+#%  description: Xapi server
+#%  answer: http://jxapi.openstreetmap.org/xapi/api/0.6
+#%end
+#failover server 1: http://open.mapquestapi.com/xapi/api/0.6
+#failover server 2: http://jxapi.osm.rambler.ru/xapi/api/0.6
+
 
 if [ -z "$GISBASE" ] ; then
    echo "You must be in GRASS GIS to run this program." >&2
@@ -87,10 +96,10 @@ if [ $? -ne 0 ] || [ -z "$TEMPFILE" ] ; then
     exit 1
 fi
 
-BASEURL="http://osmxapi.hypercube.telascience.org/api/0.6"
+BASEURL="$GIS_OPT_SERVER"
 
 if [ -z "$GIS_OPT_QUERY" ] ; then
-   wget -O "$TEMPFILE" "$BASEURL/map?bbox=$BBOX"
+   wget -O "$TEMPFILE" "$BASEURL/*[bbox=$BBOX]"
 else
    wget -O "$TEMPFILE" "$BASEURL/$GIS_OPT_QUERY[bbox=$BBOX]"
 fi
