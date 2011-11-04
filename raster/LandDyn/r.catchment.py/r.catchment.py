@@ -16,7 +16,7 @@
 
 
 #%Module
-#%  description: Creates a raster buffer of specified area around vector points using cost distances. Requires r.walk. NOTE: please run g.region first to make sure region boundaries and resoultion match input elevation map.
+#%  description: Creates a raster buffer of specified area around vector points using cost distances. Requires r.walk. NOTE: please run g.region first to make sure region boundaries and resolution match input elevation map.
 #%END
 
 
@@ -115,7 +115,7 @@
 #%option
 #% key: mapval
 #% type: integer
-#% description: Integer vlaue for out put catchment area (all other areas will be Null)
+#% description: Integer value for output catchment area (all other areas will be Null)
 #% answer: 1
 #% required : yes
 #%END
@@ -137,12 +137,13 @@ import sys
 import os
 import subprocess
 import tempfile
+import random
 grass_install_tree = os.getenv('GISBASE')
 sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
 import grass.script as grass
 # first define a useful custom method 
 
-# m is a grass/bash command that will generate some list of keyed info to stdout where the keys are numeric values, n is the character that seperates the key from the data, o is a defined blank dictionary to write results to
+# m is a grass/bash command that will generate some list of keyed info to stdout where the keys are numeric values, n is the character that separates the key from the data, o is a defined blank dictionary to write results to
 def out2dictnum(m, n, o):
     p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
     p2 = p1.stdout.readlines()
@@ -167,7 +168,15 @@ def main():
     buffer = os.getenv('GIS_OPT_buffer')
     mapval = os.getenv('GIS_OPT_mapval')
     w_coefs = a + ',' +  b + ',' + c + ',' + d
-
+    if "MASK" in grass.list_grouped('rast')[grass.gisenv()['MAPSET']] and bool(os.getenv('GIS_OPT_sigma')) is True:
+        grass.message('There is already a MASK in place, and you have also selected to mask slope values above %s.\n The high slope areas (slope mask) will be temporarily added to current MASKED areas for the calcualtion of the catchment geometry.\n The original MASK will be restored when the module finishes' % sigma)
+        ismask = 2
+    elif "MASK" in grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
+        grass.message('There is a MASK in place. The areas MASKed out will be ignored while calculating catchment geometry.')
+        ismask = 1
+    else:
+        ismask = 0
+    
     grass.message("Wanted buffer area=%s\n" % int(area)) 
 
 ####################################################
@@ -193,11 +202,14 @@ def main():
         if bool(os.getenv('GIS_OPT_frict')) is False:
             grass.run_command('g.remove', quiet = True,  rast = frict)
 #################################################   
-    grass.message('\n\nCreating optional slope mask\n')
     if bool(os.getenv('GIS_OPT_sigma')) is True:
+        grass.message('\n\nCreating optional slope mask\n')
         slope = "temporary.slope"
         grass.run_command('r.slope.aspect', quiet = True, overwrite = True,  elevation = elev,  slope = slope)
-        grass.mapcalc("MASK=if(${rast1} <= %s, 1, null())" % sigma,  rast1 = slope)
+        if ismask == 2:
+            grass.mapcalc("MASK=if(${rast1} <= %s, 1, if(${tempmask}, 1, null()))" % sigma,  rast1 = slope,  tempmask = tempmask)
+        else:
+            grass.mapcalc("MASK=if(${rast1} <= %s, 1, null())" % sigma,  rast1 = slope)
     else:
         grass.message('No slope mask created')
 ##################################################
@@ -228,7 +240,13 @@ def main():
                     grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass')
             if bool(os.getenv('GIS_OPT_sigma')) is True:
                 grass.run_command('g.remove',  quiet = True, rast = slope)
-            grass.run_command('g.remove',  quiet = True, rast = 'MASK')
+            if ismask == 2:
+                grass.message('Reinstating original MASK...')
+                grass.run_command('g.rename', quiet = "True", rast = tempmask +',MASK')
+            elif ismask == 0 and bool(os.getenv('GIS_OPT_sigma')) is True:
+                grass.run_command('g.remove',  quiet = True, rast = 'MASK')
+            elif ismask == 1:
+                grass.message('Keeping original MASK')
             grass.message('     DONE!')
             return
     else:
@@ -239,8 +257,10 @@ def main():
         for key in sorted(areadict):
             tot_area = tot_area + int(float(areadict[key]))
             maxcost = key
-        grass.message("Maximum cost distance value %s covers an area of %s square meters\n\nCommencing to find a catchment configuration.....\n\n" % (int(maxcost),  tot_area))
+        grass.message("Maximum cost distance value %s covers an area of %s square map units\n\nCommencing to find a catchment configuration.....\n\n" % (int(maxcost),  tot_area))
         testarea = 0
+        lastarea = 0
+        lastkey = 0
         #start the loop, and home in on the target range
         for key in sorted(areadict):
             testarea = testarea +  int(float(areadict[key]))
@@ -254,7 +274,7 @@ def main():
         else:
             cutoff = lastkey
             displayarea = lastarea
-        grass.message("Catchment configuration found! Cost cutoff %s produces a catchment of %s square meters." % (int(cutoff),  displayarea))
+        grass.message("Catchment configuration found! Cost cutoff %s produces a catchment of %s square map units." % (int(cutoff),  displayarea))
     ####################################################
         grass.message('\n\nCreating output map\n')
         temp = tempfile.NamedTemporaryFile()
@@ -263,7 +283,7 @@ def main():
         grass.run_command('r.reclass', overwrite = True,  input = cost,  output = 'cost.reclass',  rules = temp.name)
         temp.close()
         grass.mapcalc("${out}=if(isnull(cost.reclass), null(), cost.reclass)", out = buffer)
-        grass.message("\nThe output catchment map wil be named %s" % buffer)
+        grass.message("\nThe output catchment map will be named %s" % buffer)
         grass.run_command('r.colors', quiet = True,  map = buffer, color = 'ryb')
         if os.getenv('GIS_FLAG_c') == '1':
             if bool(os.getenv('GIS_OPT_incost')) is False:
@@ -280,16 +300,19 @@ def main():
             else:
                 grass.message('Cleaning up...3')
                 grass.run_command('g.remove',  quiet = True, rast = 'cost.reclass')
-        if bool(os.getenv('GIS_OPT_sigma')) is True:
-            grass.run_command('g.remove',  quiet = True, rast = slope)
-        try:
-            grass.run_command('g.remove',  quiet = True, rast = 'MASK')
-        except:
-            pass
+            if bool(os.getenv('GIS_OPT_sigma')) is True:
+                grass.run_command('g.remove',  quiet = True, rast = slope)
+            if ismask == 2:
+                grass.message('Reinstating original MASK...')
+                grass.run_command('g.rename', quiet = "True", rast = tempmask +',MASK')
+            elif ismask == 0 and bool(os.getenv('GIS_OPT_sigma')) is True:
+                grass.run_command('g.remove',  quiet = True, rast = 'MASK')
+            elif ismask == 1:
+                grass.message('Keeping original MASK')
         grass.message('     DONE!')
         return
 
-# here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
+# here is where the code in "main" actually gets executed. This way of programming is necessary for the way g.parser needs to run.
 if __name__ == "__main__":
     if ( len(sys.argv) <= 1 or sys.argv[1] != "@ARGS_PARSED@" ):
         os.execvp("g.parser", [sys.argv[0]] + sys.argv)
