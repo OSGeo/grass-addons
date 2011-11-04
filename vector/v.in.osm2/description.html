@@ -1,0 +1,42 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.in.osm</em> creates a new vector map containing direct from 
+<a href="http://www.osm.org">OpenStreetMap</a>'s database
+
+
+<H2>NOTES</H2>
+
+The Xapi servers are often overloaded. Check with the
+<a href="http://wiki.openstreetmap.org/wiki/Xapi">OSM wiki</a>
+for current status.
+<P>
+See the same OSM Wiki for details on setting the query string.
+
+
+<h2>EXAMPLES</h2>
+
+Extract private roads in Spearfish County using a backup server:
+<div class="code"><pre>
+g.region -d
+v.in.osm out=test_osm_ways_private feature=ways \
+    query="way[access=private]" \
+    server="http://open.mapquestapi.com/xapi/api/0.6"
+</pre></div>
+
+
+<H2>SEE ALSO</H2>
+
+<em>
+<A HREF="v.in.ogr.html">v.in.ogr</A><br>
+</em>
+
+<H2>AUTHOR</H2>
+
+Hamish Bowman<BR>
+<i>Dept. Marine Science<br>
+University of Otago<br>
+Dunedin, New Zealand</i>
+<BR>
+
+<p>
+<i>Last changed: $Date$</i>
