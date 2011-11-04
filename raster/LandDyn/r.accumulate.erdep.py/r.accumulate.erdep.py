@@ -74,10 +74,11 @@
 
 import sys
 import os
+import tempfile
 import subprocess
-
-def grass_print(m):
-	return subprocess.Popen("g.message message='"'%s'"'" % m, shell='bash').wait()
+grass_install_tree = os.getenv('GISBASE')
+sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
+import grass.script as grass
 
 def main():
     pattern = os.getenv("GIS_OPT_pattern")
@@ -86,96 +87,82 @@ def main():
     infix = os.getenv("GIS_OPT_infix")
     digits = int(os.getenv("GIS_OPT_digits"))
     #create temp file for color rules
-    f1 = open('temp_color_rules.txt', 'w')
-    f1.write("100% 0 0 100\n5 purple\n0.5 blue\n0.000075 108 166 205\n0 230 230 230\n-0.000075 205 092 092\n-0.5 red\n-5 magenta\n0% 150 0 50")
-    f1.close()
+    temp = tempfile.NamedTemporaryFile()
+    temp.write("100% 0 0 100\n1 blue\n0.5 indigo\n0.01 green\n0 white\n-0.01 yellow\n-0.5 orange\n-1 red\n0% 150 0 50")
+    temp.flush()
     #test to see if we make a stats file, and make it if true
     if bool(os.getenv("GIS_OPT_statsout")) == True:
         statsfile = file(os.getenv("GIS_OPT_statsout"), 'w')
         statsfile.write('Erosion Stats,,,,,,Deposition Stats,,,,,\nMax,Min,Mean,Standard Deviation,99th percentile,,Max,Min,Mean,Standard Deviation,99th percentile\n')
     #if clause tests if numbers are inixed, and then runs the loop accordingly
     if bool(os.getenv("GIS_OPT_suffix")) == False:
-        grass_print("Numbers are suffixes to prefix: %s" % pattern)
+        grass.message("Numbers are suffixes to prefix: " + pattern)
         for x in range((startnum - 1), endnum):
+            tempmap = "temp_cum_netchange_before_smoothing_%s" % (x + 1)
             if (x + 1) == startnum:
                 outmap = "%s%s%s" % (pattern, infix, str(startnum).zfill(digits))
-                subprocess.Popen('g.copy --quiet rast=%s%s,%s' % (pattern, str(startnum).zfill(digits), outmap), shell='bash').wait()
-                subprocess.Popen('r.colors --quiet map=%s rules=$HOME/temp_color_rules.txt' % (outmap), shell='bash').wait()
+                grass.run_command('g.copy',  quiet = True,  rast = '%s%s,%s' % (pattern, str(startnum).zfill(digits), outmap))
+                grass.run_command('r.colors',  quiet = True,  map = outmap,  rules =  temp.name)
             else:
                 mapone = "%s%s%s" % (pattern, infix, str(x).zfill(digits))
                 maptwo = "%s%s" % (pattern, str(x + 1).zfill(digits))
                 outmap = "%s%s%s" % (pattern, infix, str(x + 1).zfill(digits))
-                grass_print('doing mapcalc statement for cum netchange map of year %s' % (str(x + 1).zfill(digits)))
-                subprocess.Popen('r.mapcalc "%s = (%s + %s)"' % (outmap, mapone, maptwo), shell='bash').wait()
-                grass_print('setting colors for statement for map %s' % outmap)
-                subprocess.Popen('r.colors --quiet map=%s rules=$HOME/temp_color_rules.txt' % (outmap), shell='bash').wait()
+                grass.message('doing mapcalc statement for cum netchange map of year %s' % (str(x + 1).zfill(digits)))
+                grass.mapcalc('${out}=if(abs(${map1} + ${map2}) < 20, ${map1} + ${map2}, 20) ',  out = tempmap,  map1 = mapone, map2=maptwo)
+                grass.run_command('r.neighbors', quiet = True, input = tempmap, output = outmap, method = 'mode', size = '5')
+                grass.message('setting colors for statement for map ' + outmap)
+                grass.run_command('r.colors',  quiet = True,  map = outmap,  rules =  temp.name)
             if ( os.getenv("GIS_FLAG_e") == "1" ):
-                    grass_print('creating png image of map %s' % outmap)
-                    subprocess.Popen('r.out.png --quiet input=%s output=%s.png' % (outmap, outmap), shell='bash').wait()
+                    grass.message('creating png image of map ' + outmap)
+                    grass.run_command('r.out.png',  quiet = True,  input = outmap,  output = outmap + '.png')
             if bool(os.getenv("GIS_OPT_statsout")) == True:
-                grass_print('calculating erosion/deposition statistics for map %s' % outmap)
-                subprocess.Popen('r.mapcalc "temperosion=if(%s < 0, %s, null())"' % (outmap, outmap), shell='bash').wait()
-                subprocess.Popen('r.mapcalc "tempdep=if(%s > 0, %s, null())"' % (outmap, outmap), shell='bash').wait()
-                p1 = subprocess.Popen('r.univar -g -e map=temperosion percentile=1', stdout=subprocess.PIPE, shell='bash')
-                erstats = p1.stdout.readlines()
-                dict1 = {}
-                for y in erstats:
-                    y0,y1 = y.split('=')
-                    dict1[y0] = y1.strip()
-                p2 = subprocess.Popen('r.univar -g -e map=tempdep percentile=99', stdout=subprocess.PIPE, shell='bash')
-                depstats = p2.stdout.readlines()
-                dict2 = {}
-                for z in depstats:
-                    z0,z1 = z.split('=')
-                    dict2[z0] = z1.strip()
+                grass.message('calculating erosion/deposition statistics for map ' + outmap)
+                grass.mapcalc('temperosion=if(${map1} < 0 && ${map1} > -20, ${map1}, null())',  map1 = outmap)
+                grass.mapcalc('tempdep=if(${map1} > 0 && ${map1} < 20, ${map1}, null())',  map1 = outmap)
+                dict1 = grass.parse_command('r.univar',  flags = 'ge',  map = 'temperosion',  percentile = '1')
+                dict2 = grass.parse_command('r.univar',  flags = 'ge',  map = 'tempdep',  percentile = '99')
+                grass.run_command('g.remove',  quiet = True,  flags = 'f',  rast = 'temperosion,tempdep,' + tempmap)
                 statsfile.write('%s,%s,%s,%s,%s,,%s,%s,%s,%s,%s\n' % (dict1['max'], dict1['min'], dict1['mean'], dict1['stddev'], dict1['percentile_1'], dict2['max'], dict2['min'], dict2['mean'], dict2['stddev'], dict2['percentile_99']))
     else:
         suffix = os.getenv("GIS_OPT_suffix")
-        grass_print("Numbers are infixes between prefix: %s and suffix: %s" % (pattern, suffix))
+        grass.message("Numbers are infixes between prefix: %s and suffix: %s" % (pattern, suffix))
         for x in range((startnum - 1), endnum):
+            tempmap = "temp_cum_netchange_before_smoothing_%s" % (x + 1)
             if (x + 1) == startnum:
                 outmap = "%s%s%s%s" % (pattern, str(startnum).zfill(digits), infix, suffix)
-                subprocess.Popen('g.copy --quiet rast=%s%s%s,%s' % (pattern, str(startnum).zfill(digits), suffix, outmap), shell='bash').wait()
-                subprocess.Popen('r.colors --quiet map=%s rules=$HOME/temp_color_rules.txt' % (outmap), shell='bash').wait()
+                grass.run_command('r.neighbors', input = '%s%s%s' % (pattern, str(startnum).zfill(digits), suffix), output = outmap, method = 'mode', size = '5')
+                #grass.run_command('g.copy',  quiet = True,  rast = '%s%s%s,%s' % (pattern, str(startnum).zfill(digits), suffix, outmap))
+                grass.run_command('r.colors',  quiet = True,  map = outmap,  rules =  temp.name)
             else:
                 mapone = "%s%s%s%s" % (pattern, str(x).zfill(digits), infix, suffix)
                 maptwo = "%s%s%s" % (pattern, str(x + 1).zfill(digits), suffix)
                 outmap = "%s%s%s%s" % (pattern, str(x + 1).zfill(digits), infix, suffix)
-                grass_print('doing mapcalc statement for cum netchange map of year %s' % (str(x + 1).zfill(digits)))
-                subprocess.Popen('r.mapcalc "%s = (%s + %s)"' % (outmap, mapone, maptwo), shell='bash').wait()
-                grass_print('setting colors for statement for map %s' % outmap)
-                subprocess.Popen('r.colors --quiet map=%s rules=$HOME/temp_color_rules.txt' % (outmap), shell='bash').wait()
+                grass.message('doing mapcalc statement for cum netchange map of year %s' % (str(x + 1).zfill(digits)))
+                grass.run_command('r.neighbors', input = maptwo, output = tempmap, method = 'mode', size = '5')
+                grass.mapcalc('${out}=${map1} + ${map2}',  out = outmap,  map1 = mapone, map2=tempmap)
+                grass.message('setting colors for statement for map %s' % outmap)
+                grass.run_command('r.colors',  quiet = True,  map = outmap,  rules =  temp.name)
             if ( os.getenv("GIS_FLAG_e") == "1" ):
-                grass_print('creating png image of map %s' % outmap)
-                subprocess.Popen('r.out.png --quiet input=%s output=%s.png' % (outmap, outmap), shell='bash').wait()
+                grass.message('creating png image of map ' + outmap)
+                grass.run_command('r.out.png',  quiet = True,  input = outmap,  output = outmap + '.png')
             if bool(os.getenv("GIS_OPT_statsout")) == True:
-                grass_print('calculating erosion/deposition statistics for map %s' % outmap)
-                subprocess.Popen('r.mapcalc "temperosion=if(%s < 0, %s, null())"' % (outmap, outmap), shell='bash').wait()
-                subprocess.Popen('r.mapcalc "tempdep=if(%s > 0, %s, null())"' % (outmap, outmap), shell='bash').wait()
-                p1 = subprocess.Popen('r.univar -g -e map=temperosion percentile=1', stdout=subprocess.PIPE, shell='bash')
-                erstats = p1.stdout.readlines()
-                dict1 = {}
-                for y in erstats:
-                    y0,y1 = y.split('=')
-                    dict1[y0] = y1.strip('\n')
-                p2 = subprocess.Popen('r.univar -g -e map=tempdep percentile=99', stdout=subprocess.PIPE, shell='bash')
-                depstats = p2.stdout.readlines()
-                dict2 = {}
-                for z in depstats:
-                    z0,z1 = z.split('=')
-                    dict2[z0] = z1.strip('\n')
+                grass.message('calculating erosion/deposition statistics for map ' + outmap)
+                grass.mapcalc('temperosion=if(${map1} < -0, ${map1}, null())',  map1 = outmap)
+                grass.mapcalc('tempdep=if(${map1} > 0, ${map1}, null())',  map1 = outmap)
+                dict1 = grass.parse_command('r.univar',  flags = 'ge',  map = 'temperosion',  percentile = '1')
+                dict2 = grass.parse_command('r.univar',  flags = 'ge',  map = 'tempdep',  percentile = '99')
+                grass.run_command('g.remove',  quiet = True,  flags = 'f',  rast = 'temperosion,tempdep,' + tempmap)
                 statsfile.write('%s,%s,%s,%s,%s,,%s,%s,%s,%s,%s\n' % (dict1['max'], dict1['min'], dict1['mean'], dict1['stddev'], dict1['percentile_1'], dict2['max'], dict2['min'], dict2['mean'], dict2['stddev'], dict2['percentile_99']))
     if bool(os.getenv("GIS_OPT_statsout")) == True:
         statsfile.close()
-    subprocess.Popen('rm -f $HOME"/temp_color_rules.txt"', shell="bash")
-    subprocess.Popen('g.remove -f rast=temperosion,tempdep', shell="bash")
+    temp.close()
     return
         
 if __name__ == "__main__":
     if ( len(sys.argv) <= 1 or sys.argv[1] != "@ARGS_PARSED@" ):
         os.execvp("g.parser", [sys.argv[0]] + sys.argv)
     else:
-        grass_print("       Starting the process--hold on!")
-	grass_print("It is not done until you see DONE WITH EVERYTHING!")
+        grass.message("       Starting the process--hold on!")
+        grass.message("It is not done until you see DONE WITH EVERYTHING!")
         main();
-        grass_print("DONE WITH EVERYTHING!")
+        grass.message("DONE WITH EVERYTHING!")
