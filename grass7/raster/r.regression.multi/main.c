@@ -58,7 +58,8 @@ static int solvemat(struct MATRIX *m, double a[], double B[])
 	/* co-linear points results in a solution with rounding error */
 
 	if (pivot == 0.0) {
-	    G_fatal_error(_("Matrix is unsolvable"));
+	    G_warning(_("Matrix is unsolvable"));
+	    return 0;
 	}
 
 	/* if row with highest pivot is not the current row, switch them */
@@ -101,7 +102,7 @@ static int solvemat(struct MATRIX *m, double a[], double B[])
 int main(int argc, char *argv[])
 {
     unsigned int r, c, rows, cols, n_valid;	/*  totals  */
-    int *mapx_fd, mapy_fd, mapres_fd;
+    int *mapx_fd, mapy_fd, mapres_fd, mapest_fd;
     int i, j, k, n_predictors;
     double *sumX, sumY, *sumsqX, sumsqY, *sumXY;
     double *meanX, meanY, *varX, varY, *sdX, sdY;
@@ -114,9 +115,9 @@ int main(int argc, char *argv[])
     struct MATRIX *m, *m_all;
     double **B, Rsq, Rsqadj, F, t, AIC, AICc, BIC;
     unsigned int count = 0;
-    DCELL **mapx_buf, *mapy_buf, *mapx_val, mapy_val, *mapres_buf;
+    DCELL **mapx_buf, *mapy_buf, *mapx_val, mapy_val, *mapres_buf, *mapest_buf;
     char *name;
-    struct Option *input_mapx, *input_mapy, *output_res, *output_opt;
+    struct Option *input_mapx, *input_mapy, *output_res, *output_est, *output_opt;
     struct Flag *shell_style;
     struct Cell_head region;
     struct GModule *module;
@@ -142,6 +143,11 @@ int main(int argc, char *argv[])
     output_res->key = "residuals";
     output_res->required = NO;
     output_res->description = (_("Map to store residuals"));
+
+    output_est = G_define_standard_option(G_OPT_R_OUTPUT);
+    output_est->key = "estimates";
+    output_est->required = NO;
+    output_est->description = (_("Map to store estimates"));
 
     output_opt = G_define_standard_option(G_OPT_F_OUTPUT);
     output_opt->key = "output";
@@ -224,16 +230,6 @@ int main(int argc, char *argv[])
 	mapx_fd[i] = Rast_open_old(input_mapx->answers[i], "");
     }
     mapy_fd = Rast_open_old(input_mapy->answer, "");
-
-    /* residuals output */
-    if (output_res->answer) {
-	mapres_fd = Rast_open_new(output_res->answer, DCELL_TYPE);
-	mapres_buf = Rast_allocate_d_buf();
-    }
-    else {
-	mapres_fd = -1;
-	mapres_buf = NULL;
-    }
 
     for (i = 0; i < n_predictors; i++)
 	mapx_buf[i] = Rast_allocate_d_buf();
@@ -324,19 +320,44 @@ int main(int argc, char *argv[])
     if (count < n_predictors + 1)
 	G_fatal_error(_("Not enough valid cells available"));
 
-    /* TRANSPOSE VALUES IN UPPER HALF OF M TO OTHER HALF */
-
     for (k = 0; k <= n_predictors; k++) {
 	m = &(m_all[k]);
+
+	/* TRANSPOSE VALUES IN UPPER HALF OF M TO OTHER HALF */
 	for (i = 1; i < m->n; i++)
 	    for (j = 0; j < i; j++)
 		M(m, i, j) = M(m, j, i);
 
-	solvemat(m, a[k], B[k]);
+	if (!solvemat(m, a[k], B[k])) {
+	    for (i = 0; i <= n_predictors; i++) {
+		fprintf(stdout, "b%d=0.0\n", i);
+	    }
+	    G_fatal_error(_("Multiple regression failed"));
+	}
     }
     
     /* second pass */
     G_message(_("Second pass..."));
+
+    /* residuals output */
+    if (output_res->answer) {
+	mapres_fd = Rast_open_new(output_res->answer, DCELL_TYPE);
+	mapres_buf = Rast_allocate_d_buf();
+    }
+    else {
+	mapres_fd = -1;
+	mapres_buf = NULL;
+    }
+
+    /* estimates output */
+    if (output_est->answer) {
+	mapest_fd = Rast_open_new(output_est->answer, DCELL_TYPE);
+	mapest_buf = Rast_allocate_d_buf();
+    }
+    else {
+	mapest_fd = -1;
+	mapest_buf = NULL;
+    }
 
     for (i = 0; i < n_predictors; i++)
 	meanX[i] = sumX[i] / count;
@@ -353,6 +374,8 @@ int main(int argc, char *argv[])
 	
 	if (mapres_buf)
 	    Rast_set_d_null_value(mapres_buf, cols);
+	if (mapest_buf)
+	    Rast_set_d_null_value(mapest_buf, cols);
 
 	for (c = 0; c < cols; c++) {
 	    int isnull = 0;
@@ -367,14 +390,17 @@ int main(int argc, char *argv[])
 	    if (isnull)
 		continue;
 
-	    mapy_val = mapy_buf[c];
-	    if (Rast_is_d_null_value(&mapy_val))
-		continue;
-
 	    yest = 0.0;
 	    for (i = 0; i <= n_predictors; i++) {
 		yest += B[0][i] * mapx_val[i];
 	    }
+	    if (mapest_buf)
+		mapest_buf[c] = yest;
+
+	    mapy_val = mapy_buf[c];
+	    if (Rast_is_d_null_value(&mapy_val))
+		continue;
+
 	    yres = mapy_val - yest;
 	    if (mapres_buf)
 		mapres_buf[c] = yres;
@@ -405,6 +431,8 @@ int main(int argc, char *argv[])
 
 	if (mapres_buf)
 	    Rast_put_d_row(mapres_fd, mapres_buf);
+	if (mapest_buf)
+	    Rast_put_d_row(mapest_fd, mapest_buf);
     }
     G_percent(rows, rows, 2);
 
@@ -526,6 +554,17 @@ int main(int argc, char *argv[])
 	Rast_short_history(output_res->answer, "raster", &history);
 	Rast_command_history(&history);
 	Rast_write_history(output_res->answer, &history);
+    }
+
+    if (mapest_fd > -1) {
+	struct History history;
+
+	Rast_close(mapest_fd);
+	G_free(mapest_buf);
+
+	Rast_short_history(output_est->answer, "raster", &history);
+	Rast_command_history(&history);
+	Rast_write_history(output_est->answer, &history);
     }
 
     exit(EXIT_SUCCESS);
