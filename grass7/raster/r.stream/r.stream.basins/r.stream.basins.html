@@ -1,23 +1,23 @@
 <h2>OPTIONS</h2>
-<DL>
-<DT><b>-z</b></DT>
-<DD>Creates zero-value background instead of NULL. For some reason (like map
+<dl>
+<dt><b>-z</b></dt>
+<dd>Creates zero-value background instead of NULL. For some reason (like map
 algebra calculation) zero-valued background may be required. This flag produces
-zero-filled background instead of null (default).</DD>
-<DT><b>-c</b></DT>
-<DD>By default r.stream.basins uses streams category as basin category. In some
+zero-filled background instead of null (default).</dd>
+<dt><b>-c</b></dt>
+<dd>By default r.stream.basins uses streams category as basin category. In some
 cases - for example if stream map is product of map algebra and separete streams
 may not have unique values this option will create new category sequence for
 each basin (do not work in vector point mode)
-</DD>
-<DT><b>-l</b></DT>
-<DD>By default r.stream.basins create basins for all unique streams. This option
+</dd>
+<dt><b>-l</b></dt>
+<dd>By default r.stream.basins create basins for all unique streams. This option
 delinate basins only for last streams ignoring upstreams (do not work in vector
 point mode).
-</DD>
+</dd>
 
-<DT><b>dirs</b></DT>
-<DD>Flow direction: name of input direction map produced by r.watershed or
+<dt><b>dirs</b></dt>
+<dd>Flow direction: name of input direction map produced by r.watershed or
 r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
 negative values are valid direction data if they vary from -8 to 8 (CCW from
@@ -26,43 +26,43 @@ resolution and map resoultion must be the same.
 Also <em>stream</em> network map (if used) and direction map must have the same
 resolution. It is checked by default. If resolutions differ the module informs
 about it and stops. Region boundary and maps boundary may be differ but it may
-lead to unexpected results.</DD>
+lead to unexpected results.</dd>
 
-<DT><b>coors</b></DT>
-<DD>East and north coordinates for basin outlet. It can delinate only one basin
+<dt><b>coors</b></dt>
+<dd>East and north coordinates for basin outlet. It can delinate only one basin
 using that option. This option simply copies funcionality of <a
 href="r.water.outlet.html">r.water.outlet</a>.
-</DD>
-<DT><b>streams</b></DT>
-<DD>Stream network: name of input stream map on which ordering will be performed
+</dd>
+<dt><b>streams</b></dt>
+<dd>Stream network: name of input stream map on which ordering will be performed
 produced by r.watershed or r.stream.extract. Because streams network produced by
 r.watershed and r.stream.extract may slighty differ in detail it is required to
 use both stream and direction map produced by the same module. Stream background
 shall have NULL value or zero value. Background values of NULL are by default
 produced by r.watershed and r.stream.extract. If not 0 or NULL use <a
 href="r.mapcalc.html">r.mapcalc</a> to set background values to null.  
-</DD>
+</dd>
 
-<DT><b>cats</b></DT>
-<DD>Stream categories to delineate basins for: All categories which are not in
+<dt><b>cats</b></dt>
+<dd>Stream categories to delineate basins for: All categories which are not in
 stream map are ignored. It can be used with stream network created by
 r.watershed, r.stream.extract or r.stream.order. For r.stream.order use category
 of order for which basins must be created. For example to delineate only basins
 for order two use cats=2. If you need unique category for every basin use -c
 flag.
-</DD>
+</dd>
 
-<DT><b>points</b></DT>
-<DD>Vector file containing basins outlet as vector points. Only point's
+<dt><b>points</b></dt>
+<dd>Vector file containing basins outlet as vector points. Only point's
 categories are used to prepare basins. Table attached to it is ignored. Every
-point shall heve his own unique category. In that mode flags -l and -c are
+point shall have his own unique category. In that mode flags -l and -c are
 ignored
-</DD>
-</DL>
+</dd>
+</dl>
 
 
 <h2>OUTPUTS</h2>
-<P>The module produces one raster map with basins acording user's rules</p>
+<p>The module produces one raster map with basins acording user's rules</p>
 
 
 <h2>DESCRIPTION</h2>
@@ -70,15 +70,15 @@ ignored
 Module r.stream.basins is prepared to delineate basins and subasins with
 different input data. Module is prepared to delineate unrestricted number of
 basins in one step. It can delineate basins with three methods:
-<UL>
-<LI>Using coordinates: his option simply copies funcionality of <a
+<ul>
+<li>Using coordinates: his option simply copies funcionality of <a
 href="r.water.outlet.html">r.water.outlet</a>.
-<LI>Using vector points: it allow to mannually point outlets with any method
-<LI>Using streams (most advanced) it allow on lots of modifications. See
+<li>Using vector points: it allow to mannually point outlets with any method
+<li>Using streams (most advanced) it allow on lots of modifications. See
 examples for more details.
-</UL>
+</ul>
 Only one method can be used at once. Methods cannot be mixed.
-<P>
+<p>
 The most recommended method require two maps: direction and streams. In spite of
 in stream map we can store information required to proper delineation, we can
 also enumarate stream categories for which basins are to be created (cats
@@ -96,11 +96,11 @@ category.
 
 
 <h2>NOTES</h2>
-<P>
+<p>
 To receive good results outlets markers created by user shall overlapping with
 streams. On the other way basins could results with very small area. Input maps
 must be in CELL format (default output of r.watershed, r.stream.order  and
-r.stream.extract)<P>
+r.stream.extract)<p>
 Module can work only if direction map, stream map and region map has same
 settings. It is also required that stream map and direction map come from the
 same source. For lots of reason this limitation probably cannot be omitted.  
@@ -111,66 +111,65 @@ r.stream.extract  must be patched by direction map from r.watershed. (with
 r.patch). 
 
 <h2>EXAMPLES</h2>
-<P>
+<p>
 To delineate all basins with categories of streams:
-<P>
-<CODE>r.stream.basins dir=dirs stream=streams basins=bas_basins_elem</CODE>
-<P>
+<p>
+<code>r.stream.basins dir=dirs stream=streams basins=bas_basins_elem</code>
+<p>
 To determine major and minor basins in area, definied by outlets, ignoring
 subbasins use  - l flag. That flag ignores all nodes and uses only real outlets
 (in most cases that on map border):
-<P>
-<CODE>r.stream.basins -l dir=dirs stream=streams basins=bas_basins_last</CODE>
+<p>
+<code>r.stream.basins -l dir=dirs stream=streams basins=bas_basins_last</code>
 
-<P>
-<CODE>r.stream.basins dir=dirs coors=639936.623832,216939.836449</CODE>
+<p>
+<code>r.stream.basins dir=dirs coors=639936.623832,216939.836449</code>
 
-<P>
+<p>
 To delineate one or more particular basins defined by given streams, add simply
 stream categories:
-<CODE>
+<div class="code"><pre>
 r.stream.basins -lc dirs=dirs streams=streams cats=2,7,184 basins=bas_basin
-</CODE>
+</pre></div>
 
-<P>
+<p>
 Do delineate basins of particular order we must use the following procedure: 
 
-<CODE>
+<div class="code"><pre>
 r.stream.basins -lc dirs=dirs streams=strahler cats=2
 basins=bas_basin_strahler_2
-</CODE>
+</pre></div>
 
-<P>
+<p>
 The usage of polygons as outlets markers is very useful when exact stream course
 cannot be cleary determined before running analysis, but the area of its
 occurrence can be determined (mostly in iterative simulations) Example uses
 r.circle but can be substituted by any polygon created for example  with
 v.digit:
-<CODE>
+<div class="code"><pre>
 r.circle -b output=circle coordinate=639936.623832,216939.836449 max=200
 r.stream.basins -c dirs=dirs streams=circle basins=bas_simul
-</CODE>
-<P>
+</pre></div>
+<p>
 To determine areas of contribution to streams of particular order  use as
 streams the result of ordering:
-<P>
-<CODE>r.stream.basins dirs=dirs streams=ord_strahler
-basins=bas_basin_strahler</CODE>
-<P>
+<p>
+<div class="code"><pre>
+r.stream.basins dirs=dirs streams=ord_strahler basins=bas_basin_strahler
+</pre></div>
+<p>
 Determination of areas of potential source of pollution. The example will be
 done for lake marked with FULL_HYDR 8056 in North Carolina sample dataset. The
 lake shall be extracted and converted to binary raster map.
 
-<CODE>
+<div class="code"><pre>
 v.extract -d input=lakes@PERMANENT output=lake8056 type=area layer=1
 'where=FULL_HYDRO = 8056' new=-1 
 v.to.rast input=lake8056 output=lake8056 use=val type=area layer=1 value=1
 r.stream.basins dirs=dirs streams=lake8056 basins=bas_basin_lake
-</CODE>
-<P>
-See also tutorial: <a
-href="http://grass.osgeo.org/wiki/R.stream.*">http://grass.osgeo.org/wiki/R.
-stream.*</a>
+</pre></div>
+<p>
+See also tutorial: <a href="http://grass.OSGeo.org/wiki/R.stream.*">http://grass.OSGeo.org/wiki/R.stream.*</a>
 
 <h2>SEE ALSO</h2>
 

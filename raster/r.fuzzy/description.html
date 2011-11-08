@@ -1,67 +1,67 @@
 <h2>OPTIONS</h2>
 
 <p>
-<DT><b>input</b></DT>
-<DD>Name of input raster map to be fuzzified. This map may be of any type and may
+<dt><b>input</b></dt>
+<dd>Name of input raster map to be fuzzified. This map may be of any type and may
 contain null values. 
-</DD>
+</dd>
 <p>
 
-<DT><b>points</b></DT>
-<DD>A list containing 4 (A,B,C,D) or 2 A,B) points defining set boundaries.
+<dt><b>points</b></dt>
+<dd>A list containing 4 (A,B,C,D) or 2 A,B) points defining set boundaries.
 Points must not to be in map range, but it may lead to only 0 o 1 membership for
 the whole map. For "both" side parameters range between A and D defines base,
 but range between B and C core of the fuzzy set. Between A and B and C and D are
-the set's boundaries. If side is "both" it require 4 points, else 2 points.</DD>
+the set's boundaries. If side is "both" it require 4 points, else 2 points.</dd>
 <p>
 
 <h3>Fuzzy set definition:</h3>
 <img src=set.png border=1><br>
 
-<DT><b>side</b></DT>
-<DD>This option indicates if the set is fuzzified on both sides (both),
-or the left or right side. See description for details.</DD>
+<dt><b>side</b></dt>
+<dd>This option indicates if the set is fuzzified on both sides (both),
+or the left or right side. See description for details.</dd>
 <p>
 
 <h2>OUTPUTS</h2>
-<DT><b>output</b></DT>
-<DD>Map containing membership value of original map. Map is always of type
+<dt><b>output</b></dt>
+<dd>Map containing membership value of original map. Map is always of type
 FCELL and contains values from 0 (no membership) to 1 (full membership). Values
-between 0 and 1 indicate partial membership</DD>
+between 0 and 1 indicate partial membership</dd>
 <p>
 
 <h2>FUZZY SET PARAMETERS</h2>
 
-<DT><b>boundary</b></DT>
-<DD>This parameter defines the shape of the fuzzy boundary. The default and most
+<dt><b>boundary</b></dt>
+<dd>This parameter defines the shape of the fuzzy boundary. The default and most
 popular is S-shaped, linear, J-shaped and G-shaped boundaries are also
-available. The same boundaries are applied to both sides.</DD>
+available. The same boundaries are applied to both sides.</dd>
 <p>
 
 <h3>Boundary definition:</h3>
 <img src=boundary.png border=1><br>
 
-<DT><b>shape</b></DT>
-<DD>Optional shape modifier. Range from -1 to 1. The default value is 0 and
+<dt><b>shape</b></dt>
+<dd>Optional shape modifier. Range from -1 to 1. The default value is 0 and
 in most cases should not be changed. Negative values indicate a more
 dilettante set, positive values a more concentrated set. See description for
-details.</DD>
+details.</dd>
 <p>
 
 <h3>Impact of shape parameter on shape boundary:</h3>
 <img src=shape.png border=1><br>
 
-<DT><b>height</b></DT>
-<DD>Optional height modifier. Range from 0 to 1. The default value is 1 and
+<dt><b>height</b></dt>
+<dd>Optional height modifier. Range from 0 to 1. The default value is 1 and
 indicates full membership between points B and C. If height is less than one the
-maximum membership is equal to height. See image: Fuzzy set definition.</DD>
+maximum membership is equal to height. See image: Fuzzy set definition.</dd>
 <p>
 
 
 <h2>DESCRIPTION</h2>
 
-<P>
-<H4>Definition of fuzzy set</H4>
+<p>
+<h4>Definition of fuzzy set</h4>
 
 Fuzzy sets are sets whose elements have degrees of membership. Zadeh (1965)
 introduced Fuzzy sets as an extension of the classical notion of set. Classical 
@@ -76,14 +76,14 @@ GIS operations.
 
 
 
-<h2>NOTES</H2>
+<h2>NOTES</h2>
 
-<H4>Calculation of boundary shape</H4>
+<h4>Calculation of boundary shape</h4>
 
 Depending on the boundary type, different equations are used to determine its
 shape:
-<P>
-<B>Linear:</B> the membership is calculated according to the following equation:<br>
+<p>
+<b>Linear:</b> the membership is calculated according to the following equation:<br>
 
 <pre><code>
 value  <=  A -> x = 0
@@ -94,9 +94,9 @@ value  >=  D -> x = 0
 
 where x: membership
 </code></pre>
-<P>
+<p>
 
-<B>S-shaped:</B> uses the following equation:
+<b>S-shaped:</b> uses the following equation:
 
 <pre><code>
 sin(x * Pi/2)^m (for positive shape parameter)
@@ -111,9 +111,9 @@ where m: shape parameter.
 For the default shape parameter = 0, m is = 2 which is the most common parameter for
 that equation.
 
-<P>
+<p>
 
-<B>G-shaped and J shaped:</B> use the following equations: 
+<b>G-shaped and J shaped:</b> use the following equations: 
 
 <pre><code>
 tan(x * Pi/4)^m (for J-shaped)
@@ -137,23 +137,23 @@ where m: shape parameter.
 <h2>REFERENCES</h2>
 
 Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338--353.
-doi:10.1016/S0019-9958(65)90241-X. ISSN 0019-9958.<P>
+doi:10.1016/S0019-9958(65)90241-X. ISSN 0019-9958.<p>
 
 Novák, Vilém (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
-ISBN 0-85274-583-4.<P>
+ISBN 0-85274-583-4.<p>
 
 Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory and
-applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.<P>
+applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.<p>
 
 Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set theory:
 foundations and applications. Englewood Cliffs, NJ: Prentice Hall. ISBN
-0133410587.<P>
+0133410587.<p>
 
 Meyer D, Hornik K (2009a). \Generalized and Customizable Sets in R." Journal of
-Statistical Software, 31(2), 1{27. URL http://www.jstatsoft.org/v31/i02/.<P>
+Statistical Software, 31(2), 1{27. URL http://www.jstatsoft.org/v31/i02/.<p>
 
 Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
-R~package version~1.0, URL http://CRAN.R-project.org/package=sets.<P>
+R~package version~1.0, URL http://CRAN.R-project.org/package=sets.<p>
 
 
 <h2>AUTHOR</h2>

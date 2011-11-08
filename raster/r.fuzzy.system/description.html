@@ -1,62 +1,62 @@
 <h2>OPTIONS</h2>
 
 <p>
-<DT><b>maps</b></DT>
-<DD>A text file containing maps name and  fuzzy sets connected with map
+<dt><b>maps</b></dt>
+<dd>A text file containing maps name and  fuzzy sets connected with map
 definition. Maps in text file must exist on a search path, except the output
 map. The name of output map name is the output name parameter. In map file
-outmput map is marked by special name <B>_OUTPUT_</B>  If maps are in different
+outmput map is marked by special name <b>_OUTPUT_</b>  If maps are in different
 mapsets the name require @. Map names in database cannot contain following
-symbols: <B> %,$ and #</B>. Every map name must start with map name
-identifier:<B> %</B>. Every set definition connected with cetrain map must
-follow the map name and must start with set identifier :<B> $</B>. The set
+symbols: <b> %,$ and #</b>. Every map name must start with map name
+identifier:<b> %</b>. Every set definition connected with cetrain map must
+follow the map name and must start with set identifier :<b> $</b>. The set
 definition must be in braces { } and requires parameters separated by semicolon.
 Any whitespaces like spaces, tabs, empty lines are allowed and may used to
 visual format of rule file.
 
-<PRE>$ set_name {side; points; boundary_shape; hedge; height }
-<UL>
-<li><B>set_name</B>: Any name of the fuzzy set. Must not contain symbols: <i>
+<pre>$ set_name {side; points; boundary_shape; hedge; height }
+<ul>
+<li><b>set_name</b>: Any name of the fuzzy set. Must not contain symbols: <i>
 %,$ and #</i>
-<li><B>side</B>: Option indicate if set is fuzzified of both sides (both), left
+<li><b>side</b>: Option indicate if set is fuzzified of both sides (both), left
 or right side. Available: <i>both, left, right</i>. 
-<li><B>points</B>: A list containing 4 (A,B,C,D) or 2 A,B) points separated by
+<li><b>points</b>: A list containing 4 (A,B,C,D) or 2 A,B) points separated by
 comma. Points definine  location of sets of boundaries. Points may not to be in
 map range, but it may lead to only 0 o 1 membership for the whole map. For
 "both" side parameters range between A and D defines base, but range between B
 and C core of the fuzzy set. Between A and B and C and D are set's boundaries.
 If side is "both" it require 4 points, else 2 points. Points values must be
 not-decreasing.
-<li><B>shape</B>: Parameter definied the shape of the fuzzy boundary. Available:
+<li><b>shape</b>: Parameter definied the shape of the fuzzy boundary. Available:
 <i>sshaped, linear, jshaped, gshaped</i>. The same boundaires are appled to 
 both sides of fuzzy set.
-<li><B>hedge</B>: Shape modifier the positive number means dilatation (power the
+<li><b>hedge</b>: Shape modifier the positive number means dilatation (power the
 fuzzy set by 2) the negative means concetration (square root of fuzzy set). The
 number means number of dilatation/concetration applied on fuzzy set.
-<li><B>height</B>: Height modifier. Range from 0 to 1. The  value 1 and indicate
+<li><b>height</b>: Height modifier. Range from 0 to 1. The  value 1 and indicate
 full membership beteen points B and C. If height is lesser than one the maximum
 memebrship is equal to height.
-</UL>
-<P>An example of fuzzy sets definiton:
-</PRE>
-<PRE>$ moderate {both; 90,100,120,130; sshaped; 0; 1}</PRE>
+</ul>
+<p>An example of fuzzy sets definiton:
+</pre>
+<pre>$ moderate {both; 90,100,120,130; sshaped; 0; 1}</pre>
 
-<B>Special notes about sets definition for output map:</B><BR>
+<b>Special notes about sets definition for output map:</b><br>
 These sets shall be created as triangular (both sides) sets with linear
 boundaries, without hedge and height modifiers:
-<PRE>$ moderate {both; 0,20,20,40; linear; 0; 1}</PRE>
-</DD>
+<pre>$ moderate {both; 0,20,20,40; linear; 0; 1}</pre>
+</dd>
 
-<DT><b>rules</b></DT>
-<DD>A text file containing rules for classification.Th typical fuzzy rule
+<dt><b>rules</b></dt>
+<dd>A text file containing rules for classification.Th typical fuzzy rule
 consists of one or more antecedents and one consequent:
 
-<PRE>IF elev IS high AND distance IS low THEN probability IS small
+<pre>IF elev IS high AND distance IS low THEN probability IS small
 
 where:
 antecetends: elev IS high; distance IS low
 consequent: probability IS small
-</PRE>
+</pre>
 
 The rule file has his own syntax. Because module creates only one result map,
 the map name is ommited. Every rule starts with $ and consist of consequent name
@@ -64,25 +64,25 @@ and antecedents in braces { }. All maps and sets used in atecednets must be
 included in the maps file. At the begining of the calculation program checks if
 all names and sets are included in maps file. Names of the rules must be same as
 sets names of the output map. The rules file use following symbols:
-<UL>
-<li>IS is symbolised by <B>=</B>
-<li>IS NOT is symbolised by <B>~</B>
-<li>AND is symbolised by <B>&</B>
-<li>OR is symbolised by <B>|</B>
-<li>To  specify the order of operators must use parentheses <B>()</B>.
-</UL>
-<P>
+<ul>
+<li>IS is symbolised by <b>=</b>
+<li>IS NOT is symbolised by <b>~</b>
+<li>AND is symbolised by <b>&</b>
+<li>OR is symbolised by <b>|</b>
+<li>To  specify the order of operators must use parentheses <b>()</b>.
+</ul>
+<p>
 
-<P>An example of fuzzy rules definiton:
-<PRE>
+<p>An example of fuzzy rules definiton:
+<pre>
 $ small {distance = high & elev = high}
-</PRE>
-</DD>
+</pre>
+</dd>
 <h2>ADVANCED OPTIONS</h2>
 In most cases default options shoud not be changed.
-<P>
-<DT><b>family</b></DT>
-<DD>AND and OR operations in fuzzy logic are made with T-norms, T-conorms.
+<p>
+<dt><b>family</b></dt>
+<dd>AND and OR operations in fuzzy logic are made with T-norms, T-conorms.
 T-norms, T-conorms are a generalization of the two-valued logical conjunction
 and  disjunction  used by boolean logic, for fuzzy logics. Because there is more
 than one possible generalisation of logial operations, r.fuzzy.system provides 6
@@ -97,7 +97,7 @@ T-conorm;
 <li><b>Hamacher</b> (simplified) with Hamacher product as T-norm and Einstein
 sum as T-conorm;
 </ul>
-<P>
+<p>
 <TABLE cellspacing=4>
 <TR><TH>Family</TH><TH> T-NORM (AND) </TH><TH>T CONORM (OR) </TH></TR>
 <TR><TD>ZADEH</TD><TD> MIN(x,y)</TD><TD>MAX(x,y)</TD></TR>
@@ -110,71 +110,71 @@ sum as T-conorm;
 <TR><TD>HAMACHER</TD><TD>	IF (x==y==0) THEN 0 ELSE
 (x*y)/((x+y)-x*y)</TD><TD>	(x+y)/(1+x*y)</TD></TR>
 </TABLE>
-</DD>
-<DT><b>imp: implication </b></DT>
-<DD>Imlication determines the method of reshapening of consequents (fuzzy set)
+</dd>
+<dt><b>imp: implication </b></dt>
+<dd>Imlication determines the method of reshapening of consequents (fuzzy set)
 by antecedents (single value) : 
-<UL>
-<li><B>minimum</B> means the lowest value of the antecedtents and output set
-definition. It ussually creates trapezoidal consequent set definition.
-<li><B>product</B> means the multiplication of the antecedtents and output set
-definition. It ussually creates triangular consequent set definition.
-</UL>
-</DD>
-<DT><b>defuzz: deffuzyfication method</b></DT>
-<DD>Before deffuzification all consequents are agregated into one fuzzy set.
+<ul>
+<li><b>minimum</b> means the lowest value of the antecedtents and output set
+definition. It usually creates trapezoidal consequent set definition.
+<li><b>product</b> means the multiplication of the antecedtents and output set
+definition. It usually creates triangular consequent set definition.
+</ul>
+</dd>
+<dt><b>defuzz: deffuzyfication method</b></dt>
+<dd>Before deffuzification all consequents are agregated into one fuzzy set.
 Defuzzification is the process of conversion of aggregated fuzzy set into one
 crisp value. The r.fuzzy.system provides 5 methods of deffuzyfication:
-<UL>
-<li><B>centroid</B> center of mass of the fuzzy set (in practise weighted mean);
-<li><B>bisector</B> a value wchich divide fuzzy set on two parts of equal area;
-<li><B>min</B> min (right limit) of highest part of the set;
-<li><B>mean</B> mean (center) of highest part of the set;
-<li><B>max</B> max (left limit) of highest part of the set;
-</UL>
-</DD>
-<DT><b>res: universe resolution</b></DT>
-<DD>The universe is an interval between the lowest and highest values of
+<ul>
+<li><b>centroid</b> center of mass of the fuzzy set (in practise weighted mean);
+<li><b>bisector</b> a value which divide fuzzy set on two parts of equal area;
+<li><b>min</b> min (right limit) of highest part of the set;
+<li><b>mean</b> mean (center) of highest part of the set;
+<li><b>max</b> max (left limit) of highest part of the set;
+</ul>
+</dd>
+<dt><b>res: universe resolution</b></dt>
+<dd>The universe is an interval between the lowest and highest values of
 consequent and agregated fuzzy sets. The resolution provides number of elements
 of these fuzzy sets. The minimum and maximum for univese is taken from the
 minimal and maximal values of fuzzy set definition of output map Because it has
 strong impact on computation time and precision of deffuzification, values lower
 than 30 may impact on precision of final result, but values above 200 may slow
 down computation time.
-</DD>
+</dd>
 <h2>VISUAL OUTPUT</h2>
-<DT><b>coordinates</b></DT>
-<DD>Coordinates of points for which output: universe, all consequents sets and
+<dt><b>coordinates</b></dt>
+<dd>Coordinates of points for which output: universe, all consequents sets and
 agregate set. It is useful for visual presentation or detail analysis of fuzzy
 rules behaviour. In that cases calculations are peroforemd n=only for selected
 point.
-<DT><b>membership only flag</b></DT>
-<DD>Prints for all maps sat of values in map range (map universe) and values of
+<dt><b>membership only flag</b></dt>
+<dd>Prints for all maps sat of values in map range (map universe) and values of
 fuzzy sets (linguistic values). Number of values is taken from resolution
 (default 100). This option is useful for visual control fuzzy set definitions
 for evrey map.
 
 
 <h2>OUTPUTS</h2>
-<DT><b>output</b></DT>
-<DD>Map containing deffuzified values. Map is always of type FCELLS and contains
+<dt><b>output</b></dt>
+<dd>Map containing deffuzified values. Map is always of type FCELLS and contains
 values defined in output universe.
-</DD>
-<P>
-<DT><b>multipe output flag</b></DT>
-<DD>This flag is used to create fuzzified maps for every rule. The name of the
+</dd>
+<p>
+<dt><b>multipe output flag</b></dt>
+<dd>This flag is used to create fuzzified maps for every rule. The name of the
 map consist of otput map name, '_' and rule name (for example: output=probs and
 rule name high, the map name: probs_high). Values of maps ranges from 0  to 1.
 If map with such name exists will be overwritten without warning.
-</DD>
-<P>
-<h2>NOTES</H2>
-<H4>Calculation of boundary shape</H4>
+</dd>
+<p>
+<h2>NOTES</h2>
+<h4>Calculation of boundary shape</h4>
 Depending on type of the boundary different equation are used to determine its
 shape:
-<P>
+<p>
 
-<B>Linear:</B> the membership is calculated according following equation:<br>
+<b>Linear:</b> the membership is calculated according following equation:<br>
 
 <pre><code>
 value  <=  A -> x = 0
@@ -183,7 +183,7 @@ B <= value >= C -> x = 1
 C< value > D -> x = (D-value)/(D-C)
 value  >=  D -> x = 0
 </code></pre>
-<B>S-shaped, G-shaped and J shaped:</B>  use following equation to sommoth
+<b>S-shaped, G-shaped and J shaped:</b>  use following equation to sommoth
 boundary:
 <pre><code>
 sin(x * Pi/2)^2 (for S-shaped)
@@ -194,14 +194,14 @@ where:
 x current fuzzy value
 A,B,C,D inflection point,
 </code></pre>
-<H4>Category information</H4>
+<h4>Category information</h4>
 Every cell has a category information showing the membership of result map in
 any reslut's fuzzy values: for example moderate=0.60, high=0.40 means that cell
 belongs to moderate class with 0.60 membership and high class with membership =
 0.40. The membership is calculated based on _OUTPUT_ definition.
 
-<h2>EXAMPLE</H2>
-<P>
+<h2>EXAMPLE</h2>
+<p>
 Fuzzy sets are sets whose elements have degrees of membership. Zadeh (1965)
 introduced Fuzzy sets as an extension of the classical notion of set. Classical 
 membership of elements in a set are binary terms: an element either belongs or
@@ -211,34 +211,34 @@ elements in a set. A membership function use values in the real unit interval
 sets and only take values 0 or 1. Classical sets are in fuzzy set theory usually
 called crisp sets. The fuzzy set theory can be used in a wide range of domains
 in which information is  imprecise, such as most of the GIS operations.
-<P>
+<p>
 Suppose we want to determine the flood risk on some area (Spearfish dataset)
 using two maps: distance to streams and elevation above streams. We can write
 some common sense rules:
-<PRE>
+<pre>
 IF elevation IS low AND distance IS near THEN risk IS very high
 IF elevation IS low OR distance IS near THEN risk IS probable
 IF elevation IS high AND distance IS far THEN risk IS low
-</PRE>
+</pre>
 In clasical boolean sense, we would taken some limits of ideas "near" "far" etc,
 but what about walues near the limit? The fuzzy set uses partial memberships
 which abolish these restrictions. In that sense to set "near" belongs all areas
 with distance no more than 100 m with full membership and from 100 to 200 m with
-partial membership grater than 0. Over 200 m we can assume that is not near.
+partial membership greater than 0. Over 200 m we can assume that is not near.
 This allow to formulate fuzzy rules for distance map:
-<PRE>
+<pre>
 near: BELOW 100 = 1; FROM 100 TO 200 = {1 TO 0}; ABOVE 200 = 0;
-</PRE>
+</pre>
 
 To recive final map program calculate partial fuzzy set for all rules and next
 agregate it into one fuzzy set. These fuzzy sets are created on value sequence
 called universe. Every set has the number of elements equal to universe
 resolution. Such set cannot be stored as map so finally is deffuzified with
 method choosen by user.
-<P>
+<p>
 First we need two maps created with r.stream package:
 
-<PRE>
+<pre>
 r.watershed -f elevation=elevation.10m@PERMANENT accumulation=accum
 r.mapcalc 'accum_abs=abs(accum)'
 r.stream.extract elevation="elevation.10m@PERMANENT" threshold=1000
@@ -247,14 +247,14 @@ r.stream.order stream=streams dir=dirs horton=horton
 r.mapcalc horton3=if(horton>2,1,0)
 r.stream.distance stream=horton3 dir=dirs dem=elevation.10m@PERMANENT 
 distance=distance elevation=elevation
-</PRE>
+</pre>
 
 Next, to perform analysis we need two files: one with definition of map used in
 analysis and definition of fuzzy sets for every map, and second with fuzzy
 rules. For this example:
 
-<P>MAPS
-<PRE>
+<p>MAPS
+<pre>
 #flood.map
 
 	%elevation
@@ -281,9 +281,9 @@ $ moderate {both; 40,60,60,80; linear; 0;1}
 $ high {both; 60,80,80,100; linear; 0;1}
 $ veryhigh {both; 80,100,100,120; linear; 0;1}
 
-</PRE>
-<P>RULES:
-<PRE>
+</pre>
+<p>RULES:
+<pre>
 #flood.rul
 $ none {distance = veryfar | elevation = high}
 $ low {distance ~ near & accum_abs = high}
@@ -292,17 +292,17 @@ $ moderate {(distance = medium | distance = far) & (elevation = low | elevation
 $ high {(distance = medium & elevation = low)|(distance = near & elevation =
 moderate)}
 $ veryhigh {distance = near & elevation = low}
-</PRE>
+</pre>
 
 finally we need run r.fuzzy.system:
-<PRE>
+<pre>
 A) r.fuzzy.system maps=~/flood.map rules=~/flood.rul family=Zadeh defuz=centroid
 imp=minimum res=100 output=flood_z_cent
 B) r.fuzzy.system maps=~/flood.map rules=~/flood.rul family=drastic
 defuz=max_of_highest imp=minimum res=100 output=flood_d_max
 C) r.fuzzy.system maps=~/flood.map rules=~/flood.rul family=Hamacher
 defuz=mean_of_highest imp=minimum res=100 output=flood_h_mean
-</PRE>
+</pre>
 
 Resulting map should look like this below.
 <CENTER><img src=f_result.png border=1></CENTER><br>
@@ -320,23 +320,23 @@ Resulting map should look like this below.
 <h2>REFERENCES</h2>
 
 Zadeh, L.A. (1965). "Fuzzy sets". Information and Control 8 (3): 338–353.
-doi:10.1016/S0019-9958(65)90241-X. ISSN 0019-9958.<P>
+doi:10.1016/S0019-9958(65)90241-X. ISSN 0019-9958.<p>
 
 Novák, Vilém (1989). Fuzzy Sets and Their Applications. Bristol: Adam Hilger.
-ISBN 0-85274-583-4.<P>
+ISBN 0-85274-583-4.<p>
 
 Klir, George J.; Yuan, Bo (1995). Fuzzy sets and fuzzy logic: theory and
-applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.<P>
+applications. Upper Saddle River, NJ: Prentice Hall PTR. ISBN 0-13-101171-5.<p>
 
 Klir, George J.; St Clair, Ute H.; Yuan, Bo (1997). Fuzzy set theory:
 foundations and applications. Englewood Cliffs, NJ: Prentice Hall. ISBN
-0133410587.<P>
+0133410587.<p>
 
 Meyer D, Hornik K (2009a). \Generalized and Customizable Sets in R." Journal of
-Statistical Software, 31(2), 1{27. URL http://www.jstatsoft.org/v31/i02/.<P>
+Statistical Software, 31(2), 1{27. URL http://www.jstatsoft.org/v31/i02/.<p>
 
 Meyer D, Hornik K (2009b). sets: Sets, Generalized Sets, and Customizable Sets.
-R~package version~1.0, URL http://CRAN.R-project.org/package=sets.<P>
+R~package version~1.0, URL http://CRAN.R-project.org/package=sets.<p>
 
 <h2>AUTHOR</h2>
 Jarek  Jasiewicz

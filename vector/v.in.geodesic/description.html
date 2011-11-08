@@ -3,23 +3,23 @@
 <em>v.in.geodesic</em> creates a new vector map containing a great circle
 line. The user can select to use either a starting and ending point,
 or a starting point with initial azimuth and line length.
-<P>
+<p>
 The initial azimuth is measured in degrees clockwise from north.
 Line length and segment distance are both measured in meters.
 <!-- or ellipsoid units if that's not in meters (???) -->
-<P>
+<p>
 If the <b>distance</b> parameter is given, polyline segments will be broken
 at that distance interval. Otherwise the line will be broken into
 <b>nsteps</b> equally spaced segments.
 
 
-<H2>NOTES</H2>
+<h2>NOTES</h2>
 
 Currently this module only works from a Lat/Long location.
 Use <em>v.proj</em> to reproject the results if needed.
-<P>
+<p>
 This module requires the <tt>geod</tt> program from
- <a href="http://proj.osgeo.org">PROJ.4</a> to be installed.
+ <a href="http://proj.OSGeo.org">PROJ.4</a> to be installed.
  (often this is already installed with the GRASS package)
 
 
@@ -48,22 +48,22 @@ v.in.geodesic map=geodesic_line line="$start_lon,$start_lat,$azimuth,$length"
 </pre></div>
 
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 <em>
-<A HREF="d.geodesic.html">d.geodesic</A><br>
-<A HREF="d.rhumbline.html">d.rhumbline</A><br>
-<A HREF="m.cogo.html">m.cogo</A><br>
-<A HREF="r.profile.html">r.profile</A><br>
-<A HREF="r.transect.html">r.transect</A>
+<a href="d.geodesic.html">d.geodesic</a><br>
+<a href="d.rhumbline.html">d.rhumbline</a><br>
+<a href="m.cogo.html">m.cogo</a><br>
+<a href="r.profile.html">r.profile</a><br>
+<a href="r.transect.html">r.transect</a>
 </em>
 
-<H2>AUTHOR</H2>
+<h2>AUTHOR</h2>
 
-Hamish Bowman<BR>
+Hamish Bowman<br>
 <i>Dept. Marine Science<br>
 University of Otago<br>
 Dunedin, New Zealand</i>
-<BR>
+<br>
 
 <p>
 <i>Last changed: $Date$</i>

@@ -19,25 +19,25 @@ raster, MaxEnt, species distribution modelling
 <b>r.out.maxent_swd</b> [-<b>bz</b>]  [<b>alias_input</b>=<em>string</em>]   [<b>evp_maps</b>=<em>string</em>[,<i>string</i>,...]]   [<b>alias_names</b>=<em>string</em>]   [<b>alias_output</b>=<em>string</em>]   [<b>bgr_output</b>=<em>string</em>]   [<b>bgr_mask</b>=<em>string</em>]   [<b>specie_mask</b>=<em>string</em>[,<i>string</i>,...]]   [<b>specie_output</b>=<em>string</em>]   [<b>specie_name</b>=<em>string</em>]   [<b>nv</b>=<em>integer</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
 
 <h3>Flags:</h3>
-<DL>
-<DT><b>-b</b></DT>
-<DD>Produce only background output</DD>
+<dl>
+<dt><b>-b</b></dt>
+<dd>Produce only background output</dd>
 
-<DT><b>-z</b></DT>
-<DD>Zoom computational region to species data</DD>
+<dt><b>-z</b></dt>
+<dd>Zoom computational region to species data</dd>
 <br>Setting this flag may speed up processing for very large regions and locally distributed
 species. But it may decrease processing time in other cases. Use with care.
 
-<DT><b>--verbose</b></DT>
-<DD>Verbose module output</DD>
-<DT><b>--quiet</b></DT>
-<DD>Quiet module output</DD>
-</DL>
+<dt><b>--verbose</b></dt>
+<dd>Verbose module output</dd>
+<dt><b>--quiet</b></dt>
+<dd>Quiet module output</dd>
+</dl>
 
 <h3>Parameters:</h3>
-<DL>
-<DT><b>alias_input</b>=<em>string</em></DT>
-<DD>File containg map and alias name(s) for environmental parameter(s)</DD>
+<dl>
+<dt><b>alias_input</b>=<em>string</em></dt>
+<dd>File containg map and alias name(s) for environmental parameter(s)</dd>
 <br>This file should contain alias names in the first column and map names in the second column, separated by comma, 
 without header. It should look e.g. like this:<br>
 <em>
@@ -46,39 +46,39 @@ alias_2,map_2<br>
 ...,...<br>
 </em>
 
-<DT><b>evp_maps</b>=<em>string[,<i>string</i>,...]</em></DT>
-<DD>Environmental parameter map(s)</DD>
+<dt><b>evp_maps</b>=<em>string[,<i>string</i>,...]</em></dt>
+<dd>Environmental parameter map(s)</dd>
 <br>Multiple maps containing the environmental parameter(s) to be used in MaxEnt.
 
-<DT><b>alias_names</b>=<em>string</em></DT>
-<DD>Alias names for environmental parameter</DD>
+<dt><b>alias_names</b>=<em>string</em></dt>
+<dd>Alias names for environmental parameter</dd>
 <br>A list of names to be used as alias names for the environmental parameter map names.
 
-<DT><b>alias_output</b>=<em>string</em></DT>
-<DD>Save alias names for the environmental parameters to file</DD>
+<dt><b>alias_output</b>=<em>string</em></dt>
+<dd>Save alias names for the environmental parameters to file</dd>
 <br>When using alias names for the environmental parameter map names, it is advantageous to save the alias names to file. 
 In this case the alias file can be used to re-translate the alias names back to map names when using the script r.maxent.lambdas.
 
-<DT><b>bgr_output</b>=<em>string</em></DT>
-<DD>Output SWD file for the environmental data of the background landscape</DD>
+<dt><b>bgr_output</b>=<em>string</em></dt>
+<dd>Output SWD file for the environmental data of the background landscape</dd>
 
-<DT><b>bgr_mask</b>=<em>string</em></DT>
-<DD>Map to be used as mask for the background landscape</DD>
+<dt><b>bgr_mask</b>=<em>string</em></dt>
+<dd>Map to be used as mask for the background landscape</dd>
 
-<DT><b>specie_mask</b>=<em>string[,<i>string</i>,...]</em></DT>
-<DD>Raster map(s) of specie occurence</DD>
+<dt><b>specie_mask</b>=<em>string[,<i>string</i>,...]</em></dt>
+<dd>Raster map(s) of specie occurence</dd>
 
-<DT><b>specie_output</b>=<em>string</em></DT>
-<DD>Output SWD file for the specie(s) related environmental data</DD>
+<dt><b>specie_output</b>=<em>string</em></dt>
+<dd>Output SWD file for the specie(s) related environmental data</dd>
 
-<DT><b>specie_name</b>=<em>string</em></DT>
-<DD>Alias-name(s) for species to be used in MaxEnt SWD file instead of map names, separated by comma (default: map names).</DD>
+<dt><b>specie_name</b>=<em>string</em></dt>
+<dd>Alias-name(s) for species to be used in MaxEnt SWD file instead of map names, separated by comma (default: map names).</dd>
 
-<DT><b>nv</b>=<em>integer</em></DT>
-<DD>Integer representing NO DATA cell value</DD>
-<DD>Default: <em>-9999</em></DD>
+<dt><b>nv</b>=<em>integer</em></dt>
+<dd>Integer representing NO DATA cell value</dd>
+<dd>Default: <em>-9999</em></dd>
 
-</DL>
+</dl>
 <h2>DESCRIPTION</h2>
 The script is intended to produce a set of SWD files as input to MaxEnt 3.3.3e using r.stats.<br>
 <br>

@@ -9,46 +9,46 @@
 
 <img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
 
-<H2>NAME</H2>
+<h2>NAME</h2>
 
-<EM><b>m.eigensystem</b></EM>  - Computes eigen values and eigen vectors
+<em><b>m.eigensystem</b></em>  - Computes eigen values and eigen vectors
 for square matricies.
 
-<BR>
+<br>
 
-<EM>(GRASS Data Import/Processing Program)</EM>
+<em>(GRASS Data Import/Processing Program)</em>
 
-<H2>SYNOPSIS</H2>
+<h2>SYNOPSIS</h2>
 
-<B>m.eigensystem &lt; </B><EM>inputfile </EM>
+<b>m.eigensystem &lt; </b><em>inputfile </em>
 
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<EM>m.eigensystem</EM>
+<em>m.eigensystem</em>
 determines the eigen values and eigen vectors for square matricies.
 The
-<EM>inputfile</EM>
+<em>inputfile</em>
 must have the following format:
 the first line contains an integer K
 which is the number of rows and columns in the matrix;
 the remainder of the file is the matrix, i.e.,
 K lines, each containing K real numbers.
 
-For example:<BR>
+For example:<br>
 <I>(Examples in this help page use the Spearfish-imagery sample dataset
 maps spot.ms.1, spot.ms.2, and spot.ms.3)</I>
-<P>
-<PRE>
+<p>
+<pre>
           3
           462.876649   480.411218   281.758307
           480.411218   513.015646   278.914813
           281.758307   278.914813   336.326645
 
-</PRE>
-<P>
+</pre>
+<p>
 
 The output will be K groups of lines;  each group will have the format:
-<PRE>
+<pre>
           E   real part imaginary part   relative importance
           V   real part imaginary part
                    ... K lines ...
@@ -57,27 +57,27 @@ The output will be K groups of lines;  each group will have the format:
           W   real part imaginary part
                    ... K lines ...
 
-</PRE>
+</pre>
 
 The
-<EM>E</EM>
+<em>E</em>
 line is the eigen value.
 The
-<EM>V</EM>
+<em>V</em>
 lines are the eigen vector associated with E.
 The
-<EM>N</EM>
+<em>N</em>
 lines are the V vector normalized to have a magnitude of 1.
 The
-<EM>W</EM>
+<em>W</em>
 lines are the N vector multiplied by the square root of the
 magnitude of the eigen value (E).
 
 
-<P>
+<p>
 
 For the example input matrix above, the output would be:
-<PRE>
+<pre>
           E  1159.7452017844    0.0000000000   88.38
           V     0.6910021591    0.0000000000
           V     0.7205280412    0.0000000000
@@ -111,16 +111,16 @@ For the example input matrix above, the output would be:
           W     4.4598880523    0.0000000000
           W   -10.8698904856    0.0000000000
 
-</PRE>
+</pre>
 
-<H2>PROGRAM NOTES</H2>
+<h2>PROGRAM NOTES</h2>
 
 The relative importance of the eigen value (E) is the ratio (percentage)
 of the eigen value to the sum of the eigen values.  Note that the output
 is not sorted by relative importance.
 
 
-<P>
+<p>
 
 In general, the solution to the eigen system results in complex
 numbers (with both real and imaginary parts).  However, in the example
@@ -133,62 +133,62 @@ matrix of any data set is symmetric
 and thus has only real eigen values and vectors.
 
 
-<H2>PRINCIPLE COMPONENTS</H2>
+<h2>PRINCIPLE COMPONENTS</h2>
 
 To perform principle component transformation on GRASS data layers,
 one would use
-<EM>r.covar</EM>
+<em>r.covar</em>
 to get the covariance (or correlation) matrix for a set of data layers,
-<EM>m.eigensystem</EM>
+<em>m.eigensystem</em>
 to extract the related eigen vectors, and
-<EM>r.mapcalc</EM>
+<em>r.mapcalc</em>
 to form the desired components.
 For example, to get the eigen vectors for 3 layers:
 
-<div class="code"><PRE>
-   <B>(echo 3; r.covar map.1,map.2,map.3) | m.eigensystem</B>
-</PRE></div>
+<div class="code"><pre>
+   <b>(echo 3; r.covar map.1,map.2,map.3) | m.eigensystem</b>
+</pre></div>
 
 Note that since m.covar only outputs the matrix, we must manually prepend
 the matrix size (3) using the echo command.
 
 
-<P>
+<p>
 
 Then, using the W vector, new maps are created:
 
 
-<div class="code"><PRE>
-   <B>r.mapcalc</B> 'pc.1 = 21.2395*map.1 + 22.1470*map.2 + 14.7696*map.3'
-   <B>r.mapcalc</B> 'pc.2 =  2.9083*map.1 +  4.4599*map.2  - 10.8699*map.3'
-   <B>r.mapcalc</B> 'pc.3 =  1.8175*map.1  -  1.6232*map.2 -  0.1797*map.3'
-</PRE></div>
+<div class="code"><pre>
+   <b>r.mapcalc</b> 'pc.1 = 21.2395*map.1 + 22.1470*map.2 + 14.7696*map.3'
+   <b>r.mapcalc</b> 'pc.2 =  2.9083*map.1 +  4.4599*map.2  - 10.8699*map.3'
+   <b>r.mapcalc</b> 'pc.3 =  1.8175*map.1  -  1.6232*map.2 -  0.1797*map.3'
+</pre></div>
 
 
-<H2>NOTES</H2>
+<h2>NOTES</h2>
 
 The source code for this program requires a Fortran compiler.
 
-<P>
+<p>
 The equivalent <em>i.pca</em> command is:
-<div class="code"><PRE>
+<div class="code"><pre>
    i.pca in=spot.ms.1,spot.ms.2,spot.ms.3 out=spot_pca
-</PRE></div>
+</pre></div>
 
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 
-<EM>
-<A HREF="i.pca.html">i.pca</A><br>
-<A HREF="r.covar.html">r.covar</A><br>
-<A HREF="r.mapcalc.html">r.mapcalc</A><br>
-<A HREF="r.rescale.html">r.rescale</A>
-</EM>
+<em>
+<a href="i.pca.html">i.pca</a><br>
+<a href="r.covar.html">r.covar</a><br>
+<a href="r.mapcalc.html">r.mapcalc</a><br>
+<a href="r.rescale.html">r.rescale</a>
+</em>
 
 
-<H2>AUTHOR</H2>
+<h2>AUTHOR</h2>
 
-This code uses routines from the EISPACK system.<BR>
+This code uses routines from the EISPACK system.<br>
 The interface was coded by Michael Shapiro, U.S.Army Construction Engineering
  Research Laboratory
 

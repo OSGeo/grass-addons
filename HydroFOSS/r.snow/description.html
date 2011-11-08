@@ -9,16 +9,16 @@
 
 <img src="grass.smlogo.gif" alt="GRASS logo"><hr align=center size=6 noshade>
 
-<H2>NAME</H2> <B><I>r.snow </I></B>
+<h2>NAME</h2> <b><I>r.snow </I></b>
 - computation of the snowpack water equivalent, 
 the snowamelt and the snowpack energy content.
 
-<P><I>(GRASS Raster Program)</I>
+<p><I>(GRASS Raster Program)</I>
 
-<H2>SYNOPSIS</H2>
-<B>r.snow</B><BR>
-<B>r.snow</B> help<BR>
-<B>r.snow</b>
+<h2>SYNOPSIS</h2>
+<b>r.snow</b><br>
+<b>r.snow</b> help<br>
+<b>r.snow</b>
 <b>temp</b>=name
 <b>RAD</b>=name
 <b>rain</b>=name
@@ -28,9 +28,9 @@ the snowamelt and the snowpack energy content.
 <b>out_energy</b>=name
 <b>out_snowmelt</b>=name
 
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<p><EM>r.snow</EM> 
+<p><em>r.snow</em> 
 given the temperature (temp) [&deg;C], the radiation (RAD) [W/(m^2*t)], 
 the rain (rain) [mm/t], the initial snowpack water content (in_snow) [mm] and 
 the initial snowpack energy content (in_energy) [Kcal/m^2] calculates the 
@@ -45,13 +45,13 @@ with some modification.<br>
 <p>For more details on the algorithms see the references.
 
 
-<H2>OPTIONS</H2>
+<h2>OPTIONS</h2>
 
 The program will run non-interactively if the user specifies program
 arguments settings on the command line using the following
 form:<br>
 
-<B>r.snow</b>
+<b>r.snow</b>
 <b>temp</b>=name
 <b>RAD</b>=name
 <b>rain</b>=name
@@ -63,13 +63,13 @@ form:<br>
 
 
 
-<P>Alternatively, the user can simply type <EM>r.snow</EM> on the
+<p>Alternatively, the user can simply type <em>r.snow</em> on the
 command line and the program will ask for parameter values 
 settings interactively, using the standard GRASS parser interface.
 
-<H3>Parameters:</H3>
+<h3>Parameters:</h3>
 <dl>
- <dt><B>temp</B>=<I>name</I>
+ <dt><b>temp</b>=<I>name</I>
  <dd>Input: temperature raster map [&deg;C]. Required.</dd>
 
  <dt><b>RAD</b>=<I>name</I>
@@ -96,7 +96,7 @@ settings interactively, using the standard GRASS parser interface.
 </dl>
       
 
-<H2>NOTES</H2>
+<h2>NOTES</h2>
 
 <p>The algorithm basically estimates the needed energy to maintain the snowpack 
 in a solid phase (in a zero snowmelt hypothesis). If the available energy is 
@@ -105,7 +105,7 @@ depleted, otherwise no melting occurs the enrgy remain available in the
 snowpack for further step.
 
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 <ul>
   <li>The <a href="http://istgis.ist.supsi.ch:8001/geomatica/">HydroFOSS</a> 
 project at IST-SUPSI (Institute of Earth Sciences - University school of applied science for the Southern Switzerland)
@@ -116,7 +116,7 @@ project at IST-SUPSI (Institute of Earth Sciences - University school of applied
 
 
 
-<H2>AUTHORS</H2>
+<h2>AUTHORS</h2>
   
   <p>Original version of program: The <a href="http://istgis.ist.supsi.ch:8001/geomatica/index.php?id=1">HydroFOSS</a> project, 2006, IST-SUPSI. (http://istgis.ist.supsi.ch:8001/geomatica/index.php?id=1)
   <br><i><a href="http://w3.ist.supsi.ch:8001/geo/~maxi/">Massimiliano Cannata</a>,
@@ -126,10 +126,10 @@ project at IST-SUPSI (Institute of Earth Sciences - University school of applied
 <p>Contact: <a href="mailto:massimiliano.cannata@supsi.ch"> Massimiliano Cannata</a></dt>
 
 
-<H2>REFERENCES</H2>
+<h2>REFERENCES</h2>
 
-  <p>Cannata M., 2006. <A HREF="http://w3.ist.supsi.ch:8001/geo/hydrofoss/PhD_Cannata.pdf">
-  A GIS embedded approach for Free & Open Source Hydrological Modelling</A>.
+  <p>Cannata M., 2006. <a href="http://w3.ist.supsi.ch:8001/geo/hydrofoss/PhD_Cannata.pdf">
+  A GIS embedded approach for Free & Open Source Hydrological Modelling</a>.
   PhD dissertation in Geodesy and Geomatic engineering, Politecnico di Milano.
 
   <p>Abbott, M. et al., 1986a, An introduction to the European Hydrological 

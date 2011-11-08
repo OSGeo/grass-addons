@@ -19,39 +19,39 @@ raster, MaxEnt, species distribution modelling
 <b>r.maxent.lambdas</b> [-<b>rl</b>] <b>lambdas_file</b>=<em>string</em> <b>output_prefix</b>=<em>string</em>  [<b>alias_file</b>=<em>string</em>]   [<b>integer_output</b>=<em>integer</em>]   [<b>output_mapcalc</b>=<em>string</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
 
 <h3>Flags:</h3>
-<DL>
-<DT><b>-r</b></DT>
-<DD>Produce only raw output (both are computed by default).</DD>
+<dl>
+<dt><b>-r</b></dt>
+<dd>Produce only raw output (both are computed by default).</dd>
 
-<DT><b>-l</b></DT>
-<DD>Produce only logistic output (both are computed by default).</DD>
+<dt><b>-l</b></dt>
+<dd>Produce only logistic output (both are computed by default).</dd>
 
-<DT><b>--overwrite</b></DT>
-<DD>Allow output files to overwrite existing files</DD>
-<DT><b>--verbose</b></DT>
-<DD>Verbose module output</DD>
-<DT><b>--quiet</b></DT>
-<DD>Quiet module output</DD>
-</DL>
+<dt><b>--overwrite</b></dt>
+<dd>Allow output files to overwrite existing files</dd>
+<dt><b>--verbose</b></dt>
+<dd>Verbose module output</dd>
+<dt><b>--quiet</b></dt>
+<dd>Quiet module output</dd>
+</dl>
 
 <h3>Parameters:</h3>
-<DL>
-<DT><b>lambdas_file</b>=<em>string</em></DT>
-<DD>MaxEnt lambdas-file to compute distribution-model from</DD>
+<dl>
+<dt><b>lambdas_file</b>=<em>string</em></dt>
+<dd>MaxEnt lambdas-file to compute distribution-model from</dd>
 
-<DT><b>output_prefix</b>=<em>string</em></DT>
-<DD>Prefix for output raster maps</DD>
+<dt><b>output_prefix</b>=<em>string</em></dt>
+<dd>Prefix for output raster maps</dd>
 
-<DT><b>alias_file</b>=<em>string</em></DT>
-<DD>CSV-file to replace alias names from MaxEnt by GRASS map names</DD>
+<dt><b>alias_file</b>=<em>string</em></dt>
+<dd>CSV-file to replace alias names from MaxEnt by GRASS map names</dd>
 
-<DT><b>integer_output</b>=<em>integer</em></DT>
-<DD>Produce logistic integer output with this number of digits preserved</DD>
-<DD>Default: <em>0</em></DD>
+<dt><b>integer_output</b>=<em>integer</em></dt>
+<dd>Produce logistic integer output with this number of digits preserved</dd>
+<dd>Default: <em>0</em></dd>
 
-<DT><b>output_mapcalc</b>=<em>string</em></DT>
-<DD>Save r.mapcalc expression to file</DD>
-</DL>
+<dt><b>output_mapcalc</b>=<em>string</em></dt>
+<dd>Save r.mapcalc expression to file</dd>
+</dl>
 <h2>DESCRIPTION</h2>
 The script is intended to compute raw and/or logistic prediction maps from a lambdas file produced with MaxEnt 3.3.3e.<br>
 It will parse the specified lambdas-file from MaxEnt 3.3.3e and translate it into an r.mapcalc-expression 

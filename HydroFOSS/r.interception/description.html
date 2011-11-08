@@ -9,16 +9,16 @@
 
 <img src="grass.smlogo.gif" alt="GRASS logo"><hr align=center size=6 noshade>
 
-<H2>NAME</H2> <B><I>h.interception </I></B>
+<h2>NAME</h2> <b><I>h.interception </I></b>
 - computation of the water loss, drainage, and storage due 
 to <i>canopy rainfall interception</i>.
 
-<P><I>(GRASS Raster Program)</I>
+<p><I>(GRASS Raster Program)</I>
 
-<H2>SYNOPSIS</H2>
-<B>h.interception</B><BR>
-<B>h.interception</B> help<BR>
-<B>h.interception</b>
+<h2>SYNOPSIS</h2>
+<b>h.interception</b><br>
+<b>h.interception</b> help<br>
+<b>h.interception</b>
 <b>LAI</b>=name
 <b>ETPls</b>=name
 <b>Co</b>=name
@@ -29,9 +29,9 @@ to <i>canopy rainfall interception</i>.
 <b>D</b>=name
 <b>Ct</b>=name
 
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<p><EM>h.interception</EM> 
+<p><em>h.interception</em> 
 given the LAI [-], the ETPls [mm/h], the leaf storage level at
 the previous step Co [mm], the rain R [mm/h], the timestep Ts [h],
 and the vegetation density Vc [%] the command estimates the interception
@@ -44,13 +44,13 @@ in order to take into account the temporal variability of the rainfall.<br>
 <p>For more details on the algorithms see the references.
 
 
-<H2>OPTIONS</H2>
+<h2>OPTIONS</h2>
 
 The program will run non-interactively if the user specifies program
 arguments settings on the command line using the following
 form:<br>
 
-<B>h.interception</b>
+<b>h.interception</b>
 <b>LAI</b>=name
 <b>ETPls</b>=name
 <b>Co</b>=name
@@ -63,13 +63,13 @@ form:<br>
 
 
 
-<P>Alternatively, the user can simply type <EM>h.interception</EM> on the
+<p>Alternatively, the user can simply type <em>h.interception</em> on the
 command line and the program will ask for parameter values 
 settings interactively, using the standard GRASS parser interface.
 
-<H3>Parameters:</H3>
+<h3>Parameters:</h3>
 <dl>
- <dt><B>LAI</B>=<I>name</I>
+ <dt><b>LAI</b>=<I>name</I>
  <dd>Input: Leaf Area Index raster map [-]. Required.</dd>
 
  <dt><b>ETPls</b>=<I>name</I>
@@ -99,7 +99,7 @@ settings interactively, using the standard GRASS parser interface.
 </dl>
       
 
-<H2>NOTES</H2>
+<h2>NOTES</h2>
 
 <p>The estimated D raster map (water drained from the vegetation to the groud)
 is calculated for each cell on the basis of the vegetation cover fraction. 
@@ -114,7 +114,7 @@ caming from the snowmelt.
 <br><dd>r.mapcalc 'NETrain = D + (1-Vc)*R + snowmelt';
 
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 <ul>
   <li>The <a href="http://istgis.ist.supsi.ch:8001/geomatica/">HydroFOSS</a> 
 project at IST-SUPSI (Institute of Earth Sciences - University school of applied science for the Southern Switzerland)
@@ -126,7 +126,7 @@ project at IST-SUPSI (Institute of Earth Sciences - University school of applied
 
 
 
-<H2>AUTHORS</H2>
+<h2>AUTHORS</h2>
   
 <p>Original version of program: The <a href="http://istgis.ist.supsi.ch:8001/geomatica/index.php?id=1">HydroFOSS</a> project, 2006, IST-SUPSI. (http://istgis.ist.supsi.ch:8001/geomatica/index.php?id=1)
   <i>
@@ -138,10 +138,10 @@ project at IST-SUPSI (Institute of Earth Sciences - University school of applied
 
 
 
-<H2>REFERENCES</H2>
+<h2>REFERENCES</h2>
 
-  <p>[1] Cannata M., 2006. <A HREF="http://istgis.ist.supsi.ch:8001/geomatica/index.php?id=1">
-  GIS embedded approach for Free & Open Source Hydrological Modelling</A>. PhD thesis, Department of Geodesy and Geomatics, Polytechnic of Milan, Italy.
+  <p>[1] Cannata M., 2006. <a href="http://istgis.ist.supsi.ch:8001/geomatica/index.php?id=1">
+  GIS embedded approach for Free & Open Source Hydrological Modelling</a>. PhD thesis, Department of Geodesy and Geomatics, Polytechnic of Milan, Italy.
 
   <p>Zeng, N., JW Shuttleworth, and J. Gash, 2000. 
   Influence of temporal variability of rainfall on interception loss. 

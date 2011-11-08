@@ -4,7 +4,7 @@
 <img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
 
 <h2>NAME</h2>
-<em><b>r.pi.index</b></em>  - is part of a patch based fragmentation analysis package (<EM>r.pi</EM>) providing basic patch based indices, like area, SHAPE or Nearest Neighbour distance.
+<em><b>r.pi.index</b></em>  - is part of a patch based fragmentation analysis package (<em>r.pi</em>) providing basic patch based indices, like area, SHAPE or Nearest Neighbour distance.
 <h2>KEYWORDS</h2>
 raster, patch index, landscape ecology
 <h2>SYNOPSIS</h2>
@@ -14,47 +14,47 @@ raster, patch index, landscape ecology
 <b>keyval</b>=<em>val</em>   <b>method</b>=<em>name</em> [<b>title</b>=<em>name</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
 
 <h3>Flags:</h3>
-<DL>
-<DT><b>-a</b></DT>
-<DD>use 8-neighbour rules (Queen-Typ) instead of 4-neighbour rule (Rook-Typ)</DD>
+<dl>
+<dt><b>-a</b></dt>
+<dd>use 8-neighbour rules (Queen-Typ) instead of 4-neighbour rule (Rook-Typ)</dd>
 
-<DT><b>--overwrite</b></DT>
-<DD>Allow output files to overwrite existing files</DD>
-<DT><b>--verbose</b></DT>
-<DD>Verbose module output</DD>
-<DT><b>--quiet</b></DT>
-<DD>Quiet module output</DD>
-</DL>
+<dt><b>--overwrite</b></dt>
+<dd>Allow output files to overwrite existing files</dd>
+<dt><b>--verbose</b></dt>
+<dd>Verbose module output</dd>
+<dt><b>--quiet</b></dt>
+<dd>Quiet module output</dd>
+</dl>
 
 
 
 <h3>Parameters:</h3>
-<DL>
-<DT><b>input</b>=<em>name</em></DT>
-<DD>Name of existing raster map containing categories</DD>
+<dl>
+<dt><b>input</b>=<em>name</em></dt>
+<dd>Name of existing raster map containing categories</dd>
 
-<DT><b>output</b>=<em>name</em></DT>
-<DD>Output patch-based result raster map</DD>
+<dt><b>output</b>=<em>name</em></dt>
+<dd>Output patch-based result raster map</dd>
 
-<DT><b>keyval</b>=<em>val</em></DT>
-<DD>The value of the class to analyse</DD>
+<dt><b>keyval</b>=<em>val</em></dt>
+<dd>The value of the class to analyse</dd>
 
-<DT><b>method</b>=<em>name</em></DT>
-<DD>The index to compute. Options: area, perimeter (perim), SHAPE, Border-Index (bor), Compactness (comp), Asymmetry (asym), area-perimeter ratio (apr), fractal dimension (fract), distance to euclidean nearest neighbour (ENN)</DD>
+<dt><b>method</b>=<em>name</em></dt>
+<dd>The index to compute. Options: area, perimeter (perim), SHAPE, Border-Index (bor), Compactness (comp), Asymmetry (asym), area-perimeter ratio (apr), fractal dimension (fract), distance to euclidean nearest neighbour (ENN)</dd>
 
-<DT><b>title</b>=<em>name</em></DT>
-<DD>Optional title of output map</DD>
+<dt><b>title</b>=<em>name</em></dt>
+<dd>Optional title of output map</dd>
 
-</DL>
+</dl>
 
 
 
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<P>
+<p>
 
 The program will be run non-interactively if the user specifies program arguments (see OPTIONS) on the command
-line.  Alternately, the user can simply type <B>r.pi.index</B> on the command line, without program
+line.  Alternately, the user can simply type <b>r.pi.index</b> on the command line, without program
 arguments.  In this case, the user will be prompted for flag settings and parameter values.
 
 > Was die propmap angeht:
@@ -102,51 +102,51 @@ zum Wert 0 bei d = d_max
 
 dist_weight = 1: Keine Distanzbewertung, d.h. so wie vorher
 
-<DT><B>Area</B> 
+<dt><b>Area</b> 
 
-<DD>The <EM>Area</EM> (area) computes the area of each patch.
-
-
-<DT><B>Perimeter</B> 
-
-<DD>The <EM>Perimeter (perim)</EM> computes the perimeter of each patch.
+<dd>The <em>Area</em> (area) computes the area of each patch.
 
 
-<DT><B>Area-Perimeter ratio </B> 
+<dt><b>Perimeter</b> 
 
-<DD>The <EM>Area-Perimeter ratio</EM> (apr) divides the patch perimeter by the area.
+<dd>The <em>Perimeter (perim)</em> computes the perimeter of each patch.
 
 
-<DT><B>SHAPE Index </B> 
+<dt><b>Area-Perimeter ratio </b> 
 
-<DD>The <EM>SHAPE Index</EM> (shape) divides the patch perimete by the minimum perimeter 
+<dd>The <em>Area-Perimeter ratio</em> (apr) divides the patch perimeter by the area.
+
+
+<dt><b>SHAPE Index </b> 
+
+<dd>The <em>SHAPE Index</em> (shape) divides the patch perimete by the minimum perimeter 
 possible for a maximally compact patch of the corresponding patch area.
 
 
 
-<DT><B>Border Index </B> 
+<dt><b>Border Index </b> 
 
-<DD>The <EM>Border Index</EM> (bor)....
-
-
-<DT><B>Compactness Index </B> 
-
-<DD>The <EM>Compactness Index</EM> (comp)....
+<dd>The <em>Border Index</em> (bor)....
 
 
-<DT><B>Asymmetry Index </B> 
+<dt><b>Compactness Index </b> 
 
-<DD>The <EM>Border Index</EM> (asym)....
-
-
-<DT><B>Fractal Dimension Index </B> 
-
-<DD>The <EM>Fractal Dimension Index</EM> (fract)....
+<dd>The <em>Compactness Index</em> (comp)....
 
 
-<DT><B>Nearest Neighbour Index </B> 
+<dt><b>Asymmetry Index </b> 
 
-<DD>The <EM>Nearest Neighbour Index</EM> (ENN) ....
+<dd>The <em>Border Index</em> (asym)....
+
+
+<dt><b>Fractal Dimension Index </b> 
+
+<dd>The <em>Fractal Dimension Index</em> (fract)....
+
+
+<dt><b>Nearest Neighbour Index </b> 
+
+<dd>The <em>Nearest Neighbour Index</em> (ENN) ....
 
 
 <!-- Bsp um Pseudo code or Bsp einzufügen -->
@@ -171,26 +171,26 @@ Input:                          Output:
 
 
 
-</DL>
-<H2>NOTES</H2>
+</dl>
+<h2>NOTES</h2>
 
 
 
 
-<P>
+<p>
 
-<H2>BUGS</H2>
+<h2>BUGS</h2>
 
 
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 
-<EM><A HREF="r.pi.ENN.html">r.pi.ENN</A></EM><br>
-<EM><A HREF="r.pi.FNN.html">r.pi.FNN</A></EM><br>
-<EM><A HREF="r.pi.dist.html">r.pi.dist</A></EM><br>
-<EM><A HREF="r.li.setup.html">r.li.setup</A></EM><br>
+<em><a href="r.pi.ENN.html">r.pi.ENN</a></em><br>
+<em><a href="r.pi.FNN.html">r.pi.FNN</a></em><br>
+<em><a href="r.pi.dist.html">r.pi.dist</a></em><br>
+<em><a href="r.li.setup.html">r.li.setup</a></em><br>
 
-<H2>AUTHOR</H2>
+<h2>AUTHOR</h2>
 
 Programming: Elshad Shirinov<br>
 Scientific concept: Martin Wegmann <br>

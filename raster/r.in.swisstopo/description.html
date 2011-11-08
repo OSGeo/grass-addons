@@ -20,48 +20,48 @@ swisstopo, DHM, DEM, Raster, Import
 <b>r.in.swisstopo</b> <b>input</b>=<em>input</em> <b>output</b>=<em>raster</em>  [<b>method</b>=<em>string</em>]   [<b>type</b>=<em>string</em>]   [<b>zrange</b>=<em>min,max</em>]   [<b>percent</b>=<em>integer</em>]   [<b>method_resamp</b>=<em>string</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
 
 <h3>Flags:</h3>
-<DL>
-<DT><b>--overwrite</b></DT>
-<DD>Force overwrite of output files</DD>
-<DT><b>--verbose</b></DT>
-<DD>Verbose module output</DD>
-<DT><b>--quiet</b></DT>
-<DD>Quiet module output</DD>
-</DL>
+<dl>
+<dt><b>--overwrite</b></dt>
+<dd>Force overwrite of output files</dd>
+<dt><b>--verbose</b></dt>
+<dd>Verbose module output</dd>
+<dt><b>--quiet</b></dt>
+<dd>Quiet module output</dd>
+</dl>
 
 <h3>Parameters:</h3>
-<DL>
-<DT><b>input</b>=<em>input</em></DT>
-<DD>Swisstopo file containing DEM data (*.mlt, *.mbl or *.xyz)</DD>
+<dl>
+<dt><b>input</b>=<em>input</em></dt>
+<dd>Swisstopo file containing DEM data (*.mlt, *.mbl or *.xyz)</dd>
 
-<DT><b>output</b>=<em>raster</em></DT>
-<DD>Name of the raster layer, that will be created out of the imported data</DD>
+<dt><b>output</b>=<em>raster</em></dt>
+<dd>Name of the raster layer, that will be created out of the imported data</dd>
 
-<DT><b>method</b>=<em>string</em></DT>
-<DD>Statistic to use for raster values</DD>
-<DD>Options: <em>n,min,max,range,sum,mean,stddev,variance,coeff_var</em></DD>
-<DD>Default: <em>mean</em></DD>
+<dt><b>method</b>=<em>string</em></dt>
+<dd>Statistic to use for raster values</dd>
+<dd>Options: <em>n,min,max,range,sum,mean,stddev,variance,coeff_var</em></dd>
+<dd>Default: <em>mean</em></dd>
 
-<DT><b>type</b>=<em>string</em></DT>
-<DD>Storage type for resultant raster map</DD>
-<DD>Options: <em>CELL,FCELL,DCELL</em></DD>
-<DD>Default: <em>FCELL</em></DD>
+<dt><b>type</b>=<em>string</em></dt>
+<dd>Storage type for resultant raster map</dd>
+<dd>Options: <em>CELL,FCELL,DCELL</em></dd>
+<dd>Default: <em>FCELL</em></dd>
 
-<DT><b>zrange</b>=<em>min,max</em></DT>
-<DD>Filter range for z data (min,max)</DD>
+<dt><b>zrange</b>=<em>min,max</em></dt>
+<dd>Filter range for z data (min,max)</dd>
 
-<DT><b>percent</b>=<em>integer</em></DT>
-<DD>Percentage of map to keep in memory</DD>
-<DD>Options: <em>1-100</em></DD>
-<DD>Default: <em>100</em></DD>
+<dt><b>percent</b>=<em>integer</em></dt>
+<dd>Percentage of map to keep in memory</dd>
+<dd>Options: <em>1-100</em></dd>
+<dd>Default: <em>100</em></dd>
 
-<DT><b>method_resamp</b>=<em>string</em></DT>
-<DD>Interpolation method for interpolation of input data to current region's resolution (using r.resamp.interp)</DD>
-<DD>Options: <em>nearest,bilinear,bicubic</em></DD>
-<DD>Default: <em>bilinear</em></DD>
+<dt><b>method_resamp</b>=<em>string</em></dt>
+<dd>Interpolation method for interpolation of input data to current region's resolution (using r.resamp.interp)</dd>
+<dd>Options: <em>nearest,bilinear,bicubic</em></dd>
+<dd>Default: <em>bilinear</em></dd>
 
 <h2>Manual download and installation of the module (without svn)</h2>
-<p>You can find the current version of r.in.swisstopo <a href="http://trac.osgeo.org/grass/browser/grass-addons/raster/r.in.swisstopo/">here</a><br>
+<p>You can find the current version of r.in.swisstopo <a href="http://trac.OSGeo.org/grass/browser/grass-addons/raster/r.in.swisstopo/">here</a><br>
 <br>
 Installation:<br>
 You might need to have root privileges for the following. If you do not have these, please ask your system administrator
@@ -99,8 +99,8 @@ The author is not responsible for any consequenced that arise from using this co
 Swiss Federal Institute of Technology (ETH)<br>
 Zurich<br>
 </i></p>
-<p><i>Last changed: $Date: 09/06/2010 $</i> </p> 
+<p><i>Last changed: $Date$</i> </p> 
 
-</DL>
+</dl>
 </body>
 </html>

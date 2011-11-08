@@ -1,10 +1,10 @@
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
 <em>r.xtent</em> computes a raster map layer representing the Voronoi diagram,
 weighted Voronoi diagram or a more complex territorial partitioning of space around points (centers) 
 in a vector input map (option <em>centers=</em>), based on the XTENT formula.
 
-<H2>BACKGROUND</H2>
+<h2>BACKGROUND</h2>
 <p>
 The algorithm is based on the simple XTENT formula, first published by Renfrew and Level in 1979:
 <p>
@@ -172,7 +172,7 @@ of fragmentation may occur, e.g. in topographically complex situations.
 The memory footprint of <em>r.xtent</em> is very low and CPU time will grow linearly with the number of centers.
 If "ruler" constraints are given, however, processing time will increase exponentially.
 
-<H2>EXAMPLES</h2>
+<h2>EXAMPLES</h2>
 
 The following are examples of territorial models with increasing complexity.
 
@@ -231,21 +231,21 @@ r.xtent centers=towns output=territories c=size ruler=ruler --o
 The program may create temporary maps in the current mapset. If it crashes unexpectedly, it might leave 
 those (prefixed with "XTENT") in the user's mapset. Use <em>g.mremove</em> to delete them.
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 <p>
-<EM><A HREF="v.voronoi">v.voronoi</A></EM>,
-<EM><A HREF="d.vect.html">d.vect</A></EM>,
-<EM><A HREF="r.cost.html">r.walk</A></EM>,
-<EM><A HREF="r.walk.html">r.walk</A></EM>,
-<EM><A HREF="r.burn.frict.html">r.burn.frict</A></EM>
-<EM><A HREF="g.mremove.html">g.mremove</A></EM>
+<em><a href="v.voronoi">v.voronoi</a></em>,
+<em><a href="d.vect.html">d.vect</a></em>,
+<em><a href="r.cost.html">r.walk</a></em>,
+<em><a href="r.walk.html">r.walk</a></em>,
+<em><a href="r.burn.frict.html">r.burn.frict</a></em>
+<em><a href="g.mremove.html">g.mremove</a></em>
 
-<H2>REFERENCES</H2>
+<h2>REFERENCES</h2>
 
 Renfrew, C. and Level, E. V. 1979: Exploring Dominance: Predicting Polities from Centers. In Transformations:
 Mathematical Approaches to Culture Change, edited by C. Renfrew and K. L. Cooke (Academic Press, New York), pp. 145-166.
 
-<H2>AUTHORS</h2>
+<h2>AUTHORS</h2>
 
 Benjamin Ducke (benjamin.ducke AT oadigital.net)
 

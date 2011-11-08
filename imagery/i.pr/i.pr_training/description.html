@@ -6,83 +6,83 @@
 
 
 <h3>Flags:</h3>
-<DL>
-<DD><b>Flags:</b></DD>
-<DD>--v	Verbose module output</DD>
-<DD>--q Quiet module output</DD>
-</DL>
+<dl>
+<dd><b>Flags:</b></dd>
+<dd>--v	Verbose module output</dd>
+<dd>--q Quiet module output</dd>
+</dl>
 
 <h3>Parameters:</h3>
-<DL>
-<DT><b>input</b>=<em>string[,<i>string</i>,...]</em>
-<DD>Input raster maps (max 25) for extracting the training examples. The first one will be used for graphical output, where 'vis_map' is specified</DD>
+<dl>
+<dt><b>input</b>=<em>string[,<i>string</i>,...]</em>
+<dd>Input raster maps (max 25) for extracting the training examples. The first one will be used for graphical output, where 'vis_map' is specified</dd>
 
-<DT><b>vis_map</b>=<em>string</em>
-<DD>Raster Map for visualisation</DD>
+<dt><b>vis_map</b>=<em>string</em>
+<dd>Raster Map for visualisation</dd>
 
-<DT><b>training</b>=<em>string</em>
-<DD>Name of the output file containing the training raster maps. If this file already exists, the new data will be appended to the end of the file.<DD>
+<dt><b>training</b>=<em>string</em>
+<dd>Name of the output file containing the training raster maps. If this file already exists, the new data will be appended to the end of the file.<dd>
 
-<DT><b>site_file</b>=<em>string</em>
-<DD>Name of the site file containing the labelled location. Typically a point vector layer or polygon centroids</DD>
+<dt><b>site_file</b>=<em>string</em>
+<dd>Name of the site file containing the labelled location. Typically a point vector layer or polygon centroids</dd>
 
-<DT><b>rows</b>=<em>value</em>
-<DD>Number of rows (required odd) of the training samples</DD>
+<dt><b>rows</b>=<em>value</em>
+<dd>Number of rows (required odd) of the training samples</dd>
 
-<DT><b>cols</b>=<em>value</em>
-<DD>Number of columns (required odd) of the training samples</DD>
+<dt><b>cols</b>=<em>value</em>
+<dd>Number of columns (required odd) of the training samples</dd>
 
-<DT><b>class</b>=<em>value</em>
-<DD>Numerical label to be attached to the training examples. Option not required with the site_file option.</DD>
-</DL>
-<H2>DESCRIPTION</H2>
+<dt><b>class</b>=<em>value</em>
+<dd>Numerical label to be attached to the training examples. Option not required with the site_file option.</dd>
+</dl>
+<h2>DESCRIPTION</h2>
 
 
-<EM>i.pr.training</EM> This module is the first to be run when using i.pr.* modules. It is necessary to list all maps that will be used as explanatory variables and whose values will be assigned to the training samples. Two options for extracting data for the training samples are available. The first can be done interactively using the graphical interface. In this instance, the first GRASS raster map specified in the list is visualised in the GRASS monitor, however, this can be altered by specifying the 'vis_map' option. In this case, the user must digitise locations training samples in the GRASS monitor. A Class parameter will be assigned to each training sample, the class labels must be positive integers and must progressively increase. 
+<em>i.pr.training</em> This module is the first to be run when using i.pr.* modules. It is necessary to list all maps that will be used as explanatory variables and whose values will be assigned to the training samples. Two options for extracting data for the training samples are available. The first can be done interactively using the graphical interface. In this instance, the first GRASS raster map specified in the list is visualised in the GRASS monitor, however, this can be altered by specifying the 'vis_map' option. In this case, the user must digitise locations training samples in the GRASS monitor. A Class parameter will be assigned to each training sample, the class labels must be positive integers and must progressively increase. 
 <pr>
 The second option for generating the training sample file can be done non-interactively. This is done by specifying a GRASS sites file. This file should represent the locations of training samples and ought to have been previously generated either by digitising (<em><a href="v.digit">v.digit</a></em>) or else by <em><a href="v.in.ascii">v.in.ascii</a></em>. Features will be extracted for these locations in a similar fashion as previously described. The class will be assigned to the examples based on the information stored in the sites file. 
 <p>
 The output of this module will be an ascii file of type xy.z. The number of columns will relate to the number of rasters specified on the command line. If the output file already exists, the new data values will be appended to it. 
 
-<H3>Flags:</H3>
-<DL>
-<DD><b>--v</b>	Verbose module output. Print information pertaining to module progress and completion.</DD>
-<DD><b>--p</b>	Run Quietly. Suppress program output that would include program percent complete messages and time elapsed.</DD>
-<H3>Parameters:</H3>
+<h3>Flags:</h3>
+<dl>
+<dd><b>--v</b>	Verbose module output. Print information pertaining to module progress and completion.</dd>
+<dd><b>--p</b>	Run Quietly. Suppress program output that would include program percent complete messages and time elapsed.</dd>
+<h3>Parameters:</h3>
 
 
-<DT><B>input=</B><EM>name,name</EM>[<EM>,name,name</EM>,...]</DT> 
-<DD>Name of raster maps (maximum 25) for extracting the training examples. The first will be used for graphical output. The extent of all raster maps should be the same. CELL, DCELL and FCELL raster maps can be used. </DD>
+<dt><b>input=</b><em>name,name</em>[<em>,name,name</em>,...]</dt> 
+<dd>Name of raster maps (maximum 25) for extracting the training examples. The first will be used for graphical output. The extent of all raster maps should be the same. CELL, DCELL and FCELL raster maps can be used. </dd>
 
 
-<DT><B>vis_map</B><EM>name</EM> 
-<DD>This parameter is optional. If used, the raster that is specified will be displayed in the GRASS monitor and used as a background raster file. It should be used to identify the location of training samples.</DD> 
+<dt><b>vis_map</b><em>name</em> 
+<dd>This parameter is optional. If used, the raster that is specified will be displayed in the GRASS monitor and used as a background raster file. It should be used to identify the location of training samples.</dd> 
 
-<DT><B>training=</B><EM>name</EM> 
-<DD>This parameter is required. It creates the training file, which is an ascii file containing all of the x,y locations of the traning samples and their associated class labels and values from the explanatory variables (GRASS raster maps). If the name specified on the command line refers to a training file that already exists in the working directory, the new data are appended to it. </DD> 
+<dt><b>training=</b><em>name</em> 
+<dd>This parameter is required. It creates the training file, which is an ascii file containing all of the x,y locations of the traning samples and their associated class labels and values from the explanatory variables (GRASS raster maps). If the name specified on the command line refers to a training file that already exists in the working directory, the new data are appended to it. </dd> 
 
-<DT><B>site_file=</B><EM>name</EM> 
-<DD>This parameter is required if the non-interactive mode is required. It should relate to a GRASS Vector map (Version 6 vector data) and there should be a class label (numeric value) for each site. This file should be created prior to running i.pr.training either using v.digit or v.in.ascii. The latter is more straightforward provided the input ascii file contains data in the following format: x,y,z(class label). 
-</DD>
+<dt><b>site_file=</b><em>name</em> 
+<dd>This parameter is required if the non-interactive mode is required. It should relate to a GRASS Vector map (Version 6 vector data) and there should be a class label (numeric value) for each site. This file should be created prior to running i.pr.training either using v.digit or v.in.ascii. The latter is more straightforward provided the input ascii file contains data in the following format: x,y,z(class label). 
+</dd>
 
-<DT><B>rows=</B><EM>value</EM> 
-<DD>The number of rows in the training samples, this must be odd.</DD>
-<DT><B>cols=</B><EM>value</EM> 
-<DD>The number of colums in the training samples, this must be odd.</DD>
+<dt><b>rows=</b><em>value</em> 
+<dd>The number of rows in the training samples, this must be odd.</dd>
+<dt><b>cols=</b><em>value</em> 
+<dd>The number of colums in the training samples, this must be odd.</dd>
 
-<DT><B>class=</B><EM>value</EM> 
-<DD>The numerical label to be attached to the training examples. This is only required when the interactive mode of i.pr.training is used. </DD>
+<dt><b>class=</b><em>value</em> 
+<dd>The numerical label to be attached to the training examples. This is only required when the interactive mode of i.pr.training is used. </dd>
 
-<H2>NOTES</H2>
+<h2>NOTES</h2>
 
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 
-<EM><A HREF="i.features.html">i.cca</A></EM><br>
+<em><a href="i.features.html">i.cca</a></em><br>
 
-<H2>AUTHORS</H2>
+<h2>AUTHORS</h2>
 
 Stefano Merler, FBK, Trento, Italy<br>
 Documentation: Daniel McInerney (daniel.mcinerney ucd.ie)
 
-<p><i>Last changed: $Date: 2007/12/04 10:04:03 $</i>
+<p><i>Last changed: $Date$</i>

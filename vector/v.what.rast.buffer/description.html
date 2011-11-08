@@ -1,8 +1,8 @@
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
 This purpose of this module is to provide local environmental context to a
 series of vector points.
-<P>
+<p>
 v.what.rast or r.what + coordinate alone may return a spike in the raster data
 without you knowing. What this script does is create a buffer around each
 vector point and gather some stats about the raster cells nearby and
@@ -10,9 +10,9 @@ report them in a .csv table. Multiple raster maps can be sampled.
 It assumes the location is not lat/lon, and (in column names) that units
 will be meters. (r.buffer would be lat/lon safe; but I used r.circle
 because it allows starting from an exact coord not from the nearest cell)
-<P>
+<p>
 v.rast.stats + v.buffer is problematic when input points' buffers overlap.
-<P>
+<p>
 To speed up processing the working region is temporarily zoomed to a small
 area around each point. This will align the temporary region to the raster
 map's resolution and thus assumes that the raster map's region and resolution
@@ -27,23 +27,23 @@ v.what.rast.buffer in=archsites rast=elevation.dem,slope out="-"
 </pre></div>
 
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 
-<EM>
-<A HREF="r.what.html">r.what</A><BR>
-<A HREF="v.what.rast.html">v.what.rast</A><BR>
-<A HREF="v.rast.stats.html">v.rast.stats</A><BR>
-<A HREF="r.univar.html">r.univar</A><BR>
-<A HREF="v.univar.html">v.univar</A><BR>
-<A HREF="r.buffer.html">r.buffer</A><BR>
-<A HREF="r.circle.html">r.circle</A><BR>
-<A HREF="g.region.html">g.region</A>
-</EM>
+<em>
+<a href="r.what.html">r.what</a><br>
+<a href="v.what.rast.html">v.what.rast</a><br>
+<a href="v.rast.stats.html">v.rast.stats</a><br>
+<a href="r.univar.html">r.univar</a><br>
+<a href="v.univar.html">v.univar</a><br>
+<a href="r.buffer.html">r.buffer</a><br>
+<a href="r.circle.html">r.circle</a><br>
+<a href="g.region.html">g.region</a>
+</em>
 
 
-<H2>AUTHOR</H2>
+<h2>AUTHOR</h2>
 
-Hamish Bowman<BR>
+Hamish Bowman<br>
 <i>Dunedin, New Zealand</i>
 
 <p>

@@ -9,17 +9,17 @@
 
 <img src="grass.smlogo.gif" alt="GRASS logo"><hr align=center size=6 noshade>
 
-<H2>NAME</H2> <B><I>i.eb.h_SEBAL95 </I></B>- computation of <i>sensible heat flux</i> [W/m2] after Bastiaanssen, 1995 in [1].
+<h2>NAME</h2> <b><I>i.eb.h_SEBAL95 </I></b>- computation of <i>sensible heat flux</i> [W/m2] after Bastiaanssen, 1995 in [1].
 
-<P><I>(GRASS Raster Program)</I>
+<p><I>(GRASS Raster Program)</I>
 
-<H2>SYNOPSIS</H2>
-<B>i.eb.h_SEBAL95</B>
-<BR>
-<B>i.eb.h_SEBAL95</B> help</br>
-<BR>
+<h2>SYNOPSIS</h2>
+<b>i.eb.h_SEBAL95</b>
+<br>
+<b>i.eb.h_SEBAL95</b> help</br>
+<br>
 
-<B>i.eb.h_SEBAL95</b> <b>[ -qzn ]</b>
+<b>i.eb.h_SEBAL95</b> <b>[ -qzn ]</b>
 
 <b>DEM</b>=name
 <b>T</b>=name
@@ -29,9 +29,9 @@
 <b>Vh</b>=name
 <b>ETP</b>=name
 
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<p><EM>i.eb.h_SEBAL95</EM> given the vegetation height (hc), humidity (RU), 
+<p><em>i.eb.h_SEBAL95</em> given the vegetation height (hc), humidity (RU), 
 wind speed at two meters height (WS), temperature (T), digital terrain model (DEM), 
 and net radiation (NSR) raster input maps, 
 calculates the sensible heat flux map (h0).
@@ -53,13 +53,13 @@ and the appropriate soil heat flux is calculated.
 <p>For more details on the algorithms see [1].
 
 
-<H2>OPTIONS</H2>
+<h2>OPTIONS</h2>
 
 The program will run non-interactively if the user specifies program
 arguments and flag settings on the command line using the following
 form:
 
-<P><B>i.eb.h_SEBAL95</b> <b>[ -qzd ]</b>
+<p><b>i.eb.h_SEBAL95</b> <b>[ -qzd ]</b>
 <b>DEM</b>=name
 <b>T</b>=name
 <b>RH</b>=name
@@ -70,27 +70,27 @@ form:
 
 
 
-<P>Alternatively, the user can simply type <EM>i.eb.h_SEBAL95</EM> on the
+<p>Alternatively, the user can simply type <em>i.eb.h_SEBAL95</em> on the
 command line and the program will ask for parameter values and flag
 settings interactively, using the standard GRASS parser interface.
 
 
-<H3>Flags:</H3>
+<h3>Flags:</h3>
 <dl>
-  <dt><B>-q</B>
+  <dt><b>-q</b>
    <dd>Run quietly (do not display status messages). By default
-   <EM>r.evapo.PM</EM> is run verbosely.
- <dt><B>-z</B>
+   <em>r.evapo.PM</em> is run verbosely.
+ <dt><b>-z</b>
   <dd>Set negative calculated evapotranspiration values to zero.
- <dt><B>-n</B>
+ <dt><b>-n</b>
   <dd>Calculate soil heat flux for night time. By default 
-  <EM>r.evapo.PM</EM> calculate it for day time.
+  <em>r.evapo.PM</em> calculate it for day time.
 </dl>
 
 
-<H3>Parameters:</H3>
+<h3>Parameters:</h3>
 <dl>
- <dt><B>DEM</B>=<I>name</I>
+ <dt><b>DEM</b>=<I>name</I>
  <dd>Input elevation raster [m a.s.l.]. Required.</dd>
 
  <dt><b>T</b>=<I>name</I>
@@ -114,7 +114,7 @@ settings interactively, using the standard GRASS parser interface.
 </dl>
       
 
-<H2>NOTES</H2>
+<h2>NOTES</h2>
 
 <p>Net solar radiation map in MJ/(m2*h) can be computed from the combination of the r.sun , 
 run in mode 1, and the r.mapcalc commands.
@@ -122,13 +122,13 @@ run in mode 1, and the r.mapcalc commands.
 <p>The sum of the three radiation components outputted by r.sun (beam, diffuse, and reflected) 
 multiplied by the Wh->Mj conversion factor (0.0036) and optionally by a 
 clear sky factor [0-1] allows the generation of a map to be used as 
-an NSR input for the <EM>r.evapo.PM</EM> command.
+an NSR input for the <em>r.evapo.PM</em> command.
 <dt>example:
 <br><dd>r.sun -s elevin=dem aspin=aspect slopein=slope lin=2 albedo=alb_Mar incidout=out beam_rad=beam diff_rad=diffuse refl_rad=reflected day=73 time=13:00 dist=100;
 <br><dd>r.mapcalc 'NSR=0.0036*(beam+diffuse+reflected)';
 
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 <ul>
   <li><a href=i.eb.h_iter.html>i.eb.h_iter</a>,
       <a href=i.eb.h0.html>i.eb.h0</a>
@@ -136,7 +136,7 @@ an NSR input for the <EM>r.evapo.PM</EM> command.
 
 
 
-<H2>AUTHORS</H2>
+<h2>AUTHORS</h2>
   <p>
   <i>
    <br>Yann Chemin, International Rice Research Institute, Los Banos, The Philippines.
@@ -144,7 +144,7 @@ an NSR input for the <EM>r.evapo.PM</EM> command.
   <p>Contact: <a href="mailto:y.chemin@cgiar.org"> Yann chemin</a>
 
 
-<H2>REFERENCES</H2>
+<h2>REFERENCES</h2>
 
   <p>[1] Bastiaanssen, W.G.M., 1995.
   Estimation of Land surface paramters by remote sensing under clear-sky conditions. PhD thesis, Wageningen University, Wageningen, The Netherlands.

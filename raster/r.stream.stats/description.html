@@ -1,18 +1,18 @@
 <h2>OPTIONS</h2>
-<DL>
+<dl>
 
-<DT><b>stream</b></DT>
-<DD>Stream network: name of input stream map on which ordering will be performed
+<dt><b>stream</b></dt>
+<dd>Stream network: name of input stream map on which ordering will be performed
 produced by r.watershed or r.stream.extract. Because streams network produced by
 r.watershed and r.stream.extract may slighty differ in detail it is required to
 use both stream and direction map produced by the same module. Stream background
 shall have NULL value or zero value. Background values of NULL are by default
 produced by r.watershed and r.stream.extract. If not 0 or NULL use <a
 href="r.mapcalc.html">r.mapcalc</a> to set background values to null.  
-</DD>
+</dd>
 <p>
-<DT><b>dir</b></DT>
-<DD>Flow direction: name of input direction map produced by r.watershed or
+<dt><b>dir</b></dt>
+<dd>Flow direction: name of input direction map produced by r.watershed or
 r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
 negative values are valid direction data if they vary from -8 to 8 (CCW from
@@ -21,12 +21,12 @@ resolution and map resoultion must be the same.
 Also <em>stream</em> network map must have the same resolution. It is checked by
 default. If resolutions differ the module informs about it and stops. Region
 boundary and maps boundary may be differ but it may lead to unexpected
-results.</DD>
+results.</dd>
 <p>
-<DT><b>elev</b></DT>
-<DD>Elevation: name of input elevation map. Map can be of type CELL, FCELL or
+<dt><b>elev</b></dt>
+<dd>Elevation: name of input elevation map. Map can be of type CELL, FCELL or
 DCELL. It is not restricted to resolution of region settings as stream and
-dir.</DD>
+dir.</dd>
 
 
 
@@ -34,22 +34,22 @@ dir.</DD>
 Output statistics are send to standard output. If there are no errors no
 addational messages are send to standard output. To redirect output to file use
 redarection operators: > or >>.
-</DL>
+</dl>
 
 <h2>DESCRIPTION</h2>
-<P>
+<p>
 Module r.stream.stats is prepared to calculate Hotron's statistics of drainage
 network.
-<P>
+<p>
 These statistics are calculated according formulas given by R.Horton (1945).
 Because Horton do not defined precisely what is stream slope, I proposed 2
 different approaches: first (slope) use cell-by-cell slope calculation, second
 (gradient) use difference between elevation of outlet and source of every
 channel to its length to calculate formula. Bifurcation ratio for every order is
 calculated acording formula: 
-<P>
-<CODE>n_streams[1]/n_stream[i+1]</CODE>
-<P> 
+<p>
+<code>n_streams[1]/n_stream[i+1]</code>
+<p> 
 where i the current order and i+1 next higher order. For max order of the map
 number of streams is zero. Rest of the ratios are calculated in similar mode.
 The bifurcation and other ratios for the whole catchment (map) is calculated as
@@ -60,7 +60,7 @@ with r.stream.basin. If whole stream order map is used the calculation will be
 performed but results may not have hydrological sense.
 
 For every order (std) means that statstic is calculated with standard deviation:
-<UL>
+<ul>
 <li>number of streams
 <li>total length of streams of  given order
 <li>total area of basins of given order 
@@ -73,20 +73,20 @@ For every order (std) means that statstic is calculated with standard deviation:
 (std)
 <li>average area of basins of given order (std)
 <li>avarage elevation difference of given order (std)
-<P>ratios:
+<p>ratios:
 <li>bifuracation ratio
 <li>length ratio
 <li>sloope and gradient ratios
 <li>area ratio
-</UL>
+</ul>
 for the whole basin:
-<UL>
+<ul>
 <li>total number of streams
 <li>total length of streams 
 <li>total basin area
 <li>drainage density
 <li>stream density
-<P>ratios:
+<p>ratios:
 <li>bifurcation ratio (std)
 <li>length ratio (std)
 <li>slope and gradient ratios (std)
@@ -95,21 +95,21 @@ for the whole basin:
 
 
 <h2>NOTES</h2>
-<P>
+<p>
 Module calculates statistics for all streams in input stream map.It is strongly
-recomended to extract only network of one basin, but it is not necessary for
+recommended to extract only network of one basin, but it is not necessary for
 computation.  Streams for desired basin first can be extracted  with following
 mapcalc formula:
 
-<P>
-<CODE>echo 'sel_streams=if(basin==xxx,streams,null())'|r.mapcalc #xxx category
-of desired basin<CODE>
-<P>
+<p>
+<code>echo 'sel_streams=if(basin==xxx,streams,null())'|r.mapcalc #xxx category
+of desired basin<code>
+<p>
 
 It is also possible to calculate Horton's statistics for Shreve ordering but it
 has limited hydrological sense. Hack main stream is not the same what so called
 Horton's reverse ordering.
-<P>
+<p>
 Module can work only if direction map, stream map and region map has same
 settings. It is also required that stream map and direction map come from the
 same source. For lots of reason this limitation probably cannot be omitted.  

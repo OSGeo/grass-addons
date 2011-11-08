@@ -1,27 +1,27 @@
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<EM>g.region.point</EM> resets the computational region to a square box
+<em>g.region.point</em> resets the computational region to a square box
 around a given coordinate at the current resolution. It is intended for
 use within GRASS scripts to speed up processing by limiting expensive
 raster calculations to a small area of interest.
 
 
-<H2>NOTES</H2>
+<h2>NOTES</h2>
 
 To preserve the original region settings this module should generally
 be used in tandem with the <tt>WIND_OVERRIDE</tt> environment variable.
 
-<P>
+<p>
 If the new region bounds do not line up with a multiple of the map resolution
 the bounds will be extended outwards, preserving the region resolution.
-<P>
+<p>
 If the <b>-z</b> flag is used, then in the case of a bounds/resolution
 incompatibility the resolution will be altered and the region bounds
 preserved. The <b>-z</b> flag requires that a value is given for the
 <b>resolution</b> option.
 
 
-<h2>EXAMPLE</H2>
+<h2>EXAMPLE</h2>
 
 The following is a shell script utilizing <em>g.region.point</em> which
 will evaluate the mean value in a 100m wide raster buffer around a series
@@ -73,18 +73,18 @@ may be added to the database table with <em>v.db.addcol</em> prior to running
 the update script.
 
 
-<H2>SEE ALSO</H2>
-<EM>
-<A HREF="g.region.html">g.region</A>,
-<A HREF="v.rast.stats.html">v.rast.stats</A>
-</EM><BR>
-<A HREF="variables.html">GRASS Variables</A>
+<h2>SEE ALSO</h2>
+<em>
+<a href="g.region.html">g.region</a>,
+<a href="v.rast.stats.html">v.rast.stats</a>
+</em><br>
+<a href="variables.html">GRASS Variables</a>
 
 
-<H2>AUTHOR</H2>
+<h2>AUTHOR</h2>
 
 Hamish Bowman, Dunedin, New Zealand
-<BR>
+<br>
 
 <p>
 <i>Last changed: $Date$</i>

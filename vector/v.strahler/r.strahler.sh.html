@@ -1,8 +1,8 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.strahler.sh</em> Creates a vector map of Strahler ordered streams of a single basin starting from a DEM.
-Once selected the area where you want to work by visualizing it in the GRASS monitor, the programs extracts lines form the DEM by using <em><a HREF="r.watershed.html">r.watershed</a></em> , makes you able to select an outlet for the basin (or takes the outlet coords manually inserted at the beginning), individuates the basin by using <em><a HREF="r.water.outlet.html">r.water.outlet</a></em> , cleans the topology, executes <em><a HREF="v.strahler.html">v.strahler</a></em> for the extracted network. <br />
-The program returns an ouput text file (see  <em><a HREF="v.strahler.html">v.strahler</a></em> ) and the basin network ordered by Horton-Strahler.
+Once selected the area where you want to work by visualizing it in the GRASS monitor, the programs extracts lines form the DEM by using <em><a href="r.watershed.html">r.watershed</a></em> , makes you able to select an outlet for the basin (or takes the outlet coords manually inserted at the beginning), individuates the basin by using <em><a href="r.water.outlet.html">r.water.outlet</a></em> , cleans the topology, executes <em><a href="v.strahler.html">v.strahler</a></em> for the extracted network. <br />
+The program returns an ouput text file (see  <em><a href="v.strahler.html">v.strahler</a></em> ) and the basin network ordered by Horton-Strahler.
 The program is also able to plot a background map during the elaboration, so, if you have some aerial photos or the same DEM, it's easier to select the right outlet cross-section in the map.<br />
 If the <b>-i</b> interactive flag is given then you are working in interactive mode and the program makes you able to choose the outlet cross section directly from the monitor, instead the program works in un-interactive mode but it needs the outlet coords manually inserted.
 
@@ -27,8 +27,8 @@ The program has some stability problems for low area threshold; from sperimental
 <img src="images/thrVScell.jpg"> <br />
 
 <h2>SEE ALSO</h2>
-<em><a HREF="v.strahler.html">v.strahler</a></em><br>
-<em><a HREF="r.broscoe.sh.html">r.broscoe.sh</a></em><br>
+<em><a href="v.strahler.html">v.strahler</a></em><br>
+<em><a href="r.broscoe.sh.html">r.broscoe.sh</a></em><br>
 
 <h2>AUTHORS</h2>
 

@@ -19,59 +19,59 @@ Automatic procedure to compute a fluvial inundation map
 <b>r.inund.fluv</b> <b>DTM</b>=<em>string</em> <b>W_S_PROFILE</b>=<em>string</em> <b>RIVER</b>=<em>string</em> <b>FLOODING_MAP</b>=<em>string</em>  [<b>DOUBT_MAP</b>=<em>string</em>]   [<b>PROFILE_T100</b>=<em>string</em>]   [<b>(null)</b>=<em>float</em>]   [<b>delta_x</b>=<em>float</em>]   [<b>river_boundary</b>=<em>string</em>]   [<b>boundary_type</b>=<em>string</em>]   [<b>res_B</b>=<em>integer</em>]   [<b>res_C</b>=<em>integer</em>]   [<b>MAP_W_S_PROFILE</b>=<em>string</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
 
 <h3>Flags:</h3>
-<DL>
-<DT><b>--overwrite</b></DT>
-<DD>Allow output files to overwrite existing files</DD>
-<DT><b>--verbose</b></DT>
-<DD>Verbose module output</DD>
-<DT><b>--quiet</b></DT>
-<DD>Quiet module output</DD>
-</DL>
+<dl>
+<dt><b>--overwrite</b></dt>
+<dd>Allow output files to overwrite existing files</dd>
+<dt><b>--verbose</b></dt>
+<dd>Verbose module output</dd>
+<dt><b>--quiet</b></dt>
+<dd>Quiet module output</dd>
+</dl>
 
 <h3>Parameters:</h3>
-<DL>
-<DT><b>DTM</b>=<em>string</em></DT>
-<DD>Input DTM raster map</DD>
+<dl>
+<dt><b>DTM</b>=<em>string</em></dt>
+<dd>Input DTM raster map</dd>
 
-<DT><b>W_S_PROFILE</b>=<em>string</em></DT>
-<DD>Input ASCII file of the water surface profile</DD>
+<dt><b>W_S_PROFILE</b>=<em>string</em></dt>
+<dd>Input ASCII file of the water surface profile</dd>
 
-<DT><b>RIVER</b>=<em>string</em></DT>
-<DD>Input vector line map of river-axis</DD>
+<dt><b>RIVER</b>=<em>string</em></dt>
+<dd>Input vector line map of river-axis</dd>
 
-<DT><b>FLOODING_MAP</b>=<em>string</em></DT>
-<DD>Output: name of flooding map</DD>
+<dt><b>FLOODING_MAP</b>=<em>string</em></dt>
+<dd>Output: name of flooding map</dd>
 
-<DT><b>DOUBT_MAP</b>=<em>string</em></DT>
-<DD>Output: name of doubful surface areas</DD>
+<dt><b>DOUBT_MAP</b>=<em>string</em></dt>
+<dd>Output: name of doubful surface areas</dd>
 
-<DT><b>PROFILE_BOUNDARY</b>=<em>string</em></DT>
-<DD>Input ASCII file with water-depht for return period T &gt; 100 years</DD>
+<dt><b>PROFILE_BOUNDARY</b>=<em>string</em></dt>
+<dd>Input ASCII file with water-depht for return period T &gt; 100 years</dd>
 
-<DT><b>delta_z</b>=<em>float</em></DT>
-<DD>Input delta_z to find the boundaries of the main channel [default value 0.5 m]</DD>
+<dt><b>delta_z</b>=<em>float</em></dt>
+<dd>Input delta_z to find the boundaries of the main channel [default value 0.5 m]</dd>
 
-<DT><b>delta_x</b>=<em>float</em></DT>
-<DD>Input delta_x to find the boundaries of the main channel [default value 3.5 m]</DD>
+<dt><b>delta_x</b>=<em>float</em></dt>
+<dd>Input delta_x to find the boundaries of the main channel [default value 3.5 m]</dd>
 
-<DT><b>river_boundary</b>=<em>string</em></DT>
-<DD>Output vector boundaries of the main channel</DD>
+<dt><b>river_boundary</b>=<em>string</em></dt>
+<dd>Output vector boundaries of the main channel</dd>
 
-<DT><b>boundary_type</b>=<em>string</em></DT>
-<DD>Format of vector boundaries of the main channel</DD>
-<DD>Options: <em>line,points</em></DD>
-<DD>Default: <em>points</em></DD>
+<dt><b>boundary_type</b>=<em>string</em></dt>
+<dd>Format of vector boundaries of the main channel</dd>
+<dd>Options: <em>line,points</em></dd>
+<dd>Default: <em>points</em></dd>
 
-<DT><b>res_B</b>=<em>integer</em></DT>
-<DD>Input value: resolution B [default value 10 m]</DD>
+<dt><b>res_B</b>=<em>integer</em></dt>
+<dd>Input value: resolution B [default value 10 m]</dd>
 
-<DT><b>res_C</b>=<em>integer</em></DT>
-<DD>Input value: resolution C [default value 20 m]</DD>
+<dt><b>res_C</b>=<em>integer</em></dt>
+<dd>Input value: resolution C [default value 20 m]</dd>
 
-<DT><b>MAP_W_S_PROFILE</b>=<em>string</em></DT>
-<DD>Output vector point map of the water surface profile</DD>
+<dt><b>MAP_W_S_PROFILE</b>=<em>string</em></dt>
+<dd>Output vector point map of the water surface profile</dd>
 
-</DL>
+</dl>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -86,8 +86,8 @@ The implemented procedure has innovating characteristics; even if it remains sub
 
 The single phases in  which the procedure is divided, are here summarized, even if the whole procedure is excecuted automatically. <br>
 
-- In the first phase, the value of water level in the nearest point of fluvial axis is assigned to each pixel of terrain, through the creation of Thiessen polygons (<EM><A HREF="r.surf.idw.html">r.surf.idw</A></EM> setting <em>npoints</em>=1) (at the resolution <em>res_B</em>). Then the procedure makes a comparison between elevation of each pixel and water level, and defines pixels characterized by elevation lower than water level, at hazard. <br>
-- In the second phase, the procedure removes all the areas previously defined at hazard but not connected with the river axis, i.e. surrounded by terrain not at hazard, neglecting infiltration or underground rivers (<EM><A HREF="v.select.html">v.select</A></EM>). <br>
+- In the first phase, the value of water level in the nearest point of fluvial axis is assigned to each pixel of terrain, through the creation of Thiessen polygons (<em><a href="r.surf.idw.html">r.surf.idw</a></em> setting <em>npoints</em>=1) (at the resolution <em>res_B</em>). Then the procedure makes a comparison between elevation of each pixel and water level, and defines pixels characterized by elevation lower than water level, at hazard. <br>
+- In the second phase, the procedure removes all the areas previously defined at hazard but not connected with the river axis, i.e. surrounded by terrain not at hazard, neglecting infiltration or underground rivers (<em><a href="v.select.html">v.select</a></em>). <br>
 - In the third phase, the hypotesis is that water diffuses from river to the surrounding areas only in direction perpendicular to the river axis. Through an implemented fortran code (<em>clean_inundation.f90</em>), the procedure individuates the pixels, considered at hazard at the end of phase 2, inundated for sure by water; hence it dries the ones, considered at hazard at the end of phase 2, not reached by water because protected by levees or small hills posed along the perpedicular path between the pixel and the river axis (at the resolution <em>res_C</em>). <br>            
 - In the fourth phase, the hypothesis is that water, outside the main channel, moves along the maximum terrain slope direction. First, through an implemented fortran code (<em>find_main_channel.f90</em>), the procedure individuates the "boundaries" of the main channel. Then, through an implemented fortran code (<em>2d_path.f90</em>), the procedure individuates the water path outside the main channel along the maximum terrain slope direction (at the resolution <em>res_C</em>). Finally, through an implemented fortran code (<em>correction_from_path.f90</em>), the procedure individuates the pixels, dried at the end of phase 3, connected to a water path, and defines them at hazard (at the resolution <em>res_B</em>). <br>
 - In the fifth and last phase, the final potentially inundated map is defined as sum of areas at hazard in the third and fourth phases.
@@ -101,14 +101,14 @@ The command requires some input:<br>
 
 1 - a Digital Terrain Model (DTM, DEM or DSM) of the area surrounding the river; an high-resolution DTM (e.g. 5 x 5 m or higher) is required to describe levees and other human infrastructures on the floodplain. <br>
 2 - an ASCII file describing the water surface profile along the channel axis, in this format (e.g.):
-<div class="code"><PRE>
+<div class="code"><pre>
 
 411815.62874469644   4944870.642304279   197.  104                 
 411848.8162966241   4944958.868788462   196.96  103.933*            
 411882.0010118869   4945047.096337882   196.89  103.866*            
 411915.188102181   4945135.322989558   196.82  103.8* 
      ...
-</PRE></div>  
+</pre></div>  
 where the first column is East-coordinate, the second is North-coordinate, the third is the water level in each cross-section, and the last one is the name of the cross-section. The distance between two cross-sections is suggested to be less than 100 meters. <br> 
 3 - a vector line describing the river axis from upstream to dowstream. <br>
 <br>

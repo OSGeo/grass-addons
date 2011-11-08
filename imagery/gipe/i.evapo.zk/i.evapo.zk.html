@@ -1,14 +1,14 @@
-<H2>DESCRIPTION</H2>
+<h2>DESCRIPTION</h2>
 
-<EM>i.evapo.zk</EM> Calculates the global diurnal evapotranspiration after Zhang, Kimball, Nemani and Running (2010).
+<em>i.evapo.zk</em> Calculates the global diurnal evapotranspiration after Zhang, Kimball, Nemani and Running (2010).
  
 Zhang, K., Kimball, J.S., Nemani, R.R., Running, S.W. (2010). A continuous satellite-derived global record of land surface evapotranspiration from 1983 to 2006. WRR 46, W09522
 
 
 
-<H2>NOTES</H2>
+<h2>NOTES</h2>
 
-<EM>Main function</EM>
+<em>Main function</em>
 
 ETa (biome_type, ndvi, tday, sh, patm, Rn, G)
 
@@ -22,7 +22,7 @@ ETa (biome_type, ndvi, tday, sh, patm, Rn, G)
   <li>G	day soil heat flux	[MJ/m2/d]</li>
 </ul>
 
-<EM>IGBP Biome types with ID used in this model</EM>
+<em>IGBP Biome types with ID used in this model</em>
 <ul>
   <li>Code	ID	Description</li>
   <li>BENF	0	Boreal Evergreen Needleleaf Forest (less or eq 212 frost-free days)</li>
@@ -37,7 +37,7 @@ ETa (biome_type, ndvi, tday, sh, patm, Rn, G)
   <li>CRP	12	Cropland</li>
 </ul>
 
-<EM>IGBP Classification</EM>
+<em>IGBP Classification</em>
 <ul>
   <li>01	Evergreen Needleleaf Forest</li>
   <li>02	Evergreen Broadleaf Forest</li>
@@ -59,7 +59,7 @@ ETa (biome_type, ndvi, tday, sh, patm, Rn, G)
 </ul>
 * Not used in this model
 
-<EM>IGBP Biome types and configuration of internal parameters of the model</EM>
+<em>IGBP Biome types and configuration of internal parameters of the model</em>
 <ul>
   <li>Code	Description	TcloseMinC	TopenMaxC	VPDClosePa	VPDOpenPa	ToptC	BetaC	kPa	GaMs-1	GtotMs-1	GchMs-1	B1Sm-1	B2Sm-1	B3	b1*	b2*	b3*	b4*</li>
   <li>BENF	Boreal Evergreen Needleleaf Forest	-8	40	2800	500	12	25	150	0.03	0.002	0.08	208.3	8333.3	10</li>
@@ -77,24 +77,24 @@ ETa (biome_type, ndvi, tday, sh, patm, Rn, G)
 * For WSV when NDVI superior to 0.64"
 
 
-<H2>TODO</H2>
+<h2>TODO</h2>
 
 
-<H2>SEE ALSO</H2>
+<h2>SEE ALSO</h2>
 
-<EM>
-<A HREF="i.evapo.pm.html">i.evapo.pm</A><br>
-<A HREF="i.evapo.mh.html">i.evapo.mh</A><br>
-<A HREF="i.evapo.senay.html">i.evapo.senay</A><br>
-<A HREF="i.eb.netrad.html">i.eb.netrad</A><br>
-<A HREF="i.eb.soilheatflux.html">i.eb.soilheatflux</A><br>
-</EM>
+<em>
+<a href="i.evapo.pm.html">i.evapo.pm</a><br>
+<a href="i.evapo.mh.html">i.evapo.mh</a><br>
+<a href="i.evapo.senay.html">i.evapo.senay</a><br>
+<a href="i.eb.netrad.html">i.eb.netrad</a><br>
+<a href="i.eb.soilheatflux.html">i.eb.soilheatflux</a><br>
+</em>
 
 
-<H2>AUTHORS</H2>
+<h2>AUTHORS</h2>
 
-Yann Chemin, GRASS Development team, 2011<BR>
+Yann Chemin, GRASS Development team, 2011<br>
 
 
 <p>
-<i>Last changed: $Date: 2011-05-12 21:29:43 +0530 (Wed, 12 Jan 2011) $</i>
+<i>Last changed: $Date$</i>

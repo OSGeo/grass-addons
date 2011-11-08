@@ -1,17 +1,17 @@
 <h2>OPTIONS</h2>
-<DL>
-<DT><b>-l</b></DT>
-<DD>Calculate local values. See output for detials.</DD>
-<DT><b>-c</b></DT>
-<DD>Calculate distance in cells instead of meters. See output for detials.</DD>
-<DT><b>-d</b></DT>
-<DD>Calculate downstream distance (from current cell DOWNSTREAM to outlet/join).
-Default is upstream (from current cell upstream to init/join.</DD>
-<DT><b>-m</b></DT>
-<DD>Only for very large data sets. Use segment library to optimize memory
-consumption during analysis</DD>
-<DT><b>stream</b></DT>
-<DD>Stream network: name of input stream map. Map may be ordered according one
+<dl>
+<dt><b>-l</b></dt>
+<dd>Calculate local values. See output for detials.</dd>
+<dt><b>-c</b></dt>
+<dd>Calculate distance in cells instead of meters. See output for detials.</dd>
+<dt><b>-d</b></dt>
+<dd>Calculate downstream distance (from current cell DOWNSTREAM to outlet/join).
+Default is upstream (from current cell upstream to init/join.</dd>
+<dt><b>-m</b></dt>
+<dd>Only for very large data sets. Use segment library to optimize memory
+consumption during analysis</dd>
+<dt><b>stream</b></dt>
+<dd>Stream network: name of input stream map. Map may be ordered according one
 of the r.stream.order ordering system as well as unordered (with origilan stream
 identifiers)  Because streams network produced by r.watershed and
 r.stream.extract may slighty differ in detail it is required to use both stream
@@ -19,9 +19,9 @@ and direction map produced by the same module. Stream background shall have NULL
 value or zero value. Background values of NULL are by default produced by
 r.watershed and r.stream.extract. If not 0 or NULL use <a
 href="r.mapcalc.html">r.mapcalc</a> to set background values to null.  
-</DD>
-<DT><b>dir</b></DT>
-<DD>Flow direction: name of input direction map produced by r.watershed or
+</dd>
+<dt><b>dir</b></dt>
+<dd>Flow direction: name of input direction map produced by r.watershed or
 r.stream.extract. If r.stream.extract output map is used, it only has non-NULL
 values in places where streams occur. NULL (nodata) cells are ignored, zero and
 negative values are valid direction data if they vary from -8 to 8 (CCW from
@@ -30,57 +30,58 @@ resolution and map resoultion must be the same.
 Also <em>stream</em> network map must have the same resolution. It is checked by
 default. If resolutions differ the module informs about it and stops. Region
 boundary and maps boundary may be differ but it may lead to unexpected
-results.</DD>
-<DT><b>elevation</b></DT>
-<DD>Elevation: name of input elevation map. Map can be of type CELL, FCELL or
+results.</dd>
+<dt><b>elevation</b></dt>
+<dd>Elevation: name of input elevation map. Map can be of type CELL, FCELL or
 DCELL. It is not restricted to resolution of region settings as streams and
-dirs.</DD>
-</DL>
+dirs.</dd>
+</dl>
 <h2>OUTPUTS</h2>
-<DL>
-<DT><b>distance</b></DT>
-<DD>Upstream distance of current cell to the init/join. Flag modifications: <BR>
-<b>d:</b> downstream distance of current cell to the join/outlet;<BR>
+<dl>
+<dt><b>distance</b></dt>
+<dd>Upstream distance of current cell to the init/join. Flag modifications: <br>
+<b>d:</b> downstream distance of current cell to the join/outlet;<br>
 <b>l:</b> local distance between current cell and next cell. In most cases cell
 resolution and sqrt2 of cell resolution. usefull when projection is LL or NS and
-WE resolutions differs. Flag d ignored<BR>
+WE resolutions differs. Flag d ignored<br>
 <b>c:</b> distance in cells. Map is written as double. Use mapcalc to convetrt
-to integer. Flags l and d ignored.<BR>
-</DD>
-<DT><b>difference</b></DT>
-<DD>Upstream elevation difference between current cell to the init/join. It we
+to integer. Flags l and d ignored.<br>
+</dd>
+<dt><b>difference</b></dt>
+<dd>Upstream elevation difference between current cell to the init/join. It we
 need to calculate parameters different than elevation. If we need to calculate
 different parameters than elevation along streams (for example precipitation or
-so) use neccesary map as elevation. Flag modifications: <BR>
-<b>d:</b> downstream difference of current cell to the join/outlet;<BR>
+so) use neccesary map as elevation. Flag modifications: <br>
+<b>d:</b> downstream difference of current cell to the join/outlet;<br>
 <b>l:</b> local difference between current cell and next cell. With flag
-calculates difference between previous cell and current cell<BR>
+calculates difference between previous cell and current cell<br>
 <b>c:</b> Ignored.
-</DD>
-<DT><b>gradient</b></DT>
-<DD>Upstream mean gradient between current cell and the init/join.  Flag
-modifications: <BR>
+</dd>
+<dt><b>gradient</b></dt>
+<dd>Upstream mean gradient between current cell and the init/join.  Flag
+modifications: <br>
 <b>d:</b> downstream mean gradient between current cell and the the
-join/outlet;<BR>
-<b>l:</b> local gradient between current cell and next cell. Flag d ignored<BR>
+join/outlet;<br>
+<b>l:</b> local gradient between current cell and next cell. Flag d ignored<br>
 <b>c:</b> Ignored.
-</DD>
-<DT><b>curvature</b></DT>
-<DD>Local stream course curvature  of current cell. Calculated according
+</dd>
+<dt><b>curvature</b></dt>
+<dd>Local stream course curvature  of current cell. Calculated according
 formula: <i>first_derivative/(1-second_derivative<sup>2</sup>)<sup>3/2</sup></i>
-Flag modifications: <BR>
-<b>d:</b> ignored;<BR>
-<b>l:</b> Ignored.<BR>
+Flag modifications: <br>
+<b>d:</b> ignored;<br>
+<b>l:</b> Ignored.<br>
 <b>c:</b> Ignored.
-</DD>
-<DT><b>identifier</b></DT>
-<DD> Integer map: In ordered stream network there are more than one segment
+</dd>
+<dt><b>identifier</b></dt>
+<dd> Integer map: In ordered stream network there are more than one segment
 (segment: a part of the network where order ramains unchanged) with the same
 order. To identify particular segments (for further analysis) every segment
-recive his unique identifier.</DD>
-</DL>
+recive his unique identifier.</dd>
+</dl>
+
 <h2>DESCRIPTION</h2>
-<P>
+<p>
 Module r.stream.channel is prepared to calculate some local properties of the
 stream network. It is suplementary module for r.stream.order, and
 r.stream.distance to investigate channel subsystem. For slope subsystem
@@ -90,14 +91,14 @@ next stream. it also may calculate parameters between outlet and segment's init.
 It can calculate parameters for every orders but best results are for these
 orders where order remains unchanged from stream init to natural outlet (Hack
 and Horton ordering).
-<P>
+<p>
 
-<h2>EGZAMPLE</h2>
+<h2>EXAMPLE</h2>
 
 This example shows how to visualise the change of gradient map along the main
 stream of the catchment:
-<PRE>
-<CODE>
+
+<div class="code"><pre>
 r.watershed elevation=elevation.10m treshold=1000 stream=streams drainage=dirs
 r.stream.order streams=streams dirs=dirs hack=hack
 r.stream.channel streams=hack dirs=dirs elevation=elevation.10m
@@ -113,8 +114,8 @@ r=readRAST6(c("stdist","stgrad"),NODATA=-9999)
 p=subset(r@data,!is.na(r@data$dist))
 sorted=p[order(p$stdist),]
 plot(sorted,stdist~stgrad,type="l")
-</CODE>
-</PRE>
+</pre></div>
+
 <h2>SEE ALSO</h2>
 
 <em>
