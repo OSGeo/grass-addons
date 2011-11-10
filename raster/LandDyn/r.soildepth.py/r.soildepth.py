@@ -3,11 +3,11 @@
 ############################################################################
 #
 # MODULE:       	r.soildepth
-# AUTHOR(S):		Isaac Ullah, Arizona State University
+# AUTHOR(S):		Isaac Ullah and Claudine Gravel-Miguel, Arizona State University
 # PURPOSE:		Create soil depth map based on hillslope curvature.
 # ACKNOWLEDGEMENTS:	National Science Foundation Grant #BCS0410269 
 #			Based on equations from Heimsath et al, 1997
-# COPYRIGHT:		(C) 2007 by Isaac Ullah, Michael Barton, Arizona State University
+# COPYRIGHT:		(C) 2011 by Isaac Ullah, Michael Barton, Claudine Gravel-Miguel Arizona State University
 #			This program is free software under the GNU General Public
 #			License (>=v2). Read the file COPYING that comes with GRASS
 #			for details.
@@ -37,7 +37,7 @@
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: Output soil depths map
-#% required : no
+#% required : yes
 #%END 
 #%option
 #% key: min
@@ -66,26 +66,9 @@ import sys
 import os
 import subprocess
 import tempfile
-
-# m is a message (as a string) one wishes to have printed in the output window
-def grass_print(m):
-	subprocess.Popen('g.message message="%s"' % m, shell='bash').wait()
-	return
-# m is grass (or bash) command to execute (written as a string). script will wait for grass command to finish
-def grass_com(m):
-	subprocess.Popen('%s' % m, shell='bash').wait()
-	return
-# m is a grass/bash command that will generate some list of keyed info to stdout, n is the character that seperates the key from the data, o is a defined blank dictionary to write results to
-def out2dict(m, n, o):
-    p1 = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-    p2 = p1.stdout.readlines()
-    for y in p2:
-        y0,y1 = y.split('%s' % n)
-        o[y0] = y1.strip('\n')
-# m is a grass/bash command that will generate some info to stdout. You must invoke this command in the form of "variable to be made" = out2var('command')
-def out2var(m):
-        pn = subprocess.Popen('%s' % m, stdout=subprocess.PIPE, shell='bash')
-        return pn.stdout.read()
+grass_install_tree = os.getenv('GISBASE')
+sys.path.append(grass_install_tree + os.sep + 'etc' + os.sep + 'python')
+import grass.script as grass
 
 def main():
     if os.getenv('GIS_OPT_soildepth') == None:
@@ -101,49 +84,46 @@ def main():
     tc = "temp_tc_deletable"
     temprate = "temp_rate_deletable"
     #let's grab the current resolution
-    reg1 = {}
-    out2dict('g.region -p -m -g', '=', reg1)
-    res = int(float(reg1['nsres']))
+    res = grass.region()['nsres']
     # make color rules for soil depth maps
     sdcolors = tempfile.NamedTemporaryFile()
     sdcolors.write('100% 0:249:47\n20% 78:151:211\n6% 194:84:171\n0% 227:174:217')
     sdcolors.flush()
-    grass_print('STEP 1, calculating profile and tangental curvatures\n')
-    grass_com('r.slope.aspect --quiet --overwrite format=percent elevation=%s slope=%s pcurv=%s tcurv=%s' % (elev,  slope,  pc,  tc))
-    grass_print('STEP 2, Calculating soil depth ratios across the landscape\n')
-    grass_com('r.mapcalc "' + temprate + '=eval(x = (-1*(' + pc + '+' + tc + ')), y = (if(' + slope + ' < 1, 1, ' + slope + ')), ((50*x)+50)/y)"')
+    grass.message('STEP 1, calculating profile and tangental curvatures\n')
+    grass.run_command('r.slope.aspect', quiet = "True", overwrite = "True", format='percent', elevation=elev, slope=slope, pcurv=pc, tcurv=tc)
+    grass.message('STEP 2, Calculating soil depth ratios across the landscape\n')
+    grass.mapcalc("${temprate}=eval(x = (-1.000*(${pc} + ${tc})), y = (if(${slope} < 1.000, 1.000, ${slope})), ((50.000*x)+50.000)/y)", quiet = "True", temprate = temprate, pc = pc, tc = tc, slope = slope)
     # create dictionary to record max and min rate so we can rescale it according the user supplied max and min desired soil depths
-    ratedict = {}
-    out2dict('r.info -r map=%s' % temprate, '=', ratedict)
-    grass_print('STEP 3, Calculating actual soil depths across the landscape (based on user input min and max soil depth values)\n')
+    ratedict = grass.parse_command('r.info', flags = 'r', map=temprate)
+    grass.message('STEP 3, Calculating actual soil depths across the landscape (based on user input min and max soil depth values)\n')
     #creating and running a linear regression to scale the calculated landform soil depth ratios into real soil dpeths using user specified min and max soil depth values
     #grass_com('r.mapcalc "' + soildepth + '=eval(x = ((' + ratedict['max'] + '-' + max +')/(' + ratedict['min'] + '-' + min + ')), y = (' + ratedict['max'] + '-(y*' + ratedict['min'] + ')), (y*' + temprate + ')+x)"')  #####this is the discreet way using mapcalc, I thik the r.recode way (below) may be faster
     recode =  tempfile.NamedTemporaryFile()
     recode.write('%s:%s:%s:%s' % (ratedict['min'] , ratedict['max'] ,  min,  max))
     recode.flush()
-    grass_com('r.recode --quiet input=%s output=%s rules=%s' % (temprate,  soildepth,  recode.name))
+    grass.run_command('r.recode', quiet = "True", input=temprate, output=soildepth, rules=recode.name)
     recode.close()
     #grab some stats if asked to
     if os.getenv('GIS_FLAG_s') == '1':
-        depthdict = {}
-        out2dict('r.univar -ge map=' + soildepth + ' percentile=90', '=',  depthdict)
-    grass_print('STEP 4, calculating bedrock elevation map\n')
-    grass_com('r.mapcalc "' + bedrock + '=(' + elev + ' - ' + soildepth + ')"')
-    grass_print('Cleaning up...')
+        depthdict = grass.parse_command('r.univar', flags = "ge", map=soildepth, percentile=90)
+    grass.message('STEP 4, calculating bedrock elevation map\n')
+    grass.mapcalc("${bedrock}=(${elev} - ${soildepth})", quiet = "True", bedrock = bedrock, elev = elev, soildepth = soildepth)
+    grass.message('Cleaning up...')
     if os.getenv('GIS_FLAG_k') == '1':
-        grass_com('g.remove --quiet rast=' + pc + ',' + tc)
-        grass_com('g.rename --quiet rast=' + temprate + ',' + bedrock + '_rate')
+        grass.run_command('g.remove', quiet = "true", rast = [pc, tc, slope])
+        grass.run_command('g.rename', quiet = "true", rast = "%s,%s%s_rate" % (temprate, temprate, bedrock))
     else:
-        grass_com('g.remove --quiet rast=' + pc + ',' + tc + ',' + temprate)
+        grass.run_command('g.remove', quiet = "True", rast = [pc, tc, temprate, slope])
     if os.getenv('GIS_OPT_soildepth') is None:
-        grass_com('g.remove --quiet rast=' + soildepth)
+        grass.run_command('g.remove', quiet = "true", rast = soildepth)
     else:
-        grass_com('r.colors --quiet  map=%s rules=%s' % (soildepth ,  sdcolors.name))
-    grass_print('\nDONE!\n')
+        grass.run_command('r.colors', quiet = "True", map=soildepth, rules=sdcolors.name)
+    grass.message('\nDONE!\n')
     if os.getenv('GIS_FLAG_s') == '1':
+        # have to figure that part out!
         for key in depthdict.keys():
-            grass_print('%s=%s' % (key,  depthdict[key]))
-        grass_print('Total volume of soil is %s cubic meters' % (float(depthdict['sum'])*res))
+            grass.message('%s=%s' % (key,  depthdict[key]))
+        grass.message('Total volume of soil is %s cubic meters' % (float(depthdict['sum'])*res))
     return
     
 # here is where the code in "main" actually gets executed. This way of programming is neccessary for the way g.parser needs to run.
