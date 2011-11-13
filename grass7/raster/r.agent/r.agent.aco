@@ -26,7 +26,7 @@
 #% required : yes
 #%end
 #%option
-#% key: inpheromap
+#% key: inputmap
 #% type: string
 #% gisprompt: old,cell,raster
 #% description: Name of pheromone map, input raster data (e.g. from prior run)
@@ -63,19 +63,35 @@
 #% required : no
 #%end
 #%option
+#% key: highcostlimit
+#% type: integer
+#% gisprompt: number
+#% description: Position values above this point an ant considers as an illegal
+#% options: 0-<max integer on system would make sense>
+#% required : no
+#%end
+#%option                                                       
+#% key: lowcostlimit
+#% type: integer
+#% gisprompt: number
+#% description: Position values below this point an ant considers as an illegal
+#% options: <min integer on system would make sense>-0
+#% required : no
+#%end
+#%option
 #% key: maxpheromone
 #% type: integer
 #% gisprompt: number
-#% description: Maximum value for pheromone
-#% options: 0-2147483647
+#% description: Absolute maximum of pheromone intensity a position may have
+#% options: <minpheromone>-<max integer on system would make sense>
 #% required : no
 #%end
 #%option
 #% key: minpheromone
 #% type: integer
 #% gisprompt: number
-#% description: Name of vector data map that shows possible points of origin
-#% options: 0-2147483647
+#% description: Absolute minimum of pheromone intensity to leave on playground
+#% options: 0-<maxpheromone>
 #% required : no
 #%end
 #%option
@@ -83,7 +99,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Half-life for pheromone to volatize
-#% options: 0-2147483647
+#% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
 #%option
@@ -91,7 +107,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Pheromone intensity to leave on each step
-#% options: 0-2147483647
+#% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
 #%option
@@ -99,7 +115,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Pheromone intensity to leave on found paths
-#% options: 0-2147483647
+#% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
 #%option
@@ -107,7 +123,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Maximum amount of ants that may live concurrently
-#% options: 0-2147483647
+#% options: 0-<the bigger the playground, the more space they have>
 #% required : no
 #%end
 #%option
@@ -115,7 +131,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Time to live for an ant
-#% options: 0-2147483647
+#% options: 0-<e.g. for times distance between points>
 #% required : no
 #%end
 #%option
@@ -179,8 +195,8 @@ def main():
     world.costsurface = layer.raster
     world.playground.setboundsfromlayer("costs")
 
-    if options['inpheromap']:
-        layer = world.importlayer("phero", "raster", options['inpheromap'])
+    if options['inputmap']:
+        layer = world.importlayer("phero", "raster", options['inputmap'])
         world.outfilename = options['outputmap']
     else:
         layer = world.createlayer("phero", "raster", None, options['outputmap'])
