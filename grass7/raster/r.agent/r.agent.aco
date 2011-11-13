@@ -29,7 +29,7 @@
 #% key: inputmap
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of input pheromone map, raster data (e.g. from prior run)
+#% description: Name of input pheromone map, raster data (e.g. from prior run, set 'overwrite' to True if identical to output)
 #% required : no
 #%end
 #%flag
@@ -38,7 +38,7 @@
 #%end
 #%flag
 #% key: overwritecosts
-#% description: Allow overwriting existing cost maps (convert first)
+#% description: Allow overwriting existing cost map (after convertion)
 #%end
 #%option
 #% key: costmap
@@ -49,7 +49,7 @@
 #%end
 #%flag
 #% key: convert
-#% description: Convert and overwrite cost (slope++) to penalty map first (using "tobler", see docu)
+#% description: Convert cost (slope..) to penalty map first (using "tobler", see docu) - use overwrite for permanent map
 #%end
 #%option
 #% key: sitesmap
