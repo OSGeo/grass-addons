@@ -29,27 +29,27 @@
 #% key: inputmap
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of input pheromone map, raster data (e.g. from prior run, set 'overwrite' to True if identical to output)
+#% description: Name of input pheromone raster map (e.g. from prior run)
 #% required : no
 #%end
 #%flag
 #% key: overwrite
-#% description: Allow overwriting existing pheromone maps (in = out)
+#% description: Allow overwriting existing pheromone maps (e.g. if in == out)
 #%end
 #%flag
 #% key: overwritecosts
-#% description: Allow overwriting existing cost map (after convertion)
+#% description: Overwrite existing cost map (only used with penalty conversion)
 #%end
 #%option
 #% key: costmap
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of penalty (resp. cost) map, input raster data (note checkbox for cost to penalty converstion)
+#% description: Name of penalty resp. cost raster map (note conversion checkbox)
 #% required : yes
 #%end
 #%flag
 #% key: convert
-#% description: Convert cost (slope..) to penalty map first (using "tobler", see docu) - use overwrite for permanent map
+#% description: Convert cost (slope..) to penalty map (using "tobler", see docu)
 #%end
 #%option
 #% key: sitesmap
@@ -79,7 +79,7 @@
 #% key: highcostlimit
 #% type: integer
 #% gisprompt: number
-#% description: Position values above this point an ant considers as an illegal
+#% description: Penalty values above this point an ant considers as illegal
 #% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
@@ -87,7 +87,7 @@
 #% key: lowcostlimit
 #% type: integer
 #% gisprompt: number
-#% description: Position values below this point an ant considers as an illegal
+#% description: Penalty values below this point an ant considers as illegal
 #% options: <min integer on system would make sense>-0
 #% required : no
 #%end
@@ -151,7 +151,7 @@
 #% key: decisionalgorithm
 #% type: string
 #% gisprompt: algorithm
-#% description: What algorithm is used for walking step
+#% description: Algorithm used for walking step
 #% answer: standard
 #% options: standard,random,test
 #% required : yes
@@ -160,7 +160,7 @@
 #% key: validposition
 #% type: string
 #% gisprompt: algorithm
-#% description: What algorithm is used for finding and remembering paths
+#% description: Algorithm used for finding and remembering paths
 #% answer: avoidorforgetloop
 #% options: specials,avoidloop,forgetloop,avoidorforgetloop
 #% required : yes
@@ -169,7 +169,7 @@
 #% key: agentfreedom
 #% type: integer
 #% gisprompt: number
-#% description: What are the possible directions the ant can take
+#% description: Number of possible directions the ant can take (4 or 8)
 #% options: 4,8
 #% required : no
 #%end
@@ -196,7 +196,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: How is the penalty value (C) weighted when walking (p*P:r*R:c*C)
-#% answer: 1
+#% answer: 0
 #% options: 0-999
 #% required : yes
 #%end
