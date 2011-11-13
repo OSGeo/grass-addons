@@ -11,7 +11,7 @@ better extendability.
 <p>
 As a first world example there is an ACO-based environment
 (see <a href="http://en.wikipedia.org/wiki/Ant_colony_optimization_algorithms">Ant Colony Optimization</a>)
-available.
+available (in <em>libold</em> see below..).
 <p>
 The basic concept of such an ACO world, is to take some cost surface
 and transform it to a penalty layer - where for human ants for example
@@ -26,11 +26,11 @@ originated, marking their way with pheromones. While this
 pheromone vanishes over time, the following agents are more likely
 to choose their next steps to a position that smells most.
 <p>
-This toolset was mainly developed for
+This first toolset was mainly developed for
 <a href="http://www.topoi.org/group/a-iii-4/">Topoi Project A-III-4</a>,
 with some
 inspirations from previous work conducted at the
-<a href="http://www.unibe.ch/">Uni Bern</a>.
+<a href="http://www.unibe.ch/">Uni Bern</a> in 2008.
 
 
 <h2>NOTES</h2>
@@ -39,8 +39,12 @@ The state of this software is: "first do it".
 This is work in progress and its structure will probably change quite a lot
 in the future due to a better integration in GRASS and other refactoring.
 <p>
-Unfortunately this script colletion is not very well included in GRASS yet.
-At the moment <em>r.agent</em> only handles ASCII grid and vector in- and
+The refactoring causes <em>r.agent</em> to not work for the moment. The general
+behaviour can be seen by changeing the imports in <em>r.agent.aco</em>
+to the old library <em>libold</em> -- <em>libagent</em> is coming soon.
+<p>
+Unfortunately the colletion is not very well included in GRASS yet.
+At the moment <em>libold</em> only handles ASCII grid and vector in- and
 output data. With a better GRASS integration (arrays) not only will the code
 get lighter but also these drawbacks shall vanish.
 <p>
@@ -49,8 +53,9 @@ ACO works best on dynamic maps -- it constantly tries to improve paths...
 
 <h2>EXAMPLE</h2>
 
-A fictive usecase could look something like this (note: at the moment the
-in- and output variables are still ascii-files):
+A fictive usecase could look something like this
+(note: at the moment the
+in- and output variables with <em>libold</em>, are still ascii-files):
 <p>
 <div class="code"><pre>
 r.agent.aco outputmap=out.map penaltymap=testpenalty.grid \
@@ -67,15 +72,11 @@ of each python file, use this test collection
 <div class="code"><pre>
 user@host:~$ cd /&lt;pathtoaddons&gt;/r.agent/libagent
 
-user@host:libagent$ ./alltests.py
+user@host:libold$ ./alltests.py
 </pre></div>
 
 <h2>TODO</h2>
 
-Add GRASS headers (?).
-<p>
-Cleanup.
-<p>
 Integrate it directly within grass.
 <p>
 Improve encapsulation of classes.
