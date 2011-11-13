@@ -50,6 +50,19 @@ def testWorld():
     """Test suite for Class: World"""
     w = world.World()
 
+def testACO():
+    """Test suite for World-Class: ACO"""
+    w = aco.ACO()
+
+def testAgent(ttl):
+    """Test suite for Class: Agent"""
+    w = world.World()
+    w = agent.Agent(ttl, w)
+
+def testAnt(ttl, position):
+    """Test suite for Agent-Class: Ant"""
+    w = world.World()
+    w = ant.Ant(ttl, w, position)
 
 if __name__ == "__main__":
     """Main method for testing when run as a script."""
@@ -57,10 +70,16 @@ if __name__ == "__main__":
     from libagent import error
     from libagent import playground
     from libagent import world
+    from libagent import aco
+    from libagent import agent
+    from libagent import ant
 
     alltests = {"error":[testError, ["Error Test Suite", "(this error is good)"]],
                 "playground":[testPlayground, []],
-                "world":[testWorld, []]}
+                "world":[testWorld, []],
+                "aco":[testACO, []],
+                "Agent":[testAgent, [1]],
+                "Ant":[testAnt, [1, []]]}
 
     if len(sys.argv) == 1:
         for test,details in alltests.iteritems():

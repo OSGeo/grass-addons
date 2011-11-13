@@ -11,8 +11,6 @@
 #
 #############################################################################
 
-import world
-
 class Agent(object):
     """Generic Agent class with limited capabilities, as a basis for
        child classes."""

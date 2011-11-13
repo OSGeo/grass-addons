@@ -11,6 +11,10 @@
 #
 #############################################################################
 
+import agent
+import playground
+import error
+
 class World(object):
     """Generic World class as basis for more complex worlds."""
     def __init__(self, agenttype=None, pg=None):
