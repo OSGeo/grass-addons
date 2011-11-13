@@ -64,7 +64,6 @@
 #% type: integer
 #% gisprompt: number
 #% description: Produce output after this number of rounds run
-#% answer: 999
 #% options: 0-999999
 #% required : no
 #%end
@@ -89,7 +88,6 @@
 #% type: integer
 #% gisprompt: number
 #% description: Absolute maximum of pheromone intensity a position may have
-#% answer: 999999999
 #% options: <minpheromone>-<max integer on system would make sense>
 #% required : no
 #%end
@@ -98,7 +96,6 @@
 #% type: integer
 #% gisprompt: number
 #% description: Absolute minimum of pheromone intensity to leave on playground
-#% answer: 9
 #% options: 0-<maxpheromone>
 #% required : no
 #%end
@@ -115,7 +112,6 @@
 #% type: integer
 #% gisprompt: number
 #% description: Pheromone intensity to leave on each step
-#% answer: 9
 #% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
@@ -124,7 +120,6 @@
 #% type: integer
 #% gisprompt: number
 #% description: Pheromone intensity to leave on found paths
-#% answer: 999
 #% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
@@ -132,7 +127,7 @@
 #% key: maxants
 #% type: integer
 #% gisprompt: number
-#% description: Maximum amount of ants that may live concurrently
+#% description: Maximum amount of ants that may live concurrently (x*y)
 #% options: 0-<the bigger the playground, the more space they have>
 #% required : no
 #%end
@@ -140,7 +135,7 @@
 #% key: antslife
 #% type: integer
 #% gisprompt: number
-#% description: Time to live for an ant (e.g. for times points distance)
+#% description: Time to live for an ant (e.g. four times points distance)
 #% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
@@ -151,7 +146,7 @@
 #% description: What algorithm is used for walking step
 #% answer: standard
 #% options: standard,random,test
-#% required : no
+#% required : yes
 #%end
 #%option
 #% key: validposition
@@ -160,7 +155,7 @@
 #% description: What algorithm is used for finding and remembering paths
 #% answer: avoidorforgetloop
 #% options: specials,avoidloop,forgetloop,avoidorforgetloop
-#% required : no
+#% required : yes
 #%end
 #%option
 #% key: agentfreedom
@@ -174,28 +169,28 @@
 #% key: pheromoneweight
 #% type: integer
 #% gisprompt: number
-#% description: How is the pheromone value weighted when walking
+#% description: How is the pheromone value (P) weighted when walking (p*P:r*R:c*C)
 #% answer: 1
 #% options: 0-999
-#% required : no
+#% required : yes
 #%end
 #%option
 #% key: randomnessweight
 #% type: integer
 #% gisprompt: number
-#% description: How is the random value weighted when walking
+#% description: How is the random value (R) weighted when walking (p*P:r*R:c*C)
 #% answer: 1
 #% options: 0-999
-#% required : no
+#% required : yes
 #%end
 #%option
 #% key: costweight
 #% type: integer
 #% gisprompt: number
-#% description: How is the penalty value weighted when walking
+#% description: How is the penalty value (C) weighted when walking (p*P:r*R:c*C)
 #% answer: 1
 #% options: 0-999
-#% required : no
+#% required : yes
 #%end
 
 import sys
