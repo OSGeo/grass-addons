@@ -22,7 +22,7 @@
 #% key: outputmap
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of penalty output map
+#% description: Name of pheromone output map
 #% required : yes
 #%end
 #%option
@@ -34,14 +34,22 @@
 #%end
 #%flag
 #% key: overwrite
-#% description: Allow overwriting existing maps
+#% description: Allow overwriting existing pheromone maps (in = out)
+#%end
+#%flag
+#% key: overwritecosts
+#% description: Allow overwriting existing cost maps (convert first)
 #%end
 #%option
-#% key: penaltymap
+#% key: costmap
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of penalty map, input raster data
+#% description: Name of penalty (resp. cost) map, input raster data (note checkbox for cost to penalty converstion)
 #% required : yes
+#%end
+#%flag
+#% key: convert
+#% description: Convert and overwrite cost (slope++) to penalty map first (using "tobler", see docu)
 #%end
 #%option
 #% key: sitesmap
@@ -54,7 +62,7 @@
 #% key: rounds
 #% type: integer
 #% gisprompt: number
-#% description: Number of rounds to run (iterations)
+#% description: Number of iterations/rounds to run
 #% answer: 999
 #% options: 0-999999
 #% required : yes
@@ -63,7 +71,7 @@
 #% key: outrounds
 #% type: integer
 #% gisprompt: number
-#% description: Produce output after this number of rounds run
+#% description: Produce output after running this number of iterations/rounds
 #% options: 0-999999
 #% required : no
 #%end
