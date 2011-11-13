@@ -11,45 +11,45 @@
 #
 #############################################################################
 
-import agent
-import playground
 import error
+import playground
+import agent
 
 class World(object):
     """Generic World class as basis for more complex worlds."""
     def __init__(self, agenttype=None, pg=None):
-#        if pg == None:
-#            self.playground = playground.Playground()
-#        else:
-#            self.playground = pg
-#        self.agentclass = agent.Agent
-#        if agenttype == None:
-#            self.agenttype = self.agentclass
-#        else:
-#            self.setagenttype(agenttype)
+        if pg == None:
+            self.playground = playground.Playground()
+        else:
+            self.playground = pg
+        self.agentclass = agent.Agent
+        if agenttype == None:
+            self.agenttype = self.agentclass
+        else:
+            self.setagenttype(agenttype)
         self.agents = []
         self.artefacts = []
-    def addlayertopg(layername, layertype):
+    def addlayertopg(self, layername, layertype):
         pass
-    def getlayer(layername):
+    def getlayer(self, layername):
         pass
 #       return layer
-    def rmlayer(layername):
+    def rmlayer(self, layername):
         pass
-    def setagentype(agentype):
+    def setagenttype(self, agentype):
         pass
-    def getagenttype():
+    def getagenttype(self):
         pass
 #       return agenttype
-    def bear(timetolive, position, agenttype):
+    def bear(self, timetolive, position, agenttype):
         pass
 #       return agent
     def getnextagent():
-        return next(agents)
-    def move(agent, position):
+        return next(self, agents)
+    def move(self, agent, position):
         pass
-    def getposition(agent):
+    def getposition(self, agent):
         pass
-    def kill(agent):
+    def kill(self, agent):
         pass
 

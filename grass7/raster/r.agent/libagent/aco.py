@@ -11,17 +11,17 @@
 #
 #############################################################################
 
+import error
+import world
+import ant
+
 from math import sqrt
 from math import exp
 from random import randint
-import world
-import error
-import ant
 
 class ACO(world.World):
     """World class for using the Ant Colony Optimization Algorithm for
        modelling Agent Based worlds."""
     def __init__(self):
-        world.World.__init__(self)
         world.World.__init__(self, ant.Ant)
 
