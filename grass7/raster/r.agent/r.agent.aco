@@ -29,8 +29,12 @@
 #% key: inputmap
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Name of pheromone map, input raster data (e.g. from prior run)
+#% description: Name of input pheromone map, raster data (e.g. from prior run)
 #% required : no
+#%end
+#%flag
+#% key: overwrite
+#% description: Allow overwriting existing maps
 #%end
 #%option
 #% key: penaltymap
@@ -50,7 +54,8 @@
 #% key: rounds
 #% type: integer
 #% gisprompt: number
-#% description: Number of rounds to run
+#% description: Number of rounds to run (iterations)
+#% answer: 999
 #% options: 0-999999
 #% required : yes
 #%end
@@ -59,6 +64,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Produce output after this number of rounds run
+#% answer: 999
 #% options: 0-999999
 #% required : no
 #%end
@@ -83,6 +89,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Absolute maximum of pheromone intensity a position may have
+#% answer: 999999999
 #% options: <minpheromone>-<max integer on system would make sense>
 #% required : no
 #%end
@@ -91,6 +98,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Absolute minimum of pheromone intensity to leave on playground
+#% answer: 9
 #% options: 0-<maxpheromone>
 #% required : no
 #%end
@@ -98,7 +106,7 @@
 #% key: volatilizationtime
 #% type: integer
 #% gisprompt: number
-#% description: Half-life for pheromone to volatize
+#% description: Half-life for pheromone to volatize (e.g. =rounds)
 #% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
@@ -107,6 +115,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Pheromone intensity to leave on each step
+#% answer: 9
 #% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
@@ -115,6 +124,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: Pheromone intensity to leave on found paths
+#% answer: 999
 #% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
@@ -130,8 +140,8 @@
 #% key: antslife
 #% type: integer
 #% gisprompt: number
-#% description: Time to live for an ant
-#% options: 0-<e.g. for times distance between points>
+#% description: Time to live for an ant (e.g. for times points distance)
+#% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
 #%option
@@ -139,6 +149,7 @@
 #% type: string
 #% gisprompt: algorithm
 #% description: What algorithm is used for walking step
+#% answer: standard
 #% options: standard,random,test
 #% required : no
 #%end
@@ -146,7 +157,8 @@
 #% key: validposition
 #% type: string
 #% gisprompt: algorithm
-#% description: What algorithm is used for finding and remembering paths 
+#% description: What algorithm is used for finding and remembering paths
+#% answer: avoidorforgetloop
 #% options: specials,avoidloop,forgetloop,avoidorforgetloop
 #% required : no
 #%end
@@ -163,6 +175,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: How is the pheromone value weighted when walking
+#% answer: 1
 #% options: 0-999
 #% required : no
 #%end
@@ -171,6 +184,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: How is the random value weighted when walking
+#% answer: 1
 #% options: 0-999
 #% required : no
 #%end
@@ -179,6 +193,7 @@
 #% type: integer
 #% gisprompt: number
 #% description: How is the penalty value weighted when walking
+#% answer: 1
 #% options: 0-999
 #% required : no
 #%end
