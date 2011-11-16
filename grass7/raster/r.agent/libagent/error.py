@@ -12,11 +12,7 @@
 #############################################################################
 
 class Error(Exception):
-    """Base class for exceptions in this module."""
-    pass
-
-class DataError(Error):
-    """Exception raised for errors in the input.
+    """Base class for exceptions in this module.
 
     Attributes:
         expr -- Context expression in which the error occurred
@@ -25,6 +21,23 @@ class DataError(Error):
     def __init__(self, expr, msg):
         self.expr = expr
         self.msg = msg
-        print "DataError: " + expr + " " + msg
+    def __str__(self):
+        return self.expr + " '" + self.msg + "'"
+
+class EnvError(Error):
+    """Exception raised for missing GRASS environement.
+
+    Attributes:
+        expr -- Context expression in which the error occurred
+        msg  -- explanation of the error
+    """
+
+class DataError(Error):
+    """Exception raised for errors in the input.
+
+    Attributes:
+        expr -- Context expression in which the error occurred
+        msg  -- explanation of the error
+    """
 
 
