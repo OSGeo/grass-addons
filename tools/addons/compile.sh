@@ -18,6 +18,9 @@ cd $SVN_PATH
 mkdir $ADDON_PATH/log
 touch $ADDON_PATH/make.log
 
+echo "-----------------------------------------------------"
+echo "AddOns '$ADDON_PATH'..."
+echo "-----------------------------------------------------"
 for c in "display" "general" "imagery" "raster" "vector"; do
     if [ ! -d $c ]; then
 	continue
@@ -25,7 +28,7 @@ for c in "display" "general" "imagery" "raster" "vector"; do
     cd $c
     for m in `ls -d */ 2>/dev/null` ; do
 	m="${m%%/}"
-	echo "Compiling $m..."
+	echo -n "Compiling $m..."
 	cd $m
 	make MODULE_TOPDIR=$TOPDIR \
 	    BIN=$ADDON_PATH/bin \
@@ -36,8 +39,10 @@ for c in "display" "general" "imagery" "raster" "vector"; do
 	    MANIFEST= WINDRES= MANIFEST_OBJ= >$ADDON_PATH/log/${m}.log 2>&1
 	if [ `echo $?` -eq 0 ] ; then
 	    printf "%-30s%s\n" "$c/$m" "SUCCESS" >> $ADDON_PATH/make.log
+	    echo " SUCCESS"
 	else
 	    printf "%-30s%s\n" "$c/$m" "FAILED" >> $ADDON_PATH/make.log
+	    echo " FAILED"
 	fi
 	cd ..
     done
