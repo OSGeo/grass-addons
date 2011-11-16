@@ -1,7 +1,7 @@
 #!/bin/sh
 
 compile() {
-    ./compile.sh $1 $2 $3
+    ./compile.sh $1 $2 $3 1
 }
 
 build_xml() {

@@ -2,10 +2,12 @@
 
 import os
 import sys
+import glob
 
 def get_list(addons):
-    mlist = os.listdir(os.path.join(addons, 'bin')) + \
-        os.listdir(os.path.join(addons, 'scripts'))
+    mlist = os.listdir(os.path.join(addons))
+    for f in ('log', 'make.log', 'modules.xml'):
+        mlist.remove(f)
     mlist.sort()
     return mlist
 
@@ -28,9 +30,6 @@ def start_grass(mlist, g7 = True):
     gsetup.init(gisbase,
                 gisdbase, location, mapset)
  
-    os.environ['PATH'] += os.pathsep + os.path.join(sys.argv[1], 'bin') + os.pathsep + \
-        os.path.join(sys.argv[1], 'scripts')
-
 def parse_modules(fd, mlist):
     indent = 4
     for m in mlist:
@@ -40,18 +39,46 @@ def parse_modules(fd, mlist):
         indent += 4
         fd.write('%s<description>%s</description>\n' % (' ' * indent, desc))
         fd.write('%s<keywords>%s</keywords>\n' % (' ' * indent, ','.join(keyw)))
+        fd.write('%s<binary>\n' % (' ' * indent))
+        indent += 4
+        for f in get_module_files(m):
+            fd.write('%s<file>%s</file>\n' % (' ' * indent, f))
+        indent -= 4
+        fd.write('%s</binary>\n' % (' ' * indent))
         indent -= 4
         fd.write('%s</task>\n' % (' ' * indent))
         if desc:
             print " SUCCESS"
         else:
             print " FAILED"
+  
+
+def scandirs(path):
+    flist = list()
+    for f in glob.glob(os.path.join(path, '*') ):
+        if os.path.isdir(f):
+            flist += scandirs(f)
+        else:
+            flist.append(f)
     
+    return flist
+
+def get_module_files(name):
+    os.chdir(os.path.join(sys.argv[1], name))
+    return scandirs('*')
+                    
 def get_module_metadata(name):
     import grass.script.task as gtask
+    path = os.environ['PATH']
+    os.environ['PATH'] += os.pathsep + os.path.join(sys.argv[1], name, 'bin') + os.pathsep + \
+        os.path.join(sys.argv[1], name, 'scripts')
     try:
         task = gtask.parse_interface(name)
     except:
+        task = None
+
+    os.environ['PATH'] = path
+    if not task:
         return '', ''
     
     return task.get_description(full = True), \
@@ -61,10 +88,10 @@ def header(fd):
     import grass.script.core as grass
     fd.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     fd.write('<!DOCTYPE task SYSTEM "grass-addons.dtd">\n') # TODO
-    fd.write('<modules version=%s>\n' % grass.version()['version'])
+    fd.write('<addons version="%s">\n' % grass.version()['version'])
 
 def footer(fd):
-    fd.write('</modules>\n')
+    fd.write('</addons>\n')
 
 def main():
     if len(sys.argv) < 2:
