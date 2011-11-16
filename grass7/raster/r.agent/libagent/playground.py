@@ -12,19 +12,21 @@
 #
 #############################################################################
 
+import grass.script as grass
+
 class Playground(object):
-    """A Playground is a major component of a World,
-       defining and organizing space."""
+    """A Playground is a major component of a World, defining
+       and organizing space, and the interface to GRASS."""
     def __init__(self):
         self.layers = dict()
-        self.offset = [None,None]
-        self.limit = [None,None]
-        self.steps = []
-    def setbounds(self, north=None, south=None, east=None, west=None,
-                     rows=None, cols=None):
-        pass
-    def getbounds(self):
-        return []
+        self.region = grass.region()
+        if self.region['ewres'] != self.region['nsres']:
+            raise error.DataError("r.agent::libagent.playground.Playground()",
+                                    "Only square raster cells make sense.")
+    def getregion(self):
+        return self.region
+    def getbound(self, bound):
+        return self.region[bound]
     def setlayer(self, layername, layer, force=False):
         pass
     def createlayer(self, layername, grassmap=False):

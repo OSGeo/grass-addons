@@ -15,7 +15,6 @@
 #
 #############################################################################
 
-
 def dotest(function, argv):
     """Global wrapper for the individual test suits."""
     while True:
@@ -45,6 +44,8 @@ def testError(expr, msg):
 def testPlayground():
     """Test suite for Class: Playground"""
     pg = playground.Playground()
+    
+    print(pg.region)
 
 def testWorld():
     """Test suite for Class: World"""
@@ -67,14 +68,21 @@ def testAnt(ttl, position):
 if __name__ == "__main__":
     """Main method for testing when run as a script."""
     import sys
+    import os
+
     from libagent import error
+
+    if os.environ.get("GISBASE") == None:
+        raise error.EnvError("r.agent::TestSuite", "Please run inside GRASS.")
+
     from libagent import playground
     from libagent import world
     from libagent import aco
     from libagent import agent
     from libagent import ant
 
-    alltests = {"error":[testError, ["Error Test Suite", "(this error is good)"]],
+    alltests = {"error":[testError, ["Error Test Suite",
+                     "(this error is good)"]],
                 "playground":[testPlayground, []],
                 "world":[testWorld, []],
                 "aco":[testACO, []],
