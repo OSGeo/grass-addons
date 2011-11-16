@@ -67,6 +67,14 @@ value corrected for the number of explaining variables and the BIC value
 identical to the R-function stepAIC with k = log(n). AICc is not
 available through the R-function stepAIC.
 
+<h2>EXAMPLE</h2>
+
+North Carolina dataset:
+<div class="code"><pre>
+g.region rast=soils_Kfactor
+r.regression.multi mapx=elevation,aspect,slope mapy=soils_Kfactor
+</pre></div>
+
 <h2>AUTHOR</h2>
 
 Markus Metz
