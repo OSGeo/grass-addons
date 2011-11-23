@@ -7,6 +7,10 @@
 #####################################
 C-code:
 
+r.pi.corrwin and r.pi.corrwindow seem to be duplicates, the main.c version 
+are slightly different, but r.pi.corrwin seems to be newer - correct?
+
+
 - remmove custom 'quiet' flag
 - convert C++ style comments
 - code must conform to C89 (variable declarations)
