@@ -12,12 +12,12 @@ An example for the North Carolina sample dataset:
 
 generating a patch index map for later export:
 <div class="code"><pre>
-<b> r.pi.index input=</b>landclass96 <b>output=</b>landclass96_forestclass5_area <b>keyval=</b>5 <b>method=</b>area
+r.pi.index input=landclass96 output=landclass96_forestclass5_area keyval=5 method=area
 </pre></div>
 
 export this resulting map:
 <div class="code"><pre>
-<b>r.pi.export input=</b>landclass96_forestclass5_area <b>output=</b>patch_area_out <b>values=</b>patch_area_values <b>id_raster=</b>forestclass5_ID <b>stats=</b>average,variance,min
+r.pi.export input=landclass96_forestclass5_area output=patch_area_out values=patch_area_values id_raster=forestclass5_ID stats=average,variance,min
 </pre></div>
 
 various resulting files are generated:<br>
