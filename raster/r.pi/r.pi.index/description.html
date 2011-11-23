@@ -82,19 +82,19 @@ set region settings to used landcover class map:
 
 computation of patch size (patch definition: 4-neighbourhood rule)
 <div class="code"><pre>
-<b> r.pi.index input=</b>landclass96 <b>output=</b>landclass96_forestclass5_area <b>keyval=</b>5 <b>method=</b>area
+r.pi.index input=landclass96 output=landclass96_forestclass5_area keyval=5 method=area
 # improve colouring of resulting map: 
-<b>r.colors</b> landclass96_forestclass5_area <b>col=</b>bgyr
+r.colors landclass96_forestclass5_area col=bgyr
 </pre></div>
 
 computation of patch size (patch definition: 8-neighbourhood rule)
 <div class="code"><pre>
-<b>r.pi.index input=</b>landclass96 <b>output=</b>landclass96_forestclass5_area <b>keyval=</b>5 <b>method=</b>area <b>-a</b>
+r.pi.index input=landclass96 output=landclass96_forestclass5_area keyval=5 method=area -a
 </pre></div>
 
 computation of patch isolation (euclidean distance to 1. nearest neighbour; patch definition: 4-neighbourhood rule)
 <div class="code"><pre>
-<b>r.pi.index input=</b>landclass96 <b>output=</b>landclass96_forestclass5_ENN <b>keyval=</b>5 <b>method=</b>ENN <b>-a</b>
+r.pi.index input=landclass96 output=landclass96_forestclass5_ENN keyval=5 method=ENN -a
 </pre></div>
 
 
