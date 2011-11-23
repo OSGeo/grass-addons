@@ -31,15 +31,14 @@ dist_weight = 1: no distance weight applied, common static edge depth used
 
 <h3>propmap</h3>
 
-# if 0 is taken, values will be propagated infinitely
-#
-# propmethod=linear: propagated value = actual value - (propmap value at this position)
-# propmethod=exponential: propagated value = actual value / (propmap value at this position)
+The <em>propmap</em> minimizes the effect of the edge depth and the surrounding matrix. This has an ecological application if certain landscape features inside a e.g. forest fragment hamper the human impact (edge effects). <br>
 
-# if 0 using the linear method, then propagated value=actual value and hence everything will be buffered
-# in order to minimize the impact of the propagation the value must be larger than 1. for the exponential value a value of below 1 should not be chosen, otherwise it will be propagated infinitely
+two method exist:<br>
 
+propmethod=linear: propagated value = actual value - (propmap value at this position)<br>
+propmethod=exponential: propagated value = actual value / (propmap value at this position) <br>
 
+If 0 is chosen using the linear method, then propagated value=actual value which results in a buffering of the whole region. In order to minimize the impact the value must be larger than 1. For the exponential method a value of below 1 should not be chosen, otherwise it will be propagated infinitely.
 
 
 
