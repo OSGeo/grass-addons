@@ -1,7 +1,7 @@
 /*
  ****************************************************************************
  *
- * MODULE:       r.pi.iter
+ * MODULE:       r.pi.enn.iter
  * AUTHOR(S):    Elshad Shirinov, Dr. Martin Wegmann
  * PURPOSE:      Iterative removal of patches and analysis of patch relevance
  *

@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../..
 
-PGM = r.fragment.iter
+PGM = r.pi.enn.iter
 
 LIB_NAME = grass_rpi
 RPI_LIB  = -l$(LIB_NAME)
