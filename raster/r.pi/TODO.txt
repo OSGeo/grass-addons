@@ -1,15 +1,10 @@
-@ Martin
-
-- renaming:
-  - a name concept should be discussed
-  - I renamed all modules to r.pi.*
-
 #####################################
 C-code:
 
 r.pi.corrwin and r.pi.corrwindow seem to be duplicates, the main.c version 
 are slightly different, but r.pi.corrwin seems to be newer - correct?
 
+- r.pi.energy,r.pi.energy.iter,r.pi.searchtime have "overwrite" as default, need to be changed to option "--o"
 
 - remmove custom 'quiet' flag
 - convert C++ style comments
@@ -42,6 +37,73 @@ are slightly different, but r.pi.corrwin seems to be newer - correct?
  while others use
 #define TYPE_NOTHING -1
   --> suggestion: use -1 everywhere
+
+###### can this bug be replicated? #####
+
+r.pi.nlm input=landclass96 keyval=5 output=test --o
+or
+r.pi.nlm output=test landcover=50 --o
+gives:
+
+*** buffer overflow detected ***: r.pi.nlm terminated
+======= Backtrace: =========
+/lib/x86_64-linux-gnu/libc.so.6(__fortify_fail+0x37)[0x7f21b469f7f7]
+/lib/x86_64-linux-gnu/libc.so.6(+0xf7710)[0x7f21b469e710]
+r.pi.nlm(CutValues+0x76)[0x402286]
+r.pi.nlm(main+0x58e)[0x401aee]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xed)[0x7f21b45c830d]
+r.pi.nlm[0x401e15]
+======= Memory map: ========
+00400000-00404000 r-xp 00000000 08:01 659733                             /usr/local/grass-6.4.2svn/bin/r.pi.nlm
+00603000-00604000 r--p 00003000 08:01 659733                             /usr/local/grass-6.4.2svn/bin/r.pi.nlm
+00604000-00605000 rw-p 00004000 08:01 659733                             /usr/local/grass-6.4.2svn/bin/r.pi.nlm
+02005000-02026000 rw-p 00000000 00:00 0                                  [heap]
+7f21b3d6c000-7f21b3d81000 r-xp 00000000 08:01 917027                     /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f21b3d81000-7f21b3f80000 ---p 00015000 08:01 917027                     /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f21b3f80000-7f21b3f81000 r--p 00014000 08:01 917027                     /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f21b3f81000-7f21b3f82000 rw-p 00015000 08:01 917027                     /lib/x86_64-linux-gnu/libgcc_s.so.1
+7f21b3f82000-7f21b3f84000 r-xp 00000000 08:01 923260                     /lib/x86_64-linux-gnu/libdl-2.13.so
+7f21b3f84000-7f21b4184000 ---p 00002000 08:01 923260                     /lib/x86_64-linux-gnu/libdl-2.13.so
+7f21b4184000-7f21b4185000 r--p 00002000 08:01 923260                     /lib/x86_64-linux-gnu/libdl-2.13.so
+7f21b4185000-7f21b4186000 rw-p 00003000 08:01 923260                     /lib/x86_64-linux-gnu/libdl-2.13.so
+7f21b4186000-7f21b418e000 r-xp 00000000 08:01 1321532                    /usr/local/grass-6.4.2svn/lib/libgrass_datetime.6.4.2svn.so
+7f21b418e000-7f21b438d000 ---p 00008000 08:01 1321532                    /usr/local/grass-6.4.2svn/lib/libgrass_datetime.6.4.2svn.so
+7f21b438d000-7f21b438e000 r--p 00007000 08:01 1321532                    /usr/local/grass-6.4.2svn/lib/libgrass_datetime.6.4.2svn.so
+7f21b438e000-7f21b438f000 rw-p 00008000 08:01 1321532                    /usr/local/grass-6.4.2svn/lib/libgrass_datetime.6.4.2svn.so
+7f21b438f000-7f21b43a6000 r-xp 00000000 08:01 922555                     /lib/x86_64-linux-gnu/libz.so.1.2.3.4
+7f21b43a6000-7f21b45a5000 ---p 00017000 08:01 922555                     /lib/x86_64-linux-gnu/libz.so.1.2.3.4
+7f21b45a5000-7f21b45a6000 r--p 00016000 08:01 922555                     /lib/x86_64-linux-gnu/libz.so.1.2.3.4
+7f21b45a6000-7f21b45a7000 rw-p 00017000 08:01 922555                     /lib/x86_64-linux-gnu/libz.so.1.2.3.4
+7f21b45a7000-7f21b473c000 r-xp 00000000 08:01 923257                     /lib/x86_64-linux-gnu/libc-2.13.so
+7f21b473c000-7f21b493b000 ---p 00195000 08:01 923257                     /lib/x86_64-linux-gnu/libc-2.13.so
+7f21b493b000-7f21b493f000 r--p 00194000 08:01 923257                     /lib/x86_64-linux-gnu/libc-2.13.so
+7f21b493f000-7f21b4940000 rw-p 00198000 08:01 923257                     /lib/x86_64-linux-gnu/libc-2.13.so
+7f21b4940000-7f21b4946000 rw-p 00000000 00:00 0 
+7f21b4946000-7f21b49c9000 r-xp 00000000 08:01 923277                     /lib/x86_64-linux-gnu/libm-2.13.so
+7f21b49c9000-7f21b4bc8000 ---p 00083000 08:01 923277                     /lib/x86_64-linux-gnu/libm-2.13.so
+7f21b4bc8000-7f21b4bc9000 r--p 00082000 08:01 923277                     /lib/x86_64-linux-gnu/libm-2.13.so
+7f21b4bc9000-7f21b4bca000 rw-p 00083000 08:01 923277                     /lib/x86_64-linux-gnu/libm-2.13.so
+7f21b4bca000-7f21b4bcc000 r-xp 00000000 08:01 1321711                    /usr/local/grass-6.4.2svn/lib/libgrass_rpi.6.4.2svn.so
+7f21b4bcc000-7f21b4dcb000 ---p 00002000 08:01 1321711                    /usr/local/grass-6.4.2svn/lib/libgrass_rpi.6.4.2svn.so
+7f21b4dcb000-7f21b4dcc000 r--p 00001000 08:01 1321711                    /usr/local/grass-6.4.2svn/lib/libgrass_rpi.6.4.2svn.so
+7f21b4dcc000-7f21b4dcd000 rw-p 00002000 08:01 1321711                    /usr/local/grass-6.4.2svn/lib/libgrass_rpi.6.4.2svn.so
+7f21b4dcd000-7f21b4e1f000 r-xp 00000000 08:01 1321614                    /usr/local/grass-6.4.2svn/lib/libgrass_gis.6.4.2svn.so
+7f21b4e1f000-7f21b501f000 ---p 00052000 08:01 1321614                    /usr/local/grass-6.4.2svn/lib/libgrass_gis.6.4.2svn.so
+7f21b501f000-7f21b5020000 r--p 00052000 08:01 1321614                    /usr/local/grass-6.4.2svn/lib/libgrass_gis.6.4.2svn.so
+7f21b5020000-7f21b5022000 rw-p 00053000 08:01 1321614                    /usr/local/grass-6.4.2svn/lib/libgrass_gis.6.4.2svn.so
+7f21b5022000-7f21b5023000 rw-p 00000000 00:00 0 
+7f21b5023000-7f21b5044000 r-xp 00000000 08:01 923274                     /lib/x86_64-linux-gnu/ld-2.13.so
+7f21b518c000-7f21b5213000 rw-p 00000000 00:00 0 
+7f21b5241000-7f21b5243000 rw-p 00000000 00:00 0 
+7f21b5243000-7f21b5244000 r--p 00020000 08:01 923274                     /lib/x86_64-linux-gnu/ld-2.13.so
+7f21b5244000-7f21b5246000 rw-p 00021000 08:01 923274                     /lib/x86_64-linux-gnu/ld-2.13.so
+7fff200ae000-7fff200cf000 rw-p 00000000 00:00 0                          [stack]
+7fff201ff000-7fff20200000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+Aborted
+
+
+
 
 #####################################
 HTML Descriptions TODO:
