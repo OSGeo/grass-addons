@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     parm.input = G_define_standard_option(G_OPT_R_INPUT);
 
     parm.costmap = G_define_option();
-    parm.costmap->key = "costmap";
+    parm.costmap->key = "suitability";
     parm.costmap->type = TYPE_STRING;
     parm.costmap->required = NO;
     parm.costmap->gisprompt = "old,cell,raster";
