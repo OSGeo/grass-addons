@@ -7,23 +7,11 @@ neighbour analysis module. It computes distance based on a friction map. This mo
 
 <h2>NOTES</h2>
 
-The user must specify the names of the raster map layers to
-be used for <em>input</em> <em> costmap </em> and <em>output</em>, the
-<em>method</em> used (i.e., distance), the <em>keyval</em>, the
-<em>number</em> and the <em>statmethod</em>.
-
-
-<h3>Input</h3>
-
-<h4>Input</h4>
-
 The calculation of the ecolgogical nearest neighbour is based on a raster
 with start patches. The actual map can be categorical or continuous but
 the value defined in <em>keyval</em> will be the basis for the patches
 to calculate the methods defined below. These patches will also be in
 the output map.
-
-<h4>costmap</h4>
 
 The calculation of the ecolgogical nearest neighbour is based on a costmap
 (* and 1-infinite) - this map can be binary or continous - high values
@@ -33,21 +21,13 @@ hence these values have to be bypassed. "0" values are not accepted and
 will result in "0" distance.
 
 <p>
-e.g. if a binary map(1 and 2) is used, the ENN is the path with the
-lowest amount of "1"
-
-<h3>Methods:</h3>
-The <em>method</em> and the <em>number</em> operators determine what
-algorithm and setting is applied 
-on the patches.
-
-<p>
+e.g. if a binary map(1 and 2) is used, the the path with the
+lowest amount of "1" is chosen
 
 The <em>number</em> is the amount of nearest neighbours to be taken and
 the calculated distances are processed as assigned in <em>statmethod</em>
 
-<h4>Operations to perform</h4>
-r.pi.enn can perform the following operations:
+Operations which <em>r.pi.fnn</em> can perform are:
 
 <p>
 
@@ -82,7 +62,6 @@ edge-to-edge distance patch. It is based on <em>Distance</em> not on
 distance patch. It is based on <em>Distance</em> not on <em> path Distance</em>.
 
 
-<h4>Statsmethod setting:</h4>
 The <em>statsmethod</em> operators determine calculation is done on the
 distance. <em>Average</em>, <em>Variance</em>,<em>Stddev</em> and
 <em>value</em> can be used.
@@ -110,8 +89,6 @@ E.g. NN==5 of <em>area</em> gives the size of the 5th NN while
 <em>Average</em> gives the average of the area of 1-5th NN.
 
 
-<h4>Number of nearest neighbors to analyse:</h4>
-
 The input options are either one NN: <em>1</em> or several NN separated
 by <em>,</em>: 1,2,5,8 or a range of NN: 1-6.
 
@@ -124,20 +101,17 @@ Merging these options is possible as well: 1-5,8,9,13,15-19,22 etc.
 
 An example for the North Carolina sample dataset:
 
+Computing the functional or ecological distance to the first to nth nearest neighrbours using a cost matrix:
 <div class="code"><pre>
-g.region -d
-...
+r.mapcalc "cost_raster = if(landclass96==5,1,if(landclass96 == 1, 10, if (landclass96==3,2, if(landclass96==4,1,if(landclass96==6,100)))))"
+r.pi.fnn input=landclass96 keyval=5 costmap=cost_raster output=fnn1 method=distance number=10 statmethod=average
 </pre></div>
 
 <h2>SEE ALSO</h2>
 
 <em>
-<a href="r.pi.index.html">r.pi.index</a>,
-<a href="r.fragment.dist.html">r.fragment.dist</a>,
-<a href="r.pi.enn.iter.html">r.pi.enn.iter</a>,
-<a href="r.fragment.neighbors.html">r.fragment.neighbors</a>,
-<a href="r.fragment.nn.html">r.fragment.nn</a>,
-<a href="r.pi.html">r.pi</a>
+<a href="r.pi.enn.html">r.pi.enn</a>,
+<a href="r.pi.index.html">r.pi.index</a>
 </em>
 
 <h2>AUTHORS</h2>
