@@ -92,22 +92,25 @@ def main():
            print('GRASS_HEIGHT=%s' % options['height'])
         if flags['c']:
             print('GRASS_RENDER_IMMEDIATE=cairo')
-	else:
-	    print('GRASS_RENDER_IMMEDIATE=PNG')
+        else:
+            print('GRASS_RENDER_IMMEDIATE=PNG')
         print('GRASS_PNG_MAPPED=TRUE')
         print('GRASS_PNG_READ=TRUE')
         print('export GRASS_PNGFILE GRASS_WIDTH GRASS_HEIGHT GRASS_RENDER_IMMEDIATE GRASS_PNG_MAPPED GRASS_PNG_READ;')
 
-        print('d.erase color=%s;' % options['color'])
+        print('d.erase bgcolor=%s;' % options['color'])
         if handler == "none":
             grass.message("Image file is '%s'" % img_tmp)
         elif handler == "qiv":
-            print('qiv -T "%s" &' % img_tmp)  # add --center ?
+            print('qiv -e -T "%s" &' % img_tmp)  # add --center ?
         else:
             print('%s image="%s" percent=%s &' % ( handler, img_tmp, options['percent']) )
 
         sys.exit(0)
 
+    if flags['d']:
+        print('rem DOS export not yet implemented')
+        sys.exit(0)
 
 
     ## rest of this won't work, as parent can't inherit from the child..
@@ -127,10 +130,10 @@ def main():
     os.environ['GRASS_PNG_READ'] = 'TRUE'
     #? os.environ['GRASS_PNG_AUTO_WRITE'] = 'FALSE'
 
-    grass.run_command('d.erase', color = options['color'])
+    grass.run_command('d.erase', bgcolor = options['color'])
 
     if handler == "qiv":
-        ret = grass.call(['qiv', '-T', img_tmp])
+        ret = grass.call(['qiv', '-e', '-T', img_tmp])
     else:
         ret = grass.exec_command(handler, image = img_tmp, percent = options['percent'])
 
