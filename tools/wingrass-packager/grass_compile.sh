@@ -4,12 +4,6 @@
 SRC=/osgeo4w/usr/src
 PACKAGEDIR=mswindows/osgeo4w/package
 
-function update {
-    echo "Updating $1..."     
-    cd $SRC/$1
-    svn up || (svn cleanup && svn up)
-}
-
 function rm_package_7 {
     for f in `/c/OSGeo4W/apps/msys/bin/find $PACKAGEDIR/grass*.tar.bz2 -mtime +7 2>/dev/null`; do
         rm -rfv $f
@@ -32,8 +26,6 @@ function compile {
 }
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
-
-update grass_addons
 
 compile grass64_release 64-dev
 compile grass6_devel 65-dev

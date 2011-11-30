@@ -7,7 +7,7 @@ HOME=/c/Users/landa/grass_packager
 function update {
     cd $SRC/$1
     REV=`svn info | grep 'Last Changed Rev:' | cut -d':' -f2 | tr -d ' '`
-    sed "s/_SVN_REVISION \"36599\"/_SVN_REVISION \"$REV\"/g" $HOME/$2/GRASS-Installer.nsi > tmp
+    sed "s/SVN_REVISION \"36599\"/SVN_REVISION \"$REV\"/g" $HOME/$2/GRASS-Installer.nsi > tmp
     mv tmp $HOME/$2/GRASS-Installer.nsi
 }
 
