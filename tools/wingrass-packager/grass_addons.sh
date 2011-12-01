@@ -6,15 +6,15 @@ GISBASE_PREFIX=/c/osgeo4w/usr/src
 ADDON_PREFIX=/c/Users/landa/grass_packager
 
 cd $SVN_PATH
-svn up
-cp -r database display general gui imagery misc postscript raster \
+svn up || svn cleanup && svn up
+cp -rf database display general gui imagery misc postscript raster \
     vector grass6/
 
 function compile {
     path=`echo $PATH`
     export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:$2/bin:$2/scripts
     rm -rf $3
-    ./tools/addons/compile.sh $1 $2 $3 1
+    $SVN_PATH/tools/addons/compile.sh $1 $2 $3 1
     cd $3
     for d in `ls -d */`; do
 	mod=${d%%/}
@@ -36,6 +36,7 @@ cp $GISBASE_PREFIX/grass6_devel/lib/gis/OBJ.i686-pc-mingw32/fmode.o \
     $GISBASE_PREFIX/grass6_devel/dist.i686-pc-mingw32/lib/gis/OBJ.i686-pc-mingw32
 
 compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass6_devel/dist.i686-pc-mingw32 $ADDON_PREFIX/grass65/addons
-compile $SVN_PATH/grass7 $GISBASE_PREFIX/grass_trunk/dist.i686-pc-mingw32 $ADDON_PREFIX/grass70/addons
+
+compile $SVN_PATH/grass7 $GISBASE_PREFIX/grass_trunk/dist.i686-pc-mingw32  $ADDON_PREFIX/grass70/addons
 
 exit 0
