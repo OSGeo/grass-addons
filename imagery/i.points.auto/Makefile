@@ -8,3 +8,8 @@ DEPENDENCIES= $(IMAGERYDEP) $(GMATHDEP) $(D_DEP) $(DISPLAYDEP) $(RASTERDEP) $(GI
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
 default: cmd
+
+# override html target as module doesn't use the standard parser
+html:
+	$(MKDIR) $(GISBASE)/docs/html
+	$(INSTALL_DATA) description.html $(GISBASE)/docs/html/
