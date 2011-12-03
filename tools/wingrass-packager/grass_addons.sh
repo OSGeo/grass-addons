@@ -28,6 +28,8 @@ function compile {
     export PATH=$path
 }
 
+export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:/c/OSGeo4W/bin
+
 # ugly hack for GRASS 6
 mkdir -p $GISBASE_PREFIX/grass6_devel/dist.i686-pc-mingw32/lib/gis/OBJ.i686-pc-mingw32/
 cp $GISBASE_PREFIX/grass6_devel/lib/gis/OBJ.i686-pc-mingw32/fmode.o \
