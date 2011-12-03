@@ -237,6 +237,8 @@ for FILE in $* ; do
 	    FILE_SUFFIX="jpeg"
 	elif [ "$FILE_SUFFIX" = "svg" ] ; then
 	    FILE_SUFFIX='svg+xml'
+	elif [ "$FILE_SUFFIX" = "xpm" ] ; then
+	    FILE_SUFFIX='x-xpixmap'
 	fi
 	apply_image "$FILE" "$FILE_SUFFIX"
 	;;
