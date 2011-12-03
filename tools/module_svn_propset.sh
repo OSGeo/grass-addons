@@ -11,6 +11,8 @@
 #               for details.
 #
 #############################################################################
+# For a list of valid mime types see /etc/mime.types
+#
 
 if [ $# -lt 1 ] ; then
     echo "USAGE:  module_svn_propset.sh file1 [file2 file3 *.html]"
