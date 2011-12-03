@@ -7,8 +7,6 @@ ADDON_PREFIX=/c/Users/landa/grass_packager
 
 cd $SVN_PATH
 svn up || svn cleanup && svn up
-cp -rf database display general gui imagery misc postscript raster \
-    vector grass6/
 
 function compile {
     path=`echo $PATH`
