@@ -29,7 +29,7 @@ int StrahFindLeaves(struct Map_info *In, DBBUF * dbbuf, NODEV * nodev,
     G_debug(1, "Reached StrahFindLeaves with %d trees", ntrees);
 
     G_get_window(&window);
-    G_debug(2, "window: N %f S %f W %f E %f\n", window.north, window.south,
+    G_debug(2, "window: N %f S %f W %f E %f", window.north, window.south,
 	    window.west, window.east);
 
     G_debug(2, "%d nodes in map", nnodes);
@@ -66,7 +66,7 @@ int StrahFindLeaves(struct Map_info *In, DBBUF * dbbuf, NODEV * nodev,
 						0, method);
 	    }
 
-	    G_debug(5, "fdrast=%d node=%d y=%f x=%f z=%f\n", fdrast, node, y,
+	    G_debug(5, "fdrast=%d node=%d y=%f x=%f z=%f", fdrast, node, y,
 		    x, z);
 
 	    tree = dbbuf[aline].bsnid;
@@ -189,8 +189,7 @@ int StrahOrder(struct Map_info *In, DBBUF * dbbuf, NODEV * nodev)
 		if (norder > 1 || norder == 0) {	/* if (norder > 1: node indeterminate OR norder == 0 : subtree finished) */
 		    G_debug(3, "Finished run at line %d because norder=%d",
 			    cline, norder);
-		    G_debug(4, "visiting unode %d for line %d\n", unode,
-			    cline);
+		    G_debug(4, "visiting unode %d for line %d", unode, cline);
 		    nodev[unode].visited += 1;	/* visit unode, for the sake of completeness */
 		    rfinish = 1;	/* finish this run */
 

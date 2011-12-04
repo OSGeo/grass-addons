@@ -109,9 +109,7 @@ int main(int argc, char **argv)
     txout_opt->description =
 	_("Path to ASCII file where results will be written");
 
-
     /* option sloppy for bad topology */
-
     sloppy_opt = G_define_option();
     sloppy_opt->key = "sloppy";
     sloppy_opt->type = TYPE_DOUBLE;
@@ -121,12 +119,12 @@ int main(int argc, char **argv)
     sloppy_opt->description =
 	_("Threshold for distance within different nodes are considered the same node - may not work");
 
-
     field_opt = G_define_standard_option(G_OPT_V_FIELD);
     field = atoi(field_opt->answer);
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
 
     Vect_check_input_output_name(input->answer, output->answer,
 				 GV_FATAL_EXIT);
