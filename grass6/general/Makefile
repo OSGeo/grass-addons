@@ -1,7 +1,6 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
-	g.extension \
 	g.region.point
 ## already in 6.4+:
 #	g.xlist \
