@@ -9,7 +9,6 @@
 	  /* define */
 
 #define STREAMS struct stream
-#define PI 3.141592654
 
 
 #ifdef MAIN
