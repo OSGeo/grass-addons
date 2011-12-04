@@ -8,7 +8,9 @@ Installation - Code Compilation
 
   Preparations (assuming source code in $HOME/grass64/):
     (if you have already build GRASS from source you don't need to do this
-    again. If adding to a binary install the versions must match exactly)
+    again. If adding to a binary install the versions must match exactly.
+    For a SVN checkout this means that the main GRASS binary and source
+    code SVN revisions must match.)
     1. ./configure [opionally flags]
     2. make libs
 
