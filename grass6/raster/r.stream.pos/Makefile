@@ -4,8 +4,8 @@ MODULE_TOPDIR = ../..
 
 PGM = r.stream.pos
 
-LIBES     = $(GISLIB)
-DEPENDENCIES =  $(GISDEP)
+LIBES        = $(VECTLIB) $(DBMILIB) $(GISLIB)
+DEPENDENCIES = $(VECTDEP) $(DBMIDEP) $(GISDEP)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
