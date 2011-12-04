@@ -6,7 +6,7 @@ GISBASE_PREFIX=/c/osgeo4w/usr/src
 ADDON_PREFIX=/c/Users/landa/grass_packager
 
 cd $SVN_PATH
-svn up || svn cleanup && svn up
+svn up || (svn cleanup && svn up)
 
 function compile {
     path=`echo $PATH`
