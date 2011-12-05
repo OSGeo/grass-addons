@@ -6,12 +6,12 @@ import glob
 
 def get_list(addons):
     mlist = os.listdir(os.path.join(addons))
-    for f in ('log', 'make.log', 'modules.xml'):
+    for f in ('log', 'modules.xml'):
         mlist.remove(f)
     mlist.sort()
     return mlist
 
-def start_grass(mlist, g7 = True):
+def start_grass(g7 = True):
     if g7:
         ver = 'grass_trunk'
     else:
@@ -23,10 +23,10 @@ def start_grass(mlist, g7 = True):
     location = "demolocation"
     mapset   = "PERMANENT"
  
-    sys.path.append(os.path.join(os.environ['GISBASE'], "etc", "python"))
+    sys.path.insert(0, os.path.join(os.environ['GISBASE'], "etc", "python"))
     import grass.script as grass
     import grass.script.setup as gsetup
-
+    
     gsetup.init(gisbase,
                 gisdbase, location, mapset)
  
@@ -98,13 +98,18 @@ def main():
         sys.exit("Usage: %s path_to_addons" % sys.argv[0])
         
     addons = sys.argv[1]
-        
+    try:
+        version = os.path.split(addons)[-2][-1]
+        g7 = version == '7'
+    except:
+        g7 = True
+    
     path = os.path.join(addons, 'modules.xml')
     print "-----------------------------------------------------"
     print "Creating XML file '%s'..." % path
     print "-----------------------------------------------------"
     fd = open(path, 'w')
-    start_grass(True)
+    start_grass(g7)
 
     header(fd)
     parse_modules(fd, get_list(addons))

@@ -12,8 +12,7 @@ build_xml() {
 ### $HOME/src/update-grass.sh
 
 # update GRASS Addons SVN
-# WARNING: create symlinks in grass6 first!
-(cd ..; svn up)
+(cd ..; svn up || (svn cleanup && svn up))
 
 # compile AddOns for GRASS 7 and GRASS 6.5
 compile ../../grass7 ~/src/grass_trunk/dist.x86_64-unknown-linux-gnu  ~/.grass7/addons
