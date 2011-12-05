@@ -24,7 +24,7 @@
 
 
 #%Module
-#% description: Creates a hash sum for a given map.
+#% description: Creates a checksum hash for a given map.
 #% keywords: general
 #%End
 #%Option
@@ -32,7 +32,7 @@
 #% type: string
 #% required: yes
 #% key_desc: name
-#% description: Name of map
+#% description: Map name
 #%End
 #%Option
 #% key: type
