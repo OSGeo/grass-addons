@@ -10,7 +10,7 @@ svn up || (svn cleanup && svn up)
 
 function compile {
     path=`echo $PATH`
-    export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:$2/bin:$2/scripts
+    export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:$2/dist.i686-pc-mingw32/bin:$2/dist.i686-pc-mingw32/scripts
     rm -rf $3
     $SVN_PATH/tools/addons/compile.sh $1 $2 $3 1
     cd $3
@@ -30,13 +30,8 @@ function compile {
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:/c/OSGeo4W/bin
 
-# ugly hack for GRASS 6
-mkdir -p $GISBASE_PREFIX/grass6_devel/dist.i686-pc-mingw32/lib/gis/OBJ.i686-pc-mingw32/
-cp $GISBASE_PREFIX/grass6_devel/lib/gis/OBJ.i686-pc-mingw32/fmode.o \
-    $GISBASE_PREFIX/grass6_devel/dist.i686-pc-mingw32/lib/gis/OBJ.i686-pc-mingw32
+compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass6_devel $ADDON_PREFIX/grass65/addons
 
-compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass6_devel/dist.i686-pc-mingw32 $ADDON_PREFIX/grass65/addons
-
-compile $SVN_PATH/grass7 $GISBASE_PREFIX/grass_trunk/dist.i686-pc-mingw32  $ADDON_PREFIX/grass70/addons
+compile $SVN_PATH/grass7 $GISBASE_PREFIX/grass_trunk  $ADDON_PREFIX/grass70/addons
 
 exit 0
