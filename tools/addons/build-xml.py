@@ -88,7 +88,7 @@ def header(fd):
     import grass.script.core as grass
     fd.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     fd.write('<!DOCTYPE task SYSTEM "grass-addons.dtd">\n') # TODO
-    fd.write('<addons version="%s">\n' % grass.version()['version'])
+    fd.write('<addons version="%s">\n' % grass.version()['version'].split('.')[0])
 
 def footer(fd):
     fd.write('</addons>\n')
