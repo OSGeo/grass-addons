@@ -20,6 +20,10 @@ function compile {
 	    continue
 	fi
 	cd $mod
+	if [ -f bin/${mod}.bat ] ; then
+	    sed "s/GISBASE/GRASS_ADDON_PATH/" bin/${mod}.bat > tmp
+	    mv tmp bin/${mod}.bat
+	fi
 	zip -r $mod.zip *
 	mv $mod.zip ..
 	cd ..
@@ -31,8 +35,8 @@ function compile {
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:/c/OSGeo4W/bin
 export PYTHONHOME=/c/OSGeo4W/apps/Python25
 
-compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass6_devel $ADDON_PREFIX/grass65/addons
-
-compile $SVN_PATH/grass7 $GISBASE_PREFIX/grass_trunk  $ADDON_PREFIX/grass70/addons
+compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass64_release $ADDON_PREFIX/grass64/addons
+compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass6_devel    $ADDON_PREFIX/grass65/addons
+compile $SVN_PATH/grass7 $GISBASE_PREFIX/grass_trunk     $ADDON_PREFIX/grass70/addons
 
 exit 0
