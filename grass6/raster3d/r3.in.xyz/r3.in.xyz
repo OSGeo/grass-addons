@@ -239,6 +239,8 @@ EXIT_CODE=0
 
 for i in `seq "$depths"` ; do
 
+    i_str=`echo $i | awk '{printf("%05d", $1)}'` 
+
     # $b + $tbres * ($i-1)
     zrange_min=`echo "$b $tbres $i" | awk '{printf("%.15g", $1 + ($2*($3 - 1)))}'`
 
@@ -251,7 +253,7 @@ for i in `seq "$depths"` ; do
     fi
 
     # import it
-    CMD="r.in.xyz input=\"$GIS_OPT_INPUT\" output=\"tmp.r3xyz.$$.$i\" \
+    CMD="r.in.xyz input=\"$GIS_OPT_INPUT\" output=\"tmp.r3xyz.$$.$i_str\" \
 	fs=\"$GIS_OPT_FS\" method=\"$GIS_OPT_METHOD\" \
 	x=\"$GIS_OPT_X\" y=\"$GIS_OPT_Y\" z=\"$GIS_OPT_Z\" \
 	percent=\"$GIS_OPT_PERCENT\" type=\"$DATA_TYPE\" $ADDL_OPTS \
@@ -273,7 +275,10 @@ for i in `seq "$depths"` ; do
 	  "Processing horizontal slice $i of $depths [$zrange_min,$zrange_max) ..."
 	eval $CMD
 	EXIT_CODE=$?
-	sleep 2
+	if [ "$GIS_OPT_WORKERS" -gt 1 ] ; then
+	    sleep 2
+	    wait
+	fi
     else
 	g.message \
 	  "Launching horizontal slice $i of $depths [$zrange_min,$zrange_max) in parallel ..."
@@ -288,13 +293,15 @@ for i in `seq "$depths"` ; do
     fi
 done
 
+# avoid race condition. (failsafe)
+if [ "$GIS_OPT_WORKERS" -gt 1 ] ; then
+    wait
+fi
 
 g.message -v message="Assembling 3D cube ..."
 
 r.to.rast3 input=`g.mlist type=rast pattern="tmp.r3xyz.$$.*" sep=,` \
     output="$GIS_OPT_OUTPUT"
-
-
 
 if [ $? -eq 0 ] ; then
     g.message "Done. 3D raster map <$GIS_OPT_OUTPUT> created."
