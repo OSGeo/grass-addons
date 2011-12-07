@@ -29,6 +29,7 @@ function compile {
 }
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:/c/OSGeo4W/bin
+export PYTHONHOME=/c/OSGeo4W/apps/Python25
 
 compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass6_devel $ADDON_PREFIX/grass65/addons
 
