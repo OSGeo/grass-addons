@@ -12,7 +12,7 @@
 # PURPOSE:      Like IDW interpolation, but distance is cost to get to any
 #		other site.
 #
-# COPYRIGHT:    (c) 2003-2008 Hamish Bowman
+# COPYRIGHT:    (c) 2003-2011 Hamish Bowman
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -177,7 +177,8 @@ if [ "$COL_TYPE" != "DOUBLE PRECISION" ] && [ "$COL_TYPE" != "INTEGER" ] ; then
 fi
 
 ### cleanse cost area mask to a flat =1 for my porpoises
-r.mapcalc "tmp_icw_area_$$=if("$GIS_OPT_COST_MAP",1,null())"
+GRASS_OVERWRITE=1 \
+  r.mapcalc "tmp_icw_area_$$ = if(\"$GIS_OPT_COST_MAP\", 1, null())"
 ###
 
 ########################################################################
@@ -227,7 +228,7 @@ for POS in `cat "$TMP_POINTS"` ; do
     EASTING=`echo "$POS" | cut -f1 -d"|"`
     NORTHING=`echo "$POS" | cut -f2 -d"|"`
     CAT=`echo "$POS" | cut -f"$CATCOL" -d"|"`
-    DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select $COL_NAME from tmp_icw_points_$$ where cat=${CAT}"`"
+    DATA_VALUE="`v.db.select -c tmp_icw_points_$$ column="$COL_NAME" where="cat=${CAT}"`"
 
     echo "Site $NUM of $N  e=$EASTING  n=$NORTHING data=$DATA_VALUE"
 
@@ -251,21 +252,22 @@ for POS in `cat "$TMP_POINTS"` ; do
 
     # so the divisor exists and the weighting is huge at the exact sample spots
     # more efficient to reclass to 1?
-    r.mapcalc "cost_site.$NUM = if(cost_site.$NUM == 0, 0.1, cost_site.$NUM)"
+    GRASS_OVERWRITE=1 \
+      r.mapcalc "cost_site.$NUM = if(cost_site.$NUM == 0, 0.1, cost_site.$NUM)"
     # r.to.vect then r.patch output
 #    v.to.rast in=tmp_idw_cost_site_29978 out=tmp_idw_cost_val_$$ use=val val=10
 
     if [ "$GIS_FLAG_R" -eq 0 ] ; then
 	#  exp(3,2) is 3^2  etc.  as is pow(3,2)
-	# r.mapcalc 1by_cost_site_sqrd.$NUM=" 1.0 / exp(cost_site.$NUM , $FRICTION)"
+	# r.mapcalc "1by_cost_site_sqrd.$NUM =  1.0 / exp(cost_site.$NUM , $FRICTION)"
 	EXPRESSION="1.0 / pow(cost_site.$NUM $DIVISOR, $FRICTION )"
     else
 	# use log10() or ln() ?
 	EXPRESSION="1.0 / ( pow(cost_site.$NUM, $FRICTION) * log (cost_site.$NUM) )"
     fi
 #    echo "r.mapcalc expression is: [$EXPRESSION]"
-
-    r.mapcalc "1by_cost_site_sqrd.$NUM = $EXPRESSION"
+    GRASS_OVERWRITE=1 \
+      r.mapcalc "1by_cost_site_sqrd.$NUM = $EXPRESSION"
 
 #    r.patch in=1by_cost_site_sqrd.${NUM},tmp_idw_cost_val_$$ out=1by_cost_site_sqrd.${NUM} --o
 #    g.remove rast=cost_site.$NUM
@@ -285,7 +287,8 @@ done
 
 if [ -n "$GIS_OPT_POST_MASK" ] ; then
    echo "Setting post_mask [$GIS_OPT_POST_MASK]" 1>&2
-   r.mapcalc MASK="$GIS_OPT_POST_MASK"
+   GRASS_OVERWRITE=1 \
+     r.mapcalc "MASK = \"$GIS_OPT_POST_MASK\""
 fi
 
 echo "Summation of cost weights.." 1>&2
@@ -305,7 +308,7 @@ for POS in `cat "$TMP_POINTS"` ; do
     EASTING=`echo "$POS" | cut -f1 -d"|"`
     NORTHING=`echo "$POS" | cut -f2 -d"|"`
     CAT=`echo "$POS" | cut -f"$CATCOL" -d"|"`
-    DATA_VALUE="`db.select -c tmp_icw_points_$$ sql="select $COL_NAME from tmp_icw_points_$$ where cat=${CAT}"`"
+    DATA_VALUE="`v.db.select -c tmp_icw_points_$$ column="$COL_NAME" where="cat=${CAT}"`"
 
     echo "Site $NUM of $N  data value = $DATA_VALUE" 1>&2
 
@@ -319,8 +322,9 @@ for POS in `cat "$TMP_POINTS"` ; do
 	continue
     fi
 
-    r.mapcalc partial_icw.$NUM=\
-        "( $DATA_VALUE * 1by_cost_site_sqrd.$NUM ) / sum_of_1by_cost_sqs"
+    GRASS_OVERWRITE=1 \
+      r.mapcalc "partial_icw.$NUM = \
+        ( $DATA_VALUE * 1by_cost_site_sqrd.$NUM ) / sum_of_1by_cost_sqs"
 #"( $DATA_VALUE / $N ) * (1.0 - ( cost_sq_site.$NUM / sum_of_cost_sqs ))"
 #"( cost_sq_site.$NUM / sum_of_cost_sqs ) * ( $DATA_VALUE / $N )"
 
@@ -367,16 +371,21 @@ fi
 # 5) rm cost and cost_sq maps, tmp_icw_points, etc
 cleanup()
 {
-  echo "Cleanup .." 1>&2
-  g.mremove -f rast=cost_site.* | grep REMOVE
-  g.mremove -f rast=1by_cost_site_sqrd.* | grep REMOVE
-  g.mremove -f rast=partial_icw.* | grep REMOVE
+  echo "Cleanup.." 1>&2
+  g.mremove -f rast=cost_site.*
+  g.mremove -f rast=1by_cost_site_sqrd.*
+  g.mremove -f rast=partial_icw.*
   #g.mremove -f rast=tmp_icw_*_$$
   #g.mremove -f vect=tmp_icw_*_$$
-  g.remove rast=sum_of_1by_cost_sqs | grep REMOVE
+  g.remove rast=sum_of_1by_cost_sqs
   #g.remove vect=tmp_idw_cost_site_$$
-  g.remove rast=tmp_icw_area_$$ | grep REMOVE
-  g.remove vect=tmp_icw_region_$$,tmp_icw_points_$$,tmp_icw_points_sel_$$
+  g.remove rast=tmp_icw_area_$$
+  g.remove vect=tmp_icw_region_$$,tmp_icw_points_$$
+  # check if it exists
+  eval `g.findfile element=vector file="tmp_icw_points_sel_$$"`
+  if [ -e "$file" ] ; then
+     g.remove vect=tmp_icw_points_sel_$$
+  fi
   rm -f "$TMP_POINTS"
 }
 
@@ -394,5 +403,5 @@ cleanup()
 cleanup
 
 # 6) done!
-echo "Done! Wrote results to <${GIS_OPT_OUTPUT}>." 1>&2
+echo "Done! Results written to <${GIS_OPT_OUTPUT}>." 1>&2
 exit 0
