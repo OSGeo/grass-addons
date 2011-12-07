@@ -24,6 +24,10 @@ possible.
 To enable parallel processing support, set the <b>workers=</b> option
 to match the number of CPUs or CPU-cores avaiable on your system.
 <p>
+Points falling exactly on a vertical bound will belong to the depth
+band below them, except for points exactly on the top bound, which will
+belong to the top-most slice.
+<p>
 The script is expected to be nearly as efficient as if it was fully
 written in C.
 
