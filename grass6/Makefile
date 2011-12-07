@@ -12,6 +12,7 @@ SUBDIRS = \
 	ossim_grass \
 	postscript \
 	raster \
+	raster3d \
 	vector
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
