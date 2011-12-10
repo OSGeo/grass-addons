@@ -300,6 +300,7 @@ fi
 
 g.message -v message="Assembling 3D cube ..."
 
+#input order: lower most strata first
 r.to.rast3 input=`g.mlist type=rast pattern="tmp.r3xyz.$$.*" sep=,` \
     output="$GIS_OPT_OUTPUT"
 
