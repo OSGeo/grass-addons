@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 	f_slope=(flag_slope->answer !=0);
 		
 	/* align window */
-	G_check_input_output_name(map_dem->answer, map_output->answer, GR_FATAL_EXIT);
+	G_check_input_output_name(map_dem->answer, map_output->answer, G_FATAL_EXIT);
 	nrows = Rast_window_rows();
 	ncols = Rast_window_cols();
 	Rast_get_window(&window);
