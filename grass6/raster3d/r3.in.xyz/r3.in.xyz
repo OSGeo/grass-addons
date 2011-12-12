@@ -187,7 +187,7 @@ unset LC_ALL
 LC_NUMERIC=C
 export LC_NUMERIC
 
-#### check if we have seq  (Max OSX doesn't)
+#### check if we have seq  (Mac OSX doesn't)
 # perhaps try `type -t` instead of `which`, as it is more POSIXy
 if [ -x "`which seq`" ] ; then
    SEQ=seq
