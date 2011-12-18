@@ -104,6 +104,9 @@ double CutValues(double *map, double mapcover, int size)
         ^^^^^^--- negative
 
     Then the subsequent values[index] crashes.
+      ---can you add a loop which looks to see if min[i] (bifbuf) constains silly values?
+          i.e. did the nan cleanout by MinMax() in main.c really work? why are those nans
+          in there in the first place? maybe if we get rid of them the problem goes away..
 
 #####################################
 HTML Descriptions TODO:
