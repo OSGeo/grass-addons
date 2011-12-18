@@ -79,63 +79,31 @@ Missing debug package(s), you should install: glibc-debug-2.11.1-8.3mnb2.x86_64 
         i = 0
         j = -11408
         index = -2147483648
-        bottom = -11400
-        top = 32767
-        topdif = -134381552
-        bottomdif = 32767
-#1  0x00000000004030e3 in main (argc=5, argv=0x7fffffffd648) at main.c:256
-        oldname = 0x605320 "landclass96"
-        oldmapset = 0x608cf0 "PERMANENT"
-        newname = 0x608550 "test"
-        newmapset = 0x7ffff7bd9a60 "neteler"
-        in_fd = 7
-        out_fd = -153202504
----Type <return> to continue, or q <return> to quit---
-        sx = 76
-        sy = 68
-        keyval = 5
-        nullval = 5658608
-        landcover = 0.49554953560371517
-        pixel_count = 2561
-        sharpness = 0.42363591465337014
-        rand_seed = 1324132228
-        title = 0x400c9c "__libc_start_main"
-        map_type = 0
-        buffer = 0x608d10
-        bigbuf = 0x7ffff7fd8010
-        i = 16641
-        j = 32768
-        row = 129
-        col = 129
-        cnt = 0
-        list = 0x0
-        result = 0x608a60
-        size = 129
-        n = 7
-        edge = 2.0788726070215255e-317
----Type <return> to continue, or q <return> to quit---
-        ch = {format = 2032, compressed = 1, rows = -134224200, rows3 = 32767, cols = -1402796274, 
-          cols3 = 1357, depths = -134224768, proj = 32767, zone = -10880, ew_res = 0, 
-          ew_res3 = 6.9533558072994372e-310, ns_res = 6.9533491653563855e-310, 
-          ns_res3 = 6.9533491762080433e-310, tb_res = 6.9533490683959531e-310, north = 0, 
-          south = 6.9533491653563855e-310, east = 4.9406564584124654e-324, west = 0, 
-          top = 6.9531436082559572e-310, bottom = 6.9533491762080433e-310}
-        window = {format = -10960, compressed = 32767, rows = -153687424, rows3 = 32767, cols = 2, 
-          cols3 = 0, depths = -136444124, proj = 32767, zone = -136445152, 
-          ew_res = 6.9533491763230618e-310, ew_res3 = 6.9533558072919274e-310, ns_res = 0, 
-          ns_res3 = 6.9533491762080433e-310, tb_res = 0, north = 6.9533491653563855e-310, 
-          south = 6.9533491655911655e-310, east = 2.0738563585192993e-317, 
-          west = 6.9533482148155844e-310, top = 2.0727634853106985e-317, 
-          bottom = 2.1219957909652723e-314}
-        min = 1000000
-        max = -1000000
-        module = 0x7ffff7bd9f40
-        parm = {input = 0x7ffff7bd9ea0, output = 0x607f20, size = 0x7ffff7fc86e8, nullval = 0x6080c0, 
-          keyval = 0x607ff0, landcover = 0x608190, sharpness = 0x608260, randseed = 0x608330, 
-          title = 0x608400}
-        flag = {report = 0x7ffff7bd9e60}
+                ^^^^^^^^^^^^ --!
 
+in func.c:
+double CutValues(double *map, double mapcover, int size)
+{
+    int values[RESOLUTION - 1];
+    double min, max, span, c;
+    int pixels;
+    int i, j, index;
+    int bottom, top;
+    int topdif, bottomdif;
 
+    // get parameters
+    MinMax(map, &min, &max, size);
+    span = max - min;
+    c = min / span;
+    pixels = Round(size * mapcover);
+
+    // classify heights
+    memset(values, 0, RESOLUTION * sizeof(int));
+    for (i = 0; i < size; i++) {
+        index = floor(RESOLUTION * (map[i] - min) / span);
+        ^^^^^^--- negative
+
+    Then the subsequent values[index] crashes.
 
 #####################################
 HTML Descriptions TODO:
