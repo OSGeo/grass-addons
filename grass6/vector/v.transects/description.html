@@ -1,15 +1,15 @@
-<H2>DESCRIPTION</H2><EM>v.transects</EM> creates equally spaced geometries along 
+<h2>DESCRIPTION</h2><em>v.transects</em> creates equally spaced geometries along 
 input lines. The geometries can be lines or quadrilateral areas. Lines 
 and areas are generated to be perpendicular to the input line. 
 
 
-<H2>NOTES</H2>Input vector lines that are shorter than <B>transect_spacing</B> are ignored. 
+<h2>NOTES</h2>Input vector lines that are shorter than <b>transect_spacing</b> are ignored. 
 <p>
-<B>transect_spacing</B>, <B>dleft</B>, and <B>dright</B> are interpreted to be in horizontal map units (e.g., degrees in the WGS84 projection). 
+<b>transect_spacing</b>, <b>dleft</b>, and <b>dright</b> are interpreted to be in horizontal map units (e.g., degrees in the WGS84 projection). 
 <p>
-<EM><B>v.transects</B></EM> may fail for a network of lines in Windows.
+<em><b>v.transects</b></em> may fail for a network of lines in Windows.
 
-<H2>EXAMPLES</H2>In these examples, the 
+<h2>EXAMPLES</h2>In these examples, the 
 <a href="http://courses.ncsu.edu/mea582/common/media/01/NagsHead_series.zip"><font color="0000FF">Nags Head (19MB)</font></a>
 mapset is used to generate a shoreline and shore-perpendicular geometries. To use the mapset, unpack it into the 
 <a href="http://courses.ncsu.edu/mea582/common/media/01/nc_spm_08.zip"><font color="0000FF">nc_spm_08 (150MB)</font></a>
@@ -20,8 +20,8 @@ Location.
 
 <h3>Example 1) - Generate line transects along shoreline</h3>
 
-<P>Generate 20 cross-shore transects along 2008 shoreline (1m contour)<BR>
-<DIV class=code><PRE>g.region rast=NH_2008_1m
+<p>Generate 20 cross-shore transects along 2008 shoreline (1m contour)<br>
+<div class=code><pre>g.region rast=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
 v.report map=NH_2008_1m option=length
 # cat|level|length
@@ -29,26 +29,26 @@ v.report map=NH_2008_1m option=length
 # 1038m / 20transects = 52m per transect (value for transect_spacing)
 v.transects input=NH_2008_1m output=NH_2008_transects transect_spacing=52
 v.info NH_2008_transects
-</PRE></DIV>
+</pre></div>
 
 <h3>Example 2) - Generate line transects specifying the left and right length</h3>
 
-<P>Generate longer, more parallel transects by specifying dleft and dright and 
-smoothing the input line<BR>
-<DIV class=code><PRE>g.region rast=NH_2008_1m
+<p>Generate longer, more parallel transects by specifying dleft and dright and 
+smoothing the input line<br>
+<div class=code><pre>g.region rast=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
 v.generalize input=NH_2008_1m output=NH_2008_1m_smoothed \
   method=sliding_averaging look_ahead=201
 v.transects input=NH_2008_1m_smoothed \
   output=NH_2008_transects_long_smoothed transect_spacing=52 \
   dleft=20 dright=300
-</PRE></DIV>
+</pre></div>
 
 <h3>Example 3) - Generate area transects along shoreline</h3>
 
-<P>Generate longer, more parallel transects by specifying dleft and dright and 
-smoothing the input line<BR>
-<DIV class=code><PRE>g.region rast=NH_2008_1m
+<p>Generate longer, more parallel transects by specifying dleft and dright and 
+smoothing the input line<br>
+<div class=code><pre>g.region rast=NH_2008_1m
 r.contour input=NH_2008_1m output=NH_2008_1m level=1 cut=100
 v.transects input=NH_2008_1m output=NH_2008_areas \
   transect_spacing=52 dleft=20 dright=300 type=area
@@ -56,14 +56,14 @@ v.db.addtable NH_2008_areas
 v.db.addcolumn map=NH_2008_areas columns='demStats DOUBLE PRECISION'
 v.rast.stats vector=NH_2008_areas raster=NH_2008_1m column_prefix=NH2008
 v.db.select NH_2008_areas
-</PRE></DIV>
+</pre></div>
 
 
-<H2>SEE ALSO</H2><EM><A 
-href="http://www4.ncsu.edu/~ejhardi2/v.generalize.html">v.generalize</A>, <A 
-href="http://www4.ncsu.edu/~ejhardi2/r.transect.html">r.transect</A> </EM>
+<h2>SEE ALSO</h2><em>
+<a href="http://www4.ncsu.edu/~ejhardi2/v.generalize.html">v.generalize</a>, 
+<a href="http://www4.ncsu.edu/~ejhardi2/r.transect.html">r.transect</A> </em>
 
 
-<H2>AUTHOR</H2>Eric Hardin, Helena Mitasova, Updates by John Lloyd 
-<P>
-<I>Last changed: $Date$</I>
+<h2>AUTHOR</h2>Eric Hardin, Helena Mitasova, Updates by John Lloyd 
+<p>
+<i>Last changed: $Date$</i>
