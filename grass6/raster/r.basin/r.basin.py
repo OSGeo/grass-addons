@@ -70,6 +70,7 @@ import grass.script as grass
 import math
 from numpy import array
 from numpy import zeros
+import csv
 
 if not os.environ.has_key("GISBASE"):
     grass.message( "You must be in GRASS GIS to run this program." )
@@ -492,7 +493,7 @@ def main():
             grass.run_command('g.remove', rast = r_slope)
         
         ####################################################
-    
+
         parametri_bacino = {}
         parametri_bacino["mean_slope"] = float(mean_slope)
         parametri_bacino["mean_elev"] = float(mean_elev)
@@ -529,6 +530,45 @@ def main():
         parametri_bacino["Slope_ratio"] = float(Slope_ratio)
         parametri_bacino["drainage_density"] = float(drainage_density)
         parametri_bacino["FSF"] = float(FSF) 
+        
+        # create .csv file
+        with open(prefix+'_parameters.csv', 'w') as f:
+    	    writer = csv.writer(f)
+    	    writer.writerow(['Morphometric parameters of basin :'])
+    	    writer.writerow([' '])
+            writer.writerow(['Easting Centroid of basin'] + [basin_east])
+            writer.writerow(['Northing Centroid of basin'] + [basin_north])
+            writer.writerow(['Rectangle containing basin N-W'] + [nw])
+            writer.writerow(['Rectangle containing basin S-E'] + [se])
+            writer.writerow(['Area of basin [km^2]'] + [area_basin])
+            writer.writerow(['Perimeter of basin [km]'] + [perimeter_basin])
+            writer.writerow(['Max Elevation [m s.l.m.]'] + [H1])
+            writer.writerow(['Min Elevation [m s.l.m.]'] + [H2])
+            writer.writerow(['Elevation Difference [m]'] + [HM])
+            writer.writerow(['Mean Elevation'] + [mean_elev])
+            writer.writerow(['Mean Slope'] + [mean_slope])
+            writer.writerow(['Length of Directing Vector [km]'] + [L_orienting_vect])
+            writer.writerow(['Prevalent Orientation [degree from north, counterclockwise]'] + [prevalent_orientation])
+            writer.writerow(['Compactness Coefficient'] + [C_comp])
+            writer.writerow(['Circularity Ratio'] + [R_c])
+            writer.writerow(['Topological Diameter'] + [D_topo])
+            writer.writerow(['Elongation Ratio'] + [R_al])
+            writer.writerow(['Shape Factor'] + [S_f])
+            writer.writerow(['Concentration Time (Giandotti, 1934) [hr]'] + [t_c])
+            writer.writerow(['Length of Mainchannel [km]'] + [mainchannel])
+            writer.writerow(['Mean slope of mainchannel [percent]'] + [mainchannel_slope])
+            writer.writerow(['Mean hillslope length [m]'] + [mean_hillslope_length])
+            writer.writerow(['Magnitudo '] + [magnitudo])
+            writer.writerow(['Max order (Strahler) '] + [Max_order])
+            writer.writerow(['Number of streams '] + [Num_streams])
+            writer.writerow(['Total Stream Length [km] '] + [Len_streams])
+            writer.writerow(['First order stream frequency '] + [FSF])
+            writer.writerow(['Drainage Density [km/km^2] '] + [drainage_density])
+            writer.writerow(['Bifurcation Ratio (Horton) '] + [Bif_ratio])
+            writer.writerow(['Length Ratio (Horton) '] + [Len_ratio])
+            writer.writerow(['Area ratio (Horton) '] + [Area_ratio])
+            writer.writerow(['Slope ratio (Horton) '] + [Slope_ratio])
+        
         grass.message( "\n" ) 
         grass.message( "##################################" )
         grass.message( "Morphometric parameters of basin :" )
