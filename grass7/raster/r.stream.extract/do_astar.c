@@ -40,7 +40,7 @@ int do_astar(void)
 
     G_message(_("A* Search..."));
 
-    G_get_set_window(&window);
+    Rast_get_window(&window);
 
     for (ct_dir = 0; ct_dir < sides; ct_dir++) {
 	/* get r, c (r_nbr, c_nbr) for neighbours */
@@ -81,67 +81,67 @@ int do_astar(void)
 	    c_nbr = c + nextdc[ct_dir];
 	    slope[ct_dir] = ele_nbr[ct_dir] = 0;
 	    skip_me = 0;
+
 	    /* check that neighbour is within region */
-	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
+	    if (r_nbr < 0 || r_nbr >= nrows || c_nbr < 0 || c_nbr >= ncols)
+		continue;
 
-		bseg_get(&bitflags, &flag_value, r_nbr, c_nbr);
-		is_in_list = FLAG_GET(flag_value, INLISTFLAG);
-		is_worked = FLAG_GET(flag_value, WORKEDFLAG);
-		if (!is_worked) {
-		    seg_get(&watalt, (char *)&wa, r_nbr, c_nbr);
-		    ele_nbr[ct_dir] = wa.ele;
-		    slope[ct_dir] =
-			get_slope(ele_val, ele_nbr[ct_dir],
-				   dist_to_nbr[ct_dir]);
-		}
-		/* avoid diagonal flow direction bias */
-		if (!is_in_list) {
-		    if (ct_dir > 3 && slope[ct_dir] > 0) {
-			if (slope[nbr_ew[ct_dir]] > 0) {
-			    /* slope to ew nbr > slope to center */
-			    if (slope[ct_dir] <
-				get_slope(ele_nbr[nbr_ew[ct_dir]],
-					   ele_nbr[ct_dir], ew_res))
-				skip_me = 1;
-			}
-			if (!skip_me && slope[nbr_ns[ct_dir]] > 0) {
-			    /* slope to ns nbr > slope to center */
-			    if (slope[ct_dir] <
-				get_slope(ele_nbr[nbr_ns[ct_dir]],
-					   ele_nbr[ct_dir], ns_res))
-				skip_me = 1;
-			}
+	    bseg_get(&bitflags, &flag_value, r_nbr, c_nbr);
+	    is_in_list = FLAG_GET(flag_value, INLISTFLAG);
+	    is_worked = FLAG_GET(flag_value, WORKEDFLAG);
+	    if (!is_worked) {
+		seg_get(&watalt, (char *)&wa, r_nbr, c_nbr);
+		ele_nbr[ct_dir] = wa.ele;
+		slope[ct_dir] = get_slope(ele_val, ele_nbr[ct_dir],
+			                  dist_to_nbr[ct_dir]);
+	    }
+	    /* avoid diagonal flow direction bias */
+	    if (!is_in_list) {
+		if (ct_dir > 3 && slope[ct_dir] > 0) {
+		    if (slope[nbr_ew[ct_dir]] > 0) {
+			/* slope to ew nbr > slope to center */
+			if (slope[ct_dir] <
+			    get_slope(ele_nbr[nbr_ew[ct_dir]],
+				       ele_nbr[ct_dir], ew_res))
+			    skip_me = 1;
+		    }
+		    if (!skip_me && slope[nbr_ns[ct_dir]] > 0) {
+			/* slope to ns nbr > slope to center */
+			if (slope[ct_dir] <
+			    get_slope(ele_nbr[nbr_ns[ct_dir]],
+				       ele_nbr[ct_dir], ns_res))
+			    skip_me = 1;
 		    }
 		}
+	    }
 
-		if (is_in_list == 0 && skip_me == 0) {
-		    ele_up = ele_nbr[ct_dir];
-		    asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-		    bseg_put(&asp, &asp_val, r_nbr, c_nbr);
-		    heap_add(r_nbr, c_nbr, ele_up);
-		    FLAG_SET(flag_value, INLISTFLAG);
-		    bseg_put(&bitflags, &flag_value, r_nbr, c_nbr);
-		}
-		else if (is_in_list && is_worked == 0) {
-		    if (FLAG_GET(flag_value, EDGEFLAG)) {
-			/* neighbour is edge in list, not yet worked */
-			bseg_get(&asp, &asp_val, r_nbr, c_nbr);
-			if (asp_val < 0) {
-			    /* adjust flow direction for edge cell */
-			    asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-			    bseg_put(&asp, &asp_val, r_nbr, c_nbr);
-			}
+	    if (is_in_list == 0 && skip_me == 0) {
+		ele_up = ele_nbr[ct_dir];
+		asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
+		bseg_put(&asp, &asp_val, r_nbr, c_nbr);
+		heap_add(r_nbr, c_nbr, ele_up);
+		FLAG_SET(flag_value, INLISTFLAG);
+		bseg_put(&bitflags, &flag_value, r_nbr, c_nbr);
+	    }
+	    else if (is_in_list && is_worked == 0) {
+		if (FLAG_GET(flag_value, EDGEFLAG)) {
+		    /* neighbour is edge in list, not yet worked */
+		    bseg_get(&asp, &asp_val, r_nbr, c_nbr);
+		    if (asp_val < 0) {
+			/* adjust flow direction for edge cell */
+			asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
+			bseg_put(&asp, &asp_val, r_nbr, c_nbr);
 		    }
-		    else if (FLAG_GET(flag_value, DEPRFLAG)) {
-			G_debug(3, "real depression");
-			/* neighbour is inside real depression, not yet worked */
-			bseg_get(&asp, &asp_val, r_nbr, c_nbr);
-			if (asp_val == 0 && ele_val <= ele_nbr[ct_dir]) {
-			    asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-			    bseg_put(&asp, &asp_val, r_nbr, c_nbr);
-			    FLAG_UNSET(flag_value, DEPRFLAG);
-			    bseg_put(&bitflags, &flag_value, r_nbr, c_nbr);
-			}
+		}
+		else if (FLAG_GET(flag_value, DEPRFLAG)) {
+		    G_debug(3, "real depression");
+		    /* neighbour is inside real depression, not yet worked */
+		    bseg_get(&asp, &asp_val, r_nbr, c_nbr);
+		    if (asp_val == 0 && ele_val <= ele_nbr[ct_dir]) {
+			asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
+			bseg_put(&asp, &asp_val, r_nbr, c_nbr);
+			FLAG_UNSET(flag_value, DEPRFLAG);
+			bseg_put(&bitflags, &flag_value, r_nbr, c_nbr);
 		    }
 		}
 	    }
@@ -152,7 +152,7 @@ int do_astar(void)
 	bseg_get(&bitflags, &flag_value, r, c);
 	FLAG_SET(flag_value, WORKEDFLAG);
 	bseg_put(&bitflags, &flag_value, r, c);
-    }   /* end A* search */
+    }    /* end A* search */
 
     G_percent(n_points, n_points, 1);	/* finish it */
 
@@ -190,8 +190,8 @@ int sift_up(unsigned int start, HEAP_PNT child_p)
 	    seg_put(&search_heap, (char *)&heap_p, 0, child);
 	    child = parent;
 	}
-	/* no more sifting up, found slot for child */
 	else
+	    /* no more sifting up, found slot for child */
 	    break;
     }
 
@@ -271,7 +271,10 @@ HEAP_PNT heap_drop(void)
 	parent = child;
     }
 
-    seg_put(&search_heap, (char *)&last_p, 0, parent);
+    /* fill hole */
+    if (parent < heap_size) {
+	seg_put(&search_heap, (char *)&last_p, 0, parent);
+    }
 
     /* the actual drop */
     heap_size--;

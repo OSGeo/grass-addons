@@ -37,9 +37,9 @@ int init_search(int depr_fd)
 	    if (is_null)
 		continue;
 
+	    asp_value = 0;
 	    if (r == 0 || r == nrows - 1 || c == 0 || c == ncols - 1) {
 
-		asp_value = 0;
 		if (r == 0 && c == 0)
 		    asp_value = -7;
 		else if (r == 0 && c == ncols - 1)
@@ -68,7 +68,6 @@ int init_search(int depr_fd)
 	    }
 
 	    /* any neighbour NULL ? */
-	    asp_value = 0;
 	    for (ct_dir = 0; ct_dir < sides; ct_dir++) {
 		/* get r, c (r_nbr, c_nbr) for neighbours */
 		r_nbr = r + nextdr[ct_dir];

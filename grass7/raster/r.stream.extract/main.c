@@ -65,8 +65,9 @@ int main(int argc, char *argv[])
     double threshold, d8cut, mont_exp;
     int min_stream_length = 0, memory;
     int seg_cols, seg_rows;
+    double seg2kb;
     int num_open_segs, num_open_array_segs, num_seg_total;
-    double memory_divisor, heap_mem;
+    double memory_divisor, heap_mem, disk_space;
     const char *mapset;
 
     G_gisinit(argv[0]);
@@ -278,6 +279,7 @@ int main(int argc, char *argv[])
 
     /* segment structures */
     seg_rows = seg_cols = 64;
+    seg2kb = seg_rows * seg_cols / 1024.;
     /* elevation + accumulation: 12 byte -> 48 KB / segment
      * aspect: 1 byte -> 4 KB / segment
      * stream: 4 byte -> 16 KB / segment
@@ -293,48 +295,65 @@ int main(int argc, char *argv[])
     
     /* balance segment files */
     /* elevation + accumulation: * 2 */
-    memory_divisor =  48 * 2;
+    memory_divisor = sizeof(WAT_ALT) * 2;
+    disk_space = sizeof(WAT_ALT);
     /* aspect: as is */
-    memory_divisor += 4;
+    memory_divisor += sizeof(char);
+    disk_space += sizeof(char);
     /* stream ids: / 2 */
-    memory_divisor += 16 / 2;
+    memory_divisor += sizeof(int) / 2.;
+    disk_space += sizeof(int);
     /* flags: * 4 */
-    memory_divisor += 4 * 4;
+    memory_divisor += sizeof(char) * 4;
+    disk_space += sizeof(char);
     /* astar_points: / 16 */
     /* ideally only a few but large segments */
-    memory_divisor += 32 / 16;
-    /* heap points: / 5 */
-    memory_divisor += 64. / 5.;
+    memory_divisor += sizeof(POINT) / 16.;
+    disk_space += sizeof(POINT);
+    /* heap points: / 4 */
+    memory_divisor += sizeof(HEAP_PNT) / 4.;
+    disk_space += sizeof(HEAP_PNT);
     
     /* KB -> MB */
-    memory_divisor /= 1024.;
+    memory_divisor *= seg2kb / 1024.;
+    disk_space *= seg2kb / 1024.;
 
     num_open_segs = memory / memory_divisor;
-    heap_mem = num_open_segs * 64. / (5. * 1024.);
+    heap_mem = num_open_segs * seg2kb * sizeof(HEAP_PNT) /
+               (4. * 1024.);
     num_seg_total = (ncols / seg_cols + 1) * (nrows / seg_rows + 1);
     if (num_open_segs > num_seg_total) {
 	heap_mem += (num_open_segs - num_seg_total) * memory_divisor;
-	heap_mem -= (num_open_segs - num_seg_total) * 64. / (5. * 1024.);
+	heap_mem -= (num_open_segs - num_seg_total) * seg2kb *
+		    sizeof(HEAP_PNT) / (4. * 1024.);
 	num_open_segs = num_seg_total;
     }
     if (num_open_segs < 16) {
 	num_open_segs = 16;
-	heap_mem = num_open_segs * 64. / 5.;
+	heap_mem = num_open_segs * seg2kb * sizeof(HEAP_PNT) /
+	           (4. * 1024.);
     }
-    G_verbose_message(_("%d of %d segments are kept in memory"),
-                      num_open_segs, num_seg_total);
+    G_verbose_message(_("%.2f of data are kept in memory"),
+                      100. * num_open_segs / num_seg_total);
+    disk_space *= num_seg_total;
+    if (disk_space < 1024.0)
+	G_verbose_message(_("Will need up to %.2f MB of disk space"), disk_space);
+    else
+	G_verbose_message(_("Will need up to %.2f GB (%.0f MB) of disk space"),
+	           disk_space / 1024.0, disk_space);
 
     /* open segment files */
     G_verbose_message(_("Create temporary files..."));
     seg_open(&watalt, nrows, ncols, seg_rows, seg_cols, num_open_segs * 2,
         sizeof(WAT_ALT), 1);
     if (num_open_segs * 2 > num_seg_total)
-	heap_mem += (num_open_segs * 2 - num_seg_total) * 48. * 2. / 1024.;
+	heap_mem += (num_open_segs * 2 - num_seg_total) * seg2kb *
+	            sizeof(WAT_ALT) / 1024.;
     cseg_open(&stream, seg_rows, seg_cols, num_open_segs / 2.);
     bseg_open(&asp, seg_rows, seg_cols, num_open_segs);
     bseg_open(&bitflags, seg_rows, seg_cols, num_open_segs * 4);
     if (num_open_segs * 4 > num_seg_total)
-	heap_mem += (num_open_segs * 4 - num_seg_total) * 4. * 4. / 1024.;
+	heap_mem += (num_open_segs * 4 - num_seg_total) * seg2kb / 1024.;
 
     /* load maps */
     if (load_maps(ele_fd, acc_fd) < 0)
@@ -371,7 +390,7 @@ int main(int argc, char *argv[])
     if (n_points % seg_cols > 0)
 	num_seg_total++;
     /* no need to have more segments open than exist */
-    num_open_array_segs = 1024. * 1024. * heap_mem / (seg_cols * 16.);
+    num_open_array_segs = (1 << 20) * heap_mem / (seg_cols * sizeof(HEAP_PNT));
     if (num_open_array_segs > num_seg_total)
 	num_open_array_segs = num_seg_total;
     if (num_open_array_segs < 2)

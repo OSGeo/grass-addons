@@ -6,14 +6,10 @@
 
 double mfd_pow(double base)
 {
-    int x;
-    double result;
+    int i;
+    double result = base;
 
-    result = base;
-    if (c_fac == 1)
-	return result;
-
-    for (x = 2; x <= c_fac; x++) {
+    for (i = 2; i <= c_fac; i++) {
 	result *= base;
     }
     return result;
