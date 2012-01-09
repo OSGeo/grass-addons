@@ -1,42 +1,52 @@
 #include <stdlib.h>
 #include <math.h>
-#include <grass/raster.h>
+#include <grass/gis.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
 
 #define GET_PARENT(c) ((unsigned int)(((c) - 2) >> 2) + 1)
 #define GET_CHILD(p) ((unsigned int)((p) << 2) - 2)
 
-HEAP_PNT heap_drop(void);
-int sift_up(unsigned int, HEAP_PNT);
+#define HEAP_CMP(a, b) (((a)->ele < (b)->ele) ? 1 : \
+                       (((a)->ele > (b)->ele) ? 0 : \
+		       (((a)->added < (b)->added) ? 1 : 0)))
+
+
+struct heap_point heap_drop(void);
+
 double get_slope(CELL, CELL, double);
 
 int do_astar(void)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
-    unsigned int first_cum, count;
+    int count;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    CELL ele_val, ele_up, ele_nbr[8];
-    WAT_ALT wa;
-    char asp_val;
+    int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
+    int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
+    CELL ele_val, ele_down, ele_nbr[8];
+    char is_bottom;
+    char asp_val, asp_val_this;
     char flag_value, is_in_list, is_worked;
-    HEAP_PNT heap_p;
+    struct heap_point heap_p;
     /* sides
      * |7|1|4|
      * |2| |3|
      * |5|0|6|
      */
-    int nbr_ew[8] = { 0, 1, 2, 3, 1, 0, 0, 1 };
-    int nbr_ns[8] = { 0, 1, 2, 3, 3, 2, 3, 2 };
+    int nbr_ew[8] = { 0, 1, 2, 3, 1, 0, 0, 1};
+    int nbr_ns[8] = { 0, 1, 2, 3, 3, 2, 3, 2};
     double dx, dy, dist_to_nbr[8], ew_res, ns_res;
     double slope[8];
+    int skip_diag;
     struct Cell_head window;
-    int skip_me;
 
     count = 0;
 
     first_cum = n_points;
+
+    sinks = first_sink = NULL;
+    n_sinks = 0;
 
     G_message(_("A* Search..."));
 
@@ -56,7 +66,7 @@ int do_astar(void)
     }
     ew_res = window.ew_res;
     ns_res = window.ns_res;
-    
+
     while (heap_size > 0) {
 	G_percent(count++, n_points, 1);
 	if (count > n_points)
@@ -70,17 +80,31 @@ int do_astar(void)
 
 	heap_p = heap_drop();
 
-	r = heap_p.pnt.r;
-	c = heap_p.pnt.c;
+	/* flow accumulation order is not needed */
+	r = heap_p.r;
+	c = heap_p.c;
 
-	ele_val = heap_p.ele;
+	first_cum--;
+	bseg_get(&bitflags, &flag_value, r, c);
+	FLAG_SET(flag_value, WORKEDFLAG);
+	bseg_put(&bitflags, &flag_value, r, c);
+
+	ele_val = ele_down = heap_p.ele;
+	is_bottom = 0;
+	bseg_get(&draindir, &asp_val_this, r, c);
+	if (asp_val_this > 0 && !FLAG_GET(flag_value, EDGEFLAG)) {
+	    r_nbr = r + asp_r[(int)asp_val_this];
+	    c_nbr = c + asp_c[(int)asp_val_this];
+	    cseg_get(&ele, &ele_down, r_nbr, c_nbr);
+	    if (ele_down > ele_val)
+		is_bottom = 1;
+	}
 
 	for (ct_dir = 0; ct_dir < sides; ct_dir++) {
 	    /* get r, c (r_nbr, c_nbr) for neighbours */
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
 	    slope[ct_dir] = ele_nbr[ct_dir] = 0;
-	    skip_me = 0;
 
 	    /* check that neighbour is within region */
 	    if (r_nbr < 0 || r_nbr >= nrows || c_nbr < 0 || c_nbr >= ncols)
@@ -89,72 +113,104 @@ int do_astar(void)
 	    bseg_get(&bitflags, &flag_value, r_nbr, c_nbr);
 	    is_in_list = FLAG_GET(flag_value, INLISTFLAG);
 	    is_worked = FLAG_GET(flag_value, WORKEDFLAG);
-	    if (!is_worked) {
-		seg_get(&watalt, (char *)&wa, r_nbr, c_nbr);
-		ele_nbr[ct_dir] = wa.ele;
-		slope[ct_dir] = get_slope(ele_val, ele_nbr[ct_dir],
-			                  dist_to_nbr[ct_dir]);
-	    }
+	    skip_diag = 0;
+
 	    /* avoid diagonal flow direction bias */
+	    if (!is_worked) {
+		cseg_get(&ele, &ele_nbr[ct_dir], r_nbr, c_nbr);
+		slope[ct_dir] = get_slope(ele_val, ele_nbr[ct_dir],
+		                          dist_to_nbr[ct_dir]);
+	    }
+
 	    if (!is_in_list) {
 		if (ct_dir > 3 && slope[ct_dir] > 0) {
 		    if (slope[nbr_ew[ct_dir]] > 0) {
 			/* slope to ew nbr > slope to center */
-			if (slope[ct_dir] <
-			    get_slope(ele_nbr[nbr_ew[ct_dir]],
-				       ele_nbr[ct_dir], ew_res))
-			    skip_me = 1;
+			if (slope[ct_dir] < get_slope(ele_nbr[nbr_ew[ct_dir]],
+			                              ele_nbr[ct_dir], ew_res))
+			    skip_diag = 1;
 		    }
-		    if (!skip_me && slope[nbr_ns[ct_dir]] > 0) {
+		    if (!skip_diag && slope[nbr_ns[ct_dir]] > 0) {
 			/* slope to ns nbr > slope to center */
-			if (slope[ct_dir] <
-			    get_slope(ele_nbr[nbr_ns[ct_dir]],
-				       ele_nbr[ct_dir], ns_res))
-			    skip_me = 1;
+			if (slope[ct_dir] < get_slope(ele_nbr[nbr_ns[ct_dir]],
+			                              ele_nbr[ct_dir], ns_res))
+			    skip_diag = 1;
 		    }
 		}
 	    }
 
-	    if (is_in_list == 0 && skip_me == 0) {
-		ele_up = ele_nbr[ct_dir];
+	    if (is_in_list == 0 && skip_diag == 0) {
 		asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-		bseg_put(&asp, &asp_val, r_nbr, c_nbr);
-		heap_add(r_nbr, c_nbr, ele_up);
-		FLAG_SET(flag_value, INLISTFLAG);
-		bseg_put(&bitflags, &flag_value, r_nbr, c_nbr);
+		heap_add(r_nbr, c_nbr, ele_nbr[ct_dir], asp_val, flag_value);
+
+		if (ele_nbr[ct_dir] < ele_val)
+		    is_bottom = 0;
 	    }
 	    else if (is_in_list && is_worked == 0) {
 		if (FLAG_GET(flag_value, EDGEFLAG)) {
-		    /* neighbour is edge in list, not yet worked */
-		    bseg_get(&asp, &asp_val, r_nbr, c_nbr);
+		    bseg_get(&draindir, &asp_val, r_nbr, c_nbr);
 		    if (asp_val < 0) {
-			/* adjust flow direction for edge cell */
-			asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-			bseg_put(&asp, &asp_val, r_nbr, c_nbr);
+			/* update edge cell ? no */
+			/* asp_val = drain[r_nbr - r + 1][c_nbr - c + 1]; */
+			/* check if this causes trouble */
+			bseg_put(&draindir, &asp_val, r_nbr, c_nbr);
+
+			if (ele_nbr[ct_dir] < ele_val)
+			    is_bottom = 0;
 		    }
 		}
 		else if (FLAG_GET(flag_value, DEPRFLAG)) {
 		    G_debug(3, "real depression");
 		    /* neighbour is inside real depression, not yet worked */
-		    bseg_get(&asp, &asp_val, r_nbr, c_nbr);
+		    bseg_get(&draindir, &asp_val, r_nbr, c_nbr);
 		    if (asp_val == 0 && ele_val <= ele_nbr[ct_dir]) {
 			asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-			bseg_put(&asp, &asp_val, r_nbr, c_nbr);
+			bseg_put(&draindir, &asp_val, r_nbr, c_nbr);
 			FLAG_UNSET(flag_value, DEPRFLAG);
 			bseg_put(&bitflags, &flag_value, r_nbr, c_nbr);
 		    }
 		}
 	    }
 	}    /* end neighbours */
-	/* add astar points to sorted list for flow accumulation and stream extraction */
-	first_cum--;
-	seg_put(&astar_pts, (char *)&heap_p.pnt, 0, first_cum);
-	bseg_get(&bitflags, &flag_value, r, c);
-	FLAG_SET(flag_value, WORKEDFLAG);
-	bseg_put(&bitflags, &flag_value, r, c);
+
+
+	if (is_bottom) {
+	    /* add sink bottom */
+	    /* process upstream */
+	    if (1) {
+		if (first_sink) {
+		    sinks->next =
+			(struct sink_list *)
+			G_malloc(sizeof(struct sink_list));
+		    sinks = sinks->next;
+		}
+		/* first sink */
+		else {
+		    first_sink =
+			(struct sink_list *)
+			G_malloc(sizeof(struct sink_list));
+		    sinks = first_sink;
+		}
+		sinks->next = NULL;
+	    }
+	    /* process downstream */
+	    if (0) {
+		sinks =
+		    (struct sink_list *)
+		    G_malloc(sizeof(struct sink_list));
+		sinks->next = first_sink;
+		first_sink = sinks;
+	    }
+	    sinks->r = r;
+	    sinks->c = c;
+	    n_sinks++;
+	}
     }    /* end A* search */
 
     G_percent(n_points, n_points, 1);	/* finish it */
+
+    if (first_cum)
+	G_warning(_("processed points mismatch of %u"), first_cum);
 
     return 1;
 }
@@ -163,7 +219,8 @@ int do_astar(void)
  * compare function for heap
  * returns 1 if point1 < point2 else 0
  */
-int heap_cmp(HEAP_PNT *a, HEAP_PNT *b)
+
+static int heap_cmp(struct heap_point *a, struct heap_point *b)
 {
     if (a->ele < b->ele)
 	return 1;
@@ -174,15 +231,16 @@ int heap_cmp(HEAP_PNT *a, HEAP_PNT *b)
     return 0;
 }
 
-int sift_up(unsigned int start, HEAP_PNT child_p)
+int sift_up(unsigned int start, struct heap_point child_p)
 {
     unsigned int parent, child;
-    HEAP_PNT heap_p;
+    struct heap_point heap_p;
 
     child = start;
 
     while (child > 1) {
 	parent = GET_PARENT(child);
+
 	seg_get(&search_heap, (char *)&heap_p, 0, parent);
 
 	/* push parent point down if child is smaller */
@@ -191,7 +249,7 @@ int sift_up(unsigned int start, HEAP_PNT child_p)
 	    child = parent;
 	}
 	else
-	    /* no more sifting up, found slot for child */
+	    /* no more sifting up, found new slot for child */
 	    break;
     }
 
@@ -205,22 +263,30 @@ int sift_up(unsigned int start, HEAP_PNT child_p)
  * add item to heap
  * returns heap_size
  */
-unsigned int heap_add(int r, int c, CELL ele)
+unsigned int heap_add(int r, int c, CELL ele, char asp, char flag_value)
 {
-    HEAP_PNT heap_p;
-    
+    struct heap_point heap_p;
+
     /* add point to next free position */
 
     heap_size++;
 
-    heap_p.added = nxt_avail_pt;
+    if (heap_size > n_points)
+	G_fatal_error(_("Heapsize too large"));
+
+    heap_p.r = r;
+    heap_p.c = c;
     heap_p.ele = ele;
-    heap_p.pnt.r = r;
-    heap_p.pnt.c = c;
+    heap_p.added = nxt_avail_pt;
+
+    bseg_put(&draindir, &asp, r, c);
+    FLAG_SET(flag_value, INLISTFLAG);
+    bseg_put(&bitflags, &flag_value, r, c);
 
     nxt_avail_pt++;
 
     /* sift up: move new point towards top of heap */
+
     sift_up(heap_size, heap_p);
 
     return heap_size;
@@ -230,11 +296,11 @@ unsigned int heap_add(int r, int c, CELL ele)
  * drop item from heap
  * returns heap size
  */
-HEAP_PNT heap_drop(void)
+struct heap_point heap_drop(void)
 {
     unsigned int child, childr, parent;
     int i;
-    HEAP_PNT child_p, childr_p, last_p, root_p;
+    struct heap_point child_p, childr_p, last_p, root_p;
 
     seg_get(&search_heap, (char *)&last_p, 0, heap_size);
     seg_get(&search_heap, (char *)&root_p, 0, 1);
@@ -245,14 +311,14 @@ HEAP_PNT heap_drop(void)
     }
 
     parent = 1;
-    while ((child = GET_CHILD(parent)) < heap_size) {
+    while ((child = GET_CHILD(parent)) <= heap_size) {
 
 	seg_get(&search_heap, (char *)&child_p, 0, child);
 
 	if (child < heap_size) {
 	    childr = child + 1;
 	    i = child + 4;
-	    while (childr < heap_size && childr < i) {
+	    while (childr <= heap_size && childr < i) {
 		seg_get(&search_heap, (char *)&childr_p, 0, childr);
 		if (heap_cmp(&childr_p, &child_p)) {
 		    child = childr;
@@ -261,7 +327,6 @@ HEAP_PNT heap_drop(void)
 		childr++;
 	    }
 	}
-
 	if (heap_cmp(&last_p, &child_p)) {
 	    break;
 	}

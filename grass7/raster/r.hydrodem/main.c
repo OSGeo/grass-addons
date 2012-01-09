@@ -1,11 +1,10 @@
 
 /****************************************************************************
  *
- * MODULE:       r.stream.extract
+ * MODULE:       r.hydrodem
  * AUTHOR(S):    Markus Metz <markus.metz.giswork gmail.com>
  * PURPOSE:      Hydrological analysis
- *               Extracts stream networks from accumulation raster with
- *               given threshold
+ *               DEM hydrological conditioning based on A* Search
  * COPYRIGHT:    (C) 1999-2009 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -16,59 +15,59 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
-#include <math.h>
+#include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#define MAIN
 #include "local_proto.h"
 
-/* global variables */
 int nrows, ncols;
 unsigned int n_search_points, n_points, nxt_avail_pt;
 unsigned int heap_size;
+unsigned int n_sinks;
+int n_mod_max, size_max;
+int do_all, keep_nat, nat_thresh;
 unsigned int n_stream_nodes, n_alloc_nodes;
-POINT *outlets;
+struct point *outlets;
+struct sink_list *sinks, *first_sink;
 unsigned int n_outlets, n_alloc_outlets;
+
 char drain[3][3] = { {7, 6, 5}, {8, 0, 4}, {1, 2, 3} };
+
+unsigned int first_cum;
 char sides;
 int c_fac;
 int ele_scale;
-int have_depressions;
+struct RB_TREE *draintree;
 
 SSEG search_heap;
-SSEG astar_pts;
 BSEG bitflags;
-SSEG watalt;
-BSEG asp;
+CSEG ele;
+BSEG draindir;
 CSEG stream;
 
-CELL *astar_order;
 
 int main(int argc, char *argv[])
 {
     struct
     {
-	struct Option *ele, *acc, *depression;
-	struct Option *threshold, *d8cut;
-	struct Option *mont_exp;
-	struct Option *min_stream_length;
-	struct Option *memory;
+	struct Option *ele, *depr, *memory;
     } input;
     struct
     {
-	struct Option *stream_rast;
-	struct Option *stream_vect;
-	struct Option *dir_rast;
+	struct Option *ele_hydro;
+	struct Option *mod_max;
+	struct Option *size_max;
+	struct Flag *do_all;
     } output;
     struct GModule *module;
-    int ele_fd, acc_fd, depr_fd;
-    double threshold, d8cut, mont_exp;
-    int min_stream_length = 0, memory;
+    int ele_fd, ele_map_type, depr_fd;
+    int memory;
     int seg_cols, seg_rows;
     double seg2kb;
     int num_open_segs, num_open_array_segs, num_seg_total;
     double memory_divisor, heap_mem, disk_space;
     const char *mapset;
+    struct Colors colors;
 
     G_gisinit(argv[0]);
 
@@ -76,63 +75,20 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("raster"));
     G_add_keyword(_("hydrology"));
-    module->description = _("Stream network extraction");
+    module->description = _("Hydrological conditioning, sink removal");
 
     input.ele = G_define_standard_option(G_OPT_R_INPUT);
-    input.ele->key = "elevation";
+    input.ele->key = "input";
     input.ele->label = _("Elevation map");
-    input.ele->description = _("Elevation on which entire analysis is based");
+    input.ele->description =
+	_("Elevation map to be hydrologically corrected");
 
-    input.acc = G_define_standard_option(G_OPT_R_INPUT);
-    input.acc->key = "accumulation";
-    input.acc->label = _("Accumulation map");
-    input.acc->required = NO;
-    input.acc->description =
-	_("Stream extraction will use provided accumulation instead of calculating it anew");
-
-    input.depression = G_define_standard_option(G_OPT_R_INPUT);
-    input.depression->key = "depression";
-    input.depression->label = _("Map with real depressions");
-    input.depression->required = NO;
-    input.depression->description =
-	_("Streams will not be routed out of real depressions");
-
-    input.threshold = G_define_option();
-    input.threshold->key = "threshold";
-    input.threshold->label = _("Minimum flow accumulation for streams");
-    input.threshold->description = _("Must be > 0");
-    input.threshold->required = YES;
-    input.threshold->type = TYPE_DOUBLE;
-
-    input.d8cut = G_define_option();
-    input.d8cut->key = "d8cut";
-    input.d8cut->label = _("Use SFD above this threshold");
-    input.d8cut->description =
-	_("If accumulation is larger than d8cut, SFD is used instead of MFD."
-	  " Applies only if no accumulation map is given.");
-    input.d8cut->required = NO;
-    input.d8cut->answer = "infinity";
-    input.d8cut->type = TYPE_DOUBLE;
-
-    input.mont_exp = G_define_option();
-    input.mont_exp->key = "mexp";
-    input.mont_exp->type = TYPE_DOUBLE;
-    input.mont_exp->required = NO;
-    input.mont_exp->answer = "0";
-    input.mont_exp->label =
-	_("Montgomery exponent for slope, disabled with 0");
-    input.mont_exp->description =
-	_("Montgomery: accumulation is multiplied with pow(slope,mexp) and then compared with threshold.");
-
-    input.min_stream_length = G_define_option();
-    input.min_stream_length->key = "stream_length";
-    input.min_stream_length->type = TYPE_INTEGER;
-    input.min_stream_length->required = NO;
-    input.min_stream_length->answer = "0";
-    input.min_stream_length->label =
-	_("Delete stream segments shorter than stream_length cells.");
-    input.min_stream_length->description =
-	_("Applies only to first-order stream segments (springs/stream heads).");
+    input.depr = G_define_standard_option(G_OPT_R_INPUT);
+    input.depr->key = "depression";
+    input.depr->required = NO;
+    input.depr->label = _("Depression map");
+    input.depr->description =
+	_("Map indicating real depressions that must not be modified");
 
     input.memory = G_define_option();
     input.memory->key = "memory";
@@ -141,26 +97,35 @@ int main(int argc, char *argv[])
     input.memory->answer = "300";
     input.memory->description = _("Maximum memory to be used in MB");
 
-    output.stream_rast = G_define_standard_option(G_OPT_R_OUTPUT);
-    output.stream_rast->key = "stream_rast";
-    output.stream_rast->description =
-	_("Output raster map with unique stream ids");
-    output.stream_rast->required = NO;
-    output.stream_rast->guisection = _("Output options");
+    output.ele_hydro = G_define_standard_option(G_OPT_R_OUTPUT);
+    output.ele_hydro->key = "output";
+    output.ele_hydro->description =
+	_("Name of hydrologically conditioned raster map");
+    output.ele_hydro->required = YES;
 
-    output.stream_vect = G_define_standard_option(G_OPT_V_OUTPUT);
-    output.stream_vect->key = "stream_vect";
-    output.stream_vect->description =
-	_("Output vector with unique stream ids");
-    output.stream_vect->required = NO;
-    output.stream_vect->guisection = _("Output options");
+    output.mod_max = G_define_option();
+    output.mod_max->key = "mod";
+    output.mod_max->description =
+	(_("Only remove sinks requiring not more than <mod> cell modifications."));
+    output.mod_max->type = TYPE_INTEGER;
+    output.mod_max->answer = "4";
+    output.mod_max->required = YES;
 
-    output.dir_rast = G_define_standard_option(G_OPT_R_OUTPUT);
-    output.dir_rast->key = "direction";
-    output.dir_rast->description =
-	_("Output raster map with flow direction");
-    output.dir_rast->required = NO;
-    output.dir_rast->guisection = _("Output options");
+    output.size_max = G_define_option();
+    output.size_max->key = "size";
+    output.size_max->description =
+	(_("Only remove sinks not larger than <size> cells."));
+    output.size_max->type = TYPE_INTEGER;
+    output.size_max->answer = "4";
+    output.size_max->required = YES;
+
+    output.do_all = G_define_flag();
+    output.do_all->key = 'a';
+    output.do_all->label = (_("Remove all sinks."));
+    output.do_all->description =
+	(_("By default only minor corrections are done to the DEM and "
+	  "the result will not be 100% hydrologically correct."
+	  "Use this flag to override default."));
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -172,59 +137,21 @@ int main(int argc, char *argv[])
     /* input maps exist ? */
     if (!G_find_raster(input.ele->answer, ""))
 	G_fatal_error(_("Raster map <%s> not found"), input.ele->answer);
-
-    if (input.acc->answer) {
-	if (!G_find_raster(input.acc->answer, ""))
-	    G_fatal_error(_("Raster map <%s> not found"), input.acc->answer);
-    }
-
-    if (input.depression->answer) {
-	if (!G_find_raster(input.depression->answer, ""))
-	    G_fatal_error(_("Raster map <%s> not found"), input.depression->answer);
-	have_depressions = 1;
-    }
-    else
-	have_depressions = 0;
-
-    /* threshold makes sense */
-    threshold = atof(input.threshold->answer);
-    if (threshold <= 0)
-	G_fatal_error(_("Threshold must be > 0 but is %f"), threshold);
-
-    /* d8cut */
-    if (strcmp(input.d8cut->answer, "infinity") == 0) {
-	d8cut = DBL_MAX;
-    }
-    else {
-	d8cut = atof(input.d8cut->answer);
-	if (d8cut < 0)
-	    G_fatal_error(_("d8cut must be positive or zero but is %f"),
-			  d8cut);
-    }
-
-    /* Montgomery stream initiation */
-    if (input.mont_exp->answer) {
-	mont_exp = atof(input.mont_exp->answer);
-	if (mont_exp < 0)
-	    G_fatal_error(_("Montgomery exponent must be positive or zero but is %f"),
-			  mont_exp);
-	if (mont_exp > 3)
-	    G_warning(_("Montgomery exponent is %f, recommended range is 0.0 - 3.0"),
-		      mont_exp);
-    }
-    else
-	mont_exp = 0;
-
-    /* Minimum stream segment length */
-    if (input.min_stream_length->answer) {
-	min_stream_length = atoi(input.min_stream_length->answer);
-	if (min_stream_length < 0)
-	    G_fatal_error(_("Minimum stream length must be positive or zero but is %d"),
-			  min_stream_length);
-    }
-    else
-	min_stream_length = 0;
 	
+    if (input.depr->answer) {
+	if (!G_find_raster(input.depr->answer, ""))
+	    G_fatal_error(_("Raster map <%s> not found"),
+	                  input.depr->answer);
+    }
+
+    if ((n_mod_max = atoi(output.mod_max->answer)) <= 0)
+	G_fatal_error(_("'%s' must be a positive integer"),
+	              output.mod_max->key);
+
+    if ((size_max = atoi(output.size_max->answer)) <= 0)
+	G_fatal_error(_("'%s' must be a positive integer"),
+		      output.size_max->key);
+
     if (input.memory->answer) {
 	memory = atoi(input.memory->answer);
 	if (memory <= 0)
@@ -234,11 +161,13 @@ int main(int argc, char *argv[])
     else
 	memory = 300;
 
-    /* Check for some output map */
-    if ((output.stream_rast->answer == NULL)
-	&& (output.stream_vect->answer == NULL)
-	&& (output.dir_rast->answer == NULL)) {
-	G_fatal_error(_("Sorry, you must choose at least one output map."));
+    do_all = output.do_all->answer;
+
+    if (!do_all) {
+	G_verbose_message(_("All sinks with max %d cells to be modified will be removed"),
+			  n_mod_max);
+	G_verbose_message(_("All sinks not larger than %d cells will be removed."),
+			  size_max);
     }
 
     /*********************/
@@ -251,22 +180,12 @@ int main(int argc, char *argv[])
     if (ele_fd < 0)
 	G_fatal_error(_("Could not open input map %s"), input.ele->answer);
 
-    if (input.acc->answer) {
-	mapset = G_find_raster2(input.acc->answer, "");
-	acc_fd = Rast_open_old(input.acc->answer, mapset);
-	if (acc_fd < 0)
-	    G_fatal_error(_("Could not open input map %s"),
-			  input.acc->answer);
-    }
-    else
-	acc_fd = -1;
-
-    if (input.depression->answer) {
-	mapset = G_find_raster2(input.depression->answer, "");
-	depr_fd = Rast_open_old(input.depression->answer, mapset);
+    if (input.depr->answer) {
+	mapset = G_find_raster2(input.depr->answer, "");
+	depr_fd = Rast_open_old(input.depr->answer, mapset);
 	if (depr_fd < 0)
 	    G_fatal_error(_("Could not open input map %s"),
-			  input.depression->answer);
+	                  input.depr->answer);
     }
     else
 	depr_fd = -1;
@@ -274,111 +193,77 @@ int main(int argc, char *argv[])
     /* set global variables */
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
-    sides = 8;	/* not a user option */
-    c_fac = 5;	/* not a user option, MFD covergence factor 5 gives best results */
+    sides = 8;			/* not a user option */
+
+    ele_map_type = Rast_get_map_type(ele_fd);
 
     /* segment structures */
     seg_rows = seg_cols = 64;
     seg2kb = seg_rows * seg_cols / 1024.;
-    /* elevation + accumulation: 12 byte -> 48 KB / segment
-     * aspect: 1 byte -> 4 KB / segment
-     * stream: 4 byte -> 16 KB / segment
-     * flag: 1 byte -> 4 KB / segment
-     * 
-     * Total MB / segment so far: 0.07
-     * 
-     * astar_points: 8 byte -> 32 KB / segment
-     * heap_points: 16 byte -> 64 KB / segment
-     * 
-     * Total MB / segment: 0.16
-     */
     
     /* balance segment files */
-    /* elevation + accumulation: * 2 */
-    memory_divisor = sizeof(WAT_ALT) * 2;
-    disk_space = sizeof(WAT_ALT);
-    /* aspect: as is */
-    memory_divisor += sizeof(char);
-    disk_space += sizeof(char);
-    /* stream ids: / 2 */
-    memory_divisor += sizeof(int) / 2.;
-    disk_space += sizeof(int);
+    /* elevation: * 2 */
+    memory_divisor = seg2kb * sizeof(CELL) * 2;
+    /* drainage direction: as is */
+    memory_divisor += seg2kb * sizeof(char);
     /* flags: * 4 */
-    memory_divisor += sizeof(char) * 4;
-    disk_space += sizeof(char);
-    /* astar_points: / 16 */
-    /* ideally only a few but large segments */
-    memory_divisor += sizeof(POINT) / 16.;
-    disk_space += sizeof(POINT);
+    memory_divisor += seg2kb * sizeof(char) * 4;
     /* heap points: / 4 */
-    memory_divisor += sizeof(HEAP_PNT) / 4.;
-    disk_space += sizeof(HEAP_PNT);
+    memory_divisor += seg2kb * sizeof(struct heap_point) / 4.;
     
     /* KB -> MB */
-    memory_divisor *= seg2kb / 1024.;
-    disk_space *= seg2kb / 1024.;
+    memory_divisor /= 1024.;
 
     num_open_segs = memory / memory_divisor;
-    heap_mem = num_open_segs * seg2kb * sizeof(HEAP_PNT) /
+    /* heap_mem is in MB */
+    heap_mem = num_open_segs * seg2kb * sizeof(struct heap_point) /
                (4. * 1024.);
     num_seg_total = (ncols / seg_cols + 1) * (nrows / seg_rows + 1);
     if (num_open_segs > num_seg_total) {
 	heap_mem += (num_open_segs - num_seg_total) * memory_divisor;
 	heap_mem -= (num_open_segs - num_seg_total) * seg2kb *
-		    sizeof(HEAP_PNT) / (4. * 1024.);
+	            sizeof(struct heap_point) / (4. * 1024.);
 	num_open_segs = num_seg_total;
     }
     if (num_open_segs < 16) {
 	num_open_segs = 16;
-	heap_mem = num_open_segs * seg2kb * sizeof(HEAP_PNT) /
+	heap_mem = num_open_segs * seg2kb * sizeof(struct heap_point) /
 	           (4. * 1024.);
     }
+    disk_space = (1. * sizeof(CELL) + 2 * sizeof(char) +
+                 sizeof(struct heap_point));
+    disk_space *= (num_seg_total * seg2kb / 1024.);  /* KB -> MB */
+    
     G_verbose_message(_("%.2f of data are kept in memory"),
                       100. * num_open_segs / num_seg_total);
-    disk_space *= num_seg_total;
-    if (disk_space < 1024.0)
-	G_verbose_message(_("Will need up to %.2f MB of disk space"), disk_space);
-    else
-	G_verbose_message(_("Will need up to %.2f GB (%.0f MB) of disk space"),
-	           disk_space / 1024.0, disk_space);
+    G_verbose_message(_("Will need up to %.2f MB of disk space"), disk_space);
 
     /* open segment files */
     G_verbose_message(_("Create temporary files..."));
-    seg_open(&watalt, nrows, ncols, seg_rows, seg_cols, num_open_segs * 2,
-        sizeof(WAT_ALT), 1);
+    cseg_open(&ele, seg_rows, seg_cols, num_open_segs * 2);
     if (num_open_segs * 2 > num_seg_total)
-	heap_mem += (num_open_segs * 2 - num_seg_total) * seg2kb *
-	            sizeof(WAT_ALT) / 1024.;
-    cseg_open(&stream, seg_rows, seg_cols, num_open_segs / 2.);
-    bseg_open(&asp, seg_rows, seg_cols, num_open_segs);
+	heap_mem += (num_open_segs * 2 - num_seg_total) * seg2kb * sizeof(CELL) / 1024.;
+    bseg_open(&draindir, seg_rows, seg_cols, num_open_segs);
     bseg_open(&bitflags, seg_rows, seg_cols, num_open_segs * 4);
     if (num_open_segs * 4 > num_seg_total)
 	heap_mem += (num_open_segs * 4 - num_seg_total) * seg2kb / 1024.;
 
-    /* load maps */
-    if (load_maps(ele_fd, acc_fd) < 0)
-	G_fatal_error(_("Could not load input map(s)"));
-    else if (!n_points)
-	G_fatal_error(_("No non-NULL cells in input map(s)"));
-
-    G_debug(1, "open segments for A* points");
-    /* columns per segment */
-    seg_cols = seg_rows * seg_rows;
-    num_seg_total = n_points / seg_cols;
-    if (n_points % seg_cols > 0)
-	num_seg_total++;
-    /* no need to have more segments open than exist */
-    num_open_array_segs = num_open_segs / 16.;
-    if (num_open_array_segs > num_seg_total)
-	num_open_array_segs = num_seg_total;
-    if (num_open_array_segs < 1)
-	num_open_array_segs = 1;
+    /* load map */
+    if (load_map(ele_fd, depr_fd) < 0) {
+	cseg_close(&ele);
+	bseg_close(&draindir);
+	bseg_close(&bitflags);
+	G_fatal_error(_("Could not load input map"));
+    }
     
-    G_debug(1, "segment size for A* points: %d", seg_cols);
-    seg_open(&astar_pts, 1, n_points, 1, seg_cols, num_open_array_segs,
-	     sizeof(POINT), 1);
+    if (n_points == 0) {
+	cseg_close(&ele);
+	bseg_close(&draindir);
+	bseg_close(&bitflags);
+	G_fatal_error(_("No non-NULL cells loaded from input map"));
+    }
 
-    /* one-based d-ary search_heap with astar_pts */
+    /* one-based d-ary search_heap */
     G_debug(1, "open segments for A* search heap");
 	
     /* allowed memory for search heap in MB */
@@ -390,7 +275,8 @@ int main(int argc, char *argv[])
     if (n_points % seg_cols > 0)
 	num_seg_total++;
     /* no need to have more segments open than exist */
-    num_open_array_segs = (1 << 20) * heap_mem / (seg_cols * sizeof(HEAP_PNT));
+    num_open_array_segs = (1 << 20) * heap_mem / 
+                           (seg_cols * sizeof(struct heap_point));
     if (num_open_array_segs > num_seg_total)
 	num_open_array_segs = num_seg_total;
     if (num_open_array_segs < 2)
@@ -402,53 +288,60 @@ int main(int argc, char *argv[])
     /* the search heap will not hold more than 5% of all points at any given time ? */
     /* chances are good that the heap will fit into one large segment */
     seg_open(&search_heap, 1, n_points + 1, 1, seg_cols,
-	     num_open_array_segs, sizeof(HEAP_PNT), 1);
+	     num_open_array_segs, sizeof(struct heap_point), 1);
 
     /********************/
     /*    processing    */
     /********************/
 
+    /* remove one cell extrema */
+    one_cell_extrema(1, 1, 0);
+
     /* initialize A* search */
-    if (init_search(depr_fd) < 0)
+    if (init_search(depr_fd) < 0) {
+	seg_close(&search_heap);
+	cseg_close(&ele);
+	bseg_close(&draindir);
+	bseg_close(&bitflags);
 	G_fatal_error(_("Could not initialize search"));
-
-    /* sort elevation and get initial stream direction */
-    if (do_astar() < 0)
-	G_fatal_error(_("Could not sort elevation map"));
-    seg_close(&search_heap);
-
-    if (acc_fd < 0) {
-	/* accumulate surface flow */
-	if (do_accum(d8cut) < 0)
-	    G_fatal_error(_("Could not calculate flow accumulation"));
     }
 
-    /* extract streams */
-    if (extract_streams
-	(threshold, mont_exp, min_stream_length, acc_fd < 0) < 0)
-	G_fatal_error(_("Could not extract streams"));
+    if (depr_fd >= 0) {
+	Rast_close(depr_fd);
+    }
 
-    seg_close(&astar_pts);
-    seg_close(&watalt);
+    /* sort elevation and get initial stream direction */
+    if (do_astar() < 0) {
+	seg_close(&search_heap);
+	cseg_close(&ele);
+	bseg_close(&draindir);
+	bseg_close(&bitflags);
+	G_fatal_error(_("Could not sort elevation map"));
+    }
+    seg_close(&search_heap);
 
-    /* thin streams */
-    if (thin_streams() < 0)
-	G_fatal_error(_("Could not thin streams"));
-
-    /* delete short streams */
-    if (min_stream_length) {
-	if (del_streams(min_stream_length) < 0)
-	    G_fatal_error(_("Could not delete short stream segments"));
+    /* hydrological corrections */
+    if (hydro_con() < 0) {
+	cseg_close(&ele);
+	bseg_close(&draindir);
+	bseg_close(&bitflags);
+	G_fatal_error(_("Could not apply hydrological conditioning"));
     }
 
     /* write output maps */
-    if (close_maps(output.stream_rast->answer, output.stream_vect->answer,
-		   output.dir_rast->answer) < 0)
-	G_fatal_error(_("Could not write output maps"));
+    if (close_map(output.ele_hydro->answer, ele_map_type) < 0) {
+	cseg_close(&ele);
+	bseg_close(&draindir);
+	bseg_close(&bitflags);
+	G_fatal_error(_("Could not write output map"));
+    }
 
-    bseg_close(&asp);
-    cseg_close(&stream);
+    cseg_close(&ele);
+    bseg_close(&draindir);
     bseg_close(&bitflags);
+
+    Rast_read_colors(input.ele->answer, mapset, &colors);
+    Rast_write_colors(output.ele_hydro->answer, G_mapset(), &colors);
 
     exit(EXIT_SUCCESS);
 }
