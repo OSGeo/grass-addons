@@ -666,7 +666,7 @@ int hydro_con(void)
 		    is_edge = 1;
 
 		if (is_edge) {
-		    G_warning(_("IRA reached edge !!!"));
+		    G_debug(1,"IRA reached edge");
 		    break;
 		}
 
