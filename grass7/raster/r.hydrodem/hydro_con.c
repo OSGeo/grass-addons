@@ -16,7 +16,8 @@ struct ns
 static struct ns *n_stack;
 static unsigned int stack_alloc;
 
-int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits, CELL *next_ele)
+int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
+               CELL *next_ele)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
@@ -49,7 +50,8 @@ int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits, CELL *next_
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
 	    /* check that neighbour is within region */
-	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
+	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 &&
+	        c_nbr < ncols) {
 
 		cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 		bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
@@ -58,7 +60,8 @@ int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits, CELL *next_
 		    if (r_nbr + asp_r[(int)drain_val] == r &&
 			c_nbr + asp_c[(int)drain_val] == c) {
 
-			/* contributing neighbour is lower than spill point, add to stack */
+			/* contributing neighbour is lower than
+			 * spill point, add to stack */
 			if (peak_ele >= ele_nbr) {
 
 			    if (peak_ele > ele_nbr)
@@ -86,6 +89,9 @@ int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits, CELL *next_
 			}
 		    }
 		}    /* end contributing */
+		else if (drain_val == 0 && peak_ele > ele_nbr)
+		    /* found bottom of real depression, don't fill */
+		    return -1;
 	    }    /* end in region */
 	}    /* end sides */
 
@@ -171,7 +177,8 @@ int fill_sink(int peak_r, int peak_c, CELL peak_ele)
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
 	    /* check that neighbour is within region */
-	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
+	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 &&
+	        c_nbr < ncols) {
 
 		cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 		bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
@@ -180,7 +187,8 @@ int fill_sink(int peak_r, int peak_c, CELL peak_ele)
 		    if (r_nbr + asp_r[(int)drain_val] == r &&
 			c_nbr + asp_c[(int)drain_val] == c) {
 
-			/* contributing neighbour is lower than spill point, add to stack */
+			/* contributing neighbour is lower than
+			 * spill point, add to stack */
 			if (peak_ele >= ele_nbr) {
 
 			    n_to_fill++;
@@ -217,7 +225,8 @@ int fill_sink(int peak_r, int peak_c, CELL peak_ele)
 }
 
 /* carve channel */
-int carve(int bottom_r, int bottom_c, CELL bottom_ele, int peak_r, int peak_c)
+int carve(int bottom_r, int bottom_c, CELL bottom_ele,
+          int peak_r, int peak_c)
 {
     int r, c, r_nbr, c_nbr, carved = 0;
     char drain_val;
@@ -246,7 +255,8 @@ int carve(int bottom_r, int bottom_c, CELL bottom_ele, int peak_r, int peak_c)
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
 	    /* check that neighbour is within region */
-	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
+	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 &&
+	        c_nbr < ncols) {
 
 		cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 		bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
@@ -255,7 +265,8 @@ int carve(int bottom_r, int bottom_c, CELL bottom_ele, int peak_r, int peak_c)
 		    if (r_nbr + asp_r[(int) drain_val] == r &&
 			c_nbr + asp_c[(int) drain_val] == c) {
 
-			/* contributing neighbour is lower than current point, add to stack */
+			/* contributing neighbour is lower than 
+			 * current point, add to stack */
 			if (ele_val > ele_nbr && ele_nbr >= bottom_ele) {
 
 			    n_stack[top].next_side = ct_dir + 1;
@@ -281,7 +292,8 @@ int carve(int bottom_r, int bottom_c, CELL bottom_ele, int peak_r, int peak_c)
 	}			/* end sides */
 
 	if (done) {
-	    /* lower all cells to bottom ele that have lower lying contributing neighbours */
+	    /* lower all cells to bottom ele
+	     * that have lower lying contributing neighbours */
 	    if (n_stack[top].n_ngbrs > 0)
 		cseg_put(&ele, &bottom_ele, r, c);
 	    n_stack[top].next_side = sides;
@@ -416,7 +428,8 @@ int hydro_con(void)
 	carve_to_edge = 0;
 	if (noedge) {
 	    G_debug(1, "go downstream from spill point");
-	    /* go downstream from spill point until we reach bottom ele again */
+	    /* go downstream from spill point
+	     * until we reach bottom ele again */
 	    while (ele_nbr >= bottom_ele) {
 		if (ele_nbr > bottom_ele)
 		    down_downhill++;
@@ -438,7 +451,8 @@ int hydro_con(void)
 	}
 	G_debug(1, "%d cells downstream from spill point", down_downhill);
 
-	/* count number of cells that would be filled from current spill point upstream */
+	/* count number of cells
+	 * that would be filled from current spill point upstream */
 	G_debug(1, "count fill");
 	n_to_fill = count_fill(peak_r, peak_c, peak_ele, &n_splits, NULL);
 	
@@ -450,7 +464,8 @@ int hydro_con(void)
 	 * - bottom is close to center of the depression 
 	 * - long channel to carve downstream from spill point
 	 * - shallowness */
-	if (n_to_fill > nat_thresh && peak_ele - bottom_ele < 10 && sqrt(n_to_fill) / 4.0 < down_uphill)
+	if (n_to_fill > nat_thresh && peak_ele - bottom_ele < 10 &&
+	    sqrt(n_to_fill) / 4.0 < down_uphill)
 	    G_debug(1, "shallow inland pan?");
 
 
@@ -473,7 +488,8 @@ int hydro_con(void)
 	/* force carve channel to edge if edge not past spill point */
 	if (force_carve) {
 	    G_debug(1, "force carve small channel or to edge");
-	    carve(first_sink->r, first_sink->c, bottom_ele, peak_r, peak_c);
+	    carve(first_sink->r, first_sink->c, bottom_ele,
+	          peak_r, peak_c);
 	    n_carved++;
 	}
 	/* impact reduction algorithm */
@@ -496,10 +512,12 @@ int hydro_con(void)
 
 	    G_debug(1, "impact reduction algorithm");
 
-	    /* start with sink bottom, proceed to spill point */
-	    /* fill incrementally, for each step check if IRA condition fulfilled */
-	    /* proceed until condition no longer met, then use least impact solution */
-	    /* the determined new sink bottom can be
+	    /* start with sink bottom, proceed to spill point
+	     * fill incrementally
+	     * for each step check if IRA condition fulfilled
+	     * proceed until condition no longer met
+	     * then use least impact solution
+	     * the determined new sink bottom can be
 	     * - the original sink bottom: no filling, only carving
 	     * - the spill point: no carving, only filling
 	     * - any cell in between the two */
@@ -510,7 +528,8 @@ int hydro_con(void)
 
 	    G_debug(1, "find new fill point");
 
-	    /* include no filling, full carving, and full filling, no carving */
+	    /* include no filling, full carving,
+	     * and full filling, no carving */
 	    while (bottom_ele <= peak_ele) {
 
 		/* get n_to_fill, down_uphill, down_downhill */
@@ -523,8 +542,12 @@ int hydro_con(void)
 		n_to_fill = count_fill(next_r, next_c, bottom_ele,
 		                       &n_new_splits, &next_bottom_ele);
 
+		if (n_to_fill < 0)
+		    break;
+
 		/* count channel length from spill point */
-		/* go downstream from spill point until we reach bottom ele again */
+		/* go downstream from spill point
+		 * until we reach bottom ele again */
 		G_debug(2, "count channel length from spill point");
 		r_nbr = peak_r;
 		c_nbr = peak_c;
@@ -534,11 +557,13 @@ int hydro_con(void)
 		while (ele_nbr >= bottom_ele && this_is_flat < 3) {
 		    if (ele_nbr > bottom_ele) {
 			down_downhill++;
-			/* catch min 2 consecutive cells in flat area with same ele */
+			/* catch min 2 consecutive cells
+			 * in flat area with same ele */
 			if (is_flat(r_nbr, c_nbr, ele_nbr)) {
 			    if (ele_nbr == last_ele) {
 				this_is_flat++;
-				if (this_is_flat > 1 && ele_nbr > min_bottom_ele)
+				if (this_is_flat > 1 &&
+				    ele_nbr > min_bottom_ele)
 				    min_bottom_ele = bottom_ele + 1;
 			    }
 			    else
@@ -589,8 +614,10 @@ int hydro_con(void)
 			}
 		    }
 		    /* remember least impact */
-		    if (least_impact > n_to_fill + down_uphill + down_downhill) {
-			least_impact = n_to_fill + down_uphill + down_downhill;
+		    if (least_impact > n_to_fill + down_uphill +
+			down_downhill) {
+			least_impact = n_to_fill + down_uphill +
+			               down_downhill;
 			least_impact_r = next_r;
 			least_impact_c = next_c;
 			least_impact_ele = bottom_ele;
@@ -613,10 +640,8 @@ int hydro_con(void)
 		/* check IRA condition */
 		/* preference for channel carving, relaxed stream split condition */
 		/* continue filling ? */
-		/* remains a mystery why this condition results in less modifications... */
-		/* sqrt(n_to_fill) < (down_uphill + down_downhill) / 2.0 ||
-		 * n_new_splits <= n_splits_max */
-		if (sqrt(n_to_fill) < (down_uphill + down_downhill) / 1.0 ||
+		/* remains a mystery why n_new_splits results in less modifications... */
+		if (sqrt(n_to_fill) < (down_uphill + down_downhill) ||
 		    n_new_splits <= 4 ||
 		    bottom_ele < min_bottom_ele ||
 		    least_impact == li_max) {
@@ -635,7 +660,8 @@ int hydro_con(void)
 		if (bottom_ele >= peak_ele)
 		    break;
 
-		/* below spill point, get next higher cell downstream of current bottom */
+		/* below spill point
+		 * get next higher cell downstream of current bottom */
 		G_debug(2, "get next fill point candidate");
 
 		r_nbr = next_r;
@@ -645,7 +671,8 @@ int hydro_con(void)
 
 		    cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 		    /* go to next higher cell downstream */
-		    while (ele_nbr == bottom_ele || ele_nbr < min_bottom_ele) {
+		    while (ele_nbr == bottom_ele ||
+		           ele_nbr < min_bottom_ele) {
 			bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
 
 			if (drain_val > 0) {
@@ -671,13 +698,8 @@ int hydro_con(void)
 		}
 
 		/* increase ele or go to next point */
-		/* 
-		if (ele_nbr > bottom_ele + 1 && bottom_ele + 1 >= min_bottom_ele) {
-		    G_debug(2, "increase ele, keep point");
-		    bottom_ele = bottom_ele + 1;
-		}
-		*/
-		if (ele_nbr > next_bottom_ele && next_bottom_ele >= min_bottom_ele) {
+		if (ele_nbr > next_bottom_ele &&
+		    next_bottom_ele >= min_bottom_ele) {
 		    G_debug(2, "increase ele, keep point");
 		    bottom_ele = next_bottom_ele;
 		}
@@ -689,10 +711,10 @@ int hydro_con(void)
 	    }
 	    /* <-- IRA */
 	    
-	    if (least_impact == li_max)
+	    if (n_to_fill > -1 && least_impact == li_max)
 		G_warning(_("IRA error"));
 
-	    if (do_all || least_impact <= n_mod_max) {
+	    if (n_to_fill > -1 && (do_all || least_impact <= n_mod_max)) {
 
 		/* (partially) fill the sink */
 		n_to_fill = 0;
@@ -700,12 +722,16 @@ int hydro_con(void)
 		if (least_impact_ele != ele_val) {
 		    G_debug(1, "IRA sink filling");
 
-		    cseg_get(&ele, &ele_val, least_impact_r, least_impact_c);
+		    cseg_get(&ele, &ele_val, least_impact_r,
+		             least_impact_c);
 		    if (ele_val != least_impact_ele) {
-			G_debug(1, "changing ele from %d to %d", ele_val, least_impact_ele);
-			cseg_put(&ele, &least_impact_ele, least_impact_r, least_impact_c);
+			G_debug(1, "changing ele from %d to %d",
+				ele_val, least_impact_ele);
+			cseg_put(&ele, &least_impact_ele, least_impact_r,
+			         least_impact_c);
 		    }
-		    n_to_fill = fill_sink(least_impact_r, least_impact_c, least_impact_ele);
+		    n_to_fill = fill_sink(least_impact_r, least_impact_c,
+		                          least_impact_ele);
 		    first_sink->r = least_impact_r;
 		    first_sink->c = least_impact_c;
 		    if (least_impact_ele < peak_ele)
@@ -723,7 +749,8 @@ int hydro_con(void)
 		if (least_impact_ele < peak_ele) {
 		    G_debug(2, "IRA carving");
 		    down_downhill = carve(first_sink->r, first_sink->c,
-				          least_impact_ele, peak_r, peak_c);
+				          least_impact_ele,
+					  peak_r, peak_c);
 		}
 	    }
 	}
@@ -740,7 +767,8 @@ int hydro_con(void)
     G_verbose_message(_("%d sinks processed"), n_sinks);
     G_verbose_message(_("%d sinks within larger sinks"), n_processed);
     G_verbose_message(_("%d sinks completely filled"), n_filled);
-    G_verbose_message(_("%d sinks partially filled and carved with IRA"), n_just_a_bit);
+    G_verbose_message(_("%d sinks partially filled and carved with IRA"),
+                      n_just_a_bit);
     G_verbose_message(_("%d channels carved"), n_carved);
     G_verbose_message
 	("------------------------------------------------------");
