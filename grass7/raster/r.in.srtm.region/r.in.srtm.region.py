@@ -21,6 +21,10 @@
 #% keywords: raster
 #% keywords: import
 #%end
+#%option G_OPT_R_OUTPUT
+#% description: Name for output raster map
+#% required: yes
+#%end
 #%option
 #% key: url
 #% description: base url to fetch SRTM v2.1 tiles
@@ -41,10 +45,6 @@
 #% key_desc: xmin,ymin,xmax,ymax
 #% multiple: yes
 #% required: no
-#%end
-#%option G_OPT_R_OUTPUT
-#% description: Name for output raster map
-#% required: yes
 #%end
 #%option
 #% key: memory
