@@ -316,7 +316,6 @@ void write_entity(Dwg_Object *obj, Dwg_Object ** objects,
       long unsigned int *ent_counter, int level)
 {
     double x, y, z, ang;
-    int i;
 
     /* DWG entity pointers */
     Dwg_Entity_LINE *line;

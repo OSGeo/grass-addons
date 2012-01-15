@@ -4,8 +4,8 @@ PGM=v.in.redwg
 
 ## hard coded
 LIBREDWGLIB=-lredwg
-#LIBREDWGLIBPATH=/usr/local/lib
-#LIBREDWGINCPATH=/usr/local/include/dwg.h
+#LIBREDWGLIBPATH=-L/usr/local/lib
+#LIBREDWGINCPATH=-I/usr/local/include
 
 DEPENDENCIES = $(VECTDEP) $(DBMIDEP) $(GISDEP)
 LIBES     = $(VECTLIB) $(DBMILIB) $(GISLIB) $(LIBREDWGLIBPATH) $(LIBREDWGLIB)
