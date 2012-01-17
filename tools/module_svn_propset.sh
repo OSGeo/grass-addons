@@ -76,7 +76,8 @@ set_keywords()
 
 
 ########
-
+#usually these are not stored in Svn, but fyi:
+# diff | patch ) svn propset svn:mime-type text/x-diff filenname
 
 apply_html()
 {
