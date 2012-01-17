@@ -656,7 +656,8 @@ int main(int argc, char *argv[])
 
 	if (Area_cat[i].count > 0 && method_opt->answer) {
 	    /* get stats */
-	    statsvalue(&result, Area_cat[i].values, Area_cat[i].nvalues);
+	    statsvalue(&result, Area_cat[i].values, Area_cat[i].nvalues,
+			NULL);
 
 	    if (half)
 		result += 0.5;
