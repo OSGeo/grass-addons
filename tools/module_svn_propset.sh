@@ -253,7 +253,7 @@ for FILE in $* ; do
     *)
 	if [ "$FILE" = "Makefile" ] ; then
 	   apply_makefile "$FILE"
-	elif [ "$FILE" = "README" ] ; then
+	elif [ "$FILE" = "README" ] || [ "$FILE" = "TODO" ] ; then
 	   apply_text "$FILE"
 	elif [ `file "$FILE" | grep -c "shell script\|sh script"` -eq 1 ] ; then
 	   apply_shell_script "$FILE"
