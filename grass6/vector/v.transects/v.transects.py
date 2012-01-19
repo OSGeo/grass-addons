@@ -15,36 +15,40 @@
 #
 #############################################################################
 #%Module
-#% description: Transect Generator
+#% description: Creates transect lines or quadrilateral areas at regular intervals perpendicular to a polyline.
 #%End
 #%option
 #% key: input
 #% type: string
 #% description: Name of input vector map
+#% gisprompt: old,vector,vector
 #% required : yes
 #%end
 #%option
 #% key: output
 #% type: string
 #% description: Name of output vector map
+#% gisprompt: new,vector,vector
 #% required : yes
 #%end
 #%option
 #% key: transect_spacing
 #% type: double
-#% description: Transect spacing
+#% description: Transect spacing along input polyline
 #% required : yes
 #%end
 #%option
 #% key: dleft
 #% type: double
-#% description: distance transect extends to the left of input line.
+#% label: Distance transect extends to the left of input line
+#% description: Default is the same as the transect spacing
 #% required : no
 #%end
 #%option
 #% key: dright
 #% type: double
-#% description: distance transect extends to the right of input line.
+#% label: Distance transect extends to the right of input line
+#% description: Default is the same as the transect spacing
 #% required : no
 #%end
 #%option
