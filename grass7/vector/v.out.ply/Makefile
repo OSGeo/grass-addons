@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = v.out.ascii
+PGM = v.out.ply
 
 LIBES = $(VECTORLIB) $(DBMILIB) $(GISLIB)
 DEPENDENCIES = $(VECTORDEP) $(DBMIDEP) $(GISDEP)

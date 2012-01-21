@@ -1,21 +1,18 @@
-/*
- ****************************************************************************
+/*****************************************************************************
  *
- * MODULE:     v.out.ascii
- * AUTHOR(S):  Michael Higgins, U.S. Army Construction Engineering Research Laboratory
- *             James Westervelt, U.S. Army Construction Engineering Research Laboratory
- *             Radim Blazek, ITC-Irst, Trento, Italy
- *             Martin Landa, CTU in Prague, Czech Republic (v.out.ascii.db merged & update (OGR) for GRASS7)
+ * MODULE:     v.out.ply
+ * AUTHOR(S):  Markus Metz
+ *             based on v.out.ascii
  *
- * PURPOSE:    Writes GRASS vector data as ASCII files
- * COPYRIGHT:  (C) 2000-2009, 2011 by the GRASS Development Team
+ * PURPOSE:    Writes GRASS vector data as PLY files
+ * 
+ * COPYRIGHT:  (C) 2011 by the GRASS Development Team
  *
  *             This program is free software under the GNU General
  *             Public License (>=v2). Read the file COPYING that comes
  *             with GRASS for details.
  *
- ****************************************************************************
- */
+ *****************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,113 +29,78 @@ int main(int argc, char *argv[])
     struct GModule *module;
     struct Map_info Map;
 
-    FILE *ascii, *att;
-    char *input, *output, *delim, **columns, *where, *field_name;
-    int format, dp, field, ret, region, old_format, header, type;
-    int ver, pnt;
-
-    struct cat_list *clist;
+    FILE *fp = NULL;
+    char *input, *output, **columns, *field_name;
+    int format, dp, field, region, type;
+    int pnts, cat;
+    struct Cell_head window;
+    struct bound_box box;
+    struct line_pnts *Points;
+    struct line_cats *Cats;
     
     G_gisinit(argv[0]);
 
     module = G_define_module();
     G_add_keyword(_("vector"));
     G_add_keyword(_("export"));
-    G_add_keyword(_("ascii"));
+    G_add_keyword(_("ply"));
     module->description =
 	_("Exports a vector map to a GRASS ASCII vector representation.");
 
-    parse_args(argc, argv, &input, &output, &format, &dp, &delim,
-	       &field_name, &columns, &where, &region, &old_format, &header,
-	       &clist, &type);
-    
-    if (format == GV_ASCII_FORMAT_STD && columns) {
-	G_warning(_("Parameter 'column' ignored in standard mode"));
-    }
+    parse_args(argc, argv, &input, &output, &format, &dp, 
+	       &field_name, &columns, &region);
 
-    ver = 5;
-    pnt = 0;
-    if (old_format)
-	ver = 4;
-    
-    if (ver == 4 && format == GV_ASCII_FORMAT_POINT) {
-	G_fatal_error(_("Format 'point' is not supported for old version"));
-    }
-    
-    if (ver == 4 && strcmp(output, "-") == 0) {
-	G_fatal_error(_("'output' must be given for old version"));
-    }
-
-    /* open with topology only if needed */
-    if (format == GV_ASCII_FORMAT_WKT || (format == GV_ASCII_FORMAT_STD && 
-	(where || clist))) {
-	if (Vect_open_old2(&Map, input, "", field_name) < 2) /* topology required for areas */
-	    G_warning(_("Unable to open vector map <%s> at topology level. "
-			"Areas will not be processed."),
-		      input);
-    }
-    else {
-	Vect_set_open_level(1); /* topology not needed */ 
-	if (Vect_open_old2(&Map, input, "", field_name) < 0) 
-	    G_fatal_error(_("Unable to open vector map <%s>"), input); 
-    }
+    /* topology not needed */
+    Vect_set_open_level(1);
+    if (Vect_open_old2(&Map, input, "", field_name) < 0) 
+	G_fatal_error(_("Unable to open vector map <%s>"), input); 
     
     field = Vect_get_field_number(&Map, field_name);
     
     if (strcmp(output, "-") != 0) {
-	if (ver == 4) {
-	    ascii = G_fopen_new("dig_ascii", output);
-	}
-	else if (strcmp(output, "-") == 0) {
-	    ascii = stdout;
-	}
-	else {
-	    ascii = fopen(output, "w");
-	}
-
-	if (ascii == NULL) {
+	if ((fp = fopen(output, "w")) == NULL) {
 	    G_fatal_error(_("Unable to open file <%s>"), output);
 	}
     }
     else {
-	ascii = stdout;
+	fp = stdout;
     }
 
-    if (format == GV_ASCII_FORMAT_STD) {
-	Vect_write_ascii_head(ascii, &Map);
-	fprintf(ascii, "VERTI:\n");
+    /* get the region */
+    G_get_window(&window);
+    Vect_region_box(&window, &box);
+
+    /* count points */
+    Points = Vect_new_line_struct();
+    Cats = Vect_new_cats_struct();
+    pnts = 0;
+    while ((type = Vect_read_next_line(&Map, Points, Cats)) > 0) {
+	if (type == GV_POINT) {
+	    if (field > 0 && !(Vect_cat_get(Cats, field, &cat)))
+		continue;
+	    if (region &&
+		!Vect_point_in_box(Points->x[0], Points->y[0],
+				  Points->z[0], &box))
+		continue;
+
+	    pnts++;
+	}
     }
+    if (pnts < 1)
+	G_fatal_error(_("No points found, nothing to be exported"));
 
-    /* Open dig_att */
-    att = NULL;
-    if (ver == 4 && !pnt) {
-	if (G_find_file("dig_att", output, G_mapset()) != NULL)
-	    G_fatal_error(_("dig_att file already exist"));
+    /* write ply header */
+    write_ply_header(fp, &Map, input, field_name, (const char **)columns, pnts, dp);
 
-	if ((att = G_fopen_new("dig_att", output)) == NULL)
-	    G_fatal_error(_("Unable to open dig_att file <%s>"),
-			  output);
-    }
-
-    if (where || columns || clist)
+    if (columns)
 	G_message(_("Fetching data..."));
-    ret = Vect_write_ascii(ascii, att, &Map, ver, format, dp, delim,
-			   region, type, field, clist, (const char *)where,
-			   (const char **)columns, header);
 
-    if (ret < 1) {
-	if (format == GV_ASCII_FORMAT_POINT) {
-	    G_warning(_("No points found, nothing to be exported"));
-	}
-	else {
-	    G_warning(_("No features found, nothing to be exported"));
-	}
-    }
+    write_ply_body_ascii(fp, &Map, dp, region, field,
+			   (const char **)columns, &box);
+
     
-    if (ascii != NULL)
-	fclose(ascii);
-    if (att != NULL)
-	fclose(att);
+    if (fp != NULL)
+	fclose(fp);
 
     Vect_close(&Map);
 
