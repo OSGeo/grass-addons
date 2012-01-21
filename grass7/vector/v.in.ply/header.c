@@ -189,6 +189,9 @@ int read_ply_header(struct ply_file *ply)
 	    else
 		G_fatal_error(_("Unknown PLY format <%s>!"), tokens[1]);
 	    ply->version = G_store(tokens[2]);
+	    
+	    if (ply->file_type != PLY_ASCII)
+		G_fatal_error(_("Binary PLY format is not yet supported"));
 	}
 	else if (strcmp(tokens[0], "element") == 0)
 	    add_element(ply, tokens, ntokens);

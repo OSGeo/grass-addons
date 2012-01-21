@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
 {
     struct GModule *module;
     struct Option *old, *new, *x_opt, *y_opt, *z_opt;
-    struct Flag *table_flag, *notopo_flag, *region_flag;
-    char *table;
+    struct Flag *notab_flag, *notopo_flag;
+    char *colname, buf[2000];
     int i, j, type, max_cat;
     int zcoor = WITHOUT_Z, make_table;
     int xprop, yprop, zprop;
@@ -42,6 +42,11 @@ int main(int argc, char *argv[])
     struct Map_info Map;
     struct line_pnts *Points;
     struct line_cats *Cats;
+
+    /* Attributes */
+    struct field_info *Fi = NULL;
+    dbDriver *driver = NULL;
+    dbString sql;
 
     G_gisinit(argv[0]);
 
@@ -85,22 +90,18 @@ int main(int argc, char *argv[])
     z_opt->label = _("Number of vertex property used as z coordinate");
     z_opt->description = _("First vertex property is 1. If 0, z coordinate is not used");
 
-    table_flag = G_define_flag();
-    table_flag->key = 't';
-    table_flag->description = _("Do not create attribute table");
+    notab_flag = G_define_flag();
+    notab_flag->key = 't';
+    notab_flag->description = _("Do not create attribute table");
 
     notopo_flag = G_define_flag();
     notopo_flag->key = 'b';
     notopo_flag->description = _("Do not build topology");
 
-    region_flag = G_define_flag();
-    region_flag->key = 'r';
-    region_flag->description =
-	_("Only import points falling within current region (points mode)");
-    region_flag->guisection = _("Points");
-
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
+    make_table = (!notab_flag->answer); 
 
     /* coords */
     xprop = atoi(x_opt->answer);
@@ -140,12 +141,12 @@ int main(int argc, char *argv[])
     read_ply_header(&ply);
     
     for (i = 0; i < ply.n_elements; i++) {
-	G_debug(0, "element name: _%s_", ply.element[i]->name);
-	G_debug(0, "element type: %d", ply.element[i]->type);
+	G_debug(1, "element name: %s", ply.element[i]->name);
+	G_debug(1, "element type: %d", ply.element[i]->type);
 
 	for (j = 0; j < ply.element[i]->n_properties; j++) {
-	    G_debug(0, "poperty name: _%s_", ply.element[i]->property[j]->name);
-	    G_debug(0, "poperty type: %d", ply.element[i]->property[j]->type);
+	    G_debug(1, "poperty name: %s", ply.element[i]->property[j]->name);
+	    G_debug(1, "poperty type: %d", ply.element[i]->property[j]->type);
 	}
     }
     
@@ -176,6 +177,71 @@ int main(int argc, char *argv[])
     /* table for vertices only
      * otherwise we would need to put faces and edges into separate layers */
 
+    /* Add DB link */
+    if (make_table) {
+	db_init_string(&sql);
+
+	Fi = Vect_default_field_info(&Map, 1, NULL, GV_MTABLE);
+
+	Vect_map_add_dblink(&Map, 1, NULL, Fi->table,
+			    GV_KEY_COLUMN, Fi->database, Fi->driver);
+
+	/* Create table */
+	sprintf(buf, "create table %s (%s integer", Fi->table,
+		GV_KEY_COLUMN);
+	db_set_string(&sql, buf);
+
+	for (j = 0; j < ply.curr_element->n_properties; j++) {
+	    if (j == ply.x || j == ply.y || j == ply.z)
+		continue;
+
+	    type = ply.curr_element->property[j]->type;
+	    colname = G_store(ply.curr_element->property[j]->name);
+
+	    G_str_to_sql(colname);
+
+	    if (type == PLY_UCHAR || type == PLY_CHAR ||
+		type == PLY_USHORT || type == PLY_SHORT ||
+		type == PLY_UINT || type == PLY_INT)
+		sprintf(buf, ", %s integer", colname);
+	    else if (type == PLY_FLOAT || type == PLY_DOUBLE)
+		sprintf(buf, ", %s double precision", colname);
+
+	    G_free(colname);
+	    db_append_string(&sql, buf);
+	}
+	db_append_string(&sql, ")");
+	G_debug(3, db_get_string(&sql));
+
+	driver =
+	    db_start_driver_open_database(Fi->driver,
+					  Vect_subst_var(Fi->database,
+							 &Map));
+	if (driver == NULL) {
+	    G_fatal_error(_("Unable open database <%s> by driver <%s>"),
+			  Vect_subst_var(Fi->database, &Map), Fi->driver);
+	}
+
+	if (db_execute_immediate(driver, &sql) != DB_OK) {
+	    db_close_database(driver);
+	    db_shutdown_driver(driver);
+	    G_fatal_error(_("Unable to create table: '%s'"),
+			  db_get_string(&sql));
+	}
+
+	if (db_create_index2(driver, Fi->table, GV_KEY_COLUMN) != DB_OK)
+	    G_warning(_("Unable to create index for table <%s>, key <%s>"),
+		      Fi->table, GV_KEY_COLUMN);
+
+	if (db_grant_on_table
+	    (driver, Fi->table, DB_PRIV_SELECT,
+	     DB_GROUP | DB_PUBLIC) != DB_OK)
+	    G_fatal_error(_("Unable to grant privileges on table <%s>"),
+			  Fi->table);
+
+	db_begin_transaction(driver);
+    }
+
     /* alloc memory for vertex data */
     data = (struct prop_data *)G_realloc(data,
            sizeof(struct prop_data) * ply.curr_element->n_properties);
@@ -195,10 +261,18 @@ int main(int argc, char *argv[])
 	Vect_reset_cats(Cats);
 	Vect_cat_set(Cats, 1, i);
 	
+
+	/* Attributes */
+	if (make_table) {
+	    sprintf(buf, "insert into %s values ( %d", Fi->table, i);
+	    db_set_string(&sql, buf);
+	}
+
 	/* x, y, z coord */
 	for (j = 0; j < ply.curr_element->n_properties; j++) {
+	    type = ply.curr_element->property[j]->type;
+
 	    if (j == ply.x || j == ply.y || j == ply.z) {
-		type = ply.curr_element->property[j]->type;
 		coord = 0.0;
 
 		if (type == PLY_UCHAR)
@@ -220,17 +294,43 @@ int main(int argc, char *argv[])
 		    y = coord;
 		else if (j == ply.z)
 		    z = coord;
-		
-		
+	    }
+	    else if (make_table) {
+		/* other property, write to table */
+		if (type == PLY_UCHAR || type == PLY_CHAR ||
+		    type == PLY_USHORT || type == PLY_SHORT ||
+		    type == PLY_UINT || type == PLY_INT)
+		    sprintf(buf, ", %d", data[j].int_val);
+		else if (type == PLY_FLOAT || type == PLY_DOUBLE)
+		    sprintf(buf, ", %f", data[j].dbl_val);
+
+		db_append_string(&sql, buf);
 	    }
 	}
 	Vect_append_point(Points, x, y, z);
 	Vect_write_line(&Map, GV_POINT, Points, Cats);
 
+	if (make_table) {
+	    db_append_string(&sql, " )");
+	    G_debug(3, db_get_string(&sql));
+
+	    if (db_execute_immediate(driver, &sql) != DB_OK) {
+		db_close_database(driver);
+		db_shutdown_driver(driver);
+		G_fatal_error(_("Cannot insert new row: %s"),
+			      db_get_string(&sql));
+	    }
+	}
+
 	max_cat = i;
     }
     G_percent(1, 1, 1);
     G_free(data);
+
+    if (make_table) {
+	db_commit_transaction(driver);
+	db_close_database_shutdown_driver(driver);
+    }
     
     /* other elements */
     ply.curr_element = NULL;
