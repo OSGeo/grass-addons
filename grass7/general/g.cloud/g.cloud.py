@@ -204,27 +204,27 @@ def variablesCheckCicle(listValue):
     return out
 
 def reconnect(conn, pid, path, vari, home):
-    collect_file_name = "cloud_finish_%s" % options['reconnect']
-    gcloud_home = os.path.join(home, 'gcloud%s' % options['reconnect'])
+    collect_file_name = "cloud_finish_%s" % pid
+    gcloud_home = os.path.join(home, 'gcloud%s' % pid)
     collect_file = conn.ssh('"cd %s; ls %s"'% (gcloud_home, collect_file_name))
-    output_file = os.path.join(home, "gcloud_result_%s.tar.gz" % options['reconnect'])
+    output_file = os.path.join(home, "gcloud_result_%s.tar.gz" % pid)
     if collect_file.strip() == collect_file_name:
 	location_name = conn.ssh('"cd %s; ls"'% 
-		os.path.join(home, 'grassdata%s' % options['reconnect']))
+		os.path.join(home, 'grassdata%s' % pid))
 	location_name = location_name.strip()
-	mapset_name = os.path.join(home,"grassdata%s" % options['reconnect'],
+	mapset_name = os.path.join(home,"grassdata%s" % pid,
 				  location_name,"PERMANENT")
-	grass.message(_("Job %s terminated, now coping the result data..." % options['reconnect']))
+	grass.message(_("Job %s terminated, now coping the result data..." % pid))
 	conn.ssh('"cd %s; tar --exclude=DEFAULT_WIND --exclude=PROJ_INFO --exclude=PROJ_UNITS -czf %s *;"' \
 		     % (mapset_name, output_file))
 	conn.pcs(output_file, path)
-	new_mapset = os.path.join(vari['GISDBASE'],vari['LOCATION_NAME'],'gcloud%s' % options['reconnect'])
+	new_mapset = os.path.join(vari['GISDBASE'],vari['LOCATION_NAME'],'gcloud%s' % pid)
 	#os.mkdir(new_mapset)
-	outtar = tarfile.open(os.path.join(path,"gcloud_result_%s.tar.gz" % options['reconnect']), "r:gz")
+	outtar = tarfile.open(os.path.join(path,"gcloud_result_%s.tar.gz" % pid), "r:gz")
 	outtar.extractall(path=new_mapset)
-	grass.message(_("To see the new data launch\n g.mapsets add=gcloud%s" % options['reconnect']))
+	grass.message(_("To see the new data launch\n g.mapsets add=gcloud%s" % pid))
     else:
-	grass.message(_("Job %s it is not terminated yet" % options['reconnect']))
+	grass.message(_("Job %s it is not terminated yet" % pid))
     return  
 
 # main function
