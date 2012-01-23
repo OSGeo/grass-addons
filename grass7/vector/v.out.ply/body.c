@@ -13,7 +13,7 @@ int write_ply_body_ascii(FILE *fp, struct Map_info *Map,
 {
     int type, i, cat, n_lines, line;
     static struct line_pnts *Points;
-    struct line_cats *Cats, *ACats;
+    struct line_cats *Cats;
     char *fs = G_store(" ");
     struct ilist *fcats;
 
@@ -30,6 +30,7 @@ int write_ply_body_ascii(FILE *fp, struct Map_info *Map,
     char buf[2000];
     dbCursor cursor;
     int *coltypes = NULL;
+    char *all_columns = NULL;
 
     n_lines = ncats = 0;
 
@@ -37,6 +38,8 @@ int write_ply_body_ascii(FILE *fp, struct Map_info *Map,
     db_init_string(&dbstring);
 
     if (columns) {
+	int len_all = 0;
+
 	Fi = Vect_get_field(Map, field);
 	if (!Fi) {
 	    G_fatal_error(_("Database connection not defined for layer %d"),
@@ -53,24 +56,30 @@ int write_ply_body_ascii(FILE *fp, struct Map_info *Map,
 	if (db_open_database(driver, &handle) != DB_OK)
 	    G_fatal_error(_("Unable to open database <%s> by driver <%s>"),
 			  Fi->database, Fi->driver);
-			  
-	i = 0;
-	while (columns[i++]);
-	
-	coltypes = G_malloc(i * sizeof(int));
 
 	i = 0;
+	while (columns[i])
+	    len_all += strlen(columns[i++]);
+	
+	coltypes = G_malloc(i * sizeof(int));
+	
+	all_columns = G_malloc(len_all + i + 2);
+
+	i = 0;
+	strcpy(all_columns, columns[0]);
 	while (columns[i]) {
 	    coltypes[i] = db_column_Ctype(driver, Fi->table, columns[i]);
+	    if (i > 0) {
+		strcat(all_columns, ",");
+		strcat(all_columns, columns[i]);
+	    }
 	    i++;
 	}
-	
-	
+	G_debug(0, "all column string: %s", all_columns);
     }
     
     Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
-    ACats = Vect_new_cats_struct();
     fcats = Vect_new_list();
 
     /* by default, read_next_line will NOT read Dead lines */
@@ -137,12 +146,27 @@ int write_ply_body_ascii(FILE *fp, struct Map_info *Map,
 	/* print attributes */
 	if (columns) {
 
-	    for(i = 0; columns[i]; i++) {
+	    sprintf(buf, "SELECT %s FROM %s WHERE %s = %d",
+		    all_columns, Fi->table, Fi->key, fcats->value[0]);
+	    G_debug(2, "SQL: %s", buf);
+	    db_set_string(&dbstring, buf);
 
-		sprintf(buf, "SELECT %s FROM %s WHERE %s = %d",
-		        columns[i], Fi->table, Fi->key, fcats->value[0]);
-		G_debug(2, "SQL: %s", buf);
-		db_set_string(&dbstring, buf);
+	    if (db_open_select_cursor
+			    (driver, &dbstring, &cursor, DB_SEQUENTIAL) != DB_OK) {
+		db_close_database(driver);
+		db_shutdown_driver(driver);
+		G_fatal_error(_("Cannot select attributes for cat = %d"),
+		  fcats->value[0]);
+	    }
+	    if (db_fetch(&cursor, DB_NEXT, &more) != DB_OK) {
+		db_close_database(driver);
+		db_shutdown_driver(driver);
+		G_fatal_error(_("Unable to fetch data from table"));
+	    }
+
+	    Table = db_get_cursor_table(&cursor);
+
+	    for(i = 0; columns[i]; i++) {
 
 		/* original
 		if (db_select_value(driver, Fi->table, Fi->key, fcats->value[0],
@@ -151,16 +175,7 @@ int write_ply_body_ascii(FILE *fp, struct Map_info *Map,
 				  Fi->table, Fi->key, columns[i]);
 		*/
 		
-		if (db_open_select_cursor
-				(driver, &dbstring, &cursor, DB_SEQUENTIAL) != DB_OK) {
-			G_fatal_error(_("Cannot select attributes for cat = %d"),
-		      fcats->value[0]);
-		}
-		if (db_fetch(&cursor, DB_NEXT, &more) != DB_OK)
-		    G_fatal_error(_("Unable to fetch data from table"));
-
-		Table = db_get_cursor_table(&cursor);
-		Column = db_get_table_column(Table, 0);
+		Column = db_get_table_column(Table, i);
 		Value = db_get_column_value(Column);
 
 		if (db_test_value_isnull(Value)) {
@@ -190,15 +205,22 @@ int write_ply_body_ascii(FILE *fp, struct Map_info *Map,
 		    case DB_C_TYPE_DATETIME: {
 			break;
 		    }
-		    case -1:
+		    case -1: {
+			db_close_database(driver);
+			db_shutdown_driver(driver);
 			G_fatal_error(_("Column <%s> not found in table <%s>"),
 				      columns[i], Fi->table);
-		    default: G_fatal_error(_("Column <%s>: unsupported data type"),
+		    }
+		    default: {
+			db_close_database(driver);
+			db_shutdown_driver(driver);
+			G_fatal_error(_("Column <%s>: unsupported data type"),
 					   columns[i]);
 		    }
+		    }
 		}
-		db_close_cursor(&cursor);
 	    }
+	    db_close_cursor(&cursor);
 	}
 
 	fprintf(fp, "\n");
@@ -208,7 +230,6 @@ int write_ply_body_ascii(FILE *fp, struct Map_info *Map,
     db_free_string(&dbstring);
     Vect_destroy_line_struct(Points);
     Vect_destroy_cats_struct(Cats);
-    Vect_destroy_cats_struct(ACats);
     
     return n_lines;
 }

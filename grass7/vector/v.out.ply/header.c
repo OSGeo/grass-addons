@@ -59,9 +59,12 @@ void write_ply_header(FILE *fp, const struct Map_info *Map,
 			  fi->database, fi->driver);
 	db_init_string(&table_name);
 	db_set_string(&table_name, fi->table);
-	if (db_describe_table(driver, &table_name, &table) != DB_OK)
+	if (db_describe_table(driver, &table_name, &table) != DB_OK) {
+	    db_close_database(driver);
+	    db_shutdown_driver(driver);
 	    G_fatal_error(_("Unable to describe table <%s>"),
 			  fi->table);
+	}
 	
 	for (i = 0; columns[i]; i++) {
 
@@ -82,17 +85,20 @@ void write_ply_header(FILE *fp, const struct Map_info *Map,
 		fprintf(fp, "property %s %s\n", dbltype, columns[i]);
 		break;
 	    }
-	    case DB_C_TYPE_STRING: {
-		break;
-	    }
-	    case DB_C_TYPE_DATETIME: {
-		break;
-	    }
-	    case -1:
+	    case -1: {
+		db_close_database(driver);
+		db_shutdown_driver(driver);
 		G_fatal_error(_("Column <%s> not found in table <%s>"),
 			      columns[i], fi->table);
-	    default: G_fatal_error(_("Column <%s>: unsupported data type"),
-				   columns[i]);
+	    }
+	    default: {
+		db_close_database(driver);
+		db_shutdown_driver(driver);
+		G_fatal_error(_("Column <%s>: unsupported data type <%s>"),
+			      columns[i],
+			      db_sqltype_name(db_column_sqltype(driver,
+						fi->table, columns[i])));
+	    }
 	    }
 
 	}

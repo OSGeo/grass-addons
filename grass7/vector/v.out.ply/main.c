@@ -69,6 +69,10 @@ int main(int argc, char *argv[])
     /* get the region */
     G_get_window(&window);
     Vect_region_box(&window, &box);
+    if (!Vect_is_3d(&Map)) {
+	box.T = PORT_DOUBLE_MAX;
+	box.B = -PORT_DOUBLE_MAX;
+    }
 
     /* count points */
     Points = Vect_new_line_struct();
@@ -98,7 +102,6 @@ int main(int argc, char *argv[])
     write_ply_body_ascii(fp, &Map, dp, region, field,
 			   (const char **)columns, &box);
 
-    
     if (fp != NULL)
 	fclose(fp);
 
