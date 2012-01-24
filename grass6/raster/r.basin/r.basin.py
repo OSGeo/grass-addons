@@ -194,19 +194,60 @@ def main():
                                             overwrite = True)
 
         # Basin mask (vector)
+        # Raster to vector
         grass.run_command('r.to.vect', input = r_basin, 
                                        output = v_basin, 
                                        feature = 'area',
                                        overwrite = True)
+                                       
+        # Add two columns to the table: area and perimeter                               
+        grass.run_command('v.db.addcol', map = v_basin,
+                                         columns = 'area double precision')
+                                         
+        grass.run_command('v.db.addcol', map = v_basin,
+                                         columns = 'perimeter double precision')
+                     
+        # Populate perimeter column                                 
         grass.run_command('v.to.db', map = v_basin, 
                                  type = 'line,boundary', 
                                  layer = 1, 
                                  qlayer = 1, 
                                  option = 'perimeter', 
                                  units = 'kilometers', 
-                                 columns = 'cat', 
-                                 qcolumn = 'cat',
+                                 columns = 'perimeter', 
                                  overwrite = True)
+                                 
+        # Read perimeter
+        tmp = grass.read_command('v.to.db', map = v_basin, 
+                                 type = 'line,boundary', 
+                                 layer = 1, 
+                                 qlayer = 1, 
+                                 option = 'perimeter', 
+                                 units = 'kilometers', 
+                                 qcolumn = 'perimeter',
+                                 flags = 'p')                         
+        perimeter_basin = float(tmp.split('\n')[1].split('|')[1]) 
+                                 
+        # Populate area column                                 
+        grass.run_command('v.to.db', map = v_basin, 
+                                 type = 'line,boundary', 
+                                 layer = 1, 
+                                 qlayer = 1, 
+                                 option = 'area', 
+                                 units = 'kilometers', 
+                                 columns = 'area', 
+                                 overwrite = True)  
+                                 
+        # Read area
+        tmp = grass.read_command('v.to.db', map = v_basin, 
+                                 type = 'line,boundary', 
+                                 layer = 1, 
+                                 qlayer = 1, 
+                                 option = 'area', 
+                                 units = 'kilometers', 
+                                 qcolumn = 'area',
+                                 flags = 'p')                         
+        area_basin = float(tmp.split('\n')[1].split('|')[1])                      
     
         # Creation of order maps: strahler, horton, hack, shreeve
         grass.message( "Creating %s" % r_hack ) 
@@ -222,6 +263,7 @@ def main():
         grass.write_command('v.in.ascii', output = v_outlet, 
                                       stdin = "%s|%s|9999"  % (east, north),
                                       overwrite = True)
+                                      
         grass.run_command('v.to.rast', input = v_outlet, 
                                    output = r_outlet, 
                                    use = 'cat', 
@@ -230,6 +272,7 @@ def main():
                                    value = 1, 
                                    rows = 4096,
                                    overwrite = True)
+                                   
         grass.run_command('r.stream.distance', stream = r_outlet, 
                                            dir = r_drainage, 
                                            flags = 'o', 
@@ -295,20 +338,6 @@ def main():
         nw = dict_region_basin['w'], dict_region_basin['n'] 
         se = dict_region_basin['e'], dict_region_basin['s'] 
     
-        # Area and perimeter of basin
-        report_basin = grass.read_command('v.report', map = v_basin, 
-                                                  layer = 1, 
-                                                  option = 'area', 
-                                                  units = 'kilometers') 
-        report_basin = report_basin.replace('\n',' ')
-        report_basin = report_basin.split()
-        area_basin = float(report_basin[1].split('|')[3])  
-        report_basin = grass.read_command('v.report', map = v_basin, 
-                                                  layer = 1, 
-                                                  option = 'length', 
-                                                  units = 'meters')
-        perimeter_basin = float(report_basin.split('\n')[1].split('|')[0])
-    
         # Directing vector 
         delta_x = abs(float(basin_east) - east)
         delta_y = abs(float(basin_north) - north)
@@ -337,11 +366,10 @@ def main():
                                    overwrite = True)
         param_mainchannel = grass.read_command('v.what', map = v_mainchannel, 
                                                      east_north = '%s,%s' % (east,north) )
-        dict_mainchannel = dict(x.split(':', 1) for x in param_mainchannel.split('\n')if ':' in x)
-        mainchannel = float(dict_mainchannel['Length']) / 1000
+        tmp = param_mainchannel.split('\n')[8]
+        mainchannel = float(tmp.split()[1]) 
     
         # Topological Diameter
-        #grass.run_command('r.mapcalculator', amap = r_shreve , formula = '-(%s - %s)' % (r_mainchannel, r_shreve) , outfile = r_mainchannel_dim)
         grass.mapcalc("$r_mainchannel_dim = -($r_mainchannel - $r_shreve) + 1",
                   r_mainchannel_dim = r_mainchannel_dim,
                   r_shreve = r_shreve,
@@ -390,8 +418,7 @@ def main():
                 mainchannel_slope = sum(pendenze) / len(pendenze) * 100
             except :
 	    	    pass
-                #grass.message( "Mean slope of mainchannel = WARNING" )
-            
+	    	                
         # Elongation Ratio
         R_al = (2 * math.sqrt( area_basin / math.pi) ) / mainchannel
     
@@ -612,9 +639,10 @@ def main():
 	    grass.message( "\n" )
 	    grass.message( "##################################" ) 
 	    grass.message( "\n" ) 
-	    grass.message( "ERROR" )
-	    grass.message( "Outlet coordinates must belong to the river network!" )
-	    grass.message( "Please run r.stream.extract and choose coordinates matching with the extracted stream map" )
+	    grass.message( "An error occurred with the parameters calculation." )
+	    grass.message( "Please note that outlet coordinates must belong to the river network." )
+	    grass.message( "You might want to run r.stream.extract and choose coordinates matching with the extracted stream map." )
+	    grass.message( "Please report to the authors any other problem not related with coordinates outlet." )
 	    
     # Set region to original 
     grass.read_command('g.region', flags = 'p', region = 'original')
