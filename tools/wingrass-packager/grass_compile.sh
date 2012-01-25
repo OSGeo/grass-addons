@@ -12,16 +12,20 @@ function rm_package_7 {
 
 function compile {
     cd $SRC/$1
+    svn up || (svn cleanup && svn up)
+    
     rm_package_7 
-    curr=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f4 | cut -d'.' -f1`
+    curr=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
     if [ $? -eq 0 ]; then
-	package=$(($curr+1))
+	num=$(($curr+1))
     else
-	package=1
+	num=1
     fi
+    rev=`svn info | grep 'Last Changed Rev:' | cut -d':' -f2 | tr -d ' '`
+    package="r$rev-$num"
+    
     echo "Compiling $1 ($package)..."
     rm -f mswindows/osgeo4w/configure-stamp
-    svn up || (svn cleanup && svn up)
     ./mswindows/osgeo4w/package.sh $package $2
 }
 
