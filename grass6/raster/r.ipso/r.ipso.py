@@ -50,6 +50,8 @@
 
 import sys
 import os
+import matplotlib #required by windows
+matplotlib.use('wx') #required by windows
 import matplotlib.pyplot as plt
 import grass.script as grass
 import numpy as np
@@ -117,7 +119,7 @@ def main():
 
 def findint(kl,f):
     Xf = np.abs(kl-f); Xf = np.where(Xf==Xf.min())
-    z1 , z2 , f1 , f2 = kl[float(Xf[0])][0] , kl[float(Xf[0]-1)][0] , kl[float(Xf[0])][1] , kl[float(Xf[0]-1)][1]
+    z1 , z2 , f1 , f2 = kl[float(Xf[0])][0] , kl[float(Xf[0]-1)][0] , kl[float(Xf[0])][1] , kl[float(Xf[0]-1)][1] 
     z = z1 + ((z2 - z1) / (f2 - f1)) * (f - f1)
     return z
 
