@@ -75,7 +75,7 @@ int write_ply_body_ascii(FILE *fp, struct Map_info *Map,
 	    }
 	    i++;
 	}
-	G_debug(0, "all column string: %s", all_columns);
+	G_debug(1, "all column string: %s", all_columns);
     }
     
     Points = Vect_new_line_struct();
