@@ -488,9 +488,11 @@ def main():
         stream_stats = grass.read_command('r.stream.stats', stream = r_strahler, 
                                                         dir = r_drainage_e, 
                                                         dem = 'r_elevation_crop' )
-        grass.message( "##################################" )        
-        grass.message( "output r.stream.stats %s" % stream_stats ) 
-        grass.message( "##################################" )
+                                                        
+        print "##################################"         
+        print "Output of r.stream.stats: "
+        print  stream_stats
+       
         stream_stats_summary = stream_stats.split('\n')[4].split('|')
         stream_stats_mom = stream_stats.split('\n')[8].split('|')
         Max_order , Num_streams , Len_streams , Stream_freq = stream_stats_summary[0] , stream_stats_summary[1] , stream_stats_summary[2] , stream_stats_summary[5] 
