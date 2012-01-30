@@ -21,6 +21,8 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 #
+# MINOR FIXES:     Alexander Muriy (amuriy AT gmail DOT com), 01.2012
+#
 #############################################################################/
 
 #%Module
@@ -155,13 +157,13 @@ fi
 
 # As only the z coordinates have changed in denoising, to prevent rounding
 # errors, the new z coordinates are combined with the original xy coordinates.
-cat "$temp".xyz | awk '{print $1" "$2}' > "$temp".xy
+cat "$temp".xyz | awk '{print $1,$2}' > "$temp".xy
 cat "$temp".DN.xyz | awk '{print $3}' > "$temp".DN.z
-paste -d " " "$temp".xy "$temp".DN.z > "$temp".DN.xyz
+paste -d' ' "$temp".xy "$temp".DN.z > "$temp".DN.xyz
 
 # Reload data
 g.message "Reloading data..."
-r.in.xyz "$temp".DN.xyz output="$OUTPUT" fs=space x=1 y=2 z=3 --q
+r.in.xyz -i "$temp".DN.xyz output="$OUTPUT" fs=space x=1 y=2 z=3 --q
 
 # Edit metadata to record denoising parameters
 r.support "$OUTPUT" title="A denoised version of <$INPUT>"   history=""
