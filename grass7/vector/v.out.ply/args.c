@@ -44,7 +44,7 @@ void parse_args(int argc, char **argv,
     dp_opt->type = TYPE_INTEGER;
     dp_opt->required = NO;
     dp_opt->options = "0-32";
-    dp_opt->answer = "8";	/* This value is taken from the lib settings in G_format_easting() */
+    dp_opt->answer = "6";	/* This value is taken from the lib settings in G_format_easting() */
     dp_opt->description =
 	_("Number of significant digits (floating point only)");
     
