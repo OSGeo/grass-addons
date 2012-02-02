@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = g.md5sum
+PGM = g.compare.md5
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
