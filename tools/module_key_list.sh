@@ -103,7 +103,7 @@ xml2 < "$TEMPFILE.xml" | grep '/@name=' | \
 
 
 g.message "List written to <$OUTFILE>."
-g.message " Next run: diff -u -c 7 module_key_list_\$OLD.txt module_key_list_\$NEW.txt"
+g.message " Next run: diff -U 7 module_key_list_\$OLD.txt module_key_list_\$NEW.txt"
 
 ## todo: how to sort per-module params and flags so a re-arrangement of
 ##       order doesn't indicate an interface change?
