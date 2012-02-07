@@ -79,13 +79,20 @@ if [ "$1" != "@ARGS_PARSED@" ] ; then
     exec g.parser "$0" "$@"
 fi
 
+
+COORD=`echo "$GIS_OPT_AT" | tr ',' ' '`
+
+
 if [ $GIS_FLAG_M -eq 0 ] ; then
     MAPUN=""
+
+    COORD_x=`echo $COORD | cut -f1 -d' ' | cut -f1 -d'.'`
+    if [ "$COORD_x" -lt -40 ] || [ "$COORD_x" -gt 140 ] ; then
+	g.message "Pretty big value for % of frame. Did you mean to use the -m flag?"
+    fi
 else
     MAPUN="-m"
 fi
-
-COORD=`echo "$GIS_OPT_AT" | tr ',' ' '`
 
 
 if [ "$GIS_OPT_WIDTH" != "0" ] ; then
