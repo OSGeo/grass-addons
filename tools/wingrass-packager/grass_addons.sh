@@ -16,7 +16,7 @@ function compile {
     cd $3
     for d in `ls -d */`; do
 	mod=${d%%/}
-	if [ $mod == "log" ] ; then
+	if [ $mod == "logs" ] ; then
 	    continue
 	fi
 	cd $mod
