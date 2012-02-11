@@ -21,8 +21,8 @@ mkdir  "$ADDON_PATH"
 
 cd "$SVN_PATH"
 
-mkdir "$ADDON_PATH/log"
-touch "$ADDON_PATH/log/ALL.log"
+mkdir "$ADDON_PATH/logs"
+touch "$ADDON_PATH/logs/ALL.log"
 
 echo "-----------------------------------------------------"
 echo "AddOns '$ADDON_PATH'..."
@@ -48,12 +48,12 @@ for c in "display" "general" "imagery" "raster" "raster3d" "vector"; do
 	    HTMLDIR="$path/docs/html" \
 	    MANDIR="$path/man/man1" \
 	    SCRIPTDIR="$path/scripts" \
-	    ETC="$path/etc" > "$ADDON_PATH/log/$m.log" 2>&1
+	    ETC="$path/etc" > "$ADDON_PATH/logs/$m.log" 2>&1
 	if [ `echo $?` -eq 0 ] ; then
-	    printf "%-30s%s\n" "$c/$m" "SUCCESS" >> "$ADDON_PATH/log/ALL.log"
+	    printf "%-30s%s\n" "$c/$m" "SUCCESS" >> "$ADDON_PATH/logs/ALL.log"
 	    echo " SUCCESS"
 	else
-	    printf "%-30s%s\n" "$c/$m" "FAILED" >> "$ADDON_PATH/log/ALL.log"
+	    printf "%-30s%s\n" "$c/$m" "FAILED" >> "$ADDON_PATH/logs/ALL.log"
 	    echo " FAILED"
 	fi
 	cd ..
