@@ -27,6 +27,16 @@ function update {
 	-e "s/VERSION_NUMBER \".*\"/VERSION_NUMBER \"$VERSION\"/g" \
 	-e "s/GRASS_BASE \"GRASS .*\"/GRASS_BASE \"GRASS $VERSION\"/g" $HOME/$2/GRASS-Installer.nsi > tmp
     mv tmp $HOME/$2/GRASS-Installer.nsi
+
+    create_log $SRC/$1 $2 $REV $NUM
+}
+
+function create_log {
+    cd $HOME/$2
+    LOG_DIR=log-r$3-$4
+    mkdir -p $LOG_DIR
+    cp osgeo4w/package.log $LOG_DIR/
+    cp $1/error.log $LOG_DIR/
 }
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
