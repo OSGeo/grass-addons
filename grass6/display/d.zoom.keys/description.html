@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: d.zoom.keys</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>d.zoom.keys</b></em>  - Allows to change the current geographic region settings interactively, with a keyboard. Use arrow keys to navigate, "-" to make futher, "+" (without "Shift") to make closer.
+<h2>KEYWORDS</h2>
+display, zoom
+<h2>SYNOPSIS</h2>
+<b>d.zoom.keys</b><br>
+<b>d.zoom.keys help</b><br>
+<b>d.zoom.keys</b> [-<b>txr</b>]  [<b>mon</b>=<em>name</em>]   [<b>magn</b>=<em>number</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
+
+<h3>Flags:</h3>
+<DL>
+<DT><b>-t</b></DT>
+<DD>Use navigation from terminal</DD>
+
+<DT><b>-x</b></DT>
+<DD>Use navigation in X-monitor (requires <xev> and <xdotool>)</DD>
+
+<DT><b>-r</b></DT>
+<DD>Decrease region resolution during navigation</DD>
+
+<DT><b>--verbose</b></DT>
+<DD>Verbose module output</DD>
+<DT><b>--quiet</b></DT>
+<DD>Quiet module output</DD>
+</DL>
+
+<h3>Parameters:</h3>
+<DL>
+<DT><b>mon</b>=<em>name</em></DT>
+<DD>Name of graphics monitor to select (default is currently selected monitor).</DD>
+
+<DT><b>magn</b>=<em>number</em></DT>
+<DD>Magnification: default is "1" (1/10 of current region). "magn" &gt; 1 gives positive magnification, "magn" &lt; 1 gives negative one.</DD>
+
+</DL>
+</body>
+</html>
