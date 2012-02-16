@@ -40,29 +40,19 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 	for (row = 0; row < nrows; row++) {
 	    G_percent(row, nrows, 2);
 
-	    Rast_get_row(band->fd, band->rast, row, DCELL_TYPE);
+	    Rast_get_row(band->fd, band->rast, row, band->type);
 	    Rast_get_row(cosi->fd, cosi->rast, row, cosi->type);
+	    
+	    pref = band->rast;
+	    pcos = cosi->rast;
 
 	    for (col = 0; col < ncols; col++) {
-		switch (cosi->type) {
-		case FCELL_TYPE:
-		    pcos = (void *)((FCELL *) cosi->rast + col);
-		    cos_i = (double)((FCELL *) cosi->rast)[col];
-		    break;
-		case DCELL_TYPE:
-		    pcos = (void *)((DCELL *) cosi->rast + col);
-		    cos_i = (double)((DCELL *) cosi->rast)[col];
-		    break;
-		default:
-		    pcos = NULL;
-		    cos_i = 0.;
-		    break;
-		}
-		pref = (void *)((DCELL *) band->rast + col);
+		
+		cos_i = Rast_get_d_value(pcos, cosi->type);
 
-		if (!Rast_is_null_value(pref, DCELL_TYPE) &&
+		if (!Rast_is_null_value(pref, band->type) &&
 		    !Rast_is_null_value(pcos, cosi->type)) {
-		    ref_i = (double)*((DCELL *) pref);
+		    ref_i = Rast_get_d_value(pref, band->type);
 		    switch (method) {
 		    case MINNAERT:
 			if (cos_i > 0. && cos_z > 0. && ref_i > 0.) {
@@ -88,6 +78,8 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 			break;
 		    }
 		}
+		pref = G_incr_void_ptr(pref, Rast_cell_size(band->type));
+		pcos = G_incr_void_ptr(pcos, Rast_cell_size(cosi->type));
 	    }
 	}
 	m = (n == 0.) ? 1. : (n * sxy - sx * sy) / (n * sxx - sx * sx);
@@ -121,30 +113,19 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 	Rast_get_row(band->fd, band->rast, row, band->type);
 	Rast_get_row(cosi->fd, cosi->rast, row, cosi->type);
 
-	for (col = 0; col < ncols; col++) {
-	    switch (cosi->type) {
-	    case FCELL_TYPE:
-		pcos = (void *)((FCELL *) cosi->rast + col);
-		cos_i = (double)*((FCELL *) pcos);
-		break;
-	    case DCELL_TYPE:
-		pcos = (void *)((DCELL *) cosi->rast + col);
-		cos_i = (double)*((DCELL *) pcos);
-		break;
-	    default:
-		pcos = NULL;
-		cos_i = 0.;
-		break;
-	    }
-	    pref = (void *)((DCELL *) band->rast + col);
+	pref = band->rast;
+	pcos = cosi->rast;
+	
+	Rast_set_null_value(out->rast, ncols, DCELL_TYPE);
 
-	    if (pcos == NULL ||
-		Rast_is_null_value(pref, DCELL_TYPE) ||
-		Rast_is_null_value(pcos, cosi->type)) {
-		Rast_set_null_value((DCELL *) out->rast + col, 1, DCELL_TYPE);
-	    }
-	    else {
-		ref_i = (double)*((DCELL *) pref);
+	for (col = 0; col < ncols; col++) {
+
+	    cos_i = Rast_get_d_value(pcos, cosi->type);
+
+	    if (!Rast_is_null_value(pref, band->type) &&
+		!Rast_is_null_value(pcos, cosi->type)) {
+
+		ref_i = Rast_get_d_value(pref, band->type);
 		((DCELL *) out->rast)[col] =
 		    (DCELL) (ref_i * pow((cos_z + cka) / (cos_i + ckb), kk));
 		G_debug(3,
@@ -152,6 +133,8 @@ void eval_tcor(int method, Gfile * out, Gfile * cosi, Gfile * band,
 			ref_i, cka, cos_i, ckb, kk,
 			((DCELL *) out->rast)[col]);
 	    }
+	    pref = G_incr_void_ptr(pref, Rast_cell_size(band->type));
+	    pcos = G_incr_void_ptr(pcos, Rast_cell_size(cosi->type));
 	}
 	Rast_put_row(out->fd, out->rast, out->type);
     }

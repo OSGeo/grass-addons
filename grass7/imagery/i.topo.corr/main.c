@@ -30,8 +30,6 @@ int main(int argc, char *argv[])
     struct GModule *module;
     struct Cell_head hd_band, hd_dem, window;
 
-    char bufname[128];		/* TODO: use GNAME_MAX? */
-
     int i;
     struct Option *base, *output, *input, *zeni, *azim, *metho;
     struct Flag *ilum;
@@ -101,6 +99,7 @@ int main(int argc, char *argv[])
 	    (_("Reflectance maps are necessary to make topographic correction"));
 
     zenith = atof(zeni->answer);
+    out.type = DCELL_TYPE;
 
     /* Evaluate only cos_i raster file */
     /* i.topo.corr -i out=cosi.on07 base=SRTM_v2 zenith=33.3631 azimuth=59.8897 */
@@ -109,18 +108,18 @@ int main(int argc, char *argv[])
 	azimuth = atof(azim->answer);
 	/* Warning: make buffers and output after set window */
 	strcpy(dem.name, base->answer);
-	dem.fd = Rast_open_old(dem.name, "");
-	dem.type = Rast_get_map_type(dem.fd);
 	/* Set window to DEM file */
 	Rast_get_window(&window);
 	Rast_get_cellhd(dem.name, "", &hd_dem);
 	Rast_align_window(&window, &hd_dem);
+	dem.fd = Rast_open_old(dem.name, "");
+	dem.type = Rast_get_map_type(dem.fd);
 	/* Open and buffer of the output file */
 	strcpy(out.name, output->answer);
 	out.fd = Rast_open_new(output->answer, DCELL_TYPE);
 	out.rast = Rast_allocate_buf(out.type);
 	/* Open and buffer of the elevation file */
-	dem.rast = Rast_allocate_buf(DCELL_TYPE);
+	dem.rast = Rast_allocate_buf(dem.type);
 	eval_cosi(&out, &dem, zenith, azimuth);
 	/* Close files, buffers, and write history */
 	G_free(dem.rast);
@@ -153,7 +152,8 @@ int main(int argc, char *argv[])
 	    G_fatal_error(_("Invalid method: %s"), metho->answer);
 
 	dem.fd = Rast_open_old(base->answer, "");
-	dem.type= Rast_open_old(base->answer, "");
+	dem.type = Rast_get_map_type(dem.fd);
+	Rast_close(dem.fd);
 	if (dem.type == CELL_TYPE)
 	    G_fatal_error(_("Illumination model is of CELL type"));
 
@@ -161,6 +161,8 @@ int main(int argc, char *argv[])
 	    G_message(_("Band %s: "), input->answers[i]);
 	    /* Abre fichero de bandas y el de salida */
 	    strcpy(band.name, input->answers[i]);
+	    Rast_get_cellhd(band.name, "", &hd_band);
+	    Rast_set_window(&hd_band);	/* Antes de out_open y allocate para mismo tamaño */
 	    band.fd = Rast_open_old(band.name, "");
 	    band.type = Rast_get_map_type(band.fd);
 	    if (band.type != DCELL_TYPE) {
@@ -169,12 +171,11 @@ int main(int argc, char *argv[])
 		Rast_close(band.fd);
 		continue;
 	    }
-	    Rast_get_cellhd(band.name, "", &hd_band);
-	    Rast_set_window(&hd_band);	/* Antes de out_open y allocate para mismo tamaño */
 	    /* ----- */
-	    snprintf(bufname, 127, "%s.%s", output->answer,
+	    dem.fd = Rast_open_old(base->answer, "");
+	    snprintf(out.name, GNAME_MAX - 1, "%s.%s", output->answer,
 		     input->answers[i]);
-	    out.fd = Rast_open_new(bufname, DCELL_TYPE);
+	    out.fd = Rast_open_new(out.name, DCELL_TYPE);
 	    out.rast = Rast_allocate_buf(out.type);
 	    band.rast = Rast_allocate_buf(band.type);
 	    dem.rast = Rast_allocate_buf(dem.type);
@@ -182,6 +183,7 @@ int main(int argc, char *argv[])
 	    eval_tcor(method, &out, &dem, &band, zenith);
 	    /* ----- */
 	    G_free(dem.rast);
+	    Rast_close(dem.fd);
 	    G_free(band.rast);
 	    Rast_close(band.fd);
 	    G_free(out.rast);
@@ -194,13 +196,13 @@ int main(int argc, char *argv[])
 		struct FPRange range;
 		DCELL min, max;
 		struct Colors grey;
+
 		Rast_read_fp_range(out.name, G_mapset(), &range);
 		Rast_get_fp_range_min_max(&range, &min, &max);
 		Rast_make_grey_scale_colors(&grey, min, max);
 		Rast_write_colors(out.name, G_mapset(), &grey);
 	    }
 	}
-	Rast_close(dem.fd);
     }
 
     exit(EXIT_SUCCESS);
