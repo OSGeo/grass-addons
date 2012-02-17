@@ -50,8 +50,8 @@ pscp.exe -i    .\ssh\id_dsa.ppk .\grass70\WinGRASS*.exe* landa@geo102:/work/wing
 pscp.exe -i    .\ssh\id_dsa.ppk .\grass70\grass*.tar.bz2 landa@geo102:/work/wingrass/grass70/osgeo4w
 pscp.exe -r -i .\ssh\id_dsa.ppk .\grass70\log-r*         landa@geo102:/work/wingrass/grass70/logs/
 
-pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\addons\*.zip .\grass64\addons\*.md5sum landa@geo102:/work/wingrass/grass64/addons
-pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\addons\logs                            landa@geo102:/work/wingrass/grass64/addons
+pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\addons\*.zip .\grass64\addons\*.md5sum landa@geo102:/work/wingrass/grass64/addons/grass-6.4.2svn
+pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\addons\logs                            landa@geo102:/work/wingrass/grass64/addons/grass-6.4.2svn
 pscp.exe -r -i .\ssh\id_dsa.ppk .\grass65\addons\*.zip .\grass65\addons\*.md5sum landa@geo102:/work/wingrass/grass65/addons
 pscp.exe -r -i .\ssh\id_dsa.ppk .\grass65\addons\logs                            landa@geo102:/work/wingrass/grass65/addons
 pscp.exe -r -i .\ssh\id_dsa.ppk .\grass70\addons\*.zip .\grass70\addons\*.md5sum landa@geo102:/work/wingrass/grass70/addons

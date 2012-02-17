@@ -29,6 +29,6 @@ C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_md5sum.sh %MAJOR%%MINOR%%PATCH%
 
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_addons.sh %MAJOR%%MINOR%%PATCH%
 
-pscp.exe -r -i .\ssh\id_dsa.ppk .\grass%MAJOR%%MINOR%%PATCH%\addons\*.zip    landa@geo102:/work/wingrass/grass%MAJOR%%MINOR%/addons%MAJOR%%MINOR%%PATCH%
-pscp.exe -r -i .\ssh\id_dsa.ppk .\grass%MAJOR%%MINOR%%PATCH%\addons\*.md5sum landa@geo102:/work/wingrass/grass%MAJOR%%MINOR%/addons%MAJOR%%MINOR%%PATCH%
-pscp.exe -r -i .\ssh\id_dsa.ppk .\grass%MAJOR%%MINOR%%PATCH%\addons\logs     landa@geo102:/work/wingrass/grass%MAJOR%%MINOR%/addons%MAJOR%%MINOR%%PATCH%
+pscp.exe -r -i .\ssh\id_dsa.ppk .\grass%MAJOR%%MINOR%%PATCH%\addons\*.zip    landa@geo102:/work/wingrass/grass%MAJOR%%MINOR%/addons/grass-%MAJOR%.%MINOR%.%PATCH%
+pscp.exe -r -i .\ssh\id_dsa.ppk .\grass%MAJOR%%MINOR%%PATCH%\addons\*.md5sum landa@geo102:/work/wingrass/grass%MAJOR%%MINOR%/addons/grass-%MAJOR%.%MINOR%.%PATCH%
+pscp.exe -r -i .\ssh\id_dsa.ppk .\grass%MAJOR%%MINOR%%PATCH%\addons\logs     landa@geo102:/work/wingrass/grass%MAJOR%%MINOR%/addons/grass-%MAJOR%.%MINOR%.%PATCH%
