@@ -35,8 +35,13 @@ function compile {
 export PATH=/c/OSGeo4W/apps/msys/bin:/c/OSGeo4W/bin:$PATH
 export PYTHONHOME=/c/OSGeo4W/apps/Python27
 
-compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass64_release $ADDON_PREFIX/grass64/addons
-compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass6_devel    $ADDON_PREFIX/grass65/addons
-compile $SVN_PATH/grass7 $GISBASE_PREFIX/grass_trunk     $ADDON_PREFIX/grass70/addons
+if test -z $1 ; then
+    # dev packages
+    compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass64_release $ADDON_PREFIX/grass64/addons
+    compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass6_devel    $ADDON_PREFIX/grass65/addons
+    compile $SVN_PATH/grass7 $GISBASE_PREFIX/grass_trunk     $ADDON_PREFIX/grass70/addons
+else
+    compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass$1         $ADDON_PREFIX/grass$1/addons
+fi
 
 exit 0

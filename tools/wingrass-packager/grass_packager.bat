@@ -27,10 +27,6 @@ cd .\grass70
 call .\GRASS-Packager.bat
 cd ..
 
-copy .\msys.bat .\grass64\GRASS-64-Package\msys\
-copy .\msys.bat .\grass65\GRASS-65-Package\msys\
-copy .\msys.bat .\grass70\GRASS-70-Package\msys\
-
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_osgeo4w.sh
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_svn_info.sh
 

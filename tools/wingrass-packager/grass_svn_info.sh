@@ -9,7 +9,10 @@ function update {
     cd $SRC/$1
     REV=`svn info | grep 'Last Changed Rev:' | cut -d':' -f2 | tr -d ' '`
     NUM=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
-
+    if [ "x$NUM" = "x" ]; then
+	NUM=1
+    fi
+    
     exec 3<include/VERSION 
     read MAJOR <&3 
     read MINOR <&3 
@@ -41,8 +44,13 @@ function create_log {
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 
-update grass64_release grass64
-update grass6_devel grass65
-update grass_trunk grass70
+if test -z $1 ; then
+    # dev packages
+    update grass64_release grass64
+    update grass6_devel grass65
+    update grass_trunk grass70
+else
+    update grass$1 grass$1
+fi
 
 exit 0
