@@ -380,7 +380,7 @@ def main():
         param_mainchannel = grass.read_command('v.what', map = v_mainchannel, 
                                                      east_north = '%s,%s' % (east,north) )
         tmp = param_mainchannel.split('\n')[8]
-        mainchannel = float(tmp.split()[1]) 
+        mainchannel = float(tmp.split()[1]) / 1000   # km
     
         # Topological Diameter
         grass.mapcalc("$r_mainchannel_dim = -($r_mainchannel - $r_shreve) + 1",
