@@ -24,11 +24,9 @@ function update {
     else
 	TYPE="Release"
     fi
-    sed -e "s/SVN_REVISION \"36599\"/SVN_REVISION \"$REV\"/g" \
-	-e "s/BINARY_REVISION \"1\"/BINARY_REVISION \"$NUM\"/g" \
+    sed -e "s/BINARY_REVISION \"1\"/BINARY_REVISION \"$NUM\"/g" \
 	-e "s/INSTALLER_TYPE \"Devel\"/INSTALLER_TYPE \"$TYPE\"/g" \
-	-e "s/VERSION_NUMBER \".*\"/VERSION_NUMBER \"$VERSION\"/g" \
-	-e "s/GRASS_BASE \"GRASS .*\"/GRASS_BASE \"GRASS $VERSION\"/g" $HOME/$2/GRASS-Installer.nsi > tmp
+	$HOME/$2/GRASS-Installer.nsi > tmp
     mv tmp $HOME/$2/GRASS-Installer.nsi
 
     create_log $SRC/$1 $2 $REV $NUM
