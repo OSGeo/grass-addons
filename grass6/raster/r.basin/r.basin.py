@@ -71,7 +71,6 @@ import math
 from numpy import array
 from numpy import zeros
 import csv
-import platform
 
 if not os.environ.has_key("GISBASE"):
     grass.message( "You must be in GRASS GIS to run this program." )
@@ -119,9 +118,7 @@ def main():
     v_ord_1 = prefix+'_ord_1'
     global tmp
     
-    # get info about the platform
-    plat = platform.system()
-    
+   
     # Save current region
     grass.read_command('g.region', flags = 'p', save = 'original', overwrite = True)
 
@@ -291,32 +288,18 @@ def main():
                                            flags = 'o', 
                                            distance = r_distance,
                                            overwrite = True)
-                                           
-        if plat == "Windows":
-            # Ipsographic curve
-            grass.message( "##################################" )
-            grass.run_command('r.ipso', map = 'r_elevation_crop', image = prefix, flags = 'ab') 
-            grass.message( "##################################" )  
-            # Width Function 
-            grass.message( "##################################" )
-            grass.run_command('r.wf', map = r_distance, 
-                                      image = prefix) 
-            grass.message( "##################################" )                     
-        
-        else:
-            # Ipsographic curve
-            grass.message( "##################################" )
-            grass.run_command('r.ipso.py', map = 'r_elevation_crop', 
-                                           image = prefix, 
-                                           flags = 'ab')
-            grass.message( "##################################" )
-    
-            # Width Function
-            grass.message( "##################################" )
-            grass.run_command('r.wf.py', map = r_distance, 
-                                               image = prefix) 
-            grass.message( "##################################" )                         
-    
+
+        # Ipsographic curve
+        grass.message( "##################################" )
+        grass.run_command('r.ipso', map = 'r_elevation_crop',
+                                  image = prefix, flags = 'ab')
+        grass.message( "##################################" )
+        # Width Function
+        grass.message( "##################################" )
+        grass.run_command('r.wf', map = r_distance,
+                                  image = prefix)
+        grass.message( "##################################" )
+
         # Creation of map of hillslope distance to river network
         grass.run_command('r.stream.distance', stream = r_stream_e, 
                                            dir = r_drainage, 
