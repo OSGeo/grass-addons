@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: d.frontline</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>d.frontline</b></em>  - Display different types of frontlines on the graphic monitor using d.graph (optionally save graph file and ps.map file)
+<h2>KEYWORDS</h2>
+display, graphics, vector, symbology
+<h2>SYNOPSIS</h2>
+<b>d.frontline</b><br>
+<b>d.frontline help</b><br>
+<b>d.frontline</b> [-<b>ms</b>] <b>map</b>=<em>name</em>  [<b>where</b>=<em>string</em>]   [<b>hcolor</b>=<em>string</em>]   [<b>list</b>=<em>string</em>]   [<b>layer</b>=<em>integer</em>]   [<b>side</b>=<em>string</em>]  <b>interval</b>=<em>float</em> <b>symbol</b>=<em>string</em>  [<b>size</b>=<em>integer</em>]   [<b>line_color</b>=<em>string</em>]   [<b>fill_color</b>=<em>string</em>]   [<b>width</b>=<em>integer</em>]   [<b>graph</b>=<em>name</em>]   [<b>psmap</b>=<em>name</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
+
+<h3>Flags:</h3>
+<DL>
+<DT><b>-m</b></DT>
+<DD>Select vector features interactively (with a mouse)</DD>
+
+<DT><b>-s</b></DT>
+<DD>Save graphics commands in file(s) (for use with d.graph and/or ps.map)</DD>
+
+<DT><b>--verbose</b></DT>
+<DD>Verbose module output</DD>
+<DT><b>--quiet</b></DT>
+<DD>Quiet module output</DD>
+</DL>
+
+<h3>Parameters:</h3>
+<DL>
+<DT><b>map</b>=<em>name</em></DT>
+<DD>Name of input vector map</DD>
+
+<DT><b>where</b>=<em>string</em></DT>
+<DD>WHERE conditions of SQL query statement without 'where' keyword</DD>
+<DD>The WHERE statement for data filtering</DD>
+
+<DT><b>hcolor</b>=<em>string</em></DT>
+<DD>Highlight color for vector interactive selecting</DD>
+<DD>Standard color name or R:G:B</DD>
+<DD>Default: <em>yellow</em></DD>
+
+<DT><b>list</b>=<em>string</em></DT>
+<DD>Category number(s)</DD>
+<DD>Example: 1,3,7-9,13</DD>
+
+<DT><b>layer</b>=<em>integer</em></DT>
+<DD>Layer number. If -1, all layers are extracted.</DD>
+<DD>A single vector map can be connected to multiple database tables. This number determines which table to use.</DD>
+<DD>Default: <em>1</em></DD>
+
+<DT><b>side</b>=<em>string</em></DT>
+<DD>Side of the frontline</DD>
+<DD>Options: <em>left,right,both</em></DD>
+<DD>Default: <em>left</em></DD>
+
+<DT><b>interval</b>=<em>float</em></DT>
+<DD>Interval between symbols (in mapset units)</DD>
+
+<DT><b>symbol</b>=<em>string</em></DT>
+<DD>Type of symbol (&lt;front/...&gt; symbols will be produced by script at first use: front/arrow_int, front/arrow_ext, front/box, front/circle, front/half_box, front/line, front/triangle). May be any symbol from $GISBASE/etc/symbol/ or $MAPSET/symbol/ directories.</DD>
+
+<DT><b>size</b>=<em>integer</em></DT>
+<DD>Symbol size</DD>
+<DD>Default: <em>20</em></DD>
+
+<DT><b>line_color</b>=<em>string</em></DT>
+<DD>Color for line (standard color name or R:G:B)</DD>
+<DD>Default: <em>black</em></DD>
+
+<DT><b>fill_color</b>=<em>string</em></DT>
+<DD>Color for fill (standard color name or R:G:B)</DD>
+<DD>Default: <em>grey</em></DD>
+
+<DT><b>width</b>=<em>integer</em></DT>
+<DD>Width of symbol's line</DD>
+<DD>Default: <em>0</em></DD>
+
+<DT><b>graph</b>=<em>name</em></DT>
+<DD>Output file to save the d.graph commands</DD>
+
+<DT><b>psmap</b>=<em>name</em></DT>
+<DD>Output file to save the ps.map commands</DD>
+
+</DL>
+</body>
+</html>
