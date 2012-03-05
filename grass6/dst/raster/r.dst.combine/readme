@@ -1,0 +1,93 @@
+/** DST COMBINATION C CODE **/
+/**
+	by Gavin Powell, 3D Vision and Geometry, Dept Compter Science, Cardiff University
+	g.r.powell@cs.cf.ac.uk
+**/
+/***
+
+This is a macintosh codewarrior project.
+It will work fine on other systems. It has compiled with strict ANSI etc...
+For non codewarrior users all your code is in src and headers.
+
+****/
+
+/** SETUP **/
+/*
+	In "defs.h"
+	NO_SINGLETONS -> How many singletons there are in Omega.
+	STORE1 -> This just defines the position within our data structure. Add or take away as necessary. Must agree with NO_SINGLETONS
+	NOTE:- print_frame() in  "print.c" uses these defs so check it out and alter as necessary if you alter these! 
+	
+	N -> the number of sets to combine. (how many pieces of evidence)
+
+*/
+
+/**
+
+printc.c - print_frame
+This can be used to print any frame. So you can output values of frames before combining etc.
+
+
+file_io.c - get_sample
+Reads in data from file in this order....
+
+for Omega = {a, b, c}
+{0} (empty set)
+{a}
+{b}
+{a, b}
+{c}
+{a, c}
+{b, c}
+{a, b, c}
+
+this order is created in frame_discernment
+**/
+
+/***
+
+MEMORY - The "Shypothesis **samples" is not freed. Everything else should be ok, but I have not tested on a large data set
+so there may well be some leaks, please inform me if you find any.
+
+**/
+
+
+/** General DST Stuff **/
+/*
+a hypothesis is defined....
+type[x][y][z].
+where x, y, z can be 0,1
+and say
+x = Store1
+y = Store2
+z = Store3
+so type[0][1][1] would be a hypothesis for Store2 and Store3.
+x, y, and z are 'named' as singletons. So the more possible matches the more singletons
+they are also the original set, and we assign bpn's etc to all of the subsets of this power ste.
+
+The two frames are combined to calculate the bpa/bpn of the third 'fused' frame. Then the belief and plausability are calc'd.
+
+If we know nothing about any of the subsets probabilities then we can assign 1 to [1][1][1].
+
+Defn's
+BPN m(A) := Evidence supporting that hypothesis. DOES NOT have any relevance on sub-sets.
+Belief Bel(A) := Belief in that hypothesis, from the evidence supporting that hypothesis and all subsets of it.
+Plausability Pl = 1-Bel(`A) := Bel(`A) is the total evidence not supporting A. Remember {x} supports {x, y} and vice versa. 
+                  Shows how much evidence DOESN'T disrepute A.
+                  
+The length of Bel(A)->Pl(A) Is the belief interval and show ingnorance. The longer it is the more ignorant we are i.e. 
+High plausability says that there is little evidnce against our hypothesis and a low belief says we have no evidence for, or know little about.
+Hence we are ignorant of evidnence supporting this hypothesis.
+==========
+BPA is the function saying that all (sum)BPN's = 1 and empty set =0;
+BPN is each m(A). It is how much belief we assign to that set given a piece of evidence (i.e the results from our ATR).
+==========
+The bel is adding the total belief's in A and any that A implies (i.e. subsets).
+This is done using the Belief function or Bel(A).
+When A is a singleton it become a Bayesian belief!
+Since the belief functions != 1  then Bel(A) + Bel(`A) != 1 so Pl = 1-Bel(`A) is how much we 'fail to doubt' A.
+The Belief function finds the TOTAL belief in that hypothesis as opposed to m(A) which is the sigular belief in that hypothesis, irrespective of supporting hypothesise.
+
+When we have a singleton, Bayesian probability, Bel = Pl.
+
+******/

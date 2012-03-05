@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<TITLE>dst.source</TITLE>
+
+<body bgcolor="white">
+
+
+<h2>DESCRIPTION</h2>
+
+This program is used to define sources of evidence in a Dempster-Shafer knowledge
+base file. The knowledge base file is an XML format ASCII file which resides in its 
+own 'DST' element inside the user's current mapset.
+Such a file is necessary to perform Dempster-Shafer Theory (DST) calculations using 
+<EM><A HREF="dst.combine.html">dst.combine </A></EM>.
+If you do not know what DST is or why you would need this program, please refer to the
+<EM><A HREF="dst.combine.html">dst.combine </A></EM> command's manpage for an introduction.<p>
+Although the knowlegde base file can theoretically be edited with
+any ASCII editor, it is highly recommended to always use <em>dst.source</em> to make changes
+regarding sources of evidence. This ensures that the mathematical structure of the model layout 
+will remain intact.<p>
+
+The <em>dst.source</em> command allows the user to define sources of evidence in a knowledge base file.
+This is the last step in preparing data for a DST analysis.
+To get an overview of the DST model structure and the defined sources of evidence at any time, 
+use the <EM><A HREF="dst.view.html">dst.view </A></EM> command.
+Knowledge base files themselves can be listed, created, deleted and renamed using a special
+<A HREF="dst.list.html">set of commands</A>.<p></p>
+
+Since hypotheses can be defined and evidences attached to them using 
+<EM><A HREF="dst.update.html">dst.update </A></EM>, it may seem unnecessary to
+define these relations again as 'sources of evidence'. However, the information
+structure created by <EM><A HREF="dst.update.html">dst.update </A></EM> is not
+necessarily unambiguous. There are no restrictions on the order in which evidences
+are attached and some hypotheses may be associated with more evidences than others.
+This means that it is not always clear which evidences have to be combined in one run
+of <EM><A HREF="dst.combine.html">dst.combine </A></EM> and therefore another
+step is necessary.
+Defining sources of evidence ensures that one input to <EM><A HREF="dst.combine.html">
+dst.combine </A></EM> will always consist of exactly one evidence for each hypothesis
+in the frame of reference and that BPA values relating to that hypothesis will not be 
+accidentally combined with hypotheses from another source.<p></p>
+
+
+<h3>Parameters</h3>
+<dl>
+<dt><B>file=</B><EM>name</EM></dt>
+	<dd>Name of DST knowledge base file to modify. You can get a listing of DST
+		 knowledge base files in your current mapset by invoking 
+		 <EM><A HREF="dst.list.html">dst.list </A></EM>. </dd>
+<dt><B>add=</B><EM>name</EM></dt>
+	<dd>Adds a source of evidence 'name' to the knowledge base. Naming conventions follow
+	    the same rules as filenames.</dd>	
+<dt><B>del=</B><EM>name</EM></dt>
+	<dd>Deletes the evidence source 'name' from the knowledge base file.
+	</dd>	
+<dt><B>ren=</B><EM>name</EM></dt>
+	<dd>Renames evidence source 'name'. New name must be specified using the <em>new=[name]</em>
+	    parameter (see below).
+	</dd>	
+<dt><B>new=</B><EM>name</EM></dt>
+	<dd>Specifies a new name for renaming a source of evidence.
+	</dd>	
+<dt><B>const=</B><EM>value</EM></dt>
+	<dd>Assigns constant evidence to a source of evidence. 
+	    The hypothesis (or set of hypotheses) to which this evidence relates must be 
+	    specified using the <em>hypothesis=[name]</em> parameter. 
+	    The target source must be specified using the <em>source=[name]</em> parameter.
+	</dd>
+<dt><B>rast=</B><EM>name</EM></dt>
+	<dd>Assigns raster map evidence to a source of evidence.</dd>	
+<dt><B>vect=</B><EM>name</EM></dt>
+	<dd>Assigns vector map evidence to a source of evidence.</dd>
+<dt><B>clean=</B><EM>name</EM></dt>
+	<dd>Removes all assignments to a source of evidence from a hypothesis (specified using <em>hypothesis=[name]</em>).</dd>
+<dt><B>prune=</B><EM>name</EM></dt>
+	<dd>Removes assignments to a source of evidence from one or all hypotheses. The type(s) of
+	    evidence (const,rast,vect) to un-assign can be specified using <em>type=[name]</em>.
+	</dd>
+<dt><B>source=</B><EM>name</EM></dt>
+	<dd>Specifies source of evidence to operate on. Case matters!
+	</dd>
+<dt><B>hypothesis=</B><EM>name</EM></dt>
+	<dd>Specifies hypothesis to operate on. Note that order matters when refering to 
+	hypotheses sets: 'a,c' may exist, but 'c,a' not!
+	</dd>	
+<dt><B>type=</B><EM>name</EM></dt>
+	<dd>Type of evidence to un-assign (use in conjunction with <em>prune=[hyp]</em>). 
+		Possible options are <em>const,rast,vect,*</em>.
+	</dd>	
+
+<h2>USAGE</h2>
+
+Refer to the section on 'Predictive Modelling' in the
+manpage of the <EM><A HREF="dst.combine.html">dst.combine </A></EM> command
+for an example of how to define sources of evidence using <em>dst.source</em>.
+	    
+
+<h3>Notes</h3>
+This program was developed as part of the GRASS 5 DST Predictive Modelling Toolkit.<br>
+The term 'knowledge base file' was first used in the manual of the 
+<A HREF="www.clarklabs.org" target="_blank"> IDRISI GIS </A> software which also offers some DST functionality.<br>
+<h3>SEE ALSO</h3>
+<EM><A HREF="dst.combine.html">dst.combine</A></EM><br>
+<EM><A HREF="dst.list.html">dst.list, dst.create, dst.remove, dst.rename</A></EM><br>
+<EM><A HREF="dst.update.html">dst.update</A></EM><br>
+<EM><A HREF="dst.view.html">dst.view</A></EM><br>
+<h3>AUTHOR</h3>
+Benjamin Ducke,<br>
+University of Kiel, Germany<br>
+<i>Last changed: 2005/07/21</i>
+</body>
+</html>

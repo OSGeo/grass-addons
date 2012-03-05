@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<TITLE>dst.update</TITLE>
+
+<body bgcolor="white">
+
+
+<h2>DESCRIPTION</h2>
+
+This program is used to manage user-supplied hypotheses and evidences in a Dempster-Shafer knowledge
+base file. The knowledge base file is an XML format ASCII file which resides in its own 'DST' element
+inside the user's current mapset.
+Such a file is necessary to perform Dempster-Shafer Theory (DST) calculations using  
+<EM><A HREF="dst.combine.html">dst.combine </A></EM>.
+Although the knowledge base file can theoretically be edited with
+any ASCII editor, it is highly recommended to always use <em>dst.update</em> to make any changes
+to it. This ensures that the mathematical structure of the model layout will always remain intact.<p>
+If you do not know what DST is or why you would need this program, please refer to the
+<EM><A HREF="dst.combine.html">dst.combine </A></EM> command's manpage for an introduction.<p>
+The <em>dst.update</em> command allows the user to register hypotheses in a knowledge base file
+and attach evidences which support these hypotheses.
+To get an overview of the DST model structure at any time, 
+use the <EM><A HREF="dst.view.html">dst.view </A></EM> command.
+Knowledge base files themselves can be listed, created, deleted and renamed using a specialised
+<A HREF="dst.list.html">set of commands</A>.
+
+
+<h3>Registering Hypotheses</h3>
+
+As described in the <EM><A HREF="dst.combine.html">dst.combine </A></EM> command's manpage,
+the user-suppplied hypotheses (type 'USER') form the backbone of any DST analysis. The Frame of Reference (FOD)
+is the set of hypotheses that cover all possible outcomes of the analysis. In the DST, this also
+includes two types of hypotheses, which the user does not have to supply.
+<ul>
+<li>The NULL hypotheses, which always exists.</li>
+<li>Sets of all possible combinations of user-supplied singleton hypotheses, which exist if more than one
+hypothesis is supplied.</li>
+</ul>
+
+It is vital that the FOD is always complete and that the hypotheses are stored in the correct
+hierachical order. E.g., if three hypotheses {a},{b} and {c} were supplied, one after another,
+the correct and complete FOD would look like:
+<pre>
+{NULL}
+{a}
+{b}
+{a,b}
+{c}
+{a,c}
+{b,c}
+{a,b,c}
+</pre>
+The order in which {a},{b} and {c} are given has no influence on the correctness of the DST
+calculations. Nevertheless, keeping the correct structure intact can be challenging if the
+FOD is subject to changes. With <em>dst.update</em>, the user can add, rename and remove
+hypotheses in the FOD, without having to worry about its structure.
+In fact, the user only adds, renames are removes <em>singleton hypotheses</em> (except {NULL})
+, sets are always managed automatically and stored as type 'AUTO' in the knowledge base file.<p></p>
+According to the laws of combinatorics, the number of hypotheses sets in the FOD grows rapidly
+if more hypotheses are supplied by the user. Currently, up two 12 user-supplied hypotheses
+are supported, but it seems unlikely that DST calculations with more than 4-6 user hypotheses
+will finish within reasonable time, as processing time also grows exponentially.<p>
+You can manage user-supplied hypotheses by using the <em>add=[hyp]</em>, <em>del=[hyp]</em>, 
+<em>ren=[hyp]</em> (plus <em>new=[hyp]</em>) parameters.
+All other hypotheses will automatically be updated in the correct way. Note that names of
+hypotheses, like filenames, must not contain spaces or special characters. They will also
+be treated case-sensitive so 'HYP' is a different hypothesis than 'Hyp'.
+
+<h3>Attaching Evidences</h3>
+
+Once all hypotheses have been specified (it is vital for correct results that no possible
+hypothesis be left out!), it is up to the user to specify which evidences support a given
+hypothesis (or set of hypotheses). 
+Any evidence must be the result of a correct BPA calculation (see 
+<EM><A HREF="r.dst.bpa.html">r.dst.bpa </A></EM>for more details on this).<p></p>
+Different GRASS map formats can be attached using the <em>const=[name]</em>, <em>rast=[name}</em>,
+<em>vect=[name]</em> and <em>site=[name]</em> parameters.
+<em>However</em>, currently only GRASS raster maps or constant values can be used to 
+supply evidence. Handling of other vector evidence is not yet implemented in the DST combination
+routines themselves.
+Thus, only evidence attached using the <em>rast=[name]</em> parameter will produce output 
+if you call the 
+<EM><A HREF="dst.combine.html">dst.combine </A></EM> command. Evidence of type 'const'
+consists of a single floating point number. It can be useful for testing purposes and to
+get a feeling for what the DST functions do with your data.<p></p>
+If you need to remove erraneous or outdated evidence from a knowledge base file, you can use
+the <em>clean=[hypothesis]</em> and <em>prune=[evidence]</em> parameters (see description
+of parameters below).<p></p>
+If all hypotheses and evidences are present in the data base, they have to be grouped
+to define sources of evidence. This can be done using the 
+<EM><A HREF="dst.source.html">dst.source </A></EM> command.
+
+<h3>Parameters</h3>
+<dl>
+<dt><B>file=</B><EM>name</EM></dt>
+	<dd>Name of DST knowledge base file to modify. You can get a listing of DST
+		 knowledge base files in your current mapset by using 
+		 <EM><A HREF="dst.list.html">dst.list </A></EM>. </dd>
+<dt><B>add=</B><EM>name</EM></dt>
+	<dd>Adds a hypothesis 'name' to the knowledge base. Naming conventions follow
+	    the same rules as filenames.</dd>	
+<dt><B>del=</B><EM>name</EM></dt>
+	<dd>Deletes hypothesis 'name' (and all references in hypotheses sets) from the
+	    knowledge base file.
+	</dd>	
+<dt><B>ren=</B><EM>name</EM></dt>
+	<dd>Renames hypothesis 'name' (and all references in hypotheses sets) from the
+	    knowledge base file. New name must be specified using the <em>new=[name]</em>
+	    parameter (see below).
+	</dd>	
+<dt><B>new=</B><EM>name</EM></dt>
+	<dd>Specifies a new name for renaming a hypothesis.
+	</dd>	
+<dt><B>const=</B><EM>value</EM></dt>
+	<dd>Attaches a constant value as evidence to a hypothesis. As with all evidences,
+	    the target hypothesis must be specified using the <em>hypothesis=[name]</em>
+	    parameter.
+	</dd>
+<dt><B>rast=</B><EM>name</EM></dt>
+	<dd>Attaches a GRASS raster map as evidence to a hypothesis.</dd>	
+<dt><B>vect=</B><EM>name</EM></dt>
+	<dd>Attaches a GRASS vector map as evidence to a hypothesis (useless for now).</dd>	
+<dt><B>clean=</B><EM>name</EM></dt>
+	<dd>Removes all attached evidence from a hypothesis (specified using <em>hypothesis=[name]</em>).</dd>	
+<dt><B>prune=</B><EM>name</EM></dt>
+	<dd>Removes all references to an evidence from one or all hypotheses. The type(s) of
+	    evidence to detach can be specified using <em>type=[name]</em>.
+	</dd>	
+<dt><B>hypothesis=</B><EM>name</EM></dt>
+	<dd>Specifies hypothesis to operate on. Note that order matters when refering to 
+	hypotheses sets: 'a,c' may exist, but 'c,a' not!
+	</dd>	
+<dt><B>type=</B><EM>name</EM></dt>
+	<dd>Type of evidence to detach (use in conjunction with <em>prune=[hyp]</em>). 
+		Possible options are <em>const,rast,vect,*</em>.
+	</dd>	
+<dt><B>precision=</B><EM>value</EM></dt>
+	<dd>Number of decimal places for storing evidence of type <em>const</em>. The default is '2'.
+	</dd>	
+
+<h2>USAGE</h2>
+
+Refer to the section on 'Predictive Modelling' in the
+manpage of the <EM><A HREF="dst.combine.html">dst.combine </A></EM> command
+for an example of how to register hypotheses and evidences using <em>dst.update</em>.
+	    
+
+<h3>Notes</h3>
+This program was developed as part of the GRASS 5 DST Predictive Modelling Toolkit.<br>
+The term 'knowledge base file' was first used in the manual of the 
+<A HREF="www.clarklabs.org" target="_blank"> IDRISI GIS </A> software which also offers some DST functionality.<br>
+<h3>SEE ALSO</h3>
+<EM><A HREF="dst.combine.html">dst.combine</A></EM><br>
+<EM><A HREF="dst.list.html">dst.list, dst.create, dst.remove, dst.rename</A></EM><br>
+<EM><A HREF="dst.source.html">dst.source</A></EM><br>
+<EM><A HREF="dst.view.html">dst.view</A></EM><br>
+<EM><A HREF="r.dst.bpa.html">r.dst.bpa</A></EM><br>
+<h3>AUTHOR</h3>
+Benjamin Ducke,<br>
+University of Kiel, Germany<br>
+<i>Last changed: 2004/07/21</i>
+</body>
+</html>

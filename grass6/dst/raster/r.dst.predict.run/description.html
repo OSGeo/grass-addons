@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<TITLE>dst.predict</TITLE>
+
+<body bgcolor="white">
+
+
+<h2>DESCRIPTION</h2>
+
+This program calculates a Dempster-Shafer Theory (DST) predictive model.
+If you have need for a flexible spatial predictive modelling framework but do not know what DST is, please
+refer to the manual page of <EM><A HREF="dst.combine.html">dst.combine</A></EM> for an introduction.
+<p>
+Simply specify your raster evidence maps, sample points and a prefix for your result maps and a basic
+DST predictive model will be calculated. For this, <em>dst.predict</em> will invoke the commands
+<EM><A HREF="r.dst.bpa.html">r.dst.bpa</A></EM>,
+<EM><A HREF="dst.create.html">dst.create</A></EM>,
+<EM><A HREF="dst.source.html">dst.source</A></EM>,
+<EM><A HREF="dst.update.html">dst.update</EM></A> and
+<EM><A HREF="dst.combine.html">dst.combine</EM></A><br> automatically with appropriate arguments.
+<p>
+You can choose to calculate further DST metrics by using the <em>value=</em> option. Refer to the
+mannual page of <EM><A HREF="dst.combine.html">dst.combine</A></EM> for their meanings.
+<p>
+You can also specify one or more maps that encode bias for the "NO SITE" hypothesis. See the manual
+page of <EM><A HREF="r.dst.bpa.html">r.dst.bpa</A></EM> for an explanation of how this works.
+<p>
+You can also specify attributes that encode bias for the "SITE" hypothesis. Again, see the manual
+page of <EM><A HREF="r.dst.bpa.html">r.dst.bpa</A></EM> for an explanation of how this works.
+<strong>(Note: The <em>sbias=</em> option is currently broken. Do not use it!)</strong>
+<p>
+If you wish, the program will create an ASCII log file with the combined log output of all invoked
+commands.
+<p>
+You can specify the <em>-r</em> flage to remove all output maps pertaining to the NULL hypothesis.
+These are usually only of mathematical interest and can safely be deleted.    
+<p>
+If you want to use this frontend for exploratory modelling, you might find it more convenient to
+dump model parameters to a shell script which can be used to re-run the model at any time and
+adjust parameters more efficiently. Use the <em>script=</em> option to specify a filename
+for the script.
+
+<h3>Notes</h3>
+This program was developed as part of the GRASS 5 DST Predictive Modelling Toolkit.<br>
+The <em>sbias=</em> option is currently broken. Do not use it!
+
+<h3>SEE ALSO</h3>
+<EM><A HREF="dst.combine.html">dst.update</EM></A><br>
+<EM><A HREF="dst.create.html">dst.create</A></EM><br>
+<EM><A HREF="dst.source.html">dst.source</A></EM><br>
+<EM><A HREF="dst.update.html">dst.update</EM></A><br>
+<EM><A HREF="r.dst.bpa.html">r.dst.bpa</A></EM>
+<h3>AUTHOR</h3>
+Benjamin Ducke,<br>
+University of Kiel, Germany<br>
+<i>Last changed: 2005/07/21</i>
+</body>
+</html>

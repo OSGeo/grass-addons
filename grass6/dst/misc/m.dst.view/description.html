@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<TITLE>dst.view</TITLE>
+
+<body bgcolor="white">
+
+<h2>DESCRIPTION</h2>
+
+With the <em>dst.view</em> command, the information in a Dempster-Shafer knowledge base file
+can be printed out in a formatted, easy-to-read fashion. 
+The knowledge base file is an XML format ASCII file which resides in its own 'DST' element
+inside the user's current mapset.
+Such a file is necessary to perform Dempster-Shafer Theory (DST) calculations using 
+<EM><A HREF="dst.combine.html">dst.combine </A></EM>.
+If you do not know what DST is or why you would need this program, please refer to the
+<EM><A HREF="dst.combine.html">dst.combine </A></EM> command's manpage for an introduction.<p>
+Knowledge base files themselves can be listed, created, deleted and renamed using a special
+<A HREF="dst.list.html">set of commands</A>.
+
+<h3>Flags</h3>
+<dl>
+<dt><strong>-a</strong></dt>
+	<dd>Show all hypotheses (including type 'AUTO'). Normally, only <em>singleton</em> hypotheses
+	 supplied by the user (type 'USER') are shown. If this flag is set, then sets of hypotheses
+	 that were generated automatically will also be shown, as well. See the manpage of 
+	 <EM><A HREF="dst.update.html">dst.update </A></EM> for an explanation of the different
+	 types.
+	</dd>	
+</dl>
+
+<h3>Parameters</h3>
+<dl>
+<dt><B>file=</B><EM>name</EM></dt>
+	<dd>Name of DST knowledge base file to view. You can get a listing of DST
+		 knowledge base files in your current mapset by invoking 
+		 <EM><A HREF="dst.list.html">dst.list </A></EM>. 
+	</dd>
+<dt><B>logfile=</B><EM>name</EM></dt>
+	<dd>Specfiy a valid file name if you want the output stored in a file instead
+	    of printed on the screen.
+	</dd>	
+</dl>	    
+
+<h3>Notes</h3>
+This program was developed as part of the GRASS 5 DST Predictive Modelling Toolkit.<br>
+The term "knowledge base file" was first used in the manual of the 
+<A HREF="www.clarklabs.org" target="_blank"> IDRISI GIS </A> software which also offers some DST functionality.<br>
+<h3>SEE ALSO</h3>
+<EM><A HREF="dst.combine.html">dst.combine</A></EM><br>
+<EM><A HREF="dst.update.html">dst.update</EM></A><br>
+<EM><A HREF="dst.list.html">dst.create, dst.remove, dst.rename, dst.list</A></EM><br>
+<h3>AUTHOR</h3>
+Benjamin Ducke,<br>
+University of Kiel, Germany<br>
+<i>Last changed: 2005/07/21</i>
+</body>
+</html>

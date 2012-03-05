@@ -1,0 +1,316 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<TITLE>dst.combine</TITLE>
+
+<body bgcolor="white">
+
+<h2>DESCRIPTION</h2>
+
+This program combines evidence maps (currently GRASS floating point raster only) using <em>Dempster's
+Rule of Combination</em>.
+It is part of a general framework for Dempster-Shafer Theory (DST) modelling with GRASS GIS.<p>
+
+<h3>Introduction to the DST</h3>
+
+<font size="-1">(Note: the following is a very brief introduction to DST. Many details have been 
+left out to keep everything easy to understand. If you want the full mathematical background, 
+refer to one of the many excellent sources on the internet that can be found by using "Dempster Shafer
+Theory" as a search phrase. The original publication is: Shafer, G. (1976). A Mathematical Theory of Evidence.
+Princeton University Press, Princeton, New Jersey, USA.)</font><p></p>
+Consider a standard situation in GIS-based research.
+A scientist wants to build a spatial model and check its plausibility. He/she has:
+<ol>
+	<li>written down a number of <em>hypotheses</em>. These hypotheses include all possible outcomes of the model,
+	</li>
+	<li>created a number of GIS maps that encode variables (evidences) which he/she deems to be of importance for the
+model,
+	</li>
+	<li>
+	found a way to quantify the evidence.
+	</li>
+</ol>
+For each hypothesis, our scientist would now simply like to combine all supporting evidences and calculate
+the total degree of <em>belief</em> he/she can have in that hypothesis. These belief values should then
+be written to GIS maps to form a spatial model.<p></p>
+The mathematical framework to achieve this is provided by the <em>Dempster-Shafer Theory of Evidence</em> (DST).
+To clarify things, we will need to make some definitions:<p></p>
+
+<ul>
+<li>The set of hypotheses <i>H<sub>1..n</sub></i> which represent <em>all</em> possible model outcomes is called <em>Frame of Discernment</em> (FOD).</li>
+<li>A GIS map that encodes a variable with relevance to the FOD is a <em>source of evidence</em>. 
+A map object (e.g. a cell in a raster map) is turned into an <em>evidence</em> through a
+<em>Basic Probability Assignment (BPA)</em>.
+</li>
+<li>A BPA is the basic quantification of evidence in the DST.
+It consists of a value <i>m<sub>n</sub></i> in the range 0 to 1 for each hypothesis in the FOD. 
+The restriction is that <i>m<sub>1..n</sub></i> must sum to 1.
+</li>
+</ul>
+BPAs can be assigned to a singleton hypothesis in <i>H</i> as well as to subsets such
+as {<i>H<sub>1</sub></i>,<i>H<sub>2</sub></i>}.
+What this means is that DST has the ability to represent <em>uncertainty</em> as subsets 
+of <i>H</i>.
+E.g. if two hypotheses <i>H<sub>1</sub></i>='a' and <i>H<sub>2</sub></i>='b' are supplied, 
+then there will always also exist a set of hypotheses <i>A</i>={<i>H<sub>1</sub></i>,<i>H<sub>2</sub></i>}
+to represent the belief that both could be true ('a OR b').<p></p>
+Evidences from a variety of source can be combined using Dempster's Rule of Combination:
+
+<p align="center"><img src="dst.combine.001.png" alt="BPA chart"></p>
+
+In words: Dempster's Rule computes a measure of agreement between two sources of 
+evidence for various (sets of) hypotheses
+in the FOD (in the formula above: <i>A</i>,<i>B</i>,<i>C</i>). It focuses on the hypotheses which both 
+sources support. The resulting BPA is calculated
+by combining the BPAs of the hypotheses from both sources that yield the hypotheses of the combined
+body. The result is also normalised (denominator) to ensure that it is a valid BPA.
+From the BPAs, a number of useful DST functions can be calculated. The most important ones
+are <em>belief</em> and <em>plausibility</em>.<p>
+
+The <em>belief function Bel(H)</em> computes the total belief in a hypothesis (set) <i>A</i>. 
+The total belief in <i>A</i> is the BPA mass
+of <i>A</i> itself plus the BPA mass attached to all the subsets of (<i>B</i> in the formula
+below:
+
+<p align="center"><img src="dst.combine.002.png" alt="BPA chart"></p>
+
+In words: <em>Bel(A)</em> is all the evidence that speaks in favour of <i>A</i>.<p>
+ 
+DST has a very important characteristic which makes it different from probability theory: if <i>Bel(H)</i>< 1, then
+the remaining evidence 1-<i>Bel(H)</i> does not necessarily refute <i>H</i> (in probability theory we would have
+<i>H<sub>2</sub></i>=1-<i>H<sub>1</sub></i> if the FOD was {<i>H</i>=<i>H<sub>1</sub></i>,<i>H<sub>2</sub></i>}).
+Thus, some of the remaining evidence might <em>plausibly</em> be assigned to (sets of) hypotheses that are subsets
+of or include <i>A</i>. This is represented by the <em>plausibility function</em>: 
+
+<p align="center"><img src="dst.combine.003.png" alt="BPA chart"></p>
+
+In words: <em>Pl(A)</em> represents the maximum possible belief in <i>A</i> that could
+be achieved if there was no uncertainty at all.
+
+<h3>Program Functionality</h3>
+
+The <em>dst.combine</em> program can be used to combine evidences from different
+sources using Dempster's Rule of combination. Currently, all evidences must be
+in GRASS 5 floating point raster map format. In order to turn any raster map into
+an evidence map, the BPAs have to be calculated. The way to do this is totally
+dependent on the model design and it is left up to the user to e.g. create a
+custom <EM><A HREF="../../html/r.mapcalc.html">r.mapcalc</A></EM> script to take care of 
+BPA calculations (with one exception: 
+for predictive models, the <EM><A HREF="r.dst.bpa.html">r.dst.bpa</A></EM> program can be 
+used).<p>
+The model layout, i.e. evidences and associated hypotheses must respect some formal
+mathematical restrictions. To take the burden of this from the user, all evidences
+and hypotheses are stored in a special XML format element called <em>
+DST knowledge base file</em> in the current working location. This file and its
+contents can
+be managed by using the <EM><A HREF="dst.update.html">dst.update</A></EM> command.<p> 
+From the sources of evidence listed in the DST knowledge base file,
+one or more of the following DST functions can
+be calculated (for each hypothesis/set of hypotheses in the knowledge base file) 
+and the result(s) output to a  new GRASS raster map 
+(all values will be in the range 0 to 1):
+
+<dl>
+<dt><b>Belief</b></dt>
+	<dd><em>Bel(A)</em> is the total belief in a hypothesis. This is the most basic DST 
+	function.</dd>
+<dt><b>Plausibility</b></dt>
+	<dd><em>Pl(A)</em> is the maximum achievable belief given that there is no uncertainty.</dd>
+<dt><b>Doubt</b></dt>
+	<dd>This is simply defined as 1-<em>Pl(A)</em>.</dd>
+<dt><b>Commonality</b></dt>
+	<dd>(Definition missing).</dd>
+<dt><b>Belief Interval</b></dt>
+	<dd>Another aspect of representing uncertainty, the <em>belief interval</em> measures
+	    the difference between current belief and maximum achievable belief.
+	    It is defined as <em>Pl(A)-Bel(A)</em>. Areas with high values for
+	    the belief interval represent "hot spots" where additional/better
+	    information would improve model results.</dd>
+<dt><b>Weight of Conflict</b></dt>
+	<dd>If the <em>weight of conflict</em> is > 0 it indicates that evidences
+	    from different sources disagree with each other. A high weight of
+	    conflict might indicate a serious flaw in the model design or
+	    disagreement of evidences supplied by different people.</dd>	
+<dt><b>Maximum BPA</b></dt>
+	<dd>This gives the maximum belief mass contributed by any of the sources of evidence.</dd>
+<dt><b>Minimum BPA</b></dt>
+	<dd>This gives the minimum belief mass contributed by any of the sources of evidence.</dd>
+<dt><b>Maximum BPA source</b></dt>
+	<dd>This identifies the source of evidence by name, which has contributed the
+	    highest belief mass. It is a useful tool in combination with the
+	    "maximum BPA" measure.</dd>
+<dt><b>Minimum BPA source</b></dt>
+	<dd>This identifies the source of evidence by name, which has contributed the
+	    lowest belief mass. It is a useful tool in combination with the
+	    "minimum BPA" measure.</dd>
+</dl>
+
+<h3>DST Predictive Modelling</h3>
+
+If you have need for a flexible, raster-based spatial predictive modelling framework, DST might be 
+just the right tool for you. 
+In fact, this software has been developed with predictive models in mind for which the
+DST approach has a number of benefits:
+
+<ul>
+<li>Simplicity: a DST predictive model can be set up in just a few steps (as outlined below).</li>
+<li>Flexibility: DST has the ability to combine information from different sources, regardless
+    of distribution parameters.</li>
+<li>Interpretability: the functions calculated are much more meaningful than standard statistical
+    metrics.</li>
+<li>Efficiency: calculations are faster than statistical algorithms and the memory footprint will 
+    always be very small, regardless of region extent and resolution.</li>    
+</ul>
+
+A DST predictive model may be very simple and consist of only two hypotheses for 'site' and 'no site'
+(plus the combination of the two to represent uncertainty). It can be built like this:
+<ol>
+<li>Save your known site locations in a GRASS site list and take a random <em>sample</em> using
+<EM><A HREF="v.random.sample.html">v.random.sample</A></EM>.</li>
+<li>Convert all sources of evidence (coverage maps, buffer objects, height maps etc.) into evidence
+raster maps using <EM><A HREF="../../html/r.categorize.html">r.categorize</A></EM> and 
+<EM><A HREF="r.dst.bpa.html">r.dst.bpa</A></EM> (with the random sample).</li>
+<li>Register all evidence maps and hypotheses in a DST knowledge base file using 
+<EM><A HREF="dst.update.html">dst.update</A></EM> (this will automatically create all
+additional uncertainty hypotheses sets).</li>
+<li>Associate sources of evidence using <EM><A HREF="dst.source.html">dst.source</A></EM>.</li>
+<li>Combine evidence from the sources in the knowledge base using <em>dst.combine</em>.</li>
+<li>Take a look at the output maps and verify results with the <em>full</em> set of known sites
+(use <EM><A HREF="v.report.html">v.report</A></EM> for convenience).</li>
+</ol>
+</i>NEW</i> as of version 1.5: You can now use <EM><A HREF="dst.predict.html">dst.predict</A></EM>
+to create predictive models with a single, easy-to-use command!
+<p>
+A protocol of a GRASS command line session might look like this:
+<pre>
+# A predictive model of lost Maya towns in the jungle.
+# (do not take serious ;)
+
+# (point positions of known Maya towns are stored in vector map "locations")
+# take a random sample of 50%
+v.random.sample input=locations output=sample size=50
+
+# Create a digital elevation raster map from height measurements.
+# Turn into an integer map with categories 0-5m, 5-10m, etc.
+s.surf.rst input=elevations elev=height
+r.categorize input=height output=height_5m mode=width,5
+
+# Import a vector map showing jungle vegetation coverages.
+# Interactively label vegetation categories.
+v.to.rast in=vegetation output=vegetation
+r.support
+
+# Create evidence maps. The idea is that Maya towns are 
+# found at certain heights and in areas with specific vegetation.
+r.dst.bpa raster=height_5m sites=sample output=bpa.height
+r.dst.bpa raster=vegetation sites=sample output=bpa.vegetation
+
+# Create new knowledge base file.
+dst.create mayatowns
+
+# Register hypotheses in a knowledge base file.
+# Attach evidences to hypotheses.
+dst.update mayatowns add=SITE
+dst.update mayatowns add=NOSITE
+dst.update mayatowns rast=bpa.height.SITE hyp=SITE
+dst.update mayatowns rast=bpa.height.NOSITE hyp=NOSITE
+dst.update mayatowns rast=bpa.height.SITE_NOSITE hyp=SITE,NOSITE
+dst.update mayatowns rast=bpa.vegetation.SITE hyp=SITE
+dst.update mayatowns rast=bpa.vegetation.NOSITE hyp=NOSITE
+dst.update mayatowns rast=bpa.vegetation.SITE_NOSITE hyp=SITE,NOSITE
+
+# Define sources of evidence.
+dst.source mayatowns add=height
+dst.source mayatowns add=vegetation
+dst.source mayatowns source=height rast=bpa.height.SITE hyp=SITE
+dst.source mayatowns source=height rast=bpa.height.NOSITE hyp=NOSITE
+dst.source mayatowns source=height rast=bpa.height.SITE_NOSITE hyp=SITE,NOSITE
+dst.source mayatowns source=vegetation rast=bpa.vegetation.SITE hyp=SITE
+dst.source mayatowns source=vegetation rast=bpa.vegetation.NOSITE hyp=NOSITE
+dst.source mayatowns source=vegetation rast=bpa.vegetation.SITE_NOSITE hyp=SITE,NOSITE
+
+# Combine sources of evidence and output belief maps
+# for all hypotheses.
+dst.combine mayatowns sources=height,vegetation output=dst.mayatown
+
+# Compare with the full set of sites to see how well the
+# model does (most of the sites should fall into cells
+# with high belief values for "SITE").
+v.report map=dst.mayatown.SITE.bel sites=locations
+
+</pre>
+
+
+
+<h3>Flags</h3>
+<dl>
+<dt><B>-a</b></dt>	
+	<dd>Append log output to existing ASCII file.</dd>	
+<dt><B>-q</b></dt>	
+	<dd>Quiet operation: do not display progress on screen.</dd>
+<dt><B>-n</b></dt>	
+	<dd>Turn off normalisation and signal a warning if evidence does not sum to 1. Per default, the
+	    program will normalise evidences to force all evidences to have the same weight and 
+	    ensure that the results will be in the range 0 to 1. You can turn this off if you want
+	    to check for potential errors in your own BPA assignments.</dd>	
+</dl>
+
+<h3>Parameters</h3>
+<dl>
+<dt><B>file=</B><EM>name</EM></dt>
+	<dd>Name of DST knowledge base file to use. You can get a listing of DST
+		 knowledge base files in your current mapset by invoking 
+		 <EM><A HREF="dst.list.html">dst.list </A></EM>.</dd>
+<dt><B>sources=</B><EM>name,[name,...]</EM></dt>
+	<dd>Specify which sources of evidence in the knowledge base file to combine. The
+	    default is all sources.</dd>	
+<dt><B>type=</B><EM>name</EM></dt>
+	<dd>Select what type of evidence to combine. This refers to the GIS data format in which
+	    the evidence is stored. Currently only 'rast' is a valid choice and also the default.</dd>		
+<dt><B>output=</B><EM>name</EM></dt>
+	<dd>Basename of all output maps. This is set to the name of the current location by default
+	    and will be suffixed with [hypothesis].[value] (see below).</dd>
+<dt><B>hypotheses=</B><EM>name,[name,...]</EM></dt>	    
+	<dd>Choose for which hypotheses the DST values (see below) should be calculated. The default
+	    is all (including the NULL hypothesis). NOTE: if you want to specify hypotheses sets, you
+	    must enclose this parameter in double quotes and all set names in "set brackets"! E.g:
+	    hypotheses="a,b,c,{a,c},{a,b,c}". Be sure to use the correct element order when specifying
+	    sets.</dd>
+<dt><B>values=</B><EM>name,[name,...]</EM></dt>
+	<dd>Valid choices are: bel,pl,doubt,common,bint,woc. See section on "Program functionality"
+	    for a description. The default is to calculate only belief (bel) values. </dd>
+<dt><B>logfile=</B><EM>name</EM></dt>
+	<dd>Specfiy a valid file name if you want a full log of the calculations.</dd>
+	    
+
+<h3>Notes</h3>
+This program was developed as part of the GRASS 5 DST Predictive Modelling Toolkit.<br>
+A big "Thank You!" goes to Gavin Powell, 3d Vision and Geometry, Dept of Computer Science, 
+Cardiff University, for the DST core routines 
+used in this program, help and advise and his permission to publish his code as part 
+of a GPL'd software.<br>
+A lot of the information in this document was also taken from the work of Mounia Lalmas
+et al. on information retrieval from structured documents using DST.<br>
+The term 'knowledge base file' was first used in the manual of the 
+<A HREF="www.clarklabs.org" target="_blank"> IDRISI GIS </A> software which also offers some DST functionality.<br>
+GIS-based predictive modelling using belief values is also discussed in a paper by 
+<a href="http://gis.esri.com/library/userconf/proc99/proceed/papers/pap295/p295.htm" target="_blank">
+ Eric J. Lorup </a> and another one by <a href="http://websrv5.sdu.dk/ejstrud/forskning.html" target="_blank">
+Bo Ejstrud</a>.
+<h3>SEE ALSO</h3>
+<EM><A HREF="dst.predict.html">dst.predict</A></EM><br>
+<EM><A HREF="dst.source.html">dst.source</A></EM><br>
+<EM><A HREF="dst.update.html">dst.update</A></EM><br>
+<EM><A HREF="../../html/r.categorize.html">r.categorize</A></EM><br>
+<EM><A HREF="r.dst.bpa.html">r.dst.bpa</A></EM><br>
+<EM><A HREF="../../html/r.mapcalc.html">r.mapcalc</A></EM><br>
+<EM><A HREF="../../html/v.random.sample.html">v.random.sample</A></EM><br>
+<EM><A HREF="../../html/v.report.html">v.report</A></EM><br>
+<h3>AUTHORS</h3>
+Benjamin Ducke,<br>
+University of Bamberg, Germany<br>
+Gavin Powell,<br>
+3d Vision and Geometry, Dept of Computer Science,<br> 
+Cardiff University<p></p>
+<i>Last changed: 2005/02/20</i>
+</body>
+</html>

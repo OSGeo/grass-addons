@@ -1,0 +1,244 @@
+/*
+
+  PROGRAM:      m.filter.gen
+  AUTHOR(S):    Benjamin Ducke <benjamin.ducke AT oadigital.net>
+  PURPOSE:      Outputs different types of filters for use with r.mfilter(.fp).
+
+  USAGE:	Run from within GRASS GIS.
+  		   Use --help flag for usage instructions.
+
+  COPYRIGHT:    (C) 2011 by Benjamin Ducke
+
+                This program is free software under the GNU General Public
+                License (>=v2). Read the file COPYING that comes with GRASS
+                for details.
+*/
+
+
+#define ROWS 100
+#define COLS 100
+
+#define VERSION "1.00"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <libgen.h>
+
+void show_help ( void ) {
+	fprintf (stdout, "Usage: gaussgen [OPTION]\n");	
+	fprintf (stdout, "Computes a stepwise approximation of the 2D Gaussian.\n");
+	fprintf (stdout, "\nPossible OPTIONSs are:\n");
+	fprintf (stdout, "  -n, --nsteps=\t\tnumber of approximation steps (int, default: 2)\n");
+	fprintf (stdout, "  -s, --sigma=\t\tdistribution sigma (double, default: 1)\n");
+	fprintf (stdout, "  -m, --mfilter\t\tformat output for GRASS GIS r.mfilter\n");
+	fprintf (stdout, "  -t, --total\t\talso print sum of weights\n");	
+	fprintf (stdout, "  -i, --integer\t\tproduce rounded integer distribution\n");	
+	fprintf (stdout, "  -h, --help\t\tdisplay this help and exit\n");
+	fprintf (stdout, "\nThe number of approximation steps refers to the center of the distribution \n");
+	fprintf (stdout, "and works in both directions. The default setting (2) produces a 5x5 matrix.\n");
+	fprintf (stdout, "Larger sigma settings require more steps for an accurate approximation.\n");
+	fprintf (stdout, "On the other hand, very steep kernels (small sigma) make no sense with\n");
+	fprintf (stdout, "many approximation steps (edge values will all be '0.0').");
+	fprintf (stdout, "\nExample:\n");
+	fprintf (stdout, "\tgaussgen --nsteps=3 --sigma=2.0\n");
+	fprintf (stdout, "\nThis program is free software under the GNU General Public\n");
+	fprintf (stdout, "License (>=v2). Read http://www.gnu.org/licenses/gpl.html for details");
+	fprintf (stdout, "\nVersion %s\n", VERSION);
+	exit (0);	
+}
+
+int main ( int argc, char *argv[] ) 
+{
+
+	/* operation modes */	
+	int integer;
+	int print_sum;
+	int format_mfilter;
+
+
+	/* gauss bell variables */
+	double w[COLS][ROWS]; /* cell weights (exact) */
+	int n; /* approximation steps in each direction from center */
+	double s; /* sigma */
+	double s2;
+	double a;
+	double sum;
+
+	/* approximated gauss bell */
+	int wi[COLS][ROWS]; /* cell weights (integer) */
+	double min;
+	double max;
+	double m_i;
+	int sum_i;
+	
+	/* looping vars */
+	int i,j,x,y;
+	double checksum;
+
+	/* program options */
+	int option;
+	int option_index = 0;
+	static struct option long_options[] = {
+		{ "nsteps", 1, NULL, 'n' },
+		{ "sigma", 1, NULL, 's' },
+		{ "mfilter", 0, NULL, 'm' },
+		{ "total", 0, NULL, 't' },
+		{ "integer", 0, NULL, 'i' },
+		{ "help", 0, NULL, 'h' },
+		{ 0, 0, 0, 0 }
+	};
+
+	/* default settings */
+	n = 2;
+	s = 1.0;
+	format_mfilter = 0;
+	print_sum = 0;
+	integer = 0;
+
+	/* read command line settings */
+	option = getopt_long ( argc, argv, "n:smtih", long_options, &option_index );
+	while ( option  != -1 ) {
+		if ( option == '?' ) {
+			fprintf (stderr, "ERROR: Unknown option specified.\n");
+			show_help();
+		}
+		
+		if ( option == ':' ) {
+			if (optopt == 'n') {
+				fprintf (stderr, "ERROR: Must specify number of steps.\n");
+				exit (1);				
+			}
+			if (optopt == 's') {
+				fprintf (stderr, "ERROR: Must specify distribution sigma.\n");
+				exit (1);				
+			}			
+		}
+
+		/* set options */
+		if ( option == 'n' ) {
+			n = atoi ( optarg );
+		}
+		if ( option == 's' ) {
+			s = strtod ( optarg, NULL );
+		}		
+		if ( option == 'm' ) {
+			format_mfilter = 1;
+		}
+		if ( option == 't' ) {
+			print_sum = 1;
+		}
+		if ( option == 'i' ) {
+			integer = 1;
+		}
+		if ( option == 'h' ) {
+			show_help();
+		}
+		
+		option = getopt_long ( argc, argv, "n:s:mtih", long_options, &option_index );
+	}	
+
+
+	/* check options */
+	if ( n < 1 ) {
+		fprintf (stderr, "ERROR: 'n' must be larger or equal than '1'.\n");
+		exit (1);				
+	}
+	if ( s <= 0.0 ) {
+		fprintf (stderr, "ERROR: 's' must be larger than '0.0'.\n");
+		exit (1);				
+	}
+	if ( format_mfilter && print_sum ) {
+		fprintf (stderr, "WARNING: sum total will not be printed for mfilter output.\n");
+	}
+
+	/* compute "exact" gauss bell */
+	s2 = 2 * pow ( s,2 );
+	sum = 0;
+	for ( y = -n; y <= n; y ++ ) {
+		j = y + n;
+		for ( x = -n; x <= n; x ++ ) {
+			i = x + n;
+			a = ( pow((double)x,2) + pow((double)y,2) ) / s2;
+			w[i][j] = exp (-a);
+			sum = sum + w [i][j]; /* sum of weights */
+		}
+	}
+
+	/* check for sane kernel shape */
+	checksum = 0;
+	for ( x = -n; x <= n; x ++ ) {
+		i = x + n;
+		checksum = checksum + w[i][0];
+	}
+	if ( checksum < 0.001 ) {
+		fprintf (stderr, "WARNING: Kernel dimensions too large. Sigma should be increased.\n");
+	}
+
+	if ( integer ) {
+		/* compute integer version of bell */
+		max = w[n][n];
+		min = w[0][0];
+		if ( min < 0.001 ) {
+			/* avoid division by zero problem */
+			min = 0.001;
+		}
+		m_i = round ((max / min) * 2 ); /* integer multiplication factor */
+		sum_i = 0;
+		for ( y = -n; y <= n; y ++ ) {
+			j = y + n;
+			for ( x = -n; x <= n; x ++ ) {
+				i = x + n;
+				wi[i][j] = (int) round (m_i*w[i][j]);
+				/* guard against hitting integer size limit */
+				if ( wi[i][j] < 0 ) {
+					fprintf (stderr, "ERROR: Integer overflow.\n");
+					exit (1);				
+				}
+				sum_i = sum_i + wi [i][j];
+			}
+		}
+	}
+
+	/* print filter matrix */
+	if ( format_mfilter ) {	
+		/* print in mfilter format */
+		fprintf ( stdout, "TITLE %ix%i Gaussian\n", (2*n+1), (2*n+1) );
+		fprintf ( stdout, "MATRIX %i\n", (2*n+1) );
+		for ( j = 0; j < (2*n+1) ; j ++ ) {				
+			for ( i = 0; i < (2*n+1) ; i ++ ) {
+				if ( integer )
+					fprintf ( stdout, "%i", wi[i][j] );
+				else 
+					fprintf ( stdout, "%.3f", w[i][j] );
+				if ( i < (2*n) )
+					fprintf ( stdout, " " );
+			}
+			fprintf ( stdout, "\n" );
+		}
+		fprintf ( stdout, "DIVISOR 0\n" );
+		fprintf ( stdout, "TYPE P\n" );
+	} else {
+		/* print as raw data dump */
+		for ( j = 0; j < (2*n+1) ; j ++ ) {				
+			for ( i = 0; i < (2*n+1) ; i ++ ) {
+				if ( integer )
+					fprintf ( stdout, "%i\t", wi[i][j] );
+				else
+					fprintf ( stdout, "%.3f\t", w[i][j] );
+			}
+			fprintf ( stdout, "\n" );
+		}
+		if ( print_sum ) {
+			if ( integer )
+				fprintf ( stdout, "sum=%i\n", sum_i );
+			else
+				fprintf ( stdout, "sum=%.3f\n", sum );
+		}
+	}
+
+	return (0);
+}
+

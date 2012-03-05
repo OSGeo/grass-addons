@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<TITLE>v.random.sample</TITLE>
+
+<body bgcolor="white">
+
+
+<h2>DESCRIPTION</h2>
+
+This command creates a random sample of n% of the sites in a GRASS sites map. The current
+process id (pid) and system time are used as seed for the random number generator.
+If a raster map is specified, then only sites falling on non-NULL cells of that raster map
+will be included in the sample.
+The program will abort with an error message, if the number of valid sites is too small for
+generating the sample.
+<p></p>
+ 
+<h3>Flags</h3>
+<dl>
+<dt><strong>-a</strong></dt>
+	<dd>Also draw sites from outside the current region's limits. this option does not
+	    make much sense, if you also specify a raster mask with <em>raster=[name]</em>.</dd>	
+<dt><strong>-q</strong></dt>
+	<dd>Quiet operation: do not display progress on screen.</dd>
+</dl>
+
+<h3>Parameters</h3>
+<dl>
+<dt><B>input=</B><EM>name</EM></dt>
+	<dd>Sites map to draw sample from.</dd>
+<dt><B>output=</B><EM>name</EM></dt>
+	<dd>Sites map to store random sample in.</dd>
+<dt><B>size=</B><EM>value</EM></dt>
+	<dd>Size of the sample to generate in percent of input sites.</dd>	
+<dt><B>raster=</B><EM>name</EM></dt>
+	<dd>Specify a raster to act as a mask: only sites that fall into non-NULL cells of this
+	    raster have a chance to end up in the random sample.
+	</dd>
+<dt><B>cachesize=</B><EM>value</EM></dt>
+	<dd>On systems with lots of memory, setting cachesize to the number of rows in the current region
+	    can speed up operations, because the input raster map can be kept in memory.
+	    The default of '-1' lets the program figure out a good size for the cache itself.
+	    This option is only useful if you also specify a raster mask with <em>raster=[name]</em>.
+	    </dd>
+</dl>
+
+<h3>Notes</h3>
+This program was originally developed as part of the GRASS 5 DST Predictive Modelling Toolkit 
+
+<h3>AUTHOR</h3>
+Benjamin Ducke,<br>
+University of Kiel, Germany<br>
+<i>Last changed: 2005/21/07</i>
+</body>
+</html>

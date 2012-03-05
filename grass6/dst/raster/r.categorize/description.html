@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<TITLE>r.categorize</TITLE>
+
+<body bgcolor="white">
+
+<h2>DESCRIPTION</h2>
+
+It is often necessary to summarise a raster map's range of values using categories. 
+E.g. a floating point height map with values in the range 0.00 to 300.00 metres could be represented using 5 categories and descriptive labels:
+<p>
+<PRE>
+	Cat.	Range		Label
+	0	0-50		Very low
+	1	50-100		Low
+	2	150-200		Medium
+	3	200-250		High
+	4	250-300		Very High
+</PRE>
+<p>
+Integer map categories do not have a range. They are simply numbered from 0 to <em>N</em> with <em>N</em> being the highest category:
+<p>
+<PRE>
+	Cat.	Label
+	0	Sand
+	1	Clay
+	2	Peat Soil
+	3	Bedrock
+	4	Debris
+</PRE>
+<p></p>
+GRASS offers category support for both floating point and integer maps. The <EM><A HREF="../../html/r.support.html">r.support</A></EM> 
+program allows the user to define and label categories interactively.
+The <em>r.categorize</em> program allows the user to automatically define and label categories using one of several categorisation modes.
+It is possible to create categories by specifying category width or number
+ and to 'clean' maps that already contain category specifications by converting all cells to NULL that do not match any category.
+Floating point maps can also be turned into categorized integer maps by rounding or truncating the cell values.
+In any case, the output map will be fully classified, meaning that each cell either matches a category or is NULL.
+Category labels are written automatically. Information about the quantification mode is stored in the output map's metadata and
+can later be retrieved using <EM><A HREF="../../html/r.info.html">r.info</A></EM>.
+ 
+<h3>Flags</h3>
+<dl>
+<dt><strong>-c</strong></dt>
+	<dd>Only check and report input map categories. Do not create any output.</dd>
+<dt><strong>-n</strong></dt>
+	<dd>Also report NULL cells (in conjunction with <strong>-c</strong>).</dd>	
+<dt><strong>-u</strong></dt>
+	<dd>Also report uncategorized cells (in conjunction with <strong>-c</strong>).</dd>	
+<dt><strong>-z</strong></dt>
+	<dd>Also report zero count cells (in conjunction with <strong>-c</strong>).</dd>
+<dt><strong>-q</strong></dt>	
+	<dd>Quiet operation: do not display progress on screen.</dd>
+</dl>
+
+<h3>Parameters</h3>
+<dl>
+<dt><B>input=</B><EM>name</EM></dt>
+	<dd>Name of input raster map.</dd>
+<dt><B>output=</B><EM>name</EM></dt>
+	<dd>Name of output raster map.</dd>	
+<dt><B>mode=</B><EM>name,value</EM></dt>
+	<dd>Name of categorisation mode. Some modes require an additional value. See below for details.</dd>		
+<dt><B>type=</B><EM>[float|int]</EM></dt>
+	<dd>Type of output map (<var>float</var> or <var>int</var>). Defaults to type of input map.</dd>		
+<dt><B>min=</B><EM>value</EM></dt>
+	<dd>Lower limit of cutting range.</dd>	
+<dt><B>max=</B><EM>value</EM></dt>
+	<dd>Upper limit of cutting rang. All values in the input map outside the cutting range will be converted to NULL in the output map.</dd>		
+<dt><B>logfile=</B><EM>name</EM></dt>
+	<dd>If a logfile is specified, additional information will be written to that file.</dd>		
+<dt><B>precision=</B><EM>value</EM></dt>
+	<dd>Number of decimal places to print in the logfile.</dd>			
+</dl>
+<h3>Categorisation Modes</h3>
+
+The following modes can be used with <em>floating point</em> input maps:
+<dl>
+<dt><strong>clean</strong></dt>
+	<dd>Keeps categories already defined in input map and convert all cells that do not match a category range to NULL.</dd>
+<dt><strong>num</strong>,<em>n</em></dt>
+	<dd>Creates <em>n</em> categories of equal width for which the ranges are determined automatically.</dd>
+<dt><strong>width</strong>,<em>n</em></dt>
+	<dd>Creates categories of width <em>n</em>. The number of categories is determined automatically. The highest category can have a different width.</dd>
+<dt><strong>rwidth</strong>,<em>n</em></dt>
+	<dd>Same as width, except that the lowest category boundary is rounded to the nearest integer. Especially nice for creating height map categories.</dd>
+<dt><strong>round</strong></dt>
+	<dd>Creates categories by rounding all cell values to nearest integer value.</dd>
+<dt><strong>trunc</strong></dt>
+	<dd>Creates categories by truncating all cell values.</dd>
+</dl>
+
+The following modes are for use with <em>integer</em> input maps:
+<dl>
+<dt><strong>clean</strong></dt>
+	<dd>Keeps categories already defined in input map and convert all cells that do not match a category range to NULL.</dd>
+<dt><strong>num</strong>,<em>n</em></dt>
+	<dd>Creates <em>n</em> categories of equal width for which the ranges are determined automatically. The highest category can have a different width.</dd>
+<dt><strong>width</strong>,<em>n</em></dt>
+	<dd>Creates categories of width <em>n</em>. The number of categories is determined automatically. The highest category can have a different width.</dd>
+<dt><strong>rescale</strong></dt>
+	<dd>Scale range of values in input map to the range 0 to <em>N</em>.</dd>
+</dl>
+
+<h2>Examples</h2>
+To clean an input floating point map of all cells whose value does not fall into any category range or whose value is > 10:
+<PRE>
+	r.categorize input=mymap output=cleanmap mode=clean max=10
+</pre>
+To create a categorized elevation map with 10 m steps and lowest value rounded:
+<PRE>
+	r.categorize input=height output=height10 mode=rwidth,10
+</pre>
+To just report on a map's category structure including counts of uncategorized and NULL data cells:
+<pre>
+	r.categorize input=mymap -cnu
+</pre>
+You can also use this module to prepare a GRASS floating point raster map for export to a bitmap. E.g., to
+create an integer map from an FP map that preserves category structure and color table, you can run ...
+<pre>
+	r.categorize input=fpmap output=bitmap -i
+</pre>
+... and convert the result to, e.g. a geotiff bitmap file using <EM><A HREF="../../html/r.out.tiff.html">r.out.tiff</A></EM>:
+<pre>
+	r.out.tiff input=bitmap output=tiffmap compression=deflate -t
+</pre>
+
+
+<h3>Notes</h3>
+This program was originally developed as part of the GRASS 5 DST Predictive Modelling Toolkit.
+<h3>SEE ALSO</h3>
+<EM><A HREF="../../html/r.cats.html">r.cats</A></EM><br>
+<EM><A HREF="../../html/r.out.tiff.html">r.out.tiff</A></EM><br>
+<EM><A HREF="../../html/r.reclass.html">r.reclass</A></EM><br>
+<EM><A HREF="../../html/r.support.html">r.support</A></EM><br>
+<EM><A HREF="../../html/r.info.html">r.info</A></EM><br>
+<EM><A HREF="../../html/r.dst.bpa.html">r.dst.bpa</A></EM><br>
+<EM><A HREF="../../html/v.report.html">v.report</A></EM>
+
+<h3>AUTHOR</h3>
+Benjamin Ducke,<br>
+University of Kiel, Germany<br>
+<i>Last changed: 2005/07/31</i>
+</body>
+</html>

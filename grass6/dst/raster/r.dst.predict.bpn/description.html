@@ -1,0 +1,301 @@
+<TITLE>r.dst.bpn</TITLE>
+<body bgcolor="white">
+
+<H2>NAME</H2>
+<em><b>r.dst.bpn</b></em>  - Calculates Basic Probability Numbers.
+<BR>
+<EM>(GRASS Raster Program)</EM>
+
+
+<h2>DESCRIPTION</h2>
+
+This program calculates <em>Basic Probability Numbers</em> (BPNs) for use in a Dempster-Shafer Theory (DST) predictive model.
+If you have need for a flexible spatial predictive modelling framework but do not know what DST is, please
+refer to the manual page of <EM><A HREF="dst.combine.html">dst.combine</A></EM> for an introduction.
+<p>
+This module and its manual page have been written with archaeological predictive modelling (APM) in mind,
+ but should be useful for other cases where presence or absence of objects of interest is to be predicted.
+In the following text, replace the term "site" with any other name of an object of interest.
+<p>
+A very simple way to calculate a predictive model is using the <EM><A HREF="dst.predict.html">dst.predict</A></EM> 
+wrapper program.
+
+<h3>Introduction</h3>
+
+A BPN is the basic quantification of one (piece of) evidence in the DST. It expresses the strength of belief in the truth
+of a hypothesis in the light of that evidence and without consideration of any other evidence.
+A BPN is usually a value <i>m<sub>n</sub></i> in the range 0 to 1 for each hypothesis 1..<i>n</i> in the <em>Frame of 
+Discernment</em> (FOD). The single restriction is that <i>m<sub>1..n</sub></i> must sum to 1 for one piece
+of evidence. By default, the <em><a href="dst.combine.html">dst.combine</a></em> module enforces this restriction by normalising
+all evidences, so that other BPN quantification schemes such as ratings can also be used.<br>
+
+<p>
+In APM, the FOD is taken to consist of two singleton hypotheses and the set of these two:
+<dl>
+<dt><i>H1</i>={"SITE"}</dt>
+	<dd>This proposes that an archaeological site is present.</dd>
+<dt><i>H2</i>={"NO SITE}"</dt>
+	<dd>This proposes that no archaeological site is present.</dd>
+<dt><i>H3</i>={"SITE","NO SITE}"</dt>
+	<dd>This proposes that no decision can be made about site presence or absence (uncertainty).</dd>		
+</dl>
+
+<i>h1</i> and <i>h2</i> are mutually exclusive exclusive and cover all possible outcomes. 
+The set of both represents uncertainty and we will refer to this as the "uncertainty hypothesis". 
+To be precise, the complete set of hypotheses for this FOD also includes the empty set {NULL}, 
+which is of mere mathematical necessity and will be of no further concern.
+<p>
+The purpose of <em>r.dst.bpn</em> is to calculate a BPN for these three hypotheses by using only
+two <em>source of evidences</em> readily available in a GIS-based analysis: (a) a CELL format GRASS raster map that shows categories
+which are deemed to influence the probability of a site having been established in a location, such
+as soil type and quality, distance to water, slope etc. and (b) a GRASS vector map which contains
+the locations of already discovered sites as vector points. The latter are used to sample
+the raster map in a systematic way. The basic idea is to check for <em>differences in proportions</em>
+between the sample (cells with sites) and the population (all other cells in the region).
+These differences are used to quantify the strength of belief (BPN) in each of the FOD's three
+hypotheses.
+
+The output of this program consists of three raster maps, with basename given by the user
+(option <em>output=</em>) and suffixes ".SITE", ".NOSITE" and ".SITE.NOSITE", which encode 
+the BPNs for the respective hypotheses.
+
+These maps can be combined with BPN maps generated from other sources of evidence
+by <EM><A HREF="dst.combine.html">dst.combine</A></EM> to calculate the overall belief
+in <i>H1</i> or <i>H2</i> as supported by the given evidence (as well as many other
+useful metrics derrived from this).
+
+<h3>Details of BPN quantification</h3>
+
+In this case of evidence represented as a GRASS raster map, a BPN has to be calculated
+for each cell within the current region. 
+Thus, we need to know, what categories in the CELL evidence map supports or refutes 
+<i>H1</i> ("SITE") or <i>H2</i> ("NO SITE") and to what degree.
+The relationship between cell values and degree of support/refutal is given by the 
+BPN function.
+The latter can be linear and monotonous but in principle it can also be arbitrarily complex.
+To find an adequately exact BPN function, this program uses a simple approximation strategy.
+<p>
+Let us look at an archaeological example: we want to model belief in the presence or absence
+of a certain type of hillfort settlements at different altitudes (evidence "height") in a topographically varied region of interest.
+At first glance, the situation looks straight-forward: the higher the terrain, the higher we believe the
+chance to find that kind of settlement (i.e. <i>m(H1)</i> closer to "1"), as higher locations are better to defend. 
+However, even in this simple case, an adequate 
+BPN function would be more complex. Let us look at a plot of <i>m(H1)</i> vs. "height", as
+derrived from some archaeologist's subjective belief:
+<ol>
+<li>Starting at the lowest height, there would first be a flat section
+that represents the height range of the low lands in which no forts
+were built. </li>
+<li>This would be succeeded by a section with gradually steeper inclination as the height 
+approaches a range which the prehistoric builders found optimal.</li>
+<li>Within this optimal range, the curve flattens out on a high level.</li>
+<li>Above a certain height however, logistic problems become too great and we do not believe
+that prehistoric people were able to cope with them beyond a certain point, thus <i>m(H1)</i> 
+falls off towards "0" quickly.</li>
+</ol>
+
+<p align="center"><img src="r.dst.bpn.001.png" alt="BPN chart"></p>
+Instead of "professional intuition", <em>r.dst.bpn</em> models <i>m(H1)</i> using a statistical
+approach.
+For this, the user must supply only two things:
+<ol>
+	<li>a vector points map <i>S</i> with the locations of known sites;
+	</li>
+	<li>a raster map <i>M</i> that represents the evidence (e.g. height).
+	</li>
+</ol>
+Optionally, one or more raster maps can be supplied to represent "NO SITE" bias, such
+as unsurveyable land (for details see section on "Uncertainty handling").
+<p>
+Likewise, one or more vector point attributes can be chosen to represent "SITE" bias, such
+as unfounded trust in the location of a site.
+<p>
+The raster evidence map must be fully categorised, i.e. each cell must represent
+a category (e.g. 1='0 to 5 m', 2='5 to 10 m',...) or be NULL (no data).
+You can use the <EM><A HREF="../../html/r.categorize.html">r.categorize</A></EM> program to quickly
+create such a map from any GRASS raster map.
+<p>
+For each category <i>C</i> in the input evidence map <i>M</i>, <em>r.dst.bpn</em> compares 
+the overall cell percentage of <i>C</i> in <i>M</i> (<i>Perc(M)</i>) with the percentage
+of category <i>C</i> cells that contain a site from <i>S</i> (<i>Perc(S)</i>).<br>
+The assumption is that if <i>Perc(M)</i> > <i>Perc(S)</i> <em>at a significant level</em>
+then the evidence in <i>M</i> and <i>S</i> supports the hypothesis "NO SITE" for <em>all</em>
+cells in <i>M</i> and if <i>Perc(M)</sub></i> < <i>Perc(S)</i> it supports "SITE".
+If the difference is found to be of very high signficance, the belief mass assigned
+to on of these two hypothesis tends towards "1", if it is low, it tends towards "0".  
+<p>
+Just how signficant the difference in percentages is depends on (a) the magnitude of 
+the difference (b) the size of the sample and (c) the
+number of cells in the entire region. This is catered for by calculating a z-statistic
+for each case. The z-statistic gives the probability of observing a difference in 
+proportions as extreme as <i>Perc(M)-Perc(S)</i> under the assumption that
+there is <em>no</em> significant difference between <i>Perc(M)</i> and <i>Perc(S)</i>.
+In effect, this gives the probability of making an error when declaring it
+significant (see "Uncertainty handling" for details on how this affects BPN values). 
+If the total number <i>n</i> of sites in <i>S</i> is greater
+than 30, this will be derrived from a standard normal distribution, otherwise from
+a t-distribution with <i>n</i> degrees of freedom.
+<p>
+
+In addition, if the probability of error exceeds a certain threshold (by default 0.05 or 5%),
+the belief mass to be shifted will be exponentially weighted, so that more belief mass is
+shifted increasingly rapidly to the uncertainty hypothesis as the probability of error drops further
+below the threshold. You can adjust the threshold by using the <i>perror</i> parameter.
+
+<p>
+
+Often, one will not be restricted as to what category ranges to choose (e.g. 1, 5 or 10 m intervals
+for evidence "height"?).
+If there are too many categories in <i>M</i>, <em>r.dst.bpn</em> will produce an overfitting
+function and a model based on such BPNs will not be able to generalise well, i.e.
+its predictions are very likely to be wrong when checked against new data.
+On the other hand, if there are extremely few categories, the program might not be able to find
+significant evidence that supports either hypothesis. As a safeguard, a chi-square test
+is run over all categories. This calculates the probability of making an error when
+declaring the overall set of percentage differences significant (see "Uncertainty
+handling" for details on how this affects BPN values).
+<p>
+Another option is to use categories with individual ranges. 
+One could use a priori knowledge about the 
+region's natural zones to create a more significant categorisation manually
+(using <EM><A HREF="../../html/r.support">r.support</A></EM>):
+<p>
+<PRE>
+	Cat.	Range		Label
+	1	0-1000		plains and valleys
+	2	1000-1500	hills
+	3	1500-1700	mountain areas
+	4	1700-2500	high mountain areas
+	5	2500-5000	highest mountain areas
+</PRE>
+<p>
+In this way, one can approximate arbitrarily complex BPN functions.
+Once several sources of evidence have been turned into BPN maps,
+they can be registered in a DST knowledge base file using
+<EM><A HREF="dst.update.html">dst.update</A></EM> and combined to produce
+the final predictive map(s) using <EM><A HREF="dst.combine.html">dst.combine</A></EM>.
+Another option is to use the <EM><A HREF="dst.predict.html">dst.predict</A></EM> wrapper
+program for building predictive models in one go.
+<p>
+
+<h3>Handling uncertainty</h3>
+
+The greatest merit of DST-based predictive modelling is its capability to explicitly handle
+uncertainty. In predictive modelling uncertainty mainly arises because there is direct
+evidence for "SITE", but only indirect evidence for "NO SITE": e.g. the fact that no sites 
+have been reported on terrain type "A" might mean that (a) prehistoric settlers actually
+avoided this type of terrain or (b) one of many possible source filters is in effect
+and prevented us from finding the sites present on this type of terrain. Maybe it
+is rough terrain and could not adequately be surveyed, or it is mostly covered by a
+type of land use that has a negative impact on site remains visibility. In cases
+like these, we might not be able to decide between "SITE" or 
+"NO SITE". This inability to decide is the nature of uncertainty.
+<p>
+Consider the dilemma of this situation in classical probability theory: if one states 
+that "SITE" has a low probability of e.g. 0.49 , then probability theory says that
+"NO SITE" = 1 - 0.49 = 0.51. Thus, we are forced to decide in favour of "NO SITE", even
+if we feel that we have no sufficient direct evidence to support it.
+Dempster-Shafer Theory, on the other hand, gives us the possibility to transfer a
+certain amount of this basic probability mass to the uncertainty hypothesis 
+</i>H3={"SITE","NOSITE"}</i> and thus allows us to postpone decisions about "NO SITE"
+until e.g. better information is obtained.
+<p>
+The <em>r.dst.bpn</em> program transfers basic probability mass to the uncertainty hypothesis in one
+of three cases:
+
+<ol>
+	<li>The probability <i>P</i> that the oberserved difference in proportion between sample (sites)
+	    and population (entire region) for evidence category <i>C</i> could also be 
+	    produced by chance, as calculated by
+	    the z-statistic, is greater > 0. In this case, <i>P</i> is subtracted from the
+	    BPN value for either "SITE" or "NOSITE" and transferred to "SITE or NOSITE" 
+	    for category <i>C</i>. This leaves <i>m(H1)</i> or <i>m(H2)</i>
+	    as 1-<i>P</i>, respectively. 
+	</li>
+	<li>The chi-square test shows that the overall frequencies of categories in the sample
+	    could also have been produced by chance with probability <i>P</i>.
+	    In this case, <i>P</i> is subtracted from the
+	    BPN value for either "SITE" or "NOSITE" and transferred to "SITE or NOSIT"
+	    for all categories.
+	</li>
+	<li>The user has supplied one ore more bias maps using the <em>nbias=</em> option.
+	    	These are GRASS floating point (FCELL or DCELL) type maps in which every cell 
+		is assigned a value between 0 and 1. These values specify the degree to which
+	 	we believe that observed differences are biased towards the "NO SITE" hypothesis.
+	 	 For each bias map, the following is done: (a) calculate the percentage of cells
+	 	 <i>BP</i> of each category <i>C</i> that are covered by a bias value larger than 
+	 	 0; (b) calculate the mean value <i>BM</i> of the bias in cells of category 
+	 	 <i>C</i>. For each category <i>C</i>, <i>BM</i> * <i>BP</i> is subtracted from
+	 	 the belief mass assigned to "NO SITE". 
+	</li>
+	<li>The user has specified one or more attributes of the site vector point map to
+	    represent the degree to which these points (sites) are biased towards the "SITE" hypothesis using
+	    the <em>sbias=</em> option. Again, these attributes must be floating point values in the
+	    range 0 to 1. Calculations are similar to the "NO SITE" case: The more biased sites present
+	    on a certain category of an evidence maps, the more basic belied mass will be subtracted
+	    from the "SITE" hypothesis and shifted to "SITE or NOSITE".<br>
+	    <strong>(Note: The <em>sbias=</em> option is currently broken. DO NOT USE!)</strong>
+	</li>
+</ol>
+In the first two cases, beliefs are expressed as mathematical probabilities. There is
+no obvious difference between the concepts of belief (mass) and probability (mass) here.
+In the case of bias maps, the more flexible DST concept of belief may be used to
+obtain a quantification in the range 0 to 1 in any way.
+Note that no hypothesis can ever achieve a basic probability assignment smaller than
+0.01 or larger than 0.98. There is always a tiny bit of doubt left in real life ...
+<p>
+The case of bias maps and attributes needs a bit more explanation:<br>
+"NO SITE" bias: e.g. in archaeological predictive modelling,
+certain factors can affect the chance to find sites. This may lead to a situation where
+the assumed absence of sites leads to a high belief in "NO SITE" even though there 
+potentially is evidence for "SITE", but it cannot be included in the model. 
+Common sources of "NO SITE" bias are:
+<ul>
+	<li>Geomorphological processes have hidden some sites and exposed others. Soil Erosion
+	    and deposition can severly affect site detectability. In this case, one could
+	    prepare a bias map which has "1" for cells with the highest amounts of deposited
+	    material and "0" for eroded areas (other cells may lie anywhere in between these
+	    extremes).
+	</li>
+	<li>Differences in survey density, intensity and systematics may leave some areas less well
+	    covered than others.  In this case, one could
+	    prepare a bias map which has "1" for cells were no surveying has been done and
+	    "0" for cells which have been covered by systematic and intrusive surveys.
+	</li>
+	<li>Land use can have a heavy impact on site visibility. Sites in dense
+	    forests are much harder to spot than in open fields.
+	</li>
+</ul>
+"SITE" bias: sometimes, evidence supporting the presence of sites may also be biased if it rests on false assumptions.
+Again, archaeological examples might include:
+<ul>
+	<li>A too high degree of convidence in the correctness of the site data (location, dating).
+	</li>
+	<li>Inclusion of locations that do not actually qualify as "sites" in a strict sense.
+	</li>
+	<li>Modelling with sites that do not all depend on the encironmental evidence as heavily as it
+	is assumed.
+	</li>
+</ul>
+In summary, a high amount of basic probability mass is shifted to uncertainty for category <i>C</i>, if (a) many
+cells of category <i>C</i> fall into biased areas and (b) these cells have a high bias
+on average and/or many sites on category <i>C</i> are (strongly) biased.
+<p>
+If a logfile is generated by supplying the <em>log=</em> option, detailed information
+about the BPN quantifications and bias impacts are produced for the user to review.
+
+<h3>Notes</h3>
+This program was developed as part of the GRASS 5 DST Predictive Modelling Toolkit.<br>
+The <em>sbias=</em> option is currently broken. Do not use it!
+
+<h3>SEE ALSO</h3>
+<EM><A HREF="dst.combine.html">dst.combine</A></EM><br>
+<EM><A HREF="dst.predict.html">dst.predict</A></EM><br>
+<EM><A HREF="dst.update.html">dst.update</A></EM><br>
+<EM><A HREF="../../html/r.categorize.html">r.categorize</A></EM><br>
+<EM><A HREF="../../html/r.support.html">r.support</A></EM><br>
+<h3>AUTHOR</h3>
+Benjamin Ducke,<br>
+University of Kiel, Germany<br>
+<i>Last changed: $Date: 2006/01/03</i>
+</body>

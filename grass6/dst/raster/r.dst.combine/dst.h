@@ -1,0 +1,22 @@
+void set_beliefs(Shypothesis *frame);
+void set_plausibilities(Shypothesis *frame);
+void set_commonalities (Shypothesis *frame);
+void set_bint (Shypothesis *frame);
+void set_doubts (Shypothesis *frame);
+Shypothesis* frame_discernment( BOOL **garbage );
+double get_bpn_sum(Shypothesis *frame);
+double combine_bpn(Shypothesis *frame1, Shypothesis *frame2, BOOL **garbage, int MODE);
+void get_frame_bpn(Shypothesis *frame);
+Shypothesis empty_set(void);
+
+double get_bel (Shypothesis *frame, int hyp);
+double get_pl (Shypothesis *frame, int hyp);
+double get_bint (Shypothesis *frame, int hyp);
+double get_doubt (Shypothesis *frame, int hyp);
+double get_common (Shypothesis *frame, int hyp);
+double get_bpn (Shypothesis *frame, int hyp);
+double get_minbpn (Shypothesis *frame, int hyp);
+double get_maxbpn (Shypothesis *frame, int hyp);
+int get_minbpnev (Shypothesis *frame, int hyp);
+int get_maxbpnev (Shypothesis *frame, int hyp);
+int get_isNull (Shypothesis *frame, int hyp);
