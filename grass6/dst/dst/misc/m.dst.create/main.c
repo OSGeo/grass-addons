@@ -84,5 +84,5 @@ main (int argc, char *argv[])
 		G_fatal_error ("Error creating XML file.\n");
 	}	
 	
-	exit (EXIT_SUCCESS));
+	exit (EXIT_SUCCESS);
 }
