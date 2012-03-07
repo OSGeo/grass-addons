@@ -229,19 +229,24 @@ for FILE in $* ; do
     xml)
 	apply_xml "$FILE"
 	;;
+    gxm)
+	apply_xml "$FILE"
+	;;
     sh)
 	apply_shell_script "$FILE"
 	;;
     pdf)
 	apply_pdf "$FILE"
 	;;
-    png | jpg | jpeg | gif | bmp | svg | xpm)
+    png | jpg | jpeg | gif | bmp | svg | xpm | xcf | ico)
 	if [ "$FILE_SUFFIX" = "jpg" ] ; then
 	    FILE_SUFFIX="jpeg"
 	elif [ "$FILE_SUFFIX" = "svg" ] ; then
 	    FILE_SUFFIX='svg+xml'
 	elif [ "$FILE_SUFFIX" = "xpm" ] ; then
 	    FILE_SUFFIX='x-xpixmap'
+	elif [ "$FILE_SUFFIX" = "ico" ] ; then
+	    FILE_SUFFIX='x-icon'
 	fi
 	apply_image "$FILE" "$FILE_SUFFIX"
 	;;
