@@ -6,7 +6,7 @@
 # AUTHOR(S):   Margherita Di Leo
 # PURPOSE:     Fast procedure to detect flood prone areas on the basis of a 
 #              topographic index
-# COPYRIGHT:   (C) 2010 by Margherita Di Leo and the GRASS Development Team
+# COPYRIGHT:   (C) 2010 by Margherita Di Leo 
 #              dileomargherita@gmail.com
 #
 #              This program is free software under the GNU General Public
@@ -83,7 +83,12 @@ def main():
     
     # MTI map
     grass.message("Calculating mti raster map.. ")
-    grass.mapcalc("$r_mti = log((exp((($rast1+1)*$resolution) , $n)) / (tan($rast2+0.001)))", r_mti = r_mti, rast1 = 'r_accumulation', resolution = resolution, rast2 = 'r_slope', n = n)
+    grass.mapcalc("$r_mti = log((exp((($rast1+1)*$resolution) , $n)) / (tan($rast2+0.001)))", 
+                   r_mti = r_mti, 
+                   rast1 = 'r_accumulation', 
+                   resolution = resolution, 
+                   rast2 = 'r_slope', 
+                   n = n)
 
     # Cleaning up
     grass.message("Cleaning up.. ")
@@ -92,12 +97,16 @@ def main():
 
     # flood map
     grass.message("Calculating flood raster map.. ")
-    grass.mapcalc("r_flood = if($rast1 >  $mti_th, 1, 0)", rast1 = r_mti, mti_th = mti_th)
+    grass.mapcalc("r_flood = if($rast1 >  $mti_th, 1, 0)", 
+                   rast1 = r_mti, 
+                   mti_th = mti_th)
 
     ## # Deleting isolated pixels 
     # Recategorizes data in a raster map by grouping cells that form physically discrete areas into unique categories (preliminar to r.area)
     grass.message("Running r.clump.. ")
-    grass.run_command('r.clump', input = 'r_flood', output = 'r_clump', flags = '-o')
+    grass.run_command('r.clump', input = 'r_flood', 
+                                 output = 'r_clump', 
+                                 overwrite = 'True')
     
     # Delete areas of less than a threshold of cells (corresponding to 1 square kilometer)
     # Calculating threshold
