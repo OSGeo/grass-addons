@@ -8,7 +8,7 @@
 # PURPOSE:	It calculates the mostly used indices of diversity based on 
 #		information theory
 #
-# COPYRIGHT:	(C) 2010 by Luca Delucchi
+# COPYRIGHT: (C) 2010-2012 by Luca Delucchi
 #
 #		This program is free software under the GNU General Public
 #		License (>=v2). Read the file COPYING that comes with GRASS
@@ -17,7 +17,7 @@
 #############################################################################
 
 #%module
-#% description: Calculate some vegetation index using r.li packages and moving windows
+#% description: Calculate diversity indices based on a moving window using r.li packages
 #% keywords: raster
 #%end
 #%option
