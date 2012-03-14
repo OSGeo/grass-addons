@@ -52,7 +52,7 @@ except:
     try:
 	    from grass.script import core as grass
     except:
-        print "grass.script can't be imported."
+        sys.exit( "grass.script can't be imported.")
 
 if not os.environ.has_key("GISBASE"):
     print "You must be in GRASS GIS to run this program."
