@@ -29,6 +29,7 @@ Cleaning
 20120315: Created i.vi.mpi in addons/grass7/imagery/, tested with "ndvi"
 	: Moved i.evapo.potrad/senay to grass7, removed m.gem and i.vi.mpi from grass6.
 	: Moved i.eb.h_SEBAL95 to grass7
+	: Moved i.lmf to grass7
 
 Imagery modules
 ---------------
@@ -36,7 +37,7 @@ Imagery modules
 **i.atcorr:	(ported from GRASS 5.x, now in Main SVN) Atmospheric correction
 **i.biomass:	(Now in Main SVN) Calculates biomass growth of a plant/crop
 **i.emissivity: (now in main SVN) Calculates the generic emissivity from NDVI
-i.lmf: 		Calculates NDVI temporal splinning after Sawada et al. (2001)
+**i.lmf:	(Grass7 version in addons) Calculates NDVI temporal splinning after Sawada et al. (2001)
 **i.vi:		(now in Main SVN) Calculates any of 13 types of vegetation indices
 **i.vi.mpi:	(Grass7 version in addons) Educational version in MPICH for HPC
 i.vi.grid:	Educational version in Ninf/G for grid computing

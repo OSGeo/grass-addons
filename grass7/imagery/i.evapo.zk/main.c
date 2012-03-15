@@ -4,9 +4,9 @@
 * AUTHOR:	Yann Chemin yann.chemin@gmail.com 
 *
 * PURPOSE:	To estimate the daily evapotranspiration by means
-*		of Prestley and Taylor method (1972).
+*		of Zhang and Kimberley.
 *
-* COPYRIGHT:	(C) 2007-2011 by the GRASS Development Team
+* COPYRIGHT:	(C) 2007-2012 by the GRASS Development Team
 *
 *		This program is free software under the GNU General Public
 *		Licence (>=2). Read the file COPYING that comes with GRASS
