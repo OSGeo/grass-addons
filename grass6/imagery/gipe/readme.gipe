@@ -27,6 +27,8 @@ Cleaning
 	Also removed i.dn2ref.l5/7 as they are superseeded by i.landsat.toar in main SVN
 20110112: Moved i.netrad, r/i.evapo.PM/PT/MH to main SVN
 20120315: Created i.vi.mpi in addons/grass7/imagery/, tested with "ndvi"
+	: Moved i.evapo.potrad/senay to grass7, removed m.gem and i.vi.mpi from grass6.
+	: Moved i.eb.h_SEBAL95 to grass7
 
 Imagery modules
 ---------------
@@ -59,7 +61,7 @@ i.eb.disp:	Energy-Balance: Calculates the displacement height above canopy
 i.eb.h0:	Energy-Balance: Calculates the Sensible Heat Flux
 i.eb.h_iter:	Energy-Balance: Calculates the Sensible Heat Flux after Pawan (2004)
 **i.eb.h_SEBAL01:(Now in main SVN) Energy-Balance: Calculates the Sensible Heat Flux after SEBAL (small areas)
-i.eb.h_SEBAL95: Energy-Balance: Calculates the Sensible Heat Flux after SEBAL 1995
+**i.eb.h_SEBAL95:(GRASS7 version in addons) Energy-Balance: Calculates the Sensible Heat Flux after SEBAL 1995
 i.eb.molength:	Energy-Balance: Calculates the Monin-Obukov Length
 **i.eb.netrad:	Energy-Balance: Calculates the Net Radiation
 i.eb.psi:	Energy-Balance: Calculates the Psichrometric components
