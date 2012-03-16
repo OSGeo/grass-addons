@@ -56,7 +56,7 @@
 #% type: string
 #% description: Feature type
 #% required : no
-#% options: line,area
+#% options: line,area,point
 #% answer : line
 #%end
 
@@ -65,6 +65,22 @@ from numpy import array
 from math import sqrt
 import grass.script as grass
 import tempfile
+####################################
+# Returns the name of a vector map not in the current mapset.
+# mapname is of the form temp_xxxxxx where xxxxxx is a random number
+def tempmap():
+    import random
+    rand_number = [ random.randint(0,9) for i in range(6) ]
+    rand_number_str = ''.join( map(str,rand_number) )
+    mapname = 'temp_' + rand_number_str
+    maplist = grass.read_command('g.list',type='vect',mapset='.').split()
+    while mapname in maplist:
+        rand_number = [ random.randint(0,9) for i in range(6) ]
+        rand_number_str = ''.join( map(str,rand_number) )
+        mapname = 'temp_' + rand_number_str
+        maplist = grass.read_command('g.list',type='vect',mapset='.').split()
+    return mapname
+
 ####################################
 # load vector lines into python list
 # returns v
@@ -107,8 +123,8 @@ def loadVector( vector ):
     return v
 
 ####################################
-# get transects from input vector
-def getTransects( vector, dleft, dright, transect_spacing ): 
+# get transects locations along input vector lines
+def get_transects_locs( vector, transect_spacing ): 
     transect_locs = [] # holds locations where transects should intersect input vector lines
     for line in vector:    
         transect_locs.append([line[0]])
@@ -126,6 +142,11 @@ def getTransects( vector, dleft, dright, transect_spacing ):
                 line[i] = transect_locs[-1][-1]
             else:
                 j += 1
+    return transect_locs
+
+####################################
+# from transects locations along input vector lines, get transect ends
+def get_transect_ends( transect_locs, dleft, dright ):
     transect_ends = []
     for transect in transect_locs:
         if len(transect) < 2: # if a line in input vec was shorter than transect_spacing
@@ -142,7 +163,7 @@ def getTransects( vector, dleft, dright, transect_spacing ):
     return transect_ends
 
 ####################################
-# calculate scalar distance between two points
+# calculate distance between two points
 def dist( ip, fp ): 
     return sqrt( (ip[0]-fp[0])**2 + (ip[1]-fp[1])**2 )
 
@@ -193,7 +214,19 @@ def writeQuads( transects, output ):
     a.seek(0)
     a.close()
     grass.run_command('v.in.ascii', flags='n', input=a.name, output=output, format='standard')
-    a.close()        
+
+####################################
+# writes areas 
+def writePoints( transect_locs, output ):
+    pt_str = ''
+    for pts in transect_locs:
+        pt_str += '\n'.join( [ ','.join(map(str,pt)) for pt in pts ] ) + '\n'
+    _, temp_path = tempfile.mkstemp()
+    a = open(temp_path, 'w')
+    a.write( pt_str )
+    a.seek(0)
+    a.close()
+    grass.run_command('v.in.ascii', input=a.name, output=output, format='point', fs=',', x=1, y=2)
 
 ####################################
 # Main method
@@ -242,11 +275,19 @@ def main():
 
     #################################
     v = loadVector( vector )
-    transect_ends = getTransects( v, dleft, dright, transect_spacing )
+    transect_locs = get_transects_locs( v, transect_spacing )
+    temp_map = tempmap()
     if shape == 'line' or not shape: 
-        writeTransects( transect_ends, output )
+        transect_ends = get_transect_ends( transect_locs, dleft, dright )
+        writeTransects( transect_ends, temp_map )
+    elif shape == 'area':
+        transect_ends = get_transect_ends( transect_locs, dleft, dright )
+        writeQuads( transect_ends, temp_map )
     else:
-        writeQuads( transect_ends, output )
+        writePoints( transect_locs, temp_map )
+ 
+    grass.run_command( 'v.category', input=temp_map, output=output, type=shape )
+    grass.run_command( 'g.remove', vect=temp_map )
 
 if __name__ == "__main__":
    options, flags = grass.parser()
