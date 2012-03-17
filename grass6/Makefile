@@ -1,6 +1,7 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
+	dst \
 	database \
 	display \
 	general \
