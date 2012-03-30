@@ -342,7 +342,7 @@ void Search_correlation_points_auto(DCELL *mat1_R, DCELL *mat2_R,
     double fft_prod_real, fft_prod_img;
     double v_product;
     int check_reading;
-    int dump_unity_pulse = 1;
+    int dump_unity_pulse = 0;
     long nc, nt;
 
     G_debug(1, "Search_correlation_points_auto()");
