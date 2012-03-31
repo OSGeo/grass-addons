@@ -36,7 +36,7 @@ SUBDIRS = \
 	r.out.gmt \
 	r.out.gmt2 \
 	r.out.kap_template \
-	r.out.kml \ 
+	r.out.kml \
 	r.out.maxent_swd \
 	r.out.netcdf \
 	r.pack \
@@ -64,7 +64,7 @@ SUBDIRS = \
 	r.unpack \
 	r.viewshed \
 	r.wf \
-	r.xtent	
+	r.xtent
 
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
