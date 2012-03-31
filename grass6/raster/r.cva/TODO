@@ -1,0 +1,121 @@
+HAS THE PATCH FOR r.los BEEN APPLIED IN GRASS 6.1 CVS (DOES IT DO ANYTHING IN r.los, anyway?)
+
+
+BUGS:
+	dist=sqrt(del_x * del_x + del_y * del_y)*window.ns_res;
+	in pts_elim3.c seems to indicate, that this module always
+	assumes N/S res to be = E/W res for distance calculations!
+	
+
+CHECK:		
+	Check that OFFSETB now gives the desired results.
+	(pts_elim3.c)
+	
+	Check that target_elev is really just handled as an alias
+	for OFFSETB (main.c)
+	
+	Check correctness of Earth Curvature Correction
+	
+	point_sample.c: L149: it seems that db_init_string (&sql) is called iteratively
+	in this loop w/o releasing any memory resulting in a mem leak
+	
+PARAMS:
+	the default operation should NOT be reflex viewsheds!
+	Some of the parameters are redundant (obs height, tgt height)
+	or should at least be more clearly named (e.g.: "global OFFSET A")
+	
+	make sure the word "sites" disappeards from all titles and parameter names
+	
+	unify writing of all parameter names: capitalise first word, NO period at end
+	
+	- parameters must be declared GRASS 6.0.0 style, so that the right
+	 selector buttons will be provided!
+
+	
+DOCS:
+	HTML man page for r.prominence	
+	
+	state, that missing values are not allowed in site parameters!
+
+	A separate section to clarify:
+	clarify NULL handling:	discarded in systematic samples
+				not valid in random samples
+				discarded in site sampling
+				discarded in total sampling
+				achieved sample size discounts NULL cells
+				what does the "convert -1 to NULL" option do?
+				state that NULL cells do not count for
+				  the reflexive viewshed!
+	
+	
+
+
+* Store visibility count of sites in an attribute in the input vector map,
+(count case only)
+if attribute with name VCOUNT exists (or create such an attribute).
+
+Add a "z" factor for height scaling.
+
+Convenience: user supplies a map of obstructing objects as vector objects
+with a field HEIGHT that gives relative height of object. This is
+rasterised into tmp1 map, the height is added to dem and the result
+output as tmp2 and fed into r.cva instead of the original dem.
+
+Rename "all" option to "total", as it is less ambiguous. Change default option
+to "sites".
+
+Implement fuzzy viewsheds that can attribute for unknown variations in terrain
+heights, due to error or vegetation. Add a random offset within a user-defined 
+range to observer point,
+target point and all blocking points. Do this n times and the final result
+is the average visibility over all trials.
+Offset size can be determined from error specifications of DEM and
+average height of vegetation (?).
+
+WE MUST BE ABLE TO MASK OUT CERTAIN AREAS FROM VEGETATION OFFSET, WHICH
+ARE CLEARED AREAS (?).
+
+Alternative, systematic fuzzy viewsheds:
+The user supplies a set of maps with different configurations of spatial
+obstacles. All of these configurations are taken into account and the final
+result is the average visibility over all configurations (e.g. 4 of 5 times=80%).
+
+* Implement probabilistic viewsheds: user defines a distance D1, at which objects
+of interest are no longer clearly identifiable from the obersvation Point P and
+distance D2, at which they are no longer observable at all. 
+The program computes a corresponding interpolation curve from "1" (P) to "0.5"
+(P+D1) and on to "0" (P+D2). Instead of "0"/"1" viewsheds,
+we can then have a continuous probability. For the cumulative case, we would
+multiply probabilities instead of adding. We can also have functions that
+relate to viewing angles. Secondly, use a visibility map with values in the
+range of 0..1 that encode probability of objects being spotted on a certain
+type of terrain. With these functions, we are moving away from terrain
+visibility and towards hypothetical object visibility.
+This needs a float output map. Two alternatives for the cumulative case:
+directly work on an FCELL map (SLOW, but can link in cache!) or create another 
+segment file of FCELL type. Option one should work, as operations are fairly
+localised.
+
+The terrain adjacent to a viewing location also has a major impact on visibility
+target locations! This can be catered for by adding the height of obstructing
+objects to the terrain.
+
+Another field has to be added to the linked list of points storing
+its probability in point.h [DONE: probability]
+
+This probability has to be updated according to the function linking it to
+distance and viewing angle:
+Add a parameter probability to function definition in make_point3.c and
+make_point3.h.
+Add probability calculation function to make_list3.c, at the end, but before
+call to make_point().
+
+It has also got to be updated using floats in ONE map that encodes visibility
+for e.g. different types of terrain (e.g. green objects are harder to spot
+on grassland than on rock surface).
+
+For the two (*) above: files cumulate_visible_cells.c (-f option) and
+count_visible_cells.c as a starting point. 
+
+Is the mask option really needed or can the same effect be achieved by setting
+the GRASS global mask?

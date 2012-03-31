@@ -1,0 +1,445 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS Manual: r.cva</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+<h2>NAME</h2>
+<em><b>r.cva</b></em>
+
+<TITLE>r.cva</TITLE>
+
+<body bgcolor="white">
+
+<H2>NAME</H2>
+
+<EM><b>r.cva</b></EM>  - Cumulative viewshed analysis program.
+<BR>
+<EM>(GRASS Raster Program)</EM>
+
+<H2>SYNOPSIS</H2>
+<B>r.cva</B>
+<BR>
+<B>r.cva help</B>
+<BR>
+<B>r.cva</B>
+[<B>-afmnoqrs</B>]
+<B>input=</B><EM>name</EM>
+[<B>target_mask=</B><EM>name</EM>]
+[<B>viewpt_mask=</B><EM>name</EM>]
+[<B>sites=</B><EM>name</EM>]
+<B>output=</B><EM>name</EM>
+[<B>obs_elev=</B><EM>value</EM>]
+[<B>target_elev=</B><EM>value</EM>]
+[<B>max_dist=</B><EM>value</EM>]
+[<B>seed=</B><EM>value</EM>]
+[<B>sample=</B><EM>value</EM>]
+<B>type=</B><EM>value</EM>
+
+<H2>QUICKSTART</H2>
+To perform the most common cumulative viewshed analysis (for each cell of
+the input elevation raster map: count the number of observer sites from which it
+can be seen) type in the following:
+
+<p>
+
+<B>r.cva</B> <B>-f</B> <B>input=</B><EM>elevation</EM> <B>sites=</B><EM>observers</EM> <B>output=</B><EM>result</EM> <B>type=</B><EM>sites</EM>
+<P>
+'elevation' can be a raster map containing elevation values in CELL, FCELL or DCELL format. 'observers' must a map containing vector points.
+'result' will be an output map in CELL format containing the cumulative visibility counts for each cell.
+
+<A NAME = "description"><H2>DESCRIPTION</H2></A>
+
+<EM>r.cva</EM> generates a cumulative viewshed map.  When run without
+the <EM>-f</EM> flag each viewpoint is marked with the number of cells in its
+viewshed (i.e. that can be seen from it).  In this mode the only cells
+that contain genuine data in the output map are the viewpoints.
+Alternatively, if the <EM>-f</EM> flag is set then each cell in the
+<EM>output</EM> map is marked with the number of viewpoints from which
+it can be seen.  In either case, viewpoints may be chosen in one of
+four ways.  The first (`all') treats every cell as a viewpoint. This
+is so computationally demanding that it is unlikely to be feasible
+unless either the <EM>input</EM> map or <EM>max_dist</EM> is very
+small.  The second (`systematic') uses a systematic sample of cells
+arranged on a rectangular grid.  The third (`random') uses a random
+sample.  By default the random sampling algorithm does not allow
+replacement (i.e. a cell can be treated as a viewpoint only once), but
+this behaviour can be altered by setting the <EM>-r</EM> flag.  The
+fourth option (`sites') uses the points in the specified <EM>vector</EM>
+map. The options `systematic' and `random' allow the user to specify
+any sampling frequency between 0% and 100%.
+
+<p>
+
+The cells used in viewshed analysis can be constrained by one or both
+of two masks. Both masks should be binary raster maps in which the
+areas of interest are coded `1' and all other cells `0'.
+<EM>target_mask</EM> determines which cells are targets: a cell which
+is not a target will be returned as not visible from a given viewpoint
+even if it is actually visible according to the line-of-sight analysis
+(i.e. this mask performs the same function as <EM>patt_map</EM> in
+<EM><A HREF="../../html/r.los.html">r.los</A></EM>).  <EM>viewpt_mask</EM>
+constrains which cells may be treated as viewpoints.  For example,
+suppose that the raster map `no_sea' codes sea (elevation = 0) as `0'
+and land (elevation > 0) as `1'.  In this case, specifying `no_sea' as
+the <EM>target_mask</EM> would cause <EM>r.cva</EM> to count cells on
+land that are visible from any viewpoint.  Alternatively, specifying
+`no_sea' as the <EM>viewpt_mask</EM> would count any cells visible
+from viewpoints on land.  Finally, specifying `no_sea' as both the
+<EM>target_mask</EM> and <EM>viewpt_mask</EM> would count cells on
+land that are visible from viewpoints on land.
+
+<p>
+
+The geometry of the potential line of sight between each pair of cells
+may be altered by means of two offsets, <EM>obs_elev</EM> and
+<EM>target_elev</EM>. The height <EM>obs_elev</EM> is added to the
+viewpoint and the height <EM>target_elev</EM> to each target cell.
+Note that by swapping these values it is possible to produce maps
+showing the number of cells from which a viewpoint is visible, or if
+the <EM>-f</EM> flag is set, the number of viewpoints which it is
+possible to see from each map cell.
+
+<p>
+
+A particular set of viewpoint locations in a random sample can be
+repeated by specifying the same value for <EM>seed</EM>.
+Alternatively, different values can be used to produce independent
+samples for statistical testing.
+
+<p>
+
+The program can be run either non-interactively or interactively.  To
+run <EM>r.cva</EM> non-interactively the user must minimally specify
+the <B>input</B> and <B>output</B> maps and the <B>type</B> of
+analysis.  If the chosen <B>type</B> is `sites' then the
+<B>sites</B> list must also be specified.  Any remaining parameters
+whose values have not been specified on the command line will be set
+to their default values (see <A HREF = "#parameters">below</A>).  Non-interactive usage format is:
+
+<DL>
+<DD>
+<B>r.cva</B>
+[<B>-afmnoqrs</B>]
+<B>input=</B><EM>name</EM>
+[<B>target_mask=</B><EM>name</EM>]
+[<B>viewpt_mask=</B><EM>name</EM>]
+[<B>sites=</B><EM>name</EM>]
+<B>output=</B><EM>name</EM>
+[<B>obs_elev=</B><EM>value</EM>]
+[<B>target_elev=</B><EM>value</EM>]
+[<B>max_dist=</B><EM>value</EM>]
+[<B>seed=</B><EM>value</EM>]
+[<B>sample=</B><EM>value</EM>]
+<B>type=</B><EM>value</EM>
+</DL>
+
+<H2>OPTIONS</H2>
+
+<H3>Flags:</H3>
+<DL>
+
+<DT><B>-a</B>
+<DD> Treat the specified sample size as an absolute number of cells
+rather than a percentage.  Note, this flag is only for use with random
+sampling.
+
+<DT><B>-f</B>
+<DD> Mark each cell in the output map with the number of viewpoints
+from which it can be seen.
+
+<DT><B>-h</B>
+<DD> Adjust height of oberserver points so that they will never fall
+below surface level. This is only useful in conjunction with the
+<b>spot</b> parameter or attribute (see <A HREF ="#atributes">below</A>).
+
+<DT><B>-i</B>
+<DD> Do not interpret control attributes in input vector map as
+described <A HREF ="#atributes">below</A>).
+
+<DT><B>-m</B> <DD> Differentiate between genuine zero data values and
+null data in the output map.  When the <EM>-f</EM> flag has not been
+set this ensures that all non-viewpoint cells are coded `-1'.  When
+the <EM>-f</EM> flag has been set then all cells coded `0' in the
+<EM>target_mask</EM> (if there is one) are coded `-1'.  See <A HREF =
+"#notes">below</A> for guidance when to set this flag.
+
+<DT><B>-n</B> <DD> In conjunction with <B>-m</B>: write NULL values instead of '-1' to output map.
+
+<DT><B>-o</B>	
+<DD> Overwrite the output raster map if it already exists.
+
+<DT><B>-q</B>	
+<DD> Be quiet about progress, confirming only the output file and
+sampling frequency.  This is useful when <EM>r.cva</EM> is invoked from a
+script with standard output redirected to a disk file.
+
+<DT><B>-r</B>
+<DD> Allow replacement during random sampling (i.e. allow a given cell
+to be picked as a viewpoint more than once).  Note that no cumulation
+occurs for replacement viewpoints; this ensures that the resulting
+cumulative viewshed will be as though the viewpoint was selected once
+only (the final output map will, of course, be different because
+replacement effectively results in the use of fewer viewpoints for a
+given sampling frequency).
+
+<DT><B>-s</B> <DD>Be silent about progress, in which case it is
+strongly recommended that you use <EM><A
+HREF="../../html/r.info.html">r.info</A></EM> to confirm what sampling frequency
+was actually achieved.
+
+<A NAME = "parameters"><H3>Parameters:</H3></A>
+
+<DT><B>input=</B><EM>name</EM>
+<DD>Name of a raster map layer containing elevation
+data, used as program input.
+
+<DT><B>target_mask=</B><EM>name</EM> <DD>Name of a binary raster map
+layer in which target cells within the areas of interest are assigned
+the category value `1' and all other cells are assigned the category
+value `0'.  A cell is treated as a target when it is viewed from a
+viewpoint (note, therefore, that viewpoints are targets when viewed
+from other viewpoints).
+
+<DT><B>viewpt_mask=</B><EM>name</EM>
+<DD>Name of a binary raster map layer in which viewpoints within the areas
+of interest are assigned the category value `1' and all other cells
+are assigned the category value `0'.
+
+<DT><B>sites=</B><EM>name</EM>
+<DD>The name of a vector map containing the sites (vector points) that are to be treated as
+viewpoints.  Sites falling outside the current region are ignored.
+
+<DT><B>obs_elev=</B><EM>value</EM>
+<DD>Height of the observer (in metres) above the elevation of the
+viewpoint.  Default: 1.75 m
+
+<DT><B>target_elev=</B><EM>value</EM>
+<DD>Height of the object of interest (in metres) above the elevation
+of the target cell.  Default: 0.0 m
+
+<DT><B>max_dist=</B><EM>value</EM>
+<DD>Maximum distance (in metres) from the viewing point within which
+the line-of-sight analysis will be performed.  Options: 0-99999
+(stated in map units). Default: 100
+
+<DT><B>seed=</B><EM>value</EM>
+<DD>The seed for the random number generator used during random
+sampling.  This option allows exact reproduction of a previous result.
+Options: 0-32767. Default: 1
+
+<DT><B>sample=</B><EM>value</EM>
+<DD>The sampling frequency as a percentage of the number of map cells
+in the current region.  Options: 0.0-100.0. Default: 10.0
+
+<DT><B>type=</B><EM>value</EM> <DD>The type of sampling regime used to
+select viewpoints for analysis. See <A HREF = "#description">above</A>
+for details.  Options: `all', `systematic', `random', `sites'.
+
+<DT><B>spot, offseta, offsetb, azimuth1, azimuth2, vert1, vert2, radius1, radius2</B>
+<DD> See <A HREF ="#atributes">below</A>) for a description of what they do.
+
+<DT><B>curvc=</B><EM>value</EM> 
+<DD>Earth curvature correction will be applied if the distance from the observer
+point exceeds the given threshold. Set this to 0.0 to disable curvature correction
+(default). While correction slows down calculations, it is recommend for
+viewing distances of more than about 3 km. The correction uses a simplified
+formula which is accurate to 1 in 10,000 for distances up to 40 km:<p>
+<i>d(height)=dist^2/(2*Re)</i><p>
+With <i>Re</i> being the radius of the earth (ca. 6,356,766 m). 
+</DL>
+
+
+
+
+<A NAME = "attributes"><H3>Vector map attributes:</H3>
+
+When using 'sites' type operation mode, <EM>r.cva</EM> checks for the
+presence of a number of attributes in the input vector map. The names
+of these attributes are all uppercase and match those used by the 
+viewshed module of ESRI's ArcGIS Spatial Extension (trademarks of ESRI Corp.). 
+They control <EM>r.cva</EM> operation in an analogous way.
+Each attribute, if present, must store a double value. The following
+attribute names and value ranges are recognised and interpreted:
+
+<dl>
+<dt>SPOT</dt>
+	<dd>This determines absolute observer height. If this attribute is given,
+	    observer height will no longer be determined from the DEM.
+		 <EM>r.cva</EM> can automatically raise this value to that of the DEM 
+		 point below the oberserver's position, if the value in SPOT would
+		 cause the observer to get below ground level (use the <b>-h</b> flag).</dd>
+<dt>OFFSETA</dt>
+	<dd>Use this to add an offset to each oberver point's height. This is
+	    just an alias for the <b>obs_elev</b> option and exists for
+	    compatibility reasons.</dd>
+<dt>OFFSETB</dt>
+		<dd>The value stored in 'OFFSETB' will be added to each target point
+		at the moment it is considered for visibility. All blocking points
+		on the line-of-sight between observer and target will be left untouched.
+		This is different from the <b>target_elev</b> parameter. It can be
+		used to simulate visibility of targets with a certain height.</dd>
+<dt>AZIMUTH1, AZIMUTH2</dt>
+		<dd>These attributes must be given as values between 0.0 and 360.0 and
+		can be used to limit the horizontal scan range of the viewshed.
+		Limits are measured in degrees with 0.0 in the North and values
+		increasing clock-wise. Thus, if you wanted to limit visibility scans
+		to eastward directions only, you would set AZIMUTH1=1 and AZIMUTH2=180.
+		</dd>
+<dt>VERT1, VERT2</dt>
+		<dd>In analogy to 'AZIMUTH1' and 'AZIMUTH2', these attributes can be
+		used to limit the vertical range of the scan. The range is -90 to 0 for
+		'VERT1' and 0 to 90 for 'VERT2'.
+		At -90 degrees, the observer looks straight down to the ground and at
+		90 degress up into the sky.
+		</dd>
+<dt>RADIUS1, RADIUS2</dt>
+		<dd>Finally, two attributes exist to limit the distance of the scan.
+		'RADIUS1' determines the minimum distance from the observer and 'RADIUS2'
+		the maximum distance. The latter is thus equivalent to using the
+		<b>max_dist</b> parameter and exists for compatibility reasons.
+		</dd>
+</dl>
+
+Interpretation of these attributes can be turned off by using the <b>-i</b> flag.
+<p>
+Note that you can use the same control values in operation modes
+other than 'sites', if you specify the equivalent parameters 
+(see <A HREF = "#parameters">above</A>). The latter will also work
+as global settings in 'sites' mode. Attributes stored in the vector
+map table will override these global settings unless the <b>-i</b>
+flag is specified. The meaning of <b>OFFSETA, OFFSETB</b> and <b>RADIUS1</b> is
+the same as <b>obs_elev, target_elev</b> and <b>max_dist</b>. The latter still
+exist for compatibility with earlier versions of <em>r.cva</em>.
+
+
+<A NAME = "notes"><H2>NOTES</H2></A>
+
+<EM>r.cva</EM> works in the current geographic region, but ignores the
+current mask. Masking is achieved by specifying a target_mask and/or a
+viewpt_mask. For accurate results, the program must be run with the
+resolution of the geographic region set equal to the resolution of the
+data (see <EM><A HREF="../../html/g.region.html">g.region</A></EM>).
+<P>
+This program assumes all height and distance measurements in meters.
+Legacy units must be converted to meters by the user before running <EM>r.cva</EM>.
+<P>
+It is also assumed, that N-S and E-W resolution of the current region are the
+same. If they differ, distances calculated for limiting the viewshed will
+be imprecise and results affected accordingly.
+<P>
+The number of cells visible from a given viewpoint includes the
+viewpoint itself only if the viewpoint is a target cell.
+Consequently, if neither the viewpoint nor any other cell within
+<EM>max_dist</EM> of it is a target cell then the size of that
+viewpoint's viewshed will be zero. Set the <EM>-m</EM> flag to locate
+such viewpoints (they will show as cells coded `0' as opposed to
+`-1'). Similarly, set the <EM>-m</EM> flag when the <EM>-f</EM> flag has
+been set in order to differentiate cells which are genuinely not
+visible from any viewpoint as opposed to those that are not target
+cells.
+<P>
+<EM>r.cva</EM> always informs the user what sampling frequency was
+attempted and subsequently achieved.  This information is printed to
+standard output and is also placed in the output map's history file
+(which can be viewed using <EM><A HREF="../../html/r.info.html">r.info</A></EM>).
+The sample attempted may differ slightly from that requested owing to
+the need to sample a whole number of cells.  Any such discrepancy will
+be greatest in the case of small maps of coarse resolution.  The
+sample achieved may be further reduced when a <EM>viewpt_mask</EM> has been
+specified.  This will not occur with the option `random', because its
+algorithm repeatedly allocates viewpoints until the number that fall
+within mask cells coded `1' produces the frequency attempted. Such a
+reduction can, however, occur with the options `all', `systematic' and
+`sites', because their algorithms allocate viewpoints without
+reference to the mask and then simply ignore those that fall in mask
+cells coded `0'.
+<P>
+
+<H2>SEE ALSO</H2>
+     
+<EM><A HREF="../../html/r.los.html">r.los</A></EM>
+<br>
+<EM><A HREF="../../html/r.info.html">r.info</A></EM>
+<br>
+<EM><A HREF="../../html/g.region.html">g.region</A></EM>
+
+<P>
+
+Cumulative viewshed analysis was defined by D. Wheatley, 1995,
+`Cumulative viewshed analysis: a GIS-based method for investigating
+intervisibility, and its archaeological application', in G. R. Lock
+and Z. Stancic (eds.)  <EM>Archaeology and Geographic Information
+Systems: A European Perspective</EM>, London: Taylor and Francis,
+pp. 171-186.
+<P>
+Lake et al. (M. W. Lake, P. E. Woodman and S. J. Mithen, 1998,
+`Tailoring GIS software for archaeological applications: an example
+concerning viewshed analysis', <EM>Journal of Archaeological
+Science</EM> 25: 27-38) discuss the first version of <EM>r.cva</EM>
+and provide some timing estimates.  They also discuss the importance
+of eliminating the edge effect that occurs when calculating the number
+of cells visible from a viewpoint that is closer than
+<EM>max_dist</EM> to the edge of the map.
+<P>
+Fisher et al. (P. Fisher, C. Farrelly, A. Maddocks and C.  Ruggles,
+1997, `Spatial Analysis of Visible Areas from the Bronze Age Cairns of
+Mull', <EM>Journal of Archaeological Science</EM> 24: 581--592)
+provide a useful review of some of the pitfalls that may trap unwary
+users of cumulative viewshed analysis. Most of these are easily
+avoided using <EM>r.cva</EM>.
+
+<H2>AUTHOR</H2>
+
+Mark Lake, Institute of Archaeology, University College London (the author).
+<P>
+With contributions by:
+Benjamin Ducke, Institute of Archaeology, University of Bamberg, Germany.
+
+<H2>ACKNOWLEDGEMENTS</H2>
+
+This version of <EM>r.cva</EM> was completed during the author's
+tenure of a Leverhulme Trust Special Research Fellowship at the
+Institute of Archaeology, University College London, U.K.
+<P>
+The first version of <EM>r.cva</EM> was written by the author as part of the
+MAGICAL Project directed by Dr. Steven Mithen (Dept. of Archaeology,
+University of Reading, U.K.).  The MAGICAL Project was made possible
+by a Natural Environment Research Council award (NERC GR3/9540) to
+Dr. Mithen.
+<P>
+<EM>r.cva</EM> draws heavily on the code for <EM><A
+HREF="../../html/r.los.html">r.los</A></EM>, which was written by Kewan
+Q. Khawaja, Intelligent Engineering Systems Laboratory, M.I.T.
+<P>
+Adaptation to GRASS 6 vector and raster formats, additional functionality,
+documentation updates by Benjamin Ducke (2005).
+
+<H2>BUGS</H2>
+
+Missing values in site attributes are currently not handled.
+<p>
+
+Earth curvature correction has not been sufficiently tested. The 'offsetb' option (=target_elev) 
+has not been sufficiently tested. Please feel free to test and report!
+<p>
+
+When <EM>max_dist</EM> is set to 100, the N-S and E-W resolutions are
+50, and a <EM>target_mask</EM> has been specified, the cells
+immediately NE, SE, SW and NW of the viewpoint may not be masked when
+then should be.  Please report any others that you find to the author.
+<P>
+
+Note that <EM>r.cva</EM> fixes two bugs in the current version of
+<EM><A HREF="../../html/r.los.html">r.los</A></EM>: that <EM>obs_elev</EM> is
+truncated to its integer component and that the target mask
+(<EM>patt_map</EM> in <EM><A HREF="../../html/r.los.html">r.los</A></EM>) does
+not apply to the viewpoint or its eight immediate neighbours.
+<HR>
+<P><a href="index.html">Main index</a> - <a href="raster.html">raster index</a> - <a href="full_index.html">Full index</a></P>
+<P>&copy; 2003-2012 <a href="http://grass.osgeo.org">GRASS Development Team</a></p>
+</body>
+</html>
