@@ -12,6 +12,7 @@ SUBDIRS = \
 	v.in.mbsys_fnv \
 	v.in.ncdc \
 	v.in.postgis \
+	v.ldm \
 	v.out.ascii.db \
 	v.out.ascii.mat \
 	v.out.gmt \
