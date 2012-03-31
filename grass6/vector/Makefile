@@ -2,10 +2,10 @@ MODULE_TOPDIR = ..
 
 SUBDIRS = \
 	adehabitat \
-	net.analyze \
 	v.autokrige \
 	v.curvature \
 	v.db.calc \
+	v.eqsm \
 	v.in.gama \
 	v.in.geoplot \
 	v.in.gshhs \
@@ -25,6 +25,9 @@ SUBDIRS = \
 	v.surf.icw \
 	v.swathwidth \
 	v.transect.kia \
+	v.transects \
+	v.trimesh \
+	v.vect.stats \
 	v.what.rast.buffer
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
