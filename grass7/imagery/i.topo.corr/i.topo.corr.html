@@ -8,7 +8,7 @@ ground and the sun rays. It can be obtained with <em>r.sun</em>
 (parameter incidout), and then calculating its cosine with float precision.
 
 <p>
-Using flag -i and given an elevation map as basemap (UTM),
+Using flag -i and given an elevation map as basemap (metric),
 <em>i.topo.corr</em> permits to obtain a simple illumination model from the formula:
 <ul>
 	<li> cos_i = cos(s) * cos(z) + sin(s) * sin(z) * cos(a - o) </li>
@@ -69,10 +69,10 @@ be calculated as
 
 <h2>EXAMPLES</h2>
 
-First, make a illumination model from the elevation map (here, SRTM), and
-then make topographic correction of the bands toar.5, toar.4 and toar.3 with
-output as tcor.toar.5, tcor.toar.4, and tcor.toar.3 using c-factor (= c-correction)
-method.
+First, make a illumination model from the elevation map (here, SRTM). Then
+make perform the topographic correction of e.g. the bands toar.5, toar.4 and toar.3
+with output as tcor.toar.5, tcor.toar.4, and tcor.toar.3 using c-factor (= c-correction)
+method:
 <p>
 
 <div class="code"><pre>
