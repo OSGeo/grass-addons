@@ -46,9 +46,6 @@ if not os.environ.has_key("GISBASE"):
 def main():    
     r_acc = options['acc']
     th = options['th']
-    
-    print r_acc
-    print th
 
     # Creates temp rules file
     tmp = open('rules', 'w')
