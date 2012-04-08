@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.threshold
+PGM = r.threshold.py
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
