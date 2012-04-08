@@ -111,6 +111,7 @@ def main():
     r_outlet = prefix+'_r_outlet'
     v_outlet = prefix+'_outlet'
     v_basin = prefix+'_basin'
+    v_basins = prefix+'_basins'
     v_centroid1 = prefix+'_centroid1'
     v_mainchannel = prefix+'_mainchannel'
     v_mainchannel_dim = prefix+'_mainchannel_dim'
@@ -205,20 +206,20 @@ def main():
         # Basin mask (vector)
         # Raster to vector
         grass.run_command('r.to.vect', input = r_basin, 
-                                       output = v_basin, 
+                                       output = v_basins, 
                                        feature = 'area',
                                        flags = 's',
                                        overwrite = True)
                                        
         # Add two columns to the table: area and perimeter                               
-        grass.run_command('v.db.addcol', map = v_basin,
+        grass.run_command('v.db.addcol', map = v_basins,
                                          columns = 'area double precision')
                                          
-        grass.run_command('v.db.addcol', map = v_basin,
+        grass.run_command('v.db.addcol', map = v_basins,
                                          columns = 'perimeter double precision')
                      
         # Populate perimeter column                                 
-        grass.run_command('v.to.db', map = v_basin, 
+        grass.run_command('v.to.db', map = v_basins, 
                                  type = 'line,boundary', 
                                  layer = 1, 
                                  qlayer = 1, 
@@ -228,7 +229,7 @@ def main():
                                  overwrite = True)
                                  
         # Read perimeter
-        tmp = grass.read_command('v.to.db', map = v_basin, 
+        tmp = grass.read_command('v.to.db', map = v_basins, 
                                  type = 'line,boundary', 
                                  layer = 1, 
                                  qlayer = 1, 
@@ -239,7 +240,7 @@ def main():
         perimeter_basin = float(tmp.split('\n')[1].split('|')[1]) 
                                  
         # Populate area column                                 
-        grass.run_command('v.to.db', map = v_basin, 
+        grass.run_command('v.to.db', map = v_basins, 
                                  type = 'line,boundary', 
                                  layer = 1, 
                                  qlayer = 1, 
@@ -249,7 +250,7 @@ def main():
                                  overwrite = True)  
                                  
         # Read area
-        tmp = grass.read_command('v.to.db', map = v_basin, 
+        tmp = grass.read_command('v.to.db', map = v_basins, 
                                  type = 'line,boundary', 
                                  layer = 1, 
                                  qlayer = 1, 
@@ -257,8 +258,14 @@ def main():
                                  units = 'kilometers', 
                                  qcolumn = 'area',
                                  flags = 'p')                         
-        area_basin = float(tmp.split('\n')[1].split('|')[1])                      
-    
+        area_basin = float(tmp.split('\n')[1].split('|')[1])
+        
+        grass.run_command('v.extract', list = 1,
+                                       input = v_basins,
+                                       output = v_basin,
+                                       type = 'area',
+                                       overwrite = True)                     
+
         # Creation of order maps: strahler, horton, hack, shreeve
         grass.message( "Creating %s" % r_hack ) 
         grass.run_command('r.stream.order', stream = r_stream_e, 
@@ -519,6 +526,7 @@ def main():
         grass.run_command('g.remove', vect = v_centroid1, quiet = True)
         grass.run_command('g.remove', vect = v_mainchannel_dim, quiet = True)
         grass.run_command('g.remove', vect = v_ord_1, quiet = True)
+        grass.run_command('g.remove', vect = v_basins, quiet = True)
     
         if nomap :
             grass.run_command('g.remove', vect = v_outlet, quiet = True)
