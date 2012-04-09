@@ -7,7 +7,6 @@ SUBDIRS = \
 	i.evapo.zk \
 	i.lmf \
 	i.points.auto \
-	i.topo.corr \
 	i.vi.mpi
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
