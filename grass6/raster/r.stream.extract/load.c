@@ -103,6 +103,11 @@ int load_maps(int ele_fd, int acc_fd, int depr_fd)
 
 	    /* check for masked and NULL cells */
 	    if (G_is_null_value(ptr, ele_map_type)) {
+		if (acc_fd >= 0) {
+		    if (!G_is_null_value(acc_ptr, acc_map_type))
+			G_fatal_error(_("Accumulation map does not match elevation map!"));
+		}
+
 		FLAG_SET(worked, r, c);
 		FLAG_SET(in_list, r, c);
 		G_set_c_null_value(loadp, 1);
@@ -125,8 +130,10 @@ int load_maps(int ele_fd, int acc_fd, int depr_fd)
 		if (acc_fd < 0)
 		    *accp = 1;
 		else {
-		    if (G_is_null_value(acc_ptr, acc_map_type))
+		    if (G_is_null_value(acc_ptr, acc_map_type)) {
+			/* can this be ok after weighing ? */
 			G_fatal_error(_("Accumulation map does not match elevation map!"));
+		    }
 
 		    switch (acc_map_type) {
 		    case CELL_TYPE:
