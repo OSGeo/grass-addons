@@ -1,4 +1,9 @@
+#include <grass/gis.h>
+#include <grass/vector.h>
+#include <grass/glocale.h>
+
 #include "local_proto.h"
+
 int process_coors(char **answers)
 {
 
