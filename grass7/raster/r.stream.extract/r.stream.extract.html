@@ -21,12 +21,15 @@ area of interest must be filled beforehand, e.g. with
 <em>elevation</em> must be exactly the same map used to calculate
 <em>accumulation</em>. If <em>accumulation</em> was calculated with
 <a href="r.terraflow.html">r.terraflow</a>, the filled elevation output
-of r.terraflow must be used. Further on, the current region's resolution
-should be identical to the <em>accumulation map</em>. Flow direction is
+of r.terraflow must be used. Further on, the current region should be 
+aligned to the <em>accumulation map</em>. Flow direction is
 first calculated from <em>elevation</em> and then adjusted to
 <em>accumulation</em>. It is not necessary to provide <em>accumulation</em>
 as the number of cells, it can also be the optionally adjusted or
 weighed total contributing area in square meters or any other unit. 
+When an original flow accumulation map is adjusted or weighed, the 
+adjustment or weighing should not convert valid accumulation values to 
+NULL (nodata) values.
 <p>
 <dt><em>depression</em> 
 <dd>Input map, optional: All non-NULL and non-zero cells will be regarded
@@ -129,6 +132,14 @@ determined from terrain morphology. Valleys can be determined with
 indicate concave features, i.e. valleys. The size of the processing
 window determines whether narrow or broad valleys will be identified
 (See example below).
+
+<h4>Defining a region of interest</h4>
+The stream extraction procedure can be restricted to a certain region of 
+interest, e.g. a subbasin, by setting the computational region with 
+<em>g.region</em> and/or creating a MASK. Such region of interest should 
+be a complete catchment area, complete in the sense that the complete 
+area upstream of an outlet point is included and buffered with at least 
+one cell.
 
 <h4>Stream output</h4>
 The <em>stream_rast</em> output raster and vector contains stream
