@@ -20,7 +20,7 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-extern struct snode *stream_node;
+struct snode *stream_node;
 int nrows, ncols;
 unsigned int n_search_points, n_points, nxt_avail_pt;
 unsigned int heap_size;
