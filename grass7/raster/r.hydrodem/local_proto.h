@@ -42,8 +42,9 @@ struct snode
     int n_alloc;          /* n allocated tributaries */
     int *trib;
     double *acc;
-} *stream_node;
+};
 
+extern struct snode *stream_node;
 extern int nrows, ncols;
 extern unsigned int n_search_points, n_points, nxt_avail_pt;
 extern unsigned int heap_size;
