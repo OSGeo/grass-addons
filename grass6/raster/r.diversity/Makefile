@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.diversity
+PGM = r.diversity.py
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
