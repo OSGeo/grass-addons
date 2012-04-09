@@ -208,7 +208,7 @@ def main():
         grass.run_command('r.to.vect', input = r_basin, 
                                        output = v_basins, 
                                        feature = 'area',
-                                       flags = 's',
+                                       flags = 'sv',
                                        overwrite = True)
                                        
         # Add two columns to the table: area and perimeter                               
