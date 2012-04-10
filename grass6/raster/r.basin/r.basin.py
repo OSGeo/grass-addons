@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-# MODULE:      r.basin.py
+# MODULE:      r.basin
 # AUTHOR(S):   Margherita Di Leo, Massimo Di Stefano
 # PURPOSE:     Morphometric characterization of river basins
 # COPYRIGHT:   (C) 2010 by Margherita Di Leo & Massimo Di Stefano
@@ -111,7 +111,6 @@ def main():
     r_outlet = prefix+'_r_outlet'
     v_outlet = prefix+'_outlet'
     v_basin = prefix+'_basin'
-    v_basins = prefix+'_basins'
     v_centroid1 = prefix+'_centroid1'
     v_mainchannel = prefix+'_mainchannel'
     v_mainchannel_dim = prefix+'_mainchannel_dim'
@@ -206,20 +205,20 @@ def main():
         # Basin mask (vector)
         # Raster to vector
         grass.run_command('r.to.vect', input = r_basin, 
-                                       output = v_basins, 
+                                       output = v_basin, 
                                        feature = 'area',
                                        flags = 'sv',
                                        overwrite = True)
                                        
         # Add two columns to the table: area and perimeter                               
-        grass.run_command('v.db.addcol', map = v_basins,
+        grass.run_command('v.db.addcol', map = v_basin,
                                          columns = 'area double precision')
                                          
-        grass.run_command('v.db.addcol', map = v_basins,
+        grass.run_command('v.db.addcol', map = v_basin,
                                          columns = 'perimeter double precision')
                      
         # Populate perimeter column                                 
-        grass.run_command('v.to.db', map = v_basins, 
+        grass.run_command('v.to.db', map = v_basin, 
                                  type = 'line,boundary', 
                                  layer = 1, 
                                  qlayer = 1, 
@@ -229,7 +228,7 @@ def main():
                                  overwrite = True)
                                  
         # Read perimeter
-        tmp = grass.read_command('v.to.db', map = v_basins, 
+        tmp = grass.read_command('v.to.db', map = v_basin, 
                                  type = 'line,boundary', 
                                  layer = 1, 
                                  qlayer = 1, 
@@ -240,7 +239,7 @@ def main():
         perimeter_basin = float(tmp.split('\n')[1].split('|')[1]) 
                                  
         # Populate area column                                 
-        grass.run_command('v.to.db', map = v_basins, 
+        grass.run_command('v.to.db', map = v_basin, 
                                  type = 'line,boundary', 
                                  layer = 1, 
                                  qlayer = 1, 
@@ -250,7 +249,7 @@ def main():
                                  overwrite = True)  
                                  
         # Read area
-        tmp = grass.read_command('v.to.db', map = v_basins, 
+        tmp = grass.read_command('v.to.db', map = v_basin, 
                                  type = 'line,boundary', 
                                  layer = 1, 
                                  qlayer = 1, 
@@ -258,13 +257,7 @@ def main():
                                  units = 'kilometers', 
                                  qcolumn = 'area',
                                  flags = 'p')                         
-        area_basin = float(tmp.split('\n')[1].split('|')[1])
-        
-        grass.run_command('v.extract', list = 1,
-                                       input = v_basins,
-                                       output = v_basin,
-                                       type = 'area',
-                                       overwrite = True)                     
+        area_basin = float(tmp.split('\n')[1].split('|')[1])                 
 
         # Creation of order maps: strahler, horton, hack, shreeve
         grass.message( "Creating %s" % r_hack ) 
@@ -470,7 +463,6 @@ def main():
                                                                map = r_average_hillslope).split('\n')[0].split('=')[1])
     
         # Magnitudo
-        grass.run_command('r.mapcalculator', amap = r_strahler , formula = 'if(%s==1,1,null())' % (r_strahler) , outfile = r_ord_1)
         grass.mapcalc("$r_ord_1 = if($r_strahler==1,1,null())",
                   r_ord_1 = r_ord_1,
                   r_strahler = r_strahler)
@@ -526,7 +518,6 @@ def main():
         grass.run_command('g.remove', vect = v_centroid1, quiet = True)
         grass.run_command('g.remove', vect = v_mainchannel_dim, quiet = True)
         grass.run_command('g.remove', vect = v_ord_1, quiet = True)
-        grass.run_command('g.remove', vect = v_basins, quiet = True)
     
         if nomap :
             grass.run_command('g.remove', vect = v_outlet, quiet = True)
