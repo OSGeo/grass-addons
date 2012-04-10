@@ -1,96 +1,59 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS: r.inund.fluv</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>r.inund.fluv</b></em> - Creates a fluvial inundation map given an high-resolution DTM and a water surface profile
-<h2>KEYWORDS</h2>
-Automatic procedure to compute a fluvial inundation map
-<h2>SYNOPSIS</h2>
-<b>r.inund.fluv</b><br>
-<b>r.inund.fluv help</b><br>
-<b>r.inund.fluv</b> <b>DTM</b>=<em>string</em> <b>W_S_PROFILE</b>=<em>string</em> <b>RIVER</b>=<em>string</em> <b>FLOODING_MAP</b>=<em>string</em>  [<b>DOUBT_MAP</b>=<em>string</em>]   [<b>PROFILE_T100</b>=<em>string</em>]   [<b>(null)</b>=<em>float</em>]   [<b>delta_x</b>=<em>float</em>]   [<b>river_boundary</b>=<em>string</em>]   [<b>boundary_type</b>=<em>string</em>]   [<b>res_B</b>=<em>integer</em>]   [<b>res_C</b>=<em>integer</em>]   [<b>MAP_W_S_PROFILE</b>=<em>string</em>]   [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
-
-<h3>Flags:</h3>
-<dl>
-<dt><b>--overwrite</b></dt>
-<dd>Allow output files to overwrite existing files</dd>
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-</dl>
-
-<h3>Parameters:</h3>
-<dl>
-<dt><b>DTM</b>=<em>string</em></dt>
-<dd>Input DTM raster map</dd>
-
-<dt><b>W_S_PROFILE</b>=<em>string</em></dt>
-<dd>Input ASCII file of the water surface profile</dd>
-
-<dt><b>RIVER</b>=<em>string</em></dt>
-<dd>Input vector line map of river-axis</dd>
-
-<dt><b>FLOODING_MAP</b>=<em>string</em></dt>
-<dd>Output: name of flooding map</dd>
-
-<dt><b>DOUBT_MAP</b>=<em>string</em></dt>
-<dd>Output: name of doubful surface areas</dd>
-
-<dt><b>PROFILE_BOUNDARY</b>=<em>string</em></dt>
-<dd>Input ASCII file with water-depht for return period T &gt; 100 years</dd>
-
-<dt><b>delta_z</b>=<em>float</em></dt>
-<dd>Input delta_z to find the boundaries of the main channel [default value 0.5 m]</dd>
-
-<dt><b>delta_x</b>=<em>float</em></dt>
-<dd>Input delta_x to find the boundaries of the main channel [default value 3.5 m]</dd>
-
-<dt><b>river_boundary</b>=<em>string</em></dt>
-<dd>Output vector boundaries of the main channel</dd>
-
-<dt><b>boundary_type</b>=<em>string</em></dt>
-<dd>Format of vector boundaries of the main channel</dd>
-<dd>Options: <em>line,points</em></dd>
-<dd>Default: <em>points</em></dd>
-
-<dt><b>res_B</b>=<em>integer</em></dt>
-<dd>Input value: resolution B [default value 10 m]</dd>
-
-<dt><b>res_C</b>=<em>integer</em></dt>
-<dd>Input value: resolution C [default value 20 m]</dd>
-
-<dt><b>MAP_W_S_PROFILE</b>=<em>string</em></dt>
-<dd>Output vector point map of the water surface profile</dd>
-
-</dl>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-</head>
-<body>
 <h2>DESCRIPTION</h2>
 
-
-<em><b>r.inund.fluv</b></em> - This command allows to obtain a fluvial potentially inundation map given a high-resolution DTM of the area surrounding the river and a water surface profile calculated through an 1-D hydrodinamic model.<br>
-
-The implemented procedure has innovating characteristics; even if it remains substantially one-dimensional, it takes into account the two-dimensionality of territory and inundation phenomena, adducing hypotheses that let to correct many errors typical of one-dimensional usually employed procedure. With respect to a two-dimensional model, it has advantage that it needs a lower computational effort, that allows to apply it to river reaches very long (of the order of 100km).<br>
-
-The single phases in  which the procedure is divided, are here summarized, even if the whole procedure is excecuted automatically. <br>
-
-- In the first phase, the value of water level in the nearest point of fluvial axis is assigned to each pixel of terrain, through the creation of Thiessen polygons (<em><a href="r.surf.idw.html">r.surf.idw</a></em> setting <em>npoints</em>=1) (at the resolution <em>res_B</em>). Then the procedure makes a comparison between elevation of each pixel and water level, and defines pixels characterized by elevation lower than water level, at hazard. <br>
-- In the second phase, the procedure removes all the areas previously defined at hazard but not connected with the river axis, i.e. surrounded by terrain not at hazard, neglecting infiltration or underground rivers (<em><a href="v.select.html">v.select</a></em>). <br>
-- In the third phase, the hypotesis is that water diffuses from river to the surrounding areas only in direction perpendicular to the river axis. Through an implemented fortran code (<em>clean_inundation.f90</em>), the procedure individuates the pixels, considered at hazard at the end of phase 2, inundated for sure by water; hence it dries the ones, considered at hazard at the end of phase 2, not reached by water because protected by levees or small hills posed along the perpedicular path between the pixel and the river axis (at the resolution <em>res_C</em>). <br>            
-- In the fourth phase, the hypothesis is that water, outside the main channel, moves along the maximum terrain slope direction. First, through an implemented fortran code (<em>find_main_channel.f90</em>), the procedure individuates the "boundaries" of the main channel. Then, through an implemented fortran code (<em>2d_path.f90</em>), the procedure individuates the water path outside the main channel along the maximum terrain slope direction (at the resolution <em>res_C</em>). Finally, through an implemented fortran code (<em>correction_from_path.f90</em>), the procedure individuates the pixels, dried at the end of phase 3, connected to a water path, and defines them at hazard (at the resolution <em>res_B</em>). <br>
-- In the fifth and last phase, the final potentially inundated map is defined as sum of areas at hazard in the third and fourth phases.
+<em><b>r.inund.fluv</b></em> - This command allows to obtain a 
+fluvial potentially inundation map given a high-resolution DTM of 
+the area surrounding the river and a water surface profile 
+calculated through an 1-D hydrodinamic model.
+<br>The implemented 
+procedure has innovating characteristics; even if it remains 
+substantially one-dimensional, it takes into account the 
+two-dimensionality of territory and inundation phenomena, adducing 
+hypotheses that let to correct many errors typical of 
+one-dimensional usually employed procedure. With respect to a 
+two-dimensional model, it has advantage that it needs a lower 
+computational effort, that allows to apply it to river reaches very 
+long (of the order of 100km).
+<br>  The single phases in  which the 
+procedure is divided, are here summarized, even if the whole 
+procedure is excecuted automatically.
+<br>  - In the first phase, 
+the value of water level in the nearest point of fluvial axis is 
+assigned to each pixel of terrain, through the creation of Thiessen 
+polygons (<em><a href="r.surf.idw.html">r.surf.idw</a></em> setting 
+<em>npoints</em>=1) (at the resolution <em>res_B</em>). Then the 
+procedure makes a comparison between elevation of each pixel and 
+water level, and defines pixels characterized by elevation lower 
+than water level, at hazard.
+<br> - In the second phase, the 
+procedure removes all the areas previously defined at hazard but not 
+connected with the river axis, i.e. surrounded by terrain not at 
+hazard, neglecting infiltration or underground rivers (<em><a href=
+"v.select.html">v.select</a></em>).
+<br> - In the third phase, the 
+hypotesis is that water diffuses from river to the surrounding areas 
+only in direction perpendicular to the river axis. Through an 
+implemented fortran code (<em>clean_inundation.f90</em>), the 
+procedure individuates the pixels, considered at hazard at the end 
+of phase 2, inundated for sure by water; hence it dries the ones, 
+considered at hazard at the end of phase 2, not reached by water 
+because protected by levees or small hills posed along the 
+perpedicular path between the pixel and the river axis (at the 
+resolution <em>res_C</em>).
+<br> - In the fourth phase, the 
+hypothesis is that water, outside the main channel, moves along the 
+maximum terrain slope direction. First, through an implemented 
+fortran code (<em>find_main_channel.f90</em>), the procedure 
+individuates the "boundaries" of the main channel. Then, through an 
+implemented fortran code (<em>2d_path.f90</em>), the procedure 
+individuates the water path outside the main channel along the 
+maximum terrain slope direction (at the resolution <em>res_C</em>). 
+Finally, through an implemented fortran code (<em>
+correction_from_path.f90</em>), the procedure individuates the 
+pixels, dried at the end of phase 3, connected to a water path, and 
+defines them at hazard (at the resolution <em>res_B</em>).
+<br> - In 
+the fifth and last phase, the final potentially inundated map is 
+defined as sum of areas at hazard in the third and fourth phases.
 <br>
 <br>
 <em><b><font size = "5">Use</b></em></font size = "5">
@@ -129,9 +92,6 @@ The command has some input parameters that the user can choose in the <em>Option
 5b - 6b - The procedure performs some calculations using resolution different from the DTM one. The default values of 10 and 20 meters, used in different steps of the procedure, are a compromise between computational speed and consistency of output map. It's suggested that only the expert user modifies such values.
 <br>
 7b - The user can view a vector point map of the water surface profile along the river axis. 
-<br>
-<br>
-<em>(GRASS Shell Script)</em>
 
 
 <h2>AUTHORS</h2>
@@ -142,8 +102,9 @@ Domenico Sguerso, University of Genoa, Italy <a href="mailto:domenico.sguerso@un
 <h2>REFERENCES</h2>
 - Federici B. & Sguerso D. (2007). Procedura automatica per la creazione di mappe di potenziale inondazione fluviale. Bollettino SIFET, n. 4. <br>
 - Marzocchi R., Federici B., Sguerso D. (2008). Procedura automatica per la creazione di mappe di potenziale inondazione fluviale in GRASS: il modulo r.inund.fluv. Under revision for the pubblication on Atti del IX Meeting degli Utenti Italiani di GRASS - GFOSS. <br>
-- Pdf presentation of the work at the "IX Meeting degli Utenti Italiani di GRASS - GFOSS": <a href="http://www.grassmeeting2008.unipg.it/?q=node/9/"> web-page </a></em> <br>
+- Pdf presentation of the work at the "IX Meeting degli Utenti Italiani di GRASS - GFOSS": 
+<a href="http://www.grassmeeting2008.unipg.it/?q=node/9/"> web-page </a></em>
 
-<p><i> Last changed: $1 July 2008 17:10:00 CET $</i></p>
-</body>
-</html>
+<p>
+<i>Last changed: $Date$</i>
+
