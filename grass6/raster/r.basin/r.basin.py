@@ -330,10 +330,6 @@ def main():
                                                                  overwrite = True)
         baricenter_slope_baricenter = baricenter_slope_baricenter.split()
         mean_slope = baricenter_slope_baricenter[28]
-        baricenter_aspect_baricenter = grass.read_command('r.volume', data = r_aspect, 
-                                                                  clump = r_basin )
-        baricenter_aspect_baricenter = baricenter_aspect_baricenter.split()
-        basin_average_aspect = baricenter_aspect_baricenter[28]
     
         # Rectangle containing basin
         basin_east = baricenter_slope_baricenter[31]
@@ -539,7 +535,6 @@ def main():
         parametri_bacino = {}
         parametri_bacino["mean_slope"] = float(mean_slope)
         parametri_bacino["mean_elev"] = float(mean_elev)
-        parametri_bacino["basin_average_aspect"] = float(basin_average_aspect)
         parametri_bacino["basin_east"] = float(basin_east)
         parametri_bacino["basin_north"] = float(basin_north)
         parametri_bacino["basin_resolution"] = float(basin_resolution)
