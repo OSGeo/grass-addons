@@ -143,13 +143,16 @@ def main():
     if flags['d']:
         grass.debug("Using own driver")
         from wms_drv import WMSDrv
-        wms = WMSDrv(options, flags)
+        wms = WMSDrv()
     else:
         grass.debug("Using GDAL WMS driver")
         from wms_gdal_drv import WMSGdalDrv
-        wms = WMSGdalDrv(options, flags)
-
-
+        wms = WMSGdalDrv()
+    
+    if flags['c']:
+        wms.GetCapabilities(options)
+    else:
+        wms.GetMap(options, flags)  
     
     return 0
 

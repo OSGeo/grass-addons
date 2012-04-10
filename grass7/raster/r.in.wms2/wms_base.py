@@ -7,32 +7,15 @@ from urllib2 import urlopen, HTTPError, URLError
 import grass.script as grass
 
 class WMSBase:
-    def __init__(self, options, flags):
+    def __init__(self):
         # these variables are information for destructor
         self.temp_files_to_cleanup = []
-        self.cleanup_mask = False
+        self.cleanup_mask   = False
         self.cleanup_layers = False
         
         self.bbox     = None
         self.temp_map = None
         
-        if flags['c']:
-            self._getCapabilities(options)
-        else:
-            self._getMap(options, flags)  
-
-    def _getMap(self, options, flags):
-        """!Download data from WMS server and import data
-        (using GDAL library) into GRASS as a raster map."""
-
-        self._initializeParameters(options, flags)  
-
-        self.bbox     = self._computeBbox()
-        
-        self.temp_map = self._download()  
-        
-        self._createOutputMap() 
-    
     def __del__(self):
         # removes temporary mask, used for import transparent or warped temp_map
         if self.cleanup_mask:
@@ -185,8 +168,20 @@ class WMSBase:
         self.gdal_drv_format = "GTiff"
         
         self._debug("_initialize_parameters", "finished")
+
+    def GetMap(self, options, flags):
+        """!Download data from WMS server and import data
+        (using GDAL library) into GRASS as a raster map."""
+
+        self._initializeParameters(options, flags)  
+
+        self.bbox     = self._computeBbox()
         
-    def _getCapabilities(self, options): 
+        self.temp_map = self._download()  
+        
+        self._createOutputMap() 
+    
+    def GetCapabilities(self, options): 
         """!Get capabilities from WMS server
         """
         # download capabilities file
