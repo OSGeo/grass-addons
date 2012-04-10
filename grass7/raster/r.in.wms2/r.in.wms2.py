@@ -135,7 +135,9 @@ This program is free software under the GNU General Public License
 #% description: Do not use GDAL WMS driver
 #%end
 
+import os
 import sys
+sys.path.insert(1, os.path.join('..', 'etc', 'r.in.wms2'))
 
 import grass.script as grass
 
