@@ -24,7 +24,6 @@ This program is free software under the GNU General Public License
 #% type: string
 #% description:URL of WMS server 
 #% required: yes
-#% answer: http://wms.cuzk.cz/wms.asp
 #%end
 
 #%option
@@ -33,7 +32,6 @@ This program is free software under the GNU General Public License
 #% description: Layers to request from map server
 #% multiple: yes
 #% required: yes
-#% answer: prehledka_kraju-linie
 #%end
 
 #%option G_OPT_R_OUTPUT
@@ -44,7 +42,6 @@ This program is free software under the GNU General Public License
 #% key: srs
 #% type: integer
 #% description: EPSG number of source projection for request 
-#% answer:4326
 #% guisection: Request properties
 #%end
 
