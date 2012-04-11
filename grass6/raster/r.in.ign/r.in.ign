@@ -1,0 +1,211 @@
+#!/bin/bash
+#
+################################################################################
+#
+# MODULE:		r.in.ign
+# AUTHOR(S):		Vincent Bain
+# PURPOSE:		Retrieve wms-c channel from IGN, see http://api.ign.fr
+#			Developed for internal use
+# COPYRIGHT:		(C) 2012 by the GRASS Development Team and Toraval-Vincent Bain
+#			This program is free software under the GNU General
+#			Public License (>=v2). Read the file COPYING that comes
+#			with GRASS for details.
+#
+# VERSION:		1.0
+#			Currently only works on orthoimagery layers within
+#			french metropole (geoportalfxx projection) at scale
+#			1/2000 i.e. res=0.5 m
+#			
+################################################################################
+
+
+#%Module
+#% description: this module imports raster data from IGN wms-c server. Available layers comply with the INSPIRE directive. For more information see http://inspire.ign.fr/, http://api.ign.fr and http://inspire.jrc.ec.europa.eu/
+#% keywords: raster, import, wms, ign
+#%End
+
+#%flag
+#% key: c
+#% description: output a RGB raster rather than 3 separate-band rasters
+#%end
+
+#%option
+#% key: output
+#% type: string
+#% gisprompt: new,cell,raster
+#% description: raster map to import
+#% required : yes
+#%end
+
+#---------------------------------------------
+# Get environnment
+if  test "$GISBASE" = ""; then
+	echo "You must be in GRASS GIS to run this program." 1>&2
+	exit 1
+fi
+
+GIS_DBASE=`g.gisenv get=GISDBASE`
+GIS_LOCATION_NAME=`g.gisenv get=LOCATION_NAME`
+GIS_MAPSET=`g.gisenv get=MAPSET`
+GIS_MAP_PATH="${GIS_DBASE}/${GIS_LOCATION_NAME}/${GIS_MAPSET}"
+
+#---------------------------------------------
+
+#---------------------------------------------
+# Check for GDAL Tools
+
+if [ ! -x "`which gdalwarp`" ] ; then
+	g.message -e "gdalwarp required, please install GDAL Tools first"
+	exit 1
+fi
+if [ ! -x "`which gdal_translate`" ] ; then
+	g.message -e "gdal_translate required, please install GDAL Tools first"
+	exit 1
+fi
+if [ ! -x "`which gcps2wld.py`" ] ; then
+	g.message -e "gcps2wld required, please install GDAL Tools first"
+	exit 1
+fi
+
+#---------------------------------------------
+
+#---------------------------------------------
+# Check for maptools
+if [ ! -x "`which cs2cs`" ] ; then
+	g.message -e "cs2cs required, install Maptools first"
+	exit 1
+fi
+#---------------------------------------------
+
+#---------------------------------------------
+# Check for awk
+
+if ! echo test | awk '{print $0}' > /dev/null 2>&1; then
+	g.message -e "`basename $0`: awk required, please install awk/gawk first" 1>&2
+	exit 1
+fi
+
+#---------------------------------------------
+
+#---------------------------------------------
+# save command line
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+    CMDLINE=`basename "$0"`
+    for arg in "$@" ; do
+        CMDLINE="$CMDLINE \"$arg\""
+    done
+    export CMDLINE
+	exec g.parser "$0" "$@"
+fi
+#---------------------------------------------
+
+#---------------------------------------------
+# Functions handling user break
+Cleanup()
+{
+	# cleaning temporary directory
+	if [ -d "$GIS_MAP_PATH/.tmp/inspire" ]; then
+		rm -r "$GIS_MAP_PATH"/.tmp/inspire/
+	fi
+}
+
+Cleanexit()
+{
+	g.message -w "User break !"
+	Cleanup
+	exit 1
+}
+trap "Cleanexit" 2 3 15
+#---------------------------------------------
+
+
+
+#---------------------------------------------
+# Setting up various variables 
+
+# s_srs to match current location proj
+curproj=`eval g.proj -jf`
+
+# working directory
+if [ ! -d "$GIS_MAP_PATH/.tmp/inspire" ] ; then
+	mkdir "$GIS_MAP_PATH/.tmp/inspire"
+fi
+
+# step parameter, corresponds to tiles dimensions : should be adjustable to region extent in a future release, so one can choose between available resolutions in the server's pyramids.
+pas=128
+
+# translating region extents in the correct projection
+eval `g.region -g`
+wfxx=`echo "$w $s" | cs2cs $curproj +to +init=IGNF:GEOPORTALFXX | awk -F" " '{print $1}'`
+sfxx=`echo "$w $s" | cs2cs $curproj +to +init=IGNF:GEOPORTALFXX | awk -F" " '{print $2}'`
+efxx=`echo "$e $n" | cs2cs $curproj +to +init=IGNF:GEOPORTALFXX | awk -F" " '{print $1}'`
+nfxx=`echo "$e $n" | cs2cs $curproj +to +init=IGNF:GEOPORTALFXX | awk -F" " '{print $2}'`
+wfxx=`echo "${wfxx/.*/}"`		# bail out decimal part, for bash arythmetic...
+sfxx=`echo "${sfxx/.*/}"`
+efxx=`echo "${efxx/.*/}"`
+nfxx=`echo "${nfxx/.*/}"`
+coli=$(( wfxx / pas ))		# returns integer part, actually what we need
+xi=$(( coli * pas ))
+rowi=$(( sfxx / pas ))
+yi=$(( rowi * pas ))
+colf=$(( efxx / pas ))
+rowf=$(( nfxx / pas ))
+iterx=$(( colf - coli ))
+itery=$(( rowf - rowi ))
+#---------------------------------------------
+
+#---------------------------------------------	
+# loop downloading tiles
+for i in `seq 0 "$iterx"`; do
+	xk1=$(( xi + i * pas ))
+	for j in `seq 0 "$itery"`; do
+		yk1=$(( yi + j * pas ))
+		xk2=$(( xk1 + pas ))
+		yk2=$(( yk1 + pas ))
+		# in the next request, LAYERS parameter is set to orthoimagery. Should be adjustable in a future release
+		wget "http://127.0.0.1:10001/wmsc?LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=IGNF:GEOPORTALFXX&BBOX=$xk1,$yk1,$xk2,$yk2&WIDTH=256&HEIGHT=256&TILED=true" -O "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
+		# georeferencing tile
+		gdal_translate -gcp 0 0 "$xk1" "$yk2" -gcp 256 256 "$xk2" "$yk1" -gcp 256 0 "$xk2" "$yk2" "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif
+		gcps2wld.py "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif>"$GIS_MAP_PATH"/.tmp/inspire/insp$i$j.tfw
+		gdal_translate -of GTiff -a_srs +init=IGNF:GEOPORTALFXX "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif "$GIS_MAP_PATH"/.tmp/inspire/inspr"$i$j".tif
+		# cleaning up temp files
+		rm "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
+		rm "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif
+		rm "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tfw
+		((j++))
+	done
+	((i++))
+done
+#---------------------------------------------
+
+#---------------------------------------------	
+# assembling tiles into a single image
+gdal_merge.py -o "$GIS_MAP_PATH"/.tmp/inspire/inspirefxx.tif "$GIS_MAP_PATH"/.tmp/inspire/inspr*.tif
+#---------------------------------------------
+
+#---------------------------------------------	
+# projecting the image in t_srs=curproj
+gdalwarp -s_srs "+init=IGNF:GEOPORTALFXX" -t_srs "$curproj" -rc -tr 0.5 0.5 -co "INTERLEAVE=PIXEL" -dstnodata 255 -dstalpha "$GIS_MAP_PATH"/.tmp/inspire/inspirefxx.tif "$GIS_MAP_PATH"/.tmp/inspire/inspire.tif
+#---------------------------------------------
+
+#---------------------------------------------	
+# retrieving the latter as a GRASS raster map
+r.in.gdal input="$GIS_MAP_PATH"/.tmp/inspire/inspire.tif output="$GIS_OPT_OUTPUT"
+#---------------------------------------------	
+
+#---------------------------------------------	
+# optionnally make a composite rgb raster
+if [ "$GIS_FLAG_C" -eq 1 ] ; then
+	r.composite output="$GIS_OPT_OUTPUT" red="$GIS_OPT_OUTPUT".red green="$GIS_OPT_OUTPUT".green blue="$GIS_OPT_OUTPUT".blue
+	g.mremove -f rast="$GIS_OPT_OUTPUT".red,"$GIS_OPT_OUTPUT".green,"$GIS_OPT_OUTPUT".blue,"$GIS_OPT_OUTPUT".alpha
+	# write support data
+	r.support map="$GIS_OPT_OUTPUT" title="orthoimagery extracted from ign wms service"
+	r.support map="$GIS_OPT_OUTPUT" history="${CMDLINE}"
+
+fi
+
+g.message "Done."
+#---------------------------------------------	
+
+Cleanup
+exit 0

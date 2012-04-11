@@ -1,0 +1,26 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.in.ign</em> imports raster data from <a href="http://api.ign.fr">IGN WMS-C stream service</A>. Available layers comply with the <a href="http://inspire.jrc.ec.europa.eu">INSPIRE directive</A>.<br>For more information see <a href="http://inspire.ign.fr">http://inspire.ign.fr</A>.
+
+<h2>NOTES</h2>
+<p><em>r.in.ign</em> lets you query a dataset via a contract. Beware the conditions that come with it and terms of use that apply to data.</p><p>It is yet a very rough module: right now it only works on the orthoimagery layer, at the finest scale (1/2000 i.e. resolution=0.5 m), and for data over french metropole only (i.e. data in GEOPORTALFXX coordinate system) -- all this being easily adaptable to one's personnal needs.</p><p>
+Connecting to the WMS-C streams of Géoportail is not straight, in cause a restricted access protected by a GeoDRM process. The module works behind a proxy configured with a personal apiKey that comes with your contract. See practical details concerning registration on the <a href="http://api.ign.fr/geoportail/api/doc/index.html">official website</A>.
+</p>
+
+
+<h2>EXAMPLE</h2>
+
+This command imports orthoimagery from IGN wms-c server to the raster map <em>orthoign</em>:
+<p><tt> 
+r.in.ign -c output=orthoign
+</tt></p>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="http://grass.osgeo.org/grass64/manuals/html64_user/r.in.wms.html">r.in.wms</a></em>
+
+<h2>AUTHOR</h2>
+
+Vincent Bain, Toraval, France
+
+<p><i>Last changed: $Date$</i>
