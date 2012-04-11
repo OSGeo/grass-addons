@@ -24,71 +24,10 @@ capabilities request to NASA's OnEarth server</a>.
 
 <h3>General Get Capabilities Request</h3>
 
-A capabilities request like
-<a href="http://wms.jpl.nasa.gov/wms.cgi?request=GetCapabilities">http://wms.jpl.nasa.gov/wms.cgi?request=GetCapabilities</a>
-is where you should start. It tells you what data is offered, the projections
-it is in,  where to find meta data, resolutions, scales, and bounds for
-data, etc.
-
-E.g. lists the layers available from the NASA OnEarth server.
-
 <div class="code"><pre>
-r.in.wms2 mapserver=http://wms.jpl.nasa.gov/wms.cgi -l
+r.in.wms2 -c mapserver=http://wms.cuzk.cz/wms.asp
 </pre></div>
 
-<h3>US NED Elevation from OnEarth server download (metric units)</h3>
-
-Set the resolution to 30 (assuming you're in metric units):
-<div class="code"><pre>
-g.region res=30 -ap
-r.in.wms2 output=elevation_meters mapserver=http://wms.jpl.nasa.gov/wms.cgi \
-         layers=us_ned styles=real
-</pre></div>
-
-<h3>US NED Elevation from OnEarth server download (feet units)</h3>
-
-Set the resolution to 90 (assuming you're in feet units) a save this
-region with a name; this makes resuming downloads possible or rather
-easier:
-
-<div class="code"><pre>
-g.region res=90 -ap
-g.region save=panhandle-90ft
-
-r.in.wms2 output=elevation_feet mapserver=http://wms.jpl.nasa.gov/wms.cgi \
-         layers=us_ned styles=feet_real region=panhandle-90ft
-</pre></div>
-
-Downloads real number feet elevation from OnEarth to cover the current
-region. 
-
-<h3>LANDSAT from OnEarth server download</h3>
-
-Set the resolution to 30 meters for LANDSAT:
-<div class="code"><pre>
-g.region res=30 -ap
-r.in.wms2 layers=global_mosaic mapserver=http://wms.jpl.nasa.gov/wms.cgi \
-         output=wms_global_mosaic
-</pre></div>
-Downloads LANDSAT color scene.
-
-
-<h3>DRG from Terraserver server download</h3>
-
-Set the resolution to 1.2 meters for DRGs. Their native resolution is
-2.4 meters, so this is some pretty hefty oversampling:
-
-<div class="code"><pre>
-g.region res=1.2 -ap
-g.region save=drg-resolution
-
-r.in.wms2 output=terraserver-drg mapserver=http://terraserver.microsoft.com/ogcmap6.ashx \
-         layers=DRG region=drg-resolution format=jpeg srs=EPSG:26910
-</pre></div>
-
-Downloads digital raster graphics from Microsoft TerraServer. Note that
-srs will need to be changed to a projection that is appropriate for your
-region.
 
 <h3>CUZK download</h3>
 
