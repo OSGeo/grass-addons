@@ -65,10 +65,10 @@ class WMSBase:
         
         # inicialization of module parameters (options, flags)
         self.flags = flags 
-        if self.flags['t']:
-            self.transparent = 'TRUE'
+        if self.flags['o']:
+            self.transparent = 'FALSE'
         else:
-            self.transparent = 'FALSE'   
+            self.transparent = 'TRUE'   
         
         self.o_mapserver_url = options['mapserver'].strip() + "?" 
         self.o_layers = options['layers'].strip()
@@ -99,12 +99,12 @@ class WMSBase:
             self.mime_format = "image/png"
         elif self.o_format == "jpeg":
             self.mime_format = "image/jpeg"
-            if flags['t']:
+            if flags['o']:
                 grass.warning(_("JPEG format does not support transparency"))
         elif self.o_format == "gif":
             self.mime_format = "image/gif"
         else:
-            grass.fatal(_("Unsupported image format %s") % self.o_format)
+            self.mime_format = self.o_format
         
         self.o_srs = int(options['srs'])
         if self.o_srs <= 0:

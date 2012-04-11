@@ -118,8 +118,8 @@ This program is free software under the GNU General Public License
 #%end
 
 #%flag
-#% key: t
-#% description: Transparent background
+#% key: o
+#% description: Don't request transparent data
 #% guisection: Map style
 #%end
 
