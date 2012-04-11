@@ -1,0 +1,39 @@
+<h2>NOTES</h2>
+
+<em>r.in.ign</em> lets you query a dataset via a contract. Beware the
+conditions that come with it and terms of use that apply to data.
+
+<p>It is yet a very rough module: right now it only works on the
+orthoimagery layer, at the finest scale (1/2000 i.e. resolution=0.5
+m), and for data over french metropole only (i.e. data in GEOPORTALFXX
+coordinate system) - all this being easily adaptable to one's
+personnal needs.
+
+<p>Connecting to the WMS-C streams of Géoportail is not straight, in
+cause a restricted access protected by a GeoDRM process. The module
+handles token request according to a personal apiKey that comes with
+your contract. See practical details concerning registration on
+the <a href="http://api.ign.fr/geoportail/api/doc/index.html">official
+website</a>.
+
+<h2>EXAMPLE</h2>
+
+This command imports orthoimagery from IGN wms-c server, with apiKey
+XXX, to the raster map <em>orthoign</em>:
+
+<div class="code"><pre>
+r.in.ign -c apikey=XXX output=orthoign
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+  <a href="r.in.wms.html">r.in.wms</a>
+</em>
+
+<h2>AUTHOR</h2>
+
+Vincent Bain, Toraval, France
+
+<p>
+<i>Last changed: $Date$</i>
