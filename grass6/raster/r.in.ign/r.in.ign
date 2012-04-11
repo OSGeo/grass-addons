@@ -30,6 +30,13 @@
 #%end
 
 #%option
+#% key:apikey
+#% type: string
+#% description: personal apiKey
+#% required : yes
+#%end
+
+#%option
 #% key: output
 #% type: string
 #% gisprompt: new,cell,raster
@@ -107,6 +114,10 @@ Cleanup()
 	if [ -d "$GIS_MAP_PATH/.tmp/inspire" ]; then
 		rm -r "$GIS_MAP_PATH"/.tmp/inspire/
 	fi
+	# release token if exists
+	if [ "$token" ]; then
+		wget -q "http://jeton-api.ign.fr/releaseToken?gppkey=$token" -O -
+	fi
 }
 
 Cleanexit()
@@ -155,6 +166,12 @@ itery=$(( rowf - rowi ))
 #---------------------------------------------
 
 #---------------------------------------------	
+# requesting a token for the user's personal apiKey 
+token=`wget -q "http://jeton-api.ign.fr/getToken?key=${GIS_OPT_APIKEY}&output=raw" -O -`
+
+#---------------------------------------------	
+
+#---------------------------------------------	
 # loop downloading tiles
 for i in `seq 0 "$iterx"`; do
 	xk1=$(( xi + i * pas ))
@@ -163,7 +180,8 @@ for i in `seq 0 "$iterx"`; do
 		xk2=$(( xk1 + pas ))
 		yk2=$(( yk1 + pas ))
 		# in the next request, LAYERS parameter is set to orthoimagery. Should be adjustable in a future release
-		wget "http://127.0.0.1:10001/wmsc?LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=IGNF:GEOPORTALFXX&BBOX=$xk1,$yk1,$xk2,$yk2&WIDTH=256&HEIGHT=256&TILED=true" -O "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
+		#wget "http://127.0.0.1:10001/wmsc?LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=IGNF:GEOPORTALFXX&BBOX=$xk1,$yk1,$xk2,$yk2&WIDTH=256&HEIGHT=256&TILED=true" -O "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
+		wget -q "http://wxs.ign.fr/inspire/wmsc?gppkey=$token&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=IGNF:GEOPORTALFXX&BBOX=$xk1,$yk1,$xk2,$yk2&WIDTH=256&HEIGHT=256&TILED=true" -O "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
 		# georeferencing tile
 		gdal_translate -gcp 0 0 "$xk1" "$yk2" -gcp 256 256 "$xk2" "$yk1" -gcp 256 0 "$xk2" "$yk2" "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif
 		gcps2wld.py "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif>"$GIS_MAP_PATH"/.tmp/inspire/insp$i$j.tfw
