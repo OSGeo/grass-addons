@@ -180,6 +180,7 @@ for i in `seq 0 "$iterx"`; do
 		xk2=$(( xk1 + pas ))
 		yk2=$(( yk1 + pas ))
 		# in the next request, LAYERS parameter is set to orthoimagery. Should be adjustable in a future release
+		# th first release connected the server through a wrapper. Now the module gets a token by itself, demanding the user his apiKey.
 		#wget "http://127.0.0.1:10001/wmsc?LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=IGNF:GEOPORTALFXX&BBOX=$xk1,$yk1,$xk2,$yk2&WIDTH=256&HEIGHT=256&TILED=true" -O "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
 		wget -q "http://wxs.ign.fr/inspire/wmsc?gppkey=$token&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=IGNF:GEOPORTALFXX&BBOX=$xk1,$yk1,$xk2,$yk2&WIDTH=256&HEIGHT=256&TILED=true" -O "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
 		# georeferencing tile
