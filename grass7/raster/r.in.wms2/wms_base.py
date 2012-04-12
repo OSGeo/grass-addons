@@ -185,7 +185,7 @@ class WMSBase:
         """!Get capabilities from WMS server
         """
         # download capabilities file
-        cap_url = options['mapserver'] + "service=WMS&request=GetCapabilities&version=" + options['wms_version'] 
+        cap_url = options['mapserver'] + "?service=WMS&request=GetCapabilities&version=" + options['wms_version'] 
         try:
             cap = urlopen(cap_url)
         except IOError:
