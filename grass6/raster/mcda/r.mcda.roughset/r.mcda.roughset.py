@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 ############################################################################
 #
 # MODULE:       r.mcda.roughset
@@ -523,9 +523,9 @@ def Parser_mapcalc(RULES, outputMap):
         i+=1
     mapstring=",".join(maps)
     
-    print maps
+    print mapstring
      
-    for m in maps:
+    for m in mapstring:
         grass.run_command("r.to.vect", overwrite='True', flags='s', input=m, output=m, feature='area')
         grass.run_command("v.db.addcol", map=m, columns='rule varchar(25)')
         grass.run_command("v.db.update", map=m, column='rule', value=m)
