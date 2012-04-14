@@ -522,17 +522,16 @@ def Parser_mapcalc(RULES, outputMap):
         grass.mapcalc(mappa +"=" +formula)
         i+=1
     mapstring=",".join(maps)
-    
-    print mapstring
      
-    for m in mapstring:
+    for m in maps:
+	print "mappa:", m
         grass.run_command("r.to.vect", overwrite='True', flags='s', input=m, output=m, feature='area')
         grass.run_command("v.db.addcol", map=m, columns='rule varchar(25)')
         grass.run_command("v.db.update", map=m, column='rule', value=m)
     grass.run_command("v.patch", overwrite='True', flags='e', input=mapstring, output=outputMap)
     
     grass.run_command("g.remove",  rast=mapstring)
-    grass.run_command("g.remove",  vect=mapstring)
+    #grass.run_command("g.remove",  vect=mapstring)
 
 
     return 0
