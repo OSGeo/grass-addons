@@ -57,6 +57,10 @@
 #% answer:infosys
 #% required: yes
 #%end
+#%flag
+#% key: l
+#% description: do not remove single rules in vector format
+#%end
 
 import sys
 import copy
@@ -528,10 +532,12 @@ def Parser_mapcalc(RULES, outputMap):
         grass.run_command("r.to.vect", overwrite='True', flags='s', input=m, output=m, feature='area')
         grass.run_command("v.db.addcol", map=m, columns='rule varchar(25)')
         grass.run_command("v.db.update", map=m, column='rule', value=m)
+	grass.run_command("v.db.update", map=m, column='label', value=" ".join(m.split('_')[1:]))
     grass.run_command("v.patch", overwrite='True', flags='e', input=mapstring, output=outputMap)
     
     grass.run_command("g.remove",  rast=mapstring)
-    #grass.run_command("g.remove",  vect=mapstring)
+    if not flags['l']:
+    	grass.run_command("g.remove",  vect=mapstring)
 
 
     return 0
@@ -548,7 +554,6 @@ def main():
         outputMap= options['outputMap']
         outputTxt= options['outputTxt']
         out=BuildFileISF(attributes, preferences, decision, outputMap, outputTxt)
-        
         infosystem=FileToInfoSystem(out)
         
         UnionOfClasses(infosystem)
