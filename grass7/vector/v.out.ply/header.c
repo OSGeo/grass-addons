@@ -29,7 +29,7 @@ void write_ply_header(FILE *fp, const struct Map_info *Map,
 
     fprintf(fp, "ply\n");
     fprintf(fp, "format ascii 1.0\n");
-    fprintf(fp, "comment GRASS generated\n");
+    fprintf(fp, "comment GRASS GIS generated\n");
     fprintf(fp, "element vertex %d\n", n_vertices);
     fprintf(fp, "property %s x\n", dbltype);
     fprintf(fp, "property %s y\n", dbltype);
