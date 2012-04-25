@@ -1,4 +1,10 @@
-MODULE_TOPDIR =.. /..PGM = r.vol.dem LIBES = $(GISLIB) $(DATETIMELIB)
-EXTRA_CFLAGS = -I.. /.. / include include $(MODULE_TOPDIR) / include / Make / Module.make default:
+MODULE_TOPDIR = ../..
 
-cmd
+PGM = r.vol.dem
+
+LIBES = $(RASTERLIB) $(GISLIB)
+DEPENDENCIES = $(RASTERDEP) $(GISDEP)
+
+include $(MODULE_TOPDIR)/include/Make/Module.make
+
+default: cmd
