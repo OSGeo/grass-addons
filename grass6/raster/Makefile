@@ -63,6 +63,7 @@ SUBDIRS = \
 	r.univar.zonal \
 	r.unpack \
 	r.viewshed \
+	r.vol.dem \
 	r.wf \
 	r.xtent
 
