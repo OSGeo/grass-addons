@@ -1157,6 +1157,7 @@ int main(int argc, char *argv[])
     /* DEFINE OPTIONS AND FLAGS */
     /* input raster map */
     parm.maps = G_define_standard_option(G_OPT_R_MAPS);
+    parm.maps->key = "input";
     parm.maps->description =
 	"Input DEMs (at least 2) in raster format. Bottom DEM first";
     parm.maps->multiple = YES;
