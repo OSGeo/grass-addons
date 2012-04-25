@@ -1166,10 +1166,9 @@ int main(int argc, char *argv[])
     char sys[2048];
 
     module = G_define_module();
+    module->keywords = _("raster, volume, conversion");
     module->description =
 	"Creates a 3D raster model (voxels) from a series of raster DEMs";
-    /* do not pause after a warning message was displayed */
-    G_sleep_on_error(0);
 
     /* DEFINE OPTIONS AND FLAGS */
     /* input raster map */
