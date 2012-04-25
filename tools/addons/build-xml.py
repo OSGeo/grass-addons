@@ -6,7 +6,7 @@ import glob
 
 def get_list(addons):
     mlist = os.listdir(os.path.join(addons))
-    for f in ('log', 'modules.xml'):
+    for f in ('logs', 'modules.xml'):
         mlist.remove(f)
     mlist.sort()
     return mlist
