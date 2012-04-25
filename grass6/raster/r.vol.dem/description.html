@@ -73,7 +73,8 @@ The <em>-p</em> flag exports VTK point data instead of cell data: This
 option reflects the fact that the visualisation program ParaView which
 treats cell data and point data differently in comparison to the program
 GRASS GIS. Hence, if one wants to visualise GRASS voxel in ParaView, this
-flag is recommended.
+flag is recommended. The VTK floating point precision is 1/1000 of the
+current GRASS location's map unit.
 <p>
 The <em>-q</em> flag disables on-screen progress display:
 This option does not yet work. 

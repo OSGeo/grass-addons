@@ -1115,12 +1115,12 @@ void output_vtk()
 		    parm.output->answer);
 
 	if (flag.points->answer) {
-	    sprintf(sys, "r3.out.vtk -p in=%s out=%s.vtk null=%f",
+	    sprintf(sys, "r3.out.vtk -p in=%s out=%s.vtk null=%f dp=3",
 		    parm.output->answer, parm.output->answer, DNULLVALUE);
 
 	}
 	else {
-	    sprintf(sys, "r3.out.vtk in=%s out=%s.vtk null=%f",
+	    sprintf(sys, "r3.out.vtk in=%s out=%s.vtk null=%f dp=3",
 		    parm.output->answer, parm.output->answer, DNULLVALUE);
 	}
 	if (DEBUG > 0) {
