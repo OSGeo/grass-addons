@@ -1157,20 +1157,12 @@ int main(int argc, char *argv[])
     /* DEFINE OPTIONS AND FLAGS */
     /* input raster map */
     parm.maps = G_define_standard_option(G_OPT_R_MAPS);
-    parm.maps->key = "map";
-    parm.maps->type = TYPE_STRING;
-    parm.maps->required = YES;
     parm.maps->description =
 	"Input DEMs (at least 2) in raster format. Bottom DEM first";
-    parm.maps->gisprompt = "old,cell,raster";
     parm.maps->multiple = YES;
 
     /* Output map name */
-    parm.output = G_define_option();
-    parm.output->key = "output";
-    parm.output->type = TYPE_STRING;
-    parm.output->required = YES;
-    parm.output->description = "Output rast3d map name";
+    parm.output = G_define_standard_option(G_OPT_R3_OUTPUT);
 
     /* optional: specify a value for each layer */
     parm.values = G_define_option();
@@ -1188,9 +1180,8 @@ int main(int argc, char *argv[])
 	"List of RRR:GGG:BBB color triplets, one for each layer";
 
     /* optional: Raster map to represent topology errors in input DEMs */
-    parm.error = G_define_option();
+    parm.error = G_define_standard_option(G_OPT_R_OUTPUT);
     parm.error->key = "errormap";
-    parm.error->type = TYPE_STRING;
     parm.error->required = NO;
     parm.error->description =
 	"Raster map to represent topology errors in input DEMs";
