@@ -1101,17 +1101,17 @@ int main (int argc, char *argv[]) {
 			i ++;
 		}
 		/* now translate the category IDs to the sequential IDs in pmap */
-		for ( i=0; i <= num_centers; i ++ ) {
+		for ( i=0; i < num_centers; i ++ ) {
 			matched = 0;
-			for ( j=0; j <= num_centers; j ++ ) {
+			for ( j=0; j < num_centers; j ++ ) {
 				if ( cats[j] == ruler[i] ) {
 					ruler[i] = j;
 					matched = 1;
 				}
 			}
 			if ( matched == 0 ) {
-				G_fatal_error (_("Ruler ID '%i' in record no. %i in input map '%s' points to a non-existing record.\n"),
-									ruler[i], i, parm.output->answer );
+				G_fatal_error (_("Ruler ID in record no. %i in input map '%s' points to a non-existing record.\n"),
+									i+1, parm.centers->answer );
 			}
 		}
 	}
