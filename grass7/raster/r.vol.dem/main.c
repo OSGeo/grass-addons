@@ -277,18 +277,12 @@ void check_zrange(int *fd, DCELL ** dcell, int nfiles)
 
     /* get maximum and minimum elevation from all DEMs */
     row = 0;
-    if (Rast_get_d_row(fd[0], dcell[0], row) < 0) {
-	G_fatal_error(_("Could not read row number %i from map %s."), row,
-		      parm.maps->answers[0]);
-    }
+    Rast_get_d_row(fd[0], dcell[0], row);
     top = dcell[0][0];
     topDEM = 0;
     for (i = 0; i < nfiles; i++) {
 	for (row = 0; row < nrows; row++) {
-	    if (Rast_get_d_row(fd[i], dcell[i], row) < 0) {
-		G_fatal_error(_("Could not read row number %i from map %s."),
-			      row, parm.maps->answers[i]);
-	    }
+	    Rast_get_d_row(fd[i], dcell[i], row);
 	    for (col = 0; col < ncols; col++) {
 		if (dcell[i][col] > top) {
 		    top = dcell[i][col];
@@ -308,18 +302,12 @@ void check_zrange(int *fd, DCELL ** dcell, int nfiles)
 	fprintf(stdout, " z-range-checking, pass 2: \n");
 
     row = 0;
-    if (Rast_get_d_row(fd[0], dcell[0], row) < 0) {
-	G_fatal_error(_("Could not read row number %i from map %s."), row,
-		      parm.maps->answers[0]);
-    }
+    Rast_get_d_row(fd[0], dcell[0], row);
     bottom = dcell[0][0];
     bottomDEM = 0;
     for (i = 0; i < nfiles; i++) {
 	for (row = 0; row < nrows; row++) {
-	    if (Rast_get_d_row(fd[i], dcell[i], row) < 0) {
-		G_fatal_error(_("Could not read row number %i from map %s."),
-			      row, parm.maps->answers[i]);
-	    }
+	    Rast_get_d_row(fd[i], dcell[i], row);
 	    for (col = 0; col < ncols; col++) {
 		if (dcell[i][col] < bottom) {
 		    bottom = dcell[i][col];
@@ -394,10 +382,7 @@ void check_topologies(int *fd, DCELL ** dcell, int nfiles)
 
     for (row = 0; row < nrows; row++) {
 	for (i = 0; i < nfiles; i++) {
-	    if (Rast_get_d_row(fd[i], dcell[i], row) < 0) {
-		G_fatal_error(_("Could not read row number %i from map %s."),
-			      row, parm.maps->answers[i]);
-	    }
+	    Rast_get_d_row(fd[i], dcell[i], row);
 	}
 	for (col = 0; col < ncols; col++) {
 	    for (i = 0; i < nfiles; i++) {
@@ -706,10 +691,7 @@ void interpolate(int *fd, DCELL ** dcell, int nfiles, int nvalues,
     for (row = 0; row < nrows; row++) {
 	/* read one row from all layers */
 	for (i = 0; i < nfiles; i++) {
-	    if (Rast_get_d_row(fd[i], dcell[i], row) < 0) {
-		G_fatal_error(_("Could not read row number %i from map %s."),
-			      row, parm.maps->answers[i]);
-	    }
+	    Rast_get_d_row(fd[i], dcell[i], row);
 	}
 	for (col = 0; col < ncols; col++) {
 
