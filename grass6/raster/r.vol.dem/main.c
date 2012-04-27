@@ -1223,9 +1223,12 @@ int main(int argc, char *argv[])
     flag.fillnull->description = "Fill through NULL value areas in DEMs";
 
     /* export a 3D hull polygon for every layer ? */
+
+/** Suffers from severe memory leak! MN 4/2012
     flag.hull = G_define_flag();
     flag.hull->key = 'h';
     flag.hull->description = "Export convex hull polygons for layers";
+**/
 
     /* GRASS ASCII vector point data output ? */
     flag.grasspts = G_define_flag();
