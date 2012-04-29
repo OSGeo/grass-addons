@@ -30,7 +30,7 @@ int close_streamvect(char *stream_vect)
     double north_offset, west_offset, ns_res, ew_res;
     int next_cat;
 
-    G_message(_("Write vector map <%s>..."), stream_vect);
+    G_message(_("Writing vector map <%s>..."), stream_vect);
 
     if (0 > Vect_open_new(&Out, stream_vect, 0)) {
 	G_fatal_error(_("Unable to create vector map <%s>"), stream_vect);
@@ -153,7 +153,7 @@ int close_streamvect(char *stream_vect)
     }
     G_percent(n_outlets, n_outlets, 1);	/* finish it */
 
-    G_message(_("Write vector attribute table"));
+    G_message(_("Writing vector attribute table"));
 
     /* Prepeare strings for use in db_* calls */
     db_init_string(&dbsql);
@@ -244,8 +244,8 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
     stream_fd = dir_fd = -1;
     cell_buf1 = cell_buf2 = NULL;
 
-    G_message(_("Write raster %s"),
-              (stream_rast != NULL) + (dir_rast != NULL) > 1 ? "maps" : "map");
+    G_message(_("Writing raster %s"),
+              (stream_rast != NULL) + (dir_rast != NULL) > 1 ? _("maps") : _("map"));
 
     /* write requested output rasters */
     if (stream_rast) {

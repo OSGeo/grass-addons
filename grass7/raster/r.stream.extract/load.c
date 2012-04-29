@@ -29,9 +29,9 @@ int load_maps(int ele_fd, int acc_fd)
     char *flag_value_buf, *aspect;
 
     if (acc_fd < 0)
-	G_message(_("Load elevation map..."));
+	G_message(_("Loading elevation map..."));
     else
-	G_message(_("Load input maps..."));
+	G_message(_("Loading input maps..."));
 
     n_search_points = n_points = 0;
 
@@ -85,16 +85,16 @@ int load_maps(int ele_fd, int acc_fd)
 
 	    /* check for masked and NULL cells */
 	    if (Rast_is_null_value(ptr, ele_map_type)) {
-		if (acc_fd >= 0) {
-		    if (!Rast_is_null_value(acc_ptr, acc_map_type))
-			G_fatal_error(_("Accumulation map does not match elevation map!"));
-		}
 		FLAG_SET(flag_value_buf[c], NULLFLAG);
 		FLAG_SET(flag_value_buf[c], INLISTFLAG);
 		FLAG_SET(flag_value_buf[c], WORKEDFLAG);
 		FLAG_SET(flag_value_buf[c], WORKED2FLAG);
 		Rast_set_c_null_value(&ele_value, 1);
 		/* flow accumulation */
+		if (acc_fd >= 0) {
+		    if (!Rast_is_null_value(acc_ptr, acc_map_type))
+			G_fatal_error(_("Elevation map is NULL but accumulation map is not NULL!"));
+		}
 		Rast_set_d_null_value(&acc_value, 1);
 	    }
 	    else {
@@ -118,7 +118,7 @@ int load_maps(int ele_fd, int acc_fd)
 		else {
 		    if (Rast_is_null_value(acc_ptr, acc_map_type)) {
 			/* can this be ok after weighing ? */
-			G_fatal_error(_("Accumulation map does not match elevation map!"));
+			G_fatal_error(_("Accumulation map is NULL but elevation map is not NULL!"));
 		    }
 
 		    switch (acc_map_type) {
@@ -162,7 +162,7 @@ int load_maps(int ele_fd, int acc_fd)
 	G_free(acc_buf);
     }
     
-    G_debug(1, "%d non-NULL cells", n_points);
+    G_debug(1, "%lld non-NULL cells", n_points);
 
     return n_points;
 }

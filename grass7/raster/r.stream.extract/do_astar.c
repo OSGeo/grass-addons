@@ -4,17 +4,17 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-#define GET_PARENT(c) ((unsigned int)(((c) - 2) >> 2) + 1)
-#define GET_CHILD(p) ((unsigned int)((p) << 2) - 2)
+#define GET_PARENT(c) ((((c) - 2) >> 3) + 1)
+#define GET_CHILD(p) (((p) << 3) - 6)
 
 HEAP_PNT heap_drop(void);
-int sift_up(unsigned int, HEAP_PNT);
+int sift_up(GW_LARGE_INT, HEAP_PNT);
 double get_slope(CELL, CELL, double);
 
 int do_astar(void)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
-    unsigned int first_cum, count;
+    GW_LARGE_INT first_cum, count;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     CELL ele_val, ele_up, ele_nbr[8];
@@ -60,12 +60,12 @@ int do_astar(void)
     while (heap_size > 0) {
 	G_percent(count++, n_points, 1);
 	if (count > n_points)
-	    G_fatal_error(_("BUG in A* Search: %d surplus points"),
+	    G_fatal_error(_("BUG in A* Search: %lld surplus points"),
 	                  heap_size);
 
 	if (heap_size > n_points)
 	    G_fatal_error
-		(_("BUG in A* Search: too many points in heap %d, should be %d"),
+		(_("BUG in A* Search: too many points in heap %lld, should be %lld"),
 		 heap_size, n_points);
 
 	heap_p = heap_drop();
@@ -174,9 +174,9 @@ int heap_cmp(HEAP_PNT *a, HEAP_PNT *b)
     return 0;
 }
 
-int sift_up(unsigned int start, HEAP_PNT child_p)
+int sift_up(GW_LARGE_INT start, HEAP_PNT child_p)
 {
-    unsigned int parent, child;
+    GW_LARGE_INT parent, child;
     HEAP_PNT heap_p;
 
     child = start;
@@ -205,7 +205,7 @@ int sift_up(unsigned int start, HEAP_PNT child_p)
  * add item to heap
  * returns heap_size
  */
-unsigned int heap_add(int r, int c, CELL ele)
+GW_LARGE_INT heap_add(int r, int c, CELL ele)
 {
     HEAP_PNT heap_p;
     
@@ -232,8 +232,8 @@ unsigned int heap_add(int r, int c, CELL ele)
  */
 HEAP_PNT heap_drop(void)
 {
-    unsigned int child, childr, parent;
-    int i;
+    GW_LARGE_INT child, childr, parent;
+    GW_LARGE_INT i;
     HEAP_PNT child_p, childr_p, last_p, root_p;
 
     seg_get(&search_heap, (char *)&last_p, 0, heap_size);
@@ -251,7 +251,7 @@ HEAP_PNT heap_drop(void)
 
 	if (child < heap_size) {
 	    childr = child + 1;
-	    i = child + 4;
+	    i = child + 8;
 	    while (childr < heap_size && childr < i) {
 		seg_get(&search_heap, (char *)&childr_p, 0, childr);
 		if (heap_cmp(&childr_p, &child_p)) {

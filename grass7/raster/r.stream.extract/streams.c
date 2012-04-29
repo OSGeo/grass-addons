@@ -159,7 +159,7 @@ int do_accum(double d8cut)
     POINT astarpoint;
     WAT_ALT wa;
 
-    G_message(_("Calculate flow accumulation..."));
+    G_message(_("Calculating flow accumulation..."));
 
     /* distances to neighbours */
     dist_to_nbr = (double *)G_malloc(sides * sizeof(double));
@@ -391,14 +391,14 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
      *  | 2 |   | 3 |
      *  | 5 | 0 | 6 |
      */
-    unsigned int workedon, killer, count;
+    GW_LARGE_INT workedon, killer, count;
     int stream_no = 0, stream_node_step = 1000;
     double slope, diag;
     char *flag_nbr, this_flag_value;
     POINT astarpoint;
     WAT_ALT wa;
 
-    G_message(_("Extract streams..."));
+    G_message(_("Extracting streams..."));
 
     /* init stream nodes */
     n_alloc_nodes = stream_node_step;
@@ -714,7 +714,7 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
     }
     G_percent(1, 1, 2);
     if (workedon)
-	G_warning(_("MFD: A * path already processed when setting drainage direction: %d of %d cells"),
+	G_warning(_("MFD: A * path already processed when setting drainage direction: %lld of %lld cells"),
 		  workedon, n_points);
 
     G_free(dist_to_nbr);

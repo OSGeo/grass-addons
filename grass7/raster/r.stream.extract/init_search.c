@@ -11,7 +11,7 @@ int init_search(int depr_fd)
     char flag_value, flag_value_nbr, is_null;
     WAT_ALT wa;
     char asp_value;
-    unsigned int n_depr_cells = 0;
+    GW_LARGE_INT n_depr_cells = 0;
 
     nxt_avail_pt = heap_size = 0;
 
@@ -21,7 +21,7 @@ int init_search(int depr_fd)
     else
 	depr_buf = NULL;
 
-    G_message(_("Initialize A* Search..."));
+    G_message(_("Initializing A* Search..."));
     for (r = 0; r < nrows; r++) {
 	G_percent(r, nrows, 2);
 
@@ -114,9 +114,9 @@ int init_search(int depr_fd)
 	G_free(depr_buf);
     }
 
-    G_debug(1, "%d edge cells", heap_size - n_depr_cells);
+    G_debug(1, "%lld edge cells", heap_size - n_depr_cells);
     if (n_depr_cells)
-	G_debug(1, "%d cells in depressions", n_depr_cells);
+	G_debug(1, "%lld cells in depressions", n_depr_cells);
 
     return 1;
 }

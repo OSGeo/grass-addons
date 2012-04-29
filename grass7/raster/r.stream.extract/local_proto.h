@@ -6,6 +6,8 @@
 #include "flag.h"
 #include "seg.h"
 
+#define GW_LARGE_INT off_t
+
 #define INDEX(r, c) ((r) * ncols + (c))
 #define MAXDEPTH 1000     /* maximum supported tree depth of stream network */
 
@@ -16,7 +18,7 @@ POINT {
 
 #define HEAP_PNT    struct heap_point
 HEAP_PNT {
-   unsigned int added;
+   GW_LARGE_INT added;
    CELL ele;
    POINT pnt;
 };
@@ -27,14 +29,7 @@ WAT_ALT {
    DCELL wat;
 };
 
-/* global variables */
-#ifdef MAIN
-#       define GLOBAL
-#else
-#       define GLOBAL extern
-#endif
-
-GLOBAL struct snode
+struct snode
 {
     int r, c;
     int id;
@@ -42,26 +37,28 @@ GLOBAL struct snode
     int n_trib_total;     /* number of all upstream stream segments */
     int n_alloc;          /* n allocated tributaries */
     int *trib;
-} *stream_node;
+};
 
-GLOBAL int nrows, ncols;
-GLOBAL unsigned int n_search_points, n_points, nxt_avail_pt;
-GLOBAL unsigned int heap_size;
-GLOBAL unsigned int n_stream_nodes, n_alloc_nodes;
-GLOBAL POINT *outlets;
-GLOBAL unsigned int n_outlets, n_alloc_outlets;
-GLOBAL char drain[3][3];
-GLOBAL char sides;
-GLOBAL int c_fac;
-GLOBAL int ele_scale;
-GLOBAL int have_depressions;
+/* extern variables */
+extern struct snode *stream_node;
+extern int nrows, ncols;
+extern GW_LARGE_INT n_search_points, n_points, nxt_avail_pt;
+extern GW_LARGE_INT heap_size;
+extern unsigned int n_stream_nodes, n_alloc_nodes;
+extern POINT *outlets;
+extern unsigned int n_outlets, n_alloc_outlets;
+extern char drain[3][3];
+extern char sides;
+extern int c_fac;
+extern int ele_scale;
+extern int have_depressions;
 
-GLOBAL SSEG search_heap;
-GLOBAL SSEG astar_pts;
-GLOBAL BSEG bitflags;
-GLOBAL SSEG watalt;
-GLOBAL BSEG asp;
-GLOBAL CSEG stream;
+extern SSEG search_heap;
+extern SSEG astar_pts;
+extern BSEG bitflags;
+extern SSEG watalt;
+extern BSEG asp;
+extern CSEG stream;
 
 /* load.c */
 int load_maps(int, int);
@@ -71,7 +68,7 @@ int init_search(int);
 
 /* do_astar.c */
 int do_astar(void);
-unsigned int heap_add(int, int, CELL);
+GW_LARGE_INT heap_add(int, int, CELL);
 
 /* streams.c */
 int do_accum(double);

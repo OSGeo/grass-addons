@@ -80,7 +80,7 @@ int thin_streams(void)
     int n_trib_total;
     int n_thinned = 0;
 
-    G_message(_("Thin stream segments..."));
+    G_message(_("Thinning stream segments..."));
 
     nodestack = (struct sstack *)G_malloc(stack_step * sizeof(struct sstack));
 

@@ -19,13 +19,13 @@
 #include <math.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#define MAIN
 #include "local_proto.h"
 
 /* global variables */
+struct snode *stream_node;
 int nrows, ncols;
-unsigned int n_search_points, n_points, nxt_avail_pt;
-unsigned int heap_size;
+GW_LARGE_INT n_search_points, n_points, nxt_avail_pt;
+GW_LARGE_INT heap_size;
 unsigned int n_stream_nodes, n_alloc_nodes;
 POINT *outlets;
 unsigned int n_outlets, n_alloc_outlets;
@@ -280,19 +280,7 @@ int main(int argc, char *argv[])
     /* segment structures */
     seg_rows = seg_cols = 64;
     seg2kb = seg_rows * seg_cols / 1024.;
-    /* elevation + accumulation: 12 byte -> 48 KB / segment
-     * aspect: 1 byte -> 4 KB / segment
-     * stream: 4 byte -> 16 KB / segment
-     * flag: 1 byte -> 4 KB / segment
-     * 
-     * Total MB / segment so far: 0.07
-     * 
-     * astar_points: 8 byte -> 32 KB / segment
-     * heap_points: 16 byte -> 64 KB / segment
-     * 
-     * Total MB / segment: 0.16
-     */
-    
+
     /* balance segment files */
     /* elevation + accumulation: * 2 */
     memory_divisor = sizeof(WAT_ALT) * 2;
@@ -333,7 +321,7 @@ int main(int argc, char *argv[])
 	heap_mem = num_open_segs * seg2kb * sizeof(HEAP_PNT) /
 	           (4. * 1024.);
     }
-    G_verbose_message(_("%.2f of data are kept in memory"),
+    G_verbose_message(_("%.2f%% of data are kept in memory"),
                       100. * num_open_segs / num_seg_total);
     disk_space *= num_seg_total;
     if (disk_space < 1024.0)
@@ -343,7 +331,7 @@ int main(int argc, char *argv[])
 	           disk_space / 1024.0, disk_space);
 
     /* open segment files */
-    G_verbose_message(_("Create temporary files..."));
+    G_verbose_message(_("Creating temporary files..."));
     seg_open(&watalt, nrows, ncols, seg_rows, seg_cols, num_open_segs * 2,
         sizeof(WAT_ALT), 1);
     if (num_open_segs * 2 > num_seg_total)
