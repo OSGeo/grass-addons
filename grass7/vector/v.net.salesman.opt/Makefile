@@ -1,7 +1,7 @@
 
 MODULE_TOPDIR = ../..
 
-PGM = v.net.salesman
+PGM = v.net.salesman.opt
 
 LIBES = $(VECTORLIB) $(GISLIB)
 DEPENDENCIES = $(VECTORDEP) $(GISDEP)

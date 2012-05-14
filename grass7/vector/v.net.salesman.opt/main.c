@@ -5,7 +5,7 @@
  *  
  *  AUTHOR(S):    Radim Blazek, Markus Metz
  *                
- *  PURPOSE:      Create a tour connecting given nodes.
+ *  PURPOSE:      Create a cycle connecting given nodes.
  *                
  *  COPYRIGHT:    (C) 2001-2011 by the GRASS Development Team
  * 
@@ -23,6 +23,9 @@
 #include <grass/dbmi.h>
 #include <grass/glocale.h>
 #include "local_proto.h"
+
+/* use EUC_2D distances for TSPLIB test data */
+#define TSP_TEST 0
 
 /* TODO: Use some better algorithm */
 
@@ -44,31 +47,6 @@ int cnode(int city)
     return (cities[city]);
 }
 
-void add_city(int city, int after)
-{				/* index !!! to cycle, after which to put it */
-    int i, j;
-
-    if (after == -1) {
-	cycle[0] = city;
-    }
-    else {
-	/* for a large number of cities this will become slow */
-	for (j = ncyc - 1; j > after; j--)
-	    cycle[j + 1] = cycle[j];
-
-	cycle[after + 1] = city;
-    }
-    ncyc++;
-    cused[city] = 1;
-
-    if (debug_level >= 2) {
-	G_debug(2, "Cycle:");
-	for (i = 0; i < ncyc; i++) {
-	    G_debug(2, "%d: %d: %d", i, cycle[i], cities[cycle[i]]);
-	}
-    }
-
-}
 
 /* like Vect_list_append(), but allows duplicates */
 int tsp_list_append(struct ilist *list, int val)
@@ -97,14 +75,14 @@ int main(int argc, char **argv)
     int node, node1, node2, line;
     int last_opt = 0, ostep, optimize;
     struct Option *map, *output, *afield_opt, *tfield_opt, *afcol, *abcol,
-	*seq, *type_opt, *term_opt;
-    struct Flag *geo_f, *opt_f;
+	*seq, *type_opt, *term_opt, *opt_opt;
+    struct Flag *geo_f;
     struct GModule *module;
     struct Map_info Map, Out;
     struct ilist *TList;	/* list of terminal nodes */
     struct ilist *List;
-    struct ilist *StArcs;	/* list of arcs on Steiner tree */
-    struct ilist *StNodes;	/* list of nodes on Steiner tree */
+    struct ilist *StArcs;	/* list of arcs on tour */
+    struct ilist *StNodes;	/* list of nodes on tour */
     double cost, tmpcost, tcost;
     struct cat_list *Clist;
     struct line_cats *Cats;
@@ -112,6 +90,7 @@ int main(int argc, char **argv)
     const char *dstr;
     const char *seqname;
     int seq2stdout;
+    char *desc;
     FILE *fp;
 
     /* Initialize the GIS calls */
@@ -122,10 +101,10 @@ int main(int argc, char **argv)
     G_add_keyword(_("network"));
     G_add_keyword(_("salesman"));
     module->label =
-	_("Creates a tour connecting given nodes (Traveling salesman problem).");
+	_("Creates a cycle connecting given nodes (Traveling salesman problem).");
     module->description =
 	_("Note that TSP is NP-hard, heuristic algorithm is used by "
-	  "this module and created tour may be suboptimal");
+	  "this module and created cycle may be suboptimal");
 
     map = G_define_standard_option(G_OPT_V_INPUT);
     output = G_define_standard_option(G_OPT_V_OUTPUT);
@@ -169,14 +148,24 @@ int main(int argc, char **argv)
     term_opt->description = _("Categories of points ('cities') on nodes "
 			      "(layer is specified by nlayer)");
 
+    opt_opt = G_define_option();
+    opt_opt->type = TYPE_STRING;
+    opt_opt->key = "method";
+    opt_opt->required = NO;
+    opt_opt->options = "bs,ga";
+    opt_opt->description = _("Optimization method");
+    desc = NULL;
+    G_asprintf(&desc,
+	       "bs;%s;"
+	       "ga;%s;",
+	       _("bootstrapping"),
+	       _("genetic algorithm"));
+    opt_opt->descriptions = desc;
+
     geo_f = G_define_flag();
     geo_f->key = 'g';
     geo_f->description =
 	_("Use geodesic calculation for longitude-latitude locations");
-
-    opt_f = G_define_flag();
-    opt_f->key = 'o';
-    opt_f->description = _("Optimize the tour");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -211,7 +200,17 @@ int main(int argc, char **argv)
     }
 
     geo = geo_f->answer;
-    optimize = opt_f->answer;
+    
+    if (opt_opt->answer) {
+	if (opt_opt->answer[0] == 'b')
+	    optimize = 1;
+	else if (opt_opt->answer[0] == 'g')
+	    optimize = 2;
+	else
+	    G_fatal_error(_("Unknown method '%s'"), opt_opt->answer);
+    }
+    else
+	optimize = 0;
 
     Vect_check_input_output_name(map->answer, output->answer, G_FATAL_EXIT);
 
@@ -290,13 +289,30 @@ int main(int argc, char **argv)
 	    if (i == j)
 		continue;
 
-	    ret =
-		Vect_net_shortest_path(&Map, cities[i], cities[j], NULL,
-				       &cost);
+	    if (!TSP_TEST) {
+		ret =
+		    Vect_net_shortest_path(&Map, cities[i], cities[j], NULL,
+					   &cost);
 
-	    if (ret == -1)
-		G_fatal_error(_("Destination node [%d] is unreachable "
-				"from node [%d]"), cities[i], cities[j]);
+		if (ret == -1)
+		    G_fatal_error(_("Destination node [%d] is unreachable "
+				    "from node [%d]"), cities[i], cities[j]);
+	    }
+	    else {
+		double x1, y1, z1, x2, y2, z2, dx, dy;
+		
+		Vect_get_node_coor(&Map, cities[i], &x1, &y1, &z1);
+		Vect_get_node_coor(&Map, cities[j], &x2, &y2, &z2);
+		
+		if (geo) {
+		    cost = G_distance(x1, y1, x2, y2);
+		}
+		else {
+		    dx = x1 - x2;
+		    dy = y1 - y2;
+		    cost = sqrt(dx * dx + dy * dy);
+		}
+	    }
 
 	    /* add to directional cost cache: from, to, cost */
 	    costs[i][k].city = j;
@@ -337,187 +353,222 @@ int main(int argc, char **argv)
 	}
     }
 
-    G_message(_("Searching for the shortest tour..."));
-    /* find 2 cities with largest distance */
-    cost = city = -1;
-    for (i = 0; i < ncities; i++) {
-	tmpcost = costs[i][ncities - 2].cost;
-	if (tmpcost > cost) {
-	    cost = tmpcost;
-	    city = i;
-	}
+    if (ncities < 5 && optimize) {
+	G_message(_("Optimization is not necessary for less than 5 cities"));
+	optimize = 0;
     }
-    G_debug(2, "biggest costs %d - %d", city,
-	    costs[city][ncities - 2].city);
 
-    /* add these 2 cities to array */
-    add_city(city, -1);
-    add_city(costs[city][ncities - 2].city, 0);
-
-    /* In each step, find not used city, with biggest cost to any used city, and insert 
-     *  into cycle between 2 nearest nodes */
-    /* for a large number of cities this will become very slow, can be fixed */
-
-    /* for (i = 0; i < ncities - 2; i++) { */
-    while (ncyc < ncities) {
-	G_percent(ncyc, ncities, 1);
-	cost = -1;
-	G_debug(2, "---- city %d ----", i);
-	for (j = 0; j < ncities; j++) {
-	    if (cused[j])
-		continue;
-	    tmpcost = 0;
-	    for (k = 0; k < ncities - 1; k++) {
-		G_debug(2, "forward? %d (%d) - %d (%d)", j, cnode(j),
-			costs[j][k].city, cnode(costs[j][k].city));
-		if (!cused[costs[j][k].city])
-		    continue;	/* only used */
-		/* directional costs j -> k */
-		tmpcost += costs[j][k].cost;
-		break;		/* first nearest */
+    if (optimize < 2) {
+	G_message(_("Searching for the shortest tour..."));
+	/* find 2 cities with largest distance */
+	cost = city = -1;
+	for (i = 0; i < ncities; i++) {
+	    tmpcost = costs[i][ncities - 2].cost;
+	    if (tmpcost > cost) {
+		cost = tmpcost;
+		city = i;
 	    }
-	    /* forward/backward: tmpcost = min(fcost) + min(bcost) */
-	    if (bcosts) {
+	}
+
+	G_debug(2, "biggest costs %d - %d", city,
+		costs[city][ncities - 2].city);
+
+	/* add these 2 cities to array */
+	add_city(city, -1, &ncyc, cycle, cused);
+	add_city(costs[city][ncities - 2].city, 0, &ncyc, cycle, cused);
+
+	/* In each step, find not used city with biggest cost to any used city,
+	 * and insert into cycle between 2 nearest nodes */
+	/* for a large number of cities this will become very slow, can be fixed */
+
+	/* for (i = 0; i < ncities - 2; i++) { */
+	while (ncyc < ncities) {
+	    G_percent(ncyc, ncities, 1);
+	    cost = -1;
+	    G_debug(2, "---- city %d ----", i);
+	    for (j = 0; j < ncities; j++) {
+		if (cused[j])
+		    continue;
+		tmpcost = 0;
 		for (k = 0; k < ncities - 1; k++) {
-		    G_debug(2, "backward? %d (%d) - %d (%d)", j, cnode(j),
-			    bcosts[j][k].city, cnode(bcosts[j][k].city));
-		    if (!cused[bcosts[j][k].city])
+		    G_debug(2, "forward? %d (%d) - %d (%d)", j, cnode(j),
+			    costs[j][k].city, cnode(costs[j][k].city));
+		    if (!cused[costs[j][k].city])
 			continue;	/* only used */
-		    /* directional costs k -> j */
-		    tmpcost += bcosts[j][k].cost;
+		    /* directional costs j -> k */
+		    tmpcost += costs[j][k].cost;
 		    break;		/* first nearest */
+		}
+		/* forward/backward: tmpcost = min(fcost) + min(bcost) */
+		if (bcosts) {
+		    for (k = 0; k < ncities - 1; k++) {
+			G_debug(2, "backward? %d (%d) - %d (%d)", j, cnode(j),
+				bcosts[j][k].city, cnode(bcosts[j][k].city));
+			if (!cused[bcosts[j][k].city])
+			    continue;	/* only used */
+			/* directional costs k -> j */
+			tmpcost += bcosts[j][k].cost;
+			break;		/* first nearest */
+		    }
+		}
+
+		G_debug(2, "    cost = %f x %f", tmpcost, cost);
+		if (tmpcost > cost) {
+		    cost = tmpcost;
+		    city = j;
+		}
+	    }
+	    G_debug(2, "add city %d", city);
+
+	    /* add to cycle on lowest costs */
+	    cycle[ncyc] = cycle[0];	/* temporarily close the cycle */
+	    cost = PORT_DOUBLE_MAX;
+	    city1 = 0;
+	    for (j = 0; j < ncyc; j++) {
+		/* cost from j to j + 1 (directional) */
+		/* get cost from directional cost cache */
+		tcost = cost_cache[cycle[j]][cycle[j + 1]];
+		tmpcost = -tcost;
+
+		/* check insertion of city between j and j + 1 */
+
+		/* cost from j to city (directional) */
+		/* get cost from directional cost cache */
+		tcost = cost_cache[cycle[j]][city];
+		tmpcost += tcost;
+		/* cost from city to j + 1 (directional) */
+		/* get cost from directional cost cache */
+		tcost = cost_cache[city][cycle[j + 1]];
+		tmpcost += tcost;
+		
+		/* tmpcost must always be > 0 */
+
+		/* always true for j = 0 */
+		if (tmpcost < cost) {
+		    city1 = j;
+		    cost = tmpcost;
+		}
+	    }
+	    add_city(city, city1, &ncyc, cycle, cused);
+
+	    if (optimize && ncyc > 4) {
+		int chain_length;
+		int success;
+		
+		success = optimize_nbrs(city1, ncyc, cycle);
+		if (success)
+		    G_debug(3, "Neighbours optimized? %s",
+			    success ? "Yes" : "No");
+
+
+		/* keep ostep sufficiently large */
+		ostep = sqrt(ncyc) * 2 / 3;
+
+		if (ostep < 2)
+		    ostep = 2;
+		if (ostep > MAX_CHAIN_LENGTH && ncities < 3000) /* max 3000 */
+		    ostep = MAX_CHAIN_LENGTH;
+
+		if (last_opt < ncyc - ostep) {
+		    
+		    /* use brute force optimization
+		     * don't overdo it here, it's costly in terms of time
+		     * and the benefits are small */
+
+		    chain_length = ostep;
+		    if (chain_length > ncyc / 2)
+			chain_length = ncyc / 2;
+		    if (chain_length > MAX_CHAIN_LENGTH)
+			chain_length = MAX_CHAIN_LENGTH;
+		    if (chain_length == 0)
+			chain_length = 1;
+
+		    success = optimize_tour_chains(chain_length, chain_length,
+						   ostep, cycle, cused, ncyc, 0, 0, 1);
+		    if (success)
+			G_debug(3, "Preliminary tour optimized? %s",
+				success ? "Yes" : "No");
+
+		    last_opt = ncyc;
+		}
+	    }  /* optimize done */
+	}
+	
+	/* tour is complete */
+
+	if (optimize && ncyc > 3) {
+	    double ocost, ocost1;
+	    int max_chain_length, chain_length;
+	    int success = 0;
+	    int optiter = 1;
+
+	    /* brute force bootstrapping */
+	    ocost = 0.;
+	    cycle[ncyc] = cycle[0];
+	    for (j = 0; j < ncyc; j++) {
+		ocost += cost_cache[cycle[j]][cycle[j + 1]];
+	    }
+	    G_verbose_message(_("Current total cost: %.3f"), ocost);
+
+	    max_chain_length = MAX_CHAIN_LENGTH < ncyc / 2 ? MAX_CHAIN_LENGTH : ncyc / 2;
+
+	    G_message(_("Optimizing..."));
+
+	    for (chain_length = max_chain_length; chain_length > 0; chain_length--) {
+		success = 0;
+
+		G_message("%d. iteration...", optiter++);
+
+		if (max_chain_length >= 5)
+		    optimize_tour_chains(max_chain_length, max_chain_length, 1,
+		                               cycle, cused, ncyc, 1, 1, 0);
+		else
+		    optimize_tour_chains(max_chain_length, max_chain_length, 1,
+		                               cycle, cused, ncyc, 1, 1, 0);
+
+		success = optimize_tour_chains(max_chain_length, 1, 1,
+		                               cycle, cused, ncyc, 1, 1, 1);
+		
+		if (!success)
+		    break;
+	    }
+	    success = 1;
+	    while (success) {
+		success = 0;
+		G_message("%d. iteration...", optiter++);
+		for (i = 0; i < ncyc; i++) {
+		    if (optimize_nbrs(i, ncyc, cycle))
+			success = 1;
 		}
 	    }
 
-	    G_debug(2, "    cost = %f x %f", tmpcost, cost);
-	    if (tmpcost > cost) {
-		cost = tmpcost;
-		city = j;
+	    ocost1 = 0.;
+	    cycle[ncyc] = cycle[0];
+	    for (j = 0; j < ncyc; j++) {
+		ocost1 += cost_cache[cycle[j]][cycle[j + 1]];
 	    }
-	}
-	G_debug(2, "add city %d", city);
-
-	/* add to cycle on lowest costs */
-	cycle[ncyc] = cycle[0];	/* temporarily close the cycle */
-	cost = PORT_DOUBLE_MAX;
-	city1 = 0;
-	for (j = 0; j < ncyc; j++) {
-	    /* cost from j to j + 1 (directional) */
-	    /* get cost from directional cost cache */
-	    tcost = cost_cache[cycle[j]][cycle[j + 1]];
-	    tmpcost = -tcost;
-
-	    /* check insertion of city between j and j + 1 */
-
-	    /* cost from j to city (directional) */
-	    /* get cost from directional cost cache */
-	    tcost = cost_cache[cycle[j]][city];
-	    tmpcost += tcost;
-	    /* cost from city to j + 1 (directional) */
-	    /* get cost from directional cost cache */
-	    tcost = cost_cache[city][cycle[j + 1]];
-	    tmpcost += tcost;
-	    
-	    /* tmpcost must always be > 0 */
-
-	    /* always true for j = 0 */
-	    if (tmpcost < cost) {
-		city1 = j;
-		cost = tmpcost;
-	    }
-	}
-	add_city(city, city1);
-
-	/* keep ostep sufficiently large */
-	ostep = sqrt(ncyc) * 2 / 3;
-
-	if (ostep < 2)
-	    ostep = 2;
-	if (ostep > MAX_CHAIN_LENGTH && ncities < 3000) /* max 3000 */
-	    ostep = MAX_CHAIN_LENGTH;
-
-	if (optimize && ncyc > 5) {
-	    int chain_length;
-	    int success;
-	    
-	    success = optimize_nbrs(city1);
-	    if (success)
-		G_debug(3, "Neighbours optimized? %s",
-		        success ? "Yes" : "No");
-
-	    if (last_opt < ncyc - ostep) {
-		
-		/* use brute force optimization
-		 * don't overdo it here, it's costly in terms of time
-		 * and the benefits are small */
-
-		chain_length = ostep;
-		if (chain_length > ncyc / 2)
-		    chain_length = ncyc / 2;
-		if (chain_length > MAX_CHAIN_LENGTH)
-		    chain_length = MAX_CHAIN_LENGTH;
-		if (chain_length == 0)
-		    chain_length = 1;
-
-		success = optimize_tour_chains(chain_length, chain_length,
-		                               ostep, 0, 0);
-		if (success)
-		    G_debug(3, "Preliminary tour optimized? %s",
-		            success ? "Yes" : "No");
-
-		last_opt = ncyc;
-	    }
-	    
+	    G_verbose_message(_("Optimized total cost: %.3f, gain %.3f%%"),
+			      ocost1, ocost / ocost1 * 100 - 100);
 	}  /* optimize done */
     }
-    
-    /* TODO: optimize tour using some refined Lin–Kernighan method */
-    if (optimize && ncyc > 3) {
-	double ocost, ocost1;
-	int max_chain_length, chain_length;
-	int success = 0;
-	int optiter = 1;
+    else {
+	int ntours, nelim, nopt, ngen;
+	
+	/* number of tours to work with */
+	if (ncities > 20)
+	    ntours = 20;
+	else
+	    ntours = ncities - 1;
 
-	/* brute force bootstrapping */
-	ocost = 0.;
-	cycle[ncyc] = cycle[0];
-	for (j = 0; j < ncyc; j++) {
-	    ocost += cost_cache[cycle[j]][cycle[j + 1]];
-	}
-	G_verbose_message(_("Current total cost: %.3f"), ocost);
-
-	max_chain_length = MAX_CHAIN_LENGTH < ncyc / 2 ? MAX_CHAIN_LENGTH : ncyc / 2;
-
-	G_message(_("Optimizing..."));
-
-	for (chain_length = max_chain_length; chain_length > 0; chain_length--) {
-	    success = 0;
-
-	    G_message("%d. iteration...", optiter++);
-
-	    success = optimize_tour_chains(max_chain_length, 1, 1, 1, 1);
-	    
-	    if (!success)
-		break;
-	}
-	success = 1;
-	while (success) {
-	    success = 0;
-	    G_message("%d. iteration...", optiter++);
-	    for (i = 0; i < ncyc; i++) {
-		if (optimize_nbrs(i))
-		    success = 1;
-	    }
-	}
-
-	ocost1 = 0.;
-	cycle[ncyc] = cycle[0];
-	for (j = 0; j < ncyc; j++) {
-	    ocost1 += cost_cache[cycle[j]][cycle[j + 1]];
-	}
-	G_verbose_message(_("Optimized total cost: %.3f, gain %.3f%%"),
-	                  ocost1, ocost / ocost1 * 100 - 100);
-    }  /* optimize done */
+	/* number of tours to eliminate (< ntours / 2) */
+     	nelim = ntours * 0.4;
+        /* number of tours to optimize (<= ntours) */
+	nopt = ntours * 1;
+        /* max number of generations */
+	ngen = 200;
+	
+	ga_opt(ntours, nelim, nopt, ngen, cycle);
+    }
 
     if (debug_level >= 2) {
 	/* debug print */
@@ -551,7 +602,6 @@ int main(int argc, char **argv)
     Vect_open_new(&Out, output->answer, Vect_is_3d(&Map));
     Vect_hist_command(&Out);
 
-    G_verbose_message(_("Tour with total cost %.3f"), cost);
     G_debug(2, "Arcs' categories (layer %d, %d arcs):", afield,
 	    StArcs->n_values);
 
@@ -619,6 +669,8 @@ int main(int argc, char **argv)
     Vect_destroy_list(StNodes);
     Vect_close(&Map);
     Vect_close(&Out);
+
+    G_message(_("Tour with total cost %.3f"), cost);
 
     if (fp) {
 	fclose(fp);
