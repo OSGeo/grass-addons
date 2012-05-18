@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     dbColumn *col;
     dbTable *table;
     char buf[2000];
-    int type, ctype, i, cat, j, firstnode, segments,h;
+    int type, ctype, i, cat, j, firstnode, segments, h;
     int numberofregions, c, nnodes, nlines;
     int count, more, of;
     /* val is used for area constraints... currently set to int values*/
@@ -213,9 +213,10 @@ int main(int argc, char *argv[])
     for(i=0;i<segments;i++){
       for(of=0;of<2;of++){	
 	in.segmentlist[i*2+of]=segmentlist[i*2+of];
-	/*	printf("segmentlist[%i]=%i in.segmentlist[%i]=%i\n",i*2+of,segmentlist[i*2+of],i*2+of,in.segmentlist[i*2+of]);
+/*	printf("segmentlist[%i]=%i in.segmentlist[%i]=%i\n",i*2+of,segmentlist[i*2+of],i*2+of,in.segmentlist[i*2+of]);
       }
-      printf("segment %i= %i--%i\n",i,in.segmentlist[i*2],in.segmentlist[i*2+1]);*/
+      printf("segment %i= %i--%i\n",i,in.segmentlist[i*2],in.segmentlist[i*2+1]);
+*/
       }
     }
     in.numberofregions = c;
@@ -226,11 +227,11 @@ int main(int argc, char *argv[])
       in.regionlist[i*4+1]=regionlist[i*2+1];
       in.regionlist[i*4+2]=0;
       in.regionlist[i*4+3]=val[i];
-      /*printf("val[%i]=%i",i,val[i]);*/
+      /*printf("val[%i]=%i\n",i,val[i]);*/
     }
     /* For some reason Triangle doesn't like these lines */
     /* In case holes are present; so no holes!) */
-    /* Tabernacle!
+/* Tabernacle!
     if(h>0){
       in.numberofholes=h;
       printf("shouldn't be in...\n");
@@ -242,9 +243,12 @@ int main(int argc, char *argv[])
 	}
       }
     }
-    /* variables need to be initialized for Triangle */
+*/
 
+    /* variables need to be initialized for Triangle */
     in.numberofholes=0;
+    in.segmentmarkerlist = (int *) NULL;
+    in.holelist = (REAL *) NULL;
 
     out.pointlist = (REAL *) NULL;
     out.trianglelist = (int *) NULL;
@@ -258,6 +262,11 @@ int main(int argc, char *argv[])
     /* Use FLAGS for either constrained Delaunay, area constraints*/
     printf("number of regions = %i\n",c);
     printf("calling triangle \n");
+
+    /* 10/7/2009 Paolo Zatelli: avoids segmentation fault at lines 14133-14136 of triangle.c */
+    /* due to non-null pointer; in.pointmarkerlist is never used in v.trivertex */
+    in.pointmarkerlist = (int *) NULL; 
+
     if(nomaxarea->answer)
       triangulate("pzqDBeQj", &in, &out, (struct triangulateio *) NULL);
     else
@@ -271,7 +280,8 @@ int main(int argc, char *argv[])
     if(driver==NULL)
       G_fatal_error(_("Cannot open database %s by driver %s"),Vect_subst_var(Fi->database,&Map),Fi->driver);
     
-    printf("driver= %s\n",driver);
+    printf("driver= %s\n",Fi->driver);
+
     db_begin_transaction(driver);
 
     sprintf(buf,"create table %snodes (cat int)",output->answer);
@@ -284,11 +294,9 @@ int main(int argc, char *argv[])
       
     
     sprintf(buf,"%snodes",output->answer);
-    table=buf;
+    Vect_map_add_dblink(&Map, 1, NULL, buf,"cat",Fi->database,Fi->driver);
 
-    Vect_map_add_dblink(&Map, 1, NULL, table,"cat",Fi->database,Fi->driver);
-
-    /* Writing the output to GRASS*/
+    /* Writing the output to GRASS */
 
     /*********************/
     /* Writing NODES     */
@@ -333,9 +341,7 @@ int main(int argc, char *argv[])
       G_fatal_error(_("Cannot create table %s"),db_get_string(&stmt));
 
     sprintf(buf,"%stricentr",output->answer);
-    table=buf;
-
-    Vect_map_add_dblink(&Map, 2, NULL, table,"cat",Fi->database,Fi->driver);
+    Vect_map_add_dblink(&Map, 2, NULL, buf,"cat",Fi->database,Fi->driver);
 
     for(i=0;i<out.numberoftriangles;i++){
       Vect_reset_line (Points);
@@ -388,12 +394,10 @@ int main(int argc, char *argv[])
     }
     db_close_database(driver);
     db_shutdown_driver(driver);
-    /* Vect_build_partial(&Map,GV_BUILD_NONE,NULL); */
-    /* Vect_build(&Map,stderr); */
-
     Vect_build_partial(&Map,GV_BUILD_NONE);
     Vect_build(&Map);
 
     Vect_close(&Map);
     
+    return(EXIT_SUCCESS);
 }
