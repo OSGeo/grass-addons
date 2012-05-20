@@ -95,7 +95,7 @@ def main():
     elif data_type == FCELL_TYPE:
         ptype = POINTER(c_float)
         type_name = 'FCELL'
-    elif data_type == DCELL_TYPR:
+    elif data_type == DCELL_TYPE:
         ptype = POINTER(c_double)
         type_name = 'DCELL'
 
