@@ -17,9 +17,8 @@ SUBDIRS = \
 	r.convergence \
 	r.convert \
 	r.csr \
-	r.cva \
 	r.denoise \
-        r.diversity \
+	r.diversity \
 	r.flip \
 	r.fuzzy \
 	r.fuzzy.logic \

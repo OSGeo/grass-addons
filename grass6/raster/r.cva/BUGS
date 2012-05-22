@@ -1,6 +1,0 @@
-# Please describe all known bugs and shortcomings of the current implementation
-# of your extension.
-<strong>r.cva:</strong><br>
-Earth curvature correction has not been sufficiently tested.<br>
-The 'offsetb' option (=target height) has not been sufficiently tested.<br>
-Please feel free to test and report!<br>

@@ -1,6 +1,0 @@
-# This file should contain a very brief description of what your extension does.
-# All lines will be output as you write them in here, including linebreaks.
-# commented lines and parts of lines after a comment mark ('#') will be skipped.
-This is a GRASS 6.1.0 (and above) extension to perform cumulative viewshed analysis.
-
-If you have GIS Manager installed (which is true per default for a GRASS 6.1.0 installation), you should be able to locate the new modules in a submenu called "Viewshed Analysis" under the "Xtns" menu in the main menu bar.
