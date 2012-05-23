@@ -93,10 +93,10 @@ from datetime import date
 
 
 # add the folder containing libraries to python path
-if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')):
-    libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
-elif os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis')):
-    libmodis = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis')
+if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis',os.sep)):
+    libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis',os.sep)
+elif os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis',os.sep)):
+    libmodis = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis',os.sep)
 else:
     print "ERROR: path to libraries not found"
     sys.exit()
