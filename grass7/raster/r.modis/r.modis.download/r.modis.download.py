@@ -30,12 +30,12 @@
 #% description: Return the name of file containing the list of HDF tiles downloaded in shell script style
 #%end
 #%option
-#% key: setting
+#% key: settings
 #% type: string
 #% gisprompt: old,file,input
-#% label: Full path to setting file
+#% label: Full path to settings file
 #% description: "-" to pass the parameter from stdin
-#% required: yes
+#% answer: -
 #% guisection: Define
 #%end
 #%option
@@ -71,8 +71,8 @@
 #%option
 #% key: folder
 #% type: string
-#% label: The folder where store the downloaded data
-#% description: If not set it uses the path of setting file
+#% label: Folder to store the downloaded data
+#% description: If not set, path of settings file is used
 #% required: no
 #%end
 
@@ -153,36 +153,36 @@ def main():
         grass.fatal(_('$GISBASE not defined'))
         return 0
     # set username, password and folder if settings are insert by stdin
-    if options['setting'] == '-':
+    if options['settings'] == '-':
         if options['folder'] != '':
             if check(options['folder']):
                 fold = options['folder']
             user = raw_input(_('Insert username (usually anonymous): '))
             passwd = raw_input(_('Insert password (your mail): '))
         else:
-            grass.fatal(_("Please set folder option to want pass username " \
-            + "and password by stdin"))
+            grass.fatal(_("Set folder parameter when using stdin for passing the username " \
+            + "and password"))
             return 0
     # set username, password and folder by file
     else:
         # open the file and read the the user and password:
         # first line is username
         # second line is password
-	if check(options['setting']):
-           filesett = open(options['setting'],'r')
+	if check(options['settings']):
+           filesett = open(options['settings'],'r')
            fileread = filesett.readlines()
            user = fileread[0].strip()
            passwd = fileread[1].strip()
            filesett.close()
 	else:
-	   grass.fatal(_("File <%s> not found") % options['setting'])
+	   grass.fatal(_("File <%s> not found") % options['settings'])
         # set the folder by option folder
         if options['folder'] != '':
             if check(options['folder']):
                 fold = options['folder']
-        # set the folder from path where setting file is stored 
+        # set the folder from path where settings file is stored 
         else:
-            path = os.path.split(options['setting'])[0]
+            path = os.path.split(options['settings'])[0]
             if check(path):
                 fold = path
     # check the version
@@ -215,7 +215,7 @@ def main():
       # connect to ftp
       modisOgg.connectFTP()
       # download tha tiles
-      grass.message(_("Downloading MODIS product..."))
+      grass.message(_("Downloading MODIS product ..."))
       modisOgg.downloadsAllDay()
       if flags['g']:
         grass.message(modisOgg.filelist.name)
