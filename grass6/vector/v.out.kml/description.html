@@ -1,37 +1,17 @@
-#<html><head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
-<title>v.out.kml 101</title></head>
-
-<body bgcolor="#ffffff">
-
-<p><img src="./grass.smlogo.gif"> </p>
-
-<hr size="6" noshade="noshade">
-
-<h2>NAME</h2>
-
-<p><b><i>v.out.kml</i></b> - A shell script to generate KML files (Google Earth) from GRASS vector layers. <br>
-<i>(GRASS 6 Vector Program)</i> </p>
-
-<h2>SYNOPSIS</h2>
-
-<p><b>v.out.kml</b> <br>
-<b>v.out.kml  </b> lots of flags and parameters... use "v.out.kml help" for details  <br>
-
-
-
-
 <h2>DESCRIPTION</h2>
 
-<p><i>v.out.kml</i> creates KML files from GRASS vector data, 
+<i>v.out.kml</i> creates KML files from GRASS vector data, 
 including color, fillcolor, transparency and icons.<br>
+
 If no parameters are provided, <i>v.out.kml</i> will ask for the source vector layer and all other parameters. <br>
 The script allows to select wether polygons will be reduced to lines or kept as polygons.<br>
+
 Transparency values can be set seperately for both lines and polygon area fills.<br>
+
 Icons for point data can be referenced by ID numbers from the Google Earth web site or by individual URLs.<br>
+
 The color values can also be randomized. The random-color-flag overrides any additional color settings.<br>
-</p>
+
 
 <h3>Flags</h3>
 
@@ -89,39 +69,25 @@ transparency as an integer value (0-255 0=invisible 255=opaque)</dd>
 
 
 <h2>Notes</h2>
-<p>The script only works for data layers of the current mapset. If "user" is
+The script only works for data layers of the current mapset. If "user" is
 the current mapset, trying to access vectors from other mapsets (like
-"PERMANENT") will cause ungraceful script termination.</p><br>
+"PERMANENT") will cause ungraceful script termination.<br>
 
-<!-- <p>Worldwind can import KML files, yet it can (currently) only display icons
-(aka point data). Line vectors, polygons etc are (currently) only supported
-by Google Earth. </p><br> -->
-<p>The scrip requires an installation of GDAL/OGR supporting GML (Geographic Markup Language). 
+The scrip requires an installation of GDAL/OGR supporting GML (Geographic Markup Language). 
 If for some reason this is not available, or the local GDAL/OGR does not provide GML, install
-the famous FWTools from http://fwtools.maptools.org. They provide GML support. 
+FWTools from http://fwtools.maptools.org. They provide GML support. 
 To point the script to such a FWtools installation, use the ogrpath-parameter (pointing to ogr2ogr in FWtools).
-Once started with this option, the script will remember the path for the current mapset, so this ordeal is only necessary once.  </p><br>
+Once started with this option, the script will remember the path for the current mapset, so this ordeal is only necessary once. 
 
-<h2>To be done</h2><br><p> Currently lacking database support for point data (color/transparency)</p>
+<h2>To be done</h2> Currently lacking database support for point data (color/transparency)
 <br>
-<p>The same random value will be applied to all instances of a [transparency|geometry]-class.</p><br>
-<p>This is a humble shell-script. It  will be certainly out-performed by the mightily improved next version in C.</p><br>
-<p>There might be a slight offset between the generic EPSG 4326 and the "lat
+The same random value will be applied to all instances of a [transparency|geometry]-class.<br>
+There might be a slight offset between the generic EPSG 4326 and the "lat
 lon" used by Google Earth. The author would be grateful for feedback on this
-issue.<p><br>
-<p>
-...
-</p>
+issue.<br>
 
 
-<h2>DOWNLOAD THE CODE</h2>
-
-<p><a
-href="http://grasslab.gisix.com/scripts/v.out.kml/v.out.kml.sh">v.out.kml</a> </p>
 
 <h2>AUTHOR</h2>
+<p>Peter Loewe, GISIX.com </p>
 
-<p>Peter Löwe </p>
-
-<p><i>Last changed: $Date: 2007/17/06 $</i> </p>
-</body></html>
