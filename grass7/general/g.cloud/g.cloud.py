@@ -112,14 +112,18 @@ from types import *
 import grass.script as grass
 
 # add the folder containing libraries to python path
+cloudpath = None
 if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'g.cloud', os.sep)):
     cloudpath = os.path.join(os.getenv('GISBASE'), 'etc', 'g.cloud')
+elif os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'g.cloud', os.sep)):
+    cloudpath = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'g.cloud')
 elif os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'g.cloud', os.sep)):
     cloudpath = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'g.cloud')
 
 # search python environment
 python = os.getenv('GRASS_PYTHON', 'python')
-sys.path.append(cloudpath)
+if cloudpath:
+    sys.path.append(cloudpath)
 
 try:
     import cloud_ssh as sshs
