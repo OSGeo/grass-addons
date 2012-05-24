@@ -204,26 +204,29 @@ def main():
         tiles = options['tiles']
     # set the debug
     if flags['d']:
-      debug_opt = True
+        debug_opt = True
     else:
-      debug_opt = False
+        debug_opt = False
     for produ in products:
-      prod = product(produ).returned()
-      #start modis class
+        prod = product(produ).returned()
+        #start modis class
       
-      modisOgg = downModis(url = prod['url'], user = user,password = passwd, 
+        modisOgg = downModis(url = prod['url'], user = user,password = passwd, 
               destinationFolder = fold, tiles = tiles, path = prod['folder'], 
               today = firstday, enddate = finalday, delta = delta, debug = debug_opt)
-      # connect to ftp
-      modisOgg.connectFTP()
-      # download tha tiles
-      grass.message(_("Downloading MODIS product ..."))
-      modisOgg.downloadsAllDay()
-      if flags['g']:
-        grass.message(modisOgg.filelist.name)
-      else:
-        grass.message(_("All data are downloaded, continue with "\
-        + "r.modis.import with the option 'files=%s' and mrtpath=/path/to/mrt/" % modisOgg.filelist.name))
+        # connect to ftp
+        modisOgg.connectFTP()
+        if modisOgg.nconnection <= 20:
+            # download tha tiles
+            grass.message(_("Downloading MODIS product ..."))
+            modisOgg.downloadsAllDay()
+            if flags['g']:
+                grass.message(modisOgg.filelist.name)
+            else:
+                grass.message(_("All data are downloaded, continue with "\
+                + "r.modis.import with the option 'files=%s' and mrtpath=/path/to/mrt/" % modisOgg.filelist.name))
+        else:
+            grass.fatal(_("Error during connection"))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
