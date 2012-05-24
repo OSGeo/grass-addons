@@ -83,18 +83,19 @@ import grass.script as grass
 
 # add the folder containing libraries to python path
 if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis',os.sep)):
-    libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis',os.sep)
+    libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
 elif os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis',os.sep)):
-    libmodis = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis',os.sep)
+    libmodis = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis')
 else:
     print "ERROR: path to libraries not found"
     sys.exit()
 # try to import pymodis (modis) and some class for r.modis.download
+sys.path.append(libmodis)
 try:
     from rmodislib import product
-    from modis import downModis
+    from downmodis import downModis
 except ImportError:
-    pass
+    grass.fatal(_("modis library not imported"))
 
 def check(home):
     """ Check if a folder it is writable by the user that launch the process
@@ -157,7 +158,7 @@ def main():
         if options['folder'] != '':
             if check(options['folder']):
                 fold = options['folder']
-            user = raw_input(_('Insert username (usually anonymous): '))
+            user = 'anonymous'
             passwd = raw_input(_('Insert password (your mail): '))
         else:
             grass.fatal(_("Set folder parameter when using stdin for passing the username " \
@@ -209,6 +210,7 @@ def main():
     for produ in products:
       prod = product(produ).returned()
       #start modis class
+      
       modisOgg = downModis(url = prod['url'], user = user,password = passwd, 
               destinationFolder = fold, tiles = tiles, path = prod['folder'], 
               today = firstday, enddate = finalday, delta = delta, debug = debug_opt)

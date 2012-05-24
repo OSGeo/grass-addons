@@ -94,9 +94,9 @@ from datetime import date
 
 # add the folder containing libraries to python path
 if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis',os.sep)):
-    libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis',os.sep)
+    libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
 elif os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis',os.sep)):
-    libmodis = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis',os.sep)
+    libmodis = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis')
 else:
     print "ERROR: path to libraries not found"
     sys.exit()
@@ -105,9 +105,10 @@ sys.path.append(libmodis)
 # try to import pymodis (modis) and some classes for r.modis.download
 try:
     from rmodislib import resampling, product, get_proj, projection
-    from modis  import parseModis, convertModis, createMosaic
+    from convermodis  import convertModis, createMosaic
+    from parsemodis import parseModis
 except ImportError:
-    pass
+    grass.fatal(_("modis library not imported"))
 
 def list_files(opt, mosaik = False):
     """If used in function single(): Return a list of HDF files from the file list
