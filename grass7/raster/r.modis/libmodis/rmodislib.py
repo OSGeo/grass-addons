@@ -46,7 +46,7 @@ class product:
     """
     def __init__(self,value = None):
         # url to download products
-        urlbase = 'e4ftl01u.ecs.nasa.gov'
+        urlbase = 'e4ftl01.cr.usgs.gov'
         usrsnow = 'n4ftl01u.ecs.nasa.gov'
         ### values of lst product:
         lst_spec = '( 1 0 0 0 1 0 0 0 0 0 0 0 )'
