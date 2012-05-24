@@ -30,14 +30,31 @@ r.in.wms2 -c mapserver=http://wms.cuzk.cz/wms.asp
 
 <h3>CUZK download</h3>
 
+
+World extend data:
+
+<div class="code"><pre>
+r.in.wms2 mapserver=http://iceds.ge.ucl.ac.uk/cgi-bin/icedswms layers=bluemarble,landsat_1_01 styles=default,default output=landsat srs=4326 format=png 
+</pre></div>
+* Server supports only WMS 1.1.1 <br>
+
+<div class="code"><pre>
+r.in.wms2 mapserver=http://132.156.97.59/cgi-bin/worldmin_en-ca_ows layers=GSC:WORLD_PrecambrianDomains output=pokus srs=4326 format=jpeg 
+</pre></div>
+* Server supports only WMS 1.1.1 
+<br>
+<br>
+
+Data in extend of Czech Republic:
+
 <div class="code"><pre>
 r.in.wms2 output=kn mapserver=http://wms.cuzk.cz/wms.asp layers=prehledka_kraju-linie srs=4326 format=png
 </pre></div>
 
+
 <h2>TODO</h2>
 
 <ul>
-  <li>Add more examples...</li>
   <li>Implement Tiled WMS</li>
 </ul>
 

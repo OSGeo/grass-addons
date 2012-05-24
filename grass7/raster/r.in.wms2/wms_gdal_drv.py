@@ -53,16 +53,16 @@ class WMSGdalDrv(WMSBase):
         data_window = etree.SubElement(gdal_wms, "DataWindow")
         
         upper_left_x = etree.SubElement(data_window, "UpperLeftX")
-        upper_left_x.text = str(self.bbox['w']) 
+        upper_left_x.text = str(self.bbox['minx']) 
         
         upper_left_y = etree.SubElement(data_window, "UpperLeftY")
-        upper_left_y.text = str(self.bbox['n']) 
+        upper_left_y.text = str(self.bbox['maxy']) 
         
         lower_right_x = etree.SubElement(data_window, "LowerRightX")
-        lower_right_x.text = str(self.bbox['e']) 
+        lower_right_x.text = str(self.bbox['maxx']) 
         
         lower_right_y = etree.SubElement(data_window, "LowerRightY")
-        lower_right_y.text = str(self.bbox['s'])
+        lower_right_y.text = str(self.bbox['miny'])
         
         size_x = etree.SubElement(data_window, "SizeX")
         size_x.text = str(self.region['cols']) 
@@ -95,10 +95,17 @@ class WMSGdalDrv(WMSBase):
         @return temp_map with stored downloaded data
         """
         grass.message("Downloading data from WMS server...")
+
+        # GDAL WMS driver does not flip geographic coordinates 
+        # according to WMS standard 1.3.0.
+        if self.flip_coords and self.o_wms_version == "1.3.0":
+            grass.warning(_("If module will not be able to fetch the data in this\
+                           geographic projection, \n try flag -d or use WMS version 1.1.1."))
+
         self._debug("_download", "started")
         
-        temp_map = self._tempfile()
-        
+        temp_map = self._tempfile()        
+
         xml_file = self._createXML()
         wms_dataset = gdal.Open(xml_file, gdal.GA_ReadOnly)
         grass.try_remove(xml_file)

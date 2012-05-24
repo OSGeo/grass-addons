@@ -193,24 +193,28 @@ class WMSBase:
         
         cap_lines = cap.readlines()
         for line in cap_lines: 
-            grass.message(line) 
+            print line 
         
     def _computeBbox(self):
         """!Get region extent for WMS query (bbox)
         """
         self._debug("_computeBbox", "started")
         
-        bbox = {'n' : None, 's' : None, 'e' : None, 'w' : None}
-        
+        bbox_region_items = {'maxy' : 'n', 'miny' : 's', 'maxx' : 'e', 'minx' : 'w'}  
+        bbox = {}
+
         if self.proj_srs == self.proj_location: # TODO: do it better
-            for param in bbox:
-                bbox[param] = self.region[param]
+            for bbox_item, region_item in bbox_region_items.iteritems():
+                bbox[bbox_item] = self.region[region_item]
         
         # if location projection and wms query projection are
         # different, corner points of region are transformed into wms
         # projection and then bbox is created from extreme coordinates
         # of the transformed points
         else:
+            for bbox_item, region_item  in bbox_region_items.iteritems():
+                bbox[bbox_item] = None
+
             temp_region = self._tempfile()
             
             try:
@@ -239,25 +243,36 @@ class WMSBase:
             
             for point in points:
                 point = map(float, point.split("|"))
-                if not bbox['n']:
-                    bbox['n'] = point[1]
-                    bbox['s'] = point[1]
-                    bbox['e'] = point[0]
-                    bbox['w'] = point[0]
+                if not bbox['maxy']:
+                    bbox['maxy'] = point[1]
+                    bbox['miny'] = point[1]
+                    bbox['maxx'] = point[0]
+                    bbox['minx'] = point[0]
                     continue
                 
-                if   bbox['n'] < point[1]:
-                    bbox['n'] = point[1]
-                elif bbox['s'] > point[1]:
-                    bbox['s'] = point[1]
+                if   bbox['maxy'] < point[1]:
+                    bbox['maxy'] = point[1]
+                elif bbox['miny'] > point[1]:
+                    bbox['miny'] = point[1]
                 
-                if   bbox['e'] < point[0]:
-                    bbox['e'] = point[0]
-                elif bbox['w'] > point[0]:
-                    bbox['w'] = point[0]  
+                if   bbox['maxx'] < point[0]:
+                    bbox['maxx'] = point[0]
+                elif bbox['minx'] > point[0]:
+                    bbox['minx'] = point[0]  
         
         self._debug("_computeBbox", "finished -> %s" % bbox)
-        
+
+        # Ordering of coordinates axis of geographic coordinate
+        # systems in WMS 1.3.0 is fliped. If self.flip_coords is 
+        # True, coords in bbox need to be flipped in WMS query.
+
+        self.flip_coords = False  
+        hasLongLat = self.proj_srs.find("+proj=longlat")   
+        hasLatLong = self.proj_srs.find("+proj=latlong")   
+
+        if (hasLongLat != -1 or hasLatLong != -1) and self.o_wms_version == "1.3.0":
+            self.flip_coords = True
+
         return bbox
 
     def _createOutputMap(self): 
@@ -345,6 +360,25 @@ class WMSBase:
         
         grass.try_remove(temp_warpmap)
         grass.try_remove(self.temp_map) 
+
+    def _flipBbox(self, bbox):
+        """ 
+        flips items in dictionary 
+        value flips between this keys:
+        maxy -> maxx
+        maxx -> maxy
+        miny -> minx
+        minx -> miny
+        @return copy of bbox with fliped cordinates
+        """  
+        temp_bbox = dict(bbox)
+        new_bbox = {}
+        new_bbox['maxy'] = temp_bbox['maxx']
+        new_bbox['miny'] = temp_bbox['minx']
+        new_bbox['maxx'] = temp_bbox['maxy']
+        new_bbox['minx'] = temp_bbox['miny']
+
+        return new_bbox
 
     def _tempfile(self):
         """!Create temp_file and append list self.temp_files_to_cleanup 

@@ -21,6 +21,7 @@ class WMSDrv(WMSBase):
         """ 
         grass.message(_("Downloading data from WMS server..."))
         
+
         proj = self.projection_name + "=EPSG:"+ str(self.o_srs)
         url = self.o_mapserver_url + "REQUEST=GetMap&VERSION=%s&LAYERS=%s&WIDTH=%s&HEIGHT=%s&STYLES=%s&BGCOLOR=%s&TRANSPARENT=%s" %\
                   (self.o_wms_version, self.o_layers, self.tile_cols, self.tile_rows, self.o_styles, self.o_bgcolor, self.transparent)
@@ -35,7 +36,7 @@ class WMSDrv(WMSBase):
         # computes parameters of tiles 
         num_tiles_x = cols / self.tile_cols 
         last_tile_x_size = cols % self.tile_cols
-        tile_x_length =  float(self.tile_cols) / float(cols ) * (self.bbox['e'] - self.bbox['w']) 
+        tile_x_length =  float(self.tile_cols) / float(cols ) * (self.bbox['maxx'] - self.bbox['minx']) 
         
         last_tile_x = False
         if last_tile_x_size != 0:
@@ -44,7 +45,7 @@ class WMSDrv(WMSBase):
         
         num_tiles_y = rows / self.tile_rows 
         last_tile_y_size = rows % self.tile_rows
-        tile_y_length =  float(self.tile_rows) / float(rows) * (self.bbox['n'] - self.bbox['s']) 
+        tile_y_length =  float(self.tile_rows) / float(rows) * (self.bbox['maxy'] - self.bbox['miny']) 
         
         last_tile_y = False
         if last_tile_y_size != 0:
@@ -53,34 +54,40 @@ class WMSDrv(WMSBase):
         
         # each tile is downloaded and written into temp_map 
         tile_bbox = dict(self.bbox)
-        tile_bbox['e'] = self.bbox['w']  + tile_x_length
+        tile_bbox['maxx'] = self.bbox['minx']  + tile_x_length
         
         tile_to_temp_map_size_x = self.tile_cols
         for i_x in range(num_tiles_x):
             # set bbox for tile i_x,i_y (E, W)
             if i_x != 0:
-                tile_bbox['e'] += tile_x_length 
-                tile_bbox['w'] += tile_x_length            
+                tile_bbox['maxx'] += tile_x_length 
+                tile_bbox['minx'] += tile_x_length            
             
             if i_x == num_tiles_x - 1 and last_tile_x:
                 tile_to_temp_map_size_x = last_tile_x_size 
             
-            tile_bbox['n'] = self.bbox['n']                    
-            tile_bbox['s'] = self.bbox['n'] - tile_y_length 
+            tile_bbox['maxy'] = self.bbox['maxy']                    
+            tile_bbox['miny'] = self.bbox['maxy'] - tile_y_length 
             tile_to_temp_map_size_y = self.tile_rows       
             
             for i_y in range(num_tiles_y):
                 # set bbox for tile i_x,i_y (N, S)
                 if i_y != 0:
-                    tile_bbox['s'] -= tile_y_length 
-                    tile_bbox['n'] -= tile_y_length
+                    tile_bbox['miny'] -= tile_y_length 
+                    tile_bbox['maxy'] -= tile_y_length
                 
                 if i_y == num_tiles_y - 1 and last_tile_y:
                     tile_to_temp_map_size_y = last_tile_y_size 
                 
-                # bbox for tile defined
-                query_url = url + "&" + "BBOX=%s,%s,%s,%s" % (tile_bbox['w'], tile_bbox['s'], tile_bbox['e'], tile_bbox['n'])
-                
+                if self.flip_coords:
+                    # flips coordinates if WMS strandard is 1.3.0 and 
+                    # projection is geographic (see:wms_base.py _computeBbox)
+                    query_bbox = dict(self._flipBbox(tile_bbox))
+                else:
+                    query_bbox = tile_bbox
+
+                query_url = url + "&" + "BBOX=%s,%s,%s,%s" % ( query_bbox['minx'],  query_bbox['miny'],  query_bbox['maxx'],  query_bbox['maxy'])
+                grass.debug(query_url)
                 try: 
                     wms_data = urlopen(query_url)
                 except IOError:
@@ -158,9 +165,11 @@ class WMSDrv(WMSBase):
                                         epsg =self.o_srs).rstrip('\n')
         temp_map_dataset.SetProjection(projection)
         
-        pixel_x_length = (self.bbox['e'] - self.bbox['w']) / int(cols)
-        pixel_y_length = (self.bbox['s'] - self.bbox['n']) / int(rows)
-        geo_transform = [ self.bbox['w'] , pixel_x_length  , 0.0 ,  self.bbox['n'] , 0.0 , pixel_y_length ] 
+
+
+        pixel_x_length = (self.bbox['maxx'] - self.bbox['minx']) / int(cols)
+        pixel_y_length = (self.bbox['miny'] - self.bbox['maxy']) / int(rows)
+        geo_transform = [ self.bbox['minx'] , pixel_x_length  , 0.0 ,  self.bbox['maxy'] , 0.0 , pixel_y_length ] 
         temp_map_dataset.SetGeoTransform(geo_transform )
         temp_map_dataset = None
         
