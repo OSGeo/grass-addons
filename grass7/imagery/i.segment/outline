@@ -1,0 +1,227 @@
+This is the draft pseudocode for the region growing segmentation algorithm.  More information, references, requirements, etc are at the wiki:
+http://grass.osgeo.org/wiki/GRASS_GSoC_2012_Image_Segmentation
+
+TODO: Need to consider the size of image vs. size of memory.  
+
+TODO: Are any parts here potentially useful as library functions?  Are any of these tasks already done by existing library functions?
+
+
+I plan to keep many of these lines (or answers to the questions) as the comments in the code.
+
+Are there any preferences/styles for file layout?  Looking at the i.smap file structure, my first thought is to break each of the major sections into its own file.
+
+
+/****************************************************************************
+ *
+ * MODULE:       i.segment
+ * AUTHOR(S):    Eric Momsen <eric.momsen at gmail com>
+ * PURPOSE:      Provide short description of module here...
+ * COPYRIGHT:    (C) 2012 by Eric Momsen, and the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the COPYING file that comes with GRASS
+ *               for details.
+ *
+ *****************************************************************************/
+
+#include <grass/config.h>
+
+(for my reference, order for headers)
+1. Core system headers (stdio.h, ctype.h, ...)
+2. Headers for non-core system components (X11, libraries).
+3. Headers for core systems of the package being compiled (grass/gis.h, grass/glocale.h, ...)
+4. Headers for the specific library/program being compiled (geodesic.h, ...)
+
+
+int main(int argc, char *argv[])
+{
+
+Declare Strucutures
+
+What GRASS global variables do I need (where to write temporary rasters, current region, others?)
+
+/****************************************************/
+/******** Parse the input parameters ****************/
+/****************************************************/
+
+raster or image group or image subgroup --> map names (and number of maps?)
+
+seeds:  All pixels or Vector/points (optional, default = all pixels)
+
+constraint (vector linear/polygon) (optional)
+
+segmentation algorithm (only region growing accepted to start)
+
+/* Algorithm parameters */
+
+similarity threshold
+
+how quickly the threshold should be reduced
+
+Minimum pixel size of the segments (optional, default 1)
+
+Later:
+Weights for each band in the image group
+weights for shape and compactness
+Color space? (RGB, HSI, L*u*v*, L*a*b*)
+
+
+/* output parameters */
+need name for new raster and vector map
+default to use: inputname_segmented and inputname_segment_stats  ??
+Allow user to input alternate names?
+
+--overwrite -o (optional, to overwrite the named output maps)
+
+Option to just validate input and exit with messages?
+
+-e  Maybe an option for basic vs. extended output statistics 
+
+
+Should user input allowed memory usage, or is there a way to find out what is reasonable?
+
+/************************************/
+/******** Input Validation **********/
+/************************************/
+
+For each validation step: if fail, output warning and set fail flag.
+Would it be polite to output successful validation tests too?
+
+confirm can read input raster(s) (and vector(s))
+
+confirm selected algorithm is implemented
+
+confirm input algorithm parameters are in correct range
+
+If output maps exist
+	if -o
+		msg, existing maps will be overwriten
+	else
+		fail
+
+
+Will run calculations at region settings (I assume this is the proper way to do things, though I have seen a few modules that don't.)  So need to confirm some things for the region:
+
+
+Boundary:
+
+Do I need to be concerned that the region boundary could be in the middle of a pixel? Just include any pixels that are >50% in region lines?
+
+
+Resolution
+Again, this could be required as preprocessing and/or second priority.
+
+But if the resolution of the input raster and current region settings don't match - are there straightforward modules that could be applied?  If yes, take action and output a message of what change was made.
+
+
+/* check input raster */
+Should the program recognize a mask, and only segment the unmasked area?  Will this cause a problem if the mask is "odd" shaped and/or disjoint?
+
+Does it make sense to require the area to be contiguous?
+
+Check for null cells?  If found, what should be done?
+
+
+
+End of validation checks
+if fail flag, exit with failure
+
+/*******************************************/
+/************* preprocessing ? *************/
+/*******************************************/
+
+Any preprocessing?
+
+If vector borders are provided, do we need to convert them to rasters?  Would lines and polygon's be treated the same?
+
+If polygons constraints, check if all pixels are inside of polygons?
+
+later: if allow polygons as seeds, get the centroids to use as seeds.
+
+/*******************************************/
+/************ Processing ********************/
+/*******************************************/
+
+
+How to deal with tiling areas that are larger then fit in memory?  I assume I don't want disk I/O for every single pixel neighbor check, but also the size of the map may be large.  Don't want edge affects, and need awareness of all neighbors.  Maybe I/O for checking borders isn't too costly, can process one tile at a time, with disk I/O for just the borders.  Do 1 time step at each tile?
+
+Data structure for candidate segments and already checked segments?
+In java, I'd think of a linked list, as elements are moved from one to the other, the overall memory requirements would be fixed.  BUT we might not have the entire map in memory.  Should we have a raster map with 1 for candidates and 0 for those that have already been checked on this iteration?
+
+To consider later: if we have point seeds (not all pixels) we need to also have a 3rd data structure, pixels not yet assigned to a region.  Will this process be different enough to have a different loop...or just have two different neighborhood select functions?  In this version, can two regions merge with each other, or only with unassigned seeds?
+
+How to find irregular neighbors for irregular shaped segments?  If we have line constraints, the neighbor selection should not cross the borders.
+
+If we have polygon constraints.  Outer for loop to process the image one polygon at a time.  (Need to check if all pixels are included in a polygon, otherwise process all those pixels last.)
+
+/*
+* Roughly based on SPRING
+* Bins, et al: Satellite Imagery Segmentation: A Region Growing Approach, 1996
+* http://marte.dpi.inpe.br/col/sid.inpe.br/deise/1999/02.05.09.30/doc/T205.pdf
+*/
+
+/* Similarity threshold T(t)... as t increases, threshold for similarity is lower. SPRING used: T(t) = T(0)alphat, where T(0) > ), t =0,1,2... and alpha <1 */
+
+For t  (until no merges are made?)
+
+	initialize candidate regions data structure (each region will be checked once on each pass)
+	save mean value vector and neighboring regions (Not sure why this needs to be calculated/saved ahead of time ??  Maybe SPRING has created a map data structure of what regions are neighbors? )
+
+	While candidate region set is not empty (first pass this equals the seeds):
+		Compare Ri with neighbors (Question: should neighbors include or exclude those regions that were already matched?  Seems eCognition excludes all regions that have already been checked once on the iteration.)
+		If it exists, Rk is best neighbor if smallest D of all neighbors and and D < T.
+		Check Rk's neighbors.
+		IF (Ri is Rk's best neighbor) (so the agree, both are best match for each other)
+			merge
+			update segment values (mean)
+			remove from candidate region set. (give all "small" regions a chance to merge with best neighbor before growing larger regions)
+			select next Ri
+		Else
+			remove Ri from candidate region
+			Use Rk as next Ri
+	loop
+	
+	Were any merges made for this time step?
+	
+next t
+
+Force a merge of regions that are below minimum size threshold (just merge with most similar neighbor, no comparison with similarity threshold)
+
+
+/****************************************/
+/************ Output ********************/
+/****************************************/
+
+
+output raster (with segment ID as raster data) is written as we go?  Or maybe it would better to have in a temp map, and write a fresh one at the end (so segment ID numbers are continuous?)
+
+
+output vector and generate statistics
+(existing GRASS module to create polygons for each segment from the raster map)
+
+calculate statistics to be saved in data table for the vector map
+
+one vector map of segments per hierarchy level with a series of attributes (not all of these attributes should probably be calculated directly be the segmentation module)
+
+spectral attributes:
+per spectral band: mean, min, max, skewness
+
+combination of bands: brightness, indices (i.e. results of multi-band calculations)
+
+textural attributes: stdev (per-band and/or multi-band), mean difference to neighbor, Haralick texture features cf r.texture
+
+geometric/morphological attributes: area, perimeter, length/width measures, see also r.li
+
+context attributes: mean difference to all other regions in the same upper hierarchical level, relative localisation within upper hierarchical level, absolute localisation, number of objects in lower level
+
+depending on segmentation algorithm: raster map indicating for each pixel the probability of belonging to the segment it was put into, i.e. some measure of reliability of results  (For region growing - should this be the similarity measure when it was merged?  Or similarity measure of the pixel compared to the average?)
+
+/*******************************/
+/********** tidy up ************/
+/*******************************/
+
+free memory, delete temp files
+
+output to screen (timing, messages - how much needs to be done in my program and how much is handled by GRASS infrastructure?)
+
+exit - success!
