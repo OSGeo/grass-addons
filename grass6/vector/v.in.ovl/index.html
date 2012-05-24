@@ -1,0 +1,69 @@
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage Express 2.0">
+<title>v.in.ovl 101</title></head>
+
+<body bgcolor="#ffffff">
+
+<p><img src="./grass.smlogo.gif"> </p>
+
+<hr size="6" noshade="noshade">
+
+<h2>NAME</h2>
+
+<p><b><i>v.in.ovl</i></b> - A Perl-script to import ascii OVL-files into
+a GRASS location. <br>
+<i>(GRASS 6 Vector Program)</i> </p>
+
+<h2>SYNOPSIS</h2>
+
+<p><b>v.in.ovl</b> <br>
+<b>v.in.ovl  </b>input=OVL-File [output=GRASS-Vector] <br>
+
+<h2>DESCRIPTION</h2>
+
+<p><i>v.in.ovl</i> imports vector data from an ascii OVl file
+into a (lat lon/EPS:4326) GRASS location. <br>
+If no parameters are provided, <i>v.in.ovl</i> will ask for the input file
+and the name of the vector layer to be created. <br>
+An OVL file can contain multiple vector geometries, such as polygons, lines
+and several varieties of point data with specific attributes (different
+icons, text, size, orientation) <br>
+All geometries of the OVL are imported into the GRASS vector layer. All OVL
+attributes (colors, size, orientation, text, etc.) are stored in the vectors database table. </p>
+
+<h3>Parameters</h3>
+
+<dl><dt><b><i>input</i></b></dt><dd>Input ascii OVL file.
+</dd><dt><b><i>output</i></b></dt><dd>
+        Name of the new GRASS vector. <br>
+    </dd></dl>
+<h2>Notes</h2>
+<p>This script will not work on binary OVL files. Make sure that ASCII OVL
+is exported. <br>
+<p>OVL files can be created from german TOP[10|25|50|100] products, austrian
+AUSTRIA MAP products and the swiss SWISSMAP 100. </p>
+<br>
+<p>
+The script automatically converts the line-end characters from windows to
+un*x-style. 
+</p>
+
+<h2>Extended Mapping Opportunity</h2>
+
+<p>It might be interesting to know that the SWISSMAP 100 CDROM includes a
+general map (low res) of central europe which allows to create OVLs also for
+parts of France, Italy and other countries. <br>
+  </p>
+
+<h2>DOWNLOAD THE CODE</h2>
+
+<p><a
+href="http://grasslab.gisix.com/scripts/v.in.ovl/v.in.ovl.pl">v.in.ovl.pl</a> </p>
+
+<h2>AUTHOR</h2>
+
+<p>Peter Löwe </p>
+
+<p><i>Last changed: $Date: 2007/17/06 $</i> </p>
+</body></html>
