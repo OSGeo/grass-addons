@@ -222,15 +222,15 @@ def main():
             modisOgg.downloadsAllDay()
             filesize = int(os.path.getsize(modisOgg.filelist.name))
             if flags['g'] and filesize != 0:
-                grass.message("filename=%s"modisOgg.filelist.name)
+                grass.message("filename=%s" % modisOgg.filelist.name)
             elif flags['g'] and filesize == 0:
                 grass.message("filename=")
             elif not flags['g'] and filesize == 0:
                 grass.message(_("All data have been previously downloaded"))
             elif filesize != 0:
-                grass.message(_("All data have been downloaded, continue "\
-                + "with r.modis.import with the option 'files=%s' and " \
-                + "mrtpath=/path/to/mrt/" % modisOgg.filelist.name))
+                grass.message(_("All data have been downloaded, continue with "\
+                + "r.modis.import with the option 'files=%s'" % modisOgg.filelist.name \
+                + " and 'mrtpath=/path/to/mrt/'"))
         else:
             grass.fatal(_("Error during connection"))
 
