@@ -159,7 +159,7 @@ def main():
             if check(options['folder']):
                 fold = options['folder']
             user = 'anonymous'
-            passwd = raw_input(_('Insert password (your mail): '))
+            passwd = raw_input(_('Insert password (your e-mail): '))
         else:
             grass.fatal(_("Set folder parameter when using stdin for passing the username " \
             + "and password"))
@@ -218,13 +218,19 @@ def main():
         modisOgg.connectFTP()
         if modisOgg.nconnection <= 20:
             # download tha tiles
-            grass.message(_("Downloading MODIS product ..."))
+            grass.message(_("Downloading MODIS product <%s>..." % produ))
             modisOgg.downloadsAllDay()
-            if flags['g']:
-                grass.message(modisOgg.filelist.name)
-            else:
-                grass.message(_("All data are downloaded, continue with "\
-                + "r.modis.import with the option 'files=%s' and mrtpath=/path/to/mrt/" % modisOgg.filelist.name))
+            filesize = int(os.path.getsize(modisOgg.filelist.name))
+            if flags['g'] and filesize != 0:
+                grass.message("filename=%s"modisOgg.filelist.name)
+            elif flags['g'] and filesize == 0:
+                grass.message("filename=")
+            elif not flags['g'] and filesize == 0:
+                grass.message(_("All data have been previously downloaded"))
+            elif filesize != 0:
+                grass.message(_("All data have been downloaded, continue "\
+                + "with r.modis.import with the option 'files=%s' and " \
+                + "mrtpath=/path/to/mrt/" % modisOgg.filelist.name))
         else:
             grass.fatal(_("Error during connection"))
 
