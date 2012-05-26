@@ -52,14 +52,22 @@ in the input command. In the case, where a 3D layer is limited not only
 from one unit surface, e.g. on top, this flag allows a further 3D
 interpolation until the next DEM or the region's margin.
 
-<!-- Suffers from severe memory leak! MN 4/2012
+<center>
+<img src="r_vol_dem_layerdown.jpg" border=1><br>
+Layer down NULL filling behaviour of <em>r.vol.dem</em>
+</center>
+<p>
+<center>
+<img src="r_vol_dem_layerup.jpg" border=1><br>
+Layer up NULL filling behaviour of <em>r.vol.dem</em>
+</center>
 
+<!-- Suffers from severe memory leak! MN 4/2012
 <p>
 The <em>-h</em> flag export convex hull for polygon layers: This option
 creates a 3D polygon out of the voxel model. This means, at first it will
 be generated a voxel model. Afterwards, this will be converted into a
 vector-file. However, the flag does not yet work properly.
-
 -->
 
 <p>
