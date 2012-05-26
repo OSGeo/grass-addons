@@ -35,10 +35,11 @@
 #%end
 #%flag
 #% key: z
-#% description: Create a 3D line from 3 column data
+#% description: Create a 3D elements (not for bookmarks)
 #%end
 #%option G_OPT_DB_DATABASE
 #% description: Input Geopaparazzi database
+#% required : yes
 #%end
 #%option
 #% key: basename
