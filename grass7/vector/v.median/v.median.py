@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 ############################################################################
 #
-# MODULE:       v.barycenter
+# MODULE:       v.median
 # AUTHOR(S):    Luca Delucchi, Fondazione E. Mach (Italy)
 #
 # PURPOSE:      Return the barycenter of a cloud of point
