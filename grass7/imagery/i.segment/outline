@@ -45,6 +45,7 @@ What GRASS global variables do I need (where to write temporary rasters, current
 /****************************************************/
 
 raster or image group or image subgroup --> map names (and number of maps?)
+/*ML: Here you just need name of group and subgroup, what goes into these is handled by i.group*/
 
 seeds:  All pixels or Vector/points (optional, default = all pixels)
 
@@ -64,21 +65,27 @@ Later:
 Weights for each band in the image group
 weights for shape and compactness
 Color space? (RGB, HSI, L*u*v*, L*a*b*)
+/*ML: Again, I don't think that you should think in terms of color space. As Ned mentioned feature space is probably the most appropriate and which variables define that space is up to the user by defining which maps go into the relevant group. IMHO it should also be up to the user to ensure that the different maps in the chosen group (i.e. the different variables defining the feature space) can be used together and are of the same order of magnitude*/
 
 
 /* output parameters */
 need name for new raster and vector map
 default to use: inputname_segmented and inputname_segment_stats  ??
 Allow user to input alternate names?
+/*ML: General practice in GRASS is not to suggest output names*/
 
 --overwrite -o (optional, to overwrite the named output maps)
+/*ML: no need for this, the parser includes this automagically*/
 
 Option to just validate input and exit with messages?
+/*ML: Again, this is not standard GRASS practice, so I wouldn't worry about it*/
 
 -e  Maybe an option for basic vs. extended output statistics 
+/*ML: I think we need to discuss whether the calculation of statistics should be part of the actual segmentation module, or whether putting that task into a separate module might be a better idea, i.e. a module which would take as input a (vector?) map of the segments and then calculate statistics. This would also allow to use segments created elsewhere, but still access the statistics for further analysis. I'm currently more inclined towards the separate module option.*/
 
 
 Should user input allowed memory usage, or is there a way to find out what is reasonable?
+/*ML: Sounds like a reasonable idea. Look at r.watershed for inspiration (-m flag + memory parameter)*/
 
 /************************************/
 /******** Input Validation **********/
@@ -86,10 +93,12 @@ Should user input allowed memory usage, or is there a way to find out what is re
 
 For each validation step: if fail, output warning and set fail flag.
 Would it be polite to output successful validation tests too?
+/*Again, not standard practice, so don't worry*/
 
 confirm can read input raster(s) (and vector(s))
 
 confirm selected algorithm is implemented
+/*ML: As long as you only list available algorithms as options for the algorithm selection parameter, this should be taken care of automagically by the parser*/
 
 confirm input algorithm parameters are in correct range
 
@@ -98,26 +107,32 @@ If output maps exist
 		msg, existing maps will be overwriten
 	else
 		fail
+/*ML: Again, --o is handled by parser, nothing for you to worry about*/
 
 
 Will run calculations at region settings (I assume this is the proper way to do things, though I have seen a few modules that don't.)  So need to confirm some things for the region:
-
+/*ML: Yes, you should definitely use region settings !*/
 
 Boundary:
 
 Do I need to be concerned that the region boundary could be in the middle of a pixel? Just include any pixels that are >50% in region lines?
+/*ML: No, either pixel size or region boundary are adapted to ensure that region extents are always a full multiple of pixel size.*/
 
 
 Resolution
 Again, this could be required as preprocessing and/or second priority.
+/*ML: If your speaking of pixel size, then this is part of the region settings. If you mean scale of segmentation, then this should be part of the algorithm parameters*/
 
 But if the resolution of the input raster and current region settings don't match - are there straightforward modules that could be applied?  If yes, take action and output a message of what change was made.
+/*ML: AFAIK, raster maps are automatically resampled to current region resolution. Again, this is standard GRASS procedure and probably does not have to be handled by your module(s)*/
 
 
 /* check input raster */
 Should the program recognize a mask, and only segment the unmasked area?  Will this cause a problem if the mask is "odd" shaped and/or disjoint?
+/*ML: Use of the mask (in GRASS a mask is defined by the existence of a raster map named MASK) would be very helpful, so yes, your module(s) should take an existing mask into account.*/
 
 Does it make sense to require the area to be contiguous?
+/*ML: No, I don't think so. If you think about top-down multi-scalar segmentation, i.e. first coarse segmentation, then further segmentation of selected larger segments, non-contiguous areas make sens. Ex: Segment into coarse segments that allow to distinguish vegetation-covered areas from others, then segment these vegetation-covered areas further in order to distinguish types of vegetation.*/
 
 Check for null cells?  If found, what should be done?
 
@@ -133,10 +148,13 @@ if fail flag, exit with failure
 Any preprocessing?
 
 If vector borders are provided, do we need to convert them to rasters?  Would lines and polygon's be treated the same?
+/*ML: vector to raster conversion is probably necesary. Pixels crosses by a line (polygon boundary or not) have to become part of a segment boundary.*/
 
 If polygons constraints, check if all pixels are inside of polygons?
+/*ML: What do you mean by "all pixels" ?*/
 
 later: if allow polygons as seeds, get the centroids to use as seeds.
+/*ML: Innocent question: can't you use all pixels in the polygon as seeds ?*/
 
 /*******************************************/
 /************ Processing ********************/
@@ -144,13 +162,16 @@ later: if allow polygons as seeds, get the centroids to use as seeds.
 
 
 How to deal with tiling areas that are larger then fit in memory?  I assume I don't want disk I/O for every single pixel neighbor check, but also the size of the map may be large.  Don't want edge affects, and need awareness of all neighbors.  Maybe I/O for checking borders isn't too costly, can process one tile at a time, with disk I/O for just the borders.  Do 1 time step at each tile?
+/*ML: as Markus M told you, the segment library is probably your best choice for this.*/
 
 Data structure for candidate segments and already checked segments?
 In java, I'd think of a linked list, as elements are moved from one to the other, the overall memory requirements would be fixed.  BUT we might not have the entire map in memory.  Should we have a raster map with 1 for candidates and 0 for those that have already been checked on this iteration?
 
 To consider later: if we have point seeds (not all pixels) we need to also have a 3rd data structure, pixels not yet assigned to a region.  Will this process be different enough to have a different loop...or just have two different neighborhood select functions?  In this version, can two regions merge with each other, or only with unassigned seeds?
+/*ML: Not sure I understand all the issues related to seeds (I think that fixed boundaries should probably be a first priority), but I would guess that if the user has defined these seed regions as being of separate type, then they should probably not be merged.*/
 
 How to find irregular neighbors for irregular shaped segments?  If we have line constraints, the neighbor selection should not cross the borders.
+/*ML: As you will be working in raster, neighbourhood can be defined at pixel⁻level and so there are no "irregular" neighbors. The question of diagonal neighborhood is obviously open. How does eCognition handle this ?*/
 
 If we have polygon constraints.  Outer for loop to process the image one polygon at a time.  (Need to check if all pixels are included in a polygon, otherwise process all those pixels last.)
 
@@ -166,6 +187,7 @@ For t  (until no merges are made?)
 
 	initialize candidate regions data structure (each region will be checked once on each pass)
 	save mean value vector and neighboring regions (Not sure why this needs to be calculated/saved ahead of time ??  Maybe SPRING has created a map data structure of what regions are neighbors? )
+/*ML: if you want to compare are region with neighbors in your while loop, maybe having a predefined neighborhood matrix makes it more efficient, instead of identifying neighbors at each step. However, if neighborhood is a defined number of neighboring pixels, then I don't see it making a difference.*/
 
 	While candidate region set is not empty (first pass this equals the seeds):
 		Compare Ri with neighbors (Question: should neighbors include or exclude those regions that were already matched?  Seems eCognition excludes all regions that have already been checked once on the iteration.)
@@ -198,6 +220,7 @@ output raster (with segment ID as raster data) is written as we go?  Or maybe it
 
 output vector and generate statistics
 (existing GRASS module to create polygons for each segment from the raster map)
+/*ML: for this and the following - as already mentioned, maybe the generation of statistics should be done in a separate module*/
 
 calculate statistics to be saved in data table for the vector map
 
@@ -215,6 +238,7 @@ geometric/morphological attributes: area, perimeter, length/width measures, see 
 context attributes: mean difference to all other regions in the same upper hierarchical level, relative localisation within upper hierarchical level, absolute localisation, number of objects in lower level
 
 depending on segmentation algorithm: raster map indicating for each pixel the probability of belonging to the segment it was put into, i.e. some measure of reliability of results  (For region growing - should this be the similarity measure when it was merged?  Or similarity measure of the pixel compared to the average?)
+/*ML: Not sure, but I would think that similarity between pixel and average of region it belongs to might be a good choice. Am not a specialist in statistics, but maybe it is possible to translate this into some form of probability of really "belonging" to that region (cf i.maxlik)*/
 
 /*******************************/
 /********** tidy up ************/
