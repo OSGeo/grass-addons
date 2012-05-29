@@ -67,6 +67,7 @@ weights for shape and compactness
 Color space? (RGB, HSI, L*u*v*, L*a*b*)
 /*ML: Again, I don't think that you should think in terms of color space. As Ned mentioned feature space is probably the most appropriate and which variables define that space is up to the user by defining which maps go into the relevant group. IMHO it should also be up to the user to ensure that the different maps in the chosen group (i.e. the different variables defining the feature space) can be used together and are of the same order of magnitude*/
 /*EM: OK, I certainly agree that feature space is the most important concept.  But I think this could be considered for the last few weeks, If there are some common conversions that are used, it could help smooth the workflow.  (As with stats, maybe this is a seperate module that is called by setting a flag from this one... */
+/*ML: I'm not sure I really understand what this is about: distance in feature space will be an important element of a region-growing algorithm, so nothing that can be added later. Please elaborate on what you mean to do with color space, here ?*/
 
 /* output parameters */
 need name for new raster and vector map
@@ -83,6 +84,9 @@ Option to just validate input and exit with messages?
 -e  Maybe an option for basic vs. extended output statistics 
 /*ML: I think we need to discuss whether the calculation of statistics should be part of the actual segmentation module, or whether putting that task into a separate module might be a better idea, i.e. a module which would take as input a (vector?) map of the segments and then calculate statistics. This would also allow to use segments created elsewhere, but still access the statistics for further analysis. I'm currently more inclined towards the separate module option.*/
 /*EM: From a user perspective, my impression is that statistics will be wanted >50% of the time.  Is this correct?  If so, I would want the front end to allow calculating statistics without having to run another module.  If it is OK to have a flag in this module to call the statistics module from the front end, I don't have a preference yet for splitting statistics into a seperate module.  As for input to the statistics module - it seemed the output of the segmentation is a raster map, the input to statistics is this raster map, with the output from statistics is the vector map with attribute table.*/
+/*ML: IMHO at this stage, KISS should be your principle, i.e. write several modules that do one task and do it right. User community is quite diverse in GRASS and ranges from CLI-aficionados doing a lot of scripting to people looking for the mega-GUI that also make coffee. It is quite normal GRASS practice to break workflow into several separate modules. This has a lot of advantages (if a module bails out, you don't lose the whole workflow; you can launch several parts of the workflow in parallel; etc). Each module has its automatic GUI. If time allows at the end, you could look into a customized GUI that combines these modules. Note, however, that there now is a model builder in GRASS, that allows to combine several modules graphically.
+Concering input/output, I would once again simplify the modules: segmentation output = raster; statistics module input and output = vector. The user can always run r.to.vect between the two.
+As you will have gathered by now, my personal idea of good practice is to keep steps as simple as possible and use external glue to stick them together if necessary. In my experience this decreases maintenance work and increases flexibility. It does, I agree, lower user-friendliness when no one provides some pre-fabbed external glueing.*/
 
 Should user input allowed memory usage, or is there a way to find out what is reasonable?
 /*ML: Sounds like a reasonable idea. Look at r.watershed for inspiration (-m flag + memory parameter)*/
@@ -134,7 +138,8 @@ Should the program recognize a mask, and only segment the unmasked area?  Will t
 
 Does it make sense to require the area to be contiguous?
 /*ML: No, I don't think so. If you think about top-down multi-scalar segmentation, i.e. first coarse segmentation, then further segmentation of selected larger segments, non-contiguous areas make sens. Ex: Segment into coarse segments that allow to distinguish vegetation-covered areas from others, then segment these vegetation-covered areas further in order to distinguish types of vegetation.*/
-/*EM: This is different from my understanding, and sounds more like classification.  Wouldn't each further segmentation be handled as unique segements, and later grouped by the classification module into specific types of vegetation?  So if the area isn't contiguous, each island could be processed independently in an outer loop on the algorithm.
+/*EM: This is different from my understanding, and sounds more like classification.  Wouldn't each further segmentation be handled as unique segements, and later grouped by the classification module into specific types of vegetation?  So if the area isn't contiguous, each island could be processed independently in an outer loop on the algorithm.*/
+/*ML: Exactly, this is why I said that IMHO areas should not be required to be contiguous. The classification argument was just an example to show why. ;-) */
 
 
 Check for null cells?  If found, what should be done?
@@ -153,15 +158,18 @@ Any preprocessing?
 If vector borders are provided, do we need to convert them to rasters?  Would lines and polygon's be treated the same?
 /*ML: vector to raster conversion is probably necesary. Pixels crosses by a line (polygon boundary or not) have to become part of a segment boundary.*/
 /*EM: hmm, OK, something else for discussion: These pixels that are on a vector line, should they eventually be included in one of the adjacent segments?  Is "segment boundary" just the edge pixels of the segment, or are the not included in any segment?*/
+/*ML: Here is where a difference comes into play between lines that are boundary polgons and lines as linear features. In my eyes pixels that are on boundarylines of polygons should be part of the segments that are internal to that boundary. Linear features would have to be treated differently. During discussions with colleagues we did have some difficulties finding actual use cases for linear features. Maybe we can start with only polygon features and if the use case of a linear features comes up try to integrate that then ?*/
 
 
 If polygons constraints, check if all pixels are inside of polygons?
 /*ML: What do you mean by "all pixels" ?*/
 /*EM: 100% of the pixels in the raster input map.  But I supposed there will be the boundary pixels.  But my question here is more about what should be done if the input polygon constraints only enclose a portion of the map.  Should it be considered as a mask, and all pixels outside of the polygons are excluded from calculations? */
+/*ML: In my eyes mask and input seed regions are different things. You might have some areas for which you already have data (i.e. seed polygons), but this does not mean that you do not want to segment other areas. So, my answer to your question would be no.*/
 
 later: if allow polygons as seeds, get the centroids to use as seeds.
 /*ML: Innocent question: can't you use all pixels in the polygon as seeds ?*/
 /*EM: Yes, if the polygons are input as strict borders, then all pixels in the polygon will be seeds.  but IF the polygon's centroids are only being used to define a sparse set of seeds:  The basic workflow is to require the user to do the preprocessing and give points/centroids vector map as input.  This preprocessing ("later" = if time permits) step would include the step of extracting centroids from an existing polygon vector map inside of the module instead of making the user create a new vector map.*/
+/*ML: I think you should offer the option of inputting a vector map as seed together with the option of which types of features from that input map should be used. No need to do any extraction pre-processing. (See the use of the G_OPT_V_TYPE standard option, and further treatment of the choices made by the user, for example in d.vect or v.distance).*/
 
 
 /*******************************************/
