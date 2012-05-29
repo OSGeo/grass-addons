@@ -356,7 +356,7 @@ int main(int argc, char *argv[])
     /* set gdd color table */
     Rast_init_colors(&colors);
     Rast_make_colors(&colors, "gdd", 0, 6000);
-    Rast_write_colors(out->name, NULL, &colors);
+    Rast_write_colors(out->name, G_mapset(), &colors);
 
     exit(EXIT_SUCCESS);
 }
