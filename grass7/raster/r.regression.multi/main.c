@@ -446,7 +446,7 @@ int main(int argc, char *argv[])
     /* F statistic */
     /* F = ((SStot - SSerr) / (n_predictors)) / (SSerr / (count - n_predictors));
      * , or: */
-    F = ((SStot - SSerr) * (count - n_predictors)) / (SSerr * n_predictors);
+    F = ((SStot - SSerr) * (count - n_predictors - 1)) / (SSerr * (n_predictors));
     fprintf(stdout, "F=%f\n", F);
 
     i = 0;
