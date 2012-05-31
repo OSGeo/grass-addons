@@ -91,6 +91,7 @@ Allow user to input alternate names?
 Option to just validate input and exit with messages?
 /*ML: Again, this is not standard GRASS practice, so I wouldn't worry about it*/
 /* MM: Maybe for user-defined seeds: at least one seed point must be within the current region */
+/*ML: Just to be clear: I didn't mean that no input validation should happen (it definitely should), but it is not standard practice in GRASS to allow a dry test run of a module, just to see results of validation*/
 
 -e  Maybe an option for basic vs. extended output statistics 
 /*ML: I think we need to discuss whether the calculation of statistics should be part of the actual segmentation module, or whether putting that task into a separate module might be a better idea, i.e. a module which would take as input a (vector?) map of the segments and then calculate statistics. This would also allow to use segments created elsewhere, but still access the statistics for further analysis. I'm currently more inclined towards the separate module option.*/
@@ -191,6 +192,7 @@ later: if allow polygons as seeds, get the centroids to use as seeds.
 /*ML: I think you should offer the option of inputting a vector map as seed together with the option of which types of features from that input map should be used. No need to do any extraction pre-processing. (See the use of the G_OPT_V_TYPE standard option, and further treatment of the choices made by the user, for example in d.vect or v.distance).*/
 /*EM: sounds good*/
 /* MM: Maybe easier: only use raster maps as seeds, users would need to run r.to.vect first if seeds come from a vector map. */
+/*ML: sounds like a very good idea to me: seed input only in the form of raster*/
 
 
 /*******************************************/
