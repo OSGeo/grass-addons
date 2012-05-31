@@ -1,7 +1,8 @@
 This is the draft pseudocode for the region growing segmentation algorithm.  More information, references, requirements, etc are at the wiki:
 http://grass.osgeo.org/wiki/GRASS_GSoC_2012_Image_Segmentation
 
-TODO: Need to consider the size of image vs. size of memory.  
+TODO: Need to consider the size of image vs. size of memory.
+/* MM: There is no mechanism in GRASS to get the size of (free) system memory. Such a mechanism would need to be different for each supported platform. The current solution in GRASS is to either do row-by-row processing or let the user decide how much memory to use. For this module I would recommend the latter, let the user decide. */
 
 TODO: Are any parts here potentially useful as library functions?  Are any of these tasks already done by existing library functions?
 
@@ -9,6 +10,7 @@ TODO: Are any parts here potentially useful as library functions?  Are any of th
 I plan to keep many of these lines (or answers to the questions) as the comments in the code.
 
 Are there any preferences/styles for file layout?  Looking at the i.smap file structure, my first thought is to break each of the major sections into its own file.
+/* MM: Breaking down the code into fns and keeping these in separate files is a good idea and common for more complex modules. */
 
 
 /****************************************************************************
@@ -24,21 +26,26 @@ Are there any preferences/styles for file layout?  Looking at the i.smap file st
  *
  *****************************************************************************/
 
-#include <grass/config.h>
-
 (for my reference, order for headers)
 1. Core system headers (stdio.h, ctype.h, ...)
 2. Headers for non-core system components (X11, libraries).
 3. Headers for core systems of the package being compiled (grass/gis.h, grass/glocale.h, ...)
 4. Headers for the specific library/program being compiled (geodesic.h, ...)
 
+#include <grass/gis.h>
+#include <grass/imagery.h>
+#include <grass/glocale.h>
+
+/* MM: grass/config.h is included by grass/gis.h */
+
 
 int main(int argc, char *argv[])
 {
 
-Declare Strucutures
+Declare Structures
 
 What GRASS global variables do I need (where to write temporary rasters, current region, others?)
+/* MM: Try to avoid global variables. Temporary files are usually created by using the file name returned by G_tempfile() which is an absolute path. See e.g. r.cost for an example of G_tempfile() and the segment library to temporarily store raster maps. The current region should not be changed (although some i.* modules do so). */
 
 /****************************************************/
 /******** Parse the input parameters ****************/
@@ -60,6 +67,7 @@ similarity threshold
 how quickly the threshold should be reduced
 
 Minimum pixel size of the segments (optional, default 1)
+/* MM: Rather minimum number of cells per segment I guess. Pixel size refers to resolution. */
 
 Later:
 Weights for each band in the image group
@@ -69,6 +77,7 @@ Color space? (RGB, HSI, L*u*v*, L*a*b*)
 /*EM: OK, I certainly agree that feature space is the most important concept.  But I think this could be considered for the last few weeks, If there are some common conversions that are used, it could help smooth the workflow.  (As with stats, maybe this is a seperate module that is called by setting a flag from this one... */
 /*ML: I'm not sure I really understand what this is about: distance in feature space will be an important element of a region-growing algorithm, so nothing that can be added later. Please elaborate on what you mean to do with color space, here ?*/
 /*EM: I'm basing these comments on "Color image segmentation: advances and prospects" by H.D. Cheng*, X.H. Jiang, Y. Sun, Jingli Wang.  They make some strong statements that using standard color spaces (which I think are similar to landsat bands) as unable to deal with shadows - the magnitude of the color values change with the intensity, so a shadow looks like a different color because the color is muted, not because it is a different color.  Apparently using the non-linear conversion (to get L*u*v*) breaks the correlation of each band to the intensity, and helps segmentation algorithms put together contiguous objects that are partially in shadow.  ! But then they go onto say that non-linear color spaces have their own problems.  So the part that would be added later is to do the preprocessing to convert the color space inside the module.  From your other comments - I expect this should be lower priority and/or included in a seperate module, since it is a different task.*/
+/* MM: If the input variables can be anything, e.g. NDVI, principal components, elevation, etc., then non-linear conversion does IMHO not make sense. Also, color space can be more than RGB (3 bands), e.g. Landsat bands 1, 2, 3, 4, 5, 7 (6 bands). I would regard non-linear conversion as optional pre-processing done in a different module. */
 
 /* output parameters */
 need name for new raster and vector map
@@ -81,6 +90,7 @@ Allow user to input alternate names?
 
 Option to just validate input and exit with messages?
 /*ML: Again, this is not standard GRASS practice, so I wouldn't worry about it*/
+/* MM: Maybe for user-defined seeds: at least one seed point must be within the current region */
 
 -e  Maybe an option for basic vs. extended output statistics 
 /*ML: I think we need to discuss whether the calculation of statistics should be part of the actual segmentation module, or whether putting that task into a separate module might be a better idea, i.e. a module which would take as input a (vector?) map of the segments and then calculate statistics. This would also allow to use segments created elsewhere, but still access the statistics for further analysis. I'm currently more inclined towards the separate module option.*/
@@ -88,6 +98,7 @@ Option to just validate input and exit with messages?
 /*ML: IMHO at this stage, KISS should be your principle, i.e. write several modules that do one task and do it right. User community is quite diverse in GRASS and ranges from CLI-aficionados doing a lot of scripting to people looking for the mega-GUI that also make coffee. It is quite normal GRASS practice to break workflow into several separate modules. This has a lot of advantages (if a module bails out, you don't lose the whole workflow; you can launch several parts of the workflow in parallel; etc). Each module has its automatic GUI. If time allows at the end, you could look into a customized GUI that combines these modules. Note, however, that there now is a model builder in GRASS, that allows to combine several modules graphically.
 Concering input/output, I would once again simplify the modules: segmentation output = raster; statistics module input and output = vector. The user can always run r.to.vect between the two.
 As you will have gathered by now, my personal idea of good practice is to keep steps as simple as possible and use external glue to stick them together if necessary. In my experience this decreases maintenance work and increases flexibility. It does, I agree, lower user-friendliness when no one provides some pre-fabbed external glueing.*/
+/* MM: I fully agree with ML */
 
 Should user input allowed memory usage, or is there a way to find out what is reasonable?
 /*ML: Sounds like a reasonable idea. Look at r.watershed for inspiration (-m flag + memory parameter)*/
@@ -101,6 +112,7 @@ Would it be polite to output successful validation tests too?
 /*Again, not standard practice, so don't worry*/
 
 confirm can read input raster(s) (and vector(s))
+/* MM: this is automatically done by GRASS libraries */
 
 confirm selected algorithm is implemented
 /*ML: As long as you only list available algorithms as options for the algorithm selection parameter, this should be taken care of automagically by the parser*/
@@ -122,6 +134,7 @@ Boundary:
 
 Do I need to be concerned that the region boundary could be in the middle of a pixel? Just include any pixels that are >50% in region lines?
 /*ML: No, either pixel size or region boundary are adapted to ensure that region extents are always a full multiple of pixel size.*/
+/* MM: This is all done automatically by the GRASS libs. The module uses whatever Rast_get_row() returns */
 
 
 Resolution
@@ -131,21 +144,23 @@ Again, this could be required as preprocessing and/or second priority.
 
 But if the resolution of the input raster and current region settings don't match - are there straightforward modules that could be applied?  If yes, take action and output a message of what change was made.
 /*ML: AFAIK, raster maps are automatically resampled to current region resolution. Again, this is standard GRASS procedure and probably does not have to be handled by your module(s)*/
+/* MM: I agree with ML. Standard practice is that the user decides on the region settings and modules adher to these */
 
 
 /* check input raster */
 Should the program recognize a mask, and only segment the unmasked area?  Will this cause a problem if the mask is "odd" shaped and/or disjoint?
 /*ML: Use of the mask (in GRASS a mask is defined by the existence of a raster map named MASK) would be very helpful, so yes, your module(s) should take an existing mask into account.*/
+/* MM: done automatically by Rast_get_row(). You will need to check for NULL values anyway and skip these cells. NULL values can have various reasons, e.g. a MASK or NULL in the original raster, see e.g. Landsat tiles */
 
 Does it make sense to require the area to be contiguous?
 /*ML: No, I don't think so. If you think about top-down multi-scalar segmentation, i.e. first coarse segmentation, then further segmentation of selected larger segments, non-contiguous areas make sens. Ex: Segment into coarse segments that allow to distinguish vegetation-covered areas from others, then segment these vegetation-covered areas further in order to distinguish types of vegetation.*/
 /*EM: This is different from my understanding, and sounds more like classification.  Wouldn't each further segmentation be handled as unique segements, and later grouped by the classification module into specific types of vegetation?  So if the area isn't contiguous, each island could be processed independently in an outer loop on the algorithm.*/
 /*ML: Exactly, this is why I said that IMHO areas should not be required to be contiguous. The classification argument was just an example to show why. ;-) */
 /*EM: OK! So a check for continueity could be used to lower memory requirements - if there are discontinuous areas, each can be processed sequentially. */
-
+/* MM: memory requirements are a separate issue and depend on the method you want to use to load raster maps and store temporary results */
 
 Check for null cells?  If found, what should be done?
-
+/* MM: skip these */
 
 
 End of validation checks
@@ -162,6 +177,7 @@ If vector borders are provided, do we need to convert them to rasters?  Would li
 /*EM: hmm, OK, something else for discussion: These pixels that are on a vector line, should they eventually be included in one of the adjacent segments?  Is "segment boundary" just the edge pixels of the segment, or are the not included in any segment?*/
 /*ML: Here is where a difference comes into play between lines that are boundary polgons and lines as linear features. In my eyes pixels that are on boundarylines of polygons should be part of the segments that are internal to that boundary. Linear features would have to be treated differently. During discussions with colleagues we did have some difficulties finding actual use cases for linear features. Maybe we can start with only polygon features and if the use case of a linear features comes up try to integrate that then ?*/
 /*EM: But for polygons covering the entire map, there is a segment on either side of the polygon line.  If the line crosses the pixel, what should be done... It looks like this will not be a problem for multi-scalar segmentation, the polygons generated in a high level segmentation will be exactly between pixels.  This will only be an issue for polygons generated elsewhere, smoothed, at different resolution, etc.*/
+/* MM: You can not know where the polygons are coming from, therefore you have consider all cases or, better, come up with a general solution. You will need to clone (substantial) parts of the t.to.vect module if you want to rasterize polygons/boundaries. If you do not rasterize, you will need to check for a boundary/line whenever you evaluate a neighbor. This could be sped up a bit by selecting all boundaries/lines crossing the current 3x3 neighborhood. The spatial selection of vector features is fast, but doing that for every cell/3x3 neighborhood can substantially slow down the module. You will also need to check if the boundary is actually part of an area (not an invalid boundary). Then you will need to check if the focus cell is inside the area, if not, if the neighbor is inside the area. Even though some spatial information gets lost by rasterization, I tend to recommend rasterization. In any case, taking into account boundaries/lines can easily become the bulk of the code, the most complex part of the code, and the most time-consuming component of the module. */
 
 If polygons constraints, check if all pixels are inside of polygons?
 /*ML: What do you mean by "all pixels" ?*/
@@ -174,6 +190,7 @@ later: if allow polygons as seeds, get the centroids to use as seeds.
 /*EM: Yes, if the polygons are input as strict borders, then all pixels in the polygon will be seeds.  but IF the polygon's centroids are only being used to define a sparse set of seeds:  The basic workflow is to require the user to do the preprocessing and give points/centroids vector map as input.  This preprocessing ("later" = if time permits) step would include the step of extracting centroids from an existing polygon vector map inside of the module instead of making the user create a new vector map.*/
 /*ML: I think you should offer the option of inputting a vector map as seed together with the option of which types of features from that input map should be used. No need to do any extraction pre-processing. (See the use of the G_OPT_V_TYPE standard option, and further treatment of the choices made by the user, for example in d.vect or v.distance).*/
 /*EM: sounds good*/
+/* MM: Maybe easier: only use raster maps as seeds, users would need to run r.to.vect first if seeds come from a vector map. */
 
 
 /*******************************************/
@@ -183,16 +200,20 @@ later: if allow polygons as seeds, get the centroids to use as seeds.
 
 How to deal with tiling areas that are larger then fit in memory?  I assume I don't want disk I/O for every single pixel neighbor check, but also the size of the map may be large.  Don't want edge affects, and need awareness of all neighbors.  Maybe I/O for checking borders isn't too costly, can process one tile at a time, with disk I/O for just the borders.  Do 1 time step at each tile?
 /*ML: as Markus M told you, the segment library is probably your best choice for this.*/
+/* MM: when you use the segment library, you do not have to worry about the segment library's tile borders. It works fine for modules using the segment library, e.g. r.cost, r.walk, r.watershed */
 
 Data structure for candidate segments and already checked segments?
 In java, I'd think of a linked list, as elements are moved from one to the other, the overall memory requirements would be fixed.  BUT we might not have the entire map in memory.  Should we have a raster map with 1 for candidates and 0 for those that have already been checked on this iteration?
+/* In r.watershed a flag is used to indicate the status of each cell. This flag is of size Byte, i.e. 8 bit and each bit can be set/unset to indicate a certain status. This flag could be kept in memory or to be really safe also be stored in a separate structure using the segment library, maybe also together with the temporary output raster */
 
 To consider later: if we have point seeds (not all pixels) we need to also have a 3rd data structure, pixels not yet assigned to a region.  Will this process be different enough to have a different loop...or just have two different neighborhood select functions?  In this version, can two regions merge with each other, or only with unassigned seeds?
 /*ML: Not sure I understand all the issues related to seeds (I think that fixed boundaries should probably be a first priority), but I would guess that if the user has defined these seed regions as being of separate type, then they should probably not be merged.*/
+/* MM: as mentioned above, you could use a flag to indicate the status of a cell. When you start with a set of seeds < number of cells, you will grow regions from these seeds. In this case there is only a limited number of cells to be processed at each step. These cells could be stored in a FIFO list. Alternatively, you could use a minimum heap to store these cells with minimum defined by similarity (D below) and pick the cell with the highest similarity as the next cell to process. Just some ideas, to be refined when the code evolves I guess. */
 
 How to find irregular neighbors for irregular shaped segments?  If we have line constraints, the neighbor selection should not cross the borders.
 /*ML: As you will be working in raster, neighbourhood can be defined at pixel⁻level and so there are no "irregular" neighbors. The question of diagonal neighborhood is obviously open. How does eCognition handle this ?*/
 /*EM: Looks like it is an option to be selected by the user.  According to one power point presentation (not from eCognition, but how to use eCognition software: Normally use 4 neightbor, go to 8 neighbor only if pixels size is similar to feature size. */
+/* MM: I recommend to make it an option and test results of 4 vs 8 neighbors */
 
 If we have polygon constraints.  Outer for loop to process the image one polygon at a time.  (Need to check if all pixels are included in a polygon, otherwise process all those pixels last.)
 
@@ -204,6 +225,8 @@ If we have polygon constraints.  Outer for loop to process the image one polygon
 
 /* Similarity threshold T(t)... as t increases, threshold for similarity is lower. SPRING used: T(t) = T(0)alphat, where T(0) > ), t =0,1,2... and alpha <1 */
 
+/* MM: the following pseudocode should be converted to C code as soon as possible, since this is the core segmentation algorithm */
+
 For t  (until no merges are made?)
 
 	initialize candidate regions data structure (each region will be checked once on each pass)
@@ -212,6 +235,8 @@ For t  (until no merges are made?)
 
 	While candidate region set is not empty (first pass this equals the seeds):
 		Compare Ri with neighbors (Question: should neighbors include or exclude those regions that were already matched?  Seems eCognition excludes all regions that have already been checked once on the iteration.)
+		/* MM: idea from network graph theory: if a nighbor is already matched but the new D is smaller
+		 * than the old D, reassign the neighbor because the algorithm found a better match */
 		If it exists, Rk is best neighbor if smallest D of all neighbors and and D < T.
 		Check Rk's neighbors.
 		IF (Ri is Rk's best neighbor) (so the agree, both are best match for each other)
@@ -219,6 +244,8 @@ For t  (until no merges are made?)
 			update segment values (mean)
 			remove from candidate region set. (give all "small" regions a chance to merge with best neighbor before growing larger regions)
 			select next Ri
+			/* MM: I guess it will be important how to select the next candidate
+			 * (see above, FIFO or some kind of sorting) */
 		Else
 			remove Ri from candidate region
 			Use Rk as next Ri
@@ -237,11 +264,13 @@ Force a merge of regions that are below minimum size threshold (just merge with 
 
 
 output raster (with segment ID as raster data) is written as we go?  Or maybe it would better to have in a temp map, and write a fresh one at the end (so segment ID numbers are continuous?)
+/* MM: you need to write the output raster at the end because Rast_put_row() expects rows to be written out in order: Rast_put_row() does not take row as argument */
 
 
 output vector and generate statistics
 (existing GRASS module to create polygons for each segment from the raster map)
 /*ML: for this and the following - as already mentioned, maybe the generation of statistics should be done in a separate module*/
+/* MM: I agree */
 
 calculate statistics to be saved in data table for the vector map
 
@@ -255,11 +284,13 @@ combination of bands: brightness, indices (i.e. results of multi-band calculatio
 textural attributes: stdev (per-band and/or multi-band), mean difference to neighbor, Haralick texture features cf r.texture
 
 geometric/morphological attributes: area, perimeter, length/width measures, see also r.li
+/* MM: perimeter is resolution-dependent, see also the famous Florida coastline problem */
 
 context attributes: mean difference to all other regions in the same upper hierarchical level, relative localisation within upper hierarchical level, absolute localisation, number of objects in lower level
 
 depending on segmentation algorithm: raster map indicating for each pixel the probability of belonging to the segment it was put into, i.e. some measure of reliability of results  (For region growing - should this be the similarity measure when it was merged?  Or similarity measure of the pixel compared to the average?)
 /*ML: Not sure, but I would think that similarity between pixel and average of region it belongs to might be a good choice. Am not a specialist in statistics, but maybe it is possible to translate this into some form of probability of really "belonging" to that region (cf i.maxlik)*/
+/* MM: I guess here it is important to not confuse classification with segmentation */
 
 /*******************************/
 /********** tidy up ************/
@@ -268,5 +299,6 @@ depending on segmentation algorithm: raster map indicating for each pixel the pr
 free memory, delete temp files
 
 output to screen (timing, messages - how much needs to be done in my program and how much is handled by GRASS infrastructure?)
+/* MM: In general, keep the amount of messages low and don't be too technical (see r.terraflow for a bad example). OTOH, liberal use of G_debug() is very welcome! At the end of the module, the number of segments created would be nice to have. Timing is done automatically by the GUI, otherwise it can be done on CLI with time i.segment ... */
 
 exit - success!
