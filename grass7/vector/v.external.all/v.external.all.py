@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:	v.external.all
-# AUTHOR(S):	Martin Landa
-# PURPOSE:	Links all OGR layers available in given OGR datasource.
-# COPYRIGHT:	(C) 2012 by Martin Landa, and the GRASS Development Team
+# MODULE:       v.external.all
+# AUTHOR(S):    Martin Landa
+# PURPOSE:      Links all OGR layers available in given OGR datasource.
+# COPYRIGHT:    (C) 2012 by Martin Landa, and the GRASS Development Team
 #
-#		This program is free software under the GNU General
-#		Public License (>=v2). Read the file COPYING that
-#		comes with GRASS for details.
+#               This program is free software under the GNU General
+#               Public License (>=v2). Read the file COPYING that
+#               comes with GRASS for details.
 #
 #############################################################################
 
@@ -16,6 +16,7 @@
 #% description: Links all OGR layers available in given OGR datasource.
 #% keywords: vector
 #% keywords: external
+#% overwrite: yes
 #%end
 #%flag
 #% key: l
