@@ -13,6 +13,8 @@
 
 extern struct GModule *module;
 extern struct Option *input, *seeds, *output, *method, *threshold;
+extern struct Flag *diagonal;
+extern int in_fd, out_fd;
 
 /* get_input.c */
 int get_input(int, char *[]);

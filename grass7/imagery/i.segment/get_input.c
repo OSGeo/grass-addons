@@ -28,11 +28,21 @@ int get_input(int argc, char *argv[])
 	input->required = YES;
 	input->description = _("Raster map to be segmented.");
 	
-	seeds = G_define_standard_option(G_OPT_V_INPUT);
+	//~ seeds = G_define_standard_option(G_OPT_V_INPUT);
+	//~ seeds->key = "seeds";
+	//~ seeds->type = TYPE_STRING;
+	//~ seeds->required = NO;
+	//~ seeds->description = _("Optional vector map with starting seeds.");
+//~ 	need to add a secondary part of this input (centroids or points) and validate 0 or both optional parameters are used.
+	//~ The vector input seems more user friendly, but raster will be more straightforward to implement.
+	//~ Is there any concern that the raster seeds will cover more than one pixel if the resolution is changed?
+	//~ That might be a reason to switch back to points later.
+//~ 
+	seeds = G_define_standard_option(G_OPT_R_INPUT);
 	seeds->key = "seeds";
 	seeds->type = TYPE_STRING;
 	seeds->required = NO;
-	seeds->description = _("Optional vector map with starting seeds.");
+	seeds->description = _("Optional raster map with starting seeds.");
 	
 	output = G_define_standard_option(G_OPT_R_OUTPUT);
 	output->key = "output";
@@ -63,7 +73,18 @@ int get_input(int argc, char *argv[])
 	threshold->required = YES;
 	threshold->description = _("Similarity threshold.");
 	
+	diagonal = G_define_flag();
+    diagonal->key = 'd';
+    diagonal->description = _("Use 8 neighbors (3x3 neighborhood) instead of the default 4 neighbors for each pixel.");
+
 	//use checker for any of the data validation steps!?
+	
+	//~ G_debug(1, "testing debug!");
+	//~ When put this in, get an error (only when DEBUG is set, if not set, it runs fine)
+	//~ 
+	//~ Error box:
+	//~ Unable to fetch interface description for command 'i.segment'.
+	//~ Details: D1/1: testing debug!
 	
 	if (G_parser(argc, argv))
         exit (EXIT_FAILURE);
