@@ -11,9 +11,12 @@
  *
  *****************************************************************************/
 
+#include <grass/segment.h>
+#include <grass/raster.h>
+
 struct files
 {
-	/* int *band_fd, out_fd;  /* Do I need these, or is the SEGMENT enough? */
+	/* int *band_fd, out_fd;   Do I need these, or is the SEGMENT enough? */
 	int nbands;
 	SEGMENT *bands_seg, out_seg;
 	
@@ -31,6 +34,9 @@ struct files
 	
 	//will need to add something here for the vector contsraints and for seeds
 	// store those directly in RAM instead of SEGMENT library?
+	
+	char *out_name; /* name of output raster map */
+	RASTER_MAP_TYPE data_type; /* assuming input and output are the same right now */
 };
 
 
@@ -42,14 +48,18 @@ struct functions
 {
 
 //based on options, such as diagonal neighbors, etc:
-//	find_neighbor
+//	find_neighbor  - point to euclidean or manhattan or ... neighbor function
 //	calc_simularity
 		
-	//not really a function, but input to the functions
-	double threshold;
+	/* not really a function, but carry these along here to have one less variable to pass? */
+	float threshold;
+
 };
 
 /* get_input.c */
 /* gets input from user, validates, opens files, and sets up functions */
-int get_input(int, char *[], struct files *, struct functions *);
+int parse_args(int, char *[], struct files *, struct functions *);
 
+/* write_output.c */
+/* also currently closes files */
+int write_output(struct files *);

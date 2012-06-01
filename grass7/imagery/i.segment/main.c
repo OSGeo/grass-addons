@@ -17,21 +17,10 @@
  * 
  *****************************************************************************/
 
-// #include <grass/config.h>
-
 #include <stdlib.h>
-// #include <unistd.h>
 #include <grass/gis.h>
-//#include <grass/imagery.h>
-#include <grass/glocale.h>   //defines _()  what exactly is that doing...(something about local language translation?) anything else in glocale.h that I should be aware of...
-#include <grass/raster.h>
+#include <grass/glocale.h> /* message translation */
 #include "iseg.h"
-
-//~ (for my reference, order for headers), adding them only as needed...
-//~ 1. Core system headers (stdio.h, ctype.h, ...)
-//~ 2. Headers for non-core system components (X11, libraries).
-//~ 3. Headers for core systems of the package being compiled (grass/gis.h, grass/glocale.h, ...)
-//~ 4. Headers for the specific library/program being compiled (geodesic.h, ...)
 
 int main(int argc, char *argv[])
 {
@@ -46,13 +35,9 @@ int main(int argc, char *argv[])
 	G_add_keyword(_("segmentation"));
 	module->description = _("Segments an image.");
 
-	get_input(argc, argv, files, functions);
-	
-//need to update this part still:
-	G_free(inbuf);
-	Rast_close(in_fd);
-    Rast_close(out_fd);
-//
+	parse_args(argc, argv, &files, &functions);
+	/* Write Segmentation Function Next Week !!! */
+    write_output(&files);
     
 	G_done_msg("Number of segments created: ");
 	
