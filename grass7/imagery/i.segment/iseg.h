@@ -56,7 +56,7 @@ struct functions
 
 };
 
-/* get_input.c */
+/* parse_args.c */
 /* gets input from user, validates, opens files, and sets up functions */
 int parse_args(int, char *[], struct files *, struct functions *);
 
