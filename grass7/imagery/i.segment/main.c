@@ -35,8 +35,12 @@ int main(int argc, char *argv[])
 	G_add_keyword(_("segmentation"));
 	module->description = _("Segments an image.");
 
+//	G_debug(1, "Starting parse_args...");
 	parse_args(argc, argv, &files, &functions);
 	/* Write Segmentation Function Next Week !!! */
+    
+    G_debug(1, "starting write_output...");
+	G_verbose_message("Main: starting write_output...");
     write_output(&files);
     
 	G_done_msg("Number of segments created: ");
