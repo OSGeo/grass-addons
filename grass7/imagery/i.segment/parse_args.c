@@ -15,12 +15,22 @@ int parse_args(int argc, char *argv[], struct files *files,
 {
     /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
 
-    struct Option *group, *subgroup, *seeds, *output, *method, *threshold;	/* Establish an Option pointer for each option */
+    struct Option *group, *seeds, *output, *method, *threshold;	/* Establish an Option pointer for each option */
     struct Flag *diagonal;	/* Establish a Flag pointer for each option */
+
+	/* for the opening files portion */
+    struct Ref Ref;		/* group reference list */
+    int *in_fd, *seg_in_fd, seg_out_fd;
+    RASTER_MAP_TYPE data_type;
+    int n, row, nrows, ncols, srows, scols, seg_in_mem;
+    void *inbuf;
+    const char *in_file[10], *out_file;	/* max 10 rasters in imagery group, until figure out how to do this dynamically */
+
+
 
     group = G_define_standard_option(G_OPT_I_GROUP);
 
-    subgroup = G_define_standard_option(G_OPT_I_SUBGROUP);
+	/* deleted subgroup line, but still appears in input form */
 
     /* OK to require the user to create a group?  Otherwise later add an either/or option to give just a single raster map... */
 
@@ -38,11 +48,6 @@ int parse_args(int argc, char *argv[], struct files *files,
     seeds->description = _("Optional raster map with starting seeds.");
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
-    //seems API handles this part ?
-    //~ output->key = "output";
-    //~ output->type = TYPE_STRING;
-    //~ output->required = YES;
-    //~ output->description = _("Name of output raster map.");
 
     //TODO: when put in a new raster map, error message:
     //~ Command 'd.rast map=testing@samples' failed
@@ -75,33 +80,25 @@ int parse_args(int argc, char *argv[], struct files *files,
 	("Use 8 neighbors (3x3 neighborhood) instead of the default 4 neighbors for each pixel.");
 
 
-    //~ G_debug(1, "testing debug!");
-    //~ When put this in, get an error (only when DEBUG is set, if not set, it runs fine)
-    //~ 
-    //~ Error box:
-    //~ Unable to fetch interface description for command 'i.segment'.
-    //~ Details: D1/1: testing debug!
-
-    //~ G_debug(1, "For the option <%s> you chose: <%s>",
-    //~ input->description, input->answer);
-    //~ 
-    //~ G_debug(1, "For the option <%s> you chose: <%s>",
-    //~ seeds->description, seeds->answer);
-    //~ 
-    //~ G_debug(1, "For the option <%s> you chose: <%s>",
-    //~ output->description, output->answer);
-    //~ 
-    //~ G_debug(1, "For the option <%s> you chose: <%s>",
-    //~ method->description, method->answer);
-    //~ 
-    //~ G_debug(1, "For the option <%s> you chose: <%s>",
-    //~ threshold->description, threshold->answer);
-    //~ 
-    //~ G_debug(1, "The value of the diagonal flag is: %d", diagonal->answer);
-
-
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
+    G_debug(1, "For the option <%s> you chose: <%s>",
+    group->description, group->answer);
+    
+    G_debug(1, "For the option <%s> you chose: <%s>",
+    seeds->description, seeds->answer);
+    
+    G_debug(1, "For the option <%s> you chose: <%s>",
+    output->description, output->answer);
+    
+    G_debug(1, "For the option <%s> you chose: <%s>",
+    method->description, method->answer);
+    
+    G_debug(1, "For the option <%s> you chose: <%s>",
+    threshold->description, threshold->answer);
+    
+    G_debug(1, "The value of the diagonal flag is: %d", diagonal->answer);
 
     /* Validation */
 
@@ -127,16 +124,9 @@ int parse_args(int argc, char *argv[], struct files *files,
 
 
     /* Open Files (file segmentation) */
-    G_verbose_message("Checking image (sub)group...");
+    G_verbose_message("Checking image group...");
     /* references: i.cost and http://grass.osgeo.org/programming7/segmentlib.html */
 
-
-    struct Ref Ref;		/* subgroup reference list */
-    int *in_fd, *seg_in_fd, seg_out_fd;
-    RASTER_MAP_TYPE data_type;
-    int n, row, nrows, ncols, srows, scols, seg_in_mem;
-    void *inbuf;
-    const char *in_file[10], *out_file;	/* max 10 rasters in imagery group, until figure out how to do this dynamically */
 
     /* int buf[NCOLS]; */
     /* c question... will using void data type be the right way, until I know what the data type is? */
@@ -146,18 +136,17 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     /* ****** open the input rasters ******* */
 
-    /* i.smap/openfiles.c  lines 17-23 checked if subgroup had maps, does API handles the checks?
-       can no subgroup be entered, just a group? */
+    /* i.smap/openfiles.c  lines 17-23 checked if subgroup had maps, does API handles the checks? */
 
-    if (!I_get_subgroup_ref(group->answer, subgroup->answer, &Ref))
+    if (!I_get_group_ref(group->answer, &Ref))
 	G_fatal_error(_
-		      ("Unable to read REF file for subgroup <%s> in group <%s>"),
-		      subgroup->answer, group->answer);
+		      ("Unable to read REF file for group <%s>"),
+		      group->answer);
 
     if (Ref.nfiles <= 0)
 	G_fatal_error(_
-		      ("Subgroup <%s> in group <%s> contains no raster maps"),
-		      subgroup->answer, group->answer);
+		      ("Group <%s> contains no raster maps"),
+		      group->answer);
 
     /* open input group maps for reading */
 
@@ -209,7 +198,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     seg_in_fd = G_malloc(Ref.nfiles * sizeof(seg_out_fd));	/* need sizeof( integer ) */
     G_verbose_message("Creating temporary data files...");
     for (n = 0; n < Ref.nfiles; n++) {
-	seg_in_fd[n] = creat(&in_file[n], 0666);
+	seg_in_fd[n] = creat(in_file[n], 0666);
 	if (segment_format(seg_in_fd[n], nrows, ncols, srows, scols, sizeof(data_type)) != 1)	/* TODO: this data_type should be from each map */
 	    G_fatal_error("can not create temporary file");
 	close(seg_in_fd[n]);	/* why close when we just reopen again?  Different access mode between creat and open ? */
@@ -224,7 +213,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* Open and initialize all segment files */
     G_debug(1, "Initializing temporary data files...");	/* program dies sometime after this point, and before line 234 */
     for (n = 0; n < Ref.nfiles; n++) {
-	seg_in_fd[n] = open(&in_file[n], 2);	/* TODO: second parameter here is different in many places... */
+	seg_in_fd[n] = open(in_file[n], 2);	/* TODO: second parameter here is different in many places... */
 	if (segment_init(&files->bands_seg[n], seg_in_fd[n], seg_in_mem) != 1)
 	    G_fatal_error("can not initialize temporary file");
     }
