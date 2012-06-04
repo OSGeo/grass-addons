@@ -13,6 +13,17 @@ development. <em>v.build.pg</em> requires <b>PostGIS 2.0.0+</b>.
 <p>
 Existing PostGIS topology schema can be overwrite by <b>--overwrite</b> flag.
 
+<p>
+<em>v.build.pg</em> calls PostGIS functions:
+<ol>
+  <li><a href="http://www.postgis.org/documentation/manual-svn/CreateTopology.html">CreateTopology()</a>
+    to create topology schema in the database</li>,
+  <li><a href="http://www.postgis.org/documentation/manual-svn/AddTopoGeometryColumn.html">AddTopoGeometryColumn()</a>
+    to add a topogeometry column to an existing feature table</li>, and
+  <li><a href="http://www.postgis.org/documentation/manual-svn/toTopoGeom.html">toTopoGeom()</a>
+  to create a new topo geometry from the simple feature geometry.</li>
+</ol>
+
 <h2>EXAMPLES</h2>
 
 <h3>Workflow example</h3>
