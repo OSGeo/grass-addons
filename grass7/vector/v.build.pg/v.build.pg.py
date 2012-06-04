@@ -13,7 +13,7 @@
 #############################################################################
 
 #%module
-#% description: Builds PostGIS topology for PG-linked vector map.
+#% description: Builds PostGIS topology for vector map linked via v.external.
 #% keywords: vector
 #% keywords: external
 #% keywords: PostGIS
@@ -25,9 +25,9 @@
 #%end
 #%option
 #% key: topo_schema
-#% description: Name of schema where to build PostGIS topology
+#% label: Name of schema where to build PostGIS topology
+#% description: Default: topo_<map>
 #% key_desc: name
-#% required: yes
 #%end
 #%option
 #% key: topo_column
@@ -86,6 +86,10 @@ def main():
     pg_conn = { 'driver': 'pg',
                 'database' : vInfo['pg_dbname'] }
     
+    # default topo schema
+    if not options['topo_schema']:
+        options['topo_schema'] = 'topo_%s' % options['map']
+    
     # check if topology schema already exists
     topo_found = False
     ret = grass.db_select(sql = "SELECT COUNT(*) FROM topology.topology " \
@@ -107,15 +111,15 @@ def main():
         # drop topo schema if exists
         execute(sql = "SELECT topology.DropTopology('%s')" % options['topo_schema'],
                 msg = _("Unable to remove topology schema"))
-
+    
     # create topo schema
     schema, table = vInfo['pg_table'].split('.')
-    grass.message(_("Create new topology schema..."))
+    grass.message(_("Creating new topology schema..."))
     execute("SELECT topology.createtopology('%s', find_srid('%s', '%s', '%s'), %s)" % \
                 (options['topo_schema'], schema, table, vInfo['geometry_column'], options['tolerance']))
-
+    
     # add topo column to the feature table
-    grass.message(_("Create new topology column..."))
+    grass.message(_("Adding new topology column..."))
     execute("SELECT topology.AddTopoGeometryColumn('%s', '%s', '%s', '%s', '%s')" % \
                 (options['topo_schema'], schema, table, options['topo_column'], vInfo['feature_type']))
     

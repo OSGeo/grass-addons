@@ -8,14 +8,55 @@ via <em><a href="v.external.html">v.external</a></em>.
 Note
 that <a href="http://trac.osgeo.org/postgis/wiki/UsersWikiPostgisTopology">PostGIS
 Topology</a> extension is currently under
-development. <em>v.build.pg</em> requires PostGIS 2.0.0+.
+development. <em>v.build.pg</em> requires <b>PostGIS 2.0.0+</b>.
 
 <p>
-Existing PostGIS topology can be overwrite by <b>--overwrite</b> flag.
+Existing PostGIS topology schema can be overwrite by <b>--overwrite</b> flag.
 
 <h2>EXAMPLES</h2>
 
-@TODO
+<h3>Workflow example</h3>
+
+Export vector map into PostGIS:
+
+<div class="code"><pre>
+v.out.ogr dsn=PG:dbname=pgis_nc input=bridges format=PostgreSQL
+</pre></div>
+
+Create a new vector map as a link to PostGIS table:
+
+<div class="code"><pre>
+v.external dsn=PG:dbname=pgis_nc layer=bridges
+</pre></div>
+
+Check metadata:
+
+<div class="code"><pre>
+v.info map=bridges
+
+...
+ |----------------------------------------------------------------------------|
+ | Map format:      PostGIS (PostgreSQL)                                      |
+ | DB table:        public.bridges                                            |
+ | DB name:         pgis_nc                                                   |
+ | Geometry column: wkb_geometry                                              |
+ | Feature type:    point                                                     |
+ |----------------------------------------------------------------------------|
+...
+</pre></div>
+
+Build PostGIS topology for the link:
+
+<div class="code"><pre>
+v.build.pg map=bridges
+
+...
+Topology topo_bridges (6), SRID 900914, precision 1
+10938 nodes, 0 edges, 0 faces, 10938 topogeoms in 1 layers
+Layer 1, type Puntal (1), 10938 topogeoms
+ Deploy: public.bridges.topo
+...
+</pre></div>
 
 <h2>AUTHOR</h2>
 
