@@ -22,7 +22,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     struct Ref Ref;		/* group reference list */
     int *in_fd;
     RASTER_MAP_TYPE data_type;
-    int n, row, col, nrows, ncols, srows, scols, nseg;
+    int n, row, col, nrows, ncols, srows, scols, inlen, outlen, nseg;
     DCELL **inbuf;  /* buffer array, to store lines from each of the imagery group rasters */
 	double *inval;  /* array, to collect data from one column of inbuf to be put into segmentation file */
     char *in_file, *out_file;  /* original functions required const char, new segment_open() does not */
@@ -168,6 +168,13 @@ int parse_args(int argc, char *argv[], struct files *files,
     data_type = Rast_get_map_type(in_fd[0]);
     files->data_type = data_type;
 
+
+	/* size of each element to be stored */
+	
+	inlen = sizeof(double) * Ref.nfiles;
+	outlen = sizeof(int) * 2;
+
+
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
@@ -177,25 +184,36 @@ int parse_args(int argc, char *argv[], struct files *files,
     scols = 64;
 
     /* TODO: make calculations for this */
-    nseg = 4;
-
-    /*    G_debug(1, "  %d rows, %d cols", nrows, ncols); ... never tried this, just copied from other module */
+    nseg = 8;
 
 
     /* ******* create temporary segmentation files ********* */
-    G_verbose_message("Getting temp file names...");
+    G_verbose_message("Getting temporary file names...");
     /* Initalize access to database and create temporary files */
 
 
     in_file = G_tempfile();
     out_file = G_tempfile();
 
+	G_debug(1, "Image size:  %d rows, %d cols", nrows, ncols);
+	G_debug(1, "Segmented to tiles with size:  %d rows, %d cols", srows, scols);
+	G_debug(1, "File names, in: %s, out: %s", in_file, out_file);
+	G_debug(1, "Data element size, in: %d , out: %d ", inlen, outlen);
+	G_debug(1, "number of segments to have in memory: %d", nseg);
+	
+	G_debug(1, "return code from segment_open(): %d", segment_open(files->bands_seg, in_file, nrows, ncols, srows, scols, inlen, nseg ));
+
+/* don't seem to be getting an error code from segment_open().  Program just stops, without G_fatal_error() being called.*/
+		
 	/* size: reading all input bands as DCELL  TODO: could consider checking input to see if it is all FCELL or CELL, could reduce memory requirements.*/
-	if (segment_open(files->bands_seg, in_file, nrows, ncols, srows, scols, sizeof(double) * files->nbands, nseg ) != 1)
+
+/*	if (segment_open(files->bands_seg, in_file, nrows, ncols, srows, scols, inlen, nseg ) != 1)
 		G_fatal_error("Unable to create input temporary files");
+	*/
+	G_debug(1, "finished segment_open(...bands_seg...)");
 	
 	/* TODO: signed integer gives a 2 billion segment limit, depending on how the initialization is done, this means 2 billion max input pixels. */
-	if (segment_open(files->out_seg, out_file, nrows, ncols, srows, scols, sizeof(int) * 2, nseg ) != 1)
+	if (segment_open(files->out_seg, out_file, nrows, ncols, srows, scols, outlen, nseg ) != 1)
 		G_fatal_error("Unable to create output temporary files");
 	
 /*
