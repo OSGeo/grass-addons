@@ -18,7 +18,7 @@ struct files
 {
 	/* int *band_fd, out_fd;   Do I need these, or is the SEGMENT enough? */
 	int nbands;
-	SEGMENT *bands_seg, *out_seg;
+	SEGMENT bands_seg, out_seg;
 	
 	// naming using "bands" to follow i.smap but it doesn't need to be just landsat bands
 	

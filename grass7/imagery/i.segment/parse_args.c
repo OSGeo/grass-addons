@@ -27,7 +27,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	double *inval;  /* array, to collect data from one column of inbuf to be put into segmentation file */
     char *in_file, *out_file;  /* original functions required const char, new segment_open() does not */
 
-
+	/*debugging */
+	SEGMENT testseg;
 
     group = G_define_standard_option(G_OPT_I_GROUP);
 
@@ -172,8 +173,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 	/* size of each element to be stored */
 	
 	inlen = sizeof(double) * Ref.nfiles;
-	outlen = sizeof(int) * 2;
-
+	outlen = sizeof(int) * 2;  /* change in write_output.c if this value changes TODO: better to save this in the files data structure?*/
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -200,20 +200,19 @@ int parse_args(int argc, char *argv[], struct files *files,
 	G_debug(1, "File names, in: %s, out: %s", in_file, out_file);
 	G_debug(1, "Data element size, in: %d , out: %d ", inlen, outlen);
 	G_debug(1, "number of segments to have in memory: %d", nseg);
-	
-	G_debug(1, "return code from segment_open(): %d", segment_open(files->bands_seg, in_file, nrows, ncols, srows, scols, inlen, nseg ));
-
-/* don't seem to be getting an error code from segment_open().  Program just stops, without G_fatal_error() being called.*/
+	G_debug(1, "hi");
 		
 	/* size: reading all input bands as DCELL  TODO: could consider checking input to see if it is all FCELL or CELL, could reduce memory requirements.*/
 
-/*	if (segment_open(files->bands_seg, in_file, nrows, ncols, srows, scols, inlen, nseg ) != 1)
+	if (segment_open(&files->bands_seg, in_file, nrows, ncols, srows, scols, inlen, nseg ) != 1)
 		G_fatal_error("Unable to create input temporary files");
-	*/
+	
+	/* programmer's manual had G_tempfile() directly in call.  Do I need to know the temp file name to delete it? */
+	
 	G_debug(1, "finished segment_open(...bands_seg...)");
 	
 	/* TODO: signed integer gives a 2 billion segment limit, depending on how the initialization is done, this means 2 billion max input pixels. */
-	if (segment_open(files->out_seg, out_file, nrows, ncols, srows, scols, outlen, nseg ) != 1)
+	if (segment_open(&files->out_seg, out_file, nrows, ncols, srows, scols, outlen, nseg ) != 1)
 		G_fatal_error("Unable to create output temporary files");
 	
 /*
@@ -233,7 +232,7 @@ A new file with full path name fname will be created and formatted. The original
 			for (n = 0; n < Ref.nfiles; n++){
 				inval[n] = inbuf[n][col];
 			}
-		   segment_put(files->bands_seg, (void *)inval, row, col);
+		   segment_put(&files->bands_seg, (void *)inval, row, col);
 		}
     }
 
