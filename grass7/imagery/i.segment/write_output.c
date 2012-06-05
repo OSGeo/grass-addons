@@ -15,7 +15,7 @@ int write_output(struct files *files)
 
 	/* Todo: return codes are 1 for these, need to check and react to errors? programmer's manual didn't include it... */
 	
-	segment_flush(&files->out_seg); /* force all data to disk */
+	segment_flush(files->out_seg); /* force all data to disk */
 	
 	
 	/* open output raster map */
@@ -24,7 +24,7 @@ int write_output(struct files *files)
 	/* transfer data row by row */
 	for (row = 0; row < 100; row++) /* need to acces nrows, syntax?  files->out_seg::nrows  ??? */
 	{
-		segment_get_row (&files->out_seg, outbuf, row); //segment_get_row (SEGMENT *seg, char *buf, int row)
+		segment_get_row (files->out_seg, outbuf, row); //segment_get_row (SEGMENT *seg, char *buf, int row)
 		Rast_put_row(out_fd, outbuf, files->data_type);
 	}
 	
@@ -32,9 +32,9 @@ int write_output(struct files *files)
 	
 	for(n = 0; n < files->nbands; n++)
 	{
-		segment_release (&files->bands_seg[n]);
+		segment_release (files->bands_seg);
 	}
-	segment_release (&files->out_seg);
+	segment_release (files->out_seg);
 	close (out_fd);
 
 /* TODO Note: The Segment Library does not know the name of the segment file. It does not attempt to remove the file. If the file is only temporary, the programmer should remove the file after closing it. */

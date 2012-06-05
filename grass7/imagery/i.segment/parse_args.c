@@ -20,11 +20,12 @@ int parse_args(int argc, char *argv[], struct files *files,
 
 	/* for the opening files portion */
     struct Ref Ref;		/* group reference list */
-    int *in_fd, *seg_in_fd, seg_out_fd;
+    int *in_fd;
     RASTER_MAP_TYPE data_type;
-    int n, row, nrows, ncols, srows, scols, seg_in_mem;
-    void *inbuf;
-    const char *in_file[10], *out_file;	/* max 10 rasters in imagery group, until figure out how to do this dynamically */
+    int n, row, col, nrows, ncols, srows, scols, nseg;
+    DCELL **inbuf;  /* buffer array, to store lines from each of the imagery group rasters */
+	double *inval;  /* array, to collect data from one column of inbuf to be put into segmentation file */
+    char *in_file, *out_file;  /* original functions required const char, new segment_open() does not */
 
 
 
@@ -128,15 +129,9 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* references: i.cost and http://grass.osgeo.org/programming7/segmentlib.html */
 
 
-    /* int buf[NCOLS]; */
-    /* c question... will using void data type be the right way, until I know what the data type is? */
-    /* that was in the developer's manual... but would void *buf also work? */
-    /* void *buf; *//* for copying from raster into segmentation file */
-
-
     /* ****** open the input rasters ******* */
 
-    /* i.smap/openfiles.c  lines 17-23 checked if subgroup had maps, does API handles the checks? */
+    /* TODO, this is from i.smap/openfiles.c  lines 17-23 checked if subgroup had maps, does API handles the checks? */
 
     if (!I_get_group_ref(group->answer, &Ref))
 	G_fatal_error(_
@@ -148,13 +143,17 @@ int parse_args(int argc, char *argv[], struct files *files,
 		      ("Group <%s> contains no raster maps"),
 		      group->answer);
 
-    /* open input group maps for reading */
+    /* Read Imagery Group */
 
-    in_fd = G_malloc(Ref.nfiles * sizeof(seg_out_fd));	/* need sizeof( integer ) */
+    in_fd = G_malloc(Ref.nfiles * sizeof(int));
+	inbuf = (DCELL **) G_malloc(Ref.nfiles * sizeof(DCELL *));
+	inval = (double *) G_malloc(Ref.nfiles * sizeof(double));
+
 
     G_verbose_message("Opening input rasters...");
     for (n = 0; n < Ref.nfiles; n++) {
-	in_fd[n] = Rast_open_old(Ref.file[n].name, Ref.file[n].mapset);
+		inbuf[n] = Rast_allocate_d_buf();
+		in_fd[n] = Rast_open_old(Ref.file[n].name, Ref.file[n].mapset);
     }
 
 
@@ -172,13 +171,13 @@ int parse_args(int argc, char *argv[], struct files *files,
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
-    /*TODO: i.cost and i.watershed take different approaches...
-       //hardcode for now */
-    srows = nrows / 8;
-    scols = ncols / 8;
+    /*TODO: i.cost and i.watershed take different approaches...hardcode for now */
+    /* when fine tuning, should be a power of 2 and not larger than 256 for speed reasons */
+    srows = 64;
+    scols = 64;
 
     /* TODO: make calculations for this */
-    seg_in_mem = 4;
+    nseg = 4;
 
     /*    G_debug(1, "  %d rows, %d cols", nrows, ncols); ... never tried this, just copied from other module */
 
@@ -188,56 +187,36 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* Initalize access to database and create temporary files */
 
 
-    for (n = 0; n < Ref.nfiles; n++) {
-	in_file[n] = G_tempfile();
-    }
+    in_file = G_tempfile();
     out_file = G_tempfile();
 
-    /* Format segmented files */
+	/* size: reading all input bands as DCELL  TODO: could consider checking input to see if it is all FCELL or CELL, could reduce memory requirements.*/
+	if (segment_open(files->bands_seg, in_file, nrows, ncols, srows, scols, sizeof(double) * files->nbands, nseg ) != 1)
+		G_fatal_error("Unable to create input temporary files");
+	
+	/* TODO: signed integer gives a 2 billion segment limit, depending on how the initialization is done, this means 2 billion max input pixels. */
+	if (segment_open(files->out_seg, out_file, nrows, ncols, srows, scols, sizeof(int) * 2, nseg ) != 1)
+		G_fatal_error("Unable to create output temporary files");
+	
+/*
+int segment_open(SEGMENT *SEG, char *fname, off_t nrows, off_t ncols, int srows, int scols, int len, int nseg), open a new segment structure.
 
-    seg_in_fd = G_malloc(Ref.nfiles * sizeof(seg_out_fd));	/* need sizeof( integer ) */
-    G_verbose_message("Creating temporary data files...");
-    for (n = 0; n < Ref.nfiles; n++) {
-	seg_in_fd[n] = creat(in_file[n], 0666);
-	if (segment_format(seg_in_fd[n], nrows, ncols, srows, scols, sizeof(data_type)) != 1)	/* TODO: this data_type should be from each map */
-	    G_fatal_error("can not create temporary file");
-	close(seg_in_fd[n]);	/* why close when we just reopen again?  Different access mode between creat and open ? */
-    }
-    seg_out_fd = creat(out_file, 0666);
-    if (segment_format
-	(seg_out_fd, nrows, ncols, srows, scols, sizeof(data_type)) != 1)
-	G_fatal_error("can not create temporary file");
-    close(seg_out_fd);
+A new file with full path name fname will be created and formatted. The original nonsegmented data matrix consists of nrows and ncols. The segments consist of srows by scols. The data items have length len bytes. The number of segments to be retained in memory is given by nseg. This routine calls segment_format() and segment_init(), see below. If segment_open() is used, the routines segment_format() and segment_init() must not be used.
+*/
 
+    /* load input bands to segment structure */
+    G_verbose_message("Reading input rasters into temporary data files...");
 
-    /* Open and initialize all segment files */
-    G_debug(1, "Initializing temporary data files...");	/* program dies sometime after this point, and before line 234 */
-    for (n = 0; n < Ref.nfiles; n++) {
-	seg_in_fd[n] = open(in_file[n], 2);	/* TODO: second parameter here is different in many places... */
-	if (segment_init(&files->bands_seg[n], seg_in_fd[n], seg_in_mem) != 1)
-	    G_fatal_error("can not initialize temporary file");
-    }
-    seg_out_fd = open(out_file, 2);
-    if (segment_init(&files->out_seg, seg_out_fd, seg_in_mem) != 1)
-	G_fatal_error("can not initialize temporary file");
-
-    /* convert flat files to segmented files */
-    G_verbose_message("Read input rasters into temporary data files...");
-    inbuf = Rast_allocate_buf(data_type);	/* buffer from the raster file */
-
-    /* buf = new data_type [ncols] *//* buffer to read data into, cell by cell.  But can I just write inbuf directly to the segmentation file??? */
-
-    for (n = 0; n < Ref.nfiles; n++) {
-	for (row = 0; row < nrows; row++) {
-	    Rast_get_row(in_fd[n], inbuf, row, data_type);
-	    //~ for (col = 0; col < ncols; col++)
-	    //~ {
-	    //~ /*fill buf */
-	    //~ // G_incr_void_ptr
-	    //~ }
-
-	    segment_put_row(&files->bands_seg[n], inbuf, row);
-	}
+    for (row = 0; row < nrows; row++) {
+		for (n = 0; n < Ref.nfiles; n++) {
+			Rast_get_d_row(in_fd[n], inbuf[n], row);
+		}
+		for (col = 0; col < ncols; col++) {
+			for (n = 0; n < Ref.nfiles; n++){
+				inval[n] = inbuf[n][col];
+			}
+		   segment_put(files->bands_seg, (void *)inval, row, col);
+		}
     }
 
     /* Don't need to do anything else for the output segmentation file?  It is initialized to zeros and will be written to later... */
@@ -250,7 +229,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     G_free(inbuf);
     G_free(in_fd);
-    G_free(seg_in_fd);
+
 
     /* Need to clean up anything else?  Need to close segmentation files?  Or they should be open still since they will be used later?  Close after all processing is done? */
 
