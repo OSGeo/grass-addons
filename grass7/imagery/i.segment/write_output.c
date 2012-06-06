@@ -27,7 +27,7 @@ int write_output(struct files *files)
 
     G_debug(1, "preparing output raster");
     /* open output raster map */
-    out_fd = Rast_open_new(files->out_name, files->data_type);	/* I assume even if it already exists, this will overwrite it... */
+    out_fd = Rast_open_new(files->out_name, CELL_TYPE);	/* I assume even if it already exists, this will overwrite it... */
 
     G_debug(1, "start data transfer from segmentation file to raster");
     /* transfer data from segmentation file to raster */
@@ -51,9 +51,9 @@ int write_output(struct files *files)
 
     /* close segmentation files and output raster */
     G_debug(1, "closing files");
-    segment_release(&files->bands_seg);
-    segment_release(&files->out_seg);
-    close(out_fd);
+    segment_close(&files->bands_seg);
+    segment_close(&files->out_seg);
+    Rast_close(out_fd);
 
     /* TODO Note: The Segment Library does not know the name of the segment file. It does not attempt to remove the file. If the file is only temporary, the programmer should remove the file after closing it. */
 
