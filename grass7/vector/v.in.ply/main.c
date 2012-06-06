@@ -30,9 +30,9 @@ int main(int argc, char *argv[])
 {
     struct GModule *module;
     struct Option *old, *new, *x_opt, *y_opt, *z_opt;
-    struct Flag *notab_flag, *notopo_flag;
+    struct Flag *notab_flag, *notopo_flag, *prop_flag;
     char *colname, buf[2000];
-    int i, j, type, max_cat;
+    int i, j, type;
     int zcoor = WITHOUT_Z, make_table;
     int xprop, yprop, zprop;
     struct ply_file ply;
@@ -98,6 +98,10 @@ int main(int argc, char *argv[])
     notopo_flag->key = 'b';
     notopo_flag->description = _("Do not build topology");
 
+    prop_flag = G_define_flag();
+    prop_flag->key = 'p';
+    prop_flag->description = _("Only print PLY element types and their properties.");
+
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
@@ -140,17 +144,19 @@ int main(int argc, char *argv[])
     /* read ply header */
     read_ply_header(&ply);
     
-    for (i = 0; i < ply.n_elements; i++) {
-	G_debug(1, "element name: %s", ply.element[i]->name);
-	G_debug(1, "element type: %d", ply.element[i]->type);
+    if (prop_flag->answer) {
+	for (i = 0; i < ply.n_elements; i++) {
+	    fprintf(stdout, "element name: %s\n", ply.element[i]->name);
+	    fprintf(stdout, "element type: %d\n", ply.element[i]->type);
 
-	for (j = 0; j < ply.element[i]->n_properties; j++) {
-	    G_debug(1, "poperty name: %s", ply.element[i]->property[j]->name);
-	    G_debug(1, "poperty type: %d", ply.element[i]->property[j]->type);
+	    for (j = 0; j < ply.element[i]->n_properties; j++) {
+		fprintf(stdout, "property name: %s\n", ply.element[i]->property[j]->name);
+		fprintf(stdout, "property type: %d\n", ply.element[i]->property[j]->type);
+	    }
 	}
+	exit(EXIT_SUCCESS);
     }
-    
-    
+
     /* vertices present ? */
     ply.curr_element = NULL;
     for (i = 0; i < ply.n_elements; i++) {
@@ -249,10 +255,9 @@ int main(int argc, char *argv[])
     Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
 
-    G_message(_("%d vertices"), ply.curr_element->n);
+    G_message(_("Importing %d vertices ..."), ply.curr_element->n);
 
     x = y = z = 0.0;
-    max_cat = 0;
     for (i = 0; i < ply.curr_element->n; i++) {
 	G_percent(i, ply.curr_element->n, 4);
 	get_element_data(&ply, data);
@@ -260,7 +265,6 @@ int main(int argc, char *argv[])
 	Vect_reset_line(Points);
 	Vect_reset_cats(Cats);
 	Vect_cat_set(Cats, 1, i);
-	
 
 	/* Attributes */
 	if (make_table) {
@@ -321,8 +325,6 @@ int main(int argc, char *argv[])
 			      db_get_string(&sql));
 	    }
 	}
-
-	max_cat = i;
     }
     G_percent(1, 1, 1);
     G_free(data);
@@ -372,7 +374,6 @@ int main(int argc, char *argv[])
 	}
 
     }
-
 
     if (!notopo_flag->answer)
 	Vect_build(&Map);
