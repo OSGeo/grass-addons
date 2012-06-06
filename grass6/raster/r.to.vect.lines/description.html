@@ -21,12 +21,14 @@ Display a wiggle plot in NVIZ:
 (Spearfish dataset)
 
 <div class="code"><pre>
-   g.region rast=elevation.dem
-   r.to.vect.lines.py in=elevation.dem out=wiggle_lines
-   eval `v.info -g wiggle_lines`
-   r.mapcalc "floor = $bottom"
-   nviz elev=floor vector=wiggle_lines
+g.region rast=elevation.dem
+r.to.vect.lines.py in=elevation.dem out=wiggle_lines
+eval `v.info -g wiggle_lines`
+r.mapcalc "floor = $bottom"
+nviz elev=floor vector=wiggle_lines
 </pre></div>
+
+<img src="r_to_vect_lines_example.png" alt="r.to.vect.lines example">
 
 
 <h2>SEE ALSO</h2>
