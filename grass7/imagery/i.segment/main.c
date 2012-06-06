@@ -1,3 +1,4 @@
+
 /****************************************************************************
  *
  * MODULE:       i.segment
@@ -19,31 +20,33 @@
 
 #include <stdlib.h>
 #include <grass/gis.h>
-#include <grass/glocale.h> /* message translation */
+#include <grass/glocale.h>	/* message translation */
 #include "iseg.h"
 
 int main(int argc, char *argv[])
 {
-	struct files files;		/* input and output file descriptors, data structure, buffers */
-	struct functions functions;		/* function pointers and parameters for the calculations */
-	struct GModule *module;
-		
-	G_gisinit(argv[0]);
-		
-	module = G_define_module();
-	G_add_keyword(_("imagery"));
-	G_add_keyword(_("segmentation"));
-	module->description = _("Segments an image.");
+    struct files files;		/* input and output file descriptors, data structure, buffers */
+    struct functions functions;	/* function pointers and parameters for the calculations */
+    struct GModule *module;
 
-//	G_debug(1, "Starting parse_args...");
-	parse_args(argc, argv, &files, &functions);
-	/* Write Segmentation Function Next Week !!! */
-    
+    G_gisinit(argv[0]);
+
+    module = G_define_module();
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("segmentation"));
+    module->description = _("Segments an image.");
+
+    parse_args(argc, argv, &files, &functions);
+    /* Write Segmentation Function Next Week !!! */
+
+    G_debug(1, "Main: starting create_isegs()");
+    create_isegs(&files, &functions);
+
     G_debug(1, "starting write_output...");
-	G_verbose_message("Main: starting write_output...");
+    G_verbose_message("Main: starting write_output...");
     write_output(&files);
-    
-	G_done_msg("Number of segments created: ");
-	
-	exit(EXIT_SUCCESS);
+
+    G_done_msg("Number of segments created: ");
+
+    exit(EXIT_SUCCESS);
 }

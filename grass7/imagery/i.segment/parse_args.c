@@ -18,21 +18,21 @@ int parse_args(int argc, char *argv[], struct files *files,
     struct Option *group, *seeds, *output, *method, *threshold;	/* Establish an Option pointer for each option */
     struct Flag *diagonal;	/* Establish a Flag pointer for each option */
 
-	/* for the opening files portion */
+    /* for the opening files portion */
     struct Ref Ref;		/* group reference list */
     int *in_fd;
     RASTER_MAP_TYPE data_type;
     int n, row, col, nrows, ncols, srows, scols, inlen, outlen, nseg;
-    DCELL **inbuf;  /* buffer array, to store lines from each of the imagery group rasters */
-	double *inval;  /* array, to collect data from one column of inbuf to be put into segmentation file */
-    char *in_file, *out_file;  /* original functions required const char, new segment_open() does not */
+    DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
+    double *inval;		/* array, to collect data from one column of inbuf to be put into segmentation file */
+    char *in_file, *out_file;	/* original functions required const char, new segment_open() does not */
 
-	/*debugging */
-	SEGMENT testseg;
+    /*debugging */
+    SEGMENT testseg;
 
     group = G_define_standard_option(G_OPT_I_GROUP);
 
-	/* deleted subgroup line, but still appears in input form */
+    /* deleted subgroup line, but still appears in input form */
 
     /* OK to require the user to create a group?  Otherwise later add an either/or option to give just a single raster map... */
 
@@ -78,28 +78,27 @@ int parse_args(int argc, char *argv[], struct files *files,
     diagonal = G_define_flag();
     diagonal->key = 'd';
     diagonal->description =
-	_
-	("Use 8 neighbors (3x3 neighborhood) instead of the default 4 neighbors for each pixel.");
+	_("Use 8 neighbors (3x3 neighborhood) instead of the default 4 neighbors for each pixel.");
 
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
     G_debug(1, "For the option <%s> you chose: <%s>",
-    group->description, group->answer);
-    
+	    group->description, group->answer);
+
     G_debug(1, "For the option <%s> you chose: <%s>",
-    seeds->description, seeds->answer);
-    
+	    seeds->description, seeds->answer);
+
     G_debug(1, "For the option <%s> you chose: <%s>",
-    output->description, output->answer);
-    
+	    output->description, output->answer);
+
     G_debug(1, "For the option <%s> you chose: <%s>",
-    method->description, method->answer);
-    
+	    method->description, method->answer);
+
     G_debug(1, "For the option <%s> you chose: <%s>",
-    threshold->description, threshold->answer);
-    
+	    threshold->description, threshold->answer);
+
     G_debug(1, "The value of the diagonal flag is: %d", diagonal->answer);
 
     /* Validation */
@@ -135,26 +134,23 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* TODO, this is from i.smap/openfiles.c  lines 17-23 checked if subgroup had maps, does API handles the checks? */
 
     if (!I_get_group_ref(group->answer, &Ref))
-	G_fatal_error(_
-		      ("Unable to read REF file for group <%s>"),
+	G_fatal_error(_("Unable to read REF file for group <%s>"),
 		      group->answer);
 
     if (Ref.nfiles <= 0)
-	G_fatal_error(_
-		      ("Group <%s> contains no raster maps"),
-		      group->answer);
+	G_fatal_error(_("Group <%s> contains no raster maps"), group->answer);
 
     /* Read Imagery Group */
 
     in_fd = G_malloc(Ref.nfiles * sizeof(int));
-	inbuf = (DCELL **) G_malloc(Ref.nfiles * sizeof(DCELL *));
-	inval = (double *) G_malloc(Ref.nfiles * sizeof(double));
+    inbuf = (DCELL **) G_malloc(Ref.nfiles * sizeof(DCELL *));
+    inval = (double *)G_malloc(Ref.nfiles * sizeof(double));
 
 
     G_verbose_message("Opening input rasters...");
     for (n = 0; n < Ref.nfiles; n++) {
-		inbuf[n] = Rast_allocate_d_buf();
-		in_fd[n] = Rast_open_old(Ref.file[n].name, Ref.file[n].mapset);
+	inbuf[n] = Rast_allocate_d_buf();
+	in_fd[n] = Rast_open_old(Ref.file[n].name, Ref.file[n].mapset);
     }
 
 
@@ -170,10 +166,10 @@ int parse_args(int argc, char *argv[], struct files *files,
     files->data_type = data_type;
 
 
-	/* size of each element to be stored */
-	
-	inlen = sizeof(double) * Ref.nfiles;
-	outlen = sizeof(int) * 2;  /* change in write_output.c if this value changes TODO: better to save this in the files data structure?*/
+    /* size of each element to be stored */
+
+    inlen = sizeof(double) * Ref.nfiles;
+    outlen = sizeof(int) * 2;	/* change in write_output.c if this value changes TODO: better to save this in the files data structure? */
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -195,45 +191,49 @@ int parse_args(int argc, char *argv[], struct files *files,
     in_file = G_tempfile();
     out_file = G_tempfile();
 
-	G_debug(1, "Image size:  %d rows, %d cols", nrows, ncols);
-	G_debug(1, "Segmented to tiles with size:  %d rows, %d cols", srows, scols);
-	G_debug(1, "File names, in: %s, out: %s", in_file, out_file);
-	G_debug(1, "Data element size, in: %d , out: %d ", inlen, outlen);
-	G_debug(1, "number of segments to have in memory: %d", nseg);
-	G_debug(1, "hi");
-		
-	/* size: reading all input bands as DCELL  TODO: could consider checking input to see if it is all FCELL or CELL, could reduce memory requirements.*/
+    G_debug(1, "Image size:  %d rows, %d cols", nrows, ncols);
+    G_debug(1, "Segmented to tiles with size:  %d rows, %d cols", srows,
+	    scols);
+    G_debug(1, "File names, in: %s, out: %s", in_file, out_file);
+    G_debug(1, "Data element size, in: %d , out: %d ", inlen, outlen);
+    G_debug(1, "number of segments to have in memory: %d", nseg);
 
-	if (segment_open(&files->bands_seg, in_file, nrows, ncols, srows, scols, inlen, nseg ) != 1)
-		G_fatal_error("Unable to create input temporary files");
-	
-	/* programmer's manual had G_tempfile() directly in call.  Do I need to know the temp file name to delete it? */
-	
-	G_debug(1, "finished segment_open(...bands_seg...)");
-	
-	/* TODO: signed integer gives a 2 billion segment limit, depending on how the initialization is done, this means 2 billion max input pixels. */
-	if (segment_open(&files->out_seg, out_file, nrows, ncols, srows, scols, outlen, nseg ) != 1)
-		G_fatal_error("Unable to create output temporary files");
-	
-/*
-int segment_open(SEGMENT *SEG, char *fname, off_t nrows, off_t ncols, int srows, int scols, int len, int nseg), open a new segment structure.
+    /* size: reading all input bands as DCELL  TODO: could consider checking input to see if it is all FCELL or CELL, could reduce memory requirements. */
 
-A new file with full path name fname will be created and formatted. The original nonsegmented data matrix consists of nrows and ncols. The segments consist of srows by scols. The data items have length len bytes. The number of segments to be retained in memory is given by nseg. This routine calls segment_format() and segment_init(), see below. If segment_open() is used, the routines segment_format() and segment_init() must not be used.
-*/
+    if (segment_open
+	(&files->bands_seg, in_file, nrows, ncols, srows, scols, inlen,
+	 nseg) != 1)
+	G_fatal_error("Unable to create input temporary files");
+
+    /* programmer's manual had G_tempfile() directly in call.  Do I need to know the temp file name to delete it? */
+
+    G_debug(1, "finished segment_open(...bands_seg...)");
+
+    /* TODO: signed integer gives a 2 billion segment limit, depending on how the initialization is done, this means 2 billion max input pixels. */
+    if (segment_open
+	(&files->out_seg, out_file, nrows, ncols, srows, scols, outlen,
+	 nseg) != 1)
+	G_fatal_error("Unable to create output temporary files");
+
+    /*
+       int segment_open(SEGMENT *SEG, char *fname, off_t nrows, off_t ncols, int srows, int scols, int len, int nseg), open a new segment structure.
+
+       A new file with full path name fname will be created and formatted. The original nonsegmented data matrix consists of nrows and ncols. The segments consist of srows by scols. The data items have length len bytes. The number of segments to be retained in memory is given by nseg. This routine calls segment_format() and segment_init(), see below. If segment_open() is used, the routines segment_format() and segment_init() must not be used.
+     */
 
     /* load input bands to segment structure */
     G_verbose_message("Reading input rasters into temporary data files...");
 
     for (row = 0; row < nrows; row++) {
-		for (n = 0; n < Ref.nfiles; n++) {
-			Rast_get_d_row(in_fd[n], inbuf[n], row);
-		}
-		for (col = 0; col < ncols; col++) {
-			for (n = 0; n < Ref.nfiles; n++){
-				inval[n] = inbuf[n][col];
-			}
-		   segment_put(&files->bands_seg, (void *)inval, row, col);
-		}
+	for (n = 0; n < Ref.nfiles; n++) {
+	    Rast_get_d_row(in_fd[n], inbuf[n], row);
+	}
+	for (col = 0; col < ncols; col++) {
+	    for (n = 0; n < Ref.nfiles; n++) {
+		inval[n] = inbuf[n][col];
+	    }
+	    segment_put(&files->bands_seg, (void *)inval, row, col);
+	}
     }
 
     /* Don't need to do anything else for the output segmentation file?  It is initialized to zeros and will be written to later... */
