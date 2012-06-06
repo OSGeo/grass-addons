@@ -34,16 +34,16 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("imagery"));
     G_add_keyword(_("segmentation"));
-    module->description = _("Segments an image.");
+    module->description = _("Outputs a single segmention map (raster) based on input values in an image group.");
 
     parse_args(argc, argv, &files, &functions);
-    /* Write Segmentation Function Next Week !!! */
-
+	G_debug(1, "Main: starting open_files()");
+	open_files(&files);
+	
     G_debug(1, "Main: starting create_isegs()");
     create_isegs(&files, &functions);
 
     G_debug(1, "starting write_output...");
-    G_verbose_message("Main: starting write_output...");
     write_output(&files);
 
     G_done_msg("Number of segments created: ");

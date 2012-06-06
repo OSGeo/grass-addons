@@ -3,17 +3,14 @@
 /* Currently only region growing is implemented */
 
 #include <stdlib.h>
-#include <string.h>
 #include <grass/gis.h>
-#include <grass/glocale.h>
-#include <grass/imagery.h>
+#include <grass/raster.h>
 #include <grass/segment.h>	/* segmentation library */
 #include "iseg.h"
 
 int create_isegs(struct files *files, struct functions *functions)
 {
-    int row, col, nrows, ncols, *segval;
-    double *bandsval;
+    int row, col, nrows, ncols;
 
     /* **************write fake data to test I/O portion of module */
 
@@ -22,19 +19,16 @@ int create_isegs(struct files *files, struct functions *functions)
     ncols = Rast_window_cols();
 
     /* initialize data structure */
-    segval = (int *)G_malloc(2 * sizeof(int));
-    /* TODO why didn't this work?  error: request fof member 'nbands' in something not a structure or union */
-    /* bandsval = (double *) G_malloc(files.nbands * sizeof(double)); */
-    bandsval = (double *)G_malloc(1 * sizeof(double));
+    files->out_val = (int *)G_malloc(2 * sizeof(int));
 
-    G_verbose_message("writing fake data");
+    G_verbose_message("writing fake data to segmentation file");
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 1);	/*this didn't get displayed in the output??? Does it get erased when done? */
 	for (col = 0; col < ncols; col++) {
-	    //segval[0] = bandsval[0]; /*segment number */  /* just copying the map for testing. */
-	    segval[0] = 42;
-	    segval[1] = 1;	/*processing flag */
-	    segment_put(&files->out_seg, (void *)segval, row, col);
+	    //files->out_val[0] = files->out_val[0]; /*segment number */  /* just copying the map for testing. */
+	    files->out_val[0] = col+2*row;
+	    files->out_val[1] = 1;	/*processing flag */
+	    segment_put(&files->out_seg, (void *)files->out_val, row, col);
 	}
     }
 
