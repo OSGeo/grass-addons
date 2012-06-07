@@ -87,7 +87,7 @@ static void reg(DCELL *result, DCELL (*values)[2], int n, int which)
 	*result = 1 - (1 - R) * ((count - 1) / (count - 2 - 1));
 	break;
     case REGRESSION_F_VALUE:
-	F = R * R / (1 - R * R / count - 2);
+	F = R * R / ((1 - R * R) / (count - 2));
 	*result = F;
 	break;
     case REGRESSION_T_VALUE:
