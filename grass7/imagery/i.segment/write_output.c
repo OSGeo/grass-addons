@@ -9,14 +9,10 @@
 
 int write_output(struct files *files)
 {
-    int out_fd, row, col, nrows, ncols;
+    int out_fd, row, col;
     CELL *outbuf;
 
     outbuf = Rast_allocate_c_buf();	/*hold one row of data to put into raster */
-
-    /*picked this up in the file reading as well, just do it again? */
-    nrows = Rast_window_rows();
-    ncols = Rast_window_cols();
 
     /* Todo: return codes are 1 for these, need to check and react to errors? programmer's manual didn't include it... */
 
@@ -30,9 +26,9 @@ int write_output(struct files *files)
     /* transfer data from segmentation file to raster */
     /* output segmentation file: each element includes the segment ID then processing flag(s).  So just need the first part of it. */
 
-    for (row = 0; row < nrows; row++) {
-	G_percent(row, nrows, 1); /*TODO: Why isn't this getting printed? */
-	for (col = 0; col < ncols; col++) {
+    for (row = 0; row < files->nrows; row++) {
+	G_percent(row, files->nrows, 1);	/*TODO: Why isn't this getting printed? */
+	for (col = 0; col < files->ncols; col++) {
 	    segment_get(&files->out_seg, (void *)files->out_val, row, col);
 	    G_debug(5, "outval[0] = %i", files->out_val[0]);
 	    outbuf[col] = files->out_val[0];	/*just want segment assignment, not the other processing flag(s) */

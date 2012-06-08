@@ -34,17 +34,23 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("imagery"));
     G_add_keyword(_("segmentation"));
-    module->description = _("Outputs a single segmention map (raster) based on input values in an image group.");
+    module->description =
+	_("Outputs a single segmention map (raster) based on input values in an image group.");
 
-    parse_args(argc, argv, &files, &functions);
-	G_debug(1, "Main: starting open_files()");
-	open_files(&files);
-	
+    if (parse_args(argc, argv, &files, &functions) != 0)
+	G_fatal_error("Error in parse_args()");
+
+    G_debug(1, "Main: starting open_files()");
+    if (open_files(&files) != 0)
+	G_fatal_error("Error in open_files()");
+
     G_debug(1, "Main: starting create_isegs()");
-    create_isegs(&files, &functions);
+    if (create_isegs(&files, &functions) != 0)
+	G_fatal_error("Error in create_isegs()");
 
-    G_debug(1, "starting write_output...");
-    write_output(&files);
+    G_debug(1, "Main: starting write_output()");
+    if (write_output(&files) != 0)
+	G_fatal_error("Error in write_output()");
 
     G_done_msg("Number of segments created: ");
 
