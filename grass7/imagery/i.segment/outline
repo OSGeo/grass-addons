@@ -131,9 +131,9 @@ If we have polygon constraints.  Outer for loop to process the image one polygon
 * http://marte.dpi.inpe.br/col/sid.inpe.br/deise/1999/02.05.09.30/doc/T205.pdf
 */
 
-/* Similarity threshold T(t)... as t increases, threshold for similarity is lower. SPRING used: T(t) = T(0)alphat, where T(0) > ), t =0,1,2... and alpha <1 */
+/* Similarity threshold T(t)... as t increases, threshold for similarity is lower. SPRING used: T(t) = T(0)alphat, where T(0) > 0, t =0,1,2... and alpha <1 */
 /* MM: T(0) > ) ??? what exactly is t */
-
+/* EM: corrected formula, should be >0.  t = time.  It feels like the opposite of simulated annealing.  At earlier iterations in the process, it is difficult to make merges.  As time increases, it is easier.  To start with, I'm just going to implement a constant threshold, the lowering concept can be addeded later. */
 
 For t  (until no merges are made?)
 
@@ -193,12 +193,18 @@ Method 1: (using "rasters")
 
 Input could be single pixel or list of pixels.
 /* MM: what exactly is input? seeds? */
+/* EM: input here is the current focus pixel.  If it is a fresh Row/Column pixel, it will be a single pixel.
+ * If we just had Ri that was not mutually best neighbors with Rk, we'll use the member list of Rk as the new Ri.
+ * So in that case it will be the list of pixels we already know are part of the new Ri.
 
 Put input in "to be checked" stack
 Put input in "current segment" list
 put input in "don't check" list
 /* MM: you could also determine the status of each pixel on-the-fly when visiting this neighbor */
-
+/* EM: I think that could work for the "don't check" list.  But they will need to be initialized to zero each time...will that take too long?
+ * It seems we would have to initialize the entire map for each function call?  Or keep track of a window size for row/column that was processed?
+ * /
+ 
 empty "neighbor" list
 While "to be checked" stack isn't empty:
 	pop
@@ -218,7 +224,14 @@ loop...
 
 return: neighbor list, pixels in segment list
 /* MM: what is the purpose of the neighbor list and the segment list? */
-
+/* EM:  neighbor list: We will calculate the similarity between Ri and each neighbor.
+ * All need to be checked for the smallest similarity value (most similar), so order doesn't matter.
+ * If an Rk is selected, we'll run this routine on it, so will also have a segment membership list for Rk.
+ * If a merge is made, we have a list of pixels to be updated, members of Ri and Rk. (again order doesn't matter.)
+ * It seemed a list would be faster then querying the entire map for what pixels have a specific segment value, since that
+ * query has to look at the entire map.
+ * And it seems with the raster based storage, there was no easy way to store this for the whole time, it would be rechecked each iteration.
+ * ... see below with the map for further comments */
 neighbor list will be a listing of pixels that are neighbors?  Include segment numbers?  Only include unique segments?
 Maybe the most complete return would be a structure array, structure to include the segment ID and a list of points in it?  But the list of points would NOT be inclusive - just the points bordering the current segment...
 
@@ -226,7 +239,16 @@ Maybe the most complete return would be a structure array, structure to include 
 Method 2: (if build a map data structure at start of program)
 Using current pixel's segment ID's edges, return neighbors
 
-
+/* EM: So if we want to remember what pixels are part of each segment in a stable (instead of temporary) method, I think the
+ * map data structure makes more sense.  Each element in the map would have: segment ID, processing flags, current values (mean of input data),
+ * current number of pixels, and a list (linked list, sorted array, etc) of pixel members (row,column).  Edges would represent neighbor relations.
+ * 
+ * My feeling is that this will be very slow to set up, and need more memory for the first iterations (compared to the raster version)
+ * But after the number of segments is reduced and the membership in each segment is higher, processing time will be faster.
+ * 
+ * My advisor recommends to implement both methods - to check the speed, and also as a code validation / logic validation / bug testing:
+ * the segmented maps should be the same for both.
+ */
 
 Existing GRASS functions don't seem to have this "neighbor of an area" concept.  Am I missing something, should something be adapted, should I design this as a library function, or just write it as a function for this program?
 
