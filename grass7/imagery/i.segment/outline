@@ -132,6 +132,8 @@ If we have polygon constraints.  Outer for loop to process the image one polygon
 */
 
 /* Similarity threshold T(t)... as t increases, threshold for similarity is lower. SPRING used: T(t) = T(0)alphat, where T(0) > ), t =0,1,2... and alpha <1 */
+/* MM: T(0) > ) ??? what exactly is t */
+
 
 For t  (until no merges are made?)
 
@@ -190,10 +192,13 @@ else (starting from seeds, so only want single unassigned pixels as neighbors, n
 Method 1: (using "rasters")
 
 Input could be single pixel or list of pixels.
+/* MM: what exactly is input? seeds? */
 
 Put input in "to be checked" stack
 Put input in "current segment" list
 put input in "don't check" list
+/* MM: you could also determine the status of each pixel on-the-fly when visiting this neighbor */
+
 empty "neighbor" list
 While "to be checked" stack isn't empty:
 	pop
@@ -212,6 +217,7 @@ While "to be checked" stack isn't empty:
 loop...
 
 return: neighbor list, pixels in segment list
+/* MM: what is the purpose of the neighbor list and the segment list? */
 
 neighbor list will be a listing of pixels that are neighbors?  Include segment numbers?  Only include unique segments?
 Maybe the most complete return would be a structure array, structure to include the segment ID and a list of points in it?  But the list of points would NOT be inclusive - just the points bordering the current segment...
