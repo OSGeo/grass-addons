@@ -48,6 +48,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	_("Use 8 neighbors (3x3 neighborhood) instead of the default 4 neighbors for each pixel.");
 
 
+    /* input for distance function */
+
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
@@ -119,6 +121,9 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     /* note from tutorial: You may have got to use the complete name of the member function 
      * including class-name and scope-operator (::).) */
+
+    /* TODO add user input for this */
+    functions->calculate_similarity = &calculate_euclidean_similarity;
 
     /* other data */
     files->nrows = Rast_window_rows();

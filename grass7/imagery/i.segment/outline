@@ -209,16 +209,17 @@ empty "neighbor" list
 While "to be checked" stack isn't empty:
 	pop
 	find pixel neighbors
-	with neighbors
+	with pixel neighbors
 		if in "don't check" list
 			do nothing
 		else
 			put in "don't check" list
-			add to "to be checked" stack
-			if segment ID = current segment ID
-				add to "current segment" list
-			else
-				add to "neighbor" list
+			if candidate pixel
+				if segment ID = current segment ID
+					add to "current segment" list
+					add to "to be checked" stack
+				else
+					add to "neighbor" list
 	next neighbor
 loop...
 

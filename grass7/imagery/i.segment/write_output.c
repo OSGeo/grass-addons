@@ -9,7 +9,7 @@
 
 int write_output(struct files *files)
 {
-    int out_fd, row, col;
+    int out_fd, row, col, n;
     CELL *outbuf;
 
     outbuf = Rast_allocate_c_buf();	/*hold one row of data to put into raster */
@@ -42,6 +42,10 @@ int write_output(struct files *files)
     segment_close(&files->bands_seg);
     segment_close(&files->out_seg);
     Rast_close(out_fd);
+
+    for (n = 0; n < files->nrows; n++)
+	G_free(files->no_check[n]);
+    G_free(files->no_check);
 
     /* anything else left to clean up? */
 
