@@ -84,17 +84,13 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     files->image_group = group->answer;
 
-    /* TODO: I'm assuming it is already validated as a number.  Is this OK, or is there a better way to cast the input? */
-    /* reference r.cost line 313 
-       if (sscanf(opt5->answer, "%d", &maxcost) != 1 || maxcost < 0)
-       G_fatal_error(_("Inappropriate maximum cost: %d"), maxcost); */
-
     if (G_legal_filename(output->answer) == 1)
 	files->out_name = output->answer;	/* name of output raster map */
     else
 	G_fatal_error("Invalid output raster name.");
 
     /* segmentation methods:  0 = debug, 1 = region growing */
+    /* TODO, instead of string compare, does the Option structure have these already numbered? */
 
     if (strncmp(method->answer, "io_debug", 5) == 0)
 	functions->method = 0;
@@ -105,7 +101,10 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     G_debug(1, "segmentation method: %d", functions->method);
 
-
+    /* TODO: I'm assuming threshold is already validated as a number.  Is this OK, or is there a better way to cast the input? */
+    /* reference r.cost line 313 
+       if (sscanf(opt5->answer, "%d", &maxcost) != 1 || maxcost < 0)
+       G_fatal_error(_("Inappropriate maximum cost: %d"), maxcost); */
     sscanf(threshold->answer, "%f", &functions->threshold);
 
     if (diagonal->answer == 0) {
@@ -118,9 +117,6 @@ int parse_args(int argc, char *argv[], struct files *files,
 	functions->num_pn = 8;
 	G_debug(1, "eight (3x3) pixel neighborhood");
     }
-
-    /* note from tutorial: You may have got to use the complete name of the member function 
-     * including class-name and scope-operator (::).) */
 
     /* TODO add user input for this */
     functions->calculate_similarity = &calculate_euclidean_similarity;

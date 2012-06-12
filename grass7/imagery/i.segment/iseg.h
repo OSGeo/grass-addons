@@ -24,14 +24,14 @@ struct files
 
     /* files */
     int nbands;
+    int candidate_count;	/*how many candidate pixels remain */
     SEGMENT bands_seg, out_seg;	/* bands is for input, normal application is landsat bands, but other input can be included in the group. */
     double *bands_val;		/* array, to hold all input values at one pixel */
     double *second_val;		/* to hold values at second point for similarity comparison */
     int *out_val;		/* array, to hold the segment ID and processing flag(s) */
     char *out_name;		/* name of output raster map */
 
-    /*int **no_check; *//* TODO maybe as SEGMENT.  Also can this be smaller then an int?  Just need to save 0 and 1. */
-    int no_check[100][2];
+    SEGMENT no_check;		/* pixels that have already been checked during this neighbor finding routine */
 
     /* RASTER_MAP_TYPE data_type;       Removed: input is always DCELL, output is CELL. 
      *  TODO: if input might be smaller then DCELL, we could detect size and allocate accordingly. */
@@ -56,23 +56,25 @@ struct files
 
 };
 
-
-/* I think if I use function pointers, I can set up one time in the input
- * what similarity function, etc, will be used later in the processing
- * and make it easier to add additional variations later.
- */
-
 struct functions
 {
     int method;			/* Segmentation method */
-    int (*find_pixel_neighbors) (int[2], int[8][2], struct files *);	/*pixel, pixel_neighbors */
-    double (*calculate_similarity) (int[2], int[2], struct files *,
+
+    /* Some function pointers to set one time in parse_args() */
+    int (*find_pixel_neighbors) (int, int, int[8][2], struct files *);	/*parameters: row, col, pixel_neighbors */
+    double (*calculate_similarity) (int[2], int[2], struct files *,	/*parameters: two points (row,col) to compare */
 				    struct functions *);
 
-    int num_pn;			/* number of pixel neighbors  int, 4 or 8. */
-
+    int num_pn;			/* number of pixel neighbors  int, 4 or 8. TODO: can remove if pixel neighbors is list instead of array.  But maybe this one is small enough that is faster as array? */
     float threshold;		/* similarity threshold */
 
+};
+
+struct pixel
+{
+    int row;
+    int col;
+    struct pixel *next;
 };
 
 /* parse_args.c */
@@ -86,15 +88,15 @@ int open_files(struct files *);
 int create_isegs(struct files *, struct functions *);
 int io_debug(struct files *, struct functions *);
 int region_growing(struct files *, struct functions *);
-int find_segment_neighbors(int[][2], int[][2], int, int, struct files *, struct functions *);	/* TODO: need data structure for Ri, Rin */
-int set_candidate_flag(int[100][2], int, struct files *);
+int find_segment_neighbors(int[][2], int[][2], int *, int *, struct files *, struct functions *);	/* TODO: need data structure for Ri, Rin */
+int set_candidate_flag(int[100][2], int, int, struct files *);
 int merge_values(int[100][2], int[100][2], int, int, struct files *);	/* I assume this is a weighted mean? */
-int find_four_pixel_neighbors(int[2], int[][2], struct files *);
-int find_eight_pixel_neighbors(int[2], int[8][2], struct files *);
+int find_four_pixel_neighbors(int, int, int[][2], struct files *);
+int find_eight_pixel_neighbors(int, int, int[8][2], struct files *);
 double calculate_euclidean_similarity(int[2], int[2], struct files *,
 				      struct functions *);
 
 
 /* write_output.c */
-/* also currently closes files */
 int write_output(struct files *);
+int close_files(struct files *);

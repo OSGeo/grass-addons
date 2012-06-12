@@ -1,5 +1,5 @@
 /* transfer the segmented regions from the segmented data file to a raster file */
-/* put closing segment files here for now, OK to combine or better to put in a seperate function? */
+/* close_files() function is at bottom */
 
 #include <stdlib.h>
 #include <grass/gis.h>
@@ -36,16 +36,25 @@ int write_output(struct files *files)
 	Rast_put_row(out_fd, outbuf, CELL_TYPE);
     }
 
+    /* close and save file */
+    Rast_close(out_fd);
 
+    return 0;
+}
+
+int close_files(struct files *files)
+{
     /* close segmentation files and output raster */
     G_debug(1, "closing files");
     segment_close(&files->bands_seg);
     segment_close(&files->out_seg);
-    Rast_close(out_fd);
+    segment_close(&files->no_check);
 
-    for (n = 0; n < files->nrows; n++)
-	G_free(files->no_check[n]);
-    G_free(files->no_check);
+    /* close segmentation files and output raster */
+
+    G_free(files->bands_val);
+    G_free(files->second_val);
+    G_free(files->out_val);
 
     /* anything else left to clean up? */
 
