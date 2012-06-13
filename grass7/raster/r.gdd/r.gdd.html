@@ -1,13 +1,14 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.gdd</em> calculates (accumulated) growing degree days (GDDs) from 
-several input maps with temperature data for different times of the day.
+<em>r.gdd</em> calculates (accumulated) growing degree days (GDDs) and 
+Winkler indices from several input maps with temperature data for 
+different times of the day.
 <p>
 The formula for calculating GDDs is
 <div class="code"><pre>
     gdd = (max + min) / 2 - baseline
 </pre></div>
-or using the average from all input maps
+The formula for calculating the Winkler index is
 <div class="code"><pre>
     gdd = average - baseline
 </pre></div>
@@ -16,13 +17,18 @@ the maximum daily temperature and <em>average</em> the average daily
 temperature. The <em>min</em>, <em>max</em> and <em>average</em> values 
 are automatically calculated from the input temperature maps.
 <p>
-Negative GDD values are set to 0 (zero). All (scaled and shifted) 
-temperature values above the <em>cutoff</em> value are set to 
-<em>cutoff</em>, and all (scaled and shifted) temperature values below 
-the <em>baseline</em> value are set to <em>baseline</em>.
+The <em>shift</em> and <em>scale</em> values are applied directly to the 
+input values. The <em>baseline</em>, <em>cutoff</em>, and <em>range</em> 
+options are applied to the shifted and scaled values.
 <p>
-If an existing GDD map is provided with the <em>gdd</em> option, the 
-values of this GDD map are added to the output, thus accumulating GDDs.
+Any <em>min</em>, <em>max</em> and <em>average</em> temperature values 
+above the <em>cutoff</em> value are set to <em>cutoff</em>, and any 
+<em>min</em>, <em>max</em> and <em>average</em> values below the 
+<em>baseline</em> value are set to <em>baseline</em>. Negative results 
+are set to 0 (zero). 
+<p>
+If an existing map is provided with the <em>gdd</em> option, the 
+values of this map are added to the output, thus accumulating GDDs.
 
 <h2>NOTES</h2>
 

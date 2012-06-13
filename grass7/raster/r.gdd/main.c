@@ -153,6 +153,10 @@ int main(int argc, char *argv[])
 
     baseline = atof(parm.baseline->answer);
     cutoff = atof(parm.cutoff->answer);
+    
+    if (cutoff <= baseline)
+        G_fatal_error(_("'%s' must be > '%s'"), parm.cutoff->key,
+	                                        parm.baseline->key);
 
     if (parm.input->answer && parm.file->answer)
         G_fatal_error(_("input= and file= are mutually exclusive"));
@@ -278,11 +282,11 @@ int main(int argc, char *argv[])
 
 	for (col = 0; col < ncols; col++) {
 	    int null = 0, non_null = 0;
-	    FCELL min, max, sum, gdd;
+	    FCELL min, max, avg, gdd;
 
 	    min = fnull;
 	    max = fnull;
-	    sum = 0;
+	    avg = 0;
 
 	    for (i = 0; i < num_inputs; i++) {
 		FCELL v = inputs[i].buf[col];
@@ -295,13 +299,8 @@ int main(int argc, char *argv[])
 			null = 1;
 		    }
 		    else {
-			if (v < baseline)
-			    v = baseline;
-			if (v > cutoff)
-			    v = cutoff;
-
 			if (flag.avg->answer)
-			    sum += v;
+			    avg += v;
 			else {
 			    if (Rast_is_f_null_value(&min) || min > v)
 				min = v;
@@ -321,10 +320,28 @@ int main(int argc, char *argv[])
 	    }
 	    else {
 
-		if (flag.avg->answer)
-		    gdd = sum / non_null - baseline;
-		else
+		if (flag.avg->answer) {
+		    avg /= non_null;
+
+		    if (avg < baseline)
+			avg = baseline;
+		    if (avg > cutoff)
+			avg = cutoff;
+
+		    gdd = avg - baseline;
+		}
+		else {
+		    if (min < baseline)
+			min = baseline;
+		    if (min > cutoff)
+			min = cutoff;
+		    if (max < baseline)
+			max = baseline;
+		    if (max > cutoff)
+			max = cutoff;
+
 		    gdd = (min + max) / 2. - baseline;
+		}
 
 		if (gdd < 0.)
 		    gdd = 0.;
