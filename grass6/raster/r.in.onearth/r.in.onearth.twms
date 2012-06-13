@@ -3,9 +3,9 @@
 # Download and import satellite images direct from the                      #
 # NASA onearth WMS server into GRASS.                                       #
 # written by Soeren Gebbert 11/2005 soerengebbert AT gmx de                 #
-# and Markus Neteler                                                        #
+# and Markus Neteler. Support for pre-tiled WMS server by Hamish Bowman     #
 #                                                                           #
-# COPYRIGHT:	(C) 2005 by the GRASS Development Team                      #
+# COPYRIGHT:	(C) 2005-2012 by the GRASS Development Team                 #
 #                                                                           #
 #		This program is free software under the GNU General Public  #
 #		License (>=v2). Read the file COPYING that comes with GRASS #
@@ -14,22 +14,22 @@
 #############################################################################
 
 #%Module
-#% description: Download and import satellite images direct from the NASA onearth WMS server into GRASS or to a geo-tiff image file.
+#%  description: Download and import satellite images direct from the NASA onearth WMS server into GRASS or to a geo-tiff image file.
 #%End
 #%option
-#% key: output
-#% gisprompt: new,cell,raster
-#% type: string
-#% description: Output raster map name prefix
-#% required : no
+#%  key: output
+#%  gisprompt: new,cell,raster
+#%  type: string
+#%  description: Output raster map name prefix
+#%  required: no
 #%end
 #%option
-#% key: file
-#% gisprompt: file,file,file
-#% type: string
-#% description: Output file name prefix
-#% answer: /tmp/test
-#% required : no
+#%  key: file
+#%  gisprompt: file,file,file
+#%  type: string
+#%  description: Output file name prefix
+#%  answer: /tmp/test
+#%  required: no
 #%end
 #%flag
 #%  key: f
@@ -56,46 +56,53 @@
 #%  description: Download and Import the composite of data produced by the MODIS Rapid Response System, from data collected yesterday by the MODIS/Aqua.
 #%end
 #%option
-#% key: tmband
-#% type: string
-#% description: NASA Landsat TM bands
-#% options:  Red,Green,Blue,IR1,IR2,IR3,ThL,ThH,Pan,visual,pseudo 
-#% required : no
+#%  key: tmband
+#%  type: string
+#%  description: NASA Landsat TM bands
+#%  options: Red,Green,Blue,IR1,IR2,IR3,ThL,ThH,Pan,visual,pseudo 
+#%  required: no
 #%end
 #%option
-#% key: srtmband
-#% type: string
-#% description: Radar reflectance bands
-#% options:  default,ss1,ss2,ss3,ss4,all 
-#% required : no
+#%  key: srtmband
+#%  type: string
+#%  description: Radar reflectance bands
+#%  options:  default,ss1,ss2,ss3,ss4,all 
+#%  required: no
 #%end
 #%option
-#% key: month
-#% type: string
-#% description: Blue Marble Next Generation layer
-#% options:  Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec 
-#% required : no
+#%  key: month
+#%  type: string
+#%  description: Blue Marble Next Generation layer
+#%  options: Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec 
+#%  required: no
 #%end
 #%option
-#% key: time
-#% type: string
-#% description: The datum of creation for Aqua or Terra satellite images
-#% answer: 2005-3-24    
-#% required : no
+#%  key: time
+#%  type: string
+#%  description: The datum of creation for Aqua or Terra satellite images
+#%  answer: 2005-3-24    
+#%  required: no
 #%end
 #%option
-#% key: wgetopt
-#% type: string
-#% description: Options for wget
-#% answer: -c -t 5 --user-agent=MSIE5.5   
-#% required : no
+#%  key: wgetopt
+#%  type: string
+#%  description: Options for wget
+#%  answer: -c -t 5
+#%  required: no
 #%end
 
+
 #Only run if started in GRASS
-if test "$GISBASE" = ""; then
- echo "You must be in GRASS GIS to run this program." >&2
- exit 1
+if [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program." >&2
+    exit 1
 fi
+
+#Parse the arguments
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+  exec g.parser "$0" "$@"
+fi
+
 
 #Set up important vars first
 SRC="EPSG:4326" #This is the Projection LatLong wgs84
@@ -112,156 +119,156 @@ DAILY_AQUA_LAYER="daily_aqua" #Thats the NASA daily aqua database
 USEGDALWARP=0 #if we dont have gdalwarp, only LatLong projection is supported, 0 is true
 FILE_EXTENT=".tif"
 
+
 # check if we have wget
 if [ ! -x "`which wget`" ] ; then
-    echo "wget required, please install first" 2>&1
+    g.message -e "wget required, please install first"
     exit 1
 fi
 
 # check if we have gdalwarp
 if [ ! -x "`which gdalwarp`" ] ; then
-    echo "gdalwarp is recommended, please install first (script still works in LatLong locations)" 2>&1
+    g.message -w "gdalwarp is recommended, please install first (script still works in LatLong locations)"
     USEGDALWARP=1 #use only LatLong
 fi
 
 #Some functions
 #Get the data from the NASA server
-GetData() {
+GetData()
+{
    IMPORT=0 #default
-   local STRING="request=GetMap&layers=${LAYER}&srs=${SRC}&width=${WIDTH}&height=${HEIGHT}&bbox=${w},${s},${e},${n}&format=${FORMAT}&version=1.1.0&styles=${STYLE}${TIME}"
+   local STRING="request=GetMap&layers=$LAYER&srs=$SRC&width=$WIDTH&height=$HEIGHT&bbox=$w,$s,$e,$n&format=$FORMAT&version=1.1.0&styles=$STYLE$TIME"
    #echo $STRING
    #Create thefilename
-   IMAGEFILE="${TMPDIR}/Image_${LAYER}_${STYLE}_${HEIGHT}_${WIDTH}"
-   echo " "
-   echo " "
-   echo "************** DOWNLOAD DATA ****************"
-   echo "Requesting Data from ${NASASERVER}"
+   IMAGEFILE="$TMPDIR/Image_${LAYER}_${STYLE}_${HEIGHT}_$WIDTH"
+   g.message -v "**** DOWNLOAD DATA ****"
+   g.message -v "Requesting Data from $NASASERVER"
+
    #download the File from the Server
-   wget ${WGET_OPTIONS}  --post-data=${STRING} ${NASASERVER} -O ${IMAGEFILE} 
-   if [ $? -ne 0 ]; then
-     echo " "
-     echo "!--------------ERROR-------------------!"
-     echo "wget was not able to download the data"
-     echo " "
+   wget $WGET_OPTIONS --post-data="$STRING" "$NASASERVER" -O "$IMAGEFILE" 
+
+   if [ $? -ne 0 ] ; then
+     g.message -e "wget was not able to download the data"
      IMPORT=1
      return 1
    fi
-   if [ -f "${IMAGEFILE}" ]; then 
+
+   if [ -f "$IMAGEFILE" ] ; then 
      IMPORT=0
    else
-     echo " "
-     echo "!--------------ERROR-------------------!"
-     echo "wget was not able to download the data"
-     echo " "
+     g.message -e "wget was not able to download the data"
      IMPORT=1
      return 1
    fi
 return 0
 }
 
+
 #warp the data to the current grass locationa via gdalwarp
-WarpData() {
-   if [ ${USEGDALWARP} -eq 0 ]; then 
-        echo "************* CONVERT DATA  ***************"
+WarpData()
+{
+   if [ "$USEGDALWARP" -eq 0 ] ; then 
+        g.message -v "**** CONVERT DATA  ****"
         #create the new imagename
-	IMAGEFILE_GDALWARP="${TMPDIR}/Image_${LAYER}_${STYLE}_${HEIGHT}_${WIDTH}_gdalwarp"
-   
+	IMAGEFILE_GDALWARP="$TMPDIR/Image_${LAYER}_${STYLE}_${HEIGHT}_${WIDTH}_gdalwarp"
+
    	#convert the data to the current location, create Erdas Imagine Images (HFA)
-	gdalwarp -s_srs $SRC -t_srs "`g.proj -wf`" -of HFA ${IMAGEFILE} ${IMAGEFILE_GDALWARP}
-	if [ $? -ne 0 ]; then
-          echo "!-------- CAN NOT CONVERT DATA --------!"
-          echo "!------------ WILL BREAK --------------!"
+	gdalwarp -s_srs "$SRC" -t_srs "`g.proj -wf`" -of HFA \
+	    "$IMAGEFILE" "$IMAGEFILE_GDALWARP"
+	if [ $? -ne 0 ] ; then
+          g.message -i '!-------- CAN NOT CONVERT DATA --------!'
+          g.message -i '!------------ WILL BREAK --------------!'
 	  exitprocedure
 	fi
-        echo "************ DATA CONVERTED *************"
+        g.message -v "**** DATA CONVERTED ****"
 	#remove the old image and convert the name
-	rm -f ${IMAGEFILE}
-	IMAGEFILE=${IMAGEFILE_GDALWARP}
+	rm -f "$IMAGEFILE"
+	IMAGEFILE="$IMAGEFILE_GDALWARP"
 	return 0
    fi
 return 1
 }
 
+
 #Import the Data with r.in.gdal
-ImportData() {
-   if [ ${IMPORT} -eq 0 ]; then 
+ImportData()
+{
+   if [ "$IMPORT" -eq 0 ] ; then 
     #Check if Tiff file
-    FILETYPE=`file  ${IMAGEFILE} | cut --fields=2 --delimiter=:`
-    echo ${FILETYPE} | grep TIFF > /dev/null
-    if [ $? -ne 0 ]; then
-    	echo "Downloaded file is not a GeoTiff file, but will try to import"
+    FILETYPE=`file  "$IMAGEFILE" | cut --fields=2 --delimiter=:`
+    echo "$FILETYPE" | grep TIFF > /dev/null
+    if [ $? -ne 0 ] ; then
+    	g.message -i "Downloaded file is not a GeoTiff file, but will try to import"
     fi
-     echo "************** CHECK DATA *****************"
-     gdalinfo ${IMAGEFILE} | grep "GDALOpen failed" > /dev/null
+     g.message -v "**** CHECK DATA ****"
+     gdalinfo "$IMAGEFILE" | grep "GDALOpen failed" > /dev/null
      local ReturnValueGdalBug=$?
      
-     gdalinfo ${IMAGEFILE} 
+     gdalinfo "$IMAGEFILE"
      local ReturnValueGdal=$?
 
-     if [ ${ReturnValueGdal} -eq 0 ] && [ ${ReturnValueGdalBug} -ne 0 ]; then
-       echo "************* DATA CHECK OK ***************"
+     if [ "$ReturnValueGdal" -eq 0 ] && [ "$ReturnValueGdalBug" -ne 0 ] ; then
+       g.message -v "**** DATA CHECK OK ****"
        #Copy or import
-       if [ ${GIS_FLAG_f} -eq 1 ] ; then
+       if [ "$GIS_FLAG_F" -eq 1 ] ; then
          #Copy the data to the outputfile
-	 echo "Creating output file ${GIS_OPT_file}${TYPE}${STYLE}${FILE_EXTENT}"
-         cp ${IMAGEFILE} ${GIS_OPT_file}${TYPE}${STYLE}${FILE_EXTENT}
+	 g.message -v "Creating output file $GIS_OPT_FILE$TYPE$STYLE$FILE_EXTENT"
+         cp "$IMAGEFILE" "$GIS_OPT_FILE$TYPE$STYLE$FILE_EXTENT"
        else
          #Warp the data!
          WarpData
-         echo "************** IMPORT DATA ****************"
-         r.in.gdal -o input=${IMAGEFILE} output="${GIS_OPT_output}${TYPE}_${STYLE}"
+         g.message -v "**** IMPORT DATA ****"
+         r.in.gdal -o input="$IMAGEFILE" \
+	     output="$GIS_OPT_OUTPUT${TYPE}_$STYLE"
        fi
      else
-        echo "!-------------------BREAK---------------------!"
+        echo '!-------------------BREAK---------------------!'
      	echo "Downloaded file is not supported by gdal, or cannot be imported"
-	if [ ${ReturnValueGdalBug} -eq 0 ]; then
-     	  echo "There was a problem while downloading the file, maybe you should try it again."
+	if [ $ReturnValueGdalBug -eq 0 ] ; then
+     	    echo "There was a problem while downloading the file, maybe you should try it again."
 	fi
-	echo "File of Type: ${FILETYPE}"
+	g.message -v "File of Type: $FILETYPE"
 	#If the File is XML, then cat the contents to stdout
-	echo ${FILETYPE} | grep XML > /dev/null
-        if [ $? -eq 0 ]; then
+	echo "$FILETYPE" | grep XML > /dev/null
+        if [ $? -eq 0 ] ; then
+	  g.message " "
+	  g.message "Message from Server $NASASERVER"
 	  echo " "
-	  echo "Message from Server ${NASASERVER}"
-	  echo " "
-          echo "!------------BEGIN-ERROR-MESSGAE--------------!"
-	  cat ${IMAGEFILE}
-          echo "!-------------END-ERROR-MESSGAE---------------!"
-	  echo " "
+          echo '!------------BEGIN-ERROR-MESSGAE--------------!'
+	  cat "$IMAGEFILE"
+          echo '!-------------END-ERROR-MESSGAE---------------!'
 	fi
      fi
-     rm -rf ${IMAGEFILE}
+     rm -rf "$IMAGEFILE"
    fi
 
    return 0
 }
 
+
 # what to do in case of user break:
 exitprocedure()
 {
- echo "User break!"
- rm -rf "$TMPDIR"
- exit 1
+    g.message 'User break!'
+    rm -rf "$TMPDIR"
+    exit 1
 }
 trap "exitprocedure" 2 3 15
 
-#Parse the arguments
-if [ "$1" != "@ARGS_PARSED@" ] ; then
-  exec g.parser "$0" "$@"
-fi
 
 #At least one flag should be set
-if [ $GIS_FLAG_l -eq 0 -a $GIS_FLAG_s -eq 0 -a $GIS_FLAG_b -eq 0 -a $GIS_FLAG_t -eq 0 -a $GIS_FLAG_a -eq 0 ] ; then
-    echo "ERROR: Select a flag to specify map type"
+if [ $GIS_FLAG_L -eq 0  -a  $GIS_FLAG_S -eq 0  -a  $GIS_FLAG_B -eq 0 ] \
+   && [ $GIS_FLAG_T -eq 0  -a  $GIS_FLAG_A -eq 0 ] ; then
+    g.message -e "Select a flag to specify map type"
     exit 1
 fi
 
 #Check if a file or a map should be created
-if [ ${GIS_FLAG_f} -eq 1 ] ; then
-  if [ ${GIS_OPT_file} == ""] ; then
-  	echo "Please specify the output filename"
+if [ "$GIS_FLAG_F" -eq 1 ] ; then
+    if [ -z "$GIS_OPT_FILE"] ; then
+  	g.message -e "Please specify the output filename"
 	exit 1
-  fi
+    fi
 fi
 
 #Some mapset informations 
@@ -271,54 +278,56 @@ LOCATION="$GISDBASE/$LOCATION_NAME/$MAPSET"
 PERM="$GISDBASE/$LOCATION_NAME/PERMANENT"
 
 #wget has many options
-WGET_OPTIONS=${GIS_OPT_wgetopt}
+WGET_OPTIONS="$GIS_OPT_WGETOPT"
 
 #Get the region data 
 eval `g.region -g`
-WIDTH=${cols}
-HEIGHT=${rows}
+WIDTH="$cols"
+HEIGHT="$rows"
 eval `g.region -gb`
 #Now get the LatLong Boundingbox
 grep -i 'proj: ll' $PERM/PROJ_INFO > /dev/null
-if [ $? -ne 0 ] && [ ${USEGDALWARP} -eq 0 ]; then
-  n=$ll_n
-  s=$ll_s
-  e=$ll_e
-  w=$ll_w
-  echo "LatLong wgs84 bounding box = N $n S $s W $w E $e"
+if [ $? -ne 0 ] && [ "$USEGDALWARP" -eq 0 ] ; then
+    n="$ll_n"
+    s="$ll_s"
+    e="$ll_e"
+    w="$ll_w"
+    g.message -v "LatLong wgs84 bounding box = N $n S $s W $w E $e"
 else
-  #We have LatLong projection, no warp is needed!
-  USEGDALWARP=1 
-  #There is a bug in nasa WMS service, it provides images which are lager then
-  #the world :(, we have to crop the images
-  if [ "$n" == "90" -a "$s" == "-90" -a "$w" == "-180" -a "$e" == "180" ] ; then
+    #We have LatLong projection, no warp is needed!
+    USEGDALWARP=1 
+    #There is a bug in nasa WMS service, it provides images which are lager then
+    #the world :(, we have to crop the images
+    if [ "$n" = "90" -a "$s" = "-90" ] && \
+       [ "$w" = "-180" -a "$e" = "180" ] ; then
 
-  # check if we have bc
-  if [ ! -x "`which bc`" ] ; then
-    echo "bc required, please install first" 2>&1
-    exit 1
-  fi
-   #We request a smaller image from the wms server
-   n=`echo "$n - 0.001" | bc`
-   s=`echo "$s + 0.001" | bc`
-   e=`echo "$e - 0.001" | bc`
-   w=`echo "$w + 0.001" | bc`
-  fi
+	# check if we have bc
+	if [ ! -x "`which bc`" ] ; then
+	    g.message -e "bc required, please install first"
+	    exit 1
+	fi
+	#We request a smaller image from the wms server
+	n=`echo "$n - 0.001" | bc`
+	s=`echo "$s + 0.001" | bc`
+	e=`echo "$e - 0.001" | bc`
+	w=`echo "$w + 0.001" | bc`
+    fi
 fi
 
 #Break If we have no warp and no LatLong
 grep -i 'proj: ll' $PERM/PROJ_INFO > /dev/null
 if [ $? -ne 0 ] && [ ${USEGDALWARP} -eq 1 ] ; then
-  echo "NASA onearth data are in Latitude/Longitude. The current"
-  echo "location projection differs and you dont have gdalwarp! STOP."
-  exit 1
+    g.message -e "NASA OnEarth data are in Latitude/Longitude. The \
+                  current location projection differs and you don't \
+		  have gdalwarp! STOP."
+    exit 1
 fi
 
 
 #make a temporary directory
 TMPDIR="`g.tempfile pid=$$`"
 if [ $? -ne 0 ] || [ -z "$TMPDIR" ] ; then
-    echo "ERROR: unable to create temporary files" 1>&2
+    g.message -e "Unable to create temporary files"
     exit 1
 fi
 rm -f "$TMPDIR"
@@ -327,73 +336,57 @@ mkdir "$TMPDIR"
 #Get the Data and import them
 #import every choice that can be made
 
-if [ $GIS_FLAG_l -eq 1 ] ; then
-LAYER=${GLOBAL_MOSAIC_LAYER}
-STYLE=${GIS_OPT_tmband}
-TYPE="LandsatTM"
-echo " "
-echo "======================================================="
-echo "Will download and import ${TYPE} Data with band ${STYLE}"
-echo "======================================================="
-GetData
-ImportData
+if [ $GIS_FLAG_L -eq 1 ] ; then
+    LAYER="$GLOBAL_MOSAIC_LAYER"
+    STYLE="$GIS_OPT_TMBAND"
+    TYPE="LandsatTM"
+    g.message -v "Will download and import $TYPE Data with band $STYLE"
+    GetData
+    ImportData
 fi
 
-if [ $GIS_FLAG_s -eq 1 ] ; then
-LAYER=${SRTM_MAG_LAYER}
-STYLE=${GIS_OPT_srtmband}
-TYPE="SRTM"
-echo " "
-echo "======================================================="
-echo "Will download and import ${TYPE} Data with band ${STYLE}"
-echo "======================================================="
-GetData
-ImportData
+
+if [ $GIS_FLAG_S -eq 1 ] ; then
+    LAYER="$SRTM_MAG_LAYER"
+    STYLE="$GIS_OPT_SRTMBAND"
+    TYPE="SRTM"
+    g.message -v "Will download and import $TYPE Data with band $STYLE"
+    GetData
+    ImportData
 fi
 
-if [ $GIS_FLAG_b -eq 1 ] ; then
-LAYER=${BMNG_LAYER}
-STYLE=${GIS_OPT_month}
-TYPE="BMNG"
-echo " "
-echo "======================================================="
-echo "Will download and import ${TYPE} Data of month ${STYLE}"
-echo "======================================================="
-GetData
-ImportData
+if [ $GIS_FLAG_B -eq 1 ] ; then
+    LAYER="$BMNG_LAYER"
+    STYLE="$GIS_OPT_MONTH"
+    TYPE="BMNG"
+    g.message -v "Will download and import $TYPE Data of month $STYLE"
+    GetData
+    ImportData
 fi
 
-if [ $GIS_FLAG_t -eq 1 ] ; then
-LAYER=${DAILY_TERRA_LAYER}
-TIME="&time=${GIS_OPT_time}"
-STYLE=""
-TYPE="Daily_Terra"
-echo " "
-echo "======================================================="
-echo "Will download and import ${TYPE} Data"
-echo "======================================================="
-GetData
-ImportData
+if [ $GIS_FLAG_T -eq 1 ] ; then
+    LAYER="$DAILY_TERRA_LAYER"
+    TIME="&time=$GIS_OPT_TIME"
+    STYLE=""
+    TYPE="Daily_Terra"
+    g.message -v "Will download and import $TYPE Data"
+    GetData
+    ImportData
 fi
 
-if [ $GIS_FLAG_a -eq 1 ] ; then
-LAYER=${DAILY_AQUA_LAYER}
-TIME="&time=${GIS_OPT_time}"
-STYLE=""
-TYPE="Daily_Aqua"
-echo " "
-echo "======================================================="
-echo "Will download and import ${TYPE} Data"
-echo "======================================================="
-GetData
-ImportData
+if [ $GIS_FLAG_A -eq 1 ] ; then
+    LAYER="$DAILY_AQUA_LAYER"
+    TIME="&time=$GIS_OPT_TIME"
+    STYLE=""
+    TYPE="Daily_Aqua"
+    g.message -v "Will download and import $TYPE Data"
+    GetData
+    ImportData
 fi
 
 #remove the temp dir
 rm -rf "$TMPDIR"
-echo " "
-echo "========"
-echo "Finished"
-echo "========"
+g.message -v "Finished"
+
 exit 0
 
