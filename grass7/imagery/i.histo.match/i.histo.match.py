@@ -78,11 +78,12 @@ def main():
     curs = db.cursor()
     # for each image
     for i in images:
+        iname = i.split('@')[0]
         # drop table if exist
-        query_drop = "DROP TABLE if exists t%s" % i
+        query_drop = "DROP TABLE if exists t%s" % iname
         curs.execute(query_drop)
         # create table
-        query_create = "CREATE TABLE t%s (grey_value integer,pixel_frequency " % i
+        query_create = "CREATE TABLE t%s (grey_value integer,pixel_frequency " % iname
         query_create += "integer, cumulative_histogram integer, cdf real)"
         curs.execute(query_create)
         # set the region on the raster
@@ -98,11 +99,13 @@ def main():
             try:
                 val = int(stats_dict[str(n)])
                 cdf += val
-                insert = "INSERT INTO t%s VALUES (%i, %i, %i, 0.000000)" % (i, n, val, cdf)
+                insert = "INSERT INTO t%s VALUES (%i, %i, %i, 0.000000)" % (
+                                                            iname, n, val, cdf)
                 curs.execute(insert)
             except:
                 cdf += 0
-                insert = "INSERT INTO t%s VALUES (%i, 0, %i, 0.000000)" % (i, n, cdf)
+                insert = "INSERT INTO t%s VALUES (%i, 0, %i, 0.000000)" % (
+                                                            iname, n, cdf)
                 curs.execute(insert)
         db.commit()
         # number of pixel is the cdf value
@@ -110,13 +113,15 @@ def main():
         # for each number in the range
         for n in range(0,max_value):
             # select value for cumulative_histogram for the range number
-            select_ch="SELECT cumulative_histogram FROM t%s WHERE (grey_value=%i)" % (i, n)
+            select_ch="SELECT cumulative_histogram FROM t%s WHERE (grey_value=%i)" % (
+                                                            iname, n)
             result = curs.execute(select_ch)
             val = result.fetchone()[0]
             # update cdf with new value
             if val != 0 and numPixel != 0:
                 update_cdf = round(float(val) / float(numPixel),6)
-                update_cdf = "UPDATE t%s SET cdf=%s WHERE (grey_value=%i)" % (i, update_cdf, n) 
+                update_cdf = "UPDATE t%s SET cdf=%s WHERE (grey_value=%i)" % (
+                                                            iname, update_cdf, n) 
                 curs.execute(update_cdf)
                 db.commit()
     db.commit()
@@ -126,7 +131,9 @@ def main():
         numPixel = 0
         # for each image
         for i in images:
-            pixel_freq = "SELECT pixel_frequency FROM t%s WHERE (grey_value=%i)" % (i, n)
+            iname = i.split('@')[0]
+            pixel_freq = "SELECT pixel_frequency FROM t%s WHERE (grey_value=%i)" % (
+                                                            iname, n)
             result = curs.execute(pixel_freq)
             val = result.fetchone()[0]
             numPixel += val
@@ -146,8 +153,10 @@ def main():
         tot = 0
         # for each image
         for i in images:
+            iname = i.split('@')[0]
             # select pixel frequency
-            pixel_freq = "SELECT pixel_frequency FROM t%s WHERE (grey_value=%i)" % (i, n)
+            pixel_freq = "SELECT pixel_frequency FROM t%s WHERE (grey_value=%i)" % (
+                                                            iname, n)
             result = curs.execute(pixel_freq)
             val = result.fetchone()[0]
             tot += val
@@ -162,16 +171,17 @@ def main():
             db.commit()
     # for each image
     for i in images:
+        iname = i.split('@')[0]
         grass.run_command('g.region', rast = i)
         # write average rules file
-        outfile = open(os.path.join(path,'%s.reclass' % i),'w')
+        outfile = open(os.path.join(path,'%s.reclass' % iname),'w')
         new_grey = 0
         for n in range(0,max_value):
-            select_min = "SELECT min(abs(a.cdf - b.cdf)) FROM t%s as a," % i \
+            select_min = "SELECT min(abs(a.cdf - b.cdf)) FROM t%s as a," % iname \
                         + " %s as b WHERE (a.grey_value=%i)" % (table_ave, n)
             result_min = curs.execute(select_min)
             min_abs = result_min.fetchone()[0]
-            select_cdf = "SELECT cdf FROM t%s WHERE grey_value=%i" % (i, n)
+            select_cdf = "SELECT cdf FROM t%s WHERE grey_value=%i" % (iname, n)
             result_cdf = curs.execute(select_cdf)
             cdf = result_cdf.fetchone()[0]  
             select_newgrey = "SELECT grey_value FROM %s WHERE " % table_ave \
@@ -185,8 +195,8 @@ def main():
             except:
                 out_line = "%d = %d\n" % (n, new_grey)
                 outfile.write(out_line)                 
-        outfile.close() 
-        outname = '%s.%s' % (i, suffix)
+        outfile.close()
+        outname = '%s.%s' % (iname, suffix)
         # check if a output map already exists
         result = grass.core.find_file(outname, element = 'cell')
         if result['fullname'] and grass.overwrite():
