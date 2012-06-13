@@ -41,7 +41,11 @@
 #% description: Tolerance to snap input geometry to existing primitives
 #% type: double
 #% answer: 1
-#end
+#%end
+#%flag
+#% key: p
+#% description: Don't execute SQL statements, just print them and exit
+#%end
 
 import os
 import sys
@@ -53,6 +57,10 @@ def execute(sql, msg = None, useSelect = True):
         cmd = 'select'
     else:
         cmd = 'execute'
+    
+    if flags['p']:
+        sys.stdout.write("\n%s\n\n" % sql)
+        return
     
     ret = grass.run_command('db.%s' % cmd, sql = sql,
                             **pg_conn)
