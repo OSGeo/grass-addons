@@ -178,9 +178,13 @@ for val in $fixed_res ; do
    fi
    i=`expr $i + 1`
 done
+if [ "$MIN" = "9999" ] ; then
+    #finer than the finest tested
+    TAKE_i=-3
+    TAKE=0.000244140625
+fi
 tile_res=`echo "$TAKE_i" | awk '{printf("%.15g", 2^$1)}'`
-g.message -d message="min_diff=$MIN  [2^$TAKE_i = $tile_res  ($TAKE * 512)]"
-
+g.message -i message="min_diff=$MIN  [2^$TAKE_i = $tile_res  ($TAKE * 512)]"
 
 
 #### adjust region to snap to grid
@@ -210,9 +214,9 @@ s=`echo "$s $tile_res" | awk '
    printf("%.15g", 90.0 - ceil((90.0 - $1) / $2) * $2)
  }'`
 
-e=`echo "$e $tile_res" | \
+w=`echo "$w $tile_res" | \
    awk '{ printf("%.15g", -180.0 + int((180.0 + $1) / $2) * $2) }'`
-w=`echo "$w $tile_res" | awk '
+e=`echo "$e $tile_res" | awk '
  function ceil(x)
  {
    return (x == int(x)) ? x : int(x)+1
@@ -224,12 +228,13 @@ w=`echo "$w $tile_res" | awk '
 #needed?
 #g.region n=$n s=$s e=$e w=$w
 
+#NUM_TILES_x=`echo "$e $w $tile_res" | awk '{ printf("%d", 1 + (($1 - $2) / $3)) }'`
+#NUM_TILES_y=`echo "$n $s $tile_res" | awk '{ printf("%d", 1 + (($1 - $2) / $3)) }'`
 NUM_TILES_x=`echo "$e $w $tile_res" | awk '{ printf("%d", ($1 - $2) / $3) }'`
 NUM_TILES_y=`echo "$n $s $tile_res" | awk '{ printf("%d", ($1 - $2) / $3) }'`
-
 TOTAL_TILES=`expr $NUM_TILES_x \* $NUM_TILES_y`
 
-if [ "$TOTAL_TILES" -gt 100 ] ; then
+if [ "$TOTAL_TILES" -gt 200 ] ; then
     g.message -w "You've told it to download $TOTAL_TILES tiles from NASA's server. Are you sure you want to do that?"
     read result
     case $result in
@@ -278,15 +283,13 @@ for i in `seq $NUM_TILES_x` ; do
       MODULUS=`echo "$j $MAX_DL_JOBS" | awk '{print $1 % $2}'`
       g.message -d message="modulus=$MODULUS"
       if [ "$MODULUS" = "0" ] || [ "$j" = "$NUM_TILES_y" ] ; then
-	  # stall to let the background jobs finish
-	 g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y]."
-	 eval $CMD
-	 sleep 0.08
-	 wait
+          # stall to let the background jobs finish
+         g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y]."
+         eval $CMD
+         wait
       else
-	 g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y],"
-	 eval $CMD &
-	 sleep 0.08
+         g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y],"
+         eval $CMD &
       fi
       wait
    done
@@ -333,8 +336,12 @@ pnmcat -tb row_*.pnm | pnmtojpeg --quality=75 > mosaic_$$.jpg
 
 rm -f twms_*.pnm twms_*.jpg row*.pnm
 
+#not needed
+#far_e=$(echo "$e $tile_res" | awk '{printf("%.9f", $1 + $2)}')
+#far_s=$(echo "$s $tile_res" | awk '{printf("%.9f", $1 - $2)}')
+
 gdal_translate mosaic_$$.jpg mosaic_$$.tif \
-  -a_srs EPSG:4326 -a_ullr $w $n $e $s  
+  -a_srs EPSG:4326 -a_ullr $w $n $e $s
   #-co COMPRESS=DEFLATE
 
 r.in.gdal in="mosaic_$$.tif" out="tmp_rio_$$" \
