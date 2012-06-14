@@ -5,11 +5,11 @@
 # written by Soeren Gebbert 11/2005 soerengebbert AT gmx de                 #
 # and Markus Neteler. Support for pre-tiled WMS server by Hamish Bowman     #
 #                                                                           #
-# COPYRIGHT:	(C) 2005-2012 by the GRASS Development Team                 #
+# COPYRIGHT:        (C) 2005-2012 by the GRASS Development Team             #
 #                                                                           #
-#		This program is free software under the GNU General Public  #
-#		License (>=v2). Read the file COPYING that comes with GRASS #
-#		for details.                                                #
+#            This program is free software under the GNU General Public     #
+#            License (>=v2). Read the file COPYING that comes with GRASS    #
+#            for details.                                                   #
 #                                                                           #
 #############################################################################
 
@@ -139,6 +139,7 @@ USE_GDALWARP="false"
 ############
 
 eval `g.region -g`
+
 if [ "$nsres" != "$ewres" ] ; then
     g.message -e "East-West and North-South region resolution must be the same"
     exit 1
@@ -146,22 +147,40 @@ else
     res="$nsres"
 fi
 
-case "$res" in
-   0.125 | 0.25 | 0.5 | 1 | 2 | 4 | 8 | 16 | 32 | 64)
-        value="valid"
-        ;;
-   *)
-        value="invalid"
-        g.message -e "Resolution must be one of "
-        g.message -e "       {0.125 0.25 0.5 1 2 4 8 16 32 64}"
-        exit 1
-        ;;
-esac
+#### find appropriate tile resolution
+fixed_res="
+0.000244140625
+0.00048828125
+0.0009765625
+0.001953125
+0.00390625
+0.0078125
+0.015625
+0.03125
+0.0625
+0.125
+0.25
+"
+i=-3
+TAKE=9999
+TAKE_i=9999
+MIN=9999
+for val in $fixed_res ; do
+   # find nearest resolution:
+   #DIFF=`echo "$res $val" | awk '{printf("%.15g", $1 > $2 ? $1 - $2 : $2 - $1)}'`
+   # find nearest finer resolution:
+   DIFF=`echo "$res $val" | awk '{printf("%.15g", $1 > $2 ? $1 - $2 : 9999)}'`
+   NEW_MIN_DIFF=`echo "$MIN $DIFF" | awk '{printf("%d", $1 < $2 ? 0 : 1)}'`
+   if [ "$NEW_MIN_DIFF" -eq 1 ] ; then
+      MIN="$DIFF"
+      TAKE="$val"
+      TAKE_i="$i"
+   fi
+   i=`expr $i + 1`
+done
+tile_res=`echo "$TAKE_i" | awk '{printf("%.15g", 2^$1)}'`
+g.message -d message="min_diff=$MIN  [2^$TAKE_i = $tile_res  ($TAKE * 512)]"
 
-
-
-#######################################################
-# start of todo code dump
 
 
 #### adjust region to snap to grid
@@ -171,139 +190,163 @@ WIND_OVERRIDE="tmp_tiled_wms.$$"
 export WIND_OVERRIDE
 
 
+g.region res="$TAKE" -a
+eval `g.region -g`
 
 # snap lat,long to upper-left corner of nearest tile grid node
 # Round lat to nearest grid node
-#todo: awkify:
-lat = 90.0 - round((90.0 - lat) / $res) * $res;
-lon = -180.0 + floor((180.0 + lon) / $res) * $res;
+#lat = 90.0   - round( (90.0 - lat) / $res) * $res;
+#lon = -180.0 + floor( (180.0 + lon) / $res) * $res;
 
-#maybe floor() lower left lat/lon, ceil() for upper right lat/lon
-# ?
+# diff is always positive here, so int() acts like floor().
+n=`echo "$n $tile_res" | \
+   awk '{ printf("%.15g", 90.0 - int((90.0 - $1) / $2) * $2) }'`
+s=`echo "$s $tile_res" | awk '
+ function ceil(x)
+ {
+   return (x == int(x)) ? x : int(x)+1
+ }
+ {
+   printf("%.15g", 90.0 - ceil((90.0 - $1) / $2) * $2)
+ }'`
 
+e=`echo "$e $tile_res" | \
+   awk '{ printf("%.15g", -180.0 + int((180.0 + $1) / $2) * $2) }'`
+w=`echo "$w $tile_res" | awk '
+ function ceil(x)
+ {
+   return (x == int(x)) ? x : int(x)+1
+ }
+ {
+   printf("%.15g", -180.0 + ceil((180.0 + $1) / $2) * $2)
+ }'`
+
+#needed?
+#g.region n=$n s=$s e=$e w=$w
+
+NUM_TILES_x=`echo "$e $w $tile_res" | awk '{ printf("%d", ($1 - $2) / $3) }'`
+NUM_TILES_y=`echo "$n $s $tile_res" | awk '{ printf("%d", ($1 - $2) / $3) }'`
+
+TOTAL_TILES=`expr $NUM_TILES_x \* $NUM_TILES_y`
+
+if [ "$TOTAL_TILES" -gt 100 ] ; then
+    g.message -w "You've told it to download $TOTAL_TILES tiles from NASA's server. Are you sure you want to do that?"
+    read result
+    case $result in
+       y | yes | Y | Yes | YES)
+	  ;;
+       *)
+	  g.message -i "Aborting."
+	  exit 1
+	  ;;
+     esac
+fi
+
+
+#######################################################
+# start of todo code dump
+
+
+LAYER="global_mosaic_base"
+STYLE="visual"
 
 BASE_URL="http://onearth.jpl.nasa.gov/wms.cgi"
 BASE_REQUEST="request=GetMap&layers=$LAYER&srs=EPSG:4326&width=512&height=512"
 BASE_META="format=image/jpeg&version=1.1.1&styles=$STYLE"
-URL="$BASE_URL?$BASE_REQUEST&$BBOX&$BASE_META"
-
-#bbox=minx,miny,maxx,maxy
-
-#top row
-minx=$(echo "$lon $res" | awk '{printf("%.9f", $1 - $2)}')
-miny="$lat"
-maxx="$lon"
-maxy=$(echo "$lat $res" | awk '{printf("%.9f", $1 + $2)}')
-BBOX_11="$minx,$miny,$maxx,$maxy"
-
-minx="$lon"
-miny="$lat"
-maxx=$(echo "$lon $res" | awk '{printf("%.9f", $1 + $2)}')
-maxy=$(echo "$lat $res" | awk '{printf("%.9f", $1 + $2)}')
-BBOX_21="$minx,$miny,$maxx,$maxy"
-
-minx=$(echo "$lon $res" | awk '{printf("%.9f", $1 + $2)}')
-miny="$lat"
-maxx=$(echo "$lon $res" | awk '{printf("%.9f", $1 + (2 * $2))}')
-maxy=$(echo "$lat $res" | awk '{printf("%.9f", $1 + $2)}')
-BBOX_31="$minx,$miny,$maxx,$maxy"
-
-#bottom row
-minx=$(echo "$lon $res" | awk '{printf("%.9f", $1 - $2)}')
-miny=$(echo "$lat $res" | awk '{printf("%.9f", $1 - $2)}')
-maxx="$lon"
-maxy="$lat"
-BBOX_12="$minx,$miny,$maxx,$maxy"
-
-minx="$lon"
-miny=$(echo "$lat $res" | awk '{printf("%.9f", $1 - $2)}')
-maxx=$(echo "$lon $res" | awk '{printf("%.9f", $1 + $2)}')
-maxy="$lat"
-BBOX_22="$minx,$miny,$maxx,$maxy"
-
-minx=$(echo "$lon $res" | awk '{printf("%.9f", $1 + $2)}')
-miny=$(echo "$lat $res" | awk '{printf("%.9f", $1 - $2)}')
-maxx=$(echo "$lon $res" | awk '{printf("%.9f", $1 + (2 * $2))}')
-maxy="$lat"
-BBOX_32="$minx,$miny,$maxx,$maxy"
 
 
+# try a few at once, but don't get abusive
+MAX_DL_JOBS=4
 
-#top row
-URL="$BASE_URL?$BASE_REQUEST&bbox=$BBOX_11&$BASE_META"
-wget -nv "$URL" -O twms_11.jpg &
+for i in `seq $NUM_TILES_x` ; do
+   i_str=`echo "$i" | awk '{printf("%04d", $1)}'`
+   for j in `seq $NUM_TILES_y` ; do
+      j_str=`echo "$j" | awk '{printf("%04d", $1)}'`
+      minx=$(echo "$w $i $tile_res" | awk '{printf("%.9f", $1 + (($2 - 1) * $3))}')
+      maxx=$(echo "$w $i $tile_res" | awk '{printf("%.9f", $1 + ($2 * $3))}')
+      maxy=$(echo "$n $j $tile_res" | awk '{printf("%.9f", $1 - (($2 - 1) * $3))}')
+      miny=$(echo "$n $j $tile_res" | awk '{printf("%.9f", $1 - ($2 * $3))}')
 
-URL="$BASE_URL?$BASE_REQUEST&bbox=$BBOX_21&$BASE_META"
-wget -nv "$URL" -O twms_21.jpg &
+      BBOX_TILE="$minx,$miny,$maxx,$maxy"
+      BBOX="bbox=$BBOX_TILE"
+      g.message -d message="  $BBOX"
 
-URL="$BASE_URL?$BASE_REQUEST&bbox=$BBOX_31&$BASE_META"
-wget -nv "$URL" -O twms_31.jpg
-wait
+      URL="$BASE_URL?$BASE_REQUEST&$BBOX&$BASE_META"
 
+      CMD="wget -nv \"$URL\" -O twms_${i_str}_${j_str}.jpg"
 
-#bottom row
-URL="$BASE_URL?$BASE_REQUEST&bbox=$BBOX_12&$BASE_META"
-wget -nv "$URL" -O twms_12.jpg &
-
-URL="$BASE_URL?$BASE_REQUEST&bbox=$BBOX_22&$BASE_META"
-wget -nv "$URL" -O twms_22.jpg &
-
-URL="$BASE_URL?$BASE_REQUEST&bbox=$BBOX_32&$BASE_META"
-wget -nv "$URL" -O twms_32.jpg
-wait
+      MODULUS=`echo "$j $MAX_DL_JOBS" | awk '{print $1 % $2}'`
+      g.message -d message="modulus=$MODULUS"
+      if [ "$MODULUS" = "0" ] || [ "$j" = "$NUM_TILES_y" ] ; then
+	  # stall to let the background jobs finish
+	 g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y]."
+	 eval $CMD
+	 sleep 0.08
+	 wait
+      else
+	 g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y],"
+	 eval $CMD &
+	 sleep 0.08
+      fi
+      wait
+   done
+done
 
 
 #### some checks before going on
-if [ `ls -1 twms_*.jpg | wc -l` -lt 6 ] ; then
-    echo "ERROR: Tile(s) appear to be missing." 1>&2
-    if [ "$verbose" = "true" ] ; then
-        ls twms_*.jpg
-    fi
-    # todo: look to see which one is missing and try again.
-    cd ..
-    rm -rf "$TEMPDIR2"
+if [ `ls -1 twms_*.jpg | wc -l` -lt "$TOTAL_TILES" ] ; then
+    g.message -e "Tile(s) appear to be missing."
     exit 1
 fi
 
 for file in twms_*.jpg ; do
     if [ ! -s "$file" ] ; then
-        echo "ERROR: <$file> appears to be empty." 1>&2
-        if [ "$verbose" = "true" ] ; then
-            ls -l twms_*.jpg
-        fi
-        cd ..
-        rm -rf "$TEMPDIR2"
-        exit 1
+	echo "ERROR: <$file> appears to be empty." 1>&2
+	exit 1
     fi
     if [ `file "$file" | grep -c JPEG` -eq 0 ] ; then
-        echo "ERROR: <$file> appears to be bogus." 1>&2
-        if [ `file "$file" | grep -c XML` -eq 1 ] && [ "$verbose" = "true" ] ; then
-           cat "$file"
-        fi
-        cd ..
-        rm -rf "$TEMPDIR2"
-        exit 1
+	echo "ERROR: <$file> appears to be bogus." 1>&2
+	if [ `file "$file" | grep -c XML` -eq 1 ] && [ "$GRASS_VERBOSE" = "true" ] ; then
+	   cat "$file"
+	fi
+	exit 1
     fi
 done
 
-if [ "$verbose" = "true" ] ; then
-   echo "Converting to pnm ..." 1>&2
-fi
-
+g.message -v "Converting to pnm ..." 1>&2
 for file in twms_*.jpg ; do
     jpegtopnm "$file" > `basename "$file" .jpg`.pnm
 done
 
 
-if [ "$verbose" = "true" ] ; then
-   echo "Patching ..." 1>&2
-fi
-pnmcat -lr twms_11.pnm twms_21.pnm twms_31.pnm > row1.pnm
-pnmcat -lr twms_12.pnm twms_22.pnm twms_32.pnm > row2.pnm
-pnmcat -tb row1.pnm row2.pnm | pnmcut 0 0 1280 1024 | \
-   pnmtojpeg --quality=75 > mosaic.jpg
 
-rm -f twms_*.pnm twms_*.jpg row[0-9].pnm
+g.message -v "Patching ..." 1>&2
+
+for j in `seq $NUM_TILES_y` ; do
+   j_str=`echo "$j" | awk '{printf("%04d", $1)}'`
+   tilefiles=`ls twms_*_${j_str}.pnm`
+   #echo $tilefiles
+   pnmcat -lr $tilefiles > "row_${j_str}.pnm"
+done
+
+pnmcat -tb row_*.pnm | pnmtojpeg --quality=75 > mosaic_$$.jpg
+
+rm -f twms_*.pnm twms_*.jpg row*.pnm
+
+gdal_translate mosaic_$$.jpg mosaic_$$.tif \
+  -a_srs EPSG:4326 -a_ullr $w $n $e $s  
+  #-co COMPRESS=DEFLATE
+
+r.in.gdal in="mosaic_$$.tif" out="tmp_rio_$$" \
+   title="NASA OnEarth WMS $LAYER ($STYLE)"
+
+for COLOR in red green blue ; do
+   r.support "tmp_rio_$$.$COLOR" \
+      history="Data downloaded from NASA's OnEarth WMS server with r.in.onearth"
+done
+
+# free up the disk space ASAP
+\rm "mosaic_$$.tif"
 
 
 
@@ -351,19 +394,19 @@ return 0
 WarpData()
 {
     if [ "$USE_GDALWARP" = "true" ] ; then 
-        g.message -v "**** CONVERT DATA  ****"
-        #create the new imagename
+	g.message -v "**** CONVERT DATA  ****"
+	#create the new imagename
 	IMAGEFILE_GDALWARP="$TMPDIR/Image_${LAYER}_${STYLE}_${HEIGHT}_${WIDTH}_gdalwarp"
 
-   	#convert the data to the current location, create Erdas Imagine Images (HFA)
+	   #convert the data to the current location, create Erdas Imagine Images (HFA)
 	gdalwarp -s_srs "$SRC" -t_srs "`g.proj -wf`" -of HFA \
 	    "$IMAGEFILE" "$IMAGEFILE_GDALWARP"
 	if [ $? -ne 0 ] ; then
-          g.message -i '!-------- CAN NOT CONVERT DATA --------!'
-          g.message -i '!------------ WILL BREAK --------------!'
+	  g.message -i '!-------- CAN NOT CONVERT DATA --------!'
+	  g.message -i '!------------ WILL BREAK --------------!'
 	  exitprocedure
 	fi
-        g.message -v "**** DATA CONVERTED ****"
+	g.message -v "**** DATA CONVERTED ****"
 	#remove the old image and convert the name
 	rm -f "$IMAGEFILE"
 	IMAGEFILE="$IMAGEFILE_GDALWARP"
@@ -417,9 +460,9 @@ ImportData()
 		g.message " "
 		g.message "Message from Server $NASASERVER"
 		echo " "
-        	echo '!------------BEGIN-ERROR-MESSGAE--------------!'
+		echo '!------------BEGIN-ERROR-MESSGAE--------------!'
 		cat "$IMAGEFILE"
-        	echo '!-------------END-ERROR-MESSGAE---------------!'
+		echo '!-------------END-ERROR-MESSGAE---------------!'
 	    fi
 	fi
 	rm -rf "$IMAGEFILE"
@@ -450,7 +493,7 @@ fi
 #Check if a file or a map should be created
 if [ "$GIS_FLAG_F" -eq 1 ] ; then
     if [ -z "$GIS_OPT_FILE"] ; then
-  	g.message -e "Please specify the output filename"
+	  g.message -e "Please specify the output filename"
 	exit 1
     fi
 fi
@@ -502,7 +545,7 @@ fi
 grep -i 'proj: ll' "$PERM/PROJ_INFO" > /dev/null
 if [ $? -ne 0 ] && [ "$USE_GDALWARP" = "false" ] ; then
     g.message -e "NASA OnEarth data are in Latitude/Longitude. The \
-                  current location projection differs and you don't \
+		  current location projection differs and you don't \
 		  have gdalwarp! STOP."
     exit 1
 fi
