@@ -38,6 +38,8 @@ int create_isegs(struct files *files, struct functions *functions)
 	G_debug(1, "starting region_growing()");
 	successflag = region_growing(files, functions);
     }
+    else if (functions->method == 2)
+	successflag = ll_test(files, functions);
 
     /* end outer loop for processing polygons */
 
@@ -102,6 +104,117 @@ int io_debug(struct files *files, struct functions *functions)
     return 0;
 }
 
+int ll_test(struct files *files, struct functions *functions)
+{
+    int row, col, n, m, t;
+    double threshold, Ri_similarity, Rk_similarity, tempsim;
+
+    /* linkm - linked list memory allocation. */
+    struct link_head *Token;	/* seems we can "manage multiple lists" will use one token for all lists, since all have same size elements. */
+    struct pixels *Rin, *Rkn, *current, *newpixel, *Rin_head;	/*current will be used to iterate over any of the linked lists. */
+    int Ri[100][2], Rk[100][2];	/* 100 or so maximum members, second dimension is for:  0: row  1:  col */
+    int Ri_count, Rk_count;	/*crutch for now, probably won't need later. */
+    struct pixels *Ri_bestn;	/* best neighbor pixel for Ri, not a linked list, just one pixel... */
+
+    int temparray[2];
+
+    G_verbose_message("testing linked lists");
+
+    /*allocate linked list memory */
+    /*todo: should the be done in open_files, where other memory things go? or just leave here, data structure / memory for the actual segmentation? */
+    G_debug(1, "setting up linked lists");
+    Token = (struct link_head *)link_init(sizeof(struct pixels));
+    G_debug(1, "have token");
+
+    Rin_head = NULL;
+
+#ifdef NODEF
+    /*set next pointers to null.  TODO: use an element with row/col empty and NULL for next pointer? */
+    Rin = (struct pixels *)link_new(Token);
+    G_debug(1, "have Rin, first pixel in list");
+    Rin->next = NULL;
+    G_debug(1, "set pointer to NULL");
+
+    Rkn = (struct pixels *)link_new(Token);
+    G_debug(1, "have Rkn, first pixel in list");
+    Rkn->next = NULL;
+
+    Ri_bestn = (struct pixels *)link_new(Token);
+    G_debug(1, "have Ri_best, first pixel in list");
+    Ri_bestn->next = NULL;
+#endif
+
+#ifdef NODEF
+    /* code that worked in speed test: */
+    head = (struct link_head *)link_init(sizeof(struct pixels));
+
+    p = (struct pixels *)link_new(head);
+    link_dispose(head, (VOID_T *) p);
+
+    link_cleanup(head);
+
+#endif
+
+    /* make a neighbor list */
+    for (n = 0; n < 5; n++) {
+	newpixel = (struct pixels *)link_new(Token);
+	newpixel->next = Rin_head;	/*point the new pixel to the current first pixel */
+	newpixel->row = n;
+	newpixel->col = n + 2;
+	Rin_head = newpixel;	/*change the first pixel to be the new pixel. */
+
+	G_message("Added: Rin %d: row: %d, col: %d", n,
+		  Rin_head->row, Rin_head->col);
+
+    }
+
+    G_message(" Test pass token result: %d",
+	      test_pass_token(&Rin_head, Token));
+
+    G_message("Printing out:");
+    /*print out neighbors */
+    for (current = Rin_head; current != NULL; current = current->next)
+	G_debug(1, "Rin: row: %d, col: %d", current->row, current->col);
+
+
+
+    /* **************write fake data to test I/O portion of module */
+
+    G_verbose_message("writing fake data to segmentation file");
+    for (row = 0; row < files->nrows; row++) {
+	G_percent(row, files->nrows, 1);	/* TODO this didn't get displayed in the output??? Does it get erased when done? */
+	for (col = 0; col < files->ncols; col++) {
+	    /*files->out_val[0] = files->out_val[0]; *//*segment number *//* just copying the map for testing. */
+	    files->out_val[0] = col + row;
+	    files->out_val[1] = 1;	/*processing flag */
+	    segment_put(&files->out_seg, (void *)files->out_val, row, col);
+	}
+    }
+
+    link_cleanup((struct link_head *)Token);
+
+    G_message("end linked list test");
+    return 0;
+}
+
+int test_pass_token(struct pixels **head, struct link_head *token)
+{
+    int n;
+    struct pixels *newpixel;
+
+    for (n = 10; n < 15; n++) {
+	newpixel = (struct pixels *)link_new(token);
+	newpixel->next = *head;	/*point the new pixel to the current first pixel */
+	newpixel->row = n;
+	newpixel->col = n * 2;
+	*head = newpixel;	/*change the first pixel to be the new pixel. */
+
+	G_message("Added: Rin %d: row: %d, col: %d", n,
+		  newpixel->row, newpixel->col);
+    }
+    return 0;
+
+}
 
 int region_growing(struct files *files, struct functions *functions)
 {
@@ -125,7 +238,7 @@ int region_growing(struct files *files, struct functions *functions)
     struct pixels *Rin, *Rkn, *current;	/*current will be used to iterate over any of the linked lists. */
     int Ri[100][2], Rk[100][2];	/* 100 or so maximum members, second dimension is for:  0: row  1:  col */
     int Ri_count, Rk_count;	/*crutch for now, probably won't need later. */
-    struct pixels *Ri_bestn;	/* best neighbor pixel for Ri, not a pointer, just one pixel... */
+    struct pixels *Ri_bestn;	/* best neighbor pixel for Ri, not a linked list, just one pixel... */
 
     int temparray[2];
 
@@ -136,23 +249,16 @@ int region_growing(struct files *files, struct functions *functions)
 
 
     /*allocate linked list memory */
-    /*todo: should the be done in open_files, where other memory things go? or just leave here, data structure / memory for the actual segmentation? */
-    G_debug(1, "setting up linked lists");
+    /*todo: should this be done in open_files, where other memory things go? or just leave here, data structure / memory for the actual segmentation? */
     Token = (struct link_head *)link_init(sizeof(struct pixels));
-    G_debug(1, "have token");
     /*set next pointers to null.  TODO: use an element with row/col empty and NULL for next pointer? */
     Rin = (struct pixels *)link_new(Token);
-    G_debug(1, "have Rin, first pixel in list");
     Rin->next = NULL;
-    G_debug(1, "set pointer to NULL");
-
     Rkn = (struct pixels *)link_new(Token);
-    G_debug(1, "have Rkn, first pixel in list");
     Rkn->next = NULL;
-
     Ri_bestn = (struct pixels *)link_new(Token);
-    G_debug(1, "have Ri_best, first pixel in list");
     Ri_bestn->next = NULL;
+    G_debug(1, "Have 'head' pixel's allocated from linkm");
 
     do {
 	/* do while loop on t to slowly lower threshold. also check that endflag==0 (no merges were made) */

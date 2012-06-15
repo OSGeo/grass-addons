@@ -89,6 +89,8 @@ int open_files(struct files *);
 /* create_isegs.c */
 int create_isegs(struct files *, struct functions *);
 int io_debug(struct files *, struct functions *);
+int ll_test(struct files *, struct functions *);
+int test_pass_token(struct pixels **, struct link_head *);
 int region_growing(struct files *, struct functions *);
 int find_segment_neighbors(int[][2], struct pixels *, int *, struct files *, struct functions *, struct link_head *);	/* TODO: need data structure for Ri, Rin */
 int set_candidate_flag(int[100][2], int, int, struct files *);

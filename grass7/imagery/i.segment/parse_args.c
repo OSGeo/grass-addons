@@ -96,7 +96,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 	functions->method = 0;
     else if (strncmp(method->answer, "region_growing", 10) == 0)
 	functions->method = 1;
-    else if (strncmp(method->answer, "ll_list", 5) == 0)
+    else if (strncmp(method->answer, "ll_test", 5) == 0)
 	functions->method = 2;
     else
 	G_fatal_error("Couldn't assign segmentation method.");	/*shouldn't be able to get here */
