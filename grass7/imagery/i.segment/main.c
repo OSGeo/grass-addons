@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
      * "Standard C applications have a header file that contains the steps that the process should follow if it receives a particular signal. "
      *  */
 
-    G_done_msg("Number of segments created: TODO linkm");
+    G_done_msg("Number of segments created: TODO");
 
     exit(EXIT_SUCCESS);
 }

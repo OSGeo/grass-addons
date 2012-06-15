@@ -11,11 +11,7 @@
 #include <grass/linkm.h>	/* memory manager for linked lists */
 #include "iseg.h"
 
-
-
 #define LINKM
-
-
 
 int create_isegs(struct files *files, struct functions *functions)
 {
@@ -60,7 +56,7 @@ int io_debug(struct files *files, struct functions *functions)
 
     /* from speed.c to test speed of malloc vs. memory manager */
     register int i;
-    VOID_T *head;
+    struct link_head *head;
     struct pixels *p;
 
     /* **************write fake data to test I/O portion of module */
@@ -82,13 +78,13 @@ int io_debug(struct files *files, struct functions *functions)
     /* TODO: fine tune the chunk size */
 
 #ifdef LINKM
-    head = (VOID_T *) link_init(sizeof(struct pixels));
+    head = (struct link_head *)link_init(sizeof(struct pixels));
 #endif
 
     for (i = 0; i < 10; i++) {
 #ifdef LINKM
 	p = (struct pixels *)link_new(head);
-	link_dispose(head, p);
+	link_dispose(head, (VOID_T *) p);
 #else
 	p = (struct pixels *)G_malloc(sizeof(struct pixels));
 	G_free(p);
@@ -125,7 +121,7 @@ int region_growing(struct files *files, struct functions *functions)
     /* lets get this running, and just use fixed dimension arrays for now.  t is limited to 90, segments will be small. */
 
     /* linkm - linked list memory allocation. */
-    VOID_T *linkm_token;	/* looks like VOID_T is defined as an int in the linkm header files, also seems we can "manage multiple lists" will use one token for all lists, since all have same size elements. */
+    struct link_head *Token;	/* seems we can "manage multiple lists" will use one token for all lists, since all have same size elements. */
     struct pixels *Rin, *Rkn, *current;	/*current will be used to iterate over any of the linked lists. */
     int Ri[100][2], Rk[100][2];	/* 100 or so maximum members, second dimension is for:  0: row  1:  col */
     int Ri_count, Rk_count;	/*crutch for now, probably won't need later. */
@@ -141,16 +137,21 @@ int region_growing(struct files *files, struct functions *functions)
 
     /*allocate linked list memory */
     /*todo: should the be done in open_files, where other memory things go? or just leave here, data structure / memory for the actual segmentation? */
-
-    linkm_token = (VOID_T *) link_init(sizeof(struct pixels));
+    G_debug(1, "setting up linked lists");
+    Token = (struct link_head *)link_init(sizeof(struct pixels));
+    G_debug(1, "have token");
     /*set next pointers to null.  TODO: use an element with row/col empty and NULL for next pointer? */
-    Rin = (struct pixels *)link_new(linkm_token);
+    Rin = (struct pixels *)link_new(Token);
+    G_debug(1, "have Rin, first pixel in list");
     Rin->next = NULL;
+    G_debug(1, "set pointer to NULL");
 
-    Rkn = (struct pixels *)link_new(linkm_token);
+    Rkn = (struct pixels *)link_new(Token);
+    G_debug(1, "have Rkn, first pixel in list");
     Rkn->next = NULL;
 
-    Ri_bestn = (struct pixels *)link_new(linkm_token);
+    Ri_bestn = (struct pixels *)link_new(Token);
+    G_debug(1, "have Ri_best, first pixel in list");
     Ri_bestn->next = NULL;
 
     do {
@@ -212,14 +213,14 @@ int region_growing(struct files *files, struct functions *functions)
 		    for (current = Rin; Rin->next != NULL;
 			 current = current->next) {
 
-			link_dispose(linkm_token, current);
+			link_dispose(Token, (VOID_T *) current);
 		    }
 		    Rin = current;	/* this should be the "empty" slot at the end of the list. */
 
 		    for (current = Rkn; Rkn->next != NULL;
 			 current = current->next) {
 
-			link_dispose(linkm_token, current);
+			link_dispose(Token, (VOID_T *) current);
 		    }
 		    Rkn = current;	/* this should be the "empty" slot at the end of the list. */
 
@@ -245,8 +246,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 		    /* find segment neighbors */
 		    if (find_segment_neighbors
-			(Ri, Rin, &Ri_count, files,
-			 functions, linkm_token) != 0) {
+			(Ri, Rin, &Ri_count, files, functions, Token) != 0) {
 			G_fatal_error("find_segment_neighbors() failed");
 		    }
 		    /*TODO: for above function call, Rin is a pointer... so passing the pointer allows the what Rin is pointing at to be changed.  I hope! */
@@ -306,7 +306,7 @@ int region_growing(struct files *files, struct functions *functions)
 			    Rk[0][1] = Ri_bestn->col;
 
 			    /* TODO need to copy the data, not just use Ri itself! *//* Rkn = Ri; *//* we know Ri should be a neighbor of Rk *//*Todo: is there a way to skip similarity calculations on these?  keep a count, and pop them before doing the similarity check? */
-			    find_segment_neighbors(Rk, Rkn, &Rk_count, files, functions, linkm_token);	/* data structure for Rk's neighbors, and pixels in Rk if we don't already have it */
+			    find_segment_neighbors(Rk, Rkn, &Rk_count, files, functions, Token);	/* data structure for Rk's neighbors, and pixels in Rk if we don't already have it */
 
 			    G_debug(1, "Found Rk's pixels");
 			    /*print out neighbors */
@@ -382,14 +382,15 @@ int region_growing(struct files *files, struct functions *functions)
 
     /* free memory *//*TODO: anything else? */
 
-    link_cleanup(linkm_token);
+    link_cleanup((struct link_head *)Token);
 
     return 0;
 }
 
 int find_segment_neighbors(int Ri[][2], struct pixels *neighbors,
 			   int *seg_count, struct files *files,
-			   struct functions *functions, VOID_T * token)
+			   struct functions *functions,
+			   struct link_head *token)
 {
     //   G_debug(1, "\tin find_segment_neighbors()");
     int n, m, Ri_seg_ID = -1;
