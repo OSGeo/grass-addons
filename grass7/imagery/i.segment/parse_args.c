@@ -33,7 +33,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     method->type = TYPE_STRING;
     method->required = NO;
     method->answer = "region_growing";
-    method->options = "region_growing, io_debug";	/*io_debug just writes row+col to each output pixel */
+    method->options = "region_growing, io_debug, ll_test";	/*io_debug just writes row+col to each output pixel, ll_test for testing linked list data structure */
     method->description = _("Segmentation method.");
 
     threshold = G_define_option();
@@ -96,6 +96,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	functions->method = 0;
     else if (strncmp(method->answer, "region_growing", 10) == 0)
 	functions->method = 1;
+    else if (strncmp(method->answer, "ll_list", 5) == 0)
+	functions->method = 2;
     else
 	G_fatal_error("Couldn't assign segmentation method.");	/*shouldn't be able to get here */
 

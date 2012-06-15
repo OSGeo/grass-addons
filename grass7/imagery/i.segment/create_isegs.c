@@ -36,7 +36,7 @@ int create_isegs(struct files *files, struct functions *functions)
 	successflag = io_debug(files, functions);	/* TODO: why does it want `&files` in main, but `files` here ??? */
     else if (functions->method == 1) {
 	G_debug(1, "starting region_growing()");
-	//      successflag = region_growing(files, functions);
+	successflag = region_growing(files, functions);
     }
 
     /* end outer loop for processing polygons */
