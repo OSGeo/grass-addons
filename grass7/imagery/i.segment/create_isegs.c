@@ -12,9 +12,9 @@
 #include "iseg.h"
 
 
- /*
-    #define LINKM 
-  */
+
+#define LINKM
+
 
 
 int create_isegs(struct files *files, struct functions *functions)
@@ -78,14 +78,14 @@ int io_debug(struct files *files, struct functions *functions)
 
     /* spot to test things... */
 
-    /*speed test... showed a difference of 1min 16s for G_malloc and 56s for linkm. (with i < 200000000   */
+    /*speed test... showed a difference of 1min 9s for G_malloc and 34s for linkm. (with i < 2000000000   */
     /* TODO: fine tune the chunk size */
 
 #ifdef LINKM
     head = (VOID_T *) link_init(sizeof(struct pixels));
 #endif
 
-    for (i = 0; i < 200000000; i++) {
+    for (i = 0; i < 10; i++) {
 #ifdef LINKM
 	p = (struct pixels *)link_new(head);
 	link_dispose(head, p);
@@ -102,34 +102,11 @@ int io_debug(struct files *files, struct functions *functions)
     G_message("used G_malloc");
 #endif
 
-
-    /* Now repeating the code above, without the ifdef tags.
-     * Gives compile errors:
-     * /usr/bin/ld: OBJ.x86_64-unknown-linux-gnu/create_isegs.o: undefined reference to symbol 'link_cleanup'
-     * /usr/bin/ld: note: 'link_cleanup' is defined in DSO /home/emomsen/SVN/grass_trunk/dist.x86_64-unknown-linux-gnu/lib/libgrass_linkm.7.0.svn.so so try adding it to the linker command line
-     * /home/emomsen/SVN/grass_trunk/dist.x86_64-unknown-linux-gnu/lib/libgrass_linkm.7.0.svn.so: could not read symbols: Invalid operation
-     * 
-     * Also gives some errors 
-     * create_isegs.c:143:14: warning: passing argument 1 of ‘link_new’ from incompatible pointer type [enabled by default]
-     * /home/emomsen/SVN/grass_trunk/dist.x86_64-unknown-linux-gnu/include/grass/defs/linkm.h:17:19: note: expected ‘struct link_head *’ but argument is of type ‘char *’
-     * */
-
-#ifdef NODEF
-    head = (VOID_T *) link_init(sizeof(struct pixels));
-
-    for (i = 0; i < 200000000; i++) {
-	p = (struct pixels *)link_new(head);
-	link_dispose(head, p);
-    }
-
-    link_cleanup(head);
-#endif
-
     G_message("end speed test");
     return 0;
 }
 
-#ifdef NODEF
+
 int region_growing(struct files *files, struct functions *functions)
 {
     int row, col, n, m, t;
@@ -547,8 +524,6 @@ int find_segment_neighbors(int Ri[][2], struct pixels *neighbors,
 
     return 0;
 }
-
-#endif
 
 int find_four_pixel_neighbors(int p_row, int p_col, int pixel_neighbors[][2],
 			      struct files *files)

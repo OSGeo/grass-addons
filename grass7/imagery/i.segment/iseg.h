@@ -74,9 +74,9 @@ struct functions
 /* pixel stack */
 struct pixels
 {
+    struct pixels *next;
     int row;
     int col;
-    struct pixels *next;
 };
 
 /* parse_args.c */
