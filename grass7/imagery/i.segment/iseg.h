@@ -13,6 +13,7 @@
  *****************************************************************************/
 
 #include <grass/segment.h>
+#include <grass/linkm.h>
 
 struct files
 {
@@ -70,11 +71,12 @@ struct functions
 
 };
 
-struct pixel
+/* pixel stack */
+struct pixels
 {
     int row;
     int col;
-    struct pixel *next;
+    struct pixels *next;
 };
 
 /* parse_args.c */
@@ -88,7 +90,7 @@ int open_files(struct files *);
 int create_isegs(struct files *, struct functions *);
 int io_debug(struct files *, struct functions *);
 int region_growing(struct files *, struct functions *);
-int find_segment_neighbors(int[][2], int[][2], int *, int *, struct files *, struct functions *);	/* TODO: need data structure for Ri, Rin */
+int find_segment_neighbors(int[][2], struct pixels *, int *, struct files *, struct functions *, VOID_T *);	/* TODO: need data structure for Ri, Rin */
 int set_candidate_flag(int[100][2], int, int, struct files *);
 int merge_values(int[100][2], int[100][2], int, int, struct files *);	/* I assume this is a weighted mean? */
 int find_four_pixel_neighbors(int, int, int[][2], struct files *);
