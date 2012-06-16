@@ -15,6 +15,14 @@
 #include <grass/segment.h>
 #include <grass/linkm.h>
 
+/* pixel stack */
+struct pixels
+{
+    struct pixels *next;
+    int row;
+    int col;
+};
+
 struct files
 {
     /* user parameters */
@@ -33,6 +41,8 @@ struct files
     char *out_name;		/* name of output raster map */
 
     SEGMENT no_check;		/* pixels that have already been checked during this neighbor finding routine */
+
+    struct link_head *token;	/* for linkm linked list memory management. */
 
     /* RASTER_MAP_TYPE data_type;       Removed: input is always DCELL, output is CELL. 
      *  TODO: if input might be smaller then DCELL, we could detect size and allocate accordingly. */
@@ -63,21 +73,14 @@ struct functions
 
     /* Some function pointers to set one time in parse_args() */
     int (*find_pixel_neighbors) (int, int, int[8][2], struct files *);	/*parameters: row, col, pixel_neighbors */
-    double (*calculate_similarity) (int[2], int[2], struct files *,	/*parameters: two points (row,col) to compare */
-				    struct functions *);
+    double (*calculate_similarity) (struct pixels *, struct pixels *, struct files *, struct functions *);	/*parameters: two points (row,col) to compare */
+
 
     int num_pn;			/* number of pixel neighbors  int, 4 or 8. TODO: can remove if pixel neighbors is list instead of array.  But maybe this one is small enough that is faster as array? */
     float threshold;		/* similarity threshold */
 
 };
 
-/* pixel stack */
-struct pixels
-{
-    struct pixels *next;
-    int row;
-    int col;
-};
 
 /* parse_args.c */
 /* gets input from user, validates, and sets up functions */
@@ -90,16 +93,16 @@ int open_files(struct files *);
 int create_isegs(struct files *, struct functions *);
 int io_debug(struct files *, struct functions *);
 int ll_test(struct files *, struct functions *);
-int test_pass_token(struct pixels **, struct link_head *);
+int test_pass_token(struct pixels **, struct files *);
 int region_growing(struct files *, struct functions *);
-int find_segment_neighbors(int[][2], struct pixels *, int *, struct files *, struct functions *, struct link_head *);	/* TODO: need data structure for Ri, Rin */
-int set_candidate_flag(int[100][2], int, int, struct files *);
-int merge_values(int[100][2], int[100][2], int, int, struct files *);	/* I assume this is a weighted mean? */
+int find_segment_neighbors(struct pixels **, struct pixels **, int *, struct files *, struct functions *);	/* TODO: need data structure for Ri, Rin */
+int set_candidate_flag(struct pixels *, int, struct files *);
+int merge_values(struct pixels *, struct pixels *, int, int, struct files *);	/* I assume this is a weighted mean? */
 int find_four_pixel_neighbors(int, int, int[][2], struct files *);
 int find_eight_pixel_neighbors(int, int, int[8][2], struct files *);
-double calculate_euclidean_similarity(int[2], int[2], struct files *,
-				      struct functions *);
-
+double calculate_euclidean_similarity(struct pixels *, struct pixels *,
+				      struct files *, struct functions *);
+int my_dispose(struct pixels **, struct files *);
 
 /* write_output.c */
 int write_output(struct files *);

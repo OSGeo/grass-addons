@@ -9,7 +9,7 @@
 
 int write_output(struct files *files)
 {
-    int out_fd, row, col, n;
+    int out_fd, row, col;
     CELL *outbuf;
 
     outbuf = Rast_allocate_c_buf();	/*hold one row of data to put into raster */
@@ -55,6 +55,12 @@ int close_files(struct files *files)
     G_free(files->bands_val);
     G_free(files->second_val);
     G_free(files->out_val);
+
+    G_debug(1, "close_files() before link_cleanup()");
+    /*    link_cleanup((struct link_head *)files->token); */
+    link_cleanup(files->token);
+    G_debug(1, "close_files() after link_cleanup()");
+
 
     /* anything else left to clean up? */
 
