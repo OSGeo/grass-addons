@@ -110,6 +110,8 @@ int open_files(struct files *files)
 
     /* Initialize output segmentation file */
 
+    /* TODO: Need to carry MASK over to the output file as well.  Need an additional flag that is set, during input read?  */
+
     G_debug(1, "G_malloc size: = <%d>", (int)(2 * sizeof(int)));
     files->out_val = (int *)G_malloc(2 * sizeof(int));
 
@@ -127,9 +129,9 @@ int open_files(struct files *files)
 
 
     /* linked list memory management linkm */
-    link_set_chunk_size(10000);	/* TODO: fine tune this number - high for now with dispose not working! */
-    files->token = (struct link_head *)link_init(sizeof(struct pixels));
+    link_set_chunk_size(20);	/* TODO: fine tune this number */
 
+    files->token = link_init(sizeof(struct pixels));
 
     /* Free memory */
 

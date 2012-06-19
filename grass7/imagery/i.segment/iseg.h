@@ -102,7 +102,7 @@ int find_four_pixel_neighbors(int, int, int[][2], struct files *);
 int find_eight_pixel_neighbors(int, int, int[8][2], struct files *);
 double calculate_euclidean_similarity(struct pixels *, struct pixels *,
 				      struct files *, struct functions *);
-int my_dispose(struct pixels **, struct files *);
+int my_dispose_list(struct link_head *, struct pixels **);
 
 /* write_output.c */
 int write_output(struct files *);

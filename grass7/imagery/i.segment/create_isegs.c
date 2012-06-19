@@ -20,11 +20,6 @@ int create_isegs(struct files *files, struct functions *functions)
 
     /* TODO consider if there are _method specific_ parameter set up and memory allocation, should that happen here? */
 
-    if (functions->method == 1) {	/*region growing */
-
-	/* nothing yet */
-    }
-
     /*TODO: implement outer loop to process polygon interior, then all remaining pixels */
     /* This loop could go in here, or in main to contain open/create/write to reduced memory reqs.  But how merge the writes? */
 
@@ -43,18 +38,16 @@ int create_isegs(struct files *files, struct functions *functions)
 
     /* end outer loop for processing polygons */
 
-    /* clean up */
+    /* clean up? */
 
 
     return successflag;
 }
 
+/* writes row+col to the output raster.  Also using for the linkm speed test. */
 int io_debug(struct files *files, struct functions *functions)
 {
     int row, col;
-
-    /* for testing other stuff */
-
 
     /* from speed.c to test speed of malloc vs. memory manager */
     register int i;
@@ -74,10 +67,7 @@ int io_debug(struct files *files, struct functions *functions)
 	}
     }
 
-    /* spot to test things... */
-
     /*speed test... showed a difference of 1min 9s for G_malloc and 34s for linkm. (with i < 2000000000   */
-    /* TODO: fine tune the chunk size */
 
 #ifdef LINKM
     head = (struct link_head *)link_init(sizeof(struct pixels));
@@ -107,18 +97,17 @@ int io_debug(struct files *files, struct functions *functions)
 int ll_test(struct files *files, struct functions *functions)
 {
     int row, col, n, count;
-    struct pixels *Rkn, *current, *newpixel, *Rin_head;	/*current will be used to iterate over any of the linked lists. */
+    struct pixels *Rkn, *current, *newpixel, *Rin_head, *Rin_second;	/*current will be used to iterate over any of the linked lists. */
+    struct link_head *Rkn_token;
 
-    G_verbose_message("testing linked lists");
-
-    /*allocate linked list memory */
-    /*todo: should the be done in open_files, where other memory things go? or just leave here, data structure / memory for the actual segmentation? */
-    //~ G_debug(1, "setting up linked lists");
-    //~ Token = (struct link_head *)link_init(sizeof(struct pixels));
-    //~ G_debug(1, "have token");
+    G_message("testing linked lists");
 
     Rin_head = NULL;
+    Rin_second = NULL;
     Rkn = NULL;
+    Rkn_token = link_init(sizeof(struct pixels));
+    if (Rkn_token == NULL)
+	G_message("Rkn_token is null");
 
     /* make a neighbor list */
     for (n = 0; n < 5; n++) {
@@ -130,20 +119,29 @@ int ll_test(struct files *files, struct functions *functions)
 
 	G_message("Added: Rin %d: row: %d, col: %d", n,
 		  Rin_head->row, Rin_head->col);
+    }
+    /* make a second neighbor list, using same token */
+    for (n = 0; n < 4; n++) {
+	newpixel = (struct pixels *)link_new(files->token);
+	newpixel->next = Rin_second;	/*point the new pixel to the current first pixel */
+	newpixel->row = n * 100;
+	newpixel->col = n * 100;
+	Rin_second = newpixel;	/*change the first pixel to be the new pixel. */
 
+	G_message("Added: Rin (second list) %d: row: %d, col: %d", n,
+		  Rin_second->row, Rin_second->col);
     }
 
+    /* make a third neighbor list, using local token */
     for (n = 0; n < 5; n++) {
-	newpixel = (struct pixels *)link_new(files->token);
+	newpixel = (struct pixels *)link_new(Rkn_token);
 	newpixel->next = Rkn;	/*point the new pixel to the current first pixel */
 	newpixel->row = 5 * n;
 	newpixel->col = n;
 	Rkn = newpixel;		/*change the first pixel to be the new pixel. */
 
 	G_message("Added: Rkn %d: row: %d, col: %d", n, Rkn->row, Rkn->col);
-
     }
-
 
     G_message(" Test pass token result: %d",
 	      test_pass_token(&Rin_head, files));
@@ -151,36 +149,66 @@ int ll_test(struct files *files, struct functions *functions)
     G_message("Printing out:");
     /*print out neighbors */
     for (current = Rin_head; current != NULL; current = current->next)
-	G_debug(1, "Rin: row: %d, col: %d", current->row, current->col);
+	G_message("Rin: row: %d, col: %d", current->row, current->col);
+
+    for (current = Rin_second; current != NULL; current = current->next)
+	G_message("Rin (second): row: %d, col: %d", current->row,
+		  current->col);
 
     for (current = Rkn; current != NULL; current = current->next)
-	G_debug(1, "Rkn: row: %d, col: %d", current->row, current->col);
+	G_message("Rkn: row: %d, col: %d", current->row, current->col);
 
     /* remove all from Rkn list, 5 from Rin list */
-
+    G_message("removing 5 from Rin...");
     for (n = 0; n < 5; n++) {
 	current = Rin_head;	/* get first in list */
-	Rin_head = current->next;	/* point head to the next one *//*pop */
-	link_dispose((struct link_head *)current, (VOID_T *) files->token);
+	Rin_head = Rin_head->next;	/* point head to the next one *//*pop */
+	link_dispose(files->token, (VOID_T *) current);
     }
 
-    for (current = Rkn; current != NULL; current = current->next) {
-	link_dispose((struct link_head *)current, (VOID_T *) files->token);
-    }
-    Rkn = NULL;			/* TODO: if emptying whole list - can just empty and then set head to null ? */
-
-    G_message("Printing out, after removed:");
-    /*print out neighbors */
+    G_message("Printing out, after 5 removed from Rin:");
     for (current = Rin_head; current != NULL; current = current->next)
-	G_debug(1, "Rin: row: %d, col: %d", current->row, current->col);
+	G_message("Rin: row: %d, col: %d", current->row, current->col);
+
+    for (current = Rin_second; current != NULL; current = current->next)
+	G_message("Rin (second): row: %d, col: %d", current->row,
+		  current->col);
 
     for (current = Rkn; current != NULL; current = current->next)
-	G_debug(1, "Rkn: row: %d, col: %d", current->row, current->col);
+	G_message("Rkn: row: %d, col: %d", current->row, current->col);
+
+
+    G_message("removing all from Rkn...");
+    /* for (current = Rkn; current != NULL; current = current->next) { ||||this shortcut won't work, current is gone! */
+    while (Rkn != NULL) {
+	G_message("In Rkn remove loop");
+	current = Rkn;		/* rememer "old" head */
+	Rkn = Rkn->next;	/* move head to next pixel */
+	link_dispose(Rkn_token, (VOID_T *) current);	/* remove "old" head */
+    }
+    G_message("removed Rkn...");
+    if (Rkn == NULL)
+	G_message("which set Rkn to null");
+    else
+	G_message("hmm, still need to set Rkn to null?!");
+
+    /* Rkn = NULL;      not needed *//* TODO: if emptying whole list - can just empty and then set head to null ? */
+
+    G_message("Printing out, after removed Rin and Rkn:");
+    for (current = Rin_head; current != NULL; current = current->next)
+	G_message("Rin: row: %d, col: %d", current->row, current->col);
+
+    for (current = Rin_second; current != NULL; current = current->next)
+	G_message("Rin (second): row: %d, col: %d", current->row,
+		  current->col);
+
+    for (current = Rkn; current != NULL; current = current->next)
+	G_message("Rkn: row: %d, col: %d", current->row, current->col);
 
 
     /* **************write fake data to test I/O portion of module */
 
-    G_verbose_message("writing fake data to segmentation file");
+    G_message("writing fake data to segmentation file");
     for (row = 0; row < files->nrows; row++) {
 	G_percent(row, files->nrows, 1);	/* TODO this didn't get displayed in the output??? Does it get erased when done? */
 	for (col = 0; col < files->ncols; col++) {
@@ -195,27 +223,25 @@ int ll_test(struct files *files, struct functions *functions)
 
     for (n = 0; n < functions->threshold; n++) {
 	/*make tokens */
-	test_pass_token(&Rkn, files);
+	test_pass_token(&Rin_head, files);
 	count += 5;
-	G_debug(1, "estimate of tokens created %d", count);
+	G_message("estimate of tokens created %d", count + 15);
 	/*dispose tokens */
-	for (current = Rkn; current != NULL; current = current->next)
-	    link_dispose((struct link_head *)Rkn, (VOID_T *) files->token);
+	while (Rin_head != NULL) {
+	    current = Rin_head;	/* rememer "old" head */
+	    Rin_head = Rin_head->next;	/* move head to next pixel */
+	    link_dispose(files->token, (VOID_T *) current);	/* remove "old" head */
+	}
 
-	G_debug(1, "are they gone?");
-	for (current = Rkn; current != NULL; current = current->next)
-	    G_debug(1, "Rkn: row: %d, col: %d", current->row, current->col);
+	G_message("are they gone?");
+	for (current = Rin_head; current != NULL; current = current->next)
+	    G_message("Rin: row: %d, col: %d", current->row, current->col);
 
-	Rkn = NULL;		/* TODO: if emptying whole list - can just empty and then set head to null ? */
-
-	G_debug(1,
-		"Checking after set head to null.... TODO: anyway to find out if linkm memory manager knows they are gone???");
-	for (current = Rkn; current != NULL; current = current->next)
-	    G_debug(1, "Rkn: row: %d, col: %d", current->row, current->col);
-
-
+	/* TODO: anyway to confirm if linkm memory manager knows they are gone???" */
     }
 
+    link_cleanup(Rkn_token);
+    G_message("after link_cleanup(Rkn_token)");
 
     G_message("end linked list test");
     return 0;
@@ -252,25 +278,18 @@ int region_growing(struct files *files, struct functions *functions)
     /* Ri = current focus segment
      * Rk = Ri's most similar neighbor
      * Rkn = Rk's neighbors
-     * Rin = Ri's neigbors (as pixels or segments ?) currently as pixels, so repeat calculations are made when multiple neighbors in same segment
-     */
+     * Rin = Ri's neigbors  currently as pixels, so repeat calculations are made when multiple neighbors in same segment
+     * Todo: should Rin be checked for unique segments?  Or is checking for unique longer then just calculating similarity a few extra times?
+     * files->token has the "link_head" for linkm: linked list memory allocation. */
 
-    /* lets get this running, and just use fixed dimension arrays for now.  t is limited to 90, segments will be small. */
-
-    /* linkm - linked list memory allocation. */
-    //~ struct link_head *Token;        /* seems we can "manage multiple lists" will use one token for all lists, since all have same size elements. */
     struct pixels *Ri_head, *Rk_head, *Rin_head, *Rkn_head, *current, *newpixel;	/*current will be used to iterate over any of the linked lists. */
-    int Ri_count, Rk_count;	/*TODO when to calculate these. */
-    struct pixels *Ri_bestn;	/* best neighbor pixel for Ri, don't use as a linked list, just one pixel... */
+    int Ri_count, Rk_count;	/*TODO when to calculate these, currently accumulating during find_neighbor() */
+    struct pixels *Ri_bestn;	/* best neighbor pixel for Ri, not used as a linked list, just one pixel... */
 
     G_verbose_message("Running region growing algorithm");
 
     t = 0;
     files->candidate_count = 0;
-
-
-    /*allocate linked list memory */
-    /* done in open_files() */
 
     /*set next pointers to null. */
     Ri_head = NULL;
@@ -283,18 +302,19 @@ int region_growing(struct files *files, struct functions *functions)
 	/* do while loop on t to slowly lower threshold. also check that endflag==0 (no merges were made) */
 
 	G_debug(1,
-		"#############   Starting outer do loop! t = %d ###############",
+		"##########   Starting outer do loop! t = %d    ##########",
 		t);
 
 	threshold = functions->threshold;	/* TODO, consider making this a function of t. */
 
 	endflag = 1;
 
-	/* Set candidate flag to true/1 for all pixels TODO: for polygon group, need to just set to true for those being processed */
+	/* Set candidate flag to true/1 for all pixels TODO: for polygon/vector constraint, need to just set to true for those being processed */
 
 	for (row = 0; row < files->nrows; row++) {
 	    for (col = 0; col < files->ncols; col++) {
-		segment_get(&files->out_seg, (void *)files->out_val, row, col);	/*need to get, since we only want to change the flag, and not overwrite the segment value. */
+		segment_get(&files->out_seg, (void *)files->out_val, row, col);	/*need to get, since we only want to change the flag, and not overwrite the segment value. 
+										   TODO: consider splitting this, put flag in one segmentmentation file (or RAM), and segment assignment in another. */
 		/* TODO: if we are starting from seeds...and only allow merges between unassigned pixels
 		 *  and seeds/existing segments, then this needs an if (and will be very inefficient)
 		 * maybe consider the sorted array, btree, map... but the number of seeds could still be high for a large map */
@@ -320,19 +340,20 @@ int region_growing(struct files *files, struct functions *functions)
 
 		G_debug(1,
 			"Next starting pixel from next row/col, not from Rk");
+
 		segment_get(&files->out_seg, (void *)files->out_val, row, col);	/*TODO small time savings - if candidate_count reaches zero, bail out of these loops too? */
 		if (files->out_val[1] == 1) {	/* out_val[1] is the candidate pixel flag, want to process the 1's */
-
+		    G_debug(1, "going to free memory on linked lists...");
 		    /*free memory for linked lists */
-		    my_dispose(&Ri_head, files);
-		    my_dispose(&Rk_head, files);
-		    my_dispose(&Rin_head, files);
-		    my_dispose(&Rkn_head, files);	/* TODO, better style for repeating this for all structures? */
+		    my_dispose_list(files->token, &Ri_head);
+		    my_dispose_list(files->token, &Rk_head);
+		    my_dispose_list(files->token, &Rin_head);
+		    my_dispose_list(files->token, &Rkn_head);	/* TODO, better style for repeating this for all structures? */
 		    Rk_count = 0;
+		    G_debug(1, "finished free memory on linked lists...");
 
-
-		    /* First pixel in Ri is current pixel.  We may add more later if it is part of a segment */
-		    Ri_count = 1;	/* TODO, count as we go, or when process?  */
+		    /* First pixel in Ri is current row/col pixel.  We may add more later if it is part of a segment */
+		    Ri_count = 1;
 		    newpixel = (struct pixels *)link_new(files->token);
 		    newpixel->next = Ri_head;
 		    newpixel->row = row;
@@ -352,13 +373,24 @@ int region_growing(struct files *files, struct functions *functions)
 		    G_debug(1, "line 165, \t\t\t\tcc = %d",
 			    files->candidate_count);
 
-
+		    /* what is passed to find segment neighors: */
+		    /*    G_debug(1, "calling find_segment_neigors() with:");
+		       for (current = Ri_head; current != NULL;
+		       current = current->next)
+		       G_debug(1, "Ri: row: %d, col: %d", current->row,
+		       current->col);
+		       for (current = Rin_head; current != NULL;
+		       current = current->next)
+		       G_debug(1, "Rin: row: %d, col: %d", current->row,
+		       current->col);
+		       G_debug(1, "also passing Ri_count: %d", Ri_count);
+		     */
 		    /* find segment neighbors */
 		    if (find_segment_neighbors
 			(&Ri_head, &Rin_head, &Ri_count, files,
 			 functions) != 0) {
 			G_fatal_error("find_segment_neighbors() failed");
-		    }
+		    }		/* TODO - shouldn't be just fatal error - need to still close_files().  Just put that here then fatal error? */
 
 		    if (Rin_head == NULL) {
 			G_debug(1, "2a, Segment had no valid neighbors");	/*this could happen if there is a segment surrounded by pixels that have already been processed */
@@ -378,7 +410,6 @@ int region_growing(struct files *files, struct functions *functions)
 			     current = current->next)
 			    G_debug(1, "Ri: row: %d, col: %d", current->row,
 				    current->col);
-
 
 			G_debug(1, "2b, Found Ri's neighbors");
 			/*print out neighbors */
@@ -420,12 +451,19 @@ int region_growing(struct files *files, struct functions *functions)
 			if (Ri_bestn != NULL && Ri_similarity < threshold) {	/* small TODO: should this be < or <= for threshold? */
 			    /* we'll have the neighbor pixel to start with. */
 			    G_debug(1, "3a: Working with Rk");
-			    Ri_bestn->next = NULL;	/* Don't want to carry any of the other pixels with this one... */
 			    Rk_count = 1;
+			    newpixel =
+				(struct pixels *)link_new(files->token);
+			    newpixel->next = NULL;	/* or = Rk_head; *//*TODO, should this be Rk_head or just NULL? amounts to the same thing here? */
+			    newpixel->row = Ri_bestn->row;
+			    newpixel->col = Ri_bestn->col;
+			    Rk_head = newpixel;
+			    /* TODO - lists starting, should this be a helper function, did at start of Ri and Rk.  */
 
-			    Rk_head = Ri_bestn;	/* TODO, OK like this?  Maybe forget Ri_bestn, just use Rk from the beginning? */
+			    /*Todo: Do we want to put Ri into Rkn ?  Hmm, we don't want to actually check similarity on them when they are in Rkn, since we'll
+			     * start with Ri as the initial similarity.  Maybe add a 3rd input list to find_segment_neighbors(), and put them directily into
+			     * the no_check list so we avoid a small amount of processing?  But that might take longer then just checking their similarity in the first place! */
 
-			    /* TODO need to copy the data, not just use Ri itself! *//* Rkn = Ri; *//* we know Ri should be a neighbor of Rk *//*Todo: is there a way to skip similarity calculations on these?  keep a count, and pop them before doing the similarity check? */
 			    find_segment_neighbors(&Rk_head, &Rkn_head, &Rk_count, files, functions);	/* data structure for Rk's neighbors, and pixels in Rk if we don't already have it */
 
 			    G_debug(1, "Found Rk's pixels");
@@ -455,7 +493,6 @@ int region_growing(struct files *files, struct functions *functions)
 			    }
 
 			    if (Rk_similarity == Ri_similarity) {	/* so they agree, both are mutually most similar neighbors, none of Rk's other neighbors were more similar */
-				/* TODO: put these steps in merge_segments(Ri, Rk) function?  */
 				merge_values(Ri_head, Rk_head, Ri_count, Rk_count, files);	/* TODO error trap */
 				endflag = 0;	/* we've made at least one merge, so need another t iteration */
 				pathflag = 0;	/* go to next row,column pixel - end of Rk -> Ri chain since we found mutual best neighbors */
@@ -465,7 +502,7 @@ int region_growing(struct files *files, struct functions *functions)
 					"Ri was not Rk's best neighbor, Ri_sim: %g, Rk_sim, %g",
 					Ri_similarity, Rk_similarity);
 
-				/* did this at beginning of trail loop */
+				/* did this at beginning of path loop */
 				set_candidate_flag(Ri_head, 0, files);	/* remove all Ri members from candidate pixels (set flag) */
 				files->candidate_count++;	/* add one back, we had already set Ri[0] flag at the beginning. */
 				G_debug(1, "line 247, \t\t\t\tcc = %d",
@@ -481,7 +518,7 @@ int region_growing(struct files *files, struct functions *functions)
 				//~ }
 
 			    }
-			}	/*end if Rk exists and < threshold */
+			}	/*end else (from if mutually best neighbors) */
 			else
 			    G_debug(1,
 				    "3b Rk didn't didn't exist or similarity was > threshold");
@@ -496,11 +533,10 @@ int region_growing(struct files *files, struct functions *functions)
 	G_debug(1, "Finished one pass, t was = %d", t);
 	t++;
     } while (t < 90 && endflag == 0);
-    /*end t loop */
+    /*end t loop *//*TODO, should there be a max t that it can iterate for?  Include t in G_message? */
 
-    /* free memory *//*TODO: anything else? */
+    /* free memory *//*TODO: anything ? */
 
-    /* in close_files()    link_cleanup((struct link_head *)Token); */
 
     return 0;
 }
@@ -509,35 +545,31 @@ int find_segment_neighbors(struct pixels **R_head,
 			   struct pixels **neighbors_head, int *seg_count,
 			   struct files *files, struct functions *functions)
 {
-    //   G_debug(1, "\tin find_segment_neighbors()");
     int n, m, Ri_seg_ID = -1;
-    struct pixels *newpixel, *current;
+    struct pixels *newpixel, *current, *to_check;	/* need to check the pixel neighbors of to_check */
+    int val_no_check = -1;	/*value of the no_check flag for the particular pixel. */
+    int pixel_neighbors[8][2];	/* TODO: data type?  put in files to allocate memory once? */
+
 
     /* neighbor list will be a listing of pixels that are neighbors?  Include segment numbers?  Only include unique segments?
      * Maybe the most complete return would be a structure array, structure to include the segment ID and a list of points in it?  
      * But the list of points would NOT be inclusive - just the points bordering the current segment...
      */
 
+    /* parameter: R, current segment membership, could be single pixel or list of pixels.
+     * parameter: neighbors/Rin/Rik, neighbor pixels, could have a list already, or could be empty ?
+     * files->out_seg is currently an array [0] for seg ID and [1] for "candidate pixel"
+     * files->no_check is a segmentation data structure, if the pixel should no longer be checked on this current find_neighbors() run
+     * functions->num_pn  int, 4 or 8, for number of pixel neighbors 
+     * */
 
-    /* parameter: R, current segment membership, could be single pixel or list of pixels. */
-    /* parameter: neighbors/Rin, neighbor pixels, could have a list already, or could be empty ?  Or just the head of a list?  */
-
-    /* TODO local data structures... but maybe they should be allocated out in the main function, is it really slow to create/free on each pass? */
-
-    struct pixels *to_check;	/* need to check the neighbors of these pixels */
-
-    /* put no_check in files structure for now... */
-    /* int[100][2] no_check;    *//* sorted array or btree: list of pixels (by row / column ?) that have been put into the to_check queue, been processed, or are not candidate pixels */
-    /* or use flag for no_check? ... need a better name for this variable??? */
-
-    int val_no_check = -1;	/*value of the no_check flag for the particular pixel. */
-
-    int pixel_neighbors[8][2];	/* TODO: data type?  put in files to allocate memory once? */
-
-    /*int current_pixel = 0; *//* TODO: for now, row index for pixel_neighbors[][].  With linked list will be the popped pixel in each loop. */
-
-    /* Notes, these are in functions structure:
-     * functions->num_pn  int, 4 or 8, for number of pixel neighbors */
+    /* show what was sent to function *//*
+       G_debug(1, "in find_segment_neigors() with:");
+       for (current = *R_head; current != NULL; current = current->next)
+       G_debug(1, "R: row: %d, col: %d", current->row, current->col);
+       for (current = *neighbors_head; current != NULL; current = current->next)
+       G_debug(1, "neig: row: %d, col: %d", current->row, current->col);
+       G_debug(1, "also passing Ri_count: %d", *seg_count); */
 
     /*initialize data.... TODO: maybe remember min max row/col that was looked at each time, initialize in open_files, and reset smaller region at end of this functions */
     for (n = 0; n < files->nrows; n++) {
@@ -549,7 +581,7 @@ int find_segment_neighbors(struct pixels **R_head,
 
     to_check = NULL;
 
-    /* Put Ri in to be checked and no check lists (don't expand them if we find them again) */
+    /* Copy R in to_check and no_check data structures (don't expand them if we find them again) */
     /* NOTE: in pseudo code also have a "current segment" list, but think we can just pass Ri and use it directly */
 
     for (current = *R_head; current != NULL; current = current->next) {
@@ -574,11 +606,6 @@ int find_segment_neighbors(struct pixels **R_head,
 
     while (to_check != NULL) {	/* removing from to_check list as we go, NOT iterating over the list. */
 	G_debug(1,
-		"\tfind neighbors(): head to_check pixel: row: %d, col: %d",
-		to_check->row, to_check->col);
-	/* current_pixel = just use to_check - the row/col, and remove at end */
-
-	G_debug(1,
 		"\tfind_pixel_neighbors for row: %d , col %d",
 		to_check->row, to_check->col);
 
@@ -590,13 +617,16 @@ int find_segment_neighbors(struct pixels **R_head,
 
 	current = to_check;	/* temporary store the old head */
 	to_check = to_check->next;	/*head now points to the next element in the list */
-	link_dispose((struct link_head *)current, (VOID_T *) files->token);
+	link_dispose(files->token, (VOID_T *) current);
 
 	/*print out to_check */
 	G_debug(1, "remaining pixel's in to_check, after popping:");
 	for (current = to_check; current != NULL; current = current->next)
 	    G_debug(1, "to_check... row: %d, col: %d", current->row,
 		    current->col);
+	for (current = *neighbors_head; current != NULL;
+	     current = current->next)
+	    G_debug(1, "Rn... row: %d, col: %d", current->row, current->col);
 
 	/*now check the pixel neighbors and add to the lists */
 
@@ -642,7 +672,7 @@ int find_segment_neighbors(struct pixels **R_head,
 			to_check = newpixel;	/*change the first pixel to be the new pixel. */
 
 		    }
-		    else {
+		    else {	/* segment id's were different */
 			/* put pixel_neighbor[n] in Rin */
 			G_debug(1, "Put in neighbors_head");
 			/* TODO - helper function for adding pixel to a list */
@@ -655,7 +685,9 @@ int find_segment_neighbors(struct pixels **R_head,
 		    }
 		}		/*end if valid candidate pixel */
 		else
-		    G_debug(1, "pixel was not a valid candidate pixel");
+		    G_debug(1,
+			    "pixel row: %d col: %d was not a valid candidate pixel",
+			    pixel_neighbors[n][0], pixel_neighbors[n][1]);
 
 	    }			/*end if for pixel_neighbor was in "don't check" list */
 	}			/* end for loop - next pixel neighbor */
@@ -664,15 +696,13 @@ int find_segment_neighbors(struct pixels **R_head,
 	for (current = to_check; current != NULL; current = current->next)
 	    G_debug(1, "to_check... row: %d, col: %d", current->row,
 		    current->col);
-
-
-
+	G_debug(1, "\t### end of pixel neighors");
     }				/* while to_check has more elements */
 
     return 0;
 }
 
-int find_four_pixel_neighbors(int p_row, int p_col, int pixel_neighbors[][2],
+int find_four_pixel_neighbors(int p_row, int p_col, int pixel_neighbors[8][2],
 			      struct files *files)
 {
     /*   
@@ -719,7 +749,7 @@ int find_eight_pixel_neighbors(int p_row, int p_col,
     find_four_pixel_neighbors(p_row, p_col, pixel_neighbors, files);
 
     /* get the 4 diagonal neighbors */
-
+    G_warning("Diagonal neighbors Not Implemented");
     /*TODO... continue as above */
     return 0;
 }
@@ -750,7 +780,7 @@ double calculate_euclidean_similarity(struct pixels *a, struct pixels *b,
 
 int merge_values(struct pixels *Ri_head, struct pixels *Rk_head, int Ri_count,
 		 int Rk_count, struct files *files)
-{				/* TODO: correct assumption that this should be a weighted mean. */
+{				/* TODO: correct assumption that this should be a weighted mean? */
     int n;
     struct pixels *current;
 
@@ -828,14 +858,15 @@ int set_candidate_flag(struct pixels *head, int value, struct files *files)
 }
 
 /* let memory manager know space is available again and reset head to NULL */
-int my_dispose(struct pixels **head, struct files *files)
+int my_dispose_list(struct link_head *token, struct pixels **head)
 {
     struct pixels *current;
 
-    for (current = *head; current != NULL; current = current->next)
-	link_dispose((struct link_head *)current, (VOID_T *) files->token);
-
-    *head = NULL;
+    while ((*head) != NULL) {
+	current = *head;	/* rememer "old" head */
+	*head = (*head)->next;	/* move head to next pixel */
+	link_dispose(token, (VOID_T *) current);	/* remove "old" head */
+    }
 
     return 0;
 }
