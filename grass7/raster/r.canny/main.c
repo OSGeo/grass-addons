@@ -1,0 +1,363 @@
+
+/****************************************************************************
+ *
+ * MODULE:       r.canny
+ * AUTHOR(S):    Anna Kratochvilova - kratochanna gmail.com
+ *               Vaclav Petras - wenzeslaus gmail.com
+ *
+ * PURPOSE:      Edge detection usig Canny algorithm.
+ *
+ * COPYRIGHT:    (C) 2012 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	    	 for details.
+ *
+ *****************************************************************************/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <grass/gis.h>
+#include <grass/raster.h>
+#include <grass/glocale.h>
+
+
+#include <grass/imagery.h>
+#include <grass/gmath.h>
+
+#include <math.h>
+
+#include "canny.h"
+#include "gauss.h"
+
+/** Loads map into memory.
+
+  \param[out] mat map in a matrix (row order), field have to be allocated
+  */
+static void readMap(const char *name, const char *mapset, int nrows,
+		    int ncols, DCELL * mat)
+{
+
+    int r, c;
+
+    int map_fd;
+
+    int check_reading;
+
+    DCELL *row_buffer;
+
+    DCELL cell_value;
+
+    row_buffer = Rast_allocate_d_input_buf();
+    check_reading = 0;
+
+
+    /* load map */
+    map_fd = Rast_open_old(name, mapset);
+    if (map_fd < 0) {
+	G_fatal_error(_("Error opening first raster map <%s>"), name);
+    }
+
+    G_debug(1, "fd %d %s %s", map_fd, name, mapset);
+
+    //    if ((first_map_R_type =
+    //         Rast_map_type(templName, mapset)) < 0)
+    //        G_fatal_error(_("Error getting first raster map type"));
+
+    for (r = 0; r < nrows; r++) {
+	Rast_get_row(map_fd, row_buffer, r, DCELL_TYPE);
+
+	for (c = 0; c < ncols; c++) {
+	    cell_value = row_buffer[c];
+	    if (!Rast_is_d_null_value(&cell_value))
+		mat[(ncols * (r)) + c] = cell_value;
+	    else
+		mat[(ncols * (r)) + c] = 0.0;
+
+	    if (mat[(ncols * (r)) + c])
+		check_reading = 1;
+	}
+    }
+    G_free(row_buffer);
+
+    if (!check_reading)
+	G_fatal_error(_("Nothing read from map %d"), check_reading);
+
+    Rast_close(map_fd);
+}
+
+/** Writes map from memory into the file.
+
+  \param[in] map map in a matrix (row order)
+  */
+static void writeMap(const char *name, int nrows, int ncols, DCELL * map)
+{
+    unsigned char *outrast;	/* output buffer */
+
+    int outfd;
+
+    outfd = Rast_open_new(name, DCELL_TYPE);	// FIXME: using both open old and open new
+    int r, c;
+
+    outrast = Rast_allocate_buf(DCELL_TYPE);
+    for (r = 0; r < nrows; r++) {
+	for (c = 0; c < ncols; c++) {
+	    int index = r * ncols + c;
+
+	    DCELL value = map[index];
+
+	    ((DCELL *) outrast)[c] = value;
+	}
+	Rast_put_row(outfd, outrast, DCELL_TYPE);
+    }
+    G_free(outrast);
+
+    Rast_close(outfd);
+}
+
+
+/**
+
+  \todo Floats are used instead of doubles.
+  \todo Be able to work with FCELL (and CELL?).
+  */
+int main(int argc, char *argv[])
+{
+    struct Cell_head cell_head; /* it stores region information,
+  and header information of rasters */
+    char *name; /* input raster name */
+
+    char *mapset; /* mapset name */
+
+    int kernelWidth;
+
+    float kernelRadius;
+
+    char *result; /* output raster name */
+    char *anglesMapName;
+
+    static const float GAUSSIAN_CUT_OFF = 0.005;
+
+    static const float MAGNITUDE_SCALE = 100.;
+
+    static const float MAGNITUDE_LIMIT = 1000.;
+
+    float lowThreshold, highThreshold, low, high;
+
+    int nrows, ncols, dim_2;
+
+//    struct History history; /* holds meta-data (title, comments,..) */
+    struct GModule *module; /* GRASS module for parsing arguments */
+
+    /* options */
+    struct Option *input, *output, *angleOutput,
+	*lowThresholdOption, *highThresholdOption, *sigmaOption;
+
+    int r;
+
+    /* initialize GIS environment */
+    G_gisinit(argv[0]); /* reads grass env, stores program name to G_program_name() */
+
+    /* initialize module */
+    module = G_define_module();
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("canny"));
+    G_add_keyword(_("edge detection"));
+    module->description =
+	_("Canny edge detector. Region shall be set to input map."
+	  "Can work only on small images since map is loaded into memory.");
+
+    /* Define the different options as defined in gis.h */
+    input = G_define_standard_option(G_OPT_R_INPUT);
+
+    output = G_define_standard_option(G_OPT_R_OUTPUT);
+
+    angleOutput = G_define_standard_option(G_OPT_R_OUTPUT);
+    angleOutput->key = "angles_map";
+    angleOutput->required = NO;
+    angleOutput->description = _("Map with angles");
+    angleOutput->guisection = _("Outputs");
+
+    lowThresholdOption = G_define_option();
+    lowThresholdOption->key = "low_threshold";
+    lowThresholdOption->type = TYPE_DOUBLE;
+    lowThresholdOption->required = NO;
+    lowThresholdOption->multiple = NO;
+    lowThresholdOption->description = _("Low treshold for edges in Canny");
+    lowThresholdOption->answer = "3";
+    //    lowThresholdOption->options = "1-10";
+
+    highThresholdOption = G_define_option();
+    highThresholdOption->key = "high_threshold";
+    highThresholdOption->type = TYPE_DOUBLE;
+    highThresholdOption->required = NO;
+    highThresholdOption->multiple = NO;
+    highThresholdOption->description = _("High treshold for edges in Canny");
+    highThresholdOption->answer = "10";
+    //    lowThresholdOption->options = "1-10";
+
+    sigmaOption = G_define_option();
+    sigmaOption->key = "sigma";
+    sigmaOption->type = TYPE_DOUBLE;
+    sigmaOption->required = NO;
+    sigmaOption->multiple = NO;
+    sigmaOption->description = _("Kernel radius");
+    sigmaOption->answer = "2";
+
+    /* options and flags parser */
+    if (G_parser(argc, argv))
+	exit(EXIT_FAILURE);
+
+    lowThreshold = atof(lowThresholdOption->answer);
+    highThreshold = atof(highThresholdOption->answer);
+
+    low = (int)((lowThreshold * MAGNITUDE_SCALE) + 0.5);
+    high = (int)((highThreshold * MAGNITUDE_SCALE) + 0.5);
+
+
+    kernelRadius = atoi(sigmaOption->answer);
+
+    result = output->answer;
+
+    /* stores options and flags to variables */
+    name = input->answer;
+
+    anglesMapName = angleOutput->answer;
+
+    /* returns NULL if the map was not found in any mapset,
+     * mapset name otherwise */
+    mapset = (char *)G_find_raster2(name, "");
+    if (mapset == NULL)
+	G_fatal_error(_("Raster map <%s> not found"), name);
+
+    /* determine the inputmap type (CELL/FCELL/DCELL) */
+    //data_type = Rast_map_type(name, mapset);
+
+    /* Rast_open_old - returns file destriptor (>0) */
+    //    infd = Rast_open_old(name, mapset);
+
+
+
+    //    struct Cell_head templCellhd;
+
+    //    Rast_get_cellhd(name, mapset, &cellhd);
+    //    Rast_get_cellhd(first_map_R_name, first_map_R_mapset, &cellhd_zoom1);
+
+    /* controlling, if we can open input raster */
+    Rast_get_cellhd(name, mapset, &cell_head);
+
+    G_debug(3, "number of rows %d", cell_head.rows);
+
+    nrows = cell_head.rows;
+
+    ncols = cell_head.cols;
+
+    dim_2 = nrows * ncols;
+
+    DCELL *mat1;
+
+    /* Memory allocation for map_1: */
+    mat1 = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+
+
+    // FIXME: it is necessary?
+    for (r = 0; r < dim_2; r++) {
+	mat1[r] = 0.0;
+    }
+
+    //    if ((first_map_R_type =
+    //         Rast_map_type(templName, mapset)) < 0)
+    //        G_fatal_error(_("Error getting first raster map type"));
+
+
+    readMap(name, mapset, nrows, ncols, mat1);
+
+    /* **** */
+
+    kernelWidth = getKernelWidth(kernelRadius, GAUSSIAN_CUT_OFF);
+
+    DCELL *kernel;
+
+    DCELL *diffKernel;
+
+    kernel = (DCELL *) G_calloc((kernelWidth), sizeof(DCELL));
+    diffKernel = (DCELL *) G_calloc((kernelWidth), sizeof(DCELL));
+    gaussKernel(kernel, diffKernel, kernelWidth, kernelRadius);
+
+
+    DCELL *yConv = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+
+    DCELL *xConv = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+
+    for (r = 0; r < dim_2; r++) {
+	yConv[r] = xConv[r] = 0;
+    }
+    gaussConvolution(mat1, kernel, xConv, yConv, nrows, ncols, kernelWidth);
+
+
+    DCELL *yGradient = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+
+    DCELL *xGradient = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+
+    for (r = 0; r < dim_2; r++) {
+	yGradient[r] = xGradient[r] = 0;
+    }
+
+
+    computeXGradients(diffKernel, yConv, xGradient, nrows, ncols,
+		      kernelWidth);
+    computeYGradients(diffKernel, xConv, yGradient, nrows, ncols,
+		      kernelWidth);
+
+
+    DCELL *magnitude = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+
+    DCELL *angle = NULL;
+    if (anglesMapName != NULL)
+    {
+        angle = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+
+        for (r = 0; r < dim_2; r++) {
+            angle[r] = 0;
+        }
+    }
+
+    nonmaxSuppresion(xGradient, yGradient, magnitude, angle,
+		     nrows, ncols, kernelWidth,
+		     MAGNITUDE_SCALE, MAGNITUDE_LIMIT);
+
+
+    DCELL *edges = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+
+    for (r = 0; r < dim_2; r++) {
+	edges[r] = 0;
+    }
+
+    performHysteresis(edges, magnitude, low, high, nrows, ncols);
+
+    thresholdEdges(edges, nrows, ncols);
+
+    writeMap(result, nrows, ncols, edges);
+
+    if (angle != NULL)
+    {
+        writeMap(anglesMapName, nrows, ncols, angle);
+    }
+
+    /* **** */
+
+    /* memory cleanup */
+    G_free(kernel);
+    G_free(diffKernel);
+    G_free(name);
+
+
+//    /* add command line incantation to history file */
+//    Rast_short_history(result, "raster", &history);
+//    Rast_command_history(&history);
+//    Rast_write_history(result, &history);
+
+
+    exit(EXIT_SUCCESS);
+}
