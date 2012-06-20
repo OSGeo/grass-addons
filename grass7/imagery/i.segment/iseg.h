@@ -27,6 +27,7 @@ struct files
 {
     /* user parameters */
     char *image_group;
+    int weighted;		/* 0 if false/not selected, so we should scale input.  1 if the scaling should be skipped */
 
     /* region info */
     int nrows, ncols;

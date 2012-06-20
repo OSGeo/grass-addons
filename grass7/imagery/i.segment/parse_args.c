@@ -13,7 +13,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
 
     struct Option *group, *seeds, *output, *method, *threshold;	/* Establish an Option pointer for each option */
-    struct Flag *diagonal;	/* Establish a Flag pointer for each option */
+    struct Flag *diagonal, *weighted;	/* Establish a Flag pointer for each option */
 
     group = G_define_standard_option(G_OPT_I_GROUP);
 
@@ -47,8 +47,12 @@ int parse_args(int argc, char *argv[], struct files *files,
     diagonal->description =
 	_("Use 8 neighbors (3x3 neighborhood) instead of the default 4 neighbors for each pixel.");
 
+    weighted = G_define_flag();
+    weighted->key = 'w';
+    weighted->description =
+	_("Weighted input, don't perform the default scaling of input maps.");
 
-    /* input for distance function */
+    /* TODO input for distance function */
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -107,7 +111,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* reference r.cost line 313 
        if (sscanf(opt5->answer, "%d", &maxcost) != 1 || maxcost < 0)
        G_fatal_error(_("Inappropriate maximum cost: %d"), maxcost); */
-    sscanf(threshold->answer, "%f", &functions->threshold);
+    sscanf(threshold->answer, "%f", &functions->threshold);	/* Note: this gets changed after we know more at beginning of create_isegs() */
 
     if (diagonal->answer == 0) {
 	functions->find_pixel_neighbors = &find_four_pixel_neighbors;
@@ -119,6 +123,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	functions->num_pn = 8;
 	G_debug(1, "eight (3x3) pixel neighborhood");
     }
+
+    files->weighted = weighted->answer;	/* default/0 for performing the scaling, but selected/1 if user has weighted values so scaling should be skipped. */
 
     /* TODO add user input for this */
     functions->calculate_similarity = &calculate_euclidean_similarity;

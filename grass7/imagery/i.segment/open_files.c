@@ -13,7 +13,8 @@ int open_files(struct files *files)
     int *in_fd;
     int n, row, col, srows, scols, inlen, outlen, nseg;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
-
+    struct FPRange *fp_range;	/* for getting min/max values on each input raster */
+    DCELL *min, *max;
 
     G_debug(1, "Checking image group...");
     /* references: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
@@ -34,6 +35,9 @@ int open_files(struct files *files)
 
     in_fd = G_malloc(Ref.nfiles * sizeof(int));
     inbuf = (DCELL **) G_malloc(Ref.nfiles * sizeof(DCELL *));
+    fp_range = G_malloc(Ref.nfiles * sizeof(struct FPRange));	/* TODO, is this correct memory allocation for these three? */
+    min = G_malloc(Ref.nfiles * sizeof(DCELL));
+    max = G_malloc(Ref.nfiles * sizeof(DCELL));
 
     G_debug(1, "Opening input rasters...");
     for (n = 0; n < Ref.nfiles; n++) {
@@ -41,6 +45,18 @@ int open_files(struct files *files)
 	in_fd[n] = Rast_open_old(Ref.file[n].name, Ref.file[n].mapset);
     }
 
+    /* Get min/max values of each input raster for scaling */
+
+    if (files->weighted == 0) {	/*default, we will scale */
+	for (n = 0; n < Ref.nfiles; n++) {
+	    if (Rast_read_fp_range
+		(Ref.file[n].name, Ref.file[n].mapset, &fp_range[n]) < 0)
+		G_fatal_error(_("Unable to read fp range for raster map <%s>"), Ref.file[n].name);	/* TODO, still should close files? */
+	    Rast_get_fp_range_min_max(&(fp_range[n]), &min[n], &max[n]);
+	}
+	G_verbose_message("scaling, for first layer, min: %f, max: %f",
+			  min[0], max[0]);
+    }
 
     /* ********** find out file segmentation size ************ */
     G_debug(1, "Calculate temp file sizes...");
@@ -101,7 +117,10 @@ int open_files(struct files *files)
 	}
 	for (col = 0; col < files->ncols; col++) {
 	    for (n = 0; n < Ref.nfiles; n++) {
-		files->bands_val[n] = inbuf[n][col];
+		if (files->weighted == 1)
+		    files->bands_val[n] = inbuf[n][col];	/*unscaled */
+		else
+		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/*scaled version */
 	    }
 	    segment_put(&files->bands_seg, (void *)files->bands_val, row,
 			col);
@@ -141,6 +160,9 @@ int open_files(struct files *files)
 
     G_free(inbuf);
     G_free(in_fd);
+    G_free(fp_range);
+    G_free(min);
+    G_free(max);
 
     /* Need to clean up anything else? */
 

@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include <float.h>		/* to get value of LDBL_MAX -> change this if there is a more usual grass way */
-#include <math.h>		/* for sqrt() and pow() */
+				/* #include <math.h>    *//* for sqrt() and pow() */
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/segment.h>	/* segmentation library */
@@ -26,6 +26,7 @@ int create_isegs(struct files *files, struct functions *functions)
     G_debug(1, "Threshold: %g", functions->threshold);
     G_debug(1, "segmentation method: %d", functions->method);
 
+    functions->threshold = functions->threshold * functions->threshold * files->nbands;	/* use modified threshold to account for scaled input and to avoid square root in similarity comparison. *//* Todo, small, could put this in main outside of polygon loop */
 
     if (functions->method == 0)
 	successflag = io_debug(files, functions);	/* TODO: why does it want `&files` in main, but `files` here ??? */
@@ -56,12 +57,17 @@ int io_debug(struct files *files, struct functions *functions)
 
     /* **************write fake data to test I/O portion of module */
 
-    G_verbose_message("writing fake data to segmentation file");
+    /*    G_verbose_message("writing fake data to segmentation file"); */
+    G_verbose_message("writing scaled input (layer 1) to output file");
+    G_verbose_message("weighted flag = %d", files->weighted);
     for (row = 0; row < files->nrows; row++) {
 	G_percent(row, files->nrows, 1);	/* TODO this didn't get displayed in the output??? Does it get erased when done? */
 	for (col = 0; col < files->ncols; col++) {
 	    /*files->out_val[0] = files->out_val[0]; *//*segment number *//* just copying the map for testing. */
-	    files->out_val[0] = col + row;
+	    /* files->out_val[0] = col + row; */
+	    segment_get(&files->bands_seg, (void *)files->bands_val, row,
+			col);
+	    files->out_val[0] = files->bands_val[0] * 100;	/*pushing DCELL into CELL */
 	    files->out_val[1] = 1;	/*processing flag */
 	    segment_put(&files->out_seg, (void *)files->out_val, row, col);
 	}
@@ -301,9 +307,7 @@ int region_growing(struct files *files, struct functions *functions)
     do {
 	/* do while loop on t to slowly lower threshold. also check that endflag==0 (no merges were made) */
 
-	G_debug(1,
-		"##########   Starting outer do loop! t = %d    ##########",
-		t);
+	G_debug(3, "#######   Starting outer do loop! t = %d    #######", t);
 
 	threshold = functions->threshold;	/* TODO, consider making this a function of t. */
 
@@ -326,7 +330,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 	    }
 	}
-	G_debug(1, "Starting to process %d candidate pixels",
+	G_debug(4, "Starting to process %d candidate pixels",
 		files->candidate_count);
 
 	/*process candidate pixels */
@@ -335,22 +339,22 @@ int region_growing(struct files *files, struct functions *functions)
 	for (row = 0; row < files->nrows; row++) {
 	    for (col = 0; col < files->ncols; col++) {
 
-		G_verbose_message("Completion for pass number %d: ", t);
+		/* G_verbose_message("Completion for pass number %d: ", t); */
 		G_percent(row, files->nrows, 1);	/*this didn't get displayed in the output??? Does it get erased when done? */
 
-		G_debug(1,
+		G_debug(4,
 			"Next starting pixel from next row/col, not from Rk");
 
 		segment_get(&files->out_seg, (void *)files->out_val, row, col);	/*TODO small time savings - if candidate_count reaches zero, bail out of these loops too? */
 		if (files->out_val[1] == 1) {	/* out_val[1] is the candidate pixel flag, want to process the 1's */
-		    G_debug(1, "going to free memory on linked lists...");
+		    G_debug(4, "going to free memory on linked lists...");
 		    /*free memory for linked lists */
 		    my_dispose_list(files->token, &Ri_head);
 		    my_dispose_list(files->token, &Rk_head);
 		    my_dispose_list(files->token, &Rin_head);
 		    my_dispose_list(files->token, &Rkn_head);	/* TODO, better style for repeating this for all structures? */
 		    Rk_count = 0;
-		    G_debug(1, "finished free memory on linked lists...");
+		    G_debug(4, "finished free memory on linked lists...");
 
 		    /* First pixel in Ri is current row/col pixel.  We may add more later if it is part of a segment */
 		    Ri_count = 1;
@@ -364,26 +368,26 @@ int region_growing(struct files *files, struct functions *functions)
 
 		    //      while (pathflag == 1 && files->candidate_count > 0) {   /*if don't find mutual neighbors on first try, will use Rk as next Ri. */
 
-		    G_debug(1, "Next starting pixel: row, %d, col, %d",
+		    G_debug(4, "Next starting pixel: row, %d, col, %d",
 			    Ri_head->row, Ri_head->col);
 
 		    /* Setting Ri to be not a candidate allows using "itself" when at edge of raster.
 		     * Otherwise need to use a list/count/something to know the number of pixel neighbors */
 		    set_candidate_flag(Ri_head, 0, files);	/* TODO: error trap? */
-		    G_debug(1, "line 165, \t\t\t\tcc = %d",
+		    G_debug(4, "line 165, \t\t\t\tcc = %d",
 			    files->candidate_count);
 
 		    /* what is passed to find segment neighors: */
-		    /*    G_debug(1, "calling find_segment_neigors() with:");
+		    /*    G_debug(4, "calling find_segment_neigors() with:");
 		       for (current = Ri_head; current != NULL;
 		       current = current->next)
-		       G_debug(1, "Ri: row: %d, col: %d", current->row,
+		       G_debug(4, "Ri: row: %d, col: %d", current->row,
 		       current->col);
 		       for (current = Rin_head; current != NULL;
 		       current = current->next)
-		       G_debug(1, "Rin: row: %d, col: %d", current->row,
+		       G_debug(4, "Rin: row: %d, col: %d", current->row,
 		       current->col);
-		       G_debug(1, "also passing Ri_count: %d", Ri_count);
+		       G_debug(4, "also passing Ri_count: %d", Ri_count);
 		     */
 		    /* find segment neighbors */
 		    if (find_segment_neighbors
@@ -393,29 +397,29 @@ int region_growing(struct files *files, struct functions *functions)
 		    }		/* TODO - shouldn't be just fatal error - need to still close_files().  Just put that here then fatal error? */
 
 		    if (Rin_head == NULL) {
-			G_debug(1, "2a, Segment had no valid neighbors");	/*this could happen if there is a segment surrounded by pixels that have already been processed */
+			G_debug(4, "2a, Segment had no valid neighbors");	/*this could happen if there is a segment surrounded by pixels that have already been processed */
 			pathflag = 0;
 			Ri_count = 0;
 			set_candidate_flag(Ri_head, 0, files);	/* TODO: error trap? */
 			files->candidate_count++;	/* already counted out Ri[0]; */
-			G_debug(1, "line 176, \t\t\t\tcc = %d",
+			G_debug(4, "line 176, \t\t\t\tcc = %d",
 				files->candidate_count);
 		    }
 		    else {	/*found neighbors, go ahead until find mutually agreeing neighbors */
 
-			G_debug(1, "2b, Found Ri's pixels");
+			G_debug(4, "2b, Found Ri's pixels");
 			/*print out neighbors */
 
 			for (current = Ri_head; current != NULL;
 			     current = current->next)
-			    G_debug(1, "Ri: row: %d, col: %d", current->row,
+			    G_debug(4, "Ri: row: %d, col: %d", current->row,
 				    current->col);
 
-			G_debug(1, "2b, Found Ri's neighbors");
+			G_debug(4, "2b, Found Ri's neighbors");
 			/*print out neighbors */
 			for (current = Rin_head; current != NULL;
 			     current = current->next)
-			    G_debug(1, "Rin: row: %d, col: %d", current->row,
+			    G_debug(4, "Rin: row: %d, col: %d", current->row,
 				    current->col);
 
 			/* find Ri's most similar neighbor */
@@ -429,13 +433,13 @@ int region_growing(struct files *files, struct functions *functions)
 								    current,
 								    files,
 								    functions);
-			    G_debug(1,
+			    G_debug(4,
 				    "simularity = %g for neighbor : row: %d, col %d.",
 				    tempsim, current->row, current->col);
 			    if (tempsim < Ri_similarity) {
 				Ri_similarity = tempsim;
 				Ri_bestn = current;	/*TODO want to point to the current pixel...confirm  when current changes need this to stay put! */
-				G_debug(1,
+				G_debug(4,
 					"Current lowest Ri_similarity = %g, for neighbor pixel row: %d col: %d",
 					Ri_similarity, Ri_bestn->row,
 					Ri_bestn->col);
@@ -443,14 +447,14 @@ int region_growing(struct files *files, struct functions *functions)
 			}
 
 			if (Ri_bestn != NULL)
-			    G_debug(1,
+			    G_debug(4,
 				    "Lowest Ri_similarity = %g, for neighbor pixel row: %d col: %d",
 				    Ri_similarity, Ri_bestn->row,
 				    Ri_bestn->col);
 
 			if (Ri_bestn != NULL && Ri_similarity < threshold) {	/* small TODO: should this be < or <= for threshold? */
 			    /* we'll have the neighbor pixel to start with. */
-			    G_debug(1, "3a: Working with Rk");
+			    G_debug(4, "3a: Working with Rk");
 			    Rk_count = 1;
 			    newpixel =
 				(struct pixels *)link_new(files->token);
@@ -466,18 +470,18 @@ int region_growing(struct files *files, struct functions *functions)
 
 			    find_segment_neighbors(&Rk_head, &Rkn_head, &Rk_count, files, functions);	/* data structure for Rk's neighbors, and pixels in Rk if we don't already have it */
 
-			    G_debug(1, "Found Rk's pixels");
+			    G_debug(4, "Found Rk's pixels");
 			    /*print out neighbors */
 			    for (current = Rk_head; current != NULL;
 				 current = current->next)
-				G_debug(1, "Rk: row: %d, col: %d",
+				G_debug(4, "Rk: row: %d, col: %d",
 					current->row, current->col);
 
-			    G_debug(1, "Found Rk's neighbors");
+			    G_debug(4, "Found Rk's neighbors");
 			    /*print out neighbors */
 			    for (current = Rkn_head; current != NULL;
 				 current = current->next)
-				G_debug(1, "Rkn: row: %d, col: %d",
+				G_debug(4, "Rkn: row: %d, col: %d",
 					current->row, current->col);
 
 			    /*find Rk's most similar neighbor */
@@ -498,14 +502,14 @@ int region_growing(struct files *files, struct functions *functions)
 				pathflag = 0;	/* go to next row,column pixel - end of Rk -> Ri chain since we found mutual best neighbors */
 			    }
 			    else {	/* they weren't mutually best neighbors */
-				G_debug(1,
+				G_debug(4,
 					"Ri was not Rk's best neighbor, Ri_sim: %g, Rk_sim, %g",
 					Ri_similarity, Rk_similarity);
 
 				/* did this at beginning of path loop */
 				set_candidate_flag(Ri_head, 0, files);	/* remove all Ri members from candidate pixels (set flag) */
 				files->candidate_count++;	/* add one back, we had already set Ri[0] flag at the beginning. */
-				G_debug(1, "line 247, \t\t\t\tcc = %d",
+				G_debug(4, "line 247, \t\t\t\tcc = %d",
 					files->candidate_count);
 				//~ /* Use Rk as next Ri:   this is the eCognition technique.  Seems this is a bit faster, we already have segment membership pixels */
 				//~ Ri_count = Rk_count;
@@ -520,7 +524,7 @@ int region_growing(struct files *files, struct functions *functions)
 			    }
 			}	/*end else (from if mutually best neighbors) */
 			else
-			    G_debug(1,
+			    G_debug(4,
 				    "3b Rk didn't didn't exist or similarity was > threshold");
 		    }		/* end else - Ri did have neighbors */
 		    //          }           /*end pathflag do loop */
@@ -530,7 +534,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 	/* finished one pass for processing candidate pixels */
 
-	G_debug(1, "Finished one pass, t was = %d", t);
+	G_debug(4, "Finished one pass, t was = %d", t);
 	t++;
     } while (t < 90 && endflag == 0);
     /*end t loop *//*TODO, should there be a max t that it can iterate for?  Include t in G_message? */
@@ -564,12 +568,12 @@ int find_segment_neighbors(struct pixels **R_head,
      * */
 
     /* show what was sent to function *//*
-       G_debug(1, "in find_segment_neigors() with:");
+       G_debug(5, "in find_segment_neigors() with:");
        for (current = *R_head; current != NULL; current = current->next)
-       G_debug(1, "R: row: %d, col: %d", current->row, current->col);
+       G_debug(5, "R: row: %d, col: %d", current->row, current->col);
        for (current = *neighbors_head; current != NULL; current = current->next)
-       G_debug(1, "neig: row: %d, col: %d", current->row, current->col);
-       G_debug(1, "also passing Ri_count: %d", *seg_count); */
+       G_debug(5, "neig: row: %d, col: %d", current->row, current->col);
+       G_debug(5, "also passing Ri_count: %d", *seg_count); */
 
     /*initialize data.... TODO: maybe remember min max row/col that was looked at each time, initialize in open_files, and reset smaller region at end of this functions */
     for (n = 0; n < files->nrows; n++) {
@@ -605,7 +609,7 @@ int find_segment_neighbors(struct pixels **R_head,
     Ri_seg_ID = files->out_val[0];
 
     while (to_check != NULL) {	/* removing from to_check list as we go, NOT iterating over the list. */
-	G_debug(1,
+	G_debug(5,
 		"\tfind_pixel_neighbors for row: %d , col %d",
 		to_check->row, to_check->col);
 
@@ -620,26 +624,26 @@ int find_segment_neighbors(struct pixels **R_head,
 	link_dispose(files->token, (VOID_T *) current);
 
 	/*print out to_check */
-	G_debug(1, "remaining pixel's in to_check, after popping:");
+	G_debug(5, "remaining pixel's in to_check, after popping:");
 	for (current = to_check; current != NULL; current = current->next)
-	    G_debug(1, "to_check... row: %d, col: %d", current->row,
+	    G_debug(5, "to_check... row: %d, col: %d", current->row,
 		    current->col);
 	for (current = *neighbors_head; current != NULL;
 	     current = current->next)
-	    G_debug(1, "Rn... row: %d, col: %d", current->row, current->col);
+	    G_debug(5, "Rn... row: %d, col: %d", current->row, current->col);
 
 	/*now check the pixel neighbors and add to the lists */
 
 	/*debug what neighbors were found: */
 	/*      for (n = 0; n < functions->num_pn; n++){
-	   G_debug(1, "\tpixel_neighbors[n][0]: %d, pixel_neighbors[n][1]: %d",  pixel_neighbors[n][0], pixel_neighbors[n][1]);
+	   G_debug(5, "\tpixel_neighbors[n][0]: %d, pixel_neighbors[n][1]: %d",  pixel_neighbors[n][0], pixel_neighbors[n][1]);
 	   } */
 
 	for (n = 0; n < functions->num_pn; n++) {	/* with pixel neighbors */
 
 	    segment_get(&files->no_check, &val_no_check,
 			pixel_neighbors[n][0], pixel_neighbors[n][1]);
-	    G_debug(1,
+	    G_debug(5,
 		    "\twith pixel neigh %d, row: %d col: %d, val_no_check = %d",
 		    n, pixel_neighbors[n][0], pixel_neighbors[n][1],
 		    val_no_check);
@@ -651,10 +655,10 @@ int find_segment_neighbors(struct pixels **R_head,
 
 		if (files->out_val[1] == 1) {	/* valid candidate pixel */
 
-		    G_debug(1, "\tfiles->out_val[0] = %d Ri_seg_ID = %d",
+		    G_debug(5, "\tfiles->out_val[0] = %d Ri_seg_ID = %d",
 			    files->out_val[0], Ri_seg_ID);
 		    if (files->out_val[0] == Ri_seg_ID) {
-			G_debug(1, "\tputing pixel_neighbor in Ri");
+			G_debug(5, "\tputing pixel_neighbor in Ri");
 			/* put pixel_neighbor[n] in Ri */
 			newpixel = (struct pixels *)link_new(files->token);
 			newpixel->next = *R_head;	/*point the new pixel to the current first pixel */
@@ -662,7 +666,7 @@ int find_segment_neighbors(struct pixels **R_head,
 			newpixel->col = pixel_neighbors[n][1];
 			*R_head = newpixel;	/*change the first pixel to be the new pixel. */
 			*seg_count = *seg_count + 1;	/* zero index... Ri[0] had first pixel and set count =1.  increment after save data. */
-			G_debug(1, "\t*seg_count now = %d", *seg_count);
+			G_debug(5, "\t*seg_count now = %d", *seg_count);
 
 			/* put pixel_neighbor[n] in to_check -- want to check this pixels neighbors */
 			newpixel = (struct pixels *)link_new(files->token);
@@ -674,7 +678,7 @@ int find_segment_neighbors(struct pixels **R_head,
 		    }
 		    else {	/* segment id's were different */
 			/* put pixel_neighbor[n] in Rin */
-			G_debug(1, "Put in neighbors_head");
+			G_debug(5, "Put in neighbors_head");
 			/* TODO - helper function for adding pixel to a list */
 			newpixel = (struct pixels *)link_new(files->token);
 			newpixel->next = *neighbors_head;	/*point the new pixel to the current first pixel */
@@ -685,18 +689,18 @@ int find_segment_neighbors(struct pixels **R_head,
 		    }
 		}		/*end if valid candidate pixel */
 		else
-		    G_debug(1,
+		    G_debug(5,
 			    "pixel row: %d col: %d was not a valid candidate pixel",
 			    pixel_neighbors[n][0], pixel_neighbors[n][1]);
 
 	    }			/*end if for pixel_neighbor was in "don't check" list */
 	}			/* end for loop - next pixel neighbor */
-	G_debug(1,
+	G_debug(5,
 		"remaining pixel's in to_check, after processing the last pixel's neighbors:");
 	for (current = to_check; current != NULL; current = current->next)
-	    G_debug(1, "to_check... row: %d, col: %d", current->row,
+	    G_debug(5, "to_check... row: %d, col: %d", current->row,
 		    current->col);
-	G_debug(1, "\t### end of pixel neighors");
+	G_debug(5, "\t### end of pixel neighors");
     }				/* while to_check has more elements */
 
     return 0;
@@ -706,9 +710,9 @@ int find_four_pixel_neighbors(int p_row, int p_col, int pixel_neighbors[8][2],
 			      struct files *files)
 {
     /*   
-       G_debug(1,"\t\tin find 4 pixel neighbors () ");
-       G_debug(1,"\t\tpixel row: %d pixel col: %d", p_row, p_col);
-       G_debug(1, "\t\tTotal rows: %d, total cols: %d", files->nrows, files->ncols); *//*check that we have files... */
+       G_debug(5,"\t\tin find 4 pixel neighbors () ");
+       G_debug(5,"\t\tpixel row: %d pixel col: %d", p_row, p_col);
+       G_debug(5, "\t\tTotal rows: %d, total cols: %d", files->nrows, files->ncols); *//*check that we have files... */
 
     /* north */
     pixel_neighbors[0][1] = p_col;
@@ -769,10 +773,13 @@ double calculate_euclidean_similarity(struct pixels *a, struct pixels *b,
 
     /* euclidean distance, sum the square differences for each dimension */
     for (n = 0; n < files->nbands; n++) {
-	val = val + pow(files->bands_val[n] - files->second_val[n], 2);
+	val =
+	    val + (files->bands_val[n] -
+		   files->second_val[n]) * (files->bands_val[n] -
+					    files->second_val[n]);
     }
 
-    val = sqrt(val);
+    /* val = sqrt(val); *//* use squared distance, save the calculation time */
 
     return val;
 
@@ -804,7 +811,7 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head, int Ri_count,
     /* if separate out candidate flag, can do all changes with helper function...otherwise remember: */
 
 
-    G_debug(1, "\t\tMerging, segment number: %d, including pixels:",
+    G_debug(4, "\t\tMerging, segment number: %d, including pixels:",
 	    files->out_val[0]);
 
     /* for each member of Ri and Rk, write new average bands values and segment values */
@@ -814,8 +821,8 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head, int Ri_count,
 	segment_put(&files->out_seg, (void *)files->out_val, current->row,
 		    current->col);
 	files->candidate_count--;
-	G_debug(1, "line 508, \t\t\t\tcc = %d", files->candidate_count);
-	G_debug(1, "\t\tRi row: %d, col: %d", current->row, current->col);
+	G_debug(4, "line 508, \t\t\t\tcc = %d", files->candidate_count);
+	G_debug(4, "\t\tRi row: %d, col: %d", current->row, current->col);
     }
     for (current = Rk_head; current != NULL; current = current->next) {
 	segment_put(&files->bands_seg, (void *)files->bands_val, current->row,
@@ -823,13 +830,13 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head, int Ri_count,
 	segment_put(&files->out_seg, (void *)files->out_val, current->row,
 		    current->col);
 	files->candidate_count--;
-	G_debug(1, "line 516, \t\t\t\tcc = %d", files->candidate_count);
-	G_debug(1, "\t\tRk row: %d, col: %d", current->row, current->col);
+	G_debug(4, "line 516, \t\t\t\tcc = %d", files->candidate_count);
+	G_debug(4, "\t\tRk row: %d, col: %d", current->row, current->col);
 
     }
 
     files->candidate_count++;	/* had already counted down the starting pixel Ri[0] at the beginning... */
-    G_debug(1, "line 522, \t\t\t\tcc = %d", files->candidate_count);
+    G_debug(4, "line 522, \t\t\t\tcc = %d", files->candidate_count);
     return 0;
 }
 
@@ -851,7 +858,7 @@ int set_candidate_flag(struct pixels *head, int value, struct files *files)
 	    files->candidate_count--;
 	else if (value == 1)
 	    files->candidate_count++;
-	G_debug(1, "line 544, \t\t\t\tcc = %d", files->candidate_count);
+	G_debug(4, "line 544, \t\t\t\tcc = %d", files->candidate_count);
 
     }
     return 0;
