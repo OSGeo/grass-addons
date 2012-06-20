@@ -1,0 +1,171 @@
+
+/****************************************************************************
+ *
+ * MODULE:       r.ht
+ * AUTHOR(S):    Anna Kratochvilova - kratochanna gmail.com
+ *               Vaclav Petras - wenzeslaus gmail.com
+ *
+ * PURPOSE:      Detects line segments using Hough transform.
+ *
+ * COPYRIGHT:    (C) 2012 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	    	 for details.
+ *
+ *****************************************************************************/
+
+#include "hough.h"
+
+extern "C" {
+#include <grass/gis.h>
+#include <grass/raster.h>
+#include <grass/glocale.h>
+#include <grass/gmath.h>
+}
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+/**
+
+  \todo Floats are used instead of doubles.
+  \todo Be able to work with FCELL (and CELL?).
+  */
+int main(int argc, char *argv[])
+{
+    struct Cell_head cell_head;	/* it stores region information,
+				   and header information of rasters */
+    char *name;			/* input raster name */
+
+    char *mapset;		/* mapset name */
+
+    char *result;		/* output raster name */
+
+    int nrows, ncols;
+
+    struct GModule *module;	/* GRASS module for parsing arguments */
+
+    /* options */
+    struct Option *input, *output, *anglesOption,
+        *maxLinesOption, *maxGapOption, *minSegmentLengthOption,
+            *angleWidthOption;
+
+    /* initialize GIS environment */
+    G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
+
+    /* initialize module */
+    module = G_define_module();
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("hought"));
+    G_add_keyword(_(""));
+    module->description =
+	_("Canny edge detector. Region shall be set to input map."
+	  "Can work only on small images since map is loaded into memory.");
+
+    /* Define the different options as defined in gis.h */
+    input = G_define_standard_option(G_OPT_R_INPUT);
+
+    output = G_define_standard_option(G_OPT_V_OUTPUT);
+
+    anglesOption = G_define_standard_option(G_OPT_R_INPUT);
+    anglesOption->key = "angles";
+    anglesOption->required = NO;
+    anglesOption->description = _("Approximate number of line segments.");
+
+    // this option will become max peaks number to find in HT
+    maxLinesOption = G_define_option();
+    maxLinesOption->key = "lines_number";
+    maxLinesOption->type = TYPE_INTEGER;
+    maxLinesOption->required = NO;
+    maxLinesOption->multiple = NO;
+    maxLinesOption->description = _("Approximate number of line segments."
+                                    " Actually, this option will become"
+                                    " maximal number of line candidates"
+                                    " detected in Hough transform image."
+                                    " Final number of line segments can be"
+                                    " smaller or greater."
+                                    );
+    maxLinesOption->answer = const_cast<char *>("20");
+
+    maxGapOption = G_define_option();
+    maxGapOption->key = "max_gap";
+    maxGapOption->type = TYPE_INTEGER;
+    maxGapOption->required = NO;
+    maxGapOption->multiple = NO;
+    maxGapOption->description = _("Maximum gap in pixels");
+    maxGapOption->answer = const_cast<char *>("5");
+
+    minSegmentLengthOption = G_define_option();
+    minSegmentLengthOption->key = "min_segment_length";
+    minSegmentLengthOption->type = TYPE_INTEGER;
+    minSegmentLengthOption->required = NO;
+    minSegmentLengthOption->multiple = NO;
+    minSegmentLengthOption->description = _("Minimal length of line segment");
+    minSegmentLengthOption->answer = const_cast<char *>("50");
+
+    angleWidthOption = G_define_option();
+    angleWidthOption->key = "angle_width";
+    angleWidthOption->type = TYPE_INTEGER;
+    angleWidthOption->required = NO;
+    angleWidthOption->multiple = NO;
+    angleWidthOption->description = _("Width of circle sector (only when you provide angle map).");
+    angleWidthOption->answer = const_cast<char *>("5");
+
+    /* options and flags parser */
+    if (G_parser(argc, argv))
+	exit(EXIT_FAILURE);
+
+    /* stores options and flags to variables */
+    result = output->answer;
+    name = input->answer;
+
+    int maxPeaks = atoi(maxLinesOption->answer);
+    int threshold = 10;
+    int gap = atoi(maxGapOption->answer);
+    int minSegmentLength = atoi(minSegmentLengthOption->answer);
+    int sizeOfNeighbourhood = 1;
+
+    int angleWidth = atoi(angleWidthOption->answer);
+
+    /* returns NULL if the map was not found in any mapset,
+     * mapset name otherwise */
+    mapset = (char *)G_find_raster2(name, "");
+    if (mapset == NULL)
+	G_fatal_error(_("Raster map <%s> not found"), name);
+
+    /* determine the inputmap type (CELL/FCELL/DCELL) */
+    //data_type = Rast_map_type(name, mapset);
+
+    //    struct Cell_head templCellhd;
+
+    //    Rast_get_cellhd(name, mapset, &cellhd);
+    //    Rast_get_cellhd(first_map_R_name, first_map_R_mapset, &cellhd_zoom1);
+
+    /* controlling, if we can open input raster */
+    Rast_get_cellhd(name, mapset, &cell_head);
+
+    G_debug(3, "number of rows %d", cell_head.rows);
+
+    nrows = Rast_window_rows();
+
+    ncols = Rast_window_cols();
+
+    /* **** */
+
+    hough_peaks(maxPeaks, threshold, sizeOfNeighbourhood, gap, minSegmentLength, name, mapset, nrows, ncols, anglesOption->answer, angleWidth, result);
+
+    /* **** */
+
+    /* memory cleanup */
+    G_free(name);
+
+    /* add command line incantation to history file */
+    //    Rast_short_history(templName, "raster", &history);
+    //    Rast_command_history(&history);
+    //    Rast_write_history(templName, &history);
+
+    exit(EXIT_SUCCESS);
+}
