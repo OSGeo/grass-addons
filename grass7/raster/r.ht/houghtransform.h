@@ -66,10 +66,10 @@ public:
 
     /* getters */
 
-    const Matrix & getHoughMatrix() { return mHoughMatrix; }
-    const Matrix & getOrigMatrix() { return mOriginalMatrix; }
+    const Matrix & getHoughMatrix() const { return mHoughMatrix; }
+    const Matrix & getOrigMatrix()  const { return mOriginalMatrix; }
     const Peaks & getPeaks() const { return mPeaks; }
-    const TracebackMap & getHoughMap() { return mHoughMap; }
+    const TracebackMap & getHoughMap() const { return mHoughMap; }
 
 private:
 

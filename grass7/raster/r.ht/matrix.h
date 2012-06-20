@@ -14,41 +14,45 @@ class Matrix
 {
 public:
     Matrix(size_t r, size_t c, double val = 0)
+        : mRows(r), mCols(c)
     {
         resize(r, c, val);
     }
-    Matrix() {}
+    Matrix() : mRows(0), mCols(0) {}
 
     void resize(size_t r, size_t c, double val = 0)
     {
+        mRows = r;
+        mCols = c;
         std::vector<double> row;
         row.resize(c, val);
         mat.resize(r, row);
     }
 
+    /**
+
+      if (r > rows() || c > columns()) error;
+      */
     double& operator ()(size_t r, size_t c)
     {
-        if (r > rows() || c > columns())
-        {
-            // FIXME: fatal error
-        }
         return mat[r][c];
     }
+    /**
+
+      if (r > rows() || c > columns()) error;
+      */
     const double& operator ()(size_t r, size_t c) const
     {
         return mat[r][c];
     }
-    size_t rows() const { return mat.size(); }
-    size_t columns() const
-    {
-        if (!mat.empty())
-            return mat[0].size();
-        return 0;
-    }
+    size_t rows() const { return mRows; }
+    size_t columns() const { return mCols; }
 
     std::vector<double> row_max(std::vector<size_t>& colIndexes) const
     {
         std::vector<double> ret;
+        ret.reserve(rows());
+        colIndexes.reserve(rows());
         for (size_t i = 0; i < rows(); ++i)
         {
             std::vector<double>::const_iterator maxe = std::max_element(mat[i].begin(), mat[i].end());
@@ -63,6 +67,8 @@ public:
 
 private:
     std::vector< std::vector<double> > mat;
+    size_t mRows;
+    size_t mCols;
 };
 
 class ColumnVector
@@ -86,42 +92,6 @@ public:
         return vec[i];
     }
     size_t length() { return vec.size(); }
-
-private:
-    std::vector<double> vec;
-};
-
-class RowVector
-{
-public:
-    RowVector(Matrix mat)
-    {
-        for (size_t i = 0; i < mat.columns(); ++i)
-        {
-            vec.push_back(mat(0, i));
-        }
-    }
-    RowVector() {}
-
-    double& operator ()(size_t i)
-    {
-        return vec[i];
-    }
-    const double& operator ()(size_t i) const
-    {
-        return vec[i];
-    }
-    size_t length() { return vec.size(); }
-
-    RowVector operator -(double d)
-    {
-        RowVector ret(*this);
-        for (size_t i = 0; i < ret.length(); ++i)
-        {
-            ret(i) = ret(i) - d;
-        }
-        return ret;
-    }
 
 private:
     std::vector<double> vec;

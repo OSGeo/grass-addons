@@ -121,7 +121,7 @@ bool segmentContainsPoint(Segment segment, std::pair<int, int> p, bool xFlag, in
 }
 
 void extract(const Matrix& I,
-             float orient, const int lineGap, const int lineLength,
+             float orient, int gapSize, int maxNumOfGaps, const int lineGap, const int lineLength,
              LineCoordinates lineCoordinates, SegmentList& segments)
 {
     const int rows = I.rows ();
@@ -194,10 +194,10 @@ void extract(const Matrix& I,
                 //    reset the gap
                 if ( isData(I, indicesI, indicesJ, cols, rows) )
                 {
-                    if (gap > 5)
+                    if (gap > gapSize)
                     {
                         numOfGaps++;
-                        if (numOfGaps > 5)
+                        if (numOfGaps > maxNumOfGaps)
                         {
                             useLine = false;
                             break;

@@ -5,7 +5,7 @@
  * AUTHOR(S):    Anna Kratochvilova - kratochanna gmail.com
  *               Vaclav Petras - wenzeslaus gmail.com
  *
- * PURPOSE:      Detects line segments using Hough transform.
+ * PURPOSE:      Edge detection usig Canny algorithm.
  *
  * COPYRIGHT:    (C) 2012 by the GRASS Development Team
  *
@@ -49,9 +49,10 @@ int main(int argc, char *argv[])
     struct GModule *module;	/* GRASS module for parsing arguments */
 
     /* options */
-    struct Option *input, *output, *anglesOption,
-        *maxLinesOption, *maxGapOption, *minSegmentLengthOption,
-            *angleWidthOption;
+    struct Option *input, *output, *anglesOption, *houghImageNameOption,
+            *angleWidthOption,
+            *minGapOption, *maxNumberOfGapsOption,
+        *maxLinesOption, *maxGapOption, *minSegmentLengthOption;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -75,6 +76,19 @@ int main(int argc, char *argv[])
     anglesOption->required = NO;
     anglesOption->description = _("Approximate number of line segments.");
 
+    houghImageNameOption = G_define_standard_option(G_OPT_R_OUTPUT);
+    houghImageNameOption->key = "hough_image";
+    houghImageNameOption->required = NO;
+    houghImageNameOption->description = _("Name of output image containing Hough transform");
+
+    angleWidthOption = G_define_option();
+    angleWidthOption->key = "angle_width";
+    angleWidthOption->type = TYPE_INTEGER;
+    angleWidthOption->required = NO;
+    angleWidthOption->multiple = NO;
+    angleWidthOption->description = _("Width of circle sector (only when you provide angle map).");
+    angleWidthOption->answer = const_cast<char *>("5");
+
     // this option will become max peaks number to find in HT
     maxLinesOption = G_define_option();
     maxLinesOption->key = "lines_number";
@@ -89,6 +103,22 @@ int main(int argc, char *argv[])
                                     " smaller or greater."
                                     );
     maxLinesOption->answer = const_cast<char *>("20");
+
+    minGapOption = G_define_option();
+    minGapOption->key = "gap_size";
+    minGapOption->type = TYPE_INTEGER;
+    minGapOption->required = NO;
+    minGapOption->multiple = NO;
+    minGapOption->description = _("Minimal cell count considered as a gap");
+    minGapOption->answer = const_cast<char *>("5");
+
+    maxNumberOfGapsOption = G_define_option();
+    maxNumberOfGapsOption->key = "max_gap_count";
+    maxNumberOfGapsOption->type = TYPE_INTEGER;
+    maxNumberOfGapsOption->required = NO;
+    maxNumberOfGapsOption->multiple = NO;
+    maxNumberOfGapsOption->description = _("Maximal number of gaps in line segment");
+    maxNumberOfGapsOption->answer = const_cast<char *>("5");
 
     maxGapOption = G_define_option();
     maxGapOption->key = "max_gap";
@@ -106,14 +136,6 @@ int main(int argc, char *argv[])
     minSegmentLengthOption->description = _("Minimal length of line segment");
     minSegmentLengthOption->answer = const_cast<char *>("50");
 
-    angleWidthOption = G_define_option();
-    angleWidthOption->key = "angle_width";
-    angleWidthOption->type = TYPE_INTEGER;
-    angleWidthOption->required = NO;
-    angleWidthOption->multiple = NO;
-    angleWidthOption->description = _("Width of circle sector (only when you provide angle map).");
-    angleWidthOption->answer = const_cast<char *>("5");
-
     /* options and flags parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -124,11 +146,12 @@ int main(int argc, char *argv[])
 
     int maxPeaks = atoi(maxLinesOption->answer);
     int threshold = 10;
+    int angleWidth = atoi(angleWidthOption->answer);
+    int gapSize = atoi(minGapOption->answer);
     int gap = atoi(maxGapOption->answer);
+    int maxNumOfGaps = atoi(maxNumberOfGapsOption->answer);
     int minSegmentLength = atoi(minSegmentLengthOption->answer);
     int sizeOfNeighbourhood = 1;
-
-    int angleWidth = atoi(angleWidthOption->answer);
 
     /* returns NULL if the map was not found in any mapset,
      * mapset name otherwise */
@@ -155,7 +178,7 @@ int main(int argc, char *argv[])
 
     /* **** */
 
-    hough_peaks(maxPeaks, threshold, sizeOfNeighbourhood, gap, minSegmentLength, name, mapset, nrows, ncols, anglesOption->answer, angleWidth, result);
+    hough_peaks(maxPeaks, threshold, angleWidth, sizeOfNeighbourhood, gapSize, maxNumOfGaps, gap, minSegmentLength, name, mapset, nrows, ncols, anglesOption->answer, houghImageNameOption->answer, result);
 
     /* **** */
 
