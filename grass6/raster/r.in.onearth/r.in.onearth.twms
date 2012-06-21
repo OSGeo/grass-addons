@@ -92,32 +92,37 @@
 #%end
 
 
-#Only run if started in GRASS
+# Only run if started in GRASS
 if [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." >&2
     exit 1
 fi
 
-#Parse the arguments
+# Parse the arguments
 if [ "$1" != "@ARGS_PARSED@" ] ; then
   exec g.parser "$0" "$@"
 fi
 
 
-#Set up important vars first
-SRC="EPSG:4326" #This is the Projection LatLong wgs84
-FORMAT="image/geotiff" #GeoTiff import for r.in.gdal
-NASASERVER="http://wms.jpl.nasa.gov/wms.cgi" #this server may change
-TYPE=""
-TIME=""
-IMPORT=0 #0 is true
-GLOBAL_MOSAIC_LAYER="global_mosaic_base" #Thats the NASA WMS Global Mosaic database
-SRTM_MAG_LAYER="srtm_mag" #Thats the NASA srtm_mag database
-BMNG_LAYER="BMNG" #Thats the Blue Marble Next Generation database
-DAILY_TERRA_LAYER="daily_terra" #Thats the NASA daily terra database
-DAILY_AQUA_LAYER="daily_aqua" #Thats the NASA daily aqua database
+# Set up important vars first
+BASE_URL="http://onearth.jpl.nasa.gov/wms.cgi"
+SRS="EPSG:4326"                           # This is Lat/Long WGS84
+FORMAT="image/jpeg"
+TILE_SIZE=512
+TYPE=""                                   # Pretty name of layer, no special chars
+TIME=""                                   # &time=YYYY-MM-DD time string for the MODIS time= option
+# Layer IDs:
+GLOBAL_MOSAIC_LAYER="global_mosaic_base"  # LANDSAT Global Mosaic
+SRTM_MAG_LAYER="srtm_mag"                 # srtm_mag (Space Shuttle Radar Topography Mission elevation)
+BMNG_LAYER="BMNG"                         # NASA' s Blue Marble Next Generation
+DAILY_TERRA_LAYER="daily_terra"           # Daily MODIS/TERRA
+DAILY_AQUA_LAYER="daily_aqua"             # Daily MODIS/AQUA
+
+IMPORT="true"
 USE_GDALWARP="true" #if we dont have gdalwarp, only LatLong projection is supported
-FILE_EXTENT=".tif"
+
+# try a few at once, but don't get abusive
+MAX_DL_JOBS=4
 
 
 # check if we have wget
@@ -129,7 +134,7 @@ fi
 # check if we have gdalwarp
 if [ ! -x "`which gdalwarp`" ] ; then
     g.message -w "gdalwarp is recommended, please install first (script still works in LatLong locations)"
-    USE_GDALWARP="false"  #use only LatLong
+    USE_GDALWARP="false"  # use only LatLong
 fi
 
 
@@ -137,6 +142,344 @@ fi
 # for now just support lat/lon
 USE_GDALWARP="false"
 ############
+
+
+
+# Get the data from the NASA server
+GetData()
+{
+   IMPORT="true" #default
+   #local STRING="request=GetMap&layers=$LAYER&srs=$SRS&width=$WIDTH&height=$HEIGHT&bbox=$w,$s,$e,$n&format=$FORMAT&version=1.1.0&styles=$STYLE$TIME"
+   BASE_REQUEST="request=GetMap&layers=$LAYER&srs=$SRS&width=$TILE_SIZE&height=$TILE_SIZE"
+   BASE_META="format=$FORMAT&version=1.1.1&styles=$STYLE$TIME"
+
+
+   local REQ_STRING="$BASE_REQUEST&$BBOX&$BASE_META"
+   URL="$BASE_URL?$REQ_STRING"
+
+   # Compose the filename
+   IMAGEFILE="$TMPDIR/OnEarth_${LAYER}_${STYLE}_$$.tif"
+   g.message -v "Download Data ..."
+   g.message -v "Requesting Data from '$BASE_URL'"
+
+   #download the File from the Server
+   #wget $WGET_OPTIONS --post-data="$REQ_STRING" "$BASE_URL" -O "$IMAGEFILE" 
+
+   OLDDIR=`pwd`
+   cd "$TMDDIR"
+   
+   for i in `seq $NUM_TILES_x` ; do
+      i_str=`echo "$i" | awk '{printf("%04d", $1)}'`
+      for j in `seq $NUM_TILES_y` ; do
+         j_str=`echo "$j" | awk '{printf("%04d", $1)}'`
+         minx=$(echo "$w $i $tile_res" | awk '{printf("%.9f", $1 + (($2 - 1) * $3))}')
+         maxx=$(echo "$w $i $tile_res" | awk '{printf("%.9f", $1 + ($2 * $3))}')
+         maxy=$(echo "$n $j $tile_res" | awk '{printf("%.9f", $1 - (($2 - 1) * $3))}')
+         miny=$(echo "$n $j $tile_res" | awk '{printf("%.9f", $1 - ($2 * $3))}')
+   
+         BBOX_TILE="$minx,$miny,$maxx,$maxy"
+         BBOX="bbox=$BBOX_TILE"
+         g.message -d message="  $BBOX"
+   
+         local REQ_STRING="$BASE_REQUEST&$BBOX&$BASE_META"
+         g.message -d "URL is [$BASE_URL?$REQ_STRING]"
+   
+         #CMD="wget -nv \"$URL\" -O twms_${i_str}_${j_str}.jpg"
+         CMD="wget -nv --post-data="$REQ_STRING" "$BASE_URL" -O twms_${i_str}_${j_str}.jpg"
+   
+   
+         MODULUS=`echo "$j $MAX_DL_JOBS" | awk '{print $1 % $2}'`
+         g.message -d message="modulus=$MODULUS"
+         if [ "$MODULUS" = "0" ] || [ "$j" = "$NUM_TILES_y" ] ; then
+             # stall to let the background jobs finish
+            g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y]."
+            eval $CMD
+	    EXITCODE=$?
+	    wait
+	    if [ "$EXITCODE" -ne 0 ] ; then
+               g.message -e "wget was not able to download the data"
+               IMPORT="false"
+               return 1
+            fi
+         else
+            g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y],"
+            eval $CMD &
+         fi
+         wait
+      done
+   done
+   
+   #### some checks before going on
+   if [ `ls -1 twms_*.jpg | wc -l` -lt "$TOTAL_TILES" ] ; then
+       g.message -e "Tile(s) appear to be missing."
+       IMPORT="false"
+       return 1
+   fi
+   
+   for file in twms_*.jpg ; do
+       if [ ! -s "$file" ] ; then
+   	g.message -e "<$file> appears to be empty."
+	IMPORT="false"
+   	return 1
+       fi
+       if [ `file "$file" | grep -c JPEG` -eq 0 ] ; then
+   	g.message -e "<$file> appears to be bogus."
+   	if [ `file "$file" | grep -c XML` -eq 1 ] && [ "$GRASS_VERBOSE" = "true" ] ; then
+   	   cat "$file"
+   	fi
+	IMPORT="false"
+   	return 1
+       fi
+   done
+   
+   g.message -v "Converting to pnm ..." 1>&2
+   for file in twms_*.jpg ; do
+       jpegtopnm "$file" > `basename "$file" .jpg`.pnm
+   done
+   
+   g.message -v "Patching ..." 1>&2
+   
+   for j in `seq $NUM_TILES_y` ; do
+      j_str=`echo "$j" | awk '{printf("%04d", $1)}'`
+      tilefiles=`ls twms_*_${j_str}.pnm`
+      #echo $tilefiles
+      pnmcat -lr $tilefiles > "row_${j_str}.pnm"
+   done
+   
+   pnmcat -tb row_*.pnm | pnmtojpeg --quality=75 > "mosaic_$$.jpg"
+   
+   rm -f twms_*.pnm twms_*.jpg row*.pnm
+
+   #not needed
+   #far_e=$(echo "$e $tile_res" | awk '{printf("%.9f", $1 + $2)}')
+   #far_s=$(echo "$s $tile_res" | awk '{printf("%.9f", $1 - $2)}')
+
+   # Convert to GeoTIFF
+   gdal_translate "mosaic_$$.jpg" "mosaic_$$.tif" \
+      -a_srs EPSG:4326 -a_ullr $w $n $e $s
+      #-co COMPRESS=DEFLATE
+   
+   mv "mosaic_$$.tif" "$IMAGEFILE"
+   \rm "mosaic_$$.jpg"
+
+   if [ -f "$IMAGEFILE" ] ; then 
+     IMPORT="true"
+   else
+     g.message -e "wget was not able to download the data"
+     IMPORT="false"
+     return 1
+   fi
+
+   return 0
+}
+
+
+
+#warp the data to the current grass locationa via gdalwarp
+WarpData()
+{
+    if [ "$USE_GDALWARP" = "true" ] ; then 
+	g.message -v "**** CONVERT DATA  ****"
+	#create the new imagename
+	IMAGEFILE_GDALWARP="$TMPDIR/Image_${LAYER}_${STYLE}_${HEIGHT}_${WIDTH}_gdalwarp"
+
+	   #convert the data to the current location, create Erdas Imagine Images (HFA)
+	gdalwarp -s_srs "$SRS" -t_srs "`g.proj -wf`" -of HFA \
+	    "$IMAGEFILE" "$IMAGEFILE_GDALWARP"
+	if [ $? -ne 0 ] ; then
+	  g.message -i '!-------- CAN NOT CONVERT DATA --------!'
+	  g.message -i '!------------ WILL BREAK --------------!'
+	  exitprocedure
+	fi
+	g.message -v "**** DATA CONVERTED ****"
+	#remove the old image and convert the name
+	rm -f "$IMAGEFILE"
+	IMAGEFILE="$IMAGEFILE_GDALWARP"
+	return 0
+    fi
+    return 1
+}
+
+
+#Import the Data with r.in.gdal
+ImportData()
+{
+    if [ "$IMPORT" != "true" ] ; then
+	return 0
+    fi
+
+    #Check if Tiff file
+    FILETYPE=`file  "$IMAGEFILE" | cut -f2 -d':'`
+    g.message -v "File of Type: $FILETYPE"
+    if [ `echo "$FILETYPE" | grep -c 'TIFF'` -ne 1 ] ; then
+    	g.message -w "Downloaded file does not appear to be a TIFF image, but will try to import anyway"
+    fi
+
+    g.message -v "Checking Data ..."
+
+    gdalinfo "$IMAGEFILE" > /dev/null
+
+    if [ $? -ne 0 ] ; then
+    	g.message -e "Downloaded file is not supported by gdal, or cannot be imported"
+    	#if [ $ReturnValueGdalBug -eq 0 ] ; then
+    	#    echo "There was a problem while downloading the file, maybe you should try it again."
+    	#fi
+    	#If the File is XML, then cat the contents to stdout
+    	echo "$FILETYPE" | grep XML > /dev/null
+    	if [ $? -eq 0 ] ; then
+    	    g.message " "
+    	    g.message "Message from Server $BASE_URL"
+    	    echo " " 1>&2
+    	    echo '!------------BEGIN-ERROR-MESSGAE--------------!' 1>&2
+    	    cat "$IMAGEFILE" 1>&2
+    	    echo '!-------------END-ERROR-MESSGAE---------------!' 1>&2
+    	fi
+    fi
+
+    g.message -d "Data checked & was ok."
+
+    ### Copy or import
+    if [ "$GIS_FLAG_F" -eq 1 ] ; then
+    	# Copy the data to the output file
+    	g.message -v "Creating output file $GIS_OPT_FILE$TYPE$STYLE$FILE_EXTENT"
+    	cp "$IMAGEFILE" "$GIS_OPT_FILE$TYPE$STYLE$FILE_EXTENT"
+    else
+    	# Warp the data!
+    	WarpData
+
+    	g.message -v "Importing image ..."
+
+	OUTNAME=`basename "$GIS_OPT_OUTPUT" _`
+	OUTNAME="${OUTNAME}_${TYPE}_$STYLE"
+
+	r.in.gdal input="$IMAGEFILE" output="$OUTNAME" \
+	   title="NASA OnEarth WMS $LAYER ($STYLE)"
+
+	for COLOR in red green blue ; do
+	   r.support "$OUTNAME.$COLOR" \
+	      history="Data downloaded from NASA's OnEarth WMS server with r.in.onearth"
+	done
+    fi
+
+    # free up the disk space ASAP
+    rm -f "$IMAGEFILE"
+    return 0
+}
+
+
+# what to do in case of user break:
+exitprocedure()
+{
+    g.message 'User break!'
+    cd ..
+    rm -rf "$TMPDIR"
+    unset WIND_OVERRIDE
+    g.remove region="tmp_tiled_wms.$$" --quiet
+    exit 1
+}
+trap "exitprocedure" 2 3 15
+
+
+#At least one flag should be set
+if [ $GIS_FLAG_L -eq 0  -a  $GIS_FLAG_S -eq 0  -a  $GIS_FLAG_B -eq 0 ] \
+   && [ $GIS_FLAG_T -eq 0  -a  $GIS_FLAG_A -eq 0 ] ; then
+    g.message -e "Select a flag to specify map type"
+    exit 1
+fi
+
+#Check if a file or a map should be created
+if [ "$GIS_FLAG_F" -eq 1 ] ; then
+    if [ -z "$GIS_OPT_FILE" ] ; then
+	g.message -e "Please specify an output filename"
+	exit 1
+    fi
+    if [ -e "$GIS_OPT_FILE" ] ; then
+	g.message -e "Output filename already exists. Will not overwrite. Aborting."
+	exit 1
+    fi
+fi
+
+#Some mapset informations 
+eval `g.gisenv`
+: ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
+LOCATION="$GISDBASE/$LOCATION_NAME/$MAPSET"
+PERM="$GISDBASE/$LOCATION_NAME/PERMANENT"
+
+#wget has many options
+WGET_OPTIONS="$GIS_OPT_WGETOPT"
+
+# Tiled WMS is locked at one size fits all
+WIDTH="$TILE_SIZE"
+HEIGHT="$TILE_SIZE"
+
+
+# are we in the server's native projection?
+PROJ_CODE=`g.region -p | grep '^projection:' | awk '{print $2}'`
+DATUM=`g.region -p | grep '^datum:' | awk '{print $2}'`
+if [ $PROJ_CODE -eq 3 ] && [ `echo "$DATUM" | grep -ci 'wgs84'` -eq 1 ] ; then
+   IS_4326="true"
+else
+   IS_4326="false"
+fi
+
+
+
+#######################################################
+# start of old code
+
+#Now get the LatLong Boundingbox
+if [ "$IS_4326" = "false" ] && [ "$USE_GDALWARP" = "true" ] ; then
+    eval `g.region -gb`
+    n="$ll_n"
+    s="$ll_s"
+    e="$ll_e"
+    w="$ll_w"
+    g.message -v "LatLong wgs84 bounding box = N $n S $s W $w E $e"
+else
+    #We have LatLong projection, no warp is needed!
+    USE_GDALWARP="false"
+fi
+
+if [ 0 -eq 1 ] ; then
+    #There is a bug in nasa WMS service, it provides images which are lager then
+    #the world :(, we have to crop the images
+    if [ "$n" = "90" -a "$s" = "-90" ] && \
+       [ "$w" = "-180" -a "$e" = "180" ] ; then
+
+	# check if we have bc
+	if [ ! -x "`which bc`" ] ; then
+	    g.message -e "bc required, please install first"
+	    exit 1
+	fi
+	#We request a smaller image from the wms server
+	n=`echo "$n - 0.001" | bc`
+	s=`echo "$s + 0.001" | bc`
+	e=`echo "$e - 0.001" | bc`
+	w=`echo "$w + 0.001" | bc`
+    fi
+fi
+###old
+
+# end of old code
+#######################################################
+
+
+
+
+#Break If we have no warp and no LatLong
+if [ "$IS_4326" = "false" ] && [ "$USE_GDALWARP" = "false" ] ; then
+    g.message -e "NASA OnEarth data are in Latitude-Longitude WGS84. The \
+		  current location projection differs and you don't \
+		  have 'gdalwarp' installed. Aborting."
+    exit 1
+fi
+
+
+
+
+
+#######################################################
+# start of todo code dump
 
 eval `g.region -g`
 
@@ -225,7 +568,7 @@ e=`echo "$e $tile_res" | awk '
    printf("%.15g", -180.0 + ceil((180.0 + $1) / $2) * $2)
  }'`
 
-#needed?
+# needed?
 #g.region n=$n s=$s e=$e w=$w
 
 #NUM_TILES_x=`echo "$e $w $tile_res" | awk '{ printf("%d", 1 + (($1 - $2) / $3)) }'`
@@ -247,116 +590,6 @@ if [ "$TOTAL_TILES" -gt 200 ] ; then
      esac
 fi
 
-
-#######################################################
-# start of todo code dump
-
-
-LAYER="global_mosaic_base"
-STYLE="visual"
-
-BASE_URL="http://onearth.jpl.nasa.gov/wms.cgi"
-BASE_REQUEST="request=GetMap&layers=$LAYER&srs=EPSG:4326&width=512&height=512"
-BASE_META="format=image/jpeg&version=1.1.1&styles=$STYLE"
-
-
-# try a few at once, but don't get abusive
-MAX_DL_JOBS=4
-
-for i in `seq $NUM_TILES_x` ; do
-   i_str=`echo "$i" | awk '{printf("%04d", $1)}'`
-   for j in `seq $NUM_TILES_y` ; do
-      j_str=`echo "$j" | awk '{printf("%04d", $1)}'`
-      minx=$(echo "$w $i $tile_res" | awk '{printf("%.9f", $1 + (($2 - 1) * $3))}')
-      maxx=$(echo "$w $i $tile_res" | awk '{printf("%.9f", $1 + ($2 * $3))}')
-      maxy=$(echo "$n $j $tile_res" | awk '{printf("%.9f", $1 - (($2 - 1) * $3))}')
-      miny=$(echo "$n $j $tile_res" | awk '{printf("%.9f", $1 - ($2 * $3))}')
-
-      BBOX_TILE="$minx,$miny,$maxx,$maxy"
-      BBOX="bbox=$BBOX_TILE"
-      g.message -d message="  $BBOX"
-
-      URL="$BASE_URL?$BASE_REQUEST&$BBOX&$BASE_META"
-
-      CMD="wget -nv \"$URL\" -O twms_${i_str}_${j_str}.jpg"
-
-      MODULUS=`echo "$j $MAX_DL_JOBS" | awk '{print $1 % $2}'`
-      g.message -d message="modulus=$MODULUS"
-      if [ "$MODULUS" = "0" ] || [ "$j" = "$NUM_TILES_y" ] ; then
-          # stall to let the background jobs finish
-         g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y]."
-         eval $CMD
-         wait
-      else
-         g.message -v "Downloading tile [$i,$j] of [${NUM_TILES_x}x$NUM_TILES_y],"
-         eval $CMD &
-      fi
-      wait
-   done
-done
-
-
-#### some checks before going on
-if [ `ls -1 twms_*.jpg | wc -l` -lt "$TOTAL_TILES" ] ; then
-    g.message -e "Tile(s) appear to be missing."
-    exit 1
-fi
-
-for file in twms_*.jpg ; do
-    if [ ! -s "$file" ] ; then
-	echo "ERROR: <$file> appears to be empty." 1>&2
-	exit 1
-    fi
-    if [ `file "$file" | grep -c JPEG` -eq 0 ] ; then
-	echo "ERROR: <$file> appears to be bogus." 1>&2
-	if [ `file "$file" | grep -c XML` -eq 1 ] && [ "$GRASS_VERBOSE" = "true" ] ; then
-	   cat "$file"
-	fi
-	exit 1
-    fi
-done
-
-g.message -v "Converting to pnm ..." 1>&2
-for file in twms_*.jpg ; do
-    jpegtopnm "$file" > `basename "$file" .jpg`.pnm
-done
-
-
-
-g.message -v "Patching ..." 1>&2
-
-for j in `seq $NUM_TILES_y` ; do
-   j_str=`echo "$j" | awk '{printf("%04d", $1)}'`
-   tilefiles=`ls twms_*_${j_str}.pnm`
-   #echo $tilefiles
-   pnmcat -lr $tilefiles > "row_${j_str}.pnm"
-done
-
-pnmcat -tb row_*.pnm | pnmtojpeg --quality=75 > mosaic_$$.jpg
-
-rm -f twms_*.pnm twms_*.jpg row*.pnm
-
-#not needed
-#far_e=$(echo "$e $tile_res" | awk '{printf("%.9f", $1 + $2)}')
-#far_s=$(echo "$s $tile_res" | awk '{printf("%.9f", $1 - $2)}')
-
-gdal_translate mosaic_$$.jpg mosaic_$$.tif \
-  -a_srs EPSG:4326 -a_ullr $w $n $e $s
-  #-co COMPRESS=DEFLATE
-
-r.in.gdal in="mosaic_$$.tif" out="tmp_rio_$$" \
-   title="NASA OnEarth WMS $LAYER ($STYLE)"
-
-for COLOR in red green blue ; do
-   r.support "tmp_rio_$$.$COLOR" \
-      history="Data downloaded from NASA's OnEarth WMS server with r.in.onearth"
-done
-
-# free up the disk space ASAP
-\rm "mosaic_$$.tif"
-
-
-
 # end of todo code dump
 #######################################################
 
@@ -364,201 +597,7 @@ done
 
 
 
-
-#Some functions
-#Get the data from the NASA server
-GetData()
-{
-   IMPORT=0 #default
-   local STRING="request=GetMap&layers=$LAYER&srs=$SRC&width=$WIDTH&height=$HEIGHT&bbox=$w,$s,$e,$n&format=$FORMAT&version=1.1.0&styles=$STYLE$TIME"
-   #echo $STRING
-   #Create thefilename
-   IMAGEFILE="$TMPDIR/Image_${LAYER}_${STYLE}_${HEIGHT}_$WIDTH"
-   g.message -v "**** DOWNLOAD DATA ****"
-   g.message -v "Requesting Data from $NASASERVER"
-
-   #download the File from the Server
-   wget $WGET_OPTIONS --post-data="$STRING" "$NASASERVER" -O "$IMAGEFILE" 
-
-   if [ $? -ne 0 ] ; then
-     g.message -e "wget was not able to download the data"
-     IMPORT=1
-     return 1
-   fi
-
-   if [ -f "$IMAGEFILE" ] ; then 
-     IMPORT=0
-   else
-     g.message -e "wget was not able to download the data"
-     IMPORT=1
-     return 1
-   fi
-return 0
-}
-
-
-#warp the data to the current grass locationa via gdalwarp
-WarpData()
-{
-    if [ "$USE_GDALWARP" = "true" ] ; then 
-	g.message -v "**** CONVERT DATA  ****"
-	#create the new imagename
-	IMAGEFILE_GDALWARP="$TMPDIR/Image_${LAYER}_${STYLE}_${HEIGHT}_${WIDTH}_gdalwarp"
-
-	   #convert the data to the current location, create Erdas Imagine Images (HFA)
-	gdalwarp -s_srs "$SRC" -t_srs "`g.proj -wf`" -of HFA \
-	    "$IMAGEFILE" "$IMAGEFILE_GDALWARP"
-	if [ $? -ne 0 ] ; then
-	  g.message -i '!-------- CAN NOT CONVERT DATA --------!'
-	  g.message -i '!------------ WILL BREAK --------------!'
-	  exitprocedure
-	fi
-	g.message -v "**** DATA CONVERTED ****"
-	#remove the old image and convert the name
-	rm -f "$IMAGEFILE"
-	IMAGEFILE="$IMAGEFILE_GDALWARP"
-	return 0
-    fi
-    return 1
-}
-
-
-#Import the Data with r.in.gdal
-ImportData()
-{
-   if [ "$IMPORT" -eq 0 ] ; then 
-	#Check if Tiff file
-	FILETYPE=`file  "$IMAGEFILE" | cut --fields=2 --delimiter=:`
-	echo "$FILETYPE" | grep TIFF > /dev/null
-	if [ $? -ne 0 ] ; then
-	    g.message -i "Downloaded file is not a GeoTiff file, but will try to import"
-	fi
-	g.message -v "**** CHECK DATA ****"
-	gdalinfo "$IMAGEFILE" | grep "GDALOpen failed" > /dev/null
-	local ReturnValueGdalBug=$?
-	
-	gdalinfo "$IMAGEFILE"
-	local ReturnValueGdal=$?
-
-	if [ "$ReturnValueGdal" -eq 0 ] && [ "$ReturnValueGdalBug" -ne 0 ] ; then
-	    g.message -v "**** DATA CHECK OK ****"
-	    #Copy or import
-	    if [ "$GIS_FLAG_F" -eq 1 ] ; then
-		#Copy the data to the outputfile
-		g.message -v "Creating output file $GIS_OPT_FILE$TYPE$STYLE$FILE_EXTENT"
-		cp "$IMAGEFILE" "$GIS_OPT_FILE$TYPE$STYLE$FILE_EXTENT"
-	    else
-		#Warp the data!
-		WarpData
-		g.message -v "**** IMPORT DATA ****"
-		r.in.gdal -o input="$IMAGEFILE" \
-		     output="$GIS_OPT_OUTPUT${TYPE}_$STYLE"
-	    fi
-	else
-	    echo '!-------------------BREAK---------------------!'
-	    echo "Downloaded file is not supported by gdal, or cannot be imported"
-	    if [ $ReturnValueGdalBug -eq 0 ] ; then
-		echo "There was a problem while downloading the file, maybe you should try it again."
-	    fi
-	    g.message -v "File of Type: $FILETYPE"
-	    #If the File is XML, then cat the contents to stdout
-	    echo "$FILETYPE" | grep XML > /dev/null
-	    if [ $? -eq 0 ] ; then
-		g.message " "
-		g.message "Message from Server $NASASERVER"
-		echo " "
-		echo '!------------BEGIN-ERROR-MESSGAE--------------!'
-		cat "$IMAGEFILE"
-		echo '!-------------END-ERROR-MESSGAE---------------!'
-	    fi
-	fi
-	rm -rf "$IMAGEFILE"
-    fi
-    return 0
-}
-
-
-# what to do in case of user break:
-exitprocedure()
-{
-    g.message 'User break!'
-    rm -rf "$TMPDIR"
-    unset WIND_OVERRIDE
-    g.remove region="tmp_tiled_wms.$$" --quiet
-    exit 1
-}
-trap "exitprocedure" 2 3 15
-
-
-#At least one flag should be set
-if [ $GIS_FLAG_L -eq 0  -a  $GIS_FLAG_S -eq 0  -a  $GIS_FLAG_B -eq 0 ] \
-   && [ $GIS_FLAG_T -eq 0  -a  $GIS_FLAG_A -eq 0 ] ; then
-    g.message -e "Select a flag to specify map type"
-    exit 1
-fi
-
-#Check if a file or a map should be created
-if [ "$GIS_FLAG_F" -eq 1 ] ; then
-    if [ -z "$GIS_OPT_FILE"] ; then
-	  g.message -e "Please specify the output filename"
-	exit 1
-    fi
-fi
-
-#Some mapset informations 
-eval `g.gisenv`
-: ${GISBASE?} ${GISDBASE?} ${LOCATION_NAME?} ${MAPSET?}
-LOCATION="$GISDBASE/$LOCATION_NAME/$MAPSET"
-PERM="$GISDBASE/$LOCATION_NAME/PERMANENT"
-
-#wget has many options
-WGET_OPTIONS="$GIS_OPT_WGETOPT"
-
-#Get the region data 
-eval `g.region -g`
-WIDTH="$cols"
-HEIGHT="$rows"
-eval `g.region -gb`
-#Now get the LatLong Boundingbox
-grep -i 'proj: ll' $PERM/PROJ_INFO > /dev/null
-if [ $? -ne 0 ] && [ "$USE_GDALWARP" = "true" ] ; then
-    n="$ll_n"
-    s="$ll_s"
-    e="$ll_e"
-    w="$ll_w"
-    g.message -v "LatLong wgs84 bounding box = N $n S $s W $w E $e"
-else
-    #We have LatLong projection, no warp is needed!
-    USE_GDALWARP="false"
-    #There is a bug in nasa WMS service, it provides images which are lager then
-    #the world :(, we have to crop the images
-    if [ "$n" = "90" -a "$s" = "-90" ] && \
-       [ "$w" = "-180" -a "$e" = "180" ] ; then
-
-	# check if we have bc
-	if [ ! -x "`which bc`" ] ; then
-	    g.message -e "bc required, please install first"
-	    exit 1
-	fi
-	#We request a smaller image from the wms server
-	n=`echo "$n - 0.001" | bc`
-	s=`echo "$s + 0.001" | bc`
-	e=`echo "$e - 0.001" | bc`
-	w=`echo "$w + 0.001" | bc`
-    fi
-fi
-
-#Break If we have no warp and no LatLong
-grep -i 'proj: ll' "$PERM/PROJ_INFO" > /dev/null
-if [ $? -ne 0 ] && [ "$USE_GDALWARP" = "false" ] ; then
-    g.message -e "NASA OnEarth data are in Latitude/Longitude. The \
-		  current location projection differs and you don't \
-		  have gdalwarp! STOP."
-    exit 1
-fi
-
-
-#make a temporary directory
+# make a temporary directory
 TMPDIR="`g.tempfile pid=$$`"
 if [ $? -ne 0 ] || [ -z "$TMPDIR" ] ; then
     g.message -e "Unable to create temporary files"
@@ -567,24 +606,24 @@ fi
 rm -f "$TMPDIR"
 mkdir "$TMPDIR"
 
-#Get the Data and import them
-#import every choice that can be made
+
+# Get the Data and import
+#  allow multiple outputs: import every choice that can be made
 
 if [ $GIS_FLAG_L -eq 1 ] ; then
     LAYER="$GLOBAL_MOSAIC_LAYER"
     STYLE="$GIS_OPT_TMBAND"
     TYPE="LandsatTM"
-    g.message -v "Will download and import $TYPE Data with band $STYLE"
+    g.message -v "Will download and import $TYPE Data for band $STYLE"
     GetData
     ImportData
 fi
-
 
 if [ $GIS_FLAG_S -eq 1 ] ; then
     LAYER="$SRTM_MAG_LAYER"
     STYLE="$GIS_OPT_SRTMBAND"
     TYPE="SRTM"
-    g.message -v "Will download and import $TYPE Data with band $STYLE"
+    g.message -v "Will download and import $TYPE Data for band $STYLE"
     GetData
     ImportData
 fi
@@ -593,7 +632,7 @@ if [ $GIS_FLAG_B -eq 1 ] ; then
     LAYER="$BMNG_LAYER"
     STYLE="$GIS_OPT_MONTH"
     TYPE="BMNG"
-    g.message -v "Will download and import $TYPE Data of month $STYLE"
+    g.message -v "Will download and import $TYPE Data for the month of $STYLE"
     GetData
     ImportData
 fi
@@ -618,12 +657,13 @@ if [ $GIS_FLAG_A -eq 1 ] ; then
     ImportData
 fi
 
+
 #remove the temp dir
 rm -rf "$TMPDIR"
 
 unset WIND_OVERRIDE
 g.remove region="tmp_tiled_wms.$$" --quiet
 
-g.message -v "Finished"
+g.message -v "$0 Done."
 
-exit 0
+exit
