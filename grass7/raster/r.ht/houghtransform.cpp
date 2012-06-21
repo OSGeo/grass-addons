@@ -23,8 +23,8 @@ struct SortByY
 
 /* ctors */
 
-HoughTransform::HoughTransform(const Matrix &matrix):
-    mOriginalMatrix(matrix)
+HoughTransform::HoughTransform(const Matrix &matrix, const HoughParametres& parametrs)
+    : mOriginalMatrix(matrix), mParams(parametrs)
 {
     mNumR = mOriginalMatrix.rows();
     mNumC = mOriginalMatrix.columns();
@@ -192,18 +192,21 @@ void HoughTransform::removePeakEffect(const CoordinatesList &neighbours, Coordin
     }
     int angle = neighbours.front().second;
     // what to do if find endpoints finds nothing reasonable?
-    findEndPoints( lineList, beginLine, endLine, angle);
+    findEndPoints(lineList, beginLine, endLine, angle);
 }
 
-bool HoughTransform::findEndPoints(CoordinatesList list, Coordinates &beginLine, Coordinates &endLine, const int angle )
+/** \param list[in, out] will be sorted by y cooridinate
+  if angle is in range (45, 135] or by x otherwise
+  */
+bool HoughTransform::findEndPoints(CoordinatesList& list, Coordinates &beginLine, Coordinates &endLine, const int angle)
 {
     if (angle > 45 && angle <= 135)
     {
-        list.sort(SortByY());
+        std::sort(list.begin(), list.end(), SortByY());
     }
     else
     {
-        list.sort(SortByX());
+        std::sort(list.begin(), list.end(), SortByX());
     }
 
     beginLine = list.front();

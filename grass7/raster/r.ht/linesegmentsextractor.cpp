@@ -1,4 +1,4 @@
-#include "extract_line.h"
+#include "linesegmentsextractor.h"
 
 #include "matrix.h"
 
@@ -15,6 +15,8 @@ struct Point
     int x;
     int y;
 };
+
+/* non-member functions */
 
 double segmentLenght(const Segment& segment)
 {
@@ -89,7 +91,7 @@ void find_indices(std::vector<int>& indicesI, std::vector<int>& indicesJ,
     }
 }
 
-bool segmentContainsPoint(Segment segment, std::pair<int, int> p, bool xFlag, int tol)
+bool segmentContainsPoint(const Segment& segment, const std::pair<int, int>& p, bool xFlag, int tol)
 {
   int min, max;
   if (xFlag)
@@ -120,12 +122,14 @@ bool segmentContainsPoint(Segment segment, std::pair<int, int> p, bool xFlag, in
   return false;
 }
 
-void extract(const Matrix& I,
-             float orient, int gapSize, int maxNumOfGaps, const int lineGap, const int lineLength,
-             LineCoordinates lineCoordinates, SegmentList& segments)
+/* member functions */
+
+void LineSegmentsExtractor::extract(LineCoordinates lineCoordinates,
+                                    float orient,
+                                    SegmentList& segments)
 {
-    const int rows = I.rows ();
-    const int cols = I.columns ();
+    const int rows = mImage.rows();
+    const int cols = mImage.columns();
 
     float rho = 1.0;
     float irho = 1./rho;
@@ -141,11 +145,10 @@ void extract(const Matrix& I,
     float b = (float)(cos(orient) * irho); //trigtab[theta_n*2];
 
     int dx0, dy0;
-    int line_width = 3;
     const int shift = 16;
 
-    std::vector<int> indicesI(line_width);
-    std::vector<int> indicesJ(line_width);
+    std::vector<int> indicesI(lineWidth);
+    std::vector<int> indicesJ(lineWidth);
 
     int lineNum = 0;
     while (!lineCoordinates.empty())
@@ -184,7 +187,7 @@ void extract(const Matrix& I,
             // stop at the image border or in case of too big gap
             for ( ;; x += dx, y += dy )
             {
-                find_indices(indicesI, indicesJ, shift, xflag, x, y, line_width);
+                find_indices(indicesI, indicesJ, shift, xflag, x, y, lineWidth);
 
                 remove_points(lineCoordinates, indicesI, indicesJ);
 
@@ -192,7 +195,7 @@ void extract(const Matrix& I,
                 //    update line end,
                 //    clear the mask element
                 //    reset the gap
-                if ( isData(I, indicesI, indicesJ, cols, rows) )
+                if ( isData(mImage, indicesI, indicesJ, cols, rows) )
                 {
                     if (gap > gapSize)
                     {

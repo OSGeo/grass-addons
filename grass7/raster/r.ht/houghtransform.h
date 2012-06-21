@@ -1,6 +1,7 @@
 #ifndef HOUGHTRANSFORM_H
 #define HOUGHTRANSFORM_H
 
+#include "houghparameters.h"
 #include "matrix.h"
 
 #include <cmath>
@@ -19,17 +20,24 @@ class HoughTransform
 {
 public:
 
-    /* typedefs */
+    /* types */
 
+    /** This is class to provide compatible syntax with \c std::list. */
     template <typename T>
-    class MyVector: public std::vector<T>
+    class Vector: public std::vector<T>
     {
     public:
+
+        /**
+          Maybe it would be better to replace by an overload of sort function for list.
+          And use this function for list.
+          */
         template <typename Comp>
         void sort(Comp comp)
         {
             std::sort(this->begin(), this->end(), comp);
         }
+        /** only for convenience, with some compiler optimalisation overhead shouldn't be so high  */
         operator std::list<T>() const
         {
             std::list<T> tmp;
@@ -39,7 +47,7 @@ public:
     };
 
     typedef std::pair<int, int> Coordinates;
-    typedef MyVector<Coordinates> CoordinatesList;
+    typedef Vector<Coordinates> CoordinatesList;
     typedef std::map<Coordinates, CoordinatesList> TracebackMap;
 
     struct Peak
@@ -57,10 +65,18 @@ public:
 
     /* functions */
 
-    HoughTransform(const Matrix &matrix);
+    HoughTransform(const Matrix &matrix, const HoughParametres &parametrs);
 
     void compute();
+    void compute(const Matrix& angles)
+    {
+        compute(angles, mParams.angleWidth);
+    }
     void compute(const Matrix& angles, double angleWith);
+    void findPeaks()
+    {
+        findPeaks(mParams.maxPeaksNum, mParams.threshold, mParams.sizeOfNeighbourhood);
+    }
     void findPeaks(int maxPeakNumber, int threshold,
                    const int sizeOfNeighbourhood);
 
@@ -75,11 +91,11 @@ private:
 
     /* functions */
 
+    // some of these functions can be changed to non-member
     CoordinatesList neighbourhood(Coordinates &coordinates, const int sizeOfNeighbourhood);
     void removePeakEffect(const CoordinatesList &neighbours, Coordinates &beginLine, Coordinates &endLine);
-    bool findEndPoints(CoordinatesList list, Coordinates &beginLine, Coordinates &endLine, const int angle );
+    bool findEndPoints(CoordinatesList& list, Coordinates &beginLine, Coordinates &endLine, const int angle);
     int findMax(const Matrix& matrix, Coordinates &coordinates);
-    void addToMaps(const std::vector<std::pair<Coordinates, Coordinates> > &pairs);
     void computeHoughForXY(int x, int y, size_t minIndex, size_t maxIndex);
 
     /* data members */
@@ -97,6 +113,8 @@ private:
     int c2;
     int r2;
     int bins0;
+
+    HoughParametres mParams;
 };
 
 

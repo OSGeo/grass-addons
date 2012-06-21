@@ -52,7 +52,8 @@ int main(int argc, char *argv[])
     struct Option *input, *output, *anglesOption, *houghImageNameOption,
             *angleWidthOption,
             *minGapOption, *maxNumberOfGapsOption,
-        *maxLinesOption, *maxGapOption, *minSegmentLengthOption;
+        *maxLinesOption, *maxGapOption, *minSegmentLengthOption,
+            *lineWidthOption;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]);		/* reads grass env, stores program name to G_program_name() */
@@ -136,6 +137,14 @@ int main(int argc, char *argv[])
     minSegmentLengthOption->description = _("Minimal length of line segment");
     minSegmentLengthOption->answer = const_cast<char *>("50");
 
+    lineWidthOption = G_define_option();
+    lineWidthOption->key = "line_width";
+    lineWidthOption->type = TYPE_INTEGER;
+    lineWidthOption->required = NO;
+    lineWidthOption->multiple = NO;
+    lineWidthOption->description = _("Expected width of line (used for searching segments)");
+    lineWidthOption->answer = const_cast<char *>("3");
+
     /* options and flags parser */
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -144,14 +153,18 @@ int main(int argc, char *argv[])
     result = output->answer;
     name = input->answer;
 
-    int maxPeaks = atoi(maxLinesOption->answer);
-    int threshold = 10;
-    int angleWidth = atoi(angleWidthOption->answer);
-    int gapSize = atoi(minGapOption->answer);
-    int gap = atoi(maxGapOption->answer);
-    int maxNumOfGaps = atoi(maxNumberOfGapsOption->answer);
-    int minSegmentLength = atoi(minSegmentLengthOption->answer);
-    int sizeOfNeighbourhood = 1;
+    ExtractParametres extractParametres;
+    HoughParametres houghParametres;
+
+    houghParametres.maxPeaksNum = atoi(maxLinesOption->answer);
+    houghParametres.threshold = 10;
+    houghParametres.angleWidth = atoi(angleWidthOption->answer);
+    extractParametres.gapSize = atoi(minGapOption->answer);
+    extractParametres.maxGap = atoi(maxGapOption->answer);
+    extractParametres.maxNumOfGaps = atoi(maxNumberOfGapsOption->answer);
+    extractParametres.lineLength = atoi(minSegmentLengthOption->answer);
+    extractParametres.lineWidth = atoi(lineWidthOption->answer);
+    houghParametres.sizeOfNeighbourhood = 1;
 
     /* returns NULL if the map was not found in any mapset,
      * mapset name otherwise */
@@ -178,7 +191,7 @@ int main(int argc, char *argv[])
 
     /* **** */
 
-    hough_peaks(maxPeaks, threshold, angleWidth, sizeOfNeighbourhood, gapSize, maxNumOfGaps, gap, minSegmentLength, name, mapset, nrows, ncols, anglesOption->answer, houghImageNameOption->answer, result);
+    hough_peaks(houghParametres, extractParametres, name, mapset, nrows, ncols, anglesOption->answer, houghImageNameOption->answer, result);
 
     /* **** */
 

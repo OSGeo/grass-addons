@@ -1,6 +1,6 @@
 #include "houghtransform.h"
 
-#include"extract_line.h"
+#include"linesegmentsextractor.h"
 #include "matrix.h"
 
 extern "C" {
@@ -38,6 +38,10 @@ using grass::G_gettext;
 using grass::G_fatal_error;
 using grass::G_debug;
 using grass::G_free;
+
+using grass::Colors;
+using grass::FPRange; // FIXME: DCELL/CELL
+using grass::G_mapset;
 
 /** Loads map into memory.
 
@@ -83,6 +87,18 @@ void read_raster_map(const char *name, const char *mapset, int nrows,
     G_free(row_buffer);
 
     Rast_close(map_fd);
+}
+
+void apply_hough_colors_to_map(const char *name)
+{
+    struct Colors colors;
+    struct FPRange range;
+    DCELL min, max;
+
+    Rast_read_fp_range(name, G_mapset(), &range);
+    Rast_get_fp_range_min_max(&range, &min, &max);
+    Rast_make_grey_scale_colors(&colors, min, max);
+    Rast_write_colors(name, G_mapset(), &colors);
 }
 
 void create_raster_map(const char *name, struct Cell_head *window, const Matrix& mat)
@@ -145,17 +161,17 @@ void create_vector_map(const char * name, const SegmentList& segments,
     struct grass::line_cats *Cats;
     Cats = Vect_new_cats_struct();
 
+
     for (size_t i = 0; i < segments.size(); ++i)
     {
         const Segment& seg = segments[i];
 
-        struct grass::line_pnts *points = Vect_new_line_struct();
+        struct grass::line_pnts *points = Vect_new_line_struct(); // FIXME: some destroy
 
         double y1 = Rast_row_to_northing(seg.first.first, cellhd);
         double x1 = Rast_col_to_easting(seg.first.second, cellhd);
         double y2 = Rast_row_to_northing(seg.second.first, cellhd);
         double x2 = Rast_col_to_easting(seg.second.second, cellhd);
-
 
         Vect_cat_set(Cats, 1, i+1); // cat is segment number (counting from one)
 
@@ -163,7 +179,6 @@ void create_vector_map(const char * name, const SegmentList& segments,
         Vect_append_point(points, x2, y2, 0);
 
         Vect_write_line(&Map, GV_LINE, points, Cats);
-
     }
 
     Vect_build(&Map);
@@ -173,8 +188,7 @@ void create_vector_map(const char * name, const SegmentList& segments,
 void extract_line_segments(const Matrix &I,
                            const HoughTransform::Peaks& peaks,
                            const HoughTransform::TracebackMap& houghMap,
-                           int gapSize, int maxNumOfGaps, int gap,
-                           int minSegmentLength,
+                           ExtractParametres extractParametres,
                            SegmentList& segments)
 {
     for (size_t i = 0; i < peaks.size(); ++i)
@@ -189,7 +203,9 @@ void extract_line_segments(const Matrix &I,
         {
             const HoughTransform::CoordinatesList& lineCoordinates = coordsIt->second;
 
-            extract(I, (theta-90)/180*M_PI, gapSize, maxNumOfGaps, gap, minSegmentLength, lineCoordinates, segments);
+            LineSegmentsExtractor extractor(I, extractParametres);
+
+            extractor.extract(lineCoordinates, (theta-90)/180*M_PI, segments);
         }
         else
         {
@@ -198,8 +214,8 @@ void extract_line_segments(const Matrix &I,
     }
 }
 
-void hough_peaks(int maxPeaks, int threshold, double angleWith, int sizeOfNeighbourhood,
-                 int gapSize, int maxNumOfGaps, int gap, int minSegmentLength,
+void hough_peaks(HoughParametres houghParametres,
+                 ExtractParametres extractParametres,
                  const char *name, const char *mapset, size_t nrows, size_t ncols,
                  const char *anglesMapName,
                  const char *houghImageName, const char *result)
@@ -207,33 +223,34 @@ void hough_peaks(int maxPeaks, int threshold, double angleWith, int sizeOfNeighb
     Matrix I(nrows, ncols);
     read_raster_map(name, mapset, nrows, ncols, I);
 
-    HoughTransform hough(I);
+    HoughTransform hough(I, houghParametres);
 
     if (anglesMapName != NULL)
     {
         Matrix angles(nrows, ncols);
         read_raster_map(anglesMapName, mapset, nrows, ncols, angles);
-        hough.compute(angles, angleWith);
+        hough.compute(angles);
     }
     else
     {
         hough.compute();
     }
 
-    hough.findPeaks(maxPeaks, threshold, sizeOfNeighbourhood);
+    hough.findPeaks();
 
     if (houghImageName != NULL)
     {
         struct Cell_head window;
         Rast_get_cellhd(name, "", &window);
         create_raster_map(houghImageName, &window, hough.getHoughMatrix());
+        apply_hough_colors_to_map(houghImageName);
     }
 
     const HoughTransform::Peaks& peaks = hough.getPeaks();
     const HoughTransform::TracebackMap& houghMap = hough.getHoughMap();
     SegmentList segments;
 
-    extract_line_segments(I, peaks, houghMap, gapSize, maxNumOfGaps, gap, minSegmentLength, segments);
+    extract_line_segments(I, peaks, houghMap, extractParametres, segments);
 
     Cell_head cellhd;
     Rast_get_window(&cellhd);
