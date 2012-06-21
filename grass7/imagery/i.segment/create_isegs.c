@@ -4,8 +4,9 @@
 
 #include <stdlib.h>
 #include <float.h>		/* to get value of LDBL_MAX -> change this if there is a more usual grass way */
-				/* #include <math.h>    *//* for sqrt() and pow() */
+							  /* #include <math.h>    *//* for sqrt() and pow() */
 #include <grass/gis.h>
+#include <grass/glocale.h>
 #include <grass/raster.h>
 #include <grass/segment.h>	/* segmentation library */
 #include <grass/linkm.h>	/* memory manager for linked lists */
@@ -15,29 +16,42 @@
 
 int create_isegs(struct files *files, struct functions *functions)
 {
-
+    int lower_bound, upper_bound;
     int successflag = 1;
+    struct Range range;
 
     /* TODO consider if there are _method specific_ parameter set up and memory allocation, should that happen here? */
-
-    /*TODO: implement outer loop to process polygon interior, then all remaining pixels */
-    /* This loop could go in here, or in main to contain open/create/write to reduced memory reqs.  But how merge the writes? */
 
     G_debug(1, "Threshold: %g", functions->threshold);
     G_debug(1, "segmentation method: %d", functions->method);
 
     functions->threshold = functions->threshold * functions->threshold * files->nbands;	/* use modified threshold to account for scaled input and to avoid square root in similarity comparison. *//* Todo, small, could put this in main outside of polygon loop */
 
-    if (functions->method == 0)
-	successflag = io_debug(files, functions);	/* TODO: why does it want `&files` in main, but `files` here ??? */
-    else if (functions->method == 1) {
-	G_debug(1, "starting region_growing()");
-	successflag = region_growing(files, functions);
+    /* set parameters for outer processing loop for polygon constraints */
+    if (files->bounds_map == NULL) {	/*normal processing */
+	lower_bound = upper_bound = 0;
+    }				/* just one time through loop */
+    else {
+	if (Rast_read_range(files->bounds_map, files->bounds_mapset, &range) <
+	    0) {
+	    G_fatal_error(_("Unable to read fp range for raster map <%s>"),
+			  files->bounds_map);
+	}			/* TODO, still should close files? */
+	Rast_get_range_min_max(&range, &lower_bound, &upper_bound);	/* todo, faster way to do this?  maybe do it manually when open and write to the segment file? But it is just once.... */
     }
-    else if (functions->method == 2)
-	successflag = ll_test(files, functions);
 
-    /* end outer loop for processing polygons */
+    for (files->current_bound = lower_bound; files->current_bound <= upper_bound; files->current_bound++) {	/* outer processing loop for polygon constraints */
+	G_debug(1, "current_bound = %d", files->current_bound);
+	if (functions->method == 0)
+	    successflag = io_debug(files, functions);	/* TODO: why does it want `&files` in main, but `files` here ??? */
+	else if (functions->method == 1) {
+	    G_debug(1, "starting region_growing()");
+	    successflag = region_growing(files, functions);
+	}
+	else if (functions->method == 2)
+	    successflag = ll_test(files, functions);
+
+    }				/* end outer loop for processing polygons */
 
     /* clean up? */
 
@@ -304,6 +318,8 @@ int region_growing(struct files *files, struct functions *functions)
     Rkn_head = NULL;
     Ri_bestn = NULL;
 
+    /* TODO, want to get a min/max row/col to narrow the processing window ??? */
+
     do {
 	/* do while loop on t to slowly lower threshold. also check that endflag==0 (no merges were made) */
 
@@ -314,33 +330,53 @@ int region_growing(struct files *files, struct functions *functions)
 	endflag = 1;
 
 	/* Set candidate flag to true/1 for all pixels TODO: for polygon/vector constraint, need to just set to true for those being processed */
+	if (files->bounds_map == NULL) {	/*normal processing */
+	    for (row = 0; row < files->nrows; row++) {
+		for (col = 0; col < files->ncols; col++) {
+		    segment_get(&files->out_seg, (void *)files->out_val, row, col);	/*need to get, since we only want to change the flag, and not overwrite the segment value. 
+											   TODO: consider splitting this, put flag in one segmentmentation file (or RAM), and segment assignment in another. */
+		    /* TODO: if we are starting from seeds...and only allow merges between unassigned pixels
+		     *  and seeds/existing segments, then this needs an if (and will be very inefficient)
+		     * maybe consider the sorted array, btree, map... but the number of seeds could still be high for a large map */
+		    files->out_val[1] = 1;	/*candidate pixel flag */
+		    segment_put(&files->out_seg, (void *)files->out_val, row,
+				col);
 
-	for (row = 0; row < files->nrows; row++) {
-	    for (col = 0; col < files->ncols; col++) {
-		segment_get(&files->out_seg, (void *)files->out_val, row, col);	/*need to get, since we only want to change the flag, and not overwrite the segment value. 
-										   TODO: consider splitting this, put flag in one segmentmentation file (or RAM), and segment assignment in another. */
-		/* TODO: if we are starting from seeds...and only allow merges between unassigned pixels
-		 *  and seeds/existing segments, then this needs an if (and will be very inefficient)
-		 * maybe consider the sorted array, btree, map... but the number of seeds could still be high for a large map */
-		files->out_val[1] = 1;	/*candidate pixel flag */
-		segment_put(&files->out_seg, (void *)files->out_val, row,
-			    col);
-
-		files->candidate_count++;	/*TODO this assumes full grid with no null or mask!! But need something to prevent "pathflag" infinite loop */
-
+		    files->candidate_count++;	/*TODO this assumes full grid with no null or mask!! But need something to prevent "pathflag" infinite loop */
+		}
 	    }
 	}
+	else {			/* polygon constraints/boundaries were supplied, include that criteria.  TODO: this repeats a lot of code, is there a way to combine this check without having too many extra if/etc statements ??? */
+	    for (row = 0; row < files->nrows; row++) {
+		for (col = 0; col < files->ncols; col++) {
+		    segment_get(&files->bounds_seg, &files->bounds_val, row,
+				col);
+		    segment_get(&files->out_seg, (void *)files->out_val, row,
+				col);
+
+		    if (files->bounds_val == files->current_bound)	/*TODO could move this if statement one line up, and only set "1" flags if we can assume all flags are already zero.  (i.e. only get/put the ones we want to set to 1.) */
+			files->out_val[1] = 1;	/*candidate pixel flag */
+		    else
+			files->out_val[1] = 0;
+
+		    segment_put(&files->out_seg, (void *)files->out_val, row,
+				col);
+
+		    files->candidate_count++;	/*TODO this assumes full grid with no null or mask!! But need something to prevent "pathflag" infinite loop */
+		}
+	    }
+	}
+
 	G_debug(4, "Starting to process %d candidate pixels",
 		files->candidate_count);
 
 	/*process candidate pixels */
-
+	G_verbose_message("Row percent complete for pass number %d: ", t);
 	/*check each pixel, start the processing only if it is a candidate pixel */
 	for (row = 0; row < files->nrows; row++) {
 	    for (col = 0; col < files->ncols; col++) {
 
-		/* G_verbose_message("Completion for pass number %d: ", t); */
-		G_percent(row, files->nrows, 1);	/*this didn't get displayed in the output??? Does it get erased when done? */
+		G_percent(row, files->nrows, 1);	/* TODO, can a message be included with G_percent? */
 
 		G_debug(4,
 			"Next starting pixel from next row/col, not from Rk");

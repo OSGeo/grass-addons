@@ -12,35 +12,29 @@ int parse_args(int argc, char *argv[], struct files *files,
 {
     /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
 
-    struct Option *group, *seeds, *output, *method, *threshold;	/* Establish an Option pointer for each option */
+    struct Option *group, *seeds, *bounds, *output, *method, *threshold;	/* Establish an Option pointer for each option */
     struct Flag *diagonal, *weighted;	/* Establish a Flag pointer for each option */
 
-    group = G_define_standard_option(G_OPT_I_GROUP);
-
-    /* TODO: OK to require the user to create a group?  Otherwise later add an either/or option to give just a single raster map... */
-
-    /* Using raster for seeds, Low priority TODO: allow vector points/centroids seed input. */
-    seeds = G_define_standard_option(G_OPT_R_INPUT);
-    seeds->key = "seeds";
-    seeds->type = TYPE_STRING;
-    seeds->required = NO;
-    seeds->description = _("Optional raster map with starting seeds.");
+    /* required parameters */
+    group = G_define_standard_option(G_OPT_I_GROUP);	/* TODO: OK to require the user to create a group?  Otherwise later add an either/or option to give just a single raster map... */
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
-
-    method = G_define_option();
-    method->key = "method";
-    method->type = TYPE_STRING;
-    method->required = NO;
-    method->answer = "region_growing";
-    method->options = "region_growing, io_debug, ll_test";	/*io_debug just writes row+col to each output pixel, ll_test for testing linked list data structure */
-    method->description = _("Segmentation method.");
 
     threshold = G_define_option();
     threshold->key = "threshold";
     threshold->type = TYPE_DOUBLE;
     threshold->required = YES;
     threshold->description = _("Similarity threshold.");
+
+    method = G_define_option();
+    method->key = "method";
+    method->type = TYPE_STRING;
+    method->required = YES;
+    method->answer = "region_growing";
+    method->options = "region_growing, io_debug, ll_test";	/*io_debug just writes row+col to each output pixel, ll_test for testing linked list data structure */
+    method->description = _("Segmentation method.");
+
+    /* optional parameters */
 
     diagonal = G_define_flag();
     diagonal->key = 'd';
@@ -52,36 +46,57 @@ int parse_args(int argc, char *argv[], struct files *files,
     weighted->description =
 	_("Weighted input, don't perform the default scaling of input maps.");
 
+    /* Using raster for seeds, Low priority TODO: allow vector points/centroids seed input. */
+    seeds = G_define_standard_option(G_OPT_R_INPUT);
+    seeds->key = "seeds";
+    seeds->type = TYPE_STRING;
+    seeds->required = NO;
+    seeds->description = _("Optional raster map with starting seeds.");
+
+    /* Polygon constraints. */
+    bounds = G_define_standard_option(G_OPT_R_INPUT);
+    bounds->key = "bounds";
+    bounds->type = TYPE_STRING;
+    bounds->required = NO;
+    bounds->description =
+	_("Optional bounding/constraining raster map, must be integer values, each area will be segmented independent of the others.");
+    /*    bounds->description = _("Optional vector map with polygons to bound (constrain) segmentation."); */
+    /* TODO: if performing second segmentation, will already have raster map from this module
+     * If have preexisting boundaries (landuse, etc) will have vector map
+     * Seems we need to have it in raster format for processing, is it OK to have the user run v.to.rast before doing the segmentation?
+     * Or for hierarchical segmentation, will it be easier to have the polygons?
+     * ....will start with rasters, quickest to implement.... */
+
     /* TODO input for distance function */
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
 
-    G_debug(1, "For the option <%s> you chose: <%s>",
-	    group->description, group->answer);
+    /* G_debug(1, "For the option <%s> you chose: <%s>",
+       group->description, group->answer);
 
-    G_debug(1, "For the option <%s> you chose: <%s>",
-	    seeds->description, seeds->answer);
+       G_debug(1, "For the option <%s> you chose: <%s>",
+       seeds->description, seeds->answer);
 
-    G_debug(1, "For the option <%s> you chose: <%s>",
-	    output->description, output->answer);
+       G_debug(1, "For the option <%s> you chose: <%s>",
+       output->description, output->answer);
 
-    G_debug(1, "For the option <%s> you chose: <%s>",
-	    method->description, method->answer);
+       G_debug(1, "For the option <%s> you chose: <%s>",
+       method->description, method->answer);
 
-    G_debug(1, "For the option <%s> you chose: <%s>",
-	    threshold->description, threshold->answer);
+       G_debug(1, "For the option <%s> you chose: <%s>",
+       threshold->description, threshold->answer);
 
-    G_debug(1, "The value of the diagonal flag is: %d", diagonal->answer);
+       G_debug(1, "The value of the diagonal flag is: %d", diagonal->answer); */
 
     /* Validation */
 
-    /* use checker for any of the data validation steps!? */
+    /* TODO: use checker for any of the data validation steps!? */
 
     /* ToDo The most important things to check are if the
        input and output raster maps can be opened (non-negative file
-       descriptor). */
+       descriptor).  Do this here or in open_files?  */
 
 
     /* Check and save parameters */
@@ -92,6 +107,12 @@ int parse_args(int argc, char *argv[], struct files *files,
 	files->out_name = output->answer;	/* name of output raster map */
     else
 	G_fatal_error("Invalid output raster name.");
+
+    /* TODO: I'm assuming threshold is already validated as a number.  Is this OK, or is there a better way to cast the input? */
+    /* reference r.cost line 313 
+       if (sscanf(opt5->answer, "%d", &maxcost) != 1 || maxcost < 0)
+       G_fatal_error(_("Inappropriate maximum cost: %d"), maxcost); */
+    sscanf(threshold->answer, "%f", &functions->threshold);	/* Note: this gets changed after we know more at beginning of create_isegs() */
 
     /* segmentation methods:  0 = debug, 1 = region growing */
     /* TODO, instead of string compare, does the Option structure have these already numbered? */
@@ -107,12 +128,6 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     G_debug(1, "segmentation method: %d", functions->method);
 
-    /* TODO: I'm assuming threshold is already validated as a number.  Is this OK, or is there a better way to cast the input? */
-    /* reference r.cost line 313 
-       if (sscanf(opt5->answer, "%d", &maxcost) != 1 || maxcost < 0)
-       G_fatal_error(_("Inappropriate maximum cost: %d"), maxcost); */
-    sscanf(threshold->answer, "%f", &functions->threshold);	/* Note: this gets changed after we know more at beginning of create_isegs() */
-
     if (diagonal->answer == 0) {
 	functions->find_pixel_neighbors = &find_four_pixel_neighbors;
 	functions->num_pn = 4;
@@ -126,8 +141,23 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     files->weighted = weighted->answer;	/* default/0 for performing the scaling, but selected/1 if user has weighted values so scaling should be skipped. */
 
-    /* TODO add user input for this */
-    functions->calculate_similarity = &calculate_euclidean_similarity;
+    functions->calculate_similarity = &calculate_euclidean_similarity;	/* TODO add user input for this */
+
+    files->seeds = seeds->answer;
+
+    /*todo, check error trapping here, what if nothing is entered?  what if nothing is found? what if in same mapset */
+    if (bounds->answer == NULL) {	/*no polygon constraints */
+	files->bounds_map = NULL;
+    }
+    else {			/* polygon constraints given */
+
+	files->bounds_map = bounds->answer;	/*todo, this needs to set files->bounds = NULL if no answer was given to the parameter */
+	if ((files->bounds_mapset = G_find_raster(files->bounds_map, "")) == NULL) {	/* TODO, warning here:  parse_args.c:149:27: warning: assignment discards ‘const’ qualifier from pointer target type [enabled by default] */
+	    G_fatal_error(_("Segmentation constraint/boundary map not found."));
+	}
+    }
+    /* todo, check raster type, needs to be CELL (integer) */
+    /*todo print out what these were before and after */
 
     /* other data */
     files->nrows = Rast_window_rows();

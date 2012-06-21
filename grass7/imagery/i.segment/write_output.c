@@ -49,8 +49,7 @@ int close_files(struct files *files)
     segment_close(&files->bands_seg);
     segment_close(&files->out_seg);
     segment_close(&files->no_check);
-
-    /* close segmentation files and output raster */
+    segment_close(&files->bounds_seg);
 
     G_free(files->bands_val);
     G_free(files->second_val);

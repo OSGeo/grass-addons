@@ -10,9 +10,10 @@
 int open_files(struct files *files)
 {
     struct Ref Ref;		/* group reference list */
-    int *in_fd;
+    int *in_fd, bounds_fd;
     int n, row, col, srows, scols, inlen, outlen, nseg;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
+    CELL *boundsbuf;
     struct FPRange *fp_range;	/* for getting min/max values on each input raster */
     DCELL *min, *max;
 
@@ -94,7 +95,7 @@ int open_files(struct files *files)
 	 scols, inlen, nseg) != 1)
 	G_fatal_error("Unable to create input temporary files");
 
-    G_debug(1, "finished segment_open(...bands_seg...)");
+    /* G_debug(1, "finished segment_open(...bands_seg...)"); */
 
     /* TODO: signed integer gives a 2 billion segment limit, depending on how the initialization is done, this means 2 billion max input pixels. */
     if (segment_open
@@ -144,8 +145,32 @@ int open_files(struct files *files)
 	}
     }
 
-    files->candidate_count = 0;	/* counter for remaining candidate pixels */
+    /* bounds/constraints */
+    if (files->bounds_map != NULL) {
+	if (segment_open
+	    (&files->bounds_seg, G_tempfile(), files->nrows, files->ncols,
+	     srows, scols, sizeof(int), nseg) != 1)
+	    G_fatal_error("Unable to create bounds temporary files");
 
+	boundsbuf = Rast_allocate_c_buf();
+	bounds_fd = Rast_open_old(files->bounds_map, files->bounds_mapset);	/*OK to use directly, or need to convert to name and mapset? */
+
+	for (row = 0; row < files->nrows; row++) {
+	    Rast_get_c_row(bounds_fd, boundsbuf, row);
+	    for (col = 0; col < files->ncols; col++) {
+		files->bounds_val = boundsbuf[col];
+		segment_put(&files->bounds_seg, &files->bounds_val, row, col);
+	    }
+	}
+	Rast_close(bounds_fd);
+	G_free(boundsbuf);
+    }
+    else {
+	G_debug(1, "no boundary constraint supplied.");
+    }
+
+    /* other info */
+    files->candidate_count = 0;	/* counter for remaining candidate pixels */
 
     /* linked list memory management linkm */
     link_set_chunk_size(20);	/* TODO: fine tune this number */
@@ -155,6 +180,7 @@ int open_files(struct files *files)
     /* Free memory */
 
     for (n = 0; n < Ref.nfiles; n++) {
+	/* G_free(inbuf[n]); TODO - didn't have this line to start with, but should it be added? */
 	Rast_close(in_fd[n]);
     }
 
@@ -163,7 +189,6 @@ int open_files(struct files *files)
     G_free(fp_range);
     G_free(min);
     G_free(max);
-
     /* Need to clean up anything else? */
 
     return 0;

@@ -23,6 +23,7 @@ struct pixels
     int col;
 };
 
+/* input and output files, as well as some other processing info */
 struct files
 {
     /* user parameters */
@@ -32,18 +33,24 @@ struct files
     /* region info */
     int nrows, ncols;
 
-    /* files */
-    int nbands;
-    int candidate_count;	/*how many candidate pixels remain */
-    SEGMENT bands_seg, out_seg;	/* bands is for input, normal application is landsat bands, but other input can be included in the group. */
+    /* files *//* TODO, for all map names, is this better for any reason, saw it in manual example: char name[GNAME_MAX]; */
+    char *out_name;		/* name of output raster map */
+    char *seeds, *bounds_map, *bounds_mapset;	/* optional segment seeds and polygon constraints/boundaries */
+
+    /* file processing */
+    int nbands;			/* number of rasters in the image group */
+    SEGMENT bands_seg, out_seg, bounds_seg;	/* bands is for input, normal application is landsat bands, but other input can be included in the group. */
     double *bands_val;		/* array, to hold all input values at one pixel */
     double *second_val;		/* to hold values at second point for similarity comparison */
-    int *out_val;		/* array, to hold the segment ID and processing flag(s) */
-    char *out_name;		/* name of output raster map */
+    int *out_val, bounds_val, current_bound;	/* out_val is array, to hold the segment ID and processing flag(s) */
 
     SEGMENT no_check;		/* pixels that have already been checked during this neighbor finding routine */
 
+    /* memory management, linked lists */
     struct link_head *token;	/* for linkm linked list memory management. */
+
+    /* other info */
+    int candidate_count;	/*how many candidate pixels remain */
 
     /* RASTER_MAP_TYPE data_type;       Removed: input is always DCELL, output is CELL. 
      *  TODO: if input might be smaller then DCELL, we could detect size and allocate accordingly. */
@@ -71,14 +78,12 @@ struct files
 struct functions
 {
     int method;			/* Segmentation method */
+    int num_pn;			/* number of pixel neighbors  int, 4 or 8. TODO: can remove if pixel neighbors is list instead of array.  But maybe this one is small enough that is faster as array? */
+    float threshold;		/* similarity threshold */
 
     /* Some function pointers to set one time in parse_args() */
     int (*find_pixel_neighbors) (int, int, int[8][2], struct files *);	/*parameters: row, col, pixel_neighbors */
     double (*calculate_similarity) (struct pixels *, struct pixels *, struct files *, struct functions *);	/*parameters: two points (row,col) to compare */
-
-
-    int num_pn;			/* number of pixel neighbors  int, 4 or 8. TODO: can remove if pixel neighbors is list instead of array.  But maybe this one is small enough that is faster as array? */
-    float threshold;		/* similarity threshold */
 
 };
 
