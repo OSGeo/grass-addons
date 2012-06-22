@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+#  The OnEarth server changed, it no longer supports arbitrary WMS requests.
+#  So this script doesn't work any more, but is a nice example of how to
+#  interface with a WMS server so remains here for educational purposes.
+#
 #############################################################################
 # Download and import satellite images direct from the                      #
 # NASA onearth WMS server into GRASS.                                       #
@@ -12,6 +17,10 @@
 #		for details.                                                #
 #                                                                           #
 #############################################################################
+# r.in.onearth will need the newest grass6.1-cvs version of g.region. It is in 
+# CVS since 2005-12-21.
+#
+# Enjoy
 
 #%Module
 #% description: Download and import satellite images direct from the NASA onearth WMS server into GRASS or to a geo-tiff image file.
