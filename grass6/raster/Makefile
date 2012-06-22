@@ -27,6 +27,7 @@ SUBDIRS = \
 	r.hazard.flood \
 	r.in.swisstopo \
 	r.inund.fluv \
+	r.in.onearth \
 	r.in.xyz.auto \
 	r.ipso \
 	r.isoregions \
