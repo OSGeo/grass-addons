@@ -22,7 +22,7 @@ int open_files(struct files *files)
 
     /* ****** open the input rasters ******* */
 
-	/* TODO: I confirmed, the API does not check this.  Should this be checked in parse_args / validation ?  Or best to do here where I want to use the REF data? */
+    /* TODO: I confirmed, the API does not check this.  Should this be checked in parse_args / validation ?  Or best to do here where I want to use the REF data? */
     if (!I_get_group_ref(files->image_group, &Ref))
 	G_fatal_error(_("Unable to read REF file for group <%s>"),
 		      files->image_group);
@@ -47,15 +47,15 @@ int open_files(struct files *files)
 
     /* Get min/max values of each input raster for scaling */
 
-    if (files->weighted == 0) {	/*default, we will scale */
+    if (files->weighted == FALSE) {	/*default, we will scale */
 	for (n = 0; n < Ref.nfiles; n++) {
-	    if (Rast_read_fp_range
-		(Ref.file[n].name, Ref.file[n].mapset, &fp_range[n]) < 0)
-		G_fatal_error(_("Unable to read fp range for raster map <%s>"), Ref.file[n].name);	/* TODO, still should free memory and close files? */
+	    if (Rast_read_fp_range(Ref.file[n].name, Ref.file[n].mapset, &fp_range[n]) != 1)	/* returns -1 on error, 2 on empty range, quiting either way. */
+		G_fatal_error(_("No min/max found in raster map <%s>"),
+			      Ref.file[n].name);
 	    Rast_get_fp_range_min_max(&(fp_range[n]), &min[n], &max[n]);
 	}
 	G_debug(1, "scaling, for first layer, min: %f, max: %f",
-			  min[0], max[0]);
+		min[0], max[0]);
     }
 
     /* ********** find out file segmentation size ************ */
@@ -91,7 +91,7 @@ int open_files(struct files *files)
 
     if (segment_open
 	(&files->bands_seg, G_tempfile(), files->nrows, files->ncols, srows,
-	 scols, inlen, nseg) != 1)
+	 scols, inlen, nseg) != TRUE)
 	G_fatal_error("Unable to create input temporary files");
 
     /* G_debug(1, "finished segment_open(...bands_seg...)"); */
@@ -99,10 +99,10 @@ int open_files(struct files *files)
     /* TODO: signed integer gives a 2 billion segment limit, depending on how the initialization is done, this means 2 billion max input pixels. */
     if (segment_open
 	(&files->out_seg, G_tempfile(), files->nrows, files->ncols, srows,
-	 scols, outlen, nseg) != 1)
+	 scols, outlen, nseg) != TRUE)
 	G_fatal_error("Unable to create output temporary files");
 
-    if (segment_open(&files->no_check, G_tempfile(), files->nrows, files->ncols, srows, scols, sizeof(int), nseg) != 1)	/* todo could make this smaller ? just need 0 or 1 */
+    if (segment_open(&files->no_check, G_tempfile(), files->nrows, files->ncols, srows, scols, sizeof(int), nseg) != TRUE)	/* todo could make this smaller ? just need 0 or 1 */
 	G_fatal_error("Unable to create flag temporary files");
 
     /* load input bands to segment structure and initialize output segmentation file */
@@ -111,49 +111,48 @@ int open_files(struct files *files)
     files->bands_val = (double *)G_malloc(inlen);
     files->second_val = (double *)G_malloc(inlen);
     files->out_val = (int *)G_malloc(2 * sizeof(int));
-	s = 1; /* initial segment ID */
-	
+    s = 1;			/* initial segment ID */
+
     for (row = 0; row < files->nrows; row++) {
 	for (n = 0; n < Ref.nfiles; n++) {
 	    Rast_get_d_row(in_fd[n], inbuf[n], row);
 	}
 	for (col = 0; col < files->ncols; col++) {
-		/*tempval = 0; Doesn't work, no "null" for doubles in c */ /* want a number, not null */
-		null_check = 1; /*Assume there is data*/
+	    /*tempval = 0; Doesn't work, no "null" for doubles in c *//* want a number, not null */
+	    null_check = 1;	/*Assume there is data */
 	    for (n = 0; n < Ref.nfiles; n++) {
-		/*tempval += inbuf[n][col]; */ /* if mask/null, adding a null value should set tempval to NULL */
-		if(Rast_is_d_null_value(&inbuf[n][col]))
-			null_check=-1;
-		if (files->weighted == 1)
+		/*tempval += inbuf[n][col]; *//* if mask/null, adding a null value should set tempval to NULL */
+		if (Rast_is_d_null_value(&inbuf[n][col]))
+		    null_check = -1;
+		if (files->weighted == TRUE)
 		    files->bands_val[n] = inbuf[n][col];	/*unscaled */
 		else
 		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/*scaled version */
 	    }
-	    segment_put(&files->bands_seg, (void *)files->bands_val, row,
-			col); /* store input bands */
-			
-		if (null_check != -1){ /*good pixel*/
+	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
+
+	    if (null_check != -1) {	/*good pixel */
 		files->out_val[0] = s;	/*starting segment number TODO: for seeds this will be different */
-	    files->out_val[1] = 0;	/*flag */
-	}
-	else /*don't use this pixel*/
-	{
-		files->out_val[0] = -1;	/*starting segment number*/
-	    files->out_val[1] = -1;	/*flag */
-	}
-	    segment_put(&files->out_seg, (void *)files->out_val, row, col); /* initialize input */
+		files->out_val[1] = TRUE;	/*flag */
+	    }
+	    else {		/*don't use this pixel */
+
+		files->out_val[0] = -1;	/*starting segment number */
+		files->out_val[1] = -1;	/*flag */
+	    }
+	    segment_put(&files->out_seg, (void *)files->out_val, row, col);	/* initialize input */
 	    s++;		/* sequentially number all pixels with their own segment ID */
 	}
     }
 
     /* bounds/constraints */
     /* TODO: You should also handle NULL cells in the bounds
-	 * raster map, I would suggest to replace NULL with min(bounds) - 1 or
-	 +* max(bounds) + 1. */
+     * raster map, I would suggest to replace NULL with min(bounds) - 1 or
+     +* max(bounds) + 1. */
     if (files->bounds_map != NULL) {
 	if (segment_open
 	    (&files->bounds_seg, G_tempfile(), files->nrows, files->ncols,
-	     srows, scols, sizeof(int), nseg) != 1)
+	     srows, scols, sizeof(int), nseg) != TRUE)
 	    G_fatal_error("Unable to create bounds temporary files");
 
 	boundsbuf = Rast_allocate_c_buf();
@@ -184,7 +183,7 @@ int open_files(struct files *files)
     /* Free memory */
 
     for (n = 0; n < Ref.nfiles; n++) {
-	/* G_free(inbuf[n]); TODO - didn't have this line to start with, but should it be added? */
+	G_free(inbuf[n]);
 	Rast_close(in_fd[n]);
     }
 
@@ -195,5 +194,5 @@ int open_files(struct files *files)
     G_free(max);
     /* Need to clean up anything else? */
 
-    return 0;
+    return TRUE;
 }

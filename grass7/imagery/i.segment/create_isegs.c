@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include <float.h>		/* to get value of LDBL_MAX -> change this if there is a more usual grass way */
-							  /* #include <math.h>    *//* for sqrt() and pow() */
+										    /* #include <math.h>    *//* for sqrt() and pow() */
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/raster.h>
@@ -13,6 +13,7 @@
 #include "iseg.h"
 
 #define LINKM
+#define REVERSE
 
 int create_isegs(struct files *files, struct functions *functions)
 {
@@ -32,11 +33,10 @@ int create_isegs(struct files *files, struct functions *functions)
 	lower_bound = upper_bound = 0;
     }				/* just one time through loop */
     else {
-	if (Rast_read_range(files->bounds_map, files->bounds_mapset, &range) <
-	    0) {
-	    G_fatal_error(_("Unable to read fp range for raster map <%s>"),
+	if (Rast_read_range(files->bounds_map, files->bounds_mapset, &range) != 1) {	/* returns -1 on error, 2 on empty range, quiting either way. */
+	    G_fatal_error(_("No min/max found in raster map <%s>"),
 			  files->bounds_map);
-	}			/* TODO, still should close files? */
+	}
 	Rast_get_range_min_max(&range, &lower_bound, &upper_bound);	/* todo, faster way to do this?  maybe do it manually when open and write to the segment file? But it is just once.... */
     }
 
@@ -75,7 +75,6 @@ int io_debug(struct files *files, struct functions *functions)
     G_verbose_message("writing scaled input (layer 1) to output file");
     G_verbose_message("weighted flag = %d", files->weighted);
     for (row = 0; row < files->nrows; row++) {
-	G_percent(row, files->nrows, 1);	/* TODO this didn't get displayed in the output??? Does it get erased when done? */
 	for (col = 0; col < files->ncols; col++) {
 	    /*files->out_val[0] = files->out_val[0]; *//*segment number *//* just copying the map for testing. */
 	    /* files->out_val[0] = col + row; */
@@ -85,6 +84,7 @@ int io_debug(struct files *files, struct functions *functions)
 	    files->out_val[1] = 1;	/*processing flag */
 	    segment_put(&files->out_seg, (void *)files->out_val, row, col);
 	}
+	G_percent(row, files->nrows, 1);
     }
 
     /*speed test... showed a difference of 1min 9s for G_malloc and 34s for linkm. (with i < 2000000000   */
@@ -111,7 +111,7 @@ int io_debug(struct files *files, struct functions *functions)
 #endif
 
     G_message("end speed test");
-    return 0;
+    return TRUE;
 }
 
 int ll_test(struct files *files, struct functions *functions)
@@ -230,13 +230,13 @@ int ll_test(struct files *files, struct functions *functions)
 
     G_message("writing fake data to segmentation file");
     for (row = 0; row < files->nrows; row++) {
-	G_percent(row, files->nrows, 1);	/* TODO this didn't get displayed in the output??? Does it get erased when done? */
 	for (col = 0; col < files->ncols; col++) {
 	    /*files->out_val[0] = files->out_val[0]; *//*segment number *//* just copying the map for testing. */
 	    files->out_val[0] = col + row;
-	    files->out_val[1] = 1;	/*processing flag */
+	    files->out_val[1] = TRUE;	/*processing flag */
 	    segment_put(&files->out_seg, (void *)files->out_val, row, col);
 	}
+	G_percent(row, files->nrows, 1);
     }
 
     /*test how many pixels can be made and disposed of */
@@ -264,7 +264,7 @@ int ll_test(struct files *files, struct functions *functions)
     G_message("after link_cleanup(Rkn_token)");
 
     G_message("end linked list test");
-    return 0;
+    return TRUE;
 }
 
 int test_pass_token(struct pixels **head, struct files *files)
@@ -282,7 +282,7 @@ int test_pass_token(struct pixels **head, struct files *files)
 	G_message("Added: Rin %d: row: %d, col: %d", n,
 		  newpixel->row, newpixel->col);
     }
-    return 0;
+    return TRUE;
 
 }
 
@@ -327,7 +327,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 	threshold = functions->threshold;	/* TODO, consider making this a function of t. */
 
-	endflag = 1;
+	endflag = TRUE;
 
 	/* Set candidate flag to true/1 for all pixels TODO: for polygon/vector constraint, need to just set to true for those being processed */
 	if (files->bounds_map == NULL) {	/*normal processing */
@@ -338,7 +338,7 @@ int region_growing(struct files *files, struct functions *functions)
 		    /* TODO: if we are starting from seeds...and only allow merges between unassigned pixels
 		     *  and seeds/existing segments, then this needs an if (and will be very inefficient)
 		     * maybe consider the sorted array, btree, map... but the number of seeds could still be high for a large map */
-		    files->out_val[1] = 1;	/*candidate pixel flag */
+		    files->out_val[1] = TRUE;	/*candidate pixel flag */
 		    segment_put(&files->out_seg, (void *)files->out_val, row,
 				col);
 
@@ -355,9 +355,9 @@ int region_growing(struct files *files, struct functions *functions)
 				col);
 
 		    if (files->bounds_val == files->current_bound)	/*TODO could move this if statement one line up, and only set "1" flags if we can assume all flags are already zero.  (i.e. only get/put the ones we want to set to 1.) */
-			files->out_val[1] = 1;	/*candidate pixel flag */
+			files->out_val[1] = TRUE;	/*candidate pixel flag */
 		    else
-			files->out_val[1] = 0;
+			files->out_val[1] = FALSE;
 
 		    segment_put(&files->out_seg, (void *)files->out_val, row,
 				col);
@@ -373,24 +373,22 @@ int region_growing(struct files *files, struct functions *functions)
 	/*process candidate pixels */
 	G_verbose_message("Row percent complete for pass number %d: ", t);
 	/*check each pixel, start the processing only if it is a candidate pixel */
-	
 	/* for validation, select one of the two... could make this IFDEF or input parameter */
 	/* reverse order 
+	 */
+#ifdef REVERSE
 	for (row = files->nrows; row >= 0; row--) {
-	    for (col = files->ncols; col >= 0 ; col--) {
-		G_percent(files->nrows-row, files->nrows, 1);
-end reverse order */
-/* "normal" order */
+	    for (col = files->ncols; col >= 0; col--) {
+#else
 	for (row = 0; row < files->nrows; row++) {
 	    for (col = 0; col < files->ncols; col++) {
-		G_percent(row, files->nrows, 1); /*end normal order */	/* TODO, can a message be included with G_percent? */
-
+#endif
 
 		G_debug(4,
 			"Next starting pixel from next row/col, not from Rk");
 
 		segment_get(&files->out_seg, (void *)files->out_val, row, col);	/*TODO small time savings - if candidate_count reaches zero, bail out of these loops too? */
-		if (files->out_val[1] == 1 && files->out_val != NULL) {	/* out_val[1] is the candidate pixel flag, want to process the 1's */ /*TODO MASK handling - checking if we have a segment ID already, in open_files() we will put nulls in [0] slot... better/faster way to do this?*/
+		if (files->out_val[1] == TRUE && files->out_val != NULL) {	/* out_val[1] is the candidate pixel flag, want to process the 1's *//*TODO MASK handling - checking if we have a segment ID already, in open_files() we will put nulls in [0] slot... better/faster way to do this? */
 		    G_debug(4, "going to free memory on linked lists...");
 		    /*free memory for linked lists */
 		    my_dispose_list(files->token, &Ri_head);
@@ -408,9 +406,9 @@ end reverse order */
 		    newpixel->col = col;
 		    Ri_head = newpixel;
 
-		    pathflag = 1;
+		    pathflag = TRUE;
 
-		    //      while (pathflag == 1 && files->candidate_count > 0) {   /*if don't find mutual neighbors on first try, will use Rk as next Ri. */
+		    //      while (pathflag == TRUE && files->candidate_count > 0) {   /*if don't find mutual neighbors on first try, will use Rk as next Ri. */
 
 		    G_debug(4, "Next starting pixel: row, %d, col, %d",
 			    Ri_head->row, Ri_head->col);
@@ -436,13 +434,13 @@ end reverse order */
 		    /* find segment neighbors */
 		    if (find_segment_neighbors
 			(&Ri_head, &Rin_head, &Ri_count, files,
-			 functions) != 0) {
+			 functions) != TRUE) {
 			G_fatal_error("find_segment_neighbors() failed");
 		    }		/* TODO - shouldn't be just fatal error - need to still close_files().  Just put that here then fatal error? */
 
 		    if (Rin_head == NULL) {
 			G_debug(4, "2a, Segment had no valid neighbors");	/*this could happen if there is a segment surrounded by pixels that have already been processed */
-			pathflag = 0;
+			pathflag = FALSE;
 			Ri_count = 0;
 			set_candidate_flag(Ri_head, 0, files);	/* TODO: error trap? */
 			files->candidate_count++;	/* already counted out Ri[0]; */
@@ -480,7 +478,7 @@ end reverse order */
 			    G_debug(4,
 				    "simularity = %g for neighbor : row: %d, col %d.",
 				    tempsim, current->row, current->col);
-				    
+
 			    if (tempsim < Ri_similarity) {
 				Ri_similarity = tempsim;
 				Ri_bestn = current;	/*TODO want to point to the current pixel...confirm  when current changes need this to stay put! */
@@ -491,18 +489,20 @@ end reverse order */
 			    }
 			}
 
-			if (Ri_bestn != NULL){
+			if (Ri_bestn != NULL) {
 			    G_debug(4,
 				    "Lowest Ri_similarity = %g, for neighbor pixel row: %d col: %d",
 				    Ri_similarity, Ri_bestn->row,
 				    Ri_bestn->col);
 
-			    segment_get(&files->out_seg, (void *)files->out_val, Ri_bestn->row, Ri_bestn->col);
-			    if (files->out_val[1] == 0)
+			    segment_get(&files->out_seg,
+					(void *)files->out_val, Ri_bestn->row,
+					Ri_bestn->col);
+			    if (files->out_val[1] == FALSE)
 				/* this check is important:
 				 * best neighbor is not a valid candidate, was already merged earlier in this time step */
 				Ri_similarity = threshold + 1;
-}
+			}
 
 			if (Ri_bestn != NULL && Ri_similarity < threshold) {	/* small TODO: should this be < or <= for threshold? */
 			    /* we'll have the neighbor pixel to start with. */
@@ -542,7 +542,7 @@ end reverse order */
 
 			    for (current = Rkn_head; current != NULL; current = current->next) {	/* for each of Rk's neighbors */
 				tempsim = functions->calculate_similarity(Rk_head, current, files, functions);	/*TODO: need an error trap here, if something goes wrong with calculating similarity? */
-				
+
 				if (tempsim < Rk_similarity) {
 				    Rk_similarity = tempsim;
 				    break;	/* exit for Rk's neighbors loop here, we know that Ri and Rk aren't mutually best neighbors */
@@ -551,8 +551,8 @@ end reverse order */
 
 			    if (Rk_similarity == Ri_similarity) {	/* so they agree, both are mutually most similar neighbors, none of Rk's other neighbors were more similar */
 				merge_values(Ri_head, Rk_head, Ri_count, Rk_count, files);	/* TODO error trap */
-				endflag = 0;	/* we've made at least one merge, so need another t iteration */
-				pathflag = 0;	/* go to next row,column pixel - end of Rk -> Ri chain since we found mutual best neighbors */
+				endflag = FALSE;	/* we've made at least one merge, so need another t iteration */
+				pathflag = FALSE;	/* go to next row,column pixel - end of Rk -> Ri chain since we found mutual best neighbors */
 			    }
 			    else {	/* they weren't mutually best neighbors */
 				G_debug(4,
@@ -583,27 +583,35 @@ end reverse order */
 			     * thus Ri can not be the mutually best neighbor later on during this pass
 			     * unfortunately this does happen sometimes */
 			    set_candidate_flag(Ri_head, 0, files);	/* TODO: error trap? */
-			    files->candidate_count++; /*first pixel was already set*/
+			    files->candidate_count++;	/*first pixel was already set */
 			    G_debug(4,
 				    "3b Rk didn't didn't exist, was not valid candidate, or similarity was > threshold");
-				} /*end else - Ri's best neighbor was not a candidate */
+			}	/*end else - Ri's best neighbor was not a candidate */
 		    }		/* end else - Ri did have neighbors */
 		    //          }           /*end pathflag do loop */
 		}		/*end if pixel is candidate pixel */
 	    }			/*next column */
+#ifdef REVERSE
+	    G_percent(files->nrows - row, files->nrows, 1);
+#else
+	    G_percent(row, files->nrows, 1);	/* TODO, can a message be included with G_percent? */
+#endif
+	    /* TODO, the REVERSE version gets printed on a new line, and isnt' covered.  The else version is. ? */
+	    /* TODO, shows up in CLI, not in GUI */
+
 	}			/*next row */
 
 	/* finished one pass for processing candidate pixels */
 
 	G_debug(4, "Finished one pass, t was = %d", t);
 	t++;
-    } while (t <= functions->end_t && endflag == 0);
+    } while (t <= functions->end_t && endflag == FALSE);
     /*end t loop *//*TODO, should there be a max t that it can iterate for?  Include t in G_message? */
 
     /* free memory *//*TODO: anything ? */
 
 
-    return 0;
+    return TRUE;
 }
 
 int find_segment_neighbors(struct pixels **R_head,
@@ -639,7 +647,7 @@ int find_segment_neighbors(struct pixels **R_head,
     /*initialize data.... TODO: maybe remember min max row/col that was looked at each time, initialize in open_files, and reset smaller region at end of this functions */
     for (n = 0; n < files->nrows; n++) {
 	for (m = 0; m < files->ncols; m++) {
-	    val_no_check = 0;
+	    val_no_check = FALSE;
 	    segment_put(&files->no_check, &val_no_check, n, m);
 	}
     }
@@ -708,14 +716,14 @@ int find_segment_neighbors(struct pixels **R_head,
 		    "\twith pixel neigh %d, row: %d col: %d, val_no_check = %d",
 		    n, pixel_neighbors[n][0], pixel_neighbors[n][1],
 		    val_no_check);
-	    if (val_no_check == 0) {	/* want to check this neighbor */
+	    if (val_no_check == FALSE) {	/* want to check this neighbor */
 		val_no_check = 1;
 		segment_put(&files->no_check, &val_no_check, pixel_neighbors[n][0], pixel_neighbors[n][1]);	/* don't check it again */
 
 		segment_get(&files->out_seg, (void *)files->out_val, pixel_neighbors[n][0], pixel_neighbors[n][1]);	/*TODO : do I need a second "out_val" data structure? */
 
-		if (files->out_val[1] == 1 || files->out_val[1] == 0) {	/* all pixels, not just valid pixels */
-		/* TODO: use -1 for NULL/MASKED pixels? */
+		if (files->out_val[1] == TRUE || files->out_val[1] == FALSE) {	/* all pixels, not just valid pixels */
+		    /* TODO: use -1 for NULL/MASKED pixels? */
 
 		    G_debug(5, "\tfiles->out_val[0] = %d Ri_seg_ID = %d",
 			    files->out_val[0], Ri_seg_ID);
@@ -765,7 +773,7 @@ int find_segment_neighbors(struct pixels **R_head,
 	G_debug(5, "\t### end of pixel neighors");
     }				/* while to_check has more elements */
 
-    return 0;
+    return TRUE;
 }
 
 int find_four_pixel_neighbors(int p_row, int p_col, int pixel_neighbors[8][2],
@@ -805,7 +813,7 @@ int find_four_pixel_neighbors(int p_row, int p_col, int pixel_neighbors[8][2],
 	pixel_neighbors[3][1] = p_col;
 
     /*TODO: seems there should be a more elegent way to do this... */
-    return 0;
+    return TRUE;
 }
 
 int find_eight_pixel_neighbors(int p_row, int p_col,
@@ -817,7 +825,7 @@ int find_eight_pixel_neighbors(int p_row, int p_col,
     /* get the 4 diagonal neighbors */
     G_warning("Diagonal neighbors Not Implemented");
     /*TODO... continue as above */
-    return 0;
+    return TRUE;
 }
 
 /* similarity / distance between two points based on their input raster values */
@@ -869,7 +877,7 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head, int Ri_count,
 
     segment_get(&files->out_seg, (void *)files->out_val, Ri_head->row,
 		Ri_head->col);
-    files->out_val[1] = 0;	/*candidate pixel flag, only one merge allowed per t iteration */
+    files->out_val[1] = FALSE;	/*candidate pixel flag, only one merge allowed per t iteration */
     /* if separate out candidate flag, can do all changes with helper function...otherwise remember: */
 
 
@@ -899,7 +907,7 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head, int Ri_count,
 
     files->candidate_count++;	/* had already counted down the starting pixel Ri[0] at the beginning... */
     G_debug(4, "line 522, \t\t\t\tcc = %d", files->candidate_count);
-    return 0;
+    return TRUE;
 }
 
 /* TODO.. helper function, maybe make more general? */
@@ -923,7 +931,7 @@ int set_candidate_flag(struct pixels *head, int value, struct files *files)
 	G_debug(4, "line 544, \t\t\t\tcc = %d", files->candidate_count);
 
     }
-    return 0;
+    return TRUE;
 }
 
 /* let memory manager know space is available again and reset head to NULL */
@@ -937,5 +945,5 @@ int my_dispose_list(struct link_head *token, struct pixels **head)
 	link_dispose(token, (VOID_T *) current);	/* remove "old" head */
     }
 
-    return 0;
+    return TRUE;
 }
