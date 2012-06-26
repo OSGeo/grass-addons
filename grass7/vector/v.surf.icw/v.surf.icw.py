@@ -108,15 +108,17 @@
 #% key: r
 #% description: Use (d^n)*log(d) instead of 1/(d^n) for radial basis function
 #%end
-#%flag
-#% key: v
-#% description: Verbose mode (to be removed soon; use --verbose instead)
+#%option
+#% key: workers
+#% type: integer
+#% options: 1-256
+#% answer: 1
+#% description: Number of parallel processes to launch
 #%end
-
 
 import sys
 import os
-from grass.script import core as grass
+import grass.script as grass
 
 def main():
 
@@ -128,6 +130,10 @@ def main():
     friction = options['friction']
     layer = options['layer']
     where = options['where']
+    workers = int(options['workers'])
+
+    if workers is 1 and "WORKERS" in os.environ:
+        workers = int(os.environ["WORKERS"])
 
     pid = str(os.getpid())
     tmp_base = 'tmp_icw_' + pid + '_'
@@ -194,82 +200,41 @@ def main():
         grass.run_command('g.rename', rast = (tmp_base + 'points_sel',
                           tmp_base + 'points'), quiet = True)
 
-    # use v.out.ascii -r instead?
     if where:
-        grass.run_command('v.out.ascii', input = pts_file, output = tmp_points,
-                          where = where, flags = 'r')
+        points_list = grass.read_command('v.out.ascii', input = pts_file,
+                                         where = where, output = '-',
+                                         flags = 'r').splitlines()
     else:
-        grass.run_command('v.out.ascii', input = pts_file, output = tmp_points,
-                          flags = 'r')
+        points_list = grass.read_command('v.out.ascii', input = pts_file,
+                                         output = '-', flags = 'r').splitlines()
 
-    #db.select tmp_icw_points_$$ > "$TMP_TABLE"
+    # convert into a 2D list, drop unneeded cat column
+    # to drop cat col, add this to the end of the line [:-1]
+    #fixme: how does this all react for 3D starting points?
+    for i in range(len(points_list)):
+        points_list[i] = points_list[i].split('|')
 
     # count number of starting points (n)
-    n = grass.vector_info_topo(tmp_base + 'points')['points']
-    #n = sum(1 for line in open(tmp_points))
-
-    #figure out which column cats are in (3 or 4 depending on if there is a z coordinate)
-    cat_col = grass.vector_info_topo(tmp_base + 'points')['map3d'] + 3
+    n = len(points_list)
 
     if n > 200:
         grass.warning(_("Computation is expensive! Please consider fewer points or get ready to wait a while ..."))
-        sleep 5
+        import time
+        time.sleep(5)
 
-    # generate cost maps for each site in range
+
+    #### generate cost maps for each site in range
     grass.verbose(_("Generating cost maps.."))
 
     num = 1
 
-####
-#see osm python script
+    for position in points_list:
+        easting = position[0]
+        northing = position[1]
+        cat = position[-1]
 
-infile = tmp_points
-if not os.path.exists(infile):
-            grass.fatal("Unable to read input data")
-inf_id = file(infile)
-print("input file=[%s]" % infile)
-lines = inf_id.readlines()
-for i in range(len(lines)):
-        lines[i] = lines[i].rstrip('\n')
-for line in lines:
-    bits = line.split('|')
-bits[0], bits[1], bits[2], float(bits[3]), ....
-inf_id.close()
-
-or
-
-    while True:
-        line = inf_old.readline()
-        #.strip()
-        if not line:
-            break
- 
-        if 'node id=' not in line:
-            continue
-
-newid_oldid_lonlat = [[] for i in range(4)]
-
-for i in range(len(old_id_lonlat[0])):
-        if abs(new_lon - old_id_lonlat[1][i]) < thresh_lon and \
-                   abs(new_lat - old_id_lonlat[2][i]) < thresh_lat:
-                    newid_oldid_lonlat[0].append(new_id)
-                    newid_oldid_lonlat[1].append(old_id_lonlat[0][i])
-                    newid_oldid_lonlat[2].append(old_id_lonlat[1][i])
-                    newid_oldid_lonlat[3].append(old_id_lonlat[2][i])
-
-bits = string.split(line,'"')
-
-####
-
-for POS in `cat "$TMP_POINTS"` ; do
-
-#    echo "POS=[$POS]"
-    EASTING=`echo "$POS" | cut -f1 -d"|"`
-    NORTHING=`echo "$POS" | cut -f2 -d"|"`
-    CAT=`echo "$POS" | cut -f"$CATCOL" -d"|"`
-    DATA_VALUE="`v.db.select -c tmp_icw_points_$$ column="$COL_NAME" where="cat=${CAT}"`"
-
-        data_value = grass.vector_select(map name)['values'][cat]
+        # retrieve data value from vector's attribute table:
+        data_value = grass.vector_db_select(pts_file, column = column)['values'][cat]
 
         grass.message(_("Site %d of %d  e=%.4f  n=%.4f  data=%.3g"),
                       num, n, easting, northing, data_value)
@@ -279,23 +244,33 @@ for POS in `cat "$TMP_POINTS"` ; do
             n = n - 1
             continue
 
-    if [ -z "`r.what input=tmp_icw_area_$$ east_north=$EASTING,$NORTHING | grep -v "*"`" ] ; then
-            grass.messsage(_("  Skipping, point lays outside of cost_map."))
-            n = n - 1
-            continue
-    fi
+	# we know the point is in the region, but is it in a non-null area of the cost surface?
+        rast_val = grass.read_command('r.what', map = tmp_base + 'area',
+				      coordinates = '%s,%s' % (position[0], position[1])
+				     ).strip().split('|')[-1]
+	if rast_val == '*':
+	    grass.messsage(_("  Skipping, point lays outside of cost_map."))
+	    n = n - 1
+	    continue
 
-       # echo "$EASTING $NORTHING $DATA_VALUE" | v.in.ascii output=tmp_idw_cost_site_$$ fs=space --o 2> /dev/null
+	# it's ok to proceed
+        try:
+	    data_value = float(data_value)
+	except:
+	    grass.fatal('Data value [%s] is non-numeric' % data_value)
+
+ # echo "$EASTING $NORTHING $DATA_VALUE" | v.in.ascii output=tmp_idw_cost_site_$$ fs=space
 
         cost_site_name = tmp_base + 'cost_site.' + str(num)
         grass.run_command('r.cost', flags = 'k', input = tmp_base + 'area',
                           output = cost_site_name, coordinate = easting + ',' + northing)
+
         #max_cost="$GIS_OPT_MAX_COST"  : commented out until r.null cleansing/continue code is sorted out
         #start_points=tmp_idw_cost_site_$$
 
         # we do this so the divisor exists and the weighting is huge at the exact sample spots
         # more efficient to reclass to 1?
-        grass.mapcalc("$cost_n_cleansed = if($cost_n == 0, 0.1, $cost_n",
+        grass.mapcalc("$cost_n_cleansed = if($cost_n == 0, 0.1, $cost_n)",
                       cost_n_cleansed = cost_site_name + '.cleansed',
                       cost_n = cost_site_name, overwrite = True)
         grass.run_command('g.remove', rast = cost_site_name, quiet = True)
@@ -325,7 +300,7 @@ for POS in `cat "$TMP_POINTS"` ; do
         # r.patch in=1by_cost_site_sqrd.${NUM},tmp_idw_cost_val_$$ out=1by_cost_site_sqrd.${NUM} --o
         # g.remove rast=cost_site.$NUM
 
-        num = num + 1
+        num += 1
     done
 
 
