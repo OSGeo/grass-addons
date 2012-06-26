@@ -3,7 +3,7 @@
  *
  * MODULE:       i.segment
  * AUTHOR(S):    Eric Momsen <eric.momsen at gmail com>
- * PURPOSE:      Provide short description of module here...
+ * PURPOSE:      Segments an image group.
  * COPYRIGHT:    (C) 2012 by Eric Momsen, and the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -20,7 +20,7 @@
 
 #include <stdlib.h>
 #include <grass/gis.h>
-#include <grass/glocale.h>	/* message translation */
+#include <grass/glocale.h>
 #include "iseg.h"
 
 int main(int argc, char *argv[])
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("imagery"));
     G_add_keyword(_("segmentation"));
     module->description =
-	_("Outputs a single segmention map (raster) based on input values in an image group.");
+	_("Outputs a single segmented map (raster) based on input values in an image group.");
 
     if (parse_args(argc, argv, &files, &functions) != 0)
 	G_debug(1, "Error in parse_args()");	/* TODO: should these be debug or G_fatal_error() or nested if statement? want to clean up mem and temp files */

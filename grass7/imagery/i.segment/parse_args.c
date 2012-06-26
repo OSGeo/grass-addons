@@ -13,7 +13,8 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
 
     struct Option *group, *seeds, *bounds, *output, *method, *threshold;	/* Establish an Option pointer for each option */
-    struct Flag *diagonal, *weighted;	/* Establish a Flag pointer for each option */
+    struct Flag *diagonal, *weighted;										/* Establish a Flag pointer for each option */
+	struct Option *outband, *endt; 		/* debugging parameters... TODO: leave in code or remove?  hidden options? */
 
     /* required parameters */
     group = G_define_standard_option(G_OPT_I_GROUP);	/* TODO: OK to require the user to create a group?  Otherwise later add an either/or option to give just a single raster map... */
@@ -31,7 +32,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     method->type = TYPE_STRING;
     method->required = YES;
     method->answer = "region_growing";
-    method->options = "region_growing, io_debug, ll_test";	/*io_debug just writes row+col to each output pixel, ll_test for testing linked list data structure */
+    method->options = "region_growing, io_debug, ll_test";	/* TODO at end, remove these from list: io_debug just writes row+col to each output pixel, ll_test for testing linked list data structure */
     method->description = _("Segmentation method.");
 
     /* optional parameters */
@@ -62,33 +63,29 @@ int parse_args(int argc, char *argv[], struct files *files,
 	_("Optional bounding/constraining raster map, must be integer values, each area will be segmented independent of the others.");
     /*    bounds->description = _("Optional vector map with polygons to bound (constrain) segmentation."); */
     /* TODO: if performing second segmentation, will already have raster map from this module
-     * If have preexisting boundaries (landuse, etc) will have vector map
+     * If have preexisting boundaries (landuse, etc) will have vector map?
      * Seems we need to have it in raster format for processing, is it OK to have the user run v.to.rast before doing the segmentation?
      * Or for hierarchical segmentation, will it be easier to have the polygons?
-     * ....will start with rasters, quickest to implement.... */
+     *  */
 
     /* TODO input for distance function */
 
+	/* debug parameters */
+    endt = G_define_option();
+    endt->key = "endt";
+    endt->type = TYPE_INTEGER;
+    endt->required = YES; /* TODO, could put as optional, and if not supplied put in something large. */
+    endt->description = _("Maximum number of time steps to complete.");
+
+    outband = G_define_standard_option(G_OPT_R_INPUT);
+    outband->key = "final_mean";
+    outband->type = TYPE_STRING;
+    outband->required = YES;
+    outband->description =
+	_("debug - save band mean, currently implemented for only 1 band.");
+
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
-
-
-    /* G_debug(1, "For the option <%s> you chose: <%s>",
-       group->description, group->answer);
-
-       G_debug(1, "For the option <%s> you chose: <%s>",
-       seeds->description, seeds->answer);
-
-       G_debug(1, "For the option <%s> you chose: <%s>",
-       output->description, output->answer);
-
-       G_debug(1, "For the option <%s> you chose: <%s>",
-       method->description, method->answer);
-
-       G_debug(1, "For the option <%s> you chose: <%s>",
-       threshold->description, threshold->answer);
-
-       G_debug(1, "The value of the diagonal flag is: %d", diagonal->answer); */
 
     /* Validation */
 
@@ -96,7 +93,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     /* ToDo The most important things to check are if the
        input and output raster maps can be opened (non-negative file
-       descriptor).  Do this here or in open_files?  */
+       descriptor).  ??? Do this here or in open_files?  */
 
 
     /* Check and save parameters */
@@ -112,7 +109,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* reference r.cost line 313 
        if (sscanf(opt5->answer, "%d", &maxcost) != 1 || maxcost < 0)
        G_fatal_error(_("Inappropriate maximum cost: %d"), maxcost); */
-    sscanf(threshold->answer, "%f", &functions->threshold);	/* Note: this gets changed after we know more at beginning of create_isegs() */
+    sscanf(threshold->answer, "%f", &functions->threshold);	/* Note: this threshold is scaled after we know more at the beginning of create_isegs() */
 
     /* segmentation methods:  0 = debug, 1 = region growing */
     /* TODO, instead of string compare, does the Option structure have these already numbered? */
@@ -145,23 +142,30 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     files->seeds = seeds->answer;
 
-    /*todo, check error trapping here, what if nothing is entered?  what if nothing is found? what if in same mapset */
     if (bounds->answer == NULL) {	/*no polygon constraints */
 	files->bounds_map = NULL;
     }
     else {			/* polygon constraints given */
-
-	files->bounds_map = bounds->answer;	/*todo, this needs to set files->bounds = NULL if no answer was given to the parameter */
+	files->bounds_map = bounds->answer;	
 	if ((files->bounds_mapset = G_find_raster(files->bounds_map, "")) == NULL) {	/* TODO, warning here:  parse_args.c:149:27: warning: assignment discards ‘const’ qualifier from pointer target type [enabled by default] */
 	    G_fatal_error(_("Segmentation constraint/boundary map not found."));
 	}
+	if (Rast_map_type(files->bounds_map, files->bounds_mapset) != CELL_TYPE) {
+		G_fatal_error(_("Segmentation constraint map must be CELL type (integers)"));
+	}
     }
-    /* todo, check raster type, needs to be CELL (integer) */
-    /*todo print out what these were before and after */
 
     /* other data */
     files->nrows = Rast_window_rows();
     files->ncols = Rast_window_cols();
+
+	/* debug help */
+    if (G_legal_filename(outband->answer) == 1)
+	files->out_band = outband->answer;	/* name of current means */
+    else
+	G_fatal_error("Invalid output raster name for means.");
+
+    sscanf(endt->answer, "%d", &functions->end_t);	/* Note: this threshold is scaled after we know more at the beginning of create_isegs() */
 
     return 0;
 }

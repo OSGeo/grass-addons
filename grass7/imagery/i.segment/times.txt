@@ -1,0 +1,41 @@
+Using version from around June 20, SVN 52181, it does not remember fragment membership.
+
+50 x 50 = 2500 pixels
+
+real	0m5.767s
+user	0m5.704s
+sys	0m0.028s
+
+ 0.00228 s/pixel
+
+
+100 x 100 = 10,000 pixels 
+
+real	4m8.335s
+user	4m7.363s
+sys	0m0.048s
+
+0.0248 s/pixel
+
+
+140 x 140 = 19,600 pixels
+
+real	150m7.509s
+user	149m27.656s
+sys	0m9.025s
+
+0.45 s/pixel
+
+
+Rough target:
+
+10,000 x 10,000 = 100,000,000 pixels
+
+10 hours?
+
+
+removing squareroot
+17s --> 4s at 50x50 resolution
+23 --> 17s at 70x70
+
+

@@ -34,8 +34,9 @@ struct files
     int nrows, ncols;
 
     /* files *//* TODO, for all map names, is this better for any reason, saw it in manual example: char name[GNAME_MAX]; */
-    char *out_name;		/* name of output raster map */
+    char *out_name;		/* name of output raster map */  
     char *seeds, *bounds_map, *bounds_mapset;	/* optional segment seeds and polygon constraints/boundaries */
+	char *out_band;		/* for debug */
 
     /* file processing */
     int nbands;			/* number of rasters in the image group */
@@ -68,9 +69,7 @@ struct files
      */
 
     /* Todo: Additional data to be stored in this structure:
-     * vector constraints
      * seeds (Put directly into output map?)
-     * Need to consider if they should be put in RAM or SEGMENT?
      */
 
 };
@@ -85,6 +84,8 @@ struct functions
     int (*find_pixel_neighbors) (int, int, int[8][2], struct files *);	/*parameters: row, col, pixel_neighbors */
     double (*calculate_similarity) (struct pixels *, struct pixels *, struct files *, struct functions *);	/*parameters: two points (row,col) to compare */
 
+	/* for debug */
+	int end_t;
 };
 
 
@@ -101,9 +102,9 @@ int io_debug(struct files *, struct functions *);
 int ll_test(struct files *, struct functions *);
 int test_pass_token(struct pixels **, struct files *);
 int region_growing(struct files *, struct functions *);
-int find_segment_neighbors(struct pixels **, struct pixels **, int *, struct files *, struct functions *);	/* TODO: need data structure for Ri, Rin */
+int find_segment_neighbors(struct pixels **, struct pixels **, int *, struct files *, struct functions *);
 int set_candidate_flag(struct pixels *, int, struct files *);
-int merge_values(struct pixels *, struct pixels *, int, int, struct files *);	/* I assume this is a weighted mean? */
+int merge_values(struct pixels *, struct pixels *, int, int, struct files *);
 int find_four_pixel_neighbors(int, int, int[][2], struct files *);
 int find_eight_pixel_neighbors(int, int, int[8][2], struct files *);
 double calculate_euclidean_similarity(struct pixels *, struct pixels *,

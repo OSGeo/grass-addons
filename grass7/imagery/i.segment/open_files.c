@@ -10,8 +10,8 @@
 int open_files(struct files *files)
 {
     struct Ref Ref;		/* group reference list */
-    int *in_fd, bounds_fd;
-    int n, row, col, srows, scols, inlen, outlen, nseg;
+    int *in_fd, bounds_fd, null_check;
+    int n, s, row, col, srows, scols, inlen, outlen, nseg;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
     CELL *boundsbuf;
     struct FPRange *fp_range;	/* for getting min/max values on each input raster */
@@ -22,8 +22,7 @@ int open_files(struct files *files)
 
     /* ****** open the input rasters ******* */
 
-    /* TODO, this is from i.smap/openfiles.c  lines 17-23 checked if subgroup had maps, does API handles the checks? */
-
+	/* TODO: I confirmed, the API does not check this.  Should this be checked in parse_args / validation ?  Or best to do here where I want to use the REF data? */
     if (!I_get_group_ref(files->image_group, &Ref))
 	G_fatal_error(_("Unable to read REF file for group <%s>"),
 		      files->image_group);
@@ -52,10 +51,10 @@ int open_files(struct files *files)
 	for (n = 0; n < Ref.nfiles; n++) {
 	    if (Rast_read_fp_range
 		(Ref.file[n].name, Ref.file[n].mapset, &fp_range[n]) < 0)
-		G_fatal_error(_("Unable to read fp range for raster map <%s>"), Ref.file[n].name);	/* TODO, still should close files? */
+		G_fatal_error(_("Unable to read fp range for raster map <%s>"), Ref.file[n].name);	/* TODO, still should free memory and close files? */
 	    Rast_get_fp_range_min_max(&(fp_range[n]), &min[n], &max[n]);
 	}
-	G_verbose_message("scaling, for first layer, min: %f, max: %f",
+	G_debug(1, "scaling, for first layer, min: %f, max: %f",
 			  min[0], max[0]);
     }
 
@@ -106,46 +105,51 @@ int open_files(struct files *files)
     if (segment_open(&files->no_check, G_tempfile(), files->nrows, files->ncols, srows, scols, sizeof(int), nseg) != 1)	/* todo could make this smaller ? just need 0 or 1 */
 	G_fatal_error("Unable to create flag temporary files");
 
-    /* load input bands to segment structure */
+    /* load input bands to segment structure and initialize output segmentation file */
     G_debug(1, "Reading input rasters into segmentation data files...");
 
     files->bands_val = (double *)G_malloc(inlen);
     files->second_val = (double *)G_malloc(inlen);
-
+    files->out_val = (int *)G_malloc(2 * sizeof(int));
+	s = 1; /* initial segment ID */
+	
     for (row = 0; row < files->nrows; row++) {
 	for (n = 0; n < Ref.nfiles; n++) {
 	    Rast_get_d_row(in_fd[n], inbuf[n], row);
 	}
 	for (col = 0; col < files->ncols; col++) {
+		/*tempval = 0; Doesn't work, no "null" for doubles in c */ /* want a number, not null */
+		null_check = 1; /*Assume there is data*/
 	    for (n = 0; n < Ref.nfiles; n++) {
+		/*tempval += inbuf[n][col]; */ /* if mask/null, adding a null value should set tempval to NULL */
+		if(Rast_is_d_null_value(&inbuf[n][col]))
+			null_check=-1;
 		if (files->weighted == 1)
 		    files->bands_val[n] = inbuf[n][col];	/*unscaled */
 		else
 		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/*scaled version */
 	    }
 	    segment_put(&files->bands_seg, (void *)files->bands_val, row,
-			col);
-	}
-    }
-
-    /* Initialize output segmentation file */
-
-    /* TODO: Need to carry MASK over to the output file as well.  Need an additional flag that is set, during input read?  */
-
-    G_debug(1, "G_malloc size: = <%d>", (int)(2 * sizeof(int)));
-    files->out_val = (int *)G_malloc(2 * sizeof(int));
-
-    n = 1;
-    for (row = 0; row < files->nrows; row++) {
-	for (col = 0; col < files->ncols; col++) {
-	    files->out_val[0] = n;	/*starting segment number TODO: for seeds this will be different */
+			col); /* store input bands */
+			
+		if (null_check != -1){ /*good pixel*/
+		files->out_val[0] = s;	/*starting segment number TODO: for seeds this will be different */
 	    files->out_val[1] = 0;	/*flag */
-	    segment_put(&files->out_seg, (void *)files->out_val, row, col);
-	    n++;		/* sequentially number all pixels with their own segment ID */
+	}
+	else /*don't use this pixel*/
+	{
+		files->out_val[0] = -1;	/*starting segment number*/
+	    files->out_val[1] = -1;	/*flag */
+	}
+	    segment_put(&files->out_seg, (void *)files->out_val, row, col); /* initialize input */
+	    s++;		/* sequentially number all pixels with their own segment ID */
 	}
     }
 
     /* bounds/constraints */
+    /* TODO: You should also handle NULL cells in the bounds
+	 * raster map, I would suggest to replace NULL with min(bounds) - 1 or
+	 +* max(bounds) + 1. */
     if (files->bounds_map != NULL) {
 	if (segment_open
 	    (&files->bounds_seg, G_tempfile(), files->nrows, files->ncols,

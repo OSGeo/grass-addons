@@ -373,16 +373,24 @@ int region_growing(struct files *files, struct functions *functions)
 	/*process candidate pixels */
 	G_verbose_message("Row percent complete for pass number %d: ", t);
 	/*check each pixel, start the processing only if it is a candidate pixel */
+	
+	/* for validation, select one of the two... could make this IFDEF or input parameter */
+	/* reverse order 
+	for (row = files->nrows; row >= 0; row--) {
+	    for (col = files->ncols; col >= 0 ; col--) {
+		G_percent(files->nrows-row, files->nrows, 1);
+end reverse order */
+/* "normal" order */
 	for (row = 0; row < files->nrows; row++) {
 	    for (col = 0; col < files->ncols; col++) {
+		G_percent(row, files->nrows, 1); /*end normal order */	/* TODO, can a message be included with G_percent? */
 
-		G_percent(row, files->nrows, 1);	/* TODO, can a message be included with G_percent? */
 
 		G_debug(4,
 			"Next starting pixel from next row/col, not from Rk");
 
 		segment_get(&files->out_seg, (void *)files->out_val, row, col);	/*TODO small time savings - if candidate_count reaches zero, bail out of these loops too? */
-		if (files->out_val[1] == 1) {	/* out_val[1] is the candidate pixel flag, want to process the 1's */
+		if (files->out_val[1] == 1 && files->out_val != NULL) {	/* out_val[1] is the candidate pixel flag, want to process the 1's */ /*TODO MASK handling - checking if we have a segment ID already, in open_files() we will put nulls in [0] slot... better/faster way to do this?*/
 		    G_debug(4, "going to free memory on linked lists...");
 		    /*free memory for linked lists */
 		    my_dispose_list(files->token, &Ri_head);
@@ -472,6 +480,7 @@ int region_growing(struct files *files, struct functions *functions)
 			    G_debug(4,
 				    "simularity = %g for neighbor : row: %d, col %d.",
 				    tempsim, current->row, current->col);
+				    
 			    if (tempsim < Ri_similarity) {
 				Ri_similarity = tempsim;
 				Ri_bestn = current;	/*TODO want to point to the current pixel...confirm  when current changes need this to stay put! */
@@ -482,11 +491,18 @@ int region_growing(struct files *files, struct functions *functions)
 			    }
 			}
 
-			if (Ri_bestn != NULL)
+			if (Ri_bestn != NULL){
 			    G_debug(4,
 				    "Lowest Ri_similarity = %g, for neighbor pixel row: %d col: %d",
 				    Ri_similarity, Ri_bestn->row,
 				    Ri_bestn->col);
+
+			    segment_get(&files->out_seg, (void *)files->out_val, Ri_bestn->row, Ri_bestn->col);
+			    if (files->out_val[1] == 0)
+				/* this check is important:
+				 * best neighbor is not a valid candidate, was already merged earlier in this time step */
+				Ri_similarity = threshold + 1;
+}
 
 			if (Ri_bestn != NULL && Ri_similarity < threshold) {	/* small TODO: should this be < or <= for threshold? */
 			    /* we'll have the neighbor pixel to start with. */
@@ -526,6 +542,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 			    for (current = Rkn_head; current != NULL; current = current->next) {	/* for each of Rk's neighbors */
 				tempsim = functions->calculate_similarity(Rk_head, current, files, functions);	/*TODO: need an error trap here, if something goes wrong with calculating similarity? */
+				
 				if (tempsim < Rk_similarity) {
 				    Rk_similarity = tempsim;
 				    break;	/* exit for Rk's neighbors loop here, we know that Ri and Rk aren't mutually best neighbors */
@@ -559,9 +576,17 @@ int region_growing(struct files *files, struct functions *functions)
 
 			    }
 			}	/*end else (from if mutually best neighbors) */
-			else
+			else {
+			    /* no valid best neighbor for this Ri
+			     * exclude this Ri from further comparisons 
+			     * because we checked already Ri for a mutually best neighbor with all valid candidates
+			     * thus Ri can not be the mutually best neighbor later on during this pass
+			     * unfortunately this does happen sometimes */
+			    set_candidate_flag(Ri_head, 0, files);	/* TODO: error trap? */
+			    files->candidate_count++; /*first pixel was already set*/
 			    G_debug(4,
-				    "3b Rk didn't didn't exist or similarity was > threshold");
+				    "3b Rk didn't didn't exist, was not valid candidate, or similarity was > threshold");
+				} /*end else - Ri's best neighbor was not a candidate */
 		    }		/* end else - Ri did have neighbors */
 		    //          }           /*end pathflag do loop */
 		}		/*end if pixel is candidate pixel */
@@ -572,7 +597,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 	G_debug(4, "Finished one pass, t was = %d", t);
 	t++;
-    } while (t < 90 && endflag == 0);
+    } while (t <= functions->end_t && endflag == 0);
     /*end t loop *//*TODO, should there be a max t that it can iterate for?  Include t in G_message? */
 
     /* free memory *//*TODO: anything ? */
@@ -689,7 +714,8 @@ int find_segment_neighbors(struct pixels **R_head,
 
 		segment_get(&files->out_seg, (void *)files->out_val, pixel_neighbors[n][0], pixel_neighbors[n][1]);	/*TODO : do I need a second "out_val" data structure? */
 
-		if (files->out_val[1] == 1) {	/* valid candidate pixel */
+		if (files->out_val[1] == 1 || files->out_val[1] == 0) {	/* all pixels, not just valid pixels */
+		/* TODO: use -1 for NULL/MASKED pixels? */
 
 		    G_debug(5, "\tfiles->out_val[0] = %d Ri_seg_ID = %d",
 			    files->out_val[0], Ri_seg_ID);
