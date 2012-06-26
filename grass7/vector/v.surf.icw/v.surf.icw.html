@@ -24,7 +24,7 @@ expensive for a stone tool technology to cross waterways.
 <p>
 Since generating cost maps can take a long time, it is recommended to keep
 the raster region relatively small and limit the number of starting points
-to less than 100.
+to less than 500.
 <p>
 Higher values of <b>friction</b> will help limit unconstrained boundary
 effects at the edges of your coverage, but will incur more of a stepped
@@ -37,9 +37,9 @@ In that case the <em>r.cost</em> module can be used to create the mask.
 <p>
 This module writes lots of temporary files and so can be rather disk I/O
 intensive. If you are running it many times in a big loop you may want to
-set up a RAM-disk to put the mapset in (on UNIX symlinking back into the
-location is ok), or adjust the disk-cache flushing timer to be slightly
-longer than one iteration of the script.
+try setting up a RAM-disk to put the mapset in (on UNIX symlinking back
+into the location is ok), or adjust the disk-cache flushing timer to be
+slightly longer than one iteration of the script.
 <br>To do this on Linux you can tune the
  <tt>/proc/sys/vm/dirty_expire_centisecs</tt> kernel control. The default
 is to keep files in memory a maximum of 30 seconds before writing them to
@@ -49,6 +49,12 @@ long before that timeout is reached.
    http://www.westnet.com/~gsmith/content/linux-pdflush.htm
    http://tldp.org/LDP/sag/html/buffer-cache.html
  -->
+<p>
+By default the module will run serially. To run in parallel set the
+<b>workers</b> parameter to the desired value (typically the number
+of cores in your CPU). Alternatively, if the <tt>WORKERS</tt> environment
+variable is set, the number of concurrent processes will be set at
+that number of jobs.
 
 
 <h2>EXAMPLE</h2>
@@ -87,8 +93,29 @@ d.legend annual_interp.3 color=white at=48.4,94.8,3.4,6.0
 
 <h2>REFERENCES</h2>
 
- * Hamish's MfE reports / published confernce proceedings?
- * Ben D's journal article (Deutsch)
+The method was first described in Wing et. al 2004, with further
+comments and examples in report 3 of that series, 2005. Ducke and
+Rassmann 2010 (in German) describe a novel use of the approach to
+study prehistoric movement corridors of early Bronze Age technology
+through Europe.
+<ul>
+<li>
+Wing, S.R., M.H.E. Bowman, F. Smith and S.M. Rutger (2004), <i>Analysis
+of biodiversity patterns and management decision making processes to
+support stewardship of marine resources and biodiversity in Fiordland
+- a case study</i>, report 2 of 3, Technical report, Report to the Ministry for
+the Environment, New Zealand.
+
+<li>
+Ducke, B. and K. Rassmann (2010),
+<i>Modelling and Interpretation of the Communication
+Spaces of the 3rd and Early 2nd Millennium BC in Europe
+Using Diversity Gradients</i> &nbsp;
+(<i>Modellierung und Interpretation der Kommunikationsräume
+des 3. und frühen 2. Jahrtausends v. Chr.</i>),
+in Europa mittels Diversitätsgradienten;
+Archäologischer Anzeiger 2010/1, pp.239-261
+</ul>
 
 
 <h2>SEE ALSO</h2>
