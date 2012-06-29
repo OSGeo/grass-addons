@@ -14,6 +14,7 @@
 
 #include <grass/segment.h>
 #include <grass/linkm.h>
+#include "flag.h"
 
 /* pixel stack */
 struct pixels
@@ -38,14 +39,20 @@ struct files
     char *seeds, *bounds_map, *bounds_mapset;	/* optional segment seeds and polygon constraints/boundaries */
     char *out_band;		/* for debug */
 
-    /* file processing */
+    /* file processing *//* TODO decide if bounds should be RAM or SEG */
+    /* input values initially, then bands_seg is updated with current mean values for the segment. */
     int nbands;			/* number of rasters in the image group */
-    SEGMENT bands_seg, out_seg, bounds_seg;	/* bands is for input, normal application is landsat bands, but other input can be included in the group. */
+    SEGMENT bands_seg, bounds_seg;	/* bands is for input, normal application is landsat bands, but other input can be included in the group. */
     double *bands_val;		/* array, to hold all input values at one pixel */
     double *second_val;		/* to hold values at second point for similarity comparison */
-    int *out_val, bounds_val, current_bound;	/* out_val is array, to hold the segment ID and processing flag(s) */
+    int bounds_val, current_bound;
 
-    SEGMENT no_check;		/* pixels that have already been checked during this neighbor finding routine */
+    /* results */
+    int **iseg;			/*segment ID assignment. */
+
+    /* processing flags */
+    FLAG *candidate_flag, *null_flag;	/*TODO, need some way to remember MASK/NULL values.  Was using -1, 0, 1 in int array.  Better to use 2 FLAG structures, better readibility? */
+    FLAG *no_check;		/* pixels that have already been checked during this neighbor finding routine */
 
     /* memory management, linked lists */
     struct link_head *token;	/* for linkm linked list memory management. */

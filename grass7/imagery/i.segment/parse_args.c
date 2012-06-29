@@ -103,7 +103,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 	G_fatal_error("Invalid output raster name.");
 
     functions->threshold = atof(threshold->answer);	/* Note: this threshold is scaled after we know more at the beginning of create_isegs() */
-    if (weighted->answer == TRUE &&
+    if (weighted->answer == FALSE &&
 	(functions->threshold <= 0 || functions->threshold >= 1))
 	G_fatal_error(_("threshold should be >= 0 and <= 1"));	/* TODO OK to have fatal error here, seems this would be an invalid entry. */
 

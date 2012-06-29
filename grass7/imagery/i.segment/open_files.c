@@ -11,11 +11,16 @@ int open_files(struct files *files)
 {
     struct Ref Ref;		/* group reference list */
     int *in_fd, bounds_fd, null_check;
-    int n, s, row, col, srows, scols, inlen, outlen, nseg;
+    int i, n, s, row, col, srows, scols, inlen, outlen, nseg;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
     CELL *boundsbuf;
     struct FPRange *fp_range;	/* for getting min/max values on each input raster */
     DCELL *min, *max;
+
+    /*allocate memory for flags */
+    files->null_flag = flag_create(files->nrows, files->ncols);
+    files->candidate_flag = flag_create(files->nrows, files->ncols);
+    files->no_check = flag_create(files->nrows, files->ncols);
 
     G_debug(1, "Checking image group...");
     /* references: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
@@ -94,23 +99,18 @@ int open_files(struct files *files)
 	 scols, inlen, nseg) != TRUE)
 	G_fatal_error("Unable to create input temporary files");
 
-    /* G_debug(1, "finished segment_open(...bands_seg...)"); */
-
     /* TODO: signed integer gives a 2 billion segment limit, depending on how the initialization is done, this means 2 billion max input pixels. */
-    if (segment_open
-	(&files->out_seg, G_tempfile(), files->nrows, files->ncols, srows,
-	 scols, outlen, nseg) != TRUE)
-	G_fatal_error("Unable to create output temporary files");
+    files->iseg = G_malloc(files->nrows * sizeof(int *));
+    for (i = 0; i < files->nrows; i++)
+	files->iseg[i] = G_malloc(files->ncols * sizeof(int));
 
-    if (segment_open(&files->no_check, G_tempfile(), files->nrows, files->ncols, srows, scols, sizeof(int), nseg) != TRUE)	/* todo could make this smaller ? just need 0 or 1 */
-	G_fatal_error("Unable to create flag temporary files");
+    /* TODO, need error check for running out of memory, or does G_malloc included a G_fatal_error call? */
 
-    /* load input bands to segment structure and initialize output segmentation file */
+    /* load input bands to segment structure and fill iseg array */
     G_debug(1, "Reading input rasters into segmentation data files...");
 
     files->bands_val = (double *)G_malloc(inlen);
     files->second_val = (double *)G_malloc(inlen);
-    files->out_val = (int *)G_malloc(2 * sizeof(int));
     s = 1;			/* initial segment ID */
 
     for (row = 0; row < files->nrows; row++) {
@@ -118,10 +118,8 @@ int open_files(struct files *files)
 	    Rast_get_d_row(in_fd[n], inbuf[n], row);
 	}
 	for (col = 0; col < files->ncols; col++) {
-	    /*tempval = 0; Doesn't work, no "null" for doubles in c *//* want a number, not null */
 	    null_check = 1;	/*Assume there is data */
 	    for (n = 0; n < Ref.nfiles; n++) {
-		/*tempval += inbuf[n][col]; *//* if mask/null, adding a null value should set tempval to NULL */
 		if (Rast_is_d_null_value(&inbuf[n][col]))
 		    null_check = -1;
 		if (files->weighted == TRUE)
@@ -132,16 +130,14 @@ int open_files(struct files *files)
 	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
 
 	    if (null_check != -1) {	/*good pixel */
-		files->out_val[0] = s;	/*starting segment number TODO: for seeds this will be different */
-		files->out_val[1] = TRUE;	/*flag */
+		files->iseg[row][col] = s;	/*starting segment number TODO: for seeds this will be different */
+		FLAG_UNSET(files->null_flag, row, col);	/*flag */
+		s++;		/* sequentially number all pixels with their own segment ID */
 	    }
 	    else {		/*don't use this pixel */
-
-		files->out_val[0] = -1;	/*starting segment number */
-		files->out_val[1] = -1;	/*flag */
+		files->iseg[row][col] = -1;	/* place holder...TODO this could be a conflict if constraints included a -1 */
+		FLAG_SET(files->null_flag, row, col);	/*flag */
 	    }
-	    segment_put(&files->out_seg, (void *)files->out_val, row, col);	/* initialize input */
-	    s++;		/* sequentially number all pixels with their own segment ID */
 	}
     }
 

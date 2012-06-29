@@ -22,7 +22,7 @@ int write_output(struct files *files)
 
     /* Todo: return codes are 1 for these, need to check and react to errors? programmer's manual didn't include it... */
 
-    segment_flush(&files->out_seg);	/* force all data to disk */
+    /* force all data to disk */
     segment_flush(&files->bands_seg);	/* TODO use IFDEF or just delete for all these parts? for debug/validation output */
 
     G_debug(1, "preparing output raster");
@@ -39,13 +39,11 @@ int write_output(struct files *files)
 	Rast_set_c_null_value(outbuf, files->ncols);	/*set buffer to NULLs, only write those that weren't originally masked */
 	Rast_set_d_null_value(meanbuf, files->ncols);
 	for (col = 0; col < files->ncols; col++) {
-	    segment_get(&files->out_seg, (void *)files->out_val, row, col);
 	    segment_get(&files->bands_seg, (void *)files->bands_val, row,
 			col);
-	    G_debug(5, "outval[0] = %i", files->out_val[0]);
-	    if (files->out_val[0] >= 0) {	/* only write positive segment ID's, using -1 as indicator of Null/Masked pixels.  TODO: OK to use -1 as flag for this? */
-		outbuf[col] = files->out_val[0];	/*just want segment assignment, not the other processing flag(s) */
-		meanbuf[col] = files->out_val[0];
+	    if (!(flag_get(files->null_flag, row, col))) {
+		outbuf[col] = files->iseg[row][col];
+		meanbuf[col] = files->bands_val[0];
 	    }
 	}
 	Rast_put_row(out_fd, outbuf, CELL_TYPE);
@@ -76,22 +74,26 @@ int write_output(struct files *files)
 
 int close_files(struct files *files)
 {
+    int i;
+
     /* close segmentation files and output raster */
     G_debug(1, "closing files");
     segment_close(&files->bands_seg);
-    segment_close(&files->out_seg);
-    segment_close(&files->no_check);
     segment_close(&files->bounds_seg);
 
     G_free(files->bands_val);
     G_free(files->second_val);
-    G_free(files->out_val);
 
+    for (i = 0; i < files->nrows; i++)
+	G_free(files->iseg[i]);
+    G_free(files->iseg);
+
+    flag_destroy(files->null_flag);
+    flag_destroy(files->candidate_flag);
+    flag_destroy(files->no_check);
     G_debug(1, "close_files() before link_cleanup()");
-    /*    link_cleanup((struct link_head *)files->token); */
     link_cleanup(files->token);
     G_debug(1, "close_files() after link_cleanup()");
-
 
     /* anything else left to clean up? */
 

@@ -1,4 +1,38 @@
+NC sample landsat images, lsat7_2000_10
+
+g.region rast=lsat7_2000_10@landsat
+rows:       475
+cols:       527
+cells:      250325
+
+still running...
+
+
+g.region s=222000 e=637000
+cells:      56334
+< 5 minutes
+
+
+g.region s=220000 e=639000
+cells: 94783
+
+13 min (just one time test)
+
+
+
+
+typical i.segment options:
+time i.segment -w --overwrite group=landsat1@user1 output=val threshold=5 method=region_growing endt=1000 final_mean=val_mean --verbose
+
+threshold of 3 ran faster, but visually seemed oversegmented.
+
+
+
+#########older data below
+
 Using version from around June 20, SVN 52181, it does not remember fragment membership.
+
+After some updates...June 26, SVN 52232.  (I don't recall changing anything to specifically improve things by this much ?!?)
 
 50 x 50 = 2500 pixels
 
@@ -20,11 +54,45 @@ sys	0m0.048s
 
 140 x 140 = 19,600 pixels
 
+52181:
 real	150m7.509s
 user	149m27.656s
 sys	0m9.025s
 
 0.45 s/pixel
+
+52232:
+
+real	0m55.961s
+user	0m52.655s
+sys	0m3.040s
+
+
+
+10k pixels, but [Raster MASK present]
+52232:
+real	1m43.085s
+user	1m42.338s
+sys	0m0.152s
+10k pixels, but [Raster MASK present]
+
+basic flag implementation:
+real	0m47.079s
+user	0m46.651s
+sys	0m0.092s
+[Raster MASK present]
+
+
+19600 pixels
+52232:
+real	0m55.961s
+user	0m52.655s
+sys	0m3.040s
+
+basic implementation:
+real	1m4.718s
+user	1m0.016s
+sys	0m4.340s
 
 
 Rough target:
