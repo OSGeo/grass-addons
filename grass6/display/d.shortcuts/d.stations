@@ -9,20 +9,20 @@
 #
 
 if [ -z $GISBASE ] ; then
-        echo "You have to be in GRASS to use this."
-        exit
+    echo "You have to be in GRASS to use this."
+    exit
 fi
 
 if [ -z "$1" ] ; then
-	echo "USAGE: d.stations sitefile [color]"
-	echo "       make pretty diamond markers for a sites file"
-	exit
+    echo "USAGE: d.stations sitefile [color]"
+    echo "       make pretty diamond markers for a sites file"
+    exit
 fi
 
-if [ -z $2 ] ; then
-	COLOR=red
+if [ -z "$2" ] ; then
+    COLOR=red
 else
-	COLOR=$2
+    COLOR="$2"
 fi
 
 
@@ -31,24 +31,24 @@ GRASS_MAJOR_VERSION=`echo $GRASS_VERSION | cut -f1 -d.`
 GRASS_MINOR_VERSION=`echo $GRASS_VERSION | cut -f2 -d.`
 
 if [ $GRASS_MAJOR_VERSION -eq 5  -a $GRASS_MINOR_VERSION -lt 7 ] ; then
-    GRASS_VER=old
+    GRASS_VER=g5
 else
-    GRASS_VER=new
+    GRASS_VER=g6
 fi
 
-if [ $GRASS_VER = "old" ] ; then
+if [ $GRASS_VER = "g5" ] ; then
 #	d.sites $1 color=white type=diamond size=6
 #	d.sites $1 color=$COLOR type=diamond size=5
-#        d.sites $1 color=$COLOR type=diamond size=4
+#       d.sites $1 color=$COLOR type=diamond size=4
         d.sites $1 color=$COLOR type=diamond size=3
         d.sites $1 color=$COLOR type=diamond size=2
         d.sites $1 color=$COLOR type=x size=2
-#        d.sites $1 color=$COLOR type=diamond size=1
-#        d.sites $1 color=$COLOR type=diamond size=0
+#       d.sites $1 color=$COLOR type=diamond size=1
+#       d.sites $1 color=$COLOR type=diamond size=0
 #	d.site.labels $1 attr=double xref=right size=7  # color=yellow
 
 else
-    d.vect $1 color=$COLOR fcolor=$COLOR size=6 icon=basic/circle
+    d.vect $1 color=$COLOR fcolor=$COLOR size=5 icon=basic/circle
 #    COLNAME=depth
 #    d.vect $1 display=attr attrcol=$COLNAME lcolor=lcolor=blue xref=center yref=top lsize=9
 fi
