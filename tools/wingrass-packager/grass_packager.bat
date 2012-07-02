@@ -38,6 +38,8 @@ C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_md5sum.sh
 
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_addons.sh
 
+C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_copy_wwwroot.sh
+
 # pscp.exe -i    .\ssh\id_dsa.ppk .\grass64\WinGRASS*.exe* landa@geo102:/work/wingrass/grass64
 # pscp.exe -i    .\ssh\id_dsa.ppk .\grass64\grass*.tar.bz2 landa@geo102:/work/wingrass/grass64/osgeo4w
 # pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\log-r*         landa@geo102:/work/wingrass/grass64/logs/
