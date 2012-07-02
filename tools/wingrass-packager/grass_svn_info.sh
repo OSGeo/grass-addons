@@ -8,9 +8,13 @@ HOME=/c/Users/landa/grass_packager
 function update {
     cd $SRC/$1
     REV=`svn info | grep 'Last Changed Rev:' | cut -d':' -f2 | tr -d ' '`
-    NUM=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
-    if [ "x$NUM" = "x" ]; then
-	NUM=1
+    if test -z $3 ; then
+	NUM=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
+	if [ "x$NUM" = "x" ]; then
+	    NUM=1
+	fi
+    else
+	NUM=$3
     fi
     
     exec 3<include/VERSION 
@@ -48,7 +52,7 @@ if test -z $1 ; then
     update grass6_devel grass65
     update grass_trunk grass70
 else
-    update grass$1 grass$1
+    update grass$1 grass$1 $2
 fi
 
 exit 0
