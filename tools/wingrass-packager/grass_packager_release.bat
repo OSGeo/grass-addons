@@ -8,9 +8,9 @@ set PATCH=2
 set REV=2
 
 rem Compile GRASS versions
-rem rmdir /s /q C:\OSGeo4W\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%
+rmdir /s /q C:\OSGeo4W\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%
 rem native & osgeo4w
-rem C:\OSGeo4W\apps\msys\bin\bash.exe C:\Users\landa\grass_packager\grass_compile.sh %MAJOR%%MINOR%%PATCH%
+C:\OSGeo4W\apps\msys\bin\bash.exe C:\Users\landa\grass_packager\grass_compile.sh %MAJOR%%MINOR%%PATCH%
 
 rem Preparation
 if exist .\grass%MAJOR%%MINOR%%PATCH% rmdir /S/Q .\grass%MAJOR%%MINOR%%PATCH%
@@ -22,8 +22,6 @@ cd ..
 
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_osgeo4w.sh %MAJOR%%MINOR%%PATCH% %MAJOR%.%MINOR%.%PATCH% %REV%
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_svn_info.sh %MAJOR%%MINOR%%PATCH% %REV%
-
-pause
 
 C:\DevTools\makensis.exe .\grass%MAJOR%%MINOR%%PATCH%\GRASS-Installer.nsi
 
