@@ -9,10 +9,10 @@ bands. For example, Landsat ETM has low resolution spectral bands 1 (blue),
 and a high resolution panchromatic band 8 at 15m resolution. Pan sharpening
 allows bands 3-2-1 (or other combinations of 30m resolution bands like 4-3-2 
 or 5-4-2) to be combined into a 15m resolution color image.
-<br><br>
+<p>
 i.pansharpen offers a choice of three different 'pan sharpening' 
 algorithms: IHS, Brovey, and PCA.
-<br><br>
+<p>
 For <em>IHS pan sharpening</em>, the original 3 lower resolution bands, selected 
 as red, green and blue channels for creating an RGB composite image, are 
 transformed into IHS (intensity, hue, and saturation) color space. The 
@@ -20,7 +20,7 @@ panchromatic band is then substituted for the intensity channel (I), combined
 with the original hue (H) and saturation (S) channels, and transformed back to 
 RGB color space at the higher resolution of the panchromatic band. The 
 algorithm for this can be represented as: RGB -> IHS -> [pan]HS -> RGB.
-<br><br>
+<p>
 With a <em>Brovey pan sharpening</em>, each of the 3 lower resolution bands and 
 panchromatic band are combined using the following algorithm to calculate 
 3 new bands at the higher resolution (example for band 1):
@@ -29,6 +29,7 @@ panchromatic band are combined using the following algorithm to calculate
     new band1 = ----------------------- * panband
                  band1 + band2 + band3
 </pre>
+
 In <em>PCA pan sharpening</em>, a principal component analysis is performed on the 
 original 3 lower resolution bands to create 3 principal component images
 (PC1, PC2, and PC3) and their associated eigenvectors (EV), such that:
@@ -42,8 +43,8 @@ PC3: EV3-1  EV3-2  EV3-3
 and
 
 PC1 = EV1-1 * band1 + EV1-2 * band2 + EV1-3 * band3 - mean(bands 1,2,3)
-
 </pre>
+
 An inverse PCA is then performed, substituting the panchromatic band for PC1. 
 To do this, the eigenvectors matrix is inverted (in this case transposed), the 
 PC images are multiplied by the eigenvectors with the panchromatic band 
@@ -57,7 +58,7 @@ band1' = pan * EV1-1 + PC2 * EV2-1 + PC3 * EV3-1 + mean(band1)
 The assignment of the channels depends on the satellite. Examples of satellite 
 imagery with high resolution panchromatic bands, and lower resolution spectral 
 bands include Landsat 7 ETM, QuickBird, and SPOT.
-<br>
+
 <h2>NOTES</h2>
 The command temporarily changes the computational region to the high 
 resolution of the panchromatic band during sharpening calculations, then 
@@ -66,17 +67,17 @@ null values) are respected. The high resolution panchromatic image is
 histogram matched to the band it is replaces prior to substitution (i.e., the 
 intensity channel for IHS sharpening, the low res band selected for each color 
 channel with Brovey sharpening, and the PC1 image for PCA sharpening).
-<br><br>
+<p>
 By default, the command will attempt to employ parallel processing, using 
 up to 3 cores simultaneously. The -s flag will disable parallel processing, 
 but does use an optimized r.mapcalc expression to reduce disk I/O.
-<br><br>
+<p>
 The three pan-sharpened output channels may be combined with <em>d.rgb</em> or 
 <em>r.composite</em>. Colors may be optionally optimized with <em>i.landsat.rgb</em>.
 While the resulting color image will be at the higher resolution in all cases, 
 the 3 pan sharpening algorithms differ in terms of spectral response.  
 
-<h2>EXAMPLE</h2>
+<h2>EXAMPLES</h2>
 
 Pan sharpening of a Landsat image from Boulder, Colorado, USA:
 
@@ -133,7 +134,27 @@ d.rgb b=ihs321_blue g=ihs321_green r=ihs321_red
   </tr>
   </table>
 </center>
-<br>
+<p>
+
+Example: LANDSAT-TM7 channel fusion of a North Carolina Landsat scene:
+
+<div class="code"><pre>
+g.region rast=lsat7_2002_20 -p
+
+# R, G, B composite at 28.5m
+d.mon wx0
+d.rgb b=lsat7_2002_10 g=lsat7_2002_20 r=lsat7_2002_30
+
+# Brovey fusion
+i.pansharpen -l ms1=lsat7_2002_20 ms2=lsat7_2002_40 \
+		ms3=lsat7_2002_50 pan=lsat7_2002_80 \
+		sharpen=brovey output_prefix=brovey
+
+# display at 14.25m
+g.region rast=brovey_red -p
+d.erase
+d.rgb r=brovey_red g=brovey_green b=brovey_blue
+</pre></div>
 
 
 <h2>SEE ALSO</h2>
@@ -156,17 +177,17 @@ d.rgb b=ihs321_blue g=ihs321_green r=ihs321_red
    Proc. of the 14th International Symposium on Remote Sensing
    of Environment, San Jose, Costa Rica, 23-30 April, pp. 1001-1007
 
-<li>Amarsaikhan, D., & Douglas, T. (2004). Data fusion and multisource image 
+<li>Amarsaikhan, D., &amp; Douglas, T. (2004). Data fusion and multisource image 
    classification. International Journal of Remote Sensing, 25(17), 3529-3539.
 
 <li>Behnia, P. (2005). Comparison between four methods for data fusion of ETM+ 
    multispectral and pan images. Geo-spatial Information Science, 8(2), 98-103.
    
-<li>Du, Q., Younan, N. H., King, R., & Shah, V. P. (2007). On the Performance 
+<li>Du, Q., Younan, N. H., King, R., &amp; Shah, V. P. (2007). On the Performance 
    Evaluation of Pan-Sharpening Techniques. Geoscience and Remote Sensing 
    Letters, IEEE, 4(4), 518-522.
 
-<li>Karathanassi, V., Kolokousis, P., & Ioannidou, S. (2007). A comparison 
+<li>Karathanassi, V., Kolokousis, P., &amp; Ioannidou, S. (2007). A comparison 
    study on fusion methods using evaluation indicators. International Journal 
    of Remote Sensing, 28(10), 2309-2341.
 
@@ -180,10 +201,10 @@ d.rgb b=ihs321_blue g=ihs321_green r=ihs321_red
 </ul>
 
 
-
 <h2>AUTHORS</h2>
 
-Michael Barton (Arizona State University, USA)--with contributions from Markus 
-Neteler (ITC-irst, Italy); Glynn Clements; Luca Delucchi (Fondazione E. Mach, 
-Italy); Markus Metz; and Hamish Bowman. 
+Michael Barton (Arizona State University, USA) -- with contributions from Markus 
+Neteler (Fondazione E. Mach, Italy); Glynn Clements; Luca Delucchi (Fondazione E. Mach, 
+Italy); Markus Metz; and Hamish Bowman.
+
 <p><i>Last changed: $Date: $</i>
