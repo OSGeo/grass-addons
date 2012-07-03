@@ -12,7 +12,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 {
     /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
 
-    struct Option *group, *seeds, *bounds, *output, *method, *threshold;	/* Establish an Option pointer for each option */
+    struct Option *group, *seeds, *bounds, *output, *method, *threshold, *min_segment_size;	/* Establish an Option pointer for each option */
     struct Flag *diagonal, *weighted;	/* Establish a Flag pointer for each option */
     struct Option *outband, *endt;	/* debugging parameters... TODO: leave in code or remove?  hidden options? */
 
@@ -21,6 +21,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
 
+/*TODO polish: any way to recommend a threshold to the user */
     threshold = G_define_option();
     threshold->key = "threshold";
     threshold->type = TYPE_DOUBLE;
@@ -35,6 +36,14 @@ int parse_args(int argc, char *argv[], struct files *files,
     method->options = "region_growing, io_debug, ll_test";	/* TODO at end, remove these from list: io_debug just writes row+col to each output pixel, ll_test for testing linked list data structure */
     method->description = _("Segmentation method.");
 
+	min_segment_size = G_define_option();
+	min_segment_size->key = "min"; /*TODO is there a preference for long or short key names? min is pretty generic...but short... */
+	min_segment_size->type = TYPE_INTEGER;
+	min_segment_size->required = YES;
+	min_segment_size->answer = "10"; /* TODO, should a "typical" default be provided? */
+	min_segment_size->options = "1-100000"; /*must be positive number, is >0 allowed in "options" or is 100,000 suitably large? */
+	min_segment_size->description = _("Minimum number of pixels (cells) in a segment.  The final merge step will ignore the threshold for any segments with fewer pixels.");
+    
     /* optional parameters */
 
     diagonal = G_define_flag();
@@ -72,8 +81,9 @@ int parse_args(int argc, char *argv[], struct files *files,
     endt = G_define_option();
     endt->key = "endt";
     endt->type = TYPE_INTEGER;
-    endt->required = YES;	/* TODO, could put as optional, and if not supplied put in something large. */
-    endt->description = _("Maximum number of time steps to complete.");
+    endt->required = NO;
+    endt->answer = "10000";
+    endt->description = _("Debugging...Maximum number of time steps to complete.");
 
     outband = G_define_standard_option(G_OPT_R_OUTPUT);
     outband->key = "final_mean";
@@ -103,6 +113,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 	G_fatal_error("Invalid output raster name.");
 
     functions->threshold = atof(threshold->answer);	/* Note: this threshold is scaled after we know more at the beginning of create_isegs() */
+
     if (weighted->answer == FALSE &&
 	(functions->threshold <= 0 || functions->threshold >= 1))
 	G_fatal_error(_("threshold should be >= 0 and <= 1"));	/* TODO OK to have fatal error here, seems this would be an invalid entry. */
@@ -119,6 +130,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	G_fatal_error("Couldn't assign segmentation method.");	/*shouldn't be able to get here */
 
     G_debug(1, "segmentation method: %d", functions->method);
+
+	functions->min_segment_size = atoi(min_segment_size->answer);
 
     if (diagonal->answer == FALSE) {
 	functions->find_pixel_neighbors = &find_four_pixel_neighbors;
@@ -165,7 +178,11 @@ int parse_args(int argc, char *argv[], struct files *files,
 	    G_fatal_error("Invalid output raster name for means.");
     }
 
-    functions->end_t = atoi(endt->answer);	/* Note: this threshold is scaled after we know more at the beginning of create_isegs() */
-
+	if (endt->answer != NULL && endt->answer >= 0)
+    functions->end_t = atoi(endt->answer);
+	else {
+		functions->end_t = 10000;
+		G_warning(_("invalid number of iterations, 10000 will be used."));
+	}
     return TRUE;
 }

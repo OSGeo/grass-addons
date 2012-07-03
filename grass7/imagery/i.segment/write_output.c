@@ -16,7 +16,8 @@ int write_output(struct files *files)
     int out_fd, mean_fd, row, col;	/* mean_fd for validiating/debug of means, todo, could add array... */
     CELL *outbuf;
     DCELL *meanbuf;
-
+	struct Colors colors;
+	
     outbuf = Rast_allocate_c_buf();	/*hold one row of data to put into raster */
     meanbuf = Rast_allocate_d_buf();
 
@@ -65,10 +66,16 @@ int write_output(struct files *files)
     if (files->out_band != NULL)
 	Rast_close(mean_fd);
 
+	/* set colors */
+	Rast_init_colors(&colors);
+	Rast_make_random_colors(&colors, 1, files->nrows*files->ncols); /* TODO polish - number segments from 1 - max ? and then can use that max here. */
+	Rast_write_colors(files->out_name, G_mapset(), &colors); /* TODO, OK to just use G_mapset() here, seems I don't use it anywhere else, and that is where the output has to be written.  (Should the library allow changing colors to other mapsets???) */
+	
     /* free memory */
     G_free(outbuf);
     G_free(meanbuf);
-
+	Rast_free_colors(&colors);
+	
     return TRUE;
 }
 

@@ -366,7 +366,7 @@ int region_growing(struct files *files, struct functions *functions)
 		files->candidate_count);
 
 	/*process candidate pixels */
-	G_verbose_message("Row percent complete for pass number %d: ", t);
+	G_verbose_message("\nRow percent complete for pass number %d: ", t);
 	/*check each pixel, start the processing only if it is a candidate pixel */
 	/* for validation, select one of the two... could make this IFDEF or input parameter */
 	/* reverse order 
@@ -407,7 +407,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 		    /* Setting Ri to be not a candidate allows using "itself" when at edge of raster. TODO THIS NEEDS TO BE CHANGED!!!!
 		     * Otherwise need to use a list/count/something to know the number of pixel neighbors */
-		    set_candidate_flag(Ri_head, 0, files);	/* TODO: error trap? */
+		    set_candidate_flag(Ri_head, FALSE, files);	/* TODO: error trap? */
 		    G_debug(4, "line 165, \t\t\t\tcc = %d",
 			    files->candidate_count);
 
@@ -434,7 +434,7 @@ int region_growing(struct files *files, struct functions *functions)
 			G_debug(4, "2a, Segment had no valid neighbors");	/*this could happen if there is a segment surrounded by pixels that have already been processed */
 			pathflag = FALSE;
 			Ri_count = 0;
-			set_candidate_flag(Ri_head, 0, files);	/* TODO: error trap? */
+			set_candidate_flag(Ri_head, FALSE, files);	/* TODO: error trap? */
 			files->candidate_count++;	/* already counted out Ri[0]; */
 			G_debug(4, "line 176, \t\t\t\tcc = %d",
 				files->candidate_count);
@@ -555,7 +555,7 @@ int region_growing(struct files *files, struct functions *functions)
 					Ri_similarity, Rk_similarity);
 
 				/* did this at beginning of path loop */
-				set_candidate_flag(Ri_head, 0, files);	/* remove all Ri members from candidate pixels (set flag) */
+				set_candidate_flag(Ri_head, FALSE, files);	/* remove all Ri members from candidate pixels (set flag) */
 				files->candidate_count++;	/* add one back, we had already set Ri[0] flag at the beginning. */
 				G_debug(4, "line 247, \t\t\t\tcc = %d",
 					files->candidate_count);
@@ -577,7 +577,7 @@ int region_growing(struct files *files, struct functions *functions)
 			     * because we checked already Ri for a mutually best neighbor with all valid candidates
 			     * thus Ri can not be the mutually best neighbor later on during this pass
 			     * unfortunately this does happen sometimes */
-			    set_candidate_flag(Ri_head, 0, files);	/* TODO: error trap? */
+			    set_candidate_flag(Ri_head, FALSE, files);	/* TODO: error trap? */
 			    files->candidate_count++;	/*first pixel was already set */
 			    G_debug(4,
 				    "3b Rk didn't didn't exist, was not valid candidate, or similarity was > threshold");
@@ -589,7 +589,7 @@ int region_growing(struct files *files, struct functions *functions)
 #ifdef REVERSE
 	    G_percent(files->nrows - row, files->nrows, 1);
 #else
-	    G_percent(row, files->nrows, 1);	/* TODO, can a message be included with G_percent? */
+	    G_percent(row, files->nrows-1, 1);	/* TODO, can a message be included with G_percent? */
 #endif
 	    /* TODO, the REVERSE version gets printed on a new line, and isnt' covered.  The else version is. ? */
 	    /* TODO, shows up in CLI, not in GUI */
@@ -601,7 +601,6 @@ int region_growing(struct files *files, struct functions *functions)
 #endif
 
     }				/*next row */
-
     /* finished one pass for processing candidate pixels */
 
     G_debug(4, "Finished one pass, t was = %d", t);
@@ -609,6 +608,199 @@ int region_growing(struct files *files, struct functions *functions)
     }
     while (t <= functions->end_t && endflag == FALSE) ;
     /*end t loop *//*TODO, should there be a max t that it can iterate for?  Include t in G_message? */
+	if(endflag == FALSE) G_warning(_("Merging processes stopped due to reaching max iteration limit, more merges may be possible"));
+
+	/* ****************************************************************************************** */
+	/* final pass, ignore threshold and force a merge for small segments with their best neighbor */
+	
+	if (functions->min_segment_size > 1) {
+		G_verbose_message("Final iteration, force merges for small segments.");
+		
+		/* TODO: It would be possible to use some sort of "forced merge" flag and if statements in the above code.
+ * This might be easier to maintain... but I wasn't sure which would be easier to read
+ * and it would add some extra if statements to each iteration...
+ * 
+ * for the final forced merge, the candidate flag is just to keep track if we have confirmed if:
+ * 		a. the segment size is >= to the minimum allowed size  or
+ * 		b. we have merged it with its best neighbor
+ */
+	/* TODO: repeating this twice, move to helper function? */
+	
+	/* Set candidate flag to true/1 for all pixels TODO: for polygon/vector constraint, need to just set to true for those being processed */
+	if (files->bounds_map == NULL) {	/*normal processing */
+	    for (row = 0; row < files->nrows; row++) {
+		for (col = 0; col < files->ncols; col++) {
+		    /* TODO: if we are starting from seeds...and only allow merges between unassigned pixels
+		     *  and seeds/existing segments, then this needs an if (and will be very inefficient)
+		     * maybe consider the sorted array, btree, map... but the number of seeds could still be high for a large map */
+		    if (!(FLAG_GET(files->null_flag, row, col))) {
+			FLAG_SET(files->candidate_flag, row, col);	/*candidate pixel flag */
+
+			files->candidate_count++;
+		    }		/* Need something to prevent "pathflag" infinite loop */
+		}
+	    }
+	}
+	else {			/* polygon constraints/boundaries were supplied, include that criteria.  TODO: this repeats a lot of code, is there a way to combine this check without having too many extra if/etc statements ??? */
+	    for (row = 0; row < files->nrows; row++) {
+		for (col = 0; col < files->ncols; col++) {
+		    if (!(FLAG_GET(files->null_flag, row, col))) {
+
+			segment_get(&files->bounds_seg, &files->bounds_val,
+				    row, col);
+
+			if (files->bounds_val == files->current_bound) {
+			    /*TODO could move this if statement one line up, and only set "1" flags if we can assume all flags are already zero.  (i.e. only get/put the ones we want to set to 1.) */
+			    FLAG_SET(files->candidate_flag, row, col);	/*candidate pixel flag */
+			    files->candidate_count++;	/*TODO this assumes full grid with no null or mask!! But need something to prevent "pathflag" infinite loop */
+			}
+			//~ else   !!!TODO is it safe to assume that all flag's are zero at this point?
+			//~ FLAG_UNSET(files->candidate_flag, row, col);
+
+		    }
+		}
+	    }
+	}
+
+
+	for (row = 0; row < files->nrows; row++) {
+	for (col = 0; col < files->ncols; col++) {
+
+		if (FLAG_GET(files->candidate_flag, row, col)) {
+		    /*free memory for linked lists */
+		    my_dispose_list(files->token, &Ri_head);
+		    my_dispose_list(files->token, &Rk_head);
+		    my_dispose_list(files->token, &Rin_head);
+		    my_dispose_list(files->token, &Rkn_head);
+		    Rk_count = 0;
+
+		    /* First pixel in Ri is current row/col pixel.  We may add more later if it is part of a segment */
+		    Ri_count = 1;
+		    newpixel = (struct pixels *)link_new(files->token);
+		    newpixel->next = Ri_head;
+		    newpixel->row = row;
+		    newpixel->col = col;
+		    Ri_head = newpixel;
+
+		    G_debug(4, "Next starting pixel: row, %d, col, %d",
+			    Ri_head->row, Ri_head->col);
+
+		    set_candidate_flag(Ri_head, FALSE, files);	/* TODO: error trap? */
+		    G_debug(4, "line 165, \t\t\t\tcc = %d",
+			    files->candidate_count);
+
+		    /* find segment neighbors */
+		    if (find_segment_neighbors
+			(&Ri_head, &Rin_head, &Ri_count, files,
+			 functions) != TRUE) {
+			G_fatal_error("find_segment_neighbors() failed");
+		    }
+
+		    if (Rin_head != NULL)  /*found neighbors */
+		    {
+				if (Ri_count >= functions->min_segment_size) /* don't force a merge */
+					set_candidate_flag(Ri_head, FALSE, files);
+					
+				else /* Merge with most similar neighbor */
+				{
+					G_debug(4, "2b, Found Ri's pixels");
+					
+					/*print out neighbors */
+					for (current = Ri_head; current != NULL;
+						 current = current->next)
+						G_debug(4, "Ri: row: %d, col: %d", current->row,
+							current->col);
+
+					G_debug(4, "2b, Found Ri's neighbors");
+					/*print out neighbors */
+					for (current = Rin_head; current != NULL;
+						 current = current->next)
+						G_debug(4, "Rin: row: %d, col: %d", current->row,
+							current->col);
+
+					/* find Ri's most similar neighbor */
+					Ri_bestn = NULL;
+					Ri_similarity = LDBL_MAX;	/* set current similarity to max value */
+					segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row, Ri_head->col);	/* current segment values */
+
+					for (current = Rin_head; current != NULL; current = current->next) {	/* for each of Ri's neighbors */
+						tempsim =
+						(*functions->calculate_similarity) (Ri_head,
+											current,
+											files,
+											functions);
+						G_debug(4,
+							"simularity = %g for neighbor : row: %d, col %d.",
+							tempsim, current->row, current->col);
+
+						if (tempsim < Ri_similarity) {
+						Ri_similarity = tempsim;
+						Ri_bestn = current;	/*TODO want to point to the current pixel...confirm  when current changes need this to stay put! */
+						G_debug(4,
+							"Current lowest Ri_similarity = %g, for neighbor pixel row: %d col: %d",
+							Ri_similarity, Ri_bestn->row,
+							Ri_bestn->col);
+						}
+					}
+
+					if (Ri_bestn != NULL)
+						G_debug(4,
+							"Lowest Ri_similarity = %g, for neighbor pixel row: %d col: %d",
+							Ri_similarity, Ri_bestn->row,
+							Ri_bestn->col);
+				
+					if (Ri_bestn != NULL)
+					{
+						/* we'll have the neighbor pixel to start with. */
+						G_debug(4, "3a: Working with Rk");
+						Rk_count = 1;
+						newpixel =
+						(struct pixels *)link_new(files->token);
+						newpixel->next = NULL;	/* or = Rk_head; *//*TODO, should this be Rk_head or just NULL? amounts to the same thing here? */
+						newpixel->row = Ri_bestn->row;
+						newpixel->col = Ri_bestn->col;
+						Rk_head = newpixel;
+						/* TODO - lists starting, should this be a helper function, did at start of Ri and Rk.  */
+
+						/* using this just to get the full pixel/cell membership list for Rk */
+						find_segment_neighbors(&Rk_head, &Rkn_head, &Rk_count, files, functions);	/* data structure for Rk's neighbors, and pixels in Rk if we don't already have it */
+
+						G_debug(4, "Found Rk's pixels");
+						/*print out neighbors */
+						for (current = Rk_head; current != NULL;
+						 current = current->next)
+						G_debug(4, "Rk: row: %d, col: %d",
+							current->row, current->col);
+
+						G_debug(4, "Found Rk's neighbors");
+						/*print out neighbors */
+						for (current = Rkn_head; current != NULL;
+						 current = current->next)
+						G_debug(4, "Rkn: row: %d, col: %d",
+							current->row, current->col);
+
+						merge_values(Ri_head, Rk_head, Ri_count, Rk_count, files);	/* TODO error trap */
+
+						/* merge_values sets Ri and Rk candidate flag to FALSE.  Put Rk back to TRUE if the size is too small. */
+						if(Ri_count + Rk_count < functions->min_segment_size)
+							set_candidate_flag(Rk_head, TRUE, files);
+					} /* end if best neighbor != null */
+					else
+					G_warning("No best neighbor found in final merge, this shouldn't happen?");
+					
+					
+				}		/* end else - pixel count was below minimum allowed */
+		    } /* end if neighbors found */
+		    else
+				G_warning("no neighbors found, this should NOT happen on merge step.");
+		    
+		}		/*end if pixel is candidate pixel */
+	}			/*next column */
+	G_percent(row, files->nrows, 1);
+    }			/*next row */
+	} /* end if for force merge */
+	else
+		G_verbose_message(_("Minimum pixels for group was set to 1, no final forced merge iteration for small segments."));
 
     /* free memory *//*TODO: anything ? */
 

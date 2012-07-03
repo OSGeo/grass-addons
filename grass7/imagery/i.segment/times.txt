@@ -5,7 +5,13 @@ rows:       475
 cols:       527
 cells:      250325
 
-still running...
+-w threshold=5
+
+Pass number 1210
+
+real	432m20.014s
+user	429m55.276s
+sys	1m0.640s
 
 
 g.region s=222000 e=637000
@@ -19,7 +25,19 @@ cells: 94783
 13 min (just one time test)
 
 
+g.region s=223500
+cells: 92752
+Pass number 206:
+real	4m53.324s
 
+g.region s=222000
+cells: 120683
+pass 294
+real	7m22.592s
+
+g.region s=219000
+cells: 176018
+41min
 
 typical i.segment options:
 time i.segment -w --overwrite group=landsat1@user1 output=val threshold=5 method=region_growing endt=1000 final_mean=val_mean --verbose

@@ -86,7 +86,8 @@ struct functions
     int method;			/* Segmentation method */
     int num_pn;			/* number of pixel neighbors  int, 4 or 8. TODO: can remove if pixel neighbors is list instead of array.  But maybe this one is small enough that is faster as array? */
     float threshold;		/* similarity threshold */
-
+	int min_segment_size;		/* smallest number of pixels/cells allowed in a final segment */
+	
     /* Some function pointers to set one time in parse_args() */
     int (*find_pixel_neighbors) (int, int, int[8][2], struct files *);	/*parameters: row, col, pixel_neighbors */
     double (*calculate_similarity) (struct pixels *, struct pixels *, struct files *, struct functions *);	/*parameters: two points (row,col) to compare */
