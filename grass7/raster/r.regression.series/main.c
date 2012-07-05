@@ -27,72 +27,48 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-#define REGRESSION_SLOPE		0
-#define REGRESSION_OFFSET		1
-#define REGRESSION_COEFF_DET		2
-#define REGRESSION_COEFF_DET_ADJ	3
-#define REGRESSION_F_VALUE		4
-#define REGRESSION_T_VALUE		5
+/* TODO: use more stable two pass algorithm */
 
-static void reg(DCELL *result, DCELL (*values)[2], int n, int which)
+#define SLOPE		0
+#define OFFSET		1
+#define CORCOEFF	2
+#define RSQUARE		3
+#define RSQUARE_ADJ	4
+#define F_VALUE		5
+#define T_VALUE		6
+
+struct reg_stats
 {
     DCELL sumX, sumY, sumsqX, sumsqY, sumXY;
     DCELL meanX, meanY;
-    DCELL A, B, R, F, T;
+    DCELL A, B, R, R2;
     int count;
-    int i;
+};
 
-    sumX = sumY = sumsqX = sumsqY = sumXY = 0.0;
-    meanX = meanY = 0.0;
-    count = 0;
-
-    for (i = 0; i < n; i++) {
-	if (Rast_is_d_null_value(&values[i][0]) ||
-	    Rast_is_d_null_value(&values[i][1]))
-	    continue;
-
-	sumX += values[i][0];
-	sumY += values[i][1];
-	sumsqX += values[i][0] * values[i][0];
-	sumsqY += values[i][1] * values[i][1];
-	sumXY += values[i][0] * values[i][1];
-	count++;
-    }
-
-    if (count < 2) {
-	Rast_set_d_null_value(result, 1);
-	return;
-    }
-
-    B = (sumXY - sumX * sumY / count) / (sumsqX - sumX * sumX / count);
-    R = (sumXY - sumX * sumY / count) /
-	sqrt((sumsqX - sumX * sumX / count) * (sumsqY - sumY * sumY / count));
-
-    meanX = sumX / count;
-
-    meanY = sumY / count;
-
+static void reg(DCELL *result, struct reg_stats rs, int which)
+{
     switch (which) {
-    case REGRESSION_SLOPE:
-	*result = B;
+    case SLOPE:
+	*result = rs.B;
 	break;
-    case REGRESSION_OFFSET:
-	A = meanY - B * meanX;
-	*result = A;
+    case OFFSET:
+	*result = rs.meanY - rs.B * rs.meanX;
 	break;
-    case REGRESSION_COEFF_DET:
-	*result = R;
+    case CORCOEFF:
+	*result = rs.R;
 	break;
-    case REGRESSION_COEFF_DET_ADJ:
-	*result = 1 - (1 - R) * ((count - 1) / (count - 2 - 1));
+    case RSQUARE:
+	*result = rs.R2;
 	break;
-    case REGRESSION_F_VALUE:
-	F = R * R / ((1 - R * R) / (count - 2));
-	*result = F;
+    case RSQUARE_ADJ:
+	*result = 1 - (1 - rs.R2) * ((rs.count - 1) / (rs.count - 2));
 	break;
-    case REGRESSION_T_VALUE:
-	T = sqrt(R) * sqrt((count - 2) / (1 - R));
-	*result = T;
+    case F_VALUE:
+	/* *result = rs.R2 / ((1 - rs.R2) / (rs.count - 2)); */
+	*result = rs.R2 * (rs.count - 2) / (1 - rs.R2);
+	break;
+    case T_VALUE:
+	*result = fabs(rs.R) * sqrt((rs.count - 2) / (1 - rs.R2));
 	break;
     default:
 	Rast_set_d_null_value(result, 1);
@@ -104,51 +80,20 @@ static void reg(DCELL *result, DCELL (*values)[2], int n, int which)
 	Rast_set_d_null_value(result, 1);
 }
 
-void reg_m(DCELL * result, DCELL (*values)[2], int n)
-{
-    reg(result, values, n, REGRESSION_SLOPE);
-}
-
-void reg_c(DCELL * result, DCELL (*values)[2], int n)
-{
-    reg(result, values, n, REGRESSION_OFFSET);
-}
-
-void reg_r2(DCELL * result, DCELL (*values)[2], int n)
-{
-    reg(result, values, n, REGRESSION_COEFF_DET);
-}
-
-void reg_r2_adj(DCELL * result, DCELL (*values)[2], int n)
-{
-    reg(result, values, n, REGRESSION_COEFF_DET);
-}
-
-void reg_f(DCELL * result, DCELL (*values)[2], int n)
-{
-    reg(result, values, n, REGRESSION_F_VALUE);
-}
-
-void reg_t(DCELL * result, DCELL (*values)[2], int n)
-{
-    reg(result, values, n, REGRESSION_T_VALUE);
-}
-
-typedef void stat_func(DCELL *, DCELL (*)[2], int);
-
 struct menu
 {
-    stat_func *method;		/* routine to compute new value */
+    int method;		        /* routine to compute new value */
     char *name;			/* method name */
     char *text;			/* menu display - full description */
 } menu[] = {
-    {reg_m,      "slope",       "linear regression slope"},
-    {reg_c,      "offset",      "linear regression offset"},
-    {reg_r2,     "detcoeff",    "linear regression coefficient of determination"},
-    {reg_r2_adj, "adjdetcoeff", "adjusted coefficient of determination"},
-    {reg_f,      "f",           "F statistic"},
-    {reg_t,      "t",           "T statistic"},
-    {NULL,         NULL,          NULL}
+    {SLOPE,         "slope",       "Linear regression slope"},
+    {OFFSET,        "offset",      "Linear regression offset"},
+    {CORCOEFF,      "corcoef",     "Correlation coefficient R"},
+    {RSQUARE,       "rsq",    	   "R squared (coefficient of determination)"},
+    {RSQUARE_ADJ,   "adjrsq",      "Adjusted R squared"},
+    {F_VALUE,       "f",           "F statistic"},
+    {T_VALUE,       "t",           "T statistic"},
+    {-1,         NULL,          NULL}
 };
 
 struct input
@@ -163,7 +108,7 @@ struct output
     const char *name;
     int fd;
     DCELL *buf;
-    stat_func *method_fn;
+    int method;
 };
 
 static char *build_method_list(void)
@@ -214,8 +159,8 @@ int main(int argc, char *argv[])
     struct input *xinputs, *yinputs;
     int num_outputs;
     struct output *outputs;
+    struct reg_stats rs;
     struct History history;
-    DCELL (*values)[2], (*values_tmp)[2];
     int nrows, ncols;
     int row, col;
 
@@ -307,14 +252,12 @@ int main(int argc, char *argv[])
 	int method = find_method(method_name);
 
 	out->name = output_name;
-	out->method_fn = menu[method].method;
+	out->method = menu[method].method;
 	out->buf = Rast_allocate_d_buf();
 	out->fd = Rast_open_new(output_name, DCELL_TYPE);
     }
 
     /* initialise variables */
-    values = (DCELL(*)[2]) G_malloc(num_inputs * 2 * sizeof(DCELL));
-    values_tmp = (DCELL(*)[2]) G_malloc(num_inputs * 2 * sizeof(DCELL));
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
@@ -333,25 +276,51 @@ int main(int argc, char *argv[])
 	for (col = 0; col < ncols; col++) {
 	    int null = 0;
 
+	    rs.sumX = rs.sumY = rs.sumsqX = rs.sumsqY = rs.sumXY = 0.0;
+	    rs.meanX = rs.meanY = 0.0;
+	    rs.count = 0;
+
 	    for (i = 0; i < num_inputs; i++) {
 		DCELL x = xinputs[i].buf[col];
 		DCELL y = yinputs[i].buf[col];
 
 		if (Rast_is_d_null_value(&x) || Rast_is_d_null_value(&y))
 		    null = 1;
+		else {
+		    rs.sumX += x;
+		    rs.sumY += y;
+		    rs.sumsqX += x * x;
+		    rs.sumsqY += y * y;
+		    rs.sumXY += x * y;
+		    rs.count++;
+		}
+	    }
+	    if (rs.count > 1) {
+		DCELL tmp1 = rs.count * rs.sumXY - rs.sumX * rs.sumY;
+		DCELL tmp2 = rs.count * rs.sumsqX - rs.sumX * rs.sumX;
 
-		values[i][0] = x;
-		values[i][1] = y;
+		/* slope */
+		rs.B = tmp1 / tmp2;
+		/* correlation coefficient */
+		rs.R = tmp1 / sqrt((tmp2) * (rs.count * rs.sumsqY - rs.sumY * rs.sumY));
+		/* coefficient of determination aka R squared */
+		rs.R2 = rs.R * rs.R;
+
+		rs.meanX = rs.sumX / rs.count;
+
+		rs.meanY = rs.sumY / rs.count;
+	    }
+	    else {
+		rs.R = rs.R2 = rs.B = 0;
 	    }
 
 	    for (i = 0; i < num_outputs; i++) {
 		struct output *out = &outputs[i];
 
-		if (null && flag.nulls->answer)
+		if (rs.count < 2 || (null && flag.nulls->answer))
 		    Rast_set_d_null_value(&out->buf[col], 1);
 		else {
-		    memcpy(values_tmp, values, num_inputs * 2 * sizeof(DCELL));
-		    (*out->method_fn)(&out->buf[col], values_tmp, num_inputs);
+		    reg(&out->buf[col], rs, out->method);
 		}
 	    }
 	}

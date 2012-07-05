@@ -9,10 +9,11 @@ assigned to the corresponding cells in the two input raster map series.
 Following methods are available:
 
 <ul> 
- <li>offset: linear regression offset
- <li>slope: linear regression slope
- <li>detcoeff: linear regression coefficient of determination
- <li>adjdetcoeff: adjusted coefficient of determination
+ <li>offset: Linear regression offset
+ <li>slope: Linear regression slope
+ <li>corcoef: Correlation Coefficent R
+ <li>rsq: Coefficient of determination = R squared
+ <li>adjrsq: Adjusted coefficient of determination
  <li>f: F statistic
  <li>t: T statistic
  </ul> 
@@ -29,10 +30,13 @@ referred to as constant or intercept.
 <p>
 <em>slope</em> is equivalent to <em>b</em> in the above equation.
 <p>
-<em>detcoff</em> is the coefficient of determination, equivalent to 
+<em>corcoef</em> is the correlation coefficient R with a theoretical 
+range of -1,1.
+<p>
+<em>rsq</em> is the coefficient of determination, equivalent to 
 the squared correlation coefficient R<sup>2</sup>.
 <p>
-<em>adjdetcoff</em> is the coefficient of determination adjusted for the 
+<em>adjrsq</em> is the coefficient of determination adjusted for the 
 number of samples, i.e. number of input maps per series.
 <p>
 <em>f</em> is the value of the F statistic.
@@ -79,8 +83,9 @@ files open need more RAM.
 Using <em>r.regression.series</em> with wildcards:
 <br>
 <div class="code"><pre>
-r.regression.series input="`g.mlist pattern='insitu_data.*' sep=,`" \
-         output=insitu_data.det method=detcoeff
+r.regression.series xseries="`g.mlist pattern='insitu_data.*' sep=,`" \
+	 yseries="`g.mlist pattern='invivo_data.*' sep=,`" \
+         output=insitu_data.rsquared method=rsq
 </pre></div>
 <p>
 Note the <em>g.mlist</em> module also supports regular expressions for
@@ -91,7 +96,7 @@ Example for multiple parameters to be computed in one run (3 resulting
 parameters from 8 input maps, 4 maps per time series):
 <div class="code"><pre>
 r.regression.series x=xone,xtwo,xthree,xfour y=yone,ytwo,ythree,yfour \
-    out=res_offset,res_slope,res_det meth=offset,slope,adjdetcoeff
+    out=res_offset,res_slope,res_adjrsq meth=offset,slope,adjrsq
 </pre></div>
 
 <h2>SEE ALSO</h2>
