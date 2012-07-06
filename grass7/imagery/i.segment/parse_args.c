@@ -33,14 +33,18 @@ int parse_args(int argc, char *argv[], struct files *files,
     method->type = TYPE_STRING;
     method->required = YES;
     method->answer = "region_growing";
-    method->options = "region_growing, io_debug, ll_test";	/* TODO at end, remove these from list: io_debug just writes row+col to each output pixel, ll_test for testing linked list data structure */
+    #ifdef DEBUG
+    method->options = "region_growing, io_debug, ll_test, seg_time";
+    #else
+    method->options = "region_growing";
+    #endif
     method->description = _("Segmentation method.");
 
 	min_segment_size = G_define_option();
 	min_segment_size->key = "min"; /*TODO is there a preference for long or short key names? min is pretty generic...but short... */
 	min_segment_size->type = TYPE_INTEGER;
 	min_segment_size->required = YES;
-	min_segment_size->answer = "10"; /* TODO, should a "typical" default be provided? */
+	min_segment_size->answer = "1"; /* TODO, should a "typical" default be provided? */
 	min_segment_size->options = "1-100000"; /*must be positive number, is >0 allowed in "options" or is 100,000 suitably large? */
 	min_segment_size->description = _("Minimum number of pixels (cells) in a segment.  The final merge step will ignore the threshold for any segments with fewer pixels.");
     
@@ -126,6 +130,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	functions->method = 1;
     else if (strncmp(method->answer, "ll_test", 5) == 0)
 	functions->method = 2;
+	else if (strncmp(method->answer, "seg_time", 5) == 0)
+	functions->method = 3;
     else
 	G_fatal_error("Couldn't assign segmentation method.");	/*shouldn't be able to get here */
 

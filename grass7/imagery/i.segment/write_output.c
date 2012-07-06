@@ -97,7 +97,7 @@ int close_files(struct files *files)
 
     flag_destroy(files->null_flag);
     flag_destroy(files->candidate_flag);
-    flag_destroy(files->no_check);
+//    flag_destroy(files->no_check);
     G_debug(1, "close_files() before link_cleanup()");
     link_cleanup(files->token);
     G_debug(1, "close_files() after link_cleanup()");

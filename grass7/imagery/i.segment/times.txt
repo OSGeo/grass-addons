@@ -1,3 +1,34 @@
+Segment ID storage - RAM vs SEG and speed access.
+
+i.segment -w --overwrite --verbose group=landsat_1band@samples output=temp threshold=5 method=seg_time min=1
+
+checking speed of RAM vs SEG vs get function performance
+Access in the same region, so shouldn't have any disk I/O
+repeating everything 100000000 times.
+Using SEG: 2.63
+Using array in RAM: 0.25
+Using SEG w/ get(): 3.27
+Using RAM w/ get(): 0.68
+to check storage requirements... system dependent... :
+unsigned char: 1
+unsigned char pointer: 8
+_Bool: 1
+int: 4
+unsigned int: 4
+double: 8
+repeating everything 100000 times.
+Using rbtree (just build/destroy), 100 elements, time: 3.94
+Using linked list and linkm (build/access/free), 100 elements, time: 0.3
+Using rbtree, 1000 elements, time: 51.03
+Using linked list and linkm, 1000 elements, time: 3.21
+
+
+Storage requirement:
+
+100,000,000 pixels
+
+
+#######################################################################################
 NC sample landsat images, lsat7_2000_10
 
 g.region rast=lsat7_2000_10@landsat

@@ -20,7 +20,7 @@ int open_files(struct files *files)
     /*allocate memory for flags */
     files->null_flag = flag_create(files->nrows, files->ncols);
     files->candidate_flag = flag_create(files->nrows, files->ncols);
-    files->no_check = flag_create(files->nrows, files->ncols);
+//    files->no_check = flag_create(files->nrows, files->ncols);
 
     G_debug(1, "Checking image group...");
     /* references: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */

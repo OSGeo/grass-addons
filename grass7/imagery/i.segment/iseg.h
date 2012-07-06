@@ -16,6 +16,8 @@
 #include <grass/linkm.h>
 #include "flag.h"
 
+#define DEBUG
+
 /* pixel stack */
 struct pixels
 {
@@ -52,7 +54,7 @@ struct files
 
     /* processing flags */
     FLAG *candidate_flag, *null_flag;	/*TODO, need some way to remember MASK/NULL values.  Was using -1, 0, 1 in int array.  Better to use 2 FLAG structures, better readibility? */
-    FLAG *no_check;		/* pixels that have already been checked during this neighbor finding routine */
+//    FLAG *no_check;		/* pixels that have already been checked during this neighbor finding routine */
 
     /* memory management, linked lists */
     struct link_head *token;	/* for linkm linked list memory management. */
@@ -109,6 +111,9 @@ int create_isegs(struct files *, struct functions *);
 int io_debug(struct files *, struct functions *);
 int ll_test(struct files *, struct functions *);
 int test_pass_token(struct pixels **, struct files *);
+int seg_speed_test(struct files *, struct functions *);
+int get_segID_SEG(struct files *, int, int);
+int get_segID_RAM(struct files *, int, int);
 int region_growing(struct files *, struct functions *);
 int find_segment_neighbors(struct pixels **, struct pixels **, int *,
 			   struct files *, struct functions *);
@@ -119,6 +124,7 @@ int find_eight_pixel_neighbors(int, int, int[8][2], struct files *);
 double calculate_euclidean_similarity(struct pixels *, struct pixels *,
 				      struct files *, struct functions *);
 int my_dispose_list(struct link_head *, struct pixels **);
+int compare_ids(const void *, const void *);
 
 /* write_output.c */
 int write_output(struct files *);
