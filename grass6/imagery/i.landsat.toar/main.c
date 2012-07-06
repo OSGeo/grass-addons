@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 {
     struct History history;
     struct GModule *module;
-    
+
     struct Cell_head cellhd;
     char *mapset;
 
@@ -37,24 +37,24 @@ int main(int argc, char *argv[])
     int infd, outfd;
     void *ptr;
     int nrows, ncols, row, col;
-    
+
     RASTER_MAP_TYPE in_data_type;
 
     struct Option *input_prefix, *output_prefix, *metfn, *sensor, *adate, *pdate, *elev,
-	*bgain, *metho, *perc, *dark, *satz, *atmo;
+	*bgain, *metho, *perc, *dark, *atmo;
     char *inputname, *met, *outputname, *sensorname;
     struct Flag *msss, *frad, *l5_mtl;
-    
+
     lsat_data lsat;
     char band_in[GNAME_MAX], band_out[GNAME_MAX];
     int i, j, q, method, pixel, dn_dark[MAX_BANDS], dn_mode[MAX_BANDS];
-    double qcal, rad, ref, percent, ref_mode, sat_zenith, rayleigh;
-    
+    double qcal, rad, ref, percent, ref_mode, rayleigh;
+
     struct Colors colors;
     struct FPRange range;
     double min, max;
     unsigned long hist[256], h_max;
-    
+
     /* initialize GIS environment */
     G_gisinit(argv[0]);
 
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     metho->description = _("Required only if 'metfile' not given");
     metho->answer = "uncorrected";
     metho->guisection = _("Metadata");
-    
+
     adate = G_define_option();
     adate->key = "date";
     adate->type = TYPE_STRING;
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     adate->label = _("Image acquisition date (yyyy-mm-dd)");
     adate->description = _("Required only if 'metfile' not given");
     adate->guisection = _("Metadata");
-    
+
     elev = G_define_option();
     elev->key = "solar_elevation";
     elev->type = TYPE_DOUBLE;
@@ -162,14 +162,6 @@ int main(int argc, char *argv[])
     dark->answer = "1000";
     dark->guisection = _("Settings");
 
-    satz = G_define_option();
-    satz->key = "sat_zenith";
-    satz->type = TYPE_DOUBLE;
-    satz->required = NO;
-    satz->description = _("Satellite zenith in degrees");
-    satz->answer = "8.2000";
-    satz->guisection = _("Settings");
-
     atmo = G_define_option();
     atmo->key = "rayleigh";
     atmo->type = TYPE_DOUBLE;
@@ -182,7 +174,7 @@ int main(int argc, char *argv[])
     frad = G_define_flag();
     frad->key = 'r';
     frad->description = _("Output at-sensor radiance for all bands");
-    
+
     msss = G_define_flag();
     msss->key = 's';
     msss->description = _("Set sensor of Landsat TM4/5 to MSS");
@@ -206,9 +198,9 @@ int main(int argc, char *argv[])
     inputname = input_prefix->answer;
     outputname = output_prefix->answer;
     sensorname = sensor -> answer ? sensor->answer: "";
-    
+
     G_zero(&lsat, sizeof(lsat));
-    
+
     if (adate->answer != NULL) {
 	strncpy(lsat.date, adate->answer, 11);
 	lsat.date[10] = '\0';
@@ -232,7 +224,6 @@ int main(int argc, char *argv[])
     lsat.sun_elev = elev->answer == NULL ? 0. : atof(elev->answer);
     percent = atof(perc->answer);
     pixel = atoi(dark->answer);
-    sat_zenith = atof(satz->answer);
     rayleigh = atof(atmo->answer);
 
     /* Data from MET file: only Landsat-7 ETM+ and Landsat-5 TM  */
@@ -404,8 +395,7 @@ int main(int argc, char *argv[])
 	    G_close_cell(infd);
 	}
 	/* Calculate transformation constants */
-	lsat_bandctes(&lsat, i, method, percent, dn_dark[i], sat_zenith,
-		      rayleigh);
+	lsat_bandctes(&lsat, i, method, percent, dn_dark[i], rayleigh);
     }
 
     if (strlen(lsat.creation) == 0)
@@ -483,7 +473,7 @@ int main(int argc, char *argv[])
 	in_data_type = G_raster_map_type(band_in, mapset);
 	if (G_get_cellhd(band_in, mapset, &cellhd) < 0)
 	    G_fatal_error(_("Unable to read header of raster map <%s>"), band_in);
-	
+
 	/* set same size as original band raster */
 	G_set_window(&cellhd);
 
@@ -550,7 +540,7 @@ int main(int argc, char *argv[])
 	    G_put_raster_row(outfd, outrast, DCELL_TYPE);
 	}
 	G_percent(1, 1, 1);
-	
+
 	ref_mode = 0.;
 	if (method > DOS && !lsat.band[i].thermal) {
 	    ref_mode = lsat_qcal2rad(dn_mode[i], &lsat.band[i]);
@@ -627,7 +617,7 @@ int main(int argc, char *argv[])
 	sprintf(history.edhist[history.edlinecnt],
 		"-----------------------------------------------------------------");
 	history.edlinecnt++;
-	
+
 	G_command_history(&history);
 	G_write_history(band_out, &history);
 
