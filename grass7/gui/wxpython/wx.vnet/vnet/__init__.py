@@ -1,0 +1,5 @@
+all = [
+    'dialogs',
+    'toolbars',
+    'widgets',
+    ]
