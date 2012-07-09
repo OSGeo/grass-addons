@@ -79,7 +79,7 @@ int open_files(struct files *files)
     scols = 64;
 
     /* TODO: make calculations for this */
-    nseg = 8;
+    nseg = 10000;
 
 
     /* ******* create temporary segmentation files ********* */

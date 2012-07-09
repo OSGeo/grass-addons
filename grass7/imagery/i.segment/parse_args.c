@@ -44,8 +44,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	min_segment_size->key = "min"; /*TODO is there a preference for long or short key names? min is pretty generic...but short... */
 	min_segment_size->type = TYPE_INTEGER;
 	min_segment_size->required = YES;
-	min_segment_size->answer = "1"; /* TODO, should a "typical" default be provided? */
-	min_segment_size->options = "1-100000"; /*must be positive number, is >0 allowed in "options" or is 100,000 suitably large? */
+	min_segment_size->answer = "1"; /* default: no merges */
+	min_segment_size->options = "1-100000";
 	min_segment_size->description = _("Minimum number of pixels (cells) in a segment.  The final merge step will ignore the threshold for any segments with fewer pixels.");
     
     /* optional parameters */
@@ -72,12 +72,6 @@ int parse_args(int argc, char *argv[], struct files *files,
     bounds->required = NO;
     bounds->description =
 	_("Optional bounding/constraining raster map, must be integer values, each area will be segmented independent of the others.");
-    /*    bounds->description = _("Optional vector map with polygons to bound (constrain) segmentation."); */
-    /* TODO: if performing second segmentation, will already have raster map from this module
-     * If have preexisting boundaries (landuse, etc) will have vector map?
-     * Seems we need to have it in raster format for processing, is it OK to have the user run v.to.rast before doing the segmentation?
-     * Or for hierarchical segmentation, will it be easier to have the polygons?
-     *  */
 
     /* TODO input for distance function */
 
@@ -120,7 +114,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     if (weighted->answer == FALSE &&
 	(functions->threshold <= 0 || functions->threshold >= 1))
-	G_fatal_error(_("threshold should be >= 0 and <= 1"));	/* TODO OK to have fatal error here, seems this would be an invalid entry. */
+	G_fatal_error(_("threshold should be >= 0 and <= 1"));
 
     /* segmentation methods:  0 = debug, 1 = region growing */
     /* TODO, instead of string compare, does the Option structure have these already numbered? */
@@ -161,7 +155,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     }
     else {			/* polygon constraints given */
 	files->bounds_map = bounds->answer;
-	if ((files->bounds_mapset = G_find_raster(files->bounds_map, "")) == NULL) {	/* TODO, warning here:  parse_args.c:149:27: warning: assignment discards ‘const’ qualifier from pointer target type [enabled by default] */
+	if ((files->bounds_mapset = G_find_raster(files->bounds_map, "")) == NULL) {	/* TODO, compiler warning here:  parse_args.c:149:27: warning: assignment discards ‘const’ qualifier from pointer target type [enabled by default] */
 	    G_fatal_error(_("Segmentation constraint/boundary map not found."));
 	}
 	if (Rast_map_type(files->bounds_map, files->bounds_mapset) !=

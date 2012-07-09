@@ -125,6 +125,7 @@ double calculate_euclidean_similarity(struct pixels *, struct pixels *,
 				      struct files *, struct functions *);
 int my_dispose_list(struct link_head *, struct pixels **);
 int compare_ids(const void *, const void *);
+int compare_pixels(const void *, const void *);
 
 /* write_output.c */
 int write_output(struct files *);

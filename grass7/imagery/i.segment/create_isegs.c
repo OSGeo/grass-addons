@@ -3,8 +3,6 @@
 /* Currently only region growing is implemented */
 
 #include <stdlib.h>
-#include <float.h>		/* to get value of LDBL_MAX -> change this if there is a more usual grass way */
-																				  /* #include <math.h>    *//* for sqrt() and pow() */
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/raster.h>
@@ -15,7 +13,6 @@
 
 #ifdef DEBUG
 	#include <time.h>
-	#include <stdbool.h> /* TODO decide if _bool is needed for FLAGs */
 #endif
 
 #define LINKM
@@ -294,13 +291,14 @@ int test_pass_token(struct pixels **head, struct files *files)
 
 int seg_speed_test(struct files *files, struct functions *functions)
 {
-	int i, j, n, max;
+	int i, j, k, n, max;
 	clock_t start, end;
     double temp, cpu_time_used;
     int (*get) (struct files *, int, int); /* files, row, col */
-	struct RB_TREE *no_check_tree; 
+	struct RB_TREE *no_check_tree, *known_iseg_tree; 
 	struct RB_TRAV trav;
-	struct pixels *to_check, *newpixel, *current;
+	struct pixels *to_check, *newpixel, *current, *tree_pix;
+	FLAG *check_flag;
 	G_message("checking speed of RAM vs SEG vs get function performance");
 	
 	G_message("Access in the same region, so shouldn't have any disk I/O");
@@ -350,7 +348,6 @@ int seg_speed_test(struct files *files, struct functions *functions)
 	G_message("to check storage requirements... system dependent... :");
 	G_message("unsigned char: %lu", sizeof(unsigned char));
 	G_message("unsigned char pointer: %lu", sizeof(unsigned char *));
-	G_message("_Bool: %lu", sizeof(_Bool));
 	G_message("int: %lu", sizeof(int));
 	G_message("unsigned int: %lu", sizeof(unsigned int));
 	G_message("double: %lu", sizeof(double));
@@ -359,20 +356,19 @@ int seg_speed_test(struct files *files, struct functions *functions)
 	max = 100000;
 	G_message("repeating everything %d times.", max);
 
-	{ /* compare rbtree with linked list */
-	//~ no_check_tree = rbtree_create(compare_ids, sizeof(int));
-	//~ rbtree_init_trav(&trav, no_check_tree);
+	{ /* compare rbtree with linked list and array */
+
 	n = 100;
 	start = clock();
 	for (i=0; i<max; i++){
-		no_check_tree = rbtree_create(compare_ids, sizeof(int));
-		rbtree_init_trav(&trav, no_check_tree);
-
+		no_check_tree = rbtree_create(compare_ids, sizeof(struct pixels));
 		/*build*/
 		for(j=0; j<n; j++){
-			rbtree_insert(no_check_tree, &j);
+			tree_pix->row = tree_pix->col = j;
+			rbtree_insert(no_check_tree, &tree_pix);
 		}
 		//~ /*access*/
+		rbtree_init_trav(&trav, no_check_tree);
 		//~ while ((data = rbtree_traverse(&trav)) != NULL) {
 			//~ if (my_compare_fn(data, threshold_data) == 0) break;
 				//~ G_message("%d", data);
@@ -382,7 +378,28 @@ int seg_speed_test(struct files *files, struct functions *functions)
 	}
 	end = clock();
 	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-	G_message("Using rbtree (just build/destroy), %d elements, time: %g", n, cpu_time_used);
+	G_message("Using rbtree of pixels (just build/destroy), %d elements, time: %g", n, cpu_time_used);
+
+	start = clock();
+	for (i=0; i<max; i++){
+		known_iseg_tree = rbtree_create(compare_ids, sizeof(int));
+		/*build*/
+		for(j=0; j<n; j++){
+			rbtree_insert(known_iseg_tree, &j);
+		}
+		//~ /*access*/
+		rbtree_init_trav(&trav, known_iseg_tree);
+		//~ while ((data = rbtree_traverse(&trav)) != NULL) {
+			//~ if (my_compare_fn(data, threshold_data) == 0) break;
+				//~ G_message("%d", data);
+		//~ }
+		/*free memory*/
+		rbtree_destroy(known_iseg_tree);
+	}
+	end = clock();
+	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+	G_message("Using rbtree ints (just build/destroy), %d elements, time: %g", n, cpu_time_used);
+
 
 	to_check = NULL;
 	
@@ -414,12 +431,12 @@ int seg_speed_test(struct files *files, struct functions *functions)
 	
 		start = clock();
 	for (i=0; i<max; i++){
-		no_check_tree = rbtree_create(compare_ids, sizeof(int));
-		rbtree_init_trav(&trav, no_check_tree);
+		known_iseg_tree = rbtree_create(compare_ids, sizeof(int));
+		rbtree_init_trav(&trav, known_iseg_tree);
 
 		/*build*/
 		for(j=0; j<n; j++){
-			rbtree_insert(no_check_tree, &j);
+			rbtree_insert(known_iseg_tree, &j);
 		}
 		//~ /*access*/
 		//~ while ((data = rbtree_traverse(&trav)) != NULL) {
@@ -427,11 +444,11 @@ int seg_speed_test(struct files *files, struct functions *functions)
 				//~ G_message("%d", data);
 		//~ }
 		/*free memory*/
-		rbtree_destroy(no_check_tree);
+		rbtree_destroy(known_iseg_tree);
 	}
 	end = clock();
 	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-	G_message("Using rbtree, %d elements, time: %g", n, cpu_time_used);
+	G_message("Using rbtree ints, %d elements, time: %g", n, cpu_time_used);
 
 	to_check = NULL;
 	
@@ -457,6 +474,40 @@ int seg_speed_test(struct files *files, struct functions *functions)
 	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 	G_message("Using linked list and linkm, %d elements, time: %g", n, cpu_time_used);
 	
+	k=100;
+	n=50;
+    check_flag = flag_create(k, k);
+	start = clock();
+	for (i=0; i<max; i++){
+		/*set to zero*/
+		flag_clear_all(check_flag);
+		/*write and access*/
+		for(j=0; j<n; j++){
+			flag_set(check_flag, j, j);
+			temp = flag_get(check_flag, j, j);
+		}
+	}
+	end = clock();
+	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+	G_message("Using %d pixel flag array (all cleared), %d elements set and get, time: %g", k*k, n, cpu_time_used);
+	
+
+	k=10000;
+    check_flag = flag_create(k, k);
+	start = clock();
+	for (i=0; i<max; i++){
+		/*set to zero*/
+		flag_clear_all(check_flag);
+		/*write and access*/
+		for(j=0; j<n; j++){
+			flag_set(check_flag, j, j);
+			temp = flag_get(check_flag, j, j);
+		}
+	}
+	end = clock();
+	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+	G_message("Using %d pixel flag array (all cleared), %d elements set and get, time: %g", k*k, n, cpu_time_used);
+
 }
 	
 	return TRUE;
@@ -497,7 +548,7 @@ int region_growing(struct files *files, struct functions *functions)
 
     G_verbose_message("Running region growing algorithm");
 
-    t = 0;
+    t = 1;
     files->candidate_count = 0;
 
     /*set next pointers to null. */
@@ -558,16 +609,18 @@ int region_growing(struct files *files, struct functions *functions)
 		files->candidate_count);
 
 	/*process candidate pixels */
-	G_verbose_message("\nRow percent complete for pass number %d: ", t);
+	G_verbose_message("Pass %d: ", t);
 	/*check each pixel, start the processing only if it is a candidate pixel */
 	/* for validation, select one of the two... could make this IFDEF or input parameter */
 	/* reverse order 
 	 */
 #ifdef REVERSE
 	for (row = files->nrows - 1; row >= 0; row--) {
+		G_percent(files->nrows - row, files->nrows, 1);
 	    for (col = files->ncols - 1; col >= 0; col--) {
 #else
 	for (row = 0; row < files->nrows; row++) {
+		G_percent(row, files->nrows, 1);	/* TODO, can a message be included with G_percent? */
 	    for (col = 0; col < files->ncols; col++) {
 #endif
 
@@ -585,7 +638,7 @@ int region_growing(struct files *files, struct functions *functions)
 		    /* First pixel in Ri is current row/col pixel.  We may add more later if it is part of a segment */
 		    Ri_count = 1;
 		    newpixel = (struct pixels *)link_new(files->token);
-		    newpixel->next = Ri_head;
+		    newpixel->next = NULL;
 		    newpixel->row = row;
 		    newpixel->col = col;
 		    Ri_head = newpixel;
@@ -653,7 +706,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 			/* find Ri's most similar neighbor */
 			Ri_bestn = NULL;
-			Ri_similarity = LDBL_MAX;	/* set current similarity to max value */
+			Ri_similarity = threshold + 1;	/* set current similarity to max value */
 			segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row, Ri_head->col);	/* current segment values */
 
 			for (current = Rin_head; current != NULL; current = current->next) {	/* for each of Ri's neighbors */
@@ -691,7 +744,7 @@ int region_growing(struct files *files, struct functions *functions)
 				  Ri_bestn->col)))
 				/* this check is important:
 				 * best neighbor is not a valid candidate, was already merged earlier in this time step */
-				Ri_similarity = threshold + 1;
+				Ri_bestn = NULL;
 			}
 
 			if (Ri_bestn != NULL && Ri_similarity < threshold) {	/* small TODO: should this be < or <= for threshold? */
@@ -803,9 +856,9 @@ int region_growing(struct files *files, struct functions *functions)
 
     G_debug(4, "Finished one pass, t was = %d", t);
     t++;
-    }
-    while (t <= functions->end_t && endflag == FALSE) ;
+    } while (t <= functions->end_t && endflag == FALSE);
     /*end t loop *//*TODO, should there be a max t that it can iterate for?  Include t in G_message? */
+    
 	if(endflag == FALSE) G_message(_("Merging processes stopped due to reaching max iteration limit, more merges may be possible"));
 
 
@@ -922,7 +975,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 					/* find Ri's most similar neighbor */
 					Ri_bestn = NULL;
-					Ri_similarity = LDBL_MAX;	/* set current similarity to max value */
+					Ri_similarity = threshold + 1;	/* set current similarity to max value */
 					segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row, Ri_head->col);	/* current segment values */
 
 					for (current = Rin_head; current != NULL; current = current->next) {	/* for each of Ri's neighbors */
@@ -1018,12 +1071,12 @@ int region_growing(struct files *files, struct functions *functions)
 			       struct functions *functions)
     {
 	int n, current_seg_ID, Ri_seg_ID = -1;
-	struct pixels *newpixel, *current, *to_check;	/* need to check the pixel neighbors of to_check */
-	int pixel_neighbors[8][2];	/* TODO: data type?  put in files to allocate memory once? */
+	struct pixels *newpixel, *current, *to_check, tree_pix;	/* need to check the pixel neighbors of to_check */
+	int pixel_neighbors[8][2];	/* TODO: data type? use list instead?  put in files to allocate memory once? */
 	
 //TODO remove...	/* files->no_check is a FLAG structure, only used here but allocating memory in open_files */
-	struct RB_TREE *no_check_tree; /* SEGMENT ID that should no longer be checked on this current find_neighbors() run */
-
+	struct RB_TREE *no_check_tree; /* pixels that should no longer be checked on this current find_neighbors() run */
+	struct RB_TREE *known_iseg;
 #ifdef DEBUG
 	struct RB_TRAV trav;
 #endif
@@ -1037,7 +1090,6 @@ int region_growing(struct files *files, struct functions *functions)
 
 	/* parameter: R, current segment membership, could be single pixel or list of pixels.
 	 * parameter: neighbors/Rin/Rik, neighbor pixels, could have a list already, or could be empty ?
-	 * files->out_seg is currently an array [0] for seg ID and [1] for "candidate pixel"
 	 * functions->num_pn  int, 4 or 8, for number of pixel neighbors 
 	 * */
 
@@ -1052,42 +1104,33 @@ int region_growing(struct files *files, struct functions *functions)
 	/* *** initialize data *** */
 	
 	/* get Ri's segment ID */
-	Ri_seg_ID = files->iseg[(*R_head)->row][(*R_head)->col];	/* old data structure needed, this... keep for readability? */
+	Ri_seg_ID = files->iseg[(*R_head)->row][(*R_head)->col];
 	
 //	flag_clear_all(files->no_check);
-	no_check_tree = rbtree_create(compare_ids, sizeof(int));
+	no_check_tree = rbtree_create(compare_pixels, sizeof(struct pixels));
+	known_iseg = rbtree_create(compare_ids, sizeof(int));
 	to_check = NULL;
 
-#ifdef DEBUG
-	rbtree_init_trav(&trav, no_check_tree);
-#endif
-
 	/* Copy R in to_check and no_check data structures (don't expand them if we find them again) */
-	/* NOTE: in pseudo code also have a "current segment" list, but think we can just pass Ri and use it directly */
 
 	for (current = *R_head; current != NULL; current = current->next) {
-
+		/* put in to_check linked list */
 	    newpixel = (struct pixels *)link_new(files->token);
 	    newpixel->next = to_check;	/*point the new pixel to the current first pixel */
 	    newpixel->row = current->row;
 	    newpixel->col = current->col;
 	    to_check = newpixel;	/*change the first pixel to be the new pixel. */
-//todo delete	    flag_set(files->no_check, current->row, current->col);
-	}
+	
+		/* put in no_check tree */
+		tree_pix.row = current->row;
+		tree_pix.col = current->col;
+		if(rbtree_insert(no_check_tree, &tree_pix)==0)	/* don't check it again */
+			G_warning("could not insert data!?");
 
-//~ G_message("starting to insert dummy no_check values");
-//~ current_seg_ID = -5;
-//~ rbtree_insert(no_check_tree, &current_seg_ID);
-//~ G_message("inserted -5");
-//~ current_seg_ID = -10;
-//~ rbtree_insert(no_check_tree, &current_seg_ID);
-//~ G_message("inserted -10");
-
-	rbtree_insert(no_check_tree, &Ri_seg_ID);
-	G_debug(5, "inserted Ri_seg_ID number %d into RBtree.", Ri_seg_ID);
-
-	/* empty "neighbor" list  Note: this step is in pseudo code, but think we just pass in Rin - it was already initialized, and later could have Ri data available to start from */
-
+		//todo delete	    flag_set(files->no_check, current->row, current->col);
+	
+	}	
+	
 	while (to_check != NULL) {	/* removing from to_check list as we go, NOT iterating over the list. */
 	    G_debug(5,
 		    "\tfind_pixel_neighbors for row: %d , col %d",
@@ -1098,7 +1141,6 @@ int region_growing(struct files *files, struct functions *functions)
 					    pixel_neighbors, files);
 
 	    /* Done using this to_check pixels coords, remove from list */
-
 	    current = to_check;	/* temporary store the old head */
 	    to_check = to_check->next;	/*head now points to the next element in the list */
 	    link_dispose(files->token, (VOID_T *) current);
@@ -1117,88 +1159,68 @@ int region_growing(struct files *files, struct functions *functions)
 		
 	    /*now check the pixel neighbors and add to the lists */
 
-	    /*debug what neighbors were found: */
+	    /*debug what pixel neighbors were found: */
 	    /*      for (n = 0; n < functions->num_pn; n++){
 	       G_debug(5, "\tpixel_neighbors[n][0]: %d, pixel_neighbors[n][1]: %d",  pixel_neighbors[n][0], pixel_neighbors[n][1]);
 	       } */
 
 	    for (n = 0; n < functions->num_pn; n++) {	/* with pixel neighbors */
 
-		//~TODO delete    G_debug(5,
-			//~ "\twith pixel neigh %d, row: %d col: %d, val_no_check = %d",
-			//~ n, pixel_neighbors[n][0], pixel_neighbors[n][1],
-			//~ flag_get(files->no_check, pixel_neighbors[n][0],
-				 //~ pixel_neighbors[n][1]));
 		// TODO delete   if (flag_get(files->no_check, pixel_neighbors[n][0], pixel_neighbors[n][1]) == FALSE) 
-		current_seg_ID = files->iseg[pixel_neighbors[n][0]][pixel_neighbors[n][1]];
+		tree_pix.row = pixel_neighbors[n][0];
+		tree_pix.col = pixel_neighbors[n][1];
 		G_debug(5, "\tcurrent_seg_ID = %d", current_seg_ID);
-		G_debug(5, "********* rbtree_find(no_check_tree, &current_seg_ID) = %p", rbtree_find(no_check_tree, &current_seg_ID)); 
-		G_debug(5, "if evaluation: %d", rbtree_find(no_check_tree, &current_seg_ID) == FALSE);
+		G_debug(5, "********* rbtree_find(no_check_tree, &tree_pix) = %p", rbtree_find(no_check_tree, &tree_pix)); 
+		G_debug(5, "if evaluation: %d", rbtree_find(no_check_tree, &tree_pix) == FALSE);
 
-/* ######################
- * bad logic... previously, was tracking no_check pixels
- * want to get both neighbors AND membership of R
- * Changing to no_check saving the segment ID's - need someway to find membership!
- * 
- * do speed check on Rbtree vs. linked list membership list???
- * 
- * A.  revert to saving no_check pixels. could still use tree for no_check pixels,
- * 		 compare function could use row then col.
- *   Could have RBtree to save unique segment id's as well, so neighbor list could be reduced as well.
- * return membership and neighbors would still be lists.
- * 
- * B.  save membership pixels in a tree.  So with each new pixel to check:
- * 			if current seg ID equals R_segID && can't find it in the tree, then add it to membership tree
- * 			else if current seg ID is not in neighbor tree, then add it to neighbor list
- * with B, would it be worth changing the neighbor list to a tree?
- * */
+		if(rbtree_find(no_check_tree, &tree_pix) == FALSE) {	/* want to check this neighbor */
+			current_seg_ID = files->iseg[pixel_neighbors[n][0]][pixel_neighbors[n][1]];		
 
-
-		if(rbtree_find(no_check_tree, &current_seg_ID) == FALSE) {	/* want to check this neighbor */
-		    if(rbtree_insert(no_check_tree, &current_seg_ID)==0)	/* don't check it again */
-				G_warning("could not insert data!?");
+		    rbtree_insert(no_check_tree, &tree_pix);	/* don't check it again */
 
 		    if (!(FLAG_GET(files->null_flag, pixel_neighbors[n][0], pixel_neighbors[n][1]))) {	/* all pixels, not just valid pixels */
 
-			G_debug(5, "\tfiles->iseg[][] = %d Ri_seg_ID = %d",
-				files->
-				iseg[pixel_neighbors[n][0]][pixel_neighbors[n]
-							    [1]], Ri_seg_ID);
-			if (files->
-			    iseg[pixel_neighbors[n][0]][pixel_neighbors[n][1]]
-			    == Ri_seg_ID) {
-			    G_debug(5, "\tputing pixel_neighbor in Ri");
-			    /* put pixel_neighbor[n] in Ri */
-			    newpixel =
-				(struct pixels *)link_new(files->token);
-			    newpixel->next = *R_head;	/*point the new pixel to the current first pixel */
-			    newpixel->row = pixel_neighbors[n][0];
-			    newpixel->col = pixel_neighbors[n][1];
-			    *R_head = newpixel;	/*change the first pixel to be the new pixel. */
-			    *seg_count = *seg_count + 1;	/* zero index... Ri[0] had first pixel and set count =1.  increment after save data. */
-			    G_debug(5, "\t*seg_count now = %d", *seg_count);
+				G_debug(5, "\tfiles->iseg[][] = %d Ri_seg_ID = %d",
+					files->
+					iseg[pixel_neighbors[n][0]][pixel_neighbors[n]
+									[1]], Ri_seg_ID);
+									
+				if(current_seg_ID == Ri_seg_ID) { /* pixel is member of current segment, add to R */
+					G_debug(5, "\tputing pixel_neighbor in Ri");
+					/* put pixel_neighbor[n] in Ri */
+					newpixel =
+					(struct pixels *)link_new(files->token);
+					newpixel->next = *R_head;	/*point the new pixel to the current first pixel */
+					newpixel->row = pixel_neighbors[n][0];
+					newpixel->col = pixel_neighbors[n][1];
+					*R_head = newpixel;	/*change the first pixel to be the new pixel. */
+					*seg_count = *seg_count + 1;	/* zero index... Ri[0] had first pixel and set count =1.  increment after save data. */
+					G_debug(5, "\t*seg_count now = %d", *seg_count);
 
-			    /* put pixel_neighbor[n] in to_check -- want to check this pixels neighbors */
-			    newpixel =
-				(struct pixels *)link_new(files->token);
-			    newpixel->next = to_check;	/*point the new pixel to the current first pixel */
-			    newpixel->row = pixel_neighbors[n][0];
-			    newpixel->col = pixel_neighbors[n][1];
-			    to_check = newpixel;	/*change the first pixel to be the new pixel. */
+					/* put pixel_neighbor[n] in to_check -- want to check this pixels neighbors */
+					newpixel =
+					(struct pixels *)link_new(files->token);
+					newpixel->next = to_check;	/*point the new pixel to the current first pixel */
+					newpixel->row = pixel_neighbors[n][0];
+					newpixel->col = pixel_neighbors[n][1];
+					to_check = newpixel;	/*change the first pixel to be the new pixel. */
 
-			}
-			else {	/* segment id's were different */
-			    /* put pixel_neighbor[n] in Rin */
-			    G_debug(5, "Put in neighbors_head");
-			    /* TODO - helper function for adding pixel to a list */
-			    newpixel =
-				(struct pixels *)link_new(files->token);
-			    newpixel->next = *neighbors_head;	/*point the new pixel to the current first pixel */
-			    newpixel->row = pixel_neighbors[n][0];
-			    newpixel->col = pixel_neighbors[n][1];
-			    *neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
+				}
+				else {	/* segment id's were different */
+					//if current ID not found in known neighbors list
+						//add to known neighbors list
+						/* put pixel_neighbor[n] in Rin */
+						G_debug(5, "Put in neighbors_head");
+						/* TODO - helper function for adding pixel to a list */
+						newpixel =
+						(struct pixels *)link_new(files->token);
+						newpixel->next = *neighbors_head;	/*point the new pixel to the current first pixel */
+						newpixel->row = pixel_neighbors[n][0];
+						newpixel->col = pixel_neighbors[n][1];
+						*neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
+					//}
 
-			}
+				}
 		    }		/*end if not a null pixel */
 		    else
 			G_debug(5,
@@ -1213,14 +1235,7 @@ int region_growing(struct files *files, struct functions *functions)
 	    for (current = to_check; current != NULL; current = current->next)
 			G_debug(5, "to_check... row: %d, col: %d", current->row,
 				current->col);
-			
-		/* todo? just to see if it worked?  G_message("no_check segment ID's: hmm, how implement?"); */
-/*
-	while ((data = rbtree_traverse(&trav)) != NULL) {
-		if (my_compare_fn(data, threshold_data) == 0) break;
-			G_message("%d", data);
-	}
-*/	
+	
 	    G_debug(5, "\t### end of pixel neighors");
 	    #endif
 	}			/* while to_check has more elements */
@@ -1282,7 +1297,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 	/* get the 4 diagonal neighbors */
 	G_warning("Diagonal neighbors Not Implemented");
-	/*TODO... continue as above */
+	/*TODO... continue as above? or "nicer" way to do it? */
 	return TRUE;
     }
 
@@ -1398,7 +1413,7 @@ int region_growing(struct files *files, struct functions *functions)
 	struct pixels *current;
 
 	while ((*head) != NULL) {
-	    current = *head;	/* rememer "old" head */
+	    current = *head;	/* remember "old" head */
 	    *head = (*head)->next;	/* move head to next pixel */
 	    link_dispose(token, (VOID_T *) current);	/* remove "old" head */
 	}
@@ -1407,7 +1422,6 @@ int region_growing(struct files *files, struct functions *functions)
     }
 
 /* function used by binary tree to compare items */
-/* TODO, I don't understand the purpose of all this C syntax...will this give me just a simple numeric comparison??? */
 
 /* TODO
  * "static" was used in break_polygons.c  extern was suggested in docs.  */
@@ -1427,4 +1441,24 @@ int compare_ids(const void *first, const void *second)
 	G_warning(_("find neighbors: Bug in binary tree!"));
 	return 1;
 	
+}
+
+int compare_pixels(const void *first, const void *second)
+{
+	struct pixels *a = (struct pixels *)first, *b = (struct pixels *)second;
+
+	if (a->row < b->row)
+		return -1;
+	else if (a->row > b->row)
+		return 1;
+	//else if (*a->row == *b->row) todo - a little faster to use else.  But what if (can) a null pixel be passed?
+	else {
+            /* same row */
+	    if (a->col < b->col)
+		    return -1;
+	    else if (a->col > b->col)
+		    return 1;
+        }
+	/* same row and col todo, same as above, need an == check to be sure?*/
+	return 0;
 }

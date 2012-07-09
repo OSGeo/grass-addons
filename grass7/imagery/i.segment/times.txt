@@ -17,10 +17,13 @@ int: 4
 unsigned int: 4
 double: 8
 repeating everything 100000 times.
-Using rbtree (just build/destroy), 100 elements, time: 3.94
-Using linked list and linkm (build/access/free), 100 elements, time: 0.3
-Using rbtree, 1000 elements, time: 51.03
-Using linked list and linkm, 1000 elements, time: 3.21
+Using rbtree of pixels (just build/destroy), 100 elements, time: 0.25
+Using rbtree ints (just build/destroy), 100 elements, time: 3.1
+Using linked list and linkm (build/access/free), 100 elements, time: 0.27
+Using rbtree ints, 1000 elements, time: 49.37
+Using linked list and linkm, 1000 elements, time: 2.64
+Using 10000 pixel flag array (all cleared), 50 elements set and get, time: 0.32
+Using 100000000 pixel flag array (all cleared), 50 elements set and get, time: 2560.09
 
 
 Storage requirement:
@@ -44,6 +47,15 @@ real	432m20.014s
 user	429m55.276s
 sys	1m0.640s
 
+changing to tree: real	777m50.251s
+But there was one very large segment.
+
+
+-w threshold=3:
+real	140m42.401s
+The SW corner is still mostly one segment.
+
+So the processing time is sensitive to the size of the segments.
 
 g.region s=222000 e=637000
 cells:      56334
@@ -65,6 +77,10 @@ g.region s=222000
 cells: 120683
 pass 294
 real	7m22.592s
+
+changing flag to tree:
+real	8m26.741s
+
 
 g.region s=219000
 cells: 176018

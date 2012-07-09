@@ -34,7 +34,6 @@ int write_output(struct files *files)
 
     G_debug(1, "start data transfer from segmentation file to raster");
     /* transfer data from segmentation file to raster */
-    /* output segmentation file: each element includes the segment ID then processing flag(s).  So just need the first part of it. */
 
     for (row = 0; row < files->nrows; row++) {
 	Rast_set_c_null_value(outbuf, files->ncols);	/*set buffer to NULLs, only write those that weren't originally masked */
@@ -84,20 +83,26 @@ int close_files(struct files *files)
     int i;
 
     /* close segmentation files and output raster */
-    G_debug(1, "closing files");
+    G_debug(1, "closing bands_seg...");
     segment_close(&files->bands_seg);
-    segment_close(&files->bounds_seg);
-
+    G_debug(1, "closing bounds_seg...");
+    if (files->bounds_map != NULL) 
+        segment_close(&files->bounds_seg);
+    
+    G_debug(1, "freeing _val");
     G_free(files->bands_val);
     G_free(files->second_val);
 
+    G_debug(1, "freeing iseg");
     for (i = 0; i < files->nrows; i++)
 	G_free(files->iseg[i]);
     G_free(files->iseg);
 
+    G_debug(1, "destroying flags");
     flag_destroy(files->null_flag);
     flag_destroy(files->candidate_flag);
 //    flag_destroy(files->no_check);
+
     G_debug(1, "close_files() before link_cleanup()");
     link_cleanup(files->token);
     G_debug(1, "close_files() after link_cleanup()");
