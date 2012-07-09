@@ -1,9 +1,8 @@
 Machine specifications:
 
 Virtual Machine, 12 cores.  (Only 1 is ever used at a time for i.segment)
-
->> is an AMD quadcore at 4GhZ, 32 GB RAM, SSD for OS, SATA 7200rpm with
->> 4000 MB/sec cached reads for data:
+4 Ghz per core
+32 GB RAM
 
 
 Segment ID storage - RAM vs SEG and speed access.
