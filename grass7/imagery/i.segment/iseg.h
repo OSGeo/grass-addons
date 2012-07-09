@@ -16,7 +16,7 @@
 #include <grass/linkm.h>
 #include "flag.h"
 
-#define DEBUG
+/* #define DEBUG */
 
 /* pixel stack */
 struct pixels

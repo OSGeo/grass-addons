@@ -45,18 +45,19 @@ int create_isegs(struct files *files, struct functions *functions)
 
     for (files->current_bound = lower_bound; files->current_bound <= upper_bound; files->current_bound++) {	/* outer processing loop for polygon constraints */
 	G_debug(1, "current_bound = %d", files->current_bound);
-	if (functions->method == 0)
-	    successflag = io_debug(files, functions);	/* TODO: why does it want `&files` in main, but `files` here ??? */
-	else if (functions->method == 1) {
+	if (functions->method == 1) {
 	    G_debug(1, "starting region_growing()");
 	    successflag = region_growing(files, functions);
 	}
+	#ifdef DEBUG
+	else if (functions->method == 0)
+	    successflag = io_debug(files, functions);	/* TODO: why does it want `&files` in main, but `files` here ??? */
 	else if (functions->method == 2)
 	    successflag = ll_test(files, functions);
 	    
 	else if (functions->method == 3)
 	    successflag = seg_speed_test(files, functions);
-
+	#endif
     }				/* end outer loop for processing polygons */
 
     /* clean up? */
@@ -609,18 +610,18 @@ int region_growing(struct files *files, struct functions *functions)
 		files->candidate_count);
 
 	/*process candidate pixels */
-	G_verbose_message("Pass %d: ", t);
+	G_message("Pass %d: ", t);
 	/*check each pixel, start the processing only if it is a candidate pixel */
 	/* for validation, select one of the two... could make this IFDEF or input parameter */
 	/* reverse order 
 	 */
 #ifdef REVERSE
 	for (row = files->nrows - 1; row >= 0; row--) {
-		G_percent(files->nrows - row, files->nrows, 1);
+		G_percent(files->nrows - row, files->nrows, 5);
 	    for (col = files->ncols - 1; col >= 0; col--) {
 #else
 	for (row = 0; row < files->nrows; row++) {
-		G_percent(row, files->nrows, 1);	/* TODO, can a message be included with G_percent? */
+		G_percent(row, files->nrows, 5);	/* TODO, can a message be included with G_percent? */
 	    for (col = 0; col < files->ncols; col++) {
 #endif
 
@@ -838,9 +839,9 @@ int region_growing(struct files *files, struct functions *functions)
 		}		/*end if pixel is candidate pixel */
 	    }			/*next column */
 #ifdef REVERSE
-	    G_percent(files->nrows - row, files->nrows, 1);
+	     G_percent(files->nrows - row, files->nrows, 5);
 #else
-	    G_percent(row, files->nrows-1, 1);	/* TODO, can a message be included with G_percent? */
+	     G_percent(row, files->nrows-1, 5);	/* TODO, can a message be included with G_percent? */
 #endif
 	    /* TODO, the REVERSE version gets printed on a new line, and isnt' covered.  The else version is. ? */
 	    /* TODO, shows up in CLI, not in GUI */
@@ -1053,7 +1054,7 @@ int region_growing(struct files *files, struct functions *functions)
 		    }
 		}		/*end if pixel is candidate pixel */
 	}			/*next column */
-	G_percent(row, files->nrows-1, 1);
+	G_percent(row, files->nrows-1, 5);
     }			/*next row */
 	} /* end if for force merge */
 	else

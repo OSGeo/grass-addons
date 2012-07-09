@@ -1,3 +1,11 @@
+Machine specifications:
+
+Virtual Machine, 12 cores.  (Only 1 is ever used at a time for i.segment)
+
+>> is an AMD quadcore at 4GhZ, 32 GB RAM, SSD for OS, SATA 7200rpm with
+>> 4000 MB/sec cached reads for data:
+
+
 Segment ID storage - RAM vs SEG and speed access.
 
 i.segment -w --overwrite --verbose group=landsat_1band@samples output=temp threshold=5 method=seg_time min=1
@@ -56,6 +64,17 @@ real	140m42.401s
 The SW corner is still mostly one segment.
 
 So the processing time is sensitive to the size of the segments.
+
+
+Turning "debug" mode off (gets rid of some loops with G_debug statements)
+
+time i.segment --overwrite --verbose group=landsat_1band@samples output=val threshold=.02 method=region_growing min=1 final_mean=val_mean
+Pass 878:
+real	13m15.149s
+
+
+
+
 
 g.region s=222000 e=637000
 cells:      56334
