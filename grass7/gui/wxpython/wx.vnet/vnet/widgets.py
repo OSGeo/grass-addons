@@ -54,7 +54,7 @@ class PointsList(wx.ListCtrl,
                  column name, convert function, default val
         @code
          cols =   [
-             wx.ListCtrl, float, 0.0],
+                   ['source E', float, 0.0],
                    ['source N', float, 0.0],
                    ['target E', float, 0.0],
                    ['target N', float, 0.0],
@@ -170,12 +170,23 @@ class PointsList(wx.ListCtrl,
 
         return self.selected
 
-    def EditCell(self, item, col, cellData):
-        """! Changes value in list"""
+    def EditCellIndex(self, index, col, cellData):
+        """! Changes value in list using key (same regardless sorting)"""
         
-        self.itemDataMap[self.GetItemData(item)][col] = cellData
-        self.SetStringItem(item, col, str(cellData))
+        self.itemDataMap[self.GetItemData(index)][col] = cellData
+        self.SetStringItem(index, col, str(cellData))
 
+    def EditCellKey(self, key, col, cellData):
+        """! Changes value in list using index (changes during sorting)"""
+        
+        index = self.FindItemData(-1, key)        
+        self.itemDataMap[key][col] = cellData
+        self.SetStringItem(index, col, str(cellData))
+
+    def ChangeColType(self, col, colType):
+
+        print colType
+        self.cols_data["colsEditable"][col] = colType
 
     def DeleteItem(self, event = None):
         """! Deletes selected item in list"""

@@ -28,23 +28,26 @@ from gui_core.gselect import Select, LayerSelect, ColumnSelect
 from gui_core.widgets import GNotebook
 from core.settings    import UserSettings
 from grass.script     import core as grass
+from core          import utils
 from core.gcmd        import RunCommand, GMessage
-
+import unicodedata
 import wx
 import wx.aui
 import wx.lib.flatnotebook  as FN
+
 from copy import copy
 class VNETDialog(wx.Dialog):
     def __init__(self, parent,
                  id=wx.ID_ANY, title = "Vector network analysis",
                  style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
-        """!Dialolog for vector network analasis"""
+        """!Dialolog for vector network analysis"""
 
         wx.Dialog.__init__(self, parent, id, style=style, title = title)
 
         self.parent  = parent  #mapdisp.frame MapFrame
         self.mapWin = parent.MapWindow
         self.inputData = {}
+        self.cmdParams = {}
 
         # registration graphics for drawing
         self.pointsToDraw = self.mapWin.RegisterGraphicsToDraw(graphicsType = "point", 
@@ -56,6 +59,9 @@ class VNETDialog(wx.Dialog):
 
         self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass_map.ico'), wx.BITMAP_TYPE_ICO))
         
+        # initialozation of v.net.* analysis parameters
+        self._initvnetParams()
+
         # toolbars
         self.toolbars = {}
         self.toolbars['mainToolbar'] = MainToolbar(parent = self)
@@ -67,7 +73,7 @@ class VNETDialog(wx.Dialog):
 
         # Columns in points list
         self.cols =   [
-                        ['type', ["", "Start point", "End point"], ""]
+                        ['type', ["", _("Start point"), _("End point")], ""] #TODO init dynamically
                       ]
 
         self.mainPanel = wx.Panel(parent=self)
@@ -101,8 +107,8 @@ class VNETDialog(wx.Dialog):
         initSettings = [
                         ['resStyle', 'width', 5],
                         ['resStyle', 'color', (192,0,0)],
-                        ['analasisSettings', 'maxDist', 10000],
-                        ['analasisSettings', 'resultId', 1]
+                        ['analysisSettings', 'maxDist', 10000],
+                        ['analysisSettings', 'resultId', 1]
                       ]
         for init in initSettings:
 
@@ -121,17 +127,17 @@ class VNETDialog(wx.Dialog):
         # adds 2 points into list
         for i in range(2):
             self.list.AddItem(None)
-            self.list.EditCell(i, 1, self.cols[1][1][1 + i]) 
+            self.list.EditCellIndex(i, 1, self.cols[1][1][1 + i]) 
             self.list.CheckItem(i, True)
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseDialog)
 
-        dlgSize = (300,450)
+        dlgSize = (300, 500)
         self.SetMinSize(dlgSize)
         self.SetInitialSize(dlgSize)
 
     def  __del__(self):
-        """!Removes temp layer with analasis result, unregisters handlers and graphics"""
+        """!Removes temp layer with analysis result, unregisters handlers and graphics"""
 
 
         self.mapWin.UnregisterGraphicsToDraw(self.pointsToDraw)
@@ -210,9 +216,13 @@ class VNETDialog(wx.Dialog):
         abcolumnSelTitle = wx.StaticText(parent = self.settingsPanel)
         abcolumnSelTitle.SetLabel("Arc backward direction cost column:")
 
-        self.inputData['input'].Bind(wx.EVT_TEXT, self.OnVectSel)
-        self.inputData['alayer'].Bind(wx.EVT_TEXT, self.OnVectSel)
-        self.inputData['nlayer'].Bind(wx.EVT_TEXT, self.OnVectSel)
+        self.inputData['ncolumn'] = ColumnSelect(parent = self.settingsPanel, size = (-1, -1))
+        ncolumnSelTitle = wx.StaticText(parent = self.settingsPanel)
+        ncolumnSelTitle.SetLabel("Node direction cost column:")
+
+        self.inputData['input'].Bind(wx.EVT_TEXT, self.OnVectSel) # TODO optimalization
+        self.inputData['alayer'].Bind(wx.EVT_TEXT, self.OnALayerSel)
+        self.inputData['nlayer'].Bind(wx.EVT_TEXT, self.OnNLayerSel)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -243,6 +253,8 @@ class VNETDialog(wx.Dialog):
         bsizer.Add(item = self._doSelLayout(title = abcolumnSelTitle, sel = self.inputData['abcolumn']), proportion = 0,
                                  flag = wx.EXPAND)
 
+        bsizer.Add(item = self._doSelLayout(title = ncolumnSelTitle, sel = self.inputData['ncolumn']), proportion = 0,
+                                 flag = wx.EXPAND)
 
         self.settingsPanel.SetSizer(mainSizer)
 
@@ -264,8 +276,14 @@ class VNETDialog(wx.Dialog):
 
     def OnVectSel(self, event):
 
-        self.inputData['alayer'].InsertLayers(vector = self.inputData['input'].GetValue())#TODO split
+        self.inputData['alayer'].InsertLayers(vector = self.inputData['input'].GetValue())
         self.inputData['nlayer'].InsertLayers(vector = self.inputData['input'].GetValue())
+
+        self.OnALayerSel(event) 
+        self.OnNLayerSel(event)
+
+
+    def OnALayerSel(self, event):
 
         self.inputData['afcolumn'].InsertColumns(vector = self.inputData['input'].GetValue(), 
                                                  layer = self.inputData['alayer'].GetValue(), 
@@ -274,6 +292,13 @@ class VNETDialog(wx.Dialog):
                                                  layer = self.inputData['alayer'].GetValue(), 
                                                  type = self.columnTypes)
 
+
+    def OnNLayerSel(self, event):
+
+        self.inputData['ncolumn'].InsertColumns(vector = self.inputData['input'].GetValue(), 
+                                                layer = self.inputData['nlayer'].GetValue(), 
+                                                type = self.columnTypes)
+ 
     def OnCloseDialog(self, event):
         """!Cancel dialog"""
 
@@ -281,7 +306,7 @@ class VNETDialog(wx.Dialog):
         self.Destroy()
 
     def SetNodeStatus(self, item, itemIndex):
-        """!Before point is drawed, decides properties of drawing style"""
+        """!Before point is drawn, decides properties of drawing style"""
         key = self.list.GetItemData(itemIndex)
         gcp = self.list.itemDataMap[key]
 
@@ -323,62 +348,209 @@ class VNETDialog(wx.Dialog):
     def OnAnalyze(self, event):
         """!Takes coordinates from map window."""
 
+        inType = self.vnetParams[self.currAnModule]["inputType"]
+
+        cmdParams = [self.currAnModule]
+        cmdParams.extend(self._getInputParams())
+        cmdParams.append("output=" + self.tmp_result)
+
+        catPts = self._getPtByCat()
+
+        if inType == "cats":
+            self._catsInType(cmdParams, catPts)
+        elif inType == "stdin":
+            self._stdinInType(cmdParams, catPts)
+
+    def _stdinInType(self, cmdParams, catPts):
+
         if len(self.pointsToDraw.GetAllItems()) < 1:
             return
 
-        startPtLabel = self.cols[1][1][1]            
-        endPtLabel = self.cols[1][1][2]
+        catPts = self._getPtByCat()
+        cats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
 
-        inputCoords = { startPtLabel : None,
-                        endPtLabel : None}
+        cmdPts = []
+        for cat in cats:
+            if  len(catPts[cat[0]]) < 1:
+                GMessage(parent = self,
+                         message=_("Pleas choose 'to' and 'from' point."))
+                return
+            cmdPts.append(catPts[cat[0]][0])
 
+
+        resId = int(UserSettings.Get(group ='vnet', 
+                                     key = 'analysisSettings', 
+                                     subkey = 'resultId'))
+
+        inpPoints = str(resId) + " " + str(cmdPts[0][0]) + " " + str(cmdPts[0][1]) + \
+                                 " " + str(cmdPts[1][0]) + " " + str(cmdPts[1][1])
+
+        cmdParams.append("stdin=" + inpPoints)
+
+        dmax = int(UserSettings.Get(group = 'vnet', 
+                                    key ='analysisSettings', 
+                                    subkey ='maxDist'))
+
+        cmdParams.append("dmax=" + str(dmax))
+        cmdParams.append("input=" + self.inputData['input'].GetValue())
+
+        self._executeCommand(cmdParams)
+        self._addTempLayer()
+
+    def _catsInType(self, cmdParams, catPts):
+
+        tmp_pts_connect = "pts_connect"
+        tmp_input_connected = "tmp_input_map_connected"
+
+        cats = RunCommand("v.category",
+                           input = self.inputData['input'].GetValue(),
+                           option = "report",
+                           flags = "g",
+                           read = True)     
+
+
+        cats = cats.splitlines()
+        for cat in cats:#TODO
+            cat = cat.split()
+            if "all" in cat:
+                maxCat = int(cat[4])
+                break
+
+        layerNum = self.inputData["nlayer"].GetValue().strip()
+        if not layerNum:
+            layerNum = 1 #TODO
+
+
+        pt_ascii, catsNums = self._getAsciiPts (catPts = catPts, 
+                                                maxCat = maxCat, 
+                                                layerNum = layerNum)
+
+
+        ret, msg =  RunCommand("v.edit",
+                                map = tmp_pts_connect,
+                                stdin = pt_ascii,
+                                input = "-",
+                                tool = 'create',
+                                flags = "n",
+                                overwrite = True,
+                                getErrorMsg = True)
+        print msg
+
+        ret, msg =  RunCommand("v.to.db",
+                                map = tmp_pts_connect,
+                                option = "cat",
+                                overwrite = True,
+                                getErrorMsg = True)
+        print msg
+
+        dmax = int(UserSettings.Get(group = 'vnet', 
+                                    key ='analysisSettings', 
+                                    subkey ='maxDist'))
+
+        ret, msg =  RunCommand("v.net",
+                                points = tmp_pts_connect,
+                                stdin = pt_ascii,
+                                output = tmp_input_connected,
+                                input =  self.inputData["input"].GetValue(),
+                                operation = 'connect',
+                                thresh = dmax,
+                                alayer =  self.inputData["alayer"].GetValue(),
+                                nlayer=  self.inputData["nlayer"].GetValue(),
+                                overwrite = True,
+                                getErrorMsg = True,
+                                quiet = True)
+        print msg
+
+        cmdParams.append("input=" + tmp_input_connected)
+        for catName, catNum in catsNums.iteritems():
+            if catNum[0] == catNum[1]:
+                cmdParams.append(catName + "=" + str(catNum[0]))
+            else:
+                cmdParams.append(catName + "=" + str(catNum[0]) + "-" + str(catNum[1]))
+
+        self._executeCommand(cmdParams)
+
+        if self.currAnModule == "v.net.alloc": #TODO ugly hack
+            self.UpdateCmdList(self.tmp_result, True)
+        else: #TODO
+            self.UpdateCmdList(self.tmp_result, False)
+
+        self._addTempLayer()
+
+    def _getInputParams(self):
+
+        inParams = []
+        for col in self.vnetParams[self.currAnModule]["cmdParams"]["cols"]:
+
+            if "inputField" in self.attrCols[col]:
+                colInptF = self.attrCols[col]["inputField"]
+            else:
+                colInptF = col
+
+            inParams.append(col + '=' + self.inputData[colInptF].GetValue())
+
+        for layer in ['alayer', 'nlayer']:  #TODO input
+            inParams.append(layer + "=" + self.inputData[layer].GetValue())
+
+        return inParams
+
+    def _getPtByCat(self):
+
+        cats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
+
+        ptByCats = {}
+        for cat in self.vnetParams[self.currAnModule]["cmdParams"]["cats"]:
+            ptByCats[cat[0]] = []
+ 
         for i in range(len(self.list.itemDataMap)):
             key = self.list.GetItemData(i)
             if self.list.IsChecked(key):
-                for k, v in inputCoords.iteritems():
-                    if k == self.list.itemDataMap[key][1]:       
-                        inputCoords[k] = self.pointsToDraw.GetItem(key).GetCoords        ()
+                for cat in cats:
+                    if cat[1] == self.list.itemDataMap[key][1] or len(ptByCats) == 1: 
+                        ptByCats[cat[0]].append(self.pointsToDraw.GetItem(key).GetCoords())
+                        continue
 
-        if None in inputCoords.values():
-            GMessage(parent       = self,
-                     message=_("Pleas choose 'to' and 'from' point."))
-            return            
+        return ptByCats
 
-        resId = int(UserSettings.Get(group='vnet', 
-                                     key='analasisSettings', 
-                                     subkey='resultId'))
+    def _getAsciiPts (self, catPts, maxCat, layerNum):
 
-        s = str(resId) + " " + str(inputCoords[startPtLabel][0]) + " " + str(inputCoords[startPtLabel][1]) + \
-                         " " + str(inputCoords[endPtLabel][0]) + " " + str(inputCoords[endPtLabel][1])
+        catsNums = {}
+        pt_ascii = ""
+        catNum = maxCat
 
-        coordsTempFile = grass.tempfile()#TODO stdin
-        coordsTempFileOpened = open(coordsTempFile, 'w')
-        coordsTempFileOpened.write(s)
-        coordsTempFileOpened.close()
+        if layerNum:
+            nlayer = layerNum
+        else:
+            nlayer = 1 #TODO ugly hack
 
-        params = {}
-        for k, v in self.inputData.iteritems():
-            if not v.GetValue():
-                params[k] = None
-            else:
-                params[k] = v.GetValue()
- 
-        ret, std, msg = RunCommand('v.net.path',
-                                    input = params['input'],
-                                    output = self.tmp_result,
-                                    overwrite = True,
-                                    alayer = params['alayer'], 
-                                    nlayer = params['nlayer'], 
-                                    afcolumn = params['afcolumn'],
-                                    abcolumn = params['abcolumn'],
-                                    file = coordsTempFile,
-                                    dmax = int(UserSettings.Get(group='vnet', 
-                                                                key='analasisSettings', 
-                                                                subkey='maxDist')),
-                                    read = True,
-                                    getErrorMsg = True)
+        for catName, pts in catPts.iteritems():
 
-        grass.try_remove(coordsTempFile)
+            catsNums[catName] = [catNum + 1]
+            for pt in pts:
+                catNum += 1
+                pt_ascii += "P 1 1\n"
+                pt_ascii += str(pt[0]) + " " + str(pt[1]) +  "\n"
+                pt_ascii += str(nlayer) + " " + str(catNum) + "\n"
+
+            catsNums[catName].append(catNum)
+
+        return pt_ascii, catsNums
+
+    def _executeCommand(self, cmd):
+
+        cmd  = utils.CmdToTuple(cmd)
+
+        for c, v in cmd[1].items():
+            if not v.strip():
+                cmd[1].pop(c)
+
+        ret, msg = RunCommand(cmd[0],
+                             getErrorMsg = True,
+                             quiet = True,
+                             overwrite = True, #TODO init test 
+                             **cmd[1])
+
+    def _addTempLayer(self):
 
         if self.tmpResultLayer:
             self.mapWin.Map.DeleteLayer(layer = self.tmpResultLayer)
@@ -389,6 +561,42 @@ class VNETDialog(wx.Dialog):
                                                        l_render = True,  pos = 1)
 
         self.mapWin.UpdateMap(render=True, renderVector=True)
+
+    def _adaptPointsList(self):
+
+        prevParamsCats = self.vnetParams[self.prevAnModule]["cmdParams"]["cats"]
+        currParamsCats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
+
+    
+        for key in range(len(self.list.itemDataMap)):            
+            iCat = 0
+            for ptCat in prevParamsCats:
+                if self.list.itemDataMap[key][1] ==  ptCat[1]:
+                    self.list.EditCellKey(key, 1, currParamsCats[iCat][1])
+                iCat += 1
+
+        colValues = [""]
+        for ptCat in currParamsCats:
+            colValues.append(ptCat[1])
+
+        self.list.ChangeColType(1, colValues)
+
+        self.prevAnModule = self.currAnModule
+  
+
+    def UpdateCmdList(self, layerName, colorsByCats = False):
+        """!Displays vnet settings dialog"""
+
+        col = UserSettings.Get(group='vnet', key='resStyle', subkey= "color")
+        width = UserSettings.Get(group='vnet', key='resStyle', subkey= "width")
+
+        self.cmdlist = ['d.vect', 'map=%s' % layerName, 
+                        "layer=1",'width=' + str(width)]
+
+        if colorsByCats:
+            self.cmdlist.append('flags=c')
+        else:
+            self.cmdlist.append('color=' + str(col[0]) + ':' + str(col[1]) + ':' + str(col[2]))
 
     def OnInsertPoint(self, event):
         if self.handlerRegistered == False:
@@ -408,7 +616,7 @@ class VNETDialog(wx.Dialog):
 
         if dlg.ShowModal() == wx.ID_OK:
 
-            ret, std, msg = RunCommand("g.copy",
+            ret, std, msg = RunCommand("g.rename",
                              overwrite = dlg.overwrite.GetValue(),
                              vect = [self.tmp_result, dlg.vectSel.GetValue()],
                              read = True,
@@ -431,19 +639,113 @@ class VNETDialog(wx.Dialog):
         
         dlg.Destroy()
 
-    def UpdateCmdList(self, layerName):
-        """!Displays vnet settings dialog"""
+    def OnAnalysisChanged(self, event):
 
-        col = UserSettings.Get(group='vnet', key='resStyle', subkey= "color")
-        width = UserSettings.Get(group='vnet', key='resStyle', subkey= "width")
+        # finds module name according to value in anChoice
+        for module, params in self.vnetParams.iteritems():
+            chLabel = self.toolbars['mainToolbar'].anChoice.GetValue()
+            if params["label"] == chLabel:
+                self.currAnModule = module
+                break
 
-        self.cmdlist = ['d.vect', 'map=%s' % layerName, \
-                        'color=' + str(col[0]) + ':' + str(col[1]) + ':' + str(col[2]), \
-                        'width=' + str(width)]# TODO settings
+        if  len(self.vnetParams[self.currAnModule]["cmdParams"]["cats"]) > 1: 
+            self._adaptPointsList()
 
+    def _initvnetParams(self):
+        """!Initializes parameters for different v.net.* analysis """
+
+        self.attrCols = {
+                          'afcolumn' : {"label" : "Arc forward/both direction(s) cost column:"}, #TODO add dynamic generation of data tab
+                          'abcolumn' : {"label" : "Arc backward direction cost column:"},
+                          'acolumn' : {
+                                       "label" : "Arcs' cost column (for both directions:",
+                                       "inputField" : 'afcolumn'
+                                      },
+                          'ncolumn' : {"label" : "Node cost column:"}
+                        }
+
+        self.vnetParams = {
+                                   "v.net.path" : {
+                                                     "label" : _("Shortest path %s") % "(v.net.path)",  
+                                                     "cmdParams" : {
+                                                                      "cats" :  [
+                                                                                    ["st_pt", _("Start point")], 
+                                                                                    ["end_pt", _("End point")] 
+                                                                                ],
+                                                                      "cols" :  [
+                                                                                 'afcolumn',
+                                                                                 'abcolumn',
+                                                                                 'ncolumn'
+                                                                                ],
+                                                                      "other" : {
+                                                                                 "dmax" : int,
+                                                                                 "id"  : int 
+                                                                                }
+                                                                   },
+                                                     "inputType" : "stdin",
+                                                  },
+
+                                    "v.net.salesman" : {
+                                                        "label" : _("Salesman %s") % "(v.net.salesman)",  
+                                                        "cmdParams" : {
+                                                                        "cats" : [["ccats", None]],
+                                                                        "cols" : [
+                                                                                  'afcolumn',
+                                                                                  'abcolumn'
+                                                                                 ],
+                                                                      },
+                                                        "inputType" : "cats"
+                                                       },
+                                    "v.net.flow" : {
+                                                     "label" : _("Flow %s") % "(v.net.flow)",  
+                                                     "cmdParams" : {
+                                                                      "cats" : [
+                                                                                ["source_cats", _("Source point")], 
+                                                                                ["sink_cats", _("Sink point")]
+                                                                               ],                                                   
+                                                                      "cols" : [
+                                                                                'afcolumn',
+                                                                                'abcolumn',
+                                                                                'ncolumn'
+                                                                               ]
+                                                                  },
+                                                     "inputType" : "cats"
+                                                   },
+                                    "v.net.alloc" : {
+                                                     "label" : _("Allocate subnets for nearest centres %s") % "(v.net.alloc)",  
+                                                     "cmdParams" : {
+                                                                      "cats" : [["ccats", None]],                           
+                                                                      "cols" : [
+                                                                                 'afcolumn',
+                                                                                 'abcolumn',
+                                                                                 'ncolumn'
+                                                                               ]
+                                                                  },
+                                                     "inputType" : "cats"
+                                                   },
+                                    "v.net.steiner" : {
+                                                     "label" : _("Create Steiner tree for the network and given terminals %s") % "(v.net.steiner)",  
+                                                     "cmdParams" : {
+                                                                      "cats" : [["tcats", None]],                           
+                                                                      "cols" : [
+                                                                                 'acolumn',
+                                                                               ]
+                                                                  },
+                                                     "inputType" : "cats"
+                                                   }
+                                }
+
+        self.vnetModulesOrder = ["v.net.path", 
+                                 "v.net.salesman",
+                                 #"v.net.flow",
+                                 "v.net.alloc",
+                                 #"v.net.steiner"
+                                 ] # order in the choice of analysis
+        self.currAnModule = self.vnetModulesOrder[0]
+        self.prevAnModule = self.vnetModulesOrder[0]
 class NodesList(PointsList):
     def __init__(self, parent, dialog, cols, id=wx.ID_ANY):
-        """! List with points for analasis
+        """! List with points for analysis
         """
 
         self.dialog = dialog # VNETDialog class
@@ -481,7 +783,7 @@ class NodesList(PointsList):
 
         PointsList.OnItemSelected(self, event)
         self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
-
+        self.dialog._getPtByCat()
         event.Skip()
 
     def OnCheckItem(self, index, flag):
@@ -490,9 +792,18 @@ class NodesList(PointsList):
         key = self.GetItemData(index)
         checkedVal = self.itemDataMap[key][1]
 
+        currModule = self.dialog.currAnModule
+        cats = self.dialog.vnetParams[currModule]["cmdParams"]["cats"]
+
+        if len(cats) <= 1:
+            return 
+
         if checkedVal == "":
                 self.CheckItem(key, False)
                 return
+
+        if currModule != "v.net.path":
+            return
 
         iItem = 0
         for item in self.itemDataMap:
@@ -501,10 +812,11 @@ class NodesList(PointsList):
                 self.CheckItem(checkedKey, False)
             iItem += 1
 
+
 class SettingsDialog(wx.Dialog):
     def __init__(self, parent, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=wx.DEFAULT_DIALOG_STYLE):
-        """!Settings for v.net analasis dialog"""
+        """!Settings for v.net analysis dialog"""
         wx.Dialog.__init__(self, parent, id, title, pos, size, style)
 
         maxValue = 1e8
@@ -527,12 +839,12 @@ class SettingsDialog(wx.Dialog):
 
         self.idLabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label =_("Id of line:"))
         self.resIdFiled = wx.SpinCtrl(parent = self.panel, id = wx.ID_ANY, min = 1, max = maxValue)
-        resId = int(UserSettings.Get(group ='vnet', key ='analasisSettings', subkey = 'resultId'))
+        resId = int(UserSettings.Get(group ='vnet', key ='analysisSettings', subkey = 'resultId'))
         self.resIdFiled.SetValue(resId)
 
         self.maxDistlabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = _("Maximum distance \n to the network:"))
         self.maxDistField = wx.SpinCtrl(parent = self.panel, id = wx.ID_ANY, min = 0, max = maxValue) #TODO
-        maxDist = int(UserSettings.Get(group = 'vnet', key = 'analasisSettings', subkey ='maxDist'))
+        maxDist = int(UserSettings.Get(group = 'vnet', key = 'analysisSettings', subkey ='maxDist'))
         self.maxDistField.SetValue(maxDist)
 
         # buttons
@@ -556,7 +868,7 @@ class SettingsDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         styleBox = wx.StaticBox(parent = self.panel, id = wx.ID_ANY,
-                                label =" %s " % _("Analasis outcome line style:"))
+                                label =" %s " % _("Analysis outcome line style:"))
         styleBoxSizer = wx.StaticBoxSizer(styleBox, wx.VERTICAL)
 
         gridSizer = wx.GridBagSizer(vgap = 1, hgap = 1)
@@ -576,9 +888,9 @@ class SettingsDialog(wx.Dialog):
         styleBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
 
 
-        analasisBox = wx.StaticBox(parent = self.panel, id = wx.ID_ANY,
-                                   label = " %s " % _("Analasis settings:"))
-        analasisBoxSizer = wx.StaticBoxSizer(analasisBox, wx.VERTICAL)
+        analysisBox = wx.StaticBox(parent = self.panel, id = wx.ID_ANY,
+                                   label = " %s " % _("Analysis settings:"))
+        analysisBoxSizer = wx.StaticBoxSizer(analysisBox, wx.VERTICAL)
 
         row = 0
         gridSizer = wx.GridBagSizer(vgap = 1, hgap = 1)
@@ -593,7 +905,7 @@ class SettingsDialog(wx.Dialog):
                       flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
                       pos = (row, 1))
 
-        analasisBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
+        analysisBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
 
         # sizers
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -602,7 +914,7 @@ class SettingsDialog(wx.Dialog):
         btnSizer.Add(self.btnClose, flag = wx.LEFT | wx.RIGHT, border = 5)
 
         sizer.Add(item = styleBoxSizer, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 1)
-        sizer.Add(item = analasisBoxSizer, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 1)
+        sizer.Add(item = analysisBoxSizer, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 1)
         sizer.Add(item = btnSizer, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)    
 
         self.panel.SetSizer(sizer)
@@ -616,10 +928,10 @@ class SettingsDialog(wx.Dialog):
         UserSettings.Set(group = 'vnet', key ='resStyle', subkey ='color',
                          value = self.colorField.GetColour())
 
-        UserSettings.Set(group = 'vnet', key ='analasisSettings', subkey ='resultId',
+        UserSettings.Set(group = 'vnet', key ='analysisSettings', subkey ='resultId',
                          value = self.resIdFiled.GetValue())
 
-        UserSettings.Set(group ='vnet', key ='analasisSettings', subkey ='maxDist',
+        UserSettings.Set(group ='vnet', key ='analysisSettings', subkey ='maxDist',
                          value = self.maxDistField.GetValue())
 
         if self.parent.tmpResultLayer:
@@ -627,7 +939,7 @@ class SettingsDialog(wx.Dialog):
             self.parent.UpdateCmdList(self.parent.tmp_result)
 
             self.parent.tmpResultLayer.SetCmd(self.parent.cmdlist)
-            self.parent.mapWin.UpdateMap(render=True, renderVector=True)#TODO necessary
+            self.parent.mapWin.UpdateMap(render=True, renderVector=True)#TODO optimalization
      
 
     #def OnSave(self, event): TODO
@@ -653,7 +965,7 @@ class AddLayerDialog(wx.Dialog):
     """!Adds layer with analysis result into layer tree"""
    
     def __init__(self, parent,id=wx.ID_ANY,
-                 title =_("Add analasis result into layer tree"), style=wx.DEFAULT_DIALOG_STYLE):
+                 title =_("Add analysis result into layer tree"), style=wx.DEFAULT_DIALOG_STYLE):
         """!Dialog for editing item cells in list"""
 
         wx.Dialog.__init__(self, parent, id, title = _(title), style = style)

@@ -62,18 +62,22 @@ class MainToolbar(BaseToolbar):
         
         self.InitToolbar(self._toolbarData())
 
-        choices = [ _('Shortest path'), ]
-        self.combo = wx.ComboBox(parent = self, id = wx.ID_ANY,
+        choices = []
+
+        for moduleName in self.parent.vnetModulesOrder:
+            choices.append(self.parent.vnetParams[moduleName]['label'])
+
+        self.anChoice = wx.ComboBox(parent = self, id = wx.ID_ANY,
                                  choices = choices,
                                  style = wx.CB_READONLY, size = (110, -1))
-        self.combo.SetSelection(0)
-        
-        self.comboid = self.AddControl(self.combo)
-        #self.parent.Bind(wx.EVT_COMBOBOX, self.OnSelectTool, self.comboid)
+        self.anChoice.SetSelection(0)
+               
+        self.anChoiceId = self.AddControl(self.anChoice)
+        self.parent.Bind(wx.EVT_COMBOBOX, self.parent.OnAnalysisChanged, self.anChoiceId)
                 
         # workaround for Mac bug. May be fixed by 2.8.8, but not before then.
-        self.combo.Hide()
-        self.combo.Show()
+        self.anChoice.Hide()
+        self.anChoice.Show()
 
         # realize the toolbar
         self.Realize()
@@ -84,16 +88,16 @@ class MainToolbar(BaseToolbar):
         icons = {
                  'run' : MetaIcon(img = 'execute',
                                   label = _('Execute analysis')),
-                 'saveTempLayer'   : MetaIcon(img = 'map-export',
-                                             label = _('Add temporary result of analasis into layer tree')),
-                  'settings'  : BaseIcons['settings'].SetLabel( _('Vector network analasis settings'))
+                 'saveTempLayer' : MetaIcon(img = 'map-export',
+                                             label = _('Add temporary result of analysis into layer tree')),
+                  'settings' : BaseIcons['settings'].SetLabel( _('Vector network analysis settings'))
                 }
 
         return self._getToolbarData((
                                      ("run", icons['run'],
                                       self.parent.OnAnalyze),
-                                     ("saveTempLayer", icons['saveTempLayer'],
-                                      self.parent.OnSaveTmpLayer),
+                                     #("saveTempLayer", icons['saveTempLayer'],
+                                     # self.parent.OnSaveTmpLayer),
                                      ('settings', icons["settings"],
                                       self.parent.OnSettings),                                    
                                      ("quit", BaseIcons['quit'],
