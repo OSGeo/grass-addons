@@ -49,6 +49,10 @@ class VNETDialog(wx.Dialog):
         self.inputData = {}
         self.cmdParams = {}
 
+        self.tmp_result = "vnet_tmp_result"
+        self.tmpMaps = [self.tmp_result]
+
+
         # registration graphics for drawing
         self.pointsToDraw = self.mapWin.RegisterGraphicsToDraw(graphicsType = "point", 
                                                                setStatusFunc = self.SetNodeStatus)
@@ -118,9 +122,6 @@ class VNETDialog(wx.Dialog):
                                 subkey =init[1], 
                                 value = init[2])
 
-        # name of temporary map   
-        self.tmp_result = "tmp_map" 
-
         # set options for drawing the map  
         self.UpdateCmdList(self.tmp_result)
 
@@ -139,10 +140,11 @@ class VNETDialog(wx.Dialog):
     def  __del__(self):
         """!Removes temp layer with analysis result, unregisters handlers and graphics"""
 
-
         self.mapWin.UnregisterGraphicsToDraw(self.pointsToDraw)
 
-        RunCommand('g.remove', vect = self.tmp_result)
+        for tmpMap in self.tmpMaps:
+            RunCommand('g.remove', vect = tmpMap)
+
         if self.tmpResultLayer:
             self.mapWin.UpdateMap(render=True, renderVector=True)
 
@@ -198,7 +200,7 @@ class VNETDialog(wx.Dialog):
 
         self.inputData['input'] = Select(parent = self.settingsPanel, type = 'vector', size = (-1, -1))
         vectSelTitle = wx.StaticText(parent = self.settingsPanel)
-        vectSelTitle.SetLabel("Choose vector layers for analysis:")
+        vectSelTitle.SetLabel("Choose vector map for analysis:")
 
         self.inputData['alayer'] = LayerSelect(parent = self.settingsPanel, size = (-1, -1))
         aLayerSelTitle = wx.StaticText(parent = self.settingsPanel)
@@ -397,10 +399,12 @@ class VNETDialog(wx.Dialog):
         self._executeCommand(cmdParams)
         self._addTempLayer()
 
-    def _catsInType(self, cmdParams, catPts):
+    def RemoveTmpMap(self, map):
 
-        tmp_pts_connect = "pts_connect"
-        tmp_input_connected = "tmp_input_map_connected"
+        RunCommand('g.remove', vect = map)
+        self.tmpMaps.remove(map)
+
+    def _catsInType(self, cmdParams, catPts):
 
         cats = RunCommand("v.category",
                            input = self.inputData['input'].GetValue(),
@@ -425,9 +429,11 @@ class VNETDialog(wx.Dialog):
                                                 maxCat = maxCat, 
                                                 layerNum = layerNum)
 
+        tmpInPts = "vnet_in_pts"
+        self.tmpMaps.append(tmpInPts)
 
         ret, msg =  RunCommand("v.edit",
-                                map = tmp_pts_connect,
+                                map = tmpInPts,
                                 stdin = pt_ascii,
                                 input = "-",
                                 tool = 'create',
@@ -436,21 +442,17 @@ class VNETDialog(wx.Dialog):
                                 getErrorMsg = True)
         print msg
 
-        ret, msg =  RunCommand("v.to.db",
-                                map = tmp_pts_connect,
-                                option = "cat",
-                                overwrite = True,
-                                getErrorMsg = True)
-        print msg
-
         dmax = int(UserSettings.Get(group = 'vnet', 
                                     key ='analysisSettings', 
                                     subkey ='maxDist'))
 
+        tmpInPtsConnected = "vnet_in_pts_connected"
+        self.tmpMaps.append(tmpInPtsConnected)
+
         ret, msg =  RunCommand("v.net",
-                                points = tmp_pts_connect,
+                                points = tmpInPts,
                                 stdin = pt_ascii,
-                                output = tmp_input_connected,
+                                output = tmpInPtsConnected,
                                 input =  self.inputData["input"].GetValue(),
                                 operation = 'connect',
                                 thresh = dmax,
@@ -461,7 +463,9 @@ class VNETDialog(wx.Dialog):
                                 quiet = True)
         print msg
 
-        cmdParams.append("input=" + tmp_input_connected)
+        self.RemoveTmpMap(tmpInPts)
+
+        cmdParams.append("input=" + tmpInPtsConnected)
         for catName, catNum in catsNums.iteritems():
             if catNum[0] == catNum[1]:
                 cmdParams.append(catName + "=" + str(catNum[0]))
@@ -469,10 +473,11 @@ class VNETDialog(wx.Dialog):
                 cmdParams.append(catName + "=" + str(catNum[0]) + "-" + str(catNum[1]))
 
         self._executeCommand(cmdParams)
+        self.RemoveTmpMap(tmpInPtsConnected)
 
         if self.currAnModule == "v.net.alloc": #TODO ugly hack
             self.UpdateCmdList(self.tmp_result, True)
-        else: #TODO
+        else: 
             self.UpdateCmdList(self.tmp_result, False)
 
         self._addTempLayer()
