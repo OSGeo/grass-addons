@@ -1244,6 +1244,7 @@ int region_growing(struct files *files, struct functions *functions)
 	/* TODO - anything to free??? */
 	/* clean up */
 	rbtree_destroy(no_check_tree);
+	rbtree_destroy(known_iseg);
 
 	return TRUE;
     }
