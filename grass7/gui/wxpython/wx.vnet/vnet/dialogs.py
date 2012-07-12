@@ -17,25 +17,26 @@ This program is free software under the GNU General Public License
 """
 
 import os
-import wx
 import sys
-import wx.lib.colourselect as csel
-
-from core             import globalvar
-from vnet.toolbars    import MainToolbar, PointListToolbar
-from vnet.widgets     import PointsList
-from gui_core.gselect import Select, LayerSelect, ColumnSelect
-from gui_core.widgets import GNotebook
-from core.settings    import UserSettings
+from copy import copy
 from grass.script     import core as grass
-from core          import utils
-from core.gcmd        import RunCommand, GMessage
-import unicodedata
+
 import wx
 import wx.aui
 import wx.lib.flatnotebook  as FN
+import wx.lib.colourselect as csel
 
-from copy import copy
+from core             import globalvar, utils
+from core.settings    import UserSettings
+from core.gcmd        import RunCommand, GMessage
+
+from gui_core.widgets import GNotebook
+from gui_core.goutput import GMConsole
+from gui_core.gselect import Select, LayerSelect, ColumnSelect
+
+from vnet.widgets     import PointsList
+from vnet.toolbars    import MainToolbar, PointListToolbar
+
 class VNETDialog(wx.Dialog):
     def __init__(self, parent,
                  id=wx.ID_ANY, title = "Vector network analysis",
@@ -52,18 +53,17 @@ class VNETDialog(wx.Dialog):
         self.tmp_result = "vnet_tmp_result"
         self.tmpMaps = [self.tmp_result]
 
-
         # registration graphics for drawing
         self.pointsToDraw = self.mapWin.RegisterGraphicsToDraw(graphicsType = "point", 
                                                                setStatusFunc = self.SetNodeStatus)
         self.pointsToDraw.SetPropertyVal("size", 10) # TODO settings
 
-        # getting attribute table columns only whith numbers (costs)
+        # getting attribute table columns only with numbers (costs)
         self.columnTypes = ['integer', 'double precision'] 
 
         self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass_map.ico'), wx.BITMAP_TYPE_ICO))
         
-        # initialozation of v.net.* analysis parameters
+        # initialization of v.net.* analysis parameters
         self._initvnetParams()
 
         # toolbars
@@ -96,6 +96,11 @@ class VNETDialog(wx.Dialog):
                               text=_('Data'), 
                               name = 'data')
 
+        self._createOutputPanel()
+        self.notebook.AddPage(page = self.outputPanel, 
+                              text = _("Analasis output"), 
+                              name = 'output')
+
         self._addPanes()
         self._doDialogLayout()
 
@@ -107,7 +112,6 @@ class VNETDialog(wx.Dialog):
         #TODO if 'vnet' not in UserSettings.userSettings: 
 
         # initializes default settings
-
         initSettings = [
                         ['resStyle', 'width', 5],
                         ['resStyle', 'color', (192,0,0)],
@@ -136,6 +140,10 @@ class VNETDialog(wx.Dialog):
         dlgSize = (300, 500)
         self.SetMinSize(dlgSize)
         self.SetInitialSize(dlgSize)
+
+        #fix goutput's pane size (required for Mac OSX)
+        if self.goutput:         
+            self.goutput.SetSashPosition(int(self.GetSize()[1] * .75))
 
     def  __del__(self):
         """!Removes temp layer with analysis result, unregisters handlers and graphics"""
@@ -176,6 +184,7 @@ class VNETDialog(wx.Dialog):
                   flag = wx.EXPAND)
         
         self.mainPanel.SetSizer(sizer)
+
         sizer.Fit(self)
         
         self.Layout()
@@ -193,6 +202,25 @@ class VNETDialog(wx.Dialog):
         listsizer.Add(item = self.list, proportion = 1, flag = wx.EXPAND)
 
         self.listPanel.SetSizer(listsizer)
+
+    def _createOutputPanel(self):
+
+        self.outputPanel = wx.Panel(parent = self)
+
+        #TODO ugly hacks - just for GMConsole to be happy 
+        self.notebook.notebookpanel = CmdPanelHack()
+        self.outputPanel.notebook = self.notebook # for GMConsole init
+        self.outputPanel.parent = self.notebook # for GMConsole OnDone
+
+        self.goutput = GMConsole(parent = self.outputPanel, margin = False)
+
+        self.outputSizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.outputSizer.Add(item = self.goutput, proportion = 1, flag = wx.EXPAND)
+        # overridden outputSizer.SetSizeHints(self) in GMConsole _layout
+        self.goutput.SetMinSize((-1,-1))
+
+        self.outputPanel.SetSizer(self.outputSizer)
 
     def _createSelectsPanel(self):
 
@@ -324,7 +352,6 @@ class VNETDialog(wx.Dialog):
         item.SetPropertyVal('label', str(itemIndex + 1))
         item.SetPropertyVal('penName', wxPen)       
 
-
     def OnMapClickHandler(self, event):
         """!Takes coordinates from map window."""
 
@@ -387,7 +414,12 @@ class VNETDialog(wx.Dialog):
         inpPoints = str(resId) + " " + str(cmdPts[0][0]) + " " + str(cmdPts[0][1]) + \
                                  " " + str(cmdPts[1][0]) + " " + str(cmdPts[1][1])
 
-        cmdParams.append("stdin=" + inpPoints)
+        self.coordsTmpFile = grass.tempfile()#TODO stdin
+        coordsTmpFileOpened = open(self.coordsTmpFile, 'w')
+        coordsTmpFileOpened.write(inpPoints)
+        coordsTmpFileOpened.close()
+
+        cmdParams.append("file=" + self.coordsTmpFile)
 
         dmax = int(UserSettings.Get(group = 'vnet', 
                                     key ='analysisSettings', 
@@ -396,7 +428,14 @@ class VNETDialog(wx.Dialog):
         cmdParams.append("dmax=" + str(dmax))
         cmdParams.append("input=" + self.inputData['input'].GetValue())
 
-        self._executeCommand(cmdParams)
+        cmdParams.append("--overwrite")
+        self._prepareCmd(cmd = cmdParams)
+
+        self.goutput.RunCmd(command = cmdParams, onDone = self._stdinInTypeDone)
+
+    def _stdinInTypeDone(self, cmd, returncode):
+
+        grass.try_remove(self.coordsTmpFile)
         self._addTempLayer()
 
     def RemoveTmpMap(self, map):
@@ -406,6 +445,12 @@ class VNETDialog(wx.Dialog):
 
     def _catsInType(self, cmdParams, catPts):
 
+        # TODO how to get output in ondone function
+        #cmdCategory = [ "v.category",
+        #                "input=" + self.inputData['input'].GetValue(),
+        #                "option=report",
+        #                "-g",
+        #              ]
         cats = RunCommand("v.category",
                            input = self.inputData['input'].GetValue(),
                            option = "report",
@@ -429,56 +474,64 @@ class VNETDialog(wx.Dialog):
                                                 maxCat = maxCat, 
                                                 layerNum = layerNum)
 
-        tmpInPts = "vnet_in_pts"
-        self.tmpMaps.append(tmpInPts)
+        self.tmpPtsAsciiFile = grass.tempfile()#TODO tmp files cleanup
+        tmpPtsAsciiFileOpened = open(self.tmpPtsAsciiFile, 'w')
+        tmpPtsAsciiFileOpened.write(pt_ascii)
+        tmpPtsAsciiFileOpened.close()
 
-        ret, msg =  RunCommand("v.edit",
-                                map = tmpInPts,
-                                stdin = pt_ascii,
-                                input = "-",
-                                tool = 'create',
-                                flags = "n",
-                                overwrite = True,
-                                getErrorMsg = True)
-        print msg
+        self.tmpInPts = "vnet_in_pts"
+        self.tmpMaps.append(self.tmpInPts)
+
+        self.tmpInPtsConnected = "vnet_in_pts_connected"
+        self.tmpMaps.append(self.tmpInPtsConnected)
 
         dmax = int(UserSettings.Get(group = 'vnet', 
                                     key ='analysisSettings', 
                                     subkey ='maxDist'))
 
-        tmpInPtsConnected = "vnet_in_pts_connected"
-        self.tmpMaps.append(tmpInPtsConnected)
+        cmdParams.append("input=" + self.tmpInPtsConnected)
+        cmdParams.append("--overwrite")                           
 
-        ret, msg =  RunCommand("v.net",
-                                points = tmpInPts,
-                                stdin = pt_ascii,
-                                output = tmpInPtsConnected,
-                                input =  self.inputData["input"].GetValue(),
-                                operation = 'connect',
-                                thresh = dmax,
-                                alayer =  self.inputData["alayer"].GetValue(),
-                                nlayer=  self.inputData["nlayer"].GetValue(),
-                                overwrite = True,
-                                getErrorMsg = True,
-                                quiet = True)
-        print msg
-
-        self.RemoveTmpMap(tmpInPts)
-
-        cmdParams.append("input=" + tmpInPtsConnected)
         for catName, catNum in catsNums.iteritems():
             if catNum[0] == catNum[1]:
                 cmdParams.append(catName + "=" + str(catNum[0]))
             else:
                 cmdParams.append(catName + "=" + str(catNum[0]) + "-" + str(catNum[1]))
 
-        self._executeCommand(cmdParams)
-        self.RemoveTmpMap(tmpInPtsConnected)
+        cmdVEdit = [ 
+                    "v.edit",
+                    "map=" + self.tmpInPts, 
+                    "input=" + self.tmpPtsAsciiFile,
+                    "tool=create",
+                    "--overwrite", #TODO warning
+                    "-n"                              
+                   ]
+        self._prepareCmd(cmdVEdit)
+        self.goutput.RunCmd(command = cmdVEdit)
 
-        if self.currAnModule == "v.net.alloc": #TODO ugly hack
-            self.UpdateCmdList(self.tmp_result, True)
-        else: 
-            self.UpdateCmdList(self.tmp_result, False)
+        cmdVNet = [
+                    "v.net",
+                    "points=" + self.tmpInPts, 
+                    "input=" + self.inputData["input"].GetValue(),
+                    "output=" + self.tmpInPtsConnected,
+                    "alayer=" +  self.inputData["alayer"].GetValue(),
+                    "nlayer=" +  self.inputData["nlayer"].GetValue(), 
+                    "operation=connect",
+                    "thresh=" + str(dmax),             
+                    "--overwrite"                           
+                  ]
+        self._prepareCmd(cmdVNet)
+
+        self.goutput.RunCmd(command = cmdVNet)
+
+        self._prepareCmd(cmdParams)
+        self.goutput.RunCmd(command = cmdParams, onDone = self._catsInTypeDone)
+
+    def _catsInTypeDone(self, cmd, returncode):
+
+        self.RemoveTmpMap(self.tmpInPts) # remove earlier (ondone lambda?)
+        self.RemoveTmpMap(self.tmpInPtsConnected)
+        grass.try_remove(self.tmpPtsAsciiFile)
 
         self._addTempLayer()
 
@@ -541,21 +594,24 @@ class VNETDialog(wx.Dialog):
 
         return pt_ascii, catsNums
 
-    def _executeCommand(self, cmd):
+    def _prepareCmd(self, cmd):
 
-        cmd  = utils.CmdToTuple(cmd)
 
-        for c, v in cmd[1].items():
-            if not v.strip():
-                cmd[1].pop(c)
-
-        ret, msg = RunCommand(cmd[0],
-                             getErrorMsg = True,
-                             quiet = True,
-                             overwrite = True, #TODO init test 
-                             **cmd[1])
+        for c in cmd[:]:#TODO
+            if c.find("=") == -1:
+                continue
+            v = c.split("=")
+            if len(v) != 2:
+                cmd.remove(c)
+            elif not v[1].strip():
+                cmd.remove(c)
 
     def _addTempLayer(self):
+
+        if self.currAnModule == "v.net.alloc": #TODO ugly hack
+            self.UpdateCmdList(self.tmp_result, True)
+        else: 
+            self.UpdateCmdList(self.tmp_result, False)
 
         if self.tmpResultLayer:
             self.mapWin.Map.DeleteLayer(layer = self.tmpResultLayer)
@@ -717,7 +773,7 @@ class VNETDialog(wx.Dialog):
                                                      "inputType" : "cats"
                                                    },
                                     "v.net.alloc" : {
-                                                     "label" : _("Allocate subnets for nearest centres %s") % "(v.net.alloc)",  
+                                                     "label" : _("Allocate subnets for nearest centers %s") % "(v.net.alloc)",  
                                                      "cmdParams" : {
                                                                       "cats" : [["ccats", None]],                           
                                                                       "cols" : [
@@ -1031,3 +1087,8 @@ class AddLayerDialog(wx.Dialog):
 
         self.panel.SetSizer(sizer)
         sizer.Fit(self)
+
+#TODO ugly hack - just for GMConsole to be satisfied 
+class CmdPanelHack:
+     def createCmd(self, ignoreErrors = False, ignoreRequired = False):
+        pass
