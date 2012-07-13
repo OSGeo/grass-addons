@@ -96,7 +96,7 @@ class MainToolbar(BaseToolbar):
         return self._getToolbarData((
                                      ("run", icons['run'],
                                       self.parent.OnAnalyze),
-                                     #("saveTempLayer", icons['saveTempLayer'],
+                                     #("saveTempLayer", icons['saveTempLayer'],#TODO
                                      # self.parent.OnSaveTmpLayer),
                                      ('settings', icons["settings"],
                                       self.parent.OnSettings),                                    

@@ -20,7 +20,7 @@ import wx
 from copy import copy, deepcopy
 
 import wx
-from wx.lib.mixins.listctrl import CheckListCtrlMixin, ColumnSorterMixin, ListCtrlAutoWidthMixin
+from wx.lib.mixins.listctrl import CheckListCtrlMixin, ColumnSorterMixin, ListCtrlAutoWidthMixin, TextEditMixin
 
 from core import globalvar
 
@@ -185,7 +185,6 @@ class PointsList(wx.ListCtrl,
 
     def ChangeColType(self, col, colType):
 
-        print colType
         self.cols_data["colsEditable"][col] = colType
 
     def DeleteItem(self, event = None):
@@ -447,3 +446,7 @@ class EditItem(wx.Dialog):
             iField += 1
 
         return self.data
+
+
+
+

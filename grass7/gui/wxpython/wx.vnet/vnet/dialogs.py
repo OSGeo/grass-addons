@@ -53,6 +53,22 @@ class VNETDialog(wx.Dialog):
         self.tmp_result = "vnet_tmp_result"
         self.tmpMaps = [self.tmp_result]
 
+        #TODO if 'vnet' not in UserSettings.userSettings: 
+
+        # initializes default settings
+        initSettings = [
+                        ['resStyle', 'width', 5],
+                        ['resStyle', 'color', (192,0,0)],
+                        ['analysisSettings', 'maxDist', 10000],
+                        ['analysisSettings', 'resultId', 1]
+                      ]
+        for init in initSettings:
+            UserSettings.Append(dict = UserSettings.userSettings, 
+                                group ='vnet', 
+                                key = init[0],
+                                subkey =init[1], 
+                                value = init[2])
+
         # registration graphics for drawing
         self.pointsToDraw = self.mapWin.RegisterGraphicsToDraw(graphicsType = "point", 
                                                                setStatusFunc = self.SetNodeStatus)
@@ -66,7 +82,7 @@ class VNETDialog(wx.Dialog):
         # initialization of v.net.* analysis parameters
         self._initvnetParams()
 
-        # toolbars
+        # toobars
         self.toolbars = {}
         self.toolbars['mainToolbar'] = MainToolbar(parent = self)
 
@@ -86,20 +102,9 @@ class VNETDialog(wx.Dialog):
                                           FN.FNB_NO_NAV_BUTTONS | FN.FNB_NO_X_BUTTON)
 
 
-        self._createListPanel()
-        self.notebook.AddPage(page = self.listPanel, 
-                              text=_('Points list'), 
-                              name = 'list')
-
-        self._createSelectsPanel()
-        self.notebook.AddPage(page = self.settingsPanel,
-                              text=_('Data'), 
-                              name = 'data')
-
-        self._createOutputPanel()
-        self.notebook.AddPage(page = self.outputPanel, 
-                              text = _("Analasis output"), 
-                              name = 'output')
+        self._createAnalysisPage()
+        self._createDataPage()
+        self._createOutputPage()
 
         self._addPanes()
         self._doDialogLayout()
@@ -109,25 +114,6 @@ class VNETDialog(wx.Dialog):
         self.handlerRegistered = False
         self.tmpResultLayer = None 
 
-        #TODO if 'vnet' not in UserSettings.userSettings: 
-
-        # initializes default settings
-        initSettings = [
-                        ['resStyle', 'width', 5],
-                        ['resStyle', 'color', (192,0,0)],
-                        ['analysisSettings', 'maxDist', 10000],
-                        ['analysisSettings', 'resultId', 1]
-                      ]
-        for init in initSettings:
-
-            UserSettings.Append(dict = UserSettings.userSettings, 
-                                group ='vnet', 
-                                key = init[0],
-                                subkey =init[1], 
-                                value = init[2])
-
-        # set options for drawing the map  
-        self.UpdateCmdList(self.tmp_result)
 
         # adds 2 points into list
         for i in range(2):
@@ -137,13 +123,15 @@ class VNETDialog(wx.Dialog):
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseDialog)
 
-        dlgSize = (300, 500)
+        dlgSize = (280, 520)
         self.SetMinSize(dlgSize)
         self.SetInitialSize(dlgSize)
 
         #fix goutput's pane size (required for Mac OSX)
         if self.goutput:         
             self.goutput.SetSashPosition(int(self.GetSize()[1] * .75))
+
+        self.OnAnalysisChanged(None)
 
     def  __del__(self):
         """!Removes temp layer with analysis result, unregisters handlers and graphics"""
@@ -189,30 +177,93 @@ class VNETDialog(wx.Dialog):
         
         self.Layout()
 
-    def _createListPanel(self):
+    def _createAnalysisPage(self):
 
-        self.listPanel = wx.Panel(parent=self)
+        analysisPanel = wx.Panel(parent = self)
+        self.anSettings = {} #TODO
+        maxValue = 1e8
 
-        self.list = NodesList(parent = self.listPanel, dialog = self, cols = self.cols)
-        self.toolbars['pointsList'] = PointListToolbar(parent = self.listPanel, list = self.list)
+        listBox = wx.StaticBox(parent = analysisPanel, id = wx.ID_ANY,
+                                label =" %s " % _("Points for analysis:"))
 
-        listsizer = wx.BoxSizer(wx.VERTICAL)
+        self.notebook.AddPage(page = analysisPanel, 
+                              text=_('Analysis'), 
+                              name = 'analysis')
 
-        listsizer.Add(item = self.toolbars['pointsList'], proportion = 0)
-        listsizer.Add(item = self.list, proportion = 1, flag = wx.EXPAND)
+        self.list = NodesList(parent = analysisPanel, dialog = self, cols = self.cols)
+        self.toolbars['pointsList'] = PointListToolbar(parent = analysisPanel, list = self.list)
 
-        self.listPanel.SetSizer(listsizer)
+        anSettingsPanel = wx.Panel(parent = analysisPanel)
 
-    def _createOutputPanel(self):
+        anSettingsBox = wx.StaticBox(parent = anSettingsPanel, id = wx.ID_ANY,
+                                label =" %s " % _("Analysis settings:"))
 
-        self.outputPanel = wx.Panel(parent = self)
+        #lineIdPanel =  wx.Panel(parent = anSettingsPanel)
+        #lineIdLabel = wx.StaticText(parent = lineIdPanel, id = wx.ID_ANY, label =_("Id of line:"))
+        #elf.anSettings["line_id"] = wx.SpinCtrl(parent = lineIdPanel, id = wx.ID_ANY, min = 1, max = maxValue)
+        #resId = int(UserSettings.Get(group ='vnet', key ='analysisSettings', subkey = 'resultId'))
+        #self.anSettings["line_id"].SetValue(resId)
+
+        maxDistPanel =  wx.Panel(parent = anSettingsPanel)
+        maxDistlabel = wx.StaticText(parent = maxDistPanel, id = wx.ID_ANY, label = _("Maximum distance \n of point to the network:"))
+        self.anSettings["max_dist"] = wx.SpinCtrl(parent = maxDistPanel, id = wx.ID_ANY, min = 0, max = maxValue) #TODO
+        maxDist = int(UserSettings.Get(group = 'vnet', key = 'analysisSettings', subkey ='maxDist'))
+        self.anSettings["max_dist"].SetValue(maxDist)
+
+        isoLinesPanel =  wx.Panel(parent = anSettingsPanel)
+        isoLineslabel = wx.StaticText(parent = isoLinesPanel, id = wx.ID_ANY, label = _("Iso lines:"))
+        self.anSettings["iso_lines"] = wx.TextCtrl(parent = isoLinesPanel, id = wx.ID_ANY) #TODO
+        self.anSettings["iso_lines"].SetValue("1000,2000,3000")
+
+        AnalysisSizer = wx.BoxSizer(wx.VERTICAL)
+
+        listSizer = wx.StaticBoxSizer(listBox, wx.VERTICAL)
+
+        listSizer.Add(item = self.toolbars['pointsList'], proportion = 0)
+        listSizer.Add(item = self.list, proportion = 1, flag = wx.EXPAND)
+
+        anSettingsSizer = wx.StaticBoxSizer(anSettingsBox, wx.VERTICAL)
+
+        #lineIdSizer = wx.BoxSizer(wx.HORIZONTAL)
+        #lineIdSizer.Add(item = lineIdLabel, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)
+        #lineIdSizer.Add(item = self.anSettings["line_id"],
+        #                flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)
+        #lineIdPanel.SetSizer(lineIdSizer)
+        #anSettingsSizer.Add(item = lineIdPanel, proportion = 1, flag = wx.EXPAND)
+
+        maxDistSizer = wx.BoxSizer(wx.HORIZONTAL)
+        maxDistSizer.Add(item = maxDistlabel, flag = wx.EXPAND, proportion = 0)
+        maxDistSizer.Add(item = self.anSettings["max_dist"],
+                        flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)
+        maxDistPanel.SetSizer(maxDistSizer)
+        anSettingsSizer.Add(item = maxDistPanel, proportion = 1, flag = wx.EXPAND)
+
+        isoLinesSizer = wx.BoxSizer(wx.HORIZONTAL)
+        isoLinesSizer.Add(item = isoLineslabel, flag = wx.EXPAND, proportion = 0)
+        isoLinesSizer.Add(item = self.anSettings["iso_lines"],
+                        flag = wx.EXPAND | wx.ALL, border = 5, proportion = 1)
+        isoLinesPanel.SetSizer(isoLinesSizer)
+        anSettingsSizer.Add(item = isoLinesPanel, proportion = 1, flag = wx.EXPAND)
+
+        AnalysisSizer.Add(item = listSizer, proportion = 1, flag = wx.EXPAND | wx.ALL, border = 5)
+        AnalysisSizer.Add(item = anSettingsPanel, proportion = 0, flag = wx.EXPAND | wx.RIGHT | wx.LEFT | wx.BOTTOM, border = 5)
+
+        anSettingsPanel.SetSizer(anSettingsSizer)
+        analysisPanel.SetSizer(AnalysisSizer)
+
+    def _createOutputPage(self):
+
+        outputPanel = wx.Panel(parent = self)
+        self.notebook.AddPage(page = outputPanel, 
+                              text = _("Output"), 
+                              name = 'output')
 
         #TODO ugly hacks - just for GMConsole to be happy 
         self.notebook.notebookpanel = CmdPanelHack()
-        self.outputPanel.notebook = self.notebook # for GMConsole init
-        self.outputPanel.parent = self.notebook # for GMConsole OnDone
+        outputPanel.notebook = self.notebook # for GMConsole init
+        outputPanel.parent = self.notebook # for GMConsole OnDone
 
-        self.goutput = GMConsole(parent = self.outputPanel, margin = False)
+        self.goutput = GMConsole(parent = outputPanel, margin = False)
 
         self.outputSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -220,34 +271,37 @@ class VNETDialog(wx.Dialog):
         # overridden outputSizer.SetSizeHints(self) in GMConsole _layout
         self.goutput.SetMinSize((-1,-1))
 
-        self.outputPanel.SetSizer(self.outputSizer)
+        outputPanel.SetSizer(self.outputSizer)
 
-    def _createSelectsPanel(self):
+    def _createDataPage(self):
 
-        self.settingsPanel = wx.Panel(parent=self)
+        dataPanel = wx.Panel(parent=self)
+        self.notebook.AddPage(page = dataPanel,
+                              text=_('Data'), 
+                              name = 'data')
 
-        self.inputData['input'] = Select(parent = self.settingsPanel, type = 'vector', size = (-1, -1))
-        vectSelTitle = wx.StaticText(parent = self.settingsPanel)
+        self.inputData['input'] = Select(parent = dataPanel, type = 'vector', size = (-1, -1))
+        vectSelTitle = wx.StaticText(parent = dataPanel)
         vectSelTitle.SetLabel("Choose vector map for analysis:")
 
-        self.inputData['alayer'] = LayerSelect(parent = self.settingsPanel, size = (-1, -1))
-        aLayerSelTitle = wx.StaticText(parent = self.settingsPanel)
+        self.inputData['alayer'] = LayerSelect(parent = dataPanel, size = (-1, -1))
+        aLayerSelTitle = wx.StaticText(parent = dataPanel)
         aLayerSelTitle.SetLabel("Arc layer number or name:")
 
-        self.inputData['nlayer'] = LayerSelect(parent = self.settingsPanel, size = (-1, -1))
-        nLayerSelTitle = wx.StaticText(parent = self.settingsPanel)
+        self.inputData['nlayer'] = LayerSelect(parent = dataPanel, size = (-1, -1))
+        nLayerSelTitle = wx.StaticText(parent = dataPanel)
         nLayerSelTitle.SetLabel("Node layer number or name:")
 
-        self.inputData['afcolumn'] = ColumnSelect(parent = self.settingsPanel, size = (-1, -1))
-        afcolumnSelTitle = wx.StaticText(parent = self.settingsPanel)
+        self.inputData['afcolumn'] = ColumnSelect(parent = dataPanel, size = (-1, -1))
+        afcolumnSelTitle = wx.StaticText(parent = dataPanel)
         afcolumnSelTitle.SetLabel("Arc forward/both direction(s) cost column:")
 
-        self.inputData['abcolumn'] = ColumnSelect(parent = self.settingsPanel, size = (-1, -1))
-        abcolumnSelTitle = wx.StaticText(parent = self.settingsPanel)
+        self.inputData['abcolumn'] = ColumnSelect(parent = dataPanel, size = (-1, -1))
+        abcolumnSelTitle = wx.StaticText(parent = dataPanel)
         abcolumnSelTitle.SetLabel("Arc backward direction cost column:")
 
-        self.inputData['ncolumn'] = ColumnSelect(parent = self.settingsPanel, size = (-1, -1))
-        ncolumnSelTitle = wx.StaticText(parent = self.settingsPanel)
+        self.inputData['ncolumn'] = ColumnSelect(parent = dataPanel, size = (-1, -1))
+        ncolumnSelTitle = wx.StaticText(parent = dataPanel)
         ncolumnSelTitle.SetLabel("Node direction cost column:")
 
         self.inputData['input'].Bind(wx.EVT_TEXT, self.OnVectSel) # TODO optimalization
@@ -256,7 +310,7 @@ class VNETDialog(wx.Dialog):
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        box = wx.StaticBox(self.settingsPanel, -1, "Layer for analysis")
+        box = wx.StaticBox(dataPanel, -1, "Layer for analysis")
         bsizer = wx.StaticBoxSizer(box, wx.VERTICAL)
 
         mainSizer.Add(item = bsizer, proportion = 0,
@@ -271,7 +325,7 @@ class VNETDialog(wx.Dialog):
         bsizer.Add(item = self._doSelLayout(title = nLayerSelTitle, sel = self.inputData['nlayer']), proportion = 0,
                                  flag = wx.EXPAND)
 
-        box = wx.StaticBox(self.settingsPanel, -1, "Costs")
+        box = wx.StaticBox(dataPanel, -1, "Costs")
         bsizer = wx.StaticBoxSizer(box, wx.VERTICAL)
 
         mainSizer.Add(item = bsizer, proportion = 0,
@@ -286,7 +340,7 @@ class VNETDialog(wx.Dialog):
         bsizer.Add(item = self._doSelLayout(title = ncolumnSelTitle, sel = self.inputData['ncolumn']), proportion = 0,
                                  flag = wx.EXPAND)
 
-        self.settingsPanel.SetSizer(mainSizer)
+        dataPanel.SetSizer(mainSizer)
 
     def _doSelLayout(self, title, sel): 
 
@@ -299,10 +353,9 @@ class VNETDialog(wx.Dialog):
         selSizer.Add(item = selTitleSizer, proportion = 0,
                                  flag = wx.EXPAND)
         selSizer.Add(item = sel, proportion = 0,
-                     flag = wx.EXPAND | wx.BOTTOM | wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_VERTICAL,
+                     flag = wx.EXPAND | wx.ALL| wx.ALIGN_CENTER_VERTICAL,
                      border = 5)
         return selSizer
-
 
     def OnVectSel(self, event):
 
@@ -377,7 +430,10 @@ class VNETDialog(wx.Dialog):
     def OnAnalyze(self, event):
         """!Takes coordinates from map window."""
 
-        inType = self.vnetParams[self.currAnModule]["inputType"]
+        if not self.inputData["input"].GetValue().strip():
+            GMessage(parent = self,
+                     message = _("Please select vector map in Data tab"))
+            return
 
         cmdParams = [self.currAnModule]
         cmdParams.extend(self._getInputParams())
@@ -385,12 +441,12 @@ class VNETDialog(wx.Dialog):
 
         catPts = self._getPtByCat()
 
-        if inType == "cats":
-            self._catsInType(cmdParams, catPts)
-        elif inType == "stdin":
-            self._stdinInType(cmdParams, catPts)
+        if self.currAnModule == "v.net.path":
+            self._vnetPathRunAn(cmdParams, catPts)
+        else:
+            self._runAn(cmdParams, catPts)
 
-    def _stdinInType(self, cmdParams, catPts):
+    def _vnetPathRunAn(self, cmdParams, catPts):
 
         if len(self.pointsToDraw.GetAllItems()) < 1:
             return
@@ -421,11 +477,11 @@ class VNETDialog(wx.Dialog):
 
         cmdParams.append("file=" + self.coordsTmpFile)
 
-        dmax = int(UserSettings.Get(group = 'vnet', 
-                                    key ='analysisSettings', 
-                                    subkey ='maxDist'))
+        #dmax = int(UserSettings.Get(group = 'vnet', 
+        #                            key ='analysisSettings', 
+        #                            subkey ='maxDist'))
 
-        cmdParams.append("dmax=" + str(dmax))
+        cmdParams.append("dmax=" + str(self.anSettings["max_dist"].GetValue()))
         cmdParams.append("input=" + self.inputData['input'].GetValue())
 
         cmdParams.append("--overwrite")
@@ -441,9 +497,12 @@ class VNETDialog(wx.Dialog):
     def RemoveTmpMap(self, map):
 
         RunCommand('g.remove', vect = map)
-        self.tmpMaps.remove(map)
+        try:
+            self.tmpMaps.remove(map)
+        except ValueError:
+            pass
 
-    def _catsInType(self, cmdParams, catPts):
+    def _runAn(self, cmdParams, catPts):
 
         # TODO how to get output in ondone function
         #cmdCategory = [ "v.category",
@@ -485,13 +544,25 @@ class VNETDialog(wx.Dialog):
         self.tmpInPtsConnected = "vnet_in_pts_connected"
         self.tmpMaps.append(self.tmpInPtsConnected)
 
-        dmax = int(UserSettings.Get(group = 'vnet', 
-                                    key ='analysisSettings', 
-                                    subkey ='maxDist'))
+        #dmax = int(UserSettings.Get(group = 'vnet', 
+        #                            key ='analysisSettings', 
+        #                            subkey ='maxDist'))
 
         cmdParams.append("input=" + self.tmpInPtsConnected)
-        cmdParams.append("--overwrite")                           
+        cmdParams.append("--overwrite")  
 
+        self.vnetFlowTmpCut = "vnet_flow_tmp_cut"
+        if self.currAnModule == "v.net.distance": #TODO ugly hack
+            cmdParams.append("from_layer=1")
+            cmdParams.append("to_layer=1")
+        elif self.currAnModule == "v.net.flow":#TODO
+            self.tmpMaps.append(self.vnetFlowTmpCut)
+            cmdParams.append("cut=" +  self.vnetFlowTmpCut)          
+
+        elif self.currAnModule == "v.net.iso":
+            costs = self.anSettings["iso_lines"].GetValue()
+            cmdParams.append("costs=" + costs)          
+ 
         for catName, catNum in catsNums.iteritems():
             if catNum[0] == catNum[1]:
                 cmdParams.append(catName + "=" + str(catNum[0]))
@@ -509,19 +580,26 @@ class VNETDialog(wx.Dialog):
         self._prepareCmd(cmdVEdit)
         self.goutput.RunCmd(command = cmdVEdit)
 
+        alayer = self.inputData["alayer"].GetValue().strip()
+        if not alayer: #TODO just temporary
+            alayer = "1"
+
+        nlayer = self.inputData["nlayer"].GetValue().strip()
+        if not nlayer: 
+            nlayer = "1"
+
         cmdVNet = [
                     "v.net",
                     "points=" + self.tmpInPts, 
                     "input=" + self.inputData["input"].GetValue(),
                     "output=" + self.tmpInPtsConnected,
-                    "alayer=" +  self.inputData["alayer"].GetValue(),
-                    "nlayer=" +  self.inputData["nlayer"].GetValue(), 
+                    "alayer=" +  alayer,
+                    "nlayer=" +  nlayer, 
                     "operation=connect",
-                    "thresh=" + str(dmax),             
-                    "--overwrite"                           
+                    "thresh=" + str(self.anSettings["max_dist"].GetValue()),             
+                    "--overwrite"   #TODO warning                        
                   ]
         self._prepareCmd(cmdVNet)
-
         self.goutput.RunCmd(command = cmdVNet)
 
         self._prepareCmd(cmdParams)
@@ -531,6 +609,9 @@ class VNETDialog(wx.Dialog):
 
         self.RemoveTmpMap(self.tmpInPts) # remove earlier (ondone lambda?)
         self.RemoveTmpMap(self.tmpInPtsConnected)
+        self.RemoveTmpMap(self.tmpInPtsConnected)
+        self.RemoveTmpMap(self.vnetFlowTmpCut)
+
         grass.try_remove(self.tmpPtsAsciiFile)
 
         self._addTempLayer()
@@ -548,7 +629,10 @@ class VNETDialog(wx.Dialog):
             inParams.append(col + '=' + self.inputData[colInptF].GetValue())
 
         for layer in ['alayer', 'nlayer']:  #TODO input
-            inParams.append(layer + "=" + self.inputData[layer].GetValue())
+            val = self.inputData[layer].GetValue().strip()
+            if not val:
+                val = "1"
+            inParams.append(layer + "=" + val)
 
         return inParams
 
@@ -608,20 +692,43 @@ class VNETDialog(wx.Dialog):
 
     def _addTempLayer(self):
 
-        if self.currAnModule == "v.net.alloc": #TODO ugly hack
-            self.UpdateCmdList(self.tmp_result, True)
-        else: 
-            self.UpdateCmdList(self.tmp_result, False)
+        cmd = self._getLayerStyle()
+        cmd.append('map=%s' % self.tmp_result)
 
-        if self.tmpResultLayer:
-            self.mapWin.Map.DeleteLayer(layer = self.tmpResultLayer)
-
-        self.tmpResultLayer = self.mapWin.Map.AddLayer(type = "vector",  command = self.cmdlist, 
+        self.tmpResultLayer = self.mapWin.Map.AddLayer(type = "vector",  command = cmd, 
                                                        l_active=True,    name = self.tmp_result, 
                                                        l_hidden = False, l_opacity = 1.0, 
                                                        l_render = True,  pos = 1)
 
         self.mapWin.UpdateMap(render=True, renderVector=True)
+
+    def _getLayerStyle(self):
+
+        resStyle = self.vnetParams[self.currAnModule]["resultStyle"]
+
+        width = UserSettings.Get(group='vnet', key='resStyle', subkey= "width")
+        layerStyleCmd = ['d.vect', 
+                          "layer=1",'width=' + str(width)]
+
+        if "catColor" in resStyle:
+            layerStyleCmd.append('flags=c')
+        elif "singleColor" in resStyle:
+            col = UserSettings.Get(group='vnet', key='resStyle', subkey= "color")
+            layerStyleCmd.append('color=' + str(col[0]) + ':' + str(col[1]) + ':' + str(col[2]))        
+
+        if "attrColColor" in resStyle:
+            self.layerStyleVnetColors = [
+                                          "v.colors",
+                                          "map=" + self.tmp_result,
+                                          "color=byr",#TODO
+                                          "column=" + resStyle["attrColColor"],
+                                        ]
+            self.layerStyleVnetColors  = utils.CmdToTuple(self.layerStyleVnetColors)
+
+            RunCommand( self.layerStyleVnetColors[0],
+                        **self.layerStyleVnetColors[1])
+
+        return layerStyleCmd 
 
     def _adaptPointsList(self):
 
@@ -643,22 +750,7 @@ class VNETDialog(wx.Dialog):
         self.list.ChangeColType(1, colValues)
 
         self.prevAnModule = self.currAnModule
-  
-
-    def UpdateCmdList(self, layerName, colorsByCats = False):
-        """!Displays vnet settings dialog"""
-
-        col = UserSettings.Get(group='vnet', key='resStyle', subkey= "color")
-        width = UserSettings.Get(group='vnet', key='resStyle', subkey= "width")
-
-        self.cmdlist = ['d.vect', 'map=%s' % layerName, 
-                        "layer=1",'width=' + str(width)]
-
-        if colorsByCats:
-            self.cmdlist.append('flags=c')
-        else:
-            self.cmdlist.append('color=' + str(col[0]) + ':' + str(col[1]) + ':' + str(col[2]))
-
+    
     def OnInsertPoint(self, event):
         if self.handlerRegistered == False:
             self.mapWin.RegisterMouseEventHandler(wx.EVT_LEFT_DOWN, 
@@ -679,17 +771,13 @@ class VNETDialog(wx.Dialog):
 
             ret, std, msg = RunCommand("g.rename",
                              overwrite = dlg.overwrite.GetValue(),
-                             vect = [self.tmp_result, dlg.vectSel.GetValue()],
-                             read = True,
-                             getErrorMsg = True)
+                             vect = [self.tmp_result, dlg.vectSel.GetValue()])
 
-            self.UpdateCmdList(dlg.vectSel.GetValue())
             if  self.mapWin.tree.FindItemByData(key = 'name', value =  dlg.vectSel.GetValue()) is None:
                 self.mapWin.tree.AddLayer(ltype = "vector", 
                                           lname = dlg.vectSel.GetValue(),
-                                          lcmd = self.cmdlist,
+                                          lcmd = self.layerStyleCmd,
                                           lchecked = True)
-            self.UpdateCmdList(self.tmp_result)
 
     def OnSettings(self, event):
         """!Displays vnet settings dialog"""
@@ -708,6 +796,17 @@ class VNETDialog(wx.Dialog):
             if params["label"] == chLabel:
                 self.currAnModule = module
                 break
+        #if self.currAnModule == "v.net.path":
+        #    self.anSettings['line_id'].GetParent().Show()
+        #else:
+        #    self.anSettings['line_id'].GetParent().Hide()
+
+        if self.currAnModule == "v.net.iso":
+            self.anSettings['iso_lines'].GetParent().Show()
+        else:
+            self.anSettings['iso_lines'].GetParent().Hide()
+
+        self.Layout()
 
         if  len(self.vnetParams[self.currAnModule]["cmdParams"]["cats"]) > 1: 
             self._adaptPointsList()
@@ -738,12 +837,8 @@ class VNETDialog(wx.Dialog):
                                                                                  'abcolumn',
                                                                                  'ncolumn'
                                                                                 ],
-                                                                      "other" : {
-                                                                                 "dmax" : int,
-                                                                                 "id"  : int 
-                                                                                }
                                                                    },
-                                                     "inputType" : "stdin",
+                                                     "resultStyle" : {"singleColor" : None}
                                                   },
 
                                     "v.net.salesman" : {
@@ -755,7 +850,7 @@ class VNETDialog(wx.Dialog):
                                                                                   'abcolumn'
                                                                                  ],
                                                                       },
-                                                        "inputType" : "cats"
+                                                        "resultStyle" : {"singleColor" : None}
                                                        },
                                     "v.net.flow" : {
                                                      "label" : _("Flow %s") % "(v.net.flow)",  
@@ -770,7 +865,7 @@ class VNETDialog(wx.Dialog):
                                                                                 'ncolumn'
                                                                                ]
                                                                   },
-                                                     "inputType" : "cats"
+                                                     "resultStyle" : {"attrColColor": "flow"}
                                                    },
                                     "v.net.alloc" : {
                                                      "label" : _("Allocate subnets for nearest centers %s") % "(v.net.alloc)",  
@@ -782,7 +877,7 @@ class VNETDialog(wx.Dialog):
                                                                                  'ncolumn'
                                                                                ]
                                                                   },
-                                                     "inputType" : "cats"
+                                                     "resultStyle" :  {"catColor" : None }
                                                    },
                                     "v.net.steiner" : {
                                                      "label" : _("Create Steiner tree for the network and given terminals %s") % "(v.net.steiner)",  
@@ -792,14 +887,43 @@ class VNETDialog(wx.Dialog):
                                                                                  'acolumn',
                                                                                ]
                                                                   },
-                                                     "inputType" : "cats"
+                                                     "resultStyle" : {"singleColor" : None}
+                                                   },
+                                   "v.net.distance" : {
+                                                       "label" : _("Computes shortest distance via the network %s") % "(v.net.distance)",  
+                                                       "cmdParams" : {
+                                                                        "cats" : [
+                                                                                  ["from_cats", "From point"],
+                                                                                  ["to_cats", "To point"]
+                                                                                 ],
+                                                                        "cols" : [
+                                                                                  'afcolumn',
+                                                                                  'abcolumn',
+                                                                                  'ncolumn'
+                                                                                 ],
+                                                                  },
+                                                      "resultStyle" : {"catColor" : None }
+                                                     },
+                                    "v.net.iso" :  {
+                                                     "label" : _("Splits net by cost isolines %s") % "(v.net.iso)",  
+                                                     "cmdParams" : {
+                                                                      "cats" : [["ccats", None]],                           
+                                                                      "cols" : [
+                                                                                 'afcolumn',
+                                                                                 'abcolumn',
+                                                                                 'ncolumn'
+                                                                               ]
+                                                                  },
+                                                     "resultStyle" : {"catColor" : None }
                                                    }
                                 }
 
         self.vnetModulesOrder = ["v.net.path", 
                                  "v.net.salesman",
-                                 #"v.net.flow",
+                                 "v.net.flow",
                                  "v.net.alloc",
+                                 "v.net.distance",
+                                 "v.net.iso"
                                  #"v.net.steiner"
                                  ] # order in the choice of analysis
         self.currAnModule = self.vnetModulesOrder[0]
@@ -880,33 +1004,25 @@ class SettingsDialog(wx.Dialog):
         """!Settings for v.net analysis dialog"""
         wx.Dialog.__init__(self, parent, id, title, pos, size, style)
 
+        self.settings = {}
         maxValue = 1e8
         self.parent = parent
 
         self.panel = wx.Panel(parent = self, id = wx.ID_ANY)
 
-        self.colorLabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = _("Line color:"))
+        lineColorLabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = _("Line color:"))
         col = UserSettings.Get(group ='vnet', key ='resStyle', subkey = "color")        
-        self.colorField = csel.ColourSelect(parent = self.panel, id = wx.ID_ANY,
+        self.settings["line_color"] = csel.ColourSelect(parent = self.panel, id = wx.ID_ANY,
                                             colour = wx.Colour(col[0],
                                                                col[1],
                                                                col[2], 
                                                                255))
 
-        self.widthLabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label =_("Line width:"))
-        self.widthField = wx.SpinCtrl(parent = self.panel, id = wx.ID_ANY, min = 1, max = 10)
+        lineWidthLabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label =_("Line width:"))
+        self.settings["line_width"] = wx.SpinCtrl(parent = self.panel, id = wx.ID_ANY, min = 1, max = 10)
         width = int(UserSettings.Get(group = 'vnet', key = 'resStyle', subkey = 'width'))
-        self.widthField.SetValue(width)
+        self.settings["line_width"].SetValue(width)
 
-        self.idLabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label =_("Id of line:"))
-        self.resIdFiled = wx.SpinCtrl(parent = self.panel, id = wx.ID_ANY, min = 1, max = maxValue)
-        resId = int(UserSettings.Get(group ='vnet', key ='analysisSettings', subkey = 'resultId'))
-        self.resIdFiled.SetValue(resId)
-
-        self.maxDistlabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY, label = _("Maximum distance \n to the network:"))
-        self.maxDistField = wx.SpinCtrl(parent = self.panel, id = wx.ID_ANY, min = 0, max = maxValue) #TODO
-        maxDist = int(UserSettings.Get(group = 'vnet', key = 'analysisSettings', subkey ='maxDist'))
-        self.maxDistField.SetValue(maxDist)
 
         # buttons
         #btnSave = wx.Button(self.panel, wx.ID_SAVE)
@@ -922,10 +1038,8 @@ class SettingsDialog(wx.Dialog):
         self.btnClose.Bind(wx.EVT_BUTTON, self.OnClose)
         self.btnClose.SetToolTipString(_("Close dialog"))
 
-        self._layout()
         self.SetMinSize(self.GetBestSize())
 
-    def _layout(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         styleBox = wx.StaticBox(parent = self.panel, id = wx.ID_ANY,
@@ -935,38 +1049,18 @@ class SettingsDialog(wx.Dialog):
         gridSizer = wx.GridBagSizer(vgap = 1, hgap = 1)
 
         row = 0
-        gridSizer.Add(item = self.colorLabel, flag = wx.ALIGN_CENTER_VERTICAL, pos =(row, 0))
-        gridSizer.Add(item = self.colorField,
+        gridSizer.Add(item = lineColorLabel, flag = wx.ALIGN_CENTER_VERTICAL, pos =(row, 0))
+        gridSizer.Add(item = self.settings["line_color"],
                       flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
                       pos =(row, 1))
 
         row += 1
-        gridSizer.Add(item =  self.widthLabel, flag=wx.ALIGN_CENTER_VERTICAL, pos=(row, 0))
-        gridSizer.Add(item = self.widthField,
+        gridSizer.Add(item =  lineWidthLabel, flag=wx.ALIGN_CENTER_VERTICAL, pos=(row, 0))
+        gridSizer.Add(item = self.settings["line_width"],
                       flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
                       pos = (row, 1))
 
         styleBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
-
-
-        analysisBox = wx.StaticBox(parent = self.panel, id = wx.ID_ANY,
-                                   label = " %s " % _("Analysis settings:"))
-        analysisBoxSizer = wx.StaticBoxSizer(analysisBox, wx.VERTICAL)
-
-        row = 0
-        gridSizer = wx.GridBagSizer(vgap = 1, hgap = 1)
-        gridSizer.Add(item = self.idLabel, flag = wx.ALIGN_CENTER_VERTICAL, pos = (row, 0))
-        gridSizer.Add(item = self.resIdFiled,
-                      flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
-                      pos = (row, 1))
-
-        row += 1
-        gridSizer.Add(item = self.maxDistlabel, flag = wx.ALIGN_CENTER_VERTICAL, pos = (row, 0))
-        gridSizer.Add(item = self.maxDistField,
-                      flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
-                      pos = (row, 1))
-
-        analysisBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
 
         # sizers
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -975,32 +1069,10 @@ class SettingsDialog(wx.Dialog):
         btnSizer.Add(self.btnClose, flag = wx.LEFT | wx.RIGHT, border = 5)
 
         sizer.Add(item = styleBoxSizer, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 1)
-        sizer.Add(item = analysisBoxSizer, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 1)
         sizer.Add(item = btnSizer, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)    
 
         self.panel.SetSizer(sizer)
         sizer.Fit(self)
-
-    def UpdateSettings(self):
-
-        UserSettings.Set(group ='vnet', key ='resStyle', subkey ='width',
-                         value = self.widthField.GetValue())
-
-        UserSettings.Set(group = 'vnet', key ='resStyle', subkey ='color',
-                         value = self.colorField.GetColour())
-
-        UserSettings.Set(group = 'vnet', key ='analysisSettings', subkey ='resultId',
-                         value = self.resIdFiled.GetValue())
-
-        UserSettings.Set(group ='vnet', key ='analysisSettings', subkey ='maxDist',
-                         value = self.maxDistField.GetValue())
-
-        if self.parent.tmpResultLayer:
-
-            self.parent.UpdateCmdList(self.parent.tmp_result)
-
-            self.parent.tmpResultLayer.SetCmd(self.parent.cmdlist)
-            self.parent.mapWin.UpdateMap(render=True, renderVector=True)#TODO optimalization
      
 
     #def OnSave(self, event): TODO
@@ -1012,6 +1084,22 @@ class SettingsDialog(wx.Dialog):
     #    file = UserSettings.SaveToFile(fileSettings)
     #    self.parent.parent.goutput.WriteLog(_('Vnet fron end settings saved to file \'%s\'.') % file) TODO
     #    self.Close()
+
+    def UpdateSettings(self):
+
+        UserSettings.Set(group ='vnet', key ='resStyle', subkey ='width',
+                         value = self.settings["line_width"].GetValue())
+
+        UserSettings.Set(group = 'vnet', key ='resStyle', subkey ='color',
+                         value =  self.settings["line_color"].GetColour())
+
+        if self.parent.tmpResultLayer:
+
+            cmd = self.parent._getLayerStyle()
+            cmd.append('map=%s' % self.parent.tmp_result)
+
+            self.parent.tmpResultLayer.SetCmd(cmd)
+            self.parent.mapWin.UpdateMap(render=True, renderVector=True)#TODO optimization
 
     def OnApply(self, event):
         """!Button 'Apply' pressed"""
@@ -1092,3 +1180,4 @@ class AddLayerDialog(wx.Dialog):
 class CmdPanelHack:
      def createCmd(self, ignoreErrors = False, ignoreRequired = False):
         pass
+
