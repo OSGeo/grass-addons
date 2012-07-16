@@ -69,7 +69,7 @@ class MainToolbar(BaseToolbar):
 
         self.anChoice = wx.ComboBox(parent = self, id = wx.ID_ANY,
                                  choices = choices,
-                                 style = wx.CB_READONLY, size = (110, -1))
+                                 style = wx.CB_READONLY, size = (200, -1))
         self.anChoice.SetSelection(0)
                
         self.anChoiceId = self.AddControl(self.anChoice)

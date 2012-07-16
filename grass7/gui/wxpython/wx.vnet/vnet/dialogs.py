@@ -39,13 +39,13 @@ from vnet.toolbars    import MainToolbar, PointListToolbar
 
 class VNETDialog(wx.Dialog):
     def __init__(self, parent,
-                 id=wx.ID_ANY, title = "Vector network analysis",
-                 style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER):
+                 id = wx.ID_ANY, title = _("Vector network analysis"),
+                 style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, **kwargs):
         """!Dialolog for vector network analysis"""
 
-        wx.Dialog.__init__(self, parent, id, style=style, title = title)
+        wx.Dialog.__init__(self, parent, id, style = style, title = title, **kwargs)
 
-        self.parent  = parent  #mapdisp.frame MapFrame
+        self.parent  = parent  # mapdisp.frame MapFrame
         self.mapWin = parent.MapWindow
         self.inputData = {}
         self.cmdParams = {}
@@ -123,7 +123,7 @@ class VNETDialog(wx.Dialog):
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseDialog)
 
-        dlgSize = (280, 520)
+        dlgSize = (400, 520)
         self.SetMinSize(dlgSize)
         self.SetInitialSize(dlgSize)
 
@@ -187,7 +187,7 @@ class VNETDialog(wx.Dialog):
                                 label =" %s " % _("Points for analysis:"))
 
         self.notebook.AddPage(page = analysisPanel, 
-                              text=_('Analysis'), 
+                              text=_('Points'), 
                               name = 'analysis')
 
         self.list = NodesList(parent = analysisPanel, dialog = self, cols = self.cols)
@@ -205,7 +205,7 @@ class VNETDialog(wx.Dialog):
         #self.anSettings["line_id"].SetValue(resId)
 
         maxDistPanel =  wx.Panel(parent = anSettingsPanel)
-        maxDistlabel = wx.StaticText(parent = maxDistPanel, id = wx.ID_ANY, label = _("Maximum distance \n of point to the network:"))
+        maxDistLabel = wx.StaticText(parent = maxDistPanel, id = wx.ID_ANY, label = _("Maximum distance of point to the network:"))
         self.anSettings["max_dist"] = wx.SpinCtrl(parent = maxDistPanel, id = wx.ID_ANY, min = 0, max = maxValue) #TODO
         maxDist = int(UserSettings.Get(group = 'vnet', key = 'analysisSettings', subkey ='maxDist'))
         self.anSettings["max_dist"].SetValue(maxDist)
@@ -232,9 +232,9 @@ class VNETDialog(wx.Dialog):
         #anSettingsSizer.Add(item = lineIdPanel, proportion = 1, flag = wx.EXPAND)
 
         maxDistSizer = wx.BoxSizer(wx.HORIZONTAL)
-        maxDistSizer.Add(item = maxDistlabel, flag = wx.EXPAND, proportion = 0)
+        maxDistSizer.Add(item = maxDistLabel, flag = wx.ALIGN_CENTER_VERTICAL, proportion = 1)
         maxDistSizer.Add(item = self.anSettings["max_dist"],
-                        flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)
+                         flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)
         maxDistPanel.SetSizer(maxDistSizer)
         anSettingsSizer.Add(item = maxDistPanel, proportion = 1, flag = wx.EXPAND)
 
@@ -277,7 +277,7 @@ class VNETDialog(wx.Dialog):
 
         dataPanel = wx.Panel(parent=self)
         self.notebook.AddPage(page = dataPanel,
-                              text=_('Data'), 
+                              text=_('Parameters'), 
                               name = 'data')
 
         self.inputData['input'] = Select(parent = dataPanel, type = 'vector', size = (-1, -1))
