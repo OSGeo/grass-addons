@@ -46,7 +46,7 @@ class PointListToolbar(BaseToolbar):
             }
 
         return  self._getToolbarData((('insertPoint', icons['insertPoint'],
-                                      self.list.dialog.OnInsertPoint,
+                                      self.list.dialog.OnInsertPoint,#TODO
                                       wx.ITEM_CHECK),
                                      ('pointAdd', icons["pointAdd"],
                                         self.list.AddItem),
