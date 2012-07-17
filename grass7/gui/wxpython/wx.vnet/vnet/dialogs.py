@@ -39,9 +39,9 @@ from vnet.toolbars    import MainToolbar, PointListToolbar
 
 class VNETDialog(wx.Dialog):
     def __init__(self, parent,
-                 id=wx.ID_ANY, title = "Vector network analysis",
-                 style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, **kwargs):
-        """!Dialolog for vector network analysis"""
+                 id = wx.ID_ANY, title = _("Vector network analysis"),
+                 style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, **kwargs):
+        """!Dialog for vector network analysis"""
 
         wx.Dialog.__init__(self, parent, id, style=style, title = title, **kwargs)
 
