@@ -1,12 +1,13 @@
 """!
-@package vnet.dialog
+@package vnet.dialogs
 
 @brief Dialog for vector network analysis front-end
 
 Classes:
- - dialog::VNETDialog
- - dialog::SettingsDialog
- - dialog::AddLayerDialog
+ - dialogs::VNETDialog
+ - dialogs::PtsList
+ - dialogs::SettingsDialog
+ - dialogs::AddLayerDialog
 
 (C) 2012 by the GRASS Development Team
 
@@ -18,6 +19,12 @@ This program is free software under the GNU General Public License
 
 import os
 import sys
+try:
+   from hashlib import md5
+   hasHashlib = True 
+except:
+    import md5 #Python 2.4
+    hasHashlib = False
 from copy import copy
 from grass.script     import core as grass
 
@@ -51,8 +58,9 @@ class VNETDialog(wx.Dialog):
         self.cmdParams = {}
 
         self.tmp_result = "vnet_tmp_result"
-        self.tmpMaps = [self.tmp_result]
+        self.tmpMaps = {}
 
+        self.firstAnalysis = True
         self.hiddenTypeCol = None
 
         self._initSettings()
@@ -129,7 +137,7 @@ class VNETDialog(wx.Dialog):
 
         self.mapWin.UnregisterGraphicsToDraw(self.pointsToDraw)
 
-        for tmpMap in self.tmpMaps:
+        for tmpMap in self.tmpMaps.iterkeys():
             RunCommand('g.remove', vect = tmpMap)
 
         if self.tmpResultLayer:
@@ -341,8 +349,8 @@ class VNETDialog(wx.Dialog):
         self.inputData['alayer'].Clear()
         self.inputData['nlayer'].Clear()
 
-        self.inputData['alayer'].InsertLayers(vector = self.inputData['input'].GetValue())
-        self.inputData['nlayer'].InsertLayers(vector = self.inputData['input'].GetValue())
+        self.inputData['alayer'].InsertLayers(vector = self.inputData['input'].GetValue().strip())
+        self.inputData['nlayer'].InsertLayers(vector = self.inputData['input'].GetValue().strip())
 
         items = self.inputData['alayer'].GetItems()
         itemsLen = len(items)
@@ -443,11 +451,71 @@ class VNETDialog(wx.Dialog):
     def OnAnalyze(self, event):
         """!Called when network analysis is started"""
 
-        if not self.inputData["input"].GetValue().strip():
+        # Check of parameters for analysis
+        curr_mapset = grass.gisenv()['MAPSET']
+        vectMaps = grass.list_grouped('vect')[curr_mapset]
+        selMap = self.inputData['input'].GetValue()
+        if selMap not in vectMaps:
+              self.notebook.SetSelectionByName("parameters")
+              GMessage(parent = self,
+                       message = _("Please select existing vector map.")) 
+              return  
+
+        errLayerLabels = []
+        for layer, layerLabel in {'alayer' : _("arc layer"), 
+                                  'nlayer' : _("node layer")}.iteritems():
+
+            layerItem = self.inputData[layer].GetItems()
+            if self.inputData[layer].GetValue().strip() not in layerItem:
+                errLayerLabels.append(layerLabel)
+        
+        if errLayerLabels:
+            self.notebook.SetSelectionByName("parameters")
             GMessage(parent = self,
-                     message = _("Please select vector map in Data tab"))
+                    message = _("Please select existing ") + _("and ").join(errLayerLabels))
             return
 
+        errColumnLabels = []
+        for col, colData in self.attrCols.iteritems():
+            if "inputField" in self.attrCols[col]:
+                colInptF = self.attrCols[col]["inputField"]
+            else:
+                colInptF = col
+
+            if not self.inputData[colInptF].IsShown():
+                continue
+            colVal = self.inputData[colInptF].GetValue().strip()
+            if not colVal:
+                continue
+            if colVal not in self.inputData[colInptF].GetItems():
+                errColumnLabels.append(colData["name"])
+
+        if errColumnLabels:
+            self.notebook.SetSelectionByName("parameters")
+            errColumnLabels = map(lambda s : s + _(" column"), errColumnLabels)
+
+            msg = _("Please select existing  or set empty: ")
+            errColsLen = len(errColumnLabels)
+            if errColsLen > 3:
+                msg += ", ".join(errColumnLabels[:(errColsLen - 2)]) + \
+                     _(" and ") + errColumnLabels[errColsLen - 1]
+            else:
+                msg += _(" and ").join(errColumnLabels)
+
+            GMessage(parent = self,
+                     message = msg)
+            return            
+
+        if self.firstAnalysis:
+            self.tmp_result = self.TmpMap(self.tmp_result)
+            if not self.tmp_result:
+                    return
+            self.firstAnalysis = False
+        else:
+            if not self.VectLayerState(mapName = self.tmp_result, layer = 1):
+                return 
+
+        # Creates part of cmd fro analysis
         cmdParams = [self.currAnModule]
         cmdParams.extend(self._getInputParams())
         cmdParams.append("output=" + self.tmp_result)
@@ -458,7 +526,7 @@ class VNETDialog(wx.Dialog):
             self._vnetPathRunAn(cmdParams, catPts)
         else:
             self._runAn(cmdParams, catPts)
-
+   
     def _vnetPathRunAn(self, cmdParams, catPts):
 
         if len(self.pointsToDraw.GetAllItems()) < 1:
@@ -505,15 +573,8 @@ class VNETDialog(wx.Dialog):
     def _vnetPathRunAnDone(self, cmd, returncode):
 
         grass.try_remove(self.coordsTmpFile)
+        self.SaveVectLayerState(mapName = self.tmp_result, layer = 1)
         self._addTempLayer()
-
-    def RemoveTmpMap(self, map):
-
-        RunCommand('g.remove', vect = map)
-        try:
-            self.tmpMaps.remove(map)
-        except ValueError:
-            pass
 
     def _runAn(self, cmdParams, catPts):
 
@@ -528,7 +589,6 @@ class VNETDialog(wx.Dialog):
                            option = "report",
                            flags = "g",
                            read = True)     
-
 
         cats = cats.splitlines()
         for cat in cats:#TODO
@@ -548,12 +608,13 @@ class VNETDialog(wx.Dialog):
         tmpPtsAsciiFileOpened.write(pt_ascii)
         tmpPtsAsciiFileOpened.close()
 
-        self.tmpInPts = "vnet_in_pts"
-        self.tmpMaps.append(self.tmpInPts)
+        self.tmpInPts = self.TmpMap("vnet_tmp_in_pts")
+        if not self.tmpInPts:
+            return
 
-        self.tmpInPtsConnected = "vnet_in_pts_connected"
-        self.tmpMaps.append(self.tmpInPtsConnected)
-
+        self.tmpInPtsConnected = self.TmpMap("vnet_tmp_in_pts_connected")
+        if not self.tmpInPtsConnected:
+            return
         #dmax = int(UserSettings.Get(group = 'vnet', 
         #                            key ='analysis_settings', 
         #                            subkey ='maxDist'))
@@ -561,12 +622,13 @@ class VNETDialog(wx.Dialog):
         cmdParams.append("input=" + self.tmpInPtsConnected)
         cmdParams.append("--overwrite")  
 
-        self.vnetFlowTmpCut = "vnet_flow_tmp_cut"
         if self.currAnModule == "v.net.distance": #TODO ugly hack
             cmdParams.append("from_layer=1")
             cmdParams.append("to_layer=1")
         elif self.currAnModule == "v.net.flow":#TODO
-            self.tmpMaps.append(self.vnetFlowTmpCut)
+            self.vnetFlowTmpCut = self.TmpMap("vnet_tmp_flow_cut")
+            if not self.vnetFlowTmpCut:
+                return
             cmdParams.append("cut=" +  self.vnetFlowTmpCut)          
 
         elif self.currAnModule == "v.net.iso":
@@ -612,9 +674,13 @@ class VNETDialog(wx.Dialog):
         self.RemoveTmpMap(self.tmpInPts) # remove earlier (ondone lambda?)
         self.RemoveTmpMap(self.tmpInPtsConnected)
         self.RemoveTmpMap(self.tmpInPtsConnected)
-        self.RemoveTmpMap(self.vnetFlowTmpCut)
-
+        try:
+            self.RemoveTmpMap(self.vnetFlowTmpCut)
+        except AttributeError:
+            pass
         grass.try_remove(self.tmpPtsAsciiFile)
+
+        self.SaveVectLayerState(mapName = self.tmp_result, layer = 1)
 
         self._addTempLayer()
 
@@ -702,7 +768,7 @@ class VNETDialog(wx.Dialog):
 
         resStyle = self.vnetParams[self.currAnModule]["resultStyle"]
 
-        width = UserSettings.Get(group='vnet', key='res_style', subkey= "width")
+        width = UserSettings.Get(group='vnet', key='res_style', subkey= "line_width")
         layerStyleCmd = ['d.vect', 
                           "layer=1",'width=' + str(width)]
 
@@ -725,6 +791,80 @@ class VNETDialog(wx.Dialog):
                         **self.layerStyleVnetColors[1])
 
         return layerStyleCmd 
+
+    def SaveVectLayerState(self, mapName, layer):
+    
+         self.tmpMaps[mapName] = {"stateHash" : self.GetLayerHash(mapName = mapName, 
+                                                                   layer = layer)}
+        
+    def VectLayerState(self, mapName, layer):
+
+        if self.tmpMaps[mapName]["stateHash"] != self.GetLayerHash(mapName = mapName, 
+                                                                   layer = layer):
+            dlg = wx.MessageDialog(parent = self,
+                                   message = _("Layer %d in map %s was changed outside " +
+                                                "of vector network analysis tool. " +
+                                                "Do you want to continue in analysis and " +
+                                                "overwrite it?") % (layer, mapName),
+                                   caption = _("Overwrite map layer"),
+                                   style = wx.YES_NO | wx.NO_DEFAULT |
+                                           wx.ICON_QUESTION | wx.CENTRE)            
+            ret = dlg.ShowModal()
+            dlg.Destroy()
+                
+            if ret == wx.ID_NO:
+                return False
+            
+        return True
+
+    def GetLayerHash(self, mapName, layer):
+        info = RunCommand("v.info",
+                           map = mapName,
+                           layer = layer,
+                           read = True)
+
+        if hasHashlib:
+            m = md5()
+        else:
+            m = md5.new()
+        m.update(info)
+
+        return m.digest()
+
+    def TmpMap(self, mapName):
+        
+        currMapSet = grass.gisenv()['MAPSET']
+        tmpMap = grass.find_file(name = mapName, element = 'vector', 
+                                 mapset = currMapSet)
+        fullMapName = tmpMap["fullname"]
+        if fullMapName:
+            dlg = wx.MessageDialog(parent = self,
+                                   message = _("Temporary map %s  already exists."  + 
+                                               "Do you want to continue in analysis and "
+                                               "overwrite it?") % fullMapName,
+                                   caption = _("Overwrite map layer"),
+                                   style = wx.YES_NO | wx.NO_DEFAULT |
+                                   wx.ICON_QUESTION | wx.CENTRE)
+                
+            ret = dlg.ShowModal()
+            dlg.Destroy()
+                
+            if ret == wx.ID_NO:
+                return None
+        else:
+            fullMapName = mapName + "@" + currMapSet
+
+        self.tmpMaps[fullMapName] = {"stateHash" : None}
+
+        return fullMapName
+
+    def RemoveTmpMap(self, mapName):
+
+        RunCommand('g.remove', vect = mapName)
+        try:
+            del self.tmpMaps[mapName]
+        except KeyError:
+            pass
 
     def _adaptPointsList(self):
 
@@ -841,13 +981,23 @@ class VNETDialog(wx.Dialog):
         """!Initializes parameters for different v.net.* analysis """
 
         self.attrCols = {
-                          'afcolumn' : {"label" : "Arc forward/both direction(s) cost column:"},
-                          'abcolumn' : {"label" : "Arc backward direction cost column:"},
+                          'afcolumn' : {
+                                        "label" : _("Arc forward/both direction(s) cost column:"),
+                                        "name" : _("arc forward/both")
+                                       },
+                          'abcolumn' : {
+                                        "label" : _("Arc backward direction cost column:"),
+                                        "name" : _("arc backward")
+                                       },
                           'acolumn' : {
-                                       "label" : "Arcs' cost column (for both directions):",
-                                       "inputField" : 'afcolumn'
+                                       "label" : _("Arcs' cost column (for both directions):"),
+                                       "name" : _("arc"),
+                                       "inputField" : 'afcolumn',
                                       },
-                          'ncolumn' : {"label" : "Node cost column:"}
+                          'ncolumn' : {
+                                       "label" : _("Node cost column:"),
+                                        "name" : _("node")                                      
+                                      }
                         }
 
         self.vnetParams = {
