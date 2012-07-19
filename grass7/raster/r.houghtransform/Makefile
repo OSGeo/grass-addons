@@ -2,7 +2,7 @@
 # or use absolute path to the GRASS source code
 MODULE_TOPDIR = ../..
 
-PGM = r.ht
+PGM = r.houghtransform
 
 LIBES = $(VECTORLIB) $(GISLIB) $(RASTERLIB)  $(GMATHLIB)
 DEPENDENCIES = $(VECTORDEP) $(GISDEP) $(RASTERDEP) 

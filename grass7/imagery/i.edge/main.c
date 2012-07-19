@@ -1,11 +1,11 @@
 
 /****************************************************************************
  *
- * MODULE:       r.canny
+ * MODULE:       i.edge
  * AUTHOR(S):    Anna Kratochvilova - kratochanna gmail.com
  *               Vaclav Petras - wenzeslaus gmail.com
  *
- * PURPOSE:      Edge detection usig Canny algorithm.
+ * PURPOSE:      Edge detection in raster images.
  *
  * COPYRIGHT:    (C) 2012 by the GRASS Development Team
  *

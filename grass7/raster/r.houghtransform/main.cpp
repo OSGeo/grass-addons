@@ -1,11 +1,11 @@
 
 /****************************************************************************
  *
- * MODULE:       r.ht
+ * MODULE:       r.houghtransform
  * AUTHOR(S):    Anna Kratochvilova - kratochanna gmail.com
  *               Vaclav Petras - wenzeslaus gmail.com
  *
- * PURPOSE:      Edge detection usig Canny algorithm.
+ * PURPOSE:      Line extraction from edges in raster.
  *
  * COPYRIGHT:    (C) 2012 by the GRASS Development Team
  *

@@ -2,7 +2,7 @@
 # or use absolute path to the GRASS source code
 MODULE_TOPDIR = ../..
 
-PGM = r.canny
+PGM = i.edge
 
 LIBES = $(GISLIB) $(RASTERLIB) $(GMATHLIB)
 DEPENDENCIES = $(GISDEP) $(RASTERDEP)
