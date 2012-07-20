@@ -54,10 +54,11 @@ struct files
     int minrow, maxrow, mincol, maxcol;
 
     /* results */
-    int **iseg;			/*segment ID assignment. */
+    int **iseg;			/* segment ID assignment */
+    int nsegs;			/* number of segments */
 
     /* processing flags */
-    FLAG *candidate_flag, *null_flag, *in_bounds_flag;
+    FLAG *candidate_flag, *null_flag, *orig_null_flag;
 
     /* memory management, linked lists */
     struct link_head *token;	/* for linkm.h linked list memory management. */
@@ -80,8 +81,8 @@ struct functions
 
     /* max number of iterations/passes */
     int end_t;
-    
-    /* todo remove when decide on pathflag*/
+
+    /* todo remove when decide on pathflag */
     int path;
 };
 

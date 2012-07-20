@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     G_debug(1, "Main: starting close_files()");
     close_files(&files);
 
-    G_done_msg("Number of segments created: TODO");
+    G_done_msg("Number of segments created: %d", files.nsegs);
 
     exit(EXIT_SUCCESS);
 }

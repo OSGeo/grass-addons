@@ -41,13 +41,14 @@ int parse_args(int argc, char *argv[], struct files *files,
     method->description = _("Segmentation method.");
 
     min_segment_size = G_define_option();
-    min_segment_size->key = "min";	/*TODO Markus, is there a preference for long or short key names? min is pretty generic...but short... */
+    min_segment_size->key = "minsize";
     min_segment_size->type = TYPE_INTEGER;
     min_segment_size->required = YES;
     min_segment_size->answer = "1";	/* default: no merges, a minimum of 1 pixel is allowed in a segment. */
     min_segment_size->options = "1-100000";
+    min_segment_size->label = _("Minimum number of cells in a segment.");
     min_segment_size->description =
-	_("Minimum number of pixels (cells) in a segment.  The final merge step will ignore the threshold for any segments with fewer pixels.");
+	_("The final iteration will ignore the threshold for any segments with fewer pixels.");
 
     /* optional parameters */
 
@@ -182,8 +183,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     /* debug help */
 
-	functions->path = path->answer;	/* default/0 for no pathflag, but selected/1 to use Rk as next Ri if not mutually best neighbors. */
-    
+    functions->path = path->answer;	/* default/0 for no pathflag, but selected/1 to use Rk as next Ri if not mutually best neighbors. */
+
     if (outband->answer == NULL)
 	files->out_band = NULL;
     else {

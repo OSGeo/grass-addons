@@ -45,82 +45,67 @@ int create_isegs(struct files *files, struct functions *functions)
     for (files->current_bound = lower_bound;
 	 files->current_bound <= upper_bound; files->current_bound++) {
 
-	/* check the processing window */
+	if (files->bounds_map == NULL)
+	    G_message(_("Running region growing algorithm, the percent completed is based the range of values in the boundary constraints map"));
+	G_percent(files->current_bound - lower_bound,
+		  upper_bound - lower_bound, 1);
+
+	/* *** check the processing window *** */
+
+	/* set boundaries at "opposite" end, change until reach lowest/highest */
+	files->minrow = files->nrows;
+	files->mincol = files->ncols;
+	files->maxrow = files->maxcol = 0;
+
 	if (files->bounds_map == NULL) {
-	    files->minrow = files->mincol = 0;
-	    files->maxrow = files->nrows;
-	    files->maxcol = files->ncols;
-	    /* todo polish: could actually check the NULL flag to see where the first/last row/col of real data are, and reduce the processing window.
-	     * This could help (a little?) if a MASK is used that removes a large part of the map. */
+	    /* check the NULL flag to see where the first/last row/col of real data are, and reduce the processing window.
+	     * This could help (a little?) if a MASK is used that removes a large border portion of the map. */
+	    for (row = 0; row < files->nrows; row++) {
+		for (col = 0; col < files->ncols; col++) {
+
+		    if (!(FLAG_GET(files->null_flag, row, col))) {
+
+			if (files->minrow > row)
+			    files->minrow = row;
+			if (files->maxrow < row)
+			    files->maxrow = row;
+			if (files->mincol > col)
+			    files->mincol = col;
+			if (files->maxcol < col)
+			    files->maxcol = col;
+		    }
+		}
+	    }
 	}
 	else {
-	    /* todo, Markus, should there be a faster way to find this?  Something already in GRASS that I can call? */
-	    /* find first row that matches the current bound value */
 	    for (row = 0; row < files->nrows; row++) {
 		for (col = 0; col < files->ncols; col++) {
+
 		    segment_get(&files->bounds_seg, &files->bounds_val, row,
 				col);
-		    if (files->bounds_val == files->current_bound) {
-			files->minrow = row;
-			/* break a nested loop... hmm, could change this to a function call, use a flag, or use peano iteration. */
-			goto done1;	/* or is this one of the few places where a goto loop is OK? */
-		    }
-		}
-	    }
-	  done1:
+		    if (files->bounds_val == files->current_bound &&
+			!(FLAG_GET(files->orig_null_flag, row, col))) {
+			FLAG_UNSET(files->null_flag, row, col);
 
-	    for (col = 0; col < files->ncols; col++) {
-		for (row = 0; row < files->nrows; row++) {
-		    segment_get(&files->bounds_seg, &files->bounds_val, row,
-				col);
-		    if (files->bounds_val == files->current_bound) {
-			files->mincol = col;
-			goto done2;
-		    }
-		}
-	    }
-	  done2:
+			if (files->minrow > row)
+			    files->minrow = row;
+			if (files->maxrow < row)
+			    files->maxrow = row;
+			if (files->mincol > col)
+			    files->mincol = col;
+			if (files->maxcol < col)
+			    files->maxcol = col;
 
-	    for (row = files->nrows - 1; row >= 0; row--) {
-		for (col = files->ncols - 1; col >= 0; col--) {
-		    segment_get(&files->bounds_seg, &files->bounds_val, row,
-				col);
-		    if (files->bounds_val == files->current_bound) {
-			files->maxrow = row;
-			goto done3;
 		    }
+		    else	/* pixel is outside the current boundary or was null in the input bands */
+			FLAG_SET(files->null_flag, row, col);
 		}
 	    }
-	  done3:
+	    G_debug(1, "minrow: %d, maxrow: %d, mincol: %d, maxcol: %d",
+		    files->minrow, files->maxrow, files->mincol,
+		    files->maxcol);
 
-	    for (col = files->ncols - 1; col >= 0; col--) {
-		for (row = files->nrows - 1; row >= 0; row--) {
-		    segment_get(&files->bounds_seg, &files->bounds_val, row,
-				col);
-		    if (files->bounds_val == files->current_bound) {
-			files->maxcol = col;
-			goto done4;
-		    }
-		}
-	    }
-	  done4:
-	    G_message("minrow: %d, maxrow: %d, mincol: %d, maxcol: %d", files->minrow, files->maxrow, files->mincol, files->maxcol);	//TODO change to debug.
-
-	    /* set the in_bound_flag */
-	    for (row = 0; row < files->nrows; row++) {
-		for (col = 0; col < files->ncols; col++) {
-		    if (!(FLAG_GET(files->null_flag, row, col))) {
-			segment_get(&files->bounds_seg, &files->bounds_val,
-				    row, col);
-			if (files->bounds_val == files->current_bound) {
-			    FLAG_SET(files->in_bounds_flag, row, col);
-			}
-			else
-			    FLAG_UNSET(files->in_bounds_flag, row, col);
-		    }
-		}
-	    }
-	    /* clear candidate flag, so only need to reset the processing area on each iteration. */
+	    /* clear candidate flag, so only need to reset the processing area on each iteration. todo polish, can be removed after all loops only cover the processing area */
 	    flag_clear_all(files->candidate_flag);
 
 	}			/* end of else, set up for bounded segmentation */
@@ -140,7 +125,20 @@ int create_isegs(struct files *files, struct functions *functions)
 #endif
     }				/* end outer loop for processing polygons */
 
-    return successflag;
+    /* reset null flag to the original if we have boundary constraints */
+    if (files->bounds_map != NULL) {
+	for (row = 0; row < files->nrows; row++) {
+	    for (col = 0; col < files->ncols; col++) {
+		if (FLAG_GET(files->orig_null_flag, row, col))
+		    FLAG_SET(files->null_flag, row, col);
+		else
+		    FLAG_UNSET(files->null_flag, row, col);
+	    }
+	}
+    }
+
+
+    return successflag;		/* todo, successflag was assuming one pass... don't have anything to pick up a failure if there is a bounds constraint */
 }
 
 #ifdef DEBUG
@@ -438,49 +436,49 @@ int seg_speed_test(struct files *files, struct functions *functions)
 	start = clock();
 	for (i = 0; i < max; i++) {
 	    no_check_tree = rbtree_create(compare_ids, sizeof(struct pixels));
+
 	    /*build */
 	    for (j = 0; j < n; j++) {
+		tree_pix = (struct pixels *)link_new(files->token);
 		tree_pix->row = tree_pix->col = j;
 		rbtree_insert(no_check_tree, &tree_pix);
 	    }
 	    /*access */
-	    rbtree_init_trav(&trav, no_check_tree);
-	    /*not sure how to do this...
-	       while ((data = rbtree_traverse(&trav)) != NULL) {
-	       if (my_compare_fn(data, threshold_data) == 0) break;
-	       G_message("%d", data);
-	       }
-	     */
+	    for (j = 0; j < n; j++) {
+		if (rbtree_find(no_check_tree, &tree_pix))
+		    continue;	/* always looking for the same pixel...is this an easy or hard one to find? */
+	    }
 	    /*free memory */
 	    rbtree_destroy(no_check_tree);
 	}
 	end = clock();
 	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
 	G_message
-	    ("Using rbtree of pixels (just build/destroy), %d elements, time: %g",
+	    ("Using rbtree of pixels ( build/find/destroy), %d elements, time: %g",
 	     n, cpu_time_used);
 
 	start = clock();
 	for (i = 0; i < max; i++) {
 	    known_iseg_tree = rbtree_create(compare_ids, sizeof(int));
+
 	    /*build */
 	    for (j = 0; j < n; j++) {
 		rbtree_insert(known_iseg_tree, &j);
 	    }
+
 	    /*access */
-	    rbtree_init_trav(&trav, known_iseg_tree);
-	    /*
-	       while ((data = rbtree_traverse(&trav)) != NULL) {
-	       if (my_compare_fn(data, threshold_data) == 0) break;
-	       G_message("%d", data);
-	       } */
+	    for (j = 0; j < n; j++) {
+		if (rbtree_find(known_iseg_tree, &j))
+		    continue;
+	    }
+
 	    /*free memory */
 	    rbtree_destroy(known_iseg_tree);
 	}
 	end = clock();
 	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
 	G_message
-	    ("Using rbtree ints (just build/destroy), %d elements, time: %g",
+	    ("Using rbtree ints ( build/find/destroy), %d elements, time: %g",
 	     n, cpu_time_used);
 
 
@@ -517,17 +515,18 @@ int seg_speed_test(struct files *files, struct functions *functions)
 	start = clock();
 	for (i = 0; i < max; i++) {
 	    known_iseg_tree = rbtree_create(compare_ids, sizeof(int));
-	    rbtree_init_trav(&trav, known_iseg_tree);
 
 	    /*build */
 	    for (j = 0; j < n; j++) {
 		rbtree_insert(known_iseg_tree, &j);
 	    }
+
 	    /*access */
-	    /* while ((data = rbtree_traverse(&trav)) != NULL) {
-	       if (my_compare_fn(data, threshold_data) == 0) break;
-	       G_message("%d", data);
-	       } */
+	    for (j = 0; j < n; j++) {
+		if (rbtree_find(known_iseg_tree, &j))
+		    continue;
+	    }
+
 	    /*free memory */
 	    rbtree_destroy(known_iseg_tree);
 	}
@@ -603,30 +602,59 @@ int seg_speed_test(struct files *files, struct functions *functions)
 
     /* iff bounding constraints have been given, need to confirm neighbors are in the same area.
      * Faster to check if the bounds map is null, or if no bounds just set all the bounds flags to 1 and directly check the bounds flag? */
+    {
+	max = INT_MAX;
+	j = 0;
+	G_message("compare if statement to FLAG_GET, repeating %d times",
+		  max);
+	G_message("Flag = %d", FLAG_GET(files->candidate_flag, 1, 1));
+
+	start = clock();
+	for (i = 0; i < max; i++) {
+	    if ((FLAG_GET(files->candidate_flag, 1, 1)) != 0) {
+		j++;
+	    }
+	}
+	end = clock();
+	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+	G_message("FLAG_GET: %g, temp: %d", cpu_time_used, j);
+	j = 0;
+	start = clock();
+	for (i = 0; i < max; i++) {
+	    if (files->bounds_map != NULL) {
+		j++;
+	    }
+	}
+	end = clock();
+	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+	G_message("check for NULL: %g, temp: %d", cpu_time_used, j);	/* was faster by about 20% */
+    }
+
+    /* is accessing a variable different then a value? */
     max = INT_MAX;
-    j = 0;
-    G_message("compare if statement to FLAG_GET, repeating %d times", max);
-    G_message("Flag = %d", FLAG_GET(files->candidate_flag, 1, 1));
+    j = k = 0;
+    G_message("compare variable to number, repeating %d times", max);
 
     start = clock();
     for (i = 0; i < max; i++) {
-	if ((FLAG_GET(files->candidate_flag, 1, 1)) != 0) {
+	if (i > 0) {
 	    j++;
 	}
     }
     end = clock();
     cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-    G_message("FLAG_GET: %g, temp: %d", cpu_time_used, j);
+    G_message("compare to zero: %g, temp: %d", cpu_time_used, j);
     j = 0;
     start = clock();
     for (i = 0; i < max; i++) {
-	if (files->bounds_map != NULL) {
+	if (i > k) {
 	    j++;
 	}
     }
     end = clock();
     cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-    G_message("check for NULL: %g, temp: %d", cpu_time_used, j);	/* was faster by about 20% */
+    G_message("compare to k: %g, temp: %d", cpu_time_used, j);	/* was faster by about 20% */
+
 
     return TRUE;
 }
@@ -662,7 +690,9 @@ int region_growing(struct files *files, struct functions *functions)
      * Rin = Ri's neigbors
      * */
 
-    G_message("Running region growing algorithm, the percent completed is based on %d max iterations, but the process will end earlier if no further merges can be made.", functions->end_t);	/*TODO polish: can _() be combined with %d ? */
+    if (files->bounds_map == NULL)
+	G_message(_("Running region growing algorithm, the percent completed is based on %d max iterations, but the process will end earlier if no further merges can be made."),
+		  functions->end_t);
 
     t = 1;
     files->candidate_count = 0;
@@ -674,13 +704,11 @@ int region_growing(struct files *files, struct functions *functions)
     Rkn_head = NULL;
     Ri_bestn = NULL;
 
-    /* TODO, want to get a min/max row/col to narrow the processing window ??? certainly if polygon constraints. */
-
     /* do while loop until no merges are made, or until t reaches maximum number of iterations */
     do {
 
 	G_debug(3, "#######   Starting outer do loop! t = %d    #######", t);
-	G_verbose_message("Pass %d: ", t);
+	/* todo, delete this?  G_verbose_message("Pass %d: ", t); */
 	G_percent(t, functions->end_t, 1);
 
 	threshold = functions->threshold;	/* TODO, consider making this a function of t. */
@@ -759,8 +787,7 @@ int region_growing(struct files *files, struct functions *functions)
 			    /* for each of Ri's neighbors */
 			    for (current = Rin_head; current != NULL;
 				 current = current->next) {
-				tempsim =
-				    (*functions->calculate_similarity)
+				tempsim = (*functions->calculate_similarity)
 				    (Ri_head, current, files, functions);
 				G_debug(4,
 					"simularity = %g for neighbor : row: %d, col %d.",
@@ -880,23 +907,23 @@ int region_growing(struct files *files, struct functions *functions)
 			    /* So for the next iteration, lets start with Rk as the focus segment */
 			    /* Seems this should be a bit faster, since we already have segment membership pixels */
 			    /* TODO: this shortened each iteration time by about 10% but increased the number of iterations by 20% ?!?!?!? */
-			if(functions->path == TRUE){
-			    Ri_count = Rk_count;
-			    Rk_count = 0;
-			    my_dispose_list(files->token, &Ri_head);
-			    Ri_head = Rk_head;
-			    Rk_head = NULL;
-			    if (Rkn_head != NULL) {
-				my_dispose_list(files->token, &Rin_head);
-				Rin_head = Rkn_head;
-				Rkn_head = NULL;
+			    if (functions->path == TRUE) {
+				Ri_count = Rk_count;
+				Rk_count = 0;
+				my_dispose_list(files->token, &Ri_head);
+				Ri_head = Rk_head;
+				Rk_head = NULL;
+				if (Rkn_head != NULL) {
+				    my_dispose_list(files->token, &Rin_head);
+				    Rin_head = Rkn_head;
+				    Rkn_head = NULL;
+				}
+				else
+				    my_dispose_list(files->token, &Rin_head);
 			    }
 			    else
-				my_dispose_list(files->token, &Rin_head);
-			}
-			else
-			pathflag = FALSE;
-			
+				pathflag = FALSE;
+
 			}
 
 		    }		/*end pathflag do loop */
@@ -923,7 +950,7 @@ int region_growing(struct files *files, struct functions *functions)
     /* ****************************************************************************************** */
 
 
-    if (functions->min_segment_size > 1) {
+    if (functions->min_segment_size > 1 && t > 2) {	/* NOTE: added t > 2, it doesn't make sense to force merges if no merges were made on the original pass.  Something should be adjusted first */
 	G_verbose_message
 	    (_("Final iteration, forcing merges for small segments, percent complete based on rows."));
 
@@ -1036,11 +1063,14 @@ int region_growing(struct files *files, struct functions *functions)
 		}		/* end if pixel is candidate pixel */
 	    }			/* next column */
 	}			/* next row */
+	t++;			/* to count one more "iteration" */
     }				/* end if for force merge */
     else
-	G_verbose_message(_("Input for minimum pixels in a segment was 1, will not force a merge for small segments."));
+	/* todo delete?  G_verbose_message(_("Input for minimum pixels in a segment was 1, will not force a merge for small segments.")); */
 
-    G_message("temporary(?) message, number of passes: %d", t - 1);
+    if (t > 2)
+	G_verbose_message("temporary(?) message, number of passes: %d",
+			  t - 1);
 
     return TRUE;
 }
@@ -1136,22 +1166,14 @@ int find_segment_neighbors(struct pixels **R_head,
 	for (n = 0; n < functions->num_pn; n++) {
 
 	    /* skip pixel if out of computational area or null */
-	    if (pixel_neighbors[n][0] < 0 ||
-		pixel_neighbors[n][0] >= files->nrows ||
-		pixel_neighbors[n][1] < 0 ||
-		pixel_neighbors[n][1] >= files->ncols ||
+	    if (pixel_neighbors[n][0] < files->minrow ||
+		pixel_neighbors[n][0] >= files->maxrow ||
+		pixel_neighbors[n][1] < files->mincol ||
+		pixel_neighbors[n][1] >= files->maxcol ||
 		FLAG_GET(files->null_flag, pixel_neighbors[n][0],
 			 pixel_neighbors[n][1])
 		)
 		continue;
-
-	    /* skip pixel if not in same boundary area */
-	    //~ if(files->bounds_map != NULL){
-	    //~ segment_get(&files->bounds_seg, &files->bounds_val, pixel_neighbors[n][0], pixel_neighbors[n][1]);
-	    //~ if (files->bounds_val != files->current_bound) {
-	    //~ continue;
-	    //~ }
-	    //~ }
 
 	    tree_pix.row = pixel_neighbors[n][0];
 	    tree_pix.col = pixel_neighbors[n][1];
@@ -1349,6 +1371,10 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
 
     }
 
+    /* merged two segments, decrement count */
+    files->nsegs--;
+    /* todo seeds: need if statement here, if merging "unseeded" pixel, don't want to decrement. */
+
     return TRUE;
 }
 
@@ -1438,34 +1464,34 @@ int set_all_candidate_flags(struct files *files)
 {
     int row, col;
 
-    if (files->bounds_map == NULL) {	/* process entire raster */
-	for (row = files->minrow; row < files->maxrow; row++) {
-	    for (col = files->mincol; col < files->maxcol; col++) {
-		/* TODO: if we are starting from seeds...and only allow merges between unassigned pixels
-		 *  and seeds/existing segments, then this needs an if (and will be very inefficient)
-		 * maybe consider the sorted array, btree, map... but the number of seeds could still be high for a large map */
-		/* MM: could be solved/not necessary if all pixels of an existing segment have the same ID */
-		if (!(FLAG_GET(files->null_flag, row, col))) {
-		    FLAG_SET(files->candidate_flag, row, col);
-		    files->candidate_count++;
-		}
-		else
-		    FLAG_UNSET(files->candidate_flag, row, col);
+    //~ if (files->bounds_map == NULL) {        /* process entire raster */
+    for (row = files->minrow; row < files->maxrow; row++) {
+	for (col = files->mincol; col < files->maxcol; col++) {
+	    /* TODO: if we are starting from seeds...and only allow merges between unassigned pixels
+	     *  and seeds/existing segments, then this needs an if (and will be very inefficient)
+	     * maybe consider the sorted array, btree, map... but the number of seeds could still be high for a large map */
+	    /* MM: could be solved/not necessary if all pixels of an existing segment have the same ID */
+	    if (!(FLAG_GET(files->null_flag, row, col))) {
+		FLAG_SET(files->candidate_flag, row, col);
+		files->candidate_count++;
 	    }
+	    else
+		FLAG_UNSET(files->candidate_flag, row, col);
 	}
     }
-    else {			/* process part of the raster, polygon constraints/boundaries */
-	for (row = files->minrow; row < files->maxrow; row++) {
-	    for (col = files->mincol; col < files->maxcol; col++) {
-		if (!(FLAG_GET(files->in_bounds_flag, row, col))) {
-		    FLAG_SET(files->candidate_flag, row, col);
-		    files->candidate_count++;
-		}
-		else
-		    FLAG_UNSET(files->candidate_flag, row, col);
-	    }
-	}
-    }
+    //~ }
+    //~ else {                  /* process part of the raster, polygon constraints/boundaries */
+    //~ for (row = files->minrow; row < files->maxrow; row++) {
+    //~ for (col = files->mincol; col < files->maxcol; col++) {
+    //~ if (!(FLAG_GET(files->in_bounds_flag, row, col))) {
+    //~ FLAG_SET(files->candidate_flag, row, col);
+    //~ files->candidate_count++;
+    //~ }
+    //~ else
+    //~ FLAG_UNSET(files->candidate_flag, row, col);
+    //~ }
+    //~ }
+    //~ }
 
     return TRUE;
 }

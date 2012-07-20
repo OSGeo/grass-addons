@@ -36,13 +36,13 @@ int open_files(struct files *files)
     files->null_flag = flag_create(files->nrows, files->ncols);
     files->candidate_flag = flag_create(files->nrows, files->ncols);
     if (files->bounds_map != NULL)
-	files->in_bounds_flag = flag_create(files->nrows, files->ncols);
+	files->orig_null_flag = flag_create(files->nrows, files->ncols);
 
     /* references for segmentation library: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
 
     /* ****** open the input rasters ******* */
 
-    /* TODO: I confirmed, the API does not check this.  Markus, should this be checked in parse_args / validation ?  Or best to do here where I want to use the REF data? */
+    /* Note: I confirmed, the API does not check this. */
     G_debug(1, "Checking image group...");
     if (!I_get_group_ref(files->image_group, &Ref))
 	G_fatal_error(_("Unable to read REF file for group <%s>"),
@@ -161,6 +161,21 @@ int open_files(struct files *files)
 	}
     }
 
+    /* keep original copy of null flag if we have boundary constraints */
+    if (files->bounds_map != NULL) {
+	for (row = 0; row < files->nrows; row++) {
+	    for (col = 0; col < files->ncols; col++) {
+		if (FLAG_GET(files->null_flag, row, col))
+		    FLAG_SET(files->orig_null_flag, row, col);
+		else		/* todo polish, flags are initialized to zero... could just skip this else? */
+		    FLAG_UNSET(files->orig_null_flag, row, col);
+	    }
+	}
+    }
+
+    /* number of initial segments, will decrement when merge */
+    files->nsegs = s - 1;
+
     /* bounds/constraints */
     /* TODO: You should also handle NULL cells in the bounds
      * raster map, I would suggest to replace NULL with min(bounds) - 1 or
@@ -190,6 +205,8 @@ int open_files(struct files *files)
 
     /* other info */
     files->candidate_count = 0;	/* counter for remaining candidate pixels */
+
+    /* translate seeds to unique segments TODO MM mentioned it here... */
 
     /* linked list memory management linkm */
     link_set_chunk_size(100);	/* TODO polish: fine tune this number */
