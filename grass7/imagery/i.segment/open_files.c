@@ -10,24 +10,40 @@
 int open_files(struct files *files)
 {
     struct Ref Ref;		/* group reference list */
-    int *in_fd, bounds_fd, null_check;
-    int i, n, s, row, col, srows, scols, inlen, outlen, nseg;
+    int *in_fd, bounds_fd, null_check, out_fd, mean_fd;
+    int i, n, s, row, col, srows, scols, inlen, nseg;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
     CELL *boundsbuf;
     struct FPRange *fp_range;	/* for getting min/max values on each input raster */
     DCELL *min, *max;
 
+    /* confirm output maps can be opened (don't want to do all this work for nothing!) */
+    out_fd = Rast_open_new(files->out_name, CELL_TYPE);
+    if (out_fd < 0)
+	G_fatal_error(_("Could not open output raster for writing segment ID's"));
+    else
+	Rast_unopen(out_fd);
+
+    if (files->out_band != NULL) {
+	mean_fd = Rast_open_new(files->out_band, DCELL_TYPE);
+	if (mean_fd < 0)
+	    G_fatal_error(_("Could not open output raster for writing mean segment values"));
+	else
+	    Rast_unopen(mean_fd);
+    }
+
     /*allocate memory for flags */
     files->null_flag = flag_create(files->nrows, files->ncols);
     files->candidate_flag = flag_create(files->nrows, files->ncols);
-//    files->no_check = flag_create(files->nrows, files->ncols);
+    if (files->bounds_map != NULL)
+	files->in_bounds_flag = flag_create(files->nrows, files->ncols);
 
-    G_debug(1, "Checking image group...");
-    /* references: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
+    /* references for segmentation library: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
 
     /* ****** open the input rasters ******* */
 
-    /* TODO: I confirmed, the API does not check this.  Should this be checked in parse_args / validation ?  Or best to do here where I want to use the REF data? */
+    /* TODO: I confirmed, the API does not check this.  Markus, should this be checked in parse_args / validation ?  Or best to do here where I want to use the REF data? */
+    G_debug(1, "Checking image group...");
     if (!I_get_group_ref(files->image_group, &Ref))
 	G_fatal_error(_("Unable to read REF file for group <%s>"),
 		      files->image_group);
@@ -40,7 +56,7 @@ int open_files(struct files *files)
 
     in_fd = G_malloc(Ref.nfiles * sizeof(int));
     inbuf = (DCELL **) G_malloc(Ref.nfiles * sizeof(DCELL *));
-    fp_range = G_malloc(Ref.nfiles * sizeof(struct FPRange));	/* TODO, is this correct memory allocation for these three? */
+    fp_range = G_malloc(Ref.nfiles * sizeof(struct FPRange));
     min = G_malloc(Ref.nfiles * sizeof(DCELL));
     max = G_malloc(Ref.nfiles * sizeof(DCELL));
 
@@ -48,6 +64,9 @@ int open_files(struct files *files)
     for (n = 0; n < Ref.nfiles; n++) {
 	inbuf[n] = Rast_allocate_d_buf();
 	in_fd[n] = Rast_open_old(Ref.file[n].name, Ref.file[n].mapset);
+	if (in_fd[n] < 0)
+	    G_fatal_error("Error opening %s@%s", Ref.file[n].name,
+			  Ref.file[n].mapset);
     }
 
     /* Get min/max values of each input raster for scaling */
@@ -71,14 +90,12 @@ int open_files(struct files *files)
     /* size of each element to be stored */
 
     inlen = sizeof(double) * Ref.nfiles;
-    outlen = sizeof(int) * 2;	/* change in write_output.c if this value changes TODO: better to save this in the files data structure? */
 
-    /*TODO: i.cost and i.watershed take different approaches...hardcode for now */
     /* when fine tuning, should be a power of 2 and not larger than 256 for speed reasons */
     srows = 64;
     scols = 64;
 
-    /* TODO: make calculations for this */
+    /* TODO: make calculations for this, check i.cost and i.watershed */
     nseg = 10000;
 
 
@@ -89,28 +106,31 @@ int open_files(struct files *files)
     G_debug(1, "Image size:  %d rows, %d cols", files->nrows, files->ncols);
     G_debug(1, "Segmented to tiles with size:  %d rows, %d cols", srows,
 	    scols);
-    G_debug(1, "Data element size, in: %d , out: %d ", inlen, outlen);
+    G_debug(1, "Data element size, in: %d", inlen);
     G_debug(1, "number of segments to have in memory: %d", nseg);
-
-    /* size: reading all input bands as DCELL  TODO: could consider checking input to see if it is all FCELL or CELL, could reduce memory requirements. */
 
     if (segment_open
 	(&files->bands_seg, G_tempfile(), files->nrows, files->ncols, srows,
 	 scols, inlen, nseg) != TRUE)
 	G_fatal_error("Unable to create input temporary files");
 
-    /* TODO: signed integer gives a 2 billion segment limit, depending on how the initialization is done, this means 2 billion max input pixels. */
+    /* ******* remaining memory allocation ********* */
+
+    files->bands_val = (double *)G_malloc(inlen);
+    files->second_val = (double *)G_malloc(inlen);
+
     files->iseg = G_malloc(files->nrows * sizeof(int *));
     for (i = 0; i < files->nrows; i++)
 	files->iseg[i] = G_malloc(files->ncols * sizeof(int));
 
-    /* TODO, need error check for running out of memory, or does G_malloc included a G_fatal_error call? */
+    /*check the last one to make sure there was enough memory */
+    if (files->iseg[i - 1] != NULL) {	/* everything is OK, and assume all previous memory allocations are OK too. */
+    }
+    else
+	G_fatal_error(_("Unable to allocate memory for initial segment ID's"));
 
-    /* load input bands to segment structure and fill iseg array */
+    /* ********  load input bands to segment structure and fill iseg array ******** */
     G_debug(1, "Reading input rasters into segmentation data files...");
-
-    files->bands_val = (double *)G_malloc(inlen);
-    files->second_val = (double *)G_malloc(inlen);
     s = 1;			/* initial segment ID */
 
     for (row = 0; row < files->nrows; row++) {
@@ -152,7 +172,7 @@ int open_files(struct files *files)
 	    G_fatal_error("Unable to create bounds temporary files");
 
 	boundsbuf = Rast_allocate_c_buf();
-	bounds_fd = Rast_open_old(files->bounds_map, files->bounds_mapset);	/*OK to use directly, or need to convert to name and mapset? */
+	bounds_fd = Rast_open_old(files->bounds_map, files->bounds_mapset);
 
 	for (row = 0; row < files->nrows; row++) {
 	    Rast_get_c_row(bounds_fd, boundsbuf, row);
@@ -172,7 +192,7 @@ int open_files(struct files *files)
     files->candidate_count = 0;	/* counter for remaining candidate pixels */
 
     /* linked list memory management linkm */
-    link_set_chunk_size(20);	/* TODO: fine tune this number */
+    link_set_chunk_size(100);	/* TODO polish: fine tune this number */
 
     files->token = link_init(sizeof(struct pixels));
 
@@ -188,7 +208,6 @@ int open_files(struct files *files)
     G_free(fp_range);
     G_free(min);
     G_free(max);
-    /* Need to clean up anything else? */
 
     return TRUE;
 }

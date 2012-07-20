@@ -12,42 +12,43 @@ int parse_args(int argc, char *argv[], struct files *files,
 {
     /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
 
-    struct Option *group, *seeds, *bounds, *output, *method, *threshold, *min_segment_size;	/* Establish an Option pointer for each option */
-    struct Flag *diagonal, *weighted;	/* Establish a Flag pointer for each option */
-    struct Option *outband, *endt;	/* debugging parameters... TODO: leave in code or remove?  hidden options? */
+    struct Option *group, *seeds, *bounds, *output, *method, *threshold, *min_segment_size, *endt;	/* Establish an Option pointer for each option */
+    struct Flag *diagonal, *weighted, *path;	/* Establish a Flag pointer for each option */
+    struct Option *outband;	/* TODO scrub: put all outband code inside of #ifdef DEBUG */
 
     /* required parameters */
-    group = G_define_standard_option(G_OPT_I_GROUP);	/* TODO: OK to require the user to create a group?  Otherwise later add an either/or option to give just a single raster map... */
+    group = G_define_standard_option(G_OPT_I_GROUP);	/* TODO? Polish, consider giving the option to process just one raster directly, without creating an image group. */
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
 
-/*TODO polish: any way to recommend a threshold to the user */
+    /*TODO polish: any way to recommend a threshold to the user */
     threshold = G_define_option();
     threshold->key = "threshold";
     threshold->type = TYPE_DOUBLE;
     threshold->required = YES;
-    threshold->description = _("Similarity threshold.");
+    threshold->description = _("Similarity threshold.");	/* TODO? Polish, should all descriptions get the _() locale macro? */
 
     method = G_define_option();
     method->key = "method";
     method->type = TYPE_STRING;
     method->required = YES;
     method->answer = "region_growing";
-    #ifdef DEBUG
+#ifdef DEBUG
     method->options = "region_growing, io_debug, ll_test, seg_time";
-    #else
+#else
     method->options = "region_growing";
-    #endif
+#endif
     method->description = _("Segmentation method.");
 
-	min_segment_size = G_define_option();
-	min_segment_size->key = "min"; /*TODO is there a preference for long or short key names? min is pretty generic...but short... */
-	min_segment_size->type = TYPE_INTEGER;
-	min_segment_size->required = YES;
-	min_segment_size->answer = "1"; /* default: no merges */
-	min_segment_size->options = "1-100000";
-	min_segment_size->description = _("Minimum number of pixels (cells) in a segment.  The final merge step will ignore the threshold for any segments with fewer pixels.");
-    
+    min_segment_size = G_define_option();
+    min_segment_size->key = "min";	/*TODO Markus, is there a preference for long or short key names? min is pretty generic...but short... */
+    min_segment_size->type = TYPE_INTEGER;
+    min_segment_size->required = YES;
+    min_segment_size->answer = "1";	/* default: no merges, a minimum of 1 pixel is allowed in a segment. */
+    min_segment_size->options = "1-100000";
+    min_segment_size->description =
+	_("Minimum number of pixels (cells) in a segment.  The final merge step will ignore the threshold for any segments with fewer pixels.");
+
     /* optional parameters */
 
     diagonal = G_define_flag();
@@ -60,7 +61,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     weighted->description =
 	_("Weighted input, don't perform the default scaling of input maps.");
 
-    /* Using raster for seeds, Low priority TODO: allow vector points/centroids seed input. */
+    /* Raster for initial segment seeds *//* TODO polish: allow vector points/centroids for seed input. */
     seeds = G_define_standard_option(G_OPT_R_INPUT);
     seeds->key = "seeds";
     seeds->required = NO;
@@ -80,8 +81,14 @@ int parse_args(int argc, char *argv[], struct files *files,
     endt->key = "endt";
     endt->type = TYPE_INTEGER;
     endt->required = NO;
-    endt->answer = "10000";
-    endt->description = _("Debugging...Maximum number of time steps to complete.");
+    endt->answer = "1000";
+    endt->description =
+	_("Debugging...Maximum number of time steps to complete.");
+
+    path = G_define_flag();
+    path->key = 'p';
+    path->description =
+	_("temporary option, pathflag, select to use Rk as next Ri if not mutually best neighbors.");
 
     outband = G_define_standard_option(G_OPT_R_OUTPUT);
     outband->key = "final_mean";
@@ -94,19 +101,14 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     /* Validation */
 
-    /* TODO: use checker for any of the data validation steps!? */
-
-    /* ToDo The most important things to check are if the
-       input and output raster maps can be opened (non-negative file
-       descriptor).  ??? Do this here or in open_files?  */
-
+    /* TODO: use checker for any of the data validation steps? */
 
     /* Check and save parameters */
 
     files->image_group = group->answer;
 
     if (G_legal_filename(output->answer) == TRUE)
-	files->out_name = output->answer;	/* name of output raster map */
+	files->out_name = output->answer;	/* name of output (segment ID) raster map */
     else
 	G_fatal_error("Invalid output raster name.");
 
@@ -116,22 +118,23 @@ int parse_args(int argc, char *argv[], struct files *files,
 	(functions->threshold <= 0 || functions->threshold >= 1))
 	G_fatal_error(_("threshold should be >= 0 and <= 1"));
 
-    /* segmentation methods:  0 = debug, 1 = region growing */
-    /* TODO, instead of string compare, does the Option structure have these already numbered? */
-    if (strncmp(method->answer, "io_debug", 5) == 0)
-	functions->method = 0;
-    else if (strncmp(method->answer, "region_growing", 10) == 0)
+    /* segmentation methods: 1 = region growing */
+    if (strncmp(method->answer, "region_growing", 10) == 0)
 	functions->method = 1;
+#ifdef DEBUG
+    else if (strncmp(method->answer, "io_debug", 5) == 0)
+	functions->method = 0;
     else if (strncmp(method->answer, "ll_test", 5) == 0)
 	functions->method = 2;
-	else if (strncmp(method->answer, "seg_time", 5) == 0)
+    else if (strncmp(method->answer, "seg_time", 5) == 0)
 	functions->method = 3;
+#endif
     else
 	G_fatal_error("Couldn't assign segmentation method.");	/*shouldn't be able to get here */
 
     G_debug(1, "segmentation method: %d", functions->method);
 
-	functions->min_segment_size = atoi(min_segment_size->answer);
+    functions->min_segment_size = atoi(min_segment_size->answer);
 
     if (diagonal->answer == FALSE) {
 	functions->find_pixel_neighbors = &find_four_pixel_neighbors;
@@ -143,6 +146,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 	functions->num_pn = 8;
 	G_debug(1, "eight (3x3) pixel neighborhood");
     }
+    /* TODO polish, check if function pointer or IF statement is faster */
 
     files->weighted = weighted->answer;	/* default/0 for performing the scaling, but selected/1 if user has weighted values so scaling should be skipped. */
 
@@ -155,7 +159,8 @@ int parse_args(int argc, char *argv[], struct files *files,
     }
     else {			/* polygon constraints given */
 	files->bounds_map = bounds->answer;
-	if ((files->bounds_mapset = G_find_raster(files->bounds_map, "")) == NULL) {	/* TODO, compiler warning here:  parse_args.c:149:27: warning: assignment discards ‘const’ qualifier from pointer target type [enabled by default] */
+	if ((files->bounds_mapset =
+	     G_find_raster2(files->bounds_map, "")) == NULL) {
 	    G_fatal_error(_("Segmentation constraint/boundary map not found."));
 	}
 	if (Rast_map_type(files->bounds_map, files->bounds_mapset) !=
@@ -168,7 +173,17 @@ int parse_args(int argc, char *argv[], struct files *files,
     files->nrows = Rast_window_rows();
     files->ncols = Rast_window_cols();
 
+    if (endt->answer != NULL && atoi(endt->answer) >= 0)
+	functions->end_t = atoi(endt->answer);
+    else {
+	functions->end_t = 1000;
+	G_warning(_("invalid number of iterations, 1000 will be used."));
+    }
+
     /* debug help */
+
+	functions->path = path->answer;	/* default/0 for no pathflag, but selected/1 to use Rk as next Ri if not mutually best neighbors. */
+    
     if (outband->answer == NULL)
 	files->out_band = NULL;
     else {
@@ -178,11 +193,5 @@ int parse_args(int argc, char *argv[], struct files *files,
 	    G_fatal_error("Invalid output raster name for means.");
     }
 
-	if (endt->answer != NULL && endt->answer >= 0)
-    functions->end_t = atoi(endt->answer);
-	else {
-		functions->end_t = 10000;
-		G_warning(_("invalid number of iterations, 10000 will be used."));
-	}
     return TRUE;
 }
