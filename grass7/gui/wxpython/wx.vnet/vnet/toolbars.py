@@ -46,7 +46,7 @@ class PointListToolbar(BaseToolbar):
             }
 
         return  self._getToolbarData((('insertPoint', icons['insertPoint'],
-                                      self.list.dialog.OnInsertPoint,#TODO
+                                      self.list.dialog.OnInsertPoint,#TODO self.list.dialog
                                       wx.ITEM_CHECK),
                                      ('pointAdd', icons["pointAdd"],
                                         self.list.AddItem),
@@ -88,6 +88,8 @@ class MainToolbar(BaseToolbar):
         icons = {
                  'run' : MetaIcon(img = 'execute',
                                   label = _('Execute analysis')),
+                 'showResult'   : MetaIcon(img = 'layer-add',
+                                    label = _("Show analysis result")),
                  'saveTempLayer' : MetaIcon(img = 'map-export',
                                              label = _('Add temporary result of analysis into layer tree')),
                   'settings' : BaseIcons['settings'].SetLabel( _('Vector network analysis settings'))
@@ -96,8 +98,10 @@ class MainToolbar(BaseToolbar):
         return self._getToolbarData((
                                      ("run", icons['run'],
                                       self.parent.OnAnalyze),
-                                     #("saveTempLayer", icons['saveTempLayer'],#TODO
-                                     # self.parent.OnSaveTmpLayer),
+                                      #("showResult", icons['showResult'], TODO
+                                      #self.parent.OnShowResult, wx.ITEM_CHECK),                                    
+                                     ("saveTempLayer", icons['saveTempLayer'],
+                                      self.parent.OnSaveTmpLayer),
                                      ('settings', icons["settings"],
                                       self.parent.OnSettings),                                    
                                      ("quit", BaseIcons['quit'],

@@ -271,6 +271,8 @@ class PointsList(wx.ListCtrl,
                              self.GetItem(index, i).GetText(), #cell value 
                              self.cols_data["colsEditable"][i]]) #convert function for type check
 
+        if not data:
+            return
         dlg = self.CreateEditDialog(data = data, pointNo = key)
 
         if dlg.ShowModal() == wx.ID_OK:
