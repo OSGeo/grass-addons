@@ -36,7 +36,8 @@ class PointsList(wx.ListCtrl,
                  wx.LC_SINGLE_SEL):
         """!Creates list for points. 
 
-        PointsList class was extracted from GCPList class in GCP manager. 
+        PointsList class was extracted from GCPList class in GCP manager. It is possible 
+        to be shared by GCP and VNET front end.
 
         Important parameters:
         @param cols is list containing list items. which represents columns.

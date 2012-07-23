@@ -45,8 +45,9 @@ from gui_core.gselect import Select, LayerSelect, ColumnSelect
 from vnet.widgets     import PointsList
 from vnet.toolbars    import MainToolbar, PointListToolbar
 
-#TODOs:
-# itemdada mam - not direct access
+#TODOs
+# when layer tree is lmgr is changed, tmp layer is removed from render list 
+# check if has layertree (lmgr)?
 
 class VNETDialog(wx.Dialog):
     def __init__(self, parent,
@@ -61,7 +62,8 @@ class VNETDialog(wx.Dialog):
         self.inputData = {}
         self.cmdParams = {}
 
-        self.tmp_result = "vnet_tmp_result"
+        self.tmp_result = None
+        self.vnetFlowTmpCut = None
         self.tmpMaps = VnetTmpVectMaps(parent = self)
 
         self.firstAnalysis = True
@@ -80,7 +82,7 @@ class VNETDialog(wx.Dialog):
         self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass_map.ico'), wx.BITMAP_TYPE_ICO))
         
         # initialization of v.net.* analysis parameters
-        self._initvnetParams()
+        self._initVnetParams()
 
         # toobars
         self.toolbars = {}
@@ -101,9 +103,9 @@ class VNETDialog(wx.Dialog):
                                   style = FN.FNB_FANCY_TABS | FN.FNB_BOTTOM |
                                           FN.FNB_NO_NAV_BUTTONS | FN.FNB_NO_X_BUTTON)
 
-
-        self._createAnalysisPage()
-        self._createDataPage()
+        # Creates tabs
+        self._createPointsPage()
+        self._createParametersPage()
         self._createOutputPage()
 
         self._addPanes()
@@ -114,13 +116,13 @@ class VNETDialog(wx.Dialog):
         self.handlerRegistered = False
         self.tmpResultLayer = None 
 
-
         # adds 2 points into list
         for i in range(2):
             self.list.AddItem(None)
             self.list.EditCellIndex(i, 1, self.cols[1][1][1 + i]) 
             self.list.CheckItem(i, True)
 
+        # selects first point
         self.list.selected = 0
         self.list.Select(self.list.selected)
 
@@ -135,9 +137,10 @@ class VNETDialog(wx.Dialog):
             self.goutput.SetSashPosition(int(self.GetSize()[1] * .75))
 
         self.OnAnalysisChanged(None)
+        self.notebook.SetSelectionByName("parameters")
 
     def  __del__(self):
-        """!Removes temp layer with analysis result, unregisters handlers and graphics"""
+        """!Removes temp layers, unregisters handlers and graphics"""
 
         update = self.tmpMaps.RemoveAllTmpMaps()
 
@@ -153,6 +156,7 @@ class VNETDialog(wx.Dialog):
 
 
     def _addPanes(self):
+        """!Adds toolbar pane and pane with tabs"""
 
         self._mgr.AddPane(self.toolbars['mainToolbar'],
                               wx.aui.AuiPaneInfo().
@@ -180,23 +184,24 @@ class VNETDialog(wx.Dialog):
         sizer.Fit(self)  
         self.Layout()
 
-    def _createAnalysisPage(self):
+    def _createPointsPage(self):
+        """!Tab with points list and analysis settings"""
 
-        analysisPanel = wx.Panel(parent = self)
+        pointsPanel = wx.Panel(parent = self)
         self.anSettings = {} #TODO
         maxValue = 1e8
 
-        listBox = wx.StaticBox(parent = analysisPanel, id = wx.ID_ANY,
+        listBox = wx.StaticBox(parent = pointsPanel, id = wx.ID_ANY,
                                 label =" %s " % _("Points for analysis:"))
 
-        self.notebook.AddPage(page = analysisPanel, 
+        self.notebook.AddPage(page = pointsPanel, 
                               text=_('Points'), 
                               name = 'points')
 
-        self.list = PtsList(parent = analysisPanel, dialog = self, cols = self.cols)
-        self.toolbars['pointsList'] = PointListToolbar(parent = analysisPanel, list = self.list)
+        self.list = PtsList(parent = pointsPanel, dialog = self, cols = self.cols)
+        self.toolbars['pointsList'] = PointListToolbar(parent = pointsPanel, list = self.list)
 
-        anSettingsPanel = wx.Panel(parent = analysisPanel)
+        anSettingsPanel = wx.Panel(parent = pointsPanel)
 
         anSettingsBox = wx.StaticBox(parent = anSettingsPanel, id = wx.ID_ANY,
                                 label =" %s " % _("Analysis settings:"))
@@ -213,11 +218,17 @@ class VNETDialog(wx.Dialog):
         #maxDist = int(UserSettings.Get(group = 'vnet', key = 'analysis_settings', subkey ='maxDist'))
         self.anSettings["max_dist"].SetValue(100000) #TODO init val
 
+        #showCutPanel =  wx.Panel(parent = anSettingsPanel)
+        #self.anSettings["show_cut"] = wx.CheckBox(parent = showCutPanel, id=wx.ID_ANY,
+        #                                          label = _("Show minimal cut"))
+        #self.anSettings["show_cut"].Bind(wx.EVT_CHECKBOX, self.OnShowCut)
+
         isoLinesPanel =  wx.Panel(parent = anSettingsPanel)
         isoLineslabel = wx.StaticText(parent = isoLinesPanel, id = wx.ID_ANY, label = _("Iso lines:"))
         self.anSettings["iso_lines"] = wx.TextCtrl(parent = isoLinesPanel, id = wx.ID_ANY) #TODO
         self.anSettings["iso_lines"].SetValue("1000,2000,3000")
 
+        # Layout
         AnalysisSizer = wx.BoxSizer(wx.VERTICAL)
 
         listSizer = wx.StaticBoxSizer(listBox, wx.VERTICAL)
@@ -241,8 +252,14 @@ class VNETDialog(wx.Dialog):
         maxDistPanel.SetSizer(maxDistSizer)
         anSettingsSizer.Add(item = maxDistPanel, proportion = 1, flag = wx.EXPAND)
 
+        #showCutSizer = wx.BoxSizer(wx.HORIZONTAL)
+        #showCutPanel.SetSizer(showCutSizer)
+        #showCutSizer.Add(item = self.anSettings["show_cut"],
+        #                 flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)
+        #anSettingsSizer.Add(item = showCutPanel, proportion = 1, flag = wx.EXPAND)
+
         isoLinesSizer = wx.BoxSizer(wx.HORIZONTAL)
-        isoLinesSizer.Add(item = isoLineslabel, flag = wx.EXPAND, proportion = 0)
+        isoLinesSizer.Add(item = isoLineslabel, flag = wx.ALIGN_CENTER_VERTICAL, proportion = 1)
         isoLinesSizer.Add(item = self.anSettings["iso_lines"],
                         flag = wx.EXPAND | wx.ALL, border = 5, proportion = 1)
         isoLinesPanel.SetSizer(isoLinesSizer)
@@ -252,10 +269,22 @@ class VNETDialog(wx.Dialog):
         AnalysisSizer.Add(item = anSettingsPanel, proportion = 0, flag = wx.EXPAND | wx.RIGHT | wx.LEFT | wx.BOTTOM, border = 5)
 
         anSettingsPanel.SetSizer(anSettingsSizer)
-        analysisPanel.SetSizer(AnalysisSizer)
+        pointsPanel.SetSizer(AnalysisSizer)
+
+    def OnShowCut(self, event):
+        """!Shows vector map with minimal cut (v.net.flow) - not yet implemented"""
+        val = event.IsChecked()
+        if val:
+            self.tmp_result.DeleteRenderLayer()
+            self.vnetFlowTmpCut.AddRenderLayer()
+        else:
+            self.vnetFlowTmpCut.DeleteRenderLayer()
+            self.tmp_result.AddRenderLayer()
+
+        self.mapWin.UpdateMap(render = True, renderVector = True)
 
     def _createOutputPage(self):
-
+        """!Tab with output console"""
         outputPanel = wx.Panel(parent = self)
         self.notebook.AddPage(page = outputPanel, 
                               text = _("Output"), 
@@ -276,8 +305,8 @@ class VNETDialog(wx.Dialog):
 
         outputPanel.SetSizer(self.outputSizer)
 
-    def _createDataPage(self):
-
+    def _createParametersPage(self):
+        """!Tab with output console"""
         dataPanel = wx.Panel(parent=self)
         self.notebook.AddPage(page = dataPanel,
                               text=_('Parameters'), 
@@ -299,6 +328,15 @@ class VNETDialog(wx.Dialog):
                 self.inputData[dataSel[0]] = dataSel[2](parent = selPanels[dataSel[0]],  
                                                         size = (-1, -1), 
                                                         type = 'vector')
+
+                icon = wx.Image(os.path.join(globalvar.ETCICONDIR, "grass", "layer-vector-add.png"))
+                icon.Rescale(18, 18)
+                icon = wx.BitmapFromImage(icon) 
+                self.addToTreeBtn = wx.BitmapButton(parent = selPanels[dataSel[0]], 
+                                                    bitmap = icon, 
+                                                    size = globalvar.DIALOG_COLOR_SIZE) 
+                self.addToTreeBtn.SetToolTipString(_("Add vector map into layer tree"))
+                self.addToTreeBtn.Disable()
             else:
                 self.inputData[dataSel[0]] = dataSel[2](parent = selPanels[dataSel[0]],  
                                                         size = (-1, -1))
@@ -309,17 +347,23 @@ class VNETDialog(wx.Dialog):
         self.inputData['input'].Bind(wx.EVT_TEXT, self.OnVectSel) # TODO optimization
         self.inputData['alayer'].Bind(wx.EVT_TEXT, self.OnALayerSel)
         self.inputData['nlayer'].Bind(wx.EVT_TEXT, self.OnNLayerSel)
+        self.addToTreeBtn .Bind(wx.EVT_BUTTON, self.OnToTreeBtn)
 
+        # Layout
         mainSizer = wx.BoxSizer(wx.VERTICAL)
-        box = wx.StaticBox(dataPanel, -1, "Layer for analysis")
+        box = wx.StaticBox(dataPanel, -1, "Vector map and layers for analysis")
         bsizer = wx.StaticBoxSizer(box, wx.VERTICAL)
 
         mainSizer.Add(item = bsizer, proportion = 0,
-                                 flag = wx.EXPAND  | wx.TOP | wx.LEFT | wx.RIGHT, border = 5) 
+                      flag = wx.EXPAND  | wx.TOP | wx.LEFT | wx.RIGHT, border = 5) 
 
         for sel in ['input', 'alayer', 'nlayer']:
-            selPanels[sel].SetSizer(self._doSelLayout(title = label[sel], sel = self.inputData[sel]))
-            bsizer.Add(item = selPanels[sel], proportion = 0,
+            if sel== 'input':
+                btn = self.addToTreeBtn
+            selPanels[sel].SetSizer(self._doSelLayout(title = label[sel], 
+                                                           sel = self.inputData[sel], 
+                                                      btn = btn))
+            bsizer.Add(item = selPanels[sel], proportion = 1,
                        flag = wx.EXPAND)
 
         box = wx.StaticBox(dataPanel, -1, "Costs")
@@ -335,7 +379,7 @@ class VNETDialog(wx.Dialog):
 
         dataPanel.SetSizer(mainSizer)
 
-    def _doSelLayout(self, title, sel): 
+    def _doSelLayout(self, title, sel, btn = None): 
 
         selSizer = wx.BoxSizer(orient = wx.VERTICAL)
 
@@ -345,12 +389,44 @@ class VNETDialog(wx.Dialog):
 
         selSizer.Add(item = selTitleSizer, proportion = 0,
                                  flag = wx.EXPAND)
-        selSizer.Add(item = sel, proportion = 0,
-                     flag = wx.EXPAND | wx.ALL| wx.ALIGN_CENTER_VERTICAL,
-                     border = 5)
+
+        if btn:
+                selFiledSizer = wx.BoxSizer(orient = wx.HORIZONTAL)
+                selFiledSizer.Add(item = sel, proportion = 1,
+                             flag = wx.EXPAND | wx.ALL)
+
+                selFiledSizer.Add(item = btn, proportion = 0,
+                             flag = wx.EXPAND | wx.ALL)
+
+                selSizer.Add(item = selFiledSizer, proportion = 0,
+                             flag = wx.EXPAND | wx.ALL| wx.ALIGN_CENTER_VERTICAL,
+                             border = 5)
+        else:
+                selSizer.Add(item = sel, proportion = 1,
+                             flag = wx.EXPAND | wx.ALL| wx.ALIGN_CENTER_VERTICAL,
+                             border = 5)
         return selSizer
 
+    def OnToTreeBtn(self, event):
+        """!Adds vector map into layer tree (button next to map select)"""
+        vectorMap = self.inputData['input'].GetValue()
+        existsMap = grass.find_file(name = vectorMap, 
+                                    element = 'vector', 
+                                    mapset = grass.gisenv()['MAPSET'])
+        if not existsMap["name"]:
+            return
+
+        cmd = ['d.vect', 
+               'map=' + vectorMap]
+
+        if  self.mapWin.tree.FindItemByData(key = 'name', value = vectorMap) is None: 
+            self.mapWin.tree.AddLayer(ltype = "vector", 
+                                      lcmd = cmd,
+                                      lname =vectorMap,
+                                      lchecked = True)           
+
     def OnVectSel(self, event):
+        """!When vector map is selected populates other selects (layer selects, columns selects)"""
         self.inputData['alayer'].Clear()
         self.inputData['nlayer'].Clear()
 
@@ -360,6 +436,7 @@ class VNETDialog(wx.Dialog):
         items = self.inputData['alayer'].GetItems()
         itemsLen = len(items)
         if itemsLen < 1:
+            self.addToTreeBtn.Disable()
             self.inputData['alayer'].SetValue("")
             self.inputData['nlayer'].SetValue("")
             for sel in ['afcolumn', 'abcolumn', 'ncolumn']:
@@ -377,11 +454,13 @@ class VNETDialog(wx.Dialog):
                 iItem = items.index(unicode("2")) 
                 self.inputData['nlayer'].SetSelection(iItem)
 
+        self.addToTreeBtn.Enable()
+
         self.OnALayerSel(event) 
         self.OnNLayerSel(event)
 
     def OnALayerSel(self, event):
-
+        """!When arc layer from vector map is selected, populates corespondent columns selects"""
         self.inputData['afcolumn'].InsertColumns(vector = self.inputData['input'].GetValue(), 
                                                  layer = self.inputData['alayer'].GetValue(), 
                                                  type = self.columnTypes)
@@ -391,14 +470,13 @@ class VNETDialog(wx.Dialog):
 
 
     def OnNLayerSel(self, event):
-
+        """!When node layer from vector map is selected, populates corespondent column select"""
         self.inputData['ncolumn'].InsertColumns(vector = self.inputData['input'].GetValue(), 
                                                 layer = self.inputData['nlayer'].GetValue(), 
                                                 type = self.columnTypes)
  
     def OnCloseDialog(self, event):
         """!Cancel dialog"""
-
         self.parent.dialogs['vnet'] = None
         self.Destroy()
 
@@ -427,7 +505,6 @@ class VNETDialog(wx.Dialog):
 
     def OnMapClickHandler(self, event):
         """!Takes coordinates from map window."""
-
         if event == 'unregistered':
             ptListToolbar = self.toolbars['pointsList']
             if ptListToolbar:
@@ -457,7 +534,6 @@ class VNETDialog(wx.Dialog):
 
     def OnAnalyze(self, event):
         """!Called when network analysis is started"""
-
         # Check of parameters for analysis
         curr_mapset = grass.gisenv()['MAPSET']
         vectMaps = grass.list_grouped('vect')[curr_mapset]
@@ -514,7 +590,7 @@ class VNETDialog(wx.Dialog):
             return            
 
         if self.firstAnalysis:
-            self.tmp_result = self.tmpMaps.AddTmpVectMap(self.tmp_result)
+            self.tmp_result = self.tmpMaps.AddTmpVectMap("vnet_tmp_result")
             if not self.tmp_result:
                     return          
             self.firstAnalysis = False
@@ -529,13 +605,15 @@ class VNETDialog(wx.Dialog):
 
         catPts = self._getPtByCat()
 
+        self.tmpMaps.RemoveTmpMap(self.tmp_result)
+
         if self.currAnModule == "v.net.path":
             self._vnetPathRunAn(cmdParams, catPts)
         else:
             self._runAn(cmdParams, catPts)
    
     def _vnetPathRunAn(self, cmdParams, catPts):
-
+        """!Called when analysis is run for v.net.path module"""
         if len(self.pointsToDraw.GetAllItems()) < 1:
             return
 
@@ -578,8 +656,7 @@ class VNETDialog(wx.Dialog):
         self.goutput.RunCmd(command = cmdParams, onDone = self._vnetPathRunAnDone)
 
     def _vnetPathRunAnDone(self, cmd, returncode):
-
-
+        """!Called when v.net.path analysis is done"""
         grass.try_remove(self.coordsTmpFile)
         self.tmp_result.SaveVectLayerState(layer = 1)
 
@@ -587,7 +664,7 @@ class VNETDialog(wx.Dialog):
         self.mapWin.UpdateMap(render=True, renderVector=True)
 
     def _runAn(self, cmdParams, catPts):
-
+        """!Called for all v.net.* analysis (except v.net.path)"""
         # TODO how to get output in ondone function
         #cmdCategory = [ "v.category",
         #                "input=" + self.inputData['input'].GetValue(),
@@ -678,13 +755,9 @@ class VNETDialog(wx.Dialog):
         self.goutput.RunCmd(command = cmdParams, onDone = self._runAnDone)
 
     def _runAnDone(self, cmd, returncode):
-
+        """!Called when analysis is done"""
         self.tmpMaps.RemoveTmpMap(self.tmpInPts) # remove earlier (ondone lambda?)
         self.tmpMaps.RemoveTmpMap(self.tmpInPtsConnected)
-        try:
-            self.tmpMaps.RemoveTmpMap(self.vnetFlowTmpCut)
-        except AttributeError:
-            pass
         grass.try_remove(self.tmpPtsAsciiFile)
 
         self.tmp_result.SaveVectLayerState(layer = 1)
@@ -692,7 +765,6 @@ class VNETDialog(wx.Dialog):
         self.mapWin.UpdateMap(render=True, renderVector=True)
 
     def _getInputParams(self):
-
         inParams = []
         for col in self.vnetParams[self.currAnModule]["cmdParams"]["cols"]:
 
@@ -709,7 +781,7 @@ class VNETDialog(wx.Dialog):
         return inParams
 
     def _getPtByCat(self):
-
+        """!Returns points separated by theirs categories"""
         cats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
 
         ptByCats = {}
@@ -727,7 +799,7 @@ class VNETDialog(wx.Dialog):
         return ptByCats
 
     def _getAsciiPts (self, catPts, maxCat, layerNum):
-
+        """!Returns points separated by categories in GRASS ASCII vector representation"""
         catsNums = {}
         pt_ascii = ""
         catNum = maxCat
@@ -746,7 +818,7 @@ class VNETDialog(wx.Dialog):
         return pt_ascii, catsNums
 
     def _prepareCmd(self, cmd):
-
+        """!Helper function for preparation of cmd in list into form for RunCmd method"""
         for c in cmd[:]:
             if c.find("=") == -1:
                 continue
@@ -757,7 +829,7 @@ class VNETDialog(wx.Dialog):
                 cmd.remove(c)
 
     def GetLayerStyle(self):
-
+        """!Returns cmd for d.vect, with set style for analysis result"""
         resStyle = self.vnetParams[self.currAnModule]["resultStyle"]
 
         width = UserSettings.Get(group='vnet', key='res_style', subkey= "line_width")
@@ -785,6 +857,7 @@ class VNETDialog(wx.Dialog):
         return layerStyleCmd 
 
     def OnShowResult(self, event):
+        """!Shows, hides analysis result - not yet implemented"""
         mainToolbar = self.toolbars['mainToolbar']
         id = vars(mainToolbar)['showResult']
         toggleState = mainToolbar.GetToolState(id)
@@ -797,6 +870,7 @@ class VNETDialog(wx.Dialog):
         self.mapWin.UpdateMap(render=True, renderVector=True)
 
     def OnInsertPoint(self, event):
+        """!Registers/unregisters mouse handler into map window"""
         if self.handlerRegistered == False:
             self.mapWin.RegisterMouseEventHandler(wx.EVT_LEFT_DOWN, 
                                                   self.OnMapClickHandler,
@@ -808,20 +882,43 @@ class VNETDialog(wx.Dialog):
             self.handlerRegistered = False
 
     def OnSaveTmpLayer(self, event):
-
+        """!Permanently saves temporary map of analysis result"""
         dlg = AddLayerDialog(parent = self)#TODO impot location check?
 
+        msg = _("Vector map with analysis result does not exist.")
         if dlg.ShowModal() == wx.ID_OK:
+
+            if not hasattr(self.tmp_result, "GetVectMapName"):
+                GMessage(parent = self,
+                         message = msg)
+                return
+
+            mapToAdd = self.tmp_result.GetVectMapName()
+            mapToAddEx = grass.find_file(name = mapToAdd, 
+                                        element = 'vector', 
+                                        mapset = grass.gisenv()['MAPSET'])
+
+            if not mapToAddEx["name"]: 
+                GMessage(parent = self,
+                         message = msg)
+                return
 
             addedMap = dlg.vectSel.GetValue()
             existsMap = grass.find_file(name = addedMap, 
                                         element = 'vector', 
                                         mapset = grass.gisenv()['MAPSET'])
 
-            if existsMap["name"] and not dlg.overwrite.GetValue():
-                GMessage(parent = self,
-                         message = _("Map already exists. Result will not be added."))
-                return
+            if existsMap["name"]:
+                dlg = wx.MessageDialog(parent = self.parent.parent,
+                                       message = _("Vector map %s already exists. " +
+                                                "Do you want to overwrite it?") % 
+                                                (existsMap["fullname"]),
+                                       caption = _("Overwrite map layer"),
+                                       style = wx.YES_NO | wx.NO_DEFAULT |
+                                               wx.ICON_QUESTION | wx.CENTRE)            
+                ret = dlg.ShowModal()
+                if ret == wx.ID_NO:
+                    return
 
             RunCommand("g.copy",
                        overwrite = True,
@@ -829,7 +926,7 @@ class VNETDialog(wx.Dialog):
 
             cmd = self.GetLayerStyle()
             cmd.append('map=%s' % addedMap)
-            if  self.mapWin.tree.FindItemByData(key = 'name', value = addedMap) is None: #TODO check if has tree
+            if  self.mapWin.tree.FindItemByData(key = 'name', value = addedMap) is None: 
                 self.mapWin.tree.AddLayer(ltype = "vector", 
                                           lname =addedMap,
                                           lcmd = cmd,
@@ -848,7 +945,7 @@ class VNETDialog(wx.Dialog):
         dlg.Destroy()
 
     def OnAnalysisChanged(self, event):
-
+        """!Updates dialog when analysis is changed"""
         # finds module name according to value in anChoice
         for module, params in self.vnetParams.iteritems():
             chLabel = self.toolbars['mainToolbar'].anChoice.GetValue()
@@ -867,6 +964,12 @@ class VNETDialog(wx.Dialog):
         else:
             self.anSettings['iso_lines'].GetParent().Hide()
 
+        #if self.currAnModule == "v.net.flow":
+        #    self.anSettings['show_cut'].GetParent().Show()
+        #else:
+        #    self.anSettings['show_cut'].GetParent().Hide()
+
+        # Show only corresponding selects for chosen v.net module
         skip = []
         for col in self.attrCols.iterkeys():
             if "inputField" in self.attrCols[col]:
@@ -888,6 +991,7 @@ class VNETDialog(wx.Dialog):
                 self.inputData[colInptF].GetParent().Hide()
         self.Layout()
 
+        # If module has only one category -> hide type column in points list otherwise show it
         if len(self.vnetParams[self.currAnModule]["cmdParams"]["cats"]) > 1:
             if self.hiddenTypeCol:
                 self.list.InsertColumnItem(1, self.hiddenTypeCol)
@@ -907,8 +1011,8 @@ class VNETDialog(wx.Dialog):
                 self.list.ResizeColumns()
 
 
-    def _initvnetParams(self):
-        """!Initializes parameters for different v.net.* analysis """
+    def _initVnetParams(self):
+        """!Initializes parameters for different v.net.* modules """
 
         self.attrCols = {
                           'afcolumn' : {
@@ -1036,7 +1140,7 @@ class VNETDialog(wx.Dialog):
         self.prev2catsAnModule = self.vnetModulesOrder[0]
 
     def _initSettings(self):
-
+        """!Initialization of settings (if not already defined)"""
         if 'vnet' in UserSettings.userSettings:
            return
 
@@ -1107,7 +1211,7 @@ class PtsList(PointsList):
         self.dialog.pointsToDraw.AddItem(coords = [0,0], 
                                          label = str(self.selectedkey + 1))
 
-        self.dialog.mapWin.UpdateMap(render=True, renderVector=True)
+        self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
 
 
     def DeleteItem(self, event):
@@ -1132,7 +1236,7 @@ class PtsList(PointsList):
         event.Skip()
 
     def _adaptPointsList(self, currParamsCats, prevParamsCats):
- 
+        """Rename category values fwhen module is changed. Expample: Start point -> Sink point"""
         for item in enumerate(self.itemDataMap):            
             iCat = 0
             for ptCat in prevParamsCats:
@@ -1157,6 +1261,8 @@ class PtsList(PointsList):
         currModule = self.dialog.currAnModule #TODO public func
         cats = self.dialog.vnetParams[currModule]["cmdParams"]["cats"]
 
+        self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
+
         if len(cats) <= 1:
             return 
 
@@ -1168,7 +1274,7 @@ class PtsList(PointsList):
             self._updateCheckedItems(index)
 
     def _updateCheckedItems(self, index):
-        """!for v.net.path - max. just one checked start point and end point """
+        """!For v.net.path - max. just one checked start point and end point """
         alreadyChecked = []
         if index:
             checkedKey = self.GetItemData(index)
@@ -1302,7 +1408,6 @@ class SettingsDialog(wx.Dialog):
 
     def OnSave(self, event):
         """!Button 'Save' pressed"""
-
         self.UpdateSettings()
 
         fileSettings = {}
@@ -1330,8 +1435,9 @@ class SettingsDialog(wx.Dialog):
 
         self.parent.SetPointDrawSettings()
 
-        renderLayer = self.parent.tmp_result.GetRenderLayer()
-        if renderLayer:
+        if not hasattr(self.parent.tmp_result, "GetRenderLayer"):
+            self.parent.mapWin.UpdateMap(render=False, renderVector=False)
+        elif self.parent.tmp_result.GetRenderLayer():
             self.parent.tmp_result.AddRenderLayer()
             self.parent.mapWin.UpdateMap(render=True, renderVector=True)#TODO optimization
         else:
@@ -1347,12 +1453,9 @@ class SettingsDialog(wx.Dialog):
         self.Close()
 
 class AddLayerDialog(wx.Dialog):
-    """!Adds layer with analysis result into layer tree"""
-   
     def __init__(self, parent,id=wx.ID_ANY,
                  title =_("Add analysis result into layer tree"), style=wx.DEFAULT_DIALOG_STYLE):
-        """!Dialog for editing item cells in list"""
-
+        """!Adds vector map with analysis result into layer tree"""
         wx.Dialog.__init__(self, parent, id, title = _(title), style = style)
 
         self.panel = wx.Panel(parent = self)
@@ -1362,14 +1465,12 @@ class AddLayerDialog(wx.Dialog):
         self.vectSellabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY,
                                           label = _("Layer name:")) 
 
-        self.overwrite = wx.CheckBox(parent = self.panel, id=wx.ID_ANY,
-                                     label = _("Overwrite existing layer"))
-
         # buttons
         self.btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
         self.btnOk = wx.Button(self.panel, wx.ID_OK)
         self.btnOk.SetDefault()
 
+        self.SetInitialSize((400, -1))
         self._layout()
 
     def _layout(self):
@@ -1379,27 +1480,17 @@ class AddLayerDialog(wx.Dialog):
         box = wx.StaticBox (parent = self.panel, id = wx.ID_ANY,
                             label = "Added layer")
 
-        boxSizer = wx.StaticBoxSizer(box, wx.VERTICAL)
+        boxSizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
 
-        # source coordinates
-        gridSizer = wx.GridBagSizer(vgap = 5, hgap = 5)
+        boxSizer.Add(item = self.vectSellabel, 
+                     flag = wx.ALIGN_CENTER_VERTICAL,
+                     proportion = 0)
 
-        row = 0
-        gridSizer.Add(item = self.vectSellabel, 
-                      flag = wx.ALIGN_CENTER_VERTICAL,
-                      pos = (row, 0))
-
-        gridSizer.Add(item = self.vectSel, 
-                      pos = (row, 1))
-
-        boxSizer.Add(item = gridSizer, proportion = 1,
+        boxSizer.Add(item = self.vectSel, proportion = 1,
                      flag = wx.EXPAND | wx.ALL, border = 5)
 
         sizer.Add(item = boxSizer, proportion = 1,
                   flag = wx.EXPAND | wx.ALL, border = 5)
-
-        row +=1 
-        gridSizer.Add(item = self.overwrite, pos =(row, 0))
 
         btnSizer = wx.StdDialogButtonSizer()
         btnSizer.AddButton(self.btnCancel)
@@ -1414,7 +1505,7 @@ class AddLayerDialog(wx.Dialog):
 
 class VnetTmpVectMaps:
     def __init__(self, parent):
-
+        """!Class which creates, stores and destroys all tmp maps created during analysis"""
         self.tmpMaps = []
         self.parent = parent
         self.mapWin = self.parent.mapWin
@@ -1470,9 +1561,8 @@ class VnetTmpVectMaps:
         return update
 
 class VnetTmpVectMap:
-
     def __init__(self, parent, fullName):
-
+        """!Represents one temporary map"""
         self.fullName = fullName
         self.parent = parent
         self.renderLayer = None
@@ -1501,7 +1591,7 @@ class VnetTmpVectMap:
         self.renderLayer = self.parent.mapWin.Map.AddLayer(type = "vector",  command = cmd,
                                                            l_active=True,    name = self.fullName, 
                                                            l_hidden = True,  l_opacity = 1.0, 
-                                                           l_render = True,  pos = -1)
+                                                           l_render = False,  pos = -1)
         return True
 
     def DeleteRenderLayer(self):
