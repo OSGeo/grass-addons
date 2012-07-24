@@ -49,13 +49,13 @@ def main():
     gfile = grass.find_file(infile, element = 'vector')
     if not gfile['name']:
         grass.fatal(_("Vector map <%s> not found") % infile)
+    #split the name if there is the mapset name
+    if infile.find('@'):
+        infile = infile.split('@')[0]    
     #output name
     if options['output']:
         outfile = options['output']
     else:
-        #split the name if there is the mapset name
-        if infile.find('@'):
-            infile = infile.split('@')[0]
         outfile = infile + '.pack'
     #check if exists the output file
     if os.path.exists(outfile):
