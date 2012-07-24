@@ -629,9 +629,9 @@ class VNETDialog(wx.Dialog):
             cmdPts.append(catPts[cat[0]][0])
 
 
-        resId = int(UserSettings.Get(group ='vnet', 
-                                     key = 'analysis_settings', 
-                                     subkey = 'resultId'))
+        resId = 1 #int(UserSettings.Get(group ='vnet', 
+                  #                     key = 'analysis_settings', 
+                  #                     subkey = 'resultId'))
 
         inpPoints = str(resId) + " " + str(cmdPts[0][0]) + " " + str(cmdPts[0][1]) + \
                                  " " + str(cmdPts[1][0]) + " " + str(cmdPts[1][1])
