@@ -122,8 +122,8 @@ def main():
             # update cdf with new value
             if val != 0 and numPixel != 0:
                 update_cdf = round(float(val) / float(numPixel), 6)
-                update_cdf = "UPDATE t%s SET cdf=%s WHERE (grey_value=%i)" % (n,
-                                                            iname, update_cdf,) 
+                update_cdf = "UPDATE t%s SET cdf=%s WHERE (grey_value=%i)" % (
+                                                            iname, update_cdf,n)
                 curs.execute(update_cdf)
                 db.commit()
     db.commit()
@@ -167,7 +167,7 @@ def main():
         cHist = cHist + int(average)
         # insert new values into average table
         if cHist != 0 and pixelTot != 0:
-            cdf = round(float(cHist) / float(pixelTot), 6)
+            cdf = float(cHist) / float(pixelTot)
             insert = "INSERT INTO %s VALUES (%i, %i, %i, %s)" % (table_ave, n, 
                                                     int(average), cHist, cdf)
             curs.execute(insert)
