@@ -1158,14 +1158,13 @@ class VNETDialog(wx.Dialog):
 
         for init in initSettings:
             try:
-                val = UserSettings.Get(dict = UserSettings.userSettings, 
-                                       group ='vnet',
+                val = UserSettings.Get(group ='vnet',
                                        key = init[0],
                                        subkey =init[1])
                 if type(val) != type(init[2]):
-                    raise ValueError
+                    raise ValueError()
 
-            except KeyError, ValueError:              
+            except (KeyError, ValueError):              
                 UserSettings.Append(dict = UserSettings.userSettings, 
                                     group ='vnet',
                                     key = init[0],
