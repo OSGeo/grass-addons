@@ -84,6 +84,13 @@ struct functions
 
     /* todo remove when decide on pathflag */
     int path;
+
+    /* todo remove when decide on allowing multiple merges per pass */
+    int limited;
+
+    /* todo: should this be an option, set at a specific value, or left out. */
+    //    double very_close;        /* segments with very_close similarity will be merged without changing or checking the candidate flag.  The algorithm will continue looking for the "most similar" neighbor that isn't "very close". */
+    // todo... tried this out briefly, but realized that we need to find the segment membership, might be some faster ways to do this, but first tries actually slowed down the processing.
 };
 
 

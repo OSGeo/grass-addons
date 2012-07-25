@@ -13,8 +13,10 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
 
     struct Option *group, *seeds, *bounds, *output, *method, *threshold, *min_segment_size, *endt;	/* Establish an Option pointer for each option */
-    struct Flag *diagonal, *weighted, *path;	/* Establish a Flag pointer for each option */
+    struct Flag *diagonal, *weighted, *path, *limited;	/* Establish a Flag pointer for each option */
     struct Option *outband;	/* TODO scrub: put all outband code inside of #ifdef DEBUG */
+
+    //~ struct Option *very_close;
 
     /* required parameters */
     group = G_define_standard_option(G_OPT_I_GROUP);	/* TODO? Polish, consider giving the option to process just one raster directly, without creating an image group. */
@@ -49,6 +51,14 @@ int parse_args(int argc, char *argv[], struct files *files,
     min_segment_size->label = _("Minimum number of cells in a segment.");
     min_segment_size->description =
 	_("The final iteration will ignore the threshold for any segments with fewer pixels.");
+
+    //~ very_close = G_define_option();
+    //~ very_close->key = "very_close";
+    //~ very_close->type = TYPE_DOUBLE;
+    //~ very_close->required = YES;
+    //~ very_close->answer = "0";
+    //~ very_close->options = "0-1";
+    //~ very_close->description = _("For testing:  very close segments will be merged, the focus segment will not be changed.");
 
     /* optional parameters */
 
@@ -91,11 +101,18 @@ int parse_args(int argc, char *argv[], struct files *files,
     path->description =
 	_("temporary option, pathflag, select to use Rk as next Ri if not mutually best neighbors.");
 
+    limited = G_define_flag();
+    limited->key = 'l';
+    limited->description =
+	_("temporary option, limit to one merge to pass, if *not* selected a segment can be included in multiple merges in one pass.");
+
     outband = G_define_standard_option(G_OPT_R_OUTPUT);
     outband->key = "final_mean";
     outband->required = NO;
     outband->description =
 	_("debug - save band mean, currently implemented for only 1 band.");
+
+
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -134,6 +151,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	G_fatal_error("Couldn't assign segmentation method.");	/*shouldn't be able to get here */
 
     G_debug(1, "segmentation method: %d", functions->method);
+
+    //~ functions->very_close = atof(very_close->answer);
 
     functions->min_segment_size = atoi(min_segment_size->answer);
 
@@ -184,6 +203,8 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* debug help */
 
     functions->path = path->answer;	/* default/0 for no pathflag, but selected/1 to use Rk as next Ri if not mutually best neighbors. */
+
+    functions->limited = limited->answer;
 
     if (outband->answer == NULL)
 	files->out_band = NULL;

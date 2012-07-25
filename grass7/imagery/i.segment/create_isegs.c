@@ -42,13 +42,14 @@ int create_isegs(struct files *files, struct functions *functions)
     }
 
     /* processing loop for polygon/boundary constraints */
+    if (files->bounds_map != NULL)
+	G_message(_("Running region growing algorithm, the percent completed is based the range of values in the boundary constraints map"));
     for (files->current_bound = lower_bound;
 	 files->current_bound <= upper_bound; files->current_bound++) {
 
-	if (files->bounds_map == NULL)
-	    G_message(_("Running region growing algorithm, the percent completed is based the range of values in the boundary constraints map"));
-	G_percent(files->current_bound - lower_bound,
-		  upper_bound - lower_bound, 1);
+	if (files->bounds_map != NULL)
+	    G_percent(files->current_bound - lower_bound,
+		      upper_bound - lower_bound, 1);
 
 	/* *** check the processing window *** */
 
@@ -148,7 +149,8 @@ int io_debug(struct files *files, struct functions *functions)
     int row, col;
 
     /* from speed.c to test speed of malloc vs. memory manager */
-    register int i;
+    long int i;
+    register int j, s;
     struct link_head *head;
     struct pixels *p;
 
@@ -157,16 +159,77 @@ int io_debug(struct files *files, struct functions *functions)
     /*    G_verbose_message("writing fake data to segmentation file"); */
     G_verbose_message("writing scaled input (layer 1) to output file");
     G_verbose_message("weighted flag = %d", files->weighted);
+    //~ for (row = 0; row < files->nrows; row++) {
+    //~ for (col = 0; col < files->ncols; col++) {
+    //~ /*files->out_val[0] = files->out_val[0]; *//*segment number *//* just copying the map for testing. */
+    //~ /* files->out_val[0] = col + row; */
+    //~ segment_get(&files->bands_seg, (void *)files->bands_val, row,
+    //~ col);
+    //~ files->iseg[row][col] = files->bands_val[0] * 100;      /*pushing DCELL into CELL */
+    //~ }
+    //~ G_percent(row, files->nrows, 1);
+    //~ }
+
+    /* Trying out peano ordering */
+    /* idea is for large maps, if the width of SEG tiles in RAM is less than the width of the map, this should avoid a lot of I/O */
+    /* this is probably closer to a z-order curve then peano order. */
+
+    /*blank slate */
     for (row = 0; row < files->nrows; row++) {
 	for (col = 0; col < files->ncols; col++) {
-	    /*files->out_val[0] = files->out_val[0]; *//*segment number *//* just copying the map for testing. */
-	    /* files->out_val[0] = col + row; */
-	    segment_get(&files->bands_seg, (void *)files->bands_val, row,
-			col);
-	    files->iseg[row][col] = files->bands_val[0] * 100;	/*pushing DCELL into CELL */
+	    files->iseg[row][col] = -1;
 	}
-	G_percent(row, files->nrows, 1);
     }
+    s = 0;
+
+    //~ for(i=1; i<9; i++)
+    //~ {
+    //~ G_message("i: %d", i);
+    //~ for(j=4; j>=0; j--){
+    //~ G_message("\tj=%d, 1 & (i >> j) = %d", j, 1 & (i >> j));
+    //~ }
+    //~ }
+    for (i = 0; i < 16; i++) {	// if square and power of 2: files->nrows*files->ncols
+	row = col = 0;
+	/*bit wise construct row and col from i */
+	for (j = 8 * sizeof(long int) - 1; j > 1; j--) {
+	    row = row | (1 & (i >> j));
+	    row = row << 1;
+	    j--;
+	    col = col | (1 & (i >> j));
+	    col = col << 1;
+	}
+	row = row | (1 & (i >> j));
+	j--;
+	col = col | (1 & (i >> j));
+	G_message("Done: i: %li, row: %d, col: %d", i, row, col);
+	files->iseg[row][col] = s;
+	s++;
+    }
+
+
+    //~ for(i=0; i<8; i++){ //files->nrows*files->ncols
+    //              G_message("i: %d", i);
+    //~ row=col=0;
+    //~ 
+    //~ /*bit wise construct row and col from i*/
+    //~ for(j=4; j>0; j=j-2){  //8*sizeof(int)
+    //                      G_message("j: %d", j);
+    //~ row = row | ( i & (1 << (2 * j))); /* row | a[rmax-r]; */
+    //~ row = row << 1;
+    //~ col = col | ( i & (1 << (2 * j + 1)));
+    //~ col = col << 1;
+    //~ G_message("j: %d, row: %d, col: %d", j, row, col);
+    //~ }
+    //~ row = row | ( i & (1 << (2 * j))); /* row | a[rmax-r]; */
+    //~ col = col | ( i & (1 << ((2 * j) + 1)));
+    //~ G_message("(1 << ((2 * j) + 1)) = %d", (1 << ((2 * j) + 1)));
+    //~ G_message("Done: i: %d, row: %d, col: %d", i, row, col);
+    //~ files->iseg[row][col] = s;
+    //~ s++;
+    //~ }
+
+
 
     /*speed test... showed a difference of 1min 9s for G_malloc and 34s for linkm. (with i < 2000000000   */
 
@@ -677,9 +740,9 @@ int region_growing(struct files *files, struct functions *functions)
     double threshold, Ri_similarity, Rk_similarity, tempsim;
     int endflag;		/* =TRUE if there were no merges on that processing iteration */
     int pathflag;		/* =TRUE if we didn't find mutual neighbors, and should continue with Rk */
-    struct pixels *Ri_head, *Rk_head, *Rin_head, *Rkn_head, *current,
-	*newpixel, *Ri_bestn;
-    int Ri_count, Rk_count;	/* number of pixels/cells in Ri and Rk */
+    struct pixels *Ri_head, *Rk_head, *Rin_head, *Rkn_head, *Rclose_head,
+	*Rc_head, *Rc_tail, *Rcn_head, *current, *newpixel, *Ri_bestn;
+    int Ri_count, Rk_count, Rc_count;	/* number of pixels/cells in Ri and Rk */
 
     /* files->token has the "link_head" for linkm: linked list memory allocation.
      * 
@@ -703,6 +766,9 @@ int region_growing(struct files *files, struct functions *functions)
     Rin_head = NULL;
     Rkn_head = NULL;
     Ri_bestn = NULL;
+    Rclose_head = NULL;
+    Rc_head = NULL;
+    Rcn_head = NULL;
 
     /* do while loop until no merges are made, or until t reaches maximum number of iterations */
     do {
@@ -735,6 +801,7 @@ int region_growing(struct files *files, struct functions *functions)
 		    my_dispose_list(files->token, &Rk_head);
 		    my_dispose_list(files->token, &Rin_head);
 		    my_dispose_list(files->token, &Rkn_head);
+		    my_dispose_list(files->token, &Rclose_head);
 		    Rk_count = 0;
 
 		    /* First pixel in Ri is current row/col pixel.  We may add more later if it is part of a segment */
@@ -747,8 +814,9 @@ int region_growing(struct files *files, struct functions *functions)
 
 		    pathflag = TRUE;
 
-		    while (pathflag == TRUE && files->candidate_count > 0) {	/*if don't find mutual neighbors on first try, will use Rk as next Ri. */
-
+		    while (pathflag == TRUE) {	/*if don't find mutual neighbors on first try, will use Rk as next Ri. */
+			//TODO: do I need this && part?  remove candidate_count completely?  Is there a way this loop could get stuck iterating forever???
+			//&& files->candidate_count > 0
 			G_debug(4, "Next starting pixel: row, %d, col, %d",
 				Ri_head->row, Ri_head->col);
 
@@ -793,6 +861,17 @@ int region_growing(struct files *files, struct functions *functions)
 					"simularity = %g for neighbor : row: %d, col %d.",
 					tempsim, current->row, current->col);
 
+				/* if very close, will merge, but continue checking other neighbors */
+				//~ if (tempsim < functions->very_close * threshold){
+				//~ /* add to Rclose list */
+				//~ newpixel = (struct pixels *)link_new(files->token);
+				//~ newpixel->next = Rclose_head;
+				//~ newpixel->row = current->row;
+				//~ newpixel->col = current->col;
+				//~ Rclose_head = newpixel;
+				//~ }
+				/* If "sort of" close, merge only if it is the mutually most similar */
+				//~ else 
 				if (tempsim < Ri_similarity) {
 				    Ri_similarity = tempsim;
 				    Ri_bestn = current;
@@ -803,12 +882,48 @@ int region_growing(struct files *files, struct functions *functions)
 				}
 			    }	/* finished similiarity check for all neighbors */
 
+			    /* *** merge all the "very close" pixels/segments *** */
+			    /* doing this after checking all Rin, so we don't change the bands_val between similarity comparisons
+			     * TODO... but that leaves the possibility that we have the wrong best Neighbor after doing these merges... 
+			     * but it seems we can't put this merge after the Rk/Rkn portion of the loop, because we are changing the available neighbors
+			     * ...maybe this extra "very close" idea has to be done completely differently or dropped???  */
+			    for (current = Rclose_head; current != NULL;
+				 current = current->next) {
+				my_dispose_list(files->token, &Rc_head);
+				my_dispose_list(files->token, &Rcn_head);
+
+				/* get membership of neighbor segment */
+				Rc_count = 1;
+				newpixel =
+				    (struct pixels *)link_new(files->token);
+				newpixel->next = NULL;
+				newpixel->row = current->row;
+				newpixel->col = current->col;
+				Rc_head = Rc_tail = newpixel;
+				find_segment_neighbors(&Rc_head, &Rcn_head, &Rc_count, files, functions);	/* just to get members, not looking at neighbors now */
+				merge_values(Ri_head, Rc_head, Ri_count,
+					     Rc_count, files);
+
+				/* Add Rc pixels to Ri */
+				Rc_tail->next = Ri_head;
+				Ri_head = Rc_head;
+
+				//todo, recurse?  Check all Rcn neighbors if they are very close?
+				// not needed if the combining works...   my_dispose_list(files->token, &Rc_head);
+				Rc_head = NULL;
+				my_dispose_list(files->token, &Rcn_head);
+			    }
+			    my_dispose_list(files->token, &Rclose_head);
+
+			    /* check if we have a bestn that is valid to use to look at Rk */
 			    if (Ri_bestn != NULL) {
 				G_debug(4,
 					"Lowest Ri_similarity = %g, for neighbor pixel row: %d col: %d",
 					Ri_similarity, Ri_bestn->row,
 					Ri_bestn->col);
-				if (!
+
+				//todo this "limited" flag will probably be removed?  Then this entire if section could be removed if we always allow multiple merges per pass?
+				if (functions->limited && !
 				    (FLAG_GET
 				     (files->candidate_flag, Ri_bestn->row,
 				      Ri_bestn->col))) {
@@ -820,7 +935,6 @@ int region_growing(struct files *files, struct functions *functions)
 			    }
 
 			    if (Ri_bestn != NULL && Ri_similarity < threshold) {	/* small TODO: should this be < or <= for threshold? */
-
 				/* Rk starts from Ri's best neighbor */
 				Rk_count = 1;
 				newpixel =
@@ -894,6 +1008,7 @@ int region_growing(struct files *files, struct functions *functions)
 					"3b Ri's best neighbor was not valid candidate, or their similarity was > threshold");
 				pathflag = FALSE;
 			    }
+
 			}	/* end if(Rin_head != NULL) */
 			else {	/* Ri didn't have a neighbor */
 			    G_debug(4, "Segment had no neighbors");
@@ -951,7 +1066,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 
     if (functions->min_segment_size > 1 && t > 2) {	/* NOTE: added t > 2, it doesn't make sense to force merges if no merges were made on the original pass.  Something should be adjusted first */
-	G_verbose_message
+	G_message
 	    (_("Final iteration, forcing merges for small segments, percent complete based on rows."));
 
 	/* for the final forced merge, the candidate flag is just to keep track if we have confirmed if:
@@ -1212,17 +1327,21 @@ int find_segment_neighbors(struct pixels **R_head,
 
 		}
 		else {		/* segment id's were different */
-		    //TODO: if current ID not found in known neighbors list
-		    //add to known neighbors list
-		    /* put pixel_neighbor[n] in Rin */
-		    G_debug(5, "Put in neighbors_head");
-		    newpixel = (struct pixels *)link_new(files->token);
-		    newpixel->next = *neighbors_head;	/*point the new pixel to the current first pixel */
-		    newpixel->row = pixel_neighbors[n][0];
-		    newpixel->col = pixel_neighbors[n][1];
-		    *neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
-		    //}
+		    if (!rbtree_find(known_iseg, &current_seg_ID)) {	/* we don't have any neighbors yet from this segment */
 
+			/* add to known neighbors list */
+			rbtree_insert(known_iseg, &current_seg_ID);	/* todo: could I just try to insert it, if it fails I know it is already there?
+									 * I guess it would depend on how much faster the find() is, and what fraction of the 
+									 * neighbors are in a duplicate segment... */
+
+			/* put pixel_neighbor[n] in Rin */
+			G_debug(5, "Put in neighbors_head");
+			newpixel = (struct pixels *)link_new(files->token);
+			newpixel->next = *neighbors_head;	/*point the new pixel to the current first pixel */
+			newpixel->row = pixel_neighbors[n][0];
+			newpixel->col = pixel_neighbors[n][1];
+			*neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
+		    }
 		}
 
 
@@ -1333,7 +1452,7 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
     int n;
     struct pixels *current;
 
-    /*get input values *//*TODO polish, confirm if we can assume we already have bands_val for Ri, so don't need to segment_get() again? */
+    /*get input values *//*TODO polish, confirm if we can assume we already have bands_val for Ri, so don't need to segment_get() again?  note...current very_close implementation requires getting this value again... */
     segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row,
 		Ri_head->col);
     segment_get(&files->bands_seg, (void *)files->second_val,

@@ -96,7 +96,7 @@ int open_files(struct files *files)
     scols = 64;
 
     /* TODO: make calculations for this, check i.cost and i.watershed */
-    nseg = 10000;
+    nseg = 16;
 
 
     /* ******* create temporary segmentation files ********* */
@@ -161,25 +161,10 @@ int open_files(struct files *files)
 	}
     }
 
-    /* keep original copy of null flag if we have boundary constraints */
-    if (files->bounds_map != NULL) {
-	for (row = 0; row < files->nrows; row++) {
-	    for (col = 0; col < files->ncols; col++) {
-		if (FLAG_GET(files->null_flag, row, col))
-		    FLAG_SET(files->orig_null_flag, row, col);
-		else		/* todo polish, flags are initialized to zero... could just skip this else? */
-		    FLAG_UNSET(files->orig_null_flag, row, col);
-	    }
-	}
-    }
-
     /* number of initial segments, will decrement when merge */
     files->nsegs = s - 1;
 
     /* bounds/constraints */
-    /* TODO: You should also handle NULL cells in the bounds
-     * raster map, I would suggest to replace NULL with min(bounds) - 1 or
-     +* max(bounds) + 1. */
     if (files->bounds_map != NULL) {
 	if (segment_open
 	    (&files->bounds_seg, G_tempfile(), files->nrows, files->ncols,
@@ -194,14 +179,28 @@ int open_files(struct files *files)
 	    for (col = 0; col < files->ncols; col++) {
 		files->bounds_val = boundsbuf[col];
 		segment_put(&files->bounds_seg, &files->bounds_val, row, col);
+		if (Rast_is_c_null_value(&boundsbuf[col]) == TRUE) {
+		    FLAG_SET(files->null_flag, row, col);
+		}
 	    }
 	}
 	Rast_close(bounds_fd);
 	G_free(boundsbuf);
-    }
+
+	/* keep original copy of null flag if we have boundary constraints */
+	for (row = 0; row < files->nrows; row++) {
+	    for (col = 0; col < files->ncols; col++) {
+		if (FLAG_GET(files->null_flag, row, col))
+		    FLAG_SET(files->orig_null_flag, row, col);
+		else		/* todo polish, flags are initialized to zero... could just skip this else? */
+		    FLAG_UNSET(files->orig_null_flag, row, col);
+	    }
+	}
+    }				/* end: if (files->bounds_map != NULL) */
     else {
 	G_debug(1, "no boundary constraint supplied.");
     }
+
 
     /* other info */
     files->candidate_count = 0;	/* counter for remaining candidate pixels */
