@@ -81,7 +81,7 @@ def main():
                             gisenv['LOCATION_NAME'],
                             gisenv['MAPSET'])
     
-    new_dir = os.path.join(mset_dir,'vector',data_name)
+    new_dir = os.path.join(mset_dir,'vector',map_name)
 
     gfile = grass.find_file(name = map_name, element = 'vector',
                             mapset = '.')
@@ -121,26 +121,27 @@ def main():
         list_fromtable = grass.read_command('db.tables',driver='sqlite',database=fromdb)
         list_fromtable = list_fromtable.split('\n')
         #return the list of old connection for extract layer number and key
-        dbln = open(os.path.join(data_name,'dbln'),'r')
+        dbln = open(os.path.join(new_dir,'dbln'),'r')
         dbnlist = dbln.readlines()
         dbln.close()
-	#for each old connection
-	for t in dbnlist:
-	    #it split the line of each connection, to found layer number and key
-	    if len(t.split('|')) != 1:
-		values = t.split('|')
-	    else:
-		values = t.split(' ')
-	    #copy the table in the default database
-	    cptable = grass.run_command('db.copy', to_driver = dbconn['driver'], 
-		      to_database = todb, to_table =  values[1], 
+        #for each old connection
+        for t in dbnlist:
+            #it split the line of each connection, to found layer number and key
+            if len(t.split('|')) != 1:
+                values = t.split('|')
+            else:
+                values = t.split(' ')
+            #copy the table in the default database
+            print "prima di db.copy"
+            grass.run_command('db.copy', to_driver = dbconn['driver'], 
+		      to_database = todb, to_table = map_name, 
 		      from_driver = 'sqlite', from_database = fromdb,
 		      from_table = values[1])
-	    #and connect the new tables with the rigth layer
-	    contable = grass.run_command('v.db.connect', flags = "o", 
+            #and connect the new tables with the rigth layer
+            grass.run_command('v.db.connect', flags = "o", 
 		      driver = dbconn['driver'], database = todb, 
 		      map =  map_name, key = values[2],
-		      layer = values[0].split('/')[0], table = values[1])
+		      layer = values[0].split('/')[0], table = map_name)
 
     #remove 
     os.remove(os.path.join(new_dir,'PROJ_INFO'))
