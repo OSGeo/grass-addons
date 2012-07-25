@@ -172,7 +172,20 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     functions->calculate_similarity = &calculate_euclidean_similarity;	/* TODO add user input for this */
 
-    files->seeds = seeds->answer;
+    if (seeds->answer == NULL) {	/* no starting seeds, will use all pixels as seeds */
+	files->seeds_map = NULL;
+    }
+    else {			/* polygon constraints given */
+	files->seeds_map = seeds->answer;
+	if ((files->seeds_mapset =
+	     G_find_raster2(files->seeds_map, "")) == NULL) {
+	    G_fatal_error(_("Starting seeds map not found."));
+	}
+	//~ if (Rast_map_type(files->seeds_map, files->seeds_mapset) !=
+	    //~ CELL_TYPE) {
+	    //~ G_fatal_error(_("Starting seeds map must be CELL type (integers)"));
+	//~ }  //todo: don't need this check, want it for polygon constraints, but for seeds we are just looking for null vs. not null
+    }
 
     if (bounds->answer == NULL) {	/*no polygon constraints */
 	files->bounds_map = NULL;

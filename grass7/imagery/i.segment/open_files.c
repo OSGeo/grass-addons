@@ -10,10 +10,12 @@
 int open_files(struct files *files)
 {
     struct Ref Ref;		/* group reference list */
-    int *in_fd, bounds_fd, null_check, out_fd, mean_fd;
+    int *in_fd, seeds_fd, bounds_fd, null_check, out_fd, mean_fd;
     int i, n, s, row, col, srows, scols, inlen, nseg;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
     CELL *boundsbuf;
+    void *seedsbuf;		/* todo. correct data type when allowing any data type? */
+    RASTER_MAP_TYPE data_type;
     struct FPRange *fp_range;	/* for getting min/max values on each input raster */
     DCELL *min, *max;
 
@@ -37,6 +39,8 @@ int open_files(struct files *files)
     files->candidate_flag = flag_create(files->nrows, files->ncols);
     if (files->bounds_map != NULL)
 	files->orig_null_flag = flag_create(files->nrows, files->ncols);
+	if (files->seeds_map != NULL)
+	files->seeds_flag = flag_create(files->nrows, files->ncols);
 
     /* references for segmentation library: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
 
@@ -163,6 +167,30 @@ int open_files(struct files *files)
 
     /* number of initial segments, will decrement when merge */
     files->nsegs = s - 1;
+
+	/* starting seeds */
+	/* save as flag, will reset candidate flags to match seed flags on each iteration */
+	if (files->seeds_map != NULL) {
+		seeds_fd = Rast_open_old(files->seeds_map, "");
+		data_type = Rast_get_map_type(seeds_fd);
+		seedsbuf = Rast_allocate_buf(data_type);
+		
+		for (row = 0; row < files->nrows; row++) {
+			Rast_get_row(seeds_fd, seedsbuf, row, data_type);
+			for (col = 0; col < files->ncols; col++) {
+			
+			if (Rast_is_null_value(&seedsbuf[col], data_type) == TRUE) { /* TODO, compiler warnings:
+																		  * open_files.c:182:37: warning: dereferencing ‘void *’ pointer [enabled by default]
+																		  * open_files.c:182:27: warning: taking address of expression of type ‘void’ [enabled by default]
+																		  */
+			
+				FLAG_SET(files->seeds_flag, row, col);
+			}
+			}
+		}
+		Rast_close(seeds_fd);
+		G_free(seedsbuf);
+	}
 
     /* bounds/constraints */
     if (files->bounds_map != NULL) {

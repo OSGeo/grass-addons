@@ -40,8 +40,7 @@ struct files
 
     /* files */
     char *out_name;		/* name of output raster map */
-    const char *seeds, *bounds_map;
-    const char *bounds_mapset;	/* optional segment seeds and polygon constraints/boundaries */
+    const char *seeds_map, *seeds_mapset, *bounds_map, *bounds_mapset;		/* optional segment seeds and polygon constraints/boundaries */
     char *out_band;		/* for debug */
 
     /* file processing */
@@ -58,7 +57,7 @@ struct files
     int nsegs;			/* number of segments */
 
     /* processing flags */
-    FLAG *candidate_flag, *null_flag, *orig_null_flag;
+    FLAG *candidate_flag, *null_flag, *orig_null_flag, *seeds_flag;
 
     /* memory management, linked lists */
     struct link_head *token;	/* for linkm.h linked list memory management. */

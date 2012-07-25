@@ -389,7 +389,7 @@ int ll_test(struct files *files, struct functions *functions)
 	G_message("estimate of tokens created %d", count + 15);
 	/*dispose tokens */
 	while (Rin_head != NULL) {
-	    current = Rin_head;	/* rememer "old" head */
+	    current = Rin_head;	/* remember "old" head */
 	    Rin_head = Rin_head->next;	/* move head to next pixel */
 	    link_dispose(files->token, (VOID_T *) current);	/* remove "old" head */
 	}
@@ -921,9 +921,11 @@ int region_growing(struct files *files, struct functions *functions)
 					"Lowest Ri_similarity = %g, for neighbor pixel row: %d col: %d",
 					Ri_similarity, Ri_bestn->row,
 					Ri_bestn->col);
-
+					
+//if bounds map, can't check if it is a candidate.  TODO better way to include this check after decide on using the candidate flag here.
+if(files->seeds_map == NULL){
 				//todo this "limited" flag will probably be removed?  Then this entire if section could be removed if we always allow multiple merges per pass?
-				if (functions->limited && !
+				if ((functions->limited == TRUE) && !
 				    (FLAG_GET
 				     (files->candidate_flag, Ri_bestn->row,
 				      Ri_bestn->col))) {
@@ -933,7 +935,7 @@ int region_growing(struct files *files, struct functions *functions)
 				    pathflag = FALSE;
 				}
 			    }
-
+}
 			    if (Ri_bestn != NULL && Ri_similarity < threshold) {	/* small TODO: should this be < or <= for threshold? */
 				/* Rk starts from Ri's best neighbor */
 				Rk_count = 1;
@@ -1583,6 +1585,8 @@ int set_all_candidate_flags(struct files *files)
 {
     int row, col;
 
+	if(files->seeds_map == NULL) { /* entire map is considered as candidates */
+
     //~ if (files->bounds_map == NULL) {        /* process entire raster */
     for (row = files->minrow; row < files->maxrow; row++) {
 	for (col = files->mincol; col < files->maxcol; col++) {
@@ -1611,7 +1615,22 @@ int set_all_candidate_flags(struct files *files)
     //~ }
     //~ }
     //~ }
-
+	}
+	else { /* seeds were provided */
+	
+	for (row = files->minrow; row < files->maxrow; row++) {
+	for (col = files->mincol; col < files->maxcol; col++) {
+	    if ((FLAG_GET(files->seeds_flag, row, col))) {
+		FLAG_SET(files->candidate_flag, row, col);
+		files->candidate_count++; //TODO, how deal with this...
+	    }
+	    else
+		FLAG_UNSET(files->candidate_flag, row, col); //todo maybe can skip this...
+	}
+    }
+	}
+	
+	
     return TRUE;
 }
 
