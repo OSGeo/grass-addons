@@ -20,12 +20,19 @@ This program is free software under the GNU General Public License
 
 import os
 import sys
+import Queue
+try:
+    import grass.lib.vector as vectlib
+    from ctypes import pointer, byref, c_char_p, c_int, c_double
+    haveCtypes = True
+except ImportError:
+    haveCtypes = False
 try:
    from hashlib import md5
-   hasHashlib = True 
+   haveHashlib = True 
 except:
     import md5 #Python 2.4
-    hasHashlib = False
+    haveHashlib = False
 from copy import copy
 from grass.script     import core as grass
 
@@ -39,13 +46,14 @@ from core.settings    import UserSettings
 from core.gcmd        import RunCommand, GMessage
 
 from gui_core.widgets import GNotebook
-from gui_core.goutput import GMConsole
+from gui_core.goutput import GMConsole, CmdThread, EVT_CMD_DONE
 from gui_core.gselect import Select, LayerSelect, ColumnSelect
 
 from vnet.widgets     import PointsList
 from vnet.toolbars    import MainToolbar, PointListToolbar
 
 #TODOs
+# snaping - react on change of map/layer
 # when layer tree is lmgr is changed, tmp layer is removed from render list 
 # check if has layertree (lmgr)?
 
@@ -61,14 +69,12 @@ class VNETDialog(wx.Dialog):
         self.mapWin = parent.MapWindow
         self.inputData = {}
         self.cmdParams = {}
+        self.snapData = {}
+        self.snaping = False
 
-        self.tmp_result = None
-        self.vnetFlowTmpCut = None
         self.tmpMaps = VnetTmpVectMaps(parent = self)
 
-        self.firstAnalysis = True
         self.hiddenTypeCol = None
-
         self._initSettings()
 
         # registration graphics for drawing
@@ -87,7 +93,7 @@ class VNETDialog(wx.Dialog):
         # toobars
         self.toolbars = {}
         self.toolbars['mainToolbar'] = MainToolbar(parent = self)
-
+ 
         #
         # Fancy gui
         #
@@ -276,10 +282,12 @@ class VNETDialog(wx.Dialog):
         val = event.IsChecked()
         if val:
             self.tmp_result.DeleteRenderLayer()
-            self.vnetFlowTmpCut.AddRenderLayer()
+            cmd = self.GetLayerStyle()
+            self.vnetFlowTmpCut.AddRenderLayer(cmd)
         else:
             self.vnetFlowTmpCut.DeleteRenderLayer()
-            self.tmp_result.AddRenderLayer()
+            cmd = self.GetLayerStyle()
+            self.tmp_result.AddRenderLayer(cmd)
 
         self.mapWin.UpdateMap(render = True, renderVector = True)
 
@@ -513,7 +521,6 @@ class VNETDialog(wx.Dialog):
             return
 
         self.notebook.SetSelectionByName("points")
-
         if not self.list.itemDataMap:
             self.list.AddItem(None)
 
@@ -521,6 +528,12 @@ class VNETDialog(wx.Dialog):
 
         index = self.list.selected
         key = self.list.GetItemData(index)
+
+        if self.snaping:
+            coords = [e, n]
+            self._snapPoint(coords)
+            e = coords[0]
+            n = coords[1]
 
         self.pointsToDraw.GetItem(key).SetCoords([e, n])
 
@@ -531,6 +544,58 @@ class VNETDialog(wx.Dialog):
         self.list.Select(self.list.selected)
 
         self.mapWin.UpdateMap(render=False, renderVector=False)
+
+    def _snapPoint(self, coords):
+
+        e = coords[0]
+        n = coords[1]
+
+        snapTreshPix = int(UserSettings.Get(group ='vnet', 
+                                            key = 'other', 
+                                            subkey = 'snap_tresh'))
+        res = max(self.mapWin.Map.region['nsres'], self.mapWin.Map.region['ewres'])
+        snapTreshDist = snapTreshPix * res
+
+        inpMapExists = grass.find_file(name = self.inputData['input'].GetValue(), 
+                                       element = 'vector', 
+                                       mapset = grass.gisenv()['MAPSET'])
+        if not inpMapExists['name']: # TODO  without check falls on Vect_open_old2
+            return False
+
+        openedMap = pointer(vectlib.Map_info())
+        ret = vectlib.Vect_open_old2(openedMap, 
+                                     c_char_p(self.inputData['input'].GetValue()),
+                                     c_char_p(grass.gisenv()['MAPSET']),
+                                     c_char_p(self.inputData['alayer'].GetValue()))
+        if ret == 1:
+            vectlib.Vect_close(openedMap)
+        if ret != 2: #TODO also 1?
+            return False
+
+        nodeNum =  vectlib.Vect_find_node(openedMap,     
+                                          c_double(e), 
+                                          c_double(n), 
+                                          c_double(0), 
+                                          c_double(snapTreshDist),
+                                          vectlib.WITHOUT_Z)
+
+        if nodeNum > 0:
+            e = c_double(0)
+            n = c_double(0)
+            vectlib.Vect_get_node_coor(openedMap, 
+                                       nodeNum, 
+                                       byref(e), 
+                                       byref(n), 
+                                       None); # z
+            e = e.value
+            n = n.value
+        else:
+            vectlib.Vect_close(openedMap)
+            return False
+
+        coords[0] = e
+        coords[1] = n
+        return True
 
     def OnAnalyze(self, event):
         """!Called when network analysis is started"""
@@ -589,13 +654,11 @@ class VNETDialog(wx.Dialog):
                      message = msg)
             return            
 
-        if self.firstAnalysis:
+        if not self.tmpMaps.HasTmpVectMap("vnet_tmp_result"):
             self.tmp_result = self.tmpMaps.AddTmpVectMap("vnet_tmp_result")
             if not self.tmp_result:
                     return          
-            self.firstAnalysis = False
-        else:
-            if not self.tmp_result.VectLayerState(layer = 1):
+        elif not self.tmp_result.VectLayerState(layer = 1):
                 return 
 
         # Creates part of cmd fro analysis
@@ -604,8 +667,6 @@ class VNETDialog(wx.Dialog):
         cmdParams.append("output=" + self.tmp_result.GetVectMapName())
 
         catPts = self._getPtByCat()
-
-        self.tmpMaps.RemoveTmpMap(self.tmp_result)
 
         if self.currAnModule == "v.net.path":
             self._vnetPathRunAn(cmdParams, catPts)
@@ -660,7 +721,8 @@ class VNETDialog(wx.Dialog):
         grass.try_remove(self.coordsTmpFile)
         self.tmp_result.SaveVectLayerState(layer = 1)
 
-        self.tmp_result.AddRenderLayer()
+        cmd = self.GetLayerStyle()
+        self.tmp_result.AddRenderLayer(cmd)
         self.mapWin.UpdateMap(render=True, renderVector=True)
 
     def _runAn(self, cmdParams, catPts):
@@ -761,7 +823,8 @@ class VNETDialog(wx.Dialog):
         grass.try_remove(self.tmpPtsAsciiFile)
 
         self.tmp_result.SaveVectLayerState(layer = 1)
-        self.tmp_result.AddRenderLayer()
+        cmd = self.GetLayerStyle()
+        self.tmp_result.AddRenderLayer(cmd)
         self.mapWin.UpdateMap(render=True, renderVector=True)
 
     def _getInputParams(self):
@@ -833,8 +896,7 @@ class VNETDialog(wx.Dialog):
         resStyle = self.vnetParams[self.currAnModule]["resultStyle"]
 
         width = UserSettings.Get(group='vnet', key='res_style', subkey= "line_width")
-        layerStyleCmd = ['d.vect', 
-                          "layer=1",'width=' + str(width)]
+        layerStyleCmd = ["layer=1",'width=' + str(width)]
 
         if "catColor" in resStyle:
             layerStyleCmd.append('flags=c')
@@ -863,9 +925,11 @@ class VNETDialog(wx.Dialog):
         toggleState = mainToolbar.GetToolState(id)
 
         if toggleState:
-            self.tmp_result.AddRenderLayer()
+            cmd = self.GetLayerStyle()
+            self.tmp_result.AddRenderLayer(cmd)
         else:
-            self.tmp_result.DeleteRenderLayer()
+            cmd = self.GetLayerStyle()
+            self.tmp_result.DeleteRenderLayer(cmd)
 
         self.mapWin.UpdateMap(render=True, renderVector=True)
 
@@ -925,14 +989,15 @@ class VNETDialog(wx.Dialog):
                        vect = [self.tmp_result.GetVectMapName(), addedMap])
 
             cmd = self.GetLayerStyle()
+            cmd.insert(0, 'd.vect')
             cmd.append('map=%s' % addedMap)
             if  self.mapWin.tree.FindItemByData(key = 'name', value = addedMap) is None: 
                 self.mapWin.tree.AddLayer(ltype = "vector", 
-                                          lname =addedMap,
+                                          lname = addedMap,
                                           lcmd = cmd,
                                           lchecked = True)
 
-            self.mapWin.UpdateMap(render=True, renderVector=True)
+            #self.mapWin.UpdateMap(render=True, renderVector=True)
 
 
     def OnSettings(self, event):
@@ -1010,6 +1075,80 @@ class VNETDialog(wx.Dialog):
                 self.list.DeleteColumn(1) 
                 self.list.ResizeColumns()
 
+    def OnSnapping(self, event):
+
+        if not haveCtypes:
+            ptListToolbar = self.toolbars['pointsList']
+            ptListToolbar.ToggleTool(vars(ptListToolbar)["snapping"], False) #TODO better way?
+            GMessage(parent = self,
+                     message = _("Unable to find Vector library. \n") + \
+                               _("Snapping mode can not be activated."))
+            return
+        if not event.IsChecked():
+            self.snapPts.DeleteRenderLayer() 
+            self.mapWin.UpdateMap(render = False, renderVector = False)
+            self.snaping = False
+            return  
+
+        self.snaping = True
+
+        if not self.tmpMaps.HasTmpVectMap("vnet_snap_points"):
+            self.tmpMaps.HasTmpVectMap("vnet_snap_points")
+            self.snapPts = self.tmpMaps.AddTmpVectMap("vnet_snap_points")
+            if not self.snapPts:
+                return  #TODO        
+        elif not self.snapPts.VectLayerState(layer = 1):
+                return #TODO
+
+        info = RunCommand("v.info",
+                           map = self.inputData["input"].GetValue(),
+                           layer = self.inputData["alayer"].GetValue(),
+                           read = True)
+
+        if haveHashlib:
+            m = md5()
+        else:
+            m = md5.new()
+            m.update(info)
+        inputHash = m.digest()
+
+        computeNodes = True
+
+        if not self.snapData:
+            pass
+        elif self.snapData["inputMap"] == self.inputData["input"].GetValue() and \
+             self.snapData["inputMapAlayer"] == self.inputData["alayer"].GetValue():
+
+            if self.snapData["inputHash"] == inputHash:
+                computeNodes = False
+
+        if computeNodes:
+            self.requestQ = Queue.Queue()
+            self.resultQ = Queue.Queue()
+
+            self.cmdThread = CmdThread(self, self.requestQ, self.resultQ)
+
+            cmd = ["v.to.points", "input=" + self.inputData["input"].GetValue(), 
+                                  "output=" + self.snapPts.GetVectMapName(),
+                                  "llayer=" + self.inputData["alayer"].GetValue(),
+                                  "-n", "--overwrite"]
+            # process GRASS command with argument
+            self.Bind(EVT_CMD_DONE, self._onToPointsDone)
+            self.cmdThread.RunCmd(cmd)
+
+            self.snapData["inputMap"] =  self.inputData["input"].GetValue()
+            self.snapData["inputMapAlayer"] = self.inputData["alayer"].GetValue()
+            self.snapData["inputHash"] = inputHash
+        else:
+            self.snapPts.AddRenderLayer()           
+            self.mapWin.UpdateMap(render = True, renderVector = True)
+        
+
+    def _onToPointsDone(self, event):
+
+        self.snapPts.SaveVectLayerState(layer = 1)
+        self.snapPts.AddRenderLayer() 
+        self.mapWin.UpdateMap(render = True, renderVector = True)
 
     def _initVnetParams(self):
         """!Initializes parameters for different v.net.* modules """
@@ -1141,8 +1280,8 @@ class VNETDialog(wx.Dialog):
 
     def _initSettings(self):
         """!Initialization of settings (if not already defined)"""
-        if 'vnet' in UserSettings.userSettings:
-           return
+        #if 'vnet' in UserSettings.userSettings:
+        #   return
 
         # initializes default settings
         initSettings = [
@@ -1153,10 +1292,11 @@ class VNETDialog(wx.Dialog):
                         ['point_colors', "unused", (131,139,139)],
                         ['point_colors', "used1cat", (192,0,0)],
                         ['point_colors', "used2cat", (0,0,255)],
-                        ['point_colors', "selected", (9,249,17)]
+                        ['point_colors', "selected", (9,249,17)],
+                        ['other', "snap_tresh", 10]
                        ]
 
-        for init in initSettings:
+        for init in initSettings: #TODO initialization warnings, all types are strs
             try:
                 val = UserSettings.Get(group ='vnet',
                                        key = init[0],
@@ -1164,7 +1304,8 @@ class VNETDialog(wx.Dialog):
                 if type(val) != type(init[2]):
                     raise ValueError()
 
-            except (KeyError, ValueError):              
+            except (KeyError, ValueError): 
+       
                 UserSettings.Append(dict = UserSettings.userSettings, 
                                     group ='vnet',
                                     key = init[0],
@@ -1321,7 +1462,8 @@ class SettingsDialog(wx.Dialog):
         self.sizeSetts = {
                           "line_width" : ["res_style", _("Line width:")],
                           "point_size" : ["point_symbol", _("Point size:")], 
-                          "point_width" : ["point_symbol", _("Point width:")]
+                          "point_width" : ["point_symbol", _("Point width:")],
+                          "snap_tresh" : ["other", _("Snapping treshold in pixels:")]
                          }
 
         for settKey, sett in self.sizeSetts.iteritems():
@@ -1392,6 +1534,20 @@ class SettingsDialog(wx.Dialog):
 
         ptsStyleBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
 
+        otherBox = wx.StaticBox(parent = self, id = wx.ID_ANY,
+                                label =" %s " % _("Other:"))
+        otherBoxSizer = wx.StaticBoxSizer(otherBox, wx.VERTICAL)
+
+        gridSizer = wx.GridBagSizer(vgap = 1, hgap = 1)
+        gridSizer.AddGrowableCol(1)
+
+        row = 0
+        gridSizer.Add(item = settsLabels["snap_tresh"], flag=wx.ALIGN_CENTER_VERTICAL, pos=(row, 0))
+        gridSizer.Add(item = self.settings["snap_tresh"],
+                      flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
+                      pos = (row, 1))
+        otherBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
+
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         btnSizer.Add(self.btnApply, flag = wx.LEFT | wx.RIGHT, border = 5)
         btnSizer.Add(self.btnSave, flag=wx.LEFT | wx.RIGHT, border=5)
@@ -1399,12 +1555,12 @@ class SettingsDialog(wx.Dialog):
 
         sizer.Add(item = styleBoxSizer, flag = wx.EXPAND | wx.ALL, border = 5)
         sizer.Add(item = ptsStyleBoxSizer, flag = wx.EXPAND | wx.ALL, border = 5)
+        sizer.Add(item = otherBoxSizer, flag = wx.EXPAND | wx.ALL, border = 5)
         sizer.Add(item = btnSizer, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)    
 
         self.SetSizer(sizer)
         sizer.Fit(self)
      
-
     def OnSave(self, event):
         """!Button 'Save' pressed"""
         self.UpdateSettings()
@@ -1437,7 +1593,8 @@ class SettingsDialog(wx.Dialog):
         if not hasattr(self.parent.tmp_result, "GetRenderLayer"):
             self.parent.mapWin.UpdateMap(render=False, renderVector=False)
         elif self.parent.tmp_result.GetRenderLayer():
-            self.parent.tmp_result.AddRenderLayer()
+            cmd = self.parent.GetLayerStyle()
+            self.parent.tmp_result.AddRenderLayer(cmd)
             self.parent.mapWin.UpdateMap(render=True, renderVector=True)#TODO optimization
         else:
             self.parent.mapWin.UpdateMap(render=False, renderVector=False)
@@ -1462,7 +1619,7 @@ class AddLayerDialog(wx.Dialog):
         # text fields and it's captions
         self.vectSel = Select(parent = self.panel, type = 'vector', size = (-1, -1))
         self.vectSellabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY,
-                                          label = _("Layer name:")) 
+                                          label = _("Map name:")) 
 
         # buttons
         self.btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
@@ -1477,7 +1634,7 @@ class AddLayerDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         box = wx.StaticBox (parent = self.panel, id = wx.ID_ANY,
-                            label = "Added layer")
+                            label = "Added vector map")
 
         boxSizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
 
@@ -1539,6 +1696,14 @@ class VnetTmpVectMaps:
 
         return newVectMap
 
+    def HasTmpVectMap(self, vectMap):
+
+        fullName = vectMap + "@" + grass.gisenv()['MAPSET']
+        for vectTmpMap in self.tmpMaps:
+            if vectTmpMap.GetVectMapName() == fullName:
+                return True
+        return False
+
     def RemoveTmpMap(self, vectMap):
 
         RunCommand('g.remove', 
@@ -1566,12 +1731,13 @@ class VnetTmpVectMap:
         self.parent = parent
         self.renderLayer = None
         self.layersHash = {}
+        self.new = True
 
     def __del__(self):
 
         self.DeleteRenderLayer()
    
-    def AddRenderLayer(self):
+    def AddRenderLayer(self, cmd = None):
 
         existsMap = grass.find_file(name = self.fullName, 
                                     element = 'vector', 
@@ -1581,7 +1747,9 @@ class VnetTmpVectMap:
             self.DeleteRenderLayer()
             return False
 
-        cmd = self.parent.parent.GetLayerStyle()
+        if not cmd:
+            cmd = []    
+        cmd.insert(0, 'd.vect')
         cmd.append('map=%s' % self.fullName)
 
         if self.renderLayer:       
@@ -1608,11 +1776,11 @@ class VnetTmpVectMap:
 
     def SaveVectLayerState(self, layer):
     
-         self.layersHash[layer] = self._getLayerHash(layer = layer)
+         self.layersHash[layer] = self.GetLayerHash(layer = layer)
         
     def VectLayerState(self, layer):
 
-        if self.layersHash[layer] != self._getLayerHash(layer = layer):
+        if self.layersHash[layer] != self.GetLayerHash(layer = layer):
             dlg = wx.MessageDialog(parent = self.parent.parent,
                                    message = _("Layer %d in map %s was changed outside " +
                                                 "of vector network analysis tool. " +
@@ -1630,13 +1798,13 @@ class VnetTmpVectMap:
             
         return True
 
-    def _getLayerHash(self, layer):
+    def GetLayerHash(self, layer):
         info = RunCommand("v.info",
                            map = self.fullName,
                            layer = layer,
                            read = True)
 
-        if hasHashlib:
+        if haveHashlib:
             m = md5()
         else:
             m = md5.new()

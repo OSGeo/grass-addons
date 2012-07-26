@@ -39,6 +39,8 @@ class PointListToolbar(BaseToolbar):
         icons = {
             'insertPoint'  : MetaIcon(img = 'pointer',
                                     label = _('Insert point with mouse')),
+            'snapping'  : MetaIcon(img = 'move',
+                                    label = _('Snap to nodes')),
             'pointAdd'     : MetaIcon(img = 'point-create',
                                     label = _('Add new point')),
             'pointDelete'  : MetaIcon(img = 'gcp-delete',
@@ -48,6 +50,10 @@ class PointListToolbar(BaseToolbar):
         return  self._getToolbarData((('insertPoint', icons['insertPoint'],
                                       self.list.dialog.OnInsertPoint,#TODO self.list.dialog
                                       wx.ITEM_CHECK),
+                                      ('snapping', icons['snapping'],
+                                      self.list.dialog.OnSnapping,
+                                      wx.ITEM_CHECK),
+                                      (None, ),
                                      ('pointAdd', icons["pointAdd"],
                                         self.list.AddItem),
                                      ('pointDelete', icons["pointDelete"],
