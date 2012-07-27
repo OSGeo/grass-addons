@@ -21,7 +21,7 @@ function copy {
     cp -r log-r*         $WWWDIR/grass$1/logs
 
     if test -n "$2"; then
-	ADDONDIR=$WWWDIR/grass$1/addons/$2
+	ADDONDIR=$WWWDIR/grass$1/addons/grass-$2
     else
 	ADDONDIR=$WWWDIR/grass$1/addons
     fi
