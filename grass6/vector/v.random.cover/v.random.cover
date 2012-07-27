@@ -114,9 +114,9 @@ cleanup()
 # what to do in case of user break:
 exitprocedure()
 {
- echo 'User break!' 1>&2
- cleanup
- exit 1
+   echo 'User break!' 1>&2
+   cleanup
+   exit 1
 }
 # shell check for user break (signal list: trap -l)
 trap "exitprocedure" 2 3 15
@@ -153,8 +153,15 @@ g.region vect="vranda_cover_$$"
 # proportion of in-area to region area
 NS_EXT=`g.region -em | grep north | cut -f2 -d':' | awk '{print $1}'`
 EW_EXT=`g.region -em | grep east | cut -f2 -d':' | awk '{print $1}'`
-REGION_AREA=`echo $NS_EXT $EW_EXT | awk '{print $1 * $2}'`
+REGION_AREA=`echo "$NS_EXT" "$EW_EXT" | awk '{print $1 * $2}'`
+
 v.report map="vranda_cover_$$" option=area units=meters > "$TMP"
+if [ $? -ne 0 ] ; then
+    g.message -e "v.report failed"
+    cleanup
+    exit 1
+fi
+
 AREA_COLUMN=`head -n 1 "$TMP" | tr '|' '\n' | grep -wn area | cut -f1 -d':'`
 BOUND_AREA=`cut -f${AREA_COLUMN} -d'|' "$TMP" | grep -v '^area$' | tr '\n' ' '`
 
