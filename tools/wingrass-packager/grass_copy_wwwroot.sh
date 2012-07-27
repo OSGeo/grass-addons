@@ -20,14 +20,20 @@ function copy {
     mkdir $WWWDIR/grass$1/logs
     cp -r log-r*         $WWWDIR/grass$1/logs
 
-    mkdir $WWWDIR/grass$1/addons
-    cp    addons/*zip addons/*.md5sum $WWWDIR/grass$1/addons
-    cp -r addons/logs                 $WWWDIR/grass$1/addons
+    if test -n "$2"; then
+	ADDONDIR=$WWWDIR/grass$1/addons/$2
+    else
+	ADDONDIR=$WWWDIR/grass$1/addons
+    fi
+    mkdir -p $ADDONDIR
+    
+    cp    addons/*zip addons/*.md5sum $ADDONDIR
+    cp -r addons/logs                 $ADDONDIR
 }
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 
-copy 64
+copy 64 6.4.3svn
 copy 65
 copy 70
 
