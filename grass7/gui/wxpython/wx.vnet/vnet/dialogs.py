@@ -8,7 +8,7 @@ Classes:
  - dialogs::PtsList
  - dialogs::SettingsDialog
  - dialogs::VnetTmpVectMaps
- - dialogs::VnetTmpVectMap
+ - dialogs::TmpVectMap
 
 (C) 2012 by the GRASS Development Team
 
@@ -20,6 +20,7 @@ This program is free software under the GNU General Public License
 
 import os
 import sys
+import types
 import Queue
 try:
     import grass.lib.vector as vectlib
@@ -52,10 +53,12 @@ from gui_core.gselect import Select, LayerSelect, ColumnSelect
 from vnet.widgets     import PointsList
 from vnet.toolbars    import MainToolbar, PointListToolbar
 
-#TODOs
-# snaping - react on change of map/layer
+#Main TODOs
+# snapping - react on change of map/layer
 # when layer tree is lmgr is changed, tmp layer is removed from render list 
 # check if has layertree (lmgr)?
+# optimization of map drawing 
+
 
 class VNETDialog(wx.Dialog):
     def __init__(self, parent,
@@ -71,6 +74,11 @@ class VNETDialog(wx.Dialog):
         self.cmdParams = {}
         self.snapData = {}
         self.snaping = False
+        self.tmp_result = None #TODO
+
+        self.history = History(self)
+        self.histTmpVectMapNum = 0
+        self.tmpVectMapsToHist = []
 
         self.tmpMaps = VnetTmpVectMaps(parent = self)
 
@@ -93,7 +101,7 @@ class VNETDialog(wx.Dialog):
         # toobars
         self.toolbars = {}
         self.toolbars['mainToolbar'] = MainToolbar(parent = self)
- 
+
         #
         # Fancy gui
         #
@@ -124,7 +132,7 @@ class VNETDialog(wx.Dialog):
 
         # adds 2 points into list
         for i in range(2):
-            self.list.AddItem(None)
+            self.list.AddItem()
             self.list.EditCellIndex(i, 1, self.cols[1][1][1 + i]) 
             self.list.CheckItem(i, True)
 
@@ -134,7 +142,7 @@ class VNETDialog(wx.Dialog):
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseDialog)
 
-        dlgSize = (400, 520)
+        dlgSize = (410, 520)
         self.SetMinSize(dlgSize)
         self.SetInitialSize(dlgSize)
 
@@ -326,7 +334,7 @@ class VNETDialog(wx.Dialog):
                         ['nlayer', "Node layer number or name:", LayerSelect],
                         ['afcolumn', self.attrCols['afcolumn']['label'], ColumnSelect],
                         ['abcolumn', self.attrCols['abcolumn']['label'], ColumnSelect],
-                        ['ncolumn', self.attrCols['ncolumn']['label'], ColumnSelect]
+                        ['ncolumn', self.attrCols['ncolumn']['label'], ColumnSelect],
                       ]
 
         selPanels = {}
@@ -654,10 +662,13 @@ class VNETDialog(wx.Dialog):
                      message = msg)
             return            
 
-        if not self.tmpMaps.HasTmpVectMap("vnet_tmp_result"):
-            self.tmp_result = self.tmpMaps.AddTmpVectMap("vnet_tmp_result")
-            if not self.tmp_result:
-                    return          
+        self.SaveAnInputToHist()
+
+        if self.tmp_result:
+            self.tmp_result.DeleteRenderLayer()
+        self.tmp_result = self.NewTmpVectMapToHist('vnet_tmp_result')
+        if not self.tmp_result:
+                return          
         elif not self.tmp_result.VectLayerState(layer = 1):
                 return 
 
@@ -719,6 +730,9 @@ class VNETDialog(wx.Dialog):
     def _vnetPathRunAnDone(self, cmd, returncode):
         """!Called when v.net.path analysis is done"""
         grass.try_remove(self.coordsTmpFile)
+
+        self._saveHistStep()
+
         self.tmp_result.SaveVectLayerState(layer = 1)
 
         cmd = self.GetLayerStyle()
@@ -775,7 +789,7 @@ class VNETDialog(wx.Dialog):
             cmdParams.append("from_layer=1")
             cmdParams.append("to_layer=1")
         elif self.currAnModule == "v.net.flow":#TODO
-            self.vnetFlowTmpCut = self.tmpMaps.AddTmpVectMap("vnet_tmp_flow_cut")
+            self.vnetFlowTmpCut = self.NewTmpVectMapToHist("vnet_tmp_flow_cut")
             if not self.vnetFlowTmpCut:
                 return
             cmdParams.append("cut=" +  self.vnetFlowTmpCut.GetVectMapName())         
@@ -821,6 +835,8 @@ class VNETDialog(wx.Dialog):
         self.tmpMaps.RemoveTmpMap(self.tmpInPts) # remove earlier (ondone lambda?)
         self.tmpMaps.RemoveTmpMap(self.tmpInPtsConnected)
         grass.try_remove(self.tmpPtsAsciiFile)
+
+        self._saveHistStep()
 
         self.tmp_result.SaveVectLayerState(layer = 1)
         cmd = self.GetLayerStyle()
@@ -988,7 +1004,7 @@ class VNETDialog(wx.Dialog):
                        overwrite = True,
                        vect = [self.tmp_result.GetVectMapName(), addedMap])
 
-            cmd = self.GetLayerStyle()
+            cmd = self.GetLayerStyle()#TOFO get rid of insert
             cmd.insert(0, 'd.vect')
             cmd.append('map=%s' % addedMap)
             if  self.mapWin.tree.FindItemByData(key = 'name', value = addedMap) is None: 
@@ -997,8 +1013,7 @@ class VNETDialog(wx.Dialog):
                                           lcmd = cmd,
                                           lchecked = True)
 
-            #self.mapWin.UpdateMap(render=True, renderVector=True)
-
+            #self.mapWin.UpdateMap(render=True, renderVector=True) 
 
     def OnSettings(self, event):
         """!Displays vnet settings dialog"""
@@ -1150,6 +1165,80 @@ class VNETDialog(wx.Dialog):
         self.snapPts.AddRenderLayer() 
         self.mapWin.UpdateMap(render = True, renderVector = True)
 
+
+
+    def OnUndo(self, event):
+        histStepData = self.history.GetPrev()
+
+        self.toolbars['mainToolbar'].UpdateUndoRedo()
+
+        if histStepData:
+            self._updateHistStepData(histStepData)
+
+    def OnRedo(self, event):
+        histStepData = self.history.GetNext()
+
+        self.toolbars['mainToolbar'].UpdateUndoRedo()
+        if histStepData:
+            self._updateHistStepData(histStepData)
+
+    def _saveHistStep(self):
+
+        self.history.SaveHistStep()
+        self.toolbars['mainToolbar'].UpdateUndoRedo()
+
+    def _updateHistStepData(self, histStepData):#TODO need optimization
+        #TODO ischecked?
+        self.currAnModule = histStepData["vnet_modules"]["curr_module"]
+        anChoice = self.toolbars['mainToolbar'].anChoice
+        anChoice.SetStringSelection(self.vnetParams[self.currAnModule]["label"]) #TODO
+
+        while self.list.GetSelected() != wx.NOT_FOUND:
+            self.list.DeleteItem()
+
+        i = 0
+        for pt, ptData in  histStepData["points"].iteritems():
+            coords = ptData["coords"]
+            self.list.AddItem()
+            item = self.pointsToDraw.GetItem(i)
+            item.SetCoords(coords)
+            i += 1
+
+        mapsNames = histStepData["tmp_data"]["maps"]
+        for vectMapName in mapsNames:
+            if "vnet_tmp_result" in vectMapName:
+                self.tmp_result.DeleteRenderLayer()
+                self.tmp_result  = self.tmpMaps.GetTmpVectMap(vectMapName)
+
+                cmd = self.GetLayerStyle()
+                self.tmp_result.AddRenderLayer(cmd)
+
+        self.mapWin.UpdateMap(render=True, renderVector=True)
+
+    def NewTmpVectMapToHist(self, prefMapName):
+
+        mapName = prefMapName + str(self.histTmpVectMapNum)
+        self.histTmpVectMapNum += 1
+        tmpMap = self.tmpMaps.AddTmpVectMap(mapName)
+        if not tmpMap:
+            return tmpMap
+           
+        self.tmpVectMapsToHist.append(tmpMap.GetVectMapName())
+        self.history.Add(key = "tmp_data", subkey = "maps",  value = self.tmpVectMapsToHist)
+
+        return tmpMap
+
+    def SaveAnInputToHist(self):
+
+        pts = self.pointsToDraw.GetAllItems()
+        self.tmpVectMapsToHist = []
+        for iPt, pt in enumerate(pts):
+            coords = pt.GetCoords()
+            ptName = "pt" + str(iPt)
+            self.history.Add(key = "points", subkey = [ptName, "coords"], value = coords)
+
+        self.history.Add(key = "vnet_modules", subkey = "curr_module", value = self.currAnModule)
+
     def _initVnetParams(self):
         """!Initializes parameters for different v.net.* modules """
 
@@ -1287,7 +1376,7 @@ class VNETDialog(wx.Dialog):
         initSettings = [
                         ['res_style', 'line_width', 5],
                         ['res_style', 'line_color', (192,0,0)],
-                        ['point_symbol', 'point_size', 10],
+                        ['point_symbol', 'point_size', 10],             
                         ['point_symbol', 'point_width', 2],
                         ['point_colors', "unused", (131,139,139)],
                         ['point_colors', "used1cat", (192,0,0)],
@@ -1342,7 +1431,7 @@ class PtsList(PointsList):
 
         PointsList.__init__(self, parent = parent, cols = cols, id =  id)      
 
-    def AddItem(self, event):
+    def AddItem(self, event = None):
         """!
         Appends an point to list
         """       
@@ -1354,17 +1443,16 @@ class PtsList(PointsList):
         self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
 
 
-    def DeleteItem(self, event):
+    def DeleteItem(self, event = None):
         """!
         Deletes selected point in list
         """
-
         key = self.GetItemData(self.selected)
-        PointsList.DeleteItem(self, event)
-
         if self.selected != wx.NOT_FOUND:
             item = self.dialog.pointsToDraw.GetItem(key)
             self.dialog.pointsToDraw.DeleteItem(item)
+
+        PointsList.DeleteItem(self, event)
 
     def OnItemSelected(self, event):
         """
@@ -1590,7 +1678,7 @@ class SettingsDialog(wx.Dialog):
 
         self.parent.SetPointDrawSettings()
 
-        if not hasattr(self.parent.tmp_result, "GetRenderLayer"):
+        if not self.parent.tmpMaps.HasTmpVectMap("vnet_tmp_result"):
             self.parent.mapWin.UpdateMap(render=False, renderVector=False)
         elif self.parent.tmp_result.GetRenderLayer():
             cmd = self.parent.GetLayerStyle()
@@ -1691,7 +1779,7 @@ class VnetTmpVectMaps:
         else:
             fullName = mapName + "@" + currMapSet
 
-        newVectMap = VnetTmpVectMap(self, fullName)
+        newVectMap = TmpVectMap(self, fullName)
         self.tmpMaps.append(newVectMap)
 
         return newVectMap
@@ -1703,6 +1791,13 @@ class VnetTmpVectMaps:
             if vectTmpMap.GetVectMapName() == fullName:
                 return True
         return False
+
+    def GetTmpVectMap(self, vectMapName):
+
+        for vectMap in self.tmpMaps:
+            if vectMap.GetVectMapName() == vectMapName.strip():
+                return vectMap
+        return None
 
     def RemoveTmpMap(self, vectMap):
 
@@ -1724,7 +1819,7 @@ class VnetTmpVectMaps:
                 update = True
         return update
 
-class VnetTmpVectMap:
+class TmpVectMap:
     def __init__(self, parent, fullName):
         """!Represents one temporary map"""
         self.fullName = fullName
@@ -1776,11 +1871,14 @@ class VnetTmpVectMap:
 
     def SaveVectLayerState(self, layer):
     
-         self.layersHash[layer] = self.GetLayerHash(layer = layer)
+         self.layersHash[layer] = self._getLayerHash(layer = layer)
         
     def VectLayerState(self, layer):
 
-        if self.layersHash[layer] != self.GetLayerHash(layer = layer):
+        if  not self.layersHash:#TODO 
+            return True
+
+        if self.layersHash[layer] != self._getLayerHash(layer = layer):
             dlg = wx.MessageDialog(parent = self.parent.parent,
                                    message = _("Layer %d in map %s was changed outside " +
                                                 "of vector network analysis tool. " +
@@ -1798,7 +1896,7 @@ class VnetTmpVectMap:
             
         return True
 
-    def GetLayerHash(self, layer):
+    def _getLayerHash(self, layer):
         info = RunCommand("v.info",
                            map = self.fullName,
                            layer = layer,
@@ -1811,6 +1909,228 @@ class VnetTmpVectMap:
         m.update(info)
 
         return m.digest()
+
+class History:
+    def __init__(self, parent):
+
+        self.maxHistSteps = 10
+        self.currHistStep = 0
+        self.histStepsNum = 0
+        self.currHistStepData = {}
+
+        self.newHistStepData = {}
+        self.histFile = grass.tempfile()
+
+        # key/value separator
+        self.sep = ';'
+
+    def __del__(self):
+        grass.try_remove(self.histFile)
+
+    def GetNext(self):
+
+        self.currHistStepData.clear()
+        self.currHistStep -= 1
+        return self._getHistStepData(self.currHistStep)
+
+    def GetPrev(self):
+
+        self.currHistStepData.clear()
+        self.currHistStep += 1 
+        return self._getHistStepData(self.currHistStep)
+
+    def GetCurrHistStep(self):
+        return self.currHistStep
+
+    def GetStepsNum(self):
+        return self.histStepsNum
+
+    def Add(self, key, subkey, value):#TODO
+
+        if key not in self.newHistStepData:
+            self.newHistStepData[key] = {}
+
+        if type(subkey) == types.ListType:
+            if subkey[0] not in self.newHistStepData[key]:
+                self.newHistStepData[key][subkey[0]] = {}
+            self.newHistStepData[key][subkey[0]][subkey[1]] = value
+        else:
+            self.newHistStepData[key][subkey] = value
+
+    def SaveHistStep(self):
+
+        self.currHistStep = 0 #TODO
+
+        newHistFile = grass.tempfile()
+        newHist = open(newHistFile, "w")
+
+        self._saveNewHistStep(newHist)
+
+        oldHist = open(self.histFile)
+        self._savePreviusHist(newHist, oldHist)
+
+        oldHist.close()
+        newHist.close()
+        grass.try_remove(self.histFile)
+        self.histFile = newHistFile
+
+        self.newHistStepData.clear() 
+
+    def _savePreviusHist(self, newHist, oldHist):          
+  
+        newHistStep = False
+        histStepNum = 1
+        for line in oldHist.readlines():
+            if not line.strip():
+                newHistStep = True
+                continue
+            if newHistStep:
+                line = line.split("=")
+                line[1] = str(histStepNum)
+                line = "=".join(line) 
+
+                if histStepNum >= self.maxHistSteps:
+                    self.histStepsNum = histStepNum + 1
+                    return
+                histStepNum += 1
+                newHistStep = False
+                newHist.write('%s%s%s' % (os.linesep, line, os.linesep))
+            else:
+                newHist.write('%s' % line)                
+        self.histStepsNum = histStepNum + 1
+            
+    def _saveNewHistStep(self, newHist):
+ 
+        newHist.write('%s%s%s' % (os.linesep, "history step=0", os.linesep))  
+        for key in self.newHistStepData.keys():
+            subkeys =  self.newHistStepData[key].keys()
+            newHist.write('%s%s' % (key, self.sep))
+            for idx in range(len(subkeys)):
+                value =  self.newHistStepData[key][subkeys[idx]]
+                if type(value) == types.DictType:
+                    if idx > 0:
+                        newHist.write('%s%s%s' % (os.linesep, key, self.sep))
+                    newHist.write('%s%s' % (subkeys[idx], self.sep))
+                    kvalues =  self.newHistStepData[key][subkeys[idx]].keys()
+                    srange = range(len(kvalues))
+                    for sidx in srange:
+                        svalue = self._parseValue(self.newHistStepData[key][subkeys[idx]][kvalues[sidx]])
+                        newHist.write('%s%s%s' % (kvalues[sidx], self.sep, svalue))
+                        if sidx < len(kvalues) - 1:
+                            newHist.write('%s' % self.sep)
+                else:
+                    if idx > 0 and \
+                            type( self.newHistStepData[key][subkeys[idx - 1]]) == types.DictType:
+                        newHist.write('%s%s%s' % (os.linesep, key, self.sep))
+                    value = self._parseValue(self.newHistStepData[key][subkeys[idx]])
+                    newHist.write('%s%s%s' % (subkeys[idx], self.sep, value))
+                    if idx < len(subkeys) - 1 and \
+                            type(self.newHistStepData[key][subkeys[idx + 1]]) != types.DictType:
+                        newHist.write('%s' % self.sep)
+            newHist.write(os.linesep)
+        self.histStepsNum = 1
+
+    def _parseValue(self, value, read = False):
+
+        if read: # -> read data (cast values)
+
+            if value:
+                if value[0] == '[' and value[-1] == ']':# TODO
+                    value = value[1:-1].split(',')
+                    value = map(self._castValue, value)
+                    return value
+
+            if value == 'True':
+                value = True
+            elif value == 'False':
+                value = False
+            elif value == 'None':
+                value = None
+            elif ':' in value: # -> color
+                try:
+                    value = tuple(map(int, value.split(':')))
+                except ValueError: # -> string
+                    pass
+            else:
+                try:
+                    value = int(value)
+                except ValueError:
+                    try:
+                        value = float(value)
+                    except ValueError:
+                        pass
+        else: # -> write data
+            if type(value) == type(()): # -> color
+                value = str(value[0]) + ':' +\
+                    str(value[1]) + ':' + \
+                    str(value[2])
+                
+        return value
+
+    def _castValue(self, value):
+        try:
+            value = int(value)
+        except ValueError:
+            try:
+                value = float(value)
+            except ValueError:
+                value = value[1:-1]
+
+        return value
+
+    def _getHistStepData(self, histStep):          
+        
+        hist = open(self.histFile)
+
+        newHistStep = False
+        isSearchedHistStep = False
+        for line in hist.readlines():
+
+            if  not line.strip() and isSearchedHistStep:
+                 break
+            elif not line.strip():
+                newHistStep = True
+                continue
+            elif isSearchedHistStep:
+                self._parseLine(line)
+
+            if newHistStep:
+                line = line.split("=")
+                if int(line[1]) == histStep:
+                    isSearchedHistStep = True
+                newHistStep = False
+
+        hist.close()
+        return self.currHistStepData
+
+    def _parseLine(self, line):
+
+            line = line.rstrip('%s' % os.linesep).split(self.sep)
+            key = line[0]
+            kv = line[1:]
+            idx = 0
+            subkeyMaster = None
+            if len(kv) % 2 != 0: # multiple (e.g. nviz)
+                subkeyMaster = kv[0]
+                del kv[0]
+            idx = 0
+            while idx < len(kv):
+                if subkeyMaster:
+                    subkey = [subkeyMaster, kv[idx]]
+                else:
+                    subkey = kv[idx]
+                value = kv[idx+1]
+                value = self._parseValue(value, read = True)
+                if key not in self.currHistStepData:
+                    self.currHistStepData[key] = {}
+
+                if type(subkey) == types.ListType:
+                    if subkey[0] not in self.currHistStepData[key]:
+                        self.currHistStepData[key][subkey[0]] = {}
+                    self.currHistStepData[key][subkey[0]][subkey[1]] = value
+                else:
+                    self.currHistStepData[key][subkey] = value
+                idx += 2
 
 #TODO ugly hack - just for GMConsole to be satisfied 
 class CmdPanelHack:

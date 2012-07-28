@@ -74,8 +74,8 @@ class MainToolbar(BaseToolbar):
             choices.append(self.parent.vnetParams[moduleName]['label'])
 
         self.anChoice = wx.ComboBox(parent = self, id = wx.ID_ANY,
-                                 choices = choices,
-                                 style = wx.CB_READONLY, size = (200, -1))
+                                    choices = choices,
+                                    style = wx.CB_READONLY, size = (180, -1))
         self.anChoice.SetSelection(0)
                
         self.anChoiceId = self.AddControl(self.anChoice)
@@ -85,6 +85,7 @@ class MainToolbar(BaseToolbar):
         self.anChoice.Hide()
         self.anChoice.Show()
 
+        self.UpdateUndoRedo()
         # realize the toolbar
         self.Realize()
 
@@ -94,6 +95,10 @@ class MainToolbar(BaseToolbar):
         icons = {
                  'run' : MetaIcon(img = 'execute',
                                   label = _('Execute analysis')),
+                 'undo' : MetaIcon(img = 'undo',
+                                  label = _('Go to previous analysis result')),
+                 'redo' : MetaIcon(img = 'redo',
+                                  label = _('Go to next analysis result')),
                  'showResult'   : MetaIcon(img = 'layer-add',
                                     label = _("Show analysis result")),
                  'saveTempLayer' : MetaIcon(img = 'map-export',
@@ -105,7 +110,11 @@ class MainToolbar(BaseToolbar):
                                      ("run", icons['run'],
                                       self.parent.OnAnalyze),
                                       #("showResult", icons['showResult'], TODO
-                                      #self.parent.OnShowResult, wx.ITEM_CHECK),                                    
+                                      #self.parent.OnShowResult, wx.ITEM_CHECK),      
+                                     ("undo", icons['undo'], 
+                                      self.parent.OnUndo), 
+                                     ("redo", icons['redo'], 
+                                      self.parent.OnRedo),                               
                                      ("saveTempLayer", icons['saveTempLayer'],
                                       self.parent.OnSaveTmpLayer),
                                      ('settings', icons["settings"],
@@ -113,3 +122,15 @@ class MainToolbar(BaseToolbar):
                                      ("quit", BaseIcons['quit'],
                                       self.parent.OnCloseDialog)
                                     ))
+
+    def UpdateUndoRedo(self):
+
+        if self.parent.history.GetCurrHistStep() >= self.parent.history.GetStepsNum() - 2:
+           self.Enable("undo", False)
+        else:
+           self.Enable("undo", True)
+
+        if self.parent.history.GetCurrHistStep() <= 0:
+           self.Enable("redo", False)
+        else:
+           self.Enable("redo", True)   

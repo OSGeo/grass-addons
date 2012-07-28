@@ -223,7 +223,7 @@ class PointsList(wx.ListCtrl,
 
     def ClearItem(self, event):
         """"! Clears all values in selected item of points list and unchecks it."""
-        if self.selected == wx.NOT_FOUN:
+        if self.selected == wx.NOT_FOUND:
             return
         index = self.selected
         i = 0
