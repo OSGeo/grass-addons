@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.in.wms2
+PGM = r.in.wms2.py
 
 MODULES = wms_base wms_drv wms_gdal_drv
 PYFILES := $(patsubst %,$(ETC)/%.py,$(MODULES))
