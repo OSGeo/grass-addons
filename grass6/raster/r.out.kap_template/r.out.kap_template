@@ -542,14 +542,15 @@ else
       se_long=`echo $RESULT | cut -f6 -d' ' | awk '{if ($1 <= 180.0) {print} else {print $1 - 360.0} }'`
       sw_lat=`echo $RESULT | cut -f7 -d' '`
       sw_long=`echo $RESULT | cut -f8 -d' ' | awk '{if ($1 <= 180.0) {print} else {print $1 - 360.0} }'`
-      CNR1="0,0,$nw_lat,$nw_long"
-      CNR2="$cols,0,$ne_lat,$ne_long"
-      CNR3="$cols,$rows,$se_lat,$se_long"
-      CNR4="0,$rows,$sw_lat,$sw_long"
    else
        # use four corners, NW then clockwise
       eval `g.region -lg`
    fi
+
+   CNR1="$nw_lat,$nw_long"
+   CNR2="$ne_lat,$ne_long"
+   CNR3="$se_lat,$se_long"
+   CNR4="$sw_lat,$sw_long"
 
    echo "PLY/1,$CNR1" >> "$OUTFILE.hdr"
    echo "PLY/2,$CNR2" >> "$OUTFILE.hdr"
