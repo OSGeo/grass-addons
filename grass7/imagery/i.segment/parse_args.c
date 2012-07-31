@@ -182,8 +182,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	    G_fatal_error(_("Starting seeds map not found."));
 	}
 	//~ if (Rast_map_type(files->seeds_map, files->seeds_mapset) !=
-	    //~ CELL_TYPE) {
-	    //~ G_fatal_error(_("Starting seeds map must be CELL type (integers)"));
+	//~ CELL_TYPE) {
+	//~ G_fatal_error(_("Starting seeds map must be CELL type (integers)"));
 	//~ }  //todo: don't need this check, want it for polygon constraints, but for seeds we are just looking for null vs. not null
     }
 

@@ -14,7 +14,8 @@ int open_files(struct files *files)
     int i, n, s, row, col, srows, scols, inlen, nseg;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
     CELL *boundsbuf;
-    void *seedsbuf;		/* todo. correct data type when allowing any data type? */
+    void *seedsbuf, *ptr;	/* todo. correct data type when allowing any data type? */
+    size_t ptrsize;
     RASTER_MAP_TYPE data_type;
     struct FPRange *fp_range;	/* for getting min/max values on each input raster */
     DCELL *min, *max;
@@ -39,7 +40,7 @@ int open_files(struct files *files)
     files->candidate_flag = flag_create(files->nrows, files->ncols);
     if (files->bounds_map != NULL)
 	files->orig_null_flag = flag_create(files->nrows, files->ncols);
-	if (files->seeds_map != NULL)
+    if (files->seeds_map != NULL)
 	files->seeds_flag = flag_create(files->nrows, files->ncols);
 
     /* references for segmentation library: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
@@ -73,6 +74,14 @@ int open_files(struct files *files)
 			  Ref.file[n].mapset);
     }
 
+    /* open seeds raster */
+    if (files->seeds_map != NULL) {
+	seeds_fd = Rast_open_old(files->seeds_map, "");
+	data_type = Rast_get_map_type(seeds_fd);
+	seedsbuf = Rast_allocate_buf(data_type);
+	ptrsize = Rast_cell_size(data_type);
+    }
+
     /* Get min/max values of each input raster for scaling */
 
     if (files->weighted == FALSE) {	/*default, we will scale */
@@ -100,7 +109,7 @@ int open_files(struct files *files)
     scols = 64;
 
     /* TODO: make calculations for this, check i.cost and i.watershed */
-    nseg = 16;
+    nseg = 1000;		//16;
 
 
     /* ******* create temporary segmentation files ********* */
@@ -123,23 +132,33 @@ int open_files(struct files *files)
     files->bands_val = (double *)G_malloc(inlen);
     files->second_val = (double *)G_malloc(inlen);
 
-    files->iseg = G_malloc(files->nrows * sizeof(int *));
-    for (i = 0; i < files->nrows; i++)
-	files->iseg[i] = G_malloc(files->ncols * sizeof(int));
+    //~ files->iseg = G_malloc(files->nrows * sizeof(int *));
+    //~ for (i = 0; i < files->nrows; i++)
+    //~ files->iseg[i] = G_malloc(files->ncols * sizeof(int));
+    //~ 
+    //~ /*check the last one to make sure there was enough memory */
+    //~ if (files->iseg[i - 1] != NULL) {       /* everything is OK, and assume all previous memory allocations are OK too. */
+    //~ }
+    //~ else
+    //~ G_fatal_error(_("Unable to allocate memory for initial segment ID's"));
 
-    /*check the last one to make sure there was enough memory */
-    if (files->iseg[i - 1] != NULL) {	/* everything is OK, and assume all previous memory allocations are OK too. */
-    }
-    else
+    if (segment_open
+	(&files->iseg_seg, G_tempfile(), files->nrows, files->ncols, srows,
+	 scols, inlen, nseg) != TRUE)
 	G_fatal_error(_("Unable to allocate memory for initial segment ID's"));
+    /* NOTE: SEGMENT file should be initialized to zeros for all data. TODO double check this. */
 
     /* ********  load input bands to segment structure and fill iseg array ******** */
     G_debug(1, "Reading input rasters into segmentation data files...");
-    s = 1;			/* initial segment ID */
+    s = 0;			/* initial segment ID will be 1 */
 
     for (row = 0; row < files->nrows; row++) {
 	for (n = 0; n < Ref.nfiles; n++) {
 	    Rast_get_d_row(in_fd[n], inbuf[n], row);
+	}
+	if (files->seeds_map != NULL) {
+	    Rast_get_row(seeds_fd, seedsbuf, row, data_type);
+	    ptr = seedsbuf;
 	}
 	for (col = 0; col < files->ncols; col++) {
 	    null_check = 1;	/*Assume there is data */
@@ -154,43 +173,43 @@ int open_files(struct files *files)
 	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
 
 	    if (null_check != -1) {	/*good pixel */
-		files->iseg[row][col] = s;	/*starting segment number TODO: for seeds this will be different */
 		FLAG_UNSET(files->null_flag, row, col);	/*flag */
-		s++;		/* sequentially number all pixels with their own segment ID */
+		if (files->seeds_map != NULL) {
+		    //G_message("Rast_is_null_value(&seedsbuf[col], data_type) = %d", Rast_is_null_value(&seedsbuf[col], data_type));
+		    // if (Rast_is_null_value(&seedsbuf[col], data_type) == TRUE)  //switched to ptr navigation...  maybe I could have done &(seedsbuf[col]) ??
+
+		    if (Rast_is_null_value(ptr, data_type) == TRUE) {	/* TODO, compiler warnings:
+									 * open_files.c:182:37: warning: dereferencing ‘void *’ pointer [enabled by default]
+									 * open_files.c:182:27: warning: taking address of expression of type ‘void’ [enabled by default] */
+			// not needed, initialized to zero.  files->iseg[row][col] = 0; /* place holder... todo, OK? */
+			FLAG_UNSET(files->seeds_flag, row, col);	//todo shouldn't need to this, flag is initialized to zero?
+		    }
+		    else {
+			s++;	/* sequentially number each seed pixel with its own segment ID */
+			FLAG_SET(files->seeds_flag, row, col);	//todo might not need this... just use the zero as seg ID?  If go this route, need to enforce constraints are positive integers.
+			//files->iseg[row][col] = s;    /*starting segment number TODO: for seeds this will be different */
+			segment_put(&files->iseg_seg, &s, row, col);
+			G_message("set seed for row: %d, col: %d", row, col);
+
+		    }
+		    ptr = G_incr_void_ptr(ptr, ptrsize);
+		}
+		else {		/* no seeds provided */
+		    s++;	/* sequentially number all pixels with their own segment ID */
+		    //files->iseg[row][col] = s;    
+		    segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
+		}
 	    }
 	    else {		/*don't use this pixel */
-		files->iseg[row][col] = -1;	/* place holder...TODO this could be a conflict if constraints included a -1 */
+		//files->iseg[row][col] = -1;   /* place holder...TODO this could be a conflict if constraints included a -1 ??? wrote that awhile ago...still true???*/
+		//TODO, do we need a -1 here?  Or just leave as the zero it was initialized with?  Need a -1 if we don't use the NULL_FLAG...
 		FLAG_SET(files->null_flag, row, col);	/*flag */
 	    }
 	}
     }
 
     /* number of initial segments, will decrement when merge */
-    files->nsegs = s - 1;
-
-	/* starting seeds */
-	/* save as flag, will reset candidate flags to match seed flags on each iteration */
-	if (files->seeds_map != NULL) {
-		seeds_fd = Rast_open_old(files->seeds_map, "");
-		data_type = Rast_get_map_type(seeds_fd);
-		seedsbuf = Rast_allocate_buf(data_type);
-		
-		for (row = 0; row < files->nrows; row++) {
-			Rast_get_row(seeds_fd, seedsbuf, row, data_type);
-			for (col = 0; col < files->ncols; col++) {
-			
-			if (Rast_is_null_value(&seedsbuf[col], data_type) == TRUE) { /* TODO, compiler warnings:
-																		  * open_files.c:182:37: warning: dereferencing ‘void *’ pointer [enabled by default]
-																		  * open_files.c:182:27: warning: taking address of expression of type ‘void’ [enabled by default]
-																		  */
-			
-				FLAG_SET(files->seeds_flag, row, col);
-			}
-			}
-		}
-		Rast_close(seeds_fd);
-		G_free(seedsbuf);
-	}
+    files->nsegs = s;
 
     /* bounds/constraints */
     if (files->bounds_map != NULL) {
@@ -229,11 +248,17 @@ int open_files(struct files *files)
 	G_debug(1, "no boundary constraint supplied.");
     }
 
+    //~ for (row = 0; row < files->nrows; row++) {
+    //~ for (col = 0; col < files->ncols; col++) {
+    //~ segment_get(&files->iseg_seg, &s, row, col);
+    //~ G_message("row: %d, col: %d, iseg: %d", row, col, s);
+    //~ }}
 
     /* other info */
     files->candidate_count = 0;	/* counter for remaining candidate pixels */
 
     /* translate seeds to unique segments TODO MM mentioned it here... */
+    /* todo decide if we need to take the seeds value, and use it to start the segments... or if each pixel starts a unique segment. */
 
     /* linked list memory management linkm */
     link_set_chunk_size(100);	/* TODO polish: fine tune this number */
@@ -245,6 +270,11 @@ int open_files(struct files *files)
     for (n = 0; n < Ref.nfiles; n++) {
 	G_free(inbuf[n]);
 	Rast_close(in_fd[n]);
+    }
+
+    if (files->seeds_map != NULL) {
+	Rast_close(seeds_fd);
+	G_free(seedsbuf);
     }
 
     G_free(inbuf);

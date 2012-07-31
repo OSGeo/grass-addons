@@ -20,6 +20,9 @@
  * it also add some while loops that just have G_debug statements in them. */
 /* #define DEBUG */
 
+/* PROFILE will add some rough time checks for finding neighbors and merging. */
+/* #define PROFILE */
+
 /* pixel stack */
 struct pixels
 {
@@ -40,7 +43,7 @@ struct files
 
     /* files */
     char *out_name;		/* name of output raster map */
-    const char *seeds_map, *seeds_mapset, *bounds_map, *bounds_mapset;		/* optional segment seeds and polygon constraints/boundaries */
+    const char *seeds_map, *seeds_mapset, *bounds_map, *bounds_mapset;	/* optional segment seeds and polygon constraints/boundaries */
     char *out_band;		/* for debug */
 
     /* file processing */
@@ -53,7 +56,9 @@ struct files
     int minrow, maxrow, mincol, maxcol;
 
     /* results */
-    int **iseg;			/* segment ID assignment */
+    SEGMENT iseg_seg;		/* segment ID assignment */
+    //    int iseg_val;
+    //    int **iseg;                       /* segment ID assignment */
     int nsegs;			/* number of segments */
 
     /* processing flags */

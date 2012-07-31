@@ -12,8 +12,9 @@
 #include <grass/rbtree.h>	/* Red Black Tree library functions */
 #include "iseg.h"
 
+#include <time.h>		//todo polish...remove at end
+
 #ifdef DEBUG
-#include <time.h>
 #include <limits.h>
 #endif
 
@@ -102,14 +103,20 @@ int create_isegs(struct files *files, struct functions *functions)
 			FLAG_SET(files->null_flag, row, col);
 		}
 	    }
-	    G_debug(1, "minrow: %d, maxrow: %d, mincol: %d, maxcol: %d",
-		    files->minrow, files->maxrow, files->mincol,
-		    files->maxcol);
 
 	    /* clear candidate flag, so only need to reset the processing area on each iteration. todo polish, can be removed after all loops only cover the processing area */
 	    flag_clear_all(files->candidate_flag);
 
 	}			/* end of else, set up for bounded segmentation */
+
+	/* consider maxrow/maxcol as nrow, ncol, loops will have: row < maxrow
+	 * so need to increment by one */
+	files->maxrow++;
+	files->maxcol++;
+	G_debug(1,
+		"minrow: %d, maxrow: %d, nrows: %d, mincol: %d, maxcol: %d, ncols: %d",
+		files->minrow, files->maxrow, files->nrows, files->mincol,
+		files->maxcol, files->ncols);
 
 	/* run the segmentation algorithm */
 
@@ -174,10 +181,12 @@ int io_debug(struct files *files, struct functions *functions)
     /* idea is for large maps, if the width of SEG tiles in RAM is less than the width of the map, this should avoid a lot of I/O */
     /* this is probably closer to a z-order curve then peano order. */
 
+    s = -1;
     /*blank slate */
     for (row = 0; row < files->nrows; row++) {
 	for (col = 0; col < files->ncols; col++) {
-	    files->iseg[row][col] = -1;
+	    //files->iseg[row][col] = -1;
+	    segment_put(&files->iseg_seg, (void *)s, row, col);
 	}
     }
     s = 0;
@@ -203,7 +212,8 @@ int io_debug(struct files *files, struct functions *functions)
 	j--;
 	col = col | (1 & (i >> j));
 	G_message("Done: i: %li, row: %d, col: %d", i, row, col);
-	files->iseg[row][col] = s;
+	//~ files->iseg[row][col] = s;
+	segment_put(&files->iseg_seg, (void *)s, row, col);
 	s++;
     }
 
@@ -375,7 +385,9 @@ int ll_test(struct files *files, struct functions *functions)
     for (row = 0; row < files->nrows; row++) {
 	for (col = 0; col < files->ncols; col++) {
 	    /*files->out_val[0] = files->out_val[0]; *//*segment number *//* just copying the map for testing. */
-	    files->iseg[row][col] = col + row;
+	    //~ files->iseg[row][col] = col + row;
+	    //todo need variable..
+	    //segment_put(&files->iseg_seg, (void *)s, row, col);
 	}
 	G_percent(row, files->nrows, 1);
     }
@@ -456,7 +468,8 @@ int seg_speed_test(struct files *files, struct functions *functions)
 
 	start = clock();
 	for (i = 0; i < max; i++) {
-	    temp = files->iseg[12][12];
+	    //~ temp = files->iseg[12][12];
+	    //todo
 	}
 	end = clock();
 	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
@@ -730,19 +743,29 @@ int get_segID_SEG(struct files *files, int row, int col)
 
 int get_segID_RAM(struct files *files, int row, int col)
 {
-    return files->iseg[row][col];
+    return 0;			//todo... segment_put(&files->iseg_seg, (void *)s, row, col);    files->iseg[row][col];
 }
 #endif
 
 int region_growing(struct files *files, struct functions *functions)
 {
-    int row, col, t;
+    int row, col, t, testing;	//todo remove testing
     double threshold, Ri_similarity, Rk_similarity, tempsim;
     int endflag;		/* =TRUE if there were no merges on that processing iteration */
     int pathflag;		/* =TRUE if we didn't find mutual neighbors, and should continue with Rk */
     struct pixels *Ri_head, *Rk_head, *Rin_head, *Rkn_head, *Rclose_head,
 	*Rc_head, *Rc_tail, *Rcn_head, *current, *newpixel, *Ri_bestn;
     int Ri_count, Rk_count, Rc_count;	/* number of pixels/cells in Ri and Rk */
+
+    //todo polish, remove or comment when done?
+    clock_t start, end;
+    clock_t merge_start, merge_end;
+    double merge_accum, merge_lap;
+    clock_t fn_start, fn_end;
+    double fn_accum, fn_lap;
+
+    merge_accum = fn_accum = 0;
+    start = clock();
 
     /* files->token has the "link_head" for linkm: linked list memory allocation.
      * 
@@ -760,7 +783,7 @@ int region_growing(struct files *files, struct functions *functions)
     t = 1;
     files->candidate_count = 0;
 
-    /*set next pointers to null. */
+    /*set linked list head pointers to null. */
     Ri_head = NULL;
     Rk_head = NULL;
     Rin_head = NULL;
@@ -775,6 +798,7 @@ int region_growing(struct files *files, struct functions *functions)
 
 	G_debug(3, "#######   Starting outer do loop! t = %d    #######", t);
 	/* todo, delete this?  G_verbose_message("Pass %d: ", t); */
+	fprintf(stdout, "pass %d\n", t);
 	G_percent(t, functions->end_t, 1);
 
 	threshold = functions->threshold;	/* TODO, consider making this a function of t. */
@@ -792,7 +816,7 @@ int region_growing(struct files *files, struct functions *functions)
 	/*check each pixel, start the processing only if it is a candidate pixel */
 	for (row = 0; row < files->nrows; row++) {
 	    for (col = 0; col < files->ncols; col++) {
-
+		//if (col == 3) return TRUE;
 		G_debug(4, "Starting pixel from next row/col, not from Rk");
 
 		if (FLAG_GET(files->candidate_flag, row, col)) {
@@ -820,14 +844,23 @@ int region_growing(struct files *files, struct functions *functions)
 			G_debug(4, "Next starting pixel: row, %d, col, %d",
 				Ri_head->row, Ri_head->col);
 
+			pathflag = FALSE;
+
 			/* find segment neighbors, if we don't already have them */
 			if (Rin_head == NULL) {
+			    fn_start = clock();
 			    if (find_segment_neighbors
 				(&Ri_head, &Rin_head, &Ri_count, files,
 				 functions) != TRUE) {
 				G_fatal_error
 				    ("find_segment_neighbors() failed");
 			    }
+			    fn_end = clock();
+			    fn_lap =
+				((double)(fn_end - fn_start)) /
+				CLOCKS_PER_SEC;
+			    fn_accum += fn_lap;
+			    fprintf(stdout, "fsn(Ri): %g\t", fn_lap);
 			}
 
 			if (Rin_head != NULL) {	/*found neighbors, find best neighbor then see if is mutually best neighbor */
@@ -921,23 +954,31 @@ int region_growing(struct files *files, struct functions *functions)
 					"Lowest Ri_similarity = %g, for neighbor pixel row: %d col: %d",
 					Ri_similarity, Ri_bestn->row,
 					Ri_bestn->col);
-					
-//if bounds map, can't check if it is a candidate.  TODO better way to include this check after decide on using the candidate flag here.
-if(files->seeds_map == NULL){
-				//todo this "limited" flag will probably be removed?  Then this entire if section could be removed if we always allow multiple merges per pass?
-				if ((functions->limited == TRUE) && !
-				    (FLAG_GET
-				     (files->candidate_flag, Ri_bestn->row,
-				      Ri_bestn->col))) {
-				    /* this check is important:
-				     * best neighbor is not a valid candidate, was already merged earlier in this time step */
-				    Ri_bestn = NULL;
-				    pathflag = FALSE;
+
+				//if seeds map, can't check if it is a candidate.  TODO better way to include this check after decide on using the candidate flag here.
+				if (files->seeds_map == NULL) {
+				    //todo this "limited" flag will probably be removed?  Then this entire if section could be removed if we always allow multiple merges per pass?
+				    if ((functions->limited == TRUE) && !
+					(FLAG_GET
+					 (files->candidate_flag,
+					  Ri_bestn->row, Ri_bestn->col))) {
+					/* this check is important:
+					 * best neighbor is not a valid candidate, was already merged earlier in this time step */
+					Ri_bestn = NULL;
+					//pathflag = FALSE;
+				    }
 				}
 			    }
-}
 			    if (Ri_bestn != NULL && Ri_similarity < threshold) {	/* small TODO: should this be < or <= for threshold? */
 				/* Rk starts from Ri's best neighbor */
+				if (Rk_head) {
+				    G_warning("Rk_head is not NULL!");
+				    my_dispose_list(files->token, &Rk_head);
+				}
+				if (Rkn_head) {
+				    G_warning("Rkn_head is not NULL!");
+				    my_dispose_list(files->token, &Rkn_head);
+				}
 				Rk_count = 1;
 				newpixel =
 				    (struct pixels *)link_new(files->token);
@@ -983,10 +1024,22 @@ if(files->seeds_map == NULL){
 				}	/* have checked all of Rk's neighbors */
 
 				if (Rk_similarity == Ri_similarity) {	/* mutually most similar neighbors */
+
+				    segment_get(&files->iseg_seg, &testing,
+						Ri_head->row, Ri_head->col);
+				    //~ G_message("\t\tbefore call merge()... testing: %d, Ri_head->row: %d, Ri_head->col: %d", testing, Ri_head->row, Ri_head->col);
+				    merge_start = clock();
 				    merge_values(Ri_head, Rk_head, Ri_count,
 						 Rk_count, files);
+				    merge_end = clock();
+				    merge_lap =
+					((double)(merge_end - merge_start)) /
+					CLOCKS_PER_SEC;
+				    merge_accum += merge_lap;
+				    fprintf(stdout, "merge time: %g\n",
+					    merge_lap);
 				    endflag = FALSE;	/* we've made at least one merge, so want another t iteration */
-				    pathflag = FALSE;	/* go to next row,column pixel - end of Rk -> Ri chain since we found mutual best neighbors */
+				    //pathflag = FALSE; /* go to next row,column pixel - end of Rk -> Ri chain since we found mutual best neighbors */
 				}
 				else {	/* they weren't mutually best neighbors */
 				    G_debug(4,
@@ -997,6 +1050,11 @@ if(files->seeds_map == NULL){
 				    set_candidate_flag(Ri_head, FALSE, files);
 				    G_debug(4, "line 247, \t\t\t\tcc = %d",
 					    files->candidate_count);
+
+				    if (!(FLAG_GET
+					  (files->candidate_flag,
+					   Rk_head->row, Rk_head->col)))
+					pathflag = TRUE;
 				}
 			    }	/* end if (Ri_bestn != NULL && Ri_similarity < threshold) */
 			    else {
@@ -1008,13 +1066,13 @@ if(files->seeds_map == NULL){
 				set_candidate_flag(Ri_head, FALSE, files);
 				G_debug(4,
 					"3b Ri's best neighbor was not valid candidate, or their similarity was > threshold");
-				pathflag = FALSE;
+				//pathflag = FALSE;
 			    }
 
 			}	/* end if(Rin_head != NULL) */
 			else {	/* Ri didn't have a neighbor */
 			    G_debug(4, "Segment had no neighbors");
-			    pathflag = FALSE;
+			    //pathflag = FALSE;
 			    set_candidate_flag(Ri_head, FALSE, files);
 			    G_debug(4, "line 176, \t\t\t\tcc = %d",
 				    files->candidate_count);
@@ -1188,6 +1246,11 @@ if(files->seeds_map == NULL){
     if (t > 2)
 	G_verbose_message("temporary(?) message, number of passes: %d",
 			  t - 1);
+    end = clock();
+    fprintf(stdout, "time spent merging: %g\n", merge_accum);
+    fprintf(stdout, "time spent finding neighbors: %g\n", fn_accum);
+    fprintf(stdout, "total time: %g\n",
+	    ((double)(end - start) / CLOCKS_PER_SEC));
 
     return TRUE;
 }
@@ -1196,7 +1259,7 @@ int find_segment_neighbors(struct pixels **R_head,
 			   struct pixels **neighbors_head, int *seg_count,
 			   struct files *files, struct functions *functions)
 {
-    int n, current_seg_ID, Ri_seg_ID = -1;
+    int n, current_seg_ID, R_iseg = -1;
     struct pixels *newpixel, *current, *to_check, tree_pix;	/* need to check the pixel neighbors of to_check */
     int pixel_neighbors[8][2];
     struct RB_TREE *no_check_tree;	/* pixels that should no longer be checked on this current find_neighbors() run */
@@ -1225,7 +1288,13 @@ int find_segment_neighbors(struct pixels **R_head,
 
     /* *** initialize data *** */
 
-    Ri_seg_ID = files->iseg[(*R_head)->row][(*R_head)->col];
+    //Ri_seg_ID = files->iseg[(*R_head)->row][(*R_head)->col];
+    segment_get(&files->iseg_seg, &R_iseg, (*R_head)->row, (*R_head)->col);
+
+    if (R_iseg == 0)
+	R_iseg = -1;		/* with seeds, all non-seed pixels are assigned to segment 0.  But we don't want to consider the others as part of the same segment. */
+
+    //~ G_message("fpn() for iseg: %d", R_iseg);
     no_check_tree = rbtree_create(compare_pixels, sizeof(struct pixels));
     known_iseg = rbtree_create(compare_ids, sizeof(int));
     to_check = NULL;
@@ -1299,17 +1368,18 @@ int find_segment_neighbors(struct pixels **R_head,
 		    rbtree_find(no_check_tree, &tree_pix));
 
 	    if (rbtree_find(no_check_tree, &tree_pix) == FALSE) {	/* want to check this neighbor */
-		current_seg_ID =
-		    files->iseg[pixel_neighbors[n][0]][pixel_neighbors[n][1]];
+		segment_get(&files->iseg_seg, &current_seg_ID,
+			    pixel_neighbors[n][0], pixel_neighbors[n][1]);
+		//current_seg_ID = files->iseg[pixel_neighbors[n][0]][pixel_neighbors[n][1]];
 
 		rbtree_insert(no_check_tree, &tree_pix);	/* don't check it again */
 
-		G_debug(5, "\tfiles->iseg[][] = %d Ri_seg_ID = %d",
-			files->iseg[pixel_neighbors[n][0]]
-			[pixel_neighbors[n]
-			 [1]], Ri_seg_ID);
+		//~ G_debug(5, "\tfiles->iseg[][] = %d Ri_seg_ID = %d",
+		//~ files->iseg[pixel_neighbors[n][0]]
+		//~ [pixel_neighbors[n]
+		//~ [1]], Ri_seg_ID);
 
-		if (current_seg_ID == Ri_seg_ID) {	/* pixel is member of current segment, add to R */
+		if (current_seg_ID == R_iseg) {	/* pixel is member of current segment, add to R */
 		    G_debug(5, "\tputing pixel_neighbor in Ri");
 		    /* put pixel_neighbor[n] in Ri */
 		    newpixel = (struct pixels *)link_new(files->token);
@@ -1330,9 +1400,10 @@ int find_segment_neighbors(struct pixels **R_head,
 		}
 		else {		/* segment id's were different */
 		    if (!rbtree_find(known_iseg, &current_seg_ID)) {	/* we don't have any neighbors yet from this segment */
-
-			/* add to known neighbors list */
-			rbtree_insert(known_iseg, &current_seg_ID);	/* todo: could I just try to insert it, if it fails I know it is already there?
+			if (current_seg_ID != 0)
+			    /* with seeds, non seed pixels are defaulted to zero.  Should we use null instead?? then could skip this check?  Or we couldn't insert it??? */
+			    /* add to known neighbors list */
+			    rbtree_insert(known_iseg, &current_seg_ID);	/* todo: could I just try to insert it, if it fails I know it is already there?
 									 * I guess it would depend on how much faster the find() is, and what fraction of the 
 									 * neighbors are in a duplicate segment... */
 
@@ -1448,10 +1519,29 @@ double calculate_euclidean_similarity(struct pixels *a, struct pixels *b,
 
 }
 
+/*
+   In the eCognition literature, we find that the key factor in the
+   multi-scale segmentation algorithm used by Definiens is the scale
+   factor f:
+
+   f = W.Hcolor + (1 - W).Hshape
+   Hcolor = sum(b = 1:nbands)(Wb.SigmaB)
+   Hshape = Ws.Hcompact + (1 - Ws).Hsmooth
+   Hcompact = PL/sqrt(Npx)
+   Hsmooth = PL/Pbbox
+
+   Where W is a user-defined weight of importance of object radiometry vs
+   shape (usually .9 vs .1), Wb is the weigh given to band B, SigmaB is
+   the std dev of the object for band b, Ws is a user-defined weight
+   giving the importance of compactedness vs smoothness, PL is the
+   perimeter lenght of the object, Npx the number of pixels within the
+   object, and Pbbox the perimeter of the bounding box of the object.
+ */
+
 int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
 		 int Ri_count, int Rk_count, struct files *files)
 {
-    int n;
+    int n, Ri_iseg = 42, Rk_iseg = 43;
     struct pixels *current;
 
     /*get input values *//*TODO polish, confirm if we can assume we already have bands_val for Ri, so don't need to segment_get() again?  note...current very_close implementation requires getting this value again... */
@@ -1459,6 +1549,15 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
 		Ri_head->col);
     segment_get(&files->bands_seg, (void *)files->second_val,
 		Rk_head->row, Rk_head->col);
+
+    segment_get(&files->iseg_seg, &Rk_iseg, Rk_head->row, Rk_head->col);
+    segment_get(&files->iseg_seg, &Ri_iseg, Ri_head->row, Ri_head->col);
+    /* todo polish, maybe we have some of these values already?  Or they should be stored in files structure? */
+    //      G_message("Ri_iseg get(): %d", segment_get(&files->iseg_seg, &Ri_iseg, Ri_head->row, Ri_head->col));
+    //~ G_message("Rk_iseg get(): %d", segment_get(&files->iseg_seg, &Rk_iseg, Rk_head->row, Rk_head->col));
+    //~ G_message("Ri_iseg get(): %d", segment_get(&files->iseg_seg, &Ri_iseg, Ri_head->row, Ri_head->col));
+    //~ G_message("here is what I have:  Ri_iseg: %d, Ri_head->row: %d, Ri_head->col: %d", Ri_iseg, Ri_head->row, Ri_head->col);
+    //~ G_message("here is what I have:  Rk_iseg: %d, Rk_head->row: %d, Rk_head->col: %d", Rk_iseg, Rk_head->row, Rk_head->col);
 
     for (n = 0; n < files->nbands; n++) {
 	files->bands_val[n] =
@@ -1468,8 +1567,13 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
 
     /* update segment number and candidate flag ==0 */
 
-    G_debug(4, "\t\tMerging, segment number: %d, including pixels:",
-	    files->iseg[Ri_head->row][Ri_head->col]);
+    //~ G_debug(4, "\t\tMerging, segment number: %d, including pixels:",
+    //~ files->iseg[Ri_head->row][Ri_head->col]);
+
+    fprintf(stdout,
+	    "merging Ri (pixel count): %d (%d) with Rk (count): %d (%d).\t",
+	    Ri_iseg, Ri_count, Rk_iseg, Rk_count);
+    //~ G_message("Ri_head->row: %d, Ri_head->col: %d", Ri_head->row, Ri_head->col);
 
     /* for each member of Ri and Rk, write new average bands values and segment values */
     for (current = Ri_head; current != NULL; current = current->next) {
@@ -1483,8 +1587,9 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
     for (current = Rk_head; current != NULL; current = current->next) {
 	segment_put(&files->bands_seg, (void *)files->bands_val,
 		    current->row, current->col);
-	files->iseg[current->row][current->col] =
-	    files->iseg[Ri_head->row][Ri_head->col];
+	//~ files->iseg[current->row][current->col] =
+	//~ files->iseg[Ri_head->row][Ri_head->col];
+	segment_put(&files->iseg_seg, &Ri_iseg, current->row, current->col);
 	FLAG_UNSET(files->candidate_flag, current->row, current->col);
 	files->candidate_count--;
 	G_debug(4, "line 516, \t\t\t\tcc = %d", files->candidate_count);
@@ -1492,9 +1597,14 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
 
     }
 
-    /* merged two segments, decrement count */
-    files->nsegs--;
-    /* todo seeds: need if statement here, if merging "unseeded" pixel, don't want to decrement. */
+    /* merged two segments, decrement count 
+     * if seeds were provided, need to adjust the candidate_count*/
+    if (files->seeds_map == NULL)
+	files->nsegs--;
+    else {
+	files->candidate_count += Ri_count + Rk_count - 1;
+	/* todo if allow seeded segments to merge, need to decrement nsegs if Rk_count = 1 and it isn't a seed */
+    }
 
     return TRUE;
 }
@@ -1580,57 +1690,58 @@ int compare_pixels(const void *first, const void *second)
 }
 
 /* Set candidate flag to true/1 or false/0 for all pixels in current processing area
- * checks for NULL flag and if it is in current "polygon" if a bounds map is given */
+ * checks for NULL flag and if it is in current "polygon" if a bounds map is given 
+ * checks if seeds were given */
 int set_all_candidate_flags(struct files *files)
 {
     int row, col;
 
-	if(files->seeds_map == NULL) { /* entire map is considered as candidates */
-
-    //~ if (files->bounds_map == NULL) {        /* process entire raster */
-    for (row = files->minrow; row < files->maxrow; row++) {
-	for (col = files->mincol; col < files->maxcol; col++) {
-	    /* TODO: if we are starting from seeds...and only allow merges between unassigned pixels
-	     *  and seeds/existing segments, then this needs an if (and will be very inefficient)
-	     * maybe consider the sorted array, btree, map... but the number of seeds could still be high for a large map */
-	    /* MM: could be solved/not necessary if all pixels of an existing segment have the same ID */
-	    if (!(FLAG_GET(files->null_flag, row, col))) {
-		FLAG_SET(files->candidate_flag, row, col);
-		files->candidate_count++;
-	    }
-	    else
-		FLAG_UNSET(files->candidate_flag, row, col);
-	}
-    }
-    //~ }
-    //~ else {                  /* process part of the raster, polygon constraints/boundaries */
-    //~ for (row = files->minrow; row < files->maxrow; row++) {
-    //~ for (col = files->mincol; col < files->maxcol; col++) {
-    //~ if (!(FLAG_GET(files->in_bounds_flag, row, col))) {
-    //~ FLAG_SET(files->candidate_flag, row, col);
-    //~ files->candidate_count++;
-    //~ }
-    //~ else
-    //~ FLAG_UNSET(files->candidate_flag, row, col);
-    //~ }
-    //~ }
-    //~ }
-	}
-	else { /* seeds were provided */
-	
+    if (files->seeds_map == NULL) {	/* entire map is considered as candidates */
+	//G_message("No seeds map, setting all pixels to be candidates");
+	//~ if (files->bounds_map == NULL) {        /* process entire raster */
 	for (row = files->minrow; row < files->maxrow; row++) {
-	for (col = files->mincol; col < files->maxcol; col++) {
-	    if ((FLAG_GET(files->seeds_flag, row, col))) {
-		FLAG_SET(files->candidate_flag, row, col);
-		files->candidate_count++; //TODO, how deal with this...
+	    for (col = files->mincol; col < files->maxcol; col++) {
+		/* TODO: if we are starting from seeds...and only allow merges between unassigned pixels
+		 *  and seeds/existing segments, then this needs an if (and will be very inefficient)
+		 * maybe consider the sorted array, btree, map... but the number of seeds could still be high for a large map */
+		/* MM: could be solved/not necessary if all pixels of an existing segment have the same ID */
+		if (!(FLAG_GET(files->null_flag, row, col))) {
+		    FLAG_SET(files->candidate_flag, row, col);
+		    files->candidate_count++;
+		}
+		else
+		    FLAG_UNSET(files->candidate_flag, row, col);
 	    }
-	    else
-		FLAG_UNSET(files->candidate_flag, row, col); //todo maybe can skip this...
+	}
+	//~ }
+	//~ else {                  /* process part of the raster, polygon constraints/boundaries */
+	//~ for (row = files->minrow; row < files->maxrow; row++) {
+	//~ for (col = files->mincol; col < files->maxcol; col++) {
+	//~ if (!(FLAG_GET(files->in_bounds_flag, row, col))) {
+	//~ FLAG_SET(files->candidate_flag, row, col);
+	//~ files->candidate_count++;
+	//~ }
+	//~ else
+	//~ FLAG_UNSET(files->candidate_flag, row, col);
+	//~ }
+	//~ }
+	//~ }
+    }
+    else {			/* seeds were provided */
+	//G_message("seeds provided, just setting those pixels as candidates");
+	for (row = files->minrow; row < files->maxrow; row++) {
+	    for (col = files->mincol; col < files->maxcol; col++) {
+		if ((FLAG_GET(files->seeds_flag, row, col))) {
+		    FLAG_SET(files->candidate_flag, row, col);
+		    files->candidate_count++;	//TODO, how deal with this...
+		}
+		else
+		    FLAG_UNSET(files->candidate_flag, row, col);	//todo maybe can skip this...
+	    }
 	}
     }
-	}
-	
-	
+
+
     return TRUE;
 }
 
