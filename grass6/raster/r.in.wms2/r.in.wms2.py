@@ -34,8 +34,12 @@ This program is free software under the GNU General Public License
 #% required: yes
 #%end
 
-#%option G_OPT_R_OUTPUT
+#%option 
+#% key: output
+#% type: string
+#% gisprompt: new,cell,raster
 #% description: Name for output raster map
+#% required: yes
 #%end
 
 #%option
