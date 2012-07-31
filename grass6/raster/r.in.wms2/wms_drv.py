@@ -1,3 +1,5 @@
+import grass.script as grass
+
 try:
     from osgeo import gdal
     from osgeo import gdalconst 
@@ -8,8 +10,6 @@ from urllib2 import urlopen
 
 import numpy as Numeric
 Numeric.arrayrange = Numeric.arange
-
-import grass.script as grass
 
 from wms_base import WMSBase
 

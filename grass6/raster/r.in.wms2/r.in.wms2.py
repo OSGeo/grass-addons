@@ -48,6 +48,7 @@ This program is free software under the GNU General Public License
 #% key: srs
 #% type: integer
 #% description: EPSG number of source projection for request 
+#% answer:4326
 #% guisection: Request properties
 #%end
 

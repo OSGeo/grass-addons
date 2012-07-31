@@ -1,4 +1,5 @@
 import os
+import grass.script as grass
 
 try:
     from osgeo import gdal
@@ -7,8 +8,6 @@ except:
     grass.fatal(_("Unable to load GDAL Python bindings"))
 
 import xml.etree.ElementTree as etree
-
-import grass.script as grass
 
 from wms_base import WMSBase
 
