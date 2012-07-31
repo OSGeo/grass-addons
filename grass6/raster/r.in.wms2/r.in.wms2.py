@@ -31,7 +31,7 @@ This program is free software under the GNU General Public License
 #% type: string
 #% description: Layers to request from map server
 #% multiple: yes
-#% required: yes
+#% required: no
 #%end
 
 #%option 
@@ -39,7 +39,7 @@ This program is free software under the GNU General Public License
 #% type: string
 #% gisprompt: new,cell,raster
 #% description: Name for output raster map
-#% required: yes
+#% required: no
 #%end
 
 #%option
@@ -131,7 +131,6 @@ This program is free software under the GNU General Public License
 #% key: c
 #% description: Get capabilities
 #% guisection: Request properties
-#% suppress_required: yes
 #%end
 
 #%flag
@@ -158,6 +157,11 @@ def main():
     if flags['c']:
         wms.GetCapabilities(options)
     else:
+        if not options['layers']:
+            grass.fatal(_("Required parameter <%s> not set") % 'layers')
+        if not options['output']:
+            grass.fatal(_("Required parameter <%s> not set") % 'output')
+        
         wms.GetMap(options, flags)  
     
     return 0
