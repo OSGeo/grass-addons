@@ -32,6 +32,7 @@ This program is free software under the GNU General Public License
 #% description: Layers to request from map server
 #% multiple: yes
 #% required: no
+#% guisection: Required
 #%end
 
 #%option 
@@ -40,6 +41,7 @@ This program is free software under the GNU General Public License
 #% gisprompt: new,cell,raster
 #% description: Name for output raster map
 #% required: no
+#% guisection: Required
 #%end
 
 #%option
