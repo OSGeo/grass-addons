@@ -11,7 +11,7 @@ int open_files(struct files *files)
 {
     struct Ref Ref;		/* group reference list */
     int *in_fd, seeds_fd, bounds_fd, null_check, out_fd, mean_fd;
-    int i, n, s, row, col, srows, scols, inlen, nseg;
+    int n, s, row, col, srows, scols, inlen, nseg;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
     CELL *boundsbuf;
     void *seedsbuf, *ptr;	/* todo. correct data type when allowing any data type? */
@@ -109,7 +109,7 @@ int open_files(struct files *files)
     scols = 64;
 
     /* TODO: make calculations for this, check i.cost and i.watershed */
-    nseg = 1000;		//16;
+    nseg = 16;			// 1000;         //16;
 
 
     /* ******* create temporary segmentation files ********* */
@@ -131,16 +131,6 @@ int open_files(struct files *files)
 
     files->bands_val = (double *)G_malloc(inlen);
     files->second_val = (double *)G_malloc(inlen);
-
-    //~ files->iseg = G_malloc(files->nrows * sizeof(int *));
-    //~ for (i = 0; i < files->nrows; i++)
-    //~ files->iseg[i] = G_malloc(files->ncols * sizeof(int));
-    //~ 
-    //~ /*check the last one to make sure there was enough memory */
-    //~ if (files->iseg[i - 1] != NULL) {       /* everything is OK, and assume all previous memory allocations are OK too. */
-    //~ }
-    //~ else
-    //~ G_fatal_error(_("Unable to allocate memory for initial segment ID's"));
 
     if (segment_open
 	(&files->iseg_seg, G_tempfile(), files->nrows, files->ncols, srows,
@@ -181,13 +171,12 @@ int open_files(struct files *files)
 		    if (Rast_is_null_value(ptr, data_type) == TRUE) {	/* TODO, compiler warnings:
 									 * open_files.c:182:37: warning: dereferencing ‘void *’ pointer [enabled by default]
 									 * open_files.c:182:27: warning: taking address of expression of type ‘void’ [enabled by default] */
-			// not needed, initialized to zero.  files->iseg[row][col] = 0; /* place holder... todo, OK? */
+			// not needed, initialized to zero.  files->iseg[row][col] = 0; /* place holder... todo, Markus, is this OK to leave out?  Or better to set it, since this is just done once... */
 			FLAG_UNSET(files->seeds_flag, row, col);	//todo shouldn't need to this, flag is initialized to zero?
 		    }
 		    else {
 			s++;	/* sequentially number each seed pixel with its own segment ID */
 			FLAG_SET(files->seeds_flag, row, col);	//todo might not need this... just use the zero as seg ID?  If go this route, need to enforce constraints are positive integers.
-			//files->iseg[row][col] = s;    /*starting segment number TODO: for seeds this will be different */
 			segment_put(&files->iseg_seg, &s, row, col);
 			G_message("set seed for row: %d, col: %d", row, col);
 
@@ -196,7 +185,6 @@ int open_files(struct files *files)
 		}
 		else {		/* no seeds provided */
 		    s++;	/* sequentially number all pixels with their own segment ID */
-		    //files->iseg[row][col] = s;    
 		    segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
 		}
 	    }
@@ -247,12 +235,6 @@ int open_files(struct files *files)
     else {
 	G_debug(1, "no boundary constraint supplied.");
     }
-
-    //~ for (row = 0; row < files->nrows; row++) {
-    //~ for (col = 0; col < files->ncols; col++) {
-    //~ segment_get(&files->iseg_seg, &s, row, col);
-    //~ G_message("row: %d, col: %d, iseg: %d", row, col, s);
-    //~ }}
 
     /* other info */
     files->candidate_count = 0;	/* counter for remaining candidate pixels */

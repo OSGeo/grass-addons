@@ -18,9 +18,9 @@
 
 /* DEBUG will add some additional testing options to the segmentation method drop down.
  * it also add some while loops that just have G_debug statements in them. */
-/* #define DEBUG */
+#define DEBUG
 
-/* PROFILE will add some rough time checks for finding neighbors and merging. */
+/* PROFILE will add some rough time checks for finding neighbors, merging, and pass times. */
 /* #define PROFILE */
 
 /* pixel stack */
@@ -58,7 +58,6 @@ struct files
     /* results */
     SEGMENT iseg_seg;		/* segment ID assignment */
     //    int iseg_val;
-    //    int **iseg;                       /* segment ID assignment */
     int nsegs;			/* number of segments */
 
     /* processing flags */

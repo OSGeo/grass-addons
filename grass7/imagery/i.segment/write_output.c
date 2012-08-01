@@ -40,7 +40,6 @@ int write_output(struct files *files)
 	    segment_get(&files->bands_seg, (void *)files->bands_val, row,
 			col);
 	    if (!(FLAG_GET(files->null_flag, row, col))) {
-		//              outbuf[col] = files->iseg[row][col];
 		segment_get(&files->iseg_seg, &(outbuf[col]), row, col);
 		meanbuf[col] = files->bands_val[0];
 	    }
@@ -79,7 +78,6 @@ int write_output(struct files *files)
 
 int close_files(struct files *files)
 {
-    int i;
 
     /* close segmentation files and output raster */
     G_debug(1, "closing bands_seg...");
@@ -93,9 +91,6 @@ int close_files(struct files *files)
     G_free(files->second_val);
 
     G_debug(1, "freeing iseg");
-    //~ for (i = 0; i < files->nrows; i++)
-    //~ G_free(files->iseg[i]);
-    //~ G_free(files->iseg);
     segment_close(&files->iseg_seg);
 
     G_debug(1, "destroying flags");

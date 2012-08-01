@@ -19,6 +19,7 @@
 #endif
 
 #define LINKM
+#define ROWMAJOR //gave nesting error with INDENT program since this changes the for loops
 
 int create_isegs(struct files *files, struct functions *functions)
 {
@@ -156,8 +157,9 @@ int io_debug(struct files *files, struct functions *functions)
     int row, col;
 
     /* from speed.c to test speed of malloc vs. memory manager */
-    long int i;
-    register int j, s;
+    unsigned long int z, end_z;	// depending on shape of the rectangle...will need a larger max i.  long long is avail in C99 spec...
+    register int i, j;
+    int s;
     struct link_head *head;
     struct pixels *p;
 
@@ -186,7 +188,7 @@ int io_debug(struct files *files, struct functions *functions)
     for (row = 0; row < files->nrows; row++) {
 	for (col = 0; col < files->ncols; col++) {
 	    //files->iseg[row][col] = -1;
-	    segment_put(&files->iseg_seg, (void *)s, row, col);
+	    segment_put(&files->iseg_seg, &s, row, col);
 	}
     }
     s = 0;
@@ -198,22 +200,47 @@ int io_debug(struct files *files, struct functions *functions)
     //~ G_message("\tj=%d, 1 & (i >> j) = %d", j, 1 & (i >> j));
     //~ }
     //~ }
-    for (i = 0; i < 16; i++) {	// if square and power of 2: files->nrows*files->ncols
+
+    /* need to get a "square" power of 2 around our processing area */
+
+    /*largest dimension: */
+    if (files->nrows > files->ncols)
+	end_z = files->nrows;
+    else
+	end_z = files->ncols;
+
+    /* largest power of 2: */
+    end_z--;			/* in case we are already a power of two. */
+    end_z = (end_z >> 1) | end_z;
+    end_z = (end_z >> 2) | end_z;
+    end_z = (end_z >> 4) | end_z;
+    end_z = (end_z >> 8) | end_z;
+    end_z = (end_z >> 16) | end_z;
+    end_z = (end_z >> 32) | end_z;	/* only for 64-bit architecture TODO, would this mess things up on 32? */
+    /*todo does this need to repeat more since it is long unsigned??? */
+    end_z++;
+
+    /*squared: */
+    end_z *= end_z;
+
+    for (z = 0; z < end_z; z++) {	// if square and power of 2: files->nrows*files->ncols
 	row = col = 0;
 	/*bit wise construct row and col from i */
 	for (j = 8 * sizeof(long int) - 1; j > 1; j--) {
-	    row = row | (1 & (i >> j));
+	    row = row | (1 & (z >> j));
 	    row = row << 1;
 	    j--;
-	    col = col | (1 & (i >> j));
+	    col = col | (1 & (z >> j));
 	    col = col << 1;
 	}
-	row = row | (1 & (i >> j));
+	row = row | (1 & (z >> j));
 	j--;
-	col = col | (1 & (i >> j));
-	G_message("Done: i: %li, row: %d, col: %d", i, row, col);
-	//~ files->iseg[row][col] = s;
-	segment_put(&files->iseg_seg, (void *)s, row, col);
+	col = col | (1 & (z >> j));
+	G_message("Done: z: %li, row: %d, col: %d", z, row, col);
+	if (row >= files->nrows || col >= files->ncols)
+	    continue;
+
+	segment_put(&files->iseg_seg, &s, row, col);
 	s++;
     }
 
@@ -749,24 +776,28 @@ int get_segID_RAM(struct files *files, int row, int col)
 
 int region_growing(struct files *files, struct functions *functions)
 {
-    int row, col, t, testing;	//todo remove testing
+    int row, col, t;
     double threshold, Ri_similarity, Rk_similarity, tempsim;
     int endflag;		/* =TRUE if there were no merges on that processing iteration */
     int pathflag;		/* =TRUE if we didn't find mutual neighbors, and should continue with Rk */
     struct pixels *Ri_head, *Rk_head, *Rin_head, *Rkn_head, *Rclose_head,
 	*Rc_head, *Rc_tail, *Rcn_head, *current, *newpixel, *Ri_bestn;
     int Ri_count, Rk_count, Rc_count;	/* number of pixels/cells in Ri and Rk */
+    unsigned long int z, end_z;	// depending on shape of the rectangle...will need a larger max i.  long long is avail in C99 spec...  (only needed for z-order)
+    int j;
 
+#ifdef PROFILE
     //todo polish, remove or comment when done?
     clock_t start, end;
     clock_t merge_start, merge_end;
     double merge_accum, merge_lap;
     clock_t fn_start, fn_end;
     double fn_accum, fn_lap;
+    clock_t pass_start, pass_end;
 
     merge_accum = fn_accum = 0;
     start = clock();
-
+#endif
     /* files->token has the "link_head" for linkm: linked list memory allocation.
      * 
      * 4 linked lists of pixels:
@@ -795,10 +826,12 @@ int region_growing(struct files *files, struct functions *functions)
 
     /* do while loop until no merges are made, or until t reaches maximum number of iterations */
     do {
-
+#ifdef PROFILE
+	pass_start = clock();
+	fprintf(stdout, "pass %d\n", t);
+#endif
 	G_debug(3, "#######   Starting outer do loop! t = %d    #######", t);
 	/* todo, delete this?  G_verbose_message("Pass %d: ", t); */
-	fprintf(stdout, "pass %d\n", t);
 	G_percent(t, functions->end_t, 1);
 
 	threshold = functions->threshold;	/* TODO, consider making this a function of t. */
@@ -814,9 +847,51 @@ int region_growing(struct files *files, struct functions *functions)
 	/*process candidate pixels for this iteration */
 
 	/*check each pixel, start the processing only if it is a candidate pixel */
+#ifdef ROWMAJOR
 	for (row = 0; row < files->nrows; row++) {
 	    for (col = 0; col < files->ncols; col++) {
-		//if (col == 3) return TRUE;
+#else
+{
+		/* z-order traversal: */
+		/* need to get a "square" power of 2 around our processing area */
+		
+		/*largest dimension: */
+		if (files->nrows > files->ncols)
+		end_z = files->nrows;
+		else
+		end_z = files->ncols;
+		
+		/* largest power of 2: */
+		end_z--;            /* in case we are already a power of two. */
+		end_z = (end_z >> 1) | end_z;
+		end_z = (end_z >> 2) | end_z;
+		end_z = (end_z >> 4) | end_z;
+		end_z = (end_z >> 8) | end_z;
+		end_z = (end_z >> 16) | end_z;
+		end_z = (end_z >> 32) | end_z;      /* only for 64-bit architecture TODO, would this mess things up on 32? */
+		/*todo does this need to repeat more since it is long unsigned??? */
+		end_z++;
+		
+		/*squared: */
+		end_z *= end_z;
+		
+		for (z = 0; z < end_z; z++) {
+		row = col = 0;
+		/*bit wise construct row and col from i */
+		for (j = 8 * sizeof(long int) - 1; j > 1; j--) {
+		row = row | (1 & (z >> j));
+		row = row << 1;
+		j--;
+		col = col | (1 & (z >> j));
+		col = col << 1;
+		}
+		row = row | (1 & (z >> j));
+		j--;
+		col = col | (1 & (z >> j));
+		if (row >= files->nrows || col >= files->ncols)
+		continue;   /* todo polish, if z-order is helpful, could skip to the next z that is in the processing area. */
+}
+#endif
 		G_debug(4, "Starting pixel from next row/col, not from Rk");
 
 		if (FLAG_GET(files->candidate_flag, row, col)) {
@@ -839,7 +914,8 @@ int region_growing(struct files *files, struct functions *functions)
 		    pathflag = TRUE;
 
 		    while (pathflag == TRUE) {	/*if don't find mutual neighbors on first try, will use Rk as next Ri. */
-			//TODO: do I need this && part?  remove candidate_count completely?  Is there a way this loop could get stuck iterating forever???
+			//TODO: I originally thought I would need to keep track of remaining candidate pixels.  But now for the pathflag
+			//there is first a check if Rk is a candidate.  So I think this && statment and all candidate_count statements can be removed.
 			//&& files->candidate_count > 0
 			G_debug(4, "Next starting pixel: row, %d, col, %d",
 				Ri_head->row, Ri_head->col);
@@ -848,19 +924,23 @@ int region_growing(struct files *files, struct functions *functions)
 
 			/* find segment neighbors, if we don't already have them */
 			if (Rin_head == NULL) {
+#ifdef PROFILE
 			    fn_start = clock();
+#endif
 			    if (find_segment_neighbors
 				(&Ri_head, &Rin_head, &Ri_count, files,
 				 functions) != TRUE) {
 				G_fatal_error
 				    ("find_segment_neighbors() failed");
 			    }
+#ifdef PROFILE
 			    fn_end = clock();
 			    fn_lap =
 				((double)(fn_end - fn_start)) /
 				CLOCKS_PER_SEC;
 			    fn_accum += fn_lap;
 			    fprintf(stdout, "fsn(Ri): %g\t", fn_lap);
+#endif
 			}
 
 			if (Rin_head != NULL) {	/*found neighbors, find best neighbor then see if is mutually best neighbor */
@@ -965,7 +1045,6 @@ int region_growing(struct files *files, struct functions *functions)
 					/* this check is important:
 					 * best neighbor is not a valid candidate, was already merged earlier in this time step */
 					Ri_bestn = NULL;
-					//pathflag = FALSE;
 				    }
 				}
 			    }
@@ -1025,12 +1104,12 @@ int region_growing(struct files *files, struct functions *functions)
 
 				if (Rk_similarity == Ri_similarity) {	/* mutually most similar neighbors */
 
-				    segment_get(&files->iseg_seg, &testing,
-						Ri_head->row, Ri_head->col);
-				    //~ G_message("\t\tbefore call merge()... testing: %d, Ri_head->row: %d, Ri_head->col: %d", testing, Ri_head->row, Ri_head->col);
+#ifdef PROFILE
 				    merge_start = clock();
+#endif
 				    merge_values(Ri_head, Rk_head, Ri_count,
 						 Rk_count, files);
+#ifdef PROFILE
 				    merge_end = clock();
 				    merge_lap =
 					((double)(merge_end - merge_start)) /
@@ -1038,8 +1117,8 @@ int region_growing(struct files *files, struct functions *functions)
 				    merge_accum += merge_lap;
 				    fprintf(stdout, "merge time: %g\n",
 					    merge_lap);
+#endif
 				    endflag = FALSE;	/* we've made at least one merge, so want another t iteration */
-				    //pathflag = FALSE; /* go to next row,column pixel - end of Rk -> Ri chain since we found mutual best neighbors */
 				}
 				else {	/* they weren't mutually best neighbors */
 				    G_debug(4,
@@ -1066,13 +1145,11 @@ int region_growing(struct files *files, struct functions *functions)
 				set_candidate_flag(Ri_head, FALSE, files);
 				G_debug(4,
 					"3b Ri's best neighbor was not valid candidate, or their similarity was > threshold");
-				//pathflag = FALSE;
 			    }
 
 			}	/* end if(Rin_head != NULL) */
 			else {	/* Ri didn't have a neighbor */
 			    G_debug(4, "Segment had no neighbors");
-			    //pathflag = FALSE;
 			    set_candidate_flag(Ri_head, FALSE, files);
 			    G_debug(4, "line 176, \t\t\t\tcc = %d",
 				    files->candidate_count);
@@ -1103,8 +1180,16 @@ int region_growing(struct files *files, struct functions *functions)
 
 		    }		/*end pathflag do loop */
 		}		/*end if pixel is candidate pixel */
-	    }			/*next column */
+	    }			/*next column (or next z) */
+	    #ifdef ROWMAJOR
 	}			/*next row */
+	#endif
+#ifdef PROFILE
+	pass_end = clock();
+	fprintf(stdout, "pass %d took: %g\n", t,
+		((double)(pass_end - pass_start)) / CLOCKS_PER_SEC);
+#endif
+
 
 	/* finished one iteration over entire raster */
 	G_debug(4, "Finished one pass, t was = %d", t);
@@ -1246,12 +1331,13 @@ int region_growing(struct files *files, struct functions *functions)
     if (t > 2)
 	G_verbose_message("temporary(?) message, number of passes: %d",
 			  t - 1);
+#ifdef PROFILE
     end = clock();
     fprintf(stdout, "time spent merging: %g\n", merge_accum);
     fprintf(stdout, "time spent finding neighbors: %g\n", fn_accum);
     fprintf(stdout, "total time: %g\n",
 	    ((double)(end - start) / CLOCKS_PER_SEC));
-
+#endif
     return TRUE;
 }
 
@@ -1288,13 +1374,11 @@ int find_segment_neighbors(struct pixels **R_head,
 
     /* *** initialize data *** */
 
-    //Ri_seg_ID = files->iseg[(*R_head)->row][(*R_head)->col];
     segment_get(&files->iseg_seg, &R_iseg, (*R_head)->row, (*R_head)->col);
 
     if (R_iseg == 0)
 	R_iseg = -1;		/* with seeds, all non-seed pixels are assigned to segment 0.  But we don't want to consider the others as part of the same segment. */
 
-    //~ G_message("fpn() for iseg: %d", R_iseg);
     no_check_tree = rbtree_create(compare_pixels, sizeof(struct pixels));
     known_iseg = rbtree_create(compare_ids, sizeof(int));
     to_check = NULL;
@@ -1370,7 +1454,6 @@ int find_segment_neighbors(struct pixels **R_head,
 	    if (rbtree_find(no_check_tree, &tree_pix) == FALSE) {	/* want to check this neighbor */
 		segment_get(&files->iseg_seg, &current_seg_ID,
 			    pixel_neighbors[n][0], pixel_neighbors[n][1]);
-		//current_seg_ID = files->iseg[pixel_neighbors[n][0]][pixel_neighbors[n][1]];
 
 		rbtree_insert(no_check_tree, &tree_pix);	/* don't check it again */
 
@@ -1519,24 +1602,24 @@ double calculate_euclidean_similarity(struct pixels *a, struct pixels *b,
 
 }
 
-/*
-   In the eCognition literature, we find that the key factor in the
-   multi-scale segmentation algorithm used by Definiens is the scale
-   factor f:
+    /*
+       In the eCognition literature, we find that the key factor in the
+       multi-scale segmentation algorithm used by Definiens is the scale
+       factor f:
 
-   f = W.Hcolor + (1 - W).Hshape
-   Hcolor = sum(b = 1:nbands)(Wb.SigmaB)
-   Hshape = Ws.Hcompact + (1 - Ws).Hsmooth
-   Hcompact = PL/sqrt(Npx)
-   Hsmooth = PL/Pbbox
+       f = W.Hcolor + (1 - W).Hshape
+       Hcolor = sum(b = 1:nbands)(Wb.SigmaB)
+       Hshape = Ws.Hcompact + (1 - Ws).Hsmooth
+       Hcompact = PL/sqrt(Npx)
+       Hsmooth = PL/Pbbox
 
-   Where W is a user-defined weight of importance of object radiometry vs
-   shape (usually .9 vs .1), Wb is the weigh given to band B, SigmaB is
-   the std dev of the object for band b, Ws is a user-defined weight
-   giving the importance of compactedness vs smoothness, PL is the
-   perimeter lenght of the object, Npx the number of pixels within the
-   object, and Pbbox the perimeter of the bounding box of the object.
- */
+       Where W is a user-defined weight of importance of object radiometry vs
+       shape (usually .9 vs .1), Wb is the weigh given to band B, SigmaB is
+       the std dev of the object for band b, Ws is a user-defined weight
+       giving the importance of compactedness vs smoothness, PL is the
+       perimeter lenght of the object, Npx the number of pixels within the
+       object, and Pbbox the perimeter of the bounding box of the object.
+     */
 
 int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
 		 int Ri_count, int Rk_count, struct files *files)
@@ -1553,11 +1636,6 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
     segment_get(&files->iseg_seg, &Rk_iseg, Rk_head->row, Rk_head->col);
     segment_get(&files->iseg_seg, &Ri_iseg, Ri_head->row, Ri_head->col);
     /* todo polish, maybe we have some of these values already?  Or they should be stored in files structure? */
-    //      G_message("Ri_iseg get(): %d", segment_get(&files->iseg_seg, &Ri_iseg, Ri_head->row, Ri_head->col));
-    //~ G_message("Rk_iseg get(): %d", segment_get(&files->iseg_seg, &Rk_iseg, Rk_head->row, Rk_head->col));
-    //~ G_message("Ri_iseg get(): %d", segment_get(&files->iseg_seg, &Ri_iseg, Ri_head->row, Ri_head->col));
-    //~ G_message("here is what I have:  Ri_iseg: %d, Ri_head->row: %d, Ri_head->col: %d", Ri_iseg, Ri_head->row, Ri_head->col);
-    //~ G_message("here is what I have:  Rk_iseg: %d, Rk_head->row: %d, Rk_head->col: %d", Rk_iseg, Rk_head->row, Rk_head->col);
 
     for (n = 0; n < files->nbands; n++) {
 	files->bands_val[n] =
@@ -1573,7 +1651,6 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
     fprintf(stdout,
 	    "merging Ri (pixel count): %d (%d) with Rk (count): %d (%d).\t",
 	    Ri_iseg, Ri_count, Rk_iseg, Rk_count);
-    //~ G_message("Ri_head->row: %d, Ri_head->col: %d", Ri_head->row, Ri_head->col);
 
     /* for each member of Ri and Rk, write new average bands values and segment values */
     for (current = Ri_head; current != NULL; current = current->next) {
@@ -1587,8 +1664,6 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
     for (current = Rk_head; current != NULL; current = current->next) {
 	segment_put(&files->bands_seg, (void *)files->bands_val,
 		    current->row, current->col);
-	//~ files->iseg[current->row][current->col] =
-	//~ files->iseg[Ri_head->row][Ri_head->col];
 	segment_put(&files->iseg_seg, &Ri_iseg, current->row, current->col);
 	FLAG_UNSET(files->candidate_flag, current->row, current->col);
 	files->candidate_count--;
@@ -1689,9 +1764,9 @@ int compare_pixels(const void *first, const void *second)
     return 0;
 }
 
-/* Set candidate flag to true/1 or false/0 for all pixels in current processing area
- * checks for NULL flag and if it is in current "polygon" if a bounds map is given 
- * checks if seeds were given */
+    /* Set candidate flag to true/1 or false/0 for all pixels in current processing area
+     * checks for NULL flag and if it is in current "polygon" if a bounds map is given 
+     * checks if seeds were given */
 int set_all_candidate_flags(struct files *files)
 {
     int row, col;
@@ -1746,27 +1821,27 @@ int set_all_candidate_flags(struct files *files)
 }
 
 
-/* TODO polish: helper functions:
- * 
- * starting a list
- * 
- * */
+    /* TODO polish: helper functions:
+     * 
+     * starting a list
+     * 
+     * */
 
 #ifdef NODEF
 G_message("2b, Found Ri's pixels");
-			/*print out neighbors */
+    /*print out neighbors */
 for (current = Ri_head; current != NULL; current = current->next)
     G_message("Ri: row: %d, col: %d", current->row, current->col);
 G_message("2b, Found Ri's neighbors");
-			/*print out neighbors */
+    /*print out neighbors */
 for (current = Rin_head; current != NULL; current = current->next)
     G_message("Rin: row: %d, col: %d", current->row, current->col);
 G_message("Found Rk's pixels");
-			    /*print out neighbors */
+    /*print out neighbors */
 for (current = Rk_head; current != NULL; current = current->next)
     G_message("Rk: row: %d, col: %d", current->row, current->col);
 G_message("Found Rk's neighbors");
-			    /*print out neighbors */
+    /*print out neighbors */
 for (current = Rkn_head; current != NULL; current = current->next)
     G_message("Rkn: row: %d, col: %d", current->row, current->col);
 #endif
