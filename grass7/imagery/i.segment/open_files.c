@@ -134,11 +134,11 @@ int open_files(struct files *files)
 
     if (segment_open
 	(&files->iseg_seg, G_tempfile(), files->nrows, files->ncols, srows,
-	 scols, inlen, nseg) != TRUE)
+	 scols, sizeof(int), nseg) != TRUE)
 	G_fatal_error(_("Unable to allocate memory for initial segment ID's"));
     /* NOTE: SEGMENT file should be initialized to zeros for all data. TODO double check this. */
 
-    /* ********  load input bands to segment structure and fill iseg array ******** */
+    /* ********  load input bands to segment structure and fill initial seg ID's ******** */
     G_debug(1, "Reading input rasters into segmentation data files...");
     s = 0;			/* initial segment ID will be 1 */
 
