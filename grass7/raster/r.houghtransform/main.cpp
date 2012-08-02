@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     anglesOption = G_define_standard_option(G_OPT_R_INPUT);
     anglesOption->key = "angles";
     anglesOption->required = NO;
-    anglesOption->description = _("Approximate number of line segments.");
+    anglesOption->description = _("Name of input image with angles from i.edge.");
 
     houghImageNameOption = G_define_standard_option(G_OPT_R_OUTPUT);
     houghImageNameOption->key = "hough_image";
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     angleWidthOption->type = TYPE_INTEGER;
     angleWidthOption->required = NO;
     angleWidthOption->multiple = NO;
-    angleWidthOption->description = _("Width of circle sector (only when you provide angle map).");
+    angleWidthOption->description = _("Width of circle sector (only when you provide angle map)");
     angleWidthOption->answer = const_cast<char *>("5");
 
     // this option will become max peaks number to find in HT
@@ -97,13 +97,13 @@ int main(int argc, char *argv[])
     maxLinesOption->type = TYPE_INTEGER;
     maxLinesOption->required = NO;
     maxLinesOption->multiple = NO;
-    maxLinesOption->description = _("Approximate number of line segments."
-                                    " Actually, this option will become"
-                                    " maximal number of line candidates"
-                                    " detected in Hough transform image."
-                                    " Final number of line segments can be"
-                                    " smaller or greater."
-                                    );
+    maxLinesOption->label = _("Approximate number of line segments");
+    maxLinesOption->description = _(
+                "This number represents"
+                " maximal number of line candidates"
+                " detected in Hough transform image."
+                " Final number of line segments can be"
+                " smaller or greater.");
     maxLinesOption->answer = const_cast<char *>("20");
 
     minGapOption = G_define_option();
