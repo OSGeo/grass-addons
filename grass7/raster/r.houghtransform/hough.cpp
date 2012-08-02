@@ -161,28 +161,33 @@ void create_vector_map(const char * name, const SegmentList& segments,
     Vect_open_new(&Map, name, 0);
 
     struct grass::line_cats *Cats;
+    struct grass::line_pnts *points;
     Cats = Vect_new_cats_struct();
+    points = Vect_new_line_struct();
 
 
     for (size_t i = 0; i < segments.size(); ++i)
     {
         const Segment& seg = segments[i];
 
-        struct grass::line_pnts *points = Vect_new_line_struct(); // FIXME: some destroy
-
         double y1 = Rast_row_to_northing(seg.first.first, cellhd);
         double x1 = Rast_col_to_easting(seg.first.second, cellhd);
         double y2 = Rast_row_to_northing(seg.second.first, cellhd);
         double x2 = Rast_col_to_easting(seg.second.second, cellhd);
 
+        Vect_reset_cats(Cats);
         Vect_cat_set(Cats, 1, i+1); // cat is segment number (counting from one)
 
+        Vect_reset_line(points);
         Vect_append_point(points, x1, y1, 0);
         Vect_append_point(points, x2, y2, 0);
 
         Vect_write_line(&Map, GV_LINE, points, Cats);
     }
 
+    Vect_destroy_cats_struct(Cats);
+    Vect_destroy_line_struct(points);
+    
     Vect_build(&Map);
     Vect_close(&Map);
 }
