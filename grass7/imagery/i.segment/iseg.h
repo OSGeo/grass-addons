@@ -61,13 +61,15 @@ struct files
     int nsegs;			/* number of segments */
 
     /* processing flags */
+    /* candidate flag for if a cell/segment has already been merged in that pass. */
+    /* seeds flag for if a cell/segment is a seed (can be Ri to start a merge).  All cells are valid seeds if a starting seeds map is not supplied. */
     FLAG *candidate_flag, *null_flag, *orig_null_flag, *seeds_flag;
 
     /* memory management, linked lists */
     struct link_head *token;	/* for linkm.h linked list memory management. */
 
-    /* other info */
-    int candidate_count;	/*Number of remaining candidate pixels */
+    //~ /* other info */
+    //~ int candidate_count;	/*Number of remaining candidate pixels */
 
 };
 
@@ -102,7 +104,7 @@ struct functions
 int parse_args(int, char *[], struct files *, struct functions *);
 
 /* open_files.c */
-int open_files(struct files *);
+int open_files(struct files *, struct functions *);
 
 /* create_isegs.c */
 int create_isegs(struct files *, struct functions *);
@@ -117,6 +119,7 @@ int find_segment_neighbors(struct pixels **, struct pixels **, int *,
 			   struct files *, struct functions *);
 int set_candidate_flag(struct pixels *, int, struct files *);
 int merge_values(struct pixels *, struct pixels *, int, int, struct files *);
+int merge_pixels(struct pixels *, struct files *);
 int find_four_pixel_neighbors(int, int, int[][2], struct files *);
 int find_eight_pixel_neighbors(int, int, int[8][2], struct files *);
 double calculate_euclidean_similarity(struct pixels *, struct pixels *,

@@ -7,7 +7,7 @@
 #include <grass/segment.h>	/* segmentation library */
 #include "iseg.h"
 
-int open_files(struct files *files)
+int open_files(struct files *files, struct functions *functions)
 {
     struct Ref Ref;		/* group reference list */
     int *in_fd, seeds_fd, bounds_fd, null_check, out_fd, mean_fd;
@@ -19,6 +19,10 @@ int open_files(struct files *files)
     RASTER_MAP_TYPE data_type;
     struct FPRange *fp_range;	/* for getting min/max values on each input raster */
     DCELL *min, *max;
+
+	/* for merging seed values */
+	struct pixels *R_head, *Rn_head, *newpixel;
+	int R_count;
 
     /* confirm output maps can be opened (don't want to do all this work for nothing!) */
     out_fd = Rast_open_new(files->out_name, CELL_TYPE);
@@ -40,7 +44,7 @@ int open_files(struct files *files)
     files->candidate_flag = flag_create(files->nrows, files->ncols);
     if (files->bounds_map != NULL)
 	files->orig_null_flag = flag_create(files->nrows, files->ncols);
-    if (files->seeds_map != NULL)
+    //if (files->seeds_map != NULL)
 	files->seeds_flag = flag_create(files->nrows, files->ncols);
 
     /* references for segmentation library: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
@@ -175,10 +179,13 @@ int open_files(struct files *files)
 			FLAG_UNSET(files->seeds_flag, row, col);	//todo shouldn't need to this, flag is initialized to zero?
 		    }
 		    else {
-			s++;	/* sequentially number each seed pixel with its own segment ID */
-			FLAG_SET(files->seeds_flag, row, col);	//todo might not need this... just use the zero as seg ID?  If go this route, need to enforce constraints are positive integers.
-			segment_put(&files->iseg_seg, &s, row, col);
-			G_message("set seed for row: %d, col: %d", row, col);
+//			s++;	/* sequentially number each seed pixel with its own segment ID */
+			
+			FLAG_SET(files->seeds_flag, row, col);	//todo might not need this... just look for seg ID > 0 ?  If go this route, need to enforce constraints are positive integers.
+//			segment_put(&files->iseg_seg, &s, row, col);
+			/* seed value is starting segment ID.  TODO document: seeds must be positive integers, and will be assigned as starting segment IDs. */
+			segment_put(&files->iseg_seg, ptr, row, col); //can I just use ptr as the address with the value I want to store? TODO enforce that seeds map is an integer.
+//			G_message("set seed for row: %d, col: %d", row, col);
 
 		    }
 		    ptr = G_incr_void_ptr(ptr, ptrsize);
@@ -186,6 +193,7 @@ int open_files(struct files *files)
 		else {		/* no seeds provided */
 		    s++;	/* sequentially number all pixels with their own segment ID */
 		    segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
+		    FLAG_SET(files->seeds_flag, row, col); 			/*all pixels are seeds */
 		}
 	    }
 	    else {		/*don't use this pixel */
@@ -197,8 +205,14 @@ int open_files(struct files *files)
     }
 
     /* number of initial segments, will decrement when merge */
+    if (files->seeds_map == NULL)
     files->nsegs = s;
-
+    else
+    {
+		/* TODO: Markus, is there an easy GRASS function to count the unique values in the seeds map???
+		 * or count during the processing? */
+	}
+	
     /* bounds/constraints */
     if (files->bounds_map != NULL) {
 	if (segment_open
@@ -236,8 +250,8 @@ int open_files(struct files *files)
 	G_debug(1, "no boundary constraint supplied.");
     }
 
-    /* other info */
-    files->candidate_count = 0;	/* counter for remaining candidate pixels */
+    //~ /* other info */
+    //~ files->candidate_count = 0;	/* counter for remaining candidate pixels */
 
     /* translate seeds to unique segments TODO MM mentioned it here... */
     /* todo decide if we need to take the seeds value, and use it to start the segments... or if each pixel starts a unique segment. */
@@ -246,6 +260,44 @@ int open_files(struct files *files)
     link_set_chunk_size(100);	/* TODO polish: fine tune this number */
 
     files->token = link_init(sizeof(struct pixels));
+
+	/* if we have seeds that are segments (not pixels) we need to update the bands_seg */
+	if(files->seeds_map != NULL){
+
+	/*initialization*/
+	files->minrow = files->mincol = 0;
+	files->maxrow = files->nrows;
+	files->maxcol = files->ncols;
+	R_count=1;
+	R_head=NULL;
+	Rn_head=NULL;
+	newpixel=NULL;
+	set_all_candidate_flags(files);
+	for (row = 0; row < files->nrows; row++) {
+	for (col = 0; col < files->ncols; col++) {
+		if(!(FLAG_GET(files->candidate_flag, row, col)) || FLAG_GET(files->null_flag, row, col)) continue;
+		/*start R_head*/
+		newpixel = (struct pixels *)link_new(files->token);
+		newpixel->next = NULL;
+		newpixel->row = row;
+		newpixel->col = col;
+		R_head = newpixel;
+
+		/*get pixel list, todo polish, could use custom (shorter) function, not using all of what fsn() does...*/
+		find_segment_neighbors(&R_head, &Rn_head, &R_count, files, functions);
+		
+		/*merge pixels*/
+		merge_pixels(R_head, files);
+		
+		/*todo calculate perimeter (?and area?) here?*/
+		
+		/*clean up*/
+		my_dispose_list(files->token, &R_head);
+		my_dispose_list(files->token, &Rn_head);
+		R_count=1;
+	}
+	}
+	}
 
     /* Free memory */
 

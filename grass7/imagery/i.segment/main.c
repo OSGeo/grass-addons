@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Error in parse_args()"));
 
     G_debug(1, "Main: starting open_files()");
-    if (open_files(&files) != TRUE)
+    if (open_files(&files, &functions) != TRUE)
 	G_fatal_error(_("Error in open_files()"));
 
     G_debug(1, "Main: starting create_isegs()");
