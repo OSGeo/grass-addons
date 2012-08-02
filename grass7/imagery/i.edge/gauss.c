@@ -4,31 +4,31 @@
 
 #include <grass/gis.h>
 
-int getKernelWidth(const float sigma, float gaussianCutOff)
+int getKernelWidth(const double sigma, double gaussianCutOff)
 {
-    return ceil(sqrt(-2 * sigma * sigma * log(gaussianCutOff)));
+    return (int) ceil(sqrt(-2 * sigma * sigma * log(gaussianCutOff)));
 }
 
-static float gaussian(float x, float sigma)
+static double gaussian(double x, double sigma)
 {
     return exp(-(x * x) / (2.0 * sigma * sigma));
 }
 
 void gaussKernel(DCELL * gaussKernel, DCELL * diffKernel,
-		 int kernelWidth, float kernelRadius)
+                 int kernelWidth, double kernelRadius)
 {
     int kwidth;
 
     for (kwidth = 0; kwidth < kernelWidth; kwidth++) {
-	float g1 = gaussian(kwidth, kernelRadius);
+        double g1 = gaussian(kwidth, kernelRadius);
 
-	float g2 = gaussian(kwidth - 0.5, kernelRadius);
+        double g2 = gaussian(kwidth - 0.5, kernelRadius);
 
-	float g3 = gaussian(kwidth + 0.5, kernelRadius);
+        double g3 = gaussian(kwidth + 0.5, kernelRadius);
 
 	gaussKernel[kwidth] =
 	    (g1 + g2 +
-	     g3) / 3. / (2.0 * (float)M_PI * kernelRadius * kernelRadius);
+	     g3) / 3. / (2.0 * (double)M_PI * kernelRadius * kernelRadius);
 	diffKernel[kwidth] = g3 - g2;
     }
 }
@@ -36,7 +36,8 @@ void gaussKernel(DCELL * gaussKernel, DCELL * diffKernel,
 void gaussConvolution(DCELL * image, DCELL * kernel, DCELL * xConv,
 		      DCELL * yConv, int rows, int cols, int kernelWidth)
 {
-    int x, y;
+    int x;
+    size_t y;
 
     int initX = kernelWidth - 1;
 
@@ -44,16 +45,16 @@ void gaussConvolution(DCELL * image, DCELL * kernel, DCELL * xConv,
 
     int initY = cols * (kernelWidth - 1);
 
-    int maxY = cols * (rows - (kernelWidth - 1));
+    size_t maxY = (size_t) cols * (rows - (kernelWidth - 1));
 
     //perform convolution in x and y directions
     for (x = initX; x < maxX; x++) {
 	for (y = initY; y < maxY; y += cols) {
-	    int index = x + y;
+	    size_t index = x + y;
 
-	    float sumX = image[index] * kernel[0];
+	    double sumX = image[index] * kernel[0];
 
-	    float sumY = sumX;
+	    double sumY = sumX;
 
 	    int xOffset = 1;
 

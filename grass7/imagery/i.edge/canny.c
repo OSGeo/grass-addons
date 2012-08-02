@@ -50,19 +50,19 @@ void computeXGradients(DCELL * diffKernel, DCELL * yConv, DCELL * xGradient,
 
     int initY = cols * (kernelWidth - 1);
 
-    int maxY = cols * (rows - (kernelWidth - 1));
+    size_t maxY = (size_t) cols * (rows - (kernelWidth - 1));
 
     int x;
 
-    int y;
+    size_t y;
 
     int i;
 
     for (x = initX; x < maxX; x++) {
 	for (y = initY; y < maxY; y += cols) {
-	    float sum = 0.;
+	    double sum = 0.;
 
-	    int index = x + y;
+	    size_t index = x + y;
 
 	    for (i = 1; i < kernelWidth; i++) {
 		sum += diffKernel[i] * (yConv[index - i] - yConv[index + i]);
@@ -78,19 +78,19 @@ void computeYGradients(DCELL * diffKernel, DCELL * xConv, DCELL * yGradient,
 {
     int initY = cols * (kernelWidth - 1);
 
-    int maxY = cols * (rows - (kernelWidth - 1));
+    size_t maxY = (size_t) cols * (rows - (kernelWidth - 1));
 
     int x;
 
-    int y;
+    size_t y;
 
     int i;
 
     for (x = kernelWidth; x < cols - kernelWidth; x++) {
 	for (y = initY; y < maxY; y += cols) {
-	    float sum = 0.0;
+	    double sum = 0.0;
 
-	    int index = x + y;
+	    size_t index = x + y;
 
 	    int yOffset = cols;
 
@@ -105,9 +105,9 @@ void computeYGradients(DCELL * diffKernel, DCELL * xConv, DCELL * yGradient,
     }
 }
 
-static float custom_hypot(float x, float y)
+static double custom_hypot(double x, double y)
 {
-    float t;
+    double t;
 
     x = fabs(x);
     y = fabs(y);
@@ -153,11 +153,11 @@ static float custom_hypot(float x, float y)
  * variable (3) and reused in the mirror case (4).
  *
  */
-static int isLocalMax(float xGrad, float yGrad, float gradMag,
-		      float neMag, float seMag, float swMag, float nwMag,
-		      float nMag, float eMag, float sMag, float wMag)
+static int isLocalMax(double xGrad, double yGrad, double gradMag,
+		      double neMag, double seMag, double swMag, double nwMag,
+		      double nMag, double eMag, double sMag, double wMag)
 {
-    float tmp, tmp1, tmp2;
+    double tmp, tmp1, tmp2;
 
     if (xGrad * yGrad <= 0.0f) {
 	if (fabs(xGrad) >= fabs(yGrad)) {
@@ -189,10 +189,10 @@ static int isLocalMax(float xGrad, float yGrad, float gradMag,
     return 0;
 }
 
-void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, DCELL * magnitude,
-		      DCELL * angle,
+void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, CELL * magnitude,
+		      CELL *angle,
 		      int rows, int cols, int kernelWidth,
-		      float magnitudeScale, float magnitudeLimit)
+		      int magnitudeScale, int magnitudeLimit)
 {
     int initX = kernelWidth;
 
@@ -200,17 +200,17 @@ void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, DCELL * magnitude,
 
     int initY = cols * kernelWidth;
 
-    int maxY = cols * (rows - kernelWidth);
+    size_t maxY = cols * (rows - kernelWidth);
 
     int x;
 
-    int y;
+    size_t y;
 
     int MAGNITUDE_MAX = magnitudeScale * magnitudeLimit;
 
     for (x = initX; x < maxX; x++) {
 	for (y = initY; y < maxY; y += cols) {
-	    int index = x + y;
+	    size_t index = x + y;
 
 	    int indexN = index - cols;
 
@@ -228,31 +228,31 @@ void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, DCELL * magnitude,
 
 	    int indexSE = indexS + 1;
 
-	    float xGrad = xGradient[index];
+	    double xGrad = xGradient[index];
 
-	    float yGrad = yGradient[index];
+	    double yGrad = yGradient[index];
 
-	    float gradMag = custom_hypot(xGrad, yGrad);
+	    double gradMag = custom_hypot(xGrad, yGrad);
 
 	    /* perform non-maximal supression */
-	    float nMag = custom_hypot(xGradient[indexN], yGradient[indexN]);
+	    double nMag = custom_hypot(xGradient[indexN], yGradient[indexN]);
 
-	    float sMag = custom_hypot(xGradient[indexS], yGradient[indexS]);
+	    double sMag = custom_hypot(xGradient[indexS], yGradient[indexS]);
 
-	    float wMag = custom_hypot(xGradient[indexW], yGradient[indexW]);
+	    double wMag = custom_hypot(xGradient[indexW], yGradient[indexW]);
 
-	    float eMag = custom_hypot(xGradient[indexE], yGradient[indexE]);
+	    double eMag = custom_hypot(xGradient[indexE], yGradient[indexE]);
 
-	    float neMag =
+	    double neMag =
 		custom_hypot(xGradient[indexNE], yGradient[indexNE]);
 
-	    float seMag =
+	    double seMag =
 		custom_hypot(xGradient[indexSE], yGradient[indexSE]);
 
-	    float swMag =
+	    double swMag =
 		custom_hypot(xGradient[indexSW], yGradient[indexSW]);
 
-	    float nwMag =
+	    double nwMag =
 		custom_hypot(xGradient[indexNW], yGradient[indexNW]);
 
 	    if (isLocalMax(xGrad, yGrad, gradMag, neMag, seMag, swMag, nwMag,
@@ -260,7 +260,7 @@ void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, DCELL * magnitude,
 		magnitude[index] =
 		    gradMag >=
 		    magnitudeLimit ? MAGNITUDE_MAX : (int)(magnitudeScale *
-							   gradMag);
+							   gradMag + 0.5);
 		/*
 		   NOTE: The orientation of the edge is not employed by this
 		   implementation. It is a simple matter to compute it at
@@ -268,7 +268,7 @@ void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, DCELL * magnitude,
 		 */
 		if (angle != NULL)
 		{
-		    angle[index] = atan2(yGrad, xGrad) * 180 / M_PI;;
+		    angle[index] = (int) (atan2(yGrad, xGrad) * 180 / M_PI + 0.5);
 		}
 	    }
 	    else {
@@ -278,7 +278,7 @@ void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, DCELL * magnitude,
     }
 }
 
-static void follow(DCELL * edges, DCELL * magnitude, int x1, int y1, int i1,
+static void follow(CELL * edges, CELL * magnitude, int x1, int y1, int i1,
 		   int threshold, int rows, int cols)
 {
     int x0 = x1 == 0 ? x1 : x1 - 1;
@@ -308,7 +308,7 @@ static void follow(DCELL * edges, DCELL * magnitude, int x1, int y1, int i1,
 }
 
 /* edges.fill(0) */
-void performHysteresis(DCELL * edges, DCELL * magnitude, int low, int high,
+void performHysteresis(CELL * edges, CELL * magnitude, int low, int high,
 		       int rows, int cols)
 {
     /*
@@ -334,11 +334,12 @@ void performHysteresis(DCELL * edges, DCELL * magnitude, int low, int high,
     }
 }
 
-void thresholdEdges(DCELL * edges, int rows, int cols)
+void thresholdEdges(CELL * edges, int rows, int cols)
 {
     int i;
+    size_t max = (size_t) rows * cols;
 
-    for (i = 0; i < rows * cols; i++) {
+    for (i = 0; i < max; i++) {
 	edges[i] = edges[i] > 0 ? 1 : 0;
     }
 }

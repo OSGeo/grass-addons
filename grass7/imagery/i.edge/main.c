@@ -22,8 +22,6 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
-
-#include <grass/imagery.h>
 #include <grass/gmath.h>
 
 #include <math.h>
@@ -70,12 +68,14 @@ static void readMap(const char *name, const char *mapset, int nrows,
 
 	for (c = 0; c < ncols; c++) {
 	    cell_value = row_buffer[c];
-	    if (!Rast_is_d_null_value(&cell_value))
-		mat[(ncols * (r)) + c] = cell_value;
-	    else
-		mat[(ncols * (r)) + c] = 0.0;
+	    size_t index = ((size_t) ncols * r) + c;
 
-	    if (mat[(ncols * (r)) + c])
+	    if (!Rast_is_d_null_value(&cell_value))
+		mat[index] = cell_value;
+	    else
+		mat[index] = 0.0;
+
+	    if (mat[index])
 		check_reading = 1;
 	}
     }
@@ -91,25 +91,25 @@ static void readMap(const char *name, const char *mapset, int nrows,
 
   \param[in] map map in a matrix (row order)
   */
-static void writeMap(const char *name, int nrows, int ncols, DCELL * map)
+static void writeMap(const char *name, int nrows, int ncols, CELL * map)
 {
     unsigned char *outrast;	/* output buffer */
 
     int outfd;
 
-    outfd = Rast_open_new(name, DCELL_TYPE);	// FIXME: using both open old and open new
+    outfd = Rast_open_new(name, CELL_TYPE);	// FIXME: using both open old and open new
     int r, c;
 
-    outrast = Rast_allocate_buf(DCELL_TYPE);
+    outrast = Rast_allocate_buf(CELL_TYPE);
     for (r = 0; r < nrows; r++) {
 	for (c = 0; c < ncols; c++) {
-	    int index = r * ncols + c;
+	    size_t index = (size_t) r * ncols + c;
 
-	    DCELL value = map[index];
+	    CELL value = map[index];
 
-	    ((DCELL *) outrast)[c] = value;
+	    ((CELL *) outrast)[c] = value;
 	}
-	Rast_put_row(outfd, outrast, DCELL_TYPE);
+	Rast_put_row(outfd, outrast, CELL_TYPE);
     }
     G_free(outrast);
 
@@ -132,20 +132,21 @@ int main(int argc, char *argv[])
 
     int kernelWidth;
 
-    float kernelRadius;
+    double kernelRadius;
 
     char *result; /* output raster name */
     char *anglesMapName;
 
-    static const float GAUSSIAN_CUT_OFF = 0.005;
+    static const double GAUSSIAN_CUT_OFF = 0.005;
 
-    static const float MAGNITUDE_SCALE = 100.;
+    static const int MAGNITUDE_SCALE = 100;
 
-    static const float MAGNITUDE_LIMIT = 1000.;
+    static const int MAGNITUDE_LIMIT = 1000;
 
-    float lowThreshold, highThreshold, low, high;
+    int lowThreshold, highThreshold, low, high;
 
-    int nrows, ncols, dim_2;
+    int nrows, ncols;
+    size_t dim_2;
 
 //    struct History history; /* holds meta-data (title, comments,..) */
     struct GModule *module; /* GRASS module for parsing arguments */
@@ -154,7 +155,7 @@ int main(int argc, char *argv[])
     struct Option *input, *output, *angleOutput,
 	*lowThresholdOption, *highThresholdOption, *sigmaOption;
 
-    int r;
+    size_t r;
 
     /* initialize GIS environment */
     G_gisinit(argv[0]); /* reads grass env, stores program name to G_program_name() */
@@ -165,7 +166,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("canny"));
     G_add_keyword(_("edge detection"));
     module->description =
-	_("Canny edge detector. Region shall be set to input map. "
+        _("Canny edge detector. Region shall be set to input map. "
 	  "Can work only on small images since map is loaded into memory.");
 
     /* Define the different options as defined in gis.h */
@@ -209,11 +210,11 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    lowThreshold = atof(lowThresholdOption->answer);
-    highThreshold = atof(highThresholdOption->answer);
+    lowThreshold = (int) (atof(lowThresholdOption->answer) + 0.5);
+    highThreshold = (int) (atof(highThresholdOption->answer) + 0.5);
 
-    low = (int)((lowThreshold * MAGNITUDE_SCALE) + 0.5);
-    high = (int)((highThreshold * MAGNITUDE_SCALE) + 0.5);
+    low = (int) ((lowThreshold * MAGNITUDE_SCALE) + 0.5);
+    high = (int) ((highThreshold * MAGNITUDE_SCALE) + 0.5);
 
 
     kernelRadius = atoi(sigmaOption->answer);
@@ -249,11 +250,11 @@ int main(int argc, char *argv[])
 
     G_debug(3, "number of rows %d", cell_head.rows);
 
-    nrows = cell_head.rows;
+    nrows = Rast_window_rows();
 
-    ncols = cell_head.cols;
+    ncols = Rast_window_cols();
 
-    dim_2 = nrows * ncols;
+    dim_2 = (size_t) nrows * ncols;
 
     DCELL *mat1;
 
@@ -311,12 +312,12 @@ int main(int argc, char *argv[])
 		      kernelWidth);
 
 
-    DCELL *magnitude = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+    CELL *magnitude = (CELL *) G_calloc((dim_2), sizeof(CELL));
 
-    DCELL *angle = NULL;
+    CELL *angle = NULL;
     if (anglesMapName != NULL)
     {
-        angle = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+        angle = (CELL *) G_calloc((dim_2), sizeof(CELL));
 
         for (r = 0; r < dim_2; r++) {
             angle[r] = 0;
@@ -328,7 +329,7 @@ int main(int argc, char *argv[])
 		     MAGNITUDE_SCALE, MAGNITUDE_LIMIT);
 
 
-    DCELL *edges = (DCELL *) G_calloc((dim_2), sizeof(DCELL));
+    CELL *edges = (CELL *) G_calloc((dim_2), sizeof(CELL));
 
     for (r = 0; r < dim_2; r++) {
 	edges[r] = 0;

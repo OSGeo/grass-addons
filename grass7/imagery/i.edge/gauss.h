@@ -3,10 +3,10 @@
 
 #include <grass/gis.h>
 
-int getKernelWidth(const float sigma, float gaussianCutOff);
+int getKernelWidth(const double sigma, double gaussianCutOff);
 
 void gaussKernel(DCELL * gaussKernel, DCELL * diffKernel,
-		 int kernelWidth, float kernelRadius);
+		 int kernelWidth, double kernelRadius);
 void gaussConvolution(DCELL * image, DCELL * kernel, DCELL * xConv,
 		      DCELL * yConv, int rows, int cols, int kernelWidth);
 

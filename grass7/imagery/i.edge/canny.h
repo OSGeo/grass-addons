@@ -9,13 +9,13 @@ void computeXGradients(DCELL * diffKernel, DCELL * yConv, DCELL * xGradient,
 void computeYGradients(DCELL * diffKernel, DCELL * xConv, DCELL * yGradient,
 		       int rows, int cols, int kernelWidth);
 
-void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, DCELL * magnitude,
-		      DCELL *angle, int rows, int cols,
-		      int kernelWidth, float magnitudeScale, float magnitudeLimit);
+void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, CELL *magnitude,
+		      CELL *angle, int rows, int cols,
+		      int kernelWidth, int magnitudeScale, int magnitudeLimit);
 
-void performHysteresis(DCELL * edges, DCELL * magnitude,
+void performHysteresis(CELL * edges, CELL *magnitude,
 		       int low, int high, int rows, int cols);
 
-void thresholdEdges(DCELL * edges, int rows, int cols);
+void thresholdEdges(CELL * edges, int rows, int cols);
 
 #endif /* CANNY_H */
