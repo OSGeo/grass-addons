@@ -16,11 +16,14 @@ typedef std::list< std::pair<int, int> > LineCoordinates;
 class LineSegmentsExtractor
 {
 public:
+    typedef double value_type;
+    typedef matrix::Matrix<value_type> Matrix;
+
     /**
       \param image should exist during existence of LineSegmentsExtractor
       \param lineCoordinates will be copied to internal variable
       */
-    LineSegmentsExtractor(const matrix::Matrix& image,
+    LineSegmentsExtractor(const Matrix& image,
                           const ExtractParametres& parametres)
         : mImage(image),
           gapSize(parametres.gapSize), maxNumOfGaps(parametres.maxNumOfGaps),
@@ -33,10 +36,10 @@ public:
       \param orient orientation of lines
       \param[out] segments extracted segments will be added to this list
       */
-    void extract(LineCoordinates lineCoordinates, const float orient, SegmentList& segments);
+    void extract(LineCoordinates lineCoordinates, const double orient, SegmentList& segments);
 
 private:
-    const matrix::Matrix &mImage;
+    const Matrix &mImage;
     int gapSize;
     int maxNumOfGaps;
     int lineGap;

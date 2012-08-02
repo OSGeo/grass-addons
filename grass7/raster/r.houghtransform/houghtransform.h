@@ -14,13 +14,14 @@
 
 #include <stdio.h>
 
-using namespace matrix;
-
 class HoughTransform
 {
 public:
-
     /* types */
+    typedef double value_type;
+    typedef matrix::Matrix<value_type> Matrix;
+    typedef matrix::ColumnVector<double> ColumnVector;
+    typedef matrix::Range<double> Range;
 
     /** This is class to provide compatible syntax with \c std::list. */
     template <typename T>
@@ -52,7 +53,7 @@ public:
 
     struct Peak
     {
-        Peak(Coordinates coordinates, int value, Coordinates begin, Coordinates end)
+        Peak(Coordinates coordinates, value_type value, Coordinates begin, Coordinates end)
             : coordinates(coordinates), value(value), beginLine(begin), endLine(end)
         {}
         Coordinates coordinates;
@@ -94,7 +95,7 @@ private:
     // some of these functions can be changed to non-member
     CoordinatesList neighbourhood(Coordinates &coordinates, const int sizeOfNeighbourhood);
     void removePeakEffect(const CoordinatesList &neighbours, Coordinates &beginLine, Coordinates &endLine);
-    bool findEndPoints(CoordinatesList& list, Coordinates &beginLine, Coordinates &endLine, const int angle);
+    bool findEndPoints(CoordinatesList& list, Coordinates &beginLine, Coordinates &endLine, const value_type angle);
     int findMax(const Matrix& matrix, Coordinates &coordinates);
     void computeHoughForXY(int x, int y, size_t minIndex, size_t maxIndex);
 
@@ -106,15 +107,16 @@ private:
     TracebackMap mHoughMap;
     Peaks mPeaks;
 
+    HoughParametres mParams;
+
+    /* helper variables for computations */
     int mNumR;
     int mNumC;
     ColumnVector mThetas;
     int mNumBins;
-    int c2;
-    int r2;
-    int bins0;
-
-    HoughParametres mParams;
+    int c_2;
+    int r_2;
+    int first_bins;
 };
 
 

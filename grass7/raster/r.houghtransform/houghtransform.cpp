@@ -29,17 +29,17 @@ HoughTransform::HoughTransform(const Matrix &matrix, const HoughParametres& para
     mNumR = mOriginalMatrix.rows();
     mNumC = mOriginalMatrix.columns();
 
-    mThetas = ColumnVector(matrix::Range(-M_PI/2.0, M_PI/2.0, M_PI/180.0).matrix_value ());
+    mThetas = ColumnVector(Range(-M_PI/2.0, M_PI/2.0, M_PI/180.0).matrix_value ());
 
     const float diag_length = std::sqrt(mNumR*mNumR + mNumC*mNumC);
     mNumBins = ceil(diag_length) - 1;
 
     mHoughMatrix = Matrix(mNumBins, mThetas.length(), 0.0);
 
-    c2 = ceil(mNumC/2.);
-    r2 = ceil(mNumR/2.);
+    c_2 = ceil(mNumC/2.);
+    r_2 = ceil(mNumR/2.);
 
-    bins0 = 1 - ceil(mNumBins/2.0);
+    first_bins = 1 - ceil(mNumBins/2.0);
 }
 
 /* functions */
@@ -64,10 +64,10 @@ void HoughTransform::computeHoughForXY(int x, int y, size_t minIndex, size_t max
     for (size_t i = minIndex; i < maxIndex; i++)
     {
         const double theta = mThetas(i);
-        const double cT = cos(theta);
-        const double sT = sin(theta);
-        const int rho = (int) floor(cT*(x - c2) + sT*(y - r2) + 0.5);
-        const int bin = (int) (rho - bins0);
+        const double rho_d = std::cos(theta)*(x - c_2) + std::sin(theta)*(y - r_2);
+        const int rho = floor(rho_d + 0.5);
+        const int bin = rho - first_bins;
+
         if ((bin > 0) && (bin < mNumBins))
         {
             mHoughMatrix(bin, i)++;
@@ -198,7 +198,7 @@ void HoughTransform::removePeakEffect(const CoordinatesList &neighbours, Coordin
 /** \param list[in, out] will be sorted by y cooridinate
   if angle is in range (45, 135] or by x otherwise
   */
-bool HoughTransform::findEndPoints(CoordinatesList& list, Coordinates &beginLine, Coordinates &endLine, const int angle)
+bool HoughTransform::findEndPoints(CoordinatesList& list, Coordinates &beginLine, Coordinates &endLine, const value_type angle)
 {
     if (angle > 45 && angle <= 135)
     {
@@ -221,7 +221,7 @@ int HoughTransform::findMax(const Matrix& matrix, Coordinates &coordinates)
     size_t colIndex;
     std::vector<size_t> colIndexes;
 
-    std::vector<double> rowMax = matrix.row_max(colIndexes);
+    std::vector<value_type> rowMax = matrix.row_max(colIndexes);
 
     int max = 0;
     for (size_t i = 0; i < rowMax.size(); i++)

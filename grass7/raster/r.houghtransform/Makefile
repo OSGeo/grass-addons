@@ -11,7 +11,7 @@ EXTRA_INC = $(VECT_INC)
 
 include $(MODULE_TOPDIR)/include/Make/Module.make
 
-EXTRA_CFLAGS = $(VECT_CFLAGS) -Wno-sign-compare -Wall -Wextra -O0
+EXTRA_CFLAGS = $(VECT_CFLAGS) -Wno-sign-compare -Wall -Wextra -O0 -Wconversion
 
 LINK = $(CXX)
 

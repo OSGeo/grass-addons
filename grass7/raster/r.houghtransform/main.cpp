@@ -5,7 +5,7 @@
  * AUTHOR(S):    Anna Kratochvilova - kratochanna gmail.com
  *               Vaclav Petras - wenzeslaus gmail.com
  *
- * PURPOSE:      Line extraction from edges in raster.
+ * PURPOSE:      Line segment extraction using Hough transformation.
  *
  * COPYRIGHT:    (C) 2012 by the GRASS Development Team
  *
@@ -37,7 +37,7 @@ extern "C" {
 int main(int argc, char *argv[])
 {
     struct Cell_head cell_head;	/* it stores region information,
-				   and header information of rasters */
+                                   and header information of rasters */
     char *name;			/* input raster name */
 
     char *mapset;		/* mapset name */
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     struct Option *input, *output, *anglesOption, *houghImageNameOption,
             *angleWidthOption,
             *minGapOption, *maxNumberOfGapsOption,
-        *maxLinesOption, *maxGapOption, *minSegmentLengthOption,
+            *maxLinesOption, *maxGapOption, *minSegmentLengthOption,
             *lineWidthOption;
 
     /* initialize GIS environment */
@@ -62,10 +62,11 @@ int main(int argc, char *argv[])
     module = G_define_module();
     G_add_keyword(_("raster"));
     G_add_keyword(_("hought"));
-    G_add_keyword(_(""));
+    G_add_keyword(_("ht"));
     module->description =
-	_("Canny edge detector. Region shall be set to input map. "
-	  "Can work only on small images since map is loaded into memory.");
+            _("Perform Hough transformation and extracts line segments from image."
+              " Region shall be set to input map."
+              " Can work only on small images since map is loaded into memory.");
 
     /* Define the different options as defined in gis.h */
     input = G_define_standard_option(G_OPT_R_INPUT);
@@ -147,30 +148,31 @@ int main(int argc, char *argv[])
 
     /* options and flags parser */
     if (G_parser(argc, argv))
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     /* stores options and flags to variables */
     result = output->answer;
     name = input->answer;
 
-    ExtractParametres extractParametres;
-    HoughParametres houghParametres;
 
+    HoughParametres houghParametres;
     houghParametres.maxPeaksNum = atoi(maxLinesOption->answer);
-    houghParametres.threshold = 10;
+    houghParametres.threshold = 10; // TODO: consider option
     houghParametres.angleWidth = atoi(angleWidthOption->answer);
+    houghParametres.sizeOfNeighbourhood = 1; // TODO: consider option
+
+    ExtractParametres extractParametres;
     extractParametres.gapSize = atoi(minGapOption->answer);
     extractParametres.maxGap = atoi(maxGapOption->answer);
     extractParametres.maxNumOfGaps = atoi(maxNumberOfGapsOption->answer);
     extractParametres.lineLength = atoi(minSegmentLengthOption->answer);
     extractParametres.lineWidth = atoi(lineWidthOption->answer);
-    houghParametres.sizeOfNeighbourhood = 1;
 
     /* returns NULL if the map was not found in any mapset,
      * mapset name otherwise */
     mapset = (char *)G_find_raster2(name, "");
     if (mapset == NULL)
-	G_fatal_error(_("Raster map <%s> not found"), name);
+        G_fatal_error(_("Raster map <%s> not found"), name);
 
     /* determine the inputmap type (CELL/FCELL/DCELL) */
     //data_type = Rast_map_type(name, mapset);

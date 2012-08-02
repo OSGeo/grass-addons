@@ -22,16 +22,16 @@ using grass::Map_info;
 using grass::Vect_new_cats_struct;
 using grass::Vect_new_line_struct;
 
-using grass::Rast_allocate_d_input_buf;
+using grass::Rast_allocate_c_input_buf;
 using grass::Rast_open_old;
 using grass::Rast_get_row;
 using grass::Rast_close;
 
 using grass::Rast_window_rows;
 using grass::Rast_window_cols;
-using grass::Rast_allocate_d_buf;
+using grass::Rast_allocate_c_buf;
 using grass::Rast_open_fp_new;
-using grass::Rast_put_d_row;
+using grass::Rast_put_c_row;
 using grass::Rast_get_cellhd;
 
 using grass::G_gettext;
@@ -40,13 +40,14 @@ using grass::G_debug;
 using grass::G_free;
 
 using grass::Colors;
-using grass::FPRange; // FIXME: DCELL/CELL
+using grass::Range;
 using grass::G_mapset;
 
 /** Loads map into memory.
 
   \param[out] mat map in a matrix (row order), field have to be allocated
   */
+template <typename Matrix>
 void read_raster_map(const char *name, const char *mapset, int nrows,
                             int ncols, Matrix& mat)
 {
@@ -55,11 +56,11 @@ void read_raster_map(const char *name, const char *mapset, int nrows,
 
     int map_fd;
 
-    DCELL *row_buffer;
+    CELL *row_buffer;
 
-    DCELL cell_value;
+    CELL cell_value;
 
-    row_buffer = Rast_allocate_d_input_buf();
+    row_buffer = Rast_allocate_c_buf();
 
     /* load map */
     map_fd = Rast_open_old(name, mapset);
@@ -74,11 +75,11 @@ void read_raster_map(const char *name, const char *mapset, int nrows,
     //        G_fatal_error(_("Error getting first raster map type"));
 
     for (r = 0; r < nrows; r++) {
-        Rast_get_row(map_fd, row_buffer, r, DCELL_TYPE);
+        Rast_get_row(map_fd, row_buffer, r, CELL_TYPE);
 
         for (c = 0; c < ncols; c++) {
             cell_value = row_buffer[c];
-            if (!Rast_is_d_null_value(&cell_value))
+            if (!Rast_is_c_null_value(&cell_value))
                 mat(r, c) = cell_value;
             else
                 mat(r, c) = 0.0;
@@ -92,22 +93,23 @@ void read_raster_map(const char *name, const char *mapset, int nrows,
 void apply_hough_colors_to_map(const char *name)
 {
     struct Colors colors;
-    struct FPRange range;
-    DCELL min, max;
+    struct Range range;
+    CELL min, max;
 
-    Rast_read_fp_range(name, G_mapset(), &range);
-    Rast_get_fp_range_min_max(&range, &min, &max);
+    Rast_read_range(name, G_mapset(), &range);
+    Rast_get_range_min_max(&range, &min, &max);
     Rast_make_grey_scale_colors(&colors, min, max);
     Rast_write_colors(name, G_mapset(), &colors);
 }
 
+template <typename Matrix>
 void create_raster_map(const char *name, struct Cell_head *window, const Matrix& mat)
 {
     struct Cell_head original_window;
-    DCELL *cell_real;
+    CELL *cell_real;
     int rows, cols; /* number of rows and columns */
     long totsize; /* total number of data points */ // FIXME: make clear the size_t usage
-    int realfd;
+    int mapfd;
 
     /* get the rows and columns in the current window */
     rows = mat.rows();
@@ -131,19 +133,19 @@ void create_raster_map(const char *name, struct Cell_head *window, const Matrix&
     Rast_set_window(window);
 
     /* allocate the space for one row of cell map data */
-    cell_real = Rast_allocate_d_buf();
+    cell_real = Rast_allocate_c_buf();
 
     /* open the output cell maps */
-    realfd = Rast_open_fp_new(name);
+    mapfd = Rast_open_fp_new(name);
 
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             cell_real[j] = mat(i, j);
         }
-        Rast_put_d_row(realfd, cell_real);
+        Rast_put_c_row(mapfd, cell_real);
     }
 
-    Rast_close(realfd);
+    Rast_close(mapfd);
     G_free(cell_real);
 
     Rast_set_window(&original_window);
@@ -185,6 +187,7 @@ void create_vector_map(const char * name, const SegmentList& segments,
     Vect_close(&Map);
 }
 
+template <typename Matrix>
 void extract_line_segments(const Matrix &I,
                            const HoughTransform::Peaks& peaks,
                            const HoughTransform::TracebackMap& houghMap,
@@ -220,6 +223,7 @@ void hough_peaks(HoughParametres houghParametres,
                  const char *anglesMapName,
                  const char *houghImageName, const char *result)
 {
+    typedef matrix::Matrix<DCELL> Matrix;
     Matrix I(nrows, ncols);
     read_raster_map(name, mapset, nrows, ncols, I);
 

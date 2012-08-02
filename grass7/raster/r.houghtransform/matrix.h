@@ -10,21 +10,24 @@
 
 namespace matrix {
 
+template <typename T>
 class Matrix
 {
 public:
-    Matrix(size_t r, size_t c, double val = 0)
+    typedef T value_type;
+
+    Matrix(size_t r, size_t c, value_type val = 0)
         : mRows(r), mCols(c)
     {
         resize(r, c, val);
     }
     Matrix() : mRows(0), mCols(0) {}
 
-    void resize(size_t r, size_t c, double val = 0)
+    void resize(size_t r, size_t c, value_type val = 0)
     {
         mRows = r;
         mCols = c;
-        std::vector<double> row;
+        std::vector<value_type> row;
         row.resize(c, val);
         mat.resize(r, row);
     }
@@ -33,7 +36,7 @@ public:
 
       if (r > rows() || c > columns()) error;
       */
-    double& operator ()(size_t r, size_t c)
+    value_type& operator ()(size_t r, size_t c)
     {
         return mat[r][c];
     }
@@ -41,22 +44,22 @@ public:
 
       if (r > rows() || c > columns()) error;
       */
-    const double& operator ()(size_t r, size_t c) const
+    const value_type& operator ()(size_t r, size_t c) const
     {
         return mat[r][c];
     }
     size_t rows() const { return mRows; }
     size_t columns() const { return mCols; }
 
-    std::vector<double> row_max(std::vector<size_t>& colIndexes) const
+    std::vector<value_type> row_max(std::vector<size_t>& colIndexes) const
     {
-        std::vector<double> ret;
+        std::vector<value_type> ret;
         ret.reserve(rows());
         colIndexes.reserve(rows());
         for (size_t i = 0; i < rows(); ++i)
         {
-            std::vector<double>::const_iterator maxe = std::max_element(mat[i].begin(), mat[i].end());
-            double max = *maxe;
+            typename std::vector<value_type>::const_iterator maxe = std::max_element(mat[i].begin(), mat[i].end());
+            value_type max = *maxe;
             size_t maxi = maxe - mat[i].begin();
 
             ret.push_back(max);
@@ -66,15 +69,18 @@ public:
     }
 
 private:
-    std::vector< std::vector<double> > mat;
+    std::vector< std::vector<value_type> > mat;
     size_t mRows;
     size_t mCols;
 };
 
+template <typename T>
 class ColumnVector
 {
 public:
-    ColumnVector(Matrix mat)
+    typedef T value_type;
+
+    ColumnVector(Matrix<value_type> mat)
     {
         for (size_t i = 0; i < mat.columns(); ++i)
         {
@@ -83,23 +89,26 @@ public:
     }
     ColumnVector() {}
 
-    double& operator ()(size_t i)
+    value_type& operator ()(size_t i)
     {
         return vec[i];
     }
-    const double& operator ()(size_t i) const
+    const value_type& operator ()(size_t i) const
     {
         return vec[i];
     }
     size_t length() { return vec.size(); }
 
 private:
-    std::vector<double> vec;
+    std::vector<value_type> vec;
 };
 
+template <typename T>
 class Range
 {
 public:
+    typedef T value_type;
+
     Range (double b, double l, double i)
         : rng_base(b), rng_limit(l), rng_inc(i), rng_nelem(nelem_internal())
     { }
@@ -108,9 +117,9 @@ public:
       : rng_base(b), rng_limit(l), rng_inc(1),
         rng_nelem(nelem_internal()) { }
 
-    Matrix matrix_value() const
+    Matrix<value_type> matrix_value() const
     {
-        Matrix cache;
+        Matrix<value_type> cache;
         //if (rng_nelem > 0 && cache.nelem () == 0)
           //{
             cache.resize(1, rng_nelem);

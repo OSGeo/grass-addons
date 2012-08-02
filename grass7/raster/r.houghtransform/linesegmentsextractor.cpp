@@ -32,6 +32,7 @@ bool checkBounds(int y, int x, int cols, int rows)
     return true;
 }
 
+template<typename Matrix>
 bool isData(const Matrix &I, const std::vector<int> &y, const std::vector<int> &x, const int cols, const int rows)
 {
     for (size_t k = 0; k < y.size(); k++)
@@ -125,7 +126,7 @@ bool segmentContainsPoint(const Segment& segment, const std::pair<int, int>& p, 
 /* member functions */
 
 void LineSegmentsExtractor::extract(LineCoordinates lineCoordinates,
-                                    float orient,
+                                    const double orient,
                                     SegmentList& segments)
 {
     const int rows = mImage.rows();
