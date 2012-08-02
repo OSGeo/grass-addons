@@ -318,10 +318,7 @@ int main(int argc, char *argv[])
     if (anglesMapName != NULL)
     {
         angle = (CELL *) G_calloc((dim_2), sizeof(CELL));
-
-        for (r = 0; r < dim_2; r++) {
-            angle[r] = 0;
-        }
+        Rast_set_null_value(angle, dim_2, CELL_TYPE);
     }
 
     nonmaxSuppresion(xGradient, yGradient, magnitude, angle,
