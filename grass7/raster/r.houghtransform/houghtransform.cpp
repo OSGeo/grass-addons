@@ -91,11 +91,12 @@ void HoughTransform::compute(const Matrix& angles, double angleWith)
         {
             if (mOriginalMatrix(x, y) == 1)
             {
+                // gradient in mathematical axes
                 double angle = angles(x, y);
+                
+                // unify gradients
                 if (angle < 0)
-                    angle = std::abs(angle);
-                else if (angle > 0)
-                    angle = 180 - angle;
+                    angle += 180;
 
                 // converting angle [0,180) to index
                 // in internal table of angles
