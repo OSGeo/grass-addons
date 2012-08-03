@@ -268,7 +268,8 @@ void nonmaxSuppresion(DCELL * xGradient, DCELL * yGradient, CELL * magnitude,
 		 */
 		if (angle != NULL)
 		{
-		    angle[index] = (int) (atan2(yGrad, xGrad) * 180 / M_PI + 0.5);
+		    // angle of gradient (mathematical axes)
+		    angle[index] = (int) (-atan2(yGrad, xGrad) * 180 / M_PI + 0.5);
 		}
 	    }
 	    else {
