@@ -14,15 +14,17 @@ int open_files(struct files *files, struct functions *functions)
     int n, s, row, col, srows, scols, inlen, nseg;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
     CELL *boundsbuf;
-    void *seedsbuf, *ptr;	/* todo. correct data type when allowing any data type? */
+    void *seedsbuf, *ptr;	/* todo. correct data type when allowing any data type? hmm, since have changed logic, seeds must be CELL.  Could update code. */
     size_t ptrsize;
     RASTER_MAP_TYPE data_type;
     struct FPRange *fp_range;	/* for getting min/max values on each input raster */
     DCELL *min, *max;
 
-	/* for merging seed values */
-	struct pixels *R_head, *Rn_head, *newpixel;
-	int R_count;
+    /* for merging seed values */
+    struct pixels *R_head, *Rn_head, *newpixel, *current;
+    int R_count;
+
+    G_verbose_message("Opening files and initializing");
 
     /* confirm output maps can be opened (don't want to do all this work for nothing!) */
     out_fd = Rast_open_new(files->out_name, CELL_TYPE);
@@ -45,7 +47,7 @@ int open_files(struct files *files, struct functions *functions)
     if (files->bounds_map != NULL)
 	files->orig_null_flag = flag_create(files->nrows, files->ncols);
     //if (files->seeds_map != NULL)
-	files->seeds_flag = flag_create(files->nrows, files->ncols);
+    files->seeds_flag = flag_create(files->nrows, files->ncols);
 
     /* references for segmentation library: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
 
@@ -142,78 +144,7 @@ int open_files(struct files *files, struct functions *functions)
 	G_fatal_error(_("Unable to allocate memory for initial segment ID's"));
     /* NOTE: SEGMENT file should be initialized to zeros for all data. TODO double check this. */
 
-    /* ********  load input bands to segment structure and fill initial seg ID's ******** */
-    G_debug(1, "Reading input rasters into segmentation data files...");
-    s = 0;			/* initial segment ID will be 1 */
-
-    for (row = 0; row < files->nrows; row++) {
-	for (n = 0; n < Ref.nfiles; n++) {
-	    Rast_get_d_row(in_fd[n], inbuf[n], row);
-	}
-	if (files->seeds_map != NULL) {
-	    Rast_get_row(seeds_fd, seedsbuf, row, data_type);
-	    ptr = seedsbuf;
-	}
-	for (col = 0; col < files->ncols; col++) {
-	    null_check = 1;	/*Assume there is data */
-	    for (n = 0; n < Ref.nfiles; n++) {
-		if (Rast_is_d_null_value(&inbuf[n][col]))
-		    null_check = -1;
-		if (files->weighted == TRUE)
-		    files->bands_val[n] = inbuf[n][col];	/*unscaled */
-		else
-		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/*scaled version */
-	    }
-	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
-
-	    if (null_check != -1) {	/*good pixel */
-		FLAG_UNSET(files->null_flag, row, col);	/*flag */
-		if (files->seeds_map != NULL) {
-		    //G_message("Rast_is_null_value(&seedsbuf[col], data_type) = %d", Rast_is_null_value(&seedsbuf[col], data_type));
-		    // if (Rast_is_null_value(&seedsbuf[col], data_type) == TRUE)  //switched to ptr navigation...  maybe I could have done &(seedsbuf[col]) ??
-
-		    if (Rast_is_null_value(ptr, data_type) == TRUE) {	/* TODO, compiler warnings:
-									 * open_files.c:182:37: warning: dereferencing ‘void *’ pointer [enabled by default]
-									 * open_files.c:182:27: warning: taking address of expression of type ‘void’ [enabled by default] */
-			// not needed, initialized to zero.  files->iseg[row][col] = 0; /* place holder... todo, Markus, is this OK to leave out?  Or better to set it, since this is just done once... */
-			FLAG_UNSET(files->seeds_flag, row, col);	//todo shouldn't need to this, flag is initialized to zero?
-		    }
-		    else {
-//			s++;	/* sequentially number each seed pixel with its own segment ID */
-			
-			FLAG_SET(files->seeds_flag, row, col);	//todo might not need this... just look for seg ID > 0 ?  If go this route, need to enforce constraints are positive integers.
-//			segment_put(&files->iseg_seg, &s, row, col);
-			/* seed value is starting segment ID.  TODO document: seeds must be positive integers, and will be assigned as starting segment IDs. */
-			segment_put(&files->iseg_seg, ptr, row, col); //can I just use ptr as the address with the value I want to store? TODO enforce that seeds map is an integer.
-//			G_message("set seed for row: %d, col: %d", row, col);
-
-		    }
-		    ptr = G_incr_void_ptr(ptr, ptrsize);
-		}
-		else {		/* no seeds provided */
-		    s++;	/* sequentially number all pixels with their own segment ID */
-		    segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
-		    FLAG_SET(files->seeds_flag, row, col); 			/*all pixels are seeds */
-		}
-	    }
-	    else {		/*don't use this pixel */
-		//files->iseg[row][col] = -1;   /* place holder...TODO this could be a conflict if constraints included a -1 ??? wrote that awhile ago...still true???*/
-		//TODO, do we need a -1 here?  Or just leave as the zero it was initialized with?  Need a -1 if we don't use the NULL_FLAG...
-		FLAG_SET(files->null_flag, row, col);	/*flag */
-	    }
-	}
-    }
-
-    /* number of initial segments, will decrement when merge */
-    if (files->seeds_map == NULL)
-    files->nsegs = s;
-    else
-    {
-		/* TODO: Markus, is there an easy GRASS function to count the unique values in the seeds map???
-		 * or count during the processing? */
-	}
-	
-    /* bounds/constraints */
+    /* bounds/constraints (start here to get any possible NULL values) */
     if (files->bounds_map != NULL) {
 	if (segment_open
 	    (&files->bounds_seg, G_tempfile(), files->nrows, files->ncols,
@@ -235,8 +166,68 @@ int open_files(struct files *files, struct functions *functions)
 	}
 	Rast_close(bounds_fd);
 	G_free(boundsbuf);
+    }				/* end bounds/constraints opening */
 
-	/* keep original copy of null flag if we have boundary constraints */
+
+    /* ********  load input bands to segment structure and fill initial seg ID's ******** */
+    G_debug(1, "Reading input rasters into segmentation data files...");
+    s = 0;			/* initial segment ID will be 1 */
+
+    for (row = 0; row < files->nrows; row++) {
+
+	/* read in rows of data (each input band from the imagery group and the optional seeds map) */
+	for (n = 0; n < Ref.nfiles; n++) {
+	    Rast_get_d_row(in_fd[n], inbuf[n], row);
+	}
+	if (files->seeds_map != NULL) {
+	    Rast_get_row(seeds_fd, seedsbuf, row, data_type);
+	    ptr = seedsbuf;
+	}
+
+	for (col = 0; col < files->ncols; col++) {
+	    if (FLAG_GET(files->null_flag, row, col))
+		continue;
+	    null_check = 1;	/*Assume there is data */
+	    for (n = 0; n < Ref.nfiles; n++) {
+		if (Rast_is_d_null_value(&inbuf[n][col]))
+		    null_check = -1;
+		if (files->weighted == TRUE)
+		    files->bands_val[n] = inbuf[n][col];	/*unscaled */
+		else
+		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/*scaled version */
+	    }
+	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
+
+	    if (null_check != -1) {	/*good pixel */
+		FLAG_UNSET(files->null_flag, row, col);	/*flag */
+		if (files->seeds_map != NULL) {
+		    if (Rast_is_null_value(ptr, data_type) == TRUE) {
+			// not needed, initialized to zero.  files->iseg[row][col] = 0; /* place holder... todo, Markus, is this OK to leave out?  Or safer to set it, since this is just done once... */
+			FLAG_UNSET(files->seeds_flag, row, col);	//todo shouldn't need to this, flag is initialized to zero?
+		    }
+		    else {
+			FLAG_SET(files->seeds_flag, row, col);	//todo might not need this... just look for seg ID > 0 ?  If go this route, need to enforce constraints are positive integers.
+			/* seed value is starting segment ID.  TODO document: seeds must be positive integers, and will be assigned as starting segment IDs. */
+			segment_put(&files->iseg_seg, ptr, row, col);	//can I just use ptr as the address with the value I want to store? TODO enforce that seeds map is an integer.
+		    }
+		    ptr = G_incr_void_ptr(ptr, ptrsize);
+		}
+		else {		/* no seeds provided */
+		    s++;	/* sequentially number all pixels with their own segment ID */
+		    segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
+		    FLAG_SET(files->seeds_flag, row, col);	/*all pixels are seeds */
+		}
+	    }
+	    else {		/*don't use this pixel */
+		//files->iseg[row][col] = -1;   /* place holder...TODO this could be a conflict if constraints included a -1 ??? wrote that awhile ago...still true???*/
+		//TODO, do we need a -1 here?  Or just leave as the zero it was initialized with?  Need a -1 if we don't use the NULL_FLAG...
+		FLAG_SET(files->null_flag, row, col);	/*flag */
+	    }
+	}
+    }
+
+    /* keep original copy of null flag if we have boundary constraints */
+    if (files->bounds_map != NULL) {
 	for (row = 0; row < files->nrows; row++) {
 	    for (col = 0; col < files->ncols; col++) {
 		if (FLAG_GET(files->null_flag, row, col))
@@ -250,54 +241,67 @@ int open_files(struct files *files, struct functions *functions)
 	G_debug(1, "no boundary constraint supplied.");
     }
 
-    //~ /* other info */
-    //~ files->candidate_count = 0;	/* counter for remaining candidate pixels */
-
-    /* translate seeds to unique segments TODO MM mentioned it here... */
-    /* todo decide if we need to take the seeds value, and use it to start the segments... or if each pixel starts a unique segment. */
-
     /* linked list memory management linkm */
-    link_set_chunk_size(100);	/* TODO polish: fine tune this number */
+    link_set_chunk_size(1000);	/* TODO polish: fine tune this number */
 
     files->token = link_init(sizeof(struct pixels));
 
-	/* if we have seeds that are segments (not pixels) we need to update the bands_seg */
-	if(files->seeds_map != NULL){
+    /* if we have seeds that are segments (not pixels) we need to update the bands_seg */
+    /* also renumber the segment ID's in case they were classified (duplicating numbers) instead of output from i.segment. */
+    if (files->seeds_map != NULL) {
 
-	/*initialization*/
+	/*initialization */
 	files->minrow = files->mincol = 0;
 	files->maxrow = files->nrows;
 	files->maxcol = files->ncols;
-	R_count=1;
-	R_head=NULL;
-	Rn_head=NULL;
-	newpixel=NULL;
+	R_count = 1;
+	R_head = NULL;
+	Rn_head = NULL;
+	newpixel = NULL;
+	current = NULL;
 	set_all_candidate_flags(files);
 	for (row = 0; row < files->nrows; row++) {
-	for (col = 0; col < files->ncols; col++) {
-		if(!(FLAG_GET(files->candidate_flag, row, col)) || FLAG_GET(files->null_flag, row, col)) continue;
-		/*start R_head*/
+	    G_percent(row, files->nrows, 1);	/* I think this is the longest part of open_files() - not entirely accurate for the actual %, but will give the user something to see. */
+	    for (col = 0; col < files->ncols; col++) {
+		if (!(FLAG_GET(files->candidate_flag, row, col)) ||
+		    FLAG_GET(files->null_flag, row, col))
+		    continue;
+		/*start R_head */
 		newpixel = (struct pixels *)link_new(files->token);
 		newpixel->next = NULL;
 		newpixel->row = row;
 		newpixel->col = col;
 		R_head = newpixel;
 
-		/*get pixel list, todo polish, could use custom (shorter) function, not using all of what fsn() does...*/
-		find_segment_neighbors(&R_head, &Rn_head, &R_count, files, functions);
-		
-		/*merge pixels*/
+		/*get pixel list, todo polish, could use custom (shorter) function, not using all of what fsn() does... */
+		find_segment_neighbors(&R_head, &Rn_head, &R_count, files, functions);	/* todo, I suppose there is a small chance that a renumbered segment matches and borders an original segment.  This would be a good reason to write a custom fnp() function to chop out the neighbors and also check the candidate flag. */
+
+		/* update the segment ID *//* TODO, Markus, this could also be done in merge_pixels to avoid iterating this list twice.
+		 * for now I've put it here, to make merge_pixels() more general.  Unless you think initialization speed is more important then future flexibility? */
+
+		s++;
+		for (current = R_head; current != NULL;
+		     current = current->next) {
+		    segment_put(&files->iseg_seg, &s, current->row,
+				current->col);
+		    FLAG_UNSET(files->candidate_flag, current->row,
+			       current->col);
+		}
+
+		/*merge pixels (updates the bands_seg) */
 		merge_pixels(R_head, files);
-		
-		/*todo calculate perimeter (?and area?) here?*/
-		
-		/*clean up*/
+
+		/*todo calculate perimeter (?and area?) here? */
+
+		/*clean up */
 		my_dispose_list(files->token, &R_head);
 		my_dispose_list(files->token, &Rn_head);
-		R_count=1;
+		R_count = 1;
+	    }
 	}
-	}
-	}
+    }
+
+    files->nsegs = s;
 
     /* Free memory */
 

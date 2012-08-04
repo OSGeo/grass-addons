@@ -18,7 +18,7 @@ int write_output(struct files *files)
     CELL *outbuf;
     DCELL *meanbuf;
     struct Colors colors;
-	struct History history;
+    struct History history;
 
 
     outbuf = Rast_allocate_c_buf();	/* hold one row of data to put into raster */
@@ -63,12 +63,12 @@ int write_output(struct files *files)
     Rast_make_random_colors(&colors, 1, files->nrows * files->ncols);	/* TODO polish - number segments from 1 - max ? and then can use that max here. */
     Rast_write_colors(files->out_name, G_mapset(), &colors);
 
-	/* add command line to history */
-	/* todo polish, any other information that would be interesting?  Number of passes?  Number of segments made? */
-	/* see i.pca as an example of setting custom info */
-	Rast_short_history(files->out_name, "raster", &history);
-	Rast_command_history(&history);
-	Rast_write_history(files->out_name, &history);
+    /* add command line to history */
+    /* todo polish, any other information that would be interesting?  Number of passes?  Number of segments made? */
+    /* see i.pca as an example of setting custom info */
+    Rast_short_history(files->out_name, "raster", &history);
+    Rast_command_history(&history);
+    Rast_write_history(files->out_name, &history);
 
     /* free memory */
     G_free(outbuf);

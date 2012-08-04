@@ -68,9 +68,6 @@ struct files
     /* memory management, linked lists */
     struct link_head *token;	/* for linkm.h linked list memory management. */
 
-    //~ /* other info */
-    //~ int candidate_count;	/*Number of remaining candidate pixels */
-
 };
 
 struct functions
@@ -123,6 +120,8 @@ int merge_pixels(struct pixels *, struct files *);
 int find_four_pixel_neighbors(int, int, int[][2], struct files *);
 int find_eight_pixel_neighbors(int, int, int[8][2], struct files *);
 double calculate_euclidean_similarity(struct pixels *, struct pixels *,
+				      struct files *, struct functions *);
+double calculate_manhattan_similarity(struct pixels *, struct pixels *,
 				      struct files *, struct functions *);
 int my_dispose_list(struct link_head *, struct pixels **);
 int compare_ids(const void *, const void *);

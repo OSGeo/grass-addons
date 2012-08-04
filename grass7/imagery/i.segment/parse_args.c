@@ -12,7 +12,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 {
     /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
 
-    struct Option *group, *seeds, *bounds, *output, *method, *threshold, *min_segment_size, *endt;	/* Establish an Option pointer for each option */
+    struct Option *group, *seeds, *bounds, *output, *method, *similarity, *threshold, *min_segment_size, *endt;	/* Establish an Option pointer for each option */
     struct Flag *diagonal, *weighted, *path, *limited;	/* Establish a Flag pointer for each option */
     struct Option *outband;	/* TODO scrub: put all outband code inside of #ifdef DEBUG */
 
@@ -41,6 +41,14 @@ int parse_args(int argc, char *argv[], struct files *files,
     method->options = "region_growing";
 #endif
     method->description = _("Segmentation method.");
+
+    similarity = G_define_option();
+    similarity->key = "similarity";
+    similarity->type = TYPE_STRING;
+    similarity->required = YES;
+    similarity->answer = "euclidean";
+    similarity->options = "euclidean, manhattan";
+    similarity->description = _("Distance calculation method.");
 
     min_segment_size = G_define_option();
     min_segment_size->key = "minsize";
@@ -84,8 +92,6 @@ int parse_args(int argc, char *argv[], struct files *files,
     bounds->required = NO;
     bounds->description =
 	_("Optional bounding/constraining raster map, must be integer values, each area will be segmented independent of the others.");
-
-    /* TODO input for distance function */
 
     /* debug parameters */
     endt = G_define_option();
@@ -152,6 +158,14 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     G_debug(1, "segmentation method: %d", functions->method);
 
+    /* distance methods for similarity measurement */
+    if (strncmp(similarity->answer, "euclidean", 5) == 0)
+	functions->calculate_similarity = &calculate_euclidean_similarity;
+    else if (strncmp(similarity->answer, "manhattan", 5) == 0)
+	functions->calculate_similarity = &calculate_manhattan_similarity;
+    else
+	G_fatal_error("Couldn't assign similarity method.");	/*shouldn't be able to get here */
+
     //~ functions->very_close = atof(very_close->answer);
 
     functions->min_segment_size = atoi(min_segment_size->answer);
@@ -169,9 +183,6 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* TODO polish, check if function pointer or IF statement is faster */
 
     files->weighted = weighted->answer;	/* default/0 for performing the scaling, but selected/1 if user has weighted values so scaling should be skipped. */
-
-    functions->calculate_similarity = &calculate_euclidean_similarity;	/* TODO add user input for this */
-
     if (seeds->answer == NULL) {	/* no starting seeds, will use all pixels as seeds */
 	files->seeds_map = NULL;
     }
@@ -181,11 +192,9 @@ int parse_args(int argc, char *argv[], struct files *files,
 	     G_find_raster2(files->seeds_map, "")) == NULL) {
 	    G_fatal_error(_("Starting seeds map not found."));
 	}
-	//~ if (Rast_map_type(files->seeds_map, files->seeds_mapset) !=
-	//~ CELL_TYPE) {
-	//~ G_fatal_error(_("Starting seeds map must be CELL type (integers)"));
-	//~ }  //todo: don't need this check, want it for polygon constraints, but for seeds we are just looking for null vs. not null
-	// hmm, actually will need to do that, use seeds value as starting segment ID
+	if (Rast_map_type(files->seeds_map, files->seeds_mapset) != CELL_TYPE) {
+	    G_fatal_error(_("Starting seeds map must be CELL type (integers)"));
+	}
     }
 
     if (bounds->answer == NULL) {	/*no polygon constraints */
