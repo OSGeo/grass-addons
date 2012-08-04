@@ -8,7 +8,8 @@ Classes:
  - dialogs::PtsList
  - dialogs::SettingsDialog
  - dialogs::VnetTmpVectMaps
- - dialogs::TmpVectMap
+ - dialogs::VectMap
+ - dialogs::History
 
 (C) 2012 by the GRASS Development Team
 
@@ -21,19 +22,13 @@ This program is free software under the GNU General Public License
 import os
 import sys
 import types
-import Queue
 try:
     import grass.lib.vector as vectlib
     from ctypes import pointer, byref, c_char_p, c_int, c_double
     haveCtypes = True
 except ImportError:
     haveCtypes = False
-try:
-   from hashlib import md5
-   haveHashlib = True 
-except:
-    import md5 #Python 2.4
-    haveHashlib = False
+
 from copy import copy
 from grass.script     import core as grass
 
@@ -54,10 +49,11 @@ from vnet.widgets     import PointsList
 from vnet.toolbars    import MainToolbar, PointListToolbar
 
 #Main TODOs
-# snapping - react on change of map/layer
 # when layer tree is lmgr is changed, tmp layer is removed from render list 
-# check if has layertree (lmgr)?
 # optimization of map drawing 
+# static box placement??
+# tmp maps add number of process
+# destructor problem
 
 
 class VNETDialog(wx.Dialog):
@@ -73,8 +69,8 @@ class VNETDialog(wx.Dialog):
         self.inputData = {}
         self.cmdParams = {}
         self.snapData = {}
-        self.snaping = False
-        self.tmp_result = None #TODO
+        self.snapping = False
+        self.tmp_result = None
 
         self.history = History(self)
         self.histTmpVectMapNum = 0
@@ -82,7 +78,6 @@ class VNETDialog(wx.Dialog):
 
         self.tmpMaps = VnetTmpVectMaps(parent = self)
 
-        self.hiddenTypeCol = None
         self._initSettings()
 
         # registration graphics for drawing
@@ -109,7 +104,8 @@ class VNETDialog(wx.Dialog):
 
         # Columns in points list
         self.cols =   [
-                        ['type', ["", _("Start point"), _("End point")], ""] #TODO init dynamically
+                        ['type', ["", _("Start point"), _("End point")], ""], #TODO init dynamically, translation problem
+                        ['topology', None, ""] 
                       ]
 
         self.mainPanel = wx.Panel(parent=self)
@@ -133,7 +129,8 @@ class VNETDialog(wx.Dialog):
         # adds 2 points into list
         for i in range(2):
             self.list.AddItem()
-            self.list.EditCellIndex(i, 1, self.cols[1][1][1 + i]) 
+            colNum = self.list.GetColumnNum('type')
+            self.list.EditCellIndex(i, colNum, self.cols[1][1][1 + i]) 
             self.list.CheckItem(i, True)
 
         # selects first point
@@ -156,7 +153,7 @@ class VNETDialog(wx.Dialog):
     def  __del__(self):
         """!Removes temp layers, unregisters handlers and graphics"""
 
-        update = self.tmpMaps.RemoveAllTmpMaps()
+        update = self.tmpMaps.DeleteAllTmpMaps()
 
         self.mapWin.UnregisterGraphicsToDraw(self.pointsToDraw)
 
@@ -340,7 +337,7 @@ class VNETDialog(wx.Dialog):
         selPanels = {}
         for dataSel in dataSelects:
             selPanels[dataSel[0]] = wx.Panel(parent = dataPanel)
-            if dataSel[0] == 'input':
+            if dataSel[0] == 'input' and self.mapWin.tree:
                 self.inputData[dataSel[0]] = dataSel[2](parent = selPanels[dataSel[0]],  
                                                         size = (-1, -1), 
                                                         type = 'vector')
@@ -353,6 +350,7 @@ class VNETDialog(wx.Dialog):
                                                     size = globalvar.DIALOG_COLOR_SIZE) 
                 self.addToTreeBtn.SetToolTipString(_("Add vector map into layer tree"))
                 self.addToTreeBtn.Disable()
+                self.addToTreeBtn .Bind(wx.EVT_BUTTON, self.OnToTreeBtn)
             else:
                 self.inputData[dataSel[0]] = dataSel[2](parent = selPanels[dataSel[0]],  
                                                         size = (-1, -1))
@@ -363,7 +361,6 @@ class VNETDialog(wx.Dialog):
         self.inputData['input'].Bind(wx.EVT_TEXT, self.OnVectSel) # TODO optimization
         self.inputData['alayer'].Bind(wx.EVT_TEXT, self.OnALayerSel)
         self.inputData['nlayer'].Bind(wx.EVT_TEXT, self.OnNLayerSel)
-        self.addToTreeBtn .Bind(wx.EVT_BUTTON, self.OnToTreeBtn)
 
         # Layout
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -374,15 +371,17 @@ class VNETDialog(wx.Dialog):
                       flag = wx.EXPAND  | wx.TOP | wx.LEFT | wx.RIGHT, border = 5) 
 
         for sel in ['input', 'alayer', 'nlayer']:
-            if sel== 'input':
+            if sel== 'input' and self.mapWin.tree:
                 btn = self.addToTreeBtn
+            else:
+                btn = None
             selPanels[sel].SetSizer(self._doSelLayout(title = label[sel], 
-                                                           sel = self.inputData[sel], 
+                                                      sel = self.inputData[sel], 
                                                       btn = btn))
             bsizer.Add(item = selPanels[sel], proportion = 1,
                        flag = wx.EXPAND)
 
-        box = wx.StaticBox(dataPanel, -1, "Costs")
+        box = wx.StaticBox(dataPanel, -1, "Costs")    
         bsizer = wx.StaticBoxSizer(box, wx.VERTICAL)
 
         mainSizer.Add(item = bsizer, proportion = 0,
@@ -435,7 +434,7 @@ class VNETDialog(wx.Dialog):
         cmd = ['d.vect', 
                'map=' + vectorMap]
 
-        if  self.mapWin.tree.FindItemByData(key = 'name', value = vectorMap) is None: 
+        if self.mapWin.tree.FindItemByData(key = 'name', value = vectorMap) is None: 
             self.mapWin.tree.AddLayer(ltype = "vector", 
                                       lcmd = cmd,
                                       lname =vectorMap,
@@ -443,6 +442,9 @@ class VNETDialog(wx.Dialog):
 
     def OnVectSel(self, event):
         """!When vector map is selected populates other selects (layer selects, columns selects)"""
+        if self.snapping:
+            self.OnSnapping(event = None)
+
         self.inputData['alayer'].Clear()
         self.inputData['nlayer'].Clear()
 
@@ -452,7 +454,8 @@ class VNETDialog(wx.Dialog):
         items = self.inputData['alayer'].GetItems()
         itemsLen = len(items)
         if itemsLen < 1:
-            self.addToTreeBtn.Disable()
+            if self.mapWin.tree:
+                self.addToTreeBtn.Disable()
             self.inputData['alayer'].SetValue("")
             self.inputData['nlayer'].SetValue("")
             for sel in ['afcolumn', 'abcolumn', 'ncolumn']:
@@ -470,7 +473,8 @@ class VNETDialog(wx.Dialog):
                 iItem = items.index(unicode("2")) 
                 self.inputData['nlayer'].SetSelection(iItem)
 
-        self.addToTreeBtn.Enable()
+        if self.mapWin.tree:
+            self.addToTreeBtn.Enable()
 
         self.OnALayerSel(event) 
         self.OnNLayerSel(event)
@@ -487,10 +491,105 @@ class VNETDialog(wx.Dialog):
 
     def OnNLayerSel(self, event):
         """!When node layer from vector map is selected, populates corespondent column select"""
+        if self.snapping:
+            self.OnSnapping(event = None)
+
         self.inputData['ncolumn'].InsertColumns(vector = self.inputData['input'].GetValue(), 
                                                 layer = self.inputData['nlayer'].GetValue(), 
                                                 type = self.columnTypes)
  
+    def _getInvalidInputs(self, inpToTest):
+
+        errInput = {}
+
+        curr_mapset = grass.gisenv()['MAPSET']
+        vectMaps = grass.list_grouped('vect')[curr_mapset]
+        mapVal = self.inputData['input'].GetValue()
+        mapVal = mapVal.split("@")[0]
+
+        if not inpToTest or "input" in inpToTest:
+            if mapVal not in vectMaps:
+                errInput['input'] = mapVal
+
+        for layerSelName in ['alayer', 'nlayer'] :
+            if not inpToTest or layerSelName in inpToTest:
+
+                layerItems = self.inputData[layerSelName].GetItems()
+                layerVal = self.inputData[layerSelName].GetValue().strip()
+                if layerVal not in layerItems:
+                    errInput[layerSelName] = layerVal
+
+        currModCols = self.vnetParams[self.currAnModule]["cmdParams"]["cols"]
+        for col, colData in self.attrCols.iteritems():
+            if not inpToTest or col in inpToTest:
+
+                if col not in currModCols:
+                    continue  
+
+                if "inputField" in self.attrCols[col]: # TODO function??
+                    colInptF = self.attrCols[col]["inputField"]
+                else:
+                    colInptF = col
+
+                if not self.inputData[colInptF].IsShown():
+                    continue
+                colVal = self.inputData[colInptF].GetValue().strip()
+
+                if not colVal:
+                    continue
+                if colVal not in self.inputData[colInptF].GetItems():
+                    errInput[col] = colVal
+
+        return errInput
+
+    def InputsErrorMsgs(self, strToStart, inpToTest = None):
+
+        errInput = self._getInvalidInputs(inpToTest)
+
+        errMapStr = ""
+        if errInput.has_key('input'):
+            self.notebook.SetSelectionByName("parameters")
+            if errInput['input']:
+                errMapStr = _("Vector map '%s' does not exist.") %  (errInput['input'])
+            else:
+                errMapStr = _("Vector map was not chosen.")
+
+
+        if errMapStr:
+            GMessage(parent = self,
+                     message = strToStart + "\n" + errMapStr)
+            return False
+
+        errLayerStr = ""
+        for layer, layerLabel in {'alayer' : _("arc layer"), 
+                                  'nlayer' : _("node layer")}.iteritems():
+
+            if  errInput.has_key(layer):
+                if errInput[layer]:
+                    errLayerStr += _("Chosen %s '%s' does not exist in vector map '%s'.\n") % \
+                                   (layerLabel, self.inputData[layer].GetValue(), self.inputData['input'].GetValue())
+                else:
+                    errLayerStr += _("Choose existing %s.\n") % \
+                                   (layerLabel)
+        if errLayerStr:
+            GMessage(parent = self,
+                     message = strToStart + "\n" + errLayerStr)
+            return False
+
+        errColStr = ""
+        for col, colData in self.attrCols.iteritems():
+            if col in errInput.iterkeys():
+                errColStr += _("Chosen column '%s' does not exist in attribute table of layer '%s' of vector map '%s'.\n") % \
+                             (errInput[col], self.inputData[layer].GetValue(), self.inputData['input'].GetValue())
+
+        if errColStr:
+            self.notebook.SetSelectionByName("parameters")                   
+            GMessage(parent = self,
+                     message =strToStart + "\n" + errColStr)
+            return False
+
+        return True
+
     def OnCloseDialog(self, event):
         """!Cancel dialog"""
         self.parent.dialogs['vnet'] = None
@@ -524,7 +623,8 @@ class VNETDialog(wx.Dialog):
         if event == 'unregistered':
             ptListToolbar = self.toolbars['pointsList']
             if ptListToolbar:
-                ptListToolbar.ToggleTool(vars(ptListToolbar)["insertPoint"], False)  # TODO 
+                ptListToolbar.ToggleTool( id = ptListToolbar.GetToolId("insertPoint"),
+                                          toggle = False)  
             self.handlerRegistered = False
             return
 
@@ -537,11 +637,27 @@ class VNETDialog(wx.Dialog):
         index = self.list.selected
         key = self.list.GetItemData(index)
 
-        if self.snaping:
+        if self.snapping:
             coords = [e, n]
-            self._snapPoint(coords)
+            if self._snapPoint(coords):
+                colNum = self.list.GetColumnNum('topology')
+                self.list.EditCellKey(key = self.list.selected , 
+                                      col = colNum, 
+                                      cellData = _("snapped to node"))
+            else:
+                colNum = self.list.GetColumnNum('topology')
+                self.list.EditCellKey(key = self.list.selected , 
+                                    col = colNum, 
+                                    cellData = _("new point"))
+
             e = coords[0]
             n = coords[1]
+
+        else:
+            colNum = self.list.GetColumnNum('topology')
+            self.list.EditCellKey(key = self.list.selected , 
+                                  col = colNum, 
+                                  cellData = _("new point"))
 
         self.pointsToDraw.GetItem(key).SetCoords([e, n])
 
@@ -567,7 +683,7 @@ class VNETDialog(wx.Dialog):
         inpMapExists = grass.find_file(name = self.inputData['input'].GetValue(), 
                                        element = 'vector', 
                                        mapset = grass.gisenv()['MAPSET'])
-        if not inpMapExists['name']: # TODO  without check falls on Vect_open_old2
+        if not inpMapExists['name']:
             return False
 
         openedMap = pointer(vectlib.Map_info())
@@ -577,7 +693,7 @@ class VNETDialog(wx.Dialog):
                                      c_char_p(self.inputData['alayer'].GetValue()))
         if ret == 1:
             vectlib.Vect_close(openedMap)
-        if ret != 2: #TODO also 1?
+        if ret != 2: 
             return False
 
         nodeNum =  vectlib.Vect_find_node(openedMap,     
@@ -608,69 +724,19 @@ class VNETDialog(wx.Dialog):
     def OnAnalyze(self, event):
         """!Called when network analysis is started"""
         # Check of parameters for analysis
-        curr_mapset = grass.gisenv()['MAPSET']
-        vectMaps = grass.list_grouped('vect')[curr_mapset]
-        selMap = self.inputData['input'].GetValue()
-        if selMap not in vectMaps:
-              self.notebook.SetSelectionByName("parameters")
-              GMessage(parent = self,
-                       message = _("Please select existing vector map.")) 
-              return  
-
-        errLayerLabels = []
-        for layer, layerLabel in {'alayer' : _("arc layer"), 
-                                  'nlayer' : _("node layer")}.iteritems():
-
-            layerItem = self.inputData[layer].GetItems()
-            if self.inputData[layer].GetValue().strip() not in layerItem:
-                errLayerLabels.append(layerLabel)
-        
-        if errLayerLabels:
-            self.notebook.SetSelectionByName("parameters")
-            GMessage(parent = self,
-                    message = _("Please select existing ") + _("and ").join(errLayerLabels))
+        if not self.InputsErrorMsgs(strToStart = _("Analysis can not be done.")):
             return
-
-        errColumnLabels = []
-        for col, colData in self.attrCols.iteritems():
-            if "inputField" in self.attrCols[col]:
-                colInptF = self.attrCols[col]["inputField"]
-            else:
-                colInptF = col
-
-            if not self.inputData[colInptF].IsShown():
-                continue
-            colVal = self.inputData[colInptF].GetValue().strip()
-            if not colVal:
-                continue
-            if colVal not in self.inputData[colInptF].GetItems():
-                errColumnLabels.append(colData["name"])
-
-        if errColumnLabels:
-            self.notebook.SetSelectionByName("parameters")
-            errColumnLabels = map(lambda s : s + _(" column"), errColumnLabels)
-
-            msg = _("Please select existing  or set empty: ")
-            errColsLen = len(errColumnLabels)
-            if errColsLen > 3:
-                msg += ", ".join(errColumnLabels[:(errColsLen - 2)]) + \
-                     _(" and ") + errColumnLabels[errColsLen - 1]
-            else:
-                msg += _(" and ").join(errColumnLabels)
-
-            GMessage(parent = self,
-                     message = msg)
-            return            
-
-        self.SaveAnInputToHist()
 
         if self.tmp_result:
             self.tmp_result.DeleteRenderLayer()
+
+        self.tmpVectMapsToHist= []#TODO 
         self.tmp_result = self.NewTmpVectMapToHist('vnet_tmp_result')
         if not self.tmp_result:
                 return          
-        elif not self.tmp_result.VectLayerState(layer = 1):
+        elif not self.CheckAnMapState(self.tmp_result):
                 return 
+        self._saveAnInputToHist()
 
         # Creates part of cmd fro analysis
         cmdParams = [self.currAnModule]
@@ -683,7 +749,7 @@ class VNETDialog(wx.Dialog):
             self._vnetPathRunAn(cmdParams, catPts)
         else:
             self._runAn(cmdParams, catPts)
-   
+
     def _vnetPathRunAn(self, cmdParams, catPts):
         """!Called when analysis is run for v.net.path module"""
         if len(self.pointsToDraw.GetAllItems()) < 1:
@@ -733,7 +799,7 @@ class VNETDialog(wx.Dialog):
 
         self._saveHistStep()
 
-        self.tmp_result.SaveVectLayerState(layer = 1)
+        self.tmp_result.SaveVectMapState()
 
         cmd = self.GetLayerStyle()
         self.tmp_result.AddRenderLayer(cmd)
@@ -771,11 +837,11 @@ class VNETDialog(wx.Dialog):
         tmpPtsAsciiFileOpened.write(pt_ascii)
         tmpPtsAsciiFileOpened.close()
 
-        self.tmpInPts = self.tmpMaps.AddTmpVectMap("vnet_tmp_in_pts")
+        self.tmpInPts = self._addTmpMapAnalysisMsg("vnet_tmp_in_pts")
         if not self.tmpInPts:
             return
 
-        self.tmpInPtsConnected = self.tmpMaps.AddTmpVectMap("vnet_tmp_in_pts_connected")
+        self.tmpInPtsConnected = self._addTmpMapAnalysisMsg("vnet_tmp_in_pts_connected")
         if not self.tmpInPtsConnected:
             return
         #dmax = int(UserSettings.Get(group = 'vnet', 
@@ -788,10 +854,12 @@ class VNETDialog(wx.Dialog):
         if self.currAnModule == "v.net.distance":
             cmdParams.append("from_layer=1")
             cmdParams.append("to_layer=1")
-        elif self.currAnModule == "v.net.flow":#TODO
-            self.vnetFlowTmpCut = self.NewTmpVectMapToHist("vnet_tmp_flow_cut")
+        elif self.currAnModule == "v.net.flow":
+            self.vnetFlowTmpCut = self.NewTmpVectMapToHist('vnet_tmp_flow_cut')
             if not self.vnetFlowTmpCut:
-                return
+                return          
+            elif not self.CheckAnMapState(self.vnetFlowTmpCut):
+                return 
             cmdParams.append("cut=" +  self.vnetFlowTmpCut.GetVectMapName())         
         elif self.currAnModule == "v.net.iso":
             costs = self.anSettings["iso_lines"].GetValue()
@@ -832,13 +900,13 @@ class VNETDialog(wx.Dialog):
 
     def _runAnDone(self, cmd, returncode):
         """!Called when analysis is done"""
-        self.tmpMaps.RemoveTmpMap(self.tmpInPts) # remove earlier (ondone lambda?)
-        self.tmpMaps.RemoveTmpMap(self.tmpInPtsConnected)
+        self.tmpMaps.DeleteTmpMap(self.tmpInPts) #TODO remove earlier (ondone lambda?)
+        self.tmpMaps.DeleteTmpMap(self.tmpInPtsConnected)
         grass.try_remove(self.tmpPtsAsciiFile)
 
         self._saveHistStep()
 
-        self.tmp_result.SaveVectLayerState(layer = 1)
+        self.tmp_result.SaveVectMapState()
         cmd = self.GetLayerStyle()
         self.tmp_result.AddRenderLayer(cmd)
         self.mapWin.UpdateMap(render=True, renderVector=True)
@@ -907,6 +975,28 @@ class VNETDialog(wx.Dialog):
             elif not v[1].strip():
                 cmd.remove(c)
 
+    def CheckAnMapState(self, vectMap):
+
+        vectMapState = vectMap.VectMapState()
+
+        if vectMapState == 0:
+            dlg = wx.MessageDialog(parent = self,
+                                   message = _("Map %s was changed outside " +
+                                                "of vector network analysis tool. " +
+                                                "Do you want to continue in analysis and " +
+                                                "overwrite it?") % (self.vectMap.GetVectMapName()),
+                                   caption = _("Overwrite map"),
+                                   style = wx.YES_NO | wx.NO_DEFAULT |
+                                           wx.ICON_QUESTION | wx.CENTRE)            
+            ret = dlg.ShowModal()
+            dlg.Destroy()
+            
+            if ret == wx.ID_NO:
+                self.tmpMaps.RemoveFromTmpMaps(vectMap)
+                return False
+            
+        return True
+
     def GetLayerStyle(self):
         """!Returns cmd for d.vect, with set style for analysis result"""
         resStyle = self.vnetParams[self.currAnModule]["resultStyle"]
@@ -937,7 +1027,7 @@ class VNETDialog(wx.Dialog):
     def OnShowResult(self, event):
         """!Shows, hides analysis result - not yet implemented"""
         mainToolbar = self.toolbars['mainToolbar']
-        id = vars(mainToolbar)['showResult']
+        id = vars(mainToolbar)['showResult'] #TODO
         toggleState = mainToolbar.GetToolState(id)
 
         if toggleState:
@@ -963,7 +1053,7 @@ class VNETDialog(wx.Dialog):
 
     def OnSaveTmpLayer(self, event):
         """!Permanently saves temporary map of analysis result"""
-        dlg = AddLayerDialog(parent = self)#TODO impot location check?
+        dlg = AddLayerDialog(parent = self)#TODO import location check?
 
         msg = _("Vector map with analysis result does not exist.")
         if dlg.ShowModal() == wx.ID_OK:
@@ -1004,9 +1094,13 @@ class VNETDialog(wx.Dialog):
                        overwrite = True,
                        vect = [self.tmp_result.GetVectMapName(), addedMap])
 
-            cmd = self.GetLayerStyle()#TOFO get rid of insert
+            cmd = self.GetLayerStyle()#TODO get rid of insert
             cmd.insert(0, 'd.vect')
             cmd.append('map=%s' % addedMap)
+
+            if not self.mapWin.tree:
+                return
+
             if  self.mapWin.tree.FindItemByData(key = 'name', value = addedMap) is None: 
                 self.mapWin.tree.AddLayer(ltype = "vector", 
                                           lname = addedMap,
@@ -1073,87 +1167,102 @@ class VNETDialog(wx.Dialog):
 
         # If module has only one category -> hide type column in points list otherwise show it
         if len(self.vnetParams[self.currAnModule]["cmdParams"]["cats"]) > 1:
-            if self.hiddenTypeCol:
-                self.list.InsertColumnItem(1, self.hiddenTypeCol)
-                self.list.ResizeColumns()
+            if self.list.GetColumnNum('type') == -1:
+                self.list.ShowColumn('type', 1)
 
             prevParamsCats = self.vnetParams[self.prev2catsAnModule]["cmdParams"]["cats"]
             currParamsCats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
 
             self.list._adaptPointsList(currParamsCats, prevParamsCats)
             self.prev2catsAnModule = self.currAnModule
-
-            self.hiddenTypeCol = None
         else:
-            if self.hiddenTypeCol is None:
-                self.hiddenTypeCol = self.list.GetColumn(1) 
-                self.list.DeleteColumn(1) 
-                self.list.ResizeColumns()
+            if self.list.GetColumnNum('type') != -1:
+                self.list.HideColumn('type')
 
     def OnSnapping(self, event):
 
+        ptListToolbar = self.toolbars['pointsList']
         if not haveCtypes:
-            ptListToolbar = self.toolbars['pointsList']
-            ptListToolbar.ToggleTool(vars(ptListToolbar)["snapping"], False) #TODO better way?
+            ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snapping"),
+                                     toggle = False)
             GMessage(parent = self,
-                     message = _("Unable to find Vector library. \n") + \
+                     message = _("Unable to use ctypes. \n") + \
                                _("Snapping mode can not be activated."))
             return
-        if not event.IsChecked():
-            self.snapPts.DeleteRenderLayer() 
-            self.mapWin.UpdateMap(render = False, renderVector = False)
-            self.snaping = False
+
+        if not event or not event.IsChecked():
+            if not event: 
+                ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snapping"),
+                                         toggle = False)
+            if self.tmpMaps.HasTmpVectMap("vnet_snap_points"):
+                self.snapPts.DeleteRenderLayer() 
+                self.mapWin.UpdateMap(render = False, renderVector = False)
+            self.snapping = False
             return  
 
-        self.snaping = True
+        if not self.InputsErrorMsgs(strToStart = _("Snapping mode can not be activated."),
+                                    inpToTest = ["input", "nlayer"]):
+
+            ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snapping"),
+                                     toggle = False)
+            return
 
         if not self.tmpMaps.HasTmpVectMap("vnet_snap_points"):
-            self.tmpMaps.HasTmpVectMap("vnet_snap_points")
-            self.snapPts = self.tmpMaps.AddTmpVectMap("vnet_snap_points")
+            endStr = _("Do you really want to activate snapping and overwrite it?")
+            self.snapPts = self.tmpMaps.AddTmpVectMap("vnet_snap_points", endStr)
             if not self.snapPts:
-                return  #TODO        
-        elif not self.snapPts.VectLayerState(layer = 1):
-                return #TODO
+                ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snapping"),
+                                         toggle = False)
+                return       
+        elif self.snapPts.VectMapState() == 0:
+                dlg = wx.MessageDialog(parent = self.parent,
+                                       message = _("Temporary map '%s' was changed outside " +
+                                                    "vector analysis tool.\n" 
+                                                    "Do you really want to activate " + 
+                                                    "snapping and overwrite it? ") % \
+                                                    self.snapPts.GetVectMapName(),
+                                        caption = _("Overwrite map"),
+                                        style = wx.YES_NO | wx.NO_DEFAULT |
+                                                wx.ICON_QUESTION | wx.CENTRE)
 
-        info = RunCommand("v.info",
-                           map = self.inputData["input"].GetValue(),
-                           layer = self.inputData["alayer"].GetValue(),
-                           read = True)
+                ret = dlg.ShowModal()
+                dlg.Destroy()
+                
+                if ret == wx.ID_NO:
+                    self.tmpMaps.DeleteTmpMap(self.snapPts)
+                    ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snapping"),
+                                             toggle = False)
+                    return
 
-        if haveHashlib:
-            m = md5()
-        else:
-            m = md5.new()
-            m.update(info)
-        inputHash = m.digest()
+        self.snapping = True
+
+        currMapSet = grass.gisenv()['MAPSET'] 
+        inpName = self.inputData["input"].GetValue()
+        inpFullName = inpName + "@" + currMapSet
 
         computeNodes = True
 
         if not self.snapData:
             pass
-        elif self.snapData["inputMap"] == self.inputData["input"].GetValue() and \
-             self.snapData["inputMapAlayer"] == self.inputData["alayer"].GetValue():
-
-            if self.snapData["inputHash"] == inputHash:
+        elif inpFullName != self.snapData["inputMap"].GetVectMapName():
+            self.snapData["inputMap"] = VectMap(self, inpFullName)
+        elif self.snapData["inputMapNlayer"] == self.inputData["nlayer"].GetValue():
+            if self.snapData["inputMap"].VectMapState() == 1:
                 computeNodes = False
-
+    
         if computeNodes:
-            self.requestQ = Queue.Queue()
-            self.resultQ = Queue.Queue()
-
-            self.cmdThread = CmdThread(self, self.requestQ, self.resultQ)
+            self.cmdThread = CmdThread(self)
 
             cmd = ["v.to.points", "input=" + self.inputData["input"].GetValue(), 
                                   "output=" + self.snapPts.GetVectMapName(),
-                                  "llayer=" + self.inputData["alayer"].GetValue(),
+                                  "llayer=" + self.inputData["nlayer"].GetValue(),
                                   "-n", "--overwrite"]
             # process GRASS command with argument
             self.Bind(EVT_CMD_DONE, self._onToPointsDone)
             self.cmdThread.RunCmd(cmd)
 
-            self.snapData["inputMap"] =  self.inputData["input"].GetValue()
-            self.snapData["inputMapAlayer"] = self.inputData["alayer"].GetValue()
-            self.snapData["inputHash"] = inputHash
+            self.snapData["inputMap"] = VectMap(self, inpFullName)
+            self.snapData["inputMapNlayer"] = self.inputData["nlayer"].GetValue()
         else:
             self.snapPts.AddRenderLayer()           
             self.mapWin.UpdateMap(render = True, renderVector = True)
@@ -1161,15 +1270,12 @@ class VNETDialog(wx.Dialog):
 
     def _onToPointsDone(self, event):
 
-        self.snapPts.SaveVectLayerState(layer = 1)
+        self.snapPts.SaveVectMapState()
         self.snapPts.AddRenderLayer() 
         self.mapWin.UpdateMap(render = True, renderVector = True)
 
-
-
     def OnUndo(self, event):
         histStepData = self.history.GetPrev()
-
         self.toolbars['mainToolbar'].UpdateUndoRedo()
 
         if histStepData:
@@ -1177,67 +1283,171 @@ class VNETDialog(wx.Dialog):
 
     def OnRedo(self, event):
         histStepData = self.history.GetNext()
-
         self.toolbars['mainToolbar'].UpdateUndoRedo()
+
         if histStepData:
             self._updateHistStepData(histStepData)
 
+    def _saveAnInputToHist(self):
+
+        pts = self.pointsToDraw.GetAllItems()
+
+        for iPt, pt in enumerate(pts):
+            ptName = "pt" + str(iPt)
+
+            coords = pt.GetCoords()
+            self.history.Add(key = "points", 
+                             subkey = [ptName, "coords"], 
+                             value = coords)
+
+            colNum = self.list.GetColumnNum('type')
+            if colNum != -1:
+                cat = self.list.GetCellText(iPt, 1)#TODO
+                self.history.Add(key = "points", 
+                                 subkey = [ptName, "cat"], 
+                                 value = cat)
+
+            topology = self.list.GetCellText(iPt, 2)
+            self.history.Add(key = "points", 
+                             subkey = [ptName, "topology"], 
+                             value = topology)
+
+
+            self.history.Add(key = "points", 
+                             subkey = [ptName, "checked"], 
+                             value = self.list.IsChecked(iPt))
+
+            for inpName, inp in self.inputData.iteritems():
+                if inpName == "input":
+                    currMapSet = grass.gisenv()['MAPSET'] 
+                    inpMap = VectMap(self, inp.GetValue() + "@" + currMapSet)
+                    self.history.Add(key = "other", 
+                                     subkey = "input_modified", 
+                                     value = inpMap.GetLastModified())                    
+                self.history.Add(key = "input_data", 
+                                 subkey = inpName, 
+                                 value = inp.GetValue())
+            #else:
+            #    self.history.Add(key = "points", 
+            #                     subkey = [ptName, "prev2catsAnModule"], 
+            #                     value = self.prev2catsAnModule)
+
+            
+        self.history.Add(key = "vnet_modules", subkey = "curr_module", value = self.currAnModule)
+
     def _saveHistStep(self):
 
-        self.history.SaveHistStep()
+        removedHistData = self.history.SaveHistStep()
         self.toolbars['mainToolbar'].UpdateUndoRedo()
 
+        if not removedHistData:
+            return
+
+        for removedStep in removedHistData.itervalues():
+            mapsNames = removedStep["tmp_data"]["maps"]
+            for vectMapName in mapsNames:
+                tmpMap = self.tmpMaps.GetTmpVectMap(vectMapName)
+                self.tmpMaps.DeleteTmpMap(tmpMap)
+
     def _updateHistStepData(self, histStepData):#TODO need optimization
-        #TODO ischecked?
+
         self.currAnModule = histStepData["vnet_modules"]["curr_module"]
         anChoice = self.toolbars['mainToolbar'].anChoice
         anChoice.SetStringSelection(self.vnetParams[self.currAnModule]["label"]) #TODO
 
+        self.list.SetUpdateMap(updateMap = False)
         while self.list.GetSelected() != wx.NOT_FOUND:
             self.list.DeleteItem()
 
-        i = 0
-        for pt, ptData in  histStepData["points"].iteritems():
+        for iPt in range(len(histStepData["points"])):
+
+            ptData = histStepData["points"]["pt" + str(iPt)]
             coords = ptData["coords"]
             self.list.AddItem()
-            item = self.pointsToDraw.GetItem(i)
+            item = self.pointsToDraw.GetItem(iPt)
             item.SetCoords(coords)
-            i += 1
+
+            if ptData.has_key('cat'):
+                self.list.ShowColumn('type', 1)
+                colNum = self.list.GetColumnNum('type')
+                self.list.EditCellKey(iPt, colNum, ptData["cat"])
+            else:
+                self.list.HideColumn('type')
+
+            topologyNum = self.list.GetColumnNum('topology')
+            self.list.EditCellKey(iPt, topologyNum, ptData["topology"])           
+
+            if ptData["checked"]:
+                self.list.CheckItem(iPt, True)
 
         mapsNames = histStepData["tmp_data"]["maps"]
         for vectMapName in mapsNames:
             if "vnet_tmp_result" in vectMapName:
                 self.tmp_result.DeleteRenderLayer()
                 self.tmp_result  = self.tmpMaps.GetTmpVectMap(vectMapName)
+                if self.tmp_result.VectMapState() == 0:#TODO test only 0
+                    dlg = wx.MessageDialog(parent = self,
+                                           message = _("Temporary map '%s' with result " + 
+                                                       "was changed outside vector network analysis tool.\n" +
+                                                       "Showed result may not correspond " +
+                                                       "original analysis result.") %\
+                                                        self.tmp_result.GetVectMapName(),
+                                            caption = _("Result changed outside"),
+                                            style =  wx.ICON_INFORMATION| wx.CENTRE)
+                    dlg.ShowModal()
+                    dlg.Destroy()
 
                 cmd = self.GetLayerStyle()
                 self.tmp_result.AddRenderLayer(cmd)
 
+        histInputData = histStepData["input_data"]
+
+        for inpName, inp in histInputData.iteritems():
+            self.inputData[inpName].SetValue(str(inp)) #TODO order?
+            if inpName == "input":
+                inpMap = inp
+
+        prevInpModTime = histStepData["other"]["input_modified"]
+
+        inpMapFullName = inpMap + "@" + grass.gisenv()['MAPSET'] #TODO mapset changed?
+        currInpModTime = VectMap(self, inpMapFullName).GetLastModified()
+
+        if currInpModTime != prevInpModTime:
+            dlg = wx.MessageDialog(parent = self,
+                                   message = _("Input map '%s' for analysis was changed outside " + 
+                                               "vector network analysis tool.\n" +
+                                               "Topology column may not " +
+                                               "correspond to changed situation.") %\
+                                                inpMap,
+                                   caption = _("Input changed outside"),
+                                   style =  wx.ICON_INFORMATION| wx.CENTRE)
+            dlg.ShowModal()
+            dlg.Destroy()
+
+        self.list.SetUpdateMap(updateMap = True)
         self.mapWin.UpdateMap(render=True, renderVector=True)
 
     def NewTmpVectMapToHist(self, prefMapName):
 
         mapName = prefMapName + str(self.histTmpVectMapNum)
         self.histTmpVectMapNum += 1
-        tmpMap = self.tmpMaps.AddTmpVectMap(mapName)
+        tmpMap = self._addTmpMapAnalysisMsg(mapName)
         if not tmpMap:
             return tmpMap
            
         self.tmpVectMapsToHist.append(tmpMap.GetVectMapName())
-        self.history.Add(key = "tmp_data", subkey = "maps",  value = self.tmpVectMapsToHist)
+        self.history.Add(key = "tmp_data", 
+                         subkey = "maps",
+                         value = self.tmpVectMapsToHist)
 
         return tmpMap
 
-    def SaveAnInputToHist(self):
+    def _addTmpMapAnalysisMsg(self, mapName):
 
-        pts = self.pointsToDraw.GetAllItems()
-        self.tmpVectMapsToHist = []
-        for iPt, pt in enumerate(pts):
-            coords = pt.GetCoords()
-            ptName = "pt" + str(iPt)
-            self.history.Add(key = "points", subkey = [ptName, "coords"], value = coords)
+        endStr = _("Do you want to continue in analysis and overwrite it?")
+        tmpMap = self.tmpMaps.AddTmpVectMap(mapName, endStr)
+        return tmpMap
 
-        self.history.Add(key = "vnet_modules", subkey = "curr_module", value = self.currAnModule)
 
     def _initVnetParams(self):
         """!Initializes parameters for different v.net.* modules """
@@ -1382,7 +1592,8 @@ class VNETDialog(wx.Dialog):
                         ['point_colors', "used1cat", (192,0,0)],
                         ['point_colors', "used2cat", (0,0,255)],
                         ['point_colors', "selected", (9,249,17)],
-                        ['other', "snap_tresh", 10]
+                        ['other', "snap_tresh", 10],
+                        ['other', "max_hist_steps", 5]
                        ]
 
         for init in initSettings: #TODO initialization warnings, all types are strs
@@ -1426,23 +1637,24 @@ class PtsList(PointsList):
     def __init__(self, parent, dialog, cols, id=wx.ID_ANY):
         """! List with points for analysis
         """
-
+        self.updateMap = True
         self.dialog = dialog # VNETDialog class
 
         PointsList.__init__(self, parent = parent, cols = cols, id =  id)      
 
-    def AddItem(self, event = None):
+    def AddItem(self, event = None, updateMap = True):
         """!
-        Appends an point to list
-        """       
-        PointsList.AddItem(self, event)   
+        Appends point to list
+        """
+        self.dialog.pointsToDraw.AddItem(coords = [0,0])
+
+        PointsList.AddItem(self, event)
+
+        colNum = self.GetColumnNum('topology')
+        self.EditCellKey(key = self.selected , 
+                         col = colNum, 
+                         cellData = _("new point"))  
  
-        self.dialog.pointsToDraw.AddItem(coords = [0,0], 
-                                         label = str(self.selectedkey + 1))
-
-        self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
-
-
     def DeleteItem(self, event = None):
         """!
         Deletes selected point in list
@@ -1460,16 +1672,18 @@ class PtsList(PointsList):
         """
 
         PointsList.OnItemSelected(self, event)
-        self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
-        event.Skip()
+
+        if self.updateMap:
+            self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
 
     def _adaptPointsList(self, currParamsCats, prevParamsCats):
-        """Rename category values fwhen module is changed. Expample: Start point -> Sink point"""
+        """Rename category values when module is changed. Expample: Start point -> Sink point"""
         for item in enumerate(self.itemDataMap):            
             iCat = 0
             for ptCat in prevParamsCats:
                 if self.itemDataMap[item[0]][1] ==  ptCat[1]:
-                    self.EditCellKey(item[0], 1, currParamsCats[iCat][1])
+                    colNum = self.GetColumnNum('type')
+                    self.EditCellKey(item[0], colNum, currParamsCats[iCat][1])
                 iCat += 1
             if not item[1][1]:               
                 self.CheckItem(item[0], False)
@@ -1489,7 +1703,8 @@ class PtsList(PointsList):
         currModule = self.dialog.currAnModule #TODO public func
         cats = self.dialog.vnetParams[currModule]["cmdParams"]["cats"]
 
-        self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
+        if self.updateMap:
+            self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
 
         if len(cats) <= 1:
             return 
@@ -1518,6 +1733,10 @@ class PtsList(PointsList):
                 self.CheckItem(itemKey, False)
             elif self.IsChecked(itemKey):
                 alreadyChecked.append(item[1])
+
+    def SetUpdateMap(self, updateMap):
+        self.updateMap = updateMap
+
 
 class SettingsDialog(wx.Dialog):
     def __init__(self, parent, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -1551,7 +1770,8 @@ class SettingsDialog(wx.Dialog):
                           "line_width" : ["res_style", _("Line width:")],
                           "point_size" : ["point_symbol", _("Point size:")], 
                           "point_width" : ["point_symbol", _("Point width:")],
-                          "snap_tresh" : ["other", _("Snapping treshold in pixels:")]
+                          "snap_tresh" : ["other", _("Snapping treshold in pixels:")],
+                          "max_hist_steps" : ["other", _("Maximum number of results in history:")]
                          }
 
         for settKey, sett in self.sizeSetts.iteritems():
@@ -1623,15 +1843,20 @@ class SettingsDialog(wx.Dialog):
         ptsStyleBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
 
         otherBox = wx.StaticBox(parent = self, id = wx.ID_ANY,
-                                label =" %s " % _("Other:"))
+                                label =" %s " % _("Other settings"))
         otherBoxSizer = wx.StaticBoxSizer(otherBox, wx.VERTICAL)
 
         gridSizer = wx.GridBagSizer(vgap = 1, hgap = 1)
         gridSizer.AddGrowableCol(1)
 
-        row = 0
+        row = 0 #TODO for?
         gridSizer.Add(item = settsLabels["snap_tresh"], flag=wx.ALIGN_CENTER_VERTICAL, pos=(row, 0))
         gridSizer.Add(item = self.settings["snap_tresh"],
+                      flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
+                      pos = (row, 1))
+        row += 1
+        gridSizer.Add(item = settsLabels["max_hist_steps"], flag=wx.ALIGN_CENTER_VERTICAL, pos=(row, 0))
+        gridSizer.Add(item = self.settings["max_hist_steps"],
                       flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
                       pos = (row, 1))
         otherBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
@@ -1754,7 +1979,7 @@ class VnetTmpVectMaps:
         self.parent = parent
         self.mapWin = self.parent.mapWin
 
-    def AddTmpVectMap(self, mapName):
+    def AddTmpVectMap(self, mapName, endStr):
         
         currMapSet = grass.gisenv()['MAPSET']
         tmpMap = grass.find_file(name = mapName, 
@@ -1764,9 +1989,8 @@ class VnetTmpVectMaps:
         fullName = tmpMap["fullname"]
         if fullName:
             dlg = wx.MessageDialog(parent = self.parent,
-                                   message = _("Temporary map %s  already exists."  + 
-                                               "Do you want to continue in analysis and "
-                                               "overwrite it?") % fullName,
+                                   message = _("Temporary map %s  already exists.\n"  + 
+                                               endStr) % fullName,
                                    caption = _("Overwrite map layer"),
                                    style = wx.YES_NO | wx.NO_DEFAULT |
                                    wx.ICON_QUESTION | wx.CENTRE)
@@ -1779,7 +2003,7 @@ class VnetTmpVectMaps:
         else:
             fullName = mapName + "@" + currMapSet
 
-        newVectMap = TmpVectMap(self, fullName)
+        newVectMap = VectMap(self, fullName)
         self.tmpMaps.append(newVectMap)
 
         return newVectMap
@@ -1799,17 +2023,22 @@ class VnetTmpVectMaps:
                 return vectMap
         return None
 
-    def RemoveTmpMap(self, vectMap):
+    def RemoveFromTmpMaps(self, vectMap):
 
-        RunCommand('g.remove', 
-                    vect = vectMap.GetVectMapName())
         try:
             self.tmpMaps.remove(vectMap)
             return True
         except ValueError:
             return False
 
-    def RemoveAllTmpMaps(self):
+    def DeleteTmpMap(self, vectMap):
+
+        vectMap.DeleteRenderLayer()
+        RunCommand('g.remove', 
+                    vect = vectMap.GetVectMapName())
+        self.RemoveFromTmpMaps(vectMap)
+
+    def DeleteAllTmpMaps(self):
 
         update = False
         for tmpMap in self.tmpMaps:
@@ -1819,14 +2048,13 @@ class VnetTmpVectMaps:
                 update = True
         return update
 
-class TmpVectMap:
+class VectMap:
     def __init__(self, parent, fullName):
         """!Represents one temporary map"""
         self.fullName = fullName
         self.parent = parent
         self.renderLayer = None
-        self.layersHash = {}
-        self.new = True
+        self.modifTime = None
 
     def __del__(self):
 
@@ -1869,53 +2097,45 @@ class TmpVectMap:
     def GetVectMapName(self):
         return self.fullName
 
-    def SaveVectLayerState(self, layer):
-    
-         self.layersHash[layer] = self._getLayerHash(layer = layer)
-        
-    def VectLayerState(self, layer):
+    def SaveVectMapState(self):
+  
+        self.modifTime = self.GetLastModified()
 
-        if  not self.layersHash:#TODO 
-            return True
+    def VectMapState(self):
 
-        if self.layersHash[layer] != self._getLayerHash(layer = layer):
-            dlg = wx.MessageDialog(parent = self.parent.parent,
-                                   message = _("Layer %d in map %s was changed outside " +
-                                                "of vector network analysis tool. " +
-                                                "Do you want to continue in analysis and " +
-                                                "overwrite it?") % (layer, self.fullName),
-                                   caption = _("Overwrite map layer"),
-                                   style = wx.YES_NO | wx.NO_DEFAULT |
-                                           wx.ICON_QUESTION | wx.CENTRE)            
-            ret = dlg.ShowModal()
-            dlg.Destroy()
-                
-            if ret == wx.ID_NO:
-                del self.parent.tmpMaps[self.fullName]
-                return False
-            
-        return True
+        if self.modifTime is None:#TODO 
+            return -1       
+        if self.modifTime != self.GetLastModified():
+            return 0  
+        return 1
 
-    def _getLayerHash(self, layer):
-        info = RunCommand("v.info",
-                           map = self.fullName,
-                           layer = layer,
-                           read = True)
+    def GetLastModified(self):
 
-        if haveHashlib:
-            m = md5()
-        else:
-            m = md5.new()
-        m.update(info)
+        name = self.fullName.split("@")[0]
+        headPath =  os.path.join(grass.gisenv()['GISDBASE'],
+                                 grass.gisenv()['LOCATION_NAME'],
+                                 grass.gisenv()['MAPSET'],
+                                 "vector",
+                                 name,
+                                 "head")
 
-        return m.digest()
+        head = open(headPath, 'r')
+        for line in head.readlines():
+            i = line.find('MAP DATE:', )
+            if i == 0:
+               head.close()
+               return line.split(':', 1)[1].strip()
+
+        head.close()
+        return ""
 
 class History:
     def __init__(self, parent):
 
-        self.maxHistSteps = 10
+        self.maxHistSteps = 3
         self.currHistStep = 0
         self.histStepsNum = 0
+
         self.currHistStepData = {}
 
         self.newHistStepData = {}
@@ -1929,21 +2149,25 @@ class History:
 
     def GetNext(self):
 
-        self.currHistStepData.clear()
         self.currHistStep -= 1
-        return self._getHistStepData(self.currHistStep)
+        self.currHistStepData.clear()
+        self.currHistStepData = self._getHistStepData(self.currHistStep)
+
+        return self.currHistStepData
 
     def GetPrev(self):
 
-        self.currHistStepData.clear()
         self.currHistStep += 1 
-        return self._getHistStepData(self.currHistStep)
+        self.currHistStepData.clear()
+        self.currHistStepData = self._getHistStepData(self.currHistStep)
 
-    def GetCurrHistStep(self):
-        return self.currHistStep
+        return self.currHistStepData
 
     def GetStepsNum(self):
         return self.histStepsNum
+
+    def GetCurrHistStep(self):
+        return self.currHistStep
 
     def Add(self, key, subkey, value):#TODO
 
@@ -1959,6 +2183,9 @@ class History:
 
     def SaveHistStep(self):
 
+        self.maxHistSteps = UserSettings.Get(group ='vnet',
+                                             key = 'other',
+                                             subkey = 'max_hist_steps')
         self.currHistStep = 0 #TODO
 
         newHistFile = grass.tempfile()
@@ -1967,7 +2194,7 @@ class History:
         self._saveNewHistStep(newHist)
 
         oldHist = open(self.histFile)
-        self._savePreviusHist(newHist, oldHist)
+        removedHistData = self._savePreviousHist(newHist, oldHist)
 
         oldHist.close()
         newHist.close()
@@ -1976,28 +2203,40 @@ class History:
 
         self.newHistStepData.clear() 
 
-    def _savePreviusHist(self, newHist, oldHist):          
-  
+        return removedHistData
+
+    def _savePreviousHist(self, newHist, oldHist):          
+
         newHistStep = False
-        histStepNum = 1
+        removedHistData = {}
+        newHistStepsNum = self.histStepsNum
+
         for line in oldHist.readlines():
             if not line.strip():
                 newHistStep = True
+                newHistStepsNum += 1
                 continue
-            if newHistStep:
-                line = line.split("=")
-                line[1] = str(histStepNum)
-                line = "=".join(line) 
 
-                if histStepNum >= self.maxHistSteps:
-                    self.histStepsNum = histStepNum + 1
-                    return
-                histStepNum += 1
+            if newHistStep:
                 newHistStep = False
-                newHist.write('%s%s%s' % (os.linesep, line, os.linesep))
+
+                line = line.split("=")
+                line[1] = str(newHistStepsNum)
+                line = "=".join(line)
+
+                if newHistStepsNum >= self.maxHistSteps:
+                    removedHistStep = removedHistData[line] = {}
+                    continue
+                else:
+                    newHist.write('%s%s%s' % (os.linesep, line, os.linesep))
+                    self.histStepsNum = newHistStepsNum
             else:
-                newHist.write('%s' % line)                
-        self.histStepsNum = histStepNum + 1
+                if newHistStepsNum >= self.maxHistSteps:
+                    self._parseLine(line, removedHistStep)
+                else:
+                    newHist.write('%s' % line)                
+
+        return removedHistData
             
     def _saveNewHistStep(self, newHist):
  
@@ -2028,14 +2267,14 @@ class History:
                             type(self.newHistStepData[key][subkeys[idx + 1]]) != types.DictType:
                         newHist.write('%s' % self.sep)
             newHist.write(os.linesep)
-        self.histStepsNum = 1
+        self.histStepsNum = 0
 
     def _parseValue(self, value, read = False):
 
         if read: # -> read data (cast values)
 
             if value:
-                if value[0] == '[' and value[-1] == ']':# TODO
+                if value[0] == '[' and value[-1] == ']':# TODO, possible wrong interpretation
                     value = value[1:-1].split(',')
                     value = map(self._castValue, value)
                     return value
@@ -2081,6 +2320,7 @@ class History:
     def _getHistStepData(self, histStep):          
         
         hist = open(self.histFile)
+        histStepData = {}
 
         newHistStep = False
         isSearchedHistStep = False
@@ -2092,7 +2332,7 @@ class History:
                 newHistStep = True
                 continue
             elif isSearchedHistStep:
-                self._parseLine(line)
+                self._parseLine(line, histStepData)
 
             if newHistStep:
                 line = line.split("=")
@@ -2101,9 +2341,9 @@ class History:
                 newHistStep = False
 
         hist.close()
-        return self.currHistStepData
+        return histStepData
 
-    def _parseLine(self, line):
+    def _parseLine(self, line, histStepData):
 
             line = line.rstrip('%s' % os.linesep).split(self.sep)
             key = line[0]
@@ -2121,15 +2361,15 @@ class History:
                     subkey = kv[idx]
                 value = kv[idx+1]
                 value = self._parseValue(value, read = True)
-                if key not in self.currHistStepData:
-                    self.currHistStepData[key] = {}
+                if key not in histStepData:
+                    histStepData[key] = {}
 
                 if type(subkey) == types.ListType:
-                    if subkey[0] not in self.currHistStepData[key]:
-                        self.currHistStepData[key][subkey[0]] = {}
-                    self.currHistStepData[key][subkey[0]][subkey[1]] = value
+                    if subkey[0] not in histStepData[key]:
+                        histStepData[key][subkey[0]] = {}
+                    histStepData[key][subkey[0]][subkey[1]] = value
                 else:
-                    self.currHistStepData[key][subkey] = value
+                    histStepData[key][subkey] = value
                 idx += 2
 
 #TODO ugly hack - just for GMConsole to be satisfied 

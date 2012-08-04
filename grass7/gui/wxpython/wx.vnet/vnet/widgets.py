@@ -97,6 +97,7 @@ class PointsList(wx.ListCtrl,
         self.CheckList = [] 
 
         self._CreateCols()
+        self.hiddenCols = []
 
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnItemActivated)
@@ -171,6 +172,10 @@ class PointsList(wx.ListCtrl,
 
         return self.selected
 
+    def GetCellText(self, key, col):
+
+        return self.itemDataMap[key][col]
+     
     def EditCellIndex(self, index, col, cellData):
         """! Changes value in list using key (same regardless sorting)"""
         
@@ -334,6 +339,41 @@ class PointsList(wx.ListCtrl,
         finally:
             stream.close()
         return img
+
+    def GetColumnNum(self, colName):
+
+        for iCol in range(self.GetColumnCount()):
+            if colName == self.GetColumn(iCol).GetText():
+                return iCol
+
+        return -1
+
+    def HideColumn(self, colName):
+
+        colNum = self.GetColumnNum(colName)
+        if not colNum:
+            return False
+
+        hiddenCol = self.GetColumn(colNum)
+        self.hiddenCols.append(hiddenCol)
+        self.DeleteColumn(colNum) 
+        self.ResizeColumns()
+
+        return True
+
+    def ShowColumn(self, colName, pos):
+
+        if pos < 0 and pos >= self.self.GetColumnCount():
+            return False
+
+        for col in self.hiddenCols:
+            if colName == col.GetText():    
+                self.InsertColumnItem(pos, col)
+                self.ResizeColumns()
+                self.hiddenCols.remove(col)             
+                return True
+
+        return False
 
 class EditItem(wx.Dialog):
     

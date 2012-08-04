@@ -59,6 +59,9 @@ class PointListToolbar(BaseToolbar):
                                      ('pointDelete', icons["pointDelete"],
                                         self.list.DeleteItem)))
                                     
+    def GetToolId(self, toolName): #TODO can be useful in base
+
+        return vars(self)[toolName]
 
 class MainToolbar(BaseToolbar):
     """!Main toolbar
@@ -102,7 +105,7 @@ class MainToolbar(BaseToolbar):
                  'showResult'   : MetaIcon(img = 'layer-add',
                                     label = _("Show analysis result")),
                  'saveTempLayer' : MetaIcon(img = 'map-export',
-                                             label = _('Add temporary result of analysis into layer tree')),
+                                             label = _('Save temporary result map')),
                   'settings' : BaseIcons['settings'].SetLabel( _('Vector network analysis settings'))
                 }
 
@@ -125,7 +128,7 @@ class MainToolbar(BaseToolbar):
 
     def UpdateUndoRedo(self):
 
-        if self.parent.history.GetCurrHistStep() >= self.parent.history.GetStepsNum() - 2:
+        if self.parent.history.GetCurrHistStep() >= self.parent.history.GetStepsNum():
            self.Enable("undo", False)
         else:
            self.Enable("undo", True)
