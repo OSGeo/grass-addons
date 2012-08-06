@@ -63,7 +63,7 @@ def main():
     max_value = int(options['max']) + 1
     # if the db path is the default one
     if dbopt.find('$GISDBASE/$LOCATION_NAME/$MAPSET') == 0:
-        dbopt_split = dbopt.split(os.sep)[-1]
+        dbopt_split = dbopt.split('/')[-1]
         env = grass.gisenv()
         path = os.path.join(env['GISDBASE'], env['LOCATION_NAME'], env['MAPSET'])
         dbpath = os.path.join(path, dbopt_split)
