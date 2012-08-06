@@ -1,33 +1,33 @@
 <h2>DESCRIPTION</h2>
 
-<em>g.md5sum</em> is a module that check if two maps are identical. It use md5 
-cryptographic hash function.
-For vector layer it does not check if attribute tables are identical too.
+<em>g.md5sum</em> is a module that checks if two GRASS maps are identical.
+It uses the MD5 cryptographic hash function. For vector map layers it
+does not check if the attribute table(s) are identical, too.
 
 <h2>EXAMPLE</h2>
 
-North Carolina example, with elevation map
+North Carolina example, with elevation map:
 
 <div class="code"><pre>
-# copy the map
+# copy a raster map
 g.copy rast=elevation,dem
 
-# now check and return true
+# now check and return TRUE
 g.md5sum ain=elevation bin=dem
 
 # now change the color table
 r.colors map=dem color=srtm
 
-# check again e return false...
+# check again and it should return FALSE
 g.md5sum ain=elevation bin=dem
 
-# but if add the -c flag return true again
+# but when adding the -c flag (ignore color table), TRUE is returned
 g.md5sum -c ain=elevation bin=dem
 
 </pre></div>
 
-<h2>AUTHORS</h2>
+<h2>AUTHOR</h2>
 
 Luca Delucchi, Fondazione Edmund Mach, Research and Innovation Centre,
 Department of Biodiversity and Molecular Ecology,
-<a href="http://gis.cri.fmach.it">GIS and Remote Sensing Unit</a>
+<a href="http://gis.cri.fmach.it">GIS and Remote Sensing Unit</a>, Italy

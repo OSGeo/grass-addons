@@ -6,7 +6,7 @@
 #
 # AUTHOR(S):    Luca Delucchi <lucadeluge@gmail.com>
 #               
-# PURPOSE:      Check if two maps are the same
+# PURPOSE:      Check if two GRASS maps are the same
 #
 # COPYRIGHT:    (c) 2012 by Luca Delucchi and the GRASS Development Team
 #               
@@ -17,7 +17,7 @@
 ################################################################################
 
 #%module
-#% description: Check if two maps are identical
+#% description: Check if two GRASS maps are identical
 #% keywords: general, map management, list
 #%end
 #%flag
