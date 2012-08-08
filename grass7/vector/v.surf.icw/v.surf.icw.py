@@ -299,7 +299,7 @@ def main():
                       cost_n_cleansed = cost_site_name + '.cleansed',
                       cost_n = cost_site_name, quiet = True)
 	# stall to wait for the nth worker to complete,
-	if i % workers is 0:
+	if (i+1) % workers is 0:
 	    #print 'stalling ...'
 	    proc[i].wait()
 
@@ -341,7 +341,7 @@ def main():
 		                      friction = friction,
 				      quiet = True)
 	# stall to wait for the nth worker to complete,
-	if i % workers is 0:
+	if (i+1) % workers is 0:
 	    #print 'stalling ...'
 	    proc[i].wait()
 
