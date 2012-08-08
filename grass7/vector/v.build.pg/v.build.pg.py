@@ -133,8 +133,9 @@ def main():
     
     # build topology
     grass.message(_("Building PostGIS topology..."))
-    execute("UPDATE %s SET %s = topology.toTopoGeom(%s, '%s', 1, %s)" % \
-                (table, options['topo_column'], vInfo['geometry_column'], options['topo_schema'], options['tolerance']),
+    execute("UPDATE %s.%s SET %s = topology.toTopoGeom(%s, '%s', 1, %s)" % \
+                (schema, table, options['topo_column'], vInfo['geometry_column'],
+                 options['topo_schema'], options['tolerance']),
             useSelect = False)
     
     # report summary
