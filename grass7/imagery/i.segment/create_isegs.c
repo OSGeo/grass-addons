@@ -924,11 +924,14 @@ int region_growing(struct files *files, struct functions *functions)
 #ifdef PROFILE
 			fn_start = clock();
 #endif
-			if (find_segment_neighbors
+			//~ if (find_segment_neighbors
+			    //~ (&Ri_head, &Rin_head, &Ri_count, files,
+			     //~ functions) != TRUE) {
+			    //~ G_fatal_error("find_segment_neighbors() failed");
+			//~ }
+			find_segment_neighbors
 			    (&Ri_head, &Rin_head, &Ri_count, files,
-			     functions) != TRUE) {
-			    G_fatal_error("find_segment_neighbors() failed");
-			}
+			     functions);
 #ifdef PROFILE
 			fn_end = clock();
 			fn_lap =
@@ -1235,12 +1238,15 @@ int region_growing(struct files *files, struct functions *functions)
 			    Ri_head->row, Ri_head->col);
 
 		    /* find segment neighbors */
-		    if (find_segment_neighbors
+		    //~ if (find_segment_neighbors
+			//~ (&Ri_head, &Rin_head, &Ri_count, files,
+			 //~ functions) != TRUE) {
+			//~ G_fatal_error("find_segment_neighbors() failed");
+		    //~ }
+find_segment_neighbors
 			(&Ri_head, &Rin_head, &Ri_count, files,
-			 functions) != TRUE) {
-			G_fatal_error("find_segment_neighbors() failed");
-		    }
-
+			 functions);
+			 
 		    if (Rin_head != NULL) {	/*found neighbors */
 			if (Ri_count >= functions->min_segment_size)	/* don't force a merge */
 			    set_candidate_flag(Ri_head, FALSE, files);
@@ -1329,12 +1335,14 @@ int region_growing(struct files *files, struct functions *functions)
     return TRUE;
     }
 
+/* TODO, for now will return borderPixels instead of passing a pointer, I saw mentioned that each parameter slows down the function call? */
+/* TODO, My first impression is that the borderPixels count is ONLY needed for the case of initial seeds, and not used later on.  Another reason to split the function... */
     int find_segment_neighbors(struct pixels **R_head,
 			       struct pixels **neighbors_head, int *seg_count,
 			       struct files *files,
 			       struct functions *functions)
     {
-	int n, current_seg_ID, R_iseg = -1;
+	int n, borderPixels, current_seg_ID, R_iseg = -1;
 	struct pixels *newpixel, *current, *to_check, tree_pix;	/* need to check the pixel neighbors of to_check */
 	int pixel_neighbors[8][2];
 	struct RB_TREE *no_check_tree;	/* pixels that should no longer be checked on this current find_neighbors() run */
@@ -1362,7 +1370,8 @@ int region_growing(struct files *files, struct functions *functions)
 
 
 	/* *** initialize data *** */
-
+	borderPixels = 0;
+	
 	segment_get(&files->iseg_seg, &R_iseg, (*R_head)->row,
 		    (*R_head)->col);
 
@@ -1393,6 +1402,7 @@ int region_growing(struct files *files, struct functions *functions)
 		    *neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
 		    /* todo polish... could use a tree and only return pixels from unique segments. */
 		}
+		borderPixels++; /* increment for all non null pixels TODO perimeter: OK to ignore these cells? */
 	    }
 
 	}
@@ -1506,7 +1516,9 @@ int region_growing(struct files *files, struct functions *functions)
 
 			}
 			else {	/* segment id's were different */
-			    if (!rbtree_find(known_iseg, &current_seg_ID)) {	/* we don't have any neighbors yet from this segment */
+				borderPixels++; /* increment for all non null pixels that are non in no-check or R_iseg TODO perimeter: move this to include pixels in no-check ??? */
+				
+				if (!rbtree_find(known_iseg, &current_seg_ID)) {	/* we don't have any neighbors yet from this segment */
 				if (current_seg_ID != 0)
 				    /* with seeds, non seed pixels are defaulted to zero.  Should we use null instead?? then could skip this check?  Or we couldn't insert it??? */
 				    /* add to known neighbors list */
@@ -1523,6 +1535,11 @@ int region_growing(struct files *files, struct functions *functions)
 				newpixel->col = pixel_neighbors[n][1];
 				*neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
 			    }
+			    else { /* TODO we need to keep track of (and return!) a total count of neighbors pixels for each neighbor segment, to update the perimeter value in the similarity calculation. */
+					/* todo perimeter: need to initalize this somewhere!!! */
+					/* todo perimeter... need to find pixel with same segment ID....  countShared++;
+					 * Oh!  Should we change the tree to sort on segment ID...need to think of fast way to return this count?  with pixel?  or with something else? */
+				}
 			}
 
 
@@ -1545,7 +1562,7 @@ int region_growing(struct files *files, struct functions *functions)
 	    rbtree_destroy(no_check_tree);
 	    rbtree_destroy(known_iseg);
 	}
-	return TRUE;
+	return borderPixels;
     }
 
     int find_four_pixel_neighbors(int p_row, int p_col,
@@ -1656,7 +1673,8 @@ int region_growing(struct files *files, struct functions *functions)
 
     }
 
-    /*
+    /* TODO: add shape parameter...
+     * 
        In the eCognition literature, we find that the key factor in the
        multi-scale segmentation algorithm used by Definiens is the scale
        factor f:
@@ -1731,7 +1749,7 @@ int region_growing(struct files *files, struct functions *functions)
     }
 
     /* calculates and stores the mean value for all pixels in a list, assuming they are all in the same segment */
-    int merge_pixels(struct pixels *R_head, struct files *files)
+    int merge_pixels(struct pixels *R_head, int borderPixels, struct files *files)
     {
 	int n, count = 0;
 	struct pixels *current;
@@ -1758,6 +1776,10 @@ int region_growing(struct files *files, struct functions *functions)
 	    for (n = 0; n < files->nbands; n++) {
 		files->second_val[n] = files->second_val[n] / count;
 	    }
+
+		/* add in the shape values */
+	    files->bands_val[files->nbands] = count; /* area (Num Pixels) */
+	    files->bands_val[files->nbands + 1] = borderPixels; /* Perimeter Length */ /* todo polish, not exact for edges...close enough for now? */
 
 	    /* save the results */
 	    for (current = R_head; current != NULL; current = current->next) {

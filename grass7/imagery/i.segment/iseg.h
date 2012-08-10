@@ -29,6 +29,7 @@ struct pixels
     struct pixels *next;
     int row;
     int col;
+    int countShared; /* todo perimeter: will hold the count how many pixels are shared on the Border Between Ri and Rk.  Not used for all pixels... see if this is an OK way to do this...*/
 };
 
 /* input and output files, as well as some other processing info */
@@ -116,7 +117,7 @@ int find_segment_neighbors(struct pixels **, struct pixels **, int *,
 			   struct files *, struct functions *);
 int set_candidate_flag(struct pixels *, int, struct files *);
 int merge_values(struct pixels *, struct pixels *, int, int, struct files *);
-int merge_pixels(struct pixels *, struct files *);
+int merge_pixels(struct pixels *, int, struct files *);
 int find_four_pixel_neighbors(int, int, int[][2], struct files *);
 int find_eight_pixel_neighbors(int, int, int[8][2], struct files *);
 double calculate_euclidean_similarity(struct pixels *, struct pixels *,

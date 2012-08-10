@@ -11,7 +11,7 @@ int open_files(struct files *files, struct functions *functions)
 {
     struct Ref Ref;		/* group reference list */
     int *in_fd, seeds_fd, bounds_fd, null_check, out_fd, mean_fd;
-    int n, s, row, col, srows, scols, inlen, nseg;
+    int n, s, row, col, srows, scols, inlen, nseg, borderPixels;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
     CELL *boundsbuf;
     void *seedsbuf, *ptr;	/* todo. correct data type when allowing any data type? hmm, since have changed logic, seeds must be CELL.  Could update code. */
@@ -134,6 +134,10 @@ int open_files(struct files *files, struct functions *functions)
 	G_fatal_error("Unable to create input temporary files");
 
     /* ******* remaining memory allocation ********* */
+	
+	/* save the area and perimeter as well */
+	/* TODO: currently saving this with the input DCELL values.  Better to have a second segment structure to save as integers ??? */
+    inlen = inlen + sizeof(double) * 2;
 
     files->bands_val = (double *)G_malloc(inlen);
     files->second_val = (double *)G_malloc(inlen);
@@ -196,6 +200,8 @@ int open_files(struct files *files, struct functions *functions)
 		else
 		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/*scaled version */
 	    }
+	    files->bands_val[Ref.nfiles] = 1; /* area (Num Pixels) */
+	    files->bands_val[Ref.nfiles + 1] = 4; /* Perimeter Length */ /* todo polish, not exact for edges...close enough for now? */
 	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
 
 	    if (null_check != -1) {	/*good pixel */
@@ -273,8 +279,8 @@ int open_files(struct files *files, struct functions *functions)
 		newpixel->col = col;
 		R_head = newpixel;
 
-		/*get pixel list, todo polish, could use custom (shorter) function, not using all of what fsn() does... */
-		find_segment_neighbors(&R_head, &Rn_head, &R_count, files, functions);	/* todo, I suppose there is a small chance that a renumbered segment matches and borders an original segment.  This would be a good reason to write a custom fnp() function to chop out the neighbors and also check the candidate flag. */
+		/*get pixel list, todo polish, could use custom (shorter) function, not using all of what fsn() does... hmm, after adding perimeter, we do use most of it... */
+		borderPixels = find_segment_neighbors(&R_head, &Rn_head, &R_count, files, functions);	/* todo, I suppose there is a small chance that a renumbered segment matches and borders an original segment.  This would be a good reason to write a custom fnp() function to chop out the neighbors and also check the candidate flag. */
 
 		/* update the segment ID *//* TODO, Markus, this could also be done in merge_pixels to avoid iterating this list twice.
 		 * for now I've put it here, to make merge_pixels() more general.  Unless you think initialization speed is more important then future flexibility? */
@@ -289,7 +295,7 @@ int open_files(struct files *files, struct functions *functions)
 		}
 
 		/*merge pixels (updates the bands_seg) */
-		merge_pixels(R_head, files);
+		merge_pixels(R_head, borderPixels, files);
 
 		/*todo calculate perimeter (?and area?) here? */
 
