@@ -41,6 +41,8 @@ from core             import globalvar, utils
 from core.settings    import UserSettings
 from core.gcmd        import RunCommand, GMessage
 
+from dbmgr.base       import DbMgrBase 
+
 from gui_core.widgets import GNotebook
 from gui_core.goutput import GMConsole, CmdThread, EVT_CMD_DONE
 from gui_core.gselect import Select, LayerSelect, ColumnSelect
@@ -104,8 +106,8 @@ class VNETDialog(wx.Dialog):
 
         # Columns in points list
         self.cols =   [
-                        ['type', ["", _("Start point"), _("End point")], ""], #TODO init dynamically, translation problem
-                        ['topology', None, ""] 
+                        ['type', _('type'), [_(""), _("Start point"), _("End point")], 0], #TODO init dynamically
+                        ['topology',  _('topology'), None, ""] 
                       ]
 
         self.mainPanel = wx.Panel(parent=self)
@@ -117,6 +119,7 @@ class VNETDialog(wx.Dialog):
         self._createPointsPage()
         self._createParametersPage()
         self._createOutputPage()
+        #self._createInputAtmPage()
 
         self._addPanes()
         self._doDialogLayout()
@@ -125,12 +128,10 @@ class VNETDialog(wx.Dialog):
 
         self.handlerRegistered = False
         self.tmpResultLayer = None 
-
         # adds 2 points into list
         for i in range(2):
             self.list.AddItem()
-            colNum = self.list.GetColumnNum('type')
-            self.list.EditCellIndex(i, colNum, self.cols[1][1][1 + i]) 
+            self.list.EditCellIndex(i, 'type', self.cols[1][2][1 + i]) 
             self.list.CheckItem(i, True)
 
         # selects first point
@@ -310,13 +311,13 @@ class VNETDialog(wx.Dialog):
 
         self.goutput = GMConsole(parent = outputPanel, margin = False)
 
-        self.outputSizer = wx.BoxSizer(wx.VERTICAL)
+        outputSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.outputSizer.Add(item = self.goutput, proportion = 1, flag = wx.EXPAND)
+        outputSizer.Add(item = self.goutput, proportion = 1, flag = wx.EXPAND)
         # overridden outputSizer.SetSizeHints(self) in GMConsole _layout
         self.goutput.SetMinSize((-1,-1))
 
-        outputPanel.SetSizer(self.outputSizer)
+        outputPanel.SetSizer(outputSizer)
 
     def _createParametersPage(self):
         """!Tab with output console"""
@@ -640,23 +641,20 @@ class VNETDialog(wx.Dialog):
         if self.snapping:
             coords = [e, n]
             if self._snapPoint(coords):
-                colNum = self.list.GetColumnNum('topology')
                 self.list.EditCellKey(key = self.list.selected , 
-                                      col = colNum, 
+                                      colName = 'topology', 
                                       cellData = _("snapped to node"))
             else:
-                colNum = self.list.GetColumnNum('topology')
                 self.list.EditCellKey(key = self.list.selected , 
-                                    col = colNum, 
+                                    colName = 'topology', 
                                     cellData = _("new point"))
 
             e = coords[0]
             n = coords[1]
 
         else:
-            colNum = self.list.GetColumnNum('topology')
             self.list.EditCellKey(key = self.list.selected , 
-                                  col = colNum, 
+                                  colName = 'topology', 
                                   cellData = _("new point"))
 
         self.pointsToDraw.GetItem(key).SetCoords([e, n])
@@ -1128,7 +1126,7 @@ class VNETDialog(wx.Dialog):
                 break
 
         if self.currAnModule == "v.net.path":
-            self.list._updateCheckedItems(index = -1)
+            self.list.UpdateCheckedItems(index = None)
         #    self.anSettings['line_id'].GetParent().Show()
         #else:
         #    self.anSettings['line_id'].GetParent().Hide()
@@ -1167,7 +1165,7 @@ class VNETDialog(wx.Dialog):
 
         # If module has only one category -> hide type column in points list otherwise show it
         if len(self.vnetParams[self.currAnModule]["cmdParams"]["cats"]) > 1:
-            if self.list.GetColumnNum('type') == -1:
+            if not self.list.IsShown('type'):
                 self.list.ShowColumn('type', 1)
 
             prevParamsCats = self.vnetParams[self.prev2catsAnModule]["cmdParams"]["cats"]
@@ -1176,7 +1174,7 @@ class VNETDialog(wx.Dialog):
             self.list._adaptPointsList(currParamsCats, prevParamsCats)
             self.prev2catsAnModule = self.currAnModule
         else:
-            if self.list.GetColumnNum('type') != -1:
+            if self.list.IsShown('type'):
                 self.list.HideColumn('type')
 
     def OnSnapping(self, event):
@@ -1300,14 +1298,13 @@ class VNETDialog(wx.Dialog):
                              subkey = [ptName, "coords"], 
                              value = coords)
 
-            colNum = self.list.GetColumnNum('type')
-            if colNum != -1:
-                cat = self.list.GetCellText(iPt, 1)#TODO
+            if self.list.IsShown('type'):
+                cat = self.list.GetCellText(iPt, 'type')
                 self.history.Add(key = "points", 
                                  subkey = [ptName, "cat"], 
                                  value = cat)
 
-            topology = self.list.GetCellText(iPt, 2)
+            topology = self.list.GetCellText(iPt, 'topology')
             self.history.Add(key = "points", 
                              subkey = [ptName, "topology"], 
                              value = topology)
@@ -1369,13 +1366,12 @@ class VNETDialog(wx.Dialog):
 
             if ptData.has_key('cat'):
                 self.list.ShowColumn('type', 1)
-                colNum = self.list.GetColumnNum('type')
-                self.list.EditCellKey(iPt, colNum, ptData["cat"])
+                self.list.EditCellKey(iPt, 'type', ptData["cat"])
             else:
+                pass
                 self.list.HideColumn('type')
 
-            topologyNum = self.list.GetColumnNum('topology')
-            self.list.EditCellKey(iPt, topologyNum, ptData["topology"])           
+            self.list.EditCellKey(iPt, 'topology', ptData["topology"])           
 
             if ptData["checked"]:
                 self.list.CheckItem(iPt, True)
@@ -1650,9 +1646,8 @@ class PtsList(PointsList):
 
         PointsList.AddItem(self, event)
 
-        colNum = self.GetColumnNum('topology')
         self.EditCellKey(key = self.selected , 
-                         col = colNum, 
+                         colName = 'topology', 
                          cellData = _("new point"))  
  
     def DeleteItem(self, event = None):
@@ -1678,22 +1673,21 @@ class PtsList(PointsList):
 
     def _adaptPointsList(self, currParamsCats, prevParamsCats):
         """Rename category values when module is changed. Expample: Start point -> Sink point"""
-        for item in enumerate(self.itemDataMap):            
+        for iItem, item in enumerate(self.itemDataMap):            
             iCat = 0
             for ptCat in prevParamsCats:
-                if self.itemDataMap[item[0]][1] ==  ptCat[1]:
-                    colNum = self.GetColumnNum('type')
-                    self.EditCellKey(item[0], colNum, currParamsCats[iCat][1])
+                if self.itemDataMap[iItem][1] ==  ptCat[1]:
+                    self.EditCellKey(iItem, 'type', currParamsCats[iCat][1])
                 iCat += 1
-            if not item[1][1]:               
-                self.CheckItem(item[0], False)
+            if not item[1]:               
+                self.CheckItem(iItem, False)
 
         colValues = [""]
         for ptCat in currParamsCats:
             colValues.append(ptCat[1])
 
-        self.ChangeColType(1, colValues)
-    
+        self.ChangeColEditable('type', colValues)
+   
     def OnCheckItem(self, index, flag):
         """!Item is checked/unchecked"""
 
@@ -1714,9 +1708,9 @@ class PtsList(PointsList):
             return
 
         if currModule == "v.net.path" and flag:
-            self._updateCheckedItems(index)
+            self.UpdateCheckedItems(index)
 
-    def _updateCheckedItems(self, index):
+    def UpdateCheckedItems(self, index):
         """!For v.net.path - max. just one checked start point and end point """
         alreadyChecked = []
         if index:
