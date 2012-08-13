@@ -273,7 +273,7 @@ if [ "${FLAG_ONLY_BGR}" -ne 1 ] ; then
 	#
 	#Check if specie map(s) exist
 	s_number=1
-	for s in "$species"
+	for s in $species
 	do
 		#Check if specie mask files exist
 		specie_map_name=$(echo $p | cut -f1 -d'#' | tr -d ' ')
