@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 ############################################################################
 #
@@ -6,8 +6,9 @@
 # AUTHOR(S):    Markus Neteler, Maning Sambale
 # PURPOSE:      FGAMMA -- Gamma SAR Speckle Filter, based on
 #               http://web.archive.org/web/20050826071553/http://www.pcigeomatics.com/cgi-bin/pcihlp/M_FGAMMA
-#               http://web.archive.org/web/20070122173456/http://www.pcigeomatics.com/cgi-bin/pcihlp/FLE|ALGORITHM
+#               http://web.archive.org/web/20050425160834/http://www.pcigeomatics.com/cgi-bin/pcihlp/M_FLE
 #               http://web.archive.org/web/20071216181051/http://www.pcigeomatics.com/cgi-bin/pcihlp/FELEE
+#               web.archive.org/web/20050425104814/http://www.pcigeomatics.com/cgi-bin/pcihlp/M_FKUAN
 #               http://web.archive.org/web/20071216081728/http://www.pcigeomatics.com/cgi-bin/pcihlp/FFROST
 #               http://web.archive.org/web/20071216181046/http://www.pcigeomatics.com/cgi-bin/pcihlp/FEFROST
 #
@@ -53,7 +54,7 @@
 #% type: string
 #% required: yes
 #% multiple: no
-#% options: gamma,lee,kuan
+#% options: gamma,lee,kuan,elee
 #% description: Despeckle operation
 #% answer: gamma
 #%End
@@ -70,9 +71,19 @@
 #% type: integer
 #% required: no
 #% multiple: no
-#% description: Number of looks (1: single look)
+#% description: Number of looks (0 <= x <= 100)
 #% answer: 1
 #%End
+#%Option
+#% key: dfactor
+#% type: real
+#% required: no
+#% multiple: no
+#% description: Damping factor (0.0 <= x <= 10.0)
+#% answer: 1.0
+#%End
+
+
 
 
 if [ -z "$GISBASE" ] ; then
@@ -95,6 +106,7 @@ WIN=$GIS_OPT_SIZE
 NumberLooks=$GIS_OPT_LOOKS # controls the amount of smoothing applied to image 
 OUTPUT=$GIS_OPT_OUTPUT
 METHOD=$GIS_OPT_METHOD
+DFACTOR=$GIS_OPT_DFACTOR 
 
 #########################
 
@@ -129,7 +141,7 @@ then
   # Ic  =   center pixel in filter window
   r.mapcalc "$OUTPUT = $MAP * $MAP.W + $MAP.mean * (1.0 - $MAP.W)"
 
-  g.remove --q rast=$MAP.mean,$MAP.stddev,$MAP.rf,$MAP.ci,$MAP.W
+  g.remove --q rast=$MAP.mean,$MAP.stddev,$MAP.ci,$MAP.W
 fi
 
 if [ $METHOD == "kuan" ]
@@ -184,9 +196,42 @@ then
          ) \\
        ))"
 
-  g.remove --q rast=$MAP.mean,$MAP.stddev,$MAP.rf,$MAP.ci,$MAP.A,$MAP.B,$MAP.D,$MAP.W
+  g.remove --q rast=$MAP.mean,$MAP.stddev,$MAP.rf,$MAP.ci,$MAP.A,$MAP.B,$MAP.D
   
 fi
+
+###
+
+if [ $METHOD == "elee" ]
+then
+  echo "Processing with Enhanced LEE filter"
+
+  # A 7x7 filter usually gives the best results.
+ 
+  # Cmax =  SQRT(1+2/NumberLooks)
+  Cmax="`echo $Cu | awk '{printf "%f", sqrt((1+2) * $1)}'`"
+
+  # W   =   exp (-DampFactor (Ci-Cu)/(Cmax - Ci))
+  r.mapcalc "$MAP.W = exp (((-1 * $DFACTOR) * ($MAP.Ci - $Cu)) / ($Cmax - $MAP.Ci))"
+
+  # Rf  =   Im * W + Ic * (1-W)
+  r.mapcalc "$MAP.rf = $MAP.mean * $MAP.W + $MAP * (1 - $MAP.W)"
+
+  # R = Im                  for Ci <= Cu
+  # Rf = Im * W + Ic * (1-W) for Cu < Ci < Cmax
+  # R = Ic                  for Ci >= Cmax
+ 
+ r.mapcalc "$OUTPUT = eval(r1 = $MAP.mean, r2 = $MAP.rf, r3 = $MAP, \\
+       if($MAP.ci <= $Cu, r1, \\
+         if($MAP.ci > $Cu && $MAP.ci < $Cmax, r2, \\
+           if($MAP.ci >= $Cmax, r3, null() ) \\
+         ) \\
+       ))"
+
+  g.remove --q rast=$MAP.mean,$MAP.stddev,$MAP.rf,$MAP.ci,$MAP.W
+  
+fi
+
 ####################
 
 r.colors $OUTPUT col=grey -e
