@@ -113,13 +113,17 @@ class VNETDialog(wx.Dialog):
         self.mainPanel = wx.Panel(parent=self)
         self.notebook = GNotebook(parent = self.mainPanel,
                                   style = FN.FNB_FANCY_TABS | FN.FNB_BOTTOM |
-                                          FN.FNB_NO_NAV_BUTTONS | FN.FNB_NO_X_BUTTON)
+                                          FN.FNB_NO_X_BUTTON)
 
         # Creates tabs
         self._createPointsPage()
         self._createParametersPage()
         self._createOutputPage()
-        #self._createInputAtmPage()
+        self._createInputDbMgrPage()
+        self._createResultDbMgrPage()
+
+        self.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
+
 
         self._addPanes()
         self._doDialogLayout()
@@ -140,7 +144,7 @@ class VNETDialog(wx.Dialog):
 
         self.Bind(wx.EVT_CLOSE, self.OnCloseDialog)
 
-        dlgSize = (410, 520)
+        dlgSize = (400, 520)
         self.SetMinSize(dlgSize)
         self.SetInitialSize(dlgSize)
 
@@ -351,7 +355,7 @@ class VNETDialog(wx.Dialog):
                                                     size = globalvar.DIALOG_COLOR_SIZE) 
                 self.addToTreeBtn.SetToolTipString(_("Add vector map into layer tree"))
                 self.addToTreeBtn.Disable()
-                self.addToTreeBtn .Bind(wx.EVT_BUTTON, self.OnToTreeBtn)
+                self.addToTreeBtn.Bind(wx.EVT_BUTTON, self.OnToTreeBtn)
             else:
                 self.inputData[dataSel[0]] = dataSel[2](parent = selPanels[dataSel[0]],  
                                                         size = (-1, -1))
@@ -423,12 +427,121 @@ class VNETDialog(wx.Dialog):
                              border = 5)
         return selSizer
 
+    def _createInputDbMgrPage(self):
+
+        self.inpDbMgrData = {}
+        self.inpDbMgrData['dbMgr'] = DbMgrBase()
+        
+        # if selected vector map in layer tree then set it
+        if self.mapWin.tree and self.mapWin.tree.layer_selected:
+            selMapData = self.mapWin.tree.GetPyData(self.mapWin.tree.layer_selected)[0]
+            if selMapData['type'] == 'vector': # wrap somehow in LayerTree
+                selMapName = selMapData['maplayer'].name
+            else:
+                selMapName = None
+
+            self.inpDbMgrData['browse'] = self.inpDbMgrData['dbMgr'].CreateDbMgrPage(parent = self.notebook,
+                                                                                     pageName = 'browse')
+            self.inpDbMgrData['browse'].SetTabAreaColour(globalvar.FNPageColor)
+
+            self.inpDbMgrData['input'] = None
+            if selMapName:
+                self.inputData['input'].SetValue(selMapName)
+                self.OnVectSel(None)
+
+    def _updateInputDbMgrPage(self, show):
+
+        if show and self.notebook.GetPageIndexByName('inputDbMgr') == -1:
+            self.notebook.AddPage(page = self.inpDbMgrData['browse'],
+                                  text=_('Input tables'), 
+                                  name = 'inputDbMgr')
+        elif not show:
+            self.notebook.RemovePage(page = 'inputDbMgr')
+
+    def _createResultDbMgrPage(self):
+
+        self.resultDbMgrData = {}
+        self.resultDbMgrData['dbMgr'] = DbMgrBase() 
+        self.resultDbMgrData['browse'] = self.resultDbMgrData['dbMgr'].CreateDbMgrPage(parent = self.notebook,
+                                                                                       pageName = 'browse')
+        self.resultDbMgrData['browse'].SetTabAreaColour(globalvar.FNPageColor)
+
+        if  self.tmp_result:
+            self.resultDbMgrData['input'] = self.tmp_result.GetVectMapName()
+        else:
+            self.resultDbMgrData['input'] = None
+
+    def _updateResultDbMgrPage(self):
+
+        analysis = self.resultDbMgrData['analysis']
+        haveDbMgr = self.vnetParams[analysis]["resultProps"]["dbMgr"]
+
+        if haveDbMgr and self.notebook.GetPageIndexByName('resultDbMgr') == -1:
+            self.notebook.AddPage(page = self.resultDbMgrData['browse'],
+                                  text=_('Result tables'), 
+                                  name = 'resultDbMgr')
+        elif not haveDbMgr:
+            self.notebook.RemovePage(page = 'resultDbMgr')
+
+    def OnPageChanged(self, event):
+
+        if event.GetSelection() != self.notebook.GetPageIndexByName('inputDbMgr'):
+            pass
+        elif self.inpDbMgrData['input'] != self.inputData['input'].GetValue().strip():
+            wx.BeginBusyCursor()
+            inpSel = self.inputData['input'].GetValue().strip()
+            self.inpDbMgrData['dbMgr'].ChangeVectorMap(vectorName = inpSel)
+            self.inpDbMgrData['input'] = inpSel
+            for layerName in ['alayer', 'nlayer']:
+                try:
+                    layer = int(self.inputData[layerName].GetValue())
+                except ValueError:
+                    continue
+                self.inpDbMgrData['browse'].AddLayer(layer)
+            wx.EndBusyCursor()
+        else:
+            needLayers = []
+            browseLayers = self.inpDbMgrData['browse'].GetAddedLayers()
+            for layerName in ['alayer', 'nlayer']:
+                try:                
+                    inpLayer = int(self.inputData[layerName].GetValue())
+                except ValueError:
+                    continue
+
+                if inpLayer in browseLayers:
+                    needLayers.append(inpLayer)
+                    continue
+                else:
+                    wx.BeginBusyCursor()
+                    self.inpDbMgrData['browse'].AddLayer(inpLayer)
+                    wx.EndBusyCursor()
+                    needLayers.append(inpLayer)
+
+            for layer in browseLayers:
+                if layer not in needLayers:
+                    self.inpDbMgrData['browse'].DeletePage(layer)
+
+        if event.GetSelection() != self.notebook.GetPageIndexByName('resultDbMgr') or \
+           not self.tmp_result:
+            pass
+        elif self.resultDbMgrData['input'] != self.tmp_result.GetVectMapName():
+            wx.BeginBusyCursor()
+            vectName = self.tmp_result.GetVectMapName()
+            self.resultDbMgrData['dbMgr'].ChangeVectorMap(vectorName = self.tmp_result.GetVectMapName())  
+            for layer in self.resultDbMgrData['dbMgr'].GetVectorLayers():
+                self.resultDbMgrData['browse'].AddLayer(layer)
+            self.resultDbMgrData['input'] = self.tmp_result.GetVectMapName()
+            wx.EndBusyCursor()
+     
+
     def OnToTreeBtn(self, event):
         """!Adds vector map into layer tree (button next to map select)"""
         vectorMap = self.inputData['input'].GetValue()
-        existsMap = grass.find_file(name = vectorMap, 
+        vectMapName, mapSet = self._parseMapStr(vectorMap)
+        vectorMap = vectMapName + '@' + mapSet
+        existsMap = grass.find_file(name = vectMapName, 
                                     element = 'vector', 
-                                    mapset = grass.gisenv()['MAPSET'])
+                                    mapset = mapSet)
         if not existsMap["name"]:
             return
 
@@ -446,17 +559,21 @@ class VNETDialog(wx.Dialog):
         if self.snapping:
             self.OnSnapping(event = None)
 
+        vectMapName, mapSet = self._parseMapStr(self.inputData['input'].GetValue())
+        vectorMap = vectMapName + '@' + mapSet
+
         self.inputData['alayer'].Clear()
         self.inputData['nlayer'].Clear()
 
-        self.inputData['alayer'].InsertLayers(vector = self.inputData['input'].GetValue().strip())
-        self.inputData['nlayer'].InsertLayers(vector = self.inputData['input'].GetValue().strip())
+        self.inputData['alayer'].InsertLayers(vector = vectorMap)
+        self.inputData['nlayer'].InsertLayers(vector = vectorMap)
 
         items = self.inputData['alayer'].GetItems()
         itemsLen = len(items)
         if itemsLen < 1:
             if self.mapWin.tree:
                 self.addToTreeBtn.Disable()
+            self._updateInputDbMgrPage(show = False)
             self.inputData['alayer'].SetValue("")
             self.inputData['nlayer'].SetValue("")
             for sel in ['afcolumn', 'abcolumn', 'ncolumn']:
@@ -476,6 +593,8 @@ class VNETDialog(wx.Dialog):
 
         if self.mapWin.tree:
             self.addToTreeBtn.Enable()
+        if hasattr(self, 'inpDbMgrData'):
+            self._updateInputDbMgrPage(show = True)
 
         self.OnALayerSel(event) 
         self.OnNLayerSel(event)
@@ -503,13 +622,12 @@ class VNETDialog(wx.Dialog):
 
         errInput = {}
 
-        curr_mapset = grass.gisenv()['MAPSET']
-        vectMaps = grass.list_grouped('vect')[curr_mapset]
         mapVal = self.inputData['input'].GetValue()
-        mapVal = mapVal.split("@")[0]
+        mapName, mapSet = self._parseMapStr(mapVal)
+        vectMaps = grass.list_grouped('vect')[mapSet]
 
         if not inpToTest or "input" in inpToTest:
-            if mapVal not in vectMaps:
+            if mapName not in vectMaps:
                 errInput['input'] = mapVal
 
         for layerSelName in ['alayer', 'nlayer'] :
@@ -543,7 +661,17 @@ class VNETDialog(wx.Dialog):
 
         return errInput
 
-    def InputsErrorMsgs(self, strToStart, inpToTest = None):
+    def _parseMapStr(self, vectMapStr):
+        mapValSpl = vectMapStr.strip().split("@")
+        if len(mapValSpl) > 1:
+            mapSet = mapValSpl[1]
+        else:
+            mapSet = grass.gisenv()['MAPSET']
+        mapName = mapValSpl[0] 
+        
+        return mapName, mapSet      
+
+    def InputsErrorMsgs(self, strToStart, inpToTest = None):#TODO strToStart don like it
 
         errInput = self._getInvalidInputs(inpToTest)
 
@@ -736,6 +864,9 @@ class VNETDialog(wx.Dialog):
                 return 
         self._saveAnInputToHist()
 
+
+        self.resultDbMgrData['analysis'] = self.currAnModule
+
         # Creates part of cmd fro analysis
         cmdParams = [self.currAnModule]
         cmdParams.extend(self._getInputParams())
@@ -796,8 +927,9 @@ class VNETDialog(wx.Dialog):
         grass.try_remove(self.coordsTmpFile)
 
         self._saveHistStep()
-
         self.tmp_result.SaveVectMapState()
+
+        self._updateResultDbMgrPage()
 
         cmd = self.GetLayerStyle()
         self.tmp_result.AddRenderLayer(cmd)
@@ -903,8 +1035,10 @@ class VNETDialog(wx.Dialog):
         grass.try_remove(self.tmpPtsAsciiFile)
 
         self._saveHistStep()
-
         self.tmp_result.SaveVectMapState()
+
+        self._updateResultDbMgrPage()
+
         cmd = self.GetLayerStyle()
         self.tmp_result.AddRenderLayer(cmd)
         self.mapWin.UpdateMap(render=True, renderVector=True)
@@ -997,23 +1131,23 @@ class VNETDialog(wx.Dialog):
 
     def GetLayerStyle(self):
         """!Returns cmd for d.vect, with set style for analysis result"""
-        resStyle = self.vnetParams[self.currAnModule]["resultStyle"]
+        resProps = self.vnetParams[self.currAnModule]["resultProps"]
 
         width = UserSettings.Get(group='vnet', key='res_style', subkey= "line_width")
         layerStyleCmd = ["layer=1",'width=' + str(width)]
 
-        if "catColor" in resStyle:
+        if "catColor" in resProps:
             layerStyleCmd.append('flags=c')
-        elif "singleColor" in resStyle:
+        elif "singleColor" in resProps:
             col = UserSettings.Get(group='vnet', key='res_style', subkey= "line_color")
             layerStyleCmd.append('color=' + str(col[0]) + ':' + str(col[1]) + ':' + str(col[2]))        
 
-        if "attrColColor" in resStyle:
+        if "attrColColor" in resProps:
             self.layerStyleVnetColors = [
                                           "v.colors",
                                           "map=" + self.tmp_result.GetVectMapName(),
                                           "color=byr",#TODO
-                                          "column=" + resStyle["attrColColor"],
+                                          "column=" + resProps["attrColColor"],
                                         ]
             self.layerStyleVnetColors  = utils.CmdToTuple(self.layerStyleVnetColors)
 
@@ -1054,7 +1188,7 @@ class VNETDialog(wx.Dialog):
         dlg = AddLayerDialog(parent = self)#TODO import location check?
 
         msg = _("Vector map with analysis result does not exist.")
-        if dlg.ShowModal() == wx.ID_OK:
+        if dlg.ShowModal() == wx.ID_OK: #TODO destroy
 
             if not hasattr(self.tmp_result, "GetVectMapName"):
                 GMessage(parent = self,
@@ -1069,13 +1203,14 @@ class VNETDialog(wx.Dialog):
             if not mapToAddEx["name"]: 
                 GMessage(parent = self,
                          message = msg)
+                dlg.Destroy()
                 return
 
             addedMap = dlg.vectSel.GetValue()
             existsMap = grass.find_file(name = addedMap, 
                                         element = 'vector', 
                                         mapset = grass.gisenv()['MAPSET'])
-
+            dlg.Destroy()
             if existsMap["name"]:
                 dlg = wx.MessageDialog(parent = self.parent.parent,
                                        message = _("Vector map %s already exists. " +
@@ -1086,6 +1221,7 @@ class VNETDialog(wx.Dialog):
                                                wx.ICON_QUESTION | wx.CENTRE)            
                 ret = dlg.ShowModal()
                 if ret == wx.ID_NO:
+                    dlg.Destroy()
                     return
 
             RunCommand("g.copy",
@@ -1097,6 +1233,7 @@ class VNETDialog(wx.Dialog):
             cmd.append('map=%s' % addedMap)
 
             if not self.mapWin.tree:
+                dlg.Destroy()
                 return
 
             if  self.mapWin.tree.FindItemByData(key = 'name', value = addedMap) is None: 
@@ -1368,7 +1505,6 @@ class VNETDialog(wx.Dialog):
                 self.list.ShowColumn('type', 1)
                 self.list.EditCellKey(iPt, 'type', ptData["cat"])
             else:
-                pass
                 self.list.HideColumn('type')
 
             self.list.EditCellKey(iPt, 'topology', ptData["topology"])           
@@ -1419,6 +1555,9 @@ class VNETDialog(wx.Dialog):
                                    style =  wx.ICON_INFORMATION| wx.CENTRE)
             dlg.ShowModal()
             dlg.Destroy()
+
+        self.resultDbMgrData['analysis'] = self.currAnModule
+        self._updateResultDbMgrPage()
 
         self.list.SetUpdateMap(updateMap = True)
         self.mapWin.UpdateMap(render=True, renderVector=True)
@@ -1482,7 +1621,10 @@ class VNETDialog(wx.Dialog):
                                                                                  'ncolumn'
                                                                                 ],
                                                                    },
-                                                     "resultStyle" : {"singleColor" : None}
+                                                     "resultProps" : {
+                                                                      "singleColor" : None,
+                                                                      "dbMgr" : True
+                                                                     }
                                                   },
 
                                     "v.net.salesman" : {
@@ -1494,7 +1636,10 @@ class VNETDialog(wx.Dialog):
                                                                                   'abcolumn'
                                                                                  ],
                                                                       },
-                                                        "resultStyle" : {"singleColor" : None}
+                                                        "resultProps" : {
+                                                                         "singleColor" : None,
+                                                                         "dbMgr" : False
+                                                                        }
                                                        },
                                     "v.net.flow" : {
                                                      "label" : _("Flow %s") % "(v.net.flow)",  
@@ -1509,7 +1654,10 @@ class VNETDialog(wx.Dialog):
                                                                                 'ncolumn'
                                                                                ]
                                                                   },
-                                                     "resultStyle" : {"attrColColor": "flow"}
+                                                     "resultProps" : {
+                                                                      "attrColColor": "flow",
+                                                                      "dbMgr" : True
+                                                                     }
                                                    },
                                     "v.net.alloc" : {
                                                      "label" : _("Allocate subnets for nearest centers %s") % "(v.net.alloc)",  
@@ -1521,7 +1669,10 @@ class VNETDialog(wx.Dialog):
                                                                                  'ncolumn'
                                                                                ]
                                                                   },
-                                                     "resultStyle" :  {"catColor" : None }
+                                                     "resultProps" :  {
+                                                                       "catColor" : None, 
+                                                                       "dbMgr" : False
+                                                                      }
                                                    },
                                     "v.net.steiner" : {
                                                      "label" : _("Create Steiner tree for the network and given terminals %s") % "(v.net.steiner)",  
@@ -1531,7 +1682,10 @@ class VNETDialog(wx.Dialog):
                                                                                  'acolumn',
                                                                                ]
                                                                   },
-                                                     "resultStyle" : {"singleColor" : None}
+                                                     "resultProps" : {
+                                                                      "singleColor" : None,
+                                                                      "dbMgr" : False #TODO
+                                                                     }
                                                    },
                                    "v.net.distance" : {
                                                        "label" : _("Computes shortest distance via the network %s") % "(v.net.distance)",  
@@ -1546,7 +1700,10 @@ class VNETDialog(wx.Dialog):
                                                                                   'ncolumn'
                                                                                  ],
                                                                   },
-                                                      "resultStyle" : {"catColor" : None }
+                                                      "resultProps" : {
+                                                                        "catColor" : None,
+                                                                        "dbMgr" : True
+                                                                      }
                                                      },
                                     "v.net.iso" :  {
                                                      "label" : _("Splits net by cost isolines %s") % "(v.net.iso)",  
@@ -1558,7 +1715,10 @@ class VNETDialog(wx.Dialog):
                                                                                  'ncolumn'
                                                                                ]
                                                                   },
-                                                     "resultStyle" : {"catColor" : None }
+                                                     "resultProps" : {
+                                                                      "catColor" : None,
+                                                                      "dbMgr" : False
+                                                                     }
                                                    }
                                 }
 
@@ -2112,16 +2272,18 @@ class VectMap:
                                  "vector",
                                  name,
                                  "head")
+        try:
+            head = open(headPath, 'r')
+            for line in head.readlines():
+                i = line.find('MAP DATE:', )
+                if i == 0:
+                    head.close()
+                    return line.split(':', 1)[1].strip()
 
-        head = open(headPath, 'r')
-        for line in head.readlines():
-            i = line.find('MAP DATE:', )
-            if i == 0:
-               head.close()
-               return line.split(':', 1)[1].strip()
-
-        head.close()
-        return ""
+            head.close()
+            return ""
+        except IOError:
+            return ""
 
 class History:
     def __init__(self, parent):
