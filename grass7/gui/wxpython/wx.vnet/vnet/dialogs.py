@@ -60,7 +60,7 @@ from vnet.toolbars    import MainToolbar, PointListToolbar
 
 class VNETDialog(wx.Dialog):
     def __init__(self, parent,
-                 id = wx.ID_ANY, title = _("Vector network analysis"),
+                 id = wx.ID_ANY, title = _("GRASS GIS Vector network analysis"),
                  style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER, **kwargs):
         """!Dialog for vector network analysis"""
 
@@ -90,7 +90,7 @@ class VNETDialog(wx.Dialog):
         # getting attribute table columns only with numbers (costs)
         self.columnTypes = ['integer', 'double precision'] 
 
-        self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass_map.ico'), wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
         
         # initialization of v.net.* analysis parameters
         self._initVnetParams()
