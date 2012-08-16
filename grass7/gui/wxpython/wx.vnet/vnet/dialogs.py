@@ -431,23 +431,22 @@ class VNETDialog(wx.Dialog):
 
         self.inpDbMgrData = {}
         self.inpDbMgrData['dbMgr'] = DbMgrBase()
-        
+ 
+        selMapName = None       
         # if selected vector map in layer tree then set it
         if self.mapWin.tree and self.mapWin.tree.layer_selected:
             selMapData = self.mapWin.tree.GetPyData(self.mapWin.tree.layer_selected)[0]
             if selMapData['type'] == 'vector': # wrap somehow in LayerTree
                 selMapName = selMapData['maplayer'].name
-            else:
-                selMapName = None
 
-            self.inpDbMgrData['browse'] = self.inpDbMgrData['dbMgr'].CreateDbMgrPage(parent = self.notebook,
-                                                                                     pageName = 'browse')
-            self.inpDbMgrData['browse'].SetTabAreaColour(globalvar.FNPageColor)
+        self.inpDbMgrData['browse'] = self.inpDbMgrData['dbMgr'].CreateDbMgrPage(parent = self.notebook,
+                                                                                 pageName = 'browse')
+        self.inpDbMgrData['browse'].SetTabAreaColour(globalvar.FNPageColor)
 
-            self.inpDbMgrData['input'] = None
-            if selMapName:
-                self.inputData['input'].SetValue(selMapName)
-                self.OnVectSel(None)
+        self.inpDbMgrData['input'] = None
+        if selMapName:
+            self.inputData['input'].SetValue(selMapName)
+            self.OnVectSel(None)
 
     def _updateInputDbMgrPage(self, show):
 
@@ -573,7 +572,8 @@ class VNETDialog(wx.Dialog):
         if itemsLen < 1:
             if self.mapWin.tree:
                 self.addToTreeBtn.Disable()
-            self._updateInputDbMgrPage(show = False)
+            if hasattr(self, 'inpDbMgrData'):
+                self._updateInputDbMgrPage(show = False)
             self.inputData['alayer'].SetValue("")
             self.inputData['nlayer'].SetValue("")
             for sel in ['afcolumn', 'abcolumn', 'ncolumn']:
@@ -806,16 +806,18 @@ class VNETDialog(wx.Dialog):
         res = max(self.mapWin.Map.region['nsres'], self.mapWin.Map.region['ewres'])
         snapTreshDist = snapTreshPix * res
 
-        inpMapExists = grass.find_file(name = self.inputData['input'].GetValue(), 
+        vectorMap = self.inputData['input'].GetValue()
+        vectMapName, mapSet = self._parseMapStr(vectorMap)
+        inpMapExists = grass.find_file(name = vectMapName, 
                                        element = 'vector', 
-                                       mapset = grass.gisenv()['MAPSET'])
+                                       mapset = mapSet)
         if not inpMapExists['name']:
             return False
 
         openedMap = pointer(vectlib.Map_info())
         ret = vectlib.Vect_open_old2(openedMap, 
-                                     c_char_p(self.inputData['input'].GetValue()),
-                                     c_char_p(grass.gisenv()['MAPSET']),
+                                     c_char_p(vectMapName),
+                                     c_char_p(mapSet),
                                      c_char_p(self.inputData['alayer'].GetValue()))
         if ret == 1:
             vectlib.Vect_close(openedMap)
