@@ -11,8 +11,8 @@
  *               for details.
  * 
  *
- *               NOTE: the word "segment" is already used by the Segmentation
- *               Library for the data files/tiling, so iseg (image segmentation)
+ *               NOTE: the names "segment" and "SEG" are already used by the Segmentation
+ *               Library for the data files/tiling, so "iseg" (image segmentation)
  *               will be used to refer to the image segmentation.
  * 
  * 

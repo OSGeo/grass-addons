@@ -60,7 +60,7 @@ int write_output(struct files *files)
 
     /* set colors */
     Rast_init_colors(&colors);
-    Rast_make_random_colors(&colors, 1, files->nrows * files->ncols);	/* TODO polish - number segments from 1 - max ? and then can use that max here. */
+    Rast_make_random_colors(&colors, 1, files->nrows * files->ncols);
     Rast_write_colors(files->out_name, G_mapset(), &colors);
 
     /* add command line to history */

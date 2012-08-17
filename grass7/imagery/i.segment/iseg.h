@@ -18,7 +18,7 @@
 
 /* DEBUG will add some additional testing options to the segmentation method drop down.
  * it also add some while loops that just have G_debug statements in them. */
-#define DEBUG
+/* #define DEBUG */
 
 /* PROFILE will add some rough time checks for finding neighbors, merging, and pass times. */
 /* #define PROFILE */
@@ -29,7 +29,7 @@ struct pixels
     struct pixels *next;
     int row;
     int col;
-    int countShared; /* todo perimeter: will hold the count how many pixels are shared on the Border Between Ri and Rk.  Not used for all pixels... see if this is an OK way to do this...*/
+    int countShared;		/* todo perimeter: will hold the count how many pixels are shared on the Border Between Ri and Rk.  Not used for all pixels... see if this is an OK way to do this... */
 };
 
 /* input and output files, as well as some other processing info */
@@ -58,7 +58,6 @@ struct files
 
     /* results */
     SEGMENT iseg_seg;		/* segment ID assignment */
-    //    int iseg_val;
     int nsegs;			/* number of segments */
 
     /* processing flags */
@@ -78,9 +77,9 @@ struct functions
     float threshold;		/* similarity threshold */
     int min_segment_size;	/* smallest number of pixels/cells allowed in a final segment */
 
-    /* Some function pointers to set one time in parse_args() */
+    /* Some function pointers to set in parse_args() */
     int (*find_pixel_neighbors) (int, int, int[8][2], struct files *);	/*parameters: row, col, pixel_neighbors */
-    double (*calculate_similarity) (struct pixels *, struct pixels *, struct files *, struct functions *);	/*parameters: two points (row,col) to compare */
+    double (*calculate_similarity) (struct pixels *, struct pixels *, struct files *, struct functions *);	/*parameters: two pixels (each with row,col) to compare */
 
     /* max number of iterations/passes */
     int end_t;
@@ -93,7 +92,9 @@ struct functions
 
     /* todo: should this be an option, set at a specific value, or left out. */
     //    double very_close;        /* segments with very_close similarity will be merged without changing or checking the candidate flag.  The algorithm will continue looking for the "most similar" neighbor that isn't "very close". */
-    // todo... tried this out briefly, but realized that we need to find the segment membership, might be some faster ways to do this, but first tries actually slowed down the processing.
+    // todo markus... I tried this out briefly, but realized that we need to find the segment membership (the find neighbors function only returns single pixels) , might be some faster ways to do this, but my first tries actually slowed down the processing.
+    // should I leave in the commented code for "very_close", or remove it entirely?
+
 };
 
 
@@ -106,12 +107,6 @@ int open_files(struct files *, struct functions *);
 
 /* create_isegs.c */
 int create_isegs(struct files *, struct functions *);
-int io_debug(struct files *, struct functions *);
-int ll_test(struct files *, struct functions *);
-int test_pass_token(struct pixels **, struct files *);
-int seg_speed_test(struct files *, struct functions *);
-int get_segID_SEG(struct files *, int, int);
-int get_segID_RAM(struct files *, int, int);
 int region_growing(struct files *, struct functions *);
 int find_segment_neighbors(struct pixels **, struct pixels **, int *,
 			   struct files *, struct functions *);
@@ -132,3 +127,11 @@ int set_all_candidate_flags(struct files *);
 /* write_output.c */
 int write_output(struct files *);
 int close_files(struct files *);
+
+/* testing.c */
+int io_debug(struct files *, struct functions *);
+int ll_test(struct files *, struct functions *);
+int test_pass_token(struct pixels **, struct files *);
+int seg_speed_test(struct files *, struct functions *);
+int get_segID_SEG(struct files *, int, int);
+int get_segID_RAM(struct files *, int, int);

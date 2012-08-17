@@ -20,7 +20,11 @@
 #endif
 
 #define LINKM
-#define ROWMAJOR		//gave nesting error with INDENT program since this changes the for loops
+
+/* This will do a typical rowmajor processing of the image(s).  
+ * Commenting it out will switch to z-order processing.
+ * Z-order does NOT support the bounds option, and assumes a somewhat square rectangle (otherwise the power of 2 square could overrun the long long maximum). */
+//#define ROWMAJOR              /* note: gives nesting error with INDENT program since this changes the for loops.  comment out when running INDENT. */
 
 int create_isegs(struct files *files, struct functions *functions)
 {
@@ -28,11 +32,14 @@ int create_isegs(struct files *files, struct functions *functions)
     int successflag = 1;
     struct Range range;
 
-    /* todo double check this for different distance measurements and numbers of bands. */
+    /* Modify the threshold for easier similarity comparisons.
+     * For Euclidean, square the threshold so we don't need to calculate the root value in the distance calculation.
+     * In either case, multiplie by the number of input bands, so the same threshold will achieve similar thresholds even for different numbers of input bands.*/
     if (functions->calculate_similarity == calculate_euclidean_similarity)
-	functions->threshold = functions->threshold * functions->threshold * files->nbands;	/* use modified threshold to account multiple input bands and to avoid square root in similarity comparison. */
+	functions->threshold =
+	    functions->threshold * functions->threshold * files->nbands;
     else
-	functions->threshold = functions->threshold * files->nbands;	/* use modified threshold to account for multiple input bands. */
+	functions->threshold = functions->threshold * files->nbands;
 
 
     /* set parameters for outer processing loop for polygon constraints */
@@ -41,17 +48,17 @@ int create_isegs(struct files *files, struct functions *functions)
     }
     else {
 	if (Rast_read_range(files->bounds_map, files->bounds_mapset, &range) != 1) {	/* returns -1 on error, 2 on empty range, quiting either way. */
-	    G_fatal_error(_("No min/max found in raster map <%s>"),
+	    G_fatal_error(_("No min/max found in boundary raster map <%s>"),
 			  files->bounds_map);
 	}
 	Rast_get_range_min_max(&range, &lower_bound, &upper_bound);
-	/* TODO polish, should we instead/also get unique values?
-	 * As is, we will iterate at least one time over the entire raster for each integer between the upper and lower bound. */
+	/* speed enhancement, when processing with bounds: get the unique values.
+	 * As is, we will iterate at one time over the entire raster for each integer between the upper and lower bound, even if no regions exist with that value. */
     }
 
     /* processing loop for polygon/boundary constraints */
     if (files->bounds_map != NULL)
-	G_message(_("Running region growing algorithm, the percent completed is based the range of values in the boundary constraints map"));
+	G_message(_("Starting image segmentation within boundary constraints, the percent complete is based the range of values in the boundary constraints map"));
     for (files->current_bound = lower_bound;
 	 files->current_bound <= upper_bound; files->current_bound++) {
 
@@ -111,9 +118,6 @@ int create_isegs(struct files *files, struct functions *functions)
 		}
 	    }
 
-	    /* clear candidate flag, so only need to reset the processing area on each iteration. todo polish, can be removed after all loops only cover the processing area */
-	    flag_clear_all(files->candidate_flag);
-
 	}			/* end of else, set up for bounded segmentation */
 
 	/* consider maxrow/maxcol as nrow, ncol, loops will have: row < maxrow
@@ -138,7 +142,12 @@ int create_isegs(struct files *files, struct functions *functions)
 	else if (functions->method == 3)
 	    successflag = seg_speed_test(files, functions);
 #endif
-    }				/* end outer loop for processing polygons */
+
+	/* check if something went wrong */
+	if (successflag == FALSE)
+	    G_fatal_error(_("Error during segmentation"));
+
+    }				/* end outer loop for processing bounds constraints (will just run once if not provided) */
 
     /* reset null flag to the original if we have boundary constraints */
     if (files->bounds_map != NULL) {
@@ -156,643 +165,19 @@ int create_isegs(struct files *files, struct functions *functions)
     return successflag;		/* todo, successflag was assuming one pass... don't have anything to pick up a failure if there is a bounds constraint */
 }
 
-#ifdef DEBUG
-/* writes row+col to the output raster.  Also using for the linkm speed test. */
-int io_debug(struct files *files, struct functions *functions)
-{
-    int row, col;
-
-    /* from speed.c to test speed of malloc vs. memory manager */
-    unsigned long int z, end_z;	// depending on shape of the rectangle...will need a larger max i.  long long is avail in C99 spec...
-    register int i, j;
-    int s;
-    struct link_head *head;
-    struct pixels *p;
-
-    /* **************write fake data to test I/O portion of module */
-
-    /*    G_verbose_message("writing fake data to segmentation file"); */
-    G_verbose_message("writing scaled input (layer 1) to output file");
-    G_verbose_message("weighted flag = %d", files->weighted);
-    //~ for (row = 0; row < files->nrows; row++) {
-    //~ for (col = 0; col < files->ncols; col++) {
-    //~ /*files->out_val[0] = files->out_val[0]; *//*segment number *//* just copying the map for testing. */
-    //~ /* files->out_val[0] = col + row; */
-    //~ segment_get(&files->bands_seg, (void *)files->bands_val, row,
-    //~ col);
-    //~ files->iseg[row][col] = files->bands_val[0] * 100;      /*pushing DCELL into CELL */
-    //~ }
-    //~ G_percent(row, files->nrows, 1);
-    //~ }
-
-    /* Trying out peano ordering */
-    /* idea is for large maps, if the width of SEG tiles in RAM is less than the width of the map, this should avoid a lot of I/O */
-    /* this is probably closer to a z-order curve then peano order. */
-
-    s = -1;
-    /*blank slate */
-    for (row = 0; row < files->nrows; row++) {
-	for (col = 0; col < files->ncols; col++) {
-	    //files->iseg[row][col] = -1;
-	    segment_put(&files->iseg_seg, &s, row, col);
-	}
-    }
-    s = 0;
-
-    //~ for(i=1; i<9; i++)
-    //~ {
-    //~ G_message("i: %d", i);
-    //~ for(j=4; j>=0; j--){
-    //~ G_message("\tj=%d, 1 & (i >> j) = %d", j, 1 & (i >> j));
-    //~ }
-    //~ }
-
-    /* need to get a "square" power of 2 around our processing area */
-
-    /*largest dimension: */
-    if (files->nrows > files->ncols)
-	end_z = files->nrows;
-    else
-	end_z = files->ncols;
-
-    /* largest power of 2: */
-    end_z--;			/* in case we are already a power of two. */
-    end_z = (end_z >> 1) | end_z;
-    end_z = (end_z >> 2) | end_z;
-    end_z = (end_z >> 4) | end_z;
-    end_z = (end_z >> 8) | end_z;
-    end_z = (end_z >> 16) | end_z;
-    end_z = (end_z >> 32) | end_z;	/* only for 64-bit architecture TODO, would this mess things up on 32? */
-    /*todo does this need to repeat more since it is long unsigned??? */
-    end_z++;
-
-    /*squared: */
-    end_z *= end_z;
-
-    for (z = 0; z < end_z; z++) {	// if square and power of 2: files->nrows*files->ncols
-	row = col = 0;
-	/*bit wise construct row and col from i */
-	for (j = 8 * sizeof(long int) - 1; j > 1; j--) {
-	    row = row | (1 & (z >> j));
-	    row = row << 1;
-	    j--;
-	    col = col | (1 & (z >> j));
-	    col = col << 1;
-	}
-	row = row | (1 & (z >> j));
-	j--;
-	col = col | (1 & (z >> j));
-	G_message("Done: z: %li, row: %d, col: %d", z, row, col);
-	if (row >= files->nrows || col >= files->ncols)
-	    continue;
-
-	segment_put(&files->iseg_seg, &s, row, col);
-	s++;
-    }
-
-
-    //~ for(i=0; i<8; i++){ //files->nrows*files->ncols
-    //              G_message("i: %d", i);
-    //~ row=col=0;
-    //~ 
-    //~ /*bit wise construct row and col from i*/
-    //~ for(j=4; j>0; j=j-2){  //8*sizeof(int)
-    //                      G_message("j: %d", j);
-    //~ row = row | ( i & (1 << (2 * j))); /* row | a[rmax-r]; */
-    //~ row = row << 1;
-    //~ col = col | ( i & (1 << (2 * j + 1)));
-    //~ col = col << 1;
-    //~ G_message("j: %d, row: %d, col: %d", j, row, col);
-    //~ }
-    //~ row = row | ( i & (1 << (2 * j))); /* row | a[rmax-r]; */
-    //~ col = col | ( i & (1 << ((2 * j) + 1)));
-    //~ G_message("(1 << ((2 * j) + 1)) = %d", (1 << ((2 * j) + 1)));
-    //~ G_message("Done: i: %d, row: %d, col: %d", i, row, col);
-    //~ files->iseg[row][col] = s;
-    //~ s++;
-    //~ }
-
-
-
-    /*speed test... showed a difference of 1min 9s for G_malloc and 34s for linkm. (with i < 2000000000   */
-
-#ifdef LINKM
-    head = (struct link_head *)link_init(sizeof(struct pixels));
-#endif
-
-    for (i = 0; i < 10; i++) {
-#ifdef LINKM
-	p = (struct pixels *)link_new(head);
-	link_dispose((struct link_head *)head, (VOID_T *) p);
-#else
-	p = (struct pixels *)G_malloc(sizeof(struct pixels));
-	G_free(p);
-#endif
-    }
-
-#ifdef LINKM
-    link_cleanup(head);
-    G_message("used linkm");
-#else
-    G_message("used G_malloc");
-#endif
-
-    G_message("end speed test");
-    return TRUE;
-}
-
-int ll_test(struct files *files, struct functions *functions)
-{
-    int row, col, n, count;
-    struct pixels *Rkn, *current, *newpixel, *Rin_head, *Rin_second;	/*current will be used to iterate over any of the linked lists. */
-    struct link_head *Rkn_token;
-
-    G_message("testing linked lists");
-
-    Rin_head = NULL;
-    Rin_second = NULL;
-    Rkn = NULL;
-    Rkn_token = link_init(sizeof(struct pixels));
-    if (Rkn_token == NULL)
-	G_message("Rkn_token is null");
-
-    /* make a neighbor list */
-    for (n = 0; n < 5; n++) {
-	newpixel = (struct pixels *)link_new(files->token);
-	newpixel->next = Rin_head;	/*point the new pixel to the current first pixel */
-	newpixel->row = n;
-	newpixel->col = n + 2;
-	Rin_head = newpixel;	/*change the first pixel to be the new pixel. */
-
-	G_message("Added: Rin %d: row: %d, col: %d", n,
-		  Rin_head->row, Rin_head->col);
-    }
-    /* make a second neighbor list, using same token */
-    for (n = 0; n < 4; n++) {
-	newpixel = (struct pixels *)link_new(files->token);
-	newpixel->next = Rin_second;	/*point the new pixel to the current first pixel */
-	newpixel->row = n * 100;
-	newpixel->col = n * 100;
-	Rin_second = newpixel;	/*change the first pixel to be the new pixel. */
-
-	G_message("Added: Rin (second list) %d: row: %d, col: %d", n,
-		  Rin_second->row, Rin_second->col);
-    }
-
-    /* make a third neighbor list, using local token */
-    for (n = 0; n < 5; n++) {
-	newpixel = (struct pixels *)link_new(Rkn_token);
-	newpixel->next = Rkn;	/*point the new pixel to the current first pixel */
-	newpixel->row = 5 * n;
-	newpixel->col = n;
-	Rkn = newpixel;		/*change the first pixel to be the new pixel. */
-
-	G_message("Added: Rkn %d: row: %d, col: %d", n, Rkn->row, Rkn->col);
-    }
-
-    G_message(" Test pass token result: %d",
-	      test_pass_token(&Rin_head, files));
-
-    G_message("Printing out:");
-    /*print out neighbors */
-    for (current = Rin_head; current != NULL; current = current->next)
-	G_message("Rin: row: %d, col: %d", current->row, current->col);
-
-    for (current = Rin_second; current != NULL; current = current->next)
-	G_message("Rin (second): row: %d, col: %d", current->row,
-		  current->col);
-
-    for (current = Rkn; current != NULL; current = current->next)
-	G_message("Rkn: row: %d, col: %d", current->row, current->col);
-
-    /* remove all from Rkn list, 5 from Rin list */
-    G_message("removing 5 from Rin...");
-    for (n = 0; n < 5; n++) {
-	current = Rin_head;	/* get first in list */
-	Rin_head = Rin_head->next;	/* point head to the next one *//*pop */
-	link_dispose(files->token, (VOID_T *) current);
-    }
-
-    G_message("Printing out, after 5 removed from Rin:");
-    for (current = Rin_head; current != NULL; current = current->next)
-	G_message("Rin: row: %d, col: %d", current->row, current->col);
-
-    for (current = Rin_second; current != NULL; current = current->next)
-	G_message("Rin (second): row: %d, col: %d", current->row,
-		  current->col);
-
-    for (current = Rkn; current != NULL; current = current->next)
-	G_message("Rkn: row: %d, col: %d", current->row, current->col);
-
-
-    G_message("removing all from Rkn...");
-    /* for (current = Rkn; current != NULL; current = current->next) { ||||this shortcut won't work, current is gone! */
-    while (Rkn != NULL) {
-	G_message("In Rkn remove loop");
-	current = Rkn;		/* rememer "old" head */
-	Rkn = Rkn->next;	/* move head to next pixel */
-	link_dispose(Rkn_token, (VOID_T *) current);	/* remove "old" head */
-    }
-    G_message("removed Rkn...");
-    if (Rkn == NULL)
-	G_message("which set Rkn to null");
-    else
-	G_message("hmm, still need to set Rkn to null?!");
-
-
-    G_message("Printing out, after removed Rin and Rkn:");
-    for (current = Rin_head; current != NULL; current = current->next)
-	G_message("Rin: row: %d, col: %d", current->row, current->col);
-
-    for (current = Rin_second; current != NULL; current = current->next)
-	G_message("Rin (second): row: %d, col: %d", current->row,
-		  current->col);
-
-    for (current = Rkn; current != NULL; current = current->next)
-	G_message("Rkn: row: %d, col: %d", current->row, current->col);
-
-
-    /* **************write fake data to test I/O portion of module */
-
-    G_message("writing fake data to segmentation file");
-    for (row = 0; row < files->nrows; row++) {
-	for (col = 0; col < files->ncols; col++) {
-	    /*files->out_val[0] = files->out_val[0]; *//*segment number *//* just copying the map for testing. */
-	    //~ files->iseg[row][col] = col + row;
-	    //todo need variable if this speed test will be used again..
-	    //segment_put(&files->iseg_seg, (void *)s, row, col);
-	}
-	G_percent(row, files->nrows, 1);
-    }
-
-    /*test how many pixels can be made and disposed of */
-
-    for (n = 0; n < functions->threshold; n++) {
-	/*make tokens */
-	test_pass_token(&Rin_head, files);
-	count += 5;
-	G_message("estimate of tokens created %d", count + 15);
-	/*dispose tokens */
-	while (Rin_head != NULL) {
-	    current = Rin_head;	/* remember "old" head */
-	    Rin_head = Rin_head->next;	/* move head to next pixel */
-	    link_dispose(files->token, (VOID_T *) current);	/* remove "old" head */
-	}
-
-	G_message("are they gone?");
-	for (current = Rin_head; current != NULL; current = current->next)
-	    G_message("Rin: row: %d, col: %d", current->row, current->col);
-
-    }
-
-    link_cleanup(Rkn_token);
-    G_message("after link_cleanup(Rkn_token)");
-
-    G_message("end linked list test");
-    return TRUE;
-}
-
-int test_pass_token(struct pixels **head, struct files *files)
-{
-    int n;
-    struct pixels *newpixel;
-
-    for (n = 10; n < 15; n++) {
-	newpixel = (struct pixels *)link_new(files->token);
-	newpixel->next = *head;	/*point the new pixel to the current first pixel */
-	newpixel->row = n;
-	newpixel->col = n * 2;
-	*head = newpixel;	/*change the first pixel to be the new pixel. */
-
-	G_message("Added: Rin %d: row: %d, col: %d", n,
-		  newpixel->row, newpixel->col);
-    }
-    return TRUE;
-
-}
-
-int seg_speed_test(struct files *files, struct functions *functions)
-{
-    int i, j, k, n, max;
-    clock_t start, end;
-    double temp, cpu_time_used;
-    int (*get) (struct files *, int, int);	/* files, row, col */
-    struct RB_TREE *no_check_tree, *known_iseg_tree;
-    struct RB_TRAV trav;
-    struct pixels *to_check, *newpixel, *current, *tree_pix;
-    FLAG *check_flag;
-
-    G_message("checking speed of RAM vs SEG vs get function performance");
-
-    G_message("Access in the same region, so shouldn't have any disk I/O");
-
-    max = 100000000;
-    G_message("repeating everything %d times.", max);
-
-    {				/* Array vs. SEG ... when working in local area */
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    segment_get(&files->bands_seg, (void *)files->bands_val, 12, 12);
-	    temp = files->bands_val[0];
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message("Using SEG: %g", cpu_time_used);
-
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    //~ temp = files->iseg[12][12];
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message("Using array in RAM: %g", cpu_time_used);
-
-	get = &get_segID_SEG;
-
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    temp = get(files, 12, 12);
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message("Using SEG w/ get(): %g", cpu_time_used);
-
-	get = &get_segID_RAM;
-
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    temp = get(files, 12, 12);
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message("Using RAM w/ get(): %g", cpu_time_used);
-    }
-
-    G_message("to check storage requirements... system dependent... :");
-    G_message("unsigned char: %lu", sizeof(unsigned char));
-    G_message("unsigned char pointer: %lu", sizeof(unsigned char *));
-    G_message("int: %lu", sizeof(int));
-    G_message("unsigned int: %lu", sizeof(unsigned int));
-    G_message("double: %lu", sizeof(double));
-
-
-    max = 100000;
-    G_message("repeating everything %d times.", max);
-    {				/* compare rbtree with linked list and array */
-
-	n = 100;
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    no_check_tree = rbtree_create(compare_ids, sizeof(struct pixels));
-
-	    /*build */
-	    for (j = 0; j < n; j++) {
-		tree_pix = (struct pixels *)link_new(files->token);
-		tree_pix->row = tree_pix->col = j;
-		rbtree_insert(no_check_tree, &tree_pix);
-	    }
-	    /*access */
-	    for (j = 0; j < n; j++) {
-		if (rbtree_find(no_check_tree, &tree_pix))
-		    continue;	/* always looking for the same pixel...is this an easy or hard one to find? */
-	    }
-	    /*free memory */
-	    rbtree_destroy(no_check_tree);
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message
-	    ("Using rbtree of pixels ( build/find/destroy), %d elements, time: %g",
-	     n, cpu_time_used);
-
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    known_iseg_tree = rbtree_create(compare_ids, sizeof(int));
-
-	    /*build */
-	    for (j = 0; j < n; j++) {
-		rbtree_insert(known_iseg_tree, &j);
-	    }
-
-	    /*access */
-	    for (j = 0; j < n; j++) {
-		if (rbtree_find(known_iseg_tree, &j))
-		    continue;
-	    }
-
-	    /*free memory */
-	    rbtree_destroy(known_iseg_tree);
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message
-	    ("Using rbtree ints ( build/find/destroy), %d elements, time: %g",
-	     n, cpu_time_used);
-
-
-	to_check = NULL;
-
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    /*build */
-	    for (j = 0; j < n; j++) {
-		newpixel = (struct pixels *)link_new(files->token);
-		newpixel->next = to_check;	/*point the new pixel to the current first pixel */
-		newpixel->row = j;
-		newpixel->col = i;
-		to_check = newpixel;	/*change the first pixel to be the new pixel. */
-	    }
-	    /*access */
-	    for (current = to_check; current != NULL; current = current->next) {	/* for each of Ri's neighbors */
-		temp = current->row;
-	    }
-	    /*free memory */
-	    my_dispose_list(files->token, &to_check);
-
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message
-	    ("Using linked list and linkm (build/access/free), %d elements, time: %g",
-	     n, cpu_time_used);
-
-
-	n = 1000;
-	/* repeat for both with larger membership */
-
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    known_iseg_tree = rbtree_create(compare_ids, sizeof(int));
-
-	    /*build */
-	    for (j = 0; j < n; j++) {
-		rbtree_insert(known_iseg_tree, &j);
-	    }
-
-	    /*access */
-	    for (j = 0; j < n; j++) {
-		if (rbtree_find(known_iseg_tree, &j))
-		    continue;
-	    }
-
-	    /*free memory */
-	    rbtree_destroy(known_iseg_tree);
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message("Using rbtree ints, %d elements, time: %g", n,
-		  cpu_time_used);
-
-	to_check = NULL;
-
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    /*build */
-	    for (j = 0; j < n; j++) {
-		newpixel = (struct pixels *)link_new(files->token);
-		newpixel->next = to_check;	/*point the new pixel to the current first pixel */
-		newpixel->row = j;
-		newpixel->col = i;
-		to_check = newpixel;	/*change the first pixel to be the new pixel. */
-	    }
-	    /*access */
-	    for (current = to_check; current != NULL; current = current->next) {	/* for each of Ri's neighbors */
-		temp = current->row;
-	    }
-	    /*free memory */
-	    my_dispose_list(files->token, &to_check);
-
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message("Using linked list and linkm, %d elements, time: %g", n,
-		  cpu_time_used);
-
-	k = 100;
-	n = 50;
-	check_flag = flag_create(k, k);
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    /*set to zero */
-	    flag_clear_all(check_flag);
-	    /*write and access */
-	    for (j = 0; j < n; j++) {
-		FLAG_SET(check_flag, j, j);
-		temp = FLAG_GET(check_flag, j, j);
-	    }
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message
-	    ("Using %d pixel flag array (all cleared), %d elements set and get, time: %g",
-	     k * k, n, cpu_time_used);
-
-
-	k = 10000;
-	check_flag = flag_create(k, k);
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    /*set to zero */
-	    flag_clear_all(check_flag);
-	    /*write and access */
-	    for (j = 0; j < n; j++) {
-		FLAG_SET(check_flag, j, j);
-		temp = FLAG_GET(check_flag, j, j);
-	    }
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message
-	    ("Using %d pixel flag array (all cleared), %d elements set and get, time: %g",
-	     k * k, n, cpu_time_used);
-
-    }
-
-    /* iff bounding constraints have been given, need to confirm neighbors are in the same area.
-     * Faster to check if the bounds map is null, or if no bounds just set all the bounds flags to 1 and directly check the bounds flag? */
-    {
-	max = INT_MAX;
-	j = 0;
-	G_message("compare if statement to FLAG_GET, repeating %d times",
-		  max);
-	G_message("Flag = %d", FLAG_GET(files->candidate_flag, 1, 1));
-
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    if ((FLAG_GET(files->candidate_flag, 1, 1)) != 0) {
-		j++;
-	    }
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message("FLAG_GET: %g, temp: %d", cpu_time_used, j);
-	j = 0;
-	start = clock();
-	for (i = 0; i < max; i++) {
-	    if (files->bounds_map != NULL) {
-		j++;
-	    }
-	}
-	end = clock();
-	cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-	G_message("check for NULL: %g, temp: %d", cpu_time_used, j);	/* was faster by about 20% */
-    }
-
-    /* is accessing a variable different then a value? */
-    max = INT_MAX;
-    j = k = 0;
-    G_message("compare variable to number, repeating %d times", max);
-
-    start = clock();
-    for (i = 0; i < max; i++) {
-	if (i > 0) {
-	    j++;
-	}
-    }
-    end = clock();
-    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-    G_message("compare to zero: %g, temp: %d", cpu_time_used, j);
-    j = 0;
-    start = clock();
-    for (i = 0; i < max; i++) {
-	if (i > k) {
-	    j++;
-	}
-    }
-    end = clock();
-    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-    G_message("compare to k: %g, temp: %d", cpu_time_used, j);	/* was faster by about 20% */
-
-
-    return TRUE;
-}
-
-int get_segID_SEG(struct files *files, int row, int col)
-{
-    segment_get(&files->bands_seg, (void *)files->bands_val, row, col);
-    return files->bands_val[0];	/* for accurate comparison, is converting double to int a time penalty? */
-}
-
-int get_segID_RAM(struct files *files, int row, int col)
-{
-    return 0;			//files->iseg[row][col];
-}
-#endif
-
 int region_growing(struct files *files, struct functions *functions)
 {
     int row, col, t;
     double threshold, Ri_similarity, Rk_similarity, tempsim;
     int endflag;		/* =TRUE if there were no merges on that processing iteration */
     int pathflag;		/* =TRUE if we didn't find mutual neighbors, and should continue with Rk */
-    struct pixels *Ri_head, *Rk_head, *Rin_head, *Rkn_head, *Rclose_head,
-	*Rc_head, *Rc_tail, *Rcn_head, *current, *newpixel, *Ri_bestn;
-    int Ri_count, Rk_count, Rc_count;	/* number of pixels/cells in Ri and Rk */
-    unsigned long int z, end_z;	// depending on shape of the rectangle...will need a larger max i.  long long is avail in C99 spec...  (only needed for z-order)
+    struct pixels *Ri_head, *Rk_head, *Rin_head, *Rkn_head,	//, *Rclose_head, *Rc_head, *Rc_tail, *Rcn_head, 
+     *current, *newpixel, *Ri_bestn;
+    int Ri_count, Rk_count;	//, Rc_count;       /* number of pixels/cells in Ri and Rk */
+    unsigned long int z, end_z;	/* only used for z-order */
     int j;
 
 #ifdef PROFILE
-    //todo polish, remove or comment when done?
     clock_t start, end;
     clock_t merge_start, merge_end;
     double merge_accum, merge_lap;
@@ -823,20 +208,23 @@ int region_growing(struct files *files, struct functions *functions)
     Rin_head = NULL;
     Rkn_head = NULL;
     Ri_bestn = NULL;
-    Rclose_head = NULL;
-    Rc_head = NULL;
-    Rcn_head = NULL;
+    //~ Rclose_head = NULL;
+    //~ Rc_head = NULL;
+    //~ Rcn_head = NULL;
+
+    /* One paper mentioned gradually lowering the threshold at each iteration.
+     * if this is implemented, move this assignment inside the do loop and make it a function of t. */
+    threshold = functions->threshold;
 
     /* do while loop until no merges are made, or until t reaches maximum number of iterations */
     do {
 #ifdef PROFILE
 	pass_start = clock();
 #endif
-	fprintf(stdout, "pass %d\n", t);
+	/*      fprintf(stdout, "pass %d\n", t); */
 	G_debug(3, "#######   Starting outer do loop! t = %d    #######", t);
-	G_percent(t, functions->end_t, 1);
-
-	threshold = functions->threshold;	/* TODO, consider making this a function of t. */
+	if (files->bounds_map == NULL)
+	    G_percent(t, functions->end_t, 1);
 
 	endflag = TRUE;
 
@@ -847,8 +235,8 @@ int region_growing(struct files *files, struct functions *functions)
 
 	/*check each pixel, start the processing only if it is a candidate pixel */
 #ifdef ROWMAJOR
-	for (row = 0; row < files->nrows; row++) {
-	    for (col = 0; col < files->ncols; col++) {
+	for (row = files->minrow; row < files->maxrow; row++) {
+	    for (col = files->mincol; col < files->maxcol; col++) {
 #else
 	{
 	    /* z-order traversal: */
@@ -868,7 +256,7 @@ int region_growing(struct files *files, struct functions *functions)
 	    end_z = (end_z >> 8) | end_z;
 	    end_z = (end_z >> 16) | end_z;
 	    end_z = (end_z >> 32) | end_z;	/* only for 64-bit architecture TODO, would this mess things up on 32? */
-	    /*todo does this need to repeat more since it is long unsigned??? */
+	    /*TODO does this need to repeat more since z long unsigned??? */
 	    end_z++;
 
 	    /*squared: */
@@ -888,19 +276,20 @@ int region_growing(struct files *files, struct functions *functions)
 		j--;
 		col = col | (1 & (z >> j));
 		if (row >= files->nrows || col >= files->ncols)
-		    continue;	/* todo polish, if z-order is helpful, could skip to the next z that is in the processing area. */
+		    continue;	/* slight speed enhancement, if z-order is helpful, figure out how to skip to the next z that is in the processing area. */
 	    }
 #endif
 	    G_debug(4, "Starting pixel from next row/col, not from Rk");
 
 	    if (FLAG_GET(files->candidate_flag, row, col) &&
 		FLAG_GET(files->seeds_flag, row, col)) {
+
 		/*free memory for linked lists */
 		my_dispose_list(files->token, &Ri_head);
 		my_dispose_list(files->token, &Rk_head);
 		my_dispose_list(files->token, &Rin_head);
 		my_dispose_list(files->token, &Rkn_head);
-		my_dispose_list(files->token, &Rclose_head);
+		//~ my_dispose_list(files->token, &Rclose_head);
 		Rk_count = 0;
 
 		/* First pixel in Ri is current row/col pixel.  We may add more later if it is part of a segment */
@@ -924,11 +313,7 @@ int region_growing(struct files *files, struct functions *functions)
 #ifdef PROFILE
 			fn_start = clock();
 #endif
-			//~ if (find_segment_neighbors
-			    //~ (&Ri_head, &Rin_head, &Ri_count, files,
-			     //~ functions) != TRUE) {
-			    //~ G_fatal_error("find_segment_neighbors() failed");
-			//~ }
+
 			find_segment_neighbors
 			    (&Ri_head, &Rin_head, &Ri_count, files,
 			     functions);
@@ -998,33 +383,33 @@ int region_growing(struct files *files, struct functions *functions)
 			 * TODO... but that leaves the possibility that we have the wrong best Neighbor after doing these merges... 
 			 * but it seems we can't put this merge after the Rk/Rkn portion of the loop, because we are changing the available neighbors
 			 * ...maybe this extra "very close" idea has to be done completely differently or dropped???  */
-			for (current = Rclose_head; current != NULL;
-			     current = current->next) {
-			    my_dispose_list(files->token, &Rc_head);
-			    my_dispose_list(files->token, &Rcn_head);
-
-			    /* get membership of neighbor segment */
-			    Rc_count = 1;
-			    newpixel =
-				(struct pixels *)link_new(files->token);
-			    newpixel->next = NULL;
-			    newpixel->row = current->row;
-			    newpixel->col = current->col;
-			    Rc_head = Rc_tail = newpixel;
-			    find_segment_neighbors(&Rc_head, &Rcn_head, &Rc_count, files, functions);	/* just to get members, not looking at neighbors now */
-			    merge_values(Ri_head, Rc_head, Ri_count,
-					 Rc_count, files);
-
-			    /* Add Rc pixels to Ri */
-			    Rc_tail->next = Ri_head;
-			    Ri_head = Rc_head;
-
-			    //todo, recurse?  Check all Rcn neighbors if they are very close?
-			    // not needed if the combining works...   my_dispose_list(files->token, &Rc_head);
-			    Rc_head = NULL;
-			    my_dispose_list(files->token, &Rcn_head);
-			}
-			my_dispose_list(files->token, &Rclose_head);
+			//~ for (current = Rclose_head; current != NULL;
+			//~ current = current->next) {
+			//~ my_dispose_list(files->token, &Rc_head);
+			//~ my_dispose_list(files->token, &Rcn_head);
+			//~ 
+			//~ /* get membership of neighbor segment */
+			//~ Rc_count = 1;
+			//~ newpixel =
+			//~ (struct pixels *)link_new(files->token);
+			//~ newpixel->next = NULL;
+			//~ newpixel->row = current->row;
+			//~ newpixel->col = current->col;
+			//~ Rc_head = Rc_tail = newpixel;
+			//~ find_segment_neighbors(&Rc_head, &Rcn_head, &Rc_count, files, functions);       /* just to get members, not looking at neighbors now */
+			//~ merge_values(Ri_head, Rc_head, Ri_count,
+			//~ Rc_count, files);
+			//~ 
+			//~ /* Add Rc pixels to Ri */
+			//~ Rc_tail->next = Ri_head;
+			//~ Ri_head = Rc_head;
+			//~ 
+			//~ //todo, recurse?  Check all Rcn neighbors if they are very close?
+			//~ // not needed if the combining works...   my_dispose_list(files->token, &Rc_head);
+			//~ Rc_head = NULL;
+			//~ my_dispose_list(files->token, &Rcn_head);
+			//~ }
+			//~ my_dispose_list(files->token, &Rclose_head);
 
 			/* check if we have a bestn that is valid to use to look at Rk */
 			if (Ri_bestn != NULL) {
@@ -1192,7 +577,7 @@ int region_growing(struct files *files, struct functions *functions)
 
     if (t == 2 && files->bounds_map == NULL)
 	G_warning(_("No segments were created. Verify threshold and region settings."));
-    /* included the bound_map check, since we check all values between min/max, intermediate values might not be present.  TODO polish, add back in if we check for unique bounds values. */
+    /* future enhancement, remove the "&& bounds_map == NULL" if we check for unique bounds values. */
 
     if (endflag == FALSE)
 	G_message(_("Merging processes stopped due to reaching max iteration limit, more merges may be possible"));
@@ -1204,9 +589,11 @@ int region_growing(struct files *files, struct functions *functions)
 
 
     if (functions->min_segment_size > 1 && t > 2) {	/* NOTE: added t > 2, it doesn't make sense to force merges if no merges were made on the original pass.  Something should be adjusted first */
-	G_message
-	    (_("Final iteration, forcing merges for small segments, percent complete based on rows."));
 
+	if (files->bounds_map == NULL) {
+	    G_message
+		(_("Final iteration, forcing merges for small segments, percent complete based on rows."));
+	}
 	/* for the final forced merge, the candidate flag is just to keep track if we have confirmed if:
 	 *              a. the segment size is >= to the minimum allowed size  or
 	 *              b. we have merged it with its best neighbor
@@ -1214,9 +601,10 @@ int region_growing(struct files *files, struct functions *functions)
 
 	set_all_candidate_flags(files);
 
-	for (row = 0; row < files->nrows; row++) {
-	    G_percent(row, files->nrows - 1, 5);
-	    for (col = 0; col < files->ncols; col++) {
+	for (row = files->minrow; row < files->maxrow; row++) {
+	    if (files->bounds_map == NULL)
+		G_percent(row, files->maxrow - 1, 1);
+	    for (col = files->mincol; col < files->maxcol; col++) {
 
 		if (FLAG_GET(files->candidate_flag, row, col)) {
 		    /*free memory for linked lists */
@@ -1238,15 +626,9 @@ int region_growing(struct files *files, struct functions *functions)
 			    Ri_head->row, Ri_head->col);
 
 		    /* find segment neighbors */
-		    //~ if (find_segment_neighbors
-			//~ (&Ri_head, &Rin_head, &Ri_count, files,
-			 //~ functions) != TRUE) {
-			//~ G_fatal_error("find_segment_neighbors() failed");
-		    //~ }
-find_segment_neighbors
-			(&Ri_head, &Rin_head, &Ri_count, files,
-			 functions);
-			 
+		    find_segment_neighbors
+			(&Ri_head, &Rin_head, &Ri_count, files, functions);
+
 		    if (Rin_head != NULL) {	/*found neighbors */
 			if (Ri_count >= functions->min_segment_size)	/* don't force a merge */
 			    set_candidate_flag(Ri_head, FALSE, files);
@@ -1291,7 +673,7 @@ find_segment_neighbors
 				newpixel->col = Ri_bestn->col;
 				Rk_head = newpixel;
 
-				/* get the full pixel/cell membership list for Rk *//* todo polish: worth having a seperate function for this, since we don't need the neighbors? */
+				/* get the full pixel/cell membership list for Rk *//* speed enhancement: a seperate function for this, since we don't need the neighbors */
 				find_segment_neighbors(&Rk_head, &Rkn_head,
 						       &Rk_count, files,
 						       functions);
@@ -1321,10 +703,8 @@ find_segment_neighbors
 	}			/* next row */
 	t++;			/* to count one more "iteration" */
     }				/* end if for force merge */
-    else
-     if (t > 2)
-	G_verbose_message("temporary(?) message, number of passes: %d",
-			  t - 1);
+    else if (t > 2 && files->bounds_map == NULL)
+	G_verbose_message("Number of passes completed: %d", t - 1);
 #ifdef PROFILE
     end = clock();
     fprintf(stdout, "time spent merging: %g\n", merge_accum);
@@ -1335,8 +715,8 @@ find_segment_neighbors
     return TRUE;
     }
 
-/* TODO, for now will return borderPixels instead of passing a pointer, I saw mentioned that each parameter slows down the function call? */
-/* TODO, My first impression is that the borderPixels count is ONLY needed for the case of initial seeds, and not used later on.  Another reason to split the function... */
+    /* TODO, for now will return borderPixels instead of passing a pointer, I saw mentioned that each parameter slows down the function call? */
+    /* TODO, My first impression is that the borderPixels count is ONLY needed for the case of initial seeds, and not used later on.  Another reason to split the function... */
     int find_segment_neighbors(struct pixels **R_head,
 			       struct pixels **neighbors_head, int *seg_count,
 			       struct files *files,
@@ -1354,24 +734,18 @@ find_segment_neighbors
 
 	/* TODO, any time savings to move any variables to files (mem allocation in open_files) */
 
-	/* neighbor list will be a listing of pixels that are neighbors?  Include segment numbers?  Only include unique segments?
-	 * MM: counting unique neighbor segments could have the advantage of dealing with special
-	 * segments that have only one neighbor, i.e. segments within segments
-	 * 
-
-	 * Maybe the most complete return would be a structure array, structure to include the segment ID and a list of points in it?  
-	 * But the list of points would NOT be inclusive - just the points bordering the current segment...
-	 */
+	/* neighbor list will be a listing of pixels that are neighbors, but will be limited to just one pixel from each neighboring segment.
+	 * */
 
 	/* parameter: R, current segment membership, could be single pixel (incomplete list) or list of pixels.
-	 * parameter: neighbors/Rin/Rik, neighbor pixels, could have a list already, or could be empty ?
+	 * parameter: neighbors/Rin/Rik, neighbor pixels, could have a list already, or could be empty
 	 * functions->num_pn  int, 4 or 8, for number of pixel neighbors 
 	 * */
 
 
 	/* *** initialize data *** */
 	borderPixels = 0;
-	
+
 	segment_get(&files->iseg_seg, &R_iseg, (*R_head)->row,
 		    (*R_head)->col);
 
@@ -1402,7 +776,7 @@ find_segment_neighbors
 		    *neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
 		    /* todo polish... could use a tree and only return pixels from unique segments. */
 		}
-		borderPixels++; /* increment for all non null pixels TODO perimeter: OK to ignore these cells? */
+		borderPixels++;	/* increment for all non null pixels TODO perimeter: OK to ignore these cells? */
 	    }
 
 	}
@@ -1516,9 +890,9 @@ find_segment_neighbors
 
 			}
 			else {	/* segment id's were different */
-				borderPixels++; /* increment for all non null pixels that are non in no-check or R_iseg TODO perimeter: move this to include pixels in no-check ??? */
-				
-				if (!rbtree_find(known_iseg, &current_seg_ID)) {	/* we don't have any neighbors yet from this segment */
+			    borderPixels++;	/* increment for all non null pixels that are non in no-check or R_iseg TODO perimeter: move this to include pixels in no-check ??? */
+
+			    if (!rbtree_find(known_iseg, &current_seg_ID)) {	/* we don't have any neighbors yet from this segment */
 				if (current_seg_ID != 0)
 				    /* with seeds, non seed pixels are defaulted to zero.  Should we use null instead?? then could skip this check?  Or we couldn't insert it??? */
 				    /* add to known neighbors list */
@@ -1535,11 +909,11 @@ find_segment_neighbors
 				newpixel->col = pixel_neighbors[n][1];
 				*neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
 			    }
-			    else { /* TODO we need to keep track of (and return!) a total count of neighbors pixels for each neighbor segment, to update the perimeter value in the similarity calculation. */
-					/* todo perimeter: need to initalize this somewhere!!! */
-					/* todo perimeter... need to find pixel with same segment ID....  countShared++;
-					 * Oh!  Should we change the tree to sort on segment ID...need to think of fast way to return this count?  with pixel?  or with something else? */
-				}
+			    else {	/* TODO we need to keep track of (and return!) a total count of neighbors pixels for each neighbor segment, to update the perimeter value in the similarity calculation. */
+				/* todo perimeter: need to initalize this somewhere!!! */
+				/* todo perimeter... need to find pixel with same segment ID....  countShared++;
+				 * Oh!  Should we change the tree to sort on segment ID...need to think of fast way to return this count?  with pixel?  or with something else? */
+			    }
 			}
 
 
@@ -1642,7 +1016,8 @@ find_segment_neighbors
 						files->second_val[n]);
 	}
 
-	/* val = sqrt(val); *//* use squared distance, save the calculation time. */
+	/* use squared distance, save the calculation time. We squared the similarity threshold earlier to allow for this. */
+	/* val = sqrt(val); */
 
 	return val;
 
@@ -1662,12 +1037,10 @@ find_segment_neighbors
 	segment_get(&files->bands_seg, (void *)files->second_val, b->row,
 		    b->col);
 
-	/* euclidean distance, sum the square differences for each dimension */
+	/* Manhattan distance, sum the absolute difference between values for each dimension */
 	for (n = 0; n < files->nbands; n++) {
 	    val += fabs(files->bands_val[n] - files->second_val[n]);	/* todo check if fabs is the "fast" way for absolute value */
 	}
-
-	/* val = sqrt(val); *//* use squared distance, save the calculation time. */
 
 	return val;
 
@@ -1675,22 +1048,22 @@ find_segment_neighbors
 
     /* TODO: add shape parameter...
      * 
-       In the eCognition literature, we find that the key factor in the
-       multi-scale segmentation algorithm used by Definiens is the scale
-       factor f:
+     In the eCognition literature, we find that the key factor in the
+     multi-scale segmentation algorithm used by Definiens is the scale
+     factor f:
 
-       f = W.Hcolor + (1 - W).Hshape
-       Hcolor = sum(b = 1:nbands)(Wb.SigmaB)
-       Hshape = Ws.Hcompact + (1 - Ws).Hsmooth
-       Hcompact = PL/sqrt(Npx)
-       Hsmooth = PL/Pbbox
+     f = W.Hcolor + (1 - W).Hshape
+     Hcolor = sum(b = 1:nbands)(Wb.SigmaB)
+     Hshape = Ws.Hcompact + (1 - Ws).Hsmooth
+     Hcompact = PL/sqrt(Npx)
+     Hsmooth = PL/Pbbox
 
-       Where W is a user-defined weight of importance of object radiometry vs
-       shape (usually .9 vs .1), Wb is the weigh given to band B, SigmaB is
-       the std dev of the object for band b, Ws is a user-defined weight
-       giving the importance of compactedness vs smoothness, PL is the
-       perimeter lenght of the object, Npx the number of pixels within the
-       object, and Pbbox the perimeter of the bounding box of the object.
+     Where W is a user-defined weight of importance of object radiometry vs
+     shape (usually .9 vs .1), Wb is the weigh given to band B, SigmaB is
+     the std dev of the object for band b, Ws is a user-defined weight
+     giving the importance of compactedness vs smoothness, PL is the
+     perimeter lenght of the object, Npx the number of pixels within the
+     object, and Pbbox the perimeter of the bounding box of the object.
      */
 
     int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
@@ -1749,7 +1122,8 @@ find_segment_neighbors
     }
 
     /* calculates and stores the mean value for all pixels in a list, assuming they are all in the same segment */
-    int merge_pixels(struct pixels *R_head, int borderPixels, struct files *files)
+    int merge_pixels(struct pixels *R_head, int borderPixels,
+		     struct files *files)
     {
 	int n, count = 0;
 	struct pixels *current;
@@ -1777,9 +1151,9 @@ find_segment_neighbors
 		files->second_val[n] = files->second_val[n] / count;
 	    }
 
-		/* add in the shape values */
-	    files->bands_val[files->nbands] = count; /* area (Num Pixels) */
-	    files->bands_val[files->nbands + 1] = borderPixels; /* Perimeter Length */ /* todo polish, not exact for edges...close enough for now? */
+	    /* add in the shape values */
+	    files->bands_val[files->nbands] = count;	/* area (Num Pixels) */
+	    files->bands_val[files->nbands + 1] = borderPixels;	/* Perimeter Length *//* todo polish, not exact for edges...close enough for now? */
 
 	    /* save the results */
 	    for (current = R_head; current != NULL; current = current->next) {
@@ -1871,8 +1245,7 @@ find_segment_neighbors
     }
 
     /* Set candidate flag to true/1 or false/0 for all pixels in current processing area
-     * checks for NULL flag and if it is in current "polygon" if a bounds map is given 
-     * checks if seeds were given */
+     * checks for NULL flag and if it is in current "polygon" if a bounds map is given */
     int set_all_candidate_flags(struct files *files)
     {
 	int row, col;

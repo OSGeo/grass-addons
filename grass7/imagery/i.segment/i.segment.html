@@ -1,11 +1,47 @@
 <h2>DESCRIPTION</h2>
+<em>i.segment</em> generates a segmented raster based on the input imagery group.  A region growing and merging algorithm is currently implemented.
+
 <H2>NOTES</h2>
-The final forced merge (if minsize is set > 1) ignores the (optional) seed map.
+
+<h3>Threshold</h3>
+During normal processing, the similarity between two segments must be lower then the calculated threshold value.  If a minimum segment size of 2 or larger is given with the <em>minsize</em> parameter, segments with a smaller pixel count will be merged with their most similar neighbor even if the similarity is greater then the threshold.  Unless the <em>-w</em> flag for weighted data is used, the threshold should be between 0 and 1.0.
+
+The threshold will be multiplied by the number of rasters included in the image group.  This will allow the same threshold to achieve similar segmentation results when the number of rasters in the image group varies.
+
+<h3>Seeds</h3>
+The seeds map can be used to provide either seed pixels (random or selected points from which to start the segmentation process) or seed segments (results of previous segmentations or classifications).  The different approaches are automatically detected by the program: any pixels that have identical seed values and are contiguous will be lumped into a single segment ID.
+
+It is expected that the <em>minsize</em> will be set to 1 if a seed map is used, but the program will allow other values to be used.  If both options are used, the final iteration that ignores the threshold also will ignore the seed map and force merges for all pixels (not just segments that have grown/merged from the seeds).
+
+<h3>Maximum number of starting segments</h3>
+For the region growing algorithm without starting seeds, each pixel is sequentially numbered.  The current limit with CELL storage is 2 billion starting segment ID's.  If the initial map has a larger number of non-null pixels, there are two workarounds:
+1.  Use starting seed pixels.  (Maximum 2 billion pixels can be labeled with positive integers, either as a grid or random selection.)
+2.  Use starting seed segments.  (By initial classification or other methods.)
+
 <H2>EXAMPLES</h2>
+Need to give an example using NC data set.
+i.group
+i.segment (lower threshold)
+i.segment (higher threshold, using previous output as boundaries)
+
 <h2>TODO</h2>
-For Region Growing, the current limit with CELL storage is 2 billion starting segment ID's.  Workaround: If the original image has a larger number of pixels, please use the starting seeds option to limit the number of starting segments.
+Copy the remaining tasks from:
+http://grass.osgeo.org/wiki/GRASS_GSoC_2012_Image_Segmentation#ToDo_List
 <h2>BUGS</h2>
+If the seeds map is used to give starting seed segments, the segments are renumbered starting from 1.  There is a chance a segment could be renumbered to a seed value that has not yet been processed.  If they happen to be adjacent, they would be merged.  (Possible fixes: use negative segment ID's as a placeholder and negate all values after the seed map has been processed.  Use an additional data structure, though this costs more RAM.)
 <H2>REFERENCES</h2>
+This project was first developed during GSoC 2012.  Project documentation, Image Segmentation references, and other information is at the <a href="http://grass.osgeo.org/wiki/GRASS_GSoC_2012_Image_Segmentation">project wiki</a>.
+
+Information about <a href="http://grass.osgeo.org/wiki/Image_classification">classification in GRASS</a> is at available on the wiki.
+<!-- TODO Markus, should the Image_classification page be updated to include i.segment in the areas where i.seg belong?  -->
 <h2>SEE ALSO</h2>
+<em>
+<a href="i.group.html">i.group</a>
+<a href="i.maxlik.html">i.maxlik</a>+
+<a href="r.fuzzy">r.fuzzy</a>
+<a href="i.smap.html">i.smap</a>
+<a href="r.seg.html">r.seg</a> (Addon)
+</em>
+
 <h2>AUTHORS</h2>
-Eric Momsen
+Eric Momsen - North Dakota State University

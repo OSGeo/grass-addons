@@ -1,5 +1,6 @@
 /* PURPOSE:      opening input rasters and creating segmentation files */
 
+#include <limits.h>		/* for INT_MAX, todo remove if there is a GRASS max CELL */
 #include <stdlib.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
@@ -13,12 +14,14 @@ int open_files(struct files *files, struct functions *functions)
     int *in_fd, seeds_fd, bounds_fd, null_check, out_fd, mean_fd;
     int n, s, row, col, srows, scols, inlen, nseg, borderPixels;
     DCELL **inbuf;		/* buffer array, to store lines from each of the imagery group rasters */
-    CELL *boundsbuf;
-    void *seedsbuf, *ptr;	/* todo. correct data type when allowing any data type? hmm, since have changed logic, seeds must be CELL.  Could update code. */
+    CELL *boundsbuf, *seedsbuf;
+    void *ptr;			/* for iterating seedsbuf */
     size_t ptrsize;
-    RASTER_MAP_TYPE data_type;
     struct FPRange *fp_range;	/* for getting min/max values on each input raster */
     DCELL *min, *max;
+    struct Range range;		/* for seeds range */
+    int seeds_min, seeds_max;
+
 
     /* for merging seed values */
     struct pixels *R_head, *Rn_head, *newpixel, *current;
@@ -53,7 +56,7 @@ int open_files(struct files *files, struct functions *functions)
 
     /* ****** open the input rasters ******* */
 
-    /* Note: I confirmed, the API does not check this. */
+    /* Note: I confirmed, the API does not check this: */
     G_debug(1, "Checking image group...");
     if (!I_get_group_ref(files->image_group, &Ref))
 	G_fatal_error(_("Unable to read REF file for group <%s>"),
@@ -80,12 +83,19 @@ int open_files(struct files *files, struct functions *functions)
 			  Ref.file[n].mapset);
     }
 
-    /* open seeds raster */
+    /* open seeds raster and confirm all positive integers were given */
     if (files->seeds_map != NULL) {
 	seeds_fd = Rast_open_old(files->seeds_map, "");
-	data_type = Rast_get_map_type(seeds_fd);
-	seedsbuf = Rast_allocate_buf(data_type);
-	ptrsize = Rast_cell_size(data_type);
+	seedsbuf = Rast_allocate_c_buf();
+	ptrsize = sizeof(CELL);
+
+	if (Rast_read_range(files->seeds_map, files->seeds_mapset, &range) != 1) {	/* returns -1 on error, 2 on empty range, quiting either way. */
+	    G_fatal_error(_("No min/max found in seeds raster map <%s>"),
+			  files->seeds_map);
+	}
+	Rast_get_range_min_max(&range, &seeds_min, &seeds_max);
+	if (seeds_min < 0)
+	    G_fatal_error(_("Seeds raster should have postive integers for starting seeds, and zero or NULL for all other pixels."));
     }
 
     /* Get min/max values of each input raster for scaling */
@@ -134,9 +144,9 @@ int open_files(struct files *files, struct functions *functions)
 	G_fatal_error("Unable to create input temporary files");
 
     /* ******* remaining memory allocation ********* */
-	
-	/* save the area and perimeter as well */
-	/* TODO: currently saving this with the input DCELL values.  Better to have a second segment structure to save as integers ??? */
+
+    /* save the area and perimeter as well */
+    /* TODO: currently saving this with the input DCELL values.  Better to have a second segment structure to save as integers ??? */
     inlen = inlen + sizeof(double) * 2;
 
     files->bands_val = (double *)G_malloc(inlen);
@@ -148,7 +158,7 @@ int open_files(struct files *files, struct functions *functions)
 	G_fatal_error(_("Unable to allocate memory for initial segment ID's"));
     /* NOTE: SEGMENT file should be initialized to zeros for all data. TODO double check this. */
 
-    /* bounds/constraints (start here to get any possible NULL values) */
+    /* bounds/constraints (start with processing constraints to get any possible NULL values) */
     if (files->bounds_map != NULL) {
 	if (segment_open
 	    (&files->bounds_seg, G_tempfile(), files->nrows, files->ncols,
@@ -184,7 +194,7 @@ int open_files(struct files *files, struct functions *functions)
 	    Rast_get_d_row(in_fd[n], inbuf[n], row);
 	}
 	if (files->seeds_map != NULL) {
-	    Rast_get_row(seeds_fd, seedsbuf, row, data_type);
+	    Rast_get_c_row(seeds_fd, seedsbuf, row);
 	    ptr = seedsbuf;
 	}
 
@@ -198,35 +208,37 @@ int open_files(struct files *files, struct functions *functions)
 		if (files->weighted == TRUE)
 		    files->bands_val[n] = inbuf[n][col];	/*unscaled */
 		else
-		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/*scaled version */
+		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/* scaled */
 	    }
-	    files->bands_val[Ref.nfiles] = 1; /* area (Num Pixels) */
-	    files->bands_val[Ref.nfiles + 1] = 4; /* Perimeter Length */ /* todo polish, not exact for edges...close enough for now? */
+	    files->bands_val[Ref.nfiles] = 1;	/* area (just using the number of pixels) */
+	    files->bands_val[Ref.nfiles + 1] = 4;	/* Perimeter Length *//* todo polish, not exact for edges...close enough for now? */
 	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
 
 	    if (null_check != -1) {	/*good pixel */
 		FLAG_UNSET(files->null_flag, row, col);	/*flag */
 		if (files->seeds_map != NULL) {
-		    if (Rast_is_null_value(ptr, data_type) == TRUE) {
-			// not needed, initialized to zero.  files->iseg[row][col] = 0; /* place holder... todo, Markus, is this OK to leave out?  Or safer to set it, since this is just done once... */
-			FLAG_UNSET(files->seeds_flag, row, col);	//todo shouldn't need to this, flag is initialized to zero?
+		    if (Rast_is_c_null_value(ptr) == TRUE) {
+			// todo... old data structure, switch to SEG if need to initalize to zero:  files->iseg[row][col] = 0;
+			FLAG_UNSET(files->seeds_flag, row, col);	//todo markus, I expect iseg and seeds flag are initialized to zero, so shouldn't need to set either flag.  Leave these two lines of code out?
 		    }
 		    else {
-			FLAG_SET(files->seeds_flag, row, col);	//todo might not need this... just look for seg ID > 0 ?  If go this route, need to enforce constraints are positive integers.
-			/* seed value is starting segment ID.  TODO document: seeds must be positive integers, and will be assigned as starting segment IDs. */
-			segment_put(&files->iseg_seg, ptr, row, col);	//can I just use ptr as the address with the value I want to store? TODO enforce that seeds map is an integer.
+			FLAG_SET(files->seeds_flag, row, col);	//todo might not need this... just look for seg ID > 0 ?
+			/* seed value is starting segment ID. */
+			segment_put(&files->iseg_seg, ptr, row, col);
 		    }
 		    ptr = G_incr_void_ptr(ptr, ptrsize);
 		}
 		else {		/* no seeds provided */
 		    s++;	/* sequentially number all pixels with their own segment ID */
-		    segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
-		    FLAG_SET(files->seeds_flag, row, col);	/*all pixels are seeds */
+		    if (s < INT_MAX) {	/* Check that the starting seeds aren't too large. (checking for < instead of <= since   TODO Markus, Is there a GRASS constant for the maximum size of CELL? */
+			segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
+			FLAG_SET(files->seeds_flag, row, col);	/*all pixels are seeds */
+		    }
+		    else
+			G_fatal_error(_("Exceeded integer storage limit, too many initial pixels."));
 		}
 	    }
 	    else {		/*don't use this pixel */
-		//files->iseg[row][col] = -1;   /* place holder...TODO this could be a conflict if constraints included a -1 ??? wrote that awhile ago...still true???*/
-		//TODO, do we need a -1 here?  Or just leave as the zero it was initialized with?  Need a -1 if we don't use the NULL_FLAG...
 		FLAG_SET(files->null_flag, row, col);	/*flag */
 	    }
 	}
@@ -286,6 +298,9 @@ int open_files(struct files *files, struct functions *functions)
 		 * for now I've put it here, to make merge_pixels() more general.  Unless you think initialization speed is more important then future flexibility? */
 
 		s++;
+		if (s == INT_MAX)	/* Check that the starting seeds aren't too large.  TODO Markus, Is there a GRASS constant for the maximum size of CELL? */
+		    G_fatal_error(_("Exceeded integer storage limit, too many initial pixels."));
+
 		for (current = R_head; current != NULL;
 		     current = current->next) {
 		    segment_put(&files->iseg_seg, &s, current->row,

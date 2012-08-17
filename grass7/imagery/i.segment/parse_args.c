@@ -9,7 +9,7 @@
 
 int parse_args(int argc, char *argv[], struct files *files,
 	       struct functions *functions)
-{
+{				/* todo Markus, is it helpful to leave tips like this that are helpful to someone new to GRASS?  Or is it just clutter now, and should go to a reference sheet? */
     /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
 
     struct Option *group, *seeds, *bounds, *output, *method, *similarity, *threshold, *min_segment_size, *endt;	/* Establish an Option pointer for each option */
@@ -80,11 +80,13 @@ int parse_args(int argc, char *argv[], struct files *files,
     weighted->description =
 	_("Weighted input, don't perform the default scaling of input maps.");
 
-    /* Raster for initial segment seeds *//* TODO polish: allow vector points/centroids for seed input. */
+    /* Raster for initial segment seeds *//* future enhancement: allow vector points/centroids for seed input. */
     seeds = G_define_standard_option(G_OPT_R_INPUT);
     seeds->key = "seeds";
     seeds->required = NO;
-    seeds->description = _("Optional raster map with starting seeds.");
+    seeds->label = _("Optional raster map with starting seeds.");
+    seeds->description =
+	_("Pixel values with positive integers are used as starting seeds.");
 
     /* Polygon constraints. */
     bounds = G_define_standard_option(G_OPT_R_INPUT);
@@ -125,11 +127,12 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     /* Validation */
 
-    /* TODO: use checker for any of the data validation steps? */
-
     /* Check and save parameters */
 
     files->image_group = group->answer;
+
+    /* TODO Markus, I saw in the GRASS Programmer's manual that I could use a checker function for the data validation steps.
+     * But when I did a find|grep for "checker" it didn't show up.  Is there any reason to use it?  Or just leave the validation like I have it now? */
 
     if (G_legal_filename(output->answer) == TRUE)
 	files->out_name = output->answer;	/* name of output (segment ID) raster map */
@@ -182,11 +185,14 @@ int parse_args(int argc, char *argv[], struct files *files,
     }
     /* TODO polish, check if function pointer or IF statement is faster */
 
-    files->weighted = weighted->answer;	/* default/0 for performing the scaling, but selected/1 if user has weighted values so scaling should be skipped. */
-    if (seeds->answer == NULL) {	/* no starting seeds, will use all pixels as seeds */
+    /* default/0 for performing the scaling, but selected/1 if user has weighted values so scaling should be skipped. */
+    files->weighted = weighted->answer;
+
+    /* check if optional seeds map was given, if not, use all pixels as starting seeds. */
+    if (seeds->answer == NULL) {
 	files->seeds_map = NULL;
     }
-    else {			/* polygon constraints given */
+    else {			/* seeds provided, check if valid map */
 	files->seeds_map = seeds->answer;
 	if ((files->seeds_mapset =
 	     G_find_raster2(files->seeds_map, "")) == NULL) {
@@ -197,10 +203,11 @@ int parse_args(int argc, char *argv[], struct files *files,
 	}
     }
 
-    if (bounds->answer == NULL) {	/*no polygon constraints */
+    /* check if optional processing boundaries were provided */
+    if (bounds->answer == NULL) {	/*no processing constraints */
 	files->bounds_map = NULL;
     }
-    else {			/* polygon constraints given */
+    else {			/* processing constraints given, check if valid map */
 	files->bounds_map = bounds->answer;
 	if ((files->bounds_mapset =
 	     G_find_raster2(files->bounds_map, "")) == NULL) {
@@ -225,7 +232,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     /* debug help */
 
-    functions->path = path->answer;	/* default/0 for no pathflag, but selected/1 to use Rk as next Ri if not mutually best neighbors. */
+    /* default/0 for no pathflag, but selected/1 to use Rk as next Ri if not mutually best neighbors. */
+    functions->path = path->answer;
 
     functions->limited = limited->answer;
 
