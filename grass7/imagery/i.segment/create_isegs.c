@@ -24,7 +24,7 @@
 /* This will do a typical rowmajor processing of the image(s).  
  * Commenting it out will switch to z-order processing.
  * Z-order does NOT support the bounds option, and assumes a somewhat square rectangle (otherwise the power of 2 square could overrun the long long maximum). */
-//#define ROWMAJOR              /* note: gives nesting error with INDENT program since this changes the for loops.  comment out when running INDENT. */
+#define ROWMAJOR              /* note: gives nesting error with INDENT program since this changes the for loops.  comment out when running INDENT. */
 
 int create_isegs(struct files *files, struct functions *functions)
 {
