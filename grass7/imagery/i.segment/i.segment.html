@@ -3,11 +3,16 @@
 
 <H2>NOTES</h2>
 
+<h3>Region Growing and Merging</h3>
+This segmentation algorithm sequentially examines all current segments in the map.  The similarity between the current segment and each of its neighbors is calculated according to the given distance formula.  Segments will be merged if they meet a number of criteria, including: 1.  The pair mutually most similar to each other (the similarity distance will be smaller then all other neighbors), 2. The similarity must be lower then the input threshold, and 3. a segment can only be merged once per pass.  All segments are checked once per pass.  The process is repeated until no merges are made during a complete pass.
+
 <h3>Threshold</h3>
-During normal processing, the similarity between two segments must be lower then the calculated threshold value.  If a minimum segment size of 2 or larger is given with the <em>minsize</em> parameter, segments with a smaller pixel count will be merged with their most similar neighbor even if the similarity is greater then the threshold.  Unless the <em>-w</em> flag for weighted data is used, the threshold should be between 0 and 1.0.
-
+During normal processing, merges are only allowed when the similarity between two segments is lower then the calculated threshold value.  During the final pass, however, if a minimum segment size of 2 or larger is given with the <em>minsize</em> parameter, segments with a smaller pixel count will be merged with their most similar neighbor even if the similarity is greater then the threshold.
+<p>
+Unless the <em>-w</em> flag for weighted data is used, the threshold should be between 0 and 1.0.
+</p><p>
 The threshold will be multiplied by the number of rasters included in the image group.  This will allow the same threshold to achieve similar segmentation results when the number of rasters in the image group varies.
-
+</p>
 <h3>Seeds</h3>
 The seeds map can be used to provide either seed pixels (random or selected points from which to start the segmentation process) or seed segments (results of previous segmentations or classifications).  The different approaches are automatically detected by the program: any pixels that have identical seed values and are contiguous will be lumped into a single segment ID.
 
@@ -15,15 +20,26 @@ It is expected that the <em>minsize</em> will be set to 1 if a seed map is used,
 
 <h3>Maximum number of starting segments</h3>
 For the region growing algorithm without starting seeds, each pixel is sequentially numbered.  The current limit with CELL storage is 2 billion starting segment ID's.  If the initial map has a larger number of non-null pixels, there are two workarounds:
+<p>
 1.  Use starting seed pixels.  (Maximum 2 billion pixels can be labeled with positive integers, either as a grid or random selection.)
+</p><p>
 2.  Use starting seed segments.  (By initial classification or other methods.)
+</p>
+<h3>Boundary Constraints</h3>
+Boundary constraints limit the adjacency of pixels and segments.  Each unique value present in the <em>bounds</em> raster are considered as a MASK.  Thus no segments in the final segmentated map will cross a boundary, even if their spectral data is very similar.
+
+<h3>Minimum Segment Size</h3>
+To reduce the salt and pepper affect, a <em>minsize</em> greater than 1 will add one additional pass to the processing.  During the final pass, the threshold is ignored for any segments smaller then the set size, thus forcing very small segments to merge with their most similar neighbor.
 
 <H2>EXAMPLES</h2>
 Need to give an example using NC data set.
+<p>
 i.group
+</p><p>
 i.segment (lower threshold)
+</p><p>
 i.segment (higher threshold, using previous output as boundaries)
-
+</p>
 <h2>TODO</h2>
 Copy the remaining tasks from:
 http://grass.osgeo.org/wiki/GRASS_GSoC_2012_Image_Segmentation#ToDo_List
@@ -31,15 +47,16 @@ http://grass.osgeo.org/wiki/GRASS_GSoC_2012_Image_Segmentation#ToDo_List
 If the seeds map is used to give starting seed segments, the segments are renumbered starting from 1.  There is a chance a segment could be renumbered to a seed value that has not yet been processed.  If they happen to be adjacent, they would be merged.  (Possible fixes: use negative segment ID's as a placeholder and negate all values after the seed map has been processed.  Use an additional data structure, though this costs more RAM.)
 <H2>REFERENCES</h2>
 This project was first developed during GSoC 2012.  Project documentation, Image Segmentation references, and other information is at the <a href="http://grass.osgeo.org/wiki/GRASS_GSoC_2012_Image_Segmentation">project wiki</a>.
-
+<p>
 Information about <a href="http://grass.osgeo.org/wiki/Image_classification">classification in GRASS</a> is at available on the wiki.
 <!-- TODO Markus, should the Image_classification page be updated to include i.segment in the areas where i.seg belong?  -->
+</p>
 <h2>SEE ALSO</h2>
 <em>
-<a href="i.group.html">i.group</a>
-<a href="i.maxlik.html">i.maxlik</a>+
-<a href="r.fuzzy">r.fuzzy</a>
-<a href="i.smap.html">i.smap</a>
+<a href="i.group.html">i.group</a>, 
+<a href="i.maxlik.html">i.maxlik</a>, 
+<a href="r.fuzzy">r.fuzzy</a>, 
+<a href="i.smap.html">i.smap</a>, 
 <a href="r.seg.html">r.seg</a> (Addon)
 </em>
 
