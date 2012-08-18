@@ -58,6 +58,7 @@ from vnet.toolbars    import MainToolbar, PointListToolbar
 # static box placement??
 # tmp maps add number of process
 # destructor problem
+# statusbar
 
 class VNETDialog(wx.Dialog):
     def __init__(self, parent,
@@ -493,7 +494,7 @@ class VNETDialog(wx.Dialog):
             dbMgrIndxs.append(self.notebook.GetPageIndexByName('inputDbMgr'))
             dbMgrIndxs.append(self.notebook.GetPageIndexByName('resultDbMgr'))
             if self.notebook.GetSelection() in dbMgrIndxs:
-                self.stBar.AddStatusItem(text = _('Loading tables'), 
+                self.stBar.AddStatusItem(text = _('Loading tables...'), 
                                          key = 'dbMgr',
                                          priority = self.stPriorities['important'])
                 self._updateDbMgrData()
@@ -887,7 +888,7 @@ class VNETDialog(wx.Dialog):
         elif not self.CheckAnMapState(self.tmp_result):
                 return 
 
-        self.stBar.AddStatusItem(text = _('Analysing'),
+        self.stBar.AddStatusItem(text = _('Analysing...'),
                                  key = 'analyze',
                                  priority =  self.stPriorities['important'])
         self._saveAnInputToHist()
@@ -1065,7 +1066,8 @@ class VNETDialog(wx.Dialog):
 
         self._saveHistStep()
         self.tmp_result.SaveVectMapState()
-
+        if self.currAnModule == "v.net.flow":
+            self.vnetFlowTmpCut.SaveVectMapState()
         self._updateResultDbMgrPage()
         self._updateDbMgrData()
 
@@ -1174,16 +1176,22 @@ class VNETDialog(wx.Dialog):
             layerStyleCmd.append('color=' + str(col[0]) + ':' + str(col[1]) + ':' + str(col[2]))        
 
         if "attrColColor" in resProps:
-            self.layerStyleVnetColors = [
-                                          "v.colors",
-                                          "map=" + self.tmp_result.GetVectMapName(),
-                                          "color=byr",#TODO
-                                          "column=" + resProps["attrColColor"],
-                                        ]
-            self.layerStyleVnetColors  = utils.CmdToTuple(self.layerStyleVnetColors)
+            colorStyle = UserSettings.Get(group='vnet', key='res_style', subkey= "color_table")
+            invert = UserSettings.Get(group='vnet', key='res_style', subkey= "invert_colors")
 
-            RunCommand( self.layerStyleVnetColors[0],
-                        **self.layerStyleVnetColors[1])
+            layerStyleVnetColors = [
+                                    "v.colors",
+                                    "map=" + self.tmp_result.GetVectMapName(),
+                                    "color=" + colorStyle,#TODO
+                                    "column=" + resProps["attrColColor"],
+                                   ]
+            if invert:
+                layerStyleVnetColors.append("-n")
+
+            layerStyleVnetColors  = utils.CmdToTuple(layerStyleVnetColors)
+
+            RunCommand( layerStyleVnetColors[0],
+                        **layerStyleVnetColors[1])
 
         return layerStyleCmd 
 
@@ -1419,7 +1427,7 @@ class VNETDialog(wx.Dialog):
                 computeNodes = False
     
         if computeNodes:
-            self.stBar.AddStatusItem(text = _('Computing nodes'),
+            self.stBar.AddStatusItem(text = _('Computing nodes...'),
                                      key = 'snap',
                                      priority = self.stPriorities['important'])
             if not self.snapData.has_key('cmdThread'):
@@ -1557,17 +1565,7 @@ class VNETDialog(wx.Dialog):
             if "vnet_tmp_result" in vectMapName:
                 self.tmp_result.DeleteRenderLayer()
                 self.tmp_result  = self.tmpMaps.GetTmpVectMap(vectMapName)
-                if self.tmp_result.VectMapState() == 0:
-                    dlg = wx.MessageDialog(parent = self,
-                                           message = _("Temporary map '%s' with result " + 
-                                                       "was changed outside vector network analysis tool.\n" +
-                                                       "Showed result may not correspond " +
-                                                       "original analysis result.") %\
-                                                        self.tmp_result.GetVectMapName(),
-                                            caption = _("Result changed outside"),
-                                            style =  wx.ICON_INFORMATION| wx.CENTRE)
-                    dlg.ShowModal()
-                    dlg.Destroy()
+                self._checkResultMapChanged(self.tmp_result)
 
                 cmd = self.GetLayerStyle()
                 self.tmp_result.AddRenderLayer(cmd)
@@ -1602,6 +1600,19 @@ class VNETDialog(wx.Dialog):
         self.list.SetUpdateMap(updateMap = True)
         self.mapWin.UpdateMap(render=True, renderVector=True)
 
+    def _checkResultMapChanged(self, resultVectMap):
+        if resultVectMap.VectMapState() == 0:
+            dlg = wx.MessageDialog(parent = self,
+                                   message = _("Temporary map '%s' with result " + 
+                                               "was changed outside vector network analysis tool.\n" +
+                                               "Showed result may not correspond " +
+                                               "original analysis result.") %\
+                                               resultVectMap.GetVectMapName(),
+                                   caption = _("Result changed outside"),
+                                   style =  wx.ICON_INFORMATION| wx.CENTRE)
+            dlg.ShowModal()
+            dlg.Destroy()
+
     def NewTmpVectMapToHist(self, prefMapName):
 
         mapName = prefMapName + str(self.histTmpVectMapNum)
@@ -1619,7 +1630,7 @@ class VNETDialog(wx.Dialog):
 
     def _addTmpMapAnalysisMsg(self, mapName):
 
-        endStr = _("Do you want to continue in analysis and overwrite it?")
+        endStr = _("Do you want to continue in analysis and overwrite it?")#TODO
         tmpMap = self.tmpMaps.AddTmpVectMap(mapName, endStr)
         return tmpMap
 
@@ -1782,6 +1793,8 @@ class VNETDialog(wx.Dialog):
         initSettings = [
                         ['res_style', 'line_width', 5],
                         ['res_style', 'line_color', (192,0,0)],
+                        ['res_style', 'color_table', 'byr'],
+                        ['res_style', 'invert_colors', False],
                         ['point_symbol', 'point_size', 10],             
                         ['point_symbol', 'point_width', 2],
                         ['point_colors', "unused", (131,139,139)],
@@ -1792,21 +1805,14 @@ class VNETDialog(wx.Dialog):
                         ['other', "max_hist_steps", 5]
                        ]
 
-        for init in initSettings: #TODO initialization warnings, all types are strs
-            try:
-                val = UserSettings.Get(group ='vnet',
-                                       key = init[0],
-                                       subkey =init[1])
-                if type(val) != type(init[2]):
-                    raise ValueError()
-
-            except (KeyError, ValueError): 
-       
-                UserSettings.Append(dict = UserSettings.userSettings, 
+        for init in initSettings: 
+            UserSettings.ReadSettingsFile()
+            UserSettings.Append(dict = UserSettings.userSettings, 
                                     group ='vnet',
                                     key = init[0],
                                     subkey =init[1],
-                                    value = init[2])
+                                    value = init[2],
+                                    overwrite = False)
 
 
     def SetPointDrawSettings(self):
@@ -1942,6 +1948,28 @@ class SettingsDialog(wx.Dialog):
         maxValue = 1e8
         self.parent = parent
 
+        rules = RunCommand('v.colors', 
+                           read = True,
+                           flags = 'l')
+
+        settsLabels = {} 
+
+        settsLabels['color_table'] = wx.StaticText(parent = self, id = wx.ID_ANY, 
+                                                   label = _('Color table style %s:') % '(v.net.flow)')
+        self.settings['color_table'] = wx.ComboBox(parent = self, id = wx.ID_ANY,
+                                                   choices = rules.split(),
+                                                   style = wx.CB_READONLY, size = (180, -1))
+
+        setStyle = UserSettings.Get(group ='vnet', key = "res_style", subkey = "color_table")
+        i = self.settings['color_table'].FindString(setStyle)
+        if i != wx.NOT_FOUND: 
+            self.settings['color_table'].Select(i)
+
+        self.settings["invert_colors"] = wx.CheckBox(parent = self, id=wx.ID_ANY,
+                                                       label = _('Invert colors %s:') % '(v.net.flow)')
+        setInvert = UserSettings.Get(group ='vnet', key = "res_style", subkey = "invert_colors")
+        self.settings["invert_colors"].SetValue(setInvert)
+
         self.colorsSetts = {
                             "line_color" : ["res_style", _("Line color:")],
                             "unused" : ["point_colors", _("Color for unused point:")], 
@@ -1949,7 +1977,6 @@ class SettingsDialog(wx.Dialog):
                             "used2cat" : ["point_colors", _("Color for End/To/Sink point:")],
                             "selected" : ["point_colors", _("Color for selected point:")]
                            }
-        settsLabels = {} 
 
         for settKey, sett in self.colorsSetts.iteritems():
             settsLabels[settKey] = wx.StaticText(parent = self, id = wx.ID_ANY, label = sett[1])
@@ -2013,6 +2040,15 @@ class SettingsDialog(wx.Dialog):
         gridSizer.Add(item = self.settings["line_width"],
                       flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
                       pos = (row, 1))
+        row += 1
+        gridSizer.Add(item = settsLabels['color_table'], flag=wx.ALIGN_CENTER_VERTICAL, pos=(row, 0))
+        gridSizer.Add(item = self.settings['color_table'],
+                      flag = wx.ALIGN_RIGHT | wx.ALL, border = 5,
+                      pos = (row, 1))
+
+        row += 1
+        gridSizer.Add(item = self.settings["invert_colors"], flag=wx.ALIGN_CENTER_VERTICAL, pos=(row, 0))
+
         styleBoxSizer.Add(item = gridSizer, flag = wx.EXPAND)
 
         ptsStyleBox = wx.StaticBox(parent = self, id = wx.ID_ANY,
@@ -2095,9 +2131,15 @@ class SettingsDialog(wx.Dialog):
             UserSettings.Set(group = 'vnet', key = sett[0], subkey = settKey, 
                              value = self.settings[settKey].GetValue())
 
-        self.parent.SetPointDrawSettings()
+        UserSettings.Set(group = 'vnet', key = 'res_style', subkey = 'color_table', 
+                        value = self.settings['color_table'].GetStringSelection())
 
-        if not self.parent.tmpMaps.HasTmpVectMap("vnet_tmp_result"):
+        UserSettings.Set(group = 'vnet', key = 'res_style', subkey = 'invert_colors', 
+                        value = self.settings['invert_colors'].IsChecked())
+
+        self.parent.SetPointDrawSettings()
+        if not self.parent.tmp_result  or \
+           not self.parent.tmpMaps.HasTmpVectMap(self.parent.tmp_result.GetVectMapName()):
             self.parent.mapWin.UpdateMap(render=False, renderVector=False)
         elif self.parent.tmp_result.GetRenderLayer():
             cmd = self.parent.GetLayerStyle()
@@ -2204,7 +2246,14 @@ class VnetTmpVectMaps:
 
     def HasTmpVectMap(self, vectMap):
 
-        fullName = vectMap + "@" + grass.gisenv()['MAPSET']
+        mapValSpl = vectMap.strip().split("@")
+        if len(mapValSpl) > 1:
+            mapSet = mapValSpl[1]
+        else:
+            mapSet = grass.gisenv()['MAPSET']
+        mapName = mapValSpl[0] 
+        fullName = mapName + "@" + mapSet
+
         for vectTmpMap in self.tmpMaps:
             if vectTmpMap.GetVectMapName() == fullName:
                 return True
