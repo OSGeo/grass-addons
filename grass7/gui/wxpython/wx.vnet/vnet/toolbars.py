@@ -19,7 +19,7 @@ import wx
 
 from icon              import MetaIcon
 from gui_core.toolbars import BaseToolbar, BaseIcons
-
+from core.gcmd         import RunCommand
 class PointListToolbar(BaseToolbar):
     """!Toolbar for managing list of points
 
@@ -38,9 +38,9 @@ class PointListToolbar(BaseToolbar):
 
         icons = {
             'insertPoint'  : MetaIcon(img = 'pointer',
-                                    label = _('Insert point with mouse')),
+                                    label = _('Insert points from Map Display')),
             'snapping'  : MetaIcon(img = 'move',
-                                    label = _('Snap to nodes')),
+                                    label = _('Activate snapping to nodes')),
             'pointAdd'     : MetaIcon(img = 'point-create',
                                     label = _('Add new point')),
             'pointDelete'  : MetaIcon(img = 'gcp-delete',
@@ -76,22 +76,9 @@ class MainToolbar(BaseToolbar):
         for moduleName in self.parent.vnetModulesOrder:
             choices.append(self.parent.vnetParams[moduleName]['label'])
 
-        self.anChoice = wx.ComboBox(parent = self, id = wx.ID_ANY,
-                                    choices = choices,
-                                    style = wx.CB_READONLY, size = (180, -1))
-        self.anChoice.SetSelection(0)
-               
-        self.anChoiceId = self.AddControl(self.anChoice)
-        self.parent.Bind(wx.EVT_COMBOBOX, self.parent.OnAnalysisChanged, self.anChoiceId)
-                
-        # workaround for Mac bug. May be fixed by 2.8.8, but not before then.
-        self.anChoice.Hide()
-        self.anChoice.Show()
-
         self.UpdateUndoRedo()
         # realize the toolbar
         self.Realize()
-
 
     def _toolbarData(self):
 
@@ -105,26 +92,34 @@ class MainToolbar(BaseToolbar):
                  'showResult'   : MetaIcon(img = 'layer-add',
                                     label = _("Show analysis result")),
                  'saveTempLayer' : MetaIcon(img = 'map-export',
-                                             label = _('Save temporary result map')),
-                  'settings' : BaseIcons['settings'].SetLabel( _('Vector network analysis settings'))
+                                             label = _('Save temporary result')),
+                 'settings' : BaseIcons['settings'].SetLabel( _('Vector network analysis settings')),
+                 'help'       : MetaIcon(img = 'help',
+                                         label = _('Show manual'))
                 }
 
         return self._getToolbarData((
                                      ("run", icons['run'],
                                       self.parent.OnAnalyze),
-                                      #("showResult", icons['showResult'], TODO
-                                      #self.parent.OnShowResult, wx.ITEM_CHECK),      
+                                     (None, ),     
                                      ("undo", icons['undo'], 
                                       self.parent.OnUndo), 
                                      ("redo", icons['redo'], 
-                                      self.parent.OnRedo),                               
+                                      self.parent.OnRedo),
+                                     (None, ),
+                                     ("showResult", icons['showResult'], 
+                                      self.parent.OnShowResult, wx.ITEM_CHECK), 
                                      ("saveTempLayer", icons['saveTempLayer'],
                                       self.parent.OnSaveTmpLayer),
+                                     (None, ),
                                      ('settings', icons["settings"],
-                                      self.parent.OnSettings),                                    
+                                      self.parent.OnSettings),  
+                                     ('help', icons["help"],
+                                      self.OnHelp),                                     
                                      ("quit", BaseIcons['quit'],
                                       self.parent.OnCloseDialog)
                                     ))
+
 
     def UpdateUndoRedo(self):
 
@@ -136,4 +131,42 @@ class MainToolbar(BaseToolbar):
         if self.parent.history.GetCurrHistStep() <= 0:
            self.Enable("redo", False)
         else:
-           self.Enable("redo", True)   
+           self.Enable("redo", True)  
+
+    def OnHelp(self, event) :
+            RunCommand('g.manual',
+                       entry = 'wxGUI.VNet')
+
+class AnalysisToolbar(BaseToolbar):
+    """!Main toolbar
+    """
+    def __init__(self, parent):
+        BaseToolbar.__init__(self, parent)
+        
+        self.InitToolbar(self._toolbarData())
+
+        choices = []
+
+        for moduleName in self.parent.vnetModulesOrder:
+            choices.append(self.parent.vnetParams[moduleName]['label'])
+
+        self.anChoice = wx.ComboBox(parent = self, id = wx.ID_ANY,
+                                    choices = choices,
+                                    style = wx.CB_READONLY, size = (350, 30))#FIXME
+        self.anChoice.SetToolTipString(_('Availiable analyses'))
+        self.anChoice.SetSelection(0)
+               
+        self.anChoiceId = self.AddControl(self.anChoice)
+        self.parent.Bind(wx.EVT_COMBOBOX, self.parent.OnAnalysisChanged, self.anChoiceId)
+                
+        # workaround for Mac bug. May be fixed by 2.8.8, but not before then.
+        self.anChoice.Hide()
+        self.anChoice.Show()
+        # realize the toolbar
+        self.Realize()
+
+    def _toolbarData(self):
+
+        icons = {}
+
+        return self._getToolbarData(())

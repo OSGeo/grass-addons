@@ -50,7 +50,7 @@ from gui_core.goutput import GMConsole, CmdThread, EVT_CMD_DONE
 from gui_core.gselect import Select, LayerSelect, ColumnSelect
 
 from vnet.widgets     import PointsList
-from vnet.toolbars    import MainToolbar, PointListToolbar
+from vnet.toolbars    import MainToolbar, PointListToolbar, AnalysisToolbar
 
 #Main TODOs
 # when layer tree is lmgr is changed, tmp layer is removed from render list 
@@ -67,21 +67,29 @@ class VNETDialog(wx.Dialog):
         """!Dialog for vector network analysis"""
 
         wx.Dialog.__init__(self, parent, id, style=style, title = title, **kwargs)
+        self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
 
-        self.parent  = parent  # mapdisp.frame MapFrame
-        self.mapWin = parent.MapWindow
-        self.inputData = {}
-        self.cmdParams = {}
-        self.snapData = {}
-        self.snapping = False
-        self.tmp_result = None
+        self.parent  = parent  # mapdisp.frame MapFrame class
+        self.mapWin = parent.MapWindow 
 
+        # contains current analysis result (do not have to be last one, when is history browsed), 
+        # it is instance of VectMap class
+        self.tmp_result = None 
+
+        # initialization of History class used for saving and reading data from file
+        # used for browsing analysis results
         self.history = History(self)
+
+        # variable, which appends  unique number to every name of map, which is saved into history
         self.histTmpVectMapNum = 0
+
+        # list of maps, which will be saved into history
         self.tmpVectMapsToHist = []
 
+        # this class instance manages all temporary vector maps created during life of VNETDialog  
         self.tmpMaps = VnetTmpVectMaps(parent = self)
 
+        # setting initialization
         self._initSettings()
 
         # registration graphics for drawing
@@ -89,26 +97,28 @@ class VNETDialog(wx.Dialog):
                                                                setStatusFunc = self.SetPointStatus)
         self.SetPointDrawSettings()
 
-        # getting attribute table columns only with numbers (costs)
-        self.columnTypes = ['integer', 'double precision'] 
+        # information, whether mouse event handler is registered in map window
+        self.handlerRegistered = False
 
-        self.SetIcon(wx.Icon(os.path.join(globalvar.ETCICONDIR, 'grass.ico'), wx.BITMAP_TYPE_ICO))
+        # get attribute table columns only with numbers (for cost culumns in vnet analysis)
+        self.columnTypes = ['integer', 'double precision'] 
         
-        # initialization of v.net.* analysis parameters
+        # initialization of v.net.* analysis parameters (data which characterizes particular analysis)
         self._initVnetParams()
 
         # toobars
         self.toolbars = {}
         self.toolbars['mainToolbar'] = MainToolbar(parent = self)
-
+        self.toolbars['analysisToolbar'] = AnalysisToolbar(parent = self)
         #
         # Fancy gui
         #
         self._mgr = wx.aui.AuiManager(self)
 
         # Columns in points list
+        # TODO init dynamically, not hard typed v.net.path
         self.cols =   [
-                        ['type', _('type'), [_(""), _("Start point"), _("End point")], 0], #TODO init dynamically
+                        ['type', _('type'), [_(""), _("Start point"), _("End point")], 0], 
                         ['topology',  _('topology'), None, ""] 
                       ]
 
@@ -117,39 +127,55 @@ class VNETDialog(wx.Dialog):
                                   style = FN.FNB_FANCY_TABS | FN.FNB_BOTTOM |
                                           FN.FNB_NO_X_BUTTON)
 
+        # statusbar
         self.stPriorities = {'important' : 5, 'iformation' : 1}
         self.stBar = VnetStatusbar(parent = self.mainPanel, style = 0)
         self.stBar.SetFieldsCount(number = 1)
     
-        # Creates tabs
+        
+        # Create tabs
+        
+        # Stores all data related to snapping
+        self.snapData = {}
+        self.snapData['snap_mode'] = False
+        # Stores widgets which sets analysis parameters (e. g. v.ne..iso -> costs)
+        self.anSettings = {} 
         self._createPointsPage()
+
+        # stores widgets which are shown on parameters page 
+        # they set data, on which analysis will be done
+        self.inputData = {}
         self._createParametersPage()
+
+        # Output console for analysis
         self._createOutputPage()
+
+        # Stores data which are need for attribute table browser of analysis input map layers
+        self.inpDbMgrData = {}
         self._createInputDbMgrPage()
+
+        # Stores data which are need for attribute table browser of analysis result map layers
+        self.resultDbMgrData = {}
         self._createResultDbMgrPage()
 
         self.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseDialog)
 
         self._addPanes()
-        self._doDialogLayout()
-
+        self._doVnetDialogLayout()
         self._mgr.Update()
 
-        self.handlerRegistered = False
-        self.tmpResultLayer = None 
         # adds 2 points into list
         for i in range(2):
             self.list.AddItem()
-            self.list.EditCellIndex(i, 'type', self.cols[1][2][1 + i]) 
+            self.list.EditCellIndex(i, 'type', i + 1) 
             self.list.CheckItem(i, True)
 
         # selects first point
         self.list.selected = 0
         self.list.Select(self.list.selected)
 
-        self.Bind(wx.EVT_CLOSE, self.OnCloseDialog)
-
-        dlgSize = (400, 520)
+        dlgSize = (420, 560)
         self.SetMinSize(dlgSize)
         self.SetInitialSize(dlgSize)
 
@@ -159,6 +185,7 @@ class VNETDialog(wx.Dialog):
 
         self.OnAnalysisChanged(None)
         self.notebook.SetSelectionByName("parameters")
+        self.toolbars['analysisToolbar'].SetMinSize((-1, self.toolbars['mainToolbar'].GetSize()[1]))
 
     def  __del__(self):
         """!Removes temp layers, unregisters handlers and graphics"""
@@ -182,7 +209,14 @@ class VNETDialog(wx.Dialog):
         self._mgr.AddPane(self.toolbars['mainToolbar'],
                               wx.aui.AuiPaneInfo().
                               Name("pointlisttools").Caption(_("Point list toolbar")).
-                              ToolbarPane().Top().
+                              ToolbarPane().Top().Row(0).
+                              Dockable(False).
+                              CloseButton(False).Layer(0))
+ 
+        self._mgr.AddPane(self.toolbars['analysisToolbar'],
+                              wx.aui.AuiPaneInfo().
+                              Name("pointlisttools").Caption(_("Point list toolbar")).
+                              ToolbarPane().Top().Row(1).
                               Dockable(False).
                               CloseButton(False).Layer(0))
 
@@ -192,7 +226,7 @@ class VNETDialog(wx.Dialog):
                               Center().
                               Dockable(False).
                               CloseButton(False).Layer(0))
-    def _doDialogLayout(self):
+    def _doVnetDialogLayout(self):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -210,7 +244,6 @@ class VNETDialog(wx.Dialog):
         """!Tab with points list and analysis settings"""
 
         pointsPanel = wx.Panel(parent = self)
-        self.anSettings = {} #TODO
         maxValue = 1e8
 
         listBox = wx.StaticBox(parent = pointsPanel, id = wx.ID_ANY,
@@ -228,16 +261,9 @@ class VNETDialog(wx.Dialog):
         anSettingsBox = wx.StaticBox(parent = anSettingsPanel, id = wx.ID_ANY,
                                 label =" %s " % _("Analysis settings:"))
 
-        #lineIdPanel =  wx.Panel(parent = anSettingsPanel)
-        #lineIdLabel = wx.StaticText(parent = lineIdPanel, id = wx.ID_ANY, label =_("Id of line:"))
-        #elf.anSettings["line_id"] = wx.SpinCtrl(parent = lineIdPanel, id = wx.ID_ANY, min = 1, max = maxValue)
-        #resId = int(UserSettings.Get(group ='vnet', key ='analysis_settings', subkey = 'resultId'))
-        #self.anSettings["line_id"].SetValue(resId)
-
         maxDistPanel =  wx.Panel(parent = anSettingsPanel)
         maxDistLabel = wx.StaticText(parent = maxDistPanel, id = wx.ID_ANY, label = _("Maximum distance of point to the network:"))
         self.anSettings["max_dist"] = wx.SpinCtrl(parent = maxDistPanel, id = wx.ID_ANY, min = 0, max = maxValue) #TODO
-        #maxDist = int(UserSettings.Get(group = 'vnet', key = 'analysis_settings', subkey ='maxDist'))
         self.anSettings["max_dist"].SetValue(100000) #TODO init val
 
         #showCutPanel =  wx.Panel(parent = anSettingsPanel)
@@ -259,13 +285,6 @@ class VNETDialog(wx.Dialog):
         listSizer.Add(item = self.list, proportion = 1, flag = wx.EXPAND)
 
         anSettingsSizer = wx.StaticBoxSizer(anSettingsBox, wx.VERTICAL)
-
-        #lineIdSizer = wx.BoxSizer(wx.HORIZONTAL)
-        #lineIdSizer.Add(item = lineIdLabel, flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)
-        #lineIdSizer.Add(item = self.anSettings["line_id"],
-        #                flag = wx.EXPAND | wx.ALL, border = 5, proportion = 0)
-        #lineIdPanel.SetSizer(lineIdSizer)
-        #anSettingsSizer.Add(item = lineIdPanel, proportion = 1, flag = wx.EXPAND)
 
         maxDistSizer = wx.BoxSizer(wx.HORIZONTAL)
         maxDistSizer.Add(item = maxDistLabel, flag = wx.ALIGN_CENTER_VERTICAL, proportion = 1)
@@ -296,7 +315,7 @@ class VNETDialog(wx.Dialog):
     def OnShowCut(self, event):
         """!Shows vector map with minimal cut (v.net.flow) - not yet implemented"""
         val = event.IsChecked()
-        if val:
+        if val and self.tmp_result:
             self.tmp_result.DeleteRenderLayer()
             cmd = self.GetLayerStyle()
             self.vnetFlowTmpCut.AddRenderLayer(cmd)
@@ -321,10 +340,9 @@ class VNETDialog(wx.Dialog):
 
         self.goutput = GMConsole(parent = outputPanel, margin = False)
 
+        #Layout
         outputSizer = wx.BoxSizer(wx.VERTICAL)
-
         outputSizer.Add(item = self.goutput, proportion = 1, flag = wx.EXPAND)
-        # overridden outputSizer.SetSizeHints(self) in GMConsole _layout
         self.goutput.SetMinSize((-1,-1))
 
         outputPanel.SetSizer(outputSizer)
@@ -406,7 +424,7 @@ class VNETDialog(wx.Dialog):
         dataPanel.SetSizer(mainSizer)
 
     def _doSelLayout(self, title, sel, btn = None): 
-
+        # helper function for layout of self.inputData widgets initialized in _createParametersPage
         selSizer = wx.BoxSizer(orient = wx.VERTICAL)
 
         selTitleSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -434,12 +452,11 @@ class VNETDialog(wx.Dialog):
         return selSizer
 
     def _createInputDbMgrPage(self):
-
-        self.inpDbMgrData = {}
+        """!Tab with attribute tables of analysis input layers"""
         self.inpDbMgrData['dbMgr'] = DbMgrBase()
  
         selMapName = None       
-        # if selected vector map in layer tree then set it
+        # if selected vector map is in layer tree then set it
         if self.mapWin.tree and self.mapWin.tree.layer_selected:
             selMapData = self.mapWin.tree.GetPyData(self.mapWin.tree.layer_selected)[0]
             if selMapData['type'] == 'vector': # wrap somehow in LayerTree
@@ -455,7 +472,7 @@ class VNETDialog(wx.Dialog):
             self.OnVectSel(None)
 
     def _updateInputDbMgrPage(self, show):
-
+        """!Show or Hide Input tables tab"""
         if show and self.notebook.GetPageIndexByName('inputDbMgr') == -1:
             self.notebook.AddPage(page = self.inpDbMgrData['browse'],
                                   text=_('Input tables'), 
@@ -464,8 +481,7 @@ class VNETDialog(wx.Dialog):
             self.notebook.RemovePage(page = 'inputDbMgr')
 
     def _createResultDbMgrPage(self):
-
-        self.resultDbMgrData = {}
+        """!Tab with attribute tables of analysis result layers"""
         self.resultDbMgrData['dbMgr'] = DbMgrBase() 
         self.resultDbMgrData['browse'] = self.resultDbMgrData['dbMgr'].CreateDbMgrPage(parent = self.notebook,
                                                                                        pageName = 'browse')
@@ -477,8 +493,10 @@ class VNETDialog(wx.Dialog):
             self.resultDbMgrData['input'] = None
 
     def _updateResultDbMgrPage(self):
-
+        """!Show or Hide Result tables tab"""
+        # analysis, which created result
         analysis = self.resultDbMgrData['analysis']
+        #TODO maybe no need to store this information, just check it has attr table, if so show it
         haveDbMgr = self.vnetParams[analysis]["resultProps"]["dbMgr"]
 
         if haveDbMgr and self.notebook.GetPageIndexByName('resultDbMgr') == -1:
@@ -489,6 +507,7 @@ class VNETDialog(wx.Dialog):
             self.notebook.RemovePage(page = 'resultDbMgr')
 
     def OnPageChanged(self, event):
+        """!Tab switched"""
         if event.GetEventObject() == self.notebook:
             dbMgrIndxs = []
             dbMgrIndxs.append(self.notebook.GetPageIndexByName('inputDbMgr'))
@@ -499,8 +518,13 @@ class VNETDialog(wx.Dialog):
                                          priority = self.stPriorities['important'])
                 self._updateDbMgrData()
                 self.stBar.RemoveStatusItem(key = 'dbMgr')
+            # update of columns (when some is added in input tables browser), TODO needs optimization  
+            elif  self.notebook.GetSelection() == self.notebook.GetPageIndexByName('parameters'):
+                self.OnALayerSel(None) 
+                self.OnNLayerSel(None)
 
     def _updateDbMgrData(self):
+            """!Updates input/result tables page """
             if self.notebook.GetSelection() == self.notebook.GetPageIndexByName('inputDbMgr'):
                 self._updateInputDbMgrData()
             elif self.notebook.GetSelection() == self.notebook.GetPageIndexByName('resultDbMgr'):
@@ -509,7 +533,9 @@ class VNETDialog(wx.Dialog):
                 self.stBar.RemoveStatusItem('manager')   
 
     def _updateInputDbMgrData(self):
+        """!Loads data according to selected layers in Parameters tab"""
         inpSel = self.inputData['input'].GetValue().strip()
+        # changed vector map
         if self.inpDbMgrData['input'] != inpSel:
             wx.BeginBusyCursor()
             self.inpDbMgrData['dbMgr'].ChangeVectorMap(vectorName = inpSel)
@@ -521,6 +547,7 @@ class VNETDialog(wx.Dialog):
                     continue
                 self.inpDbMgrData['browse'].AddLayer(layer)
             wx.EndBusyCursor()
+        # same vector map
         else:
             needLayers = []
             browseLayers = self.inpDbMgrData['browse'].GetAddedLayers()
@@ -544,20 +571,24 @@ class VNETDialog(wx.Dialog):
                     self.inpDbMgrData['browse'].DeletePage(layer)
 
     def _updateResultDbMgrData(self):
-
+        """!Loads data from analysis result map"""
         if not self.tmp_result:
-            pass
-        elif self.resultDbMgrData['input'] != self.tmp_result.GetVectMapName():
+            return
+        vectName = self.tmp_result.GetVectMapName()
+
+        if self.resultDbMgrData['input'] != vectName:
             wx.BeginBusyCursor()
-            vectName = self.tmp_result.GetVectMapName()
-            self.resultDbMgrData['dbMgr'].ChangeVectorMap(vectorName = self.tmp_result.GetVectMapName())  
-            for layer in self.resultDbMgrData['dbMgr'].GetVectorLayers():
+            dbMgr = self.resultDbMgrData['dbMgr']
+            dbMgr.ChangeVectorMap(vectorName = vectName)
+
+            for layer in dbMgr.GetVectorLayers():
                 self.resultDbMgrData['browse'].AddLayer(layer)
-            self.resultDbMgrData['input'] = self.tmp_result.GetVectMapName()
+
+            self.resultDbMgrData['input'] = vectName
             wx.EndBusyCursor()
 
     def OnToTreeBtn(self, event):
-        """!Adds vector map into layer tree (button next to map select)"""
+        """!Add vector map into layer tree"""
         vectorMap = self.inputData['input'].GetValue()
         vectMapName, mapSet = self._parseMapStr(vectorMap)
         vectorMap = vectMapName + '@' + mapSet
@@ -577,8 +608,8 @@ class VNETDialog(wx.Dialog):
                                       lchecked = True)           
 
     def OnVectSel(self, event):
-        """!When vector map is selected populates other selects (layer selects, columns selects)"""
-        if self.snapping:
+        """!When vector map is selected populates other comboboxes in Parametrs tab (layer selects, columns selects)"""
+        if self.snapData['snap_mode']:
             self.OnSnapping(event = None)
 
         vectMapName, mapSet = self._parseMapStr(self.inputData['input'].GetValue())
@@ -634,7 +665,7 @@ class VNETDialog(wx.Dialog):
 
     def OnNLayerSel(self, event):
         """!When node layer from vector map is selected, populates corespondent column select"""
-        if self.snapping:
+        if self.snapData['snap_mode']:
             self.OnSnapping(event = None)
 
         self.inputData['ncolumn'].InsertColumns(vector = self.inputData['input'].GetValue(), 
@@ -694,7 +725,7 @@ class VNETDialog(wx.Dialog):
         
         return mapName, mapSet      
 
-    def InputsErrorMsgs(self, strToStart, inpToTest = None):#TODO strToStart don like it
+    def InputsErrorMsgs(self, msg, inpToTest = None):
 
         errInput = self._getInvalidInputs(inpToTest)
 
@@ -709,7 +740,7 @@ class VNETDialog(wx.Dialog):
 
         if errMapStr:
             GMessage(parent = self,
-                     message = strToStart + "\n" + errMapStr)
+                     message = msg + "\n" + errMapStr)
             return False
 
         errLayerStr = ""
@@ -725,7 +756,7 @@ class VNETDialog(wx.Dialog):
                                    (layerLabel)
         if errLayerStr:
             GMessage(parent = self,
-                     message = strToStart + "\n" + errLayerStr)
+                     message = msg + "\n" + errLayerStr)
             return False
 
         errColStr = ""
@@ -737,7 +768,7 @@ class VNETDialog(wx.Dialog):
         if errColStr:
             self.notebook.SetSelectionByName("parameters")                   
             GMessage(parent = self,
-                     message =strToStart + "\n" + errColStr)
+                     message = msg + "\n" + errColStr)
             return False
 
         return True
@@ -750,7 +781,7 @@ class VNETDialog(wx.Dialog):
     def SetPointStatus(self, item, itemIndex):
         """!Before point is drawn, decides properties of drawing style"""
         key = self.list.GetItemData(itemIndex)
-        point = self.list.itemDataMap[key] #TODO public method in list?
+        idxs = self.list.selIdxs[key] #TODO public method in list?
 
         cats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
 
@@ -760,7 +791,7 @@ class VNETDialog(wx.Dialog):
                 wxPen = "unused"
                 item.hide = False
         elif len(cats) > 1:
-            if point[1] == cats[1][1]:
+            if idxs[1] == 2: #End/To/Sink point
                 wxPen = "used2cat"
             else:
                 wxPen = "used1cat"              
@@ -789,7 +820,7 @@ class VNETDialog(wx.Dialog):
         index = self.list.selected
         key = self.list.GetItemData(index)
 
-        if self.snapping:
+        if self.snapData['snap_mode']:
             coords = [e, n]
             if self._snapPoint(coords):
                 self.list.EditCellKey(key = self.list.selected , 
@@ -815,8 +846,6 @@ class VNETDialog(wx.Dialog):
         else:
             self.list.selected += 1
         self.list.Select(self.list.selected)
-
-        self.mapWin.UpdateMap(render=False, renderVector=False)
 
     def _snapPoint(self, coords):
 
@@ -875,7 +904,7 @@ class VNETDialog(wx.Dialog):
     def OnAnalyze(self, event):
         """!Called when network analysis is started"""
         # Check of parameters for analysis
-        if not self.InputsErrorMsgs(strToStart = _("Analysis can not be done.")):
+        if not self.InputsErrorMsgs(msg = _("Analysis can not be done.")):
             return
 
         if self.tmp_result:
@@ -891,6 +920,10 @@ class VNETDialog(wx.Dialog):
         self.stBar.AddStatusItem(text = _('Analysing...'),
                                  key = 'analyze',
                                  priority =  self.stPriorities['important'])
+        
+        RunCommand('g.remove', 
+                    vect = self.tmp_result.GetVectMapName())
+
         self._saveAnInputToHist()
 
         self.resultDbMgrData['analysis'] = self.currAnModule
@@ -911,23 +944,17 @@ class VNETDialog(wx.Dialog):
         """!Called when analysis is run for v.net.path module"""
         if len(self.pointsToDraw.GetAllItems()) < 1:
             return
-
-        catPts = self._getPtByCat()
         cats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
 
         cmdPts = []
         for cat in cats:
             if  len(catPts[cat[0]]) < 1:
                 GMessage(parent = self,
-                         message=_("Pleas choose 'to' and 'from' point."))
+                         message=_("Please choose '%s' and '%s' point.") % (cats[0][1], cats[1][1]))
                 return
             cmdPts.append(catPts[cat[0]][0])
 
-
-        resId = 1 #int(UserSettings.Get(group ='vnet', 
-                  #                     key = 'analysis_settings', 
-                  #                     subkey = 'resultId'))
-
+        resId = 1
         inpPoints = str(resId) + " " + str(cmdPts[0][0]) + " " + str(cmdPts[0][1]) + \
                                  " " + str(cmdPts[1][0]) + " " + str(cmdPts[1][1])
 
@@ -937,10 +964,6 @@ class VNETDialog(wx.Dialog):
         coordsTmpFileOpened.close()
 
         cmdParams.append("file=" + self.coordsTmpFile)
-
-        #dmax = int(UserSettings.Get(group = 'vnet', 
-        #                            key ='analysis_settings', 
-        #                            subkey ='maxDist'))
 
         cmdParams.append("dmax=" + str(self.anSettings["max_dist"].GetValue()))
         cmdParams.append("input=" + self.inputData['input'].GetValue())
@@ -963,24 +986,41 @@ class VNETDialog(wx.Dialog):
         cmd = self.GetLayerStyle()
         self.tmp_result.AddRenderLayer(cmd)
         self.mapWin.UpdateMap(render=True, renderVector=True)
+        mainToolbar = self.toolbars['mainToolbar']
+        id = vars(mainToolbar)['showResult']
+        mainToolbar.ToggleTool(id =id,
+                               toggle = True)
+
         self.stBar.RemoveStatusItem(key = 'analyze')
 
     def _runAn(self, cmdParams, catPts):
         """!Called for all v.net.* analysis (except v.net.path)"""
-        # TODO how to get output in ondone function
-        #cmdCategory = [ "v.category",
-        #                "input=" + self.inputData['input'].GetValue(),
-        #                "option=report",
-        #                "-g",
-        #              ]
-        cats = RunCommand("v.category",
+
+        cats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
+
+        if len(cats) > 1:
+            for cat in cats:
+                if  len(catPts[cat[0]]) < 1:
+                    GMessage(parent = self, 
+                            message = _("Please choose '%s' and '%s' point.") \
+                                        % (cats[0][1], cats[1][1]))
+                    return
+        else:
+            for cat in cats:
+                if  len(catPts[cat[0]]) < 2:
+                    GMessage(parent = self, 
+                             message = _("Please choose at least two points."))
+                return        
+
+        # TODO add also to thread for analysis?
+        vcatResult = RunCommand("v.category",
                            input = self.inputData['input'].GetValue(),
                            option = "report",
                            flags = "g",
                            read = True)     
 
-        cats = cats.splitlines()
-        for cat in cats:#TODO
+        vcatResult = vcatResult.splitlines()
+        for cat in vcatResult:#TODO
             cat = cat.split()
             if "all" in cat:
                 maxCat = int(cat[4])
@@ -992,7 +1032,7 @@ class VNETDialog(wx.Dialog):
                                                 maxCat = maxCat, 
                                                 layerNum = layerNum)
 
-        self.tmpPtsAsciiFile = grass.tempfile()#TODO tmp files cleanup
+        self.tmpPtsAsciiFile = grass.tempfile()#TODO better tmp files cleanup (when interrupt)
         tmpPtsAsciiFileOpened = open(self.tmpPtsAsciiFile, 'w')
         tmpPtsAsciiFileOpened.write(pt_ascii)
         tmpPtsAsciiFileOpened.close()
@@ -1004,9 +1044,6 @@ class VNETDialog(wx.Dialog):
         self.tmpInPtsConnected = self._addTmpMapAnalysisMsg("vnet_tmp_in_pts_connected")
         if not self.tmpInPtsConnected:
             return
-        #dmax = int(UserSettings.Get(group = 'vnet', 
-        #                            key ='analysis_settings', 
-        #                            subkey ='maxDist'))
 
         cmdParams.append("input=" + self.tmpInPtsConnected.GetVectMapName())
         cmdParams.append("--overwrite")  
@@ -1074,6 +1111,11 @@ class VNETDialog(wx.Dialog):
         cmd = self.GetLayerStyle()
         self.tmp_result.AddRenderLayer(cmd)
         self.mapWin.UpdateMap(render=True, renderVector=True)
+        mainToolbar = self.toolbars['mainToolbar']
+        id = vars(mainToolbar)['showResult']
+        mainToolbar.ToggleTool(id =id,
+                               toggle = True)
+
         self.stBar.RemoveStatusItem(key = 'analyze')
 
     def _getInputParams(self):
@@ -1143,13 +1185,12 @@ class VNETDialog(wx.Dialog):
     def CheckAnMapState(self, vectMap):
 
         vectMapState = vectMap.VectMapState()
-
         if vectMapState == 0:
             dlg = wx.MessageDialog(parent = self,
                                    message = _("Map %s was changed outside " +
                                                 "of vector network analysis tool. " +
                                                 "Do you want to continue in analysis and " +
-                                                "overwrite it?") % (self.vectMap.GetVectMapName()),
+                                                "overwrite it?") % (vectMap.GetVectMapName()),
                                    caption = _("Overwrite map"),
                                    style = wx.YES_NO | wx.NO_DEFAULT |
                                            wx.ICON_QUESTION | wx.CENTRE)            
@@ -1196,17 +1237,21 @@ class VNETDialog(wx.Dialog):
         return layerStyleCmd 
 
     def OnShowResult(self, event):
-        """!Shows, hides analysis result - not yet implemented"""
+        """!Shows, hides analysis result"""
         mainToolbar = self.toolbars['mainToolbar']
-        id = vars(mainToolbar)['showResult'] #TODO
+        id = vars(mainToolbar)['showResult']
         toggleState = mainToolbar.GetToolState(id)
 
-        if toggleState:
+        if not self.tmp_result:
+            mainToolbar.ToggleTool(id =id,
+                                   toggle = False)
+        elif toggleState:
+            self.CheckAnMapState(self.tmp_result)
             cmd = self.GetLayerStyle()
             self.tmp_result.AddRenderLayer(cmd)
         else:
             cmd = self.GetLayerStyle()
-            self.tmp_result.DeleteRenderLayer(cmd)
+            self.tmp_result.DeleteRenderLayer()
 
         self.mapWin.UpdateMap(render=True, renderVector=True)
 
@@ -1296,7 +1341,7 @@ class VNETDialog(wx.Dialog):
         """!Updates dialog when analysis is changed"""
         # finds module name according to value in anChoice
         for module, params in self.vnetParams.iteritems():
-            chLabel = self.toolbars['mainToolbar'].anChoice.GetValue()
+            chLabel = self.toolbars['analysisToolbar'].anChoice.GetValue()
             if params["label"] == chLabel:
                 self.currAnModule = module
                 break
@@ -1344,11 +1389,8 @@ class VNETDialog(wx.Dialog):
             if not self.list.IsShown('type'):
                 self.list.ShowColumn('type', 1)
 
-            prevParamsCats = self.vnetParams[self.prev2catsAnModule]["cmdParams"]["cats"]
             currParamsCats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
-
-            self.list._adaptPointsList(currParamsCats, prevParamsCats)
-            self.prev2catsAnModule = self.currAnModule
+            self.list.AdaptPointsList(currParamsCats)
         else:
             if self.list.IsShown('type'):
                 self.list.HideColumn('type')
@@ -1357,7 +1399,7 @@ class VNETDialog(wx.Dialog):
 
         ptListToolbar = self.toolbars['pointsList']
         if not haveCtypes:
-            ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snapping"),
+            ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snappingsnapping"),
                                      toggle = False)
             GMessage(parent = self,
                      message = _("Unable to use ctypes. \n") + \
@@ -1373,10 +1415,10 @@ class VNETDialog(wx.Dialog):
                 self.mapWin.UpdateMap(render = False, renderVector = False)
             if self.snapData.has_key('cmdThread'):
                 self.snapData['cmdThread'].abort()
-            self.snapping = False
+            self.snapData['snap_mode'] = False
             return  
 
-        if not self.InputsErrorMsgs(strToStart = _("Snapping mode can not be activated."),
+        if not self.InputsErrorMsgs(msg = _("Snapping mode can not be activated."),
                                     inpToTest = ["input", "nlayer"]):
 
             ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snapping"),
@@ -1410,9 +1452,8 @@ class VNETDialog(wx.Dialog):
                                              toggle = False)
                     return
 
-        self.snapping = True
+        self.snapData['snap_mode'] = True
 
-        currMapSet = grass.gisenv()['MAPSET'] 
         inpName = self.inputData['input'].GetValue()
         inpName, mapSet = self._parseMapStr(inpName)
         inpFullName = inpName + '@' + mapSet
@@ -1483,11 +1524,15 @@ class VNETDialog(wx.Dialog):
                              subkey = [ptName, "coords"], 
                              value = coords)
 
-            if self.list.IsShown('type'):
+            if  len(self.vnetParams[self.currAnModule]["cmdParams"]["cats"]) > 1:
                 cat = self.list.GetCellText(iPt, 'type')
                 self.history.Add(key = "points", 
-                                 subkey = [ptName, "cat"], 
+                                 subkey = [ptName, "catIdx"], 
                                  value = cat)
+            else:
+                self.history.Add(key = 'points_hidden_cols', 
+                                 subkey = 'type', 
+                                 value = self.list.GetHiddenColSelIdxs('type'))
 
             topology = self.list.GetCellText(iPt, 'topology')
             self.history.Add(key = "points", 
@@ -1501,21 +1546,25 @@ class VNETDialog(wx.Dialog):
 
             for inpName, inp in self.inputData.iteritems():
                 if inpName == "input":
-                    currMapSet = grass.gisenv()['MAPSET'] 
-                    inpMap = VectMap(self, inp.GetValue() + "@" + currMapSet)
+                    vectMapName, mapSet = self._parseMapStr(inp.GetValue())
+                    vectorMap = vectMapName + '@' + mapSet
+                    inpMap = VectMap(self, vectorMap)
                     self.history.Add(key = "other", 
                                      subkey = "input_modified", 
                                      value = inpMap.GetLastModified())                    
                 self.history.Add(key = "input_data", 
                                  subkey = inpName, 
                                  value = inp.GetValue())
-            #else:
-            #    self.history.Add(key = "points", 
-            #                     subkey = [ptName, "prev2catsAnModule"], 
-            #                     value = self.prev2catsAnModule)
-
             
-        self.history.Add(key = "vnet_modules", subkey = "curr_module", value = self.currAnModule)
+        self.history.Add(key = "vnet_modules", 
+                         subkey = "curr_module", 
+                         value = self.currAnModule)
+
+        for settName, sett in self.anSettings.iteritems():
+            self.history.Add(key = "an_settings", 
+                             subkey = settName, 
+                             value = sett.GetValue())
+
 
     def _saveHistStep(self):
 
@@ -1534,12 +1583,18 @@ class VNETDialog(wx.Dialog):
     def _updateHistStepData(self, histStepData):
 
         self.currAnModule = histStepData["vnet_modules"]["curr_module"]
-        anChoice = self.toolbars['mainToolbar'].anChoice
-        anChoice.SetStringSelection(self.vnetParams[self.currAnModule]["label"]) #TODO
+        anChoice = self.toolbars['analysisToolbar'].anChoice
 
         self.list.SetUpdateMap(updateMap = False)
         while self.list.GetSelected() != wx.NOT_FOUND:
             self.list.DeleteItem()
+
+        if  len(self.vnetParams[self.currAnModule]["cmdParams"]["cats"]) > 1:
+            hasType = True
+            self.list.ShowColumn('type', 1)
+        else:
+            hasType = False
+            self.list.HideColumn('type')
 
         for iPt in range(len(histStepData["points"])):
 
@@ -1549,16 +1604,21 @@ class VNETDialog(wx.Dialog):
             item = self.pointsToDraw.GetItem(iPt)
             item.SetCoords(coords)
 
-            if ptData.has_key('cat'):
-                self.list.ShowColumn('type', 1)
-                self.list.EditCellKey(iPt, 'type', ptData["cat"])
-            else:
-                self.list.HideColumn('type')
+            if hasType:
+                self.list.EditCellKey(iPt, 'type', int(ptData["catIdx"]))
 
             self.list.EditCellKey(iPt, 'topology', ptData["topology"])           
 
             if ptData["checked"]:
                 self.list.CheckItem(iPt, True)
+
+        if hasType:
+            currParamsCats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
+            self.list.AdaptPointsList(currParamsCats)
+        else:
+            self.list.SetHiddenSelIdxs('type', histStepData["points_hidden_cols"]["type"])
+
+        anChoice.SetStringSelection(self.vnetParams[self.currAnModule]["label"]) 
 
         mapsNames = histStepData["tmp_data"]["maps"]
         for vectMapName in mapsNames:
@@ -1571,18 +1631,24 @@ class VNETDialog(wx.Dialog):
                 self.tmp_result.AddRenderLayer(cmd)
 
         histInputData = histStepData["input_data"]
-
         for inpName, inp in histInputData.iteritems():
-            self.inputData[inpName].SetValue(str(inp)) #TODO order?
+            self.inputData[inpName].SetValue(str(inp)) 
             if inpName == "input":
                 inpMap = inp
 
-        prevInpModTime = histStepData["other"]["input_modified"]
+        histAnSettData = histStepData["an_settings"]
+        for settName, sett in histAnSettData.iteritems():
+            if settName == 'iso_lines':
+                sett = str(sett)
+            self.anSettings[settName].SetValue(sett) 
+
+
+        prevInpModTime = str(histStepData["other"]["input_modified"])
 
         inpMapFullName = inpMap + "@" + grass.gisenv()['MAPSET'] #TODO mapset changed?
         currInpModTime = VectMap(self, inpMapFullName).GetLastModified()
 
-        if currInpModTime != prevInpModTime:
+        if currInpModTime.strip()!= prevInpModTime.strip():
             dlg = wx.MessageDialog(parent = self,
                                    message = _("Input map '%s' for analysis was changed outside " + 
                                                "vector network analysis tool.\n" +
@@ -1595,6 +1661,7 @@ class VNETDialog(wx.Dialog):
             dlg.Destroy()
 
         self.resultDbMgrData['analysis'] = self.currAnModule
+        self._updateResultDbMgrPage()
         self._updateDbMgrData()
 
         self.list.SetUpdateMap(updateMap = True)
@@ -1617,6 +1684,7 @@ class VNETDialog(wx.Dialog):
 
         mapName = prefMapName + str(self.histTmpVectMapNum)
         self.histTmpVectMapNum += 1
+
         tmpMap = self._addTmpMapAnalysisMsg(mapName)
         if not tmpMap:
             return tmpMap
@@ -1630,8 +1698,10 @@ class VNETDialog(wx.Dialog):
 
     def _addTmpMapAnalysisMsg(self, mapName):
 
-        endStr = _("Do you want to continue in analysis and overwrite it?")#TODO
-        tmpMap = self.tmpMaps.AddTmpVectMap(mapName, endStr)
+        msg = _("Temporary map %s  already exists.\n"  + 
+                "Do you want to continue in analysis and overwrite it?") \
+                 % (mapName +'@' + grass.gisenv()['MAPSET'])
+        tmpMap = self.tmpMaps.AddTmpVectMap(mapName, msg)
         return tmpMap
 
 
@@ -1679,7 +1749,7 @@ class VNETDialog(wx.Dialog):
                                                   },
 
                                     "v.net.salesman" : {
-                                                        "label" : _("Salesman %s") % "(v.net.salesman)",  
+                                                        "label" : _("Traveling salesman %s") % "(v.net.salesman)",  
                                                         "cmdParams" : {
                                                                         "cats" : [["ccats", None]],
                                                                         "cols" : [
@@ -1693,7 +1763,7 @@ class VNETDialog(wx.Dialog):
                                                                         }
                                                        },
                                     "v.net.flow" : {
-                                                     "label" : _("Flow %s") % "(v.net.flow)",  
+                                                     "label" : _("Maximum flow %s") % "(v.net.flow)",  
                                                      "cmdParams" : {
                                                                       "cats" : [
                                                                                 ["source_cats", _("Source point")], 
@@ -1711,7 +1781,7 @@ class VNETDialog(wx.Dialog):
                                                                      }
                                                    },
                                     "v.net.alloc" : {
-                                                     "label" : _("Allocate subnets for nearest centers %s") % "(v.net.alloc)",  
+                                                     "label" : _("Subnets for nearest centers %s") % "(v.net.alloc)",  
                                                      "cmdParams" : {
                                                                       "cats" : [["ccats", None]],                           
                                                                       "cols" : [
@@ -1726,7 +1796,7 @@ class VNETDialog(wx.Dialog):
                                                                       }
                                                    },
                                     "v.net.steiner" : {
-                                                     "label" : _("Create Steiner tree for the network and given terminals %s") % "(v.net.steiner)",  
+                                                     "label" : _("Steiner tree for the network and given terminals %s") % "(v.net.steiner)",  
                                                      "cmdParams" : {
                                                                       "cats" : [["tcats", None]],                           
                                                                       "cols" : [
@@ -1739,7 +1809,7 @@ class VNETDialog(wx.Dialog):
                                                                      }
                                                    },
                                    "v.net.distance" : {
-                                                       "label" : _("Computes shortest distance via the network %s") % "(v.net.distance)",  
+                                                       "label" : _("Shortest distance via the network %s") % "(v.net.distance)",  
                                                        "cmdParams" : {
                                                                         "cats" : [
                                                                                   ["from_cats", "From point"],
@@ -1757,7 +1827,7 @@ class VNETDialog(wx.Dialog):
                                                                       }
                                                      },
                                     "v.net.iso" :  {
-                                                     "label" : _("Splits net by cost isolines %s") % "(v.net.iso)",  
+                                                     "label" : _("Cost isolines %s") % "(v.net.iso)",  
                                                      "cmdParams" : {
                                                                       "cats" : [["ccats", None]],                           
                                                                       "cols" : [
@@ -1779,10 +1849,9 @@ class VNETDialog(wx.Dialog):
                                  "v.net.alloc",
                                  "v.net.distance",
                                  "v.net.iso",
-                                 "v.net.steiner"
+                                 #"v.net.steiner"
                                  ] # order in the choice of analysis
         self.currAnModule = self.vnetModulesOrder[0]
-        self.prev2catsAnModule = self.vnetModulesOrder[0]
 
     def _initSettings(self):
         """!Initialization of settings (if not already defined)"""
@@ -1877,22 +1946,17 @@ class PtsList(PointsList):
         if self.updateMap:
             self.dialog.mapWin.UpdateMap(render=False, renderVector=False)
 
-    def _adaptPointsList(self, currParamsCats, prevParamsCats):
+    def AdaptPointsList(self, currParamsCats):
         """Rename category values when module is changed. Expample: Start point -> Sink point"""
-        for iItem, item in enumerate(self.itemDataMap):            
-            iCat = 0
-            for ptCat in prevParamsCats:
-                if self.itemDataMap[iItem][1] ==  ptCat[1]:
-                    self.EditCellKey(iItem, 'type', currParamsCats[iCat][1])
-                iCat += 1
-            if not item[1]:               
-                self.CheckItem(iItem, False)
-
         colValues = [""]
         for ptCat in currParamsCats:
             colValues.append(ptCat[1])
-
+        colNum = self._getColumnNum('type')
         self.ChangeColEditable('type', colValues)
+        for iItem, item in enumerate(self.itemDataMap): 
+            self.EditCellKey(iItem, 'type', self.selIdxs[iItem][colNum])
+            if not item[1]:               
+                self.CheckItem(iItem, False)
    
     def OnCheckItem(self, index, flag):
         """!Item is checked/unchecked"""
@@ -1937,6 +2001,21 @@ class PtsList(PointsList):
     def SetUpdateMap(self, updateMap):
         self.updateMap = updateMap
 
+    def GetHiddenColSelIdxs(self, colName):
+
+        if self.hiddenCols.has_key(colName):
+            return self.hiddenCols[colName]['selIdxs']
+        return None
+
+    def SetHiddenSelIdxs(self, colName, selIdxs):
+
+        if self.hiddenCols.has_key(colName):
+            self.hiddenCols[colName]['selIdxs'] = map(int, selIdxs)
+            self.hiddenCols[colName]['itemDataMap'] = []
+            for idx in self.hiddenCols[colName]['selIdxs']:
+                    self.hiddenCols[colName]['itemDataMap'].append(self.hiddenCols[colName]['colsData'][2][idx])
+            return True
+        return False
 
 class SettingsDialog(wx.Dialog):
     def __init__(self, parent, id, title, pos=wx.DefaultPosition, size=wx.DefaultSize,
@@ -1944,9 +2023,9 @@ class SettingsDialog(wx.Dialog):
         """!Settings for v.net analysis dialog"""
         wx.Dialog.__init__(self, parent, id, title, pos, size, style)
 
-        self.settings = {}
         maxValue = 1e8
         self.parent = parent
+        self.settings = {}
 
         rules = RunCommand('v.colors', 
                            read = True,
@@ -2159,16 +2238,17 @@ class SettingsDialog(wx.Dialog):
 
 class AddLayerDialog(wx.Dialog):
     def __init__(self, parent,id=wx.ID_ANY,
-                 title =_("Add analysis result into layer tree"), style=wx.DEFAULT_DIALOG_STYLE):
-        """!Adds vector map with analysis result into layer tree"""
+                 title =_("Save analysis result"), style=wx.DEFAULT_DIALOG_STYLE):
+        """!Save analysis result"""
         wx.Dialog.__init__(self, parent, id, title = _(title), style = style)
 
         self.panel = wx.Panel(parent = self)
        
         # text fields and it's captions
-        self.vectSel = Select(parent = self.panel, type = 'vector', size = (-1, -1))
+        self.vectSel = Select(parent = self.panel, type = 'vector', 
+                              mapsets = [grass.gisenv()['MAPSET']],size = (-1, -1))
         self.vectSellabel = wx.StaticText(parent = self.panel, id = wx.ID_ANY,
-                                          label = _("Map name:")) 
+                                          label = _("Name:")) 
 
         # buttons
         self.btnCancel = wx.Button(self.panel, wx.ID_CANCEL)
@@ -2183,7 +2263,7 @@ class AddLayerDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         box = wx.StaticBox (parent = self.panel, id = wx.ID_ANY,
-                            label = "Added vector map")
+                            label = "Vector map")
 
         boxSizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
 
@@ -2215,7 +2295,7 @@ class VnetTmpVectMaps:
         self.parent = parent
         self.mapWin = self.parent.mapWin
 
-    def AddTmpVectMap(self, mapName, endStr):
+    def AddTmpVectMap(self, mapName, msg):
         
         currMapSet = grass.gisenv()['MAPSET']
         tmpMap = grass.find_file(name = mapName, 
@@ -2225,8 +2305,7 @@ class VnetTmpVectMaps:
         fullName = tmpMap["fullname"]
         if fullName:
             dlg = wx.MessageDialog(parent = self.parent,
-                                   message = _("Temporary map %s  already exists.\n"  + 
-                                               endStr) % fullName,
+                                   message = msg,
                                    caption = _("Overwrite map layer"),
                                    style = wx.YES_NO | wx.NO_DEFAULT |
                                    wx.ICON_QUESTION | wx.CENTRE)
@@ -2275,11 +2354,13 @@ class VnetTmpVectMaps:
             return False
 
     def DeleteTmpMap(self, vectMap):
-
-        vectMap.DeleteRenderLayer()
-        RunCommand('g.remove', 
-                    vect = vectMap.GetVectMapName())
-        self.RemoveFromTmpMaps(vectMap)
+        if vectMap:
+            vectMap.DeleteRenderLayer()
+            RunCommand('g.remove', 
+                        vect = vectMap.GetVectMapName())
+            self.RemoveFromTmpMaps(vectMap)
+            return True
+        return False
 
     def DeleteAllTmpMaps(self):
 
@@ -2354,12 +2435,15 @@ class VectMap:
 
     def GetLastModified(self):
 
-        name = self.fullName.split("@")[0]
+        mapValSpl = self.fullName.split("@")
+        mapSet = mapValSpl[1]
+        mapName = mapValSpl[0] 
+
         headPath =  os.path.join(grass.gisenv()['GISDBASE'],
                                  grass.gisenv()['LOCATION_NAME'],
-                                 grass.gisenv()['MAPSET'],
+                                 mapSet,
                                  "vector",
-                                 name,
+                                 mapName,
                                  "head")
         try:
             head = open(headPath, 'r')

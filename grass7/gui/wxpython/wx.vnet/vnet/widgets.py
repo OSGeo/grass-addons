@@ -91,7 +91,7 @@ class PointsList(wx.ListCtrl,
         self.dataTypes = {"colName" : 0,
                           "colLabel" : 1,
                           "colEditable" : 2,
-                          "itemDefaultVal" : 3} # just for better understanding
+                          "itemDefaultValue" : 3} # just for better understanding
 
         # tracks whether list items are checked or not
         self.CheckList = [] 
@@ -117,12 +117,15 @@ class PointsList(wx.ListCtrl,
         self.sm_up = self.il.Add(SmallUpArrow)
 
         # initialize column sorter
-        self.itemDataMap = []
+        self.itemDataMap = [] 
         ncols = self.GetColumnCount()
         ColumnSorterMixin.__init__(self, ncols)
 
         # init to ascending sort on first click
         self._colSortFlag = [1] * ncols
+
+        # holds information about which index in choise is set
+        self.selIdxs = []
 
         self.ResizeColumns()
         self.SetColumnWidth(0, 50)
@@ -150,17 +153,29 @@ class PointsList(wx.ListCtrl,
     def AddItem(self, event):
         """!Appends an item to list with default values
         """
-        iDefVal = self.dataTypes["itemDefaultVal"]
+        iDefVal = self.dataTypes["itemDefaultValue"]
         iColEd = self.dataTypes["colEditable"]
         itemData = []
+        itemIndexes = []
         for col in self.colsData:
             if type(col[iColEd]).__name__ == "list":
                 itemData.append(col[iColEd][col[iDefVal]])
+                itemIndexes.append(col[iDefVal])
             else:
                 itemData.append(col[iDefVal])
+                itemIndexes.append(-1)# not a choise column 
+
+                
+        self.selIdxs.append(itemIndexes) 
+
         for hCol in self.hiddenCols.itervalues():    
             defVal = hCol['colsData'][iDefVal]
-            hCol['itemDataMap'].append(defVal)
+            if type(col[iColEd]).__name__ == "list":
+                hCol['itemDataMap'].append(hCol[iColEd][defVal])
+                hCol['selIdxs'].append(defVal)
+            else:
+                hCol['itemDataMap'].append(defVal)
+                hCol['selIdxs'].append(-1)
 
         self.selectedkey = self.GetItemCount()
 
@@ -182,23 +197,46 @@ class PointsList(wx.ListCtrl,
     def GetCellText(self, key, colName):
         """!Get value in cell of list using key (same regardless of sorting)
         """
-        colNum = self._getColumnNum(colName)            
-        return self.itemDataMap[key][colNum]
+        colNum = self._getColumnNum(colName)
+        iColEd = self.dataTypes["colEditable"]
+        if type(self.colsData[colNum][iColEd]).__name__ == "list":  
+            return self.selIdxs[key][colNum]
+        else:          
+            return self.itemDataMap[key][colNum]
      
     def EditCellIndex(self, index, colName, cellData):
         """!Changes value in list using key (same regardless of sorting)
         """
-        colNum = self._getColumnNum(colName)            
-        self.itemDataMap[self.GetItemData(index)][colNum] = cellData
-        self.SetStringItem(index, colNum, str(cellData))
+        colNum = self._getColumnNum(colName) 
+        key = self.GetItemData(index)
+
+        iColEd = self.dataTypes["colEditable"]
+        if type(self.colsData[colNum][iColEd]).__name__ == "list":
+            cellVal = self.colsData[colNum][iColEd][cellData]
+            self.selIdxs[key][colNum] = cellData
+        else:
+            cellVal = cellData  
+            self.selIdxs[key][colNum] = -1
+
+        self.itemDataMap[key][colNum] = cellVal
+        self.SetStringItem(index, colNum, str(cellVal))
 
     def EditCellKey(self, key, colName, cellData):
         """!Changes value in list using index (changes during sorting)
         """
         colNum = self._getColumnNum(colName)    
-        index = self.FindItemData(-1, key)        
-        self.itemDataMap[key][colNum] = cellData
-        self.SetStringItem(index, colNum, str(cellData))
+        index = self.FindItemData(-1, key)
+
+        iColEd = self.dataTypes["colEditable"]
+        if type(self.colsData[colNum][iColEd]).__name__ == "list":
+            cellVal = self.colsData[colNum][iColEd][cellData]
+            self.selIdxs[key][colNum] = cellData
+        else:
+            cellVal = cellData  
+            self.selIdxs[key][colNum] = -1
+
+        self.itemDataMap[key][colNum] = cellVal
+        self.SetStringItem(index, colNum, str(cellVal))
 
     def ChangeColEditable(self, colName, colType):
         """!Changes 3. item in constructor parameter cols (see the class constructor hint)
@@ -216,10 +254,12 @@ class PointsList(wx.ListCtrl,
         wx.ListCtrl.DeleteItem(self, self.selected)
 
         del self.itemDataMap[key]
+        self.selIdxs.pop(key)
 
         # update hidden columns
         for hCol in self.hiddenCols.itervalues():    
-            hCol['itemDataMap'].pop(key)
+            hCol['itemDataMap'].pop(key) 
+            hCol['selIdxs'].pop(key)
 
         # update key and point number
         for newkey in range(key, len(self.itemDataMap)):
@@ -243,14 +283,13 @@ class PointsList(wx.ListCtrl,
             self.selected = wx.NOT_FOUND
             self.selectedkey = -1
 
-
     def ClearItem(self, event):
         """"!Clears all values in selected item of points list and unchecks it."""
         if self.selected == wx.NOT_FOUND:
             return
         index = self.selected
 
-        iDefVal = self.dataTypes["itemDefaultVal"]
+        iDefVal = self.dataTypes["itemDefaultValue"]
         iColEd = self.dataTypes["colEditable"]
 
         i = 0
@@ -321,6 +360,7 @@ class PointsList(wx.ListCtrl,
                         changed = True
                     i += 1 
 
+        self.selIdxs[key] = dlg.GetSelectionIndexes()
         return changed
         
     def CreateEditDialog(self, data, pointNo):
@@ -400,10 +440,14 @@ class PointsList(wx.ListCtrl,
         self.hiddenCols[colName] = {}
         self.hiddenCols[colName]['wxCol'] = hiddenCol
         hiddenMaps = []
+        hiddenSelIdxs = []
         for item in self.itemDataMap:
             hiddenMaps.append(item.pop(colNum))
+        for item in self.selIdxs:
+            hiddenSelIdxs.append(item.pop(colNum))
 
         self.hiddenCols[colName]['itemDataMap'] = hiddenMaps
+        self.hiddenCols[colName]['selIdxs'] = hiddenSelIdxs
         self.hiddenCols[colName]['colsData'] = self.colsData.pop(colNum)
         self.ResizeColumns()
 
@@ -425,6 +469,8 @@ class PointsList(wx.ListCtrl,
 
             for item in enumerate(self.itemDataMap):
                 item[1].insert(pos, col['itemDataMap'][item[0]])
+            for item in enumerate(self.selIdxs):
+                item[1].insert(pos, col['selIdxs'][item[0]])
 
             self.colsData.insert(pos, col['colsData'])
 
@@ -457,6 +503,7 @@ class EditItem(wx.Dialog):
 
         wx.Dialog.__init__(self, parent, id, title=_(title), style=style)
 
+        self.parent = parent
         panel = wx.Panel(parent=self)
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -549,7 +596,6 @@ class EditItem(wx.Dialog):
         """
 
         iField = 0
-        self.data
         for cell in self.data:
             value = self.fields[iField].GetValue()
             
@@ -564,6 +610,20 @@ class EditItem(wx.Dialog):
 
         return self.data
 
+    def GetSelectionIndexes(self):
+        """!Return indexes of selected values (works just for choice columns).
+        """
+        iField = 0
+        itemIndexes = []
+        for cell in self.parent.colsData:            
+            if type(cell[2]).__name__ == "list":
+                itemIndexes.append(self.fields[iField].GetSelection())
+            else:
+                itemIndexes.append(-1) # not a choise column 
+            if cell[2]:   
+                iField += 1
+
+        return itemIndexes
 
 
 
