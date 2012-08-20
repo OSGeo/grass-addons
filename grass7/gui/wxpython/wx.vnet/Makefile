@@ -7,10 +7,11 @@ ETCDIR = $(ETC)/gui/wxpython
 
 SRCFILES := $(wildcard vnet/*)
 DSTFILES := $(patsubst %,$(ETCDIR)/%,$(SRCFILES)) $(patsubst %.py,$(ETCDIR)/%.pyc,$(filter %.py,$(SRCFILES)))
+HTMLFILES := $(wildcard *.html)
 
 DSTDIRS := $(patsubst %,$(ETCDIR)/%,vnet)
 
-default: $(DSTFILES)
+default: $(DSTFILES) $(patsubst %,$(HTMLDIR)/%,$(HTMLFILES))
 	$(MAKE) parsubdirs
 
 $(ETCDIR)/%: % | $(DSTDIRS)
