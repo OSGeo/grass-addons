@@ -80,7 +80,7 @@ class PointsList(wx.ListCtrl,
         ListCtrlAutoWidthMixin.__init__(self)
         # TextEditMixin.__init__(self)
 
-        # inserts first column with points numbers and checkoboxes
+        # inserts first column with points numbers and checkboxes
         cols.insert(0, ['use', _('use'), False, 0])
 
         self.colsData = cols
@@ -89,7 +89,7 @@ class PointsList(wx.ListCtrl,
                           "colEditable" : 2,
                           "itemDefaultValue" : 3} # just for better understanding
 
-        # tracks whether list items are checked or not
+        # information whether list items are checked or not
         self.CheckList = [] 
 
         self._createCols()
@@ -120,7 +120,8 @@ class PointsList(wx.ListCtrl,
         # init to ascending sort on first click
         self._colSortFlag = [1] * ncols
 
-        # holds information about which index in choise is set
+        # same structure as itemDataMap, information about choice index selected
+        # if cell is in column without values to choose then is -1 
         self.selIdxs = []
 
         self.ResizeColumns()
@@ -250,13 +251,13 @@ class PointsList(wx.ListCtrl,
         return -1
 
     def ChangeColEditable(self, colName, colType):
-        """!Changes 3. item in constructor parameter cols (see the class constructor hint)"""     
+        """!Change 3. item in constructor parameter cols (see the class constructor hint)"""     
         colNum = self._getColumnNum(colName)
         iColEd = self.dataTypes["colEditable"]
         self.colsData[colNum][iColEd] = colType
 
     def DeleteItem(self, event = None):
-        """!Deletes selected item in list"""
+        """!Delete selected item in list"""
         if self.selected == wx.NOT_FOUND:
             return
 
@@ -294,7 +295,7 @@ class PointsList(wx.ListCtrl,
             self.selectedkey = -1
 
     def ClearItem(self, event):
-        """"!Clears all values in selected item of points list and unchecks it."""
+        """"!Set all values to default in selected item of points list and uncheck it."""
         if self.selected == wx.NOT_FOUND:
             return
         index = self.selected
@@ -370,7 +371,8 @@ class PointsList(wx.ListCtrl,
                         changed = True
                     i += 1 
 
-        self.selIdxs[key] = dlg.GetSelectionIndexes()
+                self.selIdxs[key] = dlg.GetSelectionIndexes()
+        dlg.Destroy()
         return changed
         
     def CreateEditDialog(self, data, pointNo):
