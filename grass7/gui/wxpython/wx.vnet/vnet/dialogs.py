@@ -608,7 +608,7 @@ class VNETDialog(wx.Dialog):
                                       lchecked = True)           
 
     def OnVectSel(self, event):
-        """!When vector map is selected populates other comboboxes in Parametrs tab (layer selects, columns selects)"""
+        """!When vector map is selected populates other comboboxes in Parameters tab (layer selects, columns selects)"""
         if self.snapData['snap_mode']:
             self.OnSnapping(event = None)
 
@@ -673,17 +673,20 @@ class VNETDialog(wx.Dialog):
                                                 type = self.columnTypes)
  
     def _getInvalidInputs(self, inpToTest):
-
+        """!Check of analysis input data for invalid values (Parameters tab)"""
+        # dict of invalid values {key from self.itemData (comboboxes from Parameters tab) : invalid value}
         errInput = {}
 
         mapVal = self.inputData['input'].GetValue()
         mapName, mapSet = self._parseMapStr(mapVal)
         vectMaps = grass.list_grouped('vect')[mapSet]
 
+        #check of vector map
         if not inpToTest or "input" in inpToTest:
             if mapName not in vectMaps:
                 errInput['input'] = mapVal
 
+        #check of arc/node layer
         for layerSelName in ['alayer', 'nlayer'] :
             if not inpToTest or layerSelName in inpToTest:
 
@@ -692,6 +695,7 @@ class VNETDialog(wx.Dialog):
                 if layerVal not in layerItems:
                     errInput[layerSelName] = layerVal
 
+        #check of costs columns
         currModCols = self.vnetParams[self.currAnModule]["cmdParams"]["cols"]
         for col, colData in self.attrCols.iteritems():
             if not inpToTest or col in inpToTest:
@@ -699,7 +703,7 @@ class VNETDialog(wx.Dialog):
                 if col not in currModCols:
                     continue  
 
-                if "inputField" in self.attrCols[col]: # TODO function??
+                if "inputField" in self.attrCols[col]: 
                     colInptF = self.attrCols[col]["inputField"]
                 else:
                     colInptF = col
@@ -716,6 +720,7 @@ class VNETDialog(wx.Dialog):
         return errInput
 
     def _parseMapStr(self, vectMapStr):
+        """!Create full map name (add mapset if not present in name)"""
         mapValSpl = vectMapStr.strip().split("@")
         if len(mapValSpl) > 1:
             mapSet = mapValSpl[1]
@@ -726,7 +731,14 @@ class VNETDialog(wx.Dialog):
         return mapName, mapSet      
 
     def InputsErrorMsgs(self, msg, inpToTest = None):
+        """!Checks input data in Parameters tab and shows messages if some value is not valid
 
+            @param msg (str) - message added to start of message string 
+            @param inpToTest (list) - list of keys from self.itemData map, which says which input data should be checked,
+                                      if is empty or None, all input data are checked
+            @return True - if checked inputs are OK
+            @return False - if some of checked inputs is not ok
+        """
         errInput = self._getInvalidInputs(inpToTest)
 
         errMapStr = ""
@@ -781,8 +793,6 @@ class VNETDialog(wx.Dialog):
     def SetPointStatus(self, item, itemIndex):
         """!Before point is drawn, decides properties of drawing style"""
         key = self.list.GetItemData(itemIndex)
-        idxs = self.list.selIdxs[key] #TODO public method in list?
-
         cats = self.vnetParams[self.currAnModule]["cmdParams"]["cats"]
 
         if key == self.list.selected:
@@ -791,6 +801,7 @@ class VNETDialog(wx.Dialog):
                 wxPen = "unused"
                 item.hide = False
         elif len(cats) > 1:
+            idxs = self.list.selIdxs[key] #TODO some public method
             if idxs[1] == 2: #End/To/Sink point
                 wxPen = "used2cat"
             else:
@@ -823,21 +834,19 @@ class VNETDialog(wx.Dialog):
         if self.snapData['snap_mode']:
             coords = [e, n]
             if self._snapPoint(coords):
-                self.list.EditCellKey(key = self.list.selected , 
-                                      colName = 'topology', 
-                                      cellData = _("snapped to node"))
+                msg = ("snapped to node")
             else:
-                self.list.EditCellKey(key = self.list.selected , 
-                                    colName = 'topology', 
-                                    cellData = _("new point"))
+                msg = _("new point")
 
             e = coords[0]
             n = coords[1]
 
         else:
-            self.list.EditCellKey(key = self.list.selected , 
-                                  colName = 'topology', 
-                                  cellData = _("new point"))
+            msg = _("new point")
+
+        self.list.EditCellKey(key = self.list.selected , 
+                              colName = 'topology', 
+                              cellData = msg)
 
         self.pointsToDraw.GetItem(key).SetCoords([e, n])
 
@@ -1399,7 +1408,7 @@ class VNETDialog(wx.Dialog):
 
         ptListToolbar = self.toolbars['pointsList']
         if not haveCtypes:
-            ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snappingsnapping"),
+            ptListToolbar.ToggleTool(id = ptListToolbar.GetToolId("snapping"),
                                      toggle = False)
             GMessage(parent = self,
                      message = _("Unable to use ctypes. \n") + \
@@ -1459,7 +1468,7 @@ class VNETDialog(wx.Dialog):
         inpFullName = inpName + '@' + mapSet
         computeNodes = True
 
-        if not self.snapData:
+        if not self.snapData.has_key("inputMap"):
             pass
         elif inpFullName != self.snapData["inputMap"].GetVectMapName():
             self.snapData["inputMap"] = VectMap(self, inpFullName)
