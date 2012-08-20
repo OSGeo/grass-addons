@@ -39,7 +39,7 @@ class PointsList(wx.ListCtrl,
                  wx.LC_SINGLE_SEL):
         """!Creates list for points. 
 
-        PointsList class was extracted from GCPList class in GCP manager. It is possible 
+        PointsList class was created from GCPList class in GCP manager. It is possible 
         to be shared by GCP and VNET front end.
 
         Important parameters:
@@ -52,7 +52,7 @@ class PointsList(wx.ListCtrl,
                -3. item: If column is editable by user, it must contain convert function to convert
                          inserted string to it's type for sorting. Use None for not editable 
                          columns. Values for insertion can be in list. This allows insert
-                         just values in the list during user edits. 
+                         just values in the list. 
                -4. item: Default value for column cell. Value should be given in it's  type 
                          in order to sorting would work properly. If 3. item is list, it must be index
                          of some item in the list.
@@ -70,11 +70,7 @@ class PointsList(wx.ListCtrl,
                    ['type', _('type'), [_(""), _("Start point"), _("End point")], 0] # Select from 3 choices ("Start point", "End point"), 
                                                                                      # Choice with index 0 ("") is default.
                   ]
-        @endcode
-
-        List self.itemDataMap stores data for sorting comparison, it can be used 
-        for getting present data in list. It should not be modified. 
- 
+        @endcode 
         """
 
         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
@@ -131,8 +127,7 @@ class PointsList(wx.ListCtrl,
         self.SetColumnWidth(0, 50)
 
     def _createCols(self):
-        """!Creates columns in list
-        """
+        """!Creates columns in list"""
         if 0:
             # normal, simple columns
             for col in enumerate(self.colsData):
@@ -151,8 +146,7 @@ class PointsList(wx.ListCtrl,
                 self.InsertColumnInfo(col[0], info)
 
     def AddItem(self, event):
-        """!Appends an item to list with default values
-        """
+        """!Appends an item to list with default values"""
         iDefVal = self.dataTypes["itemDefaultValue"]
         iColEd = self.dataTypes["colEditable"]
         itemData = []
@@ -168,10 +162,10 @@ class PointsList(wx.ListCtrl,
                 
         self.selIdxs.append(itemIndexes) 
 
-        for hCol in self.hiddenCols.itervalues():    
+        for hCol in self.hiddenCols.itervalues():
             defVal = hCol['colsData'][iDefVal]
-            if type(col[iColEd]).__name__ == "list":
-                hCol['itemDataMap'].append(hCol[iColEd][defVal])
+            if type(hCol['colsData'][iColEd]).__name__ == "list":
+                hCol['itemDataMap'].append(hCol['colsData'][iColEd][defVal])
                 hCol['selIdxs'].append(defVal)
             else:
                 hCol['itemDataMap'].append(defVal)
@@ -194,19 +188,24 @@ class PointsList(wx.ListCtrl,
 
         return self.selected
 
-    def GetCellText(self, key, colName):
-        """!Get value in cell of list using key (same regardless of sorting)
+    def GetCellValue(self, key, colName):
+        """!Get value in cell of list using key (same regardless of sorting)"""
+        colNum = self._getColumnNum(colName)
+        iColEd = self.dataTypes["colEditable"]      
+        return self.itemDataMap[key][colNum]
+
+    def GetCellSelIdx(self, key, colName):
+        """!Get selected index in cell of list using key (same regardless of sorting)
+
+            @return number of chosen value, if column has values to choose
+            @return -1 if column does not has values to choose
         """
         colNum = self._getColumnNum(colName)
         iColEd = self.dataTypes["colEditable"]
-        if type(self.colsData[colNum][iColEd]).__name__ == "list":  
-            return self.selIdxs[key][colNum]
-        else:          
-            return self.itemDataMap[key][colNum]
-     
+        return self.selIdxs[key][colNum]
+
     def EditCellIndex(self, index, colName, cellData):
-        """!Changes value in list using key (same regardless of sorting)
-        """
+        """!Changes value in list using key (same regardless of sorting)"""
         colNum = self._getColumnNum(colName) 
         key = self.GetItemData(index)
 
@@ -222,10 +221,8 @@ class PointsList(wx.ListCtrl,
         self.SetStringItem(index, colNum, str(cellVal))
 
     def EditCellKey(self, key, colName, cellData):
-        """!Changes value in list using index (changes during sorting)
-        """
-        colNum = self._getColumnNum(colName)    
-        index = self.FindItemData(-1, key)
+        """!Changes value in list using index (changes during sorting)"""
+        colNum = self._getColumnNum(colName)   
 
         iColEd = self.dataTypes["colEditable"]
         if type(self.colsData[colNum][iColEd]).__name__ == "list":
@@ -236,11 +233,24 @@ class PointsList(wx.ListCtrl,
             self.selIdxs[key][colNum] = -1
 
         self.itemDataMap[key][colNum] = cellVal
+        index = self._findIndex(key)
+
         self.SetStringItem(index, colNum, str(cellVal))
 
+    def _findIndex(self, key):
+        """!Find index for key"""
+        index = -1
+        while True:
+            index = self.GetNextItem(index,
+                                     wx.LIST_NEXT_BELOW)
+            if key == self.GetItemData(index):
+                return index
+            if index == -1:
+                break
+        return -1
+
     def ChangeColEditable(self, colName, colType):
-        """!Changes 3. item in constructor parameter cols (see the class constructor hint)
-        """     
+        """!Changes 3. item in constructor parameter cols (see the class constructor hint)"""     
         colNum = self._getColumnNum(colName)
         iColEd = self.dataTypes["colEditable"]
         self.colsData[colNum][iColEd] = colType
@@ -380,8 +390,7 @@ class PointsList(wx.ListCtrl,
         event.Skip()
 
     def OnItemSelected(self, event):
-        """!Updates class attributes holding information about selected item
-        """
+        """!Updates class attributes holding information about selected item"""
         if self.selected != event.GetIndex():
             self.selected = event.GetIndex()
             self.selectedkey = self.GetItemData(self.selected)
@@ -389,8 +398,7 @@ class PointsList(wx.ListCtrl,
         event.Skip()
 
     def getSmallUpArrowImage(self):
-        """!Get arrow up symbol for indication of sorting
-        """
+        """!Get arrow up symbol for indication of sorting"""
         stream = open(os.path.join(globalvar.ETCIMGDIR, 'small_up_arrow.png'), 'rb')
         try:
             img = wx.ImageFromStream(stream)
@@ -399,8 +407,7 @@ class PointsList(wx.ListCtrl,
         return img
 
     def getSmallDnArrowImage(self):
-        """!Get arrow down symbol for indication of sorting
-        """
+        """!Get arrow down symbol for indication of sorting"""
         stream = open(os.path.join(globalvar.ETCIMGDIR, 'small_down_arrow.png'), 'rb')
         try:
             img = wx.ImageFromStream(stream)

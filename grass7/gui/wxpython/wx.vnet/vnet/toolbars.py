@@ -123,6 +123,10 @@ class MainToolbar(BaseToolbar):
 
     def UpdateUndoRedo(self):
 
+        id = vars(self)['showResult']
+        self.ToggleTool(id =id,
+                        toggle = True)
+
         if self.parent.history.GetCurrHistStep() >= self.parent.history.GetStepsNum():
            self.Enable("undo", False)
         else:
