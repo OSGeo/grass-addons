@@ -16,12 +16,13 @@
 #include <grass/linkm.h>
 #include "flag.h"
 
-/* DEBUG will add some additional testing options to the segmentation method drop down.
- * it also add some while loops that just have G_debug statements in them. */
-/* #define DEBUG */
-
 /* PROFILE will add some rough time checks for finding neighbors, merging, and pass times. */
 /* #define PROFILE */
+
+/* SIGNPOST will add some fprintf statments to indicate what segments are being merged.
+ * other diagnostics could be included here for during further development and speed improvements.
+ */
+/* #define SIGNPOST */
 
 /* pixel stack */
 struct pixels
@@ -45,7 +46,7 @@ struct files
     /* files */
     char *out_name;		/* name of output raster map */
     const char *seeds_map, *seeds_mapset, *bounds_map, *bounds_mapset;	/* optional segment seeds and polygon constraints/boundaries */
-    char *out_band;		/* for debug */
+    char *out_band;		/* for segment average values */
 
     /* file processing */
     /* bands_seg is initialized with the input raster valuess, then is updated with current mean values for the segment. */
@@ -84,17 +85,18 @@ struct functions
     /* max number of iterations/passes */
     int end_t;
 
-    /* todo remove when decide on pathflag */
-    int path;
+    int path;			/* flag if we are using Rk as next Ri for non-mutually best neighbor. */
+    int limited;		/* flag if we are limiting merges to one per pass */
 
-    /* todo remove when decide on allowing multiple merges per pass */
-    int limited;
-
-    /* todo: should this be an option, set at a specific value, or left out. */
-    //    double very_close;        /* segments with very_close similarity will be merged without changing or checking the candidate flag.  The algorithm will continue looking for the "most similar" neighbor that isn't "very close". */
-    // todo markus... I tried this out briefly, but realized that we need to find the segment membership (the find neighbors function only returns single pixels) , might be some faster ways to do this, but my first tries actually slowed down the processing.
-    // should I leave in the commented code for "very_close", or remove it entirely?
-
+    /* todo: is there a fast way (and valid from an algorithm standpoint) to merge all neighbors that are within some small % of the treshold?
+     * There is some code using "very_close" that is excluded with IFDEF
+     * The goal is to speed processing, since in the end many of these very similar neighbors will be merged.
+     * But the problem is that the find_segment_neighbors() function only returns a single pixel, not the entire segment membership.
+     * The commented out code actually slowed down processing times in the first tries. */
+#ifdef VCLOSE
+    double very_close;		/* segments with very_close similarity will be merged without changing or checking the candidate flag.
+				 *   The algorithm will continue looking for the "most similar" neighbor that isn't "very close". */
+#endif
 };
 
 
@@ -127,11 +129,3 @@ int set_all_candidate_flags(struct files *);
 /* write_output.c */
 int write_output(struct files *);
 int close_files(struct files *);
-
-/* testing.c */
-int io_debug(struct files *, struct functions *);
-int ll_test(struct files *, struct functions *);
-int test_pass_token(struct pixels **, struct files *);
-int seg_speed_test(struct files *, struct functions *);
-int get_segID_SEG(struct files *, int, int);
-int get_segID_RAM(struct files *, int, int);

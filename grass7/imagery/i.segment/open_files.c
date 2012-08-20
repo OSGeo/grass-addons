@@ -1,6 +1,6 @@
 /* PURPOSE:      opening input rasters and creating segmentation files */
 
-#include <limits.h>		/* for INT_MAX, todo remove if there is a GRASS max CELL */
+#include <limits.h>		/* for INT_MAX */
 #include <stdlib.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
@@ -27,7 +27,7 @@ int open_files(struct files *files, struct functions *functions)
     struct pixels *R_head, *Rn_head, *newpixel, *current;
     int R_count;
 
-    G_verbose_message("Opening files and initializing");
+    G_verbose_message(_("Opening files and initializing"));
 
     /* confirm output maps can be opened (don't want to do all this work for nothing!) */
     out_fd = Rast_open_new(files->out_name, CELL_TYPE);
@@ -46,18 +46,20 @@ int open_files(struct files *files, struct functions *functions)
 
     /*allocate memory for flags */
     files->null_flag = flag_create(files->nrows, files->ncols);
+    flag_clear_all(files->null_flag);
     files->candidate_flag = flag_create(files->nrows, files->ncols);
+
     if (files->bounds_map != NULL)
 	files->orig_null_flag = flag_create(files->nrows, files->ncols);
-    //if (files->seeds_map != NULL)
+
     files->seeds_flag = flag_create(files->nrows, files->ncols);
+    flag_clear_all(files->seeds_flag);
 
     /* references for segmentation library: i.cost r.watershed/seg and http://grass.osgeo.org/programming7/segmentlib.html */
 
     /* ****** open the input rasters ******* */
 
     /* Note: I confirmed, the API does not check this: */
-    G_debug(1, "Checking image group...");
     if (!I_get_group_ref(files->image_group, &Ref))
 	G_fatal_error(_("Unable to read REF file for group <%s>"),
 		      files->image_group);
@@ -74,12 +76,11 @@ int open_files(struct files *files, struct functions *functions)
     min = G_malloc(Ref.nfiles * sizeof(DCELL));
     max = G_malloc(Ref.nfiles * sizeof(DCELL));
 
-    G_debug(1, "Opening input rasters...");
     for (n = 0; n < Ref.nfiles; n++) {
 	inbuf[n] = Rast_allocate_d_buf();
 	in_fd[n] = Rast_open_old(Ref.file[n].name, Ref.file[n].mapset);
 	if (in_fd[n] < 0)
-	    G_fatal_error("Error opening %s@%s", Ref.file[n].name,
+	    G_fatal_error(_("Error opening %s@%s"), Ref.file[n].name,
 			  Ref.file[n].mapset);
     }
 
@@ -107,12 +108,9 @@ int open_files(struct files *files, struct functions *functions)
 			      Ref.file[n].name);
 	    Rast_get_fp_range_min_max(&(fp_range[n]), &min[n], &max[n]);
 	}
-	G_debug(1, "scaling, for first layer, min: %f, max: %f",
-		min[0], max[0]);
     }
 
     /* ********** find out file segmentation size ************ */
-    G_debug(1, "Calculate temp file sizes...");
 
     files->nbands = Ref.nfiles;
 
@@ -124,12 +122,18 @@ int open_files(struct files *files, struct functions *functions)
     srows = 64;
     scols = 64;
 
-    /* TODO: make calculations for this, check i.cost and i.watershed */
-    nseg = 16;			// 1000;         //16;
+    /* RAM enhancement: have user input limit and make calculations for this, reference i.cost and i.watershed 
+     * One segment tile is tile_mb = (nbands * sizeof(double) + sizeof(CELL) * srows * scols / (1024*1024) 
+     * (check if sizeof(CELL) was from when iseg would be included, or the extra overhead?)
+     * If user inputs total RAM available, need to subtract the size of the flags, and the size of the linked lists.
+     * I'm not sure how to estimate the size of the linked lists, it is allowed to grow when needed.  Assume one segment
+     * could be 50% of the map?  Or more?  So ll_mb = sizeof(pixels) * nrows * ncols * 0.5 / (1024*1024)
+     * then split the remaining RAM between bands_seg and iseg_seg. */
+
+    nseg = 16;
 
 
     /* ******* create temporary segmentation files ********* */
-    G_debug(1, "Getting temporary file names...");
     /* Initalize access to database and create temporary files */
 
     G_debug(1, "Image size:  %d rows, %d cols", files->nrows, files->ncols);
@@ -146,7 +150,7 @@ int open_files(struct files *files, struct functions *functions)
     /* ******* remaining memory allocation ********* */
 
     /* save the area and perimeter as well */
-    /* TODO: currently saving this with the input DCELL values.  Better to have a second segment structure to save as integers ??? */
+    /* perimeter todo: currently saving this with the input DCELL values.  Better to have a second segment structure to save as integers ??? */
     inlen = inlen + sizeof(double) * 2;
 
     files->bands_val = (double *)G_malloc(inlen);
@@ -156,14 +160,13 @@ int open_files(struct files *files, struct functions *functions)
 	(&files->iseg_seg, G_tempfile(), files->nrows, files->ncols, srows,
 	 scols, sizeof(int), nseg) != TRUE)
 	G_fatal_error(_("Unable to allocate memory for initial segment ID's"));
-    /* NOTE: SEGMENT file should be initialized to zeros for all data. TODO double check this. */
 
     /* bounds/constraints (start with processing constraints to get any possible NULL values) */
     if (files->bounds_map != NULL) {
 	if (segment_open
 	    (&files->bounds_seg, G_tempfile(), files->nrows, files->ncols,
 	     srows, scols, sizeof(int), nseg) != TRUE)
-	    G_fatal_error("Unable to create bounds temporary files");
+	    G_fatal_error(_("Unable to create bounds temporary files"));
 
 	boundsbuf = Rast_allocate_c_buf();
 	bounds_fd = Rast_open_old(files->bounds_map, files->bounds_mapset);
@@ -184,7 +187,6 @@ int open_files(struct files *files, struct functions *functions)
 
 
     /* ********  load input bands to segment structure and fill initial seg ID's ******** */
-    G_debug(1, "Reading input rasters into segmentation data files...");
     s = 0;			/* initial segment ID will be 1 */
 
     for (row = 0; row < files->nrows; row++) {
@@ -211,18 +213,18 @@ int open_files(struct files *files, struct functions *functions)
 		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/* scaled */
 	    }
 	    files->bands_val[Ref.nfiles] = 1;	/* area (just using the number of pixels) */
-	    files->bands_val[Ref.nfiles + 1] = 4;	/* Perimeter Length *//* todo polish, not exact for edges...close enough for now? */
+	    files->bands_val[Ref.nfiles + 1] = 4;	/* Perimeter Length *//* todo perimeter, not exact for edges...close enough for now? */
 	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
 
 	    if (null_check != -1) {	/*good pixel */
 		FLAG_UNSET(files->null_flag, row, col);	/*flag */
 		if (files->seeds_map != NULL) {
 		    if (Rast_is_c_null_value(ptr) == TRUE) {
-			// todo... old data structure, switch to SEG if need to initalize to zero:  files->iseg[row][col] = 0;
-			FLAG_UNSET(files->seeds_flag, row, col);	//todo markus, I expect iseg and seeds flag are initialized to zero, so shouldn't need to set either flag.  Leave these two lines of code out?
+			/* when using iseg_seg the segmentation file is already initialized to zero.  Just initialize seeds_flag: */
+			FLAG_UNSET(files->seeds_flag, row, col);
 		    }
 		    else {
-			FLAG_SET(files->seeds_flag, row, col);	//todo might not need this... just look for seg ID > 0 ?
+			FLAG_SET(files->seeds_flag, row, col);	/* RAM enhancement, but it might cost speed.  Could look for seg ID > 0 instead of using seed_flag. */
 			/* seed value is starting segment ID. */
 			segment_put(&files->iseg_seg, ptr, row, col);
 		    }
@@ -230,7 +232,7 @@ int open_files(struct files *files, struct functions *functions)
 		}
 		else {		/* no seeds provided */
 		    s++;	/* sequentially number all pixels with their own segment ID */
-		    if (s < INT_MAX) {	/* Check that the starting seeds aren't too large. (checking for < instead of <= since   TODO Markus, Is there a GRASS constant for the maximum size of CELL? */
+		    if (s < INT_MAX) {	/* Check that the starting seeds aren't too large. */
 			segment_put(&files->iseg_seg, &s, row, col);	/*starting segment number */
 			FLAG_SET(files->seeds_flag, row, col);	/*all pixels are seeds */
 		    }
@@ -250,17 +252,14 @@ int open_files(struct files *files, struct functions *functions)
 	    for (col = 0; col < files->ncols; col++) {
 		if (FLAG_GET(files->null_flag, row, col))
 		    FLAG_SET(files->orig_null_flag, row, col);
-		else		/* todo polish, flags are initialized to zero... could just skip this else? */
+		else
 		    FLAG_UNSET(files->orig_null_flag, row, col);
 	    }
 	}
     }				/* end: if (files->bounds_map != NULL) */
-    else {
-	G_debug(1, "no boundary constraint supplied.");
-    }
 
     /* linked list memory management linkm */
-    link_set_chunk_size(1000);	/* TODO polish: fine tune this number */
+    link_set_chunk_size(1000);	/* TODO RAM: fine tune this number */
 
     files->token = link_init(sizeof(struct pixels));
 
@@ -291,14 +290,16 @@ int open_files(struct files *files, struct functions *functions)
 		newpixel->col = col;
 		R_head = newpixel;
 
-		/*get pixel list, todo polish, could use custom (shorter) function, not using all of what fsn() does... hmm, after adding perimeter, we do use most of it... */
-		borderPixels = find_segment_neighbors(&R_head, &Rn_head, &R_count, files, functions);	/* todo, I suppose there is a small chance that a renumbered segment matches and borders an original segment.  This would be a good reason to write a custom fnp() function to chop out the neighbors and also check the candidate flag. */
+		/* get pixel list, possible initialization speed enhancement: could use a custom (shorter) function, some results from find_segment_neighbors are not used here */
+		/* bug todo: There is a small chance that a renumbered segment matches and borders an original segment.  This would be a good reason to write a custom function - use the candidate flag to see if the pixel was already processed. */
+		borderPixels =
+		    find_segment_neighbors(&R_head, &Rn_head, &R_count, files,
+					   functions);
 
-		/* update the segment ID *//* TODO, Markus, this could also be done in merge_pixels to avoid iterating this list twice.
-		 * for now I've put it here, to make merge_pixels() more general.  Unless you think initialization speed is more important then future flexibility? */
+		/* update the segment ID */
 
 		s++;
-		if (s == INT_MAX)	/* Check that the starting seeds aren't too large.  TODO Markus, Is there a GRASS constant for the maximum size of CELL? */
+		if (s == INT_MAX)	/* Check that the starting seeds aren't too large. */
 		    G_fatal_error(_("Exceeded integer storage limit, too many initial pixels."));
 
 		for (current = R_head; current != NULL;

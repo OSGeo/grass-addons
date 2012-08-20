@@ -9,37 +9,32 @@
 
 int parse_args(int argc, char *argv[], struct files *files,
 	       struct functions *functions)
-{				/* todo Markus, is it helpful to leave tips like this that are helpful to someone new to GRASS?  Or is it just clutter now, and should go to a reference sheet? */
-    /* reference: http://grass.osgeo.org/programming7/gislib.html#Command_Line_Parsing */
-
+{
     struct Option *group, *seeds, *bounds, *output, *method, *similarity, *threshold, *min_segment_size, *endt;	/* Establish an Option pointer for each option */
-    struct Flag *diagonal, *weighted, *path, *limited;	/* Establish a Flag pointer for each option */
-    struct Option *outband;	/* TODO scrub: put all outband code inside of #ifdef DEBUG */
+    struct Flag *diagonal, *weighted, *limited;	/* Establish a Flag pointer for each option */
+    struct Option *outband;	/* optional saving of segment data, until a seperate module is written */
 
-    //~ struct Option *very_close;
+#ifdef VCLOSE
+    struct Option *very_close;
+#endif
 
     /* required parameters */
-    group = G_define_standard_option(G_OPT_I_GROUP);	/* TODO? Polish, consider giving the option to process just one raster directly, without creating an image group. */
+    group = G_define_standard_option(G_OPT_I_GROUP);	/* enhancement: consider giving the option to process just one raster directly, without creating an image group. */
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
 
-    /*TODO polish: any way to recommend a threshold to the user */
     threshold = G_define_option();
     threshold->key = "threshold";
     threshold->type = TYPE_DOUBLE;
     threshold->required = YES;
-    threshold->description = _("Similarity threshold.");	/* TODO? Polish, should all descriptions get the _() locale macro? */
+    threshold->description = _("Similarity threshold.");
 
     method = G_define_option();
     method->key = "method";
     method->type = TYPE_STRING;
     method->required = YES;
     method->answer = "region_growing";
-#ifdef DEBUG
-    method->options = "region_growing, io_debug, ll_test, seg_time";
-#else
     method->options = "region_growing";
-#endif
     method->description = _("Segmentation method.");
 
     similarity = G_define_option();
@@ -60,13 +55,17 @@ int parse_args(int argc, char *argv[], struct files *files,
     min_segment_size->description =
 	_("The final iteration will ignore the threshold for any segments with fewer pixels.");
 
-    //~ very_close = G_define_option();
-    //~ very_close->key = "very_close";
-    //~ very_close->type = TYPE_DOUBLE;
-    //~ very_close->required = YES;
-    //~ very_close->answer = "0";
-    //~ very_close->options = "0-1";
-    //~ very_close->description = _("For testing:  very close segments will be merged, the focus segment will not be changed.");
+#ifdef VCLOSE
+    very_close = G_define_option();
+    very_close->key = "very_close";
+    very_close->type = TYPE_DOUBLE;
+    very_close->required = YES;
+    very_close->answer = "0";
+    very_close->options = "0-1";
+    very_close->label = _("Fraction of the threshold.");
+    very_close->description =
+	_("Neighbors similarity lower then this fraction of the threshold will be merged without regard to any other processing rules.");
+#endif
 
     /* optional parameters */
 
@@ -92,34 +91,39 @@ int parse_args(int argc, char *argv[], struct files *files,
     bounds = G_define_standard_option(G_OPT_R_INPUT);
     bounds->key = "bounds";
     bounds->required = NO;
+    bounds->label = _("Optional bounding/constraining raster map");
     bounds->description =
-	_("Optional bounding/constraining raster map, must be integer values, each area will be segmented independent of the others.");
+	_("Pixels with the same integer value will be segmented independent of the others.");
 
-    /* debug parameters */
+    /* other parameters */
     endt = G_define_option();
     endt->key = "endt";
     endt->type = TYPE_INTEGER;
     endt->required = NO;
     endt->answer = "1000";
     endt->description =
-	_("Debugging...Maximum number of time steps to complete.");
+	_("Maximum number of passes (time steps) to complete.");
 
-    path = G_define_flag();
-    path->key = 'p';
-    path->description =
-	_("temporary option, pathflag, select to use Rk as next Ri if not mutually best neighbors.");
-
+    /* Leaving path flag out of user options, will hardcode TRUE for this option.  This does change the resulting segments, but I don't see any
+     * reason why one version is more valid.  It reduced the processing time by 50% when segmenting the ortho image. 
+     * Code in the segmenation algorithm remains, in case more validation of this option should be done. */
+    /*
+       path = G_define_flag();
+       path->key = 'p';
+       path->description =
+       _("temporary option, pathflag, select to use Rk as next Ri if not mutually best neighbors.");
+     */
     limited = G_define_flag();
     limited->key = 'l';
     limited->description =
-	_("temporary option, limit to one merge to pass, if *not* selected a segment can be included in multiple merges in one pass.");
+	_("segments are limited to be included in only one merge per pass");
 
     outband = G_define_standard_option(G_OPT_R_OUTPUT);
     outband->key = "final_mean";
     outband->required = NO;
     outband->description =
-	_("debug - save band mean, currently implemented for only 1 band.");
-
+	_("Save the final mean values for the first band in the imagery group.");
+    /* enhancement: save mean values for all bands.  Multiple rasters or switch to polygons? */
 
 
     if (G_parser(argc, argv))
@@ -131,13 +135,10 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     files->image_group = group->answer;
 
-    /* TODO Markus, I saw in the GRASS Programmer's manual that I could use a checker function for the data validation steps.
-     * But when I did a find|grep for "checker" it didn't show up.  Is there any reason to use it?  Or just leave the validation like I have it now? */
-
     if (G_legal_filename(output->answer) == TRUE)
 	files->out_name = output->answer;	/* name of output (segment ID) raster map */
     else
-	G_fatal_error("Invalid output raster name.");
+	G_fatal_error(_("Invalid output raster name."));
 
     functions->threshold = atof(threshold->answer);	/* Note: this threshold is scaled after we know more at the beginning of create_isegs() */
 
@@ -148,18 +149,8 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* segmentation methods: 1 = region growing */
     if (strncmp(method->answer, "region_growing", 10) == 0)
 	functions->method = 1;
-#ifdef DEBUG
-    else if (strncmp(method->answer, "io_debug", 5) == 0)
-	functions->method = 0;
-    else if (strncmp(method->answer, "ll_test", 5) == 0)
-	functions->method = 2;
-    else if (strncmp(method->answer, "seg_time", 5) == 0)
-	functions->method = 3;
-#endif
     else
-	G_fatal_error("Couldn't assign segmentation method.");	/*shouldn't be able to get here */
-
-    G_debug(1, "segmentation method: %d", functions->method);
+	G_fatal_error(_("Couldn't assign segmentation method."));	/*shouldn't be able to get here */
 
     /* distance methods for similarity measurement */
     if (strncmp(similarity->answer, "euclidean", 5) == 0)
@@ -167,23 +158,23 @@ int parse_args(int argc, char *argv[], struct files *files,
     else if (strncmp(similarity->answer, "manhattan", 5) == 0)
 	functions->calculate_similarity = &calculate_manhattan_similarity;
     else
-	G_fatal_error("Couldn't assign similarity method.");	/*shouldn't be able to get here */
+	G_fatal_error(_("Couldn't assign similarity method."));	/*shouldn't be able to get here */
 
-    //~ functions->very_close = atof(very_close->answer);
+#ifdef VCLOSE
+    functions->very_close = atof(very_close->answer);
+#endif
 
     functions->min_segment_size = atoi(min_segment_size->answer);
 
     if (diagonal->answer == FALSE) {
 	functions->find_pixel_neighbors = &find_four_pixel_neighbors;
 	functions->num_pn = 4;
-	G_debug(1, "four pixel neighborhood");
     }
     else if (diagonal->answer == TRUE) {
 	functions->find_pixel_neighbors = &find_eight_pixel_neighbors;
 	functions->num_pn = 8;
-	G_debug(1, "eight (3x3) pixel neighborhood");
     }
-    /* TODO polish, check if function pointer or IF statement is faster */
+    /* speed enhancement: Check if function pointer or IF statement is faster */
 
     /* default/0 for performing the scaling, but selected/1 if user has weighted values so scaling should be skipped. */
     files->weighted = weighted->answer;
@@ -230,10 +221,12 @@ int parse_args(int argc, char *argv[], struct files *files,
 	G_warning(_("invalid number of iterations, 1000 will be used."));
     }
 
-    /* debug help */
+    /* other parameters */
 
     /* default/0 for no pathflag, but selected/1 to use Rk as next Ri if not mutually best neighbors. */
-    functions->path = path->answer;
+    /* functions->path = path->answer; */
+    functions->path = TRUE;
+    /* see notes above about pathflag. */
 
     functions->limited = limited->answer;
 
@@ -243,7 +236,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 	if (G_legal_filename(outband->answer) == TRUE)
 	    files->out_band = outband->answer;	/* name of current means */
 	else
-	    G_fatal_error("Invalid output raster name for means.");
+	    G_fatal_error(_("Invalid output raster name for means."));
     }
 
     return TRUE;
