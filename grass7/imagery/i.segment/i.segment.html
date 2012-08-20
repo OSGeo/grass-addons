@@ -1,15 +1,17 @@
 <h2>DESCRIPTION</h2>
-Image segmentation is the process of grouping similar pixels into unique segments.  Boundary and region based algorithms are described in the literature, currently a region growing and merging algorithm is implemented.  Each object found during the segmentation process is given a unique ID and is a collection of contiguous pixels meeting some criteria.  (Note the contrast with image classification, where continuity and spatial characteristics are not important, but rather only the spectral simularity.)  The results can be useful on their own, or used as a preprocessing step for image classification.  The segmentation preprocessing step can reduce noise and speed up the classification.
+Image segmentation is the process of grouping similar pixels into unique segments.  Boundary and region based algorithms are described in the literature, currently a region growing and merging algorithm is implemented.  Each object found during the segmentation process is given a unique ID and is a collection of contiguous pixels meeting some criteria.  (Note the contrast with image classification, where continuity and spatial characteristics are not important, but rather only the spectral similarity.)  The results can be useful on their own, or used as a preprocessing step for image classification.  The segmentation preprocessing step can reduce noise and speed up the classification.
 
 <H2>NOTES</h2>
 
 <h3>Region Growing and Merging</h3>
 This segmentation algorithm sequentially examines all current segments in the map.  The similarity between the current segment and each of its neighbors is calculated according to the given distance formula.  Segments will be merged if they meet a number of criteria, including: 1.  The pair is mutually most similar to each other (the similarity distance will be smaller then all other neighbors), and 2. The similarity must be lower then the input threshold.  All segments are checked once per pass.  The process is repeated until no merges are made during a complete pass.
 
-<h3>Threshold</h3>
-During normal processing, merges are only allowed when the similarity between two segments is lower then the calculated threshold value.  During the final pass, however, if a minimum segment size of 2 or larger is given with the <em>minsize</em> parameter, segments with a smaller pixel count will be merged with their most similar neighbor even if the similarity is greater then the threshold.
+<h3>Similarity and Threshold</h3>
+Similarity between objects is used to determine what objects are merged.  The current implementation uses only the radiometric distance between the two objects, but eventually region properties will be included as well.  Thus a lower value for the similarity is a closer match, with a similarity score of zero for identical pixels.
 <p>
-Unless the <em>-w</em> flag for weighted data is used, the threshold should be between 0 and 1.0.
+During normal processing, merges are only allowed when the similarity between two segments is lower then the calculated threshold value.  During the final pass, however, if a minimum segment size of 2 or larger is given with the <em>minsize</em> parameter, segments with a smaller pixel count will be merged with their most similar neighbor even if the similarity is greater then the threshold.
+</p><p>
+Unless the <em>-w</em> flag for weighted data is used, the threshold should be set by the user between 0 and 1.0. A threshold of 0 would allow only identical valued pixels to be merged, while a threshold of 1 would allow everything to be merged.
 </p><p>
 The threshold will be multiplied by the number of rasters included in the image group.  This will allow the same threshold to achieve similar segmentation results when the number of rasters in the image group varies.
 </p>
@@ -52,7 +54,7 @@ Each of these segmentation steps took less then 1 minute on a decent machine.  N
 <blockquote>g.region rast=ortho_2001_t792_1m@PERMANENT<br>
 i.segment -w -l --overwrite group=ortho_group output=ortho_segs threshold=10 method=region_growing minsize=5 endt=5000</blockquote>
 <p></p>
-Processing the entire ortho image (over 9 million cells) took about !currently running, will insert time in the morning! .
+Processing the entire ortho image (over 9 million cells) took about a day.
 
 <h2>TODO</h2>
 <h3>Functionality</h3>
