@@ -1010,7 +1010,7 @@ class VNETDialog(wx.Dialog):
                 if  len(catPts[cat[0]]) < 2:
                     GMessage(parent = self, 
                              message = _("Please choose at least two points."))
-                return        
+                    return        
 
         # TODO add also to thread for analysis?
         vcatResult = RunCommand("v.category",
