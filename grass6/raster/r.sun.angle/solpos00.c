@@ -127,8 +127,6 @@ static int month_days[2][13] = { {0, 0, 31, 59, 90, 120, 151,
 
 		   /* cumulative number of days prior to beginning of month */
 
-static float degrad = 57.295779513;	/* converts from radians to degrees */
-static float raddeg = 0.0174532925;	/* converts from degrees to radians */
 
 /*============================================================================
 *    Local function prototypes
@@ -289,6 +287,9 @@ void S_init(struct posdata *pdat)
     pdat->sbrad = 31.7;		/* Eppley shadow band radius */
     pdat->sbsky = 0.04;		/* Drummond factor for partly cloudy skies */
     pdat->function = S_ALL;	/* compute all parameters */
+
+    pdat->time_updated = 0;
+    pdat->longitude_updated = 0;
 }
 
 
@@ -392,6 +393,19 @@ static void dom2doy(struct posdata *pdat)
 }
 
 
+int dom2doy2(int year, int month, int day)
+{
+    int doy = day + month_days[0][month];
+
+    /* (adjust for leap year) */
+    if (((year % 4) == 0) &&
+	(((year % 100) != 0) || ((year % 400) == 0)) &&
+	(month > 2))
+	doy += 1;
+
+    return doy;
+}
+
 /*============================================================================
 *    Local void function doy2dom
 *
@@ -447,147 +461,178 @@ static void geometry(struct posdata *pdat)
     float top;			/* numerator (top) of the fraction */
     int leap;			/* leap year counter */
 
-    /* Day angle */
-    /*  Iqbal, M.  1983.  An Introduction to Solar Radiation.
-       Academic Press, NY., page 3 */
-    pdat->dayang = 360.0 * (pdat->daynum - 1) / 365.0;
+    /** time-dependent variables **/
+    if (pdat->time_updated) {
+	/* Day angle */
+	/*  Iqbal, M.  1983.  An Introduction to Solar Radiation.
+	   Academic Press, NY., page 3 */
+	pdat->dayang = 360.0 * (pdat->daynum - 1) / 365.0;
 
-    /* Earth radius vector * solar constant = solar energy */
-    /*  Spencer, J. W.  1971.  Fourier series representation of the
-       position of the sun.  Search 2 (5), page 172 */
-    sd = sin(raddeg * pdat->dayang);
-    cd = cos(raddeg * pdat->dayang);
-    d2 = 2.0 * pdat->dayang;
-    c2 = cos(raddeg * d2);
-    s2 = sin(raddeg * d2);
+	/* Earth radius vector * solar constant = solar energy */
+	/*  Spencer, J. W.  1971.  Fourier series representation of the
+	   position of the sun.  Search 2 (5), page 172 */
+	sd = sin(DEG2RAD * pdat->dayang);
+	cd = cos(DEG2RAD * pdat->dayang);
+	d2 = 2.0 * pdat->dayang;
+	c2 = cos(DEG2RAD * d2);
+	s2 = sin(DEG2RAD * d2);
 
-    pdat->erv = 1.000110 + 0.034221 * cd + 0.001280 * sd;
-    pdat->erv += 0.000719 * c2 + 0.000077 * s2;
+	pdat->erv = 1.000110 + 0.034221 * cd + 0.001280 * sd;
+	pdat->erv += 0.000719 * c2 + 0.000077 * s2;
 
-    /* Universal Coordinated (Greenwich standard) time */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    pdat->utime =
-	pdat->hour * 3600.0 +
-	pdat->minute * 60.0 + pdat->second - (float)pdat->interval / 2.0;
-    pdat->utime = pdat->utime / 3600.0 - pdat->timezone;
+	/* Universal Coordinated (Greenwich standard) time */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	pdat->utime =
+	    pdat->hour * 3600.0 +
+	    pdat->minute * 60.0 + pdat->second - (float)pdat->interval / 2.0;
+	pdat->utime = pdat->utime / 3600.0 - pdat->timezone;
 
-    /* Julian Day minus 2,400,000 days (to eliminate roundoff errors) */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
+	/* Julian Day minus 2,400,000 days (to eliminate roundoff errors) */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
 
-    /* No adjustment for century non-leap years since this function is
-       bounded by 1950 - 2050 */
-    delta = pdat->year - 1949;
-    leap = (int)(delta / 4.0);
-    pdat->julday =
-	32916.5 + delta * 365.0 + leap + pdat->daynum + pdat->utime / 24.0;
+	/* No adjustment for century non-leap years since this function is
+	   bounded by 1950 - 2050 */
+	delta = pdat->year - 1949;
+	leap = (int)(delta / 4.0);
+	pdat->julday =
+	    32916.5 + delta * 365.0 + leap + pdat->daynum + pdat->utime / 24.0;
 
-    /* Time used in the calculation of ecliptic coordinates */
-    /* Noon 1 JAN 2000 = 2,400,000 + 51,545 days Julian Date */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    pdat->ectime = pdat->julday - 51545.0;
+	/* Time used in the calculation of ecliptic coordinates */
+	/* Noon 1 JAN 2000 = 2,400,000 + 51,545 days Julian Date */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	pdat->ectime = pdat->julday - 51545.0;
 
-    /* Mean longitude */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    pdat->mnlong = 280.460 + 0.9856474 * pdat->ectime;
+	/* Mean longitude */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	pdat->mnlong = 280.460 + 0.9856474 * pdat->ectime;
 
-    /* (dump the multiples of 360, so the answer is between 0 and 360) */
-    pdat->mnlong -= 360.0 * (int)(pdat->mnlong / 360.0);
-    if (pdat->mnlong < 0.0)
-	pdat->mnlong += 360.0;
+	/* (dump the multiples of 360, so the answer is between 0 and 360) */
+	pdat->mnlong -= 360.0 * (int)(pdat->mnlong / 360.0);
+	if (pdat->mnlong < 0.0)
+	    pdat->mnlong += 360.0;
 
-    /* Mean anomaly */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    pdat->mnanom = 357.528 + 0.9856003 * pdat->ectime;
+	/* Mean anomaly */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	pdat->mnanom = 357.528 + 0.9856003 * pdat->ectime;
 
-    /* (dump the multiples of 360, so the answer is between 0 and 360) */
-    pdat->mnanom -= 360.0 * (int)(pdat->mnanom / 360.0);
-    if (pdat->mnanom < 0.0)
-	pdat->mnanom += 360.0;
+	/* (dump the multiples of 360, so the answer is between 0 and 360) */
+	pdat->mnanom -= 360.0 * (int)(pdat->mnanom / 360.0);
+	if (pdat->mnanom < 0.0)
+	    pdat->mnanom += 360.0;
 
-    /* Ecliptic longitude */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    pdat->eclong = pdat->mnlong + 1.915 * sin(pdat->mnanom * raddeg) +
-	0.020 * sin(2.0 * pdat->mnanom * raddeg);
+	/* Ecliptic longitude */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	pdat->eclong = pdat->mnlong + 1.915 * sin(pdat->mnanom * DEG2RAD) +
+	    0.020 * sin(2.0 * pdat->mnanom * DEG2RAD);
 
-    /* (dump the multiples of 360, so the answer is between 0 and 360) */
-    pdat->eclong -= 360.0 * (int)(pdat->eclong / 360.0);
-    if (pdat->eclong < 0.0)
-	pdat->eclong += 360.0;
+	/* (dump the multiples of 360, so the answer is between 0 and 360) */
+	pdat->eclong -= 360.0 * (int)(pdat->eclong / 360.0);
+	if (pdat->eclong < 0.0)
+	    pdat->eclong += 360.0;
 
-    /* Obliquity of the ecliptic */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
+	/* Obliquity of the ecliptic */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
 
-    /* 02 Feb 2001 SMW corrected sign in the following line */
-    /*  pdat->ecobli = 23.439 + 4.0e-07 * pdat->ectime;     */
-    pdat->ecobli = 23.439 - 4.0e-07 * pdat->ectime;
+	/* 02 Feb 2001 SMW corrected sign in the following line */
+	/*  pdat->ecobli = 23.439 + 4.0e-07 * pdat->ectime;     */
+	/* more precisely: */
+	/*  pdat->ecobli = 23.43929 - 3.56237e-07 * pdat->ectime;     */
+	pdat->ecobli = 23.439 - 4.0e-07 * pdat->ectime;
+	G_debug(1, "axial tilt (solpos): %.5f", pdat->ecobli);
 
-    /* Declination */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    pdat->declin = degrad * asin(sin(pdat->ecobli * raddeg) *
-				 sin(pdat->eclong * raddeg));
+	if (pdat->ectime != 0) {
+	    /* convert ectime from days to years */
+	    double ectime = pdat->ectime / 36525.0;
+	    double ectime2 = ectime * ectime;
+	    double ectime3 = ectime2 * ectime;
 
-    /* Right ascension */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    top = cos(raddeg * pdat->ecobli) * sin(raddeg * pdat->eclong);
-    bottom = cos(raddeg * pdat->eclong);
+	    /* recommended by the International Astronomical Union in 2000: */
+	    /* accurate for the year 2000 +- 5000 years
+	     * result is in arc seconds */
+	    pdat->ecobli = 84381.448 - 46.84024 * ectime - 5.9e-5 * ectime2 + 1.813e-3 * ectime3;
+	    /* convert to degrees */
+	    pdat->ecobli /= 3600.0;
 
-    pdat->rascen = degrad * atan2(top, bottom);
+	    G_debug(1, "axial tilt (IAU 2000): %.5f", pdat->ecobli);
+	}
+	else
+	    pdat->ecobli = 23.43929;
 
-    /* (make it a positive angle) */
-    if (pdat->rascen < 0.0)
-	pdat->rascen += 360.0;
+	/* Declination */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	pdat->declin = RAD2DEG * asin(sin(pdat->ecobli * DEG2RAD) *
+				      sin(pdat->eclong * DEG2RAD));
 
-    /* Greenwich mean sidereal time */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    pdat->gmst = 6.697375 + 0.0657098242 * pdat->ectime + pdat->utime;
+	/* Right ascension */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	top = cos(DEG2RAD * pdat->ecobli) * sin(DEG2RAD * pdat->eclong);
+	bottom = cos(DEG2RAD * pdat->eclong);
 
-    /* (dump the multiples of 24, so the answer is between 0 and 24) */
-    pdat->gmst -= 24.0 * (int)(pdat->gmst / 24.0);
-    if (pdat->gmst < 0.0)
-	pdat->gmst += 24.0;
+	pdat->rascen = RAD2DEG * atan2(top, bottom);
 
-    /* Local mean sidereal time */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    pdat->lmst = pdat->gmst * 15.0 + pdat->longitude;
+	/* (make it a positive angle) */
+	if (pdat->rascen < 0.0)
+	    pdat->rascen += 360.0;
 
-    /* (dump the multiples of 360, so the answer is between 0 and 360) */
-    pdat->lmst -= 360.0 * (int)(pdat->lmst / 360.0);
-    if (pdat->lmst < 0.)
-	pdat->lmst += 360.0;
+	/* Greenwich mean sidereal time */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	pdat->gmst = 6.697375 + 0.0657098242 * pdat->ectime + pdat->utime;
 
-    /* Hour angle */
-    /*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
-       approximate solar position (1950-2050).  Solar Energy 40 (3),
-       pp. 227-235. */
-    pdat->hrang = pdat->lmst - pdat->rascen;
+	/* (dump the multiples of 24, so the answer is between 0 and 24) */
+	pdat->gmst -= 24.0 * (int)(pdat->gmst / 24.0);
+	if (pdat->gmst < 0.0)
+	    pdat->gmst += 24.0;
 
-    /* (force it between -180 and 180 degrees) */
-    if (pdat->hrang < -180.0)
-	pdat->hrang += 360.0;
-    else if (pdat->hrang > 180.0)
-	pdat->hrang -= 360.0;
+	pdat->time_updated = 0;
+    }
+    
+    /** longitude-dependent variables **/
+    if (pdat->longitude_updated) {
+	/* Local mean sidereal time */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	pdat->lmst = pdat->gmst * 15.0 + pdat->longitude;
+
+	/* (dump the multiples of 360, so the answer is between 0 and 360) */
+	pdat->lmst -= 360.0 * (int)(pdat->lmst / 360.0);
+	if (pdat->lmst < 0.)
+	    pdat->lmst += 360.0;
+
+	/* Hour angle */
+	/*  Michalsky, J.  1988.  The Astronomical Almanac's algorithm for
+	   approximate solar position (1950-2050).  Solar Energy 40 (3),
+	   pp. 227-235. */
+	pdat->hrang = pdat->lmst - pdat->rascen;
+
+	/* (force it between -180 and 180 degrees) */
+	if (pdat->hrang < -180.0)
+	    pdat->hrang += 360.0;
+	else if (pdat->hrang > 180.0)
+	    pdat->hrang -= 360.0;
+
+	pdat->longitude_updated = 0;
+    }
 }
 
 
@@ -613,7 +658,7 @@ static void zen_no_ref(struct posdata *pdat, struct trigdata *tdat)
 	    cz = -1.0;
     }
 
-    pdat->zenetr = acos(cz) * degrad;
+    pdat->zenetr = acos(cz) * RAD2DEG;
 
     /* (limit the degrees below the horizon to 9 [+90 -> 99]) */
     if (pdat->zenetr > 99.0)
@@ -647,7 +692,7 @@ static void ssha(struct posdata *pdat, struct trigdata *tdat)
 	else if (cssha > 1.0)
 	    pdat->ssha = 0.0;
 	else
-	    pdat->ssha = degrad * acos(cssha);
+	    pdat->ssha = RAD2DEG * acos(cssha);
     }
     else if (((pdat->declin >= 0.0) && (pdat->latitude > 0.0)) ||
 	     ((pdat->declin < 0.0) && (pdat->latitude < 0.0)))
@@ -670,8 +715,8 @@ static void sbcf(struct posdata *pdat, struct trigdata *tdat)
 
     localtrig(pdat, tdat);
     p = 0.6366198 * pdat->sbwid / pdat->sbrad * pow(tdat->cd, 3);
-    t1 = tdat->sl * tdat->sd * pdat->ssha * raddeg;
-    t2 = tdat->cl * tdat->cd * sin(pdat->ssha * raddeg);
+    t1 = tdat->sl * tdat->sd * pdat->ssha * DEG2RAD;
+    t2 = tdat->cl * tdat->cd * sin(pdat->ssha * DEG2RAD);
     pdat->sbcf = pdat->sbsky + 1.0 / (1.0 - p * (t1 + t2));
 
 }
@@ -739,8 +784,8 @@ static void sazm(struct posdata *pdat, struct trigdata *tdat)
     float se;			/* sine of the solar elevation */
 
     localtrig(pdat, tdat);
-    ce = cos(raddeg * pdat->elevetr);
-    se = sin(raddeg * pdat->elevetr);
+    ce = cos(DEG2RAD * pdat->elevetr);
+    se = sin(DEG2RAD * pdat->elevetr);
 
     pdat->azim = 180.0;
     cecl = ce * tdat->cl;
@@ -751,7 +796,7 @@ static void sazm(struct posdata *pdat, struct trigdata *tdat)
 	else if (ca < -1.0)
 	    ca = -1.0;
 
-	pdat->azim = 180.0 - acos(ca) * degrad;
+	pdat->azim = 180.0 - acos(ca) * RAD2DEG;
 	if (pdat->hrang > 0)
 	    pdat->azim = 360.0 - pdat->azim;
     }
@@ -779,7 +824,7 @@ static void refrac(struct posdata *pdat)
 
     /* Otherwise, we have refraction */
     else {
-	tanelev = tan(raddeg * pdat->elevetr);
+	tanelev = tan(DEG2RAD * pdat->elevetr);
 	if (pdat->elevetr >= 5.0)
 	    refcor = 58.1 / tanelev -
 		0.07 / (pow(tanelev, 3)) + 0.000086 / (pow(tanelev, 5));
@@ -806,7 +851,7 @@ static void refrac(struct posdata *pdat)
 
     /* Refracted solar zenith angle */
     pdat->zenref = 90.0 - pdat->elevref;
-    pdat->coszen = cos(raddeg * pdat->zenref);
+    pdat->coszen = cos(DEG2RAD * pdat->zenref);
 }
 
 
@@ -826,7 +871,7 @@ static void amass(struct posdata *pdat)
     }
     else {
 	pdat->amass =
-	    1.0 / (cos(raddeg * pdat->zenref) + 0.50572 *
+	    1.0 / (cos(DEG2RAD * pdat->zenref) + 0.50572 *
 		   pow((96.07995 - pdat->zenref), -1.6364));
 
 	pdat->ampress = pdat->amass * pdat->press / 1013.0;
@@ -886,15 +931,15 @@ static void localtrig(struct posdata *pdat, struct trigdata *tdat)
     if (tdat->sd < -900.0) {	/* sd was initialized -999 as flag */
 	tdat->sd = 1.0;		/* reflag as having completed calculations */
 	if (pdat->function | CD_MASK)
-	    tdat->cd = cos(raddeg * pdat->declin);
+	    tdat->cd = cos(DEG2RAD * pdat->declin);
 	if (pdat->function | CH_MASK)
-	    tdat->ch = cos(raddeg * pdat->hrang);
+	    tdat->ch = cos(DEG2RAD * pdat->hrang);
 	if (pdat->function | CL_MASK)
-	    tdat->cl = cos(raddeg * pdat->latitude);
+	    tdat->cl = cos(DEG2RAD * pdat->latitude);
 	if (pdat->function | SD_MASK)
-	    tdat->sd = sin(raddeg * pdat->declin);
+	    tdat->sd = sin(DEG2RAD * pdat->declin);
 	if (pdat->function | SL_MASK)
-	    tdat->sl = sin(raddeg * pdat->latitude);
+	    tdat->sl = sin(DEG2RAD * pdat->latitude);
     }
 }
 
@@ -917,13 +962,13 @@ static void tilt(struct posdata *pdat)
 
     /* Cosine of the angle between the sun and a tipped flat surface,
        useful for calculating solar energy on tilted surfaces */
-    ca = cos(raddeg * pdat->azim);
-    cp = cos(raddeg * pdat->aspect);
-    ct = cos(raddeg * pdat->tilt);
-    sa = sin(raddeg * pdat->azim);
-    sp = sin(raddeg * pdat->aspect);
-    st = sin(raddeg * pdat->tilt);
-    sz = sin(raddeg * pdat->zenref);
+    ca = cos(DEG2RAD * pdat->azim);
+    cp = cos(DEG2RAD * pdat->aspect);
+    ct = cos(DEG2RAD * pdat->tilt);
+    sa = sin(DEG2RAD * pdat->azim);
+    sp = sin(DEG2RAD * pdat->aspect);
+    st = sin(DEG2RAD * pdat->tilt);
+    sz = sin(DEG2RAD * pdat->zenref);
     pdat->cosinc = pdat->coszen * ct + sz * st * (ca * cp + sa * sp);
 
     if (pdat->cosinc > 0.0)

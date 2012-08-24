@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.sunmask
+PGM = r.sun.angle
 
 LIBES =  $(GPROJLIB) $(GISLIB)
 DEPENDENCIES = $(GPROJDEP) $(GISDEP)

@@ -1,4 +1,9 @@
 
+#define RAD2DEG 57.295779513	/* converts from radians to degrees */
+#define DEG2RAD 0.0174532925	/* converts from degrees to radians */
+
+int dom2doy2(int year, int month, int day);
+
  /*============================================================================
 *
 *    NAME:  solpos.h
@@ -177,6 +182,9 @@ struct posdata
     int second;			/* I:              Second of minute, 0 - 59, DEFAULT = 0 */
     int year;			/* I:              4-digit year (2-digit year is NOT
 				   allowed */
+
+    int time_updated;           /* recalculate time-dependent variables */
+    int longitude_updated;      /* recalculate longitude-dependent variables */
 
   /***** FLOATS *****/
 
