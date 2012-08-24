@@ -435,8 +435,13 @@ int main(int argc, char *argv[])
 		azimuthbuf[col] = s_azimuth;
 	    }
 	    
-	    if (sunhour_name)
+	    if (sunhour_name) {
 		sunhourbuf[col] = (pd.ssetr - pd.sretr) / 60.;
+		if (sunhourbuf[col] > 24.)
+		    sunhourbuf[col] = 24.;
+		if (sunhourbuf[col] < 0.)
+		    sunhourbuf[col] = 0.;
+	    }
 
 	}
 	if (elev_name)
