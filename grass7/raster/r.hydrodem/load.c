@@ -12,7 +12,7 @@ int ele_round(double x)
  * loads elevation map to segment file and gets start points for A* Search,
  * start points are edges
  */
-int load_map(int ele_fd, int depr_fd)
+int load_map(int ele_fd)
 {
     int r, c;
     char flag_value, asp_value = 0;

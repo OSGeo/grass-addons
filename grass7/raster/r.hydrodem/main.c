@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
 	heap_mem += (num_open_segs * 4 - num_seg_total) * seg2kb / 1024.;
 
     /* load map */
-    if (load_map(ele_fd, depr_fd) < 0) {
+    if (load_map(ele_fd) < 0) {
 	cseg_close(&ele);
 	bseg_close(&draindir);
 	bseg_close(&bitflags);

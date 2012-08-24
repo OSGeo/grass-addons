@@ -14,16 +14,19 @@ struct ns
 };
 
 static struct ns *n_stack;
-static unsigned int stack_alloc;
+static int stack_alloc;
 
-int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
+static int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
+static int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
+
+static int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
+static int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
+
+
+static int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
                CELL *next_ele)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
-    int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
-    int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
-    int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
     CELL ele_val, ele_nbr;
     int n_to_fill;
     int top, done;
@@ -108,13 +111,9 @@ int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
 /* detect flat area:
  * count neighbouring cells with same ele
  * exclude contributing cells and cell this one is contributing to */
-int is_flat(int r, int c, CELL this_ele)
+static int is_flat(int r, int c, CELL this_ele)
 {
     int r_nbr, c_nbr, ct_dir;
-    int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
-    int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-    int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
-    int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     CELL ele_nbr;
     char drain_val, drain_val_nbr;
     int counter = 0;
@@ -150,13 +149,9 @@ int is_flat(int r, int c, CELL this_ele)
     return (counter > 0);
 }
 
-int fill_sink(int peak_r, int peak_c, CELL peak_ele)
+static int fill_sink(int peak_r, int peak_c, CELL peak_ele)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
-    int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
-    int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
-    int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
     CELL ele_nbr;
     int n_to_fill = 0;
     int top, done;
@@ -225,17 +220,13 @@ int fill_sink(int peak_r, int peak_c, CELL peak_ele)
 }
 
 /* carve channel */
-int carve(int bottom_r, int bottom_c, CELL bottom_ele,
+static int carve(int bottom_r, int bottom_c, CELL bottom_ele,
           int peak_r, int peak_c)
 {
     int r, c, r_nbr, c_nbr, carved = 0;
     char drain_val;
     int ct_dir;
     CELL ele_val, ele_nbr;
-    int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
-    int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
-    int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
     int top, done;
 
     /* carve upstream from spill point --> */
@@ -343,8 +334,6 @@ int hydro_con(void)
     CELL ele_val, ele_nbr, ele_last, peak_ele, bottom_ele;
     int down_uphill, down_downhill, n_cells;
     struct sink_list *last_sink;
-    int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
-    int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
     char drain_val, flag_value;
     int n_splits, n_to_fill;
     int n_filled, n_carved, n_just_a_bit, n_processed;
@@ -554,7 +543,7 @@ int hydro_con(void)
 		last_ele = ele_nbr = peak_ele;
 		min_bottom_ele = bottom_ele;
 		this_is_flat = 0;
-		while (ele_nbr >= bottom_ele && this_is_flat < 3) {
+		while (ele_nbr >= bottom_ele && this_is_flat < 4) {
 		    if (ele_nbr > bottom_ele) {
 			down_downhill++;
 			/* catch min 2 consecutive cells
@@ -562,7 +551,7 @@ int hydro_con(void)
 			if (is_flat(r_nbr, c_nbr, ele_nbr)) {
 			    if (ele_nbr == last_ele) {
 				this_is_flat++;
-				if (this_is_flat > 1 &&
+				if (this_is_flat > 2 &&
 				    ele_nbr > min_bottom_ele)
 				    min_bottom_ele = bottom_ele + 1;
 			    }
@@ -588,7 +577,7 @@ int hydro_con(void)
 		}
 
 		/* carving ok */
-		if (this_is_flat < 3) {
+		if (this_is_flat < 4) {
 		    min_bottom_ele = bottom_ele;
 		    /* count cells to carve from sink bottom to spill point */
 		    ele_last = ele_nbr = bottom_ele;
@@ -633,6 +622,10 @@ int hydro_con(void)
 		    min_bottom_ele = bottom_ele + 1;
 		}
 
+		/* there is no better solution by filling more */
+		if (n_to_fill > least_impact)
+		    break;
+
 		G_debug(2,
 			"channel length to spill point %d, channel length from spill point %d, cells to fill %d",
 			down_uphill, down_downhill, n_to_fill);
@@ -643,7 +636,7 @@ int hydro_con(void)
 		/* remains a mystery why n_new_splits results in less modifications... */
 		if (sqrt(n_to_fill) < (down_uphill + down_downhill) ||
 		    n_new_splits <= 4 ||
-		    bottom_ele < min_bottom_ele ||
+		    bottom_ele <= min_bottom_ele ||
 		    least_impact == li_max) {
 		    /* continue with IRA */
 		    G_debug(2, "IRA conditions fulfilled");
@@ -780,8 +773,6 @@ int one_cell_extrema(int do_peaks, int do_pits, int all)
 {
     int r, c, r_nbr, c_nbr;
     int ct_dir;
-    int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
-    int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     int skipme;
     CELL ele_min, ele_max, ele_this, ele_nbr;
     unsigned int n_pits = 0;

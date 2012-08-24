@@ -19,7 +19,7 @@ double get_slope(CELL, CELL, double);
 int do_astar(void)
 {
     int r, c, r_nbr, c_nbr, ct_dir;
-    int count;
+    unsigned int count;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
@@ -299,7 +299,7 @@ unsigned int heap_add(int r, int c, CELL ele, char asp, char flag_value)
 struct heap_point heap_drop(void)
 {
     unsigned int child, childr, parent;
-    int i;
+    unsigned int i;
     struct heap_point child_p, childr_p, last_p, root_p;
 
     seg_get(&search_heap, (char *)&last_p, 0, heap_size);

@@ -70,7 +70,7 @@ extern BSEG draindir;
 extern CSEG stream;
 
 /* load.c */
-int load_map(int, int);
+int load_map(int);
 
 /* init_search.c */
 int init_search(int);
