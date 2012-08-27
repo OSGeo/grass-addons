@@ -20,8 +20,6 @@
  ** FLAG *flags;
  **     sets all values in flags to zero.
  **
- * following 3 were changed to macros, same usage
- * 
  ** flag_unset(flags, row, col)
  ** FLAG *flags;
  ** int row, col;
@@ -58,8 +56,9 @@ FLAG {
 	(flags)->array[(row)][(col)>>3] & (1<<((col) & 7))
 
 /* flag.c */
-int flag_clear_all(FLAG *);
 FLAG *flag_create(int, int);
 int flag_destroy(FLAG *);
+int flag_clear_all(FLAG *);
+
 
 #endif /* __FLAG_H__ */

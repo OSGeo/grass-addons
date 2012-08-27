@@ -13,119 +13,103 @@
  *****************************************************************************/
 
 #include <grass/segment.h>
-#include <grass/linkm.h>
 #include "flag.h"
+#include "regtree.h"
+#include "ngbrtree.h"
 
-/* PROFILE will add some rough time checks for finding neighbors, merging, and pass times. */
-/* #define PROFILE */
-
-/* SIGNPOST will add some fprintf statments to indicate what segments are being merged.
- * other diagnostics could be included here for during further development and speed improvements.
- */
-/* #define SIGNPOST */
-
-/* pixel stack */
-struct pixels
+/* row/col list */
+struct rc
 {
-    struct pixels *next;
+    struct rc *next;
     int row;
     int col;
-    int countShared;		/* todo perimeter: will hold the count how many pixels are shared on the Border Between Ri and Rk.  Not used for all pixels... see if this is an OK way to do this... */
+};
+
+struct rclist
+{
+    struct rc *tail, *head;
 };
 
 /* input and output files, as well as some other processing info */
-struct files
+struct globals
 {
     /* user parameters */
     char *image_group;
-    int weighted;		/* 0 if false/not selected, so we should scale input.  1 if the scaling should be skipped */
+    int weighted;		/* 0 if false/not selected, so we should scale input.
+				 * 1 if the scaling should be skipped */
+    int method;			/* Segmentation method */
+    int nn;			/* number of neighbors, 4 or 8 */
+    double threshold;		/* similarity threshold */
+    double alpha;
+    int min_segment_size;	/* smallest number of pixels/cells allowed in a final segment */
+    int end_t;			/* maximum number of iterations */
+    int mb;
 
     /* region info */
     int nrows, ncols;
+    int row_min, row_max, col_min, col_max; /* region constraints */
+    int ncells;
 
-    /* files */
     char *out_name;		/* name of output raster map */
-    const char *seeds_map, *seeds_mapset, *bounds_map, *bounds_mapset;	/* optional segment seeds and polygon constraints/boundaries */
-    char *out_band;		/* for segment average values */
+    char *seeds, *bounds_map;	/* optional segment seeds and polygon constraints/boundaries */
+    CELL lower_bound, upper_bound;
+    const char *bounds_mapset;
+    char *out_band;		/* indicator for segment heterogeneity */
 
     /* file processing */
-    /* bands_seg is initialized with the input raster valuess, then is updated with current mean values for the segment. */
     int nbands;			/* number of rasters in the image group */
-    SEGMENT bands_seg, bounds_seg;	/* bands is for input, normal application is landsat bands, but other input can be included in the group. */
-    double *bands_val;		/* array, to hold all input values at one pixel */
-    double *second_val;		/* to hold values at second point for similarity comparison */
-    int bounds_val, current_bound;
-    int minrow, maxrow, mincol, maxcol;
+    SEGMENT bands_seg, 	        /* input group with one or more bands */
+            bounds_seg,
+	    rid_seg;
+    DCELL *bands_min, *bands_max;
+    DCELL *bands_val;		/* array to hold all input values for one cell */
+    DCELL *second_val;		/* array to hold all input values for another cell */
 
     /* results */
-    SEGMENT iseg_seg;		/* segment ID assignment */
-    int nsegs;			/* number of segments */
+    struct RG_TREE *reg_tree;   /* search tree with region stats */
+    struct reg_stats rs;
+    struct ngbr_stats ns;
+    size_t datasize;		/* nbands * sizeof(double) */
+    int n_regions;
 
     /* processing flags */
-    /* candidate flag for if a cell/segment has already been merged in that pass. */
-    /* seeds flag for if a cell/segment is a seed (can be Ri to start a merge).  All cells are valid seeds if a starting seeds map is not supplied. */
-    FLAG *candidate_flag, *null_flag, *orig_null_flag, *seeds_flag;
+    FLAG *candidate_flag, *null_flag;	/*TODO, need some way to remember MASK/NULL values.  Was using -1, 0, 1 in int array.  Better to use 2 FLAG structures, better readibility? */
 
-    /* memory management, linked lists */
-    struct link_head *token;	/* for linkm.h linked list memory management. */
+    /* number of remaining cells to check */
+    int candidate_count;
 
-};
-
-struct functions
-{
-    int method;			/* Segmentation method */
-    int num_pn;			/* number of pixel neighbors  int, 4 or 8. */
-    float threshold;		/* similarity threshold */
-    int min_segment_size;	/* smallest number of pixels/cells allowed in a final segment */
-
-    /* Some function pointers to set in parse_args() */
-    int (*find_pixel_neighbors) (int, int, int[8][2], struct files *);	/*parameters: row, col, pixel_neighbors */
-    double (*calculate_similarity) (struct pixels *, struct pixels *, struct files *, struct functions *);	/*parameters: two pixels (each with row,col) to compare */
-
-    /* max number of iterations/passes */
-    int end_t;
-
-    int path;			/* flag if we are using Rk as next Ri for non-mutually best neighbor. */
-    int limited;		/* flag if we are limiting merges to one per pass */
-
-    /* todo: is there a fast way (and valid from an algorithm standpoint) to merge all neighbors that are within some small % of the treshold?
-     * There is some code using "very_close" that is excluded with IFDEF
-     * The goal is to speed processing, since in the end many of these very similar neighbors will be merged.
-     * But the problem is that the find_segment_neighbors() function only returns a single pixel, not the entire segment membership.
-     * The commented out code actually slowed down processing times in the first tries. */
-#ifdef VCLOSE
-    double very_close;		/* segments with very_close similarity will be merged without changing or checking the candidate flag.
-				 *   The algorithm will continue looking for the "most similar" neighbor that isn't "very close". */
-#endif
+    /* functions */
+	
+    void (*find_neighbors) (int, int, int[8][2]);	/*parameters: row, col, neighbors */
+    double (*calculate_similarity) (struct ngbr_stats *,
+                                    struct ngbr_stats *,
+				    struct globals *);	/*parameters: two regions to compare */
 };
 
 
 /* parse_args.c */
 /* gets input from user, validates, and sets up functions */
-int parse_args(int, char *[], struct files *, struct functions *);
+int parse_args(int, char *[], struct globals *);
 
 /* open_files.c */
-int open_files(struct files *, struct functions *);
+int open_files(struct globals *);
 
 /* create_isegs.c */
-int create_isegs(struct files *, struct functions *);
-int region_growing(struct files *, struct functions *);
-int find_segment_neighbors(struct pixels **, struct pixels **, int *,
-			   struct files *, struct functions *);
-int set_candidate_flag(struct pixels *, int, struct files *);
-int merge_values(struct pixels *, struct pixels *, int, int, struct files *);
-int merge_pixels(struct pixels *, int, struct files *);
-int find_four_pixel_neighbors(int, int, int[][2], struct files *);
-int find_eight_pixel_neighbors(int, int, int[8][2], struct files *);
-double calculate_euclidean_similarity(struct pixels *, struct pixels *,
-				      struct files *, struct functions *);
-double calculate_manhattan_similarity(struct pixels *, struct pixels *,
-				      struct files *, struct functions *);
-int my_dispose_list(struct link_head *, struct pixels **);
-int compare_ids(const void *, const void *);
-int compare_pixels(const void *, const void *);
-int set_all_candidate_flags(struct files *);
+int create_isegs(struct globals *);
+int region_growing(struct globals *);
+void find_four_neighbors(int, int, int[][2]);
+void find_eight_neighbors(int, int, int[8][2]);
+double calculate_euclidean_similarity(struct ngbr_stats *, 
+                                      struct ngbr_stats *, struct globals *);
+
+
+/* rclist.c */
+void rclist_init(struct rclist *);
+void rclist_add(struct rclist *, int, int);
+int rclist_drop(struct rclist *, struct rc *);
+void rclist_destroy(struct rclist *);
+
 
 /* write_output.c */
-int write_output(struct files *);
-int close_files(struct files *);
+int write_output(struct globals *);
+int close_files(struct globals *);

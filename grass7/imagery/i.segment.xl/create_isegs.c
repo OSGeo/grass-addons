@@ -3,1159 +3,1123 @@
 /* Currently only region growing is implemented */
 
 #include <stdlib.h>
-#include <float.h>		/* for DBL_MAX */
-#include <math.h>		/* for fabs() */
+#include <string.h>
+#include <float.h>
+#include <math.h>
+#include <time.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/raster.h>
 #include <grass/segment.h>	/* segmentation library */
-#include <grass/linkm.h>	/* memory manager for linked lists */
 #include <grass/rbtree.h>	/* Red Black Tree library functions */
 #include "iseg.h"
 
-#ifdef PROFILE
-#include <time.h>
-#endif
+#define EPSILON 1.0e-9
 
-/* This will do a typical rowmajor processing of the image(s).  
- * Commenting it out will switch to z-order processing.
- * Z-order does NOT support the bounds option, and assumes a somewhat square rectangle (otherwise the power of 2 square could overrun the long long maximum). */
-#define ROWMAJOR		/* note: gives nesting error with INDENT program since this changes the for loops.  comment out when running INDENT. */
+int debug_level;
 
-int create_isegs(struct files *files, struct functions *functions)
+/* internal functions */
+static int merge_regions(struct ngbr_stats *,    /* Ri */
+                         struct reg_stats *,
+                         struct ngbr_stats *,    /* Rk */
+			 struct reg_stats *,
+			 struct globals *);
+static int search_neighbors(struct ngbr_stats *,    /* Ri */
+                            struct NB_TREE *,       /* Ri's neighbors */ 
+			    double *,               /* highest similarity */ 
+			    struct ngbr_stats *,    /* Ri's best neighbor */
+		            struct globals *);
+static int set_candidate_flag(struct ngbr_stats *, int , struct globals *);
+static int find_best_neighbor(struct ngbr_stats *, struct NB_TREE *,
+			      struct reg_stats **, struct ngbr_stats *,
+			      double *, int, struct globals *);
+
+/* function used by binary tree to compare items */
+static int compare_rc(const void *first, const void *second)
 {
-    int lower_bound, upper_bound, row, col;
+    struct rc *a = (struct rc *)first, *b = (struct rc *)second;
+
+    if (a->row < b->row)
+	return -1;
+    if (a->row > b->row)
+	return 1;
+
+    /* same row */
+    if (a->col < b->col)
+	return -1;
+    if (a->col > b->col)
+	return 1;
+    /* same row and col */
+    return 0;
+}
+
+static int compare_ints(const void *first, const void *second)
+{
+    int a = *(int *)first, b = *(int *)second;
+
+    return (a < b ? -1 : (a > b));
+}
+
+static int compare_double(double first, double second)
+{
+    if (first > second)
+	return (first > (second * (1 + EPSILON)));
+    if (first < second)
+	return (-1 * (second > (first * (1 + EPSILON))));
+    return 0;
+}
+
+int create_isegs(struct globals *globals)
+{
+    int row, col;
     int successflag = 1;
-    struct Range range;
+    int have_bound;
+    CELL current_bound, bounds_val;
 
-    /* Modify the threshold for easier similarity comparisons.
-     * For Euclidean, square the threshold so we don't need to calculate the root value in the distance calculation.
-     * In either case, multiplie by the number of input bands, so the same threshold will achieve similar thresholds even for different numbers of input bands.*/
-    if (functions->calculate_similarity == calculate_euclidean_similarity)
-	functions->threshold =
-	    functions->threshold * functions->threshold * files->nbands;
-    else
-	functions->threshold = functions->threshold * files->nbands;
+    G_debug(1, "Threshold: %g", globals->threshold);
+    G_debug(1, "segmentation method: %d", globals->method);
 
-
-    /* set parameters for outer processing loop for polygon constraints */
-    if (files->bounds_map == NULL) {	/*normal processing */
-	lower_bound = upper_bound = 0;	/* so run the segmentation algorithm just one time */
+    if (globals->bounds_map == NULL) {
+	/* just one time through loop */
+	successflag = region_growing(globals);
     }
     else {
-	if (Rast_read_range(files->bounds_map, files->bounds_mapset, &range) != 1) {	/* returns -1 on error, 2 on empty range, quiting either way. */
-	    G_fatal_error(_("No min/max found in boundary raster map <%s>"),
-			  files->bounds_map);
-	}
-	Rast_get_range_min_max(&range, &lower_bound, &upper_bound);
-	/* speed enhancement, when processing with bounds: get the unique values.
-	 * As is, we will iterate at one time over the entire raster for each integer between the upper and lower bound, even if no regions exist with that value. */
-    }
+	/* outer processing loop for polygon constraints */
+	for (current_bound = globals->lower_bound;
+	     current_bound <= globals->upper_bound; current_bound++) {
 
-    /* processing loop for polygon/boundary constraints */
-    if (files->bounds_map != NULL)
-	G_message(_("Starting image segmentation within boundary constraints, the percent complete is based the range of values in the boundary constraints map"));
-    for (files->current_bound = lower_bound;
-	 files->current_bound <= upper_bound; files->current_bound++) {
+	    G_debug(1, "current_bound = %d", current_bound);
 
-	if (files->bounds_map != NULL)
-	    G_percent(files->current_bound - lower_bound,
-		      upper_bound - lower_bound, 1);
+	    have_bound = 0;
 
-	/* *** check the processing window *** */
+	    /* get min/max row/col to narrow the processing window */
+	    globals->row_min = globals->nrows;
+	    globals->row_max = 0;
+	    globals->col_min = globals->ncols;
+	    globals->col_max = 0;
+	    for (row = 0; row < globals->nrows; row++) {
+		for (col = 0; col < globals->ncols; col++) {
+		    segment_get(&globals->bounds_seg, &bounds_val,
+				row, col);
 
-	/* set boundaries at "opposite" end, change until reach lowest/highest */
-	files->minrow = files->nrows;
-	files->mincol = files->ncols;
-	files->maxrow = files->maxcol = 0;
+		    if (bounds_val == current_bound) {
+			have_bound = 1;
 
-	if (files->bounds_map == NULL) {
-	    /* check the NULL flag to see where the first/last row/col of real data are, and reduce the processing window.
-	     * This could help (a little?) if a MASK is used that removes a large border portion of the map. */
-	    for (row = 0; row < files->nrows; row++) {
-		for (col = 0; col < files->ncols; col++) {
+			FLAG_UNSET(globals->null_flag, row, col);
 
-		    if (!(FLAG_GET(files->null_flag, row, col))) {
-
-			if (files->minrow > row)
-			    files->minrow = row;
-			if (files->maxrow < row)
-			    files->maxrow = row;
-			if (files->mincol > col)
-			    files->mincol = col;
-			if (files->maxcol < col)
-			    files->maxcol = col;
+			if (globals->row_min > row)
+			    globals->row_min = row;
+			if (globals->row_max < row)
+			    globals->row_max = row;
+			if (globals->col_min > col)
+			    globals->col_min = col;
+			if (globals->col_max < col)
+			    globals->col_max = col;
 		    }
+		    else
+			FLAG_SET(globals->null_flag, row, col);
 		}
 	    }
-	}
-	else {
-	    for (row = 0; row < files->nrows; row++) {
-		for (col = 0; col < files->ncols; col++) {
+	    globals->row_max++;
+	    globals->col_max++;
 
-		    segment_get(&files->bounds_seg, &files->bounds_val, row,
-				col);
-		    if (files->bounds_val == files->current_bound &&
-			!(FLAG_GET(files->orig_null_flag, row, col))) {
-			FLAG_UNSET(files->null_flag, row, col);
-
-			if (files->minrow > row)
-			    files->minrow = row;
-			if (files->maxrow < row)
-			    files->maxrow = row;
-			if (files->mincol > col)
-			    files->mincol = col;
-			if (files->maxcol < col)
-			    files->maxcol = col;
-
-		    }
-		    else	/* pixel is outside the current boundary or was null in the input bands */
-			FLAG_SET(files->null_flag, row, col);
-		}
-	    }
-
-	}			/* end of else, set up for bounded segmentation */
-
-	/* consider maxrow/maxcol as nrow, ncol, loops will have: row < maxrow
-	 * so need to increment by one */
-	files->maxrow++;
-	files->maxcol++;
-
-	/* run the segmentation algorithm */
-
-	if (functions->method == 1) {
-	    successflag = region_growing(files, functions);
-	}
-
-	/* check if something went wrong */
-	if (successflag == FALSE)
-	    G_fatal_error(_("Error during segmentation"));
-
-    }				/* end outer loop for processing bounds constraints (will just run once if not provided) */
-
-    /* reset null flag to the original if we have boundary constraints */
-    if (files->bounds_map != NULL) {
-	for (row = 0; row < files->nrows; row++) {
-	    for (col = 0; col < files->ncols; col++) {
-		if (FLAG_GET(files->orig_null_flag, row, col))
-		    FLAG_SET(files->null_flag, row, col);
-		else
-		    FLAG_UNSET(files->null_flag, row, col);
-	    }
-	}
+	    if (have_bound)
+		successflag = region_growing(globals);
+	}    /* end outer loop for processing polygons */
     }
-
 
     return successflag;
 }
 
-int region_growing(struct files *files, struct functions *functions)
+
+int region_growing(struct globals *globals)
 {
     int row, col, t;
-    double threshold, Ri_similarity, Rk_similarity, tempsim;
-    int endflag;		/* =TRUE if there were no merges on that processing iteration */
-    int pathflag;		/* =TRUE if we didn't find mutual neighbors, and should continue with Rk */
-    struct pixels *Ri_head, *Rk_head, *Rin_head, *Rkn_head,
-	*current, *newpixel, *Ri_bestn;
-    int Ri_count, Rk_count;	/* number of pixels/cells in Ri and Rk */
+    double threshold, adjthresh, Ri_similarity, Rk_similarity;
+    double alpha2, divisor;		/* threshold parameters */
+    int n_merges, do_merge;		/* number of merges on that iteration */
+    int pathflag;		/* =1 if we didn't find mutually best neighbors, continue with Rk */
+    int candidates_only;
+    struct ngbr_stats Ri,
+                      Rk,
+	              Rk_bestn,         /* Rk's best neighbor */
+		      *next;
+    int Ri_nn, Rk_nn; /* number of neighbors for Ri/Rk */
+    struct NB_TREE *Ri_ngbrs, *Rk_ngbrs;
+    struct NB_TRAV travngbr;
+    struct reg_stats *Ri_rs, *Rk_rs, *Rk_bestn_rs;
+    int verbose = (G_verbose() >= 3);
+    double *dp;
+    struct NB_TREE *tmpnbtree;
 
-#ifndef ROWMAJOR
-    unsigned long int z, end_z;	/* only used for z-order */
-    int j;
-#endif
+    G_verbose_message("Running region growing algorithm");
+    
+    Ri.mean = G_malloc(globals->datasize);
+    Rk.mean = G_malloc(globals->datasize);
+    Rk_bestn.mean = G_malloc(globals->datasize);
+    
+    Ri_ngbrs = nbtree_create(globals->nbands, globals->datasize);
+    Rk_ngbrs = nbtree_create(globals->nbands, globals->datasize);
 
-#ifdef VCLOSE
-    struct pixels *Rclose_head, *Rc_head, *Rc_tail, *Rcn_head;
-    int Rc_count;
-#endif
+    t = 0;
+    n_merges = 1;
 
-#ifdef PROFILE
-    clock_t start, end;
-    clock_t merge_start, merge_end;
-    double merge_accum, merge_lap;
-    clock_t fn_start, fn_end;
-    double fn_accum, fn_lap;
-    clock_t pass_start, pass_end;
+    /* threshold calculation */
+    alpha2 = globals->alpha * globals->alpha;
+    /* make the divisor a constant ? */
+    divisor = globals->nrows + globals->ncols;
+    
+    debug_level = 5;
+    
+    while (t < globals->end_t && n_merges > 0) {
 
-    merge_accum = fn_accum = 0;
-    start = clock();
-#endif
-    /* files->token has the "link_head" for linkm: linked list memory allocation.
-     * 
-     * 4 linked lists of pixels:
-     * Ri = current focus segment
-     * Rk = Ri's most similar neighbor
-     * Rkn = Rk's neighbors
-     * Rin = Ri's neigbors
-     * */
-    if (files->bounds_map == NULL)
-	G_message(_("Running region growing algorithm, the percent completed is based on %d max iterations, but the process will end earlier if no further merges can be made."),
-		  functions->end_t);
+	/* optional threshold as a function of t. */
+	threshold = alpha2 * globals->threshold;
 
-    t = 1;
-
-    /*set linked list head pointers to null. */
-    Ri_head = NULL;
-    Rk_head = NULL;
-    Rin_head = NULL;
-    Rkn_head = NULL;
-    Ri_bestn = NULL;
-#ifdef VCLOSE
-    Rclose_head = NULL;
-    Rc_head = NULL;
-    Rcn_head = NULL;
-#endif
-
-    /* One paper mentioned gradually lowering the threshold at each iteration.
-     * if this is implemented, move this assignment inside the do loop and make it a function of t. */
-    threshold = functions->threshold;
-
-    /* do while loop until no merges are made, or until t reaches maximum number of iterations */
-    do {
-#ifdef PROFILE
-	pass_start = clock();
-#endif
-#ifdef SIGNPOST
-	fprintf(stdout, "pass %d\n", t);
-#endif
+	t++;
 	G_debug(3, "#######   Starting outer do loop! t = %d    #######", t);
-	if (files->bounds_map == NULL)
-	    G_percent(t, functions->end_t, 1);
+	if (verbose)
+	    G_verbose_message(_("Pass %d:"), t);
+	else
+	    G_percent(t, globals->end_t, 1);
 
-	endflag = TRUE;
+	if (t >= 50)
+	    debug_level = 5;
 
-	/* Set candidate flag to true/1 for all pixels */
-	set_all_candidate_flags(files);
+	n_merges = 0;
+	globals->candidate_count = 0;
+	flag_clear_all(globals->candidate_flag);
 
-	/*process candidate pixels for this iteration */
-
-	/*check each pixel, start the processing only if it is a candidate pixel */
-#ifdef ROWMAJOR
-	for (row = files->minrow; row < files->maxrow; row++) {
-	    for (col = files->mincol; col < files->maxcol; col++) {
-#else
-	{
-	    /* z-order traversal: */
-	    /* need to get a "square" power of 2 around our processing area */
-
-	    /*largest dimension: */
-	    if (files->nrows > files->ncols)
-		end_z = files->nrows;
-	    else
-		end_z = files->ncols;
-
-	    /* largest power of 2: */
-	    end_z--;		/* in case we are already a power of two. */
-	    end_z = (end_z >> 1) | end_z;
-	    end_z = (end_z >> 2) | end_z;
-	    end_z = (end_z >> 4) | end_z;
-	    end_z = (end_z >> 8) | end_z;
-	    end_z = (end_z >> 16) | end_z;
-	    end_z = (end_z >> 32) | end_z;	/* only for 64-bit architecture TODO, would this mess things up on 32? */
-	    /*TODO does this need to repeat more since z long unsigned??? */
-	    end_z++;
-
-	    /*squared: */
-	    end_z *= end_z;
-
-	    for (z = 0; z < end_z; z++) {
-		row = col = 0;
-		/*bit wise construct row and col from i */
-		for (j = 8 * sizeof(long int) - 1; j > 1; j--) {
-		    row = row | (1 & (z >> j));
-		    row = row << 1;
-		    j--;
-		    col = col | (1 & (z >> j));
-		    col = col << 1;
+	/* Set candidate flag to true/1 for all non-NULL cells */
+	for (row = globals->row_min; row < globals->row_max; row++) {
+	    for (col = globals->col_min; col < globals->col_max; col++) {
+		if (!(FLAG_GET(globals->null_flag, row, col))) {
+		    
+		    FLAG_SET(globals->candidate_flag, row, col);
+		    globals->candidate_count++;
 		}
-		row = row | (1 & (z >> j));
-		j--;
-		col = col | (1 & (z >> j));
-		if (row >= files->nrows || col >= files->ncols)
-		    continue;	/* slight speed enhancement, if z-order is helpful, figure out how to skip to the next z that is in the processing area. */
 	    }
-#endif
+	}
 
-	    if (FLAG_GET(files->candidate_flag, row, col) &&
-		FLAG_GET(files->seeds_flag, row, col)) {
+	G_debug(4, "Starting to process %d candidate cells",
+		globals->candidate_count);
 
-		/*free memory for linked lists */
-		my_dispose_list(files->token, &Ri_head);
-		my_dispose_list(files->token, &Rk_head);
-		my_dispose_list(files->token, &Rin_head);
-		my_dispose_list(files->token, &Rkn_head);
-#ifdef VCLOSE
-		my_dispose_list(files->token, &Rclose_head);
-#endif
-		Rk_count = 0;
-
-		/* First pixel in Ri is current row/col pixel.  We may add more later if it is part of a segment */
-		Ri_count = 1;
-		newpixel = (struct pixels *)link_new(files->token);
-		newpixel->next = NULL;
-		newpixel->row = row;
-		newpixel->col = col;
-		Ri_head = newpixel;
+	/*process candidate cells */
+	for (row = globals->row_min; row < globals->row_max; row++) {
+	    if (verbose)
+		G_percent(row, globals->row_max, 4);
+	    for (col = globals->col_min; col < globals->col_max; col++) {
+		if (!(FLAG_GET(globals->candidate_flag, row, col)))
+		    continue;
 
 		pathflag = TRUE;
+		candidates_only = TRUE;
 
-		while (pathflag == TRUE) {	/*if don't find mutual neighbors on first try, will use Rk as next Ri. */
-		    G_debug(4, "Next starting pixel: row, %d, col, %d",
-			    Ri_head->row, Ri_head->col);
+		nbtree_clear(Ri_ngbrs);
+		nbtree_clear(Rk_ngbrs);
+
+		G_debug(4, "Next starting cell: row, %d, col, %d",
+			row, col);
+
+		/* First cell in Ri is current row/col */
+		Ri.row = row;
+		Ri.col = col;
+
+		/* get Ri's segment ID */
+		segment_get(&globals->rid_seg, (void *)&Ri.id, Ri.row, Ri.col);
+		
+		if (Ri.id < 0)
+		    continue;
+
+		/* find segment neighbors */
+		/* find Ri's best neighbor, clear candidate flag */
+		Ri_similarity = globals->threshold + 1;
+
+		globals->rs.id = Ri.id;
+		if ((Ri_rs = rgtree_find(globals->reg_tree, &(globals->rs))) != NULL) {
+		    memcpy(Ri.mean, Ri_rs->mean, globals->datasize);
+		    Ri.count = Ri_rs->count;
+		}
+		else {
+		    segment_get(&globals->bands_seg, (void *)Ri.mean,
+				Ri.row, Ri.col);
+		    Ri.count = 1;
+		}
+		/* Ri is now complete */
+
+		Rk_rs = NULL;
+		Ri_nn = find_best_neighbor(&Ri, Ri_ngbrs, &Rk_rs,
+					   &Rk, &Ri_similarity, 1,
+					   globals);
+		/* Rk is now complete */
+
+		if (Ri_nn == 0) {
+		    /* this can only happen if only one segment is left */
+		    G_debug(4, "Segment had no valid neighbors");
+		    pathflag = FALSE;
+		    Ri.count = 0;
+		}
+		if (!(t & 1) && Ri_nn == 1 &&
+		    !(FLAG_GET(globals->candidate_flag, Rk.row, Rk.col)) &&
+		    compare_double(Ri_similarity, threshold) == -1) {
+		    /* this is slow ??? */
+		    int smaller = Rk.count;
+
+		    if (Ri.count < Rk.count)
+			smaller = Ri.count;
+
+		    adjthresh = pow(alpha2, 1. + (double) smaller / divisor) *
+				globals->threshold;
+
+		    if (compare_double(Ri_similarity, adjthresh) == -1) {
+			G_debug(4, "Ri nn == 1");
+			if (Rk.count < 2)
+			    G_fatal_error("Rk count too low");
+			if (Rk.count < Ri.count)
+			    G_debug(1, "Rk count lower than Ri count");
+
+			merge_regions(&Ri, Ri_rs, &Rk, Rk_rs, globals);
+			n_merges++;
+		    }
 
 		    pathflag = FALSE;
+		}
+		/* this is slow ??? */
+		if (0 && (t & 1) && Rk.count <= globals->nn)
+		    candidates_only = FALSE;
+		
+		while (pathflag) {
+		    pathflag = FALSE;
+		    
+		    /* optional check if Rk is candidate
+		     * to prevent backwards merging */
+		    if (candidates_only && 
+		        !(FLAG_GET(globals->candidate_flag, Rk.row, Rk.col))) {
 
-		    /* find segment neighbors, if we don't already have them */
-		    if (Rin_head == NULL) {
-#ifdef PROFILE
-			fn_start = clock();
-#endif
-
-			find_segment_neighbors
-			    (&Ri_head, &Rin_head, &Ri_count, files,
-			     functions);
-#ifdef PROFILE
-			fn_end = clock();
-			fn_lap =
-			    ((double)(fn_end - fn_start)) / CLOCKS_PER_SEC;
-			fn_accum += fn_lap;
-			fprintf(stdout, "fsn(Ri): %g\t", fn_lap);
-#endif
+			Ri_similarity = globals->threshold + 1;
 		    }
 
-		    if (Rin_head != NULL) {	/*found neighbors, find best neighbor then see if is mutually best neighbor */
+		    candidates_only = TRUE;
 
-			/* ********  find Ri's most similar neighbor  ******** */
-			Ri_bestn = NULL;
-			Ri_similarity = threshold + 1;	/* set current similarity to max value */
-			segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row, Ri_head->col);	/* current segment values */
+		    if (compare_double(Ri_similarity, threshold) == -1) {
+			do_merge = 1;
 
-			/* for each of Ri's neighbors */
-			for (current = Rin_head; current != NULL;
-			     current = current->next) {
-			    tempsim = (*functions->calculate_similarity)
-				(Ri_head, current, files, functions);
+			/* we'll have the neighbor pixel to start with. */
+			G_debug(4, "Working with Rk");
 
-#ifdef VCLOSE
-			    /* if very close, will merge, but continue checking other neighbors */
-			    if (tempsim < functions->very_close * threshold) {
-				/* add to Rclose list */
-				newpixel =
-				    (struct pixels *)link_new(files->token);
-				newpixel->next = Rclose_head;
-				newpixel->row = current->row;
-				newpixel->col = current->col;
-				Rclose_head = newpixel;
-			    }
-			    /* If "sort of" close, merge only if it is the mutually most similar */
-			    else
-#endif
-			    if (tempsim < Ri_similarity) {
-				Ri_similarity = tempsim;
-				Ri_bestn = current;
-			    }
-			}	/* finished similiarity check for all neighbors */
+			/* find Rk's best neighbor, do not clear candidate flag */
+			Rk_similarity = globals->threshold + 1;
+			Rk_bestn_rs = NULL;
+			Rk_nn = find_best_neighbor(&Rk, Rk_ngbrs,
+						   &Rk_bestn_rs,
+						   &Rk_bestn,
+						   &Rk_similarity, 0,
+						   globals);
 
-			/* *** merge all the "very close" pixels/segments *** */
-			/* doing this after checking all Rin, so we don't change the bands_val between similarity comparisons
-			 * ... but that leaves the possibility that we have the wrong best Neighbor after doing these merges... 
-			 * but it seems we can't put this merge after the Rk/Rkn portion of the loop, because we are changing the available neighbors
-			 * ...maybe this extra "very close" idea has to be done completely differently or dropped???  */
-#ifdef VCLOSE
-			for (current = Rclose_head; current != NULL;
-			     current = current->next) {
-			    my_dispose_list(files->token, &Rc_head);
-			    my_dispose_list(files->token, &Rcn_head);
-
-			    /* get membership of neighbor segment */
-			    Rc_count = 1;
-			    newpixel =
-				(struct pixels *)link_new(files->token);
-			    newpixel->next = NULL;
-			    newpixel->row = current->row;
-			    newpixel->col = current->col;
-			    Rc_head = Rc_tail = newpixel;
-			    find_segment_neighbors(&Rc_head, &Rcn_head, &Rc_count, files, functions);	/* just to get members, not looking at neighbors now */
-			    merge_values(Ri_head, Rc_head, Ri_count,
-					 Rc_count, files);
-
-			    /* Add Rc pixels to Ri */
-			    Rc_tail->next = Ri_head;
-			    Ri_head = Rc_head;
-
-			    /*to consider, recurse?  Check all Rcn neighbors if they are very close? */
-
-			    Rc_head = NULL;
-			    my_dispose_list(files->token, &Rcn_head);
+			/* not mutually best neighbors */
+			if (Rk_similarity != Ri_similarity) {
+			    do_merge = 0;
 			}
-			my_dispose_list(files->token, &Rclose_head);
-#endif
+			/* Ri has only one neighbor, merge */
+			if (Ri_nn == 1 && Rk_nn > 1)
+			    do_merge = 1;
 
-			/* check if we have a bestn that is valid to use to look at Rk */
-			if (Ri_bestn != NULL) {
-			    if ((functions->limited == TRUE) && !
-				(FLAG_GET
-				 (files->candidate_flag,
-				  Ri_bestn->row, Ri_bestn->col))) {
-				/* this check is important:
-				 * best neighbor is not a valid candidate, was already merged earlier in this time step */
-				Ri_bestn = NULL;
-			    }
+			/* adjust threshold */
+			if (do_merge) {
+			    int smaller = Rk.count;
+
+			    if (Ri.count < Rk.count)
+				smaller = Ri.count;
+
+			    adjthresh = pow(alpha2, 1. + (double) smaller / divisor) *
+					globals->threshold;
+
+			    if (compare_double(Ri_similarity, adjthresh) == 1)
+				do_merge = 0;
 			}
-			if (Ri_bestn != NULL && Ri_similarity < threshold) {	/* small TODO: should this be < or <= for threshold? */
-			    /* Rk starts from Ri's best neighbor */
-			    if (Rk_head) {
-				G_warning(_("Rk_head is not NULL!"));
-				my_dispose_list(files->token, &Rk_head);
+
+			if (do_merge) {
+			    
+			    G_debug(4, "merge neighbor trees");
+
+			    Ri_nn -= Ri_ngbrs->count;
+			    Ri_nn += (Rk_nn - Rk_ngbrs->count);
+			    globals->ns.id = Rk.id;
+			    nbtree_remove(Ri_ngbrs, &(globals->ns));
+
+			    nbtree_init_trav(&travngbr, Rk_ngbrs);
+			    while ((next = nbtree_traverse(&travngbr))) {
+				if (!nbtree_find(Ri_ngbrs, next) && next->id != Ri.id)
+				    nbtree_insert(Ri_ngbrs, next);
 			    }
-			    if (Rkn_head) {
-				G_warning(_("Rkn_head is not NULL!"));
-				my_dispose_list(files->token, &Rkn_head);
+			    nbtree_clear(Rk_ngbrs);
+			    Ri_nn += Ri_ngbrs->count;
+
+			    merge_regions(&Ri, Ri_rs, &Rk, Rk_rs, globals);
+			    /* Ri is now updated, Rk no longer usable */
+
+			    /* made a merge, need another iteration */
+			    n_merges++;
+
+			    Ri_similarity = globals->threshold + 1;
+			    Rk_similarity = globals->threshold + 1;
+
+			    /* we have checked the neighbors of Ri, Rk already
+			     * use faster version of finding the best neighbor
+			     */
+			    
+			    /* use neighbor tree to find Ri's new best neighbor */
+			    search_neighbors(&Ri, Ri_ngbrs, &Ri_similarity,
+					     &Rk, globals);
+
+			    if (Ri_nn > 0 && compare_double(Ri_similarity, threshold) == -1) {
+
+				globals->rs.id = Ri.id;
+				Ri_rs = rgtree_find(globals->reg_tree, &(globals->rs));
+				globals->rs.id = Rk.id;
+				Rk_rs = rgtree_find(globals->reg_tree, &(globals->rs));
+
+				pathflag = TRUE;
+				/* candidates_only:
+				 * FALSE: less passes, takes a bit longer, but less memory
+				 * TRUE: more passes, is a bit faster */
+				candidates_only = FALSE;
 			    }
-			    Rk_count = 1;
-			    newpixel =
-				(struct pixels *)link_new(files->token);
-			    newpixel->next = NULL;
-			    newpixel->row = Ri_bestn->row;
-			    newpixel->col = Ri_bestn->col;
-			    Rk_head = newpixel;
-
-			    find_segment_neighbors(&Rk_head, &Rkn_head,
-						   &Rk_count, files,
-						   functions);
-
-			    /* ********  find Rk's most similar neighbor  ******** */
-			    Rk_similarity = Ri_similarity;	/*Ri gets first priority - ties won't change anything, so we'll accept Ri and Rk as mutually best neighbors */
-			    segment_get(&files->bands_seg, (void *)files->bands_val, Rk_head->row, Rk_head->col);	/* current segment values */
-
-			    /* check similarity for each of Rk's neighbors */
-			    for (current = Rkn_head; current != NULL;
-				 current = current->next) {
-				tempsim =
-				    functions->calculate_similarity
-				    (Rk_head, current, files, functions);
-
-				if (tempsim < Rk_similarity) {
-				    Rk_similarity = tempsim;
-				    break;	/* exit for Rk's neighbors loop here, we know that Ri and Rk aren't mutually best neighbors */
-				}
-			    }	/* have checked all of Rk's neighbors */
-
-			    if (Rk_similarity == Ri_similarity) {	/* mutually most similar neighbors */
-
-#ifdef PROFILE
-				merge_start = clock();
-#endif
-				merge_values(Ri_head, Rk_head, Ri_count,
-					     Rk_count, files);
-#ifdef PROFILE
-				merge_end = clock();
-				merge_lap =
-				    ((double)(merge_end - merge_start)) /
-				    CLOCKS_PER_SEC;
-				merge_accum += merge_lap;
-				fprintf(stdout, "merge time: %g\n",
-					merge_lap);
-#endif
-				endflag = FALSE;	/* we've made at least one merge, so want another t iteration */
-			    }
-			    else {	/* they weren't mutually best neighbors */
-
-				/* checked Ri once, didn't find a mutually best neighbor, so remove all members of Ri from candidate pixels for this iteration */
-				set_candidate_flag(Ri_head, FALSE, files);
-
-				if (FLAG_GET
-				    (files->candidate_flag, Rk_head->row,
-				     Rk_head->col) &&
-				    FLAG_GET(files->seeds_flag, Rk_head->row,
-					     Rk_head->col))
-				    pathflag = TRUE;
-			    }
-			}	/* end if (Ri_bestn != NULL && Ri_similarity < threshold) */
+			    /* else end of Ri -> Rk chain since we merged Ri and Rk
+			     * go to next row, col */
+			}
 			else {
-			    /* no valid best neighbor for this Ri
-			     * exclude this Ri from further comparisons 
-			     * because we checked already Ri for a mutually best neighbor with all valid candidates
-			     * thus Ri can not be the mutually best neighbor later on during this pass
-			     * unfortunately this does happen sometimes */
-			    set_candidate_flag(Ri_head, FALSE, files);
-			}
-
-		    }		/* end if(Rin_head != NULL) */
-		    else {	/* Ri didn't have a neighbor */
-			G_debug(4, "Segment had no neighbors");
-			set_candidate_flag(Ri_head, FALSE, files);
-		    }
-
-		    if (pathflag) {	/*initialize Ri, Rin, Rk, Rin using Rk as Ri. */
-			/* For the next iteration, lets start with Rk as the focus segment */
-			if (functions->path == TRUE) {
-			    Ri_count = Rk_count;
-			    Rk_count = 0;
-			    my_dispose_list(files->token, &Ri_head);
-			    Ri_head = Rk_head;
-			    Rk_head = NULL;
-			    if (Rkn_head != NULL) {
-				my_dispose_list(files->token, &Rin_head);
-				Rin_head = Rkn_head;
-				Rkn_head = NULL;
+			    if (compare_double(Rk_similarity, threshold) == -1) {
+				pathflag = TRUE;
 			    }
-			    else
-				my_dispose_list(files->token, &Rin_head);
+			    /* test this */
+			    if (!(FLAG_GET(globals->candidate_flag, Rk.row, Rk.col)))
+				pathflag = FALSE;
+
+			    if (Rk_nn < 2)
+				pathflag = FALSE;
+
+			    if (Rk.id < 1)
+				pathflag = FALSE;
+
+			    if (pathflag) {
+				
+				/* clear candidate flag for Rk */
+				if (FLAG_GET(globals->candidate_flag, Rk.row, Rk.col)) {
+				    set_candidate_flag(&Rk, FALSE, globals);
+				}
+
+				/* Use Rk as next Ri:  
+				 * this is the eCognition technique. */
+				G_debug(4, "do ecog");
+				Ri_nn = Rk_nn;
+				Ri_similarity = Rk_similarity;
+
+				dp = Ri.mean;
+				Ri = Rk;
+				Rk = Rk_bestn;
+				Rk_bestn.mean = dp;
+				
+				Ri_rs = Rk_rs;
+				Rk_rs = Rk_bestn_rs;
+				Rk_bestn_rs = NULL;
+
+				tmpnbtree = Ri_ngbrs;
+				Ri_ngbrs = Rk_ngbrs;
+				Rk_ngbrs = tmpnbtree;
+				nbtree_clear(Rk_ngbrs);
+			    }
 			}
-			else
-			    pathflag = FALSE;
+		    }    /* end if < threshold */
+		}    /* end pathflag */
+	    }    /* next col */
+	}    /* next row */
 
-		    }
+	/* finished one pass for processing candidate pixels */
+	G_verbose_message("%d merges", n_merges);
 
-		}		/*end pathflag do loop */
-	    }		/*end if pixel is candidate and seed pixel */
-	}			/*next column (or next z) */
-#ifdef ROWMAJOR
-    }				/*next row */
-#endif
-#ifdef PROFILE
-    pass_end = clock();
-    fprintf(stdout, "pass %d took: %g\n", t,
-	    ((double)(pass_end - pass_start)) / CLOCKS_PER_SEC);
-#endif
-
-
-    /* finished one iteration over entire raster */
-    t++;
+	G_debug(4, "Finished pass %d", t);
     }
-    while (t <= functions->end_t && endflag == FALSE) ;	/*end t loop, either reached max iterations or didn't merge any segments */
 
-    if (t == 2 && files->bounds_map == NULL)
-	G_warning(_("No segments were created. Verify threshold and region settings."));
-    /* future enhancement, remove the "&& bounds_map == NULL" if we check for unique bounds values. */
-
-    if (endflag == FALSE)
-	G_message(_("Merging processes stopped due to reaching max iteration limit, more merges may be possible"));
-
-
-
-    /* ****************************************************************************************** */
-    /* speed enhancement: after < 3 (?) merges are made in one pass, switch processing modes.
-     * It seems a significant portion of the time is spent merging small pixels into the largest
-     * segments.  So consider allowing multiple merges after finding one large Ri.
-     * 
-     * Maybe related to this, and/or integrated into the first loops:  If a segment has only one neighbor
-     * go ahead and merge it if similarity is < threshold.
-     * 
-     * ****************************************************************************************** */
-
+    /*end t loop *//*TODO, should there be a max t that it can iterate for?  Include t in G_message? */
+    if (n_merges > 0)
+	G_message(_("Segmentation processes stopped at %d due to reaching max iteration limit, more merges may be possible"), t);
+    else
+	G_message(_("Segmentation converged after %d iterations."), t);
 
 
     /* ****************************************************************************************** */
     /* final pass, ignore threshold and force a merge for small segments with their best neighbor */
     /* ****************************************************************************************** */
+    
+    if (globals->min_segment_size > 1) {
+	G_message(_("Merging segments smaller than %d cells"), globals->min_segment_size);
 
+	/* optional threshold as a function of t. */
+	threshold = globals->alpha * globals->alpha * globals->threshold;
 
-    if (functions->min_segment_size > 1 && t > 2) {	/* NOTE: added t > 2, it doesn't make sense to force merges if no merges were made on the original pass.  Something should be adjusted first */
+	flag_clear_all(globals->candidate_flag);
 
-	if (files->bounds_map == NULL) {
-	    G_message
-		(_("Final iteration, forcing merges for small segments, percent complete based on rows."));
+	/* Set candidate flag to true/1 for all non-NULL cells */
+	for (row = globals->row_min; row < globals->row_max; row++) {
+	    for (col = globals->col_min; col < globals->col_max; col++) {
+		if (!(FLAG_GET(globals->null_flag, row, col))) {
+		    FLAG_SET(globals->candidate_flag, row, col);
+
+		    globals->candidate_count++;
+		}
+	    }
 	}
-	/* for the final forced merge, the candidate flag is just to keep track if we have confirmed if:
-	 *              a. the segment size is >= to the minimum allowed size  or
-	 *              b. we have merged it with its best neighbor
-	 */
 
-	set_all_candidate_flags(files);
+	G_debug(4, "Starting to process %d candidate cells",
+		globals->candidate_count);
 
-	for (row = files->minrow; row < files->maxrow; row++) {
-	    if (files->bounds_map == NULL)
-		G_percent(row, files->maxrow - 1, 1);
-	    for (col = files->mincol; col < files->maxcol; col++) {
+	/* process candidate cells */
+	for (row = globals->row_min; row < globals->row_max; row++) {
+	    G_percent(row, globals->row_max, 9);
+	    for (col = globals->col_min; col < globals->col_max; col++) {
+		int do_merge = 1;
+		
+		if (!(FLAG_GET(globals->candidate_flag, row, col)))
+		    continue;
+		
+		nbtree_clear(Ri_ngbrs);
+		nbtree_clear(Rk_ngbrs);
 
-		if (FLAG_GET(files->candidate_flag, row, col)) {
-		    /*free memory for linked lists */
-		    my_dispose_list(files->token, &Ri_head);
-		    my_dispose_list(files->token, &Rk_head);
-		    my_dispose_list(files->token, &Rin_head);
-		    my_dispose_list(files->token, &Rkn_head);
-		    Rk_count = 0;
+		Ri.row = row;
+		Ri.col = col;
 
-		    /* First pixel in Ri is current row/col pixel.  We may add more later if it is part of a segment */
-		    Ri_count = 1;
-		    newpixel = (struct pixels *)link_new(files->token);
-		    newpixel->next = Ri_head;
-		    newpixel->row = row;
-		    newpixel->col = col;
-		    Ri_head = newpixel;
-
-		    G_debug(4, "Next starting pixel: row, %d, col, %d",
-			    Ri_head->row, Ri_head->col);
-
-		    /* find segment neighbors */
-		    find_segment_neighbors
-			(&Ri_head, &Rin_head, &Ri_count, files, functions);
-
-		    if (Rin_head != NULL) {	/*found neighbors */
-			if (Ri_count >= functions->min_segment_size)	/* don't force a merge */
-			    set_candidate_flag(Ri_head, FALSE, files);
-
-			else {	/* Merge with most similar neighbor */
-
-			    /* find Ri's most similar neighbor */
-			    Ri_bestn = NULL;
-			    Ri_similarity = DBL_MAX;	/* set current similarity to max value */
-			    segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row, Ri_head->col);	/* current segment values */
-
-			    /* for each of Ri's neighbors */
-			    for (current = Rin_head; current != NULL;
-				 current = current->next) {
-				tempsim = (*functions->calculate_similarity)
-				    (Ri_head, current, files, functions);
-
-				if (tempsim < Ri_similarity) {
-				    Ri_similarity = tempsim;
-				    Ri_bestn = current;
-				}
-			    }
-			    if (Ri_bestn != NULL) {
-
-				/* we'll have the neighbor pixel to start with. */
-				Rk_count = 1;
-				newpixel =
-				    (struct pixels *)link_new(files->token);
-				newpixel->next = NULL;
-				newpixel->row = Ri_bestn->row;
-				newpixel->col = Ri_bestn->col;
-				Rk_head = newpixel;
-
-				/* get the full pixel/cell membership list for Rk *//* speed enhancement: a seperate function for this, since we don't need the neighbors */
-				find_segment_neighbors(&Rk_head, &Rkn_head,
-						       &Rk_count, files,
-						       functions);
-
-				merge_values(Ri_head, Rk_head, Ri_count,
-					     Rk_count, files);
-
-				/* merge_values sets Ri and Rk candidate flag to FALSE.  Put Rk back to TRUE if the size is too small. */
-				if (Ri_count + Rk_count <
-				    functions->min_segment_size)
-				    set_candidate_flag(Rk_head, TRUE, files);
-			    }	/* end if best neighbor != null */
-			    else
-				G_warning
-				    (_("No best neighbor found in final merge for small segment, this shouldn't happen!"));
-
-
-			}	/* end else - pixel count was below minimum allowed */
-		    }		/* end if neighbors found */
-		    else {	/* no neighbors were found */
-			G_warning
-			    (_("no neighbors found, this means only one segment was created."));
-			set_candidate_flag(Ri_head, FALSE, files);
-		    }
-		}		/* end if pixel is candidate pixel */
-	    }			/* next column */
-	}			/* next row */
-	t++;			/* to count one more "iteration" */
-    }				/* end if for force merge */
-    else if (t > 2 && files->bounds_map == NULL)
-	G_verbose_message(_("Number of passes completed: %d"), t - 1);
-#ifdef PROFILE
-    end = clock();
-    fprintf(stdout, "time spent merging: %g\n", merge_accum);
-    fprintf(stdout, "time spent finding neighbors: %g\n", fn_accum);
-    fprintf(stdout, "total time: %g\n",
-	    ((double)(end - start) / CLOCKS_PER_SEC));
-#endif
-    return TRUE;
-    }
-
-    /* perimeter todo, for now will return borderPixels instead of passing a pointer, I saw mentioned that each parameter slows down the function call? */
-    /* perimeter todo, My first impression is that the borderPixels count is ONLY needed for the case of initial seeds, and not used later on.  Another reason to split the function... */
-    int find_segment_neighbors(struct pixels **R_head,
-			       struct pixels **neighbors_head, int *seg_count,
-			       struct files *files,
-			       struct functions *functions)
-    {
-	int n, borderPixels, current_seg_ID, R_iseg = -1;
-	struct pixels *newpixel, *current, *to_check, tree_pix;	/* need to check the pixel neighbors of to_check */
-	int pixel_neighbors[8][2];
-	struct RB_TREE *no_check_tree;	/* pixels that should no longer be checked on this current find_neighbors() run */
-	struct RB_TREE *known_iseg;
-
-#ifdef DEBUG
-	struct RB_TRAV trav;
-#endif
-
-	/* speed enhancement, any time savings to move any variables to files (mem allocation once in open_files) */
-
-	/* neighbor list will be a listing of pixels that are neighbors, but will be limited to just one pixel from each neighboring segment.
-	 * */
-
-	/* parameter: R, current segment membership, could be single pixel (incomplete list) or list of pixels.
-	 * parameter: neighbors/Rin/Rik, neighbor pixels, could have a list already, or could be empty
-	 * functions->num_pn  int, 4 or 8, for number of pixel neighbors 
-	 * */
-
-
-	/* *** initialize data *** */
-	borderPixels = 0;
-
-	segment_get(&files->iseg_seg, &R_iseg, (*R_head)->row,
-		    (*R_head)->col);
-
-	if (R_iseg == 0) {	/* if seeds were provided, this is just a single non-seed pixel, only return neighbors that are segments or seeds */
-
-	    functions->find_pixel_neighbors((*R_head)->row, (*R_head)->col,
-					    pixel_neighbors, files);
-	    for (n = 0; n < functions->num_pn; n++) {
-
-		/* skip pixel if out of computational area or null */
-		if (pixel_neighbors[n][0] < files->minrow ||
-		    pixel_neighbors[n][0] >= files->maxrow ||
-		    pixel_neighbors[n][1] < files->mincol ||
-		    pixel_neighbors[n][1] >= files->maxcol ||
-		    FLAG_GET(files->null_flag, pixel_neighbors[n][0],
-			     pixel_neighbors[n][1])
-		    )
+		/* get segment id */
+		segment_get(&globals->rid_seg, (void *) &Ri.id, row, col);
+		
+		if (Ri.id < 0)		
 		    continue;
 
-		segment_get(&files->iseg_seg, &current_seg_ID,
-			    pixel_neighbors[n][0], pixel_neighbors[n][1]);
+		while (do_merge) {
 
-		if (current_seg_ID > 0) {
-		    newpixel = (struct pixels *)link_new(files->token);
-		    newpixel->next = *neighbors_head;	/*point the new pixel to the current first pixel */
-		    newpixel->row = pixel_neighbors[n][0];
-		    newpixel->col = pixel_neighbors[n][1];
-		    *neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
+		    /* get segment size */
+		    globals->rs.id = Ri.id;
+		    Ri_rs = rgtree_find(globals->reg_tree, &(globals->rs));
+
+		    Ri.count = 1;
+		    do_merge = 0;
+		    if (Ri_rs != NULL) {
+			Ri.count = Ri_rs->count;
+			memcpy(Ri.mean, Ri_rs->mean, globals->datasize);
+		    }
+
+		    /* merge all smaller than min size */
+		    if (Ri.count < globals->min_segment_size)
+			do_merge = 1;
+
+		    Ri_nn = 0;
+		    Ri_similarity = globals->threshold + 1;
+
+		    if (do_merge) {
+
+			segment_get(&globals->bands_seg, (void *)Ri.mean,
+				    Ri.row, Ri.col);
+
+			/* find Ri's best neighbor, clear candidate flag */
+			Ri_nn = find_best_neighbor(&Ri, Ri_ngbrs,
+						   &Rk_rs, &Rk, 
+						   &Ri_similarity, 1,
+						   globals);
+		    }
+
+		    if (do_merge) {
+
+			nbtree_clear(Ri_ngbrs);
+			
+			/* merge Ri with Rk */
+			merge_regions(&Ri, Ri_rs, &Rk, Rk_rs, globals);
+
+			if (Ri_nn <= 0 || Ri.count >= globals->min_segment_size)
+			    do_merge = 0;
+		    }
 		}
-		borderPixels++;	/* increment for all non null pixels *//* TODO perimeter: OK to ignore NULL cells? */
 	    }
-
 	}
-	else {			/*normal processing, look for all adjacent pixels or segments */
-	    no_check_tree =
-		rbtree_create(compare_pixels, sizeof(struct pixels));
-	    known_iseg = rbtree_create(compare_ids, sizeof(int));
-	    to_check = NULL;
+    }
+    
+    G_free(Ri.mean);
+    G_free(Rk.mean);
+    G_free(Rk_bestn.mean);
+    
+    nbtree_clear(Ri_ngbrs);
+    nbtree_clear(Rk_ngbrs);
+    free(Ri_ngbrs);
+    free(Rk_ngbrs);
 
-	    /* Copy R in to_check and no_check data structures (don't expand them if we find them again) */
+    return TRUE;
+}
 
-	    for (current = *R_head; current != NULL; current = current->next) {
-		/* put in to_check linked list */
-		newpixel = (struct pixels *)link_new(files->token);
-		newpixel->next = to_check;	/*point the new pixel to the current first pixel */
-		newpixel->row = current->row;
-		newpixel->col = current->col;
-		to_check = newpixel;	/*change the first pixel to be the new pixel. */
+static int find_best_neighbor(struct ngbr_stats *Ri,
+		       struct NB_TREE *Ri_ngbrs, 
+		       struct reg_stats **Rk_rs,
+		       struct ngbr_stats *Rk, 
+		       double *sim, int clear_cand,
+		       struct globals *globals)
+{
+    int n, n_ngbrs, no_check;
+    struct rc ngbr_rc, next;
+    struct rclist rilist;
+    double tempsim, *dp;
+    int neighbors[8][2];
+    struct RB_TREE *no_check_tree;	/* cells already checked */
+    struct reg_stats *rs_found;
 
-		/* put in no_check tree */
-		tree_pix.row = current->row;
-		tree_pix.col = current->col;
-		if (rbtree_insert(no_check_tree, &tree_pix) == 0)	/* don't check it again */
-		    G_warning(_("could not insert data into tree, out of memory?"));
+    G_debug(4, "find_best_neighbor()");
+
+    /* dynamics of the region growing algorithm
+     * some regions are growing fast, often surrounded by many small regions
+     * not all regions are equally growing, some will only grow at a later stage ? */
+
+    /* *** initialize data *** */
+
+    no_check_tree = rbtree_create(compare_rc, sizeof(struct rc));
+    ngbr_rc.row = Ri->row;
+    ngbr_rc.col = Ri->col;
+    rbtree_insert(no_check_tree, &ngbr_rc);
+
+    Ri->count = 1;
+
+    n_ngbrs = 0;
+    /* TODO: add size of largest region to reg_tree, use this as min */
+    Rk->count = globals->ncells;
+
+    /* go through segment, spreading outwards from head */
+    rclist_init(&rilist);
+    rclist_add(&rilist, Ri->row, Ri->col);
+
+    while (rclist_drop(&rilist, &next)) {
+
+	/* remove from candidates */
+	if (clear_cand)
+	    FLAG_UNSET(globals->candidate_flag, next.row, next.col);
+
+	G_debug(5, "find_pixel_neighbors for row: %d , col %d",
+		next.row, next.col);
+
+	globals->find_neighbors(next.row, next.col, neighbors);
+	
+	n = globals->nn - 1;
+	do {
+
+	    globals->ns.row = ngbr_rc.row = neighbors[n][0];
+	    globals->ns.col = ngbr_rc.col = neighbors[n][1];
+
+	    no_check = (ngbr_rc.row < globals->row_min ||
+	                ngbr_rc.row >= globals->row_max ||
+		        ngbr_rc.col < globals->col_min ||
+			ngbr_rc.col >= globals->col_max);
+
+	    n_ngbrs += no_check;
+
+	    if (!no_check) {
+
+		no_check = ((FLAG_GET(globals->null_flag, ngbr_rc.row,
+							  ngbr_rc.col)) != 0);
+		n_ngbrs += no_check;
+
+		if (!no_check) {
+
+		    if (!rbtree_find(no_check_tree, &ngbr_rc)) {
+
+			/* not yet checked, don't check it again */
+			rbtree_insert(no_check_tree, &ngbr_rc);
+
+			/* get Rk ID */
+			segment_get(&globals->rid_seg,
+				    (void *) &(globals->ns.id),
+				    ngbr_rc.row, ngbr_rc.col);
+
+			if (globals->ns.id == Ri->id) {
+
+			    /* want to check this neighbor's neighbors */
+			    rclist_add(&rilist, ngbr_rc.row, ngbr_rc.col);
+			    Ri->count++;
+			}
+			else {
+
+			    /* new neighbor ? */
+			    if (nbtree_find(Ri_ngbrs, &globals->ns) == NULL) {
+
+				/* get values for Rk */
+				globals->rs.id = globals->ns.id;
+				rs_found = rgtree_find(globals->reg_tree,
+						       &(globals->rs));
+				if (rs_found != NULL) {
+				    globals->ns.mean = rs_found->mean;
+				    globals->ns.count = rs_found->count;
+				}
+				else {
+				    segment_get(&globals->bands_seg,
+						(void *)globals->bands_val,
+						ngbr_rc.row, ngbr_rc.col);
+
+				    globals->ns.mean = globals->bands_val;
+				    globals->ns.count = 1;
+				}
+				/* next Rk = globals->ns is now complete */
+
+				tempsim = (globals->calculate_similarity)(Ri, &globals->ns, globals);
+
+				if (compare_double(tempsim, *sim) == -1) {
+				    *sim = tempsim;
+				    /* copy temp Rk to Rk */
+				    dp = Rk->mean;
+				    *Rk = globals->ns;
+				    Rk->mean = dp;
+				    memcpy(Rk->mean, globals->ns.mean,
+				           globals->datasize);
+				    *Rk_rs = rs_found;
+				}
+				else if (compare_double(tempsim, *sim) == 0) {
+				    /* resolve ties: prefer smaller regions */
+
+				    if (Rk->count > globals->ns.count) {
+					/* copy temp Rk to Rk */
+					dp = Rk->mean;
+					*Rk = globals->ns;
+					Rk->mean = dp;
+					memcpy(Rk->mean,
+					       globals->ns.mean,
+					       globals->datasize);
+					*Rk_rs = rs_found;
+				    }
+				}
+
+				n_ngbrs++;
+				nbtree_insert(Ri_ngbrs, &globals->ns);
+			    }
+			}
+		    }
+		}
 	    }
+	} while (n--);    /* end do loop - next neighbor */
+    }    /* while there are cells to check */
 
-	    while (to_check != NULL) {	/* removing from to_check list as we go, NOT iterating over the list. */
+    /* clean up */
+    rbtree_destroy(no_check_tree);
 
-		functions->find_pixel_neighbors(to_check->row,
-						to_check->col,
-						pixel_neighbors, files);
+    return n_ngbrs;
+}
 
-		/* Done using this to_check pixels coords, remove from list */
-		current = to_check;	/* temporary store the old head */
-		to_check = to_check->next;	/*head now points to the next element in the list */
-		link_dispose(files->token, (VOID_T *) current);
+void find_four_neighbors(int p_row, int p_col,
+			        int neighbors[8][2])
+{
+    /* north */
+    neighbors[0][0] = p_row - 1;
+    neighbors[0][1] = p_col;
 
-		/* for each pixel neighbors, check if they should be processed, check segment ID, and add to appropriate lists */
-		for (n = 0; n < functions->num_pn; n++) {
+    /* east */
+    neighbors[1][0] = p_row;
+    neighbors[1][1] = p_col + 1;
 
-		    /* skip pixel if out of computational area or null */
-		    if (pixel_neighbors[n][0] < files->minrow ||
-			pixel_neighbors[n][0] >= files->maxrow ||
-			pixel_neighbors[n][1] < files->mincol ||
-			pixel_neighbors[n][1] >= files->maxcol ||
-			FLAG_GET(files->null_flag, pixel_neighbors[n][0],
-				 pixel_neighbors[n][1])
-			)
-			continue;
+    /* south */
+    neighbors[2][0] = p_row + 1;
+    neighbors[2][1] = p_col;
 
-		    tree_pix.row = pixel_neighbors[n][0];
-		    tree_pix.col = pixel_neighbors[n][1];
+    /* west */
+    neighbors[3][0] = p_row;
+    neighbors[3][1] = p_col - 1;
 
-		    if (rbtree_find(no_check_tree, &tree_pix) == FALSE) {	/* want to check this neighbor */
-			segment_get(&files->iseg_seg, &current_seg_ID,
-				    pixel_neighbors[n][0],
-				    pixel_neighbors[n][1]);
+    return;
+}
 
-			rbtree_insert(no_check_tree, &tree_pix);	/* don't check it again */
+void find_eight_neighbors(int p_row, int p_col,
+			         int neighbors[8][2])
+{
+    /* get the 4 orthogonal neighbors */
+    find_four_neighbors(p_row, p_col, neighbors);
 
-			if (current_seg_ID == R_iseg) {	/* pixel is member of current segment, add to R */
-			    /* put pixel_neighbor[n] in Ri */
-			    newpixel =
-				(struct pixels *)link_new(files->token);
-			    newpixel->next = *R_head;	/*point the new pixel to the current first pixel */
-			    newpixel->row = pixel_neighbors[n][0];
-			    newpixel->col = pixel_neighbors[n][1];
-			    *R_head = newpixel;	/*change the first pixel to be the new pixel. */
-			    *seg_count = *seg_count + 1;	/* zero index... Ri[0] had first pixel and set count =1.  increment after save data. */
+    /* get the 4 diagonal neighbors */
+    /* north-west */
+    neighbors[4][0] = p_row - 1;
+    neighbors[4][1] = p_col - 1;
 
-			    /* put pixel_neighbor[n] in to_check -- want to check this pixels neighbors */
-			    newpixel =
-				(struct pixels *)link_new(files->token);
-			    newpixel->next = to_check;	/*point the new pixel to the current first pixel */
-			    newpixel->row = pixel_neighbors[n][0];
-			    newpixel->col = pixel_neighbors[n][1];
-			    to_check = newpixel;	/*change the first pixel to be the new pixel. */
+    /* north-east */
+    neighbors[5][0] = p_row - 1;
+    neighbors[5][1] = p_col + 1;
 
-			}
-			else {	/* segment id's were different */
-			    borderPixels++;	/* increment for all non null pixels that are non in no-check or R_iseg TODO perimeter: move this to include pixels in no-check ??? */
+    /* south-west */
+    neighbors[6][0] = p_row + 1;
+    neighbors[6][1] = p_col - 1;
 
-			    if (!rbtree_find(known_iseg, &current_seg_ID)) {	/* we don't have any neighbors yet from this segment */
-				if (current_seg_ID != 0)
-				    /* with seeds, non seed pixels are defaulted to zero.  Should we use null instead?? then could skip this check?  Or we couldn't insert it??? */
-				    /* add to known neighbors list */
-				    rbtree_insert(known_iseg,
-						  &current_seg_ID);
+    /* south-east */
+    neighbors[7][0] = p_row + 1;
+    neighbors[7][1] = p_col + 1;
 
-				/* put pixel_neighbor[n] in Rin */
-				newpixel =
-				    (struct pixels *)link_new(files->token);
-				newpixel->next = *neighbors_head;	/*point the new pixel to the current first pixel */
-				newpixel->row = pixel_neighbors[n][0];
-				newpixel->col = pixel_neighbors[n][1];
-				*neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
-			    }
-			    else {	/* todo perimeter we need to keep track of (and return!) a total count of neighbors pixels for each neighbor segment, to update the perimeter value in the similarity calculation. */
-				/* todo perimeter: need to initalize this somewhere!!! */
-				/* todo perimeter... need to find pixel with same segment ID....  countShared++;
-				 * hmmm,  Should we change the known_iseg tree to sort on segment ID...need to think of fast way to return this count?  with pixel?  or with something else? */
-			    }
-			}
+    return;
+}
+
+/* similarity / distance between two points based on their input raster values */
+/* assumes first point values already saved in files->bands_seg - only run segment_get once for that value... */
+/* TODO: segment_get already happened for a[] values in the main function.  Could remove a[] from these parameters */
+double calculate_euclidean_similarity(struct ngbr_stats *Ri,
+                                      struct ngbr_stats *Rk,
+				      struct globals *globals)
+{
+    double val = 0., diff;
+    int n = globals->nbands - 1;
+
+    /* squared euclidean distance, sum the square differences for each dimension */
+    do {
+	diff = Ri->mean[n] - Rk->mean[n];
+	    
+	val += diff * diff;
+    } while (n--);
+
+    return val;
+}
 
 
-		    }		/*end if for pixel_neighbor was in "don't check" list */
-		}		/* end for loop - next pixel neighbor */
-	    }			/* end while to_check has more elements */
+static int search_neighbors(struct ngbr_stats *Ri,
+                            struct NB_TREE *Ri_ngbrs, 
+			    double *sim,
+			    struct ngbr_stats *Rk,
+		            struct globals *globals)
+{
+    double tempsim, *dp;
+    struct NB_TRAV travngbr;
+    struct ngbr_stats *next;
 
-	    /* clean up */
-	    rbtree_destroy(no_check_tree);
-	    rbtree_destroy(known_iseg);
+    G_debug(4, "search_neighbors");
+
+    nbtree_init_trav(&travngbr, Ri_ngbrs);
+    Rk->count = globals->ncells;
+
+    while ((next = nbtree_traverse(&travngbr))) {
+	tempsim = (globals->calculate_similarity)(Ri, next, globals);
+
+	if (compare_double(tempsim, *sim) == -1) {
+	    *sim = tempsim;
+	    dp = Rk->mean;
+	    *Rk = *next;
+	    Rk->mean = dp;
+	    memcpy(Rk->mean, next->mean, globals->datasize);
 	}
-	return borderPixels;
-    }
+	else if (compare_double(tempsim, *sim) == 0) {
+	    /* resolve ties, prefer smaller regions */
+	    G_debug(4, "resolve ties");
 
-    int find_four_pixel_neighbors(int p_row, int p_col,
-				  int pixel_neighbors[8][2],
-				  struct files *files)
-    {
-	/* Note: this will return neighbors outside of the raster boundary.
-	 * Check in the calling routine if the pixel should be processed.
-	 */
-
-	/* north */
-	pixel_neighbors[0][1] = p_col;
-	pixel_neighbors[0][0] = p_row - 1;
-
-	/* east */
-	pixel_neighbors[1][0] = p_row;
-	pixel_neighbors[1][1] = p_col + 1;
-
-	/* south */
-	pixel_neighbors[2][1] = p_col;
-	pixel_neighbors[2][0] = p_row + 1;
-
-	/* west */
-	pixel_neighbors[3][0] = p_row;
-	pixel_neighbors[3][1] = p_col - 1;
-
-	return TRUE;
-    }
-
-    int find_eight_pixel_neighbors(int p_row, int p_col,
-				   int pixel_neighbors[8][2],
-				   struct files *files)
-    {
-	/* get the 4 orthogonal neighbors: */
-	find_four_pixel_neighbors(p_row, p_col, pixel_neighbors, files);
-
-	/* and then the diagonals: */
-
-	/* north west */
-	pixel_neighbors[4][0] = p_row - 1;
-	pixel_neighbors[4][1] = p_col - 1;
-
-	/* north east */
-	pixel_neighbors[5][0] = p_row - 1;
-	pixel_neighbors[5][1] = p_col + 1;
-
-	/* south east */
-	pixel_neighbors[6][0] = p_row + 1;
-	pixel_neighbors[6][1] = p_col + 1;
-
-	/* south west */
-	pixel_neighbors[7][0] = p_row + 1;
-	pixel_neighbors[7][1] = p_col - 1;
-
-	return TRUE;
-    }
-
-    /* similarity / distance functions between two points based on their input raster values */
-    /* assumes first point values already saved in files->bands_seg */
-    /* speed enhancement: segment_get was already done for a[] values in the main function.  Could remove a[] from these parameters, reducing number of parameters in function call could provide a speed improvement. */
-
-    double calculate_euclidean_similarity(struct pixels *a, struct pixels *b,
-					  struct files *files,
-					  struct functions *functions)
-    {
-	double val = 0;
-	int n;
-
-	/* get values for pixel b */
-	segment_get(&files->bands_seg, (void *)files->second_val, b->row,
-		    b->col);
-
-	/* euclidean distance, sum the square differences for each dimension */
-	for (n = 0; n < files->nbands; n++) {
-	    val =
-		val + (files->bands_val[n] -
-		       files->second_val[n]) * (files->bands_val[n] -
-						files->second_val[n]);
+	    if (Rk->count > next->count) {
+		dp = Rk->mean;
+		*Rk = *next;
+		Rk->mean = dp;
+		memcpy(Rk->mean, next->mean, globals->datasize);
+	    }
 	}
-
-	/* use squared distance, save the calculation time. We squared the similarity threshold earlier to allow for this. */
-	/* val = sqrt(val); */
-
-	return val;
-
     }
 
-    double calculate_manhattan_similarity(struct pixels *a, struct pixels *b,
-					  struct files *files,
-					  struct functions *functions)
-    {
-	double val = 0;
-	int n;
+    return 1;
+}
 
-	/* get values for pixel b */
-	segment_get(&files->bands_seg, (void *)files->second_val, b->row,
-		    b->col);
+static int merge_regions(struct ngbr_stats *Ri, struct reg_stats *Ri_rs,
+		         struct ngbr_stats *Rk, struct reg_stats *Rk_rs,
+		         struct globals *globals)
+{
+    int n, do_cand;
+    int Ri_id, Rk_id, larger_id, R_id;
+    struct rc next, ngbr_rc;
+    struct rclist rlist;
+    int neighbors[8][2];
+    struct reg_stats *new_rs, old_rs;
 
-	/* Manhattan distance, sum the absolute difference between values for each dimension */
-	for (n = 0; n < files->nbands; n++) {
-	    val += fabs(files->bands_val[n] - files->second_val[n]);	/* speed enhancement: is fabs() is the "fast" way for absolute value calculations? */
-	}
+    G_debug(4, "merge_regions");
 
-	return val;
+    Ri_id = Ri->id;
+    Rk_id = Rk->id;
 
-    }
-
-    /* TODO: add shape parameter...
-     * 
-     In the eCognition literature, we find that the key factor in the
-     multi-scale segmentation algorithm used by Definiens is the scale
-     factor f:
-
-     f = W.Hcolor + (1 - W).Hshape
-     Hcolor = sum(b = 1:nbands)(Wb.SigmaB)
-     Hshape = Ws.Hcompact + (1 - Ws).Hsmooth
-     Hcompact = PL/sqrt(Npx)
-     Hsmooth = PL/Pbbox
-
-     Where W is a user-defined weight of importance of object radiometry vs
-     shape (usually .9 vs .1), Wb is the weigh given to band B, SigmaB is
-     the std dev of the object for band b, Ws is a user-defined weight
-     giving the importance of compactedness vs smoothness, PL is the
-     perimeter lenght of the object, Npx the number of pixels within the
-     object, and Pbbox the perimeter of the bounding box of the object.
+    /* update segment number and clear candidate flag */
+    
+    /* cases
+     * Ri, Rk are single cells, not in tree
+     * Ri, Rk are both in the tree
+     * Ri is in the tree, Rk is not
+     * Rk is in the tree, Ri is not
      */
 
-    int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
-		     int Ri_count, int Rk_count, struct files *files)
-    {
-	int n, Ri_iseg, Rk_iseg;
-	struct pixels *current;
+    /* for each member of Ri and Rk, write new average bands values and segment values */
 
-	/*get input values *//*speed enhancement: Confirm if we can assume we already have bands_val for Ri, so don't need to segment_get() again?  note...current very_close implementation requires getting this value again... */
-	segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row,
-		    Ri_head->col);
-	segment_get(&files->bands_seg, (void *)files->second_val,
-		    Rk_head->row, Rk_head->col);
+    if (Ri->count >= Rk->count) {
+	larger_id = Ri_id;
 
-	segment_get(&files->iseg_seg, &Rk_iseg, Rk_head->row, Rk_head->col);
-	segment_get(&files->iseg_seg, &Ri_iseg, Ri_head->row, Ri_head->col);
-
-	for (n = 0; n < files->nbands; n++) {
-	    files->bands_val[n] =
-		(files->bands_val[n] * Ri_count +
-		 files->second_val[n] * Rk_count) / (Ri_count + Rk_count);
+	if (Ri_rs) {
+	    new_rs = Ri_rs;
 	}
-
-	/* update segment number and candidate flag ==0 */
-#ifdef SIGNPOST
-	fprintf(stdout,
-		"merging Ri (pixel count): %d (%d) with Rk (count): %d (%d).\n",
-		Ri_iseg, Ri_count, Rk_iseg, Rk_count);
-#endif
-
-	/* for each member of Ri and Rk, write new average bands values and segment values */
-	for (current = Ri_head; current != NULL; current = current->next) {
-	    segment_put(&files->bands_seg, (void *)files->bands_val,
-			current->row, current->col);
-	    FLAG_UNSET(files->candidate_flag, current->row, current->col);	/*candidate pixel flag, only one merge allowed per t iteration */
-	}
-	for (current = Rk_head; current != NULL; current = current->next) {
-	    segment_put(&files->bands_seg, (void *)files->bands_val,
-			current->row, current->col);
-	    segment_put(&files->iseg_seg, &Ri_iseg, current->row,
-			current->col);
-	    FLAG_UNSET(files->candidate_flag, current->row, current->col);
-	}
-
-	/* merged two segments, decrement count if Rk was an actual segment (not a non-seed pixel) */
-	if (Rk_iseg > 0)
-	    files->nsegs--;
-
-	return TRUE;
-    }
-
-    /* calculates and stores the mean value for all pixels in a list, assuming they are all in the same segment */
-    int merge_pixels(struct pixels *R_head, int borderPixels,
-		     struct files *files)
-    {
-	int n, count = 0;
-	struct pixels *current;
-
-	/* Note: using files->bands_val for current pixel values, and files->second_val for the accumulated value */
-
-	/* initialize second_val */
-	for (n = 0; n < files->nbands; n++) {
-	    files->second_val[n] = 0;
-	}
-
-	if (R_head->next != NULL) {
-	    /* total up bands values for all pixels */
-	    for (current = R_head; current != NULL; current = current->next) {
-		segment_get(&files->bands_seg, (void *)files->bands_val,
-			    current->row, current->col);
-		for (n = 0; n < files->nbands; n++) {
-		    files->second_val[n] += files->bands_val[n];
-		}
-		count++;
-	    }
-
-	    /* calculate the mean */
-	    for (n = 0; n < files->nbands; n++) {
-		files->second_val[n] = files->second_val[n] / count;
-	    }
-
-	    /* add in the shape values */
-	    files->bands_val[files->nbands] = count;	/* area (Num Pixels) */
-	    files->bands_val[files->nbands + 1] = borderPixels;	/* Perimeter Length *//* todo perimeter, not exact for edges...close enough for now? */
-
-	    /* save the results */
-	    for (current = R_head; current != NULL; current = current->next) {
-		segment_put(&files->bands_seg, (void *)files->second_val,
-			    current->row, current->col);
-	    }
-
-	}
-
-	return TRUE;
-    }
-
-    /* besides setting flag, also increments how many pixels remain to be processed */
-    int set_candidate_flag(struct pixels *head, int value,
-			   struct files *files)
-    {
-	/* head is linked list of pixels, value is new value of flag */
-	struct pixels *current;
-
-	for (current = head; current != NULL; current = current->next) {
-
-
-	    if (value == FALSE) {
-		FLAG_UNSET(files->candidate_flag, current->row, current->col);
-	    }
-	    else if (value == TRUE) {
-		FLAG_SET(files->candidate_flag, current->row, current->col);
-	    }
-	    else
-		G_fatal_error
-		    (_("programming bug, helper function called with invalid argument"));
-	}
-	return TRUE;
-    }
-
-    /* let memory manager know space is available again and reset head to NULL */
-    int my_dispose_list(struct link_head *token, struct pixels **head)
-    {
-	struct pixels *current;
-
-	while ((*head) != NULL) {
-	    current = *head;	/* remember "old" head */
-	    *head = (*head)->next;	/* move head to next pixel */
-	    link_dispose(token, (VOID_T *) current);	/* remove "old" head */
-	}
-
-	return TRUE;
-    }
-
-    /* functions used by binary tree to compare items */
-
-    /* speed enhancement: Maybe changing this would be an improvement? "static" was used in break_polygons.c  extern was suggested in docs.  */
-
-    int compare_ids(const void *first, const void *second)
-    {
-	int *a = (int *)first, *b = (int *)second;
-
-	if (*a < *b)
-	    return -1;
-	else if (*a > *b)
-	    return 1;
-	else if (*a == *b)
-	    return 0;
-
-
-	G_warning(_("find neighbors: Bug in binary tree!"));
-	return 1;
-
-    }
-
-    int compare_pixels(const void *first, const void *second)
-    {
-	struct pixels *a = (struct pixels *)first, *b =
-	    (struct pixels *)second;
-
-	if (a->row < b->row)
-	    return -1;
-	else if (a->row > b->row)
-	    return 1;
 	else {
-	    /* same row */
-	    if (a->col < b->col)
-		return -1;
-	    else if (a->col > b->col)
-		return 1;
+	    new_rs = &(globals->rs);
+	    new_rs->id = Ri_id;
+	    new_rs->count = 1;
+	    
+	    memcpy(new_rs->sum, Ri->mean, globals->datasize);
+	    memcpy(new_rs->mean, Ri->mean, globals->datasize);
 	}
-	/* same row and col */
-	return 0;
+
+	/* add Rk */
+	if (Rk_rs) {
+	    new_rs->count += Rk_rs->count;
+	    n = globals->nbands - 1;
+	    do {
+		new_rs->sum[n] += Rk_rs->sum[n];
+	    } while (n--);
+	}
+	else {
+	    new_rs->count++;
+	    n = globals->nbands - 1;
+	    do {
+		new_rs->sum[n] += Rk->mean[n];
+	    } while (n--);
+	}
+
+	n = globals->nbands - 1;
+	do {
+	    new_rs->mean[n] = new_rs->sum[n] / new_rs->count;
+	} while (n--);
+	
+	memcpy(Ri->mean, new_rs->mean, globals->datasize);
+	Ri->count = new_rs->count;
+
+	if (!Ri_rs) {
+	    /* add to tree */
+	    rgtree_insert(globals->reg_tree, new_rs);
+	}
+	if (Rk_rs) {
+	    /* remove from tree */
+	    old_rs.id = Rk_id;
+	    rgtree_remove(globals->reg_tree, &old_rs);
+	}
+    }
+    else {
+	larger_id = Rk_id;
+	Ri->id = Rk_id;
+
+	if (Rk_rs) {
+	    new_rs = Rk_rs;
+	}
+	else {
+	    new_rs = &(globals->rs);
+	    new_rs->id = Rk_id;
+	    new_rs->count = 1;
+
+	    memcpy(new_rs->sum, Rk->mean, globals->datasize);
+	    memcpy(new_rs->mean, Rk->mean, globals->datasize);
+	}
+
+	/* add Ri */
+	if (Ri_rs) {
+	    new_rs->count += Ri_rs->count;
+	    n = globals->nbands - 1;
+	    do {
+		new_rs->sum[n] += Ri_rs->sum[n];
+	    } while (n--);
+	}
+	else {
+	    new_rs->count++;
+	    n = globals->nbands - 1;
+	    do {
+		new_rs->sum[n] += Ri->mean[n];
+	    } while (n--);
+	}
+
+	n = globals->nbands - 1;
+	do {
+	    new_rs->mean[n] = new_rs->sum[n] / new_rs->count;
+	} while (n--);
+
+	memcpy(Ri->mean, new_rs->mean, globals->datasize);
+	Ri->count = new_rs->count;
+
+	if (!Rk_rs) {
+	    /* add to tree */
+	    rgtree_insert(globals->reg_tree, new_rs);
+	}
+	if (Ri_rs) {
+	    /* remove from tree */
+	    old_rs.id = Ri_id;
+	    rgtree_remove(globals->reg_tree, &old_rs);
+	}
     }
 
-    /* Set candidate flag to true/1 or false/0 for all pixels in current processing area
-     * checks for NULL flag and if it is in current "polygon" if a bounds map is given */
-    int set_all_candidate_flags(struct files *files)
-    {
-	int row, col;
+    if (larger_id == Ri_id) {
+	/* Ri is already updated, including candidate flags
+	 * need to clear candidate flag for Rk and set new id */
+	 
+	/* the actual merge: change region id */
+	segment_put(&globals->rid_seg, (void *) &Ri_id, Rk->row, Rk->col);
 
-	for (row = files->minrow; row < files->maxrow; row++) {
-	    for (col = files->mincol; col < files->maxcol; col++) {
-		if (!(FLAG_GET(files->null_flag, row, col))) {
-		    FLAG_SET(files->candidate_flag, row, col);
-		}
-		else
-		    FLAG_UNSET(files->candidate_flag, row, col);
+	do_cand = 0;
+	if (FLAG_GET(globals->candidate_flag, Rk->row, Rk->col)) {
+	    /* clear candidate flag */
+	    FLAG_UNSET(globals->candidate_flag, Rk->row, Rk->col);
+	    globals->candidate_count--;
+	    do_cand = 1;
+	}
+
+	rclist_init(&rlist);
+	rclist_add(&rlist, Rk->row, Rk->col);
+
+	while (rclist_drop(&rlist, &next)) {
+
+	    if (do_cand) {
+		/* clear candidate flag */
+		FLAG_UNSET(globals->candidate_flag, next.row, next.col);
+		globals->candidate_count--;
 	    }
+
+	    globals->find_neighbors(next.row, next.col, neighbors);
+	    
+	    n = globals->nn - 1;
+	    do {
+
+		ngbr_rc.row = neighbors[n][0];
+		ngbr_rc.col = neighbors[n][1];
+
+		if (ngbr_rc.row >= globals->row_min &&
+		    ngbr_rc.row < globals->row_max &&
+		    ngbr_rc.col >= globals->col_min &&
+		    ngbr_rc.col < globals->col_max) {
+
+		    if (!(FLAG_GET(globals->null_flag, ngbr_rc.row, ngbr_rc.col))) {
+
+			segment_get(&globals->rid_seg, (void *) &R_id, ngbr_rc.row, ngbr_rc.col);
+
+			if (R_id == Rk_id) {
+			    /* the actual merge: change region id */
+			    segment_put(&globals->rid_seg, (void *) &Ri_id, ngbr_rc.row, ngbr_rc.col);
+
+			    /* want to check this neighbor's neighbors */
+			    rclist_add(&rlist, ngbr_rc.row, ngbr_rc.col);
+			}
+		    }
+		}
+	    } while (n--);
 	}
-	return TRUE;
     }
+    else {
+	/* larger_id == Rk_id */
+
+	/* clear candidate flag for Rk */
+	if (FLAG_GET(globals->candidate_flag, Rk->row, Rk->col)) {
+	    set_candidate_flag(Rk, FALSE, globals);
+	}
+
+	/* update region id for Ri */
+
+	/* the actual merge: change region id */
+	segment_put(&globals->rid_seg, (void *) &Rk_id, Ri->row, Ri->col);
+
+	rclist_init(&rlist);
+	rclist_add(&rlist, Ri->row, Ri->col);
+
+	while (rclist_drop(&rlist, &next)) {
+
+	    globals->find_neighbors(next.row, next.col, neighbors);
+	    
+	    n = globals->nn - 1;
+	    do {
+
+		ngbr_rc.row = neighbors[n][0];
+		ngbr_rc.col = neighbors[n][1];
+
+		if (ngbr_rc.row >= globals->row_min &&
+		    ngbr_rc.row < globals->row_max &&
+		    ngbr_rc.col >= globals->col_min &&
+		    ngbr_rc.col < globals->col_max) {
+
+
+		    if (!(FLAG_GET(globals->null_flag, ngbr_rc.row, ngbr_rc.col))) {
+
+			segment_get(&globals->rid_seg, (void *) &R_id, ngbr_rc.row, ngbr_rc.col);
+
+			if (R_id == Ri_id) {
+			    /* the actual merge: change region id */
+			    segment_put(&globals->rid_seg, (void *) &Rk_id, ngbr_rc.row, ngbr_rc.col);
+
+			    /* want to check this neighbor's neighbors */
+			    rclist_add(&rlist, ngbr_rc.row, ngbr_rc.col);
+			}
+		    }
+		}
+	    } while (n--);
+	}
+    }
+    
+    if (Rk_id > 0)
+	globals->n_regions--;
+
+    return TRUE;
+}
+
+static int set_candidate_flag(struct ngbr_stats *head, int value, struct globals *globals)
+{
+    int n, R_id;
+    struct rc next, ngbr_rc;
+    struct rclist rlist;
+    int neighbors[8][2];
+
+    G_debug(4, "set_candidate_flag");
+
+    if (!(FLAG_GET(globals->candidate_flag, head->row, head->col)) != value) {
+	G_warning(_("Candidate flag is already %s"), value ? _("set") : _("unset"));
+	return FALSE;
+    }
+
+    rclist_init(&rlist);
+    rclist_add(&rlist, head->row, head->col);
+
+    /* (un)set candidate flag */
+    if (value == TRUE) {
+	FLAG_SET(globals->candidate_flag, head->row, head->col);
+	globals->candidate_count++;
+    }
+    else {
+	FLAG_UNSET(globals->candidate_flag, head->row, head->col);
+	globals->candidate_count--;
+    }
+
+    while (rclist_drop(&rlist, &next)) {
+
+	globals->find_neighbors(next.row, next.col, neighbors);
+	
+	n = globals->nn - 1;
+	do {
+
+	    ngbr_rc.row = neighbors[n][0];
+	    ngbr_rc.col = neighbors[n][1];
+
+	    if (ngbr_rc.row >= globals->row_min &&
+	        ngbr_rc.row < globals->row_max &&
+		ngbr_rc.col >= globals->col_min &&
+		ngbr_rc.col < globals->col_max) {
+
+		if (!(FLAG_GET(globals->null_flag, ngbr_rc.row, ngbr_rc.col))) {
+
+		    if (!(FLAG_GET(globals->candidate_flag, ngbr_rc.row, ngbr_rc.col)) == value) {
+
+			segment_get(&globals->rid_seg, (void *) &R_id, ngbr_rc.row, ngbr_rc.col);
+
+			if (R_id == head->id) {
+			    /* want to check this neighbor's neighbors */
+			    rclist_add(&rlist, ngbr_rc.row, ngbr_rc.col);
+
+			    /* (un)set candidate flag */
+			    if (value == TRUE) {
+				FLAG_SET(globals->candidate_flag, ngbr_rc.row, ngbr_rc.col);
+				globals->candidate_count++;
+			    }
+			    else {
+				FLAG_UNSET(globals->candidate_flag, ngbr_rc.row, ngbr_rc.col);
+				globals->candidate_count--;
+			    }
+			}
+		    }
+		}
+	    }
+	} while (n--);
+    }
+
+    return TRUE;
+}
