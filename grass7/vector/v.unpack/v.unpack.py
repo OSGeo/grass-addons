@@ -39,6 +39,7 @@
 #% description: Override projection check (use current location's projection)
 #%end
 
+
 import os
 import sys
 import shutil
@@ -54,7 +55,7 @@ def cleanup():
 
 def main():
     infile = options['input']
-    # create tempory directory
+    # create temporary directory
     global tmp_dir
     tmp_dir = grass.tempdir()
     grass.debug('tmp_dir = %s' % tmp_dir)
@@ -65,7 +66,7 @@ def main():
     input_base = os.path.basename(infile)
     shutil.copyfile(infile, os.path.join(tmp_dir, input_base))
     os.chdir(tmp_dir)
-    tar = tarfile.TarFile.open(name = input_base, mode = 'r:gz')
+    tar = tarfile.TarFile.open(name = input_base, mode = 'r')
     try:
         data_name = tar.getnames()[0]
     except:
@@ -98,7 +99,9 @@ def main():
 
     # check projection compatibility in a rather crappy way
     loc_proj = os.path.join(mset_dir, '..', 'PERMANENT', 'PROJ_INFO')
-    if not filecmp.cmp(os.path.join(data_name,'PROJ_INFO'), loc_proj):
+    loc_proj_units = os.path.join(mset_dir, '..', 'PERMANENT', 'PROJ_UNITS')
+    if not grass.compare_key_value_text_files(os.path.join(data_name,'PROJ_INFO'), loc_proj) or \
+       not grass.compare_key_value_text_files(os.path.join(data_name,'PROJ_UNITS'), loc_proj_units):
         if flags['o']:
             grass.warning(_("Projection information does not match. Proceeding..."))
         else:
@@ -131,22 +134,40 @@ def main():
                 values = t.split('|')
             else:
                 values = t.split(' ')
+            
+            from_table = values[1]
+            layer = values[0].split('/')[0]
+            # We need to take care about the table name in case of several layer
+            if options["output"]:
+                to_table = "%s_%s"%(map_name, layer)
+            else:
+                to_table = from_table
+            
+            grass.verbose(_("Copy table %s to table %s"%(from_table, to_table)))
+            
             #copy the table in the default database
-            print "prima di db.copy"
-            grass.run_command('db.copy', to_driver = dbconn['driver'], 
-		      to_database = todb, to_table = map_name, 
+            ret = grass.run_command('db.copy', to_driver = dbconn['driver'], 
+		      to_database = todb, to_table = to_table, 
 		      from_driver = 'sqlite', from_database = fromdb,
-		      from_table = values[1])
-            #and connect the new tables with the rigth layer
-            grass.run_command('v.db.connect', flags = "o", 
+		      from_table = from_table)
+            if ret != 0:
+                grass.fatal(_("Unable to copy table %s to table %s"%(from_table, to_table)))
+                
+            grass.verbose(_("Connect table %s to vector %s at layer %s"%(to_table, map_name, layer)))
+
+            #and connect the new tables with the right layer
+            ret = grass.run_command('v.db.connect', flags = "o", 
 		      driver = dbconn['driver'], database = todb, 
 		      map =  map_name, key = values[2],
-		      layer = values[0].split('/')[0], table = map_name)
+		      layer = layer, table = to_table)
+            if ret != 0:
+                grass.fatal(_("Unable to connect table %s to vector map %s"%(to_table, map_name)))
 
     #remove 
     os.remove(os.path.join(new_dir,'PROJ_INFO'))
     os.remove(os.path.join(new_dir,'PROJ_UNITS'))
-    os.remove(os.path.join(new_dir,'db.sqlite'))
+    if os.path.exists(fromdb):
+        os.remove(os.path.join(new_dir,'db.sqlite'))
 
     grass.verbose(_("Vector map saved to <%s>") % map_name)
 

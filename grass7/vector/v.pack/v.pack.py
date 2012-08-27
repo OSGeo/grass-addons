@@ -34,6 +34,10 @@
 #% key_desc: path
 #% required : no
 #%end
+#%flag
+#% key: c
+#% description: Switch the compression off
+#%end
 
 import os
 import sys
@@ -45,6 +49,7 @@ from grass.script import vector as vector
 
 def main():
     infile = options['input']
+    compression_off = flags['c']
     #search if file exist
     gfile = grass.find_file(infile, element = 'vector')
     if not gfile['name']:
@@ -71,8 +76,9 @@ def main():
     db_vect = vector.vector_db(gfile['fullname'])
 
     #db not exist and skip the db copy
+    sqlitedb = None
     if not db_vect:
-        grass.message('There is not database connected with vector %s' % gfile['fullname'])
+        grass.message(_('There is not database connected with vector %s') % gfile['fullname'])
     else:
         # for each layer connection save a table
         for i, dbconn in db_vect.iteritems():
@@ -81,8 +87,12 @@ def main():
                       from_database = dbconn['database'], from_table =  dbconn['table'], 
                       to_driver = 'sqlite', to_database = sqlitedb, 
                       to_table = dbconn['table'])
-    #write tar file
-    tar = tarfile.open(outfile, "w:gz")   
+        
+    # write tar file, optional compression 
+    if compression_off:
+        tar = tarfile.open(name = outfile, mode = 'w:')
+    else:
+        tar = tarfile.open(name = outfile, mode = 'w:gz')
     tar.add(os.path.join(basedir,'vector',infile),infile)
     gisenv = grass.gisenv()
     #add to the tar file the PROJ files to check when unpack file
@@ -93,7 +103,7 @@ def main():
           tar.add(path,os.path.join(infile,'PROJ_' + support))
     tar.close()
     #remove the db from the vector directory #ONLY THE DB FOR THE COPY NOT DB OF GRASS
-    if db_vect:
+    if db_vect and sqlitedb:
         os.remove(sqlitedb)
     grass.verbose(_("Vector map saved to '%s'" % os.path.join(olddir, outfile)))
             
