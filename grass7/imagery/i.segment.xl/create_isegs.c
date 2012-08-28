@@ -14,7 +14,7 @@
 #include <grass/rbtree.h>	/* Red Black Tree library functions */
 #include "iseg.h"
 
-#define EPSILON 1.0e-9
+#define EPSILON 1.0e-16
 
 int debug_level;
 
@@ -62,11 +62,18 @@ static int compare_ints(const void *first, const void *second)
 
 static int compare_double(double first, double second)
 {
-    if (first > second)
-	return (first > (second * (1 + EPSILON)));
+    /* standard comparison, gives good results */
     if (first < second)
-	return (-1 * (second > (first * (1 + EPSILON))));
-    return 0;
+	return -1;
+    return (first > second);
+
+    /* fuzzy comparison, 
+     * can give weird results if EPSILON is too large or 
+     * if the formula is changed because this is operating at the 
+     * limit of double fp precision */
+    if (first < second)
+	return ((second > (first + first * EPSILON)) ? -1 : 0);
+    return (first > (second + second * EPSILON));
 }
 
 int create_isegs(struct globals *globals)
