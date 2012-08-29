@@ -11,7 +11,6 @@ SUBDIRS = \
 	i.spec.grass63 \
 	i.spec.sam \
 	i.spec.unmix \
-	i.topo.corr \
 	i.warp
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
