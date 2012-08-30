@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: r.connectivity.corridors</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>r.connectivity.corridors</b></em>  - Compute corridors between habitat patches for edges from r.connectivity.network based on (cost) distance raster maps from r.connectivity.distance
+<h2>KEYWORDS</h2>
+<dl>
+raster, vector, connectivity, network, corridor
+</dl>
+
+<h2>SYNOPSIS</h2>
+<b>r.connectivity.corridors</b><br>
+<b>r.connectivity.corridors help</b><br>
+<b>r.connectivity.corridors</b> [-<b>sdr</b>] <b>folder</b>=<em>string</em> <b>suffix</b>=<em>string</em>  [<b>corridor_tolerance</b>=<em>float</em>]   [<b>where</b>=<em>where (SQL statement)</em>]   [<b>weights</b>=<em>Column names</em>[,<i>Column names</i>,...]]   [<b>cores</b>=<em>integer</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
+
+<h3>Flags:</h3>
+<dl>
+<dt><b>-s</b></dt>
+<dd>Show edges selected by WHERE-clause and exit</dd>
+
+<dt><b>-d</b></dt>
+<dd>Assign distance values to corridors instead of connection IDs and weights</dd>
+
+<dt><b>-r</b></dt>
+<dd>Recalculate already computed corridors (default is only weight and summarize already existing corridor maps)</dd>
+
+<dt><b>--verbose</b></dt>
+<dd>Verbose module output</dd>
+<dt><b>--quiet</b></dt>
+<dd>Quiet module output</dd>
+</dl>
+
+<h3>Parameters:</h3>
+<dl>
+<dt><b>folder</b>=<em>string</em></dt>
+<dd>Folder where all (non map) output data from r.connectivity.* is stored (input)</dd>
+
+<dt><b>suffix</b>=<em>string</em></dt>
+<dd>Suffix for specifying corridor summary result</dd>
+
+<dt><b>corridor_tolerance</b>=<em>float</em></dt>
+<dd>Tolerance for deviation of corridors from (cost) distance between a pair of vertices (in % of the undirected (cost) distance of the edge)</dd>
+<dd>Default: <em>0.0</em></dd>
+
+<dt><b>where</b>=<em>string (SQL where statement)</em></dt>
+<dd>WHERE conditions of SQL statement without 'where' keyword. (example: cf_mst_ud = 1 or cf_eb_ud &gt; 100)</dd>
+
+<dt><b>weights</b>=<em>string (Column name[,<i>Column name</i>,...])</em></dt>
+<dd>Column names for weights which should be assigned to the corridors separated by comma (multiple)</dd>
+
+<dt><b>cores</b>=<em>integer</em></dt>
+<dd>Number of cores to be used for multithreading (1 means no multithreading)</dd>
+<dd>Default: <em>1</em></dd>
+</dl>
+
+<h2>DESCRIPTION</h2>
+<dl>
+Recently, graph-theory has been characterised as an efficient and useful tool for conservation planning (e.g. Bunn et al. 2000, Calabrese & Fagan 2004, Minor & Urban 2008, Zetterberg et. al. 2010). As a part of the r.connectivity.* tool-chain, r.connectivity.corridors is intended to make graph-theory more easily available to conservation planning.
+<br><br>
+r.connectivity.corridors is th 3rd tool of the r.connectivity.* toolchain.
+<br><br>
+r.connectivity.corridors loops through the attribute-table of the edge- output vector map from r.connectivity.network and computes the corridor for each edge of a user-defined set of edges. r.connectivity.corridors can account for the importance of the corridors for the entire networkby reclassifying them with regards to network measures from r.connectivity.network.
+<br><br>
+Finally, all individual corridors are being put together using r.series. In this step the values of the cells in all corridor maps are summed up, which indicates the importance of an area (raster cell) for the network of the given patches (either the number of corridors a cell is part of, or other graph-theoretical measures for corridor importance).
+<br><br>
+!!!Corridors are only computed for an undirected graph.!!!
+<br><br>
+Output raster maps are named according to a user defined prefix and suffix.
+
+</dl>
+
+<h2>SEE ALSO</h2>
+<a href="r.connectivity.distance">r.connectivity.distance</a>, <a href="r.connectivity.network">r.connectivity.network</a><br>
+
+<h2>AUTHOR</h2>
+Stefan Blumentrath, Norwegian Institute for Nature Research (NINA)
+<br><br>
+<i>Last changed: $Date$</i>
+
+</body>
+</html>
