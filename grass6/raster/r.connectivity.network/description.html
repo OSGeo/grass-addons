@@ -1,88 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: r.connectivity.network</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>r.connectivity.network</b></em>  - Compute connectivity measures for a set of habitat patches based on graph-theory
-<h2>KEYWORDS</h2>
-<dl>
-raster, vector, connectivity, network
-</dl>
-
-<h2>SYNOPSIS</h2>
-<b>r.connectivity.network</b><br>
-<b>r.connectivity.network help</b><br>
-<b>r.connectivity.network</b> [-<b>ryx</b>] <b>folder</b>=<em>string</em>  [<b>cd_cutoff</b>=<em>float</em>]   [<b>connectivity_cutoff</b>=<em>float</em>]   [<b>lnbh_cutoff</b>=<em>float</em>]   [<b>convergence_threshold</b>=<em>float</em>]   [<b>cl_thres</b>=<em>integer</em>]   [<b>euler</b>=<em>float</em>]   [<b>base</b>=<em>float</em>]   [<b>exponent</b>=<em>float</em>]   [<b>kernel_plot</b>=<em>string</em>]   [<b>overview_plot</b>=<em>string</em>]   [<b>cores</b>=<em>integer</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
-
-<h3>Flags:</h3>
-<dl>
-<dt><b>-y</b></dt>
-<dd>Calculate edge betweenness community (default is do not).</dd>
-
-<dt><b>-x</b></dt>
-<dd>Visualise negative exponential decay kernel and exit</dd>
-
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-</dl>
-
-<h3>Parameters:</h3>
-<dl>
-<dt><b>folder</b>=<em>string</em></dt>
-<dd>Folder where all (non map) output from r.connectivity.* is stored (input/output)</dd>
-
-<dt><b>cd_cutoff</b>=<em>float</em></dt>
-<dd>Maximum (cost) distance used for plotting the negative exponential decay kernel</dd>
-<dd>Default: <em>0.0</em></dd>
-
-<dt><b>connectivity_cutoff</b>=<em>float</em></dt>
-<dd>Maximum cost distance for connectivity</dd>
-<dd>Default: <em>0.0</em></dd>
-
-<dt><b>lnbh_cutoff</b>=<em>float</em></dt>
-<dd>Threshold defining a locale neighborhood (neighborhood = number of times connectivity_cutoff). Used for calculating loacle edge betweenness and neighbourhood size.</dd>
-<dd>Default: <em>0.0</em></dd>
-
-<dt><b>convergence_threshold</b>=<em>float</em></dt>
-<dd>Convergence threshold for the overview plot over the graph</dd>
-<dd>Default: <em>0.05</em></dd>
-
-<dt><b>cl_thres</b>=<em>integer</em></dt>
-<dd>Number of community levels to be traced in edge betweenness community (in addition to the number of initial clusters)</dd>
-<dd>Default: <em>0</em></dd>
-
-<dt><b>euler</b>=<em>float</em></dt>
-<dd>Euler`s number (base of the negative exponential decay kernel (<em>e ^ base * exponent</em>))</dd>
-<dd>Default: <em>2.718281828459</em></dd>
-
-<dt><b>base</b>=<em>float</em></dt>
-<dd>A factor for defining the shape of the negative exponential decay kernel (<em>e ^ base * exponent</em>)</dd>
-<dd>Default: <em>-3.0</em></dd>
-
-<dt><b>exponent</b>=<em>float</em></dt>
-<dd>Exponent of the negative exponential decay kernel (<em>e ^ base * exponent</em>)</dd>
-<dd>Default: <em>-7.5</em></dd>
-
-<dt><b>kernel_plot</b>=<em>string</em></dt>
-<dd>File name for a plot of the negative exponential decay kernel (<em>e ^ base * exponent</em>) used in analysis (requires ghostscript installed)</dd>
-
-<dt><b>overview_plot</b>=<em>string</em></dt>
-<dd>File name for a plot of an overview over network characteristics, like amount of edges, amount of network components (clusters), size of the larges network component with regards to (cost) distance, along with the connectivity threshold used in analysis (based on Bunn et al. 2000, requires ghostscript installed)</dd>
-
-<dt><b>cores</b>=<em>integer</em></dt>
-<dd>Number of cores to be used for multithreading (1 means no multithreading)</dd>
-<dd>Default: <em>1</em></dd>
-</dl>
-
 <h2>DESCRIPTION</h2>
 <dl>
 Recently, graph-theory has been characterised as an efficient and useful tool for conservation planning (e.g. Bunn et al. 2000, Calabrese & Fagan 2004, Minor & Urban 2008, Zetterberg et. al. 2010). As a part of the r.connectivity.* tool-chain, r.connectivity.network  is intended to make graph-theory more easily available to conservation planning. 
@@ -271,12 +186,13 @@ For the maximum potential flow (mf) weight the user defined dispersal informatio
 
 
 <h2>SEE ALSO</h2>
-<a href="r.connectivity.distance">r.connectivity.distance</a>, <a href="r.connectivity.corridors">r.connectivity.corridors</a><br>
+<em>
+<a href="r.connectivity.distance">r.connectivity.distance</a>, 
+<a href="r.connectivity.corridors">r.connectivity.corridors</a>
+</em>
+<br>
 
 <h2>AUTHOR</h2>
 Stefan Blumentrath, Norwegian Institute for Nature Research (NINA)
-
-<i>Last changed: $Date$</i>
-
-</body>
-</html>
+<br>
+<p></p><i>Last changed: $Date$</i>
