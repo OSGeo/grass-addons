@@ -21,6 +21,7 @@
 #include <string.h>
 #include <math.h>
 #include <grass/gis.h>
+#include <grass/raster.h>
 #include <grass/gprojects.h>
 #include <grass/glocale.h>
 #include "solpos00.h"
@@ -66,7 +67,8 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("solar"));
     module->label = _("Calculates solar elevation and azimuth.");
     module->description = _("Solar elevation: the angle between the direction of the geometric center "
 			    "of the sun's apparent disk and the (idealized) horizon. "
@@ -313,10 +315,10 @@ int main(int argc, char *argv[])
     }
 
     if (elev_name) {
-	if ((elev_fd = G_open_raster_new(elev_name, FCELL_TYPE)) < 0)
+	if ((elev_fd = Rast_open_new(elev_name, FCELL_TYPE)) < 0)
 	    G_fatal_error(_("Unable to create raster map <%s>"), elev_name);
 
-	elevbuf = G_allocate_f_raster_buf();
+	elevbuf = Rast_allocate_f_buf();
     }
     else {
 	elevbuf = NULL;
@@ -324,10 +326,10 @@ int main(int argc, char *argv[])
     }
 
     if (azimuth_name) {
-	if ((azimuth_fd = G_open_raster_new(azimuth_name, FCELL_TYPE)) < 0)
+	if ((azimuth_fd = Rast_open_new(azimuth_name, FCELL_TYPE)) < 0)
 	    G_fatal_error(_("Unable to create raster map <%s>"), azimuth_name);
 
-	azimuthbuf = G_allocate_f_raster_buf();
+	azimuthbuf = Rast_allocate_f_buf();
     }
     else {
 	azimuthbuf = NULL;
@@ -335,10 +337,10 @@ int main(int argc, char *argv[])
     }
 
     if (sunhour_name) {
-	if ((sunhour_fd = G_open_raster_new(sunhour_name, FCELL_TYPE)) < 0)
+	if ((sunhour_fd = Rast_open_new(sunhour_name, FCELL_TYPE)) < 0)
 	    G_fatal_error(_("Unable to create raster map <%s>"), sunhour_name);
 
-	sunhourbuf = G_allocate_f_raster_buf();
+	sunhourbuf = Rast_allocate_f_buf();
     }
     else {
 	sunhourbuf = NULL;
@@ -355,8 +357,8 @@ int main(int argc, char *argv[])
 	G_message(_("Calculating solar azimuth..."));
     }
 
-    nrows = G_window_rows();
-    ncols = G_window_cols();
+    nrows = Rast_window_rows();
+    ncols = Rast_window_cols();
 
     ba2 = 6356752.3142 / 6378137.0;
     ba2 = ba2 * ba2;
@@ -445,34 +447,34 @@ int main(int argc, char *argv[])
 
 	}
 	if (elev_name)
-	    G_put_f_raster_row(elev_fd, elevbuf);
+	    Rast_put_f_row(elev_fd, elevbuf);
 	if (azimuth_name)
-	    G_put_f_raster_row(azimuth_fd, azimuthbuf);
+	    Rast_put_f_row(azimuth_fd, azimuthbuf);
 	if (sunhour_name)
-	    G_put_f_raster_row(sunhour_fd, sunhourbuf);
+	    Rast_put_f_row(sunhour_fd, sunhourbuf);
     }
     G_percent(1, 1, 2);
 
     if (elev_name) {
-	G_close_cell(elev_fd);
+	Rast_close(elev_fd);
 	/* writing history file */
-	G_short_history(elev_name, "raster", &hist);
-	G_command_history(&hist);
-	G_write_history(elev_name, &hist);
+	Rast_short_history(elev_name, "raster", &hist);
+	Rast_command_history(&hist);
+	Rast_write_history(elev_name, &hist);
     }
     if (azimuth_name) {
-	G_close_cell(azimuth_fd);
+	Rast_close(azimuth_fd);
 	/* writing history file */
-	G_short_history(azimuth_name, "raster", &hist);
-	G_command_history(&hist);
-	G_write_history(azimuth_name, &hist);
+	Rast_short_history(azimuth_name, "raster", &hist);
+	Rast_command_history(&hist);
+	Rast_write_history(azimuth_name, &hist);
     }
     if (sunhour_name) {
-	G_close_cell(sunhour_fd);
+	Rast_close(sunhour_fd);
 	/* writing history file */
-	G_short_history(sunhour_name, "raster", &hist);
-	G_command_history(&hist);
-	G_write_history(sunhour_name, &hist);
+	Rast_short_history(sunhour_name, "raster", &hist);
+	Rast_command_history(&hist);
+	Rast_write_history(sunhour_name, &hist);
     }
 
     G_done_msg(" ");
