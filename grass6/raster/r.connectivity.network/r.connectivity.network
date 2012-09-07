@@ -1435,15 +1435,14 @@ EOF
 
 #Suppress parallel processing if not requested
 if [ $CORES -le 1 ] ; then
-	sed -i "s/mclapply/lapply/g" ${FOLDER}/network.r
-
-	sed -i "s/library(codetools)//g" ${FOLDER}/network.r
-	sed -i "s/library(multicore)//g" ${FOLDER}/network.r
-	sed -i "s/library(iterators)//g" ${FOLDER}/network.r
-	sed -i "s/library(foreach)//g" ${FOLDER}/network.r
-	sed -i "s/library(doMC)//g" ${FOLDER}/network.r
-	sed -i "s/registerDoMC()//g" ${FOLDER}/network.r
-	sed -i "s/options(cores = $CORES)//g" ${FOLDER}/network.r
+	cat ${FOLDER}/network.r | sed "s/mclapply/lapply/g" > ${FOLDER}/network.r
+	cat ${FOLDER}/network.r | sed "s/library(codetools)//g" > ${FOLDER}/network.r
+	cat ${FOLDER}/network.r | sed "s/library(multicore)//g" > ${FOLDER}/network.r
+	cat ${FOLDER}/network.r | sed "s/library(iterators)//g" > ${FOLDER}/network.r
+	cat ${FOLDER}/network.r | sed "s/library(foreach)//g" > ${FOLDER}/network.r
+	cat ${FOLDER}/network.r | sed "s/library(doMC)//g" > ${FOLDER}/network.r
+	cat ${FOLDER}/network.r | sed "s/registerDoMC()//g" > ${FOLDER}/network.r
+	cat ${FOLDER}/network.r | sed "s/options(cores = $CORES)//g" > ${FOLDER}/network.r
 fi
 
 #Run R-igraph script
