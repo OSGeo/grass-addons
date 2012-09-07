@@ -386,8 +386,8 @@ do
 	elif [ $centroid_number -eq 0 ] ; then
 		g.remove -f vect=${PREFIX}_patch_${p} --quiet 2>&1 > /dev/null
 		echo "${p};no centroid" >> ${FOLDER}/unconsidered_patches.csv
-		sed -i "/^${p};/d" ${FOLDER}/vertices_part_1.csv
-		sed -i "/^${p};/d" ${FOLDER}/vertices_part_2.csv
+		cat ${FOLDER}/vertices_part_1.csv | sed "/^${p};/d" > ${FOLDER}/vertices_part_1.csv
+		cat ${FOLDER}/vertices_part_2.csv | sed "/^${p};/d" > ${FOLDER}/vertices_part_2.csv
 		g.message -w "Patch ${p} has no centroid and is therefor not considered in anaysis. Consider cleaning your input data..."
 		continue
 	fi
@@ -410,8 +410,8 @@ do
 	if [ "$min" = "NULL" ] ; then
 		g.remove -f vect=${PREFIX}_patch_${p} rast=${PREFIX}_patch_${p} --quiet 2>&1 > /dev/null
 		echo "${p};not rasterised" >> ${FOLDER}/unconsidered_patches.csv
-		sed -i "/^${p};/d" ${FOLDER}/vertices_part_1.csv
-		sed -i "/^${p};/d" ${FOLDER}/vertices_part_2.csv
+		cat ${FOLDER}/vertices_part_1.csv | sed "/^${p};/d" > ${FOLDER}/vertices_part_1.csv
+		cat ${FOLDER}/vertices_part_2.csv | sed "/^${p};/d" > ${FOLDER}/vertices_part_2.csv
 		g.message -w "Patch ${p} was not rasterised and is therefor not considered in anaysis. Consider adjusting region resolution..."
 		continue
 	fi
@@ -566,7 +566,7 @@ do
 done
 
 #Remove external temporary data
-if [ -z "$FOLDER" ] ; then
+if [ "$FOLDER" ] ; then
 	rm -f ${FOLDER}/tmp
 	rm -f ${FOLDER}/tmp_part
 else
