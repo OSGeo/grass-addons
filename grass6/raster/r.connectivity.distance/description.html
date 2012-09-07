@@ -1,69 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: r.connectivity.distance</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>r.connectivity.distance</b></em>  - Compute cost-distance between all polygons (patches) of an input vector map within a user defined euclidean distance threshold
-<h2>KEYWORDS</h2>
-<dl>
-raster, vector, connectivity, distance, network
-</dl>
-
-<h2>SYNOPSIS</h2>
-<b>r.connectivity.distance</b><br>
-<b>r.connectivity.distance help</b><br>
-<b>r.connectivity.distance</b> [-<b>ste</b>] <b>patches</b>=<em>patches (input)</em>  [<b>costs</b>=<em>costs (input)</em>]  <b>pop_proxy</b>=<em>pop_proxy</em> <b>prefix</b>=<em>string</em> <b>folder</b>=<em>string</em>  [<b>cutoff</b>=<em>float</em>]   [<b>border_dist</b>=<em>integer</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
-
-<h3>Flags:</h3>
-<dl>
-<dt><b>-s</b></dt>
-<dd>Extract and save short paths and closest points into a vector map</dd>
-
-<dt><b>-t</b></dt>
-<dd>Rasterize patches with "all-touched" option using GDAL (can useful for narrow patches). This can be time consuming.</dd>
-
-<dt><b>-e</b></dt>
-<dd>Use euclidean distance (not cost distance)</dd>
-
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-</dl>
-
-<h3>Parameters:</h3>
-<dl>
-<dt><b>folder</b>=<em>string</em></dt>
-<dd>Folder where all (non map) output from r.connectivity.* is stored (output)</dd>
-
-<dt><b>patches</b>=<em>string</em></dt>
-<dd>Name of input vector map containing patches (input)</dd>
-
-<dt><b>costs</b>=<em>string</em></dt>
-<dd>Name of input costs raster map (input)</dd>
-
-<dt><b>pop_proxy</b>=<em>string</em></dt>
-<dd>Column containig proxy for population size (attribute values must be numeric and neither values &lt;= 0 nor NULL allowed!)</dd>
-
-<dt><b>prefix</b>=<em>string</em></dt>
-<dd>Prefix for output maps of the r.connectivity.*-tools. Also temporary data uses this prefix.</dd>
-
-<dt><b>cutoff</b>=<em>float</em></dt>
-<dd>Maximum euclidean search distance around patches in map units</dd>
-<dd>Default: <em>10000</em></dd>
-
-<dt><b>border_dist</b>=<em>integer</em></dt>
-<dd>Number of border cells used for distance measuring</dd>
-<dd>Default: <em>50</em></dd>
-</dl>
-
 <h2>DESCRIPTION</h2>
 
 Recently, graph-theory has been characterised as an efficient and useful tool for conservation planning (e.g. Bunn et al. 2000, Calabrese & Fagan 2004, Minor et al. 2008, Zetterberg et. al. 2010). As a part of the r.connectivity.* tool-chain, r.connectivity.distance is intended to make graph-theory more easily available to conservation planning.
@@ -75,8 +9,8 @@ r.connectivity.distance loops through all polygons in the input vector map and c
 The edge-list csv-file structure (edges.csv) looks like this:
 <dl>
 <dd><em><b>from_patch,to_patch,cost-distance</b></em></dd>
-<dd><em>1,2,150</em></dd>
-<dd><em>1,3,75</em></dd>
+<dd><em>1;2;150</em></dd>
+<dd><em>1;3;75</em></dd>
 <dd><em>...</em></dd>
 </dl>
 <dl>
@@ -106,13 +40,12 @@ Distance is measured as border to border distance. The user can define the numbe
 
 
 <h2>SEE ALSO</h2>
-<a href="r.connectivity.network">r.connectivity.network</a>, <a href="r.connectivity.corridors">r.connectivity.corridors</a><br>
-
+<em><a href="r.connectivity.network">r.connectivity.network</a>, 
+<a href="r.connectivity.corridors">r.connectivity.corridors</a>
+</em>
+<br>
 
 <h2>AUTHOR</h2>
 Stefan Blumentrath, Norwegian Institute for Nature Research (NINA)
-
-<i>Last changed: $Date$</i>
-
-</body>
-</html>
+<br><br>
+<p><i>Last changed: $Date$</i>

@@ -26,8 +26,8 @@
 #               The edge-list csv-file structure (edges.csv) looks like this:
 #
 #               from_patch,to_patch,cost-distance
-#               1,2,150
-#               1,3,75
+#               1;2;150
+#               1;3;75
 #               ...
 #
 #               The vertex-list consists of two parts:
@@ -282,8 +282,11 @@ EOF
 
 
 ########################################################################
-
-eval `g.region -ugp rast=$COSTS align=$COSTS`
+if [ $E_FLAG -ne 1 ] ; then
+	eval `g.region -ugp rast=$COSTS align=$COSTS`
+else
+	eval `g.region -ugp`
+fi
 max_n=$n
 min_s=$s
 max_e=$e
@@ -390,7 +393,11 @@ do
 	fi
 	
 	#Set region to start-patch
-	g.region -u --quiet vect=${PREFIX}_patch_${p} n=n+$cost_nsres s=s-$cost_nsres e=e+$cost_ewres w=w-$cost_ewres align=$COSTS save="${PREFIX}_${p}" --overwrite
+	if [ $E_FLAG -ne 1 ] ; then
+		g.region -u --quiet vect=${PREFIX}_patch_${p} n=n+$cost_nsres s=s-$cost_nsres e=e+$cost_ewres w=w-$cost_ewres align=$COSTS save="${PREFIX}_${p}" --overwrite
+	else
+		g.region -u --quiet vect=${PREFIX}_patch_${p} n=n+$cost_nsres s=s-$cost_nsres e=e+$cost_ewres w=w-$cost_ewres save="${PREFIX}_${p}" --overwrite
+	fi
 	WIND_OVERRIDE="${PREFIX}_${p}"
 	export WIND_OVERRIDE
 	
@@ -413,7 +420,11 @@ do
 	############################################
 	#awk
 	############################################
-	eval `g.region -ugp --quiet n=n+$CUTOFF s=s-$CUTOFF e=e+$CUTOFF w=w-$CUTOFF align=$COSTS`
+	if [ $E_FLAG -ne 1 ] ; then
+		eval `g.region -ugp --quiet n=n+$CUTOFF s=s-$CUTOFF e=e+$CUTOFF w=w-$CUTOFF align=$COSTS`
+	else
+		eval `g.region -ugp --quiet n=n+$CUTOFF s=s-$CUTOFF e=e+$CUTOFF w=w-$CUTOFF`
+	fi
 	n_test=$(echo $n $max_n | awk '{if($1 < $2) print $2}')
 	if [ $n_test ] ; then 
 		n=$n
@@ -439,7 +450,11 @@ do
 		w=$min_w
 	fi
 	
-	g.region -u --quiet n=$n s=$s e=$e w=$w align=$COSTS  save="${PREFIX}_${p}_buffer" --overwrite
+	if [ $E_FLAG -ne 1 ] ; then
+		g.region -u --quiet n=$n s=$s e=$e w=$w align=$COSTS  save="${PREFIX}_${p}_buffer" --overwrite
+	else
+		g.region -u --quiet n=$n s=$s e=$e w=$w  save="${PREFIX}_${p}_buffer" --overwrite
+	fi
 	WIND_OVERRIDE="${PREFIX}_${p}_buffer"
 	export WIND_OVERRIDE
 
@@ -551,5 +566,9 @@ do
 done
 
 #Remove external temporary data
-rm -f ${FOLDER}/tmp
-rm -f ${FOLDER}/tmp_part
+if [ -z "$FOLDER" ] ; then
+	rm -f ${FOLDER}/tmp
+	rm -f ${FOLDER}/tmp_part
+else
+	g.message -w "Could not find folder ${FOLDER}"
+fi
