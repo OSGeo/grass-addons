@@ -354,10 +354,10 @@ fi
 #Extract boundaries from patch raster map
 r.mapcalc "${PREFIX}_patches_boundary=if(${PREFIX}_patches_pol,\
 	if((\
-	(${PREFIX}_patches_pol[-1,0]!=${PREFIX}_patches_pol)|||\
-	(${PREFIX}_patches_pol[0,1]!=${PREFIX}_patches_pol)|||\
-	(${PREFIX}_patches_pol[1,0]!=${PREFIX}_patches_pol)|||\
-	(${PREFIX}_patches_pol[0,-1]!=${PREFIX}_patches_pol)),${PREFIX}_patches_pol,null()),\
+	(isnull(${PREFIX}_patches_pol[-1,0])|||${PREFIX}_patches_pol[-1,0]!=${PREFIX}_patches_pol)|||\
+	(isnull(${PREFIX}_patches_pol[0,1])|||${PREFIX}_patches_pol[0,1]!=${PREFIX}_patches_pol)|||\
+	(isnull(${PREFIX}_patches_pol[1,0])|||${PREFIX}_patches_pol[1,0]!=${PREFIX}_patches_pol)|||\
+	(isnull(${PREFIX}_patches_pol[0,-1])|||${PREFIX}_patches_pol[0,-1]!=${PREFIX}_patches_pol)),${PREFIX}_patches_pol,null()),\
 	null())"
 
 #Init output vector maps if they are requested by user
