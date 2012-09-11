@@ -98,7 +98,7 @@ cleanup()
       g.remove --quiet rast="$TMP_MAP"
   fi
   if [ "$GIS_FLAG_A" -eq 1 ] ; then
-  true; #    g.remove --quiet rast="$TMP_MAP.slope,$TMP_MAP.dx,$TMP_MAP.dy"
+      g.remove --quiet rast="$TMP_MAP.slope,$TMP_MAP.dx,$TMP_MAP.dy"
   fi
 }
 trap "cleanup" 2 3 15
@@ -188,10 +188,23 @@ r.slope.aspect elev="$MAP" \
 # r.univar -g tmp.magnitude
 #   ??
 
+DIP_try1=`r.univar -eg map="$TMP_MAP.slope" | grep '^median=' | cut -f2 -d'='`
 
-DIP=`r.univar -eg map="$TMP_MAP.slope" | grep '^median=' | cut -f2 -d'='`
+
+# this is completely incorrect:
+FUDGE="$DIP_try1"
+
+GRASS_VERBOSE=0 \
+  r.mapcalc "$TMP_MAP.magnitude = sqrt(tmp.rcog.$$.dx*tmp.rcog.$$.dx \
+                                     + tmp.rcog.$$.dy*tmp.rcog.$$.dy) * $FUDGE"
+
+DIP=`r.univar -eg map="$TMP_MAP.magnitude" | grep '^median=' | cut -f2 -d'='`
+
 DX=`r.univar -g map="$TMP_MAP.dx" | grep '^mean=' | cut -f2 -d'='`
 DY=`r.univar -g map="$TMP_MAP.dy" | grep '^mean=' | cut -f2 -d'='`
+
+
+
 
 #r.univar map="$TMP_MAP.slope" -e
 #d.rast "$TMP_MAP"
