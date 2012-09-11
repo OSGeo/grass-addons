@@ -16,8 +16,6 @@
 
 #define EPSILON 1.0e-16
 
-int debug_level;
-
 /* internal functions */
 static int merge_regions(struct ngbr_stats *,    /* Ri */
                          struct reg_stats *,
@@ -175,12 +173,10 @@ int region_growing(struct globals *globals)
     alpha2 = globals->alpha * globals->alpha;
     /* make the divisor a constant ? */
     divisor = globals->nrows + globals->ncols;
-    
-    debug_level = 5;
-    
+
     while (t < globals->end_t && n_merges > 0) {
 
-	/* optional threshold as a function of t. */
+	/* optional threshold as a function of t. does not make sense */
 	threshold = alpha2 * globals->threshold;
 
 	t++;
@@ -189,9 +185,6 @@ int region_growing(struct globals *globals)
 	    G_verbose_message(_("Pass %d:"), t);
 	else
 	    G_percent(t, globals->end_t, 1);
-
-	if (t >= 50)
-	    debug_level = 5;
 
 	n_merges = 0;
 	globals->candidate_count = 0;
@@ -292,8 +285,11 @@ int region_growing(struct globals *globals)
 		    pathflag = FALSE;
 		}
 		/* this is slow ??? */
-		if (0 && (t & 1) && Rk.count <= globals->nn)
+		if (t & 1) {
+		    if ((globals->nn < 8 && Rk.count <= 8) || 
+		        (globals->nn >= 8 && Rk.count <= globals->nn))
 		    candidates_only = FALSE;
+		}
 		
 		while (pathflag) {
 		    pathflag = FALSE;
@@ -547,6 +543,7 @@ int region_growing(struct globals *globals)
 		}
 	    }
 	}
+	G_percent(1, 1, 1);
     }
     
     G_free(Ri.mean);

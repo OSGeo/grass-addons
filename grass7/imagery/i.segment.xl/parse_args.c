@@ -87,7 +87,7 @@ int parse_args(int argc, char *argv[], struct globals *globals)
     endt->key = "iterations";
     endt->type = TYPE_INTEGER;
     endt->required = NO;
-    endt->answer = "1000";
+    endt->answer = "100";
     endt->description = _("Maximum number of iterations.");
 
     outband = G_define_standard_option(G_OPT_R_OUTPUT);
@@ -185,8 +185,8 @@ int parse_args(int argc, char *argv[], struct globals *globals)
 	if (atoi(endt->answer) > 0)
 	    globals->end_t = atoi(endt->answer);
 	else {
-	    globals->end_t = 1000;
-	    G_warning(_("Invalid number of iterations, 1000 will be used."));
+	    globals->end_t = 100;
+	    G_warning(_("Invalid number of iterations, 100 will be used."));
 	}
     }
     else
