@@ -111,7 +111,7 @@ int parse_args(int argc, char *argv[], struct globals *globals)
     /* Note: this threshold is scaled after we know more at the beginning of create_isegs() */
     globals->alpha = atof(threshold->answer);
 
-    if (globals->threshold <= 0 || globals->threshold >= 1)
+    if (globals->alpha <= 0 || globals->alpha >= 1)
 	G_fatal_error(_("threshold should be >= 0 and <= 1"));
 
     /* segmentation methods:  1 = region growing */
