@@ -183,32 +183,29 @@ r.slope.aspect elev="$MAP" \
 ##   v.surf.rst with very high smoothing and low tension ...?
 #
 # maybe the r.univar mean or median of the magnitude of the axes' 1st derivatives:
-# r.mapcalc "tmp.magnitude = sqrt(tmp.rcog.$$.dx*tmp.rcog.$$.dx \
-#                               + tmp.rcog.$$.dy*tmp.rcog.$$.dy)"
-# r.univar -g tmp.magnitude
 #   ??
-
-DIP_try1=`r.univar -eg map="$TMP_MAP.slope" | grep '^median=' | cut -f2 -d'='`
-
-
-# this is completely incorrect:
-FUDGE="$DIP_try1"
-
-GRASS_VERBOSE=0 \
-  r.mapcalc "$TMP_MAP.magnitude = sqrt(tmp.rcog.$$.dx*tmp.rcog.$$.dx \
-                                     + tmp.rcog.$$.dy*tmp.rcog.$$.dy) * $FUDGE"
-
-DIP=`r.univar -eg map="$TMP_MAP.magnitude" | grep '^median=' | cut -f2 -d'='`
+#
+#DIP_try1=`r.univar -eg map="$TMP_MAP.slope" | grep '^median=' | cut -f2 -d'='`
+#
+#GRASS_VERBOSE=0 \
+#  r.mapcalc "$TMP_MAP.magnitude = sqrt(tmp.rcog.$$.dx^2 \
+#                                     + tmp.rcog.$$.dy^2)"
+#DIP=`r.univar -eg map="$TMP_MAP.magnitude" | grep '^median=' | cut -f2 -d'='`
 
 DX=`r.univar -g map="$TMP_MAP.dx" | grep '^mean=' | cut -f2 -d'='`
 DY=`r.univar -g map="$TMP_MAP.dy" | grep '^mean=' | cut -f2 -d'='`
 
+# maybe use length along az not simply avg cell res() dist?
+GRASS_VERBOSE=0 \
+  r.mapcalc "$TMP_MAP.dz = nsres() * tan($TMP_MAP.slope)"
+ 
+DZ=`r.univar -g map="$TMP_MAP.dz" | grep '^mean=' | cut -f2 -d'='`
 
-
-
-#r.univar map="$TMP_MAP.slope" -e
-#d.rast "$TMP_MAP"
+eval `g.region -g | grep res`
+RES="$nsres"
 PI=3.14159265358979323846
+
+DIP=`echo "$DZ $RES" | awk -v PI="$PI" '{print atan2($1, $2) * (180/PI)}'`
 AZ=`echo "$DX $DY" | awk -v PI="$PI" '{print atan2($2, $1) * (180/PI)}'`
 
 if [ "$GIS_FLAG_G" -eq 0 ] ; then
