@@ -2,7 +2,7 @@
 # 
 ############################################################################ 
 # 
-# MODULE:       r.connectivity.corridor 
+# MODULE:       r.connectivity.corridors 
 # AUTHOR(S):    Stefan Blumentrath <stefan dot blumentrath at nina dot no > 
 # PURPOSE:      Compute corridors between habitat patches of an input-layer 
 #               based on distance raster maps produced by r.connecivity.distance. 
@@ -167,6 +167,13 @@ S_FLAG=${GIS_FLAG_S}
 D_FLAG=${GIS_FLAG_D}
 R_FLAG=${GIS_FLAG_R}
 
+#OS adjustment
+if [ $OS ] ; then
+	OS_type=$(echo $OS | cut -c 1-3)
+else
+	OS_type=Other
+fi
+
 #Check if edge vector map exists
 eval `g.findfile element=vector file=${PREFIX}_edges`
 edges=$name
@@ -322,7 +329,7 @@ fi
 ###Calculate corridors
 if [ "$(echo $mc_expressions | sed 's/^.//')" ] ; then
 	if [ $(echo $mc_expressions | sed 's/^.//' | tr '#' '\n' | wc -w) -ge 1 ] ; then
-		if [ $CORES -gt 1 ] ; then
+		if [ $CORES -gt 1 -a "$OS_type" != "Win" ] ; then
 			echo $mc_expressions | sed 's/^.//' | tr '#' '\n' | xargs -P $CORES -n 1 -i r.mapcalc {}
 		else
 			for mce in $(echo $mc_expressions | sed 's/^.//' | tr '#' '\n')
@@ -357,7 +364,7 @@ else
 			echo $integer_column
 			if [ "$integer_column" ] ; then
 				#For integer columns
-				if [ $CORES -gt 1 ] ; then
+				if [ $CORES -gt 1 -a "$OS_type" != "Win" ] ; then
 					#Create r.reclass-commands for xargs
 					r_reclass=
 					for fid in $selected_edges_ud
@@ -375,7 +382,7 @@ else
 				fi
 			else
 				 #For double or floating point columns
-				if [ $CORES -gt 1 ] ; then
+				if [ $CORES -gt 1 -a "$OS_type" != "Win" ] ; then
 					#Create r.recode-commands for xargs
 					r_recode=
 					for fid in $selected_edges_ud
