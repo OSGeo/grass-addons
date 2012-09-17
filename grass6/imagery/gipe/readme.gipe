@@ -1,11 +1,7 @@
-GIPE Modules list
+Image Processign Modules list
 -----------------
-Yann Chemin, 2011 January 12th, Wagga Wagga, Australia.
-----------------------------------------------------------
-Those modules are getting installed when you run the script: install_yanns_grass.sh
-(works in WinGRASS and Linux)
-
-All modules (except 2: r.gaswap.serial and i.evapo.TSA) are having GUI menu places integrated inside the GRASS Interfaces (works in both tcltk and wxpython), i.* in imagery menu and r.* in raster menu.
+Yann Chemin, 2012, Pelawatta, Sri lanka.
+----------------------------------------
 
 Cleaning
 --------
@@ -30,6 +26,7 @@ Cleaning
 	: Moved i.evapo.potrad/senay to grass7, removed m.gem and i.vi.mpi from grass6.
 	: Moved i.eb.h_SEBAL95 to grass7
 	: Moved i.lmf to grass7
+20120916: Removed installation remarks.
 
 Imagery modules
 ---------------
