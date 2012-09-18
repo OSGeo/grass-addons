@@ -222,7 +222,9 @@ if [ ! -r "${FOLDER}/r_connectivity.log" ] ; then
 fi
 
 #Read variables from log-file
-. ${FOLDER}/r_connectivity.log
+cat ${FOLDER}/r_connectivity.log | head -n 10 > ${FOLDER}/r_connectivity.log.tmp
+. ${FOLDER}/r_connectivity.log.tmp
+rm ${FOLDER}/r_connectivity.log.tmp
 
 #Parse and assign remaining variable (Output)
 KERNEL_PLOT="${GIS_OPT_KERNEL_PLOT}"
