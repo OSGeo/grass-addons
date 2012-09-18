@@ -388,7 +388,7 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Unknown production date (defined by '%s')"), pdate->key);
 
     if (G_verbose() > G_verbose_std()) {
-	fprintf(stderr, " LANSAT: %d SENSOR: %s\n", lsat.number, lsat.sensor);
+	fprintf(stderr, " LANDSAT: %d SENSOR: %s\n", lsat.number, lsat.sensor);
 	fprintf(stderr, " ACQUISITION DATE %s [production date %s]\n",
 		lsat.date, lsat.creation);
 	fprintf(stderr, "   earth-sun distance    = %.8lf\n", lsat.dist_es);
