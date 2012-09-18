@@ -12,10 +12,10 @@ solar elevation is needed. Moreover, for Landsat-7 ETM+ it is also
 needed the gain (high or low) of the nine respective bands.
 
 <p>
-Optionally, the data can be read from header file (.met) for all
+Optionally (recommended), the data can be read from metadata file (.met or MTL.txt) for all
 Landsat MSS, TM and ETM+. However, if the solar elevation or the
-product creation date are given the values of the metfile are
-overwriten. This is necessary when the data in the metfile is
+product creation date are given the values of the metadata file are
+overwriten (only with .met files). This is necessary when the data in the .met file is
 incorrect or not accurate.
 
 <p>
@@ -127,12 +127,6 @@ In verbose mode (flag <b>--verbose</b>), the program write basic
 satellite data and the parameters used in the transformations.
 
 <p>
-In L5_MTL mode (flag <b>-t</b>), the Landsat 5TM imagery that has a
-_MTL.txt metadata file can be processed. Landsat 7 ETM+ does not need
-a flag since .met and _MTL.txt are sufficient compatible for this
-sensor.
-
-<p>
 Production date is not an exact value but it is necessary to apply
 correct calibration constants, which were changed in the dates:
 <ul>
@@ -155,7 +149,15 @@ files 293_39.61_toar and 293_39.62_toar:
 
 <div class="code"><pre>
 i.landsat.toar input_prefix=203_30. output_prefix=_toar \
-  sensor=tm7 met=p203r030_7x20010620.met
+  metfile=p203r030_7x20010620.met
+</pre></div>
+
+or
+
+<div class="code"><pre>
+i.landsat.toar input_prefix=L5121060_06020060714. \
+  output_prefix=L5121060_06020060714_toar \
+  metfile=L5121060_06020060714_MTL.txt
 </pre></div>
 
 or
@@ -163,15 +165,7 @@ or
 <div class="code"><pre>
 i.landsat.toar input_prefix=203_30. output_prefix=_toar \
   sensor=tm7 product_date=2004-06-07 date=2001-06-20 \
-  solar_elevation=64.3242970 gain="HHHLHLHHL"
-</pre></div>
-
-or
-
-<div class="code"><pre>
-i.landsat.toar input_prefix=L5121060_06020060714. \
-  output_prefix=L5121060_06020060714_toar sensor=tm5 \
-  metfile=L5121060_06020060714_MTL.txt -t
+  sun_elevation=64.3242970 gain="HHHLHLHHL"
 </pre></div>
 
 <h2>REFERENCES</h2>
