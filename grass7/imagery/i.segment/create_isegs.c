@@ -647,8 +647,10 @@ int region_growing(struct files *files, struct functions *functions)
 			}	/* end else - pixel count was below minimum allowed */
 		    }		/* end if neighbors found */
 		    else {	/* no neighbors were found */
+			if (files->bounds_map == NULL)
 			G_warning
 			    (_("no neighbors found, this means only one segment was created."));
+			
 			set_candidate_flag(Ri_head, FALSE, files);
 		    }
 		}		/* end if pixel is candidate pixel */
