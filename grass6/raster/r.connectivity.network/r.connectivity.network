@@ -264,10 +264,17 @@ g.message -v "CL_THRES is ${GIS_OPT_CL_THRES}"
 
 
 #Check if R is installed
-	if [ ! -x "`which R`" ] ; then
+	
+if [ ! -x "`which R`" ] ; then
+	if [ "$OS_type" = "Win" ] ; then
+	    g.message -e "R is required, but can not be found on the system." 
+	    g.message -e "Please install R, or - if it is allready installed - please add the path to R to your environment variables (see: http://grass.osgeo.org/wiki/R_statistics#MS_Windows)." 
+	    exit 1
+	else	
 	    g.message -e "R is required, please install R first" 
 	    exit 1
 	fi
+fi
 
 #Visualise the negative exponential decay kernel and exit (if requested)
 if [ $X_FLAG -eq 1 ] ; then
@@ -285,7 +292,7 @@ fi
 #Check if ghostscript is installed
 if [ $OVERVIEW_PLOT ] ; then
 	if [ "$OS_type" = "Win" ] ; then
-		g.message -v "Assuming ghostscript is installed on MS Windows" 
+		g.message -w "Ghostscript is required. Assuming ghostscript is installed on MS Windows" 
 	#Check for ghostscript deactivated on Windows because the path to gswin32 is not defined in the environment settings by ghostscript installation automatically
 	#	if [ ! -x "`which gswin32`" ] ; then
 	#		g.message -e "ghostscript is required for postscript output, can not find ghostscript (gswin32.exe), please install ghostscript first (or check environment path settings)" 
@@ -301,7 +308,7 @@ if [ $OVERVIEW_PLOT ] ; then
 fi
 if [ $KERNEL_PLOT ]; then
 	if [ "$OS_type" = "Win" ] ; then
-		g.message -v "Assuming ghostscript is installed on MS Windows" 
+		g.message -w "Ghostscript is required. Assuming ghostscript is installed on MS Windows" 
 	#Check for ghostscript deactivated on Windows because the path to gswin32 is not defined in the environment settings by ghostscript installation automatically
 	#	if [ ! -x "`which gswin32`" ] ; then
 	#		g.message -e "ghostscript is required for postscript output, can not find ghostscript (gswin32.exe), please install ghostscript first (or check environment path settings)" 

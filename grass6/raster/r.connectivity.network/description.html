@@ -1,8 +1,8 @@
 <h2>DESCRIPTION</h2>
 <dl>
-Recently, graph-theory has been characterised as an efficient and useful tool for conservation planning (e.g. Bunn et al. 2000, Calabrese & Fagan 2004, Minor & Urban 2008, Zetterberg et. al. 2010). As a part of the r.connectivity.* tool-chain, r.connectivity.network  is intended to make graph-theory more easily available to conservation planning. 
+Recently, graph-theory has been characterised as an efficient and useful tool for conservation planning (e.g. Bunn et al. 2000, Calabrese & Fagan 2004, Minor & Urban 2008, Zetterberg et. al. 2010). As a part of the r.connectivity.* tool-chain, r.connectivity.network is intended to make graph-theory more easily available to conservation planning. 
 <br><br>
-r.connectivity.network is the 2nd tool of the r.connectivity.* toolchain and performs the (core) network analysis (usig the igraph-package in R)on the network data prepared with r.connectivity.distance. This network data is analysed on graph, edge and vertex level.
+r.connectivity.network is the 2nd tool of the r.connectivity.* toolchain and performs the (core) network analysis (usig the igraph-package in R) on the network data prepared with r.connectivity.distance. This network data is analysed on graph, edge and vertex level.
 <br><br>
 Connectivity measures for the graph level are: number of vertices, number of edges, number of clusters, size of the largest cluster, average cluster size, diameter, density, modularity, number of communities, community size (in number of vertices) Network characteristics are visualised in a plot showing an  overview over number of connections, number of components and and the size of the largest network component within the network with regards to cost-distance between patches.
 <br><br>
@@ -18,6 +18,9 @@ Analysis is based on a negative exponential decay kernel (as described e.g. in B
 <br><br>
 !!!This script is designed to work based on the output of r.connectivity.distance!!!
 </dl>
+
+<h2>REQUIREMENTS</h2>
+For running this tool R language and environment for statistical computing and graphics has to be installed (see: <a href=http://www.r-project.org>http://www.r-project.org</a>). Furthermore the <a href=http://cran.r-project.org/web/packages/igraph/index.html>igraph</a> package in R is required with version 0.6-2 or newer. For parallel processing (at the moment only supported for Linux) the R packages <a href=http://cran.r-project.org/web/packages/doMC/index.html>doMC</a>, <a href=http://cran.r-project.org/web/packages/multicore/index.html>multicore</a>, <a href=http://cran.r-project.org/web/packages/iterators/index.html>iterators</a>, <a href=http://cran.r-project.org/web/packages/codetools/index.html>codetools</a> and <a href=http://cran.r-project.org/web/packages/foreach/index.html>foreach</a> are required as well. All R packages can be installed by running the AddOn using the <em><b>i-flag (-i)</b></em>. Installation requires internet access. For postscript output (overview and kernel plot) also <a href=http://www.ghostscript.com/>ghostscript</a> is required. 
 
 <h2>OUTPUT NOTES</h2>
 <h3>Field naming</h3>
@@ -185,6 +188,8 @@ Befor we can run the connectivity analysis with the r.connectivity.*-tools we ne
 <br>
 <b>Create input patch vector map</b><br>
 
+<b>Create input patch vector map</b><br>
+
 <div class="code"><pre>
 ###Set region
 g.region -p rast=landuse96_28m@PERMANENT align=landuse96_28m@PERMANENT
@@ -193,19 +198,10 @@ g.region -p rast=landuse96_28m@PERMANENT align=landuse96_28m@PERMANENT
 ##Extract habitat patches
 #Condition 1: Category 11 = Bottomland Hardwoods/Hardwood Swamps
 #Condition 2: no border-cells are suitable  
-r.mapcalc "patches=if(\
-landuse96_28m[0,1]==11&&\
-landuse96_28m[0,-1]==11&&\
-landuse96_28m[1,1]==11&&\
-landuse96_28m[1,0]==11&&\
-landuse96_28m[1,-1]==11&&\
-landuse96_28m[-1,1]==11&&\
-landuse96_28m[-1,0]==11&&\
-landuse96_28m[-1,-1]==11&&\
-landuse96_28m==11,1,null())"
+r.mapcalc "patches=if(landuse96_28m[0,1]==11&&landuse96_28m[0,-1]==11&&landuse96_28m[1,1]==11&&landuse96_28m[1,0]==11&&landuse96_28m[1,-1]==11&&landuse96_28m[-1,1]==11&&landuse96_28m[-1,0]==11&&landuse96_28m[-1,-1]==11&&landuse96_28m==11,1,null())"
 
 #Vectorize patches
-r.to.vect input=patches output=patches feature=area --overwrite
+r.to.vect input=patches output=patches feature=area
 
 #Add a column for the population proxy (in this case area in hectares)
 v.db.addcol map=patches layer=1 'columns=area_ha double precision' 
@@ -214,7 +210,7 @@ v.db.addcol map=patches layer=1 'columns=area_ha double precision'
 v.to.db map=patches type=point,line,boundary,centroid layer=1 qlayer=1 option=area units=hectares columns=area_ha
 
 #Extract core habitat areas with more than 1 ha
-v.extract input=patches@user1 output=patches_1ha type=point,line,boundary,centroid,area,face layer=1 where=area_ha>1 new=-1 --overwrite
+v.extract input=patches output=patches_1ha type=area layer=1 where="area_ha>1"
 </pre></div>
 
 <b>Create a cost raster (se also: <em>r.cost</em>)</b><br>
@@ -225,6 +221,7 @@ Hint: One might also add infrastructure like e.g. roads<br>
 
 <div class="code"><pre>
 #Reclassify land use map
+#Windows users may have to use the GUI version of r.reclass and paste the rules there...
 echo '0 = 56 #not classified (2*resolution (28m))
 1 = NULL #High Intensity Developed (absolut barrier)
 2 = 140 #Low Intensity Developed (5*resolution (28m))
@@ -284,7 +281,7 @@ An other means for speeding up processing would be to use integer weights (e.g. 
 When all analysis is finnished some cleanup may be appropriate, in order to save disk space:<br>
 
 <div class="code"><pre>
-#Add the f-lag (-f) to the following two commands if you are sure you want to delete all intermediate map from r.connectivity.*.
+#Add the f-lag (-f) to the following two commands if you are sure you want to delete all intermediate maps from r.connectivity.*.
 g.mremove rast=hws_connectivity_corridor_*
 g.mremove rast=hws_connectivity_patch_*
 </pre></div>

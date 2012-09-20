@@ -374,16 +374,17 @@ for p in $patch_list
 do
 	g.message -v "Calculating connectivity-distances for patch number $p"
 	#Extract patch polygons
-	centroid_number=$(v.extract --overwrite --verbose input=$PATCHES output=${PREFIX}_patch_${p} where="cat=${p}" 2>&1 | grep "Number of centroids:" | cut -f4 -d' ')
+	v.extract --overwrite --quiet input=$PATCHES output=${PREFIX}_patch_${p} list=$p 2>&1
+	eval `v.info -t map=${PREFIX}_patch_${p}`
 	#Extract centroids of convex hull for multipolygons and export data as network vertices
-	if [ $centroid_number -gt 1 ] ; then
+	if [ $centroids -gt 1 ] ; then
 		v.hull -a -f --overwrite --quiet input=${PREFIX}_patch_${p} output=${PREFIX}_patch_${p}_ch 2>&1 > /dev/null
 		xy=$(v.to.db -p --quiet map=${PREFIX}_patch_${p}_ch option=coor | cut -f2,3 -d'|' --output-delimiter=';')
 		echo "${p};$xy" >> ${FOLDER}/vertices_part_1.csv
 		g.remove -f vect=${PREFIX}_patch_${p}_ch --quiet 2>&1 > /dev/null
-		g.message -v "Patch ${p} has $centroid_number centroids. Using centroid of the convex hull of all polygon parts."
+		g.message -v "Patch ${p} has $centroids centroids. Using centroid of the convex hull of all polygon parts."
 	#Remove node data for patches without centroid
-	elif [ $centroid_number -eq 0 ] ; then
+	elif [ $centroids -eq 0 ] ; then
 		g.remove -f vect=${PREFIX}_patch_${p} --quiet 2>&1 > /dev/null
 		echo "${p};no centroid" >> ${FOLDER}/unconsidered_patches.csv
 		cat ${FOLDER}/vertices_part_1.csv | sed "/^${p};/d" > ${FOLDER}/vertices_part_1.csv

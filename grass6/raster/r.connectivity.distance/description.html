@@ -60,19 +60,10 @@ g.region -p rast=landuse96_28m@PERMANENT align=landuse96_28m@PERMANENT
 ##Extract habitat patches
 #Condition 1: Category 11 = Bottomland Hardwoods/Hardwood Swamps
 #Condition 2: no border-cells are suitable  
-r.mapcalc "patches=if(\
-landuse96_28m[0,1]==11&&\
-landuse96_28m[0,-1]==11&&\
-landuse96_28m[1,1]==11&&\
-landuse96_28m[1,0]==11&&\
-landuse96_28m[1,-1]==11&&\
-landuse96_28m[-1,1]==11&&\
-landuse96_28m[-1,0]==11&&\
-landuse96_28m[-1,-1]==11&&\
-landuse96_28m==11,1,null())"
+r.mapcalc "patches=if(landuse96_28m[0,1]==11&&landuse96_28m[0,-1]==11&&landuse96_28m[1,1]==11&&landuse96_28m[1,0]==11&&landuse96_28m[1,-1]==11&&landuse96_28m[-1,1]==11&&landuse96_28m[-1,0]==11&&landuse96_28m[-1,-1]==11&&landuse96_28m==11,1,null())"
 
 #Vectorize patches
-r.to.vect input=patches output=patches feature=area --overwrite
+r.to.vect input=patches output=patches feature=area
 
 #Add a column for the population proxy (in this case area in hectares)
 v.db.addcol map=patches layer=1 'columns=area_ha double precision' 
@@ -81,7 +72,7 @@ v.db.addcol map=patches layer=1 'columns=area_ha double precision'
 v.to.db map=patches type=point,line,boundary,centroid layer=1 qlayer=1 option=area units=hectares columns=area_ha
 
 #Extract core habitat areas with more than 1 ha
-v.extract input=patches@user1 output=patches_1ha type=point,line,boundary,centroid,area,face layer=1 where=area_ha>1 new=-1 --overwrite
+v.extract input=patches output=patches_1ha type=area layer=1 where="area_ha>1"
 </pre></div>
 
 <b>Create a cost raster (se also: <em>r.cost</em>)</b><br>
@@ -92,6 +83,7 @@ Hint: One might also add infrastructure like e.g. roads<br>
 
 <div class="code"><pre>
 #Reclassify land use map
+#Windows users may have to use the GUI version of r.reclass and paste the rules there...
 echo '0 = 56 #not classified (2*resolution (28m))
 1 = NULL #High Intensity Developed (absolut barrier)
 2 = 140 #Low Intensity Developed (5*resolution (28m))
@@ -151,7 +143,7 @@ An other means for speeding up processing would be to use integer weights (e.g. 
 When all analysis is finnished some cleanup may be appropriate, in order to save disk space:<br>
 
 <div class="code"><pre>
-#Add the f-lag (-f) to the following two commands if you are sure you want to delete all intermediate map from r.connectivity.*.
+#Add the f-lag (-f) to the following two commands if you are sure you want to delete all intermediate maps from r.connectivity.*.
 g.mremove rast=hws_connectivity_corridor_*
 g.mremove rast=hws_connectivity_patch_*
 </pre></div>

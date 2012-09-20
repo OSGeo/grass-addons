@@ -361,7 +361,6 @@ else
 		for w in $weights
 		do
 			integer_column=$(echo $column_check | tr ' ' '\n' | grep -w "INTEGER|${w}")
-			echo $integer_column
 			if [ "$integer_column" ] ; then
 				#For integer columns
 				if [ $CORES -gt 1 -a "$OS_type" != "Win" ] ; then
@@ -369,7 +368,7 @@ else
 					r_reclass=
 					for fid in $selected_edges_ud
 					do
-						r_reclass=${r_reclass}\#$(echo $table_extract | tr ' ' '\n' | cut -f1,$weight_position -d',' | awk -v FID=$fid -v WEIGHT=$w -v PREFIX=$PREFIX -v FS=',' '{if($1==FID) print "echo " $1 "=" $2 " | r.reclass input=" PREFIX "_corridor_" $1 " output=" PREFIX "_corridor_" $1 "_" WEIGHT " --overwrite --verbose"}' | head -n 1)
+						r_reclass=${r_reclass}\#$(echo $table_extract | tr ' ' '\n' | cut -f1,$weight_position -d',' --output-delimiter=' ' | awk -v FID=$fid -v WEIGHT=$w -v PREFIX=$PREFIX '{if($1==FID) print "echo " $1 "=" $2 " | r.reclass input=" PREFIX "_corridor_" $1 " output=" PREFIX "_corridor_" $1 "_" WEIGHT " --overwrite --verbose"}' | head -n 1)
 					done
 					#Reclass maps using xargs
 					echo $r_reclass | sed 's/^.//' | tr '#' '\n' | xargs -P $CORES -n 1 -i echo {} | sh
@@ -377,7 +376,7 @@ else
 					#Reclass maps using for-loop
 					for fid in $selected_edges_ud
 					do
-						echo $table_extract | tr ' ' '\n' |  cut -f1,$counter -d',' | awk -v FID=$fid -v WEIGHT=$w '{if($1==FID) print $1 " = " $2}' | head -n 1 | r.reclass input=${PREFIX}_corridor_${fid} output=${PREFIX}_corridor_${fid}_${w} --overwrite --verbose
+						echo $table_extract | tr ' ' '\n' |  cut -f1,$weight_position -d',' --output-delimiter=' ' | awk -v FID=$fid '{if($1==FID) print $1 " = " $2}' | head -n 1 | r.reclass input=${PREFIX}_corridor_${fid} output=${PREFIX}_corridor_${fid}_${w} --overwrite --verbose
 					done
 				fi
 			else
@@ -387,18 +386,18 @@ else
 					r_recode=
 					for fid in $selected_edges_ud
 					do
-						r_recode=${r_recode}\#$(echo $table_extract | tr ' ' '\n' | cut -f1,$weight_position -d',' | awk -v FID=$fid -v WEIGHT=$w -v PREFIX=$PREFIX -v FS=',' '{if($1==FID) print "echo " $1 ":" $1 ":" $2 ":" $2 " | r.recode input=" PREFIX "_corridor_" $1 " output=" PREFIX "_corridor_" $1 "_" WEIGHT " rules=- --overwrite --verbose"}' | head -n 1)
+						r_recode=${r_recode}\#$(echo $table_extract | tr ' ' '\n' | cut -f1,$weight_position -d',' --output-delimiter=' ' | awk -v FID=$fid -v WEIGHT=$w -v PREFIX=$PREFIX '{if($1==FID) print "echo " $1 ":" $1 ":" $2 ":" $2 " | r.recode input=" PREFIX "_corridor_" $1 " output=" PREFIX "_corridor_" $1 "_" WEIGHT " rules=- --overwrite --verbose"}' | head -n 1)
 					done
 					#Recode maps using xargs
 					echo $r_recode | sed 's/^.//' | tr '#' '\n' | xargs -P $CORES -n 1 -i echo {} | sh
 				else
-					#Reclass maps using for-loop
+					#Recode maps using for-loop
 					for fid in $selected_edges_ud
 					do
-						echo $table_extract | tr ' ' '\n' |  cut -f1,$counter -d',' | awk -v FID=$fid -v WEIGHT=$w '{if($1==FID) print $1 " = " $2}' | head -n 1 | r.recode input=${PREFIX}_corridor_${fid} output=${PREFIX}_corridor_${fid}_${w} --overwrite --verbose
+						echo $table_extract | tr ' ' '\n' |  cut -f1,$weight_position -d',' --output-delimiter=' ' | awk -v FID=$fid '{if($1==FID) print $1 ":" $1 ":" $2 ":" $2}' | head -n 1 | r.recode input=${PREFIX}_corridor_${fid} output=${PREFIX}_corridor_${fid}_${w} --overwrite --verbose
 					done
 				fi
-			counter=$`expr $weight_position + 1`
+			weight_position=$`expr $weight_position + 1`
 			fi
 			#Collect list of corridors
 			corridor_list=$(echo $selected_edges_ud | tr ' ' '\n' | awk -v PREFIX=$PREFIX -v WEIGHT=$w '{print PREFIX "_corridor_" $1 "_" WEIGHT}' | tr '\n' ',' | sed 's/.$//')
