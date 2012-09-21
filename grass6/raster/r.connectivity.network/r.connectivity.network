@@ -268,7 +268,7 @@ g.message -v "CL_THRES is ${GIS_OPT_CL_THRES}"
 if [ ! -x "`which R`" ] ; then
 	if [ "$OS_type" = "Win" ] ; then
 	    g.message -e "R is required, but can not be found on the system." 
-	    g.message -e "Please install R, or - if it is allready installed - please add the path to R to your environment variables (see: http://grass.osgeo.org/wiki/R_statistics#MS_Windows)." 
+	    g.message -e "Please make sure that R is installed and the path to R is added to the environment variables (see: http://grass.osgeo.org/wiki/R_statistics#MS_Windows). After that a restart of GRASS GIS is required."
 	    exit 1
 	else	
 	    g.message -e "R is required, please install R first" 
@@ -361,9 +361,11 @@ fi
 if [ -n "$missing_packages" ] ; then
 	if [ $I_FLAG -eq 1 ] ; then
 		if [ $OS_type = "Win" ] ; then
-			echo $missing_packages | awk '{print "install.packages(\"" $2 "\")"}' | R --no-save --no-restore --ess
+			R_INSTALL_CMD=$(echo $missing_packages | sed "s/missing /missing#/g" | sed "s/.$//" | tr '#' '\n' | awk '{print "install.packages(\"" $2 "\")"}')
+			echo "{ $R_INSTALL_CMD }" | tr ' ' '\n' | R --no-save --no-restore --ess
 		else
-			echo $missing_packages | awk '{print "install.packages(\"" $2 "\")"}' | R --no-save --no-restore --interactive
+			R_INSTALL_CMD=$(echo $missing_packages | sed "s/missing /missing#/g" | sed "s/.$//" | tr '#' '\n' | awk '{print "install.packages(\"" $2 "\")"}')
+			echo "{ $R_INSTALL_CMD }" | tr ' ' '\n' | awk '{print "install.packages(\"" $2 "\")"}' | R --no-save --no-restore --interactive
 		fi
 	else
 		g.message -e "${missing_packages}"
