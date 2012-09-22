@@ -4,6 +4,7 @@ SUBDIRS = \
 	v.colors2 \
 	v.in.ply \
 	v.in.redwg \
+	v.in.wfs2 \
 	v.median \
 	v.out.ply \
 	v.pack \
