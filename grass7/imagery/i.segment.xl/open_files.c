@@ -9,6 +9,7 @@
 
 static int load_seeds(struct globals *, int, int, int);
 static int read_seed(struct globals *, SEGMENT *, struct rc *, int);
+static int manage_memory(int, int, struct globals *);
 
 int open_files(struct globals *globals)
 {
@@ -87,23 +88,16 @@ int open_files(struct globals *globals)
 
     inlen = sizeof(DCELL) * Ref.nfiles;
     outlen = sizeof(CELL);
+    G_debug(1, "data element size, in: %d , out: %d ", inlen, outlen);
+    globals->datasize = sizeof(double) * globals->nbands;
 
     /* segment lib segment size */
     srows = 64;
     scols = 64;
 
-    /* calculate number of segments in memory */
-    nseg = (1024. * 1024. * globals->mb) /
-           (sizeof(DCELL) * Ref.nfiles * srows * scols + 
-	    + sizeof(CELL) * 2 * srows * scols);
+    nseg = manage_memory(srows, scols, globals);
 
     /* create segment structures */
-    G_debug(1, "image size:  %d rows, %d cols", globals->nrows, globals->ncols);
-    G_debug(1, "degmented to tiles with size:  %d rows, %d cols", srows,
-	    scols);
-    G_debug(1, "data element size, in: %d , out: %d ", inlen, outlen);
-    G_debug(1, "number of segments in memory: %d", nseg);
-
     if (segment_open
 	(&globals->bands_seg, G_tempfile(), globals->nrows, globals->ncols, srows,
 	 scols, inlen, nseg) != 1)
@@ -259,7 +253,6 @@ int open_files(struct globals *globals)
 	Rast_close(in_fd[n]);
     }
 
-    globals->datasize = sizeof(double) * globals->nbands;
     globals->rs.sum = G_malloc(globals->datasize);
     globals->rs.mean = G_malloc(globals->datasize);
 
@@ -291,6 +284,8 @@ static int load_seeds(struct globals *globals, int srows, int scols, int nseg)
     struct rc Ri;
 
     G_debug(1, "load_seeds()");
+    
+    G_message(_("Loading seeds from '%s'"), globals->seeds);
 
     if (segment_open
 	(&seeds_seg, G_tempfile(), globals->nrows, globals->ncols,
@@ -352,7 +347,6 @@ static int load_seeds(struct globals *globals, int srows, int scols, int nseg)
 	    }
 	}
     }
-
 
     G_free(seeds_buf);
     Rast_close(seeds_fd);
@@ -457,7 +451,7 @@ static int read_seed(struct globals *globals, SEGMENT *seeds_seg, struct rc *Ri,
     }
     
     /* insert into region tree */
-    if (globals->rs.count > 1) {
+    if (globals->rs.count >= globals->min_reg_size) {
 	for (i = 0; i < globals->nbands; i++)
 	    globals->rs.mean[i] = globals->rs.sum[i] / globals->rs.count;
 
@@ -465,4 +459,65 @@ static int read_seed(struct globals *globals, SEGMENT *seeds_seg, struct rc *Ri,
     }
 
     return 1;
+}
+
+
+static int manage_memory(int srows, int scols, struct globals *globals)
+{
+    double reg_size_mb, segs_mb;
+    int reg_size_count, nseg, nseg_total;
+
+    /* minimum region size to store in search tree */
+    reg_size_mb = 2 * globals->datasize +     /* mean, sum */
+                  2 * sizeof(int) +           /* id, count */
+		  sizeof(unsigned char) + 
+		  2 * sizeof(struct REG_NODE *);
+    reg_size_mb /= (1024. * 1024.);
+
+    /* put aside some memory for segment structures */
+    segs_mb = globals->mb * 0.1;
+    if (segs_mb > 10)
+	segs_mb = 10;
+
+    /* calculate number of region stats that can be kept in memory */
+    reg_size_count = (globals->mb - segs_mb) / reg_size_mb;
+    globals->min_reg_size = 4;
+    if (reg_size_count < (double) globals->nrows * globals->ncols / globals->min_reg_size) {
+	globals->min_reg_size = (double) globals->nrows * globals->ncols / reg_size_count;
+    }
+    else {
+	reg_size_count = (double) globals->nrows * globals->ncols / globals->min_reg_size;
+	/* recalculate segs_mb */
+	segs_mb = globals->mb - reg_size_count * reg_size_mb;
+    }
+
+    G_verbose_message(_("Stats for regions with at least %d cells are stored in memory"),
+                      globals->min_reg_size);
+
+    /* calculate number of segments in memory */
+    if (globals->bounds_map != NULL) {
+	/* input bands, segment ids, bounds map */
+	nseg = (1024. * 1024. * segs_mb) /
+	       (sizeof(DCELL) * globals->nbands * srows * scols + 
+		sizeof(CELL) * 4 * srows * scols);
+    }
+    else {
+	/* input bands, segment ids, bounds map */
+	nseg = (1024. * 1024. * segs_mb) /
+	       (sizeof(DCELL) * globals->nbands * srows * scols + 
+		sizeof(CELL) * 2 * srows * scols);
+    }
+    nseg_total = (globals->nrows / srows + (globals->nrows % srows > 0)) *
+                 (globals->ncols / scols + (globals->ncols % scols > 0));
+
+    if (nseg > nseg_total)
+	nseg = nseg_total;
+    
+    G_debug(1, "current region:  %d rows, %d cols", globals->nrows, globals->ncols);
+    G_debug(1, "segmented to tiles with size:  %d rows, %d cols", srows,
+	    scols);
+    G_verbose_message(_("Number of segments in memory: %d of %d total"),
+                      nseg, nseg_total);
+    
+    return nseg;
 }

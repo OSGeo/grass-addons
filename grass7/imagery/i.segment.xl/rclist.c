@@ -48,8 +48,8 @@ int rclist_drop(struct rclist *list, struct rc *rc)
 
 	return 1;
     }
-    else
-	return 0;
+
+    return 0;
 }
 
 void rclist_destroy(struct rclist *list)

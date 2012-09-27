@@ -67,7 +67,8 @@ struct globals
 
     /* results */
     struct RG_TREE *reg_tree;   /* search tree with region stats */
-    struct reg_stats rs;
+    int min_reg_size;		/* minimum region size */
+    struct reg_stats rs, rs_i, rs_k;
     struct ngbr_stats ns;
     size_t datasize;		/* nbands * sizeof(double) */
     int n_regions;
@@ -100,7 +101,13 @@ int region_growing(struct globals *);
 void find_four_neighbors(int, int, int[][2]);
 void find_eight_neighbors(int, int, int[8][2]);
 double calculate_euclidean_similarity(struct ngbr_stats *, 
-                                      struct ngbr_stats *, struct globals *);
+                                      struct ngbr_stats *,
+				      struct globals *);
+int fetch_reg_stats(int , int , struct reg_stats *, 
+                           struct globals *);
+
+/* void calculate_reg_stats(int, int, struct reg_stats *, 
+                         struct globals *); */
 
 
 /* rclist.c */
