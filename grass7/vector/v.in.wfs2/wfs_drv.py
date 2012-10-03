@@ -3,9 +3,6 @@ import grass.script as grass
 from urllib2 import urlopen
 import xml.etree.ElementTree as etree
 
-import numpy as Numeric
-Numeric.arrayrange = Numeric.arange
-
 from wfs_base import WFSBase
 
 class WFSDrv(WFSBase):
