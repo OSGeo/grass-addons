@@ -96,7 +96,7 @@ void lsat_metdata(char *metfile, lsat_data * lsat)
         lsat->sun_elev = atof(value);
     }
 
-    // Fill data with the sensor_XXX functions
+    /* Fill data with the sensor_XXX functions */
     switch(lsat->number)
     {
         case 1:
@@ -184,7 +184,7 @@ void lsat_mtldata(char *mtlfile, lsat_data * lsat)
     get_mtldata(mtldata, "SUN_ELEVATION", value);
     lsat->sun_elev = atof(value);
 
-    // Fill data with the sensor_XXX functions
+    /* Fill data with the sensor_XXX functions */
     switch(lsat->number)
     {
         case 1:
@@ -226,7 +226,7 @@ void lsat_mtldata(char *mtlfile, lsat_data * lsat)
             break;
     }
 
-    // Update the information from metadata file
+    /* Update the information from metadata file */
     for (i = 0; i < lsat->bands; i++) {
         snprintf(name, MAX_STR, "LMAX_BAND%d", lsat->band[i].code);
         get_mtldata(mtldata, name, value);
@@ -246,6 +246,4 @@ void lsat_mtldata(char *mtlfile, lsat_data * lsat)
     (void)fclose(f);
     return;
 }
-
-
 
