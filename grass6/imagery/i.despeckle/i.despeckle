@@ -3,7 +3,7 @@
 ############################################################################
 #
 # MODULE:       i.despeckle
-# AUTHOR(S):    Markus Neteler, Maning Sambale
+# AUTHOR(S):    Markus Neteler, Maning Sambale (Environmental Science for Social Change)
 # PURPOSE:      FGAMMA -- Gamma SAR Speckle Filter, based on
 #               http://web.archive.org/web/20050826071553/http://www.pcigeomatics.com/cgi-bin/pcihlp/M_FGAMMA
 #               http://web.archive.org/web/20050425160834/http://www.pcigeomatics.com/cgi-bin/pcihlp/M_FLE
