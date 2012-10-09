@@ -1,0 +1,76 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.in.wms</em> handles all of downloading and importing raster
+data from an <a href="http://www.opengeospatial.org/standards/wms">OGC
+WMS</a> web mapping server. It need only be told the desired data to
+collect (bounds and resolution) via a region, the server to get the
+data from, and the layer or layers to get. It downloads the data in
+tiles, reprojects it, imports it, and patches it back together.
+
+<h2>NOTES</h2>
+
+<!--
+By default data is downloaded to <tt>$GISDBASE/wms_download</tt>. This can be changed
+by setting the <b>folder</b> option when using <em>r.in.wms</em>.
+-->
+
+<p>To understand the data you are getting it is necessary to look at the
+capabilities of the WMS server. This should be available via a capabilities
+request. This is an
+<a href="http://wms.jpl.nasa.gov/wms.cgi?request=GetCapabilities">example
+capabilities request to NASA's OnEarth server</a>.
+
+<h2>EXAMPLES</h2>
+
+<h3>General Get Capabilities Request</h3>
+
+<div class="code"><pre>
+r.in.wms -c mapserver=http://wms.cuzk.cz/wms.asp
+</pre></div>
+
+<h3>CUZK download</h3>
+
+
+World extend data:
+
+<div class="code"><pre>
+r.in.wms mapserver=http://iceds.ge.ucl.ac.uk/cgi-bin/icedswms layers=bluemarble,landsat_1_01 styles=default,default output=landsat srs=4326 format=png 
+</pre></div>
+* Server supports only WMS 1.1.1 <br>
+
+<div class="code"><pre>
+r.in.wms mapserver=http://132.156.97.59/cgi-bin/worldmin_en-ca_ows layers=GSC:WORLD_PrecambrianDomains output=pokus srs=4326 format=jpeg 
+</pre></div>
+* Server supports only WMS 1.1.1 
+<br>
+<br>
+
+Data in extend of Czech Republic:
+
+<div class="code"><pre>
+r.in.wms output=kn mapserver=http://wms.cuzk.cz/wms.asp layers=prehledka_kraju-linie srs=4326 format=png
+</pre></div>
+
+
+<h2>TODO</h2>
+
+<ul>
+  <li>Implement Tiled WMS</li>
+</ul>
+
+<h2>SEE ALSO</h2>
+
+<em>
+  <a href="r.in.gdal.html">r.in.gdal</a>,
+  <a href="r.patch.html">r.patch</a>,
+  <a href="r.colors.html">r.colors</a>,
+  <a href="r.composite.html">r.composite</a>,
+  <a href="v.in.wfs.html">v.in.wfs</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Stepan Turek, Czech Technical University in Prague, Czech Republic (bachelor's final project 2012, mentor: Martin Landa) 
+
+<p>
+<i>Last changed: $Date$</i>
