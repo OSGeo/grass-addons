@@ -7,6 +7,7 @@ SUBDIRS = \
 	r.fuzzy \
 	r.hydrodem \
 	r.in.srtm.region \
+	r.in.wms2 \
 	r.modis \
 	r.regression.multi \
 	r.regression.series \
