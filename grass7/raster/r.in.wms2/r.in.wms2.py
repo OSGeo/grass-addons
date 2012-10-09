@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-MODULE:    r.in.wms
+MODULE:    r.in.wms2
 
 AUTHOR(S): Stepan Turek <stepan.turek AT seznam.cz>
 
@@ -20,7 +20,7 @@ This program is free software under the GNU General Public License
 #%end
 
 #%option
-#% key: mapserver
+#% key: url
 #% type: string
 #% description:URL of WMS server 
 #% required: yes
@@ -42,6 +42,7 @@ This program is free software under the GNU General Public License
 #% key: srs
 #% type: integer
 #% description: EPSG number of source projection for request 
+#% answer:4326 
 #% guisection: Request properties
 #%end
 
@@ -98,7 +99,21 @@ This program is free software under the GNU General Public License
 #%option
 #% key: urlparams
 #% type:string
-#% description: Addition query parameters for server (only with 'd' flag)
+#% description: Additional query parameters for server
+#% guisection: Request properties
+#%end
+
+#%option
+#% key: username
+#% type:string
+#% description: Username for server connection
+#% guisection: Request properties
+#%end
+
+#%option
+#% key: password
+#% type:string
+#% description: Password for server connection
 #% guisection: Request properties
 #%end
 
@@ -113,7 +128,7 @@ This program is free software under the GNU General Public License
 #%option
 #% key: bgcolor
 #% type: string
-#% description: Color of map background (only with 'd' flag)
+#% description: Color of map background
 #% guisection: Map style
 #%end
 
@@ -130,23 +145,27 @@ This program is free software under the GNU General Public License
 #% suppress_required: yes
 #%end
 
-#%flag
-#% key: d
-#% description: Do not use GDAL WMS driver
+#%option
+#% key: driver
+#% type:string
+#% description: Driver for communication with server
+#% options:WMS_GDAL, WMS_GRASS, WMTS_GRASS
+#% answer:WMS_GDAL
 #%end
+
 
 import os
 import sys
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'r.in.wms'))
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'r.in.wms2'))
 
 import grass.script as grass
 
 def main():
-    if flags['d']:
-        grass.debug("Using own driver")
+    if 'GRASS' in options['driver']:
+        grass.debug("Using GRASS driver")
         from wms_drv import WMSDrv
         wms = WMSDrv()
-    else:
+    elif 'GDAL' in options['driver']:
         grass.debug("Using GDAL WMS driver")
         from wms_gdal_drv import WMSGdalDrv
         wms = WMSGdalDrv()

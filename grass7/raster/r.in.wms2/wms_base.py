@@ -1,8 +1,8 @@
 import os
 from   math import ceil
 
-import xml.etree.ElementTree as etree
 from urllib2 import urlopen, HTTPError, URLError
+from httplib import HTTPException
 
 import grass.script as grass
 
@@ -13,7 +13,9 @@ class WMSBase:
         self.cleanup_mask   = False
         self.cleanup_layers = False
         
-        self.bbox     = None
+        self.params = {}
+        self.tile_size = {'bbox' : None}
+
         self.temp_map = None
         
     def __del__(self):
@@ -26,14 +28,14 @@ class WMSBase:
                 grass.fatal(_('%s failed') % 'r.mask')
             
             # restore original mask, if exists 
-            if grass.find_file(self.o_output + self.original_mask_suffix, element = 'cell', mapset = '.' )['name']:
+            if grass.find_file(self.params['output'] + self.original_mask_suffix, element = 'cell', mapset = '.' )['name']:
                 if grass.run_command('g.copy',
                                      quiet = True,
-                                     rast =  self.o_output + self.original_mask_suffix + ',MASK') != 0:
+                                     rast =  self.params['output'] + self.original_mask_suffix + ',MASK') != 0:
                     grass.fatal(_('%s failed') % 'g.copy')
         
         # tries to remove temporary files, all files should be
-        # removoved before, implemented just in case of unexpected
+        # removed before, implemented just in case of unexpected
         # stop of module
         for temp_file in self.temp_files_to_cleanup:
             grass.try_remove(temp_file)
@@ -42,7 +44,7 @@ class WMSBase:
         if self.cleanup_layers: 
             maps = []
             for suffix in ('.red', '.green', '.blue', '.alpha', self.original_mask_suffix):
-                rast = self.o_output + suffix
+                rast = self.params['output'] + suffix
                 if grass.find_file(rast, element = 'cell', mapset = '.')['file']:
                     maps.append(rast)
             
@@ -52,7 +54,7 @@ class WMSBase:
                                   flags = 'f',
                                   rast  = ','.join(maps))
         
-        # deletes enviromental variable which overrides region 
+        # deletes environmental variable which overrides region 
         if 'GRASS_REGION' in os.environ.keys():
             os.environ.pop('GRASS_REGION')
         
@@ -63,100 +65,109 @@ class WMSBase:
     def _initializeParameters(self, options, flags):
         self._debug("_initialize_parameters", "started")
         
-        # inicialization of module parameters (options, flags)
-        self.flags = flags 
-        if self.flags['o']:
-            self.transparent = 'FALSE'
+        # initialization of module parameters (options, flags)
+
+        self.params['driver'] = options['driver']
+
+        self.flags = flags
+
+        if self.flags['o'] and 'WMS' not in self.params['driver']:
+            grass.warning(_("Flag '%s' is relevant only for WMS.") % 'o')
+        elif self.flags['o']:
+            self.params['transparent'] = 'FALSE'
         else:
-            self.transparent = 'TRUE'   
+            self.params['transparent'] = 'TRUE'   
+
+        for key in ['url', 'layers', 'styles', 'output', 'method']:
+            self.params[key] = options[key].strip()
+
+        for key in ['password', 'username', 'urlparams']:
+            self.params[key] = options[key] 
+            if self.params[key] != "" and 'GRASS' not in self.params['driver']:
+                grass.warning(_("Parameter '%s' is relevant only for %s drivers.") % (key, '*_GRASS'))
         
-        self.o_mapserver_url = options['mapserver'].strip() + "?" 
-        self.o_layers = options['layers'].strip()
-        self.o_styles = options['styles'].strip()
-        self.o_output = options['output']
-        self.o_method = options['method']
-        
-        self.o_bgcolor = options['bgcolor'].strip()
-        if self.o_bgcolor != "" and not flags["d"]:
-            grass.warning(_("Parameter bgcolor ignored, use -d flag"))
-        
-        self.o_urlparams = options['urlparams'].strip()
-        if self.o_urlparams != "" and not flags["d"]:
-            grass.warning(_("Parameter urlparams ignored, use -d flag"))
-        
-        self.o_wms_version = options['wms_version']        
-        if self.o_wms_version == "1.3.0":
-            self.projection_name = "CRS"
+        self.params['bgcolor'] = options['bgcolor'].strip()
+        if self.params['bgcolor'] != "" and 'WMS_GRASS' not in self.params['driver']:
+            grass.warning(_("Parameter '%s' is relevant only for %s driver.") % ('bgcolor', 'WMS_GRASS'))
+                
+        self.params['wms_version'] = options['wms_version']        
+        if self.params['wms_version'] == "1.3.0":
+            self.params['proj_name'] = "CRS"
         else:
-            self.projection_name = "SRS" 
+            self.params['proj_name'] = "SRS" 
         
-        self.o_format = options['format']
-        if self.o_format == "geotiff":
-            self.mime_format = "image/geotiff"
-        elif self.o_format == "tiff":
-            self.mime_format = "image/tiff"
-        elif self.o_format == "png":
-            self.mime_format = "image/png"
-        elif self.o_format == "jpeg":
-            self.mime_format = "image/jpeg"
+        if  options['format'] == "geotiff":
+            self.params['format'] = "image/geotiff"
+        elif options['format'] == "tiff":
+            self.params['format'] = "image/tiff"
+        elif options['format'] == "png":
+            self.params['format'] = "image/png"
+        elif  options['format'] == "jpeg":
+            self.params['format'] = "image/jpeg"
             if flags['o']:
                 grass.warning(_("JPEG format does not support transparency"))
-        elif self.o_format == "gif":
-            self.mime_format = "image/gif"
+        elif self.params['format'] == "gif":
+            self.params['format'] = "image/gif"
         else:
-            self.mime_format = self.o_format
+            self.params['format'] = self.params['format']
         
-        self.o_srs = int(options['srs'])
-        if self.o_srs <= 0:
-            grass.fatal(_("Invalid EPSG code %d") % self.o_srs)
+        self.params['srs'] = int(options['srs'])
+        if self.params['srs'] <= 0:
+            grass.fatal(_("Invalid EPSG code %d") % self.params['srs'])
         
         # read projection info
         self.proj_location = grass.read_command('g.proj', 
                                                 flags ='jf').rstrip('\n')
-        
-        self.proj_srs = grass.read_command('g.proj', 
-                                           flags = 'jf', 
-                                           epsg = str(self.o_srs) ).rstrip('\n')
-        
+
+        if self.params['srs'] in [3857, 900913]:
+            # HACK: epsg 3857 def: http://spatialreference.org/ref/sr-org/7483/
+            # g.proj can return: ...+a=6378137 +rf=298.257223563... (WGS84 elipsoid def instead of sphere), it can make 20km shift in Y, when raster is transformed
+            # needed to be tested on more servers
+            self.proj_srs = '+proj=merc +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +no_defs +a=6378137 +b=6378137 +nadgrids=@null +to_meter=1 +wktext'
+        else:
+            self.proj_srs = grass.read_command('g.proj', 
+                                               flags = 'jf', 
+                                               epsg = str(self.params['srs']) ).rstrip('\n')
+
         if not self.proj_srs or not self.proj_location:
             grass.fatal(_("Unable to get projection info"))
         
         # set region 
-        self.o_region = options['region']
-	if self.o_region:                 
-            if not grass.find_file(name = self.o_region, element = 'windows', mapset = '.' )['name']:
-                grass.fatal(_("Region <%s> not found") % self.o_region)
+        self.params['region'] = options['region']
+        if self.params['region']:                 
+            if not grass.find_file(name = self.params['region'], element = 'windows', mapset = '.' )['name']:
+                grass.fatal(_("Region <%s> not found") % self.params['region'])
         
-        if self.o_region:
+        if self.params['region']:
             s = grass.read_command('g.region',
                                    quiet = True,
                                    flags = 'ug',
-                                   region = self.o_region)
+                                   region = self.params['region'])
             self.region = grass.parse_key_val(s, val_type = float)
         else:
             self.region = grass.region()
         
         min_tile_size = 100
-        self.o_maxcols = int(options['maxcols'])
-        if self.o_maxcols <= min_tile_size:
+        maxcols = int(options['maxcols'])
+        if maxcols <= min_tile_size:
             grass.fatal(_("Maxcols must be greater than 100"))
         
-        self.o_maxrows = int(options['maxrows'])
-        if self.o_maxrows <= min_tile_size:
+        maxrows = int(options['maxrows'])
+        if maxrows <= min_tile_size:
             grass.fatal(_("Maxrows must be greater than 100"))
         
         # setting optimal tile size according to maxcols and maxrows constraint and region cols and rows      
-        self.tile_cols = int(self.region['cols'] / ceil(self.region['cols'] / float(self.o_maxcols)))
-        self.tile_rows = int(self.region['rows'] / ceil(self.region['rows'] / float(self.o_maxrows)))
+        self.tile_size['cols'] = int(self.region['cols'] / ceil(self.region['cols'] / float(maxcols)))
+        self.tile_size['rows'] = int(self.region['rows'] / ceil(self.region['rows'] / float(maxrows)))
         
         # suffix for existing mask (during overriding will be saved
-        # into raster named:self.o_output + this suffix)
+        # into raster named:self.params['output'] + this suffix)
         self.original_mask_suffix = "_temp_MASK"
         
         # check names of temporary rasters, which module may create 
         maps = []
         for suffix in ('.red', '.green', '.blue', '.alpha', self.original_mask_suffix ):
-            rast = self.o_output + suffix
+            rast = self.params['output'] + suffix
             if grass.find_file(rast, element = 'cell', mapset = '.')['file']:
                 maps.append(rast)
         
@@ -177,20 +188,35 @@ class WMSBase:
 
         self.bbox     = self._computeBbox()
         
-        self.temp_map = self._download()  
-        
+        self.temp_map = self._download()
+
+        if not self.temp_map:
+            return
+
         self._createOutputMap() 
     
+    def _fetchCapabilities(self, options): 
+        """!Download capabilities from WMS server
+        """
+        # download capabilities file
+        cap_url = options['url']
+
+        if 'WMTS' in options['driver']:
+            cap_url += "?SERVICE=WMTS&REQUEST=GetCapabilities&VERSION=1.0.0"
+        else:
+            cap_url += "?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=" + options['wms_version'] 
+
+        try:
+            cap = urlopen(cap_url)
+        except (IOError, HTTPError):
+            grass.fatal(_("Unable to get capabilities from '%s'") % options['url'])
+        
+        return cap
+
     def GetCapabilities(self, options): 
         """!Get capabilities from WMS server
         """
-        # download capabilities file
-        cap_url = options['mapserver'] + "?service=WMS&request=GetCapabilities&version=" + options['wms_version'] 
-        try:
-            cap = urlopen(cap_url)
-        except IOError:
-            grass.fatal(_("Unable to get capabilities from '%s'") % options['mapserver'])
-        
+        cap  = self._fetchCapabilities(options)
         cap_lines = cap.readlines()
         for line in cap_lines: 
             print line 
@@ -228,7 +254,7 @@ class WMSBase:
                  grass.fatal(_("Unable to write data into tempfile"))
             finally:           
                 temp_region_opened.close()            
-            
+
             points = grass.read_command('m.proj', flags = 'd',
                                         proj_output = self.proj_srs,
                                         proj_input = self.proj_location,
@@ -239,10 +265,13 @@ class WMSBase:
             
             points = points.splitlines()
             if len(points) != 4:
-                grass.fatal(_("Region defintion: 4 points required"))
+                grass.fatal(_("Region definition: 4 points required"))
             
             for point in points:
-                point = map(float, point.split("|"))
+                try:
+                    point = map(float, point.split("|"))
+                except ValueError:
+                    grass.fatal(_('Reprojection of region using m.proj failed.'))
                 if not bbox['maxy']:
                     bbox['maxy'] = point[1]
                     bbox['miny'] = point[1]
@@ -263,15 +292,8 @@ class WMSBase:
         self._debug("_computeBbox", "finished -> %s" % bbox)
 
         # Ordering of coordinates axis of geographic coordinate
-        # systems in WMS 1.3.0 is fliped. If self.flip_coords is 
+        # systems in WMS 1.3.0 is flipped. If  self.tile_size['flip_coords'] is 
         # True, coords in bbox need to be flipped in WMS query.
-
-        self.flip_coords = False  
-        hasLongLat = self.proj_srs.find("+proj=longlat")   
-        hasLatLong = self.proj_srs.find("+proj=latlong")   
-
-        if (hasLongLat != -1 or hasLatLong != -1) and self.o_wms_version == "1.3.0":
-            self.flip_coords = True
 
         return bbox
 
@@ -289,19 +311,20 @@ class WMSBase:
             else:
                 nuldev = None
             
+            #"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs"
             # RGB rasters - alpha layer is added for cropping edges of projected raster
             if self.temp_map_bands_num == 3:
                 ps = grass.Popen(['gdalwarp',
                                   '-s_srs', '%s' % self.proj_srs,
                                   '-t_srs', '%s' % self.proj_location,
-                                  '-r', self.o_method, '-dstalpha',
+                                  '-r', self.params['method'], '-dstalpha',
                                   self.temp_map, temp_warpmap], stdout = nuldev)
             # RGBA rasters
             else:
                 ps = grass.Popen(['gdalwarp',
                                   '-s_srs', '%s' % self.proj_srs,
                                   '-t_srs', '%s' % self.proj_location,
-                                  '-r', self.o_method,
+                                  '-r', self.params['method'],
                                   self.temp_map, temp_warpmap], stdout = nuldev)
             ps.wait()
             
@@ -319,7 +342,7 @@ class WMSBase:
         if grass.run_command('r.in.gdal',
                              quiet = True,
                              input = temp_warpmap,
-                             output = self.o_output) != 0:
+                             output = self.params['output']) != 0:
             grass.fatal(_('%s failed') % 'r.in.gdal')
         
         # information for destructor to cleanup temp_layers, created
@@ -327,17 +350,17 @@ class WMSBase:
         self.cleanup_layers = True
         
         # setting region for full extend of imported raster
-        os.environ['GRASS_REGION'] = grass.region_env(rast = self.o_output + '.red')
+        os.environ['GRASS_REGION'] = grass.region_env(rast = self.params['output'] + '.red')
         
         # mask created from alpha layer, which describes real extend
         # of warped layer (may not be a rectangle), also mask contains
         # transparent parts of raster
-        if grass.find_file( self.o_output + '.alpha', element = 'cell', mapset = '.' )['name']:
+        if grass.find_file( self.params['output'] + '.alpha', element = 'cell', mapset = '.' )['name']:
             # saving current mask (if exists) into temp raster
             if grass.find_file('MASK', element = 'cell', mapset = '.' )['name']:
                 if grass.run_command('g.copy',
                                      quiet = True,
-                                     rast = 'MASK,' + self.o_output + self.original_mask_suffix) != 0:    
+                                     rast = 'MASK,' + self.params['output'] + self.original_mask_suffix) != 0:    
                     grass.fatal(_('%s failed') % 'g.copy')
             
             # info for destructor
@@ -347,38 +370,19 @@ class WMSBase:
                                  overwrite = True,
                                  maskcats = "0",
                                  flags = 'i',
-                                 input = self.o_output + '.alpha') != 0: 
+                                 input = self.params['output'] + '.alpha') != 0: 
                 grass.fatal(_('%s failed') % 'r.mask')
         
         if grass.run_command('r.composite',
                              quiet = True,
-                             red = self.o_output + '.red',
-                             green = self.o_output +  '.green',
-                             blue = self.o_output + '.blue',
-                             output = self.o_output ) != 0:
+                             red = self.params['output'] + '.red',
+                             green = self.params['output'] +  '.green',
+                             blue = self.params['output'] + '.blue',
+                             output = self.params['output'] ) != 0:
                 grass.fatal(_('%s failed') % 'r.composite')
         
         grass.try_remove(temp_warpmap)
         grass.try_remove(self.temp_map) 
-
-    def _flipBbox(self, bbox):
-        """ 
-        flips items in dictionary 
-        value flips between this keys:
-        maxy -> maxx
-        maxx -> maxy
-        miny -> minx
-        minx -> miny
-        @return copy of bbox with fliped cordinates
-        """  
-        temp_bbox = dict(bbox)
-        new_bbox = {}
-        new_bbox['maxy'] = temp_bbox['maxx']
-        new_bbox['miny'] = temp_bbox['minx']
-        new_bbox['maxx'] = temp_bbox['maxy']
-        new_bbox['minx'] = temp_bbox['miny']
-
-        return new_bbox
 
     def _tempfile(self):
         """!Create temp_file and append list self.temp_files_to_cleanup 
