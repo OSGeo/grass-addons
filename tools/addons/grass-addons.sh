@@ -21,22 +21,25 @@ fi
 recompile_grass() {
     cd $DIR
 
-    for dir in "grass_trunk" "grass6_devel" "grass64_release" ; do
-	cd $dir
+    for gdir in "grass_trunk" "grass6_devel" "grass64_release" ; do
+	cd $gdir
 	svn up
 	make distclean
-	if [ $dir == "grass_trunk" ] ; then 
+	if [ $gdir == "grass_trunk" ] ; then 
 	    num=7
 	else
 	    num=6
 	fi
-	../configures.sh grass$num
+	$DIR/configures.sh grass$num
 	make
 	cd ..
     done
 }
 
-#recompile_grass
+if [ "$2" = "c" ] || [ "$1" = "c" ] ; then
+    recompile_grass
+fi
+
 build_addons $1
 
 exit 0

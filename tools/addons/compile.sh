@@ -10,6 +10,10 @@ SVN_PATH="$1"
 TOPDIR="$2"
 ADDON_PATH="$3"
 
+if [ ! -d "$3" ] ; then
+    mkdir -p "$3"
+fi
+
 if [ -n "$4" ] ; then
     SEP=1 # useful for collecting files (see build-xml.py)
 else

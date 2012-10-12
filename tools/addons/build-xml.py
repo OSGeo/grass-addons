@@ -3,6 +3,7 @@
 import os
 import sys
 import glob
+from   datetime import datetime
 
 def get_list(addons):
     mlist = os.listdir(os.path.join(addons))
@@ -88,7 +89,12 @@ def header(fd):
     import grass.script.core as grass
     fd.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     fd.write('<!DOCTYPE task SYSTEM "grass-addons.dtd">\n') # TODO
-    fd.write('<addons version="%s">\n' % grass.version()['version'].split('.')[0])
+    vInfo = grass.version()
+    fd.write('<addons version="%s" revision="%s" date="%s">\n' % \
+                 (vInfo['version'].split('.')[0],
+                  vInfo['revision'],
+                  datetime.now()))
+
 
 def footer(fd):
     fd.write('</addons>\n')
