@@ -32,14 +32,6 @@ class WMSDrv(WMSBase):
         elif self.params['driver'] == 'WMS_GRASS':
             req_mgr = WMSRequestMgr(self.params, self.bbox, self.region, self.tile_size, self.proj_srs)
 
-        # set password and username to urlib2
-        if self.params['username']:
-            passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-            passman.add_password(None, self.params['url'], self.params['username'], self.params['password'])
-            auth_handler = urllib2.HTTPBasicAuthHandler(passman)
-            opener = urllib2.build_opener(auth_handler)
-            urllib2.install_opener(opener)
-
         # get information about size in pixels and bounding box of raster, where all tiles will be joined
         map_region = req_mgr.GetMapRegion()
 
@@ -64,7 +56,11 @@ class WMSDrv(WMSBase):
 
             grass.debug(query_url)
             try: 
-                wms_data = urllib2.urlopen(query_url)
+                request = urllib2.Request(query_url)
+                if self.params['username']:
+                    base64string = base64.encodestring('%s:%s' % (self.params['username'], self.params['password'])).replace('\n', '')
+                    request.add_header("Authorization", "Basic %s" % base64string) 
+                wms_data = urllib2.urlopen(request)
             except (IOError, HTTPException), e:
                 if HTTPError == type(e) and e.code == 401:
                     grass.fatal(_("Authorization failed"))           

@@ -86,6 +86,10 @@ class WMSBase:
             if self.params[key] != "" and 'GRASS' not in self.params['driver']:
                 grass.warning(_("Parameter '%s' is relevant only for %s drivers.") % (key, '*_GRASS'))
         
+        if (self.params ['password'] and self.params ['username'] == '') or \
+           (self.params ['password'] == '' and self.params ['username']):
+                grass.fatal(_("Please insert both password and username parameters or none of them."))
+      
         self.params['bgcolor'] = options['bgcolor'].strip()
         if self.params['bgcolor'] != "" and 'WMS_GRASS' not in self.params['driver']:
             grass.warning(_("Parameter '%s' is relevant only for %s driver.") % ('bgcolor', 'WMS_GRASS'))
