@@ -1,4 +1,5 @@
 
+import base64
 import grass.script as grass 
 from urllib2 import urlopen, HTTPError
 from httplib import HTTPException
