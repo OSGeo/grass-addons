@@ -3,7 +3,7 @@
  *
  * MODULE:       i.vi
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
- * PURPOSE:      Flips an image North-South.
+ * PURPOSE:      Flips an image North-South, East-West (-w) or both (-b).
  *
  * COPYRIGHT:    (C) 2012 by the GRASS Development Team
  *
@@ -31,8 +31,9 @@ int main(int argc, char *argv[])
     char *desc;
     struct GModule *module;
     struct Option *input, *output;
-    struct History history;	/*metadata */
+    struct History history;	/*Metadata */
     struct Colors colors;	/*Color rules */
+    struct Flag *flag1, *flag2; /*Flags */
 
     char *in, *out;		/*in/out raster names */
     int infd, outfd;
@@ -53,6 +54,15 @@ int main(int argc, char *argv[])
     input = G_define_standard_option(G_OPT_R_INPUT);
     output = G_define_standard_option(G_OPT_R_OUTPUT);
 
+    /* define the different flags */
+    flag1 = G_define_flag();
+    flag1->key = 'w';
+    flag1->description = _("East-West flip");
+
+    flag2 = G_define_flag();
+    flag2->key = 'b';
+    flag2->description = _("Both N-S and E-W flip");
+
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
@@ -71,14 +81,67 @@ int main(int argc, char *argv[])
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
-    /* Process pixels */
-    for (row = 0; row < nrows; row++)
+    if(flag1->answer)
     {
-	G_percent(row, nrows, 2);
-	/* read input maps */
-	Rast_get_row(infd,inrast,(nrows-1-row),data_type_input);
-	/* process the data */
-	Rast_put_row(outfd,inrast,data_type_input);
+        /* Process pixels for E-W flip*/
+        for (row = 0; row < nrows; row++)
+        {
+            G_percent(row, nrows, 2);
+            /* read input maps */
+            Rast_get_row(infd,inrast,row,data_type_input);
+            for (col = 0; col < ncols; col++)
+            {
+	        switch(data_type_input){
+		    case CELL_TYPE:
+			((CELL *)outrast)[ncols-1-col]=((CELL *)inrast)[col];
+			break;
+		    case FCELL_TYPE:
+			((FCELL *)outrast)[ncols-1-col]=((FCELL *)inrast)[col];
+			break;
+		    case DCELL_TYPE:
+			((DCELL *)outrast)[ncols-1-col]=((DCELL *)inrast)[col];
+			break;
+	        }
+            }
+            /* process the data */
+            Rast_put_row(outfd,outrast,data_type_input);
+        }
+    }else if(flag2->answer)
+    {
+        /* Process pixels for both N-S and E-W flip*/
+        for (row = 0; row < nrows; row++)
+        {
+            G_percent(row, nrows, 2);
+            /* read input maps */
+            Rast_get_row(infd,inrast,(nrows-1-row),data_type_input);
+            for (col = 0; col < ncols; col++)
+            {
+	        switch(data_type_input){
+		    case CELL_TYPE:
+			((CELL *)outrast)[ncols-1-col]=((CELL *)inrast)[col];
+			break;
+		    case FCELL_TYPE:
+			((FCELL *)outrast)[ncols-1-col]=((FCELL *)inrast)[col];
+			break;
+		    case DCELL_TYPE:
+			((DCELL *)outrast)[ncols-1-col]=((DCELL *)inrast)[col];
+			break;
+	        }
+            }
+            /* process the data */
+            Rast_put_row(outfd,outrast,data_type_input);
+        }
+    }else
+    {
+        /* Process pixels for default N-S flip*/
+        for (row = 0; row < nrows; row++)
+        {
+            G_percent(row, nrows, 2);
+            /* read input maps */
+            Rast_get_row(infd,inrast,(nrows-1-row),data_type_input);
+            /* process the data */
+            Rast_put_row(outfd,inrast,data_type_input);
+        }
     }
 
     G_free(inrast);
