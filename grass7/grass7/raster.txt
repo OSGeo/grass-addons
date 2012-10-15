@@ -1,7 +1,0 @@
-Content-Type: text/x-zim-wiki
-Wiki-Format: zim 0.4
-Creation-Date: 2012-10-15T20:04:25+02:00
-
-====== raster0 ======
-Created Monday 15 October 2012
-
