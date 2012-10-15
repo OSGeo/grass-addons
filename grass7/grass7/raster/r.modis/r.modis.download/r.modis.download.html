@@ -1,0 +1,78 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.modis.download</em> downloads selected MODIS products. The module
+can download several tiles at once and also multiple observation days
+for each MODIS product.
+
+<h2>NOTE</h2>
+
+The connection to the FTP data site requires a default login.
+To set the username and password options the user has to use
+the <em>setting</em> option; a file can be used (in this case the first
+line is the username, usually it is 'anonymous', in the second line
+the password is given, usually the user's e-mail address):
+<div class="code"><pre>
+  your_NASA_FTP_username
+  your_NASA_FTP_password
+</pre></div>
+As alternative, the user can pass the values from standard input.
+<p>
+
+<b>Warning</b>: The NASA policy does not permit to open more then ten
+connections in parallel with their FTP server. Hence no more than ten
+process of <em>r.modis.download</em> should run at the same time.
+<p>
+By default the downloaded files are stored in the path where the setting
+file is saved. The user can change this directory with <em>folder</em>
+option. The user has <!-- NOT?? --> to set the <em>folder</em> option if
+user and password are sent by standard input.
+<p>
+The time for the download depends on the number of requested tiles, days
+and the type of the MODIS product. For example, the NDVI product ranges 
+from 5 MB to 270 MB and the LST product ranges from 2 MB to 21 MB.
+
+<h2>EXAMPLES</h2>
+
+To download the MODIS LST product from the Terra satellite using the default
+options and setting the user and password by standard input, launch:
+<div class="code"><pre>
+r.modis.download setting=-
+</pre></div>
+
+Reading the user and password options from file:
+<div class="code"><pre>
+r.modis.download setting=/home/user/.grass7/r.modis/SETTING
+</pre></div>
+
+To download LST Terra product using the default options and changing
+the starting and ending dates to custom values:
+<div class="code"><pre>
+r.modis.download setting=/home/user/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
+</pre></div>
+
+To download another product (for example <em>Snow eight days 500 m</em>),
+with other default options:
+<div class="code"><pre>
+r.modis.download setting=/home/user/.grass7/r.modis/SETTING product=snow_terra_eight_500
+</pre></div>
+
+To use <em>r.modis.download</em> in a script with one of the other module
+the user has to set the <em>-g</em> flag to return the name of the file
+containing a list of downloaded HDF names:
+<div class="code"><pre>
+r.modis.download -g setting=/home/user/.grass7/r.modis/SETTING startday=2011-05-01 endday=2011-05-31
+</pre></div>
+
+<h2>SEE ALSO</h2>
+<em>
+<a href="r.modis.html">r.modis</a>,
+<a href="r.modis.import.html">r.modis.import</a>
+<!-- <a href="r.modis.process.html">r.modis.process</a>,-->
+</em>
+<a href="https://lpdaac.usgs.gov/lpdaac/products/modis_overview">Map of MODIS Land products' Sinusoidal grid tiling system</a> 
+
+<h2>AUTHOR</h2>
+
+Luca Delucchi, Google Summer of Code 2011
+
+<p><i>Last changed: $Date: 2011-11-08 22:56:45 +0100 (Tue, 08 Nov 2011) $</i>

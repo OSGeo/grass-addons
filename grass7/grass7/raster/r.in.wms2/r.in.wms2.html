@@ -1,0 +1,81 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.in.wms2</em> handles all of downloading and importing raster
+data from an <a href="http://www.opengeospatial.org/standards/wms">OGC
+WMS</a> and <a href="http://www.opengeospatial.org/standards/wmts">OGC
+WMTS</a> web mapping servers. It need only be told the desired data to
+collect (bounds and resolution) via a region, the server to get the
+data from, and the layer or layers to get. It downloads the data in
+tiles, reprojects it, imports it, and patches it back together.
+
+<h2>NOTES</h2>
+
+<!--
+By default data is downloaded to <tt>$GISDBASE/wms_download</tt>. This can be changed
+by setting the <b>folder</b> option when using <em>r.in.wms</em>.
+-->
+
+<p>To understand the data you are getting it is necessary to look at the
+capabilities of the WMS server. This should be available via a capabilities
+request. This is an
+<a href="http://wms.jpl.nasa.gov/wms.cgi?request=GetCapabilities">example
+capabilities request to NASA's OnEarth server</a>.
+
+<h2>EXAMPLES</h2>
+
+<h3>General Get Capabilities Request</h3>
+
+<div class="code"><pre>
+r.in.wms2 -c url=http://wms.cuzk.cz/wms.asp
+</pre></div>
+
+<h3>>Download raster data from WMS server (GetMap request)</h3>
+
+
+World extend data:
+
+<div class="code"><pre>
+r.in.wms2 url=http://iceds.ge.ucl.ac.uk/cgi-bin/icedswms layers=bluemarble,landsat_1_01 styles=default,default output=landsat srs=4326 format=png 
+</pre></div>
+* Server supports only WMS 1.1.1 <br>
+
+<div class="code"><pre>
+r.in.wms2 url=http://132.156.97.59/cgi-bin/worldmin_en-ca_ows layers=GSC:WORLD_PrecambrianDomains output=pokus srs=4326 format=jpeg 
+</pre></div>
+* Server supports only WMS 1.1.1 
+<br>
+<br>
+
+<div class="code"><pre>
+r.in.wms2 url=http://gpp3-wxs.ign.fr/yourAPIkey/geoportail/wmts layers=ORTHOIMAGERY.ORTHOPHOTOS output=orthophoto srs=3857 format=jpeg driver=WMTS_GRASS style=normal password=* username=*
+</pre></div>
+* Username, password and API key can be get at <a href="http://api.ign.fr/">IGN API</a> website
+<br>
+<br>
+
+Data in extend of Czech Republic:
+
+<div class="code"><pre>
+r.in.wms2 output=kn url=http://wms.cuzk.cz/wms.asp layers=prehledka_kraju-linie srs=4326 format=png
+</pre></div>
+
+<div class="code"><pre>
+r.in.wms2 url=http://geoportal.cuzk.cz/WMTS_ORTOFOTO/WMTService.aspx layers=orto output=ortofoto srs=3857 format=jpeg driver=WMTS_GRASS style=default
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em>
+  <a href="r.in.gdal.html">r.in.gdal</a>,
+  <a href="r.patch.html">r.patch</a>,
+  <a href="r.colors.html">r.colors</a>,
+  <a href="r.composite.html">r.composite</a>,
+  <a href="v.in.wfs.html">v.in.wfs</a>
+</em>
+
+<h2>AUTHORS</h2>
+
+Stepan Turek, Czech Technical University in Prague, Czech Republic (bachelor's final project 2012, mentor: Martin Landa) 
+
+<p>
+<i>Last changed: $Date: 2012-10-10 00:02:55 +0200 (Wed, 10 Oct 2012) $</i>
