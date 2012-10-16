@@ -1,0 +1,349 @@
+#!/bin/sh
+# 
+########################################################################
+# 
+# MODULE:       r.mess
+# AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
+# PURPOSE:      Calculate the multivariate environmental similarity 
+#               surface (MESS) as proposed by Elith et al., 2010, 
+#               Methods in Ecology & Evolution, 1(330–342). 
+#
+# NOTES:        This GRASS script should give results very close (but
+#               due to rounding differences probably not exactly the 
+#               same) to those calculated in Maxent. However, note that
+#               Maxent uses, as far as I understand, the background 
+#               points. Therefore, if you want to compare the MESS layer 
+#               as calculated by Maxent with the results of this script
+#               you need to make sure to use the same points as input
+#
+# Disclaimer:   I use it in my work, but I am aware that it needs
+#               improvements. Suggestions for improvements are most
+#               welcome. In the meantime, use it at your own risk
+#   
+# COPYRIGHT: (C) 2012 Paulo van Breugel
+#            http://ecodiv.org
+#            http://pvanb.wordpress.com/
+# 
+#            This program is free software under the GNU General Public 
+#            License (>=v2). Read the file COPYING that comes with GRASS 
+#            for details. 
+# 
+########################################################################
+#
+#%Module 
+#% description: Computes multivariate environmental similarity surface
+#%End 
+
+#%option
+#% key: vector_input
+#% type: string
+#% gisprompt: old,vector
+#% description: Reference points
+#% key_desc: name
+#% required: yes
+#% multiple: no
+#%end
+
+#%option
+#% key: raster_input
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Input raster map(s) 
+#% key_desc: names
+#% required: yes
+#% multiple: yes
+#%end
+
+#%option
+#% key: output
+#% type: string
+#% gisprompt: new
+#% description: Root name of the output MESS data layers
+#% key_desc: name
+#% required: yes
+#%end
+
+#%option
+#% key: columns
+#% type: string
+#% description: Columns with environmental variables
+#% key_desc: string
+#% answer: Same names as input layers
+#% required: no
+#%end
+
+##%flag
+##% key: n
+##% description: Keep individual environmental dissimilarity layers (IED)
+##%end
+
+#%flag
+#% key: m
+#% description: Most dissimilar variable (MoD)
+#%end
+
+#%flag
+#% key: k
+#% description: Calculate MESS_mean
+#%end
+
+#%flag
+#% key: l
+#% description: Calculate MESS_median
+#%end
+
+#=======================================================================
+## GRASS team recommandations
+#=======================================================================
+
+## Check if in GRASS
+if  [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program." 1>&2
+    exit 1
+fi
+
+## check for awk
+if [ ! -x "$(which awk)" ] ; then
+    g.message -e "<awk> required, please install <awk> or <gawk> first"
+    exit 1
+fi
+
+## To parse the code into interactive menu
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+    exec g.parser "$0" "$@"
+fi
+
+## set environment so that awk works properly in all languages ##
+unset LC_ALL
+export LC_NUMERIC=C
+
+
+## what to do in case of user break:
+exitprocedure()
+{
+    echo "User break!"
+    cleanup
+    exit 1
+}
+
+## shell check for user break (signal list: trap -l)
+trap "exitprocedure" 2 3 15
+
+#=======================================================================
+## testing if output maps already exist
+#=======================================================================
+
+## Set easier variable names
+OUTMAPS="${GIS_OPT_OUTPUT}"
+INMAPS="${GIS_OPT_RASTER_INPUT}"
+
+# test for output raster map
+g.findfile element=cell file=${OUTMAPS}_combined  > /dev/null
+    if [ $? -eq 0 ] ; then
+        g.message -e 'There is already a raster <${OUTMAPS}>'
+    exit 1
+fi
+
+# test for output raster maps
+oIFS=$IFS
+IFS=,
+for nvar in $INMAPS ; do
+    arrIN=${OUTMAPS}_`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`
+    g.findfile element=cell file=${arrIN} > /dev/null
+    if [ $? -eq 0 ] ; then 
+        g.message -e 'There is already a raster <${OUTMAPS}>'
+    exit 1
+    fi
+done
+IFS=$oIFS
+unset arrIN
+
+#=======================================================================
+## Config and general procedures
+#=======================================================================
+
+##fix this path
+if [ -z "$PROCESSDIR" ] ; then
+	PROCESSDIR="$HOME"
+fi
+
+#fix this path
+if [ -z "$LOGDIR" ] ; then
+	LOGDIR="$HOME"
+fi
+LOGFILE="$LOGDIR/r.mess.log"
+
+echo "r.mess :" >> "$LOGFILE"
+
+#=======================================================================
+## Preparing input variables for use in R script
+#=======================================================================
+
+# Create vectors with names output maps [arrOUT]
+# Create vector with names temporary layers [tmpLY]
+# Create vector with names input layers without mapset name [arrIN]
+# The 'removeThis' elements are to initiate the vector. How can I avoid this?
+
+arrOUT="${OUTMAPS}_MESS"
+tmpLY="removeThis"
+arrIN="removeThis2"
+counter=0
+IFS=,
+for nvar in ${INMAPS} ; do
+    arrOUT="$arrOUT;${OUTMAPS}_`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`"
+    counter=`expr $counter + 1`
+    tmpLY="${tmpLY};tmp.mess_$$_$counter"
+    arrIN="${arrIN};`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`"
+done
+
+#=======================================================================
+## Creating the R script
+#=======================================================================
+
+writeScript(){ 
+cat > $1 << "EOF"
+
+options(echo = FALSE)
+require(spgrass6)
+
+## Get vector with variables
+args <- commandArgs(trailingOnly=TRUE)
+ipn <- unlist(strsplit(args[1],";"))[-1]   # variable names
+ipl <- unlist(strsplit(args[2],","))       # environmental layers
+opl <- unlist(strsplit(args[3],";"))       # output layers
+opi <- opl[-1]                             # base name individual layers
+opc <- opl[1]                              # name of MESS layer
+tml <- unlist(strsplit(args[4], ";"))[-1]  # temporary layers
+vtl <- args[5]                             # vector layer
+cln <- args[6]
+
+# Import the vector point layer
+spl <- readVECT6(vtl)
+
+# Extract columns and create table
+# Use column names if given, otherwise,
+# use names input layers (ipl)
+if(cln == "Same names as input layers"){
+    spld <- spl@data[,ipn]
+}else{
+    cln <- unlist(strsplit(cln,","))
+    spld <- spl@data
+    spld <- spld[,cln]
+    }
+
+#-----------------------------------------------------------------------
+
+# Create the r.mapcalc expressions to calculate the mess for the 
+# individual layers. The main step is to define the graph function to 
+# be used (check out: possible alternative would be to use reclass)
+if(is.null(dim(spld))){
+    minp <- min(spld)
+    maxp <- max(spld)
+}else{
+    minp <- apply(spld, 2, min)
+    maxp <- apply(spld, 2, max)
+}
+
+for(i in 1:length(ipl)){
+    envir <- system(paste("r.univar -t map=", ipl[i], " separator=,", sep=""), intern=TRUE) # check: use separator in grass7 / fs in grass64
+    envir <- as.numeric(unlist(strsplit(envir[2], split=",")))
+    envmax <- ifelse(envir[4]==maxp[i],maxp[i]+(maxp[i]-minp[i])*0.001,envir[4])
+    envmin <- ifelse(envir[3]==minp[i],minp[i]-(maxp[i]-minp[i])*0.001,envir[3])
+    if(is.null(dim(spld))){
+        a  <- table(spld)
+    }else{a  <- table(spld[,i])
+    }
+    x1 <- as.numeric(rownames(a))
+    x2 <- c(x1[-1],envmax)
+    x3 <- x1 + (x2-x1)/1000
+    a1 <- paste(envmin, paste(x1,x3,sep=",", collapse=","), envmax, sep=",")
+    b  <- round(cumsum(as.numeric(a))/sum(a)*100,3)
+    a2 <- paste(0, 0, paste(b, b, sep=",", collapse=","), sep=",")
+    a3 <- paste(strsplit(a1,",")[[1]],strsplit(a2,",")[[1]],sep=",", collapse=",")
+    
+    system(paste("r.mapcalc '", tml[i], " = graph(", ipl[i], ",", a3, ")'", sep=""))
+    system(paste("r.mapcalc '", opi[i], " = if(", tml[i], "==0, (float(", ipl[i], ")-", minp[i], ")/(", maxp[i], "-", minp[i], ") *100.0, if(", tml[i], "<=50, 2 * ", tml[i], ", if(", tml[i], "<100.0, 2 * (100.0- ", tml[i], "), (", maxp[i], "- float(", ipl[i], "))/(", maxp[i], "-", minp[i], ") * 100.0)))'", sep=""))
+    system(paste("g.remove rast=", tml[i], sep=""))
+
+    # plotting the accumulative frequency plots for each bioclim variable
+    #d1 <- paste(envir[3], paste(x1,x3,sep=",", collapse=","), envir[4], sep=",")
+    #d2 <- paste(0, 0, paste(b, b, sep=",", collapse=","), sep=",")
+    #png(paste(ipn, ".png", sep=""))
+    #plot(strsplit(d1,",")[[1]],strsplit(d2,",")[[1]],type="l", xlab=ipn[i], ylab="% plots")
+    #dev.off()
+}
+
+system(paste("r.series output=", opc, " input=", paste(opi, collapse=","), " method=minimum", sep=""))
+
+# Optionally, calculating extra layers (min_raster, mean and median)
+# Defines categories for min_raster 
+
+if(args[7]==1){
+    system(paste("r.series output=", opc, "_MoD input=", paste(opi, collapse=","), " method=min_raster", sep=""))
+    nuv <- cbind(seq(from=0, to=length(ipn)-1, by = 1), ipn)
+    reclvar <- apply(nuv,1,function(x){paste(x[1],x[2], sep=":")})
+    tmpclas <- tempfile(pattern = "classification.rules.")
+    sink(tmpclas)
+    for(i in 1:length(reclvar)){
+        cat(reclvar[i]); cat("\n")
+    }
+    sink()
+    system(paste("r.category map=", opc, "_MoD rules=", tmpclas, sep=""))
+    unlink(tmpclas)
+}
+if(args[8]==1){
+    system(paste("r.series output=", opc, "_mean input=", paste(opi, collapse=","), " method=minimum", sep=""))
+}
+if(args[9]==1){
+    system(paste("r.series output=", opc, "_median input=", paste(opi, collapse=","), " method=median", sep=""))
+}
+
+EOF
+}
+
+# RGrass script generation
+# --------------------------
+RGRASSSCRIPT="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$RGRASSSCRIPT" ] ; then
+	g.message -e 'ERROR: unable to create temporary file for RGrass script' 1>&2
+    exit 1
+fi
+writeScript "$RGRASSSCRIPT"
+
+
+#=======================================================================
+## RGrass call
+#=======================================================================
+
+# Message
+g.message message='Calculating MESS layers.. this may take some time'
+
+##using R to create MESS layers
+#--slave
+R --vanilla --args "$arrIN" "${INMAPS}" "$arrOUT" "$tmpLY" "${GIS_OPT_VECTOR_INPUT}" "${GIS_OPT_COLUMNS}" "$GIS_FLAG_M" "$GIS_FLAG_K" "$GIS_FLAG_L" < "$RGRASSSCRIPT" >> "$LOGFILE" 2>&1
+if [ $? -ne 0 ] ; then
+	echo "ERROR: an error occurred during R script execution" 1>&2
+    exit 1
+fi
+
+g.message "Finished"
+
+#=======================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
