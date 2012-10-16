@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.out.gmt
+PGM = r.mess
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
