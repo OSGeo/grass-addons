@@ -10,11 +10,10 @@
 #
 # NOTES:        This GRASS script should give results very close (but
 #               due to rounding differences probably not exactly the 
-#               same) to those calculated in Maxent. However, note that
-#               Maxent uses, as far as I understand, the background 
-#               points. Therefore, if you want to compare the MESS layer 
-#               as calculated by Maxent with the results of this script
-#               you need to make sure to use the same points as input
+#               same) to those calculated in Maxent. If you want to
+#               compare, make sure to use the same points as used in
+#               Maxent to calculate the MESS, which are, by default, 
+#               all background points if I understand it correctly.
 #
 # Disclaimer:   I use it in my work, but I am aware that it needs
 #               improvements. Suggestions for improvements are most
@@ -266,11 +265,13 @@ for(i in 1:length(ipl)){
     system(paste("g.remove rast=", tml[i], sep=""))
 
     # plotting the accumulative frequency plots for each bioclim variable
-    #d1 <- paste(envir[3], paste(x1,x3,sep=",", collapse=","), envir[4], sep=",")
-    #d2 <- paste(0, 0, paste(b, b, sep=",", collapse=","), sep=",")
-    #png(paste(ipn, ".png", sep=""))
-    #plot(strsplit(d1,",")[[1]],strsplit(d2,",")[[1]],type="l", xlab=ipn[i], ylab="% plots")
-    #dev.off()
+    # need to add option in menu. Idea is to save the images, if this
+    # option is enabled, to default working directory
+      #d1 <- paste(envir[3], paste(x1,x3,sep=",", collapse=","), envir[4], sep=",")
+      #d2 <- paste(0, 0, paste(b, b, sep=",", collapse=","), sep=",")
+      #png(paste(ipn, ".png", sep=""))
+      #plot(strsplit(d1,",")[[1]],strsplit(d2,",")[[1]],type="l", xlab=ipn[i], ylab="% plots")
+      #dev.off()
 }
 
 system(paste("r.series output=", opc, " input=", paste(opi, collapse=","), " method=minimum", sep=""))
