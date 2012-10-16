@@ -9,6 +9,7 @@ compile() {
 build_xml() {
     ./build-xml.py $1
     cp $1/modules.xml $DEST/grass$2/
+    cp -r $1/logs $DEST/grass$2/
 }
 
 # update GRASS Addons SVN
