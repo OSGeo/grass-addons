@@ -244,7 +244,7 @@ if(is.null(dim(spld))){
 }
 
 for(i in 1:length(ipl)){
-    envir <- system(paste("r.univar -t map=", ipl[i], " separator=,", sep=""), intern=TRUE) # check: use separator in grass7 / fs in grass64
+    envir <- system(paste("r.univar -t map=", ipl[i], " fs=,", sep=""), intern=TRUE) # for use in grass7, change 'fs' to 'separator
     envir <- as.numeric(unlist(strsplit(envir[2], split=",")))
     envmax <- ifelse(envir[4]==maxp[i],maxp[i]+(maxp[i]-minp[i])*0.001,envir[4])
     envmin <- ifelse(envir[3]==minp[i],minp[i]-(maxp[i]-minp[i])*0.001,envir[3])
