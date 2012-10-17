@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     {
 	struct Option *elev, *azimuth, *sunhours, *year,
 	    *month, *day, *hour, *minutes, *seconds;
-	struct Flag *gst_time, *solpos;
+	struct Flag *lst_time, *no_solpos;
     } parm;
     struct Cell_head window;
     FCELL *elevbuf, *azimuthbuf, *sunhourbuf;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
     module = G_define_module();
     module->keywords = _("raster");
-    module->label = _("Calculates solar elevation and azimuth.");
+    module->label = _("Calculates solar elevation, solar azimuth, and sun hours.");
     module->description = _("Solar elevation: the angle between the direction of the geometric center "
 			    "of the sun's apparent disk and the (idealized) horizon. "
 			    "Solar azimuth: the angle from due north in clockwise direction.");
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     parm.month->required = NO;
     parm.month->label = _("Month");
     parm.month->description = _("If not given, day is interpreted as day of the year");
-    parm.month->options = "0-12";
+    parm.month->options = "1-12";
     parm.month->guisection = _("Time");
 
     parm.day = G_define_option();
@@ -110,13 +110,13 @@ int main(int argc, char *argv[])
     parm.day->type = TYPE_INTEGER;
     parm.day->required = YES;
     parm.day->description = _("Day");
-    parm.day->options = "0-365";
+    parm.day->options = "1-366";
     parm.day->guisection = _("Time");
 
     parm.hour = G_define_option();
     parm.hour->key = "hour";
     parm.hour->type = TYPE_INTEGER;
-    parm.hour->required = YES;
+    parm.hour->required = NO;
     parm.hour->description = _("Hour");
     parm.hour->options = "0-24";
     parm.hour->answer = "12";
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     parm.minutes = G_define_option();
     parm.minutes->key = "minute";
     parm.minutes->type = TYPE_INTEGER;
-    parm.minutes->required = YES;
+    parm.minutes->required = NO;
     parm.minutes->description = _("Minutes");
     parm.minutes->options = "0-60";
     parm.minutes->answer = "0";
@@ -134,19 +134,19 @@ int main(int argc, char *argv[])
     parm.seconds = G_define_option();
     parm.seconds->key = "second";
     parm.seconds->type = TYPE_INTEGER;
-    parm.seconds->required = YES;
+    parm.seconds->required = NO;
     parm.seconds->description = _("Seconds");
     parm.seconds->options = "0-60";
     parm.seconds->answer = "0";
     parm.seconds->guisection = _("Time");
 
-    parm.gst_time = G_define_flag();
-    parm.gst_time->key = 't';
-    parm.gst_time->description = _("Time is Greenwich standard time, not local sidereal time");
+    parm.lst_time = G_define_flag();
+    parm.lst_time->key = 't';
+    parm.lst_time->description = _("Time is local sidereal time, not Greenwich standard time");
 
-    parm.solpos = G_define_flag();
-    parm.solpos->key = 's';
-    parm.solpos->description = _("Use solpos algorithm of NREL");
+    parm.no_solpos = G_define_flag();
+    parm.no_solpos->key = 's';
+    parm.no_solpos->description = _("Do not use solpos algorithm of NREL");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -160,18 +160,19 @@ int main(int argc, char *argv[])
     if (!elev_name && !azimuth_name && !sunhour_name)
 	G_fatal_error(_("No output requested, exiting."));
 
-    sscanf(parm.year->answer, "%i", &year);
+    year = atoi(parm.year->answer);
     if (parm.month->answer)
-	sscanf(parm.month->answer, "%i", &month);
+	month = atoi(parm.month->answer);
     else
 	month = -1;
-    sscanf(parm.day->answer, "%i", &day);
-    sscanf(parm.hour->answer, "%i", &hour);
-    sscanf(parm.minutes->answer, "%i", &minutes);
-    sscanf(parm.seconds->answer, "%i", &seconds);
 
-    lst_time = (parm.gst_time->answer == 0);
-    use_solpos = parm.solpos->answer;
+    day = atoi(parm.day->answer);
+    hour = atoi(parm.hour->answer);
+    minutes = atoi(parm.minutes->answer);
+    seconds = atoi(parm.seconds->answer);
+
+    lst_time = (parm.lst_time->answer != 0);
+    use_solpos = (parm.no_solpos->answer == 0);
 
     /* init variables */
     ha = 180;
@@ -195,7 +196,7 @@ int main(int argc, char *argv[])
 	    G_message(_("Time will be interpreted as Greenwich standard time."));
 	
 	if (sunhour_name)
-	    G_fatal_error(_("Sunshine hours require solpos"));
+	    G_fatal_error(_("Sunshine hours require NREL solpos."));
     }
 
     if ((G_projection() != PROJECTION_LL)) {
@@ -206,13 +207,13 @@ int main(int argc, char *argv[])
 
 	/* read current projection info */
 	if ((in_proj_info = G_get_projinfo()) == NULL)
-	    G_fatal_error(_("Can't get projection info of current location"));
+	    G_fatal_error(_("Cannot get projection info of current location"));
 
 	if ((in_unit_info = G_get_projunits()) == NULL)
-	    G_fatal_error(_("Can't get projection units of current location"));
+	    G_fatal_error(_("Cannot get projection units of current location"));
 
 	if (pj_get_kv(&iproj, in_proj_info, in_unit_info) < 0)
-	    G_fatal_error(_("Can't get projection key values of current location"));
+	    G_fatal_error(_("Cannot get projection key values of current location"));
 
 	G_free_key_value(in_proj_info);
 	G_free_key_value(in_unit_info);
