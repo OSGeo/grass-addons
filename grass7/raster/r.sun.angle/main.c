@@ -209,13 +209,13 @@ int main(int argc, char *argv[])
 
 	/* read current projection info */
 	if ((in_proj_info = G_get_projinfo()) == NULL)
-	    G_fatal_error(_("Can't get projection info of current location."));
+	    G_fatal_error(_("Cannot get projection info of current location"));
 
 	if ((in_unit_info = G_get_projunits()) == NULL)
-	    G_fatal_error(_("Can't get projection units of current location."));
+	    G_fatal_error(_("Cannot get projection units of current location"));
 
 	if (pj_get_kv(&iproj, in_proj_info, in_unit_info) < 0)
-	    G_fatal_error(_("Can't get projection key values of current location."));
+	    G_fatal_error(_("Cannot get projection key values of current location"));
 
 	G_free_key_value(in_proj_info);
 	G_free_key_value(in_unit_info);
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 	oproj.meters = 1.;
 	sprintf(oproj.proj, "ll");
 	if ((oproj.pj = pj_latlong_from_proj(iproj.pj)) == NULL)
-	    G_fatal_error(_("Unable to update lat/long projection parameters."));
+	    G_fatal_error(_("Unable to update lat/long projection parameters"));
     }
 
     /* always init pd */
