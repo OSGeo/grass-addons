@@ -8,6 +8,19 @@ ADDON_PREFIX=/c/Users/landa/grass_packager
 cd $SVN_PATH
 svn up || (svn cleanup && svn up)
 
+# see http://lists.osgeo.org/pipermail/grass-dev/2011-December/056938.html
+function tidy_citizen {
+    # move script/ and bin/ to main dir
+    mv bin/* .
+    mv scripts/* .
+    
+    # move man/ into docs/
+    mv man docs/
+    
+    # if empty, rmdir bin, etc, man, scripts
+    rmdir bin etc scripts
+}
+
 function compile {
     path=`echo $PATH`
     export PATH=$PATH:/c/OSGeo4W/apps/msys/bin:$2/dist.i686-pc-mingw32/bin:$2/dist.i686-pc-mingw32/scripts
@@ -24,6 +37,9 @@ function compile {
 	    sed "s/GISBASE/GRASS_ADDON_PATH/" bin/${mod}.bat > tmp
 	    mv tmp bin/${mod}.bat
 	fi
+	# if [ `echo $1 | sed -e 's/\(^.*\)\(.$\)/\2/'` = "6" ] ; then
+	#     tidy_citizen
+	# fi
 	zip -r $mod.zip *
 	mv $mod.zip ..
 	cd ..
