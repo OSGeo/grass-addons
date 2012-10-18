@@ -5,6 +5,9 @@ import sys
 import glob
 from   datetime import datetime
 
+ADDON_PATH = os.path.join(os.getenv('HOME'), 'src', 'grass-addons')
+DIST = 'dist.x86_64-unknown-linux-gnu'
+
 def get_list(addons):
     mlist = os.listdir(os.path.join(addons))
     for f in ('logs', 'modules.xml'):
@@ -12,13 +15,17 @@ def get_list(addons):
     mlist.sort()
     return mlist
 
+def get_gui_list(g7 = True):
+    return os.listdir(os.path.join(ADDON_PATH, 'grass%s' % '7' if g7 else '6',
+                                   'gui', 'wxpython'))
+                      
 def start_grass(g7 = True):
     if g7:
         ver = 'grass_trunk'
     else:
         ver = 'grass6_devel'
     gisbase = os.environ['GISBASE'] = os.path.join(os.getenv('HOME'),
-                                                   "src/%s/dist.x86_64-unknown-linux-gnu" % ver)
+                                                   "src/%s/%s" % (ver, DIST))
     
     gisdbase = os.path.join(gisbase)
     location = "demolocation"
@@ -53,7 +60,13 @@ def parse_modules(fd, mlist):
         else:
             print " FAILED"
   
-
+def parse_gui_modules(fd, mlist):
+    indent = 4
+    for m in mlist:
+        print "Parsing <%s>..." % m
+        fd.write('%s<task name="%s">\n' % (' ' * indent, m))
+        fd.write('%s</task>\n' % (' ' * indent))
+    
 def scandirs(path):
     flist = list()
     for f in glob.glob(os.path.join(path, '*') ):
@@ -119,6 +132,7 @@ def main():
 
     header(fd)
     parse_modules(fd, get_list(addons))
+    parse_gui_modules(fd, get_gui_list(g7))
     footer(fd)
 
     fd.close()
