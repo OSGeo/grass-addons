@@ -16,8 +16,13 @@ def get_list(addons):
     return mlist
 
 def get_gui_list(g7 = True):
-    return os.listdir(os.path.join(ADDON_PATH, 'grass%s' % ('7' if g7 else '6'),
-                                   'gui', 'wxpython'))
+    mlist = list()
+    for m in os.listdir(os.path.join(ADDON_PATH, 'grass%s' % ('7' if g7 else '6'),
+                                     'gui', 'wxpython')):
+        if len(m) > 3 and m[:3] == 'wx.':
+            mlist.append(m)
+    
+    return mlist
                       
 def start_grass(g7 = True):
     if g7:
