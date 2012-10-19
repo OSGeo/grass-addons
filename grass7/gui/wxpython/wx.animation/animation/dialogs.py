@@ -774,8 +774,9 @@ class AnimationData(object):
             return []
 
         cmds = self.nvizTask.GetCommandSeries(series = self.mapData, paramName = self.nvizParameter)
+        region = self.nvizTask.GetRegion()
 
-        return cmds
+        return {'commands': cmds, 'region': region}
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)

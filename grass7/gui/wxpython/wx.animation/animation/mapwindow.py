@@ -195,27 +195,32 @@ class BitmapProvider(object):
         self.datasource = None
         self.dataNames = None
         self.dataType = None
+        self.region = None
         self.bitmapPool = bitmapPool
         self.frame = frame
         self.size = wx.Size()
         self.loadSize = wx.Size()
 
         self.suffix = ''
+        self.nvizRegion = None
 
     def GetDataNames(self):
         return self.dataNames
 
-    def SetData(self, datasource, dataNames = None, dataType = 'rast', suffix = ''):
+    def SetData(self, datasource, dataNames = None, dataType = 'rast',
+                suffix = '', nvizRegion = None):
         """!Sets data.
 
         @param datasource data to load (raster maps, m.nviz.image commands)
         @param dataNames data labels (keys)
         @param dataType 'rast', 'nviz'
+        @param nvizRegion region which must be set for m.nviz.image
         """
         self.datasource = datasource
         self.dataType = dataType
         self.suffix = suffix
-        # add postfix _nviz, _image if needed
+        self.nvizRegion = nvizRegion
+        
         if dataNames:
             self.dataNames = dataNames
         else:
@@ -229,7 +234,8 @@ class BitmapProvider(object):
 
         @param dataId name of bitmap
         """
-        dataId += self.suffix
+        if dataId:
+            dataId += self.suffix
         try:
             bitmap = self.bitmapPool[dataId]
         except KeyError:
@@ -290,7 +296,7 @@ class BitmapProvider(object):
             self._loadRasters(rasters = self.datasource, names = self.dataNames,
                              size = size, scale = scale, force = force, updateFunction = updateFunction)
         elif self.dataType == 'nviz':
-            self._load3D(commands = self.datasource, names = self.dataNames,
+            self._load3D(commands = self.datasource, region = self.nvizRegion, names = self.dataNames,
                          force = force, updateFunction = updateFunction)
         if progress:
             progress.Destroy()
@@ -383,10 +389,11 @@ class BitmapProvider(object):
 
         os.environ.pop('GRASS_REGION')
 
-    def _load3D(self, commands, names, force, updateFunction):
+    def _load3D(self, commands, region, names, force, updateFunction):
         """!Load 3D view images using m.nviz.image.
 
         @param commands 
+        @param region 
         @param names names used as keys for bitmaps
         @param force load everything even though it is already there
         @param updateFunction function called for updating progress dialog
@@ -397,6 +404,8 @@ class BitmapProvider(object):
         format = 'ppm'
         tempFile = grass.tempfile(False)
         tempFileFormat = tempFile + '.' + format
+
+        os.environ['GRASS_REGION'] = grass.region_env(**region)
         # create no data bitmap
         if None not in self.bitmapPool or force:
             self.bitmapPool[None] = self._createNoDataBitmap(ncols, nrows)
@@ -424,6 +433,7 @@ class BitmapProvider(object):
                 if not keepGoing:
                     break
         grass.try_remove(tempFileFormat)
+        os.environ.pop('GRASS_REGION')
 
 class BitmapPool():
     """!Class storing bitmaps (emulates dictionary)"""

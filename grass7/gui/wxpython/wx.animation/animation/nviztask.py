@@ -29,11 +29,13 @@ from core.workspace import ProcessWorkspaceFile
 from core.gcmd import RunCommand, GException
 from core.utils import GetLayerNameFromCmd, CmdToTuple
 from grass.script import task as gtask
+from grass.script import core as grass
 
 class NvizTask:
     def __init__(self):
         self.task = None
         self.filename = None
+        self.region = {}
 
     def Load(self, filename):
         self.task = gtask.grassTask("m.nviz.image")
@@ -51,11 +53,16 @@ class NvizTask:
 
         if not gxwXml.nviz_state:
             raise GException(_("No 3d view information in workspace file <%s>.") % self.filename)
-            
-        # self.task.set_param('output', "/home/anna/testy/nviz/out.ppm")
 
+        self._getExtent(gxwXml)
         self._processState(gxwXml.nviz_state)
         self._processLayers(gxwXml.layers)
+
+    def _getExtent(self, root):
+        for display in root.displays:
+            if display['viewMode'] == '3d':
+                self.region['w'], self.region['s'],\
+                self.region['e'], self.region['n'] = display['extent']
 
     def _processLayers(self, layers):
         for layer in layers:
@@ -184,6 +191,9 @@ class NvizTask:
         self.task.set_param('output', 'tobechanged')
         cmd = self.task.get_cmd(ignoreErrors = False, ignoreRequired = False, ignoreDefault = True)
         return CmdToTuple(cmd)
+
+    def GetRegion(self):
+        return self.region
 
 
 

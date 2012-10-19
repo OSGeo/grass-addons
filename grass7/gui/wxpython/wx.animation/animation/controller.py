@@ -369,9 +369,11 @@ class AnimationController(wx.EvtHandler):
 
     def _load3DData(self, animationData):
         prov = self.bitmapProviders[animationData.windowIndex]
-        prov.SetData(datasource = animationData.GetNvizCommands(), 
+        nviz = animationData.GetNvizCommands()
+        prov.SetData(datasource = nviz['commands'], 
                      dataNames = animationData.mapData, dataType = 'nviz',
-                     suffix = animationData.nvizParameter)
+                     suffix = animationData.nvizParameter,
+                     nvizRegion = nviz['region'])
 
         self.bitmapProviders[animationData.windowIndex].Load()
 
