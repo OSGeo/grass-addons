@@ -49,7 +49,7 @@ class TemporalManager(object):
         self.temporalMapTime = None
 
         # Make sure the temporal database exists
-        tgis.create_temporal_database()
+        tgis.init()
 
     def GetTemporalType(self):
         """!Get temporal type (TemporalType.ABSOLUTE, TemporalType.RELATIVE)"""
