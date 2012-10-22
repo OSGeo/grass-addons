@@ -50,6 +50,7 @@ function compile {
 
 export PATH=/c/OSGeo4W/apps/msys/bin:/c/OSGeo4W/bin:$PATH
 export PYTHONHOME=/c/OSGeo4W/apps/Python27
+export LANGUAGE=C
 
 if test -z $1 ; then
     # dev packages
