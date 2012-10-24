@@ -40,21 +40,21 @@ C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_addons.sh
 
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_copy_wwwroot.sh
 
-# pscp.exe -i    .\ssh\id_dsa.ppk .\grass64\WinGRASS*.exe* landa@geo102:/work/wingrass/grass64
-# pscp.exe -i    .\ssh\id_dsa.ppk .\grass64\grass*.tar.bz2 landa@geo102:/work/wingrass/grass64/osgeo4w
-# pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\log-r*         landa@geo102:/work/wingrass/grass64/logs/
+rem pscp.exe -i    .\ssh\id_dsa.ppk .\grass64\WinGRASS*.exe* landa@geo102:/work/wingrass/grass64
+rem pscp.exe -i    .\ssh\id_dsa.ppk .\grass64\grass*.tar.bz2 landa@geo102:/work/wingrass/grass64/osgeo4w
+rem pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\log-r*         landa@geo102:/work/wingrass/grass64/logs/
 
-# pscp.exe -i    .\ssh\id_dsa.ppk .\grass65\WinGRASS*.exe* landa@geo102:/work/wingrass/grass65
-# pscp.exe -i    .\ssh\id_dsa.ppk .\grass65\grass*.tar.bz2 landa@geo102:/work/wingrass/grass65/osgeo4w
-# pscp.exe -r -i .\ssh\id_dsa.ppk .\grass65\log-r*         landa@geo102:/work/wingrass/grass65/logs
+rem pscp.exe -i    .\ssh\id_dsa.ppk .\grass65\WinGRASS*.exe* landa@geo102:/work/wingrass/grass65
+rem pscp.exe -i    .\ssh\id_dsa.ppk .\grass65\grass*.tar.bz2 landa@geo102:/work/wingrass/grass65/osgeo4w
+rem pscp.exe -r -i .\ssh\id_dsa.ppk .\grass65\log-r*         landa@geo102:/work/wingrass/grass65/logs
 
-# pscp.exe -i    .\ssh\id_dsa.ppk .\grass70\WinGRASS*.exe* landa@geo102:/work/wingrass/grass70
-# pscp.exe -i    .\ssh\id_dsa.ppk .\grass70\grass*.tar.bz2 landa@geo102:/work/wingrass/grass70/osgeo4w
-# pscp.exe -r -i .\ssh\id_dsa.ppk .\grass70\log-r*         landa@geo102:/work/wingrass/grass70/logs/
+rem pscp.exe -i    .\ssh\id_dsa.ppk .\grass70\WinGRASS*.exe* landa@geo102:/work/wingrass/grass70
+rem pscp.exe -i    .\ssh\id_dsa.ppk .\grass70\grass*.tar.bz2 landa@geo102:/work/wingrass/grass70/osgeo4w
+rem pscp.exe -r -i .\ssh\id_dsa.ppk .\grass70\log-r*         landa@geo102:/work/wingrass/grass70/logs/
 
-# pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\addons\*.zip .\grass64\addons\*.md5sum landa@geo102:/work/wingrass/grass64/addons/grass-6.4.3svn
-# pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\addons\logs                            landa@geo102:/work/wingrass/grass64/addons/grass-6.4.3svn
-# pscp.exe -r -i .\ssh\id_dsa.ppk .\grass65\addons\*.zip .\grass65\addons\*.md5sum landa@geo102:/work/wingrass/grass65/addons
-# pscp.exe -r -i .\ssh\id_dsa.ppk .\grass65\addons\logs                            landa@geo102:/work/wingrass/grass65/addons
-# pscp.exe -r -i .\ssh\id_dsa.ppk .\grass70\addons\*.zip .\grass70\addons\*.md5sum landa@geo102:/work/wingrass/grass70/addons
-# pscp.exe -r -i .\ssh\id_dsa.ppk .\grass70\addons\logs                            landa@geo102:/work/wingrass/grass70/addons
+rem pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\addons\*.zip .\grass64\addons\*.md5sum landa@geo102:/work/wingrass/grass64/addons/grass-6.4.3svn
+rem pscp.exe -r -i .\ssh\id_dsa.ppk .\grass64\addons\logs                            landa@geo102:/work/wingrass/grass64/addons/grass-6.4.3svn
+rem pscp.exe -r -i .\ssh\id_dsa.ppk .\grass65\addons\*.zip .\grass65\addons\*.md5sum landa@geo102:/work/wingrass/grass65/addons
+rem pscp.exe -r -i .\ssh\id_dsa.ppk .\grass65\addons\logs                            landa@geo102:/work/wingrass/grass65/addons
+rem pscp.exe -r -i .\ssh\id_dsa.ppk .\grass70\addons\*.zip .\grass70\addons\*.md5sum landa@geo102:/work/wingrass/grass70/addons
+rem pscp.exe -r -i .\ssh\id_dsa.ppk .\grass70\addons\logs                            landa@geo102:/work/wingrass/grass70/addons
