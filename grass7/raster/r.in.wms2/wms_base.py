@@ -81,6 +81,9 @@ class WMSBase:
         for key in ['url', 'layers', 'styles', 'output', 'method']:
             self.params[key] = options[key].strip()
 
+        if self.params['styles'] != "" and 'OnEarth_GRASS' in self.params['driver']:
+            grass.warning(_("Parameter '%s' is not relevant for %s driver.") % ('styles', 'OnEarth_GRASS'))
+
         for key in ['password', 'username', 'urlparams']:
             self.params[key] = options[key] 
             if self.params[key] != "" and 'GRASS' not in self.params['driver']:
@@ -88,18 +91,18 @@ class WMSBase:
         
         if (self.params ['password'] and self.params ['username'] == '') or \
            (self.params ['password'] == '' and self.params ['username']):
-                grass.fatal(_("Please insert both password and username parameters or none of them."))
-      
+                grass.fatal(_("Please insert both %s and %s parameters or none of them." % ('password', 'username')))
+
         self.params['bgcolor'] = options['bgcolor'].strip()
         if self.params['bgcolor'] != "" and 'WMS_GRASS' not in self.params['driver']:
             grass.warning(_("Parameter '%s' is relevant only for %s driver.") % ('bgcolor', 'WMS_GRASS'))
                 
-        self.params['wms_version'] = options['wms_version']        
+        self.params['wms_version'] = options['wms_version']  
         if self.params['wms_version'] == "1.3.0":
             self.params['proj_name'] = "CRS"
         else:
-            self.params['proj_name'] = "SRS" 
-        
+            self.params['proj_name'] = "SRS"
+    
         if  options['format'] == "geotiff":
             self.params['format'] = "image/geotiff"
         elif options['format'] == "tiff":
@@ -108,13 +111,15 @@ class WMSBase:
             self.params['format'] = "image/png"
         elif  options['format'] == "jpeg":
             self.params['format'] = "image/jpeg"
-            if flags['o']:
+            if not flags['o'] and \
+              'WMS' in self.params['driver']:
                 grass.warning(_("JPEG format does not support transparency"))
         elif self.params['format'] == "gif":
             self.params['format'] = "image/gif"
         else:
             self.params['format'] = self.params['format']
         
+        #TODO: get srs from Tile Service file in OnEarth_GRASS driver 
         self.params['srs'] = int(options['srs'])
         if self.params['srs'] <= 0:
             grass.fatal(_("Invalid EPSG code %d") % self.params['srs'])
@@ -207,12 +212,14 @@ class WMSBase:
 
         if 'WMTS' in options['driver']:
             cap_url += "?SERVICE=WMTS&REQUEST=GetCapabilities&VERSION=1.0.0"
+        elif 'OnEarth' in options['driver']:
+            cap_url += "?REQUEST=GetTileService"
         else:
             cap_url += "?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=" + options['wms_version'] 
 
         try:
             cap = urlopen(cap_url)
-        except (IOError, HTTPError):
+        except (IOError, HTTPError, HTTPException):
             grass.fatal(_("Unable to get capabilities from '%s'") % options['url'])
         
         return cap
@@ -354,8 +361,12 @@ class WMSBase:
         self.cleanup_layers = True
         
         # setting region for full extend of imported raster
-        os.environ['GRASS_REGION'] = grass.region_env(rast = self.params['output'] + '.red')
-        
+        if grass.find_file(self.params['output'] + '.red', element = 'cell', mapset = '.')['file']:
+            region_map = self.params['output'] + '.red'
+        else:
+            region_map = self.params['output']
+        os.environ['GRASS_REGION'] = grass.region_env(rast = region_map)
+          
         # mask created from alpha layer, which describes real extend
         # of warped layer (may not be a rectangle), also mask contains
         # transparent parts of raster
@@ -377,12 +388,14 @@ class WMSBase:
                                  input = self.params['output'] + '.alpha') != 0: 
                 grass.fatal(_('%s failed') % 'r.mask')
         
-        if grass.run_command('r.composite',
-                             quiet = True,
-                             red = self.params['output'] + '.red',
-                             green = self.params['output'] +  '.green',
-                             blue = self.params['output'] + '.blue',
-                             output = self.params['output'] ) != 0:
+        #TODO one band + alpha band?
+        if grass.find_file(self.params['output'] + '.red', element = 'cell', mapset = '.')['file']:
+            if grass.run_command('r.composite',
+                                 quiet = True,
+                                 red = self.params['output'] + '.red',
+                                 green = self.params['output'] +  '.green',
+                                 blue = self.params['output'] + '.blue',
+                                 output = self.params['output'] ) != 0:
                 grass.fatal(_('%s failed') % 'r.composite')
         
         grass.try_remove(temp_warpmap)

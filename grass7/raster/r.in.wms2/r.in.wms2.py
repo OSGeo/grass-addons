@@ -149,8 +149,8 @@ This program is free software under the GNU General Public License
 #% key: driver
 #% type:string
 #% description: Driver for communication with server
-#% options:WMS_GDAL, WMS_GRASS, WMTS_GRASS
-#% answer:WMS_GDAL
+#% options:WMS_GDAL, WMS_GRASS, WMTS_GRASS, OnEarth_GRASS
+#% answer:WMS_GRASS
 #%end
 
 
