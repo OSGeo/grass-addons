@@ -3,13 +3,16 @@
 
 #define UNCORRECTED     0
 #define CORRECTED       1
+
 #define DOS      		10
 #define DOS1			12
 #define DOS2			14
-#define DOS2b			15
+#define DOS2b		15
 #define DOS3			16
 #define DOS4			18
 
+#define NOMETADATAFILE  0
+#define METADATAFILE    1
 
 /*****************************************************
  * Landsat Structures
@@ -40,6 +43,7 @@ typedef struct
 
 typedef struct
 {
+    int flag;
     unsigned char number;	/* Landsat number                */
 
     char creation[11];		/* Image production date         */
