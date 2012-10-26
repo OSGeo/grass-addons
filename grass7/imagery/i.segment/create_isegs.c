@@ -38,8 +38,11 @@ int create_isegs(struct files *files, struct functions *functions)
     struct Range range;
 
     /* Modify the threshold for easier similarity comparisons.
-     * For Euclidean, square the threshold so we don't need to calculate the root value in the distance calculation.
-     * In either case, multiplie by the number of input bands, so the same threshold will achieve similar thresholds even for different numbers of input bands.*/
+     * For Euclidean, square the threshold so we don't need to calculate
+     * the root value in the distance calculation.
+     * In either case, multiply by the number of input bands, 
+     * so the same threshold will achieve similar thresholds 
+     * even for different numbers of input bands.*/
     if (functions->calculate_similarity == calculate_euclidean_similarity)
 	functions->threshold =
 	    functions->threshold * functions->threshold * files->nbands;
@@ -58,7 +61,9 @@ int create_isegs(struct files *files, struct functions *functions)
 	}
 	Rast_get_range_min_max(&range, &lower_bound, &upper_bound);
 	/* speed enhancement, when processing with bounds: get the unique values.
-	 * As is, we will iterate at one time over the entire raster for each integer between the upper and lower bound, even if no regions exist with that value. */
+	 * As is, we will iterate at one time over the entire raster for 
+	 * each integer between the upper and lower bound, 
+	 * even if no regions exist with that value. */
     }
 
     /* processing loop for polygon/boundary constraints */
@@ -79,8 +84,10 @@ int create_isegs(struct files *files, struct functions *functions)
 	files->maxrow = files->maxcol = 0;
 
 	if (files->bounds_map == NULL) {
-	    /* check the NULL flag to see where the first/last row/col of real data are, and reduce the processing window.
-	     * This could help (a little?) if a MASK is used that removes a large border portion of the map. */
+	    /* check the NULL flag to see where the first/last row/col of 
+	     * real data are, and reduce the processing window.
+	     * This could help (a little?) if a MASK is used that 
+	     * removes a large border portion of the map. */
 	    for (row = 0; row < files->nrows; row++) {
 		for (col = 0; col < files->ncols; col++) {
 
@@ -252,7 +259,8 @@ int region_growing(struct files *files, struct functions *functions)
 #endif
 		    Rk_count = 0;
 
-		    /* First pixel in Ri is current row/col pixel.  We may add more later if it is part of a segment */
+		    /* First pixel in Ri is current row/col pixel.  
+		     * We may add more later if it is part of a segment */
 		    Ri_count = 1;
 		    newpixel = (struct pixels *)link_new(files->token);
 		    newpixel->next = NULL;
@@ -322,10 +330,14 @@ int region_growing(struct files *files, struct functions *functions)
 			    }	/* finished similiarity check for all neighbors */
 
 			    /* *** merge all the "very close" pixels/segments *** */
-			    /* doing this after checking all Rin, so we don't change the bands_val between similarity comparisons
-			     * ... but that leaves the possibility that we have the wrong best Neighbor after doing these merges... 
-			     * but it seems we can't put this merge after the Rk/Rkn portion of the loop, because we are changing the available neighbors
-			     * ...maybe this extra "very close" idea has to be done completely differently or dropped???  */
+			    /* doing this after checking all Rin, so we don't 
+			     * change the bands_val between similarity comparisons
+			     * ... but that leaves the possibility that we have 
+			     * the wrong best Neighbor after doing these merges... 
+			     * but it seems we can't put this merge after the Rk/Rkn 
+			     * portion of the loop, because we are changing the available neighbors
+			     * ...maybe this extra "very close" idea has to be 
+			     * done completely differently or dropped???  */
 #ifdef VCLOSE
 			    for (current = Rclose_head; current != NULL;
 				 current = current->next) {
@@ -363,7 +375,8 @@ int region_growing(struct files *files, struct functions *functions)
 				     (files->candidate_flag,
 				      Ri_bestn->row, Ri_bestn->col))) {
 				    /* this check is important:
-				     * best neighbor is not a valid candidate, was already merged earlier in this time step */
+				     * best neighbor is not a valid candidate, 
+				     * was already merged earlier in this time step */
 				    Ri_bestn = NULL;
 				}
 			    }
@@ -428,7 +441,8 @@ int region_growing(struct files *files, struct functions *functions)
 				}
 				else {	/* they weren't mutually best neighbors */
 
-				    /* checked Ri once, didn't find a mutually best neighbor, so remove all members of Ri from candidate pixels for this iteration */
+				    /* checked Ri once, didn't find a mutually best neighbor, 
+				     * so remove all members of Ri from candidate pixels for this iteration */
 				    set_candidate_flag(Ri_head, FALSE, files);
 
 				    if (FLAG_GET
@@ -590,7 +604,8 @@ int region_growing(struct files *files, struct functions *functions)
 				newpixel->col = Ri_bestn->col;
 				Rk_head = newpixel;
 
-				/* get the full pixel/cell membership list for Rk *//* speed enhancement: a seperate function for this, since we don't need the neighbors */
+				/* get the full pixel/cell membership list for Rk */
+				/* speed enhancement: a seperate function for this, since we don't need the neighbors */
 				find_segment_neighbors(&Rk_head, &Rkn_head,
 						       &Rk_count, files,
 						       functions);
@@ -634,8 +649,11 @@ int region_growing(struct files *files, struct functions *functions)
     return TRUE;
 }
 
-    /* perimeter todo, for now will return borderPixels instead of passing a pointer, I saw mentioned that each parameter slows down the function call? */
-    /* perimeter todo, My first impression is that the borderPixels count is ONLY needed for the case of initial seeds, and not used later on.  Another reason to split the function... */
+    /* perimeter todo, for now will return borderPixels instead of passing a pointer,
+     * I saw mentioned that each parameter slows down the function call? */
+    /* perimeter todo, My first impression is that the borderPixels count is 
+     * ONLY needed for the case of initial seeds, and not used later on.  
+     * Another reason to split the function... */
 int find_segment_neighbors(struct pixels **R_head,
 			   struct pixels **neighbors_head, int *seg_count,
 			   struct files *files, struct functions *functions)
@@ -787,10 +805,13 @@ int find_segment_neighbors(struct pixels **R_head,
 			    newpixel->count_shared = 1;	/*for shared perimeter */
 			    *neighbors_head = newpixel;	/*change the first pixel to be the new pixel. */
 			}
-			else {	/* todo perimeter we need to keep track of (and return!) a total count of neighbors pixels for each neighbor segment, to update the perimeter value in the similarity calculation. */
+			else {	/* todo perimeter we need to keep track of (and return!) a 
+				 * total count of neighbors pixels for each neighbor segment, 
+				 * to update the perimeter value in the similarity calculation. */
 			    /* todo perimeter: need to initalize this somewhere!!! */
 			    /* todo perimeter... need to find pixel with same segment ID....  countShared++;
-			     * hmmm,  Should we change the known_iseg tree to sort on segment ID...need to think of fast way to return this count?  with pixel?  or with something else? */
+			     * hmmm,  Should we change the known_iseg tree to sort on segment ID...
+			     * need to think of fast way to return this count?  with pixel?  or with something else? */
 
 			    /* need to increment the count of border pixels for later know the shared border for calculating the new perimeter. */
 			    if (functions->radio_weight < 1) {	/* TODO: any reason to calculate this if we have a weight of 0 for the shape features? */
@@ -902,7 +923,9 @@ int find_eight_pixel_neighbors(int p_row, int p_col,
 
     /* similarity / distance functions between two points based on their input raster values */
     /* assumes first point values already saved in files->bands_seg */
-    /* speed enhancement: segment_get was already done for a[] values in the main function.  Could remove a[] from these parameters, reducing number of parameters in function call could provide a speed improvement. */
+    /* speed enhancement: segment_get was already done for a[] values in the main function.  
+     * Could remove a[] from these parameters, reducing number of parameters in 
+     * function call could provide a speed improvement. */
 
 double calculate_euclidean_similarity(struct pixels *a, struct pixels *b,
 				      struct files *files,
@@ -923,7 +946,8 @@ double calculate_euclidean_similarity(struct pixels *a, struct pixels *b,
 					    files->second_val[n]);
     }
 
-    /* use squared distance, save the calculation time. We squared the similarity threshold earlier to allow for this. */
+    /* use squared distance, save the calculation time. 
+     * We squared the similarity threshold earlier to allow for this. */
     /* val = sqrt(val); */
 
     if (functions->radio_weight < 1) {
@@ -931,7 +955,8 @@ double calculate_euclidean_similarity(struct pixels *a, struct pixels *b,
 	val = val * functions->radio_weight;
 
 	/*remaining part of similarity is based on the current shape of the object. */
-	/*I assume the idea is to add to the similarity information about the shape of the new segment if the two candidates were to be merged. */
+	/*I assume the idea is to add to the similarity information about the 
+	 * shape of the new segment if the two candidates were to be merged. */
 
 	PL = files->bands_val[files->nbands + 1] +
 	    files->second_val[files->nbands + 1] - b->count_shared;
@@ -1016,7 +1041,11 @@ int merge_values(struct pixels *Ri_head, struct pixels *Rk_head,
     int n, Ri_iseg, Rk_iseg;
     struct pixels *current;
 
-    /*get input values *//*speed enhancement: Confirm if we can assume we already have bands_val for Ri, so don't need to segment_get() again?  note...current very_close implementation requires getting this value again... */
+    /*get input values */
+    /*speed enhancement: Confirm if we can assume we already have 
+     * bands_val for Ri, so don't need to segment_get() again?  
+     * note...current very_close implementation requires 
+     * getting this value again... */
     segment_get(&files->bands_seg, (void *)files->bands_val, Ri_head->row,
 		Ri_head->col);
     segment_get(&files->bands_seg, (void *)files->second_val,
@@ -1098,7 +1127,8 @@ int merge_pixels(struct pixels *R_head, int borderPixels, struct files *files)
 
 	/* add in the shape values */
 	files->bands_val[files->nbands] = count;	/* area (Num Pixels) */
-	files->bands_val[files->nbands + 1] = borderPixels;	/* Perimeter Length *//* todo perimeter, not exact for edges...close enough for now? */
+	files->bands_val[files->nbands + 1] = borderPixels;	/* Perimeter Length */
+	/* todo perimeter, not exact for edges...close enough for now? */
 
 	/* save the results */
 	for (current = R_head; current != NULL; current = current->next) {
@@ -1149,7 +1179,8 @@ int my_dispose_list(struct link_head *token, struct pixels **head)
 
     /* functions used by binary tree to compare items */
 
-    /* speed enhancement: Maybe changing this would be an improvement? "static" was used in break_polygons.c  extern was suggested in docs.  */
+    /* speed enhancement: Maybe changing this would be an improvement? 
+     * "static" was used in break_polygons.c  extern was suggested in docs.  */
 
 int compare_ids(const void *first, const void *second)
 {

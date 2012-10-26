@@ -20,7 +20,9 @@ int parse_args(int argc, char *argv[], struct files *files,
 #endif
 
     /* required parameters */
-    group = G_define_standard_option(G_OPT_I_GROUP);	/* enhancement: consider giving the option to process just one raster directly, without creating an image group. */
+    /* enhancement: consider giving the option to process just one
+     * raster directly, without creating an image group. */
+    group = G_define_standard_option(G_OPT_I_GROUP);
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
 
@@ -105,7 +107,8 @@ int parse_args(int argc, char *argv[], struct files *files,
     weighted->description =
 	_("Weighted input, don't perform the default scaling of input maps.");
 
-    /* Raster for initial segment seeds *//* future enhancement: allow vector points/centroids for seed input. */
+    /* Raster for initial segment seeds */
+    /* future enhancement: allow vector points/centroids for seed input. */
     seeds = G_define_standard_option(G_OPT_R_INPUT);
     seeds->key = "seeds";
     seeds->required = NO;
@@ -130,9 +133,12 @@ int parse_args(int argc, char *argv[], struct files *files,
     endt->description =
 	_("Maximum number of passes (time steps) to complete.");
 
-    /* Leaving path flag out of user options, will hardcode TRUE for this option.  This does change the resulting segments, but I don't see any
-     * reason why one version is more valid.  It reduced the processing time by 50% when segmenting the ortho image. 
-     * Code in the segmenation algorithm remains, in case more validation of this option should be done. */
+    /* Leaving path flag out of user options, will hardcode TRUE for 
+       this option.  This does change the resulting segments, but I 
+       don't see any reason why one version is more valid.  It 
+       reduced the processing time by 50% when segmenting the ortho 
+       image. Code in the segmenation algorithm remains, in case more 
+       validation of this option should be done. */
     /*
        path = G_define_flag();
        path->key = 'p';
@@ -211,7 +217,8 @@ int parse_args(int argc, char *argv[], struct files *files,
     }
     /* speed enhancement: Check if function pointer or IF statement is faster */
 
-    /* default/0 for performing the scaling, but selected/1 if user has weighted values so scaling should be skipped. */
+    /* default/0 for performing the scaling, but selected/1 if 
+     * user has weighted values so scaling should be skipped. */
     files->weighted = weighted->answer;
 
     /* check if optional seeds map was given, if not, use all pixels as starting seeds. */
@@ -258,7 +265,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     /* other parameters */
 
-    /* default/0 for no pathflag, but selected/1 to use Rk as next Ri if not mutually best neighbors. */
+    /* default/0 for no pathflag, but selected/1 to use 
+     * Rk as next Ri if not mutually best neighbors. */
     /* functions->path = path->answer; */
     functions->path = TRUE;
     /* see notes above about pathflag. */

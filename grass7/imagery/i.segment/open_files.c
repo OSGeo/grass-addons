@@ -152,7 +152,8 @@ int open_files(struct files *files, struct functions *functions)
     /* ******* remaining memory allocation ********* */
 
     /* save the area and perimeter as well */
-    /* perimeter todo: currently saving this with the input DCELL values.  Better to have a second segment structure to save as integers ??? */
+    /* perimeter todo: currently saving this with the input DCELL values.  
+     * Better to have a second segment structure to save as integers ??? */
     /* along with P and A, also saving the bounding box - min/max row/col */
 
     /* Why was this being reset here??? commented out... 
@@ -276,7 +277,8 @@ int open_files(struct files *files, struct functions *functions)
     files->token = link_init(sizeof(struct pixels));
 
     /* if we have seeds that are segments (not pixels) we need to update the bands_seg */
-    /* also renumber the segment ID's in case they were classified (duplicating numbers) instead of output from i.segment. */
+    /* also renumber the segment ID's in case they were classified 
+     * (duplicating numbers) instead of output from i.segment. */
     if (files->seeds_map != NULL) {
 
 	/*initialization */
@@ -290,7 +292,9 @@ int open_files(struct files *files, struct functions *functions)
 	current = NULL;
 	set_all_candidate_flags(files);
 	for (row = 0; row < files->nrows; row++) {
-	    G_percent(row, files->nrows, 1);	/* I think this is the longest part of open_files() - not entirely accurate for the actual %, but will give the user something to see. */
+	    G_percent(row, files->nrows, 1);	/* I think this is the longest part of open_files()
+						 * - not entirely accurate for the actual %,
+						 *  but will give the user something to see. */
 	    for (col = 0; col < files->ncols; col++) {
 		if (!(FLAG_GET(files->candidate_flag, row, col)) ||
 		    FLAG_GET(files->null_flag, row, col))
@@ -302,8 +306,13 @@ int open_files(struct files *files, struct functions *functions)
 		newpixel->col = col;
 		R_head = newpixel;
 
-		/* get pixel list, possible initialization speed enhancement: could use a custom (shorter) function, some results from find_segment_neighbors are not used here */
-		/* bug todo: There is a small chance that a renumbered segment matches and borders an original segment.  This would be a good reason to write a custom function - use the candidate flag to see if the pixel was already processed. */
+		/* get pixel list, possible initialization speed enhancement: 
+		 * could use a custom (shorter) function, some results from 
+		 * find_segment_neighbors are not used here */
+		/* bug todo: There is a small chance that a renumbered segment 
+		 * matches and borders an original segment.  This would be a 
+		 * good reason to write a custom function - use the candidate 
+		 * flag to see if the pixel was already processed. */
 		borderPixels =
 		    find_segment_neighbors(&R_head, &Rn_head, &R_count, files,
 					   functions);
