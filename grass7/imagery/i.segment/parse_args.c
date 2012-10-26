@@ -12,7 +12,7 @@ int parse_args(int argc, char *argv[], struct files *files,
 {
     struct Option *group, *seeds, *bounds, *output, *method, *similarity, *threshold, *min_segment_size, *endt;	/* Establish an Option pointer for each option */
     struct Option *radio_weight, *smooth_weight;
-    struct Flag *estimate_threshold, *diagonal, *weighted, *limited;	/* Establish a Flag pointer for each option */
+    struct Flag *estimate_threshold, *diagonal, *weighted, *limited, *final;	/* Establish a Flag pointer for each option */
     struct Option *outband;	/* optional saving of segment data, until a seperate module is written */
 
 #ifdef VCLOSE
@@ -106,6 +106,11 @@ int parse_args(int argc, char *argv[], struct files *files,
     weighted->key = 'w';
     weighted->description =
 	_("Weighted input, don't perform the default scaling of input maps.");
+
+    final = G_define_flag();
+    final->key = 'f';
+    final->description =
+	_("Final forced merge only (skip the growing portion of the algorithm.");
 
     /* Raster for initial segment seeds */
     /* future enhancement: allow vector points/centroids for seed input. */
@@ -220,6 +225,8 @@ int parse_args(int argc, char *argv[], struct files *files,
     /* default/0 for performing the scaling, but selected/1 if 
      * user has weighted values so scaling should be skipped. */
     files->weighted = weighted->answer;
+
+	functions->final_merge_only = final->answer;
 
     /* check if optional seeds map was given, if not, use all pixels as starting seeds. */
     if (seeds->answer == NULL) {

@@ -93,6 +93,7 @@ struct functions
     int path;			/* flag if we are using Rk as next Ri for non-mutually best neighbor. */
     int limited;		/* flag if we are limiting merges to one per pass */
     int estimate_threshold;	/* flag if we just want to estimate a suggested threshold value and exit. */
+    int final_merge_only;	/* flag if we want to just run the final merge portion of the algorithm. */
 
     /* todo: is there a fast way (and valid from an algorithm 
        standpoint) to merge all neighbors that are within some small % 

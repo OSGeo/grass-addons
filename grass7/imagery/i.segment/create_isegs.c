@@ -221,6 +221,9 @@ int region_growing(struct files *files, struct functions *functions)
      * if this is implemented, move this assignment inside the do loop and make it a function of t. */
     threshold = functions->threshold;
 
+	/* user has option to skip the normal growing steps and skip to the final merge. */
+	if(!functions->final_merge_only){
+
     /* do while loop until no merges are made, or until t reaches maximum number of iterations */
     do {
 
@@ -503,7 +506,8 @@ int region_growing(struct files *files, struct functions *functions)
 	t++;
     }
     while (t <= functions->end_t && endflag == FALSE);	/*end t loop, either reached max iterations or didn't merge any segments */
-
+	}	/* end if from the final_merge_only flag */
+	
     if (t == 2 && files->bounds_map == NULL)
 	G_warning(_("No segments were created. Verify threshold and region settings."));
     /* future enhancement, remove the "&& bounds_map == NULL" if we check for unique bounds values. */
@@ -530,7 +534,10 @@ int region_growing(struct files *files, struct functions *functions)
     /* ****************************************************************************************** */
 
 
-    if (functions->min_segment_size > 1 && t > 2) {	/* NOTE: added t > 2, it doesn't make sense to force merges if no merges were made on the original pass.  Something should be adjusted first */
+    if ((functions->min_segment_size > 1 && t > 2) || functions->final_merge_only) {
+			/* NOTE: added t > 2, it doesn't make sense to force merges 
+			 * if no merges were made on the original pass.  
+			 * Something should be adjusted first */
 
 	if (files->bounds_map == NULL) {
 	    G_message
