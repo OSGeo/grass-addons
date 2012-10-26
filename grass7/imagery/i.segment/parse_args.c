@@ -11,7 +11,8 @@ int parse_args(int argc, char *argv[], struct files *files,
 	       struct functions *functions)
 {
     struct Option *group, *seeds, *bounds, *output, *method, *similarity, *threshold, *min_segment_size, *endt;	/* Establish an Option pointer for each option */
-    struct Flag *diagonal, *weighted, *limited;	/* Establish a Flag pointer for each option */
+    struct Option *radio_weight, *smooth_weight;
+    struct Flag *estimate_threshold, *diagonal, *weighted, *limited;	/* Establish a Flag pointer for each option */
     struct Option *outband;	/* optional saving of segment data, until a seperate module is written */
 
 #ifdef VCLOSE
@@ -43,7 +44,7 @@ int parse_args(int argc, char *argv[], struct files *files,
     similarity->required = YES;
     similarity->answer = "euclidean";
     similarity->options = "euclidean, manhattan";
-    similarity->description = _("Distance calculation method.");
+    similarity->description = _("Similarity calculation method.");
 
     min_segment_size = G_define_option();
     min_segment_size->key = "minsize";
@@ -67,7 +68,32 @@ int parse_args(int argc, char *argv[], struct files *files,
 	_("Neighbors similarity lower then this fraction of the threshold will be merged without regard to any other processing rules.");
 #endif
 
+    /* for the weights of bands values vs. shape parameters, and weight of smoothness vs. compactness */
+
+    radio_weight = G_define_option();
+    radio_weight->key = "radioweight";
+    radio_weight->type = TYPE_DOUBLE;
+    radio_weight->required = YES;
+    radio_weight->answer = "0.9";
+    radio_weight->options = "0-1";
+    radio_weight->label =
+	_("Importance of radiometric (input raseters) values relative to shape");
+
+    smooth_weight = G_define_option();
+    smooth_weight->key = "smoothweight";
+    smooth_weight->type = TYPE_DOUBLE;
+    smooth_weight->required = YES;
+    smooth_weight->answer = "0.5";
+    smooth_weight->options = "0-1";
+    smooth_weight->label =
+	_("Importance of smoothness relative to compactness");
+
     /* optional parameters */
+
+    estimate_threshold = G_define_flag();
+    estimate_threshold->key = 't';
+    estimate_threshold->description =
+	_("Estimate a threshold based on input image group and exit.");
 
     diagonal = G_define_flag();
     diagonal->key = 'd';
@@ -135,6 +161,12 @@ int parse_args(int argc, char *argv[], struct files *files,
 
     files->image_group = group->answer;
 
+    functions->estimate_threshold = estimate_threshold->answer;
+
+    /* if we are just estimating a threshold, skip remaining input validation */
+    if (functions->estimate_threshold == TRUE)
+	return TRUE;
+
     if (G_legal_filename(output->answer) == TRUE)
 	files->out_name = output->answer;	/* name of output (segment ID) raster map */
     else
@@ -165,6 +197,9 @@ int parse_args(int argc, char *argv[], struct files *files,
 #endif
 
     functions->min_segment_size = atoi(min_segment_size->answer);
+
+    functions->radio_weight = atof(radio_weight->answer);
+    functions->smooth_weight = atof(smooth_weight->answer);
 
     if (diagonal->answer == FALSE) {
 	functions->find_pixel_neighbors = &find_four_pixel_neighbors;

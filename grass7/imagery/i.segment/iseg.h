@@ -30,7 +30,7 @@ struct pixels
     struct pixels *next;
     int row;
     int col;
-    int countShared;		/* todo perimeter: will hold the count how many pixels are shared on the Border Between Ri and Rk.  Not used for all pixels... see if this is an OK way to do this... */
+    int count_shared;		/* todo perimeter: will hold the count how many pixels are shared on the Border Between Ri and Rk.  Not used for all pixels... see if this is an OK way to do this... */
 };
 
 /* input and output files, as well as some other processing info */
@@ -50,6 +50,7 @@ struct files
 
     /* file processing */
     /* bands_seg is initialized with the input raster valuess, then is updated with current mean values for the segment. */
+    /* for now, also storing: Area, Perimeter, maxcol, mincol, maxrow, minrow */
     int nbands;			/* number of rasters in the image group */
     SEGMENT bands_seg, bounds_seg;	/* bands is for input, normal application is landsat bands, but other input can be included in the group. */
     double *bands_val;		/* array, to hold all input values at one pixel */
@@ -77,7 +78,7 @@ struct functions
     int num_pn;			/* number of pixel neighbors  int, 4 or 8. */
     float threshold;		/* similarity threshold */
     int min_segment_size;	/* smallest number of pixels/cells allowed in a final segment */
-
+    float radio_weight, smooth_weight;	/* radiometric (bands) vs. shape and smoothness vs. compactness */
     /* Some function pointers to set in parse_args() */
     int (*find_pixel_neighbors) (int, int, int[8][2], struct files *);	/*parameters: row, col, pixel_neighbors */
     double (*calculate_similarity) (struct pixels *, struct pixels *, struct files *, struct functions *);	/*parameters: two pixels (each with row,col) to compare */
@@ -87,6 +88,7 @@ struct functions
 
     int path;			/* flag if we are using Rk as next Ri for non-mutually best neighbor. */
     int limited;		/* flag if we are limiting merges to one per pass */
+    int estimate_threshold;	/* flag if we just want to estimate a suggested threshold value and exit. */
 
     /* todo: is there a fast way (and valid from an algorithm standpoint) to merge all neighbors that are within some small % of the treshold?
      * There is some code using "very_close" that is excluded with IFDEF
@@ -99,6 +101,11 @@ struct functions
 #endif
 };
 
+/* main.c */
+int estimate_threshold(char *);
+int check_group(char *);
+int read_range(double *, double *, char *);
+double calc_t(double, double);
 
 /* parse_args.c */
 /* gets input from user, validates, and sets up functions */

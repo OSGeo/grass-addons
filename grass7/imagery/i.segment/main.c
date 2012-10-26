@@ -15,12 +15,14 @@
  *               Library for the data files/tiling, so "iseg" (image segmentation)
  *               will be used to refer to the image segmentation.
  * 
+ * 				 First developed for GSoC 2012 with mentor: Markus Metz
  * 
  *****************************************************************************/
 
 #include <stdlib.h>
 #include <grass/gis.h>
 #include <grass/glocale.h>
+#include <grass/imagery.h>
 #include "iseg.h"
 
 int main(int argc, char *argv[])
@@ -40,22 +42,29 @@ int main(int argc, char *argv[])
     if (parse_args(argc, argv, &files, &functions) != TRUE)
 	G_fatal_error(_("Error in parse_args()"));
 
-    G_debug(1, "Main: starting open_files()");
-    if (open_files(&files, &functions) != TRUE)
-	G_fatal_error(_("Error in open_files()"));
+    /* check if we are doing normal processing or if the estimate threshold and exit flag has been selected */
 
-    G_debug(1, "Main: starting create_isegs()");
-    if (create_isegs(&files, &functions) != TRUE)
-	G_fatal_error(_("Error in create_isegs()"));
+    if (functions.estimate_threshold == FALSE) {
 
-    G_debug(1, "Main: starting write_output()");
-    if (write_output(&files) != TRUE)
-	G_fatal_error(_("Error in write_output()"));
+	G_debug(1, "Main: starting open_files()");
+	if (open_files(&files, &functions) != TRUE)
+	    G_fatal_error(_("Error in open_files()"));
 
-    G_debug(1, "Main: starting close_files()");
-    close_files(&files);
+	G_debug(1, "Main: starting create_isegs()");
+	if (create_isegs(&files, &functions) != TRUE)
+	    G_fatal_error(_("Error in create_isegs()"));
 
-    G_done_msg("Number of segments created: %d", files.nsegs);
+	G_debug(1, "Main: starting write_output()");
+	if (write_output(&files) != TRUE)
+	    G_fatal_error(_("Error in write_output()"));
 
+	G_debug(1, "Main: starting close_files()");
+	close_files(&files);
+
+	G_done_msg(_("Number of segments created: <%d>"), files.nsegs);
+    }
+    else {
+	estimate_threshold(files.image_group);
+    }
     exit(EXIT_SUCCESS);
 }

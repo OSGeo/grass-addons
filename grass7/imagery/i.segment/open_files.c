@@ -116,7 +116,9 @@ int open_files(struct files *files, struct functions *functions)
 
     /* size of each element to be stored */
 
-    inlen = sizeof(double) * Ref.nfiles;
+    /* save for bands, plus area, perimeter, bounding box. */
+
+    inlen = sizeof(double) * (Ref.nfiles + 6);
 
     /* when fine tuning, should be a power of 2 and not larger than 256 for speed reasons */
     srows = 64;
@@ -151,7 +153,10 @@ int open_files(struct files *files, struct functions *functions)
 
     /* save the area and perimeter as well */
     /* perimeter todo: currently saving this with the input DCELL values.  Better to have a second segment structure to save as integers ??? */
-    inlen = inlen + sizeof(double) * 2;
+    /* along with P and A, also saving the bounding box - min/max row/col */
+
+    /* Why was this being reset here??? commented out... 
+       inlen = inlen + sizeof(double) * 6; */
 
     files->bands_val = (double *)G_malloc(inlen);
     files->second_val = (double *)G_malloc(inlen);
@@ -212,10 +217,17 @@ int open_files(struct files *files, struct functions *functions)
 		else
 		    files->bands_val[n] = (inbuf[n][col] - min[n]) / (max[n] - min[n]);	/* scaled */
 	    }
+
+	    /* besides the user input rasters, also save the shape parameters */
+
 	    files->bands_val[Ref.nfiles] = 1;	/* area (just using the number of pixels) */
 	    files->bands_val[Ref.nfiles + 1] = 4;	/* Perimeter Length *//* todo perimeter, not exact for edges...close enough for now? */
-	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
+	    files->bands_val[Ref.nfiles + 2] = col;	/*max col */
+	    files->bands_val[Ref.nfiles + 3] = col;	/*min col */
+	    files->bands_val[Ref.nfiles + 4] = row;	/*max row */
+	    files->bands_val[Ref.nfiles + 5] = row;	/*min row */
 
+	    segment_put(&files->bands_seg, (void *)files->bands_val, row, col);	/* store input bands */
 	    if (null_check != -1) {	/*good pixel */
 		FLAG_UNSET(files->null_flag, row, col);	/*flag */
 		if (files->seeds_map != NULL) {
