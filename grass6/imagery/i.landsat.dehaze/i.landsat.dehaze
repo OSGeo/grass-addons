@@ -115,23 +115,23 @@ export LC_NUMERIC
 PROG=`basename $0`
 
 #define the names:
-tm1=$GIS_OPT_band1
-tm2=$GIS_OPT_band2
-tm3=$GIS_OPT_band3
-tm4=$GIS_OPT_band4
-tm5=$GIS_OPT_band5
-tm7=$GIS_OPT_band7
-tasscap=$GIS_OPT_tasscap4
+tm1=$GIS_OPT_BAND1
+tm2=$GIS_OPT_BAND2
+tm3=$GIS_OPT_BAND3
+tm4=$GIS_OPT_BAND4
+tm5=$GIS_OPT_BAND5
+tm7=$GIS_OPT_BAND7
+tasscap=$GIS_OPT_TASSCAP4
 
 #test for file:
-eval `g.findfile el=cell file=$GIS_OPT_band1`
+eval `g.findfile el=cell file=$tm1`
 if [ ! "$file" ] ; then
-   echo "Raster map <$GIS_OPT_band1> not found"
+   echo "Raster map <$tm1> not found"
    exit 1
 fi
-eval `g.findfile el=cell file=$GIS_OPT_tasscap4`
+eval `g.findfile el=cell file=$tasscap`
 if [ ! "$file" ] ; then
-   echo "Raster map <$GIS_OPT_tasscap4> not found"
+   echo "Raster map <$tasscap> not found"
   echo "Did you run i.tasscap?"
   exit 1
 fi
