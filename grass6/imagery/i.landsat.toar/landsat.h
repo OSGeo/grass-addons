@@ -7,7 +7,7 @@
 #define DOS      		10
 #define DOS1			12
 #define DOS2			14
-#define DOS2b		15
+#define DOS2b			15
 #define DOS3			16
 #define DOS4			18
 

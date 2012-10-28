@@ -10,7 +10,7 @@
  * PURPOSE:      Calculate TOA Radiance or Reflectance and Kinetic Temperature
  *               for Landsat 1/2/3/4/5 MS, 4/5 TM or 7 ETM+
  *
- * COPYRIGHT:    (C) 2012 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2006-2012 by the GRASS Development Team
  *
  *               This program is free software under the GNU General
  *               Public License (>=v2). Read the file COPYING that
@@ -85,16 +85,6 @@ int main(int argc, char *argv[])
     metfn->description = _("Name of Landsat metadata file (.met or MTL.txt)");
     metfn->guisection = _("Metadata");
 
-    metho = G_define_option();
-    metho->key = "method";
-    metho->type = TYPE_STRING;
-    metho->required = NO;
-    metho->options = "uncorrected,corrected,dos1,dos2,dos2b,dos3,dos4";
-    metho->label = _("Atmospheric correction method");
-    metho->description = _("Atmospheric correction method");
-    metho->answer = "uncorrected";
-    metho->guisection = _("Metadata");
-
     sensor = G_define_option();
     sensor->key = "sensor";
     sensor->type = TYPE_STRING;
@@ -104,14 +94,24 @@ int main(int argc, char *argv[])
     sensor->descriptions =
 	_("mss1;Landsat-1 MSS;"
 	  "mss2;Landsat-2 MSS;"
-      "mss3;Landsat-3 MSS;"
-      "mss4;Landsat-4 MSS;"
-      "mss5;Landsat-5 MSS;"
-      "tm4;Landsat-4 TM;"
-      "tm5;Landsat-5 TM;"
+	  "mss3;Landsat-3 MSS;"
+	  "mss4;Landsat-4 MSS;"
+	  "mss5;Landsat-5 MSS;"
+	  "tm4;Landsat-4 TM;"
+	  "tm5;Landsat-5 TM;"
 	  "tm7;Landsat-7 ETM+");
     sensor->required = NO;
     sensor->guisection = _("Metadata");
+
+    metho = G_define_option();
+    metho->key = "method";
+    metho->type = TYPE_STRING;
+    metho->required = NO;
+    metho->options = "uncorrected,corrected,dos1,dos2,dos2b,dos3,dos4";
+    metho->label = _("Atmospheric correction method");
+    metho->description = _("Atmospheric correction method");
+    metho->answer = "uncorrected";
+    metho->guisection = _("Metadata");
 
     adate = G_define_option();
     adate->key = "date";
@@ -171,7 +171,6 @@ int main(int argc, char *argv[])
     atmo->description = _("Rayleigh atmosphere (diffuse sky irradiance)");	/* scattering coefficient? */
     atmo->answer = "0.0";
     atmo->guisection = _("Settings");
-
 
     /* define the different flags */
     frad = G_define_flag();
@@ -290,17 +289,17 @@ int main(int argc, char *argv[])
 	/*****************************************
 	* ------------ PREPARATION --------------
 	*****************************************/
-    if (strcasecmp(metho->answer, "corrected") == 0)
+    if (G_strcasecmp(metho->answer, "corrected") == 0)
 	method = CORRECTED;
-    else if (strcasecmp(metho->answer, "dos1") == 0)
+    else if (G_strcasecmp(metho->answer, "dos1") == 0)
 	method = DOS1;
-    else if (strcasecmp(metho->answer, "dos2") == 0)
+    else if (G_strcasecmp(metho->answer, "dos2") == 0)
 	method = DOS2;
-    else if (strcasecmp(metho->answer, "dos2b") == 0)
+    else if (G_strcasecmp(metho->answer, "dos2b") == 0)
 	method = DOS2b;
-    else if (strcasecmp(metho->answer, "dos3") == 0)
+    else if (G_strcasecmp(metho->answer, "dos3") == 0)
 	method = DOS3;
-    else if (strcasecmp(metho->answer, "dos4") == 0)
+    else if (G_strcasecmp(metho->answer, "dos4") == 0)
 	method = DOS4;
     else
 	method = UNCORRECTED;
@@ -396,7 +395,7 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Unknown production date (defined by '%s')"), pdate->key);
 
     if (G_verbose() > G_verbose_std()) {
-	fprintf(stderr, " LANSAT: %d SENSOR: %s\n", lsat.number, lsat.sensor);
+	fprintf(stderr, " LANDSAT: %d SENSOR: %s\n", lsat.number, lsat.sensor);
 	fprintf(stderr, " ACQUISITION DATE %s [production date %s]\n",
 		lsat.date, lsat.creation);
 	fprintf(stderr, "   earth-sun distance    = %.8lf\n", lsat.dist_es);
