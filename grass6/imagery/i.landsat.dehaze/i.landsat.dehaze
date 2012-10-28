@@ -133,12 +133,12 @@ tasscap=$GIS_OPT_tasscap4
 #test for file:
 eval `g.findfile el=cell file=$GIS_OPT_band1`
 if [ ! "$file" ] ; then
-   echo "Raster map '$GIS_OPT_band1' not found in mapset search path"
+   echo "Raster map <$GIS_OPT_band1> not found"
    exit 1
 fi
 eval `g.findfile el=cell file=$GIS_OPT_tasscap4`
 if [ ! "$file" ] ; then
-   echo "Raster map '$GIS_OPT_tasscap4' not found in mapset search path"
+   echo "Raster map <$GIS_OPT_tasscap4> not found"
   echo "Did you run i.tasscap?"
   exit 1
 fi
