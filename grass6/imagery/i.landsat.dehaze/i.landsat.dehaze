@@ -35,79 +35,72 @@
 #
 #       The formular of linear regression is (r.linear.regression):
 #                                y=a[0]x[0] + a[1]
+########
 
-
-#%Module
+#%module
 #% description: De-hazing of a LANDSAT scene
 #% keywords: raster, imagery, dehaze
-#%End
-#%Option
+#%end
+#%option
 #% key: band1
 #% type: string
 #% required: yes
-#% multiple: no
 #% description: LANDSAT TM1 channel
 #% gisprompt: old,cell,raster
-#%End
-#%Option
+#%end
+#%option
 #% key: band2
 #% type: string
 #% required: yes
-#% multiple: no
 #% description: LANDSAT TM2 channel
 #% gisprompt: old,cell,raster
-#%End
-#%Option
+#%end
+#%option
 #% key: band3
 #% type: string
 #% required: yes
-#% multiple: no
 #% description: LANDSAT TM3 channel
 #% gisprompt: old,cell,raster
-#%End
-#%Option
+#%end
+#%option
 #% key: band4
 #% type: string
 #% required: yes
-#% multiple: no
 #% description: LANDSAT TM4 channel
 #% gisprompt: old,cell,raster
-#%End
-#%Option
+#%end
+#%option
 #% key: band5
 #% type: string
 #% required: yes
-#% multiple: no
 #% description: LANDSAT TM5 channel
 #% gisprompt: old,cell,raster
-#%End
-#%Option
+#%end
+#%option
 #% key: band7
 #% type: string
 #% required: yes
-#% multiple: no
 #% description: LANDSAT TM7 channel
 #% gisprompt: old,cell,raster
-#%End
-#%Option
+#%end
+#%option
 #% key: tasscap4
 #% type: string
 #% required: yes
-#% multiple: no
 #% description: Tasseled Cap 4 haze map
 #% gisprompt: old,cell,raster
-#%End
-#%Option
+#%end
+#%option
 #% key: outprefix
 #% type: string
 #% gisprompt: new,cell,raster
 #% description: raster output dehazed maps prefix
 #% required : yes
-#%End
+#%end
 
-if [ -z "$GISBASE" ] ; then
-    echo "You must be in GRASS GIS to run this program." 1>&2
-    exit 1
+if test "$GISBASE" = ""; then
+ echo "You must be in GRASS GIS to run this program." >&2
+ exit 1
 fi
 
 if [ "$1" != "@ARGS_PARSED@" ] ; then
