@@ -17,6 +17,7 @@ This program is free software under the GNU General Public License
 
 @author Anna Kratochvilova <kratochanna gmail.com>
 """
+import wx
 import grass.temporal as tgis
 import grass.script as grass
 
@@ -84,3 +85,49 @@ def validateMapNames(names, etype):
             if not found:
                 raise GException(_("Map <%s> not found.") % name)
     return newNames
+
+def ComputeScaledRect(sourceSize, destSize):
+    """!Fits source rectangle into destination rectangle
+    by scaling and centering.
+
+    @code
+   
+    >>> ComputeScaledRect(sourceSize = (10, 40), destSize = (100, 50))
+    {'height': 50, 'scale': 1.25, 'width': 13, 'x': 44, 'y': 0}
+    
+    @endcode
+
+    @param sourceSize size of source rectangle
+    @param destSize size of destination rectangle
+    """
+    ratio1 = destSize[0] / float(sourceSize[0])
+    ratio2 = destSize[1] / float(sourceSize[1])
+    if ratio1 < ratio2:
+        scale = ratio1
+        width = int(sourceSize[0] * scale + 0.5)
+        height = int(sourceSize[1] * scale + 0.5)
+        x = 0
+        y = int((destSize[1] - height) / 2. + 0.5)
+    else:
+        scale = ratio2
+        width = int(sourceSize[0] * scale + 0.5)
+        height = int(sourceSize[1] * scale + 0.5)
+        y = 0
+        x = int((destSize[0] - width) / 2. + 0.5)
+
+    return {'width': width, 'height': height, 'x': x, 'y': y, 'scale': scale}
+
+def RenderText(text, font):
+    """!Renderes text with given font to bitmap."""
+    dc = wx.MemoryDC()
+    dc.SetFont(font)
+    w, h = dc.GetTextExtent(text)
+    bmp = wx.EmptyBitmap(w + 2, h + 2)
+    dc.SelectObject(bmp)
+    dc.SetBrush(wx.TRANSPARENT_BRUSH)
+    dc.SetBackgroundMode(wx.TRANSPARENT)
+    dc.Clear()
+    dc.DrawText(text, 1, 1)
+    dc.SelectObject(wx.NullBitmap)
+
+    return bmp

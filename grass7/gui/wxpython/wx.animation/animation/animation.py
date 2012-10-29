@@ -48,6 +48,10 @@ class Animation(wx.EvtHandler):
         """
         self.frames = frames
 
+    def GetFrame(self, index):
+        """!Returns animation frame"""
+        return self.frames[index]
+
     def GetCount(self):
         """!Get frame count."""
         return len(self.frames)

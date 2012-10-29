@@ -35,6 +35,8 @@ ganimIcons = {
                                  desc = _("Add new animation")),
         'editAnimation': MetaIcon(img = 'layer-more', label = _("Add, edit or remove animation"),
                                   desc = _("Add, edit or remove animation")),
+        'exportAnimation': MetaIcon(img = 'layer-export', label = _("Export animation"),
+                                    desc = _("Export animation"))
         }
 
 class MainToolbar(BaseToolbar):
@@ -60,7 +62,9 @@ class MainToolbar(BaseToolbar):
                                      ("editAnimation", icons["editAnimation"],
                                       self.parent.OnEditAnimation),
                                      ("reload", BaseIcons["render"],
-                                      self.parent.Reload)
+                                      self.parent.Reload),
+                                     ("exportAnimation", icons["exportAnimation"],
+                                      self.parent.OnExportAnimation),
                                     ))
 class AnimationToolbar(BaseToolbar):
     """!Animation toolbar (to control animation)

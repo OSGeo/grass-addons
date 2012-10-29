@@ -33,7 +33,7 @@ import grass.temporal as tgis
 from core.gcmd import GMessage, GError, GException
 from core import globalvar
 from gui_core import gselect
-from gui_core.dialogs import MapLayersDialog, EVT_APPLY_MAP_LAYERS
+from gui_core.dialogs import MapLayersDialog, EVT_APPLY_MAP_LAYERS, GetImageHandlers
 from core.settings import UserSettings
 
 from utils import TemporalMode, validateTimeseriesName, validateMapNames
@@ -782,6 +782,381 @@ class AnimationData(object):
         return "%s(%r)" % (self.__class__, self.__dict__)
 
 
+
+class ExportDialog(wx.Dialog):
+    def __init__(self, parent, temporal):
+        wx.Dialog.__init__(self, parent = parent, id = wx.ID_ANY, title = _("Export animation"),
+                           style = wx.DEFAULT_DIALOG_STYLE)
+        self.decorations = []
+
+        self.temporal = temporal
+        self._layout()
+
+        self.OnFormatRadio(event = None)
+        wx.CallAfter(self._hideAll)
+
+    def _layout(self):
+        notebook = wx.Notebook(self, id = wx.ID_ANY)
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+
+        notebook.AddPage(page = self._createExportFormatPanel(notebook), text = _("Format"))
+        notebook.AddPage(page = self._createDecorationsPanel(notebook), text = _("Decorations"))
+        mainSizer.Add(item = notebook, proportion = 0,
+                      flag = wx.EXPAND | wx.ALL | wx.ALIGN_RIGHT, border = 5)
+
+
+        self.btnExport = wx.Button(self, wx.ID_OK)
+        self.btnExport.SetLabel(_("Export"))
+        self.btnCancel = wx.Button(self, wx.ID_CANCEL)
+        self.btnExport.SetDefault()
+
+        self.btnExport.Bind(wx.EVT_BUTTON, self.OnExport)
+
+        # button sizer
+        btnStdSizer = wx.StdDialogButtonSizer()
+        btnStdSizer.AddButton(self.btnExport)
+        btnStdSizer.AddButton(self.btnCancel)
+        btnStdSizer.Realize()
+        
+        mainSizer.Add(item = btnStdSizer, proportion = 0,
+                      flag = wx.EXPAND | wx.ALL | wx.ALIGN_RIGHT, border = 5)
+        self.SetSizer(mainSizer)
+
+        # set the longest option to fit
+        self.hidevbox.Show(self.fontBox, True)
+        self.hidevbox.Show(self.imageBox, False)
+        self.hidevbox.Show(self.textBox, True)
+        self.hidevbox.Show(self.posBox, True)
+        self.hidevbox.Show(self.informBox, False)
+        mainSizer.Fit(self)
+
+    def _createDecorationsPanel(self, notebook):
+        panel = wx.Panel(notebook, id = wx.ID_ANY)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self._createDecorationsList(panel), proportion = 0, flag = wx.ALL | wx.EXPAND, border = 10)
+        sizer.Add(self._createDecorationsProperties(panel), proportion = 0, flag = wx.ALL | wx.EXPAND, border = 10)
+        panel.SetSizer(sizer)
+        sizer.Fit(panel)
+        return panel
+
+    def _createDecorationsList(self, panel):
+        gridBagSizer = wx.GridBagSizer(hgap = 5, vgap = 5)
+
+        gridBagSizer.AddGrowableCol(0)
+        
+        self.listbox = wx.ListBox(panel, id = wx.ID_ANY, choices = [], style = wx.LB_SINGLE|wx.LB_NEEDED_SB)
+        self.listbox.Bind(wx.EVT_LISTBOX, self.OnSelectionChanged)
+
+        gridBagSizer.Add(self.listbox, pos = (0, 0), span = (4, 1),
+                         flag = wx.ALIGN_CENTER_VERTICAL| wx.EXPAND, border = 0)
+
+        buttonNames = ['time', 'image', 'text']
+        buttonLabels = [_("Add time stamp"), _("Add image"), _("Add text")]
+        i = 0
+        for buttonName, buttonLabel in zip(buttonNames, buttonLabels):
+            if buttonName == 'time' and self.temporal == TemporalMode.NONTEMPORAL:
+                continue
+            btn = wx.Button(panel, id = wx.ID_ANY, name = buttonName, label = buttonLabel)
+            btn.Bind(wx.EVT_BUTTON, lambda evt, temp = buttonName: self.OnAddDecoration(evt, temp))
+            gridBagSizer.Add(btn, pos = (i ,1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)
+            i += 1
+        removeButton = wx.Button(panel, id = wx.ID_ANY, label = _("Remove"))
+        removeButton.Bind(wx.EVT_BUTTON, self.OnRemove)
+        gridBagSizer.Add(removeButton, pos = (i, 1), flag = wx.ALIGN_CENTER_VERTICAL|wx.EXPAND, border = 0)
+        
+        return gridBagSizer
+
+    def _createDecorationsProperties(self, panel):
+        self.hidevbox = wx.BoxSizer(wx.VERTICAL)
+        # inform label
+        self.informBox = wx.BoxSizer(wx.HORIZONTAL)
+        if self.temporal == TemporalMode.TEMPORAL:
+            label = _("Add time stamp, image or text decoration by one of the buttons above.")
+        else:
+            label = _("Add image or text decoration by one of the buttons above.")
+
+        label = wx.StaticText(panel, id = wx.ID_ANY, label = label)
+        label.Wrap(400)
+        self.informBox.Add(label, proportion = 1, flag = wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border = 5)
+        self.hidevbox.Add(self.informBox, proportion = 0, flag = wx.EXPAND | wx.BOTTOM, border = 5)
+        
+        # font
+        self.fontBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.fontBox.Add(wx.StaticText(panel, id = wx.ID_ANY, label = _("Font settings:")),
+                         proportion = 0, flag = wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border = 5)
+        self.sampleLabel = wx.StaticText(panel, id = wx.ID_ANY, label = _("Sample text"))
+        self.fontBox.Add(self.sampleLabel, proportion = 1,
+                         flag = wx.ALIGN_CENTER | wx.RIGHT | wx.LEFT, border = 5)
+        fontButton = wx.Button(panel, id = wx.ID_ANY, label = _("Set font"))
+        fontButton.Bind(wx.EVT_BUTTON, self.OnFont)
+        self.fontBox.Add(fontButton, proportion = 0, flag = wx.ALIGN_CENTER_VERTICAL)
+        self.hidevbox.Add(self.fontBox, proportion = 0, flag = wx.EXPAND | wx.BOTTOM, border = 5)
+
+        # image
+        self.imageBox = wx.BoxSizer(wx.HORIZONTAL)
+        filetype, ltype = GetImageHandlers(wx.EmptyImage(10, 10))
+        self.browse = filebrowse.FileBrowseButton(parent = panel, id = wx.ID_ANY, fileMask = filetype,
+                                                  labelText = _("Image file:"),
+                                                  dialogTitle = _('Choose image file'),
+                                                  buttonText = _('Browse'),
+                                                  startDirectory = os.getcwd(), fileMode = wx.OPEN,
+                                                  changeCallback = self.OnSetImage)
+        self.imageBox.Add(self.browse, proportion = 1, flag = wx.EXPAND)
+        self.hidevbox.Add(self.imageBox, proportion = 0, flag = wx.EXPAND | wx.BOTTOM, border = 5)
+        # text
+        self.textBox = wx.BoxSizer(wx.HORIZONTAL)
+        self.textBox.Add(wx.StaticText(panel, id = wx.ID_ANY, label = _("Text:")),
+                         proportion = 0, flag = wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, border = 5)
+        self.textCtrl = wx.TextCtrl(panel, id = wx.ID_ANY)
+        self.textCtrl.Bind(wx.EVT_TEXT, self.OnText)
+        self.textBox.Add(self.textCtrl, proportion = 1, flag = wx.EXPAND)
+        self.hidevbox.Add(self.textBox, proportion = 0, flag = wx.EXPAND)
+
+        self.posBox = self._positionWidget(panel)
+        self.hidevbox.Add(self.posBox, proportion = 0, flag = wx.EXPAND | wx.TOP, border = 5)
+        return self.hidevbox
+
+    def _positionWidget(self, panel):
+        grid = wx.GridBagSizer(vgap = 5, hgap = 5)
+        label = wx.StaticText(panel, id = wx.ID_ANY, label = _("Placement as percentage of"
+                              " screen coordinates (X: 0, Y: 0 is top left):"))
+        label.Wrap(400)
+        self.spinX = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 0, max = 100, initial = 10)
+        self.spinY = wx.SpinCtrl(panel, id = wx.ID_ANY, min = 0, max = 100, initial = 10)
+        self.spinX.Bind(wx.EVT_SPINCTRL,  lambda evt, temp = 'X': self.OnPosition(evt, temp))
+        self.spinY.Bind(wx.EVT_SPINCTRL,  lambda evt, temp = 'Y': self.OnPosition(evt, temp))
+        
+        grid.Add(label, pos = (0, 0), span = (1, 4), flag = wx.EXPAND)
+        grid.Add(wx.StaticText(panel, id = wx.ID_ANY, label = _("X:")), pos = (1, 0),
+                 flag = wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(wx.StaticText(panel, id = wx.ID_ANY, label = _("Y:")), pos = (1, 2),
+                 flag = wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.spinX, pos = (1, 1))
+        grid.Add(self.spinY, pos = (1, 3))
+
+        return grid
+
+    def _createExportFormatPanel(self, notebook):
+        panel = wx.Panel(notebook, id = wx.ID_ANY)
+        borderSizer = wx.BoxSizer(wx.VERTICAL)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self.gifRadio = wx.RadioButton(panel, id = wx.ID_ANY, 
+                                       label = _("Export to animated GIF (not supported yet):"),
+                                       style = wx.RB_GROUP)
+
+        self.dirRadio = wx.RadioButton(panel, id = wx.ID_ANY, label = _("Export as image sequence:"))
+        self.dirRadio.SetValue(True)
+        self.gifRadio.Bind(wx.EVT_RADIOBUTTON, self.OnFormatRadio)
+        self.dirRadio.Bind(wx.EVT_RADIOBUTTON, self.OnFormatRadio)
+
+        prefixLabel = wx.StaticText(panel, id = wx.ID_ANY, label = _("File prefix:"))
+        self.prefixCtrl = wx.TextCtrl(panel, id = wx.ID_ANY, value = _("animation"))
+        
+        formatLabel = wx.StaticText(panel, id = wx.ID_ANY, label = _("File format:"))
+        self.formatChoice = wx.Choice(panel, id = wx.ID_ANY)
+        wildcard, ltype = GetImageHandlers(wx.EmptyImage(10, 10))
+        formats = [format for format in wildcard.split('|') if 'file' in format]
+        for format, cdata in zip(formats, ltype):
+            self.formatChoice.Append(format, cdata)
+
+        self.formatChoice.SetSelection(0)
+        
+        self.dirBrowse = filebrowse.DirBrowseButton(parent = panel, id = wx.ID_ANY,
+                                                    labelText = _("Export directory:"),
+                                                     dialogTitle = _("Choose directory for export"),
+                                                     buttonText = _("Browse"),
+                                                     startDirectory = os.getcwd())
+        self.gifBrowse = filebrowse.FileBrowseButton(parent = panel, id = wx.ID_ANY,
+                                                     fileMask = "GIF file (*.gif)|*.gif",
+                                                     labelText = _("GIF file:"),
+                                                     dialogTitle = _("Choose image file"),
+                                                     buttonText = _("Browse"),
+                                                     startDirectory = os.getcwd(), fileMode = wx.SAVE)
+
+        sizer.Add(self.gifRadio, proportion = 0, flag = wx.EXPAND)
+        gifSizer = wx.BoxSizer(wx.HORIZONTAL)
+        gifSizer.AddStretchSpacer(prop = 1)
+        gifSizer.Add(self.gifBrowse, proportion = 6, flag = wx.EXPAND)
+        sizer.Add(gifSizer, proportion = 0, flag = wx.EXPAND)
+
+        sizer.Add(self.dirRadio, proportion = 0, flag = wx.EXPAND)
+
+        dirSizer = wx.BoxSizer(wx.HORIZONTAL)
+        dirSizer.AddStretchSpacer(prop = 1)
+        self.dirGridSizer = wx.GridBagSizer(hgap = 5, vgap = 5)
+        self.dirGridSizer.AddGrowableCol(1)
+        self.dirGridSizer.Add(prefixLabel, pos = (0, 0), flag = wx.ALIGN_CENTER_VERTICAL)
+        self.dirGridSizer.Add(self.prefixCtrl, pos = (0, 1), flag = wx.EXPAND)
+        self.dirGridSizer.Add(formatLabel, pos = (1, 0), flag = wx.ALIGN_CENTER_VERTICAL)
+        self.dirGridSizer.Add(self.formatChoice, pos = (1, 1), flag = wx.EXPAND)
+        self.dirGridSizer.Add(self.dirBrowse, pos = (2, 0), flag = wx.EXPAND, span = (1, 2))
+        dirSizer.Add(self.dirGridSizer, proportion = 6, flag = wx.EXPAND)
+
+        sizer.Add(dirSizer, proportion = 0, flag = wx.EXPAND)
+        borderSizer.Add(sizer, proportion = 0, flag = wx.EXPAND | wx.ALL, border = 10)
+        panel.SetSizer(borderSizer)
+        borderSizer.Fit(panel)
+
+        return panel
+
+    def OnFormatRadio(self, event):
+        self.gifBrowse.Enable(self.gifRadio.GetValue())
+        for child in self.dirGridSizer.GetChildren():
+            child.GetWindow().Enable(self.dirRadio.GetValue())
+
+    def OnFont(self, event):
+        index = self.listbox.GetSelection()
+        # should not happen
+        if index == wx.NOT_FOUND:
+            return
+        cdata = self.listbox.GetClientData(index)
+        font = cdata['font']
+        
+        fontdata = wx.FontData()
+        fontdata.EnableEffects(True)
+        fontdata.SetColour('black')
+        fontdata.SetInitialFont(font)
+        
+        dlg = wx.FontDialog(self, fontdata)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            newfontdata = dlg.GetFontData()
+            font = newfontdata.GetChosenFont()
+            self.sampleLabel.SetFont(font)
+            cdata['font'] = font
+            self.Layout()
+
+
+    def OnPosition(self, event, coord):
+        index = self.listbox.GetSelection()
+        # should not happen
+        if index == wx.NOT_FOUND:
+            return
+        cdata = self.listbox.GetClientData(index)
+        cdata['pos'][coord == 'Y'] = event.GetInt()
+
+    def OnSetImage(self, event):
+        index = self.listbox.GetSelection()
+        # should not happen
+        if index == wx.NOT_FOUND:
+            return
+        cdata = self.listbox.GetClientData(index)
+        cdata['file'] = event.GetString()
+
+    def OnAddDecoration(self, event, name):
+        if name == 'time':
+            timeInfo = {'name': name, 'font': self.GetFont(), 'pos': [10, 10]}
+            self.decorations.append(timeInfo)
+        elif name == 'image':
+            imageInfo = {'name': name, 'file': '', 'pos': [10, 10]}
+            self.decorations.append(imageInfo)
+        elif name == 'text':
+            textInfo = {'name': name, 'font': self.GetFont(), 'text': '', 'pos': [10, 10]}
+            self.decorations.append(textInfo)
+
+        self._updateListBox()
+        self.listbox.SetSelection(self.listbox.GetCount() - 1)
+        self.OnSelectionChanged(event = None)
+
+    def OnSelectionChanged(self, event):
+        index = self.listbox.GetSelection()
+        if index == wx.NOT_FOUND:
+            self._hideAll()
+            return
+        cdata = self.listbox.GetClientData(index)
+        self.hidevbox.Show(self.fontBox, (cdata['name'] in ('time', 'text')))
+        self.hidevbox.Show(self.imageBox, (cdata['name'] == 'image'))
+        self.hidevbox.Show(self.textBox, (cdata['name'] == 'text'))
+        self.hidevbox.Show(self.posBox, True)
+        self.hidevbox.Show(self.informBox, False)
+
+        self.spinX.SetValue(cdata['pos'][0])
+        self.spinY.SetValue(cdata['pos'][1])
+        if cdata['name'] == 'image':
+            self.browse.SetValue(cdata['file'])
+        elif cdata['name'] in ('time', 'text'):
+            self.sampleLabel.SetFont(cdata['font'])
+            if cdata['name'] == 'text':
+                self.textCtrl.SetValue(cdata['text'])
+
+        self.hidevbox.Layout()
+        # self.Layout()
+
+    def OnText(self, event):
+        index = self.listbox.GetSelection()
+        # should not happen
+        if index == wx.NOT_FOUND:
+            return
+        cdata = self.listbox.GetClientData(index)
+        cdata['text'] = event.GetString()
+
+    def OnRemove(self, event):
+        index = self.listbox.GetSelection()
+        if index == wx.NOT_FOUND:
+            return
+
+        decData = self.listbox.GetClientData(index)
+        self.decorations.remove(decData)
+        
+        self._updateListBox()
+        if self.listbox.GetCount():
+            self.listbox.SetSelection(0)
+            self.OnSelectionChanged(event = None)
+
+    def OnExport(self, event):
+        for decor in self.decorations:
+            if decor['name'] == 'image':
+                if not os.path.exists(decor['file']):
+                    if decor['file']:
+                        GError(parent = self, message = _("File %s not found.") % decor['file'])
+                    else:
+                        GError(parent = self, message = _("Decoration image file is missing."))
+                    return
+
+        if self.dirRadio.GetValue():
+            name = self.dirBrowse.GetValue()
+            if not os.path.exists(name):
+                if name:
+                    GError(parent = self, message = _("Directory %s not found.") % name)
+                else:
+                    GError(parent = self, message = _("Export directory is missing."))
+                return
+        elif self.gifRadio.GetValue():
+            if not self.gifBrowse.GetValue():
+                GError(parent = self, message = _("Export file is missing."))
+                return
+
+        self.EndModal(wx.ID_OK)
+           
+    def GetDecorations(self):
+        return self.decorations
+
+    def GetExportInformation(self):
+        info = {}
+        if self.gifRadio.GetValue():
+            info['method'] = 'gif'
+            info['file'] = self.gifBrowse.GetValue()
+        else:
+            info['method'] = 'sequence'
+            info['directory'] = self.dirBrowse.GetValue()
+            info['prefix'] = self.prefixCtrl.GetValue()
+            info['format'] = self.formatChoice.GetClientData(self.formatChoice.GetSelection())
+        return info
+
+    def _updateListBox(self):
+        self.listbox.Clear()
+        names = {'time': _("Time stamp"), 'image': _("Image"), 'text': _("Text")}
+        for decor in self.decorations:
+            self.listbox.Append(names[decor['name']], clientData = decor)
+
+    def _hideAll(self):
+        self.hidevbox.Show(self.fontBox, False)
+        self.hidevbox.Show(self.imageBox, False)
+        self.hidevbox.Show(self.textBox, False)
+        self.hidevbox.Show(self.posBox, False)
+        self.hidevbox.Show(self.informBox, True)
+        self.hidevbox.Layout()
+
 def test():
     import wx.lib.inspection
     import gettext
@@ -790,21 +1165,37 @@ def test():
     import grass.script as grass
 
     app = wx.PySimpleApp()
+
+    testExport()
+    # wx.lib.inspection.InspectionTool().Show()
+
+    
+
+    app.MainLoop()
+
+def testAnimInput():
     anim = AnimationData()
     anim.SetDefaultValues(animationIndex = 0, windowIndex = 0)
 
     dlg = InputDialog(parent = None, mode = 'add', animationData = anim)
-    # dlg = EditDialog(parent = None, animationData = [anim])
-    wx.lib.inspection.InspectionTool().Show()
-
     dlg.Show()
-    # if val == wx.ID_OK:
-    #     dlg.Update()
-    #     # print anim
-    
-    # dlg.Destroy()
-    print anim
-    app.MainLoop()
+
+def testAnimEdit():
+    anim = AnimationData()
+    anim.SetDefaultValues(animationIndex = 0, windowIndex = 0)
+
+    dlg = EditDialog(parent = None, animationData = [anim])
+    dlg.Show()
+
+def testExport():
+    dlg = ExportDialog(parent = None, temporal = TemporalMode.TEMPORAL)
+    if dlg.ShowModal() == wx.ID_OK:
+        print dlg.GetDecorations()
+        print dlg.GetExportInformation()
+        dlg.Destroy()
+    else:
+        dlg.Destroy()
+
 
 if __name__ == '__main__':
 

@@ -64,7 +64,8 @@ class AnimationFrame(wx.Frame):
                                               providers = self.providers,
                                               bitmapPool = bitmapPool)
         for win, provider in zip(self.windows, self.providers):
-            win.Bind(wx.EVT_SIZE, lambda event, prov = provider: prov.WindowSizeChanged(event))
+            win.Bind(wx.EVT_SIZE, lambda event, prov = provider,
+                     sizeMethod = win.GetClientSize: prov.WindowSizeChanged(event, sizeMethod))
 
         self.InitStatusbar()
         self._mgr = wx.aui.AuiManager(self)
@@ -228,6 +229,9 @@ class AnimationFrame(wx.Frame):
     def Reload(self, event):
         self.controller.Reload()
 
+    def OnExportAnimation(self, event):
+        self.controller.Export()
+
     def OnHelp(self, event):
         RunCommand('g.manual',
                    quiet = True,
@@ -281,6 +285,8 @@ class AnimationsPanel(wx.Panel):
 
     def IsWindowShown(self, index):
         return self.mainSizer.IsShown(self.windows[index])
+
+
 
 
 class AnimationSliderBase(wx.Panel):

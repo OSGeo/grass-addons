@@ -13,14 +13,15 @@ This program is free software under the GNU General Public License
 
 @author Anna Kratochvilova <kratochanna gmail.com>
 """
+import os
 import wx
 
 from core.gcmd import GException, GError, GMessage
 import grass.script as grass
 
 from temporal_manager import TemporalManager
-from dialogs import InputDialog, EditDialog, AnimationData
-from utils import TemporalMode, Orientation
+from dialogs import InputDialog, EditDialog, AnimationData, ExportDialog
+from utils import TemporalMode, Orientation, RenderText
 
 class AnimationController(wx.EvtHandler):
     def __init__(self, frame, sliders, animations, mapwindows, providers, bitmapPool):
@@ -448,6 +449,103 @@ class AnimationController(wx.EvtHandler):
                 region['cols'], region['rows'] = loadSize
                 self.mapwindows[anim.windowIndex].SetRegion(region)
 
+    def Export(self):
+        if not self.animationData:
+            GMessage(parent = self.frame, message = _("No animation to export."))
+            return
+        dlg = ExportDialog(self.frame, temporal = self.temporalMode)
+        if dlg.ShowModal() == wx.ID_OK:
+            decorations = dlg.GetDecorations()
+            exportInfo = dlg.GetExportInformation()
+            dlg.Destroy()
+        else:
+            dlg.Destroy()
+            return
+
+        self._export(exportInfo, decorations)
+
+    def _export(self, exportInfo, decorations):
+        size = self.frame.animationPanel.GetSize()
+        if self.temporalMode == TemporalMode.TEMPORAL:
+            timeLabels, mapNamesDict = self.temporalManager.GetLabelsAndMaps()
+            frameCount = len(timeLabels)
+        else:
+            frameCount = len(self.animationData[0].mapData) # should be the same for all
+
+        animWinSize = []
+        animWinPos = []
+        animWinIndex = []
+        # determine position and sizes of bitmaps
+        for i, (win, anim) in enumerate(zip(self.mapwindows, self.animations)):
+            if anim.IsActive():
+                pos = tuple([pos1 + pos2 for pos1, pos2 in zip(win.GetPosition(), win.GetAdjustedPosition())])
+                animWinPos.append(pos)
+                animWinSize.append(win.GetAdjustedSize())
+                animWinIndex.append(i)
+        
+        images = []
+        for frameIndex in range(frameCount):
+            image = wx.EmptyImage(*size)
+            image.Replace(0, 0, 0, 255, 255, 255)
+            # collect bitmaps of all windows and paste them into the one
+            for i in range(len(animWinSize)):
+                frameId = self.animations[animWinIndex[i]].GetFrame(frameIndex)
+                bitmap = self.bitmapProviders[animWinIndex[i]].GetBitmap(frameId)
+                im = wx.ImageFromBitmap(bitmap)
+                if im.GetSize() != animWinSize[i]:
+                    im.Rescale(*animWinSize[i])
+                image.Paste(im, *animWinPos[i])
+            # paste decorations
+            for decoration in decorations:
+                # add image
+                x = decoration['pos'][0] / 100. * size[0]
+                y = decoration['pos'][1] / 100. * size[1]
+                if decoration['name'] == 'image':
+                    decImage = wx.Image(decoration['file'])
+                elif decoration['name'] == 'time':
+                    timeLabel = timeLabels[frameIndex]
+                    if timeLabel[1]:
+                        text = _("%(from)s %(dash)s %(to)s") % \
+                                {'from': timeLabel[0], 'dash': u"\u2013", 'to': timeLabel[1]}
+                    else:
+                        text = _("%(start)s %(unit)s") % \
+                                {'start': timeLabel[0], 'unit': timeLabel[2]}
+                    
+                    decImage = RenderText(text, decoration['font']).ConvertToImage()
+                elif decoration['name'] == 'text':
+                    text = decoration['text']
+                    decImage = RenderText(text, decoration['font']).ConvertToImage()
+
+                image.Paste(decImage, x, y)
+
+            images.append(image)
+
+        # export
+        if exportInfo['method'] == 'sequence':
+            busy = wx.BusyInfo(message = _("Exporting images, please wait..."), parent = self.frame)
+            wx.Yield()
+            zeroPadding = len(str(len(images)))
+            for i, image in enumerate(images):
+                filename = "%s_%s.%s" % (exportInfo['prefix'], str(i + 1).zfill(zeroPadding),
+                                         exportInfo['format']['ext'])
+                image.SaveFile(os.path.join(exportInfo['directory'], filename), exportInfo['format']['type'])
+
+            busy.Destroy()
+
+
+
+            # image.SaveFile('/home/anna/testy/grass/export/export_%s.png' % frameIndex, wx.BITMAP_TYPE_PNG)
+
+
+            
+
+
+        
+
+        # for anim in self.animationData
+
+
+        
 
 
 #def test():

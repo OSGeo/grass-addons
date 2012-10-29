@@ -21,6 +21,7 @@ import wx
 
 import grass.script as grass
 from core.gcmd import RunCommand
+from utils import ComputeScaledRect
 
 class BufferedWindow(wx.Window):
     """
@@ -163,23 +164,10 @@ class AnimationWindow(BufferedWindow):
 
         cols = self.region['cols']
         rows = self.region['rows']
-        
-        ratioB = cols / float(rows)
-        ww, wh = self.GetClientSize()
-        try:
-            ratioW = ww / float(wh)
-        except ZeroDivisionError:
-            self.x = self.y = 0
-            self.size = (0, 0)
-            return
-        if ratioW > ratioB:
-            self.size = (wh * ratioB, wh)
-            self.y = 0
-            self.x = (ww - wh * ratioB) / 2
-        else:
-            self.size = (ww, ww / ratioB)
-            self.x = 0
-            self.y = (wh - ww / ratioB) / 2
+        params = ComputeScaledRect((cols, rows), self.GetClientSize())
+        self.x = params['x']
+        self.y = params['y']
+        self.size = (params['width'], params['height'])
 
     def SetRegion(self, region):
         """!Sets region for size computations.
@@ -187,6 +175,12 @@ class AnimationWindow(BufferedWindow):
         """
         self.region = region
         self._computeBitmapCoordinates()
+
+    def GetAdjustedSize(self):
+        return self.size
+
+    def GetAdjustedPosition(self):
+        return self.x, self.y
 
 class BitmapProvider(object):
     """!Class responsible for loading data and providing bitmaps"""
@@ -245,9 +239,10 @@ class BitmapProvider(object):
     def GetLoadSize(self):
         return self.loadSize
 
-    def WindowSizeChanged(self, event):
+    def WindowSizeChanged(self, event, sizeMethod):
         """!Sets size when size of related window changes."""
-        self.size = event.GetSize()
+        # sizeMethod is GetClientSize, must be used instead of GetSize
+        self.size = sizeMethod()
         event.Skip()
 
     def _createNoDataBitmap(self, ncols, nrows):
@@ -310,21 +305,9 @@ class BitmapProvider(object):
         """!Computes parameters for creating bitmaps."""
         region = grass.region()
         ncols, nrows = region['cols'], region['rows']
-        if nrows > ncols:
-            longdim = nrows
-            size = self.size[1]
-        else:
-            longdim = ncols
-            size = self.size[0]
-        scale = 1.0
+        params = ComputeScaledRect((ncols, nrows), self.size)
 
-        if longdim > size:
-            scale = float(size) / longdim
-        elif longdim < size:
-            scale = float(size) / longdim
-        size = (int(ncols * scale), int(nrows * scale))
-
-        return (size, scale)
+        return ((params['width'], params['height']), params['scale'])
 
     def _dryLoad(self, rasters, names, force):
         """!Tries how many bitmaps will be loaded.
@@ -359,12 +342,15 @@ class BitmapProvider(object):
         region = grass.region()
         for key in ('rows', 'cols', 'cells'):
             region.pop(key)
+        # sometimes it renderes nonsense - depends on resolution
+        # should we set the resolution of the raster?
         region['nsres'] /= scale
         region['ewres'] /= scale
         os.environ['GRASS_REGION'] = grass.region_env(**region)
         ncols, nrows = size
         self.loadSize = size
         count = 0
+
         # create no data bitmap
         if None not in self.bitmapPool or force:
             self.bitmapPool[None] = self._createNoDataBitmap(ncols, nrows)
