@@ -1,20 +1,25 @@
 #!/bin/sh
 # Update SVN version info
 
-SRC=/osgeo4w/usr/src
+SRC=/usr/src
 PACKAGEDIR=mswindows/osgeo4w/package
 HOME=/c/Users/landa/grass_packager
 
 function update {
-    cd $SRC/$1
+    if [ "$1" = "grass_trunk" ] ; then
+	cd /c/osgeo4w_g7/$SRC/$1
+    else
+	cd /c/osgeo4w/$SRC/$1
+    fi
+    
     REV=`svn info | grep 'Last Changed Rev:' | cut -d':' -f2 | tr -d ' '`
-    if test -z $3 ; then
+    if test -z $4 ; then
 	NUM=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
 	if [ "x$NUM" = "x" ]; then
 	    NUM=1
 	fi
     else
-	NUM=$3
+	NUM=$4
     fi
     
     exec 3<include/VERSION 
@@ -49,10 +54,10 @@ export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 if test -z $1 ; then
     # dev packages
     update grass64_release grass64
-    update grass6_devel grass65
-    update grass_trunk grass70
+    update grass6_devel    grass65
+    update grass_trunk     grass70
 else
-    update grass$1 grass$1 $2
+    update grass$1         grass$1 $2
 fi
 
 exit 0

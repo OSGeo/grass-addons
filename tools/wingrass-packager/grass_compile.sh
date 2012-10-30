@@ -1,20 +1,23 @@
 #!/bin/sh
 # Compile GRASS 6.4, 6.5 and 7.0 (update source code from SVN repository)
 
-SRC=/osgeo4w/usr/src
+SRC=/usr/src
 PACKAGEDIR=mswindows/osgeo4w/package
+PATH_ORIG=`echo $PATH`
 
 function rm_package_7 {
-    for f in `/c/OSGeo4W/apps/msys/bin/find $PACKAGEDIR/grass*.tar.bz2 -mtime +7 2>/dev/null`; do
+    for f in `/c/osgeo4w$1/apps/msys/bin/find $PACKAGEDIR/grass*.tar.bz2 -mtime +7 2>/dev/null`; do
         rm -rfv $f
     done
 }
 
 function compile {
-    cd $SRC/$1
+    export PATH=$PATH_ORIG:/c/osgeo4w$3/apps/msys/bin
+
+    cd /c/osgeo4w$3/$SRC/$1
     svn up || (svn cleanup && svn up)
     
-    rm_package_7 
+    rm_package_7 $3 
     curr=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
     if [ $? -eq 0 ]; then
 	num=$(($curr+1))
@@ -26,18 +29,18 @@ function compile {
     
     echo "Compiling $1 ($package)..."
     rm -f mswindows/osgeo4w/configure-stamp
-    ./mswindows/osgeo4w/package.sh $package $2
-}
+    ./mswindows/osgeo4w/package.sh $package $2 $3
 
-export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
+    export PATH=$PATH_ORIG
+}
 
 if test -z $1 ; then
     # dev packages
     compile grass64_release 64-dev
-    compile grass6_devel 65-dev
-    compile grass_trunk 70-dev
+    compile grass6_devel    65-dev
+    compile grass_trunk     70-dev _g7
 else
-    compile grass$1 $1
+    compile grass$1         $1
 fi
 
 exit 0
