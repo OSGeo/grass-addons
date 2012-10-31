@@ -239,9 +239,9 @@ class SpeedDialog(wx.Dialog):
 
     def _timedelta(self, unit, number):
         if unit == "years":
-            delta = datetime.timedelta(days = 365 * number)
+            delta = datetime.timedelta(days = 365.25 * number)
         elif unit == "months":
-            delta = datetime.timedelta(days = 30 * number)
+            delta = datetime.timedelta(days = 30.4375 * number) # 365.25/12
         elif unit == "days":
             delta = datetime.timedelta(days = 1 * number)
         elif unit == "hours":

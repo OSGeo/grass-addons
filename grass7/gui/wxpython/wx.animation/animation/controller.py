@@ -176,7 +176,7 @@ class AnimationController(wx.EvtHandler):
 
     def GetTimeGranularity(self):
         if self.temporalMode == TemporalMode.TEMPORAL:
-            return self.temporalManager.GetGranularity(original = False)
+            return self.temporalManager.GetGranularity()
 
         return None
 

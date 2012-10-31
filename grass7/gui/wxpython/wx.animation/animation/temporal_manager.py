@@ -37,6 +37,10 @@ class TemporalMapTime:
     POINT = 1
     INTERVAL = 2
 
+class GranularityMode:
+    ONE_UNIT = 1
+    ORIGINAL = 2
+
 
 class TemporalManager(object):
     """!Class for temporal data processing."""
@@ -47,6 +51,8 @@ class TemporalManager(object):
         self.dataMode = None
         self.temporalType = None
         self.temporalMapTime = None
+
+        self.granularityMode = GranularityMode.ONE_UNIT
 
         # Make sure the temporal database exists
         tgis.init()
@@ -133,31 +139,42 @@ class TemporalManager(object):
 
         return True, None
 
-    def GetGranularity(self, original = True):
+    def GetGranularity(self):
         """!Returns temporal granularity of currently loaded timeseries."""
         if self.dataMode == DataMode.SIMPLE:
             gran = self.timeseriesInfo[self.timeseriesList[0]]['granularity']
-            if not original and 'unit' in self.timeseriesInfo[self.timeseriesList[0]]:
+            if 'unit' in self.timeseriesInfo[self.timeseriesList[0]]: # relative
+                if self.granularityMode == GranularityMode.ONE_UNIT:
+                    gran = 1
                 gran = "%(gran)s %(unit)s" % {'gran': gran,
                                               'unit': self.timeseriesInfo[self.timeseriesList[0]]['unit']}
+            elif self.granularityMode == GranularityMode.ONE_UNIT: # absolute
+                number, unit = gran.split()
+                gran = "1 %s" % unit
+
             return gran
 
         if self.dataMode == DataMode.MULTIPLE:
-            return self._getCommonGranularity(original)
+            return self._getCommonGranularity()
 
-    def _getCommonGranularity(self, original = True):
+    def _getCommonGranularity(self):
         allMaps = []
         for dataset in self.timeseriesList:
             maps = self.timeseriesInfo[dataset]['maps']
             allMaps.extend(maps)
 
         if self.temporalType == TemporalType.ABSOLUTE:
-            return tgis.compute_absolute_time_granularity(allMaps)
+            gran = tgis.compute_absolute_time_granularity(allMaps)
+            if self.granularityMode == GranularityMode.ONE_UNIT:
+                number, unit = gran.split()
+                gran = "1 %s" % unit
+            return gran
         if self.temporalType == TemporalType.RELATIVE:
             gran = tgis.compute_relative_time_granularity(allMaps)
-            if not original:
-                gran = "%(gran)s %(unit)s" % {'gran': gran,
-                                              'unit': self.timeseriesInfo[self.timeseriesList[0]]['unit']}
+            if self.granularityMode == GranularityMode.ONE_UNIT:
+                gran = 1
+            gran = "%(gran)s %(unit)s" % {'gran': gran,
+                                          'unit': self.timeseriesInfo[self.timeseriesList[0]]['unit']}
             return gran
 
 
@@ -204,13 +221,16 @@ class TemporalManager(object):
         listOfMaps = []
         timeLabels = []
         gran = self.GetGranularity()
-        if self.temporalType == TemporalType.ABSOLUTE:
+        unit = None
+        if self.temporalType == TemporalType.ABSOLUTE and \
+           self.granularityMode == GranularityMode.ONE_UNIT:
             gran, unit = gran.split()
             gran = '%(one)d %(unit)s' % {'one': 1, 'unit': unit}
 
-        unit = None
-        if self.temporalType == TemporalType.RELATIVE:
+        elif self.temporalType == TemporalType.RELATIVE:
             unit = self.timeseriesInfo[timeseries]['unit']
+            if self.granularityMode == GranularityMode.ONE_UNIT:
+                gran = 1
         maps = sp.get_registered_maps_as_objects_by_granularity(gran = gran)
         if maps is not None:
             for map in maps:
@@ -245,13 +265,16 @@ class TemporalManager(object):
         listOfMaps = []
         timeLabels = []
         gran = self.GetGranularity()
-        if self.temporalType == TemporalType.ABSOLUTE:
+        unit = None
+        if self.temporalType == TemporalType.ABSOLUTE and \
+           self.granularityMode == GranularityMode.ONE_UNIT:
             gran, unit = gran.split()
             gran = '%(one)d %(unit)s' % {'one': 1, 'unit': unit}
 
-        unit = None
         if self.temporalType == TemporalType.RELATIVE:
             unit = self.timeseriesInfo[timeseries]['unit']
+            if self.granularityMode == GranularityMode.ONE_UNIT:
+                gran = 1
 
         start, end = sp.get_valid_time()
 

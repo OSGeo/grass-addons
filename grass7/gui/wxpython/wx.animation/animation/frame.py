@@ -311,11 +311,11 @@ class AnimationSliderBase(wx.Panel):
         self.indexField.Bind(wx.EVT_TEXT_ENTER, self.OnFrameIndexChanged)
 
     def UpdateFrame(self, index):
+        self._updateFrameIndex(index)
         if not self.enable:
             return
 
         self.slider.SetValue(index)
-        self._updateFrameIndex(index)
 
     def _updateFrameIndex(self, index):
         raise NotImplementedError
