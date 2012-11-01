@@ -7,9 +7,7 @@ SUBDIRS = \
 	v.in.wfs2 \
 	v.median \
 	v.out.ply \
-	v.pack \
-	v.surf.icw \
-	v.unpack
+	v.surf.icw
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
