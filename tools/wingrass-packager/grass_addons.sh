@@ -2,8 +2,9 @@
 # Compile AddOns GRASS 6.4, 6.5 and 7.0
 
 SVN_PATH=/c/osgeo4w/usr/src/grass_addons
-GISBASE_PREFIX=/c/osgeo4w/usr/src
-ADDON_PREFIX=/c/Users/landa/grass_packager
+GISBASE_PATH=/c/osgeo4w/usr/src
+GISBASE_G7_PATH=/c/osgeo4w_g7/usr/src
+ADDON_PATH=/c/Users/landa/grass_packager
 
 PATH_ORIG=`echo $PATH`
 
@@ -54,11 +55,11 @@ export LANGUAGE=C
 
 if test -z $1 ; then
     # dev packages
-    compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass64_release $ADDON_PREFIX/grass64/addons
-    compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass6_devel    $ADDON_PREFIX/grass65/addons
-    compile $SVN_PATH/grass7 $GISBASE_PREFIX/grass_trunk     $ADDON_PREFIX/grass70/addons _g7
+    compile $SVN_PATH/grass6 $GISBASE_PATH/grass64_release $ADDON_PATH/grass64/addons
+    compile $SVN_PATH/grass6 $GISBASE_PATH/grass6_devel    $ADDON_PATH/grass65/addons
+    compile $SVN_PATH/grass7 $GISBASE_G7_PATH/grass_trunk  $ADDON_PATH/grass70/addons _g7
 else
-    compile $SVN_PATH/grass6 $GISBASE_PREFIX/grass$1         $ADDON_PREFIX/grass$1/addons
+    compile $SVN_PATH/grass6 $GISBASE_PATH/grass$1         $ADDON_PATH/grass$1/addons
 fi
 
 exit 0
