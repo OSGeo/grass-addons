@@ -5,18 +5,16 @@ include $(MODULE_TOPDIR)/include/Make/Python.make
 
 MODULES = downmodis rmodislib convertmodis parsemodis
 
-DSTDIR = $(ETC)
-
-PYFILES := $(patsubst %,$(DSTDIR)/%.py,$(MODULES))
-PYCFILES := $(patsubst %,$(DSTDIR)/%.pyc,$(MODULES))
+PYFILES := $(patsubst %,$(ETC)/%.py,$(MODULES))
+PYCFILES := $(patsubst %,$(ETC)/%.pyc,$(MODULES))
 
 default: $(PYFILES) $(PYCFILES)
 
 $(DSTDIR):
 	$(MKDIR) $@
 
-$(DSTDIR)/%: % | $(DSTDIR)
+$(ETC)/%: % | $(ETC)
 	$(INSTALL_DATA) $< $@
 
 install:
-	cp -r $(DSTDIR) $(INST_DIR)/etc/
+	cp -r $(ETC) $(INST_DIR)
