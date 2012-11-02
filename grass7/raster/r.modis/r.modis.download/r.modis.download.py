@@ -82,30 +82,33 @@ from datetime import *
 import grass.script as grass
 
 # add the folder containing libraries to python path
-if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis',os.sep)):
+libmodis = None
+if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')):
     libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
-elif os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis',os.sep)):
-    libmodis = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis')
-else:
-    print "ERROR: path to libraries not found"
-    sys.exit()
+elif os.getenv('GRASS_ADDON_BASE') and \
+        os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'r.modis')):
+    libmodis = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'r.modis')
+elif os.path.isdir(os.path.join('..', 'libmodis')):
+    libmodis = os.path.join('..', 'libmodis')                             
+if not libmodis:
+    sys.exit("ERROR: modis library not found")
+
 # try to import pymodis (modis) and some class for r.modis.download
 sys.path.append(libmodis)
 try:
     from rmodislib import product
     from downmodis import downModis
-except ImportError:
-    grass.fatal(_("modis library not imported"))
+except ImportError, e:
+    grass.fatal(e)
 
 def check(home):
     """ Check if a folder it is writable by the user that launch the process
     """
     if os.access(home,os.W_OK):
-        return 1
+        return True
     else:
-        grass.fatal(_("Folder to write downloaded files does not" \
-        + " exist or is not writeable"))
-        return 0
+        grass.fatal(_("Folder to write downloaded files does not "
+                      "exist or is not writeable"))
 
 def checkdate(options):
     """ Function to check the data and return the correct value to download the

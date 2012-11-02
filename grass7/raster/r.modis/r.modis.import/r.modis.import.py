@@ -91,30 +91,31 @@ import os, sys, string, glob, shutil
 import grass.script as grass
 from datetime import date
 
-
-# add the folder containing libraries to python path
-if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis',os.sep)):
+libmodis = None
+if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')):
     libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
-elif os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis',os.sep)):
-    libmodis = os.path.join(os.getenv('GRASS_ADDON_PATH'), 'etc', 'r.modis')
-else:
-    print "ERROR: path to libraries not found"
-    sys.exit()
+elif os.getenv('GRASS_ADDON_BASE') and \
+        os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'r.modis')):
+    libmodis = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'r.modis')
+elif os.path.isdir(os.path.join('..', 'libmodis')):
+    libmodis = os.path.join('..', 'libmodis')                             
+if not libmodis:
+    sys.exit("ERROR: modis library not found")
 
 sys.path.append(libmodis)
 # try to import pymodis (modis) and some classes for r.modis.download
 try:
     from rmodislib import resampling, product, get_proj, projection
-except ImportError:
-    grass.fatal(_("rmodislib library not imported"))
+except ImportError, e:
+    grass.fatal(e)
 try:
     from convertmodis  import convertModis, createMosaic
-except ImportError:
-    grass.fatal(_("convertmodis library not imported"))
+except ImportError, e:
+    grass.fatal(e)
 try:
     from parsemodis import parseModis
-except ImportError:
-    grass.fatal(_("parsemodis library not imported"))    
+except ImportError, e:
+    grass.fatal(e)
 
 def list_files(opt, mosaik = False):
     """If used in function single(): Return a list of HDF files from the file list

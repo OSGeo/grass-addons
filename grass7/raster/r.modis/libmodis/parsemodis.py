@@ -278,7 +278,7 @@ class parseModis:
         datum = the datum to use, the valid values are: NAD27, NAD83, WGS66,
                 WGS76, WGS84, NODATUM
         projpar = a list of projection parameters, for more info check the 
-                  "Appendix C" of MODIS reprojection tool user’s manual
+                  "Appendix C" of MODIS reprojection tool user's manual
                   https://lpdaac.usgs.gov/content/download/4831/22895/file/mrt41_usermanual_032811.pdf
 
         """
@@ -367,7 +367,7 @@ class parseModis:
                    SIN ()Sinusoidal), UTM (Universal TransverseMercator)
         utm = the UTM zone if projection system is UTM
         projpar = a list of projection parameters, for more info check the 
-                  "Appendix C" of MODIS reprojection tool user’s manual
+                  "Appendix C" of MODIS reprojection tool user's manual
                   https://lpdaac.usgs.gov/content/download/4831/22895/file/mrt41_usermanual_032811.pdf
         """
     # output name
