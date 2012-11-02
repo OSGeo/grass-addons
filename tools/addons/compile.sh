@@ -9,6 +9,8 @@ fi
 SVN_PATH="$1"
 TOPDIR="$2"
 ADDON_PATH="$3"
+GRASS_VERSION=`echo $ADDON_PATH | cut -d'/' -f6 | sed 's/grass//g'`
+INDEX_FILE="ALL.html"
 
 if [ ! -d "$3" ] ; then
     mkdir -p "$3"
@@ -25,8 +27,36 @@ mkdir  "$ADDON_PATH"
 
 cd "$SVN_PATH"
 
+date=`date -I`
 mkdir "$ADDON_PATH/logs"
 touch "$ADDON_PATH/logs/ALL.log"
+echo "<!--<?xml-stylesheet href=\"style.css\" type=\"text/css\"?>-->
+<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\"
+	  \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">
+
+<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" >
+
+<head>
+<meta http-equiv=\"Content-Type\" content=\"application/xhtml+xml; charset=utf-8\" />
+<title>WinGRASS $ADDON_PATH AddOns Logs</title>
+<style type=\"text/css\">
+table
+{
+border-collapse:collapse;
+}
+table,th, td
+{
+border: 1px solid black;
+}
+</style>
+</head>
+<body>
+<table cellpadding=\"5\">
+<h2>WinGRASS $GRASS_VERSION AddOns (logs gererated $date)</h2>
+<hr /> 
+<tr><th style=\"background-color: grey\">AddOns</th>
+<th style=\"background-color: grey\">Status</th>
+<th style=\"background-color: grey\">Log file</th></tr>" > "$ADDON_PATH/logs/$INDEX_FILE"
 
 echo "-----------------------------------------------------"
 echo "AddOns '$ADDON_PATH'..."
@@ -45,7 +75,8 @@ for c in "display" "general" "imagery" "raster" "raster3d" "vector"; do
 	else
 	    path="$ADDON_PATH"
 	fi
-	
+
+	echo "<tr><td><tt>$c/$m</tt></td>" >> "$ADDON_PATH/logs/$INDEX_FILE"	
 	make MODULE_TOPDIR="$TOPDIR" clean > /dev/null 2>&1
 	make MODULE_TOPDIR="$TOPDIR" \
 	    BIN="$path/bin" \
@@ -56,13 +87,20 @@ for c in "display" "general" "imagery" "raster" "raster3d" "vector"; do
 	if [ `echo $?` -eq 0 ] ; then
 	    printf "%-30s%s\n" "$c/$m" "SUCCESS" >> "$ADDON_PATH/logs/ALL.log"
 	    echo " SUCCESS"
+	    echo "<td style=\"background-color: green\">SUCCESS</td>" >> "$ADDON_PATH/logs/$INDEX_FILE"
 	else
 	    printf "%-30s%s\n" "$c/$m" "FAILED" >> "$ADDON_PATH/logs/ALL.log"
 	    echo " FAILED"
+	    echo "<td style=\"background-color: red\">FAILED</td>" >> "$ADDON_PATH/logs/$INDEX_FILE"
 	fi
+	echo -e "<td><a href=\"$m.log\">log</a></td>\n</tr>" >> "$ADDON_PATH/logs/$INDEX_FILE"
 	cd ..
     done
     cd ..
 done
+
+echo -e "</table><hr />
+<div align=\"right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</div>
+</body>\n</html>\n" >> "$ADDON_PATH/logs/$INDEX_FILE"
 
 exit 0
