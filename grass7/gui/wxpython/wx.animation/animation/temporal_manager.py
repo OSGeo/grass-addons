@@ -5,7 +5,7 @@
 
 Classes:
  - temporal_manager::DataMode
- - temporal_manager::TemporalMapTime
+ - temporal_manager::GranularityMode
  - temporal_manager::TemporalManager
 
 
@@ -33,10 +33,6 @@ class DataMode:
     SIMPLE = 1
     MULTIPLE = 2
 
-class TemporalMapTime:
-    POINT = 1
-    INTERVAL = 2
-
 class GranularityMode:
     ONE_UNIT = 1
     ORIGINAL = 2
@@ -50,7 +46,6 @@ class TemporalManager(object):
 
         self.dataMode = None
         self.temporalType = None
-        self.temporalMapTime = None
 
         self.granularityMode = GranularityMode.ONE_UNIT
 
@@ -95,6 +90,11 @@ class TemporalManager(object):
         ret, message = self._setTemporalState()
         if not ret:
             raise GException(message)
+        if message: # warning
+            return message
+
+        return None
+
 
 
     def _setTemporalState(self):
@@ -130,12 +130,9 @@ class TemporalManager(object):
             else:
                 point += 1
         if bool(interval) == bool(point):
-            message = _("It is not allowed to display data with different temporal types of maps (interval and point).")
-            return False, message
-        if interval:
-            self.temporalMapTime = TemporalMapTime.INTERVAL
-        else:
-            self.temporalMapTime = TemporalMapTime.POINT
+            message = _("You are going to display data with different temporal types of maps (interval and point)."
+                        " It is recommended to use data of one temporal type to avoid confusion.")
+            return True, message # warning
 
         return True, None
 
@@ -184,10 +181,7 @@ class TemporalManager(object):
         mapLists = []
         labelLists = []
         for dataset in self.timeseriesList:
-            if self.temporalMapTime == TemporalMapTime.INTERVAL:
-                grassLabels, listOfMaps = self._getLabelsAndMapsInterval(dataset)
-            else:
-                grassLabels, listOfMaps = self._getLabelsAndMapsPoint(dataset)
+            grassLabels, listOfMaps = self._getLabelsAndMaps(dataset)
             mapLists.append(listOfMaps)
             labelLists.append(grassLabels)
 
@@ -197,7 +191,8 @@ class TemporalManager(object):
         for mapList, labelList in zip(mapLists, labelLists):
             newMapList = [None] * len(timestamps)
             i = 0
-            while timestamps[i] != labelList[0]:
+            # compare start time
+            while timestamps[i][0] != labelList[0][0]: # compare
                 i += 1
             newMapList[i:i + len(mapList)] = mapList
             newMapLists.append(newMapList)
@@ -208,12 +203,11 @@ class TemporalManager(object):
 
         return timestamps, mapDict
 
-    def _getLabelsAndMapsInterval(self, timeseries):
+    def _getLabelsAndMaps(self, timeseries):
         """!Returns time labels and map names (done by sampling)
-        for interval data.
+        for both interval and point data.
         """
         sp = tgis.dataset_factory(self.timeseriesInfo[timeseries]['etype'], timeseries)
-        # sp = tgis.SpaceTimeRasterDataset(ident = timeseries)
         if sp.is_in_db() == False:
             raise GException(_("Space time dataset <%s> not found.") % timeseries)
         sp.select()
@@ -231,76 +225,56 @@ class TemporalManager(object):
             unit = self.timeseriesInfo[timeseries]['unit']
             if self.granularityMode == GranularityMode.ONE_UNIT:
                 gran = 1
+        # start sampling - now it can be used for both interval and point data
+        # after instance, there can be a gap or an interval
+        # if it is a gap we remove it and put there the previous instance instead
+        # however the first gap must be removed to avoid duplication
         maps = sp.get_registered_maps_as_objects_by_granularity(gran = gran)
-        if maps is not None:
-            for map in maps:
-                if len(map) > 0:
-                    timeseries = map[0].get_id()
-                    start, end = map[0].get_valid_time()
-                    listOfMaps.append(timeseries)
-                    if end:
-                        end = str(end)
-                    timeLabels.append((str(start), end, unit))
+        if maps and len(maps) > 0:
+            lastTimeseries = None
+            followsPoint = False # indicates that we are just after finding a point
+            afterPoint = False # indicates that we are after finding a point
+            for mymap in maps:
+                if isinstance(mymap, list):
+                    if len(mymap) > 0:
+                        map = mymap[0]
                 else:
-                    continue
+                    map = mymap
 
-        if self.temporalType == TemporalType.ABSOLUTE:
-            timeLabels = self._pretifyTimeLabels(timeLabels)
+                series = map.get_id()
 
-        return timeLabels, listOfMaps
+                start, end = map.get_valid_time()
+                if end:
+                    end = str(end)
+                if end is None:
+                    # point data
+                    listOfMaps.append(series)
+                    afterPoint = True
+                    followsPoint = True
+                    lastTimeseries = series
+                else:
+                    # interval data
+                    if series:
+                        # map exists, stop point mode
+                        listOfMaps.append(series)
+                        afterPoint = False
+                    else:
+                        # check point mode
+                        if afterPoint:
+                            if followsPoint:
+                                # skip this one, already there
+                                followsPoint = False
+                                continue
+                            else:
+                                # append the last one (of point time)
+                                listOfMaps.append(lastTimeseries)
+                                end = None
+                        else:
+                            # append series which is None
+                            listOfMaps.append(series)
 
-    def _getLabelsAndMapsPoint(self, timeseries):
-        """!Returns time labels and map names (done by sampling)
-        for point data. 
+                timeLabels.append((str(start), end, unit))
 
-        Simplified sampling is done manually because we cannot sample point data.
-        """
-        sp = tgis.dataset_factory(self.timeseriesInfo[timeseries]['etype'], timeseries)
-        # sp = tgis.SpaceTimeRasterDataset(ident = timeseries)
-        if sp.is_in_db() == False:
-            raise GException(_("Space time dataset <%s> not found.") % timeseries)
-
-        sp.select()
-
-        listOfMaps = []
-        timeLabels = []
-        gran = self.GetGranularity()
-        unit = None
-        if self.temporalType == TemporalType.ABSOLUTE and \
-           self.granularityMode == GranularityMode.ONE_UNIT:
-            gran, unit = gran.split()
-            gran = '%(one)d %(unit)s' % {'one': 1, 'unit': unit}
-
-        if self.temporalType == TemporalType.RELATIVE:
-            unit = self.timeseriesInfo[timeseries]['unit']
-            if self.granularityMode == GranularityMode.ONE_UNIT:
-                gran = 1
-
-        start, end = sp.get_valid_time()
-
-        rows = sp.get_registered_maps(columns = "id,start_time", where = None, order = "start_time", dbif = None)
-        if not rows:
-            return timeLabels, listOfMaps
-
-        nextTime = start
-        while nextTime <= end:
-            timeLabels.append((str(nextTime), None, unit))
-            found = False
-            for row in rows:
-                timeseries, start_time = row
-                if start_time == nextTime:
-                    listOfMaps.append(timeseries)
-                    found = True
-                    break
-            if not found:
-                listOfMaps.append(timeseries) # here repeat last used map
-                # listOfMaps.append(None)
-
-            if sp.is_time_absolute():
-                nextTime = tgis.increment_datetime_by_string(nextTime, gran)
-            else:
-                nextTime = nextTime + gran
-                
         if self.temporalType == TemporalType.ABSOLUTE:
             timeLabels = self._pretifyTimeLabels(timeLabels)
 
@@ -365,27 +339,18 @@ def test():
     from pprint import pprint
     gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode = True)
 
-
-
     temp = TemporalManager()
 
-    timeseries1 = 'testRelInt1'
-    timeseries2 = 'testRelInt2'
-    createRelativeInterval(timeseries1, timeseries2)
-
-    # timeseries = 'testAbsPoint'
-    # createAbsolutePoint(timeseries)
-
+    timeseries1 = 'precip_abs0'
+    timeseries2 = 'precip_abs2'
+    createAbsoluteInterval(timeseries1, timeseries2)
 
     temp.AddTimeSeries(timeseries1, 'strds')
     temp.AddTimeSeries(timeseries2, 'strds')
-    # try:
-    #     temp._gatherInformation(timeseries, info)
-    # except GException, e:
-    #     print e
-    # pprint(info)
+
     try:
-        temp.EvaluateInputData()
+        warn = temp.EvaluateInputData()
+        print warn
     except GException, e:
         print e
         return
@@ -394,15 +359,6 @@ def test():
     gran = temp.GetGranularity()
     print "granularity: " + str(gran)
     pprint (temp.GetLabelsAndMaps())
-    # maps = []
-    # labels = []
-    # try:
-    #     maps, labels = temp.GetLabelsAndMaps(timeseries)
-    # except GException, e:
-    #     print e
-    # print maps
-    # print labels
-    # pprint(temp.timeseriesInfo['timeseries'])
 
 
 
@@ -516,11 +472,11 @@ def createAbsolutePoint(name):
     fd = open(n1, 'w')
     fd.write(
        "prec_1|2001-01-01\n"
-       "prec_2|2001-02-10\n"
-       "prec_3|2001-07-01\n"
-       "prec_4|2001-10-01\n"
-       "prec_5|2002-01-01\n"
-       "prec_6|2002-04-01\n"
+       "prec_2|2001-03-01\n"
+       "prec_3|2001-04-01\n"
+       "prec_4|2001-05-01\n"
+       "prec_5|2001-08-01\n"
+       "prec_6|2001-09-01\n"
        )
     fd.close()
     grass.run_command('t.create', overwrite = True, type='strds',

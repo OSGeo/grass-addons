@@ -413,7 +413,9 @@ class AnimationController(wx.EvtHandler):
                 if anim.inputMapType not in ('strds', 'stvds'):
                     continue
                 tempManager.AddTimeSeries(anim.inputData, anim.inputMapType)
-            tempManager.EvaluateInputData()
+            message = tempManager.EvaluateInputData()
+            if message:
+                GMessage(parent = self.frame, message = message)
 
         return temporalMode, tempManager
 
