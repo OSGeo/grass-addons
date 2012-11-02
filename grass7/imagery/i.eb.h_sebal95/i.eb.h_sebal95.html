@@ -1,16 +1,16 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<h2>NAME</h2> <I>i.eb.h_SEBAL95 </I>- computation of <i>sensible heat flux</i> [W/m2] after Bastiaanssen, 1995 in [1].
+<h2>NAME</h2> <I>i.eb.h_sebal95 </I>- computation of <i>sensible heat flux</i> [W/m2] after Bastiaanssen, 1995 in [1].
 
 <p><I>(GRASS Raster Program)</I>
 
 <h2>SYNOPSIS</h2>
-<b>i.eb.h_SEBAL95</b>
+<b>i.eb.h_sebal95</b>
 <br>
 
-<b>i.eb.h_SEBAL95</b> help
+<b>i.eb.h_sebal95</b> help
 <br>
 
-<b>i.eb.h_SEBAL95</b> <b>[ -qzn ]</b>
+<b>i.eb.h_sebal95</b> <b>[ -qzn ]</b>
 
 <b>DEM</b>=name
 <b>T</b>=name
@@ -22,7 +22,7 @@
 
 <h2>DESCRIPTION</h2>
 
-<p><em>i.eb.h_SEBAL95</em> given the vegetation height (hc), humidity (RU), 
+<p><em>i.eb.h_sebal95</em> given the vegetation height (hc), humidity (RU), 
 wind speed at two meters height (WS), temperature (T), digital terrain model (DEM), 
 and net radiation (NSR) raster input maps, 
 calculates the sensible heat flux map (h0).
@@ -50,7 +50,7 @@ The program will run non-interactively if the user specifies program
 arguments and flag settings on the command line using the following
 form:
 
-<p><b>i.eb.h_SEBAL95</b> <b>[ -qzd ]</b>
+<p><b>i.eb.h_sebal95</b> <b>[ -qzd ]</b>
 <b>DEM</b>=name
 <b>T</b>=name
 <b>RH</b>=name
@@ -61,7 +61,7 @@ form:
 
 
 
-<p>Alternatively, the user can simply type <em>i.eb.h_SEBAL95</em> on the
+<p>Alternatively, the user can simply type <em>i.eb.h_sebal95</em> on the
 command line and the program will ask for parameter values and flag
 settings interactively, using the standard GRASS parser interface.
 
