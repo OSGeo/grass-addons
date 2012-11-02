@@ -5,7 +5,7 @@ include $(MODULE_TOPDIR)/include/Make/Python.make
 
 MODULES = downmodis rmodislib convertmodis parsemodis
 
-DSTDIR = $(ETC)/r.modis
+DSTDIR = $(ETC)
 
 PYFILES := $(patsubst %,$(DSTDIR)/%.py,$(MODULES))
 PYCFILES := $(patsubst %,$(DSTDIR)/%.pyc,$(MODULES))
