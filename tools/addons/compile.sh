@@ -40,6 +40,7 @@ echo "<!--<?xml-stylesheet href=\"style.css\" type=\"text/css\"?>-->
 <meta http-equiv=\"Content-Type\" content=\"application/xhtml+xml; charset=utf-8\" />
 <title>WinGRASS $ADDON_PATH AddOns Logs</title>
 <style type=\"text/css\">
+h1 { font-size: 125%; font-weight: bold; }
 table
 {
 border-collapse:collapse;
@@ -51,9 +52,9 @@ border: 1px solid black;
 </style>
 </head>
 <body>
-<table cellpadding=\"5\">
-<h2>WinGRASS $GRASS_VERSION AddOns (logs gererated $date)</h2>
+<h1>WinGRASS $GRASS_VERSION AddOns (logs gererated $date)</h1>
 <hr /> 
+<table cellpadding=\"5\">
 <tr><th style=\"background-color: grey\">AddOns</th>
 <th style=\"background-color: grey\">Status</th>
 <th style=\"background-color: grey\">Log file</th></tr>" > "$ADDON_PATH/logs/$INDEX_FILE"
@@ -100,7 +101,7 @@ for c in "display" "general" "imagery" "raster" "raster3d" "vector"; do
 done
 
 echo -e "</table><hr />
-<div align=\"right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</div>
+<div style=\"text-align: right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</a></div>
 </body>\n</html>\n" >> "$ADDON_PATH/logs/$INDEX_FILE"
 
 exit 0
