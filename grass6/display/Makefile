@@ -4,6 +4,7 @@ SUBDIRS = \
 	d.edit.rast \
 	d.frame.split \
 	d.frontline \
+	d.hyperlink \
 	d.region \
 	d.region.box \
 	d.shortcuts \
