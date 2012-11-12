@@ -217,7 +217,11 @@ vtl <- args[5]                             # vector layer
 cln <- args[6]
 
 # Import the vector point layer
-spl <- readVECT6(vtl)
+#spl <- readVECT6(vtl) # replace with below
+b <- execGRASS("v.db.select", parameters=list(map="vtl"), intern=TRUE)
+con <- textConnection(b)
+spl <- read.table(con, header=TRUE, sep="|")
+close(con)
 
 # Extract columns and create table
 # Use column names if given, otherwise,
