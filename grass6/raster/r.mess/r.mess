@@ -218,6 +218,7 @@ cln <- args[6]
 
 # Import the vector point layer
 #spl <- readVECT6(vtl) # replace with below
+# To do: add option to select layer
 b <- execGRASS("v.db.select", parameters=list(map="vtl"), intern=TRUE)
 con <- textConnection(b)
 spl <- read.table(con, header=TRUE, sep="|")
