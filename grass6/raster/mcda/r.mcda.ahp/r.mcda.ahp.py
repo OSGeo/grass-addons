@@ -47,10 +47,12 @@
 import sys
 import grass.script as grass
 import numpy as np
+import warnings
 
 def calculateWeight(pairwise):
     "Define vector of weight based on eigenvector and eigenvalues"
     pairwise=np.genfromtxt(pairwise, delimiter=",")
+    warnings.simplefilter("ignore", np.ComplexWarning)
     eigenvalues, eigenvector=np.linalg.eig(pairwise)
     maxindex=np.argmax(eigenvalues)
     eigenvalues=np.float32(eigenvalues)

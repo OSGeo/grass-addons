@@ -51,7 +51,9 @@ void build_regime_matrix(int nrows, int ncols, int ncriteria,
 {
     int row1, col1, row2, col2;
     int i, j, k, cont;
-    double *row_sum_regime = G_alloc_vector(nrows * ncols);
+    double *row_sum_regime;
+    
+    row_sum_regime=G_malloc(ncriteria * nrows * ncols * sizeof(double*));
 
     j = 0;			/* make pairwise comparation and built regime matrix */
     for (row1 = 0; row1 < nrows; row1++)
@@ -77,9 +79,9 @@ void build_regime_matrix(int nrows, int ncols, int ncriteria,
                     row_sum_regime[j] += reg;
                 }
             }
+	    G_percent(j, nrows*ncols, 2);
             j++;		/* increase rows index up to nrows*ncols */
         }
-        G_percent(row1, nrows, 1);
     }
 
     /*calculate concordance and discordance index and storage in decision_vol */

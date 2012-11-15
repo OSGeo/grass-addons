@@ -60,6 +60,7 @@
 #%flag
 #% key: l
 #% description: do not remove single rules in vector format
+#% answer:false
 #%end
 #%flag
 #% key: n
@@ -71,8 +72,8 @@ import sys
 import copy
 import numpy as np
 from time import time, ctime  
-##from grass.script import core as grass
 import grass.script as grass
+import grass.script.array as garray
 
 
 def BuildFileISF(attributes, preferences, decision, outputMap, outputTxt):
@@ -463,21 +464,6 @@ def Domlem(Lu,Ld, infosystem):
 	attributes=infosystem['attributes']
 	
 	RULES=[]
-## *** AT LEAST {>= Class} - Type 1 rules *** "
-	for a in Lu[1:]:
-		B=a['objects']
-		E=Find_rules (B, infosystem, 'one')
-		for e in E:
-			for i in e:
-				i['class']=a['class']
-				i['label']=attributes[i['criterion']-1]['name']
-				i['type']='at_last'
-				if (attributes[i['criterion']-1]['preference']=='gain'):
-					i['sign']='>='
-				else:
-					i['sign']='<='
-			RULES.append(e)	   
-				
 
 ##  *** AT MOST {<= Class} - Type 3 rules ***"		
 	for b in Ld[:-1]:
@@ -493,20 +479,33 @@ def Domlem(Lu,Ld, infosystem):
 				else:
 					i['sign']='>='
 			RULES.append(e)
+			
+## *** AT LEAST {>= Class} - Type 1 rules *** "
+	for a in Lu[1:]:
+		B=a['objects']
+		E=Find_rules (B, infosystem, 'one')
+		for e in E:
+			for i in e:
+				i['class']=a['class']
+				i['label']=attributes[i['criterion']-1]['name']
+				i['type']='at_least'
+				if (attributes[i['criterion']-1]['preference']=='gain'):
+					i['sign']='>='
+				else:
+					i['sign']='<='
+			RULES.append(e)	   
 
 	return RULES
 	
 	
 def Print_rules(RULES, outputTxt):
 	"Print rls output file"
-
 	i=1
 	outfile=open(outputTxt+".rls","w")
 	outfile.write('[RULES]\n')
 	
 	for R in RULES:
 		outfile.write("%d: " % i, )
-		#"&".join(e)
 		for e in R:
 				outfile.write("( %s %s %.3f )" % (e['label'], e['sign'],e['condition'] ))
 		outfile.write("=> ( class %s , %s )\n" % ( e['type'], e['class'] ))
@@ -532,66 +531,78 @@ def Parser_mapcalc(RULES, outputMap):
 		grass.mapcalc(mappa +"=" +formula)
 		i+=1
 	mapstring=",".join(maps)
-	print mapstring
+
 	
-	for m in maps:
-		print "mappa:", m
-		grass.run_command("r.to.vect", overwrite='True', flags='s', input=m, output=m, feature='area')
-		grass.run_command("v.db.addcol", map=m, columns='rule varchar(25)')
-		grass.run_command("v.db.update", map=m, column='rule', value=m)
-		grass.run_command("v.db.update", map=m, column='label', value=" ".join(m.split('_')[1:]))
+	#make one layer for each label rule
+	labels=["_".join(m.split('_')[1:]) for m in maps] 
+	labels=list(set(labels))
+	for l in labels:
+		print "mapping %s rule" % str(l)
+		map_synth=[]
+		for m in maps:
+			if l == "_".join(m.split('_')[1:]):
+				map_synth.append(m)
+		if len(map_synth)>1:
+			grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l )
+		else:
+			grass.run_command("g.copy",rast=(str(map_synth),l))
+		print "__",str(map_synth),l
+		grass.run_command("r.to.vect", overwrite='True', flags='s', input=l, output=l, feature='area')
+		grass.run_command("v.db.addcol", map=l, columns='rule varchar(25)')
+		grass.run_command("v.db.update", map=l, column='rule', value=l)
+		grass.run_command("v.db.update", map=l, column='label', value=l)
+	mapslabels=",".join(labels)
+
 	if len(maps)>1:
-		grass.run_command("v.patch", overwrite='True', flags='e', input=mapstring, output=outputMap)
+		grass.run_command("v.patch", overwrite='True', flags='e', input=mapslabels, output=outputMap)
 	else:
-		grass.run_command("g.copy",vect=(mapstring,outputMap))
-	
-	grass.run_command("g.remove",  rast=mapstring)
+		grass.run_command("g.copy",vect=(mapslabels,outputMap))
+			
 	if not flags['l']:
+		grass.run_command("g.remove",  rast=mapstring)
 		grass.run_command("g.remove",  vect=mapstring)
-
-
+		
 	return 0
 	  
 	
 def main():
 	"main function for DOMLEM algorithm"
-
-	try:
-		start=time()
-		attributes = options['criteria'].split(',')
-		preferences=options['preferences'].split(',')
-		decision=options['decision']
-		outputMap= options['outputMap']
-		outputTxt= options['outputTxt']
-		out=BuildFileISF(attributes, preferences, decision, outputMap, outputTxt)
-		infosystem=FileToInfoSystem(out)
-		
-		UnionOfClasses(infosystem)
-		DownwardUnionClass=DownwardUnionsOfClasses(infosystem)
-		UpwardUnionClass=UpwardUnionsOfClasses(infosystem)
-		Dominating=DominatingSet(infosystem)
-		Dominated=DominatedSet(infosystem)
-	##	upward union class
-		print "elaborate upward union"
-		Lu=LowerApproximation(UpwardUnionClass, Dominating) #lower approximation of upward union for type 1 rules
-		Uu=UpperApproximation(UpwardUnionClass,Dominated ) #upper approximation of upward union
-		UpwardBoundary=Boundaries(Uu, Lu)
-	##	downward union class
-		print "elaborate downward union"
-		Ld=LowerApproximation(DownwardUnionClass, Dominated) # lower approximation of  downward union for type 3 rules
-		Ud=UpperApproximation(DownwardUnionClass,Dominating ) # upper approximation of  downward union 
-		DownwardBoundary=Boundaries(Ud, Ld)
-		QualityOfQpproximation(DownwardBoundary,  infosystem)
-		print "RULES extraction (*)" 
-		RULES=Domlem(Lu,Ld, infosystem)
-		Parser_mapcalc(RULES, outputMap)		   
-		Print_rules(RULES, outputTxt)
-		end=time()
-		print "Time computing-> %.4f s" % (end-start)
-		return 0
-	except:
-		print "ERROR! Rules does not generated!"
-		sys.exit()
+	#try:
+	start=time()
+	attributes = options['criteria'].split(',')
+	preferences=options['preferences'].split(',')
+	decision=options['decision']
+	outputMap= options['outputMap']
+	outputTxt= options['outputTxt']
+	out=BuildFileISF(attributes, preferences, decision, outputMap, outputTxt)
+	infosystem=FileToInfoSystem(out)
+	
+	UnionOfClasses(infosystem)
+	DownwardUnionClass=DownwardUnionsOfClasses(infosystem)
+	UpwardUnionClass=UpwardUnionsOfClasses(infosystem)
+	Dominating=DominatingSet(infosystem)
+	Dominated=DominatedSet(infosystem)
+##	upward union class
+	print "elaborate upward union"
+	Lu=LowerApproximation(UpwardUnionClass, Dominating) #lower approximation of upward union for type 1 rules
+	Uu=UpperApproximation(UpwardUnionClass,Dominated ) #upper approximation of upward union
+	UpwardBoundary=Boundaries(Uu, Lu)
+##	downward union class
+	print "elaborate downward union"
+	Ld=LowerApproximation(DownwardUnionClass, Dominated) # lower approximation of  downward union for type 3 rules
+	Ud=UpperApproximation(DownwardUnionClass,Dominating ) # upper approximation of  downward union 
+	DownwardBoundary=Boundaries(Ud, Ld)
+	QualityOfQpproximation(DownwardBoundary,  infosystem)
+	print "RULES extraction (*)" 
+	RULES=Domlem(Lu,Ld, infosystem)
+	Parser_mapcalc(RULES, outputMap)		   
+	Print_rules(RULES, outputTxt)
+	end=time()
+	print "Time computing-> %.4f s" % (end-start)
+	return 0
+	#except:
+		#print "ERROR! Rules does not generated!"
+		#sys.exit()
 
 if __name__ == "__main__":
 	options, flags = grass.parser()

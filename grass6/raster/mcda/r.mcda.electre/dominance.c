@@ -52,10 +52,15 @@ void build_dominance_matrix(int nrows, int ncols, int ncriteria,
 {
     int row1, col1, row2, col2;
     int i, j, k, cont;
-    double *row_sum_conc = G_alloc_vector(nrows * ncols);
-    double *col_sum_conc = G_alloc_vector(nrows * ncols);
-    double *row_sum_disc = G_alloc_vector(nrows * ncols);
-    double *col_sum_disc = G_alloc_vector(nrows * ncols);
+	double *row_sum_conc;
+	double *col_sum_conc;
+	double *row_sum_disc;
+	double *col_sum_disc;
+
+	row_sum_conc=G_malloc(ncriteria * nrows * ncols * sizeof(double*));
+	col_sum_conc=G_malloc(ncriteria * nrows * ncols * sizeof(double*));
+	row_sum_disc=G_malloc(ncriteria * nrows * ncols * sizeof(double*));
+	col_sum_disc=G_malloc(ncriteria * nrows * ncols * sizeof(double*));
 
     k = 0;			/* make pairwise comparation and build concordance/discordance matrix */
     for (row1 = 0; row1 < nrows; row1++)
@@ -69,13 +74,11 @@ void build_dominance_matrix(int nrows, int ncols, int ncriteria,
                 for (col2 = 0; col2 < ncols; col2++)
                 {
                     double conc = 0, disc = 0;
-
                     for (i = 0; i < ncriteria; i++)
                     {
-                        double d =
-                            decision_vol[row1][col1][i] -
-                            decision_vol[row2][col2][i];
-                        if (d >= 0)
+                        double d;
+			d = decision_vol[row1][col1][i] - decision_vol[row2][col2][i];
+                        if (d >= 0 )
                             conc += weight_vect[i];
                         if (d < disc)	/*WARNING: if(d>conc) */
                             /**/ disc = -d;
@@ -84,11 +87,12 @@ void build_dominance_matrix(int nrows, int ncols, int ncriteria,
                     col_sum_conc[j] += conc;
                     row_sum_disc[k] += disc;
                     col_sum_disc[j] += disc;
+		    
 
                     j++;	/* increase rows index up to nrows*ncols */
                 }
             }
-            k++;		/* increase columns index up to nrows*ncols */
+            k++;		/* increase columns index up to nrows*ncols */;
         }
     }
 
