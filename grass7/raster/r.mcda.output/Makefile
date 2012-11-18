@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.to.drsa
+PGM = r.mcda.output
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

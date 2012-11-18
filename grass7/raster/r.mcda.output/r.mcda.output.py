@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:       r.to.drsa
+# MODULE:       r.mcda.output
 # AUTHOR:       Gianluca Massei - Antonio Boggia
 # PURPOSE:      Export criteria raster maps and decision raster map in a *.isf
 #               file for dominance rough set approach analysis (DRSA)
