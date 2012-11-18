@@ -8,7 +8,7 @@ SUBDIRS = \
 	r.hydrodem \
 	r.in.srtm.region \
 	r.in.wms2 \
-	r.mcda.ahp |
+	r.mcda.ahp \
 	r.mcda.input \
 	r.mcda.output \
 	r.mcda.roughset \
