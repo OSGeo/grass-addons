@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 ############################################################################
 #
-# MODULE:	   r.in.drsa
+# MODULE:	   r.mcda.input
 # AUTHOR:	   Gianluca Massei - Antonio Boggia
 # PURPOSE:	  Import roles from *.rls file and apply those condition
 #			   at geographics information system for generate a raster
