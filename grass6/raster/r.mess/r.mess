@@ -291,7 +291,7 @@ if(rtl=="R"){
         system("g.remove -f rast=MASK")
         
         # Create the string with pairs of x-y values
-        x1 <- as.numeric(rownames(a))
+        x1 <- round(as.numeric(rownames(a)), nchar((1/digits)-1))
         x2 <- format(c(x1[-1],envmax+digits), scientific=FALSE, trim=TRUE)  
         x3 <- format(x1 + digits, scientific = FALSE, trim=TRUE)
         a1 <- paste(x1,x3,sep=",", collapse=",")
