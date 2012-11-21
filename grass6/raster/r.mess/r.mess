@@ -251,7 +251,7 @@ tml <- unlist(strsplit(args[4], ";"))[-1]  # temporary layers
 vtl <- args[5]                             # reference distribution raster layer
 rtl <- args[10]                            # raster or vector layer
 digits <- as.numeric(args[9])              # Precision
-
+rdigits <- nchar((1/digits)-1)
 
 #-----------------------------------------------------------------------
 # Create the r.mapcalc expressions to calculate the mess for the 
@@ -263,9 +263,9 @@ if(rtl=="R"){
     
     # Reference distribution layer is raster 
     #-----------------------------------------------------------------------  
-
-    flnm1 <- system("g.tempfile -d pid=$$", intern=TRUE)
-    flnm2 <- paste(flnm1, ".txt", sep="")
+    
+    flnm1 <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".txt")
+    flnm2 <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".txt")
     for(i in 1:length(ipl)){
         
         # Import the environmental data ipl[i] in R. I could use r.stats to 
@@ -282,26 +282,31 @@ if(rtl=="R"){
         system(paste("awk -F \"|\" '{print $3}' ", flnm1, " > ", flnm2, sep=""))
         spld <- scan(file=flnm2)
         unlink(c(flnm1, flnm2))
+        spld <- round(spld, rdigits)
         
         # Calculate the frequency distribution 
         a  <- table(spld)
         envmin <- min(spld)
         envmax <- max(spld)
-        rm(spld)
+        Drange <- system(paste("r.info -r --verbose map=", ipl[i], sep=""), intern=T)
+        Dmin <- as.numeric(sub("min=", "", Drange[1]))
+        Dmax <- as.numeric(sub("max=", "", Drange[2]))
         system("g.remove -f rast=MASK")
         
-        # Create the string with pairs of x-y values
-        x1 <- round(as.numeric(rownames(a)), nchar((1/digits)-1))
-        x2 <- format(c(x1[-1],envmax+digits), scientific=FALSE, trim=TRUE)  
-        x3 <- format(x1 + digits, scientific = FALSE, trim=TRUE)
-        a1 <- paste(x1,x3,sep=",", collapse=",")
-        b  <- format(cumsum(as.numeric(a))/sum(a)*100, scientific=FALSE, trim=TRUE)
-        a2 <- paste(c(0,b[-length(b)]), b, sep=",", collapse=",")
-        a3 <- paste(strsplit(a1,",")[[1]],strsplit(a2,",")[[1]],sep=",", collapse=",")
+        # Create recode rules
+        x1 <- c(Dmin, as.numeric(rownames(a))+digits)
+        x2 <- c(envmin, as.numeric(rownames(a))[-1],Dmax)
+        y1 <- c(0,cumsum(as.numeric(a))/sum(a)*100)
+        xy1 <- format(cbind(x1,x2,y1), scientific=F, trim=T, nsmall=rdigits)
+        xy2 <- apply(xy1, 1, function(x){paste(x, collapse=":")})
+        tmp.rule <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".rules")
+        write.table(xy2, file=tmp.rule, quote=F, row.names=F, col.names=F)
         
-        system(paste("r.mapcalc '", tml[i], " = graph(", ipl[i], ",", a3, ")'", sep=""))
+        # Create the recode layer and calculate the IES
+        system(paste("r.recode input=", ipl[i], " output=", tml[i], " rules=", tmp.rule, sep=""))
         system(paste("r.mapcalc '", opi[i], " = if(", tml[i], "==0, (float(", ipl[i], ")-", envmin, ")/(", envmax, "-", envmin, ") *100.0, if(", tml[i], "<=50, 2 * ", tml[i], ", if(", tml[i], "<100.0, 2 * (100.0- ", tml[i], "), (", envmax, "- float(", ipl[i], "))/(", envmax, "-", envmin, ") * 100.0)))'", sep="")) 
         system(paste("g.remove rast=", tml[i], sep=""))
+        unlink(tmp.rule)
     }
 
 }else{
@@ -326,21 +331,25 @@ if(rtl=="R"){
         a  <- table(spl[i])
         envmin <- min(spl[i])
         envmax <- max(spl[i])
+        Drange <- system(paste("r.info -r --verbose map=", ipl[i], sep=""), intern=T)
+        Dmin <- as.numeric(sub("min=", "", Drange[1]))
+        Dmax <- as.numeric(sub("max=", "", Drange[2]))
         
-        # Create the string with pairs of x-y values
-        x1 <- as.numeric(rownames(a))
-        x2 <- format(c(x1[-1],envmax+digits), scientific=FALSE, trim=TRUE)  
-        x3 <- format(x1 + digits, scientific = FALSE, trim=TRUE)
-        a1 <- paste(x1,x3,sep=",", collapse=",")
-        b  <- format(cumsum(as.numeric(a))/sum(a)*100, scientific=FALSE, trim=TRUE)
-        a2 <- paste(c(0,b[-length(b)]), b, sep=",", collapse=",")
-        a3 <- paste(strsplit(a1,",")[[1]],strsplit(a2,",")[[1]],sep=",", collapse=",")
+        # Create recode rules
+        x1 <- c(Dmin, as.numeric(rownames(a))+digits)
+        x2 <- c(envmin, as.numeric(rownames(a))[-1],Dmax)
+        y1 <- c(0,cumsum(as.numeric(a))/sum(a)*100)
+        xy1 <- format(cbind(x1,x2,y1), scientific=F, trim=T, nsmall=rdigits)
+        xy2 <- apply(xy1, 1, function(x){paste(x, collapse=":")})
+        tmp.rule <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".rules")
+        write.table(xy2, file=tmp.rule, quote=F, row.names=F, col.names=F)
         
-        system(paste("r.mapcalc '", tml[i], " = graph(", ipl[i], ",", a3, ")'", sep=""))
+        # Create the recode layer and calculate the IES
+        system(paste("r.recode input=", ipl[i], " output=", tml[i], " rules=", tmp.rule, sep=""))
         system(paste("r.mapcalc '", opi[i], " = if(", tml[i], "==0, (float(", ipl[i], ")-", envmin, ")/(", envmax, "-", envmin, ") *100.0, if(", tml[i], "<=50, 2 * ", tml[i], ", if(", tml[i], "<100.0, 2 * (100.0- ", tml[i], "), (", envmax, "- float(", ipl[i], "))/(", envmax, "-", envmin, ") * 100.0)))'", sep="")) 
         system(paste("g.remove rast=", tml[i], sep=""))
+        unlink(tmp.rule)
     }
-
 }
 
 #-----------------------------------------------------------------------
