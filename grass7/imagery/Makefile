@@ -8,9 +8,11 @@ SUBDIRS = \
 	i.evapo.potrad \
 	i.evapo.senay \
 	i.evapo.zk \
+	i.flip \
 	i.histo.match \
 	i.lmf \
 	i.points.auto \
+	i.rotate \
 	i.segment \
 	i.vi.mpi
 
