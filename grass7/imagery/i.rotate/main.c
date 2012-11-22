@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     int nrows, ncols;
     int row, col;
     struct GModule *module;
-    struct Option *in, *out;
+    struct Option *in, *out, *n;
     struct History history;	/*metadata */
     int infd, outfd;
     void *inrast, *outrast;
@@ -54,6 +54,13 @@ int main(int argc, char *argv[])
     /* Define the different options */ 
     in = G_define_standard_option(G_OPT_R_INPUT);
     out = G_define_standard_option(G_OPT_R_OUTPUT);
+    n = G_define_option();
+    n->key = "angle";
+    n->key_desc = "degrees";
+    n->type = TYPE_DOUBLE;
+    n->required = YES;
+    n->description = _("Rotation angle");
+    n->answer = "20.0";
 
     if (G_parser(argc, argv))
         exit(EXIT_FAILURE);
@@ -100,7 +107,7 @@ int main(int argc, char *argv[])
 	    }
         }
     }
-    double theta=20.0;
+    double theta=n->answer;
     double thetarad=theta*3.1415927/180;
     double costheta=cos(thetarad);
     double sintheta=sin(thetarad);
