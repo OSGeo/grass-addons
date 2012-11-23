@@ -111,7 +111,6 @@ int main(int argc, char *argv[])
 	_("If accumulation is larger than d8cut, SFD is used instead of MFD."
 	  " Applies only if no accumulation map is given.");
     input.d8cut->required = NO;
-    input.d8cut->answer = "infinity";
     input.d8cut->type = TYPE_DOUBLE;
 
     input.mont_exp = G_define_option();
