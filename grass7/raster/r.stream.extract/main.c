@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Threshold must be > 0 but is %f"), threshold);
 
     /* d8cut */
-    if (strcmp(input.d8cut->answer, "infinity") == 0) {
+    if (!input.d8cut->answer) {
 	d8cut = DBL_MAX;
     }
     else {
