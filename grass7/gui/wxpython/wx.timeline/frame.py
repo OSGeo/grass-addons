@@ -1,5 +1,5 @@
 """!
-@package timeline.frame
+@package frame
 
 @brief Timeline Tool
 

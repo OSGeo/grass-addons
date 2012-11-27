@@ -39,10 +39,10 @@ import gettext
 
 import grass.script as grass
 
-if __name__ == '__main__':
-    sys.path.append(os.path.join(os.environ['GISBASE'], "etc", "gui", "wxpython"))
+# if __name__ == '__main__':
+#     sys.path.append(os.path.join(os.environ['GISBASE'], "etc", "gui", "wxpython"))
 
-from timeline.frame import TimelineFrame
+sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'g.gui.timeline'))
 
 def main():
     gettext.install('grasswxpy', os.path.join(os.getenv("GISBASE"), 'locale'), unicode = True)
@@ -54,6 +54,7 @@ def main():
     view3d = flags['3']
 
     app = wx.PySimpleApp()
+    from frame import TimelineFrame
     frame = TimelineFrame(None)
     frame.SetDatasets(datasets)
     frame.Show3D(view3d)
