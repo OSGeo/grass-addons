@@ -205,8 +205,7 @@ def UnionOfClasses (infosystem):
 	for c in range(len(DecisionClass)):
 		tmplist=[r for r in matrix if int(r[-1])==DecisionClass[c]]
 		AllClasses.append(tmplist)  
-	
-	return AllClasses
+	return AllClasses,DecisionClass
 	
 	
 def DownwardUnionsOfClasses (infosystem):
@@ -280,9 +279,9 @@ def DominatedSet (infosystem):
 	return Dominated
 
 
-def LowerApproximation (UnionClasses,  Dom):
+def LowerApproximation (UnionClasses,  Dom, DecisionClass):
 	"Find Lower approximation and return a dictionaries list"
-	c=1
+	c=0
 	LowApprox=[]
 	single=dict()
 	for union in UnionClasses:
@@ -291,15 +290,15 @@ def LowerApproximation (UnionClasses,  Dom):
 		for d in Dom:
 			if (UClass.issuperset(set(d['dominance']))): #if Union class is a superse of dominating/dominated set, =>single Loer approx.
 				tmp.append(d['object'])
-		single={'class':c, 'objects':tmp} #dictionary for lower approximation  -- 
+		single={'class':DecisionClass[c], 'objects':tmp} #dictionary for lower approximation  -- 
 		LowApprox.append(single) #insert all Lower approximation in a list
 		c+=1
 	return LowApprox
 
 
-def UpperApproximation (UnionClasses,  Dom):
+def UpperApproximation (UnionClasses,  Dom, DecisionClass):
 	"Find Upper approximation and return a dictionaries list"
-	c=1
+	c=0
 	UppApprox=[]
 	single=dict()
 	for union in UnionClasses:
@@ -308,8 +307,7 @@ def UpperApproximation (UnionClasses,  Dom):
 		for d in Dom:
 		   if len(set(d['dominance']) & set(UnClass)) >0:
 			   s.append(d['object'])
-#			   print set(s)
-		single={'class':c,'objects':list(set(s))}
+		single={'class':DecisionClass[c],'objects':list(set(s))}
 		UppApprox.append(single)
 		c+=1
 
@@ -545,13 +543,14 @@ def Parser_mapcalc(RULES, outputMap):
 		if len(map_synth)>1:
 			grass.run_command("r.patch", overwrite='True', input=(",".join(map_synth)), output=l )
 		else:
-			grass.run_command("g.copy",rast=(str(map_synth),l))
-		print "__",str(map_synth),l
+			grass.run_command("g.copy",rast=("".join(map_synth),l))
 		grass.run_command("r.to.vect", overwrite='True', flags='s', input=l, output=l, feature='area')
 		grass.run_command("v.db.addcol", map=l, columns='rule varchar(25)')
 		grass.run_command("v.db.update", map=l, column='rule', value=l)
+		grass.run_command("v.db.addcol", map=l, columns='label varchar(25)')
 		grass.run_command("v.db.update", map=l, column='label', value=l)
 	mapslabels=",".join(labels)
+	
 
 	if len(maps)>1:
 		grass.run_command("v.patch", overwrite='True', flags='e', input=mapslabels, output=outputMap)
@@ -567,42 +566,42 @@ def Parser_mapcalc(RULES, outputMap):
 	
 def main():
 	"main function for DOMLEM algorithm"
-	#try:
-	start=time()
-	attributes = options['criteria'].split(',')
-	preferences=options['preferences'].split(',')
-	decision=options['decision']
-	outputMap= options['outputMap']
-	outputTxt= options['outputTxt']
-	out=BuildFileISF(attributes, preferences, decision, outputMap, outputTxt)
-	infosystem=FileToInfoSystem(out)
-	
-	UnionOfClasses(infosystem)
-	DownwardUnionClass=DownwardUnionsOfClasses(infosystem)
-	UpwardUnionClass=UpwardUnionsOfClasses(infosystem)
-	Dominating=DominatingSet(infosystem)
-	Dominated=DominatedSet(infosystem)
-##	upward union class
-	print "elaborate upward union"
-	Lu=LowerApproximation(UpwardUnionClass, Dominating) #lower approximation of upward union for type 1 rules
-	Uu=UpperApproximation(UpwardUnionClass,Dominated ) #upper approximation of upward union
-	UpwardBoundary=Boundaries(Uu, Lu)
-##	downward union class
-	print "elaborate downward union"
-	Ld=LowerApproximation(DownwardUnionClass, Dominated) # lower approximation of  downward union for type 3 rules
-	Ud=UpperApproximation(DownwardUnionClass,Dominating ) # upper approximation of  downward union 
-	DownwardBoundary=Boundaries(Ud, Ld)
-	QualityOfQpproximation(DownwardBoundary,  infosystem)
-	print "RULES extraction (*)" 
-	RULES=Domlem(Lu,Ld, infosystem)
-	Parser_mapcalc(RULES, outputMap)		   
-	Print_rules(RULES, outputTxt)
-	end=time()
-	print "Time computing-> %.4f s" % (end-start)
-	return 0
-	#except:
-		#print "ERROR! Rules does not generated!"
-		#sys.exit()
+	try:
+		start=time()
+		attributes = options['criteria'].split(',')
+		preferences=options['preferences'].split(',')
+		decision=options['decision']
+		outputMap= options['outputMap']
+		outputTxt= options['outputTxt']
+		out=BuildFileISF(attributes, preferences, decision, outputMap, outputTxt)
+		infosystem=FileToInfoSystem(out)
+		
+		AllClasses,DecisionClass=UnionOfClasses(infosystem)
+		DownwardUnionClass=DownwardUnionsOfClasses(infosystem)
+		UpwardUnionClass=UpwardUnionsOfClasses(infosystem)
+		Dominating=DominatingSet(infosystem)
+		Dominated=DominatedSet(infosystem)
+	##	upward union class
+		print "elaborate upward union"
+		Lu=LowerApproximation(UpwardUnionClass, Dominating, DecisionClass) #lower approximation of upward union for type 1 rules
+		Uu=UpperApproximation(UpwardUnionClass,Dominated, DecisionClass ) #upper approximation of upward union
+		UpwardBoundary=Boundaries(Uu, Lu)
+	##	downward union class
+		print "elaborate downward union"
+		Ld=LowerApproximation(DownwardUnionClass, Dominated, DecisionClass) # lower approximation of  downward union for type 3 rules
+		Ud=UpperApproximation(DownwardUnionClass,Dominating, DecisionClass ) # upper approximation of  downward union 
+		DownwardBoundary=Boundaries(Ud, Ld)
+		QualityOfQpproximation(DownwardBoundary,  infosystem)
+		print "RULES extraction (*)" 
+		RULES=Domlem(Lu,Ld, infosystem)
+		Parser_mapcalc(RULES, outputMap)		   
+		Print_rules(RULES, outputTxt)
+		end=time()
+		print "Time computing-> %.4f s" % (end-start)
+		return 0
+	except:
+		print "ERROR! Rules does not generated!"
+		sys.exit()
 
 if __name__ == "__main__":
 	options, flags = grass.parser()
