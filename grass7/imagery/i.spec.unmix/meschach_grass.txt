@@ -1,4 +1,4 @@
-$Id: meschach_grass.txt 11 2000-12-05 21:00:14Z neteler $
+$Id$
 
 missing:
 - find max of matrix A (find_max)
