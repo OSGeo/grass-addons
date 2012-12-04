@@ -9,7 +9,7 @@
 #include <math.h>
 #include <grass/gmath.h>
 #include "global.h"
-
+#include "la_extra.h"
 
 /* input mat_struct A, vec_struct Avector1, Avector2
  * output cur_angle
@@ -38,7 +38,7 @@ float spectral_angle(vec_struct * Avector1, vec_struct * Avector2)
 
     /* multiply one A column with second */
     //  vtmp1 = G_vector_init (0, 0, RVEC);
-    vtmp1 = G_vector_product(Avector1, Avector2, vtmp1);
+    vtmp1 = G_vector_product(Avector1, Avector2);
     norm1 = G_vector_norm1(vtmp1);	/* calculate 1-norm */
     norm2 = G_vector_norm_euclid(Avector1);	/* calculate 2-norm (Euclidean) */
     norm3 = G_vector_norm_euclid(Avector2);	/* calculate 2-norm (Euclidean) */

@@ -27,6 +27,7 @@
 #include <grass/gmath.h>
 #include <grass/glocale.h>
 #include "global.h"
+#include "open.h"
 
 #include <grass/gis.h>
 

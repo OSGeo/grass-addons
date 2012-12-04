@@ -12,7 +12,7 @@ int G_matrix_read2(FILE * fp, mat_struct * out);
 void G_matrix_print2(mat_struct * mt, const char *name);
 vec_struct *G_matvect_get_column2(mat_struct * mt, int col);
 
-
+vec_struct *G_vector_product(vec_struct *, vec_struct *);
 
 VEC *G_vec_get(int size);
 VEC *G_vec_get2(int size, VEC * vector);
