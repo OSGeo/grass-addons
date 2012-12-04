@@ -1,20 +1,16 @@
-#include <math.h>
-#include <grass/imagery.h>
-#include <grass/la.h> /* LAPACK/BLAS */
+#ifndef __GLOBAL_H__
+#define __GLOBAL_H__
+
+#include <grass/config.h>
+#include <grass/gis.h>
+#include <grass/gmath.h>
+#include <grass/la.h>
 
 #ifndef GLOBAL
 #define GLOBAL extern
 #endif
 
-#define MAXFILES 255
 
-GLOBAL mat_struct *A, *A_tilde_trans;
-GLOBAL vec_struct *Avector1, *Avector2, *b, *fraction;
-GLOBAL int matrixsize;
-GLOBAL double svd_error;
-GLOBAL float curr_angle;
-
-GLOBAL char *group;
 GLOBAL struct Ref Ref;
 
 GLOBAL CELL **cell;
@@ -29,15 +25,10 @@ GLOBAL int  error_fd;
 GLOBAL CELL *iter_cell;
 GLOBAL int  iter_fd;
 
-GLOBAL char result_name[80];
-GLOBAL char *result_prefix, *matrixfile, *error_name, *iter_name;
 
-GLOBAL struct
-    {
-     struct Flag *quiet;
-    } flag;
-                
-GLOBAL struct
-    {
-     struct Flag *veryquiet;
-    } flag2;
+GLOBAL float spectral_angle(vec_struct *, vec_struct *);
+GLOBAL int do_histogram(char *, char *);
+GLOBAL void make_history(char *, char *, char *);
+GLOBAL int open_files(char *, char *, char *, char *, mat_struct *A);
+
+#endif /* __GLOBAL_H__ */

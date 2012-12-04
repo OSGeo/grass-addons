@@ -1,148 +1,116 @@
-/* Spectral mixture analysis of satellite/aerial images
- * (c) 1999-2000 Markus Neteler, Hannover, Germany
+/****************************************************************************
  *
- * COPYRIGHT:    (C) 2008 by the GRASS Development Team, Markus Neteler
- *               neteler cealp.it
+ * MODULE:       i.spec.unmix
  *
- *               This program is free software under the GNU General Public
- *               License (>=v2). Read the file COPYING that comes with GRASS
- *               for details.
+ * AUTHOR(S):    Markus Neteler  <neteler itc.it>
+ *               Mohammed Rashad <rashadkm gmail.com>
  *
- * VERSION: Based on LAPACK/BLAS
+ * PURPOSE:      Spectral mixture analysis of satellite/aerial images
  *
- * Module calculates
- *          -1
- *      x =A   b
+ * COPYRIGHT:    (C) 2006-2012 by the GRASS Development Team
  *
- *  A: matrix of reference spectra (endmembers)
- *  b: pixel vector from satellite image
- *  x: unknown fraction vector
+ *               This program is free software under the GNU General
+ *               Public License (>=v2). Read the file COPYING that
+ *               comes with GRASS for details.
  *
- * with two constraints:
- *    1. SUM x_i = 1     (max. 100%)              -> least square problem
- *    2. 0 <= x_i <= 1   (no negative fractions)  -> Steepest Descend of
- *                                                      error surface
- *
- *
- * IMPORTANT: Physical units of matrix file and image data set must fit
- *            otherwise the algorithm might run into endless loop!
- *
- * TODO: complete LAPACK/BLAS port. Check with Brad Douglas.
- ********************************************************************/
+ *****************************************************************************/
              
 #define GLOBAL
+
+#include <grass/config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>
 #include <math.h>
-#include <grass/gis.h>
-#include <grass/la.h>
+#include <grass/imagery.h>
+#include <grass/gmath.h>
+#include <grass/glocale.h>
 #include "global.h"
 
-#define GAMMA 10   /* last row value in Matrix and last b vector element */
-                   /* for constraint Sum xi = 1 (GAMMA=weight) */
+#include "la_extra.h"
 
-int open_files();
-void spectral_angle();
 
-double find_max(double x, double y) 
+#define GAMMA 10   /* last row value in Matrix and last b vector element
+                    * for constraint Sum xi = 1 (GAMMA=weight) */
+
+
+static double find_max (double x, double y)
 {
- return((x*(x>y))+(y*(x<=y)));
+    return ((x * (x > y)) + (y * (x <= y)));
 }
 
 
-CELL myround (x)
-  double x;
-  {
-    CELL n;
-    
-    if (x >= 0.0)
-        n = x + .5;
-    else
-       {
-        n = -x + .5;
-        n = -n;
-       }
-    return n;
-  }
-
-
-int main(int argc, char *argv[]) 
+int main (int argc, char *argv[]) 
 {
+    char result_name[80];
     int nrows, ncols;
-    int row, col;
-    int band;
-    int i, j, k, iterations;
-    mat_struct *A_tilde;
-    vec_struct *b_gamma;
-    vec_struct *startvector, *A_times_startvector, *errorvector, *temp;
-    mat_struct *A_tilde_trans_mu;
-    int *index;
-    double max1, max2, max_total=0.0;
-    double change, mu, deviation;
+    int row;
+    int i, j, k;
+    VEC *b, *b_gamma;
+    VEC *startvector, *A_times_startvector, *errorvector, *temp;
+    mat_struct *A, *A_tilde, *A_tilde_trans_mu, *A_tilde_trans;
+    
+    mat_struct B, B_tilde, B_tilde_trans_mu;
+    
+     struct GModule *module;
+    
+    double max_total = 0.0;
+    double mu;
     float anglefield[255][255];
-    double error;
-    char command[80];
-    struct
-    {
+    double error = 0.0;
+    struct {
 	struct Option *group, *matrixfile, *result, *error, *iter;
     } parm;
 
+    /* initialize GIS engine */
     G_gisinit (argv[0]);
+    
+      module = G_define_module();
+    
+     module->keywords = _("imagery, spectral unmixing");
+  module->description =
+      _("Perfroms Spectral mixture analysis of satellite/aerial images");
 
-    parm.group = G_define_option();
-    parm.group->key = "group";
-    parm.group->type = TYPE_STRING;
-    parm.group->required = YES;
-    parm.group->description = "Imagery group to be analyzed with Spectral Mixture Analyis";
+    parm.group = G_define_standard_option (G_OPT_I_GROUP);
 
     parm.matrixfile = G_define_option();
-    parm.matrixfile->key = "matrixfile";
-    parm.matrixfile->type = TYPE_STRING;
+    parm.matrixfile->key      = "matrix";
+    parm.matrixfile->type     = TYPE_STRING;
     parm.matrixfile->required = YES;
-    parm.matrixfile->description = "Matrix file containing spectral signatures ";
+    parm.matrixfile->gisprompt = "old_file,file";
+    parm.matrixfile->label = _("Open Matrix file");    
+    parm.matrixfile->description = _("Matrix file containing spectral signatures");
+    
+    
 
-    parm.result = G_define_option();
-    parm.result->key = "result";
-    parm.result->type = TYPE_STRING;
-    parm.result->required = YES;
-    parm.result->description = "Raster map prefix to hold spectral unmixing results";
+       
 
-    parm.error = G_define_option();
-    parm.error->key = "error";
-    parm.error->type = TYPE_STRING;
-    parm.error->required = YES;
-    parm.error->description = "Raster map to hold unmixing error";
+    parm.result = G_define_option ();
+    parm.result->key         = "result";
+    parm.result->description = _("Name of raster map prefix to hold spectral unmixing results");
+    parm.result->guisection = _("Required");
 
- 
-    parm.iter = G_define_option();
-    parm.iter->key = "iter";
-    parm.iter->type = TYPE_STRING;
-    parm.iter->required = YES;
-    parm.iter->description = "Raster map to hold number of iterations";
+    parm.error = G_define_standard_option (G_OPT_R_OUTPUT);
+    parm.error->key         = "error";
+    parm.error->description = _("Name of raster map to hold unmixing error");
 
-    flag.quiet = G_define_flag();
-    flag.quiet->key = 'q';
-    flag.quiet->description = "Run quietly (but with percentage output)";
+    parm.iter = G_define_standard_option (G_OPT_R_OUTPUT);
+    parm.iter->key         = "iter";
+    parm.iter->description = _("Raster map to hold number of iterations");
 
-    flag2.veryquiet = G_define_flag();
-    flag2.veryquiet->key = 's';
-    flag2.veryquiet->description = "Run silently (say nothing)";
+    if (G_parser (argc, argv))
+	
+	exit (EXIT_FAILURE);
+	
 
-    if (G_parser(argc,argv))
-	exit(EXIT_FAILURE);
-
-    result_prefix = parm.result->answer;
-    error_name   = parm.error->answer;
-    iter_name    = parm.iter->answer;
-    group        = parm.group->answer;
-    matrixfile   = parm.matrixfile->answer;
-    if (flag2.veryquiet->answer)
-    	flag.quiet->answer = 1;
-
-/* here we go... */
-
-    open_files(); /*A is created here */
+    /* here we go... A is created here */
+    A = open_files2 (parm.matrixfile->answer,
+                parm.group->answer,
+                parm.result->answer,
+                parm.iter->answer, 
+                parm.error->answer); 
+     //G_warning("printing A******");    
+    //G_matrix_print2(A,"A");             
 
   /* ATTENTION: Internally we work here with col-oriented matrixfile,
    *  but the user has to enter the spectra row-wise for his/her's
@@ -165,246 +133,480 @@ int main(int argc, char *argv[])
    *
    * 2. Beside checking matrix orthogonality we find out the maximum
    *    entry of the matrix for configuring stepsize mu later.  */
-     
-    for (i = 0; i < A->cols; i++) /* go columnwise through matrix*/
-    {
-     Avector1 = G_matvect_get_column(A, i);
-     max1 = G_vector_norm_maxval(Avector1, index); /* get the max. element of this vector */
-     for (j = 0; j < A->cols ; j++)
-	{
-	 if (j !=i)
-	    {
-	     Avector2 = G_matvect_get_column(A, j);  /* get next col in A */
-	     max2 = G_vector_norm_maxval(Avector2, index); /* get the max. element of this vector */
-	     max_total=(find_max(max1,max2),max_total); /* find max of matrix A */
 
-	     spectral_angle();                 /* check vector angle */
-	     anglefield[i][j]= curr_angle;     /* save angle in degree */
-	     G_vector_free(Avector2);
-	    }
-	}
-     G_vector_free(Avector1);
-     G_vector_free(Avector2);
+    /* go columnwise through matrix */
+    
+ 
+
+   
+  for (i = 0; i < A->cols; i++)
+  {
+    vec_struct *Avector1, *Avector2;
+    double max1, max2;
+
+    Avector1 = G_matvect_get_column2 (A, i);
+    
+   // G_matrix_print(Avector1);
+    
+//G_warning("Avector1: %d", Avector1->rows);
+
+    // get the max. element of this vector
+    max1 = G_vector_norm_maxval (Avector1, 1);
+    
+double temp = max1;
+
+    for (j = 0; j < A->cols; j++)
+    {
+      if (j != i)
+	    {
+        // get next col in A
+        Avector2 = G_matvect_get_column (A, j);
+//G_matrix_print(Avector2);
+        //  get the max. element of this vector
+        max2 = G_vector_norm_maxval (Avector2, 1);
+        
+//G_warning("max2: %lf", max2);
+
+
+
+if(max2 > max1)
+temp = max2;
+
+//G_warning("temp: %lf", temp);
+
+if(temp > max_total)
+max_total = temp;
+        // find max of matrix A 
+//        max_total = (find_max (max1, max2), max_total);
+//G_warning("max_total: %lf", max_total);
+        // save angle in degree 
+        anglefield[i][j] = spectral_angle (Avector1, Avector2);
+        //G_warning("anglefield[i][j]: %lf", anglefield[i][j]);
+        
+      }
     }
 
-    /* print out the result */
-    if (!flag.quiet->answer)
-    	{
-         fprintf(stderr,"Checking linear dependencies (orthogonality check) of Matrix A:\n");
-         for (i = 0; i < A->cols ; i++)
-            for (j = 0; j < A->cols ; j++)
-	    {
-             if (j !=i)
-              fprintf(stderr,"  Angle between row %i and row %i: %g degree\n", \
-                                         (i+1), (j+1), anglefield[i][j]);
-                               /* internally this is col and not row certainly */
-            }
-         fprintf(stderr,"\n");
-        }
-   /* check it */
-   error=0;
-   for (i = 0; i < A->cols ; i++)
-     for (j = 0; j < A->cols ; j++)
-       if (j !=i)
-         if (anglefield[i][j] < 8.0)
-         {
-	     fprintf(stderr,"ERROR: Spectral entries row%i: and row%i: in your matrix \
-                                    are linear dependent!\n",i,j);
-	     fprintf(stderr,"       You have to revise your reference spectra.\n");
-	     error=1;
-	     exit(EXIT_FAILURE);
-	 }
+    G_vector_free (Avector1);
+    G_vector_free (Avector2);
+  }
 
-   if (!error)
-     if (!flag.quiet->answer)
-	 fprintf(stderr,"Spectral matrix is o.k. Proceeding...\n\n");
+  G_message (_("Checking linear dependencies (orthogonality check) of Matrix A..."));
 
+  for (i = 0; i < A->cols; i++)
+    for (j = 0; j < A->cols; j++)
+      if (j != i)
+        // internally this is col and not row certainly 
+          G_message (_("Angle between row %i and row %i: %g degree"), (i + 1), (j + 1), anglefield[i][j]);
 
-/* Begin calculations */
-   /* 1. contraint SUM xi = 1
-    *   add last row "1" elements to Matrix A, store in A_tilde
-    *   A_tilde is one row-dimension more than A */
-   A_tilde = m_get(A->rows+1, A->cols);  /* memory allocation */
+  for (i = 0; i < A->cols ; i++)
+    for (j = 0; j < A->cols ; j++)
+      if (j != i)
+        if (anglefield[i][j] < 8.0)
+          G_fatal_error (_("Spectral entries row %i: and row %i: in "
+                                  "your matrix are linear dependent!\nYou "
+                                  "have to revise your reference spectra."),
+                                  i, j);
 
-   for (i=0; i < A->rows ; i++)   /* copy rowwise */
-     for (j=0; j < A->cols; j++)  /* copy colwise */
-          G_matrix_get_element(A_tilde, i, j)= A->G_matrix_get_element[i][j];
+    if (!error)
+        G_message (_("Spectral matrix is o.k. Proceeding..."));
 
-   /* fill last row with 1 elements */
-   for (j=0; j < A->cols ; j++)
-      G_matrix_get_element(A_tilde, [A->rows][j])= GAMMA;
-   /* now we have an overdetermined (non-square) system */
+    // Begin calculations 
+    // 1. contraint SUM xi = 1
+     //   add last row "1" elements to Matrix A, store in A_tilde
+     //   A_tilde is one row-dimension more than A 
+     
+     
 
 
-/* We have a least square problem here: error minimization
- *                             T          -1         T
- * unknown fraction = [A_tilde * A_tilde]  * A_tilde * b
- *
- * A_tilde is the non-square matrix with first constraint in last row.
- * b is pixel vector from satellite image
- * 
- * Solve this by deriving above equation and searching the
- * minimum of this error function in an iterative loop within
- * both constraints.
- */
 
-   /* calculate the transpose of A_tilde*/
-    A_tilde_trans = G_matrix_transpose(A_tilde);
+    // memory allocation 
+    A_tilde = G_matrix_init (A->rows + 1, A->cols, A->rows+1);
+    if (A_tilde == NULL)
+        G_fatal_error (_("Unable to allocate memory for matrix"));
 
-/* initialize some values */
-  /* step size must be small enough for covergence  of iteration:
-   *  mu=0.000001;      step size for spectra in range of W/m^2/um
-   *  mu=0.000000001;   step size for spectra in range of mW/m^2/um
-   *  mu=0.000001;      step size for spectra in range of reflectance   
-   ***/
-   /* check  max_total for number of digits to configure mu size*/
-    mu=0.0001 * pow(10,-1*ceil(log10(max_total)));
-    startvector = v_get(A->cols);                /* length: no. of spectra */
-    A_times_startvector = v_get(A_tilde->m);  /* length: no. of bands   */
-    errorvector = v_get(A_tilde->m);          /* length: no. of bands   */
-    temp = v_get(A_tilde->n);                 /* length: no. of spectra */
-    A_tilde_trans_mu = m_get(A_tilde->m,A_tilde->n);
 
-/* Now we can calculated the fractions pixelwise */
-    nrows = G_window_rows(); /* get geographical region */
-    ncols = G_window_cols();
-    
-    if (!flag.quiet->answer)
-    	{
-	 fprintf (stderr, "Calculating for %i x %i pixels (%i bands) = %i pixelvectors:\n",\
-	 		nrows,ncols, Ref.nfiles, (ncols * ncols));
-	 fprintf (stderr, "%s ... ", G_program_name());
-	}
-    for (row = 0; row < nrows; row++)             /* rows loop in images */
+ //G_message("rrrr%d", A_tilde->rows); 
+
+
+    for (i = 0; i < A->rows ; i++)
+        for (j = 0; j < A->cols; j++)
+            G_matrix_set_element (A_tilde, i, j, G_matrix_get_element (A, i, j));
+
+
+
+    // fill last row with 1 elements 
+
+    for (j = 0; j < A_tilde->cols; j++)
     {
-	if (!flag2.veryquiet->answer)
-	    G_percent(row, nrows, 1);
-	for (band = 0; band < Ref.nfiles; band++) /* get one row for all bands*/
-	{
-	 if (G_get_map_row (cellfd[band], cell[band], row) < 0)
-		exit(EXIT_FAILURE);
-	}
+    //G_message("Row: %d, Col:%d",i,j);
+        G_matrix_set_element (A_tilde, i, j, GAMMA);
+    }
+//G_matrix_print2(A_tilde, "A_tilde");
 
-	for (col = 0; col < ncols; col++)
-             /* cols loop, work pixelwise for all bands */
-	{
 
-	    /* get pixel values of each band and store in b vector: */
-	     b_gamma = v_get(A_tilde->m);              /* length: no. of bands + 1 (GAMMA)*/
-	     for (band = 0; band < Ref.nfiles; band++)
-		  b_gamma->ve[band] = cell[band][col];  
-            /* add GAMMA for 1. constraint as last element*/
-	     b_gamma->ve[Ref.nfiles] = GAMMA;    
+    // now we have an overdetermined (non-square) system 
 
-            /* calculate fraction vector for current pixel
-             * Result is stored in fractions vector       
-	     * with second constraint: Sum x_i = 1 */
+    // We have a least square problem here: error minimization
+     //                             T          -1         T
+     // unknown fraction = [A_tilde * A_tilde]  * A_tilde * b
+     //
+     // A_tilde is the non-square matrix with first constraint in last row.
+     // b is pixel vector from satellite image
+     // 
+     // Solve this by deriving above equation and searching the
+     // minimum of this error function in an iterative loop within
+     // both constraints.
+     
 
-	     change=1000;  /* initialize */
-	     deviation=1000;
-             iterations = 0;
-             for (k = 0; k < (A_tilde->n); k++)  /* no. of spectra times */
-                  startvector->ve[k] = (1./A_tilde->n);
+    // calculate the transpose of A_tilde
+//G_matrix_print(A_tilde);    
+    
+    A_tilde_trans = G_matrix_transpose (A_tilde);
+//G_matrix_print2(A_tilde_trans, "A_tilde_trans");
 
-	    /* get start vector and initialize it with equal fractions:
-	     * using the neighbor pixelvector as startvector*/
 
-	      /* solve with iterative solution: */
-	     while( fabs(change) > 0.0001 )
-		{
-		 /* go a small step into direction of negative gradient
-                  * errorvector = A_tilde * startvector - b_gamma */
-		 mv_mlt(A_tilde, startvector, A_times_startvector);
-		 v_sub(A_times_startvector, b_gamma, errorvector);
-                 sm_mlt(mu, A_tilde_trans, A_tilde_trans_mu);
-                 mv_mlt(A_tilde_trans_mu, errorvector, temp);
-                 v_sub(startvector,temp,startvector); /* update startvector */
+    // initialize some values
 
-                 /* if one element gets negative, set it to zero */
-                 for (k = 0; k < (A_tilde->n); k++)  /* no. of spectra times */
+    // step size must be small enough for covergence  of iteration:
+     //  mu = 0.000001;      step size for spectra in range of W/m^2/um
+     //  mu = 0.000000001;   step size for spectra in range of mW/m^2/um
+     //  mu = 0.000001;      step size for spectra in range of reflectance   
+     //
+
+    // check  max_total for number of digits to configure mu size
+    mu = 0.0001 * pow (10, -1 * ceil (log10 (max_total)));
+    
+    
+    //G_message("mu = %lf", mu);
+startvector = G_vec_get2(A->cols,startvector); 
+
+
+  
+    if (startvector == NULL)
+        G_fatal_error (_("Unable to allocate memory for vector"));
+
+
+
+    A_times_startvector = G_vec_get2(A_tilde->rows,A_times_startvector);  // length: no. of bands   //
+    errorvector = G_vec_get2(A_tilde->rows,errorvector);          // length: no. of bands   //
+    temp = G_vec_get2(A_tilde->cols,temp);                 // length: no. of spectra //
+  //  A_tilde_trans_mu = m_get(A_tilde->m,A_tilde->n);
+
+
+
+
+    // length: no. of bands   
+
+    if (A_times_startvector == NULL)
+        G_fatal_error (_("Unable to allocate memory for vector"));
+
+    // length: no. of bands   
+
+    if (errorvector == NULL)
+        G_fatal_error (_("Unable to allocate memory for vector"));
+
+    // length: no. of spectra 
+
+    if (temp == NULL)
+        G_fatal_error (_("Unable to allocate memory for vector"));
+
+    A_tilde_trans_mu = G_matrix_init (A_tilde->rows, A_tilde->cols, A_tilde->rows);
+    if (A_tilde_trans_mu == NULL)
+        G_fatal_error (_("Unable to allocate memory for matrix"));
+
+    // Now we can calculated the fractions pixelwise 
+    nrows = G_window_rows (); // get geographical region 
+    ncols = G_window_cols ();
+
+    G_message (_("Calculating for %i x %i pixels (%i bands) = %i pixelvectors."),
+              nrows, ncols, Ref.nfiles, (ncols * ncols));
+              
+              
+ //G_vec_print(A_times_startvector, "A_times_startvectorq");              
+
+    for (row = 0; row < nrows; row++)
+    {
+        int col, band;
+
+        G_percent (row, nrows, 1);
+
+        // get one row for all bands 
+        for (band = 0; band < Ref.nfiles; band++)
+            if (G_get_map_row (cellfd[band], cell[band], row) < 0)
+                G_fatal_error (_("Unable to get map row [%d]"), row);
+                
+   // for (band = 0; band < Ref.nfiles; band++)                
+   // {
+    //  if (G_get_map_row (cellfd[band], cell[band], row) < 0)
+      //  G_fatal_error (_("Unable to get map row [%d]"), row);
+        
+     //G_message("row: %d, nrows: %d", row, nrows);	  
+      for (col = 0; col < ncols; col++)
+      {
+        
+        
+            
+            double change     = 1000;
+            double deviation  = 1000;
+            int    iterations = 0;
+
+
+            // get pixel values of each band and store in b vector: 
+            // length: no. of bands + 1 (GAMMA) 
+            
+            b_gamma = G_vec_get2(A_tilde->rows,b_gamma);
+            
+//            b_gamma = G_vector_init (A_tilde->rows, 1, RVEC);
+            if (b_gamma == NULL)
+                G_fatal_error (_("Unable to allocate memory for matrix"));
+
+
+ //G_message("%d", A_tilde->rows);  
+            for (band = 0; band < Ref.nfiles; band++)
+            {
+              b_gamma->ve[band] = cell[band][col];
+              //G_message("band: %d col: %d", band,col);  
+              //G_matrix_set_element (b_gamma, 0, band, cell[band][col]);
+            }   
+             
+
+            // add GAMMA for 1. constraint as last element 
+	    b_gamma->ve[Ref.nfiles] = GAMMA;    
+///            G_matrix_set_element (b_gamma, 0, Ref.nfiles, GAMMA);
+            
+           
+//G_matrix_print(b_gamma,"b_gamma");
+
+            for (k = 0; k < A_tilde->cols; k++) 
+                 startvector->ve[k] = (1.0 / A_tilde->cols);
+ //               G_matrix_set_element (startvector, k,0, (1.0 / A_tilde->cols));
+//G_matrix_print(startvector,"startvector1");  
+
+            
+//G_matrix_print(b_gamma, "b_gama");
+            // calculate fraction vector for current pixel
+             // Result is stored in fractions vector       
+	     // with second constraint: Sum x_i = 1
+
+
+
+
+//G_vec_print(startvector, "startvector");
+	    // get start vector and initialize it with equal fractions:
+	     // using the neighbor pixelvector as startvector 
+            
+
+	    // solve with iterative solution: 
+            while (fabs (change) > 0.0001)
+            {
+            
+     
+            
+	A_times_startvector =	 mv_mlt(A_tilde, startvector, A_times_startvector);
+		
+//G_vec_print(A_times_startvector, "xx");
+		errorvector = v_sub(A_times_startvector, b_gamma, errorvector);
+	//G_vec_print(A_times_startvector, "errorvector");	 
+		 		 
+           A_tilde_trans_mu =      sm_mlt(mu, A_tilde_trans, A_tilde_trans_mu);
+                 
+                 
+//G_matrix_print(A_tilde_trans_mu,"A_tilde_trans_mu");                 
+                 
+             
+            temp =     mv_mlt(A_tilde_trans_mu, errorvector, temp);
+          startvector =       v_sub(startvector,temp,startvector); // update startvector //
+
+                 // if one element gets negative, set it to zero //
+                 for (k = 0; k < (A_tilde->cols); k++)  // no. of spectra times //
                    if (startvector->ve[k] < 0)
                         startvector->ve[k] = 0;
 
-                 /* Check the deviation */
-                 change = deviation - G_vector_norm_euclid(errorvector);
-                 deviation = G_vector_norm_euclid(errorvector);
+                 // Check the deviation //
+                 double norm2 = v_norm2(errorvector);
+                 change = deviation - norm2;
+                 deviation = norm2;
+                 
+                    iterations++;
+                 
+                // if(fabs (change) > 0.0001)
+                 //G_message("change=%lf, deviation=%lf",change, 0.0001);        
+            
+            /********************/
+            
+            
+                // go a small step into direction of negative gradient
+                 // errorvector = A_tilde * startvector - b_gamma
+                //
+//		mv_mlt(A_tilde, startvector, A_times_startvector);
 
-		 /* debug output */
-		 /*fprintf(stderr, "Change: %g - deviation: %g\n", \
-		  *change, deviation); */
+/*
 
-                 iterations++;
-	        } /* while */
+//G_matrix_print(A_times_startvector,"A_times_startvector");
+//G_matrix_print(b_gamma, "b_gamma");
+//G_matrix_print(errorvector, "errorvector");
+                G_vector_sub (A_times_startvector, b_gamma, errorvector);
+                
+              
+//                sm_mlt(mu, A_tilde_trans, A_tilde_trans_mu);
+//                mv_mlt(A_tilde_trans_mu, errorvector, temp);
+                G_vector_sub (startvector, temp, startvector);
 
-	     fraction=v_get(A->cols);     /* length: no. of spectra */
-             error = deviation / G_vector_norm_euclid(b_gamma);
-             v_copy(startvector, fraction);
+                // if one element gets negative, set it to zero 
+                for (k = 0; k < A_tilde->cols; k++)  // no. of spectra times 
+                {
+//                    if (startvector->ve[k] < 0)
+//                        startvector->ve[k] = 0;
 
-            /*----------  end of second contraint -----------------------*/
-            /* store fractions in resulting rows of resulting files
-             * (number of bands = vector dimension) */
+//G_message("get_element: %lf", G_matrix_get_element (startvector, startvector->cols, k));
 
-	    /* write result in full percent */
-	     for (i = 0; i < A->cols; i++)  /* no. of spectra */
+                    if ((G_matrix_get_element (startvector, startvector->cols, k) < 0))
+                    {
+                        G_matrix_set_element (startvector, startvector->cols, k, 0);
+                        //G_message("A_tilde->cols: %d", A_tilde->cols); //4 
+                    }
+                }    
+                // Check the deviation 
+                double norm_euclid = G_vector_norm_euclid (errorvector);
+                
+                 // G_message("norm_euclid : %lf", norm_euclid );
+                change = deviation - norm_euclid;
+                deviation = G_vector_norm_euclid (errorvector);
+                
+               // G_message ("Change: %g - deviation: %g",  change, deviation);                
+
+                G_debug (5, "Change: %g - deviation: %g",
+                             change, deviation);
+*/
+             
+               
+            }
+            
+            // if(fabs (change) > 0.0001)
+                     
+
+
+           
+      VEC *fraction;
+//G_message("fcol %d  and A->cols %d", startvector->dim, A->cols);
+	     fraction=G_vec_get(A->cols);     // length: no. of spectra //
+             error = deviation / v_norm2(b_gamma);
+            fraction = G_vec_copy (startvector);
+
+   
+
+	    // write result in full percent //
+	     for (i = 0; i < A->cols; i++)  // no. of spectra //
 		  result_cell[i][col] = (CELL)(100 * fraction->ve[i]); 
   
 
 
-	    /* save error and iterations*/
+	    // save error and iterations//
              error_cell[col] = (CELL) (100 * error);
              iter_cell[col] = iterations;
 
-	     G_vector_free(fraction);
-	     G_vector_free(b);	     
-	   } /* columns loop */
+	     //V_FREE(fraction);
+	     //V_FREE(b);	     
+	     
+	  //   }
+	                 
 
-	  /* write the resulting rows into output files: */
-	  for (i = 0; i < A->cols; i++)   /* no. of spectra */
-	      G_put_map_row (resultfd[i], result_cell[i]);
-	  if (error_fd > 0)
-	      G_put_map_row (error_fd, error_cell);
-	  if (iter_fd > 0)
-	      G_put_map_row (iter_fd, iter_cell);
 
-	} /* rows loop */
 
-    if (!flag2.veryquiet->answer)
-	G_percent(row, nrows, 2);
-	
-  /* close files */
-    for (i = 0; i < Ref.nfiles; i++)   /* no. of bands */
-  	  G_unopen_cell(cellfd[i]);
-  	  
-    for (i = 0; i < A->cols; i++)   /* no. of spectra */
-    	{
-	  G_close_cell (resultfd[i]);
-	  /* make grey scale color table */
-	  sprintf(result_name, "%s.%d", result_prefix, (i+1));	               
-          sprintf(command, "r.colors map=%s color=rules 2>&1> /dev/null <<EOF\n
-			    0 0 0 0 \n
-			    100 0 255 0\n
-			    end\n
-			    EOF", result_name);
-          system(command);
-         /* create histogram */
-          do_histogram(result_name, Ref.file[i].mapset);
-	}
+            //----------  end of second contraint -----------------------
+            // store fractions in resulting rows of resulting files
+            // (number of bands = vector dimension) 
+
+	    // write result in full percent 
+	    //G_matrix_print(fraction,"fraction"); //same as startvector
+	    
+	     //G_message ("fraction->rows: %d",fraction->rows);
+	    //G_message ("i=%d, col=%d",i,col);
+	    
+/*
+	    
+	    
+	    for (i = 0; i < A->cols; i++)  // no. of spectra 
+	    {
+	    double dd = G_matrix_get_element (fraction,  i, 0); 
+	    dd = 100*dd;
+	    //G_message ("i=%d, col=%d",i,col);
+	    result_cell[i][col] = (CELL) dd;
+	        //result_cell[i][col] = (CELL)(100 * G_matrix_get_element (fraction, fraction->rows-1, i)); 
+	    }    
+	  
+	    // save error and iterations 
+            error_cell[col] = (CELL) (100 * error);
+            iter_cell[col] = iterations;
+
+	    G_vector_free (fraction);
+	   // G_vector_free (b);
+
+*/
+        } //end cols loop
+  
+  //G_message("finished %d of %d", row,nrows);
+    //  }
+   // }
+  
+
+
+        // write the resulting rows into output files: 
+        for (i = 0; i < A->cols; i++)   // no. of spectra 
+            G_put_map_row (resultfd[i], result_cell[i]);
+
+        if (error_fd > 0)
+            G_put_map_row (error_fd, error_cell);
+
+        if (iter_fd > 0)
+            G_put_map_row (iter_fd, iter_cell);
+        
+    } // rows loop 
+    G_percent (row, nrows, 2);
+
+    // close files 
+    for (i = 0; i < Ref.nfiles; i++)   // no. of bands 
+  	  G_unopen_cell (cellfd[i]);
+
+    for (i = 0; i < A->cols; i++)      // no. of spectra 
+    {
+        char command[1080];
+
+        G_close_cell (resultfd[i]);
+
+        // make grey scale color table 
+        sprintf (result_name, "%s.%d", parm.result->answer, (i+1));
+        sprintf (command, "r.colors map=%s color=rules <<EOF\n"
+                          "0 0 0 0 \n"
+                          "201 0 255 0\n"
+                          "end\n"
+                          "EOF", result_name);
+                          
+                          
+        //G_message(command);
+        //G_system (command);
+
+        // create histogram 
+        do_histogram (result_name, Ref.file[i].mapset);
+    }
+
     if (error_fd > 0)
-    	{
-	 G_close_cell (error_fd);
-	 sprintf(command, "r.colors map=%s color=gyr >/dev/null", error_name);
-	 system(command);
-	}
+    {
+        char command[80];
+
+        G_close_cell (error_fd);
+        sprintf (command, "r.colors map=%s color=gyr >/dev/null", parm.error->answer);
+        //G_system (command);
+    }
+
     if (iter_fd > 0)
-    	{
-	 G_close_cell (iter_fd);
-	/* sprintf(command, "r.colors map=%s color=gyr >/dev/null", iter_name);
-	 system(command);*/
-	}
+        G_close_cell (iter_fd);
 
-    G_matrix_free(A);
+    G_matrix_free (A);
 
-    make_history(result_name, group, matrixfile);
-    exit(EXIT_SUCCESS);
-} /* main*/
-
+    make_history (result_name, parm.group->answer, parm.matrixfile->answer);
+    
+/*********************
+*********************/
+    exit (EXIT_SUCCESS);
+}

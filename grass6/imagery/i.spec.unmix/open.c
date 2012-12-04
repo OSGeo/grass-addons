@@ -1,11 +1,6 @@
 /* Spextral unmixing with Singular Value Decomposition */
 /* (c) 15. Jan. 1999 Markus Neteler, Hannover*/
 
-/**************************************************************************
- ** Matrix computations based on Meschach Library
- ** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
- **************************************************************************/
-
 /* Cited references are from
      Steward, D.E, Leyk, Z. 1994: Meschach: Matrix computations in C.
         Proceedings of the centre for Mathematics and its Applicaions.
@@ -13,143 +8,309 @@
         ISBN 0 7315 1900 0
 */
 
-#include "global.h"
 #include <stdio.h>
 #include <math.h>
-#include <grass/gis.h>
-#include "matrix.h"
-#include "matrix2.h"
+#include <grass/imagery.h>
+#include <grass/gmath.h>
+#include <grass/glocale.h>
+#include "global.h"
 
-int open_files()
+
+int open_files (char *matrixfile,
+                char *img_grp,
+                char *iter_name,
+                char *error_name,
+                mat_struct *A)
 {
-    char *name, *mapset;
+    char result_name[80];
+    char *result_prefix="out";
     FILE *fp;
-    int i;
-    MAT *A_input;
+    int i, matrixsize;
+    mat_struct A_input;
+  
     
-/* Read in matrix file with spectral library.
-   Input matrix must contain spectra row-wise (for user's convenience)!
-   Transposed here to col-wise orientation (for modules/mathematical 
-   convenience).
- */
+//     mat_struct A_input1;
+/*
 
-    fp=fopen(matrixfile,"r");
-    if (fp == NULL)
-    	{
-    	 fprintf(stderr,"ERROR: Matrixfile %s not found.\n",matrixfile);
-    	 exit(EXIT_FAILURE);
-    	}
-    A_input = m_finput(fp, MNULL);
+    if ((fp = fopen (matrixfile, "r")) == NULL)
+    	 G_fatal_error (_("Matrix file %s not found."), matrixfile);
+    	 
+    	 
+   //G_matrix_init2( &A_input,3,3,3);
+   // G_warning("matrix read start");
+//    G_warning("cols=%d",A_input->cols);
+
+    if ((G_matrix_read (fp, &A_input) < 0))
+        G_fatal_error (_("Unable to read matrix file %s."), matrixfile);
     fclose (fp);
 
-    if (!flag.quiet->answer)
-    {
-	fprintf(stderr, "Your spectral matrix = ");
-	m_output(A_input);
-    }
-    
-/* transpose input matrix from row orientation to col orientation.
- * Don't mix rows and cols in the source code and the modules
- *    messages output!  */
- 
-    A=m_get(A_input->m, A_input->n);
-    m_transp(A_input, A);
-    M_FREE(A_input);
-    
-    if ( A->m < A->n )
-    {
-	fprintf(stderr, "ERROR: Need number of cols >= rows to perform least squares fitting.\n");
-	exit(EXIT_FAILURE);
-    }
-    matrixsize = A->m; /* number of rows must be equivalent to no. of bands */
+    //G_matrix_print(&A_input);
 
-/* open input files from group */
-    if (!I_find_group(group))
-    {
-	fprintf (stderr, "group=%s - not found\n", group);
-	exit(EXIT_FAILURE);
-    }
-    I_get_group_ref(group, &Ref);
+
+  // G_warning("matrix read done");
+#if 0
+    G_message(_("Your spectral matrix = %d"), m_output(A_input));
+#endif
+
+
+
+//    A = m_get(A_input->rows, A_input->cols);
+
+    G_matrix_clone2(&A_input, A);
+  
+
+    
+    //*A = *G_matrix_init (A_input.rows, A_input.cols, A_input.rows);
+//    if (A == NULL)
+      //  G_fatal_error (_("Unable to allocate memory for matrix"));
+
+    A = G_matrix_transpose (&A_input);
+    
+   // G_matrix_free (&A_input);
+
+//     G_matrix_print(A);   
+
+    if ((A->rows) < (A->cols))
+	G_fatal_error (_("Need number of cols >= rows to perform least squares fitting."));
+
+    // number of rows must be equivalent to no. of bands
+    matrixsize = A->cols;
+
+    // open input files from group
+    if (!I_find_group (img_grp))
+	G_fatal_error (_("Unable to find imagery group %s."), img_grp);
+
+    I_get_group_ref (img_grp, &Ref);
     if (Ref.nfiles <= 1)
     {
-	fprintf (stderr, "ERROR: Group %s\n", group);
 	if (Ref.nfiles <= 0)
-	    fprintf (stderr, "doesn't have any files\n");
+            G_fatal_error (_("Group %s does not have any rasters. "
+                        "The group must have at least 2 rasters."), img_grp);
 	else
-	    fprintf (stderr, "only has 1 file\n");
-	fprintf (stderr, "The group must have at least 2 files\n");
-	exit(EXIT_FAILURE);
-    }
-   /* Error check: input file number must be equal to matrix size */
-    if (Ref.nfiles != matrixsize)
-    {
-	fprintf (stderr, "ERROR: Number of %i input files in group <%s>\n", Ref.nfiles, group);
- 	fprintf (stderr, "       does not match no. of spectra in matrix \
- 	                 (contains only %i cols).\n", A->m);
-	exit(1);
+            G_fatal_error (_("Group %s only has 1 raster. "
+                        "The group must have at least 2 rasters."), img_grp);
     }
 
-   /* get memory for input files */
+    // Error check: input file number must be equal to matrix size
+    if (Ref.nfiles != matrixsize)
+        G_fatal_error (_("Number of input files (%i) in group <%s> "
+                    "does not match number of spectra in matrix. "
+                    "(contains only %i cols)."),
+                    Ref.nfiles, img_grp, A->cols);
+
+    // get memory for input files
     cell = (CELL **) G_malloc (Ref.nfiles * sizeof (CELL *));
     cellfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
-    for (i=0; i < Ref.nfiles; i++)
+    for (i = 0; i < Ref.nfiles; i++)
     {
-	cell[i] = G_allocate_cell_buf();
-	name = Ref.file[i].name;
-	mapset = Ref.file[i].mapset;
-	if (!flag.quiet->answer)
-		fprintf (stderr,"Opening input file no. %i [%s]\n", (i+1), name);
-	if ((cellfd[i] = G_open_cell_old (name, mapset)) < 0)
-	{
-	    fprintf (stderr, "Unable to proceed\n");
-	    exit(1);
-	}
+	cell[i] = G_allocate_cell_buf ();
+
+	G_message (_("Opening input file no. %i [%s]"), (i + 1), Ref.file[i].name);
+
+	if ((cellfd[i] = G_open_cell_old (Ref.file[i].name, Ref.file[i].mapset)) < 0)
+	    G_fatal_error (_("Unable to open <%s>"), Ref.file[i].name);
     }
 
-/* open files for results*/
+    // open files for results 
     result_cell = (CELL **) G_malloc (Ref.nfiles * sizeof (CELL *));
     resultfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
-    for (i=0; i < (A->n); i++)      /* no. of spectra */
+
+    for (i = 0; i < A->cols; i++)      // no. of spectra
     {
-	 sprintf(result_name, "%s.%d", result_prefix, (i+1));
-	 if (!flag.quiet->answer)
-		fprintf (stderr,"Opening output file [%s]\n", result_name);	 
-	 result_cell[i] = G_allocate_cell_buf();
-	 if ((resultfd[i] = G_open_cell_new (result_name)) <0)
-	 {	 
-	 	fprintf (stderr, "GRASS-Database internal error: Unable to proceed\n");
-		exit(1) ;
-	 }
+	 sprintf (result_name, "%s.%d", result_prefix, (i + 1));
+         G_message (_("Opening output file [%s]"), result_name);
+
+	 result_cell[i] = G_allocate_cell_buf ();
+	 if ((resultfd[i] = G_open_cell_new (result_name)) < 0)
+	 	G_fatal_error (_("GRASS-DB internal error: Unable to proceed."));
     }
 
-
-/* open file containing SMA error*/
-
-    error_cell = (CELL *) G_malloc (sizeof (CELL *));
+    // open file containing SMA error
+    error_cell = (CELL *) G_malloc (sizeof(CELL *));
     if (error_name)
     {
-	error_fd = G_open_cell_new (error_name);
-	if (!flag.quiet->answer)
-		fprintf (stderr,"Opening error file [%s]\n", error_name);
-	if (error_fd < 0)
-	    fprintf (stderr, "Unable to create error layer [%s]", error_name);
-	else
-	    error_cell = G_allocate_cell_buf();
-    }
- 
-/* open file containing number of iterations */
+        G_message (_("Opening error file [%s]"), error_name);
 
-    iter_cell = (CELL *) G_malloc (sizeof (CELL *));
+        if ((error_fd = G_open_cell_new (error_name)) < 0)
+            G_fatal_error (_("Unable to create error layer [%s]"), error_name);
+        else
+            error_cell = G_allocate_cell_buf ();
+    }
+
+    // open file containing number of iterations 
+    iter_cell = (CELL *) G_malloc (sizeof(CELL *));
     if (iter_name)
     {
-	iter_fd = G_open_cell_new (iter_name);
-	if (!flag.quiet->answer)
-		fprintf (stderr,"Opening iteration file [%s]\n", iter_name);
-	if (iter_fd < 0)
-	    fprintf (stderr, "Unable to create iterations layer [%s]", iter_name);
+	G_message (_("Opening iteration file [%s]"), iter_name);
+
+        if ((iter_fd = G_open_cell_new (iter_name)) < 0)
+	    G_fatal_error (_("Unable to create iterations layer [%s]"), iter_name);
 	else
-	    iter_cell = G_allocate_cell_buf();
+	    iter_cell = G_allocate_cell_buf ();
     }
 
- return(matrixsize); /* give back number of output files (= Ref.nfiles) */
+ //G_matrix_print(A); 
+
+    return matrixsize;
+    */
+    return 0;
+}
+
+
+
+
+
+
+
+
+mat_struct* open_files2 (char *matrixfile,
+                char *img_grp,
+                char *result_prefix,                
+                char *iter_name,
+                char *error_name)
+{
+    char result_name[80];
+
+    FILE *fp;
+    int i, matrixsize;
+    mat_struct A_input, *A;
+  
+    
+//     mat_struct A_input1;
+    
+    
+    /* Read in matrix file with spectral library.
+     * Input matrix must contain spectra row-wise (for user's convenience)!
+     * Transposed here to col-wise orientation (for modules/mathematical 
+     * convenience). */
+
+    if ((fp = fopen (matrixfile, "r")) == NULL)
+    	 G_fatal_error (_("Matrix file %s not found."), matrixfile);
+    	 
+    	 
+   //G_matrix_init2( &A_input,3,3,3);
+   // G_warning("matrix read start");
+//    G_warning("cols=%d",A_input->cols);
+    /* Read data and close file */
+    if ((G_matrix_read2 (fp, &A_input) < 0))
+        G_fatal_error (_("Unable to read matrix file %s."), matrixfile);
+    fclose (fp);
+
+    //G_matrix_print2(&A_input, "A_input");
+
+
+  // G_warning("matrix read done");
+#if 0
+    G_message(_("Your spectral matrix = %d"), m_output(A_input));
+#endif
+
+    /* transpose input matrix from row orientation to col orientation.
+     * Don't mix rows and cols in the source code and the modules
+     * messages output! */
+
+//    A = m_get(A_input->rows, A_input->cols);
+
+    //G_matrix_clone2(&A_input, A);
+  
+
+    
+    A = G_matrix_init (A_input.rows, A_input.cols, A_input.rows);
+    if (A == NULL)
+        G_fatal_error (_("Unable to allocate memory for matrix"));
+
+    A = G_matrix_transpose (&A_input);
+    
+   // G_matrix_free (&A_input);
+
+//     G_matrix_print(A);   
+
+    if ((A->rows) < (A->cols))
+	G_fatal_error (_("Need number of cols >= rows to perform least squares fitting."));
+
+    // number of rows must be equivalent to no. of bands
+    matrixsize = A->rows;
+
+    // open input files from group
+    if (!I_find_group (img_grp))
+	G_fatal_error (_("Unable to find imagery group %s."), img_grp);
+
+    I_get_group_ref (img_grp, &Ref);
+    if (Ref.nfiles <= 1)
+    {
+	if (Ref.nfiles <= 0)
+            G_fatal_error (_("Group %s does not have any rasters. "
+                        "The group must have at least 2 rasters."), img_grp);
+	else
+            G_fatal_error (_("Group %s only has 1 raster. "
+                        "The group must have at least 2 rasters."), img_grp);
+    }
+
+    // Error check: input file number must be equal to matrix size
+    if (Ref.nfiles != matrixsize)
+        G_fatal_error (_("Number of input files (%i) in group <%s> "
+                    "does not match number of spectra in matrix. "
+                    "(contains %i cols)."),
+                    Ref.nfiles, img_grp, A->rows);
+
+    // get memory for input files
+    cell = (CELL **) G_malloc (Ref.nfiles * sizeof (CELL *));
+    cellfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
+    for (i = 0; i < Ref.nfiles; i++)
+    {
+	cell[i] = G_allocate_cell_buf ();
+
+	G_message (_("Opening input file no. %i [%s]"), (i + 1), Ref.file[i].name);
+
+	if ((cellfd[i] = G_open_cell_old (Ref.file[i].name, Ref.file[i].mapset)) < 0)
+	    G_fatal_error (_("Unable to open <%s>"), Ref.file[i].name);
+
+    
+    }
+    
+ 
+
+    // open files for results 
+    result_cell = (CELL **) G_malloc (Ref.nfiles * sizeof (CELL *));
+    resultfd = (int *) G_malloc (Ref.nfiles * sizeof (int));
+
+    for (i = 0; i < A->cols; i++)      // no. of spectra
+    {
+      if (result_prefix)
+      {
+	      sprintf (result_name, "%s.%d", result_prefix, (i + 1));
+        G_message (_("Opening output file [%s]"), result_name);
+
+	      result_cell[i] = G_allocate_cell_buf ();
+	      if ((resultfd[i] = G_open_cell_new (result_name)) < 0)
+	 	      G_fatal_error (_("GRASS-DB internal error: Unable to proceed."));
+      }
+    }
+    // open file containing SMA error
+    error_cell = (CELL *) G_malloc (sizeof(CELL *));
+    if (error_name)
+    {
+        G_message (_("Opening error file [%s]"), error_name);
+
+        if ((error_fd = G_open_cell_new (error_name)) < 0)
+            G_fatal_error (_("Unable to create error layer [%s]"), error_name);
+        else
+            error_cell = G_allocate_cell_buf ();
+    }
+
+    // open file containing number of iterations 
+    iter_cell = (CELL *) G_malloc (sizeof(CELL *));
+    if (iter_name)
+    {
+	G_message (_("Opening iteration file [%s]"), iter_name);
+
+        if ((iter_fd = G_open_cell_new (iter_name)) < 0)
+	    G_fatal_error (_("Unable to create iterations layer [%s]"), iter_name);
+	else
+	    iter_cell = G_allocate_cell_buf ();
+    }
+
+
+
+    /* give back number of output files (= Ref.nfiles) */
+    return A;
 }
