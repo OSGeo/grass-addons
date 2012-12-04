@@ -4,7 +4,7 @@
  * MODULE:       i.spec.unmix
  *
  * AUTHOR(S):    Markus Neteler  <neteler itc.it>
- *               Mohammed Rashad <rashadkm gmail.com>
+ *               Mohammed Rashad <rashadkm gmail.com>(updates)
  *
  * PURPOSE:      Spectral mixture analysis of satellite/aerial images
  *
