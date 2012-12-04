@@ -29,7 +29,7 @@
  *       Geocarto International, Vol.12, no.3 (Sept.). pp. 27-40
  */
 
-float spectral_angle (vec_struct *Avector1, vec_struct *Avector2)
+float spectral_angle(vec_struct * Avector1, vec_struct * Avector2)
 {
     vec_struct *vtmp1;
     double norm1, norm2, norm3;
@@ -37,14 +37,14 @@ float spectral_angle (vec_struct *Avector1, vec_struct *Avector2)
     /* Measure spectral angle */
 
     /* multiply one A column with second */
-//  vtmp1 = G_vector_init (0, 0, RVEC);
-    vtmp1 = G_vector_product (Avector1, Avector2, vtmp1);
-    norm1 = G_vector_norm1 (vtmp1);          /* calculate 1-norm */
-    norm2 = G_vector_norm_euclid (Avector1); /* calculate 2-norm (Euclidean) */
-    norm3 = G_vector_norm_euclid (Avector2); /* calculate 2-norm (Euclidean) */
+    //  vtmp1 = G_vector_init (0, 0, RVEC);
+    vtmp1 = G_vector_product(Avector1, Avector2, vtmp1);
+    norm1 = G_vector_norm1(vtmp1);	/* calculate 1-norm */
+    norm2 = G_vector_norm_euclid(Avector1);	/* calculate 2-norm (Euclidean) */
+    norm3 = G_vector_norm_euclid(Avector2);	/* calculate 2-norm (Euclidean) */
 
-    G_vector_free (vtmp1);
+    G_vector_free(vtmp1);
 
     /* Calculate angle and return in degree globally */
-    return (acos (norm1 / (norm2 * norm3)) * 180 / M_PI);
+    return (acos(norm1 / (norm2 * norm3)) * 180 / M_PI);
 }

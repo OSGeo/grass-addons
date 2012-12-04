@@ -1,6 +1,6 @@
 
 
-#include <stdio.h>  /* needed here for ifdef/else */
+#include <stdio.h>		/* needed here for ifdef/else */
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -17,232 +17,229 @@
 #include "la_extra.h"
 
 
-vec_struct *
-G_matvect_get_column2(mat_struct *mt, int col)
+vec_struct *G_matvect_get_column2(mat_struct * mt, int col)
 {
-  int i; /* loop */
-  vec_struct *vc1;
+    int i;			/* loop */
+    vec_struct *vc1;
 
-  if(col < 0 || col >= mt->cols) {
-    G_warning(_("Specified matrix column index is outside range"));
-    return NULL;
-  }
+    if (col < 0 || col >= mt->cols) {
+	G_warning(_("Specified matrix column index is outside range"));
+	return NULL;
+    }
 
-  if(!mt->is_init) {
-    G_warning(_("Matrix is not initialised"));
-    return NULL;
-  }
+    if (!mt->is_init) {
+	G_warning(_("Matrix is not initialised"));
+	return NULL;
+    }
 
-  if( (vc1 = G_vector_init(mt->rows, mt->ldim, CVEC)) == NULL ) {
-    G_warning(_("Could not allocate space for vector structure"));
-    return NULL;
-  }
+    if ((vc1 = G_vector_init(mt->rows, mt->ldim, CVEC)) == NULL) {
+	G_warning(_("Could not allocate space for vector structure"));
+	return NULL;
+    }
 
-  for ( i = 0; i < mt->rows; i++ )
-  {
-      double dd =  G_matrix_get_element(mt, i, col);
-      //G_warning("element at row=%d, col=%d is %lf",i,col,dd);
-    G_matrix_set_element( (mat_struct *)vc1, i, 0, 	 dd);
-			  
-	}		  
+    for (i = 0; i < mt->rows; i++) {
+	double dd = G_matrix_get_element(mt, i, col);
 
-  return vc1;
+	//G_warning("element at row=%d, col=%d is %lf",i,col,dd);
+	G_matrix_set_element((mat_struct *) vc1, i, 0, dd);
+
+    }
+
+    return vc1;
 }
 
 
-void
-G_matrix_print2 (mat_struct *mt, const char* name)
+void G_matrix_print2(mat_struct * mt, const char *name)
 {
-  int i, j;
-  
-  
-  if(mt!=NULL)
-  {
-    G_message ("start matrix(%s)", name);
-    G_message ("Size: %d x %d", mt->rows, mt->cols);
+    int i, j;
 
-    for( i = 0; i < mt->rows; i++ ) 
-    {
-      char buf[2048], numbuf[640];
-      sprintf( buf, "row%d: ", i);
-      for( j = 0; j < mt->cols; j++ ) 
-      {
 
-        double element =  G_matrix_get_element(mt, i, j);
-        sprintf( numbuf, "%14.6f",element);
-        strcat(buf, numbuf);
-        //if( j < mt->cols - 1 )
-        //strcat(buf, ", ");
-      }
-      G_message ("%s", buf);
-    }
- 
-    G_message ("end matrix(%s)",name);
-  }
+    if (mt != NULL) {
+	G_message("start matrix(%s)", name);
+	G_message("Size: %d x %d", mt->rows, mt->cols);
 
-/*
-  for( i = 0; i < mt->rows; i++ ) {
-    strcpy(buf, "");
+	for (i = 0; i < mt->rows; i++) {
+	    char buf[2048], numbuf[640];
 
-    for( j = 0; j < mt->cols; j++ ) {
+	    sprintf(buf, "row%d: ", i);
+	    for (j = 0; j < mt->cols; j++) {
 
-      sprintf( numbuf, "%14.6f", G_matrix_get_element(mt, i, j) );
-      strcat(buf, numbuf);
-      if( j < mt->cols - 1 )
-	strcat(buf, ", ");
+		double element = G_matrix_get_element(mt, i, j);
+
+		sprintf(numbuf, "%14.6f", element);
+		strcat(buf, numbuf);
+		//if( j < mt->cols - 1 )
+		//strcat(buf, ", ");
+	    }
+	    G_message("%s", buf);
+	}
+
+	G_message("end matrix(%s)", name);
     }
 
-    G_message ("%s", buf);
-  }
+    /*
+       for( i = 0; i < mt->rows; i++ ) {
+       strcpy(buf, "");
 
-  fprintf (stderr, "\n");
-  
-*/  
+       for( j = 0; j < mt->cols; j++ ) {
+
+       sprintf( numbuf, "%14.6f", G_matrix_get_element(mt, i, j) );
+       strcat(buf, numbuf);
+       if( j < mt->cols - 1 )
+       strcat(buf, ", ");
+       }
+
+       G_message ("%s", buf);
+       }
+
+       fprintf (stderr, "\n");
+
+     */
 }
 
 
 mat_struct *G_matrix_resize(mat_struct * in, int rows, int cols)
 {
- 
-  mat_struct *matrix;
 
- 
-  matrix = G_matrix_init(rows,cols,rows);
- 
-  
-  int i,j,p, index = 0;
-	for ( i=0; i<rows; i++ )
-	{
-	
+    mat_struct *matrix;
 
 
-		//A_row = A_v[i];		b_v = b->ve;
-		for ( j=0; j<cols; j++ )
-		{
-		
-		matrix->vals[index++] = in->vals[i + j * cols];
-		
-				//	sum += in->vals[i + j * cols] *b->ve[j]; 
-		//out->ve[i] = sum;
-		}
-		
-		}
-		
-		int old_size = in->rows * in->cols;
-		
-		int new_size = rows * cols;
- if(new_size > old_size)
-  for(p=old_size;p<new_size;p++)
-  matrix->vals[p] = 0.0;
- 
- 
-  return matrix;
+    matrix = G_matrix_init(rows, cols, rows);
+
+
+    int i, j, p, index = 0;
+
+    for (i = 0; i < rows; i++) {
+
+
+
+	//A_row = A_v[i];               b_v = b->ve;
+	for (j = 0; j < cols; j++) {
+
+	    matrix->vals[index++] = in->vals[i + j * cols];
+
+	    //      sum += in->vals[i + j * cols] *b->ve[j]; 
+	    //out->ve[i] = sum;
+	}
+
+    }
+
+    int old_size = in->rows * in->cols;
+
+    int new_size = rows * cols;
+
+    if (new_size > old_size)
+	for (p = old_size; p < new_size; p++)
+	    matrix->vals[p] = 0.0;
+
+
+    return matrix;
 }
 
 
 
-mat_struct	*sm_mlt(double scalar,mat_struct	*matrix, mat_struct	*out)
-
+mat_struct *sm_mlt(double scalar, mat_struct * matrix, mat_struct * out)
 {
-	int	m,n,i,j;
-	
-	int index = 0;
+    int m, n, i, j;
 
-	if ( matrix==NULL )
-		G_fatal_error("sm_mlt1(error)");
+    int index = 0;
 
-		if ( out==NULL)
-		out = G_matrix_init(matrix->rows, matrix->cols,matrix->rows);
-		
-		if (out->rows != matrix->rows || out->cols != matrix->cols )
-    out = G_matrix_resize(out,matrix->rows,matrix->cols);
+    if (matrix == NULL)
+	G_fatal_error("sm_mlt1(error)");
 
-m = matrix->rows;
-n = matrix->cols;
-	for ( i=0; i<m; i++ )
-	{
-		//__smlt__(matrix->me[i],(double)scalar,out->me[i],(int)n);
+    if (out == NULL)
+	out = G_matrix_init(matrix->rows, matrix->cols, matrix->rows);
+
+    if (out->rows != matrix->rows || out->cols != matrix->cols)
+	out = G_matrix_resize(out, matrix->rows, matrix->cols);
+
+    m = matrix->rows;
+    n = matrix->cols;
+    for (i = 0; i < m; i++) {
+	//__smlt__(matrix->me[i],(double)scalar,out->me[i],(int)n);
+
 		/**************************************************/
-		for ( j=0; j<n; j++ )
-		{
-			out->vals[index++] = scalar*matrix->vals[i+ j * m];
-			}}
-			
-			//G_matrix_print(matrix,"matrix");  
-			//G_matrix_print(matrix,"out"); 
+	for (j = 0; j < n; j++) {
+	    out->vals[index++] = scalar * matrix->vals[i + j * m];
+	}
+    }
+
+    //G_matrix_print(matrix,"matrix");  
+    //G_matrix_print(matrix,"out"); 
+
 		/**************************************************/
-	return (out);
+    return (out);
 }
 
-VEC	*G_vec_copy(VEC	*in)
+VEC *G_vec_copy(VEC * in)
 {
-  int i;
-  VEC *out;
-	if ( !in )
-	  G_fatal_error("v_copy(error1)");
-		
-  int dim = in->dim;
+    int i;
+    VEC *out;
 
-	out = G_vec_get(dim);
-		
-		 
-  for( i = 0; i < dim; i++ ) 
-  {    
-    out->ve[i]= in->ve[i];
-  }
+    if (!in)
+	G_fatal_error("v_copy(error1)");
 
-	return (out);
-}
+    int dim = in->dim;
+
+    out = G_vec_get(dim);
 
 
-double	v_norm2(VEC	*x)
-{
-	int	i, dim;
-	double	s, sum;
+    for (i = 0; i < dim; i++) {
+	out->ve[i] = in->ve[i];
+    }
 
-	if ( !x )
-		G_fatal_error("v_norm2(error1)");
-		
-		
-	dim = x->dim;
-
-	sum = 0.0;
-
-		for ( i = 0; i < dim; i++ )
-		{
-			sum += x->ve[i] * x->ve[i];
-		}
-	
-  
-  
-	return sqrt(sum);
+    return (out);
 }
 
 
-
-VEC	*v_sub(VEC	*vec1,VEC	*vec2,VEC	*out)
+double v_norm2(VEC * x)
 {
-	/* u_int	i, dim; */
-	/* Real	*out_ve, *vec1_ve, *vec2_ve; */
+    int i, dim;
+    double s, sum;
 
-	if ( !vec1 || !vec2 )
+    if (!x)
+	G_fatal_error("v_norm2(error1)");
+
+
+    dim = x->dim;
+
+    sum = 0.0;
+
+    for (i = 0; i < dim; i++) {
+	sum += x->ve[i] * x->ve[i];
+    }
+
+
+
+    return sqrt(sum);
+}
+
+
+
+VEC *v_sub(VEC * vec1, VEC * vec2, VEC * out)
+{
+    /* u_int        i, dim; */
+    /* Real *out_ve, *vec1_ve, *vec2_ve; */
+
+    if (!vec1 || !vec2)
 	G_fatal_error("v_sub1(error)");
 
-	if ( vec1->dim != vec2->dim )
-		G_fatal_error("v_sub2(error)");
-		
-			if ( out == NULL)
-			out = G_vec_get(vec1->dim);
-		//out = v_resize(out,A->m);
-		
-	//G_vec_print(vec1, "vec1");
+    if (vec1->dim != vec2->dim)
+	G_fatal_error("v_sub2(error)");
 
-		
-	if ( out->dim != vec1->dim )
-		out = G_vec_resize(out,vec1->dim);		
-		
- int	i;
-    for ( i = 0; i < vec1->dim; i++ )
+    if (out == NULL)
+	out = G_vec_get(vec1->dim);
+    //out = v_resize(out,A->m);
+
+    //G_vec_print(vec1, "vec1");
+
+
+    if (out->dim != vec1->dim)
+	out = G_vec_resize(out, vec1->dim);
+
+    int i;
+
+    for (i = 0; i < vec1->dim; i++)
 	out->ve[i] = vec1->ve[i] - vec2->ve[i];
 
 	/************************************************************
@@ -253,77 +250,76 @@ VEC	*v_sub(VEC	*vec1,VEC	*vec2,VEC	*out)
 		(*out_ve++) = (*vec1_ve++) - (*vec2_ve++);
 	************************************************************/
 
-	return (out);
+    return (out);
 }
 
 
 
-VEC	*mv_mlt(mat_struct *A, VEC *b, VEC *out)
+VEC *mv_mlt(mat_struct * A, VEC * b, VEC * out)
 {
-	unsigned int	i, m, n,j;
-	double	**A_v, *b_v /*, *A_row */;
-	/* register Real	sum; */
-	
+    unsigned int i, m, n, j;
+    double **A_v, *b_v /*, *A_row */ ;
+
+    /* register Real        sum; */
 
 
-//	if ( A==(MAT *)NULL || b==(VEC *)NULL )
-	//	error(E_NULL,"mv_mlt");
-	
-//G_matrix_print(A, "A(mlt)");	
-	
-	if ( A->cols != b->dim )
-	
-		G_fatal_error("mv_mlt1(error)");
-		
-		
-	if ( b == out )
+
+    //      if ( A==(MAT *)NULL || b==(VEC *)NULL )
+    //      error(E_NULL,"mv_mlt");
+
+    //G_matrix_print(A, "A(mlt)");  
+
+    if (A->cols != b->dim)
+
+	G_fatal_error("mv_mlt1(error)");
+
+
+    if (b == out)
 	G_fatal_error("mv_mlt2(error)");
-		//error(E_INSITU,"mv_mlt");
-		if(!out)
-		{
-		G_fatal_error("mv_mltsss3(error)");
-		exit(1);
-		out = G_vec_get2(A->rows, out);
-		}
-			if ( out->dim != A->rows)
-			{
-			G_fatal_error("mv_mlt3(error)");
-			exit(1);
-			  out = G_vec_resize(out,A->rows);
-			}
-			//out = G_vec_get(A->rows);
-		//out = v_resize(out,A->m);
-		
-	
-		
-	//if ( out->dim != A->rows )
-		
+    //error(E_INSITU,"mv_mlt");
+    if (!out) {
+	G_fatal_error("mv_mltsss3(error)");
+	exit(1);
+	out = G_vec_get2(A->rows, out);
+    }
+    if (out->dim != A->rows) {
+	G_fatal_error("mv_mlt3(error)");
+	exit(1);
+	out = G_vec_resize(out, A->rows);
+    }
+    //out = G_vec_get(A->rows);
+    //out = v_resize(out,A->m);
 
-	m = A->rows;		n = A->cols;
-	A_v = A->vals;		b_v = b->ve;
-	
 
-	
-	for ( i=0; i<m; i++ )
-	{
-	double sum=0.0;
-int width = A->rows;
 
-		//A_row = A_v[i];		b_v = b->ve;
-		for ( j=0; j<n; j++ )
-		{
-		
-			sum += A->vals[i + j * width] *b->ve[j]; 
-		out->ve[i] = sum;
-		
-		
-//G_message("sum: %lf of j=%d", b->ve[j],j);
+    //if ( out->dim != A->rows )
 
-}
+
+    m = A->rows;
+    n = A->cols;
+    A_v = A->vals;
+    b_v = b->ve;
+
+
+
+    for (i = 0; i < m; i++) {
+	double sum = 0.0;
+	int width = A->rows;
+
+	//A_row = A_v[i];               b_v = b->ve;
+	for (j = 0; j < n; j++) {
+
+	    sum += A->vals[i + j * width] * b->ve[j];
+	    out->ve[i] = sum;
+
+
+	    //G_message("sum: %lf of j=%d", b->ve[j],j);
+
 	}
-	
-	
-	return out;
+    }
+
+
+    return out;
 }
 
 
@@ -332,32 +328,31 @@ int width = A->rows;
 
 VEC *G_vec_resize(VEC * in, int size)
 {
- 
-  VEC *vector;
 
- 
-  vector = (VEC *)G_malloc( sizeof(VEC) );
+    VEC *vector;
 
-  
-  vector->ve = (double *)G_malloc(size * sizeof(double) );
-  int i,j;
-  
-    G_message(":%d",in->dim);
-for( i = 0; i < in->dim; i++ ) 
-    {
-    
-     vector->ve[i]= in->ve[i];
-     G_message("ss:%lf",in->ve[i]);
-     
+
+    vector = (VEC *) G_malloc(sizeof(VEC));
+
+
+    vector->ve = (double *)G_malloc(size * sizeof(double));
+    int i, j;
+
+    G_message(":%d", in->dim);
+    for (i = 0; i < in->dim; i++) {
+
+	vector->ve[i] = in->ve[i];
+	G_message("ss:%lf", in->ve[i]);
+
     }
 
- if(size > in->dim)
- for(j=i;j<size;j++)
- vector->ve[j]= 0.0;
- 
+    if (size > in->dim)
+	for (j = i; j < size; j++)
+	    vector->ve[j] = 0.0;
+
     vector->dim = vector->max_dim = size;
 
-  return vector;
+    return vector;
 }
 
 
@@ -368,150 +363,147 @@ for( i = 0; i < in->dim; i++ )
 
 VEC *G_vec_get(int size)
 {
- 
-  VEC *vector;
 
- 
-  vector = (VEC *)G_malloc( sizeof(VEC) );
+    VEC *vector;
 
-  
-  vector->ve = (double *)G_malloc(size * sizeof(double) );
-  int i;
-for( i = 0; i < size; i++ ) 
-    {
-    
-     vector->ve[i]= 0.0;
+
+    vector = (VEC *) G_malloc(sizeof(VEC));
+
+
+    vector->ve = (double *)G_malloc(size * sizeof(double));
+    int i;
+
+    for (i = 0; i < size; i++) {
+
+	vector->ve[i] = 0.0;
 
 
     }
- 
+
     vector->dim = vector->max_dim = size;
 
-  return vector;
+    return vector;
 }
 
 
-VEC *G_vec_get2(int size, VEC *vector)
+VEC *G_vec_get2(int size, VEC * vector)
 {
- 
-  //VEC *vector;
 
- 
-  vector = (VEC *)G_malloc( sizeof(VEC) );
+    //VEC *vector;
 
-  
-  vector->ve = (double *)G_malloc(size * sizeof(double) );
-  int i;
-for( i = 0; i < size; i++ ) 
-    {
-    
-     vector->ve[i]= 0.0;
+
+    vector = (VEC *) G_malloc(sizeof(VEC));
+
+
+    vector->ve = (double *)G_malloc(size * sizeof(double));
+    int i;
+
+    for (i = 0; i < size; i++) {
+
+	vector->ve[i] = 0.0;
 
 
     }
- 
+
     vector->dim = vector->max_dim = size;
 
-  return vector;
+    return vector;
 }
 
 
-void G_vec_print (VEC *vector, const char* name)
+void G_vec_print(VEC * vector, const char *name)
 {
-  int i;
-  
-  
-  if(vector!=NULL)
-  {
-    G_message ("start vector(%s)", name);
-    //G_message ("Size: %d x %d", vector->dim);
+    int i;
 
-    for( i = 0; i < vector->dim; i++ ) 
-    {
-      char buf[2048], numbuf[640];
-      sprintf( buf, "%lf ", vector->ve[i]);
 
-      G_message ("%s", buf);
+    if (vector != NULL) {
+	G_message("start vector(%s)", name);
+	//G_message ("Size: %d x %d", vector->dim);
+
+	for (i = 0; i < vector->dim; i++) {
+	    char buf[2048], numbuf[640];
+
+	    sprintf(buf, "%lf ", vector->ve[i]);
+
+	    G_message("%s", buf);
+	}
+
+	G_message("end vector(%s)", name);
     }
- 
-    G_message ("end vector(%s)",name);
-  }
 
 }
 
 
 
 
-vec_struct *
-G_vector_product (vec_struct *v1, vec_struct *v2)
+vec_struct *G_vector_product(vec_struct * v1, vec_struct * v2)
 {
     int idx1, idx2, idx0;
     int i;
-    
-    
-    vec_struct *out = G_vector_init (v1->rows, v1->ldim, CVEC);
-    
-    
-    
-      //G_warning("Avector1->rows: %d",Avector1->rows);
-     //G_warning("Avector1->cols: %d",Avector1->cols);
-      
-     //G_warning("vtmp1->rows1: %d",vtmp1->rows);
-     //G_warning("vtmp1->cols1: %d",out->cols);  
-    
+
+
+    vec_struct *out = G_vector_init(v1->rows, v1->ldim, CVEC);
+
+
+
+    //G_warning("Avector1->rows: %d",Avector1->rows);
+    //G_warning("Avector1->cols: %d",Avector1->cols);
+
+    //G_warning("vtmp1->rows1: %d",vtmp1->rows);
+    //G_warning("vtmp1->cols1: %d",out->cols);  
+
     //vtmp1.type = Avector1->type;
 
     if (!out->is_init) {
-        G_warning (_("Output vector is uninitialized"));
-        return NULL;
+	G_warning(_("Output vector is uninitialized"));
+	return NULL;
     }
 
     if (v1->type != v2->type) {
-        G_warning (_("Vectors are not of the same type"));
-        return NULL;
+	G_warning(_("Vectors are not of the same type"));
+	return NULL;
     }
 
     if (v1->type != out->type) {
-        G_warning (_("Output vector is of incorrect type"));
-        return NULL;
+	G_warning(_("Output vector is of incorrect type"));
+	return NULL;
     }
 
     if (v1->type == MATRIX_) {
-        G_warning (_("Matrices not allowed"));
-        return NULL;
+	G_warning(_("Matrices not allowed"));
+	return NULL;
     }
 
     if ((v1->type == ROWVEC_ && v1->cols != v2->cols) ||
-        (v1->type == COLVEC_ && v1->rows != v2->rows))
-    {
-        G_warning (_("Vectors have differing dimensions"));
-        return NULL;
+	(v1->type == COLVEC_ && v1->rows != v2->rows)) {
+	G_warning(_("Vectors have differing dimensions"));
+	return NULL;
     }
 
     if ((v1->type == ROWVEC_ && v1->cols != out->cols) ||
-        (v1->type == COLVEC_ && v1->rows != out->rows))
-    {
-        G_warning (_("Output vector has incorrect dimension"));
-        return NULL;
+	(v1->type == COLVEC_ && v1->rows != out->rows)) {
+	G_warning(_("Output vector has incorrect dimension"));
+	return NULL;
     }
 
-#if defined(HAVE_LAPACK) && defined(HAVE_LIBBLAS) //&& defined(HAVE_G2C_H)
-    f77_dhad (v1->cols, 1.0, v1->vals, 1, v2->vals, 1, 0.0, out->vals, 1.0);
+#if defined(HAVE_LAPACK) && defined(HAVE_LIBBLAS)	//&& defined(HAVE_G2C_H)
+    f77_dhad(v1->cols, 1.0, v1->vals, 1, v2->vals, 1, 0.0, out->vals, 1.0);
 #else
     idx1 = (v1->v_indx > 0) ? v1->v_indx : 0;
     idx2 = (v2->v_indx > 0) ? v2->v_indx : 0;
     idx0 = (out->v_indx > 0) ? out->v_indx : 0;
 
     if (v1->type == ROWVEC_) {
-        for (i = 0; i < v1->cols; i++)
-            G_matrix_set_element(out, idx0, i,
-			   G_matrix_get_element(v1, idx1, i) *
-			   G_matrix_get_element(v2, idx2, i));
-    } else {
-        for (i = 0; i < v1->rows; i++)
-            G_matrix_set_element(out, i, idx0,
-			   G_matrix_get_element(v1, i, idx1) *
-			   G_matrix_get_element(v2, i, idx2));
+	for (i = 0; i < v1->cols; i++)
+	    G_matrix_set_element(out, idx0, i,
+				 G_matrix_get_element(v1, idx1, i) *
+				 G_matrix_get_element(v2, idx2, i));
+    }
+    else {
+	for (i = 0; i < v1->rows; i++)
+	    G_matrix_set_element(out, i, idx0,
+				 G_matrix_get_element(v1, i, idx1) *
+				 G_matrix_get_element(v2, i, idx2));
     }
 #endif
 
@@ -521,55 +513,48 @@ G_vector_product (vec_struct *v1, vec_struct *v2)
 
 
 
-int
-G_matrix_read2(FILE *fp, mat_struct *out)
+int G_matrix_read2(FILE * fp, mat_struct * out)
 {
-  char buff[100];
-  int rows, cols;
-  int i, j, row;
-  double val;
+    char buff[100];
+    int rows, cols;
+    int i, j, row;
+    double val;
 
-  /* skip comments */
-  for (;;) {
-    if (!G_getl(buff, sizeof(buff), fp))
-      return -1;
-    if (buff[0] != '#')
-      break;
-  }
-
-  if (sscanf(buff, "Matrix: %d by %d", &rows, &cols) != 2) {
-    G_warning(_("Input format error1"));
-    return -1;
-  }
-  
-
-  G_matrix_set(out, rows, cols, rows);
-  
-
-   //G_warning("row: %d",row);
-
-  for (i = 0; i < rows; i++) 
-  {
-    if (fscanf(fp, "row%d:", &row) != 1) 
-    {
-      G_warning(_("Input format error"));
-      return -1;
+    /* skip comments */
+    for (;;) {
+	if (!G_getl(buff, sizeof(buff), fp))
+	    return -1;
+	if (buff[0] != '#')
+	    break;
     }
 
-    for (j = 0; j < cols; j++) 
-    {
-      if (fscanf(fp, "%lf:", &val) != 1) 
-      {
-         G_warning(_("Input format error"));
-	      return -1;
-      }
-
-      fgetc(fp);
-      G_matrix_set_element(out, i, j, val);
+    if (sscanf(buff, "Matrix: %d by %d", &rows, &cols) != 2) {
+	G_warning(_("Input format error1"));
+	return -1;
     }
-  }
-//G_matrix_print(out);
-  return 0;
+
+
+    G_matrix_set(out, rows, cols, rows);
+
+
+    //G_warning("row: %d",row);
+
+    for (i = 0; i < rows; i++) {
+	if (fscanf(fp, "row%d:", &row) != 1) {
+	    G_warning(_("Input format error"));
+	    return -1;
+	}
+
+	for (j = 0; j < cols; j++) {
+	    if (fscanf(fp, "%lf:", &val) != 1) {
+		G_warning(_("Input format error"));
+		return -1;
+	    }
+
+	    fgetc(fp);
+	    G_matrix_set_element(out, i, j, val);
+	}
+    }
+    //G_matrix_print(out);
+    return 0;
 }
-
-
