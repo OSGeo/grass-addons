@@ -20,15 +20,15 @@ GLOBAL CELL **result_cell;
 GLOBAL int *resultfd;
 
 GLOBAL CELL *error_cell;
-GLOBAL int  error_fd;
+GLOBAL int error_fd;
 
 GLOBAL CELL *iter_cell;
-GLOBAL int  iter_fd;
+GLOBAL int iter_fd;
 
 
 GLOBAL float spectral_angle(vec_struct *, vec_struct *);
 GLOBAL int do_histogram(char *, char *);
 GLOBAL void make_history(char *, char *, char *);
-GLOBAL int open_files(char *, char *, char *, char *, mat_struct *A);
+GLOBAL int open_files(char *, char *, char *, char *, mat_struct * A);
 
 #endif /* __GLOBAL_H__ */
