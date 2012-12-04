@@ -29,6 +29,7 @@
 #include "global.h"
 
 #include "la_extra.h"
+#include "open.h"
 
 
 #define GAMMA 10		/* last row value in Matrix and last b vector element

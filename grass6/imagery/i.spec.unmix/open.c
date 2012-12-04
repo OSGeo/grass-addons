@@ -14,7 +14,7 @@
 #include <grass/gmath.h>
 #include <grass/glocale.h>
 #include "global.h"
-
+#include "la_extra.h"
 
 int open_files(char *matrixfile,
 	       char *img_grp,
