@@ -1,5 +1,0 @@
-For instance, to copy a vector from 
-x to y it is sufficient to write y = v_copy(x,VNULL).  The VNULL is the 
-NULL vector, and usually tells the routine called to create a vector for   
-output.
-

@@ -1,5 +1,5 @@
-# Kanäle: r g b i1 i2 i3
-# Spektren zeilenweise eingeben!
+# Channels: r g b i1 i2 i3
+# Enter spectra linewise!
 #
 #3570637.5 5766432.58928571
 #3571837.5 5764210.76785714
@@ -7,13 +7,13 @@
 #3573662.5 5763287.08928571
 #3573112.5 5766058.125
 #
-# 0: Wasser ?
-# 1: Vegetation volles Wachstum
-# 2: Vegetation auflaufend
-# 3: unbedeckter Boden
-# 4: Boden/Vegetation?
+# 0: Water ?
+# 1: Vegetation fully emerged
+# 2: Vegetation growing (young)
+# 3: Bare soil
+# 4: Soil/Vegetation?
 # 
-# Zeilen, Spalten
+# Rows, Columns
 Matrix: 5 by 6
 row0: 0 0 0 14 7 0 
 row1: 1 4 2 81 21 7 

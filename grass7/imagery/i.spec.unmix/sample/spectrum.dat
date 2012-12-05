@@ -1,9 +1,9 @@
-# Kanäle: r g b i1 i2 i3
-# Spektren zeilenweise eingeben!
+# Channels: r g b i1 i2 i3
+# Enter spectra linewise!
 # 1. Sagebrush 
 # 2. Saltbush
-# 3. Boden
-# 4. Trockengras
+# 3. Soil
+# 4. Dry grass
 #
 Matrix: 4 by 6
 row0:  8.87  13.14  11.71  35.85  28.26 10.54

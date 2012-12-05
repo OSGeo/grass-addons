@@ -1,5 +1,4 @@
 #include <grass/gis.h>
-
 #include <grass/raster.h>
 
 int do_histogram(char *name, char *mapset)

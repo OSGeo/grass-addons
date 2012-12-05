@@ -1,14 +1,10 @@
-
+/* TODO: move to GMATHLIB? */
 
 #include <stdio.h>		/* needed here for ifdef/else */
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-
-/********
- ******** only compile this LAPACK/BLAS wrapper file if g2c.h is present!
- ********/
 #include <grass/config.h>
 
 #include <grass/gis.h>
@@ -207,7 +203,7 @@ VEC *v_sub(VEC * vec1, VEC * vec2, VEC * out)
     if (out == NULL)
 	out = G_vec_get(vec1->dim);
 
-
+    //G_vec_print(vec2, "vec2");
 
     if (out->dim != vec1->dim)
 	out = G_vec_resize(out, vec1->dim);
@@ -248,12 +244,10 @@ VEC *mv_mlt(mat_struct * A, VEC * b, VEC * out)
 
     if (!out) {
 	G_fatal_error("mv_mltsss3(error)");
-	exit(1);
 	out = G_vec_get2(A->rows, out);
     }
     if (out->dim != A->rows) {
 	G_fatal_error("mv_mlt3(error)");
-	exit(1);
 	out = G_vec_resize(out, A->rows);
     }
 
@@ -281,9 +275,6 @@ VEC *mv_mlt(mat_struct * A, VEC * b, VEC * out)
 
     return out;
 }
-
-
-
 
 
 VEC *G_vec_resize(VEC * in, int size)
@@ -341,7 +332,7 @@ VEC *G_vec_get(int size)
     }
 
     vector->dim = vector->max_dim = size;
-
+    //G_vec_print(vector, "vector");
     return vector;
 }
 
@@ -363,7 +354,7 @@ VEC *G_vec_get2(int size, VEC * vector)
     }
 
     vector->dim = vector->max_dim = size;
-
+    //G_vec_print(vector, "vector");
     return vector;
 }
 

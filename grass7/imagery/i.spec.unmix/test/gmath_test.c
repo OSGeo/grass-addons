@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "gis.h"
-#include "la.h"
+#include <grass/gis.h>
+#include "../la_extra.h"
 
 int main(int argc, char *argv[]) {
 

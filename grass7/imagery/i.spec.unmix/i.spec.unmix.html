@@ -1,80 +1,72 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: i.spec.unmix</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>i.spec.unmix</b></em>  - Perfroms Spectral mixture analysis of satellite/aerial images
-<h2>KEYWORDS</h2>
-imagery, spectral unmixing
-<h2>SYNOPSIS</h2>
-<b>i.spec.unmix</b><br>
-<b>i.spec.unmix help</b><br>
-<b>i.spec.unmix</b> <b>group</b>=<em>name</em> <b>matrix</b>=<em>string</em>  [<b>result</b>=<em>string</em>]  <b>error</b>=<em>name</em> <b>iter</b>=<em>name</em>  [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
-
-<h3>Flags:</h3>
-<DL>
-<DT><b>--overwrite</b></DT>
-<DD>Allow output files to overwrite existing files</DD>
-<DT><b>--verbose</b></DT>
-<DD>Verbose module output</DD>
-<DT><b>--quiet</b></DT>
-<DD>Quiet module output</DD>
-</DL>
-
-<h3>Parameters:</h3>
-<DL>
-<DT><b>group</b>=<em>name</em></DT>
-<DD>Name of input imagery group</DD>
-
-<DT><b>matrix</b>=<em>string</em></DT>
-<DD>Open Matrix file</DD>
-<DD>Matrix file containing spectral signatures</DD>
-
-<DT><b>result</b>=<em>string</em></DT>
-<DD>Name of raster map prefix to hold spectral unmixing results</DD>
-
-<DT><b>error</b>=<em>name</em></DT>
-<DD>Name of raster map to hold unmixing error</DD>
-
-<DT><b>iter</b>=<em>name</em></DT>
-<DD>Raster map to hold number of iterations</DD>
-
-</DL>
 <h2>DESCRIPTION</h2>
 
-<p><em>i.spec.unmix</em> is used to Spectral Unmixing.
+<em>i.spec.unmix</em> is used to perform Spectral Unmixing.
+
+<!-- TODO: migrate text from Neteler et al 2005 to this manual -->
+
+<p>
+<center>
+<img src="mixed_pixels_spectrum.png" alt="Mixed pixels">Concept of mixed pixels (Landsat example)
+</center>
 
 <h2>EXAMPLES</h2>
 
+<!-- see sample/run.sh, update to NC sample data set -->
+
 <div class="code"><pre>
-TODO
+g.region rast=lsat7_2002_10 -p
+
+# Find pure endmembers, they are supposed to be in the corners of
+# the PCA feature space (or use spectral measurement data)
+
+i.pca -n input="lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50,lsat7_2002_70" out=pca_lsat7_2002
+d.correlate layer1=pca_lsat7_2002.1 layer2=pca_lsat7_2002.2
+
+# TODO: problem: how to obtain the unprojected coordinates for the corner pixels?
+# (in 1998 the xgobi software did this nicely, check today's ggobi)
+
+
+i.group group=lsat7_2002 subgroup=lsat7_2002 \
+  input=lsat7_2002_10,lsat7_2002_20,lsat7_2002_30,lsat7_2002_40,lsat7_2002_50,lsat7_2002_70
+
+i.spec.unmix group=lsat7_2002 matrix=sample/spectrum.dat result=lsat7_2002_unmix \
+  error=lsat7_2002_unmix_err iter=lsat7_2002_unmix_iterations
+
+# todo: reclass to 0..100%
 </pre></div>
 
 <h2>REFERENCES</h2>
 
-Neteler, M. (1999): Spectral Mixture Analysis von Satellitendaten zur Bestimmung von Bodenbedeckungsgraden im Hinblick auf die Erosionsmodellierung. M.Sc. thesis, University of Hannover.
-
-Neteler, M., D. Grasso, I. Michelazzi, L. Miori, S. Merler, and C. Furlanello. New image processing tools for GRASS. In Proc. Free/Libre and Open Source Software for Geoinformatics: GIS-GRASS Users Conference 2004, Sept. 12-14, Bangkok, Thailand, 2004. http://gisws.media.osaka-cu.ac.jp/grass04/viewabstract.php?id=37 (PDF)
-
-Neteler, M., D. Grasso, I. Michelazzi, L. Miori, S. Merler, and C. Furlanello, 2005. An integrated toolbox for image registration, fusion and classification. International Journal of Geoinformatics. Special Issue on FOSS/GRASS 2004 and GIS-IDEAS 2004, 1(1), pp. 51-61, March 2005.
+<ul>
+<li> Neteler, M. (1999): Spectral Mixture Analysis von Satellitendaten zur 
+Bestimmung von Bodenbedeckungsgraden im Hinblick auf die 
+Erosionsmodellierung. M.Sc. thesis, University of Hannover.</li>
+<li> Neteler, M., D. Grasso, I. Michelazzi, L. Miori, S. Merler, and 
+C. Furlanello. New image processing tools for GRASS. In Proc. 
+Free/Libre and Open Source Software for Geoinformatics: 
+GIS-GRASS Users Conference 2004, Sept. 12-14, Bangkok, Thailand, 
+2004. http://gisws.media.osaka-cu.ac.jp/grass04/viewabstract.php?id=37 (PDF)</li>
+<li> Neteler, M., D. Grasso, I. Michelazzi, L. Miori, S. Merler, 
+and C. Furlanello, 2005. An integrated toolbox for image registration,
+fusion and classification. International Journal of Geoinformatics. 
+Special Issue on FOSS/GRASS 2004 and GIS-IDEAS 2004, 1(1), pp. 51-61, 
+March 2005.</li>
 
 <h2>SEE ALSO</h2>
 
+i.spec.sam
+
+http://www.research.att.com/~andreas/xgobi/
+
+http://www.public.iastate.edu/~dicook/xgobi-book/xgobi.html
+
+http://lib.stat.cmu.edu/general/XGobi/
+
 <h2>AUTHOR</h2>
 
-Markus Neteler, University of Hannover.
+Markus Neteler, University of Hannover, 1999
+<p>
+Mohammed Rashad  (rashadkm gmail.com) (update to GRASS 7)
 
 <p>
 <i>Last changed: $Date$</i>
-<HR>
-<P><a href="index.html">Main index</a> - <a href="imagery.html">imagery index</a> - <a href="full_index.html">Full index</a></P>
-<P>&copy; 2003-2011 <a href="http://grass.osgeo.org">GRASS Development Team</a></p>
-</body>
-</html>

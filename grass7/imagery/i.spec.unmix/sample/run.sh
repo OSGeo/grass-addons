@@ -10,8 +10,9 @@ cat unmix_reclass25.dat |r.reclass i=unmix97.5 o=unmix975.recl
 
 r.kappa -mwz classification=unmix971.recl reference=bdg_wrede.recl output=kappa.1
 r.kappa -mwz classification=unmix972.recl reference=bdg_wrede.recl output=kappa.2
-#r.kappa -mwz classification=unmix3.recl reference=bodenbedeckungsgrad95 output=kappa.3
-#r.kappa -mwz classification=unmix4.recl reference=bodenbedeckungsgrad95 output=kappa.4
-#r.kappa -mwz classification=unmix5.recl reference=bodenbedeckungsgrad95 output=kappa.5
-#r.kappa -mwz classification=unmix6.recl reference=bodenbedeckungsgrad95 output=kappa.6
-textedit kappa.1&textedit kappa.2&
+#r.kappa -mwz classification=unmix3.recl reference=degree_soilcover95 output=kappa.3
+#r.kappa -mwz classification=unmix4.recl reference=degree_soilcover95 output=kappa.4
+#r.kappa -mwz classification=unmix5.recl reference=degree_soilcover95 output=kappa.5
+#r.kappa -mwz classification=unmix6.recl reference=degree_soilcover95 output=kappa.6
+textedit kappa.1 &
+textedit kappa.2 &
