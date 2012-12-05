@@ -3,17 +3,24 @@
  *
  * MODULE:       i.spec.unmix
  *
- * AUTHOR(S):    Markus Neteler  <neteler itc.it>
- *               Mohammed Rashad <rashadkm gmail.com>(updates)
+ * AUTHOR(S):    Markus Neteler  <neteler osgeo.org>: Original GRASS 5 version
+ *               Mohammed Rashad <rashadkm gmail.com> (update to GRASS 6)
  *
  * PURPOSE:      Spectral mixture analysis of satellite/aerial images
+ * 
+ * Notes:        The original version was implemented with MESCHACH, the actual
+ *               version is instead using BLAS/LAPACK via GMATHLIB.
+ *               An error minimization approach is used instead of Single Value
+ *               Decomposition (SVD) which is numerically unstable. See the
+ *               related journal publication from 2005 for details.
  *
- * COPYRIGHT:    (C) 2006-2012 by the GRASS Development Team
+ * COPYRIGHT:    (C) 1999-2012 by the GRASS Development Team
  *
  *               This program is free software under the GNU General
  *               Public License (>=v2). Read the file COPYING that
  *               comes with GRASS for details.
  *
+ * TODO:         test with synthetic mixed pixels; speed up code
  *****************************************************************************/
 
 #define GLOBAL
@@ -38,8 +45,8 @@
 #include <grass/glocale.h>
 #include "global.h"
 
-#include "la_extra.h"
 #include "open.h"
+#include "la_extra.h"
 
 
 #define GAMMA 10		/* last row value in Matrix and last b vector element
@@ -77,7 +84,6 @@ int main(int argc, char *argv[])
 
     /* initialize GIS engine */
     G_gisinit(argv[0]);
-
     module = G_define_module();
 
     module->keywords = _("imagery, spectral unmixing");
@@ -86,18 +92,13 @@ int main(int argc, char *argv[])
 
     parm.group = G_define_standard_option(G_OPT_I_GROUP);
 
-    parm.matrixfile = G_define_option();
+    parm.matrixfile = G_define_standard_option(G_OPT_F_INPUT);
     parm.matrixfile->key = "matrix";
     parm.matrixfile->type = TYPE_STRING;
     parm.matrixfile->required = YES;
-    parm.matrixfile->gisprompt = "old_file,file";
     parm.matrixfile->label = _("Open Matrix file");
     parm.matrixfile->description =
 	_("Matrix file containing spectral signatures");
-
-
-
-
 
     parm.result = G_define_option();
     parm.result->key = "result";
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
 
     parm.iter = G_define_standard_option(G_OPT_R_OUTPUT);
     parm.iter->key = "iter";
-    parm.iter->description = _("Raster map to hold number of iterations");
+    parm.iter->description = _("Name of raster map to hold number of iterations");
 
     if (G_parser(argc, argv))
 
@@ -171,13 +172,8 @@ int main(int argc, char *argv[])
 		/*  get the max. element of this vector */
 		max2 = G_vector_norm_maxval(Avector2, 1);
 
-
-
-
-
 		if (max2 > max1)
 		    temp = max2;
-
 
 		/* find max of matrix A */
 
@@ -224,21 +220,15 @@ int main(int argc, char *argv[])
    */
 
 
-
-
     /* memory allocation */
     A_tilde = G_matrix_init(A->rows + 1, A->cols, A->rows + 1);
     if (A_tilde == NULL)
 	G_fatal_error(_("Unable to allocate memory for matrix"));
 
-
-
     for (i = 0; i < A->rows; i++)
 	for (j = 0; j < A->cols; j++)
 	    G_matrix_set_element(A_tilde, i, j,
 				 G_matrix_get_element(A, i, j));
-
-
 
     /* fill last row with 1 elements  */
 
@@ -265,10 +255,7 @@ int main(int argc, char *argv[])
 
     /* calculate the transpose of A_tilde */
 
-
     A_tilde_trans = G_matrix_transpose(A_tilde);
-
-
 
     /* initialize some values
 
@@ -277,10 +264,11 @@ int main(int argc, char *argv[])
     *  mu = 0.000000001;   step size for spectra in range of mW/m^2/um
     *  mu = 0.000001;      step size for spectra in range of reflectance   
     *  check  max_total for number of digits to configure mu size
-    *  mu = 0.0001 * pow(10, -1 * ceil(log10(max_total)));
     */
+    mu = 0.0001 * pow(10, -1 * ceil(log10(max_total)));
+    G_message("mu = %lf", mu);
 
-
+    // Missing? startvector = G_vector_init (0, 0, RVEC);
     startvector = G_vec_get2(A->cols, startvector);
 
 
@@ -289,14 +277,13 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Unable to allocate memory for vector"));
 
 
-
+    // Missing? A_times_startvector = G_vector_init (0, 0, RVEC);
     A_times_startvector = G_vec_get2(A_tilde->rows, A_times_startvector);	/* length: no. of bands   */
+    // Missing? errorvector = G_vector_init (0, 0, RVEC);
     errorvector = G_vec_get2(A_tilde->rows, errorvector);	/* length: no. of bands   */
+    // Missing? temp = G_vector_init (0, 0, RVEC);
     temp = G_vec_get2(A_tilde->cols, temp);	/* length: no. of spectra */
     /*  A_tilde_trans_mu = m_get(A_tilde->m,A_tilde->n); */
-
-
-
 
     /* length: no. of bands   */
 
@@ -325,7 +312,6 @@ int main(int argc, char *argv[])
     G_message(_("Calculating for %i x %i pixels (%i bands) = %i pixelvectors."),
 	      nrows, ncols, Ref.nfiles, (ncols * ncols));
 
-
     for (row = 0; row < nrows; row++) {
 	int col, band;
 
@@ -343,12 +329,9 @@ int main(int argc, char *argv[])
 	*/
 	for (col = 0; col < ncols; col++) {
 
-
-
 	    double change = 1000;
 	    double deviation = 1000;
 	    int iterations = 0;
-
 
 	    /* get pixel values of each band and store in b vector: */
 	    /* length: no. of bands + 1 (GAMMA) */
@@ -359,14 +342,12 @@ int main(int argc, char *argv[])
 	    if (b_gamma == NULL)
 		G_fatal_error(_("Unable to allocate memory for matrix"));
 
-
-
+	    /* G_message("%d", A_tilde->rows);   */
 	    for (band = 0; band < Ref.nfiles; band++) {
 		b_gamma->ve[band] = cell[band][col];
 
 		/*G_matrix_set_element (b_gamma, 0, band, cell[band][col]); */
 	    }
-
 
 	    /* add GAMMA for 1. constraint as last element */
 	    b_gamma->ve[Ref.nfiles] = GAMMA;
@@ -392,7 +373,7 @@ int main(int argc, char *argv[])
 
 
 
-		A_times_startvector =   mv_mlt(A_tilde, startvector, A_times_startvector);
+		A_times_startvector = mv_mlt(A_tilde, startvector, A_times_startvector);
 
 
 		errorvector = v_sub(A_times_startvector, b_gamma, errorvector);
@@ -440,15 +421,14 @@ int main(int argc, char *argv[])
 	    for (i = 0; i < A->cols; i++)	/* no. of spectra */
 		result_cell[i][col] = (CELL) (100 * fraction->ve[i]);
 
-
-
 	    /* save error and iterations */
 	    error_cell[col] = (CELL) (100 * error);
 	    iter_cell[col] = iterations;
 
-	    /****V_FREE(fraction);
-	    V_FREE(b);
-	    *****/    
+	    /*
+	     V_FREE(fraction);
+	     V_FREE(b);
+	    **/    
 
 	} /* end cols loop */
 
@@ -493,9 +473,11 @@ int main(int argc, char *argv[])
 	char command[80];
 
 	G_close_cell(error_fd);
+    /* TODO
 	sprintf(command, "r.colors map=%s color=gyr >/dev/null",
 		parm.error->answer);
-	/* G_system (command); */
+	G_system (command);
+    */
     }
 
     if (iter_fd > 0)

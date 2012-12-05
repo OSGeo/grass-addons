@@ -11,7 +11,6 @@
 #include "global.h"
 #include "la_extra.h"
 
-
 /* input mat_struct A, vec_struct Avector1, Avector2
  * output cur_angle
  *

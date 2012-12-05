@@ -1,22 +1,16 @@
-
+/* TODO: move to GMATHLIB? */
 
 #include <stdio.h>		/* needed here for ifdef/else */
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
-
-/********
- ******** only compile this LAPACK/BLAS wrapper file if g2c.h is present!
- ********/
 #include <grass/config.h>
 
 #include <grass/gis.h>
 #include <grass/glocale.h>
 #include <grass/la.h>
 #include "la_extra.h"
-
-
 
 
 vec_struct *G_matvect_get_column2(mat_struct * mt, int col)
@@ -256,12 +250,10 @@ VEC *mv_mlt(mat_struct * A, VEC * b, VEC * out)
 
     if (!out) {
 	G_fatal_error("mv_mltsss3(error)");
-	exit(1);
 	out = G_vec_get2(A->rows, out);
     }
     if (out->dim != A->rows) {
 	G_fatal_error("mv_mlt3(error)");
-	exit(1);
 	out = G_vec_resize(out, A->rows);
     }
 
@@ -293,8 +285,6 @@ VEC *mv_mlt(mat_struct * A, VEC * b, VEC * out)
 
     return out;
 }
-
-
 
 
 VEC *G_vec_resize(VEC * in, int size)

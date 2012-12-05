@@ -1,4 +1,4 @@
-/* Spextral unmixing with Singular Value Decomposition */
+/* Spextral unmixing */
 /* (c) 15. Jan. 1999 Markus Neteler, Hannover */
 
 /* Cited references are from
@@ -138,12 +138,6 @@ int open_files(char *matrixfile,
 }
 
 
-
-
-
-
-
-
 mat_struct *open_files2(char *matrixfile,
 			char *img_grp,
 			char *result_prefix,
@@ -240,7 +234,6 @@ mat_struct *open_files2(char *matrixfile,
     }
 
 
-
     /* open files for results */
     result_cell = (CELL **) G_malloc(Ref.nfiles * sizeof(CELL *));
     resultfd = (int *)G_malloc(Ref.nfiles * sizeof(int));
@@ -278,8 +271,6 @@ mat_struct *open_files2(char *matrixfile,
 	else
 	    iter_cell = G_allocate_cell_buf();
     }
-
-
 
     /* give back number of output files (= Ref.nfiles) */
     return A;
