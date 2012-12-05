@@ -168,7 +168,7 @@ MAT  *_m_exp(MAT *,double,MAT *,int *,int *);
 MAT  *m_poly(MAT *,VEC *,MAT *);
 
 /* FFT */
-//void fft(VEC *,VEC *);
-//void ifft(VEC *,VEC *);
+/*void fft(VEC *,VEC *);*/
+/*void ifft(VEC *,VEC *);*/
 
 #endif /* __MATRIX2_H__ */

@@ -19,6 +19,16 @@
 #define GLOBAL
 
 #include <grass/config.h>
+
+
+#ifndef HAVE_LIBBLAS
+#error GRASS is not configured with libLAS
+#endif
+
+#ifndef HAVE_LIBLAPACK
+#error GRASS is not configured with LAPACK
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <strings.h>

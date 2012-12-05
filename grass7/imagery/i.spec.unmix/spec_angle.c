@@ -37,7 +37,7 @@ float spectral_angle(vec_struct * Avector1, vec_struct * Avector2)
     /* Measure spectral angle */
 
     /* multiply one A column with second */
-    //  vtmp1 = G_vector_init (0, 0, RVEC);
+
     vtmp1 = G_vector_product(Avector1, Avector2);
     norm1 = G_vector_norm1(vtmp1);	/* calculate 1-norm */
     norm2 = G_vector_norm_euclid(Avector1);	/* calculate 2-norm (Euclidean) */
