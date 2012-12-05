@@ -11,6 +11,7 @@
 void draw_barb(double easting, double northing, double velocity,
 	       double compass_deg, int color, double scale, int style)
 {
+    double radius;
     G_debug(3, "in draw_barb()");
 
     //dbg:    unknown_(594578,4920392);
@@ -20,7 +21,7 @@ void draw_barb(double easting, double northing, double velocity,
     R_move_abs((int)(D_u_to_d_col(easting) + 0.5),
 	       (int)(D_u_to_d_row(northing) + 0.5));
 
-    if (style != TYPE_BARB) {
+    if (style == TYPE_ARROW || style == TYPE_STRAW) {
 	if (velocity == velocity)	/* ie not NaN */
 	    arrow_mag(easting, northing, compass_deg, velocity, style);
 	else
@@ -31,14 +32,18 @@ void draw_barb(double easting, double northing, double velocity,
 	/* calc barb parameters */
 	//dbg: compass_deg=0;
 	/* draw barb bits */
-	draw_circle(easting, northing, 10.0, FALSE);
-	draw_feather(easting, northing, 10.0 /*radius */ , velocity,
+	if (style == TYPE_SMLBARB)
+	    radius = 5.0;
+	else
+	    radius = 10.0;
+
+	draw_circle(easting, northing, radius, FALSE);
+	draw_feather(easting, northing, radius, velocity,
 		     compass_deg);
 
 	//dbg:      int i;
 	//      for (i=0; i < 360; i+=20)
 	//          draw_feather(easting, northing, 20.0 /*radius*/, velocity, i);
-
     }
 
     return;

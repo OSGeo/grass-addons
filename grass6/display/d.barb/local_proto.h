@@ -8,7 +8,8 @@
 /* barb flavours */
 #define TYPE_STRAW 0
 #define TYPE_BARB 1
-#define TYPE_ARROW 2
+#define TYPE_SMLBARB 2
+#define TYPE_ARROW 3
 
 #define RpD ((2 * M_PI) / 360.)	/* radians/degree */
 #define D2R(d) (double)(d * RpD)	/* degrees->radians */

@@ -17,7 +17,7 @@ void do_legend(char **at_list, char **velo_list, int num_velos,
 
     G_debug(1, "Doing legend ... (%d entries)", num_velos);
 
-    if (style == TYPE_BARB)
+    if (style == TYPE_BARB || style == TYPE_SMLBARB)
 	angle = -90;
     else
 	angle = 90;
@@ -55,7 +55,7 @@ void do_legend(char **at_list, char **velo_list, int num_velos,
 	/* X: right justify the text + 10px buffer (a wee bit more for wind barbs) */
 	/* text width is 0.81 of text height? so even though we set width 
 	   to txsiz with R_text_size(), we still have to reduce.. hmmm */
-	if (style == TYPE_BARB)
+	if (style == TYPE_BARB || style == TYPE_SMLBARB)
 	    R_move_rel(-20 - (strlen(buff) * key_fontsize * 0.81), 0);
 	else
 	    R_move_rel(-10 - (strlen(buff) * key_fontsize * 0.81), 0);

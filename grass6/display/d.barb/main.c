@@ -7,7 +7,7 @@
  * AUTHORS:     Hamish Bowman, Dunedin, New Zealand
  *              Grid code derived from d.rast.arrow
  *
- * COPYRIGHT:   (c) 2008-2011 by Hamish Bowman, and The GRASS Development Team
+ * COPYRIGHT:   (c) 2008-2012 by Hamish Bowman, and The GRASS Development Team
  *              This program is free software under the GNU General Public
  *              License (>=v2). Read the file COPYING that comes with GRASS
  *              for details.
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     style_opt->key = "style";
     style_opt->type = TYPE_STRING;
     style_opt->answer = "arrow";
-    style_opt->options = "arrow,barb,straw";
+    style_opt->options = "arrow,barb,small_barb,straw";
     style_opt->description = _("Style");
 
     color_opt = G_define_standard_option(G_OPT_C_FG);
@@ -206,6 +206,8 @@ int main(int argc, char *argv[])
 	style = TYPE_ARROW;
     else if (G_strcasecmp(style_opt->answer, "barb") == 0)
 	style = TYPE_BARB;
+    else if (G_strcasecmp(style_opt->answer, "small_barb") == 0)
+	style = TYPE_SMLBARB;
     else if (G_strcasecmp(style_opt->answer, "straw") == 0)
 	style = TYPE_STRAW;
     else

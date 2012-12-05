@@ -32,7 +32,7 @@ void do_barb_grid(char *dir_u_map, char *mag_v_map, int is_component,
 	G_fatal_error(_("Problem reading range file"));
     G_get_fp_range_min_max(&range, &mag_min, &mag_max);
 
-    if (style != TYPE_BARB) {
+    if (style == TYPE_ARROW || style == TYPE_STRAW) {
 	scale *= 1.5 / fabs(mag_max);
     }
     G_debug(3, "scaling=%.2f  rast_max=%.2f", scale, mag_max);
