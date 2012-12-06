@@ -401,10 +401,7 @@ int main(int argc, char *argv[])
 	    error_cell[col] = (CELL) (100 * error);
 	    iter_cell[col] = iterations;
 
-	    /****V_FREE(fraction);
-	    V_FREE(b);
-	    *****/
-
+      vec_free(fraction);
 	}			/* end cols loop */
 
 	/* write the resulting rows into output files:  */
@@ -428,6 +425,10 @@ int main(int argc, char *argv[])
 	char command[1080];
 
 	Rast_close(resultfd[i]);
+	
+	 vec_free(startvector);
+
+    vec_free(A_times_startvector);
 
 	/* make grey scale color table */
 	sprintf(result_name, "%s.%d", parm.result->answer, (i + 1));
@@ -453,6 +454,12 @@ int main(int argc, char *argv[])
 	Rast_close(iter_fd);
 
     G_matrix_free(A);
+   
+    vec_free(errorvector);
+
+    vec_free(temp);
+    
+    vec_free(b_gamma);    
 
     make_history(result_name, parm.group->answer, parm.matrixfile->answer);
 

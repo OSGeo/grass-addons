@@ -223,7 +223,10 @@ int main(int argc, char *argv[])
     /* memory allocation */
     A_tilde = G_matrix_init(A->rows + 1, A->cols, A->rows + 1);
     if (A_tilde == NULL)
-	G_fatal_error(_("Unable to allocate memory for matrix"));
+    {
+	    G_fatal_error(_("Unable to allocate memory for matrix"));
+	    exit(1);
+	  }  
 
     for (i = 0; i < A->rows; i++)
 	for (j = 0; j < A->cols; j++)
@@ -266,15 +269,18 @@ int main(int argc, char *argv[])
     *  check  max_total for number of digits to configure mu size
     */
     mu = 0.0001 * pow(10, -1 * ceil(log10(max_total)));
-    G_message("mu = %lf", mu);
+    /*G_message("mu = %lf", mu); */
 
-    // Missing? startvector = G_vector_init (0, 0, RVEC);
+    // Missing? startvector = G_vector_init (0, 0, RVEC); 
     startvector = G_vec_get2(A->cols, startvector);
 
 
 
     if (startvector == NULL)
-	G_fatal_error(_("Unable to allocate memory for vector"));
+    {
+	    G_fatal_error(_("Unable to allocate memory for vector"));
+	    exit(1);
+	  }  
 
 
     // Missing? A_times_startvector = G_vector_init (0, 0, RVEC);
@@ -400,16 +406,13 @@ int main(int argc, char *argv[])
 
       /* G_debug (5, "Change: %g - deviation: %g",   change, deviation); */
 
-
-	    }
-
+	  }
 
 	    /*----------  end of second contraint -----------------------
 	    * store fractions in resulting rows of resulting files
 	    * (number of bands = vector dimension) 
-	    
+	    */
 
-	    /* write result in full percent */
 
 	    VEC *fraction;
 
@@ -424,15 +427,12 @@ int main(int argc, char *argv[])
 	    /* save error and iterations */
 	    error_cell[col] = (CELL) (100 * error);
 	    iter_cell[col] = iterations;
+	    
+	    
+	    vec_free(fraction);
 
-	    /*
-	     V_FREE(fraction);
-	     V_FREE(b);
-	    **/    
 
 	} /* end cols loop */
-
-
 
 
 	/* write the resulting rows into output files: */
@@ -464,6 +464,11 @@ int main(int argc, char *argv[])
 		"0 0 0 0 \n" "201 0 255 0\n" "end\n" "EOF", result_name);
 
 	/* G_system (command); */
+	
+	
+    vec_free(startvector);
+
+    vec_free(A_times_startvector);
 
 	/* create histogram */
 	do_histogram(result_name, Ref.file[i].mapset);
@@ -484,6 +489,12 @@ int main(int argc, char *argv[])
 	G_close_cell(iter_fd);
 
     G_matrix_free(A);
+   
+    vec_free(errorvector);
+
+    vec_free(temp);
+    
+    vec_free(b_gamma);
 
     make_history(result_name, parm.group->answer, parm.matrixfile->answer);
 

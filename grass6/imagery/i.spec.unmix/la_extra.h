@@ -24,3 +24,4 @@ mat_struct *sm_mlt(double scalar, mat_struct * matrix, mat_struct * out);
 mat_struct *G_matrix_resize(mat_struct * in, int rows, int cols);
 double v_norm2(VEC * x);
 VEC *G_vec_copy(VEC * in);
+int vec_free(VEC *vec);

@@ -512,3 +512,16 @@ int G_matrix_read2(FILE * fp, mat_struct * out)
 
     return 0;
 }
+
+int vec_free(VEC *vec)
+{
+  if ( !vec || (vec->dim) < 0 )
+    /* don't trust it */
+    return -1;
+   
+	//G_free(vec->ve);
+
+    G_free(vec);
+      
+  return 0;
+}
