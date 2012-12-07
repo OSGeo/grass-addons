@@ -1,0 +1,72 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.class.mlpy</em> classifies vector features. It is an interface to mlpy
+library. Classification is supervised and based on attribut table data.
+Geometry is not used. Training dataset is always required.
+
+<h2>NOTES</h2>
+
+This script needs mlpy to be installed. You can download mlpy and installation
+instructions from the official mlpy website
+(<a href="http://mlpy.sourceforge.net/">http://mlpy.sourceforge.net/</a>).
+
+<h2>EXAMPLE</h2>
+
+This is a North Carolina example which generates vector data for classification
+from raster maps.
+<div class="code"><pre>
+# generate random points used as an input
+v.random output=points_unknown n=1000
+v.db.addtable map=points_unknown
+
+# generate random points used as training dataset
+v.random output=points_known n=100
+v.db.addtable map=points_known
+
+# fill attribute tables
+MAPS=$(g.mlist type=rast pattern="lsat*" exclude="*87*" mapset=PERMANENT sep=" ")
+let NUM=0
+for MAP in $MAPS
+do
+let NUM++
+    v.db.addcolumn map=points_unknown layer=1 columns="map_$NUM integer"
+    v.db.addcolumn map=points_known layer=1 columns="map_$NUM integer"
+    v.what.rast map=points_unknown layer=1 raster=$MAP column=map_$NUM
+    v.what.rast map=points_known layer=1 raster=$MAP column=map_$NUM
+done
+
+# fill the class (category) column with correct values for training dataset
+v.db.addcolumn map=points_known layer=1 columns="landclass integer"
+v.what.rast map=points_known layer=1 raster=landclass96 column=landclass
+
+# set color table
+r.colors.out map=landclass96 rules=tmp_color_rules_file \
+| v.colors map=points_known column=landclass layer=1 rules=tmp_color_rules_file
+rm tmp_color_rules_file
+
+# do the classification
+v.class.mlpy input=points_unknown training=points_known class_column=landclass
+
+# set color table
+r.colors.out map=landclass96 rules=tmp_color_rules_file \
+| v.colors map=points_unknown column=landclass layer=1 rules=tmp_color_rules_file
+rm tmp_color_rules_file
+</pre></div>
+
+<h2>SEE ALSO</h2>
+
+<em><a href="v.class">v.class</a></em><br>
+
+<h2>REFERENCES</h2>
+
+D. Albanese, R. Visintainer, S. Merler, S. Riccadonna, G. Jurman, C. Furlanello.
+<em>mlpy: Machine Learning Python</em>, 2012.
+<a href="http://arxiv.org/abs/1202.6548">arXiv:1202.6548</a>
+
+<h2>AUTHOR</h2>
+
+Vaclav Petras,
+<a href="http://www.cvut.cz">Czech Technical University in Prague</a>, Czech Republic
+
+<p>
+<i>Last changed: $Date: 2012-09-09 21:11:23 +0200 (Sun, 09 Sep 2012) $</i>
