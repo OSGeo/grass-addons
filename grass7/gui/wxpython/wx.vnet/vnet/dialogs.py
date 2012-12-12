@@ -46,7 +46,8 @@ from core.gcmd        import RunCommand, GMessage
 from dbmgr.base       import DbMgrBase 
 
 from gui_core.widgets import GNotebook
-from gui_core.goutput import GMConsole, CmdThread, EVT_CMD_DONE
+from gui_core.goutput import GConsoleWindow
+from core.gconsole    import CmdThread, EVT_CMD_DONE, GConsole
 from gui_core.gselect import Select, LayerSelect, ColumnSelect
 
 from vnet.widgets     import PointsList
@@ -157,7 +158,7 @@ class VNETDialog(wx.Dialog):
         self.resultDbMgrData = {}
         self._createResultDbMgrPage()
 
-        self.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
+        self.notebook.Bind(FN.EVT_FLATNOTEBOOK_PAGE_CHANGED, self.OnPageChanged)
         self.Bind(wx.EVT_CLOSE, self.OnCloseDialog)
 
         self._addPanes()
@@ -179,8 +180,8 @@ class VNETDialog(wx.Dialog):
         self.SetInitialSize(dlgSize)
 
         #fix goutput's pane size (required for Mac OSX)
-        if self.goutput:         
-            self.goutput.SetSashPosition(int(self.GetSize()[1] * .75))
+        if self.gwindow:         
+            self.gwindow.SetSashPosition(int(self.GetSize()[1] * .75))
 
         self.OnAnalysisChanged(None)
         self.notebook.SetSelectionByName("parameters")
@@ -329,17 +330,13 @@ class VNETDialog(wx.Dialog):
                               text = _("Output"), 
                               name = 'output')
 
-        #TODO ugly hacks - just for GMConsole to be happy 
-        self.notebook.notebookpanel = CmdPanelHack()
-        outputPanel.notebook = self.notebook # for GMConsole init
-        outputPanel.parent = self.notebook # for GMConsole OnDone
-
-        self.goutput = GMConsole(parent = outputPanel, margin = False)
+        self.goutput = GConsole(guiparent = self)
+        self.gwindow = GConsoleWindow(parent = outputPanel, gconsole = self.goutput)
 
         #Layout
         outputSizer = wx.BoxSizer(wx.VERTICAL)
-        outputSizer.Add(item = self.goutput, proportion = 1, flag = wx.EXPAND)
-        self.goutput.SetMinSize((-1,-1))
+        outputSizer.Add(item = self.gwindow, proportion = 1, flag = wx.EXPAND)
+        self.gwindow.SetMinSize((-1,-1))
 
         outputPanel.SetSizer(outputSizer)
 
@@ -2828,11 +2825,3 @@ class VnetStatusbar(wx.StatusBar):
                 if self.maxPriority < item['priority']:
                     self.maxPriority =  item['priority']
             self._updateStatus()
-         
-#TODO ugly hack - just for GMConsole to be satisfied 
-class CmdPanelHack:
-     def createCmd(self, ignoreErrors = False, ignoreRequired = False):
-        pass
-
-
-
