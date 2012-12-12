@@ -141,7 +141,8 @@ def main():
         th = options['threshold']
 
     # Stream extraction
-    grass.run_command('r.stream.extract', elevation = r_elevation, 
+    try:
+        grass.run_command('r.stream.extract', elevation = r_elevation, 
                                           accumulation = r_accumulation, 
                                           threshold = th, 
                                           d8cut = 'infinity', 
@@ -149,14 +150,20 @@ def main():
                                           stream_rast = r_stream_e,  
                                           direction = r_drainage_e, 
                                           overwrite = True)
+    except:
+	    grass.fatal("Some dependencies seem to be missing, please make sure that you have r.stream.* modules installed.")
                                           
     try:
     
         # Delineation of basin 
-        grass.run_command('r.stream.basins', dir = r_drainage, 
+        try:
+            grass.run_command('r.stream.basins', dir = r_drainage, 
                                              basins = r_basin, 
                                              coors = '%s,%s' % (east , north),
                                              overwrite = True)
+        except:
+		    grass.fatal("Some dependencies seem to be missing, please make sure that you have r.stream.* modules installed.")                                    
+                                             
         grass.message( "Delineation of basin done" )
      
         # Mask and cropping
@@ -261,13 +268,18 @@ def main():
 
         # Creation of order maps: strahler, horton, hack, shreeve
         grass.message( "Creating %s" % r_hack ) 
-        grass.run_command('r.stream.order', stream = r_stream_e, 
+        
+        try:
+            grass.run_command('r.stream.order', stream = r_stream_e, 
                                         dir = r_drainage_e, 
                                         strahler = r_strahler, 
                                         shreve = r_shreve, 
                                         horton = r_horton, 
                                         hack = r_hack,
                                         overwrite = True)
+        except:
+	        grass.fatal("Some dependencies seem to be missing, please make sure that you have r.stream.* modules installed.")                                
+                                        
     
         # Distance to outlet
         grass.write_command('v.in.ascii', output = v_outlet, 
@@ -282,30 +294,45 @@ def main():
                                    value = 1, 
                                    rows = 4096,
                                    overwrite = True)
-                                   
-        grass.run_command('r.stream.distance', stream = r_outlet, 
+                     
+        try:                           
+            grass.run_command('r.stream.distance', stream = r_outlet, 
                                            dir = r_drainage, 
                                            flags = 'o', 
                                            distance = r_distance,
                                            overwrite = True)
+        except:
+	        grass.fatal("Some dependencies seem to be missing, please make sure that you have r.stream.* modules installed.")
 
         # Ipsographic curve
         grass.message( "##################################" )
-        grass.run_command('r.ipso', map = 'r_elevation_crop',
+        try:
+            grass.run_command('r.ipso', map = 'r_elevation_crop',
                                   image = prefix, flags = 'ab')
+        except:
+	        grass.fatal("Some dependencies seem to be missing, please make sure that you have r.ipso installed.")                          
+                                  
         grass.message( "##################################" )
         # Width Function
         grass.message( "##################################" )
-        grass.run_command('r.wf', map = r_distance,
+        try:
+            grass.run_command('r.wf', map = r_distance,
                                   image = prefix)
+        except:
+	        grass.fatal("Some dependencies seem to be missing, please make sure that you have r.wf installed.")
+                                  
         grass.message( "##################################" )
 
         # Creation of map of hillslope distance to river network
-        grass.run_command('r.stream.distance', stream = r_stream_e, 
+        
+        try:
+            grass.run_command('r.stream.distance', stream = r_stream_e, 
                                            dir = r_drainage, 
                                            dem = 'r_elevation_crop' , 
                                            distance = r_hillslope_distance,
                                            overwrite = True)
+        except:
+	        grass.fatal("Some dependencies seem to be missing, please make sure that you have r.stream.* modules installed.")
     
         # Mean elevation
         grass.run_command('r.average' , base = r_basin, 
@@ -479,9 +506,12 @@ def main():
         FSF = magnitudo / area_basin
     
         # Statistics
-        stream_stats = grass.read_command('r.stream.stats', stream = r_strahler, 
+        try:
+            stream_stats = grass.read_command('r.stream.stats', stream = r_strahler, 
                                                         dir = r_drainage_e, 
                                                         dem = 'r_elevation_crop' )
+        except:
+	        grass.fatal("Some dependencies seem to be missing, please make sure that you have r.stream.* modules installed.") 
                                                         
         print "##################################"         
         print "Output of r.stream.stats: "
