@@ -28,8 +28,7 @@
 int main(int argc, char *argv[])
 {
     int nrows, ncols;
-    int row, col;
-    char *desc;
+    int row;
     struct GModule *module;
     struct Option *input, *output;
     struct History history;	/*Metadata */
@@ -38,18 +37,16 @@ int main(int argc, char *argv[])
 
     char *in, *out;		/*in/out raster names */
     int infd, outfd;
-    void *inrast, *outrast;
+    DCELL *inrast, *outrast;
     RASTER_MAP_TYPE data_type_input;
-    CELL val1, val2;
 
     G_gisinit(argv[0]);
 
     module = G_define_module();
     G_add_keyword(_("imagery"));
     G_add_keyword(_("flip"));
-    module->label =
-	_("Flips an image North-South.");
-    module->description = _("Flips an image North-South.");
+    module->label = _("Flips an image.");
+    module->description = _("Flips an image.");
 
     /* Define the different options */
     input = G_define_standard_option(G_OPT_R_INPUT);
@@ -67,98 +64,52 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    in=input->answer;
-    out=output->answer;
+    if (flag1->answer && flag2->answer)
+	G_fatal_error(_("-w and -b are mutually exclusive"));
+
+    in = input->answer;
+    out = output->answer;
     
     /* Open input raster file */
     infd = Rast_open_old(in, "");
-    data_type_input = Rast_map_type(in, "");
-    inrast = Rast_allocate_buf(data_type_input);
+    data_type_input = Rast_get_map_type(infd);
+    inrast = Rast_allocate_d_buf();
 
     /* Create New raster file */
     outfd = Rast_open_new(out, data_type_input);
-    outrast = Rast_allocate_buf(data_type_input);
+    outrast = (flag1->answer || flag2->answer)
+	? Rast_allocate_d_buf()
+	: inrast;
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
-    if(flag1->answer)
+    for (row = 0; row < nrows; row++)
     {
-        /* Process pixels for E-W flip*/
-        for (row = 0; row < nrows; row++)
-        {
-            G_percent(row, nrows, 2);
-            /* read input maps */
-            Rast_get_row(infd,inrast,row,data_type_input);
+	int inrow = flag1->answer ? row : nrows-1-row;
+	G_percent(row, nrows, 2);
+	/* read input map */
+	Rast_get_d_row(infd,inrast,inrow);
+
+	if (flag1->answer || flag2->answer) {
+	    int col;
             for (col = 0; col < ncols; col++)
-            {
-	        switch(data_type_input){
-		    case CELL_TYPE:
-			((CELL *)outrast)[ncols-1-col]=((CELL *)inrast)[col];
-			break;
-		    case FCELL_TYPE:
-			((FCELL *)outrast)[ncols-1-col]=((FCELL *)inrast)[col];
-			break;
-		    case DCELL_TYPE:
-			((DCELL *)outrast)[ncols-1-col]=((DCELL *)inrast)[col];
-			break;
-	        }
-            }
-            /* process the data */
-            Rast_put_row(outfd,outrast,data_type_input);
-        }
-    }else if(flag2->answer)
-    {
-        /* Process pixels for both N-S and E-W flip*/
-        for (row = 0; row < nrows; row++)
-        {
-            G_percent(row, nrows, 2);
-            /* read input maps */
-            Rast_get_row(infd,inrast,(nrows-1-row),data_type_input);
-            for (col = 0; col < ncols; col++)
-            {
-	        switch(data_type_input){
-		    case CELL_TYPE:
-			((CELL *)outrast)[ncols-1-col]=((CELL *)inrast)[col];
-			break;
-		    case FCELL_TYPE:
-			((FCELL *)outrast)[ncols-1-col]=((FCELL *)inrast)[col];
-			break;
-		    case DCELL_TYPE:
-			((DCELL *)outrast)[ncols-1-col]=((DCELL *)inrast)[col];
-			break;
-	        }
-            }
-            /* process the data */
-            Rast_put_row(outfd,outrast,data_type_input);
-        }
-    }else
-    {
-        /* Process pixels for default N-S flip*/
-        for (row = 0; row < nrows; row++)
-        {
-            G_percent(row, nrows, 2);
-            /* read input maps */
-            Rast_get_row(infd,inrast,(nrows-1-row),data_type_input);
-            /* process the data */
-            Rast_put_row(outfd,inrast,data_type_input);
-        }
+		outrast[ncols-1-col] = inrast[col];
+	}
+
+	Rast_put_d_row(outfd,outrast);
     }
 
-    G_free(inrast);
     Rast_close(infd);
-    G_free(outrast);
     Rast_close(outfd);
 
-    /* Color from 0 to +1000 in grey */
-    Rast_init_colors(&colors);
-    val1 = 0;
-    val2 = 1000;
-    Rast_add_c_color_rule(&val1, 0, 0, 0, &val2, 255, 255, 255, &colors);
+    if (Rast_read_colors(in, "", &colors) > 0)
+	Rast_write_colors(out, G_mapset(), &colors);
+
     Rast_short_history(out, "raster", &history);
     Rast_command_history(&history);
     Rast_write_history(out, &history);
 
-    exit(EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }
 
