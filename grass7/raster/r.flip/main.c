@@ -1,7 +1,7 @@
 
 /****************************************************************************
  *
- * MODULE:       i.vi
+ * MODULE:       r.flip
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Flips an image North-South, East-West (-w) or both (-b).
  *
@@ -15,6 +15,7 @@
  *		 Initial need for TRMM import
  *
  * Changelog:	 
+ *		 Moved from i.flip to r.flip
  *
  *****************************************************************************/
 

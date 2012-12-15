@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = i.flip
+PGM = r.flip
 
 LIBES = $(RASTERLIB) $(GISLIB) $(MATHLIB)
 DEPENDENCIES = $(RASTERDEP) $(GISDEP)

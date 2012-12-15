@@ -4,6 +4,7 @@ SUBDIRS = \
 	r.area \
 	r.clump2 \
 	r.convergence \
+	r.flip \
 	r.fuzzy \
 	r.hydrodem \
 	r.in.srtm.region \
