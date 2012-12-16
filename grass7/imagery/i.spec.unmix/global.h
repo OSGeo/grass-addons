@@ -29,6 +29,6 @@ GLOBAL int iter_fd;
 GLOBAL float spectral_angle(vec_struct *, vec_struct *);
 GLOBAL int do_histogram(char *, char *);
 GLOBAL void make_history(char *, char *, char *);
-GLOBAL int open_files(char *, char *, char *, char *, mat_struct * A);
+GLOBAL mat_struct *open_files(char *matrixfile, char *img_grp, char *result_prefix, char *iter_name, char *error_name);
 
 #endif /* __GLOBAL_H__ */

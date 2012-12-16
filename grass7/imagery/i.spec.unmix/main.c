@@ -45,14 +45,13 @@
 #include <grass/gmath.h>
 #include <grass/glocale.h>
 #include "global.h"
-#include "open.h"
 
 #include "la_extra.h"
 
 
-#define GAMMA 10   /* last row value in Matrix and last b vector element
-				    * for constraint Sum xi = 1 (GAMMA=weight) 
-					*/
+#define GAMMA 10		/* last row value in Matrix and last b vector element
+				 * for constraint Sum xi = 1 (GAMMA=weight) 
+				 */
 
 static double find_max(double x, double y)
 {
@@ -66,9 +65,13 @@ int main(int argc, char *argv[])
     int nrows, ncols;
     int row;
     int i, j, k;
-    VEC *b, *b_gamma;
+    vec_struct *b_gamma;
     struct Cell_head region;
-    VEC *startvector, *A_times_startvector, *errorvector, *temp;
+
+    //    VEC *startvector, *A_times_startvector, *errorvector, *temp;
+
+    vec_struct *startvector, *A_times_startvector, *errorvector, *temp;
+
     mat_struct *A, *A_tilde, *A_tilde_trans_mu, *A_tilde_trans;
 
     mat_struct B, B_tilde, B_tilde_trans_mu;
@@ -126,10 +129,10 @@ int main(int argc, char *argv[])
 
 
     /* here we go... A is created here */
-    A = open_files2(parm.matrixfile->answer,
-		    parm.group->answer,
-		    parm.result->answer,
-		    parm.iter->answer, parm.error->answer);
+    A = open_files(parm.matrixfile->answer,
+		   parm.group->answer,
+		   parm.result->answer,
+		   parm.iter->answer, parm.error->answer);
 
 
     /* ATTENTION: Internally we work here with col-oriented matrixfile,
@@ -163,7 +166,7 @@ int main(int argc, char *argv[])
 	vec_struct *Avector1, *Avector2;
 	double max1, max2;
 
-	Avector1 = G_matvect_get_column2(A, i);
+	Avector1 = G_matvect_get_column(A, i);
 
 
 	/* get the max. element of this vector */
@@ -181,24 +184,24 @@ int main(int argc, char *argv[])
 
 		if (max2 > max1)
 		    temp = max2;
-
 		if (temp > max_total)
 		    max_total = temp;
 		/* find max of matrix A  */
-		/*        max_total = (find_max (max1, max2), max_total); */
+		/* max_total = (find_max (max1, max2), max_total); */
 
 		/* save angle in degree */
 		anglefield[i][j] = spectral_angle(Avector1, Avector2);
-
-
 	    }
 	}
 
 	G_vector_free(Avector1);
 	G_vector_free(Avector2);
+
     }
 
-    G_message(_("Checking linear dependencies (orthogonality check) of Matrix A..."));
+    G_message("%s",
+	      _
+	      ("Checking linear dependencies (orthogonality check) of Matrix A..."));
 
     for (i = 0; i < A->cols; i++)
 	for (j = 0; j < A->cols; j++)
@@ -236,9 +239,7 @@ int main(int argc, char *argv[])
 				 G_matrix_get_element(A, i, j));
 
     /* fill last row with 1 elements */
-
     for (j = 0; j < A_tilde->cols; j++) {
-
 	G_matrix_set_element(A_tilde, i, j, GAMMA);
     }
 
@@ -272,17 +273,19 @@ int main(int argc, char *argv[])
     mu = 0.0001 * pow(10, -1 * ceil(log10(max_total)));
 
     /* TODO: Missing? startvector = G_vector_init (0, 0, RVEC); */
-    startvector = G_vec_get2(A->cols, startvector);
+    startvector = G_vector_init(A->cols, A->cols, CVEC);
+
 
     if (startvector == NULL)
 	G_fatal_error(_("Unable to allocate memory for vector"));
 
     /* TODO: Missing? A_times_startvector = G_vector_init (0, 0, RVEC); */
-    A_times_startvector = G_vec_get2(A_tilde->rows, A_times_startvector);	/* length: no. of bands   */
+    A_times_startvector = G_vector_init(A_tilde->rows, A_tilde->rows, CVEC);	/* length: no. of bands   */
     /* TODO: Missing? errorvector = G_vector_init (0, 0, RVEC); */
-    errorvector = G_vec_get2(A_tilde->rows, errorvector);	/* length: no. of bands   */
+    errorvector = G_vector_init(A_tilde->rows, A_tilde->rows, CVEC);	/* length: no. of bands   */
     /* TODO: Missing? temp = G_vector_init (0, 0, RVEC); */
-    temp = G_vec_get2(A_tilde->cols, temp);	/* length: no. of spectra */
+    temp = G_vector_init(A_tilde->cols, A_tilde->cols, CVEC);	/* length: no. of spectra */
+
 
     /* length: no. of bands   */
     if (A_times_startvector == NULL)
@@ -307,7 +310,8 @@ int main(int argc, char *argv[])
     nrows = region.rows;
     ncols = region.cols;
 
-    G_message(_("Calculating for %i x %i pixels (%i bands) = %i pixelvectors."),
+    G_message(_
+	      ("Calculating for %i x %i pixels (%i bands) = %i pixelvectors."),
 	      nrows, ncols, Ref.nfiles, (ncols * ncols));
 
     for (row = 0; row < nrows; row++) {
@@ -328,22 +332,23 @@ int main(int argc, char *argv[])
 	    /* get pixel values of each band and store in b vector: */
 	    /* length: no. of bands + 1 (GAMMA) */
 
-	    b_gamma = G_vec_get2(A_tilde->rows, b_gamma);
+	    b_gamma = G_vector_init(A_tilde->rows, A_tilde->rows, CVEC);
 
 	    if (b_gamma == NULL)
 		G_fatal_error(_("Unable to allocate memory for matrix"));
 
-	    for (band = 0; band < Ref.nfiles; band++) {
-		b_gamma->ve[band] = cell[band][col];
 
-	    }
+	    for (band = 0; band < Ref.nfiles; band++)
+		G_matrix_set_element(b_gamma, band, 0, cell[band][col]);
 
 	    /* add GAMMA for 1. constraint as last element */
-	    b_gamma->ve[Ref.nfiles] = GAMMA;
+	    G_matrix_set_element(b_gamma, Ref.nfiles, 0, GAMMA);
+
 
 
 	    for (k = 0; k < A_tilde->cols; k++)
-		startvector->ve[k] = (1.0 / A_tilde->cols);
+		G_matrix_set_element(startvector, k, 0,
+				     (1.0 / A_tilde->cols));
 
 	    /* calculate fraction vector for current pixel
 	       Result is stored in fractions vector       
@@ -357,52 +362,63 @@ int main(int argc, char *argv[])
 	    /* solve with iterative solution: */
 	    while (fabs(change) > 0.0001) {
 
-		A_times_startvector =
-		    mv_mlt(A_tilde, startvector, A_times_startvector);
+		G_mat_vector_product(A_tilde, startvector,
+				     A_times_startvector);
 
-		errorvector =
-		    v_sub(A_times_startvector, b_gamma, errorvector);
+
+		G_vector_sub(A_times_startvector, b_gamma, errorvector);
 
 		A_tilde_trans_mu =
-		    sm_mlt(mu, A_tilde_trans, A_tilde_trans_mu);
+		    G_matrix_scalar_mul(mu, A_tilde_trans, A_tilde_trans_mu);
 
-		temp = mv_mlt(A_tilde_trans_mu, errorvector, temp);
-		startvector = v_sub(startvector, temp, startvector);	/* update startvector */
+		G_mat_vector_product(A_tilde_trans_mu, errorvector, temp);
+		G_vector_sub(startvector, temp, startvector);	/* update startvector */
 
-		/* if one element gets negative, set it to zero */
-		for (k = 0; k < (A_tilde->cols); k++)	/* no. of spectra times */
-		    if (startvector->ve[k] < 0)
-			startvector->ve[k] = 0;
+		for (k = 0; k < A_tilde->cols; k++)
+		    /* no. of spectra times */
+		    /* if one element gets negative, set it to zero */
+		    if ((G_matrix_get_element(startvector, k, 0) < 0))
+			G_matrix_set_element(startvector, k, 0, 0);
+
 
 		/* Check the deviation */
-		double norm2 = v_norm2(errorvector);
+		double norm = G_vector_norm_euclid(errorvector);
 
-		change = deviation - norm2;
-		deviation = norm2;
+
+		change = deviation - norm;
+		deviation = norm;
 
 		iterations++;
 
-		/* G_message("change=%lf, deviation=%lf",change, 0.0001);   */
-
+		/* G_message("change=%lf, norm2=%lf",change, norm);   */
 	    }
 
-	    VEC *fraction;
+
+	    vec_struct *fraction;
 
 	    /* G_message("fcol %d  and A->cols %d", startvector->dim, A->cols); */
-	    fraction = G_vec_get(A->cols);	/* length: no. of spectra */
-	    error = deviation / v_norm2(b_gamma);
-	    fraction = G_vec_copy(startvector);
+	    fraction = G_vector_init(A->cols, A->cols, CVEC);	/* length: no. of spectra */
+	    error = deviation / G_vector_norm_euclid(b_gamma);
+	    fraction = G_vector_copy(startvector, NO_COMPACT);
+
+
 
 	    /* write result in full percent */
 	    for (i = 0; i < A->cols; i++)	/* no. of spectra */
-		result_cell[i][col] = (CELL) (100 * fraction->ve[i]);
+		result_cell[i][col] =
+		    (CELL) (100 * G_matrix_get_element(fraction, i, 0));
 
 	    /* save error and iterations */
 	    error_cell[col] = (CELL) (100 * error);
 	    iter_cell[col] = iterations;
 
-      vec_free(fraction);
+
+	    G_vector_free(fraction);
+
+
 	}			/* end cols loop */
+
+
 
 	/* write the resulting rows into output files:  */
 	for (i = 0; i < A->cols; i++)	/* no. of spectra  */
@@ -413,6 +429,7 @@ int main(int argc, char *argv[])
 
 	if (iter_fd > 0)
 	    Rast_put_c_row(iter_fd, iter_cell);
+
 
     }				/* rows loop  */
     G_percent(row, nrows, 2);
@@ -425,10 +442,8 @@ int main(int argc, char *argv[])
 	char command[1080];
 
 	Rast_close(resultfd[i]);
-	
-	 vec_free(startvector);
 
-    vec_free(A_times_startvector);
+
 
 	/* make grey scale color table */
 	sprintf(result_name, "%s.%d", parm.result->answer, (i + 1));
@@ -454,12 +469,16 @@ int main(int argc, char *argv[])
 	Rast_close(iter_fd);
 
     G_matrix_free(A);
-   
-    vec_free(errorvector);
 
-    vec_free(temp);
-    
-    vec_free(b_gamma);    
+    G_vector_free(errorvector);
+
+    G_vector_free(temp);
+
+    G_vector_free(b_gamma);
+
+    G_vector_free(startvector);
+
+    G_vector_free(A_times_startvector);
 
     make_history(result_name, parm.group->answer, parm.matrixfile->answer);
 
