@@ -21,6 +21,7 @@ import wx
 
 from gui_core.toolbars import BaseToolbar, BaseIcons
 from icons.icon import MetaIcon
+from iclass.dialogs     import IClassMapDialog as MDialog
 
 import grass.script as grass
 
@@ -136,7 +137,7 @@ class RDigitMapManagerToolbar(BaseToolbar):
         self.mapManager.SelectLayer(name = layer)
         
     def OnAddRast(self, event):
-        dlg = IClassMapDialog(self, title = _("Add raster map"), element = 'raster')
+        dlg = MDialog(self, title = _("Add raster map"), element = 'raster')
         if dlg.ShowModal() == wx.ID_OK:
             raster = grass.find_file(name = dlg.GetMap(), element = 'cell')
             if raster['fullname']:

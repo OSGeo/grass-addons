@@ -35,6 +35,7 @@ from mapdisp.mapwindow  import BufferedWindow
 from gui_core.mapdisp   import SingleMapFrame
 from core.render        import Map, MapLayer
 from core.gcmd          import RunCommand, GMessage
+from iclass.dialogs     import IClassMapDialog
 
 from toolbars    import RDigitMapToolbar,      RDigitMapManagerToolbar
 
