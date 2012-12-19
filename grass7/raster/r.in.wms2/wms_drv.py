@@ -1,3 +1,20 @@
+"""!
+@brief WMS, WMTS and NASA OnEarth drivers implemented in GRASS using GDAL Python bindings. 
+
+List of classes:
+ - wms_drv::WMSDrv
+ - wms_drv::BaseRequestMgr
+ - wms_drv::WMSRequestMgr
+ - wms_drv::WMTSRequestMgr
+ - wms_drv::OnEarthRequestMgr
+
+(C) 2012 by the GRASS Development Team
+
+This program is free software under the GNU General Public License
+(>=v2). Read the file COPYING that comes with GRASS for details.
+
+@author Stepan Turek <stepan.turek seznam.cz> (Mentor: Martin Landa)
+"""
 
 import grass.script as grass 
 import base64
@@ -11,13 +28,15 @@ except:
     grass.fatal(_("Unable to load GDAL python bindings"))
 
 import urllib2
-import xml.etree.ElementTree as etree
+from xml.etree.ElementTree import ParseError
 
 import numpy as Numeric
 Numeric.arrayrange = Numeric.arange
 
 from math import pi, floor
 from wms_base import WMSBase
+
+from wms_cap_parsers import WMTSCapabilitiesTree, OnEarthCapabilitiesTree
 
 class WMSDrv(WMSBase):
     def _download(self):
@@ -27,13 +46,18 @@ class WMSDrv(WMSBase):
         """ 
         grass.message(_("Downloading data from WMS server..."))
 
+        if not self.params['cfile']:
+            self.cap_file = self._fetchCapabilities(self.params)
+        else:
+            self.cap_file = self.params['cfile']
+
         # initialize correct manager according to chosen OGC service
         if self.params['driver'] == 'WMTS_GRASS':
-            req_mgr = WMTSRequestMgr(self.params, self.bbox, self.region, self.proj_srs, self._fetchCapabilities(self.params))
+            req_mgr = WMTSRequestMgr(self.params, self.bbox, self.region, self.proj_srs, self.cap_file)
         elif self.params['driver'] == 'WMS_GRASS':
             req_mgr = WMSRequestMgr(self.params, self.bbox, self.region, self.tile_size, self.proj_srs)
         elif self.params['driver'] == 'OnEarth_GRASS':
-            req_mgr = OnEarthRequestMgr(self.params, self.bbox, self.region, self.proj_srs, self._fetchCapabilities(self.params))
+            req_mgr = OnEarthRequestMgr(self.params, self.bbox, self.region, self.proj_srs, self.cap_file)
 
         # get information about size in pixels and bounding box of raster, where all tiles will be joined
         map_region = req_mgr.GetMapRegion()
@@ -96,12 +120,9 @@ class WMSDrv(WMSBase):
                 else:
                     grass.fatal(_("WMS server unknown error") )
                 
-            band = tile_dataset_info.GetRasterBand(1) 
-            cell_type_func = band.__swig_getmethods__["DataType"]#??
-            bands_number_func = tile_dataset_info.__swig_getmethods__["RasterCount"]
-                
             temp_tile_pct2rgb = None
-            if bands_number_func(tile_dataset_info) == 1 and band.GetRasterColorTable() is not None:
+            if tile_dataset_info.RasterCount == 1 and \
+               tile_dataset_info.GetRasterBand(1).GetRasterColorTable() is not None:
                 # expansion of color table into bands 
                 temp_tile_pct2rgb = self._tempfile()
                 tile_dataset = self._pct2rgb(temp_tile, temp_tile_pct2rgb)
@@ -117,10 +138,10 @@ class WMSDrv(WMSBase):
                 if not metadata.has_key(gdal.DCAP_CREATE) or \
                        metadata[gdal.DCAP_CREATE] == 'NO':
                     grass.fatal(_('Driver %s does not supports Create() method') % drv_format)  
-                    
-                self.temp_map_bands_num = bands_number_func(tile_dataset)
+                self.temp_map_bands_num = tile_dataset.RasterCount
                 temp_map_dataset = driver.Create(temp_map, map_region['cols'], map_region['rows'],
-                                                 self.temp_map_bands_num, cell_type_func(band))
+                                                 self.temp_map_bands_num, 
+                                                 tile_dataset.GetRasterBand(1).DataType)
                 init = False
                 
             # tile is written into temp_map
@@ -201,7 +222,6 @@ class WMSDrv(WMSBase):
 class BaseRequestMgr:
     """!Base class for request managers. 
     """
-
     def _computeRequestData(self, bbox, tl_corner, tile_span, tile_size, mat_num_bbox):
         """!Initialize data needed for iteration through tiles. Used by WMTS_GRASS and OnEarth_GRASS drivers.
         """ 
@@ -366,7 +386,7 @@ class WMSRequestMgr(BaseRequestMgr):
             tile_ref['sizeY'] = self.last_tile_y_size 
 
         if self._isGeoProj(self.proj_srs) and self.version == "1.3.0":                
-            query_bbox = self._flipBbox(self.tile_bbox, self.proj_srs)
+            query_bbox = self._flipBbox(self.tile_bbox, self.proj_srs, self.version)
         else:
             query_bbox = self.tile_bbox
         query_url = self.url + "&" + "BBOX=%s,%s,%s,%s" % ( query_bbox['minx'],  query_bbox['miny'],  query_bbox['maxx'],  query_bbox['maxy'])
@@ -420,7 +440,12 @@ class WMTSRequestMgr(BaseRequestMgr):
         self.pixel_size = 0.00028
 
         # parse capabilities file
-        cap_tree = etree.parse(cap_file)
+        try:
+            cap_tree = WMTSCapabilitiesTree(cap_file)
+        except ParseError as error:
+            grass.fatal(_("Unable to parse tile service file.\n%s\n") % str(error))
+        self.xml_ns = cap_tree.getxmlnshandler()
+
         root = cap_tree.getroot()
 
         # get layer tile matrix sets with required projection
@@ -429,10 +454,10 @@ class WMTSRequestMgr(BaseRequestMgr):
         # TODO: what if more tile matrix sets have required srs (returned more than 1)?
         mat_set = mat_sets[0][0]
         mat_set_link = mat_sets[0][1]
-        params['tile_matrix_set'] = mat_set.find(self._ns_ows('Identifier')).text
+        params['tile_matrix_set'] = mat_set.find(self.xml_ns.NsOws('Identifier')).text
 
         # find tile matrix with resolution closest and smaller to wanted resolution 
-        tile_mat  = self._findTileMats(mat_set.findall(self._ns_wmts('TileMatrix')), region, bbox)
+        tile_mat  = self._findTileMats(mat_set.findall(self.xml_ns.NsWmts('TileMatrix')), region, bbox)
 
         # get extend of data available on server expressed in max/min rows and cols of tile matrix
         mat_num_bbox = self._getMatSize(tile_mat, mat_set_link)
@@ -449,38 +474,36 @@ class WMTSRequestMgr(BaseRequestMgr):
         """!Get matrix sets which are available for chosen layer and have required EPSG.
         """
 
-        contents = self.find(root, 'Contents', self._ns_wmts)
-        layers = self.findall(contents, 'Layer', self._ns_wmts)
+        contents = root.find(self.xml_ns.NsWmts('Contents'))
+        layers = contents.findall(self.xml_ns.NsWmts('Layer'))
 
         ch_layer = None
         for layer in layers:
-            layer_id = layer.find(self._ns_ows('Identifier')).text
-            if layer_id and layer_id == layer_name:
+            layer_id = layer.find(self.xml_ns.NsOws('Identifier')).text
+            if layer_id == layer_name:
                 ch_layer = layer 
                 break  
 
         if ch_layer is None:
-            grass.fatal(_("Layer '%s' was not found in capabilities file") % params['layers'])
+            grass.fatal(_("Layer '%s' was not found in capabilities file") % layer_name)
 
-        mat_set_links = self.findall(ch_layer, 'TileMatrixSetLink', self._ns_wmts)
+        mat_set_links = ch_layer.findall(self.xml_ns.NsWmts('TileMatrixSetLink'))
 
         suitable_mat_sets = []
-        tileMatrixSets = self.findall(contents, 'TileMatrixSet', self._ns_wmts)
+        tileMatrixSets = contents.findall(self.xml_ns.NsWmts('TileMatrixSet'))
 
         for link in  mat_set_links:
-            mat_set_link_id = link.find(self._ns_wmts('TileMatrixSet')).text
-            if not mat_set_link_id:
-                continue
+            mat_set_link_id = link.find(self.xml_ns.NsWmts('TileMatrixSet')).text
             for mat_set in tileMatrixSets:
-                mat_set_id = mat_set.find(self._ns_ows('Identifier')).text 
-                if mat_set_id and mat_set_id != mat_set_link_id:
+                mat_set_id = mat_set.find(self.xml_ns.NsOws('Identifier')).text 
+                if mat_set_id != mat_set_link_id:
                     continue
-                mat_set_srs = mat_set.find(self._ns_ows('SupportedCRS')).text
-                if mat_set_srs and mat_set_srs.lower() == ("EPSG:"+ str(srs)).lower():
+                mat_set_srs = mat_set.find(self.xml_ns.NsOws('SupportedCRS')).text
+                if mat_set_srs.lower() == ("EPSG:"+ str(srs)).lower():
                     suitable_mat_sets.append([mat_set, link])
 
         if not suitable_mat_sets:
-            grass.fatal(_("Layer '%s' is not available with %s code.") % (params['layers'],  "EPSG:" + str(srs)))
+            grass.fatal(_("Layer '%s' is not available with %s code.") % (layer_name,  "EPSG:" + str(srs)))
 
         return suitable_mat_sets # [[TileMatrixSet, TileMatrixSetLink], ....]
 
@@ -496,7 +519,7 @@ class WMTSRequestMgr(BaseRequestMgr):
 
         first = True
         for t_mat in tile_mats:
-            mat_scale_den = float(t_mat.find(self._ns_wmts('ScaleDenominator')).text)
+            mat_scale_den = float(t_mat.find(self.xml_ns.NsWmts('ScaleDenominator')).text)
             if first:
                 best_scale_den = mat_scale_den
                 best_t_mat = t_mat
@@ -520,8 +543,8 @@ class WMTSRequestMgr(BaseRequestMgr):
 
         # for geographic projection
         if self._isGeoProj(self.proj_srs):
-            proj_params = proj_srs.split(' ')
-            for param in proj_parmas:
+            proj_params = self.proj_srs.split(' ')
+            for param in proj_params:
                 if '+a' in param:
                     a = float(param.split('=')[1])
                     break
@@ -549,47 +572,38 @@ class WMTSRequestMgr(BaseRequestMgr):
         # general tile matrix size
         mat_num_bbox = {}
         mat_num_bbox['min_col'] = mat_num_bbox['min_row'] = 0
-        mat_num_bbox['max_col'] = int(tile_mat.find(self._ns_wmts('MatrixWidth')).text) - 1
-        mat_num_bbox['max_row'] = int(tile_mat.find(self._ns_wmts('MatrixHeight')).text) - 1
+        mat_num_bbox['max_col'] = int(tile_mat.find(self.xml_ns.NsWmts('MatrixWidth')).text) - 1
+        mat_num_bbox['max_row'] = int(tile_mat.find(self.xml_ns.NsWmts('MatrixHeight')).text) - 1
 
         # get extend restriction in TileMatrixSetLink for the tile matrix, if exists
-        tile_mat_set_limits = mat_set_link.find((self._ns_wmts('TileMatrixSetLimits')))
+        tile_mat_set_limits = mat_set_link.find((self.xml_ns.NsWmts('TileMatrixSetLimits')))
         if tile_mat_set_limits is None:
             return mat_num_bbox
 
-        tile_mat_id = tile_mat.find(self._ns_ows('Identifier')).text
-        tile_mat_limits = tile_mat_set_limits.findall(self._ns_wmts('TileMatrixLimits'))
+        tile_mat_id = tile_mat.find(self.xml_ns.NsOws('Identifier')).text
+        tile_mat_limits = tile_mat_set_limits.findall(self.xml_ns.NsWmts('TileMatrixLimits'))
 
         for limit in tile_mat_limits:
-            limit_tile_mat = limit.find(self._ns_wmts('TileMatrix'))
+            limit_tile_mat = limit.find(self.xml_ns.NsWmts('TileMatrix'))
             limit_id = limit_tile_mat.text
 
-            if limit_id is None:
-                continue
-
             if limit_id == tile_mat_id:
-
                 for i in [['min_row', 'MinTileRow'], ['max_row', 'MaxTileRow'], \
                           ['min_col', 'MinTileCol'], ['max_col', 'MaxTileCol']]:
-                    i_tag = limit.find(self._ns_wmts(i[1]))
+                    i_tag = limit.find(self.xml_ns.NsWmts(i[1]))
 
-                    if i_tag is None:
-                        continue
-                    try:
-                        mat_num_bbox[i[0]] = int(i_tag.text)
-                    except ValueError:
-                        continue
+                    mat_num_bbox[i[0]] = int(i_tag.text)
                 break
         return mat_num_bbox
 
     def _computeRequestData(self, tile_mat, params, bbox, mat_num_bbox):
         """!Initialize data needed for iteration through tiles.
         """  
-        scale_den = float(tile_mat.find(self._ns_wmts('ScaleDenominator')).text)
+        scale_den = float(tile_mat.find(self.xml_ns.NsWmts('ScaleDenominator')).text)
 
         pixel_span = scale_den * self.pixel_size / self._getMetersPerUnit()
 
-        tl_str = tile_mat.find(self._ns_wmts('TopLeftCorner')).text.split(' ')
+        tl_str = tile_mat.find(self.xml_ns.NsWmts('TopLeftCorner')).text.split(' ')
 
         tl_corner = {}
         tl_corner['minx'] = float(tl_str[0])
@@ -598,16 +612,16 @@ class WMTSRequestMgr(BaseRequestMgr):
         tile_span = {}
         self.tile_size = {}
 
-        self.tile_size['x'] = int(tile_mat.find(self._ns_wmts('TileWidth')).text)
+        self.tile_size['x'] = int(tile_mat.find(self.xml_ns.NsWmts('TileWidth')).text)
         tile_span['x'] = pixel_span * self.tile_size['x']
         
-        self.tile_size['y'] = int(tile_mat.find(self._ns_wmts('TileHeight')).text)
+        self.tile_size['y'] = int(tile_mat.find(self.xml_ns.NsWmts('TileHeight')).text)
         tile_span['y'] = pixel_span * self.tile_size['y']
 
         self.url = params['url'] + ("?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&" \
                                     "LAYER=%s&STYLE=%s&FORMAT=%s&TILEMATRIXSET=%s&TILEMATRIX=%s" % \
                                    (params['layers'], params['styles'], params['format'],
-                                    params['tile_matrix_set'], tile_mat.find(self._ns_ows('Identifier')).text ))
+                                    params['tile_matrix_set'], tile_mat.find(self.xml_ns.NsOws('Identifier')).text ))
 
         BaseRequestMgr._computeRequestData(self, bbox, tl_corner, tile_span, self.tile_size, mat_num_bbox)
 
@@ -630,48 +644,16 @@ class WMTSRequestMgr(BaseRequestMgr):
 
         return query_url, self.tile_ref
 
-    def find(self, etreeElement, tag, ns = None):
-        """!Wraper for etree element find method. 
-        """
-        if not ns:
-            res = etreeElement.find(tag)
-        else:
-            res = etreeElement.find(ns(tag))
-
-        if res is None:
-            grass.fatal(_("Unable to parse capabilities file. \n Tag '%s' was not found.") % tag)
-
-        return res
-
-    def findall(self, etreeElement, tag, ns = None):
-        """!Wraper for etree element findall method. 
-        """
-        if not ns:
-            res = etreeElement.findall(tag)
-        else:
-            res = etreeElement.findall(ns(tag))
-
-        if not res:
-            grass.fatal(_("Unable to parse capabilities file. \n Tag '%s' was not found.") % tag)
-
-        return res
-
-    def _ns_wmts(self, tag):
-        """!Helper method - XML namespace.
-        """       
-        return "{http://www.opengis.net/wmts/1.0}" + tag
-
-    def _ns_ows(self, tag):
-        """!Helper method - XML namespace.
-        """
-        return "{http://www.opengis.net/ows/1.1}" + tag
-
 class OnEarthRequestMgr(BaseRequestMgr):
     def __init__(self, params, bbox, region, proj_srs, tile_service):
         """!Initializes data needed for iteration through tiles.
         """
-        tile_service_tree = etree.parse(tile_service)
-        root = tile_service_tree.getroot()
+        try:
+            cap_tree = OnEarthCapabilitiesTree(tile_service)
+        except ParseError as error:
+            grass.fatal(_("Unable to parse tile service file.\n%s\n") % str(error))
+
+        root = cap_tree.getroot()
 
         # parse tile service file and get needed data for making tile requests
         url, self.tile_span, t_patt_bbox, self.tile_size = self._parseTileService(root, bbox, region, params)
@@ -688,7 +670,7 @@ class OnEarthRequestMgr(BaseRequestMgr):
     def _parseTileService(self, root, bbox, region, params):
         """!Get data from tile service file
         """
-        tiled_patterns = self.find(root, 'TiledPatterns')
+        tiled_patterns = root.find('TiledPatterns')
         tile_groups = self._getAllTiledGroup(tiled_patterns)
         if not tile_groups:
             grass.fatal(_("Unable to parse tile service file. \n No tag '%s' was found.") % 'TiledGroup')
@@ -696,14 +678,14 @@ class OnEarthRequestMgr(BaseRequestMgr):
         req_group = None
         for group in tile_groups:
             name = group.find('Name')
-            if name is not None and name.text == params['layers']:
+            if name.text == params['layers']:
                 req_group = group
                 break
 
         if req_group is None:
             grass.fatal(_("Tiled group '%s' was not found in tile service file") % params['layers'])
 
-        group_t_patts = self.findall(req_group, 'TilePattern')
+        group_t_patts = req_group.findall('TilePattern')
         best_patt = self._parseTilePattern(group_t_patts, bbox, region)
 
         if best_patt is None:
@@ -723,7 +705,7 @@ class OnEarthRequestMgr(BaseRequestMgr):
         tile_span['x'] = abs(t_bbox[0] - t_bbox[2])
         tile_span['y'] = abs(t_bbox[1] - t_bbox[3])
                    
-        tile_pattern_bbox = self.find(req_group, 'LatLonBoundingBox')
+        tile_pattern_bbox = req_group.find('LatLonBoundingBox')
 
         t_patt_bbox = {}
         for s in ['minx', 'miny', 'maxx', 'maxy']:
@@ -736,7 +718,7 @@ class OnEarthRequestMgr(BaseRequestMgr):
         return url, tile_span, t_patt_bbox, tile_size
 
     def _getAllTiledGroup(self, parent, tiled_groups = None):
-        """!Get all 'TileGroup' tags
+        """!Get all 'TileGroup' elements
         """
         if not tiled_groups:
             tiled_groups = []
@@ -923,22 +905,3 @@ class OnEarthRequestMgr(BaseRequestMgr):
 
         return query_url, self.tile_ref
 
-    def find(self, etreeElement, tag):
-        """!Wraper for etree element find method. 
-        """
-        res = etreeElement.find(tag)
-
-        if res is None:
-            grass.fatal(_("Unable to parse tile service file. \n Tag '%s' was not found.") % tag)
-
-        return res
-
-    def findall(self, etreeElement, tag):
-        """!Wraper for etree element findall method. 
-        """
-        res = etreeElement.findall(tag)
-        
-        if not res:
-            grass.fatal(_("Unable to parse tile service file. \n Tag '%s' was not found.") % tag)
-
-        return res

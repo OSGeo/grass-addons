@@ -153,6 +153,19 @@ This program is free software under the GNU General Public License
 #% answer:WMS_GRASS
 #%end
 
+#%option G_OPT_F_INPUT
+#% key: cfile
+#% required: no
+#% gisprompt: old,file,bin_input
+#% description: Capabilities file 
+#%end
+
+#%option G_OPT_F_OUTPUT
+#% key: csfile
+#% required: no
+#% gisprompt: old,file,bin_input
+#% description: File where capabilities will be saved (only with 'c' flag).
+#%end
 
 import os
 import sys
@@ -160,7 +173,29 @@ sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'r.in.wms2'
 
 import grass.script as grass
 
+from wms_base import GRASSImporter
+
+def GetRegionParams(opt_region):
+
+    # set region 
+    if opt_region:                 
+        if not grass.find_file(name = opt_region, element = 'windows', mapset = '.' )['name']:
+            grass.fatal(_("Region <%s> not found") % opt_region)
+        
+    if opt_region:
+        s = grass.read_command('g.region',
+                                quiet = True,
+                                flags = 'ug',
+                                region = opt_region)
+        region_params = grass.parse_key_val(s, val_type = float)
+    else:
+        region_params = grass.region()
+
+    return region_params
+
 def main():
+
+
     if 'GRASS' in options['driver']:
         grass.debug("Using GRASS driver")
         from wms_drv import WMSDrv
@@ -173,9 +208,13 @@ def main():
     if flags['c']:
         wms.GetCapabilities(options)
     else:
-        wms.GetMap(options, flags)  
-    
+        options['region'] = GetRegionParams(options['region'])
+        importer = GRASSImporter(options['output'])
+        fetched_map = wms.GetMap(options, flags)
+        importer.ImportMapIntoGRASS(fetched_map)
+
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

@@ -1,3 +1,18 @@
+"""!
+@brief GDAL WMS driver. 
+
+List of classes:
+ - wms_drv::NullDevice
+ - wms_drv::WMSGdalDrv
+
+(C) 2012 by the GRASS Development Team
+
+This program is free software under the GNU General Public License
+(>=v2). Read the file COPYING that comes with GRASS for details.
+
+@author Stepan Turek <stepan.turek seznam.cz> (Mentor: Martin Landa)
+"""
+
 import os
 import grass.script as grass 
 
