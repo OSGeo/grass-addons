@@ -173,8 +173,6 @@ sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'r.in.wms2'
 
 import grass.script as grass
 
-from wms_base import GRASSImporter
-
 def GetRegionParams(opt_region):
 
     # set region 
@@ -208,6 +206,7 @@ def main():
     if flags['c']:
         wms.GetCapabilities(options)
     else:
+        from wms_base import GRASSImporter
         options['region'] = GetRegionParams(options['region'])
         importer = GRASSImporter(options['output'])
         fetched_map = wms.GetMap(options, flags)
