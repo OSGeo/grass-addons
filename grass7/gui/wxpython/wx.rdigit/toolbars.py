@@ -25,36 +25,19 @@ from iclass.dialogs     import IClassMapDialog as MDialog
 
 import grass.script as grass
 
-iClassIcons = {
-        'opacity' : MetaIcon(img = 'layer-opacity',
-                             label = _('Set opacity level')),
-        'tools' : MetaIcon(img = 'tools',
-                                  label = _('Load Digitizer tools')),
-        'selectGroup' : MetaIcon(img = 'layer-group-add',
-                                 label = _('Select imagery group')),
-        'run' : MetaIcon(img = 'execute',
-                         label = _('Run analysis')),
-        'sigFile' : MetaIcon(img = 'script-save',
-                             label = _('Save signature file')),
+rdigitIcons = {
         'delCmd' : MetaIcon(img = 'layer-remove',
                             label = _('Delete selected map layer')),
-        'exportAreas' : MetaIcon(img = 'layer-export',
-                            label = _('Export training areas')),
-        'importAreas' : MetaIcon(img = 'layer-import',
-                            label = _('Import training areas')),
+
         }
         
 class RDigitMapToolbar(BaseToolbar):
-    """!IClass Map toolbar
-    """
+    """!RDigit Map toolbar """
     def __init__(self, parent):
-        """!IClass Map toolbar constructor
-        """
+        """!RDigit Map toolbar constructor"""
         BaseToolbar.__init__(self, parent)
         
         self.InitToolbar(self._toolbarData())
-        
-
 
         # realize the toolbar
         self.Realize()
@@ -62,13 +45,9 @@ class RDigitMapToolbar(BaseToolbar):
         self.action = { 'id' : self.pan }
         self.defaultAction = { 'id' : self.pan,
                                'bind' : self.parent.OnPan }
-        
         self.OnTool(None)
-        
         self.EnableTool(self.zoomBack, False)
-        
-
-        
+ 
     def _toolbarData(self):
         """!Toolbar data"""
         icons = BaseIcons
@@ -94,16 +73,8 @@ class RDigitMapToolbar(BaseToolbar):
                                      ("zoomBack", icons["zoomBack"],
                                       self.parent.OnZoomBack),
                                      ("zoomToMap", icons["zoomExtent"],
-                                      self.parent.OnZoomToMap),
-                                      
-                                     ("drawArea", iClassIcons["tools"],
-                                     self.parent.OnDrawArea),                                
-                                    ))
+                                      self.parent.OnZoomToMap) ))
 
-        
-
-
-        
 class RDigitMapManagerToolbar(BaseToolbar):
     """!IClass toolbar
     """
@@ -114,9 +85,7 @@ class RDigitMapManagerToolbar(BaseToolbar):
         
         self.InitToolbar(self._toolbarData())
         self.choice = wx.Choice(parent = self, id = wx.ID_ANY, size = (300, -1))
-        
         self.choiceid = self.AddControl(self.choice)
-        
         self.choice.Bind(wx.EVT_CHOICE, self.OnSelectLayer)
         
         self.mapManager = mapManager
@@ -127,10 +96,8 @@ class RDigitMapManagerToolbar(BaseToolbar):
         """!Toolbar data"""
         return self._getToolbarData((("addRast", BaseIcons['addRast'],
                                       self.OnAddRast),
-                                      ("delRast", iClassIcons['delCmd'],
-                                      self.OnDelRast),
-
-                                    ))
+                                      ("delRast", rdigitIcons['delCmd'],
+                                      self.OnDelRast)))
                                     
     def OnSelectLayer(self, event):
         layer = self.choice.GetStringSelection()

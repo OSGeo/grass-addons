@@ -59,19 +59,17 @@ class RDigitMapFrame(SingleMapFrame):
         SingleMapFrame.__init__(self, parent = parent, title = title, name = name, Map = Map(), **kwargs)
         self._giface = giface
         
-        self.MapWindow = BufferedWindow(parent = self,giface = self._giface, Map = self.Map, frame = self)
+        self.MapWindow = RDigitWindow(parent = self, giface = self._giface,
+                                                id = wx.ID_ANY, frame = self,
+                                                Map = self.Map)
         self.outMapName = None
         
-        self.mapManager = MapManager(self, mapWindow = self.GetWindow(),
+        self.mapManager = MapManager(self, mapWindow = self.MapWindow,
                                              Map = self.GetMap())
         self.SetSize(size)
-       
-        self.MapWindowRDigit = RDigitWindow(parent = self, giface = self._giface,
-                                                id = wx.ID_ANY, frame = self,
-                                                Map = self.Map)  
-        
+        #MapWindowRDigit
+
         # Add toolbars
-        
         toolbarsCopy = toolbars[:]
         if sys.platform == 'win32':
             self.AddToolbar(toolbarsCopy.pop(1))
@@ -82,10 +80,6 @@ class RDigitMapFrame(SingleMapFrame):
             self.AddToolbar(toolb)
             
         self.GetMapToolbar().Bind(wx.EVT_CHOICE, self.OnUpdateActive)
-        
-        #
-        # Add statusbar
-        #
         
         # items for choice
         self.statusbarItems = [sb.SbCoordinates,
@@ -108,14 +102,10 @@ class RDigitMapFrame(SingleMapFrame):
         self.statusbarManager.AddStatusbarItemsByClass(self.statusbarItems, mapframe = self, statusbar = statusbar)
         self.statusbarManager.AddStatusbarItem(sb.SbMask(self, statusbar = statusbar, position = 2))
         self.statusbarManager.AddStatusbarItem(sb.SbRender(self, statusbar = statusbar, position = 3))
-        
         self.statusbarManager.Update()
         
         self.changes = False
-        self.exportVector = None
-        self.MapWindowCopy = None
-
-                                   
+             
         self._addPanes()
         self._mgr.Update()
         
@@ -135,7 +125,6 @@ class RDigitMapFrame(SingleMapFrame):
     def GetMap(self):
       return self.Map
      
-      
     def OnHelp(self, event):
         """!Show help page"""
         helpInProgress = True
@@ -162,7 +151,7 @@ class RDigitMapFrame(SingleMapFrame):
                               BestSize((self.toolbars[name].GetBestSize())))
                               
         elif name == "rdigit":
-          self.toolbars[name] = RDigitToolbar(parent = self, MapWindow = self.MapWindowRDigit,
+          self.toolbars[name] = RDigitToolbar(parent = self, MapWindow = self.MapWindow,
                                              digitClass = RDigit, layerTree = self.mapManager)
                                                 
           self._mgr.AddPane(self.toolbars[name],
@@ -173,19 +162,15 @@ class RDigitMapFrame(SingleMapFrame):
                           BottomDockable(False).TopDockable(True).
                           CloseButton(False).Layer(0).
                           BestSize((self.toolbars['rdigit'].GetBestSize())))                                                
-          self.MapWindowRDigit.SetToolbar(self.toolbars[name])
-          self._mgr.GetPane('rdigittoolbar').Hide()
-          
-
-                              
+          self.MapWindow.SetToolbar(self.toolbars[name])
+          #self._mgr.GetPane('rdigittoolbar').Hide()
+                           
     def _addPanes(self):
       """!Add mapwindows and toolbars to aui manager"""
 
       self._addPaneMapWindow()
       self._addPaneToolbar(name = 'digitMap')
-     
 
-        
     def _addPaneToolbar(self, name):
       
         self.toolbars[name] = RDigitMapManagerToolbar(self, self.mapManager)
@@ -202,18 +187,14 @@ class RDigitMapFrame(SingleMapFrame):
                           CloseButton(False).DestroyOnClose(True).
                           Layer(0))
 
-        self._mgr.AddPane(self.MapWindowRDigit, wx.aui.AuiPaneInfo().CentrePane().
-                          Dockable(True).BestSize((-1,-1)).Name('rdigit').
-                          CloseButton(False).DestroyOnClose(True).
-                          Layer(0))
+#        self._mgr.AddPane(self.MapWindowRDigit, wx.aui.AuiPaneInfo().CentrePane().
+#                          Dockable(True).BestSize((-1,-1)).Name('rdigit').
+#                          CloseButton(False).DestroyOnClose(True).
+#                          Layer(0))
                           
-        
-
         self._mgr.GetPane('window').Show()
         self._mgr.GetPane('rdigit').Hide()
                                
-                    
-        
     def IsStandalone(self):
         """!Check if Map display is standalone"""
         return True
@@ -223,8 +204,7 @@ class RDigitMapFrame(SingleMapFrame):
         @todo move to DoubleMapFrame?
         """
         self.StatusbarUpdate() 
-      
-        
+
     def GetMapToolbar(self):
         """!Returns toolbar with zooming tools"""
         return self.toolbars['digitMap']
@@ -255,36 +235,12 @@ class RDigitMapFrame(SingleMapFrame):
       return self.outMapName
 
     def RemoveToolbar(self, name):
-    
         self.outMapName = self.toolbars['rdigit'].GetMapName()
         self.mapManager.AddLayer(name = self.outMapName)
         self._mgr.GetPane('window').Show()
-        self._mgr.GetPane('rdigit').Hide()
-        self._mgr.GetPane('rdigittoolbar').Hide()
-        self.MapWindow = self.MapWindowCopy
         self._mgr.Update()
         
-    def OnDrawArea(self, event):
 
-      if not self._mgr.GetPane('rdigit').IsShown():
-        self._mgr.GetPane('window').Hide()
-        self._mgr.GetPane('rdigit').Show()
-        self._mgr.GetPane('rdigittoolbar').Show()
-        self._mgr.Update()
-        self.MapWindowCopy = self.MapWindow
-        self.MapWindow = self.MapWindowRDigit
-        self.MapWindow.mouse['box'] = "point"
-        self.MapWindow.zoomtype     = 0
-        self.MapWindow.pen          = wx.Pen(colour = 'red',   width = 2, style = wx.SOLID)
-        self.MapWindow.polypen      = wx.Pen(colour = 'green', width = 2, style = wx.SOLID)  
-      else:
-        self.MapWindow = self.MapWindowCopy
-        self._mgr.GetPane('window').Show()
-        self._mgr.GetPane('rdigit').Hide()                     
- 
-
-
-        
 class MapManager:
     """! Class for managing map renderer.
     
@@ -294,7 +250,6 @@ class MapManager:
         """!
         
         It is expected that \a mapWindow is conected with \a Map.
-        
         @param frame application main window
         @param mapWindow map window instance
         @param Map map renderer instance
@@ -303,10 +258,8 @@ class MapManager:
         self.frame = frame
         self.mapWindow = mapWindow
         self.toolbar = None
-        
         self.layerName = {}
-        
-        
+  
     def SetToolbar(self, toolbar):
         self.toolbar = toolbar
         
@@ -337,9 +290,7 @@ class MapManager:
             
         self.toolbar.choice.Insert(name, 0)
         self.toolbar.choice.SetSelection(0)
-        
 
-        
     def RemoveLayer(self, name, idx):
         """!Removes layer from Map and update toolbar"""
         name = self.layerName[name]

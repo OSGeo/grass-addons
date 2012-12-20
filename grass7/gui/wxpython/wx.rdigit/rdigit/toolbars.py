@@ -203,7 +203,7 @@ class RDigitToolbar(BaseToolbar):
     def OnTool(self, event):
         """!Tool selected -> untoggles previusly selected tool in
         toolbar"""
-        # set cursor
+        # set cursor  
         cursor = self.parent.cursors["cross"]
         self.MapWindow.SetCursor(cursor)
         

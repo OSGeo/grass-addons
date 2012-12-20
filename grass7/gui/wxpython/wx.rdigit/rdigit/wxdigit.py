@@ -1,5 +1,5 @@
 """!
-@package vdigit.wxdigit
+@package rdigit.wxdigit
 
 @brief wxGUI raster digitizer (base class)
 
@@ -13,7 +13,6 @@ This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
 
 @author Mohammed Rashad <rashadkm gmail.com>
-@author Martin Landa <landa.martin gmail.com>(original wxvdigit)
 """
 
 import grass.script.core as grass
@@ -34,14 +33,12 @@ try:
 except ImportError:
     pass
 
-
 class RasterObject:
   def __init__(self,cat,coords,ft):
     self.catId = cat
     self.coords = coords
     self.ftype = ft
-  
-        
+
 class IRDigit:
     def __init__(self, mapwindow):
         """!Base class for vector digitizer (ctypes interface)
@@ -49,27 +46,20 @@ class IRDigit:
         @param mapwindow reference for map window (BufferedWindow)
         """
         self.mapWindow = mapwindow
-        
         self.objects = list()
-
         self.toolbar = mapwindow.parent.toolbars['rdigit']
-   
         self.polyfile = tempfile.NamedTemporaryFile(delete=False)
         
         Debug.msg(2, "IRDigit.__init__() %s ", self.polyfile.name)
  
         self.cat = 1
         self.saveMap = True
-        
         self.outputName = None
-
-        
         
     def __del__(self):
-        Debug.msg(1, "IVDigit.__del__()")
+        Debug.msg(1, "IRDigit.__del__()")
         
         if self.saveMap == True:
-        
             for obj in self.objects:
                 if obj.ftype == GV_BOUNDARY:
                     self.polyfile.write("AREA\n");
@@ -89,13 +79,11 @@ class IRDigit:
                 self.polyfile.write(catbuf);
 
             self.polyfile.close()
-
             region_settings = grass.parse_command('g.region', flags = 'p', delimiter = ':')
             RunCommand('r.in.poly', input=self.polyfile.name, 
                                     rows=region_settings['rows'], output=self.getOutputName(),overwrite=True)
             
             os.unlink(self.polyfile.name)
-
 
     def setOutputName(self, name):
       if name:
@@ -119,16 +107,10 @@ class IRDigit:
         
         @return tuple (number of added features, feature ids)
         """
-        
-        #layer = self._getNewFeaturesLayer()
-        #cat = self._getNewFeaturesCat()
-        
         if ftype == 'point':
             vtype = GV_POINT
         elif ftype == 'line':
             vtype = GV_LINE
-        elif ftype == 'centroid':
-            vtype = GV_CENTROID
         elif ftype == 'boundary':
             vtype = GV_BOUNDARY
         elif ftype == 'area':
@@ -139,17 +121,14 @@ class IRDigit:
             GError(parent = self.mapWindow,
                    message = _("Unknown feature type '%s'") % ftype)
             return (-1, None)
-            
-        Debug.msg(2, "IRRDigit1()")            
+         
         
         if vtype & GV_LINES and len(points) < 2:
             GError(parent = self.mapWindow,
                    message = _("Not enough points for line"))
             return (-1, None)
-        
+            
         self.toolbar.EnableUndo()
-        
-        
         return self._addFeature(vtype, points)
 
     def _checkMap(self):
@@ -176,26 +155,18 @@ class IRDigit:
 
         @param ftype feature type (GV_POINT, GV_LINE, GV_BOUNDARY, ...)
         @coords tuple of coordinates ((x, y), (x, y), ...)
-        @param layer layer number (-1 for no cat)
-        @param cat category number
-        @param snap snap to node/vertex
         @param threshold threshold for snapping
-        
-        @return tuple (number of added features, list of fids)
-        @return number of features -1 on error
         """
-
         if not self._checkMap():
             return (-1, None)
         
-        #is3D = bool(Vect_is_3d(self.poMapInfo))
-        
-        Debug.msg(2, "IVDigit._addFeature(): npoints=%d, ftype=%d",
-                  len(coords), ftype)
-        
         obj = RasterObject(self.cat, coords,ftype)
         self.objects.append(obj)
-        self.cat = self.cat + 1    
+        self.cat = self.cat + 1 
+
+        Debug.msg(2, "IRDigit._addFeature(): npoints=%d, ftype=%d, catId=%d",
+                  len(coords), ftype,self.cat)        
+           
         return self.cat - 1
     
 

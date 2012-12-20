@@ -1,7 +1,7 @@
 """!
 @package vdigit.mapwindow
 
-@brief Map display canvas for wxGUI vector digitizer
+@brief Map display canvas for wxGUI raster digitizer
 
 Classes:
  - mapwindow::RDigitWindow
@@ -212,13 +212,11 @@ class RDigitWindow(BufferedWindow):
         
 
     def _onLeftDown(self, event):
-        """!Left mouse button donw - vector digitizer various actions
+        """!Left mouse button donw - raster digitizer various actions
         """
-        try:
-            mapLayer = self.toolbar.GetMapName()
-        except:
-            GMessage(parent = self,
-                     message = _("No vector map selected for editing.1"))
+        mapLayer = self.toolbar.GetMapName()
+        if not mapLayer:
+            GError(parent = self, message = _("No raster map selected for editing."))
             event.Skip()
             return
         
@@ -230,25 +228,15 @@ class RDigitWindow(BufferedWindow):
                                  "Choose appropriate tool from digitizer toolbar."))
             event.Skip()
             return
-        
-        if action not in ("moveVertex",
-                          "addVertex",
-                          "removeVertex",
-                          "editLine"):
-            # set pen
-            self.pen = wx.Pen(colour = UserSettings.Get(group = 'vdigit', key = 'symbol',
-                                                        subkey = ['newSegment', 'color']),
-                              width = 2, style = wx.SHORT_DASH)
-            self.polypen = wx.Pen(colour = UserSettings.Get(group = 'vdigit', key = 'symbol',
-                                                            subkey = ['newLine', 'color']),
-                                  width = 2, style = wx.SOLID)
-        
-        if action in ("addVertex",
-                      "removeVertex",
-                      "splitLines"):
-            # unselect
-            self.digit.GetDisplay().SetSelected([])
-        
+
+        # set pen
+        self.pen = wx.Pen(colour = UserSettings.Get(group = 'vdigit', key = 'symbol',
+                                                    subkey = ['newSegment', 'color']),
+                          width = 2, style = wx.SHORT_DASH)
+        self.polypen = wx.Pen(colour = UserSettings.Get(group = 'vdigit', key = 'symbol',
+                                                        subkey = ['newLine', 'color']),
+                              width = 2, style = wx.SOLID)
+  
         if action == "addLine":
             self.OnLeftDownAddLine(event)
             
@@ -271,7 +259,7 @@ class RDigitWindow(BufferedWindow):
             
 
     def OnLeftUpVarious(self, event):
-        """!Left mouse button released - vector digitizer various
+        """!Left mouse button released - raster digitizer various
         actions
         """
         pos1 = self.Pixel2Cell(self.mouse['begin'])
@@ -338,12 +326,10 @@ class RDigitWindow(BufferedWindow):
         if action == "addLine" and \
                 self.toolbar.GetAction('type') in ["line", "boundary", "area"]:
             # -> add new line / boundary
-            try:
-                mapName = self.toolbar.GetMapName()
-            except:
-                mapName = None
-                GError(parent = self,
-                       message = _("No vector map selected for editing.2"))
+            mapName = self.toolbar.GetMapName()
+            if not mapName:
+                GError(parent = self, message = _("No raster map selected for editing."))
+                return
                                  
             if mapName:
                 if len(self.polycoords) < 2: # ignore 'one-point' lines
@@ -358,13 +344,11 @@ class RDigitWindow(BufferedWindow):
                         self.existingCoords.append(c)
                     
                     self.existingCoords.append(wx.Point(x0,y0))
-
                     coordIdx = dict()
                     coordIdx[self.idx] = self.existingCoords
                     self.polygons.append(coordIdx)
                     self.idx = self.idx+1
                     self.existingCoords = []
-
 
                 if self.toolbar.GetAction('type') == 'line':
                     for coord in self.polycoords:
@@ -377,8 +361,7 @@ class RDigitWindow(BufferedWindow):
                     self.polygons.append(coordIdx)
                     self.idx = self.idx+1
                     self.existingCoords = []
-                    
-                    
+
                 #Update Map 
                 self.polycoords = []
                 self.UpdateMap(render = False)
@@ -386,7 +369,7 @@ class RDigitWindow(BufferedWindow):
                 self.Refresh()                
 
         elif action in ["deleteArea", "deleteLine"]:
-            # -> delete selected vector features
+            # -> delete selected raster features
             x,y = event.GetPositionTuple()
             ids = self.pdcVector.FindObjectsByBBox(x,y)
             idx = ids[0]
@@ -401,7 +384,6 @@ class RDigitWindow(BufferedWindow):
                 id = poly.keys()[0]
                 if idx != id:
                     self.polygons.append(poly)            
-
 
         elif action == "deleteCircle":
             x,y = event.GetPositionTuple()
@@ -421,8 +403,7 @@ class RDigitWindow(BufferedWindow):
                 id = circle.keys()[0]
                 if idx != id:
                     self.circles.append(circle)                
- 
-        
+
     def _onMouseMoving(self, event):
         self.mouse['end'] = event.GetPositionTuple()[:]
         
@@ -434,7 +415,6 @@ class RDigitWindow(BufferedWindow):
                 self.toolbar.GetAction('type') in ["line", "boundary", "area"]:
             if len(self.polycoords) > 0:
                 self.MouseDraw(pdc = self.pdcTmp, begin = self.Cell2Pixel(self.polycoords[-1]))
-                
 
             self.Refresh() # TODO: use RefreshRect()
             self.mouse['begin'] = self.mouse['end']
