@@ -14,11 +14,8 @@ This program is free software under the GNU General Public License
 @author Mohammed Rashad <rashadkm gmail.com>
 """
 import wx
-
 from grass.script import core as grass
-
 from gui_core.toolbars  import BaseToolbar, BaseIcons
-from gui_core.dialogs   import CreateNewVector
 from dialogs_core   import CreateNewRaster
 from vdigit.preferences import VDigitSettingsDialog
 from core.debug         import Debug
@@ -43,8 +40,6 @@ class RDigitToolbar(BaseToolbar):
         # currently selected map layer for editing (reference to MapLayer instance)
         self.mapLayer = None
         self.mapName  = None
-        # list of vector layers from Layer Manager (only in the current mapset)
-        #self.laayers   = [] 
         
         self.comboid  = self.combo = None
         self.undo     = -1
@@ -62,7 +57,7 @@ class RDigitToolbar(BaseToolbar):
                         'type' : '',
                         'id'   : -1 }
         
-        # list of available vector maps
+        # list of available raster maps
         self.UpdateListOfLayers(updateTool = True)
         
         self.layerNameList = []
@@ -234,7 +229,7 @@ class RDigitToolbar(BaseToolbar):
 
         
     def OnAddLine(self, event):
-        """!Add line to the vector map layer"""
+        """!Add line to the raster map layer"""
         
         Debug.msg (2, "RDigitToolbar.OnAddLine()")
         
@@ -245,7 +240,7 @@ class RDigitToolbar(BaseToolbar):
 
         
     def OnAddBoundary(self, event):
-        """!Add boundary to the vector map layer"""
+        """!Add boundary to the raster map layer"""
         
         Debug.msg (2, "RDigitToolbar.OnAddBoundary()")
         
@@ -258,7 +253,7 @@ class RDigitToolbar(BaseToolbar):
         self.MapWindow.mouse['box'] = 'line'
         
     def OnAddCircle(self, event):
-        """!Add cirlce to the vector map layer"""
+        """!Add cirlce to the raster map layer"""
         
         Debug.msg (2, "RDigitToolbar.OnAddCircle()")
         
@@ -381,10 +376,10 @@ class RDigitToolbar(BaseToolbar):
         selection = -1
         if event.GetSelection() == 0: # create new raster map layer
             if self.mapLayer:
-                openVectorMap = self.mapLayer.GetName(fullyQualified = False)['name']
+                openRasterMap = self.mapLayer.GetName(fullyQualified = False)['name']
             else:
-                openVectorMap = None
-            dlg = CreateNewRaster(self.parent, exceptMap = openVectorMap,disableAdd = True)
+                openRasterMap = None
+            dlg = CreateNewRaster(self.parent, exceptMap = openRasterMap,disableAdd = True)
                                   
                                   
             
@@ -425,7 +420,7 @@ class RDigitToolbar(BaseToolbar):
         event.Skip()
         
     def StartEditing (self, mapLayer):
-        """!Start editing selected vector map layer.
+        """!Start editing selected raster map layer.
 
         @param mapLayer MapLayer to be edited
         """
@@ -443,7 +438,7 @@ class RDigitToolbar(BaseToolbar):
 #                                 subkey = 'value', value = '', internal = True)
 #            
 #            self.parent.SetStatusText(_("Please wait, "
-#                                        "opening vector map <%s> for editing...") % mapLayer,
+#                                        "opening raster map <%s> for editing...") % mapLayer,
 #                                        0)
 #        
         self.MapWindow.pdcVector = wx.PseudoDC()
@@ -474,13 +469,13 @@ class RDigitToolbar(BaseToolbar):
         return True
 
     def StopEditing(self):
-        """!Stop editing of selected vector map layer.
+        """!Stop editing of selected raster map layer.
 
         @return True on success
         @return False on failure
         """
         if self.combo:
-            self.combo.SetValue (_('Select vector map'))
+            self.combo.SetValue (_('Select raster map'))
         
         # save changes
         if self.mapLayer:
@@ -488,7 +483,7 @@ class RDigitToolbar(BaseToolbar):
 
             dlg = wx.MessageDialog(parent = self.parent,
                                    message = _("Do you want to save changes "
-                                             "in vector map <%s>?") % self.mapLayer,
+                                             "in raster map <%s>?") % self.mapLayer,
                                    caption = _("Save changes?"),
                                    style = wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION)
             if dlg.ShowModal() == wx.ID_NO:
@@ -514,7 +509,7 @@ class RDigitToolbar(BaseToolbar):
         return True
     
     def UpdateListOfLayers (self, updateTool = False):
-        """!Update list of available vector map layers.
+        """!Update list of available raster map layers.
         This list consists only editable layers (in the current mapset)
 
         @param updateTool True to update also toolbar
@@ -526,7 +521,7 @@ class RDigitToolbar(BaseToolbar):
         if self.mapLayer:
             layerNameSelected = self.mapLayer
         
-        # select vector map layer in the current mapset
+        # select raster map layer in the current mapset
         layerNameList = []
         self.layers = self.Map.GetListOfLayers(l_type = "raster",
                                                       l_mapset = grass.gisenv()['MAPSET'])
@@ -537,7 +532,7 @@ class RDigitToolbar(BaseToolbar):
         
         if updateTool: # update toolbar
             if not self.mapLayer:
-                value = _('Select vector map')
+                value = _('Select raster map')
             else:
                 value = layerNameSelected
             
