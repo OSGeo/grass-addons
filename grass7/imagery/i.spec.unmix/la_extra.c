@@ -19,17 +19,16 @@ mat_struct *G_matrix_resize(mat_struct * in, int rows, int cols)
   matrix = G_matrix_init(rows, cols, rows);
   int i, j, p, index = 0;
   for (i = 0; i < rows; i++) 
-  {
     for (j = 0; j < cols; j++)
-    matrix->vals[index++] = in->vals[i + j * cols];
-  }
+     G_matrix_set_element(matrix, i, j,	 G_matrix_get_element(in, i, j));
+/*    matrix->vals[index++] = in->vals[i + j * cols];*/
 
   int old_size = in->rows * in->cols;
   int new_size = rows * cols;
 
   if (new_size > old_size)
     for (p = old_size; p < new_size; p++)
-      matrix->vals[p] = 0.0;
+      G_matrix_set_element(matrix, i, j, 0.0);
 
   return (matrix);
 }
@@ -72,18 +71,23 @@ vec_struct* G_mat_vector_product(mat_struct * A, vec_struct * b,vec_struct *out)
   unsigned int i, m, n, j;
   register doublereal sum;
 
-  if (A->cols != b->ldim) {
-    G_warning (_("Input matrix and vector have differing dimensions"));
+//G_message("A=%d,%d,%d", A->cols, A->rows, A->ldim);
+//G_message("B=%d,%d,%d", b->cols, b->rows, b->ldim);
+  if (A->cols != b->cols) {
+    G_warning (_("Input matrix and vector have differing dimensions1"));
+    
     return NULL;
+  
   }
   if (!out) {
     G_warning (_("Output vector is uninitialized"));
     return NULL;
   }
-  if (out->ldim != A->rows) {
-    G_warning (_("Output vector has incorrect dimension"));
-    return NULL;
-  }
+/*  if (out->ldim != A->rows) {*/
+/*    G_warning (_("Output vector has incorrect dimension"));*/
+/*    exit(1);*/
+/*    return NULL;*/
+/*  }*/
 
 
   m = A->rows;
@@ -93,7 +97,9 @@ vec_struct* G_mat_vector_product(mat_struct * A, vec_struct * b,vec_struct *out)
     sum = 0.0;
     int width = A->rows;
     for (j = 0; j < n; j++) {
-	    sum += A->vals[i + j * width] * b->vals[j];
+    
+        sum +=G_matrix_get_element(A, i, j) * G_matrix_get_element(b, 0, j);
+        /*sum += A->vals[i + j * width] * b->vals[j];*/
 	    out->vals[i] = sum;
 	  }
   }

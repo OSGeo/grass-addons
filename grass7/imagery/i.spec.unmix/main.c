@@ -273,18 +273,18 @@ int main(int argc, char *argv[])
     mu = 0.0001 * pow(10, -1 * ceil(log10(max_total)));
 
     /* TODO: Missing? startvector = G_vector_init (0, 0, RVEC); */
-    startvector = G_vector_init(A->cols, A->cols, CVEC);
+    startvector = G_vector_init(A->cols, 1, RVEC);
 
 
     if (startvector == NULL)
 	G_fatal_error(_("Unable to allocate memory for vector"));
 
     /* TODO: Missing? A_times_startvector = G_vector_init (0, 0, RVEC); */
-    A_times_startvector = G_vector_init(A_tilde->rows, A_tilde->rows, CVEC);	/* length: no. of bands   */
+    A_times_startvector = G_vector_init(A_tilde->rows, 1, RVEC);	/* length: no. of bands   */
     /* TODO: Missing? errorvector = G_vector_init (0, 0, RVEC); */
-    errorvector = G_vector_init(A_tilde->rows, A_tilde->rows, CVEC);	/* length: no. of bands   */
+    errorvector = G_vector_init(A_tilde->rows, 1, RVEC);	/* length: no. of bands   */
     /* TODO: Missing? temp = G_vector_init (0, 0, RVEC); */
-    temp = G_vector_init(A_tilde->cols, A_tilde->cols, CVEC);	/* length: no. of spectra */
+    temp = G_vector_init(A_tilde->cols, 1, RVEC);	/* length: no. of spectra */
 
 
     /* length: no. of bands   */
@@ -332,22 +332,22 @@ int main(int argc, char *argv[])
 	    /* get pixel values of each band and store in b vector: */
 	    /* length: no. of bands + 1 (GAMMA) */
 
-	    b_gamma = G_vector_init(A_tilde->rows, A_tilde->rows, CVEC);
+	    b_gamma = G_vector_init(A_tilde->rows, 1, RVEC);
 
 	    if (b_gamma == NULL)
 		G_fatal_error(_("Unable to allocate memory for matrix"));
 
 
 	    for (band = 0; band < Ref.nfiles; band++)
-		G_matrix_set_element(b_gamma, band, 0, cell[band][col]);
+		G_matrix_set_element(b_gamma, 0, band, cell[band][col]);
 
 	    /* add GAMMA for 1. constraint as last element */
-	    G_matrix_set_element(b_gamma, Ref.nfiles, 0, GAMMA);
+	    G_matrix_set_element(b_gamma, 0, Ref.nfiles, GAMMA);
 
 
 
 	    for (k = 0; k < A_tilde->cols; k++)
-		G_matrix_set_element(startvector, k, 0,
+		G_matrix_set_element(startvector, 0, k,
 				     (1.0 / A_tilde->cols));
 
 	    /* calculate fraction vector for current pixel
@@ -360,6 +360,8 @@ int main(int argc, char *argv[])
 	     */
 
 	    /* solve with iterative solution: */
+	    
+	    
 	    while (fabs(change) > 0.0001) {
 
 		G_mat_vector_product(A_tilde, startvector,
@@ -377,8 +379,8 @@ int main(int argc, char *argv[])
 		for (k = 0; k < A_tilde->cols; k++)
 		    /* no. of spectra times */
 		    /* if one element gets negative, set it to zero */
-		    if ((G_matrix_get_element(startvector, k, 0) < 0))
-			G_matrix_set_element(startvector, k, 0, 0);
+		    if ((G_matrix_get_element(startvector, 0, k) < 0))
+			G_matrix_set_element(startvector, 0, k, 0);
 
 
 		/* Check the deviation */
@@ -393,11 +395,10 @@ int main(int argc, char *argv[])
 		/* G_message("change=%lf, norm2=%lf",change, norm);   */
 	    }
 
-
 	    vec_struct *fraction;
 
 	    /* G_message("fcol %d  and A->cols %d", startvector->dim, A->cols); */
-	    fraction = G_vector_init(A->cols, A->cols, CVEC);	/* length: no. of spectra */
+	    fraction = G_vector_init(A->cols,1, RVEC);	/* length: no. of spectra */
 	    error = deviation / G_vector_norm_euclid(b_gamma);
 	    fraction = G_vector_copy(startvector, NO_COMPACT);
 
@@ -406,7 +407,7 @@ int main(int argc, char *argv[])
 	    /* write result in full percent */
 	    for (i = 0; i < A->cols; i++)	/* no. of spectra */
 		result_cell[i][col] =
-		    (CELL) (100 * G_matrix_get_element(fraction, i, 0));
+		    (CELL) (100 * G_matrix_get_element(fraction, 0, i));
 
 	    /* save error and iterations */
 	    error_cell[col] = (CELL) (100 * error);
