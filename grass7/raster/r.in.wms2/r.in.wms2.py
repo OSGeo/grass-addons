@@ -154,14 +154,14 @@ This program is free software under the GNU General Public License
 #%end
 
 #%option G_OPT_F_INPUT
-#% key: cfile
+#% key: capfile
 #% required: no
 #% gisprompt: old,file,bin_input
 #% description: Capabilities file 
 #%end
 
 #%option G_OPT_F_OUTPUT
-#% key: csfile
+#% key: capfile_output
 #% required: no
 #% gisprompt: old,file,bin_input
 #% description: File where capabilities will be saved (only with 'c' flag).

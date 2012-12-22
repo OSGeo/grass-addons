@@ -17,9 +17,6 @@ This program is free software under the GNU General Public License
 """
 
 import grass.script as grass 
-import base64
-from urllib2 import urlopen, HTTPError
-from httplib import HTTPException
 
 try:
     from osgeo import gdal
@@ -27,13 +24,14 @@ try:
 except:
     grass.fatal(_("Unable to load GDAL python bindings"))
 
-import urllib2
-from xml.etree.ElementTree import ParseError
-
 import numpy as Numeric
 Numeric.arrayrange = Numeric.arange
 
 from math import pi, floor
+from urllib2 import HTTPError
+from httplib import HTTPException
+from xml.etree.ElementTree import ParseError
+
 from wms_base import WMSBase
 
 from wms_cap_parsers import WMTSCapabilitiesTree, OnEarthCapabilitiesTree
@@ -46,10 +44,10 @@ class WMSDrv(WMSBase):
         """ 
         grass.message(_("Downloading data from WMS server..."))
 
-        if not self.params['cfile']:
+        if not self.params['capfile']:
             self.cap_file = self._fetchCapabilities(self.params)
         else:
-            self.cap_file = self.params['cfile']
+            self.cap_file = self.params['capfile']
 
         # initialize correct manager according to chosen OGC service
         if self.params['driver'] == 'WMTS_GRASS':
@@ -80,18 +78,14 @@ class WMSDrv(WMSBase):
 
             # the tile size and offset in pixels for placing it into raster where tiles are joined
             tile_ref = tile[1]
-            grass.debug(query_url)
+            grass.debug(query_url, 2)
             try: 
-                request = urllib2.Request(query_url)
-                if self.params['username']:
-                    base64string = base64.encodestring('%s:%s' % (self.params['username'], self.params['password'])).replace('\n', '')
-                    request.add_header("Authorization", "Basic %s" % base64string) 
-                wms_data = urllib2.urlopen(request)
+                wms_data = self._fetchDataFromServer(query_url, self.params['username'], self.params['password'])
             except (IOError, HTTPException), e:
                 if HTTPError == type(e) and e.code == 401:
-                    grass.fatal(_("Authorization failed"))           
+                    grass.fatal(_("Authorization failed to '%s' when fetching data.") % self.params['url'])
                 else:
-                    grass.fatal(_("Unable to fetch data from server")) 
+                    grass.fatal(_("Unable to fetch data from: '%s'") % self.params['url'])
 
             temp_tile = self._tempfile()
                 
@@ -441,6 +435,8 @@ class WMTSRequestMgr(BaseRequestMgr):
 
         # parse capabilities file
         try:
+            # checks all elements needed by this class,
+            # invalid elements are removed
             cap_tree = WMTSCapabilitiesTree(cap_file)
         except ParseError as error:
             grass.fatal(_("Unable to parse tile service file.\n%s\n") % str(error))
@@ -649,11 +645,13 @@ class OnEarthRequestMgr(BaseRequestMgr):
         """!Initializes data needed for iteration through tiles.
         """
         try:
-            cap_tree = OnEarthCapabilitiesTree(tile_service)
+            # checks all elements needed by this class,
+            # invalid elements are removed
+            self.cap_tree = OnEarthCapabilitiesTree(tile_service)
         except ParseError as error:
             grass.fatal(_("Unable to parse tile service file.\n%s\n") % str(error))
 
-        root = cap_tree.getroot()
+        root = self.cap_tree.getroot()
 
         # parse tile service file and get needed data for making tile requests
         url, self.tile_span, t_patt_bbox, self.tile_size = self._parseTileService(root, bbox, region, params)
@@ -688,10 +686,7 @@ class OnEarthRequestMgr(BaseRequestMgr):
         group_t_patts = req_group.findall('TilePattern')
         best_patt = self._parseTilePattern(group_t_patts, bbox, region)
 
-        if best_patt is None:
-            grass.fatal("Unable to parse any url in '%s' of %s '%s'" % ('TilePattern', params['layers'], 'TiledGroup'))
-
-        urls = self._getUrls(best_patt)
+        urls = best_patt.text.split('\n')
         if params['urlparams']:
             url = self._insTimeToTilePatternUrl(params['urlparams'], urls)
         else:
@@ -700,7 +695,7 @@ class OnEarthRequestMgr(BaseRequestMgr):
                 if not 'time=${' in u:
                     url = u
 
-        url, t_bbox, width, height = self._parseUrl(url)
+        url, t_bbox, width, height = self.cap_tree.gettilepatternurldata(url)
         tile_span = {}
         tile_span['x'] = abs(t_bbox[0] - t_bbox[2])
         tile_span['y'] = abs(t_bbox[1] - t_bbox[3])
@@ -745,15 +740,7 @@ class OnEarthRequestMgr(BaseRequestMgr):
         t_res = {}
         best_patt = None
         for pattern in group_t_patts:
-            urls = self._getUrls(pattern)
-            if not urls:
-                continue
-
-            ret = self._parseUrl(urls[0])
-
-            if not ret:
-                continue
-            url, t_bbox, width, height = ret
+            url, t_bbox, width, height = self.cap_tree.gettilepatternurldata(pattern.text.split('\n')[0])
 
             t_res['x'] = abs(t_bbox[0] - t_bbox[2]) / width
             t_res['y'] = abs(t_bbox[1] - t_bbox[3]) / height
@@ -774,44 +761,6 @@ class OnEarthRequestMgr(BaseRequestMgr):
                 best_patt = pattern
 
         return best_patt
-
-    def _getUrls(self, tile_pattern):
-        """!Get all urls from tile pattern.
-        """
-        urls = []
-        if  tile_pattern.text is not None:
-            tile_patt_lines = tile_pattern.text.split('\n')
-
-            for line in tile_patt_lines:
-                if 'request=GetMap' in line:
-                    urls.append(line.strip())
-        return urls
-
-    def _parseUrl(self, url):
-        """!Parse url string in Tile Pattern.
-        """
-        par_url = bbox = width = height = None 
-
-        bbox_idxs = self._getParameterIdxs(url, "bbox=")
-        if bbox_idxs is None:
-            return None
-
-        par_url = [url[:bbox_idxs[0] - 1], url[bbox_idxs[1]:]]
-
-        bbox = url[bbox_idxs[0] + len('bbox=') : bbox_idxs[1]]
-        bbox = map(float, bbox.split(','))
-
-        width_idxs = self._getParameterIdxs(url, "width=")
-        if width_idxs is None:
-            return None
-        width = int(url[width_idxs[0] + len('width=') : width_idxs[1]])
-
-        height_idxs = self._getParameterIdxs(url, "height=")
-        if height_idxs is None:
-            return None
-        height = int(url[height_idxs[0] + len('height=') : height_idxs[1]])
-
-        return par_url, bbox, width, height
 
     def _insTimeToTilePatternUrl(self, url_params, urls):
         """!Time can be variable in some urls in OnEarth TMS. 
@@ -834,7 +783,7 @@ class OnEarthRequestMgr(BaseRequestMgr):
 
             has_time_var = False
             for url in urls: 
-                url_p_idxs = self._getParameterIdxs(url, k)
+                url_p_idxs = self.geturlparamidxs(url, k)
                 if not url_p_idxs:
                     continue
 
@@ -854,18 +803,6 @@ class OnEarthRequestMgr(BaseRequestMgr):
                                ('OnEarth GRASS', 'time', 'urlparams'))
 
         return url
-
-    def _getParameterIdxs(self, params_str, param_key):
-        """!Find start and end index of parameter and it's value in url string
-        """
-        start_i = params_str.lower().find(param_key)
-        if start_i < 0: 
-            return None
-        end_i = params_str.find("&", start_i)
-        if end_i < 0:
-            end_i = len(params_str)
-
-        return (start_i, end_i) 
 
     def _computeRequestData(self, bbox, t_patt_bbox, tile_span, tile_size):
         """!Initialize data needed for iteration through tiles.

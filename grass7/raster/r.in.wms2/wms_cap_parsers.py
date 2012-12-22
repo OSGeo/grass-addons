@@ -1,5 +1,5 @@
 """!
-@brief Parsers for WMS capabilities files.
+@brief Parsers for WMS/WMTS/NASA OnEarth capabilities files.
 
 List of classes:
  - wms_cap_parsers::BaseCapabilitiesTree
@@ -22,7 +22,7 @@ import grass.script as grass
 
 class BaseCapabilitiesTree(etree.ElementTree):
     def __init__(self, cap_file):
-        """!Initializes xml.etree.ElementTree
+        """!Initialize xml.etree.ElementTree
         """
         try:
             etree.ElementTree.__init__(self, file = cap_file)
@@ -94,14 +94,14 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
         self._checkFormats(capability)
         self._checkLayerTree(root_layer)
 
-        grass.debug('Checking of WMS capabilities tree was finished.', 4)
+        grass.debug('Check of WMS capabilities tree was finished.', 4)
 
     def _checkFormats(self, capability):
         """!Check if format element is defined.
         """        
         request = self._find(capability, "Request")
         get_map = self._find(request, "GetMap")
-        self._find(get_map, "Format")
+        formats = self._findall(get_map, "Format")
  
     def _checkLayerTree(self, parent_layer, first = True):
         """!Recursively check layer tree and manage inheritance in the tree
@@ -145,7 +145,7 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
             self._inhNotSame(self.proj_tag, "element_content", layer, parent_layer)
             self._inhNotSame("BoundingBox", "attribute", layer, parent_layer, self.proj_tag)
 
-            #remove invalid Styles 
+            # remove invalid Styles 
             styles = layer.findall(self.xml_ns.Ns('Style'))
             for s in styles:
                 s_name = s.find(self.xml_ns.Ns('Name'))
@@ -160,9 +160,9 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
         """Inherit elements which have unique values.
 
         @param element_name - name of inherited element
-        @param cmp_type - 'element_content' - the value is text of <Layer> element
-        @param cmp_type - 'child_element_content' - the value is text of a child of the <Layer> element
-        @param cmp_type - 'attribute' - the value is text of the <Layer> element attribute
+        @param cmp_type - 'element_content' - compared value is text of <Layer> element
+        @param cmp_type - 'child_element_content' - compared value is text of a child of the <Layer> element
+        @param cmp_type - 'attribute' - compared value is text of the <Layer> element attribute
         @param layer - <Layer> element which inherits
         @param parent_layer - <Layer> element which is inherited from 
         @param add_arg - name of child element or attribute
@@ -174,7 +174,7 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
             parent_elems = parent_layer.findall(self.xml_ns.Ns(element_name))
         
         for par_elem in parent_elems:
-            parent_cmp_text = ""
+            parent_cmp_text = None
             if cmp_type == "attribute":
                 if add_arg in par_elem.attrib:
                     parent_cmp_text = par_elem.attrib[add_arg];
@@ -183,9 +183,11 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
                 parent_cmp_text = par_elem.text
                 
             elif cmp_type == "child_element_content":
-                parent_cmp_text = par_elem.find(self.xml_ns.Ns(add_arg)).text
+                parent_cmp = par_elem.find(self.xml_ns.Ns(add_arg))
+                if parent_cmp is not None:
+                    parent_cmp_text = parent_cmp.text
             
-            if parent_cmp_text == "":
+            if parent_cmp_text is None:
                 continue
             
             is_there = False
@@ -199,9 +201,12 @@ class WMSCapabilitiesTree(BaseCapabilitiesTree):
                     cmp_text = elem.text
                 
                 elif cmp_type == "child_element_content":
-                    cmp_text = elem.find(self.xml_ns.Ns(add_arg)).text
+                    cmp = elem.find(self.xml_ns.Ns(add_arg))
+                    if cmp is not None:
+                        cmp_text = cmp.text
                 
-                if cmp_text.lower() == parent_cmp_text.lower():
+                if cmpt_text is None or \
+                   cmp_text.lower() == parent_cmp_text.lower():
                     is_there = True
                     break
             
@@ -283,7 +288,6 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
         self._findall(contents, 'TileMatrixSet', self.xml_ns.NsWmts)
 
         layers = self._findall(contents, 'Layer', self.xml_ns.NsWmts)
-
         for l in layers:
             if not self._checkLayer(l):
                 grass.debug('Removed invalid <Layer> element.', 4)
@@ -292,7 +296,7 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
         # are there any <Layer> elements after the check
         self._findall(contents, 'Layer', self.xml_ns.NsWmts)
 
-        grass.debug('Checking WMTS capabilities tree was finished.', 4)
+        grass.debug('Check of WMTS capabilities tree was finished.', 4)
 
     def _checkMatSet(self, mat_set):
         """!Check <TileMatrixSet>.
@@ -303,14 +307,7 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
 
         mat_set_srs = mat_set.find(self.xml_ns.NsOws('SupportedCRS'))
         if mat_set_srs is None or \
-           not mat_set_srs.text or \
-               len(mat_set_srs.text) < 6 or \
-           not mat_set_srs.text.lower()[:5] == ("epsg:"):
-            return False
-
-        try:
-            int(mat_set_srs.text[5:])
-        except ValueError:
+           not mat_set_srs.text:
             return False
 
         tile_mats = mat_set.findall(self.xml_ns.NsWmts('TileMatrix'))
@@ -373,7 +370,6 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
     def _checkLayer(self, layer):
         """!Check <Layer> element.
         """
-        contents = self.getroot().find(self.xml_ns.NsWmts('Contents'))
         layer_id = layer.find(self.xml_ns.NsOws('Identifier'))
         if layer_id is None or not layer_id.text:
             return False
@@ -392,41 +388,50 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
                 grass.debug('Removed invalid <Style> element.', 4)
                 layer.remove(s_name)
 
-        tileMatrixSets = contents.findall(self.xml_ns.NsWmts('TileMatrixSet'))
+        contents = self.getroot().find(self.xml_ns.NsWmts('Contents'))
+        mat_sets = contents.findall(self.xml_ns.NsWmts('TileMatrixSet'))
 
         for link in  mat_set_links:
-            found = False
-            mat_set_link_id = link.find(self.xml_ns.NsWmts('TileMatrixSet')).text
-
-            for mat_set in tileMatrixSets:
-                mat_set_id = mat_set.find(self.xml_ns.NsOws('Identifier')).text
-
-                if mat_set_id != mat_set_link_id:
-                    continue
-
-                # the link points to existing <TileMatrixSet>
-                found = True
-
-                tile_mat_set_limits = link.find(self.xml_ns.NsWmts('TileMatrixSetLimits'))
-                if tile_mat_set_limits is None:
-                    continue
-
-                tile_mat_limits = tile_mat_set_limits.findall(self.xml_ns.NsWmts('TileMatrixLimits'))
-                for limit in tile_mat_limits:
-                    if not self._checkMatSetLimit(limit):
-                        grass.debug('Removed invalid <TileMatrixLimits> element.', 4)
-                        tile_mat_limits.remove(limit)
-
-                # are there any <TileMatrixLimits> elements after the check
-                tile_mat_limits = tile_mat_set_limits.findall(self.xml_ns.NsWmts('TileMatrixLimits'))
-                if not tile_mat_limits:
-                    grass.debug('Removed invalid <TileMatrixSetLimits> element.', 4)
-                    link.remove(tile_mat_set_limits)
-
-            # TileMatrixSetLink does not point to existing  <TileMatrixSet>
-            if not found:
-                grass.debug('Removed invalid <Layer> element.', 4)
+            # <TileMatrixSetLink> does not point to existing  <TileMatrixSet>
+            if not self._checkMatSetLink(link, mat_sets):
+                grass.debug('Removed invalid <TileMatrixSetLink> element.', 4)
                 layer.remove(link)
+
+        return True
+
+    def _checkMatSetLink(self, link, mat_sets):
+        """!Check <TileMatrixSetLink> element.
+        """
+        mat_set_link_id = link.find(self.xml_ns.NsWmts('TileMatrixSet')).text
+        found = False
+
+        for mat_set in mat_sets:
+            mat_set_id = mat_set.find(self.xml_ns.NsOws('Identifier')).text
+
+            if mat_set_id != mat_set_link_id:
+                continue
+
+            # the link points to existing <TileMatrixSet>
+            found = True
+
+            tile_mat_set_limits = link.find(self.xml_ns.NsWmts('TileMatrixSetLimits'))
+            if tile_mat_set_limits is None:
+                continue
+
+            tile_mat_limits = tile_mat_set_limits.findall(self.xml_ns.NsWmts('TileMatrixLimits'))
+            for limit in tile_mat_limits:
+                if not self._checkMatSetLimit(limit):
+                    grass.debug('Removed invalid <TileMatrixLimits> element.', 4)
+                    tile_mat_limits.remove(limit)
+
+            # are there any <TileMatrixLimits> elements after the check
+            tile_mat_limits = tile_mat_set_limits.findall(self.xml_ns.NsWmts('TileMatrixLimits'))
+            if not tile_mat_limits:
+                grass.debug('Removed invalid <TileMatrixSetLimits> element.', 4)
+                link.remove(tile_mat_set_limits)
+          
+        if not found:
+            return False
 
         return True
 
@@ -484,7 +489,7 @@ class WMTSCapabilitiesTree(BaseCapabilitiesTree):
 
 class OnEarthCapabilitiesTree(BaseCapabilitiesTree):
     def __init__(self, cap_file):
-        """!Parses NASA OnEarth tile service file.
+        """!Parse NASA OnEarth tile service file.
             If the file cannot be parsed it raises xml.etree.ElementTree.ParseError.
 
         The class also removes elements which are in invalid form and are needed 
@@ -492,20 +497,19 @@ class OnEarthCapabilitiesTree(BaseCapabilitiesTree):
 
         @param cap_file - capabilities file        
         """
-        #TODO check also TilePattern urls
         BaseCapabilitiesTree.__init__(self, cap_file)
 
         grass.debug('Checking OnEarth capabilities tree.', 4)
 
         self._checkLayerTree(self.getroot())
 
-        grass.debug('Checking OnEarth capabilities tree was finished.', 4)
+        grass.debug('Check if OnEarth capabilities tree was finished.', 4)
 
     def _checkLayerTree(self, parent_layer, first = True):
         """!Recursively check layer tree.
         """
         if first:
-            tiled_patterns = self.find(parent_layer, 'TiledPatterns')
+            tiled_patterns = self._find(parent_layer, 'TiledPatterns')
             layers = tiled_patterns.findall('TiledGroup')
             layers += tiled_patterns.findall('TiledGroups')
             parent_layer = tiled_patterns
@@ -520,25 +524,13 @@ class OnEarthCapabilitiesTree(BaseCapabilitiesTree):
             if l.tag == 'TiledGroups':
                self._checkLayerTree(l, False)
 
-    def find(self, etreeElement, tag):
+    def _find(self, etreeElement, tag):
         """!Find child element.
             If the element is not found it raises xml.etree.ElementTree.ParseError.  
         """
         res = etreeElement.find(tag)
 
         if res is None:
-            raise  etree.ParseError(_("Unable to parse tile service file. \n\
-                                       Tag <%s> was not found.") % tag)
-
-        return res
-
-    def findall(self, etreeElement, tag):
-        """!Find all children element.
-            If no element is found it raises xml.etree.ElementTree.ParseError.  
-        """
-        res = etreeElement.findall(tag)
-        
-        if not res:
             raise  etree.ParseError(_("Unable to parse tile service file. \n\
                                        Tag <%s> was not found.") % tag)
 
@@ -556,9 +548,88 @@ class OnEarthCapabilitiesTree(BaseCapabilitiesTree):
 
         t_patts = layer.findall('TilePattern')
 
+        for patt in t_patts:
+            urls = self._getUrls(patt)
+            for url in urls:
+                if not self.gettilepatternurldata(url):
+                    urls.remove(url)
+
+            # check if there are any vaild urls
+            if not urls:
+                grass.debug('<TilePattern>  was removed. It has no valid url.', 4)
+                layer.remove(patt)
+            patt.text = '\n'.join(urls)
+
+        t_patts = layer.findall('TilePattern')
         if not t_patts:
             return False
 
         return True
 
+    def _getUrls(self, tile_pattern):
+        """!Get all urls from tile pattern.
+        """
+        urls = []
+        if  tile_pattern.text is not None:
+            tile_patt_lines = tile_pattern.text.split('\n')
 
+            for line in tile_patt_lines:
+                if 'request=GetMap' in line:
+                    urls.append(line.strip())
+        return urls
+
+    def gettilepatternurldata(self, url):
+        """!Parse url string in Tile Pattern.
+        """
+        par_url = bbox = width = height = None 
+
+        bbox_idxs = self.geturlparamidxs(url, "bbox=")
+        if bbox_idxs is None:
+            return None
+
+        par_url = [url[:bbox_idxs[0] - 1], url[bbox_idxs[1]:]]
+
+        bbox = url[bbox_idxs[0] + len('bbox=') : bbox_idxs[1]]
+        bbox_list = bbox.split(',')
+        if len(bbox_list) < 4:
+            return None
+
+        try:
+            bbox = map(float, bbox.split(','))
+        except ValueError:
+            return None
+
+        width_idxs = self.geturlparamidxs(url, "width=")
+        if width_idxs is None:
+            return None
+
+        try:
+            width = int(url[width_idxs[0] + len('width=') : width_idxs[1]])
+        except  ValueError:
+            return None
+
+        height_idxs = self.geturlparamidxs(url, "height=")
+        if height_idxs is None:
+            return None
+
+        try:
+            height = int(url[height_idxs[0] + len('height=') : height_idxs[1]])
+        except  ValueError:
+            return None
+
+        if height < 0 or width < 0:
+            return None
+
+        return par_url, bbox, width, height
+
+    def geturlparamidxs(self, params_str, param_key):
+        """!Find start and end index of parameter and it's value in url string
+        """
+        start_i = params_str.lower().find(param_key)
+        if start_i < 0: 
+            return None
+        end_i = params_str.find("&", start_i)
+        if end_i < 0:
+            end_i = len(params_str)
+
+        return (start_i, end_i) 

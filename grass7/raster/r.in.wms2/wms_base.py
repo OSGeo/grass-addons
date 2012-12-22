@@ -5,13 +5,11 @@ List of classes:
  - wms_base::WMSBase
  - wms_base::GRASSImporter
  - wms_base::WMSDriversInfo
- 
+
 (C) 2012 by the GRASS Development Team
 
 This program is free software under the GNU General Public License
 (>=v2). Read the file COPYING that comes with GRASS for details.
-
-@TODO use username and password for getting capabilities
 
 @author Stepan Turek <stepan.turek seznam.cz> (Mentor: Martin Landa)
 """
@@ -19,7 +17,8 @@ This program is free software under the GNU General Public License
 import os
 from   math import ceil
 
-from urllib2 import urlopen, HTTPError, URLError
+import base64
+import urllib2
 from httplib import HTTPException
 
 import grass.script as grass
@@ -57,7 +56,7 @@ class WMSBase:
         driver_props = drv_info.GetDrvProperties(options['driver'])
         self._checkIgnoeredParams(options, flags, driver_props)
 
-        self.params['cfile'] = options['cfile'].strip()
+        self.params['capfile'] = options['capfile'].strip()
 
         for key in ['url', 'layers', 'styles', 'method']:
             self.params[key] = options[key].strip()
@@ -164,8 +163,7 @@ class WMSBase:
                             (','.join(not_relevant_flags), options['driver'])))
 
     def GetMap(self, options, flags):
-        """!Download data from WMS server and import data
-        (using GDAL library) into GRASS as a raster map."""
+        """!Download data from WMS server."""
 
         self._initializeParameters(options, flags)  
 
@@ -183,7 +181,7 @@ class WMSBase:
     def _fetchCapabilities(self, options): 
         """!Download capabilities from WMS server
         """
-        # download capabilities file
+        grass.debug('Fetching capabilities file.')
         cap_url = options['url']
 
         if 'WMTS' in options['driver']:
@@ -194,22 +192,34 @@ class WMSBase:
             cap_url += "?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=" + options['wms_version'] 
             
         try:
-            cap = urlopen(cap_url)
-        except (IOError, HTTPError, HTTPException):
-            grass.fatal(_("Unable to get capabilities from '%s'") % options['url'])
+            cap = self._fetchDataFromServer(cap_url, options['username'], options['password'])
+        except (IOError, HTTPException), e:
+            if urllib2.HTTPError == type(e) and e.code == 401:
+                grass.fatal(_("Authorization failed to '%s' when fetching capabilities.") % options['url'])
+            else:
+                grass.fatal(_("Unable to fetch capabilities from: '%s'") % options['url'])
         
         return cap
+
+    def _fetchDataFromServer(self, url, username = None, password = None):
+        """!Fetch data from server
+        """      
+        request = urllib2.Request(url)
+        if username and password:
+                    base64string = base64.encodestring('%s:%s' % (username, password)).replace('\n', '')
+                    request.add_header("Authorization", "Basic %s" % base64string)
+        return urllib2.urlopen(request)
 
     def GetCapabilities(self, options): 
         """!Get capabilities from WMS server
         """
         cap  = self._fetchCapabilities(options)
-        csfile = options['csfile'].strip()
+        capfile_output = options['capfile_output'].strip()
 
         # save to file
-        if csfile:
+        if capfile_output:
             try:
-                temp = open(csfile, "w")
+                temp = open(capfile_output, "w")
                 temp.write(cap.read())
                 temp.close()
                 return
@@ -505,7 +515,7 @@ class WMSDriversInfo:
 
         props = {}
         props['ignored_flags'] = ['o']
-        props['ignored_params'] = ['bgcolor', 'styles', 'csfile', 
+        props['ignored_params'] = ['bgcolor', 'styles', 'capfile_output', 
                                    'format', 'srs', 'wms_version']
         props['req_multiple_layers'] = False
 
@@ -514,7 +524,7 @@ class WMSDriversInfo:
     def _WMSProperties(self):
 
         props = {}
-        props['ignored_params'] = ['cfile']
+        props['ignored_params'] = ['capfile']
         props['ignored_flags'] = []
         props['req_multiple_layers'] = True
 
@@ -533,7 +543,7 @@ class WMSDriversInfo:
 
         props = {}
         props['ignored_flags'] = []
-        props['ignored_params'] = ['urlparams', 'bgcolor', 'cfile', 'csfile',
+        props['ignored_params'] = ['urlparams', 'bgcolor', 'capfile', 'capfile_output',
                                     'username', 'password']
         props['req_multiple_layers'] = True
 
