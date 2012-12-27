@@ -20,24 +20,23 @@
 ##################################################################
 
 from datetime import *
-import string
 import os
 import sys
-import glob
-import logging
-import socket
-from ftplib import FTP
-import ftplib
+
 
 class convertModis:
-  """A class to convert modis data from hdf to tif using resample (from MRT tools)
+  """A class to convert modis data from hdf to tif using resample
+  (from MRT tools)
   """
   def __init__(self, hdfname, confile, mrtpath):
     """Initialization function :
+
        hdfname = the full path to the hdf file
+
        confile = the full path to the paramater file
-       mrtpath = the full path to mrt directory where inside you have bin and 
-                 data directories
+
+       mrtpath = the full path to mrt directory where inside you have bin and
+       data directories
     """
     # check if the hdf file exists
     if os.path.exists(hdfname):
@@ -76,7 +75,7 @@ class convertModis:
         return os.path.join(self.mrtpath,'resample.exe')
 
   def run(self):
-    """Exec the process"""
+    """Exec the convertion process"""
     import subprocess
     execut = self.executable()
     if not os.path.exists(execut):
@@ -86,18 +85,23 @@ class convertModis:
       subprocess.call([execut,'-p',self.conf])
     return "The hdf file %s was converted" % self.name
 
+
 class createMosaic:
-  """A class to convert a mosaic of different modis tiles"""
+  """A class to convert several MODIS tiles into a mosaic"""
   def __init__(self,
               listfile,
               outprefix,
               mrtpath,
               subset = False
               ):
+    import tempfile
     # check if the hdf file exists
     if os.path.exists(listfile):
       self.basepath = os.path.split(listfile)[0]
+      self.fullpath = os.path.realpath(self.basepath)
       self.listfiles = listfile
+      self.tmplistfiles = open(os.path.join(tempfile.gettempdir(),
+                               '%s.prm' % str(os.getpid())), 'w')
       self.HDFfiles = open(listfile).readlines()
     else:
       raise IOError('%s not exists' % hdfname)
@@ -121,16 +125,19 @@ class createMosaic:
     self.subset = subset
 
   def write_mosaic_xml(self):
+    """Write the XML metadata file for MODIS mosaic"""
     from parsemodis import parseModisMulti
     listHDF = []
     for i in self.HDFfiles:
       if i.find(self.basepath) == -1:
         print "Attection maybe you have the not full path in the HDF file list"
         listHDF.append(os.path.join(self.basepath,i.strip()))
-      else:
+      elif i.find('.hdf.xml') == -1:
         listHDF.append(i.strip())
+        self.tmplistfiles.write(os.path.join(self.fullpath,i))
     pmm = parseModisMulti(listHDF)
     pmm.writexml(self.outxml)
+    self.tmplistfiles.close()
 
 
   def executable(self):
@@ -153,12 +160,13 @@ class createMosaic:
     else:
       self.write_mosaic_xml()
       if self.subset:
-        subprocess.call([execut,'-i',self.listfiles,'-o',self.out,'-s',self.subset], 
-                        stderr = subprocess.STDOUT)
+        subprocess.call([execut,'-i',self.tmplistfiles.name,'-o',self.out,'-s',
+                         self.subset], stderr = subprocess.STDOUT)
       else:
-        subprocess.call([execut,'-i',self.listfiles,'-o',self.out], stderr = 
-                        subprocess.STDOUT)
+        subprocess.call([execut,'-i',self.tmplistfiles.name,'-o',self.out],
+                        stderr = subprocess.STDOUT)
     return "The mosaic file %s is created" % self.out
+
 
 class processModis:
   """A class to process raw modis data from hdf to tif using swath2grid (from MRT Swath tools)
@@ -210,7 +218,7 @@ class processModis:
         return os.path.join(self.mrtpath,'swath2grid.exe')
 
   def run(self):
-    """Exec the process"""
+    """Exec the convertion process"""
     import subprocess
     execut = self.executable()
     if not os.path.exists(execut):
