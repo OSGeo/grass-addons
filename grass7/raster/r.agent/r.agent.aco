@@ -255,11 +255,10 @@ def main():
     try:
         world.checkvalues()
         world.letantsdance()
-        print "FINISH"
+        grass.message("FINISH")
     except error.DataError:
-        print "Failed to parse args.."
+        grass.fatal_error("Failed to parse args..")
         sys.exit(1)
-
 
 if __name__ == "__main__":
     options, flags = grass.parser()
