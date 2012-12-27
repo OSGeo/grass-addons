@@ -1,19 +1,4 @@
 #!/usr/bin/env python
-############################################################################
-#
-# MODULE:       r.agent.aco
-# AUTHOR(S):    michael lustenberger inofix.ch
-# PURPOSE:      r.agent.aco is used to organize ant-like agents in a raster
-#               based playground. As decribed by the Ant Colony Optimization
-#               algorithm, the ants wander around looking for attractors,
-#               marking their paths if they find any.
-# COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
-#
-#               This program is free software under the GNU General Public
-#               License (>=v2). Read the file COPYING that comes with GRASS
-#               for details.
-#
-#############################################################################
 
 def dotest(function, argv):
     """Global wrapper for the individual test suits."""
@@ -33,13 +18,6 @@ def dotest(function, argv):
             break
         elif t == "abort":
             exit()
-
-def testError(expr, msg):
-    """Test suite for Class: Error"""
-    try:
-        raise error.DataError(expr, msg)
-    except error.DataError:
-        print "catched! all fine."
 
 def testPlayground():
     """Test suite for Class: Playground"""
@@ -81,9 +59,7 @@ if __name__ == "__main__":
     from libagent import agent
     from libagent import ant
 
-    alltests = {"error":[testError, ["Error Test Suite",
-                     "(this error is good)"]],
-                "playground":[testPlayground, []],
+    alltests = {"playground":[testPlayground, []],
                 "world":[testWorld, []],
                 "aco":[testACO, []],
                 "Agent":[testAgent, [1]],
