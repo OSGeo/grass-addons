@@ -1,5 +1,0 @@
-all = [
-    'dialogs',
-    'toolbars',
-    'widgets',
-    ]
