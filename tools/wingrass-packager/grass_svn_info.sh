@@ -46,7 +46,7 @@ function create_log {
     LOG_DIR=log-r$3-$4
     mkdir -p $LOG_DIR
     cp osgeo4w/package.log $LOG_DIR/
-    cp $1/error.log $LOG_DIR/
+    cp error.log $LOG_DIR/
 }
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin

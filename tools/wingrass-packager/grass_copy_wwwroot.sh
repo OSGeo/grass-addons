@@ -33,8 +33,13 @@ function copy {
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 
-copy 64 6.4.3svn
-copy 65
-copy 70
+if test -z $1 ; then
+    # dev packages
+    copy 64 6.4.3svn
+    copy 65
+    copy 70
+else
+    copy $1 $2
+fi
 
 exit 0
