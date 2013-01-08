@@ -64,8 +64,8 @@ class product:
         # color for lst product
         lst_color = ['celsius']
         ### values of vi product:
-        vi_spec = '( 1 1 0 0 0 0 0 0 0 0 0 )'
-        vi_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 )'
+        vi_spec = '( 1 1 0 0 0 0 0 0 0 0 0 0 )'
+        vi_specqa = '( 1 1 1 0 0 0 0 0 0 0 0 1 )'
         vi_patt = {3: [2, 3], 63: [13, 14, 15], 128: [3], 1024: [1],
                    8192: [0, 6, 7], 16384: [1], 32768: [1]}
         vi_color = ['ndvi', 'evi']
