@@ -303,9 +303,7 @@ def metadata(pars, mapp, coll):
 def analyze(pref, an, cod, parse, write):
     """ Analyze the MODIS data using QA if present """
     if pref.find('.tif') != -1:
-        pref = pref.rstrip('.tif')
-    import pdb
-    pdb.set_trace()    
+        pref = pref.rstrip('.tif') 
     prod = product().fromcode(cod)
     if not prod['spec_qa']:
         grass.warning(_("There is no QA layer, analysis and filtering will be skipped"))
@@ -319,7 +317,6 @@ def analyze(pref, an, cod, parse, write):
         val.append(findfile(pref, v))
         if q:
             qa.append(findfile(pref, q))
-    pdb.set_trace()
     for n in range(len(val)):
         if val[n] == None:
             grass.warning(_("Some error occur"))
@@ -333,7 +330,6 @@ def analyze(pref, an, cod, parse, write):
         elif string.find(cod, '11A1') >= 0 or string.find(cod, '11A2') >= 0 \
         or string.find(cod, '11B1') >= 0:
             mapc = "%s.2 = (%s * 0.0200) - 273.15" % (valname, valfull)
-        pdb.set_trace()
         grass.mapcalc(mapc)
         if an == 'noqa':
             #grass.run_command('g.remove', quiet=True, rast = valfull)
@@ -370,7 +366,6 @@ def analyze(pref, an, cod, parse, write):
                     finalmap += "&& %s.2 <= 1.000" % valname
             finalmap += ",%s.2, null() )" % valname
             # grass.message("mapc finalmap: %s" % finalmap)
-            pdb.set_trace()
             grass.mapcalc(finalmap)
             grass.run_command('g.rename', quiet=True, overwrite=write,
                               rast=(valname, valname + '.orig'))
