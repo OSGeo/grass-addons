@@ -16,6 +16,7 @@ class GrassLand(playground.Playground):
     def __init__(self):
         """Create a Playground with all the relevant info by GRASS"""
         self.layers = dict()
+        self.grassmapnames = dict()
         self.region = grass.region()
         if self.region['ewres'] != self.region['nsres']:
             raise error.DataError("r.agent::libagent.playground.Playground()",
