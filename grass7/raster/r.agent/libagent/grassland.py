@@ -21,23 +21,54 @@ class GrassLand(playground.Playground):
             raise error.DataError("r.agent::libagent.playground.Playground()",
                                     "Only square raster cells make sense.")
     def getregion(self):
-        """Return the region information"""
+        """
+        Return the region information
+        @return dict region
+        """
         return self.region
     def getbound(self, bound):
-        """Return the requested boundary, takes: 'n', 's', 'w', or 'e'"""
+        """
+        Return the requested bound, takes: 'n', 's', 'w', or 'e'
+        @param string bound
+        @return float the outermost coordinate
+        """
         if bound == "n" or bound == "s" or bound == "w" or bound == "e":
             return self.region[bound]
     def setlayer(self, layername, layer, force=False):
-        """Put an existing map from GRASS to the layer collection"""
+        """
+        Put an existing map layer to the layer collection
+        @param string name of the layer
+        @param list a map layer
+        @param boolean optional, whether to overwrite values if key exists
+        """
         pass
-    def createlayer(self, layername, grassmap=False):
-        """Create a new layer and add it to the layer collection"""
+    def setgrasslayer(self, layername, grassmapname, force=False):
+        """
+        Put an existing map from GRASS to the layer collection
+        @param string name of the layer
+        @param string name of a GRASS map layer
+        @param boolean optional, whether to overwrite values if key exists
+        """
+        pass
+    def createlayer(self, layername, grassmapname=False):
+        """
+        Create a new layer and add it to the layer collection
+        @param string name of the layer
+        @param string name of a GRASS map layer or False if layer is only local
+        """
         pass
     def getlayer(self, layername):
-        """Return a layer from the collection by its name"""
+        """
+        Return a layer from the collection by its name
+        @param string name of the layer
+        @return list the requested map layer
+        """
         return []
     def removelayer(self, layername):
-        """Remove the layer named from the layer collection"""
+        """
+        Remove (forget about) the layer named from the layer collection
+        @param string name of the layer
+        """
         pass
 #    def writelayer(self, layername):
 #        pass
