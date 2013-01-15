@@ -58,6 +58,7 @@ class GrassLand(playground.Playground):
         if grassmapname:
             # fill the new grass array with the contents from the file
             layer.read(grassmapname)
+            self.grassmapnames[layername] = grassmapname
         self.setlayer(layername, layer, force)
     def createlayer(self, layername, force=False):
         """
