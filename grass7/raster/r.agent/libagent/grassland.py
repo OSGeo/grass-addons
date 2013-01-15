@@ -90,4 +90,8 @@ class GrassLand(playground.Playground):
             grassmapname = self.grassmapnames[layername]
             layer = self.layers[layername]
             layer.write(grassmapname, overwrite=force)
+    def writelayerasnew(self, layername, grassmapname):
+        if self.layers.has_key(layername):
+            layer = self.layers[layername]
+            layer.write(grassmapname)
 
