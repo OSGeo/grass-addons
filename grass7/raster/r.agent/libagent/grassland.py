@@ -55,16 +55,17 @@ class GrassLand(playground.Playground):
         @param boolean optional, whether to overwrite values if key exists
         """
         layer = garray.array()
-        # fill the new grass array with the contents from the file
-        layer.read(grassmapname)
+        if grassmapname:
+            # fill the new grass array with the contents from the file
+            layer.read(grassmapname)
         self.setlayer(layername, layer, force)
-    def createlayer(self, layername, grassmapname=False):
+    def createlayer(self, layername, force=False):
         """
         Create a new layer and add it to the layer collection
         @param string name of the layer
         @param string name of a GRASS map layer or False if layer is only local
         """
-        pass
+        self.setgrasslayer(layername, False, force)
     def getlayer(self, layername):
         """
         Return a layer from the collection by its name
