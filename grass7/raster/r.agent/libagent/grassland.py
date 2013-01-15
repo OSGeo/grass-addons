@@ -84,6 +84,10 @@ class GrassLand(playground.Playground):
         """
         if self.layers.has_key(layername):
             self.layers.pop(layername)
-#    def writelayer(self, layername):
-#        pass
+    def writelayer(self, layername, force=False):
+        if self.layers.has_key(layername) and
+          self.grassmapnames.has_key(layername):
+            grassmapname = self.grassmapnames[layername]
+            layer = self.layers[layername]
+            layer.write(grassmapname, overwrite=force)
 
