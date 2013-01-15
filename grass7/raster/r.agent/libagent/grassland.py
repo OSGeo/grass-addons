@@ -10,6 +10,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 """
 
 import grass.script as grass
+from grass.script import array as garray
 
 class GrassLand(playground.Playground):
     """A GrassLand is a Playground and the interface to GRASS."""
@@ -53,7 +54,10 @@ class GrassLand(playground.Playground):
         @param string name of a GRASS map layer
         @param boolean optional, whether to overwrite values if key exists
         """
-        pass
+        layer = garray.array()
+        # fill the new grass array with the contents from the file
+        layer.read(grassmapname)
+        self.setlayer(layername, layer, force)
     def createlayer(self, layername, grassmapname=False):
         """
         Create a new layer and add it to the layer collection
