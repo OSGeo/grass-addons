@@ -72,7 +72,10 @@ class GrassLand(playground.Playground):
         @param string name of the layer
         @return list the requested map layer
         """
-        return []
+        retval = False
+        if self.layers.has_key(layername):
+            retval = self.layers[layername]
+        return retval
     def removelayer(self, layername):
         """
         Remove (forget about) the layer named from the layer collection
