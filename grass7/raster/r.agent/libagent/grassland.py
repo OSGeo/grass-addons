@@ -81,7 +81,8 @@ class GrassLand(playground.Playground):
         Remove (forget about) the layer named from the layer collection
         @param string name of the layer
         """
-        pass
+        if self.layers.has_key(layername):
+            self.layers.pop(layername)
 #    def writelayer(self, layername):
 #        pass
 
