@@ -42,7 +42,10 @@ class GrassLand(playground.Playground):
         @param list a map layer
         @param boolean optional, whether to overwrite values if key exists
         """
-        pass
+        if not force and self.layers.has_key(layername):
+            raise error.Error("r.agent::libagent.playground.Playground()",
+                                    "May not overwrite existing layer."))
+        self.layers[layername] = layer
     def setgrasslayer(self, layername, grassmapname, force=False):
         """
         Put an existing map from GRASS to the layer collection
