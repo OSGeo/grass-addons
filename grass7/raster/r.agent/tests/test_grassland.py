@@ -17,8 +17,12 @@ class TestOurExceptions(unittest.TestCase):
         self.assertIsNotNone(self.pg.getbound("w"))
         self.assertIsNotNone(self.pg.getbound("e"))
 
-#    def test_setlayer(self):
-# Enought if tested from Playground and e.g. setgrasslayer below..
+    #def test_setlayer(self):
+       # gets tested in createlayer and super()/Playground
+
+    def test_setgrasslayer(self):
+        #TODO better test manually?
+        pass
 
     def test_createlayer(self):
         self.pg.createlayer("foo", "foo")
@@ -38,6 +42,7 @@ class TestOurExceptions(unittest.TestCase):
         self.assertFalse(self.pg.grassmapnames.has_key("foo"))
 
     def test_writelayer(self):
+        #TODO better test manually?
         pass
 
 #    def tearDown(self):
