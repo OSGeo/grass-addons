@@ -18,7 +18,21 @@ class TestOurExceptions(unittest.TestCase):
         self.assertIsNotNone(self.pg.getbound("e"))
 
 #    def test_setlayer(self):
-        # Enought if tested from Playground and e.g. setgrasslayer below..
+# Enought if tested from Playground and e.g. setgrasslayer below..
+
+    def test_createlayer(self):
+        #TODO
+        self.pg.createlayer("foo")
+
+    def test_getlayer(self):
+        self.pg.layers["foo"] = [0]
+        self.assertIs(self.pg.layers["foo"], self.pg.getlayer("foo"))
+
+    def test_removelayer(self):
+        self.pg.layers["foo"] = [0]
+        self.assertTrue(self.pg.layers.has_key("foo"))
+        self.pg.removelayer("foo")             
+        self.assertFalse(self.pg.layers.has_key("foo"))
 
 #    def tearDown(self):
 

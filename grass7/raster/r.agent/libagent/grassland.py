@@ -47,25 +47,6 @@ class GrassLand(playground.Playground):
         """
         self.setgrasslayer(layername, False, force)
 
-    def getlayer(self, layername):
-        """
-        Return a layer from the collection by its name
-        @param string name of the layer
-        @return list the requested map layer
-        """
-        retval = False
-        if self.layers.has_key(layername):
-            retval = self.layers[layername]
-        return retval
-
-    def removelayer(self, layername):
-        """
-        Remove (forget about) the layer named from the layer collection
-        @param string name of the layer
-        """
-        if self.layers.has_key(layername):
-            self.layers.pop(layername)
-
     def writelayer(self, layername, force=False):
         if self.layers.has_key(layername) and \
           self.grassmapnames.has_key(layername):

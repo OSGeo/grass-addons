@@ -28,5 +28,19 @@ class TestOurExceptions(unittest.TestCase):
         self.pg.setlayer(key, layer, True)
         self.assertIs(self.pg.layers[key], layer)
 
+    def test_createlayer(self):
+        #TODO
+        self.pg.createlayer("foo")
+
+    def test_getlayer(self):
+        self.pg.layers["foo"] = [0]
+        self.assertIs(self.pg.layers["foo"], self.pg.getlayer("foo"))
+
+    def test_removelayer(self):
+        self.pg.layers["foo"] = [0]
+        self.assertTrue(self.pg.layers.has_key("foo"))
+        self.pg.removelayer("foo")
+        self.assertFalse(self.pg.layers.has_key("foo"))
+
 #    def tearDown(self):
 

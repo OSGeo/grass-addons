@@ -47,14 +47,32 @@ class Playground(object):
                                     "May not overwrite existing layer.")
         self.layers[layername] = layer
 
-    def createlayer(self, layername, grassmap=False):
+    def createlayer(self, layername, force=False):
+        """
+        Create a new layer and add it to the layer collection
+        @param string name of the layer
+        @param boolean whether to overwrite an existing layer
+        """
         pass
 
     def getlayer(self, layername):
-        return []
+        """
+        Return a layer from the collection by its name
+        @param string name of the layer
+        @return list the requested map layer
+        """
+        retval = False
+        if self.layers.has_key(layername):
+            retval = self.layers[layername]
+        return retval
 
     def removelayer(self, layername):
-        pass
+        """
+        Remove (forget about) the layer named from the layer collection
+        @param string name of the layer
+        """
+        if self.layers.has_key(layername):
+            self.layers.pop(layername)
 
     def writelayer(self, layername):
         pass
