@@ -2,7 +2,7 @@
 import unittest2 as unittest
 #import unittest
 
-from libagent import playground
+from libagent import playground, error
 
 class TestOurExceptions(unittest.TestCase):
     def setUp(self):
@@ -22,7 +22,7 @@ class TestOurExceptions(unittest.TestCase):
         key = "foo"
         self.pg.setlayer(key, layer)
         self.assertIs(self.pg.layers[key], layer)
-        self.assertRaises(Exception,  self.pg.setlayer, (key, layer))
+        self.assertRaises(error.Error, self.pg.setlayer, *[key, layer])
         layer = [0]
         self.assertIsNot(self.pg.layers[key], layer)
         self.pg.setlayer(key, layer, True)
