@@ -29,6 +29,7 @@ class TestOurExceptions(unittest.TestCase):
         self.assertIs(self.pg.layers[key], layer)
 
     def test_createlayer(self):
+        #TODO from file, better test manually?
         self.pg.createlayer("foo")
         self.assertTrue(self.pg.layers.has_key("foo"))
         #TODO rows / cols
@@ -44,6 +45,7 @@ class TestOurExceptions(unittest.TestCase):
         self.assertFalse(self.pg.layers.has_key("foo"))
 
     def test_writelayer(self):
+        #TODO better test manually?
         pass
 
 #    def tearDown(self):
