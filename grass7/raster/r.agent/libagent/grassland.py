@@ -29,23 +29,26 @@ class GrassLand(playground.Playground):
         """
         Put an existing map from GRASS to the layer collection
         @param string name of the layer
-        @param string name of a GRASS map layer
+        @param string name of an existing GRASS map layer
         @param boolean optional, whether to overwrite values if key exists
         """
         layer = garray.array()
-        if grassmapname:
-            # fill the new grass array with the contents from the file
-            layer.read(grassmapname)
-            self.grassmapnames[layername] = grassmapname
+        # fill the new grass array with the contents from the file
+        layer.read(grassmapname)
+        self.grassmapnames[layername] = grassmapname
         self.setlayer(layername, layer, force)
 
-    def createlayer(self, layername, force=False):
+    def createlayer(self, layername, grassmapname=False, force=False):
         """
         Create a new layer and add it to the layer collection
         @param string name of the layer
         @param string name of a GRASS map layer or False if layer is only local
+        @param boolean whether to overwrite an existing layer
         """
-        self.setgrasslayer(layername, False, force)
+        layer = garray.array()
+        if grassmapname:
+            self.grassmapnames[layername] = grassmapname
+        self.setlayer(layername, layer)
 
     def writelayer(self, layername, force=False):
         if self.layers.has_key(layername) and \

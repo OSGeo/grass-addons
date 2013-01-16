@@ -17,7 +17,8 @@ class Playground(object):
 
     def __init__(self):
         self.layers = dict()
-        self.region = dict(n=0,s=0,w=0,e=0)
+#TODO
+        self.region = dict(n=0,s=0,w=0,e=0,rows=0,cols=0)
 
     def getregion(self):
         """
@@ -53,7 +54,11 @@ class Playground(object):
         @param string name of the layer
         @param boolean whether to overwrite an existing layer
         """
-        pass
+        #TODO rows vs. cols
+        layer = []
+        for i in range(self.region["rows"]):
+            l.append( [[] for j in range(self.region["cols"])])
+        self.setlayer(layername, layer)
 
     def getlayer(self, layername):
         """

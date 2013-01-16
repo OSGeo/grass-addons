@@ -21,8 +21,9 @@ class TestOurExceptions(unittest.TestCase):
 # Enought if tested from Playground and e.g. setgrasslayer below..
 
     def test_createlayer(self):
-        #TODO
-        self.pg.createlayer("foo")
+        self.pg.createlayer("foo", "foo")
+        self.assertTrue(self.pg.layers.has_key("foo"))
+        self.assertTrue(self.pg.grassmapnames.has_key("foo"))
 
     def test_getlayer(self):
         self.pg.layers["foo"] = [0]

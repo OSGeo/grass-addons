@@ -29,8 +29,9 @@ class TestOurExceptions(unittest.TestCase):
         self.assertIs(self.pg.layers[key], layer)
 
     def test_createlayer(self):
-        #TODO
         self.pg.createlayer("foo")
+        self.assertTrue(self.pg.layers.has_key("foo"))
+        #TODO rows / cols
 
     def test_getlayer(self):
         self.pg.layers["foo"] = [0]
