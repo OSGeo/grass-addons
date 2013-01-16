@@ -50,15 +50,27 @@ class GrassLand(playground.Playground):
             self.grassmapnames[layername] = grassmapname
         self.setlayer(layername, layer)
 
-    def writelayer(self, layername, force=False):
+    def removelayer(self, layername):
+        """
+        Remove (forget about) the layer named from the layer collection
+        @param string name of the layer
+        """
+        if self.layers.has_key(layername):
+            self.layers.pop(layername)
+        if self.grassmapnames.has_key(layername):
+            self.grassmapnames.pop(layername)
+
+    def writelayer(self, layername, grassmapname=False, force=False):
+        """
+        Write out a given layer to a GRASS map file
+        @param string name of the layer to be exported
+        @param string optional name of the GRASS map file to be created
+        @param boolean whether an existing file may be overwritten
+        """
+        #TODO implement
         if self.layers.has_key(layername) and \
           self.grassmapnames.has_key(layername):
             grassmapname = self.grassmapnames[layername]
             layer = self.layers[layername]
             layer.write(grassmapname, overwrite=force)
-
-    def writelayerasnew(self, layername, grassmapname):
-        if self.layers.has_key(layername):
-            layer = self.layers[layername]
-            layer.write(grassmapname)
 

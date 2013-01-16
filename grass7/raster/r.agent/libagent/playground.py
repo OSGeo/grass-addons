@@ -48,13 +48,15 @@ class Playground(object):
                                     "May not overwrite existing layer.")
         self.layers[layername] = layer
 
-    def createlayer(self, layername, force=False):
+    def createlayer(self, layername, filename=False, force=False):
         """
         Create a new layer and add it to the layer collection
         @param string name of the layer
+        @param string file name if it is to be created from an existing file
         @param boolean whether to overwrite an existing layer
         """
         #TODO rows vs. cols
+        #TODO import from file
         layer = []
         for i in range(self.region["rows"]):
             l.append( [[] for j in range(self.region["cols"])])
@@ -79,6 +81,14 @@ class Playground(object):
         if self.layers.has_key(layername):
             self.layers.pop(layername)
 
-    def writelayer(self, layername):
+    def writelayer(self, layername, filename, force=False):
+        """
+        Write out a given layer to a certain file
+        @param string name of the layer to be exported
+        @param string name of the file to be written to
+        @param boolean whether an existing file may be overwritten
+        """
+        #TODO export to file
+        #TODO overwrite policy: to increment or to fail?
         pass
 

@@ -43,5 +43,8 @@ class TestOurExceptions(unittest.TestCase):
         self.pg.removelayer("foo")
         self.assertFalse(self.pg.layers.has_key("foo"))
 
+    def test_writelayer(self):
+        pass
+
 #    def tearDown(self):
 
