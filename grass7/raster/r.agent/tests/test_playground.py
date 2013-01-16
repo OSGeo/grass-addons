@@ -12,12 +12,27 @@ class TestOurExceptions(unittest.TestCase):
         self.assertIsNotNone(self.pg.getregion())
 
     def test_getbound(self):
-        self.assertIsNotNone(self.pg.getbound("n"))
-        self.assertIsNotNone(self.pg.getbound("s"))
-        self.assertIsNotNone(self.pg.getbound("w"))
-        self.assertIsNotNone(self.pg.getbound("e"))
-        self.assertTrue(self.pg.getbound("n")>self.pg.getbound("s"))
-        self.assertTrue(self.pg.getbound("e")>self.pg.getbound("w"))
+        n = self.pg.region["n"]
+        s = self.pg.region["s"]
+        w = self.pg.region["w"]
+        e = self.pg.region["e"]
+        #TODO needed?
+#        ns = self.pg.region["nsres"]
+        ns = 1
+#        ew = self.pg.region["ewres"]
+        ew = 1
+        r = self.pg.region["rows"]
+        c = self.pg.region["cols"]
+  
+        self.assertIsNotNone(n)
+        self.assertIsNotNone(s)
+        self.assertIsNotNone(w)
+        self.assertIsNotNone(e)
+        self.assertTrue(n>s)
+        self.assertTrue(e>w)
+
+        self.assertEqual((n-s)/ns, r)
+        self.assertEqual((e-w)/ew, c)
 
     def test_setlayer(self):
         layer = [0]
