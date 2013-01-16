@@ -9,6 +9,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
+import playground
 import grass.script as grass
 from grass.script import array as garray
 
@@ -45,7 +46,7 @@ class GrassLand(playground.Playground):
         """
         if not force and self.layers.has_key(layername):
             raise error.Error("r.agent::libagent.playground.Playground()",
-                                    "May not overwrite existing layer."))
+                                    "May not overwrite existing layer.")
         self.layers[layername] = layer
     def setgrasslayer(self, layername, grassmapname, force=False):
         """
@@ -85,7 +86,7 @@ class GrassLand(playground.Playground):
         if self.layers.has_key(layername):
             self.layers.pop(layername)
     def writelayer(self, layername, force=False):
-        if self.layers.has_key(layername) and
+        if self.layers.has_key(layername) and \
           self.grassmapnames.has_key(layername):
             grassmapname = self.grassmapnames[layername]
             layer = self.layers[layername]
