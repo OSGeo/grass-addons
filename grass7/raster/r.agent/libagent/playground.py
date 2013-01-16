@@ -9,7 +9,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-import error
+import numpy, error
 
 class Playground(object):
     """A Playground is a major component of a World, defining
@@ -18,7 +18,7 @@ class Playground(object):
     def __init__(self):
         self.layers = dict()
 #TODO
-        self.region = dict(n=0,s=0,w=0,e=0,rows=0,cols=0)
+        self.region = dict(n=1,s=0,w=0,e=1,rows=1,cols=1)
 
     def getregion(self):
         """
@@ -55,11 +55,14 @@ class Playground(object):
         @param string file name if it is to be created from an existing file
         @param boolean whether to overwrite an existing layer
         """
-        #TODO rows vs. cols
-        #TODO import from file
-        layer = []
-        for i in range(self.region["rows"]):
-            l.append( [[] for j in range(self.region["cols"])])
+        r = self.region["rows"]
+        c = self.region["cols"]
+        layer = numpy.zeros(r*c).reshape((r,c))
+
+        if filename:
+            #TODO import from file
+            pass
+
         self.setlayer(layername, layer)
 
     def getlayer(self, layername):

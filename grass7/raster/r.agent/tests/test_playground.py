@@ -16,6 +16,8 @@ class TestOurExceptions(unittest.TestCase):
         self.assertIsNotNone(self.pg.getbound("s"))
         self.assertIsNotNone(self.pg.getbound("w"))
         self.assertIsNotNone(self.pg.getbound("e"))
+        self.assertTrue(self.pg.getbound("n")>self.pg.getbound("s"))
+        self.assertTrue(self.pg.getbound("e")>self.pg.getbound("w"))
 
     def test_setlayer(self):
         layer = [0]
@@ -32,7 +34,8 @@ class TestOurExceptions(unittest.TestCase):
         #TODO from file, better test manually?
         self.pg.createlayer("foo")
         self.assertTrue(self.pg.layers.has_key("foo"))
-        #TODO rows / cols
+        self.assertEqual(len(self.pg.layers["foo"]), self.pg.region["rows"])
+        self.assertEqual(len(self.pg.layers["foo"][0]), self.pg.region["cols"])
 
     def test_getlayer(self):
         self.pg.layers["foo"] = [0]

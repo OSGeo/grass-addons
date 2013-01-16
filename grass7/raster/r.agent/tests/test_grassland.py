@@ -16,6 +16,8 @@ class TestOurExceptions(unittest.TestCase):
         self.assertIsNotNone(self.pg.getbound("s"))
         self.assertIsNotNone(self.pg.getbound("w"))
         self.assertIsNotNone(self.pg.getbound("e"))
+        self.assertTrue(self.pg.getbound("n")>self.pg.getbound("s"))
+        self.assertTrue(self.pg.getbound("e")>self.pg.getbound("w"))
 
     #def test_setlayer(self):
        # gets tested in createlayer and super()/Playground
@@ -28,6 +30,8 @@ class TestOurExceptions(unittest.TestCase):
         self.pg.createlayer("foo", "foo")
         self.assertTrue(self.pg.layers.has_key("foo"))
         self.assertTrue(self.pg.grassmapnames.has_key("foo"))
+        self.assertEqual(len(self.pg.layers["foo"]), self.pg.region["rows"])
+        self.assertEqual(len(self.pg.layers["foo"][0]), self.pg.region["cols"])
 
     def test_getlayer(self):
         self.pg.layers["foo"] = [0]
