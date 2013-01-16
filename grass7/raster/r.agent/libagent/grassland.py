@@ -15,6 +15,7 @@ from grass.script import array as garray
 
 class GrassLand(playground.Playground):
     """A GrassLand is a Playground and the interface to GRASS."""
+
     def __init__(self):
         """Create a Playground with all the relevant info by GRASS"""
         self.layers = dict()
@@ -23,25 +24,7 @@ class GrassLand(playground.Playground):
         if self.region['ewres'] != self.region['nsres']:
             raise error.DataError("r.agent::libagent.playground.Playground()",
                                     "Only square raster cells make sense.")
-    def getbound(self, bound):
-        """
-        Return the requested bound, takes: 'n', 's', 'w', or 'e'
-        @param string bound
-        @return float the outermost coordinate
-        """
-        if bound == "n" or bound == "s" or bound == "w" or bound == "e":
-            return self.region[bound]
-    def setlayer(self, layername, layer, force=False):
-        """
-        Put an existing map layer to the layer collection
-        @param string name of the layer
-        @param list a map layer
-        @param boolean optional, whether to overwrite values if key exists
-        """
-        if not force and self.layers.has_key(layername):
-            raise error.Error("r.agent::libagent.playground.Playground()",
-                                    "May not overwrite existing layer.")
-        self.layers[layername] = layer
+
     def setgrasslayer(self, layername, grassmapname, force=False):
         """
         Put an existing map from GRASS to the layer collection
@@ -55,6 +38,7 @@ class GrassLand(playground.Playground):
             layer.read(grassmapname)
             self.grassmapnames[layername] = grassmapname
         self.setlayer(layername, layer, force)
+
     def createlayer(self, layername, force=False):
         """
         Create a new layer and add it to the layer collection
@@ -62,6 +46,7 @@ class GrassLand(playground.Playground):
         @param string name of a GRASS map layer or False if layer is only local
         """
         self.setgrasslayer(layername, False, force)
+
     def getlayer(self, layername):
         """
         Return a layer from the collection by its name
@@ -72,6 +57,7 @@ class GrassLand(playground.Playground):
         if self.layers.has_key(layername):
             retval = self.layers[layername]
         return retval
+
     def removelayer(self, layername):
         """
         Remove (forget about) the layer named from the layer collection
@@ -79,12 +65,14 @@ class GrassLand(playground.Playground):
         """
         if self.layers.has_key(layername):
             self.layers.pop(layername)
+
     def writelayer(self, layername, force=False):
         if self.layers.has_key(layername) and \
           self.grassmapnames.has_key(layername):
             grassmapname = self.grassmapnames[layername]
             layer = self.layers[layername]
             layer.write(grassmapname, overwrite=force)
+
     def writelayerasnew(self, layername, grassmapname):
         if self.layers.has_key(layername):
             layer = self.layers[layername]
