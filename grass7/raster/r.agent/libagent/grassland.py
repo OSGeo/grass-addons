@@ -23,12 +23,6 @@ class GrassLand(playground.Playground):
         if self.region['ewres'] != self.region['nsres']:
             raise error.DataError("r.agent::libagent.playground.Playground()",
                                     "Only square raster cells make sense.")
-    def getregion(self):
-        """
-        Return the region information
-        @return dict region
-        """
-        return self.region
     def getbound(self, bound):
         """
         Return the requested bound, takes: 'n', 's', 'w', or 'e'

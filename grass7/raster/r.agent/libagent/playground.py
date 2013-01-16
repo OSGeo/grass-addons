@@ -14,8 +14,13 @@ class Playground(object):
        and organizing space."""
     def __init__(self):
         self.layers = dict()
+        self.region = dict(n=0,s=0,w=0,e=0)
     def getregion(self):
-        pass
+        """
+        Return the region information
+        @return dict region
+        """
+        return self.region
     def getbound(self, bound):
         pass
     def setlayer(self, layername, layer, force=False):
