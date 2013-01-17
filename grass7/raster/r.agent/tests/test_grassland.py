@@ -3,13 +3,16 @@ import unittest2 as unittest
 #import unittest
 
 from libagent import playground, grassland
+import grass.script as grass
+from grass.script import array as garray
 
-class TestOurExceptions(unittest.TestCase):
+class TestGrassLand(unittest.TestCase):
     def setUp(self):              
         self.pg = grassland.GrassLand()
 
     def test_getregion(self):
         self.assertIsNotNone(self.pg.getregion())
+        self.assertEqual(self.pg.getregion(),grass.region())
 
     def test_getbound(self):
         n = self.pg.region["n"]
@@ -45,9 +48,8 @@ class TestOurExceptions(unittest.TestCase):
         self.assertEqual(len(self.pg.layers["foo"]), self.pg.region["rows"])
         self.assertEqual(len(self.pg.layers["foo"][0]), self.pg.region["cols"])
 
-    def test_getlayer(self):
-        self.pg.layers["foo"] = [0]
-        self.assertIs(self.pg.layers["foo"], self.pg.getlayer("foo"))
+    #def test_getlayer(self):
+       # gets tested in createlayer and super()/Playground
 
     def test_removelayer(self):
         self.pg.layers["foo"] = [0]

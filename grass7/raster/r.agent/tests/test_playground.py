@@ -4,12 +4,13 @@ import unittest2 as unittest
 
 from libagent import playground, error
 
-class TestOurExceptions(unittest.TestCase):
+class TestPlayground(unittest.TestCase):
     def setUp(self):
         self.pg = playground.Playground()
 
     def test_getregion(self):
         self.assertIsNotNone(self.pg.getregion())
+        self.assertIs(self.pg.getregion(),self.pg.region)
 
     def test_getbound(self):
         n = self.pg.region["n"]
