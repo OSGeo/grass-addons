@@ -42,8 +42,8 @@ class GrassLand(playground.Playground):
         """
         Create a new layer and add it to the layer collection
         @param string name of the layer
-        @param string name of a GRASS map layer or False if layer is only local
-        @param boolean whether to overwrite an existing layer
+        @param string optional name of a GRASS map layer (False if only local)
+        @param boolean optional, whether to overwrite an existing layer
         """
         layer = garray.array()
         if grassmapname:
@@ -65,7 +65,7 @@ class GrassLand(playground.Playground):
         Write out a given layer to a GRASS map file
         @param string name of the layer to be exported
         @param string optional name of the GRASS map file to be created
-        @param boolean whether an existing file may be overwritten
+        @param boolean optional, whether an existing file may be overwritten
         """
         #TODO implement
         if self.layers.has_key(layername) and \
