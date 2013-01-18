@@ -12,10 +12,13 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 import numpy, error
 
 class Playground(object):
-    """A Playground is a major component of a World, defining
-       and organizing space."""
+    """
+    A Playground is a major component of a World, defining
+    and organizing space.
+    """
 
     def __init__(self):
+        """Create a Playground"""
         self.layers = dict()
 #TODO
         self.region = dict(n=1,s=0,w=0,e=1,rows=1,cols=1)
@@ -52,8 +55,8 @@ class Playground(object):
         """
         Create a new layer and add it to the layer collection
         @param string name of the layer
-        @param string file name if it is to be created from an existing file
-        @param boolean whether to overwrite an existing layer
+        @param string optional name, whether to create it from an existing file
+        @param boolean optional, whether to overwrite an existing layer
         """
         r = self.region["rows"]
         c = self.region["cols"]
@@ -89,7 +92,7 @@ class Playground(object):
         Write out a given layer to a certain file
         @param string name of the layer to be exported
         @param string name of the file to be written to
-        @param boolean whether an existing file may be overwritten
+        @param boolean optional, whether an existing file may be overwritten
         """
         #TODO export to file
         #TODO overwrite policy: to increment or to fail?
