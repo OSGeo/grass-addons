@@ -26,7 +26,7 @@
 #include <grass/glocale.h>
 #include <grass/gmath.h>
 
-
+/* TODO: add option for amplitude and phase output */
 
 struct input
 {
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     struct GModule *module;
     struct
     {
-	struct Option *input, *file,
+	struct Option *input, *file, *suffix,
 	              *nf,	/* number of harmonics */
 		      *fet,	/* fit error tolerance */
 		      *dod,	/* degree of over-determination */
@@ -133,6 +133,7 @@ int main(int argc, char *argv[])
     struct input *inputs = NULL;
     int num_outputs;
     struct output *outputs = NULL;
+    char *suffix;
     struct History history;
     DCELL *values = NULL, *rc = NULL;
     int nrows, ncols;
@@ -160,6 +161,14 @@ int main(int argc, char *argv[])
     parm.file->key = "file";
     parm.file->description = _("Input file with raster map names, one per line");
     parm.file->required = NO;
+
+    parm.suffix = G_define_option();
+    parm.suffix->key = "suffix";
+    parm.suffix->type = TYPE_STRING;
+    parm.suffix->required = NO;
+    parm.suffix->answer = "_hants";
+    parm.suffix->label = _("Suffix for output maps");
+    parm.suffix->description = _("The suffix will be appended to input map names");
 
     parm.nf = G_define_option();
     parm.nf->key = "nf";
@@ -200,10 +209,11 @@ int main(int argc, char *argv[])
     parm.bl->description = _("Length of the base period");
 
     parm.delta = G_define_option();
-    parm.delta->key = "base_period";
+    parm.delta->key = "delta";
     parm.delta->type = TYPE_DOUBLE;
     parm.delta->answer = "0";
-    parm.delta->description = _("Threshold for high amplitudes");
+    parm.delta->label = _("Threshold for high amplitudes");
+    parm.delta->description = _("Delta should be between 0 and 1");
 
     flag.lo = G_define_flag();
     flag.lo->key = 'l';
@@ -252,10 +262,14 @@ int main(int argc, char *argv[])
     delta = 0;
     if (parm.delta->answer) {
 	delta = atof(parm.delta->answer);
+	if (delta < 0 || delta > 1)
+	    G_fatal_error(_("The threshold for high amplitudes must be >= 0 and <= 1"));
     }
     
     rejlo = flag.lo->answer;
     rejhi = flag.hi->answer;
+    if ((rejlo || rejhi) && !parm.fet->answer)
+	G_fatal_error(_("Fit error tolerance is required when outliers should be rejected"));
 
     /* process the input maps from the file */
     if (parm.file->answer) {
@@ -321,6 +335,8 @@ int main(int argc, char *argv[])
 		p->fd = Rast_open_old(p->name, "");
     	}
     }
+    if (num_inputs < 3)
+	G_fatal_error(_("At least 3 input maps are required"));
 
     /* length of base period */
     if (parm.bl->answer)
@@ -331,12 +347,16 @@ int main(int argc, char *argv[])
     num_outputs = num_inputs;
 
     outputs = G_calloc(num_outputs, sizeof(struct output));
+    
+    suffix = parm.suffix->answer;
+    if (!suffix)
+	suffix = "_hants";
 
     for (i = 0; i < num_outputs; i++) {
 	struct output *out = &outputs[i];
 	char output_name[GNAME_MAX];
 	
-	sprintf(output_name, "%s_hants", inputs[i].name);
+	sprintf(output_name, "%s%s", inputs[i].name, suffix);
 
 	out->name = G_store(output_name);
 	out->buf = Rast_allocate_d_buf();
@@ -415,14 +435,13 @@ int main(int argc, char *argv[])
 	}
     }
 
-
     /* process the data */
-    G_verbose_message(_("Percent complete..."));
+    G_message(_("Harmonic analysis of %d input maps..."), num_inputs);
 
     dumped = 0;
 
     for (row = 0; row < nrows; row++) {
-	G_percent(row, nrows, 2);
+	G_percent(row, nrows, 4);
 
 	if (flag.lazy->answer) {
 	    /* Open the files only on run time */
@@ -489,34 +508,19 @@ int main(int argc, char *argv[])
 				if (useval[k])
 				    A[i][j] += mat[i][k] * mat_t[k][j];
 			    }
-			    if (i > 0 && i == j)
-				A[i][j] += delta;
 			}
+			if (i > 0)
+			    A[i][i] += delta;
 		    }
 		    
 		    /* zr = A \ za
 		     * solve A * zr = za */
 		    if (!solvemat(A, za, zr, nr)) {
-
-			/*
-			fprintf(stdout, "za:\n");
-			for (i = 0; i < nr; i++)
-			    fprintf(stdout, "%g\n", za[i]);
-			    
-			fprintf(stdout, "matrix A:\n");
-			for (i = 0; i < nr; i++) {
-			    for (j = 0; j < nr; j++) {
-				fprintf(stdout, "%g  ", M(A, i, j));
-			    }
-			    fprintf(stdout, "\n");
-			}
-
-			G_fatal_error(_("Unable to solve matrix!"));
-			*/
 			done = -1;
 			Rast_set_d_null_value(rc, num_outputs);
 			break;
 		    }
+		    /* G_math_solver_gauss(A, zr, za, nr) is much slower */
 
 		    /* rc = mat' * zr */
 		    maxerrlo = maxerrhi = 0;
@@ -533,12 +537,12 @@ int main(int argc, char *argv[])
 
 			}
 		    }
-		    if (rejlo && maxerrlo < fet) {
+		    if (rejlo || rejhi) {
 			done = 1;
-		    }
-
-		    if (rejhi && maxerrhi < fet) {
-			done = 1;
+			if (rejlo && maxerrlo > fet)
+			    done = 0;
+			if (rejhi && maxerrhi > fet)
+			    done = 0;
 		    }
 		    
 		    if (!done && (rejlo || rejhi)) {
@@ -571,6 +575,8 @@ int main(int argc, char *argv[])
 		    out->buf[col] = rc[i];
 		}
 		
+		/* DEBUG
+		 * dump original and approximated values for one cell to stdout */
 		if (non_null >= 20 && done == 1 && !dumped &&
 		    row > nrows / 3 && col > ncols / 2 ) {
 #if 0
@@ -581,6 +587,20 @@ int main(int argc, char *argv[])
 		    dumped = 1;
 		}
 
+#if 0
+		/* amplitude and phase */
+		amp[0] = zr[0];
+		phase[0] = 0;
+		for (i = 1; i < nr; i += 2) {
+		    int ifr = (i + 1) / 2;
+		    double angle = atan2(zr[i + 1], zr[i]) * 180 / M_PI;
+
+		    if (angle < 0)
+			angle += 360;
+		    phase[ifr] = angle;
+		    amp[ifr] = sqrt(zr[i] * zr[i] + zr[i + 1] * zr[i + 1]);
+		}
+#endif
 	    }
 	    else {
 		for (i = 0; i < num_outputs; i++) {
