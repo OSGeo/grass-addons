@@ -1,12 +1,13 @@
 
 /****************************************************************************
  *
- * MODULE:       r.series
- * AUTHOR(S):    Glynn Clements <glynn gclements.plus.com> (original contributor)
- *               Hamish Bowman <hamish_b yahoo.com>, Jachym Cepicky <jachym les-ejk.cz>,
- *               Martin Wegmann <wegmann biozentrum.uni-wuerzburg.de>
- * PURPOSE:      
- * COPYRIGHT:    (C) 2002-2008 by the GRASS Development Team
+ * MODULE:       r.hants
+ * AUTHOR(S):    Wout Verhoef, NLR, Remote Sensing Dept., June 1998
+ *               Mohammad Abouali, converted to MATLAB, 2011
+ *               Markus Metz, converted to C, 2013
+ *               based on r.series
+ * PURPOSE:      time series correction
+ * COPYRIGHT:    (C) 2013 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
@@ -17,168 +18,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include <float.h>
 #include <math.h>
 
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#include <grass/stats.h>
-
-struct menu
-{
-    stat_func *method;		/* routine to compute new value */
-    stat_func_w *method_w;	/* routine to compute new value (weighted) */
-    int is_int;			/* result is an integer */
-    char *name;			/* method name */
-    char *text;			/* menu display - full description */
-} menu[] = {
-    {c_ave,    w_ave,    0, "average",    "average value"},
-    {c_count,  NULL,     1, "count",      "count of non-NULL cells"},
-    {c_median, w_median, 0, "median",     "median value"},
-    {c_mode,   w_mode,   0, "mode",       "most frequently occuring value"},
-    {c_min,    NULL,     0, "minimum",    "lowest value"},
-    {c_minx,   NULL,     1, "min_raster", "raster with lowest value"},
-    {c_max,    NULL,     0, "maximum",    "highest value"},
-    {c_maxx,   NULL,     1, "max_raster", "raster with highest value"},
-    {c_stddev, w_stddev, 0, "stddev",     "standard deviation"},
-    {c_range,  NULL,     0, "range",      "range of values"},
-    {c_sum,    w_sum,    0, "sum",        "sum of values"},
-    {c_var,    w_var,    0, "variance",   "statistical variance"},
-    {c_divr,   NULL,     1, "diversity",  "number of different values"},
-    {c_reg_m,  NULL,     0, "slope",      "linear regression slope"},
-    {c_reg_c,  NULL,     0, "offset",     "linear regression offset"},
-    {c_reg_r2, NULL,     0, "detcoeff",   "linear regression coefficient of determination"},
-    {c_reg_t,  NULL,     0, "tvalue",     "linear regression t-value"},
-    {c_quart1, w_quart1, 0, "quart1",     "first quartile"},
-    {c_quart3, w_quart3, 0, "quart3",     "third quartile"},
-    {c_perc90, w_perc90, 0, "perc90",     "ninetieth percentile"},
-    {c_quant,  w_quant,  0, "quantile",   "arbitrary quantile"},
-    {c_skew,   w_skew,   0, "skewness",   "skewness"},
-    {c_kurt,   w_kurt,   0, "kurtosis",   "kurtosis"},
-    {NULL,     NULL,     0, NULL,         NULL}
-};
-
-static double f_box(double x)
-{
-    return (x > 1) ? 0
-	: 1;
-}
-
-static double f_bartlett(double x)
-{
-    return (x > 1) ? 0
-	: 1 - x;
-}
-
-static double f_hermite(double x)
-{
-    return (x > 1) ? 0
-	: (2 * x - 3) * x * x + 1;
-}
-
-static double f_gauss(double x)
-{
-    return exp(-2 * x * x) * sqrt(2 / M_PI);
-}
-
-static double f_normal(double x)
-{
-    return f_gauss(x / 2) / 2;
-}
-
-static double f_sinc(double x)
-{
-    return (x == 0) ? 1 : sin(M_PI * x) / (M_PI * x);
-}
-
-static double lanczos(double x, int a)
-{
-    return (x > a) ? 0
-	: f_sinc(x) * f_sinc(x / a);
-}
-
-static double f_lanczos1(double x)
-{
-    return lanczos(x, 1);
-}
-
-static double f_lanczos2(double x)
-{
-    return lanczos(x, 2);
-}
-
-static double f_lanczos3(double x)
-{
-    return lanczos(x, 3);
-}
-
-static double f_hann(double x)
-{
-    return cos(M_PI * x) / 2 + 0.5;
-}
-
-static double f_hamming(double x)
-{
-    return 0.46 * cos(M_PI * x) + 0.54;
-}
+#include <grass/gmath.h>
 
 
-static double f_blackman(double x)
-{
-    return cos(M_PI * x) / 2 + 0.08 * cos(2 * M_PI * x) + 0.42;
-}
-
-struct window_type {
-    const char *name;
-    double (*func)(double);
-    int radius;
-} w_menu[] = {
-    {"box",       f_box,       1},
-    {"bartlett",  f_bartlett,  1},
-    {"gauss",     f_gauss,     4},
-    {"normal",    f_normal,    8},
-    {"hermite",   f_hermite,   1},
-    {"sinc",      f_sinc,      0},
-    {"lanczos1",  f_lanczos1,  1},
-    {"lanczos2",  f_lanczos2,  2},
-    {"lanczos3",  f_lanczos3,  3},
-    {"hann",      f_hann,      0},
-    {"hamming",   f_hamming,   0},
-    {"blackman",  f_blackman,  0},
-    {NULL},
-};
-
-static char *build_window_list(void)
-{
-    char *buf = G_malloc(1024);
-    char *p = buf;
-    int i;
-
-    for (i = 0; w_menu[i].name; i++) {
-	const char *q;
-
-	if (i)
-	    *p++ = ',';
-	for (q = w_menu[i].name; *q; p++, q++)
-	    *p = *q;
-    }
-    *p = '\0';
-
-    return buf;
-}
-
-static int find_window(const char *name)
-{
-    int i;
-
-    for (i = 0; w_menu[i].name; i++)
-	if (strcmp(w_menu[i].name, name) == 0)
-	    return i;
-
-    G_fatal_error(_("Unknown window <%s>"), name);
-
-    return -1;
-}
 
 struct input
 {
@@ -192,77 +40,118 @@ struct output
     const char *name;
     int fd;
     DCELL *buf;
-    stat_func *method_fn;
-    stat_func_w *method_fn_w;
-    double quantile;
 };
 
-static char *build_method_list(void)
+static int solvemat(double **m, double a[], double B[], int n)
 {
-    char *buf = G_malloc(1024);
-    char *p = buf;
-    int i;
+    int i, j, i2, j2, imark;
+    double factor, temp;
+    double pivot;		/* ACTUAL VALUE OF THE LARGEST PIVOT CANDIDATE */
 
-    for (i = 0; menu[i].name; i++) {
-	char *q;
+    for (i = 0; i < n; i++) {
+	j = i;
 
-	if (i)
-	    *p++ = ',';
-	for (q = menu[i].name; *q; p++, q++)
-	    *p = *q;
+	/* find row with largest magnitude value for pivot value */
+
+	pivot = m[i][j];
+	imark = i;
+	for (i2 = i + 1; i2 < n; i2++) {
+	    temp = fabs(m[i2][j]);
+	    if (temp > fabs(pivot)) {
+		pivot = m[i2][j];
+		imark = i2;
+	    }
+	}
+
+	/* if the pivot is very small then the points are nearly co-linear */
+	/* co-linear points result in an undefined matrix, and nearly */
+	/* co-linear points results in a solution with rounding error */
+
+	if (pivot == 0.0) {
+	    G_warning(_("Matrix is unsolvable"));
+	    return 0;
+	}
+
+	/* if row with highest pivot is not the current row, switch them */
+
+	if (imark != i) {
+	    for (j2 = 0; j2 < n; j2++) {
+		temp = m[imark][j2];
+		m[imark][j2] = m[i][j2];
+		m[i][j2] = temp;
+	    }
+
+	    temp = a[imark];
+	    a[imark] = a[i];
+	    a[i] = temp;
+	}
+
+	/* compute zeros above and below the pivot, and compute
+	   values for the rest of the row as well */
+
+	for (i2 = 0; i2 < n; i2++) {
+	    if (i2 != i) {
+		factor = m[i2][j] / pivot;
+		for (j2 = j; j2 < n; j2++)
+		    m[i2][j2] -= factor * m[i][j2];
+		a[i2] -= factor * a[i];
+	    }
+	}
     }
-    *p = '\0';
 
-    return buf;
+    /* SINCE ALL OTHER VALUES IN THE MATRIX ARE ZERO NOW, CALCULATE THE
+       COEFFICIENTS BY DIVIDING THE COLUMN VECTORS BY THE DIAGONAL VALUES. */
+
+    for (i = 0; i < n; i++) {
+	B[i] = a[i] / m[i][i];
+    }
+
+    return 1;
 }
 
-static int find_method(const char *method_name)
-{
-    int i;
-
-    for (i = 0; menu[i].name; i++)
-	if (strcmp(menu[i].name, method_name) == 0)
-	    return i;
-
-    G_fatal_error(_("Unknown method <%s>"), method_name);
-
-    return -1;
-}
 
 int main(int argc, char *argv[])
 {
     struct GModule *module;
     struct
     {
-	struct Option *input, *file, *output, *method, *quantile, *range, *weight;
+	struct Option *input, *file,
+	              *nf,	/* number of harmonics */
+		      *fet,	/* fit error tolerance */
+		      *dod,	/* degree of over-determination */
+	              *range,	/* low/high threshold */
+		      *ts,	/* time steps*/
+		      *bl,	/* length of base period */
+		      *delta;	/* threshold for high amplitudes */
     } parm;
     struct
     {
-	struct Flag *nulls, *lazy, *outlier;
+	struct Flag *lo, *hi, *lazy;
     } flag;
-    int i;
+    int i, j, k;
     int num_inputs;
     struct input *inputs = NULL;
     int num_outputs;
     struct output *outputs = NULL;
     struct History history;
-    DCELL *values = NULL, *values_tmp = NULL;
-    DCELL (*values_w)[2], (*values_tmp_w)[2];	/* list of neighborhood values and weights */
-    double *weights;
+    DCELL *values = NULL, *rc = NULL;
     int nrows, ncols;
     int row, col;
-    double lo, hi;
+    double lo, hi, fet, *cs, *sn, *ts, delta;
+    int bl;
+    double **mat, **mat_t, **A, *za, *zr, maxerrlo, maxerrhi;
+    int dod, nf, nr, nout, noutmax;
+    int rejlo, rejhi, *useval, dumped;
 
     G_gisinit(argv[0]);
 
     module = G_define_module();
     G_add_keyword(_("raster"));
-    G_add_keyword(_("aggregation"));
     G_add_keyword(_("series"));
+    G_add_keyword(_("filtering"));
     module->description =
-	_("Makes each output cell value a "
-	  "function of the values assigned to the corresponding cells "
-	  "in the input raster map layers.");
+	_("Approximates a periodic time series "
+	  "and creates approximated output.");
 
     parm.input = G_define_standard_option(G_OPT_R_INPUTS);
     parm.input->required = NO;
@@ -272,32 +161,26 @@ int main(int argc, char *argv[])
     parm.file->description = _("Input file with raster map names, one per line");
     parm.file->required = NO;
 
-    parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
-    parm.output->multiple = YES;
+    parm.nf = G_define_option();
+    parm.nf->key = "nf";
+    parm.nf->type = TYPE_INTEGER;
+    parm.nf->required = YES;
+    parm.nf->description = _("Number of frequencies");
+    parm.nf->multiple = YES;
 
-    parm.method = G_define_option();
-    parm.method->key = "method";
-    parm.method->type = TYPE_STRING;
-    parm.method->required = YES;
-    parm.method->options = build_method_list();
-    parm.method->description = _("Aggregate operation");
-    parm.method->multiple = YES;
+    parm.fet = G_define_option();
+    parm.fet->key = "fet";
+    parm.fet->type = TYPE_DOUBLE;
+    parm.fet->required = NO;
+    parm.fet->multiple = NO;
+    parm.fet->description = _("Fit error tolerance");
 
-    parm.weight = G_define_option();
-    parm.weight->key = "window";
-    parm.weight->type = TYPE_STRING;
-    parm.weight->required = NO;
-    parm.weight->multiple = NO;
-    parm.weight->description = _("weighing window");
-    parm.weight->options = build_window_list();
-
-    parm.quantile = G_define_option();
-    parm.quantile->key = "quantile";
-    parm.quantile->type = TYPE_DOUBLE;
-    parm.quantile->required = NO;
-    parm.quantile->description = _("Quantile to calculate for method=quantile");
-    parm.quantile->options = "0.0-1.0";
-    parm.quantile->multiple = YES;
+    parm.dod = G_define_option();
+    parm.dod->key = "dod";
+    parm.dod->type = TYPE_INTEGER;
+    parm.dod->required = NO;
+    parm.dod->answer = "0";
+    parm.dod->description = _("Degree of over-determination");
 
     parm.range = G_define_option();
     parm.range->key = "range";
@@ -305,25 +188,38 @@ int main(int argc, char *argv[])
     parm.range->key_desc = "lo,hi";
     parm.range->description = _("Ignore values outside this range");
 
-    flag.nulls = G_define_flag();
-    flag.nulls->key = 'n';
-    flag.nulls->description = _("Propagate NULLs");
+    parm.ts = G_define_option();
+    parm.ts->key = "time_steps";
+    parm.ts->type = TYPE_DOUBLE;
+    parm.ts->multiple = YES;
+    parm.ts->description = _("Time steps of the input maps");
+
+    parm.bl = G_define_option();
+    parm.bl->key = "base_period";
+    parm.bl->type = TYPE_INTEGER;
+    parm.bl->description = _("Length of the base period");
+
+    parm.delta = G_define_option();
+    parm.delta->key = "base_period";
+    parm.delta->type = TYPE_DOUBLE;
+    parm.delta->answer = "0";
+    parm.delta->description = _("Threshold for high amplitudes");
+
+    flag.lo = G_define_flag();
+    flag.lo->key = 'l';
+    flag.lo->description = _("Reject low outliers");
+
+    flag.hi = G_define_flag();
+    flag.hi->key = 'h';
+    flag.hi->description = _("Reject high outliers");
 
     flag.lazy = G_define_flag();
     flag.lazy->key = 'z';
     flag.lazy->description = _("Don't keep files open");
 
-    flag.outlier = G_define_flag();
-    flag.outlier->key = 'o';
-    flag.outlier->description = _("Remove outliers");
-
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    if (parm.range->answer) {
-	lo = atof(parm.range->answers[0]);
-	hi = atof(parm.range->answers[1]);
-    }
 
     if (parm.input->answer && parm.file->answer)
         G_fatal_error(_("input= and file= are mutually exclusive"));
@@ -331,6 +227,35 @@ int main(int argc, char *argv[])
     if (!parm.input->answer && !parm.file->answer)
         G_fatal_error(_("Please specify input= or file="));
 
+    nf = atoi(parm.nf->answer);
+    if (nf < 1)
+	G_fatal_error(_("The number of frequencies must be > 0"));
+
+    fet = DBL_MAX;
+    if (parm.fet->answer) {
+	fet = atof(parm.fet->answer);
+	if (fet < 0)
+	    G_fatal_error(_("The fit error tolerance must be >= 0"));
+    }
+    dod = 0;
+    if (parm.dod->answer) {
+	dod = atoi(parm.dod->answer);
+	if (dod < 0)
+	    G_fatal_error(_("The degree of over-determination must be >= 0"));
+    }
+    lo = -DBL_MAX;
+    hi = DBL_MAX;
+    if (parm.range->answer) {
+	lo = atof(parm.range->answers[0]);
+	hi = atof(parm.range->answers[1]);
+    }
+    delta = 0;
+    if (parm.delta->answer) {
+	delta = atof(parm.delta->answer);
+    }
+    
+    rejlo = flag.lo->answer;
+    rejhi = flag.hi->answer;
 
     /* process the input maps from the file */
     if (parm.file->answer) {
@@ -397,83 +322,104 @@ int main(int argc, char *argv[])
     	}
     }
 
-    /* set the weights */
-    if (parm.weight->answer) {
-	int method = find_window(parm.weight->answer);
-	double (*func)(double) = w_menu[method].func;
-	double radius = (num_inputs - 1) / 2.0;
-	
-	values_w = (DCELL(*)[2]) G_malloc(num_inputs * 2 * sizeof(DCELL));
-	values_tmp_w = (DCELL(*)[2]) G_malloc(num_inputs * 2 * sizeof(DCELL));
-	weights = (DCELL *) G_malloc(num_inputs * sizeof(DCELL));
+    /* length of base period */
+    if (parm.bl->answer)
+	bl = atoi(parm.bl->answer);
+    else
+	bl = num_inputs;
 
-	for (i = 0; i < num_inputs; i++) {
-	    double x = fabs((i - radius) / radius);
-
-	    if (w_menu[method].radius > 1)
-		x *= w_menu[method].radius;
-	    weights[i] = (*func)(x);
-	}
-    }
-    else {
-	values_w = NULL;
-	values_tmp_w = NULL;
-	weights = NULL;
-    }
-
-    /* process the output maps */
-    for (i = 0; parm.output->answers[i]; i++)
-	;
-    num_outputs = i;
-
-    for (i = 0; parm.method->answers[i]; i++)
-	;
-    if (num_outputs != i)
-	G_fatal_error(_("output= and method= must have the same number of values"));
+    num_outputs = num_inputs;
 
     outputs = G_calloc(num_outputs, sizeof(struct output));
 
     for (i = 0; i < num_outputs; i++) {
 	struct output *out = &outputs[i];
-	const char *output_name = parm.output->answers[i];
-	const char *method_name = parm.method->answers[i];
-	int method = find_method(method_name);
+	char output_name[GNAME_MAX];
+	
+	sprintf(output_name, "%s_hants", inputs[i].name);
 
-	out->name = output_name;
-	if (weights) {
-	    if (menu[method].method_w) {
-		out->method_fn = NULL;
-		out->method_fn_w = menu[method].method_w;
-	    }
-	    else {
-		G_warning(_("Method %s not compatible with weighing window, using unweighed version instead"),
-		          method_name);
-		
-		out->method_fn = menu[method].method;
-		out->method_fn_w = NULL;
-	    }
-	}
-	else {
-	    out->method_fn = menu[method].method;
-	    out->method_fn_w = NULL;
-	}
-	out->quantile = (parm.quantile->answer && parm.quantile->answers[i])
-	    ? atof(parm.quantile->answers[i])
-	    : 0;
+	out->name = G_store(output_name);
 	out->buf = Rast_allocate_d_buf();
-	out->fd = Rast_open_new(output_name,
-				menu[method].is_int ? CELL_TYPE : DCELL_TYPE);
+	out->fd = Rast_open_new(output_name, DCELL_TYPE);
     }
 
     /* initialise variables */
     values = G_malloc(num_inputs * sizeof(DCELL));
-    values_tmp = G_malloc(num_inputs * sizeof(DCELL));
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
 
+    cs = G_alloc_vector(bl);
+    sn = G_alloc_vector(bl);
+    ts = G_alloc_vector(num_inputs);
+    rc = G_malloc(num_inputs * sizeof(DCELL));
+    useval = G_malloc(num_inputs * sizeof(int));
+
+    if (parm.ts->answer) {
+    	for (i = 0; parm.ts->answers[i]; i++);
+	if (i != num_inputs)
+	    G_fatal_error(_("Number of time steps does not match number of input maps"));
+    	for (i = 0; parm.ts->answers[i]; i++)
+	    ts[i] = atof(parm.ts->answers[i]);
+    }
+    else {
+	for (i = 0; i < num_inputs; i++) {
+	    ts[i] = i;
+	}
+    }
+    
+    if (2 * nf + 1 < num_inputs)
+	nr = 2 * nf + 1;
+    else
+	nr = num_inputs;
+
+    noutmax = num_inputs - nr - dod;
+
+    /* are the dimensions correct ? */
+    mat = G_alloc_matrix(nr, num_inputs);
+    mat_t = G_alloc_matrix(num_inputs, nr);
+    A = G_alloc_matrix(nr, nr);
+    za = G_alloc_vector(nr);
+    zr = G_alloc_vector(nr);
+    rc = G_alloc_vector(num_inputs);
+
+    for (i = 0; i < bl; i++) {
+	double ang = 2.0 * M_PI * i / bl;
+
+	cs[i] = cos(ang);
+	sn[i] = sin(ang);
+    }
+    for (j = 0; j < num_inputs; j++) {
+	mat[0][j] = 1.;
+	mat_t[j][0] = 1.;
+    }
+
+    for (i = 0; i < nr / 2; i++) {
+	int i1 = 2 * i + 1;
+	int i2 = 2 * i + 2;
+
+	for (j = 0; j < num_inputs; j++) {
+
+	    int idx = (int) ((i + 1) * (ts[j] - 1)) % bl;
+	    
+	    if (idx >= bl)
+		G_fatal_error("cs/sn index out of range: %d, %d", idx, bl);
+
+	    if (i2 >= nr)
+		G_fatal_error("mat index out of range: %d, %d", 2 * i + 2, nr);
+		
+	    mat[i1][j] = cs[idx];
+	    mat[i2][j] = sn[idx];
+	    mat_t[j][i1] = mat[i1][j];
+	    mat_t[j][i2] = mat[i2][j];
+	}
+    }
+
+
     /* process the data */
     G_verbose_message(_("Percent complete..."));
+
+    dumped = 0;
 
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 2);
@@ -497,65 +443,150 @@ int main(int argc, char *argv[])
 	    for (i = 0; i < num_inputs; i++) {
 		DCELL v = inputs[i].buf[col];
 
-		if (Rast_is_d_null_value(&v))
-		    null = 1;
+		useval[i] = 0;
+		if (Rast_is_d_null_value(&v)) {
+		    null++;
+		}
 		else if (parm.range->answer && (v < lo || v > hi)) {
 		    Rast_set_d_null_value(&v, 1);
-		    null = 1;
+		    null++;
 		}
-		else
+		else {
 		    non_null++;
-
-		if (weights) {
-		    values_w[i][0] = v;
-		    values_w[i][1] = weights[i];
+		    useval[i] = 1;
 		}
+
 		values[i] = v;
 	    }
+	    nout = null;
 
-	    if (flag.outlier->answer && non_null > 5) {
-		/* remove outlier */
-		/* lower bound = 1st_Quartile - 1.5 * (3rd_Quartile - 1st_Quartile) */
-		double quart1, quart3, lower_bound;
+	    /* HANTS */
+	    if (nout <= noutmax) {
+		int n = 0, done = 0;
 
-		memcpy(values_tmp, values, num_inputs * sizeof(DCELL));
-		c_quart1(&quart1, values_tmp, num_inputs, NULL);
-		memcpy(values_tmp, values, num_inputs * sizeof(DCELL));
-		c_quart3(&quart3, values_tmp, num_inputs, NULL);
+		while (!done) {
+		    
+		    /* za = mat * y */
 
-		if (quart1 < quart3)
-		    lower_bound = quart1 - 0.5 * (quart3 - quart1);
-		else
-		    lower_bound = -1e100;
+		    /* A = mat * diag(p) * mat' */
 
-		for (i = 0; i < num_inputs; i++) {
-		    DCELL v = values[i];
+		    /* mat: nr, num_inputs
+		     * diag(p): num_inputs, num_inputs 
+		     * mat_t: num_inputs, nr
+		     * A temp: nr, num_inputs
+		     * A: nr, nr */
 
-		    if (v <= lower_bound) {
-			Rast_set_d_null_value(&v, 1);
-			null = 1;
-			/* non_null--; */
-			values[i] = v;
-			if (weights)
-			    values_w[i][0] = v;
+		    for (i = 0; i < nr; i++) {
+			za[i] = 0;
+			for (j = 0; j < num_inputs; j++) {
+			    if (useval[j])
+				za[i] += mat[i][j] * values[j];
+			}
+
+			for (j = 0; j < nr; j++) {
+			    A[i][j] = 0;
+			    for (k = 0; k < num_inputs; k++) {
+				if (useval[k])
+				    A[i][j] += mat[i][k] * mat_t[k][j];
+			    }
+			    if (i > 0 && i == j)
+				A[i][j] += delta;
+			}
 		    }
+		    
+		    /* zr = A \ za
+		     * solve A * zr = za */
+		    if (!solvemat(A, za, zr, nr)) {
+
+			/*
+			fprintf(stdout, "za:\n");
+			for (i = 0; i < nr; i++)
+			    fprintf(stdout, "%g\n", za[i]);
+			    
+			fprintf(stdout, "matrix A:\n");
+			for (i = 0; i < nr; i++) {
+			    for (j = 0; j < nr; j++) {
+				fprintf(stdout, "%g  ", M(A, i, j));
+			    }
+			    fprintf(stdout, "\n");
+			}
+
+			G_fatal_error(_("Unable to solve matrix!"));
+			*/
+			done = -1;
+			Rast_set_d_null_value(rc, num_outputs);
+			break;
+		    }
+
+		    /* rc = mat' * zr */
+		    maxerrlo = maxerrhi = 0;
+		    for (i = 0; i < num_inputs; i++) {
+			rc[i] = 0;
+			for (j = 0; j < nr; j++) {
+			    rc[i] += mat_t[i][j] * zr[j];
+			}
+			if (useval[i]) {
+			    if (maxerrlo < rc[i] - values[i])
+				maxerrlo = rc[i] - values[i];
+			    if (maxerrhi < values[i] - rc[i])
+				maxerrhi = values[i] - rc[i];
+
+			}
+		    }
+		    if (rejlo && maxerrlo < fet) {
+			done = 1;
+		    }
+
+		    if (rejhi && maxerrhi < fet) {
+			done = 1;
+		    }
+		    
+		    if (!done && (rejlo || rejhi)) {
+			/* filter outliers */
+			for (i = 0; i < num_inputs; i++) {
+
+			    if (useval[i]) {
+				if (rejlo && rc[i] - values[i] > maxerrlo * 0.5) {
+				    useval[i] = 0;
+				    nout++;
+				}
+				if (rejhi && values[i] - rc[i] > maxerrhi * 0.5) {
+				    useval[i] = 0;
+				    nout++;
+				}
+			    }
+			}
+		    }
+
+		    n++;
+		    if (n >= num_inputs)
+			done = 1;
+		    if (nout > noutmax)
+			done = 1;
 		}
+
+		for (i = 0; i < num_outputs; i++) {
+		    struct output *out = &outputs[i];
+		    
+		    out->buf[col] = rc[i];
+		}
+		
+		if (non_null >= 20 && done == 1 && !dumped &&
+		    row > nrows / 3 && col > ncols / 2 ) {
+#if 0
+		    for (i = 0; i < num_inputs; i++) {
+			fprintf(stdout, "%g;%g\n", values[i], rc[i]);
+		    }
+#endif
+		    dumped = 1;
+		}
+
 	    }
+	    else {
+		for (i = 0; i < num_outputs; i++) {
+		    struct output *out = &outputs[i];
 
-	    for (i = 0; i < num_outputs; i++) {
-		struct output *out = &outputs[i];
-
-		if (non_null < 2 || (null && flag.nulls->answer))
 		    Rast_set_d_null_value(&out->buf[col], 1);
-		else {
-		    if (out->method_fn_w) {
-			memcpy(values_tmp_w, values_w, num_inputs * 2 * sizeof(DCELL));
-			(*out->method_fn_w)(&out->buf[col], values_tmp_w, num_inputs, &out->quantile);
-		    }
-		    else {
-			memcpy(values_tmp, values, num_inputs * sizeof(DCELL));
-			(*out->method_fn)(&out->buf[col], values_tmp, num_inputs, &out->quantile);
-		    }
 		}
 	    }
 	}
