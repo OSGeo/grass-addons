@@ -15,39 +15,95 @@ import agent
 
 class World(object):
     """Generic World class as basis for more complex worlds."""
-    def __init__(self, agenttype=None, pg=None):
+
+    def __init__(self, agenttype=None, pg=None, freedom=8):
+        """
+        Create a World, a place with a playground, where agents meet
+        @param type optional, the default agent type for this world
+        @param playground optional, if playground already exists
+        """
         if pg == None:
             self.playground = playground.Playground()
         else:
             self.playground = pg
-        self.agentclass = agent.Agent
         if agenttype == None:
-            self.agenttype = self.agentclass
+            self.agenttype = agent.Agent
         else:
-            self.setagenttype(agenttype)
+            self.agenttype = agenttype
         self.agents = []
-        self.artefacts = []
-    def addlayertopg(self, layername, layertype):
-        pass
+        #self.artefacts = []
+        self.freedom = freedom
+
+    def addlayertopg(self, layername):
+        """
+        Add a new layer to the playground
+        @param string name for the new layer
+        """
+        self.playground.createlayer(layername)
+
+    def removelayerfrompg(self, layername):
+        """
+        Remove the named layer from the playground
+        @param string name of the layer to be removed
+        """
+        self.playground.removelayer(layername)
+
     def getlayer(self, layername):
-        pass
-#       return layer
-    def rmlayer(self, layername):
-        pass
-    def setagenttype(self, agentype):
-        pass
-    def getagenttype(self):
-        pass
-#       return agenttype
-    def bear(self, timetolive, position, agenttype):
+        """
+        Access a layer by its name
+        @param string name of the layer
+        @return the layer
+        """
+        return self.playground.getlayer(layername)
+
+    def bear(self, timetolive, position, agenttype=None):
+        """
+        Set a new agent into the world
+        @param int number of cycles the agent has to live
+        @param list coordinates where to put the new agent
+        @return agent the newly created agent
+        """
         pass
 #       return agent
+
     def getnextagent():
+        """
+        Cycle through to the next agent
+        @return agent next agent from the list
+        """
         return next(self, agents)
+
     def move(self, agent, position):
+        """
+        Set agent to a new position
+        @param agent to be moved
+        @param list coordinates of the new position
+        """
         pass
+
     def getposition(self, agent):
+        """
+        Ask the agent for its current position
+        @param agent to be asked
+        """
         pass
+
+    def getneighbourpositions(self, position, freedom=None):
+        """
+        Get all the positions reachable
+        @param list coordinates of a certain cell
+        @param int number of potentially reachable neighbours
+        @return list list of coordinates
+        """
+        if not freedom:
+            freedom = self.freedom
+        pass
+        #return
+
     def kill(self, agent):
+        """
+        Remove the agent from the list
+        @param agent to be terminated
+        """
         pass
 
