@@ -84,6 +84,14 @@ class product:
         snow_color = ['gyr']  # TODO CREATE THE COLOR TABLE FOR MODIS_SNOW
         snow8_suff = {'.Maximum_Snow_Extent': None, '.Eight_Day_Snow_Cover': None}
         lstL2_spec = 'LST; QC; Error_LST; Emis_31; Emis_32; View_angle; View_time'
+        ### values of surface reflectance product:
+        surf_spec = '( 1 1 1 1 1 1 1 0 0 0 0 0 0 )'
+        surf_specqa = '( 1 1 1 1 1 1 1 1 0 0 0 0 0 )'
+        surf_suff = {'.sur_refl_b01': '.sur_refl_qc_500m', '.sur_refl_b02':
+                     '.sur_refl_qc_500m', '.sur_refl_b03': '.sur_refl_qc_500m',
+                     '.sur_refl_b04': '.sur_refl_qc_500m', '.sur_refl_b05': 
+                     '.sur_refl_qc_500m', '.sur_refl_b06': '.sur_refl_qc_500m',
+                     '.sur_refl_b07': '.sur_refl_qc_500m'}
 
         self.prod = value
         lst = {'lst_aqua_daily_1000': {'url': urlbase, 'pattern': lst_patt,
@@ -161,6 +169,26 @@ class product:
                                          'color': vi_color
               }
         }
+        surf_refl = {'surfreflec_terra_eight_500': {'url': urlbase,
+                                                    'pattern': None,
+                                                    'folder': 'MOLT/MOD09A1.005',
+                                                    'spec': surf_spec,
+                                                    'spec_qa': surf_specqa,
+                                                    'res': 500,
+                                                    'color': snow_color,
+                                                    'suff': surf_suff
+                                                   },
+                     'surfreflec_aqua_eight_500': {'url': urlbase,
+                                                   'pattern': None,
+                                                   'folder': 'MOLA/MYD09A1.005',
+                                                   'spec': surf_spec,
+                                                   'spec_qa': surf_specqa,
+                                                   'res': 500,
+                                                   'color': snow_color,
+                                                   'suff': surf_suff
+                                                  }
+        
+        }
         snow = {'snow_terra_daily_500': {'url': usrsnow, 'pattern': snow1_patt,
                                          'folder': 'SAN/MOST/MOD10A1.005',
                                          'spec': snow1_spec,
@@ -194,6 +222,7 @@ class product:
         self.products.update(lst)
         self.products.update(vi)
         self.products.update(snow)
+        self.products.update(surf_refl)
         self.products_swath = {'lst_terra_daily': {'url': urlbase,
                                                    'folder': 'MOLT/MOD11_L2.005',
                                                    'spec': lstL2_spec},

@@ -499,7 +499,7 @@ def main():
     # return an error if q and spectral are set
     if not flags['q'] and options['spectral'] != '':
         grass.warning(_('If no QA layer chosen in the "spectral" option'\
-        + 'the command will report an error'))
+        + ' the command will report an error'))
     # return an error if both dns and files option are set or not
     if options['dns'] == '' and options['files'] == '':
         grass.fatal(_('Choose one of "dns" or "files" options'))
