@@ -135,14 +135,15 @@ int main(int argc, char *argv[])
     struct output *outputs = NULL;
     char *suffix;
     struct History history;
-    DCELL *values = NULL, *rc = NULL;
+    DCELL *values = NULL, *rc = NULL, *amp = NULL, *phase = NULL;
     int nrows, ncols;
     int row, col;
     double lo, hi, fet, *cs, *sn, *ts, delta;
     int bl;
     double **mat, **mat_t, **A, *za, *zr, maxerrlo, maxerrhi;
     int dod, nf, nr, nout, noutmax;
-    int rejlo, rejhi, *useval, dumped;
+    int rejlo, rejhi, *useval;
+    int do_amp_phase, dumped;
 
     G_gisinit(argv[0]);
 
@@ -375,6 +376,12 @@ int main(int argc, char *argv[])
     rc = G_malloc(num_inputs * sizeof(DCELL));
     useval = G_malloc(num_inputs * sizeof(int));
 
+    do_amp_phase = 0;
+    if (do_amp_phase) {
+	amp = G_malloc((nf + 1) * sizeof(DCELL));
+	phase = G_malloc((nf + 1) * sizeof(DCELL));
+    }
+
     if (parm.ts->answer) {
     	for (i = 0; parm.ts->answers[i]; i++);
 	if (i != num_inputs)
@@ -394,8 +401,17 @@ int main(int argc, char *argv[])
 	nr = num_inputs;
 
     noutmax = num_inputs - nr - dod;
+    
+    if (noutmax < 0)
+	G_fatal_error(_("For %d input maps and %d frequencies, "
+	                "the degree of overdetermination can not be larger than %d"),
+			num_inputs, nf, dod + noutmax);
 
-    /* are the dimensions correct ? */
+    if (noutmax == 0)
+	G_warning(_("Missing values can not be reconstructed, "
+	            "please reduce either '%s' or '%s'"),
+		    parm.nf->key, parm.dod->key);
+
     mat = G_alloc_matrix(nr, num_inputs);
     mat_t = G_alloc_matrix(num_inputs, nr);
     A = G_alloc_matrix(nr, nr);
@@ -579,7 +595,7 @@ int main(int argc, char *argv[])
 		 * dump original and approximated values for one cell to stdout */
 		if (non_null >= 20 && done == 1 && !dumped &&
 		    row > nrows / 3 && col > ncols / 2 ) {
-#if 0
+#if 1
 		    for (i = 0; i < num_inputs; i++) {
 			fprintf(stdout, "%g;%g\n", values[i], rc[i]);
 		    }
@@ -587,20 +603,20 @@ int main(int argc, char *argv[])
 		    dumped = 1;
 		}
 
-#if 0
-		/* amplitude and phase */
-		amp[0] = zr[0];
-		phase[0] = 0;
-		for (i = 1; i < nr; i += 2) {
-		    int ifr = (i + 1) / 2;
-		    double angle = atan2(zr[i + 1], zr[i]) * 180 / M_PI;
+		if (do_amp_phase) {
+		    /* amplitude and phase */
+		    amp[0] = zr[0];
+		    phase[0] = 0;
+		    for (i = 1; i < nr; i += 2) {
+			int ifr = (i + 1) / 2;
+			double angle = atan2(zr[i + 1], zr[i]) * 180 / M_PI;
 
-		    if (angle < 0)
-			angle += 360;
-		    phase[ifr] = angle;
-		    amp[ifr] = sqrt(zr[i] * zr[i] + zr[i + 1] * zr[i + 1]);
+			if (angle < 0)
+			    angle += 360;
+			phase[ifr] = angle;
+			amp[ifr] = sqrt(zr[i] * zr[i] + zr[i + 1] * zr[i + 1]);
+		    }
 		}
-#endif
 	    }
 	    else {
 		for (i = 0; i < num_outputs; i++) {

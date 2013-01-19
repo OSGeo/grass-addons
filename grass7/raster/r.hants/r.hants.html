@@ -2,8 +2,9 @@
 
 <em>r.hants</em> performs a harmonic analysis of time series in order to 
 estimate missing values and identify outliers. For each input map, an 
-output map with the suffix <em>_hants</em> is created.
+output map with the suffix <em>suffix</em> (default: _hants) is created.
 
+<p>
 The option <b>nf</b>, number of frequencies, should be carefully chosen. 
 Different numbers of frequencies should be tested first on a small test 
 region before running the module on the full region. As a rule of thumb, 
@@ -12,6 +13,12 @@ the number of frequencies should be at least
 (one peak per year), the number of frequencies should be at least 4 when 
 analysing one year. If two peaks are assumed per year, the number of 
 frequencies should be at least 5 when analysing one year.
+
+<p>The number of frequencies should also not be too large. With a large 
+number of frequencies, outliers can not longer be identified because the 
+fit is &quot;too good&quot;, outliers can be represented by the estimate. 
+The number of frequencies should also be smaller than <em>n input maps / 2</em>
+if missing values should be reconstructed.
 
 
 <h2>NOTES</h2>
