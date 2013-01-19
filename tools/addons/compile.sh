@@ -28,6 +28,7 @@ mkdir  "$ADDON_PATH"
 cd "$SVN_PATH"
 
 date=`date -I`
+uname=`uname`
 mkdir "$ADDON_PATH/logs"
 touch "$ADDON_PATH/logs/ALL.log"
 echo "<!--<?xml-stylesheet href=\"style.css\" type=\"text/css\"?>-->
@@ -38,7 +39,7 @@ echo "<!--<?xml-stylesheet href=\"style.css\" type=\"text/css\"?>-->
 
 <head>
 <meta http-equiv=\"Content-Type\" content=\"application/xhtml+xml; charset=utf-8\" />
-<title>WinGRASS $ADDON_PATH AddOns Logs</title>
+<title>GRASS $ADDON_PATH AddOns Logs</title>
 <style type=\"text/css\">
 h1 { font-size: 125%; font-weight: bold; }
 table
@@ -52,7 +53,7 @@ border: 1px solid black;
 </style>
 </head>
 <body>
-<h1>WinGRASS $GRASS_VERSION AddOns (logs gererated $date)</h1>
+<h1>GRASS $GRASS_VERSION AddOns / $uname (logs gererated $date)</h1>
 <hr /> 
 <table cellpadding=\"5\">
 <tr><th style=\"background-color: grey\">AddOns</th>
