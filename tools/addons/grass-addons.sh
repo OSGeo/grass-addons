@@ -1,6 +1,7 @@
 #!/bin/sh
 
 DIR=$HOME/src
+WWWDIR=/osgeo/grass/grass-cms/addons/
 
 build_addons() {
 cd $DIR/grass-addons/ 
@@ -13,6 +14,11 @@ if [ "$revl" != "$revr" ] || [ "$1" = "f" ] ; then
 
     cd tools/addons/ 
     ./compile-xml.sh
+    for version in 6 7 ; do
+	cd $HOME/.grass${version}/addons/
+	cp modules.xml $WWWDIR/grass${version}/
+	rsync -ag --delete logs $WWWDIR/grass${version}/
+    done
 else
     echo "$revl X $revr -> nothing to do"
 fi

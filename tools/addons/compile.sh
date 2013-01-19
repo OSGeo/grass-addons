@@ -95,13 +95,13 @@ for c in "display" "general" "imagery" "raster" "raster3d" "vector"; do
 	    echo " FAILED"
 	    echo "<td style=\"background-color: red\">FAILED</td>" >> "$ADDON_PATH/logs/$INDEX_FILE"
 	fi
-	echo -e "<td><a href=\"$m.log\">log</a></td>\n</tr>" >> "$ADDON_PATH/logs/$INDEX_FILE"
+	echo "<td><a href=\"$m.log\">log</a></td>\n</tr>" >> "$ADDON_PATH/logs/$INDEX_FILE"
 	cd ..
     done
     cd ..
 done
 
-echo -e "</table><hr />
+echo "</table><hr />
 <div style=\"text-align: right\">Valid: <a href=\"http://validator.w3.org/check/referer\">XHTML</a></div>
 </body>\n</html>\n" >> "$ADDON_PATH/logs/$INDEX_FILE"
 
