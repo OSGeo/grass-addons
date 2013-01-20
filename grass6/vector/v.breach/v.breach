@@ -77,8 +77,8 @@
 ##% required : no
 ##%END
 
-echo "This script needs to be updated to 
-exit 
+echo 'This script needs to be updated to GRASS 6.4. The latest known GRASS version which it works with is some GRASS 6.3 SVN revision from 2008.01.22.'
+exit
 
 # called from Grass?
 if test "$GISBASE" = ""; then
