@@ -240,17 +240,20 @@ cat > $1 << "EOF"
 options(echo = FALSE)
 require(spgrass6)
 
+# Check grass version
+grassversion <- as.numeric(system("g.version | cut -c7", intern=T))
+
 ## Get vector with variables
-args <- commandArgs(trailingOnly=TRUE)
-ipn <- unlist(strsplit(args[1],";"))[-1]   # variable names
-ipl <- unlist(strsplit(args[2],","))       # environmental layers
-opl <- unlist(strsplit(args[3],";"))       # output layers
-opi <- opl[-1]                             # base name individual layers
-opc <- opl[1]                              # name of MESS layer
-tml <- unlist(strsplit(args[4], ";"))[-1]  # temporary layers
-vtl <- args[5]                             # reference distribution raster layer
-rtl <- args[10]                            # raster or vector layer
-digits <- as.numeric(args[9])              # Precision
+argus <- commandArgs(trailingOnly=TRUE)
+ipn <- unlist(strsplit(argus[1],";"))[-1]   # variable names
+ipl <- unlist(strsplit(argus[2],","))       # environmental layers
+opl <- unlist(strsplit(argus[3],";"))       # output layers
+opi <- opl[-1]                              # base name individual layers
+opc <- opl[1]                               # name of MESS layer
+tml <- unlist(strsplit(argus[4], ";"))[-1]  # temporary layers
+vtl <- argus[5]                             # reference distribution raster layer
+rtl <- argus[10]                            # raster or vector layer
+digits <- as.numeric(argus[9])              # Precision
 rdigits <- nchar((1/digits)-1)
 
 #-----------------------------------------------------------------------
@@ -277,11 +280,18 @@ if(rtl=="R"){
         # given under the digits option
         
         system("g.remove -f rast=MASK") # should I backup possible existing MASK?
-        system(paste("r.mask input=", vtl, sep=""))
+
+        # make compatible for both v6.4 and 7
+        if(grassversion==7){
+            system(paste("r.mask raster=", vtl, sep=""))
+        }else{
+            system(paste("r.mask input=", vtl, sep=""))
+        }
+        
         system(paste("r.out.xyz input=", ipl[i], " output=", flnm1, " --overwrite", sep=""))
         system(paste("awk -F \"|\" '{print $3}' ", flnm1, " > ", flnm2, sep=""))
         spld <- scan(file=flnm2)
-        unlink(c(flnm1, flnm2))
+        #unlink(c(flnm1, flnm2))
         spld <- round(spld, rdigits)
         
         # Calculate the frequency distribution 
@@ -316,13 +326,28 @@ if(rtl=="R"){
 
     system(paste("v.extract -t input=", vtl, " type=point output=tmpMESS976543210", sep=""))
     system(paste("v.db.addtable tmpMESS976543210 columns='", paste(ipn, " double precision", collapse=","), "'", sep=""))
-    for(m in 1:length(ipn)){
-        system(paste("v.what.rast map=tmpMESS976543210 layer=1 raster=", ipl[m], " column=", ipn[m], sep=""))
+
+    # make compatible for both v6.4 and 7
+    if(grassversion==7){
+	for(m in 1:length(ipn)){
+	    system(paste("v.what.rast map=tmpMESS976543210 layer=1 raster=", ipl[m], " column=", ipn[m], sep=""))
+	}
+    }else{
+	for(m in 1:length(ipn)){
+	    system(paste("v.what.rast vector=tmpMESS976543210 layer=1 raster=", ipl[m], " column=", ipn[m], sep=""))
+	}
     }
+    
     spld <- paste(ipn, collapse=",")
     b <- execGRASS("v.db.select", parameters=list(map="tmpMESS976543210", columns=spld), intern=TRUE)
     con <- textConnection(b)
-    spl <- read.table(con, header=TRUE, sep="|")
+    spl <- na.omit(read.table(con, header=TRUE, sep="|"))
+    
+    # Check for point without values
+    clpf <- na.action(spl)
+    if(length(clpf)==1){print(paste("Please note that the point", clpf, "has no value. This is probably because it lies outside the current region"))}
+    if(length(clpf)>1){print(paste("Please note that the points", paste(clpf, collapse=" and "), "have no values. This is probably because they lie outside the current region"))}
+   
     close(con)
     system("g.remove vect=tmpMESS976543210")
 
@@ -362,7 +387,7 @@ system(paste("r.series output=", opc, " input=", paste(opi, collapse=","), " met
 # Calculate other stats
 #-----------------------------------------------------------------------
 
-if(args[6]==1){
+if(argus[6]==1){
     system(paste("r.series output=", opc, "_MoD input=", paste(opi, collapse=","), " method=min_raster", sep=""))
     nuv <- cbind(seq(from=0, to=length(ipn)-1, by = 1), ipn)
     reclvar <- apply(nuv,1,function(x){paste(x[1],x[2], sep=":")})
@@ -375,10 +400,10 @@ if(args[6]==1){
     system(paste("r.category map=", opc, "_MoD rules=", tmpclas, sep=""))
     unlink(tmpclas)
 }
-if(args[7]==1){
+if(argus[7]==1){
     system(paste("r.series output=", opc, "_mean input=", paste(opi, collapse=","), " method=minimum", sep=""))
 }
-if(args[8]==1){
+if(argus[8]==1){
     system(paste("r.series output=", opc, "_median input=", paste(opi, collapse=","), " method=median", sep=""))
 }
 
@@ -413,5 +438,6 @@ fi
 g.message "Finished - you can find the maps in your current mapset"
 
 #=======================================================================
+
 
 
