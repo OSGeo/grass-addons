@@ -29,7 +29,7 @@
 #% key: maps
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Suitability distribution maps
+#% description: Input maps
 #% key_desc: name
 #% required: yes
 #% multiple: yes
@@ -91,7 +91,7 @@ exitprocedure()
     cleanup
     exit 1
 }
-
+ 
 ## shell check for user break (signal list: trap -l)
 trap "exitprocedure" 2 3 15
 
@@ -111,12 +111,8 @@ trap "cleanup" 2 3 15
 ## Check input
 #=======================================================================
 
-# for testing
-# GIS_OPT_MAPS="rast1@test,rast2@test,rast3@test"
 INMAPS=${GIS_OPT_MAPS}
-# echo $INMAPS
 OPF=${GIS_OPT_OUTPUT_FILE}
-# Include check if the given file already exists?
 
 if [ $GIS_FLAG_I -eq 0 -a $GIS_FLAG_D -eq 0 ]; 
 then
@@ -131,21 +127,24 @@ if [ "$NLAY" -lt 2 ] ; then
 fi
 
 #=======================================================================
-## Test if file exists and if not, write file with column headers
+## Test if file exists. If so, append _v1 to file name
 #=======================================================================
 
-if [ -f "$OPF" ]; then
-   g.message -e "There is already a file $OPF
-   Please provide another name"
-   exit 1
-fi
-
-if [ -n "$OPF" ]; then 
-        echo "raster1:raster2:statistic:value" > "$OPF"
+k=1
+OPFN=$OPF
+while [ -f "$OPF" ]; do
+   a1=`echo $OPFN | awk -F. '{print $1}'`
+   a2=`echo $OPFN | awk -F. '{print $2}'`
+   OPF=${a1}_v${k}.${a2}
+   k=$((k + 1))
+done
+if [ $k -gt 1 ]; then
+   g.message -w "There is already a file $OPFN
+   Will use ${OPF} instead"
 fi
 
 #=======================================================================
-## Input for both D and I
+## Calculate D and I and write to standard output (& optionally to file)
 #=======================================================================
 
 TEMP1=`g.tempfile pid=$$`
@@ -154,12 +153,23 @@ OIFS=$IFS
 IFS=,
 for nvar in ${INMAPS} ; do
     tmp1=$(echo $nvar | awk 'BEGIN{FS="@"}{print $1}')
-    tmp2=`r.univar -g map=$tmp1 | awk -F\= '$1=="sum" { print $2 }'`
+    tmp2=`r.univar -g map=$tmp1 | awk -F\= '$1=="sum" { print $2 }'` 
+    # Check if input layer contains values (which would result in 
+    # unintelligent error messages and no result)
+    if [ -z "$tmp2" ]; then 
+        g.message -e "Layer $tmp1 does not contain values (=NULL). Please check"
+        exit 1
+    fi
     echo $nvar":"$tmp1":"$tmp2 >> $TEMP1
 done
 IFS=$OIFS
 
+# Write text file with column headers
+if [ -n "$OPF" ]; then 
+        echo "raster1,raster2,statistic,value" > "$OPF"
+fi
 
+# Write D and I values to standard output and optionally to text file
 i=1
 while [ $i -lt $NLAY ]
 do
@@ -185,7 +195,7 @@ do
                    NOV=$(echo "1 - 0.5 * $NO" | bc)
                    g.remove --q rast=$TMPFILE1
                    if [ -n "$OPF" ] ; then 
-                       echo "$NAME1:$NAME2:D:$NOV" >> "$OPF"
+                       echo "$NAME1,$NAME2,D,$NOV" >> "$OPF"
                    fi
                    echo "niche overlap (D) of $NAME1 and $NAME2: $NOV"
                fi
@@ -204,7 +214,7 @@ do
                    NEQ=$(echo "1 - (0.5 * $NE)" | bc)
                    g.remove --q rast=$TMPFILE2
                    if [ -n "$OPF" ] ; then 
-                       echo "$NAME1:$NAME2:I:$NEQ" >> "$OPF"
+                       echo "$NAME1,$NAME2,I,$NEQ" >> "$OPF"
                    fi
                    echo "niche overlap (I) of $NAME1 and $NAME2: $NEQ"
                fi
