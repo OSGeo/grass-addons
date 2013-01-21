@@ -116,7 +116,7 @@ trap "exitprocedure" 2 3 15
 # Prepare the input for v.segment that will extract center points of each line,
 # excluding the first and the last offset.
 
-v.to.db --q -p map="$INPUT" layer=$LAYER type=line option=length column=dummy | awk -F "|" 'NR>1 {printf "%s","P "$1" "$1" "; printf "%.16f\n",$2/2}' > "${TMP}.${PROG}.offsets"
+v.to.db --q -p map="$INPUT" layer=$LAYER type=line option=length column=dummy | awk -F "|" '{printf "%s","P "$1" "$1" "; printf "%.16f\n",$2/2}' > "${TMP}.${PROG}.offsets"
 
 # Pipe offsets into v.segment. The output are points located exactly in the
 # center of the input lines.
