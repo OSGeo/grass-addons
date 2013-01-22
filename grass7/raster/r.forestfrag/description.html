@@ -1,0 +1,56 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.forestfrag</em> Computes the forest fragmentation following the methodology
+proposed by Riitters et. al (2000). See http://www.consecol.org/vol4/iss2/art3/ for 
+a detailed explanation.
+
+<p>It follows a “sliding window” algorithm with overlapping windows. 
+The amount of forest and its occurence as adjacent forest pixels within fixed-
+area "moving-windows" surrounding each forest pixel is measured. The
+window size is user-defined. The result is stored at the location of the center pixel.
+Thus, a pixel value in the derived map refers to "between-pixel" fragmentation 
+around the corresponding forest location.
+
+<p> Let Pf be the proportion of pixels in the window that are forested. Define 
+Pff (strictly) as the proportion of all adjacent (cardinal directions only) 
+pixel pairs that include at least one forest pixel, for which both pixels are 
+forested. Pff (roughly) estimates the conditional probability that, given a 
+pixel of forest, its neighbor is also forest. [...] the classification 
+model [...] identifies six fragmentation categories: 
+
+<p>(1) interior, for which Pf = 1.0<br />
+(2) patch, Pf < 0.4<br />
+(3) transitional, 0.4 < Pf < 0.6<br />
+(4) edge, Pf > 0.6 and Pf - Pff < 0<br />
+(5) perforated, Pf > 0.6 and Pf – Pff > 0<br />
+(6) undetermined, Pf > 0.6 and Pf = Pff <br />
+
+<h2>NOTES</h2>
+<p>The moving window size is user-defined (default=3), but must be given as a odd number.
+if the user gives an even number, the number is silently reduced to the nearest
+odd number < user-defined number.
+<p>To avoid edge effects at the border of the raster layer the user can choose to
+have the output raster trimmed with a number of raster cells equal to 1/2 * the 
+size of the moving window. 
+<p>If the user selects to run r.report on the output map, but has selected to leave
+the output untrimmed, r.report will be run on a copy of the output map that is trimmed.
+
+<h2>SEE ALSO</h2>
+This addon is based on the r.forestfrag.sh 
+<http://grasswiki.osgeo.org/wiki/AddOns/GRASS_6#r.forestfrag> addon, adapted to make 
+it  compatible with GRASS 7.0. It introduces the option to change the moving window 
+size and unlike the original addon, it respects the region (there is still the option 
+to set the region to the input raster). This addon will not work on GRASS 6.4, please
+use the above mentioned addon. 
+
+<h2>AUTHORS</h2>
+Emmanuel Sambale: Author original script<br />
+Stefan Sylla: Revised / updated <br />
+Paulo van Breugel: Revised / updated for GRASS 7.0, added the option to determine moving window size.<br />
+Contact: paulo at ecodiv.org
+
+<h2>REFERENCES</h2>
+Riitters, K., J. Wickham, R. O'Neill, B. Jones, and E. Smith. 2000. Global-scale patterns of forest fragmentation. Conservation Ecology 4(2): 3. [online] URL: http://www.consecol.org/vol4/iss2/art3/
+
+<p>
+<i>Last changed: $Date: 2013-01-21 13:31:45 +0100 (Mon, 21 Jan 2013) $</i>
