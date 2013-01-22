@@ -69,14 +69,12 @@
 
 #%flag
 #%  key: s
-#%  description: run r.report on output map?
-##% answer : 1 # marked out because of inconsistent behaviour of g.parser
+#%  description: Run r.report on output map
 #%END
 
 #%flag
 #%  key: a
 #%  description: shrink the output map?
-##% answer : 1
 #%END
 
 
