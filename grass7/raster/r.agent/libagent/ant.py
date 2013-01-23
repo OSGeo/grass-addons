@@ -8,13 +8,21 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               License (>=v2). Read the file COPYING that comes with GRASS
               for details.
 """
+
 from random import choice, randint
 import agent
 import error
 
 class Ant(agent.Agent):
     """Implementation of an Ant Agent for an ACO kind of World."""
+
     def __init__(self, timetolive, world, position):
+        """
+        Create an Agent for an ACO World
+        @param int time to live
+        @param World the agent knows the worlds he lives in
+        @param list coordinate of the current position
+        """
         agent.Agent.__init__(self, timetolive, world, position)
         self.position.extend([None,None,0,0])
         self.home = self.position[:]
@@ -24,5 +32,4 @@ class Ant(agent.Agent):
         self.nextstep = [None,None,0,0,0,0]
         self.goal = []
         self.penalty = 0.0
-
 
