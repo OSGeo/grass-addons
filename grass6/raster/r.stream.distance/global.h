@@ -43,6 +43,8 @@ void free_streams (void);
 int write_distance(void);
 int write_elevation(void);
 int set_null_elev(void);
+int set_null(FCELL **);
+int write_maps(char *, FCELL **);
 
 /* inits */
 int find_chatchment_outlets(void);
