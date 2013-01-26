@@ -8,11 +8,11 @@ using <em><a href="r.watershed.html">r.watershed</a></em> can be used
 tree in the input data is allowed. No given flow direction is needed.
 To find the outlet of each tree, a DEM must be given.
 
-There are two additional scripts distributed with v.strahler:<br />
+There are two additional scripts distributed with v.strahler:<br>
 - <em>r.strahler.sh</em> extracts streams from a DEM and call v.strahler
-  on the result. <br />
+  on the result. <br>
 - <em>r.broscoe.sh</em> computes further statistical values for a given
-  basin. <br />
+  basin.
 
 <h2>NOTES</h2>
 
@@ -20,20 +20,23 @@ There are two additional scripts distributed with v.strahler:<br />
 
 This program is in beta status. It has the following shortcomings: <br />
 - The input data has to be topologically clean. Use <em>sloppy</em>=0.0 <br />
-- Source code comments are not doxydized. <br />
+- Source code comments are not doxygenized (not a real problem). <br />
 
 
 <h3>How the algorithm works</h3>
 
 In a first step, <em>v.strahler</em> identifies all separate networks in
 the input dataset. That means, all connected lines are assigned a common
-<em>Basin ID</em>.<br />
+<em>Basin ID</em>.
+<p>
 Consequently, the lowest leaf of each tree is identified as outlet.
-An auxiliary DEM is needed at this point. <br />
+An auxiliary DEM is needed at this point.
+<p>
 Strahler ordering begins at each leaf of the tree with order N=1
 (excluding the outlet). At a confluence, the order N(r) of the resulting
 stream is equal to the highest order N(max) of the joining streams or is
-raised by one if there are two or more joining streams of order N(max).<br />
+raised by one if there are two or more joining streams of order N(max).
+<p>
 The algorithm returns an ASCII text file with columns: <em>Category</em>
 (from input map), <em>Line</em> (topology), <em>Basin</em>, <em>Order</em>;
 and the output map has the Strahler Order value instead of "category"
@@ -44,22 +47,22 @@ See the also the diagrams in the documentation/ directory.
 
 <h2>EXAMPLE</h2>
 
-The input map (vector on DEM): <br />
-<br />
-<img src="images/input_vstrahler.jpg"> <br />
-<br />
-<br />
-An example of the sintax in GRASS shell: <br />
-<br />
+The input map (vector on DEM):
+<p>
+<center>
+<img src="input_vstrahler.jpg">
+</center>
+<p>
+An example of the syntax in GRASS command line:
+<p>
 <div class="code"><pre>
-GRASS> v.strahler input=esp_1@mapset output=esp_1 dem=dem_20@mapset \
+v.strahler input=esp_1@mapset output=esp_1 dem=dem_20@mapset \
           txout=/home/mapset/esp_1 sloppy=0 layer=1
 </pre></div>
 
-<br />
-<br />
-An extract from the resultant text file: <br />
-<br />
+<p>
+An extract from the resultant text file:
+<p>
 <div class="code"><pre>
 == Result of Strahler Order ==
  Category:   Line:   Basin:    Order:
@@ -91,22 +94,25 @@ An extract from the resultant text file: <br />
       128      26       1       3
       137      27       1       3
 </pre></div>
-<br />
-<br />
-The output map (vector on DEM) form a snapshot of GRASS display: <br />
-<br />
-<img src="images/output_vstrahler.jpg"> <br />
-<br />
-<br />
-The output map (vector only) from Qgis (different colors for different orders): <br />
-<br />
-<img src="images/Qgisout_vstrahler.jpg"> <br />
-<br />
-<br />
+<p>
+
+The output map (vector on DEM) form a snapshot of GRASS display:
+<p>
+<center>
+<img src="output_vstrahler.jpg">
+</center>
+
+The output map (vector only) from Qgis (different colors for different orders):
+<p>
+<center>
+<img src="Qgisout_vstrahler.jpg">
+</center>
 
 <h2>SEE ALSO</h2>
 
-<em><a href="r.watershed.html">r.watershed</a></em><br>
+<em>
+<a href="r.watershed.html">r.watershed</a>
+</em>
 
 
 <h2>AUTHOR</h2>
