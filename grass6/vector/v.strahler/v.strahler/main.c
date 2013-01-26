@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 #ifdef COPYBLAH
     /* this works, we want to continue here and ADD two columns to the &Out */
     /* Copy input to output (from v.clean/main.c) */
-    /*G_debug( 1, "Copying vector lines to Output" );
+    /*G_debug( 1, "Copying vector lines to Output" ); */
 
        /* This works for both level 1 and 2 */
     /*Vect_copy_map_lines ( &In, &Out );        */

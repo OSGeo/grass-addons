@@ -14,6 +14,7 @@ int StrahGetDegr(struct Map_info *In, int node)
     if (sloppy != 0.0) {
 	Vect_get_node_coor(In, node, &x, &y, NULL);
 
+	Vect_get_map_box(In, Box);
 	Box->N = y + sloppy;
 	Box->S = y - sloppy;
 	Box->W = x + sloppy;
