@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>GRASS GIS manual: r.mess</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link rel="stylesheet" href="grassdocs.css" type="text/css">
+</head>
+<body bgcolor="white">
+
+<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+
+<h2>NAME</h2>
+<em><b>r.mess</b></em>  - Computes multivariate environmental similarity surface
+<h2>KEYWORDS</h2>
+<h2>SYNOPSIS</h2>
+<div id="name"><b>r.mess</b><br></div>
+<b>r.mess help</b><br>
+<div id="synopsis"><b>r.mess</b> [-<b>mkl</b>]  [<b>ref_rast</b>=<em>name</em>]   [<b>ref_vect</b>=<em>name</em>]  <b>env_var</b>=<em>names</em>[,<i>names</i>,...] <b>output</b>=<em>name</em> <b>digits</b>=<em>string</em>  [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
+</div>
+
+<div id="flags">
+<h3>Flags:</h3>
+<dl>
+<dt><b>-m</b></dt>
+<dd>Calculate Most dissimilar variable (MoD)</dd>
+
+<dt><b>-k</b></dt>
+<dd>Calculate mean of IES layers</dd>
+
+<dt><b>-l</b></dt>
+<dd>Calculate median of IES layers</dd>
+
+<dt><b>--overwrite</b></dt>
+<dd>Allow output files to overwrite existing files</dd>
+<dt><b>--verbose</b></dt>
+<dd>Verbose module output</dd>
+<dt><b>--quiet</b></dt>
+<dd>Quiet module output</dd>
+</dl>
+</div>
+
+<div id="parameters">
+<h3>Parameters:</h3>
+<dl>
+<dt><b>ref_rast</b>=<em>name</em></dt>
+<dd>Reference distribution as raster</dd>
+
+<dt><b>ref_vect</b>=<em>name</em></dt>
+<dd>Reference distribution as point vector layer</dd>
+
+<dt><b>env_var</b>=<em>names[,<i>names</i>,...]</em>&nbsp;<b>[required]</b></dt>
+<dd>Input (predictor) raster map(s)</dd>
+
+<dt><b>output</b>=<em>name</em>&nbsp;<b>[required]</b></dt>
+<dd>Root name of the output MESS data layers</dd>
+
+<dt><b>digits</b>=<em>string</em>&nbsp;<b>[required]</b></dt>
+<dd>Precision of your input layers values</dd>
+<dd>Default: <em>0.001</em></dd>
+
+</dl>
+</div>
+
+<h2>DESCRIPTION</h2>
+
+<em>r.mess</em> computes the "Multivariate Environmental
+Similarity Surfaces" (MESS) in GRASS using R as backend. The
+MESS index was proposed by&nbsp;Elith et al (2010) and is also
+implemented in the Maxent software. The MESS approach
+can be described as follows (from Elith et al 2010):
+"The multivariate environmental similarity surface (MESS) calculation
+represents how similar a point is to a reference set of points, with
+respect to a set of predictor variables (V1, V2, ...). The values in
+the MESS are influenced by the full distribution of the reference points, so that
+sites within the environmental range of the reference points but in
+relatively unusual environments will have a smaller value than those in
+very common environments."
+
+<p>This module will also compute the individual environmental
+similarity surfaces (IESS), which represents how similar a point is to
+a set of reference points for each of the input variable. MESS
+is then simply calculated as the minimum of its similarity with respect
+to each variable. 
+
+<p>Any sample of interest can be used for the reference set. For example,
+it can be occurrence records for the species; a sample of a region, or a sample of
+current climate conditions in a given area. The input layer representing the
+reference distribution can be a vector point layer or a raster layer.
+
+<p>
+The IESS can have negative values &#8211; these are sites where the variable
+has a value that is outside the range in the reference set. A negative MESS
+thus represents sites where at least one variable has a value that is
+outside the range of environments over the reference set, so these are
+novel environments.
+
+<p>
+In addition to the MESS, which is the minimum(IESS), the r.mess
+function also allows to compute mean and medium of the IESS layers.
+
+<h2>NOTES</h2>
+Digits should reflect the level of precision of the input layers. I.e., if
+values of the input layers are recorded with three digits behind the comma,
+Digits should be set to 0.001 or smaller.
+
+<h2>SEE ALSO</h2>
+There is also a similar function implemented for R using the R package
+<em>raster</em>, and which is part of the dismo package in R now. See <a href="http://rossijeanpierre.wordpress.com/2012/08/13/computing-the-multivariate-environmental-similarity-surfaces-mess-index-in-r/">here</a>.
+for more information and the script.
+
+<h2>AUTHOR</h2>
+
+Paulo van Breugel <paulo at ecodiv.org>
+
+<h2>REFERENCES</h2>
+<ul>
+<li>Elith, J., Kearney, M., &amp; Phillips, S. 2010. The art of
+modelling range-shifting species. Methods in Ecology and Evolution 1:
+330&#8211;342.</li>
+</ul>
+
+<p>
+<i>Last changed: $Date: 2012-11-22 11:29:12 +0100 (Thu, 22 Nov 2012) $</i>
+</body>
+</html>
