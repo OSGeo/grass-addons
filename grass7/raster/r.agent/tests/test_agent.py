@@ -6,22 +6,23 @@ from libagent import agent
 
 class TestAgent(unittest.TestCase):
     def setUp(self):
-        self.agent = agent.Agent()
+        pass
+#        self.agent = agent.Agent()
 
     def test_setposition(self):
-    pass
+        pass
 
     def test_getposition(self):
-    pass
+        pass
 
     def test_move(self):
-    pass
+        pass
 
     def test_age(self):
-    pass
+        pass
 
     def test_snuffit(self):
-    pass
+        pass
 
 #    def tearDown(self):
 
