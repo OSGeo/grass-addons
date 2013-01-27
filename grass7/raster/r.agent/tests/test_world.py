@@ -9,16 +9,24 @@ class TestWorld(unittest.TestCase):
         self.world = world.World()
 
     def test_addlayertopg(self):
-        pass
+        self.world.addlayertopg("foo")
+        self.assertTrue(len(self.world.playground.layers["foo"]) > 0)
 
     def test_removelayerfrompg(self):
-        pass
+        self.world.addlayertopg("foo")
+        self.assertTrue(self.world.playground.layers.has_key("foo"))
+        self.world.removelayerfrompg("foo")
+        self.assertFalse(self.world.playground.layers.has_key("foo"))
 
     def test_getlayer(self):
-        pass
+        self.world.addlayertopg("foo")
+        self.assertIs(self.world.getlayer("foo"),
+                        self.world.playground.layers["foo"])
 
     def test_bear(self):
-        pass
+        agent = self.world.bear(1, [1,1])
+        self.assertIsInstance(agent, self.world.agenttype)
+        self.assertIs(agent, self.world.agents.pop())
 
     def test_getnextagent(self):
         pass

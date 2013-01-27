@@ -67,5 +67,17 @@ class TestPlayground(unittest.TestCase):
         #TODO better test manually?
         pass
 
+    def test_getrandomposition(self):
+        n = self.pg.region["n"]
+        s = self.pg.region["s"]
+        w = self.pg.region["w"]
+        e = self.pg.region["e"]
+
+        position = self.pg.getrandomposition()
+        self.assertTrue(position[0] >= s)
+        self.assertTrue(position[0] < n)
+        self.assertTrue(position[1] >= w)
+        self.assertTrue(position[1] < e)
+
 #    def tearDown(self):
 
