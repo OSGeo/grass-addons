@@ -69,13 +69,6 @@ class World(object):
         self.agents.append(agent)
         return agent
 
-    def getnextagent():
-        """
-        Cycle through to the next agent
-        @return agent next agent from the list
-        """
-        return next(self, agents)
-
     def move(self, agent, position):
         """
         Set agent to a new position

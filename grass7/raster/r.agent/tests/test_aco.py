@@ -20,9 +20,6 @@ class TestACO(unittest.TestCase):
     def test_bear(self):
         pass
 
-    def test_getnextagent(self):
-        pass
-
     def test_move(self):
         pass
 

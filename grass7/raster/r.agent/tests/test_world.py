@@ -28,9 +28,6 @@ class TestWorld(unittest.TestCase):
         self.assertIsInstance(agent, self.world.agenttype)
         self.assertIs(agent, self.world.agents.pop())
 
-    def test_getnextagent(self):
-        pass
-
     def test_move(self):
         pass
 
