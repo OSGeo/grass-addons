@@ -56,15 +56,18 @@ class World(object):
         """
         return self.playground.getlayer(layername)
 
-    def bear(self, timetolive, position, agenttype=None):
+    def bear(self, timetolive, position=None, agenttype=None):
         """
         Set a new agent into the world
         @param int number of cycles the agent has to live
-        @param list coordinates where to put the new agent
+        @param list coordinates to put the agent or none for a random position
         @return agent the newly created agent
         """
-        pass
-#       return agent
+        if not position:
+            position = self.playground.getrandomposition()
+        agent = self.agenttype(timetolive, self, position)
+        self.agents.append(agent)
+        return agent
 
     def getnextagent():
         """

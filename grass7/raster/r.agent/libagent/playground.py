@@ -9,7 +9,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-import numpy, error
+import numpy, error, random
 
 class Playground(object):
     """
@@ -98,3 +98,11 @@ class Playground(object):
         #TODO overwrite policy: to increment or to fail?
         pass
 
+    def getrandomposition(self):
+        """
+        Return a random position on the playground
+        @return list some coordinates
+        """
+        ns = random.randrange(0,self.region["rows"])
+        nw = random.randrange(0,self.region["cols"])
+        return [ns,nw]
