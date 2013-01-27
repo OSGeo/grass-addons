@@ -2,11 +2,11 @@
 import unittest2 as unittest
 #import unittest
 
-from libagent import world
+from libagent import aco
 
-class TestWorld(unittest.TestCase):
+class TestACO(unittest.TestCase):
     def setUp(self):
-        self.world = world.World()
+        self.world = aco.ACO()
 
     def test_addlayertopg(self):
         pass
