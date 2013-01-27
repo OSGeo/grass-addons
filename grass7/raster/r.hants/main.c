@@ -454,7 +454,7 @@ int main(int argc, char *argv[])
     /* process the data */
     G_message(_("Harmonic analysis of %d input maps..."), num_inputs);
 
-    dumped = 0;
+    dumped = 1;
 
     for (row = 0; row < nrows; row++) {
 	G_percent(row, nrows, 4);
@@ -595,11 +595,10 @@ int main(int argc, char *argv[])
 		 * dump original and approximated values for one cell to stdout */
 		if (non_null >= 20 && done == 1 && !dumped &&
 		    row > nrows / 3 && col > ncols / 2 ) {
-#if 1
+
 		    for (i = 0; i < num_inputs; i++) {
 			fprintf(stdout, "%g;%g\n", values[i], rc[i]);
 		    }
-#endif
 		    dumped = 1;
 		}
 
