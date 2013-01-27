@@ -5,6 +5,7 @@ SUBDIRS = \
 	mcda \
 	r.area \
 	r.basin	\
+	r.broscoe \
 	r.boxcount \
 	r.boxcount.sh \
 	r.burn.frict \
@@ -47,6 +48,7 @@ SUBDIRS = \
 	r.seg \
 	r.soils.texture \
 	r.stack \
+	r.strahler \
 	r.stream.angle \
 	r.stream.basins \
 	r.stream.del \
