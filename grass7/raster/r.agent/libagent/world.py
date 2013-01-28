@@ -56,6 +56,22 @@ class World(object):
         """
         return self.playground.getlayer(layername)
 
+    def findposition(self, position=None):
+        """
+        Find a given position on the playground, i.e. test if the
+        given position is valid or invent a new one by creating a
+        random one
+        @param list optional coordinates on the playground or None for random
+        @return list position or False if the given one was invalid
+        """
+        if position:
+            if self.playground.isvalidposition(position):
+                return position
+            else:
+                return False
+        else:              
+            return self.playground.getrandomposition()
+
     def bear(self, timetolive, position=None, agenttype=None):
         """
         Set a new agent into the world
@@ -63,19 +79,23 @@ class World(object):
         @param list coordinates to put the agent or none for a random position
         @return agent the newly created agent
         """
+        position = self.findposition(position)
         if not position:
-            position = self.playground.getrandomposition()
+            raise error.DataError("world.bear", "invalid position")
         agent = self.agenttype(timetolive, self, position)
         self.agents.append(agent)
         return agent
 
-    def move(self, agent, position):
+    def move(self, agent, position=None):
         """
         Set agent to a new position
         @param agent to be moved
-        @param list coordinates of the new position
+        @param list coordinates of the new position or none for a random one
         """
-        pass
+        position = self.findposition(position)
+        if not position:
+            raise error.DataError("world.bear", "invalid position")
+        agent.setposition(position)
 
     def getposition(self, agent):
         """

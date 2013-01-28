@@ -106,3 +106,15 @@ class Playground(object):
         ns = random.randrange(0,self.region["rows"])
         nw = random.randrange(0,self.region["cols"])
         return [ns,nw]
+
+    def isvalidposition(self, position):
+        """
+        Test if a position realy is on the playground
+        @return boolean True if on, False if off the playground
+        """
+        if self.region["s"] <= position[0] < self.region["n"] and \
+            self.region["w"] <= position[1] < self.region["e"]:
+            return True
+        else:
+            return False
+
