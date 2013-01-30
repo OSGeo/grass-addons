@@ -1,5 +1,7 @@
 #!/bin/sh
 # 
+set-x
+
 ########################################################################
 # 
 # MODULE:       r.mess
@@ -70,7 +72,7 @@
 #%option
 #% key: output
 #% type: string
-#% gisprompt: new
+#% gisprompt: new,cell,raster
 #% description: Root name of the output MESS data layers
 #% key_desc: name
 #% required: yes
@@ -278,8 +280,13 @@ if(rtl=="R"){
         # One option is to convert the floating layers to integer layers after
         # multiplying first with a number equal to the reciprocal of the value
         # given under the digits option
-        
-        system("g.remove -f rast=MASK") # should I backup possible existing MASK?
+
+        fft <- system("g.findfile --quiet element=cell file=MASK", ignore.stdout = TRUE)
+        if(fft==0){
+           rname <- paste("MASK",paste(sample(c(0:9, letters, LETTERS), 12, replace=TRUE), collapse=""), sep="_")
+           execGRASS("g.copy", rast=paste("MASK", rname, sep=","))
+           system("g.remove -f rast=MASK")
+        }
 
         # make compatible for both v6.4 and 7
         if(grassversion==7){
@@ -311,6 +318,11 @@ if(rtl=="R"){
         xy2 <- apply(xy1, 1, function(x){paste(x, collapse=":")})
         tmp.rule <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".rules")
         write.table(xy2, file=tmp.rule, quote=F, row.names=F, col.names=F)
+        
+        # Restore mask
+        if(fft==0){
+          execGRASS("g.rename", rast=paste(rname,"MASK", sep=","), intern=TRUE)
+        }
         
         # Create the recode layer and calculate the IES
         system(paste("r.recode input=", ipl[i], " output=", tml[i], " rules=", tmp.rule, sep=""))
