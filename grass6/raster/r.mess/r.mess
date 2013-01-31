@@ -427,7 +427,7 @@ if(argus[6]==1){
     unlink(tmpclas)
 }
 if(argus[7]==1){
-    system(paste("r.series output=", opc, "_mean input=", paste(opi, collapse=","), " method=minimum", sep=""))
+    system(paste("r.series output=", opc, "_mean input=", paste(opi, collapse=","), " method=average", sep=""))
 }
 if(argus[8]==1){
     system(paste("r.series output=", opc, "_median input=", paste(opi, collapse=","), " method=median", sep=""))
