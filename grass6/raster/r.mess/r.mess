@@ -1,7 +1,6 @@
 #!/bin/sh
 # 
-set-x
-
+#set -x
 ########################################################################
 # 
 # MODULE:       r.mess
@@ -108,6 +107,10 @@ set-x
 #% description: Calculate median of IES layers
 #%end
 
+## Set easier variable names
+OUTMAPS="${GIS_OPT_OUTPUT}"
+INMAPS="${GIS_OPT_ENV_VAR}"
+
 #=======================================================================
 ## GRASS team recommandations
 #=======================================================================
@@ -144,35 +147,6 @@ exitprocedure()
 
 ## shell check for user break (signal list: trap -l)
 trap "exitprocedure" 2 3 15
-
-#=======================================================================
-## testing if output maps already exist
-#=======================================================================
-
-## Set easier variable names
-OUTMAPS="${GIS_OPT_OUTPUT}"
-INMAPS="${GIS_OPT_ENV_VAR}"
-
-# test for output raster map
-g.findfile element=cell file=${OUTMAPS}_combined  > /dev/null
-    if [ $? -eq 0 ] ; then
-        g.message -e 'There is already a raster <${OUTMAPS}>'
-    exit 1
-fi
-
-# test for output raster maps
-oIFS=$IFS
-IFS=,
-for nvar in $INMAPS ; do
-    arrIN=${OUTMAPS}_`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`
-    g.findfile element=cell file=${arrIN} > /dev/null
-    if [ $? -eq 0 ] ; then 
-        g.message -e 'There is already a raster <${OUTMAPS}>'
-    exit 1
-    fi
-done
-IFS=$oIFS
-unset arrIN
 
 #=======================================================================
 ## Config and general procedures
@@ -231,6 +205,46 @@ else
        fi
     fi
 fi
+
+#=======================================================================
+## testing if exising output maps already exist 
+## and for missing input maps
+#=======================================================================
+
+# test for output raster map [1]
+g.findfile element=cell file=${OUTMAPS}_MESS  > /dev/null
+    if [ $? -eq 0 ] ; then
+        g.message -e 'The output map '${OUTMAPS}'_MESS already exists'
+    exit 1
+fi
+
+# test for output raster maps [2]
+oIFS=$IFS
+IFS=,
+for nvar in $INMAPS ; do
+    arrIN=${OUTMAPS}_`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`
+    g.findfile element=cell file=${arrIN} > /dev/null
+    if [ $? -eq 0 ] ; then 
+        g.message -e 'The output map '${arrIN}' already exists'
+    exit 1
+    fi
+done
+IFS=$oIFS
+unset arrIN
+
+# test for missing input raster maps
+oIFS=$IFS
+IFS=,
+for nvar in $INMAPS ; do
+    tstIN=`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`
+    g.findfile element=cell file=${tstIN} > /dev/null
+    if [ $? -gt 0 ] ; then 
+        g.message -e 'The map '${tstIN}' is missing'
+    exit 1
+    fi
+done
+IFS=$oIFS
+unset tstIN
 
 #=======================================================================
 ## Creating the R script
