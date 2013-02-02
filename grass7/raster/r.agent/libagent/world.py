@@ -97,13 +97,6 @@ class World(object):
             raise error.DataError("world.bear", "invalid position")
         agent.setposition(position)
 
-    def getposition(self, agent):
-        """
-        Ask the agent for its current position
-        @param agent to be asked
-        """
-        pass
-
     def getneighbourpositions(self, position, freedom=None):
         """
         Get all the positions reachable

@@ -43,9 +43,6 @@ class TestWorld(unittest.TestCase):
         self.world.move(agent, position)
         self.assertEqual(agent.position, position)
 
-    def test_getposition(self):
-        pass
-
     def test_getneighbourpositions(self):
         pass
 
