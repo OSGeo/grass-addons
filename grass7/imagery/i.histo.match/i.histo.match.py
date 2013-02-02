@@ -91,7 +91,7 @@ def main():
         grass.use_temp_region()
         grass.run_command('g.region', rast = i)
         # calculate statistics
-        stats_out = grass.pipe_command('r.stats', flags='cin', input= i, fs=':')
+        stats_out = grass.pipe_command('r.stats', flags='cin', input= i, separator=':')
         stats =  stats_out.communicate()[0].split('\n')[:-1]
         stats_dict = dict( s.split(':', 1) for s in stats)
         cdf = 0       
