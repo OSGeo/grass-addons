@@ -20,8 +20,16 @@ class Playground(object):
     def __init__(self):
         """Create a Playground"""
         self.layers = dict()
-#TODO
-        self.region = dict(n=1,s=0,w=0,e=1,rows=1,cols=1)
+        self.setregion(1,1)
+
+    def setregion(self, rows, cols):
+        """
+        Set the geometry of the playground, based only on the number
+        of rows and columns
+        @param numeric number of rows
+        @param numeric number of columns
+        """
+        self.region = dict(s=0,n=rows,w=0,e=cols,rows=rows,cols=cols)
 
     def getregion(self):
         """
@@ -110,11 +118,47 @@ class Playground(object):
     def isvalidposition(self, position):
         """
         Test if a position realy is on the playground
-        @return boolean True if on, False if off the playground
+        @return list position if on, boolean False if off the playground
         """
         if self.region["s"] <= position[0] < self.region["n"] and \
             self.region["w"] <= position[1] < self.region["e"]:
-            return True
+            return position
         else:
             return False
+
+    def getneighbourpositions(self, position, freedom):
+        """
+        Get all the positions reachable from a certain position
+        @param list coordinates of a certain cell
+        @param int number of potentially reachable neighbours
+        @return list of coordinates, or boolean False
+        """
+        positions = []
+        # test for all valid freedoms
+        if not freedom == 4 and not freedom == 8:
+            return False
+        # collect the coordinates
+        if freedom >= 4:
+            #walking south
+            positions.append(self.isvalidposition([position[0]-1, position[1]]))
+            #walking north
+            positions.append(self.isvalidposition([position[0]+1, position[1]]))
+            #walking west
+            positions.append(self.isvalidposition([position[0], position[1]-1]))
+            #walking east
+            positions.append(self.isvalidposition([position[0], position[1]+1]))
+        if freedom >= 8:
+            #walking south-west
+            positions.append(self.isvalidposition([position[0]-1,
+                                                    position[1]-1]))
+            #walking north-west
+            positions.append(self.isvalidposition([position[0]+1,
+                                                    position[1]-1]))
+            #walking south-east
+            positions.append(self.isvalidposition([position[0]-1,
+                                                    position[1]+1]))
+            #walking north-east
+            positions.append(self.isvalidposition([position[0]+1,
+                                                    position[1]+1]))
+        return positions
 

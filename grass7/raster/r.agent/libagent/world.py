@@ -32,7 +32,7 @@ class World(object):
             self.agenttype = agenttype
         self.agents = []
         #self.artefacts = []
-        self.freedom = freedom
+        self.agentfreedom = freedom
 
     def addlayertopg(self, layername):
         """
@@ -105,9 +105,8 @@ class World(object):
         @return list list of coordinates
         """
         if not freedom:
-            freedom = self.freedom
-        pass
-        #return
+            freedom = self.agentfreedom
+        return self.playground.getneighbourpositions(position, freedom)
 
     def kill(self, agent):
         """

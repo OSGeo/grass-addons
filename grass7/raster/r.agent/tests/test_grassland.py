@@ -14,6 +14,10 @@ class TestGrassLand(unittest.TestCase):
         self.assertIsNotNone(self.pg.getregion())
         self.assertEqual(self.pg.getregion(),grass.region())
 
+    def test_setregion(self):
+        #TODO should not be required here.. maybe "resetregion()"?
+        pass
+
     def test_getbound(self):
         n = self.pg.region["n"]
         s = self.pg.region["s"]
@@ -34,8 +38,9 @@ class TestGrassLand(unittest.TestCase):
         self.assertEqual((n-s)/ns, r)
         self.assertEqual((e-w)/ew, c)
 
-    #def test_setlayer(self):
+    def test_setlayer(self):
        # gets tested in createlayer and super()/Playground
+        pass
 
     def test_setgrasslayer(self):
         #TODO better test manually?
@@ -48,8 +53,9 @@ class TestGrassLand(unittest.TestCase):
         self.assertEqual(len(self.pg.layers["foo"]), self.pg.region["rows"])
         self.assertEqual(len(self.pg.layers["foo"][0]), self.pg.region["cols"])
 
-    #def test_getlayer(self):
+    def test_getlayer(self):
        # gets tested in createlayer and super()/Playground
+        pass
 
     def test_removelayer(self):
         self.pg.layers["foo"] = [0]

@@ -8,6 +8,10 @@ class TestPlayground(unittest.TestCase):
     def setUp(self):
         self.pg = playground.Playground()
 
+    def test_setregion(self):
+        # is actually already tested by playground.Playground.__init__()
+        pass
+
     def test_getregion(self):
         self.assertIsNotNone(self.pg.getregion())
         self.assertIs(self.pg.getregion(),self.pg.region)
@@ -78,6 +82,31 @@ class TestPlayground(unittest.TestCase):
         self.assertTrue(position[0] < n)
         self.assertTrue(position[1] >= w)
         self.assertTrue(position[1] < e)
+
+    def test_isvalidposition(self):
+        self.pg.setregion(3,3)
+        self.assertTrue(self.pg.isvalidposition([1,1]))
+        self.assertFalse(self.pg.isvalidposition([3,3]))
+
+    def test_getneighbourpositions(self):
+        self.pg.setregion(3,3)
+        self.assertFalse(self.pg.getneighbourpositions([1,1],3))
+
+        ps = self.pg.getneighbourpositions([1,1],8)
+        self.assertTrue(ps[0])
+        self.assertTrue(ps[1])
+        self.assertTrue(ps[2])
+        self.assertTrue(ps[3])
+        self.assertTrue(ps[4])
+        self.assertTrue(ps[5])
+        self.assertTrue(ps[6])
+        self.assertTrue(ps[7])
+
+        ps = self.pg.getneighbourpositions([2,2],4)
+        self.assertTrue(ps[0])
+        self.assertFalse(ps[1])
+        self.assertTrue(ps[2])
+        self.assertFalse(ps[3])
 
 #    def tearDown(self):
 
