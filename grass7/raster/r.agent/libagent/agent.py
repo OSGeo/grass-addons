@@ -30,7 +30,7 @@ class Agent(object):
 
     def setposition(self, position):
         """
-        Move the agent to a certain position
+        Tell the agent to stand still at a certain position
         @param list coordinate of the current position
         """
         if position and position != []:
@@ -44,14 +44,15 @@ class Agent(object):
         """
         return self.position
 
-    def move(self, nrofsteps, direction):
-        """
-        Let the agent move
-        @param int the number of steps to walk
-        @param char the direction to go
-        @return list coordinate of the current position
-        """
-        return self.position
+#    def move(self, nrofsteps, direction):
+# not implemented yet
+#        """
+#        Let the agent move
+#        @param int the number of steps to walk
+#        @param char the direction to go
+#        @return list coordinate of the current position
+#        """
+#        return self.position
 
     def age(self):
         """
