@@ -113,5 +113,5 @@ class World(object):
         Remove the agent from the list
         @param agent to be terminated
         """
-        pass
+        self.agents.remove(agent)
 

@@ -48,7 +48,10 @@ class TestWorld(unittest.TestCase):
         pass
 
     def test_kill(self):
-        pass
+        agent = self.world.bear(1, [0,0])
+        self.assertTrue(len(self.world.agents) > 0)
+        self.world.kill(agent)
+        self.assertTrue(len(self.world.agents) == 0)
 
 #    def tearDown(self):
 
