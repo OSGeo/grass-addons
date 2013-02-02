@@ -81,7 +81,8 @@ class World(object):
         """
         position = self.findposition(position)
         if not position:
-            raise error.DataError("world.bear", "invalid position")
+            raise error.DataError("r.agent::libagent.world.World.bear()",
+                                  "invalid position")
         agent = self.agenttype(timetolive, self, position)
         self.agents.append(agent)
         return agent
@@ -94,7 +95,8 @@ class World(object):
         """
         position = self.findposition(position)
         if not position:
-            raise error.DataError("world.bear", "invalid position")
+            raise error.DataError("r.agent::libagent.world.World.move()",
+                                  "invalid position")
         agent.setposition(position)
 
     def getneighbourpositions(self, position, freedom=None):

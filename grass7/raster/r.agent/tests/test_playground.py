@@ -9,8 +9,11 @@ class TestPlayground(unittest.TestCase):
         self.pg = playground.Playground()
 
     def test_setregion(self):
-        # is actually already tested by playground.Playground.__init__()
-        pass
+        self.assertTrue(self.pg.region["rows"] == 1)
+        self.pg.setregion(2,1)
+        self.pg.createlayer("bar")
+        self.assertTrue(self.pg.region["rows"] == 2)
+        self.assertRaises(error.Error, self.pg.setregion, *[2,1])
 
     def test_getregion(self):
         self.assertIsNotNone(self.pg.getregion())

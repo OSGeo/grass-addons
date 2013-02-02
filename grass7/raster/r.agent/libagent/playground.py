@@ -20,6 +20,7 @@ class Playground(object):
     def __init__(self):
         """Create a Playground"""
         self.layers = dict()
+        self.region = dict()
         self.setregion(1,1)
 
     def setregion(self, rows, cols):
@@ -29,7 +30,18 @@ class Playground(object):
         @param numeric number of rows
         @param numeric number of columns
         """
-        self.region = dict(s=0,n=rows,w=0,e=cols,rows=rows,cols=cols)
+        self.region["s"] = 0
+        self.region["n"] = rows
+        self.region["w"] = 0
+        self.region["e"] = cols
+        self.region["rows"] = rows
+        self.region["cols"] = cols
+
+        for layer in self.layers:
+            if not ( len(layer) is rows and len(layer[0]) is cols):
+                raise error.Error(
+                        "r.agent::libagent.playground.Playground.setregion()",
+                        "new region is incompatible with some layer(s).")
 
     def getregion(self):
         """
@@ -55,8 +67,9 @@ class Playground(object):
         @param boolean optional, whether to overwrite values if key exists
         """
         if not force and self.layers.has_key(layername):
-            raise error.Error("r.agent::libagent.playground.Playground()",
-                                    "May not overwrite existing layer.")
+            raise error.Error(
+                    "r.agent::libagent.playground.Playground.setlayer()",
+                    "May not overwrite existing layer.")
         self.layers[layername] = layer
 
     def createlayer(self, layername, filename=False, force=False):
