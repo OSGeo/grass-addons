@@ -13,6 +13,8 @@ import error
 import playground
 import agent
 
+from math import sqrt
+
 class World(object):
     """Generic World class as basis for more complex worlds."""
 
@@ -21,18 +23,24 @@ class World(object):
         Create a World, a place with a playground, where agents meet
         @param type optional, the default agent type for this world
         @param playground optional, if playground already exists
+        @param int freedom optional, agent ability to move to neighbour cells
         """
+        # set an initial playground, as every world wants at least one..
         if pg == None:
             self.playground = playground.Playground()
         else:
             self.playground = pg
+        # per default, create this kind of agents
         if agenttype == None:
             self.agenttype = agent.Agent
         else:
             self.agenttype = agenttype
+        # list of agents
         self.agents = []
         #self.artefacts = []
         self.agentfreedom = freedom
+        # theoretical fix penalty value for diagonal walking
+        self.DIAGONAL = sqrt(2)-1
 
     def addlayertopg(self, layername):
         """
