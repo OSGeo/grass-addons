@@ -26,7 +26,6 @@ class Agent(object):
         self.world = world
         self.position = position
         self.knowscompass = False
-        self.freedom = 0
 
     def setposition(self, position):
         """
