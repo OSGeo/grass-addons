@@ -14,7 +14,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 """
 
 #%Module
-#% description: Creates a special kind of world, that follows the rules of ACO - with ant-like agents in it.
+#% description: Agents wander around on the terrain, marking paths to new locations.
 #%End
 #%option
 #% key: outputmap

@@ -35,5 +35,14 @@ class TestACO(unittest.TestCase):
     def test_kill(self):
         pass
 
+    def letantsdance(self):
+        pass
+
+    def volatilize(self):
+        pass
+
+    def writeout(self):
+        pass
+
 #    def tearDown(self):
 
