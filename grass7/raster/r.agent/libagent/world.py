@@ -17,8 +17,16 @@ from math import sqrt
 
 class World(object):
     """Generic World class as basis for more complex worlds."""
+    # walking constants
+    ## agents default ability to move
+    FREEDOM = 8
+    ## relative direction penalties
+    ### while walking straight we assume
+    STRAIGHT = 0
+    ### theoretical fix penalty value for diagonal walking
+    DIAGONAL = sqrt(2)-1
 
-    def __init__(self, agenttype=None, pg=None, freedom=8):
+    def __init__(self, agenttype=None, pg=None):
         """
         Create a World, a place with a playground, where agents meet
         @param type optional, the default agent type for this world
@@ -38,9 +46,6 @@ class World(object):
         # list of agents
         self.agents = []
         #self.artefacts = []
-        self.agentfreedom = freedom
-        # theoretical fix penalty value for diagonal walking
-        self.DIAGONAL = sqrt(2)-1
 
     def addlayertopg(self, layername):
         """
@@ -115,7 +120,7 @@ class World(object):
         @return list list of coordinates
         """
         if not freedom:
-            freedom = self.agentfreedom
+            freedom = World.FREEDOM
         return self.playground.getneighbourpositions(position, freedom)
 
     def kill(self, agent):
