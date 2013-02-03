@@ -31,7 +31,6 @@ class World(object):
         Create a World, a place with a playground, where agents meet
         @param type optional, the default agent type for this world
         @param playground optional, if playground already exists
-        @param int freedom optional, agent ability to move to neighbour cells
         """
         # set an initial playground, as every world wants at least one..
         if pg == None:
@@ -116,7 +115,7 @@ class World(object):
         """
         Get all the positions reachable
         @param list coordinates of a certain cell
-        @param int number of potentially reachable neighbours
+        @param int freedom, number of potentially reachable neighbours
         @return list list of coordinates
         """
         if not freedom:
