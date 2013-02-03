@@ -23,7 +23,7 @@ class Ant(agent.Agent):
         @param World the agent knows the worlds he lives in
         @param list coordinate of the current position
         """
-        agent.Agent.__init__(self, timetolive, world, position)
+        super(Ant, self).__init__(timetolive, world, freedom, position)
         self.position.extend([None,None,0,0])
         self.home = self.position[:]
         self.laststeps = [self.position[:]]

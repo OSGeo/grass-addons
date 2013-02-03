@@ -13,6 +13,7 @@ import error
 import world
 import ant
 
+from sys import maxsize
 from math import sqrt
 from math import exp
 from random import randint
@@ -21,5 +22,15 @@ class ACO(world.World):
     """World class for using the Ant Colony Optimization Algorithm for
        modelling Agent Based worlds."""
     def __init__(self):
-        world.World.__init__(self, ant.Ant)
+        # get all attributes from the basic world
+        super(ACO, self).__init__(ant.Ant)
+        # add the main layers
+        ## one containing the points of interest
+        self.addlayertopg("sitemap")
+        ## one containing the time cost for traversing cells
+        self.addlayertopg("penaltymap")
+        ## and finally the markings from the agents
+        self.addlayertopg("pheromap")
+        # list of the points of origin / sites
+        self.holes = []
 
