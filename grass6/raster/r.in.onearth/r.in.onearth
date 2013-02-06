@@ -357,12 +357,22 @@ ImportData()
 	r.in.gdal input="$IMAGEFILE" output="$OUTNAME.tmp_$$" --quiet
 
 	# crop away no data introduced by differing convergence angle
-	g.region "rast=$OUTNAME.tmp_$$.alpha"
-	for COLOR in red green blue ; do
-	    r.mapcalc "$OUTNAME.$COLOR = \
-	      if($OUTNAME.tmp_$$.alpha == 0, null(), $OUTNAME.tmp_$$.$COLOR)" &
-	done
-	wait
+	eval `g.findfile element=cell mapset=. file="$OUTNAME.tmp_$$.alpha"`
+	if [ -n "$file" ] ; then
+	    g.region "rast=$OUTNAME.tmp_$$.alpha"
+
+	    for COLOR in red green blue ; do
+		r.mapcalc "$OUTNAME.$COLOR = \
+		  if($OUTNAME.tmp_$$.alpha == 0, null(), $OUTNAME.tmp_$$.$COLOR)" &
+	    done
+	    wait
+
+	else
+	    g.region "rast=$OUTNAME.tmp_$$.red"
+	    for COLOR in red green blue ; do
+		g.rename "$OUTNAME.tmp_$$.$COLOR,$OUTNAME.$COLOR" --quiet
+	    done
+	fi
 
 	for COLOR in red green blue ; do
 	    r.colors "$OUTNAME.$COLOR" color=grey255 --quiet
