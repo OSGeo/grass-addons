@@ -20,6 +20,7 @@
 #include <string.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
+#include <grass/gprojects.h>
 #include <grass/glocale.h>
 #include <math.h>
 
@@ -89,6 +90,17 @@ int main(int argc, char *argv[])
         }
     }
     DCELL d;
+
+    /* Get projection info for mapset */
+    if ((proj_info = G_get_projinfo()) == NULL)
+	G_fatal_error(_("Unable to get projection info of raster map"));
+
+    if ((unit_info = G_get_projunits()) == NULL)
+	G_fatal_error(_("Unable to get projection units of raster map"));
+
+    if (pj_get_kv(&proj, proj_info, unit_info) < 0)
+	G_fatal_error(_("Unable to get projection key values of raster map"));
+
     /* Load input matrix with row&col shift to keep center of image*/ 
     for (row = 0; row < nrows; row++)
     {
