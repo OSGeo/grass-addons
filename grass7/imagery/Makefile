@@ -8,6 +8,7 @@ SUBDIRS = \
 	i.evapo.potrad \
 	i.evapo.senay \
 	i.evapo.zk \
+	i.gravity \
 	i.histo.match \
 	i.lmf \
 	i.points.auto \
