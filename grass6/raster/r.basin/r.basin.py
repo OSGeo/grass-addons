@@ -19,6 +19,7 @@
 #% description: Morphometric characterization of river basins
 #% keywords: raster
 #%end
+
 #%option
 #% key: map
 #% type: string
@@ -27,6 +28,7 @@
 #% description: Name of elevation raster map 
 #% required: yes
 #%end
+
 #%option
 #% key: prefix
 #% type: string
@@ -34,6 +36,7 @@
 #% description: output prefix (must start with a letter)
 #% required: yes
 #%end
+
 #%option
 #% key: easting
 #% type: double
@@ -41,6 +44,7 @@
 #% description: east coordinate of outlet point (must belong to river network) 
 #% required : yes
 #%end
+
 #%option
 #% key: northing
 #% type: double
@@ -48,6 +52,7 @@
 #% description: north coordinate of outlet point (must belong to river network)
 #% required : yes
 #%end
+
 #%option
 #% key: threshold
 #% type: double
@@ -55,10 +60,12 @@
 #% description: threshold
 #% required : no
 #%end
+
 #%flag
 #% key: a
 #% description: Use default threshold (1km^2)
 #%END
+
 #%flag
 #% key: c
 #% description: No maps output
@@ -127,14 +134,15 @@ def main():
                                      accumulation = r_accumulation, 
                                      drainage = r_drainage,  
                                      convergence = 5, 
-                                     flags = 'a',
+                                     flags = 'af',
                                      overwrite = True)
                                      
     # Managing flag
     if autothreshold :
-        info_region = grass.read_command('g.region', flags = 'p', rast = '%s' % (r_elevation))
-        dict_region = grass.parse_key_val(info_region, ':')
-        resolution = float(dict_region['nsres'])
+        # info_region = grass.read_command('g.region', flags = 'p', rast = '%s' % (r_elevation))
+        # dict_region = grass.parse_key_val(info_region, ':')
+        # resolution = float(dict_region['nsres'])
+        resolution = grass.region()['nsres']
         th = 1000000 / (resolution**2)
         grass.message( "threshold : %s" % th ) 
     else :
