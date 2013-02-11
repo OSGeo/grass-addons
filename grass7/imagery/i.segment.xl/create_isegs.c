@@ -16,6 +16,10 @@
 
 #define EPSILON 1.0e-12
 
+#define MAX(a,b) ( ((a)>(b)) ? (a) : (b) )
+#define MIN(a,b) ( ((a)<(b)) ? (a) : (b) )
+
+
 /* internal functions */
 static int merge_regions(struct ngbr_stats *, struct reg_stats *, /* Ri */
                          struct ngbr_stats *, struct reg_stats *, /* Rk */
@@ -110,7 +114,6 @@ int create_isegs(struct globals *globals)
     int have_bound;
     CELL current_bound, bounds_val;
 
-    G_debug(1, "Threshold: %g", globals->threshold);
     G_debug(1, "segmentation method: %d", globals->method);
 
     if (globals->bounds_map == NULL) {
@@ -209,7 +212,7 @@ int region_growing(struct globals *globals)
 
     /* threshold calculation */
     alpha2 = globals->alpha * globals->alpha;
-    threshold = alpha2 * globals->threshold;
+    threshold = alpha2;
     G_debug(1, "Squared threshold: %g", threshold);
 
     /* make the divisor a constant ? */
@@ -265,7 +268,7 @@ int region_growing(struct globals *globals)
 
 		/* find segment neighbors */
 		/* find Ri's best neighbor, clear candidate flag */
-		Ri_similarity = globals->threshold + 1;
+		Ri_similarity = 2;
 
 		Ri_rs.id = Ri.id;
 		fetch_reg_stats(Ri.row, Ri.col, &Ri_rs, globals);
@@ -298,8 +301,7 @@ int region_growing(struct globals *globals)
 		    if (Ri.count < Rk.count)
 			smaller = Ri.count;
 
-		    adjthresh = pow(alpha2, 1. + (double) smaller / divisor) *
-				globals->threshold;
+		    adjthresh = pow(alpha2, 1. + (double) smaller / divisor);
 
 		    if (compare_double(Ri_similarity, adjthresh) == -1) {
 			G_debug(4, "Ri nn == 1");
@@ -329,7 +331,7 @@ int region_growing(struct globals *globals)
 		    if (candidates_only && 
 		        !(FLAG_GET(globals->candidate_flag, Rk.row, Rk.col))) {
 
-			Ri_similarity = globals->threshold + 1;
+			Ri_similarity = 2;
 		    }
 
 		    candidates_only = TRUE;
@@ -341,7 +343,6 @@ int region_growing(struct globals *globals)
 			G_debug(4, "Working with Rk");
 
 			/* find Rk's best neighbor, do not clear candidate flag */
-			/* Rk_similarity = globals->threshold + 1; */
 			Rk_similarity = Ri_similarity;
 			Rk_bestn_rs.count = 0;
 			/* Rk_rs is already complete */
@@ -356,7 +357,7 @@ int region_growing(struct globals *globals)
 			    /* important for fp precision limit
 			     * because region stats may be calculated 
 			     * in two slightly different ways */
-			    if (fabs(Ri_similarity / Rk_similarity  - 1) > EPSILON)
+			    if (Ri_similarity - Rk_similarity > EPSILON)
 				do_merge = 0;
 			}
 			/* Ri has only one neighbor, merge */
@@ -370,8 +371,7 @@ int region_growing(struct globals *globals)
 			    if (Ri.count < Rk.count)
 				smaller = Ri.count;
 
-			    adjthresh = pow(alpha2, 1. + (double) smaller / divisor) *
-					globals->threshold;
+			    adjthresh = pow(alpha2, 1. + (double) smaller / divisor);
 
 			    do_merge = 0;
 			    if (compare_double(Ri_similarity, adjthresh) == -1) {
@@ -402,8 +402,8 @@ int region_growing(struct globals *globals)
 			    /* made a merge, need another iteration */
 			    n_merges++;
 
-			    Ri_similarity = globals->threshold + 1;
-			    Rk_similarity = globals->threshold + 1;
+			    Ri_similarity = 2;
+			    Rk_similarity = 2;
 
 			    /* we have checked the neighbors of Ri, Rk already
 			     * use faster version of finding the best neighbor
@@ -502,7 +502,7 @@ int region_growing(struct globals *globals)
     if (globals->min_segment_size > 1) {
 	G_message(_("Merging segments smaller than %d cells"), globals->min_segment_size);
 
-	threshold = globals->alpha * globals->alpha * globals->threshold;
+	threshold = globals->alpha * globals->alpha;
 
 	flag_clear_all(globals->candidate_flag);
 	
@@ -560,7 +560,7 @@ int region_growing(struct globals *globals)
 			do_merge = 1;
 
 		    Ri_nn = 0;
-		    Ri_similarity = globals->threshold + 1;
+		    Ri_similarity = 2;
 
 		    if (do_merge) {
 
@@ -844,7 +844,122 @@ double calculate_euclidean_similarity(struct ngbr_stats *Ri,
 	val += diff * diff;
     } while (n--);
 
+    /* the return value should always be in the range 0 - 1 */
+    if (val <= 0)
+	return 0.;
+
+    val /= globals->max_diff;
+
+#ifdef _OR_SHAPE_
+    if (globals->shape_weight < 1)
+	val = val * globals->shape_weight + (1 - globals->shape_weight) *
+	      calculate_shape(rsi, rsk, nshared, globals);
+#endif
+
     return val;
+}
+
+double calculate_manhattan_similarity(struct ngbr_stats *Ri,
+                                      struct ngbr_stats *Rk,
+				      struct globals *globals)
+{
+    double val = 0.;
+    int n = globals->nbands - 1;
+
+    /* squared euclidean distance, sum the square differences for each dimension */
+    do {
+	val += Ri->mean[n] - Rk->mean[n];
+    } while (n--);
+
+    /* the return value should always be in the range 0 - 1 */
+    if (val <= 0)
+	return 0.;
+
+    val /= globals->max_diff;
+
+#ifdef _OR_SHAPE_
+    if (globals->shape_weight < 1)
+	val = val * globals->shape_weight + (1 - globals->shape_weight) *
+	      calculate_shape(rsi, rsk, nshared, globals);
+#endif
+
+    return val;
+}
+
+double calculate_shape(struct reg_stats *rsi, struct reg_stats *rsk,
+                       int nshared, struct globals *globals)
+{
+     /* 
+     In the eCognition literature, we find that the key factor in the
+     multi-scale segmentation algorithm used by Definiens is the scale
+     factor f:
+
+     f = W.Hcolor + (1 - W).Hshape
+     Hcolor = sum(b = 1:nbands)(Wb.SigmaB)
+     Hshape = Ws.Hcompact + (1 - Ws).Hsmooth
+     Hcompact = PL/sqrt(Npx)
+     Hsmooth = PL/Pbbox
+
+     Where 
+     W is a user-defined weight of importance of object radiometry vs
+     shape (usually .9 vs .1)
+     Wb is the weigh given to band B
+     SigmaB is the std dev of the object for band b
+     Ws is a user-defined weight giving the importance of compactedness vs smoothness
+     PL is the perimeter lenght of the object
+     Npx the number of pixels within the object
+     Pbbox the perimeter of the bounding box of the object.
+     */
+     
+     /* here we calculate a shape index for the new object to be created
+      * the radiometric index ranges from 0 to 1, 0 = identical
+      * with the shape index we want to favour compact and smooth opjects
+      * thus the shape index should range from 0 to 1,
+      * 0 = maximum compactness and smoothness */
+
+    double smooth, compact;
+    int pl, pbbox, count;
+    double bboxdiag;
+    int pl1, pl2, count1, count2;
+    int e1, n1, s1, w1, e2, n2, s2, w2, ns_extent, ew_extent;
+
+    pl = pl1 + pl2 - nshared;
+    
+    ns_extent = MAX(n1, n2) - MIN(s1, s2);
+    ew_extent = MAX(e1, e2) - MIN(w1, w2);
+
+    pbbox = 2 * (ns_extent + ew_extent);
+
+    
+    /* Smoothness Hsmooth = PL / Pbbox
+     * the smallest possible value would be 
+     * the diagonal divided by the bbox perimeter
+     * invert such that the largest possible value would be
+     * the bbox perimeter divided by the diagonal
+     */
+
+    bboxdiag = sqrt(ns_extent * ns_extent + ew_extent * ew_extent);
+    smooth = 1. - (double)bboxdiag / pl; /* smaller -> smoother */
+    
+    count = count1 + count2;
+    
+    /* compactness Hcompact = PL / sqrt(Npx)
+     * a circle is the most compact form
+     * Npx = M_PI * r * r;
+     * r = sqrt(Npx / M_pi) 
+     * pl_circle = 2 * sqrt(count * M_PI);
+     * compact = 1 - pl_circle / (pl * sqrt(count);
+     */
+    /* compact = 1 - 2 * sqrt(M_PI) / pl; */
+
+    /* PL max = Npx */
+    /* Hcompact max = Npx / sqrt(Npx) = sqrt(Npx)
+     * Hcompact / Hcompact max = (PL / sqrt(Npx)) / sqrt(Npx)
+     *                         = PL / Npx
+     */
+    compact = (double)pl / count; /* smaller -> more compact */
+
+    return globals->smooth_weight * smooth + (1 - globals->smooth_weight) * compact;
 }
 
 
@@ -859,7 +974,7 @@ static int search_neighbors(struct ngbr_stats *Ri,
     double tempsim, *dp;
     struct NB_TRAV travngbr;
     struct ngbr_stats *next;
-    int cmp, i;
+    int cmp;
 
     G_debug(4, "search_neighbors");
 

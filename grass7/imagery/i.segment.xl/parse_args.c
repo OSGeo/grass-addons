@@ -10,53 +10,77 @@
 int parse_args(int argc, char *argv[], struct globals *globals)
 {
     struct Option *group, *seeds, *bounds, *output,
-                  *method, *threshold, *min_segment_size, *mem;
+                  *method, *similarity, *threshold, *min_segment_size,
+#ifdef _OR_SHAPE_
+		  *shape_weight, *smooth_weight,
+#endif
+		   *mem;
     struct Flag *diagonal, *weighted;
     struct Option *outband, *endt;
 
     /* required parameters */
-    /* TODO: OK to require the user to create a group?
-     * Otherwise later add an either/or option to give just a single raster map... */
     group = G_define_standard_option(G_OPT_I_GROUP);
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
 
-    /*TODO polish: any way to recommend a threshold to the user */
     threshold = G_define_option();
     threshold->key = "threshold";
     threshold->type = TYPE_DOUBLE;
     threshold->required = YES;
     threshold->label = _("Difference threshold between 0 and 1.");
-    threshold->description = _("Threshold = 0 would merge only identical segments; threshold = 1 would merge all.");
+    threshold->description = _("Threshold = 0 merges only identical segments; threshold = 1 merges all.");
+
+    /* optional parameters */
 
     method = G_define_option();
     method->key = "method";
     method->type = TYPE_STRING;
-    method->required = YES;
+    method->required = NO;
     method->answer = "region_growing";
     method->description = _("Segmentation method.");
+    method->guisection = _("Settings");
+
+    similarity = G_define_option();
+    similarity->key = "similarity";
+    similarity->type = TYPE_STRING;
+    similarity->required = YES;
+    similarity->answer = "euclidean";
+    similarity->options = "euclidean, manhattan";
+    similarity->description = _("Similarity calculation method.");
+    similarity->guisection = _("Settings");
 
     min_segment_size = G_define_option();
     min_segment_size->key = "min";
     min_segment_size->type = TYPE_INTEGER;
-    min_segment_size->required = YES;
+    min_segment_size->required = NO;
     min_segment_size->answer = "1";
     min_segment_size->options = "1-100000";
     min_segment_size->label = _("Minimum number of cells in a segment.");
     min_segment_size->description =
 	_("The final step will merge small segments with their best neighbor.");
+    min_segment_size->guisection = _("Settings");
 
-    /* optional parameters */
+#ifdef _OR_SHAPE_
+    radio_weight = G_define_option();
+    radio_weight->key = "radio_weight";
+    radio_weight->type = TYPE_DOUBLE;
+    radio_weight->required = YES;
+    radio_weight->answer = "1";
+    radio_weight->options = "0-1";
+    radio_weight->label =
+	_("Importance of radiometric (input raster) values relative to shape.");
+    radio_weight->guisection = _("Settings");
 
-    diagonal = G_define_flag();
-    diagonal->key = 'd';
-    diagonal->description =
-	_("Use 8 neighbors (3x3 neighborhood) instead of the default 4 neighbors for each pixel.");
-
-    weighted = G_define_flag();
-    weighted->key = 'w';
-    weighted->description =
-	_("Weighted input, don't perform the default scaling of input maps.");
+    smooth_weight = G_define_option();
+    smooth_weight->key = "smooth_weight";
+    smooth_weight->type = TYPE_DOUBLE;
+    smooth_weight->required = YES;
+    smooth_weight->answer = "0.5";
+    smooth_weight->options = "0-1";
+    smooth_weight->label =
+	_("Importance of smoothness relative to compactness.");
+    smooth_weight->guisection = _("Settings");
+#endif
 
     /* Using raster for seeds
      * Low priority TODO: allow vector points/centroids seed input. */
@@ -94,7 +118,17 @@ int parse_args(int argc, char *argv[], struct globals *globals)
     outband->key = "goodness";
     outband->required = NO;
     outband->description =
-	_("debug - save band mean, currently implemented for only 1 band.");
+	_("Goodness of fit estimate.");
+
+    diagonal = G_define_flag();
+    diagonal->key = 'd';
+    diagonal->description =
+	_("Use 8 neighbors (3x3 neighborhood) instead of the default 4 neighbors for each pixel.");
+
+    weighted = G_define_flag();
+    weighted->key = 'w';
+    weighted->description =
+	_("Weighted input, don't perform the default scaling of input maps.");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -115,12 +149,37 @@ int parse_args(int argc, char *argv[], struct globals *globals)
 	G_fatal_error(_("threshold should be >= 0 and <= 1"));
 
     /* segmentation methods:  1 = region growing */
-    if (strncmp(method->answer, "region_growing", 10) == 0)
+    if (strcmp(method->answer, "region_growing") == 0)
 	globals->method = 1;
     else
 	G_fatal_error("Couldn't assign segmentation method.");
 
     G_debug(1, "segmentation method: %d", globals->method);
+
+    /* distance methods for similarity measurement */
+    if (strcmp(similarity->answer, "euclidean") == 0)
+	globals->calculate_similarity = calculate_euclidean_similarity;
+    else if (strcmp(similarity->answer, "manhattan") == 0)
+	globals->calculate_similarity = calculate_manhattan_similarity;
+    else
+	G_fatal_error(_("Invalid similarity method."));
+
+#ifdef _OR_SHAPE_
+    /* consider shape */
+    globals->radio_weight = atof(radio_weight->answer);
+    if (globals->radio_weight <= 0)
+	G_fatal_error(_("Option '%s' must be > 0"), radio_weight->key);
+    if (globals->radio_weight > 1)
+	G_fatal_error(_("Option '%s' must be <= 1"), radio_weight->key);
+    globals->smooth_weight = atof(smooth_weight->answer);
+    if (globals->smooth_weight < 0)
+	G_fatal_error(_("Option '%s' must be >= 0"), smooth_weight->key);
+    if (globals->smooth_weight > 1)
+	G_fatal_error(_("Option '%s' must be <= 1"), smooth_weight->key);
+#else
+    globals->radio_weight = 1;
+    globals->smooth_weight = 0.5;
+#endif
 
     globals->min_segment_size = atoi(min_segment_size->answer);
 
@@ -138,9 +197,6 @@ int parse_args(int argc, char *argv[], struct globals *globals)
     /* default/0 for performing the scaling
      * selected/1 if scaling should be skipped. */
     globals->weighted = weighted->answer;
-
-    /* TODO add user input for this */
-    globals->calculate_similarity = &calculate_euclidean_similarity;
 
     globals->seeds = seeds->answer;
     if (globals->seeds) {

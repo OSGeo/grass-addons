@@ -77,8 +77,8 @@ int write_output(struct globals *globals)
 	 * (similarity - globals->alpha * globals->alpha * globals->threshold) /
 	 * (globals->threshold * (1 - globals->alpha * globals->alpha) */
 
-	thresh = globals->alpha * globals->alpha * globals->threshold;
-	maxdev = globals->threshold * (1 - globals->alpha * globals->alpha);
+	thresh = globals->alpha * globals->alpha * globals->max_diff;
+	maxdev = globals->max_diff * (1 - globals->alpha * globals->alpha);
 	mingood = 1;
 
 	G_message(_("Writing out goodness of fit"));
@@ -126,7 +126,7 @@ int write_output(struct globals *globals)
 			    }
 			}
 			else {
-			    sim = 1 - sim / globals->threshold;
+			    sim = 1 - sim / globals->max_diff;
 			    meanbuf[col] = sim;
 			    if (mingood > sim)
 				mingood = sim;

@@ -17,6 +17,9 @@
 #include "regtree.h"
 #include "ngbrtree.h"
 
+/* #def _OR_SHAPE_ */
+
+
 /* row/col list */
 struct rc
 {
@@ -39,9 +42,13 @@ struct globals
 				 * 1 if the scaling should be skipped */
     int method;			/* Segmentation method */
     int nn;			/* number of neighbors, 4 or 8 */
-    double threshold;		/* similarity threshold */
-    double alpha;
+    double max_diff;		/* max possible difference */
+    double alpha;		/* similarity threshold */
     int min_segment_size;	/* smallest number of pixels/cells allowed in a final segment */
+
+    double radio_weight;	/* weighing factor radiometric - shape */
+    double smooth_weight;       /* weighing factor smoothness - compactness */
+
     int end_t;			/* maximum number of iterations */
     int mb;
 
@@ -103,6 +110,11 @@ void find_eight_neighbors(int, int, int[8][2]);
 double calculate_euclidean_similarity(struct ngbr_stats *, 
                                       struct ngbr_stats *,
 				      struct globals *);
+double calculate_manhattan_similarity(struct ngbr_stats *, 
+                                      struct ngbr_stats *,
+				      struct globals *);
+double calculate_shape(struct reg_stats *, struct reg_stats *,
+                       int, struct globals *);
 int fetch_reg_stats(int , int , struct reg_stats *, 
                            struct globals *);
 

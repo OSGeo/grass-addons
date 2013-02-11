@@ -57,7 +57,7 @@ int open_files(struct globals *globals)
 
     /* Get min/max values of each input raster for scaling */
 
-    globals->threshold = 0.;
+    globals->max_diff = 0.;
 
     for (n = 0; n < Ref.nfiles; n++) {
 	/* returns -1 on error, 2 on empty range, quiting either way. */
@@ -71,12 +71,13 @@ int open_files(struct globals *globals)
 	
     }
     if (globals->weighted == FALSE)
-	globals->threshold = Ref.nfiles;
+	globals->max_diff = Ref.nfiles;
     else {
 	/* max difference with selected similarity method */
 	Ri.mean = max;
 	Rk.mean = min;
-	globals->threshold = (*globals->calculate_similarity) (&Ri, &Rk, globals);
+	globals->max_diff = 1;
+	globals->max_diff = (*globals->calculate_similarity) (&Ri, &Rk, globals);
     }
 
     /* ********** find out file segmentation size ************ */
