@@ -1,56 +1,7 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: r.in.ign</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
+<h2>DESCRIPTION</h2>
 
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
+<em>r.in.ign</em> imports raster data from <a href="http://api.ign.fr">IGN WMTS service</A>. Available layers depend upon the user's contract.
 
-<h2>NAME</h2>
-<em><b>r.in.ign</b></em>  - this module imports raster data from <a href="http://api.ign.fr">IGN WMTS service</A>. Available layers depend upon the user's contract.
-
-<h2>KEYWORDS</h2>
-raster, import, wms, wmts, ign
-<h2>SYNOPSIS</h2>
-<b>r.in.ign</b><br>
-<b>r.in.ign help</b><br>
-<b>r.in.ign</b> [-<b>cm</b>] <b>apikey</b>=<em>string</em> <b>output</b>=<em>string</em>  [--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>] 
-
-<h3>FLAGS</h3>
-<DL>
-<DT><b>-c</b></DT>
-<DD>Get capabilities</DD>
-<DT><b>-m</b></DT>
-<DD>output 3 separate-band rasters rather than a composite RGB raster </DD>
-<DT><b>--overwrite</b></DT>
-<DD>Allow output files to overwrite existing file</DD>
-<DT><b>--verbose</b></DT>
-<DD>Verbose module output</DD>
-<DT><b>--quiet</b></DT>
-<DD>Quiet module output</DD>
-</DL>
-
-<h3>PARAMETERS</h3>
-<DL>
-<DT><b>apikey</b>=<em>string</em> [<b>required</b>]</DT>
-<DD>personal apiKey</DD>
-
-<DT><b>user</b>=<em>string</em> [<b>required</b>]</DT>
-<DD>Username for server connection</DD>
-
-<DT><b>password</b>=<em>string</em> [<b>required</b>]</DT>
-<DD>Password for server connection</DD>
-
-<DT><b>wmtslayer</b>=<em>string</em></DT>
-<DD>Layer to request from WMS server</DD>
-
-<DT><b>output</b>=<em>string</em></DT>
-<DD>Name for output raster map</DD>
-
-</DL>
 <h2>NOTES</h2>
 <p><em>r.in.ign</em> lets you query a dataset via a contract. Beware the conditions that come with it and terms of use that apply to data.</p><p>It is only a transitory module aiming at allowing french wmts support for GRASS 6.4 version (r.in.wms module fails at requesting this service, and r.in.wms.py Add-On does not correctly handle french projection systems (which operate nadgrid-based datum shifts). It is quite rough but easily adaptable to one's personnal needs.</p><p>
 Connecting to the WMTS streams of Géoportail is not straight, in cause a restricted access protected by a personal apiKey that comes with your contract. See practical details concerning registration on the <a href="http://api.ign.fr">official website</A>.
@@ -60,24 +11,24 @@ Connecting to the WMTS streams of Géoportail is not straight, in cause a restric
 <h2>EXAMPLE</h2>
 
 This command returns the list of available layers for contract pi3cawp5p883ql4bdk3bhert owned by vincent :
-<p><tt> 
+
+<div class="code"><pre>
 r.in.ign -c apikey=pi3cawp5p883ql4bdk3bhert user=vincent password=******
-</tt></p>
+</pre></div>
 
 Import orthoimagery from IGN wmts server, to a composite raster map <em>orthoign</em>:
-<p><tt> 
+
+<div class="code"><pre>
 r.in.ign apikey=pi3cawp5p883ql4bdk3bhert user=vincent password=******  wmtslayer=ORTHOIMAGERY.ORTHOPHOTOS output=orthoign
-</tt></p>
+</pre></div>
 
 <h2>SEE ALSO</h2>
 
-<em><a href="http://grass.osgeo.org/grass64/manuals/html64_user/r.in.wms.html">r.in.wms</a></em>
+<em><a href="r.in.wms.html">r.in.wms</a></em>
 
 <h2>AUTHOR</h2>
 
 Vincent Bain, Toraval, France
 
-<p><i>Last changed: $Date: 2013-02-14$</i>
-
-</body>
-</html>
+<p>
+<i>Last changed: $Date: 2013-02-14$</i>
