@@ -4,29 +4,32 @@
 #
 # MODULE:		r.in.ign
 # AUTHOR(S):		Vincent Bain
-# PURPOSE:		Retrieve wms-c channel from IGN, see http://api.ign.fr
+# PURPOSE:		Retrieve wmts channel from IGN, see http://api.ign.fr
 #			Developed for internal use
-# COPYRIGHT:		(C) 2012 by the GRASS Development Team and Toraval-Vincent Bain
+# COPYRIGHT:		(C) 2013 by the GRASS Development Team and Toraval-Vincent Bain
 #			This program is free software under the GNU General
 #			Public License (>=v2). Read the file COPYING that comes
 #			with GRASS for details.
 #
-# VERSION:		1.0
-#			Currently only works on orthoimagery layers within
-#			french metropole (geoportalfxx projection) at scale
-#			1/2000 i.e. res=0.5 m
+# VERSION:		2.2
+#			Currently only works on PM (EPSG:3857) raster stacks
 #			
 ################################################################################
 
 
 #%Module
-#% description: this module imports raster data from IGN wms-c server. Available layers comply with the INSPIRE directive. For more information see http://inspire.ign.fr/, http://api.ign.fr and http://inspire.jrc.ec.europa.eu/
-#% keywords: raster, import, wms, ign
+#% description: this module imports raster data from IGN wmts server. Available layers depend upon the user's contract. For more information see http://api.ign.fr/
+#% keywords: raster, import, wms, wmts, ign
 #%End
 
 #%flag
+#% key: m
+#% description: output 3 separate-band rasters rather than a composite RGB raster 
+#%end
+
+#%flag
 #% key: c
-#% description: output a RGB raster rather than 3 separate-band rasters
+#% description: execute a GetCapabilities request on the server, to fetch available layers and exit
 #%end
 
 #%option
@@ -37,11 +40,33 @@
 #%end
 
 #%option
+#% key:user
+#% type: string
+#% description: username for server connection
+#% required : yes
+#%end
+
+#%option
+#% key:password
+#% type: string
+#% description: password for server connection
+#% required : yes
+#%end
+
+#%option
+#% key:wmtslayer
+#% type: string
+#% description: wmts layer to request
+#% answer: ORTHOIMAGERY.ORTHOPHOTOS
+#% required : no
+#%end
+
+#%option
 #% key: output
 #% type: string
 #% gisprompt: new,cell,raster
 #% description: raster map to import
-#% required : yes
+#% required : no
 #%end
 
 #---------------------------------------------
@@ -91,9 +116,17 @@ if ! echo test | awk '{print $0}' > /dev/null 2>&1; then
 	g.message -e "`basename $0`: awk required, please install awk/gawk first" 1>&2
 	exit 1
 fi
-
 #---------------------------------------------
 
+#---------------------------------------------
+# Check for xmlstarlet
+
+if [ ! -x "`which xmlstarlet`" ] ; then
+	g.message -e "xmlstarlet required, install it first"
+	exit 1
+fi
+
+#---------------------------------------------
 #---------------------------------------------
 # save command line
 if [ "$1" != "@ARGS_PARSED@" ] ; then
@@ -111,12 +144,8 @@ fi
 Cleanup()
 {
 	# cleaning temporary directory
-	if [ -d "$GIS_MAP_PATH/.tmp/inspire" ]; then
-		rm -r "$GIS_MAP_PATH"/.tmp/inspire/
-	fi
-	# release token if exists
-	if [ "$token" ]; then
-		wget -q "http://jeton-api.ign.fr/releaseToken?gppkey=$token" -O -
+	if [ -d "$GIS_MAP_PATH/.tmp/ign" ]; then
+		rm -r "$GIS_MAP_PATH"/.tmp/ign/
 	fi
 }
 
@@ -129,101 +158,272 @@ Cleanexit()
 trap "Cleanexit" 2 3 15
 #---------------------------------------------
 
-
-
 #---------------------------------------------
 # Setting up various variables 
 
-# s_srs to match current location proj
+	# s_srs to match current location proj
 curproj=`eval g.proj -jf`
 
-# working directory
-if [ ! -d "$GIS_MAP_PATH/.tmp/inspire" ] ; then
-	mkdir "$GIS_MAP_PATH/.tmp/inspire"
+	# working directory
+if [ ! -d "$GIS_MAP_PATH/.tmp/ign" ] ; then
+	mkdir "$GIS_MAP_PATH/.tmp/ign"
 fi
 
-# step parameter, corresponds to tiles dimensions : should be adjustable to region extent in a future release, so one can choose between available resolutions in the server's pyramids.
-pas=128
+	# step parameter, corresponds to tiles dimensions, fixed to 256
+pas=256
+#---------------------------------------------
 
-# translating region extents in the correct projection
+#---------------------------------------------
+# Testing C flag 
+if [ "$GIS_FLAG_C" -eq 1 ] ; then
+	# fetch capabilities xml file on the server
+		wget -q "http://${USER}:${PASSWORD}@gpp3-wxs.ign.fr/${GIS_OPT_APIKEY}/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities" -O capabilities.xml -O "$GIS_MAP_PATH"/.tmp/ign/capabilities.xml
+	# clean file : IGN xml capabilities happened to be delivered as a one line file
+		xmlstarlet fo "$GIS_MAP_PATH"/.tmp/ign/capabilities.xml > "$GIS_MAP_PATH"/.tmp/ign/fcapab.xml
+	# extract available layers
+	echo "Available layers on this server are :"
+		xmlstarlet sel -N myns=http://www.opengis.net/wmts/1.0 -N ows=http://www.opengis.net/ows/1.1 -t -m myns:Capabilities/myns:Contents/myns:Layer -v ows:Identifier -n "$GIS_MAP_PATH"/.tmp/ign/fcapab.xml
+	#exit
+	Cleanup
+	exit 0
+
+fi
+#---------------------------------------------
+
+#---------------------------------------------	
+# Defining which layers stack to query ('tilematrix' var): starting from largest zoom (zero level, i.e. resolution 156543.033928 m) we calculate output tiles resol (m) to fit current region resolution
+
 eval `g.region -g`
-wfxx=`echo "$w $s" | cs2cs $curproj +to +init=IGNF:GEOPORTALFXX | awk -F" " '{print $1}'`
-sfxx=`echo "$w $s" | cs2cs $curproj +to +init=IGNF:GEOPORTALFXX | awk -F" " '{print $2}'`
-efxx=`echo "$e $n" | cs2cs $curproj +to +init=IGNF:GEOPORTALFXX | awk -F" " '{print $1}'`
-nfxx=`echo "$e $n" | cs2cs $curproj +to +init=IGNF:GEOPORTALFXX | awk -F" " '{print $2}'`
-wfxx=`echo "${wfxx/.*/}"`		# bail out decimal part, for bash arythmetic...
-sfxx=`echo "${sfxx/.*/}"`
-efxx=`echo "${efxx/.*/}"`
-nfxx=`echo "${nfxx/.*/}"`
-coli=$(( wfxx / pas ))		# returns integer part, actually what we need
-xi=$(( coli * pas ))
-rowi=$(( sfxx / pas ))
-yi=$(( rowi * pas ))
-colf=$(( efxx / pas ))
-rowf=$(( nfxx / pas ))
+
+resolzero=156543.033928041
+tilematrix=0
+resol=`echo "scale=12;$resolzero / 2^${tilematrix}" | bc`
+# we seek finest resolution between ew and ns res
+res=`echo "$ewres $nsres" | awk '{ if ( $2 > $1 ) { print $1} else { print $2}}'`
+
+test2=`echo "$resol > $res" | bc`
+while [ "$test2" -eq 1 ] ; do
+((tilematrix++))
+resol=`echo "scale=12;$resolzero / 2^${tilematrix}" | bc`
+test2=`echo "$resol > $res" | bc`
+done
+
+#---------------------------------------------	
+# pyramid origin (yet only PM implemented)
+X0=-20037508
+Y0=20037508
+
+#---------------------------------------------	
+# translating region extents in the correct projection
+# pay attention to input correct corners in order to get correct translation...
+nwxpm=`echo "$w $n" | cs2cs $curproj +to +init=epsg:3857 | awk -F" " '{print $1}'`
+nwypm=`echo "$w $n" | cs2cs $curproj +to +init=epsg:3857 | awk -F" " '{print $2}'`
+
+nexpm=`echo "$e $n" | cs2cs $curproj +to +init=epsg:3857 | awk -F" " '{print $1}'`
+neypm=`echo "$e $n" | cs2cs $curproj +to +init=epsg:3857 | awk -F" " '{print $2}'`
+
+swxpm=`echo "$w $s" | cs2cs $curproj +to +init=epsg:3857 | awk -F" " '{print $1}'`
+swypm=`echo "$w $s" | cs2cs $curproj +to +init=epsg:3857 | awk -F" " '{print $2}'`
+
+sexpm=`echo "$e $s" | cs2cs $curproj +to +init=epsg:3857 | awk -F" " '{print $1}'`
+seypm=`echo "$e $s" | cs2cs $curproj +to +init=epsg:3857 | awk -F" " '{print $2}'`
+
+# current region projected in target projection system results in a tilted rectangle, care for it :
+wpm=`echo "$nwxpm $swxpm" | awk '{ if ( $2 > $1 ) { print $1} else { print $2}}'`
+epm=`echo "$nexpm $sexpm" | awk '{ if ( $2 > $1 ) { print $2} else { print $1}}'`
+npm=`echo "$nwypm $neypm" | awk '{ if ( $2 > $1 ) { print $2} else { print $1}}'`
+spm=`echo "$swypm $seypm" | awk '{ if ( $2 > $1 ) { print $1} else { print $2}}'`
+
+#---------------------------------------------	
+# calculate ul/lr corner row/col
+widthi=`echo $wpm - $X0 | bc`
+heighti=`echo $Y0 - $npm | bc`
+coli=`echo "scale=12;$widthi / $resol / $pas" | bc`
+rowi=`echo "scale=12;$heighti / $resol / $pas" | bc`
+
+coli=`echo "${coli/.*/}"` # returns integer part, actually what we need
+rowi=`echo "${rowi/.*/}"`
+xi=`echo "scale=12;$X0 + $coli * $resol * $pas" | bc`
+yi=`echo "scale=12;$Y0 - $rowi * $resol * $pas" | bc`
+
+# calculate lower right row/col
+widthf=`echo $epm - $X0 | bc`
+heightf=`echo $Y0 - $spm | bc`
+colf=`echo "scale=12;$widthf / $resol / $pas" | bc`
+rowf=`echo "scale=12;$heightf / $resol / $pas" | bc`
+colf=`echo "${colf/.*/}"` # returns integer part, actually what we need
+rowf=`echo "${rowf/.*/}"`
+
 iterx=$(( colf - coli ))
 itery=$(( rowf - rowi ))
 #---------------------------------------------
 
-#---------------------------------------------	
-# requesting a token for the user's personal apiKey 
-token=`wget -q "http://jeton-api.ign.fr/getToken?key=${GIS_OPT_APIKEY}&output=raw" -O -`
-
-#---------------------------------------------	
 
 #---------------------------------------------	
 # loop downloading tiles
 for i in `seq 0 "$iterx"`; do
-	xk1=$(( xi + i * pas ))
+	colk=$(( coli + i ))
 	for j in `seq 0 "$itery"`; do
-		yk1=$(( yi + j * pas ))
-		xk2=$(( xk1 + pas ))
-		yk2=$(( yk1 + pas ))
-		# in the next request, LAYERS parameter is set to orthoimagery. Should be adjustable in a future release
-		# th first release connected the server through a wrapper. Now the module gets a token by itself, demanding the user his apiKey.
-		#wget "http://127.0.0.1:10001/wmsc?LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=IGNF:GEOPORTALFXX&BBOX=$xk1,$yk1,$xk2,$yk2&WIDTH=256&HEIGHT=256&TILED=true" -O "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
-		wget -q "http://wxs.ign.fr/inspire/wmsc?gppkey=$token&LAYERS=ORTHOIMAGERY.ORTHOPHOTOS&FORMAT=image/jpeg&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=IGNF:GEOPORTALFXX&BBOX=$xk1,$yk1,$xk2,$yk2&WIDTH=256&HEIGHT=256&TILED=true" -O "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
-		# georeferencing tile
-		gdal_translate -gcp 0 0 "$xk1" "$yk2" -gcp 256 256 "$xk2" "$yk1" -gcp 256 0 "$xk2" "$yk2" "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif
-		gcps2wld.py "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif>"$GIS_MAP_PATH"/.tmp/inspire/insp$i$j.tfw
-		gdal_translate -of GTiff -a_srs +init=IGNF:GEOPORTALFXX "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif "$GIS_MAP_PATH"/.tmp/inspire/inspr"$i$j".tif
-		# cleaning up temp files
-		rm "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".jpg
-		rm "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tif
-		rm "$GIS_MAP_PATH"/.tmp/inspire/insp"$i$j".tfw
+		rowk=$(( rowi + j ))
+		# let's feed the URL list file
+		echo "\"https://${GIS_OPT_USER}:${GIS_OPT_PASSWORD}@gpp3-wxs.ign.fr/${GIS_OPT_APIKEY}/geoportail/wmts?LAYER=${GIS_OPT_WMTSLAYER}&EXCEPTIONS=text/xml&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${tilematrix}&TILEROW=${rowk}&TILECOL=${colk}&\"" "-O "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg" >>"$GIS_MAP_PATH"/.tmp/ign/url.list
 		((j++))
 	done
 	((i++))
 done
 #---------------------------------------------
+echo "importing $(( ( iterx + 1 ) * ( itery + 1 ) )) tiles : $(( iterx + 1 )) cols x $(( itery + 1 )) rows"
 
-#---------------------------------------------	
+echo "[R]etrieve or [c]ancel? (default [R])"
+	read -s -n1 ans
+	case $ans in
+		r* | R*|'')
+		;;
+		c* | C*)
+			g.message "Aborting"
+			Cleanup
+			exit 1
+		;;
+	esac
+
+xargs -a "$GIS_MAP_PATH"/.tmp/ign/url.list -n 3 -P 64 wget -q
+errwget=$?
+if [ $errwget -eq 6 ]; then
+	g.message -w "Username/password authentication failure... bailing out !"
+	Cleanup
+	exit 1
+elif [ $errwget -eq 8 ]; then
+	g.message -w "Server issued an error response (possibly a bad layer request)... bailing out !"
+	Cleanup
+	exit 1
+elif [ $errwget -ne 0 ] ; then
+	while [ $errwget -ne 0 ] ; do 
+	# let's check tiles directory and pick up missing tiles
+	if [ -f "$GIS_MAP_PATH"/.tmp/ign/urlcorr.list ] ; then
+		rm "$GIS_MAP_PATH"/.tmp/ign/urlcorr.list
+	fi
+	for i in `seq 0 "$iterx"`; do
+		for j in `seq 0 $itery`; do
+			if [ -f "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg ] ; then
+				size=`stat -c %s "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg`
+			else
+				size=0
+			fi
+			if [ ! -f "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg -o "$size" -eq 0 ] ; then
+				cat "$GIS_MAP_PATH"/.tmp/ign/url.list | grep tile"c$i""l$j".jpg>>"$GIS_MAP_PATH"/.tmp/ign/urlcorr.list
+			fi
+			((j++))
+		done
+		((i++))
+	done
+	echo "missing tiles :"
+	cat "$GIS_MAP_PATH"/.tmp/ign/urlcorr.list
+	echo "[R]etrieve or [c]ancel? (default [R])"
+	read -s -n1 ans
+	case $ans in
+		r* | R*|'')
+			g.message "Retry..."
+		xargs -a "$GIS_MAP_PATH"/.tmp/ign/urlcorr.list -n 3 -P 64 wget -q
+		errwget=$?
+		;;
+		c* | C*)
+		errorcount=1
+		break
+		;;
+	esac
+	done
+fi
+
+if [ $errwget -eq 0 ] ; then
+	errorcount=0
+fi
+#---------------------------------------------
+
+#---------------------------------------------
+#georeferencing tiles
+for i in `seq 0 "$iterx"`; do
+	xk1=`echo "scale=12;$xi + $i * $pas * $resol" | bc`
+	for j in `seq 0 "$itery"`; do
+		yk1=`echo "scale=12;$yi - $j * $pas * $resol" | bc`
+		xk2=`echo "scale=12;$xk1 + $pas * $resol" | bc`
+		yk2=`echo "scale=12;$yk1 - $pas * $resol" | bc`
+		
+		# let's feed referencing files (xargs inputs)
+		echo "-gcp 0 0 "$xk1" "$yk1" -gcp 256 256 "$xk2" "$yk2" -gcp 256 0 "$xk2" "$yk1" "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".tif" >>"$GIS_MAP_PATH"/.tmp/ign/gdtr1.list
+		
+		echo "-of GTiff -a_srs "+init=epsg:3857" "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".tif "$GIS_MAP_PATH"/.tmp/ign/tiler"c$i""l$j".tif" >>"$GIS_MAP_PATH"/.tmp/ign/gdtr2.list
+		((j++))
+	done
+	((i++))
+done
+g.message "georeferencing initial tiles"
+xargs -a "$GIS_MAP_PATH"/.tmp/ign/gdtr1.list -n 17 -P 64 gdal_translate
+
+g.message "writing world files"
+for i in `seq 0 "$iterx"`; do
+	for j in `seq 0 "$itery"`; do
+		gcps2wld.py "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".tif>"$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".tfw
+		((j++))
+	done
+	((i++))
+done
+
+g.message "processing GeoTiff tiles"
+xargs -a "$GIS_MAP_PATH"/.tmp/ign/gdtr2.list -n 6 -P 64 gdal_translate
+#---------------------------------------------
+
+#---------------------------------------------
 # assembling tiles into a single image
-gdal_merge.py -o "$GIS_MAP_PATH"/.tmp/inspire/inspirefxx.tif "$GIS_MAP_PATH"/.tmp/inspire/inspr*.tif
+g.message "merging tiles"
+gdal_merge.py -o "$GIS_MAP_PATH"/.tmp/ign/tilepm.tif "$GIS_MAP_PATH"/.tmp/ign/tiler*.tif
 #---------------------------------------------
 
 #---------------------------------------------	
 # projecting the image in t_srs=curproj
-gdalwarp -s_srs "+init=IGNF:GEOPORTALFXX" -t_srs "$curproj" -rc -tr 0.5 0.5 -co "INTERLEAVE=PIXEL" -dstnodata 255 -dstalpha "$GIS_MAP_PATH"/.tmp/inspire/inspirefxx.tif "$GIS_MAP_PATH"/.tmp/inspire/inspire.tif
+g.message "projecting image in current projection system"
+gdalwarp -s_srs "+init=epsg:3857" -t_srs "$curproj +wktext" -rc -co "INTERLEAVE=PIXEL" -dstnodata 255 -dstalpha "$GIS_MAP_PATH"/.tmp/ign/tilepm.tif "$GIS_MAP_PATH"/.tmp/ign/tile.tif
+#---------------------------------------------
+
+#---------------------------------------------	
+# set region resolution to resol
+g.region res=$resol
 #---------------------------------------------
 
 #---------------------------------------------	
 # retrieving the latter as a GRASS raster map
-r.in.gdal input="$GIS_MAP_PATH"/.tmp/inspire/inspire.tif output="$GIS_OPT_OUTPUT"
+g.message "generating raster maps"
+r.in.gdal input="$GIS_MAP_PATH"/.tmp/ign/tile.tif output="$GIS_OPT_OUTPUT"
 #---------------------------------------------	
 
 #---------------------------------------------	
 # optionnally make a composite rgb raster
-if [ "$GIS_FLAG_C" -eq 1 ] ; then
+if [ "$GIS_FLAG_M" -eq 0 ] ; then
+	g.message "compositing raster maps"
 	r.composite output="$GIS_OPT_OUTPUT" red="$GIS_OPT_OUTPUT".red green="$GIS_OPT_OUTPUT".green blue="$GIS_OPT_OUTPUT".blue
 	g.mremove -f rast="$GIS_OPT_OUTPUT".red,"$GIS_OPT_OUTPUT".green,"$GIS_OPT_OUTPUT".blue,"$GIS_OPT_OUTPUT".alpha
 	# write support data
-	r.support map="$GIS_OPT_OUTPUT" title="orthoimagery extracted from ign wms service"
-	r.support map="$GIS_OPT_OUTPUT" history="${CMDLINE}"
-
+	r.support map="$GIS_OPT_OUTPUT" title="${GIS_OPT_WMTSLAYER} extracted from ign wmts service" history="${CMDLINE}"
+else
+	# write support data for each band
+	for i in {red,green,blue} ; do
+		r.support map="$GIS_OPT_OUTPUT".$i title="${GIS_OPT_WMTSLAYER} extracted from ign wmts service" history="${CMDLINE}"
+	done
 fi
 
-g.message "Done."
+
+
+if [ "$errorcount" -ne 0 ] ; then 
+	g.message -w "Error(s) encountered while downloading tiles !"
+else
+	echo "$(( ( iterx + 1 ) * ( itery + 1 ) )) tiles imported : $(( iterx + 1 )) cols x $(( itery + 1 )) rows"
+	g.message "Done."
+fi
+
+#---------------------------------------------	
+# reset region resolution to previous
+g.region ewres=$ewres nsres=$nsres
+#---------------------------------------------
+
 #---------------------------------------------	
 
 Cleanup
