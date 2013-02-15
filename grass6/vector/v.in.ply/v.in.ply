@@ -68,6 +68,7 @@ export LC_NUMERIC
 
 cat "$GIS_OPT_FILE" | awk "/ply/,/end_header/" > /dev/null
 DATALINES=`head -n 30 "$GIS_OPT_FILE" | grep 'element vertex' | cut -d' ' -f3`
+# TODO: test for valid number of lines here.
 
 head -n 30 "$GIS_OPT_FILE" | grep 'char red' > /dev/null 2>/dev/null
 if [ $? -eq 0 ] ; then
@@ -84,7 +85,7 @@ else
 fi
 
 if [ "$COLOR" -eq 0 ] ; then
-   tail -n $DATALINES "$GIS_OPT_FILE" | tr -s ' ' ' ' | \
+   tail -n "$DATALINES" "$GIS_OPT_FILE" | tr -s ' ' ' ' | \
       sed 's+^ ++g' | cut -d' ' -f1-3 | \
       v.in.ascii -z x=1 y=2 z=3 out=$MAP fs=" "
 
@@ -93,7 +94,7 @@ if [ "$COLOR" -eq 0 ] ; then
       exit 1
    fi
 else
-   tail -n $DATALINES "$GIS_OPT_FILE" | tr -s ' ' ' ' | \
+   tail -n "$DATALINES" "$GIS_OPT_FILE" | tr -s ' ' ' ' | \
       sed 's+^ ++g' | cut -d' ' -f1-7 | \
       awk -F " " '{printf "%f,%f,%f,%d:%d:%d,%d\n", $1, $2, $3, $4, $5, $6, $7}' | \
       v.in.ascii -z x=1 y=2 z=3 out=$MAP fs="," \
