@@ -71,11 +71,11 @@ MAP="$GIS_OPT_VECT"
 if [ -n "$GIS_OPT_FILE" ] ; then
     OUT="$GIS_OPT_FILE"
 else
-    OUT=$GIS_OPT_VECT.ply
+    OUT="$GIS_OPT_VECT".ply
 fi
 
-eval `v.info -t $MAP`
-POINTS=$points
+eval `v.info -t "$MAP"`
+POINTS="$points"
 
 echo "Exporting $POINTS points..."
 
@@ -92,22 +92,24 @@ property uchar blue
 property uchar alpha
 element face 0
 property list uchar int vertex_indices
-end_header" > $OUT
+end_header" > "$OUT"
 
 
-v.info -c $MAP | grep GRASSRGB > /dev/null
+v.info -c "$MAP" | grep GRASSRGB > /dev/null
 if [ $? -eq 1 ] ; then
-   v.out.ascii $MAP | tr '|' ' ' | tr ':' ' ' >> $OUT
+   v.out.ascii "$MAP" | tr '|' ' ' | tr ':' ' ' >> "$OUT"
 else
    # g.extension v.out.ascii.db
+   # can the regular v.out.ascii do it now? (that's still really really slow for big maps though)
    if [ ! -x "`which v.out.ascii.db`" ] ; then
       g.message -e "v.out.ascii.db required, please install first with 'g.extension v.out.ascii.db'"
       exit 1
    fi
-   v.out.ascii.db $MAP columns=GRASSRGB,alpha | cut -d'|' -f2-6 | tr '|' ' ' | tr ':' ' ' >> $OUT
+   v.out.ascii.db "$MAP" columns=GRASSRGB,alpha | \
+      cut -d'|' -f2-6 | tr '|' ' ' | tr ':' ' ' >> "$OUT"
 fi
 
 # write cmd history:
-v.support "$MAP" cmdhist="${CMDLINE}"
+v.support "$MAP" cmdhist="$CMDLINE"
 
 exit 0
