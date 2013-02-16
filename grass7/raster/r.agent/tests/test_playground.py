@@ -111,5 +111,16 @@ class TestPlayground(unittest.TestCase):
         self.assertTrue(ps[2])
         self.assertFalse(ps[3])
 
+    def test_decaycellvalues(self):
+        l = "bar"
+        self.pg.createlayer(l)
+        self.pg.layers[l][0][0] = 100
+        self.pg.decaycellvalues(l, 3)
+        self.assertEqual(self.pg.layers[l][0][0], 79)
+        self.pg.decaycellvalues(l, 3)
+        self.assertEqual(self.pg.layers[l][0][0], 63)
+        self.pg.decaycellvalues(l, 3)
+        self.assertEqual(self.pg.layers[l][0][0], 50)
+
 #    def tearDown(self):
 

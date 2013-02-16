@@ -175,3 +175,21 @@ class Playground(object):
                                                     position[1]+1]))
         return positions
 
+    def decaycellvalues(self, layername, halflife, minimum=0):
+        """
+        Let the values in each cell decay, volatilize or evaporate over time
+        @param string layername name of the layer to work on
+        @param long halflife or number of years when to reach half of the value
+        @param long minimum value to keep on cell
+        """
+        if halflife > 0:
+            for i in range(self.region["rows"]):
+                for j in range(self.region["cols"]):
+                    if self.layers[layername][i][j] > minimum:
+                        v = int(round(
+                              self.layers[layername][i][j]*0.5**(1.0/halflife)))
+                        if v > minimum:
+                            self.layers[layername][i][j] = v
+                        else:
+                            self.layers[layername][i][j] = minimum
+
