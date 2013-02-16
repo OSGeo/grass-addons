@@ -197,22 +197,30 @@ def main():
 	north = tmpint + 1
     else:
 	north = tmpint
+	
     tmpint = int(south)
     if tmpint > south:
 	south = tmpint - 1
     else:
 	south = tmpint
+
     tmpint = int(east)
     if tmpint < east:
 	east = tmpint + 1
     else:
 	east = tmpint
+
     tmpint = int(west)
     if tmpint > west:
 	west = tmpint - 1
     else:
 	west = tmpint
 	
+    if north == south:
+	north += 1
+    if east == west:
+	east += 1
+
     rows = abs(north - south)
     cols = abs(east - west)
     ntiles = rows * cols
@@ -274,11 +282,12 @@ def main():
 		grass.run_command('g.region', region = tmpregionname)
 
 
-    # g.mlist with fs = comma does not work ???
+    # g.mlist with sep = comma does not work ???
+    pattern = '*.r.in.srtm2.tmp.%d' % pid
     srtmtiles = grass.read_command('g.mlist',
                                    type = 'rast',
-				   pattern = '*.r.in.srtm2.tmp.%d' % pid,
-				   fs = 'newline',
+				   pattern = pattern,
+				   sep = 'newline',
 				   quiet = True)
 
     srtmtiles = srtmtiles.splitlines()
@@ -322,7 +331,7 @@ def main():
 			      rast = '%s,%s,%s' % (output + '.holes', output + '.interp', output + '.float'),
 			      quiet = True)
 
-    grass.run_command('g.remove', rast = str(srtmtiles), quiet = True)
+    grass.run_command('g.mremove', rast = pattern, flags = 'f', quiet = True)
 
     # nice color table
     grass.run_command('r.colors', map = output, color = 'srtm', quiet = True)
