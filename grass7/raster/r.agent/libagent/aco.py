@@ -19,8 +19,15 @@ from math import exp
 from random import randint
 
 class ACO(world.World):
-    """World class for using the Ant Colony Optimization Algorithm for
-       modelling Agent Based worlds."""
+    """
+    World class for using the Ant Colony Optimization Algorithm for
+    modelling Agent Based worlds.
+    """
+    # constant names for the layers
+    SITE = "sitemap"
+    COST = "penaltymap"
+    RESULT = "pheromap"
+
     def __init__(self):
         """
         Create a world based on the natural laws of the Ant Colony Optimization
@@ -30,17 +37,17 @@ class ACO(world.World):
         super(ACO, self).__init__(ant.Ant)
         # add the main layers
         ## one containing the points of interest
-        self.addlayertopg("sitemap")
+        self.addlayertopg(ACO.SITE)
         ## one containing the time cost for traversing cells
-        self.addlayertopg("penaltymap")
+        self.addlayertopg(ACO.COST)
         ## allow overwriting the cost map
         self.overwritepenalty = False
         ## and finally the markings from the agents
-        self.addlayertopg("pheromap")
+        self.addlayertopg(ACO.RESULT)
         ## allow overwriting the main map (if it exists)
         self.overwritepheormone = False
         # list of the points of origin / sites
-        self.holes = []
+        self.sites = []
         # default values
         ## how many rounds to go
         self.rounds = 0
@@ -76,13 +83,44 @@ class ACO(world.World):
         """
         Organize the agents and the pheromone on the playground.
         """
-        pass
+        if 0 < self.outrounds < self.rounds:
+            # calculate when to write output
+            mainloops = self.rounds / self.outrounds
+            nextwrite = self.outrounds
+        else:
+            # produce output only at the end
+            mainloops = 1
+            nextwrite = self.rounds
+        while mainloops > 0:
+            # loop and write out the contents at the end
+            loops = nextwrite
+            while loops > 0:
+                # loop without producing output
+                if len(self.agents) < self.maxants:
+                    # as there is still space on the pg, produce another ant
+                    # at a random site..
+                    position = self.sites[randint(0, len(self.sites)-1)]
+                    self.bear(self.antslife, position)
+                for ant in self.agents:
+                    # let all the ants take action
+                    ant.walk()
+                # let the pheromone evaporate
+                self.volatilize()
+                # count down inner
+                loops -= 1
+            # export the value maps
+            self.writeout()
+#            print "nrofpaths:", self.nrop
+            # count down outer
+            mainloops -= 1
+#        print "nrofrounds", nrofrounds
 
     def volatilize(self):
         """
         Let the pheromone evaporate over time.
         """
-        pass
+        self.playground.decaycellvalues(ACO.RESULT, self.volatilizationtime,
+                                            self.minpheromone)
 
     def writeout(self):
         """

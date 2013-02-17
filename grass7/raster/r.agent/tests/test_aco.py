@@ -9,30 +9,35 @@ class TestACO(unittest.TestCase):
         self.world = aco.ACO()
 
     def test_addlayertopg(self):
+        # gets tested in World
         pass
 
     def test_removelayerfrompg(self):
+        # gets tested in World
         pass
 
     def test_getlayer(self):
+        # gets tested in World
         pass
 
     def findposition(self):
+        # gets tested in World
         pass
 
     def test_bear(self):
+        # gets tested in World
         pass
 
     def test_move(self):
-        pass
-
-    def test_getposition(self):
+        # gets tested in World
         pass
 
     def test_getneighbourpositions(self):
+        # gets tested in World
         pass
 
     def test_kill(self):
+        # gets tested in World
         pass
 
     def letantsdance(self):
