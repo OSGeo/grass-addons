@@ -33,3 +33,6 @@ class Ant(agent.Agent):
         self.goal = []
         self.penalty = 0.0
 
+    def walk(self):
+        pass
+
