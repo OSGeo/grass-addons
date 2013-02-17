@@ -7,7 +7,8 @@ import grass.script as grass
 from grass.script import array as garray
 
 class TestGrassLand(unittest.TestCase):
-    def setUp(self):              
+    def setUp(self):
+        self.layername = "r.agent.testmap"
         self.pg = grassland.GrassLand()
 
     def test_getregion(self):
@@ -16,6 +17,7 @@ class TestGrassLand(unittest.TestCase):
 
     def test_setregion(self):
         #TODO should not be required here.. maybe "resetregion()"?
+        # is set in constructor
         pass
 
     def test_getbound(self):
@@ -27,7 +29,7 @@ class TestGrassLand(unittest.TestCase):
         ew = self.pg.region["ewres"]
         r = self.pg.region["rows"]
         c = self.pg.region["cols"]
-                            
+
         self.assertIsNotNone(n)
         self.assertIsNotNone(s)
         self.assertIsNotNone(w)
@@ -39,11 +41,28 @@ class TestGrassLand(unittest.TestCase):
         self.assertEqual((e-w)/ew, c)
 
     def test_setlayer(self):
-       # gets tested in createlayer and super()/Playground
+        # gets tested in createlayer and super()/Playground
         pass
 
     def test_setgrasslayer(self):
-        #TODO better test manually?
+        # only do this test, if self.layername is set
+#        if self.layername:
+#            layer = garray.array()
+#            retval = layer.write(self.layername)
+#            if retval == 1:
+#                print "We need a file to play with in this test, but it"
+#                print "seems to exist already: '" + self.layername + "'"
+#                self.assertTrue(False)
+#            self.pg.setgrasslayer(self.layername, self.layername)
+#                print "GRASS map layer is already set.."
+#            self.pg.setgrasslayer(self.layername, self.layername)
+#                print "GRASS map layer was set but no error occured"
+#            if not ( self.layers.has_key(self.layername) and \
+#                        self.grassmapnames.has_key(self.layername) ):
+#                print "GRASS map layer was set but seems missing"
+#                self.assertTrue(False)
+#            self.pg.setgrasslayer(self.layername, self.layername, True)
+#            cleanup..
         pass
 
     def test_createlayer(self):
@@ -61,12 +80,11 @@ class TestGrassLand(unittest.TestCase):
         self.pg.layers["foo"] = [0]
         self.pg.grassmapnames["foo"] = "foo"
         self.assertTrue(self.pg.layers.has_key("foo"))
-        self.pg.removelayer("foo")             
+        self.pg.removelayer("foo")
         self.assertFalse(self.pg.layers.has_key("foo"))
         self.assertFalse(self.pg.grassmapnames.has_key("foo"))
 
     def test_writelayer(self):
-        #TODO better test manually?
         pass
 
 #    def tearDown(self):

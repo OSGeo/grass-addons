@@ -48,7 +48,7 @@ class GrassLand(playground.Playground):
         layer = garray.array()
         if grassmapname:
             self.grassmapnames[layername] = grassmapname
-        self.setlayer(layername, layer)
+        self.setlayer(layername, layer, force)
 
     def removelayer(self, layername):
         """
@@ -67,10 +67,10 @@ class GrassLand(playground.Playground):
         @param string optional name of the GRASS map file to be created
         @param boolean optional, whether an existing file may be overwritten
         """
-        #TODO implement
         if self.layers.has_key(layername) and \
-          self.grassmapnames.has_key(layername):
-            grassmapname = self.grassmapnames[layername]
-            layer = self.layers[layername]
-            layer.write(grassmapname, overwrite=force)
+                                    self.grassmapnames.has_key(layername):
+            if force:
+                force="force"
+            self.layers[layername].write(self.grassmapnames[layername],
+                                                        overwrite=force)
 
