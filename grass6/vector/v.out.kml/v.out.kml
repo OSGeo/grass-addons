@@ -198,7 +198,7 @@ TMPDIR=`g.gisenv get="GISDBASE"`
 # purpose:  Removes all temporary files which might have been created.
 # usage: CLEANUP_TEMPFILES
 
-function CLEANUP_TEMPFILES () 
+CLEANUP_TEMPFILES() 
 {
  rm $TMPDIR/.grassrc6_$TEMP_LOCATION
  rm $THE_VECTOR.shp
@@ -219,7 +219,7 @@ function CLEANUP_TEMPFILES ()
 # name:     exitprocedure
 # purpose:  removes all temporary files
 #
-exitprocedure ()
+exitprocedure()
 {
         message 0 "User break!"
         #rm -f ${TMP}*
@@ -240,7 +240,7 @@ export GIS_LOCK=$$
 # name: error_routine
 # purpose: If an error occurs, exit gracefully.
 #
-error_routine () {
+error_routine() {
 echo "ERROR: $1"
 exit 1
 }
@@ -271,7 +271,7 @@ fi
 # purpose: if the user provides a path to a specific version of OGR it will be used. 
 # usage: OGR_PATH_USER_OVERRIDE
 
-function OGR_PATH_USER_OVERRIDE ()
+OGR_PATH_USER_OVERRIDE()
 {
 
  if [ "${OPT_OGRPATH}" != "" ] ; then
@@ -298,7 +298,7 @@ function OGR_PATH_USER_OVERRIDE ()
 # purpose:  Verify that string $1 equals the name of column of the maps database.
 # usage: ENSURE_COLUMN string-for-column-name
 
-function ENSURE_COLUMN () {
+ENSURE_COLUMN() {
 #1: $COLUMN NAME to be verified
 
    echo $DB_COLUMN_NAMES |grep -q "$1"
@@ -313,7 +313,7 @@ function ENSURE_COLUMN () {
 # purpose:  create new string variables for R,G,B as 2byte hex numbers from a R:G:B string (can be hex, decimal or other). 
 # usage: SET_HEX_COLORS value-string-variable R-variable-name G-variable-name B-variable-name R-hex-default G-hex-default B-hex-default
 
-function SET_HEX_COLORS
+SET_HEX_COLORS()
 {
 if [ "$1" != "(null)" ] ; then
   RED_D=`echo ${1} | cut -d: -f 1 `
@@ -347,7 +347,8 @@ fi
 # usage: SET_HEX_VALUE grass_parameter-variable new-variable-name default-value
 
 
-function SET_HEX_VALUE () {
+SET_HEX_VALUE()
+{
 #1: $OPT_LINE_SIZE 2:GMLSIZE 3:1
 
 if [ "$1" != "(null)" ] ; then
@@ -383,7 +384,7 @@ fi
 # Has a value for line color been provided by the user ? 
 # Otherwise use grass-green as the default.
 
-SET_HEX_COLORS ${OPT_LINE_COLOR} "GMLRED" "GMLGREEN" "GMLBLUE" "0" "ff" "0" 
+SET_HEX_COLORS "${OPT_LINE_COLOR}" "GMLRED" "GMLGREEN" "GMLBLUE" "0" "ff" "0" 
 
 
 #
