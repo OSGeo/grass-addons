@@ -5,7 +5,7 @@
 # AUTHOR:       Hamish Bowman, Dunedin, New Zealand
 # PURPOSE:      Looks at the files you pass it, tries to set svn props
 #		automatically for the ones it knows
-# COPYRIGHT:    (c) 2009 Hamish Bowman, and the GRASS Development Team
+# COPYRIGHT:    (c) 2009-2013 Hamish Bowman, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
 #               for details.
@@ -36,11 +36,21 @@ set_native_eol()
    fi
 }
 
+set_msdos_eol()
+{
+   if [ `svn propget svn:eol-style "$1"` = "native" ] ; then
+      svn propdel svn:eol-style "$1"
+   fi
+   if [ `svn proplist "$1" | grep -c 'svn:eol-style'` -eq 0 ] ; then
+      svn propset svn:eol-style "CRLF" "$1"
+   fi
+}
+
 set_mime_type()
 {
    # remove generic default for images
    if [ `echo "$2" | cut -f1 -d/` = "image" ] ; then
-      if [ "`svn propget svn:mime-type "$1"`" = "application/octet-stream" ] ; then
+      if [ `svn propget svn:mime-type "$1"` = "application/octet-stream" ] ; then
          svn propdel svn:mime-type "$1"
       fi
    fi
@@ -135,6 +145,14 @@ apply_perl_script()
    #? set_exe "$1"
 }
 
+apply_bat_script()
+{
+   # CHECKME: setting as an app/ might stop trac from trying diffs & previews
+   set_mime_type "$1" "application/x-msdos-program"
+   set_msdos_eol "$1"
+   unset_exe "$1"
+}
+
 apply_C_code()
 {
    set_mime_type "$1" text/x-csrc
@@ -222,6 +240,9 @@ for FILE in $* ; do
 	;;
     pl)
 	apply_perl_script "$FILE"
+	;;
+    bat)
+	apply_bat_script "$FILE"
 	;;
     html)
 	apply_html "$FILE"
