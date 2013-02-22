@@ -1,0 +1,34 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.concave.hull</em> creates a concave hull around points. Contrary 
+to a convex hull, a concave hull can describe the shape of a point cloud.
+
+<h2>EXAMPLE</h2>
+
+Creating a convex and a concave hull around schools_wake in the
+North Carolina sample dataset:
+
+<div class="code"><pre>
+v.hull in=schools_wake out=schools_wake_convex
+v.concave.hull in=schools_wake out=schools_wake_concave
+</pre></div>
+
+<p>Convex hull around schools:
+<p><img src="convex.png" alt="convex hull" border="1">
+
+<p>Concave hull around schools:
+<p><img src="concave.png" alt="concave hull" border="1">
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="v.hull.html">v.hull</a>,
+<a href="v.buffer.html">v.buffer,</a>,
+<a href="v.kernel.html">v.kernel</a>
+</em>
+
+<h2>AUTHOR</h2>
+Markus Metz
+
+<p><i>Last changed: $Date$</i>
