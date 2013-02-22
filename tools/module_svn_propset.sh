@@ -38,7 +38,7 @@ set_native_eol()
 
 set_msdos_eol()
 {
-   if [ `svn propget svn:eol-style "$1"` = "native" ] ; then
+   if [ "`svn propget svn:eol-style "$1"`" = "native" ] ; then
       svn propdel svn:eol-style "$1"
    fi
    if [ `svn proplist "$1" | grep -c 'svn:eol-style'` -eq 0 ] ; then
@@ -50,7 +50,7 @@ set_mime_type()
 {
    # remove generic default for images
    if [ `echo "$2" | cut -f1 -d/` = "image" ] ; then
-      if [ `svn propget svn:mime-type "$1"` = "application/octet-stream" ] ; then
+      if [ "`svn propget svn:mime-type "$1"`" = "application/octet-stream" ] ; then
          svn propdel svn:mime-type "$1"
       fi
    fi
@@ -148,7 +148,7 @@ apply_perl_script()
 apply_bat_script()
 {
    # CHECKME: setting as an app/ might stop trac from trying diffs & previews
-   set_mime_type "$1" "application/x-msdos-program"
+   set_mime_type "$1" "text/x-bat"
    set_msdos_eol "$1"
    unset_exe "$1"
 }
