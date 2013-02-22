@@ -160,13 +160,6 @@ apply_C_code()
    unset_exe "$1"
 }
 
-apply_Fortran_code()
-{
-   set_mime_type "$1" text/x-fortran
-   set_native_eol "$1"
-   unset_exe "$1"
-}
-
 apply_C_header()
 {
    set_mime_type "$1" text/x-chdr
@@ -177,6 +170,13 @@ apply_C_header()
 apply_Cpp_code()
 {
    set_mime_type "$1" "text/x-c++src"
+   set_native_eol "$1"
+   unset_exe "$1"
+}
+
+apply_Fortran_code()
+{
+   set_mime_type "$1" text/x-fortran
    set_native_eol "$1"
    unset_exe "$1"
 }
@@ -223,17 +223,17 @@ for FILE in $* ; do
     c)
 	apply_C_code "$FILE"
 	;;
-    f77)
-	apply_Fortran_code "$FILE"
-	;;
-    f90)
-	apply_Fortran_code "$FILE"
-	;;
     h)
 	apply_C_header "$FILE"
 	;;
     cc | cpp)
 	apply_Cpp_code "$FILE"
+	;;
+    f77)
+	apply_Fortran_code "$FILE"
+	;;
+    f90)
+	apply_Fortran_code "$FILE"
 	;;
     py)
 	apply_python_script "$FILE"
@@ -244,6 +244,9 @@ for FILE in $* ; do
     bat)
 	apply_bat_script "$FILE"
 	;;
+    sh)
+	apply_shell_script "$FILE"
+	;;
     html)
 	apply_html "$FILE"
 	;;
@@ -252,9 +255,6 @@ for FILE in $* ; do
 	;;
     gxm)
 	apply_xml "$FILE"
-	;;
-    sh)
-	apply_shell_script "$FILE"
 	;;
     pdf)
 	apply_pdf "$FILE"
