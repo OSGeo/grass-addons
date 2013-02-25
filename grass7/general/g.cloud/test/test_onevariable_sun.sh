@@ -24,8 +24,8 @@ eval `g.region -g`
 horizonsteps=1
 echo "memory in bytes being used by r.sun: `echo \"$rows * $cols * ($IR * 4 + $horizonsteps + $OR * 4)\" | bc `"
 
-r.sun -s $ELEV day=$DOY numpartitions=1 \
-        horizonstep=30 step=0.05 \
-        insol_time=pat_insol_time$D beam_rad=pat_beam_rad$D \
-        diff_rad=pat_diff_rad$D refl_rad=pat_refl_rad$D glob_rad=pat_glob_rad$D
+r.sun $ELEV day=$DOY num_partitions=1 \
+      horizon_step=30 step=0.05 \
+      insol_time=pat_insol_time$D beam_rad=pat_beam_rad$D \
+      diff_rad=pat_diff_rad$D refl_rad=pat_refl_rad$D glob_rad=pat_glob_rad$D
 
