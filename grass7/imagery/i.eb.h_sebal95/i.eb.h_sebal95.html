@@ -94,7 +94,7 @@ settings interactively, using the standard GRASS parser interface.
 
 <h2>NOTES</h2>
 
-<p>Net solar radiation map in MJ/(m2*h) can be computed from the combination of the r.sun , 
+<p>Net solar radiation map in MJ/(m2*h) can be computed from the combination of the <em>r.sun<em>, 
 run in mode 1, and the r.mapcalc commands.
 
 <p>The sum of the three radiation components outputted by r.sun (beam, diffuse, and reflected) 
@@ -103,7 +103,8 @@ clear sky factor [0-1] allows the generation of a map to be used as
 an NSR input for the <em>i.evapo.pm</em> command.
 <br>
 example:
-<br>r.sun -s elevin=dem aspin=aspect slopein=slope lin=2 albedo=alb_Mar incidout=out beam_rad=beam diff_rad=diffuse refl_rad=reflected day=73 time=13:00 dist=100;
+<br>r.sun elev_in=dem asp_in=aspect slope_in=slope lin=2 albedo=alb_Mar \
+    incidout=out beam_rad=beam diff_rad=diffuse refl_rad=reflected day=73 time=13:00 dist=100;
 <br>r.mapcalc 'NSR=0.0036*(beam+diffuse+reflected)';
 
 
