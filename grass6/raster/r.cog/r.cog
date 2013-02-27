@@ -198,8 +198,13 @@ DY=`r.univar -g map="$TMP_MAP.dy" | grep '^mean=' | cut -f2 -d'='`
 # maybe use length along az not simply avg cell res() dist?
 GRASS_VERBOSE=0 \
   r.mapcalc "$TMP_MAP.dz = nsres() * tan($TMP_MAP.slope)"
- 
+
+
+###  the problem here is that slope is always positive, so the dz's
+###   are cumulative instead of cancelling each other out..
+
 DZ=`r.univar -g map="$TMP_MAP.dz" | grep '^mean=' | cut -f2 -d'='`
+#DZ=`r.univar -g map="$TMP_MAP.dz" | grep '^sum=' | cut -f2 -d'='`
 
 eval `g.region -g | grep res`
 RES="$nsres"
