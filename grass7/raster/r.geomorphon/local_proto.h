@@ -146,8 +146,9 @@ int shift_buffers(int row);
 int get_cell(int col, float *buf_row, void *buf, RASTER_MAP_TYPE raster_type);
 int free_map(FCELL ** map, int n);
 int write_form_cat_colors(char *raster, CATCOLORS * ccolors);
+int write_contrast_colors(char *);
 
-/*geom */
+/* geom */
 int calc_pattern(PATTERN * pattern, int row, int cur_row, int col);
 unsigned int ternary_rotate(unsigned int value);
 int determine_form(int num_plus, int num_minus);
@@ -161,6 +162,7 @@ float variance(float *elevation, int n);
 int shape(PATTERN * pattern, int pattern_size, float *azimuth,
 	  float *elongation, float *width);
 float extends(PATTERN * pattern, int pattern_size);
+int radial2cartesian(PATTERN *);
 
 /* multires */
 int reset_multi_patterns(void);
