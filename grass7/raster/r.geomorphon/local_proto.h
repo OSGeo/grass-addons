@@ -1,3 +1,6 @@
+#ifndef __LOCAL_PROTO_H__
+#define __LOCAL_PROTO_H__
+
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -137,7 +140,7 @@ GLOBAL struct Cell_head window;
 GLOBAL int cell_step;
 
 /* main */
-unsigned int global_ternary_codes[6562];
+GLOBAL unsigned int global_ternary_codes[6562];
 
 /* memory */
 int open_map(MAPS * rast);
@@ -171,3 +174,5 @@ int update_pattern(int k, int i,
 		   double zenith_height, double zenith_distance,
 		   double zenith_angle, double nadir_height,
 		   double nadir_distance, double nadir_angle);
+
+#endif
