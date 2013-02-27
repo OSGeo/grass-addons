@@ -1149,8 +1149,10 @@ if (OUT_VMAX){
 		G_fatal_error (_("Could not open <%s>"),OUT_VMAX);
 	if ( (outfd_I_VMAX = Rast_open_new (name7,DCELL_TYPE)) < 0)
 		G_fatal_error (_("Could not open <%s>"),OUT_VMAX);
-	if ( (outfd_DIR_VMAX = Rast_open_new (name8,DCELL_TYPE)) < 0)
-		G_fatal_error (_("Could not open <%s>"),OUT_VMAX);
+	if (flag_d->answer) {
+		if ( (outfd_DIR_VMAX = Rast_open_new (name8,DCELL_TYPE)) < 0)
+			G_fatal_error (_("Could not open <%s>"),OUT_VMAX);
+	}
 }
 if (OUT_IMAX){
 	sprintf(name9,"%s%s",OUT_IMAX,"_time");
