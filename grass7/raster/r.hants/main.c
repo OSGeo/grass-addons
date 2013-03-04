@@ -436,8 +436,8 @@ int main(int argc, char *argv[])
 
 	for (j = 0; j < num_inputs; j++) {
 
-	    int idx = (int) ((i + 1) * (ts[j] - 1)) % bl;
-	    
+	    int idx = (int) ((i + 1) * (ts[j])) % bl;
+
 	    if (idx >= bl)
 		G_fatal_error("cs/sn index out of range: %d, %d", idx, bl);
 
