@@ -2,8 +2,12 @@
 
 # Update wiki installation (git pull)
 
-IKIPATH=/osgeo/grass/grass-wiki
-VERSION=1_20
+WIKIPATH=/osgeo/grass/grass-wiki
+if test -z "$1" ; then
+    VERSION=1_20
+else
+    VERSION=$1
+fi
 
 cd $WIKIPATH
 git branch | grep REL$VERSION | grep '^*'
