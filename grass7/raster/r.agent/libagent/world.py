@@ -26,7 +26,7 @@ class World(object):
     ### theoretical fix penalty value for diagonal walking
     DIAGONAL = sqrt(2)-1
 
-    def __init__(self, agenttype=None, pg=None):
+    def __init__(self, pg=None, agenttype=None):
         """
         Create a World, a place with a playground, where agents meet
         @param type optional, the default agent type for this world

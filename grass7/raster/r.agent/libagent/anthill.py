@@ -26,16 +26,13 @@ class Anthill(world.World):
     COST = "penaltymap"
     RESULT = "pheromap"
 
-    def __init__(self, pg=False):
+    def __init__(self, pg=None):
         """
         Create a world based on the natural laws of the Ant Colony Optimization
         algorithm (plus adaptions honouring the complexity of the raster case).
         """
         # get all attributes from the basic world
-        if pg:
-            super(Anthill, self).__init__(ant.Ant, pg)
-        else:
-            super(Anthill, self).__init__(ant.Ant)
+        super(Anthill, self).__init__(pg, ant.Ant)
         # add the main layers
         ## one containing the points of interest
         self.addlayertopg(Anthill.SITE)

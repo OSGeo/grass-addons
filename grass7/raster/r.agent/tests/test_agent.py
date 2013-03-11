@@ -8,7 +8,7 @@ class TestAgent(unittest.TestCase):
     def setUp(self):
         self.pg = playground.Playground()
         self.pg.setregion(3,3)
-        self.world = world.World(None, self.pg)
+        self.world = world.World(self.pg, None)
         self.world.bear(1, [1,1], agent.Agent)
         self.agent = self.world.agents[0]
 
