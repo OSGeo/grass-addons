@@ -277,23 +277,8 @@ def main():
             options['costmap'], flags['c'],
             options['inputmap'], options['outputmap'], flags['p'])
 
-#    layer = world.importlayer("costs", "raster", options['penaltymap'])
-#    world.costsurface = layer.raster
 #    world.playground.setboundsfromlayer("costs")
 
-#    if options['inputmap']:
-#        layer = world.importlayer("phero", "raster", options['inputmap'])
-#        world.outfilename = options['outputmap']
-#    else:
-#        layer = world.createlayer("phero", "raster", None, options['outputmap'])
-#        world.pherovapour = layer.raster
-
-#    layer = worldimportlayer("holes", "vector", options['sitesmap'])
-#    world.holes = layer.objects
-
-#    world.rounds = int(options['rounds'])
-#    if options['outrounds']:
-#        world.outrounds = int(options['outrounds'])
 #    if options['maxpheromone']:
 #        world.maxpheromone = int(options['maxpheromone'])
 #    if options['minpheromone']:
