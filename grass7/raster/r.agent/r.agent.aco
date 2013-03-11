@@ -279,32 +279,32 @@ def main():
 
 #    world.playground.setboundsfromlayer("costs")
 
-#    if options['maxpheromone']:
-#        world.maxpheromone = int(options['maxpheromone'])
-#    if options['minpheromone']:
-#        world.minpheromone = int(options['minpheromone'])
-#    if options['volatilizationtime']:
-#        world.volatilizationtime = int(options['volatilizationtime'])
-#    if options['stepintensity']:
-#        world.stepintensity = int(options['stepintensity'])
-#    if options['pathintensity']:
-#        world.pathintensity = int(options['pathintensity'])
-#    if options['maxants']:
-#        world.maxants = int(options['maxants'])
-#    if options['antslife']:
-#        world.antslife = int(options['antslife'])
+    if options['maxpheromone']:
+        world.maxpheromone = int(options['maxpheromone'])
+    if options['minpheromone']:
+        world.minpheromone = int(options['minpheromone'])
+    if options['volatilizationtime']:
+        world.volatilizationtime = int(options['volatilizationtime'])
+    if options['stepintensity']:
+        world.stepintensity = int(options['stepintensity'])
+    if options['pathintensity']:
+        world.pathintensity = int(options['pathintensity'])
+    if options['maxants']:
+        world.maxants = int(options['maxants'])
+    if options['antslife']:
+        world.antslife = int(options['antslife'])
 #    if options['decisionalgorithm']:
 #        world.decisionbase = str(options['decisionalgorithm'])
 #    if options['validposition']:
 #        world.validposition = str(options['validposition'])
 #    if options['agentfreedom']:
 #        world.globalfreedom = int(options['agentfreedom'])
-#    if options['pheromoneweight']:
-#        world.pheroweight = int(options['pheromoneweight'])
-#    if options['randomnessweight']:
-#        world.randomweight = int(options['randomnessweight'])
-#    if options['costweight']:
-#        world.costweight = int(options['costweight'])
+    if options['pheromoneweight']:
+        world.pheroweight = int(options['pheromoneweight'])
+    if options['randomnessweight']:
+        world.randomweight = int(options['randomnessweight'])
+    if options['costweight']:
+        world.costweight = int(options['costweight'])
     #if arglist[0] == "stability":
         #TODO ask silvia..
     try:
