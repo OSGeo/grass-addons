@@ -31,11 +31,11 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% required : no
 #%end
 #%flag
-#% key: overwrite
-#% description: Allow overwriting existing pheromone maps (e.g. if in == out)
+#% key: p
+#% description: Allow overwriting existing pheromone maps
 #%end
 #%flag
-#% key: overwritecosts
+#% key: c
 #% description: Overwrite existing cost map (only used with penalty conversion)
 #%end
 #%option
@@ -199,65 +199,134 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% required : yes
 #%end
 
-import sys
-from libagent import error, anthill
+from sys  import exit, maxsize
+from math import sqrt
+from math import exp
+from random import randint
+
+from libagent import error, grassland, anthill
 
 try:
     from grass.script import core as grass
 except ImportError:
     raise error.EnvError("r.agent.aco:", "Please run inside GRASS.")
 
-def main():
-    world = anthill.Anthill()
+world = anthill.Anthill(grassland.Grassland())
 
-    layer = world.importlayer("costs", "raster", options['penaltymap'])
-    world.costsurface = layer.raster
-    world.playground.setboundsfromlayer("costs")
-
-    if options['inputmap']:
-        layer = world.importlayer("phero", "raster", options['inputmap'])
-        world.outfilename = options['outputmap']
+def setmaps(site, cost, wastecosts, inphero, outphero, wastephero):
+    """
+    Set the user maps in place
+    """
+    if site:
+        # set sitemap and site list
+        world.sites = world.playground.parsevectorlayer(anthill.Anthill.SITE,
+                                                        site, True)
     else:
-        layer = world.createlayer("phero", "raster", None, options['outputmap'])
-        world.pherovapour = layer.raster
+        raise error.DataError("aco:", "The site map is mandatory.")
+    if cost:
+        # set cost/penalty layer
+        world.playground.setgrasslayer(anthill.Anthill.COST, cost, True)
+        world.overwritepenalty = wastecosts
+    if inphero == outphero:
+        if not wastephero:
+            raise error.DataError("aco:", "May not overwrite the output map.")
+    if inphero:
+        world.playground.setgrasslayer(anthill.Anthill.RESULT, inphero, True)
+    world.playground.grassmapnames[anthill.Anthill.RESULT] = outphero
+    world.overwritepheormone = wastephero
 
-    layer = world.importlayer("holes", "vector", options['sitesmap'])
-    world.holes = layer.objects
+def letantsdance(rounds, outrounds):
+    """
+    Organize the agents and the pheromone on the playground.
+    """
+    if 0 < outrounds < rounds:
+        # calculate when to write output
+        mainloops = rounds / outrounds
+        nextwrite = outrounds
+    else:
+        # produce output only at the end
+        mainloops = 1
+        nextwrite = rounds
+    while mainloops > 0:
+        # loop and write out the contents at the end
+        loops = nextwrite
+        while loops > 0:
+            # loop without producing output
+            if len(world.agents) < world.maxants:
+                # as there is still space on the pg, produce another ant
+                # at a random site..
+                position = world.sites[randint(0, len(world.sites)-1)]
+                world.bear(world.antslife, position)
+            for ant in world.agents:
+                # let all the ants take action
+                ant.walk()
+            # let the pheromone evaporate
+            world.volatilize()
+            # count down inner
+            loops -= 1
+        # export the value maps
+        world.writeout()
+#        print "nrofpaths:", world.nrop
+        # count down outer
+        mainloops -= 1
+#    print "nrofrounds", nrofrounds
 
-    world.rounds = int(options['rounds'])
-    if options['outrounds']:
-        world.outrounds = int(options['outrounds'])
-    if options['maxpheromone']:
-        world.maxpheromone = int(options['maxpheromone'])
-    if options['minpheromone']:
-        world.minpheromone = int(options['minpheromone'])
-    if options['volatilizationtime']:
-        world.volatilizationtime = int(options['volatilizationtime'])
-    if options['stepintensity']:
-        world.stepintensity = int(options['stepintensity'])
-    if options['pathintensity']:
-        world.pathintensity = int(options['pathintensity'])
-    if options['maxants']:
-        world.maxants = int(options['maxants'])
-    if options['antslife']:
-        world.antslife = int(options['antslife'])
-    if options['decisionalgorithm']:
-        world.decisionbase = str(options['decisionalgorithm'])
-    if options['validposition']:
-        world.validposition = str(options['validposition'])
-    if options['agentfreedom']:
-        world.globalfreedom = int(options['agentfreedom'])
-    if options['pheromoneweight']:
-        world.pheroweight = int(options['pheromoneweight'])
-    if options['randomnessweight']:
-        world.randomweight = int(options['randomnessweight'])
-    if options['costweight']:
-        world.costweight = int(options['costweight'])
+def main():
+
+    setmaps(options['sitesmap'],
+            options['costmap'], flags['c'],
+            options['inputmap'], options['outputmap'], flags['p'])
+
+#    layer = world.importlayer("costs", "raster", options['penaltymap'])
+#    world.costsurface = layer.raster
+#    world.playground.setboundsfromlayer("costs")
+
+#    if options['inputmap']:
+#        layer = world.importlayer("phero", "raster", options['inputmap'])
+#        world.outfilename = options['outputmap']
+#    else:
+#        layer = world.createlayer("phero", "raster", None, options['outputmap'])
+#        world.pherovapour = layer.raster
+
+#    layer = worldimportlayer("holes", "vector", options['sitesmap'])
+#    world.holes = layer.objects
+
+#    world.rounds = int(options['rounds'])
+#    if options['outrounds']:
+#        world.outrounds = int(options['outrounds'])
+#    if options['maxpheromone']:
+#        world.maxpheromone = int(options['maxpheromone'])
+#    if options['minpheromone']:
+#        world.minpheromone = int(options['minpheromone'])
+#    if options['volatilizationtime']:
+#        world.volatilizationtime = int(options['volatilizationtime'])
+#    if options['stepintensity']:
+#        world.stepintensity = int(options['stepintensity'])
+#    if options['pathintensity']:
+#        world.pathintensity = int(options['pathintensity'])
+#    if options['maxants']:
+#        world.maxants = int(options['maxants'])
+#    if options['antslife']:
+#        world.antslife = int(options['antslife'])
+#    if options['decisionalgorithm']:
+#        world.decisionbase = str(options['decisionalgorithm'])
+#    if options['validposition']:
+#        world.validposition = str(options['validposition'])
+#    if options['agentfreedom']:
+#        world.globalfreedom = int(options['agentfreedom'])
+#    if options['pheromoneweight']:
+#        world.pheroweight = int(options['pheromoneweight'])
+#    if options['randomnessweight']:
+#        world.randomweight = int(options['randomnessweight'])
+#    if options['costweight']:
+#        world.costweight = int(options['costweight'])
     #if arglist[0] == "stability":
         #TODO ask silvia..
     try:
-        world.checkvalues()
-        world.letantsdance()
+#        world.checkvalues()
+        if not options['outrounds']:
+            options['outrounds'] = 0
+#        letantsdance(int(options['rounds']), int(options['outrounds']))
         grass.message("FINISH")
     except error.DataError:
         grass.fatal_error("Failed to parse args..")
