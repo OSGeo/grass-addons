@@ -10,8 +10,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-from libagent import error
-from libagent import anthill
+from libagent import error, grassland, anthill
 
 from sys import maxsize
 from math import sqrt
@@ -22,11 +21,30 @@ from random import randint
 rounds = 0
 outrounds = 0
 
-# take out a subscription to a world
-world = anthill.Anthill()
+# take out a subscription for a playground to a world
+world = anthill.Anthill(grassland.Grassland())
 
-def set_maps(site, cost, result):
-    pass
+def setmaps(site, cost, wastecosts, inphero, outphero, wastephero):
+    """
+    Set the user maps in place
+    """
+    if site:
+        # set sitemap and site list
+        world.sites = world.playground.parsevectorlayer(anthill.Anthill.SITE,
+                                                        site, True)
+    else:
+        raise error.DataError("aco:", "The site map is mandatory.")
+    if cost:
+        # set cost/penalty layer
+        world.playground.setgrasslayer(anthill.Anthill.COST, cost, True)
+        world.overwritepenalty = wastecosts
+    if inphero == outphero:
+        if not wastephero:
+            raise error.DataError("aco:", "May not overwrite the output map.")
+    if inphero:
+        world.playground.setgrasslayer(anthill.Anthill.RESULT, inphero, True)
+    world.playground.grassmapnames[anthill.Anthill.RESULT] = outphero
+    world.overwritepheormone = wastephero
 
 def letantsdance(self):
     """

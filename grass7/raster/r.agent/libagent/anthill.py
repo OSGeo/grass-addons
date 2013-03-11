@@ -9,9 +9,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-import error
-import world
-import ant
+import error, world, ant
 
 from sys import maxsize
 from math import sqrt
@@ -28,13 +26,16 @@ class Anthill(world.World):
     COST = "penaltymap"
     RESULT = "pheromap"
 
-    def __init__(self):
+    def __init__(self, pg=False):
         """
         Create a world based on the natural laws of the Ant Colony Optimization
         algorithm (plus adaptions honouring the complexity of the raster case).
         """
         # get all attributes from the basic world
-        super(Anthill, self).__init__(ant.Ant)
+        if pg:
+            super(Anthill, self).__init__(ant.Ant, pg)
+        else:
+            super(Anthill, self).__init__(ant.Ant)
         # add the main layers
         ## one containing the points of interest
         self.addlayertopg(Anthill.SITE)
