@@ -6,10 +6,10 @@ from libagent import playground, grassland
 import grass.script as grass
 from grass.script import array as garray
 
-class TestGrassLand(unittest.TestCase):
+class TestGrassland(unittest.TestCase):
     def setUp(self):
         self.layername = "r.agent.testmap"
-        self.pg = grassland.GrassLand()
+        self.pg = grassland.Grassland()
 
     def test_getregion(self):
         self.assertIsNotNone(self.pg.getregion())
@@ -85,6 +85,9 @@ class TestGrassLand(unittest.TestCase):
         self.assertFalse(self.pg.grassmapnames.has_key("foo"))
 
     def test_writelayer(self):
+        pass
+
+    def test_parsegrasslayer(self):
         pass
 
 #    def tearDown(self):

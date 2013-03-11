@@ -13,7 +13,7 @@ import playground
 import grass.script as grass
 from grass.script import array as garray
 
-class GrassLand(playground.Playground):
+class Grassland(playground.Playground):
     """A GrassLand is a Playground and the interface to GRASS."""
 
     def __init__(self):
@@ -73,4 +73,8 @@ class GrassLand(playground.Playground):
                 force="force"
             self.layers[layername].write(self.grassmapnames[layername],
                                                         overwrite=force)
+
+    def parsevectorlayer(self, layername, grassmapname=False, force=False):
+#TODO
+        return []
 
