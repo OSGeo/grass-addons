@@ -75,52 +75,10 @@ class Anthill(world.World):
 #TODO        self.decisionbase = "default"
 #TODO        self.rememberbase = "default"
 
-    def letantsdance(self):
-        """
-        Organize the agents and the pheromone on the playground.
-        """
-        if 0 < self.outrounds < self.rounds:
-            # calculate when to write output
-            mainloops = self.rounds / self.outrounds
-            nextwrite = self.outrounds
-        else:
-            # produce output only at the end
-            mainloops = 1
-            nextwrite = self.rounds
-        while mainloops > 0:
-            # loop and write out the contents at the end
-            loops = nextwrite
-            while loops > 0:
-                # loop without producing output
-                if len(self.agents) < self.maxants:
-                    # as there is still space on the pg, produce another ant
-                    # at a random site..
-                    position = self.sites[randint(0, len(self.sites)-1)]
-                    self.bear(self.antslife, position)
-                for ant in self.agents:
-                    # let all the ants take action
-                    ant.walk()
-                # let the pheromone evaporate
-                self.volatilize()
-                # count down inner
-                loops -= 1
-            # export the value maps
-            self.writeout()
-#            print "nrofpaths:", self.nrop
-            # count down outer
-            mainloops -= 1
-#        print "nrofrounds", nrofrounds
-
     def volatilize(self):
         """
         Let the pheromone evaporate over time.
         """
         self.playground.decaycellvalues(Anthill.RESULT, self.volatilizationtime,
                                             self.minpheromone)
-
-    def writeout(self):
-        """
-        Write the results back onto the maps.
-        """
-        pass
 
