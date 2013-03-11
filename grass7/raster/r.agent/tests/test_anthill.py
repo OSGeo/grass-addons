@@ -2,11 +2,11 @@
 import unittest2 as unittest
 #import unittest
 
-from libagent import aco
+from libagent import anthill
 
-class TestACO(unittest.TestCase):
+class TestAnthill(unittest.TestCase):
     def setUp(self):
-        self.world = aco.ACO()
+        self.world = anthill.Anthill()
 
     def test_addlayertopg(self):
         # gets tested in World
@@ -38,9 +38,6 @@ class TestACO(unittest.TestCase):
 
     def test_kill(self):
         # gets tested in World
-        pass
-
-    def letantsdance(self):
         pass
 
     def volatilize(self):

@@ -200,7 +200,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #%end
 
 import sys
-from libagent import error, aco
+from libagent import error, anthill
 
 try:
     from grass.script import core as grass
@@ -208,7 +208,7 @@ except ImportError:
     raise error.EnvError("r.agent.aco:", "Please run inside GRASS.")
 
 def main():
-    world = aco.ACO()
+    world = anthill.Anthill()
 
     layer = world.importlayer("costs", "raster", options['penaltymap'])
     world.costsurface = layer.raster

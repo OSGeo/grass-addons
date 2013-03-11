@@ -18,7 +18,7 @@ from math import sqrt
 from math import exp
 from random import randint
 
-class ACO(world.World):
+class Anthill(world.World):
     """
     World class for using the Ant Colony Optimization Algorithm for
     modelling Agent Based worlds.
@@ -34,25 +34,21 @@ class ACO(world.World):
         algorithm (plus adaptions honouring the complexity of the raster case).
         """
         # get all attributes from the basic world
-        super(ACO, self).__init__(ant.Ant)
+        super(Anthill, self).__init__(ant.Ant)
         # add the main layers
         ## one containing the points of interest
-        self.addlayertopg(ACO.SITE)
+        self.addlayertopg(Anthill.SITE)
         ## one containing the time cost for traversing cells
-        self.addlayertopg(ACO.COST)
+        self.addlayertopg(Anthill.COST)
         ## allow overwriting the cost map
         self.overwritepenalty = False
         ## and finally the markings from the agents
-        self.addlayertopg(ACO.RESULT)
+        self.addlayertopg(Anthill.RESULT)
         ## allow overwriting the main map (if it exists)
         self.overwritepheormone = False
         # list of the points of origin / sites
         self.sites = []
         # default values
-        ## how many rounds to go
-        self.rounds = 0
-        ## when to produce output
-        self.outrounds = 0
         ## let ant die if penalty grows too big
         self.maxpenalty = 0
         ## max/min possible value of pheromone intensity
@@ -119,7 +115,7 @@ class ACO(world.World):
         """
         Let the pheromone evaporate over time.
         """
-        self.playground.decaycellvalues(ACO.RESULT, self.volatilizationtime,
+        self.playground.decaycellvalues(Anthill.RESULT, self.volatilizationtime,
                                             self.minpheromone)
 
     def writeout(self):

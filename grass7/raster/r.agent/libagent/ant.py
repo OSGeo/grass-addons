@@ -14,11 +14,11 @@ import agent
 import error
 
 class Ant(agent.Agent):
-    """Implementation of an Ant Agent for an ACO kind of World."""
+    """Implementation of an Ant Agent for an Anthill, an ACO kind of World."""
 
     def __init__(self, timetolive, world, position):
         """
-        Create an Agent for an ACO World
+        Create an Agent for an Anthill World
         @param int time to live
         @param World the agent knows the worlds he lives in
         @param list coordinate of the current position
