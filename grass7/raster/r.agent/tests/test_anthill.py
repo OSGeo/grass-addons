@@ -43,8 +43,5 @@ class TestAnthill(unittest.TestCase):
     def volatilize(self):
         pass
 
-    def writeout(self):
-        pass
-
 #    def tearDown(self):
 
