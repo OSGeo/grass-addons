@@ -15,12 +15,12 @@ if [ "$revl" != "$revr" ] || [ "$1" = "f" ] ; then
     cd tools/addons/ 
     ./compile-xml.sh
     for version in 6 7 ; do
-	cd $HOME/.grass${version}/addons/
-	cp modules.xml $WWWDIR/grass${version}/
-	rsync -ag --delete logs $WWWDIR/grass${version}/
+    	cd $HOME/.grass${version}/addons/
+    	cp modules.xml $WWWDIR/grass${version}/
+    	rsync -ag --delete logs $WWWDIR/grass${version}/
+    	cd $WWWDIR/grass${version}/logs
+    	ln -sf ALL.html index.html
     done
-else
-    echo "$revl X $revr -> nothing to do"
 fi
 }
 
@@ -31,7 +31,7 @@ recompile_grass() {
 	cd $gdir
 	svn up
 	make distclean
-	if [ $gdir == "grass_trunk" ] ; then 
+	if [ $gdir = "grass_trunk" ] ; then 
 	    num=7
 	else
 	    num=6
@@ -42,7 +42,9 @@ recompile_grass() {
     done
 }
 
-if [ "$2" = "c" ] || [ "$1" = "c" ] ; then
+export GRASS_SKIP_MAPSET_OWNER_CHECK="1"
+
+if [ "$1" = "c" ] || [ "$2" = "c" ] ; then
     recompile_grass
 fi
 
