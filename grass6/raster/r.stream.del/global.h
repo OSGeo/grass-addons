@@ -43,7 +43,7 @@ GLOBAL CELL **dirs, **streams; /* matrix with input data streams is used as outp
 
 GLOBAL int nrows, ncols; 
 
-SPRING *springs;
+GLOBAL SPRING *springs;
 
 GLOBAL struct History history;	/* holds meta-data (title, comments,..) */
 

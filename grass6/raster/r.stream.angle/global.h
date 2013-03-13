@@ -132,10 +132,10 @@ int do_decision(SEGMENTS *segments);
 GLOBAL struct Cell_head window;
 GLOBAL char *in_dirs, *in_streams, *in_elev;	/* input dirrection and accumulation raster names */
 
-char *out_vector;
-char *out_table_rels;
+GLOBAL char *out_vector;
+GLOBAL char *out_table_rels;
 
-struct Map_info Out;
+GLOBAL struct Map_info Out;
 
 GLOBAL int seg_length;
 GLOBAL int seg_outlet;
@@ -158,12 +158,12 @@ GLOBAL SEGMENTS *seg_horton;
 GLOBAL SEGMENTS *seg_hack;
 */
 
-int *springs, *outlets;
-int springs_num, outlets_num;
-int stream_num;
+GLOBAL int *springs, *outlets;
+GLOBAL int springs_num, outlets_num;
+GLOBAL int stream_num;
 
-struct line_pnts *Segments;
-struct line_cats *Cats;
+GLOBAL struct line_pnts *Segments;
+GLOBAL struct line_cats *Cats;
 
 
 

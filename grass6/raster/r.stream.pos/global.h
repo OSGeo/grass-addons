@@ -68,7 +68,7 @@ GLOBAL struct Cell_head window;
 GLOBAL char *in_dirs, *in_streams, *out_streams, *out_streams_length;	/* input dirrection and accumulation raster names */
 GLOBAL int seq_cats;
 GLOBAL int multipier;
-int stream_num;
+GLOBAL int stream_num;
 
 GLOBAL CELL **dirs, **streams;	/* matrix with input data */
 GLOBAL FCELL **streams_length;
