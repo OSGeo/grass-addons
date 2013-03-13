@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       i.rotate
@@ -6,23 +5,25 @@
  * PURPOSE:      Calculates an arbitrary rotation of the image from the 
  * 		 center of the computing window
  *
- * COPYRIGHT:    (C) 2002-2012 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2012 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
  *   	    	 for details.
  *
  *****************************************************************************/
-     
+
+#include <grass/config.h>     
     
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/gprojects.h>
 #include <grass/glocale.h>
-#include <math.h>
 
 
 double** ad2d(int X, int Y) {
