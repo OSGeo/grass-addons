@@ -107,15 +107,15 @@ GLOBAL FCELL**elevation;
 
 GLOBAL int nrows, ncols; 
 
-POINT *fifo_outlet;
-int tail, head;
-int fifo_max;
+GLOBAL POINT *fifo_outlet;
+GLOBAL int tail, head;
+GLOBAL int fifo_max;
 	
 GLOBAL int outlets_num; /* number outlets: index for stream statistics*/
-STREAM *stat_streams;
-STATS *ord_stats;
-STATS stats_total;
-int order_max;
+GLOBAL STREAM *stat_streams;
+GLOBAL STATS *ord_stats;
+GLOBAL STATS stats_total;
+GLOBAL int order_max;
 
 GLOBAL struct History history;	/* holds meta-data (title, comments,..) */
 GLOBAL struct Cell_head window;
