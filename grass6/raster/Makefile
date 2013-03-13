@@ -1,8 +1,6 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
-	LandDyn \
-	mcda \
 	r.area \
 	r.basin	\
 	r.broscoe \
@@ -32,6 +30,11 @@ SUBDIRS = \
 	r.in.xyz.auto \
 	r.ipso \
 	r.isoregions \
+	r.mcda.ahp \
+	r.mcda.electre\
+	r.mcda.fuzzy \
+	r.mcda.regime \
+	r.mcda.roughset \
 	r.maxent.lambdas \
 	r.out.gmap \
 	r.out.gmt \
