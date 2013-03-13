@@ -22,7 +22,9 @@ import wx
 
 
 from api_test           import MySingleMapFrame
-from core.render        import MapLayer        
+from api_test       import ToolBarNames
+from render2        import MapLayer      
+from lmgr.toolbars         import LMWorkspaceToolbar  
 class MyFrame(MySingleMapFrame):
     """!main frame
     """
@@ -42,10 +44,18 @@ class MyFrame(MySingleMapFrame):
         self.cmd =["d.rast", "map=aspect@PERMANENT"]
         self.rlayer = MapLayer(ltype = 'raster', cmd = self.cmd, Map = self.GetMap(), name = "elevation")
         self.AddLayer(self.rlayer)
+        #LMWorkspaceToolbar(self)
+        self.CreateWxToolBar()
+        self.AddToolBarItem(ToolBarNames.NEWDISPLAY, self.dummyfunc)
+        self.AddToolBarItem(ToolBarNames.WORKSPACENEW,self.dummyfunc)
+        self.AddToolBarItem(ToolBarNames.ADDRASTER,self.dummyfunc)
+        self.AddToolBarItem(ToolBarNames.ADDVECTOR,self.dummyfunc)
         #print self.GetLayerByIndex(0).name
         #print self.GetCurrentIndex()
         
-       
+    def dummyfunc(self,event):
+        xx =1
+        print xx       
 
 def main():
 

@@ -38,13 +38,21 @@ from mapwindow  import BufferedWindow2
 from gui_core.mapdisp   import MapFrameBase
 import gettext
 import core.render as render
-from core.render        import Map, MapLayer
+from render2        import Map, MapLayer
 from core.gcmd          import RunCommand, GMessage
 from core.debug          import Debug
-from lmgr.lmgr_layertree import LMIcons
+from lmgr.layertree import LMIcons
 from gui_core.toolbars   import BaseIcons
 from icons.icon          import MetaIcon
 from core.utils          import GetLayerNameFromCmd
+
+class ToolBarNames:
+    NEWDISPLAY = { "monitor-create" :   [wx.NewId(),     _('Start new map display')] }
+    WORKSPACENEW = { "create" :         [wx.NewId(),     _('Create new workspace (Ctrl+N)')] }
+    WORKSPACEOPEN ={ "open" :           [wx.NewId(),     _('Open existing workspace file (Ctrl+O')] }
+    WORKSPACESAVE ={ "save" :           [wx.NewId(),     _('Save current workspace to file (Ctrl+S)')] }
+    ADDRASTER = { "layer-raster-add" :  [wx.NewId(),     _("Add raster map layer")] }
+    ADDVECTOR = { "layer-vector-add" :  [wx.NewId(),     _("Add vector map layer")] }    
 
 
 class MySingleMapFrame(MapFrameBase):
@@ -82,25 +90,43 @@ class MySingleMapFrame(MapFrameBase):
 
         vbox = wx.BoxSizer(wx.HORIZONTAL)
         p = wx.Panel(self,-1)
-        
 
-      
 
         #self.ltree = LayerTree(self, self.Map)
 
         #
         # initialize region values
         #
+     
         self._initMap(Map = self.Map)
         
         self._lmgr = LayerManager(p,self.Map)
         
         self.MapWindow = BufferedWindow2(p, giface = giface, id = id, Map = self.Map)
+        
+        self.toolbar = None
 
         vbox.Add(self._lmgr, 1, wx.EXPAND | wx.ALL, 20)
         vbox.Add(self.MapWindow, 1, wx.EXPAND | wx.ALL, 20)
         p.SetSizer(vbox)  
         
+    def CreateWxToolBar(self):
+        self.toolbar = self.CreateToolBar()
+        
+    def AddToolBarItem(self, tname, func):
+        if self.toolbar is None:
+            raise "ToolBar not created"
+        label = tname.keys()[0]
+        
+        tid = tname.values()[0][0]
+        tooltip = tname.values()[0][1]
+        
+        self.toolbar.AddLabelTool(tid, label, self.GetIcon(label), shortHelp = tooltip)
+        wx.EVT_TOOL( self, tid, func )
+
+    def GetIcon(self, tname):
+        return MetaIcon(img = tname).GetBitmap()  
+
 
     def GetLayerByIndex(self, index):
         return self.GetLayerManager().GetLayerByIndex(index)
