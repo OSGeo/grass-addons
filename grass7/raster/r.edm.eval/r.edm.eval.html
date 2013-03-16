@@ -1,0 +1,13 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.edm.eval</em> Environmental distribution model evaluation script. This addon is a GRASS GIS wrapper for a R script. The script evaluates how well a modeled distribution map predicts an observed distribution map. The observed distribution map should be a binary map, with 1 for presence and 0 for absence. The modeled distribution normally contains probability scores between 0 and 1, but it will work on other scales too.
+
+<p>The function returns a table with the number of true positives, true negatives (TN), false positive (FP) and false negative (FN) values. It uses this values to compute the receiver operating characteristic (ROC) curve and optionally saves it as svg or png file. It furthermore computes a number of evaluation statistics, including the maximum kappa statistics and the spec.sens (maximum sum of the specificity and sensitivity values). For both the threshold values at which these values were found are provided as well as plotted in the ROC graph. 
+
+
+<h2>NOTES</h2>
+the scripts bins the EDM values. It does this by calculating the 1/200 quantiles. With very large outliers in your EDM values, this may give erreneous values (underestimates) of your statistics.
+
+<h2>AUTHOR</h2>
+Paulo van Breugel <paulo at ecodiv.org>
+
