@@ -2,7 +2,7 @@
 import unittest2 as unittest
 #import unittest
 
-from libagent import playground, grassland
+from libagent import error, playground, grassland
 import grass.script as grass
 from grass.script import array as garray
 
@@ -46,24 +46,24 @@ class TestGrassland(unittest.TestCase):
 
     def test_setgrasslayer(self):
         # only do this test, if self.layername is set
-#        if self.layername:
-#            layer = garray.array()
-#            retval = layer.write(self.layername)
-#            if retval == 1:
-#                print "We need a file to play with in this test, but it"
-#                print "seems to exist already: '" + self.layername + "'"
-#                self.assertTrue(False)
-#            self.pg.setgrasslayer(self.layername, self.layername)
-#                print "GRASS map layer is already set.."
-#            self.pg.setgrasslayer(self.layername, self.layername)
-#                print "GRASS map layer was set but no error occured"
-#            if not ( self.layers.has_key(self.layername) and \
-#                        self.grassmapnames.has_key(self.layername) ):
-#                print "GRASS map layer was set but seems missing"
-#                self.assertTrue(False)
-#            self.pg.setgrasslayer(self.layername, self.layername, True)
-#            cleanup..
-        pass
+        if self.layername:
+            layer = garray.array()
+            if grass.find_file(self.layername)['file']:
+                print "We need a file to play with in this test, but it"
+                print "seems to exist already: '" + self.layername + "'"
+                # show error if arrived here
+                self.assertTrue(False)
+            # set the layer
+            self.pg.setgrasslayer(self.layername, self.layername)
+            # test if it fails the second time
+            self.assertRaises(error.Error, self.pg.setgrasslayer,
+                                    *[self.layername, self.layername])
+            if not ( self.pg.layers.has_key(self.layername) and \
+                        self.pg.grassmapnames.has_key(self.layername) ):
+                print "GRASS map layer was set but seems missing"
+                self.assertTrue(False)
+            # set it once more, this time forcing it
+            self.pg.setgrasslayer(self.layername, self.layername, True)
 
     def test_createlayer(self):
         self.pg.createlayer("foo", "foo")
@@ -85,11 +85,15 @@ class TestGrassland(unittest.TestCase):
         self.assertFalse(self.pg.grassmapnames.has_key("foo"))
 
     def test_writelayer(self):
+        if self.layername:
+            layer = garray.array()
         pass
 
     def test_parsegrasslayer(self):
+        # grass.vector_db_select('sites')
         pass
 
-#    def tearDown(self):
-
+    def tearDown(self):
+        if self.layername:
+            grass.try_remove(grass.find_file(self.layername)['file'])
 
