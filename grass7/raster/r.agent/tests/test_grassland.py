@@ -87,6 +87,7 @@ class TestGrassland(unittest.TestCase):
     def test_writelayer(self):
         if self.layername:
             layer = garray.array()
+# TODO
         pass
 
     def test_parsegrasslayer(self):
@@ -95,5 +96,6 @@ class TestGrassland(unittest.TestCase):
 
     def tearDown(self):
         if self.layername:
-            grass.try_remove(grass.find_file(self.layername)['file'])
+            grass.try_remove(grass.find_file(name = self.layername,
+                                             element = 'cell')['file'])
 
