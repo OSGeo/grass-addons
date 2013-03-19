@@ -8,7 +8,9 @@ from grass.script import array as garray
 
 class TestGrassland(unittest.TestCase):
     def setUp(self):
-        self.layername = "r.agent.testmap"
+        # TODO check if there is a nicer way to do this..
+        self.layername = "r.agent.cell.testmap"
+        self.vlayername = "r.agent.vector.testmap"
         self.pg = grassland.Grassland()
 
     def test_getregion(self):
@@ -92,11 +94,20 @@ class TestGrassland(unittest.TestCase):
         pass
 
     def test_parsegrasslayer(self):
-        # grass.vector_db_select('sites')
-        pass
+        if self.vlayername:
+            if grass.find_file(name = self.vlayername,
+                               element = 'vector')['file']:
+                print "We need a file to play with in this test, but it"
+                print "seems to exist already: '" + self.vlayername + "'"
+                # show error if arrived here
+                self.assertTrue(False)
+            #TODO find a way to write vector files..
 
     def tearDown(self):
         if self.layername:
             grass.try_remove(grass.find_file(name = self.layername,
                                              element = 'cell')['file'])
+        if self.vlayername:
+            grass.try_remove(grass.find_file(name = self.vlayername,
+                                             element = 'vector')['file'])
 

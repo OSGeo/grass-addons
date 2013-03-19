@@ -74,7 +74,25 @@ class Grassland(playground.Playground):
             self.layers[layername].write(self.grassmapnames[layername],
                                                         overwrite=force)
 
-    def parsevectorlayer(self, layername, grassmapname=False, force=False):
-#TODO
-        return []
+    def parsevectorlayer(self, layername, grassmapname, value=1, force=False):
+        """
+        Take point information from a vector layer, mark them on the
+        layer specified and return them as a list
+        @param string name of the layer to be exported
+        @param string name of the GRASS map file to be created
+        @param int value to be set
+        @param boolean optional, whether an existing file may be overwritten
+        """
+        vectors = []
+        if grass.find_file(name = grassmapname, element = 'vector')['file']:
+            layer = grass.vector_db_select(grassmapname)['values']
+            # TODO only points are supported, ask some expert how to test this
+            # TODO indexing seems to start at "1".. verify!
+            for v in layer.values():
+                if len(v) == 4 and v[0] == v[3]:
+                    x = ( v[1] - self.region["s"] ) / self.region["ewres"]
+                    y = ( v[1] - self.region["s"] ) / self.region["nsres"]
+                    vectors.append([x, y])
+                    self.layers[layername][y][x] = value
+        return vectors
 
