@@ -74,6 +74,15 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% required : no
 #%end
 #%option
+#TODO evaluate..
+#% key: targetvisibility
+#% type: integer
+#% gisprompt: number
+#% description: Distance to target from where it might be 'sensed'
+#% options: 0-999999
+#% required : no
+#%end
+#%option
 #% key: highcostlimit
 #% type: integer
 #% gisprompt: number
