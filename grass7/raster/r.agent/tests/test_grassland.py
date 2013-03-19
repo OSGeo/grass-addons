@@ -48,7 +48,8 @@ class TestGrassland(unittest.TestCase):
         # only do this test, if self.layername is set
         if self.layername:
             layer = garray.array()
-            if grass.find_file(self.layername)['file']:
+            if grass.find_file(name = self.layername,
+                               element = 'cell')['file']:
                 print "We need a file to play with in this test, but it"
                 print "seems to exist already: '" + self.layername + "'"
                 # show error if arrived here
