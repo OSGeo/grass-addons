@@ -31,7 +31,7 @@
 ########################################################################
 #
 #%Module 
-#% description: Computes multivariate environmental similarity surface
+#% description: Computes evaluation statistics of an environmental distribution model, based on a layer with observed and a layer with predicted values
 #%End 
 
 #%option
