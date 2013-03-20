@@ -22,6 +22,13 @@
 #% required: yes
 #%end
 #%option
+#% key: stop_points
+#% type: string
+#% gisprompt: old,vector, vector
+#% description: stop point vector for r.cost
+#% required: no
+#%end
+#%option
 #% key: output
 #% type: string
 #% gisprompt: new,cell,raster
@@ -87,6 +94,7 @@ def main():
 	# Defining variables
 	input_map = options['input']
 	distance = options['distance']
+	stop_points = options['stop_points']
 	if options['output']:
 		output_map = str(options['output'])
 	else:
@@ -135,13 +143,23 @@ def main():
 
 		
 		# creating "focal distance mask" (using r.cost with a specified distance as input)
-		grass.run_command("r.cost",
-					flags = 'n',
-					overwrite = True,
-					max_cost = distance,
-					input = "tmp"+str(os.getpid()),
-					output = "distance_mask"+str(os.getpid()),
-					coordinate = coors)
+		if options['stop_points']:
+			grass.run_command("r.cost",
+						flags = 'n',
+						overwrite = True,
+						max_cost = distance,
+						stop_points = stop_points,
+						input = "tmp"+str(os.getpid()),
+						output = "distance_mask"+str(os.getpid()),
+						coordinate = coors)
+		else:			
+			grass.run_command("r.cost",
+						flags = 'n',
+						overwrite = True,
+						max_cost = distance,
+						input = "tmp"+str(os.getpid()),
+						output = "distance_mask"+str(os.getpid()),
+						coordinate = coors)
 			
 		# creating "masked map" based on input
 		grass.mapcalc("$masked_map= if(!isnull($distance_mask),$input_map,null())",
