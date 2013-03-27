@@ -8,7 +8,6 @@ SUBDIRS = \
 	gui \
 	HydroFOSS \
 	imagery \
-	IPCC \
 	misc \
 	ossim_grass \
 	postscript \
