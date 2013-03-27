@@ -34,9 +34,10 @@ class Grassland(playground.Playground):
         """
         layer = garray.array()
         # fill the new grass array with the contents from the file
-        layer.read(grassmapname)
-        self.grassmapnames[layername] = grassmapname
-        self.setlayer(layername, layer, force)
+        if grassmapname in grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
+            layer.read(grassmapname)
+            self.grassmapnames[layername] = grassmapname
+            self.setlayer(layername, layer, force)
 
     def createlayer(self, layername, grassmapname=False, force=False):
         """
