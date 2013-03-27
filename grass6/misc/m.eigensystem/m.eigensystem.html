@@ -1,37 +1,10 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS: m.eigensystem</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-
-<em><b>m.eigensystem</b></em>  - Computes eigen values and eigen vectors
-for square matricies.
-
-<br>
-
-<em>(GRASS Data Import/Processing Program)</em>
-
-<h2>SYNOPSIS</h2>
-
-<b>m.eigensystem &lt; </b><em>inputfile </em>
-
 <h2>DESCRIPTION</h2>
 
 <em>m.eigensystem</em>
 determines the eigen values and eigen vectors for square matricies.
-The
-<em>inputfile</em>
-must have the following format:
-the first line contains an integer K
-which is the number of rows and columns in the matrix;
-the remainder of the file is the matrix, i.e.,
+The <em>inputfile</em> must have the following format:
+the first line contains an integer K which is the number of rows and
+columns in the matrix; the remainder of the file is the matrix, i.e.,
 K lines, each containing K real numbers.
 
 For example:<br>
@@ -43,7 +16,6 @@ maps spot.ms.1, spot.ms.2, and spot.ms.3)</I>
           462.876649   480.411218   281.758307
           480.411218   513.015646   278.914813
           281.758307   278.914813   336.326645
-
 </pre>
 <p>
 
@@ -56,7 +28,6 @@ The output will be K groups of lines;  each group will have the format:
                    ... K lines ...
           W   real part imaginary part
                    ... K lines ...
-
 </pre>
 
 The
@@ -119,9 +90,7 @@ The relative importance of the eigen value (E) is the ratio (percentage)
 of the eigen value to the sum of the eigen values.  Note that the output
 is not sorted by relative importance.
 
-
 <p>
-
 In general, the solution to the eigen system results in complex
 numbers (with both real and imaginary parts).  However, in the example
 above, since the input matrix is symmetric (i.e., inverting the rows and columns
@@ -131,7 +100,6 @@ This fact makes it possible to use eigen vectors to perform principle component
 transformation of data sets.  The covariance or correlation
 matrix of any data set is symmetric
 and thus has only real eigen values and vectors.
-
 
 <h2>PRINCIPLE COMPONENTS</h2>
 
@@ -146,24 +114,20 @@ to form the desired components.
 For example, to get the eigen vectors for 3 layers:
 
 <div class="code"><pre>
-   <b>(echo 3; r.covar map.1,map.2,map.3) | m.eigensystem</b>
+(echo 3; r.covar map.1,map.2,map.3) | m.eigensystem
 </pre></div>
 
 Note that since m.covar only outputs the matrix, we must manually prepend
 the matrix size (3) using the echo command.
 
-
 <p>
-
 Then, using the W vector, new maps are created:
 
-
 <div class="code"><pre>
-   <b>r.mapcalc</b> 'pc.1 = 21.2395*map.1 + 22.1470*map.2 + 14.7696*map.3'
-   <b>r.mapcalc</b> 'pc.2 =  2.9083*map.1 +  4.4599*map.2  - 10.8699*map.3'
-   <b>r.mapcalc</b> 'pc.3 =  1.8175*map.1  -  1.6232*map.2 -  0.1797*map.3'
+r.mapcalc "pc.1 = 21.2395*map.1 + 22.1470*map.2 + 14.7696*map.3"
+r.mapcalc "pc.2 =  2.9083*map.1 +  4.4599*map.2 - 10.8699*map.3"
+r.mapcalc "pc.3 =  1.8175*map.1 -  1.6232*map.2 -  0.1797*map.3"
 </pre></div>
-
 
 <h2>NOTES</h2>
 
@@ -194,5 +158,3 @@ The interface was coded by Michael Shapiro, U.S.Army Construction Engineering
 
 <p>
 <i>Last changed: $Date$</i>
-</body>
-</html>

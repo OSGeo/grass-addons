@@ -1,84 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: r.out.maxent_swd</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>r.out.maxent_swd</b></em>  - Exports map data as input to MaxEnt in SWD format
-<h2>KEYWORDS</h2>
-raster, MaxEnt, species distribution modelling
-<h2>SYNOPSIS</h2>
-<b>r.out.maxent_swd</b><br>
-<b>r.out.maxent_swd help</b><br>
-<b>r.out.maxent_swd</b> [-<b>bz</b>]  [<b>alias_input</b>=<em>string</em>]   [<b>evp_maps</b>=<em>string</em>[,<i>string</i>,...]]   [<b>alias_names</b>=<em>string</em>]   [<b>alias_output</b>=<em>string</em>]   [<b>bgr_output</b>=<em>string</em>]   [<b>bgr_mask</b>=<em>string</em>]   [<b>specie_mask</b>=<em>string</em>[,<i>string</i>,...]]   [<b>specie_output</b>=<em>string</em>]   [<b>specie_name</b>=<em>string</em>]   [<b>nv</b>=<em>integer</em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
-
-<h3>Flags:</h3>
-<dl>
-<dt><b>-b</b></dt>
-<dd>Produce only background output</dd>
-
-<dt><b>-z</b></dt>
-<dd>Zoom computational region to species data</dd>
-<br>Setting this flag may speed up processing for very large regions and locally distributed
-species. But it may decrease processing time in other cases. Use with care.
-
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-</dl>
-
-<h3>Parameters:</h3>
-<dl>
-<dt><b>alias_input</b>=<em>string</em></dt>
-<dd>File containg map and alias name(s) for environmental parameter(s)</dd>
-<br>This file should contain alias names in the first column and map names in the second column, separated by comma, 
-without header. It should look e.g. like this:<br>
-<em>
-alias_1,map_1<br>
-alias_2,map_2<br>
-...,...<br>
-</em>
-
-<dt><b>evp_maps</b>=<em>string[,<i>string</i>,...]</em></dt>
-<dd>Environmental parameter map(s)</dd>
-<br>Multiple maps containing the environmental parameter(s) to be used in MaxEnt.
-
-<dt><b>alias_names</b>=<em>string</em></dt>
-<dd>Alias names for environmental parameter</dd>
-<br>A list of names to be used as alias names for the environmental parameter map names.
-
-<dt><b>alias_output</b>=<em>string</em></dt>
-<dd>Save alias names for the environmental parameters to file</dd>
-<br>When using alias names for the environmental parameter map names, it is advantageous to save the alias names to file. 
-In this case the alias file can be used to re-translate the alias names back to map names when using the script r.maxent.lambdas.
-
-<dt><b>bgr_output</b>=<em>string</em></dt>
-<dd>Output SWD file for the environmental data of the background landscape</dd>
-
-<dt><b>bgr_mask</b>=<em>string</em></dt>
-<dd>Map to be used as mask for the background landscape</dd>
-
-<dt><b>specie_mask</b>=<em>string[,<i>string</i>,...]</em></dt>
-<dd>Raster map(s) of specie occurence</dd>
-
-<dt><b>specie_output</b>=<em>string</em></dt>
-<dd>Output SWD file for the specie(s) related environmental data</dd>
-
-<dt><b>specie_name</b>=<em>string</em></dt>
-<dd>Alias-name(s) for species to be used in MaxEnt SWD file instead of map names, separated by comma (default: map names).</dd>
-
-<dt><b>nv</b>=<em>integer</em></dt>
-<dd>Integer representing NO DATA cell value</dd>
-<dd>Default: <em>-9999</em></dd>
-
-</dl>
 <h2>DESCRIPTION</h2>
 The script is intended to produce a set of SWD files as input to MaxEnt 3.3.3e using r.stats.<br>
 <br>
@@ -107,18 +26,23 @@ r.maxent.lambdas.
 <h2>NOTES</h2>
 
 <h2>SEE ALSO</h2>
-r.stats<br>
+
+<em>
+<a href="r.stats.html">r.stats</a>
+</em>
+
 MaxEnt 3.3.3e <a href="http://www.cs.princeton.edu/~schapire/maxent/">http://www.cs.princeton.edu/~schapire/maxent/</a><br>
 Wilson, Peter D. 2009: Guidlelines for computing MaxEnt model output values from a lambdas file. (Avaliable at <a href="http://groups.google.com/group/MaxEnt">
 http://groups.google.com/group/MaxEnt</a>)
-Steven J. Phillips, Miroslav Dudík, Robert E. Schapire. 2004: A maximum entropy approach to species distribution modeling. In Proceedings 
+Steven J. Phillips, Miroslav Dudik, Robert E. Schapire. 2004: A maximum entropy approach to species distribution modeling. In Proceedings 
 of the Twenty-First International Conference on Machine Learning, pages 655-662, 2004.<br>
 Steven J. Phillips, Robert P. Anderson, Robert E. Schapire. 2006: Maximum entropy modeling of species geographic distributions. 
 Ecological Modelling, 190:231-259, 2006.<br>
-Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudík, Yung En Chee, Colin J. Yates. 2011: A statistical explanation of MaxEnt 
+Jane Elith, Steven J. Phillips, Trevor Hastie, Miroslav Dudik, Yung En Chee, Colin J. Yates. 2011: A statistical explanation of MaxEnt 
 for ecologists. Diversity and Distributions, 17:43-57, 2011.
 
 <h2>AUTHOR</h2>
 Stefan Blumentrath, Norwegian Institute for Nature Research (NINA), <a href="http://www.nina.no">http://www.nina.no</a>
-</body>
-</html>
+
+<p>
+<i>Last changed: $Date$</i>
