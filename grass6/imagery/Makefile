@@ -4,7 +4,6 @@ SUBDIRS = \
 	i.homography \
 	i.landsat.dehaze \
 	i.points.auto \
-	i.points.reproj \
 	i.pr \
 	i.spec.sam \
 	i.spec.unmix \
