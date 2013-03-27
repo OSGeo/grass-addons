@@ -29,7 +29,7 @@
 
 
 #ifndef HAVE_LIBBLAS
-#error GRASS is not configured with libLAS
+#error GRASS is not configured with BLAS
 #endif
 
 #ifndef HAVE_LIBLAPACK
