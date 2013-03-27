@@ -12,9 +12,7 @@ SUBDIRS = \
 	r.colors.out_sld \
 	r.colors.out_vtk \
 	r.colors.quantiles \
-	r.colors.tools \
 	r.convergence \
-	r.convert \
 	r.csr \
 	r.denoise \
 	r.diversity \
@@ -60,10 +58,8 @@ SUBDIRS = \
 	r.stream.order \
 	r.stream.pos \
 	r.stream.stats \
-	r.sun.tools \
 	r.surf.volcano \
 	r.terracost \
-	r.terraflow.tools \
 	r.threshold \
 	r.univar.zonal \
 	r.unpack \
