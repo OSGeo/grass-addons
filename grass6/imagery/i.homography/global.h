@@ -33,9 +33,9 @@
 *****/
 
 
-#include "gis.h"
+#include <grass/gis.h>
+#include <grass/site.h>
 #include "func.h"
-#include "site.h"
 
 #define PIG 3.141593
 

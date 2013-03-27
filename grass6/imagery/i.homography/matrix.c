@@ -13,6 +13,8 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 void product_double_matrix_double_matrix(x,y,r,cr,c,out)
      /*
