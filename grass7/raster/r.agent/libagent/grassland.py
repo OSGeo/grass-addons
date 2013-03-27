@@ -84,7 +84,7 @@ class Grassland(playground.Playground):
         @param boolean optional, whether an existing file may be overwritten
         """
         vectors = []
-        if grass.find_file(name = grassmapname, element = 'vector')['file']:
+        if grass.list_grouped('rast')[grass.gisenv()['MAPSET']].index(grassmapname) > 0:
             layer = grass.vector_db_select(grassmapname)['values']
             # TODO only points are supported, ask some expert how to test this
             # TODO indexing seems to start at "1".. verify!
