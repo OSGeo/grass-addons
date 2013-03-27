@@ -1,8 +1,7 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
-	m.eigensystem \
-	m.sim
+	m.eigensystem
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
