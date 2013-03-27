@@ -4,6 +4,7 @@
 # MODULE:       v.out.postgis
 # AUTHOR:       Martin Landa <landa.martin gmail.com>
 # PURPOSE:      Converts GRASS vectors into PostGIS
+#               (Wrapper for v.out.ogr)
 # COPYRIGHT:    (c) 2009 Martin Landa, and the GRASS Development Team
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
