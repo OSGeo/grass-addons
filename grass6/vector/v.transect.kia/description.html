@@ -1,77 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-<title>GRASS GIS manual: v.transect.kia</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-<link rel="stylesheet" href="grassdocs.css" type="text/css">
-</head>
-<body bgcolor="white">
-
-<img src="grass_logo.png" alt="GRASS logo"><hr align=center size=6 noshade>
-
-<h2>NAME</h2>
-<em><b>v.transect.kia</b></em>  - v.transect.kia<br>
-Calculate Kilometric Abundance Indexes on line transect surveys of presence signs.
-<h2>KEYWORDS</h2>
-vector, elevation, geometry, line transect, abundance index, KIA
-<h2>SYNOPSIS</h2>
-<b>v.transect.kia</b><br>
-<b>v.transect.kia help</b><br>
-<b>v.transect.kia</b> [-<b>so</b>] <b>paths</b>=<em><paths map></em> <b>waypoints</b>=<em><waypoints map></em>  [<b>idfield</b>=<em><transect ID field></em>]   [<b>typefield</b>=<em><waypoint type field></em>]   [<b>nfield</b>=<em><waypoint cluster size field></em>]  <b>output</b>=<em><output map></em>  [<b>elev</b>=<em><digital elevation model></em>]   [<b>weights</b>=<em><waypoint weight file></em>]   [<b>groups</b>=<em><paths segmentation map></em>]   [<b>class</b>=<em><class values field></em>]   [--<b>verbose</b>]  [--<b>quiet</b>] 
-
-<h3>Flags:</h3>
-<dl>
-<dt><b>-s</b></dt>
-<dd>assumes both paths and waypoints are in ESRI Shapefile format, does implicit conversion (using v.in.ogr -oe)</dd>
-
-<dt><b>-o</b></dt>
-<dd>overwrite output</dd>
-
-<dt><b>--verbose</b></dt>
-<dd>Verbose module output</dd>
-<dt><b>--quiet</b></dt>
-<dd>Quiet module output</dd>
-</dl>
-
-<h3>Parameters:</h3>
-<dl>
-<dt><b>paths</b>=<em><paths map></em></dt>
-<dd>a line vector map containing line transect paths</dd>
-
-<dt><b>waypoints</b>=<em><waypoints map></em></dt>
-<dd>a point vector containing objects recorded along transects</dd>
-
-<dt><b>idfield</b>=<em><transect ID field></em></dt>
-<dd>field (present both in paths and waypoints) with transect IDs</dd>
-<dd>Default: <em>trans_id</em></dd>
-
-<dt><b>typefield</b>=<em><waypoint type field></em></dt>
-<dd>field in waypoints map with point type information</dd>
-<dd>Default: <em>type</em></dd>
-
-<dt><b>nfield</b>=<em><waypoint cluster size field></em></dt>
-<dd>field in waypoints map containing number of items (for clustered waypoints)</dd>
-<dd>Default: <em>n</em></dd>
-
-<dt><b>output</b>=<em><output map></em></dt>
-<dd>output line vector map</dd>
-
-<dt><b>elev</b>=<em><digital elevation model></em></dt>
-<dd>digital elevation model to correct path lengths for elevation by draping</dd>
-
-<dt><b>weights</b>=<em><waypoint weight file></em></dt>
-<dd>text file with waypoint weights by type</dd>
-
-<dt><b>groups</b>=<em><paths segmentation map></em></dt>
-<dd>a vector (polygon) map to segment transect paths with and calculate partial KIA</dd>
-
-<dt><b>class</b>=<em><class values field></em></dt>
-<dd>field in groups map containing class values</dd>
-<dd>Default: <em>class</em></dd>
-
-</dl>
-
-
 <h2>DESCRIPTION</h2>
 
 <em>v.transect.kia.sh</em> calculates Kilometric Abundance Indexes (KIA) from
@@ -140,5 +66,6 @@ v.transect.kia paths=tracks waypoints=sightings output=kia-200m elev=srtm90 grou
 Clara Tattoni, Laboratorio di  Ecologia, Dipartimento di Ingegneria Civile ed Ambientale, Universit&agrave; degli studi di Trento, Italy<br>
 Damiano G. Preatoni, Dipartimento Ambiente-Salute-Sicurezza, Universit&agrave; degli Studi dell'Insubria, Varese, Italy
 
-</body>
-</html>
+<p>
+<i>Last changed: $Date$</i>
+
