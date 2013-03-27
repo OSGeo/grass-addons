@@ -9,7 +9,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-import playground
+import error, playground
 import grass.script as grass
 from grass.script import array as garray
 
@@ -38,6 +38,9 @@ class Grassland(playground.Playground):
             layer.read(grassmapname)
             self.grassmapnames[layername] = grassmapname
             self.setlayer(layername, layer, force)
+        else:
+            raise error.DataError("r.agent::libagent.grassland.Grassland()",
+                                    "Grass Map was missing.")
 
     def createlayer(self, layername, grassmapname=False, force=False):
         """
