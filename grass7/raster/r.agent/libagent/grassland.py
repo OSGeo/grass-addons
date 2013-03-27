@@ -78,10 +78,15 @@ class Grassland(playground.Playground):
                 raise error.DataError("r.agent::libagent.grassland.Grassland()",
                                         "Grass Map name is empty.")
         if self.layers.has_key(layername):
-            if force:
-                force="force"
-            self.layers[layername].write(self.grassmapnames[layername],
-                                                        overwrite=force)
+            if grassmapname in \
+                    grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
+                if force:
+                    force="force"
+                else:
+                    raise error.DataError(
+                        "r.agent::libagent.grassland.Grassland()",
+                        "Grass map already exists.")
+            self.layers[layername].write(grassmapname, overwrite=force)
 
     def parsevectorlayer(self, layername, grassmapname, value=1, force=False):
         """

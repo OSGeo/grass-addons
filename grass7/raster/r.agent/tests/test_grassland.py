@@ -107,9 +107,20 @@ class TestGrassland(unittest.TestCase):
 
     def test_writelayer(self):
         if self.rastlayername:
+            # create an empty test map
             layer = garray.array()
-# TODO
-        pass
+            self.pg.createlayer(self.rastlayername, self.rastlayername)
+            # write it once
+            self.pg.writelayer(self.rastlayername)
+            # now remove it from the internal grasslayer list
+            self.pg.grassmapnames.pop(self.rastlayername)
+            self.assertRaises(error.DataError, self.pg.writelayer,
+                                self.rastlayername)
+            # try again, this time being explicit, but still fail
+            self.assertRaises(error.DataError, self.pg.writelayer,
+                                *[self.rastlayername, self.rastlayername])
+            # force write it again..
+            self.pg.writelayer(self.rastlayername, self.rastlayername, True)
 
     def test_parsegrasslayer(self):
         if self.vectlayername:
