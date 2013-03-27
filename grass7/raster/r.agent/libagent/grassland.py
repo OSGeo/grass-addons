@@ -22,7 +22,7 @@ class Grassland(playground.Playground):
         self.grassmapnames = dict()
         self.region = grass.region()
         if self.region['ewres'] != self.region['nsres']:
-            raise error.DataError("r.agent::libagent.playground.Playground()",
+            raise error.DataError("r.agent::libagent.grassland.Grassland()",
                                     "Only square raster cells make sense.")
 
     def setgrasslayer(self, layername, grassmapname, force=False):
