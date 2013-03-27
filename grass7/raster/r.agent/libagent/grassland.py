@@ -68,11 +68,16 @@ class Grassland(playground.Playground):
         """
         Write out a given layer to a GRASS map file
         @param string name of the layer to be exported
-        @param string optional name of the GRASS map file to be created
+        @param string optional name of the GRASS map file to be written
         @param boolean optional, whether an existing file may be overwritten
         """
-        if self.layers.has_key(layername) and \
-                                    self.grassmapnames.has_key(layername):
+        if not grassmapname:
+            if self.grassmapnames.has_key(layername):
+                grassmapname=layername
+            else:
+                raise error.DataError("r.agent::libagent.grassland.Grassland()",
+                                        "Grass Map name is empty.")
+        if self.layers.has_key(layername):
             if force:
                 force="force"
             self.layers[layername].write(self.grassmapnames[layername],
