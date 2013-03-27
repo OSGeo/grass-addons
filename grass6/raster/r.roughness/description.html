@@ -17,13 +17,14 @@ are created as temporary files each time the script is run. If the user
 wants to create several map (with different window sizes, for
 instance), it is recommended to create those maps with 
 <it>r.mapcalc</it> and use them as input:
-
 <p>
+<div class = "code"><pre>
 r.mapcalc "compass    = if(aspect==0.,0.,if(aspect &lt; 90., 90. - aspect, 360. + 90. - aspect))"
 r.mapcalc "colatitude = 90. - slope"
 r.mapcalc "xcos       = sin(colatitude)*cos(compass)"
 r.mapcalc "ycos       = sin(colatitude)*sin(compass)"
 r.mapcalc "zcos       = cos(colatitude)"
+</pre></div>
 
 If the user does not specify the output maps names, they will be set to 
 <it>INPUT_MAP_vector_strength_NxN</it> and<it>INPUT_MAP_fisher_K_NxN</it>
