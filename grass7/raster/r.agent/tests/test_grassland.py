@@ -9,8 +9,25 @@ from grass.script import array as garray
 class TestGrassland(unittest.TestCase):
     def setUp(self):
         # TODO check if there is a nicer way to do this..
-        self.layername = "r.agent.cell.testmap"
-        self.vlayername = "r.agent.vector.testmap"
+        self.rastlayername = "r_agent_rast_testmap"
+        self.vectlayername = "r_agent_vect_testmap"
+
+        if self.rastlayername:
+            for m in grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
+                if self.rastlayername == m:
+                    print "We need a raster map to play with in this test," + \
+                          " but it seems to exist already: '" + \
+                          self.rastlayername + "'"
+                    self.assertTrue(False)
+
+        if self.vectlayername:
+            for m in grass.list_grouped('vect')[grass.gisenv()['MAPSET']]:
+                if self.vectlayername == m:
+                    print "We need a vector map to play with in this test," + \
+                          " but it seems to exist already: '" + \
+                          self.vectlayername + "'"
+                    self.assertTrue(False)
+
         self.pg = grassland.Grassland()
 
     def test_getregion(self):
@@ -47,26 +64,20 @@ class TestGrassland(unittest.TestCase):
         pass
 
     def test_setgrasslayer(self):
-        # only do this test, if self.layername is set
-        if self.layername:
+        # only do this test, if self.rastlayername is set
+        if self.rastlayername:
             layer = garray.array()
-            if grass.find_file(name = self.layername,
-                               element = 'cell')['file']:
-                print "We need a file to play with in this test, but it"
-                print "seems to exist already: '" + self.layername + "'"
-                # show error if arrived here
-                self.assertTrue(False)
             # set the layer
-            self.pg.setgrasslayer(self.layername, self.layername)
+            self.pg.setgrasslayer(self.rastlayername, self.rastlayername)
             # test if it fails the second time
             self.assertRaises(error.Error, self.pg.setgrasslayer,
-                                    *[self.layername, self.layername])
-            if not ( self.pg.layers.has_key(self.layername) and \
-                        self.pg.grassmapnames.has_key(self.layername) ):
+                                    *[self.rastlayername, self.rastlayername])
+            if not ( self.pg.layers.has_key(self.rastlayername) and \
+                        self.pg.grassmapnames.has_key(self.rastlayername) ):
                 print "GRASS map layer was set but seems missing"
                 self.assertTrue(False)
             # set it once more, this time forcing it
-            self.pg.setgrasslayer(self.layername, self.layername, True)
+            self.pg.setgrasslayer(self.rastlayername, self.rastlayername, True)
 
     def test_createlayer(self):
         self.pg.createlayer("foo", "foo")
@@ -88,26 +99,21 @@ class TestGrassland(unittest.TestCase):
         self.assertFalse(self.pg.grassmapnames.has_key("foo"))
 
     def test_writelayer(self):
-        if self.layername:
+        if self.rastlayername:
             layer = garray.array()
 # TODO
         pass
 
     def test_parsegrasslayer(self):
-        if self.vlayername:
-            if grass.find_file(name = self.vlayername,
-                               element = 'vector')['file']:
-                print "We need a file to play with in this test, but it"
-                print "seems to exist already: '" + self.vlayername + "'"
-                # show error if arrived here
-                self.assertTrue(False)
+        if self.vectlayername:
             #TODO find a way to write vector files..
+            pass
 
     def tearDown(self):
-        if self.layername:
-            grass.try_remove(grass.find_file(name = self.layername,
+        if self.rastlayername:
+            grass.try_remove(grass.find_file(name = self.rastlayername,
                                              element = 'cell')['file'])
-        if self.vlayername:
-            grass.try_remove(grass.find_file(name = self.vlayername,
+        if self.vectlayername:
+            grass.try_remove(grass.find_file(name = self.vectlayername,
                                              element = 'vector')['file'])
 
