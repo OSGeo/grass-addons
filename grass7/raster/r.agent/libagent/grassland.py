@@ -33,7 +33,7 @@ class Grassland(playground.Playground):
         @param boolean optional, whether to overwrite values if key exists
         """
         layer = garray.array()
-        # fill the new grass array with the contents from the file
+        # fill the new grass array with the contents from the map (must exist)
         if grassmapname in grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
             layer.read(grassmapname)
             self.grassmapnames[layername] = grassmapname
