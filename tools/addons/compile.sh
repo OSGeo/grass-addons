@@ -68,8 +68,8 @@ for c in "display" "general" "imagery" "raster" "raster3d" "vector"; do
 	continue
     fi
     cd $c
-    for m in `ls -d */ 2>/dev/null` ; do
-	m="${m%%/}"
+    for m in `ls -d */Makefile 2>/dev/null` ; do
+	m="${m%%/Makefile}"
 	echo -n "Compiling $m..."
 	cd "$m"
 	if [ $SEP -eq 1 ] ; then
