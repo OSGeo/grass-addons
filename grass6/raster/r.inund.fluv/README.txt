@@ -7,21 +7,20 @@ r.inund.fluv use the following fortran codes:
 - 2d_path.f90
 - correction_from_path.f90 
 
-***************************REQUEST ********************************
+***************************REQUEST **************************************
 The installation of this code requests a fortran compiler installed on your computer. 
 
 For any other informations contact the autors of the script 
 (see description.html)
-******************************************************************
-**************** Users of GRASS 6.3 ******************************
+*************************************************************************
+**************** Users of GRASS 6.4 or 6.3 ******************************
 1) open the Makefile with a text editor
 2) insert the path to the source grass directory in MODULE_TOPDIR = ../..  
 (for example: MODULE_TOPDIR = /root/grass-6.3.0_source)
-3) in the directory where you have downloaded the files run: make
-4) go in the source grass directory 
-5) run: make install 
+3) run the following command to compile a single GRASS command (as sudo user)
+INST_NOW=y make
 
-**************** Users of GRASS 6.2 ******************************
+**************** Users of GRASS 6.2 **************************************
 Rename the grass script as follows: 
  r.inund.fluv --> r.inund.fluv_63
  r.inund.fluv_62 --> r.inund.fluv 

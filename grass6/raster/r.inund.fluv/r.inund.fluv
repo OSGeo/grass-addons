@@ -457,7 +457,7 @@ then
 	dubbio="$GIS_OPT_DOUBT_MAP"
 	r.mapcalc "temp=isnull($inondazione)"
 	r.mapcalc "temp=if(temp,0,1)"
-	r.mapcalc "$dubbio=inondazione_step2-temp"
+	r.mapcalc "$dubbio=if((inondazione_step2-temp)>0,inondazione_step2-temp,null())"
 	#r.mapcalculator amap=$inondazione formula='isnull(A)' outfile=temp help=- --quiet
 	#r.mapcalculator amap=temp formula='if(A,0,1)' outfile=temp help=- --quiet
 	#r.mapcalculator amap=inondazione_step2	bmap=temp formula='A-B' outfile=$dubbio help=- --quiet
@@ -468,13 +468,15 @@ then
 	echo '0 grey' >> .colore_dubbio.file
 	echo 'nv white' >> .colore_dubbio.file
 	echo 'end' >> .colore_dubbio.file
-	cat .colore_dubbio.file | r.colors map=$dubbio color=rules
+	cat .colore_dubbio.file | r.colors map=$dubbio color=rules --quiet
 	rm .colore_dubbio.file
-	g.remove rast=temp
+	g.remove rast=temp --quiet
 fi
 
+
+
 #water level assignement 
-r.mapcalc "$inondazione=if($inondazione==1,$inondazione*quote_punti_adiacenti-$dtm)"
+r.mapcalc "$inondazione=if($inondazione==1,if(($inondazione*quote_punti_adiacenti-$dtm)>0,($inondazione*quote_punti_adiacenti-$dtm),null()))"
 #r.mapcalculator amap=$inondazione bmap=quote_punti_adiacenti cmap=$dtm formula='if(A==1,A*B-C)' outfile=$inondazione help=- --quiet
 
 #COLOURS OF INUNDATION RASTER MAP
@@ -483,7 +485,7 @@ echo '10 blue' >> ".colore_inondazione.file"
 echo '0 aqua' >> ".colore_inondazione.file"
 echo 'nv white' >> ".colore_inondazione.file"
 echo 'end' >> ".colore_inondazione.file"
-cat ".colore_inondazione.file" | r.colors map=$inondazione color=rules
+cat ".colore_inondazione.file" | r.colors map=$inondazione color=rules --quiet
 rm ".colore_inondazione.file"
 
 
