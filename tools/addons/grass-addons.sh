@@ -11,7 +11,7 @@ cd $DIR/grass-addons/
 nup=`(svn up || (svn cleanup && svn up)) | wc -l`
 
 ###if [ "$revl" != "$revr" ] || [ "$1" = "f" ] ; then
-if [ "$nup" -ne 1 ] || [ "$1" = "f" ] ; then
+if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
     ###svn up || (svn cleanup && svn up)
 
     cd tools/addons/ 
