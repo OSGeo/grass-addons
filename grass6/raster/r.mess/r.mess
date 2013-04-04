@@ -127,6 +127,12 @@ if [ ! -x "$(which awk)" ] ; then
     exit 1
 fi
 
+## check for R
+if [ ! -x "$(which R)" ] ; then
+    g.message -e "<R> required, please install <R> first"
+    exit 1
+fi
+
 ## To parse the code into interactive menu
 if [ "$1" != "@ARGS_PARSED@" ] ; then
     exec g.parser "$0" "$@"
