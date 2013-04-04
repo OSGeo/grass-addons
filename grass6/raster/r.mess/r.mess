@@ -122,13 +122,13 @@ if  [ -z "$GISBASE" ] ; then
 fi
 
 ## check for awk
-if [ ! -x "$(which awk)" ] ; then
+if [ ! -x "`which awk`" ] ; then
     g.message -e "<awk> required, please install <awk> or <gawk> first"
     exit 1
 fi
 
 ## check for R
-if [ ! -x "$(which R)" ] ; then
+if [ ! -x "`which R`" ] ; then
     g.message -e "<R> required, please install <R> first"
     exit 1
 fi
