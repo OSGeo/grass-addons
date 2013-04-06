@@ -6,9 +6,10 @@
 
 int close_streamvect(char *stream_vect)
 {
-    int i, r, c, r_nbr, c_nbr, done;
+    int r, c, r_nbr, c_nbr, done;
+    GW_LARGE_INT i;
     CELL stream_id, stream_nbr;
-    char aspect;
+    ASP_FLAG af;
     int next_node;
     struct sstack
     {
@@ -127,10 +128,10 @@ int close_streamvect(char *stream_vect)
 
 		Vect_write_line(&Out, GV_POINT, Points, Cats);
 
-		bseg_get(&asp, &aspect, r_nbr, c_nbr);
-		while (aspect > 0) {
-		    r_nbr = r_nbr + asp_r[(int)aspect];
-		    c_nbr = c_nbr + asp_c[(int)aspect];
+		seg_get(&aspflag, (char *)&af, r_nbr, c_nbr);
+		while (af.asp > 0) {
+		    r_nbr = r_nbr + asp_r[(int)af.asp];
+		    c_nbr = c_nbr + asp_c[(int)af.asp];
 		    
 		    cseg_get(&stream, &stream_nbr, r_nbr, c_nbr);
 		    if (stream_nbr <= 0)
@@ -142,7 +143,7 @@ int close_streamvect(char *stream_vect)
 			/* first point of parent stream */
 			break;
 		    }
-		    bseg_get(&asp, &aspect, r_nbr, c_nbr);
+		    seg_get(&aspflag, (char *)&af, r_nbr, c_nbr);
 		}
 
 		Vect_write_line(&Out, GV_LINE, Points, Cats);
@@ -153,7 +154,7 @@ int close_streamvect(char *stream_vect)
     }
     G_percent(n_outlets, n_outlets, 1);	/* finish it */
 
-    G_message(_("Writing vector attribute table"));
+    G_message(_("Write vector attribute table"));
 
     /* Prepeare strings for use in db_* calls */
     db_init_string(&dbsql);
@@ -198,7 +199,7 @@ int close_streamvect(char *stream_vect)
     /* stream nodes */
     for (i = 1; i <= n_stream_nodes; i++) {
 
-	sprintf(buf, "insert into %s values ( %d, \'%s\', %d )",
+	sprintf(buf, "insert into %s values ( %lld, \'%s\', %d )",
 		Fi->table, i,
 		(stream_node[i].n_trib > 0 ? "intermediate" : "start"),
 		(stream_node[i].n_trib > 0));
@@ -236,16 +237,15 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
     int stream_fd, dir_fd, r, c, i;
     CELL *cell_buf1, *cell_buf2;
     struct History history;
-    char flag_value;
     CELL stream_id;
-    char aspect;
+    ASP_FLAG af;
 
     /* cheating... */
     stream_fd = dir_fd = -1;
     cell_buf1 = cell_buf2 = NULL;
 
     G_message(_("Writing raster %s"),
-              (stream_rast != NULL) + (dir_rast != NULL) > 1 ? _("maps") : _("map"));
+              (stream_rast != NULL) + (dir_rast != NULL) > 1 ? "maps" : "map");
 
     /* write requested output rasters */
     if (stream_rast) {
@@ -271,10 +271,9 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
 		    cell_buf1[c] = stream_id;
 	    }
 	    if (dir_rast) {
-		bseg_get(&bitflags, &flag_value, r, c);
-		if (!FLAG_GET(flag_value, NULLFLAG)) {
-		    bseg_get(&asp, &aspect, r, c);
-		    cell_buf2[c] = aspect;
+		seg_get(&aspflag, (char *)&af, r, c);
+		if (!FLAG_GET(af.flag, NULLFLAG)) {
+		    cell_buf2[c] = af.asp;
 		}
 	    }
 	    
@@ -294,11 +293,18 @@ int close_maps(char *stream_rast, char *stream_vect, char *dir_rast)
 	Rast_write_history(stream_rast, &history);
     }
     if (dir_rast) {
+	struct Colors colors;
+
 	Rast_close(dir_fd);
 	G_free(cell_buf2);
+
 	Rast_short_history(dir_rast, "raster", &history);
 	Rast_command_history(&history);
 	Rast_write_history(dir_rast, &history);
+
+	Rast_init_colors(&colors);
+	Rast_make_aspect_colors(&colors, -8, 8);
+	Rast_write_colors(dir_rast, G_mapset(), &colors);
     }
 
     /* close stream vector */

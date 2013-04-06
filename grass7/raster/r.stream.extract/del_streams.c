@@ -12,7 +12,7 @@ int seg_length(CELL stream_id, CELL *next_stream_id)
     CELL curr_stream;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-    char aspect;
+    ASP_FLAG af;
 
     r = stream_node[stream_id].r;
     c = stream_node[stream_id].c;
@@ -20,10 +20,10 @@ int seg_length(CELL stream_id, CELL *next_stream_id)
 	*next_stream_id = stream_id;
 
     /* get next downstream point */
-    bseg_get(&asp, &aspect, r, c);
-    while (aspect > 0) {
-	r_nbr = r + asp_r[(int)aspect];
-	c_nbr = c + asp_c[(int)aspect];
+    seg_get(&aspflag, (char *)&af, r, c);
+    while (af.asp > 0) {
+	r_nbr = r + asp_r[(int)af.asp];
+	c_nbr = c + asp_c[(int)af.asp];
 
 	/* user-defined depression */
 	if (r_nbr == r && c_nbr == c)
@@ -40,7 +40,7 @@ int seg_length(CELL stream_id, CELL *next_stream_id)
 	slength++;
 	r = r_nbr;
 	c = c_nbr;
-	bseg_get(&asp, &aspect, r, c);
+	seg_get(&aspflag, (char *)&af, r, c);
     }
 
     return slength;
@@ -54,7 +54,7 @@ int update_stream_id(CELL stream_id, CELL new_stream_id)
     CELL curr_stream;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-    char aspect;
+    ASP_FLAG af;
 
     r = stream_node[stream_id].r;
     c = stream_node[stream_id].c;
@@ -65,10 +65,10 @@ int update_stream_id(CELL stream_id, CELL new_stream_id)
     curr_stream = stream_id;
 
     /* get next downstream point */
-    bseg_get(&asp, &aspect, r, c);
-    while (aspect > 0) {
-	r_nbr = r + asp_r[(int)aspect];
-	c_nbr = c + asp_c[(int)aspect];
+    seg_get(&aspflag, (char *)&af, r, c);
+    while (af.asp > 0) {
+	r_nbr = r + asp_r[(int)af.asp];
+	c_nbr = c + asp_c[(int)af.asp];
 
 	/* user-defined depression */
 	if (r_nbr == r && c_nbr == c)
@@ -83,7 +83,7 @@ int update_stream_id(CELL stream_id, CELL new_stream_id)
 	r = r_nbr;
 	c = c_nbr;
 	cseg_put(&stream, &new_stream, r, c);
-	bseg_get(&asp, &aspect, r, c);
+	seg_get(&aspflag, (char *)&af, r, c);
     }
     
     if (curr_stream <= 0)

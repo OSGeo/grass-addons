@@ -8,9 +8,9 @@ int init_search(int depr_fd)
     CELL *depr_buf, ele_value;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    char flag_value, flag_value_nbr, is_null;
+    char asp_value, is_null;
     WAT_ALT wa;
-    char asp_value;
+    ASP_FLAG af, af_nbr;
     GW_LARGE_INT n_depr_cells = 0;
 
     nxt_avail_pt = heap_size = 0;
@@ -31,8 +31,8 @@ int init_search(int depr_fd)
 
 	for (c = 0; c < ncols; c++) {
 
-	    bseg_get(&bitflags, &flag_value, r, c);
-	    is_null = FLAG_GET(flag_value, NULLFLAG);
+	    seg_get(&aspflag, (char *)&af, r, c);
+	    is_null = FLAG_GET(af.flag, NULLFLAG);
 
 	    if (is_null)
 		continue;
@@ -60,10 +60,10 @@ int init_search(int depr_fd)
 		seg_get(&watalt, (char *)&wa, r, c);
 		ele_value = wa.ele;
 		heap_add(r, c, ele_value);
-		FLAG_SET(flag_value, INLISTFLAG);
-		FLAG_SET(flag_value, EDGEFLAG);
-		bseg_put(&bitflags, &flag_value, r, c);
-		bseg_put(&asp, &asp_value, r, c);
+		FLAG_SET(af.flag, INLISTFLAG);
+		FLAG_SET(af.flag, EDGEFLAG);
+		af.asp = asp_value;
+		seg_put(&aspflag, (char *)&af, r, c);
 		continue;
 	    }
 
@@ -73,18 +73,18 @@ int init_search(int depr_fd)
 		r_nbr = r + nextdr[ct_dir];
 		c_nbr = c + nextdc[ct_dir];
 
-		bseg_get(&bitflags, &flag_value_nbr, r_nbr, c_nbr);
-		is_null = FLAG_GET(flag_value_nbr, NULLFLAG);
+		seg_get(&aspflag, (char *)&af_nbr, r_nbr, c_nbr);
+		is_null = FLAG_GET(af_nbr.flag, NULLFLAG);
 
 		if (is_null) {
 		    asp_value = -1 * drain[r - r_nbr + 1][c - c_nbr + 1];
 		    seg_get(&watalt, (char *)&wa, r, c);
 		    ele_value = wa.ele;
 		    heap_add(r, c, ele_value);
-		    FLAG_SET(flag_value, INLISTFLAG);
-		    FLAG_SET(flag_value, EDGEFLAG);
-		    bseg_put(&bitflags, &flag_value, r, c);
-		    bseg_put(&asp, &asp_value, r, c);
+		    FLAG_SET(af.flag, INLISTFLAG);
+		    FLAG_SET(af.flag, EDGEFLAG);
+		    af.asp = asp_value;
+		    seg_put(&aspflag, (char *)&af, r, c);
 
 		    break;
 		}
@@ -98,10 +98,10 @@ int init_search(int depr_fd)
 		    seg_get(&watalt, (char *)&wa, r, c);
 		    ele_value = wa.ele;
 		    heap_add(r, c, ele_value);
-		    FLAG_SET(flag_value, INLISTFLAG);
-		    FLAG_SET(flag_value, DEPRFLAG);
-		    bseg_put(&bitflags, &flag_value, r, c);
-		    bseg_put(&asp, &asp_value, r, c);
+		    FLAG_SET(af.flag, INLISTFLAG);
+		    FLAG_SET(af.flag, DEPRFLAG);
+		    af.asp = asp_value;
+		    seg_put(&aspflag, (char *)&af, r, c);
 		    n_depr_cells++;
 		}
 	    }

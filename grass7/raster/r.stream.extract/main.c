@@ -22,13 +22,13 @@
 #include "local_proto.h"
 
 /* global variables */
-struct snode *stream_node;
 int nrows, ncols;
 GW_LARGE_INT n_search_points, n_points, nxt_avail_pt;
 GW_LARGE_INT heap_size;
-unsigned int n_stream_nodes, n_alloc_nodes;
+GW_LARGE_INT n_stream_nodes, n_alloc_nodes;
 POINT *outlets;
-unsigned int n_outlets, n_alloc_outlets;
+struct snode *stream_node;
+GW_LARGE_INT n_outlets, n_alloc_outlets;
 char drain[3][3] = { {7, 6, 5}, {8, 0, 4}, {1, 2, 3} };
 char sides;
 int c_fac;
@@ -37,9 +37,8 @@ int have_depressions;
 
 SSEG search_heap;
 SSEG astar_pts;
-BSEG bitflags;
-SSEG watalt;
-BSEG asp;
+SSEG watalt, aspflag;
+/* BSEG bitflags, asp; */
 CSEG stream;
 
 CELL *astar_order;
@@ -111,6 +110,7 @@ int main(int argc, char *argv[])
 	_("If accumulation is larger than d8cut, SFD is used instead of MFD."
 	  " Applies only if no accumulation map is given.");
     input.d8cut->required = NO;
+    input.d8cut->answer = "infinity";
     input.d8cut->type = TYPE_DOUBLE;
 
     input.mont_exp = G_define_option();
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 	G_fatal_error(_("Threshold must be > 0 but is %f"), threshold);
 
     /* d8cut */
-    if (!input.d8cut->answer) {
+    if (strcmp(input.d8cut->answer, "infinity") == 0) {
 	d8cut = DBL_MAX;
     }
     else {
@@ -284,15 +284,14 @@ int main(int argc, char *argv[])
     /* elevation + accumulation: * 2 */
     memory_divisor = sizeof(WAT_ALT) * 2;
     disk_space = sizeof(WAT_ALT);
-    /* aspect: as is */
-    memory_divisor += sizeof(char);
-    disk_space += sizeof(char);
     /* stream ids: / 2 */
     memory_divisor += sizeof(int) / 2.;
     disk_space += sizeof(int);
-    /* flags: * 4 */
-    memory_divisor += sizeof(char) * 4;
-    disk_space += sizeof(char);
+
+    /* aspect and flags: * 2 */
+    memory_divisor += sizeof(ASP_FLAG) * 4;
+    disk_space += sizeof(ASP_FLAG);
+
     /* astar_points: / 16 */
     /* ideally only a few but large segments */
     memory_divisor += sizeof(POINT) / 16.;
@@ -337,8 +336,14 @@ int main(int argc, char *argv[])
 	heap_mem += (num_open_segs * 2 - num_seg_total) * seg2kb *
 	            sizeof(WAT_ALT) / 1024.;
     cseg_open(&stream, seg_rows, seg_cols, num_open_segs / 2.);
+
+    seg_open(&aspflag, nrows, ncols, seg_rows, seg_cols, num_open_segs * 2,
+        sizeof(ASP_FLAG), 1);
+/*
     bseg_open(&asp, seg_rows, seg_cols, num_open_segs);
     bseg_open(&bitflags, seg_rows, seg_cols, num_open_segs * 4);
+*/
+
     if (num_open_segs * 4 > num_seg_total)
 	heap_mem += (num_open_segs * 4 - num_seg_total) * seg2kb / 1024.;
 
@@ -411,8 +416,7 @@ int main(int argc, char *argv[])
     }
 
     /* extract streams */
-    if (extract_streams
-	(threshold, mont_exp, min_stream_length, acc_fd < 0) < 0)
+    if (extract_streams(threshold, mont_exp, acc_fd < 0) < 0)
 	G_fatal_error(_("Could not extract streams"));
 
     seg_close(&astar_pts);
@@ -433,9 +437,8 @@ int main(int argc, char *argv[])
 		   output.dir_rast->answer) < 0)
 	G_fatal_error(_("Could not write output maps"));
 
-    bseg_close(&asp);
     cseg_close(&stream);
-    bseg_close(&bitflags);
+    seg_close(&aspflag);
 
     exit(EXIT_SUCCESS);
 }

@@ -26,7 +26,8 @@ int load_maps(int ele_fd, int acc_fd)
     size_t ele_size, acc_size = 0;
     int ele_map_type, acc_map_type = 0;
     WAT_ALT *wabuf;
-    char *flag_value_buf, *aspect;
+
+    ASP_FLAG *afbuf;
 
     if (acc_fd < 0)
 	G_message(_("Loading elevation map..."));
@@ -35,7 +36,6 @@ int load_maps(int ele_fd, int acc_fd)
 
     n_search_points = n_points = 0;
 
-    G_debug(1, "get buffers");
     ele_map_type = Rast_get_map_type(ele_fd);
     ele_size = Rast_cell_size(ele_map_type);
     ele_buf = Rast_allocate_buf(ele_map_type);
@@ -60,9 +60,8 @@ int load_maps(int ele_fd, int acc_fd)
 	ele_scale = 1000;	/* should be enough to do the trick */
 
     wabuf = G_malloc(ncols * sizeof(WAT_ALT));
-    flag_value_buf = G_malloc(ncols * sizeof(char));
+    afbuf = G_malloc(ncols * sizeof(ASP_FLAG));
     stream_id = G_malloc(ncols * sizeof(CELL));
-    aspect = G_malloc(ncols * sizeof(char));
 
     G_debug(1, "start loading %d rows, %d cols", nrows, ncols);
     for (r = 0; r < nrows; r++) {
@@ -79,16 +78,16 @@ int load_maps(int ele_fd, int acc_fd)
 
 	for (c = 0; c < ncols; c++) {
 
-	    flag_value_buf[c] = 0;
-	    aspect[c] = 0;
+	    afbuf[c].flag = 0;
+	    afbuf[c].asp = 0;
 	    stream_id[c] = 0;
 
 	    /* check for masked and NULL cells */
 	    if (Rast_is_null_value(ptr, ele_map_type)) {
-		FLAG_SET(flag_value_buf[c], NULLFLAG);
-		FLAG_SET(flag_value_buf[c], INLISTFLAG);
-		FLAG_SET(flag_value_buf[c], WORKEDFLAG);
-		FLAG_SET(flag_value_buf[c], WORKED2FLAG);
+		FLAG_SET(afbuf[c].flag, NULLFLAG);
+		FLAG_SET(afbuf[c].flag, INLISTFLAG);
+		FLAG_SET(afbuf[c].flag, WORKEDFLAG);
+		FLAG_SET(afbuf[c].flag, WORKED2FLAG);
 		Rast_set_c_null_value(&ele_value, 1);
 		/* flow accumulation */
 		if (acc_fd >= 0) {
@@ -144,18 +143,16 @@ int load_maps(int ele_fd, int acc_fd)
 		acc_ptr = G_incr_void_ptr(acc_ptr, acc_size);
 	}
 	seg_put_row(&watalt, (char *) wabuf, r);
-	bseg_put_row(&asp, aspect, r);
+	seg_put_row(&aspflag, (char *) afbuf, r);
 	cseg_put_row(&stream, stream_id, r);
-	bseg_put_row(&bitflags, flag_value_buf, r);
     }
     G_percent(nrows, nrows, 1);	/* finish it */
 
     Rast_close(ele_fd);
     G_free(ele_buf);
     G_free(wabuf);
-    G_free(flag_value_buf);
+    G_free(afbuf);
     G_free(stream_id);
-    G_free(aspect);
 
     if (acc_fd >= 0) {
 	Rast_close(acc_fd);

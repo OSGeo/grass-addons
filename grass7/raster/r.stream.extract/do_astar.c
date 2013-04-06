@@ -8,8 +8,7 @@
 #define GET_CHILD(p) (((p) << 3) - 6)
 
 HEAP_PNT heap_drop(void);
-int sift_up(GW_LARGE_INT, HEAP_PNT);
-double get_slope(CELL, CELL, double);
+static double get_slope(CELL, CELL, double);
 
 int do_astar(void)
 {
@@ -19,8 +18,8 @@ int do_astar(void)
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
     CELL ele_val, ele_up, ele_nbr[8];
     WAT_ALT wa;
-    char asp_val;
-    char flag_value, is_in_list, is_worked;
+    ASP_FLAG af;
+    char is_in_list, is_worked;
     HEAP_PNT heap_p;
     /* sides
      * |7|1|4|
@@ -86,9 +85,9 @@ int do_astar(void)
 	    if (r_nbr < 0 || r_nbr >= nrows || c_nbr < 0 || c_nbr >= ncols)
 		continue;
 
-	    bseg_get(&bitflags, &flag_value, r_nbr, c_nbr);
-	    is_in_list = FLAG_GET(flag_value, INLISTFLAG);
-	    is_worked = FLAG_GET(flag_value, WORKEDFLAG);
+	    seg_get(&aspflag, (char *)&af, r_nbr, c_nbr);
+	    is_in_list = FLAG_GET(af.flag, INLISTFLAG);
+	    is_worked = FLAG_GET(af.flag, WORKEDFLAG);
 	    if (!is_worked) {
 		seg_get(&watalt, (char *)&wa, r_nbr, c_nbr);
 		ele_nbr[ct_dir] = wa.ele;
@@ -115,33 +114,31 @@ int do_astar(void)
 		}
 	    }
 
-	    if (is_in_list == 0 && skip_me == 0) {
-		ele_up = ele_nbr[ct_dir];
-		asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-		bseg_put(&asp, &asp_val, r_nbr, c_nbr);
-		heap_add(r_nbr, c_nbr, ele_up);
-		FLAG_SET(flag_value, INLISTFLAG);
-		bseg_put(&bitflags, &flag_value, r_nbr, c_nbr);
-	    }
-	    else if (is_in_list && is_worked == 0) {
-		if (FLAG_GET(flag_value, EDGEFLAG)) {
-		    /* neighbour is edge in list, not yet worked */
-		    bseg_get(&asp, &asp_val, r_nbr, c_nbr);
-		    if (asp_val < 0) {
-			/* adjust flow direction for edge cell */
-			asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-			bseg_put(&asp, &asp_val, r_nbr, c_nbr);
-		    }
+	    if (!skip_me) {
+		if (is_in_list == 0) {
+		    ele_up = ele_nbr[ct_dir];
+		    af.asp = drain[r_nbr - r + 1][c_nbr - c + 1];
+		    heap_add(r_nbr, c_nbr, ele_up);
+		    FLAG_SET(af.flag, INLISTFLAG);
+		    seg_put(&aspflag, (char *)&af, r_nbr, c_nbr);
 		}
-		else if (FLAG_GET(flag_value, DEPRFLAG)) {
-		    G_debug(3, "real depression");
-		    /* neighbour is inside real depression, not yet worked */
-		    bseg_get(&asp, &asp_val, r_nbr, c_nbr);
-		    if (asp_val == 0 && ele_val <= ele_nbr[ct_dir]) {
-			asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-			bseg_put(&asp, &asp_val, r_nbr, c_nbr);
-			FLAG_UNSET(flag_value, DEPRFLAG);
-			bseg_put(&bitflags, &flag_value, r_nbr, c_nbr);
+		else if (is_in_list && is_worked == 0) {
+		    if (FLAG_GET(af.flag, EDGEFLAG)) {
+			/* neighbour is edge in list, not yet worked */
+			if (af.asp < 0) {
+			    /* adjust flow direction for edge cell */
+			    af.asp = drain[r_nbr - r + 1][c_nbr - c + 1];
+			    seg_put(&aspflag, (char *)&af, r_nbr, c_nbr);
+			}
+		    }
+		    else if (FLAG_GET(af.flag, DEPRFLAG)) {
+			G_debug(3, "real depression");
+			/* neighbour is inside real depression, not yet worked */
+			if (af.asp == 0 && ele_val <= ele_nbr[ct_dir]) {
+			    af.asp = drain[r_nbr - r + 1][c_nbr - c + 1];
+			    FLAG_UNSET(af.flag, DEPRFLAG);
+			    seg_put(&aspflag, (char *)&af, r_nbr, c_nbr);
+			}
 		    }
 		}
 	    }
@@ -149,9 +146,9 @@ int do_astar(void)
 	/* add astar points to sorted list for flow accumulation and stream extraction */
 	first_cum--;
 	seg_put(&astar_pts, (char *)&heap_p.pnt, 0, first_cum);
-	bseg_get(&bitflags, &flag_value, r, c);
-	FLAG_SET(flag_value, WORKEDFLAG);
-	bseg_put(&bitflags, &flag_value, r, c);
+	seg_get(&aspflag, (char *)&af, r, c);
+	FLAG_SET(af.flag, WORKEDFLAG);
+	seg_put(&aspflag, (char *)&af, r, c);
     }    /* end A* search */
 
     G_percent(n_points, n_points, 1);	/* finish it */
@@ -163,7 +160,7 @@ int do_astar(void)
  * compare function for heap
  * returns 1 if point1 < point2 else 0
  */
-int heap_cmp(HEAP_PNT *a, HEAP_PNT *b)
+static int heap_cmp(HEAP_PNT *a, HEAP_PNT *b)
 {
     if (a->ele < b->ele)
 	return 1;
@@ -174,7 +171,7 @@ int heap_cmp(HEAP_PNT *a, HEAP_PNT *b)
     return 0;
 }
 
-int sift_up(GW_LARGE_INT start, HEAP_PNT child_p)
+static int sift_up(GW_LARGE_INT start, HEAP_PNT child_p)
 {
     GW_LARGE_INT parent, child;
     HEAP_PNT heap_p;
@@ -282,7 +279,7 @@ HEAP_PNT heap_drop(void)
     return root_p;
 }
 
-double get_slope(CELL ele, CELL up_ele, double dist)
+static double get_slope(CELL ele, CELL up_ele, double dist)
 {
     if (ele >= up_ele)
 	return 0.0;

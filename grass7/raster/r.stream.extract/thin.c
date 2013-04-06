@@ -10,28 +10,28 @@ int thin_seg(int stream_id)
     CELL curr_stream, no_stream = 0;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
-    char flag_value, aspect;
+    ASP_FLAG af;
 
     r = stream_node[stream_id].r;
     c = stream_node[stream_id].c;
 
     cseg_get(&stream, &curr_stream, r, c);
 
-    bseg_get(&asp, &aspect, r, c);
-    if (aspect > 0) {
+    seg_get(&aspflag, (char *)&af, r, c);
+    if (af.asp > 0) {
 	/* get downstream point */
-	last_r = r + asp_r[(int)aspect];
-	last_c = c + asp_c[(int)aspect];
+	last_r = r + asp_r[(int)af.asp];
+	last_c = c + asp_c[(int)af.asp];
 	cseg_get(&stream, &curr_stream, last_r, last_c);
 
 	if (curr_stream != stream_id)
 	    return thinned;
 
 	/* get next downstream point */
-	bseg_get(&asp, &aspect, last_r, last_c);
-	while (aspect > 0) {
-	    r_nbr = last_r + asp_r[(int)aspect];
-	    c_nbr = last_c + asp_c[(int)aspect];
+	seg_get(&aspflag, (char *)&af, last_r, last_c);
+	while (af.asp > 0) {
+	    r_nbr = last_r + asp_r[(int)af.asp];
+	    c_nbr = last_c + asp_c[(int)af.asp];
 
 	    if (r_nbr == last_r && c_nbr == last_c)
 		return thinned;
@@ -43,12 +43,12 @@ int thin_seg(int stream_id)
 	    if (abs(r_nbr - r) < 2 && abs(c_nbr - c) < 2) {
 		/* eliminate last point */
 		cseg_put(&stream, &no_stream, last_r, last_c);
-		bseg_get(&bitflags, &flag_value, last_r, last_c);
-		FLAG_UNSET(flag_value, STREAMFLAG);
-		bseg_put(&bitflags, &flag_value, last_r, last_c);
+		FLAG_UNSET(af.flag, STREAMFLAG);
+		seg_put(&aspflag, (char *)&af, last_r, last_c);
 		/* update start point */
-		aspect = drain[r - r_nbr + 1][c - c_nbr + 1];
-		bseg_put(&asp, &aspect, r, c);
+		seg_get(&aspflag, (char *)&af, r, c);
+		af.asp = drain[r - r_nbr + 1][c - c_nbr + 1];
+		seg_put(&aspflag, (char *)&af, r, c);
 
 		thinned = 1;
 	    }
@@ -59,7 +59,7 @@ int thin_seg(int stream_id)
 	    }
 	    last_r = r_nbr;
 	    last_c = c_nbr;
-	    bseg_get(&asp, &aspect, last_r, last_c);
+	    seg_get(&aspflag, (char *)&af, last_r, last_c);
 	}
     }
 
@@ -166,7 +166,7 @@ int thin_streams(void)
 
     G_free(nodestack);
     
-    G_verbose_message(_("%d of %d stream segments were thinned"), n_thinned, n_stream_nodes);
+    G_verbose_message(_("%d of %lld stream segments were thinned"), n_thinned, n_stream_nodes);
 
     return 1;
 }

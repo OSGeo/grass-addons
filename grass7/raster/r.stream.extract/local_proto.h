@@ -29,6 +29,12 @@ WAT_ALT {
    DCELL wat;
 };
 
+#define ASP_FLAG    struct aspect_flag
+ASP_FLAG {
+   char asp;
+   char flag;
+};
+
 struct snode
 {
     int r, c;
@@ -40,13 +46,14 @@ struct snode
 };
 
 /* extern variables */
-extern struct snode *stream_node;
+
 extern int nrows, ncols;
 extern GW_LARGE_INT n_search_points, n_points, nxt_avail_pt;
 extern GW_LARGE_INT heap_size;
-extern unsigned int n_stream_nodes, n_alloc_nodes;
+extern GW_LARGE_INT n_stream_nodes, n_alloc_nodes;
 extern POINT *outlets;
-extern unsigned int n_outlets, n_alloc_outlets;
+extern struct snode *stream_node;
+extern GW_LARGE_INT n_outlets, n_alloc_outlets;
 extern char drain[3][3];
 extern char sides;
 extern int c_fac;
@@ -55,9 +62,8 @@ extern int have_depressions;
 
 extern SSEG search_heap;
 extern SSEG astar_pts;
-extern BSEG bitflags;
-extern SSEG watalt;
-extern BSEG asp;
+extern SSEG watalt, aspflag;
+/* extern BSEG bitflags, asp; */
 extern CSEG stream;
 
 /* load.c */
@@ -72,7 +78,7 @@ GW_LARGE_INT heap_add(int, int, CELL);
 
 /* streams.c */
 int do_accum(double);
-int extract_streams(double, double, int, int);
+int extract_streams(double, double, int);
 
 /* thin.c */
 int thin_streams(void);

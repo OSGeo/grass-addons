@@ -15,16 +15,15 @@ double mfd_pow(double base)
     return result;
 }
 
-int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
+static int continue_stream(CELL stream_id, int r_max, int c_max,
 		    int *stream_no)
 {
-    char aspect;
     CELL curr_stream, stream_nbr, old_stream;
     int r_nbr, c_nbr;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
     int stream_node_step = 1000;
-    char this_flag_value;
+    ASP_FLAG af;
 
     G_debug(3, "continue stream");
     
@@ -35,9 +34,9 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 	G_debug(3, "no confluence, just continue stream");
 	curr_stream = stream_id;
 	cseg_put(&stream, &curr_stream, r_max, c_max);
-	bseg_get(&bitflags, &this_flag_value, r_max, c_max);
-	FLAG_SET(this_flag_value, STREAMFLAG);
-	bseg_put(&bitflags, &this_flag_value, r_max, c_max);
+	seg_get(&aspflag, (char *)&af, r_max, c_max);
+	FLAG_SET(af.flag, STREAMFLAG);
+	seg_put(&aspflag, (char *)&af, r_max, c_max);
 	return 0;
     }
 
@@ -70,9 +69,8 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 
 	/* debug */
 	if (n_stream_nodes != *stream_no)
-	    G_warning(_("BUG: stream_no %d and n_stream_nodes %d out of sync"),
+	    G_warning(_("BUG: stream_no %d and n_stream_nodes %lld out of sync"),
 		      *stream_no, n_stream_nodes);
-
 
 	stream_node[*stream_no].n_alloc += 2;
 	new_size = stream_node[*stream_no].n_alloc * sizeof(int);
@@ -93,17 +91,17 @@ int continue_stream(CELL stream_id, int r, int c, int r_max, int c_max,
 	old_stream = curr_stream;
 	curr_stream = *stream_no;
 	cseg_put(&stream, &curr_stream, r_nbr, c_nbr);
-	bseg_get(&asp, &aspect, r_nbr, c_nbr);
+	seg_get(&aspflag, (char *)&af, r_nbr, c_nbr);
 
-	while (aspect > 0) {
-	    r_nbr = r_nbr + asp_r[(int)aspect];
-	    c_nbr = c_nbr + asp_c[(int)aspect];
+	while (af.asp > 0) {
+	    r_nbr = r_nbr + asp_r[(int)af.asp];
+	    c_nbr = c_nbr + asp_c[(int)af.asp];
 	    cseg_get(&stream, &stream_nbr, r_nbr, c_nbr);
 	    if (stream_nbr != old_stream)
-		aspect = -1;
+		af.asp = -1;
 	    else {
 		cseg_put(&stream, &curr_stream, r_nbr, c_nbr);
-		bseg_get(&asp, &aspect, r_nbr, c_nbr);
+		seg_get(&aspflag, (char *)&af, r_nbr, c_nbr);
 	    }
 	}
     }
@@ -147,17 +145,17 @@ int do_accum(double d8cut)
     double dx, dy;
     int r_nbr, c_nbr, r_max, c_max, ct_dir, np_side;
     int is_worked;
-    char aspect;
     double max_acc, prop;
     int edge;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    unsigned int workedon, killer, count;
-    char *flag_nbr, this_flag_value;
+    GW_LARGE_INT workedon, killer, count;
+    char *flag_nbr;
     POINT astarpoint;
     WAT_ALT wa;
+    ASP_FLAG af, af_nbr;
 
     G_message(_("Calculating flow accumulation..."));
 
@@ -193,19 +191,18 @@ int do_accum(double d8cut)
 	r = astarpoint.r;
 	c = astarpoint.c;
 
-	bseg_get(&asp, &aspect, r, c);
+	seg_get(&aspflag, (char *)&af, r, c);
 
 	/* do not distribute flow along edges or out of real depressions */
-	if (aspect <= 0) {
-	    bseg_get(&bitflags, &this_flag_value, r, c);
-	    FLAG_UNSET(this_flag_value, WORKEDFLAG);
-	    bseg_put(&bitflags, &this_flag_value, r, c);
+	if (af.asp <= 0) {
+	    FLAG_UNSET(af.flag, WORKEDFLAG);
+	    seg_put(&aspflag, (char *)&af, r, c);
 	    continue;
 	}
 
-	if (aspect) {
-	    dr = r + asp_r[abs((int)aspect)];
-	    dc = c + asp_c[abs((int)aspect)];
+	if (af.asp) {
+	    dr = r + asp_r[abs((int)af.asp)];
+	    dc = c + asp_c[abs((int)af.asp)];
 	}
 
 	r_max = dr;
@@ -216,9 +213,8 @@ int do_accum(double d8cut)
 
 	/* WORKEDFLAG has been set during A* Search
 	 * reversed meaning here: 0 = done, 1 = not yet done */
-	bseg_get(&bitflags, &this_flag_value, r, c);
-	FLAG_UNSET(this_flag_value, WORKEDFLAG);
-	bseg_put(&bitflags, &this_flag_value, r, c);
+	FLAG_UNSET(af.flag, WORKEDFLAG);
+	seg_put(&aspflag, (char *)&af, r, c);
 
 	/***************************************/
 	/*  get weights for flow distribution  */
@@ -243,7 +239,8 @@ int do_accum(double d8cut)
 	    /* check that neighbour is within region */
 	    if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
 
-		bseg_get(&bitflags, &flag_nbr[ct_dir], r_nbr, c_nbr);
+		seg_get(&aspflag, (char *)&af_nbr, r_nbr, c_nbr);
+		flag_nbr[ct_dir] = af_nbr.flag;
 		if ((edge = FLAG_GET(flag_nbr[ct_dir], NULLFLAG)))
 		    break;
 		seg_get(&watalt, (char *)&wa, r_nbr, c_nbr);
@@ -367,7 +364,7 @@ int do_accum(double d8cut)
 /*
  * extracts streams for threshold, accumulation is provided
  */
-int extract_streams(double threshold, double mont_exp, int min_length, int internal_acc)
+int extract_streams(double threshold, double mont_exp, int internal_acc)
 {
     int r, c, dr, dc;
     CELL is_swale, ele_val, *ele_nbr;
@@ -378,7 +375,6 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
     double dx, dy;
     int r_nbr, c_nbr, r_max, c_max, ct_dir, np_side, max_side;
     int is_worked;
-    char aspect;
     double max_acc;
     int edge, flat;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
@@ -394,9 +390,10 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
     GW_LARGE_INT workedon, killer, count;
     int stream_no = 0, stream_node_step = 1000;
     double slope, diag;
-    char *flag_nbr, this_flag_value;
+    char *flag_nbr;
     POINT astarpoint;
     WAT_ALT wa;
+    ASP_FLAG af, af_nbr;
 
     G_message(_("Extracting streams..."));
 
@@ -446,20 +443,18 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 	r = astarpoint.r;
 	c = astarpoint.c;
 
-	bseg_get(&asp, &aspect, r, c);
-
-	bseg_get(&bitflags, &this_flag_value, r, c);
+	seg_get(&aspflag, (char *)&af, r, c);
 	/* internal acc: SET, external acc: UNSET */
 	if (internal_acc)
-	    FLAG_SET(this_flag_value, WORKEDFLAG);
+	    FLAG_SET(af.flag, WORKEDFLAG);
 	else
-	    FLAG_UNSET(this_flag_value, WORKEDFLAG);
-	bseg_put(&bitflags, &this_flag_value, r, c);
+	    FLAG_UNSET(af.flag, WORKEDFLAG);
+	seg_put(&aspflag, (char *)&af, r, c);
 
 	/* do not distribute flow along edges */
-	if (aspect <= 0) {
+	if (af.asp <= 0) {
 	    G_debug(3, "edge");
-	    is_swale = FLAG_GET(this_flag_value, STREAMFLAG);
+	    is_swale = FLAG_GET(af.flag, STREAMFLAG);
 	    if (is_swale) {
 		G_debug(2, "edge outlet");
 		/* add outlet point */
@@ -475,7 +470,7 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 		n_outlets++;
 	    }
 
-	    if (aspect == 0) {
+	    if (af.asp == 0) {
 		/* can only happen with real depressions */
 		if (!have_depressions)
 		    G_fatal_error(_("Bug in stream extraction"));
@@ -484,9 +479,9 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 	    continue;
 	}
 
-	if (aspect) {
-	    dr = r + asp_r[abs((int)aspect)];
-	    dc = c + asp_c[abs((int)aspect)];
+	if (af.asp) {
+	    dr = r + asp_r[abs((int)af.asp)];
+	    dc = c + asp_c[abs((int)af.asp)];
 	}
 	else {
 	    /* can only happen with real depressions,
@@ -529,7 +524,8 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 		if (dr == r_nbr && dc == c_nbr)
 		    np_side = ct_dir;
 
-		bseg_get(&bitflags, &flag_nbr[ct_dir], r_nbr, c_nbr);
+		seg_get(&aspflag, (char *)&af_nbr, r_nbr, c_nbr);
+		flag_nbr[ct_dir] = af_nbr.flag;
 		if ((edge = FLAG_GET(flag_nbr[ct_dir], NULLFLAG)))
 		    break;
 		seg_get(&watalt, (char *)&wa, r_nbr, c_nbr);
@@ -583,7 +579,7 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 		break;
 	}
 
-	is_swale = FLAG_GET(this_flag_value, STREAMFLAG);
+	is_swale = FLAG_GET(af.flag, STREAMFLAG);
 
 	/* do not continue streams along edges, these are artifacts */
 	if (edge) {
@@ -601,9 +597,9 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 		outlets[n_outlets].r = r;
 		outlets[n_outlets].c = c;
 		n_outlets++;
-		if (aspect > 0) {
-		    aspect = -1 * drain[r - r_nbr + 1][c - c_nbr + 1];
-		    bseg_put(&asp, &aspect, r, c);
+		if (af.asp > 0) {
+		    af.asp = -1 * drain[r - r_nbr + 1][c - c_nbr + 1];
+		    seg_put(&aspflag, (char *)&af, r, c);
 		}
 	    }
 	    continue;
@@ -631,8 +627,8 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 	/* update aspect */
 	/* r_max == r && c_max == c should not happen */
 	if ((r_max != dr || c_max != dc) && (r_max != r || c_max != c)) {
-	    aspect = drain[r - r_max + 1][c - c_max + 1];
-	    bseg_put(&asp, &aspect, r, c);
+	    af.asp = drain[r - r_max + 1][c - c_max + 1];
+	    seg_put(&aspflag, (char *)&af, r, c);
 	}
 
 	/**********************/
@@ -660,8 +656,8 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 	    G_debug(2, "start new stream");
 	    is_swale = ++stream_no;
 	    cseg_put(&stream, &is_swale, r, c);
-	    FLAG_SET(this_flag_value, STREAMFLAG);
-	    bseg_put(&bitflags, &this_flag_value, r, c);
+	    FLAG_SET(af.flag, STREAMFLAG);
+	    seg_put(&aspflag, (char *)&af, r, c);
 	    /* add stream node */
 	    if (stream_no >= n_alloc_nodes - 1) {
 		n_alloc_nodes += stream_node_step;
@@ -681,7 +677,7 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 
 	    /* debug */
 	    if (n_stream_nodes != stream_no)
-		G_warning(_("BUG: stream_no %d and n_stream_nodes %d out of sync"),
+		G_warning(_("BUG: stream_no %d and n_stream_nodes %lld out of sync"),
 			  stream_no, n_stream_nodes);
 	}
 
@@ -707,8 +703,7 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
 		n_outlets++;
 	    }
 	    else {
-		continue_stream(is_swale, r, c, r_max, c_max, 
-				&stream_no);
+		continue_stream(is_swale, r_max, c_max, &stream_no);
 	    }
 	}
     }
@@ -722,8 +717,8 @@ int extract_streams(double threshold, double mont_exp, int min_length, int inter
     G_free(ele_nbr);
     G_free(flag_nbr);
 
-    G_debug(1, "%d outlets", n_outlets);
-    G_debug(1, "%d nodes", n_stream_nodes);
+    G_debug(1, "%lld outlets", n_outlets);
+    G_debug(1, "%lld nodes", n_stream_nodes);
     G_debug(1, "%d streams", stream_no);
 
     return 1;
