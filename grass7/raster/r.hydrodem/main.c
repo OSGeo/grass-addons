@@ -41,9 +41,12 @@ int ele_scale;
 struct RB_TREE *draintree;
 
 SSEG search_heap;
+SSEG dirflag;
+/*
 BSEG bitflags;
-CSEG ele;
 BSEG draindir;
+*/
+CSEG ele;
 CSEG stream;
 
 
@@ -205,10 +208,8 @@ int main(int argc, char *argv[])
     /* balance segment files */
     /* elevation: * 2 */
     memory_divisor = seg2kb * sizeof(CELL) * 2;
-    /* drainage direction: as is */
-    memory_divisor += seg2kb * sizeof(char);
-    /* flags: * 4 */
-    memory_divisor += seg2kb * sizeof(char) * 4;
+    /* flags + directions: * 2 */
+    memory_divisor += seg2kb * sizeof(struct dir_flag) * 2;
     /* heap points: / 4 */
     memory_divisor += seg2kb * sizeof(struct heap_point) / 4.;
     
@@ -231,7 +232,7 @@ int main(int argc, char *argv[])
 	heap_mem = num_open_segs * seg2kb * sizeof(struct heap_point) /
 	           (4. * 1024.);
     }
-    disk_space = (1. * sizeof(CELL) + 2 * sizeof(char) +
+    disk_space = (1. * sizeof(CELL) + sizeof(struct dir_flag) +
                  sizeof(struct heap_point));
     disk_space *= (num_seg_total * seg2kb / 1024.);  /* KB -> MB */
     
@@ -244,23 +245,23 @@ int main(int argc, char *argv[])
     cseg_open(&ele, seg_rows, seg_cols, num_open_segs * 2);
     if (num_open_segs * 2 > num_seg_total)
 	heap_mem += (num_open_segs * 2 - num_seg_total) * seg2kb * sizeof(CELL) / 1024.;
-    bseg_open(&draindir, seg_rows, seg_cols, num_open_segs);
-    bseg_open(&bitflags, seg_rows, seg_cols, num_open_segs * 4);
+
+    seg_open(&dirflag, nrows, ncols, seg_rows, seg_cols, num_open_segs * 2,
+              sizeof(struct dir_flag), 1);
+
     if (num_open_segs * 4 > num_seg_total)
 	heap_mem += (num_open_segs * 4 - num_seg_total) * seg2kb / 1024.;
 
     /* load map */
     if (load_map(ele_fd) < 0) {
 	cseg_close(&ele);
-	bseg_close(&draindir);
-	bseg_close(&bitflags);
+	seg_close(&dirflag);
 	G_fatal_error(_("Could not load input map"));
     }
     
     if (n_points == 0) {
 	cseg_close(&ele);
-	bseg_close(&draindir);
-	bseg_close(&bitflags);
+	seg_close(&dirflag);
 	G_fatal_error(_("No non-NULL cells loaded from input map"));
     }
 
@@ -302,8 +303,7 @@ int main(int argc, char *argv[])
     if (init_search(depr_fd) < 0) {
 	seg_close(&search_heap);
 	cseg_close(&ele);
-	bseg_close(&draindir);
-	bseg_close(&bitflags);
+	seg_close(&dirflag);
 	G_fatal_error(_("Could not initialize search"));
     }
 
@@ -315,8 +315,7 @@ int main(int argc, char *argv[])
     if (do_astar() < 0) {
 	seg_close(&search_heap);
 	cseg_close(&ele);
-	bseg_close(&draindir);
-	bseg_close(&bitflags);
+	seg_close(&dirflag);
 	G_fatal_error(_("Could not sort elevation map"));
     }
     seg_close(&search_heap);
@@ -324,22 +323,19 @@ int main(int argc, char *argv[])
     /* hydrological corrections */
     if (hydro_con() < 0) {
 	cseg_close(&ele);
-	bseg_close(&draindir);
-	bseg_close(&bitflags);
+	seg_close(&dirflag);
 	G_fatal_error(_("Could not apply hydrological conditioning"));
     }
 
     /* write output maps */
     if (close_map(output.ele_hydro->answer, ele_map_type) < 0) {
 	cseg_close(&ele);
-	bseg_close(&draindir);
-	bseg_close(&bitflags);
+	seg_close(&dirflag);
 	G_fatal_error(_("Could not write output map"));
     }
 
     cseg_close(&ele);
-    bseg_close(&draindir);
-    bseg_close(&bitflags);
+    seg_close(&dirflag);
 
     Rast_read_colors(input.ele->answer, mapset, &colors);
     Rast_write_colors(output.ele_hydro->answer, G_mapset(), &colors);

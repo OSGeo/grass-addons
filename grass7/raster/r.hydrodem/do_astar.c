@@ -26,8 +26,8 @@ int do_astar(void)
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
     CELL ele_val, ele_down, ele_nbr[8];
     char is_bottom;
-    char asp_val, asp_val_this;
-    char flag_value, is_in_list, is_worked;
+    char is_in_list, is_worked;
+    struct dir_flag df;
     struct heap_point heap_p;
     /* sides
      * |7|1|4|
@@ -85,16 +85,16 @@ int do_astar(void)
 	c = heap_p.c;
 
 	first_cum--;
-	bseg_get(&bitflags, &flag_value, r, c);
-	FLAG_SET(flag_value, WORKEDFLAG);
-	bseg_put(&bitflags, &flag_value, r, c);
+	seg_get(&dirflag, (char *)&df, r, c);
+	FLAG_SET(df.flag, WORKEDFLAG);
+	seg_put(&dirflag, (char *)&df, r, c);
 
 	ele_val = ele_down = heap_p.ele;
 	is_bottom = 0;
-	bseg_get(&draindir, &asp_val_this, r, c);
-	if (asp_val_this > 0 && !FLAG_GET(flag_value, EDGEFLAG)) {
-	    r_nbr = r + asp_r[(int)asp_val_this];
-	    c_nbr = c + asp_c[(int)asp_val_this];
+
+	if (df.dir > 0 && !FLAG_GET(df.flag, EDGEFLAG)) {
+	    r_nbr = r + asp_r[(int)df.dir];
+	    c_nbr = c + asp_c[(int)df.dir];
 	    cseg_get(&ele, &ele_down, r_nbr, c_nbr);
 	    if (ele_down > ele_val)
 		is_bottom = 1;
@@ -110,9 +110,9 @@ int do_astar(void)
 	    if (r_nbr < 0 || r_nbr >= nrows || c_nbr < 0 || c_nbr >= ncols)
 		continue;
 
-	    bseg_get(&bitflags, &flag_value, r_nbr, c_nbr);
-	    is_in_list = FLAG_GET(flag_value, INLISTFLAG);
-	    is_worked = FLAG_GET(flag_value, WORKEDFLAG);
+	    seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
+	    is_in_list = FLAG_GET(df.flag, INLISTFLAG);
+	    is_worked = FLAG_GET(df.flag, WORKEDFLAG);
 	    skip_diag = 0;
 
 	    /* avoid diagonal flow direction bias */
@@ -139,40 +139,40 @@ int do_astar(void)
 		}
 	    }
 
-	    if (is_in_list == 0 && skip_diag == 0) {
-		asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-		heap_add(r_nbr, c_nbr, ele_nbr[ct_dir], asp_val, flag_value);
+	    if (!skip_diag) {
+		if (is_in_list == 0) {
+		    df.dir = drain[r_nbr - r + 1][c_nbr - c + 1];
+		    FLAG_SET(df.flag, INLISTFLAG);
+		    seg_put(&dirflag, (char *)&df, r_nbr, c_nbr);
+		    heap_add(r_nbr, c_nbr, ele_nbr[ct_dir]);
 
-		if (ele_nbr[ct_dir] < ele_val)
-		    is_bottom = 0;
-	    }
-	    else if (is_in_list && is_worked == 0) {
-		if (FLAG_GET(flag_value, EDGEFLAG)) {
-		    bseg_get(&draindir, &asp_val, r_nbr, c_nbr);
-		    if (asp_val < 0) {
-			/* update edge cell ? no */
-			/* asp_val = drain[r_nbr - r + 1][c_nbr - c + 1]; */
-			/* check if this causes trouble */
-			bseg_put(&draindir, &asp_val, r_nbr, c_nbr);
-
-			if (ele_nbr[ct_dir] < ele_val)
-			    is_bottom = 0;
-		    }
+		    if (ele_nbr[ct_dir] < ele_val)
+			is_bottom = 0;
 		}
-		else if (FLAG_GET(flag_value, DEPRFLAG)) {
-		    G_debug(3, "real depression");
-		    /* neighbour is inside real depression, not yet worked */
-		    bseg_get(&draindir, &asp_val, r_nbr, c_nbr);
-		    if (asp_val == 0 && ele_val <= ele_nbr[ct_dir]) {
-			asp_val = drain[r_nbr - r + 1][c_nbr - c + 1];
-			bseg_put(&draindir, &asp_val, r_nbr, c_nbr);
-			FLAG_UNSET(flag_value, DEPRFLAG);
-			bseg_put(&bitflags, &flag_value, r_nbr, c_nbr);
+		else if (is_in_list && is_worked == 0) {
+		    if (FLAG_GET(df.flag, EDGEFLAG)) {
+			if (df.dir < 0) {
+			    /* update edge cell ? no */
+			    /* df.dir = drain[r_nbr - r + 1][c_nbr - c + 1]; */
+			    /* check if this causes trouble */
+			    /* seg_put(&dirflag, (char *)&df, r_nbr, c_nbr); */
+
+			    if (ele_nbr[ct_dir] < ele_val)
+				is_bottom = 0;
+			}
+		    }
+		    else if (FLAG_GET(df.flag, DEPRFLAG)) {
+			G_debug(3, "real depression");
+			/* neighbour is inside real depression, not yet worked */
+			if (df.dir == 0 && ele_val <= ele_nbr[ct_dir]) {
+			    df.dir = drain[r_nbr - r + 1][c_nbr - c + 1];
+			    FLAG_UNSET(df.flag, DEPRFLAG);
+			    seg_put(&dirflag, (char *)&df, r_nbr, c_nbr);
+			}
 		    }
 		}
 	    }
 	}    /* end neighbours */
-
 
 	if (is_bottom) {
 	    /* add sink bottom */
@@ -263,7 +263,7 @@ int sift_up(unsigned int start, struct heap_point child_p)
  * add item to heap
  * returns heap_size
  */
-unsigned int heap_add(int r, int c, CELL ele, char asp, char flag_value)
+unsigned int heap_add(int r, int c, CELL ele)
 {
     struct heap_point heap_p;
 
@@ -278,10 +278,6 @@ unsigned int heap_add(int r, int c, CELL ele, char asp, char flag_value)
     heap_p.c = c;
     heap_p.ele = ele;
     heap_p.added = nxt_avail_pt;
-
-    bseg_put(&draindir, &asp, r, c);
-    FLAG_SET(flag_value, INLISTFLAG);
-    bseg_put(&bitflags, &flag_value, r, c);
 
     nxt_avail_pt++;
 

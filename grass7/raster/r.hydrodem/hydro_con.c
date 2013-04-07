@@ -30,7 +30,7 @@ static int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
     CELL ele_val, ele_nbr;
     int n_to_fill;
     int top, done;
-    char drain_val;
+    struct dir_flag df;
 
     /* go upstream from spill point */
     r = peak_r;
@@ -57,11 +57,11 @@ static int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
 	        c_nbr < ncols) {
 
 		cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
-		bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
-		if (drain_val > 0) {
+		seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
+		if (df.dir > 0) {
 		    /* contributing cell */
-		    if (r_nbr + asp_r[(int)drain_val] == r &&
-			c_nbr + asp_c[(int)drain_val] == c) {
+		    if (r_nbr + asp_r[(int)df.dir] == r &&
+			c_nbr + asp_c[(int)df.dir] == c) {
 
 			/* contributing neighbour is lower than
 			 * spill point, add to stack */
@@ -92,7 +92,7 @@ static int count_fill(int peak_r, int peak_c, CELL peak_ele, int *n_splits,
 			}
 		    }
 		}    /* end contributing */
-		else if (drain_val == 0 && peak_ele > ele_nbr)
+		else if (df.dir == 0 && peak_ele > ele_nbr)
 		    /* found bottom of real depression, don't fill */
 		    return -1;
 	    }    /* end in region */
@@ -115,12 +115,12 @@ static int is_flat(int r, int c, CELL this_ele)
 {
     int r_nbr, c_nbr, ct_dir;
     CELL ele_nbr;
-    char drain_val, drain_val_nbr;
+    struct dir_flag df, df_nbr;
     int counter = 0;
 
-    bseg_get(&draindir, &drain_val, r, c);
+    seg_get(&dirflag, (char *)&df, r, c);
 
-    if (drain_val < 1)
+    if (df.dir < 1)
 	return 0;
 
     for (ct_dir = 0; ct_dir < sides; ct_dir++) {
@@ -130,14 +130,14 @@ static int is_flat(int r, int c, CELL this_ele)
 	if (r_nbr >= 0 && r_nbr < nrows && c_nbr >= 0 && c_nbr < ncols) {
 	    
 	    cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
-	    bseg_get(&draindir, &drain_val_nbr, r_nbr, c_nbr);
-	    if (drain_val_nbr > 0) {
+	    seg_get(&dirflag, (char *)&df_nbr, r_nbr, c_nbr);
+	    if (df_nbr.dir > 0) {
 		/* not a contributing cell */
-		if (r_nbr + asp_r[(int)drain_val_nbr] != r ||
-		    c_nbr + asp_c[(int)drain_val_nbr] != c) {
+		if (r_nbr + asp_r[(int)df_nbr.dir] != r ||
+		    c_nbr + asp_c[(int)df_nbr.dir] != c) {
 		    /* does not contribute to this cell */
-		    if (r + asp_r[(int)drain_val] != r_nbr ||
-		        c + asp_c[(int)drain_val] != c_nbr) {
+		    if (r + asp_r[(int)df.dir] != r_nbr ||
+		        c + asp_c[(int)df.dir] != c_nbr) {
 			if (ele_nbr == this_ele)
 			    counter++;
 		    }
@@ -155,7 +155,7 @@ static int fill_sink(int peak_r, int peak_c, CELL peak_ele)
     CELL ele_nbr;
     int n_to_fill = 0;
     int top, done;
-    char drain_val;
+    struct dir_flag df;
 
     /* post-order traversal */
     /* add spill point as root to stack */
@@ -176,11 +176,11 @@ static int fill_sink(int peak_r, int peak_c, CELL peak_ele)
 	        c_nbr < ncols) {
 
 		cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
-		bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
-		if (drain_val > 0) {
+		seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
+		if (df.dir > 0) {
 		    /* contributing cell */
-		    if (r_nbr + asp_r[(int)drain_val] == r &&
-			c_nbr + asp_c[(int)drain_val] == c) {
+		    if (r_nbr + asp_r[(int)df.dir] == r &&
+			c_nbr + asp_c[(int)df.dir] == c) {
 
 			/* contributing neighbour is lower than
 			 * spill point, add to stack */
@@ -224,7 +224,7 @@ static int carve(int bottom_r, int bottom_c, CELL bottom_ele,
           int peak_r, int peak_c)
 {
     int r, c, r_nbr, c_nbr, carved = 0;
-    char drain_val;
+    struct dir_flag df;
     int ct_dir;
     CELL ele_val, ele_nbr;
     int top, done;
@@ -250,11 +250,11 @@ static int carve(int bottom_r, int bottom_c, CELL bottom_ele,
 	        c_nbr < ncols) {
 
 		cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
-		bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
-		if (drain_val > 0) {
+		seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
+		if (df.dir > 0) {
 		    /* contributing cell */
-		    if (r_nbr + asp_r[(int) drain_val] == r &&
-			c_nbr + asp_c[(int) drain_val] == c) {
+		    if (r_nbr + asp_r[(int)df.dir] == r &&
+			c_nbr + asp_c[(int)df.dir] == c) {
 
 			/* contributing neighbour is lower than 
 			 * current point, add to stack */
@@ -294,27 +294,27 @@ static int carve(int bottom_r, int bottom_c, CELL bottom_ele,
     /* <-- carve upstream from spill point */
 
     /* carve downstream from sink bottom */
-    bseg_get(&draindir, &drain_val, bottom_r, bottom_c);
-    if (drain_val < 1) {
+    seg_get(&dirflag, (char *)&df, bottom_r, bottom_c);
+    if (df.dir < 1) {
 	G_warning(_("Can't carve downstream from r %d, c %d"), bottom_r,
 		  bottom_c);
 	return 0;
     }
 
-    r_nbr = bottom_r + asp_r[(int) drain_val];
-    c_nbr = bottom_c + asp_c[(int) drain_val];
+    r_nbr = bottom_r + asp_r[(int)df.dir];
+    c_nbr = bottom_c + asp_c[(int)df.dir];
 
     cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 
     /* go downstream up to peak and down to bottom again */
     while (ele_nbr >= bottom_ele) {
-	bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
+	seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
 	cseg_put(&ele, &bottom_ele, r_nbr, c_nbr);
 	carved++;
 
-	if (drain_val > 0) {
-	    r_nbr = r_nbr + asp_r[(int) drain_val];
-	    c_nbr = c_nbr + asp_c[(int) drain_val];
+	if (df.dir > 0) {
+	    r_nbr = r_nbr + asp_r[(int)df.dir];
+	    c_nbr = c_nbr + asp_c[(int)df.dir];
 	    cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 	}
 	else {
@@ -334,7 +334,8 @@ int hydro_con(void)
     CELL ele_val, ele_nbr, ele_last, peak_ele, bottom_ele;
     int down_uphill, down_downhill, n_cells;
     struct sink_list *last_sink;
-    char drain_val, flag_value;
+    struct dir_flag df;
+    
     int n_splits, n_to_fill;
     int n_filled, n_carved, n_just_a_bit, n_processed;
     int carve_to_edge, skipme;
@@ -363,10 +364,10 @@ int hydro_con(void)
 	/* go downstream, get spill point */
 	peak_r = r;
 	peak_c = c;
-	bseg_get(&draindir, &drain_val, r, c);
+	seg_get(&dirflag, (char *)&df, r, c);
 
-	r_nbr = r + asp_r[(int) drain_val];
-	c_nbr = c + asp_c[(int) drain_val];
+	r_nbr = r + asp_r[(int)df.dir];
+	c_nbr = c + asp_c[(int)df.dir];
 
 	cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 
@@ -381,11 +382,11 @@ int hydro_con(void)
 		peak_r = r_nbr;
 		peak_c = c_nbr;
 	    }
-	    bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
+	    seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
 
-	    if (drain_val > 0) {
-		r_nbr = r_nbr + asp_r[(int) drain_val];
-		c_nbr = c_nbr + asp_c[(int) drain_val];
+	    if (df.dir > 0) {
+		r_nbr = r_nbr + asp_r[(int)df.dir];
+		c_nbr = c_nbr + asp_c[(int)df.dir];
 
 		ele_last = ele_nbr;
 		cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
@@ -397,8 +398,8 @@ int hydro_con(void)
 
 	cseg_get(&ele, &peak_ele, peak_r, peak_c);
 
-	bseg_get(&bitflags, &flag_value, peak_r, peak_c);
-	noedge = (FLAG_GET(flag_value, EDGEFLAG) == 0);
+	seg_get(&dirflag, (char *)&df, peak_r, peak_c);
+	noedge = (FLAG_GET(df.flag, EDGEFLAG) == 0);
 	r_nbr = peak_r;
 	c_nbr = peak_c;
 	ele_nbr = peak_ele;
@@ -422,13 +423,13 @@ int hydro_con(void)
 	    while (ele_nbr >= bottom_ele) {
 		if (ele_nbr > bottom_ele)
 		    down_downhill++;
-		bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
+		seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
 
 		/* detect flat area ? */
 
-		if (drain_val > 0) {
-		    r_nbr = r_nbr + asp_r[(int) drain_val];
-		    c_nbr = c_nbr + asp_c[(int) drain_val];
+		if (df.dir > 0) {
+		    r_nbr = r_nbr + asp_r[(int)df.dir];
+		    c_nbr = c_nbr + asp_c[(int)df.dir];
 
 		    cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 		}
@@ -561,11 +562,11 @@ int hydro_con(void)
 			if (next_bottom_ele > ele_nbr)
 			    next_bottom_ele = ele_nbr;
 		    }
-		    bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
+		    seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
 
-		    if (drain_val > 0) {
-			r_nbr = r_nbr + asp_r[(int) drain_val];
-			c_nbr = c_nbr + asp_c[(int) drain_val];
+		    if (df.dir > 0) {
+			r_nbr = r_nbr + asp_r[(int)df.dir];
+			c_nbr = c_nbr + asp_c[(int)df.dir];
 
 			last_ele = ele_nbr;
 			cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
@@ -589,11 +590,11 @@ int hydro_con(void)
 			if (ele_nbr > bottom_ele) {
 			    down_uphill = n_cells;
 			}
-			bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
+			seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
 
-			if (drain_val > 0) {
-			    r_nbr = r_nbr + asp_r[(int) drain_val];
-			    c_nbr = c_nbr + asp_c[(int) drain_val];
+			if (df.dir > 0) {
+			    r_nbr = r_nbr + asp_r[(int)df.dir];
+			    c_nbr = c_nbr + asp_c[(int)df.dir];
 
 			    ele_last = ele_nbr;
 			    cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
@@ -659,18 +660,18 @@ int hydro_con(void)
 
 		r_nbr = next_r;
 		c_nbr = next_c;
-		bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
-		if (drain_val > 0) {
+		seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
+		if (df.dir > 0) {
 
 		    cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 		    /* go to next higher cell downstream */
 		    while (ele_nbr == bottom_ele ||
 		           ele_nbr < min_bottom_ele) {
-			bseg_get(&draindir, &drain_val, r_nbr, c_nbr);
+			seg_get(&dirflag, (char *)&df, r_nbr, c_nbr);
 
-			if (drain_val > 0) {
-			    r_nbr = r_nbr + asp_r[(int) drain_val];
-			    c_nbr = c_nbr + asp_c[(int) drain_val];
+			if (df.dir > 0) {
+			    r_nbr = r_nbr + asp_r[(int)df.dir];
+			    c_nbr = c_nbr + asp_c[(int)df.dir];
 
 			    cseg_get(&ele, &ele_nbr, r_nbr, c_nbr);
 			}

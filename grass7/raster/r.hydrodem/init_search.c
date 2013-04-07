@@ -9,8 +9,8 @@ int init_search(int depr_fd)
     CELL ele_value;
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    char flag_value, flag_value_nbr, is_null;
-    char asp_value;
+    char asp_value, is_null;
+    struct dir_flag df, df_nbr;
     unsigned int n_depr_cells = 0;
     unsigned int n_null_cells = nrows * ncols - n_points;
     int depr_map_type, depr_size;
@@ -42,8 +42,8 @@ int init_search(int depr_fd)
 
 	for (c = 0; c < ncols; c++) {
 
-	    bseg_get(&bitflags, &flag_value, r, c);
-	    is_null = FLAG_GET(flag_value, NULLFLAG);
+	    seg_get(&dirflag, (char *)&df, r, c);
+	    is_null = FLAG_GET(df.flag, NULLFLAG);
 
 	    if (is_null) {
 		if (depr_fd > -1)
@@ -74,8 +74,11 @@ int init_search(int depr_fd)
 		    asp_value = -8;
 
 		cseg_get(&ele, &ele_value, r, c);
-		FLAG_SET(flag_value, EDGEFLAG);
-		heap_add(r, c, ele_value, asp_value, flag_value);
+		FLAG_SET(df.flag, EDGEFLAG);
+		FLAG_SET(df.flag, INLISTFLAG);
+		df.dir = asp_value;
+		seg_put(&dirflag, (char *)&df, r, c);
+		heap_add(r, c, ele_value);
 
 		if (depr_fd > -1)
 		    depr_ptr = G_incr_void_ptr(depr_ptr, depr_size);
@@ -90,14 +93,17 @@ int init_search(int depr_fd)
 		    r_nbr = r + nextdr[ct_dir];
 		    c_nbr = c + nextdc[ct_dir];
 
-		    bseg_get(&bitflags, &flag_value_nbr, r_nbr, c_nbr);
-		    is_null = FLAG_GET(flag_value_nbr, NULLFLAG);
+		    seg_get(&dirflag, (char *)&df_nbr, r_nbr, c_nbr);
+		    is_null = FLAG_GET(df_nbr.flag, NULLFLAG);
 
 		    if (is_null) {
 			asp_value = -1 * drain[r - r_nbr + 1][c - c_nbr + 1];
 			cseg_get(&ele, &ele_value, r, c);
-			FLAG_SET(flag_value, EDGEFLAG);
-			heap_add(r, c, ele_value, asp_value, flag_value);
+			FLAG_SET(df.flag, EDGEFLAG);
+			FLAG_SET(df.flag, INLISTFLAG);
+			df.dir = asp_value;
+			seg_put(&dirflag, (char *)&df, r, c);
+			heap_add(r, c, ele_value);
 
 			break;
 		    }
@@ -118,8 +124,11 @@ int init_search(int depr_fd)
 
 		if (!Rast_is_null_value(depr_ptr, depr_map_type) && depr_val != 0) {
 		    cseg_get(&ele, &ele_value, r, c);
-		    FLAG_SET(flag_value, DEPRFLAG);
-		    heap_add(r, c, ele_value, asp_value, flag_value);
+		    FLAG_SET(df.flag, INLISTFLAG);
+		    FLAG_SET(df.flag, DEPRFLAG);
+		    df.dir = asp_value;
+		    seg_put(&dirflag, (char *)&df, r, c);
+		    heap_add(r, c, ele_value);
 		    n_depr_cells++;
 		}
 		depr_ptr = G_incr_void_ptr(depr_ptr, depr_size);

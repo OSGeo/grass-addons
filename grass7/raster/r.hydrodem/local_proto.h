@@ -44,6 +44,13 @@ struct snode
     double *acc;
 };
 
+struct dir_flag
+{
+   char dir;
+   char flag;
+};
+
+
 extern struct snode *stream_node;
 extern int nrows, ncols;
 extern unsigned int n_search_points, n_points, nxt_avail_pt;
@@ -64,9 +71,12 @@ extern struct RB_TREE *draintree;
 
 extern SSEG search_heap;
 extern SSEG astar_pts;
+extern SSEG dirflag;
+/*
 extern BSEG bitflags;
-extern CSEG ele;
 extern BSEG draindir;
+*/
+extern CSEG ele;
 extern CSEG stream;
 
 /* load.c */
@@ -77,7 +87,7 @@ int init_search(int);
 
 /* do_astar.c */
 int do_astar(void);
-unsigned int heap_add(int, int, CELL, char, char);
+unsigned int heap_add(int, int, CELL);
 
 /* hydro_con.c */
 int hydro_con(void);

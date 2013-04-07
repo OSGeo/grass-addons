@@ -15,7 +15,7 @@ int ele_round(double x)
 int load_map(int ele_fd)
 {
     int r, c;
-    char flag_value, asp_value = 0;
+    struct dir_flag df;
     void *ele_buf, *ptr;
     CELL ele_value;
     DCELL dvalue;
@@ -23,6 +23,8 @@ int load_map(int ele_fd)
     int ele_map_type;
 
     G_message(_("Load elevation map"));
+
+    df.dir = 0;
 
     n_search_points = n_points = 0;
 
@@ -49,14 +51,14 @@ int load_map(int ele_fd)
 
 	for (c = 0; c < ncols; c++) {
 
-	    flag_value = 0;
+	    df.flag = 0;
 
 	    /* check for masked and NULL cells */
 	    if (Rast_is_null_value(ptr, ele_map_type)) {
-		FLAG_SET(flag_value, NULLFLAG);
-		FLAG_SET(flag_value, INLISTFLAG);
-		FLAG_SET(flag_value, WORKEDFLAG);
-		FLAG_SET(flag_value, WORKED2FLAG);
+		FLAG_SET(df.flag, NULLFLAG);
+		FLAG_SET(df.flag, INLISTFLAG);
+		FLAG_SET(df.flag, WORKEDFLAG);
+		FLAG_SET(df.flag, WORKED2FLAG);
 		Rast_set_c_null_value(&ele_value, 1);
 	    }
 	    else {
@@ -80,8 +82,7 @@ int load_map(int ele_fd)
 	    }
 
 	    cseg_put(&ele, &ele_value, r, c);
-	    bseg_put(&draindir, &asp_value, r, c);
-	    bseg_put(&bitflags, &flag_value, r, c);
+	    seg_put(&dirflag, (char *)&df, r, c);
 
 	    ptr = G_incr_void_ptr(ptr, ele_size);
 	}
