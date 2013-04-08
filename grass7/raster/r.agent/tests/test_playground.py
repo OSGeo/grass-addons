@@ -8,6 +8,11 @@ class TestPlayground(unittest.TestCase):
     def setUp(self):
         self.pg = playground.Playground()
 
+    def test_stringcoordinate(self):
+        self.assertEqual(self.pg.stringcoordinate("foo","bar"), [])
+        self.assertEqual(self.pg.stringcoordinate("inf","nan"), [])
+        self.assertEqual(self.pg.stringcoordinate("2","3"), [2,3])
+
     def test_setregion(self):
         self.assertTrue(self.pg.region["rows"] == 1)
         self.pg.setregion(2,1)

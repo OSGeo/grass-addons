@@ -23,6 +23,25 @@ class Playground(object):
         self.region = dict()
         self.setregion(1,1)
 
+    def stringcoordinate(self, x, y):
+        """
+        Convert string coordinates to float coordinates.
+        @param x string x coordinate
+        @param y string y coordinate
+        @return position as a list of floats
+        """
+        try:
+            # try to convert the string value to a float
+            x = float(x)
+            y = float(y)
+            # also catch 'inf' and 'nan' ..
+            if ( x == x ) and ( y == y ) and ( x + y - 1 != x + y ):
+                return [float(x), float(y)]
+            else:
+                return []
+        except ValueError:
+            return []
+
     def setregion(self, rows, cols):
         """
         Set the geometry of the playground, based only on the number
