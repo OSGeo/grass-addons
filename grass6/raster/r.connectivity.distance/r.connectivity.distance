@@ -136,12 +136,12 @@
 #%option 
 #% key: cutoff
 #% type: double
-#% description: Maximum euclidean search distance around patches in map units
+#% description: Maximum search distance around patches in meter
 #% required : no
 #% guisection: Settings
 #% answer : 10000
 #%end
-# 
+#
 #%option 
 #% key: border_dist
 #% type: integer
@@ -152,7 +152,7 @@
 #%end
 #
 #%flag
-#% key: s
+#% key: p
 #% description: Extract and save short paths and closest points into a vector map
 #% guisection: Settings
 #%end
@@ -164,10 +164,17 @@
 #%end
 #
 #%flag
-#% key: e
-#% description: Use euclidean distance (not cost distance)
+#% key: s
+#% description: Use straight distance (euclidean/geodesic, not cost distance)
 #% guisection: Settings
 #%end
+#
+#%flag
+#% key: r
+#% description: Remove distance maps (saves disk-space but disables computation of corridors)
+#% guisection: Settings
+#%end
+#
 #
 
 #Input:
@@ -182,9 +189,10 @@ PREFIX="${GIS_OPT_PREFIX}"
 FOLDER="${GIS_OPT_FOLDER}"
 
 #Settings
+P_FLAG=${GIS_FLAG_P}
 S_FLAG=${GIS_FLAG_S}
 T_FLAG=${GIS_FLAG_T}
-E_FLAG=${GIS_FLAG_E}
+R_FLAG=${GIS_FLAG_R}
 #
 #Check if script is started from within GRASS
 if [ -z "$GISBASE" ] ; then
@@ -207,7 +215,18 @@ fi
 #set environment so that awk works properly in all languages
 unset LC_ALL 
 LC_NUMERIC=C 
-export LC_NUMERIC 
+export LC_NUMERIC
+
+#Check if location is lat/lon (only in lat/lon geodesic distance measuring is supported)
+prj_info=$(g.proj -g | grep proj | cut -f2 -d'=')
+if [ "$prj_info" = "ll" ] ; then
+	eval `g.proj -g`
+	g.message -v "Location is lat/lon: Geodesic distance measure is used"
+fi
+
+if [ $S_FLAG -eq 1 ]  && [ $P_FLAG -eq 1 ] ; then
+	g.message -w "Shortest paths and closest points will not be extracted because tis option is only supported for cost distance measurement"
+fi
 
 #Check if patch vector map exists
 eval `g.findfile element=vector file=${PATCHES}`
@@ -217,7 +236,7 @@ if [ ! -r "$file" ] ; then
     exit 1
 fi
 
-if [ $E_FLAG -ne 1 ] ; then
+if [ $S_FLAG -ne 1 ] ; then
 	#Check if cost raster map exists
 	eval `g.findfile element=cell file=${COSTS}`
 	if [ ! -r "$file" ] ; then
@@ -277,12 +296,12 @@ CUTOFF=$CUTOFF
 BORDER_DIST="${GIS_OPT_BORDER_DIST}"
 PREFIX=$PREFIX
 FOLDER=$FOLDER
-EUCL_DIST=$E_FLAG
+EUCL_DIST=$S_FLAG
 EOF
 
 
 ########################################################################
-if [ $E_FLAG -ne 1 ] ; then
+if [ $S_FLAG -ne 1 ] ; then
 	eval `g.region -ugp rast=$COSTS align=$COSTS`
 else
 	eval `g.region -ugp`
@@ -358,14 +377,14 @@ r.mapcalc "${PREFIX}_patches_boundary=if(${PREFIX}_patches_pol,\
 	(isnull(${PREFIX}_patches_pol[0,1])|||${PREFIX}_patches_pol[0,1]!=${PREFIX}_patches_pol)|||\
 	(isnull(${PREFIX}_patches_pol[1,0])|||${PREFIX}_patches_pol[1,0]!=${PREFIX}_patches_pol)|||\
 	(isnull(${PREFIX}_patches_pol[0,-1])|||${PREFIX}_patches_pol[0,-1]!=${PREFIX}_patches_pol)),${PREFIX}_patches_pol,null()),\
-	null())"
+	null())" 2> /dev/null
 
 #Init output vector maps if they are requested by user
-if [ $S_FLAG -eq 1 ] ; then
+if [ $P_FLAG -eq 1 ] && [ $S_FLAG -ne 1 ] ; then
 	v.edit --quiet map=${PREFIX}_closest_stop_points tool=create
-	v.db.addtable --quiet map=${PREFIX}_closest_stop_points columns="cat integer, X integer,Y integer,FROM_P integer,TO_P integer,DIST double precision"
+	v.db.addtable --quiet map=${PREFIX}_closest_stop_points columns="cat integer, X double precision,Y double precision,FROM_P integer,TO_P integer,DIST double precision"
 
-	v.edit map=${PREFIX}_shortest_paths tool=create
+	v.edit --quiet map=${PREFIX}_shortest_paths tool=create
 	v.db.addtable --quiet map=${PREFIX}_shortest_paths columns="cat integer, value integer, label varchar (10)"
 fi
 
@@ -374,8 +393,8 @@ for p in $patch_list
 do
 	g.message -v "Calculating connectivity-distances for patch number $p"
 	#Extract patch polygons
-	v.extract --overwrite --quiet input=$PATCHES output=${PREFIX}_patch_${p} list=$p 2>&1
-	eval `v.info -t map=${PREFIX}_patch_${p}`
+	v.extract --overwrite --quiet input=$PATCHES output=${PREFIX}_patch_${p} where="cat=${p}" 2>&1 > /dev/null
+	eval `v.info -t --verbose map=${PREFIX}_patch_${p}`
 	#Extract centroids of convex hull for multipolygons and export data as network vertices
 	if [ $centroids -gt 1 ] ; then
 		v.hull -a -f --overwrite --quiet input=${PREFIX}_patch_${p} output=${PREFIX}_patch_${p}_ch 2>&1 > /dev/null
@@ -387,33 +406,30 @@ do
 	elif [ $centroids -eq 0 ] ; then
 		g.remove -f vect=${PREFIX}_patch_${p} --quiet 2>&1 > /dev/null
 		echo "${p};no centroid" >> ${FOLDER}/unconsidered_patches.csv
-		cat ${FOLDER}/vertices_part_1.csv | sed "/^${p};/d" > ${FOLDER}/vertices_part_1.csv
-		cat ${FOLDER}/vertices_part_2.csv | sed "/^${p};/d" > ${FOLDER}/vertices_part_2.csv
+		sed -i "/^${p};/d" ${FOLDER}/vertices_part_1.csv
+		sed -i "/^${p};/d" ${FOLDER}/vertices_part_2.csv
 		g.message -w "Patch ${p} has no centroid and is therefor not considered in anaysis. Consider cleaning your input data..."
 		continue
 	fi
 	
 	#Set region to start-patch
-	if [ $E_FLAG -ne 1 ] ; then
-		g.region -u --quiet vect=${PREFIX}_patch_${p} n=n+$cost_nsres s=s-$cost_nsres e=e+$cost_ewres w=w-$cost_ewres align=$COSTS save="${PREFIX}_${p}" --overwrite
-	else
-		g.region -u --quiet vect=${PREFIX}_patch_${p} n=n+$cost_nsres s=s-$cost_nsres e=e+$cost_ewres w=w-$cost_ewres save="${PREFIX}_${p}" --overwrite
-	fi
+	g.region -u --quiet vect=${PREFIX}_patch_${p} n=n+$cost_nsres s=s-$cost_nsres e=e+$cost_ewres w=w-$cost_ewres align=${PREFIX}_patches_pol save="${PREFIX}_${p}" --overwrite
+
 	WIND_OVERRIDE="${PREFIX}_${p}"
 	export WIND_OVERRIDE
 	
 	#Prepare start patch
-	r.mapcalc "${PREFIX}_patch_${p}=if(${PREFIX}_patches_boundary==${p},1,null())"
+	r.mapcalc "${PREFIX}_patch_${p}=if(${PREFIX}_patches_boundary==${p},1,null())"  2> /dev/null
 	#unset WIND_OVERRIDE
 	
 	#Check if patch was rasterised (patches smaller raster resolution and close to larger patches may not be rasterised)
 	eval `r.info -r map=${PREFIX}_patch_${p}`
 	if [ "$min" = "NULL" ] ; then
+		g.message -w "Patch ${p} has not been rasterized and will therefore not be treated as part of the network. Consider using t-flag or change resolution."
 		g.remove -f vect=${PREFIX}_patch_${p} rast=${PREFIX}_patch_${p} --quiet 2>&1 > /dev/null
 		echo "${p};not rasterised" >> ${FOLDER}/unconsidered_patches.csv
-		cat ${FOLDER}/vertices_part_1.csv | sed "/^${p};/d" > ${FOLDER}/vertices_part_1.csv
-		cat ${FOLDER}/vertices_part_2.csv | sed "/^${p};/d" > ${FOLDER}/vertices_part_2.csv
-		g.message -w "Patch ${p} was not rasterised and is therefor not considered in anaysis. Consider adjusting region resolution..."
+		sed -i "/^${p};/d" ${FOLDER}/vertices_part_1.csv
+		sed -i "/^${p};/d" ${FOLDER}/vertices_part_2.csv
 		continue
 	fi
 	
@@ -421,73 +437,151 @@ do
 	############################################
 	#awk
 	############################################
-	if [ $E_FLAG -ne 1 ] ; then
-		eval `g.region -ugp --quiet n=n+$CUTOFF s=s-$CUTOFF e=e+$CUTOFF w=w-$CUTOFF align=$COSTS`
+	{
+	if [ "$proj" != "ll" ] ; then
+		eval `g.region -ugp --quiet n=n+$CUTOFF s=s-$CUTOFF e=e+$CUTOFF w=w-$CUTOFF align=${PREFIX}_patches_pol`
+		n_test=$(echo $n $max_n | awk '{if($1 < $2) print $2}')
+		if [ $n_test ] ; then 
+			n=$n
+		else
+			n=$max_n
+		fi
+		s_test=$(echo $s $min_s | awk '{if($1 > $2) print $2}')
+		if [ $s_test ] ; then 
+			s=$s
+		else
+			s=$min_s
+		fi
+		e_test=$(echo $e $max_e | awk '{if($1 < $2) print $2}')
+		if [ $e_test ] ; then 
+			e=$e
+		else
+			e=$max_e
+		fi
+		w_test=$(echo $w $min_w | awk '{if($1 > $2) print $2}')
+		if [ $w_test ] ; then 
+			w=$w
+		else
+			w=$min_w
+		fi
+
 	else
-		eval `g.region -ugp --quiet n=n+$CUTOFF s=s-$CUTOFF e=e+$CUTOFF w=w-$CUTOFF`
+		##Calculate the new region bounds (UpperLeftCoordinate and LowerRightCcoordinate) using equidistant CRS
+		#(wrap around e-w 180 deg???)
+		#e-w-bounds based on the n-s-bound closest to the poles (shortest distance)
+
+		#Get locations CRS in proj4 format and on one line
+		location_crs=$(g.proj -j -f)
+		eval `g.region -ugp`
+
+		#Check if invers calculations from Azimuthal Equidistant CRS to Lat/Lon has been improved in proj4 (see: http://trac.osgeo.org/proj/ticket/211, http://gis.stackexchange.com/questions/53970/proj4-inconsistent-longitude-after-projection)
+
+		#Adjust northern region bounds
+		#Check if northpole or southpole is closer to region bounds than cuttoff distance and set n to max (90) otherwise to n+cutoff
+		Min_NPOLE_D=$(echo ${CUTOFF} $CUTOFF | m.proj -d -g input="-" fs="," proj_out="$location_crs" proj_in="+proj=aeqd +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') +units=m +no_defs" | cut -f2 -d',')
+		NLC=$(echo -${CUTOFF} $CUTOFF | m.proj -d -g input="-" fs="," proj_out="$location_crs" proj_in="+proj=aeqd +lat_0=$n +lon_0=$w +x_0=0 +y_0=0 +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') +units=m +no_defs")
+		NRC=$(echo ${CUTOFF} $CUTOFF | m.proj -d -g input="-" fs="," proj_out="$location_crs" proj_in="+proj=aeqd +lat_0=$n +lon_0=$e +x_0=0 +y_0=0 +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') +units=m +no_defs")
+		n_test=$(echo $n $Min_NPOLE_D | awk '{if($1 >= $2) print 1}')
+		if [ $n_test ] ; then
+			n=90
+			w=-180
+			e=180
+		else
+			nlc_test=$(echo $NLC | cut -f2 -d',' | awk -v n=$n '{if($1 >= n) print $1}')
+			if [ $nlc_test ] ; then
+				n=$nlc_test
+			fi
+		fi
+		
+		#Adjust southern region bounds
+		#Check if southpole is closer to southern region bounds than cuttoff distance and set s to min (-90) otherwise to s-cutoff
+		Min_SPOLE_D=$(echo ${CUTOFF} $CUTOFF | m.proj -d -g input="-" fs="," proj_out="$location_crs" proj_in="+proj=aeqd +lat_0=-90 +lon_0=0 +x_0=0 +y_0=0 +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') +units=m +no_defs" | cut -f2 -d',')
+		SLC=$(echo -${CUTOFF} -$CUTOFF | m.proj -d -g input="-" fs="," proj_out="$location_crs" proj_in="+proj=aeqd +lat_0=$s +lon_0=$w +x_0=0 +y_0=0 +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') +units=m +no_defs")
+		SRC=$(echo ${CUTOFF} -$CUTOFF | m.proj -d -g input="-" fs="," proj_out="$location_crs" proj_in="+proj=aeqd +lat_0=$s +lon_0=$e +x_0=0 +y_0=0 +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') +units=m +no_defs")
+		s_test=$(echo $n $Min_SPOLE_D | awk '{if($1 <= $2) print 1}')
+		if [ $s_test ] ; then
+			s=-90
+			w=-180
+			e=180
+		else
+			s=$(echo $SLC | cut -f2 -d',')
+		fi
+		
+		sn_test=$(echo $n $s | awk '{if($1 < 90 && $2 > -90) print 1}')
+		if [ $sn_test ] ; then
+		#Check which region bound (northern or southern) is closer to one of the poles (for adjusting e-w bounds where distance between longitudes is smallest)
+			#Then check if new region does not span entire e-w extent in longitudes otherwise set e-w-bounds to max (-180 to 180)
+			s_zero=$(echo $s | awk '{if($1 > 0) print 1}')
+			if [ $s_zero ] ; then
+				s_abs=$(echo $s | awk '{print 0-$s}')
+				#if Northpole is closer or as close as southopole
+				s_abs_test=$(echo $n $s_abs | awk '{if($1 > $2) print 1}')
+				if [ $s_abs_test ] ; then
+					half_new_region_width=$(echo "$s $w $s $e" | geod +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') -F "%.10f" -p -I +units=m | awk -v CUTOFF=$CUTOFF '{print ($3+2*CUTOFF)/2}')
+					half_longitude_length=$(echo "$s 0 $s 180" | geod +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') -F "%.10f" -p -I +units=m | awk '{print $3/2}')
+					dist_test=$(echo $half_new_region_width $half_longitude_length | awk '{if($1 < $2) print 1}')
+					if [ $dist_test ] ; then
+						w=$(echo $SLC | cut -f1 -d',')
+						e=$(echo $SRC | cut -f1 -d',')
+					else
+						w=-180
+						e=180
+					fi
+				else
+				#if southpole is closer or as northopole
+					if [ $half_new_region_width -lt $half_longitude_length ] ; then
+						half_new_region_width=$(echo "$n $w $n $e" | geod +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') -F "%.10f" -p -I +units=m | awk -v CUTOFF=$CUTOFF '{print ($3+2*CUTOFF)/2}')
+						half_longitude_length=$(echo "$n 0 $n 180" | geod +ellps=$(echo $ellps | sed 's/[a-z]/\U&/g') -F "%.10f" -p -I +units=m | awk '{print $3}')
+						w=$(echo $NLC | cut -f1 -d',')
+						e=$(echo $NRC | cut -f1 -d',')
+					else
+						w=-180
+						e=180
+					fi
+				fi
+			fi
+		fi
 	fi
-	n_test=$(echo $n $max_n | awk '{if($1 < $2) print $2}')
-	if [ $n_test ] ; then 
-		n=$n
-	else
-		n=$max_n
-	fi
-	s_test=$(echo $s $min_s | awk '{if($1 > $2) print $2}')
-	if [ $s_test ] ; then 
-		s=$s
-	else
-		s=$min_s
-	fi
-	e_test=$(echo $e $max_e | awk '{if($1 < $2) print $2}')
-	if [ $e_test ] ; then 
-		e=$e
-	else
-		e=$max_e
-	fi
-	w_test=$(echo $w $min_w | awk '{if($1 > $2) print $2}')
-	if [ $w_test ] ; then 
-		w=$w
-	else
-		w=$min_w
-	fi
-	
-	if [ $E_FLAG -ne 1 ] ; then
-		g.region -u --quiet n=$n s=$s e=$e w=$w align=$COSTS  save="${PREFIX}_${p}_buffer" --overwrite
-	else
-		g.region -u --quiet n=$n s=$s e=$e w=$w  save="${PREFIX}_${p}_buffer" --overwrite
-	fi
+	} >/dev/null 2>&1
+
+	g.region -u --quiet n=$n s=$s e=$e w=$w align=${PREFIX}_patches_pol save="${PREFIX}_${p}_buffer" --overwrite
+
 	WIND_OVERRIDE="${PREFIX}_${p}_buffer"
 	export WIND_OVERRIDE
 
-	if [ $E_FLAG -eq 1 ] ; then
-		r.buffer --overwrite --quiet input=${PREFIX}_patch_${p} output=MASK distances=$CUTOFF
-		r.mapcalc "${PREFIX}_patch_${p}_neighbours_contur=if(${PREFIX}_patches_boundary==${p},null(),${PREFIX}_patches_boundary)"
-		g.remove -f rast=MASK --quiet
-		
-		#Calculate euclidean distance
-		r.grow.distance --overwrite --verbose input=${PREFIX}_patch_${p} distance=${PREFIX}_patch_${p}_eucl_dist
+	if [ $S_FLAG -eq 1 ] ; then
+		if [ "$proj" = "ll" ] ; then
+			#Calculate geodesic distance from patch in meters
+			r.grow.distance -m --overwrite --quiet input=${PREFIX}_patch_${p} distance=${PREFIX}_patch_${p}_eucl_dist metric=geodesic
+		else
+			#Calculate euclidean distance from patch in meters
+			r.grow.distance --overwrite --quiet input=${PREFIX}_patch_${p} distance=${PREFIX}_patch_${p}_eucl_dist
+		fi
+		#Identify boundaries of relevant neighbours
+		r.mapcalc "${PREFIX}_patch_${p}_neighbours_contur=if(${PREFIX}_patch_${p}_eucl_dist<=$CUTOFF,if(${PREFIX}_patches_boundary==${p},null(),${PREFIX}_patches_boundary),null())" 2> /dev/null
 
 		#Export distance at boundaries
 		r.stats -1 -n -g --quiet input=${PREFIX}_patch_${p}_neighbours_contur,${PREFIX}_patch_${p}_eucl_dist fs=";" | sort -n -t ';' -k 3 -k 4 > ${FOLDER}/tmp
 		
 		#Remove temporary map data for patch
-		g.remove -f vect=${PREFIX}_patch_${p} rast=${PREFIX}_patch_${p},${PREFIX}_patch_${p}_neighbours_contur --quiet 2>&1 > /dev/null
+		if [ $R_FLAG -eq 1 ] ; then
+			g.remove -f vect=${PREFIX}_patch_${p} rast=${PREFIX}_patch_${p},${PREFIX}_patch_${p}_neighbours_contur,${PREFIX}_patch_${p}_eucl_dist --quiet 2>&1 > /dev/null
+		else
+			g.remove -f vect=${PREFIX}_patch_${p} rast=${PREFIX}_patch_${p},${PREFIX}_patch_${p}_neighbours_contur --quiet 2>&1 > /dev/null
+		fi
 		
 	else
 		#Create buffer around start-patch as a mask for cost distance analysis
 		r.buffer --overwrite --quiet input=${PREFIX}_patch_${p} output=MASK distances=$CUTOFF
-		r.mapcalc "${PREFIX}_patch_${p}_neighbours_contur=if(${PREFIX}_patches_boundary==${p},null(),${PREFIX}_patches_boundary)"
+		r.mapcalc "${PREFIX}_patch_${p}_neighbours_contur=if(${PREFIX}_patches_boundary==${p},null(),${PREFIX}_patches_boundary)" 2> /dev/null
 		g.remove -f rast=MASK --quiet
 		
 		#Calculate cost distance
-		r.cost -k -n --overwrite --quiet input=$COSTS output="${PREFIX}_patch_${p}_cost_dist" start_rast="${PREFIX}_patch_${p}"
-		
+		r.cost -k -n --quiet --overwrite input=$COSTS output="${PREFIX}_patch_${p}_cost_dist" start_rast="${PREFIX}_patch_${p}"
+
 		#Export distance at boundaries
 		r.stats -1 -n -g --quiet input=${PREFIX}_patch_${p}_neighbours_contur,${PREFIX}_patch_${p}_cost_dist fs=";" | sort -n -t ';' -k 3 -k 4 > ${FOLDER}/tmp
 		
-		#Remove temporary map data for patch
-		g.remove -f vect=${PREFIX}_patch_${p} rast=${PREFIX}_patch_${p},${PREFIX}_patch_${p}_neighbours_contur --quiet 2>&1 > /dev/null
-	
 	fi
 	#Loop through connections from the start-patch
 	connections=$(cat ${FOLDER}/tmp | cut -f3 -d';' | sort -n -u)
@@ -495,38 +589,45 @@ do
 	for c in $connections
 	do 
 		#Find closest points on neigbours patches to temporary file
-		cat ${FOLDER}/tmp | awk -v patch=$c -v start=$p -F ";" '{ if($3 == patch) print $1 ";"  $2 ";"  start ";" $3 ";" $4}' > ${FOLDER}/tmp_part
-		
+		cat ${FOLDER}/tmp | awk -v patch=$c -v start=$p -F ';' '{ if($3 == patch) print $1 ";"  $2 ";"  start ";" $3 ";" $4}' > ${FOLDER}/tmp_part
 		#Save closest points on neighbour patches to temporary file
 		cat ${FOLDER}/tmp_part | head -n 1 | cut -f1-5 -d';' >> ${FOLDER}/closest.points
-		
 		#Save edges to network dataset
 		#order_length=$(cat ${FOLDER}/tmp_part | wc -l)
 		#relevant_border_length=`expr $border_length \* $BORDER_DIST / 100`
-		if [ $BORDER_DIST -le 1 ] ; then
-			cat ${FOLDER}/tmp_part | awk -F ";" '{ print $3 ";"  $4 ";" $5 }' | head -n 1 | tail -n 1 >> ${FOLDER}/edges.csv
+		if [ "$BORDER_DIST" -le 1 ] ; then
+			if [ $(cat ${FOLDER}/tmp_part | head -n 1 | awk -F ';' '{if($5<=0) print 1}') ] ; then
+				zero_dist=1
+			fi
+			cat ${FOLDER}/tmp_part | head -n 1 | awk -F ';' '{if($5<=0) {print $3 ";" $4 ";0.000000001"} else {print $3 ";" $4 ";" $5}}' >> ${FOLDER}/edges.csv
 		else
-			cat ${FOLDER}/tmp_part | awk -F ";" '{ print $3 ";"  $4 ";" $5 }' | head -n $BORDER_DIST | tail -n 1 >> ${FOLDER}/edges.csv
+			if [ $(cat ${FOLDER}/tmp_part | head -n $BORDER_DIST | tail -n 1 | awk -F ';' '{if($5<=0) print 1}') ] ; then
+				zero_dist=1
+			fi
+			cat ${FOLDER}/tmp_part | head -n $BORDER_DIST | tail -n 1 | awk -F ';' '{if($5<=0) {print $3 ";" $4 ";" 1} else {print $3 ";" $4 ";" $5}}' >> ${FOLDER}/edges.csv
 		fi
 	done
 	
-	
 	#Save closest points and shortest paths through cost raster as vector map (r.drain limited to 1000 points) if requested by user
-	if [ $S_FLAG -eq 1 ] ; then
+	if [ $P_FLAG -eq 1 ] && [ $S_FLAG -ne 1 ] ; then
+
+		g.message -v "Extracting shortest paths for patch number ${p}..."
+
 		points_n=$(cat ${FOLDER}/closest.points | wc -l)
 		if [ $points_n -gt 1000 ] ; then
+			#Init closest points file for start-patch
+			v.edit --quiet map=${PREFIX}_${p}_to tool=create
+			v.db.addtable --quiet map=${PREFIX}_${p}_to columns="cat integer, X double precision,Y double precision,FROM_P integer,TO_P integer,DIST double precision"
+			#Init cost paths file for start-patch
+			v.edit --quiet map="${PREFIX}_cost_pathes" tool=create
+			v.db.addtable --quiet map="${PREFIX}_cost_pathes" columns="cat integer, value integer, label varchar (10)"
+
 			tiles=`expr $points_n / 1000`
 			rest=`expr $points_n % 1000`
 			if [ $rest -ne 0 ] ; then
 				tiles=`expr $tiles + 1`
 			fi
 			n=0
-			#Init closest points file for start-patch
-			v.edit --quiet map=patch_${p}_closest_points tool=create
-			v.db.addtable --quiet map=patch_${p}_closest_points columns="cat integer, X integer,Y integer,FROM_P integer,TO_P integer,DIST double precision"
-			#Init cost paths file for start-patch
-			v.edit --quiet map="patch_${p}_cost_pathes" tool=create
-			v.db.addtable --quiet map="patch_${p}_cost_pathes" columns="cat integer, value integer, label varchar (10)"
 			while [ $n -lt $tiles ]
 			do
 				start=`expr $n \* 1000`
@@ -534,40 +635,74 @@ do
 				n=`expr $n + 1`
 				cat ${FOLDER}/closest.points | tail -n $tail | head -n 1000 > closest.points_part
 				#Import closest points for start-patch in 1000er blocks
-				v.in.ascii -n -r --overwrite --quiet input=${FOLDER}/closest.points_part output=patch_${p}_closest_points_part_${n} fs=";" columns="X integer,Y integer,FROM_P integer,TO_P integer,DIST double precision"
-				v.patch -a -e --overwrite --quiet input=patch_${p}_closest_points_part_${n} output=patch_${p}_closest_points
+				v.in.ascii -n -r --overwrite --quiet input=${FOLDER}/closest.points_part output=${PREFIX}_${p}_to_part_${n} fs=";" columns="X double precision,Y double precision,FROM_P integer,TO_P integer,DIST double precision"
+				v.patch -a -e --overwrite --quiet input=${PREFIX}_${p}_to_part_${n} output=${PREFIX}_${p}_to
 				#Extract shortest paths for start-patch in 1000er blocks
-				r.drain --overwrite --quiet input="patch_${p}_cost_dist" output="patch_${p}_cost_pathes_part_${n}" vector_points="patch_${p}_closest_points_part_${n}"
-				r.to.vect --overwrite --quiet input="patch_${p}_cost_pathes_part_${n}" output="patch_${p}_cost_pathes_part_${n}" feature=line
-				v.patch -a -e --overwrite --quiet input="patch_${p}_cost_pathes_part_${n}" output="patch_${p}_cost_pathes"
+				r.drain --overwrite --quiet input="${PREFIX}_patch_${p}_cost_dist" output="${PREFIX}_${p}_cost_pathes_part_${n}" voutput="${PREFIX}_${p}_cost_pathes_part_${n}" vector_points="${PREFIX}_${p}_to_part_${n}"
+				#r.to.vect --overwrite --quiet input="${PREFIX}_${p}_cost_pathes_part_${n}" output="${PREFIX}_${p}_cost_pathes_part_${n}" feature=line
+				v.patch -a -e --overwrite --quiet input="${PREFIX}_${p}_cost_pathes_part_${n}" output="${PREFIX}_${p}_cost_pathes"
+				#Remove temporary map data
+				g.remove --quiet -f rast="${PREFIX}_${p}_cost_pathes_part_${n}" vect="${PREFIX}_${p}_to_part_${n},${PREFIX}_${p}_cost_pathes_part_${n}"
+				rm -f ${FOLDER}/closest.points_part
 			done
 			#Patch closest points for start-patch to complete closest points map
-			v.patch -a -e --overwrite --quiet input=patch_${p}_closest_points output=${PREFIX}_closest_stop_points
+			v.patch -a -e --overwrite --quiet input=${PREFIX}_${p}_to output=${PREFIX}_closest_stop_points
 			#Patch shortest paths for start-patch to complete shortest paths map
-			v.patch -a -e --overwrite --quiet input="patch_${p}_cost_pathes" output=${PREFIX}_shortest_paths
-			#Remove temporary map data
-			g.mremove --quiet -f rast=*_part_${n} vect=*_part_${n}
-			rm -f ${FOLDER}/closest.points_part
+			v.patch -a -e --overwrite --quiet input="${PREFIX}_${p}_cost_pathes" output=${PREFIX}_shortest_paths
+	
+			WIND_OVERRIDE="${PREFIX}_${p}"
+			export WIND_OVERRIDE
+			r.patch input=$(g.mlist type=rast pattern=${PREFIX}_${p}_cost_pathes_part_* | tr '\n' ',') output=${PREFIX}_${p}_cost_pathes
+			r.stats -1 -n -g --quiet input=${PREFIX}_patch_${p},${PREFIX}_${p}_cost_pathes fs=' ' | awk -v P=$p '{print $1 ";" $2 ";" P}' >> ${FOLDER}/start.points
 		else
 			#Import closest points for start-patch
-			v.in.ascii -n -r --overwrite --quiet input=${FOLDER}/closest.points output=patch_${p}_closest_points fs=";" columns="X integer,Y integer,FROM_P integer,TO_P integer,DIST double precision"
+			#g.message -v "test $(cat ${FOLDER}/closest.points)"
+			v.in.ascii -n -r --overwrite --quiet input=${FOLDER}/closest.points output=${PREFIX}_${p}_to fs=";" columns="X double precision,Y double precision,FROM_P integer,TO_P integer,DIST double precision"  2> /dev/null
 			#Patch closest points for start-patch to complete closest points map
-			v.patch -a -e --overwrite --quiet input=patch_${p}_closest_points output=${PREFIX}_closest_stop_points
+			v.patch -a -e --overwrite --quiet input=${PREFIX}_${p}_to output=${PREFIX}_closest_stop_points
 			#Extract shortest paths for start-patch
-			r.drain --overwrite --quiet input="patch_${p}_cost_dist" output="patch_${p}_cost_pathes" vector_points="patch_${p}_closest_points"
-			r.to.vect --overwrite --quiet input="patch_${p}_cost_pathes" output="patch_${p}_cost_pathes" feature=line
+			r.drain --overwrite --quiet input="${PREFIX}_patch_${p}_cost_dist" output="${PREFIX}_${p}_cost_pathes" vector_points="${PREFIX}_${p}_to" voutput="${PREFIX}_${p}_cost_pathes" 
+			
+			#g.message -v "Patching shortest paths..."
+			#r.to.vect --overwrite --quiet input="${PREFIX}_${p}_cost_pathes" output="${PREFIX}_${p}_cost_pathes" feature=line
 			#Patch shortest paths for start-patch to complete shortest paths map
-			v.patch -a -e --overwrite --quiet input="patch_${p}_cost_pathes" output=${PREFIX}_shortest_paths
+			v.patch -a --overwrite --quiet input="${PREFIX}_${p}_cost_pathes" output=${PREFIX}_shortest_paths
+			#Remove temporary map data
+			rm -f ${FOLDER}/closest.points
+	
+			WIND_OVERRIDE="${PREFIX}_${p}"
+			export WIND_OVERRIDE
+			r.stats -1 -n -g --quiet input=${PREFIX}_patch_${p},${PREFIX}_${p}_cost_pathes fs=' ' | awk -v P=$p '{print $1 ";" $2 ";" P}' >> ${FOLDER}/start.points
+
 		fi
+		#Remove temporary map data
+		g.remove --quiet -f rast="${PREFIX}_${p}_cost_pathes" vect="${PREFIX}_${p}_to,${PREFIX}_${p}_cost_pathes"
+		rm -f ${FOLDER}/closest.points
+
 	fi
 	#Reset region to original settings and remove saved temporary regions
 	unset WIND_OVERRIDE
 	g.remove region="${PREFIX}_${p},${PREFIX}_${p}_buffer" --q
 	
+	#Remove temporary map data for patch
+	if [ $R_FLAG -eq 1 ] ; then
+		g.remove -f region="${PREFIX}_${p},${PREFIX}_${p}_buffer" vect=${PREFIX}_patch_${p} rast=${PREFIX}_patch_${p},${PREFIX}_patch_${p}_neighbours_contur,${PREFIX}_patch_${p}_cost_dist --quiet 2> /dev/null
+	else
+		g.remove -f region="${PREFIX}_${p},${PREFIX}_${p}_buffer" vect=${PREFIX}_patch_${p} rast=${PREFIX}_patch_${p},${PREFIX}_patch_${p}_neighbours_contur --quiet 2> /dev/null
+	fi
+
 done
+
+#Import start points
+v.in.ascii -n -r --overwrite --quiet input=${FOLDER}/start.points output=${PREFIX}_start_points fs=";" columns="X double precision,Y double precision,FROM_P integer"  2> /dev/null
+
+if [ $zero_dist ] ; then
+	g.message -w "Some patches are directly adjacent to others. Minimum distance set to 0.0000000001"
+fi
 
 #Remove external temporary data
 if [ "$FOLDER" ] ; then
+	rm -f ${FOLDER}/start.points
 	rm -f ${FOLDER}/tmp
 	rm -f ${FOLDER}/tmp_part
 else
