@@ -459,24 +459,30 @@ def main():
 					  columns = "prob DOUBLE")
 
 
-		# Set starting propability of occurence to 1 for all random source_points	
+		# Set starting propability of occurence to 1*scalar for all random source_points	
 		grass.write_command("db.execute",
-					stdin = 'UPDATE source_points_%d SET prob=1' % os.getpid())
+					stdin = 'UPDATE source_points_%d SET prob=%d' % (os.getpid(),scalar))
 
 	#if source population raster is provided, then use it, transform raster in vector points
 	#create an attribute column "prob" and update it with the values from the raster map
-	#due to precision float storage problems (very small numbers cause problems) multiply the
-	#raster beforehand by a large scalar.
 	if options['source_populations']:
 		#Multiplying source probability with very large scalar to avoid problems 
 		#with very small floating points (problem: precision of FLOAT); needs retransforamtion in the end
-		grass.mapcalc("$source_populations_large = $source_populations*$scalar",
+		grass.mapcalc("$source_populations_scalar = $source_populations*$scalar",
 							source_populations = source_populations,
-							source_populations_large = "source_populations_scalar_%d" % os.getpid(),
+							source_populations_scalar = "source_populations_scalar_%d" % os.getpid(),
 							scalar = scalar)
+
+		#Exclude source Populations that are outside the river_raster
+		grass.mapcalc("$source_populations_scalar_corrected = if($river_raster_tmp,$source_populations_scalar)",
+							source_populations_scalar_corrected = "source_populations_scalar_corrected_%d" % os.getpid(),
+							river_raster_tmp = "river_raster_tmp_%d" % os.getpid(),
+							source_populations_scalar = "source_populations_scalar_%d" % os.getpid())
+
+		# Convert to source population points
 		grass.run_command("r.to.vect",
 							overwrite = True,
-							input = "source_populations_scalar_%d" % os.getpid(),
+							input = "source_populations_scalar_corrected_%d" % os.getpid(),
 							output = "source_points_%d" % os.getpid(),
 							feature = "point")
 		grass.run_command("v.db.addcol",
@@ -540,7 +546,7 @@ def main():
 		
 		# Loop over Segments
 		for Segment in sorted(list(set(db.execute('SELECT Segment FROM source_points_%d ORDER BY Segment ASC' % os.getpid())))):
-			grass.debug(_("this is Segement Nr.: " +str(Segment)))
+			grass.debug(_("This is segment nr.: " +str(Segment)))
 
 			segment_cat = str(Segment[0])
 		
@@ -552,9 +558,12 @@ def main():
 				grass.debug(_("Start looping over source points"))
 
 				coors = str(X)+","+str(Y)
+				grass.debug(_("Source point coors:"+coors+" in segment nr: " +str(Segment)))
 								
 				#Select dispersal parameters
 				SO = 'SO='+str(Strahler)
+				grass.debug(_("This is i:"+str(i)))
+				grass.debug(_("This is "+str(SO)))
 				sigma_stat = fishmove.rx(i,'sigma_stat',1,1,SO,1)
 				sigma_mob = fishmove.rx(i,'sigma_mob',1,1,SO,1)
 						
@@ -856,18 +865,15 @@ def main():
 						density_final = "density_final_%d" % os.getpid(),
 						mapcalc_string_B1 = mapcalc_string_B1)
 
-		# if the source populations raster is used as input, then the final raster
-		# needs backtransformation (divide by scalar which was defined before)
-		if options['source_populations']:
-			grass.mapcalc("$density_final_corrected = $density_final/$scalar",
-							density_final_corrected = "density_final_corrected_%d" % os.getpid(),
-							density_final = "density_final_%d" % os.getpid(),
-							scalar = scalar)
-			grass.run_command("g.copy", 
+		# backtransformation (divide by scalar which was defined before)
+		grass.mapcalc("$density_final_corrected = $density_final/$scalar",
+						density_final_corrected = "density_final_corrected_%d" % os.getpid(),
+						density_final = "density_final_%d" % os.getpid(),
+						scalar = scalar)
+
+		grass.run_command("g.copy", 
 			rast = "density_final_corrected_%d" % os.getpid() + "," + output+"_"+i)
-		else:
-			grass.run_command("g.copy", 
-			rast = "density_final_%d" % os.getpid() + "," + output+"_"+i)
+		
 		
 
 		# Set all 0-values to NULL, Backgroundvalues			
