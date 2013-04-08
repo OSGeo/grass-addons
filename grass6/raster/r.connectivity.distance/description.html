@@ -37,7 +37,8 @@ The structure of the vertices_part_2.csv looks like this:
 The map output of r.connectivity.distance is a (cost) distance raster map for every input polygon which later on are used in r.connectivity.corridors (together with output from r.connectivity.network) for corridor identification. All non map output is stored in a folder, which will be used throughout the entire r.connectivity toolchain. Output-files are: vertices_part_1.csv, vertices_part_2.csv, edges.csv and a log-file (r_connectivity.log). The log-file is used to store and document settings of the tools and to pass arguments to the following tools of the toolchain.
 <br><br>
 Distance is measured as border to border distance. The user can define the number of cells (n) along the border to be used for distance measuring. The distance from a (start) polygon to another (end) is measured as the n-th closest cell on the border of the other (end) polygon. An increased number of border cells used for distance measuring affects (increases) also the width of possible corridors computed with r.connectivity.corridor.
-
+<br>
+On user request (p-flag) the shortest paths between the possible combination of patches can be extracted (using r.drain), along with start and stop points.
 <h2>EXAMPLE</h2>
 
 <em>The following example is based on the North Carolina dataset!</em><br>
@@ -147,6 +148,12 @@ When all analysis is finnished some cleanup may be appropriate, in order to save
 g.mremove rast=hws_connectivity_corridor_*
 g.mremove rast=hws_connectivity_patch_*
 </pre></div>
+
+<h2>REFERENCE</h2>
+<dl>
+<dt><b>Framstad, E., Blumentrath, S., Erikstad, L. & Bakkestuen, V. 2012</b>(in Norwegian): Naturfaglig evaluering av norske verneområder. Verneområdenes funksjon som økologisk nettverk og toleranse for klimaendringer. NINA Rapport 888: 126 pp. Norsk institutt for naturforskning (NINA), Trondheim. <a href="http://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf">http://www.nina.no/archive/nina/PppBasePdf/rapport/2012/888.pdf</a></dt>
+</dl>
+
 
 <h2>SEE ALSO</h2>
 <em>
