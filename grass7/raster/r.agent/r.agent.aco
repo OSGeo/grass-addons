@@ -295,49 +295,51 @@ def letantsdance(rounds, outrounds):
 
 def main():
 
-    setmaps(options['sitesmap'],
+    try:
+        setmaps(options['sitesmap'],
             options['costmap'], flags['c'],
             options['inputmap'], options['outputmap'], flags['p'])
 
-#    world.playground.setboundsfromlayer("costs")
+#        world.playground.setboundsfromlayer("costs")
 
-    if options['maxpheromone']:
-        world.maxpheromone = int(options['maxpheromone'])
-    if options['minpheromone']:
-        world.minpheromone = int(options['minpheromone'])
-    if options['volatilizationtime']:
-        world.volatilizationtime = int(options['volatilizationtime'])
-    if options['stepintensity']:
-        world.stepintensity = int(options['stepintensity'])
-    if options['pathintensity']:
-        world.pathintensity = int(options['pathintensity'])
-    if options['maxants']:
-        world.maxants = int(options['maxants'])
-    if options['antslife']:
-        world.antslife = int(options['antslife'])
-#    if options['decisionalgorithm']:
-#        world.decisionbase = str(options['decisionalgorithm'])
-#    if options['validposition']:
-#        world.validposition = str(options['validposition'])
-#    if options['agentfreedom']:
-#        world.globalfreedom = int(options['agentfreedom'])
-    if options['pheromoneweight']:
-        world.pheroweight = int(options['pheromoneweight'])
-    if options['randomnessweight']:
-        world.randomweight = int(options['randomnessweight'])
-    if options['costweight']:
-        world.costweight = int(options['costweight'])
-    #if arglist[0] == "stability":
-        #TODO ask silvia..
-    try:
+        if options['maxpheromone']:
+            world.maxpheromone = int(options['maxpheromone'])
+        if options['minpheromone']:
+            world.minpheromone = int(options['minpheromone'])
+        if options['volatilizationtime']:
+            world.volatilizationtime = int(options['volatilizationtime'])
+        if options['stepintensity']:
+            world.stepintensity = int(options['stepintensity'])
+        if options['pathintensity']:
+            world.pathintensity = int(options['pathintensity'])
+        if options['maxants']:
+            world.maxants = int(options['maxants'])
+        if options['antslife']:
+            world.antslife = int(options['antslife'])
+#        if options['decisionalgorithm']:
+#            world.decisionbase = str(options['decisionalgorithm'])
+#        if options['validposition']:
+#            world.validposition = str(options['validposition'])
+#        if options['agentfreedom']:
+#            world.globalfreedom = int(options['agentfreedom'])
+        if options['pheromoneweight']:
+            world.pheroweight = int(options['pheromoneweight'])
+        if options['randomnessweight']:
+            world.randomweight = int(options['randomnessweight'])
+        if options['costweight']:
+            world.costweight = int(options['costweight'])
+        #if arglist[0] == "stability":
+            #TODO ask silvia..
+
+
 #        world.checkvalues()
         if not options['outrounds']:
             options['outrounds'] = 0
-#        letantsdance(int(options['rounds']), int(options['outrounds']))
-        grass.message("FINISH")
     except error.DataError:
-        grass.fatal_error("Failed to parse args..")
+        grass.fatal("Failed to parse args..")
         sys.exit(1)
+    letantsdance(int(options['rounds']), int(options['outrounds']))
+    grass.message("FINISH")
 
 if __name__ == "__main__":
     options, flags = grass.parser()
