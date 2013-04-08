@@ -90,7 +90,7 @@ class Grassland(playground.Playground):
 
     def parsevectorlayer(self, layername, grassmapname, value=1, force=False):
         """
-        Take point information from a vector layer, mark them on the
+        Take point information from a vector layer, mark the points on the
         layer specified and return them as a list
         @param string name of the layer to be exported
         @param string name of the GRASS map file to be created
@@ -98,7 +98,7 @@ class Grassland(playground.Playground):
         @param boolean optional, whether an existing file may be overwritten
         """
         vectors = []
-        if grassmapname in grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
+        if grassmapname in grass.list_grouped('vect')[grass.gisenv()['MAPSET']]:
             layer = grass.vector_db_select(grassmapname)['values']
             # TODO only points are supported, ask some expert how to test this
             # TODO indexing seems to start at "1".. verify!
