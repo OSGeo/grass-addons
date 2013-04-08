@@ -105,9 +105,10 @@ class Grassland(playground.Playground):
             for v in layer.values():
                 # TODO do they all look like this??
                 if len(v) == 4 and v[0] == v[3]:
-                    x = ( v[1] - self.region["s"] ) / self.region["ewres"]
-                    y = ( v[1] - self.region["s"] ) / self.region["nsres"]
-                    vectors.append([x, y])
-                    self.layers[layername][y][x] = value
+                    p = self.stringcoordinate(v[1],v[2])
+                    p = ( p[0] - self.region["s"] ) / self.region["nsres"]
+                    p = ( p[1] - self.region["w"] ) / self.region["ewres"]
+                    vectors.append(p)
+                    self.layers[layername][p[0]][p[1]] = value
         return vectors
 
