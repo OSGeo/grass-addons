@@ -40,7 +40,7 @@ class Grassland(playground.Playground):
             self.setlayer(layername, layer, force)
         else:
             raise error.DataError("r.agent::libagent.grassland.Grassland()",
-                                    "Grass Map was missing.")
+                                    "Grass Map was missing: " + grassmapname)
 
     def createlayer(self, layername, grassmapname=False, force=False):
         """
