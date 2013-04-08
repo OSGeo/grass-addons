@@ -227,19 +227,32 @@ def setmaps(site, cost, wastecosts, inphero, outphero, wastephero):
     Set the user maps in place
     """
     if site:
+        if -1 == site.find('@'):
+            site = site + '@' + grass.gisenv()['MAPSET']
         # set sitemap and site list
         world.sites = world.playground.parsevectorlayer(anthill.Anthill.SITE,
                                                         site, True)
     else:
-        raise error.DataError("aco:", "The site map is mandatory.")
+        raise error.DataError("r.agent.aco:", "The site map is mandatory.")
     if cost:
+        if -1 == cost.find('@'):
+            cost = cost + '@' + grass.gisenv()['MAPSET']
         # set cost/penalty layer
         world.playground.setgrasslayer(anthill.Anthill.COST, cost, True)
         world.overwritepenalty = wastecosts
+    else:
+        raise error.DataError("r.agent.aco:", "The cost map is mandatory.")
+    if outphero:
+        if -1 == outphero.find('@'):
+            outphero = outphero + '@' + grass.gisenv()['MAPSET']
+    else:
+        raise error.DataError("r.agent.aco:", "The output map is mandatory.")
     if inphero == outphero:
         if not wastephero:
             raise error.DataError("aco:", "May not overwrite the output map.")
     if inphero:
+        if -1 == inphero.find('@'):
+            inphero = inphero + '@' + grass.gisenv()['MAPSET']
         world.playground.setgrasslayer(anthill.Anthill.RESULT, inphero, True)
     world.playground.grassmapnames[anthill.Anthill.RESULT] = outphero
     world.overwritepheormone = wastephero
