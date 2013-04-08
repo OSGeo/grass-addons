@@ -52,7 +52,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #%option
 #% key: sitesmap
 #% type: string
-#% gisprompt: vector
+#% gisprompt: old,vect,vector
 #% description: Name of sites map, vector data with possible points of origin
 #% required : yes
 #%end
