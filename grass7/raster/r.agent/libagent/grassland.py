@@ -103,6 +103,7 @@ class Grassland(playground.Playground):
             # TODO only points are supported, ask some expert how to test this
             # TODO indexing seems to start at "1".. verify!
             for v in layer.values():
+                # TODO do they all look like this??
                 if len(v) == 4 and v[0] == v[3]:
                     x = ( v[1] - self.region["s"] ) / self.region["ewres"]
                     y = ( v[1] - self.region["s"] ) / self.region["nsres"]
