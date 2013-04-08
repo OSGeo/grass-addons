@@ -9,11 +9,11 @@ from grass.script import array as garray
 class TestGrassland(unittest.TestCase):
     def setUp(self):
         # TODO check if there is a nicer way to do this..
-        self.rastlayername = "r_agent_rast_testmap"
-        self.vectlayername = "r_agent_vect_testmap"
+        self.rastlayername = "r_agent_rast_testmap@"+grass.gisenv()['MAPSET']
+        self.vectlayername = "r_agent_vect_testmap@"+grass.gisenv()['MAPSET']
 
         if self.rastlayername:
-            for m in grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
+            for m in grass.list_strings('rast'):
                 if self.rastlayername == m:
                     print "We need a raster map to play with in this test," + \
                           " but it seems to exist already: '" + \
@@ -21,7 +21,7 @@ class TestGrassland(unittest.TestCase):
                     self.assertTrue(False)
 
         if self.vectlayername:
-            for m in grass.list_grouped('vect')[grass.gisenv()['MAPSET']]:
+            for m in grass.list_strings('vect'):
                 if self.vectlayername == m:
                     print "We need a vector map to play with in this test," + \
                           " but it seems to exist already: '" + \

@@ -34,7 +34,7 @@ class Grassland(playground.Playground):
         """
         layer = garray.array()
         # fill the new grass array with the contents from the map (must exist)
-        if grassmapname in grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
+        if grassmapname in grass.list_strings('rast'):
             layer.read(grassmapname)
             self.grassmapnames[layername] = grassmapname
             self.setlayer(layername, layer, force)
@@ -79,7 +79,7 @@ class Grassland(playground.Playground):
                                         "Grass Map name is empty.")
         if self.layers.has_key(layername):
             if grassmapname in \
-                    grass.list_grouped('rast')[grass.gisenv()['MAPSET']]:
+                    grass.list_strings('rast'):
                 if force:
                     force="force"
                 else:
@@ -98,7 +98,7 @@ class Grassland(playground.Playground):
         @param boolean optional, whether an existing file may be overwritten
         """
         vectors = []
-        if grassmapname in grass.list_grouped('vect')[grass.gisenv()['MAPSET']]:
+        if grassmapname in grass.list_strings('vect'):
             layer = grass.vector_db_select(grassmapname)['values']
             # TODO only points are supported, ask some expert how to test this
             # TODO indexing seems to start at "1".. verify!
