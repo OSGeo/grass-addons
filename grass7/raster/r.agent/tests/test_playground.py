@@ -11,7 +11,7 @@ class TestPlayground(unittest.TestCase):
     def test_stringcoordinate(self):
         self.assertEqual(self.pg.stringcoordinate("foo","bar"), [])
         self.assertEqual(self.pg.stringcoordinate("inf","nan"), [])
-        self.assertEqual(self.pg.stringcoordinate("2","3"), [2,3])
+        self.assertEqual(self.pg.stringcoordinate("2","3"), [3,2])
 
     def test_setregion(self):
         self.assertTrue(self.pg.region["rows"] == 1)

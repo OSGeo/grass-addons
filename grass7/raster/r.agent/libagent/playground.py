@@ -26,9 +26,9 @@ class Playground(object):
     def stringcoordinate(self, x, y):
         """
         Convert string coordinates to float coordinates.
-        @param x string x coordinate
-        @param y string y coordinate
-        @return position as a list of floats
+        @param x string west-east coordinate
+        @param y string south-north coordinate
+        @return position as a list of floats: south-north, west-east
         """
         try:
             # try to convert the string value to a float
@@ -36,7 +36,7 @@ class Playground(object):
             y = float(y)
             # also catch 'inf' and 'nan' ..
             if ( x == x ) and ( y == y ) and ( x + y - 1 != x + y ):
-                return [float(x), float(y)]
+                return [float(y), float(x)]
             else:
                 return []
         except ValueError:
