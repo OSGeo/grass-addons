@@ -35,11 +35,20 @@
 #%option
 #% key: barriers
 #% type: string
-#% gisprompt:old,file,input
+#% gisprompt:old,vector,vector
 #% description: Barrier point file
 #% required: no
 #% guisection: Stream parameters
 #%end
+#%option
+#% key: permeability_col
+#% type: string
+#% required: no
+#% multiple: no
+#% key_desc: name
+#% description: Column name indicating permeability value (0-1) of barrier
+#% guisection: Stream parameters
+#%End
 #%Flag
 #% key: s
 #% description: Remove small river segments
@@ -191,15 +200,15 @@ def main():
 	global tmp_map_rast
 	global tmp_map_vect
 
-	tmp_map_rast = ['density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_', 'division_overlay_tmp_', 'downstream_drain_tmp_', 'flow_direction_tmp_', 'lower_distance_tmp_', 'rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'shreve_tmp_', 'source_populations_scalar_', 'strahler_tmp_', 'stream_segments_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
+	tmp_map_rast = ['density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_', 'division_overlay_tmp_', 'downstream_drain_tmp_', 'flow_direction_tmp_', 'lower_distance_tmp_', 'rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'shreve_tmp_', 'source_populations_scalar_', 'strahler_tmp_', 'stream_rwatershed_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
 
 
 	tmp_map_vect = ['river_points_tmp_', 'river_vector_tmp_', 'river_vector_nocat_tmp_','source_points_']
 
 
 	if options['barriers']:
-		tmp_map_rast = tmp_map_rast + ['density_below_barrier_tmp_','distance_barrier_tmp_', 'distance_barrier_downstream_tmp_','distance_from_point_within_segment_tmp_', 'distance_upstream_point_within_segment_tmp_', 'lower_distance_barrier_tmp_', 'upper_distance_barrier_tmp_', 'upstream_barrier_tmp_',  'upstream_density_tmp_', 'upstream_segment_tmp_']
-		tmp_map_vect = tmp_map_vect + ["barriers_",'barriers_tmp_', 'point_within_segment_tmp_']
+		tmp_map_rast = tmp_map_rast + ['downstream_barrier_density_tmp_','distance_barrier_tmp_', 'distance_downstream_barrier_tmp_', 'lower_distance_barrier_tmp_', 'upper_distance_barrier_tmp_', 'upstream_barrier_tmp_',  'upstream_barrier_density_tmp_']
+		tmp_map_vect = tmp_map_vect + ["barriers_",'barriers_tmp_']
 
 
 
@@ -207,9 +216,20 @@ def main():
 	#Stream parameters input
 	river = options['river']
 	coors = options['coors']
-	if options['barriers']:
-		input_barriers = options['barriers']
 
+	# Barrier input
+	if options['barriers']:
+		input_barriers = options['barriers'].split('@')[0]
+		# check if barrier file exists in current mapset (Problem when file in other mapset!!!!)
+		if not grass.find_file(name = input_barriers, element = 'vector')['file']:
+			grass.fatal(_("Barriers map not found in current mapset"))		
+		# check if permeability_col is provided and existing
+		if not options['permeability_col']:
+			grass.fatal(_("Please provide column name that holds the barriers' permeability values ('permeability_col')"))
+		if not options['permeability_col'] in grass.read_command("db.columns", table=input_barriers).split('\n'):
+			grass.fatal(_("Please provide correct column name that holds the barriers' permeability values ('permeability_col')"))
+		permeability_col = options['permeability_col']
+		
 
 
 	#Source population input
@@ -218,9 +238,6 @@ def main():
 
 	n_source = options['n_source'] #number of random source points
 	source_populations = options['source_populations']
-	
-
-
 	
 
 	# multiplication value as workaround for very small FLOAT values
@@ -236,7 +253,7 @@ def main():
 
 	#Output
 	output_fidimo = options['output']
-	if (grass.find_file(name = output_fidimo+"_"+"fit", element = 'cell')['file'] and grass.read_command("g.gisenv", get = "GRASS_OVERWRITE")!=1):
+	if (grass.find_file(name = output_fidimo+"_"+"fit", element = 'cell')['file'] and not grass.overwrite()):
 		grass.fatal(_("Output file exists already, either change output name or set overwrite-flag"))
 
 
@@ -322,7 +339,7 @@ def main():
 					  res = res)
 
 
-	# Converting river_raster to river_vector
+	# Converting river_raster to river_vector 
 	grass.run_command("r.to.vect",
 					  overwrite = True,
 					  input="river_raster_tmp_%d" % os.getpid(),
@@ -340,12 +357,9 @@ def main():
 
 	#Prepare Barriers/Snap barriers to river_vector
 	if options['barriers']:
-		grass.run_command("v.in.ascii",
-						  flags = "n",
-						  overwrite = True,
-						  input=input_barriers,
-						  output="barriers_tmp_%d" % os.getpid(),
-						  columns="x DOUBLE, y DOUBLE, clearance DOUBLE")
+		grass.run_command("g.copy", 
+						vect = input_barriers + "," + "barriers_tmp_%d" % os.getpid())
+
 		grass.run_command("v.db.addcolumn",
 						  map ="barriers_tmp_%d" % os.getpid(),
 						  columns="new_X DOUBLE, new_Y DOUBLE")					
@@ -364,8 +378,8 @@ def main():
 						  output="barriers_%d" % os.getpid())
 		grass.run_command("v.db.addcolumn",
 						  map ="barriers_%d" % os.getpid(),
-						  columns="dist DOUBLE, affected_barriers DOUBLE") # dist = distance of barrier to segment, affected_barriers = all barriers which are considered to be the scope of a segement
-	
+						  columns="dist DOUBLE") 
+			
 		#Breaking river_vector at position of barriers to get segments
 		for new_X,new_Y in db.execute('SELECT new_X, new_Y FROM barriers_%d'% os.getpid()):
 			barrier_coors = str(new_X)+","+str(new_Y)
@@ -377,7 +391,7 @@ def main():
 						  coords=barrier_coors)
 
 
-	#Getting category values (ASC) for river_network segements
+	#Getting category values (ASC) for river_network segments
 	grass.run_command("v.category",
 					overwrite=True,
 					input="river_vector_tmp_%d" % os.getpid(),
@@ -403,11 +417,11 @@ def main():
 					  input = "river_raster_tmp_%d" % os.getpid(),
 					  output = "distance_raster_tmp_%d" % os.getpid(),
 					  start_coordinates = coors)
-	grass.run_command("r.watershed",
-					  flags = 'm', #depends on memory!!
+	grass.run_command("r.watershed", #??? Set flag "s" for single flow ???
+					  flags = 'm', #depends on memory!! #
 					  elevation = "distance_raster_tmp_%d" % os.getpid(),
 					  drainage = "flow_direction_tmp_%d" % os.getpid(),
-					  stream = "stream_segments_tmp_%d" % os.getpid(),
+					  stream = "stream_rwatershed_tmp_%d" % os.getpid(),
 					  threshold = "1",
 					  overwrite = True)
 
@@ -418,9 +432,9 @@ def main():
 	#Removing small (1 cell) river segments and re-calculate distance raster and flow direction
 	# Why is there a problem with 1 cell river segments?
 	if flags['s']:
-		grass.mapcalc("$river_raster = if($stream_segments>=0, $river_raster, null())",
+		grass.mapcalc("$river_raster = if($stream_rwatershed>=0, $river_raster, null())",
 					 	 river_raster = "river_raster_tmp_%d" % os.getpid(),
-						 stream_segments = "stream_segments_tmp_%d" % os.getpid())
+						 stream_rwatershed = "stream_rwatershed_tmp_%d" % os.getpid())
 		grass.run_command("r.cost",
 					  	flags = 'n',
 					  	overwrite = True,
@@ -428,7 +442,7 @@ def main():
 					  	output = "distance_raster_tmp_%d" % os.getpid(),
 					  	start_coordinates = coors)
 		grass.run_command("r.watershed",
-					  	flags = 'm', #depends on memory!!
+					  	flags = 'm', #depends on memory!! # !!! 
 					  	elevation = "distance_raster_tmp_%d" % os.getpid(),
 					  	drainage = "flow_direction_tmp_%d" % os.getpid(),
 					  	overwrite = True)
@@ -438,7 +452,7 @@ def main():
 	
 	#Calculation of stream order (Shreve/Strahler)
 	grass.run_command("r.stream.order",
-					  streams = "stream_segments_tmp_%d" % os.getpid(),
+					  streams = "stream_rwatershed_tmp_%d" % os.getpid(),
 					  dirs = "flow_direction_tmp_%d" % os.getpid(),
 					  shreve = "shreve_tmp_%d" % os.getpid(),
 					  strahler = "strahler_tmp_%d" % os.getpid(),
@@ -653,10 +667,10 @@ def main():
 
 				# Defining area downstream source point
 				grass.run_command("r.drain",
-								input = "distance_raster_tmp_%d" % os.getpid(),
-								output = "downstream_drain_tmp_%d" % os.getpid(),
-								overwrite = True,
-								start_coordinates = coors)
+							input = "distance_raster_tmp_%d" % os.getpid(),
+							output = "downstream_drain_tmp_%d" % os.getpid(),
+							overwrite = True,
+							start_coordinates = coors)
 				
 				
 				# Applying upstream split at network nodes based on inverse shreve stream order	
@@ -688,198 +702,152 @@ def main():
 				grass.run_command("r.null", map="density_"+str(cat), null="0")
 				
 				
-				mapcalc_list_A.append("density_"+str(cat))	
-			
-			mapcalc_string_A1 = "+".join(mapcalc_list_A)
-			mapcalc_string_A2 = ",".join(mapcalc_list_A)
-		 
-			grass.mapcalc("$density_segment = $mapcalc_string_A1",
-							density_segment = "density_segment_"+segment_cat,
-							mapcalc_string_A1 = mapcalc_string_A1,
-							overwrite = True)
-			
-			grass.run_command("r.null", map="density_segment_"+segment_cat, setnull="0") # Final density map per segment without barriers
-			
-			
 
-			grass.run_command("g.remove", rast = mapcalc_string_A2, flags ="f")
-			
-			################### Barriers ########################
-			if options['barriers']:
-							
-				grass.run_command("r.mask",
-							flags="o",
-							input = "river_raster_cat_tmp_%d" % os.getpid(),
-							maskcats = segment_cat)
-
-				
-				#Create one single random point within analyzed segment
-				grass.run_command("r.random",
-							overwrite=True,
-							input = "river_raster_cat_tmp_%d" % os.getpid(),
-							n = 1,
-							cover="MASK",
-							vector_output="point_within_segment_tmp_%d" % os.getpid())
-							
-				#Important to remove mask after calculation
-				grass.run_command("g.remove", rast = "MASK")   
-		
-		
-				# Getting pseudo-flowdirection for defining upstream area
-				grass.run_command("r.stream.basins",
-								  overwrite = True,
-								  dirs = "flow_direction_tmp_%d" % os.getpid(),
-								  points = "point_within_segment_tmp_%d" % os.getpid(),
-								  basins = "upstream_segment_tmp_%d" % os.getpid())
-				
-				
-				
-				#Defining area upstream analyzed segment
-				grass.run_command("r.cost",
-							  flags = 'n',
-							  overwrite = True,
-							  input = "river_raster_tmp_%d" % os.getpid(),
-							  output = "distance_from_point_within_segment_tmp_%d" % os.getpid(),
-							  start_points = "point_within_segment_tmp_%d" % os.getpid())
-
-				#Remove "point within segment"
-				grass.run_command("g.remove", vect = "point_within_segment_tmp_%d" % os.getpid())
-						   
-				
-				grass.mapcalc("$distance_upstream_point_within_segment = if($upstream_segment, $distance_from_point_within_segment, null())",
-								distance_upstream_point_within_segment = "distance_upstream_point_within_segment_tmp_%d" % os.getpid(),
-								upstream_segment ="upstream_segment_tmp_%d" % os.getpid(),
-								distance_from_point_within_segment = "distance_from_point_within_segment_tmp_%d" % os.getpid(),
+				###### Barriers per source point #######
+				if options['barriers']:
+					grass.mapcalc("$distance_upstream_point = if($upstream_part, $distance_from_point, null())",
+								distance_upstream_point = "distance_upstream_point_tmp_%d" % os.getpid(),
+								upstream_part ="upstream_part_tmp_%d" % os.getpid(),
+								distance_from_point = "distance_from_point_tmp_%d" % os.getpid(),
 								overwrite = True)
-				
-				
-				
-				#Getting distance of barriers from segment and information if barrier is involved/affected
-				grass.run_command("v.what.rast",
+
+					#Getting distance of barriers from segment and information if barrier is involved/affected
+					grass.run_command("v.what.rast",
 								map = "barriers_%d" % os.getpid(),
-								raster = "distance_upstream_point_within_segment_tmp_%d" % os.getpid(),
+								raster = "distance_upstream_point_tmp_%d" % os.getpid(),
 								column = "dist")
 								
-				grass.run_command("v.what.rast",
-								map = "barriers_%d" % os.getpid(),
-								raster = "density_segment_"+segment_cat,
-								column = "affected_barriers")
+					### ! Delete the creation of the column affected_barriers in barriers point
 		
-		
-				#To find out if a loop over the affected barriers is the last loop (find the upstream most barrier)
-				db.execute('SELECT MAX(dist) FROM barriers_%d WHERE affected_barriers > 0 AND dist > 0 ORDER BY dist' % os.getpid())
-				last_barrier = db.fetchone()[0]
-				
-				
-				# Loop over the affected barriers (from most downstream barrier to most upstream barrier)
-				# Initally affected = all barriers where density > 0
-				for cat,X,Y,dist,clearance in db.execute('SELECT cat, X, Y, dist, clearance FROM barriers_%d WHERE affected_barriers > 0 AND dist > 0 ORDER BY dist' % os.getpid()):
-					coors_barriers = str(X)+","+str(Y)
+					#To find out if a loop over the affected barriers is the last loop (find the upstream most barrier)
+					db.execute('SELECT MAX(dist) FROM barriers_%d WHERE dist > 0 ORDER BY dist' % os.getpid())
+					last_barrier = db.fetchone()[0]	
 
-					grass.debug(_("Starting with corrections for barriers"))
+					# Loop over the affected barriers (from most downstream barrier to most upstream barrier)
+					# Initally affected = all barriers where density > 0
+					for new_X,new_Y,dist,permeability_col in db.execute('SELECT new_X, new_Y, dist, %s FROM barriers_%d WHERE dist > 0 ORDER BY dist' % (permeability_col,os.getpid())):
+						
+						coors_barriers = str(new_X)+","+str(new_Y)
+						permeability = float(permeability_col)
 
-					#Defining upstream the barrier
-					grass.run_command("r.stream.basins",
-								  overwrite = True,
-								  dirs = "flow_direction_tmp_%d" % os.getpid(),
-								  coors = coors_barriers,
-								  basins = "upstream_barrier_tmp_%d" % os.getpid())
+						grass.debug(_("Starting with calculating barriers-effect (barrier-coors: "+coors_barriers+")"))
+
+						#Defining upstream the barrier
+						grass.run_command("r.stream.basins",
+								overwrite = True,
+								dirs = "flow_direction_tmp_%d" % os.getpid(),
+								coors = coors_barriers,
+								basins = "upstream_barrier_tmp_%d" % os.getpid())
 				
-					#Getting density upstream barrier only
-					grass.mapcalc("$upstream_density = if($upstream_barrier, $density_segment, null())",
-								upstream_density = "upstream_density_tmp_%d" % os.getpid(), 
+						#Getting density upstream barrier only
+						grass.mapcalc("$upstream_barrier_density = if($upstream_barrier, $density, null())",
+								upstream_barrier_density = "upstream_barrier_density_tmp_%d" % os.getpid(), 
 								upstream_barrier = "upstream_barrier_tmp_%d" % os.getpid(), 
-								density_segment = "density_segment_"+segment_cat,
+								density = "density_"+str(cat),
 								overwrite = True)
 							
-					#Getting sum of upstream density and density to relocate downstream
-					d = {'n':5, 'min': 6, 'max': 7, 'mean': 9, 'sum': 14, 'median':16, 'range':8}
-					univar = grass.read_command("r.univar", map = "upstream_density_tmp_%d" % os.getpid(), flags = 'e')
-					if univar:
-						upstream_density = float(univar.split('\n')[d['sum']].split(':')[1])
-					else:
-						grass.fatal(_("Error with upstream density/barriers. The error is for coors_barriers (X,Y): "+coors_barriers))						
-					
-					density_for_downstream = upstream_density*(1-clearance)
+						#Getting sum of upstream density and density to relocate downstream
+						d = {'n':5, 'min': 6, 'max': 7, 'mean': 9, 'sum': 14, 'median':16, 'range':8}
+						univar_upstream_barrier_density = grass.read_command("r.univar", map = "upstream_barrier_density_tmp_%d" % os.getpid(), flags = 'e')
+						if univar_upstream_barrier_density:
+							sum_upstream_barrier_density = float(univar_upstream_barrier_density.split('\n')[d['sum']].split(':')[1])
+						else:
+							grass.fatal(_("Error with upstream density/barriers. The error occurs for coors_barriers (X,Y): "+coors_barriers))		
+
+
+						density_for_downstream = sum_upstream_barrier_density*(1-permeability)
 				
 	
-					# barrier_effect = Length of Effect of barriers (linear decrease up to max (barrier_effect)
-					barrier_effect=200 #units as in mapset (m)
+						# barrier_effect = Length of Effect of barriers (linear decrease up to max (barrier_effect)
+						barrier_effect=200 #units as in mapset (m)
 				
-					# Calculating distance from barriers (up- and downstream)
-					grass.run_command("r.cost",
-								  overwrite = True,
-								  input = "river_raster_tmp_%d" % os.getpid(),
-								  output = "distance_barrier_tmp_%d" % os.getpid(),
-								  start_coordinates = coors_barriers,
-								  max_cost=barrier_effect)
+						# Calculating distance from barriers (up- and downstream)
+						grass.run_command("r.cost",
+									overwrite = True,
+									input = "river_raster_tmp_%d" % os.getpid(),
+									output = "distance_barrier_tmp_%d" % os.getpid(),
+									start_coordinates = coors_barriers,
+									max_cost=barrier_effect)
 
 
-					# Getting distance map for downstream of barrier only
-					grass.mapcalc("$distance_barrier_downstream = if(isnull($upstream_barrier) && $distance_barrier < $barrier_effect, $distance_barrier, null())",
-								distance_barrier_downstream = "distance_barrier_downstream_tmp_%d" % os.getpid(),
-								upstream_barrier = "upstream_barrier_tmp_%d" % os.getpid(), 
-								distance_barrier = "distance_barrier_tmp_%d" % os.getpid(),
-								barrier_effect = barrier_effect,
-								overwrite = True)
+						# Getting distance map for downstream of barrier only
+						grass.mapcalc("$distance_downstream_barrier = if(isnull($upstream_barrier), $distance_barrier, null())",
+									distance_downstream_barrier = "distance_downstream_barrier_tmp_%d" % os.getpid(),
+									upstream_barrier = "upstream_barrier_tmp_%d" % os.getpid(), 
+									distance_barrier = "distance_barrier_tmp_%d" % os.getpid(),
+									overwrite = True)
+
+						# Getting inverse distance map for downstream of barrier only
+						grass.mapcalc("$inv_distance_downstream_barrier = 1.0/$distance_downstream_barrier",
+									inv_distance_downstream_barrier = "inv_distance_downstream_barrier_tmp_%d" % os.getpid(),
+									distance_downstream_barrier = "distance_downstream_barrier_tmp_%d" % os.getpid(),
+									overwrite = True)
+
+						# Getting parameters for distance weighted relocation of densities downstream the barrier (inverse to distance (reciprocal), y=(density/sum(1/distance))/distance)
+						univar_distance_downstream_barrier = grass.read_command("r.univar", map = "inv_distance_downstream_barrier_tmp_%d" % os.getpid(), flags = 'e')
+						sum_inv_distance_downstream_barrier = float(univar_distance_downstream_barrier.split('\n')[d['sum']].split(':')[1])
+						grass.debug(_("sum_inv_distance_downstream_barrier: "+str(sum_inv_distance_downstream_barrier)))
+												
+
+						#Calculation Kernel Density downstream the barrier	
+						grass.mapcalc("$downstream_barrier_density = ($density_for_downstream/$sum_inv_distance_downstream_barrier)/$distance_downstream_barrier",
+									downstream_barrier_density = "downstream_barrier_density_tmp_%d" % os.getpid(),
+									density_for_downstream=density_for_downstream,
+									sum_inv_distance_downstream_barrier = sum_inv_distance_downstream_barrier,
+									distance_downstream_barrier = "distance_downstream_barrier_tmp_%d" % os.getpid(),
+									overwrite = True)				
+
+						# Combination upstream and downstream density from barrier
+						grass.run_command("r.null", map="density_"+str(cat), null="0")
+						grass.run_command("r.null", map="downstream_barrier_density_tmp_%d" % os.getpid(), null="0")
 					
-					# Getting parameters for distance weighted relocation of densities below the barrier (linear decrease)
-					univar = grass.read_command("r.univar", map = "distance_barrier_downstream_tmp_%d" % os.getpid(), flags = 'e')
-					sum_distance_downstream_barrier = float(univar.split('\n')[d['sum']].split(':')[1])
-					number_distance_downstream_barrier = float(univar.split('\n')[d['n']].split(':')[1])
-					max_distance_downstream_barrier = float(univar.split('\n')[d['max']].split(':')[1])
-
-					a = density_for_downstream/(number_distance_downstream_barrier-sum_distance_downstream_barrier/max_distance_downstream_barrier)	
-
-					#Remove any old density_below_barrier map	 
-					grass.run_command("g.remove", rast = "density_below_barrier_tmp_%d" % os.getpid())
-
-					#Calculation Kernel Density downstream the barrier	
-					grass.mapcalc("$density_below_barrier = $a-($a/$distance_max)*$distance_barrier_downstream",
-								density_below_barrier = "density_below_barrier_tmp_%d" % os.getpid(),
-								a = a, 
-								distance_max = max_distance_downstream_barrier,
-								distance_barrier_downstream = "distance_barrier_downstream_tmp_%d" % os.getpid(),
-								overwrite = True)				
-
-					# Combination upstream and downstream density from barrier
-					grass.run_command("r.null", map="density_segment_"+str(Segment[0]), null="0")
-					grass.run_command("r.null", map="density_below_barrier_tmp_%d" % os.getpid(), null="0")
-					
-					grass.mapcalc("$density_segment = if(isnull($upstream_barrier), $density_below_barrier+$density_segment, $upstream_density*$clearance)",
-								density_segment = "density_segment_"+str(Segment[0]), 
-								upstream_barrier = "upstream_barrier_tmp_%d" % os.getpid(), 
-								density_below_barrier = "density_below_barrier_tmp_%d" % os.getpid(),
-								upstream_density = "upstream_density_tmp_%d" % os.getpid(),
-								clearance=clearance,
-								overwrite = True)
+						grass.mapcalc("$density_point = if(isnull($upstream_barrier), $downstream_barrier_density+$density_point, $upstream_barrier_density*$permeability)",
+									density_point = "density_"+str(cat), 
+									upstream_barrier = "upstream_barrier_tmp_%d" % os.getpid(), 
+									downstream_barrier_density = "downstream_barrier_density_tmp_%d" % os.getpid(),
+									upstream_barrier_density = "upstream_barrier_density_tmp_%d" % os.getpid(),
+									permeability=permeability,
+									overwrite = True)
 								
-					if dist == last_barrier :
-						grass.run_command("r.null", map="density_segment_"+segment_cat, null="0")
-					else:
-						grass.run_command("r.null", map="density_segment_"+segment_cat, setnull="0")
+						if dist == last_barrier :
+							grass.run_command("r.null", map="density_"+str(cat), null="0")
+						else:
+							grass.run_command("r.null", map="density_"+str(cat), setnull="0")
 					
-					#If the barrier in the loop was impermeable (clearance=0) 
-					#than no more upstream barriers need to be considered --> break
-					if clearance == 0:
-						break
-	
-			grass.run_command("r.null", map="density_segment_"+segment_cat, null="0") # Final density map per segment
-							 
+						#If the barrier in the loop was impermeable (permeability=0) 
+						#than no more upstream barriers need to be considered --> break
+						if permeability == 0:
+							break
+
+
+				# Get a list of all densities processed so far within this segement
+				mapcalc_list_A.append("density_"+str(cat))	
 			
+			mapcalc_string_A_aggregate = "+".join(mapcalc_list_A)
+			mapcalc_string_A_removal = ",".join(mapcalc_list_A)
+		 
+			grass.mapcalc("$density_segment = $mapcalc_string_A_aggregate",
+							density_segment = "density_segment_"+segment_cat,
+							mapcalc_string_A_aggregate = mapcalc_string_A_aggregate,
+							overwrite = True)
+			
+			grass.run_command("g.remove", rast = mapcalc_string_A_removal, flags ="f")
+			
+			grass.run_command("r.null", map="density_segment_"+segment_cat, null="0") # Final density map per segment, set 0 for aggregation with r.mapcalc
+							 
 			mapcalc_list_B.append("density_segment_"+segment_cat)
 
 
 		 
-		mapcalc_string_B1 = "+".join(mapcalc_list_B)
-		mapcalc_string_B2 = ",".join(mapcalc_list_B)
+		mapcalc_string_B_aggregate = "+".join(mapcalc_list_B)
+		mapcalc_string_B_removal = ",".join(mapcalc_list_B)
 	   
 		# Final raster map, Final map is sum of all 
-		# density maps (for each segement), All contirbuting maps (string_B2) are deleted
+		# density maps (for each segement), All contirbuting maps (string_B_removal) are deleted
 		# in the end.
-		grass.mapcalc("$density_final = $mapcalc_string_B1",
+		grass.mapcalc("$density_final = $mapcalc_string_B_aggregate",
 						density_final = "density_final_%d" % os.getpid(),
-						mapcalc_string_B1 = mapcalc_string_B1,
+						mapcalc_string_B_aggregate = mapcalc_string_B_aggregate,
 						overwrite = True)
 
 		# backtransformation (divide by scalar which was defined before)
@@ -892,25 +860,24 @@ def main():
 			rast = "density_final_corrected_%d" % os.getpid() + "," + output_fidimo+"_"+i)
 		
 		
-
 		# Set all 0-values to NULL, Backgroundvalues			
 		grass.run_command("r.null", map=output_fidimo+"_"+i, setnull="0")
 	
 	
-		grass.run_command("g.remove", rast = mapcalc_string_B2, flags ="f")
+		grass.run_command("g.remove", rast = mapcalc_string_B_removal, flags ="f")
 			
 
 	# Make source_points and barriers permanent	 
 	grass.run_command("g.copy", 
-		vect = "source_points_%d" % os.getpid() + "," + output + "_source_points")
+		vect = "source_points_%d" % os.getpid() + "," + output_fidimo + "_source_points")
 	if options['barriers']:
 		grass.run_command("g.copy", 
-			vect = "barriers_%d" % os.getpid() + "," + output + "_barriers")
+			vect = "barriers_%d" % os.getpid() + "," + output_fidimo + "_barriers")
 		
 	if flags['b']:
-		grass.run_command("g.remove", vect = output + "_source_points", flags ="f")
+		grass.run_command("g.remove", vect = output_fidimo + "_source_points", flags ="f")
 		if options['barriers']:
-			grass.run_command("g.remove", vect = output + "_barriers", flags ="f")
+			grass.run_command("g.remove", vect = output_fidimo + "_barriers", flags ="f")
 	
 				
 	return 0
