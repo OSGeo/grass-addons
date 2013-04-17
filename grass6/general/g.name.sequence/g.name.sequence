@@ -104,7 +104,7 @@ esac
 
 # rudimentary check
 if [ "$MIN" -lt 0 ] || [ "$MAX" -lt 0 ] ; then
-   g.message -e "Only positive numbers in map name is supported"
+   g.message -e "Only positive numbers in map name are supported"
    exit 1
 fi
 
