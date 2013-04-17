@@ -7,12 +7,12 @@ encoding animations, and general scripting purposes.
 
 <h2>NOTES</h2>
 
-The sequence must remain postive and only support integers.
+The sequence must remain postive and only supports integer values.
 The module will exit with an error if the <b>padding</b> value is not
  wide enough.
-A padding width of "0" can be used to indicate no padding should be used.
+A padding width of "0" can be used to indicate no zero-padding should be used.
 The <b>skip</b> value can be a negative to decrement instead of increment
- the series. In this case the <b>min</b> value should be larger than the
+ the series, in this case the <b>min</b> value should be larger than the
  <b>max</b> value.
 
 
@@ -20,7 +20,7 @@ The <b>skip</b> value can be a negative to decrement instead of increment
 
 Prints <tt>day.001,day.002,...,day.365</tt>:
 <div class="code"><pre>
-g.name.sequence min=1 max=365  base="day." pad=3
+g.name.sequence min=1 max=365 base="day." pad=3
 </pre></div>
 
 <p>
