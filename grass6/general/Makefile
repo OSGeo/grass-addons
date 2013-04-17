@@ -2,6 +2,7 @@ MODULE_TOPDIR = ..
 
 SUBDIRS = \
 	g.md5sum \
+	g.region.grow \
 	g.region.point
 ## already in 6.4+:
 #	g.xlist \
