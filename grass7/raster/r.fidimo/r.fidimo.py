@@ -162,6 +162,7 @@ import atexit
 import time
 import sqlite3
 import math #for function sqrt()
+import csv
 
 # import required grass modules
 import grass.script as grass
@@ -174,9 +175,6 @@ import grass.script.array as garray
 import numpy
 from scipy import stats
 from scipy import optimize
-#import matplotlib.pyplot as plt
-#import matplotlib as mpl
-
 
 
 
@@ -515,7 +513,7 @@ def main():
 	#Adding columns and coordinates to source points
 	grass.run_command("v.db.addcolumn",
 					  map = "source_points_%d" % os.getpid(),
-					  columns = "X DOUBLE, Y DOUBLE, Segment INT, Strahler INT")					
+					  columns = "X DOUBLE, Y DOUBLE, segment INT, Strahler INT")					
 	grass.run_command("v.to.db",
 					  map = "source_points_%d" % os.getpid(),
 					  type = "point",
@@ -535,7 +533,7 @@ def main():
 	grass.run_command("v.what.rast",
 					  map = "source_points_%d" % os.getpid(),
 					  raster = "river_raster_cat_tmp_%d" % os.getpid(),
-					  column = "Segment")
+					  column = "segment")
 	
 	#Adding information of Strahler stream order to source points					 
 	grass.run_command("v.what.rast",
@@ -560,22 +558,43 @@ def main():
 
 		
 		mapcalc_list_B = []
-		
-		# Loop over Segments
-		for Segment in sorted(list(set(db.execute('SELECT Segment FROM source_points_%d ORDER BY Segment ASC' % os.getpid())))):
-			grass.debug(_("This is segment nr.: " +str(Segment)))
 
-			segment_cat = str(Segment[0])
-		
+
+		########## Loop over segments ############
+		# Extract Segments-Info to loop over
+		segment_list = grass.read_command("db.select", flags="c", sql= "SELECT segment FROM source_points_%d" % os.getpid()).split("\n")[:-1] # remove last (empty line)
+		segment_list = map(int, segment_list)
+		segment_list = sorted(list(set(segment_list)))
+	
+		for j in segment_list:
+
+			segment_cat = str(j)
+			grass.debug(_("This is segment nr.: " +str(segment_cat)))
+
 			mapcalc_list_A = []
 
 			# Loop over Source points
-			source_points_loop = db.execute('SELECT cat, X, Y, prob, Strahler FROM source_points_%d WHERE Segment=?' % os.getpid(), (str(Segment[0]),))
-			for cat,X,Y,prob,Strahler in source_points_loop:
-				grass.debug(_("Start looping over source points"))
+			source_points_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, X, Y, prob, Strahler FROM source_points_%d WHERE segment=%d" % (os.getpid(),int(j))).split("\n")[:-1] # remove last (empty line)
+			source_points_list = list(csv.reader(source_points_list,delimiter="|"))
 
+			for k in source_points_list:
+
+				cat = int(k[0])
+				X = float(k[1])
+				Y = float(k[2])
+				prob = float(k[3])
+				Strahler = int(k[4])
 				coors = str(X)+","+str(Y)
-				grass.debug(_("Source point coors:"+coors+" in segment nr: " +str(Segment)))
+				
+				# Progress bar
+				# add here progressbar
+				
+
+
+
+				# Debug messages
+				grass.debug(_("Start looping over source points"))
+				grass.debug(_("Source point coors:"+coors+" in segment nr: " +str(segment_cat)))
 								
 				#Select dispersal parameters
 				SO = 'SO='+str(Strahler)
@@ -583,7 +602,8 @@ def main():
 				grass.debug(_("This is "+str(SO)))
 				sigma_stat = fishmove.rx(i,'sigma_stat',1,1,SO,1)
 				sigma_mob = fishmove.rx(i,'sigma_mob',1,1,SO,1)
-						
+
+				grass.debug(_("Dispersal parameters: prob="+str(prob)+", sigma_stat="+str(sigma_stat)+", sigma_mob="+str(sigma_mob)+", p="+str(p)))		
 
 				# Getting maximum distance (cutting distance) based on truncation criterion	  
 				def func(x,sigma_stat,sigma_mob,m,truncation,p):
@@ -628,7 +648,7 @@ def main():
 				
 				# MAIN PART: leptokurtic probability density kernel based on fishmove
 				grass.debug(_("Begin with core of fidimo, application of fishmove on garray"))
-				grass.debug(_("Dispersal parameters: prob="+str(prob)+", sigma_stat="+str(sigma_stat)+", sigma_mob="+str(sigma_mob)+", p="+str(p)))
+				
 				def cdf(x):
 					return (p * stats.norm.cdf(x, loc=m, scale=sigma_stat) + (1-p) * stats.norm.cdf(x, loc=m, scale=sigma_mob)) * prob
 		 
@@ -711,26 +731,32 @@ def main():
 								distance_from_point = "distance_from_point_tmp_%d" % os.getpid(),
 								overwrite = True)
 
-					#Getting distance of barriers from segment and information if barrier is involved/affected
+					#Getting distance of barriers and information if barrier is involved/affected
 					grass.run_command("v.what.rast",
 								map = "barriers_%d" % os.getpid(),
 								raster = "distance_upstream_point_tmp_%d" % os.getpid(),
 								column = "dist")
-								
-					### ! Delete the creation of the column affected_barriers in barriers point
-		
-					#To find out if a loop over the affected barriers is the last loop (find the upstream most barrier)
-					db.execute('SELECT MAX(dist) FROM barriers_%d WHERE dist > 0 ORDER BY dist' % os.getpid())
-					last_barrier = db.fetchone()[0]	
+									
 
 					# Loop over the affected barriers (from most downstream barrier to most upstream barrier)
 					# Initally affected = all barriers where density > 0
-					for new_X,new_Y,dist,permeability_col in db.execute('SELECT new_X, new_Y, dist, %s FROM barriers_%d WHERE dist > 0 ORDER BY dist' % (permeability_col,os.getpid())):
-						
-						coors_barriers = str(new_X)+","+str(new_Y)
-						permeability = float(permeability_col)
+					barriers_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, new_X, new_Y, dist, %s FROM barriers_%d WHERE dist > 0 ORDER BY dist" % (permeability_col,os.getpid())).split("\n")[:-1] # remove last (empty line)
+					barriers_list = list(csv.reader(barriers_list,delimiter="|"))
 
-						grass.debug(_("Starting with calculating barriers-effect (barrier-coors: "+coors_barriers+")"))
+					#if affected barriers then define the last loop (find the upstream most barrier)
+					if barriers_list:					
+						last_barrier = float(barriers_list[-1][3])
+
+					for l in barriers_list:
+
+						cat = int(l[0])
+						new_X = float(l[1])
+						new_Y = float(l[2])
+						dist = float(l[3])
+						permeability = float(l[4])				
+						coors_barriers = str(new_X)+","+str(new_Y)
+
+						grass.debug(_("Starting with calculating barriers-effect (coors_barriers: "+coors_barriers+")"))
 
 						#Defining upstream the barrier
 						grass.run_command("r.stream.basins",
@@ -738,6 +764,8 @@ def main():
 								dirs = "flow_direction_tmp_%d" % os.getpid(),
 								coors = coors_barriers,
 								basins = "upstream_barrier_tmp_%d" % os.getpid())
+
+						grass.run_command("r.null", map="density_"+str(cat), setnull="0")
 				
 						#Getting density upstream barrier only
 						grass.mapcalc("$upstream_barrier_density = if($upstream_barrier, $density, null())",
@@ -789,7 +817,7 @@ def main():
 						grass.debug(_("sum_inv_distance_downstream_barrier: "+str(sum_inv_distance_downstream_barrier)))
 												
 
-						#Calculation Kernel Density downstream the barrier	
+						#Calculation Density downstream the barrier	
 						grass.mapcalc("$downstream_barrier_density = ($density_for_downstream/$sum_inv_distance_downstream_barrier)/$distance_downstream_barrier",
 									downstream_barrier_density = "downstream_barrier_density_tmp_%d" % os.getpid(),
 									density_for_downstream=density_for_downstream,
@@ -817,6 +845,7 @@ def main():
 						#If the barrier in the loop was impermeable (permeability=0) 
 						#than no more upstream barriers need to be considered --> break
 						if permeability == 0:
+							grass.run_command("r.null", map="density_"+str(cat), null="0")
 							break
 
 
@@ -843,7 +872,7 @@ def main():
 		mapcalc_string_B_removal = ",".join(mapcalc_list_B)
 	   
 		# Final raster map, Final map is sum of all 
-		# density maps (for each segement), All contirbuting maps (string_B_removal) are deleted
+		# density maps (for each segement), All contributing maps (string_B_removal) are deleted
 		# in the end.
 		grass.mapcalc("$density_final = $mapcalc_string_B_aggregate",
 						density_final = "density_final_%d" % os.getpid(),
