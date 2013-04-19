@@ -7,19 +7,22 @@ HOME=/c/Users/landa/grass_packager
 
 function update {
     if [ "$1" = "grass_trunk" ] ; then
-	cd /c/osgeo4w_g7/$SRC/$1
+	SRC_PATH=/c/osgeo4w_g7/$SRC/$1
     else
-	cd /c/osgeo4w/$SRC/$1
+	SRC_PATH=/c/osgeo4w/$SRC/$1
     fi
+    DEST_PATH=$HOME/$2
     
+    cd $SRC_PATH
+
     REV=`svn info | grep 'Last Changed Rev:' | cut -d':' -f2 | tr -d ' '`
-    if test -z $4 ; then
+    if test -z $3 ; then
 	NUM=`ls -t $PACKAGEDIR/ 2>/dev/null | head -n1 | cut -d'-' -f5 | cut -d'.' -f1`
 	if [ "x$NUM" = "x" ]; then
 	    NUM=1
 	fi
     else
-	NUM=$4
+	NUM=$3
     fi
     
     exec 3<include/VERSION 
@@ -35,15 +38,17 @@ function update {
     fi
     sed -e "s/BINARY_REVISION \"1\"/BINARY_REVISION \"$NUM\"/g" \
 	-e "s/INSTALLER_TYPE \"Devel\"/INSTALLER_TYPE \"$TYPE\"/g" \
-	$HOME/$2/GRASS-Installer.nsi > tmp
-    mv tmp $HOME/$2/GRASS-Installer.nsi
+	$DEST_PATH/GRASS-Installer.nsi > tmp
+    mv tmp $DEST_PATH/GRASS-Installer.nsi
+    cp error.log $DEST_PATH
 
-    create_log $SRC/$1 $2 $REV $NUM
+    create_log $MAJOR$MINOR $REV $NUM
 }
 
 function create_log {
-    cd $HOME/$2
-    LOG_DIR=log-r$3-$4
+    cd $HOME/grass$1
+    LOG_DIR=log-r$2-$3
+    
     mkdir -p $LOG_DIR
     cp osgeo4w/package.log $LOG_DIR/
     cp error.log $LOG_DIR/
@@ -51,13 +56,16 @@ function create_log {
 
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 
-if test -z $1 ; then
+VERSION=$1
+NUM=$2
+
+if test -z $VERSION ; then
     # dev packages
     update grass64_release grass64
     update grass6_devel    grass65
     update grass_trunk     grass70
 else
-    update grass$1         grass$1 $2
+    update grass$VERSION   grass$VERSION $NUM
 fi
 
 exit 0

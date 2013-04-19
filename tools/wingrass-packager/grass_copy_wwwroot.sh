@@ -20,11 +20,23 @@ function copy {
     mkdir $WWWDIR/grass$1/logs
     cp -r log-r*         $WWWDIR/grass$1/logs
 
+    copy_addon $1 $2
+}
+
+function copy_addon {
+    version=$1
+    version_full=$2
+
+    cd $HOME/grass$version
+
+    echo "Copying AddOns for grass${version}..."
+    
     if test -n "$2"; then
-	ADDONDIR=$WWWDIR/grass$1/addons/grass-$2
+	ADDONDIR=$WWWDIR/grass${version:0:2}/addons/grass-$version_full
     else
-	ADDONDIR=$WWWDIR/grass$1/addons
+	ADDONDIR=$WWWDIR/grass${version:0:2}/addons
     fi
+        
     mkdir -p $ADDONDIR
     
     cp    addons/*zip addons/*.md5sum $ADDONDIR
@@ -34,10 +46,12 @@ function copy {
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 
 if test -z $1 ; then
-    # dev packages
+    # svn packages
     copy 64 6.4.3svn
     copy 65
     copy 70
+    # releases
+    copy_addon 643RC2 6.4.3RC2
 else
     copy $1 $2
 fi
