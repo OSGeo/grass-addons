@@ -2,6 +2,7 @@
 
 rem Download GRASS from SVN
 rem
+rem Eg.
 rem svn checkout http://svn.osgeo.org/grass/grass/tags/release_20121024_grass_6_4_3RC1 grass643RC1
 rem
 
@@ -9,15 +10,13 @@ cd C:\Users\landa\grass_packager
 
 set MAJOR=6
 set MINOR=4
-set PATCH=3RC2
+set PATCH=3RC3
 set REV=1
 
 rem Compile GRASS versions
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%
 rem native & osgeo4w
 C:\OSGeo4W\apps\msys\bin\bash.exe C:\Users\landa\grass_packager\grass_compile.sh %MAJOR%%MINOR%%PATCH%
-
-pause 
 
 rem Preparation
 if exist .\grass%MAJOR%%MINOR%%PATCH% rmdir /S/Q .\grass%MAJOR%%MINOR%%PATCH%
