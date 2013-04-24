@@ -6,6 +6,7 @@ SUBDIRS = \
 	r.convergence \
 	r.flip \
 	r.fuzzy \
+	r.geomorphon \
 	r.hydrodem \
 	r.in.srtm.region \
 	r.in.wms2 \
