@@ -152,8 +152,8 @@ class Playground(object):
         Test if a position realy is on the playground
         @return list position if on, boolean False if off the playground
         """
-        if self.region["s"] <= position[0] < self.region["n"] and \
-            self.region["w"] <= position[1] < self.region["e"]:
+        if 0 <= position[0] < self.region["rows"] and \
+                0 <= position[1] < self.region["cols"]:
             return position
         else:
             return False

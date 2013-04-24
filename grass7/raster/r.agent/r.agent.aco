@@ -232,6 +232,9 @@ def setmaps(site, cost, wastecosts, inphero, outphero, wastephero):
         # set sitemap and site list
         world.sites = world.playground.parsevectorlayer(anthill.Anthill.SITE,
                                                         site, True)
+        if not world.sites:
+            raise error.DataError("r.agent.aco:",
+                                    "There were no sites in" + site)
     else:
         raise error.DataError("r.agent.aco:", "The site map is mandatory.")
     if cost:
