@@ -16,13 +16,16 @@ from grass.script import array as garray
 class Grassland(playground.Playground):
     """A GrassLand is a Playground and the interface to GRASS."""
 
+    # internal logging class name
+    ME = "r.agent::libagent.grassland.Grassland()"
+
     def __init__(self):
         """Create a Playground with all the relevant info by GRASS"""
         self.layers = dict()
         self.grassmapnames = dict()
         self.region = grass.region()
         if self.region['ewres'] != self.region['nsres']:
-            raise error.DataError("r.agent::libagent.grassland.Grassland()",
+            raise error.DataError(Grassland.ME,
                                     "Only square raster cells make sense.")
 
     def setgrasslayer(self, layername, grassmapname, force=False):
@@ -39,7 +42,7 @@ class Grassland(playground.Playground):
             self.grassmapnames[layername] = grassmapname
             self.setlayer(layername, layer, force)
         else:
-            raise error.DataError("r.agent::libagent.grassland.Grassland()",
+            raise error.DataError(Grassland.ME,
                                     "Grass Map was missing: " + grassmapname)
 
     def createlayer(self, layername, grassmapname=False, force=False):
@@ -75,7 +78,7 @@ class Grassland(playground.Playground):
             if self.grassmapnames.has_key(layername):
                 grassmapname=layername
             else:
-                raise error.DataError("r.agent::libagent.grassland.Grassland()",
+                raise error.DataError(Grassland.ME,
                                         "Grass Map name is empty.")
         if self.layers.has_key(layername):
             if grassmapname in \
@@ -83,9 +86,8 @@ class Grassland(playground.Playground):
                 if force:
                     force="force"
                 else:
-                    raise error.DataError(
-                        "r.agent::libagent.grassland.Grassland()",
-                        "Grass map already exists.")
+                    raise error.DataError(Grassland.ME,
+                                        "Grass map already exists.")
             self.layers[layername].write(grassmapname, overwrite=force)
 
     def parsevectorlayer(self, layername, grassmapname, value=1, force=False):
