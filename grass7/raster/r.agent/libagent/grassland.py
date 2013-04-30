@@ -116,3 +116,20 @@ class Grassland(playground.Playground):
                     self.layers[layername][p[0]][p[1]] = value
         return vectors
 
+    def decaycellvalues(self, layername, halflife, minimum=0):
+        """
+        Let the values in each cell decay, volatilize or evaporate over time.
+        This method is optimized for numpy arrays, see playground for plain
+        arrays.
+        @param string layername name of the layer to work on
+        @param long halflife or number of years when to reach half of the value
+        @param long minimum value to keep on cell
+        """
+        layer = self.layers[layername]
+        if halflife > 0:
+            layer = layer*0.5**(1.0/halflife)
+        #TODO think about moving 'minimum' to a predifined matrix in anthill
+        if minimum > 0:
+            mask = garray.numpy.ones_like(layer) + minimum
+            garray.numpy.maximum(layer, mask)
+

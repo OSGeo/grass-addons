@@ -196,7 +196,9 @@ class Playground(object):
 
     def decaycellvalues(self, layername, halflife, minimum=0):
         """
-        Let the values in each cell decay, volatilize or evaporate over time
+        Let the values in each cell decay, volatilize or evaporate over time.
+        This method is intendet for relativly small 2D python arrays, see
+        grassland.Grassland.decaycellvalues for numpy arrays.
         @param string layername name of the layer to work on
         @param long halflife or number of years when to reach half of the value
         @param long minimum value to keep on cell
@@ -205,8 +207,7 @@ class Playground(object):
             for i in range(self.region["rows"]):
                 for j in range(self.region["cols"]):
                     if self.layers[layername][i][j] > minimum:
-                        v = int(round(
-                              self.layers[layername][i][j]*0.5**(1.0/halflife)))
+                        v = self.layers[layername][i][j]*0.5**(1.0/halflife)
                         if v > minimum:
                             self.layers[layername][i][j] = v
                         else:
