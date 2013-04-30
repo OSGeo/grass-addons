@@ -273,11 +273,14 @@ def letantsdance(rounds, outrounds):
         mainloops = 1
         nextwrite = rounds
     while mainloops > 0:
+        grass.info(mainloops)
         # loop and write out the contents at the end
         loops = nextwrite
         while loops > 0:
+            grass.info(loops)
             # loop without producing output
             if len(world.agents) < world.maxants:
+                grass.info(len(world.agents))
                 # as there is still space on the pg, produce another ant
                 # at a random site..
                 position = world.sites[randint(0, len(world.sites)-1)]
