@@ -199,6 +199,13 @@ apply_OBJ_code()
 *.tmp.html" .
 }
 
+apply_Sql_code()
+{
+   set_mime_type "$1" text/x-sql
+   set_native_eol "$1"
+   unset_exe "$1"
+}
+
 
 ########
 
@@ -276,6 +283,9 @@ for FILE in $* ; do
 	;;
     rst)
 	apply_text "$FILE"
+	;;
+    sql)
+	apply_Sql_code "$FILE"
 	;;
     *)
 	if [ "`basename $FILE`" = "Makefile" ] ; then
