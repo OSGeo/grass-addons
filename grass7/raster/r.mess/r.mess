@@ -22,7 +22,7 @@
 #               improvements. Suggestions for improvements are most
 #               welcome. In the meantime, use it at your own risk
 #   
-# COPYRIGHT: (C) 2012 Paulo van Breugel
+# COPYRIGHT: (C) 2013 Paulo van Breugel
 #            http://ecodiv.org
 #            http://pvanb.wordpress.com/
 # 
@@ -82,7 +82,7 @@
 #% type: string
 #% description: Precision of your input layers values
 #% key_desc: string
-#% answer: 0.001
+#% answer: 0.0001
 #% required: yes
 #%end
 
@@ -160,12 +160,12 @@ trap "exitprocedure" 2 3 15
 
 ##fix this path
 if [ -z "$PROCESSDIR" ] ; then
-	PROCESSDIR="$HOME"
+    PROCESSDIR="$HOME"
 fi
 
 #fix this path
 if [ -z "$LOGDIR" ] ; then
-	LOGDIR="$HOME"
+    LOGDIR="$HOME"
 fi
 LOGFILE="$LOGDIR/r.mess.log"
 
@@ -228,15 +228,15 @@ fi
 oIFS=$IFS
 IFS=,
 for nvar in $INMAPS ; do
-    arrIN=${OUTMAPS}_`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`
-    g.findfile element=cell file=${arrIN} > /dev/null
+    arrTEST=${OUTMAPS}_`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`
+    g.findfile element=cell file=${arrTEST} > /dev/null
     if [ $? -eq 0 ] ; then 
-        g.message -e 'The output map '${arrIN}' already exists'
+        g.message -e 'The output map '${arrTEST}' already exists'
     exit 1
     fi
 done
 IFS=$oIFS
-unset arrIN
+unset arrTEST
 
 # test for missing input raster maps
 oIFS=$IFS
@@ -259,8 +259,14 @@ unset tstIN
 writeScript(){ 
 cat > $1 << "EOF"
 
-options(echo = FALSE)
-require(spgrass6)
+options(echo = TRUE)
+
+# Install (if not present) and load required packages
+tmp.pack <- tempdir()
+if (!"spgrass6" %in% installed.packages()){
+        install.packages("spgrass6", dep=TRUE, repos='http://star-www.st-andrews.ac.uk/cran/', tmp.pack)
+        require(spgrass6, lib.loc=tmp.pack)
+}else{require(spgrass6)}
 
 # Check grass version
 grassversion <- as.numeric(system("g.version | cut -c7", intern=T))
@@ -277,6 +283,7 @@ vtl <- argus[5]                             # reference distribution raster laye
 rtl <- argus[10]                            # raster or vector layer
 digits <- as.numeric(argus[9])              # Precision
 rdigits <- nchar((1/digits)-1)
+options(echo=TRUE, digits=rdigits+1, scipen=rdigits+1)
 
 #-----------------------------------------------------------------------
 # Create the r.mapcalc expressions to calculate the mess for the 
@@ -299,7 +306,7 @@ if(rtl=="R"){
         # unique value is needed.
         # One option is to convert the floating layers to integer layers after
         # multiplying first with a number equal to the reciprocal of the value
-        # given under the digits option
+        # given under the digits option. This may deal better with rounding errors too.
 
         fft <- system("g.findfile --quiet element=cell file=MASK", ignore.stdout = TRUE)
         if(fft==0){
@@ -310,12 +317,12 @@ if(rtl=="R"){
 
         # make compatible for both v6.4 and 7
         if(grassversion==7){
-            system(paste("r.mask raster=", vtl, sep=""))
+            execGRASS("r.mask", raster=vtl)
         }else{
-            system(paste("r.mask input=", vtl, sep=""))
+            execGRASS("r.mask", input=vtl)
         }
         
-        system(paste("r.out.xyz input=", ipl[i], " output=", flnm1, " --overwrite", sep=""))
+        execGRASS("r.out.xyz", input=ipl[i], output=flnm1, flags="overwrite")
         system(paste("awk -F \"|\" '{print $3}' ", flnm1, " > ", flnm2, sep=""))
         spld <- scan(file=flnm2)
         #unlink(c(flnm1, flnm2))
@@ -325,7 +332,7 @@ if(rtl=="R"){
         a  <- table(spld)
         envmin <- min(spld)
         envmax <- max(spld)
-        Drange <- system(paste("r.info -r --verbose map=", ipl[i], sep=""), intern=T)
+        Drange <- execGRASS("r.info", flags=c("r", "verbose"), map=ipl[i], intern=T)
         Dmin <- as.numeric(sub("min=", "", Drange[1]))
         Dmax <- as.numeric(sub("max=", "", Drange[2]))
         system("g.remove -f rast=MASK")
@@ -345,9 +352,10 @@ if(rtl=="R"){
         }
         
         # Create the recode layer and calculate the IES
-        system(paste("r.recode input=", ipl[i], " output=", tml[i], " rules=", tmp.rule, sep=""))
-        system(paste("r.mapcalc '", opi[i], " = if(", tml[i], "==0, (float(", ipl[i], ")-", envmin, ")/(", envmax, "-", envmin, ") *100.0, if(", tml[i], "<=50, 2 * ", tml[i], ", if(", tml[i], "<100.0, 2 * (100.0- ", tml[i], "), (", envmax, "- float(", ipl[i], "))/(", envmax, "-", envmin, ") * 100.0)))'", sep="")) 
-        system(paste("g.remove rast=", tml[i], sep=""))
+        execGRASS("r.recode", input=ipl[i], output=tml[i], rules=tmp.rule)
+        calcc <- paste(opi[i], " = if(", tml[i], "==0, (round(", ipl[i], "/",digits,")-", round(envmin/digits), ")/(", round(envmax/digits), "-", round(envmin/digits), ") *100.0, if(", tml[i], "<=50, 2 * ", tml[i], ", if(", tml[i], "<100.0, 2 * (100.0- ", tml[i], "), (", round(envmax/digits), "- round(", ipl[i], "/", digits, "))/(", round(envmax/digits), "-", round(envmin/digits), ") * 100.0)))", sep="")
+        execGRASS("r.mapcalc", expression=calcc, flags="overwrite") 
+        execGRASS("g.remove", rast=tml[i])
         unlink(tmp.rule)
     }
 
@@ -356,7 +364,7 @@ if(rtl=="R"){
     # Reference distribution layer is vector 
     #-----------------------------------------------------------------------
 
-    system(paste("v.extract -t input=", vtl, " type=point output=tmpMESS976543210", sep=""))
+    execGRASS("v.extract", flags="t", input=vtl, type=point, output=tmpMESS976543210)
     system(paste("v.db.addtable tmpMESS976543210 columns='", paste(ipn, " double precision", collapse=","), "'", sep=""))
 
     # make compatible for both v6.4 and 7
@@ -402,9 +410,10 @@ if(rtl=="R"){
         write.table(xy2, file=tmp.rule, quote=F, row.names=F, col.names=F)
         
         # Create the recode layer and calculate the IES
-        system(paste("r.recode input=", ipl[i], " output=", tml[i], " rules=", tmp.rule, sep=""))
-        system(paste("r.mapcalc '", opi[i], " = if(", tml[i], "==0, (float(", ipl[i], ")-", envmin, ")/(", envmax, "-", envmin, ") *100.0, if(", tml[i], "<=50, 2 * ", tml[i], ", if(", tml[i], "<100.0, 2 * (100.0- ", tml[i], "), (", envmax, "- float(", ipl[i], "))/(", envmax, "-", envmin, ") * 100.0)))'", sep="")) 
-        system(paste("g.remove rast=", tml[i], sep=""))
+        execGRASS("r.recode", input=ipl[i], output=tml[i], rules=tmp.rule)
+        calcc <- paste(opi[i], " = if(", tml[i], "==0, (round(", ipl[i], "/",digits,")-", round(envmin/digits), ")/(", round(envmax/digits), "-", round(envmin/digits), ") *100.0, if(", tml[i], "<=50, 2 * ", tml[i], ", if(", tml[i], "<100.0, 2 * (100.0- ", tml[i], "), (", round(envmax/digits), "- round(", ipl[i], "/", digits, "))/(", round(envmax/digits), "-", round(envmin/digits), ") * 100.0)))", sep="")
+        execGRASS("r.mapcalc", expression=calcc, flags="overwrite") 
+        execGRASS("g.remove", rast=tml[i])
         unlink(tmp.rule)
     }
 }
@@ -421,7 +430,8 @@ system(paste("r.series output=", opc, " input=", paste(opi, collapse=","), " met
 
 if(argus[6]==1){
     system(paste("r.series output=", opc, "_MoD input=", paste(opi, collapse=","), " method=min_raster", sep=""))
-    nuv <- cbind(seq(from=0, to=length(ipn)-1, by = 1), ipn)
+    nuvto <- length(ipn)-1
+    nuv <- cbind(seq(from=0, to=nuvto, by=1), ipn)
     reclvar <- apply(nuv,1,function(x){paste(x[1],x[2], sep=":")})
     tmpclas <- tempfile(pattern = "classification.rules.")
     sink(tmpclas)
@@ -470,6 +480,4 @@ fi
 g.message "Finished - you can find the maps in your current mapset"
 
 #=======================================================================
-
-
 
