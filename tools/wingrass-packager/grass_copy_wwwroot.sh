@@ -52,6 +52,7 @@ if test -z $1 ; then
     copy 70
     # releases
     copy_addon 643RC2 6.4.3RC2
+    copy_addon 643RC3 6.4.3RC3
 else
     copy $1 $2
 fi
