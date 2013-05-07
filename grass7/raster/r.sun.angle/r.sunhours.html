@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.sun.angle</em> calculates sun elevation and sun azimuth angles for
+<em>r.sunhours</em> calculates sun elevation and sun azimuth angles for
 the given time of day and each grid cell in the current region. 
 Additionally, the photoperiod (sunshine hours) can be calculated.
 
@@ -26,13 +26,13 @@ standard time (<em>-t</em> flag) and the solpos algorithm of NREL
 
 Calculate sun's elevation angle map for 2010-10-11 at 14:00h solar time:
 <div class="code"><pre>
-r.sun.angle elevation=sun_elev year=2010 month=10 day=11 hour=14 minute=00
+r.sunhours elevation=sun_elev year=2010 month=10 day=11 hour=14 minute=00
 </pre></div>
 <p>
 
 Calculate photoperiod of day of year 1 (1st January) 2012
 <div class="code"><pre>
-r.sun.angle -s sunhour=photoperiod_doy_001 year=2012 day=1
+r.sunhours -s sunhour=photoperiod_doy_001 year=2012 day=1
 </pre></div>
 
 <h2>AUTHOR</h2>
