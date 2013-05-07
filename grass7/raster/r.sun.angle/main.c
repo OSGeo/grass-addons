@@ -1,10 +1,11 @@
 
 /****************************************************************************
  *
- * MODULE:       r.sun.angle
+ * MODULE:       r.sunhours
  * AUTHOR(S):    Markus Metz
- * PURPOSE:      Calculates solar azimuth and angle
- * COPYRIGHT:    (C) 2010 by the GRASS Development Team
+ * PURPOSE:      Calculates solar azimuth and angle, and 
+ *               sunshine hours (also called daytime period)
+ * COPYRIGHT:    (C) 2010-2013 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
  *               License (>=v2). Read the file COPYING that comes with GRASS
