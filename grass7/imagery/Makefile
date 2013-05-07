@@ -14,7 +14,8 @@ SUBDIRS = \
 	i.points.auto \
 	i.rotate \
 	i.segment \
-	i.vi.mpi
+	i.vi.mpi \
+	i.wavelet
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
