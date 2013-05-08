@@ -77,7 +77,8 @@
 #%end
 
 # import library
-import os, sys
+import os
+import sys
 from datetime import *
 import grass.script as grass
 
@@ -86,10 +87,16 @@ libmodis = None
 if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')):
     libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
 elif os.getenv('GRASS_ADDON_BASE') and \
-        os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'r.modis')):
+        os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc',
+                                   'r.modis')):
     libmodis = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'r.modis')
+elif os.getenv('GRASS_ADDON_BASE') and \
+        os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_BASE'), 'r.modis',
+                                   'r.modis')):
+    libmodis = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'r.modis',
+                            'r.modis')
 elif os.path.isdir(os.path.join('..', 'libmodis')):
-    libmodis = os.path.join('..', 'libmodis')                             
+    libmodis = os.path.join('..', 'libmodis')
 if not libmodis:
     sys.exit("ERROR: modis library not found")
 
@@ -101,20 +108,22 @@ try:
 except ImportError, e:
     grass.fatal(e)
 
+
 def check(home):
     """ Check if a folder it is writable by the user that launch the process
     """
-    if os.access(home,os.W_OK):
+    if os.access(home, os.W_OK):
         return True
     else:
         grass.fatal(_("Folder to write downloaded files does not "
                       "exist or is not writeable"))
 
+
 def checkdate(options):
     """ Function to check the data and return the correct value to download the
         the tiles
     """
-    def check2day(second,first=None):
+    def check2day(second, first=None):
         """Function to check two date"""
         if not first:
             valueDay = None
@@ -122,10 +131,11 @@ def checkdate(options):
         else:
             valueDay = first
             firstSplit = first.split('-')
-            firstDay = date(int(firstSplit[0]),int(firstSplit[1]),int(firstSplit[2]))
+            firstDay = date(int(firstSplit[0]), int(firstSplit[1]),
+                            int(firstSplit[2]))
         lastSplit = second.split('-')
-        lastDay = date(int(lastSplit[0]),int(lastSplit[1]),int(lastSplit[2]))
-        delta = firstDay-lastDay
+        lastDay = date(int(lastSplit[0]), int(lastSplit[1]), int(lastSplit[2]))
+        delta = firstDay - lastDay
         valueDelta = int(delta.days)
         return valueDay, second, valueDelta
 
@@ -137,7 +147,8 @@ def checkdate(options):
         valueDelta = 10
         valueEnd = options['startday']
         firstSplit = valueEnd.split('-')
-        firstDay = date(int(firstSplit[0]),int(firstSplit[1]),int(firstSplit[2]))
+        firstDay = date(int(firstSplit[0]), int(firstSplit[1]),
+                        int(firstSplit[2]))
         delta = timedelta(10)
         lastday = firstDay + delta
         valueDay = lastday.strftime("%Y-%m-%d")
@@ -146,8 +157,10 @@ def checkdate(options):
         grass.fatal(_("It is not possible use <endday> option without <startday> option"))
     # set start and end day
     elif options['startday'] != '' and options['endday'] != '':
-        valueDay, valueEnd, valueDelta = check2day(options['startday'],options['endday'])
-    return valueDay, valueEnd, valueDelta 
+        valueDay, valueEnd, valueDelta = check2day(options['startday'],
+                                                   options['endday'])
+    return valueDay, valueEnd, valueDelta
+
 
 # main function
 def main():
@@ -172,19 +185,19 @@ def main():
         # open the file and read the the user and password:
         # first line is username
         # second line is password
-	if check(options['settings']):
-           filesett = open(options['settings'],'r')
-           fileread = filesett.readlines()
-           user = fileread[0].strip()
-           passwd = fileread[1].strip()
-           filesett.close()
-	else:
-	   grass.fatal(_("File <%s> not found") % options['settings'])
+        if check(options['settings']):
+            filesett = open(options['settings'], 'r')
+            fileread = filesett.readlines()
+            user = fileread[0].strip()
+            passwd = fileread[1].strip()
+            filesett.close()
+        else:
+            grass.fatal(_("File <%s> not found") % options['settings'])
         # set the folder by option folder
         if options['folder'] != '':
             if check(options['folder']):
                 fold = options['folder']
-        # set the folder from path where settings file is stored 
+        # set the folder from path where settings file is stored
         else:
             path = os.path.split(options['settings'])[0]
             if check(path):
@@ -213,10 +226,10 @@ def main():
     for produ in products:
         prod = product(produ).returned()
         #start modis class
-      
-        modisOgg = downModis(url = prod['url'], user = user,password = passwd, 
-              destinationFolder = fold, tiles = tiles, path = prod['folder'], 
-              today = firstday, enddate = finalday, delta = delta, debug = debug_opt)
+
+        modisOgg = downModis(url=prod['url'], user=user, password=passwd,
+              destinationFolder=fold, tiles=tiles, path=prod['folder'],
+              today=firstday, enddate=finalday, delta=delta, debug=debug_opt)
         # connect to ftp
         modisOgg.connectFTP()
         if modisOgg.nconnection <= 20:
