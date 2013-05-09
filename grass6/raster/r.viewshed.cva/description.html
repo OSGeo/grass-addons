@@ -1,0 +1,25 @@
+<h2>DESCRIPTION</h2>
+
+<p><em>r.viewshed.cva</em> is a module that allows for the construction of "Cumulative Viewshed", or "visualscape" maps from a series of input points stored in a vector points map. The routine is a python wrapper script that iterative loops through each input point, calculating a viewshed map, and then creates an output map that is coded by the number of input locations that can "see" each cell. <em>r.viewshed.cva</em> uses the GRASS addon <em>r.viewshed</em> for the viewshed analysis (instead of the standard module <span style="font-style: italic;">r.los</span>) because <span style="font-style: italic;">r.viewshed</span> is substantially faster, thus allowing for a cumulative viewshed analysis to run in a reasonable amount of time. The final cumulative viewshed map is computed using the "count" method of <span style="font-style: italic;">r.series</span>, rather than with mapcalc, as it better handles the null values in the individual constituent viewshed maps (and allows for interim viewshed maps to be coded in any way)
+
+</p><h3>Options and flags:</h3> <span style="font-style: italic;">r.viewshed.cva</span> requires an input elevation map and an input vector points map with at least three columns of data: one contains a unique identifier for each point (e.g., "cat"), one contains the easting of the point, and one contains the northing of the point. There<em></em> is currently only one native flag for <span style="font-style: italic;">r.viewshed.cva</span> (-k), which allows you to keep the interim viewshed maps made for each input point. All other flags and options are inherited from r.viewshed (see the<span style="font-style: italic;"> r.viewshed</span> help page for more information on these)<span style="font-weight: bold;"><br><br></span><h2>NOTES</h2>The input vector points map can be manually digitized (with <span style="font-style: italic;">v.digit</span>) over topographic or cultural features, or can be created as a series of random points (with <span style="font-style: italic;">r.random</span> or <span style="font-style: italic;">v.random</span>). The required "name_column" can be any alpha numeric value, as long as it is unique for each input point. The required "x_column" and "y_column" columns can be added with <span style="font-style: italic;">v.db.addcol</span>, and the eastings and northings uploaded to these columns with <span style="font-style: italic;">v.to.db</span>. Note that using the flag -k allows you to keep any interim viewshed maps created during the analysis. This is also useful for simple creating a large number of individual viewsheds from points in a vector file. <br><br>Also note that you must first install the GRASS addon <span style="font-style: italic;">r.viewshed</span> before you can use this module. <span style="font-style: italic;">r.viewshed</span> offers several significant advnatages over <span style="font-style: italic;">r.los</span>, not least a great increase in processing speed. Use of<span style="font-style: italic;"> r.los</span> would mean that only a small number of input points could be used. Use of <span style="font-style: italic;">r.viewshed</span> means that a much larger number of points could be used (trials showed that viewsheds were calculated for 100 input points in about 1.5 hrs at a 10m resolution for a region spanning some 40km by 10km).<br><h2>EXAMPLES</h2>
+Undertake a cumulative viewshed analysis from a digitized vector points map of prominent peaks in a region:<br>
+
+<div class="code"><pre>g.region rast=elevation_10m_dem@PERMANENT<br>v.db.addcol map=prominent_peaks_points@PERMANENT columns=x double, y double<br>v.to.db map=prominent_peaks_points@PERMANENT option=coor columns=x,y<br>r.viewshed.cva.py elev=elevation10m_demPERMANENT output=peaks_CVA_map vect=prominent_peaks_points@PERMANENT x_column=x y_column=y name_column=cat obs_elev=0.0 tgt_elev=1.75 max_dist=-1 mem=1500<br><br></pre></div>
+
+
+<br>Undertake a cumulative viewshed analysis from a 10% sample of landscape locations in a region:<br><pre>g.region rast=elevation_10m_dem@PERMANENT<br>r.random input=elevation10m_demPERMANENT n=10% vector_output=rand_points_10p<br>v.db.addcol map=rand_points_10p@PERMANENT columns=x double, y double<br>v.to.db map=rand_points_10p@PERMANENT option=coor columns=x,y<br>r.viewshed.cva.py elev=elevation10m_demPERMANENT output=peaks_CVA_map vect=rand_points_10p@PERMANENT x_column=x y_column=y name_column=cat obs_elev=0.0 tgt_elev=1.75 max_dist=-1 mem=1500<br></pre><br>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.viewshed.html">r.viewshed</a><br>
+</em>
+
+
+<h2>AUTHOR</h2>Isaac Ullah<i><br><br></i>
+
+<p>
+<i>Last changed: $Date: 2013-05-09 00:47:10 -0500 (Thurs, 09 May 2013) $</i>
+</p>
