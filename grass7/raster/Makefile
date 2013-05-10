@@ -27,7 +27,8 @@ SUBDIRS = \
 	r.stream.slope \
 	r.stream.snap \
 	r.stream.stats \
-	r.threshold
+	r.threshold \
+	r.traveltime
 
 include $(MODULE_TOPDIR)/include/Make/Dir.make
 
