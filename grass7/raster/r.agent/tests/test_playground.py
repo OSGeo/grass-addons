@@ -121,11 +121,11 @@ class TestPlayground(unittest.TestCase):
         self.pg.createlayer(l)
         self.pg.layers[l][0][0] = 100
         self.pg.decaycellvalues(l, 3)
-        self.assertEqual(self.pg.layers[l][0][0], 79)
+        self.assertEqual(int(round(self.pg.layers[l][0][0])), 79)
         self.pg.decaycellvalues(l, 3)
-        self.assertEqual(self.pg.layers[l][0][0], 63)
+        self.assertEqual(int(round(self.pg.layers[l][0][0])), 63)
         self.pg.decaycellvalues(l, 3)
-        self.assertEqual(self.pg.layers[l][0][0], 50)
+        self.assertEqual(int(round(self.pg.layers[l][0][0])), 50)
 
 #    def tearDown(self):
 
