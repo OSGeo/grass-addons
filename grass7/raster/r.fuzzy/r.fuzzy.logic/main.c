@@ -44,8 +44,11 @@ int main(int argc, char *argv[])
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster, fuzzy logic");
-    module->description = _("xxxx");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("fuzzy logic"));
+    module->description =
+	_("Performs logical operations on membership images created with "
+	  "r.fuzzy or different method. Use families for fuzzy logic.");
 
     par_inputx = G_define_standard_option(G_OPT_R_INPUT);
     par_inputx->description = _("x operand (membership map)");

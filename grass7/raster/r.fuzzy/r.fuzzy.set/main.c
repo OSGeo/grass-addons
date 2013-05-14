@@ -45,6 +45,12 @@ int main(int argc, char *argv[])
 
     G_gisinit(argv[0]);
 
+    module = G_define_module();
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("fuzzy logic"));
+    module->description = _("Calculate membership value of any "
+			    "raster map according user's rules.");
+
     par_input = G_define_standard_option(G_OPT_R_INPUT);
     par_input->description = _("Raster map to be fuzzified");
 

@@ -59,8 +59,11 @@ int main(int argc, char **argv)
     G_gisinit(argv[0]);
 
     module = G_define_module();
-    module->keywords = _("raster, fuzzy logic");
-    module->description = _("xxxx");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("fuzzy logic"));
+    module->description =
+	_("Full fuzzy logic standalone classification system with few fuzzy "
+	  "logic families implication and defuzzification and methods.");
 
     file_vars = G_define_standard_option(G_OPT_F_INPUT);
     file_vars->key = "maps";
