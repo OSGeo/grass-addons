@@ -18,7 +18,7 @@
 #define PI4 (atan(1))
 #endif
 
-#define STACKMAX 50
+#define STACKMAX 200
 #define VARMAX 31
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
