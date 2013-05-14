@@ -1,4 +1,3 @@
-
 /****************************************************************************
  *
  * MODULE:       r.stream.basins
@@ -47,6 +46,8 @@ int main(int argc, char *argv[])
     module = G_define_module();
     module->description = _("Delineate basins according user' input. \
 	Input can be stream network, point file with outlets or outlet coordinates");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("hydrology"));
     G_add_keyword("basins creation");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);	/* input directon file */

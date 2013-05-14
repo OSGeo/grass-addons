@@ -4,15 +4,15 @@
  * MODULE:       r.stream.slope
  * AUTHOR(S):    Jarek Jasiewicz jarekj amu.edu.pl
  *               
- * PURPOSE:      Suplementary module for r.stream.distance for slope subsystem, 
- * 							 calculate local downsteam elevation change 
- * 							 and local downstream minimum and maximum curvature
+ * PURPOSE:      Supplementary module for r.stream.distance for slope subsystem, 
+ * 		 calculate local downstream elevation change 
+ * 		 and local downstream minimum and maximum curvature
         
- * COPYRIGHT:    (C) 2002,2010 by the GRASS Development Team
+ * COPYRIGHT:    (C) 2002, 2010 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
- *   	    	 	  License (>=v2). Read the file COPYING that comes with GRASS
- *   	    	 	  for details.
+ *   	    	 License (>=v2). Read the file COPYING that comes with GRASS
+ *   	         for details.
  *
  *****************************************************************************/
 #include <stdio.h>
@@ -69,6 +69,9 @@ int main(int argc, char *argv[])
 
     G_gisinit(argv[0]);
     module = G_define_module();
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("hydrology"));
+    G_add_keyword("Stream local parameters");
     module->description = _("Calculate local parameters for slope subsystem");
 
     in_dir_opt = G_define_standard_option(G_OPT_R_INPUT);

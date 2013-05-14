@@ -72,11 +72,13 @@ int main(int argc, char *argv[])
     module = G_define_module();
     module->description =
 	_("Calculate Strahler's and more streams hierarchy. Basic module for topological analysis of drainage network");
-    G_add_keyword("Strahler Stream Order");
-    G_add_keyword("Hack Streams");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("hydrology"));
+    G_add_keyword("Strahler stream order");
+    G_add_keyword("Hack streams");
     G_add_keyword("Stream network topology");
     G_add_keyword("Stream network geometry");
-    G_add_keyword("Nework vectorisation");
+    G_add_keyword("Network vectorisation");
 
     for (i = 0; i < input_size; ++i) {
 	opt_input[i] = G_define_standard_option(G_OPT_R_INPUT);

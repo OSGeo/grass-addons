@@ -50,9 +50,11 @@ int main(int argc, char *argv[])
     module = G_define_module();
     module->description =
 	_("Calculate Horton's statistics for Strahler and Horton ordered networks created with r.stream.");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("hydrology"));
     G_add_keyword("Horton's statistics");
-    G_add_keyword("Bifuracation ratio");
-    G_add_keyword("Drainege density");
+    G_add_keyword("Bifurcation ratio");
+    G_add_keyword("Drainage density");
     G_add_keyword("Catchment statistics");
 
     in_stm_opt = G_define_standard_option(G_OPT_R_INPUT);

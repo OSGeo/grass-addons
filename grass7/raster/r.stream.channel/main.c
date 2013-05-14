@@ -58,6 +58,8 @@ int main(int argc, char *argv[])
     G_add_keyword("Horton statisctics");
     module->description =
 	_("Calculate local parameters for individual streams");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("hydrology"));
     G_add_keyword("Stream parameters");
     G_add_keyword("Stream gradient");
     G_add_keyword("Stream curvature");

@@ -3,7 +3,7 @@
  * MODULE:       r.area
  * AUTHOR(S):    Jarek Jasiewicz <jarekj amu.edu.pl>
  * PURPOSE:      Calculate area of clumped areas. Remove areas smaller than
- *                                                       given treshold.
+ *                                                       given threshold.
  * 
  * COPYRIGHT:    (C) 1999-2010 by the GRASS Development Team
  *
@@ -44,6 +44,13 @@ int main(int argc, char *argv[])
     int i;
 
     G_gisinit(argv[0]);
+
+    module = G_define_module();
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("statistics"));
+    G_add_keyword(_("area"));
+    module->description =
+        _("Calculates area of clumped areas and remove areas smaller than given threshold.");
 
     input = G_define_standard_option(G_OPT_R_INPUT);
     input->description = _("Map created with r.clump");

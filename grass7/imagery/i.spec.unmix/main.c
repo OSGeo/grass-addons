@@ -89,14 +89,14 @@ int main(int argc, char *argv[])
 
     /* initialize GIS engine */
     G_gisinit(argv[0]);
-    module = G_define_module();
 
-    module->keywords = _("imagery, spectral unmixing");
+    module = G_define_module();
+    G_add_keyword(_("imagery"));
+    G_add_keyword(_("spectral unmixing"));
     module->description =
 	_("Perfroms Spectral mixture analysis of satellite/aerial images");
 
     parm.group = G_define_standard_option(G_OPT_I_GROUP);
-
 
     parm.matrixfile = G_define_standard_option(G_OPT_F_INPUT);
     parm.matrixfile->key = "matrix";

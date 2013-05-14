@@ -1,17 +1,17 @@
 
 /****************************************************************************
  *
- * MODULE:			 r.convergence
+ * MODULE:		r.convergence
  * AUTHOR(S):		Jarek Jasiewicz jarekj amu.edu.pl
- * 							Original convergence index in SAGA GIS sofware: Olaf Conrad
+ * 			Original convergence index in SAGA GIS sofware: Olaf Conrad
  *							 
- * PURPOSE:			Calculate convergence index (parameter defining the local convergence of the relief)
+ * PURPOSE:		Calculate convergence index (parameter defining the local convergence of the relief)
 *								
 *
-* COPYRIGHT:		 (C) 2002,2010 by the GRASS Development Team
+* COPYRIGHT:		(C) 2002,2010 by the GRASS Development Team
 *
-*								 This program is free software under the GNU General Public
-*								 License (>=v2). Read the file COPYING that comes with GRASS
+*		 This program is free software under the GNU General Public
+*		 License (>=v2). Read the file COPYING that comes with GRASS
 *								 for details.
 *
  *****************************************************************************/
@@ -21,6 +21,7 @@
 
 int main(int argc, char **argv)
 {
+    struct GModule *module;
     struct Option *map_dem,
 	*map_slope,
 	*map_aspect, *par_window, *par_method, *par_differnce, *map_output;
@@ -36,6 +37,12 @@ int main(int argc, char **argv)
     int i, j, n;
 
     G_gisinit(argv[0]);
+
+    module = G_define_module();
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("terrain"));
+    module->description =
+        _("Calculate convergence index.");
 
     map_dem = G_define_standard_option(G_OPT_R_INPUT);
     map_dem->description = _("Digital elevation model map");

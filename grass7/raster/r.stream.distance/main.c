@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
     and outlets according user' input. It can work in stream mode where target are streams and outlets mode \
     where targets are outlets");
 
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("hydrology"));
     G_add_keyword("watercourse distance");
     G_add_keyword("relative elevation");
 

@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
     module = G_define_module();
     module->description =
 	_("Divide network into near strigh-line segments and calculate its order");
+    G_add_keyword(_("raster"));
+    G_add_keyword(_("hydrology"));
     G_add_keyword("Stream divide");
     G_add_keyword("Stream direction");
     G_add_keyword("Stream gradient");

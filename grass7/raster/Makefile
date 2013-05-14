@@ -16,7 +16,6 @@ SUBDIRS = \
 	r.mcda.output \
 	r.mcda.roughset \
 	r.modis \
-	r.regression.multi \
 	r.regression.series \
 	r.stream.basins \
 	r.stream.channel \
