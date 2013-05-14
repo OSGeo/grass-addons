@@ -60,8 +60,7 @@ int main(int argc, char **argv)
 
     module = G_define_module();
     module->keywords = _("raster, fuzzy logic");
-    module->description =
-        _("xxxx");
+    module->description = _("xxxx");
 
     file_vars = G_define_standard_option(G_OPT_F_INPUT);
     file_vars->key = "maps";
@@ -85,7 +84,8 @@ int main(int argc, char **argv)
     par_defuzzify = G_define_option();
     par_defuzzify->key = "defuz";
     par_defuzzify->type = TYPE_STRING;
-    par_defuzzify->options = "centroid,bisector,min_of_highest,max_of_highest,mean_of_highest";
+    par_defuzzify->options =
+	"centroid,bisector,min_of_highest,max_of_highest,mean_of_highest";
     par_defuzzify->answer = "bisector";
     par_defuzzify->required = YES;
     par_defuzzify->description = _("Defuzzyfication method");
@@ -121,9 +121,8 @@ int main(int argc, char **argv)
 
     out_membership = G_define_flag();
     out_membership->key = 'o';
-    out_membership->description =
-	_("Print only membership values and exit");
-		out_membership->guisection = _("Visual Output");
+    out_membership->description = _("Print only membership values and exit");
+    out_membership->guisection = _("Visual Output");
 
     out_multiple = G_define_flag();
     out_multiple->key = 'm';
@@ -133,7 +132,7 @@ int main(int argc, char **argv)
 
     opt_output = G_define_standard_option(G_OPT_R_OUTPUT);
     opt_output->description = _("Name of output file");
-		opt_output->required = NO;
+    opt_output->required = NO;
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
@@ -145,8 +144,8 @@ int main(int argc, char **argv)
     membership_only = (out_membership->answer != 0);
     coor_proc = (in_coor_opt->answer) ? 1 : 0;
 
-			if(!membership_only & (!output | !rule_name_file))
-		G_fatal_error(_("for standard analysis both output and rule file are required"));
+    if (!membership_only & (!output | !rule_name_file))
+	G_fatal_error(_("for standard analysis both output and rule file are required"));
 
     resolution = atoi(par_resolution->answer);
     if (resolution < 10)
@@ -185,32 +184,32 @@ int main(int argc, char **argv)
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
-		
-		parse_map_file(var_name_file);
-			if (membership_only)
-    show_membership();
-    
-		parse_rule_file(rule_name_file);
+
+    parse_map_file(var_name_file);
+    if (membership_only)
+	show_membership();
+
+    parse_rule_file(rule_name_file);
     get_universe();
     open_maps();
-	
-		antecedents = (float *)G_malloc(nrules * sizeof(float));
-		agregate = (float *)G_calloc(resolution, sizeof(float));
-			if (coor_proc)
-		process_coors(in_coor_opt->answer);
 
-   outfd = Rast_open_new(output, FCELL_TYPE);
-   out_buf = Rast_allocate_f_buf();
+    antecedents = (float *)G_malloc(nrules * sizeof(float));
+    agregate = (float *)G_calloc(resolution, sizeof(float));
+    if (coor_proc)
+	process_coors(in_coor_opt->answer);
+
+    outfd = Rast_open_new(output, FCELL_TYPE);
+    out_buf = Rast_allocate_f_buf();
 
     if (multiple)
 	create_output_maps();
-  
-		G_message("Calculate...");
 
-	for (row = 0; row < nrows; ++row) {
-		G_percent(row, nrows, 2);
-		get_rows(row);
-		for (col = 0; col < ncols; ++col) {
+    G_message("Calculate...");
+
+    for (row = 0; row < nrows; ++row) {
+	G_percent(row, nrows, 2);
+	get_rows(row);
+	for (col = 0; col < ncols; ++col) {
 	    if (get_cells(col)) {
 		Rast_set_f_null_value(&out_buf[col], 1);
 
@@ -221,8 +220,8 @@ int main(int argc, char **argv)
 	    }
 	    else {
 		out_buf[col] = implicate();
-			if (out_buf[col] == -9999)
-		Rast_set_f_null_value(&out_buf[col], 1);
+		if (out_buf[col] == -9999)
+		    Rast_set_f_null_value(&out_buf[col], 1);
 
 		if (multiple) {
 		    for (i = 0; i < nrules; ++i)
@@ -232,45 +231,46 @@ int main(int argc, char **argv)
 	}
 	Rast_put_row(outfd, out_buf, FCELL_TYPE);
 
-			if (multiple) 
-	  for (i = 0; i < nrules; ++i)
-	Rast_put_row(m_outputs[i].ofd, m_outputs[i].out_buf, FCELL_TYPE);
+	if (multiple)
+	    for (i = 0; i < nrules; ++i)
+		Rast_put_row(m_outputs[i].ofd, m_outputs[i].out_buf,
+			     FCELL_TYPE);
     }
-  G_percent(row, nrows, 2);
-		
-  G_message("Close...");
+    G_percent(row, nrows, 2);
 
-		
+    G_message("Close...");
 
-  Rast_close(outfd);
-  Rast_short_history(output, "raster", &history);
-  Rast_command_history(&history);
-  Rast_write_history(output, &history);
-	set_cats();
-		/* free */
-			for (i = 0; i < nmaps; ++i) {
-		G_free(s_maps[i].sets);
-				if (s_maps[i].output)
+
+
+    Rast_close(outfd);
+    Rast_short_history(output, "raster", &history);
+    Rast_command_history(&history);
+    Rast_write_history(output, &history);
+    set_cats();
+    /* free */
+    for (i = 0; i < nmaps; ++i) {
+	G_free(s_maps[i].sets);
+	if (s_maps[i].output)
 	    continue;
-		G_free(s_maps[i].in_buf);
-		Rast_close(s_maps[i].cfd);
-			}
-  G_free(antecedents);
-  G_free(agregate);
-  G_free(out_buf);
-  G_free(s_maps);
-  G_free(s_rules);
-   
+	G_free(s_maps[i].in_buf);
+	Rast_close(s_maps[i].cfd);
+    }
+    G_free(antecedents);
+    G_free(agregate);
+    G_free(out_buf);
+    G_free(s_maps);
+    G_free(s_rules);
+
     if (multiple)
 	for (i = 0; i < nrules; ++i) {
-	  G_free(m_outputs[i].out_buf);
-	  Rast_close(m_outputs[i].ofd);
-	  Rast_short_history(m_outputs[i].output_name, "raster", &history);
-	  Rast_command_history(&history);
-	  Rast_write_history(m_outputs[i].output_name, &history);
+	    G_free(m_outputs[i].out_buf);
+	    Rast_close(m_outputs[i].ofd);
+	    Rast_short_history(m_outputs[i].output_name, "raster", &history);
+	    Rast_command_history(&history);
+	    Rast_write_history(m_outputs[i].output_name, &history);
 	}
 
-   G_message("Done!");
+    G_message("Done!");
     exit(EXIT_SUCCESS);
 
 }

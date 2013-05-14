@@ -49,21 +49,22 @@ int parse_map_file(STRING file)
 	    sscanf(buf, "%[^\n]", map);
 	    char_strip(map, '%');
 	    G_strip(map);
-	    mapset = (STRING)G_find_raster2(map, "");
+	    mapset = (STRING) G_find_raster2(map, "");
 
 	    if (mapset == NULL && strcmp(map, "_OUTPUT_"))
 		G_fatal_error(_("Raster map <%s> not found"), map);
 
-				if (!strcmp(map, "_OUTPUT_")) {
-			strcpy(s_maps[nmaps2].name, output);
-			s_maps[nmaps2].output=1;
-				} else {
-	    strcpy(s_maps[nmaps2].name, map);
-	    s_maps[nmaps2].output=0;
-				}
+	    if (!strcmp(map, "_OUTPUT_")) {
+		strcpy(s_maps[nmaps2].name, output);
+		s_maps[nmaps2].output = 1;
+	    }
+	    else {
+		strcpy(s_maps[nmaps2].name, map);
+		s_maps[nmaps2].output = 0;
+	    }
 	    s_maps[nmaps2].position = position;
 	    s_maps[nmaps2].nsets = get_nsets(fd, position);
-	    
+
 
 	    if (!s_maps[nmaps2].nsets)
 		G_warning(_("map <%s> has no rules"), s_maps[nmaps2].name);

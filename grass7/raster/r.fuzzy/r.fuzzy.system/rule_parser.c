@@ -49,9 +49,9 @@ int parse_rule_file(STRING file)
 	/* next rule */
     }
 
-			for (i = 0; i < nrules; ++i)
-		G_free(rules[i]);
-		G_free(rules);
+    for (i = 0; i < nrules; ++i)
+	G_free(rules[i]);
+    G_free(rules);
     fclose(fd);
     return 0;
 
@@ -79,9 +79,9 @@ int parse_rules(int rule_num, int n, char buf[])
 	G_strip(buf);
 	G_strip(tmp);
 
-		for (p = 0; p <= rule_num; ++p)
-	strcpy(rules[p],"");
-	
+	for (p = 0; p <= rule_num; ++p)
+	    strcpy(rules[p], "");
+
 	done = 1;
 	for (s = 0; s <= s_maps[n - 1].nsets; ++s) {	/* output map */
 
@@ -141,21 +141,21 @@ int parse_rules(int rule_num, int n, char buf[])
     /* ******************************************************************* */
 
 
-/*    {				 adding weight: not implemented yet
+    /*    {                          adding weight: not implemented yet
 
-	char local[900];
-	char weight[10];
+       char local[900];
+       char weight[10];
 
-	sscanf(buf, "%[^}] %[^;]", local, weight);
-	char_strip(weight, '}');
-	G_strip(weight);
-	if (strlen(weight) == 0)
-	    strcpy(weight, "1");
-	s_rules[rule_num].weight = atof(weight);
-	if (s_rules[rule_num].weight <= 0.)
-	    G_fatal_error(_("Weight must be grater than 0 or non-number character"));
+       sscanf(buf, "%[^}] %[^;]", local, weight);
+       char_strip(weight, '}');
+       G_strip(weight);
+       if (strlen(weight) == 0)
+       strcpy(weight, "1");
+       s_rules[rule_num].weight = atof(weight);
+       if (s_rules[rule_num].weight <= 0.)
+       G_fatal_error(_("Weight must be grater than 0 or non-number character"));
 
-    } */
+       } */
 
     {				/* check if rule syntax is proper and map names and vars values exist */
 	int k;
@@ -191,12 +191,15 @@ int parse_rules(int rule_num, int n, char buf[])
 
 				s_rules[rule_num].work_queue[work_queue_pos] =
 				    t_VAL;
-				s_rules[rule_num].value_queue[work_queue_pos].
-				    value = &s_maps[j].cell;
-				s_rules[rule_num].value_queue[work_queue_pos].
-				    set = &s_maps[j].sets[k];
-				s_rules[rule_num].value_queue[work_queue_pos].
-				    oper = *s_rules[rule_num].parse_queue[i];
+				s_rules[rule_num].
+				    value_queue[work_queue_pos].value =
+				    &s_maps[j].cell;
+				s_rules[rule_num].
+				    value_queue[work_queue_pos].set =
+				    &s_maps[j].sets[k];
+				s_rules[rule_num].
+				    value_queue[work_queue_pos].oper =
+				    *s_rules[rule_num].parse_queue[i];
 				done = 0;
 				break;
 			    }

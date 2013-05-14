@@ -48,8 +48,7 @@ float fuzzy(FCELL cell, SETS * set)
     if (set->hedge)
 	x = (set->hedge > 0) ? pow(x, pow(2, set->hedge)) : pow(x,
 								pow(0.5,
-								    (-set->
-								     hedge)));
+								    (-set->hedge)));
 
     if (set->height < 1)
 	x = x * set->height;
@@ -82,7 +81,7 @@ float f_and(float x, float y, logics family)
 	break;
 
     case l_HAMACHER:
-	return (x == 0||y == 0) ? 0 : (x * y) / ((x + y) - x * y);
+	return (x == 0 || y == 0) ? 0 : (x * y) / ((x + y) - x * y);
 	break;
 
 

@@ -120,13 +120,13 @@ typedef struct
 } VALUES;
 
 
-typedef struct /* stores queues with rules */
+typedef struct			/* stores queues with rules */
 {
     char outname[20];
     int output_set_index;
-    char parse_queue[STACKMAX][VARMAX]; /* original rule */
-    int work_queue[STACKMAX]; /* symbols of values and operators */
-    VALUES value_queue[STACKMAX]; /* pointers to values, operators and sets */
+    char parse_queue[STACKMAX][VARMAX];	/* original rule */
+    int work_queue[STACKMAX];	/* symbols of values and operators */
+    VALUES value_queue[STACKMAX];	/* pointers to values, operators and sets */
     float weight;
 } RULES;
 
@@ -187,4 +187,3 @@ float fuzzy(FCELL cell, SETS * set);
 
 int parse(void);
 void display(void);
-

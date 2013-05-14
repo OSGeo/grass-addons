@@ -7,11 +7,11 @@ int open_maps(void)
     char *mapset;
     struct Cell_head cellhd;
 
-			for (i = 0; i < nmaps; ++i) {
-		if (s_maps[i].output) {
-	s_maps[i].in_buf = NULL;
-	continue;
-		}
+    for (i = 0; i < nmaps; ++i) {
+	if (s_maps[i].output) {
+	    s_maps[i].in_buf = NULL;
+	    continue;
+	}
 	mapset = (char *)G_find_raster2(s_maps[i].name, "");
 
 	if (mapset == NULL)
@@ -20,23 +20,23 @@ int open_maps(void)
 	s_maps[i].cfd = Rast_open_old(s_maps[i].name, mapset);
 	Rast_get_cellhd(s_maps[i].name, mapset, &cellhd);
 
-	s_maps[i].raster_type = Rast_map_type(s_maps[i].name,mapset);
+	s_maps[i].raster_type = Rast_map_type(s_maps[i].name, mapset);
 	s_maps[i].in_buf = Rast_allocate_buf(s_maps[i].raster_type);
-			}
-	return 0;
+    }
+    return 0;
 }
 
 int get_rows(int row)
 {
-	int i;
+    int i;
 
     for (i = 0; i < nmaps; ++i) {
-			if (s_maps[i].output)
-		continue;
+	if (s_maps[i].output)
+	    continue;
 	Rast_get_row(s_maps[i].cfd, s_maps[i].in_buf, row,
-	     s_maps[i].raster_type);
-		}
-  return 0;
+		     s_maps[i].raster_type);
+    }
+    return 0;
 }
 
 int get_cells(int col)
@@ -103,6 +103,5 @@ int create_output_maps(void)
 	m_outputs[i].out_buf = Rast_allocate_f_buf();
 
     }
-return 0;
+    return 0;
 }
-
