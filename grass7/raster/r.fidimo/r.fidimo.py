@@ -41,12 +41,12 @@
 #% guisection: Stream parameters
 #%end
 #%option
-#% key: permeability_col
+#% key: passability_col
 #% type: string
 #% required: no
 #% multiple: no
 #% key_desc: name
-#% description: Column name indicating permeability value (0-1) of barrier
+#% description: Column name indicating passability value (0-1) of barrier
 #% guisection: Stream parameters
 #%End
 #%Flag
@@ -221,12 +221,12 @@ def main():
 		# check if barrier file exists in current mapset (Problem when file in other mapset!!!!)
 		if not grass.find_file(name = input_barriers, element = 'vector')['file']:
 			grass.fatal(_("Barriers map not found in current mapset"))		
-		# check if permeability_col is provided and existing
-		if not options['permeability_col']:
-			grass.fatal(_("Please provide column name that holds the barriers' permeability values ('permeability_col')"))
-		if not options['permeability_col'] in grass.read_command("db.columns", table=input_barriers).split('\n'):
-			grass.fatal(_("Please provide correct column name that holds the barriers' permeability values ('permeability_col')"))
-		permeability_col = options['permeability_col']
+		# check if passability_col is provided and existing
+		if not options['passability_col']:
+			grass.fatal(_("Please provide column name that holds the barriers' passability values ('passability_col')"))
+		if not options['passability_col'] in grass.read_command("db.columns", table=input_barriers).split('\n'):
+			grass.fatal(_("Please provide correct column name that holds the barriers' passability values ('passability_col')"))
+		passability_col = options['passability_col']
 		
 
 
@@ -740,7 +740,7 @@ def main():
 
 					# Loop over the affected barriers (from most downstream barrier to most upstream barrier)
 					# Initally affected = all barriers where density > 0
-					barriers_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, new_X, new_Y, dist, %s FROM barriers_%d WHERE dist > 0 ORDER BY dist" % (permeability_col,os.getpid())).split("\n")[:-1] # remove last (empty line)
+					barriers_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, new_X, new_Y, dist, %s FROM barriers_%d WHERE dist > 0 ORDER BY dist" % (passability_col,os.getpid())).split("\n")[:-1] # remove last (empty line)
 					barriers_list = list(csv.reader(barriers_list,delimiter="|"))
 
 					#if affected barriers then define the last loop (find the upstream most barrier)
@@ -753,7 +753,7 @@ def main():
 						new_X = float(l[1])
 						new_Y = float(l[2])
 						dist = float(l[3])
-						permeability = float(l[4])				
+						passability = float(l[4])				
 						coors_barriers = str(new_X)+","+str(new_Y)
 
 						grass.debug(_("Starting with calculating barriers-effect (coors_barriers: "+coors_barriers+")"))
@@ -783,7 +783,7 @@ def main():
 							grass.fatal(_("Error with upstream density/barriers. The error occurs for coors_barriers (X,Y): "+coors_barriers))		
 
 
-						density_for_downstream = sum_upstream_barrier_density*(1-permeability)
+						density_for_downstream = sum_upstream_barrier_density*(1-passability)
 				
 	
 						# barrier_effect = Length of Effect of barriers (linear decrease up to max (barrier_effect)
@@ -829,12 +829,12 @@ def main():
 						grass.run_command("r.null", map="density_"+str(cat), null="0")
 						grass.run_command("r.null", map="downstream_barrier_density_tmp_%d" % os.getpid(), null="0")
 					
-						grass.mapcalc("$density_point = if(isnull($upstream_barrier), $downstream_barrier_density+$density_point, $upstream_barrier_density*$permeability)",
+						grass.mapcalc("$density_point = if(isnull($upstream_barrier), $downstream_barrier_density+$density_point, $upstream_barrier_density*$passability)",
 									density_point = "density_"+str(cat), 
 									upstream_barrier = "upstream_barrier_tmp_%d" % os.getpid(), 
 									downstream_barrier_density = "downstream_barrier_density_tmp_%d" % os.getpid(),
 									upstream_barrier_density = "upstream_barrier_density_tmp_%d" % os.getpid(),
-									permeability=permeability,
+									passability=passability,
 									overwrite = True)
 								
 						if dist == last_barrier :
@@ -842,9 +842,9 @@ def main():
 						else:
 							grass.run_command("r.null", map="density_"+str(cat), setnull="0")
 					
-						#If the barrier in the loop was impermeable (permeability=0) 
+						#If the barrier in the loop was impermeable (passability=0) 
 						#than no more upstream barriers need to be considered --> break
-						if permeability == 0:
+						if passability == 0:
 							grass.run_command("r.null", map="density_"+str(cat), null="0")
 							break
 
