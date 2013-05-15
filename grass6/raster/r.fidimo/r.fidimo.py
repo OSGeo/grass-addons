@@ -343,7 +343,7 @@ def main():
 						  overwrite = True,
 						  input=input_barriers,
 						  output="barriers_tmp_%d" % os.getpid(),
-						  columns="x DOUBLE, y DOUBLE, clearance DOUBLE")
+						  columns="x DOUBLE, y DOUBLE, passability DOUBLE")
 		grass.run_command("v.db.addcol",
 						  map ="barriers_tmp_%d" % os.getpid(),
 						  columns="new_X DOUBLE, new_Y DOUBLE")					
@@ -761,7 +761,7 @@ def main():
 				
 				# Loop over the affected barriers (from most downstream barrier to most upstream barrier)
 				# Initally affected = all barriers where density > 0
-				for cat,X,Y,dist,clearance in db.execute('SELECT cat, X, Y, dist, clearance FROM barriers_%d WHERE affected_barriers > 0 AND dist > 0 ORDER BY dist' % os.getpid()):
+				for cat,X,Y,dist,passability in db.execute('SELECT cat, X, Y, dist, passability FROM barriers_%d WHERE affected_barriers > 0 AND dist > 0 ORDER BY dist' % os.getpid()):
 					coors_barriers = str(X)+","+str(Y)
 
 					grass.debug(_("Starting with corrections for barriers"))
@@ -787,7 +787,7 @@ def main():
 					else:
 						grass.fatal(_("Error with upstream density/barriers. The error is for coors_barriers (X,Y): "+coors_barriers))						
 					
-					density_for_downstream = upstream_density*(1-clearance)
+					density_for_downstream = upstream_density*(1-passability)
 				
 	
 					# barrier_effect = Length of Effect of barriers (linear decrease up to max (barrier_effect)
@@ -831,21 +831,21 @@ def main():
 					grass.run_command("r.null", map="density_segment_"+str(Segment[0]), null="0")
 					grass.run_command("r.null", map="density_below_barrier_tmp_%d" % os.getpid(), null="0")
 					
-					grass.mapcalc("$density_segment = if(isnull($upstream_barrier), $density_below_barrier+$density_segment, $upstream_density*$clearance)",
+					grass.mapcalc("$density_segment = if(isnull($upstream_barrier), $density_below_barrier+$density_segment, $upstream_density*$passability)",
 								density_segment = "density_segment_"+str(Segment[0]), 
 								upstream_barrier = "upstream_barrier_tmp_%d" % os.getpid(), 
 								density_below_barrier = "density_below_barrier_tmp_%d" % os.getpid(),
 								upstream_density = "upstream_density_tmp_%d" % os.getpid(),
-								clearance=clearance)
+								passability=passability)
 								
 					if dist == last_barrier :
 						grass.run_command("r.null", map="density_segment_"+segment_cat, null="0")
 					else:
 						grass.run_command("r.null", map="density_segment_"+segment_cat, setnull="0")
 					
-					#If the barrier in the loop was impermeable (clearance=0) 
+					#If the barrier in the loop was impermeable (passability=0) 
 					#than no more upstream barriers need to be considered --> break
-					if clearance == 0:
+					if passability == 0:
 						break
 	
 			grass.run_command("r.null", map="density_segment_"+segment_cat, null="0") # Final density map per segment
