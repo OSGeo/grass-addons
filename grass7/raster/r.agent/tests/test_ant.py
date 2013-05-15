@@ -27,5 +27,8 @@ class TestAnt(unittest.TestCase):
     def test_walk(self):
         pass
 
+    def test_work(self):
+        pass
+
 #    def tearDown(self):
 

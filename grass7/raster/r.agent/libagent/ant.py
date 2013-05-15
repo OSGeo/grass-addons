@@ -33,6 +33,13 @@ class Ant(agent.Agent):
         self.goal = []
         self.penalty = 0.0
 
-    def walk(self):
+    def work(self):
+        """
+        Wander around searching for fields of interest, mark the
+        road back home.
+        @return boolean whether still alive
+        """
+        # we are all only getting older..
+        if self.age() == False:
+            return False
         pass
-

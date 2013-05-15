@@ -25,7 +25,6 @@ class TestAnthill(unittest.TestCase):
         pass
 
     def test_bear(self):
-        # gets tested in World
         pass
 
     def test_move(self):
@@ -38,6 +37,9 @@ class TestAnthill(unittest.TestCase):
 
     def test_kill(self):
         # gets tested in World
+        pass
+
+    def test_letantsdance(self):
         pass
 
     def volatilize(self):

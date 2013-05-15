@@ -88,7 +88,8 @@ class World(object):
         """
         Set a new agent into the world
         @param int number of cycles the agent has to live
-        @param list coordinates to put the agent or none for a random position
+        @param list coordinates to put the agent on, none for a random position
+        @param agenttype the typ of agent to be spawned
         @return agent the newly created agent
         """
         position = self.findposition(position)

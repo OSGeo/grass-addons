@@ -11,6 +11,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 
 import error, world, ant
 
+#from grass.script import core as grass
 from sys import maxsize
 from math import sqrt
 from math import exp
@@ -73,10 +74,38 @@ class Anthill(world.World):
 #TODO        self.decisionbase = "default"
 #TODO        self.rememberbase = "default"
 
+    def bear(self):
+        """
+        Set a new agent into the world
+        @param int number of cycles the agent has to live
+        @param list coordinates to put the agent on, none for a random position
+        @return agent the newly created agent
+        """
+        position = self.sites[randint(0, len(self.sites)-1)]
+        return super(Anthill, self).bear(self.antslife, position)
+
     def volatilize(self):
         """
         Let the pheromone evaporate over time.
         """
         self.playground.decaycellvalues(Anthill.RESULT, self.volatilizationtime,
                                             self.minpheromone)
+
+    def letantsdance(self, rounds):
+        """
+        Let the agents do their job. The actual main loop in such a world.
+        """
+        while rounds > 0:
+#            grass.info(rounds)
+            if len(self.agents) < self.maxants:
+#                grass.info(len(self.agents))
+                # as there is still space on the pg, produce another ant
+                self.bear()
+            for ant in self.agents:
+                # let all the ants take action
+                ant.work()
+            # let the pheromone evaporate
+            self.volatilize()
+            # count down
+            rounds -= 1
 
