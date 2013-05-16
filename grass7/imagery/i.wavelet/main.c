@@ -86,26 +86,26 @@ int main(int argc, char *argv[])
 
     /* Define the different options for decomposition */
     input = G_define_standard_option(G_OPT_I_GROUP);
-    input->key = "input_group_to_decompose";
+    input->key = _("input_group_to_decompose");
     input->required = NO;
-    input->guisection = "Decomposition";
+    input->guisection = _("Decomposition");
 
     olp1 = G_define_standard_option(G_OPT_R_OUTPUT);
-    olp1->key = "output_lp1_from_decomposition";
+    olp1->key = _("output_lp1_from_decomposition");
     olp1->required = NO;
-    olp1->guisection = "Decomposition";
+    olp1->guisection = _("Decomposition");
     olp2 = G_define_standard_option(G_OPT_R_OUTPUT);
-    olp2->key = "output_lp2_from_decomposition";
+    olp2->key = _("output_lp2_from_decomposition");
     olp2->required = NO;
-    olp2->guisection = "Decomposition";
+    olp2->guisection = _("Decomposition");
     ohp1 = G_define_standard_option(G_OPT_R_OUTPUT);
-    ohp1->key = "output_hp1_from_decomposition";
+    ohp1->key = _("output_hp1_from_decomposition");
     ohp1->required = NO;
-    ohp1->guisection = "Decomposition";
+    ohp1->guisection = _("Decomposition");
     ohp2 = G_define_standard_option(G_OPT_R_OUTPUT);
-    ohp2->key = "output_hp2_from_decomposition";
+    ohp2->key = _("output_hp2_from_decomposition");
     ohp2->required = NO;
-    ohp2->guisection = "Decomposition";
+    ohp2->guisection = _("Decomposition");
 
     /* Define the different options for recomposition */
     ilp2 = G_define_standard_option(G_OPT_I_GROUP);
@@ -150,18 +150,19 @@ int main(int argc, char *argv[])
     resolution->multiple = NO;
     resolution->description = _("4,6,8,10,12,14,16,18,20");
     resolution->required = NO;
-    resolution->guisection = _("Optional");
+    resolution->guisection = _("Wavelets");
 
     nfiles = 1;
-
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    res=atoi(resolution->answer);
+    res = atoi(resolution->answer);
     if((flag3->answer) && (res==4||res==6||res==8||res==10||res==12
 	||res==14||res==16||res==18||res==20)){
 	/** Good to go with Flag3 => Daubechies **/
-    }else{ G_fatal_error(_("To use Daubechies, you need a valid resolution"));}
+    }else{ 
+        G_fatal_error(_("To use Daubechies, you need a valid resolution"));
+    }
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
