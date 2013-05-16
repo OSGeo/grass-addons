@@ -42,7 +42,6 @@ int main(int argc, char *argv[])
     struct Option *olp1, *ohp1, *ohp2, *olp2;/*Decompose*/
     struct Option *resolution;/*wavelet resolution*/
     struct Flag *flag1, *flag2, *flag3;
-    struct Flag *flag4, *flag5, *flag6;
     struct History history;	/*metadata */
     struct Colors colors;	/*Color rules */
 
@@ -156,13 +155,19 @@ int main(int argc, char *argv[])
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
 
-    res = atoi(resolution->answer);
-    if((flag3->answer) && (res==4||res==6||res==8||res==10||res==12
-	||res==14||res==16||res==18||res==20)){
-	/** Good to go with Flag3 => Daubechies **/
-    }else{ 
-        G_fatal_error(_("To use Daubechies, you need a valid resolution"));
-    }
+    if (flag3->answer){
+        if (resolution->answer){
+            res = atoi(resolution->answer);
+            if (res==4||res==6||res==8||res==10||res==12
+                ||res==14||res==16||res==18||res==20){
+	        /** Good to go with Flag3 => Daubechies **/
+            }else{
+            G_fatal_error(_("To use Daubechies, you need a valid resolution"));
+            }
+        } else {
+            G_fatal_error(_("To use Daubechies, you need a valid resolution"));
+        }
+    } 
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();
