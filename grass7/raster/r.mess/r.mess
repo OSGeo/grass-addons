@@ -107,9 +107,23 @@
 #% description: Calculate median of IES layers
 #%end
 
+#%flag
+#% key: n
+#% description: Area with negative MESS
+#%end
+
+
+#%option
+#% key: liblocs
+#% type: string
+#% description: Location R libraries
+#% key_desc: folder
+#% required: no
+#%end
+
 ## Set easier variable names
 OUTMAPS="${GIS_OPT_OUTPUT}"
-INMAPS="${GIS_OPT_ENV_VAR}"
+export INMAPS="${GIS_OPT_ENV_VAR}"
 
 #=======================================================================
 ## GRASS team recommandations
@@ -186,10 +200,10 @@ arrIN="removeThis2"
 counter=0
 IFS=,
 for nvar in ${INMAPS} ; do
-    arrOUT="$arrOUT;${OUTMAPS}_`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`"
+    export arrOUT="$arrOUT;${OUTMAPS}_`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`"
     counter=`expr $counter + 1`
-    tmpLY="${tmpLY};tmp_mess_$$_$counter"
-    arrIN="${arrIN};`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`"
+    export tmpLY="${tmpLY};tmp_mess_$$_$counter"
+    export arrIN="${arrIN};`echo $nvar | awk 'BEGIN{FS="@"}{print $1}'`"
 done
 
 if [ -z "$GIS_OPT_REF_VECT" -a -z "$GIS_OPT_REF_RAST" ]; 
@@ -199,15 +213,15 @@ then
 else
     if [ -n "$GIS_OPT_REF_VECT" -a -n "$GIS_OPT_REF_RAST" ]; then
         g.message message='You gave a vector and raster layer as reference distribution layer. !Using the raster layer!'
-        REF_LAY="${GIS_OPT_REF_RAST}"
-        REF_TYPE="R"
+        export REF_LAY="${GIS_OPT_REF_RAST}"
+        export REF_TYPE="R"
     else 
         if [ -n "$GIS_OPT_REF_RAST" ]; then
-        REF_LAY="${GIS_OPT_REF_RAST}"
-        REF_TYPE="R"
+        export REF_LAY="${GIS_OPT_REF_RAST}"
+        export REF_TYPE="R"
         else 
-        REF_LAY="${GIS_OPT_REF_VECT}"
-        REF_TYPE="V"        
+        export REF_LAY="${GIS_OPT_REF_VECT}"
+        export REF_TYPE="V"        
        fi
     fi
 fi
@@ -262,28 +276,54 @@ cat > $1 << "EOF"
 options(echo = TRUE)
 
 # Install (if not present) and load required packages
+
 tmp.pack <- tempdir()
-if (!"spgrass6" %in% installed.packages()){
-        install.packages("spgrass6", dep=TRUE, repos='http://star-www.st-andrews.ac.uk/cran/', tmp.pack)
-        require(spgrass6, lib.loc=tmp.pack)
-}else{require(spgrass6)}
+libLocs <- Sys.getenv("GIS_OPT_LIBLOCS")	# Location R packages
+if(libLocs!=""){
+	libLocs <- c(.libPaths(), libLocs, tmp.pack)
+}else{
+	libLocs <- c(.libPaths(), tmp.pack)
+}
+
+if (!"XML" %in% installed.packages(lib.loc=libLocs)){
+        install.packages("XML", dep=TRUE, repos='http://cran.us.r-project.org', tmp.pack)
+        require(XML, lib.loc=libLocs)
+}else{require(XML, lib.loc=libLocs)}
+
+if (!"sp" %in% installed.packages(lib.loc=libLocs)){
+        install.packages("sp", dep=TRUE, repos='http://cran.us.r-project.org', tmp.pack)
+        require(sp, lib.loc=libLocs)
+}else{require(sp, lib.loc=libLocs)}
+
+if (!"spgrass6" %in% installed.packages(lib.loc=libLocs)){
+        install.packages("spgrass6", dep=TRUE, repos='http://cran.us.r-project.org', tmp.pack)
+        require(spgrass6, lib.loc=libLocs)
+}else{require(spgrass6, lib.loc=libLocs)}
 
 # Check grass version
 grassversion <- as.numeric(system("g.version | cut -c7", intern=T))
 
 ## Get vector with variables
-argus <- commandArgs(trailingOnly=TRUE)
-ipn <- unlist(strsplit(argus[1],";"))[-1]   # variable names
-ipl <- unlist(strsplit(argus[2],","))       # environmental layers
-opl <- unlist(strsplit(argus[3],";"))       # output layers
-opi <- opl[-1]                              # base name individual layers
-opc <- opl[1]                               # name of MESS layer
-tml <- unlist(strsplit(argus[4], ";"))[-1]  # temporary layers
-vtl <- argus[5]                             # reference distribution raster layer
-rtl <- argus[10]                            # raster or vector layer
-digits <- as.numeric(argus[9])              # Precision
+ipn	<- Sys.getenv("arrIN")			# variable names
+ipn	<- unlist(strsplit(ipn,";"))[-1]
+ipl	<- Sys.getenv("INMAPS")			# environmental layers
+ipl	<- unlist(strsplit(ipl,","))
+opl	<- Sys.getenv("arrOUT")			# output layers
+opl	<- unlist(strsplit(opl,";"))
+opi	<- opl[-1]						# base name individual layers
+opc	<- opl[1]						# name of MESS layer
+tml	<- Sys.getenv("tmpLY")			# temporary layers
+tml	<- unlist(strsplit(tml,";"))[-1] 
+vtl <- Sys.getenv("REF_LAY")    	# reference distribution raster layer
+rtl <- Sys.getenv("REF_TYPE")		# raster or vector layer
+flm	<- Sys.getenv("GIS_FLAG_M")
+flk	<- Sys.getenv("GIS_FLAG_K")
+fll	<- Sys.getenv("GIS_FLAG_L")
+fln	<- Sys.getenv("GIS_FLAG_N")
+digits	<- as.numeric(Sys.getenv("GIS_OPT_DIGITS"))	# Precision
 rdigits <- nchar((1/digits)-1)
 options(echo=TRUE, digits=rdigits+1, scipen=rdigits+1)
+
 
 #-----------------------------------------------------------------------
 # Create the r.mapcalc expressions to calculate the mess for the 
@@ -291,7 +331,7 @@ options(echo=TRUE, digits=rdigits+1, scipen=rdigits+1)
 # be used  -  
 #-----------------------------------------------------------------------
 
-if(rtl=="R"){  
+if(rtl=="R"){
     
     # Reference distribution layer is raster 
     #-----------------------------------------------------------------------  
@@ -307,8 +347,8 @@ if(rtl=="R"){
         # One option is to convert the floating layers to integer layers after
         # multiplying first with a number equal to the reciprocal of the value
         # given under the digits option. This may deal better with rounding errors too.
-
-        fft <- system("g.findfile --quiet element=cell file=MASK", ignore.stdout = TRUE)
+		
+		fft <- system("g.findfile --quiet element=cell file=MASK", ignore.stdout = TRUE)
         if(fft==0){
            rname <- paste("MASK",paste(sample(c(0:9, letters, LETTERS), 12, replace=TRUE), collapse=""), sep="_")
            execGRASS("g.copy", rast=paste("MASK", rname, sep=","))
@@ -321,24 +361,31 @@ if(rtl=="R"){
         }else{
             execGRASS("r.mask", input=vtl)
         }
-        
+
         execGRASS("r.out.xyz", input=ipl[i], output=flnm1, flags="overwrite")
         system(paste("awk -F \"|\" '{print $3}' ", flnm1, " > ", flnm2, sep=""))
         spld <- scan(file=flnm2)
-        #unlink(c(flnm1, flnm2))
+        unlink(c(flnm1, flnm2))
         spld <- round(spld, rdigits)
-        
+
+        # Make sure numbers < 2^31 (need better solution!!)
+		envmin <- min(spld)
+		envmax <- max(spld)
+		ch <- max(abs(envmin), abs(envmax))
+		a <- (2^31/10) - ch/digits
+		b <- nchar(floor(2^31/(ch*10)))
+		rdigits2 <- ifelse(a<=0, b ,rdigits)
+		digits2 <- 10^(-rdigits2)
+
         # Calculate the frequency distribution 
         a  <- table(spld)
-        envmin <- min(spld)
-        envmax <- max(spld)
         Drange <- execGRASS("r.info", flags=c("r", "verbose"), map=ipl[i], intern=T)
         Dmin <- as.numeric(sub("min=", "", Drange[1]))
         Dmax <- as.numeric(sub("max=", "", Drange[2]))
         system("g.remove -f rast=MASK")
-        
+
         # Create recode rules
-        x1 <- c(Dmin, as.numeric(rownames(a))+digits)
+        x1 <- c(Dmin, as.numeric(rownames(a)))#+digits)
         x2 <- c(envmin, as.numeric(rownames(a))[-1],Dmax)
         y1 <- c(0,cumsum(as.numeric(a))/sum(a)*100)
         xy1 <- format(cbind(x1,x2,y1), scientific=F, trim=T, nsmall=rdigits)
@@ -353,7 +400,7 @@ if(rtl=="R"){
         
         # Create the recode layer and calculate the IES
         execGRASS("r.recode", input=ipl[i], output=tml[i], rules=tmp.rule)
-        calcc <- paste(opi[i], " = if(", tml[i], "==0, (round(", ipl[i], "/",digits,")-", round(envmin/digits), ")/(", round(envmax/digits), "-", round(envmin/digits), ") *100.0, if(", tml[i], "<=50, 2 * ", tml[i], ", if(", tml[i], "<100.0, 2 * (100.0- ", tml[i], "), (", round(envmax/digits), "- round(", ipl[i], "/", digits, "))/(", round(envmax/digits), "-", round(envmin/digits), ") * 100.0)))", sep="")
+        calcc <- paste(opi[i], " = if(", tml[i], "==0, (round(", ipl[i], "/",digits2,")*1.0-", round(envmin/digits2), ")/(", round(envmax/digits2)*1.0, "-", round(envmin/digits2)*1.0, ") *100.0, if(", tml[i], "<=50, 2.0 * ", tml[i], ", if(", tml[i], "<100, 2.0 * (100.0- ", tml[i], "), (", round(envmax/digits2)*1.0, "- round(", ipl[i], "/", digits2, ")*1.0)/(", round(envmax/digits2)*1.0, "-", round(envmin/digits2)*1.0, ") * 100.0)))", sep="")
         execGRASS("r.mapcalc", expression=calcc, flags="overwrite") 
         execGRASS("g.remove", rast=tml[i])
         unlink(tmp.rule)
@@ -364,7 +411,7 @@ if(rtl=="R"){
     # Reference distribution layer is vector 
     #-----------------------------------------------------------------------
 
-    execGRASS("v.extract", flags="t", input=vtl, type=point, output=tmpMESS976543210)
+    execGRASS("v.extract", flags="t", input=vtl, type="point", output=tmpMESS976543210)
     system(paste("v.db.addtable tmpMESS976543210 columns='", paste(ipn, " double precision", collapse=","), "'", sep=""))
 
     # make compatible for both v6.4 and 7
@@ -401,7 +448,7 @@ if(rtl=="R"){
         Dmax <- as.numeric(sub("max=", "", Drange[2]))
         
         # Create recode rules
-        x1 <- c(Dmin, as.numeric(rownames(a))+digits)
+        x1 <- c(Dmin, as.numeric(rownames(a)))#+digits)
         x2 <- c(envmin, as.numeric(rownames(a))[-1],Dmax)
         y1 <- c(0,cumsum(as.numeric(a))/sum(a)*100)
         xy1 <- format(cbind(x1,x2,y1), scientific=F, trim=T, nsmall=rdigits)
@@ -409,9 +456,16 @@ if(rtl=="R"){
         tmp.rule <- tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".rules")
         write.table(xy2, file=tmp.rule, quote=F, row.names=F, col.names=F)
         
+        # Make sure numbers < 2^31 (need better solution!!)
+		ch <- max(abs(envmin), abs(envmax))
+		a <- (2^31/10) - ch/digits
+		b <- nchar(floor(2^31/(ch*10)))
+		rdigits2 <- ifelse(a<=0, b ,rdigits)
+		digits2 <- 10^(-rdigits2)
+
         # Create the recode layer and calculate the IES
         execGRASS("r.recode", input=ipl[i], output=tml[i], rules=tmp.rule)
-        calcc <- paste(opi[i], " = if(", tml[i], "==0, (round(", ipl[i], "/",digits,")-", round(envmin/digits), ")/(", round(envmax/digits), "-", round(envmin/digits), ") *100.0, if(", tml[i], "<=50, 2 * ", tml[i], ", if(", tml[i], "<100.0, 2 * (100.0- ", tml[i], "), (", round(envmax/digits), "- round(", ipl[i], "/", digits, "))/(", round(envmax/digits), "-", round(envmin/digits), ") * 100.0)))", sep="")
+        calcc <- paste(opi[i], " = if(", tml[i], "==0, (round(", ipl[i], "/",digits2,")*1.0-", round(envmin/digits2), ")/(", round(envmax/digits2)*1.0, "-", round(envmin/digits2)*1.0, ") *100.0, if(", tml[i], "<=50, 2.0 * ", tml[i], ", if(", tml[i], "<100, 2.0 * (100.0- ", tml[i], "), (", round(envmax/digits2)*1.0, "- round(", ipl[i], "/", digits2, ")*1.0)/(", round(envmax/digits2)*1.0, "-", round(envmin/digits2)*1.0, ") * 100.0)))", sep="")
         execGRASS("r.mapcalc", expression=calcc, flags="overwrite") 
         execGRASS("g.remove", rast=tml[i])
         unlink(tmp.rule)
@@ -428,7 +482,11 @@ system(paste("r.series output=", opc, " input=", paste(opi, collapse=","), " met
 # Calculate other stats
 #-----------------------------------------------------------------------
 
-if(argus[6]==1){
+if(fln==1){
+	execGRASS("r.mapcalc", expression=paste(opc, "_neg = if(", opc, "<0,1)", sep=""))
+}
+
+if(flm==1){
     system(paste("r.series output=", opc, "_MoD input=", paste(opi, collapse=","), " method=min_raster", sep=""))
     nuvto <- length(ipn)-1
     nuv <- cbind(seq(from=0, to=nuvto, by=1), ipn)
@@ -442,13 +500,12 @@ if(argus[6]==1){
     system(paste("r.category map=", opc, "_MoD rules=", tmpclas, sep=""))
     unlink(tmpclas)
 }
-if(argus[7]==1){
+if(flk==1){
     system(paste("r.series output=", opc, "_mean input=", paste(opi, collapse=","), " method=average", sep=""))
 }
-if(argus[8]==1){
+if(fll==1){
     system(paste("r.series output=", opc, "_median input=", paste(opi, collapse=","), " method=median", sep=""))
 }
-
 EOF
 }
 
@@ -470,8 +527,8 @@ writeScript "$RGRASSSCRIPT"
 g.message message='Calculating MESS layers.. this may take some time'
 
 ##using R to create MESS layers
-#--slave
-R --vanilla --args "$arrIN" "${INMAPS}" "$arrOUT" "$tmpLY" "${REF_LAY}" "$GIS_FLAG_M" "$GIS_FLAG_K" "$GIS_FLAG_L" "${GIS_OPT_DIGITS}" "${REF_TYPE}" < "$RGRASSSCRIPT" >> "$LOGFILE" 2>&1
+# R --no-save --no-restore --no-site-file --no-init-file --args "$arrIN" "${INMAPS}" "$arrOUT" "$tmpLY" "$REF_LAY" "$GIS_FLAG_M" "$GIS_FLAG_K" "$GIS_FLAG_L" "$GIS_OPT_DIGITS" "$REF_TYPE" 
+R --no-save --no-restore < "$RGRASSSCRIPT" >> "$LOGFILE" 2>&1
 if [ $? -ne 0 ] ; then
 	echo "ERROR: an error occurred during R script execution" 1>&2
     exit 1
@@ -480,4 +537,5 @@ fi
 g.message "Finished - you can find the maps in your current mapset"
 
 #=======================================================================
+
 
