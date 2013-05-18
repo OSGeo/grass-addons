@@ -41,6 +41,7 @@ class Agent(object):
         Ask the agent for its current position
         @return list coordinate of the current position
         """
+#TODO not very meaningfull yet..
         return self.position
 
 #    def move(self, nrofsteps, direction):
