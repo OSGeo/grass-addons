@@ -277,8 +277,8 @@ def letantsdance(rounds, outrounds):
         # loop and write out the contents at the end
         world.letantsdance(nextwrite)
         # export the value maps
-        world.playground.writelayer(anthill.Anthill.RESULT)
-#        world.writeout()
+        world.playground.writelayer(anthill.Anthill.RESULT,
+                                        world.overwritepheormone)
 #        print "nrofpaths:", world.nrop
         # count down outer
         mainloops -= 1
