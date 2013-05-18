@@ -65,6 +65,22 @@ class TestAnthill(unittest.TestCase):
         self.assertEqual(4,
             self.world.playground.layers[anthill.Anthill.RESULT][0][0])
 
+    def test_setsteppheromone(self):
+        self.world.setpheromone([0,0], 0)
+        self.assertNotEqual(self.world.stepintensity,
+                                self.world.getpheromone([0,0]))
+        self.world.setsteppheromone([0,0])
+        self.assertEqual(self.world.stepintensity,
+                                self.world.getpheromone([0,0]))
+
+    def test_setpathpheromone(self):
+        self.world.setpheromone([0,0], 0)
+        self.assertNotEqual(self.world.pathintensity,
+                                self.world.getpheromone([0,0]))
+        self.world.setpathpheromone([0,0])
+        self.assertEqual(self.world.pathintensity,
+                                self.world.getpheromone([0,0]))
+
     def volatilize(self):
         # gets tested in Playground, except for setting the values..
         pass

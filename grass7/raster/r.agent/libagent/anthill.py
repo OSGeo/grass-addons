@@ -123,7 +123,27 @@ class Anthill(world.World):
         @param position the position in question
         @param intensity the value to be set
         """
-        if not intensity:
-            intensity = self.stepintensity
         self.playground.setcellvalue(Anthill.RESULT, position, intensity)
+
+    def setsteppheromone(self, position):
+        """
+        Mark a certain position with the pheromone of step intensity
+        @param position the position in question
+        """
+        intensity = self.getpheromone(position) + self.stepintensity
+        if intensity < self.maxpheromone:
+            self.setpheromone(position, intensity)
+        else:
+            self.setpheromone(position, self.maxpheromone)
+
+    def setpathpheromone(self, position):
+        """
+        Mark a certain position with the pheromone of path intensity
+        @param position the position in question
+        """
+        intensity = self.getpheromone(position) + self.pathintensity
+        if intensity < self.maxpheromone:
+            self.setpheromone(position, intensity)
+        else:
+            self.setpheromone(position, self.maxpheromone)
 
