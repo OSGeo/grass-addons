@@ -109,3 +109,21 @@ class Anthill(world.World):
             # count down
             rounds -= 1
 
+    def getpheromone(self, position):
+        """
+        Return the pheromone value at a certain position
+        @param position the position in question
+        @return the value of interest
+        """
+        return self.playground.getcellvalue(Anthill.RESULT, position)
+
+    def setpheromone(self, position, intensity=None):
+        """
+        Mark a certain position with pheromone
+        @param position the position in question
+        @param intensity the value to be set
+        """
+        if not intensity:
+            intensity = self.stepintensity
+        self.playground.setcellvalue(Anthill.RESULT, position, intensity)
+

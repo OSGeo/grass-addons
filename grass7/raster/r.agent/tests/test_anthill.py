@@ -49,6 +49,22 @@ class TestAnthill(unittest.TestCase):
         # TODO: as sort of the mainloop, just let it run a few times?
         pass
 
+    def test_getpheromone(self):
+        self.assertNotEqual(9,
+            self.world.playground.layers[anthill.Anthill.RESULT][0][0])
+        self.world.playground.layers[anthill.Anthill.RESULT][0][0] = 9
+        self.assertEqual(9, self.world.getpheromone([0,0]))
+
+    def test_setpheromone(self):
+        self.world.setpheromone([0,0], 5)
+        self.assertNotEqual(4,
+            self.world.playground.layers[anthill.Anthill.RESULT][0][0])
+        self.world.setpheromone([0,0], 4)
+        self.assertNotEqual(5,
+            self.world.playground.layers[anthill.Anthill.RESULT][0][0])
+        self.assertEqual(4,
+            self.world.playground.layers[anthill.Anthill.RESULT][0][0])
+
     def volatilize(self):
         # gets tested in Playground, except for setting the values..
         pass
