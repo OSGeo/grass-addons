@@ -2,11 +2,14 @@
 import unittest2 as unittest
 #import unittest
 
-from libagent import anthill
+from libagent import playground, anthill
 
 class TestAnthill(unittest.TestCase):
     def setUp(self):
-        self.world = anthill.Anthill()
+        self.pg = playground.Playground()
+        self.pg.setregion(3,3)
+        self.world = anthill.Anthill(self.pg)
+        self.world.sites = [[1,1]]
 
     def test_addlayertopg(self):
         # gets tested in World
@@ -25,7 +28,10 @@ class TestAnthill(unittest.TestCase):
         pass
 
     def test_bear(self):
-        pass
+        agent = self.world.bear()
+        self.assertIsInstance(agent, self.world.agenttype)
+        self.assertIs(agent, self.world.agents.pop())
+        self.assertEqual(0, len(self.world.agents))
 
     def test_move(self):
         # gets tested in World
