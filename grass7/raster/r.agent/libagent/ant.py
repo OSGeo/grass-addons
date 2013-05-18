@@ -42,4 +42,4 @@ class Ant(agent.Agent):
         # we are all only getting older..
         if self.age() == False:
             return False
-        pass
+

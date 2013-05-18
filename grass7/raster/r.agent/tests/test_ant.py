@@ -2,12 +2,15 @@
 import unittest2 as unittest
 #import unittest
 
-from libagent import ant
+from libagent import playground, anthill, ant
 
 class TestAnt(unittest.TestCase):
     def setUp(self):
-        pass
-#        self.agent = ant.Ant()
+        self.pg = playground.Playground()
+        self.pg.setregion(3,3)
+        self.world = anthill.Anthill(self.pg)
+        self.world.sites = [[2,2]]
+        self.agent = self.world.bear()
 
     def test_setposition(self):
         pass
