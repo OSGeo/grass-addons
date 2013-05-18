@@ -46,9 +46,11 @@ class TestAnthill(unittest.TestCase):
         pass
 
     def test_letantsdance(self):
+        # TODO: as sort of the mainloop, just let it run a few times?
         pass
 
     def volatilize(self):
+        # gets tested in Playground, except for setting the values..
         pass
 
 #    def tearDown(self):

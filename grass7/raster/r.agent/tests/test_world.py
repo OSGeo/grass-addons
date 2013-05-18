@@ -45,7 +45,7 @@ class TestWorld(unittest.TestCase):
         self.assertEqual(agent.position, position)
 
     def test_getneighbourpositions(self):
-        # gets tested in Playground (except for freedom..). TODO?
+        # gets tested in Playground (except for freedom..).
         pass
 
     def test_kill(self):
