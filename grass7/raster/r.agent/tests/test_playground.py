@@ -116,6 +116,22 @@ class TestPlayground(unittest.TestCase):
         self.assertTrue(ps[2])
         self.assertFalse(ps[3])
 
+    def test_getcellvalue(self):
+        l = "bar"
+        self.pg.createlayer(l)
+        self.pg.layers[l][0][0] = 0
+        self.assertNotEqual(101, self.pg.getcellvalue(l, [0,0]))
+        self.pg.layers[l][0][0] = 101
+        self.assertEqual(101, self.pg.getcellvalue(l, [0,0]))
+
+    def test_setcellvalue(self):
+        l = "bar"
+        self.pg.createlayer(l)
+        self.pg.layers[l][0][0] = 0
+        self.assertNotEqual(101, self.pg.layers[l][0][0])
+        self.pg.setcellvalue(l, [0,0], 101)
+        self.assertEqual(101, self.pg.getcellvalue(l, [0,0]))
+
     def test_decaycellvalues(self):
         l = "bar"
         self.pg.createlayer(l)

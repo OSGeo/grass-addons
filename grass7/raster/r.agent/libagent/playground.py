@@ -194,6 +194,23 @@ class Playground(object):
                                                     position[1]+1]))
         return positions
 
+    def getcellvalue(self, layername, position):
+        """
+        Get the content of a certain cell in a layer specified.
+        @param layername the name of the layer to query
+        @param position the exact position of the cell in question
+        @return long the value stored in the cell
+        """
+        return self.layers[layername][position[0]][position[1]]
+
+    def setcellvalue(self, layername, position, value):
+        """
+        Set the content of a certain cell in a layer specified.
+        @param layername the name of the layer to be edited
+        @param position the exact position of the cell in question
+        """
+        self.layers[layername][position[0]][position[1]] = value
+
     def decaycellvalues(self, layername, halflife, minimum=0):
         """
         Let the values in each cell decay, volatilize or evaporate over time.
