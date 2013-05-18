@@ -46,8 +46,8 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% required : yes
 #%end
 #%flag
-#% key: convert
-#% description: Convert cost (slope..) to penalty map (using "tobler", see docu)
+#% key: a
+#% description: Auto-convert cost (slope..) to penalty map (using "tobler", see docu)
 #%end
 #%option
 #% key: sitesmap
@@ -277,6 +277,7 @@ def letantsdance(rounds, outrounds):
         # loop and write out the contents at the end
         world.letantsdance(nextwrite)
         # export the value maps
+        world.playground.writelayer(anthill.Anthill.RESULT)
 #        world.writeout()
 #        print "nrofpaths:", world.nrop
         # count down outer
