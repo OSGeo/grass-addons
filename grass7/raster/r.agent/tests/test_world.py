@@ -35,6 +35,7 @@ class TestWorld(unittest.TestCase):
         self.assertIs(agent, self.world.agents.pop())
         agent = self.world.bear(1)
         self.assertIs(agent, self.world.agents.pop())
+        self.assertEqual(0, len(self.world.agents))
 
     def test_move(self):
         agent = self.world.bear(1, [0,0])

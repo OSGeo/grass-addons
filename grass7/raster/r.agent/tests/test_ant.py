@@ -9,7 +9,7 @@ class TestAnt(unittest.TestCase):
         self.pg = playground.Playground()
         self.pg.setregion(3,3)
         self.world = anthill.Anthill(self.pg)
-        self.world.sites = [[2,2]]
+        self.world.sites = [[1,1]]
         self.agent = self.world.bear()
 
     def test_setposition(self):
