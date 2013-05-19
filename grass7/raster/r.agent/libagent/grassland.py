@@ -108,10 +108,13 @@ class Grassland(playground.Playground):
                 # TODO do they all look like this??
                 if len(v) == 4 and v[0] == v[3]:
                     p = self.stringcoordinate(v[1],v[2])
+                    # TODO - as with grass numpy array it seems that
+                    # [0,0] is north-most west-most..
                     p[0] = int(round(
-                        ( p[0] - self.region["s"] ) / self.region["nsres"] ))
+                        ( self.region["n"] - p[0] ) / self.region["nsres"] ))
                     p[1] = int(round(
                         ( p[1] - self.region["w"] ) / self.region["ewres"] ))
+                    grass.info(str(p[0]) + " " + str(p[1]))
                     vectors.append(p)
                     self.layers[layername][p[0]][p[1]] = value
         return vectors

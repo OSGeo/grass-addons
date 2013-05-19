@@ -9,7 +9,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-from random import choice, randint
+from random import choice #, randint
 import agent
 import error
 
@@ -32,6 +32,11 @@ class Ant(agent.Agent):
         self.nextstep = [None,None,0,0,0,0]
         self.goal = []
         self.penalty = 0.0
+        if self.world.decisionbase == "default":
+            # TODO: for now like 'else'..
+            self.chooseposition = self.randomposition
+        else:
+            self.chooseposition = self.randomposition
 
     def work(self):
         """
@@ -42,4 +47,7 @@ class Ant(agent.Agent):
         # we are all only getting older..
         if self.age() == False:
             return False
+        self.position = self.chooseposition(
+                self.world.getneighbourpositions(self.position))
+        self.world.setsteppheromone(self.position)
 

@@ -20,6 +20,11 @@ class TestAgent(unittest.TestCase):
     def test_getposition(self):
         self.assertTrue(self.agent.getposition() == [1,1])
 
+    def test_randomposition(self):
+        position = [1,2]
+        self.assertEqual(position,
+                    self.agent.randomposition([position, position]))
+
 #    def test_move(self):
 # not implemented yet
 #        pass
