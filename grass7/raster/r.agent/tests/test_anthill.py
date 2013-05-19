@@ -81,6 +81,12 @@ class TestAnthill(unittest.TestCase):
         self.assertEqual(self.world.pathintensity,
                                 self.world.getpheromone([0,0]))
 
+    def test_getpenalty(self):                               
+        self.assertNotEqual(9,                                 
+            self.world.playground.layers[anthill.Anthill.COST][0][0])
+        self.world.playground.layers[anthill.Anthill.COST][0][0] = 9
+        self.assertEqual(9, self.world.getpenalty([0,0]))
+
     def volatilize(self):
         # gets tested in Playground, except for setting the values..
         pass

@@ -147,3 +147,11 @@ class Anthill(world.World):
         else:
             self.setpheromone(position, self.maxpheromone)
 
+    def getpenalty(self, position):
+        """
+        Return the penalty value at a certain position
+        @param position the position in question
+        @return the value of interest
+        """
+        return self.playground.getcellvalue(Anthill.COST, position)
+

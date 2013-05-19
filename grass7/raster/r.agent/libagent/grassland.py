@@ -114,7 +114,6 @@ class Grassland(playground.Playground):
                         ( self.region["n"] - p[0] ) / self.region["nsres"] ))
                     p[1] = int(round(
                         ( p[1] - self.region["w"] ) / self.region["ewres"] ))
-                    grass.info(str(p[0]) + " " + str(p[1]))
                     vectors.append(p)
                     self.layers[layername][p[0]][p[1]] = value
         return vectors
