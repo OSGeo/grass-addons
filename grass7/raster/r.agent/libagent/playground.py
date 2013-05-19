@@ -10,12 +10,15 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 """
 
 import numpy, error, random
+from math import sqrt
 
 class Playground(object):
     """
     A Playground is a major component of a World, defining
     and organizing space.
     """
+    STRAIGHT = 0
+    DIAGONAL = sqrt(2)-1
 
     def __init__(self):
         """Create a Playground"""
@@ -158,6 +161,17 @@ class Playground(object):
         else:
             return False
 
+    def addneighbourposition(self, positions, position):
+        """
+        Try adding a position to a list of positions.
+        @param list to be filled up
+        @param position to be verified and added
+        @return the new list
+        """
+        if self.isvalidposition(position):
+            positions.append(position)
+        return positions
+
     def getneighbourpositions(self, position, freedom):
         """
         Get all the positions reachable from a certain position
@@ -171,27 +185,31 @@ class Playground(object):
             return False
         # collect the coordinates
         if freedom >= 4:
-            #walking south
-            positions.append(self.isvalidposition([position[0]-1, position[1]]))
-            #walking north
-            positions.append(self.isvalidposition([position[0]+1, position[1]]))
-            #walking west
-            positions.append(self.isvalidposition([position[0], position[1]-1]))
-            #walking east
-            positions.append(self.isvalidposition([position[0], position[1]+1]))
+            #walking south (=0)
+            self.addneighbourposition(positions,
+                [position[0]-1, position[1], 0, Playground.STRAIGHT])
+            #walking north (=1)
+            self.addneighbourposition(positions,
+                [position[0]+1, position[1], 1, Playground.STRAIGHT])
+            #walking west (=2)
+            self.addneighbourposition(positions,
+                [position[0], position[1]-1, 2, Playground.STRAIGHT])
+            #walking east (=3)
+            self.addneighbourposition(positions,
+                [position[0], position[1]+1, 3, Playground.STRAIGHT])
         if freedom >= 8:
-            #walking south-west
-            positions.append(self.isvalidposition([position[0]-1,
-                                                    position[1]-1]))
-            #walking north-west
-            positions.append(self.isvalidposition([position[0]+1,
-                                                    position[1]-1]))
-            #walking south-east
-            positions.append(self.isvalidposition([position[0]-1,
-                                                    position[1]+1]))
-            #walking north-east
-            positions.append(self.isvalidposition([position[0]+1,
-                                                    position[1]+1]))
+            #walking south-west (=4)
+            self.addneighbourposition(positions,
+                [position[0]-1, position[1]-1, 4, Playground.DIAGONAL])
+            #walking north-west (=5)
+            self.addneighbourposition(positions,
+                [position[0]+1, position[1]-1, 5, Playground.DIAGONAL])
+            #walking south-east (=6)
+            self.addneighbourposition(positions,
+                [position[0]-1, position[1]+1, 6, Playground.DIAGONAL])
+            #walking north-east (=7)
+            self.addneighbourposition(positions,
+                [position[0]+1, position[1]+1, 7, Playground.DIAGONAL])
         return positions
 
     def getcellvalue(self, layername, position):
@@ -199,7 +217,7 @@ class Playground(object):
         Get the content of a certain cell in a layer specified.
         @param layername the name of the layer to query
         @param position the exact position of the cell in question
-        @return long the value stored in the cell
+        @return the value stored in the cell
         """
         return self.layers[layername][position[0]][position[1]]
 

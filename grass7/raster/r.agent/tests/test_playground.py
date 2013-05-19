@@ -1,7 +1,7 @@
 
 import unittest2 as unittest
 #import unittest
-
+from math import sqrt
 from libagent import playground, error
 
 class TestPlayground(unittest.TestCase):
@@ -96,25 +96,29 @@ class TestPlayground(unittest.TestCase):
         self.assertTrue(self.pg.isvalidposition([1,1]))
         self.assertFalse(self.pg.isvalidposition([3,3]))
 
+    def test_addneighbourposition(self):
+        self.pg.setregion(3,3)
+        positions = []
+        ps = positions[:]
+        self.assertItemsEqual(ps,
+                self.pg.addneighbourposition(positions, [9,9]))
+        ps.append([1,1])
+        self.assertItemsEqual(ps,
+                self.pg.addneighbourposition(positions, [1,1]))
+
     def test_getneighbourpositions(self):
         self.pg.setregion(3,3)
         self.assertFalse(self.pg.getneighbourpositions([1,1],3))
 
-        ps = self.pg.getneighbourpositions([1,1],8)
-        self.assertTrue(ps[0])
-        self.assertTrue(ps[1])
-        self.assertTrue(ps[2])
-        self.assertTrue(ps[3])
-        self.assertTrue(ps[4])
-        self.assertTrue(ps[5])
-        self.assertTrue(ps[6])
-        self.assertTrue(ps[7])
-
         ps = self.pg.getneighbourpositions([2,2],4)
-        self.assertTrue(ps[0])
-        self.assertFalse(ps[1])
-        self.assertTrue(ps[2])
-        self.assertFalse(ps[3])
+        self.assertEqual(2, len(ps))
+        self.assertEqual(0, ps[1][3])
+
+        ps = self.pg.getneighbourpositions([1,1],8)
+        self.assertEqual(8, len(ps))
+        self.assertEqual(7, ps[7][2])
+        self.assertEqual(0, ps[3][3])
+        self.assertEqual(sqrt(2)-1, ps[6][3])
 
     def test_getcellvalue(self):
         l = "bar"
