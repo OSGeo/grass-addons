@@ -160,7 +160,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% gisprompt: algorithm
 #% description: Algorithm used for walking step
 #% answer: standard
-#% options: standard,random,test
+#% options: default,random,test
 #% required : yes
 #%end
 #%option
