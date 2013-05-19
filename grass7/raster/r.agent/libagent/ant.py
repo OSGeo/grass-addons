@@ -24,19 +24,59 @@ class Ant(agent.Agent):
         @param list coordinate of the current position
         """
         super(Ant, self).__init__(timetolive, world, position)
-        self.position.extend([None,None,0,0])
+        self.position.extend([None,None])
         self.home = self.position[:]
         self.laststeps = [self.position[:]]
         self.visitedsteps = []
         self.done = False
-        self.nextstep = [None,None,0,0,0,0]
+        self.nextstep = [None,None,None,0]
         self.goal = []
         self.penalty = 0.0
-        if self.world.decisionbase == "default":
+        if self.world.decisionbase == "standard":
             # TODO: for now like 'else'..
-            self.chooseposition = self.randomposition
+            self.decide = self.randomposition
         else:
-            self.chooseposition = self.randomposition
+            self.decide = self.randomposition
+        if self.world.evaluationbase == "standard":
+            self.evaluate = self.check
+        else:
+            self.evaluate = self.check
+
+    def check(self, positions):
+        """
+        """
+        for p in positions[:]:
+            if self.world.getpenalty(p) < 0:
+                # this is what we are looking for!
+                if p[0] == self.home[0] and p[1] == self.home[1]:
+                    # ok, unfortunately we have only found the home position..
+                    positions.remove(p)
+                    # no other special should be so close to home, return..
+                    return False
+                else:
+                    # goal node found!
+                    # add one to the counter
+                    #self.world.nrop += 1
+                    self.done = True
+                    # now, head back home..
+                    self.nextstep = self.laststeps.pop()
+                    return True
+        return False
+
+    def choose(self):
+        """
+        """
+        positions = self.world.getneighbourpositions(self.position)
+        if not self.evaluate(positions):
+            self.nextstep = self.decide(positions)
+
+    def walk(self):
+        """
+        """
+        self.laststeps.append(self.position)
+        self.position = self.nextstep
+        self.nextstep = [None,None,None,0]
+        self.world.setsteppheromone(self.position)
 
     def work(self):
         """
@@ -47,7 +87,15 @@ class Ant(agent.Agent):
         # we are all only getting older..
         if self.age() == False:
             return False
-        self.position = self.chooseposition(
-                self.world.getneighbourpositions(self.position))
-        self.world.setsteppheromone(self.position)
+        # past this point we must have decided yet where to go to next..
+        if self.nextstep[0] == None:
+            self.choose()
+            self.penalty += self.nextstep[3] + \
+                                self.world.getpenalty(self.nextstep)
+        # if penalty is positive, wait one round
+        if self.penalty > 0:
+            self.penalty -= 1
+            return True
+        else:
+            self.walk()
 

@@ -122,10 +122,22 @@ class TestGrassland(unittest.TestCase):
             # force write it again..
             self.pg.writelayer(self.rastlayername, self.rastlayername, True)
 
-    def test_parsegrasslayer(self):
+    def test_parsevectorlayer(self):
         if self.vectlayername:
             #TODO find a way to write vector files..
             pass
+
+    def test_decaycellvalues(self):
+        l = "bar"
+        #TODO find out why 'filename' is lost - numpy vs. garray..
+#        self.pg.createlayer(l)
+#        self.pg.layers[l][0][0] = 100
+#        self.pg.decaycellvalues(l, 3)
+#        self.assertEqual(int(round(self.pg.layers[l][0][0])), 79)
+#        self.pg.decaycellvalues(l, 3)
+#        self.assertEqual(int(round(self.pg.layers[l][0][0])), 63)
+#        self.pg.decaycellvalues(l, 3)
+#        self.assertEqual(int(round(self.pg.layers[l][0][0])), 50)
 
     def tearDown(self):
         if self.rastlayername:

@@ -130,6 +130,8 @@ class Grassland(playground.Playground):
         layer = self.layers[layername]
         if halflife > 0:
             layer = layer*0.5**(1.0/halflife)
+            #TODO find out why 'filename' is lost - numpy vs. garray..
+            #self.layers[layername] = layer
         #TODO think about moving 'minimum' to a predifined matrix in anthill
         if minimum > 0:
             mask = garray.numpy.ones_like(layer) + minimum

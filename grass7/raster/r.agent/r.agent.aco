@@ -160,16 +160,16 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% gisprompt: algorithm
 #% description: Algorithm used for walking step
 #% answer: standard
-#% options: default,random,test
+#% options: standard,random,test
 #% required : yes
 #%end
 #%option
-#% key: validposition
+#% key: evaluateposition
 #% type: string
 #% gisprompt: algorithm
 #% description: Algorithm used for finding and remembering paths
 #% answer: avoidorforgetloop
-#% options: specials,avoidloop,forgetloop,avoidorforgetloop
+#% options: standard,avoidloop,forgetloop,avoidorforgetloop
 #% required : yes
 #%end
 #%option
@@ -307,10 +307,10 @@ def main():
             world.maxants = int(options['maxants'])
         if options['antslife']:
             world.antslife = int(options['antslife'])
-#        if options['decisionalgorithm']:
-#            world.decisionbase = str(options['decisionalgorithm'])
-#        if options['validposition']:
-#            world.validposition = str(options['validposition'])
+        if options['decisionalgorithm']:
+            world.decisionbase = str(options['decisionalgorithm'])
+        if options['evaluateposition']:
+            world.evaluationbase = str(options['evaluateposition'])
 #        if options['agentfreedom']:
 #            world.globalfreedom = int(options['agentfreedom'])
         if options['pheromoneweight']:

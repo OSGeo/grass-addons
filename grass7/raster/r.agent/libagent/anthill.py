@@ -71,8 +71,8 @@ class Anthill(world.World):
         self.maxants = 100
         ## the ants ttl will be set by user or based on playground size
         self.antslife = 0
-        self.decisionbase = "default"
-#TODO        self.rememberbase = "default"
+        self.decisionbase = "standard"
+        self.evaluationbase = "standard"
 
     def bear(self):
         """
