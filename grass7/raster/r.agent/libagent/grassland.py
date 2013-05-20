@@ -76,7 +76,7 @@ class Grassland(playground.Playground):
         """
         if not grassmapname:
             if self.grassmapnames.has_key(layername):
-                grassmapname=layername
+                grassmapname=self.grassmapnames[layername]
             else:
                 raise error.DataError(Grassland.ME,
                                         "Grass Map name is empty.")
@@ -89,6 +89,8 @@ class Grassland(playground.Playground):
                     raise error.DataError(Grassland.ME,
                                         "Grass map already exists.")
             self.layers[layername].write(grassmapname, overwrite=force)
+        else:
+            raise error.DataError(Grassland.ME, "Layer is not in list.")
 
     def parsevectorlayer(self, layername, grassmapname, value=1, force=False):
         """
@@ -127,13 +129,11 @@ class Grassland(playground.Playground):
         @param long halflife or number of years when to reach half of the value
         @param long minimum value to keep on cell
         """
-        layer = self.layers[layername]
         if halflife > 0:
-            layer = layer*0.5**(1.0/halflife)
+            self.layers[layername] = self.layers[layername]*0.5**(1.0/halflife)
             #TODO find out why 'filename' is lost - numpy vs. garray..
-            #self.layers[layername] = layer
         #TODO think about moving 'minimum' to a predifined matrix in anthill
         if minimum > 0:
-            mask = garray.numpy.ones_like(layer) + minimum
-            garray.numpy.maximum(layer, mask)
+            mask = garray.numpy.ones_like(self.layers[layername]) + minimum
+            garray.numpy.maximum(self.layers[layername], mask)
 
