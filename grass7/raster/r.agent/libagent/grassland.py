@@ -134,6 +134,7 @@ class Grassland(playground.Playground):
             #TODO find out why 'filename' is lost - numpy vs. garray..
         #TODO think about moving 'minimum' to a predifined matrix in anthill
         if minimum > 0:
-            mask = garray.numpy.ones_like(self.layers[layername]) + minimum
-            garray.numpy.maximum(self.layers[layername], mask)
+            mask = garray.numpy.ones_like(self.layers[layername]) - 1 + minimum
+            self.layers[layername] = \
+                    garray.numpy.maximum(self.layers[layername], mask)
 

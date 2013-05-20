@@ -129,15 +129,16 @@ class TestGrassland(unittest.TestCase):
 
     def test_decaycellvalues(self):
         l = "bar"
-        #TODO find out why 'filename' is lost - numpy vs. garray..
-#        self.pg.createlayer(l)
-#        self.pg.layers[l][0][0] = 100
-#        self.pg.decaycellvalues(l, 3)
-#        self.assertEqual(int(round(self.pg.layers[l][0][0])), 79)
-#        self.pg.decaycellvalues(l, 3)
-#        self.assertEqual(int(round(self.pg.layers[l][0][0])), 63)
-#        self.pg.decaycellvalues(l, 3)
-#        self.assertEqual(int(round(self.pg.layers[l][0][0])), 50)
+        self.pg.createlayer(l)
+        self.pg.layers[l][0][0] = 100
+        self.pg.decaycellvalues(l, 3)
+        self.assertEqual(int(round(self.pg.layers[l][0][0])), 79)
+        self.pg.decaycellvalues(l, 3)
+        self.assertEqual(int(round(self.pg.layers[l][0][0])), 63)
+        self.pg.decaycellvalues(l, 3)
+        self.assertEqual(int(round(self.pg.layers[l][0][0])), 50)
+        self.pg.decaycellvalues(l, 3, 50)
+        self.assertEqual(int(round(self.pg.layers[l][0][0])), 50)
 
     def tearDown(self):
         if self.rastlayername:
