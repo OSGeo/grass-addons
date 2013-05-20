@@ -4,14 +4,19 @@
 
 <p>This module will compute two metrics to quantify niche similarity or overlap between all pairs of input raster layers.
 
-<p>One is the niche equivalency or similarity for two species following Warren et al. (2009) based on Schoeners D (Schoener, 1968).
+<p>One is the niche equivalency or similarity for two species following Warren et al. (2008) based on Schoeners D (Schoener, 1968).
 This metric ranges from 0 to 1, representing respectively no overlap and an identical distribution. 
 
 <p>The other is the niche overlap metric which indicates the niche overlap from predictions of species 
 distributions with the I similarity statistic of Warren et al. (2009), which is based on Hellinger Distances (van der Vaart,
-1998). Note that the corrected I similarity statistic, as given in an erratum of the article, was used, The statistic ranges from 0 (no overlap) to 1 (the distributions are identical). 
+1998). The statistic ranges from 0 (no overlap) to 1 (the distributions are identical). 
 
-<p>The I statistic is also implemented in ENMTools and a number of R packages, including phyloclim and dismo. I would like to thank Christoph Heibl, author of the phyloclim package, for pointing me out the corrected formulation of I.
+<p>By default the results are written to screen, but they can also be written to a text file with two columns for the names of each pair of rasters, a third column for the type of statistic (D or I) and a fourth column for the D or I statistic.
+
+<h2>Notes</h2>
+
+<p> This implementation is especially suitable if you are working with very large data sets. Results are checked against the niche.overlap function in the phyloclim package for R.  
+<p>I would like to thank Christoph Heibl, author of the phyloclim package, for pointing me out the corrected formulation of I, published in an erratum of the article by Warren et al (2008).
 
 <h2>AUTHOR</h2>
 
