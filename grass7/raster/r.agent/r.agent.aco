@@ -305,9 +305,9 @@ def main():
 #        world.playground.setboundsfromlayer("costs")
 
         if options['maxpheromone']:
-            world.maxpheromone = int(options['maxpheromone']) - 1
+            world.maxpheromone = int(options['maxpheromone'])
         if options['minpheromone']:
-            world.minpheromone = int(options['minpheromone']) - 1
+            world.minpheromone = int(options['minpheromone'])
         if options['volatilizationtime']:
             world.volatilizationtime = int(options['volatilizationtime'])
         if options['stepintensity']:
