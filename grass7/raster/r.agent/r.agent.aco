@@ -258,6 +258,9 @@ def setmaps(site, cost, wastecosts, inphero, outphero, wastephero):
             inphero = inphero + '@' + grass.gisenv()['MAPSET']
         world.playground.setgrasslayer(anthill.Anthill.RESULT, inphero, True)
     world.playground.grassmapnames[anthill.Anthill.RESULT] = outphero
+    #TODO hopefully not really needed - workaround for broken(?) garray
+    world.playground.createlayer("copy", outphero, True)
+    world.playground.grassmapnames["copy"] = outphero
     world.overwritepheormone = wastephero
 
 def letantsdance(rounds, outrounds):
@@ -277,8 +280,16 @@ def letantsdance(rounds, outrounds):
         # loop and write out the contents at the end
         world.letantsdance(nextwrite)
         # export the value maps
-        world.playground.writelayer(anthill.Anthill.RESULT, False,
+        #TODO hopefully not really needed - workaround for broken(?) garray
+        for i in range(len(world.playground.layers[anthill.Anthill.RESULT])):
+            for j in range(len(
+                    world.playground.layers[anthill.Anthill.RESULT][0])):
+                world.playground.layers["copy"][i][j] = \
+                        world.playground.layers[anthill.Anthill.RESULT][i][j]
+        world.playground.writelayer("copy", False,  
                                             world.overwritepheormone)
+        #TODO world.playground.writelayer(anthill.Anthill.RESULT, False,
+        #TODO                                    world.overwritepheormone)
 #        print "nrofpaths:", world.nrop
         # count down outer
         mainloops -= 1
