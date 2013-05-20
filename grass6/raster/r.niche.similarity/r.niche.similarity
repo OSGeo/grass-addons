@@ -190,7 +190,7 @@ do
 
                if [ $GIS_FLAG_D -eq 1 ] ; then
                    TMPFILE1=rnicheOVERLAP$$_$$
-                   r.mapcalc "$TMPFILE1 = abs($MAP1/$SUM1 - $MAP2/$SUM2)"
+                   r.mapcalc "$TMPFILE1 = abs(double($MAP1)/$SUM1 - double($MAP2)/$SUM2)"
                    NO=`r.univar -g map=$TMPFILE1 | awk -F\= '$1=="sum" { print $2 }'`
                    NOV=$(echo "1 - 0.5 * $NO" | bc)
                    g.remove --q rast=$TMPFILE1
@@ -209,7 +209,7 @@ do
                
                if [ $GIS_FLAG_I -eq 1 ] ; then
                    TMPFILE2=rnicheEQUIV$$_$$
-                   r.mapcalc "$TMPFILE2 = (sqrt($MAP1/$SUM1) - sqrt($MAP2/$SUM2))^2"
+                   r.mapcalc "$TMPFILE2 = (sqrt(double($MAP1)/$SUM1) - sqrt(double($MAP2)/$SUM2))^2"
                    NE=`r.univar -g map=$TMPFILE2 | awk -F\= '$1=="sum" { print $2 }'`
                    NEQ=$(echo "1 - (0.5 * $NE)" | bc)
                    g.remove --q rast=$TMPFILE2
