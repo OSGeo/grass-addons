@@ -52,7 +52,7 @@ class Anthill(world.World):
         self.maxpenalty = 0
         ## max/min possible value of pheromone intensity
         self.maxpheromone = maxsize
-        self.minpheromone = 10
+        self.minpheromone = 0
         ## half value period for pheromone
         self.volatilizationtime = 1
         ## ants mark every step with this pheromone value
