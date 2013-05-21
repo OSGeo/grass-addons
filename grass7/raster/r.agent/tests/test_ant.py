@@ -14,7 +14,7 @@ class TestAnt(unittest.TestCase):
 
     def test_check(self):
         positions = [[0,0],[1,1]]
-        self.laststeps = [1,1]
+        self.agent.laststeps = [[1,1]]
         # An empty test
         self.pg.layers[anthill.Anthill.SITE][0][0] = 0
         self.pg.layers[anthill.Anthill.SITE][1][1] = 0
@@ -36,6 +36,7 @@ class TestAnt(unittest.TestCase):
         pass
 
     def test_walk(self):
+        #TODO walking home
         self.agent.position = [0,0]
         self.agent.nextstep = [1,1]
         self.agent.walk()

@@ -24,9 +24,9 @@ class Ant(agent.Agent):
         @param list coordinate of the current position
         """
         super(Ant, self).__init__(timetolive, world, position)
-        self.position.extend([None,None])
+        self.position = [position[0], position[1], None, 0]
         self.home = self.position[:]
-        self.laststeps = [self.position[:]]
+        self.laststeps = []
         self.visitedsteps = []
         self.done = False
         self.nextstep = [None,None,None,0]
@@ -72,6 +72,7 @@ class Ant(agent.Agent):
                     # now, head back home..
                     self.nextstep = self.laststeps.pop()
                     return True
+                    # TODO instead of work and walk reset work, which initially points to walkaround, to to headhome here!
         return False
 
     def choose(self):
@@ -88,12 +89,24 @@ class Ant(agent.Agent):
     def walk(self):
         """
         Do all the things necessary for performing a regualar step when
-        walking around.
+        walking around or going back home.
         """
-        self.laststeps.append(self.position)
-        self.position = self.nextstep
-        self.nextstep = [None,None,None,0]
-        self.world.setsteppheromone(self.position)
+        if self.done:
+            self.position = self.nextstep
+            if len(self.laststeps) > 1:
+                # walk only up to the gates of the hometown
+                self.nextstep = self.laststeps.pop()
+                self.penalty += self.nextstep[3] + \
+                                  self.world.getpenalty(self.nextstep)
+            else:
+                # retire after work.
+                self.snuffit()
+            self.world.setpathpheromone(self.position)
+        else:
+            self.laststeps.append(self.position)
+            self.position = self.nextstep
+            self.nextstep = [None,None,None,0]
+            self.world.setsteppheromone(self.position)
 
     def work(self):
         """
@@ -106,6 +119,7 @@ class Ant(agent.Agent):
             return False
         # past this point we must have decided yet where to go to next..
         if self.nextstep[0] == None:
+            # so we decide it now if it is not clear yet
             self.choose()
             self.penalty += self.nextstep[3] + \
                                 self.world.getpenalty(self.nextstep)
