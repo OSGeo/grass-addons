@@ -1,3 +1,4 @@
+
 /**********************************************************************
  * 
  * MODULE:       v.in.gshhs (based on gshhstograss.c)
@@ -35,7 +36,6 @@
 /* updating to a newer GSHHS version can be as easy as replacing
  * struct GSHHS2 und updating GSHHS_DATA_RELEASE in gshhs.h
  * if not too many changes were introduced */
-/* TODO 9/2010: GSHHS1 and GSHHS2 have been unified in gshhs.h, simplify code here */
 #include "gshhs.h"
 
 /* GSHHS version 1.x import */
@@ -48,6 +48,20 @@ int write_line_tiled(struct Map_info *, int, struct line_pnts *,
 struct pj_info info_in;
 struct pj_info info_out;
 
+/* For byte swapping on little-endian systems (GSHHS is defined to be bigendian) */
+static int do_flip(void)
+{
+    int itest = 0x01020304;
+    
+    /* yes, this is quick and dirty */
+    if (((unsigned char *)&itest)[0] == (unsigned char)0x01) {
+	G_debug(1, "big endian");
+
+	return 0;
+    }
+
+    return 1;
+}
 
 int main(int argc, char **argv)
 {
@@ -61,7 +75,7 @@ int main(int argc, char **argv)
     FILE *fp;
     int i, n_read, flip, version;
     int cnt = 0;
-    struct GSHHS h;
+    struct GSHHS1 h;
     /* GRASS specific */
     struct Key_Value *out_proj_keys, *out_unit_keys;
     int zone;
@@ -248,29 +262,30 @@ int main(int argc, char **argv)
 
     /* open GSHHS shoreline for reading */
     if ((fp = fopen(dataname, "rb")) == NULL) {
-	G_fatal_error(_("Unable to open input file <%s>"), dataname);
+	G_fatal_error(_("Could not find file <%s>"), dataname);
     }
 
     /* Open new vector */
     if (0 > Vect_open_new(&Map, outname, 0)) {
-	G_fatal_error(_("Unable to create vector map <%s>"), outname);
+	G_fatal_error(_("Cannot open new vector map <%s>"), outname);
     }
 
     /* read header from GSHHS database */
-    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
+    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS1), (size_t) 1, fp);
     version = (h.flag >> 8) & 255;
+    G_debug(1, "GSHHS data release: %d", version);
 
-    /* Take as sign that byte-swapping is needed */
-    /* if version < 2, source is read */
-    flip = (version < 2);
+    /* test if byte-swapping is needed */
+    flip = do_flip();
     if (flip) {
 	version = swabi4((unsigned int)h.flag);
 	version = (version >> 8) & 255;
     }
+    G_debug(0, "GSHHS data release: %d", version);
 
-    /* check version support (GSHHS_DATA_RELEASE is defined in gshhs.h)*/
+    /* check version support */
     if (version < 4)  /* not sure if that check works... */
-	G_fatal_error("Trying to import version %d, only GSHHS versions 4 to %d (2.0) are supported.", version, (int)GSHHS_DATA_RELEASE);
+	G_fatal_error("Trying to import version %d, only GSHHS versions 4 to %d (2.2) are supported.", version, (int)GSHHS_DATA_RELEASE);
     if (version > GSHHS_DATA_RELEASE)
 	G_fatal_error("Import of version %d not yet supported, highest supported version is GSHHS version 7 (2.0).", version);
 
@@ -378,7 +393,7 @@ int gshhs_import1(struct Map_info *Map, FILE *fp, int limit_to_region,
     int max_east = 180000000;	/* max_east = 270000000: confuses GRASS */
     int cnt = 0, getme = 0;
     struct GSHHS_POINT p;	/* renamed to avoid conflict */
-    struct GSHHS h;
+    struct GSHHS1 h;
     /* GRASS specific */
     int type;
     struct line_pnts *Points, **BPoints;
@@ -386,16 +401,16 @@ int gshhs_import1(struct Map_info *Map, FILE *fp, int limit_to_region,
     int use_bpoints, n_bpoints, bpoints_alloc = 10;
 
     /* read header from GSHHS database */
-    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
+    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS1), (size_t) 1, fp);
     version = (h.flag >> 8) & 255;
 
-    /* Take as sign that byte-swapping is needed */
-    /* if version < 2, source is read */
-    flip = (version < 2);
+    /* test if byte-swapping is needed */
+    flip = do_flip();
     if (flip) {
 	version = swabi4((unsigned int)h.flag);
 	version = (version >> 8) & 255;
     }
+    G_debug(1, "GSHHS data release: %d", version);
 
     /* set vector line type to GV_LINE, GV_BOUNDARY is currently not supported */
     type = GV_LINE;
@@ -676,7 +691,7 @@ int gshhs_import1(struct Map_info *Map, FILE *fp, int limit_to_region,
 	/* max_east = 180000000; */ /* Only Eurasiafrica needs 270 */
 
 	n_read =
-	    fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
+	    fread((void *)&h, (size_t) sizeof(struct GSHHS1), (size_t) 1, fp);
     }
 
     Vect_destroy_line_struct(Points);
@@ -690,7 +705,6 @@ int gshhs_import1(struct Map_info *Map, FILE *fp, int limit_to_region,
 /* GSHHS version 2.x import, works with data release 7 */
 /* the only difference between gshhs_import1 and gshhs_import2 is
  * the use of struct GSHHS1 or struct GSHHS2, respectively */
-/* TODO 9/2010: GSHHS1 and GSHHS2 have been unified in gshhs.h, simplify code here */
 int gshhs_import2(struct Map_info *Map, FILE *fp, int limit_to_region,
 		  double minx, double maxx, double miny, double maxy)
 {
@@ -701,7 +715,7 @@ int gshhs_import2(struct Map_info *Map, FILE *fp, int limit_to_region,
     int max_east = 180000000;	/* max_east = 270000000: confuses GRASS */
     int cnt = 0, getme = 0;
     struct GSHHS_POINT p;	/* renamed to avoid conflict */
-    struct GSHHS h;
+    struct GSHHS2 h;
     /* GRASS specific */
     int type;
     struct line_pnts *Points, **BPoints;
@@ -709,16 +723,16 @@ int gshhs_import2(struct Map_info *Map, FILE *fp, int limit_to_region,
     int use_bpoints, n_bpoints, bpoints_alloc = 10;
 
     /* read header from GSHHS database */
-    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
+    n_read = fread((void *)&h, (size_t) sizeof(struct GSHHS2), (size_t) 1, fp);
     version = (h.flag >> 8) & 255;
 
-    /* Take as sign that byte-swapping is needed */
-    /* if version < 2, source is read */
-    flip = (version < 2);
+    /* test if byte-swapping is needed */
+    flip = do_flip();
     if (flip) {
 	version = swabi4((unsigned int)h.flag);
 	version = (version >> 8) & 255;
     }
+    G_debug(1, "GSHHS data release: %d", version);
 
     /* set vector line type to GV_LINE, GV_BOUNDARY is currently not supported */
     type = GV_LINE;
@@ -999,7 +1013,7 @@ int gshhs_import2(struct Map_info *Map, FILE *fp, int limit_to_region,
 	/* max_east = 180000000; */ /* Only Eurasiafrica needs 270 */
 
 	n_read =
-	    fread((void *)&h, (size_t) sizeof(struct GSHHS), (size_t) 1, fp);
+	    fread((void *)&h, (size_t) sizeof(struct GSHHS2), (size_t) 1, fp);
     }
 
     Vect_destroy_line_struct(Points);
