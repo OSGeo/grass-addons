@@ -279,6 +279,8 @@ def letantsdance(rounds, outrounds):
 #        grass.info(mainloops)
         # loop and write out the contents at the end
         world.letantsdance(nextwrite)
+        # Print the number of found paths
+        grass.info("Number of found paths: " + str(world.numberofpaths))
         # export the value maps
         #TODO hopefully not really needed - workaround for broken(?) garray
         for i in range(len(world.playground.layers[anthill.Anthill.RESULT])):

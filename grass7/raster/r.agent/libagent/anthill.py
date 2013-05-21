@@ -73,6 +73,7 @@ class Anthill(world.World):
         self.antslife = 0
         self.decisionbase = "standard"
         self.evaluationbase = "standard"
+        self.numberofpaths = 0
 
     def bear(self):
         """

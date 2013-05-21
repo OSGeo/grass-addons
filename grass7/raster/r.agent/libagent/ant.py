@@ -62,6 +62,10 @@ class Ant(agent.Agent):
                     return False
                 else:
                     # goal node found!
+                    self.world.numberofpaths += 1
+                    #TODO for now just drop a line..
+                    #self.world.playground.grassinfo("Found a path, total: " + \
+                    #        str(self.world.numberofpaths))
                     # add one to the counter
                     #self.world.nrop += 1
                     self.done = True

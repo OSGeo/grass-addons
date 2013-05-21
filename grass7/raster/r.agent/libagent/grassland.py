@@ -28,6 +28,9 @@ class Grassland(playground.Playground):
             raise error.DataError(Grassland.ME,
                                     "Only square raster cells make sense.")
 
+#    def grassinfo(self, msg):
+#        grass.info(msg)
+
     def setgrasslayer(self, layername, grassmapname, force=False):
         """
         Put an existing map from GRASS to the layer collection
