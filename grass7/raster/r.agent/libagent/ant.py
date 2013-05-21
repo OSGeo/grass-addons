@@ -44,6 +44,13 @@ class Ant(agent.Agent):
 
     def check(self, positions):
         """
+        Check a list of positions for a position with a value of interest (<0)
+        in the penalty layer, if such a position is really found, the ant
+        happily turns back home by setting the next step to it's last.
+        If it was only the homeposition, the removes it from the list and
+        goes on.
+        @param positions list of positions
+        @return boolean whether such a position was found
         """
         for p in positions[:]:
             if self.world.getpenalty(p) < 0:
@@ -65,6 +72,10 @@ class Ant(agent.Agent):
 
     def choose(self):
         """
+        Make the decisions about where to go to next by first collecting
+        all the possibilities (positions around), then looking whether
+        a goal position is reached or else sorting out unwanted positions
+        and finally choosing a next step by smell and random.
         """
         positions = self.world.getneighbourpositions(self.position)
         if not self.evaluate(positions):
@@ -72,6 +83,8 @@ class Ant(agent.Agent):
 
     def walk(self):
         """
+        Do all the things necessary for performing a regualar step when
+        walking around.
         """
         self.laststeps.append(self.position)
         self.position = self.nextstep
