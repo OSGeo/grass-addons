@@ -281,7 +281,7 @@ int main(int argc, char **argv)
 	version = swabi4((unsigned int)h.flag);
 	version = (version >> 8) & 255;
     }
-    G_debug(0, "GSHHS data release: %d", version);
+    G_debug(1, "GSHHS data release: %d", version);
 
     /* check version support */
     if (version < 4)  /* not sure if that check works... */
