@@ -4,8 +4,8 @@
  *
  * Paul Wessel, SOEST
  *
- *	Copyright (c) 1996-2008 by P. Wessel and W. H. F. Smith
- *	See COPYING file for copying and redistribution conditions.
+ *	Copyright (c) 1996-2011 by P. Wessel and W. H. F. Smith
+ *	See LICENSE.TXT file for copying and redistribution conditions.
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -27,6 +27,15 @@
  *	28-AUG-2007.  PW: Version 1.6.  no format change
  *			  For use with version 1.6 of GSHHS which now has WDBII
  *			  borders and rivers.
+ *	03-JUL-2008.  PW: Version 1.11. New -I<id> option to pull out a single pol
+ *	27-MAY-2009.  PW: Version 1.12. Now includes container polygon ID in header,
+ *			  an ancestor ID, and area of the reduced polygon. Works on
+ *			  GSHHS 2.0 data.
+ *			  Header is now 44 bytes (all 4-byte integers)
+ *	24-MAY-2010.  PW: Data version is now 2.1.0. [no change to format]
+ *	15-JUL-2011.  PW: Data version is now 2.2.0. [Change in header format to store
+ *			  area magnitude and let greenwich be 2-bit flag (0-3)]. Also
+ *			  flag WDBII riverlakes with the river flag as used for GSHHS.
  * 
  * may need updating for new GSHHS versions
  * 

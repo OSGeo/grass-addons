@@ -34,7 +34,7 @@
 #include <grass/glocale.h>
 
 /* updating to a newer GSHHS version can be as easy as replacing
- * struct GSHHS2 und updating GSHHS_DATA_RELEASE in gshhs.h
+ * struct GSHHS2 and updating GSHHS_DATA_RELEASE in gshhs.h
  * if not too many changes were introduced */
 #include "gshhs.h"
 
