@@ -231,7 +231,7 @@ def setmaps(site, cost, wastecosts, inphero, outphero, wastephero):
             site = site + '@' + grass.gisenv()['MAPSET']
         # set sitemap and site list
         world.sites = world.playground.parsevectorlayer(anthill.Anthill.SITE,
-                                                        site, True)
+                                                        site, -1, True)
         if not world.sites:
             raise error.DataError("r.agent.aco:",
                                     "There were no sites in" + site)

@@ -53,7 +53,7 @@ class Ant(agent.Agent):
         @return boolean whether such a position was found
         """
         for p in positions[:]:
-            if self.world.getpenalty(p) < 0:
+            if self.world.getsitevalue(p) < 0:
                 # this is what we are looking for!
                 if p[0] == self.home[0] and p[1] == self.home[1]:
                     # ok, unfortunately we have only found the home position..

@@ -16,16 +16,16 @@ class TestAnt(unittest.TestCase):
         positions = [[0,0],[1,1]]
         self.laststeps = [1,1]
         # An empty test
-        self.pg.layers[anthill.Anthill.COST][0][0] = 0
-        self.pg.layers[anthill.Anthill.COST][1][1] = 0
+        self.pg.layers[anthill.Anthill.SITE][0][0] = 0
+        self.pg.layers[anthill.Anthill.SITE][1][1] = 0
         self.assertFalse(self.agent.check(positions))
         self.assertIsNone(self.agent.nextstep[0])
         # set the value of interest but at the homeplace
-        self.pg.layers[anthill.Anthill.COST][1][1] = -1
+        self.pg.layers[anthill.Anthill.SITE][1][1] = -1
         self.assertFalse(self.agent.check(positions))
         self.assertIsNone(self.agent.nextstep[0])
         # and this time at a good position
-        self.pg.layers[anthill.Anthill.COST][0][0] = -1
+        self.pg.layers[anthill.Anthill.SITE][0][0] = -1
         self.assertTrue(self.agent.check(positions))
         self.assertIsNotNone(self.agent.nextstep[0])
         self.assertEqual(1, self.agent.nextstep[0])

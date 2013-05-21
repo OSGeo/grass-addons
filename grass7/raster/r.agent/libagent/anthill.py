@@ -155,3 +155,11 @@ class Anthill(world.World):
         """
         return self.playground.getcellvalue(Anthill.COST, position)
 
+    def getsitevalue(self, position):
+        """
+        Return the value at a certain position in the sites layer
+        @param position the position in question
+        @return the value of interest
+        """
+        return self.playground.getcellvalue(Anthill.SITE, position)
+
