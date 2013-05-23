@@ -35,8 +35,11 @@ class TestAnt(unittest.TestCase):
         # possible other methods which are directly testable
         pass
 
-    def test_walk(self):
+    def test_walkhome(self):
         #TODO walking home
+        pass
+
+    def test_walkaround(self):
         self.agent.position = [0,0]
         self.agent.nextstep = [1,1]
         self.agent.walk()

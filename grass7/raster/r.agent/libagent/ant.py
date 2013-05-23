@@ -28,10 +28,10 @@ class Ant(agent.Agent):
         self.home = self.position[:]
         self.laststeps = []
         self.visitedsteps = []
-        self.done = False
         self.nextstep = [None,None,None,0]
         self.goal = []
         self.penalty = 0.0
+        self.walk = self.walkaround
         if self.world.decisionbase == "standard":
             # TODO: for now like 'else'..
             self.decide = self.randomposition
@@ -68,11 +68,10 @@ class Ant(agent.Agent):
                     #        str(self.world.numberofpaths))
                     # add one to the counter
                     #self.world.nrop += 1
-                    self.done = True
+                    self.walk = self.walkhome
                     # now, head back home..
                     self.nextstep = self.laststeps.pop()
                     return True
-                    # TODO instead of work and walk reset work, which initially points to walkaround, to to headhome here!
         return False
 
     def choose(self):
@@ -86,27 +85,31 @@ class Ant(agent.Agent):
         if not self.evaluate(positions):
             self.nextstep = self.decide(positions)
 
-    def walk(self):
+    def walkhome(self):
         """
         Do all the things necessary for performing a regualar step when
-        walking around or going back home.
+        walking back home.
         """
-        if self.done:
-            self.position = self.nextstep
-            if len(self.laststeps) > 1:
-                # walk only up to the gates of the hometown
-                self.nextstep = self.laststeps.pop()
-                self.penalty += self.nextstep[3] + \
-                                  self.world.getpenalty(self.nextstep)
-            else:
-                # retire after work.
-                self.snuffit()
-            self.world.setpathpheromone(self.position)
+        self.position = self.nextstep
+        if len(self.laststeps) > 1:
+            # walk only up to the gates of the hometown
+            self.nextstep = self.laststeps.pop()
+            self.penalty += self.nextstep[3] + \
+                              self.world.getpenalty(self.nextstep)
         else:
-            self.laststeps.append(self.position)
-            self.position = self.nextstep
-            self.nextstep = [None,None,None,0]
-            self.world.setsteppheromone(self.position)
+            # retire after work.
+            self.snuffit()
+        self.world.setpathpheromone(self.position)
+
+    def walkaround(self):
+        """
+        Do all the things necessary for performing a regualar step when
+        walking around.
+        """
+        self.laststeps.append(self.position)
+        self.position = self.nextstep
+        self.nextstep = [None,None,None,0]
+        self.world.setsteppheromone(self.position)
 
     def work(self):
         """
