@@ -37,7 +37,14 @@ class TestAnt(unittest.TestCase):
 
     def test_walkhome(self):
         #TODO walking home
-        pass
+        self.agent.nextstep = [0,0,0,0]
+        self.agent.laststeps = [[1,1,0,0], [0,1,0,0]]
+        self.agent.walkhome()
+        self.assertEqual(self.world.pathintensity,
+                self.pg.layers[anthill.Anthill.RESULT][0][0])
+        self.assertEqual([[1,1,0,0]], self.agent.laststeps)
+        self.agent.walkhome()
+        self.assertEqual(0, len(self.world.agents))
 
     def test_walkaround(self):
         self.agent.position = [0,0]
