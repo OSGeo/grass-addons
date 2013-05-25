@@ -1,0 +1,7 @@
+sdesc: "Geographic Resources Analysis Support System (GRASS GIS) - stable release"
+ldesc: "Geographic Resources Analysis Support System (GRASS GIS) - 6.5 daily snapshot"
+category: Desktop
+requires: msvcrt iconv libtiff proj gdal freetype-mingw pdcurses zlib fftw libpng msys tcltk wxpython python-numpy python-pil pyopengl avce00 gpsbabel gs
+maintainer: MartinLanda
+curr: 6.5.svn-r56390-596
+prev: 6.5.svn-r56390-595
