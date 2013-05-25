@@ -41,6 +41,8 @@ class Anthill(world.World):
         self.addlayertopg(Anthill.COST)
         ## allow overwriting the cost map
         self.overwritepenalty = False
+        # TODO probably delete all these stuff here related to output..
+        self.addsequencenumber = False
         ## and finally the markings from the agents
         self.addlayertopg(Anthill.RESULT)
         ## allow overwriting the main map (if it exists)
@@ -97,7 +99,6 @@ class Anthill(world.World):
         Let the agents do their job. The actual main loop in such a world.
         """
         while rounds > 0:
-#            grass.info(rounds)
             if len(self.agents) < self.maxants:
 #                grass.info(len(self.agents))
                 # as there is still space on the pg, produce another ant
