@@ -1,4 +1,4 @@
-sdesc: "Geographic Resources Analysis Support System (GRASS GIS) - stable release"
+sdesc: "GRASS GIS - stable release"
 ldesc: "Geographic Resources Analysis Support System (GRASS GIS) - stable release"
 category: Desktop
 requires: msvcrt iconv libtiff proj gdal freetype-mingw pdcurses zlib fftw libpng msys tcltk wxpython python-numpy python-pil pyopengl avce00 gpsbabel gs
