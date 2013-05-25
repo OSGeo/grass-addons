@@ -9,8 +9,8 @@ from grass.script import array as garray
 class TestGrassland(unittest.TestCase):
     def setUp(self):
         # TODO check if there is a nicer way to do this..
-        self.rastlayername = "r_agent_rast_testmap@"+grass.gisenv()['MAPSET']
-        self.vectlayername = "r_agent_vect_testmap@"+grass.gisenv()['MAPSET']
+        self.rastlayername = None # "r_agent_rast_testmap@"+grass.gisenv()['MAPSET']
+        self.vectlayername = None # "r_agent_vect_testmap@"+grass.gisenv()['MAPSET']
 
         if self.rastlayername:
             for m in grass.list_strings('rast'):
