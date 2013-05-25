@@ -82,6 +82,7 @@ class Ant(agent.Agent):
         and finally choosing a next step by smell and random.
         """
         positions = self.world.getneighbourpositions(self.position)
+        # check if we found a goal node, else pick a next step from the list
         if not self.evaluate(positions):
             self.nextstep = self.decide(positions)
 
@@ -119,10 +120,11 @@ class Ant(agent.Agent):
         """
         # we are all only getting older..
         if self.age() == False:
+            # exit if we died in the meantime..
             return False
         # past this point we must have decided yet where to go to next..
         if self.nextstep[0] == None:
-            # so we decide it now if it is not clear yet
+            # so we'll have to decide it now if it was not clear yet
             self.choose()
             self.penalty += self.nextstep[3] + \
                                 self.world.getpenalty(self.nextstep)
