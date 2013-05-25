@@ -274,6 +274,9 @@ def letantsdance(rounds, outrounds):
     if world.addsequencenumber:
         outputmapbasename = \
             world.playground.grassmapnames[anthill.Anthill.RESULT].split("@")
+    else:
+        outputmapbasename = False
+        outputmapname = False
     if 0 < outrounds < rounds:
         # calculate when to write output
         mainloops = rounds / outrounds
@@ -284,12 +287,9 @@ def letantsdance(rounds, outrounds):
         nextwrite = rounds
     run = 0
     while run < mainloops:
-        print(run)
         if outputmapbasename:
             outputmapname = outputmapbasename[0] + str(run) + "@" + \
                             outputmapbasename[1]
-        print(outputmapname)
-#        grass.info(mainloops)
         # loop and write out the contents at the end
         world.letantsdance(nextwrite)
         # Print the number of found paths
