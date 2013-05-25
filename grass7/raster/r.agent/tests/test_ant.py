@@ -20,20 +20,41 @@ class TestAnt(unittest.TestCase):
         self.pg.layers[anthill.Anthill.SITE][1][1] = 0
         self.assertFalse(self.agent.check(positions))
         self.assertIsNone(self.agent.nextstep[0])
+        self.assertEqual(0, self.world.numberofpaths)
         # set the value of interest but at the homeplace
         self.pg.layers[anthill.Anthill.SITE][1][1] = -1
         self.assertFalse(self.agent.check(positions))
         self.assertIsNone(self.agent.nextstep[0])
+        self.assertEqual(0, self.world.numberofpaths)
         # and this time at a good position
         self.pg.layers[anthill.Anthill.SITE][0][0] = -1
         self.assertTrue(self.agent.check(positions))
         self.assertIsNotNone(self.agent.nextstep[0])
         self.assertEqual(1, self.agent.nextstep[0])
+        self.assertEqual(1, self.world.numberofpaths)
 
     def test_choose(self):
-        # This one is quite difficult to test as it is mainly a fork of
-        # possible other methods which are directly testable
-        pass
+        # every second step should be a goal..
+        self.assertEqual(0, self.world.numberofpaths)
+        self.pg.layers[anthill.Anthill.SITE][0][0] = -1
+        self.pg.layers[anthill.Anthill.SITE][2][0] = -1
+        self.pg.layers[anthill.Anthill.SITE][0][2] = -1
+        self.pg.layers[anthill.Anthill.SITE][2][2] = -1
+        self.world.sites = [[0,0],[2,0],[0,2],[2,2]]
+        self.agent = self.world.bear()
+        # we exclude home here to be a goal node, as the return
+        # statement in choose is mainly a shortcut and a goal node
+        # so close to home just does not make much sense
+        self.pg.layers[anthill.Anthill.SITE]\
+            [self.agent.position[0]][self.agent.position[1]] = 0
+        self.assertIsNone(self.agent.nextstep[0])
+        self.agent.choose()
+        self.assertIsNotNone(self.agent.nextstep[0])
+        self.agent.laststeps.append(self.agent.position)
+        self.agent.position = self.agent.nextstep
+        self.agent.nextstep = [None,None,None,0]
+        self.agent.choose()
+        self.assertEqual(1, self.world.numberofpaths)
 
     def test_walkhome(self):
         #TODO walking home
@@ -57,7 +78,27 @@ class TestAnt(unittest.TestCase):
     def test_work(self):
         # This is the ants main-loop and not that simple to test, every
         # method that is called from here is tested directly
-        pass
+        #
+        # every second step should be a goal..
+        # (also see test_choose)
+        self.assertEqual(0, self.world.numberofpaths)
+        # see test_choose() for why we exclude home here
+        self.pg.layers[anthill.Anthill.SITE][0][0] = 0
+        self.pg.layers[anthill.Anthill.SITE][2][1] = -1
+        self.pg.layers[anthill.Anthill.SITE][1][2] = -1
+        self.world.sites = [[0,0],[2,1],[1,2]]
+        self.agent = ant.Ant(1, self.world, [0,0])
+        self.world.agents.append(self.agent)
+        self.assertIsNone(self.agent.nextstep[0])
+        self.agent.work()
+        self.assertEqual(0, self.agent.ttl)
+        self.agent.ttl = 1
+        self.agent.work()
+        if self.agent.nextstep[0] is None:
+            self.agent.ttl = 1
+            self.agent.work()
+        self.assertIsNotNone(self.agent.nextstep[0])
+        self.assertEqual(1, self.world.numberofpaths)
 
     def test_setposition(self):
         # This is an Agent method, tested there..
@@ -79,5 +120,8 @@ class TestAnt(unittest.TestCase):
         # This is an Agent method, tested there..
         pass
 
-#    def tearDown(self):
+    def tearDown(self):
+        self.pg = None
+        self.world = None
+        self.agent = None
 
