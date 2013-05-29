@@ -1,6 +1,8 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
+	d.anaglyph \
+	d.barb \
 	d.edit.rast \
 	d.frontline \
 	d.hyperlink \

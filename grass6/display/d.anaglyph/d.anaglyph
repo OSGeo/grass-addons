@@ -1,0 +1,315 @@
+#!/bin/sh
+############################################################################
+#
+# MODULE:       d.anaglyph
+# AUTHOR(S):    M. Hamish Bowman, Dunedin, New Zealand
+#		Based on the method by Peter Loewe
+# PURPOSE:      Creates a sterographic 3D image suitable for viewing with
+#		red/cyan glasses.
+#
+# COPYRIGHT:    (c) 2013 Hamish Bowman, and the GRASS Development Team
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+############################################################################
+
+# FIXME: ~~NVIZ's "x" viewing position does not preserve the map rotation, but
+#	 the "y" viewing position does. So currently we use the "y" to tilt,
+#	 but that would require everyone to also tilt their heads 90 degrees
+#	 to see the 3D effect, so we use some inefficient rotations to get
+#	 around that.~~  --update-- That's wrong, it's the *minor axis* which
+#	 does not preserve the map rotation.
+
+#%Module
+#% description: Creates a sterographic 3D image suitable for viewing with red/cyan glasses.
+#% keywords: raster
+#%End
+#%Option
+#% key: input
+#% type: string
+#% required: yes
+#% key_desc: name
+#% description: Name of input raster map
+#% gisprompt: old,cell,raster
+#%End
+#%Option
+#% key: output
+#% type: string
+#% required: no
+#% label: Name for output PNG image
+#% description: If not given will be input map + ".png"
+#% gisprompt: new,file,file
+#%End
+#%Option
+#% key: size
+#% type: integer
+#% required: no
+#% multiple: no
+#% key_desc: width,height
+#% description: Width and height of output image
+#% answer: 640,480
+#%End
+#%Option
+#% key: z_exaggeration
+#% type: double
+#% required: no
+#% multiple: no
+#% key_desc: value
+#% description: Z-exaggeration
+#% answer: 2.0
+#%End
+#%Option
+#% key: vpoints
+#% type: string
+#% required: no
+#% multiple: no
+#% key_desc: name
+#% description: Name of point vector overlay map
+#% gisprompt: old,vector,vector
+#% guisection: Vector overlay
+#%End
+#%Option
+#% key: vlines
+#% type: string
+#% required: no
+#% multiple: no
+#% key_desc: name
+#% description: Name of line vector overlay map
+#% gisprompt: old,vector,vector
+#% guisection: Vector overlay
+#%End
+#%Flag
+#% key: f
+#% description: Flatten terrain
+#%End
+#%Flag
+#% key: e
+#% description: Equalize contrast
+#%End
+
+if [ -z "$GISBASE" ] ; then
+    echo "You must be in GRASS GIS to run this program." 1>&2
+    exit 1
+fi
+
+if [ "$1" != "@ARGS_PARSED@" ] ; then
+    exec g.parser "$0" "$@"
+fi
+
+#### check if we have awk
+if [ ! -x "`which awk`" ] ; then
+    g.message -e "awk is required, please install awk or gawk first"
+    exit 1
+fi
+
+# set environment so that awk works properly in all locales
+unset LC_ALL
+LC_NUMERIC=C
+export LC_NUMERIC
+
+if [ ! -x "`which pnmtopng`" ]\
+   || [ ! -x "`which ppmtorgb3`" ] \
+   || [ ! -x "`which rgb3toppm`" ] ; then
+    g.message -e "The NetPBM tools are required, please install them first"
+    exit 1
+fi
+
+
+if [ $GIS_FLAG_F -eq 0 ] ; then
+   #### check if we have the r.rot90 module
+   if [ ! -x "`which r.rot90`" ] ; then
+       g.message -e "The r.rot90 addon module is required, please install it first or use the -f flag."
+       exit 1
+   fi
+fi
+
+
+TEMP_IMG="tmp_anaglyph_$$"
+
+cleanup()
+{
+   g.remove "$TEMP_IMG" --quiet
+   rm -f "$TEMPFILE" "${TEMPFILE}."*
+   unset WIND_OVERRIDE
+   g.remove region="tmp_anaglyph.$$" --quiet
+}
+
+# what to do in case of user break:
+exitprocedure()
+{
+   g.message -e 'User break!'
+   cleanup
+   exit 1
+}
+# shell check for user break (signal list: trap -l)
+trap "exitprocedure" 2 3 15
+
+
+check_ret()
+{
+   if [ $? -ne 0 ] ; then
+      g.message "There was a problem. Aborting."
+      cleanup
+      exit 1
+   fi
+}
+
+
+TEMPFILE="`g.tempfile pid=$$`"
+if [ $? -ne 0 ] || [ -z "$TEMPFILE" ] ; then
+    g.message -e "Unable to create temporary files"
+    exit 1
+fi
+
+
+INMAP="$GIS_OPT_INPUT"
+if [ -z "$GIS_OPT_OUTPUT" ] ; then
+   OUTFILE1="$GIS_OPT_INPUT.png"
+else
+   OUTFILE1="$GIS_OPT_OUTPUT"
+fi
+
+#ensure the extension
+OUTFILE=`basename "$OUTFILE1" .png`.png
+
+#is there a simpler way of testing for --overwrite?
+if [ -e "$OUTFILE" ] ; then
+   if [ -z "$GRASS_OVERWRITE" ] || [ "$GRASS_OVERWRITE" -ne 1 ] ; then
+      g.message -e "File <$OUTFILE> already exists"
+      exit 1
+   fi
+fi
+
+
+SIZE="$GIS_OPT_SIZE"
+
+if [ "$GIS_FLAG_E" -eq 1 ] ; then
+   EFLAG="-e"
+else
+   EFLAG=""
+fi
+
+ZEXAG="$GIS_OPT_Z_EXAGGERATION"
+
+if [ -n "$GIS_OPT_VPOINTS" ] ; then
+   VPOINTS="vpoint=$GIS_OPT_VPOINTS vpoint_color=yellow"
+else
+   VPOINTS=""
+fi
+
+if [ -n "$GIS_OPT_VLINES" ] ; then
+   eval `g.region -g`
+   VLINES="vline=$GIS_OPT_VLINES vline_color=black vline_height=$nsres"
+else
+   VLINES=""
+fi
+
+
+OLDDIR="`pwd`"
+cd `dirname "$TEMPFILE"`
+
+
+#### dynamic viewpoint height calculations
+eval `g.region -ge`
+# various scales of the average map extent to use for the viewing height
+avg_extent=`echo "$ns_extent $ew_extent" | awk '{print ($1 + $2)/2.0}'`
+
+# need to adjust viewing height and vertical exaggeration in tandem, at zex=2 it's about right.
+avg_extentN=`echo "$avg_extent $ZEXAG" | awk '{print $1 * (2 / $2)}'`
+
+# TODO: at higher z-exag the viewpoint separation should be increased
+extent1_25=`echo "$avg_extentN" | awk '{print 1.25 * $1}'`
+extent1_45=`echo "$avg_extentN" | awk '{print 1.45 * $1}'`
+#extent2=`echo "$avg_extentN" | awk '{print 2 * $1}'`
+#extent3=`echo "$avg_extentN" | awk '{print 3 * $1}'`
+#extent_frac=`echo "$avg_extentN" | awk '{print 0.005 * $1}'`
+
+
+g.message "Preparing map ..."
+r.mapcalc "$TEMP_IMG = $INMAP"
+r.colors $EFLAG "$TEMP_IMG" color=grey --quiet
+
+
+if [ $GIS_FLAG_F -eq 1 ] ; then
+   #### flat image ####
+
+   RENDER_OPTS="resolution_fine=1 perspective=15 twist=180 \
+      position=0.5,0.5 $VLINES $VPOINTS"
+
+   g.message "Rendering 3D scenes ..."
+   m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.right" \
+     $RENDER_OPTS size="$SIZE" height="$extent1_45" zexag="$ZEXAG" \
+     surface_position=$extent_frac,0,0  --quiet &
+
+   m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.left" \
+     $RENDER_OPTS size="$SIZE" height="$extent1_45" zexag="$ZEXAG" \
+     surface_position=-$extent_frac,0,0  --quiet
+
+   check_ret
+   wait
+
+else
+   #### 3D relief ####
+
+   # setup internal region
+   g.region save="tmp_anaglyph.$$"
+   WIND_OVERRIDE="tmp_anaglyph.$$"
+   export WIND_OVERRIDE
+   g.region rast="$TEMP_IMG"
+
+   # really annoying: Nviz rotates along the shorter of the two axes, so
+   #  we have to grow so that the region is taller than it is wide, so that
+   #  we don't have to turn our heads sideways to get the 3D effect, and that
+   #  the viewpoint doesn't spin out of control at the inflection mid-point.
+   LARGER=`echo "$ew_extent $ns_extent" | awk '{if ($1 > $2) { print "ew" } else { print "ns" }}'`
+   if [ "ew" = "$LARGER" ] ; then
+      BUFDIST=`echo "$ew_extent $ns_extent" | awk '{print int(0.5 + ($1 - $2)/2.0)}'`
+      eval `g.region -g`
+      BUFDIST_EVEN=`echo "$BUFDIST $nsres" | awk '{print $1 + (10 * $2) - ($1 % $2)}'`
+      g.region n="n+$BUFDIST_EVEN" s="s-$BUFDIST_EVEN"
+   fi
+
+   RENDER_OPTS="resolution_fine=1 perspective=15 $VLINES $VPOINTS"
+
+   g.message "Rendering 3D scenes ..."
+
+   m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.right" \
+     $RENDER_OPTS size="$SIZE" height="$extent1_25" zexag="$ZEXAG" \
+     position=0.52,0.5 twist=90 --quiet &
+
+   m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.left" \
+     $RENDER_OPTS size="$SIZE" height="$extent1_25" zexag="$ZEXAG" \
+     position=0.48,0.5 twist=-90 --quiet
+
+   check_ret
+   wait
+fi
+
+
+BASENM=`basename "$TEMPFILE"`
+
+# split into R,G,B components
+g.message "Creating anaglyph ..."
+ppmtorgb3 "$BASENM.left.ppm" &
+ppmtorgb3 "$BASENM.right.ppm"
+check_ret
+wait
+
+rgb3toppm "$BASENM.left.red" "$BASENM.right.grn" "$BASENM.right.blu" \
+    > "$BASENM.anaglyph.ppm"
+check_ret
+
+pnmtopng "$BASENM.anaglyph.ppm" > "$OLDDIR/$OUTFILE"
+check_ret
+
+g.message "<$OUTFILE> created."
+
+cleanup

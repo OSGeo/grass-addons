@@ -1,0 +1,61 @@
+<h2>DESCRIPTION</h2>
+
+<em>d.anaglyph</em> creates a sterographic 3D image suitable for viewing
+with red/cyan glasses. Vector line and point maps may be draped over the
+raster surface.
+
+
+<h2>NOTES</h2>
+
+The NetPBM image manipulation tools are required.
+The output file will be a PNG image.
+
+
+<h2>EXAMPLES</h2>
+
+North Carolina dataset:
+<div class="code"><pre>
+g.region rast=elevation
+d.anaglyph input=elevation output=wake_anaglyph.png size=1280,960 \
+   vlines=roadsmajor vpoints=schools_wake
+</pre></div>
+
+
+Spearfish dataset:
+<div class="code"><pre>
+g.region rast=elevation.10m
+d.anaglyph -e input=elevation.10m output=spearfish_anaglyph.png \
+   size=1280,960 z_exag=1.5 vlines=roads vpoints=archsites
+</pre></div>
+
+
+<h2>TODO</h2>
+
+Fine tuning; needs more viewpoint separation when the z-exaggeration is high.
+View is currently limited to top-down.
+<em>m.nviz.image</em> currently Segfaults if more vector maps are passed than
+attributes to go with them. We should fix that so if there are more maps than
+attributes the later maps reuse the attributes of the earlier ones.
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="m.nviz.image.html">m.nviz.image</a>,
+<a href="nviz.html">NVIZ</a><br>
+</em>
+The <a href="http://grasswiki.osgeo.org/wiki/Stereo_anaglyphs">Stereo anaglyphs</a>
+page on the GRASS Wiki
+
+
+<h2>AUTHOR</h2>
+
+Hamish Bowman<br> <i>
+Department of Geology<br>
+University of Otago<br>
+New Zealand</i><br>
+<br>
+Based on a method by Peter Loewe
+
+<p>
+<i>Last changed: $Date$</i></p>
