@@ -40,10 +40,6 @@
 #% required: no
 #% guisection: Stream parameters
 #%end
-#%Flag
-#% key: s
-#% description: Remove small river segments
-#%end
 #%option
 #% key: n_source
 #% type: string
@@ -401,36 +397,29 @@ def main():
 					  input = "river_raster_tmp_%d" % os.getpid(),
 					  output = "distance_raster_tmp_%d" % os.getpid(),
 					  coordinate = coors)
-	grass.run_command("r.watershed",
-					  flags = 'm', #depends on memory!!
-					  elevation = "distance_raster_tmp_%d" % os.getpid(),
+
+	largest_cost_value = grass.raster_info("distance_raster_tmp_%d" % os.getpid())['max']
+	n_buffer_cells = 3
+
+	grass.run_command("r.buffer",
+					overwrite=True,
+					input="distance_raster_tmp_%d" % os.getpid(),
+					output="buffered_river_tmp_%d" % os.getpid(),
+					distances=n_buffer_cells*res)
+
+	grass.mapcalc("$distance_raster_buffered_tmp = if($buffered_river_tmp==2,$largest_cost_value*2,$distance_raster_tmp)",
+					distance_raster_buffered_tmp = "distance_raster_buffered_tmp_%d" % os.getpid(),
+					buffered_river_tmp = "buffered_river_tmp_%d" % os.getpid(),
+					largest_cost_value = "largest_cost_value_%d" % os.getpid(),
+					distance_raster_tmp = "distance_raster_tmp_%d" % os.getpid())
+
+	grass.run_command("r.watershed", #??? Set flag "s" for single flow ???
+					  flags = 'm', #depends on memory!! #
+					  elevation = "distance_raster_buffered_tmp_%d" % os.getpid(),
 					  drainage = "flow_direction_tmp_%d" % os.getpid(),
 					  stream = "stream_segments_tmp_%d" % os.getpid(),
-					  threshold = "2",
+					  threshold = n_buffer_cells,
 					  overwrite = True)
-
-
-
-	#!!!! Here Problem when 1 cell river section is in mainstem: gap in the middle of the river!
-	# Maybe solve with flag to choose either leave or remove small river sections!
-	#Removing small (1 cell) river sections and re-calculate distance raster and flow direction
-	if flags['s']:
-		grass.mapcalc("$river_raster = if($stream_segments>=0, $river_raster, null())",
-					 	 river_raster = "river_raster_tmp_%d" % os.getpid(),
-						 stream_segments = "stream_segments_tmp_%d" % os.getpid())
-		grass.run_command("r.cost",
-					  	flags = 'n',
-					  	overwrite = True,
-					  	input = "river_raster_tmp_%d" % os.getpid(),
-					  	output = "distance_raster_tmp_%d" % os.getpid(),
-					  	coordinate = coors)
-		grass.run_command("r.watershed",
-					  	flags = 'm', #depends on memory!!
-					  	elevation = "distance_raster_tmp_%d" % os.getpid(),
-					  	drainage = "flow_direction_tmp_%d" % os.getpid(),
-					  	overwrite = True)
-	
-
 
 	
 	#Calculation of stream order (Shreve/Strahler)
@@ -440,8 +429,6 @@ def main():
 					  shreve = "shreve_tmp_%d" % os.getpid(),
 					  strahler = "strahler_tmp_%d" % os.getpid(),
 					  overwrite = True)
-
-
 
 
 
