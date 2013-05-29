@@ -424,7 +424,7 @@ def main():
 	grass.mapcalc("$distance_raster_buffered_tmp = if($buffered_river_tmp==2,$largest_cost_value*2,$distance_raster_tmp)",
 					distance_raster_buffered_tmp = "distance_raster_buffered_tmp_%d" % os.getpid(),
 					buffered_river_tmp = "buffered_river_tmp_%d" % os.getpid(),
-					largest_cost_value = "largest_cost_value_%d" % os.getpid(),
+					largest_cost_value = largest_cost_value,
 					distance_raster_tmp = "distance_raster_tmp_%d" % os.getpid())
 
 	grass.run_command("r.watershed", #??? Set flag "s" for single flow ???
