@@ -46,6 +46,7 @@ SUBDIRS = \
 	r.prominence \
 	r.rast4d \
 	r.roughness \
+	r.rot90 \
 	r.seg \
 	r.soils.texture \
 	r.stack \
