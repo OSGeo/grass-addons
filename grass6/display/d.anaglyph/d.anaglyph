@@ -122,16 +122,6 @@ if [ ! -x "`which pnmtopng`" ]\
     exit 1
 fi
 
-
-if [ $GIS_FLAG_F -eq 0 ] ; then
-   #### check if we have the r.rot90 module
-   if [ ! -x "`which r.rot90`" ] ; then
-       g.message -e "The r.rot90 addon module is required, please install it first or use the -f flag."
-       exit 1
-   fi
-fi
-
-
 TEMP_IMG="tmp_anaglyph_$$"
 
 cleanup()
