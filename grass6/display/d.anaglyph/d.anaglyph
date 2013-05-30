@@ -319,17 +319,32 @@ else
       g.region n="n+$BUFDIST_EVEN" s="s-$BUFDIST_EVEN"
    fi
 
+
+   SPREAD=0.02
+   # if you get very close to the map the left and right views become too
+   #  far away from each other at the edges. (about 1cm seems to be the max)
+   # if we make it too small (0.15<s<0.0175) then nviz flips one of the scenes.
+   TWIST_L=-90
+   LARGER=`echo "$height $avg_extent" | awk '{if ($1 > $2) { print "height" } else { print "map" }}'`
+   if [ "map" = "$LARGER" ] ; then
+      SPREAD=0.005
+      TWIST_L=90
+   fi
+
+   SPREAD_L=`echo "$SPREAD" | awk '{print 0.5 - $1}'`
+   SPREAD_R=`echo "$SPREAD" | awk '{print 0.5 + $1}'`
+
    RENDER_OPTS="resolution_fine=1 perspective=15 bgcolor=black $VLINES $VPOINTS"
 
    g.message "Rendering 3D scenes ..."
 
    m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.right" \
      $RENDER_OPTS size="$SIZE" height="$height" zexag="$ZEXAG" \
-     position=0.52,0.5 twist=90 --quiet &
+     position="$SPREAD_R",0.5 twist=90 --quiet &
 
    m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.left" \
      $RENDER_OPTS size="$SIZE" height="$height" zexag="$ZEXAG" \
-     position=0.48,0.5 twist=-90 --quiet
+     position="$SPREAD_L",0.5 twist="$TWIST_L" --quiet
 
    check_ret
    wait
