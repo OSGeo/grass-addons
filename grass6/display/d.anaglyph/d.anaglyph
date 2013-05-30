@@ -277,7 +277,15 @@ if [ $GIS_FLAG_F -eq 1 ] ; then
    fi
    g.message "Viewing height: $height `g.proj -g | grep units | cut -f2- -d=`"
 
-   RENDER_OPTS="resolution_fine=1 perspective=15 twist=180 \
+   # really annoying: Nviz rotates to "landscape" orientation, so we have
+   #  to check the region dimensions and sometimes rotate it back.
+   TWIST=180
+   LARGER=`echo "$ew_extent $ns_extent" | awk '{if ($1 > $2) { print "ew" } else { print "ns" }}'`
+   if [ "ns" = "$LARGER" ] ; then
+      TWIST=90
+   fi
+
+   RENDER_OPTS="resolution_fine=1 perspective=15 twist=$TWIST \
       position=0.5,0.5 bgcolor=black $VLINES $VPOINTS"
 
    g.message "Rendering 3D scenes ..."
