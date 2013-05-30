@@ -79,7 +79,7 @@
 #% key: vpoints
 #% type: string
 #% required: no
-#% multiple: no
+#% multiple: yes
 #% key_desc: name
 #% description: Name of point vector overlay map
 #% gisprompt: old,vector,vector
@@ -89,7 +89,7 @@
 #% key: vpoints_size
 #% type: integer
 #% required: no
-#% multiple: no
+#% multiple: yes
 #% options: 1-10000
 #% key_desc: value
 #% description: Icon size (map units)
@@ -234,8 +234,6 @@ if [ -n "$GIS_OPT_VPOINTS" ] ; then
 else
    VPOINTS=""
 fi
-
-
 
 if [ -n "$GIS_OPT_VLINES" ] ; then
    eval `g.region -g`
