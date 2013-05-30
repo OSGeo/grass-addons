@@ -360,7 +360,7 @@ def main():
 		grass.run_command("v.distance",
 						  overwrite = True,
 						  _from="barriers_tmp_%d" % os.getpid(),
-						  to="river_points_tmp_%d" % os.getpid(),
+						  to="river_vector_tmp_%d" % os.getpid(),
 						  upload="to_x,to_y",
 						  column="new_X,new_Y")
 		grass.run_command("v.in.db",
@@ -427,7 +427,7 @@ def main():
 					largest_cost_value = largest_cost_value,
 					distance_raster_tmp = "distance_raster_tmp_%d" % os.getpid())
 
-	grass.run_command("r.watershed", #??? Set flag "s" for single flow ???
+	grass.run_command("r.watershed", 
 					  flags = 'm', #depends on memory!! #
 					  elevation = "distance_raster_buffered_tmp_%d" % os.getpid(),
 					  drainage = "flow_direction_tmp_%d" % os.getpid(),
