@@ -58,6 +58,15 @@
 #% answer: 640,480
 #%End
 #%Option
+#% key: viewing_height
+#% type: double
+#% required: no
+#% multiple: no
+#% key_desc: value
+#% label: Viewing height (map units)
+#% description: default: automatic based on map extent
+#%End
+#%Option
 #% key: z_exaggeration
 #% type: double
 #% required: no
@@ -74,6 +83,29 @@
 #% key_desc: name
 #% description: Name of point vector overlay map
 #% gisprompt: old,vector,vector
+#% guisection: Vector overlay
+#%End
+#%Option
+#% key: vpoints_size
+#% type: integer
+#% required: no
+#% multiple: no
+#% options: 1-10000
+#% key_desc: value
+#% description: Icon size (map units)
+#% answer: 100
+#% guisection: Vector overlay
+#%End
+#%Option
+#% key: vpoints_mode
+#% type: string
+#% required: no
+#% multiple: yes
+#% options: surface,3D
+#% key_desc: string
+#% description: Vector points display mode
+#% descriptions: surface;drape on raster surface;3D;place at 3D point's z-elevation
+#% answer: surface
 #% guisection: Vector overlay
 #%End
 #%Option
@@ -128,8 +160,10 @@ cleanup()
 {
    g.remove "$TEMP_IMG" --quiet
    rm -f "$TEMPFILE" "${TEMPFILE}."*
-   unset WIND_OVERRIDE
-   g.remove region="tmp_anaglyph.$$" --quiet
+   if [ -n "$WIND_OVERRIDE" ] ; then
+      unset WIND_OVERRIDE
+      g.remove region="tmp_anaglyph.$$" --quiet
+   fi
 }
 
 # what to do in case of user break:
@@ -191,9 +225,17 @@ ZEXAG="$GIS_OPT_Z_EXAGGERATION"
 
 if [ -n "$GIS_OPT_VPOINTS" ] ; then
    VPOINTS="vpoint=$GIS_OPT_VPOINTS vpoint_color=yellow"
+   if [ -n "$GIS_OPT_VPOINTS_SIZE" ] ; then
+      VPOINTS="$VPOINTS vpoint_size=$GIS_OPT_VPOINTS_SIZE"
+   fi
+   if [ -n "$GIS_OPT_VPOINTS_MODE" ] ; then
+      VPOINTS="$VPOINTS vpoint_mode=$GIS_OPT_VPOINTS_MODE"
+   fi
 else
    VPOINTS=""
 fi
+
+
 
 if [ -n "$GIS_OPT_VLINES" ] ; then
    eval `g.region -g`
@@ -220,7 +262,7 @@ extent1_25=`echo "$avg_extentN" | awk '{print 1.25 * $1}'`
 extent1_45=`echo "$avg_extentN" | awk '{print 1.45 * $1}'`
 #extent2=`echo "$avg_extentN" | awk '{print 2 * $1}'`
 #extent3=`echo "$avg_extentN" | awk '{print 3 * $1}'`
-#extent_frac=`echo "$avg_extentN" | awk '{print 0.005 * $1}'`
+extent_frac=`echo "$avg_extentN" | awk '{print 0.005 * $1}'`
 
 
 g.message "Preparing map ..."
@@ -230,24 +272,36 @@ r.colors $EFLAG "$TEMP_IMG" color=grey --quiet
 
 if [ $GIS_FLAG_F -eq 1 ] ; then
    #### flat image ####
+   if [ -n "$GIS_OPT_VIEWING_HEIGHT" ] ; then
+      height="$GIS_OPT_VIEWING_HEIGHT"
+   else
+      height="$extent1_45"
+   fi
+   g.message "Viewing height: $height `g.proj -g | grep units | cut -f2- -d=`"
 
    RENDER_OPTS="resolution_fine=1 perspective=15 twist=180 \
-      position=0.5,0.5 $VLINES $VPOINTS"
+      position=0.5,0.5 bgcolor=black $VLINES $VPOINTS"
 
    g.message "Rendering 3D scenes ..."
    m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.right" \
-     $RENDER_OPTS size="$SIZE" height="$extent1_45" zexag="$ZEXAG" \
-     surface_position=$extent_frac,0,0  --quiet &
+     $RENDER_OPTS size="$SIZE" height="$height" zexag="$ZEXAG" \
+     surface_position="$extent_frac,0,0"  --quiet &
 
    m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.left" \
-     $RENDER_OPTS size="$SIZE" height="$extent1_45" zexag="$ZEXAG" \
-     surface_position=-$extent_frac,0,0  --quiet
+     $RENDER_OPTS size="$SIZE" height="$height" zexag="$ZEXAG" \
+     surface_position="-$extent_frac,0,0"  --quiet
 
    check_ret
    wait
 
 else
    #### 3D relief ####
+   if [ -n "$GIS_OPT_VIEWING_HEIGHT" ] ; then
+      height="$GIS_OPT_VIEWING_HEIGHT"
+   else
+      height="$extent1_25"
+   fi
+   g.message "Viewing height: $height `g.proj -g | grep units | cut -f2- -d=`"
 
    # setup internal region
    g.region save="tmp_anaglyph.$$"
@@ -267,16 +321,16 @@ else
       g.region n="n+$BUFDIST_EVEN" s="s-$BUFDIST_EVEN"
    fi
 
-   RENDER_OPTS="resolution_fine=1 perspective=15 $VLINES $VPOINTS"
+   RENDER_OPTS="resolution_fine=1 perspective=15 bgcolor=black $VLINES $VPOINTS"
 
    g.message "Rendering 3D scenes ..."
 
    m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.right" \
-     $RENDER_OPTS size="$SIZE" height="$extent1_25" zexag="$ZEXAG" \
+     $RENDER_OPTS size="$SIZE" height="$height" zexag="$ZEXAG" \
      position=0.52,0.5 twist=90 --quiet &
 
    m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.left" \
-     $RENDER_OPTS size="$SIZE" height="$extent1_25" zexag="$ZEXAG" \
+     $RENDER_OPTS size="$SIZE" height="$height" zexag="$ZEXAG" \
      position=0.48,0.5 twist=-90 --quiet
 
    check_ret
