@@ -1,9 +1,14 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.ten</em> performs 3D triangulation on input 3D vector point
-map. Resultant facets (ie. triangles) of tetrahedral network (TEN) are
-written as faces. If <b>-l</b> flag is given that the modules writes
-edges of the network as lines instead of faces.
+<em>v.delaunay3d</em> performs 3D Delaunay triangulation on input 3D
+vector point map. Resultant facets (ie. triangles) of tetrahedral
+network (TEN) are written as faces to the output vector
+map. If <b>-l</b> flag is given, the module writes edges of the
+network as lines instead of faces.
+
+By <b>-p</b> flag the user can perform plain 3D triangulation instead
+of Delaunay triangulation. In the plain triangulation the facets
+depends on the insertion order of the vertices.
 
 <h2>NOTES</h2>
 
@@ -21,12 +26,12 @@ always 3D.
 # generate random 3D points
 v.random out=rp n=100 zmax=100 -z
 # perform 3D triangulation
-v.ten input=rp output=rp_ten
+v.delaunay3d input=rp output=rp_ten
 ...
 Number of vertices: 100
-Number of edges: 491
-Number of triangles: 780
-Number of tetrahedrons: 390
+Number of edges: 626
+Number of triangles: 1019
+Number of tetrahedrons: 492
 </pre></div>
 
 <h2>REFERENCES</h2>

@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = v.ten
+PGM = v.delaunay3d
 
 LIBES = $(VECTORLIB) $(GISLIB)
 DEPENDENCIES = $(VECTORDEP) $(GISDEP)
