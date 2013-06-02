@@ -6,6 +6,7 @@ SUBDIRS = \
 	v.in.redwg \
 	v.in.wfs2 \
 	v.median \
+	v.net.turntable \
 	v.out.ply \
 	v.surf.icw
 
