@@ -1,0 +1,44 @@
+<h2>DESCRIPTION</h2>
+
+<em>v.ten</em> performs 3D triangulation on input 3D vector point
+map. Resultant facets (ie. triangles) of tetrahedral network (TEN) are
+written as faces. If <b>-l</b> flag is given that the modules writes
+edges of the network as lines instead of faces.
+
+<h2>NOTES</h2>
+
+3D triangulation is performed
+by <a href="http://www.cgal.org">CGAL</a> library.
+
+<p>
+Centroids are treated as points when reading data from the input
+vector map. Note that input vector map must be 3D, the output is
+always 3D.
+
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+# generate random 3D points
+v.random out=rp n=100 zmax=100 -z
+# perform 3D triangulation
+v.ten input=rp output=rp_ten
+...
+Number of vertices: 100
+Number of edges: 491
+Number of triangles: 780
+Number of tetrahedrons: 390
+</pre></div>
+
+<h2>REFERENCES</h2>
+
+<ul>
+  <li><a href="http://doc.cgal.org/4.2/CGAL.CGAL.3D-Triangulations/html/index.html">CGAL
+  4.2 - 3D Triangulations</a>
+</ul>
+
+<h2>AUTHOR</h2>
+
+Martin Landa, Czech Technical University in Prague, Czech Republic
+
+<p>
+<i>Last changed: $Date$</i>
