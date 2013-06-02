@@ -26,9 +26,9 @@
 #include <grass/glocale.h>
 
 /*
-IDEA: This module could be included into v.net module 
-     (both modules do service for vector network analyses)???
-*/
+   IDEA: This module could be included into v.net module 
+   (both modules do service for vector network analyses)???
+ */
 
 
 void close_db(void *p)
@@ -46,7 +46,8 @@ int main(int argc, char *argv[])
     struct field_info *fi;
 
     struct Option *opt_in_map, *opt_out_map;
-    struct Option *opt_ttb_name, *opt_afield, *opt_tfield, *opt_tucfield, *opt_type;
+    struct Option *opt_ttb_name, *opt_afield, *opt_tfield, *opt_tucfield,
+	*opt_type;
     char *database_name, *driver_name;
 
     int i_field_num, field_num, i_field, type;
@@ -121,29 +122,32 @@ int main(int argc, char *argv[])
 
     type = Vect_option_to_types(opt_type);
 
-    afield   = Vect_get_field_number(&InMap, opt_afield->answer);
-    tfield   = Vect_get_field_number(&InMap, opt_tfield->answer);
+    afield = Vect_get_field_number(&InMap, opt_afield->answer);
+    tfield = Vect_get_field_number(&InMap, opt_tfield->answer);
     tucfield = Vect_get_field_number(&InMap, opt_tucfield->answer);
 
-    if(!Vect_get_field (&InMap, afield))
-        G_fatal_error(_("Arc layer <%s> does not exists in map <%s>."),
-                         opt_afield->answer, opt_out_map->answer);        
+    if (!Vect_get_field(&InMap, afield))
+	G_fatal_error(_("Arc layer <%s> does not exists in map <%s>."),
+		      opt_afield->answer, opt_out_map->answer);
 
-    if(Vect_get_field (&InMap, tfield))
-        G_warning(_("Layer <%s> already exists in map <%s>.\nIt will be overwritten by tlayer data."),
-                     opt_tfield->answer, opt_out_map->answer);  
+    if (Vect_get_field(&InMap, tfield))
+	G_warning(_
+		  ("Layer <%s> already exists in map <%s>.\nIt will be overwritten by tlayer data."),
+		  opt_tfield->answer, opt_out_map->answer);
 
-    if(Vect_get_field (&InMap, tucfield))
-        G_warning(_("Layer <%s> already exists in map <%s>.\nIt will be overwritten by tuclayer data."),
-                    opt_tucfield->answer, opt_out_map->answer); 
+    if (Vect_get_field(&InMap, tucfield))
+	G_warning(_
+		  ("Layer <%s> already exists in map <%s>.\nIt will be overwritten by tuclayer data."),
+		  opt_tucfield->answer, opt_out_map->answer);
 
     ttb_name = NULL;
     if (!opt_ttb_name->answer) {
-    G_asprintf(&ttb_name, "%s_%s_turntable_%s", 
-               opt_out_map->answer, opt_tfield->answer, opt_afield->answer);
+	G_asprintf(&ttb_name, "%s_%s_turntable_%s",
+		   opt_out_map->answer, opt_tfield->answer,
+		   opt_afield->answer);
     }
     else {
-    ttb_name = G_store(opt_out_map->answer);
+	ttb_name = G_store(opt_out_map->answer);
     }
 
     if (Vect_open_new(&OutMap, opt_out_map->answer, WITHOUT_Z) < 1) {
@@ -159,11 +163,11 @@ int main(int argc, char *argv[])
 	if (Vect_map_check_dblink(&InMap, i_field_num, NULL) == 0)
 	    continue;
 
-    if(field_num == -1)
-	   field_num = i_field_num;
+	if (field_num == -1)
+	    field_num = i_field_num;
 
-    if(field_num != tfield && field_num != tucfield)
-        Vect_copy_tables(&InMap, &OutMap, field_num);
+	if (field_num != tfield && field_num != tucfield)
+	    Vect_copy_tables(&InMap, &OutMap, field_num);
     }
 
     if (field_num < 0) {
@@ -218,7 +222,7 @@ int main(int argc, char *argv[])
 
     Vect_close(&OutMap);
 
-    /*TODO why must be closed and opened again?*/
+    /*TODO why must be closed and opened again? */
     Vect_open_old(&OutMap, opt_out_map->answer, G_mapset());
     Vect_build(&OutMap);
 
