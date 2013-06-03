@@ -5,7 +5,7 @@
 # AUTHOR(S):    M. Hamish Bowman, Dunedin, New Zealand
 #		Based on the method by Peter Loewe
 # PURPOSE:      Creates a sterographic 3D image suitable for viewing with
-#		red/cyan glasses.
+#		red/cyan glasses or by crossing your eyes.
 #
 # COPYRIGHT:    (c) 2013 Hamish Bowman, and the GRASS Development Team
 #
@@ -29,7 +29,7 @@
 #	 does not preserve the map rotation.
 
 #%Module
-#% description: Creates a sterographic 3D image suitable for viewing with red/cyan glasses.
+#% description: Creates a sterographic 3D image suitable for viewing with red/cyan glasses or by simply crossing your eyes.
 #% keywords: raster
 #%End
 #%Option
@@ -74,6 +74,15 @@
 #% key_desc: value
 #% description: Z-exaggeration
 #% answer: 2.0
+#%End
+#%Option
+#% key: color_overlay
+#% type: string
+#% required: no
+#% key_desc: name
+#% description: Name of raster map to drape across surface
+#% gisprompt: old,cell,raster
+#% guisection: Raster overlay
 #%End
 #%Option
 #% key: vpoints
@@ -126,6 +135,20 @@
 #% key: e
 #% description: Equalize contrast
 #%End
+#%Flag
+#% key: s
+#% label: Create a bifurcated sterogram pair instead of a blue/cyan anaglyph
+#% description: In this case the size option sets the size of each pane.
+#%End
+#%Flag
+#% key: c
+#% description: Cross-eyed mode for bifurcated sterogram pair
+#%End
+#%Flag
+#% key: g
+#% description: Create viewing guide for cross-eyed sterograms
+#%End
+
 
 if [ -z "$GISBASE" ] ; then
     echo "You must be in GRASS GIS to run this program." 1>&2
@@ -158,7 +181,9 @@ TEMP_IMG="tmp_anaglyph_$$"
 
 cleanup()
 {
-   g.remove "$TEMP_IMG" --quiet
+   if [ "$GIS_FLAG_S" -ne 1 ] ; then
+      g.remove "$TEMP_IMG" --quiet
+   fi
    rm -f "$TEMPFILE" "${TEMPFILE}."*
    if [ -n "$WIND_OVERRIDE" ] ; then
       unset WIND_OVERRIDE
@@ -242,6 +267,12 @@ else
    VLINES=""
 fi
 
+if [ -n "$GIS_OPT_COLOR_OVERLAY" ] ; then
+   DRAPE="color_map=$GIS_OPT_COLOR_OVERLAY"
+else
+   DRAPE=""
+fi
+
 
 OLDDIR="`pwd`"
 cd `dirname "$TEMPFILE"`
@@ -263,10 +294,13 @@ extent1_45=`echo "$avg_extentN" | awk '{print 1.45 * $1}'`
 extent_frac=`echo "$avg_extentN" | awk '{print 0.005 * $1}'`
 
 
-g.message "Preparing map ..."
-r.mapcalc "$TEMP_IMG = $INMAP"
-r.colors $EFLAG "$TEMP_IMG" color=grey --quiet
-
+if [ "$GIS_FLAG_S" -ne 1 ] ; then
+   g.message "Preparing map ..."
+   r.mapcalc "$TEMP_IMG = $INMAP"
+   r.colors $EFLAG "$TEMP_IMG" color=grey --quiet
+else
+   TEMP_IMG="$INMAP"
+fi
 
 if [ $GIS_FLAG_F -eq 1 ] ; then
    #### flat image ####
@@ -286,7 +320,7 @@ if [ $GIS_FLAG_F -eq 1 ] ; then
    fi
 
    RENDER_OPTS="resolution_fine=1 perspective=15 twist=$TWIST \
-      position=0.5,0.5 bgcolor=black $VLINES $VPOINTS"
+      position=0.5,0.5 bgcolor=black $VLINES $VPOINTS $DRAPE"
 
    g.message "Rendering 3D scenes ..."
    m.nviz.image elevation_map="$TEMP_IMG" output="$TEMPFILE.right" \
@@ -313,7 +347,9 @@ else
    g.region save="tmp_anaglyph.$$"
    WIND_OVERRIDE="tmp_anaglyph.$$"
    export WIND_OVERRIDE
-   g.region rast="$TEMP_IMG"
+   if [ "$GIS_FLAG_S" -ne 1 ] ; then
+      g.region rast="$TEMP_IMG"
+   fi
 
    # really annoying: Nviz rotates along the shorter of the two axes, so
    #  we have to grow so that the region is taller than it is wide, so that
@@ -342,7 +378,8 @@ else
    SPREAD_L=`echo "$SPREAD" | awk '{print 0.5 - $1}'`
    SPREAD_R=`echo "$SPREAD" | awk '{print 0.5 + $1}'`
 
-   RENDER_OPTS="resolution_fine=1 perspective=15 bgcolor=black $VLINES $VPOINTS"
+   RENDER_OPTS="resolution_fine=1 perspective=15 bgcolor=black \
+      $VLINES $VPOINTS $DRAPE"
 
    g.message "Rendering 3D scenes ..."
 
@@ -361,16 +398,127 @@ fi
 
 BASENM=`basename "$TEMPFILE"`
 
-# split into R,G,B components
-g.message "Creating anaglyph ..."
-ppmtorgb3 "$BASENM.left.ppm" &
-ppmtorgb3 "$BASENM.right.ppm"
-check_ret
-wait
+# try to find a nice TTF font in the fontcap (d.font -l)
+find_a_font()
+{
+   FONTS="FreeSans Vera DroidSans LiberationSans-Regular DejaVuSans \
+      Arial Courier_New Trebuchet_MS"
+   VALID_FONT=""
+   for FONT in $FONTS ; do
+      d.font "$FONT" 2> /dev/null
+      if [ $? -eq 0 ] ; then
+         VALID_FONT="$FONT"
+         break
+      fi
+   done
+}
 
-rgb3toppm "$BASENM.left.red" "$BASENM.right.grn" "$BASENM.right.blu" \
-    > "$BASENM.anaglyph.ppm"
-check_ret
+# make a spacer image. usage create_pbm <Width> <Height> <filename.pbm>
+create_pbm()
+{
+   cat << EOF > "$3"
+P1
+# block of black
+$1 $2
+EOF
+
+   i=0
+   while [ $i -lt $2 ] ; do
+     seq 1 "$1" | sed 's/.*/1 /' | tr -d '\n' >> "$3"
+     i=`expr "$i" + 1`
+   done
+}
+
+
+if [ "$GIS_FLAG_S" -ne 1 ] ; then
+   # split into R,G,B components
+   g.message "Creating anaglyph ..."
+   ppmtorgb3 "$BASENM.left.ppm" &
+   ppmtorgb3 "$BASENM.right.ppm"
+   check_ret
+   wait
+
+   rgb3toppm "$BASENM.left.red" "$BASENM.right.grn" "$BASENM.right.blu" \
+       > "$BASENM.anaglyph.ppm"
+   check_ret
+else
+   # stereogram
+   HEIGHT=`echo "$SIZE" | cut -f2 -d,`
+   create_pbm 5 "$HEIGHT" "$TEMPFILE.gutter.pbm"
+
+   if [ "$GIS_FLAG_C" -ne 1 ] ; then
+      pnmcat -leftright "$BASENM.right.ppm" "$TEMPFILE.gutter.pbm" \
+         "$BASENM.left.ppm" > "$BASENM.anaglyph.ppm"
+      check_ret
+   else
+      if [ "$GIS_FLAG_G" -ne 1 ] ; then
+	 pnmcat -leftright "$BASENM.left.ppm" "$TEMPFILE.gutter.pbm" \
+	    "$BASENM.right.ppm" > "$BASENM.anaglyph.ppm"
+	 check_ret
+      else
+
+	 # thanks (public domain)
+	 # http://upload.wikimedia.org/wikipedia/commons/1/10/Stereo_Pair%2C_Lake_Palanskoye_Landslide%2C_Kamchatka_Peninsula%2C_Russia.jpg
+	 SIDE_WIDTH=40
+	 GUTTER_WIDTH=5
+	 WIDTH=`echo "$SIZE" | cut -f1 -d,`
+	 WIDTH2=`expr "$WIDTH" "*" 2 + $SIDE_WIDTH + $SIDE_WIDTH + $GUTTER_WIDTH`
+	 HEIGHT=`echo "$SIZE" | cut -f2 -d,`
+
+	 # dot guide at the top
+	 GRASS_CAIROFILE="$TEMPFILE.dot.ppm"
+	 GRASS_WIDTH="$WIDTH"
+	 GRASS_HEIGHT=75
+	 export GRASS_CAIROFILE GRASS_WIDTH GRASS_HEIGHT
+	 d.mon start=cairo --quiet
+	 d.erase black
+	 echo "symbol basic/circle 25 50 50 white white" | d.graph
+	 d.mon stop=cairo --quiet
+
+	 # instructions at the bottom (use ppmlabel?)
+	 GRASS_CAIROFILE="$TEMPFILE.text.ppm"
+	 GRASS_WIDTH="$WIDTH2"
+	 GRASS_HEIGHT=100
+	 export GRASS_CAIROFILE GRASS_WIDTH GRASS_HEIGHT
+	 d.mon start=cairo --quiet
+	 d.erase black
+
+	 VALID_FONT=""
+	 find_a_font
+	 if [ -n "$VALID_FONT" ] ; then
+	    d.font "$VALID_FONT"
+	 fi
+	 cat << EOF | d.text at=50,67 align=cc size=25 color=white linespacing=2
+To view stereo pair, cross eyes slightly until a third
+white dot appears between the two. New center image is 3D!
+EOF
+	 d.mon stop=cairo --quiet
+
+	 # left,right side border and middle sep
+	 TOPHEIGHT=`expr "$HEIGHT" + 75`
+	 create_pbm "$SIDE_WIDTH" "$TOPHEIGHT" "$TEMPFILE.side.pbm"
+	 create_pbm "$GUTTER_WIDTH" "$TOPHEIGHT" "$TEMPFILE.gutter.pbm"
+
+	 # construct it
+	 pnmcat -topbottom "$TEMPFILE.dot.ppm" "$BASENM.right.ppm" \
+	    > "$BASENM.dotright.ppm"
+	 check_ret
+
+	 pnmcat -topbottom "$TEMPFILE.dot.ppm" "$BASENM.left.ppm" \
+	    > "$BASENM.dotleft.ppm"
+	 check_ret
+
+	 pnmcat -leftright "$TEMPFILE.side.pbm" "$BASENM.dotleft.ppm" \
+	    "$TEMPFILE.gutter.pbm" "$BASENM.dotright.ppm" "$TEMPFILE.side.pbm" \
+	    > "$BASENM.upper.ppm"
+	 check_ret
+
+	 pnmcat -topbottom "$BASENM.upper.ppm" "$TEMPFILE.text.ppm" \
+	    > "$BASENM.anaglyph.ppm"
+	 check_ret
+      fi
+   fi
+fi
 
 pnmtopng "$BASENM.anaglyph.ppm" > "$OLDDIR/$OUTFILE"
 check_ret

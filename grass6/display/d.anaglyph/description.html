@@ -1,8 +1,15 @@
 <h2>DESCRIPTION</h2>
 
 <em>d.anaglyph</em> creates a sterographic 3D image suitable for viewing
-with red/cyan glasses. Vector line and point maps may be draped over the
-raster surface.
+either with red/cyan glasses, a stereograph viewer, or by simply crossing your
+eyes. Vector line and point maps may be draped over the raster surface.
+
+<p>
+Stereograms (two images side by side) will be in full color. Anaglyphs
+(needing red/cyan glasses) will be in greyscale, but some colors like
+yellow can be used. This module allows creation of stereograms either
+in straight mode (requiring a stereoscopic viewer), or cross-eyed, which
+you can do "free-view" without any special tools.
 
 
 <h2>NOTES</h2>
@@ -10,10 +17,31 @@ raster surface.
 The NetPBM image manipulation tools are required.
 The output file will be a PNG image.
 
+<p>
+For "free-view" cross-eyed stereograms the <b>-g</b> flag is provided to
+help guide your eyes, by adding instructions and two white dots to focus on.
+It will be hard to focus the dots if they are more than the width of your
+eyes appart, in this case it is recommended to not set the image <b>size</b>
+of each pane any greater than about 200 pixels, so the two panes look like
+bookmarks. The narrower the image the easier it will be to focus on, but
+the less you will be able to see.
+
+<p>
+If draping a <b>color_overlay</b> raster map over the top of a DEM in
+anaglyph mode, it works best to first change the color map of the overlay
+raster to greyscale or sepia with the <em>r.color</em> module (perhaps with
+the <b>-e</b> flag), to avoid any red/cyan in the overlay's color table from
+confusing the 3D effect.
+<p>
+The flatten terrain and equalize contrast flags only operate in anaglyph mode.
+
+<center>
+<img src="spearfish_anaglyph.png">
+</center>
 
 <h2>EXAMPLES</h2>
 
-North Carolina dataset:
+North Carolina dataset anaglyph:
 <div class="code"><pre>
 g.region rast=elevation
 d.anaglyph input=elevation output=wake_anaglyph.png size=1280,960 \
@@ -21,7 +49,7 @@ d.anaglyph input=elevation output=wake_anaglyph.png size=1280,960 \
 </pre></div>
 
 
-Spearfish dataset:
+Spearfish dataset anaglyph:
 <div class="code"><pre>
 g.region rast=elevation.10m
 d.anaglyph -e input=elevation.10m output=spearfish_anaglyph.png \
@@ -29,13 +57,23 @@ d.anaglyph -e input=elevation.10m output=spearfish_anaglyph.png \
 </pre></div>
 
 
+Spearfish dataset cross-eyed stereogram:
+<div class="code"><pre>
+g.region rast=elevation.10m
+r.colors -e elevation.10m color=haxby
+d.anaglyph -scg input=elevation.10m output=spearfish_stereogram.png \
+   size=185,500 viewing_height=27000
+</pre></div>
+
+<center>
+<img src="spearfish_stereogram.jpg" align="center">
+</center>
+
 <h2>TODO</h2>
 
 Fine tuning; needs more viewpoint separation when the z-exaggeration is high.
 View is currently limited to top-down.
-<em>m.nviz.image</em> currently Segfaults if more vector maps are passed than
-attributes to go with them. We should fix that so if there are more maps than
-attributes the later maps reuse the attributes of the earlier ones.
+Sometimes one of the images flips (adjust the region width).
 
 
 <h2>SEE ALSO</h2>
