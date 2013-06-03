@@ -199,7 +199,7 @@ if [ -n "$ALIAS_INPUT" ] ; then
 		exit 1
 	fi
 else
-	parameter=$(echo "$EVP_MAPS" | tr ',' ' ' | tr '@' '#' | sed 's/.$//')
+	parameter=$(echo "$EVP_MAPS" | tr ',' ' ' | tr '@' '#')
 fi
 #
 #Check if environmental parameter map(s) exist
@@ -208,7 +208,15 @@ for p in $parameter
 do
 	#Check if parameter map file(s) exist
 	map_name=$(echo $p | cut -f1 -d'#' | tr -d ' ')
-	mapset_name=$(echo $p | cut -f2 -d'#' | tr -d ' ')
+	mapset_name=$(echo $p | cut -f2 -d'#' -s | tr -d ' ')
+	if [ -z $mapset_name ] ; then
+		mapset_name=$MAPSET
+		eval `g.findfile element=cell file=${map_name} mapset=${mapset_name}`
+		
+		if [ -z "$name" ] ; then 
+			mapset_name=PERMANENT
+		fi
+	fi
 	#
 	eval `g.findfile element=cell file=${map_name} mapset=${mapset_name}` 
 	if [ -z "$name" ] ; then 
@@ -276,8 +284,18 @@ if [ "${FLAG_ONLY_BGR}" -ne 1 ] ; then
 	for s in $species
 	do
 		#Check if specie mask files exist
-		specie_map_name=$(echo $p | cut -f1 -d'#' | tr -d ' ')
-		specie_mapset_name=$(echo $p | cut -f2 -d'#' | tr -d ' ')
+		specie_map_name=$(echo $s | cut -f1 -d'#' | tr -d ' ')
+		specie_mapset_name=$(echo $s | cut -f2 -d'#' -s | tr -d ' ')
+		echo $specie_map_name
+			if [ -z $specie_mapset_name ] ; then
+				specie_mapset_name=$MAPSET
+				eval `g.findfile element=cell file=${map_name} mapset=${mapset_name}`
+		
+				if [ -z "$name" ] ; then 
+					specie_mapset_name=PERMANENT
+				fi
+			fi
+
 		#
 		eval `g.findfile element=cell file=${specie_map_name} mapset=${specie_mapset_name}` 
 		if [ -z "$name" ] ; then 
@@ -304,7 +322,7 @@ if [ "${FLAG_ONLY_BGR}" -ne 1 ] ; then
 		eval `g.findfile element=cell file=MASK mapset=${MAPSET}` 
 		if [ "$name" = MASK ] ; then 
 			g.message -v "A mask allready exists. Renaming existing mask to old_MASK..."
-			g.rename rast=MASK${MAPSET},old_MASK --q
+			g.rename rast="MASK@${MAPSET}",old_MASK --q
 		fi
 		#
 		#Apply specie mask
