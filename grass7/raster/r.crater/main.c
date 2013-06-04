@@ -33,15 +33,15 @@ int main(int argc, char *argv[])
     struct History history;	/*metadata */
 
     char *result;		/*output raster name */
-    int infd_v, infd_theta, infd_rhotarget;
-    int infd_g, infd_rhoproj, infd_ttyp, infd_ttype;
+    int infd_v, infd_theta, infd_r_targ;
+    int infd_g, infd_r_proj, infd_ttyp, infd_ttype;
     int infd_L, infd_Dt, infd_Dfinal;/*Modes parameters*/
     int outfd;
     char *ivelocity, *iangle, *idensity, *idiameter; /*Impactor*/
     char *tg, *ttype, *tdensity; /*Target*/
     char *tcrater_diameter_transient, *tcrater_diameter_final; /*Target crater*/ 
-    void *inrast_v, *inrast_theta, *inrast_rhotarget;
-    void *inrast_g, *inrast_ttype, *inrast_rhoproj;
+    void *inrast_v, *inrast_theta, *inrast_r_targ;
+    void *inrast_g, *inrast_ttype, *inrast_r_proj;
     void *inrast_L, *inrast_Dt, *inrast_Dfinal;
     DCELL *outrast;
     
@@ -174,9 +174,9 @@ int main(int argc, char *argv[])
     inrast_theta = Rast_allocate_d_buf();
     /*theta = Impact angle in degrees*/
 
-    infd_rhotarget = Rast_open_old(tdensity, "");
-    inrast_rhotarget = Rast_allocate_d_buf();
-    /*rhotarget = Target Density in kg/m^3*/
+    infd_r_targ = Rast_open_old(tdensity, "");
+    inrast_r_targ = Rast_allocate_d_buf();
+    /*r_targ = Target Density in kg/m^3*/
 
     infd_g = Rast_open_old(tg, "");
     inrast_g = Rast_allocate_d_buf();
@@ -186,9 +186,9 @@ int main(int argc, char *argv[])
     inrast_ttype = Rast_allocate_d_buf();
     /*targype = liqH2O=1 Loose_Sand=2 Competent_rock/saturated_soil=3*/
 
-    infd_rhoproj = Rast_open_old(idensity, "");
-    inrast_rhoproj = Rast_allocate_d_buf();
-    /*rhoproj = Density of Projectile */
+    infd_r_proj = Rast_open_old(idensity, "");
+    inrast_r_proj = Rast_allocate_d_buf();
+    /*r_proj = Density of Projectile */
     
     /***************************************************/ 
     nrows = Rast_window_rows();
@@ -204,8 +204,8 @@ int main(int argc, char *argv[])
 	DCELL d;
 	DCELL d_v;
 	DCELL d_theta;
-	DCELL d_rhotarget;
-	DCELL d_rhoproj;
+	DCELL d_r_targ;
+	DCELL d_r_proj;
 	DCELL d_g;
 	DCELL d_ttype;
         DCELL d_L;
@@ -216,8 +216,8 @@ int main(int argc, char *argv[])
 	/* read input maps */ 
 	Rast_get_d_row(infd_v, inrast_v, row);
 	Rast_get_d_row(infd_theta, inrast_theta, row);
-	Rast_get_d_row(infd_rhotarget, inrast_rhotarget, row);
-	Rast_get_d_row(infd_rhoproj, inrast_rhoproj, row);
+	Rast_get_d_row(infd_r_targ, inrast_r_targ, row);
+	Rast_get_d_row(infd_r_proj, inrast_r_proj, row);
 	Rast_get_d_row(infd_g, inrast_g, row);
 	Rast_get_d_row(infd_ttype, inrast_ttype, row);
         if(flag->answer && input7->answer){
@@ -232,8 +232,8 @@ int main(int argc, char *argv[])
 	{
 	    d_v = ((DCELL *) inrast_v)[col];
 	    d_theta = ((DCELL *) inrast_theta)[col];
-	    d_rhotarget = ((DCELL *) inrast_rhotarget)[col];
-	    d_rhoproj = ((DCELL *) inrast_rhoproj)[col];
+	    d_r_targ = ((DCELL *) inrast_r_targ)[col];
+	    d_r_proj = ((DCELL *) inrast_r_proj)[col];
             d_g = ((DCELL *) inrast_g)[col];
             d_ttype = ((DCELL *) inrast_ttype)[col];
             if(flag->answer){
@@ -244,12 +244,12 @@ int main(int argc, char *argv[])
             }
 	    if (Rast_is_d_null_value(&d_v) || 
                 Rast_is_d_null_value(&d_theta) ||
-                Rast_is_d_null_value(&d_rhotarget) ||
-                Rast_is_d_null_value(&d_rhoproj) ||
+                Rast_is_d_null_value(&d_r_targ) ||
+                Rast_is_d_null_value(&d_r_proj) ||
                 Rast_is_d_null_value(&d_g) ||
                 Rast_is_d_null_value(&d_ttype) ||
                 ((d_ttype < 1) || (d_ttype > 3)) ||
-                Rast_is_d_null_value(&d_rhoproj) ||
+                Rast_is_d_null_value(&d_r_proj) ||
                 ((input7->answer)&&(Rast_is_d_null_value(&d_L))) ||
                 ((input8->answer)&&(Rast_is_d_null_value(&d_Dt))) ||
                 ((input9->answer)&&(Rast_is_d_null_value(&d_Dfinal))) ) 
@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
                 } else {
                     d_L = 0.0;
                 }
-                d = crater(d_v, d_theta, d_rhotarget, d_g, d_ttype, d_rhoproj, d_L, d_Dt, d_Dfinal, scaling_law, return_time, comptype);
+                d = crater(d_v, d_theta, d_r_targ, d_g, d_ttype, d_r_proj, d_L, d_Dt, d_Dfinal, scaling_law, return_time, comptype);
 		outrast[col] = d;
             }
 	}
@@ -269,12 +269,12 @@ int main(int argc, char *argv[])
     }
     G_free(inrast_v);
     G_free(inrast_theta);
-    G_free(inrast_rhoproj);
+    G_free(inrast_r_proj);
     G_free(inrast_g);
     Rast_close(infd_v);
     Rast_close(infd_theta);
-    Rast_close(infd_rhotarget);
-    Rast_close(infd_rhoproj);
+    Rast_close(infd_r_targ);
+    Rast_close(infd_r_proj);
     Rast_close(infd_g);
     G_free(outrast);
     Rast_close(outfd);
