@@ -39,7 +39,7 @@ int parse_map_file(STRING file)
 	    continue;
 
 	if (*buf != '%' && *buf != '$')
-	    G_fatal_error(_("Wrong syntax at line %d: line must start with <#>, <%> or <$> or be empty line"),
+	    G_fatal_error(_("Wrong syntax at line %d: line must start with <#>, <%%> or <$> or be empty line"),
 			  line);
 
 	if (*buf == '%') {
