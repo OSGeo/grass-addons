@@ -187,7 +187,7 @@ def main():
 	global tmp_map_rast
 	global tmp_map_vect
 
-	tmp_map_rast = ['buffered_river_tmp_','density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_','distance_raster_buffered_tmp_','division_overlay_tmp_', 'downstream_drain_tmp_','drainage_tmp_','flow_direction_tmp_', 'lower_distance_tmp_', 'rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'shreve_tmp_', 'source_populations_scalar_','source_populations_scalar_corrected_', 'strahler_tmp_', 'stream_segments_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
+	tmp_map_rast = ['density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_','distance_raster_buffered_tmp_','distance_raster_grow_tmp_','division_overlay_tmp_', 'downstream_drain_tmp_','drainage_tmp_','flow_direction_tmp_', 'lower_distance_tmp_', 'rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'river_raster_buffer_tmp_', 'river_raster_grow_start_tmp_', 'river_raster_nearest_tmp_', 'shreve_tmp_', 'source_populations_scalar_','source_populations_scalar_corrected_', 'strahler_tmp_', 'stream_segments_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
 
 
 	tmp_map_vect = ['river_points_tmp_', 'river_vector_tmp_', 'river_vector_nocat_tmp_','source_points_']
@@ -402,26 +402,51 @@ def main():
 					  coordinate = coors)
 
 	largest_cost_value = grass.raster_info("distance_raster_tmp_%d" % os.getpid())['max']
-	n_buffer_cells = 3
-
-	grass.run_command("r.buffer",
+	
+	# buffer
+	grass.run_command("r.grow.distance",
 					overwrite=True,
 					input="distance_raster_tmp_%d" % os.getpid(),
-					output="buffered_river_tmp_%d" % os.getpid(),
-					distances=n_buffer_cells*res)
+					value="river_raster_nearest_tmp_%d" % os.getpid())
 
-	grass.mapcalc("$distance_raster_buffered_tmp = if($buffered_river_tmp==2,$largest_cost_value*2,$distance_raster_tmp)",
-					distance_raster_buffered_tmp = "distance_raster_buffered_tmp_%d" % os.getpid(),
-					buffered_river_tmp = "buffered_river_tmp_%d" % os.getpid(),
-					largest_cost_value = largest_cost_value,
-					distance_raster_tmp = "distance_raster_tmp_%d" % os.getpid())
+	#get value of nearest river cell
+	grass.run_command("r.grow",
+					overwrite=True,
+					input="distance_raster_tmp_%d" % os.getpid(),
+					output="distance_raster_grow_tmp_%d" % os.getpid(),
+					radius=2.01,
+					old=1,
+					new=largest_cost_value*2)
 
+	# remove buffer for start
+	grass.mapcalc("$river_raster_grow_start_tmp = if($river_raster_nearest_tmp==0,null(),$distance_raster_grow_tmp)",
+					river_raster_grow_start_tmp = "river_raster_grow_start_tmp_%d" % os.getpid(),
+					river_raster_nearest_tmp = "river_raster_nearest_tmp_%d" % os.getpid(),
+					distance_raster_grow_tmp = "distance_raster_grow_tmp_%d" % os.getpid())
+
+	
+	#grow by one cell to make sure taht the start point is the only cell
+	grass.run_command("r.grow",
+					overwrite=True,
+					input="river_raster_grow_start_tmp_%d" % os.getpid(),
+					output="river_raster_buffer_tmp_%d" % os.getpid(),
+					radius=1.01,
+					old=largest_cost_value*2,
+					new=largest_cost_value*2)
+
+	#patch river raster with buffer
+	grass.run_command("r.patch",
+					overwrite=True,
+					in="distance_raster_tmp_%d,river_raster_buffer_tmp_%d" % (os.getpid(),os.getpid()),
+					out="distance_raster_buffered_tmp_%d" % os.getpid())
+
+	# Getting flow direction and stream segments
 	grass.run_command("r.watershed", 
 					  flags = 'mf', #depends on memory!! #
 					  elevation = "distance_raster_buffered_tmp_%d" % os.getpid(),
 					  drainage = "drainage_tmp_%d" % os.getpid(),
 					  stream = "stream_segments_tmp_%d" % os.getpid(),
-					  threshold = n_buffer_cells,
+					  threshold = 3,
 					  overwrite = True)
 
 	grass.mapcalc("$flow_direction_tmp = if($stream_segments_tmp,$drainage_tmp,null())",
