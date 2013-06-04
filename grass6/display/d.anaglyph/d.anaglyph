@@ -146,7 +146,7 @@
 #%End
 #%Flag
 #% key: g
-#% description: Create viewing guide for cross-eyed sterograms
+#% description: Create fiducial marks for regular stereograms or a viewing guide for cross-eyed stereograms
 #%End
 
 
@@ -181,8 +181,11 @@ TEMP_IMG="tmp_anaglyph_$$"
 
 cleanup()
 {
-   if [ "$GIS_FLAG_S" -ne 1 ] ; then
-      g.remove "$TEMP_IMG" --quiet
+   if [ "$TEMP_IMG" != "$GIS_OPT_INPUT" ] ; then
+      g.findfile element=cell file="$TEMP_IMG" > /dev/null
+      if [ $? -eq 0 ] ; then
+         g.remove "$TEMP_IMG" --quiet
+      fi
    fi
    rm -f "$TEMPFILE" "${TEMPFILE}."*
    if [ -n "$WIND_OVERRIDE" ] ; then
@@ -301,6 +304,9 @@ if [ "$GIS_FLAG_S" -ne 1 ] ; then
 else
    TEMP_IMG="$INMAP"
 fi
+## FIXME: always do it for cleaner region widening exercise
+## spearfish example at z-ex=4 + "-s" flips?
+
 
 if [ $GIS_FLAG_F -eq 1 ] ; then
    #### flat image ####
@@ -355,6 +361,8 @@ else
    #  we have to grow so that the region is taller than it is wide, so that
    #  we don't have to turn our heads sideways to get the 3D effect, and that
    #  the viewpoint doesn't spin out of control at the inflection mid-point.
+   # Expand into the ether N-S since all-empty rows are quickly skipped while
+   #  all-empty columns are not.
    LARGER=`echo "$ew_extent $ns_extent" | awk '{if ($1 > $2) { print "ew" } else { print "ns" }}'`
    if [ "ew" = "$LARGER" ] ; then
       BUFDIST=`echo "$ew_extent $ns_extent" | awk '{print int(0.5 + ($1 - $2)/2.0)}'`
@@ -413,10 +421,18 @@ find_a_font()
    done
 }
 
-# make a spacer image. usage create_pbm <Width> <Height> <filename.pbm>
+# make a spacer image.
+# usage:  create_pbm <Width> <Height> <Black|White> <filename.pbm>
 create_pbm()
 {
-   cat << EOF > "$3"
+
+   if [ "$3" = "black" ] ; then
+      COLOR=1
+   else
+      COLOR=0
+   fi
+
+   cat << EOF > "$4"
 P1
 # block of black
 $1 $2
@@ -424,7 +440,7 @@ EOF
 
    i=0
    while [ $i -lt $2 ] ; do
-     seq 1 "$1" | sed 's/.*/1 /' | tr -d '\n' >> "$3"
+     seq 1 "$1" | sed "s/.*/$COLOR /" | tr -d '\n' >> "$4"
      i=`expr "$i" + 1`
    done
 }
@@ -444,13 +460,87 @@ if [ "$GIS_FLAG_S" -ne 1 ] ; then
 else
    # stereogram
    HEIGHT=`echo "$SIZE" | cut -f2 -d,`
-   create_pbm 5 "$HEIGHT" "$TEMPFILE.gutter.pbm"
+   create_pbm 5 "$HEIGHT" white "$TEMPFILE.gutter.pbm"
 
    if [ "$GIS_FLAG_C" -ne 1 ] ; then
+
+      if [ "$GIS_FLAG_G" -eq 1 ] ; then
+	 # fiducial mark overlay
+	 WIDTH=`echo "$SIZE" | cut -f1 -d,`
+	 GRASS_CAIROFILE="$TEMPFILE.fiducial1.ppm"
+	 # work around off-by-one bug (see trac #72 comment:22)
+	 GRASS_WIDTH=`expr "$WIDTH" + 1`
+	 GRASS_HEIGHT=`expr "$HEIGHT" + 1`
+	 GRASS_TRANSPARENT=TRUE
+	 export GRASS_CAIROFILE GRASS_WIDTH GRASS_HEIGHT GRASS_TRANSPARENT
+	 d.mon start=cairo --quiet
+	 cat << EOF | d.graph
+width 1
+#move 50 2
+#draw 50 0
+move 50 0
+polygon
+  48.5858 0
+  50 2
+  51.4142 0
+  48.5858 0
+
+#move 50 98
+#draw 50 100
+move 50 100
+polygon
+  48.5858 100
+  50 98
+  51.4142 100
+  48.5858 100
+
+#move 0 50
+#draw 2 50
+move 0 50
+polygon
+  0 48.5858
+  2 50
+  0 51.4142
+  0 48.5858
+
+#move 98 50
+#draw 100 50
+move 100 50
+polygon
+  100 48.5858
+  98 50
+  100 51.4142
+  100 48.5858
+
+rotation 45
+symbol extra/fiducial 20 50 50 black
+EOF
+	 d.mon stop=cairo --quiet
+	 check_ret
+
+	 mv "$BASENM.left.ppm" "$BASENM.left_orig.ppm"
+	 mv "$BASENM.right.ppm" "$BASENM.right_orig.ppm"
+
+	 # work around off-by-one bug (see trac #72 comment:22)
+	 pnmcut -width "$WIDTH" -height "$HEIGHT" "$TEMPFILE.fiducial1.pgm" \
+	   > "$TEMPFILE.fiducial.pgm"
+	 pnmcut -width "$WIDTH" -height "$HEIGHT" "$TEMPFILE.fiducial1.ppm" \
+	   > "$TEMPFILE.fiducial.ppm"
+
+	 pnmcomp -alpha="$TEMPFILE.fiducial.pgm" "$TEMPFILE.fiducial.ppm" \
+	   "$BASENM.left_orig.ppm" "$BASENM.left.ppm" &
+	 pnmcomp -alpha="$TEMPFILE.fiducial.pgm" "$TEMPFILE.fiducial.ppm" \
+	   "$BASENM.right_orig.ppm" "$BASENM.right.ppm"
+	 check_ret
+	 wait
+      fi
+
       pnmcat -leftright "$BASENM.right.ppm" "$TEMPFILE.gutter.pbm" \
          "$BASENM.left.ppm" > "$BASENM.anaglyph.ppm"
       check_ret
+
    else
+
       if [ "$GIS_FLAG_G" -ne 1 ] ; then
 	 pnmcat -leftright "$BASENM.left.ppm" "$TEMPFILE.gutter.pbm" \
 	    "$BASENM.right.ppm" > "$BASENM.anaglyph.ppm"
@@ -459,7 +549,7 @@ else
 
 	 # thanks (public domain)
 	 # http://upload.wikimedia.org/wikipedia/commons/1/10/Stereo_Pair%2C_Lake_Palanskoye_Landslide%2C_Kamchatka_Peninsula%2C_Russia.jpg
-	 SIDE_WIDTH=40
+	 SIDE_WIDTH=50
 	 GUTTER_WIDTH=5
 	 WIDTH=`echo "$SIZE" | cut -f1 -d,`
 	 WIDTH2=`expr "$WIDTH" "*" 2 + $SIDE_WIDTH + $SIDE_WIDTH + $GUTTER_WIDTH`
@@ -496,8 +586,8 @@ EOF
 
 	 # left,right side border and middle sep
 	 TOPHEIGHT=`expr "$HEIGHT" + 75`
-	 create_pbm "$SIDE_WIDTH" "$TOPHEIGHT" "$TEMPFILE.side.pbm"
-	 create_pbm "$GUTTER_WIDTH" "$TOPHEIGHT" "$TEMPFILE.gutter.pbm"
+	 create_pbm "$SIDE_WIDTH" "$TOPHEIGHT" black "$TEMPFILE.side.pbm"
+	 create_pbm "$GUTTER_WIDTH" "$TOPHEIGHT" black "$TEMPFILE.gutter.pbm"
 
 	 # construct it
 	 pnmcat -topbottom "$TEMPFILE.dot.ppm" "$BASENM.right.ppm" \

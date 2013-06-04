@@ -1,8 +1,8 @@
 <h2>DESCRIPTION</h2>
 
 <em>d.anaglyph</em> creates a sterographic 3D image suitable for viewing
-either with red/cyan glasses, a stereograph viewer, or by simply crossing your
-eyes. Vector line and point maps may be draped over the raster surface.
+either with red/cyan glasses, a stereograph viewer, or by simply crossing
+your eyes. Vector line and point maps may be draped over the raster surface.
 
 <p>
 Stereograms (two images side by side) will be in full color. Anaglyphs
@@ -27,17 +27,30 @@ bookmarks. The narrower the image the easier it will be to focus on, but
 the less you will be able to see.
 
 <p>
+For "regular" stereograms to be viewed with a stereograph viewer, the
+<b>-g</b> flag will overlay middle-of-image fiducial marks for easier
+alignment.
+
+<center>
+<img src="spearfish_stereogram_fiducial.jpg" align="center">
+</center>
+
+<p>
 If draping a <b>color_overlay</b> raster map over the top of a DEM in
 anaglyph mode, it works best to first change the color map of the overlay
 raster to greyscale or sepia with the <em>r.color</em> module (perhaps with
 the <b>-e</b> flag), to avoid any red/cyan in the overlay's color table from
 confusing the 3D effect.
+
 <p>
-The flatten terrain and equalize contrast flags only operate in anaglyph mode.
+The flatten terrain and equalize contrast flags only operate in anaglyph mode,
+and the equalize contrast flags only applies to the base DEM, and will not
+have an effect if a <b>color_overlay</b> raster map is used.
 
 <center>
 <img src="spearfish_anaglyph.png">
 </center>
+
 
 <h2>EXAMPLES</h2>
 
@@ -66,8 +79,9 @@ d.anaglyph -scg input=elevation.10m output=spearfish_stereogram.png \
 </pre></div>
 
 <center>
-<img src="spearfish_stereogram.jpg" align="center">
+<img src="spearfish_stereogram_guide.jpg" align="center">
 </center>
+
 
 <h2>TODO</h2>
 
@@ -93,7 +107,7 @@ Department of Geology<br>
 University of Otago<br>
 New Zealand</i><br>
 <br>
-Based on a method by Peter Loewe
+Based on a method by Peter L&ouml;we
 
 <p>
 <i>Last changed: $Date$</i></p>
