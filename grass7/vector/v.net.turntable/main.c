@@ -166,8 +166,8 @@ int main(int argc, char *argv[])
 	if (field_num == -1)
 	    field_num = i_field_num;
 
-	if (field_num != tfield && field_num != tucfield)
-	    Vect_copy_tables(&InMap, &OutMap, field_num);
+	if (i_field_num != tfield && i_field_num != tucfield)
+	    Vect_copy_tables(&InMap, &OutMap, i_field_num);
     }
 
     if (field_num < 0) {
