@@ -1,7 +1,7 @@
 
 MODULE_TOPDIR = ../..
 
-PGM = v.net.path
+PGM = v.net.path2
 
 LIBES = $(VECTORLIB) $(DBMILIB) $(GISLIB)
 DEPENDENCIES = $(VECTORDEP) $(DBMIDEP) $(GISDEP)
