@@ -112,7 +112,8 @@ def main():
     # print RMS
     rmsfile = os.path.join(srcdir, ply + "_rms.csv")
     grass.run_command('v.rectify', input = ply, output = ply + '_georef', 
-		      points = gcpfile, flags = '3bor', fs = ';', rmsfile = rmsfile)
+		      points = gcpfile, flags = '3bor', separator = ';',
+		      rmsfile = rmsfile)
 
     # georectify
     ply_georef = ply + '_georef'
