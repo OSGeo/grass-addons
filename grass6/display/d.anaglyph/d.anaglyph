@@ -27,6 +27,7 @@
 #	 to see the 3D effect, so we use some inefficient rotations to get
 #	 around that.~~  --update-- That's wrong, it's the *minor axis* which
 #	 does not preserve the map rotation.
+#    If it still goes wrong use the -r flag to recover.
 
 #%Module
 #% description: Creates a sterographic 3D image suitable for viewing with red/cyan glasses or by simply crossing your eyes.
@@ -49,12 +50,22 @@
 #% gisprompt: new,file,file
 #%End
 #%Option
+#% key: style
+#% type: string
+#% required: no
+#% description: Type of stereo image to create
+#% options: anaglyph,stereogram,freeview
+#% descriptions: anaglyph;For viewing with red/cyan glasses;stereogram;For viewing with a stereograph mirror viewer;freeview;For viewing with the unaided eye
+#% answer: anaglyph
+#%End
+#%Option
 #% key: size
 #% type: integer
 #% required: no
 #% multiple: no
 #% key_desc: width,height
-#% description: Width and height of output image
+#% label: Width and height of output image
+#% description: When creating bifurcated sterogram pairs this option sets the size of each pane.
 #% answer: 640,480
 #%End
 #%Option
@@ -72,7 +83,7 @@
 #% required: no
 #% multiple: no
 #% key_desc: value
-#% description: Z-exaggeration
+#% description: Vertical exaggeration
 #% answer: 2.0
 #%End
 #%Option
@@ -90,7 +101,7 @@
 #% required: no
 #% multiple: yes
 #% key_desc: name
-#% description: Name of point vector overlay map
+#% description: Name of points vector overlay map
 #% gisprompt: old,vector,vector
 #% guisection: Vector overlay
 #%End
@@ -101,7 +112,7 @@
 #% multiple: yes
 #% options: 1-10000
 #% key_desc: value
-#% description: Icon size (map units)
+#% description: Vector points icon size (map units)
 #% answer: 100
 #% guisection: Vector overlay
 #%End
@@ -129,16 +140,11 @@
 #%End
 #%Flag
 #% key: f
-#% description: Flatten terrain
+#% description: Flatten terrain (anaglyph mode only)
 #%End
 #%Flag
 #% key: e
-#% description: Equalize contrast
-#%End
-#%Flag
-#% key: s
-#% label: Create a bifurcated sterogram pair instead of a blue/cyan anaglyph
-#% description: In this case the size option sets the size of each pane.
+#% description: Equalize contrast (anaglyph mode only)
 #%End
 #%Flag
 #% key: c
@@ -146,7 +152,11 @@
 #%End
 #%Flag
 #% key: g
-#% description: Create fiducial marks for regular stereograms or a viewing guide for cross-eyed stereograms
+#% description: Create fiducial marks for regular stereograms or a viewing guide for free-view stereograms
+#%End
+#%Flag
+#% key: r
+#% description: In case of spontaneous NVIZ flipping, rotate one of the frames back into position (debug)
 #%End
 
 
@@ -282,6 +292,7 @@ cd `dirname "$TEMPFILE"`
 
 
 #### dynamic viewpoint height calculations
+# FIXME: figure out if it is map unit extent or number of cells which controls the flipping
 eval `g.region -ge`
 # various scales of the average map extent to use for the viewing height
 avg_extent=`echo "$ns_extent $ew_extent" | awk '{print ($1 + $2)/2.0}'`
@@ -297,7 +308,7 @@ extent1_45=`echo "$avg_extentN" | awk '{print 1.45 * $1}'`
 extent_frac=`echo "$avg_extentN" | awk '{print 0.005 * $1}'`
 
 
-if [ "$GIS_FLAG_S" -ne 1 ] ; then
+if [ "$GIS_OPT_STYLE" = "anaglyph" ] ; then
    g.message "Preparing map ..."
    r.mapcalc "$TEMP_IMG = $INMAP"
    r.colors $EFLAG "$TEMP_IMG" color=grey --quiet
@@ -308,7 +319,7 @@ fi
 ## spearfish example at z-ex=4 + "-s" flips?
 
 
-if [ $GIS_FLAG_F -eq 1 ] ; then
+if [ "$GIS_FLAG_F" -eq 1 ] ; then
    #### flat image ####
    if [ -n "$GIS_OPT_VIEWING_HEIGHT" ] ; then
       height="$GIS_OPT_VIEWING_HEIGHT"
@@ -323,6 +334,14 @@ if [ $GIS_FLAG_F -eq 1 ] ; then
    LARGER=`echo "$ew_extent $ns_extent" | awk '{if ($1 > $2) { print "ew" } else { print "ns" }}'`
    if [ "ns" = "$LARGER" ] ; then
       TWIST=90
+   fi
+
+   if [ "$GIS_FLAG_R" -eq 1 ] ; then
+      if [ "$TWIST" -eq 90 ] ; then
+         TWIST=180
+      else
+         TWIST=90
+      fi
    fi
 
    RENDER_OPTS="resolution_fine=1 perspective=15 twist=$TWIST \
@@ -353,7 +372,7 @@ else
    g.region save="tmp_anaglyph.$$"
    WIND_OVERRIDE="tmp_anaglyph.$$"
    export WIND_OVERRIDE
-   if [ "$GIS_FLAG_S" -ne 1 ] ; then
+   if [ "$GIS_OPT_STYLE" = "anaglyph" ] ; then
       g.region rast="$TEMP_IMG"
    fi
 
@@ -381,6 +400,15 @@ else
    if [ "map" = "$LARGER" ] ; then
       SPREAD=0.005
       TWIST_L=90
+   fi
+
+   # if it fails let the user control the rotation
+   if [ "$GIS_FLAG_R" -eq 1 ] ; then
+      if [ "$TWIST_L" -eq 90 ] ; then
+         TWIST_L=-90
+      else
+         TWIST_L=90
+      fi
    fi
 
    SPREAD_L=`echo "$SPREAD" | awk '{print 0.5 - $1}'`
@@ -446,7 +474,7 @@ EOF
 }
 
 
-if [ "$GIS_FLAG_S" -ne 1 ] ; then
+if [ "$GIS_OPT_STYLE" = "anaglyph" ] ; then
    # split into R,G,B components
    g.message "Creating anaglyph ..."
    ppmtorgb3 "$BASENM.left.ppm" &
@@ -462,7 +490,7 @@ else
    HEIGHT=`echo "$SIZE" | cut -f2 -d,`
    create_pbm 5 "$HEIGHT" white "$TEMPFILE.gutter.pbm"
 
-   if [ "$GIS_FLAG_C" -ne 1 ] ; then
+   if [ "$GIS_OPT_STYLE" = "stereogram" ] ; then
 
       if [ "$GIS_FLAG_G" -eq 1 ] ; then
 	 # fiducial mark overlay
@@ -535,21 +563,32 @@ EOF
 	 wait
       fi
 
-      pnmcat -leftright "$BASENM.right.ppm" "$TEMPFILE.gutter.pbm" \
-         "$BASENM.left.ppm" > "$BASENM.anaglyph.ppm"
+      if [ "$GIS_FLAG_C" -ne 1 ] ; then
+         pnmcat -leftright "$BASENM.right.ppm" "$TEMPFILE.gutter.pbm" \
+            "$BASENM.left.ppm" > "$BASENM.anaglyph.ppm"
+      else
+         pnmcat -leftright "$BASENM.left.ppm" "$TEMPFILE.gutter.pbm" \
+            "$BASENM.right.ppm" > "$BASENM.anaglyph.ppm"
+      fi
       check_ret
 
    else
-
+      # create a freeview stereogram
       if [ "$GIS_FLAG_G" -ne 1 ] ; then
-	 pnmcat -leftright "$BASENM.left.ppm" "$TEMPFILE.gutter.pbm" \
-	    "$BASENM.right.ppm" > "$BASENM.anaglyph.ppm"
+	 # no guide, just the two images
+         if [ "$GIS_FLAG_C" -ne 1 ] ; then
+	    pnmcat -leftright "$BASENM.left.ppm" "$TEMPFILE.gutter.pbm" \
+	       "$BASENM.right.ppm" > "$BASENM.anaglyph.ppm"
+	 else
+	    pnmcat -leftright "$BASENM.right.ppm" "$TEMPFILE.gutter.pbm" \
+	       "$BASENM.left.ppm" > "$BASENM.anaglyph.ppm"
+	 fi
 	 check_ret
       else
-
-	 # thanks (public domain)
-	 # http://upload.wikimedia.org/wikipedia/commons/1/10/Stereo_Pair%2C_Lake_Palanskoye_Landslide%2C_Kamchatka_Peninsula%2C_Russia.jpg
-	 SIDE_WIDTH=50
+	 # nest in a viewing guide
+	 # thanks to: (public domain)
+	 #   http://upload.wikimedia.org/wikipedia/commons/1/10/Stereo_Pair%2C_Lake_Palanskoye_Landslide%2C_Kamchatka_Peninsula%2C_Russia.jpg
+	 SIDE_WIDTH=60
 	 GUTTER_WIDTH=5
 	 WIDTH=`echo "$SIZE" | cut -f1 -d,`
 	 WIDTH2=`expr "$WIDTH" "*" 2 + $SIDE_WIDTH + $SIDE_WIDTH + $GUTTER_WIDTH`
@@ -579,7 +618,7 @@ EOF
 	    d.font "$VALID_FONT"
 	 fi
 	 cat << EOF | d.text at=50,67 align=cc size=25 color=white linespacing=2
-To view stereo pair, cross eyes slightly until a third
+To view the stereo pair, cross your eyes slightly until a third
 white dot appears between the two. New center image is 3D!
 EOF
 	 d.mon stop=cairo --quiet
@@ -598,9 +637,15 @@ EOF
 	    > "$BASENM.dotleft.ppm"
 	 check_ret
 
-	 pnmcat -leftright "$TEMPFILE.side.pbm" "$BASENM.dotleft.ppm" \
-	    "$TEMPFILE.gutter.pbm" "$BASENM.dotright.ppm" "$TEMPFILE.side.pbm" \
-	    > "$BASENM.upper.ppm"
+	 if [ "$GIS_FLAG_C" -ne 1 ] ; then
+	    pnmcat -leftright "$TEMPFILE.side.pbm" "$BASENM.dotleft.ppm" \
+	       "$TEMPFILE.gutter.pbm" "$BASENM.dotright.ppm" "$TEMPFILE.side.pbm" \
+	       > "$BASENM.upper.ppm"
+	 else
+	    pnmcat -leftright "$TEMPFILE.side.pbm" "$BASENM.dotright.ppm" \
+	       "$TEMPFILE.gutter.pbm" "$BASENM.dotleft.ppm" "$TEMPFILE.side.pbm" \
+	       > "$BASENM.upper.ppm"
+	 fi
 	 check_ret
 
 	 pnmcat -topbottom "$BASENM.upper.ppm" "$TEMPFILE.text.ppm" \
