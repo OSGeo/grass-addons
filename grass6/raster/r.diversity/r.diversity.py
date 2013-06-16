@@ -23,7 +23,7 @@
 #%option
 #% key: input
 #% type: string
-#% gisprompt: input raster
+#% gisprompt: old,cell,raster
 #% key_desc: name
 #% description: Name of input raster map 
 #% required: yes
@@ -31,7 +31,7 @@
 #%option
 #% key: output
 #% type: string
-#% gisprompt: output raster
+#% gisprompt: new,cell,raster
 #% key_desc: name
 #% description: Name of output raster map 
 #% required: yes
@@ -39,7 +39,6 @@
 #%option
 #% key: alpha
 #% type: double
-#% gisprompt: alpha value
 #% key_desc: alpha value for Renyi entropy
 #% description: Order of generalized entropy (> 0.0; undefined for 1.0)
 #% multiple: yes
@@ -48,7 +47,6 @@
 #%option
 #% key: size
 #% type: integer
-#% gisprompt: resolution
 #% key_desc: moving window
 #% multiple: yes
 #% description: Size of processing window (odd number only)
@@ -58,7 +56,6 @@
 #%option
 #% key: method
 #% type: string
-#% gisprompt: method to use
 #% key_desc: method
 #% options: simpson,shannon,pielou,renyi
 #% multiple: yes
@@ -68,7 +65,6 @@
 #%option
 #% key: exclude
 #% type: string
-#% gisprompt: exclude method
 #% key_desc: exclude method
 #% options: simpson,shannon,pielou,renyi
 #% multiple: yes
