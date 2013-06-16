@@ -22,7 +22,7 @@ This program is free software under the GNU General Public License
 #%option
 #% key: url
 #% type: string
-#% description:URL of WMS server 
+#% description: URL of WMS server 
 #% required: yes
 #%end
 
@@ -34,15 +34,20 @@ This program is free software under the GNU General Public License
 #% required: yes
 #%end
 
-#%option G_OPT_R_OUTPUT
+#%option
+#% key: output
+#% type: string
 #% description: Name for output raster map
+#% gisprompt: new,cell,raster
+#% required: yes
+#% key_desc: name
 #%end
 
 #%option
 #% key: srs
 #% type: integer
 #% description: EPSG number of source projection for request 
-#% answer:4326 
+#% answer: 4326 
 #% guisection: Request properties
 #%end
 
@@ -55,10 +60,10 @@ This program is free software under the GNU General Public License
 
 #%option
 #% key: wms_version
-#% type:string
-#% description:WMS standard
-#% options:1.1.1,1.3.0
-#% answer:1.1.1
+#% type: string
+#% description: WMS standard
+#% options: 1.1.1,1.3.0
+#% answer: 1.1.1
 #% guisection: Request properties
 #%end
 
@@ -75,16 +80,16 @@ This program is free software under the GNU General Public License
 #% key: method
 #% type: string
 #% description: Reprojection method to use
-#% options:near,bilinear,cubic,cubicspline
-#% answer:near
+#% options: near,bilinear,cubic,cubicspline
+#% answer: near
 #% guisection: Request properties
 #%end
 
 #%option
 #% key: maxcols
-#% type:integer
+#% type: integer
 #% description: Maximum columns to request at a time
-#% answer:400
+#% answer: 400
 #% guisection: Request properties
 #%end
 
@@ -98,21 +103,21 @@ This program is free software under the GNU General Public License
 
 #%option
 #% key: urlparams
-#% type:string
+#% type: string
 #% description: Additional query parameters for server
 #% guisection: Request properties
 #%end
 
 #%option
 #% key: username
-#% type:string
+#% type: string
 #% description: Username for server connection
 #% guisection: Request properties
 #%end
 
 #%option
 #% key: password
-#% type:string
+#% type: string
 #% description: Password for server connection
 #% guisection: Request properties
 #%end
@@ -147,25 +152,30 @@ This program is free software under the GNU General Public License
 
 #%option
 #% key: driver
-#% type:string
+#% type: string
 #% description: Driver for communication with server
-#% options:WMS_GDAL, WMS_GRASS, WMTS_GRASS, OnEarth_GRASS
-#% answer:WMS_GRASS
+#% options: WMS_GDAL, WMS_GRASS, WMTS_GRASS, OnEarth_GRASS
+#% answer: WMS_GRASS
 #%end
 
-#%option G_OPT_F_INPUT
+#%option
 #% key: capfile
+#% type: string
+#% key_desc: name
 #% required: no
-#% gisprompt: old,file,bin_input
-#% description: Capabilities file 
+#% gisprompt: old_file,file,input
+#% description: Capabilities file (input)
 #%end
 
-#%option G_OPT_F_OUTPUT
+#%option
 #% key: capfile_output
 #% required: no
-#% gisprompt: old,file,bin_input
+#% gisprompt: old_file,file,file
 #% description: File where capabilities will be saved (only with 'c' flag).
+#% type: string
+#% key_desc: name
 #%end
+
 
 import os
 import sys
