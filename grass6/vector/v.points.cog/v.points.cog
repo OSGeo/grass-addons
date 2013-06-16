@@ -84,9 +84,18 @@ if [ `v.info -c "$MAP" layer="$LAYER" --quiet | cut -f2 -d'|' | grep -c "^$COLUM
     exit 1
 fi
 
-# get column details so we can recreate it
+# get column details so we can recreate it.
+# The db.* modules need special care when querying from @another mapset
 DB=`v.db.connect "$MAP" -g layer="$LAYER" fs='|' | cut -f4 -d'|'`
-COLUMN_DESC=`db.describe -c table="$MAP" database="$DB" | grep " $COLUMN:" | cut -f3- -d:`
+BASENAME=`echo "$MAP" | sed -e 's/@.*//'`
+db.describe -c table="$BASENAME" database="$DB" > /dev/null
+if [ $? -ne 0 ] ; then
+   g.message -e "Unable to describe table"
+   exit 1
+fi
+COLUMN_DESC=`db.describe -c table="$BASENAME" database="$DB" | grep " $COLUMN:" | cut -f3- -d:`
+
+
 if [ `echo "$COLUMN_DESC" | grep -c CHARACTER` -eq 1 ] ; then
    COLUMN_TYPE="string"
    COLUMN_LEN=`echo "$COLUMN_DESC" | cut -f2 -d:`
@@ -97,7 +106,7 @@ else
 fi
 
 # cheap hack to avoid conflict
-if [ $COLUMN = "cat" ] ; then
+if [ "$COLUMN" = "cat" ] ; then
   OUT_COLUMN="cat_"
 else
   OUT_COLUMN="$COLUMN"
