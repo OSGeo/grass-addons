@@ -67,7 +67,6 @@ int main(int argc, char *argv[])
     par_side->options = "both,left,right";
     par_side->answer = "both";
     par_side->multiple = NO;
-    par_side->required = YES;
     par_side->description = _("Fuzzy range");
 
     par_type = G_define_option();
@@ -76,7 +75,6 @@ int main(int argc, char *argv[])
     par_type->options = "Linear,S-shaped,J-shaped,G-shaped";
     par_type->answer = "S-shaped";
     par_type->multiple = NO;
-    par_type->required = YES;
     par_type->description = _("Type of fuzzy boundaries");
     par_type->guisection = _("Default options");
 
@@ -86,7 +84,6 @@ int main(int argc, char *argv[])
     par_shape->options = "-1.0-1.0";
     par_shape->answer = "0.";
     par_shape->multiple = NO;
-    par_shape->required = YES;
     par_shape->description = _("Shape modifier: -1 to 1");
     par_shape->guisection = _("Default options");
 
@@ -96,12 +93,12 @@ int main(int argc, char *argv[])
     par_height->options = "0.0-1.0";
     par_height->answer = "1";
     par_height->multiple = NO;
-    par_height->required = YES;
     par_height->description = _("Membership height: 0 to 1");
     par_height->guisection = _("Default options");
 
     if (G_parser(argc, argv))
 	exit(EXIT_FAILURE);
+
 
     input = par_input->answer;
     output = par_output->answer;
