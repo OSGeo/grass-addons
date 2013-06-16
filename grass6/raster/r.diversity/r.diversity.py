@@ -106,16 +106,18 @@ def main():
     if alpha != '':
 	alpha_value = checkValues(alpha,True)
 	print alpha_value
+
     # check if ~/.r.li path exists
-    if not os.path.exists(home+'/.r.li/'):
+    if not os.path.exists(home + '/.r.li'):
 	# create ~/.r.li
-	os.path.mkdir(home+'/.r.li/')
+	os.mkdir(home + '/.r.li')
 	# create ~/.r.li/history
-	os.path.mkdir(home+'/.r.li/history')
+	os.mkdir(home + '/.r.li/history')
     else:
-	if not os.path.exists(home+'/.r.li/history'):
+	if not os.path.exists(home + '/.r.li/history'):
 	    # create ~/.r.li/history
-	    os.path.mkdir(home+'/.r.li/history')
+	    os.mkdir(home + '/.r.li/history')
+
     # set overwrite
     if grass.overwrite():
         env['GRASS_OVERWRITE'] = '1'
