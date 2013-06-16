@@ -147,7 +147,7 @@ This program is free software under the GNU General Public License
 #% key: c
 #% description: Get capabilities
 #% guisection: Request properties
-#% suppress_required: yes
+##% suppress_required: yes
 #%end
 
 #%option
