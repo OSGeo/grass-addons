@@ -61,7 +61,8 @@ int main(int argc, char **argv)
     module = G_define_module();
     module->keywords = _("raster, fuzzy logic");
     module->description =
-        _("xxxx");
+	_("Full fuzzy logic standalone classification system with few fuzzy "
+	  "logic families implication and defuzzification and methods.");
 
     file_vars = G_define_standard_option(G_OPT_F_INPUT);
     file_vars->key = "maps";
@@ -185,19 +186,19 @@ int main(int argc, char **argv)
 
     nrows = G_window_rows();
     ncols = G_window_cols();
-		
-		parse_map_file(var_name_file);
-			if (membership_only)
-    show_membership();
-    
-		parse_rule_file(rule_name_file);
+
+    parse_map_file(var_name_file);
+    if (membership_only)
+	show_membership();
+
+    parse_rule_file(rule_name_file);
     get_universe();
     open_maps();
 	
-		antecedents = (float *)G_malloc(nrules * sizeof(float));
-		agregate = (float *)G_calloc(resolution, sizeof(float));
-			if (coor_proc)
-		process_coors(in_coor_opt->answer);
+	antecedents = (float *)G_malloc(nrules * sizeof(float));
+	agregate = (float *)G_calloc(resolution, sizeof(float));
+	if (coor_proc)
+       process_coors(in_coor_opt->answer);
 
     if ((outfd = G_open_raster_new(output, FCELL_TYPE)) < 0)
 	G_fatal_error(_("Unable to create raster map <%s>"), output);
@@ -206,8 +207,8 @@ int main(int argc, char **argv)
 
     if (multiple)
 	create_output_maps();
-  
-		G_message("Calculate...");
+
+    G_message("Calculate...");
 
     for (row = 0; row < nrows; ++row) {
 		G_percent(row, nrows, 2);
@@ -246,30 +247,30 @@ int main(int argc, char **argv)
 
     }
     G_percent(row, nrows, 2);
-		
+
     G_message("Close...");
 
-		
+
 
     G_close_cell(outfd);
     G_short_history(output, "raster", &history);
     G_command_history(&history);
     G_write_history(output, &history);
-		set_cats();
-		/* free */
-			for (i = 0; i < nmaps; ++i) {
+	set_cats();
+	/* free */
+	for (i = 0; i < nmaps; ++i) {
 		G_free(s_maps[i].sets);
 				if (s_maps[i].output)
 	    continue;
 		G_free(s_maps[i].in_buf);
 		G_close_cell(s_maps[i].cfd);
-			}
+	}
     G_free(antecedents);
     G_free(agregate);
     G_free(out_buf);
     G_free(s_maps);
     G_free(s_rules);
-   
+
     if (multiple)
 	for (i = 0; i < nrules; ++i) {
 	    G_free(m_outputs[i].out_buf);

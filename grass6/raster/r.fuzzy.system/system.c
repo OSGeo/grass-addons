@@ -4,6 +4,7 @@ float implicate(void)
 {
 
     int i, j;
+
     //float *agregate = NULL;
     int set_index;
     float consequent;
@@ -11,13 +12,13 @@ float implicate(void)
     float max_agregate = 0;
     float result;
 
-    memset(agregate,0,resolution * sizeof(float));
+    memset(agregate, 0, resolution * sizeof(float));
 
     for (j = 0; j < nrules; ++j) {
 	antecedents[j] = parse_expression(j);
 	max_antecedent =
 	    (max_antecedent >
-	     antecedents[j]) ? max_antecedent : antecedents[j]; 
+	     antecedents[j]) ? max_antecedent : antecedents[j];
    }
 
     if (max_antecedent == 0. && !coor_proc)
@@ -27,33 +28,33 @@ float implicate(void)
 
 	if (defuzzyfication > d_BISECTOR && antecedents[j] < max_antecedent && !coor_proc)
 	    continue;
-	    
-	    set_index = s_rules[j].output_set_index;
+
+	set_index = s_rules[j].output_set_index;
 
 	for (i = 0; i < resolution; ++i) {
-	    
+
 	    consequent = fuzzy(universe[i],
 			       &s_maps[output_index].sets[set_index]);
-	    
+
 	    consequent = (!implication) ? MIN(antecedents[j], consequent) :
 		antecedents[j] * consequent;
 	    agregate[i] = MAX(agregate[i], consequent);
 	    
 	   max_agregate = (max_agregate > agregate[i]) 
 				? max_agregate : agregate[i];
-	   
+
 
 	    if (coor_proc)
 		visual_output[i][j + 1] = consequent;
 	}
-	
+
     }
     if (coor_proc)
 	for (i = 0; i < resolution; ++i)
 	    visual_output[i][j + 1] = agregate[i];
 
-     result=defuzzify(defuzzyfication, max_agregate);
-     return result;
+    result = defuzzify(defuzzyfication, max_agregate);
+    return result;
 }
 
 float parse_expression(int n)
@@ -140,16 +141,16 @@ float parse_expression(int n)
 		break;
 
 	    case A:		/* accept */
-	
+
 		if (!val_top)
 		    G_fatal_error("Stack error at end, contact autor");
 		return values_stack[val_top];
-	
+
 	    }
 	}
 
     } while (s_rules[n].work_queue[i++] != t_STOP);
-    
+
     G_fatal_error("Parse Stack empty, contact autor");
 }
 

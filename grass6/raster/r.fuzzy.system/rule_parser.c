@@ -49,9 +49,9 @@ int parse_rule_file(STRING file)
 	/* next rule */
     }
 
-			for (i = 0; i < nrules; ++i)
-		G_free(rules[i]);
-		G_free(rules);
+    for (i = 0; i < nrules; ++i)
+	G_free(rules[i]);
+    G_free(rules);
     fclose(fd);
     return 0;
 

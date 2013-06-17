@@ -1,6 +1,7 @@
 #include "local_proto.h"
 
 int get_nsets(FILE * fd, fpos_t position)
+/* get number of maps (setd) used in analysis */
 {
 
     int nsets = 0;
@@ -29,6 +30,7 @@ int get_nsets(FILE * fd, fpos_t position)
 
 
 int char_strip(char *buf, char rem)
+/* remove spaces, tabs and one addational character */
 {
     register char *a, *b;
 
@@ -40,6 +42,7 @@ int char_strip(char *buf, char rem)
 }
 
 int char_copy(const char *buf, char *res, int start, int stop)
+/* copy part of the string to another string */
 {
     register int i, j;
 
@@ -81,7 +84,7 @@ int get_universe(void)
     for (i = 0; i < resolution; ++i)
 	universe[i] = min + ((max - min) / resolution) * i;
 
-/* visual output */
+    /* visual output */
 
     return 0;
 }
@@ -96,32 +99,32 @@ void process_coors(char *answer)
     int num_points;
     float result;
 
-		visual_output = (float **)G_malloc(resolution * sizeof(float *));
+    visual_output = (float **)G_malloc(resolution * sizeof(float *));
 
-				for (j = 0; j < nrules; ++j) 
-		for (i = 0; i < resolution; ++i) {
+    for (j = 0; j < nrules; ++j)
+	for (i = 0; i < resolution; ++i) {
 	    visual_output[i] = (float *)G_calloc(nrules + 2, sizeof(float));
 	    visual_output[i][0] = universe[i];
-		}
-			
+	}
+
     G_get_window(&window);
     num_points = sscanf(answer, "%lf,%lf", &x, &y);
 
     c = (int)G_easting_to_col(x, &window);
     r = (int)G_northing_to_row(y, &window);
-    
-		get_rows(r);
+
+    get_rows(r);
     get_cells(c);
-    
-    result = implicate(); /* jump to different function */
+
+    result = implicate();	/* jump to different function */
 
     for (i = 0; i < nrules; ++i)
 	fprintf(stdout, "ANTECEDENT %s: %5.3f\n", s_rules[i].outname,
 		antecedents[i]);
 
-  fprintf(stdout, "RESULT (deffuzified):  %5.3f\n", result);
-  
-  fprintf(stdout, "UNIVERSE,");
+    fprintf(stdout, "RESULT (deffuzified):  %5.3f\n", result);
+
+    fprintf(stdout, "UNIVERSE,");
     for (i = 0; i < nrules; ++i)
 	fprintf(stdout, "%s,", s_rules[i].outname);
     fprintf(stdout, "AGREGATE \n");
@@ -135,34 +138,35 @@ void process_coors(char *answer)
 		fprintf(stdout, "\n");
 	}
 
-			for (i = 0; i < nmaps; ++i) {
+    for (i = 0; i < nmaps; ++i) {
 	G_free(s_maps[i].sets);
 	if (s_maps[i].output)
 	    continue;
-		G_free(s_maps[i].in_buf);
+	G_free(s_maps[i].in_buf);
 	G_close_cell(s_maps[i].cfd);
     }
 
-			for (j = 0; j < nrules; ++j)
-				G_free(visual_output[j]);
+    for (j = 0; j < nrules; ++j)
+	G_free(visual_output[j]);
     G_free(visual_output);
-    
+
     G_free(antecedents);
     G_free(s_maps);
     G_free(s_rules);
-   
+
     exit(EXIT_SUCCESS);
 }
 
 
-void show_membership(void) {
-	int i,j,k;
-	STRING cur_mapset;
-	struct FPRange map_range;
-	DCELL min, max;
-	float* map_universe;
+void show_membership(void)
+{
+    int i, j, k;
+    STRING cur_mapset;
+    struct FPRange map_range;
+    DCELL min, max;
+    float *map_universe;
 	
-	resolution=resolution+1;
+	resolution=resolution + 1;
 	map_universe = (float *)G_calloc(resolution, sizeof(float));
 
 	for(i=0;i<nmaps;++i) {
@@ -209,29 +213,29 @@ void show_membership(void) {
     G_free(s_maps);
     G_free(s_rules);
 
-		exit(EXIT_SUCCESS);
-	
+    exit(EXIT_SUCCESS);
+
 }
 
 int set_cats(void)
 {
-struct Categories cats;
-float fmin, fmax;
-int cmin, cmax;
-int i, j;
+    struct Categories cats;
+    float fmin, fmax;
+    int cmin, cmax;
+    int i, j;
 
-fmin=universe[0];
-fmax=universe[resolution];
-cmin=(int)universe[0];
-cmax=(int)universe[resolution];
-double tmp1, tmp2;
-float fuzzy_val=0;
-char buf[200];
-float rang;
+    fmin = universe[0];
+    fmax = universe[resolution];
+    cmin = (int)universe[0];
+    cmax = (int)universe[resolution];
+    double tmp1, tmp2;
+    float fuzzy_val = 0;
+    char buf[200];
+    float rang;
 
-rang=(universe[0]+universe[1])/2.;
-G_read_raster_cats(output, G_mapset(), &cats);
-G_set_raster_cats_title("Result membership", &cats);
+    rang = (universe[0] + universe[1])/2.;
+    G_read_raster_cats(output, G_mapset(), &cats);
+    G_set_raster_cats_title("Result membership", &cats);
 
 	for (i=0;i<resolution;++i) {
 		strcpy(buf,"");
@@ -246,22 +250,25 @@ G_set_raster_cats_title("Result membership", &cats);
 			
 		}
 
-			tmp1=(double)universe[i]-rang;
-			tmp2=(double)universe[i]+rang;
-			if(i==0) tmp1=(double)universe[i];
-			if(i==resolution) tmp2=(double)universe[i];
-			G_set_d_raster_cat(&tmp1, &tmp2, buf, &cats);
-	}	
-G_write_raster_cats(output, &cats);
-G_free_raster_cats(&cats);
-return 0;
+	tmp1 = (double)universe[i] - rang;
+	tmp2 = (double)universe[i] + rang;
+	if (i == 0)
+	    tmp1 = (double)universe[i];
+	if (i == resolution)
+	    tmp2 = (double)universe[i];
+	G_set_d_raster_cat(&tmp1, &tmp2, buf, &cats);
+    }
+    G_write_raster_cats(output, &cats);
+    G_free_raster_cats(&cats);
+    return 0;
 }
 
 
-
-void set_colors(void) { /* not in use yet */
-struct Colors colors;
-G_init_colors(&colors);
-G_add_color_rule(0, 255, 255, 255, 2, 255, 255, 0, &colors);
-G_write_colors(output, G_mapset(), &colors);
+/* not in use yet
+void set_colors(void) {
+  struct Colors colors;
+  G_init_colors(&colors);
+  G_add_color_rule(0, 255, 255, 255, 2, 255, 255, 0, &colors);
+  G_write_colors(output, G_mapset(), &colors);
 }
+ */
