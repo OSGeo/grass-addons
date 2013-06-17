@@ -2,10 +2,11 @@
 
 <dl>
 <dt><b>maps</b></dt>
-<dd>A text file containing maps name and  fuzzy sets connected with map
-definition. Maps in text file must exist on a search path, except the output
-map. The name of output map name is the output name parameter. In map file
-outmput map is marked by special name <b>_OUTPUT_</b>  If maps are in different
+<dd>A text file containing maps name and fuzzy sets connected with map
+definition. The input maps (indicated with % in text file) must be found
+in the search path.
+The output map name is the output name parameter. In map file
+output map is marked by special name <b>_OUTPUT_</b>  If maps are in different
 mapsets the name require @. Map names in database cannot contain following
 symbols: <b> %,$ and #</b>. Every map name must start with map name
 identifier:<b> %</b>. Every set definition connected with cetrain map must
@@ -250,6 +251,11 @@ analysis and definition of fuzzy sets for every map, and second with fuzzy
 rules. For this example:
 
 <p>MAPS
+
+Note: the raster map names are specified with a "%" character (here 
+"%elevation" and "%distance" are the input maps and "%flood" the
+output map:
+
 <div class="code"><pre>
 #flood.map
 	%elevation
