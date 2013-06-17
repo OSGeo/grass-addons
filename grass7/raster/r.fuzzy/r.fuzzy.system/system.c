@@ -26,7 +26,7 @@ float implicate(void)
 
     for (j = 0; j < nrules; ++j) {
 
-	if (defuzzyfication > d_BISECTOR && antecedents[j] < max_antecedent &&
+	if (defuzzification > d_BISECTOR && antecedents[j] < max_antecedent &&
 	    !coor_proc)
 	    continue;
 
@@ -54,7 +54,7 @@ float implicate(void)
 	for (i = 0; i < resolution; ++i)
 	    visual_output[i][j + 1] = agregate[i];
 
-    result = defuzzify(defuzzyfication, max_agregate);
+    result = defuzzify(defuzzification, max_agregate);
     return result;
 }
 
@@ -160,7 +160,7 @@ float parse_expression(int n)
 
 
 
-float defuzzify(int defuzzyfication, float max_agregate)
+float defuzzify(int defuzzification, float max_agregate)
 {
     int i;
     float d_value = 0;
@@ -169,7 +169,7 @@ float defuzzify(int defuzzyfication, float max_agregate)
 
     for (i = 0; i < resolution; sum_agregate += agregate[i++]) ;
 
-    switch (defuzzyfication) {
+    switch (defuzzification) {
 
     case d_CENTEROID:
 	for (i = 0; i < resolution; ++i)

@@ -122,7 +122,7 @@ void process_coors(char *answer)
 	fprintf(stdout, "ANTECEDENT %s: %5.3f\n", s_rules[i].outname,
 		antecedents[i]);
 
-    fprintf(stdout, "RESULT (deffuzified):  %5.3f\n", result);
+    fprintf(stdout, "RESULT (defuzzified):  %5.3f\n", result);
 
     fprintf(stdout, "UNIVERSE,");
     for (i = 0; i < nrules; ++i)

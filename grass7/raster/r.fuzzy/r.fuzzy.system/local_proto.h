@@ -151,7 +151,7 @@ extern float *agregate;
 extern int nmaps, nrules, output_index, multiple, membership_only, coor_proc;
 extern int resolution;
 extern implications implication;
-extern defuzz defuzzyfication;
+extern defuzz defuzzification;
 extern logics family;
 
 extern char **rules;

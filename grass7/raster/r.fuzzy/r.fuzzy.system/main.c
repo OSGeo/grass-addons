@@ -29,7 +29,7 @@ float *agregate;
 int nmaps, nrules, output_index, multiple, membership_only, coor_proc;
 int resolution;
 implications implication;
-defuzz defuzzyfication;
+defuzz defuzzification;
 logics family;
 
 char **rules;
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 	"centroid,bisector,min_of_highest,max_of_highest,mean_of_highest";
     par_defuzzify->answer = "bisector";
     par_defuzzify->required = YES;
-    par_defuzzify->description = _("Defuzzyfication method");
+    par_defuzzify->description = _("Defuzzification method");
     par_defuzzify->guisection = _("Advanced options");
 
     par_implication = G_define_option();
@@ -175,15 +175,15 @@ int main(int argc, char **argv)
 	implication = i_PROD;
 
     if (!strcmp(par_defuzzify->answer, "centroid"))
-	defuzzyfication = d_CENTEROID;
+	defuzzification = d_CENTEROID;
     else if (!strcmp(par_defuzzify->answer, "bisector"))
-	defuzzyfication = d_BISECTOR;
+	defuzzification = d_BISECTOR;
     else if (!strcmp(par_defuzzify->answer, "min_of_highest"))
-	defuzzyfication = d_MINOFHIGHEST;
+	defuzzification = d_MINOFHIGHEST;
     else if (!strcmp(par_defuzzify->answer, "max_of_highest"))
-	defuzzyfication = d_MAXOFHIGHEST;
+	defuzzification = d_MAXOFHIGHEST;
     else if (!strcmp(par_defuzzify->answer, "mean_of_highest"))
-	defuzzyfication = d_MEANOFHIGHEST;
+	defuzzification = d_MEANOFHIGHEST;
 
     nrows = Rast_window_rows();
     ncols = Rast_window_cols();

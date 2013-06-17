@@ -122,10 +122,10 @@ definition. It usually creates trapezoidal consequent set definition.
 definition. It usually creates triangular consequent set definition.
 </ul>
 </dd>
-<dt><b>defuzz: defuzzyfication method</b></dt>
-<dd>Before deffuzification all consequents are agregated into one fuzzy set.
+<dt><b>defuzz: defuzzification method</b></dt>
+<dd>Before defuzzification all consequents are agregated into one fuzzy set.
 Defuzzification is the process of conversion of aggregated fuzzy set into one
-crisp value. The r.fuzzy.system provides 5 methods of defuzzyfication:
+crisp value. The r.fuzzy.system provides 5 methods of defuzzification:
 <ul>
 <li><b>centroid</b> center of mass of the fuzzy set (in practise weighted mean);
 <li><b>bisector</b> a value which divide fuzzy set on two parts of equal area;
@@ -139,7 +139,7 @@ crisp value. The r.fuzzy.system provides 5 methods of defuzzyfication:
 consequent and agregated fuzzy sets. The resolution provides number of elements
 of these fuzzy sets. The minimum and maximum for univese is taken from the
 minimal and maximal values of fuzzy set definition of output map Because it has
-strong impact on computation time and precision of deffuzification, values lower
+strong impact on computation time and precision of defuzzification, values lower
 than 30 may impact on precision of final result, but values above 200 may slow
 down computation time.
 </dd>
@@ -161,7 +161,7 @@ for every map.</dd>
 <h2>OUTPUTS</h2>
 <dl>
 <dt><b>output</b></dt>
-<dd>Map containing deffuzified values. Map is always of type FCELLS and contains
+<dd>Map containing defuzzified values. Map is always of type FCELLS and contains
 values defined in output universe. The output name must be the same as one of
 maps in maps definition file.
 </dd>
@@ -231,7 +231,7 @@ near: BELOW 100 = 1; FROM 100 TO 200 = {1 TO 0}; ABOVE 200 = 0;
 To recive final map program calculate partial fuzzy set for all rules and next
 agregate it into one fuzzy set. These fuzzy sets are created on value sequence
 called universe. Every set has the number of elements equal to universe
-resolution. Such set cannot be stored as map so finally is deffuzified with
+resolution. Such set cannot be stored as map so finally is defuzzified with
 method choosen by user.
 <p>
 First we need two maps created with r.stream package:
