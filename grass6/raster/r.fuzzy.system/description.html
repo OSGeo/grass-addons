@@ -14,7 +14,7 @@ definition must be in braces { } and requires parameters separated by semicolon.
 Any whitespaces like spaces, tabs, empty lines are allowed and may used to
 visual format of rule file.
 
-<pre>$ set_name {side; points; boundary_shape; hedge; height }</pre>
+<div class="code"><pre>$ set_name {side; points; boundary_shape; hedge; height }</pre></div>
 <ul>
 <li><b>set_name</b>: Any name of the fuzzy set. Must not contain symbols: <i>
 %,$ and #</i>
@@ -38,24 +38,24 @@ full membership beteen points B and C. If height is lesser than one the maximum
 memebrship is equal to height.
 </ul>
 <p>An example of fuzzy sets definiton:
-<pre>$ moderate {both; 90,100,120,130; sshaped; 0; 1}</pre>
+<div class="code"><pre>$ moderate {both; 90,100,120,130; sshaped; 0; 1}</pre></div>
 
 <b>Special notes about sets definition for output map:</b><br>
 These sets shall be created as triangular (both sides) sets with linear
 boundaries, without hedge and height modifiers:
-<pre>$ moderate {both; 0,20,20,40; linear; 0; 1}</pre>
+<div class="code"><pre>$ moderate {both; 0,20,20,40; linear; 0; 1}</pre></div>
 </dd>
 
 <dt><b>rules</b></dt>
 <dd>A text file containing rules for classification.Th typical fuzzy rule
 consists of one or more antecedents and one consequent:
 
-<pre>IF elev IS high AND distance IS low THEN probability IS small
+<div class="code"><pre>IF elev IS high AND distance IS low THEN probability IS small
 
 where:
 antecetends: elev IS high; distance IS low
 consequent: probability IS small
-</pre>
+</pre></div>
 
 The rule file has his own syntax. Because module creates only one result map,
 the map name is ommited. Every rule starts with $ and consist of consequent name
@@ -73,9 +73,9 @@ sets names of the output map. The rules file use following symbols:
 
 
 <p>An example of fuzzy rules definiton:
-<pre>
+<div class="code"><pre>
 $ small {distance = high & elev = high}
-</pre>
+</pre></div>
 
 </dd>
 </dl>
@@ -122,10 +122,10 @@ definition. It usually creates trapezoidal consequent set definition.
 definition. It usually creates triangular consequent set definition.
 </ul>
 </dd>
-<dt><b>defuzz: deffuzyfication method</b></dt>
+<dt><b>defuzz: defuzzyfication method</b></dt>
 <dd>Before deffuzification all consequents are agregated into one fuzzy set.
 Defuzzification is the process of conversion of aggregated fuzzy set into one
-crisp value. The r.fuzzy.system provides 5 methods of deffuzyfication:
+crisp value. The r.fuzzy.system provides 5 methods of defuzzyfication:
 <ul>
 <li><b>centroid</b> center of mass of the fuzzy set (in practise weighted mean);
 <li><b>bisector</b> a value which divide fuzzy set on two parts of equal area;
@@ -178,24 +178,25 @@ shape:
 <p>
 <b>Linear:</b> the membership is calculated according following equation:<br>
 
-<pre><code>
+<div class="code"><pre>
 value  <=  A -> x = 0
 A< value > B -> x = (value-A)/(B-A)
 B <= value >= C -> x = 1
 C< value > D -> x = (D-value)/(D-C)
 value  >=  D -> x = 0
-</code></pre>
+</pre></div>
 <b>S-shaped, G-shaped and J shaped:</b>  use following equation to sommoth
 boundary:
-<pre><code>
+<div class="code"><pre>
 sin(x * Pi/2)^2 (for S-shaped)
 tan(x * Pi/4)^2 (for J-shaped)
 tan(x * Pi/4)^0.5 (for G-shaped)
 
 where:
 x current fuzzy value
-A,B,C,D inflection point,
-</code></pre>
+A,B,C,D inflection point
+</pre></div>
+
 <h4>Category information</h4>
 Every cell has a category information showing the membership of result map in
 any reslut's fuzzy values: for example moderate=0.60, high=0.40 means that cell
@@ -217,20 +218,20 @@ in which information is  imprecise, such as most of the GIS operations.
 Suppose we want to determine the flood risk on some area (Spearfish dataset)
 using two maps: distance to streams and elevation above streams. We can write
 some common sense rules:
-<pre>
+<div class="code"><pre>
 IF elevation IS low AND distance IS near THEN risk IS very probable
 IF elevation IS low OR distance IS near THEN risk IS probable
 IF elevation IS high AND distance IS far THEN risk IS unprobable
-</pre>
+</pre></div>
 In clasical boolean sense, we would taken some limits of ideas "near" "far" etc,
 but what about walues near the limit? The fuzzy set uses partial memberships
 which abolish these restrictions. In that sense to set "near" belongs all areas
 with distance no more than 100 m with full membership and from 100 to 200 m with
 partial membership greater than 0. Over 200 m we can assume that is not near.
 This allow to formulate fuzzy rules for distance map:
-<pre>
+<div class="code"><pre>
 near: BELOW 100 = 1; FROM 100 TO 200 = {1 TO 0}; ABOVE 200 = 0;
-</pre>
+</pre></div>
 
 To recive final map program calculate partial fuzzy set for all rules and next
 agregate it into one fuzzy set. These fuzzy sets are created on value sequence
@@ -241,7 +242,7 @@ method choosen by user.
 First we need two maps created with r.stream package:
 
 <!-- TODO: update to GRASS 7 version -->
-<pre>
+<div class="code"><pre>
 r.watershed -f elevation=elevation.10m accumulation=accum
 r.mapcalc "accum_abs = abs(accum)"
 r.stream.extract elevation=elevation.10m threshold=1000 \
@@ -250,14 +251,14 @@ r.stream.order stream=streams dir=dirs horton=horton
 r.mapcalc "horton3 = if(horton>2,1,0)"
 r.stream.distance stream=horton3 dir=dirs dem=elevation.10m \
          distance=distance elevation=elevation
-</pre>
+</pre></div>
 
 Next, to perform analysis we need two files: one with definition of map used in
 analysis and definition of fuzzy sets for every map, and second with fuzzy
 rules. For this example:
 
 <p>MAPS
-<pre>
+<div class="code"><pre>
 #flood.map
 	%elevation
 $ low {right; 2,4; sshaped; 0; 1}
@@ -282,10 +283,10 @@ $ low {both; 20,40,40,60; linear; 0;1}
 $ moderate {both; 40,60,60,80; linear; 0;1}
 $ high {both; 60,80,80,100; linear; 0;1}
 $ veryhigh {both; 80,100,100,120; linear; 0;1}
-</pre>
+</pre></div>
 
 <p>RULES:
-<pre>
+<div class="code"><pre>
 #flood.rul
 $ none {distance = veryfar | elevation = high}
 $ low {distance ~ near & accum_abs = high}
@@ -294,17 +295,17 @@ $ moderate {(distance = medium | distance = far) & (elevation = low | elevation
 $ high {(distance = medium & elevation = low)|(distance = near & elevation =
 moderate)}
 $ veryhigh {distance = near & elevation = low}
-</pre>
+</pre></div>
 
 finally we need run r.fuzzy.system:
-<pre>
-A) r.fuzzy.system maps=~/flood.map rules=~/flood.rul family=Zadeh defuz=centroid
+<div class="code"><pre>
+A) r.fuzzy.system maps=flood.map rules=flood.rul family=Zadeh defuz=centroid
 imp=minimum res=100 output=flood_z_cent
-B) r.fuzzy.system maps=~/flood.map rules=~/flood.rul family=drastic
+B) r.fuzzy.system maps=flood.map rules=flood.rul family=drastic
 defuz=max_of_highest imp=minimum res=100 output=flood_d_max
-C) r.fuzzy.system maps=~/flood.map rules=~/flood.rul family=Hamacher
+C) r.fuzzy.system maps=flood.map rules=flood.rul family=Hamacher
 defuz=mean_of_highest imp=minimum res=100 output=flood_h_mean
-</pre>
+</pre></div>
 
 Resulting map should look like this below.
 <CENTER><img src="f_result.png" border="1"></CENTER><br>
@@ -315,7 +316,7 @@ Resulting map should look like this below.
 <a href="r.fuzzy.html">r.fuzzy</a>,
 <a href="r.fuzzy.logic.html">r.fuzzy.logic</a>,
 <a href="r.fuzzy.set.html">r.fuzzy.set</a>,
-<a href="r.mapcalc.html">r.mapcalc</a>,
+<a href="r.mapcalc.html">r.mapcalc</a>
 </em>
 
 <h2>REFERENCES</h2>
