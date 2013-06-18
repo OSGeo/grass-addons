@@ -50,9 +50,9 @@ try:
     import grass.script as grass
 except:
     try:
-	    from grass.script import core as grass
+        from grass.script import core as grass
     except:
-        sys.exit( "grass.script can't be imported.")
+        sys.exit("grass.script can't be imported.")
 
 if not os.environ.has_key("GISBASE"):
     print "You must be in GRASS GIS to run this program."
@@ -65,6 +65,11 @@ def main():
     mapname[0] = mapname[0].replace(".","_")
     r_flood_map = options['flood']
     r_mti = options['mti']
+
+    #FIXME: find_program() not working for modules
+    ## check if we have the r.area addon
+    #if not grass.find_program('r.area'):
+    #    grass.fatal(_("The r.area module is required, please install it from Addons first"))
 
     # Detect cellsize of the DEM
     info_region = grass.read_command('g.region', flags = 'p', rast = '%s' % (r_elevation))
@@ -130,7 +135,7 @@ def main():
     grass.run_command('g.remove', rast = 'r_flood_th')
     grass.run_command('g.remove', rast = 'r_flood')
 
-    grass.run_command('g.message' , message = 'Done!')	
+    grass.message(_('Done.'))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
