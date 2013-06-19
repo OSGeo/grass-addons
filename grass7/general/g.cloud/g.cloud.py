@@ -247,7 +247,7 @@ def main():
         grass.fatal(_('$GISBASE not defined'))
         return 0
     # check ssh
-    if not grass.find_program('ssh', ['-V']):
+    if not grass.find_program('ssh'):
         grass.fatal(_("%s required. Please install '%s' first.") % ('ssh', 'ssh'))
         return 0
     # parse the grassdata, location e mapset
