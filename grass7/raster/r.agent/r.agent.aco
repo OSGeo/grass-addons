@@ -90,7 +90,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% key: highcostlimit
 #% type: integer
 #% gisprompt: number
-#% description: Penalty values above this point an ant considers as illegal
+#% description: Penalty values above this point an ant considers as illegal/bogus
 #% options: 0-<max integer on system would make sense>
 #% required : no
 #%end
@@ -98,7 +98,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
 #% key: lowcostlimit
 #% type: integer
 #% gisprompt: number
-#% description: Penalty values below this point an ant considers as illegal
+#% description: Penalty values below this point an ant considers as illegal/bogus
 #% options: <min integer on system would make sense>-0
 #% required : no
 #%end
@@ -325,8 +325,10 @@ def main():
 
         if options['maxpheromone']:
             world.maxpheromone = int(options['maxpheromone'])
+            world.maxrandom = world.maxpheromone
         if options['minpheromone']:
             world.minpheromone = int(options['minpheromone'])
+            world.minrandom = world.minpheromone
         if options['volatilizationtime']:
             world.volatilizationtime = int(options['volatilizationtime'])
         if options['stepintensity']:

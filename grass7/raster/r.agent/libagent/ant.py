@@ -9,7 +9,7 @@ COPYRIGHT:    (C) 2011 by Michael Lustenberger and the GRASS Development Team
               for details.
 """
 
-from random import choice #, randint
+from random import uniform #, choice, randint
 import agent
 import error
 
@@ -24,6 +24,11 @@ class Ant(agent.Agent):
         @param list coordinate of the current position
         """
         super(Ant, self).__init__(timetolive, world, position)
+        # position layout: [x][y][orientation][penalty]
+        # orientation (to the last position):
+        # south (=0) north (=1) east (=3) south-west (=4)
+        # north-west (=5) south-east (=6) north-east (=7)
+        # penalty: 1 straight, sqr(2) diagonal
         self.position = [position[0], position[1], None, 0]
         self.home = self.position[:]
         self.laststeps = []
@@ -32,11 +37,11 @@ class Ant(agent.Agent):
         self.goal = []
         self.penalty = 0.0
         self.walk = self.walkaround
-        if self.world.decisionbase == "standard":
+        if self.world.decisionbase == "random":
             # TODO: for now like 'else'..
             self.decide = self.randomposition
         else:
-            self.decide = self.randomposition
+            self.decide = self.markedposition
         if self.world.evaluationbase == "standard":
             self.evaluate = self.check
         else:
@@ -74,12 +79,33 @@ class Ant(agent.Agent):
                     return True
         return False
 
+    def markedposition(self, positions):
+        """
+        Based on the value on a certain layer combined with a random
+        value, pick a posiiton out of a list of positions.
+        @param positions list of possible positions
+        @return position the decision for a position
+        """
+        position = positions[0]
+        tmpval = self.world.getpheromone(position) * self.world.pheroweight +\
+                    uniform(self.world.minrandom, self.world.maxrandom) *\
+                    self.world.randomweight
+        for i in xrange(1, len(positions)):
+            p = positions[i]
+            newval = self.world.getpheromone(p) * self.world.pheroweight +\
+                    uniform(self.world.minrandom, self.world.maxrandom) *\
+                    self.world.randomweight
+            if ( newval > tmpval ):
+                position = p
+                tmpval = newval
+        return position
+
     def choose(self):
         """
         Make the decisions about where to go to next by first collecting
         all the possibilities (positions around), then looking whether
         a goal position is reached or else sorting out unwanted positions
-        and finally choosing a next step by smell and random.
+        and finally choosing a next step by smell and/or random.
         """
         positions = self.world.getneighbourpositions(self.position)
         # check if we found a goal node, else pick a next step from the list

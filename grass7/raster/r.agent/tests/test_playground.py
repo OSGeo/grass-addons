@@ -106,19 +106,25 @@ class TestPlayground(unittest.TestCase):
         self.assertItemsEqual(ps,
                 self.pg.addneighbourposition(positions, [1,1]))
 
-    def test_getneighbourpositions(self):
+    def test_getorderedneighbourpositions(self):
         self.pg.setregion(3,3)
-        self.assertFalse(self.pg.getneighbourpositions([1,1],3))
+        self.assertFalse(self.pg.getorderedneighbourpositions([1,1],3))
 
-        ps = self.pg.getneighbourpositions([2,2],4)
+        ps = self.pg.getorderedneighbourpositions([2,2],4)
         self.assertEqual(2, len(ps))
         self.assertEqual(0, ps[1][3])
 
-        ps = self.pg.getneighbourpositions([1,1],8)
+        ps = self.pg.getorderedneighbourpositions([1,1],8)
         self.assertEqual(8, len(ps))
         self.assertEqual(7, ps[7][2])
         self.assertEqual(0, ps[3][3])
         self.assertEqual(sqrt(2)-1, ps[6][3])
+
+    def test_getneighbourpositions(self):
+        self.pg.setregion(3,3)
+        ps = self.pg.getneighbourpositions([2,2],4)
+        self.assertEqual(2, len(ps))
+        self.assertEqual(0, ps[1][3])
 
     def test_getcellvalue(self):
         l = "bar"

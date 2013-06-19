@@ -172,9 +172,10 @@ class Playground(object):
             positions.append(position)
         return positions
 
-    def getneighbourpositions(self, position, freedom):
+    def getorderedneighbourpositions(self, position, freedom):
         """
-        Get all the positions reachable from a certain position
+        Get all the positions reachable from a certain position and
+        ordered by their orientation from the given position
         @param list coordinates of a certain cell
         @param int number of potentially reachable neighbours
         @return list of coordinates, or boolean False
@@ -210,6 +211,18 @@ class Playground(object):
             #walking north-east (=7)
             self.addneighbourposition(positions,
                 [position[0]+1, position[1]+1, 7, Playground.DIAGONAL])
+        return positions
+
+    def getneighbourpositions(self, position, freedom):
+        """
+        Get all the positions reachable from a certain position and shuffel
+        @param list coordinates of a certain cell
+        @param int number of potentially reachable neighbours
+        @return list of coordinates, or boolean False
+        """
+        positions = self.getorderedneighbourpositions(position, freedom)
+        if positions:
+            random.shuffle(positions)
         return positions
 
     def getcellvalue(self, layername, position):

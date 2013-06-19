@@ -33,6 +33,18 @@ class TestAnt(unittest.TestCase):
         self.assertEqual(1, self.agent.nextstep[0])
         self.assertEqual(1, self.world.numberofpaths)
 
+    def test_markedpositions(self):
+        self.world.pheroweight = 1
+        self.world.randomweight = 1
+        positions = [[0,0,0,0],[1,1,3,0]]
+        self.pg.layers[anthill.Anthill.RESULT][0][0] = 0
+        self.pg.layers[anthill.Anthill.RESULT][1][1] = 999
+        self.world.minrandom = 0
+        self.world.maxrandom = 1
+        p = self.agent.markedposition(positions)
+        self.assertEqual([1,1], p[:2])
+        # we do not test random here..
+
     def test_choose(self):
         # every second step should be a goal..
         self.assertEqual(0, self.world.numberofpaths)

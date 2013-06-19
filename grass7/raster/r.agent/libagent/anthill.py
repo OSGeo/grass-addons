@@ -55,8 +55,11 @@ class Anthill(world.World):
         ## max/min possible value of pheromone intensity
         self.maxpheromone = maxsize
         self.minpheromone = 0
+        ## max/min value for random values
+        self.maxrandom = self.maxpheromone
+        self.minrandom = self.minpheromone
         ## half value period for pheromone
-        self.volatilizationtime = 1
+        self.volatilizationtime = 8
         ## ants mark every step with this pheromone value
         self.stepintensity = 10
         ## ants mark every found path with this pheromone intensity
@@ -99,8 +102,8 @@ class Anthill(world.World):
         Let the agents do their job. The actual main loop in such a world.
         """
         while rounds > 0:
-            if len(self.agents) < self.maxants:
-#                grass.info(len(self.agents))
+            #grass.info(len(self.agents))
+            if len(self.agents) <= self.maxants:
                 # as there is still space on the pg, produce another ant
                 self.bear()
             for ant in self.agents:
