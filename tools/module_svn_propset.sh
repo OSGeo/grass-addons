@@ -193,6 +193,14 @@ apply_pdf()
    unset_exe "$1"
 }
 
+apply_po()
+{
+   set_keywords "$1"
+   set_mime_type "$1" text/x-po
+   set_native_eol "$1"
+   unset_exe "$1"
+}
+
 apply_OBJ_code()
 {
    svn propset svn:ignore "OBJ.*
@@ -281,6 +289,9 @@ for FILE in $* ; do
     txt)
 	apply_text "$FILE"
 	;;
+    po)
+        apply_po "$FILE"
+        ;;
     rst)
 	apply_text "$FILE"
 	;;
