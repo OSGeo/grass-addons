@@ -51,9 +51,9 @@ try:
     import grass.script as grass
 except:
     try:
-	    from grass.script import core as grass
+        from grass.script import core as grass
     except:
-        sys.exit( "grass.script can't be imported.")
+        sys.exit("grass.script can't be imported.")
 
 if not os.environ.has_key("GISBASE"):
     print "You must be in GRASS GIS to run this program."
@@ -61,9 +61,9 @@ if not os.environ.has_key("GISBASE"):
 
 def main():
 
-    #### check for r.area
-    if not grass.find_program('r.area'):
-        grass.fatal(_("'r.area' program not found, install it first:") +
+    #### check if we have the r.area addon
+    if not grass.find_program('r.area', ['help']):
+        grass.fatal(_("The 'r.area' module was not found, install it first:") +
                     "\n" +
                     "g.extension r.area")
 
@@ -138,7 +138,7 @@ def main():
     grass.run_command('g.remove', rast = 'r_flood_th')
     grass.run_command('g.remove', rast = 'r_flood')
 
-    grass.run_command('g.message' , message = 'Done!')	
+    grass.message(_('Done.'))
 
 if __name__ == "__main__":
     options, flags = grass.parser()
