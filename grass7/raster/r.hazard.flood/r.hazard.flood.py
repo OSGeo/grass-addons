@@ -62,7 +62,7 @@ if not os.environ.has_key("GISBASE"):
 def main():
 
     #### check if we have the r.area addon
-    if not grass.find_program('r.area', ['help']):
+    if not grass.find_program('r.area', '--help'):
         grass.fatal(_("The 'r.area' module was not found, install it first:") +
                     "\n" +
                     "g.extension r.area")

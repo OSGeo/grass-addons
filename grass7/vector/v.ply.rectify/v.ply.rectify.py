@@ -49,9 +49,9 @@ def main():
     currmapset = grass.gisenv()['MAPSET']
 
     #### check for v.in.ply, v.out.ply
-    if not grass.find_program("v.in.ply"):
+    if not grass.find_program("v.in.ply", '--help'):
 	grass.fatal(_("The GRASS addon v.in.ply was not found, please install it first.\n"))
-    if not grass.find_program("v.out.ply"):
+    if not grass.find_program("v.out.ply", '--help'):
 	grass.fatal(_("The GRASS addon v.out.ply was not found, please install it first.\n"))
 
     # import input PLY file
