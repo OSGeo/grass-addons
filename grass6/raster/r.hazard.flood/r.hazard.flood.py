@@ -13,6 +13,7 @@
 #              License (>=v2). Read the file COPYING that comes with GRASS
 #              for details.
 #
+# TODO: add overwrite check for resulting flood/mti maps
 #############################################################################
 
 #%module
@@ -59,17 +60,19 @@ if not os.environ.has_key("GISBASE"):
     sys.exit(1)
 
 def main():
+
+    #### check if we have the r.area addon
+    if not grass.find_program('r.area', ['help']):
+        grass.fatal(_("The 'r.area' module was not found, install it first:") +
+                    "\n" +
+                    "g.extension r.area")
+
     r_elevation = options['map'].split('@')[0] 
     mapname = options['map'].replace("@"," ")
     mapname = mapname.split()
     mapname[0] = mapname[0].replace(".","_")
     r_flood_map = options['flood']
     r_mti = options['mti']
-
-    #FIXME: find_program() not working for modules
-    ## check if we have the r.area addon
-    #if not grass.find_program('r.area'):
-    #    grass.fatal(_("The r.area module is required, please install it from Addons first"))
 
     # Detect cellsize of the DEM
     info_region = grass.read_command('g.region', flags = 'p', rast = '%s' % (r_elevation))
@@ -94,7 +97,7 @@ def main():
     grass.message("MTI threshold : %s " % mti_th) 
     
     # MTI map
-    grass.message("Calculating mti raster map.. ")
+    grass.message("Calculating MTI raster map.. ")
     grass.mapcalc("$r_mti = log((exp((($rast1+1)*$resolution) , $n)) / (tan($rast2+0.001)))", 
                    r_mti = r_mti, 
                    rast1 = 'r_accumulation', 
@@ -104,8 +107,8 @@ def main():
 
     # Cleaning up
     grass.message("Cleaning up.. ")
-    grass.run_command('g.remove', rast = 'r_accumulation')
-    grass.run_command('g.remove', rast = 'r_slope')
+    grass.run_command('g.remove', quiet = True, rast = 'r_accumulation')
+    grass.run_command('g.remove', quiet = True, rast = 'r_slope')
 
     # flood map
     grass.message("Calculating flood raster map.. ")
