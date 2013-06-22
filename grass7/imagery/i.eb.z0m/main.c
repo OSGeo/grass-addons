@@ -62,7 +62,6 @@ int main(int argc, char *argv[])
     
     /* Define the different options */ 
     input1 = G_define_standard_option(G_OPT_R_INPUT);
-    input1->key = _("ndvi");
     input1->description = _("Name of the NDVI map [-1.0;1.0], SAVI if -p flag");
 
     input2 = G_define_option();
