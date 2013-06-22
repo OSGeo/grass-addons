@@ -36,7 +36,6 @@
 #%flag
 #% key:k 
 #% description:file *.rls from software 4eMka2
-#% answer:true
 #%end
 #%flag
 #% key:j 
@@ -45,7 +44,6 @@
 #%flag
 #% key: l
 #% description: do not remove single rules in vector format
-#% answer:false
 #%end
 
 

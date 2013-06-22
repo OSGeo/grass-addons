@@ -60,12 +60,10 @@
 #%flag
 #% key: l
 #% description: do not remove single rules in vector format
-#% answer:false
 #%end
 #%flag
 #% key: n
 #% description: compute null value as zero
-#% answer:true
 #%end
 
 import sys
