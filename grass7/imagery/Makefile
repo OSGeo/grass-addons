@@ -4,6 +4,7 @@ MODULE_TOPDIR = ..
 
 SUBDIRS = \
 	i.eb.h_sebal95 \
+	i.eb.z0m \
 	i.edge \
 	i.evapo.potrad \
 	i.evapo.senay \
