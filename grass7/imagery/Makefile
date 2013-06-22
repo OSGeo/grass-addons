@@ -14,7 +14,7 @@ SUBDIRS = \
 	i.lmf \
 	i.points.auto \
 	i.rotate \
-	i.segment \
+	i.segment.gsoc \
 	i.vi.mpi \
 	i.wavelet
 
