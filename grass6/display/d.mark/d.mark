@@ -24,7 +24,7 @@
 #% key_desc: name
 #% description: Basic symbol to use
 #% answer: triangle
-#% options: 4pt_star,adcp,airport,alpha_flag,arrow1,arrow2,arrow3,box,bridge,circle,compass,cross1,cross2,corss3,diamond,dim_arrow,dive_flag,fancy_compass,fiducial,fish,half-arrow_left,half-arrow_right,half-box,half-circle,marker,muchomurka,n_arrow1,n_arrow1b,n_arrow2,n_arrow3,n_arrow4,n_arrow5,n_arrow6,n_arrow7a,n_arrow7b,n_arrow8a,n_arrow8b,n_arrow9,octagon,offbox_ne,offbox_nw,offbox_se,offbox_sw,pentagon,ping,point,pushpin,ring,simple_zia,smrk,star,strike_box,strike_circle,strike_half-bowtie,strike_line,strike_triangle,target,triangle,x
+#% options: 4pt_star,adcp,airport,alpha_flag,arrow1,arrow2,arrow3,box,bridge,circle,compass,cross1,cross2,cross3,diamond,dim_arrow,dive_flag,fancy_compass,fiducial,fish,half-arrow_left,half-arrow_right,half-box,half-circle,marker,muchomurka,n_arrow1,n_arrow1b,n_arrow2,n_arrow3,n_arrow4,n_arrow5,n_arrow6,n_arrow7a,n_arrow7b,n_arrow8a,n_arrow8b,n_arrow9,octagon,offbox_ne,offbox_nw,offbox_se,offbox_sw,pentagon,ping,point,pushpin,ring,simple_zia,smrk,star,strike_box,strike_circle,strike_half-bowtie,strike_line,strike_triangle,target,triangle,x
 #% required : no
 #%end
 #%option
