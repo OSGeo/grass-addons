@@ -437,8 +437,8 @@ def main():
 	#patch river raster with buffer
 	grass.run_command("r.patch",
 					overwrite=True,
-					in="distance_raster_tmp_%d,river_raster_buffer_tmp_%d" % (os.getpid(),os.getpid()),
-					out="distance_raster_buffered_tmp_%d" % os.getpid())
+					input="distance_raster_tmp_%d,river_raster_buffer_tmp_%d" % (os.getpid(),os.getpid()),
+					output="distance_raster_buffered_tmp_%d" % os.getpid())
 
 	# Getting flow direction and stream segments
 	grass.run_command("r.watershed", 
