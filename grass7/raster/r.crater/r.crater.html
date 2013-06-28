@@ -1,7 +1,24 @@
 <h2>DESCRIPTION</h2>
 
 <em>r.crater</em> This program estimates the size of a gravity dominated impact crater or the projectile that made it.
-Three different estimates are presented, but the pi-scaling method is currently considered the best!n
+<p>
+<em>Forward mode</em> This mode needs to know the projectile details<br>
+L: projectile diameter (m)<br>
+r_proj: projectile density (kg/m^3)<br>
+Vi: Projectile velocity (km/s)<br>
+theta: projectile impact angle (degrees) for Gault scaling law (flag2)<br>
+Solid_rock or not (1 or 0) for Gault  scaling law (flag2)<br>
+<p>
+<em>Backward mode</em>This mode needs to know the crater details<br>
+
+
+<h2>NOTES</h2>
+Gault scaling law saturates at craters 1000 Diameter Apparent Transient, and was essentially designed for regolith (Moon surface).
+
+<p>
+Below is explanation from the Meloch Fortran code (not included because of copyright)
+<p>
+Three different estimates are presented, but the pi-scaling method is currently considered the best!
 <p>
 Impact conditions:
 argv[1]: enter the impact velocity in km/sec
@@ -21,7 +38,7 @@ argv[7]: enter the type of computation desired (1 or 2):
 	Mode 1, crater size
 	Mode 2, projectile size
 <p>
-Mode 1: Estimate crater diameter from projectile size*/
+Mode 1: Estimate crater diameter from projectile size
 Mode 1 case: Projectile descriptors:
 argv[8]: enter the projectile diameter in m
 <p>

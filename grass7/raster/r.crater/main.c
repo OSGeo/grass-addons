@@ -5,7 +5,6 @@
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Creates craters from meteorites
  *               or meteorites from craters
- *               original code was in fortran77 from Meloch
  *
  * COPYRIGHT:    (C) 2013 by the GRASS Development Team
  *
@@ -88,13 +87,13 @@ int main(int argc, char *argv[])
 
     input8 = G_define_standard_option(G_OPT_R_INPUT);
     input8->key = "transient_crater_diameter";
-    input8->description = _("Default mode: Name of transient crater diameter raster map [kg/m^3]");
+    input8->description = _("Default mode: Name of transient crater diameter raster map [m]");
     input8->required = NO;
 
     input9 = G_define_standard_option(G_OPT_R_INPUT);
     input9->key = "final_crater_diameter";
-    input9->description = _("Default mode: Name of final crater diameter raster map [kg/m^3]");
-    input8->required = NO;
+    input9->description = _("Default mode: Name of final crater diameter raster map [m]");
+    input9->required = NO;
 
     output = G_define_standard_option(G_OPT_R_OUTPUT);
     output->description = _("Name for projectile size (default) or crater size (-c) or crater creation time (-t) raster map [m] or [s]");
@@ -134,7 +133,7 @@ int main(int argc, char *argv[])
     result = output->answer;
     
     /*Default Mode: Estimate projectile size from crater diameter*/
-    int comptype = 0; 
+    int mode = 0; 
 
     /*Check if return of duration of impact was requested*/
     int return_time = 0;
@@ -152,17 +151,18 @@ int main(int argc, char *argv[])
         /*Flagged Mode: Estimate crater diameter from projectile size*/
         infd_L = Rast_open_old(idiameter, "");
         inrast_L = Rast_allocate_d_buf();
-        comptype = 1;/*Switch to pass to crater function for non default mode*/
+        mode = 1;/*Switch to pass to crater function for non default mode*/
         /*Projectile Diameter Size*/
     }else{
         /*Default Mode: Estimate projectile size from crater diameter*/
-        infd_Dt = Rast_open_old(tcrater_diameter_transient, "");
-        inrast_Dt = Rast_allocate_d_buf();
-        /*Transient Crater Diameter*/
-
-        infd_Dfinal = Rast_open_old(tcrater_diameter_final, "");
-        inrast_Dfinal = Rast_allocate_d_buf();
-        /*If known, the final crater diameter*/
+	if(input8->answer){ /*Transient Crater Diameter*/
+        	infd_Dt = Rast_open_old(tcrater_diameter_transient, "");
+        	inrast_Dt = Rast_allocate_d_buf();
+	}
+	if(input9->answer){ /*If known, the final crater diameter*/
+        	infd_Dfinal = Rast_open_old(tcrater_diameter_final, "");
+        	inrast_Dfinal = Rast_allocate_d_buf();
+	}
     }
 
     /***************************************************/ 
@@ -211,6 +211,7 @@ int main(int argc, char *argv[])
         DCELL d_L;
         DCELL d_Dt;
         DCELL d_Dfinal;
+	DCELL d_W;	
 	G_percent(row, nrows, 2);
 	
 	/* read input maps */ 
@@ -261,7 +262,26 @@ int main(int argc, char *argv[])
                 } else {
                     d_L = 0.0;
                 }
-                d = crater(d_v, d_theta, d_r_targ, d_g, d_ttype, d_r_proj, d_L, d_Dt, d_Dfinal, scaling_law, return_time, comptype);
+		if(mode==0){
+			/*Forward mode: known projectile details (L,r_proj,Vi)*/
+			/*Solid_rock or not (1 or 0) for Gault (flag2)*/
+			d_W = kinetic_energy(d_r_proj,d_L,d_v);
+			if(scaling_law==1) /*flag 2 is Gault scaling law*/
+				d_Dt = Gault_Dat(d_W,d_r_proj,d_r_targ,d_theta,d_ttype);
+			else if (scaling_law==2)/*flag3 is Yield scaling law*/
+				d_Dt = Yield_Dat(d_W,d_r_proj,d_r_targ,d_L);
+			else /*default is Pi-scaling*/
+				d_Dt = Pi_Dat(d_W,d_r_proj,d_r_targ,d_L);
+		} else {
+			/*Backward mode*/
+			if(scaling_law==1) /*flag 2 is Gault scaling law*/
+				d_L = Gault_L(d_Dt,d_v,d_r_proj,d_r_targ,d_theta,d_ttype);
+			else if (scaling_law==2)/*flag3 is Yield scaling law*/
+				d_L = Yield_L(d_v,d_r_proj,d_r_targ,d_Dt);
+			else /*default is Pi-scaling*/
+				d_L = Pi_L(d_v,d_r_proj,d_r_targ,d_Dt,d_g);
+		}
+                /*d = crater(d_v, d_theta, d_r_targ, d_g, d_ttype, d_r_proj, d_L, d_Dt, d_Dfinal, scaling_law, return_time, mode);*/
 		outrast[col] = d;
             }
 	}
