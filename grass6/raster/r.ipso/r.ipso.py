@@ -61,7 +61,7 @@ import grass.script as grass
 import numpy as np
 
 def main():
-    stats = grass.read_command('r.stats', input = options['map'], sep = 'space', nv = '*', nsteps = '255', flags = 'inc').split('\n')[:-1]
+    stats = grass.read_command('r.stats', input = options['map'], fs = 'space', nv = '*', nsteps = '255', flags = 'inc').split('\n')[:-1]
 
     # res = cellsize
     res = float(grass.read_command('g.region', rast = options['map'], flags = 'm').strip().split('\n')[4].split('=')[1])
