@@ -3,12 +3,12 @@
 #
 # MODULE:       r.ipso.py
 #
-# AUTHOR(S):    Massimo Di Stefano, Francesco Di Stefano , Margherita Di Leo 2010-02-7
+# AUTHOR(S):    Margherita Di Leo, Massimo Di Stefano, Francesco Di Stefano
 #               
 #
 # PURPOSE:      Output a Ipsometric and ipsographic graph 
 #
-# COPYRIGHT:    (c) 2010 by the GRASS Development Team
+# COPYRIGHT:    (c) 2010 Margherita Di Leo, Massimo Di Stefano, Francesco Di Stefano
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS
@@ -23,26 +23,30 @@
 #% description: 
 #% keywords: raster
 #%end
+
 #%option
 #% key: map
 #% type: string
 #% gisprompt: old,raster,raster
 #% key_desc: name
-#% description: Name of raster map 
+#% description: Name of elevation map 
 #% required: yes
 #%end
+
 #%option
 #% key: image
 #% type: string
 #% gisprompt: new_file,file,input
 #% key_desc: image
-#% description: output graph
+#% description: output graph (png)
 #% required: yes
 #%end
+
 #%flag
 #% key: a
 #% description: generate ipsometric curve
-#%END
+#%end
+
 #%flag
 #% key: b
 #% description: generate ipsographic curve
@@ -57,7 +61,7 @@ import grass.script as grass
 import numpy as np
 
 def main():
-    stats = grass.read_command('r.stats', input = options['map'], fs = 'space', nv = '*', nsteps = '255', flags = 'inc').split('\n')[:-1]
+    stats = grass.read_command('r.stats', input = options['map'], sep = 'space', nv = '*', nsteps = '255', flags = 'inc').split('\n')[:-1]
 
     # res = cellsize
     res = float(grass.read_command('g.region', rast = options['map'], flags = 'm').strip().split('\n')[4].split('=')[1])
