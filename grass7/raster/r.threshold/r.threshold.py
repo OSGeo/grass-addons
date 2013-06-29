@@ -19,16 +19,17 @@
 #%module
 #% description: Find optimal threshold for stream extraction
 #% keywords: raster
-#% keywords: hydrology
+#% keywords: hydrology, threshold
 #%end
+
 #%option
 #% key: acc
 #% type: string
-#% gisprompt: old, raster, raster
+#% gisprompt: old,raster,raster
 #% key_desc: acc
 #% description: Name of accumulation raster map 
 #% required: yes
-#%end
+#%END
 
 import os, sys
 import math
