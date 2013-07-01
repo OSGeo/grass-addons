@@ -49,35 +49,36 @@
 #% answer: 480
 #%end
 
-from grass.script import core as grass
-from grass.script import gisenv
-from grass.pygrass.vector import Vector
-from grass.pygrass.modules.shortcuts import display as d
 import os
 import sys
+from grass.script import core as grass
+from grass.script import gisenv
+from grass.pygrass.modules.shortcuts import display as d
+from grass.pygrass.modules.shortcuts import general as g
 
 
 def main():
-    MONITOR = None
-    in_vect = Vector(options['input'])
-    in_vect.open()
     os.environ['GRASS_RENDER_IMMEDIATE'] = 'png'
     os.environ['GRASS_PNGFILE'] = options['output']
     os.environ['GRASS_PNG_COMPRESSION'] = options['compression']
     os.environ['GRASS_WIDTH'] = options['width']
     os.environ['GRASS_HEIGHT'] = options['height']
+
+    monitor_old = None
     genv = gisenv()
     if 'MONITOR' in genv:
-        MONITOR = genv['MONITOR']
-        MONITOR_WX0_PID = genv['MONITOR_WX0_PID']
-        MONITOR_wx0_CMDFILE = genv['MONITOR_wx0_CMDFILE']
-        MONITOR_wx0_ENVFILE = genv['MONITOR_wx0_ENVFILE']
-        MONITOR_wx0_MAPFILE = genv['MONITOR_wx0_MAPFILE']
+        monitor_old = genv['MONITOR']
+        g.gisenv(unset='MONITOR')
+
     if options['rgb_column']:
-        d.vect(map=in_vect.name, rgb_column=options['rgb_column'], flags='a',
+        d.vect(map=options['input'], rgb_column=options['rgb_column'], flags='a',
                quiet=True)
     else:
-        d.vect(map=in_vect.name)
+        d.vect(map=options['input'])
+
+    if monitor_old:
+        g.gisenv(set='MONITOR=%s' % monitor_old)
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
