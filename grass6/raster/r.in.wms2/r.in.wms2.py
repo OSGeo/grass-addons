@@ -18,22 +18,13 @@ This program is free software under the GNU General Public License
 #% keywords: import
 #% keywords: wms
 #%end
-
 #%option
 #% key: url
 #% type: string
-#% description: URL of WMS server 
+#% label: URL of the WMS server
+#% description: Typically starts with "http://" and ends in a "?". Include both.
 #% required: yes
 #%end
-
-#%option
-#% key: layers
-#% type: string
-#% description: Layers to request from map server
-#% multiple: yes
-#% required: yes
-#%end
-
 #%option
 #% key: output
 #% type: string
@@ -42,154 +33,151 @@ This program is free software under the GNU General Public License
 #% required: yes
 #% key_desc: name
 #%end
-
 #%option
-#% key: srs
-#% type: integer
-#% description: EPSG number of source projection for request 
-#% answer: 4326 
-#% guisection: Request properties
-#%end
-
-#%option
-#% key: region
+#% key: layers
 #% type: string
-#% description: Named region to request data for. Current region used if omitted
-#% guisection: Request properties
+#% description: Layer(s) to request from the map server
+#% multiple: yes
+#% required: yes
 #%end
-
 #%option
-#% key: wms_version
+#% key: styles
 #% type: string
-#% description: WMS standard
-#% options: 1.1.1,1.3.0
-#% answer: 1.1.1
-#% guisection: Request properties
+#% description: Layer style(s) to request from the map server
+#% multiple: yes
+#% guisection: Map style
 #%end
-
 #%option
 #% key: format
 #% type: string
 #% description: Image format requested from the server
 #% options: geotiff,tiff,jpeg,gif,png
 #% answer: geotiff
-#% guisection: Request properties
+#% guisection: Request
 #%end
-
 #%option
-#% key: method
-#% type: string
-#% description: Reprojection method to use
-#% options: near,bilinear,cubic,cubicspline
-#% answer: near
-#% guisection: Request properties
+#% key: srs
+#% type: integer
+#% description: EPSG code of requested source projection
+#% answer: 4326
+#% guisection: Request
 #%end
-
+#%option
+#% key: driver
+#% type: string
+#% description: Driver used to communication with server
+#% options: WMS_GDAL,WMS_GRASS,WMTS_GRASS,OnEarth_GRASS
+#% answer: WMS_GRASS
+#% guisection: Connection
+#%end
+#%option
+#% key: wms_version
+#% type: string
+#% description: WMS standard version
+#% options: 1.1.1,1.3.0
+#% answer: 1.1.1
+#% guisection: Request
+#%end
 #%option
 #% key: maxcols
 #% type: integer
 #% description: Maximum columns to request at a time
-#% answer: 400
-#% guisection: Request properties
+#% answer: 512
+#% guisection: Request
 #%end
-
 #%option
 #% key: maxrows
 #% type: integer
 #% description: Maximum rows to request at a time
-#% answer: 300
-#% guisection: Request properties
+#% answer: 512
+#% guisection: Request
 #%end
-
 #%option
 #% key: urlparams
 #% type: string
-#% description: Additional query parameters for server
-#% guisection: Request properties
+#% description: Additional query parameters to pass to the server
+#% guisection: Connection
 #%end
-
 #%option
 #% key: username
 #% type: string
 #% description: Username for server connection
-#% guisection: Request properties
+#% guisection: Connection
 #%end
-
 #%option
 #% key: password
 #% type: string
 #% description: Password for server connection
-#% guisection: Request properties
+#% guisection: Connection
 #%end
-
 #%option
-#% key: styles
+#% key: method
 #% type: string
-#% description: Styles to request from map server
-#% multiple: yes
-#% guisection: Map style
+#% description: Interpolation method to use in reprojection
+#% options: nearest,bilinear,cubic,cubicspline
+#% answer: nearest
 #%end
-
+#%option
+#% key: region
+#% type: string
+#% description: Request data for this named region instead of the current region bounds
+#% guisection: Request
+#%end
 #%option
 #% key: bgcolor
 #% type: string
-#% description: Color of map background
+#% description: Background color
 #% guisection: Map style
 #%end
-
-#%flag
-#% key: o
-#% description: Don't request transparent data
-#% guisection: Map style
-#%end
-
-#%flag
-#% key: c
-#% description: Get capabilities
-#% guisection: Request properties
-##% suppress_required: yes
-#%end
-
-#%option
-#% key: driver
-#% type: string
-#% description: Driver for communication with server
-#% options: WMS_GDAL, WMS_GRASS, WMTS_GRASS, OnEarth_GRASS
-#% answer: WMS_GRASS
-#%end
-
 #%option
 #% key: capfile
 #% type: string
 #% key_desc: name
 #% required: no
-#% gisprompt: old_file,file,input
-#% description: Capabilities file (input)
+#% gisprompt: old_file,file,xml
+#% description: Capabilities file to parse (input)
 #%end
-
 #%option
 #% key: capfile_output
 #% required: no
-#% gisprompt: old_file,file,file
-#% description: File where capabilities will be saved (only with 'c' flag).
+#% gisprompt: new_file,file,file
+#% description: File in which the server capabilities will be saved ('c' flag)
 #% type: string
 #% key_desc: name
+#%end
+#%flag
+#% key: c
+#% description: Get the server capabilities then exit
+#% guisection: Request
+##% suppress_required: yes
+#%end
+#%flag
+#% key: s
+#% description: Skip requests for fully transparent data
+#% guisection: Map style
 #%end
 
 
 import os
 import sys
-sys.path.insert(1, os.path.join(os.path.dirname(sys.path[0]), 'etc', 'r.in.wms2'))
-
 import grass.script as grass
+
+# add r.in.wms2.py support files to the PYTHONPATH:
+addon_module_path = os.path.join(os.path.dirname(sys.path[0]), 'etc', 'r.in.wms2')
+system_module_path = os.path.join(os.getenv('GISBASE'), 'etc', 'r.in.wms2')
+if os.path.isdir(addon_module_path) and addon_module_path not in sys.path:
+    sys.path.append(addon_module_path)
+elif os.path.isdir(system_module_path) and system_module_path not in sys.path:
+    sys.path.append(system_module_path)
+
 
 def GetRegionParams(opt_region):
 
-    # set region 
-    if opt_region:                 
+    # set region
+    if opt_region:
         if not grass.find_file(name = opt_region, element = 'windows', mapset = '.' )['name']:
             grass.fatal(_("Region <%s> not found") % opt_region)
-        
+
     if opt_region:
         s = grass.read_command('g.region',
                                 quiet = True,
@@ -201,8 +189,8 @@ def GetRegionParams(opt_region):
 
     return region_params
 
-def main():
 
+def main():
 
     if 'GRASS' in options['driver']:
         grass.debug("Using GRASS driver")
@@ -212,7 +200,7 @@ def main():
         grass.debug("Using GDAL WMS driver")
         from wms_gdal_drv import WMSGdalDrv
         wms = WMSGdalDrv()
-    
+
     if flags['c']:
         wms.GetCapabilities(options)
     else:

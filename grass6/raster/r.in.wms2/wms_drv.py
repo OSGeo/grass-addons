@@ -30,7 +30,10 @@ Numeric.arrayrange = Numeric.arange
 from math import pi, floor
 from urllib2 import HTTPError
 from httplib import HTTPException
-from xml.etree.ElementTree import ParseError
+try:
+    from xml.etree.ElementTree import ParseError
+except:
+    from xml.parsers.expat import ExpatError as ParseError
 
 from wms_base import WMSBase
 

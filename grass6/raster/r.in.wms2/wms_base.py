@@ -61,6 +61,9 @@ class WMSBase:
         for key in ['url', 'layers', 'styles', 'method']:
             self.params[key] = options[key].strip()
 
+        if self.params['method'] == "nearest":
+            self.params['method'] = "near"
+
         self.params['wms_version'] = options['wms_version']  
         if self.params['wms_version'] == "1.3.0":
             self.params['proj_name'] = "CRS"
