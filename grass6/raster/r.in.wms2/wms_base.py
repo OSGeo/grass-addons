@@ -232,7 +232,7 @@ class WMSBase:
         # print to output
         cap_lines = cap.readlines()
         for line in cap_lines: 
-            print line,
+            print line.rstrip()
         
     def _computeBbox(self):
         """!Get region extent for WMS query (bbox)
