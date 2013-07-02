@@ -279,10 +279,10 @@ class WMSBase:
             points = points.splitlines()
             if len(points) != 4:
                 grass.fatal(_("Region definition: 4 points required"))
-            
+
             for point in points:
                 try:
-                    point = map(float, point.split("|"))
+                    point = map(float, point.replace('\t', ' ').split(' '))
                 except ValueError:
                     grass.fatal(_('Reprojection of region using m.proj failed.'))
                 if not bbox['maxy']:
