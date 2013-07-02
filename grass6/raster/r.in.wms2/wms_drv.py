@@ -88,7 +88,7 @@ class WMSDrv(WMSBase):
                 if HTTPError == type(e) and e.code == 401:
                     grass.fatal(_("Authorization failed to '%s' when fetching data.") % self.params['url'])
                 else:
-                    grass.fatal(_("Unable to fetch data from: '%s'") % self.params['url'])
+                    grass.fatal(_("Error %d. Unable to fetch data from: '%s'") % (e.code, self.params['url']))
 
             temp_tile = self._tempfile()
                 
