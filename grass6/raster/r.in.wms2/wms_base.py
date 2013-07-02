@@ -271,7 +271,8 @@ class WMSBase:
             points = grass.read_command('m.proj', flags = 'd',
                                         proj_out = self.proj_srs,
                                         proj_in = self.proj_location,
-                                        input = temp_region) # TODO: stdin
+                                        input = temp_region,
+                                        quiet = True) # TODO: stdin
             grass.try_remove(temp_region)
             if not points:
                 grass.fatal(_("Unable to determine region, %s failed") % 'm.proj')
@@ -488,6 +489,8 @@ class GRASSImporter:
                                  blue = self.opt_output + '.blue',
                                  output = self.opt_output ) != 0:
                 grass.fatal(_('%s failed') % 'r.composite')
+
+        grass.message(_('<%s> created.') % self.opt_output)
 
 
 class WMSDriversInfo:
