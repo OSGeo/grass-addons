@@ -72,7 +72,7 @@ class WMSBase:
 
         self.flags = flags
 
-        if self.flags['o']:
+        if self.flags['s']:
             self.params['transparent'] = 'FALSE'
         else:
             self.params['transparent'] = 'TRUE'   
@@ -88,7 +88,7 @@ class WMSBase:
 
         if options['format'] == "jpeg" and \
            not 'format' in driver_props['ignored_params']:
-            if not flags['o'] and \
+            if not flags['s'] and \
               'WMS' in self.params['driver']:
                 grass.warning(_("JPEG format does not support transparency"))
 
@@ -517,7 +517,7 @@ class WMSDriversInfo:
     def _OnEarthProperties(self):
 
         props = {}
-        props['ignored_flags'] = ['o']
+        props['ignored_flags'] = ['s']
         props['ignored_params'] = ['bgcolor', 'styles', 'capfile_output', 
                                    'format', 'srs', 'wms_version']
         props['req_multiple_layers'] = False
@@ -536,7 +536,7 @@ class WMSDriversInfo:
     def _WMTSProperties(self):
 
         props = {}
-        props['ignored_flags'] = ['o']
+        props['ignored_flags'] = ['s']
         props['ignored_params'] = ['urlparams', 'bgcolor', 'wms_version']
         props['req_multiple_layers'] = False
 
