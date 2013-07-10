@@ -1,11 +1,11 @@
 #!/bin/sh
 #
-############################################################################
+#####################################################################################
 #
 # MODULE:	r.broscoe
-# AUTHOR(S):	Annalisa Minelli, Ivan Marchesini
+# AUTHOR(S):	Annalisa Minelli, Ivan Marchesini, Pierluigi De Rosa, Luca Scrucca
 #
-# PURPOSE:	Calculates waerden test and t test statistics 
+# PURPOSE:	Calculates APTDTM test and t test statistics 
 #		for some values of threshold, on a single basin 
 #		according to A. J. Broscoe theory (1959) 
 #
@@ -15,18 +15,15 @@
 #		License (>=v2). Read the file COPYING that comes with GRASS
 #		for details.
 #
-# REQUIREMENTS: you need R installed with "agricolae" package
-#	You can install the package by starting R as root and typing
-#	install.packages("agricolae")
-#	This will install the package from a CRAN mirror on the internet.
+# REQUIREMENTS: you need R installed with packages "stringr" and "tools".
 #	For more information on R see the documentation available at
 #	http://www.r-project.org/
 #
 # TODO: solve stability problems for low area threshold (cf. v.strahler) 
-#############################################################################
+###################################################################################
 #%Module
-#%  description: Calculates waerden test and t test statistics for some values of threshold, on a single basin according to A. J. Broscoe theory (1959)
-#%  keywords: waerden.test,t.test,mean stream drop
+#%  description: Calculates statistics for some values of threshold, on a single basin according to A. J. Broscoe theory (1959)
+#%  keywords: APTDTM test,adjusted t test,t test,mean stream drop
 #%End
 #%option
 #% key: dem
@@ -63,9 +60,9 @@
 #%option
 #% key: result
 #% type: string
-#% gisprompt: new_file,file,output
+#% gisprompt: new_folder,folder,output
 #% key_desc: name
-#% description: Resultant text file to write statistics into
+#% description: Name for the folder in /tmp where "drop"_threshold text files are stored
 #% required: yes
 #%end
 
@@ -91,13 +88,14 @@ eval `g.gisenv`
 
 echo $LOCATION_NAME
 
-#g.region rast=$dem
-
 res=`g.region -p | grep res | sed 1d | cut -f2 -d':' | tr -d ' ' `
 
-#g.region vect=$input 
+rm -R /tmp/$result
+mkdir /tmp/$result
 
-#g.region n=n+$res s=s-$res e=e+$res w=w-$res
+#preparing text output header
+echo "threshold	t	Pr	Radj	Pvalue">result
+echo "threshold	maxord">thrVSmaxord
 
 for j in $thresholds
 do
@@ -121,9 +119,7 @@ awk 'NR==1{print $4}' three > "maxord"`
 
 maxord=`cat maxord`
 
-rm thrVSmaxord_$j
-
-echo "$j	$maxord" > thrVSmaxord_$j
+echo "$j	$maxord" >> thrVSmaxord
 
    a=1
    until [ "$a" -gt "$maxord" ]
@@ -147,18 +143,27 @@ echo "$j	$maxord" > thrVSmaxord_$j
       v.to.db map=ord1_pl_3d_cat type=line layer=1 qlayer=1 option=start units=meters 'column=sx, sy, sz'
 
       v.to.db map=ord1_pl_3d_cat type=line layer=1 qlayer=1 option=end units=meters 'column=ex, ey, ez'
+      
+      #added to prevent r.category - in v.rast.stats - errors.. align on DEM doesn't work
+      v.db.addcol map=ord1_pl_3d_cat columns="stats_min double precision"
 
-      v.rast.stats vector=ord1_pl_3d_cat raster=$dem colprefix=stats percentile=90 --verbose -c
+      #v.rast.stats vector=ord1_pl_3d_cat raster=$dem colprefix=stats percentile=90 --verbose -c
 
 
      db_driver=`db.connect -p | grep driver | cut -f2 -d':'`
      db_database=`db.connect -p | grep database | cut -f2 -d':'`
      for i in `db.select table=ord1_pl_3d_cat database=$db_database driver=$db_driver 'sql=select cat from ord1_pl_3d_cat' | sed 1d`
      do
-
-         min=`echo "select stats_min from ord1_pl_3d_cat where cat=$i" | db.select | sed 1d`
          sz=`echo "select sz from ord1_pl_3d_cat where cat=$i" | db.select | sed 1d`
          ez=`echo "select ez from ord1_pl_3d_cat where cat=$i" | db.select | sed 1d`
+         #added to prevent r.category - in v.rast.stats - errors.. align on DEM doesn't work
+         if [ "$sz" -gt "$ez" ]
+          then
+          v.db.update map=ord1_pl_3d_cat column=stats_min value=$ez where="cat=$i"
+         else
+          v.db.update map=ord1_pl_3d_cat column=stats_min value=$sz where="cat=$i"
+         fi
+         min=`echo "select stats_min from ord1_pl_3d_cat where cat=$i" | db.select | sed 1d`
 	 if [  `echo "$ez - $min" | bc -l | cut -f1 -d'.'` -lt "$lt" ] || [ `echo "$sz - $min" | bc -l | cut -f1 -d'.'` -lt "$lt" ]
 	   then
  	   if [ "$ez" -gt "$sz" ]
@@ -177,7 +182,6 @@ echo "$j	$maxord" > thrVSmaxord_$j
 	 fi
       done
    paste ordcol tmp > textout\_$a
-   #read
 
    if [ "$a" -gt 1 ]
      then
@@ -193,111 +197,143 @@ echo "$j	$maxord" > thrVSmaxord_$j
    mv textout\_$maxord textout
    echo "plotting textout..."
    cat textout
-
-   echo "
-   imported=read.csv('textout', sep = '\t', dec='.', header = F)
-   dframe=data.frame(imported)
-   str(dframe)
-   nrow_maxord=nrow(dframe[dframe\$V1==max(dframe\$V1),])
-   maxord=max(dframe\$V1)
-   ifelse(nrow_maxord==1, (dframe=na.omit(subset(dframe[dframe\$V1 < maxord,]))), (dframe))
-   cat('plotted dframe \n')
-   nord=c(1:max(dframe\$V1))
-   #search for negative values of drop, replacing them with 0.1 values 
-   dframe\$V2[(dframe\$V2 < 0)]<-0.1
-   tmp<-dframe
-   #search for zero values of drop, replacing them with 0.1 values
-   tmp\$V2[dframe\$V2==0]<-0.1
-   dframe<-tmp
-   delta=c()
-   for(i in nord)
-	{
-	offset=(qt(0.025,nrow(dframe[dframe\$V1==i,])-1,lower.tail=FALSE)*(sd(log(dframe\$V2[dframe\$V1==i])))/sqrt(nrow(dframe[dframe\$V1==i,])))/(mean	(log(dframe\$V2[dframe\$V1==i])))
-	delta=c(delta,offset)
-
-	}
-   delta=delta[delta<0.5]
-   delta<-data.frame(na.omit(delta))
-   dframe<-data.frame(na.omit(dframe[dframe\$V1 <= (nrow(delta)),]))
-   print(dframe)
-   cat('plotted input dataframe \n')
-   linear_regr=summary(lm(dframe\$V2~dframe\$V1))
-   print(linear_regr)
-   cat('plotted linear regression output \n')
-   t=linear_regr\$coefficients[2,3]
-   Pr=linear_regr\$coefficients[2,4]
-   Radj=linear_regr\$adj.r.squared
-   library(agricolae)
-   wer_t=waerden.test(dframe\$V2,dframe\$V1,group=F)
-   print(wer_t)
-   cat('plotted Van der Waerden test output \n')
-   sink(file=\"tmpfile\")
-   waerden.test(dframe\$V2,dframe\$V1,group=F)
-   sink()
-   Pval=try(system(\"cat tmpfile | grep Pvalue | cut -f2 -d' '\", intern=TRUE))
-   system(\"rm tmpfile\")
-   Pval<-as.numeric(Pval)
-   out_row<-as.numeric(c(\"$j\",t,Pr,Radj,Pval))
-   cat('plotting values: threshold, t, Pr, Radj, Pval \n')
-   print(out_row)
-   write(out_row,file='results\_$j',ncolumns=5,sep='\t')
-   " > R_temp
-
-   echo 'source ("R_temp")' | R --vanilla --slave
-
-   rm R_temp
-
+   cp textout /tmp/$result/drop_$j.csv
 done
-
-rm $result
-rm thrVSmaxord
-
-echo "threshold	t	Pr	Radj	Pvalue">$result
-echo "threshold	maxord">thrVSmaxord
-
-for k in $thresholds
-do
-   cat results_$k >> $result
-   rm results_$k
-
-   cat thrVSmaxord_$k >> thrVSmaxord
-   rm thrVSmaxord_$k
-done
-
-echo "plotting results..."
-cat $result
-
 echo "
-thrVSmaxord=read.csv(\"thrVSmaxord\", sep = '\t', dec='.', header = F)
-names(thrVSmaxord)[1]=\"Threshold\"
-names(thrVSmaxord)[2]=\"Maxord\"
-xgraph=read.csv(\"$result\", sep = '\t', dec='.', header = F)
-names(xgraph)[1]=\"Threshold\"
-names(xgraph)[2]=\"t_statistic\"
-names(xgraph)[3]=\"Pr\"
-names(xgraph)[4]=\"R_squared_adj\"
-names(xgraph)[5]=\"Pvalue\"
+cat('running R\n')
+workdir=\"/tmp/$result/\"
 
-pdf('waerden_test.pdf')
-print(matplot(xgraph\$Threshold, xgraph[, c(\"Pvalue\")], type=\"l\", col=\"red\", lwd=3, lty=1, ylab=\"Pvalue\", pch=1))
+nperm = 999
+trim = 0.25/2
+
+#############################################################################
+
+setwd(workdir)
+Bname = tolower(strsplit(workdir, \"/tmp/\")[[1]][2])
+bacino = substr(Bname,1,nchar(Bname)-1)
+files = list.files(path = workdir, glob2rx(\"drop_*.csv\"))
+pdfile = paste(bacino, \".pdf\", sep = \"\")
+csvfile = paste(bacino, \".csv\", sep = \"\")
+
+thresholds = as.numeric(sub(\"drop_\", \"\", sub(\".csv\", \"\", files)))
+ord = order(thresholds)
+thresholds = thresholds[ord]
+files = files[ord]
+
+# t stat with equal variances
+t.statistic <- function(data)
+{
+  m1 = with(data, mean(drop[order==1]))
+  s1 = with(data, sd(drop[order==1]))
+  n1 = with(data, length(drop[order==1]))
+  m2 = with(data, mean(drop[data\$order>1]))
+  s2 = with(data, sd(drop[order>1]))
+  n2 = with(data, length(drop[order>1]))
+  t = (m1-m2)/( sqrt( ((n1-1)*s1^2+(n2-1)*s2^2)/(n1+n2-2) * (1/n1 + 1/n2)) )
+  return(t)
+}
+
+# difference trimmed mean statistic
+ADTDTM.statistic <- function(data)
+{
+  m1 = with(data, mean(drop[data\$order==1], trim = trim))
+  m2 = with(data, mean(drop[data\$order>1], trim = trim))
+  t = (m1-m2)
+  return(t)
+}
+
+
+# difftrmean.statistic <- function(data)
+# { # difference on median
+#   m1 = with(data, median(drop[data\$order==1]))
+#   m2 = with(data, median(drop[data\$order>1]))
+#   t = (m1-m2)
+#   return(t)
+# }
+
+tab = matrix(NA, length(files), 10)
+rownames(tab) = thresholds
+colnames(tab) = c(\"n1\", \"n2\", \"Mean 1\", \"Mean >1\", \"diff\", \"sd 1\", \"sd >1\", \"TrMean 1\", \"Tr Mean >1\", \"diff\")
+
+test_pvalue = matrix(NA, length(files), 3)
+colnames(test_pvalue) = c(\"Tarboton t-test\", \"t-test (adjusted)\", \"Permutation test (adjusted)\")
+rownames(test_pvalue) = thresholds
+
+for(i in 1:length(files))
+{
+  data = read.table(files[i], header = FALSE, sep = \"\t\")
+  names(data) = c(\"order\", \"drop\")
+  
+  
+#   with(data, 
+#        { ord = factor(ifelse(order == 1, 1, 2), labels = c(\"1\", \">1\"))
+#          boxplot(drop ~ ord) 
+#          points(1:nlevels(ord), as.vector(by(drop, ord, mean, trim = trim)), col = 2, pch = 3)
+#        })
+#   
+#   with(data, c(mean(drop[data\$order==1]), mean(drop[data\$order>1])))
+#   with(data, c(mean(drop[data\$order==1], trim = trim), mean(drop[data\$order>1], trim = trim)))
+#   with(data, c(median(drop[data\$order==1]), median(drop[data\$order>1])))
+  
+  tab[i,1]  = sum(data\$order==1)
+  tab[i,2]  = sum(data\$order>1)
+  tab[i,3]  = with(data, mean(drop[data\$order==1]))
+  tab[i,4]  = with(data, mean(drop[data\$order>1]))
+  tab[i,5]  = tab[i,3] - tab[i,4]
+  tab[i,6]  = with(data, sd(drop[data\$order==1]))
+  tab[i,7]  = with(data, sd(drop[data\$order>1]))
+  tab[i,8]  = with(data, mean(drop[data\$order==1], trim = trim))
+  tab[i,9]  = with(data, mean(drop[data\$order>1], trim = trim))
+  tab[i,10] = tab[i,8] - tab[i,9]
+
+  t_test = with(data, t.test(drop[order==1], drop[order > 1],
+                             var.equal = TRUE, alternative = \"two.sided\"))
+  test_pvalue[i,1:2] = t_test\$p.value
+  
+  
+  dStat = ADTDTM.statistic(data)
+  permStat = rep(NA, nperm)
+  for(j in 1:nperm)
+     { permData = data
+       perm = sample.int(nrow(data))
+       permData\$order = data\$order[perm]
+       permStat[j] = ADTDTM.statistic(permData)
+      }
+      
+  # hist(permStat); abline(v=dStat, col = 2)
+  
+  test_pvalue[i,3] = (sum(abs(permStat) > abs(dStat))+1)/(nperm+1)
+}
+
+# adjust p-value using Benjamini-Hochberg method to control FDR
+test_pvalue[,2] = p.adjust(test_pvalue[,2], method = \"BH\")
+test_pvalue[,3] = p.adjust(test_pvalue[,3], method = \"BH\")
+
+# Save results
+write.csv(file = csvfile, cbind(tab,test_pvalue))
+
+# Read save results
+# out = read.csv(file = csvfile, check.names = FALSE)
+# tab = out[,1:11]
+# test_pvalue = out[,12:14]
+# colnames(test_pvalue)[3] = \"APTDTM\"
+
+pdf(file = pdfile, width = 8, height = 6)
+par(mar = c(4,4,1,1), mgp = c(2.2, 0.5, 0), tcl = -0.3)
+cols = c(\"grey30\", \"black\", \"cornflowerblue\")
+pchs = c(2, 17, 19)
+par(mar = c(4,4,1,1))
+matplot(thresholds, test_pvalue, type = \"b\", log = \"x\", 
+        xlab = \"Threshold\", ylab = \"p-value\", lty = 1, col = cols, pch = pchs, xaxt = \"n\", yaxt = \"n\")
+axis(1, at = thresholds, cex.axis = 0.7, las = 3)
+axis(2, at = sort(c(0.05, 0:10/10)), cex.axis = 0.7)
+abline(h = 0.05, lty = 2)
+legend(\"topleft\", legend = colnames(test_pvalue), col = cols, pch = pchs, lty = 1, inset = 0.05)
 dev.off()
-
-pdf('linear_regression.pdf')
-print(matplot(xgraph\$Threshold, xgraph[, c(\"Pr\")], type=\"l\", col=\"green\", lwd=3, lty=1, ylab=\"Pr\", pch=1))
-dev.off()
-
-pdf('all_tests.pdf')
-print(matplot(xgraph\$Threshold, xgraph[, c(\"Pr\",\"Pvalue\")], type=\"b\", lwd=3, lty=1, ylab=\"(1)Pr, (2)Pvalue\"))
-dev.off()
-
-pdf('thrVSmaxord.pdf')
-print(matplot(thrVSmaxord\$Threshold, thrVSmaxord[, c(\"Maxord\")], type=\"l\", col=\"blue\", lwd=3, lty=1, ylab=\"Maxord\", pch=1))
-dev.off()
-
 " > R_temp
 
 echo 'source ("R_temp")' | R --vanilla --slave
 
-rm R_temp
+rm R_temp one maxord ordcol textout three two tmp
 
 
