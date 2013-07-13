@@ -20,37 +20,31 @@
 #
 ################################################################################
 #%module
-#% description: 
+#% description: Outputs a ipsometric and ipsographic graph.
 #% keywords: raster
 #%end
 
-#%option
+#%option G_OPT_R_ELEV
 #% key: map
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
-#% description: Name of elevation map 
 #% required: yes
 #%end
 
-#%option
+#%option G_OPT_F_OUTPUT
 #% key: image
-#% type: string
-#% gisprompt: new_file,file,input
 #% key_desc: image
-#% description: output graph (png)
+#% description: Name for output graph file (png)
 #% required: yes
 #%end
 
 #%flag
 #% key: a
-#% description: generate ipsometric curve
+#% description: Generate ipsometric curve
 #%end
 
 #%flag
 #% key: b
-#% description: generate ipsographic curve
-#%END
+#% description: Generate ipsographic curve
+#%end
 
 import sys
 import os
