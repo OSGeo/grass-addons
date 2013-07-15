@@ -31,7 +31,7 @@ int do_astar(void)
     double dx, dy, dist_to_nbr[8], ew_res, ns_res;
     double slope[8];
     struct Cell_head window;
-    int skip_me;
+    int skip_diag;
 
     count = 0;
 
@@ -79,7 +79,7 @@ int do_astar(void)
 	    r_nbr = r + nextdr[ct_dir];
 	    c_nbr = c + nextdc[ct_dir];
 	    slope[ct_dir] = ele_nbr[ct_dir] = 0;
-	    skip_me = 0;
+	    skip_diag = 0;
 
 	    /* check that neighbour is within region */
 	    if (r_nbr < 0 || r_nbr >= nrows || c_nbr < 0 || c_nbr >= ncols)
@@ -102,19 +102,19 @@ int do_astar(void)
 			if (slope[ct_dir] <
 			    get_slope(ele_nbr[nbr_ew[ct_dir]],
 				       ele_nbr[ct_dir], ew_res))
-			    skip_me = 1;
+			    skip_diag = 1;
 		    }
-		    if (!skip_me && slope[nbr_ns[ct_dir]] > 0) {
+		    if (!skip_diag && slope[nbr_ns[ct_dir]] > 0) {
 			/* slope to ns nbr > slope to center */
 			if (slope[ct_dir] <
 			    get_slope(ele_nbr[nbr_ns[ct_dir]],
 				       ele_nbr[ct_dir], ns_res))
-			    skip_me = 1;
+			    skip_diag = 1;
 		    }
 		}
 	    }
 
-	    if (!skip_me) {
+	    if (!skip_diag) {
 		if (is_in_list == 0) {
 		    ele_up = ele_nbr[ct_dir];
 		    af.asp = drain[r_nbr - r + 1][c_nbr - c + 1];

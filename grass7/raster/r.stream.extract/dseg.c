@@ -102,7 +102,7 @@ int dseg_get(DSEG *dseg, DCELL *value, int row, int col)
 
 int dseg_read_raster(DSEG *dseg, char *map_name, char *mapset)
 {
-    int row, nrows, ncols;
+    int row, nrows;
     int map_fd;
     DCELL *dbuffer;
 
@@ -111,7 +111,6 @@ int dseg_read_raster(DSEG *dseg, char *map_name, char *mapset)
 
     map_fd = Rast_open_old(map_name, mapset);
     nrows = Rast_window_rows();
-    ncols = Rast_window_cols();
     dbuffer = Rast_allocate_d_buf();
     for (row = 0; row < nrows; row++) {
 	Rast_get_d_row(map_fd, dbuffer, row);
@@ -136,12 +135,11 @@ int dseg_read_raster(DSEG *dseg, char *map_name, char *mapset)
 int dseg_write_cellfile(DSEG *dseg, char *map_name)
 {
     int map_fd;
-    int row, nrows, ncols;
+    int row, nrows;
     DCELL *dbuffer;
 
     map_fd = Rast_open_new(map_name, DCELL_TYPE);
     nrows = Rast_window_rows();
-    ncols = Rast_window_cols();
     dbuffer = Rast_allocate_d_buf();
     segment_flush(&(dseg->seg));
     for (row = 0; row < nrows; row++) {

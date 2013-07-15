@@ -143,15 +143,15 @@ int do_accum(double d8cut)
     int mfd_cells, astar_not_set;
     double *dist_to_nbr, *weight, sum_weight, max_weight;
     double dx, dy;
-    int r_nbr, c_nbr, r_max, c_max, ct_dir, np_side;
+    int r_nbr, c_nbr, ct_dir, np_side;
     int is_worked;
-    double max_acc, prop;
+    double prop;
     int edge;
     int asp_r[9] = { 0, -1, -1, -1, 0, 1, 1, 1, 0 };
     int asp_c[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
     int nextdr[8] = { 1, -1, 0, 0, -1, 1, 1, -1 };
     int nextdc[8] = { 0, 0, -1, 1, 1, -1, 1, -1 };
-    GW_LARGE_INT workedon, killer, count;
+    GW_LARGE_INT workedon, killer;
     char *flag_nbr;
     POINT astarpoint;
     WAT_ALT wa;
@@ -182,7 +182,6 @@ int do_accum(double d8cut)
     }
 
     /* distribute and accumulate */
-    count = 0;
     for (killer = 0; killer < n_points; killer++) {
 
 	G_percent(killer, n_points, 1);
@@ -204,9 +203,6 @@ int do_accum(double d8cut)
 	    dr = r + asp_r[abs((int)af.asp)];
 	    dc = c + asp_c[abs((int)af.asp)];
 	}
-
-	r_max = dr;
-	c_max = dc;
 
 	seg_get(&watalt, (char *)&wa, r, c);
 	value = wa.wat;
@@ -309,8 +305,6 @@ int do_accum(double d8cut)
 	if (fabs(value) > d8cut)
 	    mfd_cells = 0;
 
-	max_acc = -1;
-
 	if (mfd_cells > 1) {
 	    prop = 0.0;
 	    for (ct_dir = 0; ct_dir < sides; ct_dir++) {
@@ -370,7 +364,7 @@ int extract_streams(double threshold, double mont_exp, int internal_acc)
     CELL is_swale, ele_val, *ele_nbr;
     DCELL value, valued, *wat_nbr;
     struct Cell_head window;
-    int mfd_cells, stream_cells, swale_cells, astar_not_set;
+    int mfd_cells, stream_cells, swale_cells;
     double *dist_to_nbr;
     double dx, dy;
     int r_nbr, c_nbr, r_max, c_max, ct_dir, np_side, max_side;
@@ -387,7 +381,7 @@ int extract_streams(double threshold, double mont_exp, int internal_acc)
      *  | 2 |   | 3 |
      *  | 5 | 0 | 6 |
      */
-    GW_LARGE_INT workedon, killer, count;
+    GW_LARGE_INT workedon, killer;
     int stream_no = 0, stream_node_step = 1000;
     double slope, diag;
     char *flag_nbr;
@@ -435,7 +429,6 @@ int extract_streams(double threshold, double mont_exp, int internal_acc)
     workedon = 0;
 
     /* extract streams */
-    count = 0;
     for (killer =  0; killer < n_points; killer++) {
 	G_percent(killer, n_points, 1);
 	
@@ -505,7 +498,6 @@ int extract_streams(double threshold, double mont_exp, int internal_acc)
 	mfd_cells = 0;
 	stream_cells = 0;
 	swale_cells = 0;
-	astar_not_set = 1;
 	ele_val = wa.ele;
 	edge = 0;
 	flat = 1;
@@ -561,10 +553,6 @@ int extract_streams(double threshold, double mont_exp, int internal_acc)
 			    r_max = r_nbr;
 			    c_max = c_nbr;
 			    max_side = ct_dir;
-			}
-
-			if (dr == r_nbr && dc == c_nbr) {
-			    astar_not_set = 0;
 			}
 		    }
 		}
