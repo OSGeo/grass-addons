@@ -150,26 +150,26 @@ segment, at confluences and at stream network outlet locations.
 <p>
 
 <h2>EXAMPLE</h2>
-This example is based on the elevation map <em>elevation.10m</em> in the
-sample dataset spearfish60 and uses valleys determined with
+This example is based on the elevation map <em>elev_ned_30m</em> in the
+North Carolina sample dataset and uses valleys determined with
 <a href="r.param.scale.html">r.param.scale</a> to weigh an accumulation
 map produced with <a href="r.watershed.html">r.watershed</a>.
 
 <pre>
 # set region
-g.region -p rast=elevation.10m@PERMANENT
+g.region -p rast=elev_ned_30m@PERMANENT
 
 # calculate flow accumulation
-r.watershed ele=elevation.10m@PERMANENT acc=elevation.10m.acc -f
+r.watershed ele=elev_ned_30m@PERMANENT acc=elevation.10m.acc
 
 # curvature to get narrow valleys
-r.param.scale input="elevation.10m@PERMANENT" output="tangential_curv_5" size=5 param=crosc
+r.param.scale input=elev_ned_30m@PERMANENT output=tangential_curv_5 size=5 param=crosc
 
 # curvature to get a bit broader valleys
-r.param.scale input="elevation.10m@PERMANENT" output="tangential_curv_7" size=7 param=crosc
+r.param.scale input=elev_ned_30m@PERMANENT output=tangential_curv_7 size=7 param=crosc
 
 # curvature to get broad valleys
-r.param.scale input="elevation.10m@PERMANENT" output="tangential_curv_11" size=11 param=crosc
+r.param.scale input=elev_ned_30m@PERMANENT output=tangential_curv_11 size=11 param=crosc
 
 # create weight map
 r.mapcalc "weight = if(tangential_curv_5 < 0, -100 * tangential_curv_5, \
@@ -177,10 +177,10 @@ r.mapcalc "weight = if(tangential_curv_5 < 0, -100 * tangential_curv_5, \
 		    if(tangential_curv_11 < 0, -100 * tangential_curv_11, 0.000001)))"
 
 # weigh accumulation map
-r.mapcalc "elevation.10m.acc.weighed = elevation.10m.acc * weight"
+r.mapcalc "elev_ned_30m.acc.weighed = elev_ned_30m.acc * weight"
 
 # copy color table from original accumulation map
-r.colors map=elevation.10m.acc.weighed raster=elevation.10m.acc
+r.colors map=elev_ned_30m.acc.weighed raster=elev_ned_30m.acc
 </pre>
 
 Display both the original and the weighed accumulation map.
@@ -189,16 +189,16 @@ Compare them and proceed if the weighed accumulation map makes sense.
 
 <pre>
 # extract streams
-r.stream.extract elevation=elevation.10m@PERMANENT \
-                 accumulation=elevation.10m.acc.weighed \
+r.stream.extract elevation=elev_ned_30m@PERMANENT \
+                 accumulation=elev_ned_30m.acc.weighed \
 		 threshold=1000 \
-		 stream_rast=elevation.10m.streams
+		 stream_rast=elev_ned_30m.streams
 
 # extract streams using the original accumulation map
-r.stream.extract elevation=elevation.10m@PERMANENT \
-                 accumulation=elevation.10m.acc \
+r.stream.extract elevation=elev_ned_30m@PERMANENT \
+                 accumulation=elev_ned_30m.acc \
 		 threshold=1000 \
-		 stream_rast=elevation.10m.streams.noweight
+		 stream_rast=elev_ned_30m.streams.noweight
 </pre>
 
 Now display both stream maps and decide which one is more realistic.
