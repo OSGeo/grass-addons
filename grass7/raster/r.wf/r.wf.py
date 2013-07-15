@@ -26,21 +26,16 @@
 #% keywords: raster
 #%end
 
-#%option
+#%option G_OPT_R_INPUT
 #% key: map
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
 #% description: Distance to outlet map (from r.stream.distance) 
 #% required: yes
 #%end
 
-#%option
+#%option G_OPT_F_OUTPUT
 #% key: image
-#% type: string
-#% gisprompt: new_file,file,input
 #% key_desc: image
-#% description: output plot (png)
+#% description: Name for output graph file (png)
 #% required: yes
 #%END
 
