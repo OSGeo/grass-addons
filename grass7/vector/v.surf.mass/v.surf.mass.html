@@ -16,25 +16,38 @@ should be completely inside the bounding box of the vector.
 
 <h2>EXAMPLE</h2>
 
-<h3>Population count interpolation using the North Carolina sample data</h3>
+<h3>Population count interpolation using annual precipitation in the 
+North Carolina sample data</h3>
 
 <div class="code"><pre>
-# List of attributes for the vector censusblk_swwake
-v.info -c censusblk_swwake
+# setting the region
+g.region -p rast=elev_state_500m
 
-# Univariate statistics on area sizes,
-# only for areas with a population count > 0
+# Voronoi triangulation
+v.voronoi input=precip_30ynormals@PERMANENT output=precip_annual
 
-v.db.univar censusblk_swwake column=AREA perc=1 -e where="TOTAL_POP > 0"
+# List of attributes for the vector precip_annual
+v.info -c precip_annual
 
-# The smallest area with some population is 413.8 square meters
-# and with a resolution of 10 meters covered by appr. four pixels 
-# (depending on the shape of the area
+# v.surf.mass converts attributes to density, thus:
+# new column for area size and adjusted precipitation
+v.db.addcolumn map=precip_annual column="area double precision, prec_adj double precision"
+v.to.db map=precip_annual column=area option=area units=meters
+
+# Getting the size of the smallest area
+v.db.univar precip_annual column=area
+
+# The smallest area with some population is 1.20789e+08 square meters
+# and with a resolution of 5000 meters covered by appr. four pixels 
+# (depending on the shape of the area)
 # adjust region
-g.region vect=censusblk_swwake res=10 -ap
+g.region res=5000 -ap
+
+# adjust precipitation: multiply by area size, dived by pixel size
+v.db.update map=precip_annual column=prec_adj qcolumn="annual * area / 25000000"
 
 # mass-preserving area interpolation
-v.surf.mass input=censusblk_swwake output=census_blk_swwake column=TOTAL_POP iterations=200
+v.surf.mass input=precip_annual output=precip_annual column=prec_adj iterations=200
 </pre></div>
 
 
