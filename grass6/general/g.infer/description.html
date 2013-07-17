@@ -1,130 +1,160 @@
-
-
 <h2>DESCRIPTION</h2>
 
-<b>g.infer</b> is a tool to create rule-based data-driven workflows from GRASS data layers and additional data sources.
-<b>g.infer</b> can modify existing GRASS data layers, 
-can create new vector layers or can start additional additional GRASS modules. 
-This is controlled by an inference process,
-which applies a knowledge base on a set of known facts (data). 
-g.infer provides a <b>Production System</b> to set up <b>Expert Systems</b> from domain knowledge and GIS data layers. <p>
+<b>g.infer</b> is a tool to create rule-based data-driven workflows 
+from GRASS data layers and additional data sources.
+<b>g.infer</b> can modify existing GRASS data layers, can create new 
+vector layers or can start additional additional GRASS modules. This 
+is controlled by an inference process, which applies a knowledge 
+base on a set of known facts (data). <em>g.infer</em> provides a
+<b>Production System</b> to set up <b>Expert Systems</b> from domain 
+knowledge and GIS data layers. <p>
 
 <p>
-The g.infer inference environment is based on a strict separation of knowledge (rules) and data (facts and  object instances).
- Data consists of GRASS-derived spatial information and other input. 
- The g.infer inference engine applies the knowledge, consisting of rules (stored in the rulebase), to the available data.
- For development and testing, interactive access and logging options are available.
+The <em>g.infer</em> inference environment is based on a strict 
+separation of knowledge (rules) and data (facts and  object 
+instances). Data consists of GRASS-derived spatial information and 
+other input. The <em>g.infer</em> inference engine applies the 
+knowledge, consisting of rules (stored in the rulebase), to the 
+available data. For development and testing, interactive access and 
+logging options are available.
 <p>
-g.infer provides a flexible environment to start rule-based work. 
-For complex tasks there are also advanced capabilities to extend the knowledge modelling whenever necessary.
-This approach can be used for geodata classification, GIS workflow control and other tasks.
+<em>g.infer</em> provides a flexible environment to start rule-based 
+work. For complex tasks there are also advanced capabilities to 
+extend the knowledge modelling whenever necessary. This approach can 
+be used for geodata classification, GIS workflow control and other 
+tasks.
 
 <p>
-The <b>C-Language Integrated Production System (CLIPS) Expert System Shell</b> environment is embedded 
-within g.infer using the <b>pyCLIPS</b> Python module. 
-In depth information is found in the References, 
-which contain also links to literature describing the projects <b>Jess</b> and <b>Drools</b> which are based on CLIPS. 
-Their documentation contains additional clues for CLIPS-related development.
+The <b>C-Language Integrated Production System (CLIPS) Expert System 
+Shell</b> environment is embedded within <em>g.infer</em> using the 
+<b>pyCLIPS</b> Python module. In depth information is found in the 
+References, which contain also links to literature describing the 
+projects <b>Jess</b> and <b>Drools</b> which are based on CLIPS. 
+Their documentation contains additional clues for CLIPS-related 
+development.
 <p>
-The exchange of data between the GRASS and CLIPS environments is handled by extensions of the pyCLIPS functionality, 
-connecting both GRASS and CLIPS. 
-See the "Notes on g.infer pyCLIPS extensions" section for details. <p>
+The exchange of data between the GRASS and CLIPS environments is 
+handled by extensions of the pyCLIPS functionality, connecting both 
+GRASS and CLIPS. See the "Notes on g.infer pyCLIPS 
+extensions" section for details. <p>
 
 
 <h3>Input</h3>
 
-g.infer can ingest multiple input sources as data: Spatial information can be imported 
-from GRASS data layers (raster, rast3d, point-vector) and additional sources. 
-Rule base-related constructs (templates, facts, classes and instances) are read from 
-external files or built-in rule bases via the library option.
+<em>g.infer</em> can ingest multiple input sources as data: Spatial 
+information can be imported from GRASS data layers (raster, rast3d, 
+point-vector) and additional sources. Rule base-related constructs 
+(templates, facts, classes and instances) are read from external 
+files or built-in rule bases via the library option.
 <p>
-Additional data can also be imported during the inference process if requested by the rule base. 
-The user can further enter facts and rulebase elements via an interactive CLIPS prompt.
+Additional data can also be imported during the inference process if 
+requested by the rule base. The user can further enter facts and 
+rulebase elements via an interactive CLIPS prompt.
 
 <h3>Output</h3>
 
-g.infer can manipulate the content of imported GRASS data layers and other sources of data.
-These changes can be written back to the respective GRASS layers using the <b>export</b> option for persistent storage.
-A new vector layer can be created through the <b>output</b> option. 
-The creation of additional GRASS layers can be invoked by the rulebase beyond 
-the limited range of options provided by g.infer module parameters.
-
+<em>g.infer</em> can manipulate the content of imported GRASS data 
+layers and other sources of data. These changes can be written back 
+to the respective GRASS layers using the <b>export</b> option for 
+persistent storage. A new vector layer can be created through the
+<b>output</b> option. The creation of additional GRASS layers can be 
+invoked by the rulebase beyond the limited range of options provided 
+by <em>g.infer</em> module parameters.
 
 
 <h3>Rulebase</h3>
 
-The g.infer rulebases contains the working knowledge for the inference process, which is seperate from the data (facts). 
-They are read from file by the <b>rulebase</b> option or selected using the <b>library</b> option. 
-Rulebases can be edited via the interactive CLIPS prompt (-i flag) before the actual inference run. <p>
+The <em>g.infer</em> rulebases contains the working knowledge for 
+the inference process, which is seperate from the data (facts). They 
+are read from file by the <b>rulebase</b> option or selected using 
+the <b>library</b> option. Rulebases can be edited via the 
+interactive CLIPS prompt (-i flag) before the actual inference run. 
+<p>
+There are three ways  to represent knowledge in g.infer. They are 
+based on concepts from the CLIPS programming language (see CLIPS 
+documentation for details). All of them can be part of the rulebase:
 
-There are three ways  to represent knowledge in g.infer. They are based on concepts from the CLIPS programming language 
-(see CLIPS documentation for details). 
-All of them can be part of the rulebase:
 <ul>
-<li><b>Rules</b>, for heuristic knowledge based on experience. Rules can be applied to facts and objects.
+<li><b>Rules</b>, for heuristic knowledge based on experience. Rules 
+can be applied to facts and objects.
 <p>
-<li><b>Functional Programming</b>, where functions defined as code returning values based on the provided input.
+<li><b>Functional Programming</b>, where functions defined as code 
+returning values based on the provided input.
 <p>
-<li><b>Object-oriented programming</b>, supporting  features such as classes, 
-message-handlers, abstraction, encapsulation, inheritance and polymorphism.
+<li><b>Object-oriented programming</b>, supporting  features such as 
+classes, message-handlers, abstraction, encapsulation, inheritance 
+and polymorphism.
 </ul>
 <p>
- Rules adhere to a IF THEN layout defined by the CLIPS programming language (see below). 
- The condition antecedent ("IF") -part is referred to as left hand side (<b>LHS</b>), 
- while the invoked consequent ("THEN") is  called the right hand side (<b>RHS</b>). 
- LHS and RHS sides of a rule statement are connected by the "<b>=></b>" characters. 
+Rules adhere to a IF THEN layout defined by the CLIPS programming 
+language (see below). The condition antecedent ("IF") -part is 
+referred to as left hand side (<b>LHS</b>), while the invoked 
+consequent ("THEN") is  called the right hand side (<b>RHS</b>). LHS 
+and RHS sides of a rule statement are connected by the "<b>=></b>" 
+characters.
 <p>
 
 
 <h3>Inference Engine</h3>
 
-The inference engine is the part of the g.infer module which evaluates what rules are to be applied, 
-based on the currently available data (facts).
+The inference engine is the part of the <em>g.infer</em> module 
+which evaluates what rules are to be applied, based on the currently 
+available data (facts).
 
-The CLIPS inference engine used in g.infer is based on the Rete algorithm (Forgy 1982), 
-using a forward-chaining data-driven approach.
-The order in which rules are to be executed can be controlled in three ways: 
-By explicitly defining <b>salience</b> values for each rule,
-knowledge base partitioning by <b>modules</b> or implicitly by setting the
-<b>conflict resolution</b> strategy (<b>strategy</b> option).  
-The section "Rulbase Development, Operation and Debugging" holds a more detailed description.
-
-<p>
+The CLIPS inference engine used in <em>g.infer</em> is based on the 
+Rete algorithm (Forgy 1982), using a forward-chaining data-driven 
+approach. The order in which rules are to be executed can be 
+controlled in three ways: By explicitly defining <b>salience</b> 
+values for each rule, knowledge base partitioning by <b>modules</b> 
+or implicitly by setting the <b>conflict resolution</b> strategy
+(<b>strategy</b> option). The section "Rulbase Development, Operation 
+and Debugging" holds a more detailed description.
 
 <h3>Performance</h3>
-The Rete-algorithm performs well for a change  below 10 percent of the available data (facts) during an inference run.
-Scenarios, in which the complete content of a GRASS layer must be changed, 
+
+The Rete-algorithm performs well for a change  below 10 percent of 
+the available data (facts) during an inference run. Scenarios, in 
+which the complete content of a GRASS layer must be changed, 
 resulting in 100 percent change, will result in decreased performance.
 <p>
-g.infer uses the current settings of the GRASS region to create facts from the GIS layers which are provided as input. 
-The resolution of the region must be set appropriately for the task, 
-as a very high resolution will result in a large number of facts.
+<em>g.infer</em> uses the current settings of the GRASS region to 
+create facts from the GIS layers which are provided as input. The 
+resolution of the region must be set appropriately for the task, as 
+a very high resolution will result in a large number of facts.
 
 <h3>Knowledge Engineering in g.infer</h3>
 
-Knowledge engineering (modelling) in g.infer involves in most cases the definition of  rules for the rulebase. 
-It can also include more complex programming tasks, 
-such as conditions, loops, functions and object oriented programming.
+Knowledge engineering (modelling) in <em>g.infer</em> involves in 
+most cases the definition of  rules for the rulebase. It can also 
+include more complex programming tasks, such as conditions, loops, 
+functions and object oriented programming.
 
-For knowledge modelling and programming in g.infer, 
-the programming language of the CLIPS Expert System Toolkit is used, 
-which is closely related to the programming language <b>LISP</b>.
-For an in depth description of the CLIPS language, 
-refer to the CLIPS Users's Guide and Reference Manuals (Giarratano 2007, 2008). 
-A useful introduction to LISP is provided by Graham, 1995.<p>
+For knowledge modelling and programming in <em>g.infer</em>, the 
+programming language of the CLIPS Expert System Toolkit is used, 
+which is closely related to the programming language <b>LISP</b>. 
+For an in depth description of the CLIPS language, refer to the 
+CLIPS Users's Guide and Reference Manuals (Giarratano 2007, 2008).
+A useful introduction to LISP is provided by Graham, 1995.
+<p>
 
-In the following, the given <i>examples</i> refer to a rulebase and are imported via a rulebase file, 
-from a built in demo rulebase, or are entered using the interactive CLIPS prompt. 
-This CLIPS-based <b>programming</b> can not be mixed with GRASS GIS scripting, 
-but can invoke GRASS modules as part of the RHS of rules.
+In the following, the given <i>examples</i> refer to a rulebase and 
+are imported via a rulebase file, from a built in demo rulebase, or 
+are entered using the interactive CLIPS prompt. This CLIPS-based
+<b>programming</b> can not be mixed with GRASS GIS scripting, but can 
+invoke GRASS modules as part of the RHS of rules.
 
 <h4>Rulebase Notation</h4>
 
-<b>g.infer</b> rulebase constructs use a fully parenthesized polish prefix notation: 
-Any term, or formula, must be put in braces, with the operator preceding the operands:
-<pre>(operator operand1 operand2 ... operandN)</pre>
+<em>g.infer</em> rulebase constructs use a fully parenthesized polish 
+prefix notation: Any term, or formula, must be put in braces, with 
+the operator preceding the operands:
+
+<div class = "code"><pre>
+(operator operand1 operand2 ... operandN)
+</pre></div>
 <p>
-This differs from the infix notation commonly used in GRASS GIS, like in r.mapcalc:
+This differs from the infix notation commonly used in GRASS GIS, like in
+<em>r.mapcalc</em>:
 <p>
 
 <ul>
@@ -134,87 +164,99 @@ This differs from the infix notation commonly used in GRASS GIS, like in r.mapca
 <p>
 
 <h4>Data Types</h4>
-g.infer's rule engine provides eight primitive data types for representing information.
-As the programming language of the CLIPS Production System is weakly typed, 
-variables can be declared without explicitly setting a type. 
-The available types are 
-<b>float, integer, symbol, string, external-address, fact-address, instance-name</b> and <b>instance-address</b>. 
-<b>Numeric information</b> can be represented using floats and integers. 
-<b>Symbolic information</b> can be represented using symbols and strings. 
-A number consists only of digits (0-9), a decimal point (.), a sign (+ or -), and, optionally, 
-an (e) for exponential notation with its corresponding sign. A number is either stored as a float or an integer. 
-Any number consisting of an optional sign followed by only digits is stored as an integer. 
-All other numbers are stored as floats.
 
-<p>
+<em>g.infer</em>'s rule engine provides eight primitive data types 
+for representing information. As the programming language of the 
+CLIPS Production System is weakly typed, variables can be declared 
+without explicitly setting a type. The available types are 
+<ul>
+<li><b>float, integer, symbol, string, external-address, 
+fact-address, instance-name</b> and <b>instance-address</b>.</li>
+<li><b>Numeric information</b> can be represented using floats and 
+integers.</li>
+<li><b>Symbolic information</b> can be represented using symbols and 
+strings.</li>
+</ul>
+A number consists only of digits (0-9), a decimal point (.), a sign 
+(+ or -), and, optionally, an (e) for exponential notation with its 
+corresponding sign. A number is either stored as a float or an 
+integer. Any number consisting of an optional sign followed by only 
+digits is stored as an integer. All other numbers are stored as 
+floats.
 
 <h4>Facts</h4>
 
-Facts are the common high level form for representing information in g.infer.
-Within the CLIPS Production System, facts are the fundamental unit of data to be processed 
-by the rulebase to infer information by the firing of applicable rules.
-Each fact represents a piece of data which has been placed in the overall <b>fact list</b> of the currently known facts.
-
-
-<p>
-Facts may be added to the fact list (using the <b>assert</b> command), 
-removed from the fact list (using the <b>retract</b> command),
-modified (using the <b>modify</b> command), or duplicated (using the <b>duplicate</b> command) by 
-either direct user interaction or while the rule base is executed.
-The number of facts in the <b>fact list</b>  and the amount of information that can be stored within a fact 
-is limited only by the amount of available memory.
-If a fact is to be asserted into the fact list which exactly matches an already existing fact, 
-the new assertion will be ignored. This default behaviour can be changed.
+Facts are the common high level form for representing information in 
+g.infer. Within the CLIPS Production System, facts are the 
+fundamental unit of data to be processed by the rulebase to infer 
+information by the firing of applicable rules. Each fact represents 
+a piece of data which has been placed in the overall <b>fact list</b>
+of the currently known facts.
 
 <p>
-Some CLIPS language commands, including <b>retract, modify,</b> and <b>duplicate</b>, require a fact to be specified by a reference.
-A fact can be specified either by fact index or fact address:
-Whenever a fact is asserted (or modified) it is assigned a unique index number called its <b>fact index</b>.
-Fact indices start at zero and are incremented by one for each new or changed fact. 
-Whenever a <b>reset</b> or <b>clear</b> command is given, the fact indices restart at zero.
-A fact may also be specified through the use of a <b>fact address</b>.
-A fact address can be obtained by capturing the return value of commands 
-which return fact addresses (such as assert, modify, and duplicate)
-or by binding a variable to the fact address of a  fact which matches a pattern on the LHS of a rule.
-A <b>fact identifier</b> is a shorthand notation for printing a fact. 
-It consists of the character <b>f</b>, followed by a dash, followed by the fact index of the fact.
-<p>
-
-
-There are two categories of facts, <b>ordered facts</b> and <b>non-ordered facts</b>. 
-Both types are applied in g.infer to represent information imported from the GRASS GIS environment.
-
-
+Facts may be added to the fact list (using the <b>assert</b> 
+command), removed from the fact list (using the <b>retract</b> 
+command), modified (using the <b>modify</b> command), or duplicated 
+(using the <b>duplicate</b> command) by either direct user 
+interaction or while the rule base is executed. The number of facts 
+in the <b>fact list</b>  and the amount of information that can be 
+stored within a fact is limited only by the amount of available 
+memory. If a fact is to be asserted into the fact list which exactly 
+matches an already existing fact, the new assertion will be ignored. 
+This default behaviour can be changed.
 
 <p>
+
+Some CLIPS language commands, including <b>retract, modify,</b> and 
+<b>duplicate</b>, require a fact to be specified by a reference. A 
+fact can be specified either by fact index or fact address: Whenever 
+a fact is asserted (or modified) it is assigned a unique index 
+number called its <b>fact index</b>. Fact indices start at zero and 
+are incremented by one for each new or changed fact. Whenever a
+<b>reset</b> or <b>clear</b> command is given, the fact indices restart 
+at zero. A fact may also be specified through the use of a
+<b>fact address</b>. A fact address can be obtained by capturing the
+return value of commands which return fact addresses (such as assert, 
+modify, and duplicate) or by binding a variable to the fact address 
+of a  fact which matches a pattern on the LHS of a rule. A
+<b>fact identifier</b> is a shorthand notation for printing a fact. It 
+consists of the character <b>f</b>, followed by a dash, followed by 
+the fact index of the fact.
+<p>
+There are two categories of facts, <b>ordered facts</b> and <b>
+non-ordered facts</b>. Both types are applied in <em>g.infer</em> to 
+represent information imported from the GRASS GIS environment.
 
 <h5> Ordered facts </h5>
-<p>
-Ordered facts consist of a symbol followed by a sequence of zero or more fields separated by spaces 
-and delimited by an opening parenthesis on the left and a closing parenthesis on the right.
-Ordered facts encode information positionally and can contain multiple data fields. 
-The first field of an ordered fact specifies a <b>relation</b> that applied to the remaining fields in the ordered fact.
 
+Ordered facts consist of a symbol followed by a sequence of zero or 
+more fields separated by spaces and delimited by an opening 
+parenthesis on the left and a closing parenthesis on the right. 
+Ordered facts encode information positionally and can contain 
+multiple data fields. The first field of an ordered fact specifies a 
+<b>relation</b> that applied to the remaining fields in the ordered 
+fact.
+<p>
 For example, <pre>(is-a GRASS GIS)</pre> states that GRASS is a GIS.
 
 <p>
-
-See the CLIPS Introduction and User Guides in the Reference Section for an in-depth discussion.
-
-
+See the CLIPS Introduction and User Guides in the Reference Section 
+for an in-depth discussion.
 
 <p>
-
 A simple fact can contain multiple fields for content:
 
 <pre>(assert (trail "OtterTrail" scenic flat))</pre>
 
 <h5> GRASS environment variables as ordered facts </h5>
-<p>
-Ordered facts are used to represent GRASS enironment variables into g.infer, including g.region parameters. 
-These ordered facts can be manipulated within the CLIPS environment and be used when calling GRASS modules from within CLIPS. 
-They must be exported back into GRASS to become permanent within the current session, which is not done by default. 
-The following representations of GRASS environment variables as facts are generated by default:
+
+Ordered facts are used to represent GRASS enironment variables into 
+g.infer, including g.region parameters. These ordered facts can be 
+manipulated within the CLIPS environment and be used when calling 
+GRASS modules from within CLIPS. They must be exported back into 
+GRASS to become permanent within the current session, which is not 
+done by default. The following representations of GRASS environment 
+variables as facts are generated by default:
 <p>
 
 REGION_ROWS, REGION_COLS, REGION_CELLS, REGION_NSRES, REGION_EWRES, 
@@ -223,27 +265,29 @@ REGION_ROWS3, REGION_COLS3, REGION_CELLS3, REGION_NSRES3, REGION_EWRES3,
 REGION_TBRES, REGION_T, REGION_B, REGION_DEPTHS, 
 GISDBASE, LOCATION_NAME, MAPSET, GRASS_GUI
 
-
-
-
 <h5> Non-ordered facts </h5>
 
-<p>
-Facts to contain structured information require a <b>template</b> to define the structure:
-<p>
-Template based, non ordered facts allow to structure the content of a fact by assessing data fields by name (and type).
-The <b>deftemplate</b> construct  is used to create a named template (which can then be used to access fields by name). 
-This approach is used to import GRASS layers in g.infer to create the respective facts.
+Facts to contain structured information require a <b>template</b> to 
+define the structure:
 <p>
 
-
-The deftemplate construct allows the name of a template to be defined along with zero or more definitions of named fields, 
-also called slots. Unlike ordered facts, the slots of a deftemplate fact may be constrained by type, 
-value, and numeric range. In addition, default values can be specified for a slot. 
-A slot consists of an opening parenthesis followed by the name of the slot, 
-zero or more fields, and a closing parenthesis.
+Template based, non ordered facts allow to structure the content of 
+a fact by assessing data fields by name (and type). The
+<b>deftemplate</b> construct  is used to create a named template (which 
+can then be used to access fields by name). This approach is used to 
+import GRASS layers in <em>g.infer</em> to create the respective 
+facts.
 <p>
 
+The deftemplate construct allows the name of a template to be 
+defined along with zero or more definitions of named fields, also 
+called slots. Unlike ordered facts, the slots of a deftemplate fact 
+may be constrained by type, value, and numeric range. In addition, 
+default values can be specified for a slot. A slot consists of an 
+opening parenthesis followed by the name of the slot, zero or more 
+fields, and a closing parenthesis.
+
+<p>
 
 Deftemplate facts are easily distinguished from ordered facts by their first field. 
 If the symbol serving as the first field corresponds to the name of a deftemplate, 
@@ -276,15 +320,15 @@ Vector: <pre>SOIL EXAMPLE (field as point layer)</pre>
 
 Rast3d: <pre>(random_slice_00009 (x 599000.0) (y 4921800.0) (z 9.0) (value 1.0))</pre>
 <p>
-<pre>"_slice_000009" has been added by g.infer for internal reference.</pre>
+<pre>"_slice_000009" has been added by <em>g.infer</em> for internal reference.</pre>
 
 
 
 <h4>Rules</h4>
 
 <p>
-The primary method of representing and modifing knowledge in g.infer are rules. 
-Any g.infer rulebase comprises of a set of rules which collectively
+The primary method of representing and modifing knowledge in <em>g.infer</em> are rules. 
+Any <em>g.infer</em> rulebase comprises of a set of rules which collectively
  solve a classification task, establish a workflow or do similar. Rules are used to represent heuristics, or "rules of thumb",
 which specify a set of actions to be performed for a given situation.
 Rules can cause actions such as the creation, modification or deletion of facts or the call-up of GRASS modules and scripts.
@@ -366,9 +410,9 @@ are provided in the built-in rule bases (library option) and in the CLIPS User's
 
 <h3>Rulebase Development, Operation and Debugging:</h3>
 
-g.infer is a tool to set up and operate rule-based workflows for information classification and data processing.
+<em>g.infer</em> is a tool to set up and operate rule-based workflows for information classification and data processing.
 The workflow will be loaded via a 'rulebase'-file or a built in rulebase, consisting of a set of rules, called a knowledge base. <p>
-Rule activiation is controlled by the g.infer rule engine, based on spatial data from the GIS layers.
+Rule activiation is controlled by the <em>g.infer</em> rule engine, based on spatial data from the GIS layers.
 
 When a rule is activated for the first time, it is placed on the <b>agenda</b>, based (in order) on the following factors:
 <p>
@@ -384,7 +428,7 @@ In this respect, the order in which rules are defined has an arbitrary effect on
 This arbitrary ordering for the proper execution of rules should not be depended on for knowledge modelling.
 <p>
 
-Once a knowledge base (in the form of rules) has been loaded into g.infer 
+Once a knowledge base (in the form of rules) has been loaded into <em>g.infer</em> 
 and the fact and instance lists are available, the inference engine is ready to execute rules:
 <p>
 <ul>
@@ -435,7 +479,7 @@ Rules can be explicitly assigned a rank/priority called <b>salience</b>.
 <p>
 The <b>conflict resolution strategy</b> is an implicit mechanism for specifying the order in which rules of equal salience should be executed.
 <p>
-g.infer provides seven conflict resolution strategies. The default strategy is depth. 
+<em>g.infer</em> provides seven conflict resolution strategies. The default strategy is depth. 
 The current strategy can be set by using the set strategy command (which will reorder the agenda based upon the new strategy):
 
 <p>
@@ -472,7 +516,7 @@ Each activation is assigned a random number which is used to determine its place
 
 <h5>Salience</h5>
 
-The preferred mechanisms in g.infer for ordering the execution of rules are explicitly assigned salience values 
+The preferred mechanisms in <em>g.infer</em> for ordering the execution of rules are explicitly assigned salience values 
 and knowledge base grouping using modules. 
 Salience allows one to explicitly specify that one rule should be executed before another rule.
 <p>
@@ -519,12 +563,12 @@ The reset and clear commands automatically set the current focus to the MAIN mod
 <h4>Logging and Debugging</h4>
 
 <p>
-Several features of g.infer support the development and debugging of rule-bases:
+Several features of <em>g.infer</em> support the development and debugging of rule-bases:
 <p>
-<h4>Debugging: g.infer Flags for Logging, Interaction and Abort:</h4>
+<h4>Debugging: <em>g.infer</em> Flags for Logging, Interaction and Abort:</h4>
 <ul>
 <li><b>x-Flag</b>: Stop-option: 
-The stop-option terminates g.infer following an optional invocation of a interactive CLIPS shell and before the automated inference run.
+The stop-option terminates <em>g.infer</em> following an optional invocation of a interactive CLIPS shell and before the automated inference run.
 <li><b>i-Flag</b>: Interactive CLIPS shell: 
 The launching of an CLIPS shell before the automated inference run allows to 
 query interactively all aspects of the current CLIPS session. <b>Ctrl-D</b> exits from the interactive Shell.
@@ -593,7 +637,7 @@ and pattern-match inheritance and the default setting for the create-accessor fa
 </DL>
 
 <h4>Rulebase Libraries</h4>
-g.infer provides several pre-configured rulebases. 
+<em>g.infer</em> provides several pre-configured rulebases. 
 The rulebases from the library can be used alone or in combination by user-defined rulebases. 
 They provide a basic interactive user interface to launch specific demo applications and can also be started from the CLIPS prompt (using the <b>(run)</b> command). 
 All demo rulebases contain extensive comments to document their functionaility for the interested user. 
@@ -605,11 +649,11 @@ All demo rulebases contain extensive comments to document their functionaility f
 </ul>
 
 
-<h2>Notes on g.infer pyCLIPS extensions</h2>
+<h2>Notes on <em>g.infer</em> pyCLIPS extensions</h2>
 
 
 
-g.infer extends the pyCLIPS- amd CLIPS environments with several commands to communicate and interact the GRASS GIS:
+<em>g.infer</em> extends the pyCLIPS- amd CLIPS environments with several commands to communicate and interact the GRASS GIS:
 
 <ul>
 <li><b>ginfer_printout</b>: Extends the CLIPS printout command for use in g.infer:  
