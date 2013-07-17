@@ -6,6 +6,7 @@
  * AUTHOR(S):    Markus Metz
  *
  * PURPOSE:      Mass-preserving area interpolation
+ *               (Smooth Pycnophylactic Interpolation after Tobler 1979)
  *
  * COPYRIGHT:    (C) 2013 by by the GRASS Development Team
  *
@@ -76,6 +77,7 @@ int main(int argc, char *argv[])
     G_add_keyword(_("vector"));
     G_add_keyword(_("surface"));
     G_add_keyword(_("interpolation"));
+    G_add_keyword(_("pycnophylactic interpolation"));
     module->description =
 	_("Performs mass-preserving area interpolation.");
 
