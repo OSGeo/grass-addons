@@ -1,222 +1,127 @@
 
 
-<h2>NAME</h2>
-<em><b>g.infer</b></em>
-<h2>KEYWORDS</h2>
-general, inference engine, expert system, rule engine, solver, workflow, classification, data-driven programming, rule based programming, CLIPS
-<h2>SYNOPSIS</h2>
-<b>g.infer</b><br>
-<b>g.infer help</b><br>
-
-<b>g.infer</b> [-<b>efix</b>]  [<b>rast</b>=<em>name[,name,...]</em>] [<b>rast3d</b>=<em>name[,name,...]</em>] [<b>vector</b>=<em>name[,name,...]</em>][<b>rulebase</b>=<em>name</em>][<b>library</b>=<em>name</em>] [<b>facts</b>=<em>name</em>] [<b>output</b>=<em>name[,name,...]</em>] [<b>columns</b>=<em>string</em>] [<b>export</b>=<em>name</em>] [<b>load_instances</b>=<em>name</em>] [<b>bload_instances</b>=<em>name</em>] [<b>save_instances</b>=<em>name</em>] [<b>bsave_instances</b>=<em>name</em>]  [<b>save</b>=<em>string[,string,...]</em>][<b>bsave</b>=<em>string[,string,...]</em>] [<b>strategy</b>=<em>string</em>] [<b>limit</b>=<em>integer</em>] [<b>salience</b>=<em>string</em>] [<b>module</b>=<em>string</em>] [<b>watch</b>=<em>string[,string,...]</em>] [<b>print</b>=<em>string</em>] [<b>config</b>=<em>string</em>] [<b>classdefault</b>=<em>string</em>][--<b>overwrite</b>]  [--<b>verbose</b>]  [--<b>quiet</b>]
-
-<h3>Flags</h3>
-<DL>
-<DT><b>-d</b></DT>
-<DD>Use log-files (dribble option of CLIPS engine).</DD>
-
-<!--
-<DT><b>-f(P)</b></DT>
-<DD>Print fact-base before the inference run.</DD>
--->
-<DT><b>-i</b></DT>
-<DD>Launch interactive command prompt before the inference run. (use <b>Ctrl-D</b> to exit from prompt)  </DD>
-
-
-<DT><b>-e</b></DT>
-<DD>Forward internal rule engine error messages to the GRASS environment for printing</DD>
-
-<DT><b>-x</b></DT>
-<DD>Terminate module execution prior to inference run</DD>
-
-<DT><b>--overwrite</b></DT>
-<DD>Allow output files to overwrite existing files</DD>
-<DT><b>--verbose</b></DT>
-<DD>Verbose module output</DD>
-<DT><b>--quiet</b></DT>
-<DD>Quiet module output</DD>
-</DL>
-
-<h3>Parameters</h3>
-<DL>
-
-<DT><b>vector</b>=<em>name,[name,...]</em></DT>
-<DD>Vector layer(s) to be imported into the CLIPS fact base. Currently only point geometries are supported. </DD>
-
-
-<DT><b>rast</b>=<em>name,[name,...]</em></DT>
-<DD>Raster layer(s) to be imported into the CLIPS fact-base, including raster labels (default). </DD>
-
-<DT><b>rast3d</b>=<em>name,[name,...]</em></DT>
-<DD>Rast3d volume layer(s) to be imported into the CLIPS fact-base.</DD>
-
-<DT><b>facts</b>=<em>name</em></DT>
-<DD>ASCII file containing rule base data (facts)</DD>
-
-<DT><b>rulebase</b>=<em>name</em></DT>
-<DD>ASCII file containing rulebase elements  and related content (rules, templates, facts and objects).</DD>
-
-<DT><b>library</b>=<em>name</em></DT>
-<DD>A library of built-inrulebases. Currently available: reference, spearfish (to be used within the Spearfish demo location).</DD>
-
-<DT><b>export</b>=<em>name,[name,...]</em></DT>
-<DD>Export (previously imported) map layers (a subset of imported vector, raster or rast3d layers) and update the respective GRASS layers </DD>
-
-<DT><b>output</b>=<em>name</em></DT>
-<DD>New GRASS vector (points) layer to be created from the facts linked to a rule base template.</DD>
-
-<DT><b>columns</b>=<em>column name</em></DT>
-<DD>Attribute columns definition for the output vector layer (<b>output</b> option).</DD>
-
-
-<DT><b>strategy</b>=<em>string</em></DT>
-<DD>Sets conflict resolution (collission) strategy for the rulebase.</DD>
-<DD>Options: <em>breadth,complexity,depth,lex,mea,simplicity,random</em></DD>
-<DD>Default: <em>depth</em></DD>
-
-<DT><b>limit</b>=<em>integer</em></DT>
-<DD>Maximum number of rules to fire during the inference run. Does not apply to the refiring of the same rule.</DD>
-
-<DT><b>salience</b>=<em>string</em></DT>
-<DD>Strategy for rule precedence assessment by salience.
-<DD>Options: <em>when-defined,when-activated,every-cycle</em></DD>
-<DD>Default: <em>when-defined</em></DD>
-
-<DT><b>module</b>=<em>string</em></DT>
-<DD>For rule bases partitioned into modules: rule base module(s) on the focus stack.</DD>
-<DD>Default: <em>MAIN</em></DD>
-
-<DT><b>watch </b>=<em>string[,string,...]</em></DT>
-<DD>Selection of rule engine operations to be watched (logged):
-</DD>
-<DD>Options: <em>activations,compilations,facts,functions,genericfunctions,globals,methods,messagehandlers,messages,rules,slots,statistics,all</em></DD>
-<DD>Default: <em>none</em></DD>
-
-<DT><b>print </b>=<em>string[,string,...]</em></DT>
-<DD>Environment information to be printed out before the inference run.
-
-<DD>Options: <em>agenda,breakpoints,classes,deffacts,definstances,facts,focusstack,functions,generics,globals,instances,messagehandlers,modules,rules,templates</em></DD>
-<DD>Default: <em>none</em></DD>
-
-<DT><b>config </b>=<em>string</em></DT>
-<DD>Rule engine configuration</DD>
-<DD>Options: <em>auto-float-dividend,dynamic-constraint-checking,fact-duplication,incremental-reset,reset-globals,sequence-operator-recognition,static-constraint-checking</em></DD>
-<DD>Default: <em>none</em></DD>
-
-<DT><b>classdefault </b>=<em>string</em></DT>
-<DD>Class defaults</DD>
-
-<DD>Options: <em>convenience,conservation</em></DD>
-<DD>Default: <em>convenience</em></DD>
-
-
-
-<DT><b>save_instances</b>=<em>name</em></DT>
-<DD>Object instances to be saved (ASCII)</DD>
-
-<DT><b>bsave_instances</b>=<em>name</em></DT>
-<DD>Object instances to be saved (binary).</DD>
-
-<DT><b>load_instances</b>=<em>name</em></DT>
-<DD>ASCII file containing objects</DD>
-
-<DT><b>bload_instances</b>=<em>name</em></DT>
-<DD>Binary file containing objects</DD>
-
-
-<DT><b>save</b>=<em>string</em></DT>
-<DD>Rule base entities to be saved (ASCII)</DD>
-<DD>Options: <em>constructs,facts,instances</em></DD>
-
-<DT><b>bsave</b>=<em>string</em></DT>
-<DD>Rule base entities to be saved (binary) </DD>
-<DD>Options: <em>constructs,facts,instances</em></DD>
-
-
-
-
-
-<h2>Description</h2>
+<h2>DESCRIPTION</h2>
 
 <b>g.infer</b> is a tool to create rule-based data-driven workflows from GRASS data layers and additional data sources.
-<b>g.infer</b> can modify existing GRASS data layers, can create new vector layers or can start additional additional GRASS modules. This is controlled by an inference process,
-which applies a knowledge base on a set of known facts (data). g.infer provides a <b>Production System</b> to set up <b>Expert Systems</b> from domain knowledge and GIS data layers. <p>
+<b>g.infer</b> can modify existing GRASS data layers, 
+can create new vector layers or can start additional additional GRASS modules. 
+This is controlled by an inference process,
+which applies a knowledge base on a set of known facts (data). 
+g.infer provides a <b>Production System</b> to set up <b>Expert Systems</b> from domain knowledge and GIS data layers. <p>
 
 <p>
 The g.infer inference environment is based on a strict separation of knowledge (rules) and data (facts and  object instances).
- Data consists of GRASS-derived spatial information and other input. The g.infer inference engine applies the knowledge, consisting of rules (stored in the rulebase), to the available data.
+ Data consists of GRASS-derived spatial information and other input. 
+ The g.infer inference engine applies the knowledge, consisting of rules (stored in the rulebase), to the available data.
  For development and testing, interactive access and logging options are available.
 <p>
-g.infer provides a flexible environment to start rule-based work. For complex tasks there are also advanced capabilities to extend the knowledge modelling whenever necessary.
+g.infer provides a flexible environment to start rule-based work. 
+For complex tasks there are also advanced capabilities to extend the knowledge modelling whenever necessary.
 This approach can be used for geodata classification, GIS workflow control and other tasks.
 
 <p>
-The <b>C-Language Integrated Production System (CLIPS) Expert System Shell</b> environment is embedded within g.infer using the <b>pyCLIPS</b> Python module. In depth information is found in the References, which contain also links to literature describing the projects <b>Jess</b> and <b>Drools</b> which are based on CLIPS. Their documentation contains additional clues for CLIPS-related development.
+The <b>C-Language Integrated Production System (CLIPS) Expert System Shell</b> environment is embedded 
+within g.infer using the <b>pyCLIPS</b> Python module. 
+In depth information is found in the References, 
+which contain also links to literature describing the projects <b>Jess</b> and <b>Drools</b> which are based on CLIPS. 
+Their documentation contains additional clues for CLIPS-related development.
 <p>
-The exchange of data between the GRASS and CLIPS environments is handled by extensions of the pyCLIPS functionality, connecting both GRASS and CLIPS. See the "Notes on g.infer pyCLIPS extensions" section for details. <p>
-
+The exchange of data between the GRASS and CLIPS environments is handled by extensions of the pyCLIPS functionality, 
+connecting both GRASS and CLIPS. 
+See the "Notes on g.infer pyCLIPS extensions" section for details. <p>
 
 
 <h3>Input</h3>
 
-g.infer can ingest multiple input sources as data: Spatial information can be imported from GRASS data layers (raster, rast3d, point-vector) and additional sources. Rule base-related constructs (templates, facts, classes and instances) are read from external files or built-in rule bases via the library option.
+g.infer can ingest multiple input sources as data: Spatial information can be imported 
+from GRASS data layers (raster, rast3d, point-vector) and additional sources. 
+Rule base-related constructs (templates, facts, classes and instances) are read from 
+external files or built-in rule bases via the library option.
 <p>
-Additional data can also be imported during the inference process if requested by the rule base. The user can further enter facts and rulebase elements via an interactive CLIPS prompt.
+Additional data can also be imported during the inference process if requested by the rule base. 
+The user can further enter facts and rulebase elements via an interactive CLIPS prompt.
 
 <h3>Output</h3>
 
 g.infer can manipulate the content of imported GRASS data layers and other sources of data.
 These changes can be written back to the respective GRASS layers using the <b>export</b> option for persistent storage.
-A new vector layer can be created through the <b>output</b> option. The creation of additional GRASS layers can be invoked by the rulebase beyond the limited range of options provided by g.infer module parameters.
+A new vector layer can be created through the <b>output</b> option. 
+The creation of additional GRASS layers can be invoked by the rulebase beyond 
+the limited range of options provided by g.infer module parameters.
 
 
 
 <h3>Rulebase</h3>
 
-The g.infer rulebases contains the working knowledge for the inference process, which is seperate from the data (facts). They are read from file by the <b>rulebase</b> option or selected using the <b>library</b> option. Rulebases can be edited via the interactive CLIPS prompt (-i flag) before the actual inference run. <p>
+The g.infer rulebases contains the working knowledge for the inference process, which is seperate from the data (facts). 
+They are read from file by the <b>rulebase</b> option or selected using the <b>library</b> option. 
+Rulebases can be edited via the interactive CLIPS prompt (-i flag) before the actual inference run. <p>
 
-There are three ways  to represent knowledge in g.infer. They are based on concepts from the CLIPS programming language (see CLIPS documentation for details). All of them can be part of the rulebase:
+There are three ways  to represent knowledge in g.infer. They are based on concepts from the CLIPS programming language 
+(see CLIPS documentation for details). 
+All of them can be part of the rulebase:
 <ul>
 <li><b>Rules</b>, for heuristic knowledge based on experience. Rules can be applied to facts and objects.
 <p>
 <li><b>Functional Programming</b>, where functions defined as code returning values based on the provided input.
 <p>
-<li><b>Object-oriented programming</b>, supporting  features such as classes, message-handlers, abstraction, encapsulation, inheritance and polymorphism.
+<li><b>Object-oriented programming</b>, supporting  features such as classes, 
+message-handlers, abstraction, encapsulation, inheritance and polymorphism.
 </ul>
 <p>
- Rules adhere to a IF THEN layout defined by the CLIPS programming language (see below). The condition antecedent ("IF") -part is referred to as left hand side (<b>LHS</b>), while the invoked consequent ("THEN") is  called the right hand side (<b>RHS</b>). LHS and RHS sides of a rule statement are connected by the "<b>=></b>" characters. 
+ Rules adhere to a IF THEN layout defined by the CLIPS programming language (see below). 
+ The condition antecedent ("IF") -part is referred to as left hand side (<b>LHS</b>), 
+ while the invoked consequent ("THEN") is  called the right hand side (<b>RHS</b>). 
+ LHS and RHS sides of a rule statement are connected by the "<b>=></b>" characters. 
 <p>
 
 
 <h3>Inference Engine</h3>
 
-The inference engine is the part of the g.infer module which evaluates what rules are to be applied, based on the currently available data (facts).
+The inference engine is the part of the g.infer module which evaluates what rules are to be applied, 
+based on the currently available data (facts).
 
-The CLIPS inference engine used in g.infer is based on the Rete algorithm (Forgy 1982), using a forward-chaining data-driven approach.
-The order in which rules are to be executed can be controlled in three ways: By explicitly defining <b>salience</b> values for each rule,
+The CLIPS inference engine used in g.infer is based on the Rete algorithm (Forgy 1982), 
+using a forward-chaining data-driven approach.
+The order in which rules are to be executed can be controlled in three ways: 
+By explicitly defining <b>salience</b> values for each rule,
 knowledge base partitioning by <b>modules</b> or implicitly by setting the
-<b>conflict resolution</b> strategy (<b>strategy</b> option).  The section "Rulbase Development, Operation and Debugging" holds a more detailed description.
+<b>conflict resolution</b> strategy (<b>strategy</b> option).  
+The section "Rulbase Development, Operation and Debugging" holds a more detailed description.
 
 <p>
 
 <h3>Performance</h3>
 The Rete-algorithm performs well for a change  below 10 percent of the available data (facts) during an inference run.
-Scenarios, in which the complete content of a GRASS layer must be changed, resulting in 100 percent change, will result in decreased performance.
+Scenarios, in which the complete content of a GRASS layer must be changed, 
+resulting in 100 percent change, will result in decreased performance.
 <p>
-g.infer uses the current settings of the GRASS region to create facts from the GIS layers which are provided as input. The resolution of the region must be set appropriately for the task, as a very high resolution will result in a large number of facts.
+g.infer uses the current settings of the GRASS region to create facts from the GIS layers which are provided as input. 
+The resolution of the region must be set appropriately for the task, 
+as a very high resolution will result in a large number of facts.
 
 <h3>Knowledge Engineering in g.infer</h3>
 
-Knowledge engineering (modelling) in g.infer involves in most cases the definition of  rules for the rulebase. It can also include more complex programming tasks, such as conditions, loops, functions and object oriented programming.
+Knowledge engineering (modelling) in g.infer involves in most cases the definition of  rules for the rulebase. 
+It can also include more complex programming tasks, 
+such as conditions, loops, functions and object oriented programming.
 
- For knowledge modelling and programming in g.infer, the programming language of the CLIPS Expert System Toolkit is used, which is closely related to the programming language <b>LISP</b>.
-For an in depth description of the CLIPS language, refer to the CLIPS Users's Guide and Reference Manuals (Giarratano 2007, 2008). A useful introduction to LISP is provided by Graham, 1995.<p>
+For knowledge modelling and programming in g.infer, 
+the programming language of the CLIPS Expert System Toolkit is used, 
+which is closely related to the programming language <b>LISP</b>.
+For an in depth description of the CLIPS language, 
+refer to the CLIPS Users's Guide and Reference Manuals (Giarratano 2007, 2008). 
+A useful introduction to LISP is provided by Graham, 1995.<p>
 
-In the following, the given <i>examples</i> refer to a rulebase and are imported via a rulebase file, from a built in demo rulebase, or are entered using the interactive CLIPS prompt. This CLIPS-based <b>programming</b> can not be mixed with GRASS GIS scripting, but can invoke GRASS modules as part of the RHS of rules.
+In the following, the given <i>examples</i> refer to a rulebase and are imported via a rulebase file, 
+from a built in demo rulebase, or are entered using the interactive CLIPS prompt. 
+This CLIPS-based <b>programming</b> can not be mixed with GRASS GIS scripting, 
+but can invoke GRASS modules as part of the RHS of rules.
 
 <h4>Rulebase Notation</h4>
 
-<b>g.infer</b> rulebase constructs use a fully parenthesized polish prefix notation: Any term, or formula, must be put in braces, with the operator preceding the operands:
+<b>g.infer</b> rulebase constructs use a fully parenthesized polish prefix notation: 
+Any term, or formula, must be put in braces, with the operator preceding the operands:
 <pre>(operator operand1 operand2 ... operandN)</pre>
 <p>
 This differs from the infix notation commonly used in GRASS GIS, like in r.mapcalc:
@@ -230,36 +135,54 @@ This differs from the infix notation commonly used in GRASS GIS, like in r.mapca
 
 <h4>Data Types</h4>
 g.infer's rule engine provides eight primitive data types for representing information.
-As the programming language of the CLIPS Production System is weakly typed, variables can be declared without explicitly setting a type. The available types are <b>float, integer, symbol, string, external-address, fact-address, instance-name</b> and <b>instance-address</b>. <b>Numeric information</b> can be represented using floats and integers. <b>Symbolic information</b> can be represented using symbols and strings.A number consists only of digits (0-9), a decimal point (.), a sign (+ or -), and, optionally, an (e) for exponential notation with its corresponding sign. A number is either stored as a float or an integer. Any number consisting of an optional sign followed by only digits is stored as an integer. All other numbers are stored as floats.
+As the programming language of the CLIPS Production System is weakly typed, 
+variables can be declared without explicitly setting a type. 
+The available types are 
+<b>float, integer, symbol, string, external-address, fact-address, instance-name</b> and <b>instance-address</b>. 
+<b>Numeric information</b> can be represented using floats and integers. 
+<b>Symbolic information</b> can be represented using symbols and strings. 
+A number consists only of digits (0-9), a decimal point (.), a sign (+ or -), and, optionally, 
+an (e) for exponential notation with its corresponding sign. A number is either stored as a float or an integer. 
+Any number consisting of an optional sign followed by only digits is stored as an integer. 
+All other numbers are stored as floats.
 
 <p>
 
 <h4>Facts</h4>
 
 Facts are the common high level form for representing information in g.infer.
-Within the CLIPS Production System, facts are the fundamental unit of data to be processed by the rulebase to infer information by the firing of applicable rules.
+Within the CLIPS Production System, facts are the fundamental unit of data to be processed 
+by the rulebase to infer information by the firing of applicable rules.
 Each fact represents a piece of data which has been placed in the overall <b>fact list</b> of the currently known facts.
 
 
 <p>
-Facts may be added to the fact list (using the <b>assert</b> command), removed from the fact list (using the <b>retract</b> command),
-modified (using the <b>modify</b> command), or duplicated (using the <b>duplicate</b> command) by either direct user interaction or while the rule base is executed.
-The number of facts in the <b>fact list</b>  and the amount of information that can be stored within a fact is limited only by the amount of available memory.
-If a fact is to be asserted into the fact list which exactly matches an already existing fact, the new assertion will be ignored. This default behaviour can be changed.
+Facts may be added to the fact list (using the <b>assert</b> command), 
+removed from the fact list (using the <b>retract</b> command),
+modified (using the <b>modify</b> command), or duplicated (using the <b>duplicate</b> command) by 
+either direct user interaction or while the rule base is executed.
+The number of facts in the <b>fact list</b>  and the amount of information that can be stored within a fact 
+is limited only by the amount of available memory.
+If a fact is to be asserted into the fact list which exactly matches an already existing fact, 
+the new assertion will be ignored. This default behaviour can be changed.
 
 <p>
 Some CLIPS language commands, including <b>retract, modify,</b> and <b>duplicate</b>, require a fact to be specified by a reference.
 A fact can be specified either by fact index or fact address:
 Whenever a fact is asserted (or modified) it is assigned a unique index number called its <b>fact index</b>.
-Fact indices start at zero and are incremented by one for each new or changed fact. Whenever a <b>reset</b> or <b>clear</b> command is given, the fact indices restart at zero.
+Fact indices start at zero and are incremented by one for each new or changed fact. 
+Whenever a <b>reset</b> or <b>clear</b> command is given, the fact indices restart at zero.
 A fact may also be specified through the use of a <b>fact address</b>.
-A fact address can be obtained by capturing the return value of commands which return fact addresses (such as assert, modify, and duplicate)
+A fact address can be obtained by capturing the return value of commands 
+which return fact addresses (such as assert, modify, and duplicate)
 or by binding a variable to the fact address of a  fact which matches a pattern on the LHS of a rule.
-A <b>fact identifier</b> is a shorthand notation for printing a fact. It consists of the character <b>f</b>, followed by a dash, followed by the fact index of the fact.
+A <b>fact identifier</b> is a shorthand notation for printing a fact. 
+It consists of the character <b>f</b>, followed by a dash, followed by the fact index of the fact.
 <p>
 
 
-There are two categories of facts, <b>ordered facts</b> and <b>non-ordered facts</b>. Both types are applied in g.infer to represent information imported from the GRASS GIS environment.
+There are two categories of facts, <b>ordered facts</b> and <b>non-ordered facts</b>. 
+Both types are applied in g.infer to represent information imported from the GRASS GIS environment.
 
 
 
@@ -267,8 +190,10 @@ There are two categories of facts, <b>ordered facts</b> and <b>non-ordered facts
 
 <h5> Ordered facts </h5>
 <p>
-Ordered facts consist of a symbol followed by a sequence of zero or more fields separated by spaces and delimited by an opening parenthesis on the left and a closing parenthesis on the right.
-Ordered facts encode information positionally and can contain multiple data fields. The first field of an ordered fact specifies a <b>relation</b> that applied to the remaining fields in the ordered fact.
+Ordered facts consist of a symbol followed by a sequence of zero or more fields separated by spaces 
+and delimited by an opening parenthesis on the left and a closing parenthesis on the right.
+Ordered facts encode information positionally and can contain multiple data fields. 
+The first field of an ordered fact specifies a <b>relation</b> that applied to the remaining fields in the ordered fact.
 
 For example, <pre>(is-a GRASS GIS)</pre> states that GRASS is a GIS.
 
@@ -286,10 +211,17 @@ A simple fact can contain multiple fields for content:
 
 <h5> GRASS environment variables as ordered facts </h5>
 <p>
-Ordered facts are used to represent GRASS enironment variables into g.infer, including g.region parameters. These ordered facts can be manipulated within the CLIPS environment and be used when calling GRASS modules from within CLIPS. They must be exported back into GRASS to become permanent within the current session, which is not done by default. The following representations of GRASS environment variables as facts are generated by default:
+Ordered facts are used to represent GRASS enironment variables into g.infer, including g.region parameters. 
+These ordered facts can be manipulated within the CLIPS environment and be used when calling GRASS modules from within CLIPS. 
+They must be exported back into GRASS to become permanent within the current session, which is not done by default. 
+The following representations of GRASS environment variables as facts are generated by default:
 <p>
 
-REGION_ROWS, REGION_COLS, REGION_CELLS, REGION_NSRES, REGION_EWRES, REGION_N, REGION_S, REGION_E, REGION_W, REGION_ROWS3, REGION_COLS3, REGION_CELLS3, REGION_NSRES3, REGION_EWRES3, REGION_TBRES, REGION_T, REGION_B, REGION_DEPTHS, GISDBASE, LOCATION_NAME, MAPSET, GRASS_GUI
+REGION_ROWS, REGION_COLS, REGION_CELLS, REGION_NSRES, REGION_EWRES, 
+REGION_N, REGION_S, REGION_E, REGION_W, 
+REGION_ROWS3, REGION_COLS3, REGION_CELLS3, REGION_NSRES3, REGION_EWRES3, 
+REGION_TBRES, REGION_T, REGION_B, REGION_DEPTHS, 
+GISDBASE, LOCATION_NAME, MAPSET, GRASS_GUI
 
 
 
@@ -300,17 +232,31 @@ REGION_ROWS, REGION_COLS, REGION_CELLS, REGION_NSRES, REGION_EWRES, REGION_N, RE
 Facts to contain structured information require a <b>template</b> to define the structure:
 <p>
 Template based, non ordered facts allow to structure the content of a fact by assessing data fields by name (and type).
-The <b>deftemplate</b> construct  is used to create a named template (which can then be used to access fields by name). This approach is used to import GRASS layers in g.infer to create the respective facts.
+The <b>deftemplate</b> construct  is used to create a named template (which can then be used to access fields by name). 
+This approach is used to import GRASS layers in g.infer to create the respective facts.
 <p>
 
 
-The deftemplate construct allows the name of a template to be defined along with zero or more definitions of named fields, also called slots. Unlike ordered facts, the slots of a deftemplate fact may be constrained by type, value, and numeric range. In addition, default values can be specified for a slot. A slot consists of an opening parenthesis followed by the name of the slot, zero or more fields, and a closing parenthesis.
+The deftemplate construct allows the name of a template to be defined along with zero or more definitions of named fields, 
+also called slots. Unlike ordered facts, the slots of a deftemplate fact may be constrained by type, 
+value, and numeric range. In addition, default values can be specified for a slot. 
+A slot consists of an opening parenthesis followed by the name of the slot, 
+zero or more fields, and a closing parenthesis.
 <p>
 
 
-Deftemplate facts are easily distinguished from ordered facts by their first field. If the symbol serving as the first field corresponds to the name of a deftemplate, then the fact is a deftemplate fact. Like ordered facts, deftemplate facts are enclosed by an opening parenthesis on the left and a closing parenthesis on the right.
+Deftemplate facts are easily distinguished from ordered facts by their first field. 
+If the symbol serving as the first field corresponds to the name of a deftemplate, 
+then the fact is a deftemplate fact. Like ordered facts, deftemplate facts are enclosed 
+by an opening parenthesis on the left and a closing parenthesis on the right.
 <p>
-In addition to being asserted and retracted, deftemplate facts can also be modified and duplicated (using the <b>modify</b> and <b>duplicate</b> commands). Modifying a fact changes a set of specified slots within that fact. Duplicating a fact creates a new fact identical to the original fact and then changes a set of specified slots within the new fact. The benefit of using the modify and duplicate commands is that slots which do not change, can be left out in the statement.
+In addition to being asserted and retracted, deftemplate facts can also be modified and duplicated 
+(using the <b>modify</b> and <b>duplicate</b> commands). 
+Modifying a fact changes a set of specified slots within that fact. 
+Duplicating a fact creates a new fact identical to the original fact and then 
+changes a set of specified slots within the new fact. 
+The benefit of using the modify and duplicate commands is that slots which do not change, 
+can be left out in the statement.
 <p>
 Examples are provided in the built-in rule bases via the library-option and in the CLIPS User's Guide and Basic Programming Guide.
 
@@ -319,8 +265,10 @@ Examples are provided in the built-in rule bases via the library-option and in t
 
 <b>Template based Facts for GRASS Layers</b>
 <p>
-Whenever a GRASS layer is imported by g.infer, a template is created according to its data structure and facts are asserted for the layers content.
-While the template for vector layers will differ depending on the attribute layers,  raster data templates adhere to the following structure:
+Whenever a GRASS layer is imported by g.infer, 
+a template is created according to its data structure and facts are asserted for the layers content.
+While the template for vector layers will differ depending on the attribute layers,  
+raster data templates adhere to the following structure:
 <p>
 Raster: <pre>(geo_test "a comment" (x 599000.0) (y 4921800.0) (value 5) (attribute "something"))</pre>
 
@@ -335,7 +283,8 @@ Rast3d: <pre>(random_slice_00009 (x 599000.0) (y 4921800.0) (z 9.0) (value 1.0))
 <h4>Rules</h4>
 
 <p>
-The primary method of representing and modifing knowledge in g.infer are rules. Any g.infer rulebase comprises of a set of rules which collectively
+The primary method of representing and modifing knowledge in g.infer are rules. 
+Any g.infer rulebase comprises of a set of rules which collectively
  solve a classification task, establish a workflow or do similar. Rules are used to represent heuristics, or "rules of thumb",
 which specify a set of actions to be performed for a given situation.
 Rules can cause actions such as the creation, modification or deletion of facts or the call-up of GRASS modules and scripts.
@@ -345,7 +294,8 @@ The consequent of a rule is also referred to as the <b>then portion</b> or the <
 <p>
 
 The <b>antecedent of a rule</b> (LHS) is a set of conditions (or conditional elements) which must be satisfied for the rule to be applicable.
-The conditions of a rule are satisfied based on the existence or non existence of specified facts in the fact list or specified instances of user defined classes in the instance list.
+The conditions of a rule are satisfied based on the existence or non existence of specified facts in the fact list 
+or specified instances of user defined classes in the instance list.
 One type of condition which can be specified is a<b> pattern</b>.
 Patterns consist of a set of restrictions which are used to determine which facts or objects satisfy the condition specified by the pattern.
 <p>
@@ -353,15 +303,22 @@ The process of matching facts and objects to patterns is called <b>pattern match
 matches patterns against the current state of the fact list and instance list and determines which rules are applicable during the inference run.
 <p>
 
-The <b>consequent of a rule</b> (RHS) is the set of actions to be executed when the rule is applicable. This is colloquially refefred to as "the rule fires".
-The actions of applicable rules are executed when the inference engine is instructed to begin execution of applicable rules. If more than one rule is applicable,
+The <b>consequent of a rule</b> (RHS) is the set of actions to be executed when the rule is applicable. 
+This is colloquially refefred to as "the rule fires".
+The actions of applicable rules are executed when the inference engine is instructed to begin execution of applicable rules. 
+If more than one rule is applicable,
 the inference engine uses a <b>conflict resolution strategy</b> to determine which rule should fire first.
-The actions of the selected rule are executed (which can change the overall list of applicable rules). Afterwards the inference engine selects another rule and executes its actions. This process continues until no applicable rules remain.
+The actions of the selected rule are executed (which can change the overall list of applicable rules). 
+Afterwards the inference engine selects another rule and executes its actions. 
+This process continues until no applicable rules remain.
 <p>
 
-In many ways, rules can be thought of as IF - THEN statements found in procedural programming languages. However, the conditions of an IF - THEN statement
-in a procedural language are only evaluated when the program flow of control is directly at the IF - THEN statement. In contrast, rules act like WHENEVER - THEN statements.
-The inference engine always keeps track of rules which have their conditions satisfied and thus rules can immediately be executed when they are applicable.
+In many ways, rules can be thought of as IF - THEN statements found in procedural programming languages. 
+However, the conditions of an IF - THEN statement in a procedural language are only evaluated when the 
+program flow of control is directly at the IF - THEN statement. 
+In contrast, rules act like WHENEVER - THEN statements.
+The inference engine always keeps track of rules which have their conditions satisfied and thus rules 
+can immediately be executed when they are applicable.
 In this sense, rules are similar to exception handlers found in other programming languages.
 <p>
 
@@ -374,25 +331,37 @@ Rulebase content and other CLIPS code can be commented by starting lines with a 
 
 
 <h4>Variables</h4>
-Variables in CLIPS are weakly typed. They are not restricted to a predefined data type. So when creating a variable, it is not required to provide typing information.
+Variables in CLIPS are weakly typed. 
+They are not restricted to a predefined data type. 
+So when creating a variable, it is not required to provide typing information.
 
 The <b>defglobal</b> construct allows variables to be defined which are global in scope throughout the CLIPS environment.
-Such a global variable can be accessed anywhere in the CLIPS environment and retains its value independent of other constructs. In contrast, some constructs (such as defrule and deffunction) allow local variables to be defined within the definition of the construct. These local variables can be referred to within the construct, but have no meaning outside the construct.
+Such a global variable can be accessed anywhere in the CLIPS environment and 
+retains its value independent of other constructs. 
+In contrast, some constructs (such as defrule and deffunction) allow local variables to be defined 
+within the definition of the construct. 
+These local variables can be referred to within the construct, but have no meaning outside the construct.
 
 
 
 <h4>Functions</h4>
 
-A function in CLIPS is a piece of executable code identified by a specific name which returns a useful value or performs a side effect (such as printing a message).
+A function in CLIPS is a piece of executable code identified by a specific name 
+which returns a useful value or performs a side effect (such as printing a message).
 <p>
 
-The <b>defun</b> command  is used to define new functions. The body of a deffunction is a series of expressions similar to the RHS of a rule that are executed in order by the CLIPS inference engine when the deffunction is called. The return value of a deffunction is the value of the last expression evaluated within the deffunction. Calling a deffunction is identical to calling any other function in CLIPS.
+The <b>defun</b> command  is used to define new functions. 
+The body of a deffunction is a series of expressions similar to the RHS of a rule 
+that are executed in order by the CLIPS inference engine when the deffunction is called. 
+The return value of a deffunction is the value of the last expression evaluated within the deffunction. 
+Calling a deffunction is identical to calling any other function in CLIPS.
 <p>
 Function Definition Example: <pre>(defun fahrenheit_celsius (celsius_value) (+ (* celsius_value 1.8) 32))</pre>
 <p>Examples are provided in the built-in rule bases (library option) and in the CLIPS User's Guide and Basic Programming Guide.
 
 <h4>Conditionals</h4>
-Examples for conditions, comparing facts and variables with each other, are provided in the built-in rule bases (library option) and in the CLIPS User's Guide and Basic Programming Guide.
+Examples for conditions, comparing facts and variables with each other, 
+are provided in the built-in rule bases (library option) and in the CLIPS User's Guide and Basic Programming Guide.
 
 
 <h3>Rulebase Development, Operation and Debugging:</h3>
@@ -407,29 +376,50 @@ a)   Newly activated rules are placed above all rules of lower salience and belo
 <p>
 b)   Among rules of equal salience, the current conflict resolution strategy is used to determine the placement among the other rules of equal salience.
 <p>
-c)   If a rule is activated (along with several other rules) by the same assertion or retraction of a fact, and steps a and b are unable to specify an ordering, then the rule is arbitrarily (not randomly) ordered in relation to the other rules with which it was activated. In this respect,  the order in which rules are defined has an arbitrary effect on conflict resolution (which is also dependent upon the current underlying implementation of rules). This arbitrary ordering for the proper execution of rules should not be depended on for knowledge modelling.
+c)   If a rule is activated (along with several other rules) by the same assertion or retraction of a fact, 
+and steps a and b are unable to specify an ordering, then the rule is arbitrarily (not randomly) 
+ordered in relation to the other rules with which it was activated. 
+In this respect, the order in which rules are defined has an arbitrary effect on conflict resolution 
+(which is also dependent upon the current underlying implementation of rules). 
+This arbitrary ordering for the proper execution of rules should not be depended on for knowledge modelling.
 <p>
 
-Once a knowledge base (in the form of rules) has been loaded into g.infer and the fact and instance lists are available, the inference engine is ready to execute rules:
+Once a knowledge base (in the form of rules) has been loaded into g.infer 
+and the fact and instance lists are available, the inference engine is ready to execute rules:
 <p>
 <ul>
 
-<li><b>a)</b>The right hand side (RHS) actions of the selected rule are executed. The use of the return function on the RHS of a rule may remove the current focus from the focus stack. The number of rules fired is incremented for use with the rule firing limit.
+<li><b>a)</b>The right hand side (RHS) actions of the selected rule are executed. 
+The use of the return function on the RHS of a rule may remove the current focus from the focus stack. 
+The number of rules fired is incremented for use with the rule firing limit.
 
-<li><b>b)</b>  As a result of step b, rules may be activated or deactivated. Activated rules, whose conditions are currently satisfied, are placed on the agenda of the module in which they are defined. The placement on the agenda is determined by the salience of the rule and the current conflict resolution strategy. Deactivated rules are removed from the agenda.
+<li><b>b)</b>  As a result of step b, rules may be activated or deactivated. 
+Activated rules, whose conditions are currently satisfied, 
+are placed on the agenda of the module in which they are defined. 
+The placement on the agenda is determined by the salience of the rule and the current conflict resolution strategy. 
+Deactivated rules are removed from the agenda.
 
-<li><b>c)</b> If dynamic salience is being used, the salience values for all rules on the agenda are reevaluated. Repeat the cycle beginning with step a.
+<li><b>c)</b> If dynamic salience is being used, 
+the salience values for all rules on the agenda are reevaluated. 
+Repeat the cycle beginning with step a.
 
-<li><b>d)</b>If a previously defined rule firing limit has been reached or there is no current focus, then execution is halted. The top rule on the agenda of the module which is the current focus is selected for execution. If there are no rules on that agenda, then the current focus is removed from the focus stack and the current focus becomes the next module on the focus stack. If the focus stack is empty, then execution is halted, otherwise step a is executed again.
+<li><b>d)</b>If a previously defined rule firing limit has been reached or there is no current focus, 
+then execution is halted. The top rule on the agenda of the module which is the current focus is selected for execution. 
+If there are no rules on that agenda, then the current focus is removed from the focus stack 
+and the current focus becomes the next module on the focus stack. 
+If the focus stack is empty, then execution is halted, otherwise step a is executed again.
 
 </ul>
 
 <p>
-Whenever a rule modifies a specific fact, the particular fact is retracted, that is, removed from the fact stack and a new (altered) fact is instantiated and added on the fact stack. <p>
+Whenever a rule modifies a specific fact, the particular fact is retracted, that is, 
+removed from the fact stack and a new (altered) 
+fact is instantiated and added on the fact stack. <p>
 
 A rule base can be designed to act similar to the r.mapcalc module. This requires a close coupled multistage design of the rule base.
 <p>
-It is easily possible to construct a rule set which acts like an infinity-loop, which never terminates. This is in the most part undesired, but may be an asset for monitoring activities.
+It is easily possible to construct a rule set which acts like an infinity-loop, 
+which never terminates. This is in the most part undesired, but may be an asset for monitoring activities.
 
 <p>
 <pre>Examples are provided in the built-in rule bases (library option) and in the CLIPS User's Guide and Basic Programming Guide.</pre>
@@ -440,29 +430,51 @@ It is easily possible to construct a rule set which acts like an infinity-loop, 
 
 <h4>Conflict Resolution</h4>
 
-When more than one rule are eglible to fire, a priorization among the candidate rules is needed. Rules can be explicitly assigned a rank/priority called <b>salience</b>.
+When more than one rule are eglible to fire, a priorization among the candidate rules is needed. 
+Rules can be explicitly assigned a rank/priority called <b>salience</b>.
 <p>
 The <b>conflict resolution strategy</b> is an implicit mechanism for specifying the order in which rules of equal salience should be executed.
 <p>
-g.infer provides seven conflict resolution strategies. The default strategy is depth. The current strategy can be set by using the set strategy command (which will reorder the agenda based upon the new strategy):
+g.infer provides seven conflict resolution strategies. The default strategy is depth. 
+The current strategy can be set by using the set strategy command (which will reorder the agenda based upon the new strategy):
 
 <p>
 
 <ul>
 <li><b>Breadth Strategy (breadth)</b>: Newly activated rules are placed below all rules of the same salience. 
-<li><b>Complexity Strategy (complexity)</b>: Among rules of the same salience, newly activated rules are placed above all activations of rules with equal or lower specificity.
-<li><b>Depth (depth: default)</b>:Newly activated rules are placed above all rules of the same salience. 
-<li><b>LEX Strategy (lex)</b>: Among rules of the same salience, newly activated rules are placed using the OPS5 strategy of the same name. First the recency of the pattern entities that activated the rule is used to determine where to place the activation. Every fact and instance is marked internally with a "time tag" to indicate its relative recency with respect to every other fact and instance in the system. The pattern entities associated with each rule activation are sorted in descending order for determining placement. An activation with a more recent pattern entities is placed before activations with less recent pattern entities. 
+<li><b>Complexity Strategy (complexity)</b>: 
+Among rules of the same salience, newly activated rules are placed above all activations of rules with equal or lower specificity.
+<li><b>Depth (depth: default)</b>:
+Newly activated rules are placed above all rules of the same salience. 
+<li><b>LEX Strategy (lex)</b>: 
+Among rules of the same salience, newly activated rules are placed using the OPS5 strategy of the same name. 
+First the recency of the pattern entities that activated the rule is used to determine where to place the activation. 
+Every fact and instance is marked internally with a "time tag" to indicate its 
+relative recency with respect to every other fact and instance in the system. 
+The pattern entities associated with each rule activation are sorted in descending order for determining placement. 
+An activation with a more recent pattern entities is placed before activations with less recent pattern entities. 
 
-<li><b>MEA Strategy (mea)</b>: Among rules of the same salience, newly activated rules are placed using the OPS5 strategy of the same name. First the time tag of the pattern entity associated with the first pattern is used to determine where to place the activation. An activation thats first pattern's time tag is greater than another activations first pattern's time tag is placed before the other activation on the agenda. If both activations have the same time tag associated with the first pattern, then the LEX strategy is used to determine placement of the activation. As with the CLIPS LEX strategy, negated patterns have pseudo time tags.
-<li><b>Simplicity Strategy (simplicity)</b>: Among rules of the same salience, newly activated rules are placed above all activations of rules with equal or higher specificity.
-<li><b>Random Strategy (random)</b>: Each activation is assigned a random number which is used to determine its placement among activations of equal salience. 
+<li><b>MEA Strategy (mea)</b>: Among rules of the same salience, 
+newly activated rules are placed using the OPS5 strategy of the same name. 
+First the time tag of the pattern entity associated with the first pattern is used to determine where to place the activation. 
+An activation thats first pattern's time tag is greater than another activations 
+first pattern's time tag is placed before the other activation on the agenda. 
+If both activations have the same time tag associated with the first pattern, 
+then the LEX strategy is used to determine placement of the activation. 
+As with the CLIPS LEX strategy, negated patterns have pseudo time tags.
+<li><b>Simplicity Strategy (simplicity)</b>: 
+Among rules of the same salience, 
+newly activated rules are placed above all activations of rules with equal or higher specificity.
+<li><b>Random Strategy (random)</b>: 
+Each activation is assigned a random number which is used to determine its placement among activations of equal salience. 
 </ul>
 <p>
 
 <h5>Salience</h5>
 
-The preferred mechanisms in g.infer for ordering the execution of rules are explicitly assigned salience values and knowledge base grouping using modules. Salience allows one to explicitly specify that one rule should be executed before another rule.
+The preferred mechanisms in g.infer for ordering the execution of rules are explicitly assigned salience values 
+and knowledge base grouping using modules. 
+Salience allows one to explicitly specify that one rule should be executed before another rule.
 <p>
 Options to apply salience values:
 <ul>
@@ -473,9 +485,14 @@ Options to apply salience values:
 
 
 <h5>Defmodules</h5>
- Modules allow one to explicitly specify that all of the rules in a particular group (module) should be executed before all of the rules in a different group.
+ Modules allow one to explicitly specify that all of the rules in a particular group (module) 
+ should be executed before all of the rules in a different group.
 <p>
-Defmodules allow a knowledge base to be partitioned. Every construct defined must be placed in a module. The programmer can explicitly control which constructs in a module are visible to other modules and which constructs from other modules are visible to a module. The visibility of facts and instances between modules can be controlled in a similar manner. Modules can also be used to control the flow of execution of rules.
+Defmodules allow a knowledge base to be partitioned. Every construct defined must be placed in a module. 
+The programmer can explicitly control which constructs in a module are visible to other modules 
+and which constructs from other modules are visible to a module. 
+The visibility of facts and instances between modules can be controlled in a similar manner. 
+Modules can also be used to control the flow of execution of rules.
 
 <pre>Examples are provided in the CLIPS User's Guide and Basic Programming Guide.</pre>
 
@@ -483,7 +500,9 @@ Defmodules allow a knowledge base to be partitioned. Every construct defined mus
 
 <h4>Agenda</h4>
 
-The <b>agenda</b> is the list of all rules which have their conditions satisfied (and have not yet been executed). If the knowledge base is partitioned into multiple modules, each module has its own agenda. The agenda acts similar to a stack (the top rule on the agenda is the first one to be executed).
+The <b>agenda</b> is the list of all rules which have their conditions satisfied (and have not yet been executed). 
+If the knowledge base is partitioned into multiple modules, each module has its own agenda. 
+The agenda acts similar to a stack (the top rule on the agenda is the first one to be executed).
 
 
 
@@ -491,7 +510,8 @@ The <b>agenda</b> is the list of all rules which have their conditions satisfied
 
 <b>Focus</b>
 <p>
-The current focus determines which agenda the run command uses during execution. The reset and clear commands automatically set the current focus to the MAIN module.
+The current focus determines which agenda the run command uses during execution. 
+The reset and clear commands automatically set the current focus to the MAIN module.
 
 
 <p>
@@ -503,8 +523,11 @@ Several features of g.infer support the development and debugging of rule-bases:
 <p>
 <h4>Debugging: g.infer Flags for Logging, Interaction and Abort:</h4>
 <ul>
-<li><b>x-Flag</b>: Stop-option: The stop-option terminates g.infer following an optional invocation of a interactive CLIPS shell and before the automated inference run.
-<li><b>i-Flag</b>: Interactive CLIPS shell: The launching of an CLIPS shell before the automated inference run allows to query interactively all aspects of the current CLIPS session. <b>Ctrl-D</b> exits from the interactive Shell.
+<li><b>x-Flag</b>: Stop-option: 
+The stop-option terminates g.infer following an optional invocation of a interactive CLIPS shell and before the automated inference run.
+<li><b>i-Flag</b>: Interactive CLIPS shell: 
+The launching of an CLIPS shell before the automated inference run allows to 
+query interactively all aspects of the current CLIPS session. <b>Ctrl-D</b> exits from the interactive Shell.
 <li><b>e-Flag</b>: Traceback-Mode: CLIPS error messages are forwarded to g.infer.
 <li><b>d-Flag</b>: Dribble-Mode: All CLIPS entities which are listed via the FOO-option are written down to file for follow-up analysis.
 <li><b>save-instances</b>: Allows to save COOL constructs, facts, instances to an ASCII file
@@ -533,13 +556,15 @@ See the section "Notes on CLIPS" for complete definition of terminology.
 <li><b>messages</b>: The start and finish of messages will be displayed.
 <li><b>rules</b>: All rule firings will be dis­played.
 <li><b>slots</b>: Changes to any instance slot values will be displayed.
-<li><b>statistics</b>: Timing information along with other information (average number of facts, average number of activations, etc.) will be displayed after a run. Note that the number of rules fired and timing information is not printed unless this item is being watch.
+<li><b>statistics</b>: Timing information along with other information (average number of facts, average number of activations, etc.) 
+will be displayed after a run. Note that the number of rules fired and timing information is not printed unless this item is being watch.
 <li><b>all</b>: If all is watched, then all other watch items will be watched. By default, only compilations are watched.
 </ul>
 
 <h4>Config-Option</h4>
 <DT><b>config</b></DT>
-<DD>Configuration options for CLIPS engine: auto-float-dividend,dynamic-constraint-checking,fact-duplication,incremental-reset,reset-globals,sequence-operator-recognition,static-constraint-checking.
+<DD>Configuration options for CLIPS engine: auto-float-dividend,
+dynamic-constraint-checking,fact-duplication,incremental-reset,reset-globals,sequence-operator-recognition,static-constraint-checking.
 
 <ul>
 <li><b>auto-float-dividend</b>: the dividend of the division function is automatically converted to a floating point number
@@ -557,14 +582,20 @@ See the section "Notes on CLIPS" for complete definition of terminology.
 <DD>Class default of CLIPS engine: convenience(default),conservation
 
 <ul>
-<li><b>convenience</b>: (default) In convenience mode, for the purposes of role inheritance, system defined class behave as concrete classes; for the purpose of pattern-match inheritance, system defined classes behave as reactive classes unless the inheriting class is abstract; and the default setting for the create-accessor facet of the class slots is read-write.
-<li><b>conservation</b>: The role and reactivity of system-defined classes is unchanged for the purposes of role and pattern-match inheritance and the default setting for the create-accessor facet of the class slots is ?NONE.
+<li><b>convenience</b>: (default) In convenience mode, for the purposes of role inheritance, 
+system defined class behave as concrete classes; for the purpose of pattern-match inheritance, 
+system defined classes behave as reactive classes unless the inheriting class is abstract; 
+and the default setting for the create-accessor facet of the class slots is read-write.
+<li><b>conservation</b>: The role and reactivity of system-defined classes is unchanged for the purposes of role 
+and pattern-match inheritance and the default setting for the create-accessor facet of the class slots is ?NONE.
 
 </ul></DD>
 </DL>
 
 <h4>Rulebase Libraries</h4>
-g.infer provides several pre-configured rulebases. The rulebases from the library can be used alone or in combination by user-defined rulebases. They provide a basic interactive user interface to launch specific demo applications and can also be started from the CLIPS prompt (using the <b>(run)</b> command). All demo rulebases contain extensive comments to document their functionaility for the interested user. 
+g.infer provides several pre-configured rulebases. 
+The rulebases from the library can be used alone or in combination by user-defined rulebases. 
+They provide a basic interactive user interface to launch specific demo applications and can also be started from the CLIPS prompt (using the <b>(run)</b> command). All demo rulebases contain extensive comments to document their functionaility for the interested user. 
 
 <ul>
 <li><b>reference</b>: Multiple examples CLIPS-language related programming including facts, rules, templates, etc..
@@ -580,10 +611,17 @@ g.infer provides several pre-configured rulebases. The rulebases from the librar
 g.infer extends the pyCLIPS- amd CLIPS environments with several commands to communicate and interact the GRASS GIS:
 
 <ul>
-<li><b>ginfer_printout</b>: Extends the CLIPS printout command for use in g.infer:  (defrule duck_print1 (animal-is duck) => (ginfer_printout t "Demo: ginfer_printout T CRLF" crlf) (ginfer_printout stdout "Demo: ginfer_printout STDOUT CRLF" crlf))
-<li><b>ginfer_readline</b>: Extends the CLIPS readline command for g.infer: (defrule duck_ask1 (animal-is duck) => (ginfer_printout t "Demo: ginfer_read: Feedback, please:" crlf) (assert (ducky1 (ginfer_read t)))(ginfer_printout t " " crlf))
-<li><b>grass_message</b>:  Uses the g.message module to print messages:  (defrule verbose_python_call0 (verbose on) => (assert (examine sections))(python-call grass_message "GRASS_MESSAGEd: works!"))
-<li><b>grass_run_command</b>:  Invokes a GRASS module from within the CLIPS shell: (defrule grassrun_glist (verbose on) => (python-call grass_run_command "g.list" "f" "type=rast,vect"))
+<li><b>ginfer_printout</b>: Extends the CLIPS printout command for use in g.infer:  
+(defrule duck_print1 (animal-is duck) => (ginfer_printout t "Demo: ginfer_printout T CRLF" crlf) 
+(ginfer_printout stdout "Demo: ginfer_printout STDOUT CRLF" crlf))
+<li><b>ginfer_readline</b>: Extends the CLIPS readline command for g.infer: 
+(defrule duck_ask1 (animal-is duck) => (ginfer_printout t "Demo: ginfer_read: Feedback, please:" crlf) 
+(assert (ducky1 (ginfer_read t)))(ginfer_printout t " " crlf))
+<li><b>grass_message</b>:  Uses the g.message module to print messages:  
+(defrule verbose_python_call0 (verbose on) => 
+(assert (examine sections))(python-call grass_message "GRASS_MESSAGEd: works!"))
+<li><b>grass_run_command</b>:  Invokes a GRASS module from within the CLIPS shell: 
+(defrule grassrun_glist (verbose on) => (python-call grass_run_command "g.list" "f" "type=rast,vect"))
 </ul>
 <p>
 Examples of the invocation of GRAS modules as part of the RHS ofrules are provided in the built in demo rule bases.
@@ -604,26 +642,23 @@ Examples of the invocation of GRAS modules as part of the RHS ofrules are provid
 
 <h3>CLIPS Object Oriented Language</h3>
 
-The CLIPS Object Oriented Language (<b>COOL</b>) includes elements of data abstraction and knowledge representation. It supports abstraction, encapsulation, inheritance, polymorphism and dynamic binding. An overview of COOL as a whole, incorporating the elements of both concepts is given in [BPG].
+The CLIPS Object Oriented Language (<b>COOL</b>) includes elements of data abstraction and knowledge representation. 
+It supports abstraction, encapsulation, inheritance, polymorphism and dynamic binding. 
+An overview of COOL as a whole, incorporating the elements of both concepts is given in
+the CLIPS Basic Programming Guide.
 
-The primary difference between objects and templates (or non ordered) facts is the notion of inheritance. Inheritance allows the properties and behavior of a class to be described in terms of other classes. COOL supports multiple inheritance: a class may directly inherit slots and message?handlers from more than one class. Since inheritance is only useful for slots and message?handlers, it is often not meaningful to inherit from one of the primitive type classes, such as MULTIFIELD or NUMBER. This is because these classes cannot have slots and usually do not have message - handlers.
+The primary difference between objects and templates (or non ordered) facts is the notion of inheritance. 
+Inheritance allows the properties and behavior of a class to be described in terms of other classes. 
+COOL supports multiple inheritance: a class may directly inherit slots and message?handlers from more than one class. 
+Since inheritance is only useful for slots and message - handlers, it is often not meaningful to inherit from one of the primitive type classes, 
+such as MULTIFIELD or NUMBER. This is because these classes cannot have slots and usually do not have message - handlers.
 
 
-<h2>SEE ALSO</h2>
-
-<em>
-<a href="r.fuzzy.html">r.fuzzy</a>,
-<a href="r.mapcalc.html">r.mapcalc: Raster algebra</a>,
-<a href="http://skagit.meas.ncsu.edu/~helena/gmslab/grassman5/html/r.infer.html">r.infer</a>,
-<a href="v.in.ascii.html">v.in.ascii: Definition of vector columns for output vectors</a>
-
-</em>
-
-<h2> Examples </h2>
+<h2>EXAMPLES</h2>
 
 Examples are provided in the built in rule bases (library option).
 
-
+<h2>BUGS</h2>
 
 <h2>REFERENCES</h2>
 
@@ -662,9 +697,17 @@ Rudolph G. (2008). Some Guidelines For Deciding Whether To Use a Rule Engine. UR
 
 
 
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.fuzzy.html">r.fuzzy</a>,
+<a href="r.mapcalc.html">r.mapcalc: Raster algebra</a>,
+<a href="http://skagit.meas.ncsu.edu/~helena/gmslab/grassman5/html/r.infer.html">r.infer</a>,
+<a href="v.in.ascii.html">v.in.ascii: Definition of vector columns for output vectors</a>
+
+</em>
+
 
 <h2>AUTHOR</h2>
 Peter L&ouml;we
 
-<p><i>Last changed: $Date: 2013-02-19 22:56:45 +0100 (Tues, 19 Feb 2013) $</i>
-<HR>
