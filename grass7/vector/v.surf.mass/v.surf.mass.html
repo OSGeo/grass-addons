@@ -16,7 +16,7 @@ should be completely inside the bounding box of the vector.
 
 <h2>EXAMPLE</h2>
 
-<h3>Population count interpolation using annual precipitation in the 
+<h3>Pycnophylactic interpolation of Voronoi triangles using annual precipitation in the 
 North Carolina sample data</h3>
 
 <div class="code"><pre>
@@ -46,8 +46,22 @@ g.region res=5000 -ap
 # adjust precipitation: multiply by area size, dived by pixel size
 v.db.update map=precip_annual column=prec_adj qcolumn="annual * area / 25000000"
 
+# set North Carolina state as MASK for nicer raster output
+r.mapcalc "MASK = if(isnull(elev_state_500m), null(), 1)"
+
 # mass-preserving area interpolation
-v.surf.mass input=precip_annual output=precip_annual column=prec_adj iterations=200
+v.surf.mass input=precip_annual output=precip_annual_pycno column=prec_adj iterations=200
+
+# comparison
+v.to.rast precip_annual out=precip_annual_voronoi type=area use=attr attrcolumn=annual
+
+# remove MASK
+r.mask -r
+
+# verify results
+d.mon wx0
+d.rast.leg precip_annual_voronoi
+d.rast.leg precip_annual_pycno
 </pre></div>
 
 
