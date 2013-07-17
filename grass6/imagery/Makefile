@@ -1,6 +1,7 @@
 MODULE_TOPDIR = ..
 
 SUBDIRS = \
+	i.latlong \
 	i.homography \
 	i.landsat.dehaze \
 	i.points.auto \
