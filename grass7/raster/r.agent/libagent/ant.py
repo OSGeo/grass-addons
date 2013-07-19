@@ -52,7 +52,7 @@ class Ant(agent.Agent):
         Check a list of positions for a position with a value of interest (<0)
         in the penalty layer, if such a position is really found, the ant
         happily turns back home by setting the next step to it's last.
-        If it was only the homeposition, the removes it from the list and
+        If it was only the homeposition, the ant removes it from the list and
         goes on.
         @param positions list of positions
         @return boolean whether such a position was found
