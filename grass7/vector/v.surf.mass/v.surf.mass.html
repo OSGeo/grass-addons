@@ -16,8 +16,8 @@ should be completely inside the bounding box of the vector.
 
 <h2>EXAMPLE</h2>
 
-<h3>Pycnophylactic interpolation of Voronoi triangles using annual precipitation in the 
-North Carolina sample data</h3>
+<h3>Pycnophylactic interpolation of Voronoi triangles using annual
+precipitation in the North Carolina sample data</h3>
 
 (see below for screenshots of the results)
 
@@ -31,7 +31,9 @@ v.voronoi input=precip_30ynormals output=precip_annual
 # List of attributes for the vector precip_annual
 v.info -c precip_annual
 
-# v.surf.mass converts attributes to density, thus:
+# v.surf.mass converts attributes to density, but rainfall is
+# typically measured in mm which is the same for all cells in the
+# same input area, thus:
 # new column for area size and adjusted precipitation
 v.db.addcolumn map=precip_annual \
      column="area double precision, prec_adj double precision"
@@ -49,17 +51,11 @@ g.region res=5000 -ap
 v.db.update map=precip_annual column=prec_adj \
      qcolumn="annual * area / 25000000"
 
-# set North Carolina state as MASK for nicer raster output
-r.mapcalc "MASK = if(isnull(elev_state_500m), null(), 1)"
-
 # mass-preserving area interpolation
 v.surf.mass input=precip_annual output=precip_annual_pycno column=prec_adj iterations=200
 
-# rasterize Voronoi digram for comparison
+# rasterize Voronoi diagram for comparison
 v.to.rast precip_annual out=precip_annual_voronoi type=area use=attr attrcolumn=annual
-
-# remove MASK
-r.mask -r
 
 # verify results
 d.mon wx0
