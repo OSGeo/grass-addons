@@ -73,19 +73,21 @@ def main():
 	grass.fatal(_("Column must be numeric"))
     
     # rasterize with cats (will be base layer)
-    rastertmp1 = "%s_%s_1" % (vector, tmpname)
+    # strip off mapset for tmp output
+    vector_basename = vector.split("@")[0]
+    rastertmp1 = "%s_%s_1" % (vector_basename, tmpname)
     if grass.run_command('v.to.rast', input = vector, output = rastertmp1,
 			 use = 'cat', quiet = True) != 0:
 	grass.fatal(_("An error occurred while converting vector to raster"))
 
     # rasterize with column
-    rastertmp2 = "%s_%s_2" % (vector, tmpname)
+    rastertmp2 = "%s_%s_2" % (vector_basename, tmpname)
     if grass.run_command('v.to.rast', input = vector, output = rastertmp2,
 			 use = 'attr', layer = layer, attrcolumn = column, quiet = True) != 0:
 	grass.fatal(_("An error occurred while converting vector to raster"))
 
     # zonal statistics
-    rastertmp3 = "%s_%s_3" % (vector, tmpname)
+    rastertmp3 = "%s_%s_3" % (vector_basename, tmpname)
     if grass.run_command('r.statistics2', base = rastertmp1, cover = weight,
                          method = 'sum', output = rastertmp3, quiet = True) != 0:
 	grass.fatal(_("An error occurred while calculating zonal statistics"))
