@@ -26,6 +26,9 @@
 #include "globals.h"
 
 #define SEGSIZE 64
+/* activate to use the original algorithm of Tobler 1979
+#define TOBLER_STRICT
+*/
 
 int main(int argc, char *argv[])
 {
@@ -352,19 +355,18 @@ int main(int argc, char *argv[])
     while (doit) {
 	int l_row = -1, l_col = -1;
 	maxadj = 0;
+	G_percent(iter, maxiter, 1);
 	iter++;
 
-	G_message(_("Pass %d"), iter);
-	
 	for (i = 1; i <= nareas; i++) {
 	    areas[i].interp = .0;
 	    areas[i].adj = .0;
 	    areas[i].avgdiff = .0;
-	    
+	    areas[i].count_neg = 0;
 	}
+
 	/* Step 1 */
 	for (row = 0; row < nrows; row++) {
-	    G_percent(row, nrows, 2);
 	    for (col = 0; col < ncols; col++) {
 		int count = 0;
 
@@ -398,21 +400,23 @@ int main(int argc, char *argv[])
 			/* relax */
 			/* value /= 8; */
 			thiscell.adj = value;
-			if (thiscell.area && !negative &&
-			    areas[thiscell.area].value == 0) {
-
-			    thiscell.adj = 0;
+			if (thiscell.area && !negative) {
+			    if (areas[thiscell.area].value == 0)
+				thiscell.adj = 0;
+			    if (thiscell.interp + thiscell.adj < 0)
+				thiscell.adj = -thiscell.interp;
 			}
 			segment_put(&out_seg, &thiscell, row, col);
-			if (thiscell.area)
-			    areas[thiscell.area].adj += value;
-
+			if (thiscell.area) {
+			    areas[thiscell.area].adj += thiscell.adj;
+			    areas[thiscell.area].interp += thiscell.interp + thiscell.adj;
+			}
 		    }
 		}
 	    }	
 	}
-	G_percent(row, nrows, 2);
 
+#ifdef TOBLER_STRICT
 	/* Step 2 */
 	for (i = 1; i <= nareas; i++) {
 	    if (areas[i].count)
@@ -424,7 +428,6 @@ int main(int argc, char *argv[])
 
 	/* Step 3 */
 	for (row = 0; row < nrows; row++) {
-	    G_percent(row, nrows, 2);
 	    for (col = 0; col < ncols; col++) {
 		segment_get(&out_seg, &thiscell, row, col);
 		if (!Rast_is_d_null_value(&thiscell.interp)) {
@@ -451,7 +454,6 @@ int main(int argc, char *argv[])
 		}
 	    }
 	}
-	G_percent(row, nrows, 2);
 
 	/* Step 4 */
 	for (i = 1; i <= nareas; i++) {
@@ -462,7 +464,6 @@ int main(int argc, char *argv[])
 
 	/* Step 5 */
 	for (row = 0; row < nrows; row++) {
-	    G_percent(row, nrows, 2);
 	    for (col = 0; col < ncols; col++) {
 		segment_get(&out_seg, &thiscell, row, col);
 		if (!Rast_is_d_null_value(&thiscell.interp)) {
@@ -474,10 +475,8 @@ int main(int argc, char *argv[])
 		}
 	    }
 	}
-	G_percent(row, nrows, 2);
 
 	for (row = 0; row < nrows; row++) {
-	    G_percent(row, nrows, 2);
 	    for (col = 0; col < ncols; col++) {
 		segment_get(&out_seg, &thiscell, row, col);
 		if (!Rast_is_d_null_value(&thiscell.interp)) {
@@ -503,13 +502,44 @@ int main(int argc, char *argv[])
 		}
 	    }
 	}
-	G_percent(row, nrows, 2);
+#else
+	/* deviation from Tobler 1979: less steps, faster convergence */
+
+	/* Step 2 */
+	areas[0].adj = 1;
+	for (i = 1; i <= nareas; i++) {
+	    areas[i].adj = 1;
+	    if (areas[i].interp != 0)
+		areas[i].adj = areas[i].value / areas[i].interp;
+	}
+
+	/* Step 3 */
+	for (row = 0; row < nrows; row++) {
+	    for (col = 0; col < ncols; col++) {
+		segment_get(&out_seg, &thiscell, row, col);
+		if (!Rast_is_d_null_value(&thiscell.interp)) {
+		    /* multiplication with area scale factor */
+		    thiscell.interp = areas[thiscell.area].adj *
+		                      (thiscell.interp + thiscell.adj);
+		    segment_put(&out_seg, &thiscell, row, col);
+
+		    value = thiscell.adj;
+		    if (maxadj < value * value) {
+			maxadj = value * value;
+			l_row = row;
+			l_col = col;
+		    }
+		}
+	    }
+	}
+#endif
 
 	G_verbose_message(_("Largest squared adjustment: %g"), maxadj);
 	G_verbose_message(_("Largest row, col: %d %d"), l_row, l_col);
 	if (iter >= maxiter || maxadj < threshold)
 	    doit = 0;
     }
+    G_percent(maxiter, maxiter, 1);
 
     /* write output */
     G_message(_("Writing output <%s>"), out_opt->answer);
