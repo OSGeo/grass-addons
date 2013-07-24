@@ -65,6 +65,19 @@ def main():
     weight = options['weight']
     output = options['output']
 
+    # vector exists?
+    result = grass.find_file(vector, element='vector')
+    if len(result['name']) == 0:
+	grass.fatal(_("Input vector <%s> not found") % vector)
+
+    # raster exists?
+    result = grass.find_file(weight, element='cell')
+    if len(result['name']) == 0:
+	grass.fatal(_("Input weight raster <%s> not found") % weight)
+
+    # column exists ?
+    if column not in grass.vector_columns(vector, layer).keys():
+	grass.fatal(_("Column does not exist for vector <%s>, layer %s") % (vector, layer))
 
     # is column numeric?
     coltype = grass.vector_columns(vector, layer)[column]['type']
