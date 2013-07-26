@@ -17,9 +17,10 @@
 #define FODOR				5
 #define HAMACHER		6
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#undef MIN
+#undef MAX
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
-
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 float f_and(float cellx, float celly, int family);
 float f_or(float cellx, float celly, int family);
