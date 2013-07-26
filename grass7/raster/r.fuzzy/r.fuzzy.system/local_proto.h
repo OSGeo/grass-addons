@@ -21,9 +21,10 @@
 #define STACKMAX 200
 #define VARMAX 31
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#undef MIN
+#undef MAX
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
-
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 typedef char *STRING;
 
