@@ -28,6 +28,7 @@ SUBDIRS = \
 	r.in.xyz.auto \
 	r.ipso \
 	r.isoregions \
+	r.latlong \
 	r.mcda.ahp \
 	r.mcda.electre\
 	r.mcda.fuzzy \

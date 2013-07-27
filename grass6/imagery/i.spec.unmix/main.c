@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
     module->keywords = _("imagery, spectral unmixing");
     module->description =
-	_("Perfroms Spectral mixture analysis of satellite/aerial images");
+	_("Performs Spectral mixture analysis of satellite/aerial images");
 
     parm.group = G_define_standard_option(G_OPT_I_GROUP);
 
@@ -115,7 +115,6 @@ int main(int argc, char *argv[])
     parm.iter->description = _("Name of raster map to hold number of iterations");
 
     if (G_parser(argc, argv))
-
 	exit(EXIT_FAILURE);
 
 
