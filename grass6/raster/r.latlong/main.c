@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * MODULE:       i.latlong
+ * MODULE:       r.latlong
  * AUTHOR(S):    Yann Chemin - yann.chemin@gmail.com
  * PURPOSE:      Calculates the longitude of the pixels in the map. 
  *
