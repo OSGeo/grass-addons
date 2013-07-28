@@ -3,7 +3,6 @@
 
 SVN_PATH=/c/osgeo4w/usr/src/grass_addons
 GISBASE_PATH=/c/osgeo4w/usr/src
-GISBASE_G7_PATH=/c/osgeo4w_g7/usr/src
 ADDON_PATH=/c/Users/landa/grass_packager
 
 PATH_ORIG=`echo $PATH`
@@ -59,7 +58,7 @@ if test -z $1 ; then
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass643RC3     $ADDON_PATH/grass643RC3/addons
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass64_release $ADDON_PATH/grass64/addons
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass6_devel    $ADDON_PATH/grass65/addons
-    compile $SVN_PATH/grass7 $GISBASE_G7_PATH/grass_trunk  $ADDON_PATH/grass70/addons _g7
+    compile $SVN_PATH/grass7 $GISBASE_PATH/grass_trunk     $ADDON_PATH/grass70/addons
 else
     compile $SVN_PATH/grass6 $GISBASE_PATH/grass$1         $ADDON_PATH/grass$1/addons
 fi

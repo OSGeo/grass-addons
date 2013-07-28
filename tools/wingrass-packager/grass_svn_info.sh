@@ -7,7 +7,7 @@ HOME=/c/Users/landa/grass_packager
 
 function update {
     if [ "$1" = "grass_trunk" ] ; then
-	SRC_PATH=/c/osgeo4w_g7/$SRC/$1
+	SRC_PATH=/c/osgeo4w/$SRC/$1
     else
 	SRC_PATH=/c/osgeo4w/$SRC/$1
     fi

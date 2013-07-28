@@ -36,9 +36,9 @@ function compile {
 
 if test -z $1 ; then
     # dev packages
-    compile grass64_release 64-dev
-    compile grass6_devel    65-dev
-    compile grass_trunk     70-dev _g7
+    compile grass64_release 64-dev 
+    compile grass6_devel    65-dev 
+    compile grass_trunk     70-dev
 else
     compile grass$1         $1
 fi
