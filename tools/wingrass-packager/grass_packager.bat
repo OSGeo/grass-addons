@@ -3,7 +3,7 @@
 cd C:\Users\landa\grass_packager
 
 rem Compile GRASS versions
-rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.4.3svn
+rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.4.4svn
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-6.5.svn
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-7.0.svn
 rem native & osgeo4w

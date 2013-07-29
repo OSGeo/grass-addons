@@ -46,13 +46,12 @@ function copy_addon {
 export PATH=$PATH:/c/OSGeo4W/apps/msys/bin
 
 if test -z $1 ; then
-    # svn packages
-    copy 64 6.4.3svn
+    # daily builds
+    copy 64 6.4.4svn
     copy 65
     copy 70
     # releases
-    copy_addon 643RC2 6.4.3RC2
-    copy_addon 643RC3 6.4.3RC3
+    copy_addon 643 6.4.3
 else
     copy $1 $2
 fi
