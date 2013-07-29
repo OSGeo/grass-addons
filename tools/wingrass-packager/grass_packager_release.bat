@@ -33,6 +33,3 @@ C:\DevTools\makensis.exe .\grass%MAJOR%%MINOR%%PATCH%\GRASS-Installer.nsi
 
 C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_md5sum.sh %MAJOR%%MINOR%%PATCH%
 
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_addons.sh %MAJOR%%MINOR%%PATCH%
-
-C:\OSGeo4W\apps\msys\bin\sh.exe .\grass_copy_wwwroot.sh %MAJOR%%MINOR%%PATCH% %MAJOR%.%MINOR%.%PATCH% 
