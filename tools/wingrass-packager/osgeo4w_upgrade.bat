@@ -15,7 +15,7 @@ apt update
 apt upgrade
 
 rem
-rem OSGeo4W (testing environment for daily builds)
+rem OSGeo4W_dev (testing environment for daily builds)
 rem
 
 set PATH=C:\OSGeo4W_dev\bin;%PATH_ORIG%
@@ -25,7 +25,7 @@ apt update
 apt upgrade
 
 rem
-rem OSGeo4W (GRASS 6 packaging)
+rem OSGeo4W_grass6 (GRASS 6 packaging)
 rem
 
 set PATH=C:\OSGeo4W_grass6\bin;%PATH_ORIG%
@@ -35,7 +35,7 @@ apt update
 apt upgrade
 
 rem
-rem OSGeo4W (GRASS 7 packaging)
+rem OSGeo4W_grass7 (GRASS 7 packaging)
 rem
 
 set PATH=C:\OSGeo4W_grass7\bin;%PATH_ORIG%
