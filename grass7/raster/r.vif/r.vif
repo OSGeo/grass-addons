@@ -6,7 +6,9 @@
 # MODULE:       r.vif
 # AUTHOR(S):    Paulo van Breugel <p.vanbreugel AT gmail.com>
 # PURPOSE:      Calculate the variance inflaction factor of set of
-#				variables
+#				variables. Alternatively, to speed the calculation up, 
+#               this can be done for an user defined number of random 
+#               cells.
 # Dependency:	r.regression.multi
 #
 # COPYRIGHT: (C) 2013 Paulo van Breugel
@@ -42,6 +44,14 @@
 #% required: no
 #%end
 
+#%option
+#% key: nsp
+#% type: string
+#% gisprompt: new
+#% description: random sample size
+#% key_desc: number or percentage
+#% required: no
+#%end
 
 #=======================================================================
 ## GRASS team recommandations
@@ -97,6 +107,7 @@ trap "cleanup" 2 3 15
 
 OPF=${GIS_OPT_OUTPUT_FILE}
 MAPS=${GIS_OPT_MAPS}
+TEMP1=`g.tempfile pid=$$`
 
 # test for missing input raster maps
 oIFS=$IFS
@@ -113,7 +124,7 @@ IFS=$oIFS
 unset tstIN
 
 #=======================================================================
-## Test if file exists. If so, append _v1 to file name
+## Test if text file exists. If so, append _v1 to file name
 #=======================================================================
 
 k=1
@@ -133,9 +144,27 @@ fi
 ## Calculate VIF and write to standard output (& optionally to file)
 #=======================================================================
 
+# List with the input maps and first input map
+MAPS=`echo $GIS_OPT_MAPS | sed 's;,; ;g'`
+MAP1=`echo $MAPS | awk '{ print $1 }'`
+eval `g.gisenv`
+
 # Write text file with column headers
 if [ -n "$OPF" ]; then 
     echo "variable,vif,sqrtvif" > "$OPF"
+fi
+
+if [ ! -z "$GIS_OPT_NSP" ]; then
+    # Copy mask as backup if it exists
+    eval `g.findfile element=cell file=MASK mapset=$MAPSET`
+    remove_mask=1
+    if [ $file ] ; then 
+        g.copy rast=MASK,mask_r_vif_backup
+        mask_exists=1
+        unset file
+    fi
+    r.random input=$MAP1 n=$GIS_OPT_NSP raster_output=TMP_R_VIF_98765
+    r.mask --overwrite raster=TMP_R_VIF_98765
 fi
 
 # Calculate VIF for each variable
@@ -155,7 +184,21 @@ for nvar in ${MAPS} ; do
 	if [ -n "$OPF" ] ; then 
         echo "$nvar,$vif,$sqrtvif" >> "$OPF"
     fi
-	
 done
+
+if [ $remove_mask ]; then
+    g.remove rast=MASK@${MAPSET},TMP_R_VIF_98765
+    unset remove_mask
+fi
+
+if [ $mask_exists ]; then
+    r.mask raster=mask_r_vif_backup
+    g.remove rast=mask_r_vif_backup
+    unset mask_exist
+fi
+
+
+
+
 
 
