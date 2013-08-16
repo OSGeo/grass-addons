@@ -18,8 +18,8 @@
 #define PI4 (atan(1))
 #endif
 
-#define STACKMAX 200
-#define VARMAX 31
+#define STACKMAX 500
+#define VARMAX 50
 
 #undef MIN
 #undef MAX
