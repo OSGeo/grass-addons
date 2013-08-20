@@ -454,6 +454,13 @@ def main():
 							stream_segments_tmp = "stream_segments_tmp_%d" % os.getpid(),
 							drainage_tmp = "drainage_tmp_%d" % os.getpid())
 
+	# Stream segments depicts new river_raster (corrected for small tributaries of 1 cell)	
+	grass.mapcalc("$river_raster_tmp = if($stream_segments_tmp,$res*1.0)",
+							river_raster_tmp =  "river_raster_tmp_%d" % os.getpid(),
+							stream_segments_tmp = "stream_segments_tmp_%d" % os.getpid(),
+							res = res)
+
+
 	#Calculation of stream order (Shreve/Strahler)
 	grass.run_command("r.stream.order",
 					  stream = "stream_segments_tmp_%d" % os.getpid(),
