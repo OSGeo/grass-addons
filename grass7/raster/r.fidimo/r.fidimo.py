@@ -194,7 +194,7 @@ def main():
 	global tmp_map_rast
 	global tmp_map_vect
 
-	tmp_map_rast = ['density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_','distance_raster_buffered_tmp_', 'distance_raster_grow_tmp_', 'division_overlay_tmp_', 'downstream_drain_tmp_', 'drainage_tmp_', 'flow_direction_tmp_', 'lower_distance_tmp_', 'rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'river_raster_buffer_tmp_', 'river_raster_grow_start_tmp_', 'river_raster_nearest_tmp_', 'shreve_tmp_', 'source_populations_scalar_', 'strahler_tmp_', 'stream_rwatershed_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
+	tmp_map_rast = ['density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_','distance_raster_buffered_tmp_', 'distance_raster_grow_tmp_', 'division_overlay_tmp_', 'downstream_drain_tmp_', 'drainage_tmp_', 'flow_direction_tmp_', 'lower_distance_tmp_', 'rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'river_raster_combine_tmp_', 'river_raster_buffer_tmp_', 'river_raster_grow_start_tmp_', 'river_raster_nearest_tmp_', 'shreve_tmp_', 'source_populations_scalar_', 'strahler_tmp_', 'stream_rwatershed_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
 
 
 	tmp_map_vect = ['river_points_tmp_', 'river_vector_tmp_', 'river_vector_nocat_tmp_','source_points_']
@@ -470,10 +470,16 @@ def main():
 							drainage_tmp = "drainage_tmp_%d" % os.getpid())
 
 	# Stream segments depicts new river_raster (corrected for small tributaries of 1 cell)	
-	grass.mapcalc("$river_raster_tmp = if($stream_segments_tmp,$res*1.0)",
+	grass.mapcalc("$river_raster_combine_tmp = if($stream_segments_tmp && $river_raster_tmp,$res*1.0)",
+							river_raster_combine_tmp =  "river_raster_combine_tmp_%d" % os.getpid(),
 							river_raster_tmp =  "river_raster_tmp_%d" % os.getpid(),
 							stream_segments_tmp = "stream_segments_tmp_%d" % os.getpid(),
 							res = res)
+
+	grass.run_command("g.copy",
+					overwrite=True, 
+					rast = "river_raster_combine_tmp_%d" % os.getpid() + "," "river_raster_tmp_%d" % os.getpid())
+
 
 	
 	#Calculation of stream order (Shreve/Strahler)
