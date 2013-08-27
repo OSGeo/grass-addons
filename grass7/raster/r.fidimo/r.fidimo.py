@@ -814,13 +814,10 @@ def main():
 						if univar_upstream_barrier_density:
 							sum_upstream_barrier_density = float(univar_upstream_barrier_density.split('\n')[d['sum']].split(':')[1])
 						else:
-							grass.run_command("g.copy", overwrite=True, rast="upstream_density_tmp_%d,erroneous_upstream_density" % os.getpid())
-							grass.run_command("g.copy", overwrite=True, rast="upstream_barrier_tmp_%d,erroneous_upstream_barrier" % os.getpid())
-							grass.run_command("g.copy", overwrite=True, rast="density_segment_"+segment_cat+",erroneous_density_segment_"+segment_cat)
-							grass.run_command("g.copy", overwrite=True, rast="flow_direction_tmp_%d,erroneous_flow_direction" % os.getpid())
-
-							grass.fatal(_("Error with upstream density/barriers. The error occurs for coors_barriers (X,Y): "+coors_barriers))		
-
+							# if no upstream density to allocate than stop that "barrier-loop" and contiue with next barrier
+							grass.message(_("No upstream denisty to allocate downstream for that barrier: "+coors_barriers))
+							continue							
+		
 
 						density_for_downstream = sum_upstream_barrier_density*(1-passability)
 				
@@ -881,11 +878,6 @@ def main():
 						else:
 							grass.run_command("r.null", map="density_"+str(cat), setnull="0")
 					
-						#If the barrier in the loop was impermeable (passability=0) 
-						#than no more upstream barriers need to be considered --> break
-						if passability == 0:
-							grass.run_command("r.null", map="density_"+str(cat), null="0")
-							break
 
 
 				# Get a list of all densities processed so far within this segement
