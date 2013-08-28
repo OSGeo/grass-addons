@@ -1,0 +1,43 @@
+<h2>DESCRIPTION</h2>
+
+<em>r.sun.mode1</em> is a convenient script for running
+r.sun for multiple times in a loop. It corresponds to mode 1
+(see r.sun <a href="r.sun.html">manual page</a>).
+
+<h3>Output parameters explanation</h3>
+Output is one or more series of raster maps.
+
+Series of maps are (if flag <i>t</i> is checked) registered
+to space time raster dataset with absolute time and point time (not interval time).
+Option <i>year</i> has to be specified so that the raster maps can be registered
+to space time dataset or assigned a timestamp. The reason is that it is not possible
+to assign time without date.
+
+For GRASS 6, only timestamp is assigned.
+
+<h2>EXAMPLE</h2>
+
+<div class="code"><pre>
+r.sun.mode1 elev_in=elevation start_time=8 end_time=15 beam_rad_basename=beam nprocs=4 -t
+# show information about newly created space time dataset
+t.info beam
+
+# show raster maps registered in beam dataset
+t.rast.list beam
+</pre></div>
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.sun.html">r.sun</a>
+<a href="r.sun.daily.html">r.sun.daily</a> in Addons
+</em>
+
+
+<h2>AUTHOR</h2>
+
+Vaclav Petras, Anna Petrasova<br>
+
+<p>
+<i>Last changed: $Date$</i>
