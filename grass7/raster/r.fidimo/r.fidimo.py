@@ -118,6 +118,10 @@
 #% key: a
 #% description: Keep all temporal vector and raster maps
 #%end
+#%Flag
+#% key: r
+#% description: Source population input are real fish counts per cell. Backtransformation into fish counts will be performed.
+#%end
 #%Option
 #% key: truncation
 #% type: string
@@ -194,7 +198,7 @@ def main():
 	global tmp_map_rast
 	global tmp_map_vect
 
-	tmp_map_rast = ['density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_','distance_raster_buffered_tmp_', 'distance_raster_grow_tmp_', 'division_overlay_tmp_', 'downstream_drain_tmp_', 'drainage_tmp_', 'flow_direction_tmp_', 'lower_distance_tmp_', 'rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'river_raster_combine_tmp_', 'river_raster_buffer_tmp_', 'river_raster_grow_start_tmp_', 'river_raster_nearest_tmp_', 'shreve_tmp_', 'source_populations_scalar_', 'strahler_tmp_', 'stream_rwatershed_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
+	tmp_map_rast = ['density_final_','density_final_corrected_','density_from_point_tmp_', 'density_from_point_unmasked_tmp_', 'distance_from_point_tmp_', 'distance_raster_tmp_','distance_raster_buffered_tmp_', 'distance_raster_grow_tmp_', 'division_overlay_tmp_', 'downstream_drain_tmp_', 'drainage_tmp_', 'flow_direction_tmp_', 'lower_distance_tmp_', 'realised_density_final_','rel_upstream_shreve_tmp_', 'river_raster_cat_tmp_', 'river_raster_tmp_', 'river_raster_combine_tmp_', 'river_raster_buffer_tmp_', 'river_raster_grow_start_tmp_', 'river_raster_nearest_tmp_', 'shreve_tmp_', 'source_populations_scalar_tmp_','source_populations_scalar_corrected_tmp_', 'strahler_tmp_', 'stream_rwatershed_tmp_', 'upper_distance_tmp_', 'upstream_part_tmp_', 'upstream_shreve_tmp_']
 
 
 	tmp_map_vect = ['river_points_tmp_', 'river_vector_tmp_', 'river_vector_nocat_tmp_','source_points_']
@@ -236,7 +240,7 @@ def main():
 
 	# multiplication value as workaround for very small FLOAT values
 	#imporatant for transformation of source population raster into point vector
-	scalar = 10**200
+	scalar = 10000
 
 	# Statistical interval
 	if (str(options['statistical_interval']) == 'Prediction Interval'):
@@ -470,10 +474,10 @@ def main():
 							drainage_tmp = "drainage_tmp_%d" % os.getpid())
 
 	# Stream segments depicts new river_raster (corrected for small tributaries of 1 cell)	
-	grass.mapcalc("$river_raster_combine_tmp = if(!isnull($stream_segments_tmp) && !isnull($river_raster_tmp),$res*1.0,null())",
+	grass.mapcalc("$river_raster_combine_tmp = if(!isnull($stream_rwatershed_tmp) && !isnull($river_raster_tmp),$res*1.0,null())",
 							river_raster_combine_tmp =  "river_raster_combine_tmp_%d" % os.getpid(),
 							river_raster_tmp =  "river_raster_tmp_%d" % os.getpid(),
-							stream_segments_tmp = "stream_segments_tmp_%d" % os.getpid(),
+							stream_rwatershed_tmp = "stream_rwatershed_tmp_%d" % os.getpid(),
 							res = res)
 	grass.run_command("g.copy",
 					overwrite=True, 
@@ -504,44 +508,51 @@ def main():
 						  vector_output="source_points_%d" % os.getpid())
 		grass.run_command("v.db.addcolumn",
 					  map = "source_points_%d" % os.getpid(),
-					  columns = "prob DOUBLE")
+					  columns = "n_fish INT, prob_scalar DOUBLE")
 
 
 		# Set starting propability of occurence to 1.0*scalar for all random source_points	
 		grass.write_command("db.execute", input="-",
-					stdin = 'UPDATE source_points_%d SET prob=%d' % (os.getpid(),scalar*1.0))
+					stdin = 'UPDATE source_points_%d SET prob_scalar=%d' % (os.getpid(),scalar*1.0))
+		grass.write_command("db.execute", input="-",
+					stdin = 'UPDATE source_points_%d SET n_fish=%d' % (os.getpid(),1.0))
 
 	#if source population raster is provided, then use it, transform raster in vector points
-	#create an attribute column "prob" and update it with the values from the raster map
+	#create an attribute column "prob_scalar" and "n_fish" and update it with the values from the raster map
 	if options['source_populations']:
 		#Multiplying source probability with very large scalar to avoid problems 
 		#with very small floating points (problem: precision of FLOAT); needs retransforamtion in the end
-		grass.mapcalc("$source_populations_scalar = $source_populations*$scalar",
+		grass.mapcalc("$source_populations_scalar_tmp = $source_populations*$scalar",
 							source_populations = source_populations,
-							source_populations_scalar = "source_populations_scalar_%d" % os.getpid(),
+							source_populations_scalar_tmp = "source_populations_scalar_tmp_%d" % os.getpid(),
 							scalar = scalar)
 
 		#Exclude source Populations that are outside the river_raster
-		grass.mapcalc("$source_populations_scalar_corrected = if($river_raster_tmp,$source_populations_scalar)",
-							source_populations_scalar_corrected = "source_populations_scalar_corrected_%d" % os.getpid(),
+		grass.mapcalc("$source_populations_scalar_corrected_tmp = if($river_raster_tmp,$source_populations_scalar_tmp)",
+							source_populations_scalar_corrected_tmp = "source_populations_scalar_corrected_tmp_%d" % os.getpid(),
 							river_raster_tmp = "river_raster_tmp_%d" % os.getpid(),
-							source_populations_scalar = "source_populations_scalar_%d" % os.getpid())
+							source_populations_scalar_tmp = "source_populations_scalar_tmp_%d" % os.getpid())
 
 		# Convert to source population points
 		grass.run_command("r.to.vect",
 							overwrite = True,
-							input = "source_populations_scalar_corrected_%d" % os.getpid(),
+							input = "source_populations_scalar_corrected_tmp_%d" % os.getpid(),
 							output = "source_points_%d" % os.getpid(),
 							type = "point")
 		grass.run_command("v.db.addcolumn",
 					  map = "source_points_%d" % os.getpid(),
-					  columns = "prob DOUBLE")
+					  columns = "n_fish INT, prob_scalar DOUBLE")
 
-		#populate sample prob from input prob-raster (multiplied by scalar)
+		#populate n_fish and sample prob from input sourcepopulations raster (multiplied by scalar)
 		grass.run_command("v.what.rast",
 						map = "source_points_%d" % os.getpid(),
-						raster = "source_populations_scalar_%d" % os.getpid(),
-						column = "prob")
+						raster = source_populations,
+						column = "n_fish")
+
+		grass.run_command("v.what.rast",
+						map = "source_points_%d" % os.getpid(),
+						raster = "source_populations_scalar_tmp_%d" % os.getpid(),
+						column = "prob_scalar")
 	
 	#Adding columns and coordinates to source points
 	grass.run_command("v.db.addcolumn",
@@ -591,7 +602,8 @@ def main():
 		db = database.cursor()
 
 		
-		mapcalc_list_B = []
+		mapcalc_list_Ba = []
+		mapcalc_list_Bb = []
 
 
 		########## Loop over segments ############
@@ -605,20 +617,25 @@ def main():
 			segment_cat = str(j)
 			grass.debug(_("This is segment nr.: " +str(segment_cat)))
 
-			mapcalc_list_A = []
+			mapcalc_list_Aa = []
+			mapcalc_list_Ab = []
 
 			# Loop over Source points
-			source_points_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, X, Y, prob, Strahler FROM source_points_%d WHERE segment=%d" % (os.getpid(),int(j))).split("\n")[:-1] # remove last (empty line)
+			source_points_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, X, Y, n_fish, prob_scalar, Strahler FROM source_points_%d WHERE segment=%d" % (os.getpid(),int(j))).split("\n")[:-1] # remove last (empty line)
 			source_points_list = list(csv.reader(source_points_list,delimiter="|"))
+
+		
 
 			for k in source_points_list:
 
 				cat = int(k[0])
 				X = float(k[1])
 				Y = float(k[2])
-				prob = float(k[3])
-				Strahler = int(k[4])
+				prob_scalar = float(k[4])
+				Strahler = int(k[5])
 				coors = str(X)+","+str(Y)
+				if flags['r']:
+					n_fish = int(k[3])
 				
 				# Progress bar
 				# add here progressbar
@@ -637,7 +654,7 @@ def main():
 				sigma_stat = fishmove.rx(i,'sigma_stat',1,1,SO,1)
 				sigma_mob = fishmove.rx(i,'sigma_mob',1,1,SO,1)
 
-				grass.debug(_("Dispersal parameters: prob="+str(prob)+", sigma_stat="+str(sigma_stat)+", sigma_mob="+str(sigma_mob)+", p="+str(p)))		
+				grass.debug(_("Dispersal parameters: prob_scalar="+str(prob_scalar)+", sigma_stat="+str(sigma_stat)+", sigma_mob="+str(sigma_mob)+", p="+str(p)))		
 
 				# Getting maximum distance (cutting distance) based on truncation criterion	  
 				def func(x,sigma_stat,sigma_mob,m,truncation,p):
@@ -683,8 +700,12 @@ def main():
 				# MAIN PART: leptokurtic probability density kernel based on fishmove
 				grass.debug(_("Begin with core of fidimo, application of fishmove on garray"))
 				
-				def cdf(x):
-					return (p * stats.norm.cdf(x, loc=m, scale=sigma_stat) + (1-p) * stats.norm.cdf(x, loc=m, scale=sigma_mob)) * prob
+				if flags['r']:
+					def cdf(x):
+						return (p * stats.norm.cdf(x, loc=m, scale=sigma_stat) + (1-p) * stats.norm.cdf(x, loc=m, scale=sigma_mob))
+				else:
+					def cdf(x):
+						return (p * stats.norm.cdf(x, loc=m, scale=sigma_stat) + (1-p) * stats.norm.cdf(x, loc=m, scale=sigma_mob)) * prob_scalar
 		 
 		 
 				#Calculation Kernel Density from Distance Raster
@@ -878,53 +899,97 @@ def main():
 						else:
 							grass.run_command("r.null", map="density_"+str(cat), setnull="0")
 					
-
-
 				# Get a list of all densities processed so far within this segement
-				mapcalc_list_A.append("density_"+str(cat))	
-			
-			mapcalc_string_A_aggregate = "+".join(mapcalc_list_A)
-			mapcalc_string_A_removal = ",".join(mapcalc_list_A)
-		 
-			grass.mapcalc("$density_segment = $mapcalc_string_A_aggregate",
+				mapcalc_list_Aa.append("density_"+str(cat))
+
+				if flags['r']:
+					# Realisation of Probablity raster, Backtransformation from probability into fish counts per cell
+					grass.debug(_("Write Realisation (fish counts) from point to garray. This is point cat: "+str(cat)))	
+					CorrectedDensity = garray.array()
+					CorrectedDensity.read("density_"+str(cat))
+
+
+					RealisedDensity = garray.array()
+					RealisedDensity[...] = numpy.random.multinomial(n_fish, (CorrectedDensity/numpy.sum(CorrectedDensity)).flat, size=1).reshape(CorrectedDensity.shape)
+					#RealisedDensity[...] = numpy.bincount(numpy.searchsorted(numpy.cumsum(CorrectedDensity), numpy.random.random(n_fish)),minlength=CorrectedDensity.size).reshape(CorrectedDensity.shape)
+
+					
+					RealisedDensity.write("realised_density_"+str(cat))
+
+					grass.run_command("r.null", map="realised_density_"+str(cat), null="0")
+
+					# Get a list of all realised densities processed so far within this segement
+					mapcalc_list_Ab.append("realised_density_"+str(cat))	
+
+			# Aggregation per segment			
+			mapcalc_string_Aa_aggregate = "+".join(mapcalc_list_Aa)
+			mapcalc_string_Aa_removal = ",".join(mapcalc_list_Aa)
+
+			grass.mapcalc("$density_segment = $mapcalc_string_Aa_aggregate",
 							density_segment = "density_segment_"+segment_cat,
-							mapcalc_string_A_aggregate = mapcalc_string_A_aggregate,
+							mapcalc_string_Aa_aggregate = mapcalc_string_Aa_aggregate,
 							overwrite = True)
+			grass.run_command("g.remove", rast = mapcalc_string_Aa_removal, flags ="f")
+
+			grass.run_command("r.null", map="density_segment_"+segment_cat, null="0") # Final density map per segment, set 0 for aggregation with r.mapcalc				 
 			
-			grass.run_command("g.remove", rast = mapcalc_string_A_removal, flags ="f")
+			mapcalc_list_Ba.append("density_segment_"+segment_cat)
+
+			if flags['r']:
+		 		mapcalc_string_Ab_aggregate = "+".join(mapcalc_list_Ab)
+				mapcalc_string_Ab_removal = ",".join(mapcalc_list_Ab)		
+				grass.mapcalc("$realised_density_segment = $mapcalc_string_Ab_aggregate",
+								realised_density_segment = "realised_density_segment_"+segment_cat,
+								mapcalc_string_Ab_aggregate = mapcalc_string_Ab_aggregate,
+								overwrite = True)
+				grass.run_command("g.remove", rast = mapcalc_string_Ab_removal, flags ="f")
 			
-			grass.run_command("r.null", map="density_segment_"+segment_cat, null="0") # Final density map per segment, set 0 for aggregation with r.mapcalc
-							 
-			mapcalc_list_B.append("density_segment_"+segment_cat)
+				grass.run_command("r.null", map="realised_density_segment_"+segment_cat, null="0") # Final density map per segment, set 0 for aggregation with r.mapcalc				 
+				mapcalc_list_Bb.append("realised_density_segment_"+segment_cat)
 
 
-		 
-		mapcalc_string_B_aggregate = "+".join(mapcalc_list_B)
-		mapcalc_string_B_removal = ",".join(mapcalc_list_B)
+		# Overall aggregation					 
+		mapcalc_string_Ba_aggregate = "+".join(mapcalc_list_Ba)
+		mapcalc_string_Ba_removal = ",".join(mapcalc_list_Ba)
 	   
 		# Final raster map, Final map is sum of all 
-		# density maps (for each segement), All contributing maps (string_B_removal) are deleted
+		# density maps (for each segement), All contributing maps (string_Ba_removal) are deleted
 		# in the end.
-		grass.mapcalc("$density_final = $mapcalc_string_B_aggregate",
+		grass.mapcalc("$density_final = $mapcalc_string_Ba_aggregate",
 						density_final = "density_final_%d" % os.getpid(),
-						mapcalc_string_B_aggregate = mapcalc_string_B_aggregate,
+						mapcalc_string_Ba_aggregate = mapcalc_string_Ba_aggregate,
 						overwrite = True)
+
+		if flags['r']:
+			mapcalc_string_Bb_aggregate = "+".join(mapcalc_list_Bb)
+			mapcalc_string_Bb_removal = ",".join(mapcalc_list_Bb)
+			grass.mapcalc("$realised_density_final = $mapcalc_string_Bb_aggregate",
+						realised_density_final = "realised_density_final_%d" % os.getpid(),
+						mapcalc_string_Bb_aggregate = mapcalc_string_Bb_aggregate,
+						overwrite = True)
+			grass.run_command("g.copy", 
+			rast = "realised_density_final_%d" % os.getpid() + ",realised_" + output_fidimo+"_"+i)
+			
+			# Set all 0-values to NULL, Backgroundvalues			
+			grass.run_command("r.null", map="realised_"+output_fidimo+"_"+i, setnull="0")
+			
+			grass.run_command("g.remove", rast = mapcalc_string_Bb_removal, flags ="f")
 
 		# backtransformation (divide by scalar which was defined before)
 		grass.mapcalc("$density_final_corrected = $density_final/$scalar",
-						density_final_corrected = "density_final_corrected_%d" % os.getpid(),
-						density_final = "density_final_%d" % os.getpid(),
-						scalar = scalar)
+					density_final_corrected = "density_final_corrected_%d" % os.getpid(),
+					density_final = "density_final_%d" % os.getpid(),
+					scalar = scalar)
 
 		grass.run_command("g.copy", 
-			rast = "density_final_corrected_%d" % os.getpid() + "," + output_fidimo+"_"+i)
+		rast = "density_final_corrected_%d" % os.getpid() + "," + output_fidimo+"_"+i)
 		
 		
 		# Set all 0-values to NULL, Backgroundvalues			
 		grass.run_command("r.null", map=output_fidimo+"_"+i, setnull="0")
 	
 	
-		grass.run_command("g.remove", rast = mapcalc_string_B_removal, flags ="f")
+		grass.run_command("g.remove", rast = mapcalc_string_Ba_removal, flags ="f")
 			
 
 	# Delete basic maps if flag "b" is set	 
