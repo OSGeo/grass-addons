@@ -429,17 +429,18 @@ def main():
             if glob_rad_basename_user:
                 set_time_stamp(glob_rad_basename + suffixes_all[i], day=day)
 
-    maps = []
     if beam_rad_basename_user:
-        maps.extend([beam_rad_basename + suf for suf in suffixes_all])
+        maps = [beam_rad_basename + suf for suf in suffixes_all]
+        set_color_table(maps)
     if diff_rad_basename_user:
-        maps.extend([diff_rad_basename + suf for suf in suffixes_all])
+        maps = [diff_rad_basename + suf for suf in suffixes_all]
+        set_color_table(maps)
     if refl_rad_basename_user:
-        maps.extend([refl_rad_basename + suf for suf in suffixes_all])
+        maps = [refl_rad_basename + suf for suf in suffixes_all]
+        set_color_table(maps)
     if glob_rad_basename_user:
-        maps.extend([glob_rad_basename + suf for suf in suffixes_all])
-
-    set_color_table(maps)
+        maps = [glob_rad_basename + suf for suf in suffixes_all]
+        set_color_table(maps)
 
 
 if __name__ == "__main__":
