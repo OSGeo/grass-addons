@@ -61,7 +61,7 @@
 #% key: source_populations
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Or: Source population raster, e.g output from SDM
+#% description: Or: Source population raster (relative or absolute occurence)
 #% required: no
 #% guisection: Source populations
 #%end
@@ -110,6 +110,22 @@
 #% answer:0.67 
 #% guisection: Dispersal parameters
 #%End
+#%option
+#% key: habitat_attract
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Or: Attractiveness of habitat used as weighting factor (sink efffect, habitat-dependent dispersal)
+#% required: no
+#% guisection: Habitat dependency
+#%end
+#%option
+#% key: habitat_p
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Or: Spatially varying and habitat-dependent p factor (float: 0-1, source effect, habitat-dependent dispersal)
+#% required: no
+#% guisection: Habitat dependency
+#%end
 #%Flag
 #% key: b
 #% description: Don't keep basic vector maps (source_points, barriers)
@@ -230,12 +246,22 @@ def main():
 		
 
 
-	#Source population input
+	# Source population input
 	if (options['source_populations'] and options['n_source']) or (str(options['source_populations']) == '' and str(options['n_source']) == ''):
 		grass.fatal(_("Provide either fixed or random source population"))
+	if options['n_source'] and flags['r']:
+		grass.fatal(_("Realisation (flag: 'r') in combination with random source populations (n_source) not possible. Please choose either random source populations or provide source populations to calculate realisation"))
 
 	n_source = options['n_source'] #number of random source points
 	source_populations = options['source_populations']
+
+
+	# Habitat maps
+	if options['habitat_attract']:
+		habitat_attract = options['habitat_attract']
+	if options['habitat_p']:
+		habitat_p = options['habitat_p']
+		# check if min max is 0-1
 	
 
 	# multiplication value as workaround for very small FLOAT values
@@ -544,10 +570,11 @@ def main():
 					  columns = "n_fish INT, prob_scalar DOUBLE")
 
 		#populate n_fish and sample prob from input sourcepopulations raster (multiplied by scalar)
-		grass.run_command("v.what.rast",
-						map = "source_points_%d" % os.getpid(),
-						raster = source_populations,
-						column = "n_fish")
+		if flags['r']:
+			grass.run_command("v.what.rast",
+							map = "source_points_%d" % os.getpid(),
+							raster = source_populations,
+							column = "n_fish")
 
 		grass.run_command("v.what.rast",
 						map = "source_points_%d" % os.getpid(),
@@ -557,7 +584,7 @@ def main():
 	#Adding columns and coordinates to source points
 	grass.run_command("v.db.addcolumn",
 					  map = "source_points_%d" % os.getpid(),
-					  columns = "X DOUBLE, Y DOUBLE, segment INT, Strahler INT")					
+					  columns = "X DOUBLE, Y DOUBLE, segment INT, Strahler INT, habitat_attract DOUBLE")					
 	grass.run_command("v.to.db",
 					  map = "source_points_%d" % os.getpid(),
 					  type = "point",
@@ -583,7 +610,16 @@ def main():
 	grass.run_command("v.what.rast",
 					  map = "source_points_%d" % os.getpid(),
 					  raster = "strahler_tmp_%d" % os.getpid(),
-					  column = "Strahler") 
+					  column = "Strahler")
+
+	#Adding information of habitat attractivenss to source points
+	if options['habitat_attract']:
+		grass.run_command("v.what.rast",
+					  map = "source_points_%d" % os.getpid(),
+					  raster = habitat_attract,
+					  column = "habitat_attract")
+
+
 	# Make source points permanent
 	grass.run_command("g.copy", 
 		vect = "source_points_%d" % os.getpid() + "," + output_fidimo + "_source_points")	
@@ -621,7 +657,7 @@ def main():
 			mapcalc_list_Ab = []
 
 			# Loop over Source points
-			source_points_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, X, Y, n_fish, prob_scalar, Strahler FROM source_points_%d WHERE segment=%d" % (os.getpid(),int(j))).split("\n")[:-1] # remove last (empty line)
+			source_points_list = grass.read_command("db.select", flags="c", sql= "SELECT cat, X, Y, n_fish, prob_scalar, Strahler, habitat_attract FROM source_points_%d WHERE segment=%d" % (os.getpid(),int(j))).split("\n")[:-1] # remove last (empty line)
 			source_points_list = list(csv.reader(source_points_list,delimiter="|"))
 
 		
@@ -636,6 +672,8 @@ def main():
 				coors = str(X)+","+str(Y)
 				if flags['r']:
 					n_fish = int(k[3])
+				if options['habitat_attract']:
+					source_habitat_attract = float(k[6])
 				
 				# Progress bar
 				# add here progressbar
@@ -700,12 +738,8 @@ def main():
 				# MAIN PART: leptokurtic probability density kernel based on fishmove
 				grass.debug(_("Begin with core of fidimo, application of fishmove on garray"))
 				
-				if flags['r']:
-					def cdf(x):
-						return (p * stats.norm.cdf(x, loc=m, scale=sigma_stat) + (1-p) * stats.norm.cdf(x, loc=m, scale=sigma_mob))
-				else:
-					def cdf(x):
-						return (p * stats.norm.cdf(x, loc=m, scale=sigma_stat) + (1-p) * stats.norm.cdf(x, loc=m, scale=sigma_mob)) * prob_scalar
+				def cdf(x):
+					return (p * stats.norm.cdf(x, loc=m, scale=sigma_stat) + (1-p) * stats.norm.cdf(x, loc=m, scale=sigma_mob)) * prob_scalar
 		 
 		 
 				#Calculation Kernel Density from Distance Raster
@@ -902,8 +936,22 @@ def main():
 				# Get a list of all densities processed so far within this segement
 				mapcalc_list_Aa.append("density_"+str(cat))
 
+
+				if options['habitat_attract']:
+					# Multiply (Weight) density point with relative attractiveness. realative attractive in relation to habitat attractivness at source
+					grass.mapcalc("$density_point_attract = $density_point*($habitat_attract/$source_habitat_attract)",
+									density_point_attract = "density_attract_"+str(cat), 
+									density_point = "density_"+str(cat), 
+									habitat_attract = habitat_attract, 
+									source_habitat_attract = source_habitat_attract,
+									overwrite = True)
+
+					grass.run_command("g.rename", 
+							rast = "density_attract_"+str(cat) + "," + "density_"+str(cat),
+							overwrite=True)
+
 				if flags['r']:
-					# Realisation of Probablity raster, Backtransformation from probability into fish counts per cell
+					# Realisation of Probablity raster, Multinomial backtransformation from probability into fish counts per cell
 					grass.debug(_("Write Realisation (fish counts) from point to garray. This is point cat: "+str(cat)))	
 					CorrectedDensity = garray.array()
 					CorrectedDensity.read("density_"+str(cat))
@@ -911,9 +959,7 @@ def main():
 
 					RealisedDensity = garray.array()
 					RealisedDensity[...] = numpy.random.multinomial(n_fish, (CorrectedDensity/numpy.sum(CorrectedDensity)).flat, size=1).reshape(CorrectedDensity.shape)
-					#RealisedDensity[...] = numpy.bincount(numpy.searchsorted(numpy.cumsum(CorrectedDensity), numpy.random.random(n_fish)),minlength=CorrectedDensity.size).reshape(CorrectedDensity.shape)
-
-					
+										
 					RealisedDensity.write("realised_density_"+str(cat))
 
 					grass.run_command("r.null", map="realised_density_"+str(cat), null="0")
