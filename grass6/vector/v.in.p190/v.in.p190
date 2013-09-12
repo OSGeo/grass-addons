@@ -14,8 +14,9 @@
 #               for details.
 #
 #############################################################################
-# see ukooa_p1_90.pdf for P1/90 format spec:
-#  http://www.seg.org/SEGportalWEBproject/prod/SEG-Publications/Pub-Technical-Standards/Documents/ukooa_p1_90.pdf
+# see ukooa_p1_90.pdf for P1/90 format spec from http://www.seg.org, or
+#  http://www.epsg.org/p-formats/p-formats.html
+#  http://www.epsg.org/exchange/p1.pdf
 
 #%Module
 #% description: Extract 'Centre of Source' "S" coordinates from UKOOA P1/90 data files into CSV and import as GRASS vector points and lines maps.
@@ -151,6 +152,14 @@ for file in $INFILES ; do
      -e 's/^\(.\{13\}\)....../\1/' \
      -e 's/|[ ]*/|/g' -e 's/[ ]*|/|/g' -e 's/|\r\?$//' \
      -e 's/^S//' >> "$TMP_POINTS_DATA"
+
+if [ "$NEEDED" = yes ] ; then
+    # some silly data don't 0 pad DD MM SS, so try to fix that
+    mv "$TMP_POINTS_DATA" "$TMP_POINTS_DATA".old
+    sed -e 's|: \([0-9]\)|:0\1|g' "$TMP_POINTS_DATA".old \
+         > "$TMP_POINTS_DATA"
+    rm -f "$TMP_POINTS_DATA".old
+fi
 
     # count number of columns in points file
     NUM_COL=`grep -v '^#\|^[ \t]*$' "$TMP_POINTS_DATA" | \
