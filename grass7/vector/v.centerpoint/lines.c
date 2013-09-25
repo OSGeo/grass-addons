@@ -174,7 +174,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 
 	    lastdist2all = -1;
 
-	    G_debug(3, "Approximating geometric median...", );
+	    G_debug(3, "Approximating geometric median...");
 
 	    for (iter = 0; iter < maxiter; iter++) {
 
