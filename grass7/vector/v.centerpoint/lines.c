@@ -6,20 +6,6 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-static double d_ulp(double d)
-{
-    int exp;
-
-    if (d == 0)
-	return GRASS_EPSILON;
-
-    d = frexp(d, &exp);
-    exp -= 51;
-    d = ldexp(d, exp);
-
-    return d;
-}
-
 int lines_center(struct Map_info *In, struct Map_info *Out, int layer, 
                  struct cat_list *cat_list, int n_primitives, int mode)
 {
@@ -37,6 +23,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
     if (mode & L_MID) {
 	double len;
 
+	G_message(_("Calculating mid point coordinates..."));
 	counter = 0;
 
 	Vect_rewind(In);
@@ -73,6 +60,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	double dx, dy, dz;
 	int i;
 
+	G_message(_("Calculating centers of gravity for lines..."));
 	counter = 0;
 
 	Vect_rewind(In);
@@ -133,6 +121,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	
 	SPoints = Vect_new_line_struct();
 
+	G_message(_("Approximating geometric medians..."));
 	counter = 0;
 
 	Vect_rewind(In);
@@ -185,7 +174,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 
 	    lastdist2all = -1;
 
-	    G_debug(3, "Approximating geometric median...");
+	    G_debug(3, "Approximating geometric median...", );
 
 	    for (iter = 0; iter < maxiter; iter++) {
 

@@ -6,7 +6,7 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-static double d_ulp(double d)
+double d_ulp(double d)
 {
     int exp;
 
@@ -41,7 +41,7 @@ int points_center(struct Map_info *In, struct Map_info *Out, int layer,
     /* coordinates' mean */
     counter = n = 0;
     xsum = ysum = zsum = 0.;
-    G_message(_("Calculating mean point coordinates (center of gravity)..."));
+    G_message(_("Calculating center of gravity..."));
     while ((type = Vect_read_next_line(In, Points, Cats)) > 0) {
 	G_percent(counter, n_primitives, 4);
 	counter++;

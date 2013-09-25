@@ -6,20 +6,6 @@
 #include <grass/glocale.h>
 #include "local_proto.h"
 
-static double d_ulp(double d)
-{
-    int exp;
-
-    if (d == 0)
-	return GRASS_EPSILON;
-
-    d = frexp(d, &exp);
-    exp -= 51;
-    d = ldexp(d, exp);
-
-    return d;
-}
-
 int areas_center(struct Map_info *In, struct Map_info *Out, int layer, 
                  struct cat_list *cat_list, int mode)
 {
@@ -46,7 +32,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 
     nareas = Vect_get_num_areas(In);
     
-    /* geometric mean = center of gravity */
+    /* arithmetic mean = center of gravity */
     if (mode & A_MEAN) {
 
 	G_message(_("Calculating centers of gravity for areas..."));
@@ -127,7 +113,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	}
     }
 
-    /* approximate geometric median with Weiszfeld's algorithm:
+    /* approximate point of minimum distance (geometric median) with Weiszfeld's algorithm:
      * iterative least squares reduction */
     if (mode & A_MEDIAN) {
 	struct line_pnts *CPoints;
@@ -412,7 +398,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	double dist, distsum, dist2all, lastdist2all;
 	int j, iter, maxiter = 1000;
 
-	G_message(_("Calculating geometric medians for areas..."));
+	G_message(_("Calculating geometric medians for area boundaries..."));
 	
 	CPoints = Vect_new_line_struct();
 	

@@ -10,6 +10,7 @@
 
 int points_center(struct Map_info *, struct Map_info *, int, 
                   struct cat_list *, int, int);
+double d_ulp(double);
 
 int lines_center(struct Map_info *, struct Map_info *, int, 
                  struct cat_list *, int, int);

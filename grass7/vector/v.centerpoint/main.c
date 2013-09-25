@@ -3,12 +3,11 @@
  *
  * MODULE:     v.centerpoint
  *
- * AUTHOR(S):  GRASS Development Team, Radim Blazek, Maris Nartiss
+ * AUTHOR(S):  Markus Metz
  *
- * PURPOSE:    copies vector data from source map to destination map
- *             prints out all point coordinates and atributes
+ * PURPOSE:    Calculates center points
  *
- * COPYRIGHT:  (C) 2002-2009 by the GRASS Development Team
+ * COPYRIGHT:  (C) 2013 by the GRASS Development Team
  *
  *             This program is free software under the
  *             GNU General Public License (>=v2).
@@ -84,8 +83,8 @@ int main(int argc, char *argv[])
 	       "mean;%s;"
 	       "median;%s;"
 	       "pmedian;%s;",
-	       _("Geometric mean (center of gravity)"),
-	       _("Geometric median"),
+	       _("Center of gravity"),
+	       _("Geometric median (point of minimum distance)"),
 	       _("Point closest to geometric median"));
     pmode->descriptions = pdesc;
 
@@ -102,8 +101,8 @@ int main(int argc, char *argv[])
 	       "mean;%s;"
 	       "median;%s;",
 	       _("Line mid point"),
-	       _("Geometric mean (center of gravity)"),
-	       _("Geometric median using line segments"));
+	       _("Center of gravity"),
+	       _("Geometric median (point of minimum distance) using line segments"));
     lmode->descriptions = ldesc;
 
     amode = G_define_option();
@@ -118,9 +117,9 @@ int main(int argc, char *argv[])
 	       "mean;%s;"
 	       "median;%s;"
 	       "bmedian;%s;",
-	       _("Geometric mean (center of gravity)"),
-	       _("Geometric median using area sizes"),
-	       _("Geometric median using boundary segments"));
+	       _("Center of gravity"),
+	       _("Geometric median (point of minimum distance) using area sizes"),
+	       _("Geometric median (point of minimum distance) using boundary segments"));
     amode->descriptions = adesc;
 
     topo_flag = G_define_standard_flag(G_FLG_V_TOPO);
