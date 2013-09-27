@@ -149,6 +149,14 @@
 #% guisection: Optional
 #%End
 #%Option
+#% key: seed
+#% type: integer
+#% required: no
+#% multiple: no
+#% description: fixed seed for generating dispersal parameters via fishmove
+#% guisection: Optional
+#%End
+#%Option
 #% key: output
 #% type: string
 #% required: no
@@ -185,7 +193,6 @@ import grass.script as grass
 import grass.script.setup as gsetup
 import grass.script.array as garray
 
-#import random
 
 # import required numpy/scipy modules
 import numpy
@@ -273,7 +280,12 @@ def main():
 		interval = "prediction"
 	else:
 		interval = "confidence"
-	
+
+	#Set fixed seed if specified
+	if options['seed']:
+		seed = ",seed="+str(options['seed'])
+	else:
+		seed = ""	
 
 	#Output
 	output_fidimo = options['output']
@@ -311,9 +323,10 @@ def main():
 
 	##### Calculating 'fishmove' depending on species or L & AR
 	if species == "Custom species":
-		fishmove = fm.fishmove(L=L,AR=AR,SO=SO,T=T,interval=interval)
+		fishmove = eval("fm.fishmove(L=L,AR=AR,SO=SO,T=T,interval=interval,rep=200%s)"%(seed))
 	else:
-		fishmove = fm.fishmove(species=species,SO=SO,T=T,interval=interval)
+		fishmove = eval("fm.fishmove(L=L,AR=AR,SO=SO,T=T,interval=interval,rep=200%s)"%(seed))
+
 
 	# using only part of fishmove results (only regression coeffients)
 	fishmove = fishmove[1]
