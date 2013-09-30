@@ -5,7 +5,7 @@
 # MODULE:    r.local.relief
 # AUTHOR(S): Vaclav Petras <wenzeslaus gmail.com>,
 #            Eric Goddard <egoddard memphis.edu>
-# PURPOSE:   Create a local relief models from elevation map
+# PURPOSE:   Create a local relief model from elevation map
 # COPYRIGHT: (C) 2013 by the GRASS Development Team
 #
 #            This program is free software under the GNU General Public
@@ -15,11 +15,13 @@
 #############################################################################
 
 #%module
-#% description: Creates a local relief models from elevation map.
+#% description: Creates a local relief model from elevation map.
 #% keywords: raster
 #% keywords: elevation
 #% keywords: terrain
 #% keywords: relief
+#% keywords: LRM
+#% keywords: visualization
 #%end
 #%option
 #% type: string
@@ -40,15 +42,17 @@
 #% type: integer
 #% description: Neighborhood size used when smoothing the elevation model
 #% options: 0-
-#% answer: 3
+#% answer: 11
+#%end
+#%flag
+#% key: i
+#% description: Save intermediate maps
 #%end
 
 # TODO: The step 5 (contours to smooth elevation) can be replaced by using
 # vector tools (v.surf.*), this needs further testing.
 # Note, that quality of interpolation highly determines the result.
 
-# TODO: implement save intermediate results flag
-# (code is ready, but consider also outputting only some useful ones)
 
 import os
 import atexit
@@ -71,7 +75,7 @@ def cleanup():
 
 
 def create_tmp_map_name(name):
-    return '{mod}_{pid}_{map_}_tmp'.format(mod='r_shaded_pca',
+    return '{mod}_{pid}_{map_}_tmp'.format(mod='r_local_relief',
                                            pid=os.getpid(),
                                            map_=name)
 
@@ -89,15 +93,15 @@ def check_map_name(name, mapset, element_type):
 
 def main():
     atexit.register(cleanup)
-    options, unused = gscript.parser()
+    options, flags = gscript.parser()
 
     elevation_input = options['input']
     local_relief_output = options['output']
     neighborhood_size = int(options['neighborhood_size'])
-    fill_method = 'cubic'
+    save_intermediates = flags['i']
 
+    fill_method = 'cubic'
     color_table = 'differences'
-    save_intermediates = True
 
     if save_intermediates:
         def local_create(name):
@@ -115,7 +119,11 @@ def main():
     raster_contours_with_values = create_map_name('raster_contours_with_values')
     purged_elevation = create_map_name('purged_elevation')
 
-    if not save_intermediates:
+    # if saving intermediates, keep only 1 contour layer
+    if save_intermediates:
+        RREMOVE.append(raster_contours)
+        VREMOVE.append(vector_contours)
+    else:
         RREMOVE.append(smooth_elevation)
         RREMOVE.append(subtracted_smooth_elevation)
         VREMOVE.append(vector_contours)
