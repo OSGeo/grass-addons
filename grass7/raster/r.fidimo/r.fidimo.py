@@ -114,7 +114,7 @@
 #% key: habitat_attract
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Or: Attractiveness of habitat used as weighting factor (sink efffect, habitat-dependent dispersal)
+#% description: Attractiveness of habitat used as weighting factor (sink effect, habitat-dependent dispersal)
 #% required: no
 #% guisection: Habitat dependency
 #%end
@@ -122,7 +122,7 @@
 #% key: habitat_p
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Or: Spatially varying and habitat-dependent p factor (float: 0-1, source effect, habitat-dependent dispersal)
+#% description: Spatially varying and habitat-dependent p factor (float: 0-1, source effect, habitat-dependent dispersal)
 #% required: no
 #% guisection: Habitat dependency
 #%end
@@ -153,12 +153,13 @@
 #% type: integer
 #% required: no
 #% multiple: no
-#% description: fixed seed for generating dispersal parameters via fishmove
+#% description: fixed seed for generating dispersal parameters and for multinomial realisation step
 #% guisection: Optional
 #%End
 #%Option
 #% key: output
 #% type: string
+#% gisprompt: new
 #% required: no
 #% multiple: no
 #% key_desc: name
@@ -281,11 +282,7 @@ def main():
 	else:
 		interval = "confidence"
 
-	#Set fixed seed if specified
-	if options['seed']:
-		seed = ",seed="+str(options['seed'])
-	else:
-		seed = ""	
+
 
 	#Output
 	output_fidimo = options['output']
@@ -322,6 +319,12 @@ def main():
 
 
 	##### Calculating 'fishmove' depending on species or L & AR
+	#Set fixed seed if specified
+	if options['seed']:
+		seed = ",seed="+str(options['seed'])
+	else:
+		seed = ""
+
 	if species == "Custom species":
 		fishmove = eval("fm.fishmove(L=L,AR=AR,SO=SO,T=T,interval=interval,rep=200%s)"%(seed))
 	else:
@@ -971,6 +974,8 @@ def main():
 
 
 					RealisedDensity = garray.array()
+					if options['seed']:
+						numpy.random.seed(seed=int(options['seed']))
 					RealisedDensity[...] = numpy.random.multinomial(n_fish, (CorrectedDensity/numpy.sum(CorrectedDensity)).flat, size=1).reshape(CorrectedDensity.shape)
 										
 					RealisedDensity.write("realised_density_"+str(cat))
