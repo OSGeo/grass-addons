@@ -130,7 +130,7 @@ import numpy
 
 
 def cleanup():
-	grass.message(_("This is the cleanup part"))
+	grass.debug(_("This is the cleanup part"))
 
 
 def main():
