@@ -75,7 +75,7 @@
 #% guisection: Dispersal parameters
 #%End
 #%Option
-#% key: L
+#% key: l
 #% type: integer
 #% required: no
 #% multiple: no
@@ -84,7 +84,7 @@
 #% options: 39-810
 #%End
 #%Option
-#% key: AR
+#% key: ar
 #% type: double
 #% required: no
 #% multiple: no
@@ -92,7 +92,7 @@
 #% guisection: Dispersal parameters
 #%End
 #%Option
-#% key: T
+#% key: t
 #% type: integer
 #% required: no
 #% multiple: no
@@ -301,16 +301,16 @@ def main():
 	fm = importr('fishmove')
 
 	#Dispersal parameter input
-	if str(options['species']!="Custom species") and (options['L'] or options['AR']):
-		grass.message(_("Species settings will be overwritten with L and AR"))
+	if str(options['species']!="Custom species") and (options['l'] or options['ar']):
+		grass.message(_("Species settings will be overwritten with l and ar"))
 	species = str(options['species'])
-	if options['L']:
-		L = float(options['L'])
-	if options['AR']:
-		AR = float(options['AR'])
-	T = float(options['T'])
+	if options['l']:
+		l = float(options['l'])
+	if options['ar']:
+		ar = float(options['ar'])
+	t = float(options['t'])
 	# Setting Stream order to a vector of 1:9 and calculate fishmove for all streamorders at once
-	SO = robjects.IntVector((1,2,3,4,5,6,7,8,9))
+	so = robjects.IntVector((1,2,3,4,5,6,7,8,9))
 	m = 0 # m-parameter in dispersal function
 	if (float(options['p']) >= 0 and float(options['p']) < 1):
 		p =float(options['p'])
@@ -326,9 +326,9 @@ def main():
 		seed = ""
 
 	if species == "Custom species":
-		fishmove = eval("fm.fishmove(L=L,AR=AR,SO=SO,T=T,interval=interval,rep=200%s)"%(seed))
+		fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)"%(seed))
 	else:
-		fishmove = eval("fm.fishmove(L=L,AR=AR,SO=SO,T=T,interval=interval,rep=200%s)"%(seed))
+		fishmove = eval("fm.fishmove(L=l,AR=ar,SO=so,T=t,interval=interval,rep=200%s)"%(seed))
 
 
 	# using only part of fishmove results (only regression coeffients)
