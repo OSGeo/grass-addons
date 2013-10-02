@@ -9,8 +9,8 @@
 
 #define nullo -999.9f
 
-float gradx3(float **matrix, int row, int col, float dx, int abs) {
-	float v;
+double gradx3(double **matrix, int row, int col, double dx, int abs) {
+	double v;
 
 	if (matrix[row][col] != nullo && matrix[row][col + 1] != nullo
 			&& matrix[row - 1][col + 1] != nullo
@@ -38,8 +38,8 @@ float gradx3(float **matrix, int row, int col, float dx, int abs) {
 	}
 }
 
-float grady3(float **matrix, int row, int col, float dy, int abs) {
-	float v;
+double grady3(double **matrix, int row, int col, double dy, int abs) {
+	double v;
 
 	if (matrix[row][col] != nullo && matrix[row - 1][col - 1] != nullo
 			&& matrix[row - 1][col] != nullo
@@ -68,8 +68,8 @@ float grady3(float **matrix, int row, int col, float dy, int abs) {
 	}
 }
 
-float gradx2(float **matrix, int row, int col, float dx, int abs) {
-	float v;
+double gradx2(double **matrix, int row, int col, double dx, int abs) {
+	double v;
 
 	if (matrix[row][col] != nullo && matrix[row][col + 1] != nullo
 			&& matrix[row][col - 1] != nullo) {
@@ -87,9 +87,9 @@ float gradx2(float **matrix, int row, int col, float dx, int abs) {
 	}
 }
 
-float gradPx2(float **matrix1, float **matrix2, float **matrix3, int row,
-		int col, float dx) {
-	float v;
+double gradPx2(double **matrix1, double **matrix2, double **matrix3, int row,
+		int col, double dx) {
+	double v;
 
 	if (matrix1[row][col] != nullo && matrix2[row][col] != nullo
 			&& (cos(atan(matrix3[row][col]))) != nullo
@@ -107,8 +107,8 @@ float gradPx2(float **matrix1, float **matrix2, float **matrix3, int row,
 		return nullo;
 }
 
-float grady2(float **matrix, int row, int col, float dy, int abs) {
-	float v;
+double grady2(double **matrix, int row, int col, double dy, int abs) {
+	double v;
 
 	if (matrix[row][col] != nullo && matrix[row + 1][col] != nullo
 			&& matrix[row - 1][col] != nullo) {
@@ -131,9 +131,9 @@ float grady2(float **matrix, int row, int col, float dy, int abs) {
  * gradPy2 (pendenza y, matrice 1, matrice 2, riga, col, res y)
  *
  * */
-float gradPy2(float **matrix1, float **matrix2, float **matrix3, int row,
-		int col, float dy) {
-	float v;
+double gradPy2(double **matrix1, double **matrix2, double **matrix3, int row,
+		int col, double dy) {
+	double v;
 
 	if (matrix1[row][col] != nullo && matrix2[row][col] != nullo
 			&& (cos(atan(matrix3[row][col]))) != nullo
@@ -151,11 +151,11 @@ float gradPy2(float **matrix1, float **matrix2, float **matrix3, int row,
 		return nullo;
 }
 
-float lax(float **matrix, int row, int col, float laxfactor) {
+double lax(double **matrix, int row, int col, double laxfactor) {
 
-	float gg = 0.0;
-	float hh = 0.0;
-	float v;
+	double gg = 0.0;
+	double hh = 0.0;
+	double v;
 
 	if (matrix[row][col] != nullo) {
 
@@ -214,12 +214,12 @@ float lax(float **matrix, int row, int col, float laxfactor) {
 
 }
 
-float filter_lax(float **matrix, int row, int col, float laxfactor, float **filter_matrix,float threshold,float val) {
+double filter_lax(double **matrix, int row, int col, double laxfactor, double **filter_matrix,double threshold,double val) {
 
 
-	float gg = 0.0;
-	float hh = 0.0;
-	float v;
+	double gg = 0.0;
+	double hh = 0.0;
+	double v;
 
 
 	if (matrix[row][col] != nullo && (filter_matrix[row][col] > threshold)) {
@@ -281,12 +281,12 @@ float filter_lax(float **matrix, int row, int col, float laxfactor, float **filt
 }
 
 
-float filter_lax_print(float **matrix, int row, int col, float laxfactor, float **filter_matrix,float threshold,float val) {
+double filter_lax_print(double **matrix, int row, int col, double laxfactor, double **filter_matrix,double threshold,double val) {
 
 
-	float gg = 0.0;
-	float hh = 0.0;
-	float v;
+	double gg = 0.0;
+	double hh = 0.0;
+	double v;
 
 	if (matrix[row][col] != nullo && (filter_matrix[row][col] > threshold)) {
 		if ((matrix[row - 1][col - 1] != nullo)&&(filter_matrix[row - 1][col - 1] > threshold)) {

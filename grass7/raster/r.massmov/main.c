@@ -32,16 +32,18 @@
 #include <grass/glocale.h>
 #include "filters.h"
 #include "general_f.h"
+#include "omp.h"
 
 /* numerical stability control */
 #define CFLlimsup  0.5 			/* Higher value of the Courant-Friedrichs-Levy */
 #define CFLliminf  0.3			/* Lower value of the Courant-Friedrichs-Levy */
-#define MinNLoops  1 			  /* Minimum number of internal loops */
+#define MinNLoops  1 		    /* Minimum number of internal loops */
 #define MaxNLoops  124 			/* Maximum number of internal loops */
 #define InitialLoops  1  		/* Initial number of internal loops */
 #define laxfactor  0.5 			/* Low pass filtering for the lax function (0 = no filtering) */
 #define dTLeap  0.3 	   		/* Fraction of dT, used for time extrapolation of fluxes */
-#define verysmall  0.01 		/* threshold to avoid div by very small values */
+#define verysmall 0.000001 		/* threshold to avoid div by very small values */
+#define small  0.001 		    /* threshold to avoid div by very small values */
 #define nullo -999.9f
 
 /* timestep control */
@@ -75,13 +77,13 @@ int main(int argc, char *argv[]) {
 	char *mapset_DIST;
 
 	/* input buffer */
-	FCELL *inrast_ELEV;
-	FCELL *inrast_HINI;
-	FCELL *inrast_DIST;
+	DCELL *inrast_ELEV;
+	DCELL *inrast_HINI;
+	DCELL *inrast_DIST;
 
 	/* output buffer */
-	float *outrast_H;
-	float *outrast_V;
+	double *outrast_H;
+	double *outrast_V;
 
 	/* input file descriptor */
 	int infd_ELEV;
@@ -95,13 +97,12 @@ int main(int argc, char *argv[]) {
 	/* cell counters */
 	int row, col;
 	int nrows, ncols;
-	float res_ns, res_ew, ca;
+	double res_ns, res_ew, ca;
 
 	/* input & output arguments */
-	int TIMESTEPS, DELTAT, RHEOL_TYPE;
-	float RHO, YSTRESS, CHEZY, VISCO, BFRICT, IFRICT, FLUID,NS_THRES;
-	char RHEOL;
-	char name1[20];
+	int TIMESTEPS, DELTAT, RHEOL_TYPE,STEP_THRES,THREADS;
+	double RHO, YSTRESS, CHEZY, VISCO, BFRICT, IFRICT, FLUID,STOP_THRES;
+	char name1[20],timestr[256];
 	char *name_ELEV;
 	char *name_HINI;
 	char *name_DIST;
@@ -111,36 +112,35 @@ int main(int argc, char *argv[]) {
 	char *result_VMAX;
 
 	/* memory matrix */
-	float **m_ELEV, **m_HINI, **m_DIST;
+	double **m_ELEV, **m_HINI, **m_DIST;
 	int **m_OUTLET;
-	float **m_gx, **m_gy, **m_slope;
-	float **m_H, **m_Hloop_dt, **m_Hloop, **m_V, **m_Vloop, **m_Vloop_dt, **m_U,
+	double **m_gx, **m_ca_gx,**m_gy, **m_ca_gy,**m_slope;
+	double **m_H, **m_Hloop_dt, **m_Hloop, **m_V, **m_Vloop, **m_Vloop_dt, **m_U,
 			**m_Uloop, **m_Uloop_dt, **m_HUloop, **m_HVloop, **m_Hold, **m_Hmax, **m_Vmax;
-	float **m_K, **m_Kloop, **m_Hland, **TEST;
+	double **m_K, **m_Kloop;
+	double mem;
 
-	/*int variables */
+	/* variables */
 
-	float elev_fcell_val, dist_fcell_val, hini_fcell_val;
-	int outlet_cell_val;
+	double elev_fcell_val, dist_fcell_val, hini_fcell_val;
 
-	float gx, gy, slope;
-	float k_act, k_pas;
-	float G_x, G_y, I_x, I_y, P_x, P_y, T, T_x, T_y, T_x_b, T_y_b, T_b;
-	float ddt, dt;
-	float Uloop_a, Vloop_a, Uloop_b, Vloop_b, vel, vel_b, Uloop_dt, Vloop_dt, Hloop_a, Hloop_dt, dH_dT, H_fluid;
-	float CFL, CFL_u, CFL_v;
-	float Vol_gone_loop, Vol_exp_loop, mbe;
-	float NS,NSold;
+	double gx, gy, slope;
+	double k_act, k_pas;
+	double G_x, G_y, I_x, I_y, P_x, P_y, T, T_x, T_y, T_x_b, T_y_b, T_b;
+	double ddt, dt;
+	double Uloop_a, Vloop_a, Uloop_b, Vloop_b, vel, vel_b, Uloop_dt, Vloop_dt, Hloop_a, Hloop_dt, dH_dT, H_fluid;
+	double CFL, CFL_u, CFL_v;
+	double mbe;
+	double pears;
 	int testPar;
-
 	/***********************************************************************************************************************/
 	/* GRASS structure */
 	struct GModule *module;
 	struct Option *input_ELEV, *input_HINI,*input_DIST,
 			*input_RHEOL, *input_RHO, *input_YSTRESS, *input_CHEZY,
 			*input_VISCO, *input_BFRICT, *input_IFRICT, *input_FLUID,
-			*input_TIMESTEPS, *input_DELTAT, *output_H, *output_VEL, *input_NS_THRES, *output_HMAX, *output_VMAX;
-	struct Flag *flag_i;
+			*input_TIMESTEPS, *input_DELTAT, *output_H, *output_VEL, *input_STOP_THRES, *input_STEP_THRES,*input_THREADS,*output_HMAX, *output_VMAX;
+	struct Flag *flag_i,*flag_mem;
 
 	/* initialize GIS environment */
 	G_gisinit(argv[0]);
@@ -259,13 +259,29 @@ int main(int argc, char *argv[]) {
 	input_DELTAT->description = _("Reporting time frequency [s]");
 	input_DELTAT->guisection = _("Input options");
 
-	input_NS_THRES = G_define_option();
-	input_NS_THRES->key = "ns_thres";
-	input_NS_THRES->type = TYPE_DOUBLE;
-	input_NS_THRES->required = NO;
-	input_NS_THRES->multiple = NO;
-	input_NS_THRES->description = _("Threshold for Nash-Sutcliffe convergence [-]");
-	input_NS_THRES->guisection = _("Input options");
+	input_STOP_THRES = G_define_option();
+	input_STOP_THRES->key = "stop_thres";
+	input_STOP_THRES->type = TYPE_DOUBLE;
+	input_STOP_THRES->required = NO;
+	input_STOP_THRES->multiple = NO;
+	input_STOP_THRES->description = _("Pearson value threshold for simulation stop [-]");
+	input_STOP_THRES->guisection = _("Input options");
+	
+        input_STEP_THRES = G_define_option();
+	input_STEP_THRES->key = "step_thres";
+	input_STEP_THRES->type = TYPE_INTEGER;
+	input_STEP_THRES->required = NO;
+	input_STEP_THRES->multiple = NO;
+	input_STEP_THRES->description = _("Number of time steps for evaluating stop_thres value [-]");
+	input_STEP_THRES->guisection = _("Input options");
+	
+	input_THREADS = G_define_option();
+	input_THREADS->key = "threads";
+	input_THREADS->type = TYPE_INTEGER;
+	input_THREADS->required = NO;
+	input_THREADS->multiple = NO;
+	input_THREADS->description = _("Number of threads for parallel computing");
+	input_THREADS->guisection = _("Input options");	
 
 	output_H = G_define_option();
 	output_H->key = "h";
@@ -303,6 +319,11 @@ int main(int argc, char *argv[]) {
     flag_i->key = 'i';
     flag_i->description = _("Print input data");
 
+    flag_mem = G_define_flag();
+    flag_mem->key = 'm';
+    flag_mem->description = _("Print memory usage requirements");
+
+
 	if (G_parser(argc, argv))
 		exit(EXIT_FAILURE);
 
@@ -329,50 +350,76 @@ int main(int argc, char *argv[]) {
 
 
 	if (input_RHO->answer)
-		sscanf(input_RHO->answer, "%f", &RHO);
+		sscanf(input_RHO->answer, "%lf", &RHO);
 	else
 		RHO = -1;
 
 	if (input_YSTRESS->answer)
-		sscanf(input_YSTRESS->answer, "%f", &YSTRESS);
+		sscanf(input_YSTRESS->answer, "%lf", &YSTRESS);
 	else
 		YSTRESS = -1;
 
 	if (input_CHEZY->answer)
-		sscanf(input_CHEZY->answer, "%f", &CHEZY);
+		sscanf(input_CHEZY->answer, "%lf", &CHEZY);
 	else
 		CHEZY = -1;
 	
 	if (input_VISCO->answer)
-		sscanf(input_VISCO->answer, "%f", &VISCO);
+		sscanf(input_VISCO->answer, "%lf", &VISCO);
 	else
 		VISCO = -1;
 	
 	if (input_BFRICT->answer)
-		sscanf(input_BFRICT->answer, "%f", &BFRICT);
+		sscanf(input_BFRICT->answer, "%lf", &BFRICT);
 	else
 		BFRICT = -1;
 
-	if (input_NS_THRES->answer)
-		sscanf(input_NS_THRES->answer, "%f", &NS_THRES);
+	if (input_STOP_THRES->answer)
+		sscanf(input_STOP_THRES->answer, "%lf", &STOP_THRES);
 	else
-		NS_THRES = -1;
+		STOP_THRES = -1;
 
-	sscanf(input_IFRICT->answer, "%f", &IFRICT);
+	sscanf(input_IFRICT->answer, "%lf", &IFRICT);
 
-	sscanf(input_FLUID->answer, "%f", &FLUID);
+	sscanf(input_FLUID->answer, "%lf", &FLUID);
 
 	if (input_DELTAT->answer)
 		DELTAT = atoi(input_DELTAT->answer);
 	else
 		DELTAT = -1;
+		
+	if (input_STEP_THRES->answer)
+		STEP_THRES = atoi(input_STEP_THRES->answer);
+	else
+		STEP_THRES = -1;		
 
 	TIMESTEPS = atoi(input_TIMESTEPS->answer);
-
+	
+	if (input_THREADS->answer)
+		THREADS = atoi(input_THREADS->answer);
+	else
+		THREADS = -1;		
+		
+		
+    /* setting number of threads */
+    
+    if (THREADS!=-1) {
+        int max_th = omp_get_max_threads( );
+        if (THREADS<=max_th)
+            omp_set_num_threads(THREADS);
+        else
+            G_fatal_error(_("The maximum number of parallel threads available is %i"),max_th);
+    }
+    
 	/* check outputs required */
 	if (!((result_H) || (result_V) || (result_HMAX) || (result_VMAX))){
 		G_fatal_error(_("No output specified"));
 	}
+
+	/* check simulation stopping parameters required */
+	if (((STOP_THRES!=-1)&&(STEP_THRES==-1))||((STEP_THRES!=-1)&&(STOP_THRES==-1))){
+		G_fatal_error(_("To apply the stopping criterion both the threshold value and the calculation step of stopping criterion are required"));
+	}		
 	
 	/* check rheology parameters */
 	testPar = check_rheol_par(RHEOL_TYPE, CHEZY, VISCO, RHO);
@@ -385,7 +432,7 @@ int main(int argc, char *argv[]) {
 	
 	/* report Input Data */
 	if (flag_i->answer){
-		report_input(IFRICT,RHO, YSTRESS, VISCO, CHEZY, BFRICT,FLUID, NS_THRES, TIMESTEPS, DELTAT);
+		report_input(IFRICT,RHO, YSTRESS, VISCO, CHEZY, BFRICT,FLUID, STOP_THRES, STEP_THRES, TIMESTEPS, DELTAT,THREADS);
 	}
 
 	G_debug(2,"Verifiyng raster maps input data...");
@@ -407,7 +454,6 @@ int main(int argc, char *argv[]) {
 	if ((infd_ELEV = Rast_open_old(name_ELEV, mapset_ELEV)) < 0)
 		G_fatal_error(_("Cannot open cell file [%s]"), name_ELEV);
 
-
 	if ((infd_DIST = Rast_open_old(name_DIST, mapset_DIST)) < 0)
 		G_fatal_error(_("Cannot open cell file [%s]"), name_DIST);
 
@@ -427,9 +473,9 @@ int main(int argc, char *argv[]) {
 
 
 	/* allocate input buffer */
-	inrast_ELEV = Rast_allocate_f_buf(); 
-	inrast_DIST = Rast_allocate_f_buf();
-	inrast_HINI = Rast_allocate_f_buf();
+	inrast_ELEV = Rast_allocate_d_buf(); 
+	inrast_DIST = Rast_allocate_d_buf();
+	inrast_HINI = Rast_allocate_d_buf();
 
 	G_debug(1,"Getting region extension...");
 
@@ -440,43 +486,51 @@ int main(int argc, char *argv[]) {
 	res_ew = window.ew_res;
 	res_ns = window.ns_res;
 	ca = res_ns * res_ew;
+	
+    /* memory flag */
+
+	if (flag_mem->answer){
+        mem = (((25.0*sizeof(double)*nrows*ncols)/pow(1024.0,2))+0.55);
+		fprintf(stdout,"The memory required to run the model on the selected region is about %f MB\n", mem);
+	}
 
 
 	G_debug(2,"Allocating memory matrix...");
 
 	/* allocate memory matrix */
-	m_ELEV = G_alloc_fmatrix(nrows, ncols);
+	m_ELEV = G_alloc_matrix(nrows, ncols);
 	m_OUTLET = G_alloc_imatrix(nrows, ncols);
-	m_DIST = G_alloc_fmatrix(nrows, ncols);
-	m_HINI = G_alloc_fmatrix(nrows, ncols);
-	m_gx = G_alloc_fmatrix(nrows, ncols);
-	m_gy = G_alloc_fmatrix(nrows, ncols);
-	m_slope = G_alloc_fmatrix(nrows, ncols);
-	m_U = G_alloc_fmatrix(nrows, ncols);
-	m_Uloop = G_alloc_fmatrix(nrows, ncols);
-	m_Uloop_dt = G_alloc_fmatrix(nrows, ncols);
-	m_V = G_alloc_fmatrix(nrows, ncols);
-	m_Vloop = G_alloc_fmatrix(nrows, ncols);
-	m_Vloop_dt = G_alloc_fmatrix(nrows, ncols);
-	m_H = G_alloc_fmatrix(nrows, ncols);
-	m_Hloop = G_alloc_fmatrix(nrows, ncols);
-	m_Hloop_dt = G_alloc_fmatrix(nrows, ncols);
-	m_Hland = G_alloc_fmatrix(nrows, ncols);
-	m_K = G_alloc_fmatrix(nrows, ncols);
-	m_Kloop = G_alloc_fmatrix(nrows, ncols);
-	m_HUloop = G_alloc_fmatrix(nrows, ncols);
-	m_HVloop = G_alloc_fmatrix(nrows, ncols);
+	m_DIST = G_alloc_matrix(nrows, ncols);
+	m_HINI = G_alloc_matrix(nrows, ncols);
+	m_gx = G_alloc_matrix(nrows, ncols);
+	m_ca_gx = G_alloc_matrix(nrows, ncols);	
+	m_gy = G_alloc_matrix(nrows, ncols);
+	m_ca_gy = G_alloc_matrix(nrows, ncols);		
+	m_slope = G_alloc_matrix(nrows, ncols);
+	m_U = G_alloc_matrix(nrows, ncols);
+	m_Uloop = G_alloc_matrix(nrows, ncols);
+	m_Uloop_dt = G_alloc_matrix(nrows, ncols);
+	m_V = G_alloc_matrix(nrows, ncols);
+	m_Vloop = G_alloc_matrix(nrows, ncols);
+	m_Vloop_dt = G_alloc_matrix(nrows, ncols);
+	m_H = G_alloc_matrix(nrows, ncols);
+	m_Hloop = G_alloc_matrix(nrows, ncols);
+	m_Hloop_dt = G_alloc_matrix(nrows, ncols);
+	m_K = G_alloc_matrix(nrows, ncols);
+	m_Kloop = G_alloc_matrix(nrows, ncols);
+	m_HUloop = G_alloc_matrix(nrows, ncols);
+	m_HVloop = G_alloc_matrix(nrows, ncols);
 
-	if (NS_THRES!=-1){
-		m_Hold= G_alloc_fmatrix(nrows, ncols);
+	if (STOP_THRES!=-1){
+		m_Hold= G_alloc_matrix(nrows, ncols);
 	}
 
 	if (result_HMAX){
-		m_Hmax = G_alloc_fmatrix(nrows, ncols);
+		m_Hmax = G_alloc_matrix(nrows, ncols);
 	}
 
 	if (result_VMAX){
-		m_Vmax = G_alloc_fmatrix(nrows, ncols);
+		m_Vmax = G_alloc_matrix(nrows, ncols);
 	}
 
 	/* read rows */
@@ -484,34 +538,34 @@ int main(int argc, char *argv[]) {
 	for (row = 0; row < nrows; row++) {
 
 		/* read a line input maps into buffers*/
-		Rast_get_f_row(infd_ELEV, inrast_ELEV, row);
-		Rast_get_f_row(infd_DIST, inrast_DIST, row);
-		Rast_get_f_row(infd_HINI, inrast_HINI, row);
+		Rast_get_d_row(infd_ELEV, inrast_ELEV, row);
+		Rast_get_d_row(infd_DIST, inrast_DIST, row);
+		Rast_get_d_row(infd_HINI, inrast_HINI, row);
 
 		for (col = 0; col < ncols; col++) {
-			elev_fcell_val = ((FCELL *) inrast_ELEV)[col];
-			dist_fcell_val = ((FCELL *) inrast_DIST)[col];
-			hini_fcell_val = ((FCELL *) inrast_HINI)[col];
+			elev_fcell_val = ((DCELL *) inrast_ELEV)[col];
+			dist_fcell_val = ((DCELL *) inrast_DIST)[col];
+			hini_fcell_val = ((DCELL *) inrast_HINI)[col];
 
 			/* elevation map */
-			if (Rast_is_f_null_value(&elev_fcell_val) == 1) {
+			if (Rast_is_d_null_value(&elev_fcell_val) == 1) {
 				m_ELEV[row][col] = nullo;
 			} else {
-				m_ELEV[row][col] = ((FCELL *) inrast_ELEV)[col];
+				m_ELEV[row][col] = ((DCELL *) inrast_ELEV)[col];
 			}
 
 			/* distance map */
-			if (Rast_is_f_null_value(&dist_fcell_val) == 1) {
+			if (Rast_is_d_null_value(&dist_fcell_val) == 1) {
 				m_DIST[row][col] = nullo;
 			} else {
-				m_DIST[row][col] = ((FCELL *) inrast_DIST)[col];
+				m_DIST[row][col] = ((DCELL *) inrast_DIST)[col];
 			}
 
 			/* hini map */      
-			if (Rast_is_f_null_value(&hini_fcell_val) == 1) {
+			if (Rast_is_d_null_value(&hini_fcell_val) == 1) {
 				m_HINI[row][col] = nullo;
 			} else {
-				m_HINI[row][col] = ((FCELL *) inrast_HINI)[col];
+				m_HINI[row][col] = ((DCELL *) inrast_HINI)[col];
 			}
 
 		}
@@ -539,15 +593,15 @@ int main(int argc, char *argv[]) {
 	G_debug(1,"K_act value = %f",k_act);
 
 
-	/* inizializzazione matrici in memoria: U,V,H,gx,gz,slope */
+	/* matrix initialisation */
 
+	#pragma omp parallel for private (row,col)
 	for (row = 0; row < nrows; row++) {
 		for (col = 0; col < ncols; col++) {
 
 			m_H[row][col] = 0;
 			m_Hloop[row][col] = 0;
 			m_Hloop_dt[row][col] = 0;
-			m_Hland[row][col] = 0;
 			m_U[row][col] = 0;
 			m_Uloop[row][col] = 0;
 			m_Uloop_dt[row][col] = 0;
@@ -556,13 +610,16 @@ int main(int argc, char *argv[]) {
 			m_Vloop_dt[row][col] = 0;
 			m_K[row][col] = nullo;
 			m_gx[row][col] = nullo;
+			m_ca_gx[row][col] = nullo;			
 			m_gy[row][col] = nullo;
+			m_ca_gy[row][col] = nullo;	
 			m_slope[row][col] = nullo;
 			m_HUloop[row][col] = 0;
 			m_HVloop[row][col] = 0;
 		}
 	}
 
+	#pragma omp parallel for private (row,col)
 	for (row = 0; row < nrows; row++) {
 		for (col = 0; col < ncols; col++) {
 			if (row==0 || row==1 || col==0 || col==1 || row==nrows-1 || col==ncols-1 || row==nrows-2 || col==ncols-2)
@@ -573,7 +630,8 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	if (NS_THRES!=-1){
+	if (STOP_THRES!=-1){
+	    #pragma omp parallel for private (row,col)
 		for (row = 0; row < nrows; row++) {
 			for (col = 0; col < ncols; col++) {
 				m_Hold[row][col] = 0;
@@ -583,6 +641,7 @@ int main(int argc, char *argv[]) {
 
 
 	if (result_HMAX){
+	    #pragma omp parallel for private (row,col)
 		for (row = 0; row < nrows; row++) {
 			for (col = 0; col < ncols; col++) {
 				m_Hmax[row][col] = 0;
@@ -591,6 +650,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (result_VMAX){
+	    #pragma omp parallel for private (row,col)
 		for (row = 0; row < nrows; row++) {
 			for (col = 0; col < ncols; col++) {
 				m_Vmax[row][col] = 0;
@@ -600,20 +660,23 @@ int main(int argc, char *argv[]) {
 
 
 
-   /*---------------------------------------------------------- */
-   /* calcolo matrici gx, gy, slope */
+   /*---------------------------------------------------------- *\
+   /* Calculation of slope matrix */
 
+    #pragma omp parallel for private (row,col,gx,gy,slope)
 	for (row = 1; row < nrows - 1; row++) {
 		for (col = 1; col < ncols - 1; col++) {
 
 			gx = gradx2(m_ELEV, row, col, res_ew, 0);
 			gy = grady2(m_ELEV, row, col, res_ns, 0);
 
-			/* slope calcolata con Horn 3x3 */
+			/* Slope calculation using Horn 3x3 */
 			slope = sqrt(pow(gradx3(m_ELEV, row, col, res_ew, 0), 2) + pow(grady3(m_ELEV, row, col, res_ns, 0), 2));
 			m_gx[row][col] = gx;
+			m_ca_gx[row][col] = cos(atan(gx));
 			m_gy[row][col] = gy;
-			m_slope[row][col] = slope;
+			m_ca_gy[row][col] = cos(atan(gy));
+			m_slope[row][col] = cos(atan(slope));
 
 		}
 	}
@@ -622,55 +685,64 @@ int main(int argc, char *argv[]) {
 	/* Starting loops*/
 	int t=1;
 	int i;
-	int loop, n_loops = 1;
-	float incr_volexp = 0;
-	float Vol_gone=0;
-	float Vol_exp=0;
-	float Vol_actual=0;
-	int NS_count = 0;
+	int loop, n_loops = 1,dn_loops=0;
+	int STOP_count = 0;
+	double Vol_in=0;
+	double Vol_sim=0;
+	double Vol_out_t=0;
+	double Vol_in_tot=0;
+	double Vol_out_tot_corr=0;
+	double Vol_in_tot_loop=0;
+	double Vol_out_tot_corr_loop=0;	
 
 
-	/* while: for each timestep or until NS_count<3 */
-    while (NS_count<3 && t<=TIMESTEPS) {
+	/* while: for each timestep or until STOP_count<3 */
+    while (STOP_count<3 && t<=TIMESTEPS) {
+
 		i = t - 1;
 
-		float CFL_max = 0;
+		double CFL_max = 0;
 		int stable = 0;
-
+        
 		for (row = 1; row < nrows - 1; row++) {
 			for (col = 1; col < ncols - 1; col++) {
+				/* H_ini cells completely activated */
+				if (m_HINI[row][col] > 0.0){
+					if (t * dT * FLUID >= m_DIST[row][col]+(res_ew+res_ns)/4) {
+						m_H[row][col] += m_HINI[row][col];
+						Vol_in += (m_HINI[row][col]/(m_slope[row][col]))*ca;
+						m_HINI[row][col] = 0;
+						
+				/* H_ini cells partially activated */
+					} else if ( (t * dT * FLUID <= m_DIST[row][col]+(res_ew+res_ns)/4) && (t * dT * FLUID > m_DIST[row][col]-(res_ew+res_ns)/4) ) {
+						m_H[row][col] += ((t * dT * FLUID)-(m_DIST[row][col]-(res_ew+res_ns)/4))/((res_ew+res_ns)/2)*m_HINI[row][col];
+						Vol_in += ((((t * dT * FLUID)-(m_DIST[row][col]-(res_ew+res_ns)/4))/((res_ew+res_ns)/2)*m_HINI[row][col])/(m_slope[row][col]))*ca;
+						m_HINI[row][col] -= ((t * dT * FLUID)-(m_DIST[row][col]-(res_ew+res_ns)/4))/((res_ew+res_ns)/2)*m_HINI[row][col];							
 
-				/* Ricalcolo H in funzione di H_fluid e calcolo incremento di Volume aspettato */
-				if (m_DIST[row][col] <= i * dT * FLUID
-						&& m_DIST[row][col] > (i - 1) * dT * FLUID) {
-					H_fluid = m_HINI[row][col];
-					m_H[row][col] += H_fluid;
-				} else {
-					H_fluid = 0.0;
+				/* otherwise continue */
+					} else {
+						continue;
+					}
 				}
-				incr_volexp += H_fluid/(cos(atan(m_slope[row][col])))*ca;
+			} /* row */
+		} /* col */
 
 
-				/* Calcolo Hland */
-				if (m_DIST[row][col] > i * dT * FLUID) {
-					m_Hland[row][col] = m_HINI[row][col];
-				} else {
-					m_Hland[row][col] = 0.0;
-				}
-			}
-		}
-
+		
 		G_debug(1,"\nTIMESTEP %i",t);
-		G_debug(1,"Volume expected increment = %f",incr_volexp);
+		G_debug(1,"Volume increment = %f",Vol_in);
 
 		/* ciclo while */
 		while (stable==0) {
 			int exit = 0;
+			n_loops = n_loops+dn_loops;
+			dn_loops=0;
 
 
 			G_debug(2,"Updating maps and volumes");
 
-			/* Aggiornamento Hloop,Vloop e Uloop */
+			/* Hloop,Vloop e Uloop updating */
+            #pragma omp parallel for private (row,col)
 			for (row = 1; row < nrows - 1; row++) {
 				for (col = 1; col < ncols - 1; col++) {
 					m_Hloop[row][col] = m_H[row][col];
@@ -679,13 +751,12 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
-			/* Aggiornamento Volumi */
-			Vol_gone_loop = Vol_gone;
-			Vol_exp_loop = Vol_exp;
-			Vol_actual = 0;
+			/* volumes updating */
+			Vol_in_tot = Vol_in_tot_loop;
+			Vol_out_tot_corr = Vol_out_tot_corr_loop;
 
 
-			/* Per ogni iterazione */
+			/* for each iteration */
 			G_debug(1,"\n---NLOOPS=%i---",n_loops);
 			for (loop = 1; loop <= n_loops && exit == 0; loop++) {
 				G_debug(1,"\n-LOOP=%i",loop);
@@ -714,10 +785,13 @@ int main(int argc, char *argv[]) {
 				/* ciclo row-col per calcolare G, P, I, T, Tb */
 				G_debug(2,"Calculating G, P, I, T, Tb");
 
-				for (row = 1; row < nrows - 1 && exit == 0; row++) {
-					for (col = 1; col < ncols - 1 && exit == 0; col++) {
+                #pragma omp parallel for private (row,col,G_x,G_y,I_x,I_y,P_x,P_y,T,vel,T_x,T_y,ddt,Uloop_a,Uloop_b,Vloop_a,Vloop_b,vel_b,T_b,T_x_b,T_y_b,Uloop_dt,Vloop_dt,dt,CFL_u,CFL_v,CFL) shared (dn_loops,CFL_max)
+				for (row = 1; row < nrows - 1; row++) {
+				    if (exit == 1) continue;
+					for (col = 1; col < ncols - 1; col++) {
+					    if (exit == 1) continue;
 
-						/* Calcolo G_x e G_y */
+						/* G_x and G_y calculation */
 
 						if (m_Hloop[row][col] > verysmall) {
 							G_x = -grav * (sin(atan(m_gx[row][col])));
@@ -733,39 +807,39 @@ int main(int argc, char *argv[]) {
 						}
 
 
-						/* Calcolo I_x e I_y */
+						/* I_x and I_y calculation */
 
-						I_x = -((m_Uloop[row][col] * (cos(atan(m_gx[row][col])))
+						I_x = -((m_Uloop[row][col] * (m_ca_gx[row][col])
 								* gradx2(m_Uloop, row, col, res_ew, 1))
-								+ (m_Vloop[row][col] * (cos(atan(m_gy[row][col])))
+								+ (m_Vloop[row][col] * (m_ca_gy[row][col])
 										* grady2(m_Uloop, row, col, res_ew, 1)));
 
-						I_y = -((m_Uloop[row][col] * (cos(atan(m_gx[row][col])))
+						I_y = -((m_Uloop[row][col] * (m_ca_gx[row][col])
 								* gradx2(m_Vloop, row, col, res_ew, 1))
-								+ (m_Vloop[row][col] * (cos(atan(m_gy[row][col])))
+								+ (m_Vloop[row][col] * (m_ca_gy[row][col])
 										* grady2(m_Vloop, row, col, res_ns, 1)));
 
 
-						/* Calcolo P_x e P_y */
+						/* P_x and P_y calculation */
 
 						if (m_Hloop[row][col] > verysmall) {
-							P_x = -m_Kloop[row][col] * cos(atan(m_gx[row][col]))
-									* gradPx2(m_Hloop, m_Hland, m_gx, row, col,
+							P_x = -m_Kloop[row][col] * m_ca_gx[row][col]
+									* gradPx2(m_Hloop, m_HINI, m_gx, row, col,
 											res_ew);
 						} else {
 							P_x = 0.0;
 						}
 
 						if (m_Hloop[row][col] > verysmall) {
-							P_y = -m_Kloop[row][col] * cos(atan(m_gy[row][col]))
-									* gradPy2(m_Hloop, m_Hland, m_gy, row, col,
+							P_y = -m_Kloop[row][col] * m_ca_gy[row][col]
+									* gradPy2(m_Hloop, m_HINI, m_gy, row, col,
 											res_ns);
 						} else {
 							P_y = 0.0;
 						}
 
 
-						/* Calcolo T_x e T_y */
+						/* T_x and T_y calculation */
 
 						vel = sqrt(
 								pow(m_Uloop[row][col], 2)
@@ -787,32 +861,32 @@ int main(int argc, char *argv[]) {
 
 						if (m_Hloop[row][col] > verysmall && vel > verysmall) {
 							T_x = fabs(m_Uloop[row][col]) / vel * grav
-									* (cos(atan(m_gx[row][col]))) * T;
+									* (m_ca_gx[row][col]) * T;
 							T_y = fabs(m_Vloop[row][col]) / vel * grav
-									* (cos(atan(m_gy[row][col]))) * T;
+									* (m_ca_gy[row][col]) * T;
 						}
 
 						else {
-							T_x = grav * (cos(atan(m_gx[row][col]))) * T;
-							T_y = grav * (cos(atan(m_gy[row][col]))) * T;
+							T_x = grav * (m_ca_gx[row][col]) * T;
+							T_y = grav * (m_ca_gy[row][col]) * T;
 						}
 
 
-						/* Stima del flusso a t + ddt */
+						/* flow estimation at t + ddt */
 						ddt = dTLeap * dT / n_loops;
 
-						/* Lax su Uloop e Vloop se is_df altrimenti 0 */
+						/* if(is_df,lax(Uloop,Vloop),0) */
 
 						Uloop_a = filter_lax(m_Uloop, row, col, laxfactor, m_Hloop, 0.01, 0.0);
 						Vloop_a = filter_lax(m_Vloop, row, col, laxfactor, m_Hloop, 0.01, 0.0);
 
-						/* Calcolo U_loop_b e V_loop_b */
+						/* U_loop_b and V_loop_b calculation */
 
 						Uloop_b = veldt(Uloop_a, ddt, G_x, P_x, I_x, T_x);
 						Vloop_b = veldt(Vloop_a, ddt, G_y, P_y, I_y, T_y);
 
 
-						/* Calcolo T_x_b, T_y_b in funzione delle nuove Uloop_b, Vloop_b */
+						/* calculation of T_x_b and T_y_b as function of Uloop_b and Vloop_b */
 
 						vel_b = sqrt(pow(Uloop_b, 2) + pow(Vloop_b, 2));
 
@@ -834,29 +908,29 @@ int main(int argc, char *argv[]) {
 
 						if (m_Hloop[row][col] > verysmall && vel_b > verysmall) {
 							T_x_b = fabs(Uloop_b) / vel_b * grav
-									* (cos(atan(m_gx[row][col]))) * T_b;
+									* (m_ca_gx[row][col]) * T_b;
 							T_y_b = fabs(Vloop_b) / vel_b * grav
-									* (cos(atan(m_gy[row][col]))) * T_b;
+									* (m_ca_gy[row][col]) * T_b;
 						} else {
-							T_x_b = grav * (cos(atan(m_gx[row][col]))) * T_b;
-							T_y_b = grav * (cos(atan(m_gy[row][col]))) * T_b;
+							T_x_b = grav * (m_ca_gx[row][col]) * T_b;
+							T_y_b = grav * (m_ca_gy[row][col]) * T_b;
 						}
 
 
-						/* Stima del flusso a t + dt*/
+						/* Flow estimation at t + dt*/
 
 						dt = dT / n_loops;
 						Uloop_dt = veldt(Uloop_a, dt, G_x, P_x, I_x, T_x_b);
 						Vloop_dt = veldt(Vloop_a, dt, G_y, P_y, I_y, T_y_b);
 
-						/* Calcolo del valore Courant-Friendrichs-Levy */
+						/* Courant-Friedrichs-Levy value calculation */
 
 						CFL_u = dt * sqrt(2)
-								* fabs((cos(atan(m_gx[row][col]))) * Uloop_dt)
+								* fabs((m_ca_gx[row][col]) * Uloop_dt)
 								/ res_ew;
 
 						CFL_v = dt * sqrt(2)
-								* fabs((cos(atan(m_gy[row][col]))) * Vloop_dt)
+								* fabs((m_ca_gy[row][col]) * Vloop_dt)
 								/ res_ns;
 
 						CFL = max(CFL_u,CFL_v);
@@ -865,11 +939,12 @@ int main(int argc, char *argv[]) {
 						if (CFL > CFL_max)
 							CFL_max = CFL;
 
-						/*	Verifica della condizione di stabilità */
+						/*	stability condition */
 
 						if (CFL_max > CFLlimsup && n_loops < MaxNLoops) {
 							exit = 1;
-							n_loops += 1;
+							dn_loops = 1;
+							//n_loops += 1;
 							CFL_max=0;
 						} else {
 							m_Uloop_dt[row][col] = Uloop_dt;
@@ -892,72 +967,88 @@ int main(int argc, char *argv[]) {
 				if (exit==0) {
 					G_debug(2,"Calculating Hloop_dt without mbe for loop");
 
-					for (row = 1; row < nrows - 1 && exit == 0; row++) {
-						for (col = 1; col < ncols - 1 && exit == 0; col++) {
+                    #pragma omp parallel for private (row,col,dH_dT,Hloop_a,Hloop_dt)
+					for (row = 1; row < nrows - 1; row++) {
+						for (col = 1; col < ncols - 1; col++) {
 
-							/* calcolo dH/dT */
-							dH_dT = -cos(atan(m_gx[row][col]))* (shift0(m_HUloop,row,col,nrows-1,ncols-1,1,1,0,-1)-shift0(m_HUloop,row,col,nrows-1,ncols-1,1,1,0,1))/(2*res_ew/cos(atan(m_gx[row][col])))
-									-cos(atan(m_gy[row][col]))* (shift0(m_HVloop,row,col,nrows-1,ncols-1,1,1,1,0)-shift0(m_HVloop,row,col,nrows-1,ncols-1,1,1,-1,0))/(2*res_ns/cos(atan(m_gy[row][col])));
+							/* dH/dT calculation */
+
+							dH_dT = -m_ca_gx[row][col]* (shift0(m_HUloop,row,col,nrows-1,ncols-1,1,1,0,-1)-shift0(m_HUloop,row,col,nrows-1,ncols-1,1,1,0,1))/(2*res_ew/m_ca_gx[row][col])
+									-m_ca_gy[row][col]* (shift0(m_HVloop,row,col,nrows-1,ncols-1,1,1,1,0)-shift0(m_HVloop,row,col,nrows-1,ncols-1,1,1,-1,0))/(2*res_ns/m_ca_gy[row][col]);
+
 
 							/* Lax su Hloop e calcolo Hloop_dt (senza mbe) */
-
 							if (dH_dT==0) {
 								Hloop_a=m_Hloop[row][col];
 							} else {
+
 								Hloop_a = filter_lax(m_Hloop, row, col, laxfactor, m_Hloop, 0.01, 0.0);
 							}
 
 							Hloop_dt = Hloop_a - dT/n_loops * dH_dT;
 
-
-							/* Vol_gone_loop */
-							Vol_actual += Hloop_dt/(cos(atan(m_slope[row][col])))*ca;
-							if (m_OUTLET[row][col]==1){
-								/*Vol_gone_no_mbe = Hloop_dt/(cos(atan(m_slope[row][col])))*ca;*/
-								Vol_gone_loop += Hloop_dt/(cos(atan(m_slope[row][col])))*ca;
-								Hloop_dt = 0.0;
-							}
-
 							/* matrice H_loop_dtemp */
-							m_Hloop_dt[row][col] = Hloop_dt;
+							if (Hloop_dt> verysmall)
+								m_Hloop_dt[row][col] = Hloop_dt;
+							else
+								m_Hloop_dt[row][col] = 0.0;
+
+						}/*chiusura FOR col*/
+					}/*chiusura FOR row*/
+
+					for (row = 1; row < nrows - 1; row++) {
+						for (col = 1; col < ncols - 1; col++) {
+
+					        /* Vol_out_t */
+							if (m_OUTLET[row][col]==1){
+								Vol_out_t += m_Hloop_dt[row][col]/(m_slope[row][col])*ca;
+								m_Hloop_dt[row][col] = 0.0;
+							}							
+
+							/* Vol_sim */
+							Vol_sim += (m_Hloop_dt[row][col]/(m_slope[row][col])*ca);
 
 						}/*chiusura FOR col*/
 					}/*chiusura FOR row*/
 
 
+
+
 					/* m.b.e */
 					G_debug(2,"Calculating mass balance error");
 
-					Vol_exp_loop += incr_volexp/n_loops;
+					Vol_in_tot += Vol_in/n_loops;
+					mbe = (Vol_sim+Vol_out_t)/(Vol_in_tot-Vol_out_tot_corr);
 
-					if (Vol_exp_loop > 0.01) {
-						mbe = Vol_actual/Vol_exp_loop;
-					} else {
-						mbe = 1;
-					}
 
 					G_debug(2,"mbe=%f",mbe);
 					
-					/*Vol_gone_loop += Vol_gone_no_mbe/mbe;*/
-					Vol_actual = 0;
 
 					/* Hloop_dt con mbe */
 					G_debug(2,"Calculating Hloop_dt with mbe for loop");
-
-					for (row = 1; row < nrows - 1 && exit == 0; row++) {
-						for (col = 1; col < ncols - 1 && exit == 0; col++) {
+                    #pragma omp parallel for private (row,col)
+					for (row = 1; row < nrows - 1; row++) {
+						for (col = 1; col < ncols - 1; col++) {
 							if (mbe > 0.01){
 								m_Hloop_dt[row][col]=m_Hloop_dt[row][col]/mbe;
 							}
 						}
 					}
 
+					/* Setting volumi */
+					Vol_out_tot_corr += Vol_out_t/mbe;
+					Vol_sim = 0;
+					Vol_out_t = 0;					
+										
+
 					/* loop<n_loops */
 					if (loop<n_loops) {
 						G_debug(2,"loop<n_loops");
-
-						for (row = 1; row < nrows - 1 && exit == 0; row++) {
-							for (col = 1; col < ncols - 1 && exit == 0; col++) {
+                        #pragma omp parallel for private (row,col)
+						for (row = 1; row < nrows - 1; row++) {
+						    //if(exit==1) continue;
+							for (col = 1; col < ncols - 1; col++) {
+							    //if(exit==1) continue;
 								m_Hloop[row][col]=m_Hloop_dt[row][col];
 								m_Uloop[row][col]=m_Uloop_dt[row][col];
 								m_Vloop[row][col]=m_Vloop_dt[row][col];
@@ -973,47 +1064,57 @@ int main(int argc, char *argv[]) {
 				G_debug(2,"FINISH N_LOOPS");
 
 
-				/*------Nash-Sutcliffe-------*/
-				if (NS_THRES!=-1){
-					G_debug(1,"Calculating Nash-Sutcliffe value");
-					if (t==1){
-						NSold = nash_sutcliffe(m_Hold,m_Hloop_dt,nrows, ncols);
-					} else {
-						NS = nash_sutcliffe(m_Hold,m_Hloop_dt, nrows, ncols);
-						G_debug(1,"NS old value=%f",NSold);
-						G_debug(1,"NS value=%f",NS);
-
-						if(fabs(NS-NSold) <= NS_THRES){
-							NS_count += 1;
-						} else {
-							NS_count = 0;
-						}
-						NSold = NS;
-					}
-					G_debug(1,"NS count=%i",NS_count);
-				}
+				/*------Pearson correlation index-------*/
 				
+				if (STOP_THRES!=-1){
+				    if (t==1){
+				        #pragma omp parallel for private (row,col)
+				        for (row = 1; row < nrows - 1; row++) {
+				            for (col = 1; col < ncols - 1; col++) {
+				                m_Hold[row][col]=m_Hloop_dt[row][col];
+				            }
+				        }
+				    } 
+				
+
+				    if (t%STEP_THRES==0){
+				    	G_debug(1,"Calculating Pearson index for t=%i",t);
+				        pears = pearson(m_Hold,m_Hloop_dt,nrows, ncols);
+				        G_debug(1,"Pearson=%f",pears);
+				        if (pears > STOP_THRES){
+				            STOP_count = 3;
+				        } else {
+				            STOP_count = 0;
+				        }
+				    }
+				    G_debug(1,"STOP count=%i",STOP_count);
+				}
+
+				/* Aggiornamento carte fine timestep*/
+                #pragma omp parallel for private (row,col)				
 				for (row = 1; row < nrows - 1; row++) {
 					for (col = 1; col < ncols - 1; col++) {
 						m_H[row][col]=m_Hloop_dt[row][col];
 						m_U[row][col]=m_Uloop_dt[row][col];
 						m_V[row][col]=m_Vloop_dt[row][col];
-						if (NS_THRES!=-1){
+						if (STOP_THRES!=-1 && t%STEP_THRES==0){
 							m_Hold[row][col]=m_Hloop_dt[row][col];
 						}
 					}
 				}
 
 				if (result_HMAX){
+				    #pragma omp parallel for private (row,col)
 					for (row = 1; row < nrows - 1; row++) {
 						for (col = 1; col < ncols - 1; col++) {
-							if(m_H[row][col]+m_Hland[row][col] > m_Hmax[row][col])
-								m_Hmax[row][col] = m_H[row][col]+m_Hland[row][col];
+							if(m_H[row][col]+m_HINI[row][col] > m_Hmax[row][col])
+								m_Hmax[row][col] = m_H[row][col]+m_HINI[row][col];
 						}
 					}
 				}
 
 				if (result_VMAX){
+				    #pragma omp parallel for private (row,col)
 					for (row = 1; row < nrows - 1; row++) {
 						for (col = 1; col < ncols - 1; col++) {
 							if (m_H[row][col]>verysmall){
@@ -1026,49 +1127,70 @@ int main(int argc, char *argv[]) {
 				}
 
 				stable=1;
-				G_debug(1,"Vol_gone_loop=%f\n",Vol_gone_loop);
+				G_debug(1,"Vol_out_tot_corr=%f\n",Vol_out_tot_corr);
+				
+				Vol_in_tot_loop = Vol_in_tot; 
+				Vol_out_tot_corr_loop = Vol_out_tot_corr;
+				Vol_in = 0.0;
 
-
-				Vol_exp=Vol_exp_loop;
-				Vol_gone=Vol_gone_loop;
-
-				incr_volexp=0.0;
 				if (CFL_max<=CFLliminf) {
 					n_loops=max(n_loops-1,MinNLoops);
 				}
 
-				/*------- DEFAULT OUTPUT SERIES--------*/
+				
 
-				if((DELTAT!=-1 && t%DELTAT==0) || (t==TIMESTEPS) || (NS_count==3)){
-
+                /* Stampa degli output*/
+				
+				if((DELTAT!=-1 && t%DELTAT==0)){
 					if(result_H){
 						sprintf(name1,"%s_t%d",result_H,t);
-						out_sum_print(m_Hland,m_H,m_U,m_V,name1,nrows,ncols,1,0.01);
+						out_sum_print(m_HINI,m_H,m_U,m_V,name1,nrows,ncols,1,small);
 						Rast_short_history(name1, "raster", &history);
 						Rast_command_history(&history);
 						Rast_write_history(name1, &history);
 					}
 					if(result_V){
 						sprintf(name1,"%s_t%d",result_V,t);
-						out_sum_print(m_Hland,m_H,m_U,m_V,name1,nrows,ncols,2,0.01);
+						out_sum_print(m_HINI,m_H,m_U,m_V,name1,nrows,ncols,2,small);
 						Rast_short_history(name1, "raster", &history);
 						Rast_command_history(&history);
 						Rast_write_history(name1, &history);
 					}
 				}
+				
+				if((t==TIMESTEPS) || (STOP_count==3)){
+                    sprintf(timestr,"Calculated in %d steps; %0.2f of %0.2f mc gone outbound",t,Vol_out_tot_corr_loop,Vol_in_tot);
+					if(result_H){
+						sprintf(name1,"%s",result_H);
+						out_sum_print(m_HINI,m_H,m_U,m_V,name1,nrows,ncols,1,small);
+						Rast_short_history(name1, "raster", &history);
+						Rast_command_history(&history);
+						Rast_set_history(&history, HIST_KEYWRD, timestr);
+						Rast_write_history(name1, &history);
+					}
+					if(result_V){
+						sprintf(name1,"%s",result_V);
+						out_sum_print(m_HINI,m_H,m_U,m_V,name1,nrows,ncols,2,small);
+						Rast_short_history(name1, "raster", &history);
+						Rast_command_history(&history);
+						Rast_set_history(&history, HIST_KEYWRD, timestr);
+						Rast_write_history(name1, &history);
+					}
+				}
 
 
-				if((result_HMAX) && ((t==TIMESTEPS) || (NS_count==3))){
+
+				if((result_HMAX) && ((t==TIMESTEPS) || (STOP_count==3))){
 					sprintf(name1,"%s",result_HMAX);
-					out_print(m_Hmax,name1,nrows,ncols);
+					out_print(m_Hmax,name1,nrows,ncols,small);
 					Rast_short_history(name1, "raster", &history);
 					Rast_command_history(&history);
 					Rast_write_history(name1, &history);
 				}
 
-				if((result_VMAX) && ((t==TIMESTEPS) || (NS_count==3))){
+				if((result_VMAX) && ((t==TIMESTEPS) || (STOP_count==3))){
 					sprintf(name1,"%s",result_VMAX);
-					out_print(m_Vmax,name1,nrows,ncols);
+					out_print(m_Vmax,name1,nrows,ncols,small);
 					Rast_short_history(name1, "raster", &history);
 					Rast_command_history(&history);
 					Rast_write_history(name1, &history);
@@ -1077,46 +1199,50 @@ int main(int argc, char *argv[]) {
 
 			} /*chiusura IF exit*/
 		} /*chiusura WHILE*/
+		
 		t++;
-	} /* chiusura WHILE NS_count*/
+	} /* chiusura WHILE STOP_count*/
+	
+	
 
-	if (Vol_gone>0){
-		G_warning("The flow is out of the current computational domain. You may need to change the region extension.");
-		G_warning("Volume gone: %f",Vol_gone);
+
+	if (Vol_out_tot_corr_loop>0){
+		G_warning("The flow run out of the current computational domain. You may need to change the region extension.\nSee raster metadata (r.info) for more information.");
 	}
 
 
 	/* deallocate memory matrix */
-	G_free_fmatrix(m_ELEV);
+	G_free_matrix(m_ELEV);
 	G_free_imatrix(m_OUTLET);
-	G_free_fmatrix(m_DIST);
-	G_free_fmatrix(m_HINI);
-	G_free_fmatrix(m_gx);
-	G_free_fmatrix(m_gy);
-	G_free_fmatrix(m_slope);
-	G_free_fmatrix(m_H);
-	G_free_fmatrix(m_Hloop);
-	G_free_fmatrix(m_Hloop_dt);
-	G_free_fmatrix(m_Hland);
-	G_free_fmatrix(m_U);
-	G_free_fmatrix(m_Uloop);
-	G_free_fmatrix(m_Uloop_dt);
-	G_free_fmatrix(m_V);
-	G_free_fmatrix(m_Vloop);
-	G_free_fmatrix(m_Vloop_dt);
-	G_free_fmatrix(m_K);
-	G_free_fmatrix(m_Kloop);
-	G_free_fmatrix(m_HUloop);
-	G_free_fmatrix(m_HVloop);
+	G_free_matrix(m_DIST);
+	G_free_matrix(m_HINI);
+	G_free_matrix(m_gx);
+	G_free_matrix(m_ca_gx);	
+	G_free_matrix(m_gy);
+	G_free_matrix(m_ca_gy);	
+	G_free_matrix(m_slope);
+	G_free_matrix(m_H);
+	G_free_matrix(m_Hloop);
+	G_free_matrix(m_Hloop_dt);
+	G_free_matrix(m_U);
+	G_free_matrix(m_Uloop);
+	G_free_matrix(m_Uloop_dt);
+	G_free_matrix(m_V);
+	G_free_matrix(m_Vloop);
+	G_free_matrix(m_Vloop_dt);
+	G_free_matrix(m_K);
+	G_free_matrix(m_Kloop);
+	G_free_matrix(m_HUloop);
+	G_free_matrix(m_HVloop);
 
-	if (NS_THRES!=-1)
-		G_free_fmatrix(m_Hold);
+	if (STOP_THRES!=-1)
+		G_free_matrix(m_Hold);
 
 	if (result_VMAX)
-		G_free_fmatrix(m_Vmax);
+		G_free_matrix(m_Vmax);
 
 	if (result_HMAX)
-		G_free_fmatrix(m_Hmax);
+		G_free_matrix(m_Hmax);
 		
 	exit(EXIT_SUCCESS);
 }

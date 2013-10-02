@@ -1,16 +1,16 @@
-float **G_alloc_fmatrix(int rows, int cols);
+double **G_alloc_matrix(int rows, int cols);
 int **G_alloc_imatrix(int rows, int cols);
-void G_free_fmatrix(float **m);
+void G_free_matrix(double **m);
 void G_free_imatrix(int **mmm);
-int check_rheol_par(int rheol_type, float chezy, float visco, float rho);
-float t_frict(float **h, int row, int col, float b_frict);
-float t_voellmy(float vel, float **h, int row, int col, float b_frict,
-		float chezy);
-float t_visco(float v, float **h, int row, int col, float b_frict, float rho,
-		float visco, float ystress);
-float veldt(float ua, float t, float g_x, float p_x, float i_x, float t_x);
-float shift0(float **m, int r, int c, int maxR, int maxC, int minR, int minC, int n, int w);
-void out_print (float **matrix,char *name, int nr, int nc);
-void out_sum_print (float **matrix1,float **matrix2,float **matrix3,float **matrix4, char *name, int nr, int nc, int mode, float threshold);
-float nash_sutcliffe(float **m_t1,float**m_t2, int nr, int nc);
-void report_input(float ifrict,float rho,float ystress,float visco,float chezy,float bfrict,float fluid,float NS_thres,int t,int delta);
+int check_rheol_par(int rheol_type, double chezy, double visco, double rho);
+double t_frict(double **h, int row, int col, double b_frict);
+double t_voellmy(double vel, double **h, int row, int col, double b_frict,
+		double chezy);
+double t_visco(double v, double **h, int row, int col, double b_frict, double rho,
+		double visco, double ystress);
+double veldt(double ua, double t, double g_x, double p_x, double i_x, double t_x);
+double shift0(double **m, int r, int c, int maxR, int maxC, int minR, int minC, int n, int w);
+void out_print (double **matrix,char *name, int nr, int nc, double threshold);
+void out_sum_print (double **matrix1,double **matrix2,double **matrix3,double **matrix4, char *name, int nr, int nc, int mode, double threshold);
+double pearson(double **m_t1,double**m_t2, int nr, int nc);
+void report_input(double ifrict,double rho,double ystress,double visco,double chezy,double bfrict,double fluid,double STOP_thres,int STEP_thres,int t,int delta,int threads);
