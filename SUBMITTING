@@ -366,7 +366,7 @@ following rules:
     Consider to subscribe to the GRASS Quality Assessment System to
     get immediate notification about the code quality:
 
-    http://www.grass-gis.org/mailman/listinfo/grass-qa
+    http://grass.osgeo.org/mailman/listinfo/grass-qa
 
 
 29. When submitting new files to the repository set SVN properties,
@@ -438,7 +438,7 @@ following rules:
 
 32. In case of questions feel free to contact the developers at the above
     mailing list.
-    http://www.grass-gis.org/devel/index.php#submission
+    http://grass.osgeo.org/devel/index.php#submission
 
 ...
 [please add further hints if required]
