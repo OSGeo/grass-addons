@@ -9,19 +9,34 @@
     <li>Subtract the low-pass filter result from the DEM to get the local relief.</li>
     <li>Extract the zero contour lines from the difference map.</li>
     <li>Extract the input DEM's elevation values along the zero contour lines.</li>
-    <li>Create a purged DEM by interpolating the null values between the rasterized contours generated in the previous step. This layer represents the large-scale landforms that will be removed to expose the local relief in the final step. This step is performed by the <a href="r.fillnulls.html">r.fillnulls</a> module using cubic spline interpolation.</li>
-    <li>Subtract the purged DEM from the original DEM to get the local relief model.
+    <li>Create a purged DEM by interpolating the null values between the rasterized contours generated in the previous step. This layer represents the large-scale landforms that will be removed to expose the local relief in the final step.</li>
+    <li>Subtract the purged DEM from the original DEM to get the local relief model.</li>
 </ol>
+<p>
+The interpolation step is performed by the <a href="r.fillnulls.html">r.fillnulls</a> module by default (using cubic interpolation).
+If this is not working on your data, you can use <em>-v</em> flag to use <a href="v.surf.bspline.html">v.surf.bspline</a> cubic interpolation instead (this might be slower on some types of data).
+</p>
 
 <h2>OUTPUT</h2>
 <p>
 The final local relief model is named according to the <em>output</em> parameter.
-When the <em>-i</em> flag is specified, <em>r.local.relief</em> creates four additional output files representing the intermediate steps in the LRM generation process. The names of the intermediate fiels are composed of the user-specified <em>output</em> parameter and the following suffixes:</p>
+When the <em>-i</em> flag is specified, <em>r.local.relief</em> creates additional output files representing the intermediate steps in the LRM generation process. The names and number of the intermediate files vary depending on whether <a href="r.fillnulls.html">r.fillnulls</a> (default) or <a href="v.surf.bspline.html">v.surf.bspline</a> (specified by using the <em>-v</em> flag) is used for interpolation.  The intermediate maps are composed of the user-specified <em>output</em> parameter and suffixes describing the intermediate map.</p>
+
+<p>Without using the <em>-v</em> flag (<a href="r.fillnulls.html">r.fillnulls</a> interpolation), intermediate maps have the following suffixes:</p>
 <ul>
     <li><tt>_smooth_elevation</tt>: The result of running the low pass filter on the DEM.</li>
     <li><tt>_subtracted_smooth_elevation</tt>: The result of subtracting the low pass filter map from the DEM.</li>
-    <li><tt>raster_contours_with_values</tt>: The rasterized zero contours with the values from elevation map.</li>
-    <li><tt>_purged_elevation</tt>: The raster interpolated from the raster map based on zero contours map.</li>
+    <li><tt>_raster_contours_with_values</tt>: The rasterized zero contours with the values from elevation map.</li>
+    <li><tt>_purged_elevation</tt>: The raster interpolated from the _raster_contours_with_values map based that represents the large-scale landforms.</li>
+</ul>
+
+<p>With using the <em>-v</em> flag (<a href="v.surf.bspline.html">v.surf.bspline</a> interpolation), intermediate maps have the following suffixes:</p>
+<ul>
+    <li><tt>_smooth_elevation</tt>: The result of running the low pass filter on the DEM.</li>
+    <li><tt>_subtracted_smooth_elevation</tt>: The result of subtracting the low pass filter map from the DEM.</li>
+    <li><tt>_vector_contours</tt>: The zero contours extracted from the DEM.</li>
+    <li><tt>_contour_points</tt>: The points extractacted along the zero contour lines with the input DEM elevation values.</li>
+    <li><tt>_purged_elevation</tt>: The raster interpolated from the _contour_points map that represents the large-scale landforms.</li>
 </ul>
 
 <h2>EXAMPLE</h2>
@@ -37,6 +52,10 @@ r.local.relief input=elevation output=lrm25 neighborhood_size=25
 Example using the default neighborhood size of 11 and saving the intermediate maps:
 <div class="code"><pre>
 r.local.relief -i input=elevation output=lrm11 
+</pre></div>
+Example using the default neighborhood size of 11 with bspline interpolation and saving the intermediate maps:
+<div class="code"><pre>
+r.local.relief -i -v input=elevation output=lrm11 
 </pre></div>
 
 <h2>SEE ALSO</h2>

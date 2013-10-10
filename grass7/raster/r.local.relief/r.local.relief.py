@@ -40,6 +40,7 @@
 #%option
 #% key: neighborhood_size
 #% type: integer
+#% label: Smoothing neighborhood size
 #% description: Neighborhood size used when smoothing the elevation model
 #% options: 0-
 #% answer: 11
@@ -48,11 +49,11 @@
 #% key: i
 #% description: Save intermediate maps
 #%end
-
-# TODO: The step 5 (contours to smooth elevation) can be replaced by using
-# vector tools (v.surf.*), this needs further testing.
-# Note, that quality of interpolation highly determines the result.
-
+#%flag
+#% key: v
+#% label: Use bspline interpolation
+#% description: Uses v.surf.bspline cubic interpolation instead of r.fillnulls cubic interpolation.
+#%end
 
 import os
 import atexit
@@ -99,9 +100,15 @@ def main():
     local_relief_output = options['output']
     neighborhood_size = int(options['neighborhood_size'])
     save_intermediates = flags['i']
+    bspline = flags['v']  # when bspline == False, r.fillnulls is used
 
+    # constants
     fill_method = 'cubic'
-    color_table = 'differences'
+    # color table changed from difference to grey to histogram equalized-grey
+    # It does make more sense to use that since many archaeologists use the same
+    # color scheme for magnetometry and gpr data.
+    color_table = 'grey'
+    rcolors_flags = 'e'
 
     if save_intermediates:
         def local_create(name):
@@ -115,21 +122,29 @@ def main():
     smooth_elevation = create_map_name('smooth_elevation')
     subtracted_smooth_elevation = create_map_name('subtracted_smooth_elevation')
     vector_contours = create_map_name('vector_contours')
-    raster_contours = create_map_name('raster_contours')
     raster_contours_with_values = create_map_name('raster_contours_with_values')
     purged_elevation = create_map_name('purged_elevation')
 
+    if bspline:
+        contour_points = create_map_name('contour_points')
+    else:
+        raster_contours = create_map_name('raster_contours')
+
     # if saving intermediates, keep only 1 contour layer
     if save_intermediates:
-        RREMOVE.append(raster_contours)
-        VREMOVE.append(vector_contours)
+        if not bspline:
+            RREMOVE.append(raster_contours)
+            VREMOVE.append(vector_contours)
     else:
         RREMOVE.append(smooth_elevation)
         RREMOVE.append(subtracted_smooth_elevation)
         VREMOVE.append(vector_contours)
-        RREMOVE.append(raster_contours)
-        RREMOVE.append(raster_contours_with_values)
         RREMOVE.append(purged_elevation)
+        if bspline:
+            VREMOVE.append(contour_points)
+        else:
+            RREMOVE.append(raster_contours)
+            RREMOVE.append(raster_contours_with_values)
 
     # check even for the temporary maps
     # (although, in ideal world, we should always fail if some of them exists)
@@ -137,9 +152,12 @@ def main():
         check_map_name(smooth_elevation, gscript.gisenv()['MAPSET'], 'cell')
         check_map_name(subtracted_smooth_elevation, gscript.gisenv()['MAPSET'], 'cell')
         check_map_name(vector_contours, gscript.gisenv()['MAPSET'], 'vect')
-        check_map_name(raster_contours, gscript.gisenv()['MAPSET'], 'cell')
         check_map_name(raster_contours_with_values, gscript.gisenv()['MAPSET'], 'cell')
         check_map_name(purged_elevation, gscript.gisenv()['MAPSET'], 'cell')
+        if bspline:
+            check_map_name(contour_points, gscript.gisenv()['MAPSET'], 'vect')
+        else:
+            check_map_name(raster_contours, gscript.gisenv()['MAPSET'], 'cell')
 
     # algorithm according to Hesse 2010 (LiDAR-derived Local Relief Models)
     # step 1 (point cloud to digital elevation model) omitted
@@ -165,24 +183,50 @@ def main():
                         levels=[0],
                         overwrite=gcore.overwrite())
 
+    # Diverge here if using bspline interpolation
     # step 5
     gscript.info(_("Extracting z value from the elevation"
                    " for difference zero contours..."))
-    gscript.run_command('v.to.rast', input=vector_contours,
-                        output=raster_contours,
-                        type='line', use='val', value=1,
-                        overwrite=gcore.overwrite())
-    gscript.mapcalc('{c} = {a} * {b}'.format(c=raster_contours_with_values,
-                                             a=raster_contours,
-                                             b=elevation_input,
-                                             overwrite=gcore.overwrite()))
+    if bspline:
+        # Extract points from vector contours
+        gscript.run_command('v.to.points', _input=vector_contours, llayer='1',
+                            _type='line', output=contour_points, dmax='10',
+                            overwrite=gcore.overwrite())
 
-    gscript.info(_("Interpolating elevation between"
-                   " difference zero contours..."))
-    gscript.run_command('r.fillnulls', input=raster_contours_with_values,
-                        output=purged_elevation,
-                        method=fill_method,
-                        overwrite=gcore.overwrite())
+        # Extract original dem elevations at point locations
+        gscript.run_command('v.what.rast', _map=contour_points,
+                            raster=elevation_input, layer='2', column='along')
+
+        # Get mean distance between points to optimize spline interpolation
+        mean_dist = gscript.parse_command('v.surf.bspline', flags='e',
+                                          _input=contour_points,
+                                          raster_output=purged_elevation,
+                                          layer='2', column='along',
+                                          method='cubic')
+        spline_step = round(float(mean_dist.keys()[0].split(" ")[-1])) * 2
+
+        gscript.info(_("Interpolating purged surface using a spline step value"
+                       " of {s}".format(s=spline_step)))
+        gscript.run_command('v.surf.bspline', _input=contour_points,
+                            raster_output=purged_elevation, layer='2',
+                            column='along', method='cubic',
+                            overwrite=gcore.overwrite())
+    else:
+        gscript.run_command('v.to.rast', input=vector_contours,
+                            output=raster_contours,
+                            type='line', use='val', value=1,
+                            overwrite=gcore.overwrite())
+        gscript.mapcalc('{c} = {a} * {b}'.format(c=raster_contours_with_values,
+                                                 a=raster_contours,
+                                                 b=elevation_input,
+                                                 overwrite=gcore.overwrite()))
+
+        gscript.info(_("Interpolating elevation between"
+                       " difference zero contours..."))
+        gscript.run_command('r.fillnulls', input=raster_contours_with_values,
+                            output=purged_elevation,
+                            method=fill_method,
+                            overwrite=gcore.overwrite())
 
     # step 6
     gscript.info(_("Subtracting purged from original elevation..."))
@@ -191,24 +235,24 @@ def main():
                                              b=purged_elevation,
                                              overwrite=gcore.overwrite()))
 
+    # set color tables
     if save_intermediates:
         # same color table as input
         gscript.run_command('r.colors', map=smooth_elevation,
-                            raster=elevation_input, quiet=True)
-        gscript.run_command('r.colors', map=raster_contours_with_values,
                             raster=elevation_input, quiet=True)
         gscript.run_command('r.colors', map=purged_elevation,
                             raster=elevation_input, quiet=True)
 
         # has only one color
-        gscript.run_command('r.colors', map=raster_contours,
-                            color='grey', quiet=True)
+        if not bspline:
+            gscript.run_command('r.colors', map=raster_contours_with_values,
+                                raster=elevation_input, quiet=True)
 
         # same color table as output
         gscript.run_command('r.colors', map=subtracted_smooth_elevation,
                             color=color_table, quiet=True)
 
-    gscript.run_command('r.colors', map=local_relief_output,
+    gscript.run_command('r.colors', flags=rcolors_flags, map=local_relief_output,
                         color=color_table, quiet=True)
 
 
