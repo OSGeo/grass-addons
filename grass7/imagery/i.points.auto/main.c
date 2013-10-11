@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     order_opt->description = _("Transformation polynom order (1-3)");
 
     n_points_opt = G_define_option();
-    n_points_opt->required = NO;
+    n_points_opt->required = YES;
     n_points_opt->key = "npoints";
     n_points_opt->type = TYPE_INTEGER;
     n_points_opt->description = _("Maximum number of points to generate");
