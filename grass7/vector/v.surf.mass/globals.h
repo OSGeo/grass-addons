@@ -11,7 +11,7 @@ struct lcell
     int area; 		/* area id */
     double interp;	/* interpolated value */
     double adj;		/* adjustment */
-    
+    double weight;	/* weighing factor */
 };
 
 /* mass area */

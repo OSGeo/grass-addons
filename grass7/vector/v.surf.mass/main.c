@@ -36,17 +36,17 @@ int main(int argc, char *argv[])
     int row, col, nrows, ncols, rrow, ccol, nrow, ncol;
 
     SEGMENT out_seg;
-    int out_fd;
+    int w_fd, out_fd, have_weights;
     DCELL *drastbuf;
     double seg_size;
     int seg_mb, segments_in_memory;
     int doit, iter, maxiter;
     double threshold, maxadj;
-    int negative = 0, have_neg;
+    int negative = 0;
 
     int layer;
     int i, j, nareas;
-    struct marea *areas;
+    struct marea *areas, *ap;
 
     struct Map_info In;
     struct line_pnts *Points;
@@ -55,10 +55,14 @@ int main(int argc, char *argv[])
     struct History history;
 
     struct lcell thiscell;
-    double outside_val, value, interp, avgdiff;
+    double outside_val, value;
+
+#ifdef TOBLER_STRICT
+    double interp, avgdiff;
+#endif
 
     struct GModule *module;
-    struct Option *in_opt, *out_opt, *dfield_opt, *col_opt,
+    struct Option *in_opt, *w_opt, *out_opt, *dfield_opt, *col_opt,
 	*memory_opt, *iter_opt, *threshold_opt;
 	/* border condition */
     struct Flag *withz_flag; /* allow negative */
@@ -87,6 +91,11 @@ int main(int argc, char *argv[])
     in_opt = G_define_standard_option(G_OPT_V_INPUT);
     in_opt->label = _("Name of input vector point map");
     
+    w_opt = G_define_standard_option(G_OPT_R_INPUT);
+    w_opt->label = _("Name of optional weighing raster map");
+    w_opt->key = "weight";
+    w_opt->required = NO;
+
     dfield_opt = G_define_standard_option(G_OPT_V_FIELD);
 
     col_opt = G_define_standard_option(G_OPT_DB_COLUMN);
@@ -160,6 +169,21 @@ int main(int argc, char *argv[])
     if (withz_flag->answer)
 	layer = 0;
 
+    /* input weights */
+    w_fd = -1;
+    have_weights = 0;
+    drastbuf = NULL;
+    if (w_opt->answer) {
+	char *    mapset = (char *) G_find_raster2(w_opt->answer, "");
+
+	if (mapset == NULL)
+	    G_fatal_error(_("Raster map <%s> not found"), w_opt->answer);
+
+	have_weights = 1;
+	w_fd = Rast_open_old(w_opt->answer, "");
+	drastbuf = Rast_allocate_d_buf();
+    }
+
     /* raster output */
     out_fd = Rast_open_new(out_opt->answer, DCELL_TYPE);
 
@@ -178,13 +202,13 @@ int main(int argc, char *argv[])
     segments_in_memory = seg_mb / seg_size + 0.5;
     G_debug(1, "%d %dx%d segments held in memory", segments_in_memory, SEGSIZE, SEGSIZE);
 
+    /* initialize */
+    G_message(_("Initializing..."));
+
     if (segment_open(&out_seg, G_tempfile(),
 		     nrows, ncols, SEGSIZE, SEGSIZE,
 		     sizeof(struct lcell), segments_in_memory) != 1)
 	G_fatal_error(_("Can not create temporary file"));
-
-    /* initialize */
-    G_message(_("Initializing..."));
 
     Points = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
@@ -312,6 +336,9 @@ int main(int argc, char *argv[])
 
 	y = Rast_row_to_northing(row + 0.5, &window);
 
+	if (have_weights)
+	    Rast_get_d_row(w_fd, drastbuf, row);
+
 	for (col = 0; col < ncols; col++) {
 	    
 	    x = Rast_col_to_easting(col + 0.5, &window);
@@ -320,10 +347,28 @@ int main(int argc, char *argv[])
 	    thiscell.interp = value;
 	    thiscell.adj = 0.0;
 	    thiscell.area = Vect_find_area(&In, x, y);
+	    thiscell.weight = 1.;
+	    if (have_weights) {
+		if (Rast_is_d_null_value(&drastbuf[col])) {
+		    thiscell.weight = 0;    /* OK ? */
+		}
+		else {
+		    thiscell.weight = drastbuf[col];
+		    if (thiscell.weight < 0) {
+			G_warning(_("Weight is negative at row %d, col %d, using 0 instead"),
+			          row, col);
+			thiscell.weight = 0;
+		    }
+		}
+	    }
 
 	    if (thiscell.area > 0) {
-		thiscell.interp = areas[thiscell.area].value;
-		areas[thiscell.area].count++;
+		ap = &areas[thiscell.area];
+		thiscell.interp = ap->value;
+		ap->count++;
+		if (have_weights) {
+		    ap->interp += thiscell.weight;
+		}
 	    }
 
 	    segment_put(&out_seg, &thiscell, row, col);
@@ -331,6 +376,11 @@ int main(int argc, char *argv[])
     }
     G_percent(row, nrows, 2);
     Vect_close(&In);
+
+    if (have_weights) {
+	G_free(drastbuf);
+	Rast_close(w_fd);
+    }
 
     G_message(_("Adjust cell values"));
     for (row = 0; row < nrows; row++) {
@@ -341,7 +391,12 @@ int main(int argc, char *argv[])
 	    if (areas[thiscell.area].count > 0 &&
 	        !Rast_is_d_null_value(&thiscell.interp)) {
 
-		value = thiscell.interp / areas[thiscell.area].count;
+		ap = &areas[thiscell.area];
+		value = thiscell.interp / ap->count;
+		if (have_weights && ap->interp > 0) {
+		    thiscell.weight = thiscell.weight * ap->count / ap->interp;
+		    value *= thiscell.weight;
+		}
 		thiscell.interp = value;
 		segment_put(&out_seg, &thiscell, row, col);
 	    }
@@ -369,9 +424,9 @@ int main(int argc, char *argv[])
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
 		int count = 0;
+		double sum = 0.;
 
 		value = .0;
-		interp = .0;
 
 		for (rrow = -1; rrow < 2; rrow++) {
 		    nrow = row + rrow;
@@ -385,23 +440,24 @@ int main(int argc, char *argv[])
 
 			    segment_get(&out_seg, &thiscell, nrow, ncol);
 			    if (!Rast_is_d_null_value(&thiscell.interp)) {
-				value += thiscell.interp;
+				value += thiscell.interp * thiscell.weight;
 				count++;
+				sum += thiscell.weight;
 			    }
 			}
 		    }
 		}
-		if (count) {
+		if (sum > 0) {
 		    segment_get(&out_seg, &thiscell, row, col);
 
 		    if (!Rast_is_d_null_value(&thiscell.interp)) {
-			value /= count;
-			value -= thiscell.interp;
+			value /= sum;
+			value -= thiscell.interp / thiscell.weight;
 			/* relax */
 			/* value /= 8; */
 			thiscell.adj = value;
-			if (thiscell.area && !negative) {
-			    if (areas[thiscell.area].value == 0)
+			if (!negative) {
+			    if (thiscell.area && areas[thiscell.area].value == 0)
 				thiscell.adj = 0;
 			    if (thiscell.interp + thiscell.adj < 0)
 				thiscell.adj = -thiscell.interp;
@@ -439,15 +495,15 @@ int main(int argc, char *argv[])
 			segment_put(&out_seg, &thiscell, row, col);
 
 			value = thiscell.adj + areas[thiscell.area].adj;
+			if (have_weights && thiscell.weight > 1)
+			    value /= thiscell.weight;
+			    
 			if (maxadj < value * value) {
 			    maxadj = value * value;
 			    l_row = row;
 			    l_col = col;
 			}
 		    }
-		    if (!negative && interp < 0)
-			have_neg = 1;
-
 		    if (thiscell.area) {
 			areas[thiscell.area].interp += thiscell.interp;
 		    }
@@ -506,24 +562,22 @@ int main(int argc, char *argv[])
 	/* deviation from Tobler 1979: less steps, faster convergence */
 
 	/* Step 2 */
-	areas[0].adj = 1;
-	for (i = 1; i <= nareas; i++) {
-	    areas[i].adj = 1;
-	    if (areas[i].interp != 0)
-		areas[i].adj = areas[i].value / areas[i].interp;
-	}
-
-	/* Step 3 */
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
 		segment_get(&out_seg, &thiscell, row, col);
 		if (!Rast_is_d_null_value(&thiscell.interp)) {
 		    /* multiplication with area scale factor */
-		    thiscell.interp = areas[thiscell.area].adj *
-		                      (thiscell.interp + thiscell.adj);
+		    value = 1;
+		    ap = &areas[thiscell.area];
+		    if (thiscell.area > 0 && ap->interp != 0)
+			value = ap->value / ap->interp;
+		    thiscell.interp = value * (thiscell.interp + thiscell.adj);
 		    segment_put(&out_seg, &thiscell, row, col);
 
-		    value = thiscell.adj;
+		    if (ap->count)
+			value = thiscell.adj - ap->adj / ap->count;
+		    if (have_weights && thiscell.weight > 1)
+			value /= thiscell.weight;
 		    if (maxadj < value * value) {
 			maxadj = value * value;
 			l_row = row;
