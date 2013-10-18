@@ -48,9 +48,12 @@ import atexit
 import grass.script.core as gcore
 import grass.script.raster as grast
 
+TMP_NAME = 'tmp_horizon_'+ str(os.getpid())
+CLEANUP = True
 
 def cleanup():
-    gcore.run_command('g.mremove', rast="*{pid}*".format(pid=os.getpid()), flags='f')
+    if CLEANUP:
+        gcore.run_command('g.mremove', rast=TMP_NAME + "*", flags='f')
 
 
 def main():
@@ -59,16 +62,25 @@ def main():
     n_dir = int(options['ndir'])
     horizon_step = 360. / n_dir
 
-    tmp_rast_name_hor = 'tmp_horizon_' + str(os.getpid())
+    # checks if there are already some maps
+    old_maps = _get_horizon_maps()
+    if old_maps:
+        if not gcore.overwrite():
+            global CLEANUP
+            CLEANUP = False
+            gcore.fatal(_("You have to first check overwrite flag or remove the following maps:\n"
+                          "{names}").format(names=','.join(old_maps)))
+        else:
+            gcore.warning(_("The following maps will be overwritten: {names}").format(names=','.join(old_maps)))
+
     ret = gcore.run_command('r.horizon', elevin=elev, direction=0, horizonstep=horizon_step,
-                            horizon=tmp_rast_name_hor, flags='d')
+                            horizon=TMP_NAME, flags='d')
     if ret != 0:
         gcore.fatal(_("r.horizon failed to compute horizon elevation angle maps. "
                       "Please report this problem to developers."))
 
     gcore.info(_("Computing sky view factor ..."))
-    new_maps = gcore.mlist_grouped('rast',
-                                   pattern=tmp_rast_name_hor + "*")[gcore.gisenv()['MAPSET']]
+    new_maps = _get_horizon_maps()
     expr = "{out} = 1 - (sin({first}) ".format(first=new_maps[0], out=output)
     for horizon in new_maps[1:]:
         expr += "+ sin({name}) ".format(name=horizon)
@@ -78,6 +90,11 @@ def main():
     gcore.run_command('r.colors', map=output, color='grey')
 
     return 0
+
+
+def _get_horizon_maps():
+    return gcore.mlist_grouped('rast',
+                               pattern=TMP_NAME + "*")[gcore.gisenv()['MAPSET']]
 
 
 if __name__ == "__main__":
