@@ -31,6 +31,7 @@
 #% type: integer
 #% required: yes
 #% answer: 16
+#% options: 2-64
 #%end
 #%option
 #% key: maxdistance
@@ -58,12 +59,13 @@ def main():
     n_dir = int(options['ndir'])
     horizon_step = 360. / n_dir
 
-    if horizon_step < 1:
-        gcore.fatal(_("Please decrease the number of directions."))
-
     tmp_rast_name_hor = 'tmp_horizon_' + str(os.getpid())
-    gcore.run_command('r.horizon', elevin=elev, direction=0, horizonstep=horizon_step,
-                      horizon=tmp_rast_name_hor, flags='d')
+    ret = gcore.run_command('r.horizon', elevin=elev, direction=0, horizonstep=horizon_step,
+                            horizon=tmp_rast_name_hor, flags='d')
+    if ret != 0:
+        gcore.fatal(_("r.horizon failed to compute horizon elevation angle maps. "
+                      "Please report this problem to developers."))
+
     gcore.info(_("Computing sky view factor ..."))
     new_maps = gcore.mlist_grouped('rast',
                                    pattern=tmp_rast_name_hor + "*")[gcore.gisenv()['MAPSET']]
