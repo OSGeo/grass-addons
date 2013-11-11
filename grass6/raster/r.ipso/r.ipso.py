@@ -27,7 +27,7 @@
 #%option
 #% key: map
 #% type: string
-#% gisprompt: old,raster,raster
+#% gisprompt: old,cell,raster
 #% key_desc: name
 #% description: Name of elevation map 
 #% required: yes

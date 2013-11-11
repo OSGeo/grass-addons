@@ -28,7 +28,7 @@
 #%option
 #% key: map
 #% type: string
-#% gisprompt: old,raster,raster
+#% gisprompt: old,cell,raster
 #% key_desc: name
 #% description: Distance to outlet map (from r.stream.distance) 
 #% required: yes

@@ -23,7 +23,7 @@
 #%option
 #%  key: map
 #%  type: string
-#%  gisprompt: old,raster,raster
+#%  gisprompt: old,cell,raster
 #%  key_desc: elevation
 #%  description: Name of elevation raster map 
 #%  required: yes
@@ -31,7 +31,7 @@
 #%option
 #%  key: flood
 #%  type: string
-#%  gisprompt: new,raster,raster
+#%  gisprompt: new,cell,raster
 #%  key_desc: flood
 #%  description: Name of output flood raster map 
 #%  required: yes
@@ -39,7 +39,7 @@
 #%option
 #%  key: mti
 #%  type: string
-#%  gisprompt: new,raster,raster
+#%  gisprompt: new,cell,raster
 #%  key_desc: MTI
 #%  description: Name of output MTI raster map 
 #%  required: yes

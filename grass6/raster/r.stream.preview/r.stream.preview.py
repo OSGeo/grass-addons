@@ -22,7 +22,7 @@
 #%option
 #% key: acc
 #% type: string
-#% gisprompt: old,raster,raster
+#% gisprompt: old,cell,raster
 #% key_desc: flow accumulation
 #% description: Name of flow accumulation raster map 
 #% required: yes
