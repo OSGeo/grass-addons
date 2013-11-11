@@ -17,17 +17,16 @@
 #
 ################################################################################
 #%module
-#%  description: Find optimal threshold for stream extraction
-#%  keywords: raster
+#% description: Find optimal threshold for stream extraction.
+#% keywords: raster
 #%end
 #%option
-#%  key: acc
-#%  type: string
-#%  gisprompt: old, raster, raster
-#%  key_desc: acc
-#%  description: Name of accumulation raster map 
-#%  required: yes
-#%END
+#% key: acc
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Name of accumulation raster map 
+#% required: yes
+#%end
 
 
 import grass.script as grass
