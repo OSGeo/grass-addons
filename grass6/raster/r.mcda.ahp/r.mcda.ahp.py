@@ -35,13 +35,13 @@
 #%option
 #% key: output
 #% type: string
-#% gisprompt: new_file,cell,output
-#% description: output classified raster map
+#% gisprompt: new,cell,raster
+#% description: Output classified raster map
 #% required: yes
 #%end
 #%flag
 #% key:k 
-#% description:build a void pairwise comparison matrix and exit (no yet implemented)
+#% description: Build a void pairwise comparison matrix and exit (no yet implemented)
 #%end
 
 import sys

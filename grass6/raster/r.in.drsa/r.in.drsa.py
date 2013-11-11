@@ -29,7 +29,7 @@
 #%option
 #% key: output
 #% type: string
-#% gisprompt: new_file,cell,output
+#% gisprompt: new,cell,raster
 #% description: output classified raster map
 #% required: yes
 #%end

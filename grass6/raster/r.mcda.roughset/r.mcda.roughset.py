@@ -44,7 +44,7 @@
 #%option
 #% key: outputMap
 #% type: string
-#% gisprompt: new_file,cell,output
+#% gisprompt: new,cell,raster
 #% description: Output classified raster map
 #% required: yes
 #%end
@@ -59,12 +59,12 @@
 #%end
 #%flag
 #% key: l
-#% description: do not remove single rules in vector format
+#% description: Do not remove single rules in vector format
 #% answer:false
 #%end
 #%flag
 #% key: n
-#% description: compute null value as zero
+#% description: Compute null value as zero
 #% answer:true
 #%end
 
