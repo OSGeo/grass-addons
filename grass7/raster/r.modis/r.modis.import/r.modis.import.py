@@ -94,33 +94,19 @@ import glob
 import shutil
 import grass.script as grass
 from datetime import date
+from grass.pygrass.functions import get_lib_path
 
-libmodis = None
-if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')):
-    libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
-elif os.getenv('GRASS_ADDON_BASE') and \
-        os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc',
-                                   'r.modis')):
-    libmodis = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'r.modis')
-elif os.path.isdir(os.path.join('..', 'libmodis')):
-    libmodis = os.path.join('..', 'libmodis')
-if not libmodis:
-    sys.exit("ERROR: modis library not found")
 
-sys.path.append(libmodis)
+path = get_lib_path(modname='r.modis', libname='libmodis')
+if path is None:
+    grass.fatal("Not able to find the modis library directory.")
+sys.path.append(path)
+
+
 # try to import pymodis (modis) and some classes for r.modis.download
-try:
-    from rmodislib import resampling, product, projection
-except ImportError, e:
-    grass.fatal(e)
-try:
-    from convertmodis  import convertModis, createMosaic
-except ImportError, e:
-    grass.fatal(e)
-try:
-    from parsemodis import parseModis
-except ImportError, e:
-    grass.fatal(e)
+from rmodislib import resampling, product, projection
+from convertmodis  import convertModis, createMosaic
+from parsemodis import parseModis
 
 
 def list_files(opt, mosaik=False):

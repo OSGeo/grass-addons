@@ -81,32 +81,16 @@ import os
 import sys
 from datetime import *
 import grass.script as grass
+from grass.pygrass.functions import get_lib_path
 
-# add the folder containing libraries to python path
-libmodis = None
-if os.path.isdir(os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')):
-    libmodis = os.path.join(os.getenv('GISBASE'), 'etc', 'r.modis')
-elif os.getenv('GRASS_ADDON_BASE') and \
-        os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc',
-                                   'r.modis')):
-    libmodis = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'etc', 'r.modis')
-elif os.getenv('GRASS_ADDON_BASE') and \
-        os.path.isdir(os.path.join(os.getenv('GRASS_ADDON_BASE'), 'r.modis',
-                                   'r.modis')):
-    libmodis = os.path.join(os.getenv('GRASS_ADDON_BASE'), 'r.modis',
-                            'r.modis')
-elif os.path.isdir(os.path.join('..', 'libmodis')):
-    libmodis = os.path.join('..', 'libmodis')
-if not libmodis:
-    sys.exit("ERROR: modis library not found")
 
-# try to import pymodis (modis) and some class for r.modis.download
-sys.path.append(libmodis)
-try:
-    from rmodislib import product
-    from downmodis import downModis
-except ImportError, e:
-    grass.fatal(e)
+path = get_lib_path(modname='r.modis', libname='libmodis')
+if path is None:
+    grass.fatal("Not able to find the modis library directory.")
+sys.path.append(path)
+
+from rmodislib import product
+from downmodis import downModis
 
 
 def check(home):
