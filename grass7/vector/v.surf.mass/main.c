@@ -253,8 +253,10 @@ int main(int argc, char *argv[])
     areas[i].adj = 0;
     areas[i].avgdiff = 0;
 
+    G_debug(1, "Starting to read from areas...");
     for (i = 1; i <= nareas; i++) {
 
+	G_percent(i, nareas, 2);
 	areas[i].count = 0;
 	areas[i].value = outside_val;
 	areas[i].interp = 0;
