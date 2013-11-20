@@ -29,6 +29,7 @@ map_basename=reflmap
 
 map_names_file=`g.tempfile pid=$$`
 created_map_names_file=`g.tempfile pid=$$`
+should_not_be_created_map="test_r_sun_should_not_be_created_map"
 
 cat > "${map_names_file}" << EOF
 ${map_basename}_026
@@ -44,11 +45,15 @@ r.sun.daily elev_in=terrain start_day=26 end_day=37 day_step=3
 echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 
 NAME="Wrong start and end day parameter values test (module should fail)"
-r.sun.daily elev_in=terrain start_day=82 end_day=37 day_step=3 reflrad_basename=${map_basename}
+r.sun.daily elev_in=terrain start_day=82 end_day=37 day_step=3 reflrad_basename=${should_not_be_created_map}
 echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 
 NAME="Wrong day step parameter values test (module should fail)"
-r.sun.daily elev_in=terrain start_day=82 end_day=85 day_step=9 reflrad_basename=${map_basename}
+r.sun.daily elev_in=terrain start_day=82 end_day=85 day_step=9 reflrad_basename=${should_not_be_created_map}
+echo "$NAME: r.sun.daily returned: $? (expecting 1)"
+
+NAME="Wrong day step parameter and cumulative parameters values test (module should fail)"
+r.sun.daily elev_in=terrain start_day=1 end_day=85 day_step=9 refl_rad=${should_not_be_created_map}
 echo "$NAME: r.sun.daily returned: $? (expecting 1)"
 
 NAME="Map creation test"

@@ -74,28 +74,28 @@
 #% type: string
 #% gisprompt: new,cell,raster
 #% key: beam_rad
-#% description: Output beam irradiation raster map [Wh.m-2.day-1]
+#% description: Output beam irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
 #% required: no
 #%end
 #%option
 #% type: string
 #% gisprompt: new,cell,raster
 #% key: diff_rad
-#% description: Output diffuse irradiation raster map [Wh.m-2.day-1]
+#% description: Output diffuse irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
 #% required: no
 #%end
 #%option
 #% type: string
 #% gisprompt: new,cell,raster
 #% key: refl_rad
-#% description: Output ground reflected irradiation raster map [Wh.m-2.day-1]
+#% description: Output ground reflected irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
 #% required: no
 #%end
 #%option
 #% type: string
 #% gisprompt: new,cell,raster
 #% key: glob_rad
-#% description: Output global (total) irradiance/irradiation raster map [Wh.m-2.day-1]
+#% description: Output global (total) irradiance/irradiation raster map cumulated for the whole period of time [Wh.m-2.day-1]
 #% required: no
 #%end
 #%option
@@ -250,6 +250,28 @@ def main():
                 refl_rad_basename, glob_rad_basename]):
         grass.fatal(_("No output specified."))
 
+    start_day = int(options['start_day'])
+    end_day = int(options['end_day'])
+    day_step = int(options['day_step'])
+
+    if day_step > 1 and (beam_rad or diff_rad or refl_rad or glob_rad):
+        grass.fatal(_("Day step higher then 1 would produce"
+                      " meaningless cumulative maps."))
+
+    # check: start < end
+    if start_day > end_day:
+        grass.fatal(_("Start day is after end day."))
+    if day_step >= end_day - start_day:
+        grass.fatal(_("Day step is too big."))
+
+    step = float(options['step'])
+
+    nprocs = int(options['nprocs'])
+
+    temporal = flags['t']
+    if not is_grass_7() and temporal:
+        grass.warning(_("Flag t has effect only in GRASS 7"))
+
     if beam_rad and not beam_rad_basename:
         beam_rad_basename = create_tmp_map_name('beam_rad')
         MREMOVE.append(beam_rad_basename)
@@ -262,24 +284,6 @@ def main():
     if glob_rad and not glob_rad_basename:
         glob_rad_basename = create_tmp_map_name('glob_rad')
         MREMOVE.append(glob_rad_basename)
-
-    start_day = int(options['start_day'])
-    end_day = int(options['end_day'])
-    day_step = int(options['day_step'])
-
-    step = float(options['step'])
-
-    nprocs = int(options['nprocs'])
-
-    temporal = flags['t']
-    if not is_grass_7() and temporal:
-        grass.warning(_("Flag t has effect only in GRASS 7"))
-
-    # check: start < end
-    if start_day > end_day:
-        grass.fatal(_("Start day is after end day."))
-    if day_step >= end_day - start_day:
-        grass.fatal(_("Day step is too big."))
 
     # here we check all the days
     if not grass.overwrite():
