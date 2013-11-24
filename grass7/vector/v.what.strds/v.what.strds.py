@@ -5,7 +5,7 @@
 # MODULE:       v.what.strds
 # AUTHOR(S):    Luca delucchi
 #
-# PURPOSE:      Observe specific locations in a space time raster dataset
+# PURPOSE:      Uploads space time raster dataset values at positions of vector points to the table
 # COPYRIGHT:    (C) 2013 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
@@ -15,7 +15,7 @@
 #############################################################################
 
 #%module
-#% description: Observes specific locations (vector points) in a space time raster dataset.
+#% description: Uploads space time raster dataset values at positions of vector points to the table.
 #% keywords: vector
 #% keywords: temporal
 #% keywords: sampling
@@ -44,6 +44,7 @@
 import grass.script as grass
 import grass.temporal as tgis
 from grass.pygrass.functions import copy as gcopy
+from grass.pygrass.messages import Messenger
 
 ############################################################################
 
@@ -89,6 +90,11 @@ def main():
 
     overwrite = grass.overwrite()
 
+    quiet = True
+
+    if grass.verbosity() > 2:
+        quiet = False
+
     # Check the number of sample strds and the number of columns
     strds_names = strds.split(",")
 
@@ -131,9 +137,11 @@ def main():
                                "b":dataset.get_id(),
                                "type_b":dataset.get_temporal_type()}))
 
-        mapmatrizes = tgis.sample_stds_by_stds_topology("strds", "strds", strds_names,
-                                                      strds_names[0], False, None,
-                                                      "equal", False, False)
+        mapmatrizes = tgis.sample_stds_by_stds_topology("strds", "strds",
+                                                        strds_names, 
+                                                        strds_names[0], False,
+                                                        None, "equal", False,
+                                                        False)
 
         for i in xrange(len(mapmatrizes[0])):
             isvalid = True
@@ -162,9 +170,13 @@ def main():
     # Get the layer and database connections of the input vector
     gcopy(input, output, 'vect')
 
+    msgr = Messenger()
+    perc_curr = 0
+    perc_tot = len(samples)
     for sample in samples:
         raster_names = sample.raster_names
         # Call v.what.rast for each raster map
+
         for name in raster_names:
             coltype = "DOUBLE PRECISION"
             # Get raster map type
@@ -183,12 +195,16 @@ def main():
                 grass.fatal(_("Unable to add column %s to vector map <%s> ") \
                            % (column_string, output))
             ret = grass.run_command("v.what.rast", map=output, raster=name,
-                                    column=column_name, where=where, quiet=True)
+                                    column=column_name, where=where,
+                                    quiet=quiet)
             if ret != 0:
                 dbif.close()
                 grass.fatal(_("Unable to run v.what.rast for vector map <%s> "
                               "and raster map <%s>") % \
                               (output, str(raster_names)))
+
+        msgr.percent(perc_curr, perc_tot, 1)
+        perc_curr += 1
 
     dbif.close()
 if __name__ == "__main__":
