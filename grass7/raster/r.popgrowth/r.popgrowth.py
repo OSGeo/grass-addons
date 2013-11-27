@@ -8,7 +8,7 @@
 #				
 # VERSION:		
 #
-# DATE:			2013-08-28
+# DATE:			2013-11-27
 #
 #############################################################################
 #%Module
@@ -19,7 +19,7 @@
 #% key: n_initial
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Map with number of individuals per cell at time t0 (initial population size)
+#% description: Map of number of individuals per cell at time t0 (initial population size)
 #% required: yes
 #%end
 #%option
@@ -42,7 +42,7 @@
 #%option
 #% key: r_exp_fix
 #% type: double
-#% description: Fixed value of intrinsic rate of increase, log(finite rate of increase, lambda)
+#% description: Cell-specific fixed value of intrinsic rate of increase, log(finite rate of increase, lambda)
 #% required: no
 #% multiple: no
 #% guisection: Exponential
@@ -51,7 +51,7 @@
 #% key: r_exp_map
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Map with intrinsic rate of increase, log(finite rate of increase, lambda)
+#% description: Map of cell-specific intrinsic rate of increase, log(finite rate of increase, lambda)
 #% required: no
 #% multiple: no
 #% guisection: Exponential
@@ -69,7 +69,7 @@
 #%option
 #% key: k_fix
 #% type: integer
-#% description: Fixed value of carrying capacity of the environment
+#% description: Fixed value of carrying capacity of the environment (per cell)
 #% required: no
 #% guisection: Ricker
 #%end
@@ -77,14 +77,14 @@
 #% key: k_map
 #% type: string
 #% gisprompt: old,cell,raster
-#% description: Map with carrying capacity of the environment
+#% description: Map of carrying capacity of the environment (per cell)
 #% required: no
 #% guisection: Ricker
 #%end
 #%option
 #% key: r_rick_fix
 #% type: double
-#% description: Fixed value of intrinsic rate of increase (Ricker)
+#% description: Cell-specific fixed value of intrinsic rate of increase (Ricker)
 #% required: no
 #% multiple: no
 #% guisection: Ricker
@@ -92,10 +92,18 @@
 #%option
 #% key: r_rick_map
 #% gisprompt: old,cell,raster
-#% description: Map with intrinsic rate of increase (Ricker)
+#% description: Map of cell-specific intrinsic rate of increase (Ricker)
 #% required: no
 #% multiple: no
 #% guisection: Ricker
+#%end
+#%option
+#% key: population_patches
+#% type: string
+#% gisprompt: old,cell,raster
+#% description: Optional raster map of patches of single populations. If provided, growth models are calculated based on these patches (patch-averaged r and cumulated k).
+#% required: no
+#% guisection: Optional
 #%end
 #%Option
 #% key: seed
@@ -131,6 +139,11 @@ import numpy
 
 def cleanup():
 	grass.debug(_("This is the cleanup part"))
+	if (tmp_map_rast or tmp_map_vect):
+		grass.run_command("g.remove", 
+				#rast = [f + str(os.getpid()) for f in tmp_map_rast],
+				vect = [f + str(os.getpid()) for f in tmp_map_vect],
+				quiet = True)
 
 
 def main():
@@ -151,6 +164,21 @@ def main():
 
 	#Model parameters input
 	t = int(options['timesteps'])
+
+
+	# If populations patches are provided, otherwise single cell populations are used
+	if options['population_patches']:
+		grass.run_command("r.statistics2",
+				base=options['population_patches'],
+				cover=options['n_initial'],
+				method="sum",
+				output="n0_tmp_%d" % os.getpid())
+	else:
+		 grass.run_command("g.copy",
+				rast=options['n_initial']+","+"n0_tmp_%d" % os.getpid())
+
+	tmp_map_rast.append("n0_tmp_")
+
 	
 
 	# Customized rounding function. Round based on a probability (p=digits after decimal point) to avoid "local stable states"
@@ -183,7 +211,7 @@ def main():
 			if flags['i']:
 				n = vprob_round(n)
 		return 	n
-	vricker_mod = numpy.vectorize(ricker_mod)
+	#vricker_mod = numpy.vectorize(ricker_mod) ##### ???????????
 	
 	################# Exponential Model #################
 	if options['exponential_output']:
@@ -193,20 +221,49 @@ def main():
 
 		# Define r
 		if options['r_exp_map']:
-			grass.message(_("r_exp_map provided"))
+			grass.debug(_("r_exp_map provided"))
+			
+			if options['population_patches']:
+				grass.run_command("r.statistics2",
+						base=options['population_patches'],
+						cover=options['r_exp_map'],
+						method="average",
+						output="r_exp_tmp_%d" % os.getpid())
+			else:
+		 		grass.run_command("g.copy",
+						rast=options['r_exp_map']+","+"r_exp_tmp_%d" % os.getpid())
+
+			tmp_map_rast.append("r_exp_tmp_")
+ 
 			r = garray.array()
-			r.read(options['r_exp_map'])
+			r.read("r_exp_tmp_%d" % os.getpid())
+
 		elif options['r_exp_fix']:
 			r = float(options['r_exp_fix'])
 		else:
 			grass.fatal(_("No r value/map provided for exponential model"))
+
+		# run model
 		n0_map = garray.array()
-		n0_map.read(options['n_initial'])
+		n0_map.read("n0_tmp_%d" % os.getpid())
 		exponential_map = garray.array()
 		exponential_map[...] = exponential_mod(n0_map,r,t)
-		exponential_map.write(options['exponential_output'])
+		ricker_map.write("exponential_output_tmp_%d" % os.getpid())
+		tmp_map_rast.append("exponential_output_tmp_")
 
 
+		# Retransform in case of patches
+		if options['population_patches']:
+			grass.mapcalc("$exponential_output = round(($n0*1.0/$n0_tmp)*$exponential_output_tmp)",
+				ricker_output=options['exponential_output'],
+				n0=options['n_initial'],
+				n0_tmp="n0_tmp_%d" % os.getpid(),
+				ricker_output_tmp="exponential_output_tmp_%d" % os.getpid())
+
+		else:
+			grass.run_command("g.copy",
+				rast="exponential_output_tmp_%d" % os.getpid() + ","+options['exponential_output'])
+		
 	################# Ricker Model #################
 	if options['ricker_output']:
 		# Check for correct input
@@ -217,8 +274,22 @@ def main():
 
 		# Define r
 		if options['r_rick_map']:
+
+			if options['population_patches']:
+				grass.run_command("r.statistics2",
+						base=options['population_patches'],
+						cover=options['r_rick_map'],
+						method="average",
+						output="r_rick_tmp_%d" % os.getpid())
+			else:
+		 		grass.run_command("g.copy",
+						rast=options['r_rick_map']+","+"r_rick_tmp_%d" % os.getpid())
+
+			tmp_map_rast.append("r_rick_tmp_")
+
 			r = garray.array()
-			r.read(options['r_rick_map'])
+			r.read("r_rick_tmp_%d" % os.getpid())
+
 		elif options['r_rick_fix']:
 			r = float(options['r_rick_fix'])
 		else:
@@ -226,17 +297,48 @@ def main():
 
 		# Define k
 		if options['k_map']:
+			if options['population_patches']:
+				grass.run_command("r.statistics2",
+						base=options['population_patches'],
+						cover=options['k_map'],
+						method="sum",
+						output="k_tmp_%d" % os.getpid())
+			else:
+		 		grass.run_command("g.copy",
+						rast=options['k_map']+","+"k_tmp_%d" % os.getpid())
+			
+			tmp_map_rast.append("k_tmp_")
+
 			k = garray.array()
-			k.read(options['k_map'])
+			k.read("k_tmp_%d" % os.getpid())
+
 		elif options['k_fix']:
 			k = float(options['k_fix'])
 		else:
 			grass.fatal(_("No value/map for carrying capacity (k) provided"))
+
+
+		# run model
 		n0_map = garray.array()
-		n0_map.read(options['n_initial'])
+		n0_map.read("n0_tmp_%d" % os.getpid())
 		ricker_map = garray.array()
 		ricker_map[...] = ricker_mod(n0_map,r,k,t)
-		ricker_map.write(options['ricker_output'])
+		ricker_map.write("ricker_output_tmp_%d" % os.getpid())
+		tmp_map_rast.append("ricker_output_tmp_")
+
+		# Retransform in case of patches
+		if options['population_patches']:
+			grass.mapcalc("$ricker_output = round(($n0*1.0/$n0_tmp)*$ricker_output_tmp)",
+				ricker_output=options['ricker_output'],
+				n0=options['n_initial'],
+				n0_tmp="n0_tmp_%d" % os.getpid(),
+				ricker_output_tmp="ricker_output_tmp_%d" % os.getpid())
+
+		else:
+			grass.run_command("g.copy",
+				rast="ricker_output_tmp_%d" % os.getpid() +","+options['ricker_output'])
+		
+
 
 
 
