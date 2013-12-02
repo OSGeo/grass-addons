@@ -68,7 +68,7 @@
 #%end
 #%option
 #% key: time_step
-#% type: double
+#% type: integer
 #% label: Time increment
 #% description: Time increment between two states (maps) used to register output maps in space-time raster dataset. Used together with time_units parameter.
 #% required: no
@@ -142,6 +142,11 @@ def check_maps_exist(maps, mapset):
             gcore.fatal(_("Raster map <%s> already exists. Change the base name or allow overwrite.") % map_)
 
 
+def remove_raster_maps(maps, quiet=False):
+    for map_ in maps:
+        gcore.run_command('g.remove', rast=map_, quiet=quiet)
+
+
 def main():
     options, flags = gcore.parser()
 
@@ -161,7 +166,7 @@ def main():
                       " together, please specify only one of them."))
 
     time_unit = options['time_unit']
-    time_step = options['time_step']
+    time_step = options['time_step']  # temporal fucntions accepts only string now
     if time_step <= 0:
         gcore.fatal(_("Time step must be greater than zero."
                       " Please specify number > 0."))
@@ -188,12 +193,16 @@ def main():
         flags += 'n'
 
     for i, water_level in enumerate(water_levels):
-        print outputs[i]
-        gcore.run_command('r.lake', elevation=elevation, lake=outputs[i],
-                          wl=water_level,
-                          overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
-                          **kwargs)
-
+        return_code = gcore.run_command('r.lake', elevation=elevation,
+                                        lake=outputs[i],
+                                        wl=water_level,
+                                        overwrite=gcore.overwrite(),  # TODO: really works? Its seems that hardcoding here False does not prevent overwriting.
+                                        **kwargs)
+        if return_code:
+            # remove maps created so far, try to remove also i-th map
+            remove_raster_maps(outputs[:i], quiet=True)
+            gcore.fatal(_("r.lake command failed. Check above error messages."
+                          " Try different water levels or seed points."))
     gcore.info(_("Registering created maps into temporal dataset..."))
 
     # Make sure the temporal database exists
@@ -204,9 +213,12 @@ def main():
                                      title=title, descr=desctiption,
                                      semantic='sum', dbif=None,
                                      overwrite=gcore.overwrite())
-    # we must start from 1 because there is a bug in register_maps_in_space_time_dataset
+    # TODO: we must start from 1 because there is a bug in register_maps_in_space_time_dataset
     tgis.register_maps_in_space_time_dataset(
-        type='rast', name=basename, maps=','.join(outputs), start=1, end=None,
-        unit=time_unit, increment=time_step, dbif=None, interval=False)
+        type='rast', name=basename, maps=','.join(outputs),
+        start=str(1), end=None, unit=time_unit, increment=time_step,
+        interval=False, dbif=None)
+
+
 if __name__ == '__main__':
     sys.exit(main())
