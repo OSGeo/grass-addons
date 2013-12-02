@@ -3,7 +3,10 @@
 ############################################################################ 
 # 
 # MODULE:       r.maxent.lambdas 
-# AUTHOR(S):    Stefan Blumentrath <stefan dot blumentrath at nina dot no > 
+# AUTHOR(S):    Stefan Blumentrath <stefan dot blumentrath at nina dot no >
+#               Proposed small change in how raw features are extracted 
+#               from the lambdas file as this didn't work in original
+#               code (Paulo van Breugel)
 # PURPOSE:      Compute raw and/or logistic prediction maps from a lambdas
 #               file produced with MaxEnt 3.3.3e. 
 #
@@ -189,7 +192,7 @@ entropy=$(cat ${LAMBDAS_FILE} | grep entropy | sed 's/ //g' | tr -d '\r' | cut -
 ###Create file with initial part of mapcalc-expression
 echo "${OUTPUT_PREFIX}_raw=exp(((\\" > "$temp1"
 ###Extract raw features
-cat -v "${LAMBDAS_FILE}" | awk '$0 !~ /\^2|\(|\*|\`/' | grep -vP "\'" | sed 's/\^M//g' | sed 's/,//g' | awk 'NF==4{print "if(isnull(" $1 "),0,(" $2 "*(" $1 "-" $3 ")/(" $4 "-" $3 ")))" "+" "\\"}' | sed 's/--/+/g' | sed 's/+-/-/g' >> $temp1
+cat -v "${LAMBDAS_FILE}" | awk '$0 !~ /\^|\(|\*/' | grep -vP "\`" | grep -vP "\'" | sed 's/\^M//g' | sed 's/,//g' | awk 'NF==4{print "if(isnull(" $1 "),0,(" $2 "*(" $1 "-" $3 ")/(" $4 "-" $3 ")))" "+" "\\"}' | sed 's/--/+/g' | sed 's/+-/-/g' >> $temp1
 ###Extract quadratic features
 cat -v "${LAMBDAS_FILE}" | grep '\^2' | sed 's/\^M//g' | sed 's/,//g' | sed 's/\^2//g' | awk '{print "if(isnull(" $1 "),0,((" $2 "*(" $1 "*" $1 "-" $3 "))/" "(" $4 "-" $3 ")))" "+" "\\"}' | sed 's/--/+/g' | sed 's/+-/-/g' >> $temp1
 ###Extract product features
