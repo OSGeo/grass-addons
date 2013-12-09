@@ -1,31 +1,42 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.gdd</em> calculates (accumulated) growing degree days (GDDs) and 
-Winkler indices from several input maps with temperature data for 
-different times of the day.
+<em>r.gdd</em> calculates (accumulated) growing degree days (GDDs), 
+Winkler indices, Biologically Effective Degree Days (BEDD), and Huglin 
+indices from several input maps with temperature data for different 
+times of the day.
 <p>
 The formula for calculating GDDs is
 <div class="code"><pre>
-    gdd = (max + min) / 2 - baseline
+    average = (max + min) / 2
+    gdd = average - baseline
 </pre></div>
 The formula for calculating the Winkler index is
 <div class="code"><pre>
-    gdd = average - baseline
+    average = sum(inputs) / num_inputs
+    wi = average - baseline
+</pre></div>
+The formula for calculating the Huglin heliothermal index is
+<div class="code"><pre>
+    average = (max + min) / 2
+    hi = (average + max) / 2 - baseline
 </pre></div>
 with <em>min</em> being the minimum daily temperature, <em>max</em> 
 the maximum daily temperature and <em>average</em> the average daily 
 temperature. The <em>min</em>, <em>max</em> and <em>average</em> values 
 are automatically calculated from the input temperature maps.
 <p>
+Any <em>average</em> temperature values above the <em>cutoff</em> value 
+are set to <em>cutoff</em>, and any <em>average</em> values below the 
+<em>baseline</em> value are set to <em>baseline</em>. Negative results 
+are set to 0 (zero). 
+<p>
+The <em>cutoff</em> value is useful to calculate Biologically Effective 
+Degree Days (BEDD), assuming that development kinetics reach a plateau 
+at the cutfoff value.
+<p>
 The <em>shift</em> and <em>scale</em> values are applied directly to the 
 input values. The <em>baseline</em>, <em>cutoff</em>, and <em>range</em> 
 options are applied to the shifted and scaled values.
-<p>
-Any <em>min</em>, <em>max</em> and <em>average</em> temperature values 
-above the <em>cutoff</em> value are set to <em>cutoff</em>, and any 
-<em>min</em>, <em>max</em> and <em>average</em> values below the 
-<em>baseline</em> value are set to <em>baseline</em>. Negative results 
-are set to 0 (zero). 
 <p>
 If an existing map is provided with the <em>gdd</em> option, the 
 values of this map are added to the output, thus accumulating GDDs.

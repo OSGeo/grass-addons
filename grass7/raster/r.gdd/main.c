@@ -4,7 +4,7 @@
  * MODULE:       r.gdd
  * AUTHOR(S):    Markus Metz
  *               based on r.series
- * PURPOSE:      Calculate Growing Degree Days (GDDs)
+ * PURPOSE:      Calculate GDD, Winler index, BEDD, Huglin
  * COPYRIGHT:    (C) 2012 by the GRASS Development Team
  *
  *               This program is free software under the GNU General Public
@@ -41,15 +41,15 @@ int main(int argc, char *argv[])
     struct GModule *module;
     struct
     {
-	struct Option *input, *gdd, *file, *output, *range,
+	struct Option *input, *add, *file, *output, *range,
 	              *scale, *shift, *baseline, *cutoff;
     } parm;
     struct
     {
-	struct Flag *nulls, *lazy, *avg;
+	struct Flag *nulls, *lazy, *avg, *huglin;
     } flag;
     int i;
-    int num_inputs, max_inputs, gdd_in;
+    int num_inputs, max_inputs, add_in;
     struct input *inputs = NULL;
     struct output *out = NULL;
     struct History history;
@@ -72,10 +72,10 @@ int main(int argc, char *argv[])
     parm.input = G_define_standard_option(G_OPT_R_INPUTS);
     parm.input->required = NO;
 
-    parm.gdd = G_define_standard_option(G_OPT_R_INPUT);
-    parm.gdd->key = "gdd";
-    parm.gdd->description = _("Existing GDD map to be added to output");
-    parm.gdd->required = NO;
+    parm.add = G_define_standard_option(G_OPT_R_INPUT);
+    parm.add->key = "add";
+    parm.add->description = _("Existing map to be added to output");
+    parm.add->required = NO;
 
     parm.file = G_define_standard_option(G_OPT_F_INPUT);
     parm.file->key = "file";
@@ -122,6 +122,10 @@ int main(int argc, char *argv[])
     flag.avg = G_define_flag();
     flag.avg->key = 'a';
     flag.avg->description = _("Use average instead of min, max");
+
+    flag.huglin = G_define_flag();
+    flag.huglin->key = 'h';
+    flag.huglin->description = _("Calculate Huglin index");
 
     flag.nulls = G_define_flag();
     flag.nulls->key = 'n';
@@ -229,23 +233,23 @@ int main(int argc, char *argv[])
 	max_inputs = num_inputs;
     }
 
-    if (parm.gdd->answer) {
+    if (parm.add->answer) {
 	struct input *p;
 
-	gdd_in = 1;
+	add_in = 1;
 	if (num_inputs + 1 >= max_inputs) {
 	    max_inputs += 2;
 	    inputs = G_realloc(inputs, max_inputs * sizeof(struct input));
 	}
 	p = &inputs[num_inputs];
-	p->name = parm.gdd->answer;
+	p->name = parm.add->answer;
 	G_verbose_message(_("Reading raster map <%s>..."), p->name);
 	p->buf = Rast_allocate_f_buf();
 	if (!flag.lazy->answer)
 	    p->fd = Rast_open_old(p->name, "");
     }
     else
-	gdd_in = 0;
+	add_in = 0;
 
     out = G_calloc(1, sizeof(struct output));
 
@@ -267,14 +271,14 @@ int main(int argc, char *argv[])
 
 	if (flag.lazy->answer) {
 	    /* Open the files only on run time */
-	    for (i = 0; i < num_inputs + gdd_in; i++) {
+	    for (i = 0; i < num_inputs + add_in; i++) {
 		inputs[i].fd = Rast_open_old(inputs[i].name, "");
 		Rast_get_f_row(inputs[i].fd, inputs[i].buf, row);
 		Rast_close(inputs[i].fd);
 	    }
 	}
 	else {
-	    for (i = 0; i < num_inputs + gdd_in; i++)
+	    for (i = 0; i < num_inputs + add_in; i++)
 	        Rast_get_f_row(inputs[i].fd, inputs[i].buf, row);
 	}
 
@@ -282,7 +286,7 @@ int main(int argc, char *argv[])
 
 	for (col = 0; col < ncols; col++) {
 	    int null = 0, non_null = 0;
-	    FCELL min, max, avg, gdd;
+	    FCELL min, max, avg, result;
 
 	    min = fnull;
 	    max = fnull;
@@ -299,57 +303,48 @@ int main(int argc, char *argv[])
 			null = 1;
 		    }
 		    else {
-			if (flag.avg->answer)
-			    avg += v;
-			else {
-			    if (Rast_is_f_null_value(&min) || min > v)
-				min = v;
-			    if (Rast_is_f_null_value(&max) || max < v)
-				max = v;
-			}
+			avg += v;
+			if (Rast_is_f_null_value(&min) || min > v)
+			    min = v;
+			if (Rast_is_f_null_value(&max) || max < v)
+			    max = v;
 			non_null++;
 		    }
 		}
 	    }
 
 	    if (!non_null || (null && flag.nulls->answer)) {
-		if (gdd_in)
-		    gdd = inputs[num_inputs].buf[col];
+		if (add_in)
+		    result = inputs[num_inputs].buf[col];
 		else
-		    gdd = fnull;
+		    result = fnull;
 	    }
 	    else {
 
 		if (flag.avg->answer) {
 		    avg /= non_null;
-
-		    if (avg < baseline)
-			avg = baseline;
-		    if (avg > cutoff)
-			avg = cutoff;
-
-		    gdd = avg - baseline;
 		}
 		else {
-		    if (min < baseline)
-			min = baseline;
-		    if (min > cutoff)
-			min = cutoff;
-		    if (max < baseline)
-			max = baseline;
-		    if (max > cutoff)
-			max = cutoff;
-
-		    gdd = (min + max) / 2. - baseline;
+		    avg = (min + max) / 2.;
 		}
 
-		if (gdd < 0.)
-		    gdd = 0.;
-		if (gdd_in)
-		    gdd += inputs[num_inputs].buf[col];
+		if (flag.huglin->answer)
+		    avg = (avg + max) / 2.;
+
+		if (avg < baseline)
+		    avg = baseline;
+		if (avg > cutoff)
+		    avg = cutoff;
+
+		result = avg - baseline;
+
+		if (result < 0.)
+		    result = 0.;
+		if (add_in)
+		    result += inputs[num_inputs].buf[col];
 
 	    }
-	    out->buf[col] = gdd;
+	    out->buf[col] = result;
 	}
 
 	Rast_put_f_row(out->fd, out->buf);
@@ -366,7 +361,7 @@ int main(int argc, char *argv[])
 
     /* Close input maps */
     if (!flag.lazy->answer) {
-    	for (i = 0; i < num_inputs + gdd_in; i++)
+    	for (i = 0; i < num_inputs + add_in; i++)
 	    Rast_close(inputs[i].fd);
     }
 
