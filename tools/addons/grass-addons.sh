@@ -23,6 +23,10 @@ if [ "$nup" -gt 1 ] || [ "$1" = "f" ] ; then
     	cd $WWWDIR/grass${version}/logs
     	ln -sf ALL.html index.html
     done
+
+    update_manual 7 0
+    update_manual 6 5
+    update_manual 6 4
 fi
 }
 
@@ -41,6 +45,22 @@ recompile_grass() {
 	$DIR/configures.sh grass$num
 	make
 	cd ..
+    done
+}
+
+update_manual() {
+    major=$1
+    minor=$2
+    echo "Updating manuals for GRASS ${major}.${minor}..."
+    cd $HOME/.grass${major}/addons/
+    dst="/osgeo/grass/grass-cms/grass${major}${minor}/manuals/addons/"
+    if [ ! -d $dst ] ; then
+	mkdir $dst
+	cp /osgeo/grass/grass-cms/grass${major}${minor}/manuals/grass_logo.png $dst
+	cp /osgeo/grass/grass-cms/grass${major}${minor}/manuals/grassdocs.css $dst
+    fi
+    for m in $(ls -d */) ; do 
+	cp ${m}docs/html/* $dst
     done
 }
 
