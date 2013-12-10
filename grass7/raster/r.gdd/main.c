@@ -22,6 +22,11 @@
 #include <grass/raster.h>
 #include <grass/glocale.h>
 
+#define IDX_GDD 1
+#define IDX_WINKLER 2
+#define IDX_BEDD 3
+#define IDX_HUGLIN 4
+
 struct input
 {
     const char *name;
@@ -41,14 +46,15 @@ int main(int argc, char *argv[])
     struct GModule *module;
     struct
     {
-	struct Option *input, *add, *file, *output, *range,
+	struct Option *input, *add, *file, *output, *index, *range,
 	              *scale, *shift, *baseline, *cutoff;
     } parm;
     struct
     {
-	struct Flag *nulls, *lazy, *avg, *huglin;
+	struct Flag *nulls, *lazy, *avg;
     } flag;
-    int i;
+    char *desc = NULL;
+    int idx, i;
     int num_inputs, max_inputs, add_in;
     struct input *inputs = NULL;
     struct output *out = NULL;
@@ -84,6 +90,22 @@ int main(int argc, char *argv[])
 
     parm.output = G_define_standard_option(G_OPT_R_OUTPUT);
     parm.output->multiple = NO;
+
+    parm.index = G_define_option();
+    parm.index->key = "index";
+    parm.index->type = TYPE_STRING;
+    parm.index->multiple = NO;
+    parm.index->required = NO;
+    parm.index->options = "gdd,winkler,bedd,huglin";
+    parm.index->answer = "gdd";
+    parm.index->label = "Index to calculate";
+    G_asprintf(&desc,
+	       "gdd;%s;winkler;%s;bedd;%s;huglin;%s",
+	       _("Growing Degree Days"),
+	       _("Winkler index"),
+	       _("Biologically Effective Degree Days"),
+	       _("Huglin Heliothermal index"));
+    parm.index->descriptions = desc;
 
     parm.scale = G_define_option();
     parm.scale->key = "scale";
@@ -121,11 +143,7 @@ int main(int argc, char *argv[])
 
     flag.avg = G_define_flag();
     flag.avg->key = 'a';
-    flag.avg->description = _("Use average instead of min, max");
-
-    flag.huglin = G_define_flag();
-    flag.huglin->key = 'h';
-    flag.huglin->description = _("Calculate Huglin index");
+    flag.avg->description = _("Use average instead of (min + max) / 2");
 
     flag.nulls = G_define_flag();
     flag.nulls->key = 'n';
@@ -157,6 +175,19 @@ int main(int argc, char *argv[])
 
     baseline = atof(parm.baseline->answer);
     cutoff = atof(parm.cutoff->answer);
+    
+    idx = 0;
+    if (strcmp(parm.index->answer, "gdd") == 0)
+	idx = IDX_GDD;
+    else if (strcmp(parm.index->answer, "winkler") == 0)
+	idx = IDX_WINKLER;
+    else if (strcmp(parm.index->answer, "bedd") == 0)
+	idx = IDX_BEDD;
+    else if (strcmp(parm.index->answer, "huglin") == 0)
+	idx = IDX_HUGLIN;
+    else
+        G_fatal_error(_("Unknown index '%s' for option %s"),
+	              parm.index->answer, parm.index->key);
     
     if (cutoff <= baseline)
         G_fatal_error(_("'%s' must be > '%s'"), parm.cutoff->key,
@@ -303,6 +334,8 @@ int main(int argc, char *argv[])
 			null = 1;
 		    }
 		    else {
+			if (idx != IDX_BEDD && v > cutoff)
+			    v = cutoff;
 			avg += v;
 			if (Rast_is_f_null_value(&min) || min > v)
 			    min = v;
@@ -328,12 +361,12 @@ int main(int argc, char *argv[])
 		    avg = (min + max) / 2.;
 		}
 
-		if (flag.huglin->answer)
+		if (idx == IDX_HUGLIN)
 		    avg = (avg + max) / 2.;
 
 		if (avg < baseline)
 		    avg = baseline;
-		if (avg > cutoff)
+		if (idx == IDX_BEDD && avg > cutoff)
 		    avg = cutoff;
 
 		result = avg - baseline;

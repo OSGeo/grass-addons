@@ -5,41 +5,53 @@ Winkler indices, Biologically Effective Degree Days (BEDD), and Huglin
 indices from several input maps with temperature data for different 
 times of the day.
 <p>
-The formula for calculating GDDs is
+<b>GDDs</b> are calculated as
 <div class="code"><pre>
-    average = (max + min) / 2
     gdd = average - baseline
 </pre></div>
-The formula for calculating the Winkler index is
+<p>
+The <b>Winkler index</b> is calculated as
 <div class="code"><pre>
-    average = sum(inputs) / num_inputs
     wi = average - baseline
 </pre></div>
-The formula for calculating the Huglin heliothermal index is
+usually accumulated for the period April 1<sup>st</sup> to October 
+31<sup>st</sup> (northern hemisphere) or the period October 
+1<sup>st</sup> to April 30<sup>th</sup> 
+(southern hemisphere).
+<p>
+<b>BEDDs</b> are calculated as
 <div class="code"><pre>
-    average = (max + min) / 2
+    wi = average - baseline
+</pre></div>
+with an optional upper <em>cutoff</em> applied to the average instead of 
+the temperature values.
+<p>
+The <b>Huglin heliothermal index</b> is calculated as
+<div class="code"><pre>
     hi = (average + max) / 2 - baseline
 </pre></div>
-with <em>min</em> being the minimum daily temperature, <em>max</em> 
-the maximum daily temperature and <em>average</em> the average daily 
-temperature. The <em>min</em>, <em>max</em> and <em>average</em> values 
+usually accumulated for the period April 1<sup>st</sup> to September 
+30<sup>th</sup> (northern hemisphere) or the period September 
+1<sup>st</sup> to April 30<sup>th</sup> (southern hemisphere).
+<p>
+With the <em>-a</em> flag, the average is calculated as the average of 
+all available temperature values, otherwiese the average is calculated as
+<i>(min + max) / 2</i>.
+The <em>min</em>, <em>max</em> and <em>average</em> values 
 are automatically calculated from the input temperature maps.
 <p>
-Any <em>average</em> temperature values above the <em>cutoff</em> value 
-are set to <em>cutoff</em>, and any <em>average</em> values below the 
-<em>baseline</em> value are set to <em>baseline</em>. Negative results 
+Any temperature values (for BEDD, any averages) above the <em>cutoff</em> 
+value are set to <em>cutoff</em>, and any <em>average</em> values below 
+the <em>baseline</em> value are set to <em>baseline</em>. Negative results 
 are set to 0 (zero). 
-<p>
-The <em>cutoff</em> value is useful to calculate Biologically Effective 
-Degree Days (BEDD), assuming that development kinetics reach a plateau 
-at the cutfoff value.
 <p>
 The <em>shift</em> and <em>scale</em> values are applied directly to the 
 input values. The <em>baseline</em>, <em>cutoff</em>, and <em>range</em> 
 options are applied to the shifted and scaled values.
 <p>
-If an existing map is provided with the <em>gdd</em> option, the 
-values of this map are added to the output, thus accumulating GDDs.
+If an existing map is provided with the <em>add</em> option, the 
+values of this map are added to the output, thus accumulating the 
+selected index.
 
 <h2>NOTES</h2>
 
@@ -51,10 +63,10 @@ input values with
 <p>
 With the <em>-n</em> flag, any cell for which any of the 
 corresponding input cells are NULL is automatically set to NULL 
-(NULL propagation) and the GDD value is not calculated.
+(NULL propagation) and the index is not calculated.
 <p>
 Without the <em>-n</em> flag, all non-NULL cells are used to 
-calculate the current GDD.
+calculate the selected index.
 <p>
 If the <em>range=</em> option is given, any values which fall outside 
 that range will be treated as if they were NULL. Note that the range is 
@@ -91,8 +103,7 @@ method. For every sinlge row in the output map(s) all input maps are
 opened and closed. The amount of RAM will rise linear with the 
 number of specified input maps. The input and file options are 
 mutually exclusive. Input is a text file with a new line separated 
-list of raster map names and optional weights. As separator between 
-the map name and the weight the charachter | must be used.
+list of raster map names.
 
 <h2>EXAMPLES</h2>
 
