@@ -1,5 +1,8 @@
 MODULE_TOPDIR = ..
 
+#         r.pack \
+#        r.unpack \
+
 SUBDIRS = \
 	r.area \
 	r.basin	\
@@ -42,7 +45,6 @@ SUBDIRS = \
 	r.out.kml \
 	r.out.maxent_swd \
 	r.out.netcdf \
-	r.pack \
 	r.pi \
 	r.prominence \
 	r.rast4d \
@@ -64,7 +66,6 @@ SUBDIRS = \
 	r.terracost \
 	r.threshold \
 	r.univar.zonal \
-	r.unpack \
 	r.viewshed \
 	r.vol.dem \
 	r.wf \
