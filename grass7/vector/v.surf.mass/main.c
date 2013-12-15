@@ -377,6 +377,7 @@ int main(int argc, char *argv[])
 	}
     }
     G_percent(row, nrows, 2);
+    Vect_set_release_support(&In);
     Vect_close(&In);
 
     if (have_weights) {
