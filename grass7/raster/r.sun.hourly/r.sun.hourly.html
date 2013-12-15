@@ -1,8 +1,8 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.sun.mode1</em> is a convenient script for running
+<em>r.sun.hourly</em> is a convenient script for running
 r.sun for multiple times in a loop. It corresponds to mode 1
-(see r.sun <a href="r.sun.html">manual page</a>).
+(instant mode, see r.sun <a href="r.sun.html">manual page</a>).
 
 <h3>Output parameters explanation</h3>
 Output is one or more series of raster maps.
@@ -18,11 +18,11 @@ For GRASS 6, only timestamp is assigned.
 <h2>EXAMPLE</h2>
 
 <div class="code"><pre>
-r.sun.mode1 elev_in=elevation start_time=8 end_time=15 beam_rad_basename=beam nprocs=4 -t
+r.sun.hourly elev_in=elevation start_time=8 end_time=15 beam_rad_basename=beam nprocs=4 -t
 # show information about newly created space time dataset
 t.info beam
 
-# show raster maps registered in beam dataset
+# show raster maps registered in beam temporal dataset
 t.rast.list beam
 </pre></div>
 
