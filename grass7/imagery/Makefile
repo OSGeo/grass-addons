@@ -9,6 +9,7 @@ SUBDIRS = \
 	i.evapo.potrad \
 	i.evapo.senay \
 	i.evapo.zk \
+	i.feo_tio2 \
 	i.gravity \
 	i.histo.match \
 	i.lmf \
