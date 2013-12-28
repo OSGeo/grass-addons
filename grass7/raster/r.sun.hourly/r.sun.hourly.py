@@ -125,6 +125,10 @@
 #% label: Register created series of output maps into temporal dataset
 #%end
 #%flag
+#% key: b
+#% description: Create binary rasters instead of irradiation rasters
+#%end
+#%flag
 #% key: overwrite
 #% description: Allow output files to overwrite existing files
 #%end
@@ -162,7 +166,7 @@ def create_tmp_map_name(name):
 
 # add latitude map
 def run_r_sun(elevation, aspect, slope, day, time, beam_rad, diff_rad,
-              refl_rad, glob_rad, incidout, suffix):
+              refl_rad, glob_rad, incidout, suffix, binary, binaryTmpName):
     params = {}
     if beam_rad:
         params.update({'beam_rad': beam_rad + suffix})
@@ -187,14 +191,27 @@ def run_r_sun(elevation, aspect, slope, day, time, beam_rad, diff_rad,
                           day=day, time=time,
                           overwrite=core.overwrite(), quiet=True,
                           **params)
+    if binary:
+        for output in (beam_rad, diff_rad, refl_rad, glob_rad):
+            if not output:
+                continue
+            exp='{out} = if({inp} > 0, 1, 0)'.format(out=output + suffix + binaryTmpName,
+                                                    inp=output + suffix)
+            grass.mapcalc(exp=exp, overwrite=core.overwrite())
+            grass.run_command('g.rename', rast=[output + suffix + binaryTmpName,
+                                                output + suffix],
+                              overwrite=True)
 
 
-def set_color_table(rasters):
+def set_color_table(rasters, binary=False):
+    table = 'gyr'
+    if binary:
+        table='grey'
     if is_grass_7():
-        grass.run_command('r.colors', map=rasters, col='gyr', quiet=True)
+        grass.run_command('r.colors', map=rasters, col=table, quiet=True)
     else:
         for rast in rasters:
-            grass.run_command('r.colors', map=rast, col='gyr', quiet=True)
+            grass.run_command('r.colors', map=rast, col=table, quiet=True)
 
 
 def set_time_stamp(raster, time):
@@ -205,13 +222,23 @@ def format_time(time):
     return '%05.2f' % time
 
 
-def check_time_map_names(basename, mapset, start_time, end_time, time_step):
+def check_time_map_names(basename, mapset, start_time, end_time, time_step,
+                         binary, binaryTmpName):
     if not basename:
         return
     for time in frange(start_time, end_time, time_step):
-        map_ = '%s%s%s' % (basename, '_', format_time(time))
-        if grass.find_file(map_, element='cell', mapset=mapset)['file']:
-            grass.fatal(_("Raster map <%s> already exists. Change the base name or allow overwrite.") % map_)
+        maps = []
+        maps.append('{name}{delim}{time}'.format(name=basename,
+                                                    delim='_',
+                                                    time=format_time(time)))
+        if binary:
+            maps.append('{name}{delim}{time}{binary}'.format(name=basename,
+                                                             delim='_',
+                                                             time=format_time(time),
+                                                             binary=binaryTmpName))
+        for map_ in maps:
+            if grass.find_file(map_, element='cell', mapset=mapset)['file']:
+                grass.fatal(_("Raster map <%s> already exists. Change the base name or allow overwrite.") % map_)
 
 
 def frange(x, y, step):
@@ -255,6 +282,8 @@ def main():
     nprocs = int(options['nprocs'])
     day = int(options['day'])
     temporal = flags['t']
+    binary = flags['b']
+    binaryTmpName = 'binary'
     year = int(options['year'])
 
     if not is_grass_7() and temporal:
@@ -269,13 +298,13 @@ def main():
     # here we check all the days
     if not grass.overwrite():
         check_time_map_names(beam_rad_basename, grass.gisenv()['MAPSET'],
-                              start_time, end_time, time_step)
+                              start_time, end_time, time_step, binary, binaryTmpName)
         check_time_map_names(diff_rad_basename, grass.gisenv()['MAPSET'],
-                              start_time, end_time, time_step)
+                              start_time, end_time, time_step, binary, binaryTmpName)
         check_time_map_names(refl_rad_basename, grass.gisenv()['MAPSET'],
-                              start_time, end_time, time_step)
+                              start_time, end_time, time_step, binary, binaryTmpName)
         check_time_map_names(glob_rad_basename, grass.gisenv()['MAPSET'],
-                              start_time, end_time, time_step)
+                              start_time, end_time, time_step, binary, binaryTmpName)
 
     # check for slope/aspect
     if not aspect_input or not slope_input:
@@ -315,7 +344,8 @@ def main():
                                        refl_rad_basename,
                                        glob_rad_basename,
                                        incidout_basename,
-                                       suffix)))
+                                       suffix,
+                                       binary, binaryTmpName)))
 
         proc_list[proc_count].start()
         proc_count += 1
@@ -401,16 +431,16 @@ def main():
 
     if beam_rad_basename:
         maps = [beam_rad_basename + suf for suf in suffixes_all]
-        set_color_table(maps)
+        set_color_table(maps, binary)
     if diff_rad_basename:
         maps = [diff_rad_basename + suf for suf in suffixes_all]
-        set_color_table(maps)
+        set_color_table(maps, binary)
     if refl_rad_basename:
         maps = [refl_rad_basename + suf for suf in suffixes_all]
-        set_color_table(maps)
+        set_color_table(maps, binary)
     if glob_rad_basename:
         maps = [glob_rad_basename + suf for suf in suffixes_all]
-        set_color_table(maps)
+        set_color_table(maps, binary)
     if incidout_basename:
         maps = [incidout_basename + suf for suf in suffixes_all]
         set_color_table(maps)
