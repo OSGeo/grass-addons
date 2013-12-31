@@ -116,8 +116,6 @@ def main():
     v_ord_1 = prefix+'_ord_1'
     global tmp
     
-    print directory
-    
    
     # Save current region
     grass.read_command('g.region', flags = 'p', save = 'original', overwrite = True)
@@ -132,9 +130,6 @@ def main():
                                      
     # Managing flag
     if autothreshold :
-        # info_region = grass.read_command('g.region', flags = 'p', rast = '%s' % (r_elevation))
-        # dict_region = grass.parse_key_val(info_region, ':')
-        # resolution = float(dict_region['nsres'])
         resolution = grass.region()['nsres']
         th = 1000000 / (resolution**2)
         grass.message( "threshold : %s" % th ) 
@@ -318,7 +313,7 @@ def main():
                                            overwrite = True)
         
 
-        # Ipsographic curve
+        # hypsographic curve
         
         grass.message( "##################################" )
         
@@ -356,7 +351,6 @@ def main():
         
     
         # Mean elevation
-        
         grass.run_command("r.statistics2", base = r_basin, 
                                     cover = "r_elevation_crop", 
                                     method = "average",
@@ -383,20 +377,16 @@ def main():
         baricenter_slope_baricenter = grass.read_command("r.volume", input = r_slope, 
                                                                  clump = r_basin, 
                                                                  centroids = v_centroid1,
-                                                                 overwrite = True)
-        print baricenter_slope_baricenter                                                       
+                                                                 overwrite = True)                                                   
                                                                  
         grass.message("r.volume done")                                                         
                                                                  
         baricenter_slope_baricenter = baricenter_slope_baricenter.split()
         mean_slope = baricenter_slope_baricenter[30]
-        print "mean_slope", mean_slope
     
         # Rectangle containing basin
         basin_east = baricenter_slope_baricenter[33]
-        print "basin east", basin_east
         basin_north = baricenter_slope_baricenter[34]
-        print "basin north", basin_north
         info_region_basin = grass.read_command("g.region", 
                                             vect = options['prefix']+'_'+mapname[0]+'_basin', 
                                             flags = 'm')
@@ -412,22 +402,15 @@ def main():
         se = dict_region_basin['e'], dict_region_basin['s'] 
         grass.message("Rectangle containing basin done")
         
-        try:
-            print coordinates
-            east1,north1 = coordinates.split(',')
-            east = float(east1)
-            north = float(north1)
-            print east
-            print north
-        except:
-            print "error"
+
+        east1,north1 = coordinates.split(',')
+        east = float(east1)
+        north = float(north1)
 
     
         # Directing vector 
         delta_x = abs(float(basin_east) - east)
-        print delta_x
         delta_y = abs(float(basin_north) - north)
-        print delta_y
         L_orienting_vect = math.sqrt((delta_x**2)+(delta_y**2)) / 1000
         grass.message("Directing vector done")
     
@@ -665,9 +648,7 @@ def main():
         parametri_bacino["drainage_density"] = float(drainage_density)
         parametri_bacino["FSF"] = float(FSF) 
         
-        namefile = prefix + '_parameters.csv'
         
-        print namefile
         # create .csv file
         with open(os.path.join( directory, prefix + '_parameters.csv'), 'w') as f:
     	    writer = csv.writer(f)
