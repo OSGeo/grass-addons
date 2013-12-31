@@ -20,11 +20,8 @@
 #% keywords: raster
 #%end
 
-#%option
+#%option G_OPT_R_ELEV
 #% key: map
-#% type: string
-#% gisprompt: old,raster,raster
-#% key_desc: name
 #% description: Name of elevation raster map 
 #% required: yes
 #%end
@@ -37,19 +34,13 @@
 #% required: yes
 #%end
 
-#%option
-#% key: easting
-#% type: double
-#% key_desc: easting
-#% description: east coordinate of outlet point (must belong to river network) 
+#%option G_OPT_M_COORDS
+#% description: coordinates of the outlet (east,north) 
 #% required : yes
 #%end
 
-#%option
-#% key: northing
-#% type: double
-#% key_desc: northing
-#% description: north coordinate of outlet point (must belong to river network)
+#%option G_OPT_M_DIR
+#% description: Directory where the output will be found
 #% required : yes
 #%end
 
@@ -88,8 +79,8 @@ def main():
     mapname = options['map'].replace("@"," ")
     mapname = mapname.split()
     mapname[0] = mapname[0].replace(".","_")
-    east = float(options['easting']) 
-    north = float(options['northing'])
+    coordinates = options['coordinates']
+    directory = options['input']
     autothreshold = flags['a']
     nomap = flags['c']
     prefix = options['prefix']+'_'+mapname[0]
@@ -124,6 +115,8 @@ def main():
     v_network = prefix+'_network'
     v_ord_1 = prefix+'_ord_1'
     global tmp
+    
+    print directory
     
    
     # Save current region
@@ -175,7 +168,7 @@ def main():
                         
         grass.run_command('r.stream.basins', dir = r_drainage, 
                                              basins = r_basin, 
-                                             coors = '%s,%s' % (east , north),
+                                             coors = '%s' % (coordinates),
                                              overwrite = True)                                  
                                              
         grass.message( "Delineation of basin done" )
@@ -300,7 +293,8 @@ def main():
         # Distance to outlet
         grass.write_command('v.in.ascii', output = v_outlet, 
                                       input = "-",
-                                      stdin = "%s|%s|9999"  % (east, north),
+                                      sep = ",",
+                                      stdin = "%s,9999"  % (coordinates),
                                       overwrite = True)
                                       
         grass.run_command('v.to.rast', input = v_outlet, 
@@ -328,13 +322,13 @@ def main():
         
         grass.message( "##################################" )
         
-        #### check if we have the r.ipso addon
-        if not grass.find_program('r.ipso', '--help'):
-            grass.fatal(_("The 'r.ipso' module was not found, install it first:") +
+        #### check if we have the r.hypso addon
+        if not grass.find_program('r.hypso', '--help'):
+            grass.fatal(_("The 'r.hypso' module was not found, install it first:") +
                     "\n" +
-                    "g.extension r.ipso")
-        grass.run_command('r.ipso', map = 'r_elevation_crop',
-                                  image = prefix, flags = 'ab')
+                    "g.extension r.hypso")
+        grass.run_command('r.hypso', map = 'r_elevation_crop',
+                                  image = os.path.join(directory,prefix), flags = 'ab')
                                                   
         grass.message( "##################################" )
         
@@ -342,13 +336,13 @@ def main():
         
         grass.message( "##################################" )
         
-        #### check if we have the r.wf addon
-        if not grass.find_program('r.wf', '--help'):
-            grass.fatal(_("The 'r.wf' module was not found, install it first:") +
+        #### check if we have the r.width.funct addon
+        if not grass.find_program('r.width.funct', '--help'):
+            grass.fatal(_("The 'r.width.funct' module was not found, install it first:") +
                     "\n" +
-                    "g.extension r.wf")
-        grass.run_command('r.wf', map = r_distance,
-                                  image = prefix)
+                    "g.extension r.width.funct")
+        grass.run_command('r.width.funct', map = r_distance,
+                                  image = os.path.join(directory,prefix))
              
         grass.message( "##################################" )
 
@@ -390,14 +384,19 @@ def main():
                                                                  clump = r_basin, 
                                                                  centroids = v_centroid1,
                                                                  overwrite = True)
+        print baricenter_slope_baricenter                                                       
+                                                                 
         grass.message("r.volume done")                                                         
                                                                  
         baricenter_slope_baricenter = baricenter_slope_baricenter.split()
-        mean_slope = baricenter_slope_baricenter[28]
+        mean_slope = baricenter_slope_baricenter[30]
+        print "mean_slope", mean_slope
     
         # Rectangle containing basin
-        basin_east = baricenter_slope_baricenter[31]
-        basin_north = baricenter_slope_baricenter[32]
+        basin_east = baricenter_slope_baricenter[33]
+        print "basin east", basin_east
+        basin_north = baricenter_slope_baricenter[34]
+        print "basin north", basin_north
         info_region_basin = grass.read_command("g.region", 
                                             vect = options['prefix']+'_'+mapname[0]+'_basin', 
                                             flags = 'm')
@@ -412,10 +411,23 @@ def main():
         nw = dict_region_basin['w'], dict_region_basin['n'] 
         se = dict_region_basin['e'], dict_region_basin['s'] 
         grass.message("Rectangle containing basin done")
+        
+        try:
+            print coordinates
+            east1,north1 = coordinates.split(',')
+            east = float(east1)
+            north = float(north1)
+            print east
+            print north
+        except:
+            print "error"
+
     
         # Directing vector 
         delta_x = abs(float(basin_east) - east)
+        print delta_x
         delta_y = abs(float(basin_north) - north)
+        print delta_y
         L_orienting_vect = math.sqrt((delta_x**2)+(delta_y**2)) / 1000
         grass.message("Directing vector done")
     
@@ -653,8 +665,11 @@ def main():
         parametri_bacino["drainage_density"] = float(drainage_density)
         parametri_bacino["FSF"] = float(FSF) 
         
+        namefile = prefix + '_parameters.csv'
+        
+        print namefile
         # create .csv file
-        with open(prefix+'_parameters.csv', 'w') as f:
+        with open(os.path.join( directory, prefix + '_parameters.csv'), 'w') as f:
     	    writer = csv.writer(f)
     	    writer.writerow(['Morphometric parameters of basin :'])
     	    writer.writerow([' '])

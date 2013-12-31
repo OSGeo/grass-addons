@@ -100,8 +100,14 @@ axis is the length and in y axis is the area.</li>
 different altitudes. Each point on the hypsographic curve has on the 
 y-axis the altitude and on the x-axis the percentage of basin 
 surface placed above that altitude.</li>
-<li>The ipsometric curve has the same shape but is dimensionless.</li>
-</ul>  
+<li>The hypsometric curve has the same shape but is dimensionless.</li>
+</ul> 
+
+<h3>Example</h3>
+<ul>
+r.basin map=elevation prefix=prefix coordinates=east,north threshold=th 
+input=path/to/directory
+</ul>
 
 <h3>Dependencies</h3> 
 <ul>
@@ -111,8 +117,8 @@ surface placed above that altitude.</li>
 <li>r.stream.stats</li>
 <li>r.stream.distance</li>
 <li>r.stream.order</li>
-<li>r.wf</li>
-<li>r.ipso</li>
+<li>r.width.funct</li>
+<li>r.hypso</li>
 </ul>
 
 <h2>SEE ALSO</h2>  
@@ -123,8 +129,8 @@ surface placed above that altitude.</li>
 <a href="r.stream.extract.html">r.stream.extract</a>,
 <a href="r.stream.order.html">r.stream.order</a>,
 <a href="r.stream.stats.html">r.stream.stats</a>,
-<a href="r.wf.html">r.wf</a>,
-<a href="r.ipso.html">r.ipso</a>,
+<a href="r.width.funct.html">r.width.funct</a>,
+<a href="r.hypso.html">r.hypso</a>,
 <a href="r.watershed.html">r.watershed</a>
 </em>   
 
