@@ -29,7 +29,7 @@
 #%option
 #% key: prefix
 #% type: string
-#% key_desc: output prefix
+#% key_desc: prefix
 #% description: output prefix (must start with a letter)
 #% required: yes
 #%end
@@ -40,6 +40,7 @@
 #%end
 
 #%option G_OPT_M_DIR
+#% key: dir
 #% description: Directory where the output will be found
 #% required : yes
 #%end
