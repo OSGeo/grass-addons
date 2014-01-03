@@ -1,25 +1,57 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.class.mlpy</em> classifies vector features. It is an interface to mlpy
-library. Classification is supervised and based on attribut table data.
-Geometry is not used. Training dataset is always required.
+<p>
+The <em>v.class.mlpy</em> module is a tool for supervised vector classification.
+It is built on top of the Python <em>mlpy</em> library [Albanese2012].
+The classification is based on attribute values. The geometry is not taken into
+account, so the module does not depend on the feature types used in the map.
+The classification is supervised, so the training dataset is always required.
+
+<p>
+The attribute table of training map (dataset) has to contain a column with
+the class. Required type of class column is integer. Expected type of other
+columns is double or integer.
+
 
 <h2>NOTES</h2>
 
-This script needs mlpy to be installed. You can download mlpy and installation
-instructions from the official mlpy website
+<p>
+This module requires the user to have <em>mlpy</em> library installed.
+However, this is not an issue because <em>mlpy</em> library is
+free and open source and can be quickly downloaded and installed.
+Furthermore, library is available for all major platforms supported by
+GRASS GIS. You find <em>mlpy</em> download and installation
+instructions at the official <em>mlpy</em> website
 (<a href="http://mlpy.sourceforge.net/">http://mlpy.sourceforge.net/</a>).
+
 
 <h2>EXAMPLE</h2>
 
-This is a North Carolina example which generates vector data for classification
-from raster maps.
+<p>
+This is an example in a North Carolina sample dataset. It uses several
+raster maps and generates (spatially) random vector data for classification
+from raster maps. The random data used as input to
+the classification and represent training dataset and dataset to be classified
+in the real use case.
+
+<p>
+Two sets of random points are generated containing 100 and 1000 points.
+Then, an attribute table is created for both maps and attributes are derived
+from digital values of raster maps (Landsat images) at points locations.
+These attribute table columns are input to the classification.
+The smaller dataset is used as training dataset. Classes are taken from
+the raster map which is a part of the sample dataset as an example result
+of some former classification. The number of classes in training dataset is 6.
+
 <div class="code"><pre>
-# generate random points used as an input
+# the example code uses unix-like syntax for continuation lines, for-loops,
+# variables and assigning command outputs to variables
+
+# generate random points to be used as an input
 v.random output=points_unknown n=1000
 v.db.addtable map=points_unknown
 
-# generate random points used as training dataset
+# generate random points to be used as a training dataset
 v.random output=points_known n=100
 v.db.addtable map=points_known
 
@@ -39,6 +71,7 @@ done
 v.db.addcolumn map=points_known layer=1 columns="landclass integer"
 v.what.rast map=points_known layer=1 raster=landclass96 column=landclass
 
+# TODO: syntax in the setting of color tables is strange, fix example
 # set color table
 r.colors.out map=landclass96 rules=tmp_color_rules_file \
 | v.colors map=points_known column=landclass layer=1 rules=tmp_color_rules_file
@@ -55,7 +88,15 @@ rm tmp_color_rules_file
 
 <h2>SEE ALSO</h2>
 
-<em><a href="v.class">v.class</a></em><br>
+<em><a href="v.class">v.class</a></em> for unsupervised attributes
+classification,
+<em><a href="v.to.db">v.to.db</a></em> for populating attribute values
+from vector features,
+<em><a href="v.what.rast">v.what.rast</a></em> for uploading raster
+values to attribute columns,
+<em><a href="v.rast.stats">v.rast.stats</a></em> for uploading raster
+statistics to attribute columns
+
 
 <h2>REFERENCES</h2>
 
