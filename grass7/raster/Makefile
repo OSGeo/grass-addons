@@ -5,6 +5,7 @@ SUBDIRS = \
 	r.clump2 \
 	r.convergence \
 	r.crater \
+	r.diversity \
 	r.flip \
 	r.fuzzy \
 	r.geomorphon \
