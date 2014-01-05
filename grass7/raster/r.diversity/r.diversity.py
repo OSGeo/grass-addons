@@ -154,14 +154,14 @@ def calculateAll(home, map_in, map_out, res, alpha):
     for r in res:
 	createConfFile(r,map_in,home)
 	r = str(r)	
-	grass.run_command('r.li.simpson', map = map_in, out = map_out + 
+	grass.run_command('r.li.simpson', input = map_in, output = map_out + 
 	'_simpson_size_' + r, conf = 'conf_diversity_' + r)
-	grass.run_command('r.li.shannon', map = map_in, out = map_out + 
+	grass.run_command('r.li.shannon', input = map_in, output = map_out + 
 	'_shannon_size_' + r, conf = 'conf_diversity_' + r)
-	grass.run_command('r.li.pielou', map = map_in, out = map_out + 
+	grass.run_command('r.li.pielou', input = map_in, output = map_out + 
 	'_pielou_size_' + r, conf = 'conf_diversity_' + r)
 	for alp in alpha:
-	    grass.run_command('r.li.renyi', map = map_in, out = map_out+ 
+	    grass.run_command('r.li.renyi', input = map_in, output = map_out+ 
 	    '_renyi_size_' + r + '_alpha_'+ str(alp), conf = 
 	    'conf_diversity_' + r, alpha = alp)  
 
@@ -175,11 +175,11 @@ def calculateM(home, map_in, map_out, res, alpha, method):
 	for i in method:
 	    if i == 'renyi':
 		for alp in alpha:
-		    grass.run_command('r.li.renyi', map = map_in, out = 
+		    grass.run_command('r.li.renyi', input = map_in, output = 
 		    map_out + '_renyi_size_' + r + '_alpha_' + str(alp), 
 		    conf = 'conf_diversity_' + r, alpha = alp)
 	    else:
-		grass.run_command('r.li.' + i, map = map_in, out = map_out + 
+		grass.run_command('r.li.' + i, input = map_in, output = map_out + 
 		'_' + i + '_size_' + r, conf = 'conf_diversity_' + r)
 
 # calculate only method excluded with exclude option
@@ -196,11 +196,11 @@ def calculateE(home, map_in, map_out, res, alpha, method):
 	    if method.count(i) == 0:
 		if i == 'renyi':
 		    for alp in alpha:
-			grass.run_command('r.li.renyi', map = map_in, out = 
+			grass.run_command('r.li.renyi', input = map_in, output = 
 			map_out + '_renyi_size_' + r + '_alpha_' + str(alp), 
 			conf = 'conf_diversity_' + r, alpha = alp)
 		else:
-		    grass.run_command('r.li.' + i, map = map_in, out = map_out +
+		    grass.run_command('r.li.' + i, input = map_in, output = map_out +
 		    '_' + i+ '_size_' + r, conf = 'conf_diversity_' + r)
 
 # check if alpha value it's set when renyi entropy must be calculate
@@ -257,13 +257,13 @@ def checkValues(res,alpha=False):
     else:
 	typ = 'value'
 	reso = [res]
-    # trasforn string to int and check if is a odd number
+    # transform string to int and check if is a odd number
     for i in range(len(reso)):
 	# check if is a odd number
 	reso[i] = float(reso[i])
 	if reso[i] % 2 == 0:
 	    # return the error advice
-	    print "Your size option could not contain odd number"
+	    print "The size/alpha setting must be an integer number (found %d)" % reso[i]
 	    sys.exit(1)
     # create a range
     if typ == 'range':
