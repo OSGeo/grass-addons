@@ -60,6 +60,7 @@
 #% options: simpson,shannon,pielou,renyi
 #% multiple: yes
 #% description: Name of methods to use
+#% answer: simpson,shannon,pielou,renyi
 #% required: no
 #%end
 #%option
@@ -106,6 +107,8 @@ def main():
 
     if alpha != '':
         alpha_value = checkValues(alpha, True)
+    else:
+        alpha_value = ''
 
     # check if ~/.r.li path exists
     if not os.path.exists(rlidir):
@@ -122,13 +125,6 @@ def main():
     # if method and exclude option are not null return an error
     if methods != '' and excludes != '':
         grass.fatal(_("You can use method or exclude option not both"))
-    # if method and exclude option are null calculate all module
-    elif methods == '' and excludes == '':
-        # check if alpha_value is set, else return an error
-        if alpha_value == '':
-            grass.fatal(_("Please you must set alpha value for Renyi entropy"))
-        calculateAll(rlidir, map_in, map_out, resolution, alpha_value, quiet,
-                     overwrite)
     # calculate method
     elif methods != '':
         methods = methods.split(',')
@@ -146,28 +142,6 @@ def main():
     print 'All works are terminated'
 
 
-# calculate all index
-def calculateAll(home, map_in, map_out, res, alpha, quiet, overw):
-    # for each resolution create the config file and calculate all index
-    for r in res:
-        createConfFile(r, map_in, home)
-        r = str(r)
-        grass.run_command('r.li.simpson', input=map_in, output=map_out + \
-                          '_simpson_size_' + r, conf='conf_diversity_' + r,
-                          quiet=quiet, overwrite=overw)
-        grass.run_command('r.li.shannon', input=map_in, output=map_out + \
-                          '_shannon_size_' + r, conf='conf_diversity_' + r,
-                          quiet=quiet, overwrite=overw)
-        grass.run_command('r.li.pielou', input=map_in, output=map_out + \
-                          '_pielou_size_' + r, conf='conf_diversity_' + r,
-                          quiet=quiet, overwrite=overw)
-        for alp in alpha:
-            grass.run_command('r.li.renyi', input=map_in, output=map_out + \
-                              '_renyi_size_' + r + '_alpha_' + str(alp),
-                              conf='conf_diversity_' + r, alpha=alp,
-                              quiet=quiet, overwrite=overw)
-
-
 # calculate only method included in method option
 def calculateM(home, map_in, map_out, res, alpha, method, quiet, overw):
     # for each resolution create the config file
@@ -183,11 +157,11 @@ def calculateM(home, map_in, map_out, res, alpha, method, quiet, overw):
                                       '_alpha_' + str(alp), alpha=alp,
                                       conf='conf_diversity_' + r,
                                       quiet=quiet, overwrite=overw)
-                else:
-                    grass.run_command('r.li.' + i, input=map_in,
-                                      output=map_out + '_' + i + '_size_' + r,
-                                      conf='conf_diversity_' + r,
-                                      quiet=quiet, overwrite=overw)
+            else:
+                grass.run_command('r.li.' + i, input=map_in,
+                                  output=map_out + '_' + i + '_size_' + r,
+                                  conf='conf_diversity_' + r,
+                                  quiet=quiet, overwrite=overw)
 
 
 # calculate only method excluded with exclude option
@@ -209,11 +183,11 @@ def calculateE(home, map_in, map_out, res, alpha, method, quiet, overw):
                                           + '_alpha_' + str(alp), alpha=alp,
                                           conf='conf_diversity_' + r,
                                           quiet=quiet, overwrite=overw)
-        else:
-                grass.run_command('r.li.' + i, input=map_in, output=map_out \
-                                  + '_' + i + '_size_' + r,
-                                  conf='conf_diversity_' + r,
-                                  quiet=quiet, overwrite=overw)
+                else:
+                    grass.run_command('r.li.' + i, input=map_in, output=map_out \
+                                      + '_' + i + '_size_' + r,
+                                      conf='conf_diversity_' + r,
+                                      quiet=quiet, overwrite=overw)
 
 
 # check if alpha value it's set when renyi entropy must be calculate
@@ -227,6 +201,7 @@ def checkAlpha(method, alpha_val, negative=False):
         else:
             if method.count('renyi') == 1 and alpha == '':
                 grass.fatal(_("Please you must set alpha value for Renyi entropy"))
+
 
 #create configuration file instead using r.li.setup
 def createConfFile(res, inpumap, home):
