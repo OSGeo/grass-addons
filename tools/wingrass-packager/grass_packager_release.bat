@@ -11,7 +11,7 @@ cd C:\Users\landa\grass_packager
 set MAJOR=6
 set MINOR=4
 set PATCH=3
-set REV=1
+set REV=4
 
 rem Compile GRASS versions
 rmdir /s /q C:\OSGeo4W\apps\grass\grass-%MAJOR%.%MINOR%.%PATCH%

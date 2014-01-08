@@ -12,7 +12,7 @@ function rm_package_7 {
 }
 
 function compile {
-    export PATH=$PATH_ORIG:/c/osgeo4w$3/apps/msys/bin
+    export PATH=$PATH_ORIG:/c/osgeo4w$3/apps/msys/bin:/c/Subversion/bin
 
     cd /c/osgeo4w$3/$SRC/$1
     svn up || (svn cleanup && svn up)
