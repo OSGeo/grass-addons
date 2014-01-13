@@ -29,6 +29,7 @@
 import grass.script as grass
 import os
 
+
 def main():
     # Get the options
     input = options["input"]
@@ -46,9 +47,27 @@ def main():
         grass.fatal(_("The input vector seems not to be polygon"))
     pid = os.getpid()
     out_type = '{inp}_type_{pid}'.format(inp=input, pid=pid)
-    if 0 != grass.run_command('v.type', input=input, output=out_type, \
-                              from_type='boundary', to_type='line', \
+    input_tmp = '{inp}_tmp_{pid}'.format(inp=input, pid=pid)
+    remove_names = "%s,%s" % (out_type, input_tmp)
+    if 0 != grass.run_command('v.category', layer="2", type='boundary',
+                              option='add', input=input, out=input_tmp,
                               quiet=quiet):
+        grass.run_command('g.remove', vect=input_tmp, quiet=quiet)
+        grass.fatal(_("Error creating layer 2"))
+    if 0 != grass.run_command('v.db.addtable', map=input_tmp, layer="2",
+                              columns="left integer,right integer",
+                              quiet=quiet):
+        grass.run_command('g.remove', vect=input_tmp, quiet=quiet)
+        grass.fatal(_("Error creating new table for layer 2"))
+    if 0 != grass.run_command('v.to.db', map=input_tmp, option="sides",
+                              columns="left,right", layer="2", quiet=quiet):
+        grass.run_command('g.remove', vect=input_tmp, quiet=quiet)
+        grass.fatal(_("Error populating new table for layer 2"))
+
+    if 0 != grass.run_command('v.type', input=input_tmp, output=out_type, \
+                              from_type='boundary', to_type='line', \
+                              quiet=quiet, layer="2"):
+        grass.run_command('g.remove', vect=remove_names, quiet=quiet)
         grass.fatal(_("Error converting polygon to line"))
     report = grass.read_command('v.category', flags='g', input=out_type,
                                 option='report', quiet=quiet).split('\n')
@@ -58,14 +77,21 @@ def main():
             max_cat = report[0].split()[-1]
             break
     if 0 != grass.run_command('v.edit', map=out_type, tool='delete', \
-                              type='centroid', quiet=quiet, \
+                              type='centroid', layer=2, quiet=quiet, \
                               cats='{mi}-{ma}'.format(mi=min_cat, ma=max_cat)):
+        grass.run_command('g.remove', vect=remove_names, quiet=quiet)
         grass.fatal(_("Error removing centroids"))
-    if 0 != grass.run_command('v.category', input=out_type, option='add',
-                              output=output, quiet=quiet, overwrite=overwrite):
-        grass.run_command('g.remove', vect=out_type, quiet=quiet)
+
+    if 0 != grass.run_command('v.db.droptable', map=out_type, layer=1,
+                              flags='f', quiet=quiet):
+        grass.run_command('g.remove', vect=remove_names, quiet=quiet)
+        grass.fatal(_("Error removing table from layer 1"))
+    if 0 != grass.run_command('v.category', input=out_type, option='transfer',
+                              output=output, layer="2,1", quiet=quiet,
+                              overwrite=overwrite):
+        grass.run_command('g.remove', vect=remove_names, quiet=quiet)
         grass.fatal(_("Error adding categories"))
-    grass.run_command('g.remove', vect=out_type, quiet=quiet)
+    grass.run_command('g.remove', vect=remove_names, quiet=quiet)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
