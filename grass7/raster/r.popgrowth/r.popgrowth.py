@@ -40,7 +40,7 @@
 #% guisection: Exponential
 #%end
 #%option
-#% key: r_exp_fix
+#% key: r_exp_value
 #% type: double
 #% description: Cell-specific fixed value of intrinsic rate of increase, log(finite rate of increase, lambda)
 #% required: no
@@ -67,7 +67,7 @@
 #% guisection: Ricker
 #%end
 #%option
-#% key: k_fix
+#% key: k_value
 #% type: integer
 #% description: Fixed value of carrying capacity of the environment (per cell)
 #% required: no
@@ -82,7 +82,7 @@
 #% guisection: Ricker
 #%end
 #%option
-#% key: r_rick_fix
+#% key: r_rick_value
 #% type: double
 #% description: Cell-specific fixed value of intrinsic rate of increase (Ricker)
 #% required: no
@@ -182,14 +182,14 @@ def main():
 	
 
 	# Customized rounding function. Round based on a probability (p=digits after decimal point) to avoid "local stable states"
-	def prob_round(x, prec = 0):
-    		fixup = numpy.sign(x) * 10**prec
-    		x *= fixup
-		if options['seed']:
-			numpy.random.seed(seed=int(options['seed'])) 
-    		round_func = int(x) + numpy.random.binomial(1,x-int(x))
-    		return round_func/fixup
-	vprob_round = numpy.vectorize(prob_round)
+	#def prob_round(x, prec = 0):
+    	#	fixup = numpy.sign(x) * 10**prec
+    	#	x *= fixup
+	#	if options['seed']:
+	#		numpy.random.seed(seed=int(options['seed'])) 
+    	#	round_func = int(x) + numpy.random.binomial(1,x-int(x))
+    	#	return round_func/fixup
+	#vprob_round = numpy.vectorize(prob_round)
 
 
 	################# Model Definiations #################
@@ -200,23 +200,26 @@ def main():
 		for t in range(t):
 			n = 1.0*n*numpy.exp(r)
 			if flags['i']:
-				n = vprob_round(n)
+				#n = vprob_round(n) #function not mature yet (takes partly long time, problems with NaNs)
+				n = numpy.round(n)
 		return 	n
 
 	# Ricker Model
 	def ricker_mod(n0,r,k,t):
 		n = n0
 		for t in range(t):
+			numpy.seterr(invalid='ignore')
 			n = 1.0*n*numpy.exp(r*(1-(n/k)))
+			numpy.seterr(invalid='warn')
 			if flags['i']:
-				n = vprob_round(n)
+				#n = vprob_round(n) #function not mature yet (takes partly long time, problems with NaNs)
+				n = numpy.round(n)
 		return 	n
-	#vricker_mod = numpy.vectorize(ricker_mod) ##### ???????????
 	
 	################# Exponential Model #################
 	if options['exponential_output']:
 		# Check for correct input
-		if (options['r_exp_fix'] and options['r_exp_map']):
+		if (options['r_exp_value'] and options['r_exp_map']):
 			grass.fatal(_("Provide either fixed value for r or raster map"))
 
 		# Define r
@@ -238,8 +241,8 @@ def main():
 			r = garray.array()
 			r.read("r_exp_tmp_%d" % os.getpid())
 
-		elif options['r_exp_fix']:
-			r = float(options['r_exp_fix'])
+		elif options['r_exp_value']:
+			r = float(options['r_exp_value'])
 		else:
 			grass.fatal(_("No r value/map provided for exponential model"))
 
@@ -267,9 +270,9 @@ def main():
 	################# Ricker Model #################
 	if options['ricker_output']:
 		# Check for correct input
-		if (options['r_rick_fix'] and options['r_rick_map']):
+		if (options['r_rick_value'] and options['r_rick_map']):
 			grass.fatal(_("Provide either fixed value for r or raster map"))
-		if (options['k_fix'] and options['k_map']):
+		if (options['k_value'] and options['k_map']):
 			grass.fatal(_("Provide either fixed value for carrying capacity (K) or raster map"))
 
 		# Define r
@@ -290,8 +293,8 @@ def main():
 			r = garray.array()
 			r.read("r_rick_tmp_%d" % os.getpid())
 
-		elif options['r_rick_fix']:
-			r = float(options['r_rick_fix'])
+		elif options['r_rick_value']:
+			r = float(options['r_rick_value'])
 		else:
 			grass.fatal(_("No r value/map for Ricker model provided"))
 
@@ -312,8 +315,8 @@ def main():
 			k = garray.array()
 			k.read("k_tmp_%d" % os.getpid())
 
-		elif options['k_fix']:
-			k = float(options['k_fix'])
+		elif options['k_value']:
+			k = float(options['k_value'])
 		else:
 			grass.fatal(_("No value/map for carrying capacity (k) provided"))
 
