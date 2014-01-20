@@ -158,7 +158,7 @@ def main():
                   phy=phy, gamma=gamma)
     # Calculation of critical rain (mm / hr) and riclassification
     grass.mapcalc("i_cri_mm=i_crit_m*24000")
-    reclass_rules = "0 thru 50 = 0\n50 thru 100 = 3\n100 thru 200 = 4\n" \
+    reclass_rules = "0 thru 50 = 2\n50 thru 100 = 3\n100 thru 200 = 4\n" \
                     "200 thru 400 = 5\n400 thru 999 = 6"
     grass.write_command('r.reclass', input='i_cri_mm', output='i_recl',
                         overwrite='True', rules='-', stdin=reclass_rules)
