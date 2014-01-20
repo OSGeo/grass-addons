@@ -150,7 +150,7 @@ def main():
     # calculate contribution area
 
     grass.run_command('r.watershed', elevation=r_elevation,
-                      accumulation='accum')
+                      accumulation='accum', flags='f')
 
     grass.mapcalc("A=accum*((ewres()+nsres())/2)*((ewres()+nsres())/2)")
     # calculate 1(m/day)
