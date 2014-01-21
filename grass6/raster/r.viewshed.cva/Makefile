@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.viweshed.cva.py
+PGM = r.viewshed.cva.py
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
