@@ -1,6 +1,6 @@
-#MODULE_TOPDIR = ../..
+MODULE_TOPDIR = ../..
 
-PGM = r.mcda.roughset.py
+PGM = r.mcda.roughset
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

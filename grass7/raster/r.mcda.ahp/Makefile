@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = r.mcda.ahp.py
+PGM = r.mcda.ahp
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 
