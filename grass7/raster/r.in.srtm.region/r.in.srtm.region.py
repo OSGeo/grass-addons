@@ -6,7 +6,7 @@
 #
 # AUTHOR(S):    Markus Metz
 #
-# PURPOSE:      Create a DEM from 3 arcsec SRTM v2.1 tiles
+# PURPOSE:      Create a DEM from 3 arcsec SRTM v2.1 or v3 tiles
 #
 # COPYRIGHT:    (C) 2011 GRASS development team
 #
@@ -17,7 +17,7 @@
 #############################################################################
 
 #%module
-#% description: Creates a DEM from 3 arcsec SRTM v2.1 tiles.
+#% description: Creates a DEM from 3 arcsec SRTM v2.1 or v3 tiles.
 #% keywords: raster
 #% keywords: import
 #%end
@@ -27,13 +27,12 @@
 #%end
 #%option
 #% key: url
-#% description: base url to fetch SRTM v2.1 tiles
-#% answer: http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/
+#% description: base url to fetch SRTM tiles
 #% required: no
 #%end
 #%option G_OPT_M_DIR
 #% key: local
-#% label: local folder with SRTM v2.1 tiles
+#% label: local folder with SRTM tiles
 #% description: use local folder instead of url to retrieve SRTM tiles
 #% required: no
 #%end
@@ -43,7 +42,7 @@
 #% label: Import subregion only (default is current region)
 #% description: Format: xmin,ymin,xmax,ymax - usually W,S,E,N
 #% key_desc: xmin,ymin,xmax,ymax
-#% multiple: yes
+#% multiple: no
 #% required: no
 #%end
 #%option
@@ -56,6 +55,10 @@
 #%flag
 #%  key: n
 #%  description: Fill null cells
+#%end
+#%flag
+#%  key: 3
+#%  description: Import SRTM v3 tiles
 #%end
 
 
@@ -77,13 +80,16 @@ import time
 
 import grass.script as grass
 
-def import_local_tile(tile, local, pid):
-    output = tile + '.r.in.srtm2.tmp.' + str(pid)
-    local_tile = str(tile) + '.hgt.zip'
+def import_local_tile(tile, local, pid, srtmv3):
+    output = tile + '.r.in.srtm.tmp.' + str(pid)
+    if srtmv3:
+        local_tile = str(tile) + '.SRTMGL3.hgt.zip'
+    else:
+        local_tile = str(tile) + '.hgt.zip'
     
     path = os.path.join(local, local_tile)
     if os.path.exists(path):
-	path = os.path.join(local, tile)
+	path = os.path.join(local, local_tile)
 	grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
 	return 1
 
@@ -92,17 +98,39 @@ def import_local_tile(tile, local, pid):
 	path = os.path.join(local, srtmdir, local_tile)
 
 	if os.path.exists(path):
-	    path = os.path.join(local, srtmdir, tile)
+	    path = os.path.join(local, srtmdir, local_tile)
 	    grass.run_command('r.in.srtm', input = path, output = output, quiet = True)
 	    return 1
 
     return 0
 
-def download_tile(tile, url, pid):
-    output = tile + '.r.in.srtm2.tmp.' + str(pid)
-    local_tile = str(tile) + '.hgt.zip'
+def download_tile(tile, url, pid, srtmv3):
+    output = tile + '.r.in.srtm.tmp.' + str(pid)
+    if srtmv3:
+        local_tile = str(tile) + '.SRTMGL3.hgt.zip'
+    else:
+        local_tile = str(tile) + '.hgt.zip'
 
     urllib.urlcleanup()
+
+    if srtmv3:
+	remote_tile = str(url) + local_tile
+	goturl = 1
+    
+	try:
+	    f = urllib2.urlopen(remote_tile)
+	    fo = open(local_tile, 'w+b')
+	    fo.write(f.read())
+	    fo.close
+	    time.sleep(0.5)
+	    # does not work:
+	    #urllib.urlretrieve(remote_tile, local_tile, data = None)
+	except:
+	    goturl = 0
+	    pass
+	
+	return goturl
+        
 
     # SRTM subdirs: Africa, Australia, Eurasia, Islands, North_America, South_America
     for srtmdir in ('Africa', 'Australia', 'Eurasia', 'Islands', 'North_America', 'South_America'):
@@ -145,10 +173,18 @@ def main():
     output = options['output']
     memory = options['memory']
     fillnulls = flags['n']
-    
-    if len(url) == 0 and len(local) == 0:
-	grass.fatal(_("Either 'url' or 'local' is needed"))
-	
+    srtmv3 = flags['3']
+
+    if srtmv3:
+        fillnulls = 0
+        
+    if len(local) == 0:
+    	if len(url) == 0:
+    	    if srtmv3:
+		url = 'http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/'
+	    else:
+		url = 'http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/'
+
     if len(local) == 0:
 	local = None
 
@@ -177,7 +213,7 @@ def main():
 
     # get extents
     reg = grass.region()
-    tmpregionname = 'r_in_srtm2_tmp_region'
+    tmpregionname = 'r_in_srtm_tmp_region'
     grass.run_command('g.region', save = tmpregionname)
     if options['region'] is None or options['region'] == '':
 	north = reg['n']
@@ -246,11 +282,11 @@ def main():
 	    grass.debug("Tile: %s" % tile, debug = 1)
 	    
 	    if local != tmpdir:
-		gotit = import_local_tile(tile, local, pid)
+		gotit = import_local_tile(tile, local, pid, srtmv3)
 	    else:
-		gotit = download_tile(tile, url, pid)
+		gotit = download_tile(tile, url, pid, srtmv3)
 		if gotit == 1:
-		    gotit = import_local_tile(tile, tmpdir, pid)
+		    gotit = import_local_tile(tile, tmpdir, pid, srtmv3)
 	    if gotit == 1:
 		grass.verbose(_("Tile %s successfully imported") % tile)
 		valid_tiles += 1
@@ -278,12 +314,12 @@ def main():
 		    tmpw = '%03d:59:58.5E' % (edeg - 1)
 
 		grass.run_command('g.region', n = tmpn, s = tmps, e = tmpe, w = tmpw, res = '00:00:03')
-		grass.run_command('r.mapcalc', expression = "%s = 0" % (tile + '.r.in.srtm2.tmp.' + str(pid)), quiet = True)
+		grass.run_command('r.mapcalc', expression = "%s = 0" % (tile + '.r.in.srtm.tmp.' + str(pid)), quiet = True)
 		grass.run_command('g.region', region = tmpregionname)
 
 
     # g.mlist with sep = comma does not work ???
-    pattern = '*.r.in.srtm2.tmp.%d' % pid
+    pattern = '*.r.in.srtm.tmp.%d' % pid
     srtmtiles = grass.read_command('g.mlist',
                                    type = 'rast',
 				   pattern = pattern,
@@ -318,7 +354,7 @@ def main():
 			      input = output + '.holes',
 			      output = output + '.interp',
 			      se = '0.0025', sn = '0.0025',
-			      method = 'bilinear',
+			      method = 'linear',
 			      memory = memory,
 			      flags = 'n')
 	    grass.run_command('r.patch',
@@ -341,10 +377,14 @@ def main():
     f = open(tmphist, 'w+')
     f.write(os.environ['CMDLINE'])
     f.close()
+    if srtmv3:
+        source1 = 'SRTM V3'
+    else:
+        source1 = 'SRTM V2.1'
     grass.run_command('r.support', map = output,
 		      loadhistory = tmphist,
 		      description = 'generated by r.in.srtm.region',
-		      source1 = 'SRTM V2.1',
+		      source1 = source1,
 		      source2 = (local if local != tmpdir else url))
     grass.try_remove(tmphist)
 
