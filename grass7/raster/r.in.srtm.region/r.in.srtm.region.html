@@ -1,11 +1,15 @@
 <h2>DESCRIPTION</h2>
 
-<em>r.in.srtm.region</em> imports all SRTM V2.1 tiles covering the 
+<em>r.in.srtm.region</em> imports all SRTM tiles covering the 
 current region or region extents given with <b>region</b> into GRASS, 
-patches the tiles together and optionally interpolates holes.
+patches the tiles together and optionally interpolates holes for 
+SRTM V2.1.
 <p>
-<em>r.in.srtm.region</em> downloads SRTM tiles from:<br>
+<em>r.in.srtm.region</em> downloads SRTM V2.1 tiles from:<br>
 <a href="http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/">http://dds.cr.usgs.gov/srtm/</a>
+<br>
+and SRTM V3 tiles from:
+<a href="http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/">http://e4ftl01.cr.usgs.gov/SRTM/SRTMGL3.003/2000.02.11/</a>
 <br>
 or optionally uses a local folder with previously downloaded files if 
 the <b>local</b> option is given.
