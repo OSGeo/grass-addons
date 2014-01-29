@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
 {
     const char *mapset, *column;
     int row, col, nrows, ncols, rrow, ccol, nrow, ncol;
+    int r1, r2, c1, c2;
 
     SEGMENT out_seg;
     int w_fd, out_fd, have_weights;
@@ -47,14 +48,16 @@ int main(int argc, char *argv[])
     int layer;
     int i, j, nareas;
     struct marea *areas, *ap;
+    struct bound_box abox, *ibox;
 
     struct Map_info In;
-    struct line_pnts *Points;
+    struct line_pnts *Points, **IPoints;
+    int n_isles, isl_allocated;
     struct line_cats *Cats;
     struct Cell_head window;
     struct History history;
 
-    struct lcell thiscell;
+    struct lcell thiscell, ngbrcell;
     double outside_val, value;
 
 #ifdef TOBLER_STRICT
@@ -140,7 +143,10 @@ int main(int argc, char *argv[])
     maxiter = atoi(iter_opt->answer);
     threshold = atof(threshold_opt->answer);
     
-    outside_val = .0;
+    /* boundary condition:
+     * ignore outside or treat outside as zero */
+    /* outside_val = .0; */
+    Rast_set_d_null_value(&outside_val, 1);
 
     /* Open input vector */
     if ((mapset = G_find_vector2(in_opt->answer, "")) == NULL)
@@ -330,29 +336,22 @@ int main(int argc, char *argv[])
     if (driver)
 	db_close_database_shutdown_driver(driver);
 
-    G_message(_("Find area id for each cell"));
+    G_message(_("Set area id for each cell"));
     for (row = 0; row < nrows; row++) {
-	double x, y;
 
 	G_percent(row, nrows, 2);
-
-	y = Rast_row_to_northing(row + 0.5, &window);
 
 	if (have_weights)
 	    Rast_get_d_row(w_fd, drastbuf, row);
 
 	for (col = 0; col < ncols; col++) {
-	    
-	    x = Rast_col_to_easting(col + 0.5, &window);
-	    
-	    value = outside_val;
-	    thiscell.interp = value;
+	    thiscell.interp = outside_val;
 	    thiscell.adj = 0.0;
-	    thiscell.area = Vect_find_area(&In, x, y);
+	    thiscell.area = 0;
 	    thiscell.weight = 1.;
 	    if (have_weights) {
 		if (Rast_is_d_null_value(&drastbuf[col])) {
-		    thiscell.weight = 0;    /* OK ? */
+		    thiscell.weight = drastbuf[col];    /* OK ? */
 		}
 		else {
 		    thiscell.weight = drastbuf[col];
@@ -363,20 +362,85 @@ int main(int argc, char *argv[])
 		    }
 		}
 	    }
-
-	    if (thiscell.area > 0) {
-		ap = &areas[thiscell.area];
-		thiscell.interp = ap->value;
-		ap->count++;
-		if (have_weights) {
-		    ap->interp += thiscell.weight;
-		}
-	    }
-
 	    segment_put(&out_seg, &thiscell, row, col);
 	}
     }
     G_percent(row, nrows, 2);
+
+    IPoints = NULL;
+    ibox = NULL;
+    isl_allocated = 0;
+    for (i = 1; i <= nareas; i++) {
+	double x, y;
+	int inside = 0;
+
+	G_percent(i, nareas, 2);
+	if (Rast_is_d_null_value(&areas[i].value))
+	    continue;
+	Vect_get_area_box(&In, i, &abox);
+	if (abox.N < window.south || abox.S > window.north ||
+	    abox.E < window.west || abox.W > window.east)
+	    continue;
+	
+	r1 = floor(Rast_northing_to_row(abox.N, &window));
+	r2 = floor(Rast_northing_to_row(abox.S, &window)) + 1;
+	c1 = floor(Rast_easting_to_col(abox.W, &window));
+	c2 = floor(Rast_easting_to_col(abox.E, &window)) + 1;
+
+	if (r2 < r1 || c2 < c1)
+	    continue;
+
+	/* like Vect_point_in_area() */
+	Vect_get_area_points(&In, i, Points);
+	n_isles = Vect_get_area_num_isles(&In, i);
+	if (n_isles > isl_allocated) {
+	    IPoints = (struct line_pnts **)
+		G_realloc(IPoints, (1 + n_isles) * sizeof(struct line_pnts *));
+	    for (j = isl_allocated; j < n_isles; j++)
+		IPoints[j] = Vect_new_line_struct();
+	    isl_allocated = n_isles;
+	    ibox = (struct bound_box *)G_realloc(ibox, (1 + n_isles) * sizeof(struct bound_box));
+	}
+	for (j = 0; j < n_isles; j++) {
+	    Vect_get_isle_points(&In, Vect_get_area_isle(&In, i, j),
+				 IPoints[j]);
+	    Vect_get_isle_box(&In, Vect_get_area_isle(&In, i, j), &ibox[j]);
+	    ibox[j].T = ibox[j].B = 0; 
+	}
+	
+	for (row = r1; row < r2; row++) {
+	    y = Rast_row_to_northing(row + 0.5, &window);
+	    for (col = c1; col < c2; col++) {
+		x = Rast_col_to_easting(col + 0.5, &window);
+		
+		inside = Vect_point_in_poly(x, y, Points) > 0;
+		if (inside) {
+		    for (j = 0; j < n_isles; j++) {
+			if (Vect_point_in_box(x, y, 0, &ibox[j]) &&
+			    Vect_point_in_poly(x, y, IPoints[j]) > 0) {
+			    inside = 0;
+			    break;
+			}
+		    }
+		}
+		if (inside) {
+		    segment_get(&out_seg, &thiscell, row, col);
+		    if (!Rast_is_d_null_value(&thiscell.weight)) {
+			thiscell.area = i;
+			ap = &areas[thiscell.area];
+			thiscell.interp = ap->value;
+			ap->count++;
+			if (have_weights) {
+			    thiscell.interp *= thiscell.weight;
+			    ap->interp += thiscell.interp;
+			}
+			segment_put(&out_seg, &thiscell, row, col);
+		    }
+		}
+	    }
+	}
+    }
+
     Vect_set_release_support(&In);
     Vect_close(&In);
 
@@ -397,8 +461,7 @@ int main(int argc, char *argv[])
 		ap = &areas[thiscell.area];
 		value = thiscell.interp / ap->count;
 		if (have_weights && ap->interp > 0) {
-		    thiscell.weight = thiscell.weight * ap->count / ap->interp;
-		    value *= thiscell.weight;
+		    value *= ap->value / ap->interp;
 		}
 		thiscell.interp = value;
 		segment_put(&out_seg, &thiscell, row, col);
@@ -429,6 +492,11 @@ int main(int argc, char *argv[])
 		int count = 0;
 		double sum = 0.;
 
+		segment_get(&out_seg, &thiscell, row, col);
+		if (thiscell.area == 0 ||
+		    Rast_is_d_null_value(&thiscell.interp))
+		    continue;
+
 		value = .0;
 
 		for (rrow = -1; rrow < 2; rrow++) {
@@ -441,36 +509,32 @@ int main(int argc, char *argv[])
 			    if (nrow == row && ncol == col)
 				continue;
 
-			    segment_get(&out_seg, &thiscell, nrow, ncol);
-			    if (!Rast_is_d_null_value(&thiscell.interp)) {
-				value += thiscell.interp * thiscell.weight;
+			    segment_get(&out_seg, &ngbrcell, nrow, ncol);
+			    if (!Rast_is_d_null_value(&ngbrcell.interp)) {
+				value += ngbrcell.interp * ngbrcell.weight;
 				count++;
-				sum += thiscell.weight;
+				sum += ngbrcell.weight;
 			    }
 			}
 		    }
 		}
-		if (sum > 0) {
-		    segment_get(&out_seg, &thiscell, row, col);
+		if (sum != 0) {
 
-		    if (!Rast_is_d_null_value(&thiscell.interp)) {
-			value /= sum;
-			value -= thiscell.interp / thiscell.weight;
-			/* relax */
-			/* value /= 8; */
-			thiscell.adj = value;
-			if (!negative) {
-			    if (thiscell.area && areas[thiscell.area].value == 0)
-				thiscell.adj = 0;
-			    if (thiscell.interp + thiscell.adj < 0)
-				thiscell.adj = -thiscell.interp;
-			}
-			segment_put(&out_seg, &thiscell, row, col);
-			if (thiscell.area) {
-			    areas[thiscell.area].adj += thiscell.adj;
-			    areas[thiscell.area].interp += thiscell.interp + thiscell.adj;
-			}
+		    value /= sum;
+		    value -= thiscell.interp / thiscell.weight;
+		    /* relax */
+		    /* value /= 8; */
+		    thiscell.adj = value;
+		    if (!negative) {
+			if (areas[thiscell.area].value == 0)
+			    thiscell.adj = 0;
+			if (thiscell.interp + thiscell.adj < 0)
+			    thiscell.adj = -thiscell.interp;
 		    }
+		    segment_put(&out_seg, &thiscell, row, col);
+
+		    areas[thiscell.area].adj += thiscell.adj;
+		    areas[thiscell.area].interp += thiscell.interp + thiscell.adj;
 		}
 	    }	
 	}
@@ -489,7 +553,8 @@ int main(int argc, char *argv[])
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
 		segment_get(&out_seg, &thiscell, row, col);
-		if (!Rast_is_d_null_value(&thiscell.interp)) {
+		if (thiscell.area > 0 &&
+		    !Rast_is_d_null_value(&thiscell.interp)) {
 
 		    interp = thiscell.interp + thiscell.adj + areas[thiscell.area].adj;
 		    if (negative || (!negative && interp >= 0)) {
@@ -507,25 +572,27 @@ int main(int argc, char *argv[])
 			    l_col = col;
 			}
 		    }
-		    if (thiscell.area) {
-			areas[thiscell.area].interp += thiscell.interp;
-		    }
+		    areas[thiscell.area].interp += thiscell.interp;
 		}
 	    }
 	}
 
 	/* Step 4 */
 	for (i = 1; i <= nareas; i++) {
-	    areas[i].avgdiff = (areas[i].value - areas[i].interp) / 
-	                       areas[i].count;
-	    G_debug(3, "Area %d difference: %g", i, areas[i].value - areas[i].interp);
+	    if (areas[i].count > 0) {
+		areas[i].avgdiff = (areas[i].value - areas[i].interp) / 
+				    areas[i].count;
+		G_debug(3, "Area %d difference: %g", i,
+		        areas[i].value - areas[i].interp);
+	    }
 	}
 
 	/* Step 5 */
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
 		segment_get(&out_seg, &thiscell, row, col);
-		if (!Rast_is_d_null_value(&thiscell.interp)) {
+		if (thiscell.area > 0 &&
+		    !Rast_is_d_null_value(&thiscell.interp)) {
 
 		    interp = thiscell.interp + areas[thiscell.area].avgdiff;
 		    if (!negative && interp < 0) {
@@ -538,7 +605,8 @@ int main(int argc, char *argv[])
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
 		segment_get(&out_seg, &thiscell, row, col);
-		if (!Rast_is_d_null_value(&thiscell.interp)) {
+		if (thiscell.area > 0 &&
+		    !Rast_is_d_null_value(&thiscell.interp)) {
 		    
 		    avgdiff = areas[thiscell.area].avgdiff;
 
@@ -568,11 +636,12 @@ int main(int argc, char *argv[])
 	for (row = 0; row < nrows; row++) {
 	    for (col = 0; col < ncols; col++) {
 		segment_get(&out_seg, &thiscell, row, col);
-		if (!Rast_is_d_null_value(&thiscell.interp)) {
+		if (thiscell.area > 0 &&
+		    !Rast_is_d_null_value(&thiscell.interp)) {
 		    /* multiplication with area scale factor */
 		    value = 1;
 		    ap = &areas[thiscell.area];
-		    if (thiscell.area > 0 && ap->interp != 0)
+		    if (ap->interp != 0)
 			value = ap->value / ap->interp;
 		    thiscell.interp = value * (thiscell.interp + thiscell.adj);
 		    segment_put(&out_seg, &thiscell, row, col);
