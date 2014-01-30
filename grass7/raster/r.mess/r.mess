@@ -497,7 +497,7 @@ if(flm==1){
         cat(reclvar[i]); cat("\n")
     }
     sink()
-    system(paste("r.category map=", opc, "_MoD rules=", tmpclas, sep=""))
+    system(paste("r.category map=", opc, "_MoD rules=", tmpclas, sep=":"))
     unlink(tmpclas)
 }
 if(flk==1){
