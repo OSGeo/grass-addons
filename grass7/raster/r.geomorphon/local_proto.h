@@ -48,7 +48,8 @@
 #define DEGREE2RAD(a) ((a)/(180/PI))
 #define RAD2DEGREE(a) ((a)*(180/PI))
 
-
+#undef MIN
+#undef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 

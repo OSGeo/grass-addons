@@ -37,6 +37,8 @@
 #endif
 
 
+#undef MIN
+#undef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define DEGREE2RAD(a) ((a)/(180/PI))
