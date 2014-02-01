@@ -11,7 +11,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 {
     int area, nareas, isle, nisles, nisles_alloc;
     struct line_pnts *Points, **IPoints, *OPoints;
-    struct line_cats *Cats;
+    struct line_cats *Cats, *ICats;
     struct bound_box box;
     double x, y, z, meanx, meany, meanz;
     double *xp, *yp;
@@ -21,6 +21,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
     Points = Vect_new_line_struct();
     OPoints = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
+    ICats = Vect_new_cats_struct();
     
     nisles_alloc = 10;
     IPoints = G_malloc(nisles_alloc * sizeof (struct line_pnts *));
@@ -42,10 +43,14 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	for (area = 1; area <= nareas; area++) {
 
 	    Vect_reset_cats(Cats);
-	    if (layer > 1) {
-		Vect_get_area_cats(In, area, Cats);
-	        if (!Vect_cats_in_constraint(Cats, layer, cat_list))
-		    continue;
+	    if (Vect_get_area_cats(In, area, ICats) != 0)
+		continue;
+	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
+		continue;
+
+	    for (i = 0; i < ICats->n_cats; i++) {
+		if (ICats->field[i] == layer)
+		    Vect_cat_set(Cats, 1, ICats->cat[i]);
 	    }
 	    
 	    Vect_get_area_points(In, area, Points);
@@ -59,9 +64,10 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 		}
 		nisles_alloc = nisles;
 	    }
-	    for (isle = 1; isle < nisles; isle++) {
-		Vect_get_isle_points(In, isle, IPoints[isle - 1]);
-		Vect_line_prune(IPoints[isle - 1]);
+	    for (isle = 0; isle < nisles; isle++) {
+		Vect_get_isle_points(In, Vect_get_area_isle(In, area, isle),
+		                     IPoints[isle]);
+		Vect_line_prune(IPoints[isle]);
 	    }
 
 	    /* surveyor's / shoelace formula */
@@ -104,6 +110,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    if (Out) {
 		Vect_reset_line(OPoints);
 		Vect_append_point(OPoints, x, y, z);
+		Vect_cat_set(Cats, 2, 7);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
 	    else
@@ -136,10 +143,14 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	for (area = 1; area <= nareas; area++) {
 
 	    Vect_reset_cats(Cats);
-	    if (layer > 1) {
-		Vect_get_area_cats(In, area, Cats);
-	        if (!Vect_cats_in_constraint(Cats, layer, cat_list))
-		    continue;
+	    if (Vect_get_area_cats(In, area, ICats) != 0)
+		continue;
+	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
+		continue;
+
+	    for (i = 0; i < ICats->n_cats; i++) {
+		if (ICats->field[i] == layer)
+		    Vect_cat_set(Cats, 1, ICats->cat[i]);
 	    }
 
 	    Vect_get_area_points(In, area, Points);
@@ -154,10 +165,11 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 		}
 		nisles_alloc = nisles;
 	    }
-	    for (isle = 1; isle < nisles; isle++) {
-		Vect_get_isle_points(In, isle, IPoints[isle - 1]);
-		Vect_line_prune(IPoints[isle - 1]);
-		nwc += IPoints[isle - 1]->n_points - 1;
+	    for (isle = 0; isle < nisles; isle++) {
+		Vect_get_isle_points(In, Vect_get_area_isle(In, area, isle),
+		                     IPoints[isle]);
+		Vect_line_prune(IPoints[isle]);
+		nwc += IPoints[isle]->n_points - 1;
 	    }
 
 	    if (nwc_alloc < nwc) {
@@ -378,6 +390,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    if (Out) {
 		Vect_reset_line(OPoints);
 		Vect_append_point(OPoints, x, y, 0);
+		Vect_cat_set(Cats, 2, 8);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
 	    else
@@ -410,10 +423,14 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	for (area = 1; area <= nareas; area++) {
 
 	    Vect_reset_cats(Cats);
-	    if (layer > 1) {
-		Vect_get_area_cats(In, area, Cats);
-	        if (!Vect_cats_in_constraint(Cats, layer, cat_list))
-		    continue;
+	    if (Vect_get_area_cats(In, area, ICats) != 0)
+		continue;
+	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
+		continue;
+
+	    for (i = 0; i < ICats->n_cats; i++) {
+		if (ICats->field[i] == layer)
+		    Vect_cat_set(Cats, 1, ICats->cat[i]);
 	    }
 
 	    Vect_get_area_points(In, area, Points);
@@ -428,10 +445,11 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 		}
 		nisles_alloc = nisles;
 	    }
-	    for (isle = 1; isle < nisles; isle++) {
-		Vect_get_isle_points(In, isle, IPoints[isle - 1]);
-		Vect_line_prune(IPoints[isle - 1]);
-		nw += IPoints[isle - 1]->n_points - 1;
+	    for (isle = 0; isle < nisles; isle++) {
+		Vect_get_isle_points(In, Vect_get_area_isle(In, area, isle),
+		                     IPoints[isle]);
+		Vect_line_prune(IPoints[isle]);
+		nw += IPoints[isle]->n_points - 1;
 	    }
 
 	    if (nw_alloc < nw) {
@@ -547,6 +565,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    if (Out) {
 		Vect_reset_line(OPoints);
 		Vect_append_point(OPoints, x, y, 0);
+		Vect_cat_set(Cats, 2, 9);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
 	    else

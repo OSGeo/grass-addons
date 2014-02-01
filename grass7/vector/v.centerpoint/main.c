@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     type_opt->answer = "point,line,area";
     type_opt->guisection = _("Selection");
 
-    lyr_opt = G_define_standard_option(G_OPT_V_FIELD_ALL);
+    lyr_opt = G_define_standard_option(G_OPT_V_FIELD);
     lyr_opt->guisection = _("Selection");
 
     cats_opt = G_define_standard_option(G_OPT_V_CATS);
@@ -174,13 +174,13 @@ int main(int argc, char *argv[])
     if (1 > Vect_open_old(&In, old->answer, mapset))
 	G_fatal_error(_("Unable to open vector map <%s>"), old->answer);
 
-    layer = -1;
-    if (lyr_opt->answer)
-	layer = Vect_get_field_number(&In, lyr_opt->answer);
+    layer = Vect_get_field_number(&In, lyr_opt->answer);
 
-    if (layer > 0)
-	cat_list = Vect_cats_set_constraint(&In, layer, where_opt->answer,
-                                            cats_opt->answer);
+    if (layer < 1)
+	G_fatal_error(_("Invalid %s answer: %s"), lyr_opt->key, lyr_opt->answer);
+
+    cat_list = Vect_cats_set_constraint(&In, layer, where_opt->answer,
+					cats_opt->answer);
 
     out3d = Vect_is_3d(&In);
 
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
     }
     if (nlines) {
 	lines_center(&In, Outp, layer, cat_list, nprimitives, mode);
-	Vect_copy_tables(&In, &Out, layer);
+	Vect_copy_table(&In, &Out, layer, 1, NULL, GV_1TABLE);
     }
     
     Vect_close(&In);
@@ -240,10 +240,12 @@ int main(int argc, char *argv[])
 	if (1 > Vect_open_old(&In, old->answer, mapset))
 	    G_warning(_("Unable to open vector map <%s> with topology"), old->answer);
 	else {
-	    int nareas = Vect_get_num_areas(&In);
-	    
-	    if (nareas)
+	    if (Vect_get_num_areas(&In) > 0) {
 		areas_center(&In, Outp, layer, cat_list, mode);
+		Vect_copy_table(&In, &Out, layer, 1, NULL, GV_1TABLE);
+	    }
+	    else
+		G_warning(_("No areas in input vector <%s>"), old->answer);
 
 	    Vect_close(&In);
 	}

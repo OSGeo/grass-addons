@@ -48,7 +48,8 @@ int points_center(struct Map_info *In, struct Map_info *Out, int layer,
 	if (!(type & GV_POINT))
 	    continue;
 	
-	if (layer > 0 && !Vect_cats_in_constraint(Cats, layer, cat_list))
+	if (layer > 0 && 
+	    !Vect_cats_in_constraint(Cats, layer, cat_list))
 	    continue;
 
 	xsum += Points->x[0];
@@ -71,7 +72,7 @@ int points_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    Vect_reset_line(OPoints);
 	    Vect_append_point(OPoints, x, y, z);
 	    Vect_reset_cats(OCats);
-	    Vect_cat_set(OCats, 1, 1);
+	    Vect_cat_set(OCats, 2, 1);
 	    Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	}
 	else
@@ -161,7 +162,7 @@ int points_center(struct Map_info *In, struct Map_info *Out, int layer,
 		Vect_reset_line(OPoints);
 		Vect_append_point(OPoints, x, y, z);
 		Vect_reset_cats(OCats);
-		Vect_cat_set(OCats, 1, 2);
+		Vect_cat_set(OCats, 2, 2);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
 	    else
@@ -216,7 +217,7 @@ int points_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    Vect_reset_line(OPoints);
 	    Vect_append_point(OPoints, x, y, z);
 	    Vect_reset_cats(OCats);
-	    Vect_cat_set(OCats, 1, 3);
+	    Vect_cat_set(OCats, 2, 3);
 	    Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	}
 	else

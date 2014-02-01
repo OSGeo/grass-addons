@@ -10,14 +10,15 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
                  struct cat_list *cat_list, int n_primitives, int mode)
 {
     struct line_pnts *Points, *OPoints;
-    struct line_cats *Cats;
+    struct line_cats *Cats, *ICats;
     double x, y, z;
     int type;
-    int counter;
+    int i, counter;
 
     Points = Vect_new_line_struct();
     OPoints = Vect_new_line_struct();
     Cats = Vect_new_cats_struct();
+    ICats = Vect_new_cats_struct();
 
     /* mid point */
     if (mode & L_MID) {
@@ -33,9 +34,13 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 
 	    if (!(type & GV_LINE))
 		continue;
-	    if (layer > 0 &&
-	        !Vect_cats_in_constraint(Cats, layer, cat_list))
+	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
 		continue;
+
+	    for (i = 0; i < ICats->n_cats; i++) {
+		if (ICats->field[i] == layer)
+		    Vect_cat_set(Cats, 1, ICats->cat[i]);
+	    }
 
 	    Vect_line_prune(Points);
 
@@ -46,6 +51,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    if (Out) {
 		Vect_reset_line(OPoints);
 		Vect_append_point(OPoints, x, y, z);
+		Vect_cat_set(Cats, 2, 4);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
 	    else
@@ -58,7 +64,6 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
     if (mode & L_MEAN) {
 	double len, slen;
 	double dx, dy, dz;
-	int i;
 
 	G_message(_("Calculating centers of gravity for lines..."));
 	counter = 0;
@@ -69,9 +74,13 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    counter++;
 	    if (!(type & GV_LINE))
 		continue;
-	    if (layer > 0 &&
-	        !Vect_cats_in_constraint(Cats, layer, cat_list))
+	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
 		continue;
+
+	    for (i = 0; i < ICats->n_cats; i++) {
+		if (ICats->field[i] == layer)
+		    Vect_cat_set(Cats, 1, ICats->cat[i]);
+	    }
 
 	    Vect_line_prune(Points);
 
@@ -100,6 +109,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    if (Out) {
 		Vect_reset_line(OPoints);
 		Vect_append_point(OPoints, x, y, z);
+		Vect_cat_set(Cats, 2, 5);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
 	    else
@@ -117,7 +127,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	double xmean, ymean, zmean;
 	double medx, medy, medz;
 	double dist, distsum, dist2all, lastdist2all;
-	int i, j, iter, maxiter = 100;
+	int j, iter, maxiter = 100;
 	
 	SPoints = Vect_new_line_struct();
 
@@ -130,9 +140,13 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    counter++;
 	    if (!(type & GV_LINE))
 		continue;
-	    if (layer > 0 &&
-	        !Vect_cats_in_constraint(Cats, layer, cat_list))
+	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
 		continue;
+
+	    for (i = 0; i < ICats->n_cats; i++) {
+		if (ICats->field[i] == layer)
+		    Vect_cat_set(Cats, 1, ICats->cat[i]);
+	    }
 
 	    Vect_line_prune(Points);
 	    
@@ -235,6 +249,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    if (Out) {
 		Vect_reset_line(OPoints);
 		Vect_append_point(OPoints, x, y, z);
+		Vect_cat_set(Cats, 2, 6);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
 	    else
