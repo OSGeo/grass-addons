@@ -12,7 +12,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
     struct line_pnts *Points, *OPoints;
     struct line_cats *Cats, *ICats;
     double x, y, z;
-    int type;
+    int type, cat;
     int i, counter;
 
     Points = Vect_new_line_struct();
@@ -28,18 +28,24 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	counter = 0;
 
 	Vect_rewind(In);
-	while ((type = Vect_read_next_line(In, Points, Cats)) > 0) {
+	while ((type = Vect_read_next_line(In, Points, ICats)) > 0) {
 	    G_percent(counter, n_primitives, 4);
 	    counter++;
 
 	    if (!(type & GV_LINE))
 		continue;
-	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
-		continue;
+	    
+	    cat = -1;
+	    if (layer > 0) {
+		if (!Vect_cats_in_constraint(ICats, layer, cat_list))
+		    continue;
 
-	    for (i = 0; i < ICats->n_cats; i++) {
-		if (ICats->field[i] == layer)
-		    Vect_cat_set(Cats, 1, ICats->cat[i]);
+		for (i = 0; i < ICats->n_cats; i++) {
+		    if (ICats->field[i] == layer) {
+			Vect_cat_set(Cats, 1, ICats->cat[i]);
+			cat = ICats->cat[i];
+		    }
+		}
 	    }
 
 	    Vect_line_prune(Points);
@@ -54,8 +60,12 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 		Vect_cat_set(Cats, 2, 4);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
-	    else
-		fprintf(stdout, "4|%.15g|%.15g|%.15g\n", x, y, z);
+	    else {
+		if (layer > 0)
+		    fprintf(stdout, "%.15g|%.15g|%.15g|4|%d\n", x, y, z, cat);
+		else
+		    fprintf(stdout, "%.15g|%.15g|%.15g|4\n", x, y, z);
+	    }
 	}
 	G_percent(1, 1, 1);
     }
@@ -69,17 +79,23 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	counter = 0;
 
 	Vect_rewind(In);
-	while ((type = Vect_read_next_line(In, Points, Cats)) > 0) {
+	while ((type = Vect_read_next_line(In, Points, ICats)) > 0) {
 	    G_percent(counter, n_primitives, 4);
 	    counter++;
 	    if (!(type & GV_LINE))
 		continue;
-	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
-		continue;
 
-	    for (i = 0; i < ICats->n_cats; i++) {
-		if (ICats->field[i] == layer)
-		    Vect_cat_set(Cats, 1, ICats->cat[i]);
+	    cat = -1;
+	    if (layer > 0) {
+		if (!Vect_cats_in_constraint(ICats, layer, cat_list))
+		    continue;
+
+		for (i = 0; i < ICats->n_cats; i++) {
+		    if (ICats->field[i] == layer) {
+			Vect_cat_set(Cats, 1, ICats->cat[i]);
+			cat = ICats->cat[i];
+		    }
+		}
 	    }
 
 	    Vect_line_prune(Points);
@@ -112,8 +128,12 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 		Vect_cat_set(Cats, 2, 5);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
-	    else
-		fprintf(stdout, "5|%.15g|%.15g|%.15g\n", x, y, z);
+	    else {
+		if (layer > 0)
+		    fprintf(stdout, "%.15g|%.15g|%.15g|5|%d\n", x, y, z, cat);
+		else
+		    fprintf(stdout, "%.15g|%.15g|%.15g|5\n", x, y, z);
+	    }
 	}
 	G_percent(1, 1, 1);
     }
@@ -135,17 +155,23 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 	counter = 0;
 
 	Vect_rewind(In);
-	while ((type = Vect_read_next_line(In, Points, Cats)) > 0) {
+	while ((type = Vect_read_next_line(In, Points, ICats)) > 0) {
 	    G_percent(counter, n_primitives, 4);
 	    counter++;
 	    if (!(type & GV_LINE))
 		continue;
-	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
-		continue;
 
-	    for (i = 0; i < ICats->n_cats; i++) {
-		if (ICats->field[i] == layer)
-		    Vect_cat_set(Cats, 1, ICats->cat[i]);
+	    cat = -1;
+	    if (layer > 0) {
+		if (!Vect_cats_in_constraint(ICats, layer, cat_list))
+		    continue;
+
+		for (i = 0; i < ICats->n_cats; i++) {
+		    if (ICats->field[i] == layer) {
+			Vect_cat_set(Cats, 1, ICats->cat[i]);
+			cat = ICats->cat[i];
+		    }
+		}
 	    }
 
 	    Vect_line_prune(Points);
@@ -252,8 +278,12 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 		Vect_cat_set(Cats, 2, 6);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
-	    else
-		fprintf(stdout, "6|%.15g|%.15g|%.15g\n", x, y, z);
+	    else {
+		if (layer > 0)
+		    fprintf(stdout, "%.15g|%.15g|%.15g|6|%d\n", x, y, z, cat);
+		else
+		    fprintf(stdout, "%.15g|%.15g|%.15g|6\n", x, y, z);
+	    }
 	}
 	G_percent(1, 1, 1);
     }

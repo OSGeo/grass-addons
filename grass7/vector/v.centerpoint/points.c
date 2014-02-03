@@ -76,7 +76,7 @@ int points_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	}
 	else
-	    fprintf(stdout, "1|%.15g|%.15g|%.15g\n", x, y, z);
+	    fprintf(stdout, "%.15g|%.15g|%.15g|1\n", x, y, z);
     }
     
     medx = xmean;
@@ -166,7 +166,7 @@ int points_center(struct Map_info *In, struct Map_info *Out, int layer,
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
 	    else
-		fprintf(stdout, "2|%.15g|%.15g|%.15g\n", x, y, z);
+		fprintf(stdout, "%.15g|%.15g|%.15g|2\n", x, y, z);
 	}
     }
 
@@ -221,7 +221,7 @@ int points_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	}
 	else
-	    fprintf(stdout, "3|%.15g|%.15g|%.15g\n", x, y, z);
+	    fprintf(stdout, "%.15g|%.15g|%.15g|3\n", x, y, z);
     }
 
     return 1;

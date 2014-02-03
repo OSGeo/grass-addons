@@ -2,7 +2,8 @@
 
 <em>v.centerpoint</em> calculates center points for point clouds, lines 
 and areas. Center points can be centers of gravity (coordinates' mean) or 
-geometric medians, which is more robust in case of outliers.
+geometric medians (points of minimum distance, which is more robust 
+in case of outliers.
 <p>
 For points, center points are calculated considering all points. For 
 lines and areas, center points are calculated for each line or area 
@@ -11,7 +12,7 @@ separately.
 If no output vector is given, center points are printed to stdout in 
 ASCII point format:
 <div class="code"><pre>
-&lt;cat&gt;|&lt;easting&gt;|&lt;northing&gt;
+&lt;easting&gt;|&lt;northing&gt;|&lt;height&gt;|&lt;cat&gt;
 </pre></div>
 The category values are
 <ul>

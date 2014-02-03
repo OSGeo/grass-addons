@@ -16,7 +16,7 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
     double x, y, z, meanx, meany, meanz;
     double *xp, *yp;
     double w, tot_w;
-    int i;
+    int cat, i;
     
     Points = Vect_new_line_struct();
     OPoints = Vect_new_line_struct();
@@ -45,12 +45,18 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    Vect_reset_cats(Cats);
 	    if (Vect_get_area_cats(In, area, ICats) != 0)
 		continue;
-	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
-		continue;
+	    
+	    cat = -1;
+	    if (layer > 0) {
+		if (!Vect_cats_in_constraint(ICats, layer, cat_list))
+		    continue;
 
-	    for (i = 0; i < ICats->n_cats; i++) {
-		if (ICats->field[i] == layer)
-		    Vect_cat_set(Cats, 1, ICats->cat[i]);
+		for (i = 0; i < ICats->n_cats; i++) {
+		    if (ICats->field[i] == layer) {
+			Vect_cat_set(Cats, 1, ICats->cat[i]);
+			cat = ICats->cat[i];
+		    }
+		}
 	    }
 	    
 	    Vect_get_area_points(In, area, Points);
@@ -113,8 +119,12 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 		Vect_cat_set(Cats, 2, 7);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
-	    else
-		fprintf(stdout, "7|%.15g|%.15g|%.15g\n", x, y, z);
+	    else {
+		if (layer > 0)
+		    fprintf(stdout, "%.15g|%.15g|%.15g|7|%d\n", x, y, z, cat);
+		else
+		    fprintf(stdout, "%.15g|%.15g|%.15g|7\n", x, y, z);
+	    }
 
 	    G_percent(area, nareas, 4);
 	}
@@ -145,12 +155,17 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    Vect_reset_cats(Cats);
 	    if (Vect_get_area_cats(In, area, ICats) != 0)
 		continue;
-	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
-		continue;
 
-	    for (i = 0; i < ICats->n_cats; i++) {
-		if (ICats->field[i] == layer)
-		    Vect_cat_set(Cats, 1, ICats->cat[i]);
+	    cat = -1;
+	    if (layer > 0) {
+		if (!Vect_cats_in_constraint(ICats, layer, cat_list))
+		    continue;
+
+		for (i = 0; i < ICats->n_cats; i++) {
+		    if (ICats->field[i] == layer)
+			Vect_cat_set(Cats, 1, ICats->cat[i]);
+			cat = ICats->cat[i];
+		}
 	    }
 
 	    Vect_get_area_points(In, area, Points);
@@ -393,8 +408,12 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 		Vect_cat_set(Cats, 2, 8);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
-	    else
-		fprintf(stdout, "8|%.15g|%.15g|%.15g\n", x, y, 0.);
+	    else {
+		if (layer > 0)
+		    fprintf(stdout, "%.15g|%.15g|%.15g|8|%d\n", x, y, 0., cat);
+		else
+		    fprintf(stdout, "%.15g|%.15g|%.15g|8\n", x, y, 0.);
+	    }
 
 	    G_percent(area, nareas, 4);
 	}
@@ -425,12 +444,18 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 	    Vect_reset_cats(Cats);
 	    if (Vect_get_area_cats(In, area, ICats) != 0)
 		continue;
-	    if (!Vect_cats_in_constraint(ICats, layer, cat_list))
-		continue;
 
-	    for (i = 0; i < ICats->n_cats; i++) {
-		if (ICats->field[i] == layer)
-		    Vect_cat_set(Cats, 1, ICats->cat[i]);
+	    cat = -1;
+	    if (layer > 0) {
+		if (!Vect_cats_in_constraint(ICats, layer, cat_list))
+		    continue;
+
+		for (i = 0; i < ICats->n_cats; i++) {
+		    if (ICats->field[i] == layer) {
+			Vect_cat_set(Cats, 1, ICats->cat[i]);
+			cat = ICats->cat[i];
+		    }
+		}
 	    }
 
 	    Vect_get_area_points(In, area, Points);
@@ -568,8 +593,12 @@ int areas_center(struct Map_info *In, struct Map_info *Out, int layer,
 		Vect_cat_set(Cats, 2, 9);
 		Vect_write_line(Out, GV_POINT, OPoints, Cats);
 	    }
-	    else
-		fprintf(stdout, "9|%.15g|%.15g|%.15g\n", x, y, 0.);
+	    else {
+		if (layer > 0)
+		    fprintf(stdout, "%.15g|%.15g|%.15g|9|%d\n", x, y, 0., cat);
+		else
+		    fprintf(stdout, "%.15g|%.15g|%.15g|9\n", x, y, 0.);
+	    }
 
 	    G_percent(area, nareas, 4);
 	}
