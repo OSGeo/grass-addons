@@ -140,25 +140,46 @@ def main():
     if gamma_wet == '':
         gamma_wet = 2100
     # calculate slope
-    grass.run_command('r.slope.aspect', elevation=r_elevation, slope='slopes',
-                      min_slp_allowed=0.0, overwrite='True') #format = 'degrees', precision = float, 
+    grass.run_command('r.slope.aspect', 
+                        elevation = r_elevation, 
+                        slope = 'slopes',
+                        min_slp_allowed = 0.0, 
+                        overwrite = 'True')
+    #zero value = null
+    grass.run_command('r.null', 
+                        map = 'slopes', 
+                        setnull = 0)
     # calculate soil transmissivity T (m^2/day)
-    grass.mapcalc("T=$k*24*$z*cos(slopes)", k=k, z=z)
+    grass.mapcalc("T=$k*24*$z*cos(slopes)", 
+                    k = k, 
+                    z = z)
     # calculate dimensionless
     grass.mapcalc("C=($root+$c_soil)/($z*cos(slopes)*9.81*$gamma_wet)",
-                  root=root, c_soil=c_soil, z=z, gamma_wet=gamma_wet)
+                    root = root, 
+                    c_soil = c_soil, 
+                    z = z, 
+                    gamma_wet = gamma_wet)
     # calculate contribution area
-
-    grass.run_command('r.watershed', elevation=r_elevation,
-                      accumulation='accum')
+    grass.run_command('r.watershed', 
+                        elevation = r_elevation,
+                        accumulation = 'accum')
 
     grass.mapcalc("A=accum*((ewres()+nsres())/2)*((ewres()+nsres())/2)")
+    #stable condition
+    grass.mapcalc("assoluta_stab=(1-1000/($gamma))*tan($phy)", 
+                    gamma = gamma,
+                    phy = phy)
+    grass.mapcalc("assoluta_cond=if(assoluta_stab>tan(slopes),9999,0)")
+    #unstable condition
+    grass.mapcalc("assoluta_instab=C/cos(slopes)+(tan($phy))",
+                    phy = phy)
+    grass.mapcalc("cond_instab=if(assoluta_instab<tan(slopes),-9999,0)")
     # calculate 1(m/day)
-    grass.mapcalc("i_crit_m=T*sin(slopes)*((ewres()+nsres())/2)/A*($gamma/1000*(1-(1-C/(sin(slopes)*cos(slopes)))*tan(slopes)/tan($phy)))",
+    grass.mapcalc("i_crit_m=(T*sin(slopes)*((ewres()+nsres())/2)/A*($gamma/1000*(1-(1-C/(sin(slopes)*cos(slopes))))*(tan(slopes)/tan($phy))))+(assoluta_cond)+(cond_instab)",
                   phy=phy, gamma=gamma)
     # Calculation of critical rain (mm / hr) and riclassification
     grass.mapcalc("i_cri_mm=i_crit_m*24000")
-    reclass_rules = "0 thru 50 = 2\n51 thru 100 = 3\n101 thru 200 = 4\n201 thru 400 = 5\n401 thru 999 = 6"
+    reclass_rules = "0 thru 30 = 2\n31 thru 100 = 3\n101 thru 150 = 4\n151 thru 200 = 5\n201 thru 999 = 6"
     grass.write_command('r.reclass', input='i_cri_mm', output='i_recl',
                         overwrite='True', rules='-', stdin=reclass_rules)
     grass.mapcalc("copia_reclass=i_recl+0")
@@ -177,10 +198,21 @@ def main():
     grass.run_command('g.rename', rast=("I_cri_average", susceptibility))
     grass.run_command('g.rename', rast=("i_cri_mm", critic_rain))
     # remove temporary map
-    grass.run_command('g.remove', rast=("A", "copia_reclass", "i_crit_m",
-                                        "i_recl", "accum", "slopes", "Stable",
-                                        "T", "Unstable", "C"))
-
+    grass.run_command('g.remove', rast=("A", 
+                                        "copia_reclass", 
+                                        "i_crit_m",
+                                        "i_recl", 
+                                        "accum", 
+                                        "slopes", 
+                                        "Stable",
+                                        "T",
+                                        "Unstable",
+                                        "C",
+                                        "Icritica",
+                                        "assoluta_stab",
+                                        "assoluta_cond",
+                                        "assoluta_instab",
+                                        "cond_instab"))
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
