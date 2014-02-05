@@ -18,6 +18,7 @@ SUBDIRS = \
 	r.mcda.roughset \
 	r.modis \
 	r.regression.series \
+	r.segment \
 	r.stream.basins \
 	r.stream.channel \
 	r.stream.distance \
