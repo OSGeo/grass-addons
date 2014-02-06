@@ -228,7 +228,8 @@ int main(int argc, char *argv[])
     }
     if (nlines) {
 	lines_center(&In, Outp, layer, cat_list, nprimitives, mode);
-	Vect_copy_table(&In, &Out, layer, 1, NULL, GV_1TABLE);
+	if (Outp)
+	    Vect_copy_table(&In, Outp, layer, 1, NULL, GV_1TABLE);
     }
     
     Vect_close(&In);
@@ -242,7 +243,8 @@ int main(int argc, char *argv[])
 	else {
 	    if (Vect_get_num_areas(&In) > 0) {
 		areas_center(&In, Outp, layer, cat_list, mode);
-		Vect_copy_table(&In, &Out, layer, 1, NULL, GV_1TABLE);
+		if (Outp)
+		    Vect_copy_table(&In, Outp, layer, 1, NULL, GV_1TABLE);
 	    }
 	    else
 		G_warning(_("No areas in input vector <%s>"), old->answer);
