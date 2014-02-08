@@ -81,7 +81,7 @@ def main():
     mapname = mapname.split()
     mapname[0] = mapname[0].replace(".","_")
     coordinates = options['coordinates']
-    directory = options['input']
+    directory = options['dir']
     autothreshold = flags['a']
     nomap = flags['c']
     prefix = options['prefix']+'_'+mapname[0]
