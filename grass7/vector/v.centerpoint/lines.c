@@ -36,6 +36,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 		continue;
 	    
 	    cat = -1;
+	    Vect_reset_cats(Cats);
 	    if (layer > 0) {
 		if (!Vect_cats_in_constraint(ICats, layer, cat_list))
 		    continue;
@@ -86,6 +87,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 		continue;
 
 	    cat = -1;
+	    Vect_reset_cats(Cats);
 	    if (layer > 0) {
 		if (!Vect_cats_in_constraint(ICats, layer, cat_list))
 		    continue;
@@ -162,6 +164,7 @@ int lines_center(struct Map_info *In, struct Map_info *Out, int layer,
 		continue;
 
 	    cat = -1;
+	    Vect_reset_cats(Cats);
 	    if (layer > 0) {
 		if (!Vect_cats_in_constraint(ICats, layer, cat_list))
 		    continue;
