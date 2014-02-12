@@ -178,7 +178,7 @@ def main():
     grass.mapcalc("i_crit_m=(T*sin(slopes)*((ewres()+nsres())/2)/A*($gamma/1000*(1-(1-C/(sin(slopes)*cos(slopes))))*(tan(slopes)/tan($phy))))+(assoluta_cond)+(cond_instab)",
                   phy=phy, gamma=gamma)
     # Calculation of critical rain (mm / hr) and riclassification
-    grass.mapcalc("i_cri_mm=i_crit_m*24000")
+    grass.mapcalc("i_cri_mm=i_crit_m*1000")
     reclass_rules = "0 thru 30 = 2\n31 thru 100 = 3\n101 thru 150 = 4\n151 thru 200 = 5\n201 thru 999 = 6"
     grass.write_command('r.reclass', input='i_cri_mm', output='i_recl',
                         overwrite='True', rules='-', stdin=reclass_rules)
