@@ -128,7 +128,7 @@ def main():
     c_soil = options['c_soil']
     phy = options['phy']
     gamma = options['gamma']
-    gamma_wet = options['gamma_wet']
+    #gamma_wet = options['gamma_wet']
     z = options['z']
     #b = options['b']
     k = options['k']
@@ -158,7 +158,7 @@ def main():
                     root = root, 
                     c_soil = c_soil, 
                     z = z, 
-                    gamma_wet = gamma_wet)
+                    gamma = gamma)
     # calculate contribution area
     grass.run_command('r.watershed', 
                         elevation = r_elevation,
