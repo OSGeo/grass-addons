@@ -137,8 +137,8 @@ def main():
     critic_rain = options['critic_rain']
     if root == '':
         root = 0
-    if gamma_wet == '':
-        gamma_wet = 2100
+    #if gamma_wet == '':
+    #    gamma_wet = 2100
     # calculate slope
     grass.run_command('r.slope.aspect', 
                         elevation = r_elevation, 
