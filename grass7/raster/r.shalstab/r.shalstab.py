@@ -160,7 +160,7 @@ def main():
     grass.mapcalc("assoluta_stab=(1-1000/($gamma))*tan($phy)", 
                     gamma = gamma,
                     phy = phy)
-    grass.mapcalc("assoluta_cond=if(assoluta_stab>tan(slopes),null(),0)")
+    grass.mapcalc("assoluta_cond=if(assoluta_stab>tan(slopes),9999,0)")
     #unstable condition
     grass.mapcalc("assoluta_instab=C/cos(slopes)+(tan($phy))",
                     phy = phy)
