@@ -195,7 +195,7 @@ def main():
                                         "copia_reclass", 
                                         "i_crit_m",
                                         "i_recl", 
-                                        "i_cri_mm",
+                                       # "i_cri_mm",
                                         "accum", 
                                         "slopes", 
                                         "Stable",
