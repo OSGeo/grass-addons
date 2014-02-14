@@ -68,15 +68,6 @@
 #%  required: yes
 #%end
 #%option
-#%  key: gamma_wet
-#%  type: string
-#%  gisprompt: old,raster,raster
-#%  key_desc: name
-#%  description: Wet soil density (kg/m^3)
-#%  answer: 2100
-#%  required: no
-#%end
-#%option
 #%  key: root
 #%  type: string
 #%  gisprompt: old,raster,raster
@@ -169,7 +160,7 @@ def main():
     grass.mapcalc("assoluta_stab=(1-1000/($gamma))*tan($phy)", 
                     gamma = gamma,
                     phy = phy)
-    grass.mapcalc("assoluta_cond=if(assoluta_stab>tan(slopes),9999,0)")
+    grass.mapcalc("assoluta_cond=if(assoluta_stab>tan(slopes),null(),0)")
     #unstable condition
     grass.mapcalc("assoluta_instab=C/cos(slopes)+(tan($phy))",
                     phy = phy)
