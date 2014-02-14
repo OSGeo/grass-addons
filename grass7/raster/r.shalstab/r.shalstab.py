@@ -170,7 +170,7 @@ def main():
                   phy=phy, gamma=gamma)
     # Calculation of critical rain (mm / hr) and riclassification
     grass.mapcalc("i_cri_mm=i_crit_m*1000")
-    grass.mapcalc("i_cri_mm_reclass=if(i_cri_mm>200, null(), i_cri_mm)")
+    grass.mapcalc("i_cri_mm_reclass=if(i_cri_mm<-1000, -1000, if(i_cri_mm>500,500, i_cri_mm))")
     grass.run_command('r.colors', map='i_cri_mm_reclass', color='precipitation')
     reclass_rules = "0 thru 30 = 2\n31 thru 100 = 3\n101 thru 150 = 4\n151 thru 200 = 5\n201 thru 999 = 6"
     grass.write_command('r.reclass', input='i_cri_mm', output='i_recl',
