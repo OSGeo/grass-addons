@@ -155,7 +155,7 @@ def main():
                         elevation = r_elevation,
                         accumulation = 'accum')
 
-    grass.mapcalc("A=accum*((ewres()+nsres())/2)*((ewres()+nsres())/2)")
+    grass.mapcalc("A=abs(accum*((ewres()+nsres())/2)*((ewres()+nsres())/2))")
     #stable condition
     grass.mapcalc("assoluta_stab=(1-1000/($gamma))*tan($phy)", 
                     gamma = gamma,
@@ -166,19 +166,19 @@ def main():
                     phy = phy)
     grass.mapcalc("cond_instab=if(assoluta_instab<tan(slopes),-9999,0)")
     # calculate 1(m/day)
-    grass.mapcalc("i_crit_m=(T*sin(slopes)*((ewres()+nsres())/2)/A*($gamma/1000*(1-(1-C/(sin(slopes)*cos(slopes))))*(tan(slopes)/tan($phy))))+(assoluta_cond)+(cond_instab)",
+    grass.mapcalc("i_crit_m=T*sin(slopes)*(((ewres()+nsres())/2)/A)*($gamma/1000*(1-(1-(C/(sin(slopes))))*(tan(slopes)/tan($phy))))+(assoluta_cond)+(cond_instab)",
                   phy=phy, gamma=gamma)
     # Calculation of critical rain (mm / hr) and riclassification
     grass.mapcalc("i_cri_mm=i_crit_m*1000")
-    grass.mapcalc("i_cri_mm_reclass=if(i_cri_mm<0, 0, if(i_cri_mm>200,200, i_cri_mm))")
-    grass.run_command('r.colors', map='i_cri_mm_reclass', color='precipitation')
+    #grass.mapcalc("i_cri_mm_reclass=if(i_cri_mm<0, 0, if(i_cri_mm>))")
+    grass.run_command('r.colors', map='i_cri_mm', color='precipitation')
     reclass_rules = "0 thru 30 = 2\n31 thru 100 = 3\n101 thru 150 = 4\n151 thru 200 = 5\n201 thru 999 = 6"
     grass.write_command('r.reclass', input='i_cri_mm', output='i_recl',
                         overwrite='True', rules='-', stdin=reclass_rules)
     grass.mapcalc("copia_reclass=i_recl+0")
     grass.run_command('r.null', map='copia_reclass', null=0)
-    grass.mapcalc("Stable=if (i_cri_mm>1000, 7, 0)")
-    grass.mapcalc("Unstable=if (i_cri_mm<0, 1, 0)")
+    grass.mapcalc("Stable=if(i_cri_mm>1000,7,0)")
+    grass.mapcalc("Unstable=if(i_cri_mm<0,1,0)")
     grass.mapcalc("Icritica=copia_reclass+Unstable+Stable")
     colors_rules = "1 255:85:255\n2 255:0:0\n3 255:170:0\n4 255:255:0\n" \
                    "5 85:255:0\n6 170:255:255\n7 255:255:255"
@@ -189,13 +189,13 @@ def main():
                       size=3, output='I_cri_average')
     # rename maps
     grass.run_command('g.rename', rast=("I_cri_average", susceptibility))
-    grass.run_command('g.rename', rast=("i_cri_mm_reclass", critic_rain))
+    grass.run_command('g.rename', rast=("i_cri_mm", critic_rain))
     # remove temporary map
     grass.run_command('g.remove', rast=("A", 
                                         "copia_reclass", 
                                         "i_crit_m",
                                         "i_recl", 
-                                       # "i_cri_mm",
+                                        #"i_cri_mm",
                                         "accum", 
                                         "slopes", 
                                         "Stable",
