@@ -315,11 +315,12 @@ if (!"spgrass6" %in% installed.packages(lib.loc=libLocs)){
 grassversion <- as.numeric(system("g.version | cut -c7", intern=T))
 
 ## Get vector with variables
-ipn	<- Sys.getenv("arrIN")			# variable names
+ipn	<- Sys.getenv("arrIN")  # variable names
 ipn	<- unlist(strsplit(ipn,";"))[-1]
-ipl	<- Sys.getenv("INMAPS1")			# old environmental layers
+ipn <- tolower(ipn)  # avoid problems with vector column names
+ipl	<- Sys.getenv("INMAPS1")  # old environmental layers
 ipl	<- unlist(strsplit(ipl,","))
-ipl2	<- Sys.getenv("INMAPS2")			# new environmental layers
+ipl2	<- Sys.getenv("INMAPS2")  # new environmental layers
 if(ipl2==""){
     ipl2 <- ipl
 }else{
@@ -433,7 +434,7 @@ if(rtl=="R"){
     # Reference distribution layer is vector 
     #-----------------------------------------------------------------------
 
-    execGRASS("v.extract", flags="t", input=vtl, type="point", output=tmpMESS976543210)
+    execGRASS("v.extract", flags="t", input=vtl, type="point", output="tmpMESS976543210")
     system(paste("v.db.addtable tmpMESS976543210 columns='", paste(ipn, " double precision", collapse=","), "'", sep=""))
 
     # make compatible for both v6.4 and 7
