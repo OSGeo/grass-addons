@@ -16,6 +16,7 @@
 #               Public License (>=v2). Read the file COPYING that
 #               comes with GRASS for details.
 #
+# TODO: use "BEGIN TRANSACTION" etc?
 #############################################################################
 #%module
 #% description: Calculate histogram matching of several images.
@@ -203,12 +204,14 @@ def main():
             grass.run_command('r.reclass', input= i, out = outname, 
                               rules = outfile.name)
         elif result['fullname'] and not grass.overwrite():
-            grass.warning(_("Raster map %s already exists and it will be not overwrite" % i))
+            grass.warning(_("Raster map %s already exists and will not be overwritten" % i))
         else:
             grass.run_command('r.reclass', input= i, out = outname, 
                               rules = outfile.name)
         # remove the rules file
         grass.try_remove(outfile.name)       
+        # write cmd history:
+        grass.raster_history(outname)
     db.commit()
     db.close()
     
