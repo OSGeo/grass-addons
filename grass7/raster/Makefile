@@ -7,7 +7,9 @@ SUBDIRS = \
 	r.crater \
 	r.diversity \
 	r.flip \
-	r.fuzzy \
+	r.fuzzy.set \
+	r.fuzzy.logic \
+	r.fuzzy.system \
 	r.geomorphon \
 	r.hydrodem \
 	r.in.srtm.region \
