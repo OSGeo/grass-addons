@@ -83,9 +83,10 @@ v.surf.icw input=precip_30ynormals column=annual output=annual_interp.3 \
 # equalize colors to show maximum detail:
 r.colors -e annual_interp.3 color=bcyr
 
-# display results in an Xmonitor:
+# display results in a GRASS monitor:
+d.mon wx0
 d.erase black
-d.rast -o annual_interp.3
+d.rast annual_interp.3
 d.vect precip_30ynormals fcolor=red icon=basic/circle
 d.legend annual_interp.3 color=white at=48.4,94.8,3.4,6.0
 </pre></div>

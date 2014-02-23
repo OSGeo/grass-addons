@@ -270,7 +270,7 @@ def main():
         cost_site_name = tmp_base + 'cost_site.' + '%05d' % num
         proc[num-1] = grass.start_command('r.cost', flags = 'k', input = area_mask,
 	                                output = cost_site_name,
-				        coordinate = easting + ',' + northing,
+				        start_coordinates = easting + ',' + northing,
 					quiet = True)
 	# stall to wait for the nth worker to complete,
 	if num % workers is 0:
