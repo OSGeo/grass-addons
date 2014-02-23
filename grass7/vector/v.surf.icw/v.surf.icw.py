@@ -39,6 +39,10 @@
 
 #%Module
 #% description: IDW interpolation, but distance is cost to get to any other site.
+#% keywords: vector
+#% keywords: surface
+#% keywords: interpolation
+#% keywords: ICW
 #%End
 #%option
 #% key: input
