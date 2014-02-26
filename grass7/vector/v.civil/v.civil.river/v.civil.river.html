@@ -3,10 +3,25 @@
 <em>v.civil.river</em> exports and import geometry data to/from an 1-D hydrodynamic model.
 
 <h3>Export</h3>
-
+<p>
 To export to an 1-D hydrodynamic model a cross section and 
 cross-displ maps from the output of <em>v.civil.road</em> is 
 required. And a raster DEM too.
+
+<p>
+The edge definition must have two displaced lines, the first
+for representing the main channel bank station and the second
+for representing the left and right overbanks.
+
+<p>
+The cross-displ map have the distance between the cutoffs of the 
+displaced lines above and the cross sections. 
+
+<p>
+The lines of cross section map are 2D, and the cutoffs above are 
+within those lines, so you can move the nodes to adjust the 
+lines to the water flow
+
 <p>
 You must give a prefix name for output files.
 <p>
@@ -41,8 +56,10 @@ The output is a polygon with the water surface extents in each cross-section.
 The <em>-d</em> flag create ASCII file describing the water surface profile
 along the channel axis for use within <em>r.inund.fluv</em> addon-module.
 
-<h2> AUTHOR</h2>
+<h3>Example</h3>
+http://www.youtube.com/watch?v=kSDfpjmbTm8
 
+<h2> AUTHOR</h2>
 Jesus Fernandez-Capel Rosillo<br>
 Civil Engineer, Spain<br>
 jfc at alcd net<br>
