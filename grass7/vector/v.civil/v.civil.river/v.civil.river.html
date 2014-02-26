@@ -1,11 +1,12 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.civil.river</em> Export - Import geometry data to/from an 1-D hydrodynamic model.
+<em>v.civil.river</em> exports and import geometry data to/from an 1-D hydrodynamic model.
 
 <h3>Export</h3>
 
-To export to an 1-D hydrodynamic model a cross section and cross-displ maps from the output of v.civil.road is required.
-And a raster dem too.
+To export to an 1-D hydrodynamic model a cross section and 
+cross-displ maps from the output of <em>v.civil.road</em> is 
+required. And a raster DEM too.
 <p>
 You must give a prefix name for output files.
 <p>
@@ -32,16 +33,18 @@ Tree files to populate geometry tables
 
 <h3>Import</h3>
 <p>
-To import from 1-D hydrodynamic model a <em>.sdf</em> file (from export gis data) is required with only one profile and with
-water surface extents.
+To import from 1-D hydrodynamic model a <em>.sdf</em> file (from export gis data
+is required with only one profile and with water surface extents.
 <p>
 The output is a polygon with the water surface extents in each cross-section.
 <p>
-The <em>-d</em> flag create ASCII file describing the water surface profile along the channel axis for use within r.inund.fluv
-addon-module.
+The <em>-d</em> flag create ASCII file describing the water surface profile
+along the channel axis for use within <em>r.inund.fluv</em> addon-module.
 
 <h2> AUTHOR</h2>
-<p>
-Jesus Fernandez-Capel Rosillo<br >
-Civil Engineer, Spain<br >
-jfc at alcd net<br >
+
+Jesus Fernandez-Capel Rosillo<br>
+Civil Engineer, Spain<br>
+jfc at alcd net<br>
+
+<p><i>Last changed: $Date$</i>
