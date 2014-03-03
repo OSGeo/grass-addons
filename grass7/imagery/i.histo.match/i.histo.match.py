@@ -27,10 +27,17 @@
 #% description: Name of raster maps to analize
 #% required: yes
 #%end
-#%option G_OPT_R_OUTPUT
+#%option
+#% key: suffix
+#% type: string
+#% gisprompt: Suffix for output maps
 #% description: Suffix for output maps
 #% required: no
 #% answer: match
+#%end
+#%option G_OPT_R_OUTPUT
+#% description: Name for mosaic output map
+#% required: no
 #%end
 #%option G_OPT_DB_DATABASE
 #% required : no
@@ -46,18 +53,25 @@
 #%end
 
 
-import sys, os, sqlite3
+import sys
+import os
+import sqlite3
 import grass.script as grass
+
 
 def main():
     # split input images
-    images = options['input'].split(',')
+    all_images = options['input']
+    images = all_images.split(',')
     # number of images
     n_images = len(images)
     # database path
     dbopt = options['database']
     # output suffix
-    suffix = options['output']
+    suffix = options['suffix']
+    # output mosaic map
+    mosaic = options['output']
+    output_names = []
     # name for average table
     table_ave = "t%s_average" % suffix
     # increment of one the maximum value for a correct use of range function
@@ -66,7 +80,8 @@ def main():
     if dbopt.find('$GISDBASE/$LOCATION_NAME/$MAPSET') == 0:
         dbopt_split = dbopt.split('/')[-1]
         env = grass.gisenv()
-        path = os.path.join(env['GISDBASE'], env['LOCATION_NAME'], env['MAPSET'])
+        path = os.path.join(env['GISDBASE'], env['LOCATION_NAME'],
+                            env['MAPSET'])
         dbpath = os.path.join(path, dbopt_split)
     else:
         if os.access(os.path.dirname(dbopt), os.W_OK):
@@ -90,12 +105,13 @@ def main():
         curs.execute(query_create)
         # set the region on the raster
         grass.use_temp_region()
-        grass.run_command('g.region', rast = i)
+        grass.run_command('g.region', rast=i)
         # calculate statistics
-        stats_out = grass.pipe_command('r.stats', flags='cin', input= i, separator=':')
-        stats =  stats_out.communicate()[0].split('\n')[:-1]
-        stats_dict = dict( s.split(':', 1) for s in stats)
-        cdf = 0       
+        stats_out = grass.pipe_command('r.stats', flags='cin', input=i,
+                                       separator=':')
+        stats = stats_out.communicate()[0].split('\n')[:-1]
+        stats_dict = dict(s.split(':', 1) for s in stats)
+        cdf = 0
         # for each number in the range
         for n in range(0, max_value):
             # try to insert the values otherwise insert 0
@@ -124,7 +140,7 @@ def main():
             if val != 0 and numPixel != 0:
                 update_cdf = round(float(val) / float(numPixel), 6)
                 update_cdf = "UPDATE \"t%s\" SET cdf=%s WHERE (grey_value=%i)" % (
-                                                            iname, update_cdf,n)
+                                                        iname, update_cdf, n)
                 curs.execute(update_cdf)
                 db.commit()
     db.commit()
@@ -136,12 +152,12 @@ def main():
         for i in images:
             iname = i.split('@')[0]
             pixel_freq = "SELECT pixel_frequency FROM \"t%s\" WHERE (grey_value=%i)" % (
-                                                            iname, n)
+                                                                iname, n)
             result = curs.execute(pixel_freq)
             val = result.fetchone()[0]
             numPixel += val
         # calculate number of pixel divide by number of images
-        div = (int(numPixel/n_images))
+        div = (int(numPixel / n_images))
         pixelTot += div
     # drop average table
     query_drop = "DROP TABLE if exists %s" % table_ave
@@ -164,12 +180,12 @@ def main():
             val = result.fetchone()[0]
             tot += val
         # calculate new value of pixel_frequency
-        average = (tot/n_images)  
+        average = (tot / n_images)  
         cHist = cHist + int(average)
         # insert new values into average table
         if cHist != 0 and pixelTot != 0:
             cdf = float(cHist) / float(pixelTot)
-            insert = "INSERT INTO %s VALUES (%i, %i, %i, %s)" % (table_ave, n, 
+            insert = "INSERT INTO %s VALUES (%i, %i, %i, %s)" % (table_ave, n,
                                                     int(average), cHist, cdf)
             curs.execute(insert)
             db.commit()
@@ -177,7 +193,7 @@ def main():
     for i in images:
         iname = i.split('@')[0]
         grass.use_temp_region()
-        grass.run_command('g.region', rast = i)
+        grass.run_command('g.region', rast=i)
         # write average rules file
         outfile = open(grass.tempfile(), 'w')
         new_grey = 0
@@ -198,26 +214,28 @@ def main():
         outfile.close()
         outname = '%s.%s' % (iname, suffix)
         # check if a output map already exists
-        result = grass.core.find_file(outname, element = 'cell')
+        result = grass.core.find_file(outname, element='cell')
         if result['fullname'] and grass.overwrite():
             grass.run_command('g.remove', rast=outname)
-            grass.run_command('r.reclass', input= i, out = outname, 
-                              rules = outfile.name)
+            grass.run_command('r.reclass', input=i, out=outname, 
+                              rules=outfile.name)
         elif result['fullname'] and not grass.overwrite():
             grass.warning(_("Raster map %s already exists and will not be overwritten" % i))
         else:
-            grass.run_command('r.reclass', input= i, out = outname, 
-                              rules = outfile.name)
+            grass.run_command('r.reclass', input=i, out=outname, 
+                              rules=outfile.name)
+        output_names.append(outname)
         # remove the rules file
-        grass.try_remove(outfile.name)       
+        grass.try_remove(outfile.name)
         # write cmd history:
         grass.raster_history(outname)
     db.commit()
     db.close()
-    
+    if mosaic:
+        grass.use_temp_region()
+        grass.run_command('g.region', rast=all_images)
+        grass.run_command('r.patch', input=output_names, output=mosaic)
 
 if __name__ == "__main__":
     options, flags = grass.parser()
     sys.exit(main())
-
-
