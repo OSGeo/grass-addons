@@ -1,6 +1,6 @@
 <h2>DESCRIPTION</h2>
 
-<em>v.civil.road</em> generates a topography edge for design roads, channels 
+<em>v.civil.road</em> generates a topography edge for design roads, channels
 and ports.
 <p>
 Applications:
@@ -13,39 +13,41 @@ Applications:
 
 <h2>USAGE</h2>
 
-To run the program, a map with one polyline (horizontal polygon or edge), is 
+To run the program for the fist time, a map with one horizontal polygon, is
 required. If a table in layer 1 exist, this will no be overwritten, this layer is
 free for store information about the edge by the user.
 
 <p>
-There are three options for run the program, Create/Update edge, Update
-solution and Insert point in edge layer.
+There are three options for run the program, Create/Update polygon, Update
+solution and Insert point in edge.
 
 
 <p>
-The <em>-n</em> flag (Create/Update new edge), will convert the polyline 
-in a edge, i.e., four tables will be add to the polyline layers map, attached 
-to points in its respective layers, where the parameter of the road will be 
-stored . This flag must be selected for create a edge from a polyline or if 
-the vertices of the edge are moved or added another ones.
+The <em>-n</em> flag (Create/Update new polygon), four tables will be add to
+the polygon map, where the parameter of the road will be stored. This
+flag must be selected for create a new polygon for the fist time or if the
+vertices/nodes of the polygon are moved or added another ones.
 
 <p>
-The <em>-u</em> flag "Update solution" will write the selected maps, 
-with its additional parameters for some of them, and with the parameters 
-included in the tables of the edge.
+The <em>-u</em> flag "Update solution" will write the selected maps, with the
+parameters included in the tables of the polygon.
 
 <p>
-The name of the outs maps, by default are selected. If the out name map is
-preceded with character "_", this name will be added to the edge name map.
+The name of the outs maps, are given by default. If the out name map is
+preceded with character "_", this name will be added to the polygon name map.
 This is useful for change of edges quickly.
 
 <p>
-The <em>-i</em> flag (Insert points), new points for defining the road, 
+The <em>-i</em> flag (Insert points), new points for defining the road,
 can be added to the layers _Vertical, _Section and _Trans, referencing by pk.
 
 <p>
-The user must select the layer and give a list with the pks. The options 
-of the fist pk where the new will be inserted, will be copied in the new.
+The user must select the layer and give a list with the pks. The options
+of the fist pk where the new will be inserted, will be copied in the new one.
+
+The <em>Interval in straights</em> and <em>Interval in curves</em> options
+define the resolution of the straight lines and the curves respectively.
+
 
 <p>
 The other options are described below.
@@ -55,16 +57,17 @@ The other options are described below.
 
 
 <p>
-The <em>-y</em> flag write a 3D polyline edge, in horizontal alignment, with 
+The <em>-y</em> flag write a 3D edge (contains the plant and vertical alignment), with
 the name in <em>plantpoly</em> option (default: <em>NameEdge</em>_plantpoly).
 
 <p>
-The <em>-h</em> flag write the edge in horizontal alignment, with the name
-in <em>plant</em> option. The map created, contains the segments of the 
-alignment and its information is stored in three tables.(default: <em>NameEdge</em>_plan).
+The <em>-h</em> flag write the horizontal alignment, with the name
+in <em>plant</em> option. The map created, contains the segments of the
+alignment and its information is stored in three tables/layers.
+(default: <em>NameEdge</em>_plan).
 
 <p>
-The <em>-k</em> flag write pk marks in horizontal, with the name in 
+The <em>-k</em> flag write pk marks in horizontal, with the name in
 <em>pks</em> option.(default: <em>NameEdge</em>_Pks).
 
 <p>
@@ -73,34 +76,33 @@ distance between principal marks (mpk), longitude of normal marks and
 longitude of princicipal marks.
 
 <p>
-The <em>-d</em> flag write the displaced platform lines in horizontal, 
+The <em>-d</em> flag write the displaced platform lines in horizontal,
 with the name in <em>displ</em> option.
 
 <p>
-The <em>-a</em> flag write an area map with displaced platform lines in 
+The <em>-a</em> flag write an area map with displaced platform lines in
 horizontal, with the name in <em>displ_area</em> option.
 
 
 
 <h3>Vertical</h3>
 
-
 <p>
 The <em>-v</em> flag write the vertical alignment in horizontal, with the name
-in <em>raised</em> option. The map created, contains the segments of the 
+in <em>raised</em> option. The map created, contains the segments of the
 alignment and its information is stored in three tables.(default: <em>NameEdge</em>_Vert)
 
 <p>
-The <em>-l</em> flag write the raised of the edge (vertical alignment), the 
-terrain profile in a longitudinal profile map, and vertical polygon with the 
+The <em>-l</em> flag write the raised of the edge (vertical alignment), the
+terrain profile in a longitudinal profile map, and vertical polygon with the
 names given in <em>LPras</em> ,<em>LPterrain</em> and <em>LPejeref</em> options
 (default: <em>NameEdge</em>_LP_Ras, <em>NameEdge</em>_LP_terrain and
 <em>NameEdge</em>_LP_Edge).
 
 <p>
 The <em>-m</em> flag write the coordinates edges and the profile guitar in the
-longitudinal profile with its marks, with the names given in <em>LPedgeX</em>, 
-<em>LPedgeX_marks</em>, <em>LPedgeY</em> and <em>LPedgeY_marks</em> options 
+longitudinal profile with its marks, with the names given in <em>LPedgeX</em>,
+<em>LPedgeX_marks</em>, <em>LPedgeY</em> and <em>LPedgeY_marks</em> options
 (default: <em>NameEdge</em>_LP_EdgeX, <em>NameEdge</em>_LP_EdgeXmarks,
 <em>NameEdge</em>_LP_EdgeY and <em>NameEdge</em>_LP_EdgeYmarks).
 
@@ -113,34 +115,28 @@ The <em>LPopt</em> option give the longitude of marks, distance between marks in
 and y, and distance between lines of the guitar.
 
 
-
-
-
 <h3>Cross</h3>
-
-
 
 <p>
 The <em>-c</em> flag write the projection of cross section in horizontal, with the name
 in <em>cross</em> option, and with the lines selected in <em>cross_opt</em> option.
 
 <p>
-The <em>-r</em> flag write a map with points of intersection of displaced lines with 
+The <em>-r</em> flag write a map with points of intersection of displaced lines with
 cross-section lines, in horizontal, with the name in <em>crossdispl</em> option. The
 lines that will be crossed are selected in <em>displ_opt</em>
 
 
-
 <p>
-The <em>-f</em> flag write the raised of cross-section (cross alignment) and the 
-terrain profile in a traversal profile map with the 
+The <em>-f</em> flag write the raised of cross-section (cross alignment) and the
+terrain profile in a traversal profile map with the
 names given in <em>LTras</em> and <em>LTterrain</em> options
-(default: <em>NameEdge</em>_TP_Ras and <em>NameEdge</em>_TP_terrain 
+(default: <em>NameEdge</em>_TP_Ras and <em>NameEdge</em>_TP_terrain
 
 <p>
 The <em>-m</em> flag write the coordinates edges and the profile guitar in the
-longitudinal profile with its marks, with the names given in <em>LTedgeX</em> and 
-<em>LTedgeY</em> options (default: <em>NameEdge</em>_TP_EdgeX and 
+longitudinal profile with its marks, with the names given in <em>LTedgeX</em> and
+<em>LTedgeY</em> options (default: <em>NameEdge</em>_TP_EdgeX and
 <em>NameEdge</em>_TP_EdgeY ).
 
 <p>
@@ -152,7 +148,7 @@ The <em>LTopt</em> option give the longitude of marks, distance between marks in
 and y, and distance between lines of the guitar.
 
 <p>
-The <em>LTopt2</em> option give the number of rows of cross-section to display, 
+The <em>LTopt2</em> option give the number of rows of cross-section to display,
 distance between cross-section in edge x and y.
 
 
@@ -160,11 +156,11 @@ distance between cross-section in edge x and y.
 
 
 <p>
-The <em>-t</em> flag write the projection of edge on a DEM (3D line of terrain) 
+The <em>-t</em> flag write the projection of edge on a DEM (3D line of terrain)
 in horizontal, with the name in <em>outtlong</em> option.
 
 <p>
-The <em>-q</em> flag write the projection of transects lines on a DEM (3D lines of terrain) 
+The <em>-q</em> flag write the projection of transects lines on a DEM (3D lines of terrain)
 in horizontal, with the name in <em>outtcross</em> option.
 
 <p>
@@ -192,12 +188,13 @@ in horizontal, with the name in <em>outhull</em> option
 <h2>Tables</h2>
 
 <p>
-Geometric roadway design can be broken into four main parts: horizontal 
-alignment, profile (vertical alignment), platforms definition and cross-section. 
+Geometric roadway design can be broken into four main parts: horizontal
+alignment, profile (vertical alignment), platforms definition and cross-section.
 
-There are maps in horizontal 
-alignment for display in plan, maps in vertical alignment that requires a 
-new display for visualization in profile view, and maps in cross-section that 
+<p>
+There are maps in horizontal
+alignment for display in plan, maps in vertical alignment that requires a
+new display for visualization in profile view, and maps in cross-section that
 requires a new display for visualization in profile cross-section view.
 
 <p>
@@ -205,16 +202,16 @@ The tables stored in the edge map are:
 
 <h3>Layer 1:</h3>
 <p>
-Created with only cat column (if not exist), is for free use to add columns with information 
+Created with only cat column (if not exist), is for free use to add columns with information
 of the edge.
 
 
 
-<h3>Layer 2:</h3> 
+<h3>Layer 2:</h3>
 <p>
-<b>"NameEdge"_Horizontal</b>, for insert the parameters of the horizontal 
-alignment. This layer have points in all vertices of the horizontal polygon. 
-No more points can be added to this layer.
+<b>"NameEdge"_Horizontal</b>, for insert the parameters of the horizontal
+alignment. This layer have all vertices and nodes of the horizontal polygon.
+No more points can be added to this layer with the insert point option.
 
 <p>
 The columns for editing by the user are:
@@ -226,81 +223,138 @@ The columns for editing by the user are:
 		</li>
 		<li><b>a_in</b>: Parameter A of input Clothoid</li>
 		<li><b>a_out</b>: Parameter A of output Clothoid</li>
-		<li><b>widening</b>: Widening of curve (where this widening is growing 
+		<li><b>widening</b>: Widening of curve (where this widening is growing
 		in the clothoid, only in mode exact)</li>
 	</ul>
-					
-		
-					
-<h3>Layer 3:</h3> 
+
+
+
+<h3>Layer 3:</h3>
+
 <p>
-<b>"NameEdge"_Vertical</b>, for insert the parameters of the vertical 
-alignment.This layer are created with the first an last vertices of the 
-horizontal polygon. New point can be added by the flag i (Insert point), 
+<b>"NameEdge"_Vertical</b>, for insert the parameters of the vertical
+alignment.This layer are created with the first an last vertices of the
+horizontal polygon. New point can be added by the flag i (Insert point),
 or with edit gui. The added points, are inserted in the edge referencing by pk.
 
 <p>
 The columns for editing by the user are:
 
 	<ul>
-		<li><b>pk</b>: kilometric point of the edge</li> 
+		<li><b>pk</b>: kilometric point of the edge</li>
 		<li><b>elev</b>: Elevation of the vertice of the vertical alignment</li>
 		<li><b>kv</b>: Parameter Kv of the vertical alignment</li>
 		<li><b>l</b>: Leng of parabolic curve (no yet implemented)</li>
-		<li><b>B</b>: Height of vertice of vertical polygon to the parabolic 
+		<li><b>B</b>: Height of vertice of vertical polygon to the parabolic
 		curve (no yet implemented)</li>
 	</ul>
-					
 
-	
-		
+
 <h3>Layer 4: </h3>
 
-<b>"NameEdge"_Section</b>, for insert the parameters of the platform. 
-This layer are created with the first an last vertices of the horizontal 
-polygon. New point can be added by the flag i (Insert point), or with edit 
+<b>"NameEdge"_Section</b>, for insert the parameters of the platform.
+This layer are created with the first an last vertices of the horizontal
+polygon. New point can be added by the flag i (Insert point), or with edit
 gui. The added points, are inserted in the edge referencing by pk.
 <p>
 The columns for editing by the user are:
 
 	<ul>
-		<li><b>pk</b>: kilometric point of the edge</li> 
-		<li><b>sec_left, sec_right</b>: For defining left and right platform 
+		<li><b>pk</b>: kilometric point of the edge</li>
+		<li><b>sec_left, sec_right</b>: For defining left and right platform
 		lines (distance and height to the edge), separated by ";" </li>
-		<li><b>type_left, type_right</b>: Types of left and right lines 
-		(types are: l,e,r,0). You can enter	the type of multiple lines 
+		<li><b>type_left, type_right</b>: Types of left and right lines
+		(types are: l,e,r,0). You can enter	the type of multiple lines
 		separated by ";"
 			<b>l</b>: linear approximation between definition points.
 			<b>e</b>: displaced edge, mode exact.
 			<b>c</b>: ellipse between definition points.
 			<b>rR,A</b>: circle between definition points ((x-A)^2+y^2=R^2))</li>
-					
+
 		<li><b>cut_left, cut_right</b>: Cut slope left and right </li>
 		<li><b>fill_left, fill_right</b>: Fill slope left and right </li>
-		<li><b>superelev_left,superelev_right</b>: Superelevation left and right 
-		lanes (no yet implemented)</li>	
+		<li><b>superelev_left,superelev_right</b>: Superelevation left and right
+		lanes (no yet implemented)</li>
 	</ul>
-<p>					
-Between two points, if the second input distance equal zero, the line will be 
+<p>
+Between two points, if the second input distance equal zero, the line will be
 stopped. If the second input distance equal -1, this point will not be processed
 and the next one will be considered.
 
 
-					
-<h3>Layer 5:</h3> 
+
+<h3>Layer 5:</h3>
 <p>
-<b>"NameEdge"_Tran</b>s, for insert the parameters of transects to the edge. This layer 
+<b>"NameEdge"_Tran</b>s, for insert the parameters of transects to the edge. This layer
 are created with the first an last vertices of the horizontal polygon. New point can be added by the flag
 i (Insert point), or with edit gui. The added points, are inserted in the edge referencing by pk
 <p>
 The columns for editing by the user are:
-				
-					<ul>
-					<li><b>pk</b>: kilometric point of the edge</li> 
-					<li><b>dist_left,dist_right</b>: Distance left and right from the edge</li>
-					<li><b>npk</b>: Distance between trans</li>
-					</ul>
-					
+
+<ul>
+	<li><b>pk</b>: kilometric point of the edge</li>
+	<li><b>dist_left,dist_right</b>: Distance left and right from the edge</li>
+	<li><b>npk</b>: Distance between trans</li>
+</ul>
+
+<h2>Example</h2>
+<p>
+First we are going to create a polygon with wxdigit, this will create a table in layer 1.
+The name of this map is road1. The polygon will have three lines,two vertices and two nodes.
+In this layer we can create, for example, with the command <em>v.db.addcolumn</em>, three
+new columns to store our information about the road. This columns are <em>Name, Cod, Date</em>.
+<p>
+<img src="vcivilroad_1.png" width="600" height="350" alt="" align="middle" />
+
+<h3>Plant</h3>
+
+<p>
+At this point we can give the name and select the flag -n (Create/Update polygon) and then run.
+Four tables are crated.
+The fist one, in layer 2, is the definition of the edge in plant. This table have four rows,
+the fist and the last are the vertices of the polygon and the other are the nodes of the polygon.
+
+<p>
+<img src="vcivilroad_2.png" width="700" height="300" alt="" align="middle" />
+
+<p>
+In this table we can define the radio, the parameter A of the input and output clothoid,
+widening (applied to the displaced lines, see below) in curves and superelevation
+(applied to the displaced lines, TODO) for each node.
+
+<p>
+After that, in the tab Plant, we can select the flag -h to write the horizontal alignment
+and the flag -k to write the pk's marks. At this moment we need to update the solution with
+the flag -u and then run.
+
+<p>
+<img src="vcivilroad_3.png" width="700" height="300" alt="" align="middle" />
+
+<p>
+Then we get two maps <em>road1_plant</em> and <em>road1_pks</em>. The <em>road1_plant</em>
+has three tables with the parameters of the horizontal alignment. The <em>road1_pks</em>
+has a table with a pk columns to use with labels.
+
+<p>
+<img src="vcivilroad_4.png" width="800" height="450" alt="" align="middle" />
+
+<p>
+At any time we can move the vertices/nodes or add new ones to the polygon, for example,
+wxdigit. If we do that we need to select the flag -n to update the polygon and the
+flag -u to update the solution again.
+
+<p>
+The polylines that you can see in the last figure have a distance between points about
+1 meters by default, but this can be changed in the <em>Interval in straights</em> and
+<em>Interval in curves</em> options (see below).
+
+<p>
+An example of this section can be seen in http://www.youtube.com/watch?v=n2JYfgVDcmY
+
+
+<h3>Platform lines</h3>
+...
+
 
 
 

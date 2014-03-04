@@ -521,7 +521,7 @@
 
 #%flag
 #% key: n
-#% description: Create/Update new edge
+#% description: Create/Update polygon
 #%end
 
 #%flag
@@ -552,7 +552,7 @@
 #%option
 #% key: intervR
 #% type: integer
-#% description: Interval calculation
+#% description: Interval in straights
 #% required: no
 #% answer: 1
 #%end
@@ -560,7 +560,7 @@
 #%option
 #% key: intervC
 #% type: integer
-#% description: Interval calculation in curves
+#% description: Interval in curves
 #% required: no
 #% answer: 1
 #%end
