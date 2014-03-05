@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     int row, col;
     struct GModule *module;
     struct Option *in0, *in1, *output, *param0, *param1;
-    struct Flag *flag1, *flag2;
+    struct Flag *flag1;
     struct History history;	/*metadata */
     struct Colors colors;	/*Color rules */
 
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
                 Rast_is_d_null_value(&d1)){
                 Rast_set_d_null_value(&outrast[col], 1);
             } else {
-                if (flag2->answer){
+                if (flag1->answer){
                     outrast[col] = tio2(d0, d1, param_0, param_1);
 	        } else {
                     outrast[col] = feo(d0, d1, param_0);
