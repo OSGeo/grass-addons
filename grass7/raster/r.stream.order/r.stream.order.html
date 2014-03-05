@@ -15,7 +15,7 @@ consumption during analysis</dd>
 <dt><b>stream network map</b></dt>
 <dd>Name of input stream map on which ordering will be performed produced by
 r.watershed or r.stream.extract. Because streams network produced by r.watershed
-and r.stream.extract may slighty differ in detail it is required to 
+and r.stream.extract may slightly differ in detail it is required to 
 use both stream and direction map produced by the same module. Stream background
 shall have NULL value or zero value. 
 Background values of NULL are by default produced by r.watershed and
@@ -28,7 +28,7 @@ r.stream.extract output map is used, it only has non-NULL values in places where
 streams occur. NULL (nodata) cells are ignored, zero and negative values are
 valid direction data if they vary from -8 to 8 (CCW from East in steps of 45
 degrees). Direction map shall be of type CELL values. Region resolution and map
-resoultion must be the same. 
+resolution must be the same. 
 Also <em>stream</em> network and <em>direction</em> maps must have the same
 resolution. It is checked by default. If resolutions differ the module informs
 about it and stops. Region boundary
@@ -37,12 +37,12 @@ and maps boundary may be differ but it may lead to unexpected results.</dd>
 <dd>Flow accumulation (optional, not recommended): name of flow accumulation
 file produced by r.watershed or used in r.stream.extract. This map is an option
 only if Horton's or Hack's ordering is performed. Normally both Horton and Hack
-ordering is calculated on cumulative stream lrngth which is calculated
-internaly. Flow accumulation can be used if user want to calculate main stream
+ordering is calculated on cumulative stream length which is calculated
+internally. Flow accumulation can be used if user want to calculate main stream
 as most accumulated stream. Flow accumulation map shall be of DCELL type, as is
 by default produced by r.watershed or converted do DCELL with r.mapcalc.</dd>
 <dt><b>elevation map</b></dt>
-<dd>Used to calculate geometrical properites of the network stored in the
+<dd>Used to calculate geometrical properties of the network stored in the
 table.</dd>
 </dl>
 <h2>OUTPUTS</h2>
@@ -52,7 +52,7 @@ table.</dd>
 <dt><b>vector</b></dt>
 <dd>Vector network with table where stream network topology can be stored.
 Because r.stream.order is prepared to work both with r.watershed and
-r.stream.extract, it may be yused to create correct vector from r.watershed
+r.stream.extract, it may be used to create correct vector from r.watershed
 results.<dd>
 
 <dt><b>strahler</b></dt>
@@ -87,7 +87,7 @@ is based on the hierarchy of tributaries. The
 ordering follows these rules:
 <ol>
 <li>if the node has no children, its Strahler order is 1.
-<li>if the node has one and only one tributuary with Strahler greatest order i,
+<li>if the node has one and only one tributary with Strahler greatest order i,
 and all other tributaries have order less than i, then the order remains i.
 <li>if the node has two or more tributaries with greatest order i, then the
 Strahler order of the node is i + 1.
@@ -140,7 +140,7 @@ ordering with main streams and its tributaries. The main disadvantage is that it
 requires prior Strahler's ordering. In some cases this may result in unnatural
 ordering, where the highest order will be ascribed not to the channel with
 higher accumulation but to the channel which leads to the most branched parts of
-the the catchment. 
+the catchment. 
 <p>
 <h4>Shreve's stream magnitude</h4>
 That ordering method is similar to Consisted Associated Integers proposed by
@@ -153,7 +153,7 @@ That ordering method is similar to Shreve's stream magnitude. It assigns
 magnitude of 2 for every initial channel. The magnitude of the following channel
 is the sum of magnitudes of its tributaries. The number of a particular link is
 the number of streams -1 contributing to it. Consisted Associated Integers
-(Scheidegger) is aviallable only in attribute table. To achive Consisted
+(Scheidegger) is available only in attribute table. To achieve Consisted
 Associated Integers (Scheidegger) raster the result of Shreve's magnitude is to
 be multiplied by 2: 
 <p>
@@ -162,22 +162,22 @@ be multiplied by 2:
 <h4>Drwal's stream hierarchy (old style)</h4>
 That ordering method is a compromise between Strahler ordering and Shreve
 magnitude. It assigns order of 1 for every initial channel. The order of the
-following channel is calculated according Strahler formula, except, that streams
-which do not increase order of next channel are not lost. To increase next
-channel to the hiher order R+1 are require two channels of order R, or one R and
-two R-1 or one R, and four R-2 or one R, one R-1 and two R-2 etc. The the order
-of particular link show the possible value of Strahler'order if the network was
-close to idealised binary tree. Drwal's order is aviallable only in attribute
-table.To achive Drwal's raster the result of Shreve's magnitude is to be
-recalculated according formula: <b>floor(log(shreve,2))+1</b>
+following channel is calculated according Strahler formula, except, that
+streams which do not increase order of next channel are not lost. To increase
+next channel to the higher order R+1 are require two channels of order R, or
+one R and two R-1 or one R, and four R-2 or one R, one R-1 and two R-2 etc. The
+order of particular link show the possible value of Strahler'order if the
+network was close to idealised binary tree. Drwal's order is aviallable only in
+attribute table.To achieve Drwal's raster the result of Shreve's magnitude is
+to be recalculated according formula: <b>floor(log(shreve,2))+1</b>
 <p>
 <code>r.mapcalc drwal=int(log(shreve,2))+1</code>
 <p>
 <b>Advantages and disadvantages of Drwal's hierarhy:</b> 
 The main advantages of Drwal's hierarchy is that it produces natural stream
-ordering with whcich takes into advantage both ordering and magnitude. It shows
+ordering with which takes into advantage both ordering and magnitude. It shows
 the real impact of particular links of the network run-off. The main
-disadvantage is that it minimise bifuraction ratio ot the network.
+disadvantage is that it minimise bifuraction ratio of the network.
 
 <p>
 <h4>Hack's main streams or Gravelius order</h4>
@@ -187,7 +187,7 @@ its tributaries receive order 2. Their tributaries receive order 3 etc. The
 order of every stream remains constant up to its initial link. The route of
 every main stream is determined according to the maximum flow length value of
 particular streams. So the main stream of every subcatchment is the longest
-stream or strean with highest accumulation rate if accumulation map is used. In
+stream or stream with highest accumulation rate if accumulation map is used. In
 most cases the main stream is the longest watercourse of the catchment, but in
 some cases, when a catchment consists of both rounded and elongated
 subcatchments these rules may not be maintained. The algorithm assigns 1 to
@@ -230,7 +230,7 @@ Integers;
 	<li><b>out_dist</b> double precision: distance of current stream init
 from outlet;
 	<li><b>stright</b> double precision: length of stream as stright line;
-	<li><b>sinusiod</b> double precision: fractal dimention: stream
+	<li><b>sinusiod</b> double precision: fractal dimension: stream
 length/stright stream length;
 	<li><b>elev_init</b> double precision: elevation of  stream init;
 	<li><b>elev_outlet</b> double precision: elevation of  stream outlet;
