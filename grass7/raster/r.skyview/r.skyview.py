@@ -40,10 +40,10 @@
 #% required: no
 #%end
 #%option
-#%  key: prefix
+#%  key: basename
 #%  type: string
 #%  multiple: no
-#%  description: Set the prefix of the created maps
+#%  description: Set the basename for the intermediate maps
 #%end
 
 
@@ -70,8 +70,8 @@ def main():
     output = options['output']
     n_dir = int(options['ndir'])
     global TMP_NAME, CLEANUP
-    if options['prefix']:
-        TMP_NAME = options['prefix']
+    if options['basename']:
+        TMP_NAME = options['basename']
         CLEANUP = False
     horizon_step = 360. / n_dir
     msgr = get_msgr()
