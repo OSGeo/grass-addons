@@ -2,7 +2,7 @@
 # -*- coding: utf-8
 ############################################################################
 #
-# MODULE:       v.civil.road, v0.5.9
+# MODULE:       v.civil.road, v0.6.0
 #
 # AUTHOR:       Jesús Fernández-Capel Rosillo
 #               Civil Engineer, Spain
@@ -19,7 +19,7 @@
 #############################################################################
 
 #%Module
-#% description: Generate a topography edge for desing roads, channels, ports...
+#% description: Generate a alignment for desing roads, channels, ports...
 #% keywords: vector, ROADS, CHANNELS, PORTS.
 #%End
 
@@ -30,7 +30,7 @@
 #% key: edge
 #% type: string
 #% gisprompt: old,vector,vector
-#% description: Name for edge (horizontal polygon)
+#% description: Name for alignment (horizontal polygon)
 #% required: yes
 #%end
 
@@ -39,7 +39,7 @@
 
 #%flag
 #% key: y
-#% description: Write edge polyline
+#% description: Write central axis polyline
 #% guisection: Plan
 #%end
 
@@ -51,7 +51,7 @@
 
 #%option G_OPT_V_OUTPUT
 #% key: plantpoly
-#% description: Name for output edge polyline
+#% description: Name for output central axis polyline
 #% required: no
 #% answer: _Poly
 #% guisection: Plan
@@ -147,17 +147,17 @@
 
 #%flag
 #% key: m
-#% description: Draw longitudinal profile coord edges (dem required)
+#% description: Draw longitudinal profile coord axis (dem required)
 #% guisection: Vertical
 #%end
 
-
 #%option
 #% key: LPScale
-#% type: double
+#% type: integer
 #% description: Long profile vertical scale (V/H, V/1)
+#% options: 0-100
+#% answer : 4
 #% required: no
-#% answer: 8
 #% guisection: Vertical
 #%end
 
@@ -174,39 +174,39 @@
 #% key: raised
 #% description: Name of vertical alignment
 #% required: no
-#% answer: _Vertical
+#% answer: _Vert
 #% guisection: Vertical
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPedgeX
-#% description: Name of long profile edge x
+#% key: LPaxisX
+#% description: Name of long profile axis x
 #% required: no
-#% answer: _LP_EdgeX
+#% answer: _LP_AxisX
 #% guisection: Vertical
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPedgeXmarks
-#% description: Name of long profile edge x marks
+#% key: LPaxisXmarks
+#% description: Name of long profile axis x marks
 #% required: no
-#% answer: _LP_EdgeXmarks
+#% answer: _LP_AxisXmarks
 #% guisection: Vertical
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPedgeY
-#% description: Name of long profile edge y
+#% key: LPaxisY
+#% description: Name of long profile axis y
 #% required: no
-#% answer: _LP_EdgeY
+#% answer: _LP_AxisY
 #% guisection: Vertical
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LPedgeYmarks
-#% description: Name of long profile edge y marks
+#% key: LPaxisYmarks
+#% description: Name of long profile axis y marks
 #% required: no
-#% answer: _LP_EdgeYmarks
+#% answer: _LP_AxisYmarks
 #% guisection: Vertical
 #%end
 
@@ -230,7 +230,7 @@
 #% key: LPejeref
 #% description: Name of long profile vertical polygon
 #% required: no
-#% answer: _LP_Edge
+#% answer: _LP_Polygon
 #% guisection: Vertical
 #%end
 
@@ -242,13 +242,13 @@
 
 #%flag
 #% key: c
-#% description: Write cross section
+#% description: Write transversals lines
 #% guisection: Cross
 #%end
 
 #%flag
 #% key: r
-#% description: Write intersection cross section-displaced
+#% description: Write cutoff transversals lines with displaced lines
 #% guisection: Cross
 #%end
 
@@ -262,7 +262,7 @@
 
 #%flag
 #% key: g
-#% description: Draw cross section coord edges (dem required)
+#% description: Draw cross section coord axis (dem required)
 #% guisection: Cross
 #%end
 
@@ -282,7 +282,7 @@
 #% type: string
 #% description: Cross section options values for Longmark,distMark_x,distMark_y.
 #% required: no
-#% answer: 1,5,2
+#% answer: 1,20,10
 #% guisection: Cross
 #%end
 
@@ -291,7 +291,7 @@
 #% type: string
 #% description: Cross section options values for nrows,distTP_x,distTP_y.
 #% required: no
-#% answer: 5,20,20
+#% answer: 10,50,50
 #% guisection: Cross
 #%end
 
@@ -332,34 +332,34 @@
 
 
 #%option G_OPT_V_OUTPUT
-#% key: LTedgeX
-#% description: Name of cross section coord edge x
+#% key: LTaxisX
+#% description: Name of cross section coord axis x
 #% required: no
-#% answer: _TP_EdgeX
+#% answer: _TP_AxisX
 #% guisection: Cross
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LTedgeXmarks
-#% description: Name of cross section coord edge x
+#% key: LTaxisXmarks
+#% description: Name of cross section coord axis x
 #% required: no
-#% answer: _TP_EdgeXmarks
+#% answer: _TP_AxisXmarks
 #% guisection: Cross
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LTedgeY
-#% description: Name of cross section coord edge y
+#% key: LTaxisY
+#% description: Name of cross section coord axis y
 #% required: no
-#% answer: _TP_EdgeY
+#% answer: _TP_AxisY
 #% guisection: Cross
 #%end
 
 #%option G_OPT_V_OUTPUT
-#% key: LTedgeYmarks
-#% description: Name of cross section coord edge y
+#% key: LTaxisYmarks
+#% description: Name of cross section coord axis y
 #% required: no
-#% answer: _TP_EdgeYmarks
+#% answer: _TP_AxisYmarks
 #% guisection: Cross
 #%end
 
@@ -384,7 +384,7 @@
 
 #%flag
 #% key: t
-#% description: Write terrain edge
+#% description: Write central axis vertical proyection in dem
 #% guisection: Terr
 #%end
 
@@ -462,7 +462,7 @@
 
 #%option G_OPT_V_OUTPUT
 #% key: outtlong
-#% description: Name of terrain edge
+#% description: Name of terrain central axis vertical proyection
 #% required: no
 #% answer: _LongTerr
 #% guisection: Terr
@@ -531,7 +531,7 @@
 
 #%flag
 #% key: i
-#% description: Insert point in edge layers (vertical, section an transversal)
+#% description: Insert point in polygon layers (vertical, section an transversal)
 #%end
 
 #%option
@@ -583,6 +583,7 @@ from grass.pygrass.gis.region import Region
 from grass.script import array as garray
 from itertools import groupby
 import time
+from copy import deepcopy
 #import Gnuplot
 
 #### Alineaciones
@@ -815,9 +816,11 @@ def angulos_Alings(a,b,c,d,e,f):
     #print Az_ent*200/pi,Az_sal*200/pi,w
     return Az_ent,Az_sal,w
 
-def pto_corte_2_rectas(x1,y1,x2,y2,x3,y3,x4,y4):
+def pto_corte_2_rectas2(x1,y1,x2,y2,x3,y3,x4,y4):
 
     if x2 == x1: m11=(y2-y1)/0.0000001
+
+
     else: m11=(y2-y1)/(x2-x1)
 
     if x3 == x4: m22=(y4-y3)/0.0000001
@@ -828,13 +831,29 @@ def pto_corte_2_rectas(x1,y1,x2,y2,x3,y3,x4,y4):
 
     return x,y
 
+def pto_corte_2_rectas(a,b,c,d,e,f,g,h):
+
+    if a == c:
+        m2 = (h-f)/(g-e)
+        x = a
+        y = f+m2*(a-e)
+    elif e == g:
+        m1 = (d-b)/(c-a)
+        x = e
+        y = b+m1*(e-a)
+    else:
+        m1 = (d-b)/(c-a)
+        m2 = (h-f)/(g-e)
+        x = (m1*a-m2*e-b+f)/(m1-m2)
+        y = m1*(x-a)+b
+    return x,y
 
 def get_PtosEjePlanta(table_plant):
 
     LAcum=0
     x_ini,y_ini = table_plant[0][0],table_plant[0][1]
     puntos_eje=[]
-    centros = []
+    #centros = []
     for i in range(1,len(table_plant)-1,1):
 
         a,b = table_plant[i-1][0],table_plant[i-1][1]
@@ -882,7 +901,7 @@ def get_PtosEjePlanta(table_plant):
         fc=f+abs(R+yo_s)*cos(Az_sal+g90)
 
         xc,yc=pto_corte_2_rectas(ac,bc,cc1,dc1,cc2,dc2,ec,fc)
-        centros.append([xc,yc,0])
+        #centros.append([xc,yc,0])
 
         Lini_e,Lini_s=0,0
         if Ae <= 0:
@@ -1041,7 +1060,7 @@ def generate_Pts(puntos_eje,a,b,c,interv,intervC):
     if c == 1: puntos_centros.append([[],[x_fin,y_fin,z_fin,h,LAcum,"'Line'",Lrecta,0,Az_sal*200/pi]])
     if c == 1: seg.append(Ini+Ptos_recta+[[x_fin,y_fin,z_fin,cat,LAcum,"'End'",i+1]])
 
-    #for jj in puntos: print jj
+    #for jj in puntos_caract: print jj
     return puntos,seg,puntos_caract,puntos_centros
 
 
@@ -1103,7 +1122,7 @@ def get_PtosEjeAlzado(alz):
         if pk2 == pkv: ps=0
         else: ps=(z2-zv)/(pk2-pkv)
 
-        if alz[i][7]!='':Kv=alz[i][7]
+        if alz[i][6]!='':Kv=alz[i][6]
         else:
             puntos_eje_alz.append([pk_ini,zini,pkv,zv,pkv,zv,pkv,zv,0,0,pe,ps])
             pk_ini=pkv; zini=zv
@@ -1229,68 +1248,51 @@ def get_Desplaz(table_plant,Sec,Cota,pks,type1,Puntos,izq):
 
     M_ptos,M_ptos_caract=[],[]
     type2=[]
-    nume=0
-    #incremento de sobreancho a cada desplazado
-    if izq==1:
-        for tt in type1:
-            if "e" in tt: nume=nume+1
-        sobrei=nume+1
-    else: sobrei=0
+    nume,sobrei=0,0
 
     for i,line in enumerate(Sec):
 
-        Puntos_Despl=[[]]
-        Pc_izq=[]
+        Puntos_Despl = [[0]]
+        Pc_izq = []
         pkant=0.0
         npks=pks[:]
-        line2=line[:]
+        Dist=line[:]
         type2=type1[i][:]
+        if 'e' in type2: sobrei=sobrei+1
 
-        for j,dist in enumerate(line2[:-1]):
+        for j,dist in enumerate(Dist[:-1]):
 
-            if line2[j]!=-1 and line2[j+1]==-1:
-
-                line2[j+1]=line2[j]
+            if Dist[j]!=-1 and Dist[j+1]==-1:
+                Dist[j+1]=Dist[j]
                 npks[j+1]=npks[j]
                 type2[j+1]=type2[j]
                 continue
 
             #incremento de sobreancho a cada desplazado
-            if type2[j]=="e" and izq==1: sobrei=sobrei-1
-            elif type2[j]=="e" and izq==0: sobrei=sobrei+1
+            if type2[j]=="e": sobre2=sobrei
+            else: sobre2=0
 
-            #if npks[j+1]==npks[-1] or line2[j+1]==0: npks[j+1]=npks[j+1]
+            pkini = npks[j]
+            pkfin = npks[j+1]
 
-            ptosDes,Pc=get_PtosDesplazdos(Puntos,table_plant,line2[j],Cota[i][j],line2[j+1],Cota[i][j+1],sobrei,izq,npks[j],npks[j+1],type2[j])
+            ptosDes,Pc=get_PtosDesplazdos(Puntos,table_plant,Dist[j],Cota[i][j],Dist[j+1],Cota[i][j+1],sobre2,izq,pkini,pkfin,type2[j])
 
-            #Corregimos los pks de los desplazados
-            ptosDes2=[]
             for h,row in enumerate(ptosDes):
-                if row!=[]:
-                    ptosDes2.append(row)
 
-            if ptosDes2 != []:
-                if Puntos_Despl[-1]==[]:
-                    Puntos_Despl=[]
-                    x_ant=ptosDes2[0][0]
-                    y_ant=ptosDes2[0][1]
-                    pkant=0
-                elif ptosDes2[-1]!=[]:
-                    x_ant=Puntos_Despl[-1][0]
-                    y_ant=Puntos_Despl[-1][1]
-                    pkant=Puntos_Despl[-1][4]
+                if len(ptosDes[h]) > 1:
+                    ptosDes[h][4]=row[4]+pkant
 
-                x2=ptosDes2[0][0]
-                y2=ptosDes2[0][1]
+                if Puntos_Despl[-1][-1] != ptosDes[h][-1]:
+                    Puntos_Despl.append(ptosDes[h])
 
-                l=sqrt((x2-x_ant)**2+(y2-y_ant)**2)
+                elif Puntos_Despl[-1][-1] == ptosDes[h][-1] and len(ptosDes[h]) > 1:
+                    del Puntos_Despl[-1]
+                    Puntos_Despl.append(ptosDes[h])
 
-                for h,row in enumerate(ptosDes):
-                    if row!=[]:
-                        ptosDes[h][4]=row[4]+pkant+l
+            if len(Puntos_Despl[-1]) > 1:
+                pkant=Puntos_Despl[-1][4]
 
             Pc_izq.extend(Pc)
-            Puntos_Despl.extend(ptosDes)
 
         M_ptos.append(Puntos_Despl)
         if Pc_izq!=[]: M_ptos_caract.append(Pc_izq)
@@ -1305,14 +1307,14 @@ def generate_Desplaz(table_plant,table_secc,Puntos):
     SecIzq,CotaIzq,pks,typel=read_ColumnSecc(table_secc,5)
     SecDer,CotaDer,pks,typer=read_ColumnSecc(table_secc,6)
 
-    M_ptos_izq,M_ptos_caract=get_Desplaz(table_plant,SecIzq,CotaIzq,pks,typel,Puntos,1)
+    M_ptos_izq,M_ptos_caract=get_Desplaz(table_plant,SecIzq[::-1],CotaIzq[::-1],pks,typel[::-1],Puntos,1)
     M_ptos_der,M_ptos_caract2=get_Desplaz(table_plant,SecDer,CotaDer,pks,typer,Puntos,0)
 
     M_ptos_caract=M_ptos_caract+M_ptos_caract2
 
     M_ptos_caract = [m for p in M_ptos_caract for m in p]
 
-    return M_ptos_izq,M_ptos_der,M_ptos_caract
+    return M_ptos_izq[::-1],M_ptos_der,M_ptos_caract
 
 
 
@@ -1387,10 +1389,10 @@ def get_Paralles(table_plant,dist,sobreancho,izq):
         # Clotoide de salida en locales
         xo_sal,yo_sal,Tau_sal,Lsal,xs,ys=clotoide_Locales(Asal,abs(R))
 
-        if izq!=0 and R<0: radio=R+dist+(sobreancho*sobreanchoTable)
-        elif izq!=0 and R>0: radio=R+dist-(sobreancho*sobreanchoTable)
-        elif izq==0 and R>0: radio=R-dist+(sobreancho*sobreanchoTable)
-        elif izq==0 and R<0: radio=R-dist-(sobreancho*sobreanchoTable)
+        if izq!=0 and R<0: radio=R+dist-(sobreancho*sobreanchoTable)
+        elif izq!=0 and R>0: radio=R+dist+(sobreancho*sobreanchoTable)
+        elif izq==0 and R>0: radio=R-dist-(sobreancho*sobreanchoTable)
+        elif izq==0 and R<0: radio=R-dist+(sobreancho*sobreanchoTable)
 
         # Parametro A de entrada
         if Aent==0: Aent1=0
@@ -1430,7 +1432,9 @@ def get_PtoCorte_Perpend_Recta(Az,x,y,xref_d,yref_d,Az_d,Lrecta_d):
             h=h/2
         else:
             Li=Li+h
+
     if abs(eq)>0.001: x1,y1=[0,0]
+    if Li > Lrecta_d: Li = Lrecta_d
     return x1,y1,Li
 
 #Pto de corte entre la perpendicular a un pto de un circulo y un circulo
@@ -1581,21 +1585,18 @@ def get_PtosDesplazdos(puntos,table_plant,dist,cota,dist2,cota2,sobrea,izq,pkini
         if pkini <= pp[4] and pp[4] <= pkfin:
             ptos.append(pp)
 
-    if round(pkfin - puntos[-1][4],6) == 0:
-        ptos.append(puntos[-1])
-
     if dist!=0 and dist2==0: dist=0
     if dist==dist2 and dist!=0 and type1=='e':
 
         desplaz=get_Paralles(table_plant,dist,sobrea,izq)
         puntos_DesplEje=get_PtosEjePlanta(desplaz)
 
-        PK2_ini=puntos[int(pkini)][4]
-
+        x,y,z,cat,PK,Az,tipo,align=ptos[0][0:8]
+        x1,y1,PK2_ini=get_ptoDesplaz(x,y,PK,Az,tipo,align,puntos_DesplEje)
         for pt in ptos:
 
             x,y,z,cat,PK,Az,tipo,align=pt[0:8]
-            #print x,y,z,cat,PK,Az,tipo,align
+
             cota0=cota+((pt[4]-pkini)*(cota2-cota))/(pkfin-pkini)
             x1,y1,PK2=get_ptoDesplaz(x,y,PK,Az,tipo,align,puntos_DesplEje)
             if x1!=0 and y1!=0:
@@ -1604,25 +1605,13 @@ def get_PtosDesplazdos(puntos,table_plant,dist,cota,dist2,cota2,sobrea,izq,pkini
                 lin.append([])
 
         a,b,Pc,c=generate_Pts(puntos_DesplEje,0,1,0,1,1)
-        Pc=[row for row in Pc  if row[4]>pkini and row[4]<pkfin]
+        Pc=[row for row in Pc  if row[4]>=pkini and row[4]<=pkfin]
 
-    elif dist!=0:
+    elif dist!=0 and dist2!=0:
 
         l_ant=0
-        for i,p in enumerate(puntos):
-            if p[4]==pkini:
-                ii=p[3]
-                break
-
-        x,y,z,cat,PK,Az,tipo,align=puntos[ii][0:8]
-
-        #if izq==1: Az1=Az-pi/2
-        #else: Az1=Az+pi/2
-        #x_ant=x+(dist)*sin(Az1)
-        #y_ant=y+(dist)*cos(Az1)
         x_ant=0
         y_ant=0
-        #lin.append([x_ant,y_ant,z+cota,cat,0,Az,'d'+str(dist),PK])
 
         for pt in ptos:
 
@@ -1678,7 +1667,7 @@ def get_PtosDesplazdos(puntos,table_plant,dist,cota,dist2,cota2,sobrea,izq,pkini
     elif dist==0:
 
         for pt in ptos:
-            lin.append([])
+            lin.append([pt[4]])
 
     return lin,Pc
 
@@ -1691,6 +1680,7 @@ def get_Trans(puntos,npk,mpk,m,perpizq,perpder,perpizq2,perpder2,discr,pkini,pkf
     for pp in puntos:
         if pkini <= pp[4] and pp[4] < pkfin and pp[4]%npk==0:
             ptos.append(pp)
+
     if pkfin == puntos[-1][4]: ptos.append(puntos[-1])
 
     for pt in ptos:
@@ -1820,55 +1810,47 @@ def drape_LinesPoints(lines,dem):
         salida.append(ptos)
     return salida
 
-def drape_Points2(puntos,dem):
+#def drape_Points2(puntos,dem):
 
-    elev = raster.RasterRow('elev1')
-    elev.open('r')
-    region=Region()
-    salida=[]
-    for i,punt in enumerate(puntos):
-        pto_col = int((punt[0] - region.west)/region.ewres)
-        pto_row = int((region.north - punt[1])/region.nsres)
-        salida.append(punt[:2]+[elev[pto_row][pto_col]]+punt[3:])
-    elev.close()
-    return salida
+    #elev = raster.RasterRow('elev1')
+    #elev.open('r')
+    #region=Region()
+    #salida=[]
+    #for i,punt in enumerate(puntos):
+        #pto_col = int((punt[0] - region.west)/region.ewres)
+        #pto_row = int((region.north - punt[1])/region.nsres)
+        #salida.append(punt[:2]+[elev[pto_row][pto_col]]+punt[3:])
+    #elev.close()
+    #return salida
 
 
-def drape_LinesPoints2(lines,dem):
+#def drape_LinesPoints2(lines,dem):
 
-    elev = raster.RasterRow('elev1')
-    elev.open('r')
-    region=Region()
-    salida=[]
-    for i,line in enumerate(lines):
-        ptos=[]
-        for j,pto in enumerate(line):
-            pto_col = int((pto[0] - region.west)/region.ewres)
-            pto_row = int((region.north - pto[1])/region.nsres)
-            ptos.append(lines[i][j][:2]+[elev[pto_row][pto_col]]+lines[i][j][3:])
+    #elev = raster.RasterRow('elev1')
+    #elev.open('r')
+    #region=Region()
+    #salida=[]
+    #for i,line in enumerate(lines):
+        #ptos=[]
+        #for j,pto in enumerate(line):
+            #pto_col = int((pto[0] - region.west)/region.ewres)
+            #pto_row = int((region.north - pto[1])/region.nsres)
+            #ptos.append(lines[i][j][:2]+[elev[pto_row][pto_col]]+lines[i][j][3:])
 
-        salida.append(ptos)
-    elev.close()
-    return salida
+        #salida.append(ptos)
+    #elev.close()
+    #return salida
 
 
 def get_Taludes(puntos,puntos_Despl,des,ter,des2,ter2,dem,pkini,pkfin):
 
     puntos_talud=[]
     ptos=[]
-    for pp in puntos:
-        if pkini <= pp[4] and pp[4] < pkfin:
-            ptos.append(pp)
-    if pkfin == puntos[-1][4]: ptos.append(puntos[-1])
     pta=[]
-    for pt in ptos:
+    for i,pt in enumerate(puntos):
 
-        for ptoD in puntos_Despl:
-            if ptoD!=[] and pt[4] == ptoD[-1]:
-                pta = ptoD
-                continue
-
-        if pta!=[] and des!=0 and ter!=0:
+        pta = puntos_Despl[i]
+        if len(pta)>1 and des!=0 and ter!=0:
             a=pt[0]; b=pt[1]; z=pt[2]
             c=pta[0]; d=pta[1]; z1=pta[2]
 
@@ -1922,32 +1904,59 @@ def get_Taludes(puntos,puntos_Despl,des,ter,des2,ter2,dem,pkini,pkfin):
                             zt_ant=zt
                             Li=Li+h
 
-            puntos_talud.append([x1,y1,z1]+pt[3:]+[tipo])
+            puntos_talud.append([x1,y1,z1]+pt[3:]+[tipo]+[pt[4]])
         else:
-            puntos_talud.append([])
+            puntos_talud.append([pta])
 
     return puntos_talud
 
 
 def generate_Taludes(puntos,puntos_Despl_izq,puntos_Despl_der,table_secc,dem):
 
-    tal_izq,tal_der=[],[]
+    tal_izq,tal_der=[[0]],[[0]]
+    if puntos_Despl_izq == [] and puntos_Despl_der == []: return [],[]
 
-    Despl_izq0,Despl_der1=[],[]
-    if puntos_Despl_izq != [] and puntos_Despl_der != []:
+    for j,line in enumerate(table_secc[:-1]):
 
-        for j,line in enumerate(table_secc[:-1]):
+        pkini,pkfin=line[4],table_secc[j+1][4]
+        ptos,ptos_izq=[],[]
+        for i,pp in enumerate(puntos):
+            if pkini <= pp[4] and pp[4] <= pkfin:
+                ptos.append(pp)
+                ptos_izq.append(puntos_Despl_izq[0][i])
 
-            pkini,pkfin=line[4],table_secc[j+1][4]
+        taludes=get_Taludes(ptos,ptos_izq,float(line[9]),float(line[11]),
+                            float(table_secc[j+1][9]),float(table_secc[j+1][11]),dem,pkini,pkfin)
 
-            #if table_secc[j+1]==table_secc[-1]: pkfin=pkfin+1
+        for h,row in enumerate(taludes):
 
-            taludes=get_Taludes(puntos,puntos_Despl_izq[0],float(line[9]),float(line[11]),
-                                float(table_secc[j+1][9]),float(table_secc[j+1][11]),dem,pkini,pkfin)
-            tal_izq.extend(taludes)
-            taludes=get_Taludes(puntos,puntos_Despl_der[-1],float(line[10]),float(line[12]),
-                                float(table_secc[j+1][10]),float(table_secc[j+1][12]),dem,pkini,pkfin)
-            tal_der.extend(taludes)
+            if tal_izq[-1][-1] != taludes[h][-1]:
+                tal_izq.append(taludes[h])
+
+            elif tal_izq[-1][-1] == taludes[h][-1] and len(taludes[h]) > 1:
+                del tal_izq[-1]
+                tal_izq.append(taludes[h])
+
+    for j,line in enumerate(table_secc[:-1]):
+
+        pkini,pkfin=line[4],table_secc[j+1][4]
+        ptos,ptos_der=[],[]
+        for i,pp in enumerate(puntos):
+            if pkini <= pp[4] and pp[4] <= pkfin:
+                ptos.append(pp)
+                ptos_der.append(puntos_Despl_der[-1][i])
+
+        taludes=get_Taludes(ptos,ptos_der,float(line[10]),float(line[12]),
+                            float(table_secc[j+1][10]),float(table_secc[j+1][12]),dem,pkini,pkfin)
+
+        for h,row in enumerate(taludes):
+
+            if tal_der[-1][-1] != taludes[h][-1]:
+                tal_der.append(taludes[h])
+
+            elif tal_der[-1][-1] == taludes[h][-1] and len(taludes[h]) > 1:
+                del tal_der[-1]
+                tal_der.append(taludes[h])
 
     return tal_izq,tal_der
 
@@ -1956,6 +1965,7 @@ def generate_TaludesAreas(Puntos_Talud_izq,Desplazados_izq,Desplazados_der,Punto
 
     # despl_izq[0] [line1,[],line2,...] --> [[ line1,linet1 ],[ line12,linet2 ],...]
     # taludes      [linet1,[],linet2,...]
+
     lines=[]
     if Puntos_Talud_izq != [] or Puntos_Talud_der != []:
 
@@ -2028,11 +2038,12 @@ def get_TransDespl(Trans,desplaz_izq,desplaz_der):
     TransDespl=[]
     for i,line in enumerate(Trans):
 
+
         # Cuidado con la asignacion de listas que se pasan por referencia/mutables
         tmpline=[line[0][:2]+[0]+line[0][3:]+[0]]
         for line_desp in desplaz_izq:
             for i_izq,pto in enumerate(line_desp):
-                if pto!=[] and line[1][4] == pto[-1]:
+                if len(pto) > 1 and line[1][4] == pto[-1]:
                     dist_izq=sqrt((line[1][0]-pto[0])**2+(line[1][1]-pto[1])**2)
                     tmpline.append(pto[:2]+[0]+pto[3:]+[round(dist_izq,6)]) # Cota cero para poder mover los ptos del transv
                     continue
@@ -2041,7 +2052,7 @@ def get_TransDespl(Trans,desplaz_izq,desplaz_der):
 
         for line_desp in desplaz_der:
             for i_der,pto in enumerate(line_desp):
-                if pto!=[] and line[1][4] == pto[-1]:
+                if len(pto) > 1 and line[1][4] == pto[-1]:
                     dist_der=sqrt((line[1][0]-pto[0])**2+(line[1][1]-pto[1])**2)
                     tmpline.append(pto[:2]+[0]+pto[3:]+[round(dist_der,6)])
                     continue
@@ -2054,11 +2065,12 @@ def get_TransDespl(Trans,desplaz_izq,desplaz_der):
 
 def get_SeccTerr(Trans,Trans_Pklist,Desplaz_izq,Desplaz_der,Puntos_Talud_izq,Puntos_Talud_der):
 
+
     talud_izq=[]
     for ptoss in Trans_Pklist:
         esta=0
         for ptot in Puntos_Talud_izq:
-            if ptot!=[] and ptoss[4] == ptot[4]:
+            if len(ptot)>1 and ptoss[4] == ptot[4]:
                 talud_izq.append(ptot)
                 esta=1
                 continue
@@ -2069,7 +2081,7 @@ def get_SeccTerr(Trans,Trans_Pklist,Desplaz_izq,Desplaz_der,Puntos_Talud_izq,Pun
     for ptoss in Trans_Pklist:
         esta=0
         for ptot in Puntos_Talud_der:
-            if ptot!=[] and ptoss[4] == ptot[4]:
+            if len(ptot)>1 and ptoss[4] == ptot[4]:
                 talud_der.append(ptot)
                 esta=1
                 continue
@@ -2082,7 +2094,7 @@ def get_SeccTerr(Trans,Trans_Pklist,Desplaz_izq,Desplaz_der,Puntos_Talud_izq,Pun
         for ptoss in Trans_Pklist:
             esta=0
             for ptot in desp:
-                if ptot!=[] and ptoss[4] == ptot[-1]:
+                if len(ptot)>1 and ptoss[4] == ptot[-1]:
                     desp_izq.append(ptot)
                     esta=1
                     continue
@@ -2096,7 +2108,7 @@ def get_SeccTerr(Trans,Trans_Pklist,Desplaz_izq,Desplaz_der,Puntos_Talud_izq,Pun
         for ptoss in Trans_Pklist:
             esta=0
             for ptot in desp:
-                if ptot!=[] and ptoss[4] == ptot[-1]:
+                if len(ptot)>1 and ptoss[4] == ptot[-1]:
                     desp_der.append(ptot)
                     esta=1
                     continue
@@ -2149,10 +2161,16 @@ def gen_LongProfileGuitarr(ASegmentos,APuntos_caract,puntos,puntos_terr,table_al
 
     dist_orig,dist_par,cras,cterr,croja=[],[],[],[],[]
     d_ant=0
-    for i in range(0,int(puntos[-1][4]),mark_x_dist):
-        dist_orig.append(puntos[i][4])
-        dist_par.append(puntos[i][4]-d_ant)
-        d_ant=puntos[i][4]
+
+    for pt in puntos:
+        for j in range(0,int(puntos[-1][4]),mark_x_dist):
+
+            if j == int(pt[4]):
+
+                dist_orig.append(pt[4])
+                dist_par.append(pt[4]-d_ant)
+                d_ant=pt[4]
+                continue
     dist_orig.append(puntos[-1][4])
     dist_par.append(puntos[-1][4]-d_ant)
 
@@ -2187,16 +2205,19 @@ def gen_LongProfileGuitarr(ASegmentos,APuntos_caract,puntos,puntos_terr,table_al
     cat=1
     for j in range(0,6):
         t=0
-        for i in range(0,int(puntos[-1][4]),mark_x_dist):
-            if j==0: label=round(dist_orig[t],2)
-            elif j==1: label=round(dist_par[t],2)
-            elif j==2: label=round(cras[t],2)
-            elif j==3: label=round(cterr[t],2)
-            elif j==4: label=round(croja[t],2)
-            else: label=0
-            t=t+1
-            mark_x.append([[cerox+i,ceroy-mark_lon-j*dist_ejes_x,0,cat,label],[cerox+i,ceroy+mark_lon-j*dist_ejes_x,0,cat,label]])
-            cat=cat+1
+        for pt in puntos:
+            for k in range(0,int(puntos[-1][4]),mark_x_dist):
+                if k == int(pt[4]):
+                    if j==0: label=round(dist_orig[t],2)
+                    elif j==1: label=round(dist_par[t],2)
+                    elif j==2: label=round(cras[t],2)
+                    elif j==3: label=round(cterr[t],2)
+                    elif j==4: label=round(croja[t],2)
+                    else: label=0
+                    t=t+1
+                    mark_x.append([[cerox+k,ceroy-mark_lon-j*dist_ejes_x,0,cat,label],[cerox+k,ceroy+mark_lon-j*dist_ejes_x,0,cat,label]])
+                    cat=cat+1
+                    continue
         if j==0: label=round(dist_orig[-1],2)
         elif j==1: label=round(dist_par[-1],2)
         elif j==2: label=round(cras[-1],2)
@@ -2206,7 +2227,7 @@ def gen_LongProfileGuitarr(ASegmentos,APuntos_caract,puntos,puntos_terr,table_al
         mark_x.append([[cerox+puntos[-1][4],ceroy-mark_lon-j*dist_ejes_x,0,cat,label],[cerox+puntos[-1][4],ceroy+mark_lon-j*dist_ejes_x,0,cat,label]])
         cat=cat+1
 
-    ptos_eje=[[cerox+p[4],p[5]*escala-cero_y_ref,0,p[3],p[4],p[6],p[7]] for p in table_alz]
+    ptos_eje=[[cerox+p[4],p[5]*escala-cero_y_ref,0,p[3],p[4],p[6]] for p in table_alz]
 
     return eje_x,eje_y,mark_x,mark_y,ptos_terr_ref,ptos_eje,ASeg_ref,APtos_caract_ref
 
@@ -2225,7 +2246,8 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
     filas,sep_x,sep_y=opt2.split(',')
     filas,sep_x,sep_y=int(filas),float(sep_x),float(sep_y)
 
-    columnas=len(Trans_Pklist)/filas
+    columnas=len(Trans_Pklist)/float(filas)
+    columnas=int(ceil(columnas))
     # Ancho y alto de cada fila/columna
     h=0
     ancho_colum,centro_secc,max_filas,min_filas,dif_filas=[],[],[],[],[]
@@ -2242,11 +2264,19 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
             minfila.append(min_trans)
             dif_fila.append((max_trans-min_trans)*escala)
             h=h+1
+            if h == len(Trans_Pklist):break
         ancho_colum.append(max(anchos_colum))
         centro_secc.append(max(centros_colum))
         max_filas.append(maxfila)
         min_filas.append(minfila)
         dif_filas.append(dif_fila)
+
+    for k in range(len(max_filas[0])-len(max_filas[-1])):
+        max_filas[-1].append(0)
+    for k in range(len(min_filas[0])-len(min_filas[-1])):
+        min_filas[-1].append(100000)
+    for k in range(len(dif_filas[0])-len(dif_filas[-1])):
+        dif_filas[-1].append(0)
 
     max_filas2 = [[row[i] for row in max_filas] for i in range(len(max_filas[0]))] # transpuesta
     max_filas2 = [max(row) for row in max_filas2]
@@ -2288,13 +2318,14 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
                 ptos_terr.append([centro_x+dist,orig_y+(pto[2]-cotaMin)*escala+dif_y_ref,0,h+1,Trans_Pklist[h][4]])
             b=0
             for pto in secc[h]:
-                if pto !=[]:
+
+                if len(pto)>1:
                     dist=sqrt((Trans_Pklist[h][0]-pto[0])**2+(Trans_Pklist[h][1]-pto[1])**2)
                     if dist==0:b=1
                     if b==0: dist=-dist
                     cota_ras=orig_y+(pto[2]-cotaMin)*escala+dif_y_ref
                     t=t+1
-                    ptos_eje.append([centro_x+dist,cota_ras,0,t,h+1,Trans_Pklist[h][4],round(cota_ras,2),round(dist,2)])
+                    ptos_eje.append([centro_x+dist,cota_ras,0,t,h+1,Trans_Pklist[h][4],round(pto[2],2),round(dist,2)])
 
             # Eje y
             ejes_y.append([[orig_x-sep_eje_x,final_y,0,h+1,"'Y'"],[orig_x-sep_eje_x,orig_y,0,h+1,"'Y'"]])
@@ -2302,13 +2333,15 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
             ejes_x.append([[orig_x-sep_eje_x,orig_y,0,h+1,"'X'",format_Pk(Trans_Pklist[h][4])],[final_x,orig_y,0,h+1,"'X'",Trans_Pklist[h][4]]])
 
             # Marcas eje x desde el centro
-            mark2_x=[]
+            mark2_x,mark2_x2=[],[]
             mark2_x.append([[orig_x,orig_y-2*mark_lon,0,q+1,-(centro_x-orig_x)],[orig_x,orig_y+2*mark_lon,0]])
             q=q+1
             for k in range(mark_x_dist,int(centro_x-orig_x),mark_x_dist):
-                mark2_x.append([[centro_x-k,orig_y-mark_lon,0,q+1,-((centro_x-orig_x)-((centro_x-orig_x) % mark_x_dist)-k+mark_x_dist)],
+                mark2_x2.append([[centro_x-k,orig_y-mark_lon,0,q+1,-((centro_x-orig_x)-((centro_x-orig_x) % mark_x_dist)-k+mark_x_dist)],
                                 [centro_x-k,orig_y+mark_lon,0]])
                 q=q+1
+            mark2_x.extend(mark2_x2[::-1])
+
             mark2_x.append([[centro_x,orig_y-2*mark_lon,0,q+1,0.0],[centro_x,orig_y+2*mark_lon,0]])
             q=q+1
             for k in range(mark_x_dist,int(final_x-centro_x),mark_x_dist):
@@ -2324,10 +2357,12 @@ def gen_TransProfile(Trans,Trans_Terr,Trans_Pklist,Puntos_Talud_izq,Puntos_Talud
             w=w+1
             mark_y.append([[orig_x-mark_lon-sep_eje_x,final_y,0,w,round(cotaMax-dif_y_ref,2)],[orig_x+mark_lon-sep_eje_x,final_y,0]])
             mark_x.extend(mark2_x)
-            h=h+1
+
             puntos_terr_ref.append(ptos_terr)
             ptos_eje_ref.append(ptos_eje)
 
+            h=h+1
+            if h == len(Trans_Pklist):break
 
     return ejes_x,ejes_y,mark_x,mark_y,puntos_terr_ref,ptos_eje_ref
 
@@ -2354,13 +2389,13 @@ def read_TablePlant(EjeMap):
 
 def read_TableAlz(EjeMap):
 
-    alzado = read_Table(EjeMap,3,'pk,elev,slope,kv,l,b')
+    alzado = read_Table(EjeMap,3,'pk,elev,kv,l,b')
     alzado = float_List(alzado)
     return alzado
 
 def read_TableSection(EjeMap):
 
-    section = read_Table(EjeMap,4,'pk,sec_left,sec_right,type_left,type_right,cut_left,cut_right,fill_left,fill_right,superelev_left,superelev_right')
+    section = read_Table(EjeMap,4,'pk,sec_left,sec_right,type_left,type_right,cut_left,cut_right,fill_left,fill_right')
     for i in range(len(section)):
         section[i][:5]=[float(p) for p in section[i][:5]]
     return section
@@ -2440,14 +2475,14 @@ def update_TablePlan(EjeMap,ptsList):
 
 def update_TableAlz(EjeMap,ptsList):
 
-    update_Table(EjeMap,'_Vertical',3,ptsList,'pk,elev,slope,kv,l,b')
+    update_Table(EjeMap,'_Vertical',3,ptsList,'pk,elev,kv,l,b')
     return 0
 
 def update_TableSection(EjeMap,ptsList):
 
     for i,pts in enumerate(ptsList):
         ptsList[i][5:]=["'"+str(p)+"'" for p in ptsList[i][5:] if str(p).find("'")==-1]
-    update_Table(EjeMap,'_Section',4,ptsList,'pk,sec_left,sec_right,type_left,type_right,cut_left,cut_right,fill_left,fill_right,superelev_left,superelev_right')
+    update_Table(EjeMap,'_Section',4,ptsList,'pk,sec_left,sec_right,type_left,type_right,cut_left,cut_right,fill_left,fill_right')
     return 0
 
 def update_TableTransv(EjeMap,ptsList):
@@ -2459,13 +2494,13 @@ def update_TableTransv(EjeMap,ptsList):
 
 def corrige_Alzado(puntos_eje,alz,EjeMap):
 
-    alz.sort(key=lambda x: x[4]) # alz=[x,y,z,cat,Pk,Cota,Pend,Kv,L,B]
+    alz.sort(key=lambda x: x[4]) # alz=[x,y,z,cat,Pk,Cota,Kv,L,B]
 
     for i in range(1,len(alz),1):
         if i < len(alz)-1:
             alz[i][0],alz[i][1]=get_PlantaXY(alz[i][4],puntos_eje)[:2]
         alz[i][3]=i+1
-        alz[i][6]=(float(alz[i][5])-alz[i-1][5])/(float(alz[i][4])-alz[i-1][4])
+        #alz[i][6]=(float(alz[i][5])-alz[i-1][5])/(float(alz[i][4])-alz[i-1][4])
     alz[-1][4]=puntos_eje[-1][-1][7]
     alz[-1][0],alz[-1][1],alz[-1][2]=puntos_eje[-1][0][:3]
     remove_Alz(EjeMap)
@@ -2573,13 +2608,12 @@ def update_EdgeMap(EjeMap):
                       columns='pk_eje double, radio double, a_in double, \
                       a_out double, widening double', quiet=True)
         g.run_command('v.db.addtable', map=EjeMap, layer=3, key='cat3', table=EjeMap+'_Vertical',
-                      columns='pk double, elev double, slope double, \
+                      columns='pk double, elev double, \
                       kv double, l double, b double', quiet=True)
         g.run_command('v.db.addtable', map=EjeMap, layer=4, key='cat4', table=EjeMap+'_Section',
                       columns='pk double, sec_left varchar(25), sec_right varchar(25), \
                       type_left varchar(25), type_right varchar(25), \
-                      cut_left varchar(25), cut_right varchar(25), fill_left varchar(25), fill_right  varchar(25), \
-                      superelev_left varchar(25), superelev_right varchar(25)', quiet=True)
+                      cut_left varchar(25), cut_right varchar(25), fill_left varchar(25), fill_right varchar(25)', quiet=True)
         g.run_command('v.db.addtable', map=EjeMap, layer=5, key='cat5', table=EjeMap+'_Transv',
                       columns='pk double, dist_left double, dist_right double, npk double', quiet=True)
 
@@ -2587,10 +2621,10 @@ def update_EdgeMap(EjeMap):
         planta=[]
         for i in range(len(pk_eje)):
             planta.append([verti[i][0],verti[i][1],verti[i][2],i+1,pk_eje[i],0.0,0.0,0.0,0.0,0.0,0.0])
-        alzado=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],0.0,0.0,0.0,0.0,0.0],
-                [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],0.0,0.0,0.0,0.0,0.0]]
-        seccion=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],'','','','','','','','',''],
-                [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],'','','','','','','','','']]
+        alzado=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],0.0,0.0,0.0,0.0],
+                [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],0.0,0.0,0.0,0.0]]
+        seccion=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],'','','','','','',''],
+                [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],'','','','','','','']]
         transv=[[verti[0][0],verti[0][1],verti[0][2],1,pk_eje[0],0.0,0.0,0.0],
                 [verti[-1][0],verti[-1][1],verti[-1][2],2,pk_eje[-1],0.0,0.0,0.0]]
 
@@ -2645,8 +2679,9 @@ def write_Alz(asegmentos,p_caract,p_vert,EjeMap,ext):
 
 def write_Despl(dlines_izq,dlines_der,p_caract,p_vert,EjeMap,ext):
 
-    dlines=dlines_izq[:]
-    dlines.extend(dlines_der)
+    dlines = deepcopy(dlines_izq)
+    dlines2= deepcopy(dlines_der)
+    dlines.extend(dlines2)
 
     write_Polylines(dlines,EjeMap+ext,1)
     sdlines,cats=splitdlines(dlines)
@@ -2682,6 +2717,9 @@ def splitdlines(lines):
     #                                         --> [   1 ,    1 ,    2 ,   3 ,...]
     tolines,cats=[],[]
     for j,line in enumerate(lines):
+        for h,pt in enumerate(line):
+            if len(pt) == 1:
+                line[h]=[]
         if [] in line:
             splitlist=[list(group) for k, group in groupby(line, lambda x: x == []) if not k] # split list
             tolines.extend(splitlist)
@@ -2720,7 +2758,7 @@ def write_PtosPoints(lines,name):
     i=0
     for j,line in enumerate(lines):
         for pp in line:
-            if pp==[]: continue
+            if len(pp)==1 or pp == []: continue
             sal_puntos+=str(i)+"|"+str(pp[4])+"|"+str(pp[5])+"|"+str(pp[6])+"|"+str(pp[0])+"|"+str(pp[1])+"|"+str(pp[2])+"\n"
             i=i+1
     g.write_command('v.in.ascii', flags='nz', output=name, stdin=sal_puntos, input='-',
@@ -2770,15 +2808,18 @@ def write_Polygonos(lines,name):
 
     sal_linea=""
     for j,line in enumerate(lines):
-        if [] in line: continue
-        sal_linea+="B "+str(len(line)+1)+" 1\n"
+        longLine=1
+        sal_linea2=""
         for i,pp in enumerate(line):
+            if len(pp) > 1:
+                longLine+=1
+                sal_linea2+=str(pp[0])+" "+str(pp[1])+"\n"
 
-            sal_linea+=str(pp[0])+" "+str(pp[1])+"\n"
-
+        sal_linea+="B "+str(longLine)+" 1\n"
+        sal_linea+=sal_linea2
         sal_linea+=str(line[0][0])+" "+str(line[0][1])+"\n"
         sal_linea+="1 "+str(j+1)+"\n"
-    #print sal_linea
+
     g.write_command('v.in.ascii', flags='nz', output=name, stdin=sal_linea,
                         input='-', format='standard', overwrite=True, quiet=True)
     return 0
@@ -2824,7 +2865,7 @@ def generate_DesplazAreas(despl_izq,puntos,despl_der):
 def lista_PksEje(Puntos_Eje,Puntos_EjeAlz,puntos,table_alz,table_secc,table_transv):
 
     pkpuntos=[round(p[4],6) for p in puntos]
-    for alz in table_alz+table_secc+table_transv:
+    for alz in table_secc+table_transv:
         if round(alz[4],6) not in pkpuntos:
             pkpuntos.append(alz[4])
             x,y,z,cat,PK,Az,tipo,align=get_PlantaXY(round(alz[4],6),Puntos_Eje)[:8]
@@ -2933,13 +2974,13 @@ def main():
 
     if flags['n']:
 
-        g.message("Creating/Updating edge map")
+        g.message("Creating/Updating polygon map")
         update_EdgeMap(NameMap)
 
 
     if flags['u']:
 
-        g.message("Reading edge tables")
+        g.message("Reading polygon tables")
         ### Lectura tablas eje
 
         table_plant= read_TablePlant(NameMap)
@@ -2971,11 +3012,13 @@ def main():
 
         Desplazados_izq,Desplazados_der,DPtos_caract=generate_Desplaz(table_plant,table_secc,Puntos2)
 
+        #print len(Puntos),len(Puntos2),len(Desplazados_izq[0]),len(Desplazados_izq[1]),len(Desplazados_izq[2]),len(Desplazados_der[0]),len(Desplazados_der[1]),len(Desplazados_der[2])
+
         Desplaz_Areas=generate_DesplazAreas(Desplazados_izq[:],Puntos2[:],Desplazados_der[:])
 
         Transversales,Trans_Pklist=generate_Transv(Puntos,table_transv)
 
-        Transv_Despl = get_TransDespl(Transversales,Desplazados_izq,Desplazados_der)
+        Transv_Despl = get_TransDespl(Transversales,Desplazados_izq[:],Desplazados_der[:])
 
         Transv_Discr =  discr_Lines(Transv_Despl,1)
 
@@ -3063,7 +3106,7 @@ def main():
             ##################################################################
             g.message("Generating terrain maps")
 
-            Puntos_Talud_izq,Puntos_Talud_der=generate_Taludes(Puntos,Desplazados_izq,Desplazados_der,table_secc,Terreno_Array)
+            Puntos_Talud_izq,Puntos_Talud_der=generate_Taludes(Puntos2,Desplazados_izq,Desplazados_der,table_secc,Terreno_Array)
 
             Taludes_Areas=generate_TaludesAreas(Puntos_Talud_izq,Desplazados_izq,Desplazados_der,Puntos_Talud_der)
 
@@ -3200,16 +3243,16 @@ def main():
 
                 if flags['m']:
 
-                    if re.search(r'^_', options['LPedgeX']): nameEdgeX=NameMap+options['LPedgeX']
-                    else: nameEdgeX=options['LPedgeX']
+                    if re.search(r'^_', options['LPaxisX']): nameEdgeX=NameMap+options['LPaxisX']
+                    else: nameEdgeX=options['LPaxisX']
 
-                    if re.search(r'^_', options['LPedgeXmarks']): nameEdgeXmarks=NameMap+options['LPedgeXmarks']
-                    else: nameEdgeXmarks=options['LPedgeXmarks']
+                    if re.search(r'^_', options['LPaxisXmarks']): nameEdgeXmarks=NameMap+options['LPaxisXmarks']
+                    else: nameEdgeXmarks=options['LPaxisXmarks']
 
-                    if re.search(r'^_', options['LPedgeY']): nameEdgeY=NameMap+options['LPedgeY']
-                    else: nameEdgeY=options['LPedgeY']
+                    if re.search(r'^_', options['LPaxisY']): nameEdgeY=NameMap+options['LPaxisY']
+                    else: nameEdgeY=options['LPaxisY']
 
-                    if re.search(r'^_', options['LPedgeYmarks']): nameEdgeYmarks=NameMap+options['LPedgeYmarks']
+                    if re.search(r'^_', options['LPaxisYmarks']): nameEdgeYmarks=NameMap+options['LPaxisYmarks']
                     else: nameEdgeYmarks=options['LPedgeYmarks']
 
                     write_Polylines(eje_x,nameEdgeX,1)
@@ -3264,17 +3307,17 @@ def main():
 
                 if flags['g']:
 
-                    if re.search(r'^_', options['LTedgeX']): nameTEdgeX=NameMap+options['LTedgeX']
-                    else: nameTEdgeX=options['LTedgeX']
+                    if re.search(r'^_', options['LTaxisX']): nameTEdgeX=NameMap+options['LTaxisX']
+                    else: nameTEdgeX=options['LTaxisX']
 
-                    if re.search(r'^_', options['LTedgeXmarks']): nameTEdgeXmarks=NameMap+options['LTedgeXmarks']
-                    else: nameTEdgeXmarks=options['LTedgeXmarks']
+                    if re.search(r'^_', options['LTaxisXmarks']): nameTEdgeXmarks=NameMap+options['LTaxisXmarks']
+                    else: nameTEdgeXmarks=options['LTaxisXmarks']
 
-                    if re.search(r'^_', options['LTedgeY']): nameTEdgeY=NameMap+options['LTedgeY']
-                    else: nameTEdgeY=options['LTedgeY']
+                    if re.search(r'^_', options['LTaxisY']): nameTEdgeY=NameMap+options['LTaxisY']
+                    else: nameTEdgeY=options['LTaxisY']
 
-                    if re.search(r'^_', options['LTedgeYmarks']): nameTEdgeYmarks=NameMap+options['LTedgeYmarks']
-                    else: nameTEdgeYmarks=options['LTedgeYmarks']
+                    if re.search(r'^_', options['LTaxisYmarks']): nameTEdgeYmarks=NameMap+options['LTaxisYmarks']
+                    else: nameTEdgeYmarks=options['LTaxisYmarks']
 
                     write_Polylines(ejes_x,nameTEdgeX,1)
                     write_Polylines(mark_x,nameTEdgeXmarks,1)
