@@ -31,13 +31,19 @@
 #% type: integer
 #% required: yes
 #% answer: 16
-#% options: 2-64
+#% options: 2-360
 #%end
 #%option
 #% key: maxdistance
 #% description: The maximum distance to consider when finding the horizon height
 #% type: double
 #% required: no
+#%end
+#%option
+#%  key: prefix
+#%  type: string
+#%  multiple: no
+#%  description: Set the prefix of the created maps
 #%end
 
 
@@ -47,9 +53,12 @@ import atexit
 
 import grass.script.core as gcore
 import grass.script.raster as grast
+from grass.pygrass.messages import get_msgr
 
-TMP_NAME = 'tmp_horizon_'+ str(os.getpid())
+
+TMP_NAME = 'tmp_horizon_' + str(os.getpid())
 CLEANUP = True
+
 
 def cleanup():
     if CLEANUP:
@@ -60,26 +69,30 @@ def main():
     elev = options['input']
     output = options['output']
     n_dir = int(options['ndir'])
+    global TMP_NAME, CLEANUP
+    if options['prefix']:
+        TMP_NAME = options['prefix']
+        CLEANUP = False
     horizon_step = 360. / n_dir
+    msgr = get_msgr()
 
     # checks if there are already some maps
     old_maps = _get_horizon_maps()
     if old_maps:
         if not gcore.overwrite():
-            global CLEANUP
             CLEANUP = False
-            gcore.fatal(_("You have to first check overwrite flag or remove the following maps:\n"
-                          "{names}").format(names=','.join(old_maps)))
+            msgr.fatal(_("You have to first check overwrite flag or remove the following maps:\n"
+                         "{names}").format(names=','.join(old_maps)))
         else:
-            gcore.warning(_("The following maps will be overwritten: {names}").format(names=','.join(old_maps)))
+            msgr.warning(_("The following maps will be overwritten: {names}").format(names=','.join(old_maps)))
 
     ret = gcore.run_command('r.horizon', elevin=elev, direction=0, horizonstep=horizon_step,
                             horizon=TMP_NAME, flags='d')
     if ret != 0:
-        gcore.fatal(_("r.horizon failed to compute horizon elevation angle maps. "
-                      "Please report this problem to developers."))
+        msgr.fatal(_("r.horizon failed to compute horizon elevation angle maps. "
+                     "Please report this problem to developers."))
 
-    gcore.info(_("Computing sky view factor ..."))
+    msgr.message(_("Computing sky view factor ..."))
     new_maps = _get_horizon_maps()
     expr = "{out} = 1 - (sin({first}) ".format(first=new_maps[0], out=output)
     for horizon in new_maps[1:]:
