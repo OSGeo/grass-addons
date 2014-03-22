@@ -17,6 +17,7 @@
 #% description: Runs r.sun in loop for given time range (mode 1)
 #% keywords: raster
 #% keywords: sun
+#% overwrite: yes
 #%end
 #%option
 #% type: string
@@ -127,10 +128,6 @@
 #%flag
 #% key: b
 #% description: Create binary rasters instead of irradiation rasters
-#%end
-#%flag
-#% key: overwrite
-#% description: Allow output files to overwrite existing files
 #%end
 
 
