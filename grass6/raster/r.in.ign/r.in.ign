@@ -6,12 +6,13 @@
 # AUTHOR(S):		Vincent Bain
 # PURPOSE:		Retrieve wmts channel from IGN, see http://api.ign.fr
 #			Developed for internal use
-# COPYRIGHT:		(C) 2013 by the GRASS Development Team and Toraval-Vincent Bain
+# COPYRIGHT:		(C) 2014 by the GRASS Development Team and Toraval-Vincent Bain
 #			This program is free software under the GNU General
 #			Public License (>=v2). Read the file COPYING that comes
 #			with GRASS for details.
 #
-# VERSION:		2.2
+# VERSION:		2.3
+#			both png and jpeg tiles formats are now supported
 #			Currently only works on PM (EPSG:3857) raster stacks
 #			
 ################################################################################
@@ -58,6 +59,14 @@
 #% type: string
 #% description: wmts layer to request
 #% answer: ORTHOIMAGERY.ORTHOPHOTOS
+#% required : no
+#%end
+
+#%option
+#% key:tiletype
+#% type: string
+#% description: tile format, choose between jpg and png
+#% answer: jpg
 #% required : no
 #%end
 
@@ -177,7 +186,7 @@ pas=256
 # Testing C flag 
 if [ "$GIS_FLAG_C" -eq 1 ] ; then
 	# fetch capabilities xml file on the server
-		wget -q "http://${USER}:${PASSWORD}@gpp3-wxs.ign.fr/${GIS_OPT_APIKEY}/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities" -O capabilities.xml -O "$GIS_MAP_PATH"/.tmp/ign/capabilities.xml
+		wget -q "http://${USER}:${PASSWORD}@wxs.ign.fr/${GIS_OPT_APIKEY}/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities" -O capabilities.xml -O "$GIS_MAP_PATH"/.tmp/ign/capabilities.xml
 	# clean file : IGN xml capabilities happened to be delivered as a one line file
 		xmlstarlet fo "$GIS_MAP_PATH"/.tmp/ign/capabilities.xml > "$GIS_MAP_PATH"/.tmp/ign/fcapab.xml
 	# extract available layers
@@ -266,7 +275,7 @@ for i in `seq 0 "$iterx"`; do
 	for j in `seq 0 "$itery"`; do
 		rowk=$(( rowi + j ))
 		# let's feed the URL list file
-		echo "\"https://${GIS_OPT_USER}:${GIS_OPT_PASSWORD}@gpp3-wxs.ign.fr/${GIS_OPT_APIKEY}/geoportail/wmts?LAYER=${GIS_OPT_WMTSLAYER}&EXCEPTIONS=text/xml&FORMAT=image/jpeg&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${tilematrix}&TILEROW=${rowk}&TILECOL=${colk}&\"" "-O "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg" >>"$GIS_MAP_PATH"/.tmp/ign/url.list
+		echo "\"https://${GIS_OPT_USER}:${GIS_OPT_PASSWORD}@wxs.ign.fr/${GIS_OPT_APIKEY}/geoportail/wmts?LAYER=${GIS_OPT_WMTSLAYER}&EXCEPTIONS=text/xml&FORMAT=image/${GIS_OPT_TILETYPE}&SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&STYLE=normal&TILEMATRIXSET=PM&TILEMATRIX=${tilematrix}&TILEROW=${rowk}&TILECOL=${colk}&\"" "-O "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".${GIS_OPT_TILETYPE}" >>"$GIS_MAP_PATH"/.tmp/ign/url.list
 		((j++))
 	done
 	((i++))
@@ -286,7 +295,7 @@ echo "[R]etrieve or [c]ancel? (default [R])"
 		;;
 	esac
 
-xargs -a "$GIS_MAP_PATH"/.tmp/ign/url.list -n 3 -P 64 wget -q
+xargs -a "$GIS_MAP_PATH"/.tmp/ign/url.list -n 3 -P 64 wget -q 
 errwget=$?
 if [ $errwget -eq 6 ]; then
 	g.message -w "Username/password authentication failure... bailing out !"
@@ -304,13 +313,13 @@ elif [ $errwget -ne 0 ] ; then
 	fi
 	for i in `seq 0 "$iterx"`; do
 		for j in `seq 0 $itery`; do
-			if [ -f "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg ] ; then
-				size=`stat -c %s "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg`
+			if [ -f "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j"."${GIS_OPT_TILETYPE}" ] ; then
+				size=`stat -c %s "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".${GIS_OPT_TILETYPE}`
 			else
 				size=0
 			fi
-			if [ ! -f "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg -o "$size" -eq 0 ] ; then
-				cat "$GIS_MAP_PATH"/.tmp/ign/url.list | grep tile"c$i""l$j".jpg>>"$GIS_MAP_PATH"/.tmp/ign/urlcorr.list
+			if [ ! -f "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j"."${GIS_OPT_TILETYPE}" -o "$size" -eq 0 ] ; then
+				cat "$GIS_MAP_PATH"/.tmp/ign/url.list | grep tile"c$i""l$j"."${GIS_OPT_TILETYPE}">>"$GIS_MAP_PATH"/.tmp/ign/urlcorr.list
 			fi
 			((j++))
 		done
@@ -349,7 +358,7 @@ for i in `seq 0 "$iterx"`; do
 		yk2=`echo "scale=12;$yk1 - $pas * $resol" | bc`
 		
 		# let's feed referencing files (xargs inputs)
-		echo "-gcp 0 0 "$xk1" "$yk1" -gcp 256 256 "$xk2" "$yk2" -gcp 256 0 "$xk2" "$yk1" "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".jpg "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".tif" >>"$GIS_MAP_PATH"/.tmp/ign/gdtr1.list
+		echo "-gcp 0 0 "$xk1" "$yk1" -gcp 256 256 "$xk2" "$yk2" -gcp 256 0 "$xk2" "$yk1" "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".${GIS_OPT_TILETYPE} "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".tif" >>"$GIS_MAP_PATH"/.tmp/ign/gdtr1.list
 		
 		echo "-of GTiff -a_srs "+init=epsg:3857" "$GIS_MAP_PATH"/.tmp/ign/tile"c$i""l$j".tif "$GIS_MAP_PATH"/.tmp/ign/tiler"c$i""l$j".tif" >>"$GIS_MAP_PATH"/.tmp/ign/gdtr2.list
 		((j++))
@@ -396,18 +405,33 @@ r.in.gdal input="$GIS_MAP_PATH"/.tmp/ign/tile.tif output="$GIS_OPT_OUTPUT"
 #---------------------------------------------	
 
 #---------------------------------------------	
-# optionnally make a composite rgb raster
-if [ "$GIS_FLAG_M" -eq 0 ] ; then
-	g.message "compositing raster maps"
-	r.composite output="$GIS_OPT_OUTPUT" red="$GIS_OPT_OUTPUT".red green="$GIS_OPT_OUTPUT".green blue="$GIS_OPT_OUTPUT".blue
-	g.mremove -f rast="$GIS_OPT_OUTPUT".red,"$GIS_OPT_OUTPUT".green,"$GIS_OPT_OUTPUT".blue,"$GIS_OPT_OUTPUT".alpha
-	# write support data
-	r.support map="$GIS_OPT_OUTPUT" title="${GIS_OPT_WMTSLAYER} extracted from ign wmts service" history="${CMDLINE}"
+# check if we have a multi-band or a single-band raster
+eval `g.findfile element=cell file=$GIS_OPT_OUTPUT.1`
+echo "voyons $file"
+
+if [ "$file" ] ; then
+	g.remove rast=$GIS_OPT_OUTPUT.alpha
+	g.rename rast=$GIS_OPT_OUTPUT.1,$GIS_OPT_OUTPUT
+	i.group -r group=$GIS_OPT_OUTPUT input=$GIS_OPT_OUTPUT.alpha,$GIS_OPT_OUTPUT.1
+	i.group group=$GIS_OPT_OUTPUT input=$GIS_OPT_OUTPUT
+	r.support map=$GIS_OPT_OUTPUT title="${GIS_OPT_WMTSLAYER} extracted from ign wmts service" history="${CMDLINE}"
 else
-	# write support data for each band
-	for i in {red,green,blue} ; do
-		r.support map="$GIS_OPT_OUTPUT".$i title="${GIS_OPT_WMTSLAYER} extracted from ign wmts service" history="${CMDLINE}"
-	done
+	# optionnally make a composite rgb raster
+	if [ "$GIS_FLAG_M" -eq 0 ] ; then
+		g.message "compositing raster maps"
+		r.composite output="$GIS_OPT_OUTPUT" red="$GIS_OPT_OUTPUT".red green="$GIS_OPT_OUTPUT".green blue="$GIS_OPT_OUTPUT".blue
+		g.mremove -f rast="$GIS_OPT_OUTPUT".red,"$GIS_OPT_OUTPUT".green,"$GIS_OPT_OUTPUT".blue,"$GIS_OPT_OUTPUT".alpha
+		i.group -r group=$GIS_OPT_OUTPUT input=$GIS_OPT_OUTPUT.alpha,$GIS_OPT_OUTPUT.red,$GIS_OPT_OUTPUT.green,$GIS_OPT_OUTPUT.blue
+		i.group group=$GIS_OPT_OUTPUT input=$GIS_OPT_OUTPUT
+		# write support data
+		r.support map="$GIS_OPT_OUTPUT" title="${GIS_OPT_WMTSLAYER} extracted from ign wmts service" history="${CMDLINE}"
+	else
+		# write support data for each band
+		for i in {red,green,blue} ; do
+			r.support map="$GIS_OPT_OUTPUT".$i title="${GIS_OPT_WMTSLAYER} extracted from ign wmts service" history="${CMDLINE}"
+		done
+		g.remove rast=$GIS_OPT_OUTPUT.alpha
+	fi
 fi
 
 
