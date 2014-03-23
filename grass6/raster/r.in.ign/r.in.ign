@@ -407,7 +407,6 @@ r.in.gdal input="$GIS_MAP_PATH"/.tmp/ign/tile.tif output="$GIS_OPT_OUTPUT"
 #---------------------------------------------	
 # check if we have a multi-band or a single-band raster
 eval `g.findfile element=cell file=$GIS_OPT_OUTPUT.1`
-echo "voyons $file"
 
 if [ "$file" ] ; then
 	g.remove rast=$GIS_OPT_OUTPUT.alpha
