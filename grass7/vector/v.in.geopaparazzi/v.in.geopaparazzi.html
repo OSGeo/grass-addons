@@ -2,9 +2,23 @@
 
 <em>v.in.geopaparazzi</em> imports all elements saved into Geopaparazzi. You can import bookmarks, images (warning the path to images it's relative of Android device), notes (one layer for each category) and tracks. 
 
+<h2>EXAMPLES</h2>
+
+To import all the elements in the Geopaparazzi database you have to use:
+
+<div class="code"><pre>
+v.in.geopaparazzi -bint database=/path/to/your/geopaparazzi.db base=mydata
+</pre></div>
+
+To import only the tracks in 3D format
+
+<div class="code"><pre>
+v.in.geopaparazzi -tz database=/path/to/your/geopaparazzi.db base=track3d
+</pre></div>
+
 <h2>REFERENCES</h2>
 
-<a href="http://code.google.com/p/geopaparazzi/">Geopaparazzi</a>
+<a href="http://geopaparazzi.github.io/geopaparazzi/">Geopaparazzi</a>
 <p>
 <a href="http://code.google.com/p/geopaparazzi/wiki/DbTables">Geopaparazzi Tables schema</a>
 
