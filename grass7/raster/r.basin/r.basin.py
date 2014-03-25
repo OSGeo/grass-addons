@@ -110,7 +110,6 @@ def main():
     r_outlet = prefix+'_r_outlet'
     v_outlet = prefix+'_outlet'
     v_basin = prefix+'_basin'
-    v_centroid1 = prefix+'_centroid1'
     v_mainchannel = prefix+'_mainchannel'
     v_mainchannel_dim = prefix+'_mainchannel_dim'
     v_network = prefix+'_network'
@@ -377,7 +376,6 @@ def main():
         # Centroid and mean slope
         baricenter_slope_baricenter = grass.read_command("r.volume", input = r_slope, 
                                                                  clump = r_basin, 
-                                                                 centroids = v_centroid1,
                                                                  overwrite = True)                                                   
                                                                  
         grass.message("r.volume done")                                                         
@@ -446,7 +444,7 @@ def main():
         param_mainchannel = grass.read_command('v.what', map = v_mainchannel, 
                                                      coordinates = '%s,%s' % (east,north),
                                                      distance = 5 )
-        tmp = param_mainchannel.split('\n')[8]
+        tmp = param_mainchannel.split('\n')[7]
         mainchannel = float(tmp.split()[1]) / 1000   # km
     
         # Topological Diameter
@@ -592,7 +590,6 @@ def main():
         grass.run_command('g.remove', rast = prefix+'_ord_1_thin', quiet = True)
         grass.run_command('g.remove', rast = prefix+'_stream_e_thin', quiet = True)   
         grass.run_command('g.remove', vect = v_mainchannel_dim+'_point', quiet = True)
-        grass.run_command('g.remove', vect = v_centroid1, quiet = True)
         grass.run_command('g.remove', vect = v_mainchannel_dim, quiet = True)
         grass.run_command('g.remove', vect = v_ord_1, quiet = True)
     
