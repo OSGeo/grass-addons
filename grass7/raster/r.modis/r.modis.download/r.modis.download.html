@@ -17,6 +17,10 @@ the password is given, usually the user's e-mail address):
 </pre></div>
 As alternative, the user can pass the values from standard input.
 <p>
+From 2013 NASA use HTTP protocol for some of the MODIS repositories so
+the password it is no more necessary. If you are sure about the protocol
+you can escape to set the password.
+<p>
 
 <b>Warning</b>: The NASA policy does not permit to open more then ten
 connections in parallel with their FTP server. Hence no more than ten
@@ -24,7 +28,7 @@ process of <em>r.modis.download</em> should run at the same time.
 <p>
 By default the downloaded files are stored in the path where the setting
 file is saved. The user can change this directory with <em>folder</em>
-option. The user has <!-- NOT?? --> to set the <em>folder</em> option if
+option. The user has to set the <em>folder</em> option if
 user and password are sent by standard input.
 <p>
 The time for the download depends on the number of requested tiles, days

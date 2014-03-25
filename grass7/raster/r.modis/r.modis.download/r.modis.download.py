@@ -35,7 +35,6 @@
 #% gisprompt: old,file,input
 #% label: Full path to settings file
 #% description: "-" to pass the parameter from stdin
-#% answer: -
 #% guisection: Define
 #%end
 #%option
@@ -215,7 +214,7 @@ def main():
               destinationFolder=fold, tiles=tiles, path=prod['folder'],
               today=firstday, enddate=finalday, delta=delta, debug=debug_opt)
         # connect to ftp
-        modisOgg.connectFTP()
+        modisOgg.connect()
         if modisOgg.nconnection <= 20:
             # download tha tiles
             grass.message(_("Downloading MODIS product <%s>..." % produ))

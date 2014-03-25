@@ -50,8 +50,8 @@ class product:
 
     def __init__(self, value=None):
         # url to download products
-        urlbase = 'e4ftl01.cr.usgs.gov'
-        usrsnow = 'n4ftl01u.ecs.nasa.gov'
+        urlbase = 'http://e4ftl01.cr.usgs.gov'
+        usrsnow = 'ftp://n4ftl01u.ecs.nasa.gov'
         ### values of lst product:
         lst_spec = '( 1 0 0 0 1 0 0 0 0 0 0 0 )'
         lst_specqa = '( 1 1 0 0 1 1 0 0 0 0 0 0 )'
@@ -88,83 +88,96 @@ class product:
                      '.sur_refl_b07': '.sur_refl_qc_500m'}
 
         self.prod = value
-        lst = {'lst_aqua_daily_1000': {'url': urlbase, 
-                                       'folder': 'MOLA/MYD11A1.005',
+        lst = {'lst_aqua_daily_1000': {'url': urlbase,
+                                       'folder': 'MOLA/',
+                                       'prod': 'MYD11A1.005',
                                        'spec': lst_spec, 'spec_qa': lst_specqa,
                                        'suff': lst1km_suff, 'res': 1000,
                                        'color': lst_color
               },
-              'lst_terra_daily_1000': {'url': urlbase, 
-                                       'folder': 'MOLT/MOD11A1.005',
+              'lst_terra_daily_1000': {'url': urlbase,
+                                       'folder': 'MOLT/',
+                                       'prod': 'MOD11A1.005',
                                        'spec': lst_spec, 'spec_qa': lst_specqa,
                                        'suff': lst1km_suff, 'res': 1000,
                                        'color': lst_color
               },
-              'lst_terra_eight_1000': {'url': urlbase, 
-                                       'folder': 'MOLT/MOD11A2.005',
+              'lst_terra_eight_1000': {'url': urlbase,
+                                       'folder': 'MOLT/',
+                                       'prod': 'MOD11A2.005',
                                        'spec': lst_spec, 'spec_qa': lst_specqa,
                                        'suff': lst1km_suff, 'res': 1000,
                                        'color': lst_color
               },
-              'lst_aqua_eight_1000': {'url': urlbase, 
-                                      'folder': 'MOLA/MYD11A2.005',
+              'lst_aqua_eight_1000': {'url': urlbase,
+                                      'folder': 'MOLA/',
+                                      'prod': 'MYD11A2.005',
                                       'spec': lst_spec, 'spec_qa': lst_specqa,
                                       'suff': lst1km_suff, 'res': 1000,
                                       'color': lst_color
               },
-              'lst_terra_daily_6000': {'url': urlbase, 
-                                       'folder': 'MOLT/MOD11B1.005',
+              'lst_terra_daily_6000': {'url': urlbase,
+                                       'folder': 'MOLT/',
+                                       'prod': 'MOD11B1.005',
                                        'spec': lst_spec, 'spec_qa': lst_specqa,
                                        'suff': lst6km_suff, 'res': 6000,
                                        'color': lst_color
               },
-              'lst_aqua_daily_6000': {'url': urlbase, 
-                                      'folder': 'MOLA/MYD11B1.005',
+              'lst_aqua_daily_6000': {'url': urlbase,
+                                      'folder': 'MOLA/',
+                                      'prod': 'MYD11B1.005',
                                       'spec': lst_spec, 'spec_qa': lst_specqa,
                                       'suff': lst6km_suff, 'res': 6000,
                                       'color': lst_color
               },
 
         }
-        vi = {'ndvi_terra_sixteen_250': {'url': urlbase, 
-                                         'folder': 'MOLT/MOD13Q1.005',
+        vi = {'ndvi_terra_sixteen_250': {'url': urlbase,
+                                         'folder': 'MOLT/',
+                                         'prod': 'MOD13Q1.005',
                                          'spec': vi_spec, 'spec_qa': vi_specqa,
                                          'suff': vi250m_suff, 'res': 250,
                                          'color': vi_color
               },
-              'ndvi_aqua_sixteen_250': {'url': urlbase, 
-                                        'folder': 'MOLA/MYD13Q1.005',
+              'ndvi_aqua_sixteen_250': {'url': urlbase,
+                                        'folder': 'MOLA/',
+                                        'prod': 'MYD13Q1.005',
                                         'spec': vi_spec, 'spec_qa': vi_specqa,
                                         'suff': vi250m_suff, 'res': 250,
                                         'color': vi_color
               },
-              'ndvi_terra_sixteen_500': {'url': urlbase, 
-                                         'folder': 'MOLT/MOD13A1.005',
+              'ndvi_terra_sixteen_500': {'url': urlbase,
+                                         'folder': 'MOLT/',
+                                         'prod': 'MOD13A1.005',
                                          'spec': vi_spec, 'spec_qa': vi_specqa,
                                          'suff': vi1km_suff, 'res': 500,
                                          'color': vi_color
               },
-              'ndvi_aqua_sixteen_500': {'url': urlbase, 
-                                        'folder': 'MOLA/MYD13A1.005',
+              'ndvi_aqua_sixteen_500': {'url': urlbase,
+                                        'folder': 'MOLA/',
+                                        'prod': 'MYD13A1.005',
                                         'spec': vi_spec, 'spec_qa': vi_specqa,
                                         'suff': vi500m_suff, 'res': 500,
                                         'color': vi_color
               },
-              'ndvi_terra_sixteen_1000': {'url': urlbase, 
-                                          'folder': 'MOLT/MOD13A2.005',
+              'ndvi_terra_sixteen_1000': {'url': urlbase,
+                                          'folder': 'MOLT/',
+                                          'prod': 'MOD13A2.005',
                                           'spec': vi_spec, 'spec_qa': vi_specqa,
                                           'suff': vi500m_suff, 'res': 1000,
                                           'color': vi_color
               },
-              'ndvi_aqua_sixteen_1000': {'url': urlbase, 
-                                         'folder': 'MOLA/MYD13A2.005',
+              'ndvi_aqua_sixteen_1000': {'url': urlbase,
+                                         'folder': 'MOLA/',
+                                         'prod': 'MYD13A2.005',
                                          'spec': vi_spec, 'spec_qa': vi_specqa,
                                          'suff': vi1km_suff, 'res': 1000,
                                          'color': vi_color
               }
         }
         surf_refl = {'surfreflec_terra_eight_500': {'url': urlbase,
-                                                    'folder': 'MOLT/MOD09A1.005',
+                                                    'folder': 'MOLT/',
+                                                    'prod': 'MOD09A1.005',
                                                     'spec': surf_spec,
                                                     'spec_qa': surf_specqa,
                                                     'res': 500,
@@ -172,38 +185,42 @@ class product:
                                                     'suff': surf_suff
                                                    },
                      'surfreflec_aqua_eight_500': {'url': urlbase,
-                                                   'folder': 'MOLA/MYD09A1.005',
+                                                   'folder': 'MOLA/',
+                                                   'prod': 'MYD09A1.005',
                                                    'spec': surf_spec,
                                                    'spec_qa': surf_specqa,
                                                    'res': 500,
                                                    'color': snow_color,
                                                    'suff': surf_suff
                                                   }
-        
         }
         snow = {'snow_terra_daily_500': {'url': usrsnow,
-                                         'folder': 'SAN/MOST/MOD10A1.005',
+                                         'folder': 'SAN/MOST/',
+                                         'prod': 'MOD10A1.005',
                                          'spec': snow1_spec,
                                          'spec_qa': snow1_specqa,
                                          'color': snow_color,
                                          'suff': snow1_suff, 'res': 500
                },
                'snow_aqua_daily_500': {'url': usrsnow,
-                                       'folder':  'SAN/MOSA/MYD10A1.005',
-                                       'spec' : snow1_spec,
+                                       'folder': 'SAN/MOSA/',
+                                       'prod': 'MYD10A1.005',
+                                       'spec': snow1_spec,
                                        'spec_qa': snow1_specqa,
-                                       'color' : snow_color,
+                                       'color': snow_color,
                                        'suff' : snow1_suff, 'res' : 500
                },
                'snow_terra_eight_500': {'url': usrsnow,
-                                        'folder': 'SAN/MOST/MOD10A2.005',
+                                        'folder': 'SAN/MOST/',
+                                        'prod': 'MOD10A2.005',
                                         'spec': snow8_spec,
                                         'spec_qa': None,
                                         'color': snow_color,
                                         'suff': snow8_suff, 'res' : 500
                 },
                 'snow_aqua_eight_500' : {'url': usrsnow,
-                                         'folder': 'SAN/MOSA/MYD10A2.005',
+                                         'folder': 'SAN/MOSA/',
+                                         'prod': 'MYD10A2.005',
                                          'spec': snow8_spec,
                                          'spec_qa': None,
                                          'color': snow_color,
@@ -216,10 +233,12 @@ class product:
         self.products.update(snow)
         self.products.update(surf_refl)
         self.products_swath = {'lst_terra_daily': {'url': urlbase,
-                                                   'folder': 'MOLT/MOD11_L2.005',
+                                                   'folder': 'MOLT/',
+                                                   'prod': 'MOD11_L2.005',
                                                    'spec': lstL2_spec},
                                'lst_aqua_daily': {'url': urlbase,
-                                                  'folder': 'MOLA/MYD11_L2.005',
+                                                  'folder': 'MOLA/',
+                                                  'prod': 'MYD11_L2.005',
                                                   'spec': lstL2_spec}
         }
 
@@ -235,10 +254,10 @@ class product:
     def fromcode(self, code):
         import string
         for k, v in self.products.iteritems():
-            if string.find(v['folder'], code) != -1:
+            if string.find(v['prod'], code) != -1:
                 return self.products[k]
         for k, v in self.products_swath.iteritems():
-            if string.find(v['folder'], code) != -1:
+            if string.find(v['prod'], code) != -1:
                 return self.products_swath[k]
         grass.fatal(_("The code insert is not supported yet. Consider to " \
                       "ask on the grass-dev mailing list for future support"))
@@ -270,7 +289,8 @@ class resampling:
     """
     def __init__(self, value):
         self.code = value
-        self.resampling = {'nearest': 'NEAREST_NEIGHBOR', 'bilinear': 'BILINEAR',
+        self.resampling = {'nearest': 'NEAREST_NEIGHBOR',
+                           'bilinear': 'BILINEAR',
                            'cubic': 'CUBIC CONVOLUTION'}
 
     def returned(self):
