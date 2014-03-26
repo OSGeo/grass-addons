@@ -29,12 +29,10 @@
 #% key: g
 #% description: Return the name of file containing the list of HDF tiles downloaded in shell script style
 #%end
-#%option
+#%option G_OPT_F_INPUT
 #% key: settings
-#% type: string
-#% gisprompt: old,file,input
 #% label: Full path to settings file
-#% description: "-" to pass the parameter from stdin
+#% required: yes
 #% guisection: Define
 #%end
 #%option
