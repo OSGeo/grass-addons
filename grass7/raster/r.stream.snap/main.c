@@ -4,8 +4,8 @@
  * MODULE:       r.stream.snap
  * AUTHOR(S):    Jarek Jasiewicz jarekj amu.edu.pl
  *               
- * PURPOSE:      Snap ponints features to nearest pour points. Usefull both to
- *               snap outlets well as sources. Use two parameters: 
+ * PURPOSE:      Snap points features to nearest pour points. Useful both to
+ *               snap outlets as well as sources. It uses two parameters: 
  *               maximum snap distance and minimum accumulation value to snap
  *               
  *
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     opt_accum_treshold->type = TYPE_DOUBLE;
     opt_accum_treshold->answer = "-1";
     opt_accum_treshold->description =
-	_("Minimum accumulation streshold to snap");
+	_("Minimum accumulation threshold to snap");
 
     opt_distance_treshold = G_define_option();
     opt_distance_treshold->key = "radius";
